@@ -561,9 +561,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                       val heads =
                         map2 (fn y => fn set => HOLogic.mk_Trueprop (HOLogic.mk_mem (y, set $ x)))
                           ys sets;
-                      val bodies = flat (map (mk_prem_prems names_lthy') ys);
+                      val bodiess = map (mk_prem_prems names_lthy') ys;
                     in
-                      map2 (curry Logic.mk_implies) heads bodies
+                      flat (map2 (map o curry Logic.mk_implies) heads bodiess)
                     end)
                 | i => [HOLogic.mk_Trueprop (nth phis i $ x)])
               | mk_prem_prems _ _ = [];
