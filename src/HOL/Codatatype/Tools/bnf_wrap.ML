@@ -157,8 +157,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val casex = mk_case As B;
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val (((((((xss, yss), fs), gs), (v, v')), w), (p, p')), names_lthy) = no_defs_lthy |>
-      mk_Freess "x" ctr_Tss
+    val ((((((((xss, xss'), yss), fs), gs), (v, v')), w), (p, p')), names_lthy) = no_defs_lthy |>
+      mk_Freess' "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
@@ -206,16 +206,19 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
           fun alternate_disc k = Term.lambda v (alternate_disc_lhs (K o disc_free) (3 - k));
 
+          fun mk_default T t =
+            let
+              val Ts0 = map TFree (Term.add_tfreesT (fastype_of t) []);
+              val Ts = map TFree (Term.add_tfreesT T []);
+            in Term.subst_atomic_types (Ts0 ~~ Ts) t end;
+
           fun mk_sel_case_args b proto_sels T =
             map2 (fn Ts => fn k =>
               (case AList.lookup (op =) proto_sels k of
                 NONE =>
-                let val def_T = Ts ---> T in
-                  (case AList.lookup Binding.eq_name (rev (nth sel_defaultss (k - 1))) b of
-                    NONE => mk_undefined def_T
-                  | SOME t => fold_rev (fn T => Term.lambda (Free (Name.uu, T))) Ts
-                      (Term.subst_atomic_types [(fastype_of t, T)] t))
-                end
+                (case AList.lookup Binding.eq_name (rev (nth sel_defaultss (k - 1))) b of
+                  NONE => fold_rev (Term.lambda o curry Free Name.uu) Ts (mk_undefined T)
+                | SOME t => mk_default (Ts ---> T) t)
               | SOME (xs, x) => fold_rev Term.lambda xs x)) ctr_Tss ks;
 
           fun sel_spec b proto_sels =
@@ -355,20 +358,23 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             ([], [], [], [], [], [], [], [])
           else
             let
-              fun make_sel_thm case_thm sel_def = case_thm RS (sel_def RS trans);
+              fun make_sel_thm xs' case_thm sel_def =
+                zero_var_indexes (Drule.gen_all (Drule.rename_bvars' (map (SOME o fst) xs')
+                    (Drule.forall_intr_vars (case_thm RS (sel_def RS trans)))));
 
               fun has_undefined_rhs thm =
                 (case snd (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of thm))) of
                   Const (@{const_name undefined}, _) => true
                 | _ => false);
 
-              val sel_thmss = map2 (map o make_sel_thm) case_thms sel_defss;
+              val sel_thmss = map3 (map oo make_sel_thm) xss' case_thms sel_defss;
 
               val all_sel_thms =
                 (if all_sels_distinct andalso forall null sel_defaultss then
                    flat sel_thmss
                  else
-                   map_product (fn s => fn c => make_sel_thm c s) sel_defs case_thms)
+                   map_product (fn s => fn (xs', c) => make_sel_thm xs' c s) sel_defs
+                     (xss' ~~ case_thms))
                 |> filter_out has_undefined_rhs;
 
               fun mk_unique_disc_def () =
