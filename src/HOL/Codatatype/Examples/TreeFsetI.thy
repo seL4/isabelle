@@ -52,7 +52,7 @@ done
 lemmas treeFsetI_coind = mp[OF treeFsetI.pred_coinduct]
 
 lemma "tmap (f o g) x = tmap f (tmap g x)"
-by (intro treeFsetI_coind[where phi="%x1 x2. \<exists>x. x1 = tmap (f o g) x \<and> x2 = tmap f (tmap g x)"])
+by (intro treeFsetI_coind[where P="%x1 x2. \<exists>x. x1 = tmap (f o g) x \<and> x2 = tmap f (tmap g x)"])
    force+
 
 end

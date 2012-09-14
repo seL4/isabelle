@@ -133,27 +133,27 @@ definition twos :: "nat stream" where [simp]: "twos = stream_unf_coiter ((%x. 2)
 definition ns :: "nat \<Rightarrow> nat stream" where [simp]: "ns n = scalar n ones"
 
 lemma "ones \<oplus> ones = twos"
-by (intro stream_coind[where phi="%x1 x2. \<exists>x. x1 = ones \<oplus> ones \<and> x2 = twos"])
+by (intro stream_coind[where P="%x1 x2. \<exists>x. x1 = ones \<oplus> ones \<and> x2 = twos"])
    auto
 
 lemma "n \<cdot> twos = ns (2 * n)"
-by (intro stream_coind[where phi="%x1 x2. \<exists>n. x1 = n \<cdot> twos \<and> x2 = ns (2 * n)"])
+by (intro stream_coind[where P="%x1 x2. \<exists>n. x1 = n \<cdot> twos \<and> x2 = ns (2 * n)"])
    force+
 
 lemma prod_scalar: "(n * m) \<cdot> xs = n \<cdot> m \<cdot> xs"
-by (intro stream_coind[where phi="%x1 x2. \<exists>n m xs. x1 = (n * m) \<cdot> xs \<and> x2 = n \<cdot> m \<cdot> xs"])
+by (intro stream_coind[where P="%x1 x2. \<exists>n m xs. x1 = (n * m) \<cdot> xs \<and> x2 = n \<cdot> m \<cdot> xs"])
    force+
 
 lemma scalar_plus: "n \<cdot> (xs \<oplus> ys) = n \<cdot> xs \<oplus> n \<cdot> ys"
-by (intro stream_coind[where phi="%x1 x2. \<exists>n xs ys. x1 = n \<cdot> (xs \<oplus> ys) \<and> x2 = n \<cdot> xs \<oplus> n \<cdot> ys"])
+by (intro stream_coind[where P="%x1 x2. \<exists>n xs ys. x1 = n \<cdot> (xs \<oplus> ys) \<and> x2 = n \<cdot> xs \<oplus> n \<cdot> ys"])
    (force simp: add_mult_distrib2)+
 
 lemma plus_comm: "xs \<oplus> ys = ys \<oplus> xs"
-by (intro stream_coind[where phi="%x1 x2. \<exists>xs ys. x1 = xs \<oplus> ys \<and> x2 = ys \<oplus> xs"])
+by (intro stream_coind[where P="%x1 x2. \<exists>xs ys. x1 = xs \<oplus> ys \<and> x2 = ys \<oplus> xs"])
    force+
 
 lemma plus_assoc: "(xs \<oplus> ys) \<oplus> zs = xs \<oplus> ys \<oplus> zs"
-by (intro stream_coind[where phi="%x1 x2. \<exists>xs ys zs. x1 = (xs \<oplus> ys) \<oplus> zs \<and> x2 = xs \<oplus> ys \<oplus> zs"])
+by (intro stream_coind[where P="%x1 x2. \<exists>xs ys zs. x1 = (xs \<oplus> ys) \<oplus> zs \<and> x2 = xs \<oplus> ys \<oplus> zs"])
    force+
 
 end
