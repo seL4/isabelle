@@ -123,8 +123,8 @@ fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
 fun mk_induct_discharge_prem_prems_tac ctxt nn ixs set_natural's pre_set_defs =
   EVERY' (maps (fn ((pp, jj), (qq, kk)) =>
       [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-       SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs), (* FIXME: ### why on a line of its own? *)
-       SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
+       SELECT_GOAL (Local_Defs.unfold_tac ctxt
+         (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
        SELECT_GOAL (Local_Defs.unfold_tac ctxt
          (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
        rtac (mk_UnIN pp jj) THEN' mk_induct_prem_prem_endgame_tac ctxt qq ORELSE'
