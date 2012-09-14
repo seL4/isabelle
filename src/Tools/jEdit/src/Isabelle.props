@@ -20,9 +20,11 @@ plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 1.8
 plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 0.8
 
 #options
-plugin.isabelle.jedit.Plugin.option-pane=isabelle
-options.isabelle.label=Isabelle
-options.isabelle.code=new isabelle.jedit.Isabelle_Options();
+plugin.isabelle.jedit.Plugin.option-group=isabelle-general isabelle-rendering
+options.isabelle-general.label=General
+options.isabelle-general.code=new isabelle.jedit.Isabelle_Options1();
+options.isabelle-rendering.label=Rendering
+options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 
 #actions
 isabelle.check-buffer.label=Commence full proof checking of current buffer
