@@ -96,11 +96,12 @@ fun mk_induct_prepare_prem_tac n m k =
   EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
     REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1;
 
-fun mk_induct_prepare_prem_prems_tac 0 = all_tac
-  | mk_induct_prepare_prem_prems_tac r =
-    REPEAT_DETERM_N r ((rotate_tac ~1) 1 THEN dtac meta_mp 1 THEN
-      defer_tac 2 THEN PRIMITIVE (Thm.permute_prems 0 ~1) THEN rotate_tac 1 1) THEN
-    PRIMITIVE Raw_Simplifier.norm_hhf;
+(* FIXME: why not in "Pure"? *)
+fun prefer_tac i = defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1);
+
+fun mk_induct_prepare_prem_prems_tac r =
+  REPEAT_DETERM_N r (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2) THEN
+  PRIMITIVE Raw_Simplifier.norm_hhf;
 
 val induct_prem_prem_thms =
   @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex UN_insert Un_assoc[symmetric] Un_empty_left
@@ -122,7 +123,7 @@ fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
 (* TODO: Get rid of the "blast_tac" *)
 fun mk_induct_discharge_prem_prems_tac ctxt nn ixs set_natural's pre_set_defs =
   EVERY' (maps (fn ((pp, jj), (qq, kk)) =>
-    [select_prem_tac nn (dtac meta_spec) (nn - kk + 1), rotate_tac ~1,(*###*) etac meta_mp,
+    [rotate_tac (~ nn), select_prem_tac nn (dtac meta_spec) kk, rotate_tac ~1,(*###*) etac meta_mp,
      SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs), (* ### why on a line of its own? *)
      SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
      SELECT_GOAL (Local_Defs.unfold_tac ctxt
