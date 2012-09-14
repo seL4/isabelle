@@ -146,7 +146,7 @@ fun do_try0 mode timeout_opt quad st =
         (true, (s, st |> (if mode = Auto_Try then
                             Proof.goal_message
                                 (fn () => Pretty.chunks [Pretty.str "",
-                                          Pretty.markup Isabelle_Markup.hilite
+                                          Pretty.markup Isabelle_Markup.intensify
                                                         [Pretty.str message]])
                           else
                             tap (fn _ => Output.urgent_message message))))

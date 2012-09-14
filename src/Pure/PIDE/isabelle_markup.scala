@@ -185,7 +185,7 @@ object Isabelle_Markup
   val STATE = "state"
   val SUBGOAL = "subgoal"
   val SENDBACK = "sendback"
-  val HILITE = "hilite"
+  val INTENSIFY = "intensify"
 
 
   /* command status */

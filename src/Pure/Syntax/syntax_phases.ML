@@ -586,7 +586,7 @@ fun free_or_skolem ctxt x =
     val m =
       if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
       then Isabelle_Markup.fixed x
-      else Isabelle_Markup.hilite;
+      else Isabelle_Markup.intensify;
   in
     if can Name.dest_skolem x
     then ([m, Isabelle_Markup.skolem], Variable.revert_fixed ctxt x)

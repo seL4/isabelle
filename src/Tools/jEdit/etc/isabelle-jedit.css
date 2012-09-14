@@ -9,7 +9,7 @@
 
 .report { display: none; }
 
-.hilite { background-color: #FFCC66; }
+.intensify { background-color: #FFCC66; }
 
 .keyword { font-weight: bold; color: #009966; }
 .operator { font-weight: bold; }

@@ -97,9 +97,9 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   val error_color = color_value("error_color")
   val error1_color = color_value("error1_color")
   val bad_color = color_value("bad_color")
-  val hilite_color = color_value("hilite_color")
+  val intensify_color = color_value("intensify_color")
   val quoted_color = color_value("quoted_color")
-  val subexp_color = color_value("subexp_color")
+  val highlight_color = color_value("highlight_color")
   val hyperlink_color = color_value("hyperlink_color")
   val keyword1_color = color_value("keyword1_color")
   val keyword2_color = color_value("keyword2_color")
@@ -154,19 +154,19 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
   /* markup selectors */
 
-  private val subexp_include =
+  private val highlight_include =
     Set(Isabelle_Markup.SORT, Isabelle_Markup.TYP, Isabelle_Markup.TERM, Isabelle_Markup.PROP,
       Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
       Isabelle_Markup.PATH, Isabelle_Markup.TYPING, Isabelle_Markup.FREE, Isabelle_Markup.SKOLEM,
       Isabelle_Markup.BOUND, Isabelle_Markup.VAR, Isabelle_Markup.TFREE, Isabelle_Markup.TVAR,
       Isabelle_Markup.ML_SOURCE, Isabelle_Markup.DOCUMENT_SOURCE)
 
-  def subexp(range: Text.Range): Option[Text.Info[Color]] =
+  def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
-    snapshot.select_markup(range, Some(subexp_include),
+    snapshot.select_markup(range, Some(highlight_include),
         {
-          case Text.Info(info_range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-            Text.Info(snapshot.convert(info_range), subexp_color)
+          case Text.Info(info_range, XML.Elem(Markup(name, _), _)) if highlight_include(name) =>
+            Text.Info(snapshot.convert(info_range), highlight_color)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
   }
 
@@ -346,15 +346,15 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
         Text.Info(r, result) <-
           snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
             range, (Some(Protocol.Status.init), None),
-            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.HILITE),
+            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.INTENSIFY),
             {
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
                 (Some(Protocol.command_status(status, markup)), color)
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
                 (None, Some(bad_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.HILITE, _), _))) =>
-                (None, Some(hilite_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.INTENSIFY, _), _))) =>
+                (None, Some(intensify_color))
             })
         color <-
           (result match {

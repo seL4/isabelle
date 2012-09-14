@@ -171,7 +171,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   private var control: Boolean = false
 
-  private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.subexp _)
+  private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.highlight _)
   def highlight_info(): Option[Text.Info[Color]] = highlight_area.info
 
   private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
