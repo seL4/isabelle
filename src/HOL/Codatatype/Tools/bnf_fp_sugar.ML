@@ -496,7 +496,6 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         ((wrap, define_iter_likes), lthy')
       end;
 
-    (* TODO: remove all "nested" and "nesting" BNFs from pre_bnfs, if they're there ### *)
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
@@ -572,7 +571,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               fold_rev Logic.all
                 (map Free (drop (nn + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
 
-            fun mk_prem_triple phi ctr ctr_Ts =
+            fun mk_raw_prem phi ctr ctr_Ts =
               let
                 val (xs, names_lthy') = names_lthy |> mk_Frees "x" ctr_Ts;
                 val prem_prems =
@@ -581,17 +580,17 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 (xs, prem_prems, HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs)))
               end;
 
-            val prem_tripless = map3 (map2 o mk_prem_triple) phis ctrss ctr_Tsss;
+            val raw_premss = map3 (map2 o mk_raw_prem) phis ctrss ctr_Tsss;
 
             fun mk_prem (xs, prem_prems, concl) =
               fold_rev Logic.all xs (Logic.list_implies (prem_prems, concl));
 
             val goal =
-              Library.foldr (Logic.list_implies o apfst (map mk_prem)) (prem_tripless,
+              Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (map2 (curry (op $)) phis vs)));
 
-            val rss = map (map (length o #2)) prem_tripless;
+            val rss = map (map (length o #2)) raw_premss;
 
             val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
@@ -672,7 +671,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     fun derive_coinduct_coiter_corec_thms_for_types ((ctrss, selsss, coiters, corecs, _, ctr_defss,
         discIss, sel_thmsss, coiter_defs, corec_defs), lthy) =
       let
-        val (vs', names_lthy) =
+        val (vs', _) =
           lthy
           |> Variable.variant_fixes (map Binding.name_of fp_bs);
 

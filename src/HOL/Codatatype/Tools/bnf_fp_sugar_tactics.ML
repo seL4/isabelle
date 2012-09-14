@@ -10,8 +10,8 @@ sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coiter_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
-  val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm
-    -> tactic
+  val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
+    tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int list -> int list list -> int list list -> thm list ->
     thm -> thm list list -> thm list -> tactic
@@ -95,45 +95,49 @@ fun mk_induct_prepare_prem_tac n m k =
   EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
     REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1;
 
-fun mk_induct_prepare_prem_prems_tac _ _ 0 = all_tac
-  | mk_induct_prepare_prem_prems_tac nn kk r =
-    REPEAT_DETERM_N r (rotate_tac (~1 + kk - nn) 1 THEN dtac meta_mp 1 THEN
+fun mk_induct_prepare_prem_prems_tac 0 = all_tac
+  | mk_induct_prepare_prem_prems_tac r =
+    REPEAT_DETERM_N r ((rotate_tac ~1) 1 THEN dtac meta_mp 1 THEN
       defer_tac 2 THEN PRIMITIVE (Thm.permute_prems 0 ~1) THEN rotate_tac 1 1) THEN
     PRIMITIVE Raw_Simplifier.norm_hhf;
 
 val induct_prem_prem_thms =
   @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex UN_insert Un_assoc[symmetric] Un_empty_left
-      Un_empty_right Union_Un_distrib collect_def[abs_def] fst_conv fsts_def[abs_def] image_def
-      map_pair_simp o_apply snd_conv snds_def[abs_def] sum.cases sum_map.simps sum_setl_def[abs_def]
-      sum_setr_def[abs_def] sup_bot_right};
+      Un_empty_right Union_Un_distrib collect_def[abs_def] fst_conv image_def o_apply snd_conv
+      snd_prod_fun sum.cases sup_bot_right fst_map_pair map_pair_simp sum_map.simps};
 
+(* These rules interfere with the "set_natural'" properties of "sum" and "prod", so we explicitly
+   delay them. *)
+val induct_prem_prem_thms_delayed =
+  @{thms fsts_def[abs_def] snds_def[abs_def] sum_setl_def[abs_def] sum_setr_def[abs_def]};
+
+(* TODO: Get rid of the "blast_tac" *)
 fun mk_induct_discharge_prem_prems_tac ctxt r pre_set_defs set_natural's =
   EVERY' (maps (fn i =>
     [dtac meta_spec, rotate_tac ~1, etac meta_mp,
+     SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs),
+     SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
      SELECT_GOAL (Local_Defs.unfold_tac ctxt
-       (set_natural's @ pre_set_defs @ induct_prem_prem_thms)),
-     rtac (mk_UnIN r i),
+       (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
+     TRY o rtac (mk_UnIN r i), (* FIXME: crude hack, doesn't work in the general case *)
      atac ORELSE'
      rtac @{thm singletonI} ORELSE'
-     (REPEAT_DETERM o (atac ORELSE'
-        SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
-        etac @{thm induct_set_step}))]) (r downto 1)) 1;
+     (REPEAT_DETERM o (SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
+          etac @{thm induct_set_step}) THEN'
+        (atac ORELSE' blast_tac ctxt))]) (r downto 1)) 1;
 
-fun mk_induct_discharge_prem_tac ctxt nn kk n m k r pre_set_defs set_natural's =
+fun mk_induct_discharge_prem_tac ctxt n m k r pre_set_defs set_natural's =
   EVERY [mk_induct_prepare_prem_tac n m k,
-    mk_induct_prepare_prem_prems_tac nn kk r, atac 1,
+    mk_induct_prepare_prem_prems_tac r, atac 1,
     mk_induct_discharge_prem_prems_tac ctxt r pre_set_defs set_natural's];
 
 fun mk_induct_tac ctxt ns mss rss ctr_defs fld_induct' pre_set_defss set_natural's =
-  let
-    val nn = length ns;
-    val n = Integer.sum ns;
-  in
+  let val n = Integer.sum ns in
     mk_induct_prelude_tac ctxt ctr_defs fld_induct' THEN
-    EVERY (map5 (fn kk => fn pre_set_defs =>
+    EVERY (map4 (fn pre_set_defs =>
         EVERY ooo map3 (fn m => fn k => fn r =>
-            mk_induct_discharge_prem_tac ctxt nn kk n m k r pre_set_defs set_natural's))
-      (1 upto nn) pre_set_defss mss (unflat mss (1 upto Integer.sum ns)) rss)
+            mk_induct_discharge_prem_tac ctxt n m k r pre_set_defs set_natural's))
+      pre_set_defss mss (unflat mss (1 upto n)) rss)
   end;
 
 end;

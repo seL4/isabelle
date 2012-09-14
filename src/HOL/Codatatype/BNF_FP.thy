@@ -107,6 +107,7 @@ by simp
 lemma UN_compreh_bex:
 "\<Union>{y. \<exists>x \<in> A. y = {}} = {}"
 "\<Union>{y. \<exists>x \<in> A. y = {x}} = A"
+"\<Union>{y. \<exists>x \<in> A. y = {f x}} = {y. \<exists>x \<in> A. y = f x}"
 by blast+
 
 lemma induct_set_step: "\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and> c \<in> C"
