@@ -175,17 +175,20 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         fp_iter_thms, fp_rec_thms), lthy)) =
       fp_bnf construct fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
 
-    val add_nested_bnf_names =
+    fun add_nesty_bnf_names Us =
       let
         fun add (Type (s, Ts)) ss =
             let val (needs, ss') = fold_map add Ts ss in
               if exists I needs then (true, insert (op =) s ss') else (false, ss')
             end
-          | add T ss = (member (op =) Bs T, ss);
+          | add T ss = (member (op =) Us T, ss);
       in snd oo add end;
 
-    val nested_bnfs =
-      map_filter (bnf_of lthy) (fold (fold (fold add_nested_bnf_names)) ctr_TsssBs []);
+    fun nesty_bnfs Us =
+      map_filter (bnf_of lthy) (fold (fold (fold (add_nesty_bnf_names Us))) ctr_TsssBs []);
+
+    val nesting_bnfs = nesty_bnfs As;
+    val nested_bnfs = nesty_bnfs Bs;
 
     val timer = time (Timer.startRealTimer ());
 
@@ -498,7 +501,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
-    val map_ids = map map_id_of_bnf nested_bnfs;
+    val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
 
     fun mk_map Ts Us t =
       let val (Type (_, Ts0), Type (_, Us0)) = strip_map_type (fastype_of t) |>> List.last in
@@ -626,9 +629,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val goal_recss = map5 (map4 o mk_goal_iter_like hss) hrecs xctrss hss xsss hxsss;
 
             val iter_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs map_ids iter_defs) fp_iter_thms ctr_defss;
+              map2 (map o mk_iter_like_tac pre_map_defs nesting_map_ids iter_defs) fp_iter_thms
+                ctr_defss;
             val rec_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs map_ids rec_defs) fp_rec_thms ctr_defss;
+              map2 (map o mk_iter_like_tac pre_map_defs nesting_map_ids rec_defs) fp_rec_thms
+                ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
                goal_iterss iter_tacss,
@@ -704,10 +709,10 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               map8 (map4 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss mss cshsss';
 
             val coiter_tacss =
-              map3 (map oo mk_coiter_like_tac coiter_defs map_ids) fp_iter_thms pre_map_defs
+              map3 (map oo mk_coiter_like_tac coiter_defs nesting_map_ids) fp_iter_thms pre_map_defs
                 ctr_defss;
             val corec_tacss =
-              map3 (map oo mk_coiter_like_tac corec_defs map_ids) fp_rec_thms pre_map_defs
+              map3 (map oo mk_coiter_like_tac corec_defs nesting_map_ids) fp_rec_thms pre_map_defs
                 ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac =>
