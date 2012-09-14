@@ -113,22 +113,23 @@ val induct_prem_prem_thms =
 val induct_prem_prem_thms_delayed =
   @{thms fsts_def[abs_def] snds_def[abs_def] sum_setl_def[abs_def] sum_setr_def[abs_def]};
 
+(* TODO: Get rid of the "auto_tac" (or at least use a naked context) *)
 fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
   | mk_induct_prem_prem_endgame_tac ctxt qq =
     REPEAT_DETERM_N qq o
       (SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
        etac @{thm induct_set_step}) THEN'
-    atac;
+    atac ORELSE' SELECT_GOAL (auto_tac ctxt);
 
-(* TODO: Get rid of the "blast_tac" (or at least use a naked context) *)
 fun mk_induct_discharge_prem_prems_tac ctxt nn ixs set_natural's pre_set_defs =
   EVERY' (maps (fn ((pp, jj), (qq, kk)) =>
-      [rotate_tac (~ nn), select_prem_tac nn (dtac meta_spec) kk, rotate_tac ~1,(*###*) etac meta_mp,
-       SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs), (* ### why on a line of its own? *)
+      [select_prem_tac nn (dtac meta_spec) kk, rotate_tac ~1 (*FIXME: needed?*), etac meta_mp,
+       SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs), (* FIXME: ### why on a line of its own? *)
        SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
        SELECT_GOAL (Local_Defs.unfold_tac ctxt
          (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
-       rtac (mk_UnIN pp jj) THEN' mk_induct_prem_prem_endgame_tac ctxt qq ORELSE' blast_tac ctxt])
+       rtac (mk_UnIN pp jj) THEN' mk_induct_prem_prem_endgame_tac ctxt qq ORELSE'
+         SELECT_GOAL (auto_tac ctxt)])
     (rev ixs)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ixs =
