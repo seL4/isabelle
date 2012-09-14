@@ -29,7 +29,7 @@ open BNF_FP_Util
 val meta_mp = @{thm meta_mp};
 val meta_spec = @{thm meta_spec};
 
-fun squash_spurious_fs lthy thm =
+fun smash_spurious_fs lthy thm =
   let
     val spurious_fs =
       Term.add_vars (prop_of thm) []
@@ -41,7 +41,7 @@ fun squash_spurious_fs lthy thm =
     Drule.cterm_instantiate cxs thm
   end;
 
-val squash_spurious_fs_tac = PRIMITIVE o squash_spurious_fs;
+val smash_spurious_fs_tac = PRIMITIVE o smash_spurious_fs;
 
 fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
   Local_Defs.unfold_tac ctxt [case_def, ctr_def, unf_fld] THEN
@@ -89,7 +89,7 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
 
 fun mk_induct_prelude_tac ctxt ctr_defs fld_induct' =
-  Local_Defs.unfold_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN squash_spurious_fs_tac ctxt;
+  Local_Defs.unfold_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN smash_spurious_fs_tac ctxt;
 
 fun mk_induct_prepare_prem_tac n m k =
   EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
