@@ -38,8 +38,8 @@ fun split_list10 xs =
   (map #1 xs, map #2 xs, map #3 xs, map #4 xs, map #5 xs, map #6 xs, map #7 xs, map #8 xs,
    map #9 xs, map #10 xs);
 
-fun strip_map_type (Type (@{type_name fun}, [T as Type _, T'])) = strip_map_type T' |>> cons T
-  | strip_map_type T = ([], T);
+fun strip_map_type @{type_name fun} (Type (_, [T, Type (_, [T', T''])])) = ([T, T'], T'')
+  | strip_map_type _ T = strip_type T;
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
@@ -501,16 +501,16 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
     val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
 
-    fun mk_map Ts Us t =
-      let val (Type (_, Ts0), Type (_, Us0)) = strip_map_type (fastype_of t) |>> List.last in
+    fun mk_map s Ts Us t =
+      let val (Type (_, Ts0), Type (_, Us0)) = strip_map_type s (fastype_of t) |>> List.last in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
-    fun build_map build_arg (Type (s, Ts)) (Type (_, Us)) =
+    fun build_map build_arg (T as Type (s, Ts)) (U as Type (_, Us)) =
       let
         val map0 = map_of_bnf (the (bnf_of lthy s));
-        val mapx = mk_map Ts Us map0;
-        val TUs = map dest_funT (fst (split_last (fst (strip_map_type (fastype_of mapx)))));
+        val mapx = mk_map s Ts Us map0;
+        val TUs = map dest_funT (fst (split_last (fst (strip_map_type s (fastype_of mapx)))));
         val args = map build_arg TUs;
       in Term.list_comb (mapx, args) end;
 
