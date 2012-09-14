@@ -546,7 +546,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 Term.subst_atomic_types (Ts0 ~~ Ts) t
               end;
 
-            fun mk_prem_prems names_lthy (x as Free (s, T as Type (T_name, Ts0))) =
+            fun mk_raw_prem_prems names_lthy (x as Free (s, T as Type (T_name, Ts0))) =
                 (case find_index (curry (op =) T) fpTs of
                   ~1 =>
                   (case AList.lookup (op =) setss_nested T_name of
@@ -557,47 +557,53 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                         split_list (filter (exists_fp_subtype o fst) (Ts0 ~~ raw_sets0));
                       val sets = map (mk_set Ts0) raw_sets;
                       val (ys, names_lthy') = names_lthy |> mk_Frees s Ts;
-                      val heads =
-                        map2 (fn y => fn set => HOLogic.mk_Trueprop (HOLogic.mk_mem (y, set $ x)))
-                          ys sets;
-                      val bodiess = map (mk_prem_prems names_lthy') ys;
+                      val xysets = map (pair x) (ys ~~ sets);
+                      val ppremss = map (mk_raw_prem_prems names_lthy') ys;
                     in
-                      flat (map2 (map o curry Logic.mk_implies) heads bodiess)
+                      flat (map2 (map o apfst o cons) xysets ppremss)
                     end)
-                | i => [HOLogic.mk_Trueprop (nth phis i $ x)])
-              | mk_prem_prems _ _ = [];
+                | i => [([], (i, x))])
+              | mk_raw_prem_prems _ _ = [];
 
-            fun close_prem_prem (Free x') t =
+            fun close_prem_prem x' t =
               fold_rev Logic.all
                 (map Free (drop (nn + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
+
+            fun mk_prem_prem x (xysets, (i, x')) =
+              close_prem_prem (dest_Free x)
+                (Logic.list_implies (map (fn (x'', (y, set)) =>
+                     HOLogic.mk_Trueprop (HOLogic.mk_mem (y, set $ x''))) xysets,
+                   HOLogic.mk_Trueprop (nth phis i $ x')));
 
             fun mk_raw_prem phi ctr ctr_Ts =
               let
                 val (xs, names_lthy') = names_lthy |> mk_Frees "x" ctr_Ts;
-                val prem_prems =
-                  maps (fn x => map (close_prem_prem x) (mk_prem_prems names_lthy' x)) xs;
+                val pprems =
+                  maps (fn x => map (mk_prem_prem x) (mk_raw_prem_prems names_lthy' x)) xs;
               in
-                (xs, prem_prems, HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs)))
+                (xs, pprems, HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs)))
               end;
 
             val raw_premss = map3 (map2 o mk_raw_prem) phis ctrss ctr_Tsss;
 
-            fun mk_prem (xs, prem_prems, concl) =
-              fold_rev Logic.all xs (Logic.list_implies (prem_prems, concl));
+            fun mk_prem (xs, pprems, concl) =
+              fold_rev Logic.all xs (Logic.list_implies (pprems, concl));
 
             val goal =
               Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (map2 (curry (op $)) phis vs)));
 
+            (* ### WRONG *)
             val rss = map (map (length o #2)) raw_premss;
+            val ppisss = map (map (fn r => map (pair r) (1 upto r))) rss;
 
             val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt ns mss rss (flat ctr_defss) fld_induct' pre_set_defss
-                  nested_set_natural's)
+                mk_induct_tac ctxt ns mss ppisss (flat ctr_defss) fld_induct' nested_set_natural's
+                  pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
           in
             `(conj_dests nn) induct_thm
