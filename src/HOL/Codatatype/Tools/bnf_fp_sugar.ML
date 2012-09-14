@@ -51,8 +51,6 @@ fun typ_subst inst (T as Type (s, Ts)) =
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
-fun mk_id T = Const (@{const_name id}, T --> T);
-
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
@@ -499,9 +497,10 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         ((wrap, define_iter_likes), lthy')
       end;
 
-    (* TODO: remove all "nested" and "nesting" BNFs from pre_bnfs, if they're there *)
+    (* TODO: remove all "nested" and "nesting" BNFs from pre_bnfs, if they're there ### *)
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
+    val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
     val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
 
     fun mk_map Ts Us t =
@@ -571,26 +570,36 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               fold_rev Logic.all
                 (map Free (drop (nn + 1) (rev (Term.add_frees t (x' :: phis'))))) t;
 
-            fun mk_prem phi ctr ctr_Ts =
+            fun mk_prem_triple phi ctr ctr_Ts =
               let
                 val (xs, names_lthy') = names_lthy |> mk_Frees "x" ctr_Ts;
                 val prem_prems =
                   maps (fn x => map (close_prem_prem x) (mk_prem_prems names_lthy' x)) xs;
               in
-                fold_rev Logic.all xs
-                  (Logic.list_implies (prem_prems,
-                     HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs))))
+                (xs, prem_prems, HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs)))
               end;
 
+            val prem_tripless = map3 (map2 o mk_prem_triple) phis ctrss ctr_Tsss;
+
+            fun mk_prem (xs, prem_prems, concl) =
+              fold_rev Logic.all xs (Logic.list_implies (prem_prems, concl));
+
             val goal =
-              fold_rev (fold_rev Logic.all) [phis, vs]
-                (Library.foldr Logic.list_implies (map3 (map2 o mk_prem) phis ctrss ctr_Tsss,
-                   HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-                     (map2 (curry (op $)) phis vs))));
+              Library.foldr (Logic.list_implies o apfst (map mk_prem)) (prem_tripless,
+                HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+                  (map2 (curry (op $)) phis vs)));
+
+            val rss = map (map (length o #2)) prem_tripless;
+
+            val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt);
+                mk_induct_tac ctxt ns mss rss (flat ctr_defss) fld_induct' pre_set_defss
+                  nested_set_natural's)
+              (* TODO: thread name context properly ### *)
+              |> singleton (Proof_Context.export names_lthy lthy)
+              |> singleton (Proof_Context.export no_defs_lthy no_defs_lthy0)
           in
             `(conj_dests nn) induct_thm
           end;
@@ -607,7 +616,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             fun build_call fiter_likes maybe_tick (T, U) =
               if T = U then
-                mk_id T
+                id_const T
               else
                 (case find_index (curry (op =) T) fpTs of
                   ~1 => build_map (build_call fiter_likes maybe_tick) T U
@@ -685,7 +694,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             fun build_call fiter_likes maybe_tack (T, U) =
               if T = U then
-                mk_id T
+                id_const T
               else
                 (case find_index (curry (op =) U) fpTs of
                   ~1 => build_map (build_call fiter_likes maybe_tack) T U

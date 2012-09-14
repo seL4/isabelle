@@ -26,17 +26,11 @@ by clarify
 lemma prod_all_impI_step: "(\<And>x. \<forall>y. P (x, y) \<longrightarrow> Q (x, y)) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
 by auto
 
-lemma all_unit_eq: "(\<And>x. PROP P x) \<equiv> PROP P ()" by simp
+lemma all_unit_eq: "(\<And>x. PROP P x) \<equiv> PROP P ()"
+by simp
 
-lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))" by clarsimp
-
-(* FIXME: needed? *)
-lemma False_imp_eq: "(False \<Longrightarrow> P) \<equiv> Trueprop True"
-by presburger
-
-(* FIXME: needed? *)
-lemma all_point_1: "(\<And>z. z = b \<Longrightarrow> phi z) \<equiv> Trueprop (phi b)"
-by presburger
+lemma all_prod_eq: "(\<And>x. PROP P x) \<equiv> (\<And>a b. PROP P (a, b))"
+by clarsimp
 
 lemma rev_bspec: "a \<in> A \<Longrightarrow> \<forall>z \<in> A. P z \<Longrightarrow> P a"
 by simp
@@ -109,6 +103,20 @@ by (rule allI) (rule obj_sum_step')
 lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
+
+lemma UN_compreh_bex:
+"\<Union>{y. \<exists>x \<in> A. y = {}} = {}"
+"\<Union>{y. \<exists>x \<in> A. y = {x}} = A"
+by blast+
+
+lemma induct_set_step: "\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and> c \<in> C"
+apply (rule exI)
+apply (rule conjI)
+ apply (rule bexI)
+  apply (rule refl)
+ apply assumption
+apply assumption
+done
 
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_sugar_tactics.ML"
