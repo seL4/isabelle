@@ -13,8 +13,8 @@ sig
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_induct_tac: Proof.context -> int list -> int list list -> (int * int) list list list ->
-    thm list -> thm -> thm list -> thm list list -> tactic
+  val mk_induct_tac: Proof.context -> int list -> int list list ->
+    ((int * int) * int) list list list -> thm list -> thm -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
   val mk_iter_like_tac: thm list -> thm list -> thm list -> thm -> thm -> Proof.context -> tactic
 end;
@@ -112,30 +112,33 @@ val induct_prem_prem_thms_delayed =
   @{thms fsts_def[abs_def] snds_def[abs_def] sum_setl_def[abs_def] sum_setr_def[abs_def]};
 
 (* TODO: Get rid of the "blast_tac" *)
-fun mk_induct_discharge_prem_prems_tac ctxt ppis set_natural's pre_set_defs =
-  EVERY' (maps (fn (pp, i) =>
-    [(* ### select_prem_tac pp (dtac meta_spec) i, *) dtac meta_spec, rotate_tac ~1, etac meta_mp,
+fun mk_induct_discharge_prem_prems_tac ctxt nn ppjjkks set_natural's pre_set_defs =
+  EVERY' (maps (fn ((pp, jj), kk) =>
+    [select_prem_tac nn (dtac meta_spec) (nn - kk + 1), rotate_tac ~1, etac meta_mp,
      SELECT_GOAL (Local_Defs.unfold_tac ctxt pre_set_defs), (* ### why on a line of its own? *)
      SELECT_GOAL (Local_Defs.unfold_tac ctxt (set_natural's @ induct_prem_prem_thms)),
      SELECT_GOAL (Local_Defs.unfold_tac ctxt
        (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
-     TRY o rtac (mk_UnIN pp i), (*#####*)
+     TRY o rtac (mk_UnIN pp jj), (*#####*)
      atac ORELSE'
      rtac @{thm singletonI} ORELSE'
      (REPEAT_DETERM o (SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
           etac @{thm induct_set_step}) THEN'
-      (atac ORELSE' blast_tac ctxt))]) (rev ppis)) 1;
+      (atac ORELSE' blast_tac ctxt))]) (rev ppjjkks)) 1;
 
-fun mk_induct_discharge_prem_tac ctxt n set_natural's pre_set_defs m k ppis =
+fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ppjjkks =
   EVERY [mk_induct_prepare_prem_tac n m k,
-    mk_induct_prepare_prem_prems_tac (length ppis), atac 1,
-    mk_induct_discharge_prem_prems_tac ctxt ppis set_natural's pre_set_defs];
+    mk_induct_prepare_prem_prems_tac (length ppjjkks), atac 1,
+    mk_induct_discharge_prem_prems_tac ctxt nn ppjjkks set_natural's pre_set_defs];
 
-fun mk_induct_tac ctxt ns mss ppisss ctr_defs fld_induct' set_natural's pre_set_defss =
-  let val n = Integer.sum ns in
+fun mk_induct_tac ctxt ns mss ppjjkksss ctr_defs fld_induct' set_natural's pre_set_defss =
+  let
+    val nn = length ns;
+    val n = Integer.sum ns;
+  in
     mk_induct_prelude_tac ctxt ctr_defs fld_induct' THEN
-    EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt n set_natural's)
-      pre_set_defss mss (unflat mss (1 upto n)) ppisss)
+    EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
+      pre_set_defss mss (unflat mss (1 upto n)) ppjjkksss)
   end;
 
 end;
