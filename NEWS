@@ -126,6 +126,7 @@ Minor INCOMPATIBILITY.
   - Added MaSh relevance filter based on machine-learning; see the
     Sledgehammer manual for details.
   - Rationalized type encodings ("type_enc" option).
+  - Renamed "kill_provers" subcommand to "kill"
   - Renamed options:
       max_relevant ~> max_facts
       relevance_thresholds ~> fact_thresholds

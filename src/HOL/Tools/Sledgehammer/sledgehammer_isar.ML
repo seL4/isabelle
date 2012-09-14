@@ -37,9 +37,8 @@ val runN = "run"
 val minN = "min"
 val messagesN = "messages"
 val supported_proversN = "supported_provers"
-val kill_proversN = "kill_provers"
+val killN = "kill"
 val running_proversN = "running_provers"
-val kill_learnersN = "kill_learners"
 val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
 
@@ -392,8 +391,8 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       messages opt_i
     else if subcommand = supported_proversN then
       supported_provers ctxt
-    else if subcommand = kill_proversN then
-      kill_provers ()
+    else if subcommand = killN then
+      (kill_provers (); kill_learners ())
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = unlearnN then
@@ -413,8 +412,6 @@ fun hammer_away override_params subcommand opt_i fact_override state =
                              ("preplay_timeout", ["0"])]))
                   fact_override (#facts (Proof.goal state))
                   (subcommand = learn_atpN orelse subcommand = relearn_atpN))
-    else if subcommand = kill_learnersN then
-      kill_learners ()
     else if subcommand = running_learnersN then
       running_learners ()
     else if subcommand = refresh_tptpN then
