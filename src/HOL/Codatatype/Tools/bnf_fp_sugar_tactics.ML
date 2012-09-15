@@ -30,10 +30,7 @@ open BNF_FP_Util
 val meta_mp = @{thm meta_mp};
 val meta_spec = @{thm meta_spec};
 
-(* FIXME: why not in "Pure"? *)
-fun prefer_tac i = defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1);
-
-fun smash_spurious_fs lthy thm =
+fun inst_spurious_fs lthy thm =
   let
     val fs =
       Term.add_vars (prop_of thm) []
@@ -44,7 +41,7 @@ fun smash_spurious_fs lthy thm =
     Drule.cterm_instantiate cfs thm
   end;
 
-val smash_spurious_fs_tac = PRIMITIVE o smash_spurious_fs;
+val inst_spurious_fs_tac = PRIMITIVE o inst_spurious_fs;
 
 fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
   Local_Defs.unfold_tac ctxt [case_def, ctr_def, unf_fld] THEN
@@ -121,19 +118,21 @@ fun mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_de
        SELECT_GOAL (auto_tac ctxt)]) (rev ppjjqqkks)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ppjjqqkks =
-  EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
-    REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1 THEN
-  EVERY [REPEAT_DETERM_N (length ppjjqqkks)
-      (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2),
-    PRIMITIVE Raw_Simplifier.norm_hhf, atac 1,
-    mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_defs];
+  let val r = length ppjjqqkks in
+    EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
+      REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1 THEN
+    EVERY [REPEAT_DETERM_N r
+        (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2),
+      if r > 0 then PRIMITIVE Raw_Simplifier.norm_hhf else all_tac, atac 1,
+      mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_defs]
+  end;
 
 fun mk_induct_tac ctxt ns mss ppjjqqkksss ctr_defs fld_induct' set_natural's pre_set_defss =
   let
     val nn = length ns;
     val n = Integer.sum ns;
   in
-    Local_Defs.unfold_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN smash_spurious_fs_tac ctxt THEN
+    Local_Defs.unfold_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN inst_spurious_fs_tac ctxt THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
       pre_set_defss mss (unflat mss (1 upto n)) ppjjqqkksss)
   end;
