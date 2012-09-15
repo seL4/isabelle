@@ -498,17 +498,17 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
     val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
 
-    fun mk_map live' Ts Us t =
-      let val (Type (_, Ts0), Type (_, Us0)) = strip_typeN live' (fastype_of t) |>> List.last in
+    fun mk_map live Ts Us t =
+      let val (Type (_, Ts0), Type (_, Us0)) = strip_typeN (live + 1) (fastype_of t) |>> List.last in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
     fun build_map build_arg (T as Type (s, Ts)) (U as Type (_, Us)) =
       let
         val bnf = the (bnf_of lthy s);
-        val live' = live_of_bnf bnf + 1;
-        val mapx = mk_map live' Ts Us (map_of_bnf bnf);
-        val TUs = map dest_funT (fst (split_last (fst (strip_typeN live' (fastype_of mapx)))));
+        val live = live_of_bnf bnf;
+        val mapx = mk_map live Ts Us (map_of_bnf bnf);
+        val TUs = map dest_funT (fst (strip_typeN live (fastype_of mapx)));
         val args = map build_arg TUs;
       in Term.list_comb (mapx, args) end;
 
