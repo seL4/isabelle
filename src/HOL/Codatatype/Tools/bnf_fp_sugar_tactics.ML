@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Tactics for the LFP/GFP sugar.
+Tactics for datatype and codatatype sugar.
 *)
 
 signature BNF_FP_SUGAR_TACTICS =
@@ -29,6 +29,9 @@ open BNF_FP_Util
 
 val meta_mp = @{thm meta_mp};
 val meta_spec = @{thm meta_spec};
+
+(* FIXME: why not in "Pure"? *)
+fun prefer_tac i = defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1);
 
 fun smash_spurious_fs lthy thm =
   let
@@ -88,19 +91,14 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
   Local_Defs.unfold_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
 
-fun mk_induct_prelude_tac ctxt ctr_defs fld_induct' =
-  Local_Defs.unfold_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN smash_spurious_fs_tac ctxt;
+(* TODO: Get rid of "auto_tac" (or at least use a naked context) *)
 
-fun mk_induct_prepare_prem_tac n m k =
-  EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
-    REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1;
-
-(* FIXME: why not in "Pure"? *)
-fun prefer_tac i = defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1);
-
-fun mk_induct_prepare_prem_prems_tac r =
-  REPEAT_DETERM_N r (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2) THEN
-  PRIMITIVE Raw_Simplifier.norm_hhf;
+fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
+  | mk_induct_prem_prem_endgame_tac ctxt qq =
+    REPEAT_DETERM_N qq o
+      (SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
+       etac @{thm induct_set_step}) THEN'
+    atac ORELSE' SELECT_GOAL (auto_tac ctxt);
 
 val induct_prem_prem_thms =
   @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex UN_insert Un_assoc[symmetric] Un_empty_left
@@ -112,38 +110,32 @@ val induct_prem_prem_thms =
 val induct_prem_prem_thms_delayed =
   @{thms fsts_def[abs_def] snds_def[abs_def] sum_setl_def[abs_def] sum_setr_def[abs_def]};
 
-(* TODO: Get rid of "auto_tac" (or at least use a naked context) *)
-fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
-  | mk_induct_prem_prem_endgame_tac ctxt qq =
-    REPEAT_DETERM_N qq o
-      (SELECT_GOAL (Local_Defs.unfold_tac ctxt @{thms Union_iff bex_simps(6)}) THEN'
-       etac @{thm induct_set_step}) THEN'
-    atac ORELSE' SELECT_GOAL (auto_tac ctxt);
-
-fun mk_induct_discharge_prem_prems_tac ctxt nn ixs set_natural's pre_set_defs =
+fun mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_defs =
   EVERY' (maps (fn ((pp, jj), (qq, kk)) =>
-      [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-       SELECT_GOAL (Local_Defs.unfold_tac ctxt
-         (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
-       SELECT_GOAL (Local_Defs.unfold_tac ctxt
-         (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
-       rtac (mk_UnIN pp jj) THEN' mk_induct_prem_prem_endgame_tac ctxt qq ORELSE'
-         SELECT_GOAL (auto_tac ctxt)])
-    (rev ixs)) 1;
+    [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
+     SELECT_GOAL (Local_Defs.unfold_tac ctxt
+       (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
+     SELECT_GOAL (Local_Defs.unfold_tac ctxt
+       (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
+     rtac (mk_UnIN pp jj) THEN' mk_induct_prem_prem_endgame_tac ctxt qq ORELSE'
+       SELECT_GOAL (auto_tac ctxt)]) (rev ppjjqqkks)) 1;
 
-fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ixs =
-  EVERY [mk_induct_prepare_prem_tac n m k,
-    mk_induct_prepare_prem_prems_tac (length ixs), atac 1,
-    mk_induct_discharge_prem_prems_tac ctxt nn ixs set_natural's pre_set_defs];
+fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ppjjqqkks =
+  EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
+    REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1 THEN
+  EVERY [REPEAT_DETERM_N (length ppjjqqkks)
+      (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2),
+    PRIMITIVE Raw_Simplifier.norm_hhf, atac 1,
+    mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_defs];
 
-fun mk_induct_tac ctxt ns mss ixsss ctr_defs fld_induct' set_natural's pre_set_defss =
+fun mk_induct_tac ctxt ns mss ppjjqqkksss ctr_defs fld_induct' set_natural's pre_set_defss =
   let
     val nn = length ns;
     val n = Integer.sum ns;
   in
-    mk_induct_prelude_tac ctxt ctr_defs fld_induct' THEN
+    Local_Defs.unfold_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN smash_spurious_fs_tac ctxt THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
-      pre_set_defss mss (unflat mss (1 upto n)) ixsss)
+      pre_set_defss mss (unflat mss (1 upto n)) ppjjqqkksss)
   end;
 
 end;

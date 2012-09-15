@@ -104,10 +104,8 @@ lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
 
-(* TODO: cleanup *)
 lemma UN_compreh_bex:
 "\<Union>{y. \<exists>x \<in> A. y = {}} = {}"
-"\<Union>{y. \<exists>x \<in> A. y = {x}} = A"
 "\<Union>{y. \<exists>x \<in> A. y = {f x}} = {y. \<exists>x \<in> A. y = f x}"
 by blast+
 

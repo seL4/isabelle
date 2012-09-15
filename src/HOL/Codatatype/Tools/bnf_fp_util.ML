@@ -2,7 +2,7 @@
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 
-Shared library for the datatype and the codatatype construction.
+Shared library for the datatype and codatatype constructions.
 *)
 
 signature BNF_FP_UTIL =

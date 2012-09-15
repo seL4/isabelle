@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Sugar for constructing LFPs and GFPs.
+Sugared datatype and codatatype constructions.
 *)
 
 signature BNF_FP_SUGAR =
@@ -580,10 +580,10 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 val pprems = maps (mk_raw_prem_prems names_lthy') xs;
               in (xs, pprems, HOLogic.mk_Trueprop (phi $ Term.list_comb (ctr, xs))) end;
 
-            val raw_premss = map3 (map2 o mk_raw_prem) phis ctrss ctr_Tsss;
-
             fun mk_prem (xs, raw_pprems, concl) =
               fold_rev Logic.all xs (Logic.list_implies (map (mk_prem_prem xs) raw_pprems, concl));
+
+            val raw_premss = map3 (map2 o mk_raw_prem) phis ctrss ctr_Tsss;
 
             val goal =
               Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
@@ -601,14 +601,14 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                    (length xysets, kk))) pprems
               end;
 
-            val ixsss = map (map (mk_raw_prem_prems_indices o #2)) raw_premss;
+            val ppjjqqkksss = map (map (mk_raw_prem_prems_indices o #2)) raw_premss;
 
             val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt ns mss ixsss (flat ctr_defss) fld_induct' nested_set_natural's
-                  pre_set_defss)
+                mk_induct_tac ctxt ns mss ppjjqqkksss (flat ctr_defss) fld_induct'
+                  nested_set_natural's pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
           in
             `(conj_dests nn) induct_thm
