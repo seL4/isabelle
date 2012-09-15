@@ -51,7 +51,7 @@ fun add_tactic name tac = Arith_Tactics.map (cons (serial (), (name, tac)));
 fun gen_arith_tac verbose ctxt =
   let
     val tactics = Arith_Tactics.get (Proof_Context.theory_of ctxt);
-    fun invoke (_, (name, tac)) k st = tac verbose ctxt k st;
+    fun invoke (_, (_, tac)) k st = tac verbose ctxt k st;
   in FIRST' (map invoke (rev tactics)) end;
 
 val arith_tac = gen_arith_tac false;

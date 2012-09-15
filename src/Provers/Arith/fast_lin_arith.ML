@@ -342,7 +342,7 @@ fun add_ineq (Lineq (k1,ty1,l1,just1)) (Lineq (k2,ty2,l2,just2)) =
 (* If they're both inequalities, 1st coefficient must be +ve, 2nd -ve.       *)
 (* ------------------------------------------------------------------------- *)
 
-fun elim_var v (i1 as Lineq(k1,ty1,l1,just1)) (i2 as Lineq(k2,ty2,l2,just2)) =
+fun elim_var v (i1 as Lineq(_,ty1,l1,_)) (i2 as Lineq(_,ty2,l2,_)) =
   let val c1 = nth l1 v and c2 = nth l2 v
       val m = Integer.lcm (abs c1) (abs c2)
       val m1 = m div (abs c1) and m2 = m div (abs c2)
@@ -879,7 +879,7 @@ fun splitasms ctxt (asms : thm list) : splittree =
 let val {neqE, ...} = get_data ctxt
     fun elim_neq [] (asms', []) = Tip (rev asms')
       | elim_neq [] (asms', asms) = Tip (rev asms' @ asms)
-      | elim_neq (neq :: neqs) (asms', []) = elim_neq neqs ([],rev asms')
+      | elim_neq (_ :: neqs) (asms', []) = elim_neq neqs ([],rev asms')
       | elim_neq (neqs as (neq :: _)) (asms', asm::asms) =
       (case get_first (fn th => SOME (asm COMP th) handle THM _ => NONE) [neq] of
         SOME spl =>
