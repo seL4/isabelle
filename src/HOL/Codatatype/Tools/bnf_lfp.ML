@@ -164,7 +164,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val reachable = fixpoint (op =) enrich [];
     val _ = (case subtract (op =) (map snd reachable) all of
         [] => ()
-      | i :: _ => error ("Invalid empty datatype " ^ quote (Binding.name_of (nth bs (i - m)))));
+      | i :: _ => error ("Cannot define empty datatype " ^ quote (Binding.name_of (nth bs (i - m)))));
 
     val wit_thms = flat (map2 (fn bnf => fn (j, _) => nth (wit_thmss_of_bnf bnf) j) bnfs reachable);
 
