@@ -493,6 +493,7 @@ val map_wpullN = "map_wpull";
 val rel_IdN = "rel_Id";
 val rel_GrN = "rel_Gr";
 val rel_converseN = "rel_converse";
+val rel_monoN = "rel_mono"
 val rel_ON = "rel_comp";
 val set_naturalN = "set_natural";
 val set_natural'N = "set_natural'";
@@ -1145,6 +1146,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                     (rel_IdN, [Lazy.force (#rel_Id facts)]),
                     (rel_GrN, [Lazy.force (#rel_Gr facts)]),
                     (rel_converseN, [Lazy.force (#rel_converse facts)]),
+                    (rel_monoN, [Lazy.force (#rel_mono facts)]),
                     (rel_ON, [Lazy.force (#rel_O facts)]),
                     (map_id'N, [Lazy.force (#map_id' facts)]),
                     (map_comp'N, [Lazy.force (#map_comp' facts)]),
