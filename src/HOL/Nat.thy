@@ -134,7 +134,7 @@ lemma diff_induct: "(!!x. P x 0) ==> (!!y. P 0 (Suc y)) ==>
 
 subsection {* Arithmetic operators *}
 
-instantiation nat :: "{minus, comm_monoid_add}"
+instantiation nat :: comm_monoid_diff
 begin
 
 primrec plus_nat where
@@ -169,6 +169,10 @@ instance proof
   show "(n + m) + q = n + (m + q)" by (induct n) simp_all
   show "n + m = m + n" by (induct n) simp_all
   show "0 + n = n" by simp
+  show "n - 0 = n" by simp
+  show "0 - n = 0" by simp
+  show "(q + n) - (q + m) = n - m" by (induct q) simp_all
+  show "n - m - q = n - (m + q)" by (induct q) (simp_all add: diff_Suc)
 qed
 
 end
@@ -1814,3 +1818,4 @@ code_modulename Haskell
 hide_const (open) of_nat_aux
 
 end
+

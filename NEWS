@@ -47,6 +47,9 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Class "comm_monoid_diff" formalised properties of bounded
+subtraction, with natural numbers and multisets as typical instances.
+
 * Theory "Library/Option_ord" provides instantiation of option type
 to lattice type classes.
 

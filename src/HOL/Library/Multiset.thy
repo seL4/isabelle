@@ -122,13 +122,14 @@ lemma count_union [simp]: "count (M + N) a = count M a + count N a"
 
 subsubsection {* Difference *}
 
-instantiation multiset :: (type) minus
+instantiation multiset :: (type) comm_monoid_diff
 begin
 
 lift_definition minus_multiset :: "'a multiset => 'a multiset => 'a multiset" is "\<lambda> M N. \<lambda>a. M a - N a"
 by (rule diff_preserves_multiset)
  
-instance ..
+instance
+by default (transfer, simp add: fun_eq_iff)+
 
 end
 
@@ -161,6 +162,7 @@ lemma diff_right_commute:
 
 lemma diff_add:
   "(M::'a multiset) - (N + Q) = M - N - Q"
+  find_theorems solves
 by (simp add: multiset_eq_iff)
 
 lemma diff_union_swap:
@@ -1913,3 +1915,4 @@ Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
 *}
 
 end
+

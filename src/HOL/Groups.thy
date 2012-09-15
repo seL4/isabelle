@@ -213,6 +213,57 @@ qed (insert add_0, simp add: ac_simps)
 subclass (in comm_monoid_add) monoid_add proof
 qed (fact add.left_neutral add.right_neutral)+
 
+class comm_monoid_diff = comm_monoid_add + minus +
+  assumes diff_zero [simp]: "a - 0 = a"
+    and zero_diff [simp]: "0 - a = 0"
+    and add_diff_cancel_left [simp]: "(c + a) - (c + b) = a - b"
+    and diff_diff_add: "a - b - c = a - (b + c)"
+begin
+
+lemma add_diff_cancel_right [simp]:
+  "(a + c) - (b + c) = a - b"
+  using add_diff_cancel_left [symmetric] by (simp add: add.commute)
+
+lemma add_diff_cancel_left' [simp]:
+  "(b + a) - b = a"
+proof -
+  have "(b + a) - (b + 0) = a" by (simp only: add_diff_cancel_left diff_zero)
+  then show ?thesis by simp
+qed
+
+lemma add_diff_cancel_right' [simp]:
+  "(a + b) - b = a"
+  using add_diff_cancel_left' [symmetric] by (simp add: add.commute)
+
+lemma diff_add_zero [simp]:
+  "a - (a + b) = 0"
+proof -
+  have "a - (a + b) = (a + 0) - (a + b)" by simp
+  also have "\<dots> = 0" by (simp only: add_diff_cancel_left zero_diff)
+  finally show ?thesis .
+qed
+
+lemma diff_cancel [simp]:
+  "a - a = 0"
+proof -
+  have "(a + 0) - (a + 0) = 0" by (simp only: add_diff_cancel_left diff_zero)
+  then show ?thesis by simp
+qed
+
+lemma diff_right_commute:
+  "a - c - b = a - b - c"
+  by (simp add: diff_diff_add add.commute)
+
+lemma add_implies_diff:
+  assumes "c + b = a"
+  shows "c = a - b"
+proof -
+  from assms have "(b + c) - (b + 0) = a - b" by (simp add: add.commute)
+  then show "c = a - b" by simp
+qed
+
+end
+
 class monoid_mult = one + semigroup_mult +
   assumes mult_1_left: "1 * a  = a"
     and mult_1_right: "a * 1 = a"
@@ -1263,3 +1314,4 @@ text {* Legacy *}
 lemmas diff_def = diff_minus
 
 end
+
