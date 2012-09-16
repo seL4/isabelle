@@ -1125,7 +1125,7 @@ proof -
     note eq = this
 
     have "(\<Sum>n. \<mu>_r (A' n)) = (\<Sum>n. \<Sum>c\<in>C'. \<mu>_r (A' n \<inter> c))"
-      using C' A' find_theorems "\<Union> _ ` _"
+      using C' A'
       by (subst volume_finite_additive[symmetric, OF V(1)])
          (auto simp: disjoint_def disjoint_family_on_def Union_image_eq[symmetric] simp del: Union_image_eq
                intro!: G.Int G.finite_Union arg_cong[where f="\<lambda>X. suminf (\<lambda>i. \<mu>_r (X i))"] ext

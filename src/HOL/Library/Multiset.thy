@@ -162,7 +162,6 @@ lemma diff_right_commute:
 
 lemma diff_add:
   "(M::'a multiset) - (N + Q) = M - N - Q"
-  find_theorems solves
 by (simp add: multiset_eq_iff)
 
 lemma diff_union_swap:
