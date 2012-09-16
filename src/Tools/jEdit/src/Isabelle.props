@@ -40,9 +40,10 @@ isabelle.input-bold.shortcut=C+e RIGHT
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.session-panel isabelle.output-panel isabelle.raw-output-panel isabelle.protocol-panel isabelle.readme-panel isabelle.syslog-panel
+plugin.isabelle.jedit.Plugin.menu=isabelle.session-panel isabelle.output-panel isabelle.output2-panel isabelle.raw-output-panel isabelle.protocol-panel isabelle.readme-panel isabelle.syslog-panel
 isabelle.session-panel.label=Prover Session panel
 isabelle.output-panel.label=Output panel
+isabelle.output2-panel.label=Output2 panel
 isabelle.raw-output-panel.label=Raw Output panel
 isabelle.protocol-panel.label=Protocol panel
 isabelle.readme-panel.label=README panel
@@ -51,6 +52,7 @@ isabelle.syslog-panel.label=Syslog panel
 #dockables
 isabelle-session.title=Prover Session
 isabelle-output.title=Output
+isabelle-output2.title=Output2
 isabelle-raw-output.title=Raw Output
 isabelle-protocol.title=Protocol
 isabelle-readme.title=README
