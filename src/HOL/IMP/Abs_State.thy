@@ -4,7 +4,7 @@ theory Abs_State
 imports Abs_Int0
 begin
 
-subsubsection "Welltypedness: wt"
+subsubsection "Set-based lattices"
 
 instantiation com :: vars
 begin
@@ -31,45 +31,45 @@ lemma finite_cvars: "finite(vars(c::com))"
 by(induction c) (simp_all add: finite_avars finite_bvars)
 
 
-class wt =
-fixes wt :: "'a \<Rightarrow> vname set \<Rightarrow> bool"
+class L =
+fixes L :: "vname set \<Rightarrow> 'a set"
 
 
-instantiation acom :: (wt)wt
+instantiation acom :: (L)L
 begin
 
-definition wt_acom where
-"wt C X = (vars(strip C) \<subseteq> X \<and> (\<forall>a \<in> set(annos C). wt a X))"
+definition L_acom where
+"L X = {C. vars(strip C) \<subseteq> X \<and> (\<forall>a \<in> set(annos C). a \<in> L X)}"
 
 instance ..
 
 end
 
 
-instantiation option :: (wt)wt
+instantiation option :: (L)L
 begin
 
-definition wt_option where
-"wt opt X = (case opt of None \<Rightarrow> True | Some x \<Rightarrow> wt x X)"
+definition L_option where
+"L X = {opt. case opt of None \<Rightarrow> True | Some x \<Rightarrow> x \<in> L X}"
 
-lemma wt_option_simps[simp]: "wt None X" "wt (Some x) X = wt x X"
-by(simp_all add: wt_option_def)
+lemma L_option_simps[simp]: "None \<in> L X" "(Some x \<in> L X) = (x \<in> L X)"
+by(simp_all add: L_option_def)
 
 instance ..
 
 end
 
-class SL_top_wt = join + wt +
+class semilatticeL = join + L +
 fixes top :: "com \<Rightarrow> 'a" ("\<top>\<^bsub>_\<^esub>")
-assumes join_ge1 [simp]: "wt x X \<Longrightarrow> wt y X \<Longrightarrow> x \<sqsubseteq> x \<squnion> y"
-and join_ge2 [simp]: "wt x X \<Longrightarrow> wt y X \<Longrightarrow> y \<sqsubseteq> x \<squnion> y"
+assumes join_ge1 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<sqsubseteq> x \<squnion> y"
+and join_ge2 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> y \<sqsubseteq> x \<squnion> y"
 and join_least[simp]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
-and top[simp]: "wt x (vars c) \<Longrightarrow> x \<sqsubseteq> top c"
-and wt_top[simp]: "wt (top c) (vars c)"
-and wt_join[simp]: "wt x X \<Longrightarrow> wt y X \<Longrightarrow> wt (x \<squnion> y) X"
+and top[simp]: "x \<in> L(vars c) \<Longrightarrow> x \<sqsubseteq> top c"
+and top_in_L[simp]: "top c \<in> L(vars c)"
+and join_in_L[simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<squnion> y \<in> L X"
 
 
-instantiation option :: (SL_top_wt)SL_top_wt
+instantiation option :: (semilatticeL)semilatticeL
 begin
 
 definition top_option where "top c = Some(top c)"
@@ -85,7 +85,7 @@ next
 next
   case goal5 thus ?case by(simp add: top_option_def)
 next
-  case goal6 thus ?case by(simp add: wt_option_def split: option.splits)
+  case goal6 thus ?case by(simp add: L_option_def split: option.splits)
 qed
 
 end
@@ -143,24 +143,24 @@ instance ..
 
 end
 
-instantiation st :: (type) wt
+instantiation st :: (type) L
 begin
 
-definition wt_st :: "'a st \<Rightarrow> vname set \<Rightarrow> bool" where
-"wt F X = (dom F = X)"
+definition L_st :: "vname set \<Rightarrow> 'a st set" where
+"L X = {F. dom F = X}"
 
 instance ..
 
 end
 
-instantiation st :: (SL_top) SL_top_wt
+instantiation st :: (semilattice) semilatticeL
 begin
 
 definition top_st where "top c = FunDom (\<lambda>x. \<top>) (vars c)"
 
 instance
 proof
-qed (auto simp: le_st_def join_st_def top_st_def wt_st_def)
+qed (auto simp: le_st_def join_st_def top_st_def L_st_def)
 
 end
 
@@ -173,7 +173,7 @@ lemma mono_update[simp]:
 by(auto simp add: le_st_def update_def)
 
 
-locale Gamma = Val_abs where \<gamma>=\<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
+locale Gamma = Val_abs where \<gamma>=\<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
 begin
 
 abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"

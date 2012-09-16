@@ -20,7 +20,7 @@ lemma plus_const_cases: "plus_const a1 a2 =
   (case (a1,a2) of (Const m, Const n) \<Rightarrow> Const(m+n) | _ \<Rightarrow> Any)"
 by(auto split: prod.split const.split)
 
-instantiation const :: SL_top
+instantiation const :: semilattice
 begin
 
 fun le_const where
@@ -73,6 +73,10 @@ defines AI_const is AI and step_const is step' and aval'_const is aval'
 
 
 subsubsection "Tests"
+
+(* FIXME dirty trick to get around some problem with the code generator *)
+lemma [code]: "L X = (L X :: 'av::semilattice st set)"
+by(rule refl)
 
 definition "steps c i = (step_const(top c) ^^ i) (bot c)"
 

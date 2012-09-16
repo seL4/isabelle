@@ -33,9 +33,9 @@ qed
 
 end
 
-text{* Instantiation of class @{class SL_top} with type @{typ parity}: *}
+text{* Instantiation of class @{class semilattice} with type @{typ parity}: *}
 
-instantiation parity :: SL_top
+instantiation parity :: semilattice
 begin
 
 definition join_parity where
@@ -118,11 +118,14 @@ defines aval_parity is aval' and step_parity is step' and AI_parity is AI
 
 subsubsection "Tests"
 
+(* FIXME dirty trick to get around some problem with the code generator *)
+lemma [code]: "L X = (L X :: 'av::semilattice st set)"
+by(rule refl)
+
 definition "test1_parity =
   ''x'' ::= N 1;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 2)"
-
-value "show_acom_opt (AI_parity test1_parity)"
+value [code] "show_acom_opt (AI_parity test1_parity)"
 
 definition "test2_parity =
   ''x'' ::= N 1;

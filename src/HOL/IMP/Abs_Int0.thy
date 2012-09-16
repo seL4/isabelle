@@ -27,7 +27,7 @@ needed because we never compare elements for equality but only for @{text"\<sqsu
 class join = preord +
 fixes join :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
 
-class SL_top = join +
+class semilattice = join +
 fixes Top :: "'a" ("\<top>")
 assumes join_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
 and join_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
@@ -56,7 +56,7 @@ qed (simp_all add: le_fun_def)
 end
 
 
-instantiation "fun" :: (type, SL_top) SL_top
+instantiation "fun" :: (type, semilattice) semilattice
 begin
 
 definition "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
@@ -154,7 +154,7 @@ instance ..
 
 end
 
-instantiation option :: (SL_top)SL_top
+instantiation option :: (semilattice)semilattice
 begin
 
 definition "\<top> = Some \<top>"
@@ -171,19 +171,19 @@ qed
 
 end
 
-class Bot = preord +
-fixes Bot :: "'a" ("\<bottom>")
-assumes Bot[simp]: "\<bottom> \<sqsubseteq> x"
+class bot = preord +
+fixes bot :: "'a" ("\<bottom>")
+assumes bot[simp]: "\<bottom> \<sqsubseteq> x"
 
-instantiation option :: (preord)Bot
+instantiation option :: (preord)bot
 begin
 
-definition Bot_option :: "'a option" where
+definition bot_option :: "'a option" where
 "\<bottom> = None"
 
 instance
 proof
-  case goal1 thus ?case by(auto simp: Bot_option_def)
+  case goal1 thus ?case by(auto simp: bot_option_def)
 qed
 
 end
@@ -250,7 +250,7 @@ fun \<gamma>_option :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a option \<Righ
 text{* The interface for abstract values: *}
 
 locale Val_abs =
-fixes \<gamma> :: "'av::SL_top \<Rightarrow> val set"
+fixes \<gamma> :: "'av::semilattice \<Rightarrow> val set"
   assumes mono_gamma: "a \<sqsubseteq> b \<Longrightarrow> \<gamma> a \<subseteq> \<gamma> b"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'av"
@@ -261,7 +261,7 @@ and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
 
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
-locale Abs_Int_Fun = Val_abs \<gamma> for \<gamma> :: "'av::SL_top \<Rightarrow> val set"
+locale Abs_Int_Fun = Val_abs \<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where

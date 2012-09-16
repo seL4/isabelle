@@ -58,7 +58,7 @@ by(auto simp add: \<gamma>_ivl_def split: ivl.split option.split)
 definition "plus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
   case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1+l2) (h1+h2))"
 
-instantiation ivl :: SL_top
+instantiation ivl :: semilattice
 begin
 
 definition le_option :: "bool \<Rightarrow> int option \<Rightarrow> int option \<Rightarrow> bool" where
@@ -111,7 +111,7 @@ qed
 end
 
 
-instantiation ivl :: L_top_bot
+instantiation ivl :: lattice
 begin
 
 definition "i1 \<sqinter> i2 = (if is_empty i1 \<or> is_empty i2 then empty else
@@ -131,7 +131,7 @@ next
   case goal4 thus ?case
     by (cases x, cases y, cases z, auto simp add: le_ivl_def meet_ivl_def empty_def le_option_def max_option_def min_option_def split: option.splits if_splits)
 next
-  case goal1 show ?case by(cases x, simp add: Bot_ivl_def empty_def le_ivl_def)
+  case goal1 show ?case by(cases x, simp add: bot_ivl_def empty_def le_ivl_def)
 qed
 
 end
@@ -186,7 +186,7 @@ proof
   case goal1 thus ?case
     by(auto simp add: \<gamma>_ivl_def meet_ivl_def empty_def min_option_def max_option_def split: ivl.split option.split)
 next
-  case goal2 show ?case by(auto simp add: Bot_ivl_def \<gamma>_ivl_def empty_def)
+  case goal2 show ?case by(auto simp add: bot_ivl_def \<gamma>_ivl_def empty_def)
 qed
 
 lemma mono_minus_ivl:
@@ -247,6 +247,10 @@ qed
 
 
 subsubsection "Tests"
+
+(* FIXME dirty trick to get around some problem with the code generator *)
+lemma [code]: "L X = (L X :: 'av::semilattice st set)"
+by(rule refl)
 
 value "show_acom_opt (AI_ivl test1_ivl)"
 
