@@ -59,6 +59,8 @@ sig
   val mk_Freess': string -> typ list list -> Proof.context ->
     (term list list * (string * typ) list list) * Proof.context
 
+  val strip_typeN: int -> typ -> typ list * typ
+
   val mk_optionT: typ -> typ
   val mk_relT: typ * typ -> typ
   val dest_relT: typ -> typ * typ
@@ -301,6 +303,10 @@ fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> spl
 
 
 (** Types **)
+
+fun strip_typeN 0 T = ([], T)
+  | strip_typeN n (Type (@{type_name fun}, [T, T'])) = strip_typeN (n - 1) T' |>> cons T
+  | strip_typeN n T = raise TYPE ("strip_typeN", [T], []);
 
 fun mk_optionT T = Type (@{type_name option}, [T]);
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;

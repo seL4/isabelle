@@ -604,15 +604,14 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val bnf_map = Morphism.term phi bnf_map_term;
 
-    fun iter_split ((Ts, T1), T2) = if length Ts < live then error "Bad map function"
-      else if length Ts = live then ((Ts, T1), T2)
-      else iter_split (split_last Ts, T1 --> T2);
-
     (*TODO: handle errors*)
     (*simple shape analysis of a map function*)
-    val (((alphas, betas), CA), _) =
-      apfst (apfst (map_split dest_funT))
-        (iter_split (apfst split_last (strip_type (fastype_of bnf_map))));
+    val ((alphas, betas), (CA, _)) =
+      fastype_of bnf_map
+      |> strip_typeN live
+      |>> map_split dest_funT
+      ||> dest_funT
+      handle TYPE _ => error "Bad map function";
 
     val CA_params = map TVar (Term.add_tvarsT CA []);
 

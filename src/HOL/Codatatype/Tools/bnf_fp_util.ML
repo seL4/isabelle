@@ -92,7 +92,6 @@ sig
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
-  val strip_typeN: int -> typ -> typ list * typ
   val retype_free: typ -> term -> term
 
   val mk_predT: typ -> typ;
@@ -240,9 +239,6 @@ val sel_coitersN = selN ^ "_" ^ coitersN
 val sel_corecsN = selN ^ "_" ^ corecsN
 
 val mk_common_name = space_implode "_" o map Binding.name_of;
-
-fun strip_typeN 0 T = ([], T)
-  | strip_typeN n (Type (@{type_name fun}, [T, T'])) = strip_typeN (n - 1) T' |>> cons T;
 
 fun mk_predT T = T --> HOLogic.boolT;
 
