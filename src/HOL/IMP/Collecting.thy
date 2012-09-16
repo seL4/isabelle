@@ -82,24 +82,24 @@ fun anno\<^isub>2 :: "'a acom \<Rightarrow> 'a" where
 "anno\<^isub>2({I} WHILE b DO {P} C {Q}) = P"
 
 
-fun lift :: "('a set \<Rightarrow> 'b) \<Rightarrow> com \<Rightarrow> 'a acom set \<Rightarrow> 'b acom"
-where
-"lift F com.SKIP M = (SKIP {F (post ` M)})" |
-"lift F (x ::= a) M = (x ::= a {F (post ` M)})" |
-"lift F (c1;c2) M =
-  lift F c1 (sub\<^isub>1 ` M); lift F c2 (sub\<^isub>2 ` M)" |
-"lift F (IF b THEN c1 ELSE c2) M =
-  IF b THEN {F (anno\<^isub>1 ` M)} lift F c1 (sub\<^isub>1 ` M) ELSE {F (anno\<^isub>2 ` M)} lift F c2 (sub\<^isub>2 ` M)
-  {F (post ` M)}" |
-"lift F (WHILE b DO c) M =
- {F (anno\<^isub>1 ` M)}
- WHILE b DO {F (anno\<^isub>2 ` M)} lift F c (sub\<^isub>1 ` M)
- {F (post ` M)}"
+fun Union_acom :: "com \<Rightarrow> 'a acom set \<Rightarrow> 'a set acom" where
+"Union_acom com.SKIP M = (SKIP {post ` M})" |
+"Union_acom (x ::= a) M = (x ::= a {post ` M})" |
+"Union_acom (c1;c2) M =
+  Union_acom c1 (sub\<^isub>1 ` M); Union_acom c2 (sub\<^isub>2 ` M)" |
+"Union_acom (IF b THEN c1 ELSE c2) M =
+  IF b THEN {anno\<^isub>1 ` M} Union_acom c1 (sub\<^isub>1 ` M) ELSE {anno\<^isub>2 ` M} Union_acom c2 (sub\<^isub>2 ` M)
+  {post ` M}" |
+"Union_acom (WHILE b DO c) M =
+ {anno\<^isub>1 ` M}
+ WHILE b DO {anno\<^isub>2 ` M} Union_acom c (sub\<^isub>1 ` M)
+ {post ` M}"
 
-interpretation Complete_Lattice "{C. strip C = c}" "lift Inter c" for c
+interpretation
+  Complete_Lattice "{C. strip C = c}" "map_acom Inter o (Union_acom c)" for c
 proof
   case goal1
-  have "a:A \<Longrightarrow> lift Inter (strip a) A \<le> a"
+  have "a:A \<Longrightarrow> map_acom Inter (Union_acom (strip a) A) \<le> a"
   proof(induction a arbitrary: A)
     case Seq from Seq.prems show ?case by(force intro!: Seq.IH)
   next
@@ -124,7 +124,7 @@ next
   qed
 next
   case goal3
-  have "strip(lift Inter c A) = c"
+  have "strip(Union_acom c A) = c"
   proof(induction c arbitrary: A)
     case Seq from Seq.prems show ?case by (fastforce simp: strip_eq_Seq subset_iff intro!: Seq.IH)
   next
