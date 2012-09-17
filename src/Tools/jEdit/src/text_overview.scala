@@ -65,7 +65,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
     super.paintComponent(gfx)
     Swing_Thread.assert()
 
-    doc_view.text_area_painter.robust_body(()) {
+    doc_view.rich_text_area.robust_body(()) {
       JEdit_Lib.buffer_lock(buffer) {
         val snapshot = doc_view.model.snapshot()
 

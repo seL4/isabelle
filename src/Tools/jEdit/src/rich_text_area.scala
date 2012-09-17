@@ -1,7 +1,8 @@
-/*  Title:      Tools/jEdit/src/text_area_painter.scala
+/*  Title:      Tools/jEdit/src/rich_text_area.scala
     Author:     Makarius
 
-Painter setup for main jEdit text area, depending on common snapshot.
+Enhanced version of jEdit text area, with rich text rendering,
+tooltips, hyperlinks etc.
 */
 
 package isabelle.jedit
@@ -22,7 +23,7 @@ import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
 
-class Text_Area_Painter(view: View, text_area: TextArea, get_rendering: () => Isabelle_Rendering)
+class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabelle_Rendering)
 {
   private val buffer = text_area.getBuffer
 

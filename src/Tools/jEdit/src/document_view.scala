@@ -67,6 +67,11 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 {
   private val session = model.session
 
+  def get_rendering(): Isabelle_Rendering =
+    Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
+
+  val rich_text_area = new Rich_Text_Area(text_area.getView, text_area, get_rendering _)
+
 
   /* perspective */
 
@@ -97,12 +102,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* text area painting */
-
-  def get_rendering(): Isabelle_Rendering =
-    Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
-
-  val text_area_painter = new Text_Area_Painter(text_area.getView, text_area, get_rendering _)
+  /* gutter */
 
   private val gutter_painter = new TextAreaExtension
   {
@@ -110,7 +110,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      text_area_painter.robust_body(()) {
+      rich_text_area.robust_body(()) {
         Swing_Thread.assert()
 
         val gutter = text_area.getGutter
@@ -225,7 +225,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     val painter = text_area.getPainter
 
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
-    text_area_painter.activate()
+    rich_text_area.activate()
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
@@ -242,7 +242,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
     text_area.getGutter.removeExtension(gutter_painter)
-    text_area_painter.deactivate()
+    rich_text_area.deactivate()
     painter.removeExtension(update_perspective)
   }
 }

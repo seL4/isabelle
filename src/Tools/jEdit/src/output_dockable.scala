@@ -47,7 +47,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         val sendback = Protocol.Sendback.unapply(elem.getUserData(Markup.Data.name)).get
         Document_View(view.getTextArea) match {
           case Some(doc_view) =>
-            doc_view.text_area_painter.robust_body() {
+            doc_view.rich_text_area.robust_body() {
               val cmd = current_state.command
               val model = doc_view.model
               val buffer = model.buffer
