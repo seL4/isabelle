@@ -66,7 +66,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def node_header(): Document.Node.Header =
   {
     Swing_Thread.require()
-    Isabelle.buffer_lock(buffer) {
+    JEdit_Lib.buffer_lock(buffer) {
       Exn.capture {
         Isabelle.thy_load.check_thy_text(name, buffer.getSegment(0, buffer.getLength))
       } match {
@@ -96,7 +96,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   /* point range */
 
   def point_range(offset: Text.Offset): Text.Range =
-    Isabelle.buffer_lock(buffer) {
+    JEdit_Lib.buffer_lock(buffer) {
       def text(i: Text.Offset): Char = buffer.getText(i, 1).charAt(0)
       try {
         val c = text(offset)
@@ -151,7 +151,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     def init()
     {
       flush()
-      session.init_node(name, node_header(), perspective(), Isabelle.buffer_text(buffer))
+      session.init_node(name, node_header(), perspective(), JEdit_Lib.buffer_text(buffer))
     }
 
     def exit()

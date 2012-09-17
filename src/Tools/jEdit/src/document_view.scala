@@ -202,7 +202,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     override def mouseMoved(e: MouseEvent) {
       control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
       if (control && model.buffer.isLoaded) {
-        Isabelle.buffer_lock(model.buffer) {
+        JEdit_Lib.buffer_lock(model.buffer) {
           val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
           val mouse_range = model.point_range(text_area.xyToOffset(e.getX(), e.getY()))
           active_areas.foreach(_.update_rendering(rendering, mouse_range))
@@ -248,7 +248,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         val FOLD_MARKER_SIZE = 12
 
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
-          Isabelle.buffer_lock(model.buffer) {
+          JEdit_Lib.buffer_lock(model.buffer) {
             val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
 
             for (i <- 0 until physical_lines.length) {
@@ -308,7 +308,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         case changed: Session.Commands_Changed =>
           val buffer = model.buffer
           Swing_Thread.later {
-            Isabelle.buffer_lock(buffer) {
+            JEdit_Lib.buffer_lock(buffer) {
               if (model.buffer == text_area.getBuffer) {
                 val snapshot = model.snapshot()
 

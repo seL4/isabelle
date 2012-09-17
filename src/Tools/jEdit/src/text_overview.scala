@@ -66,7 +66,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
     Swing_Thread.assert()
 
     doc_view.robust_body(()) {
-      Isabelle.buffer_lock(buffer) {
+      JEdit_Lib.buffer_lock(buffer) {
         val snapshot = doc_view.model.snapshot()
 
         if (snapshot.is_outdated) {

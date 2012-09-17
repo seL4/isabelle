@@ -14,6 +14,8 @@ import javax.swing.Icon
 import java.io.{File => JFile}
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
+import org.gjt.sp.jedit.GUIUtilities
+import org.gjt.sp.util.Log
 
 import scala.collection.immutable.SortedMap
 
@@ -24,17 +26,28 @@ object Isabelle_Rendering
     new Isabelle_Rendering(snapshot, options)
 
 
-  /* physical rendering */
+  /* message priorities */
 
   private val writeln_pri = 1
   private val warning_pri = 2
   private val legacy_pri = 3
   private val error_pri = 4
 
+
+  /* icons */
+
+  private def load_icon(name: String): Icon =
+  {
+    val icon = GUIUtilities.loadIcon(name)
+    if (icon.getIconWidth < 0 || icon.getIconHeight < 0)
+      Log.log(Log.ERROR, icon, "Bad icon: " + name)
+    icon
+  }
+
   private val gutter_icons = Map(
-    warning_pri -> Isabelle.load_icon("16x16/status/dialog-information.png"),
-    legacy_pri -> Isabelle.load_icon("16x16/status/dialog-warning.png"),
-    error_pri -> Isabelle.load_icon("16x16/status/dialog-error.png"))
+    warning_pri -> load_icon("16x16/status/dialog-information.png"),
+    legacy_pri -> load_icon("16x16/status/dialog-warning.png"),
+    error_pri -> load_icon("16x16/status/dialog-error.png"))
 
 
   /* token markup -- text styles */
