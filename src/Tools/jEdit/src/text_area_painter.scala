@@ -26,38 +26,6 @@ class Text_Area_Painter(doc_view: Document_View)
   private val text_area = doc_view.text_area
 
 
-  /* graphics range */
-
-  private def char_width(): Int =
-  {
-    val painter = text_area.getPainter
-    val font = painter.getFont
-    val font_context = painter.getFontRenderContext
-    font.getStringBounds(" ", font_context).getWidth.round.toInt
-  }
-
-  private class Gfx_Range(val x: Int, val y: Int, val length: Int)
-
-  // NB: jEdit already normalizes \r\n and \r to \n
-  // NB: last line lacks \n
-  private def gfx_range(range: Text.Range): Option[Gfx_Range] =
-  {
-    val p = text_area.offsetToXY(range.start)
-
-    val end = buffer.getLength
-    val stop = range.stop
-    val (q, r) =
-      if (stop >= end) (text_area.offsetToXY(end), char_width())
-      else if (stop > 0 && buffer.getText(stop - 1, 1) == "\n")
-        (text_area.offsetToXY(stop - 1), char_width())
-      else (text_area.offsetToXY(stop), 0)
-
-    if (p != null && q != null && p.x < q.x + r && p.y == q.y)
-      Some(new Gfx_Range(p.x, p.y, q.x + r - p.x))
-    else None
-  }
-
-
   /* original painters */
 
   private def pick_extension(name: String): TextAreaExtension =
@@ -124,7 +92,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // background color (1)
             for {
               Text.Info(range, color) <- rendering.background1(line_range)
-              r <- gfx_range(range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -133,7 +101,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // background color (2)
             for {
               Text.Info(range, color) <- rendering.background2(line_range)
-              r <- gfx_range(range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
@@ -142,7 +110,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // squiggly underline
             for {
               Text.Info(range, color) <- rendering.squiggly_underline(line_range)
-              r <- gfx_range(range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               val x0 = (r.x / 2) * 2
@@ -291,7 +259,7 @@ class Text_Area_Painter(doc_view: Document_View)
             // foreground color
             for {
               Text.Info(range, color) <- rendering.foreground(line_range)
-              r <- gfx_range(range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -301,7 +269,7 @@ class Text_Area_Painter(doc_view: Document_View)
             for {
               info <- doc_view.highlight_info()
               Text.Info(range, color) <- info.try_restrict(line_range)
-              r <- gfx_range(range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
@@ -311,7 +279,7 @@ class Text_Area_Painter(doc_view: Document_View)
             for {
               info <- doc_view.hyperlink_info()
               Text.Info(range, _) <- info.try_restrict(line_range)
-              r <- gfx_range(range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(rendering.hyperlink_color)
               gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
@@ -357,7 +325,7 @@ class Text_Area_Painter(doc_view: Document_View)
             val offset = caret - text_area.getLineStartOffset(physical_line)
             val x = text_area.offsetToXY(physical_line, offset).x
             gfx.setColor(painter.getCaretColor)
-            gfx.drawRect(x, y, char_width() - 1, fm.getHeight - 1)
+            gfx.drawRect(x, y, JEdit_Lib.char_width(text_area) - 1, fm.getHeight - 1)
           }
         }
       }

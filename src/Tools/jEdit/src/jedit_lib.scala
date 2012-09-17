@@ -107,5 +107,42 @@ object JEdit_Lib
       buffer.getLineOfOffset(range.start),
       buffer.getLineOfOffset(range.stop))
   }
+
+
+  /* char width */
+
+  def char_width(text_area: TextArea): Int =
+  {
+    val painter = text_area.getPainter
+    val font = painter.getFont
+    val font_context = painter.getFontRenderContext
+    font.getStringBounds(" ", font_context).getWidth.round.toInt
+  }
+
+
+  /* graphics range */
+
+  class Gfx_Range(val x: Int, val y: Int, val length: Int)
+
+  // NB: jEdit already normalizes \r\n and \r to \n
+  // NB: last line lacks \n
+  def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
+  {
+    val buffer = text_area.getBuffer
+
+    val p = text_area.offsetToXY(range.start)
+
+    val end = buffer.getLength
+    val stop = range.stop
+    val (q, r) =
+      if (stop >= end) (text_area.offsetToXY(end), char_width(text_area))
+      else if (stop > 0 && buffer.getText(stop - 1, 1) == "\n")
+        (text_area.offsetToXY(stop - 1), char_width(text_area))
+      else (text_area.offsetToXY(stop), 0)
+
+    if (p != null && q != null && p.x < q.x + r && p.y == q.y)
+      Some(new Gfx_Range(p.x, p.y, q.x + r - p.x))
+    else None
+  }
 }
 
