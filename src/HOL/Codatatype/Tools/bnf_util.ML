@@ -58,6 +58,7 @@ sig
     (term list * (string * typ) list) * Proof.context
   val mk_Freess': string -> typ list list -> Proof.context ->
     (term list list * (string * typ) list list) * Proof.context
+  val nonzero_string_of_int: int -> string
 
   val strip_typeN: int -> typ -> typ list * typ
 
@@ -285,6 +286,9 @@ fun CONJ_WRAP' gen_tac = CONJ_WRAP_GEN' (rtac conjI) gen_tac;
 (* Term construction *)
 
 (** Fresh variables **)
+
+fun nonzero_string_of_int 0 = ""
+  | nonzero_string_of_int n = string_of_int n;
 
 val mk_TFrees' = apfst (map TFree) oo Variable.invent_types;
 

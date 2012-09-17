@@ -461,9 +461,6 @@ fun unfold_defs_tac lthy defs mk_tac context = Local_Defs.unfold_tac lthy defs T
 
 (* Names *)
 
-fun nonzero_string_of_int 0 = ""
-  | nonzero_string_of_int n = string_of_int n;
-
 val mapN = "map";
 val setN = "set";
 fun mk_setN i = setN ^ nonzero_string_of_int i;
@@ -535,6 +532,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val b = qualify raw_b;
     val live = length raw_sets;
     val nwits = length raw_wits;
+
+    val _ = tracing (Binding.name_of b)
 
     val map_rhs = prep_term no_defs_lthy raw_map;
     val set_rhss = map (prep_term no_defs_lthy) raw_sets;

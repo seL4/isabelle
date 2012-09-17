@@ -375,12 +375,9 @@ fun fp_sort lhss NONE Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
 fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold lthy =
   let
     val name = mk_common_name bs;
-    fun qualify i bind =
-      let val namei = if i > 0 then name ^ string_of_int i else name;
-      in
-        if member (op =) (#2 (Binding.dest bind)) (namei, true) then bind
-        else Binding.prefix_name namei bind
-      end;
+    fun qualify i =
+      let val namei = name ^ nonzero_string_of_int i;
+      in Binding.qualify true namei end;
 
     val Ass = map (map dest_TFree) livess;
     val resDs = (case resBs of NONE => [] | SOME Ts => fold (subtract (op =)) Ass Ts);
@@ -415,8 +412,9 @@ fun fp_bnf construct bs mixfixes resBs eqs lthy =
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
     val sort = fp_sort lhss (SOME resBs);
+    fun qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
     val ((bnfs, (Dss, Ass)), (unfold, lthy')) = apfst (apsnd split_list o split_list)
-      (fold_map2 (fn b => bnf_of_typ Smart_Inline (Binding.prefix_name rawN b) I sort) bs rhss
+      (fold_map2 (fn b => bnf_of_typ Smart_Inline (qualify b) sort) bs rhss
         (empty_unfold, lthy));
   in
     mk_fp_bnf timer (construct mixfixes) (SOME resBs) bs sort lhss bnfs Dss Ass unfold lthy'
@@ -427,9 +425,10 @@ fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
     val timer = time (Timer.startRealTimer ());
     val lhss = map (dest_TFree o Syntax.read_typ lthy) raw_lhss;
     val sort = fp_sort lhss NONE;
+    fun qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
     val ((bnfs, (Dss, Ass)), (unfold, lthy')) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => fn rawT =>
-        (bnf_of_typ Smart_Inline (Binding.prefix_name rawN b) I sort (Syntax.read_typ lthy rawT)))
+        (bnf_of_typ Smart_Inline (qualify b) sort (Syntax.read_typ lthy rawT)))
       bs raw_bnfs (empty_unfold, lthy));
   in
     snd (mk_fp_bnf timer (construct (map (K NoSyn) bs)) NONE bs sort lhss bnfs Dss Ass unfold lthy')
