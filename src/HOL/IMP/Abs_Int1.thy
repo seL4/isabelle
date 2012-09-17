@@ -172,7 +172,7 @@ assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \
 begin
 
 lemma mono_aval':
-  "S1 \<sqsubseteq> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval' e S1 \<sqsubseteq> aval' e S2"
+  "S1 \<sqsubseteq> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval' e S1 \<sqsubseteq> aval' e S2"
 by(induction e) (auto simp: le_st_def mono_plus' L_st_def)
 
 theorem mono_step': "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
