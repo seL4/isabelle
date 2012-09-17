@@ -204,7 +204,8 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       if (control && model.buffer.isLoaded) {
         JEdit_Lib.buffer_lock(model.buffer) {
           val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
-          val mouse_range = model.point_range(text_area.xyToOffset(e.getX(), e.getY()))
+          val mouse_range =
+            JEdit_Lib.point_range(model.buffer, text_area.xyToOffset(e.getX(), e.getY()))
           active_areas.foreach(_.update_rendering(rendering, mouse_range))
         }
       }

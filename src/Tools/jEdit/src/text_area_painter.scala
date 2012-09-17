@@ -185,7 +185,8 @@ class Text_Area_Painter(doc_view: Document_View)
           else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
 
         val caret_range =
-          if (text_area.isCaretVisible) model.point_range(text_area.getCaretPosition)
+          if (text_area.isCaretVisible)
+            JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
           else Text.Range(-1)
 
         val markup =

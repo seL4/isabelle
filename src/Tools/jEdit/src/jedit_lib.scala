@@ -60,5 +60,22 @@ object JEdit_Lib
     try { buffer.readLock(); body }
     finally { buffer.readUnlock() }
   }
+
+
+  /* point range */
+
+  def point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =
+    buffer_lock(buffer) {
+      def text(i: Text.Offset): Char = buffer.getText(i, 1).charAt(0)
+      try {
+        val c = text(offset)
+        if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(offset + 1)))
+          Text.Range(offset, offset + 2)
+        else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(offset - 1)))
+          Text.Range(offset - 1, offset + 1)
+        else Text.Range(offset, offset + 1)
+      }
+      catch { case _: ArrayIndexOutOfBoundsException => Text.Range(offset, offset + 1) }
+    }
 }
 
