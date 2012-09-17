@@ -248,10 +248,6 @@ qed
 
 subsubsection "Tests"
 
-(* FIXME dirty trick to get around some problem with the code generator *)
-lemma [code]: "L X = (L X :: 'av::semilattice st set)"
-by(rule refl)
-
 value "show_acom_opt (AI_ivl test1_ivl)"
 
 text{* Better than @{text AI_const}: *}

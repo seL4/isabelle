@@ -74,10 +74,6 @@ defines AI_const is AI and step_const is step' and aval'_const is aval'
 
 subsubsection "Tests"
 
-(* FIXME dirty trick to get around some problem with the code generator *)
-lemma [code]: "L X = (L X :: 'av::semilattice st set)"
-by(rule refl)
-
 definition "steps c i = (step_const(top c) ^^ i) (bot c)"
 
 value "show_acom (steps test1_const 0)"

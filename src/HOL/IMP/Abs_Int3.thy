@@ -383,7 +383,7 @@ defines AI_ivl' is AI_wn
 
 subsubsection "Tests"
 
-(* FIXME dirty trick to get around some problem with the code generator *)
+(* Trick to make the code generator happy. *)
 lemma [code]: "equal_class.equal (x::'a st) y = equal_class.equal x y"
 by(rule refl)
 

@@ -165,6 +165,14 @@ qed (auto simp: le_st_def join_st_def top_st_def L_st_def)
 end
 
 
+text{* Trick to make code generator happy. *}
+lemma [code]: "L = (L :: _ \<Rightarrow> _ st set)"
+by(rule refl)
+(* L is not used in the code but is part of a type class that is used.
+   Hence the code generator wants to build a dictionary with L in it.
+   But L is not executable. This looping defn makes it look as if it were. *)
+
+
 lemma mono_fun: "F \<sqsubseteq> G \<Longrightarrow> x : dom F \<Longrightarrow> fun F x \<sqsubseteq> fun G x"
 by(auto simp: le_st_def)
 
