@@ -590,25 +590,13 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                   (map2 (curry (op $)) phis vs)));
 
-            fun mk_raw_prem_prems_indices pprems =
-              let
-                fun has_index kk (_, (kk', _)) = kk' = kk;
-                val buckets = Library.partition_list has_index 1 nn pprems;
-                val pps = map length buckets;
-              in
-                map (fn pprem as (xysets, (kk, _)) =>
-                  ((nth pps (kk - 1), find_index (curry (op =) pprem) (nth buckets (kk - 1)) + 1),
-                   (length xysets, kk))) pprems
-              end;
-
-            val ppjjqqkksss = map (map (mk_raw_prem_prems_indices o #2)) raw_premss;
-val _ = tracing ("val ppjjqqkksss = " ^ PolyML.makestring ppjjqqkksss) (*###*)
+            val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
             val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt ns mss ppjjqqkksss (flat ctr_defss) fld_induct'
+                mk_induct_tac ctxt ns mss kksss (flat ctr_defss) fld_induct'
                   nested_set_natural's pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
           in

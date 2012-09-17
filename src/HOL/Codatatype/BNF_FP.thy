@@ -137,6 +137,18 @@ by blast
 lemma ex_mem_singleton: "(\<exists>y. y \<in> A \<and> y \<in> {x}) = (x \<in> A)"
 by simp
 
+lemma prod_set_simps:
+"fsts (x, y) = {x}"
+"snds (x, y) = {y}"
+unfolding fsts_def snds_def by simp+
+
+lemma sum_set_simps:
+"sum_setl (Inl x) = {x}"
+"sum_setl (Inr x) = {}"
+"sum_setr (Inl x) = {}"
+"sum_setr (Inr x) = {x}"
+unfolding sum_setl_def sum_setr_def by simp+
+
 lemma induct_set_step:
 "\<lbrakk>b \<in> A; c \<in> F b\<rbrakk> \<Longrightarrow> \<exists>x. x \<in> A \<and> c \<in> F x"
 "\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and>c \<in> C"
