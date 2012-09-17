@@ -104,38 +104,8 @@ lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
 
-lemma UN_compreh_bex_eq_empty:
-"\<Union>{y. \<exists>x\<in>A. y = {}} = {}"
-by blast
-
-lemma UN_compreh_bex_eq_singleton:
-"\<Union>{y. \<exists>x\<in>A. y = {f x}} = {y. \<exists>x\<in>A. y = f x}"
-by blast
-
-lemma mem_UN_comprehI:
-"z \<in> {y. \<exists>x\<in>A. y = f x} \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {f x}}"
-"z \<in> {y. \<exists>x\<in>A. y = f x} \<union> B \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {f x}} \<union> B"
-"z \<in> \<Union>{y. \<exists>x\<in>A. y = F x} \<union> \<Union>{y. \<exists>x\<in>A. y = G x} \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = F x \<union> G x}"
-"z \<in> \<Union>{y. \<exists>x\<in>A. y = F x} \<union> (\<Union>{y. \<exists>x\<in>A. y = G x} \<union> B) \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = F x \<union> G x} \<union> B"
-by blast+
-
-lemma mem_UN_comprehI':
-"\<exists>y. (\<exists>x\<in>A. y = F x) \<and> z \<in> y \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {y. \<exists>y'\<in>F x. y = y'}}"
-by blast
-
 lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
 by blast
-
-lemma eq_UN_compreh_Un: "(xa = \<Union>{y. \<exists>x\<in>A. y = c_set1 x \<union> c_set2 x}) =
-  (xa = (\<Union>{y. \<exists>x\<in>A. y = c_set1 x} \<union> \<Union>{y. \<exists>x\<in>A. y = c_set2 x}))"
-by blast
-
-lemma mem_compreh_eq_iff:
-"z \<in> {y. \<exists>x\<in>A. y = f x} = (\<exists> x. x \<in> A & z \<in> {f x})"
-by blast
-
-lemma ex_mem_singleton: "(\<exists>y. y \<in> A \<and> y \<in> {x}) = (x \<in> A)"
-by simp
 
 lemma prod_set_simps:
 "fsts (x, y) = {x}"
@@ -148,11 +118,6 @@ lemma sum_set_simps:
 "sum_setr (Inl x) = {}"
 "sum_setr (Inr x) = {x}"
 unfolding sum_setl_def sum_setr_def by simp+
-
-lemma induct_set_step:
-"\<lbrakk>b \<in> A; c \<in> F b\<rbrakk> \<Longrightarrow> \<exists>x. x \<in> A \<and> c \<in> F x"
-"\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and>c \<in> C"
-by blast+
 
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_sugar_tactics.ML"

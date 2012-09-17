@@ -533,8 +533,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val live = length raw_sets;
     val nwits = length raw_wits;
 
-    val _ = tracing (Binding.name_of b)
-
     val map_rhs = prep_term no_defs_lthy raw_map;
     val set_rhss = map (prep_term no_defs_lthy) raw_sets;
     val (bd_rhsT, bd_rhs) = (case prep_term no_defs_lthy raw_bd_Abs of

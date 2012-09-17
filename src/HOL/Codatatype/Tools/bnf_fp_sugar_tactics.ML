@@ -95,11 +95,10 @@ val solve_prem_prem_tac =
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
 val induct_prem_prem_thms =
-  @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex_eq_empty UN_compreh_bex_eq_singleton
-      UN_insert Un_assoc Un_empty_left Un_empty_right Un_iff Union_Un_distrib collect_def[abs_def]
-      eq_UN_compreh_Un fst_conv image_def o_apply snd_conv snd_prod_fun sum.cases sup_bot_right
-      fst_map_pair map_pair_simp mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps
-      sum_set_simps};
+  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_assoc Un_empty_left Un_empty_right Un_iff
+      Union_Un_distrib collect_def[abs_def] fst_conv image_def o_apply snd_conv snd_prod_fun
+      sum.cases sup_bot_right fst_map_pair map_pair_simp mem_Collect_eq mem_UN_compreh_eq
+      prod_set_simps sum_map.simps sum_set_simps};
 
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs =
   EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
