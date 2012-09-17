@@ -97,10 +97,17 @@ fun mk_induct_prem_prem_endgame_tac _ 0 = atac ORELSE' rtac @{thm singletonI}
        etac @{thm induct_set_step}) THEN'
     atac ORELSE' SELECT_GOAL (auto_tac ctxt);
 
+fun gen_UN_comprehI_tac UnI = REPEAT_DETERM o resolve_tac @{thms mem_UN_comprehI} THEN' rtac UnI;
+
+fun gen_UnIN_tac 1 1 = REPEAT_DETERM o resolve_tac @{thms mem_UN_comprehI'}
+  | gen_UnIN_tac _ 1 = gen_UN_comprehI_tac @{thm UnI1} THEN' gen_UnIN_tac 1 1
+  | gen_UnIN_tac n k = gen_UN_comprehI_tac @{thm UnI2} THEN' gen_UnIN_tac (n - 1) (k - 1);
+
 val induct_prem_prem_thms =
-  @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex UN_insert Un_assoc[symmetric] Un_empty_left
-      Un_empty_right Union_Un_distrib collect_def[abs_def] fst_conv image_def o_apply snd_conv
-      snd_prod_fun sum.cases sup_bot_right fst_map_pair map_pair_simp sum_map.simps};
+  @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex_eq_empty UN_compreh_bex_eq_singleton
+      UN_insert Un_assoc Un_empty_left Un_empty_right Union_Un_distrib collect_def[abs_def] fst_conv
+      image_def o_apply snd_conv snd_prod_fun sum.cases sup_bot_right fst_map_pair map_pair_simp
+      sum_map.simps};
 
 (* These rules interfere with the "set_natural'" properties of "sum" and "prod", so we explicitly
    delay them. *)
@@ -114,8 +121,7 @@ fun mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_de
        (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
      SELECT_GOAL (Local_Defs.unfold_tac ctxt
        (induct_prem_prem_thms_delayed @ induct_prem_prem_thms)),
-     rtac (mk_UnIN pp jj) THEN' mk_induct_prem_prem_endgame_tac ctxt qq ORELSE'
-       SELECT_GOAL (auto_tac ctxt)]) (rev ppjjqqkks)) 1;
+     gen_UnIN_tac pp jj THEN' mk_induct_prem_prem_endgame_tac ctxt qq]) (rev ppjjqqkks)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ppjjqqkks =
   let val r = length ppjjqqkks in

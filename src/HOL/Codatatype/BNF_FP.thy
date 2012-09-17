@@ -104,10 +104,24 @@ lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
 
-lemma UN_compreh_bex:
-"\<Union>{y. \<exists>x \<in> A. y = {}} = {}"
-"\<Union>{y. \<exists>x \<in> A. y = {f x}} = {y. \<exists>x \<in> A. y = f x}"
+lemma UN_compreh_bex_eq_empty:
+"\<Union>{y. \<exists>x\<in>A. y = {}} = {}"
+by blast
+
+lemma UN_compreh_bex_eq_singleton:
+"\<Union>{y. \<exists>x\<in>A. y = {f x}} = {y. \<exists>x\<in>A. y = f x}"
+by blast
+
+lemma mem_UN_comprehI:
+"z \<in> {y. \<exists>x\<in>A. y = f x} \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {f x}}"
+"z \<in> {y. \<exists>x\<in>A. y = f x} \<union> B \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {f x}} \<union> B"
+"z \<in> \<Union>{y. \<exists>x\<in>A. y = F x} \<union> \<Union>{y. \<exists>x\<in>A. y = G x} \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = F x \<union> G x}"
+"z \<in> \<Union>{y. \<exists>x\<in>A. y = F x} \<union> (\<Union>{y. \<exists>x\<in>A. y = G x} \<union> B) \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = F x \<union> G x} \<union> B"
 by blast+
+
+lemma mem_UN_comprehI':
+"\<exists>y. (\<exists>x\<in>A. y = F x) \<and> z \<in> y \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {y. \<exists>y'\<in>F x. y = y'}}"
+by blast
 
 lemma induct_set_step: "\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and> c \<in> C"
 apply (rule exI)

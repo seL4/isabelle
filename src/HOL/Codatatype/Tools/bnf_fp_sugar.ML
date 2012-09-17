@@ -499,7 +499,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
 
     fun mk_map live Ts Us t =
-      let val (Type (_, Ts0), Type (_, Us0)) = strip_typeN (live + 1) (fastype_of t) |>> List.last in
+      let
+        val (Type (_, Ts0), Type (_, Us0)) = strip_typeN (live + 1) (fastype_of t) |>> List.last
+      in
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
