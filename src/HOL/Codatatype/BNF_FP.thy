@@ -123,8 +123,15 @@ lemma mem_UN_comprehI':
 "\<exists>y. (\<exists>x\<in>A. y = F x) \<and> z \<in> y \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {y. \<exists>y'\<in>F x. y = y'}}"
 by blast
 
+lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
+by blast
+
+lemma eq_UN_compreh_Un: "(xa = \<Union>{y. \<exists>x\<in>A. y = c_set1 x \<union> c_set2 x}) =
+  (xa = (\<Union>{y. \<exists>x\<in>A. y = c_set1 x} \<union> \<Union>{y. \<exists>x\<in>A. y = c_set2 x}))"
+by blast
+
 lemma mem_compreh_eq_iff:
-"z \<in> {y. \<exists>x\<in>Axx. y = f x} = (\<exists> x. x \<in> Axx & z \<in> {f x})"
+"z \<in> {y. \<exists>x\<in>A. y = f x} = (\<exists> x. x \<in> A & z \<in> {f x})"
 by blast
 
 lemma ex_mem_singleton: "(\<exists>y. y \<in> A \<and> y \<in> {x}) = (x \<in> A)"

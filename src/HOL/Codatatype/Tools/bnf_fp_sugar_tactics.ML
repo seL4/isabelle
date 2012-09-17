@@ -43,18 +43,19 @@ fun inst_spurious_fs lthy thm =
 
 val inst_spurious_fs_tac = PRIMITIVE o inst_spurious_fs;
 
-fun mk_set_rhs set_lhs T =
+fun mk_set_rhs def T =
   let
-    val Type (_, Ts0) = domain_type (fastype_of set_lhs);
+    val lhs = snd (Logic.dest_equals (prop_of def));
+    val Type (_, Ts0) = domain_type (fastype_of lhs);
     val Type (_, Ts) = domain_type T;
   in
-    Term.subst_atomic_types (Ts0 ~~ Ts) set_lhs
+    Term.subst_atomic_types (Ts0 ~~ Ts) lhs
   end;
 
-val mk_fsts_rhs = mk_set_rhs (snd (Logic.dest_equals (prop_of @{thm fsts_def[abs_def]})));
-val mk_snds_rhs = mk_set_rhs (snd (Logic.dest_equals (prop_of @{thm snds_def[abs_def]})));
-val mk_setl_rhs = mk_set_rhs (snd (Logic.dest_equals (prop_of @{thm sum_setl_def[abs_def]})));
-val mk_setr_rhs = mk_set_rhs (snd (Logic.dest_equals (prop_of @{thm sum_setr_def[abs_def]})));
+val mk_fsts_rhs = mk_set_rhs @{thm fsts_def[abs_def]};
+val mk_snds_rhs = mk_set_rhs @{thm snds_def[abs_def]};
+val mk_setl_rhs = mk_set_rhs @{thm sum_setl_def[abs_def]};
+val mk_setr_rhs = mk_set_rhs @{thm sum_setr_def[abs_def]};
 
 (* TODO: Put this in "Balanced_Tree" *)
 fun balanced_tree_middle n = n div 2;
@@ -66,14 +67,14 @@ fun unfold_sum_prod_sets ctxt ms thm =
   let
     fun unf_prod 0 f = f
       | unf_prod 1 f = f
-      | unf_prod m (t1 $ (t2 $ (t3 $ (t4 $ Const (_, T1) $ (t5 $ Const (_, T2) $ t6))))
-          $ (t7 $ f $ g)) =
+      | unf_prod m (t1 $ (t2 $ (t3 $ (t4 $ Const (@{const_name fsts}, T1) $
+          (t5 $ Const (@{const_name snds}, T2) $ t6)))) $ (t7 $ f $ g)) =
         t1 $ (t2 $ (t3 $ (t4 $ mk_fsts_rhs T1 $ (t5 $ mk_snds_rhs T2 $ t6))))
           $ (t7 $ f $ unf_prod (m - 1) g)
       | unf_prod _ f = f;
     fun unf_sum [m] f = unf_prod m f
-      | unf_sum ms (t1 $ (t2 $ (t3 $ (t4 $ Const (_, T1) $ (t5 $ Const (_, T2) $ t6))))
-          $ (t7 $ f $ g)) =
+      | unf_sum ms (t1 $ (t2 $ (t3 $ (t4 $ Const (@{const_name sum_setl}, T1) $
+          (t5 $ Const (@{const_name sum_setr}, T2) $ t6)))) $ (t7 $ f $ g)) =
         let val (ms1, ms2) = chop (balanced_tree_middle (length ms)) ms in
           t1 $ (t2 $ (t3 $ (t4 $ mk_setl_rhs T1 $ (t5 $ mk_setr_rhs T2 $ t6))))
             $ (t7 $ unf_sum ms1 f $ unf_sum ms2 g)
@@ -136,18 +137,11 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
 
 val maybe_singletonI_tac = atac ORELSE' rtac @{thm singletonI};
 
-fun mk_induct_prem_prem_endgame_tac _ 0 = maybe_singletonI_tac
-  | mk_induct_prem_prem_endgame_tac ctxt qq =
-    REPEAT_DETERM_N qq o
-      (SELECT_GOAL (Local_Defs.unfold_tac ctxt
-         @{thms trans[OF Union_iff bex_simps(6)] mem_compreh_eq_iff ex_mem_singleton}) THEN'
-       eresolve_tac @{thms induct_set_step}) THEN' maybe_singletonI_tac;
-
-fun gen_UN_comprehI_tac UnI = REPEAT_DETERM o resolve_tac @{thms mem_UN_comprehI} THEN' rtac UnI;
-
-fun gen_UnIN_tac 1 1 = REPEAT_DETERM o resolve_tac @{thms mem_UN_comprehI'}
-  | gen_UnIN_tac _ 1 = gen_UN_comprehI_tac @{thm UnI1} THEN' gen_UnIN_tac 1 1
-  | gen_UnIN_tac n k = gen_UN_comprehI_tac @{thm UnI2} THEN' gen_UnIN_tac (n - 1) (k - 1);
+fun solve_prem_prem_tac ctxt =
+  SELECT_GOAL (Local_Defs.unfold_tac ctxt
+    @{thms Un_iff eq_UN_compreh_Un mem_Collect_eq mem_UN_compreh_eq}) THEN'
+  REPEAT o (etac @{thm rev_bexI} ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
+  (atac ORELSE' rtac refl ORELSE' rtac @{thm singletonI});
 
 val induct_prem_prem_thms =
   @{thms SUP_empty Sup_empty Sup_insert UN_compreh_bex_eq_empty UN_compreh_bex_eq_singleton
@@ -160,7 +154,7 @@ fun mk_induct_leverage_prem_prems_tac ctxt nn ppjjqqkks set_natural's pre_set_de
     [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
      SELECT_GOAL (Local_Defs.unfold_tac ctxt
        (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
-     gen_UnIN_tac pp jj, mk_induct_prem_prem_endgame_tac ctxt qq]) (rev ppjjqqkks)) 1;
+     solve_prem_prem_tac ctxt]) (rev ppjjqqkks)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k ppjjqqkks =
   let val r = length ppjjqqkks in
