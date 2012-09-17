@@ -17,13 +17,9 @@ import scala.actors.Actor._
 import java.lang.System
 import java.text.BreakIterator
 import java.awt.{Color, Graphics2D, Point}
-import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
-  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.util.Log
-
-import org.gjt.sp.jedit.{jEdit, OperatingSystem, Debug}
+import org.gjt.sp.jedit.{jEdit, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
@@ -72,22 +68,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val session = model.session
 
 
-  /* robust extension body */
-
-  def robust_body[A](default: A)(body: => A): A =
-  {
-    try {
-      Swing_Thread.require()
-      if (model.buffer == text_area.getBuffer) body
-      else {
-        Log.log(Log.ERROR, this, ERROR("Inconsistent document model"))
-        default
-      }
-    }
-    catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
-  }
-
-
   /* perspective */
 
   def perspective(): Text.Perspective =
@@ -117,97 +97,12 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* active areas within the text */
-
-  private class Active_Area[A](
-    rendering: Isabelle_Rendering => Text.Range => Option[Text.Info[A]])
-  {
-    private var the_info: Option[Text.Info[A]] = None
-
-    def info: Option[Text.Info[A]] = the_info
-
-    def update(new_info: Option[Text.Info[A]])
-    {
-      val old_info = the_info
-      if (new_info != old_info) {
-        for { opt <- List(old_info, new_info); Text.Info(range, _) <- opt }
-          JEdit_Lib.invalidate_range(text_area, range)
-        the_info = new_info
-      }
-    }
-
-    def update_rendering(r: Isabelle_Rendering, range: Text.Range)
-    { update(rendering(r)(range)) }
-
-    def reset { update(None) }
-  }
-
-  // owned by Swing thread
-
-  private var control: Boolean = false
-
-  private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.highlight _)
-  def highlight_info(): Option[Text.Info[Color]] = highlight_area.info
-
-  private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
-  def hyperlink_info(): Option[Text.Info[Hyperlink]] = hyperlink_area.info
-
-  private val active_areas = List(highlight_area, hyperlink_area)
-  private def active_reset(): Unit = active_areas.foreach(_.reset)
-
-  private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) { active_reset() }
-  }
-
-  private val window_listener = new WindowAdapter {
-    override def windowIconified(e: WindowEvent) { active_reset() }
-    override def windowDeactivated(e: WindowEvent) { active_reset() }
-  }
-
-  private val mouse_listener = new MouseAdapter {
-    override def mouseClicked(e: MouseEvent) {
-      hyperlink_area.info match {
-        case Some(Text.Info(range, link)) => link.follow(text_area.getView)
-        case None =>
-      }
-    }
-  }
-
-  private val mouse_motion_listener = new MouseMotionAdapter {
-    override def mouseMoved(e: MouseEvent) {
-      control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
-      if (control && model.buffer.isLoaded) {
-        JEdit_Lib.buffer_lock(model.buffer) {
-          val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
-          val mouse_range =
-            JEdit_Lib.point_range(model.buffer, text_area.xyToOffset(e.getX(), e.getY()))
-          active_areas.foreach(_.update_rendering(rendering, mouse_range))
-        }
-      }
-      else active_reset()
-    }
-  }
-
-
   /* text area painting */
 
-  private val text_area_painter = new Text_Area_Painter(this)
+  def get_rendering(): Isabelle_Rendering =
+    Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
 
-  private val tooltip_painter = new TextAreaExtension
-  {
-    override def getToolTipText(x: Int, y: Int): String =
-    {
-      robust_body(null: String) {
-        val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
-        val offset = text_area.xyToOffset(x, y)
-        val range = Text.Range(offset, offset + 1)
-        val tip =
-          if (control) rendering.tooltip(range)
-          else rendering.tooltip_message(range)
-        tip.map(Isabelle.tooltip(_)) getOrElse null
-      }
-    }
-  }
+  val text_area_painter = new Text_Area_Painter(text_area.getView, text_area, get_rendering _)
 
   private val gutter_painter = new TextAreaExtension
   {
@@ -215,7 +110,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      robust_body(()) {
+      text_area_painter.robust_body(()) {
         Swing_Thread.assert()
 
         val gutter = text_area.getGutter
@@ -226,7 +121,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
           val buffer = model.buffer
           JEdit_Lib.buffer_lock(buffer) {
-            val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
+            val rendering = get_rendering()
 
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
@@ -328,14 +223,10 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def activate()
   {
     val painter = text_area.getPainter
+
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, update_perspective)
-    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
     text_area_painter.activate()
     text_area.getGutter.addExtension(gutter_painter)
-    text_area.addFocusListener(focus_listener)
-    text_area.getView.addWindowListener(window_listener)
-    painter.addMouseListener(mouse_listener)
-    painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
     session.raw_edits += main_actor
@@ -345,17 +236,13 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def deactivate()
   {
     val painter = text_area.getPainter
+
     session.raw_edits -= main_actor
     session.commands_changed -= main_actor
-    text_area.removeFocusListener(focus_listener)
-    text_area.getView.removeWindowListener(window_listener)
-    painter.removeMouseMotionListener(mouse_motion_listener)
-    painter.removeMouseListener(mouse_listener)
     text_area.removeCaretListener(caret_listener); delay_caret_update.revoke()
     text_area.removeLeftOfScrollBar(overview); overview.delay_repaint.revoke()
     text_area.getGutter.removeExtension(gutter_painter)
     text_area_painter.deactivate()
-    painter.removeExtension(tooltip_painter)
     painter.removeExtension(update_perspective)
   }
 }

@@ -9,21 +9,38 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape}
+import java.awt.{Graphics2D, Shape, Window, Color}
+import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
+  FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
 import java.text.AttributedString
 import java.util.ArrayList
 
-import org.gjt.sp.jedit.Debug
+import org.gjt.sp.util.Log
+import org.gjt.sp.jedit.{OperatingSystem, Debug, View}
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
-import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
 
-class Text_Area_Painter(doc_view: Document_View)
+class Text_Area_Painter(view: View, text_area: TextArea, get_rendering: () => Isabelle_Rendering)
 {
-  private val model = doc_view.model
-  private val buffer = model.buffer
-  private val text_area = doc_view.text_area
+  private val buffer = text_area.getBuffer
+
+
+  /* robust extension body */
+
+  def robust_body[A](default: A)(body: => A): A =
+  {
+    try {
+      Swing_Thread.require()
+      if (buffer == text_area.getBuffer) body
+      else {
+        Log.log(Log.ERROR, this, ERROR("Implicit change of text area buffer"))
+        default
+      }
+    }
+    catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
+  }
 
 
   /* original painters */
@@ -52,7 +69,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      painter_rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
+      painter_rendering = get_rendering()
       painter_clip = gfx.getClip
     }
   }
@@ -70,7 +87,94 @@ class Text_Area_Painter(doc_view: Document_View)
 
   private def robust_rendering(body: Isabelle_Rendering => Unit)
   {
-    doc_view.robust_body(()) { body(painter_rendering) }
+    robust_body(()) { body(painter_rendering) }
+  }
+
+
+  /* active areas within the text */
+
+  private class Active_Area[A](
+    rendering: Isabelle_Rendering => Text.Range => Option[Text.Info[A]])
+  {
+    private var the_info: Option[Text.Info[A]] = None
+
+    def info: Option[Text.Info[A]] = the_info
+
+    def update(new_info: Option[Text.Info[A]])
+    {
+      val old_info = the_info
+      if (new_info != old_info) {
+        for { opt <- List(old_info, new_info); Text.Info(range, _) <- opt }
+          JEdit_Lib.invalidate_range(text_area, range)
+        the_info = new_info
+      }
+    }
+
+    def update_rendering(r: Isabelle_Rendering, range: Text.Range)
+    { update(rendering(r)(range)) }
+
+    def reset { update(None) }
+  }
+
+  // owned by Swing thread
+
+  private var control: Boolean = false
+
+  private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.highlight _)
+  private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
+  private val active_areas = List(highlight_area, hyperlink_area)
+  private def active_reset(): Unit = active_areas.foreach(_.reset)
+
+  private val focus_listener = new FocusAdapter {
+    override def focusLost(e: FocusEvent) { active_reset() }
+  }
+
+  private val window_listener = new WindowAdapter {
+    override def windowIconified(e: WindowEvent) { active_reset() }
+    override def windowDeactivated(e: WindowEvent) { active_reset() }
+  }
+
+  private val mouse_listener = new MouseAdapter {
+    override def mouseClicked(e: MouseEvent) {
+      hyperlink_area.info match {
+        case Some(Text.Info(range, link)) => link.follow(view)
+        case None =>
+      }
+    }
+  }
+
+  private val mouse_motion_listener = new MouseMotionAdapter {
+    override def mouseMoved(e: MouseEvent) {
+      control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
+      if (control && !buffer.isLoading) {
+        JEdit_Lib.buffer_lock(buffer) {
+          val rendering = get_rendering()
+          val mouse_offset = text_area.xyToOffset(e.getX(), e.getY())
+          val mouse_range = JEdit_Lib.point_range(buffer, mouse_offset)
+          active_areas.foreach(_.update_rendering(rendering, mouse_range))
+        }
+      }
+      else active_reset()
+    }
+  }
+
+
+  /* tooltips */
+
+  private val tooltip_painter = new TextAreaExtension
+  {
+    override def getToolTipText(x: Int, y: Int): String =
+    {
+      robust_body(null: String) {
+        val rendering = get_rendering()
+        val offset = text_area.xyToOffset(x, y)
+        val range = Text.Range(offset, offset + 1)
+        val tip =
+          if (control) rendering.tooltip(range)
+          else rendering.tooltip_message(range)
+        tip.map(Isabelle.tooltip(_)) getOrElse null
+      }
+    }
   }
 
 
@@ -227,7 +331,7 @@ class Text_Area_Painter(doc_view: Document_View)
             val screen_line = first_line + i
             val chunks = text_area.getChunksOfScreenLine(screen_line)
             if (chunks != null) {
-              val line_start = text_area.getBuffer.getLineStartOffset(line)
+              val line_start = buffer.getLineStartOffset(line)
               gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
               val w = paint_chunk_list(rendering, gfx, line_start, chunks, x0, y0).toInt
               gfx.clipRect(x0 + w.toInt, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
@@ -267,7 +371,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // highlight range -- potentially from other snapshot
             for {
-              info <- doc_view.highlight_info()
+              info <- highlight_area.info
               Text.Info(range, color) <- info.try_restrict(line_range)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
@@ -277,7 +381,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
             // hyperlink range -- potentially from other snapshot
             for {
-              info <- doc_view.hyperlink_info()
+              info <- hyperlink_area.info
               Text.Info(range, _) <- info.try_restrict(line_range)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
@@ -339,6 +443,7 @@ class Text_Area_Painter(doc_view: Document_View)
   {
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_state)
+    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
     painter.addExtension(TextAreaPainter.TEXT_LAYER, text_painter)
     painter.addExtension(TextAreaPainter.CARET_LAYER - 1, before_caret_painter1)
@@ -349,11 +454,19 @@ class Text_Area_Painter(doc_view: Document_View)
     painter.addExtension(500, foreground_painter)
     painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_state)
     painter.removeExtension(orig_text_painter)
+    painter.addMouseListener(mouse_listener)
+    painter.addMouseMotionListener(mouse_motion_listener)
+    text_area.addFocusListener(focus_listener)
+    view.addWindowListener(window_listener)
   }
 
   def deactivate()
   {
     val painter = text_area.getPainter
+    view.removeWindowListener(window_listener)
+    text_area.removeFocusListener(focus_listener)
+    painter.removeMouseMotionListener(mouse_motion_listener)
+    painter.removeMouseListener(mouse_listener)
     painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)
     painter.removeExtension(reset_state)
     painter.removeExtension(foreground_painter)
@@ -364,6 +477,7 @@ class Text_Area_Painter(doc_view: Document_View)
     painter.removeExtension(before_caret_painter1)
     painter.removeExtension(text_painter)
     painter.removeExtension(background_painter)
+    painter.removeExtension(tooltip_painter)
     painter.removeExtension(set_state)
   }
 }
