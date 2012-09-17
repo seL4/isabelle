@@ -6,7 +6,7 @@ init_components /home/isabelle/contrib "$HOME/admin/components/nonfree"
 
 ML_SYSTEM="polyml-5.5.0"
 ML_PLATFORM="x86-darwin"
-ML_HOME="/home/polyml/polyml-svn/$ML_PLATFORM"
+ML_HOME="/home/polyml/polyml-5.5.0/$ML_PLATFORM"
 ML_OPTIONS="-H 500"
 
 
