@@ -119,7 +119,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            val line_range = doc_view.proper_line_range(start(i), end(i))
+            val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
 
             // background color (1)
             for {
@@ -286,7 +286,7 @@ class Text_Area_Painter(doc_view: Document_View)
       robust_rendering { rendering =>
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            val line_range = doc_view.proper_line_range(start(i), end(i))
+            val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
 
             // foreground color
             for {

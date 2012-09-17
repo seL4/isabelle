@@ -88,31 +88,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
-  /* visible text range */
-
-  // NB: TextArea.getScreenLineEndOffset of last line is beyond Buffer.getLength
-  def proper_line_range(start: Text.Offset, end: Text.Offset): Text.Range =
-    Text.Range(start, end min model.buffer.getLength)
-
-  def visible_range(): Option[Text.Range] =
-  {
-    val n = text_area.getVisibleLines
-    if (n > 0) {
-      val start = text_area.getScreenLineStartOffset(0)
-      val raw_end = text_area.getScreenLineEndOffset(n - 1)
-      Some(proper_line_range(start, if (raw_end >= 0) raw_end else model.buffer.getLength))
-    }
-    else None
-  }
-
-  def invalidate_range(range: Text.Range)
-  {
-    text_area.invalidateLineRange(
-      model.buffer.getLineOfOffset(range.start),
-      model.buffer.getLineOfOffset(range.stop))
-  }
-
-
   /* perspective */
 
   def perspective(): Text.Perspective =
@@ -156,7 +131,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       val old_info = the_info
       if (new_info != old_info) {
         for { opt <- List(old_info, new_info); Text.Info(range, _) <- opt }
-          invalidate_range(range)
+          JEdit_Lib.invalidate_range(text_area, range)
         the_info = new_info
       }
     }
@@ -249,12 +224,13 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         val FOLD_MARKER_SIZE = 12
 
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
-          JEdit_Lib.buffer_lock(model.buffer) {
+          val buffer = model.buffer
+          JEdit_Lib.buffer_lock(buffer) {
             val rendering = Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
 
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
-                val line_range = proper_line_range(start(i), end(i))
+                val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
 
                 // gutter icons
                 rendering.gutter_message(line_range) match {
@@ -318,9 +294,9 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                      changed.commands.exists(snapshot.node.commands.contains)))
                   Swing_Thread.later { overview.delay_repaint.invoke() }
 
-                visible_range() match {
+                JEdit_Lib.visible_range(text_area) match {
                   case Some(visible) =>
-                    if (changed.assignment) invalidate_range(visible)
+                    if (changed.assignment) JEdit_Lib.invalidate_range(text_area, visible)
                     else {
                       val visible_cmds =
                         snapshot.node.command_range(snapshot.revert(visible)).map(_._1)
@@ -329,7 +305,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                           line <- 0 until text_area.getVisibleLines
                           start = text_area.getScreenLineStartOffset(line) if start >= 0
                           end = text_area.getScreenLineEndOffset(line) if end >= 0
-                          range = proper_line_range(start, end)
+                          range = JEdit_Lib.proper_line_range(buffer, start, end)
                           line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
                           if line_cmds.exists(changed.commands)
                         } text_area.invalidateScreenLineRange(line, line)
