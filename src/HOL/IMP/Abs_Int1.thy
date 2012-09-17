@@ -235,6 +235,10 @@ begin
 
 definition "m_st S = (\<Sum> x \<in> dom S. m(fun S x))"
 
+lemma m_st_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_st x \<le> h * card X"
+by(simp add: L_st_def m_st_def)
+  (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
+
 lemma m_st1: "S1 \<sqsubseteq> S2 \<Longrightarrow> m_st S1 \<ge> m_st S2"
 proof(auto simp add: le_st_def m_st_def)
   assume "\<forall>x\<in>dom S2. fun S1 x \<sqsubseteq> fun S2 x"
@@ -257,12 +261,8 @@ qed
 definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" where
 "m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_st S)"
 
-definition m_c :: "'av st option acom \<Rightarrow> nat" where
-"m_c C = (\<Sum>i<size(annos C). m_o (card(vars(strip C))) (annos C ! i))"
-
-lemma m_st_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_st x \<le> h * card X"
-by(simp add: L_st_def m_st_def)
-  (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
+lemma m_o_h: "ost \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_o (card X) ost \<le> (h*card X + 1)"
+by(auto simp add: m_o_def m_st_h split: option.split dest!:m_st_h)
 
 lemma m_o1: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
   o1 \<sqsubseteq> o2 \<Longrightarrow> m_o (card X) o1 \<ge> m_o (card X) o2"
@@ -284,6 +284,25 @@ next
     by(auto simp add: m_o_def le_imp_less_Suc m_st_h)
 next
   case 3 thus ?case by simp
+qed
+
+
+definition m_c :: "'av st option acom \<Rightarrow> nat" where
+"m_c C = (\<Sum>i<size(annos C). m_o (card(vars(strip C))) (annos C ! i))"
+
+lemma m_c_h: assumes "C \<in> L(vars(strip C))"
+shows "m_c C \<le> size(annos C) * (h * card(vars(strip C)) + 1)"
+proof-
+  let ?X = "vars(strip C)" let ?n = "card ?X" let ?a = "size(annos C)"
+  { fix i assume "i < ?a"
+    hence "annos C ! i \<in> L ?X" using assms by(simp add: L_acom_def)
+    note m_o_h[OF this finite_cvars]
+  } note 1 = this
+  have "m_c C = (\<Sum>i<?a. m_o ?n (annos C ! i))" by(simp add: m_c_def)
+  also have "\<dots> \<le> (\<Sum>i<?a. h * ?n + 1)"
+    apply(rule setsum_mono) using 1 by simp
+  also have "\<dots> = ?a * (h * ?n + 1)" by simp
+  finally show ?thesis .
 qed
 
 lemma m_c2: "C1 \<in> L(vars(strip C1)) \<Longrightarrow> C2 \<in> L(vars(strip C2)) \<Longrightarrow>
