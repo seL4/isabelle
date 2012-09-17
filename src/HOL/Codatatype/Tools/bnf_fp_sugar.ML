@@ -602,6 +602,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               end;
 
             val ppjjqqkksss = map (map (mk_raw_prem_prems_indices o #2)) raw_premss;
+val _ = tracing ("val ppjjqqkksss = " ^ PolyML.makestring ppjjqqkksss) (*###*)
 
             val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 

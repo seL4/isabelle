@@ -123,14 +123,17 @@ lemma mem_UN_comprehI':
 "\<exists>y. (\<exists>x\<in>A. y = F x) \<and> z \<in> y \<Longrightarrow> z \<in> \<Union>{y. \<exists>x\<in>A. y = {y. \<exists>y'\<in>F x. y = y'}}"
 by blast
 
-lemma induct_set_step: "\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and> c \<in> C"
-apply (rule exI)
-apply (rule conjI)
- apply (rule bexI)
-  apply (rule refl)
- apply assumption
-apply assumption
-done
+lemma mem_compreh_eq_iff:
+"z \<in> {y. \<exists>x\<in>Axx. y = f x} = (\<exists> x. x \<in> Axx & z \<in> {f x})"
+by blast
+
+lemma ex_mem_singleton: "(\<exists>y. y \<in> A \<and> y \<in> {x}) = (x \<in> A)"
+by simp
+
+lemma induct_set_step:
+"\<lbrakk>b \<in> A; c \<in> F b\<rbrakk> \<Longrightarrow> \<exists>x. x \<in> A \<and> c \<in> F x"
+"\<lbrakk>B \<in> A; c \<in> f B\<rbrakk> \<Longrightarrow> \<exists>C. (\<exists>a \<in> A. C = f a) \<and>c \<in> C"
+by blast+
 
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_sugar_tactics.ML"
