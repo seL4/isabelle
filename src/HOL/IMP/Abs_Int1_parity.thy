@@ -155,7 +155,7 @@ definition m_parity :: "parity \<Rightarrow> nat" where
 
 interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
-and m = m_parity and h = "2"
+and m = m_parity and h = "1"
 proof
   case goal1 thus ?case by(auto simp add: m_parity_def le_parity_def)
 next

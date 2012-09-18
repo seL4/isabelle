@@ -133,7 +133,7 @@ definition "m_const x = (case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0
 
 interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
-and m = m_const and h = "2"
+and m = m_const and h = "1"
 proof
   case goal1 thus ?case by(auto simp: m_const_def split: const.splits)
 next
