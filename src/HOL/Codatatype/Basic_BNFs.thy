@@ -24,7 +24,7 @@ using Card_order_ctwo by (unfold ctwo_def Field_card_of)
 lemma natLeq_cinfinite: "cinfinite natLeq"
 unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 
-bnf_def ID = "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
+bnf_def ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
 apply auto
 apply (rule natLeq_card_order)
 apply (rule natLeq_cinfinite)
@@ -52,7 +52,7 @@ done
 lemma ID_pred[simp]: "ID_pred \<phi> = \<phi>"
 unfolding ID_pred_def ID_rel_def Gr_def fun_eq_iff by auto
 
-bnf_def DEADID = "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
+bnf_def DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
 apply (auto simp add: wpull_id)
 apply (rule card_order_csum)
 apply (rule natLeq_card_order)
@@ -86,8 +86,8 @@ end;
 structure Basic_BNFs : BASIC_BNFS =
 struct
 
-val ID_bnf = the (BNF_Def.bnf_of @{context} "ID");
-val DEADID_bnf = the (BNF_Def.bnf_of @{context} "DEADID");
+val ID_bnf = the (BNF_Def.bnf_of @{context} "Basic_BNFs.ID");
+val DEADID_bnf = the (BNF_Def.bnf_of @{context} "Basic_BNFs.DEADID");
 
 val rel_def = BNF_Def.rel_def_of_bnf ID_bnf;
 val ID_rel_def = rel_def RS sym;
@@ -104,7 +104,7 @@ definition sum_setr :: "'a + 'b \<Rightarrow> 'b set" where
 
 lemmas sum_set_defs = sum_setl_def[abs_def] sum_setr_def[abs_def]
 
-bnf_def sum = sum_map [sum_setl, sum_setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr]
+bnf_def sum_map [sum_setl, sum_setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr]
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
@@ -240,7 +240,7 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 
-bnf_def prod = map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair]
+bnf_def map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair]
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -358,7 +358,7 @@ proof -
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
-bnf_def "fun" = "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|"
+bnf_def "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|"
   ["%c x::'b::type. c::'a::type"]
 proof
   fix f show "id \<circ> f = id f" by simp

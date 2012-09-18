@@ -2855,9 +2855,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val wit_tac = mk_wit_tac n unf_fld_thms (flat set_simp_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Jbnfs, lthy) =
-          fold_map6 (fn tacs => fn b => fn map => fn sets => fn T => fn (thms, wits) =>
+          fold_map6 (fn tacs => fn b => fn map => fn sets => fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline user_policy I tacs (wit_tac thms) (SOME deads)
-              ((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits))
+              ((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits) lthy
+            |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts all_witss lthy;
 
         val fold_maps = Local_Defs.fold lthy (map (fn bnf =>

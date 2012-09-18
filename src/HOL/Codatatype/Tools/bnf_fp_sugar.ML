@@ -805,12 +805,9 @@ val datatyp = define_datatype (K I) (K I) (K I);
 
 val datatype_cmd = define_datatype Typedecl.read_constraint Syntax.parse_typ Syntax.read_term;
 
-val parse_binding_colon = Parse.binding --| @{keyword ":"};
-val parse_opt_binding_colon = Scan.optional parse_binding_colon no_binding;
-
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
-  (Parse.typ >> pair no_binding);
+  (Parse.typ >> pair Binding.empty);
 
 val parse_defaults =
   @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};

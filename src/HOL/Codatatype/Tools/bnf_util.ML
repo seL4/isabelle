@@ -128,6 +128,9 @@ sig
   val certifyT: Proof.context -> typ -> ctyp
   val certify: Proof.context -> term -> cterm
 
+  val parse_binding_colon: Token.T list -> binding * Token.T list
+  val parse_opt_binding_colon: Token.T list -> binding * Token.T list
+
   val typedef: bool -> binding option -> binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
 
@@ -249,6 +252,9 @@ fun fold_map7 _ [] [] [] [] [] [] [] acc = ([], acc)
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
 fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
+
+val parse_binding_colon = Parse.binding --| @{keyword ":"};
+val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 (*TODO: is this really different from Typedef.add_typedef_global?*)
 fun typedef def opt_name typ set opt_morphs tac lthy =

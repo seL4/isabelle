@@ -7,7 +7,6 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
-  val no_binding: binding
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val mk_ctr: typ list -> term -> term
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
@@ -45,7 +44,6 @@ val splitN = "split";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
-val no_binding = @{binding ""};
 val std_binding = @{binding _};
 
 val induct_simp_attrs = @{attributes [induct_simp]};
@@ -111,10 +109,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
     val ms = map length ctr_Tss;
 
-    val raw_disc_bindings' = pad_list no_binding n raw_disc_bindings;
+    val raw_disc_bindings' = pad_list Binding.empty n raw_disc_bindings;
 
     fun can_really_rely_on_disc k =
-      not (Binding.eq_name (nth raw_disc_bindings' (k - 1), no_binding)) orelse nth ms (k - 1) = 0;
+      not (Binding.eq_name (nth raw_disc_bindings' (k - 1), Binding.empty)) orelse
+      nth ms (k - 1) = 0;
     fun can_rely_on_disc k =
       can_really_rely_on_disc k orelse (k = 1 andalso not (can_really_rely_on_disc 2));
     fun can_omit_disc_binding k m =
@@ -127,7 +126,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       raw_disc_bindings'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
         Option.map (Binding.qualify false (Binding.name_of data_b))
-          (if Binding.eq_name (disc, no_binding) then
+          (if Binding.eq_name (disc, Binding.empty) then
              if can_omit_disc_binding k m then NONE else SOME (std_disc_binding ctr)
            else if Binding.eq_name (disc, std_binding) then
              SOME (std_disc_binding ctr)
@@ -143,10 +142,10 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       pad_list [] n raw_sel_bindingss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
         Binding.qualify false (Binding.name_of data_b)
-          (if Binding.eq_name (sel, no_binding) orelse Binding.eq_name (sel, std_binding) then
+          (if Binding.eq_name (sel, Binding.empty) orelse Binding.eq_name (sel, std_binding) then
             std_sel_binding m l ctr
           else
-            sel)) (1 upto m) o pad_list no_binding m) ctrs0 ms;
+            sel)) (1 upto m) o pad_list Binding.empty m) ctrs0 ms;
 
     fun mk_case Ts T =
       let

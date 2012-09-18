@@ -22,7 +22,7 @@ begin
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
-bnf_def option = Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"]
+bnf_def Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"]
 proof -
   show "Option.map id = id" by (simp add: fun_eq_iff Option.map_def split: option.split)
 next
@@ -190,7 +190,7 @@ proof -
   qed
 qed
 
-bnf_def list = map [set] "\<lambda>_::'a list. natLeq" ["[]"]
+bnf_def map [set] "\<lambda>_::'a list. natLeq" ["[]"]
 proof -
   show "map id = id" by (rule List.map.id)
 next
@@ -355,7 +355,7 @@ qed
 lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
 by (rule f_the_inv_into_f) (auto simp: inj_on_def fset_cong dest!: finite_ex_fset)
 
-bnf_def fset = map_fset [fset] "\<lambda>_::'a fset. natLeq" ["{||}"]
+bnf_def map_fset [fset] "\<lambda>_::'a fset. natLeq" ["{||}"]
 proof -
   show "map_fset id = id"
   unfolding map_fset_def2 map_id o_id afset_rfset_id ..
@@ -511,7 +511,7 @@ next
   finally show ?thesis .
 qed
 
-bnf_def cset = cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"]
+bnf_def cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"]
 proof -
   show "cIm id = id" unfolding cIm_def[abs_def] id_def by auto
 next
@@ -1134,7 +1134,7 @@ qed
 definition mset_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
 "mset_map h = Abs_multiset \<circ> mmap h \<circ> count"
 
-bnf_def mset = mset_map [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
+bnf_def mset_map [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
 unfolding mset_map_def
 proof -
   show "Abs_multiset \<circ> mmap id \<circ> count = id" unfolding mmap_id by (auto simp: count_inverse)
