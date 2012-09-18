@@ -20,17 +20,19 @@ import scala.swing.{BorderPanel, Component}
 
 object Pretty_Text_Area
 {
-  def document_state(formatted_body: XML.Body): (String, Document.State) =
+  def document_state(base_snapshot: Document.Snapshot, formatted_body: XML.Body)
+    : (String, Document.State) =
   {
     val command = Command.rich_text(Document.new_id(), formatted_body)
     val node_name = command.node_name
-
     val edits: List[Document.Edit_Text] =
       List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, command.source))))
 
-    val state0 = Document.State.init.define_command(command)
-    val version0 = state0.history.tip.version.get_finished
+    val state0 = base_snapshot.state.define_command(command)
+    val version0 = base_snapshot.version
     val nodes0 = version0.nodes
+
+    assert(nodes0(node_name).commands.isEmpty)
 
     val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
     val version1 = Document.Version.make(version0.syntax, nodes1)
@@ -52,6 +54,7 @@ class Pretty_Text_Area(view: View) extends BorderPanel
   private var current_font_size: Int = 12
   private var current_margin: Int = 0
   private var current_body: XML.Body = Nil
+  private var current_base_snapshot = Document.State.init.snapshot()
   private var current_rendering: Isabelle_Rendering = text_rendering()._2
 
   val text_area = new JEditEmbeddedTextArea
@@ -63,7 +66,7 @@ class Pretty_Text_Area(view: View) extends BorderPanel
 
     val body =
       Pretty.formatted(current_body, current_margin, Pretty.font_metric(current_font_metrics))
-    val (text, state) = Pretty_Text_Area.document_state(body)
+    val (text, state) = Pretty_Text_Area.document_state(current_base_snapshot, body)
     val rendering = Isabelle_Rendering(state.snapshot(), Isabelle.options.value)
 
     (text, rendering)
@@ -106,10 +109,12 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     refresh()
   }
 
-  def update(body: XML.Body)
+  def update(base_snapshot: Document.Snapshot, body: XML.Body)
   {
     Swing_Thread.require()
+    require(!base_snapshot.is_outdated)
 
+    current_base_snapshot = base_snapshot
     current_body = body
     refresh()
   }

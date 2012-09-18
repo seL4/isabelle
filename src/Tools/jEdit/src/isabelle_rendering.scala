@@ -206,7 +206,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
               case _ => false }).isEmpty) =>
 
             props match {
-              case Position.Line_File(line, name) if Path.is_ok(name) =>
+              case Position.Def_Line_File(line, name) if Path.is_ok(name) =>
                 Isabelle_System.source_file(Path.explode(name)) match {
                   case Some(path) =>
                     val jedit_file = Isabelle_System.platform_path(path)
@@ -214,7 +214,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
                   case None => links
                 }
 
-              case Position.Id_Offset(id, offset) if !snapshot.is_outdated =>
+              case Position.Def_Id_Offset(id, offset) =>
                 snapshot.state.find_command(snapshot.version, id) match {
                   case Some((node, command)) =>
                     val sources =

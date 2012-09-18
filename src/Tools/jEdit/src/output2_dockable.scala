@@ -31,6 +31,7 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   private var zoom_factor = 100
   private var show_tracing = false
   private var do_update = true
+  private var current_snapshot = Document.State.init.snapshot()
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
 
@@ -53,19 +54,21 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     Swing_Thread.require()
 
-    val new_state =
-      if (follow) {
-        Document_View(view.getTextArea) match {
-          case Some(doc_view) =>
-            val snapshot = doc_view.model.snapshot()
+    val (new_snapshot, new_state) =
+      Document_View(view.getTextArea) match {
+        case Some(doc_view) =>
+          val snapshot = doc_view.model.snapshot()
+          if (follow && !snapshot.is_outdated) {
             snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-              case Some(cmd) => snapshot.state.command_state(snapshot.version, cmd)
-              case None => Command.empty.init_state
+              case Some(cmd) =>
+                (snapshot, snapshot.state.command_state(snapshot.version, cmd))
+              case None =>
+                (Document.State.init.snapshot(), Command.empty.init_state)
             }
-          case None => Command.empty.init_state
-        }
+          }
+          else (current_snapshot, current_state)
+        case None => (current_snapshot, current_state)
       }
-      else current_state
 
     val new_output =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
@@ -74,8 +77,9 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
       else current_output
 
     if (new_output != current_output)
-      pretty_text_area.update(Library.separate(Pretty.FBreak, new_output))
+      pretty_text_area.update(new_snapshot, Library.separate(Pretty.FBreak, new_output))
 
+    current_snapshot = new_snapshot
     current_state = new_state
     current_output = new_output
   }
