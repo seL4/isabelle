@@ -92,8 +92,10 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     val buffer = text_area.getBuffer
     try {
       buffer.beginCompoundEdit
+      buffer.setReadOnly(false)
       text_area.setText(text)
       text_area.setCaretPosition(0)
+      buffer.setReadOnly(true)
     }
     finally {
       buffer.endCompoundEdit
@@ -120,6 +122,7 @@ class Pretty_Text_Area(view: View) extends BorderPanel
   }
 
   text_area.getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
+  text_area.getBuffer.setReadOnly(true)
   rich_text_area.activate()
   layout(Component.wrap(text_area)) = BorderPanel.Position.Center
 }
