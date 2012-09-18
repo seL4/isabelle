@@ -119,6 +119,7 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     refresh()
   }
 
+  text_area.getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
   rich_text_area.activate()
   layout(Component.wrap(text_area)) = BorderPanel.Position.Center
 }
