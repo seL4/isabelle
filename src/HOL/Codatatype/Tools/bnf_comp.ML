@@ -677,7 +677,9 @@ fun seal_bnf unfold b Ds bnf lthy =
 
     fun wit_tac _ = mk_simple_wit_tac (map unfold_defs (wit_thms_of_bnf bnf));
 
-    val (bnf', lthy') = bnf_def Hardly_Inline (K Derive_All_Facts) I tacs wit_tac (SOME deads)
+    val policy = user_policy Derive_All_Facts;
+
+    val (bnf', lthy') = bnf_def Hardly_Inline policy I tacs wit_tac (SOME deads)
       ((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits) lthy;
 
     val defs' = filter_refl (map_def_of_bnf bnf' :: set_defs_of_bnf bnf');

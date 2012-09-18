@@ -82,7 +82,7 @@ sig
   datatype fact_policy =
     Derive_Some_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms
   val bnf_note_all: bool Config.T
-  val user_policy: Proof.context -> fact_policy
+  val user_policy: fact_policy -> Proof.context -> fact_policy
 
   val print_bnfs: Proof.context -> unit
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
@@ -505,8 +505,8 @@ datatype fact_policy =
 
 val bnf_note_all = Attrib.setup_config_bool @{binding bnf_note_all} (K false);
 
-fun user_policy ctxt =
-  if Config.get ctxt bnf_note_all then Note_All_Facts_and_Axioms else Derive_All_Facts_Note_Most;
+fun user_policy policy ctxt =
+  if Config.get ctxt bnf_note_all then Note_All_Facts_and_Axioms else policy;
 
 val smart_max_inline_size = 25; (*FUDGE*)
 
@@ -1193,7 +1193,7 @@ val bnf_def_cmd = (fn (key, goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd o register_bnf key oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
-  prepare_def Do_Inline user_policy I Syntax.read_term NONE;
+  prepare_def Do_Inline (user_policy Derive_All_Facts_Note_Most) I Syntax.read_term NONE;
 
 fun print_bnfs ctxt =
   let
