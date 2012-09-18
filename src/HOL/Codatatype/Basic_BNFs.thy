@@ -320,7 +320,6 @@ qed simp+
 lemma prod_pred[simp]:
 "prod_pred \<phi> \<psi> p1 p2 = (case p1 of (a1, b1) \<Rightarrow> case p2 of (a2, b2) \<Rightarrow> (\<phi> a1 a2 \<and> \<psi> b1 b2))"
 unfolding prod_set_defs prod_pred_def prod_rel_def Gr_def relcomp_unfold converse_unfold by auto
-(* TODO: pred characterization for each basic BNF *)
 
 (* Categorical version of pullback: *)
 lemma wpull_cat:
