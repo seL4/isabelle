@@ -146,7 +146,7 @@ object Pretty
 
   def string_of(input: XML.Body, margin: Int = margin_default,
       metric: String => Double = metric_default): String =
-    XML.content(formatted(input, margin, metric)).mkString
+    XML.content(formatted(input, margin, metric))
 
 
   /* unformatted output */
@@ -164,5 +164,5 @@ object Pretty
     input.flatMap(standard_format).flatMap(fmt)
   }
 
-  def str_of(input: XML.Body): String = XML.content(unformatted(input)).mkString
+  def str_of(input: XML.Body): String = XML.content(unformatted(input))
 }

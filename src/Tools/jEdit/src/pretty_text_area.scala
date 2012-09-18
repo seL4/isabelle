@@ -20,7 +20,7 @@ import scala.swing.{BorderPanel, Component}
 
 object Pretty_Text_Area
 {
-  def document_state(formatted_body: XML.Body): Document.State =
+  def document_state(formatted_body: XML.Body): (String, Document.State) =
   {
     val command = Command.rich_text(Document.new_id(), formatted_body)
     val node_name = command.node_name
@@ -39,7 +39,7 @@ object Pretty_Text_Area
         .define_version(version1, state0.the_assignment(version0))
         .assign(version1.id, List(command.id -> Some(Document.new_id())))._2
 
-    state1
+    (command.source, state1)
   }
 }
 
@@ -52,19 +52,22 @@ class Pretty_Text_Area(view: View) extends BorderPanel
   private var current_font_size: Int = 12
   private var current_margin: Int = 0
   private var current_body: XML.Body = Nil
-  private var current_rendering: Isabelle_Rendering = make_rendering()
+  private var current_rendering: Isabelle_Rendering = text_rendering()._2
 
-  private def make_rendering(): Isabelle_Rendering =
+  val text_area = new JEditEmbeddedTextArea
+  val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
+
+  private def text_rendering(): (String, Isabelle_Rendering) =
   {
     Swing_Thread.require()
 
     val body =
       Pretty.formatted(current_body, current_margin, Pretty.font_metric(current_font_metrics))
-    Isabelle_Rendering(Pretty_Text_Area.document_state(body).snapshot(), Isabelle.options.value)
-  }
+    val (text, state) = Pretty_Text_Area.document_state(body)
+    val rendering = Isabelle_Rendering(state.snapshot(), Isabelle.options.value)
 
-  val text_area = new JEditEmbeddedTextArea
-  val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
+    (text, rendering)
+  }
 
   def refresh()
   {
@@ -80,8 +83,8 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     current_font_metrics = painter.getFontMetrics(font)
     current_margin = (size.width / (current_font_metrics.charWidth(Pretty.spc) max 1) - 4) max 20
 
-    val text =
-      Pretty.string_of(current_body, current_margin, Pretty.font_metric(current_font_metrics))
+    val (text, rendering) = text_rendering()
+    current_rendering = rendering
 
     val buffer = text_area.getBuffer
     try {

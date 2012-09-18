@@ -109,8 +109,7 @@ object Command
 
   def rich_text(id: Document.Command_ID, body: XML.Body): Command =
   {
-    val text = XML.content(body).mkString
-    val markup = Markup_Tree.empty  // FIXME
+    val (text, markup) = XML.content_markup(body)
     unparsed(id, text, markup)
   }
 
