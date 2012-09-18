@@ -233,7 +233,8 @@ assumes m2: "x \<sqsubset> y \<Longrightarrow> m x > m y"
 assumes h: "m x \<le> h"
 begin
 
-definition "m_st S = (\<Sum> x \<in> dom S. m(fun S x))"
+definition m_st :: "'av st \<Rightarrow> nat" ("m\<^isub>s\<^isub>t") where
+"m_st S = (\<Sum> x \<in> dom S. m(fun S x))"
 
 lemma m_st_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_st x \<le> h * card X"
 by(simp add: L_st_def m_st_def)
@@ -258,7 +259,7 @@ proof(auto simp add: le_st_def m_st_def)
 qed
 
 
-definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" where
+definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" ("m\<^isub>o") where
 "m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_st S)"
 
 lemma m_o_h: "ost \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_o (card X) ost \<le> (h*card X + 1)"
@@ -287,7 +288,7 @@ next
 qed
 
 
-definition m_c :: "'av st option acom \<Rightarrow> nat" where
+definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^isub>c") where
 "m_c C = (\<Sum>i<size(annos C). m_o (card(vars(strip C))) (annos C ! i))"
 
 lemma m_c_h: assumes "C \<in> L(vars(strip C))"
