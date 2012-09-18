@@ -9,9 +9,11 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics}
+import java.awt.{Font, FontMetrics, Toolkit}
+import java.awt.event.{ActionListener, ActionEvent, KeyEvent}
+import javax.swing.{KeyStroke, JComponent}
 
-import org.gjt.sp.jedit.{jEdit, View}
+import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
 import org.gjt.sp.util.SyntaxUtilities
 
@@ -57,8 +59,9 @@ class Pretty_Text_Area(view: View) extends BorderPanel
   private var current_base_snapshot = Document.State.init.snapshot()
   private var current_rendering: Isabelle_Rendering = text_rendering()._2
 
-  val text_area = new JEditEmbeddedTextArea
-  val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
+  private val text_area = new JEditEmbeddedTextArea
+  private val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
+  private val buffer = text_area.getBuffer
 
   private def text_rendering(): (String, Isabelle_Rendering) =
   {
@@ -89,7 +92,6 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     val (text, rendering) = text_rendering()
     current_rendering = rendering
 
-    val buffer = text_area.getBuffer
     try {
       buffer.beginCompoundEdit
       buffer.setReadOnly(false)
@@ -121,9 +123,30 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     refresh()
   }
 
-  text_area.getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
-  text_area.getBuffer.setReadOnly(true)
-  rich_text_area.activate()
+
+  /* keyboard actions */
+
+  private val action_listener = new ActionListener {
+    def actionPerformed(e: ActionEvent) {
+      e.getActionCommand match {
+        case "copy" => Registers.copy(text_area, '$')
+        case _ =>
+      }
+    }
+  }
+
+  text_area.registerKeyboardAction(action_listener, "copy",
+    KeyStroke.getKeyStroke(KeyEvent.VK_COPY, 0), JComponent.WHEN_FOCUSED)
+  text_area.registerKeyboardAction(action_listener, "copy",
+    KeyStroke.getKeyStroke(KeyEvent.VK_C,
+      Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), JComponent.WHEN_FOCUSED)
+
+
+  /* init */
+
+  buffer.setTokenMarker(new Token_Markup.Marker(true, None))
+  buffer.setReadOnly(true)
   layout(Component.wrap(text_area)) = BorderPanel.Position.Center
+  rich_text_area.activate()
 }
 
