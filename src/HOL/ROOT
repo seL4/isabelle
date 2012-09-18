@@ -604,7 +604,7 @@ session "HOL-Cardinals-Base" in Cardinals = HOL +
 
 session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
   description {* Ordinals and Cardinals, Full Theories *}
-  theories Cardinal_Order_Relation
+  theories Cardinals
   files
     "document/intro.tex"
     "document/root.tex"
