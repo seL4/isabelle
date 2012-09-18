@@ -22,15 +22,11 @@ object Pretty_Text_Area
 {
   def document_state(formatted_body: XML.Body): Document.State =
   {
-    val text = formatted_body.iterator.flatMap(XML.content).mkString
-    val markup: List[XML.Elem] = Nil  // FIXME
-
-    val command = Command.unparsed(text)
+    val command = Command.rich_text(Document.new_id(), formatted_body)
     val node_name = command.node_name
-    val exec_id = Document.new_id()
 
     val edits: List[Document.Edit_Text] =
-      List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))))
+      List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, command.source))))
 
     val state0 = Document.State.init.define_command(command)
     val version0 = state0.history.tip.version.get_finished
@@ -41,7 +37,7 @@ object Pretty_Text_Area
     val state1 =
       state0.continue_history(Future.value(version0), edits, Future.value(version1))._2
         .define_version(version1, state0.the_assignment(version0))
-        .assign(version1.id, List(command.id -> Some(exec_id)))._2
+        .assign(version1.id, List(command.id -> Some(Document.new_id())))._2
 
     state1
   }

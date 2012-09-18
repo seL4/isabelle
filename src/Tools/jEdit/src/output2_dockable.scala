@@ -31,7 +31,7 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   private var zoom_factor = 100
   private var show_tracing = false
   private var do_update = true
-  private var current_state = Command.empty.empty_state
+  private var current_state = Command.empty.init_state
   private var current_body: XML.Body = Nil
 
 
@@ -60,9 +60,9 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
             val snapshot = doc_view.model.snapshot()
             snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
               case Some(cmd) => snapshot.state.command_state(snapshot.version, cmd)
-              case None => Command.empty.empty_state
+              case None => Command.empty.init_state
             }
-          case None => Command.empty.empty_state
+          case None => Command.empty.init_state
         }
       }
       else current_state

@@ -79,7 +79,8 @@ object Command
 
   type Span = List[Token]
 
-  def apply(id: Document.Command_ID, node_name: Document.Node.Name, span: Span): Command =
+  def apply(id: Document.Command_ID, node_name: Document.Node.Name,
+    span: Span, markup: Markup_Tree): Command =
   {
     val source: String =
       span match {
@@ -96,13 +97,22 @@ object Command
       i += n
     }
 
-    new Command(id, node_name, span1.toList, source)
+    new Command(id, node_name, span1.toList, source, markup)
   }
 
-  def unparsed(source: String): Command =
-    Command(Document.no_id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)))
+  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil, Markup_Tree.empty)
 
-  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil)
+  def unparsed(id: Document.Command_ID, source: String, markup: Markup_Tree): Command =
+    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), markup)
+
+  def unparsed(source: String): Command = unparsed(Document.no_id, source, Markup_Tree.empty)
+
+  def rich_text(id: Document.Command_ID, body: XML.Body): Command =
+  {
+    val text = XML.content(body).mkString
+    val markup = Markup_Tree.empty  // FIXME
+    unparsed(id, text, markup)
+  }
 
 
   /* perspective */
@@ -131,7 +141,8 @@ final class Command private(
     val id: Document.Command_ID,
     val node_name: Document.Node.Name,
     val span: Command.Span,
-    val source: String)
+    val source: String,
+    val init_markup: Markup_Tree)
 {
   /* classification */
 
@@ -167,5 +178,5 @@ final class Command private(
 
   /* accumulated results */
 
-  val empty_state: Command.State = Command.State(this)
+  val init_state: Command.State = Command.State(this, markup = init_markup)
 }
