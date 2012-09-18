@@ -82,7 +82,6 @@ object XML
           val offset = text.length
           trees.foreach(traverse)
           val end_offset = text.length
-          // FIXME proper order!?
           if (record_markup)
             markup_tree +=
               isabelle.Text.Info(isabelle.Text.Range(offset, end_offset), Elem(markup, Nil))
@@ -90,7 +89,7 @@ object XML
       }
 
     body.foreach(traverse)
-    (text.toString, markup_tree)
+    (text.toString, markup_tree.reverse_markup)
   }
 
   def content_markup(body: Body): (String, Markup_Tree) = make_content(body, true)
