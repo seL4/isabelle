@@ -37,7 +37,7 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* pretty text panel */
 
-  private val pretty_text_area = new Pretty_Text_Area
+  private val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
 

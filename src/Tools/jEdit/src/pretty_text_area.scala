@@ -10,23 +10,62 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Font, FontMetrics}
+
+import org.gjt.sp.jedit.{jEdit, View}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
-import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.util.SyntaxUtilities
+
 import scala.swing.{BorderPanel, Component}
 
 
-class Pretty_Text_Area extends BorderPanel
+object Pretty_Text_Area
+{
+  def document_state(formatted_body: XML.Body): Document.State =
+  {
+    val text = formatted_body.iterator.flatMap(XML.content).mkString
+    val markup: List[XML.Elem] = Nil  // FIXME
+
+    val command = Command.unparsed(text)
+    val node_name = command.node_name
+    val exec_id = Document.new_id()
+
+    val edits: List[Document.Edit_Text] =
+      List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, text))))
+
+    val state0 = Document.State.init.define_command(command)
+    val version0 = state0.history.tip.version.get_finished
+    val nodes0 = version0.nodes
+
+    val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
+    val version1 = Document.Version.make(version0.syntax, nodes1)
+    val state1 =
+      state0.continue_history(Future.value(version0), edits, Future.value(version1))._2
+        .define_version(version1, state0.the_assignment(version0))
+        .assign(version1.id, List(command.id -> Some(exec_id)))._2
+
+    state1
+  }
+}
+
+class Pretty_Text_Area(view: View) extends BorderPanel
 {
   Swing_Thread.require()
-
-  val text_area = new JEditEmbeddedTextArea
 
   private var current_font_metrics: FontMetrics = null
   private var current_font_family = "Dialog"
   private var current_font_size: Int = 12
   private var current_margin: Int = 0
   private var current_body: XML.Body = Nil
+
+  def get_rendering(): Isabelle_Rendering =
+  {
+    val body =
+      Pretty.formatted(current_body, current_margin, Pretty.font_metric(current_font_metrics))
+    Isabelle_Rendering(Pretty_Text_Area.document_state(body).snapshot(), Isabelle.options.value)
+  }
+
+  val text_area = new JEditEmbeddedTextArea
+  val rich_text_area = new Rich_Text_Area(view, text_area, get_rendering _)
 
   def refresh()
   {
@@ -73,6 +112,7 @@ class Pretty_Text_Area extends BorderPanel
     refresh()
   }
 
+  rich_text_area.activate()
   layout(Component.wrap(text_area)) = BorderPanel.Position.Center
 }
 
