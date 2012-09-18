@@ -56,16 +56,19 @@ class Pretty_Text_Area(view: View) extends BorderPanel
   private var current_font_size: Int = 12
   private var current_margin: Int = 0
   private var current_body: XML.Body = Nil
+  private var current_rendering: Isabelle_Rendering = make_rendering()
 
-  def get_rendering(): Isabelle_Rendering =
+  private def make_rendering(): Isabelle_Rendering =
   {
+    Swing_Thread.require()
+
     val body =
       Pretty.formatted(current_body, current_margin, Pretty.font_metric(current_font_metrics))
     Isabelle_Rendering(Pretty_Text_Area.document_state(body).snapshot(), Isabelle.options.value)
   }
 
   val text_area = new JEditEmbeddedTextArea
-  val rich_text_area = new Rich_Text_Area(view, text_area, get_rendering _)
+  val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
 
   def refresh()
   {
