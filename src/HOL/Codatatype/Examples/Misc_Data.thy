@@ -145,8 +145,8 @@ data s1 = S11 s2 s3 s4 | S12 s3 | S13 s2 s6 | S14 s4 s2 | S15 s2 s2
  and s8 = S8 nat
 *)
 
-data ('a, 'b) bar = BAR "'b \<Rightarrow> 'a"
-data ('a, 'b, 'c, 'd) foo = FOO "'d + 'b \<Rightarrow> 'c + 'a"
+data ('a, 'b) bar = Bar "'b \<Rightarrow> 'a"
+data ('a, 'b, 'c, 'd) foo = Foo "'d + 'b \<Rightarrow> 'c + 'a"
 
 data 'a dead_foo = A
 data ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"

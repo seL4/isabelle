@@ -87,18 +87,15 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
   Local_Defs.unfold_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
 
-val maybe_singletonI_tac = atac ORELSE' rtac @{thm singletonI};
-
 val solve_prem_prem_tac =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'
     hyp_subst_tac ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
 val induct_prem_prem_thms =
-  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_assoc Un_empty_left Un_empty_right Un_iff
-      Union_Un_distrib collect_def[abs_def] fst_conv image_def o_apply snd_conv snd_prod_fun
-      sum.cases sup_bot_right fst_map_pair map_pair_simp mem_Collect_eq mem_UN_compreh_eq
-      prod_set_simps sum_map.simps sum_set_simps};
+  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
+      Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
+      mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
 
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs =
   EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
