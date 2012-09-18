@@ -13,7 +13,7 @@ sig
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((bool * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
-    (term list list * thm list * thm list list) * local_theory
+    (term list list * thm list * thm list * thm list * thm list * thm list list) * local_theory
   val parse_wrap_options: bool parser
   val parse_bound_term: (binding * string) parser
 end;
@@ -327,6 +327,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         val ([exhaust_thm], (inject_thmss, (half_distinct_thmss, [case_thms]))) =
           (hd thmss, apsnd (chop (n * n)) (chop n (tl thmss)));
 
+        val inject_thms = flat inject_thmss;
+
         val exhaust_thm' =
           let val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As) in
             Drule.instantiate' [] [SOME (certify lthy v)]
@@ -571,7 +573,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
            (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
-           (injectN, flat inject_thmss, iff_attrs @ induct_simp_attrs),
+           (injectN, inject_thms, iff_attrs @ induct_simp_attrs),
            (nchotomyN, [nchotomy_thm], []),
            (selsN, all_sel_thms, simp_attrs),
            (splitN, [split_thm], []),
@@ -586,7 +588,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ((selss, discI_thms, sel_thmss), lthy |> Local_Theory.notes (notes' @ notes) |> snd)
+        ((selss, inject_thms, distinct_thms, case_thms, discI_thms, sel_thmss),
+         lthy |> Local_Theory.notes (notes' @ notes) |> snd)
       end;
   in
     (goalss, after_qed, lthy')

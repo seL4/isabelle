@@ -62,6 +62,7 @@ sig
   val sel_corecsN: string
   val set_inclN: string
   val set_set_inclN: string
+  val simpsN: string
   val strTN: string
   val str_initN: string
   val sum_bdN: string
@@ -164,6 +165,7 @@ val itersN = iterN ^ "s"
 val coiterN = coN ^ iterN
 val coitersN = coiterN ^ "s"
 val uniqueN = "_unique"
+val simpsN = "simps"
 val fldN = "fld"
 val unfN = "unf"
 val fld_iterN = fldN ^ "_" ^ iterN
@@ -173,7 +175,7 @@ val unf_coitersN = unf_coiterN ^ "s"
 val fld_iter_uniqueN = fld_iterN ^ uniqueN
 val unf_coiter_uniqueN = unf_coiterN ^ uniqueN
 val fld_unf_coitersN = fldN ^ "_" ^ unf_coiterN ^ "s"
-val map_simpsN = mapN ^ "_simps"
+val map_simpsN = mapN ^ "_" ^ simpsN
 val map_uniqueN = mapN ^ uniqueN
 val min_algN = "min_alg"
 val morN = "mor"
@@ -187,7 +189,7 @@ val isNodeN = "isNode"
 val LevN = "Lev"
 val rvN = "recover"
 val behN = "beh"
-fun mk_set_simpsN i = mk_setN i ^ "_simps"
+fun mk_set_simpsN i = mk_setN i ^ "_" ^ simpsN
 fun mk_set_minimalN i = mk_setN i ^ "_minimal"
 fun mk_set_inductN i = mk_setN i ^ "_induct"
 
