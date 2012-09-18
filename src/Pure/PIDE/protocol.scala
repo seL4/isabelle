@@ -135,24 +135,29 @@ object Protocol
  def is_tracing(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => true
+      case XML.Elem(Markup(Isabelle_Markup.TRACING_MESSAGE, _), _) => true
       case _ => false
     }
 
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Isabelle_Markup.WARNING, _), _) => true
+      case XML.Elem(Markup(Isabelle_Markup.WARNING_MESSAGE, _), _) => true
       case _ => false
     }
 
   def is_error(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Isabelle_Markup.ERROR, _), _) => true
+      case XML.Elem(Markup(Isabelle_Markup.ERROR_MESSAGE, _), _) => true
       case _ => false
     }
 
   def is_state(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Isabelle_Markup.WRITELN, _),
+        List(XML.Elem(Markup(Isabelle_Markup.STATE, _), _))) => true
+      case XML.Elem(Markup(Isabelle_Markup.WRITELN_MESSAGE, _),
         List(XML.Elem(Markup(Isabelle_Markup.STATE, _), _))) => true
       case _ => false
     }

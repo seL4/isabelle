@@ -60,10 +60,13 @@ object Command
         case XML.Elem(Markup(name, atts), body) =>
           atts match {
             case Isabelle_Markup.Serial(i) =>
-              val result = XML.Elem(Markup(name, Position.purge(atts)), body)
-              val st0 = copy(results = results + (i -> result))
+              val props = Position.purge(atts)
+              val result = XML.Elem(Markup(name, props), body)
+              val result_message = XML.Elem(Markup(Isabelle_Markup.message(name), props), body)
+
+              val st0 = copy(results = results + (i -> result_message))
               val st1 =
-                if (Protocol.is_tracing(message)) st0
+                if (Protocol.is_tracing(result)) st0
                 else
                   (st0 /: Protocol.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, result)))

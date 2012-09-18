@@ -100,11 +100,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
     val new_body =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
-        new_state.results.iterator.map(_._2).filter(
-        { // FIXME not scalable
-          case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
-          case _ => true
-        }).toList
+        new_state.results.iterator.map(_._2)
+          .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList  // FIXME not scalable
       else current_body
 
     if (new_body != current_body) html_panel.render(new_body)
