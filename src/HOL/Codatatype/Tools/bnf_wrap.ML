@@ -9,6 +9,7 @@ signature BNF_WRAP =
 sig
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val mk_ctr: typ list -> term -> term
+  val base_name_of_ctr: term -> string
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((bool * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
@@ -69,13 +70,13 @@ fun mk_ctr Ts ctr =
     Term.subst_atomic_types (Ts0 ~~ Ts) ctr
   end;
 
-fun eta_expand_case_arg xs f_xs = fold_rev Term.lambda xs f_xs;
-
 fun base_name_of_ctr c =
   Long_Name.base_name (case head_of c of
       Const (s, _) => s
     | Free (s, _) => s
     | _ => error "Cannot extract name of constructor");
+
+fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
 fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
@@ -176,8 +177,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val xfs = map2 (curry Term.list_comb) fs xss;
     val xgs = map2 (curry Term.list_comb) gs xss;
 
-    val eta_fs = map2 eta_expand_case_arg xss xfs;
-    val eta_gs = map2 eta_expand_case_arg xss xgs;
+    val eta_fs = map2 eta_expand_arg xss xfs;
+    val eta_gs = map2 eta_expand_arg xss xgs;
 
     val fcase = Term.list_comb (casex, eta_fs);
     val gcase = Term.list_comb (casex, eta_gs);
@@ -557,8 +558,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             (split_thm, split_asm_thm)
           end;
 
-        val cases_type_attr = Attrib.internal (K (Induct.cases_type dataT_name));
         val exhaust_case_names_attr = Attrib.internal (K (Rule_Cases.case_names exhaust_cases));
+        val cases_type_attr = Attrib.internal (K (Induct.cases_type dataT_name));
 
         val notes =
           [(case_congN, [case_cong_thm], []),

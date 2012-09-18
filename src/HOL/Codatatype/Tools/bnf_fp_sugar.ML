@@ -505,7 +505,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
-    fun build_map build_arg (T as Type (s, Ts)) (U as Type (_, Us)) =
+    fun build_map build_arg (Type (s, Ts)) (Type (_, Us)) =
       let
         val bnf = the (bnf_of lthy s);
         val live = live_of_bnf bnf;
@@ -603,6 +603,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             `(conj_dests nn) induct_thm
           end;
 
+        val induct_cases = Datatype_Prop.indexify_names (maps (map base_name_of_ctr) ctrss);
+
         val (iter_thmss, rec_thmss) =
           let
             val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
@@ -651,19 +653,23 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                goal_recss rec_tacss)
           end;
 
+        val induct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names induct_cases));
+        fun induct_type_attr T_name = Attrib.internal (K (Induct.induct_type T_name));
+
         val common_notes =
-          (if nn > 1 then [(inductN, [induct_thm], [])] (* FIXME: attribs *) else [])
+          (if nn > 1 then [(inductN, [induct_thm], [induct_case_names_attr])] else [])
           |> map (fn (thmN, thms, attrs) =>
               ((Binding.qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
 
         val notes =
-          [(inductN, map single induct_thms, []), (* FIXME: attribs *)
-           (itersN, iter_thmss, simp_attrs),
-           (recsN, rec_thmss, Code.add_default_eqn_attrib :: simp_attrs)]
+          [(inductN, map single induct_thms,
+            fn T_name => [induct_case_names_attr, induct_type_attr T_name]),
+           (itersN, iter_thmss, K simp_attrs),
+           (recsN, rec_thmss, K (Code.add_default_eqn_attrib :: simp_attrs))]
           |> maps (fn (thmN, thmss, attrs) =>
-            map2 (fn b => fn thms =>
-              ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
-                [(thms, [])])) fp_bs thmss);
+            map3 (fn b => fn Type (T_name, _) => fn thms =>
+              ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs T_name),
+                [(thms, [])])) fp_bs fpTs thmss);
       in
         lthy |> Local_Theory.notes (common_notes @ notes) |> snd
       end;
