@@ -32,7 +32,7 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   private var show_tracing = false
   private var do_update = true
   private var current_state = Command.empty.init_state
-  private var current_body: XML.Body = Nil
+  private var current_output: List[XML.Tree] = Nil
 
 
   /* pretty text panel */
@@ -67,19 +67,20 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
       }
       else current_state
 
-    val new_body =
+    val new_output =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
         new_state.results.iterator.map(_._2).filter(
         { // FIXME not scalable
           case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
           case _ => true
         }).toList
-      else current_body
+      else current_output
 
-    if (new_body != current_body) pretty_text_area.update(new_body)
+    if (new_output != current_output)
+      pretty_text_area.update(Library.separate(Pretty.FBreak, new_output))
 
     current_state = new_state
-    current_body = new_body
+    current_output = new_output
   }
 
 
