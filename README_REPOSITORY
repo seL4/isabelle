@@ -4,7 +4,8 @@ Important notes on Mercurial repository access for Isabelle
 Quick start in 20min
 --------------------
 
-1. Install Mercurial http://www.selenic.com/mercurial
+1. Ensure that "hg" (Mercurial) is installed; see also
+   http://www.selenic.com/mercurial
 
 2. Create file $HOME/.isabelle/etc/settings and insert the following
    line near its beginning:
