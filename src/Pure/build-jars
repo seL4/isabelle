@@ -206,8 +206,7 @@ then
   isabelle_jdk jar cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
     fail "Failed to produce $TARGET"
 
-  cp "$JFXRT" \
-    "$SCALA_HOME/lib/scala-compiler.jar" \
+  cp "$SCALA_HOME/lib/scala-compiler.jar" \
     "$SCALA_HOME/lib/scala-library.jar" \
     "$SCALA_HOME/lib/scala-swing.jar" "$TARGET_DIR/ext"
 

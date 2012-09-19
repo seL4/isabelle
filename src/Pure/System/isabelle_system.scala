@@ -297,9 +297,13 @@ object Isabelle_System
   def install_fonts()
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    for (font <- Path.split(getenv_strict("ISABELLE_FONTS"))) {
+    for (font <- Path.split(getenv_strict("ISABELLE_FONTS")))
       ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, font.file))
+  }
 
+  def install_fonts_jfx()
+  {
+    for (font <- Path.split(getenv_strict("ISABELLE_FONTS"))) {
       val stream = new BufferedInputStream(new FileInputStream(font.file))
       try { javafx.scene.text.Font.loadFont(stream, 1.0) }
       finally { stream.close }
