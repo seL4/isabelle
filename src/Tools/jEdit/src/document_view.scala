@@ -97,6 +97,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
+      // no robust_body
       model.update_perspective()
     }
   }

@@ -127,35 +127,39 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
   private def active_reset(): Unit = active_areas.foreach(_.reset)
 
   private val focus_listener = new FocusAdapter {
-    override def focusLost(e: FocusEvent) { active_reset() }
+    override def focusLost(e: FocusEvent) { robust_body(()) { active_reset() } }
   }
 
   private val window_listener = new WindowAdapter {
-    override def windowIconified(e: WindowEvent) { active_reset() }
-    override def windowDeactivated(e: WindowEvent) { active_reset() }
+    override def windowIconified(e: WindowEvent) { robust_body(()) { active_reset() } }
+    override def windowDeactivated(e: WindowEvent) { robust_body(()) { active_reset() } }
   }
 
   private val mouse_listener = new MouseAdapter {
     override def mouseClicked(e: MouseEvent) {
-      hyperlink_area.info match {
-        case Some(Text.Info(range, link)) => link.follow(view)
-        case None =>
+      robust_body(()) {
+        hyperlink_area.info match {
+          case Some(Text.Info(range, link)) => link.follow(view)
+          case None =>
+        }
       }
     }
   }
 
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
-      control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
-      if (control && !buffer.isLoading) {
-        JEdit_Lib.buffer_lock(buffer) {
-          val rendering = get_rendering()
-          val mouse_offset = text_area.xyToOffset(e.getX(), e.getY())
-          val mouse_range = JEdit_Lib.point_range(buffer, mouse_offset)
-          active_areas.foreach(_.update_rendering(rendering, mouse_range))
+      robust_body(()) {
+        control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
+        if (control && !buffer.isLoading) {
+          JEdit_Lib.buffer_lock(buffer) {
+            val rendering = get_rendering()
+            val mouse_offset = text_area.xyToOffset(e.getX(), e.getY())
+            val mouse_range = JEdit_Lib.point_range(buffer, mouse_offset)
+            active_areas.foreach(_.update_rendering(rendering, mouse_range))
+          }
         }
+        else active_reset()
       }
-      else active_reset()
     }
   }
 
