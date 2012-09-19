@@ -337,9 +337,9 @@ fun thms_of all thy =
 
 fun count x = (length oo filter o equal) x
 
-fun cpu_time description e =
-  let val ({cpu, ...}, result) = Timing.timing e ()
-  in (result, (description, Time.toMilliseconds cpu)) end
+fun elapsed_time description e =
+  let val ({elapsed, ...}, result) = Timing.timing e ()
+  in (result, (description, Time.toMilliseconds elapsed)) end
 (*
 fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
@@ -352,13 +352,13 @@ fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =
 fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
     val _ = Output.urgent_message ("Invoking " ^ mtd_name)
-    val (res, timing) = (*cpu_time "total time"
-      (fn () => *)case try (invoke_mtd thy) t of
-          SOME (res, timing) => (res, timing)
+    val (res, timing) = elapsed_time "total time"
+      (fn () => case try (invoke_mtd thy) t of
+          SOME (res, timing) => res
         | NONE => (Output.urgent_message ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
-           (Error, []))
+            Error))
     val _ = Output.urgent_message (" Done")
-  in (res, timing) end
+  in (res, [timing]) end
 
 (* theory -> term list -> mtd -> subentry *)
 
@@ -445,7 +445,7 @@ fun string_of_mutant_subentry' thy thm_name (t, results) =
           "size " ^ string_of_int size ^ ": " ^ string_of_report report) (rev reports))*)
     fun string_of_mtd_result (mtd_name, (outcome, timing)) =
       mtd_name ^ ": " ^ string_of_outcome outcome
-      (*" with time " ^ " (" ^ space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing) ^ ")"*)
+      ^ "(" ^ space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing) ^ ")"
       (*^ "\n" ^ string_of_reports reports*)
   in
     "mutant of " ^ thm_name ^ ":\n"
