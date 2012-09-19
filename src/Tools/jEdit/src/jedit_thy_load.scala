@@ -36,9 +36,9 @@ class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Oute
   override def with_thy_text[A](name: Document.Node.Name, f: CharSequence => A): A =
   {
     Swing_Thread.now {
-      Isabelle.jedit_buffer(name.node) match {
+      JEdit_Lib.jedit_buffer(name.node) match {
         case Some(buffer) =>
-          Isabelle.buffer_lock(buffer) {
+          JEdit_Lib.buffer_lock(buffer) {
             Some(f(buffer.getSegment(0, buffer.getLength)))
           }
         case None => None

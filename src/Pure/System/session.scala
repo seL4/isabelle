@@ -125,7 +125,7 @@ class Session(val thy_load: Thy_Load)
   /* global state */
 
   private val syslog = Volatile(Queue.empty[XML.Elem])
-  def current_syslog(): String = cat_lines(syslog().iterator.map(msg => XML.content(msg).mkString))
+  def current_syslog(): String = cat_lines(syslog().iterator.map(XML.content))
 
   @volatile private var _phase: Session.Phase = Session.Inactive
   private def phase_=(new_phase: Session.Phase)
@@ -311,7 +311,7 @@ class Session(val thy_load: Thy_Load)
           }
 
         case Isabelle_Markup.Assign_Execs if output.is_protocol =>
-          XML.content(output.body).mkString match {
+          XML.content(output.body) match {
             case Protocol.Assign(id, assign) =>
               try {
                 val cmds = global_state >>> (_.assign(id, assign))
@@ -328,7 +328,7 @@ class Session(val thy_load: Thy_Load)
           }
 
         case Isabelle_Markup.Removed_Versions if output.is_protocol =>
-          XML.content(output.body).mkString match {
+          XML.content(output.body) match {
             case Protocol.Removed(removed) =>
               try {
                 global_state >> (_.removed_versions(removed))
@@ -339,7 +339,7 @@ class Session(val thy_load: Thy_Load)
 
         case Isabelle_Markup.Invoke_Scala(name, id) if output.is_protocol =>
           Future.fork {
-            val arg = XML.content(output.body).mkString
+            val arg = XML.content(output.body)
             val (tag, res) = Invoke_Scala.method(name, arg)
             prover.get.invoke_scala(id, tag, res)
           }

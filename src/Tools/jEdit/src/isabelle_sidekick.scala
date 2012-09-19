@@ -91,7 +91,7 @@ class Isabelle_Sidekick(name: String, get_syntax: => Option[Outer_Syntax])
     Swing_Thread.assert()
 
     val buffer = pane.getBuffer
-    Isabelle.buffer_lock(buffer) {
+    JEdit_Lib.buffer_lock(buffer) {
       get_syntax match {
         case None => null
         case Some(syntax) =>
@@ -166,7 +166,7 @@ class Isabelle_Sidekick_Structure(
 
     node_name(buffer) match {
       case Some(name) =>
-        val text = Isabelle.buffer_text(buffer)
+        val text = JEdit_Lib.buffer_text(buffer)
         val structure = Structure.parse(syntax, name, text)
         make_tree(0, structure) foreach (node => data.root.add(node))
         true
@@ -177,15 +177,15 @@ class Isabelle_Sidekick_Structure(
 
 
 class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
-  "isabelle", Isabelle.get_recent_syntax, Isabelle.buffer_node_name)
+  "isabelle", Isabelle.get_recent_syntax, JEdit_Lib.buffer_node_name)
 
 
 class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
-  "isabelle-options", Some(Options.options_syntax), Isabelle.buffer_node_dummy)
+  "isabelle-options", Some(Options.options_syntax), JEdit_Lib.buffer_node_dummy)
 
 
 class Isabelle_Sidekick_Root extends Isabelle_Sidekick_Structure(
-  "isabelle-root", Some(Build.root_syntax), Isabelle.buffer_node_dummy)
+  "isabelle-root", Some(Build.root_syntax), JEdit_Lib.buffer_node_dummy)
 
 
 class Isabelle_Sidekick_Raw

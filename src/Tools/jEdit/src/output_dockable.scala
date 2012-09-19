@@ -31,7 +31,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private var zoom_factor = 100
   private var show_tracing = false
   private var do_update = true
-  private var current_state = Command.empty.empty_state
+  private var current_state = Command.empty.init_state
   private var current_body: XML.Body = Nil
 
 
@@ -47,7 +47,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         val sendback = Protocol.Sendback.unapply(elem.getUserData(Markup.Data.name)).get
         Document_View(view.getTextArea) match {
           case Some(doc_view) =>
-            doc_view.robust_body() {
+            doc_view.rich_text_area.robust_body() {
               val cmd = current_state.command
               val model = doc_view.model
               val buffer = model.buffer
@@ -91,20 +91,17 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
             val snapshot = doc_view.model.snapshot()
             snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
               case Some(cmd) => snapshot.state.command_state(snapshot.version, cmd)
-              case None => Command.empty.empty_state
+              case None => Command.empty.init_state
             }
-          case None => Command.empty.empty_state
+          case None => Command.empty.init_state
         }
       }
       else current_state
 
     val new_body =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
-        new_state.results.iterator.map(_._2).filter(
-        { // FIXME not scalable
-          case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
-          case _ => true
-        }).toList
+        new_state.results.iterator.map(_._2)
+          .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList  // FIXME not scalable
       else current_body
 
     if (new_body != current_body) html_panel.render(new_body)

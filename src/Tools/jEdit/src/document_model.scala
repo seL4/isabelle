@@ -66,7 +66,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def node_header(): Document.Node.Header =
   {
     Swing_Thread.require()
-    Isabelle.buffer_lock(buffer) {
+    JEdit_Lib.buffer_lock(buffer) {
       Exn.capture {
         Isabelle.thy_load.check_thy_text(name, buffer.getSegment(0, buffer.getLength))
       } match {
@@ -90,24 +90,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
         range <- doc_view.perspective().ranges
       } yield range)
   }
-
-
-
-  /* point range */
-
-  def point_range(offset: Text.Offset): Text.Range =
-    Isabelle.buffer_lock(buffer) {
-      def text(i: Text.Offset): Char = buffer.getText(i, 1).charAt(0)
-      try {
-        val c = text(offset)
-        if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(offset + 1)))
-          Text.Range(offset, offset + 2)
-        else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(offset - 1)))
-          Text.Range(offset - 1, offset + 1)
-        else Text.Range(offset, offset + 1)
-      }
-      catch { case _: ArrayIndexOutOfBoundsException => Text.Range(offset, offset + 1) }
-    }
 
 
   /* pending text edits */
@@ -151,7 +133,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     def init()
     {
       flush()
-      session.init_node(name, node_header(), perspective(), Isabelle.buffer_text(buffer))
+      session.init_node(name, node_header(), perspective(), JEdit_Lib.buffer_text(buffer))
     }
 
     def exit()

@@ -350,7 +350,7 @@ object Document
     def define_command(command: Command): State =
     {
       val id = command.id
-      copy(commands = commands + (id -> command.empty_state))
+      copy(commands = commands + (id -> command.init_state))
     }
 
     def defined_command(id: Command_ID): Boolean = commands.isDefinedAt(id)
@@ -474,7 +474,7 @@ object Document
       catch {
         case _: State.Fail =>
           try { the_command_state(command.id) }
-          catch { case _: State.Fail => command.empty_state }
+          catch { case _: State.Fail => command.init_state }
       }
     }
 

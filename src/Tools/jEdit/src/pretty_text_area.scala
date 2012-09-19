@@ -9,24 +9,71 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics}
+import java.awt.{Font, FontMetrics, Toolkit}
+import java.awt.event.{ActionListener, ActionEvent, KeyEvent}
+import javax.swing.{KeyStroke, JComponent}
+
+import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
-import org.gjt.sp.jedit.jEdit
 import org.gjt.sp.util.SyntaxUtilities
+
 import scala.swing.{BorderPanel, Component}
 
 
-class Pretty_Text_Area extends BorderPanel
+object Pretty_Text_Area
+{
+  def document_state(base_snapshot: Document.Snapshot, formatted_body: XML.Body)
+    : (String, Document.State) =
+  {
+    val command = Command.rich_text(Document.new_id(), formatted_body)
+    val node_name = command.node_name
+    val edits: List[Document.Edit_Text] =
+      List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, command.source))))
+
+    val state0 = base_snapshot.state.define_command(command)
+    val version0 = base_snapshot.version
+    val nodes0 = version0.nodes
+
+    assert(nodes0(node_name).commands.isEmpty)
+
+    val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
+    val version1 = Document.Version.make(version0.syntax, nodes1)
+    val state1 =
+      state0.continue_history(Future.value(version0), edits, Future.value(version1))._2
+        .define_version(version1, state0.the_assignment(version0))
+        .assign(version1.id, List(command.id -> Some(Document.new_id())))._2
+
+    (command.source, state1)
+  }
+}
+
+class Pretty_Text_Area(view: View) extends BorderPanel
 {
   Swing_Thread.require()
-
-  val text_area = new JEditEmbeddedTextArea
 
   private var current_font_metrics: FontMetrics = null
   private var current_font_family = "Dialog"
   private var current_font_size: Int = 12
   private var current_margin: Int = 0
   private var current_body: XML.Body = Nil
+  private var current_base_snapshot = Document.State.init.snapshot()
+  private var current_rendering: Isabelle_Rendering = text_rendering()._2
+
+  private val text_area = new JEditEmbeddedTextArea
+  private val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
+  private val buffer = text_area.getBuffer
+
+  private def text_rendering(): (String, Isabelle_Rendering) =
+  {
+    Swing_Thread.require()
+
+    val body =
+      Pretty.formatted(current_body, current_margin, Pretty.font_metric(current_font_metrics))
+    val (text, state) = Pretty_Text_Area.document_state(current_base_snapshot, body)
+    val rendering = Isabelle_Rendering(state.snapshot(), Isabelle.options.value)
+
+    (text, rendering)
+  }
 
   def refresh()
   {
@@ -42,14 +89,15 @@ class Pretty_Text_Area extends BorderPanel
     current_font_metrics = painter.getFontMetrics(font)
     current_margin = (size.width / (current_font_metrics.charWidth(Pretty.spc) max 1) - 4) max 20
 
-    val text =
-      Pretty.string_of(current_body, current_margin, Pretty.font_metric(current_font_metrics))
+    val (text, rendering) = text_rendering()
+    current_rendering = rendering
 
-    val buffer = text_area.getBuffer
     try {
       buffer.beginCompoundEdit
+      buffer.setReadOnly(false)
       text_area.setText(text)
       text_area.setCaretPosition(0)
+      buffer.setReadOnly(true)
     }
     finally {
       buffer.endCompoundEdit
@@ -65,14 +113,40 @@ class Pretty_Text_Area extends BorderPanel
     refresh()
   }
 
-  def update(body: XML.Body)
+  def update(base_snapshot: Document.Snapshot, body: XML.Body)
   {
     Swing_Thread.require()
+    require(!base_snapshot.is_outdated)
 
+    current_base_snapshot = base_snapshot
     current_body = body
     refresh()
   }
 
+
+  /* keyboard actions */
+
+  private val action_listener = new ActionListener {
+    def actionPerformed(e: ActionEvent) {
+      e.getActionCommand match {
+        case "copy" => Registers.copy(text_area, '$')
+        case _ =>
+      }
+    }
+  }
+
+  text_area.registerKeyboardAction(action_listener, "copy",
+    KeyStroke.getKeyStroke(KeyEvent.VK_COPY, 0), JComponent.WHEN_FOCUSED)
+  text_area.registerKeyboardAction(action_listener, "copy",
+    KeyStroke.getKeyStroke(KeyEvent.VK_C,
+      Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), JComponent.WHEN_FOCUSED)
+
+
+  /* init */
+
+  buffer.setTokenMarker(new Token_Markup.Marker(true, None))
+  buffer.setReadOnly(true)
   layout(Component.wrap(text_area)) = BorderPanel.Position.Center
+  rich_text_area.activate()
 }
 

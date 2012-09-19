@@ -31,7 +31,7 @@ private case class File_Link(jedit_file: String, line: Int, column: Int) extends
   {
     Swing_Thread.require()
 
-    Isabelle.jedit_buffer(jedit_file) match {
+    JEdit_Lib.jedit_buffer(jedit_file) match {
       case Some(buffer) =>
         view.goToBuffer(buffer)
         val text_area = view.getTextArea

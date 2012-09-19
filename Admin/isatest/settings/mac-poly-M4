@@ -2,7 +2,7 @@
 
 init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
-  POLYML_HOME="/home/polyml/polyml-svn"
+  POLYML_HOME="/home/polyml/polyml-5.5.0"
   ML_SYSTEM="polyml-5.5.0"
   ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"

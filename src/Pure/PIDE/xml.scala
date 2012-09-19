@@ -12,8 +12,6 @@ import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
 
-import scala.collection.mutable
-
 
 object XML
 {
@@ -71,18 +69,32 @@ object XML
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
 
-  /* text content */
+  /* content -- text and markup */
 
-  def content_stream(tree: Tree): Stream[String] =
-    tree match {
-      case Elem(_, body) => content_stream(body)
-      case Text(content) => Stream(content)
-    }
-  def content_stream(body: Body): Stream[String] =
-    body.toStream.flatten(content_stream(_))
+  private def make_content(body: Body, record_markup: Boolean): (String, Markup_Tree) =
+  {
+    var text = new StringBuilder
+    var markup_tree = Markup_Tree.empty
 
-  def content(tree: Tree): Iterator[String] = content_stream(tree).iterator
-  def content(body: Body): Iterator[String] = content_stream(body).iterator
+    def traverse(tree: Tree): Unit =
+      tree match {
+        case Elem(markup, trees) =>
+          val offset = text.length
+          trees.foreach(traverse)
+          val end_offset = text.length
+          if (record_markup)
+            markup_tree +=
+              isabelle.Text.Info(isabelle.Text.Range(offset, end_offset), Elem(markup, Nil))
+        case Text(s) => text.append(s)
+      }
+
+    body.foreach(traverse)
+    (text.toString, markup_tree.reverse_markup)
+  }
+
+  def content_markup(body: Body): (String, Markup_Tree) = make_content(body, true)
+  def content(body: Body): String = make_content(body, false)._1
+  def content(tree: Tree): String = make_content(List(tree), false)._1
 
 
 

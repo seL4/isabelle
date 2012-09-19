@@ -60,10 +60,13 @@ object Command
         case XML.Elem(Markup(name, atts), body) =>
           atts match {
             case Isabelle_Markup.Serial(i) =>
-              val result = XML.Elem(Markup(name, Position.purge(atts)), body)
-              val st0 = copy(results = results + (i -> result))
+              val props = Position.purge(atts)
+              val result = XML.Elem(Markup(name, props), body)
+              val result_message = XML.Elem(Markup(Isabelle_Markup.message(name), props), body)
+
+              val st0 = copy(results = results + (i -> result_message))
               val st1 =
-                if (Protocol.is_tracing(message)) st0
+                if (Protocol.is_tracing(result)) st0
                 else
                   (st0 /: Protocol.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, result)))
@@ -79,7 +82,8 @@ object Command
 
   type Span = List[Token]
 
-  def apply(id: Document.Command_ID, node_name: Document.Node.Name, span: Span): Command =
+  def apply(id: Document.Command_ID, node_name: Document.Node.Name,
+    span: Span, markup: Markup_Tree): Command =
   {
     val source: String =
       span match {
@@ -96,13 +100,21 @@ object Command
       i += n
     }
 
-    new Command(id, node_name, span1.toList, source)
+    new Command(id, node_name, span1.toList, source, markup)
   }
 
-  def unparsed(source: String): Command =
-    Command(Document.no_id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)))
+  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil, Markup_Tree.empty)
 
-  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil)
+  def unparsed(id: Document.Command_ID, source: String, markup: Markup_Tree): Command =
+    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), markup)
+
+  def unparsed(source: String): Command = unparsed(Document.no_id, source, Markup_Tree.empty)
+
+  def rich_text(id: Document.Command_ID, body: XML.Body): Command =
+  {
+    val (text, markup) = XML.content_markup(body)
+    unparsed(id, text, markup)
+  }
 
 
   /* perspective */
@@ -131,7 +143,8 @@ final class Command private(
     val id: Document.Command_ID,
     val node_name: Document.Node.Name,
     val span: Command.Span,
-    val source: String)
+    val source: String,
+    val init_markup: Markup_Tree)
 {
   /* classification */
 
@@ -167,5 +180,5 @@ final class Command private(
 
   /* accumulated results */
 
-  val empty_state: Command.State = Command.State(this)
+  val init_state: Command.State = Command.State(this, markup = init_markup)
 }

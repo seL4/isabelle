@@ -2,10 +2,10 @@
 
 .message { margin-top: 0.3ex; background-color: #F0F0F0; }
 
-.writeln { }
-.tracing { background-color: #F0F8FF; }
-.warning { background-color: #EEE8AA; }
-.error { background-color: #FFC1C1; }
+.writeln_message { }
+.tracing_message { background-color: #F0F8FF; }
+.warning_message { background-color: #EEE8AA; }
+.error_message { background-color: #FFC1C1; }
 
 .report { display: none; }
 

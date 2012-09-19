@@ -9,23 +9,17 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.lang.System
-import java.awt.Font
 import javax.swing.JOptionPane
 
-import scala.collection.mutable
 import scala.swing.{ListView, ScrollPane}
 
-import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
-  Buffer, EditPane, ServiceManager, View}
-import org.gjt.sp.jedit.buffer.JEditBuffer
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
 import org.gjt.sp.util.SyntaxUtilities
-import org.gjt.sp.util.Log
 
 import scala.actors.Actor._
 
@@ -82,62 +76,6 @@ object Isabelle
   }
 
 
-  /* icons */
-
-  def load_icon(name: String): javax.swing.Icon =
-  {
-    val icon = GUIUtilities.loadIcon(name)
-    if (icon.getIconWidth < 0 || icon.getIconHeight < 0)
-      Log.log(Log.ERROR, icon, "Bad icon: " + name)
-    icon
-  }
-
-
-  /* buffers */
-
-  def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
-    Swing_Thread.now { buffer_lock(buffer) { body } }
-
-  def buffer_text(buffer: JEditBuffer): String =
-    buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
-
-  def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
-
-  def buffer_node_dummy(buffer: Buffer): Option[Document.Node.Name] =
-    Some(Document.Node.Name(buffer_name(buffer), buffer.getDirectory, buffer.getName))
-
-  def buffer_node_name(buffer: Buffer): Option[Document.Node.Name] =
-  {
-    val name = buffer_name(buffer)
-    Thy_Header.thy_name(name).map(theory => Document.Node.Name(name, buffer.getDirectory, theory))
-  }
-
-
-  /* main jEdit components */
-
-  def jedit_buffers(): Iterator[Buffer] = jEdit.getBuffers().iterator
-
-  def jedit_buffer(name: String): Option[Buffer] =
-    jedit_buffers().find(buffer => buffer_name(buffer) == name)
-
-  def jedit_views(): Iterator[View] = jEdit.getViews().iterator
-
-  def jedit_text_areas(view: View): Iterator[JEditTextArea] =
-    view.getEditPanes().iterator.map(_.getTextArea)
-
-  def jedit_text_areas(): Iterator[JEditTextArea] =
-    jedit_views().flatMap(jedit_text_areas(_))
-
-  def jedit_text_areas(buffer: JEditBuffer): Iterator[JEditTextArea] =
-    jedit_text_areas().filter(_.getBuffer == buffer)
-
-  def buffer_lock[A](buffer: JEditBuffer)(body: => A): A =
-  {
-    try { buffer.readLock(); body }
-    finally { buffer.readUnlock() }
-  }
-
-
   /* document model and view */
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
@@ -145,24 +83,24 @@ object Isabelle
 
   def document_views(buffer: Buffer): List[Document_View] =
     for {
-      text_area <- jedit_text_areas(buffer).toList
+      text_area <- JEdit_Lib.jedit_text_areas(buffer).toList
       doc_view = document_view(text_area)
       if doc_view.isDefined
     } yield doc_view.get
 
   def exit_model(buffer: Buffer)
   {
-    swing_buffer_lock(buffer) {
-      jedit_text_areas(buffer).foreach(Document_View.exit)
+    JEdit_Lib.swing_buffer_lock(buffer) {
+      JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
       Document_Model.exit(buffer)
     }
   }
 
   def init_model(buffer: Buffer)
   {
-    swing_buffer_lock(buffer) {
+    JEdit_Lib.swing_buffer_lock(buffer) {
       val opt_model =
-        buffer_node_name(buffer) match {
+        JEdit_Lib.buffer_node_name(buffer) match {
           case Some(node_name) =>
             document_model(buffer) match {
               case Some(model) if model.name == node_name => Some(model)
@@ -171,7 +109,7 @@ object Isabelle
           case None => None
         }
       if (opt_model.isDefined) {
-        for (text_area <- jedit_text_areas(buffer)) {
+        for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
           if (document_view(text_area).map(_.model) != opt_model)
             Document_View.init(opt_model.get, text_area)
         }
@@ -181,7 +119,7 @@ object Isabelle
 
   def init_view(buffer: Buffer, text_area: JEditTextArea)
   {
-    swing_buffer_lock(buffer) {
+    JEdit_Lib.swing_buffer_lock(buffer) {
       document_model(buffer) match {
         case Some(model) => Document_View.init(model, text_area)
         case None =>
@@ -191,7 +129,7 @@ object Isabelle
 
   def exit_view(buffer: Buffer, text_area: JEditTextArea)
   {
-    swing_buffer_lock(buffer) {
+    JEdit_Lib.swing_buffer_lock(buffer) {
       Document_View.exit(text_area)
     }
   }
@@ -264,10 +202,10 @@ class Plugin extends EBPlugin
     {
       val view = jEdit.getActiveView()
 
-      val buffers = Isabelle.jedit_buffers().toList
+      val buffers = JEdit_Lib.jedit_buffers().toList
       if (buffers.forall(_.isLoaded)) {
         def loaded_buffer(name: String): Boolean =
-          buffers.exists(buffer => Isabelle.buffer_name(buffer) == name)
+          buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
 
         val thys =
           for (buffer <- buffers; model <- Isabelle.document_model(buffer))
@@ -314,16 +252,16 @@ class Plugin extends EBPlugin
               }
 
             case Session.Ready =>
-              Isabelle.jedit_buffers.foreach(Isabelle.init_model)
+              JEdit_Lib.jedit_buffers.foreach(Isabelle.init_model)
               Swing_Thread.later { delay_load.invoke() }
 
             case Session.Shutdown =>
-              Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+              JEdit_Lib.jedit_buffers.foreach(Isabelle.exit_model)
               Swing_Thread.later { delay_load.revoke() }
 
             case _ =>
           }
-        case bad => System.err.println("session_manager: ignoring bad message " + bad)
+        case bad => java.lang.System.err.println("session_manager: ignoring bad message " + bad)
       }
     }
   }
@@ -426,7 +364,7 @@ class Plugin extends EBPlugin
       Isabelle.options.value.save_prefs()
 
     Isabelle.session.phase_changed -= session_manager
-    Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+    JEdit_Lib.jedit_buffers.foreach(Isabelle.exit_model)
     Isabelle.session.stop()
   }
 }

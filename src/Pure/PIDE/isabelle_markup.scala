@@ -231,6 +231,16 @@ object Isabelle_Markup
   val STDERR = "stderr"
   val EXIT = "exit"
 
+  val WRITELN_MESSAGE = "writeln_message"
+  val TRACING_MESSAGE = "tracing_message"
+  val WARNING_MESSAGE = "warning_message"
+  val ERROR_MESSAGE = "error_message"
+
+  val message: String => String =
+    Map(WRITELN -> WRITELN_MESSAGE, TRACING -> TRACING_MESSAGE,
+        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE)
+      .withDefault((name: String) => name + "_message")
+
   val Return_Code = new Properties.Int("return_code")
 
   val LEGACY = "legacy"

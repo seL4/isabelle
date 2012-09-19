@@ -14,6 +14,8 @@ import javax.swing.Icon
 import java.io.{File => JFile}
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
+import org.gjt.sp.jedit.GUIUtilities
+import org.gjt.sp.util.Log
 
 import scala.collection.immutable.SortedMap
 
@@ -24,17 +26,28 @@ object Isabelle_Rendering
     new Isabelle_Rendering(snapshot, options)
 
 
-  /* physical rendering */
+  /* message priorities */
 
   private val writeln_pri = 1
   private val warning_pri = 2
   private val legacy_pri = 3
   private val error_pri = 4
 
+
+  /* icons */
+
+  private def load_icon(name: String): Icon =
+  {
+    val icon = GUIUtilities.loadIcon(name)
+    if (icon.getIconWidth < 0 || icon.getIconHeight < 0)
+      Log.log(Log.ERROR, icon, "Bad icon: " + name)
+    icon
+  }
+
   private val gutter_icons = Map(
-    warning_pri -> Isabelle.load_icon("16x16/status/dialog-information.png"),
-    legacy_pri -> Isabelle.load_icon("16x16/status/dialog-warning.png"),
-    error_pri -> Isabelle.load_icon("16x16/status/dialog-error.png"))
+    warning_pri -> load_icon("16x16/status/dialog-information.png"),
+    legacy_pri -> load_icon("16x16/status/dialog-warning.png"),
+    error_pri -> load_icon("16x16/status/dialog-error.png"))
 
 
   /* token markup -- text styles */
@@ -96,6 +109,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
   val error1_color = color_value("error1_color")
+  val writeln_message_color = color_value("writeln_message_color")
+  val tracing_message_color = color_value("tracing_message_color")
+  val warning_message_color = color_value("warning_message_color")
+  val error_message_color = color_value("error_message_color")
   val bad_color = color_value("bad_color")
   val intensify_color = color_value("intensify_color")
   val quoted_color = color_value("quoted_color")
@@ -189,7 +206,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
               case _ => false }).isEmpty) =>
 
             props match {
-              case Position.Line_File(line, name) if Path.is_ok(name) =>
+              case Position.Def_Line_File(line, name) if Path.is_ok(name) =>
                 Isabelle_System.source_file(Path.explode(name)) match {
                   case Some(path) =>
                     val jedit_file = Isabelle_System.platform_path(path)
@@ -197,7 +214,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
                   case None => links
                 }
 
-              case Position.Id_Offset(id, offset) if !snapshot.is_outdated =>
+              case Position.Def_Id_Offset(id, offset) =>
                 snapshot.state.find_command(snapshot.version, id) match {
                   case Some((node, command)) =>
                     val sources =
@@ -346,11 +363,21 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
         Text.Info(r, result) <-
           snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
             range, (Some(Protocol.Status.init), None),
-            Some(Protocol.command_status_markup + Isabelle_Markup.BAD + Isabelle_Markup.INTENSIFY),
+            Some(Protocol.command_status_markup + Isabelle_Markup.WRITELN_MESSAGE +
+              Isabelle_Markup.TRACING_MESSAGE + Isabelle_Markup.WARNING_MESSAGE +
+              Isabelle_Markup.ERROR_MESSAGE + Isabelle_Markup.BAD + Isabelle_Markup.INTENSIFY),
             {
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
                 (Some(Protocol.command_status(status, markup)), color)
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN_MESSAGE, _), _))) =>
+                (None, Some(writeln_message_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TRACING_MESSAGE, _), _))) =>
+                (None, Some(tracing_message_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING_MESSAGE, _), _))) =>
+                (None, Some(warning_message_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR_MESSAGE, _), _))) =>
+                (None, Some(error_message_color))
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.INTENSIFY, _), _))) =>
@@ -387,6 +414,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
 
   private val text_colors: Map[String, Color] = Map(
+      Isabelle_Markup.COMMAND -> keyword1_color,
       Isabelle_Markup.STRING -> Color.BLACK,
       Isabelle_Markup.ALTSTRING -> Color.BLACK,
       Isabelle_Markup.VERBATIM -> Color.BLACK,

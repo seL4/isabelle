@@ -35,23 +35,30 @@ object Markup_Tree
       else copy(rev_markup = info :: rev_markup, elements = elements + info.markup.name)
 
     def markup: List[XML.Elem] = rev_markup.reverse
+
+    def reverse_markup: Entry =
+      copy(rev_markup = rev_markup.reverse, subtree = subtree.reverse_markup)
   }
 
   object Branches
   {
     type T = SortedMap[Text.Range, Entry]
     val empty: T = SortedMap.empty(Text.Range.Ordering)
+
+    def reverse_markup(branches: T): T =
+      (empty /: branches.iterator) { case (bs, (r, entry)) => bs + (r -> entry.reverse_markup) }
   }
 }
 
 
 final class Markup_Tree private(branches: Markup_Tree.Branches.T)
 {
+  import Markup_Tree._
+
   private def this(branches: Markup_Tree.Branches.T, entry: Markup_Tree.Entry) =
     this(branches + (entry.range -> entry))
 
-
-  import Markup_Tree._
+  def reverse_markup: Markup_Tree = new Markup_Tree(Branches.reverse_markup(branches))
 
   override def toString =
     branches.toList.map(_._2) match {

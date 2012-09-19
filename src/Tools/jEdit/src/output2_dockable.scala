@@ -31,13 +31,14 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   private var zoom_factor = 100
   private var show_tracing = false
   private var do_update = true
-  private var current_state = Command.empty.empty_state
-  private var current_body: XML.Body = Nil
+  private var current_snapshot = Document.State.init.snapshot()
+  private var current_state = Command.empty.init_state
+  private var current_output: List[XML.Tree] = Nil
 
 
   /* pretty text panel */
 
-  private val pretty_text_area = new Pretty_Text_Area
+  private val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
 
@@ -53,33 +54,34 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     Swing_Thread.require()
 
-    val new_state =
-      if (follow) {
-        Document_View(view.getTextArea) match {
-          case Some(doc_view) =>
-            val snapshot = doc_view.model.snapshot()
+    val (new_snapshot, new_state) =
+      Document_View(view.getTextArea) match {
+        case Some(doc_view) =>
+          val snapshot = doc_view.model.snapshot()
+          if (follow && !snapshot.is_outdated) {
             snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-              case Some(cmd) => snapshot.state.command_state(snapshot.version, cmd)
-              case None => Command.empty.empty_state
+              case Some(cmd) =>
+                (snapshot, snapshot.state.command_state(snapshot.version, cmd))
+              case None =>
+                (Document.State.init.snapshot(), Command.empty.init_state)
             }
-          case None => Command.empty.empty_state
-        }
+          }
+          else (current_snapshot, current_state)
+        case None => (current_snapshot, current_state)
       }
-      else current_state
 
-    val new_body =
+    val new_output =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
-        new_state.results.iterator.map(_._2).filter(
-        { // FIXME not scalable
-          case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => show_tracing
-          case _ => true
-        }).toList
-      else current_body
+        new_state.results.iterator.map(_._2)
+          .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList  // FIXME not scalable
+      else current_output
 
-    if (new_body != current_body) pretty_text_area.update(new_body)
+    if (new_output != current_output)
+      pretty_text_area.update(new_snapshot, Library.separate(Pretty.FBreak, new_output))
 
+    current_snapshot = new_snapshot
     current_state = new_state
-    current_body = new_body
+    current_output = new_output
   }
 
 

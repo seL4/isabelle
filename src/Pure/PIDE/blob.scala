@@ -24,5 +24,5 @@ sealed case class Blob(val source: String)
   def decode(i: Text.Offset): Text.Offset = symbol_index.decode(i)
   def decode(r: Text.Range): Text.Range = symbol_index.decode(r)
 
-  val empty_state: Blob.State = Blob.State(this)
+  val init_state: Blob.State = Blob.State(this)
 }

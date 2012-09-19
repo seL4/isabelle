@@ -20,12 +20,28 @@ object Position
   val File = new Properties.String(Isabelle_Markup.FILE)
   val Id = new Properties.Long(Isabelle_Markup.ID)
 
+  val Def_Line = new Properties.Int(Isabelle_Markup.DEF_LINE)
+  val Def_Offset = new Properties.Int(Isabelle_Markup.DEF_OFFSET)
+  val Def_End_Offset = new Properties.Int(Isabelle_Markup.DEF_END_OFFSET)
+  val Def_File = new Properties.String(Isabelle_Markup.DEF_FILE)
+  val Def_Id = new Properties.Long(Isabelle_Markup.DEF_ID)
+
   object Line_File
   {
     def unapply(pos: T): Option[(Int, String)] =
       (pos, pos) match {
         case (Line(i), File(name)) => Some((i, name))
         case (_, File(name)) => Some((1, name))
+        case _ => None
+      }
+  }
+
+  object Def_Line_File
+  {
+    def unapply(pos: T): Option[(Int, String)] =
+      (pos, pos) match {
+        case (Def_Line(i), Def_File(name)) => Some((i, name))
+        case (_, Def_File(name)) => Some((1, name))
         case _ => None
       }
   }
@@ -50,6 +66,15 @@ object Position
       }
   }
 
+  object Def_Id_Offset
+  {
+    def unapply(pos: T): Option[(Long, Text.Offset)] =
+      (pos, pos) match {
+        case (Def_Id(id), Def_Offset(offset)) => Some((id, offset))
+        case _ => None
+      }
+  }
+
   object Id_Range
   {
     def unapply(pos: T): Option[(Long, Text.Range)] =
@@ -59,16 +84,7 @@ object Position
       }
   }
 
-  private val purge_pos = Map(
-    Isabelle_Markup.DEF_LINE -> Isabelle_Markup.LINE,
-    Isabelle_Markup.DEF_OFFSET -> Isabelle_Markup.OFFSET,
-    Isabelle_Markup.DEF_END_OFFSET -> Isabelle_Markup.END_OFFSET,
-    Isabelle_Markup.DEF_FILE -> Isabelle_Markup.FILE,
-    Isabelle_Markup.DEF_ID -> Isabelle_Markup.ID)
-
-  def purge(props: T): T =
-    for ((x, y) <- props if !Isabelle_Markup.POSITION_PROPERTIES(x))
-      yield (if (purge_pos.isDefinedAt(x)) (purge_pos(x), y) else (x, y))
+  def purge(props: T): T = props.filterNot(p => Isabelle_Markup.POSITION_PROPERTIES(p._1))
 
 
   /* here: inlined formal markup */
