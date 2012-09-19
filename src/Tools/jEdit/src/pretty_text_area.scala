@@ -17,8 +17,6 @@ import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
 import org.gjt.sp.util.SyntaxUtilities
 
-import scala.swing.{BorderPanel, Component}
-
 
 object Pretty_Text_Area
 {
@@ -47,8 +45,10 @@ object Pretty_Text_Area
   }
 }
 
-class Pretty_Text_Area(view: View) extends BorderPanel
+class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
 {
+  text_area =>
+
   Swing_Thread.require()
 
   private var current_font_metrics: FontMetrics = null
@@ -59,9 +59,7 @@ class Pretty_Text_Area(view: View) extends BorderPanel
   private var current_base_snapshot = Document.State.init.snapshot()
   private var current_rendering: Isabelle_Rendering = text_rendering()._2
 
-  private val text_area = new JEditEmbeddedTextArea
   private val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering)
-  private val buffer = text_area.getBuffer
 
   private def text_rendering(): (String, Isabelle_Rendering) =
   {
@@ -81,26 +79,25 @@ class Pretty_Text_Area(view: View) extends BorderPanel
 
     val font = new Font(current_font_family, Font.PLAIN, current_font_size)
 
-    val painter = text_area.getPainter
-    painter.setFont(font)
-    painter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
-    painter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
+    getPainter.setFont(font)
+    getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
+    getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
     current_font_metrics = painter.getFontMetrics(font)
-    current_margin = (size.width / (current_font_metrics.charWidth(Pretty.spc) max 1) - 4) max 20
+    current_margin = (getWidth / (current_font_metrics.charWidth(Pretty.spc) max 1) - 4) max 20
 
     val (text, rendering) = text_rendering()
     current_rendering = rendering
 
     try {
-      buffer.beginCompoundEdit
-      buffer.setReadOnly(false)
-      text_area.setText(text)
-      text_area.setCaretPosition(0)
-      buffer.setReadOnly(true)
+      getBuffer.beginCompoundEdit
+      getBuffer.setReadOnly(false)
+      setText(text)
+      setCaretPosition(0)
+      getBuffer.setReadOnly(true)
     }
     finally {
-      buffer.endCompoundEdit
+      getBuffer.endCompoundEdit
     }
   }
 
@@ -135,18 +132,17 @@ class Pretty_Text_Area(view: View) extends BorderPanel
     }
   }
 
-  text_area.registerKeyboardAction(action_listener, "copy",
+  registerKeyboardAction(action_listener, "copy",
     KeyStroke.getKeyStroke(KeyEvent.VK_COPY, 0), JComponent.WHEN_FOCUSED)
-  text_area.registerKeyboardAction(action_listener, "copy",
+  registerKeyboardAction(action_listener, "copy",
     KeyStroke.getKeyStroke(KeyEvent.VK_C,
       Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), JComponent.WHEN_FOCUSED)
 
 
   /* init */
 
-  buffer.setTokenMarker(new Token_Markup.Marker(true, None))
-  buffer.setReadOnly(true)
-  layout(Component.wrap(text_area)) = BorderPanel.Position.Center
+  getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
+  getBuffer.setReadOnly(true)
   rich_text_area.activate()
 }
 
