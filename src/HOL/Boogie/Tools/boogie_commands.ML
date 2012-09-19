@@ -16,7 +16,7 @@ struct
 
 fun boogie_open ((quiet, files), offsets) thy =
   let
-    val ([{src_path = path, text, ...}], thy') = files thy
+    val ([{src_path = path, text, ...}: Token.file], thy') = files thy
 
     val ext = "b2i"
     val _ = snd (Path.split_ext path) = ext orelse

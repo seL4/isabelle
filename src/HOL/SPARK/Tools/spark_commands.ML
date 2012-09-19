@@ -15,7 +15,7 @@ struct
 
 fun spark_open header (prfx, files) thy =
   let
-    val ([{src_path, text = vc_text, pos = vc_pos, ...},
+    val ([{src_path, text = vc_text, pos = vc_pos, ...}: Token.file,
       {text = fdl_text, pos = fdl_pos, ...},
       {text = rls_text, pos = rls_pos, ...}], thy') = files thy;
     val base = fst (Path.split_ext (File.full_path (Thy_Load.master_directory thy') src_path));
