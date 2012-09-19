@@ -109,8 +109,10 @@ class Isabelle_Process(
     if (kind == Isabelle_Markup.PROTOCOL)
       receiver(new Output(XML.Elem(Markup(kind, props), body)))
     else {
-      val msg = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
-      receiver(new Output(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem]))
+      val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
+      val reports = Protocol.message_reports(props, body)
+      for (msg <- main :: reports)
+        receiver(new Output(xml_cache.cache_tree(msg).asInstanceOf[XML.Elem]))
     }
   }
 

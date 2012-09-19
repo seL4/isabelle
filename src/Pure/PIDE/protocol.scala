@@ -119,13 +119,17 @@ object Protocol
   /* result messages */
 
   def clean_message(body: XML.Body): XML.Body =
-    body filter { case XML.Elem(Markup(Isabelle_Markup.NO_REPORT, _), _) => false case _ => true } map
-      { case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts)) case t => t }
+    body filter {
+      case XML.Elem(Markup(Isabelle_Markup.REPORT, _), _) => false
+      case XML.Elem(Markup(Isabelle_Markup.NO_REPORT, _), _) => false
+      case _ => true
+    } map { case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts)) case t => t }
 
-  def message_reports(msg: XML.Tree): List[XML.Elem] =
-    msg match {
-      case elem @ XML.Elem(Markup(Isabelle_Markup.REPORT, _), _) => List(elem)
-      case XML.Elem(_, body) => body.flatMap(message_reports)
+  def message_reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
+    body flatMap {
+      case XML.Elem(Markup(Isabelle_Markup.REPORT, ps), ts) =>
+        List(XML.Elem(Markup(Isabelle_Markup.REPORT, props ::: ps), ts))
+      case XML.Elem(_, ts) => message_reports(props, ts)
       case XML.Text(_) => Nil
     }
 

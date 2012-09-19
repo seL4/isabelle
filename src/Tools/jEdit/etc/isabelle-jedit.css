@@ -7,8 +7,6 @@
 .warning_message { background-color: #EEE8AA; }
 .error_message { background-color: #FFC1C1; }
 
-.report { display: none; }
-
 .intensify { background-color: #FFCC66; }
 
 .keyword { font-weight: bold; color: #009966; }

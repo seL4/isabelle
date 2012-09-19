@@ -70,8 +70,8 @@ object Command
                 else
                   (st0 /: Protocol.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, result)))
-              val st2 = (st1 /: Protocol.message_reports(message))(_ + _)
-              st2
+
+              st1
             case _ => System.err.println("Ignored message without serial number: " + message); this
           }
       }
