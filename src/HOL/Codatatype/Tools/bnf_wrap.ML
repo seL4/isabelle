@@ -292,12 +292,12 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
-    val goal_exhaust =
+    val exhaust_goal =
       let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (v, xctr)]) in
         fold_rev Logic.all [p, v] (mk_imp_p (map2 mk_prem xctrs xss))
       end;
 
-    val goal_injectss =
+    val injectss_goal =
       let
         fun mk_goal _ _ [] [] = []
           | mk_goal xctr yctr xs ys =
@@ -307,7 +307,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         map4 mk_goal xctrs yctrs xss yss
       end;
 
-    val goal_half_distinctss =
+    val half_distinctss_goal =
       let
         fun mk_goal ((xs, xc), (xs', xc')) =
           fold_rev Logic.all (xs @ xs')
@@ -316,11 +316,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         map (map mk_goal) (mk_half_pairss (xss ~~ xctrs))
       end;
 
-    val goal_cases =
+    val cases_goal =
       map3 (fn xs => fn xctr => fn xf =>
         fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (fcase $ xctr, xf))) xss xctrs xfs;
 
-    val goalss = [goal_exhaust] :: goal_injectss @ goal_half_distinctss @ [goal_cases];
+    val goalss = [exhaust_goal] :: injectss_goal @ half_distinctss_goal @ [cases_goal];
 
     fun after_qed thmss lthy =
       let
@@ -446,16 +446,16 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     val infos = ms ~~ discD_thms ~~ discs ~~ no_discs;
                     val half_pairss = mk_half_pairss infos;
 
-                    val goal_halvess = map mk_goal half_pairss;
+                    val halvess_goal = map mk_goal half_pairss;
                     val half_thmss =
                       map3 (fn [] => K (K []) | [goal] => fn [((((m, discD), _), _), _)] =>
                           fn disc_thm => [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
-                        goal_halvess half_pairss (flat disc_thmss');
+                        halvess_goal half_pairss (flat disc_thmss');
 
-                    val goal_other_halvess = map (mk_goal o map swap) half_pairss;
+                    val other_halvess_goal = map (mk_goal o map swap) half_pairss;
                     val other_half_thmss =
                       map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
-                        goal_other_halvess;
+                        other_halvess_goal;
                   in
                     interleave (flat half_thmss) (flat other_half_thmss)
                   end;
@@ -525,10 +525,10 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             val goal =
               Logic.list_implies (v_eq_w :: map4 mk_prem xctrs xss fs gs,
                  mk_Trueprop_eq (fcase $ v, gcase $ w));
-            val goal_weak = Logic.mk_implies (v_eq_w, mk_Trueprop_eq (fcase $ v, fcase $ w));
+            val weak_goal = Logic.mk_implies (v_eq_w, mk_Trueprop_eq (fcase $ v, fcase $ w));
           in
             (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac exhaust_thm' case_thms),
-             Skip_Proof.prove lthy [] [] goal_weak (K (etac arg_cong 1)))
+             Skip_Proof.prove lthy [] [] weak_goal (K (etac arg_cong 1)))
             |> pairself (singleton (Proof_Context.export names_lthy lthy))
           end;
 
@@ -544,7 +544,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
             val goal =
               mk_Trueprop_eq (lhs, Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct xctrs xss xfs));
-            val goal_asm =
+            val asm_goal =
               mk_Trueprop_eq (lhs, HOLogic.mk_not (Library.foldr1 HOLogic.mk_disj
                 (map3 mk_disjunct xctrs xss xfs)));
 
@@ -553,7 +553,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                 (fn _ => mk_split_tac exhaust_thm' case_thms inject_thmss distinct_thmsss)
               |> singleton (Proof_Context.export names_lthy lthy)
             val split_asm_thm =
-              Skip_Proof.prove lthy [] [] goal_asm (fn {context = ctxt, ...} =>
+              Skip_Proof.prove lthy [] [] asm_goal (fn {context = ctxt, ...} =>
                 mk_split_asm_tac ctxt split_thm)
               |> singleton (Proof_Context.export names_lthy lthy)
           in

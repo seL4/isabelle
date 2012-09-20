@@ -752,7 +752,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val pred = mk_bnf_pred QTs CA' CB';
 
-    val goal_map_id =
+    val map_id_goal =
       let
         val bnf_map_app_id = Term.list_comb (bnf_map_AsAs, map HOLogic.id_const As');
       in
@@ -760,7 +760,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           (HOLogic.mk_eq (bnf_map_app_id, HOLogic.id_const CA'))
       end;
 
-    val goal_map_comp =
+    val map_comp_goal =
       let
         val bnf_map_app_comp = Term.list_comb (bnf_map_AsCs, map2 (curry HOLogic.mk_comp) gs fs);
         val comp_bnf_map_app = HOLogic.mk_comp
@@ -770,7 +770,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fold_rev Logic.all (fs @ gs) (mk_Trueprop_eq (bnf_map_app_comp, comp_bnf_map_app))
       end;
 
-    val goal_map_cong =
+    val map_cong_goal =
       let
         fun mk_prem z set f f_copy =
           Logic.all z (Logic.mk_implies
@@ -784,7 +784,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           (Logic.list_implies (prems, HOLogic.mk_Trueprop eq))
       end;
 
-    val goal_set_naturals =
+    val set_naturals_goal =
       let
         fun mk_goal setA setB f =
           let
@@ -798,11 +798,11 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         map3 mk_goal bnf_sets_As bnf_sets_Bs fs
       end;
 
-    val goal_card_order_bd = HOLogic.mk_Trueprop (mk_card_order bnf_bd_As);
+    val card_order_bd_goal = HOLogic.mk_Trueprop (mk_card_order bnf_bd_As);
 
-    val goal_cinfinite_bd = HOLogic.mk_Trueprop (mk_cinfinite bnf_bd_As);
+    val cinfinite_bd_goal = HOLogic.mk_Trueprop (mk_cinfinite bnf_bd_As);
 
-    val goal_set_bds =
+    val set_bds_goal =
       let
         fun mk_goal set =
           Logic.all x (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (set $ x)) bnf_bd_As));
@@ -810,7 +810,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         map mk_goal bnf_sets_As
       end;
 
-    val goal_in_bd =
+    val in_bd_goal =
       let
         val bd = mk_cexp
           (if live = 0 then ctwo
@@ -821,7 +821,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           (HOLogic.mk_Trueprop (mk_ordLeq (mk_card_of (mk_in As bnf_sets_As CA')) bd))
       end;
 
-    val goal_map_wpull =
+    val map_wpull_goal =
       let
         val prems = map HOLogic.mk_Trueprop
           (map8 mk_wpull Xs B1s B2s f1s f2s (replicate live NONE) p1s p2s);
@@ -844,7 +844,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           (Logic.list_implies (prems, HOLogic.mk_Trueprop map_wpull))
       end;
 
-    val goal_rel_O_Gr =
+    val rel_O_Gr_goal =
       let
         val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
         val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
@@ -855,8 +855,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (relAsBs, Rs), rhs))
       end;
 
-    val goals = zip_goals goal_map_id goal_map_comp goal_map_cong goal_set_naturals
-      goal_card_order_bd goal_cinfinite_bd goal_set_bds goal_in_bd goal_map_wpull goal_rel_O_Gr;
+    val goals = zip_goals map_id_goal map_comp_goal map_cong_goal set_naturals_goal
+      card_order_bd_goal cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal rel_O_Gr_goal;
 
     fun mk_wit_goals (I, wit) =
       let
@@ -910,12 +910,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fun mk_in_mono () =
           let
             val prems_mono = map2 (HOLogic.mk_Trueprop oo mk_subset) As As_copy;
-            val goal_in_mono =
+            val in_mono_goal =
               fold_rev Logic.all (As @ As_copy)
                 (Logic.list_implies (prems_mono, HOLogic.mk_Trueprop
                   (mk_subset (mk_in As bnf_sets_As CA') (mk_in As_copy bnf_sets_As CA'))));
           in
-            Skip_Proof.prove lthy [] [] goal_in_mono (K (mk_in_mono_tac live))
+            Skip_Proof.prove lthy [] [] in_mono_goal (K (mk_in_mono_tac live))
             |> Thm.close_derivation
           end;
 
@@ -924,12 +924,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fun mk_in_cong () =
           let
             val prems_cong = map2 (HOLogic.mk_Trueprop oo curry HOLogic.mk_eq) As As_copy;
-            val goal_in_cong =
+            val in_cong_goal =
               fold_rev Logic.all (As @ As_copy)
                 (Logic.list_implies (prems_cong, HOLogic.mk_Trueprop
                   (HOLogic.mk_eq (mk_in As bnf_sets_As CA', mk_in As_copy bnf_sets_As CA'))));
           in
-            Skip_Proof.prove lthy [] [] goal_in_cong (K ((TRY o hyp_subst_tac THEN' rtac refl) 1))
+            Skip_Proof.prove lthy [] [] in_cong_goal (K ((TRY o hyp_subst_tac THEN' rtac refl) 1))
             |> Thm.close_derivation
           end;
 

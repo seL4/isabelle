@@ -614,7 +614,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val giters = map (lists_bmoc gss) iters;
             val hrecs = map (lists_bmoc hss) recs;
 
-            fun mk_goal_iter_like fss fiter_like xctr f xs fxs =
+            fun mk_iter_like_goal fss fiter_like xctr f xs fxs =
               fold_rev (fold_rev Logic.all) (xs :: fss)
                 (mk_Trueprop_eq (fiter_like $ xctr, Term.list_comb (f, fxs)));
 
@@ -640,8 +640,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val gxsss = map (map (maps (intr_calls giters (K I) (K I) (K I)))) xsss;
             val hxsss = map (map (maps (intr_calls hrecs cons tick (curry HOLogic.mk_prodT)))) xsss;
 
-            val goal_iterss = map5 (map4 o mk_goal_iter_like gss) giters xctrss gss xsss gxsss;
-            val goal_recss = map5 (map4 o mk_goal_iter_like hss) hrecs xctrss hss xsss hxsss;
+            val iterss_goal = map5 (map4 o mk_iter_like_goal gss) giters xctrss gss xsss gxsss;
+            val recss_goal = map5 (map4 o mk_iter_like_goal hss) hrecs xctrss hss xsss hxsss;
 
             val iter_tacss =
               map2 (map o mk_iter_like_tac pre_map_defs nesting_map_ids iter_defs) fp_iter_thms
@@ -651,9 +651,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 ctr_defss;
           in
             (map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
-               goal_iterss iter_tacss,
+               iterss_goal iter_tacss,
              map2 (map2 (fn goal => fn tac => Skip_Proof.prove lthy [] [] goal (tac o #context)))
-               goal_recss rec_tacss)
+               recss_goal rec_tacss)
           end;
 
         val simp_thmss =
@@ -710,11 +710,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val gcoiters = map (lists_bmoc pgss) coiters;
             val hcorecs = map (lists_bmoc phss) corecs;
 
-            fun mk_goal_cond pos = HOLogic.mk_Trueprop o (not pos ? HOLogic.mk_not);
+            fun mk_cond_goal pos = HOLogic.mk_Trueprop o (not pos ? HOLogic.mk_not);
 
-            fun mk_goal_coiter_like pfss c cps fcoiter_like n k ctr m cfs' =
+            fun mk_coiter_like_goal pfss c cps fcoiter_like n k ctr m cfs' =
               fold_rev (fold_rev Logic.all) ([c] :: pfss)
-                (Logic.list_implies (seq_conds mk_goal_cond n k cps,
+                (Logic.list_implies (seq_conds mk_cond_goal n k cps,
                    mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, take m cfs'))));
 
             fun build_call fiter_likes maybe_tack (T, U) =
@@ -739,10 +739,10 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val crgsss' = map (map (map (intr_calls gcoiters (K I) (K I)))) crgsss;
             val cshsss' = map (map (map (intr_calls hcorecs (curry mk_sumT) (tack z)))) cshsss;
 
-            val goal_coiterss =
-              map8 (map4 oooo mk_goal_coiter_like pgss) cs cpss gcoiters ns kss ctrss mss crgsss';
-            val goal_corecss =
-              map8 (map4 oooo mk_goal_coiter_like phss) cs cpss hcorecs ns kss ctrss mss cshsss';
+            val coiterss_goal =
+              map8 (map4 oooo mk_coiter_like_goal pgss) cs cpss gcoiters ns kss ctrss mss crgsss';
+            val corecss_goal =
+              map8 (map4 oooo mk_coiter_like_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
 
             val coiter_tacss =
               map3 (map oo mk_coiter_like_tac coiter_defs nesting_map_ids) fp_iter_thms pre_map_defs
@@ -753,11 +753,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           in
             (map2 (map2 (fn goal => fn tac =>
                  Skip_Proof.prove lthy [] [] goal (tac o #context) |> Thm.close_derivation))
-               goal_coiterss coiter_tacss,
+               coiterss_goal coiter_tacss,
              map2 (map2 (fn goal => fn tac =>
                  Skip_Proof.prove lthy [] [] goal (tac o #context)
                  |> Local_Defs.unfold lthy @{thms sum_case_if} |> Thm.close_derivation))
-               goal_corecss corec_tacss)
+               corecss_goal corec_tacss)
           end;
 
         fun mk_disc_coiter_like_thms [_] = K []

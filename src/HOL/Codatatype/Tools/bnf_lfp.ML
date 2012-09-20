@@ -434,8 +434,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val mor_convol_thm =
       let
-        val maps = map3 (fn s => fn prod_s => fn map =>
-          mk_convol (HOLogic.mk_comp (s, Term.list_comb (map, passive_ids @ fsts)), prod_s))
+        val maps = map3 (fn s => fn prod_s => fn mapx =>
+          mk_convol (HOLogic.mk_comp (s, Term.list_comb (mapx, passive_ids @ fsts)), prod_s))
           s's prod_ss map_fsts;
       in
         Skip_Proof.prove lthy [] []
@@ -1011,9 +1011,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val ((fld_frees, (_, fld_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> fold_map6 (fn i => fn abs => fn str => fn map => fn x => fn x' =>
+      |> fold_map6 (fn i => fn abs => fn str => fn mapx => fn x => fn x' =>
         Specification.definition
-          (SOME (fld_bind i, NONE, NoSyn), (fld_def_bind i, fld_spec i abs str map x x')))
+          (SOME (fld_bind i, NONE, NoSyn), (fld_def_bind i, fld_spec i abs str mapx x x')))
           ks Abs_Ts str_inits map_FT_inits xFs xFs'
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
@@ -1217,8 +1217,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     fun rec_spec i T AT =
       let
         val recT = Library.foldr (op -->) (rec_sTs, T --> AT);
-        val maps = map3 (fn fld => fn prod_s => fn map =>
-          mk_convol (HOLogic.mk_comp (fld, Term.list_comb (map, passive_ids @ rec_fsts)), prod_s))
+        val maps = map3 (fn fld => fn prod_s => fn mapx =>
+          mk_convol (HOLogic.mk_comp (fld, Term.list_comb (mapx, passive_ids @ rec_fsts)), prod_s))
           flds rec_ss rec_maps;
 
         val lhs = Term.list_comb (Free (rec_name i, recT), rec_ss);
@@ -1708,9 +1708,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val policy = user_policy Derive_All_Facts_Note_Most;
 
         val (Ibnfs, lthy) =
-          fold_map6 (fn tacs => fn b => fn map => fn sets => fn T => fn wits => fn lthy =>
+          fold_map6 (fn tacs => fn b => fn mapx => fn sets => fn T => fn wits => fn lthy =>
             bnf_def Dont_Inline policy I tacs wit_tac (SOME deads)
-              (((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
+              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts fld_witss lthy;
 

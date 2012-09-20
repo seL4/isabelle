@@ -276,9 +276,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val map_arg_cong_thms =
       let
         val prems = map2 (curry mk_Trueprop_eq) xFs xFs_copy;
-        val maps = map (fn map => Term.list_comb (map, all_fs)) mapsAsBs;
+        val maps = map (fn mapx => Term.list_comb (mapx, all_fs)) mapsAsBs;
         val concls =
-          map3 (fn x => fn y => fn map => mk_Trueprop_eq (map $ x, map $ y)) xFs xFs_copy maps;
+          map3 (fn x => fn y => fn mapx => mk_Trueprop_eq (mapx $ x, mapx $ y)) xFs xFs_copy maps;
         val goals =
           map4 (fn prem => fn concl => fn x => fn y =>
             fold_rev Logic.all (x :: y :: all_fs) (Logic.mk_implies (prem, concl)))
@@ -502,8 +502,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val mor_sum_case_thm =
       let
-        val maps = map3 (fn s => fn sum_s => fn map =>
-          mk_sum_case (HOLogic.mk_comp (Term.list_comb (map, passive_ids @ Inls), s), sum_s))
+        val maps = map3 (fn s => fn sum_s => fn mapx =>
+          mk_sum_case (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ Inls), s), sum_s))
           s's sum_ss map_Inls;
       in
         Skip_Proof.prove lthy [] []
@@ -1891,9 +1891,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val ((unf_frees, (_, unf_def_frees)), (lthy, lthy_old)) =
       lthy
-      |> fold_map7 (fn i => fn rep => fn str => fn map => fn unfT => fn Jz => fn Jz' =>
+      |> fold_map7 (fn i => fn rep => fn str => fn mapx => fn unfT => fn Jz => fn Jz' =>
         Specification.definition
-          (SOME (unf_bind i, NONE, NoSyn), (unf_def_bind i, unf_spec i rep str map unfT Jz Jz')))
+          (SOME (unf_bind i, NONE, NoSyn), (unf_def_bind i, unf_spec i rep str mapx unfT Jz Jz')))
           ks Rep_Ts str_finals map_FTs unfTs Jzs Jzs'
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
@@ -2125,8 +2125,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     fun corec_spec i T AT =
       let
         val corecT = Library.foldr (op -->) (corec_sTs, AT --> T);
-        val maps = map3 (fn unf => fn sum_s => fn map => mk_sum_case
-            (HOLogic.mk_comp (Term.list_comb (map, passive_ids @ corec_Inls), unf), sum_s))
+        val maps = map3 (fn unf => fn sum_s => fn mapx => mk_sum_case
+            (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ corec_Inls), unf), sum_s))
           unfs corec_ss corec_maps;
 
         val lhs = Term.list_comb (Free (corec_name i, corecT), corec_ss);
@@ -2600,18 +2600,18 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               (mk_mor thePulls (map2 (curry HOLogic.mk_comp) pid_Fmaps pickF_ss)
                 UNIV''s unf''s (map2 (curry HOLogic.mk_comp) pid_maps picks));
 
-            val goal_fst = fold_rev Logic.all (AXs @ B1s @ B2s @ f1s @ f2s @ p1s @ p2s)
+            val fst_goal = fold_rev Logic.all (AXs @ B1s @ B2s @ f1s @ f2s @ p1s @ p2s)
               (Logic.mk_implies (wpull_prem, mor_fst));
-            val goal_snd = fold_rev Logic.all (AXs @ B1s @ B2s @ f1s @ f2s @ p1s @ p2s)
+            val snd_goal = fold_rev Logic.all (AXs @ B1s @ B2s @ f1s @ f2s @ p1s @ p2s)
               (Logic.mk_implies (wpull_prem, mor_snd));
-            val goal_pick = fold_rev Logic.all (AXs @ B1s @ B2s @ f1s @ f2s @ p1s @ p2s @ ps)
+            val pick_goal = fold_rev Logic.all (AXs @ B1s @ B2s @ f1s @ f2s @ p1s @ p2s @ ps)
               (Logic.mk_implies (wpull_prem, mor_pick));
           in
-            (Skip_Proof.prove lthy [] [] goal_fst (mk_mor_thePull_fst_tac m mor_def map_wpull_thms
+            (Skip_Proof.prove lthy [] [] fst_goal (mk_mor_thePull_fst_tac m mor_def map_wpull_thms
               map_comp's pickWP_assms_tacs) |> Thm.close_derivation,
-            Skip_Proof.prove lthy [] [] goal_snd (mk_mor_thePull_snd_tac m mor_def map_wpull_thms
+            Skip_Proof.prove lthy [] [] snd_goal (mk_mor_thePull_snd_tac m mor_def map_wpull_thms
               map_comp's pickWP_assms_tacs) |> Thm.close_derivation,
-            Skip_Proof.prove lthy [] [] goal_pick (mk_mor_thePull_pick_tac mor_def coiter_thms
+            Skip_Proof.prove lthy [] [] pick_goal (mk_mor_thePull_pick_tac mor_def coiter_thms
               map_comp's) |> Thm.close_derivation)
           end;
 
@@ -2862,9 +2862,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val policy = user_policy Derive_All_Facts_Note_Most;
 
         val (Jbnfs, lthy) =
-          fold_map6 (fn tacs => fn b => fn map => fn sets => fn T => fn (thms, wits) => fn lthy =>
+          fold_map6 (fn tacs => fn b => fn mapx => fn sets => fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline policy I tacs (wit_tac thms) (SOME deads)
-              (((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
+              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts all_witss lthy;
 
