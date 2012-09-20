@@ -77,8 +77,8 @@ sig
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: BNF -> nonemptiness_witness list
 
-  val filter_out_refl: thm list -> thm list
-  val zip_goals: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a -> 'a list
+  val no_reflexive: thm list -> thm list
+  val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a -> 'a list
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy =
@@ -134,10 +134,13 @@ fun mk_axioms n thms = thms
   ||> the_single
   |> mk_axioms';
 
+fun zip_axioms mid mcomp mcong snat bdco bdinf sbd inbd wpull rel =
+  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull, rel];
+
 fun dest_axioms {map_id, map_comp, map_cong, set_natural, bd_card_order, bd_cinfinite, set_bd,
   in_bd, map_wpull, rel_O_Gr} =
-  [map_id, map_comp, map_cong] @ set_natural @ [bd_card_order, bd_cinfinite] @
-  set_bd @ [in_bd, map_wpull, rel_O_Gr];
+  zip_axioms map_id map_comp map_cong set_natural bd_card_order bd_cinfinite set_bd in_bd map_wpull
+  rel_O_Gr;
 
 fun map_axioms f
   {map_id = map_id, map_comp = map_comp, map_cong = map_cong, set_natural = set_natural,
@@ -513,21 +516,12 @@ fun user_policy policy ctxt =
 
 val smart_max_inline_size = 25; (*FUDGE*)
 
-val no_def = Drule.reflexive_thm;
-val no_fact = refl;
+fun is_refl thm =
+  op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm)))
+  handle TERM _ => false;
 
-fun is_reflexive th =
-  let val t = Thm.prop_of th;
-  in
-    op aconv (Logic.dest_equals t)
-    handle TERM _ => op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop t))
-      handle TERM _ => false
-  end;
-
-val filter_out_refl = filter_out is_reflexive;
-
-fun zip_goals mid mcomp mcong snat bdco bdinf sbd inbd wpull rel =
-  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull, rel];
+val no_refl = filter_out is_refl;
+val no_reflexive = filter_out Thm.is_reflexive;
 
 
 (* Define new BNFs *)
@@ -569,7 +563,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           | Do_Inline => true)
       in
         if inline then
-          ((rhs, no_def), lthy)
+          ((rhs, Drule.reflexive_thm), lthy)
         else
           let val b = b () in
             apfst (apsnd snd) (Local_Theory.define ((b, NoSyn), ((Thm.def_binding b, []), rhs))
@@ -733,9 +727,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||> `(maybe_restore lthy);
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
-
     val bnf_rel_def = Morphism.thm phi raw_rel_def;
-
     val bnf_rel = Morphism.term phi bnf_rel_term;
 
     fun mk_bnf_rel setRTs CA' CB' = normalize_rel lthy setRTs CA' CB' bnf_rel;
@@ -754,20 +746,14 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||> `(maybe_restore lthy);
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
-
-    val bnf_pred_def =
-      if fact_policy <> Derive_Some_Facts then
-        mk_unabs_def (live + 2) (Morphism.thm phi raw_pred_def RS meta_eq_to_obj_eq)
-      else
-        no_fact;
-
+    val bnf_pred_def = Morphism.thm phi raw_pred_def;
     val bnf_pred = Morphism.term phi bnf_pred_term;
 
     fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy QTs CA' CB' bnf_pred;
 
     val pred = mk_bnf_pred QTs CA' CB';
 
-    val _ = case filter_out_refl (raw_map_def :: raw_set_defs @ [raw_bd_def] @
+    val _ = case no_reflexive (raw_map_def :: raw_set_defs @ [raw_bd_def] @
         raw_wit_defs @ [raw_rel_def, raw_pred_def]) of
         [] => ()
       | defs => Proof_Display.print_consts true lthy_old (K false)
@@ -868,7 +854,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val rel_O_Gr_goal =
       fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (relAsBs, Rs), rel_O_Gr_rhs));
 
-    val goals = zip_goals map_id_goal map_comp_goal map_cong_goal set_naturals_goal
+    val goals = zip_axioms map_id_goal map_comp_goal map_cong_goal set_naturals_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal rel_O_Gr_goal;
 
     fun mk_wit_goals (I, wit) =
@@ -990,7 +976,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val rel_O_Gr = #rel_O_Gr axioms;
+        val rel_O_Grs = no_refl [#rel_O_Gr axioms];
 
         val map_wppull = mk_lazy mk_map_wppull;
 
@@ -1001,7 +987,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
-              (mk_rel_Gr_tac rel_O_Gr (#map_id axioms) (#map_cong axioms)
+              (mk_rel_Gr_tac rel_O_Grs (#map_id axioms) (#map_cong axioms)
                 (#map_wpull axioms) (Lazy.force in_cong) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
@@ -1020,7 +1006,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           in
             Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
-              (mk_rel_mono_tac rel_O_Gr (Lazy.force in_mono))
+              (mk_rel_mono_tac rel_O_Grs (Lazy.force in_mono))
             |> Thm.close_derivation
           end;
 
@@ -1056,7 +1042,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val rhs = mk_converse (Term.list_comb (relAsBs, Rs));
             val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_subset lhs rhs));
             val le_thm = Skip_Proof.prove lthy [] [] le_goal
-              (mk_rel_converse_le_tac rel_O_Gr (Lazy.force rel_Id) (#map_cong axioms)
+              (mk_rel_converse_le_tac rel_O_Grs (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
               |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
@@ -1076,7 +1062,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
-              (mk_rel_O_tac rel_O_Gr (Lazy.force rel_Id) (#map_cong axioms)
+              (mk_rel_O_tac rel_O_Grs (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_wppull) (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
           end;
@@ -1097,7 +1083,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal =
               fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
           in
-            Skip_Proof.prove lthy [] [] goal (mk_in_rel_tac rel_O_Gr (length bnf_sets))
+            Skip_Proof.prove lthy [] [] goal (mk_in_rel_tac rel_O_Grs (length bnf_sets))
             |> Thm.close_derivation
           end;
 
@@ -1152,7 +1138,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                 let
                   val notes =
                     [(map_congN, [#map_cong axioms]),
-                    (rel_O_GrN, [rel_O_Gr]),
+                    (rel_O_GrN, rel_O_Grs),
                     (rel_IdN, [Lazy.force (#rel_Id facts)]),
                     (rel_GrN, [Lazy.force (#rel_Gr facts)]),
                     (rel_converseN, [Lazy.force (#rel_converse facts)]),
@@ -1161,6 +1147,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                     (map_id'N, [Lazy.force (#map_id' facts)]),
                     (map_comp'N, [Lazy.force (#map_comp' facts)]),
                     (set_natural'N, map Lazy.force (#set_natural' facts))]
+                    |> filter_out (null o #2)
                     |> map (fn (thmN, thms) =>
                       ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
                       [(thms, [])]));
@@ -1172,7 +1159,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       end;
 
     val one_step_defs =
-      filter_out_refl (bnf_map_def :: bnf_bd_def :: bnf_set_defs @ bnf_wit_defs @ [bnf_rel_def]);
+      no_reflexive (bnf_map_def :: bnf_bd_def :: bnf_set_defs @ bnf_wit_defs @ [bnf_rel_def]);
   in
     (key, goals, wit_goalss, after_qed, lthy, one_step_defs)
   end;

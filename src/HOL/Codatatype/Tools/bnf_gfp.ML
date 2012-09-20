@@ -26,35 +26,35 @@ open BNF_FP_Sugar
 open BNF_GFP_Util
 open BNF_GFP_Tactics
 
-datatype wit_tree = Leaf of int | Node of (int * int * int list) * wit_tree list;
+datatype wit_tree = Wit_Leaf of int | Wit_Node of (int * int * int list) * wit_tree list;
 
 fun mk_tree_args (I, T) (I', Ts) = (sort_distinct int_ord (I @ I'), T :: Ts);
 
 fun finish Iss m seen i (nwit, I) =
   let
     val treess = map (fn j =>
-        if j < m orelse member (op =) seen j then [([j], Leaf j)]
+        if j < m orelse member (op =) seen j then [([j], Wit_Leaf j)]
         else
           map_index (finish Iss m (insert (op =) j seen) j) (nth Iss (j - m))
           |> flat
           |> minimize_wits)
       I;
   in
-    map (fn (I, t) => (I, Node ((i - m, nwit, filter (fn i => i < m) I), t)))
+    map (fn (I, t) => (I, Wit_Node ((i - m, nwit, filter (fn i => i < m) I), t)))
       (fold_rev (map_product mk_tree_args) treess [([], [])])
     |> minimize_wits
   end;
 
-fun tree_to_fld_wit vars _ _ (Leaf j) = ([j], nth vars j)
-  | tree_to_fld_wit vars flds witss (Node ((i, nwit, I), subtrees)) =
+fun tree_to_fld_wit vars _ _ (Wit_Leaf j) = ([j], nth vars j)
+  | tree_to_fld_wit vars flds witss (Wit_Node ((i, nwit, I), subtrees)) =
      (I, nth flds i $ (Term.list_comb (snd (nth (nth witss i) nwit),
        map (snd o tree_to_fld_wit vars flds witss) subtrees)));
 
-fun tree_to_coind_wits _ (Leaf _) = []
-  | tree_to_coind_wits lwitss (Node ((i, nwit, I), subtrees)) =
+fun tree_to_coind_wits _ (Wit_Leaf _) = []
+  | tree_to_coind_wits lwitss (Wit_Node ((i, nwit, I), subtrees)) =
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
-(*all bnfs have the same lives*)
+(*all BNFs have the same lives*)
 fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
@@ -62,11 +62,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
-    val m = live - n (*passive, if 0 don't generate a new bnf*);
+    val m = live - n (*passive, if 0 don't generate a new BNF*);
     val ls = 1 upto m;
     val b = Binding.name (mk_common_name bs);
 
-    (* TODO: check if m, n etc are sane *)
+    (* TODO: check if m, n, etc., are sane *)
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
@@ -2671,7 +2671,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val rel_O_gr_tacs = replicate n (K (rtac refl 1));
 
-        val tacss = map10 zip_goals map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
+        val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
           bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
 
         val (hset_unf_incl_thmss, hset_hset_unf_incl_thmsss, hset_induct_thms) =
@@ -2889,8 +2889,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val in_rels = map in_rel_of_bnf bnfs;
         val in_Jrels = map in_rel_of_bnf Jbnfs;
-        val Jpred_defs =
-          map (Drule.abs_def o (fn thm => thm RS @{thm eq_reflection}) o pred_def_of_bnf) Jbnfs;
+        val Jpred_defs = map pred_def_of_bnf Jbnfs;
 
         val folded_map_simp_thms = map fold_maps map_simp_thms;
         val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;

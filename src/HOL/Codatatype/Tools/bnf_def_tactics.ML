@@ -15,16 +15,16 @@ sig
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_set_natural': thm -> thm
 
-  val mk_rel_Gr_tac: thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
+  val mk_rel_Gr_tac: thm list -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
   val mk_rel_Id_tac: int -> thm -> thm -> {prems: 'a, context: Proof.context} -> tactic
-  val mk_rel_O_tac: thm -> thm -> thm -> thm -> thm -> thm list ->
+  val mk_rel_O_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_in_rel_tac: thm -> int -> {prems: 'b, context: Proof.context} -> tactic
+  val mk_in_rel_tac: thm list -> int -> {prems: 'b, context: Proof.context} -> tactic
   val mk_rel_converse_tac: thm -> tactic
-  val mk_rel_converse_le_tac: thm -> thm -> thm -> thm -> thm list ->
+  val mk_rel_converse_le_tac: thm list -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
-  val mk_rel_mono_tac: thm -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rel_mono_tac: thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
 end;
 
 structure BNF_Def_Tactics : BNF_DEF_TACTICS =
@@ -65,14 +65,14 @@ fun mk_map_wppull_tac map_id map_cong map_wpull map_comp set_naturals =
         rtac (o_apply RS trans RS sym), rtac (o_apply RS trans), rtac thm,
         rtac conjunct2, etac bspec, etac set_mp, atac]]) [conjunct1, conjunct2]] 1;
 
-fun mk_rel_Gr_tac rel_O_Gr map_id map_cong map_wpull in_cong map_id' map_comp set_naturals
+fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_wpull in_cong map_id' map_comp set_naturals
   {context = ctxt, prems = _} =
   let
     val n = length set_naturals;
   in
     if null set_naturals then
-      Local_Defs.unfold_tac ctxt [rel_O_Gr] THEN EVERY' [rtac @{thm Gr_UNIV_id}, rtac map_id] 1
-    else Local_Defs.unfold_tac ctxt [rel_O_Gr, @{thm Gr_def}] THEN
+      Local_Defs.unfold_tac ctxt rel_O_Grs THEN EVERY' [rtac @{thm Gr_UNIV_id}, rtac map_id] 1
+    else Local_Defs.unfold_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac subsetI,
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
@@ -112,20 +112,20 @@ fun mk_rel_Id_tac n rel_Gr map_id {context = ctxt, prems = _} =
       rtac equalityI, rtac @{thm subset_UNIV}, rtac subsetI, rtac CollectI,
       CONJ_WRAP' (K (rtac @{thm subset_UNIV})) (1 upto n), rtac refl] 1);
 
-fun mk_rel_mono_tac rel_O_Gr in_mono {context = ctxt, prems = _} =
-  Local_Defs.unfold_tac ctxt [rel_O_Gr] THEN
+fun mk_rel_mono_tac rel_O_Grs in_mono {context = ctxt, prems = _} =
+  Local_Defs.unfold_tac ctxt rel_O_Grs THEN
     EVERY' [rtac @{thm relcomp_mono}, rtac @{thm iffD2[OF converse_mono]},
       rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac,
       rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac] 1;
 
-fun mk_rel_converse_le_tac rel_O_Gr rel_Id map_cong map_comp set_naturals
+fun mk_rel_converse_le_tac rel_O_Grs rel_Id map_cong map_comp set_naturals
   {context = ctxt, prems = _} =
   let
     val n = length set_naturals;
   in
     if null set_naturals then
       Local_Defs.unfold_tac ctxt [rel_Id] THEN rtac equalityD2 1 THEN rtac @{thm converse_Id} 1
-    else Local_Defs.unfold_tac ctxt [rel_O_Gr, @{thm Gr_def}] THEN
+    else Local_Defs.unfold_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
@@ -143,7 +143,7 @@ fun mk_rel_converse_tac le_converse =
   EVERY' [rtac equalityI, rtac le_converse, rtac @{thm xt1(6)}, rtac @{thm converse_shift},
     rtac le_converse, REPEAT_DETERM o stac @{thm converse_converse}, rtac subset_refl] 1;
 
-fun mk_rel_O_tac rel_O_Gr rel_Id map_cong map_wppull map_comp set_naturals
+fun mk_rel_O_tac rel_O_Grs rel_Id map_cong map_wppull map_comp set_naturals
   {context = ctxt, prems = _} =
   let
     val n = length set_naturals;
@@ -152,7 +152,7 @@ fun mk_rel_O_tac rel_O_Gr rel_Id map_cong map_wppull map_comp set_naturals
           rtac @{thm image_subsetI}, rtac nthO_in, etac set_mp, atac]) set_naturals;
   in
     if null set_naturals then Local_Defs.unfold_tac ctxt [rel_Id] THEN rtac (@{thm Id_O_R} RS sym) 1
-    else Local_Defs.unfold_tac ctxt [rel_O_Gr, @{thm Gr_def}] THEN
+    else Local_Defs.unfold_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
@@ -193,11 +193,11 @@ fun mk_rel_O_tac rel_O_Gr rel_Id map_cong map_wppull map_comp set_naturals
           rtac (map_comp RS sym), atac, atac]) [@{thm fst_fstO}, @{thm snd_sndO}])] 1
   end;
 
-fun mk_in_rel_tac rel_O_Gr m {context = ctxt, prems = _} =
+fun mk_in_rel_tac rel_O_Grs m {context = ctxt, prems = _} =
   let
     val ls' = replicate (Int.max (1, m)) ();
   in
-    Local_Defs.unfold_tac ctxt (rel_O_Gr ::
+    Local_Defs.unfold_tac ctxt (rel_O_Grs @
       @{thms Gr_def converse_unfold relcomp_unfold mem_Collect_eq prod.cases Pair_eq}) THEN
     EVERY' [rtac iffI, REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac, rtac exI,
       rtac conjI, CONJ_WRAP' (K atac) ls', rtac conjI, rtac refl, rtac refl,

@@ -25,17 +25,17 @@ open BNF_FP_Sugar
 open BNF_LFP_Util
 open BNF_LFP_Tactics
 
-(*all bnfs have the same lives*)
+(*all BNFs have the same lives*)
 fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
-    val m = live - n; (*passive, if 0 don't generate a new bnf*)
+    val m = live - n; (*passive, if 0 don't generate a new BNF*)
     val b = Binding.name (mk_common_name bs);
 
-    (* TODO: check if m, n etc are sane *)
+    (* TODO: check if m, n, etc., are sane *)
 
     val deads = fold (union (op =)) Dss resDs;
     val names_lthy = fold Variable.declare_typ deads lthy;
@@ -1672,7 +1672,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val rel_O_gr_tacs = replicate n (K (rtac refl 1));
 
-        val tacss = map10 zip_goals map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
+        val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
           bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
 
         val fld_witss =
@@ -1732,8 +1732,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val in_rels = map in_rel_of_bnf bnfs;
         val in_Irels = map in_rel_of_bnf Ibnfs;
         val pred_defs = map pred_def_of_bnf bnfs;
-        val Ipred_defs =
-          map (Drule.abs_def o (fn thm => thm RS @{thm eq_reflection}) o pred_def_of_bnf) Ibnfs;
+        val Ipred_defs = map pred_def_of_bnf Ibnfs;
 
         val set_incl_thmss = map (map (fold_sets o hd)) Fset_set_thmsss;
         val set_set_incl_thmsss = map (transpose o map (map fold_sets o tl)) Fset_set_thmsss;
