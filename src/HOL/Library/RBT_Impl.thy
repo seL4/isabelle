@@ -1197,6 +1197,8 @@ qed
 
 end
 
+subsection {* Code generator setup *}
+
 lemmas [code] =
   ord.rbt_less_prop
   ord.rbt_greater_prop
@@ -1216,6 +1218,36 @@ lemmas [code] =
   ord.rbt_union_def
   ord.rbt_map_entry.simps
   ord.rbt_bulkload_def
+
+text {* More efficient implementations for @{term entries} and @{term keys} *}
+
+definition gen_entries :: 
+  "(('a \<times> 'b) \<times> ('a, 'b) rbt) list \<Rightarrow> ('a, 'b) rbt \<Rightarrow> ('a \<times> 'b) list"
+where
+  "gen_entries kvts t = entries t @ concat (List.map (\<lambda>(kv, t). kv # entries t) kvts)"
+
+lemma gen_entries_simps [simp, code]:
+  "gen_entries [] Empty = []"
+  "gen_entries ((kv, t) # kvts) Empty = kv # gen_entries kvts t"
+  "gen_entries kvts (Branch c l k v r) = gen_entries (((k, v), r) # kvts) l"
+by(simp_all add: gen_entries_def)
+
+lemma entries_code [code]:
+  "entries = gen_entries []"
+by(simp add: gen_entries_def fun_eq_iff)
+
+definition gen_keys :: "('a \<times> ('a, 'b) rbt) list \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'a list"
+where "gen_keys kts t = RBT_Impl.keys t @ concat (List.map (\<lambda>(k, t). k # keys t) kts)"
+
+lemma gen_keys_simps [simp, code]:
+  "gen_keys [] Empty = []"
+  "gen_keys ((k, t) # kts) Empty = k # gen_keys kts t"
+  "gen_keys kts (Branch c l k v r) = gen_keys ((k, r) # kts) l"
+by(simp_all add: gen_keys_def)
+
+lemma keys_code [code]:
+  "keys = gen_keys []"
+by(simp add: gen_keys_def fun_eq_iff)
 
 text {* Restore original type constraints for constants *}
 setup {*
@@ -1240,6 +1272,6 @@ setup {*
      (@{const_name rbt_bulkload}, SOME @{typ "('a \<times> 'b) list \<Rightarrow> ('a\<Colon>linorder,'b) rbt"})]
 *}
 
-hide_const (open) R B Empty entries keys map fold
+hide_const (open) R B Empty entries keys map fold gen_keys gen_entries
 
 end
