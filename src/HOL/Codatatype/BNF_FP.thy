@@ -113,11 +113,11 @@ lemma prod_set_simps:
 unfolding fsts_def snds_def by simp+
 
 lemma sum_set_simps:
-"sum_setl (Inl x) = {x}"
-"sum_setl (Inr x) = {}"
-"sum_setr (Inl x) = {}"
-"sum_setr (Inr x) = {x}"
-unfolding sum_setl_def sum_setr_def by simp+
+"setl (Inl x) = {x}"
+"setl (Inr x) = {}"
+"setr (Inl x) = {}"
+"setr (Inr x) = {x}"
+unfolding sum_set_defs by simp+
 
 ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_sugar_tactics.ML"

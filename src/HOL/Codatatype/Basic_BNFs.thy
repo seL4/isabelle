@@ -73,15 +73,15 @@ by (rule card_of_Card_order)
 lemma DEADID_pred[simp]: "DEADID_pred = (op =)"
 unfolding DEADID_pred_def DEADID.rel_Id by simp
 
-definition sum_setl :: "'a + 'b \<Rightarrow> 'a set" where
-"sum_setl x = (case x of Inl z => {z} | _ => {})"
+definition setl :: "'a + 'b \<Rightarrow> 'a set" where
+"setl x = (case x of Inl z => {z} | _ => {})"
 
-definition sum_setr :: "'a + 'b \<Rightarrow> 'b set" where
-"sum_setr x = (case x of Inr z => {z} | _ => {})"
+definition setr :: "'a + 'b \<Rightarrow> 'b set" where
+"setr x = (case x of Inr z => {z} | _ => {})"
 
-lemmas sum_set_defs = sum_setl_def[abs_def] sum_setr_def[abs_def]
+lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
-bnf_def sum_map [sum_setl, sum_setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr]
+bnf_def sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr]
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
@@ -90,38 +90,38 @@ next
     by (rule sum_map.comp[symmetric])
 next
   fix x f1 f2 g1 g2
-  assume a1: "\<And>z. z \<in> sum_setl x \<Longrightarrow> f1 z = g1 z" and
-         a2: "\<And>z. z \<in> sum_setr x \<Longrightarrow> f2 z = g2 z"
+  assume a1: "\<And>z. z \<in> setl x \<Longrightarrow> f1 z = g1 z" and
+         a2: "\<And>z. z \<in> setr x \<Longrightarrow> f2 z = g2 z"
   thus "sum_map f1 f2 x = sum_map g1 g2 x"
   proof (cases x)
-    case Inl thus ?thesis using a1 by (clarsimp simp: sum_setl_def)
+    case Inl thus ?thesis using a1 by (clarsimp simp: setl_def)
   next
-    case Inr thus ?thesis using a2 by (clarsimp simp: sum_setr_def)
+    case Inr thus ?thesis using a2 by (clarsimp simp: setr_def)
   qed
 next
   fix f1 f2
-  show "sum_setl o sum_map f1 f2 = image f1 o sum_setl"
-    by (rule ext, unfold o_apply) (simp add: sum_setl_def split: sum.split)
+  show "setl o sum_map f1 f2 = image f1 o setl"
+    by (rule ext, unfold o_apply) (simp add: setl_def split: sum.split)
 next
   fix f1 f2
-  show "sum_setr o sum_map f1 f2 = image f2 o sum_setr"
-    by (rule ext, unfold o_apply) (simp add: sum_setr_def split: sum.split)
+  show "setr o sum_map f1 f2 = image f2 o setr"
+    by (rule ext, unfold o_apply) (simp add: setr_def split: sum.split)
 next
   show "card_order natLeq" by (rule natLeq_card_order)
 next
   show "cinfinite natLeq" by (rule natLeq_cinfinite)
 next
   fix x
-  show "|sum_setl x| \<le>o natLeq"
+  show "|setl x| \<le>o natLeq"
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
-    by (simp add: sum_setl_def split: sum.split)
+    by (simp add: setl_def split: sum.split)
 next
   fix x
-  show "|sum_setr x| \<le>o natLeq"
+  show "|setr x| \<le>o natLeq"
     apply (rule ordLess_imp_ordLeq)
     apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
-    by (simp add: sum_setr_def split: sum.split)
+    by (simp add: setr_def split: sum.split)
 next
   fix A1 :: "'a set" and A2 :: "'b set"
   have in_alt: "{x. (case x of Inl z => {z} | _ => {}) \<subseteq> A1 \<and>
@@ -132,7 +132,7 @@ next
     hence "x \<in> Inl ` A1 \<or> x \<in> Inr ` A2" by (cases x) simp+
     thus "x \<in> A1 <+> A2" by blast
   qed (auto split: sum.split)
-  show "|{x. sum_setl x \<subseteq> A1 \<and> sum_setr x \<subseteq> A2}| \<le>o
+  show "|{x. setl x \<subseteq> A1 \<and> setr x \<subseteq> A2}| \<le>o
     (( |A1| +c |A2| ) +c ctwo) ^c natLeq"
     apply (rule ordIso_ordLeq_trans)
     apply (rule card_of_ordIso_subst)
@@ -155,8 +155,8 @@ next
     pull1: "\<And>b1 b2. \<lbrakk>b1 \<in> B11; b2 \<in> B21; f11 b1 = f21 b2\<rbrakk> \<Longrightarrow> \<exists>a \<in> A1. p11 a = b1 \<and> p21 a = b2"
     and pull2: "\<And>b1 b2. \<lbrakk>b1 \<in> B12; b2 \<in> B22; f12 b1 = f22 b2\<rbrakk> \<Longrightarrow> \<exists>a \<in> A2. p12 a = b1 \<and> p22 a = b2"
     unfolding wpull_def by blast+
-  show "wpull {x. sum_setl x \<subseteq> A1 \<and> sum_setr x \<subseteq> A2}
-  {x. sum_setl x \<subseteq> B11 \<and> sum_setr x \<subseteq> B12} {x. sum_setl x \<subseteq> B21 \<and> sum_setr x \<subseteq> B22}
+  show "wpull {x. setl x \<subseteq> A1 \<and> setr x \<subseteq> A2}
+  {x. setl x \<subseteq> B11 \<and> setr x \<subseteq> B12} {x. setl x \<subseteq> B21 \<and> setr x \<subseteq> B22}
   (sum_map f11 f12) (sum_map f21 f22) (sum_map p11 p12) (sum_map p21 p22)"
     (is "wpull ?in ?in1 ?in2 ?mapf1 ?mapf2 ?mapp1 ?mapp2")
   proof (unfold wpull_def)
@@ -169,7 +169,7 @@ next
           with Inl *(3) have False by simp
         } then obtain b2 where Inl': "B2 = Inl b2" by (cases B2) (simp, blast)
         with Inl * have "b1 \<in> B11" "b2 \<in> B21" "f11 b1 = f21 b2"
-        by (simp add: sum_setl_def)+
+        by (simp add: setl_def)+
         with pull1 obtain a where "a \<in> A1" "p11 a = b1" "p21 a = b2" by blast+
         with Inl Inl' have "Inl a \<in> ?in" "?mapp1 (Inl a) = B1 \<and> ?mapp2 (Inl a) = B2"
         by (simp add: sum_set_defs)+
@@ -196,7 +196,7 @@ lemma sum_pred[simp]:
   "sum_pred \<phi> \<psi> x y =
     (case x of Inl a1 \<Rightarrow> (case y of Inl a2 \<Rightarrow> \<phi> a1 a2 | Inr _ \<Rightarrow> False)
              | Inr b1 \<Rightarrow> (case y of Inl _ \<Rightarrow> False | Inr b2 \<Rightarrow> \<psi> b1 b2))"
-unfolding sum_setl_def sum_setr_def sum_pred_def sum_rel_def Gr_def relcomp_unfold converse_unfold
+unfolding setl_def setr_def sum_pred_def sum_rel_def Gr_def relcomp_unfold converse_unfold
 by (fastforce split: sum.splits)+
 
 lemma singleton_ordLeq_ctwo_natLeq: "|{x}| \<le>o ctwo *c natLeq"
