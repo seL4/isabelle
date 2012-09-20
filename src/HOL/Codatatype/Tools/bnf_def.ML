@@ -82,7 +82,7 @@ sig
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
   datatype fact_policy =
-    Derive_Some_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms
+    Derive_Few_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms
   val bnf_note_all: bool Config.T
   val user_policy: fact_policy -> Proof.context -> fact_policy
 
@@ -507,7 +507,7 @@ val set_bdN = "set_bd";
 datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
 datatype fact_policy =
-  Derive_Some_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms;
+  Derive_Few_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms;
 
 val bnf_note_all = Attrib.setup_config_bool @{binding bnf_note_all} (K false);
 
@@ -553,9 +553,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         | T => err T)
       else (b, Local_Theory.full_name no_defs_lthy b);
 
-    fun maybe_define (b, rhs) lthy =
+    fun maybe_define needed_for_extra_facts (b, rhs) lthy =
       let
         val inline =
+          (not needed_for_extra_facts orelse fact_policy = Derive_Few_Facts) andalso
           (case const_policy of
             Dont_Inline => false
           | Hardly_Inline => Term.is_Free rhs orelse Term.is_Const rhs
@@ -592,10 +593,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       (bnf_bd_term, raw_bd_def)),
       (bnf_wit_terms, raw_wit_defs)), (lthy, lthy_old)) =
         no_defs_lthy
-        |> maybe_define map_bind_def
-        ||>> apfst split_list o fold_map maybe_define set_binds_defs
-        ||>> maybe_define bd_bind_def
-        ||>> apfst split_list o fold_map maybe_define wit_binds_defs
+        |> maybe_define false map_bind_def
+        ||>> apfst split_list o fold_map (maybe_define false) set_binds_defs
+        ||>> maybe_define false bd_bind_def
+        ||>> apfst split_list o fold_map (maybe_define false) wit_binds_defs
         ||> `(maybe_restore no_defs_lthy);
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
@@ -723,7 +724,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val ((bnf_rel_term, raw_rel_def), (lthy, lthy_old)) =
       lthy
-      |> maybe_define rel_bind_def
+      |> maybe_define false rel_bind_def
       ||> `(maybe_restore lthy);
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
@@ -742,7 +743,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val ((bnf_pred_term, raw_pred_def), (lthy, lthy_old)) =
       lthy
-      |> maybe_define pred_bind_def
+      |> maybe_define true pred_bind_def
       ||> `(maybe_restore lthy);
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
@@ -885,7 +886,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         val bd_Cinfinite = @{thm conjI} OF [#bd_cinfinite axioms, bd_Card_order];
         val bd_Cnotzero = bd_Cinfinite RS @{thm Cinfinite_Cnotzero};
 
-        fun mk_lazy f = if fact_policy <> Derive_Some_Facts then Lazy.value (f ()) else Lazy.lazy f;
+        fun mk_lazy f = if fact_policy <> Derive_Few_Facts then Lazy.value (f ()) else Lazy.lazy f;
 
         fun mk_collect_set_natural () =
           let

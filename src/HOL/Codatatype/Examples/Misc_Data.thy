@@ -12,26 +12,11 @@ theory Misc_Data
 imports (* "../Codatatype" *) "../BNF_LFP"
 begin
 
-declare [[bnf_note_all = false]]
-
-local_setup {* fn lthy =>
-snd (snd (BNF_Comp.bnf_of_typ BNF_Def.Dont_Inline (Binding.qualify true "xxx")
-  BNF_Comp.default_comp_sort
-  @{typ "('a \<Rightarrow> 'a) + ('a + 'b) + 'c"} (BNF_Comp.empty_unfold, lthy)))
-*}
-
-print_theorems
-
-data 'a lst = Nl | Cns 'a "'a lst"
-
-thm pre_lst.rel_unfold
-    pre_lst.pred_unfold
-    lst.rel_unfold
-    lst.pred_unfold
+bnf_def ID2: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
+  "id :: ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set"
+sorry
 
 data simple = X1 | X2 | X3 | X4
-
-thm simple.rel_unfold
 
 data simple' = X1' unit | X2' unit | X3' unit | X4' unit
 

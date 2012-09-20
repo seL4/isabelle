@@ -22,7 +22,10 @@ begin
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
-bnf_def Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"]
+definition option_rel :: "('a \<times> 'b) set \<Rightarrow> ('a option \<times> 'b option) set" where
+"option_rel R = {x. case x of (None, None) \<Rightarrow> True | (Some a, Some b) \<Rightarrow> (a, b) \<in> R | _ \<Rightarrow> False}"
+
+bnf_def Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"] option_rel
 proof -
   show "Option.map id = id" by (simp add: fun_eq_iff Option.map_def split: option.split)
 next
@@ -81,16 +84,14 @@ next
   fix z
   assume "z \<in> Option.set None"
   thus False by simp
+next
+  fix R
+  show "option_rel R =
+        (Gr {x. Option.set x \<subseteq> R} (Option.map fst))\<inverse> O Gr {x. Option.set x \<subseteq> R} (Option.map snd)"
+  unfolding option_rel_def Gr_def relcomp_unfold converse_unfold
+  by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
+           split: option.splits) blast
 qed
-
-lemma option_pred[simp]: "option_pred R x_opt y_opt =
-  (case (x_opt, y_opt) of
-    (None, None) \<Rightarrow> True
-  | (Some x, Some y) \<Rightarrow> R x y
-  | _ \<Rightarrow> False)"
-unfolding option_pred_def option_rel_def Gr_def relcomp_unfold converse_unfold
-by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
-  split: option.splits)
 
 lemma card_of_list_in:
   "|{xs. set xs \<subseteq> A}| \<le>o |Pfunc (UNIV :: nat set) A|" (is "|?LHS| \<le>o |?RHS|")
@@ -240,7 +241,7 @@ next
     thus "\<forall>as bs. as \<in> ?B1 \<and> bs \<in> ?B2 \<and> map f1 as = map f2 bs \<longrightarrow>
       (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
   qed
-qed auto
+qed simp+
 
 (* Finite sets *)
 abbreviation afset where "afset \<equiv> abs_fset"
@@ -355,7 +356,35 @@ qed
 lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
 by (rule f_the_inv_into_f) (auto simp: inj_on_def fset_cong dest!: finite_ex_fset)
 
-bnf_def map_fset [fset] "\<lambda>_::'a fset. natLeq" ["{||}"]
+lemma fset_pred:
+"(a, b) \<in> (Gr {a. fset a \<subseteq> {(a, b). R a b}} (map_fset fst))\<inverse> O
+          Gr {a. fset a \<subseteq> {(a, b). R a b}} (map_fset snd) \<longleftrightarrow>
+ ((\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u))" (is "?L = ?R")
+proof
+  assume ?L thus ?R unfolding Gr_def relcomp_unfold converse_unfold
+  apply (simp add: subset_eq Ball_def)
+  apply (rule conjI)
+  apply (clarsimp, metis snd_conv)
+  by (clarsimp, metis fst_conv)
+next
+  assume ?R
+  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?R'")
+  have "finite ?R'" by (intro finite_Int[OF disjI2] finite_cartesian_product) auto
+  hence *: "fset R' = ?R'" unfolding R'_def by (intro fset_to_fset)
+  show ?L unfolding Gr_def relcomp_unfold converse_unfold
+  proof (intro CollectI prod_caseI exI conjI)
+    from * show "(R', a) = (R', map_fset fst R')" using conjunct1[OF `?R`]
+      by (auto simp add: fset_cong[symmetric] image_def Int_def split: prod.splits)
+    from * show "(R', b) = (R', map_fset snd R')" using conjunct2[OF `?R`]
+      by (auto simp add: fset_cong[symmetric] image_def Int_def split: prod.splits)
+  qed (auto simp add: *)
+qed
+
+definition fset_rel :: "('a \<times> 'b) set \<Rightarrow> ('a fset \<times> 'b fset) set" where
+"fset_rel R = {(a, b) | a b. (\<forall>t \<in> fset a. \<exists>u \<in> fset b. (t, u) \<in> R) \<and>
+                             (\<forall>u \<in> fset b. \<exists>t \<in> fset a. (t, u) \<in> R)}"
+
+bnf_def map_fset [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
 proof -
   show "map_fset id = id"
   unfolding map_fset_def2 map_id o_id afset_rfset_id ..
@@ -429,31 +458,14 @@ next
     unfolding X'eq map_fset_def2_raw fset_def2_raw set_map[symmetric]
     afset_set[symmetric] afset_rfset by simp
   qed
-qed auto
-
-lemma fset_pred[simp]: "fset_pred R a b \<longleftrightarrow>
-  ((\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and>
-   (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t))" (is "?L = ?R")
-proof
-  assume ?L thus ?R unfolding fset_rel_def fset_pred_def
-    Gr_def relcomp_unfold converse_unfold
-  apply (simp add: subset_eq Ball_def)
-  apply (rule conjI)
-  apply (clarsimp, metis snd_conv)
-  by (clarsimp, metis fst_conv)
 next
-  assume ?R
-  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?R'")
-  have "finite ?R'" by (intro finite_Int[OF disjI2] finite_cartesian_product) auto
-  hence *: "fset R' = ?R'" unfolding R'_def by (intro fset_to_fset)
-  show ?L unfolding fset_rel_def fset_pred_def Gr_def relcomp_unfold converse_unfold
-  proof (intro CollectI prod_caseI exI conjI)
-    from * show "(R', a) = (R', map_fset fst R')" using conjunct1[OF `?R`]
-      by (auto simp add: fset_cong[symmetric] image_def Int_def split: prod.splits)
-    from * show "(R', b) = (R', map_fset snd R')" using conjunct2[OF `?R`]
-      by (auto simp add: fset_cong[symmetric] image_def Int_def split: prod.splits)
-  qed (auto simp add: *)
-qed
+  fix R
+  let ?pred = "\<lambda>Q x y. (x, y) \<in> (Gr {x. fset x \<subseteq> {(x, y). Q x y}} (map_fset fst))\<inverse> O Gr {x. fset x \<subseteq> {(x, y). Q x y}} (map_fset snd)"
+  have rel_as_pred: "fset_rel R = {(a, b) | a b. ?pred (\<lambda>t u. (t, u) \<in> R) a b}"
+  unfolding fset_rel_def fset_pred by (rule refl)
+  show "fset_rel R = (Gr {x. fset x \<subseteq> R} (map_fset fst))\<inverse> O Gr {x. fset x \<subseteq> R} (map_fset snd)"
+  unfolding rel_as_pred by simp
+qed auto
 
 (* Countable sets *)
 
@@ -511,7 +523,52 @@ next
   finally show ?thesis .
 qed
 
-bnf_def cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"]
+lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
+apply (rule f_the_inv_into_f)
+unfolding inj_on_def rcset_inj using rcset_surj by auto
+
+lemma Collect_Int_Times:
+"{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
+by auto
+
+lemma rcset_natural': "rcset (cIm f x) = f ` rcset x"
+unfolding cIm_def[abs_def] by simp
+
+lemma cset_pred:
+"(a, b) \<in> (Gr {x. rcset x \<subseteq> {(a, b). R a b}} (cIm fst))\<inverse> O
+          Gr {x. rcset x \<subseteq> {(a, b). R a b}} (cIm snd) \<longleftrightarrow>
+ ((\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and> (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t))" (is "?L = ?R")
+proof
+  assume ?L thus ?R unfolding Gr_def relcomp_unfold converse_unfold
+  apply (simp add: subset_eq Ball_def)
+  apply (rule conjI)
+  apply (clarsimp, metis (lifting, no_types) rcset_natural' image_iff surjective_pairing)
+  apply (clarsimp)
+  by (metis Domain.intros Range.simps rcset_natural' fst_eq_Domain snd_eq_Range)
+next
+  assume ?R
+  def R' \<equiv> "the_inv rcset (Collect (split R) \<inter> (rcset a \<times> rcset b))"
+  (is "the_inv rcset ?R'")
+  have "countable ?R'" by auto
+  hence *: "rcset R' = ?R'" unfolding R'_def using fset_to_fset by (intro rcset_to_rcset)
+  show ?L unfolding Gr_def relcomp_unfold converse_unfold
+  proof (intro CollectI prod_caseI exI conjI)
+    have "rcset a = fst ` ({(x, y). R x y} \<inter> rcset a \<times> rcset b)" (is "_ = ?A")
+    using conjunct1[OF `?R`] unfolding image_def by (auto simp add: Collect_Int_Times)
+    hence "a = acset ?A" by (metis acset_rcset)
+    thus "(R', a) = (R', cIm fst R')" unfolding cIm_def * by auto
+    have "rcset b = snd ` ({(x, y). R x y} \<inter> rcset a \<times> rcset b)" (is "_ = ?B")
+    using conjunct2[OF `?R`] unfolding image_def by (auto simp add: Collect_Int_Times)
+    hence "b = acset ?B" by (metis acset_rcset)
+    thus "(R', b) = (R', cIm snd R')" unfolding cIm_def * by auto
+  qed (auto simp add: *)
+qed
+
+definition cset_rel :: "('a \<times> 'b) set \<Rightarrow> ('a cset \<times> 'b cset) set" where
+"cset_rel R = {(a, b) | a b. (\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. (t, u) \<in> R) \<and>
+                             (\<forall>u \<in> rcset b. \<exists>t \<in> rcset a. (t, u) \<in> R)}"
+
+bnf_def cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"] cset_rel
 proof -
   show "cIm id = id" unfolding cIm_def[abs_def] id_def by auto
 next
@@ -573,52 +630,21 @@ next
     show "\<exists>x\<in>{x. rcset x \<subseteq> A}. cIm p1 x = y1 \<and> cIm p2 x = y2"
     apply(intro bexI[of _ "x"]) using X' Y1 Y2 unfolding X'eq cIm_def by auto
   qed
-qed (unfold cEmp_def, auto)
-
-lemma rcset_to_rcset: "countable A \<Longrightarrow> rcset (the_inv rcset A) = A"
-apply (rule f_the_inv_into_f) 
-unfolding inj_on_def rcset_inj using rcset_surj by auto
-
-lemma Collect_Int_Times: 
-"{(x, y). R x y} \<inter> A \<times> B = {(x, y). R x y \<and> x \<in> A \<and> y \<in> B}"
-by auto
-
-lemma cset_pred[simp]: "cset_pred R a b \<longleftrightarrow>
-  ((\<forall>t \<in> rcset a. \<exists>u \<in> rcset b. R t u) \<and>
-   (\<forall>t \<in> rcset b. \<exists>u \<in> rcset a. R u t))" (is "?L = ?R")
-proof
-  assume ?L thus ?R unfolding cset_rel_def cset_pred_def
-    Gr_def relcomp_unfold converse_unfold
-  apply (simp add: subset_eq Ball_def)
-  apply (rule conjI)
-  apply (clarsimp, metis (lifting, no_types) cset.set_natural' image_iff surjective_pairing)
-  apply (clarsimp)
-  by (metis Domain.intros Range.simps cset.set_natural' fst_eq_Domain snd_eq_Range)
 next
-  assume ?R
-  def R' \<equiv> "the_inv rcset (Collect (split R) \<inter> (rcset a \<times> rcset b))" 
-  (is "the_inv rcset ?R'")
-  have "countable ?R'" by auto 
-  hence *: "rcset R' = ?R'" unfolding R'_def using fset_to_fset by (intro rcset_to_rcset)
-  show ?L unfolding cset_rel_def cset_pred_def Gr_def relcomp_unfold converse_unfold
-  proof (intro CollectI prod_caseI exI conjI)
-    have "rcset a = fst ` ({(x, y). R x y} \<inter> rcset a \<times> rcset b)" (is "_ = ?A")
-    using conjunct1[OF `?R`] unfolding image_def by (auto simp add: Collect_Int_Times)
-    hence "a = acset ?A" by (metis acset_rcset)
-    thus "(R', a) = (R', cIm fst R')" unfolding cIm_def * by auto
-    have "rcset b = snd ` ({(x, y). R x y} \<inter> rcset a \<times> rcset b)" (is "_ = ?B")
-    using conjunct2[OF `?R`] unfolding image_def by (auto simp add: Collect_Int_Times)
-    hence "b = acset ?B" by (metis acset_rcset)
-    thus "(R', b) = (R', cIm snd R')" unfolding cIm_def * by auto
-  qed (auto simp add: *)
-qed
+  fix R
+  let ?pred = "\<lambda>Q x y. (x, y) \<in> (Gr {x. rcset x \<subseteq> {(x, y). Q x y}} (cIm fst))\<inverse> O Gr {x. rcset x \<subseteq> {(x, y). Q x y}} (cIm snd)"
+  have rel_as_pred: "cset_rel R = {(a, b) | a b. ?pred (\<lambda>t u. (t, u) \<in> R) a b}"
+  unfolding cset_rel_def cset_pred by (rule refl)
+  show "cset_rel R = (Gr {x. rcset x \<subseteq> R} (cIm fst))\<inverse> O Gr {x. rcset x \<subseteq> R} (cIm snd)"
+  unfolding rel_as_pred by simp
+qed (unfold cEmp_def, auto)
 
 
 (* Multisets *)
 
-(* The cardinal of a mutiset: this, and the following basic lemmas about it, 
+(* The cardinal of a mutiset: this, and the following basic lemmas about it,
 should eventually go into Multiset.thy *)
-definition "mcard M \<equiv> setsum (count M) {a. count M a > 0}" 
+definition "mcard M \<equiv> setsum (count M) {a. count M a > 0}"
 
 lemma mcard_emp[simp]: "mcard {#} = 0"
 unfolding mcard_def by auto
@@ -636,7 +662,7 @@ proof-
   have "setsum (count M) {a. 0 < count M a + count N a} =
         setsum (count M) {a. a \<in># M}"
   apply(rule setsum_mono_zero_cong_right) by auto
-  moreover 
+  moreover
   have "setsum (count N) {a. 0 < count M a + count N a} =
         setsum (count N) {a. a \<in># N}"
   apply(rule setsum_mono_zero_cong_right) by auto
@@ -1268,7 +1294,7 @@ by (metis image_is_empty multiset.set_natural' set_of_eq_empty_iff)
 lemma multiset_map_Zero[simp]: "multiset_map f {#} = {#}" by simp
 
 lemma multiset_pred_Zero: "multiset_pred R {#} {#}"
-unfolding multiset_pred_def multiset_rel_def Gr_def relcomp_unfold by auto
+unfolding multiset_pred_def Gr_def relcomp_unfold by auto
 
 declare multiset.count[simp]
 declare mmap[simp]
@@ -1321,7 +1347,7 @@ proof-
   }
   thus ?thesis
   using assms  
-  unfolding multiset_pred_def multiset_rel_def Gr_def relcomp_unfold by force 
+  unfolding multiset_pred_def Gr_def relcomp_unfold by force
 qed
 
 lemma multiset_pred'_imp_multiset_pred: 
@@ -1363,7 +1389,7 @@ qed
 lemma multiset_pred_mcard: 
 assumes "multiset_pred R M N" 
 shows "mcard M = mcard N"
-using assms unfolding multiset_pred_def multiset_rel_def relcomp_unfold Gr_def by auto
+using assms unfolding multiset_pred_def relcomp_unfold Gr_def by auto
 
 lemma multiset_induct2[case_names empty addL addR]:
 assumes empty: "P {#} {#}" 
@@ -1424,14 +1450,14 @@ proof-
   obtain K where KM: "multiset_map fst K = M + {#a#}"
   and KN: "multiset_map snd K = N" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
-  unfolding multiset_pred_def multiset_rel_def Gr_def relcomp_unfold by auto 
+  unfolding multiset_pred_def Gr_def relcomp_unfold by auto
   obtain K1 ab where K: "K = K1 + {#ab#}" and a: "fst ab = a" 
   and K1M: "multiset_map fst K1 = M" using msed_map_invR[OF KM] by auto
   obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "multiset_map snd K1 = N1"
   using msed_map_invL[OF KN[unfolded K]] by auto
   have Rab: "R a (snd ab)" using sK a unfolding K by auto
   have "multiset_pred R M N1" using sK K1M K1N1 
-  unfolding K multiset_pred_def multiset_rel_def Gr_def relcomp_unfold by auto
+  unfolding K multiset_pred_def Gr_def relcomp_unfold by auto
   thus ?thesis using N Rab by auto
 qed
 
@@ -1442,14 +1468,14 @@ proof-
   obtain K where KN: "multiset_map snd K = N + {#b#}"
   and KM: "multiset_map fst K = M" and sK: "set_of K \<subseteq> {(a, b). R a b}"
   using assms
-  unfolding multiset_pred_def multiset_rel_def Gr_def relcomp_unfold by auto 
+  unfolding multiset_pred_def Gr_def relcomp_unfold by auto 
   obtain K1 ab where K: "K = K1 + {#ab#}" and b: "snd ab = b" 
   and K1N: "multiset_map snd K1 = N" using msed_map_invR[OF KN] by auto
   obtain M1 where M: "M = M1 + {#fst ab#}" and K1M1: "multiset_map fst K1 = M1"
   using msed_map_invL[OF KM[unfolded K]] by auto
   have Rab: "R (fst ab) b" using sK b unfolding K by auto
   have "multiset_pred R M1 N" using sK K1N K1M1 
-  unfolding K multiset_pred_def multiset_rel_def Gr_def relcomp_unfold by auto
+  unfolding K multiset_pred_def Gr_def relcomp_unfold by auto
   thus ?thesis using M Rab by auto
 qed
 

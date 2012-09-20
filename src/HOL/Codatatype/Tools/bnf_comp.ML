@@ -263,7 +263,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
         (maps wit_thms_of_bnf inners);
 
     val (bnf', lthy') =
-      bnf_def const_policy (K Derive_Some_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
+      bnf_def const_policy (K Derive_Few_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
         (((((b, mapx), sets), bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
@@ -361,7 +361,7 @@ fun kill_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) 
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
+      bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
@@ -449,7 +449,7 @@ fun lift_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) 
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
+      bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME Ds)
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
@@ -527,7 +527,7 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
+      bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME Ds)
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
