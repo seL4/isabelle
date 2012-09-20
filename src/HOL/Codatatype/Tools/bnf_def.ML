@@ -607,7 +607,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         ||>> apfst split_list o fold_map (maybe_define false) set_binds_defs
         ||>> maybe_define false bd_bind_def
         ||>> apfst split_list o fold_map (maybe_define false) wit_binds_defs
-        ||>> maybe_define true(*###*) rel_bind_def
+        ||>> maybe_define false rel_bind_def
         ||> `(maybe_restore no_defs_lthy);
 
     (*transforms defined frees into consts (and more)*)

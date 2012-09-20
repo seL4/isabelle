@@ -257,7 +257,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
 
     val (bnf', lthy') =
       bnf_def const_policy (K Derive_Some_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
-        ((((b, mapx), sets), bd), wits) lthy;
+        (((((b, mapx), sets), bd), wits), rel) lthy;
 
     val outer_rel_Gr = rel_Gr_of_bnf outer RS sym;
     val outer_rel_cong = rel_cong_of_bnf outer;

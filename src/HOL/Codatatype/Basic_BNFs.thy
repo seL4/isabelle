@@ -25,7 +25,7 @@ lemma natLeq_cinfinite: "cinfinite natLeq"
 unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 
 bnf_def ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
-  "\<lambda>x :: ('a \<times> 'b) set. x"
+  "id :: ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set"
 apply auto
 apply (rule natLeq_card_order)
 apply (rule natLeq_cinfinite)
@@ -51,7 +51,10 @@ apply (rule natLeq_Card_order)
 apply (auto simp: Gr_def fun_eq_iff)
 done
 
-bnf_def DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"] Id
+definition DEADID_rel :: "('a \<times> 'a) set" where
+"DEADID_rel = {p. \<exists>x. p = (x, x)}"
+
+bnf_def DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"] DEADID_rel
 apply (auto simp add: wpull_id)
 apply (rule card_order_csum)
 apply (rule natLeq_card_order)
@@ -68,7 +71,7 @@ apply (rule ordLeq_csum2)
 apply (rule card_of_Card_order)
 apply (rule ctwo_Cnotzero)
 apply (rule card_of_Card_order)
-apply (auto simp: Id_def Gr_def fun_eq_iff)
+apply (auto simp: DEADID_rel_def Id_def Gr_def fun_eq_iff)
 done
 
 definition setl :: "'a + 'b \<Rightarrow> 'a set" where
@@ -79,14 +82,13 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
-(*### RENAME TODO *)
-definition sum_rel0 :: "('a \<times> 'b) set \<Rightarrow> ('c \<times> 'd) set \<Rightarrow> (('a + 'c) \<times> ('b + 'd)) set" where
-"sum_rel0 R S =
+definition sum_rel :: "('a \<times> 'b) set \<Rightarrow> ('c \<times> 'd) set \<Rightarrow> (('a + 'c) \<times> ('b + 'd)) set" where
+"sum_rel R S =
    {x. case x of (Inl a, Inl c) \<Rightarrow> (a, c) \<in> R
        | (Inr b, Inr d) \<Rightarrow> (b, d) \<in> S
        | _ \<Rightarrow> False}"
 
-bnf_def sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel0
+bnf_def sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
@@ -197,10 +199,10 @@ next
   qed
 next
   fix R S
-  show "sum_rel0 R S =
+  show "sum_rel R S =
           (Gr {x. setl x \<subseteq> R \<and> setr x \<subseteq> S} (sum_map fst fst))\<inverse> O
           Gr {x. setl x \<subseteq> R \<and> setr x \<subseteq> S} (sum_map snd snd)"
-  unfolding setl_def setr_def sum_rel0_def Gr_def relcomp_unfold converse_unfold
+  unfolding setl_def setr_def sum_rel_def Gr_def relcomp_unfold converse_unfold
   by (fastforce split: sum.splits)
 qed (auto simp: sum_set_defs)
 
@@ -222,10 +224,10 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 
-definition prod_rel0 :: "('a \<times> 'b) set \<Rightarrow> ('c \<times> 'd) set \<Rightarrow> (('a \<times> 'c) \<times> 'b \<times> 'd) set" where
-"prod_rel0 R S = {((a, c), b, d) | a b c d. (a, b) \<in> R \<and> (c, d) \<in> S}"
+definition prod_rel :: "('a \<times> 'b) set \<Rightarrow> ('c \<times> 'd) set \<Rightarrow> (('a \<times> 'c) \<times> 'b \<times> 'd) set" where
+"prod_rel R S = {((a, c), b, d) | a b c d. (a, b) \<in> R \<and> (c, d) \<in> S}"
 
-bnf_def map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_rel0
+bnf_def map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_rel
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -302,10 +304,10 @@ next
     unfolding wpull_def by simp fast
 next
   fix R S
-  show "prod_rel0 R S =
+  show "prod_rel R S =
           (Gr {x. {fst x} \<subseteq> R \<and> {snd x} \<subseteq> S} (map_pair fst fst))\<inverse> O
           Gr {x. {fst x} \<subseteq> R \<and> {snd x} \<subseteq> S} (map_pair snd snd)"
-  unfolding prod_set_defs prod_rel0_def Gr_def relcomp_unfold converse_unfold
+  unfolding prod_set_defs prod_rel_def Gr_def relcomp_unfold converse_unfold
   by auto
 qed simp+
 
@@ -345,11 +347,11 @@ proof -
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
-definition fun_rel0 :: "('a \<times> 'b) set \<Rightarrow> (('c \<Rightarrow> 'a) \<times> ('c \<Rightarrow> 'b)) set" where
-"fun_rel0 R = {(f, g) | f g. \<forall>x. (f x, g x) \<in> R}"
+definition fun_rel :: "('a \<times> 'b) set \<Rightarrow> (('c \<Rightarrow> 'a) \<times> ('c \<Rightarrow> 'b)) set" where
+"fun_rel R = {(f, g) | f g. \<forall>x. (f x, g x) \<in> R}"
 
 bnf_def "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|" ["%c x::'b::type. c::'a::type"]
-  fun_rel0
+  fun_rel
 proof
   fix f show "id \<circ> f = id f" by simp
 next
@@ -408,9 +410,8 @@ next
     using wpull_cat[OF p c r] by simp metis
   qed
 next
-  fix R
-  show "fun_rel0 R = (Gr {x. range x \<subseteq> R} (op \<circ> fst))\<inverse> O Gr {x. range x \<subseteq> R} (op \<circ> snd)"
-  unfolding fun_rel0_def Gr_def relcomp_unfold converse_unfold
+  fix R show "fun_rel R = (Gr {x. range x \<subseteq> R} (op \<circ> fst))\<inverse> O Gr {x. range x \<subseteq> R} (op \<circ> snd)"
+  unfolding fun_rel_def Gr_def relcomp_unfold converse_unfold
   by (auto intro!: exI dest!: in_mono)
 qed auto
 
