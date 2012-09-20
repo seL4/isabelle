@@ -390,7 +390,7 @@ fun mk_least_min_alg_tac min_alg_def least =
 
 fun mk_alg_select_tac Abs_inverse {context = ctxt, prems = _} =
   EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac] 1 THEN
-  Local_Defs.unfold_tac ctxt (Abs_inverse :: fst_snd_convs) THEN atac 1;
+  unfold_defs_tac ctxt (Abs_inverse :: fst_snd_convs) THEN atac 1;
 
 fun mk_mor_select_tac mor_def mor_cong mor_comp mor_incl_min_alg alg_def alg_select
     alg_sets set_natural's str_init_defs =
@@ -435,7 +435,7 @@ fun mk_init_ex_mor_tac Abs_inverse copy_alg_ex alg_min_alg card_of_min_algs
     rtac mor_select THEN' atac THEN' rtac CollectI THEN'
     REPEAT_DETERM o rtac exI THEN'
     rtac conjI THEN' rtac refl THEN' atac THEN'
-    K (Local_Defs.unfold_tac ctxt (Abs_inverse :: fst_snd_convs)) THEN'
+    K (unfold_defs_tac ctxt (Abs_inverse :: fst_snd_convs)) THEN'
     etac mor_comp THEN' etac mor_incl_min_alg) 1
   end;
 
@@ -490,7 +490,7 @@ fun mk_init_induct_tac m alg_def alg_min_alg least_min_algs alg_sets =
   end;
 
 fun mk_mor_Rep_tac fld_defs copy bijs inver_Abss inver_Reps {context = ctxt, prems = _} =
-  (K (Local_Defs.unfold_tac ctxt fld_defs) THEN' rtac conjunct1 THEN' rtac copy THEN'
+  (K (unfold_defs_tac ctxt fld_defs) THEN' rtac conjunct1 THEN' rtac copy THEN'
   EVERY' (map (fn bij => EVERY' [rtac bij, atac, etac bexI, rtac UNIV_I]) bijs) THEN'
   EVERY' (map rtac inver_Abss) THEN'
   EVERY' (map rtac inver_Reps)) 1;
@@ -526,7 +526,7 @@ fun mk_unf_o_fld_tac unf_def iter map_comp_id map_congL fld_o_iters =
     rtac sym, rtac id_apply] 1;
 
 fun mk_rec_tac rec_defs iter fst_recs {context = ctxt, prems = _}=
-  Local_Defs.unfold_tac ctxt
+  unfold_defs_tac ctxt
     (rec_defs @ map (fn thm => thm RS @{thm convol_expand_snd}) fst_recs) THEN
   EVERY' [rtac trans, rtac o_apply, rtac trans, rtac (iter RS @{thm arg_cong[of _ _ snd]}),
     rtac @{thm snd_convol'}] 1;
@@ -813,8 +813,7 @@ fun mk_rel_simp_tac in_Irels i in_rel map_comp map_cong map_simp set_simps fld_i
         CONJ_WRAP' (fn (set_simp, passive_set_natural) =>
           EVERY' [rtac ord_eq_le_trans, rtac set_simp, rtac @{thm Un_least},
             rtac ord_eq_le_trans, rtac @{thm box_equals[OF _ refl]},
-            rtac passive_set_natural, rtac trans_fun_cong_image_id_id_apply,
-            atac,
+            rtac passive_set_natural, rtac trans_fun_cong_image_id_id_apply, atac,
             CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_least}))
               (fn (active_set_natural, in_Irel) => EVERY' [rtac ord_eq_le_trans,
                 rtac @{thm UN_cong[OF _ refl]}, rtac active_set_natural, rtac @{thm UN_least},

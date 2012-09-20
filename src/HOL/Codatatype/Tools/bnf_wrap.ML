@@ -166,7 +166,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       ||>> yield_singleton (mk_Frees "w") dataT
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
 
-    val q = Free (fst p', B --> HOLogic.boolT);
+    val q = Free (fst p', mk_pred1T B);
 
     fun ap_v t = t $ v;
     fun mk_v_eq_v () = HOLogic.mk_eq (v, v);
@@ -200,7 +200,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         (true, [], [], [], [], [], no_defs_lthy)
       else
         let
-          fun disc_free b = Free (Binding.name_of b, dataT --> HOLogic.boolT);
+          fun disc_free b = Free (Binding.name_of b, mk_pred1T dataT);
 
           fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
 
@@ -417,7 +417,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                   disc_defs';
               val not_discI_thms =
                 map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
-                    (Local_Defs.unfold lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
+                    (unfold_defs lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
                   ms disc_defs';
 
               val (disc_thmss', disc_thmss) =

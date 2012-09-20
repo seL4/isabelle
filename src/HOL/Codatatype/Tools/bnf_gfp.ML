@@ -220,9 +220,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_congs = map map_cong_of_bnf bnfs;
     val map_id's = map map_id'_of_bnf bnfs;
-    val pred_defs = map pred_def_of_bnf bnfs;
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converses = map rel_converse_of_bnf bnfs;
+    val rel_defs = map rel_def_of_bnf bnfs;
     val rel_Grs = map rel_Gr_of_bnf bnfs;
     val rel_Ids = map rel_Id_of_bnf bnfs;
     val rel_monos = map rel_mono_of_bnf bnfs;
@@ -1060,9 +1060,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
           val sum_card_order = mk_sum_card_order bd_card_orders;
 
-          val sbd_ordIso = Local_Defs.fold lthy [sbd_def]
+          val sbd_ordIso = fold_defs lthy [sbd_def]
             (@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order]);
-          val sbd_card_order =  Local_Defs.fold lthy [sbd_def]
+          val sbd_card_order =  fold_defs lthy [sbd_def]
             (@{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]);
           val sbd_Cinfinite = @{thm Cinfinite_cong} OF [sbd_ordIso, sum_Cinfinite];
           val sbd_Cnotzero = sbd_Cinfinite RS @{thm Cinfinite_Cnotzero};
@@ -1873,7 +1873,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees "f" coiter_fTs
       ||>> mk_Frees "g" coiter_fTs
       ||>> mk_Frees "s" corec_sTs
-      ||>> mk_Frees "P" (map (fn T => T --> mk_predT T) Ts);
+      ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
 
     fun unf_bind i = Binding.suffix_name ("_" ^ unfN) (nth bs (i - 1));
     val unf_name = Binding.name_of o unf_bind;
@@ -2070,7 +2070,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val flds = mk_flds params';
     val fld_defs = map (Morphism.thm phi) fld_def_frees;
 
-    val fld_o_unf_thms = map2 (Local_Defs.fold lthy o single) fld_defs coiter_o_unf_thms;
+    val fld_o_unf_thms = map2 (fold_defs lthy o single) fld_defs coiter_o_unf_thms;
 
     val unf_o_fld_thms =
       let
@@ -2213,7 +2213,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val rel_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (rel_prems, concl));
         val coinduct_params = rev (Term.add_tfrees rel_coinduct_goal []);
 
-        val rel_coinduct = Local_Defs.unfold lthy @{thms diag_UNIV}
+        val rel_coinduct = unfold_defs lthy @{thms diag_UNIV}
           (Skip_Proof.prove lthy [] [] rel_coinduct_goal
             (K (mk_rel_coinduct_tac ks raw_coind_thm bis_rel_thm))
           |> Thm.close_derivation);
@@ -2266,12 +2266,12 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               (tcoalg_thm RS bis_diag_thm))))
           |> Thm.close_derivation;
 
-        val pred_coinduct = rel_coinduct
-          |> Local_Defs.unfold lthy @{thms Id_def'}
-          |> Local_Defs.fold lthy pred_defs;
-        val pred_coinduct_upto = rel_coinduct_upto
-          |> Local_Defs.unfold lthy @{thms Id_def'}
-          |> Local_Defs.fold lthy pred_defs;
+        (*### FIXME: get rid of mem_Id_eq_eq? or Id_def'? *)
+        val pred_of_rel_thms =
+          rel_defs @ @{thms Id_def' mem_Collect_eq fst_conv mem_Id_eq_eq snd_conv split_conv};
+
+        val pred_coinduct = unfold_defs lthy pred_of_rel_thms rel_coinduct;
+        val pred_coinduct_upto = unfold_defs lthy pred_of_rel_thms rel_coinduct_upto;
       in
         (unf_coinduct, rev (Term.add_tfrees unf_coinduct_goal []), rel_coinduct, pred_coinduct,
          unf_coinduct_upto, rel_coinduct_upto, pred_coinduct_upto)
@@ -2291,7 +2291,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val pTs = map2 (curry op -->) passiveXs passiveCs;
         val uTs = map2 (curry op -->) Ts Ts';
         val JRTs = map2 (curry mk_relT) passiveAs passiveBs;
-        val JphiTs = map2 (fn T => fn U => T --> mk_predT U) passiveAs passiveBs;
+        val JphiTs = map2 mk_pred2T passiveAs passiveBs;
         val prodTs = map2 (curry HOLogic.mk_prodT) Ts Ts';
         val B1Ts = map HOLogic.mk_setT passiveAs;
         val B2Ts = map HOLogic.mk_setT passiveBs;
@@ -2309,7 +2309,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "u" uTs
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
-          ||>> mk_Freess "P" (map (fn T => map (fn U => T --> mk_predT U) Ts) passiveAs)
+          ||>> mk_Freess "P" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
           ||>> mk_Frees "R" JRTs
           ||>> mk_Frees "P" JphiTs
           ||>> mk_Frees "B1" B1Ts
@@ -2669,10 +2669,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           map3 (K ooo mk_wpull_tac m coalg_thePull_thm mor_thePull_fst_thm mor_thePull_snd_thm
             mor_thePull_pick_thm) unique_mor_thms (transpose pick_col_thmss) hset_defss;
 
-        val rel_O_gr_tacs = replicate n (K (rtac refl 1));
+        val rel_O_Gr_tacs = replicate n (simple_rel_O_Gr_tac o #context);
 
         val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
+          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_Gr_tacs;
 
         val (hset_unf_incl_thmss, hset_hset_unf_incl_thmsss, hset_induct_thms) =
           let
@@ -2714,7 +2714,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               map6 (fn set_minimal => fn set_set_inclss => fn jsets => fn y => fn y' => fn phis =>
                 ((set_minimal
                   |> Drule.instantiate' [] (mk_induct_tinst phis jsets y y')
-                  |> Local_Defs.unfold lthy incls) OF
+                  |> unfold_defs lthy incls) OF
                   (replicate n ballI @
                     maps (map (fn thm => thm RS @{thm subset_CollectI})) set_set_inclss))
                 |> singleton (Proof_Context.export names_lthy lthy)
@@ -2865,10 +2865,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts all_witss lthy;
 
-        val fold_maps = Local_Defs.fold lthy (map (fn bnf =>
+        val fold_maps = fold_defs lthy (map (fn bnf =>
           mk_unabs_def m (map_def_of_bnf bnf RS @{thm meta_eq_to_obj_eq})) Jbnfs);
 
-        val fold_sets = Local_Defs.fold lthy (maps (fn bnf =>
+        val fold_sets = fold_defs lthy (maps (fn bnf =>
          map (fn thm => thm RS @{thm meta_eq_to_obj_eq}) (set_defs_of_bnf bnf)) Jbnfs);
 
         val timer = time (timer "registered new codatatypes as BNFs");
@@ -2889,6 +2889,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val in_rels = map in_rel_of_bnf bnfs;
         val in_Jrels = map in_rel_of_bnf Jbnfs;
+        val Jrel_defs = map rel_def_of_bnf Jbnfs;
         val Jpred_defs = map pred_def_of_bnf Jbnfs;
 
         val folded_map_simp_thms = map fold_maps map_simp_thms;
@@ -2919,10 +2920,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               (mk_Trueprop_eq (Jpredphi $ Jz $ Jz', predphi $ (unf $ Jz) $ (unf' $ Jz')));
             val goals = map6 mk_goal Jzs Jz's unfs unf's Jpredphis predphis;
           in
-            map3 (fn goal => fn pred_def => fn Jrel_simp =>
-              Skip_Proof.prove lthy [] [] goal (mk_pred_simp_tac pred_def Jpred_defs Jrel_simp)
+            map3 (fn goal => fn rel_def => fn Jrel_simp =>
+              Skip_Proof.prove lthy [] [] goal
+                (mk_pred_simp_tac rel_def Jpred_defs Jrel_defs Jrel_simp)
               |> Thm.close_derivation)
-            goals pred_defs Jrel_simp_thms
+            goals rel_defs Jrel_simp_thms
           end;
 
         val timer = time (timer "additional properties");

@@ -97,8 +97,6 @@ sig
 
   val retype_free: typ -> term -> term
 
-  val mk_predT: typ -> typ;
-
   val mk_sumTN: typ list -> typ
   val mk_sumTN_balanced: typ list -> typ
 
@@ -244,8 +242,6 @@ val sel_coitersN = selN ^ "_" ^ coitersN
 val sel_corecsN = selN ^ "_" ^ corecsN
 
 val mk_common_name = space_implode "_" o map Binding.name_of;
-
-fun mk_predT T = T --> HOLogic.boolT;
 
 fun retype_free T (Free (s, _)) = Free (s, T);
 

@@ -98,6 +98,7 @@ structure BNF_Def : BNF_DEF =
 struct
 
 open BNF_Util
+open BNF_Tactics
 open BNF_Def_Tactics
 
 type axioms = {
@@ -140,22 +141,20 @@ fun zip_axioms mid mcomp mcong snat bdco bdinf sbd inbd wpull rel =
 fun dest_axioms {map_id, map_comp, map_cong, set_natural, bd_card_order, bd_cinfinite, set_bd,
   in_bd, map_wpull, rel_O_Gr} =
   zip_axioms map_id map_comp map_cong set_natural bd_card_order bd_cinfinite set_bd in_bd map_wpull
-  rel_O_Gr;
+    rel_O_Gr;
 
-fun map_axioms f
-  {map_id = map_id, map_comp = map_comp, map_cong = map_cong, set_natural = set_natural,
-   bd_card_order = bd_card_order, bd_cinfinite = bd_cinfinite, set_bd = set_bd, in_bd = in_bd,
-   map_wpull = map_wpull, rel_O_Gr} =
+fun map_axioms f {map_id, map_comp, map_cong, set_natural, bd_card_order, bd_cinfinite, set_bd,
+  in_bd, map_wpull, rel_O_Gr} =
   {map_id = f map_id,
-   map_comp = f map_comp,
-   map_cong = f map_cong,
-   set_natural = map f set_natural,
-   bd_card_order = f bd_card_order,
-   bd_cinfinite = f bd_cinfinite,
-   set_bd = map f set_bd,
-   in_bd = f in_bd,
-   map_wpull = f map_wpull,
-   rel_O_Gr = f rel_O_Gr};
+    map_comp = f map_comp,
+    map_cong = f map_cong,
+    set_natural = map f set_natural,
+    bd_card_order = f bd_card_order,
+    bd_cinfinite = f bd_cinfinite,
+    set_bd = map f set_bd,
+    in_bd = f in_bd,
+    map_wpull = f map_wpull,
+    rel_O_Gr = f rel_O_Gr};
 
 val morph_axioms = map_axioms o Morphism.thm;
 
@@ -168,8 +167,8 @@ type defs = {
 
 fun mk_defs map sets pred rel = {map_def = map, set_defs = sets, pred_def = pred, rel_def = rel};
 
-fun map_defs f {map_def = map, set_defs = sets, pred_def = pred, rel_def = rel} =
-  {map_def = f map, set_defs = List.map f sets, pred_def = f pred, rel_def = f rel};
+fun map_defs f {map_def, set_defs, pred_def, rel_def} =
+  {map_def = f map_def, set_defs = map f set_defs, pred_def = f pred_def, rel_def = f rel_def};
 
 val morph_defs = map_defs o Morphism.thm;
 
@@ -429,8 +428,8 @@ fun normalize_pred ctxt instTs instA instB pred =
   let
     val thy = Proof_Context.theory_of ctxt;
     val tyenv =
-      Sign.typ_match thy (fastype_of pred,
-        Library.foldr (op -->) (instTs, instA --> instB --> HOLogic.boolT)) Vartab.empty;
+      Sign.typ_match thy (fastype_of pred, Library.foldr (op -->) (instTs, mk_pred2T instA instB))
+        Vartab.empty;
   in Envir.subst_term (tyenv, Vartab.empty) pred end
   handle Type.TYPE_MATCH => error "Bad predicator";
 
@@ -463,8 +462,6 @@ fun minimize_wits wits =
        then minimize done todo
        else minimize ((I, wit) :: done) todo;
  in minimize [] wits end;
-
-fun unfold_defs_tac lthy defs mk_tac context = Local_Defs.unfold_tac lthy defs THEN mk_tac context;
 
 
 
@@ -527,7 +524,7 @@ val no_reflexive = filter_out Thm.is_reflexive;
 (* Define new BNFs *)
 
 fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
-  (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
+  (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_pred_opt) no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
     val b = qualify raw_b;
@@ -553,10 +550,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         | T => err T)
       else (b, Local_Theory.full_name no_defs_lthy b);
 
-    fun maybe_define needed_for_extra_facts (b, rhs) lthy =
+    fun maybe_define user_specified (b, rhs) lthy =
       let
         val inline =
-          (not needed_for_extra_facts orelse fact_policy = Derive_Few_Facts) andalso
+          (user_specified orelse fact_policy = Derive_Few_Facts) andalso
           (case const_policy of
             Dont_Inline => false
           | Hardly_Inline => Term.is_Free rhs orelse Term.is_Const rhs
@@ -593,10 +590,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       (bnf_bd_term, raw_bd_def)),
       (bnf_wit_terms, raw_wit_defs)), (lthy, lthy_old)) =
         no_defs_lthy
-        |> maybe_define false map_bind_def
-        ||>> apfst split_list o fold_map (maybe_define false) set_binds_defs
-        ||>> maybe_define false bd_bind_def
-        ||>> apfst split_list o fold_map (maybe_define false) wit_binds_defs
+        |> maybe_define true map_bind_def
+        ||>> apfst split_list o fold_map (maybe_define true) set_binds_defs
+        ||>> maybe_define true bd_bind_def
+        ||>> apfst split_list o fold_map (maybe_define true) wit_binds_defs
         ||> `(maybe_restore no_defs_lthy);
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
@@ -662,12 +659,13 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val setRTsBsCs = map (HOLogic.mk_setT o HOLogic.mk_prodT) (Bs' ~~ Cs);
     val setRT's = map (HOLogic.mk_setT o HOLogic.mk_prodT) (Bs' ~~ As');
     val self_setRTs = map (HOLogic.mk_setT o HOLogic.mk_prodT) (As' ~~ As');
-    val QTs = map2 (fn T => fn U => T --> U --> HOLogic.boolT) As' Bs';
+    val QTs = map2 mk_pred2T As' Bs';
 
     val CA' = mk_bnf_T As' CA;
     val CB' = mk_bnf_T Bs' CA;
     val CC' = mk_bnf_T Cs CA;
     val CRs' = mk_bnf_T RTs CA;
+    val CA'CB' = HOLogic.mk_prodT (CA', CB');
 
     val bnf_map_AsAs = mk_bnf_map As' As';
     val bnf_map_AsBs = mk_bnf_map As' Bs';
@@ -678,13 +676,14 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val bnf_bd_As = mk_bnf_t As' bnf_bd;
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
 
-    val ((((((((((((((((((((((((fs, fs_copy), gs), hs), (x, x')), (y, y')), (z, z')), zs), As),
+    val (((((((((((((((((((((((((fs, fs_copy), gs), hs), p), (x, x')), (y, y')), (z, z')), zs), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
       (Qs, Qs')), _) = lthy
       |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
       ||>> mk_Frees "h" (map2 (curry (op -->)) As' Ts)
+      ||>> yield_singleton (mk_Frees "p") CA'CB'
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "x") CA'
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "y") CB'
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "z") CRs'
@@ -707,7 +706,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||>> mk_Frees' "Q" QTs;
 
     (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)
-    val rel_O_Gr_rhs =
+    val O_Gr =
       let
         val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
         val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
@@ -716,9 +715,39 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         mk_rel_comp (mk_converse (mk_Gr bnf_in map1), mk_Gr bnf_in map2)
       end;
 
-    val rel_rhs = (case raw_rel_opt of
-        NONE => fold_rev Term.absfree Rs' rel_O_Gr_rhs
-      | SOME raw_rel => prep_term no_defs_lthy raw_rel);
+    fun mk_predicate_of_set x_name y_name t =
+      let
+        val (T, U) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of t));
+        val x = Free (x_name, T);
+        val y = Free (y_name, U);
+      in fold_rev Term.lambda [x, y] (HOLogic.mk_mem (HOLogic.mk_prod (x, y), t)) end;
+
+    val pred_rhs = (case raw_pred_opt of
+        NONE =>
+        fold_rev absfree Qs' (mk_predicate_of_set (fst x') (fst y')
+          (Term.list_comb (fold_rev Term.absfree Rs' O_Gr, map3 (fn Q => fn T => fn U =>
+          HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split Q) Qs As' Bs')))
+      | SOME raw_pred => prep_term no_defs_lthy raw_pred);
+
+    val pred_bind_def = (fn () => Binding.suffix_name ("_" ^ predN) b, pred_rhs);
+
+    val ((bnf_pred_term, raw_pred_def), (lthy, lthy_old)) =
+      lthy
+      |> maybe_define (is_some raw_pred_opt) pred_bind_def
+      ||> `(maybe_restore lthy);
+
+    val phi = Proof_Context.export_morphism lthy_old lthy;
+    val bnf_pred_def = Morphism.thm phi raw_pred_def;
+    val bnf_pred = Morphism.term phi bnf_pred_term;
+
+    fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy QTs CA' CB' bnf_pred;
+
+    val pred = mk_bnf_pred QTs CA' CB';
+
+    val rel_rhs =
+      fold_rev Term.absfree Rs' (HOLogic.Collect_const CA'CB' $
+        Term.lambda p (Term.list_comb (pred, map (mk_predicate_of_set (fst x') (fst y')) Rs) $
+        HOLogic.mk_fst p $ HOLogic.mk_snd p));
 
     val rel_bind_def = (fn () => Binding.suffix_name ("_" ^ relN) b, rel_rhs);
 
@@ -734,25 +763,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     fun mk_bnf_rel setRTs CA' CB' = normalize_rel lthy setRTs CA' CB' bnf_rel;
 
     val rel = mk_bnf_rel setRTs CA' CB';
-
-    val pred_rhs = fold absfree (y' :: x' :: rev Qs') (HOLogic.mk_mem (HOLogic.mk_prod (x, y),
-      Term.list_comb (rel, map3 (fn Q => fn T => fn U =>
-        HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split Q)
-        Qs As' Bs')));
-    val pred_bind_def = (fn () => Binding.suffix_name ("_" ^ predN) b, pred_rhs);
-
-    val ((bnf_pred_term, raw_pred_def), (lthy, lthy_old)) =
-      lthy
-      |> maybe_define true pred_bind_def
-      ||> `(maybe_restore lthy);
-
-    val phi = Proof_Context.export_morphism lthy_old lthy;
-    val bnf_pred_def = Morphism.thm phi raw_pred_def;
-    val bnf_pred = Morphism.term phi bnf_pred_term;
-
-    fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy QTs CA' CB' bnf_pred;
-
-    val pred = mk_bnf_pred QTs CA' CB';
 
     val _ = case no_reflexive (raw_map_def :: raw_set_defs @ [raw_bd_def] @
         raw_wit_defs @ [raw_pred_def, raw_rel_def]) of
@@ -852,8 +862,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           (Logic.list_implies (prems, HOLogic.mk_Trueprop map_wpull))
       end;
 
-    val rel_O_Gr_goal =
-      fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (rel, Rs), rel_O_Gr_rhs));
+    val rel_O_Gr_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (rel, Rs), O_Gr));
 
     val goals = zip_axioms map_id_goal map_comp_goal map_cong_goal set_naturals_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal rel_O_Gr_goal;
@@ -1176,11 +1185,11 @@ fun mk_conjunction_balanced' [] = @{prop True}
   | mk_conjunction_balanced' ts = Logic.mk_conjunction_balanced ts;
 
 fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
-  (fn (_, goals, wit_goalss, after_qed, lthy, defs) =>
+  (fn (_, goals, wit_goalss, after_qed, lthy, one_step_defs) =>
   let
     val wits_tac =
       K (TRYALL Goal.conjunction_tac) THEN' K (TRYALL (rtac TrueI)) THEN'
-      unfold_defs_tac lthy defs wit_tac;
+      mk_unfold_defs_then_tac lthy one_step_defs wit_tac;
     val wit_goals = map mk_conjunction_balanced' wit_goalss;
     val wit_thms =
       Skip_Proof.prove lthy [] [] (mk_conjunction_balanced' wit_goals) wits_tac
@@ -1189,7 +1198,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
   in
     map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
-      goals (map (unfold_defs_tac lthy defs) tacs)
+      goals (map (mk_unfold_defs_then_tac lthy one_step_defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify (K I) Ds;
 

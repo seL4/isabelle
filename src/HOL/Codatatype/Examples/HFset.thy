@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Examples/HFset.thy
+(*  Title:      HOL/Codatatype/Examples/HFset.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

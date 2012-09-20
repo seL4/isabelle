@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Examples/Misc_Data.thy
+(*  Title:      HOL/Codatatype/Examples/Misc_Data.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -9,12 +9,8 @@ Miscellaneous datatype declarations.
 header {* Miscellaneous Datatype Declarations *}
 
 theory Misc_Data
-imports (* "../Codatatype" *) "../BNF_LFP"
+imports "../Codatatype"
 begin
-
-bnf_def ID2: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
-  "id :: ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set"
-sorry
 
 data simple = X1 | X2 | X3 | X4
 

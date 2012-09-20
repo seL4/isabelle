@@ -82,6 +82,9 @@ by blast
 lemma pred_def_abs: "rel = Collect (split pred) \<Longrightarrow> pred = (\<lambda>x y. (x, y) \<in> rel)"
 by auto
 
+lemma mem_Id_eq_eq: "(\<lambda>x y. (x, y) \<in> Id) = (op =)"
+by simp
+
 ML_file "Tools/bnf_comp_tactics.ML"
 ML_file "Tools/bnf_comp.ML"
 

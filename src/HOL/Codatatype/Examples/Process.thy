@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Examples/Process.thy
+(*  Title:      HOL/Codatatype/Examples/Process.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -11,6 +11,8 @@ theory Process
 imports "../Codatatype"
 begin
 
+hide_fact (open) Quotient_Product.prod_pred_def
+
 codata 'a process =
   isAction: Action (prefOf: 'a) (contOf: "'a process") |
   isChoice: Choice (ch1Of: "'a process") (ch2Of: "'a process")
@@ -21,7 +23,10 @@ section {* Customization *}
 
 subsection {* Basic properties *}
 
-declare pre_process.pred_unfold[simp]
+declare
+  pre_process_pred_def[simp]
+  sum_pred_def[simp]
+  prod_pred_def[simp]
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:

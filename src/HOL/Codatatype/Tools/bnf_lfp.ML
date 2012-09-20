@@ -794,7 +794,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees' "x" init_FTs
       ||>> mk_Frees "f" init_fTs
       ||>> mk_Frees "f" init_fTs
-      ||>> mk_Frees "P" (replicate n (mk_predT initT));
+      ||>> mk_Frees "P" (replicate n (mk_pred1T initT));
 
     val II = HOLogic.mk_Collect (fst iidx', IIT, list_exists_free (II_Bs @ II_ss)
       (HOLogic.mk_conj (HOLogic.mk_eq (iidx,
@@ -991,8 +991,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees "s" rec_sTs;
 
     val Izs = map2 retype_free Ts zs;
-    val phis = map2 retype_free (map mk_predT Ts) init_phis;
-    val phi2s = map2 retype_free (map2 (fn T => fn T' => T --> mk_predT T') Ts Ts') init_phis;
+    val phis = map2 retype_free (map mk_pred1T Ts) init_phis;
+    val phi2s = map2 retype_free (map2 mk_pred2T Ts Ts') init_phis;
 
     fun fld_bind i = Binding.suffix_name ("_" ^ fldN) (nth bs (i - 1));
     val fld_name = Binding.name_of o fld_bind;
@@ -1167,7 +1167,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val unfs = mk_unfs params';
     val unf_defs = map (Morphism.thm phi) unf_def_frees;
 
-    val fld_o_unf_thms = map2 (Local_Defs.fold lthy o single) unf_defs fld_o_iter_thms;
+    val fld_o_unf_thms = map2 (fold_defs lthy o single) unf_defs fld_o_iter_thms;
 
     val unf_o_fld_thms =
       let
@@ -1356,7 +1356,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val XTs = mk_Ts passiveXs;
         val YTs = mk_Ts passiveYs;
         val IRTs = map2 (curry mk_relT) passiveAs passiveBs;
-        val IphiTs = map2 (fn T => fn U => T --> mk_predT U) passiveAs passiveBs;
+        val IphiTs = map2 mk_pred2T passiveAs passiveBs;
 
         val (((((((((((((((fs, fs'), fs_copy), us),
           B1s), B2s), AXs), (xs, xs')), f1s), f2s), p1s), p2s), (ys, ys')), IRs), Iphis),
@@ -1670,10 +1670,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in_incl_min_alg_thms card_of_min_alg_thms;
         val map_wpull_tacs = map (K o mk_wpull_tac) map_wpull_thms;
 
-        val rel_O_gr_tacs = replicate n (K (rtac refl 1));
+        val rel_O_Gr_tacs = replicate n (simple_rel_O_Gr_tac o #context);
 
         val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
-          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
+          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_Gr_tacs;
 
         val fld_witss =
           let
@@ -1711,10 +1711,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts fld_witss lthy;
 
-        val fold_maps = Local_Defs.fold lthy (map (fn bnf =>
+        val fold_maps = fold_defs lthy (map (fn bnf =>
           mk_unabs_def m (map_def_of_bnf bnf RS @{thm meta_eq_to_obj_eq})) Ibnfs);
 
-        val fold_sets = Local_Defs.fold lthy (maps (fn bnf =>
+        val fold_sets = fold_defs lthy (maps (fn bnf =>
          map (fn thm => thm RS @{thm meta_eq_to_obj_eq}) (set_defs_of_bnf bnf)) Ibnfs);
 
         val timer = time (timer "registered new datatypes as BNFs");
@@ -1731,7 +1731,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val in_rels = map in_rel_of_bnf bnfs;
         val in_Irels = map in_rel_of_bnf Ibnfs;
-        val pred_defs = map pred_def_of_bnf bnfs;
+        val rel_defs = map rel_def_of_bnf bnfs;
+        val Irel_defs = map rel_def_of_bnf Ibnfs;
         val Ipred_defs = map pred_def_of_bnf Ibnfs;
 
         val set_incl_thmss = map (map (fold_sets o hd)) Fset_set_thmsss;
@@ -1764,10 +1765,11 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               (mk_Trueprop_eq (Ipredphi $ (fld $ xF) $ (fld' $ yF), predphi $ xF $ yF));
             val goals = map6 mk_goal xFs yFs flds fld's Ipredphis predphis;
           in
-            map3 (fn goal => fn pred_def => fn Irel_simp =>
-              Skip_Proof.prove lthy [] [] goal (mk_pred_simp_tac pred_def Ipred_defs Irel_simp)
+            map3 (fn goal => fn rel_def => fn Irel_simp =>
+              Skip_Proof.prove lthy [] [] goal
+                (mk_pred_simp_tac rel_def Ipred_defs Irel_defs Irel_simp)
               |> Thm.close_derivation)
-            goals pred_defs Irel_simp_thms
+            goals rel_defs Irel_simp_thms
           end;
 
         val timer = time (timer "additional properties");

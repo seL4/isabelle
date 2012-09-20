@@ -1,17 +1,17 @@
-(*  Title:      Gram_Tree.thy
+(*  Title:      HOL/Codatatype/Examples/Infinite_Derivation_Trees/Tree.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
 Trees with nonterminal internal nodes and terminal leafs.
 *)
 
-
 header {* Trees with nonterminal internal nodes and terminal leafs *}
-
 
 theory Tree
 imports Prelim
 begin
+
+hide_fact (open) Quotient_Product.prod_pred_def
 
 typedecl N  typedecl T
 
@@ -41,7 +41,7 @@ definition
  (\<forall> tr2. Inr tr2 \<in> fset as2 \<longrightarrow> (\<exists> tr1. Inr tr1 \<in> fset as1 \<and> \<phi> tr1 tr2))"
 
 lemma pre_Tree_pred: "pre_Tree_pred \<phi> (n1,as1) (n2,as2) \<longleftrightarrow> n1 = n2 \<and> llift2 \<phi> as1 as2"
-unfolding llift2_def pre_Tree.pred_unfold
+unfolding llift2_def pre_Tree_pred_def sum_pred_def[abs_def] prod_pred_def fset_pred_def split_conv
 apply (auto split: sum.splits)
 apply (metis sumE)
 apply (metis sumE)

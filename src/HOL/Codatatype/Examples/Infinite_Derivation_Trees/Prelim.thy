@@ -1,10 +1,11 @@
-(*  Title:      Gram_Tree.thy
+(*  Title:      HOL/Codatatype/Examples/Infinite_Derivation_Trees/Prelim.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Preliminaries
+Preliminaries.
 *)
 
+header {* Preliminaries *}
 
 theory Prelim
 imports "../../Codatatype/Codatatype"

@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Examples/ListF.thy
+(*  Title:      HOL/Codatatype/Examples/ListF.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012

@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Examples/TreeFsetI.thy
+(*  Title:      HOL/Codatatype/Examples/TreeFsetI.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -13,6 +13,7 @@ imports "../Codatatype"
 begin
 
 hide_const (open) Sublist.sub
+hide_fact (open) Quotient_Product.prod_pred_def
 
 definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
@@ -46,7 +47,7 @@ lemma pre_treeFsetI_pred[simp]: "pre_treeFsetI_pred R1 R2 a b = (R1 (fst a) (fst
   (\<forall>t \<in> fset (snd b). (\<exists>u \<in> fset (snd a). R2 u t)))"
 apply (cases a)
 apply (cases b)
-apply (simp add: pre_treeFsetI.pred_unfold)
+apply (simp add: pre_treeFsetI_pred_def prod_pred_def fset_pred_def)
 done
 
 lemmas treeFsetI_coind = mp[OF treeFsetI.pred_coinduct]

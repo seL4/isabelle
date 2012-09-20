@@ -16,6 +16,8 @@ sig
   val subst_asm_tac: Proof.context -> thm list -> int -> tactic
   val subst_tac: Proof.context -> thm list -> int -> tactic
   val substs_tac: Proof.context -> thm list -> int -> tactic
+  val unfold_defs_tac: Proof.context -> thm list -> tactic
+  val mk_unfold_defs_then_tac: Proof.context -> thm list -> ('a -> tactic) -> 'a -> tactic
 
   val mk_flatten_assoc_tac: (int -> tactic) -> thm -> thm -> thm -> tactic
   val mk_rotate_eq_tac: (int -> tactic) -> thm -> thm -> thm -> thm -> ''a list -> ''a list ->
@@ -24,7 +26,9 @@ sig
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
 
-  val mk_pred_simp_tac: thm -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val simple_rel_O_Gr_tac: Proof.context -> tactic
+  val mk_pred_simp_tac: thm -> thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
+    tactic
 
   val mk_map_comp_id_tac: thm -> tactic
   val mk_map_cong_tac: int -> thm -> {prems: 'a, context: Proof.context} -> tactic
@@ -53,11 +57,14 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
     rtac (Drule.instantiate_normalize insts thm) 1
   end);
 
-(*unlike "unfold_tac", succeeds when the RHS contains schematic variables not in the LHS*)
+fun unfold_defs_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
+
+fun mk_unfold_defs_then_tac lthy defs tac x = unfold_defs_tac lthy defs THEN tac x;
+
+(*unlike "unfold_defs_tac", succeeds when the RHS contains schematic variables not in the LHS*)
 fun subst_asm_tac ctxt = EqSubst.eqsubst_asm_tac ctxt [0];
 fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt [0];
 fun substs_tac ctxt = REPEAT_DETERM oo subst_tac ctxt;
-
 
 
 (* Theorems for open typedefs with UNIV as representing set *)
@@ -91,9 +98,17 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
     gen_tac
   end;
 
-fun mk_pred_simp_tac pred_def pred_defs rel_simp {context = ctxt, prems = _} =
-  Local_Defs.unfold_tac ctxt (@{thm mem_Collect_eq_split} :: pred_def :: pred_defs) THEN
-  rtac rel_simp 1;
+fun simple_rel_O_Gr_tac ctxt =
+  unfold_defs_tac ctxt @{thms Collect_fst_snd_mem_eq Collect_pair_mem_eq} THEN rtac refl 1;
+
+fun mk_pred_simp_tac rel_def IJpred_defs IJrel_defs rel_simp {context = ctxt, prems = _} =
+  unfold_defs_tac ctxt IJpred_defs THEN
+  subst_tac ctxt [unfold_defs ctxt (IJpred_defs @ IJrel_defs @
+    @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) rel_simp] 1 THEN
+  unfold_defs_tac ctxt (rel_def ::
+    @{thms Collect_fst_snd_mem_eq mem_Collect_eq pair_mem_Collect_split fst_conv snd_conv
+      split_conv}) THEN
+  rtac refl 1;
 
 fun mk_map_comp_id_tac map_comp =
   (rtac trans THEN' rtac map_comp THEN' REPEAT_DETERM o stac @{thm o_id} THEN' rtac refl) 1;

@@ -261,7 +261,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           (*avoid "'a itself" arguments in coiterators and corecursors*)
           val mss' =  map (fn [0] => [1] | ms => ms) mss;
 
-          val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_predT) ns Cs;
+          val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
 
           fun zip_predss_getterss qss fss = maps (op @) (qss ~~ fss);
 
@@ -277,7 +277,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                 map3 (fn C => map2 (map (map (curry (op -->) C) o maybe_dest_sumT) oo dest_tupleT))
                   Cs mss' f_prod_Tss;
               val q_Tssss =
-                map (map (map (fn [_] => [] | [_, C] => [mk_predT (domain_type C)]))) f_Tssss;
+                map (map (map (fn [_] => [] | [_, C] => [mk_pred1T (domain_type C)]))) f_Tssss;
               val pf_Tss = map3 zip_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
             in (q_Tssss, f_sum_prod_Ts, f_Tssss, pf_Tss) end;
 
@@ -383,7 +383,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               end;
 
             val sumEN_thm' =
-              Local_Defs.unfold lthy @{thms all_unit_eq}
+              unfold_defs lthy @{thms all_unit_eq}
                 (Drule.instantiate' (map (SOME o certifyT lthy) ctr_prod_Ts) []
                    (mk_sumEN_balanced n))
               |> Morphism.thm phi;
@@ -521,7 +521,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
         val (((phis, phis'), vs'), names_lthy) =
           lthy
-          |> mk_Frees' "P" (map mk_predT fpTs)
+          |> mk_Frees' "P" (map mk_pred1T fpTs)
           ||>> Variable.variant_fixes (map Binding.name_of fp_bs);
 
         val vs = map2 (curry Free) vs' fpTs;
@@ -756,7 +756,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                coiterss_goal coiter_tacss,
              map2 (map2 (fn goal => fn tac =>
                  Skip_Proof.prove lthy [] [] goal (tac o #context)
-                 |> Local_Defs.unfold lthy @{thms sum_case_if} |> Thm.close_derivation))
+                 |> unfold_defs lthy @{thms sum_case_if} |> Thm.close_derivation))
                corecss_goal corec_tacss)
           end;
 

@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Examples/Stream.thy
+(*  Title:      HOL/Codatatype/Examples/Stream.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -11,6 +11,9 @@ header {* Infinite Streams *}
 theory Stream
 imports TreeFI
 begin
+
+hide_const (open) Quotient_Product.prod_pred
+hide_fact (open) Quotient_Product.prod_pred_def
 
 codata_raw stream: 's = "'a \<times> 's"
 
@@ -115,10 +118,10 @@ lemma stream_map[simp]: "stream_map f = stream_unf_coiter (f o hdd \<odot> tll)"
 unfolding stream_map_def pair_fun_def hdd_def[abs_def] tll_def[abs_def]
   map_pair_def o_def prod_case_beta by simp
 
-lemma pre_stream_pred[simp]: "pre_stream_pred \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
-by (auto simp: pre_stream.pred_unfold)
+lemma prod_pred[simp]: "prod_pred \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
+unfolding prod_pred_def by auto
 
-lemmas stream_coind = mp[OF stream.pred_coinduct, unfolded pre_stream_pred[abs_def],
+lemmas stream_coind = mp[OF stream.pred_coinduct, unfolded prod_pred[abs_def],
   folded hdd_def tll_def]
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
@@ -133,27 +136,22 @@ definition twos :: "nat stream" where [simp]: "twos = stream_unf_coiter ((%x. 2)
 definition ns :: "nat \<Rightarrow> nat stream" where [simp]: "ns n = scalar n ones"
 
 lemma "ones \<oplus> ones = twos"
-by (intro stream_coind[where P="%x1 x2. \<exists>x. x1 = ones \<oplus> ones \<and> x2 = twos"])
-   auto
+by (intro stream_coind[where P="%x1 x2. \<exists>x. x1 = ones \<oplus> ones \<and> x2 = twos"]) auto
 
 lemma "n \<cdot> twos = ns (2 * n)"
-by (intro stream_coind[where P="%x1 x2. \<exists>n. x1 = n \<cdot> twos \<and> x2 = ns (2 * n)"])
-   force+
+by (intro stream_coind[where P="%x1 x2. \<exists>n. x1 = n \<cdot> twos \<and> x2 = ns (2 * n)"]) force+
 
 lemma prod_scalar: "(n * m) \<cdot> xs = n \<cdot> m \<cdot> xs"
-by (intro stream_coind[where P="%x1 x2. \<exists>n m xs. x1 = (n * m) \<cdot> xs \<and> x2 = n \<cdot> m \<cdot> xs"])
-   force+
+by (intro stream_coind[where P="%x1 x2. \<exists>n m xs. x1 = (n * m) \<cdot> xs \<and> x2 = n \<cdot> m \<cdot> xs"]) force+
 
 lemma scalar_plus: "n \<cdot> (xs \<oplus> ys) = n \<cdot> xs \<oplus> n \<cdot> ys"
 by (intro stream_coind[where P="%x1 x2. \<exists>n xs ys. x1 = n \<cdot> (xs \<oplus> ys) \<and> x2 = n \<cdot> xs \<oplus> n \<cdot> ys"])
    (force simp: add_mult_distrib2)+
 
 lemma plus_comm: "xs \<oplus> ys = ys \<oplus> xs"
-by (intro stream_coind[where P="%x1 x2. \<exists>xs ys. x1 = xs \<oplus> ys \<and> x2 = ys \<oplus> xs"])
-   force+
+by (intro stream_coind[where P="%x1 x2. \<exists>xs ys. x1 = xs \<oplus> ys \<and> x2 = ys \<oplus> xs"]) force+
 
 lemma plus_assoc: "(xs \<oplus> ys) \<oplus> zs = xs \<oplus> ys \<oplus> zs"
-by (intro stream_coind[where P="%x1 x2. \<exists>xs ys zs. x1 = (xs \<oplus> ys) \<oplus> zs \<and> x2 = xs \<oplus> ys \<oplus> zs"])
-   force+
+by (intro stream_coind[where P="%x1 x2. \<exists>xs ys zs. x1 = (xs \<oplus> ys) \<oplus> zs \<and> x2 = xs \<oplus> ys \<oplus> zs"]) force+
 
 end

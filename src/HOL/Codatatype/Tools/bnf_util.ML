@@ -62,6 +62,9 @@ sig
 
   val strip_typeN: int -> typ -> typ list * typ
 
+  val mk_predT: typ list -> typ
+  val mk_pred1T: typ -> typ
+  val mk_pred2T: typ -> typ -> typ
   val mk_optionT: typ -> typ
   val mk_relT: typ * typ -> typ
   val dest_relT: typ -> typ * typ
@@ -121,6 +124,9 @@ sig
   val mk_sym: thm -> thm
   val mk_trans: thm -> thm -> thm
   val mk_unabs_def: int -> thm -> thm
+
+  val fold_defs: Proof.context -> thm list -> thm -> thm
+  val unfold_defs: Proof.context -> thm list -> thm -> thm
 
   val mk_permute: ''a list -> ''a list -> 'b list -> 'b list
   val find_indices: ''a list -> ''a list -> int list
@@ -316,8 +322,11 @@ fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> spl
 
 fun strip_typeN 0 T = ([], T)
   | strip_typeN n (Type (@{type_name fun}, [T, T'])) = strip_typeN (n - 1) T' |>> cons T
-  | strip_typeN n T = raise TYPE ("strip_typeN", [T], []);
+  | strip_typeN _ T = raise TYPE ("strip_typeN", [T], []);
 
+fun mk_predT Ts = Ts ---> HOLogic.boolT;
+fun mk_pred1T T = mk_predT [T];
+fun mk_pred2T T U = mk_predT [T, U];
 fun mk_optionT T = Type (@{type_name option}, [T]);
 val mk_relT = HOLogic.mk_setT o HOLogic.mk_prodT;
 val dest_relT = HOLogic.dest_prodT o HOLogic.dest_setT;
@@ -582,5 +591,8 @@ fun seq_conds f n k xs =
 
 fun mk_unabs_def 0 thm = thm
   | mk_unabs_def n thm = mk_unabs_def (n - 1) thm RS @{thm spec[OF iffD1[OF fun_eq_iff]]};
+
+fun fold_defs ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
+fun unfold_defs ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
 
 end;
