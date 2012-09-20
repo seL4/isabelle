@@ -90,7 +90,7 @@ sig
   val mk_rel_coinduct_tac: 'a list -> thm -> thm -> tactic
   val mk_rel_coinduct_upto_tac: int -> ctyp option list -> cterm option list -> thm -> thm list ->
     thm list -> tactic
-  val mk_rel_unfold_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
+  val mk_rel_simp_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
     thm list -> thm list -> thm list list -> tactic
   val mk_rv_last_tac: ctyp option list -> cterm option list -> thm list -> thm list -> tactic
   val mk_sbis_lsbis_tac: thm list -> thm -> thm -> tactic
@@ -1499,7 +1499,7 @@ fun mk_coind_wit_tac induct coiters set_nats wits {context = ctxt, prems = _} =
   ALLGOALS (TRY o
     FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
 
-fun mk_rel_unfold_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_inject unf_fld
+fun mk_rel_simp_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_inject unf_fld
   set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;

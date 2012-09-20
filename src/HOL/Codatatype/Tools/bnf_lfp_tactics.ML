@@ -61,7 +61,7 @@ sig
     thm list -> tactic
   val mk_mor_str_tac: 'a list -> thm -> tactic
   val mk_rec_tac: thm list -> thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
-  val mk_rel_unfold_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm ->
+  val mk_rel_simp_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm ->
     thm -> thm list -> thm list -> thm list list -> tactic
   val mk_set_bd_tac: int -> (int -> tactic) -> thm -> thm list list -> thm list -> int ->
     {prems: 'a, context: Proof.context} -> tactic
@@ -774,7 +774,7 @@ fun mk_wit_tac n set_simp wit =
           EVERY' [hyp_subst_tac, dtac set_rev_mp, rtac equalityD1, resolve_tac set_simp,
             REPEAT_DETERM_N n o etac UnE]))))] 1);
 
-fun mk_rel_unfold_tac in_Irels i in_rel map_comp map_cong map_simp set_simps fld_inject
+fun mk_rel_simp_tac in_Irels i in_rel map_comp map_cong map_simp set_simps fld_inject
   fld_unf set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;

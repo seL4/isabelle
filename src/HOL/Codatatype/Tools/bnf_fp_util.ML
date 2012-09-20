@@ -53,10 +53,12 @@ sig
   val nchotomyN: string
   val pred_coinductN: string
   val pred_coinduct_uptoN: string
+  val pred_simpN: string
   val recN: string
   val recsN: string
   val rel_coinductN: string
   val rel_coinduct_uptoN: string
+  val rel_simpN: string
   val rvN: string
   val sel_coitersN: string
   val sel_corecsN: string
@@ -128,8 +130,6 @@ sig
   val mk_sumEN_tupled_balanced: int list -> thm
   val mk_sum_casesN: int -> int -> thm
   val mk_sum_casesN_balanced: int -> int -> thm
-
-  val mk_tactics: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
@@ -223,6 +223,9 @@ val fld_induct2N = fld_inductN ^ "2"
 val unf_coinductN = unfN ^ "_" ^ coinductN
 val rel_coinductN = relN ^ "_" ^ coinductN
 val pred_coinductN = predN ^ "_" ^ coinductN
+val simpN = "_simp";
+val rel_simpN = relN ^ simpN;
+val pred_simpN = predN ^ simpN;
 val uptoN = "upto"
 val unf_coinduct_uptoN = unf_coinductN ^ "_" ^ uptoN
 val rel_coinduct_uptoN = rel_coinductN ^ "_" ^ uptoN
@@ -363,9 +366,6 @@ fun mk_sum_casesN_balanced 1 1 = refl
   | mk_sum_casesN_balanced n k =
     Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm sum_case_step(1)},
       right = mk_sum_step @{thm sum.cases(2)} @{thm sum_case_step(2)}, init = refl} n k;
-
-fun mk_tactics mid mcomp mcong snat bdco bdinf sbd inbd wpull =
-  [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull];
 
 (* FIXME: because of "@ lhss", the output could contain type variables that are not in the input;
    also, "fp_sort" should put the "resBs" first and in the order in which they appear *)

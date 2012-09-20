@@ -1670,8 +1670,13 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in_incl_min_alg_thms card_of_min_alg_thms;
         val map_wpull_tacs = map (K o mk_wpull_tac) map_wpull_thms;
 
-        val tacss = map9 mk_tactics map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss bd_co_tacs
-          bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs;
+        (* ### *)
+        fun rel_O_Gr_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
+
+        val rel_O_gr_tacs = replicate n rel_O_Gr_tac;
+
+        val tacss = map10 zip_goals map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
+          bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
 
         val fld_witss =
           let
@@ -1705,7 +1710,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val (Ibnfs, lthy) =
           fold_map6 (fn tacs => fn b => fn map => fn sets => fn T => fn wits => fn lthy =>
             bnf_def Dont_Inline policy I tacs wit_tac (SOME deads)
-              ((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits) lthy
+              (((((b, fold_rev Term.absfree fs' map), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts fld_witss lthy;
 
@@ -1739,7 +1744,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
         val folded_set_simp_thmss' = transpose folded_set_simp_thmss;
 
-        val Irel_unfold_thms =
+        val Irel_simp_thms =
           let
             fun mk_goal xF yF fld fld' IrelR relR = fold_rev Logic.all (xF :: yF :: IRs)
               (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (fld $ xF, fld' $ yF), IrelR),
@@ -1750,23 +1755,23 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               fn map_simp => fn set_simps => fn fld_inject => fn fld_unf =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-               (K (mk_rel_unfold_tac in_Irels i in_rel map_comp map_cong map_simp set_simps
+               (K (mk_rel_simp_tac in_Irels i in_rel map_comp map_cong map_simp set_simps
                  fld_inject fld_unf set_naturals set_incls set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_rels map_comp's map_congs folded_map_simp_thms folded_set_simp_thmss'
               fld_inject_thms fld_unf_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
 
-        val Ipred_unfold_thms =
+        val Ipred_simp_thms =
           let
             fun mk_goal xF yF fld fld' Ipredphi predphi = fold_rev Logic.all (xF :: yF :: Iphis)
               (mk_Trueprop_eq (Ipredphi $ (fld $ xF) $ (fld' $ yF), predphi $ xF $ yF));
             val goals = map6 mk_goal xFs yFs flds fld's Ipredphis predphis;
           in
-            map3 (fn goal => fn pred_def => fn Irel_unfold =>
-              Skip_Proof.prove lthy [] [] goal (mk_pred_unfold_tac pred_def Ipred_defs Irel_unfold)
+            map3 (fn goal => fn pred_def => fn Irel_simp =>
+              Skip_Proof.prove lthy [] [] goal (mk_pred_simp_tac pred_def Ipred_defs Irel_simp)
               |> Thm.close_derivation)
-            goals pred_defs Irel_unfold_thms
+            goals pred_defs Irel_simp_thms
           end;
 
         val timer = time (timer "additional properties");
@@ -1782,8 +1787,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           [(map_simpsN, map single folded_map_simp_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss),
-          (rel_unfoldN, map single Irel_unfold_thms),
-          (pred_unfoldN, map single Ipred_unfold_thms)] @
+          (rel_simpN, map single Irel_simp_thms),
+          (pred_simpN, map single Ipred_simp_thms)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>

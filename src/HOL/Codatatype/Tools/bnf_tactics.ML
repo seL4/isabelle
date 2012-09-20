@@ -24,7 +24,7 @@ sig
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
 
-  val mk_pred_unfold_tac: thm -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_pred_simp_tac: thm -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
 
   val mk_map_comp_id_tac: thm -> tactic
   val mk_map_cong_tac: int -> thm -> {prems: 'a, context: Proof.context} -> tactic
@@ -91,14 +91,12 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
     gen_tac
   end;
 
-fun mk_pred_unfold_tac pred_def pred_defs rel_unfold {context = ctxt, prems = _} =
+fun mk_pred_simp_tac pred_def pred_defs rel_simp {context = ctxt, prems = _} =
   Local_Defs.unfold_tac ctxt (@{thm mem_Collect_eq_split} :: pred_def :: pred_defs) THEN
-  rtac rel_unfold 1;
+  rtac rel_simp 1;
 
 fun mk_map_comp_id_tac map_comp =
-  (rtac trans THEN' rtac map_comp) 1 THEN
-  REPEAT_DETERM (stac @{thm o_id} 1) THEN
-  rtac refl 1;
+  (rtac trans THEN' rtac map_comp THEN' REPEAT_DETERM o stac @{thm o_id} THEN' rtac refl) 1;
 
 fun mk_map_cong_tac m map_cong {context = ctxt, prems = _} =
   EVERY' [rtac mp, rtac map_cong,
