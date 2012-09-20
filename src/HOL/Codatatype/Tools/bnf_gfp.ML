@@ -2266,9 +2266,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               (tcoalg_thm RS bis_diag_thm))))
           |> Thm.close_derivation;
 
-        (*### FIXME: get rid of mem_Id_eq_eq? or Id_def'? *)
         val pred_of_rel_thms =
-          rel_defs @ @{thms Id_def' mem_Collect_eq fst_conv mem_Id_eq_eq snd_conv split_conv};
+          rel_defs @ @{thms Id_def' mem_Collect_eq fst_conv snd_conv split_conv};
 
         val pred_coinduct = unfold_defs lthy pred_of_rel_thms rel_coinduct;
         val pred_coinduct_upto = unfold_defs lthy pred_of_rel_thms rel_coinduct_upto;

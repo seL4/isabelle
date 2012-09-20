@@ -82,9 +82,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
-    (* TODO: attributes (simp, case_names, etc.) *)
     (* TODO: case syntax *)
-    (* TODO: integration with function package ("size") *)
 
     val n = length raw_ctrs;
     val ks = 1 upto n;
