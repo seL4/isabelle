@@ -2669,10 +2669,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           map3 (K ooo mk_wpull_tac m coalg_thePull_thm mor_thePull_fst_thm mor_thePull_snd_thm
             mor_thePull_pick_thm) unique_mor_thms (transpose pick_col_thmss) hset_defss;
 
-        (* ### *)
-        fun rel_O_Gr_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
-
-        val rel_O_gr_tacs = replicate n rel_O_Gr_tac;
+        val rel_O_gr_tacs = replicate n (K (rtac refl 1));
 
         val tacss = map10 zip_goals map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
           bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
@@ -2864,7 +2861,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val (Jbnfs, lthy) =
           fold_map6 (fn tacs => fn b => fn mapx => fn sets => fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline policy I tacs (wit_tac thms) (SOME deads)
-              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
+              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts all_witss lthy;
 

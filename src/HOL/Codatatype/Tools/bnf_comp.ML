@@ -267,7 +267,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
 
     val (bnf', lthy') =
       bnf_def const_policy (K Derive_Some_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
-        (((((b, mapx), sets), bd), wits), rel) lthy;
+        (((((b, mapx), sets), bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
       unfold;
@@ -365,7 +365,7 @@ fun kill_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) 
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
-        (((((b, mapx), sets), Term.absdummy T bd), wits), rel) lthy;
+        (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
       unfold;
@@ -453,7 +453,7 @@ fun lift_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) 
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
-        (((((b, mapx), sets), Term.absdummy T bd), wits), rel) lthy;
+        (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
       unfold;
@@ -531,7 +531,7 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
 
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Derive_Some_Facts) qualify tacs wit_tac (SOME Ds)
-        (((((b, mapx), sets), Term.absdummy T bd), wits), rel) lthy;
+        (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
     val unfold' = add_to_unfold (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (rel_def_of_bnf bnf')
       unfold;
@@ -673,7 +673,7 @@ fun seal_bnf unfold b Ds bnf lthy =
     val policy = user_policy Derive_All_Facts;
 
     val (bnf', lthy') = bnf_def Hardly_Inline policy I tacs wit_tac (SOME deads)
-      (((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits), bnf_rel) lthy;
+      (((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
   in
     ((bnf', deads), lthy')
   end;

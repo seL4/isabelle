@@ -1670,10 +1670,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in_incl_min_alg_thms card_of_min_alg_thms;
         val map_wpull_tacs = map (K o mk_wpull_tac) map_wpull_thms;
 
-        (* ### *)
-        fun rel_O_Gr_tac {context = ctxt, ...} = Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt);
-
-        val rel_O_gr_tacs = replicate n rel_O_Gr_tac;
+        val rel_O_gr_tacs = replicate n (K (rtac refl 1));
 
         val tacss = map10 zip_goals map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
           bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs rel_O_gr_tacs;
@@ -1710,7 +1707,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val (Ibnfs, lthy) =
           fold_map6 (fn tacs => fn b => fn mapx => fn sets => fn T => fn wits => fn lthy =>
             bnf_def Dont_Inline policy I tacs wit_tac (SOME deads)
-              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), @{term True}(*###*)) lthy
+              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts fld_witss lthy;
 

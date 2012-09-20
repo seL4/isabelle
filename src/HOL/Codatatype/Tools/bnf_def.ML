@@ -90,7 +90,7 @@ sig
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     ({prems: thm list, context: Proof.context} -> tactic) list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> typ list option ->
-    ((((binding * term) * term list) * term) * term list) * term -> local_theory ->
+    ((((binding * term) * term list) * term) * term list) * term option -> local_theory ->
     BNF * local_theory
 end;
 
@@ -533,7 +533,7 @@ fun zip_goals mid mcomp mcong snat bdco bdinf sbd inbd wpull rel =
 (* Define new BNFs *)
 
 fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
-  (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel) no_defs_lthy =
+  (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
     val b = qualify raw_b;
@@ -546,7 +546,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       Abs (_, T, t) => (T, t)
     | _ => error "Bad bound constant");
     val wit_rhss = map (prep_term no_defs_lthy) raw_wits;
-    val rel_rhs = prep_term no_defs_lthy raw_rel;
 
     fun err T =
       error ("Trying to register the type " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
@@ -559,20 +558,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             then (Binding.qualified_name C, C) else err bd_rhsT
         | T => err T)
       else (b, Local_Theory.full_name no_defs_lthy b);
-
-    val map_bind_def = (fn () => Binding.suffix_name ("_" ^ mapN) b, map_rhs);
-    val set_binds_defs =
-      let
-        val bs = if live = 1 then [fn () => Binding.suffix_name ("_" ^ setN) b]
-          else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_setN i) b) (1 upto live)
-      in map2 pair bs set_rhss end;
-    val bd_bind_def = (fn () => Binding.suffix_name ("_" ^ bdN) b, bd_rhs);
-    val wit_binds_defs =
-      let
-        val bs = if nwits = 1 then [fn () => Binding.suffix_name ("_" ^ witN) b]
-          else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_witN i) b) (1 upto nwits);
-      in map2 pair bs wit_rhss end;
-    val rel_bind_def = (fn () => Binding.suffix_name ("_" ^ relN) b, rel_rhs);
 
     fun maybe_define (b, rhs) lthy =
       let
@@ -591,31 +576,40 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               lthy)
           end
       end;
-    fun maybe_restore lthy0 lthy = lthy |> not (pointer_eq (lthy0, lthy)) ? Local_Theory.restore;
 
-    val ((((((bnf_map_term, raw_map_def),
+    fun maybe_restore lthy_old lthy =
+      lthy |> not (pointer_eq (lthy_old, lthy)) ? Local_Theory.restore;
+
+    val map_bind_def = (fn () => Binding.suffix_name ("_" ^ mapN) b, map_rhs);
+    val set_binds_defs =
+      let
+        val bs = if live = 1 then [fn () => Binding.suffix_name ("_" ^ setN) b]
+          else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_setN i) b) (1 upto live)
+      in map2 pair bs set_rhss end;
+    val bd_bind_def = (fn () => Binding.suffix_name ("_" ^ bdN) b, bd_rhs);
+    val wit_binds_defs =
+      let
+        val bs = if nwits = 1 then [fn () => Binding.suffix_name ("_" ^ witN) b]
+          else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_witN i) b) (1 upto nwits);
+      in map2 pair bs wit_rhss end;
+
+    val (((((bnf_map_term, raw_map_def),
       (bnf_set_terms, raw_set_defs)),
       (bnf_bd_term, raw_bd_def)),
-      (bnf_wit_terms, raw_wit_defs)),
-      (bnf_rel_term, raw_rel_def)), (lthy1, lthy0)) =
+      (bnf_wit_terms, raw_wit_defs)), (lthy, lthy_old)) =
         no_defs_lthy
         |> maybe_define map_bind_def
         ||>> apfst split_list o fold_map maybe_define set_binds_defs
         ||>> maybe_define bd_bind_def
         ||>> apfst split_list o fold_map maybe_define wit_binds_defs
-        ||>> maybe_define rel_bind_def
         ||> `(maybe_restore no_defs_lthy);
 
-    val phi = Proof_Context.export_morphism lthy0 lthy1;
+    val phi = Proof_Context.export_morphism lthy_old lthy;
 
     val bnf_map_def = Morphism.thm phi raw_map_def;
     val bnf_set_defs = map (Morphism.thm phi) raw_set_defs;
     val bnf_bd_def = Morphism.thm phi raw_bd_def;
     val bnf_wit_defs = map (Morphism.thm phi) raw_wit_defs;
-    val bnf_rel_def = Morphism.thm phi raw_rel_def;
-
-    val one_step_defs =
-      filter_out_refl (bnf_map_def :: bnf_bd_def :: bnf_set_defs @ bnf_wit_defs @ [bnf_rel_def]);
 
     val bnf_map = Morphism.term phi bnf_map_term;
 
@@ -635,7 +629,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val bnf_bd =
       Term.subst_TVars (Term.add_tvar_namesT bdT [] ~~ CA_params) (Morphism.term phi bnf_bd_term);
     val bnf_wits = map (normalize_wit CA_params CA alphas o Morphism.term phi) bnf_wit_terms;
-    val bnf_rel = Morphism.term phi bnf_rel_term;
 
     (*TODO: assert Ds = (TVars of bnf_map) \ (alphas @ betas) as sets*)
     val deads = (case Ds_opt of
@@ -649,7 +642,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     (*TODO: check type of bnf_rel*)
 
     val ((((((((((As', Bs'), Cs), Ds), B1Ts), B2Ts), domTs), ranTs), ranTs'), ranTs''),
-      (Ts, T)) = lthy1
+      (Ts, T)) = lthy
       |> mk_TFrees live
       ||>> mk_TFrees live
       ||>> mk_TFrees live
@@ -668,8 +661,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       Term.subst_atomic_types ((deads ~~ Ds) @ (alphas ~~ As') @ (betas ~~ Bs')) bnf_map;
     fun mk_bnf_t As' = Term.subst_atomic_types ((deads ~~ Ds) @ (alphas ~~ As'));
     fun mk_bnf_T As' = Term.typ_subst_atomic ((deads ~~ Ds) @ (alphas ~~ As'));
-
-    fun mk_bnf_rel setRTs CA' CB' = normalize_rel lthy1 setRTs CA' CB' bnf_rel;
 
     val (setRTs, RTs) = map_split (`HOLogic.mk_setT o HOLogic.mk_prodT) (As' ~~ Bs');
     val setRTsAsCs = map (HOLogic.mk_setT o HOLogic.mk_prodT) (As' ~~ Cs);
@@ -691,11 +682,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val bnf_sets_Bs = map (mk_bnf_t Bs') bnf_sets;
     val bnf_bd_As = mk_bnf_t As' bnf_bd;
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
-    val relAsBs = mk_bnf_rel setRTs CA' CB';
 
     val ((((((((((((((((((((((((fs, fs_copy), gs), hs), (x, x')), (y, y')), (z, z')), zs), As),
-      As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), Rs), Rs_copy), Ss),
-      (Qs, Qs')), _) = lthy1
+      As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
+      (Qs, Qs')), _) = lthy
       |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
@@ -716,10 +706,41 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||>> mk_Frees "p1" (map2 (curry (op -->)) domTs B1Ts)
       ||>> mk_Frees "p2" (map2 (curry (op -->)) domTs B2Ts)
       ||>> mk_Frees "b" As'
-      ||>> mk_Frees "R" setRTs
+      ||>> mk_Frees' "R" setRTs
       ||>> mk_Frees "R" setRTs
       ||>> mk_Frees "S" setRTsBsCs
       ||>> mk_Frees' "Q" QTs;
+
+    (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)
+    val rel_O_Gr_rhs =
+      let
+        val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
+        val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
+        val bnf_in = mk_in (map Free Rs') (map (mk_bnf_t RTs) bnf_sets) CRs';
+      in
+        mk_rel_comp (mk_converse (mk_Gr bnf_in map1), mk_Gr bnf_in map2)
+      end;
+
+    val rel_rhs = (case raw_rel_opt of
+        NONE => fold_rev Term.absfree Rs' rel_O_Gr_rhs
+      | SOME raw_rel => prep_term no_defs_lthy raw_rel);
+
+    val rel_bind_def = (fn () => Binding.suffix_name ("_" ^ relN) b, rel_rhs);
+
+    val ((bnf_rel_term, raw_rel_def), (lthy, lthy_old)) =
+      lthy
+      |> maybe_define rel_bind_def
+      ||> `(maybe_restore lthy);
+
+    val phi = Proof_Context.export_morphism lthy_old lthy;
+
+    val bnf_rel_def = Morphism.thm phi raw_rel_def;
+
+    val bnf_rel = Morphism.term phi bnf_rel_term;
+
+    fun mk_bnf_rel setRTs CA' CB' = normalize_rel lthy setRTs CA' CB' bnf_rel;
+
+    val relAsBs = mk_bnf_rel setRTs CA' CB';
 
     val pred_rhs = fold absfree (y' :: x' :: rev Qs') (HOLogic.mk_mem (HOLogic.mk_prod (x, y),
       Term.list_comb (relAsBs, map3 (fn Q => fn T => fn U =>
@@ -727,18 +748,12 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         Qs As' Bs')));
     val pred_bind_def = (fn () => Binding.suffix_name ("_" ^ predN) b, pred_rhs);
 
-    val ((bnf_pred_term, raw_pred_def), (lthy3, lthy2)) =
-      lthy1
+    val ((bnf_pred_term, raw_pred_def), (lthy, lthy_old)) =
+      lthy
       |> maybe_define pred_bind_def
-      ||> `(maybe_restore lthy1);
+      ||> `(maybe_restore lthy);
 
-    val _ = case filter_out_refl (raw_map_def :: raw_set_defs @ [raw_bd_def] @
-        raw_wit_defs @ [raw_rel_def, raw_pred_def]) of
-        [] => ()
-      | defs => Proof_Display.print_consts true lthy2 (K false)
-          (map (dest_Free o fst o Logic.dest_equals o prop_of) defs);
-
-    val phi = Proof_Context.export_morphism lthy2 lthy3;
+    val phi = Proof_Context.export_morphism lthy_old lthy;
 
     val bnf_pred_def =
       if fact_policy <> Derive_Some_Facts then
@@ -748,9 +763,15 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
     val bnf_pred = Morphism.term phi bnf_pred_term;
 
-    fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy3 QTs CA' CB' bnf_pred;
+    fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy QTs CA' CB' bnf_pred;
 
     val pred = mk_bnf_pred QTs CA' CB';
+
+    val _ = case filter_out_refl (raw_map_def :: raw_set_defs @ [raw_bd_def] @
+        raw_wit_defs @ [raw_rel_def, raw_pred_def]) of
+        [] => ()
+      | defs => Proof_Display.print_consts true lthy_old (K false)
+          (map (dest_Free o fst o Logic.dest_equals o prop_of) defs);
 
     val map_id_goal =
       let
@@ -845,15 +866,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       end;
 
     val rel_O_Gr_goal =
-      let
-        val map1 = Term.list_comb (mk_bnf_map RTs As', map fst_const RTs);
-        val map2 = Term.list_comb (mk_bnf_map RTs Bs', map snd_const RTs);
-        val bnf_in = mk_in Rs (map (mk_bnf_t RTs) bnf_sets) CRs';
-        (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)
-        val rhs = mk_rel_comp (mk_converse (mk_Gr bnf_in map1), mk_Gr bnf_in map2);
-      in
-        fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (relAsBs, Rs), rhs))
-      end;
+      fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (relAsBs, Rs), rel_O_Gr_rhs));
 
     val goals = zip_goals map_id_goal map_comp_goal map_cong_goal set_naturals_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal rel_O_Gr_goal;
@@ -1157,8 +1170,11 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               else
                 I))
       end;
+
+    val one_step_defs =
+      filter_out_refl (bnf_map_def :: bnf_bd_def :: bnf_set_defs @ bnf_wit_defs @ [bnf_rel_def]);
   in
-    (key, goals, wit_goalss, after_qed, lthy3, one_step_defs)
+    (key, goals, wit_goalss, after_qed, lthy, one_step_defs)
   end;
 
 fun register_bnf key (bnf, lthy) =
@@ -1227,6 +1243,7 @@ val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf_def"} "define a BNF for an existing type"
     ((parse_opt_binding_colon -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
-       (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term) >> bnf_def_cmd);
+       (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Scan.option Parse.term)
+       >> bnf_def_cmd);
 
 end;

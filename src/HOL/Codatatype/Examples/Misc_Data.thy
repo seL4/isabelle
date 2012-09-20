@@ -20,6 +20,8 @@ snd (snd (BNF_Comp.bnf_of_typ BNF_Def.Dont_Inline (Binding.qualify true "xxx")
   @{typ "('a \<Rightarrow> 'a) + ('a + 'b) + 'c"} (BNF_Comp.empty_unfold, lthy)))
 *}
 
+print_theorems
+
 data 'a lst = Nl | Cns 'a "'a lst"
 
 thm pre_lst.rel_unfold
