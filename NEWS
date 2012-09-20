@@ -109,6 +109,13 @@ nested recursion and interesting non-free datatypes.
 * Library/Debug.thy and Library/Parallel.thy: debugging and parallel
 execution for code generated towards Isabelle/ML.
 
+* Library/FinFun.thy: theory of almost everywhere constant functions
+(supersedes the AFP entry "Code Generation for Functions as Data").
+
+* Library/Phantom.thy: generic phantom type to make a type parameter
+appear in a constant's type. This alternative to adding TYPE('a) as
+another parameter avoids unnecessary closures in generated code.
+
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
