@@ -48,6 +48,28 @@ object Markup_Tree
     def reverse_markup(branches: T): T =
       (empty /: branches.iterator) { case (bs, (r, entry)) => bs + (r -> entry.reverse_markup) }
   }
+
+
+  /* XML representation */
+
+  def from_XML(body: XML.Body): Markup_Tree =
+  {
+    var offset = 0
+    var markup_tree = empty
+
+    def traverse(tree: XML.Tree): Unit =
+      tree match {
+        case XML.Elem(markup, trees) =>
+          val start = offset
+          trees.foreach(traverse)
+          val stop = offset
+          markup_tree += Text.Info(Text.Range(start, stop), XML.Elem(markup, Nil))
+        case XML.Text(s) => offset += s.length
+      }
+    body.foreach(traverse)
+
+    markup_tree.reverse_markup
+  }
 }
 
 
