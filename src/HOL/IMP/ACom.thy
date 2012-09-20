@@ -21,15 +21,15 @@ datatype 'a acom =
 fun post :: "'a acom \<Rightarrow>'a" where
 "post (SKIP {P}) = P" |
 "post (x ::= e {P}) = P" |
-"post (c1; c2) = post c2" |
-"post (IF b THEN {P1} c1 ELSE {P2} c2 {P}) = P" |
-"post ({Inv} WHILE b DO {Pc} c {P}) = P"
+"post (C1; C2) = post C2" |
+"post (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = Q" |
+"post ({Inv} WHILE b DO {P} C {Q}) = Q"
 
 fun strip :: "'a acom \<Rightarrow> com" where
 "strip (SKIP {P}) = com.SKIP" |
 "strip (x ::= e {P}) = (x ::= e)" |
-"strip (c1;c2) = (strip c1; strip c2)" |
-"strip (IF b THEN {P1} c1 ELSE {P2} c2 {P}) = (IF b THEN strip c1 ELSE strip c2)" |
+"strip (C1;C2) = (strip C1; strip C2)" |
+"strip (IF b THEN {P1} C1 ELSE {P2} C2 {P}) = (IF b THEN strip C1 ELSE strip C2)" |
 "strip ({Inv} WHILE b DO {Pc} c {P}) = (WHILE b DO strip c)"
 
 fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
@@ -51,41 +51,41 @@ fun annos :: "'a acom \<Rightarrow> 'a list" where
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
 "map_acom f (SKIP {P}) = SKIP {f P}" |
 "map_acom f (x ::= e {P}) = (x ::= e {f P})" |
-"map_acom f (c1;c2) = (map_acom f c1; map_acom f c2)" |
-"map_acom f (IF b THEN {p1} c1 ELSE {p2} c2 {P}) =
-  (IF b THEN {f p1} map_acom f c1 ELSE {f p2} map_acom f c2 {f P})" |
-"map_acom f ({Inv} WHILE b DO {p} c {P}) =
-  ({f Inv} WHILE b DO {f p} map_acom f c {f P})"
+"map_acom f (C1;C2) = (map_acom f C1; map_acom f C2)" |
+"map_acom f (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+  (IF b THEN {f P1} map_acom f C1 ELSE {f P2} map_acom f C2 {f Q})" |
+"map_acom f ({Inv} WHILE b DO {P} C {Q}) =
+  ({f Inv} WHILE b DO {f P} map_acom f C {f Q})"
 
 
-lemma post_map_acom[simp]: "post(map_acom f c) = f(post c)"
-by (induction c) simp_all
+lemma post_map_acom[simp]: "post(map_acom f C) = f(post C)"
+by (induction C) simp_all
 
-lemma strip_acom[simp]: "strip (map_acom f c) = strip c"
-by (induction c) auto
+lemma strip_acom[simp]: "strip (map_acom f C) = strip C"
+by (induction C) auto
 
 lemma map_acom_SKIP:
- "map_acom f c = SKIP {S'} \<longleftrightarrow> (\<exists>S. c = SKIP {S} \<and> S' = f S)"
-by (cases c) auto
+ "map_acom f C = SKIP {S'} \<longleftrightarrow> (\<exists>S. C = SKIP {S} \<and> S' = f S)"
+by (cases C) auto
 
 lemma map_acom_Assign:
- "map_acom f c = x ::= e {S'} \<longleftrightarrow> (\<exists>S. c = x::=e {S} \<and> S' = f S)"
-by (cases c) auto
+ "map_acom f C = x ::= e {S'} \<longleftrightarrow> (\<exists>S. C = x::=e {S} \<and> S' = f S)"
+by (cases C) auto
 
 lemma map_acom_Seq:
- "map_acom f c = c1';c2' \<longleftrightarrow>
- (\<exists>c1 c2. c = c1;c2 \<and> map_acom f c1 = c1' \<and> map_acom f c2 = c2')"
-by (cases c) auto
+ "map_acom f C = C1';C2' \<longleftrightarrow>
+ (\<exists>C1 C2. C = C1;C2 \<and> map_acom f C1 = C1' \<and> map_acom f C2 = C2')"
+by (cases C) auto
 
 lemma map_acom_If:
- "map_acom f c = IF b THEN {p1'} c1' ELSE {p2'} c2' {S'} \<longleftrightarrow>
- (\<exists>S p1 p2 c1 c2. c = IF b THEN {p1} c1 ELSE {p2} c2 {S} \<and>
-     map_acom f c1 = c1' \<and> map_acom f c2 = c2' \<and> p1' = f p1 \<and> p2' = f p2 \<and> S' = f S)"
-by (cases c) auto
+ "map_acom f C = IF b THEN {P1'} C1' ELSE {P2'} C2' {Q'} \<longleftrightarrow>
+ (\<exists>P1 P2 C1 C2 Q. C = IF b THEN {P1} C1 ELSE {P2} C2 {Q} \<and>
+     map_acom f C1 = C1' \<and> map_acom f C2 = C2' \<and> P1' = f P1 \<and> P2' = f P2 \<and> Q' = f Q)"
+by (cases C) auto
 
 lemma map_acom_While:
- "map_acom f w = {I'} WHILE b DO {p'} c' {P'} \<longleftrightarrow>
- (\<exists>I p P c. w = {I} WHILE b DO {p} c {P} \<and> map_acom f c = c' \<and> I' = f I \<and> p' = f p \<and> P' = f P)"
+ "map_acom f w = {I'} WHILE b DO {p'} C' {P'} \<longleftrightarrow>
+ (\<exists>I p P C. w = {I} WHILE b DO {p} C {P} \<and> map_acom f C = C' \<and> I' = f I \<and> p' = f p \<and> P' = f P)"
 by (cases w) auto
 
 
@@ -106,16 +106,16 @@ by (cases C) simp_all
 
 lemma strip_eq_If:
   "strip C = IF b THEN c1 ELSE c2 \<longleftrightarrow>
-  (EX p1 p2 C1 C2 P. C = IF b THEN {p1} C1 ELSE {p2} C2 {P} & strip C1 = c1 & strip C2 = c2)"
+  (EX P1 P2 C1 C2 Q. C = IF b THEN {P1} C1 ELSE {P2} C2 {Q} & strip C1 = c1 & strip C2 = c2)"
 by (cases C) simp_all
 
 lemma strip_eq_While:
   "strip C = WHILE b DO c1 \<longleftrightarrow>
-  (EX I p C1 P. C = {I} WHILE b DO {p} C1 {P} & strip C1 = c1)"
+  (EX I P C1 Q. C = {I} WHILE b DO {P} C1 {Q} & strip C1 = c1)"
 by (cases C) simp_all
 
-lemma set_annos_anno[simp]: "set (annos (anno a C)) = {a}"
-by(induction C)(auto)
+lemma set_annos_anno[simp]: "set (annos (anno a c)) = {a}"
+by(induction c)(auto)
 
 lemma size_annos_same: "strip C1 = strip C2 \<Longrightarrow> size(annos C1) = size(annos C2)"
 apply(induct C2 arbitrary: C1)
