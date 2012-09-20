@@ -202,8 +202,8 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
             for { (color, separator) <- rendering.line_background(line_range) }
             {
               gfx.setColor(color)
-              val tweak = if (separator) (2 min (line_height / 2)) else 0
-              gfx.fillRect(0, y + i * line_height - tweak, text_area.getWidth, line_height - tweak)
+              val sep = if (separator) (2 min (line_height / 2)) else 0
+              gfx.fillRect(0, y + i * line_height, text_area.getWidth, line_height - sep)
             }
 
             // background color (1)

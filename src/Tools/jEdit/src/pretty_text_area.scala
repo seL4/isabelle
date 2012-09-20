@@ -150,8 +150,11 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
   override def isCaretVisible: Boolean = false
 
   getPainter.setStructureHighlightEnabled(false)
+  getPainter.setLineHighlightEnabled(false)
+
   getBuffer.setTokenMarker(new Token_Markup.Marker(true, None))
   getBuffer.setReadOnly(true)
+
   rich_text_area.activate()
 }
 
