@@ -20,8 +20,10 @@ sig
   val coinductN: string
   val coiterN: string
   val coitersN: string
+  val coiter_iffN: string
   val corecN: string
   val corecsN: string
+  val corec_iffN: string
   val disc_coitersN: string
   val disc_corecsN: string
   val exhaustN: string
@@ -237,6 +239,9 @@ val caseN = "case"
 val discN = "disc"
 val disc_coitersN = discN ^ "_" ^ coitersN
 val disc_corecsN = discN ^ "_" ^ corecsN
+val iffN = "_iff"
+val coiter_iffN = coiterN ^ iffN
+val corec_iffN = corecN ^ iffN
 val selN = "sel"
 val sel_coitersN = selN ^ "_" ^ coitersN
 val sel_corecsN = selN ^ "_" ^ corecsN

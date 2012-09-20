@@ -9,6 +9,8 @@ signature BNF_FP_SUGAR_TACTICS =
 sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coiter_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
+  val mk_coiter_like_iff_tac: Proof.context -> int -> int -> thm list -> thm list ->
+    thm list list -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
@@ -78,14 +80,22 @@ fun mk_iter_like_tac pre_map_defs map_ids iter_like_defs fld_iter_like ctr_def c
     iter_like_thms) THEN unfold_defs_tac ctxt @{thms id_def} THEN rtac refl 1;
 
 val coiter_like_ss = ss_only @{thms if_True if_False};
-val coiter_like_thms = @{thms id_apply map_pair_def sum_map.simps prod.cases};
+val coiter_like_unfold_thms = @{thms id_apply map_pair_def sum_map.simps prod.cases};
 
 fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def ctr_def ctxt =
   unfold_defs_tac ctxt (ctr_def :: coiter_like_defs) THEN
   subst_tac ctxt [fld_unf_coiter_like] 1 THEN asm_simp_tac coiter_like_ss 1 THEN
-  unfold_defs_tac ctxt (pre_map_def :: coiter_like_thms @ map_ids) THEN
+  unfold_defs_tac ctxt (pre_map_def :: coiter_like_unfold_thms @ map_ids) THEN
   unfold_defs_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
+
+fun mk_coiter_like_iff_tac ctxt n k case_splits' coiter_like_thms distinctss =
+  EVERY (map4 (fn k' => fn case_split_tac => fn coiter_like_thm => fn distincts =>
+      case_split_tac 1 THEN
+      unfold_defs_tac ctxt [coiter_like_thm] THEN
+      asm_simp_tac (ss_only @{thms simp_thms(7,8,12,14,22,24)}) 1 THEN
+      (if k' = k then all_tac else rtac (the_single distincts) 1))
+    (1 upto n) (map rtac case_splits' @ [K all_tac]) coiter_like_thms distinctss);
 
 val solve_prem_prem_tac =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'

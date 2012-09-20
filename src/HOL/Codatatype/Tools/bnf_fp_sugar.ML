@@ -777,6 +777,16 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             (coiter_thmss, corec_thmss, safe_coiter_thmss, safe_corec_thmss)
           end;
 
+        val (coiter_iff_thmss, corec_iff_thmss) =
+          let
+            (* TODO: smoothly handle the n = 1 case *)
+
+            val coiter_iff_thmss = [];
+            val corec_iff_thmss = [];
+          in
+            (coiter_iff_thmss, corec_iff_thmss)
+          end;
+
         fun mk_disc_coiter_like_thms coiter_likes discIs =
           map (op RS) (filter_out (is_triv_implies o snd) (coiter_likes ~~ discIs));
 
@@ -821,10 +831,12 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val notes =
           [(coinductN, map single coinduct_thms, []), (* FIXME: attribs *)
            (coitersN, coiter_thmss, []),
-           (disc_coitersN, disc_coiter_thmss, simp_attrs),
-           (sel_coitersN, sel_coiter_thmss, simp_attrs),
+           (coiter_iffN, coiter_iff_thmss, simp_attrs),
            (corecsN, corec_thmss, []),
+           (corec_iffN, corec_iff_thmss, simp_attrs),
+           (disc_coitersN, disc_coiter_thmss, simp_attrs),
            (disc_corecsN, disc_corec_thmss, simp_attrs),
+           (sel_coitersN, sel_coiter_thmss, simp_attrs),
            (sel_corecsN, sel_corec_thmss, simp_attrs),
            (simpsN, simp_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
