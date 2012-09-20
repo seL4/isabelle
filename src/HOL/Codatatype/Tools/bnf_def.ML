@@ -59,12 +59,13 @@ sig
   val map_wppull_of_bnf: BNF -> thm
   val map_wpull_of_bnf: BNF -> thm
   val pred_def_of_bnf: BNF -> thm
+  val rel_def_of_bnf: BNF -> thm
   val rel_Gr_of_bnf: BNF -> thm
   val rel_Id_of_bnf: BNF -> thm
   val rel_O_of_bnf: BNF -> thm
+  val rel_O_Gr_of_bnf: BNF -> thm
   val rel_cong_of_bnf: BNF -> thm
   val rel_converse_of_bnf: BNF -> thm
-  val rel_def_of_bnf: BNF -> thm
   val rel_mono_of_bnf: BNF -> thm
   val set_bd_of_bnf: BNF -> thm list
   val set_defs_of_bnf: BNF -> thm list
@@ -186,12 +187,13 @@ type facts = {
   rel_Gr: thm lazy,
   rel_converse: thm lazy,
   rel_O: thm lazy,
+  rel_O_Gr: thm,
   set_natural': thm lazy list
 };
 
 fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero
     collect_set_natural in_cong in_mono in_rel map_comp' map_id' map_wppull
-    rel_cong rel_mono rel_Id rel_Gr rel_converse rel_O set_natural' = {
+    rel_cong rel_mono rel_Id rel_Gr rel_converse rel_O rel_O_Gr set_natural' = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
   bd_Cnotzero = bd_Cnotzero,
@@ -208,6 +210,7 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero
   rel_Gr = rel_Gr,
   rel_converse = rel_converse,
   rel_O = rel_O,
+  rel_O_Gr = rel_O_Gr,
   set_natural' = set_natural'};
 
 fun map_facts f {
@@ -227,6 +230,7 @@ fun map_facts f {
   rel_Gr,
   rel_converse,
   rel_O,
+  rel_O_Gr,
   set_natural'} =
   {bd_Card_order = f bd_Card_order,
     bd_Cinfinite = f bd_Cinfinite,
@@ -244,6 +248,7 @@ fun map_facts f {
     rel_Gr = Lazy.map f rel_Gr,
     rel_converse = Lazy.map f rel_converse,
     rel_O = Lazy.map f rel_O,
+    rel_O_Gr = f rel_O_Gr,
     set_natural' = map (Lazy.map f) set_natural'};
 
 val morph_facts = map_facts o Morphism.thm;
@@ -364,6 +369,7 @@ val rel_Id_of_bnf = Lazy.force o #rel_Id o #facts o rep_bnf;
 val rel_Gr_of_bnf = Lazy.force o #rel_Gr o #facts o rep_bnf;
 val rel_converse_of_bnf = Lazy.force o #rel_converse o #facts o rep_bnf;
 val rel_O_of_bnf = Lazy.force o #rel_O o #facts o rep_bnf;
+val rel_O_Gr_of_bnf = #rel_O_Gr o #facts o rep_bnf;
 val set_bd_of_bnf = #set_bd o #axioms o rep_bnf;
 val set_defs_of_bnf = #set_defs o #defs o rep_bnf;
 val set_natural_of_bnf = #set_natural o #axioms o rep_bnf;
@@ -494,6 +500,7 @@ val rel_GrN = "rel_Gr";
 val rel_converseN = "rel_converse";
 val rel_monoN = "rel_mono"
 val rel_ON = "rel_comp";
+val rel_O_GrN = "rel_comp_Gr";
 val set_naturalN = "set_natural";
 val set_natural'N = "set_natural'";
 val set_bdN = "set_bd";
@@ -920,9 +927,11 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         val relAsBs = mk_bnf_rel setRTs CA' CB';
         val bnf_rel_def = Morphism.thm phi raw_rel_def;
-        val rel_def_unabs =
+
+        val rel_O_Gr = Morphism.thm phi raw_rel_def; (*###*)
+        val rel_O_Gr_unabs =
           if fact_policy <> Derive_Some_Facts then
-            mk_unabs_def live (bnf_rel_def RS meta_eq_to_obj_eq)
+            mk_unabs_def live (rel_O_Gr RS meta_eq_to_obj_eq)
           else
             no_fact;
 
@@ -944,10 +953,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy QTs CA' CB' bnf_pred;
 
         val pred = mk_bnf_pred QTs CA' CB';
-        val bnf_pred_def = Morphism.thm phi raw_pred_def;
-        val pred_def_unabs =
+        val bnf_pred_def0 = Morphism.thm phi raw_pred_def;
+        val bnf_pred_def =
           if fact_policy <> Derive_Some_Facts then
-            mk_unabs_def (live + 2) (bnf_pred_def RS meta_eq_to_obj_eq)
+            mk_unabs_def (live + 2) (bnf_pred_def0 RS meta_eq_to_obj_eq)
           else
             no_fact;
 
@@ -996,7 +1005,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
-              (mk_rel_Gr_tac bnf_rel_def (#map_id axioms) (#map_cong axioms)
+              (mk_rel_Gr_tac rel_O_Gr (#map_id axioms) (#map_cong axioms)
                 (#map_wpull axioms) (Lazy.force in_cong) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
@@ -1015,7 +1024,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           in
             Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
-              (mk_rel_mono_tac bnf_rel_def (Lazy.force in_mono))
+              (mk_rel_mono_tac rel_O_Gr (Lazy.force in_mono))
             |> Thm.close_derivation
           end;
 
@@ -1051,7 +1060,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val rhs = mk_converse (Term.list_comb (relAsBs, Rs));
             val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_subset lhs rhs));
             val le_thm = Skip_Proof.prove lthy [] [] le_goal
-              (mk_rel_converse_le_tac bnf_rel_def (Lazy.force rel_Id) (#map_cong axioms)
+              (mk_rel_converse_le_tac rel_O_Gr (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
               |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
@@ -1071,7 +1080,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
-              (mk_rel_O_tac bnf_rel_def (Lazy.force rel_Id) (#map_cong axioms)
+              (mk_rel_O_tac rel_O_Gr (Lazy.force rel_Id) (#map_cong axioms)
                 (Lazy.force map_wppull) (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
           end;
@@ -1092,17 +1101,17 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal =
               fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
           in
-            Skip_Proof.prove lthy [] [] goal (mk_in_rel_tac bnf_rel_def (length bnf_sets))
+            Skip_Proof.prove lthy [] [] goal (mk_in_rel_tac rel_O_Gr (length bnf_sets))
             |> Thm.close_derivation
           end;
 
         val in_rel = mk_lazy mk_in_rel;
 
-        val defs = mk_defs bnf_map_def bnf_set_defs rel_def_unabs pred_def_unabs;
+        val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def bnf_pred_def;
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_natural
           in_cong in_mono in_rel map_comp' map_id' map_wppull
-          rel_cong rel_mono rel_Id rel_Gr rel_converse rel_O set_natural';
+          rel_cong rel_mono rel_Id rel_Gr rel_converse rel_O rel_O_Gr_unabs set_natural';
 
         val wits = map2 mk_witness bnf_wits wit_thms;
 
@@ -1152,6 +1161,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                     (rel_converseN, [Lazy.force (#rel_converse facts)]),
                     (rel_monoN, [Lazy.force (#rel_mono facts)]),
                     (rel_ON, [Lazy.force (#rel_O facts)]),
+                    (rel_O_GrN, [#rel_O_Gr facts]),
                     (map_id'N, [Lazy.force (#map_id' facts)]),
                     (map_comp'N, [Lazy.force (#map_comp' facts)]),
                     (set_natural'N, map Lazy.force (#set_natural' facts))]

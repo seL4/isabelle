@@ -263,13 +263,13 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold, lthy) =
     val outer_rel_cong = rel_cong_of_bnf outer;
 
     val rel_unfold_thm =
-      trans OF [rel_def_of_bnf bnf',
+      trans OF [rel_O_Gr_of_bnf bnf',
         trans OF [in_alt_thm RS @{thm subst_rel_def},
           trans OF [@{thm arg_cong2[of _ _ _ _ relcomp]} OF
             [trans OF [outer_rel_Gr RS @{thm arg_cong[of _ _ converse]},
               rel_converse_of_bnf outer RS sym], outer_rel_Gr],
             trans OF [rel_O_of_bnf outer RS sym, outer_rel_cong OF
-              (map (fn bnf => rel_def_of_bnf bnf RS sym) inners)]]]];
+              (map (fn bnf => rel_O_Gr_of_bnf bnf RS sym) inners)]]]];
 
     val pred_unfold_thm = Collect_split_box_equals OF [rel_unfold_thm,
       pred_def_of_bnf bnf' RS abs_pred_sym,
@@ -362,7 +362,7 @@ fun kill_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) 
     val rel_Gr = rel_Gr_of_bnf bnf RS sym;
 
     val rel_unfold_thm =
-      trans OF [rel_def_of_bnf bnf',
+      trans OF [rel_O_Gr_of_bnf bnf',
         trans OF [in_alt_thm RS @{thm subst_rel_def},
           trans OF [@{thm arg_cong2[of _ _ _ _ relcomp]} OF
             [trans OF [rel_Gr RS @{thm arg_cong[of _ _ converse]}, rel_converse_of_bnf bnf RS sym],
@@ -458,8 +458,8 @@ fun lift_bnf qualify n bnf (unfold, lthy) = if n = 0 then (bnf, (unfold, lthy)) 
         ((((b, mapx), sets), Term.absdummy T bd), wits) lthy;
 
     val rel_unfold_thm =
-      trans OF [rel_def_of_bnf bnf',
-        trans OF [in_alt_thm RS @{thm subst_rel_def}, rel_def_of_bnf bnf RS sym]];
+      trans OF [rel_O_Gr_of_bnf bnf',
+        trans OF [in_alt_thm RS @{thm subst_rel_def}, rel_O_Gr_of_bnf bnf RS sym]];
 
     val pred_unfold_thm = Collect_split_box_equals OF [rel_unfold_thm,
       pred_def_of_bnf bnf' RS abs_pred_sym, pred_def_of_bnf bnf RS abs_pred_sym];
@@ -538,8 +538,8 @@ fun permute_bnf qualify src dest bnf (unfold, lthy) = if src = dest then (bnf, (
         ((((b, mapx), sets), Term.absdummy T bd), wits) lthy;
 
     val rel_unfold_thm =
-      trans OF [rel_def_of_bnf bnf',
-        trans OF [in_alt_thm RS @{thm subst_rel_def}, rel_def_of_bnf bnf RS sym]];
+      trans OF [rel_O_Gr_of_bnf bnf',
+        trans OF [in_alt_thm RS @{thm subst_rel_def}, rel_O_Gr_of_bnf bnf RS sym]];
 
     val pred_unfold_thm = Collect_split_box_equals OF [rel_unfold_thm,
       pred_def_of_bnf bnf' RS abs_pred_sym, pred_def_of_bnf bnf RS abs_pred_sym];
@@ -685,11 +685,11 @@ fun seal_bnf unfold b Ds bnf lthy =
     val defs' = filter_refl (map_def_of_bnf bnf' :: set_defs_of_bnf bnf');
     val unfold_defs' = unfold_defs o Local_Defs.unfold lthy' defs';
 
-    val rel_def = unfold_defs' (rel_def_of_bnf bnf');
+    val rel_O_Gr = unfold_defs' (rel_O_Gr_of_bnf bnf');
     val rel_unfold = Local_Defs.unfold lthy'
-      (map unfold_defs (filter_refl (rel_unfolds_of unfold))) rel_def;
+      (map unfold_defs (filter_refl (rel_unfolds_of unfold))) rel_O_Gr;
 
-    val unfold_defs'' = unfold_defs' o Local_Defs.unfold lthy' (filter_refl [rel_def_of_bnf bnf']);
+    val unfold_defs'' = unfold_defs' o Local_Defs.unfold lthy' (filter_refl [rel_O_Gr_of_bnf bnf']);
 
     val pred_def = unfold_defs'' (pred_def_of_bnf bnf' RS abs_pred_sym_pred_abs);
     val pred_unfold = Local_Defs.unfold lthy'
@@ -707,13 +707,13 @@ fun seal_bnf unfold b Ds bnf lthy =
 val ID_bnf = the (bnf_of @{context} "Basic_BNFs.ID");
 val DEADID_bnf = the (bnf_of @{context} "Basic_BNFs.DEADID");
 
-val ID_rel_def = rel_def_of_bnf ID_bnf;
-val ID_rel_def' = ID_rel_def RS sym;
-val ID_pred_def' = Local_Defs.unfold @{context} [ID_rel_def] (pred_def_of_bnf ID_bnf) RS sym;
+val ID_rel_O_Gr = rel_O_Gr_of_bnf ID_bnf;
+val ID_rel_O_Gr' = ID_rel_O_Gr RS sym;
+val ID_pred_def' = Local_Defs.unfold @{context} [ID_rel_O_Gr] (pred_def_of_bnf ID_bnf) RS sym;
 
 fun bnf_of_typ _ _ _ (T as TFree _) (unfold, lthy) =
     ((ID_bnf, ([], [T])),
-      (add_to_unfold_opt NONE NONE (SOME ID_rel_def') (SOME ID_pred_def') unfold, lthy))
+      (add_to_unfold_opt NONE NONE (SOME ID_rel_O_Gr') (SOME ID_pred_def') unfold, lthy))
   | bnf_of_typ _ _ _ (TVar _) _ = error "Unexpected schematic variable"
   | bnf_of_typ const_policy qualify' sort (T as Type (C, Ts)) (unfold, lthy) =
     let
@@ -732,9 +732,9 @@ fun bnf_of_typ _ _ _ (T as TFree _) (unfold, lthy) =
             val deads_lives =
               pairself (map (Term.typ_subst_TVars (map fst tvars' ~~ map TFree tfrees)))
                 (deads, lives);
-            val rel_def = rel_def_of_bnf bnf;
-            val unfold' = add_to_unfold_opt NONE NONE (SOME (rel_def RS sym))
-              (SOME (Local_Defs.unfold lthy [rel_def] (pred_def_of_bnf bnf) RS sym)) unfold;
+            val rel_O_Gr = rel_O_Gr_of_bnf bnf;
+            val unfold' = add_to_unfold_opt NONE NONE (SOME (rel_O_Gr RS sym))
+              (SOME (Local_Defs.unfold lthy [rel_O_Gr] (pred_def_of_bnf bnf) RS sym)) unfold;
           in ((bnf, deads_lives), (unfold', lthy)) end
         else
           let

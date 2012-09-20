@@ -223,11 +223,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val pred_defs = map pred_def_of_bnf bnfs;
     val rel_congs = map rel_cong_of_bnf bnfs;
     val rel_converses = map rel_converse_of_bnf bnfs;
-    val rel_defs = map rel_def_of_bnf bnfs;
     val rel_Grs = map rel_Gr_of_bnf bnfs;
     val rel_Ids = map rel_Id_of_bnf bnfs;
     val rel_monos = map rel_mono_of_bnf bnfs;
     val rel_Os = map rel_O_of_bnf bnfs;
+    val rel_O_Grs = map rel_O_Gr_of_bnf bnfs;
     val map_wpulls = map map_wpull_of_bnf bnfs;
     val set_bdss = map set_bd_of_bnf bnfs;
     val set_natural'ss = map set_natural'_of_bnf bnfs;
@@ -861,7 +861,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all (As @ Bs @ ss @ B's @ s's @ Rs)
             (mk_Trueprop_eq (mk_bis As Bs ss B's s's Rs, rhs)))
-          (K (mk_bis_rel_tac m bis_def rel_defs map_comp's map_congs set_natural'ss))
+          (K (mk_bis_rel_tac m bis_def rel_O_Grs map_comp's map_congs set_natural'ss))
         |> Thm.close_derivation
       end;
 

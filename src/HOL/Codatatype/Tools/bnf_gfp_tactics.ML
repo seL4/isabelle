@@ -261,15 +261,15 @@ fun mk_mor_hset_tac hset_def mor_hset_rec =
   EVERY' [rtac (hset_def RS trans), rtac (refl RS @{thm UN_cong} RS trans), etac mor_hset_rec,
     atac, atac, rtac (hset_def RS sym)] 1
 
-fun mk_bis_rel_tac m bis_def rel_defs map_comps map_congs set_naturalss =
+fun mk_bis_rel_tac m bis_def rel_O_Grs map_comps map_congs set_naturalss =
   let
-    val n = length rel_defs;
-    val thms = ((1 upto n) ~~ map_comps ~~ map_congs ~~ set_naturalss ~~ rel_defs);
+    val n = length rel_O_Grs;
+    val thms = ((1 upto n) ~~ map_comps ~~ map_congs ~~ set_naturalss ~~ rel_O_Grs);
 
-    fun mk_if_tac ((((i, map_comp), map_cong), set_naturals), rel_def) =
+    fun mk_if_tac ((((i, map_comp), map_cong), set_naturals), rel_O_Gr) =
       EVERY' [rtac allI, rtac allI, rtac impI, dtac (mk_conjunctN n i),
         etac allE, etac allE, etac impE, atac, etac bexE, etac conjE,
-        rtac (rel_def RS equalityD2 RS set_mp),
+        rtac (rel_O_Gr RS equalityD2 RS set_mp),
         rtac @{thm relcompI}, rtac @{thm converseI},
         EVERY' (map (fn thm =>
           EVERY' [rtac @{thm GrI}, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
@@ -285,10 +285,10 @@ fun mk_bis_rel_tac m bis_def rel_defs map_comps map_congs set_naturalss =
             REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong), atac])
           @{thms fst_diag_id snd_diag_id})];
 
-    fun mk_only_if_tac ((((i, map_comp), map_cong), set_naturals), rel_def) =
+    fun mk_only_if_tac ((((i, map_comp), map_cong), set_naturals), rel_O_Gr) =
       EVERY' [dtac (mk_conjunctN n i), rtac allI, rtac allI, rtac impI,
         etac allE, etac allE, etac impE, atac,
-        dtac (rel_def RS equalityD1 RS set_mp),
+        dtac (rel_O_Gr RS equalityD1 RS set_mp),
         REPEAT_DETERM o eresolve_tac [CollectE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o eresolve_tac [@{thm GrE}, exE, conjE],
         REPEAT_DETERM o dtac Pair_eq_subst_id,
