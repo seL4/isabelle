@@ -69,6 +69,8 @@ object Isabelle_Markup
   val Width = new Properties.Int("width")
   val BREAK = "break"
 
+  val SEPARATOR = "separator"
+
 
   /* hidden text */
 

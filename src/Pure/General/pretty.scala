@@ -59,6 +59,8 @@ object Pretty
 
   val FBreak = XML.Text("\n")
 
+  val Separator = XML.elem(Isabelle_Markup.SEPARATOR, List(FBreak))
+
 
   /* formatted output */
 

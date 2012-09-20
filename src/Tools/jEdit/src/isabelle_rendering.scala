@@ -109,6 +109,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
   val error1_color = color_value("error1_color")
+  val message_color = color_value("message_color")
   val writeln_message_color = color_value("writeln_message_color")
   val tracing_message_color = color_value("tracing_message_color")
   val warning_message_color = color_value("warning_message_color")
@@ -354,6 +355,25 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
     } yield Text.Info(r, color)
   }
 
+  def line_background(range: Text.Range): Option[(Color, Boolean)] =
+  {
+    val messages =
+      Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.WARNING_MESSAGE,
+        Isabelle_Markup.ERROR_MESSAGE)
+    val is_message =
+      snapshot.cumulate_markup[Boolean](range, false, Some(messages),
+        {
+          case (_, Text.Info(_, XML.Elem(Markup(name, _), body))) if messages(name) => true
+        }).exists(_.info)
+    val is_separator = is_message &&
+      snapshot.cumulate_markup[Boolean](range, false,
+        Some(Set(Isabelle_Markup.SEPARATOR)),
+        {
+          case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.SEPARATOR, _), _))) => true
+        }).exists(_.info)
+
+    if (is_message) Some((message_color, is_separator)) else None
+  }
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {

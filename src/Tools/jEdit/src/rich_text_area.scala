@@ -86,7 +86,7 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
     }
   }
 
-  private def robust_rendering(body: Isabelle_Rendering => Unit)
+  def robust_rendering(body: Isabelle_Rendering => Unit)
   {
     robust_body(()) { body(painter_rendering) }
   }
@@ -197,6 +197,14 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
+
+            // line background color
+            for { (color, separator) <- rendering.line_background(line_range) }
+            {
+              gfx.setColor(color)
+              val tweak = if (separator) (2 min (line_height / 2)) else 0
+              gfx.fillRect(0, y + i * line_height - tweak, text_area.getWidth, line_height - tweak)
+            }
 
             // background color (1)
             for {
