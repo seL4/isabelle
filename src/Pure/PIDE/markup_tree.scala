@@ -38,6 +38,9 @@ object Markup_Tree
   {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
       Entry(markup.range, List(markup.info), Set(markup.info.markup.name), subtree)
+
+    def apply(range: Text.Range, rev_markups: List[XML.Elem], subtree: Markup_Tree): Entry =
+      Entry(range, rev_markups, Set.empty ++ rev_markups.iterator.map(_.markup.name), subtree)
   }
 
   sealed case class Entry(
@@ -76,15 +79,11 @@ object Markup_Tree
         case (Nil, body) =>
           (offset + XML.text_length(body), markup_trees)
 
-        case (markups, body) =>
-          val (end_offset, markup_trees1) = (acc /: body)(make_trees)
+        case (elems, body) =>
+          val (end_offset, subtrees) = ((offset, Nil: List[Markup_Tree]) /: body)(make_trees)
           val range = Text.Range(offset, end_offset)
-          val new_markup_tree =
-            (merge_disjoint(markup_trees1) /: markups) {
-              case (markup_tree, markup) =>
-                markup_tree + Text.Info(range, XML.Elem(markup, Nil))
-            }
-          (end_offset, List(new_markup_tree))
+          val entry = Entry(range, elems.map(XML.Elem(_, Nil)), merge_disjoint(subtrees))
+          (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
       }
     }
 
