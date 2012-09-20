@@ -610,7 +610,7 @@ session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-Codatatype" in Codatatype = "HOL-Cardinals-Base" +
+session "HOL-Codatatype" in Codatatype = "HOL-Cardinals" +
   description {* New (Co)datatype Package *}
   options [document = false]
   theories Codatatype
