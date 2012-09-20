@@ -577,7 +577,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       in map2 pair bs wit_rhss end;
     val rel_bind_def = (fn () => Binding.suffix_name ("_" ^ relN) b, rel_rhs);
 
-    (* TODO: ### Kill "needed_for_extra_facts" *)
     fun maybe_define needed_for_extra_facts (b, rhs) lthy =
       let
         val inline =
@@ -657,6 +656,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     (*TODO: further checks of type of bnf_map*)
     (*TODO: check types of bnf_sets*)
     (*TODO: check type of bnf_bd*)
+    (*TODO: check type of bnf_rel*)
 
     val ((((((((((As', Bs'), Cs), Ds), B1Ts), B2Ts), domTs), ranTs), ranTs'), ranTs''),
       (Ts, T)) = lthy'
@@ -730,6 +730,29 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||>> mk_Frees "R" setRTs
       ||>> mk_Frees "S" setRTsBsCs
       ||>> mk_Frees' "Q" QTs;
+
+    val pred_rhs = fold absfree (y' :: x' :: rev Qs') (HOLogic.mk_mem (HOLogic.mk_prod (x, y),
+      Term.list_comb (relAsBs, map3 (fn Q => fn T => fn U =>
+        HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split Q)
+        Qs As' Bs')));
+    val pred_bind_def = (fn () => Binding.suffix_name ("_" ^ predN) b, pred_rhs);
+
+    val ((bnf_pred_term, raw_pred_def), (lthy''', lthy'')) =
+      lthy
+      |> maybe_define true pred_bind_def
+      ||> `(maybe_restore lthy');
+
+    val phi = Proof_Context.export_morphism lthy'' lthy''';
+    val bnf_pred = Morphism.term phi bnf_pred_term;
+
+    fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy''' QTs CA' CB' bnf_pred;
+
+    val pred = mk_bnf_pred QTs CA' CB';
+    val bnf_pred_def =
+      if fact_policy <> Derive_Some_Facts then
+        mk_unabs_def (live + 2) (Morphism.thm phi raw_pred_def RS meta_eq_to_obj_eq)
+      else
+        no_fact;
 
     val goal_map_id =
       let
@@ -921,33 +944,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         val set_natural' =
           map (fn thm => mk_lazy (fn () => mk_set_natural' thm)) (#set_natural axioms);
-
-        (* predicator *)
-
-        val pred_rhs = fold absfree (y' :: x' :: rev Qs') (HOLogic.mk_mem (HOLogic.mk_prod (x, y),
-          Term.list_comb (relAsBs, map3 (fn Q => fn T => fn U =>
-            HOLogic.Collect_const (HOLogic.mk_prodT (T, U)) $ HOLogic.mk_split Q)
-            Qs As' Bs')));
-        val pred_bind_def = (fn () => Binding.suffix_name ("_" ^ predN) b, pred_rhs);
-
-        val ((bnf_pred_term, raw_pred_def), (lthy, lthy_old)) =
-          lthy
-          |> maybe_define true pred_bind_def
-          ||> `(maybe_restore lthy);
-
-        (*transforms defined frees into consts*)
-        val phi = Proof_Context.export_morphism lthy_old lthy;
-        val bnf_pred = Morphism.term phi bnf_pred_term;
-
-        fun mk_bnf_pred QTs CA' CB' = normalize_pred lthy QTs CA' CB' bnf_pred;
-
-        val pred = mk_bnf_pred QTs CA' CB';
-        val bnf_pred_def0 = Morphism.thm phi raw_pred_def;
-        val bnf_pred_def =
-          if fact_policy <> Derive_Some_Facts then
-            mk_unabs_def (live + 2) (bnf_pred_def0 RS meta_eq_to_obj_eq)
-          else
-            no_fact;
 
         fun mk_map_wppull () =
           let
@@ -1166,7 +1162,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                 I))
       end;
   in
-    (key, goals, wit_goalss, after_qed, lthy', one_step_defs)
+    (key, goals, wit_goalss, after_qed, lthy''', one_step_defs)
   end;
 
 fun register_bnf key (bnf, lthy) =
