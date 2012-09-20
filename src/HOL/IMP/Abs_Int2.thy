@@ -167,7 +167,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
    {bfilter b False I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI c = lpfp (step' \<top>\<^bsub>c\<^esub>) c"
+"AI c = pfp (step' \<top>\<^bsub>c\<^esub>) (bot c)"
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
@@ -231,13 +231,13 @@ qed (auto simp add: bfilter_in_L)
 
 theorem AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp (step' (top c)) c = Some C"
+  assume 1: "pfp (step' (top c)) (bot c) = Some C"
   have "C \<in> L(vars c)"
-    by(rule lpfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
+    by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
       (erule step'_in_L[OF _ top_in_L])
-  have 2: "step' (top c) C \<sqsubseteq> C" by(rule lpfpc_pfp[OF 1])
+  have 2: "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
   have 3: "strip (\<gamma>\<^isub>c (step' (top c) C)) = c"
-    by(simp add: strip_lpfp[OF _ 1])
+    by(simp add: strip_pfp[OF _ 1])
   have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' (top c) C)"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' (top c) C)) \<le> \<gamma>\<^isub>c (step' (top c) C)"

@@ -201,41 +201,28 @@ by(simp add: bot_def)
 
 subsubsection "Post-fixed point iteration"
 
-definition
-  pfp :: "(('a::preord) \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
+definition pfp :: "(('a::preord) \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
 "pfp f = while_option (\<lambda>x. \<not> f x \<sqsubseteq> x) f"
 
 lemma pfp_pfp: assumes "pfp f x0 = Some x" shows "f x \<sqsubseteq> x"
 using while_option_stop[OF assms[simplified pfp_def]] by simp
 
-lemma pfp_least:
-assumes mono: "\<And>x y. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-and "f p \<sqsubseteq> p" and "x0 \<sqsubseteq> p" and "pfp f x0 = Some x" shows "x \<sqsubseteq> p"
-proof-
-  { fix x assume "x \<sqsubseteq> p"
-    hence  "f x \<sqsubseteq> f p" by(rule mono)
-    from this `f p \<sqsubseteq> p` have "f x \<sqsubseteq> p" by(rule le_trans)
-  }
-  thus "x \<sqsubseteq> p" using assms(2-) while_option_rule[where P = "%x. x \<sqsubseteq> p"]
-    unfolding pfp_def by blast
-qed
+lemma while_least:
+assumes "\<forall>x\<in>L.\<forall>y\<in>L. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y" and "\<forall>x. x \<in> L \<longrightarrow> f x \<in> L"
+and "\<forall>x \<in> L. b \<sqsubseteq> x" and "b \<in> L" and "f q \<sqsubseteq> q" and "q \<in> L"
+and "while_option P f b = Some p"
+shows "p \<sqsubseteq> q"
+using while_option_rule[OF _  assms(7)[unfolded pfp_def],
+                        where P = "%x. x \<in> L \<and> x \<sqsubseteq> q"]
+by (metis assms(1-6) le_trans)
 
-definition
- lpfp :: "('a::preord option acom \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option"
-where "lpfp f c = pfp f (bot c)"
-
-lemma lpfpc_pfp: "lpfp f c = Some p \<Longrightarrow> f p \<sqsubseteq> p"
-by(simp add: pfp_pfp lpfp_def)
+lemma pfp_inv:
+  "pfp f x = Some y \<Longrightarrow> (\<And>x. P x \<Longrightarrow> P(f x)) \<Longrightarrow> P x \<Longrightarrow> P y"
+unfolding pfp_def by (metis (lifting) while_option_rule)
 
 lemma strip_pfp:
 assumes "\<And>x. g(f x) = g x" and "pfp f x0 = Some x" shows "g x = g x0"
-using assms while_option_rule[where P = "%x. g x = g x0" and c = f]
-unfolding pfp_def by metis
-
-lemma strip_lpfp: assumes "\<And>C. strip(f C) = strip C" and "lpfp f c = Some C"
-shows "strip C = c"
-using assms(1) strip_pfp[OF _ assms(2)[simplified lpfp_def]]
-by(metis strip_bot)
+using pfp_inv[OF assms(2), where P = "%x. g x = g x0"] assms(1) by simp
 
 
 subsection "Abstract Interpretation"
@@ -281,7 +268,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
   {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI = lpfp (step' \<top>)"
+"AI c = pfp (step' \<top>) (bot c)"
 
 
 lemma strip_step'[simp]: "strip(step' S C) = strip C"
@@ -361,10 +348,10 @@ qed
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp (step' \<top>) c = Some C"
-  have 2: "step' \<top> C \<sqsubseteq> C" by(rule lpfpc_pfp[OF 1])
+  assume 1: "pfp (step' \<top>) (bot c) = Some C"
+  have 2: "step' \<top> C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
   have 3: "strip (\<gamma>\<^isub>c (step' \<top> C)) = c"
-    by(simp add: strip_lpfp[OF _ 1])
+    by(simp add: strip_pfp[OF _ 1])
   have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top> C)"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' \<top> C)) \<le> \<gamma>\<^isub>c (step' \<top> C)"

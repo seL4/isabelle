@@ -34,12 +34,6 @@ by(induction C) auto
 lemma post_in_L[simp]: "C \<in> L X \<Longrightarrow> post C \<in> L X"
 by(simp add: L_acom_def post_in_annos)
 
-lemma lpfp_inv:
-assumes "lpfp f x0 = Some x" and "\<And>x. P x \<Longrightarrow> P(f x)" and "P(bot x0)"
-shows "P x"
-using assms unfolding lpfp_def pfp_def
-by (metis (lifting) while_option_rule)
-
 
 subsection "Computable Abstract Interpretation"
 
@@ -77,7 +71,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
    {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI c = lpfp (step' (top c)) c"
+"AI c = pfp (step' (top c)) (bot c)"
 
 
 lemma strip_step'[simp]: "strip(step' S C) = strip C"
@@ -139,13 +133,13 @@ qed auto
 
 theorem AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "lpfp (step' (top c)) c = Some C"
+  assume 1: "pfp (step' (top c)) (bot c) = Some C"
   have "C \<in> L(vars c)"
-    by(rule lpfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
+    by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
       (erule step'_in_L[OF _ top_in_L])
-  have 2: "step' (top c) C \<sqsubseteq> C" by(rule lpfpc_pfp[OF 1])
+  have 2: "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
   have 3: "strip (\<gamma>\<^isub>c (step' (top c) C)) = c"
-    by(simp add: strip_lpfp[OF _ 1])
+    by(simp add: strip_pfp[OF _ 1])
   have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' (top c) C)"
   proof(rule lfp_lowerbound[simplified,OF 3])
     show "step UNIV (\<gamma>\<^isub>c (step' (top c) C)) \<le> \<gamma>\<^isub>c (step' (top c) C)"
@@ -187,6 +181,21 @@ lemma mono_step'_top: "C \<in> L(vars c) \<Longrightarrow> C' \<in> L(vars c) \<
   C \<sqsubseteq> C' \<Longrightarrow> step' (top c) C \<sqsubseteq> step' (top c) C'"
 by (metis top_in_L mono_step' preord_class.le_refl)
 
+lemma pfp_bot_least:
+assumes "\<forall>x\<in>L(vars c)\<inter>{C. strip C = c}.\<forall>y\<in>L(vars c)\<inter>{C. strip C = c}.
+  x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y"
+and "\<forall>C. C \<in> L(vars c)\<inter>{C. strip C = c} \<longrightarrow> f C \<in> L(vars c)\<inter>{C. strip C = c}"
+and "f C' \<sqsubseteq> C'" "strip C' = c" "C' \<in> L(vars c)" "pfp f (bot c) = Some C"
+shows "C \<sqsubseteq> C'"
+apply(rule while_least[OF assms(1,2) _ _ assms(3) _ assms(6)[unfolded pfp_def]])
+by (simp_all add: assms(4,5) bot_least)
+
+lemma AI_least_pfp: assumes "AI c = Some C"
+and "step' (top c) C' \<sqsubseteq> C'" "strip C' = c" "C' \<in> L(vars c)"
+shows "C \<sqsubseteq> C'"
+apply(rule pfp_bot_least[OF _ _ assms(2-4) assms(1)[unfolded AI_def]])
+by (simp_all add: mono_step'_top)
+
 end
 
 
@@ -200,7 +209,7 @@ fixes x0 :: "'a::preord" and m :: "'a \<Rightarrow> nat"
 assumes mono: "\<And>x y. I x \<Longrightarrow> I y \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
 and m: "\<And>x y. I x \<Longrightarrow> I y \<Longrightarrow> x \<sqsubset> y \<Longrightarrow> m x > m y"
 and I: "\<And>x y. I x \<Longrightarrow> I(f x)" and "I x0" and "x0 \<sqsubseteq> f x0"
-shows "EX x. pfp f x0 = Some x"
+shows "\<exists>x. pfp f x0 = Some x"
 proof(simp add: pfp_def, rule wf_while_option_Some[where P = "%x. I x & x \<sqsubseteq> f x"])
   show "wf {(y,x). ((I x \<and> x \<sqsubseteq> f x) \<and> \<not> f x \<sqsubseteq> x) \<and> y = f x}"
     by(rule wf_subset[OF wf_measure[of m]]) (auto simp: m I)
@@ -210,18 +219,6 @@ next
   fix x assume "I x \<and> x \<sqsubseteq> f x" thus "I(f x) \<and> f x \<sqsubseteq> f(f x)"
     by (blast intro: I mono)
 qed
-
-lemma lpfp_termination:
-fixes f :: "'a::preord option acom \<Rightarrow> 'a option acom"
-and m :: "'a option acom \<Rightarrow> nat" and I :: "'a option acom \<Rightarrow> bool"
-assumes "\<And>x y. I x \<Longrightarrow> I y \<Longrightarrow> x \<sqsubset> y \<Longrightarrow> m x > m y"
-and "\<And>x y. I x \<Longrightarrow> I y \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
-and "\<And>x y. I x \<Longrightarrow> I(f x)" and "I(bot c)"
-and "\<And>C. strip (f C) = strip C"
-shows "\<exists>c'. lpfp f c = Some c'"
-unfolding lpfp_def
-by(fastforce intro: pfp_termination[where I=I and m=m] assms bot_least
-   simp: assms(5))
 
 
 locale Abs_Int_measure =
@@ -329,9 +326,9 @@ qed
 
 lemma AI_Some_measure: "\<exists>C. AI c = Some C"
 unfolding AI_def
-apply(rule lpfp_termination[where I = "%C. strip C = c \<and> C \<in> L(vars c)"
+apply(rule pfp_termination[where I = "%C. strip C = c \<and> C \<in> L(vars c)"
   and m="m_c"])
-apply(simp_all add: m_c2 mono_step'_top)
+apply(simp_all add: m_c2 mono_step'_top bot_least)
 done
 
 end
