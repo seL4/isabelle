@@ -9,8 +9,7 @@ signature BNF_FP_SUGAR_TACTICS =
 sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coiter_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
-  val mk_coiter_like_iff_tac: Proof.context -> int -> int -> thm list -> thm list ->
-    thm list list -> tactic
+  val mk_disc_coiter_like_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
@@ -71,13 +70,13 @@ fun mk_inject_tac ctxt ctr_def fld_inject =
   unfold_defs_tac ctxt [ctr_def] THEN rtac (fld_inject RS ssubst) 1 THEN
   unfold_defs_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
-val iter_like_thms =
+val iter_like_unfold_thms =
   @{thms case_unit comp_def convol_def id_apply map_pair_def sum.simps(5,6) sum_map.simps
       split_conv};
 
 fun mk_iter_like_tac pre_map_defs map_ids iter_like_defs fld_iter_like ctr_def ctxt =
   unfold_defs_tac ctxt (ctr_def :: fld_iter_like :: iter_like_defs @ pre_map_defs @ map_ids @
-    iter_like_thms) THEN unfold_defs_tac ctxt @{thms id_def} THEN rtac refl 1;
+    iter_like_unfold_thms) THEN unfold_defs_tac ctxt @{thms id_def} THEN rtac refl 1;
 
 val coiter_like_ss = ss_only @{thms if_True if_False};
 val coiter_like_unfold_thms = @{thms id_apply map_pair_def sum_map.simps prod.cases};
@@ -89,13 +88,12 @@ fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def 
   unfold_defs_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
 
-fun mk_coiter_like_iff_tac ctxt n k case_splits' coiter_like_thms distinctss =
-  EVERY (map4 (fn k' => fn case_split_tac => fn coiter_like_thm => fn distincts =>
-      case_split_tac 1 THEN
-      unfold_defs_tac ctxt [coiter_like_thm] THEN
+fun mk_disc_coiter_like_iff_tac case_splits' coiter_likes discs ctxt =
+  EVERY (map3 (fn case_split_tac => fn coiter_like_thm => fn disc =>
+      case_split_tac 1 THEN unfold_defs_tac ctxt [coiter_like_thm] THEN
       asm_simp_tac (ss_only @{thms simp_thms(7,8,12,14,22,24)}) 1 THEN
-      (if k' = k then all_tac else rtac (the_single distincts) 1))
-    (1 upto n) (map rtac case_splits' @ [K all_tac]) coiter_like_thms distinctss);
+      (if is_refl disc then all_tac else rtac disc 1))
+    (map rtac case_splits' @ [K all_tac]) coiter_likes discs);
 
 val solve_prem_prem_tac =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'
@@ -109,8 +107,7 @@ val induct_prem_prem_thms =
 
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs =
   EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-     SELECT_GOAL (unfold_defs_tac ctxt
-       (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
+     SELECT_GOAL (unfold_defs_tac ctxt (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
      solve_prem_prem_tac]) (rev kks)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k kks =

@@ -43,47 +43,40 @@ fun mk_alternate_disc_def_tac ctxt k other_disc_def distinct exhaust' =
     (([etac notE, REPEAT_DETERM o rtac exI, atac], [REPEAT_DETERM o rtac exI, atac])
      |> k = 1 ? swap |> op @)) 1;
 
-fun mk_half_disc_exclude_tac m discD disc'_thm =
-  (dtac discD THEN'
-   REPEAT_DETERM_N m o etac exE THEN'
-   hyp_subst_tac THEN'
-   rtac disc'_thm) 1;
+fun mk_half_disc_exclude_tac m discD disc' =
+  (dtac discD THEN' REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac THEN' rtac disc') 1;
 
-fun mk_other_half_disc_exclude_tac half_thm =
-  (etac @{thm contrapos_pn} THEN' etac half_thm) 1;
+fun mk_other_half_disc_exclude_tac half = (etac @{thm contrapos_pn} THEN' etac half) 1;
 
 fun mk_disc_exhaust_tac n exhaust discIs =
   (rtac exhaust THEN'
    EVERY' (map2 (fn k => fn discI =>
      dtac discI THEN' select_prem_tac n (etac @{thm meta_mp}) k THEN' atac) (1 upto n) discIs)) 1;
 
-fun mk_collapse_tac ctxt m discD sel_thms =
+fun mk_collapse_tac ctxt m discD sels =
   (dtac discD THEN'
    (if m = 0 then
       atac
     else
-      REPEAT_DETERM_N m o etac exE THEN'
-      hyp_subst_tac THEN'
-      SELECT_GOAL (unfold_defs_tac ctxt sel_thms) THEN'
-      rtac refl)) 1;
+      REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac THEN'
+      SELECT_GOAL (unfold_defs_tac ctxt sels) THEN' rtac refl)) 1;
 
-fun mk_case_eq_tac ctxt n exhaust' case_thms disc_thmss' sel_thmss =
+fun mk_case_eq_tac ctxt n exhaust' cases discss' selss =
   (rtac exhaust' THEN'
-   EVERY' (map3 (fn case_thm => fn if_disc_thms => fn sel_thms =>
-       EVERY' [hyp_subst_tac, SELECT_GOAL (unfold_defs_tac ctxt (if_disc_thms @ sel_thms)),
-         rtac case_thm])
-     case_thms (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) disc_thmss') sel_thmss)) 1;
+   EVERY' (map3 (fn casex => fn if_discs => fn sels =>
+       EVERY' [hyp_subst_tac, SELECT_GOAL (unfold_defs_tac ctxt (if_discs @ sels)), rtac casex])
+     cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss)) 1;
 
-fun mk_case_cong_tac exhaust' case_thms =
+fun mk_case_cong_tac exhaust' cases =
   (rtac exhaust' THEN'
-   EVERY' (maps (fn case_thm => [dtac sym, asm_simp_tac (ss_only [case_thm])]) case_thms)) 1;
+   EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex])]) cases)) 1;
 
 val naked_ctxt = Proof_Context.init_global @{theory HOL};
 
-fun mk_split_tac exhaust' case_thms injectss distinctsss =
+fun mk_split_tac exhaust' cases injectss distinctsss =
   rtac exhaust' 1 THEN
   ALLGOALS (fn k => (hyp_subst_tac THEN'
-     simp_tac (ss_only (@{thms simp_thms} @ case_thms @ nth injectss (k - 1) @
+     simp_tac (ss_only (@{thms simp_thms} @ cases @ nth injectss (k - 1) @
        flat (nth distinctsss (k - 1))))) k) THEN
   ALLGOALS (blast_tac naked_ctxt);
 

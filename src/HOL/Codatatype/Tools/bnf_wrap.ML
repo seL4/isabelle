@@ -9,11 +9,13 @@ signature BNF_WRAP =
 sig
   val mk_half_pairss: 'a list -> ('a * 'a) list list
   val mk_ctr: typ list -> term -> term
+  val mk_disc_or_sel: typ list -> term -> term
   val base_name_of_ctr: term -> string
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((bool * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
-    (term list list * thm list * thm list * thm list * thm list * thm list list) * local_theory
+    (term list * term list list * thm list * thm list * thm list * thm list list * thm list *
+     thm list list) * local_theory
   val parse_wrap_options: bool parser
   val parse_bound_term: (binding * string) parser
 end;
@@ -69,6 +71,9 @@ fun mk_ctr Ts ctr =
   let val Type (_, Ts0) = body_type (fastype_of ctr) in
     Term.subst_atomic_types (Ts0 ~~ Ts) ctr
   end;
+
+fun mk_disc_or_sel Ts t =
+  Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
 fun base_name_of_ctr c =
   Long_Name.base_name (case head_of c of
@@ -279,9 +284,6 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           val discs0 = map (Morphism.term phi) raw_discs;
           val selss0 = unflat_selss (map (Morphism.term phi) raw_sels);
 
-          fun mk_disc_or_sel Ts c =
-            Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of c))) ~~ Ts) c;
-
           val discs = map (mk_disc_or_sel As) discs0;
           val selss = map (map (mk_disc_or_sel As)) selss0;
         in
@@ -295,7 +297,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         fold_rev Logic.all [p, v] (mk_imp_p (map2 mk_prem xctrs xss))
       end;
 
-    val injectss_goal =
+    val inject_goalss =
       let
         fun mk_goal _ _ [] [] = []
           | mk_goal xctr yctr xs ys =
@@ -305,7 +307,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         map4 mk_goal xctrs yctrs xss yss
       end;
 
-    val half_distinctss_goal =
+    val half_distinct_goalss =
       let
         fun mk_goal ((xs, xc), (xs', xc')) =
           fold_rev Logic.all (xs @ xs')
@@ -318,7 +320,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       map3 (fn xs => fn xctr => fn xf =>
         fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (fcase $ xctr, xf))) xss xctrs xfs;
 
-    val goalss = [exhaust_goal] :: injectss_goal @ half_distinctss_goal @ [cases_goal];
+    val goalss = [exhaust_goal] :: inject_goalss @ half_distinct_goalss @ [cases_goal];
 
     fun after_qed thmss lthy =
       let
@@ -352,10 +354,10 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
 
-        val (all_sel_thms, sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms,
-             collapse_thms, case_eq_thms) =
+        val (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
+             disc_exhaust_thms, collapse_thms, case_eq_thms) =
           if no_dests then
-            ([], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [])
           else
             let
               fun make_sel_thm xs' case_thm sel_def =
@@ -444,16 +446,16 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     val infos = ms ~~ discD_thms ~~ discs ~~ no_discs;
                     val half_pairss = mk_half_pairss infos;
 
-                    val halvess_goal = map mk_goal half_pairss;
+                    val half_goalss = map mk_goal half_pairss;
                     val half_thmss =
                       map3 (fn [] => K (K []) | [goal] => fn [((((m, discD), _), _), _)] =>
                           fn disc_thm => [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
-                        halvess_goal half_pairss (flat disc_thmss');
+                        half_goalss half_pairss (flat disc_thmss');
 
-                    val other_halvess_goal = map (mk_goal o map swap) half_pairss;
+                    val other_half_goalss = map (mk_goal o map swap) half_pairss;
                     val other_half_thmss =
                       map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
-                        other_halvess_goal;
+                        other_half_goalss;
                   in
                     interleave (flat half_thmss) (flat other_half_thmss)
                   end;
@@ -508,8 +510,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     |> Proof_Context.export names_lthy lthy
                   end;
             in
-              (all_sel_thms, sel_thmss, disc_thms, discI_thms, disc_exclude_thms, disc_exhaust_thms,
-               collapse_thms, case_eq_thms)
+              (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
+               disc_exhaust_thms, collapse_thms, case_eq_thms)
             end;
 
         val (case_cong_thm, weak_case_cong_thm) =
@@ -586,7 +588,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ((selss, inject_thms, distinct_thms, case_thms, discI_thms, sel_thmss),
+        ((discs, selss, inject_thms, distinct_thms, case_thms, disc_thmss, discI_thms, sel_thmss),
          lthy |> Local_Theory.notes (notes' @ notes) |> snd)
       end;
   in

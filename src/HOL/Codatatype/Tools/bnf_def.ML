@@ -77,7 +77,6 @@ sig
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
   val wits_of_bnf: BNF -> nonemptiness_witness list
 
-  val no_reflexive: thm list -> thm list
   val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a -> 'a list
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
@@ -512,13 +511,6 @@ fun user_policy policy ctxt =
   if Config.get ctxt bnf_note_all then Note_All_Facts_and_Axioms else policy;
 
 val smart_max_inline_size = 25; (*FUDGE*)
-
-fun is_refl thm =
-  op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm)))
-  handle TERM _ => false;
-
-val no_refl = filter_out is_refl;
-val no_reflexive = filter_out Thm.is_reflexive;
 
 
 (* Define new BNFs *)

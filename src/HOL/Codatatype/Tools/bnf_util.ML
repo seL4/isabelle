@@ -125,6 +125,10 @@ sig
   val mk_trans: thm -> thm -> thm
   val mk_unabs_def: int -> thm -> thm
 
+  val is_refl: thm -> bool
+  val no_refl: thm list -> thm list
+  val no_reflexive: thm list -> thm list
+
   val fold_defs: Proof.context -> thm list -> thm -> thm
   val unfold_defs: Proof.context -> thm list -> thm -> thm
 
@@ -591,6 +595,13 @@ fun seq_conds f n k xs =
 
 fun mk_unabs_def 0 thm = thm
   | mk_unabs_def n thm = mk_unabs_def (n - 1) thm RS @{thm spec[OF iffD1[OF fun_eq_iff]]};
+
+fun is_refl thm =
+  op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm)))
+  handle TERM _ => false;
+
+val no_refl = filter_out is_refl;
+val no_reflexive = filter_out Thm.is_reflexive;
 
 fun fold_defs ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
 fun unfold_defs ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
