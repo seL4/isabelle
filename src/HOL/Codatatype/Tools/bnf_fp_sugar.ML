@@ -663,6 +663,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val induct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names induct_cases));
         fun induct_type_attr T_name = Attrib.internal (K (Induct.induct_type T_name));
 
+        (* TODO: Also note "recs", "simps", and "splits" if "nn > 1" (for compatibility with the
+           old package)? *)
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], [induct_case_names_attr])] else [])
           |> map (fn (thmN, thms, attrs) =>

@@ -73,29 +73,6 @@ by (rule card_of_Card_order)
 lemma DEADID_pred[simp]: "DEADID_pred = (op =)"
 unfolding DEADID_pred_def DEADID.rel_Id by simp
 
-ML {*
-signature BASIC_BNFS =
-sig
-  val ID_bnf: BNF_Def.BNF
-  val ID_rel_def: thm
-  val ID_pred_def: thm
-
-  val DEADID_bnf: BNF_Def.BNF
-end;
-
-structure Basic_BNFs : BASIC_BNFS =
-struct
-
-val ID_bnf = the (BNF_Def.bnf_of @{context} "Basic_BNFs.ID");
-val DEADID_bnf = the (BNF_Def.bnf_of @{context} "Basic_BNFs.DEADID");
-
-val rel_def = BNF_Def.rel_def_of_bnf ID_bnf;
-val ID_rel_def = rel_def RS sym;
-val ID_pred_def = Local_Defs.unfold @{context} [rel_def] (BNF_Def.pred_def_of_bnf ID_bnf) RS sym;
-
-end;
-*}
-
 definition sum_setl :: "'a + 'b \<Rightarrow> 'a set" where
 "sum_setl x = (case x of Inl z => {z} | _ => {})"
 
