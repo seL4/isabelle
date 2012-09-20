@@ -162,15 +162,13 @@ final class Markup_Tree private(branches: Markup_Tree.Branches.T)
       List((Text.Info(root_range, root_info), overlapping(root_range).toStream)))
   }
 
-  def swing_tree(parent: DefaultMutableTreeNode)
-    (swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
+  def swing_tree(parent: DefaultMutableTreeNode,
+    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
   {
     for ((_, entry) <- branches) {
-      var current = parent
       val node = swing_node(Text.Info(entry.range, entry.markup))
-      current.add(node)
-      current = node
-      entry.subtree.swing_tree(current)(swing_node)
+      entry.subtree.swing_tree(node, swing_node)
+      parent.add(node)
     }
   }
 }

@@ -73,7 +73,7 @@ object XML
 
   private def make_content(body: Body, record_markup: Boolean): (String, Markup_Tree) =
   {
-    var text = new StringBuilder
+    val text = new StringBuilder
     var markup_tree = Markup_Tree.empty
 
     def traverse(tree: Tree): Unit =
