@@ -126,7 +126,7 @@ struct
 
 open BNF_Tactics
 open BNF_Util
-open BNF_FP_Util
+open BNF_FP
 open BNF_GFP_Util
 
 val Pair_eq_subst_id = @{thm Pair_eq[THEN subst, of "%x. x"]};

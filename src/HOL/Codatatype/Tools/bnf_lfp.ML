@@ -20,7 +20,7 @@ struct
 open BNF_Def
 open BNF_Util
 open BNF_Tactics
-open BNF_FP_Util
+open BNF_FP
 open BNF_FP_Sugar
 open BNF_LFP_Util
 open BNF_LFP_Tactics

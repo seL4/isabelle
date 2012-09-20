@@ -1,11 +1,11 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_fp_util.ML
+(*  Title:      HOL/Codatatype/Tools/bnf_fp.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 
 Shared library for the datatype and codatatype constructions.
 *)
 
-signature BNF_FP_UTIL =
+signature BNF_FP =
 sig
   val time: Timer.real_timer -> string -> Timer.real_timer
 
@@ -142,7 +142,7 @@ sig
     binding list * (string list * string list) -> local_theory -> 'a
 end;
 
-structure BNF_FP_Util : BNF_FP_UTIL =
+structure BNF_FP : BNF_FP =
 struct
 
 open BNF_Comp

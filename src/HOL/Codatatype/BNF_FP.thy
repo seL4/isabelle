@@ -119,7 +119,7 @@ lemma sum_set_simps:
 "setr (Inr x) = {x}"
 unfolding sum_set_defs by simp+
 
-ML_file "Tools/bnf_fp_util.ML"
+ML_file "Tools/bnf_fp.ML"
 ML_file "Tools/bnf_fp_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_sugar.ML"
 

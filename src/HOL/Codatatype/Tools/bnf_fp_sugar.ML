@@ -29,7 +29,7 @@ struct
 open BNF_Util
 open BNF_Wrap
 open BNF_Def
-open BNF_FP_Util
+open BNF_FP
 open BNF_FP_Sugar_Tactics
 
 val simp_attrs = @{attributes [simp]};

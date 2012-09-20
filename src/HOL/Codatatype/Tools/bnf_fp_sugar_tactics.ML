@@ -24,7 +24,7 @@ struct
 
 open BNF_Tactics
 open BNF_Util
-open BNF_FP_Util
+open BNF_FP
 
 val meta_mp = @{thm meta_mp};
 val meta_spec = @{thm meta_spec};
