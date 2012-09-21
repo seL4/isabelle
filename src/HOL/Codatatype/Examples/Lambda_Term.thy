@@ -46,10 +46,10 @@ unfolding pre_trm_map_def collect_def[abs_def] map_pair_def by auto
 
 subsection{* Constructors *}
 
-definition "Var x \<equiv> trm_fld (Inl x)"
-definition "App t1 t2 \<equiv> trm_fld (Inr (Inl (t1,t2)))"
-definition "Lam x t \<equiv> trm_fld (Inr (Inr (Inl (x,t))))"
-definition "Lt xts t \<equiv> trm_fld (Inr (Inr (Inr (xts,t))))"
+definition "Var x \<equiv> trm_ctor (Inl x)"
+definition "App t1 t2 \<equiv> trm_ctor (Inr (Inl (t1,t2)))"
+definition "Lam x t \<equiv> trm_ctor (Inr (Inr (Inl (x,t))))"
+definition "Lt xts t \<equiv> trm_ctor (Inr (Inr (Inr (xts,t))))"
 
 lemmas ctor_defs = Var_def App_def Lam_def Lt_def
 
@@ -62,7 +62,7 @@ theorem trm_simps[simp]:
 "\<And> x t1 t2. Var x \<noteq> App t1 t2"  "\<And>x y t. Var x \<noteq> Lam y t"  "\<And> x xts t. Var x \<noteq> Lt xts t"
 "\<And> t1 t2 x t. App t1 t2 \<noteq> Lam x t"  "\<And> t1 t2 xts t. App t1 t2 \<noteq> Lt xts t"
 "\<And>x t xts t1. Lam x t \<noteq> Lt xts t1"
-unfolding ctor_defs trm.fld_inject by auto
+unfolding ctor_defs trm.ctor_inject by auto
 
 theorem trm_cases[elim, case_names Var App Lam Lt]:
 assumes Var: "\<And> x. t = Var x \<Longrightarrow> phi"
@@ -70,8 +70,8 @@ and App: "\<And> t1 t2. t = App t1 t2 \<Longrightarrow> phi"
 and Lam: "\<And> x t1. t = Lam x t1 \<Longrightarrow> phi"
 and Lt: "\<And> xts t1. t = Lt xts t1 \<Longrightarrow> phi"
 shows phi
-proof(cases rule: trm.fld_exhaust[of t])
-  fix x assume "t = trm_fld x"
+proof(cases rule: trm.ctor_exhaust[of t])
+  fix x assume "t = trm_ctor x"
   thus ?thesis
   apply(cases x) using Var unfolding ctor_defs apply blast
   apply(case_tac b) using App unfolding ctor_defs apply(case_tac a, blast)
@@ -85,10 +85,10 @@ and App: "\<And> t1 t2. \<lbrakk>phi t1; phi t2\<rbrakk> \<Longrightarrow> phi (
 and Lam: "\<And> x t. phi t \<Longrightarrow> phi (Lam x t)"
 and Lt: "\<And> xts t. \<lbrakk>\<And> x1 t1. (x1,t1) |\<in>| xts \<Longrightarrow> phi t1; phi t\<rbrakk> \<Longrightarrow> phi (Lt xts t)"
 shows "phi t"
-proof(induct rule: trm.fld_induct)
+proof(induct rule: trm.ctor_induct)
   fix u :: "'a + 'a trm \<times> 'a trm + 'a \<times> 'a trm + ('a \<times> 'a trm) fset \<times> 'a trm"
   assume IH: "\<And>t. t \<in> pre_trm_set2 u \<Longrightarrow> phi t"
-  show "phi (trm_fld u)"
+  show "phi (trm_ctor u)"
   proof(cases u)
     case (Inl x)
     show ?thesis using Var unfolding Var_def Inl .
@@ -119,7 +119,7 @@ proof(induct rule: trm.fld_induct)
 qed
 
 
-subsection{* Recursion and iteration *}
+subsection{* Recursion and iteration (fold) *}
 
 definition
 "sumJoin4 f1 f2 f3 f4 \<equiv>
@@ -137,25 +137,25 @@ lemma sumJoin4_simps[simp]:
 "\<And> xtas t a. sumJoin4 var app lam lt (Inr (Inr (Inr (xtas,(t,a))))) = lt xtas t a"
 unfolding sumJoin4_def by auto
 
-definition "trmrec var app lam lt \<equiv> trm_fld_rec (sumJoin4 var app lam lt)"
+definition "trmrec var app lam lt \<equiv> trm_ctor_rec (sumJoin4 var app lam lt)"
 
 lemma trmrec_Var[simp]:
 "trmrec var app lam lt (Var x) = var x"
-unfolding trmrec_def Var_def trm.fld_recs pre_trm_map(1) by simp
+unfolding trmrec_def Var_def trm.ctor_recs pre_trm_map(1) by simp
 
 lemma trmrec_App[simp]:
 "trmrec var app lam lt (App t1 t2) =
  app t1 (trmrec var app lam lt t1) t2 (trmrec var app lam lt t2)"
-unfolding trmrec_def App_def trm.fld_recs pre_trm_map(2) convol_def by simp
+unfolding trmrec_def App_def trm.ctor_recs pre_trm_map(2) convol_def by simp
 
 lemma trmrec_Lam[simp]:
 "trmrec var app lam lt (Lam x t) = lam x t (trmrec var app lam lt t)"
-unfolding trmrec_def Lam_def trm.fld_recs pre_trm_map(3) convol_def by simp
+unfolding trmrec_def Lam_def trm.ctor_recs pre_trm_map(3) convol_def by simp
 
 lemma trmrec_Lt[simp]:
 "trmrec var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,t,trmrec var app lam lt t)) xts) t (trmrec var app lam lt t)"
-unfolding trmrec_def Lt_def trm.fld_recs pre_trm_map(4) convol_def by simp
+unfolding trmrec_def Lt_def trm.ctor_recs pre_trm_map(4) convol_def by simp
 
 definition
 "sumJoinI4 f1 f2 f3 f4 \<equiv>
@@ -174,30 +174,30 @@ lemma sumJoinI4_simps[simp]:
 unfolding sumJoinI4_def by auto
 
 (* The iterator has a simpler, hence more manageable type. *)
-definition "trmiter var app lam lt \<equiv> trm_fld_iter (sumJoinI4 var app lam lt)"
+definition "trmfold var app lam lt \<equiv> trm_ctor_fold (sumJoinI4 var app lam lt)"
 
-lemma trmiter_Var[simp]:
-"trmiter var app lam lt (Var x) = var x"
-unfolding trmiter_def Var_def trm.fld_iters pre_trm_map(1) by simp
+lemma trmfold_Var[simp]:
+"trmfold var app lam lt (Var x) = var x"
+unfolding trmfold_def Var_def trm.ctor_folds pre_trm_map(1) by simp
 
-lemma trmiter_App[simp]:
-"trmiter var app lam lt (App t1 t2) =
- app (trmiter var app lam lt t1) (trmiter var app lam lt t2)"
-unfolding trmiter_def App_def trm.fld_iters pre_trm_map(2) by simp
+lemma trmfold_App[simp]:
+"trmfold var app lam lt (App t1 t2) =
+ app (trmfold var app lam lt t1) (trmfold var app lam lt t2)"
+unfolding trmfold_def App_def trm.ctor_folds pre_trm_map(2) by simp
 
-lemma trmiter_Lam[simp]:
-"trmiter var app lam lt (Lam x t) = lam x (trmiter var app lam lt t)"
-unfolding trmiter_def Lam_def trm.fld_iters pre_trm_map(3) by simp
+lemma trmfold_Lam[simp]:
+"trmfold var app lam lt (Lam x t) = lam x (trmfold var app lam lt t)"
+unfolding trmfold_def Lam_def trm.ctor_folds pre_trm_map(3) by simp
 
-lemma trmiter_Lt[simp]:
-"trmiter var app lam lt (Lt xts t) =
- lt (map_fset (\<lambda> (x,t). (x,trmiter var app lam lt t)) xts) (trmiter var app lam lt t)"
-unfolding trmiter_def Lt_def trm.fld_iters pre_trm_map(4) by simp
+lemma trmfold_Lt[simp]:
+"trmfold var app lam lt (Lt xts t) =
+ lt (map_fset (\<lambda> (x,t). (x,trmfold var app lam lt t)) xts) (trmfold var app lam lt t)"
+unfolding trmfold_def Lt_def trm.ctor_folds pre_trm_map(4) by simp
 
 
 subsection{* Example: The set of all variables varsOf and free variables fvarsOf of a term: *}
 
-definition "varsOf = trmiter
+definition "varsOf = trmfold
 (\<lambda> x. {x})
 (\<lambda> X1 X2. X1 \<union> X2)
 (\<lambda> x X. X \<union> {x})
@@ -211,7 +211,7 @@ lemma varsOf_simps[simp]:
  varsOf t \<union> (\<Union> { {x} \<union> X | x X. (x,X) |\<in>| map_fset (\<lambda> (x,t1). (x,varsOf t1)) xts})"
 unfolding varsOf_def by simp_all
 
-definition "fvarsOf = trmiter
+definition "fvarsOf = trmfold
 (\<lambda> x. {x})
 (\<lambda> X1 X2. X1 \<union> X2)
 (\<lambda> x X. X - {x})

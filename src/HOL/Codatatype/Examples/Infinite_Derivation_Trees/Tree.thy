@@ -2,16 +2,16 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Trees with nonterminal internal nodes and terminal leafs.
+Trees with nonterminal internal nodes and terminal leaves.
 *)
 
-header {* Trees with nonterminal internal nodes and terminal leafs *}
+header {* Trees with Nonterminal Internal Nodes and Terminal Leaves *}
 
 theory Tree
 imports Prelim
 begin
 
-hide_fact (open) Quotient_Product.prod_pred_def
+hide_fact (open) Quotient_Product.prod_rel_def
 
 typedecl N  typedecl T
 
@@ -20,7 +20,7 @@ codata_raw Tree: 'Tree = "N \<times> (T + 'Tree) fset"
 
 section {* Sugar notations for Tree *}
 
-subsection{* Setup for map, set, pred *}
+subsection{* Setup for map, set, rel *}
 
 (* These should be eventually inferred from compositionality *)
 
@@ -40,8 +40,8 @@ definition
  (\<forall> tr1. Inr tr1 \<in> fset as1 \<longrightarrow> (\<exists> tr2. Inr tr2 \<in> fset as2 \<and> \<phi> tr1 tr2)) \<and>
  (\<forall> tr2. Inr tr2 \<in> fset as2 \<longrightarrow> (\<exists> tr1. Inr tr1 \<in> fset as1 \<and> \<phi> tr1 tr2))"
 
-lemma pre_Tree_pred: "pre_Tree_pred \<phi> (n1,as1) (n2,as2) \<longleftrightarrow> n1 = n2 \<and> llift2 \<phi> as1 as2"
-unfolding llift2_def pre_Tree_pred_def sum_pred_def[abs_def] prod_pred_def fset_pred_def split_conv
+lemma pre_Tree_rel: "pre_Tree_rel \<phi> (n1,as1) (n2,as2) \<longleftrightarrow> n1 = n2 \<and> llift2 \<phi> as1 as2"
+unfolding llift2_def pre_Tree_rel_def sum_rel_def[abs_def] prod_rel_def fset_rel_def split_conv
 apply (auto split: sum.splits)
 apply (metis sumE)
 apply (metis sumE)
@@ -55,7 +55,7 @@ done
 subsection{* Constructors *}
 
 definition NNode :: "N \<Rightarrow> (T + Tree)fset \<Rightarrow> Tree"
-where "NNode n as \<equiv> Tree_fld (n,as)"
+where "NNode n as \<equiv> Tree_ctor (n,as)"
 
 lemmas ctor_defs = NNode_def
 
@@ -84,7 +84,7 @@ subsection {* Basic properties *}
 (* Constructors versus selectors *)
 lemma NNode_surj: "\<exists> n as. NNode n as = tr"
 unfolding NNode_def
-by (metis Tree.fld_unf pair_collapse)
+by (metis Tree.ctor_dtor pair_collapse)
 
 lemma NNode_asNNode:
 "NNode (fst (asNNode tr)) (snd (asNNode tr)) = tr"
@@ -101,13 +101,13 @@ using NNode_asNNode unfolding root_def ccont_def .
 (* Constructors *)
 theorem TTree_simps[simp]:
 "NNode n as = NNode n' as' \<longleftrightarrow> n = n' \<and> as = as'"
-unfolding ctor_defs Tree.fld_inject by auto
+unfolding ctor_defs Tree.ctor_inject by auto
 
 theorem TTree_cases[elim, case_names NNode Choice]:
 assumes NNode: "\<And> n as. tr = NNode n as \<Longrightarrow> phi"
 shows phi
-proof(cases rule: Tree.fld_exhaust[of tr])
-  fix x assume "tr = Tree_fld x"
+proof(cases rule: Tree.ctor_exhaust[of tr])
+  fix x assume "tr = Tree_ctor x"
   thus ?thesis
   apply(cases x)
     using NNode unfolding ctor_defs apply blast
@@ -130,13 +130,13 @@ NNode: "\<And> n1 n2 as1 as2.
           \<lbrakk>\<phi> (NNode n1 as1) (NNode n2 as2)\<rbrakk> \<Longrightarrow>
           n1 = n2 \<and> llift2 \<phi> as1 as2"
 shows "tr1 = tr2"
-apply(rule mp[OF Tree.pred_coinduct[of \<phi> tr1 tr2] phi]) proof clarify
+apply(rule mp[OF Tree.rel_coinduct[of \<phi> tr1 tr2] phi]) proof clarify
   fix tr1 tr2  assume \<phi>: "\<phi> tr1 tr2"
-  show "pre_Tree_pred \<phi> (Tree_unf tr1) (Tree_unf tr2)"
-  apply(cases rule: Tree.fld_exhaust[of tr1], cases rule: Tree.fld_exhaust[of tr2])
-  apply (simp add: Tree.unf_fld)
+  show "pre_Tree_rel \<phi> (Tree_dtor tr1) (Tree_dtor tr2)"
+  apply(cases rule: Tree.ctor_exhaust[of tr1], cases rule: Tree.ctor_exhaust[of tr2])
+  apply (simp add: Tree.dtor_ctor)
   apply(case_tac x, case_tac xa, simp)
-  unfolding pre_Tree_pred apply(rule NNode) using \<phi> unfolding NNode_def by simp
+  unfolding pre_Tree_rel apply(rule NNode) using \<phi> unfolding NNode_def by simp
 qed
 
 theorem TTree_coind[elim, consumes 1, case_names LLift]:
@@ -152,58 +152,58 @@ using LLift by (metis TTree_sel_ctor)
 subsection {* Coiteration *}
 
 (* Preliminaries: *)
-declare Tree.unf_fld[simp]
-declare Tree.fld_unf[simp]
+declare Tree.dtor_ctor[simp]
+declare Tree.ctor_dtor[simp]
 
-lemma Tree_unf_NNode[simp]:
-"Tree_unf (NNode n as) = (n,as)"
-unfolding NNode_def Tree.unf_fld ..
+lemma Tree_dtor_NNode[simp]:
+"Tree_dtor (NNode n as) = (n,as)"
+unfolding NNode_def Tree.dtor_ctor ..
 
-lemma Tree_unf_root_ccont:
-"Tree_unf tr = (root tr, ccont tr)"
+lemma Tree_dtor_root_ccont:
+"Tree_dtor tr = (root tr, ccont tr)"
 unfolding root_def ccont_def
-by (metis (lifting) NNode_asNNode Tree_unf_NNode)
+by (metis (lifting) NNode_asNNode Tree_dtor_NNode)
 
 (* Coiteration *)
-definition TTree_coit ::
+definition TTree_unfold ::
 "('b \<Rightarrow> N) \<Rightarrow> ('b \<Rightarrow> (T + 'b) fset) \<Rightarrow> 'b \<Rightarrow> Tree"
-where "TTree_coit rt ct \<equiv> Tree_unf_coiter <rt,ct>"
+where "TTree_unfold rt ct \<equiv> Tree_dtor_unfold <rt,ct>"
 
-lemma Tree_coit_coit:
-"Tree_unf_coiter s = TTree_coit (fst o s) (snd o s)"
+lemma Tree_unfold_unfold:
+"Tree_dtor_unfold s = TTree_unfold (fst o s) (snd o s)"
 apply(rule ext)
-unfolding TTree_coit_def by simp
+unfolding TTree_unfold_def by simp
 
-theorem TTree_coit:
-"root (TTree_coit rt ct b) = rt b"
-"ccont (TTree_coit rt ct b) = map_fset (id \<oplus> TTree_coit rt ct) (ct b)"
-using Tree.unf_coiters[of "<rt,ct>" b] unfolding Tree_coit_coit fst_convol snd_convol
+theorem TTree_unfold:
+"root (TTree_unfold rt ct b) = rt b"
+"ccont (TTree_unfold rt ct b) = map_fset (id \<oplus> TTree_unfold rt ct) (ct b)"
+using Tree.dtor_unfolds[of "<rt,ct>" b] unfolding Tree_unfold_unfold fst_convol snd_convol
 unfolding pre_Tree_map' fst_convol' snd_convol'
-unfolding Tree_unf_root_ccont by simp_all
+unfolding Tree_dtor_root_ccont by simp_all
 
-(* Corecursion, stronger than coiteration *)
+(* Corecursion, stronger than coiteration (unfold) *)
 definition TTree_corec ::
 "('b \<Rightarrow> N) \<Rightarrow> ('b \<Rightarrow> (T + (Tree + 'b)) fset) \<Rightarrow> 'b \<Rightarrow> Tree"
-where "TTree_corec rt ct \<equiv> Tree_unf_corec <rt,ct>"
+where "TTree_corec rt ct \<equiv> Tree_dtor_corec <rt,ct>"
 
-lemma Tree_unf_corec_corec:
-"Tree_unf_corec s = TTree_corec (fst o s) (snd o s)"
+lemma Tree_dtor_corec_corec:
+"Tree_dtor_corec s = TTree_corec (fst o s) (snd o s)"
 apply(rule ext)
 unfolding TTree_corec_def by simp
 
 theorem TTree_corec:
 "root (TTree_corec rt ct b) = rt b"
 "ccont (TTree_corec rt ct b) = map_fset (id \<oplus> ([[id, TTree_corec rt ct]]) ) (ct b)"
-using Tree.unf_corecs[of "<rt,ct>" b] unfolding Tree_unf_corec_corec fst_convol snd_convol
+using Tree.dtor_corecs[of "<rt,ct>" b] unfolding Tree_dtor_corec_corec fst_convol snd_convol
 unfolding pre_Tree_map' fst_convol' snd_convol'
-unfolding Tree_unf_root_ccont by simp_all
+unfolding Tree_dtor_root_ccont by simp_all
 
 
 subsection{* The characteristic theorems transported from fset to set *}
 
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"
-definition "coit rt ct \<equiv> TTree_coit rt (the_inv fset o ct)"
+definition "unfold rt ct \<equiv> TTree_unfold rt (the_inv fset o ct)"
 definition "corec rt ct \<equiv> TTree_corec rt (the_inv fset o ct)"
 
 definition lift ("_ ^#" 200) where
@@ -305,10 +305,10 @@ shows "tr1 = tr2"
 using phi apply(induct rule: TTree_coind)
 unfolding llift2_lift2 apply(rule Lift[unfolded cont_def comp_def]) .
 
-theorem coit:
-"root (coit rt ct b) = rt b"
-"finite (ct b) \<Longrightarrow> cont (coit rt ct b) = image (id \<oplus> coit rt ct) (ct b)"
-using TTree_coit[of rt "the_inv fset \<circ> ct" b] unfolding coit_def
+theorem unfold:
+"root (unfold rt ct b) = rt b"
+"finite (ct b) \<Longrightarrow> cont (unfold rt ct b) = image (id \<oplus> unfold rt ct) (ct b)"
+using TTree_unfold[of rt "the_inv fset \<circ> ct" b] unfolding unfold_def
 apply - apply metis
 unfolding cont_def comp_def
 by (metis (no_types) fset_to_fset map_fset_image)

@@ -14,49 +14,49 @@ begin
 
 data_raw listF: 'list = "unit + 'a \<times> 'list"
 
-definition "NilF = listF_fld (Inl ())"
-definition "Conss a as \<equiv> listF_fld (Inr (a, as))"
+definition "NilF = listF_ctor (Inl ())"
+definition "Conss a as \<equiv> listF_ctor (Inr (a, as))"
 
 lemma listF_map_NilF[simp]: "listF_map f NilF = NilF"
-unfolding listF_map_def pre_listF_map_def NilF_def listF.fld_iters by simp
+unfolding listF_map_def pre_listF_map_def NilF_def listF.ctor_folds by simp
 
 lemma listF_map_Conss[simp]:
   "listF_map f (Conss x xs) = Conss (f x) (listF_map f xs)"
-unfolding listF_map_def pre_listF_map_def Conss_def listF.fld_iters by simp
+unfolding listF_map_def pre_listF_map_def Conss_def listF.ctor_folds by simp
 
 lemma listF_set_NilF[simp]: "listF_set NilF = {}"
-unfolding listF_set_def NilF_def listF.fld_iters pre_listF_set1_def pre_listF_set2_def
+unfolding listF_set_def NilF_def listF.ctor_folds pre_listF_set1_def pre_listF_set2_def
   sum_set_defs pre_listF_map_def collect_def[abs_def] by simp
 
 lemma listF_set_Conss[simp]: "listF_set (Conss x xs) = {x} \<union> listF_set xs"
-unfolding listF_set_def Conss_def listF.fld_iters pre_listF_set1_def pre_listF_set2_def
+unfolding listF_set_def Conss_def listF.ctor_folds pre_listF_set1_def pre_listF_set2_def
   sum_set_defs prod_set_defs pre_listF_map_def collect_def[abs_def] by simp
 
-lemma iter_sum_case_NilF: "listF_fld_iter (sum_case f g) NilF = f ()"
-unfolding NilF_def listF.fld_iters pre_listF_map_def by simp
+lemma fold_sum_case_NilF: "listF_ctor_fold (sum_case f g) NilF = f ()"
+unfolding NilF_def listF.ctor_folds pre_listF_map_def by simp
 
 
-lemma iter_sum_case_Conss:
-  "listF_fld_iter (sum_case f g) (Conss y ys) = g (y, listF_fld_iter (sum_case f g) ys)"
-unfolding Conss_def listF.fld_iters pre_listF_map_def by simp
+lemma fold_sum_case_Conss:
+  "listF_ctor_fold (sum_case f g) (Conss y ys) = g (y, listF_ctor_fold (sum_case f g) ys)"
+unfolding Conss_def listF.ctor_folds pre_listF_map_def by simp
 
 (* familiar induction principle *)
 lemma listF_induct:
   fixes xs :: "'a listF"
   assumes IB: "P NilF" and IH: "\<And>x xs. P xs \<Longrightarrow> P (Conss x xs)"
   shows "P xs"
-proof (rule listF.fld_induct)
+proof (rule listF.ctor_induct)
   fix xs :: "unit + 'a \<times> 'a listF"
   assume raw_IH: "\<And>a. a \<in> pre_listF_set2 xs \<Longrightarrow> P a"
-  show "P (listF_fld xs)"
+  show "P (listF_ctor xs)"
   proof (cases xs)
     case (Inl a) with IB show ?thesis unfolding NilF_def by simp
   next
     case (Inr b)
-    then obtain y ys where yys: "listF_fld xs = Conss y ys"
-      unfolding Conss_def listF.fld_inject by (blast intro: prod.exhaust)
+    then obtain y ys where yys: "listF_ctor xs = Conss y ys"
+      unfolding Conss_def listF.ctor_inject by (blast intro: prod.exhaust)
     hence "ys \<in> pre_listF_set2 xs"
-      unfolding pre_listF_set2_def Conss_def listF.fld_inject sum_set_defs prod_set_defs
+      unfolding pre_listF_set2_def Conss_def listF.ctor_inject sum_set_defs prod_set_defs
         collect_def[abs_def] by simp
     with raw_IH have "P ys" by blast
     with IH have "P (Conss y ys)" by blast
@@ -65,27 +65,27 @@ proof (rule listF.fld_induct)
 qed
 
 rep_datatype NilF Conss
-by (blast intro: listF_induct) (auto simp add: NilF_def Conss_def listF.fld_inject)
+by (blast intro: listF_induct) (auto simp add: NilF_def Conss_def listF.ctor_inject)
 
 definition Singll ("[[_]]") where
   [simp]: "Singll a \<equiv> Conss a NilF"
 
 definition appendd (infixr "@@" 65) where
-  "appendd \<equiv> listF_fld_iter (sum_case (\<lambda> _. id) (\<lambda> (a,f) bs. Conss a (f bs)))"
+  "appendd \<equiv> listF_ctor_fold (sum_case (\<lambda> _. id) (\<lambda> (a,f) bs. Conss a (f bs)))"
 
-definition "lrev \<equiv> listF_fld_iter (sum_case (\<lambda> _. NilF) (\<lambda> (b,bs). bs @@ [[b]]))"
+definition "lrev \<equiv> listF_ctor_fold (sum_case (\<lambda> _. NilF) (\<lambda> (b,bs). bs @@ [[b]]))"
 
 lemma lrev_NilF[simp]: "lrev NilF = NilF"
-unfolding lrev_def by (simp add: iter_sum_case_NilF)
+unfolding lrev_def by (simp add: fold_sum_case_NilF)
 
 lemma lrev_Conss[simp]: "lrev (Conss y ys) = lrev ys @@ [[y]]"
-unfolding lrev_def by (simp add: iter_sum_case_Conss)
+unfolding lrev_def by (simp add: fold_sum_case_Conss)
 
 lemma NilF_appendd[simp]: "NilF @@ ys = ys"
-unfolding appendd_def by (simp add: iter_sum_case_NilF)
+unfolding appendd_def by (simp add: fold_sum_case_NilF)
 
 lemma Conss_append[simp]: "Conss x xs @@ ys = Conss x (xs @@ ys)"
-unfolding appendd_def by (simp add: iter_sum_case_Conss)
+unfolding appendd_def by (simp add: fold_sum_case_Conss)
 
 lemma appendd_NilF[simp]: "xs @@ NilF = xs"
 by (rule listF_induct) auto

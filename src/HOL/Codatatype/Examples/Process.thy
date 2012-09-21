@@ -11,7 +11,7 @@ theory Process
 imports "../Codatatype"
 begin
 
-hide_fact (open) Quotient_Product.prod_pred_def
+hide_fact (open) Quotient_Product.prod_rel_def
 
 codata 'a process =
   isAction: Action (prefOf: 'a) (contOf: "'a process") |
@@ -24,9 +24,9 @@ section {* Customization *}
 subsection {* Basic properties *}
 
 declare
-  pre_process_pred_def[simp]
-  sum_pred_def[simp]
-  prod_pred_def[simp]
+  pre_process_rel_def[simp]
+  sum_rel_def[simp]
+  prod_rel_def[simp]
 
 (* Constructors versus discriminators *)
 theorem isAction_isChoice:
@@ -45,61 +45,61 @@ iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow
 Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> \<phi> p p'" and
 Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> \<phi> p p' \<and> \<phi> q q'"
 shows "p = p'"
-proof(intro mp[OF process.pred_coinduct, of \<phi>, OF _ phi], clarify)
+proof(intro mp[OF process.rel_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
-  show "pre_process_pred (op =) \<phi> (process_unf p) (process_unf p')"
+  show "pre_process_rel (op =) \<phi> (process_dtor p) (process_dtor p')"
   proof(cases rule: process.exhaust[of p])
     case (Action a q) note p = Action
     hence "isAction p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
     then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process.exhaust[of p'], auto)
     have 0: "a = a' \<and> \<phi> q q'" using Act[OF \<phi>[unfolded p p']] .
-    have unf: "process_unf p = Inl (a,q)" "process_unf p' = Inl (a',q')"
-    unfolding p p' Action_def process.unf_fld by simp_all
-    show ?thesis using 0 unfolding unf by simp
+    have dtor: "process_dtor p = Inl (a,q)" "process_dtor p' = Inl (a',q')"
+    unfolding p p' Action_def process.dtor_ctor by simp_all
+    show ?thesis using 0 unfolding dtor by simp
   next
     case (Choice p1 p2) note p = Choice
     hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
     then obtain p1' p2' where p': "p' = Choice p1' p2'"
     by (cases rule: process.exhaust[of p'], auto)
     have 0: "\<phi> p1 p1' \<and> \<phi> p2 p2'" using Ch[OF \<phi>[unfolded p p']] .
-    have unf: "process_unf p = Inr (p1,p2)" "process_unf p' = Inr (p1',p2')"
-    unfolding p p' Choice_def process.unf_fld by simp_all
-    show ?thesis using 0 unfolding unf by simp
+    have dtor: "process_dtor p = Inr (p1,p2)" "process_dtor p' = Inr (p1',p2')"
+    unfolding p p' Choice_def process.dtor_ctor by simp_all
+    show ?thesis using 0 unfolding dtor by simp
   qed
 qed
 
 (* Stronger coinduction, up to equality: *)
-theorem process_coind_upto[elim, consumes 1, case_names iss Action Choice]:
+theorem process_strong_coind[elim, consumes 1, case_names iss Action Choice]:
 assumes phi: "\<phi> p p'" and
 iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow> isAction p') \<and> (isChoice p \<longleftrightarrow> isChoice p')" and
 Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> (\<phi> p p' \<or> p = p')" and
 Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<phi> p p' \<or> p = p') \<and> (\<phi> q q' \<or> q = q')"
 shows "p = p'"
-proof(intro mp[OF process.pred_coinduct_upto, of \<phi>, OF _ phi], clarify)
+proof(intro mp[OF process.rel_strong_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
-  show "pre_process_pred (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_unf p) (process_unf p')"
+  show "pre_process_rel (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_dtor p) (process_dtor p')"
   proof(cases rule: process.exhaust[of p])
     case (Action a q) note p = Action
     hence "isAction p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
     then obtain a' q' where p': "p' = Action a' q'" by (cases rule: process.exhaust[of p'], auto)
     have 0: "a = a' \<and> (\<phi> q q' \<or> q = q')" using Act[OF \<phi>[unfolded p p']] .
-    have unf: "process_unf p = Inl (a,q)" "process_unf p' = Inl (a',q')"
-    unfolding p p' Action_def process.unf_fld by simp_all
-    show ?thesis using 0 unfolding unf by simp
+    have dtor: "process_dtor p = Inl (a,q)" "process_dtor p' = Inl (a',q')"
+    unfolding p p' Action_def process.dtor_ctor by simp_all
+    show ?thesis using 0 unfolding dtor by simp
   next
     case (Choice p1 p2) note p = Choice
     hence "isChoice p'" using iss[OF \<phi>] by (cases rule: process.exhaust[of p'], auto)
     then obtain p1' p2' where p': "p' = Choice p1' p2'"
     by (cases rule: process.exhaust[of p'], auto)
     have 0: "(\<phi> p1 p1' \<or> p1 = p1') \<and> (\<phi> p2 p2' \<or> p2 = p2')" using Ch[OF \<phi>[unfolded p p']] .
-    have unf: "process_unf p = Inr (p1,p2)" "process_unf p' = Inr (p1',p2')"
-    unfolding p p' Choice_def process.unf_fld by simp_all
-    show ?thesis using 0 unfolding unf by simp
+    have dtor: "process_dtor p = Inr (p1,p2)" "process_dtor p' = Inr (p1',p2')"
+    unfolding p p' Choice_def process.dtor_ctor by simp_all
+    show ?thesis using 0 unfolding dtor by simp
   qed
 qed
 
 
-subsection {* Coiteration *}
+subsection {* Coiteration (unfold) *}
 
 
 section{* Coinductive definition of the notion of trace *}
@@ -125,7 +125,7 @@ subsection{* Single-guard fixpoint definition *}
 
 definition
 "BX \<equiv>
- process_coiter
+ process_unfold
    (\<lambda> P. True)
    (\<lambda> P. ''a'')
    (\<lambda> P. P)
@@ -135,7 +135,7 @@ definition
 
 lemma BX: "BX = Action ''a'' BX"
 unfolding BX_def
-using process.coiters(1)[of "\<lambda> P. True" "()"  "\<lambda> P. ''a''" "\<lambda> P. P"] by simp
+using process.unfolds(1)[of "\<lambda> P. True" "()"  "\<lambda> P. ''a''" "\<lambda> P. P"] by simp
 
 
 subsection{* Multi-guard fixpoint definitions, simulated with auxiliary arguments *}
@@ -151,14 +151,14 @@ definition "c1  \<equiv> \<lambda> K. case K of x \<Rightarrow> ax   |y \<Righta
 definition "c2  \<equiv> \<lambda> K. case K of x \<Rightarrow> y    |y \<Rightarrow> undefined |ax \<Rightarrow> undefined"
 lemmas Choice_defs = c1_def c2_def
 
-definition "F \<equiv> process_coiter isA pr co c1 c2"
+definition "F \<equiv> process_unfold isA pr co c1 c2"
 definition "X = F x"  definition "Y = F y"  definition "AX = F ax"
 
 lemma X_Y_AX: "X = Choice AX Y"  "Y = Action ''b'' X"  "AX = Action ''a'' X"
 unfolding X_def Y_def AX_def F_def
-using process.coiters(2)[of isA x "pr" co c1 c2]
-      process.coiters(1)[of isA y "pr" co c1 c2]
-      process.coiters(1)[of isA ax "pr" co c1 c2]
+using process.unfolds(2)[of isA x "pr" co c1 c2]
+      process.unfolds(1)[of isA y "pr" co c1 c2]
+      process.unfolds(1)[of isA ax "pr" co c1 c2]
 unfolding Action_defs Choice_defs by simp_all
 
 (* end product: *)
@@ -226,7 +226,7 @@ definition "guarded sys \<equiv> \<forall> X Y. sys X \<noteq> VAR Y"
 
 definition
 "solution sys \<equiv>
- process_coiter
+ process_unfold
    (isACT sys)
    (PREF sys)
    (CONT sys)
@@ -237,14 +237,14 @@ lemma solution_Action:
 assumes "isACT sys T"
 shows "solution sys T = Action (PREF sys T) (solution sys (CONT sys T))"
 unfolding solution_def
-using process.coiters(1)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
+using process.unfolds(1)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
   assms by simp
 
 lemma solution_Choice:
 assumes "\<not> isACT sys T"
 shows "solution sys T = Choice (solution sys (CH1 sys T)) (solution sys (CH2 sys T))"
 unfolding solution_def
-using process.coiters(2)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
+using process.unfolds(2)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
   assms by simp
 
 lemma isACT_VAR:

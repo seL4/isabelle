@@ -21,22 +21,22 @@ section {* Customization of terms *}
 
 subsection{* Constructors *}
 
-definition "Fold hs \<equiv> hfset_fld hs"
+definition "Fold hs \<equiv> hfset_ctor hs"
 
 lemma hfset_simps[simp]:
 "\<And>hs1 hs2. Fold hs1 = Fold hs2 \<longrightarrow> hs1 = hs2"
-unfolding Fold_def hfset.fld_inject by auto
+unfolding Fold_def hfset.ctor_inject by auto
 
 theorem hfset_cases[elim, case_names Fold]:
 assumes Fold: "\<And> hs. h = Fold hs \<Longrightarrow> phi"
 shows phi
 using Fold unfolding Fold_def
-by (cases rule: hfset.fld_exhaust[of h]) simp
+by (cases rule: hfset.ctor_exhaust[of h]) simp
 
 lemma hfset_induct[case_names Fold, induct type: hfset]:
 assumes Fold: "\<And> hs. (\<And> h. h |\<in>| hs \<Longrightarrow> phi h) \<Longrightarrow> phi (Fold hs)"
 shows "phi t"
-apply (induct rule: hfset.fld_induct)
+apply (induct rule: hfset.ctor_induct)
 using Fold unfolding Fold_def fset_fset_member mem_Collect_eq ..
 
 (* alternative induction principle, using fset: *)
@@ -46,15 +46,15 @@ shows "phi t"
 apply (induct rule: hfset_induct)
 using Fold by (metis notin_fset)
 
-subsection{* Recursion and iteration *}
+subsection{* Recursion and iteration (fold) *}
 
-lemma hfset_fld_rec:
-"hfset_fld_rec R (Fold hs) = R (map_fset <id, hfset_fld_rec R> hs)"
-using hfset.fld_recs unfolding Fold_def .
+lemma hfset_ctor_rec:
+"hfset_ctor_rec R (Fold hs) = R (map_fset <id, hfset_ctor_rec R> hs)"
+using hfset.ctor_recs unfolding Fold_def .
 
 (* The iterator has a simpler form: *)
-lemma hfset_fld_iter:
-"hfset_fld_iter R (Fold hs) = R (map_fset (hfset_fld_iter R) hs)"
-using hfset.fld_iters unfolding Fold_def .
+lemma hfset_ctor_fold:
+"hfset_ctor_fold R (Fold hs) = R (map_fset (hfset_ctor_fold R) hs)"
+using hfset.ctor_folds unfolding Fold_def .
 
 end

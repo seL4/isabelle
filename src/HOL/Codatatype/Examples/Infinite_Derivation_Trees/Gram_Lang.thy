@@ -468,12 +468,12 @@ using S_P finite_in_P by auto
 
 (* The default tree of a nonterminal *)
 definition deftr :: "N \<Rightarrow> Tree" where  
-"deftr \<equiv> coit id S"
+"deftr \<equiv> unfold id S"
 
 lemma deftr_simps[simp]:
 "root (deftr n) = n" 
 "cont (deftr n) = image (id \<oplus> deftr) (S n)"
-using coit(1)[of id S n] coit(2)[of S n id, OF finite_S] 
+using unfold(1)[of id S n] unfold(2)[of S n id, OF finite_S] 
 unfolding deftr_def by simp_all
 
 lemmas root_deftr = deftr_simps(1)
@@ -509,13 +509,13 @@ definition "hsubst_c tr \<equiv> if root tr = root tr0 then cont tr0 else cont t
 
 (* Hereditary substitution: *)
 definition hsubst :: "Tree \<Rightarrow> Tree" where  
-"hsubst \<equiv> coit hsubst_r hsubst_c"
+"hsubst \<equiv> unfold hsubst_r hsubst_c"
 
 lemma finite_hsubst_c: "finite (hsubst_c n)"
 unfolding hsubst_c_def by (metis finite_cont) 
 
 lemma root_hsubst[simp]: "root (hsubst tr) = root tr"
-using coit(1)[of hsubst_r hsubst_c tr] unfolding hsubst_def hsubst_r_def by simp
+using unfold(1)[of hsubst_r hsubst_c tr] unfolding hsubst_def hsubst_r_def by simp
 
 lemma root_o_subst[simp]: "root o hsubst = root"
 unfolding comp_def root_hsubst ..
@@ -524,7 +524,7 @@ lemma cont_hsubst_eq[simp]:
 assumes "root tr = root tr0"
 shows "cont (hsubst tr) = (id \<oplus> hsubst) ` (cont tr0)"
 apply(subst id_o[symmetric, of id]) unfolding id_o
-using coit(2)[of hsubst_c tr hsubst_r, OF finite_hsubst_c] 
+using unfold(2)[of hsubst_c tr hsubst_r, OF finite_hsubst_c] 
 unfolding hsubst_def hsubst_c_def using assms by simp
 
 lemma hsubst_eq:
@@ -536,7 +536,7 @@ lemma cont_hsubst_neq[simp]:
 assumes "root tr \<noteq> root tr0"
 shows "cont (hsubst tr) = (id \<oplus> hsubst) ` (cont tr)"
 apply(subst id_o[symmetric, of id]) unfolding id_o
-using coit(2)[of hsubst_c tr hsubst_r, OF finite_hsubst_c] 
+using unfold(2)[of hsubst_c tr hsubst_r, OF finite_hsubst_c] 
 unfolding hsubst_def hsubst_c_def using assms by simp
 
 lemma Inl_cont_hsubst_eq[simp]:
@@ -951,13 +951,13 @@ definition "regOf_c n \<equiv> (id \<oplus> root) ` cont (pick n)"
 
 (* The regular tree of a function: *)
 definition regOf :: "N \<Rightarrow> Tree" where  
-"regOf \<equiv> coit regOf_r regOf_c"
+"regOf \<equiv> unfold regOf_r regOf_c"
 
 lemma finite_regOf_c: "finite (regOf_c n)"
 unfolding regOf_c_def by (metis finite_cont finite_imageI) 
 
 lemma root_regOf_pick: "root (regOf n) = root (pick n)"
-using coit(1)[of regOf_r regOf_c n] unfolding regOf_def regOf_r_def by simp
+using unfold(1)[of regOf_r regOf_c n] unfolding regOf_def regOf_r_def by simp
 
 lemma root_regOf[simp]: 
 assumes "inItr UNIV tr0 n"
@@ -968,7 +968,7 @@ lemma cont_regOf[simp]:
 "cont (regOf n) = (id \<oplus> (regOf o root)) ` cont (pick n)"
 apply(subst id_o[symmetric, of id]) unfolding sum_map.comp[symmetric]
 unfolding image_compose unfolding regOf_c_def[symmetric]
-using coit(2)[of regOf_c n regOf_r, OF finite_regOf_c] 
+using unfold(2)[of regOf_c n regOf_r, OF finite_regOf_c] 
 unfolding regOf_def ..
 
 lemma Inl_cont_regOf[simp]:
@@ -1010,7 +1010,7 @@ assumes n: "inItr UNIV tr0 n" and t_tr: "t_tr \<in> cont (pick n)"
 shows "(id \<oplus> (root \<circ> regOf \<circ> root)) t_tr = (id \<oplus> root) t_tr"
 using assms apply(cases t_tr)
   apply (metis (lifting) sum_map.simps(1))
-  using pick regOf_def regOf_r_def coit(1) 
+  using pick regOf_def regOf_r_def unfold(1) 
       inItr.Base o_apply subtr_StepL subtr_inItr sum_map.simps(2)
   by (metis UNIV_I)
 

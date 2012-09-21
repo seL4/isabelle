@@ -12,27 +12,27 @@ theory Stream
 imports TreeFI
 begin
 
-hide_const (open) Quotient_Product.prod_pred
-hide_fact (open) Quotient_Product.prod_pred_def
+hide_const (open) Quotient_Product.prod_rel
+hide_fact (open) Quotient_Product.prod_rel_def
 
 codata_raw stream: 's = "'a \<times> 's"
 
 (* selectors for streams *)
-definition "hdd as \<equiv> fst (stream_unf as)"
-definition "tll as \<equiv> snd (stream_unf as)"
+definition "hdd as \<equiv> fst (stream_dtor as)"
+definition "tll as \<equiv> snd (stream_dtor as)"
 
-lemma coiter_pair_fun_hdd[simp]: "hdd (stream_unf_coiter (f \<odot> g) t) = f t"
-unfolding hdd_def pair_fun_def stream.unf_coiters by simp
+lemma unfold_pair_fun_hdd[simp]: "hdd (stream_dtor_unfold (f \<odot> g) t) = f t"
+unfolding hdd_def pair_fun_def stream.dtor_unfolds by simp
 
-lemma coiter_pair_fun_tll[simp]: "tll (stream_unf_coiter (f \<odot> g) t) =
- stream_unf_coiter (f \<odot> g) (g t)"
-unfolding tll_def pair_fun_def stream.unf_coiters by simp
+lemma unfold_pair_fun_tll[simp]: "tll (stream_dtor_unfold (f \<odot> g) t) =
+ stream_dtor_unfold (f \<odot> g) (g t)"
+unfolding tll_def pair_fun_def stream.dtor_unfolds by simp
 
 (* infinite trees: *)
 coinductive infiniteTr where
 "\<lbrakk>tr' \<in> listF_set (sub tr); infiniteTr tr'\<rbrakk> \<Longrightarrow> infiniteTr tr"
 
-lemma infiniteTr_coind_upto[consumes 1, case_names sub]:
+lemma infiniteTr_strong_coind[consumes 1, case_names sub]:
 assumes *: "phi tr" and
 **: "\<And> tr. phi tr \<Longrightarrow> \<exists> tr' \<in> listF_set (sub tr). phi tr' \<or> infiniteTr tr'"
 shows "infiniteTr tr"
@@ -48,7 +48,7 @@ lemma infiniteTr_sub[simp]:
 "infiniteTr tr \<Longrightarrow> (\<exists> tr' \<in> listF_set (sub tr). infiniteTr tr')"
 by (erule infiniteTr.cases) blast
 
-definition "konigPath \<equiv> stream_unf_coiter
+definition "konigPath \<equiv> stream_dtor_unfold
   (lab \<odot> (\<lambda>tr. SOME tr'. tr' \<in> listF_set (sub tr) \<and> infiniteTr tr'))"
 
 lemma hdd_simps1[simp]: "hdd (konigPath t) = lab t"
@@ -63,7 +63,7 @@ coinductive properPath where
 "\<lbrakk>hdd as = lab tr; tr' \<in> listF_set (sub tr); properPath (tll as) tr'\<rbrakk> \<Longrightarrow>
  properPath as tr"
 
-lemma properPath_coind_upto[consumes 1, case_names hdd_lab sub]:
+lemma properPath_strong_coind[consumes 1, case_names hdd_lab sub]:
 assumes *: "phi as tr" and
 **: "\<And> as tr. phi as tr \<Longrightarrow> hdd as = lab tr" and
 ***: "\<And> as tr.
@@ -79,7 +79,7 @@ assumes *: "phi as tr" and
          phi as tr \<Longrightarrow>
          \<exists> tr' \<in> listF_set (sub tr). phi (tll as) tr'"
 shows "properPath as tr"
-using properPath_coind_upto[of phi, OF * **] *** by blast
+using properPath_strong_coind[of phi, OF * **] *** by blast
 
 lemma properPath_hdd_lab:
 "properPath as tr \<Longrightarrow> hdd as = lab tr"
@@ -114,25 +114,25 @@ qed
 
 (* some more stream theorems *)
 
-lemma stream_map[simp]: "stream_map f = stream_unf_coiter (f o hdd \<odot> tll)"
+lemma stream_map[simp]: "stream_map f = stream_dtor_unfold (f o hdd \<odot> tll)"
 unfolding stream_map_def pair_fun_def hdd_def[abs_def] tll_def[abs_def]
   map_pair_def o_def prod_case_beta by simp
 
-lemma prod_pred[simp]: "prod_pred \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
-unfolding prod_pred_def by auto
+lemma prod_rel[simp]: "prod_rel \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
+unfolding prod_rel_def by auto
 
-lemmas stream_coind = mp[OF stream.pred_coinduct, unfolded prod_pred[abs_def],
-  folded hdd_def tll_def]
+lemmas stream_coind =
+  mp[OF stream.rel_coinduct, unfolded prod_rel[abs_def], folded hdd_def tll_def]
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
   [simp]: "plus xs ys =
-    stream_unf_coiter ((%(xs, ys). hdd xs + hdd ys) \<odot> (%(xs, ys). (tll xs, tll ys))) (xs, ys)"
+    stream_dtor_unfold ((%(xs, ys). hdd xs + hdd ys) \<odot> (%(xs, ys). (tll xs, tll ys))) (xs, ys)"
 
 definition scalar :: "nat \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<cdot>" 68) where
   [simp]: "scalar n = stream_map (\<lambda>x. n * x)"
 
-definition ones :: "nat stream" where [simp]: "ones = stream_unf_coiter ((%x. 1) \<odot> id) ()"
-definition twos :: "nat stream" where [simp]: "twos = stream_unf_coiter ((%x. 2) \<odot> id) ()"
+definition ones :: "nat stream" where [simp]: "ones = stream_dtor_unfold ((%x. 1) \<odot> id) ()"
+definition twos :: "nat stream" where [simp]: "twos = stream_dtor_unfold ((%x. 2) \<odot> id) ()"
 definition ns :: "nat \<Rightarrow> nat stream" where [simp]: "ns n = scalar n ones"
 
 lemma "ones \<oplus> ones = twos"

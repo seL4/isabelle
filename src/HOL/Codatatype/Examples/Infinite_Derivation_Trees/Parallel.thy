@@ -31,7 +31,7 @@ fun par_c where
 declare par_r.simps[simp del]  declare par_c.simps[simp del]
 
 definition par :: "Tree \<times> Tree \<Rightarrow> Tree" where  
-"par \<equiv> coit par_r par_c"
+"par \<equiv> unfold par_r par_c"
 
 abbreviation par_abbr (infixr "\<parallel>" 80) where "tr1 \<parallel> tr2 \<equiv> par (tr1, tr2)"
 
@@ -42,11 +42,11 @@ unfolding par_c.simps apply(rule finite_UnI)
   using finite_cont by auto
 
 lemma root_par: "root (tr1 \<parallel> tr2) = root tr1 + root tr2"
-using coit(1)[of par_r par_c "(tr1,tr2)"] unfolding par_def par_r.simps by simp
+using unfold(1)[of par_r par_c "(tr1,tr2)"] unfolding par_def par_r.simps by simp
 
 lemma cont_par: 
 "cont (tr1 \<parallel> tr2) = (id \<oplus> par) ` par_c (tr1,tr2)"
-using coit(2)[of par_c "(tr1,tr2)" par_r, OF finite_par_c]
+using unfold(2)[of par_c "(tr1,tr2)" par_r, OF finite_par_c]
 unfolding par_def ..
 
 lemma Inl_cont_par[simp]:
