@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/BNF_LFP.thy
+(*  Title:      HOL/BNF/BNF_LFP.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 

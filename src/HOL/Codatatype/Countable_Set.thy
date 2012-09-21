@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Countable_Set.thy
+(*  Title:      HOL/BNF/Countable_Set.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

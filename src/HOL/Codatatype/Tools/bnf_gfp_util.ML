@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_gfp_util.ML
+(*  Title:      HOL/BNF/Tools/bnf_gfp_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 

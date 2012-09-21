@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/ListF.thy
+(*  Title:      HOL/BNF/Examples/ListF.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -9,7 +9,7 @@ Finite lists.
 header {* Finite Lists *}
 
 theory ListF
-imports "../Codatatype"
+imports "../BNF"
 begin
 
 data_raw listF: 'list = "unit + 'a \<times> 'list"

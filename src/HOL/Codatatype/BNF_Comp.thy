@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/BNF_Comp.thy
+(*  Title:      HOL/BNF/BNF_Comp.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Copyright   2012
 

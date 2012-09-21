@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/BNF_Wrap.thy
+(*  Title:      HOL/BNF/BNF_Wrap.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 

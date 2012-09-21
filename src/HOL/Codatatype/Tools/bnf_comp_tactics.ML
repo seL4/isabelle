@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_comp_tactics.ML
+(*  Title:      HOL/BNF/Tools/bnf_comp_tactics.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012

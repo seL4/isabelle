@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_wrap.ML
+(*  Title:      HOL/BNF/Tools/bnf_wrap.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 

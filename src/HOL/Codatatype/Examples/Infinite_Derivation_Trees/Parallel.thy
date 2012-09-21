@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Infinite_Derivation_Trees/Parallel.thy
+(*  Title:      HOL/BNF/Examples/Infinite_Derivation_Trees/Parallel.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

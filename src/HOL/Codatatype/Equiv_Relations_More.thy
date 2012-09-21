@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Equiv_Relations_More.thy
+(*  Title:      HOL/BNF/Equiv_Relations_More.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

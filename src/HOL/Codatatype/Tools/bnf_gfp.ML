@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_gfp.ML
+(*  Title:      HOL/BNF/Tools/bnf_gfp.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Infinite_Derivation_Trees/Gram_Lang.thy
+(*  Title:      HOL/BNF/Examples/Infinite_Derivation_Trees/Gram_Lang.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

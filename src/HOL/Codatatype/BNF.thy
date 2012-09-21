@@ -1,15 +1,15 @@
-(*  Title:      HOL/Codatatype/Codatatype.thy
+(*  Title:      HOL/BNF/BNF.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-The (co)datatype package.
+Bounded natural functors for (co)datatypes.
 *)
 
-header {* The (Co)datatype Package *}
+header {* Bounded Natural Functors for (Co)datatypes *}
 
-theory Codatatype
+theory BNF
 imports More_BNFs
 begin
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Process.thy
+(*  Title:      HOL/BNF/Examples/Process.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,7 +8,7 @@ Processes.
 header {* Processes *}
 
 theory Process
-imports "../Codatatype"
+imports "../BNF"
 begin
 
 hide_fact (open) Quotient_Product.prod_rel_def

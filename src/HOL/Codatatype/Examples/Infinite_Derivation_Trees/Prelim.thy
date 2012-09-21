@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Infinite_Derivation_Trees/Prelim.thy
+(*  Title:      HOL/BNF/Examples/Infinite_Derivation_Trees/Prelim.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,7 +8,7 @@ Preliminaries.
 header {* Preliminaries *}
 
 theory Prelim
-imports "../../Codatatype/Codatatype"
+imports "../../BNF"
 begin
 
 declare fset_to_fset[simp]

@@ -1,4 +1,4 @@
-(*  Title:      Codatatype_Tools/bnf_lfp_util.ML
+(*  Title:      HOL/BNF/Tools/bnf_lfp_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012

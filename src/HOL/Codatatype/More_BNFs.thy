@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/More_BNFs.thy
+(*  Title:      HOL/BNF/More_BNFs.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Author:     Andreas Lochbihler, Karlsruhe Institute of Technology

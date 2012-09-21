@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/HFset.thy
+(*  Title:      HOL/BNF/Examples/HFset.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,7 +8,7 @@ Hereditary sets.
 header {* Hereditary Sets *}
 
 theory HFset
-imports "../Codatatype"
+imports "../BNF"
 begin
 
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Tools/bnf_fp_sugar.ML
+(*  Title:      HOL/BNF/Tools/bnf_fp_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 

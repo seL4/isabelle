@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Misc_Data.thy
+(*  Title:      HOL/BNF/Examples/Misc_Data.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -9,7 +9,7 @@ Miscellaneous datatype declarations.
 header {* Miscellaneous Datatype Declarations *}
 
 theory Misc_Data
-imports "../Codatatype"
+imports "../BNF"
 begin
 
 data simple = X1 | X2 | X3 | X4

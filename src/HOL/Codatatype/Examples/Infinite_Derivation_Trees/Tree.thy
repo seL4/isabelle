@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Infinite_Derivation_Trees/Tree.thy
+(*  Title:      HOL/BNF/Examples/Infinite_Derivation_Trees/Tree.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 

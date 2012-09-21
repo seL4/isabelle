@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/Lambda_Term.thy
+(*  Title:      HOL/BNF/Examples/Lambda_Term.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -9,7 +9,7 @@ Lambda-terms.
 header {* Lambda-Terms *}
 
 theory Lambda_Term
-imports "../Codatatype"
+imports "../BNF"
 begin
 
 

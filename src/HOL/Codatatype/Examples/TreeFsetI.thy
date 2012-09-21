@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/Examples/TreeFsetI.thy
+(*  Title:      HOL/BNF/Examples/TreeFsetI.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
@@ -9,7 +9,7 @@ Finitely branching possibly infinite trees, with sets of children.
 header {* Finitely Branching Possibly Infinite Trees, with Sets of Children *}
 
 theory TreeFsetI
-imports "../Codatatype"
+imports "../BNF"
 begin
 
 hide_const (open) Sublist.sub

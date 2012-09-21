@@ -1,4 +1,4 @@
-(*  Title:      HOL/Codatatype/BNF_Util.thy
+(*  Title:      HOL/BNF/BNF_Util.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
