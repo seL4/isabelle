@@ -41,22 +41,21 @@ type unfold_set = {
   rel_unfolds: thm list
 };
 
-fun add_to_thms thms NONE = thms
-  | add_to_thms thms (SOME new) = thms |> not (Thm.is_reflexive new) ? insert Thm.eq_thm new;
-fun adds_to_thms thms NONE = thms
-  | adds_to_thms thms (SOME news) = insert (eq_set Thm.eq_thm) (no_reflexive news) thms;
-
 val empty_unfolds = {map_unfolds = [], set_unfoldss = [], pred_unfolds = [], rel_unfolds = []};
 
-fun add_to_unfolds_opt map_opt sets_opt pred_opt rel_opt
-  {map_unfolds, set_unfoldss, pred_unfolds, rel_unfolds} =
-  {map_unfolds = add_to_thms map_unfolds map_opt,
-    set_unfoldss = adds_to_thms set_unfoldss sets_opt,
-    pred_unfolds = add_to_thms pred_unfolds pred_opt,
-    rel_unfolds = add_to_thms rel_unfolds rel_opt};
+fun add_to_thms thms new = thms |> not (Thm.is_reflexive new) ? insert Thm.eq_thm new;
+fun adds_to_thms thms news = insert (eq_set Thm.eq_thm) (no_reflexive news) thms;
 
-fun add_to_unfolds map sets pred rel =
-  add_to_unfolds_opt (SOME map) (SOME sets) (SOME pred) (SOME rel);
+fun add_to_unfolds map sets pred rel
+  {map_unfolds, set_unfoldss, pred_unfolds, rel_unfolds} =
+  {map_unfolds = add_to_thms map_unfolds map,
+    set_unfoldss = adds_to_thms set_unfoldss sets,
+    pred_unfolds = add_to_thms pred_unfolds pred,
+    rel_unfolds = add_to_thms rel_unfolds rel};
+
+fun add_bnf_to_unfolds bnf =
+  add_to_unfolds (map_def_of_bnf bnf) (set_defs_of_bnf bnf) (pred_def_of_bnf bnf)
+    (rel_def_of_bnf bnf);
 
 val map_unfolds_of = #map_unfolds;
 val set_unfoldss_of = #set_unfoldss;
@@ -273,12 +272,8 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     val (bnf', lthy') =
       bnf_def const_policy (K Derive_Few_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
         (((((b, mapx), sets), bd), wits), SOME pred) lthy;
-
-    val unfold_set' =
-      add_to_unfolds (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (pred_def_of_bnf bnf')
-        (rel_def_of_bnf bnf') unfold_set;
   in
-    (bnf', (unfold_set', lthy'))
+    (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
 
 (* Killing live variables *)
@@ -375,12 +370,8 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME pred) lthy;
-
-    val unfold_set' =
-      add_to_unfolds (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (pred_def_of_bnf bnf')
-        (rel_def_of_bnf bnf') unfold_set;
   in
-    (bnf', (unfold_set', lthy'))
+    (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
 
 (* Adding dummy live variables *)
@@ -464,11 +455,8 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
       bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME Ds)
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME pred) lthy;
 
-    val unfold_set' =
-      add_to_unfolds (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (pred_def_of_bnf bnf')
-        (pred_def_of_bnf bnf') unfold_set;
   in
-    (bnf', (unfold_set', lthy'))
+    (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
 
 (* Changing the order of live variables *)
@@ -543,12 +531,8 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
     val (bnf', lthy') =
       bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME Ds)
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME pred) lthy;
-
-    val unfold_set' =
-      add_to_unfolds (map_def_of_bnf bnf') (set_defs_of_bnf bnf') (pred_def_of_bnf bnf')
-        (pred_def_of_bnf bnf') unfold_set;
   in
-    (bnf', (unfold_set', lthy'))
+    (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
   end;
 
 (* Composition pipeline *)
