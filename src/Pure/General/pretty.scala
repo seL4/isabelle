@@ -59,12 +59,14 @@ object Pretty
 
   val FBreak = XML.Text("\n")
 
+  val Separator = XML.elem(Isabelle_Markup.SEPARATOR, List(FBreak))
+
 
   /* formatted output */
 
-  private def standard_format(tree: XML.Tree): XML.Body =
-    tree match {
-      case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(standard_format)))
+  def standard_format(body: XML.Body): XML.Body =
+    body flatMap {
+      case XML.Elem(markup, body) => List(XML.Elem(markup, standard_format(body)))
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
 
@@ -141,7 +143,7 @@ object Pretty
           format(ts1, blockin, after, btext1)
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s, metric(s)))
       }
-    format(input.flatMap(standard_format), 0.0, 0.0, Text()).content
+    format(standard_format(input), 0.0, 0.0, Text()).content
   }
 
   def string_of(input: XML.Body, margin: Int = margin_default,
@@ -161,7 +163,7 @@ object Pretty
         case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
       }
-    input.flatMap(standard_format).flatMap(fmt)
+    standard_format(input).flatMap(fmt)
   }
 
   def str_of(input: XML.Body): String = XML.content(unformatted(input))

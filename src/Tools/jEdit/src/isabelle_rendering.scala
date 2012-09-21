@@ -29,9 +29,16 @@ object Isabelle_Rendering
   /* message priorities */
 
   private val writeln_pri = 1
-  private val warning_pri = 2
-  private val legacy_pri = 3
-  private val error_pri = 4
+  private val tracing_pri = 2
+  private val warning_pri = 3
+  private val legacy_pri = 4
+  private val error_pri = 5
+
+  private val message_pri = Map(
+    Isabelle_Markup.WRITELN -> writeln_pri, Isabelle_Markup.WRITELN_MESSAGE -> writeln_pri,
+    Isabelle_Markup.TRACING -> tracing_pri, Isabelle_Markup.TRACING_MESSAGE -> tracing_pri,
+    Isabelle_Markup.WARNING -> warning_pri, Isabelle_Markup.WARNING_MESSAGE -> warning_pri,
+    Isabelle_Markup.ERROR -> error_pri, Isabelle_Markup.ERROR_MESSAGE -> error_pri)
 
 
   /* icons */
@@ -146,10 +153,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           Some(Protocol.command_status_markup + Isabelle_Markup.WARNING + Isabelle_Markup.ERROR),
           {
             case ((status, pri), Text.Info(_, XML.Elem(markup, _))) =>
-              if (markup.name == Isabelle_Markup.WARNING)
-                (status, pri max Isabelle_Rendering.warning_pri)
-              else if (markup.name == Isabelle_Markup.ERROR)
-                (status, pri max Isabelle_Rendering.error_pri)
+              if (markup.name == Isabelle_Markup.WARNING || markup.name == Isabelle_Markup.ERROR)
+                (status, pri max Isabelle_Rendering.message_pri(markup.name))
               else (Protocol.command_status(status, markup), pri)
           })
       if (results.isEmpty) None
@@ -340,13 +345,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
       snapshot.cumulate_markup[Int](range, 0,
         Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
         {
-          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _))) =>
-            name match {
-              case Isabelle_Markup.WRITELN => pri max Isabelle_Rendering.writeln_pri
-              case Isabelle_Markup.WARNING => pri max Isabelle_Rendering.warning_pri
-              case Isabelle_Markup.ERROR => pri max Isabelle_Rendering.error_pri
-              case _ => pri
-            }
+          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
+          if name == Isabelle_Markup.WRITELN ||
+            name == Isabelle_Markup.WARNING ||
+            name == Isabelle_Markup.ERROR => pri max Isabelle_Rendering.message_pri(name)
         })
     for {
       Text.Info(r, pri) <- results
@@ -354,6 +356,37 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
     } yield Text.Info(r, color)
   }
 
+
+  private val message_colors = Map(
+    Isabelle_Rendering.writeln_pri -> writeln_message_color,
+    Isabelle_Rendering.tracing_pri -> tracing_message_color,
+    Isabelle_Rendering.warning_pri -> warning_message_color,
+    Isabelle_Rendering.error_pri -> error_message_color)
+
+  def line_background(range: Text.Range): Option[(Color, Boolean)] =
+  {
+    val messages =
+      Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.TRACING_MESSAGE,
+        Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
+    val results =
+      snapshot.cumulate_markup[Int](range, 0, Some(messages),
+        {
+          case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
+          if name == Isabelle_Markup.WRITELN_MESSAGE ||
+            name == Isabelle_Markup.TRACING_MESSAGE ||
+            name == Isabelle_Markup.WARNING_MESSAGE ||
+            name == Isabelle_Markup.ERROR_MESSAGE => pri max Isabelle_Rendering.message_pri(name)
+        })
+    val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
+
+    val is_separator = pri > 0 &&
+      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Isabelle_Markup.SEPARATOR)),
+        {
+          case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.SEPARATOR, _), _))) => true
+        }).exists(_.info)
+
+    message_colors.get(pri).map((_, is_separator))
+  }
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -370,14 +403,6 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
                 (Some(Protocol.command_status(status, markup)), color)
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WRITELN_MESSAGE, _), _))) =>
-                (None, Some(writeln_message_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TRACING_MESSAGE, _), _))) =>
-                (None, Some(tracing_message_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING_MESSAGE, _), _))) =>
-                (None, Some(warning_message_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR_MESSAGE, _), _))) =>
-                (None, Some(error_message_color))
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.INTENSIFY, _), _))) =>
@@ -414,7 +439,6 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
 
   private val text_colors: Map[String, Color] = Map(
-      Isabelle_Markup.COMMAND -> keyword1_color,
       Isabelle_Markup.STRING -> Color.BLACK,
       Isabelle_Markup.ALTSTRING -> Color.BLACK,
       Isabelle_Markup.VERBATIM -> Color.BLACK,

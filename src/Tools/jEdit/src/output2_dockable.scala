@@ -77,7 +77,7 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
       else current_output
 
     if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, Library.separate(Pretty.FBreak, new_output))
+      pretty_text_area.update(new_snapshot, Library.separate(Pretty.Separator, new_output))
 
     current_snapshot = new_snapshot
     current_state = new_state

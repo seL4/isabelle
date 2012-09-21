@@ -69,32 +69,31 @@ object XML
   def string_of_tree(tree: XML.Tree): String = string_of_body(List(tree))
 
 
-  /* content -- text and markup */
+  /* traverse text */
 
-  private def make_content(body: Body, record_markup: Boolean): (String, Markup_Tree) =
+  def traverse_text[A](body: Body)(a: A)(op: (A, String) => A): A =
   {
-    var text = new StringBuilder
-    var markup_tree = Markup_Tree.empty
-
-    def traverse(tree: Tree): Unit =
-      tree match {
-        case Elem(markup, trees) =>
-          val offset = text.length
-          trees.foreach(traverse)
-          val end_offset = text.length
-          if (record_markup)
-            markup_tree +=
-              isabelle.Text.Info(isabelle.Text.Range(offset, end_offset), Elem(markup, Nil))
-        case Text(s) => text.append(s)
+    def traverse(x: A, t: Tree): A =
+      t match {
+        case Elem(_, ts) => (x /: ts)(traverse)
+        case Text(s) => op(x, s)
       }
-
-    body.foreach(traverse)
-    (text.toString, markup_tree.reverse_markup)
+    (a /: body)(traverse)
   }
 
-  def content_markup(body: Body): (String, Markup_Tree) = make_content(body, true)
-  def content(body: Body): String = make_content(body, false)._1
-  def content(tree: Tree): String = make_content(List(tree), false)._1
+  def text_length(body: Body): Int = traverse_text(body)(0) { case (n, s) => n + s.length }
+
+
+  /* text content */
+
+  def content(body: Body): String =
+  {
+    val text = new StringBuilder(text_length(body))
+    traverse_text(body)(()) { case (_, s) => text.append(s) }
+    text.toString
+  }
+
+  def content(tree: Tree): String = content(List(tree))
 
 
 
