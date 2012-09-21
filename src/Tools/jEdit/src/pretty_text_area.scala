@@ -79,7 +79,7 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
     getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
     val font_metrics = getPainter.getFontMetrics(font)
-    val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 4) max 20
+    val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
 
     val base_snapshot = current_base_snapshot
     val formatted_body = Pretty.formatted(current_body, margin, Pretty.font_metric(font_metrics))
