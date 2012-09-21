@@ -439,7 +439,6 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
 
   private val text_colors: Map[String, Color] = Map(
-      Isabelle_Markup.COMMAND -> keyword1_color,
       Isabelle_Markup.STRING -> Color.BLACK,
       Isabelle_Markup.ALTSTRING -> Color.BLACK,
       Isabelle_Markup.VERBATIM -> Color.BLACK,
