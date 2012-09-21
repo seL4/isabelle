@@ -70,19 +70,7 @@ by auto
 lemma Gr_fst_snd: "(Gr R fst)^-1 O Gr R snd = R"
 unfolding Gr_def by auto
 
-lemma subst_rel_def: "A = B \<Longrightarrow> (Gr A f)^-1 O Gr A g = (Gr B f)^-1 O Gr B g"
-by simp
-
-lemma abs_pred_def: "\<lbrakk>\<And>x y. (x, y) \<in> rel = pred x y\<rbrakk> \<Longrightarrow> rel = Collect (split pred)"
-by auto
-
-lemma Collect_split_cong: "Collect (split pred) = Collect (split pred') \<Longrightarrow> pred = pred'"
-by blast
-
-lemma pred_def_abs: "rel = Collect (split pred) \<Longrightarrow> pred = (\<lambda>x y. (x, y) \<in> rel)"
-by auto
-
-lemma mem_Id_eq_eq: "(\<lambda>x y. (x, y) \<in> Id) = (op =)"
+lemma O_Gr_cong: "A = B \<Longrightarrow> (Gr A f)^-1 O Gr A g = (Gr B f)^-1 O Gr B g"
 by simp
 
 ML_file "Tools/bnf_comp_tactics.ML"

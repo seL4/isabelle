@@ -409,7 +409,7 @@ fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
 
 fun mk_simple_srel_O_Gr_tac ctxt srel_def srel_O_Gr in_alt_thm =
   rtac (unfold_thms ctxt [srel_def]
-    (trans OF [srel_O_Gr, in_alt_thm RS @{thm subst_rel_def} RS sym])) 1;
+    (trans OF [srel_O_Gr, in_alt_thm RS @{thm O_Gr_cong} RS sym])) 1;
 
 fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));
 

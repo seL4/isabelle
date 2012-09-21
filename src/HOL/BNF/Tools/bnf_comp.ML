@@ -236,7 +236,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         val outer_srel_Gr = srel_Gr_of_bnf outer RS sym;
         val outer_srel_cong = srel_cong_of_bnf outer;
         val thm =
-          (trans OF [in_alt_thm RS @{thm subst_rel_def},
+          (trans OF [in_alt_thm RS @{thm O_Gr_cong},
              trans OF [@{thm arg_cong2[of _ _ _ _ relcomp]} OF
                [trans OF [outer_srel_Gr RS @{thm arg_cong[of _ _ converse]},
                  srel_converse_of_bnf outer RS sym], outer_srel_Gr],
@@ -345,7 +345,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
       let
         val srel_Gr = srel_Gr_of_bnf bnf RS sym
         val thm =
-          (trans OF [in_alt_thm RS @{thm subst_rel_def},
+          (trans OF [in_alt_thm RS @{thm O_Gr_cong},
             trans OF [@{thm arg_cong2[of _ _ _ _ relcomp]} OF
               [trans OF [srel_Gr RS @{thm arg_cong[of _ _ converse]},
                 srel_converse_of_bnf bnf RS sym], srel_Gr],
