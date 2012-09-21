@@ -435,19 +435,10 @@ begin
 
 definition "m_st S = (SUM x:dom S. m(fun S x))"
 
-lemma h_st: assumes "finite X" and "dom S \<subseteq> X"
-shows "m_st S \<le> h * card X"
-proof(auto simp: m_st_def)
-  have "(\<Sum>x\<in>dom S. m (fun S x)) \<le> (\<Sum>x\<in>dom S. h)" (is "?L \<le> _")
-    by(rule setsum_mono)(simp add: m_height)
-  also have "\<dots> \<le> (\<Sum>x\<in>X. h)"
-    by(rule setsum_mono3[OF assms]) simp
-  also have "\<dots> = h * card X" by simp
-  finally show "?L \<le> \<dots>" .
-qed
+lemma m_st_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_st x \<le> h * card X"
+by(simp add: L_st_def m_st_def)
+  (metis nat_mult_commute of_nat_id setsum_bounded[OF m_height])
 
-
-(* FIXME identical *)
 lemma m_st_anti_mono: "S1 \<sqsubseteq> S2 \<Longrightarrow> m_st S1 \<ge> m_st S2"
 proof(auto simp add: le_st_def m_st_def)
   assume "\<forall>x\<in>dom S2. fun S1 x \<sqsubseteq> fun S2 x"
@@ -496,19 +487,22 @@ proof-
   ultimately show ?thesis by(simp add: n_st_def)
 qed
 
+definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" where
+"m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_st S)"
 
-definition "m_o k opt = (case opt of None \<Rightarrow> k+1 | Some x \<Rightarrow> m_st x)"
+lemma m_o_h: "ost \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_o (card X) ost \<le> (h*card X + 1)"
+by(auto simp add: m_o_def m_st_h split: option.split dest!:m_st_h)
 
 lemma m_o_anti_mono: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X \<Longrightarrow>
-  S1 \<sqsubseteq> S2 \<Longrightarrow> m_o (h * card X) S2 \<le> m_o (h * card X) S1"
+  S1 \<sqsubseteq> S2 \<Longrightarrow> m_o (card X) S2 \<le> m_o (card X) S1"
 apply(induction S1 S2 rule: le_option.induct)
-apply(auto simp: m_o_def m_st_anti_mono le_SucI h_st L_st_def
+apply(auto simp: m_o_def m_st_anti_mono le_SucI m_st_h L_st_def
            split: option.splits)
 done
 
 lemma m_o_widen: "\<lbrakk> S1 \<in> L X; S2 \<in> L X; finite X; \<not> S2 \<sqsubseteq> S1 \<rbrakk> \<Longrightarrow>
-  m_o (h * card X) (S1 \<nabla> S2) < m_o (h * card X) S1"
-by(auto simp: m_o_def L_st_def h_st less_Suc_eq_le m_st_widen
+  m_o (card X) (S1 \<nabla> S2) < m_o (card X) S1"
+by(auto simp: m_o_def L_st_def m_st_h less_Suc_eq_le m_st_widen
         split: option.split)
 
 definition "n_o opt = (case opt of None \<Rightarrow> 0 | Some x \<Rightarrow> n_st x + 1)"
@@ -531,7 +525,22 @@ by(induction "narrow::'a\<Rightarrow>'a\<Rightarrow>'a" C1 C2 rule: map2_acom.in
 
 
 definition "m_c C = (let as = annos C in
-  \<Sum>i=0..<size as. m_o (h * card(vars(strip C))) (as!i))"
+  \<Sum>i<size as. m_o (card(vars(strip C))) (as!i))"
+
+lemma m_c_h: assumes "C \<in> L(vars(strip C))"
+shows "m_c C \<le> size(annos C) * (h * card(vars(strip C)) + 1)"
+proof-
+  let ?X = "vars(strip C)" let ?n = "card ?X" let ?a = "size(annos C)"
+  { fix i assume "i < ?a"
+    hence "annos C ! i \<in> L ?X" using assms by(simp add: L_acom_def)
+    note m_o_h[OF this finite_cvars]
+  } note 1 = this
+  have "m_c C = (\<Sum>i<?a. m_o ?n (annos C ! i))" by(simp add: m_c_def Let_def)
+  also have "\<dots> \<le> (\<Sum>i<?a. h * ?n + 1)"
+    apply(rule setsum_mono) using 1 by simp
+  also have "\<dots> = ?a * (h * ?n + 1)" by simp
+  finally show ?thesis .
+qed
 
 lemma m_c_widen:
   "C1 \<in> Lc c \<Longrightarrow> C2 \<in> Lc c \<Longrightarrow> \<not> C2 \<sqsubseteq> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
@@ -564,7 +573,7 @@ apply (clarsimp)
 apply(rule n_o_mono)
 apply(rule narrow2)
 apply(fastforce simp: le_iff_le_annos listrel_iff_nth)
-apply(auto simp: le_iff_le_annos listrel_iff_nth strip_narrow_acom)
+apply(auto simp: le_iff_le_annos listrel_iff_nth)
 apply(rule_tac x=i in bexI)
 prefer 2 apply simp
 apply(rule n_o_narrow[where X = "vars(strip C1)"])
@@ -588,7 +597,7 @@ next
 next
   fix C assume "P C" thus "P (C \<nabla> f C)" by(simp add: P_f P_widen)
 qed
-thm mono_step'(*FIXME does not need wt assms*)
+
 lemma iter_narrow_termination:
 fixes n :: "'a::WN_Lc \<Rightarrow> nat"
 assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
