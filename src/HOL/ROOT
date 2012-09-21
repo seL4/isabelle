@@ -616,7 +616,7 @@ session "HOL-BNF-LFP" in BNF = "HOL-Cardinals-Base" +
   options [document = false]
   theories BNF_LFP
 
-session "HOL-BNF" in BNF = "HOL-BNF-LFP" +
+session "HOL-BNF" in BNF = "HOL-Cardinals" +
   description {* Bounded Natural Functors for (Co)datatypes *}
   options [document = false]
   theories BNF
