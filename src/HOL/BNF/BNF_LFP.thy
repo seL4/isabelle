@@ -145,7 +145,7 @@ proof (rule ext)
 qed
 
 lemma Card_order_wo_rel: "Card_order r \<Longrightarrow> wo_rel r"
-unfolding wo_rel_def card_order_on_def by blast 
+unfolding wo_rel_def card_order_on_def by blast
 
 lemma Cinfinite_limit: "\<lbrakk>x \<in> Field r; Cinfinite r\<rbrakk> \<Longrightarrow>
   \<exists>y \<in> Field r. x \<noteq> y \<and> (x, y) \<in> r"

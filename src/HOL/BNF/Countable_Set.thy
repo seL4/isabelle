@@ -278,8 +278,8 @@ assumes A: "countable A" and B: "countable B"
 shows "countable (A <+> B)"
 proof-
   let ?U = "UNIV::nat set"
-  have "|A| \<le>o |?U|" and "|B| \<le>o |?U|" using A B 
-  using card_of_nat[THEN ordIso_symmetric] ordLeq_ordIso_trans 
+  have "|A| \<le>o |?U|" and "|B| \<le>o |?U|" using A B
+  using card_of_nat[THEN ordIso_symmetric] ordLeq_ordIso_trans
   unfolding countable_def by blast+
   hence "|A <+> B| \<le>o |?U|" by (intro card_of_Plus_ordLeq_infinite) auto
   thus ?thesis using card_of_nat unfolding countable_def by(rule ordLeq_ordIso_trans)
@@ -290,26 +290,26 @@ assumes A: "countable A" and B: "countable B"
 shows "countable (A \<times> B)"
 proof-
   let ?U = "UNIV::nat set"
-  have "|A| \<le>o |?U|" and "|B| \<le>o |?U|" using A B 
-  using card_of_nat[THEN ordIso_symmetric] ordLeq_ordIso_trans 
+  have "|A| \<le>o |?U|" and "|B| \<le>o |?U|" using A B
+  using card_of_nat[THEN ordIso_symmetric] ordLeq_ordIso_trans
   unfolding countable_def by blast+
   hence "|A \<times> B| \<le>o |?U|" by (intro card_of_Times_ordLeq_infinite) auto
   thus ?thesis using card_of_nat unfolding countable_def by(rule ordLeq_ordIso_trans)
 qed
 
-lemma ordLeq_countable: 
+lemma ordLeq_countable:
 assumes "|A| \<le>o |B|" and "countable B"
 shows "countable A"
 using assms unfolding countable_def by(rule ordLeq_transitive)
 
-lemma ordLess_countable: 
+lemma ordLess_countable:
 assumes A: "|A| <o |B|" and B: "countable B"
 shows "countable A"
 by (rule ordLeq_countable[OF ordLess_imp_ordLeq[OF A] B])
 
 lemma countable_def2: "countable A \<longleftrightarrow> |A| \<le>o |UNIV :: nat set|"
 unfolding countable_def using card_of_nat[THEN ordIso_symmetric]
-by (metis (lifting) Field_card_of Field_natLeq card_of_mono2 card_of_nat 
+by (metis (lifting) Field_card_of Field_natLeq card_of_mono2 card_of_nat
           countable_def ordIso_imp_ordLeq ordLeq_countable)
 
 

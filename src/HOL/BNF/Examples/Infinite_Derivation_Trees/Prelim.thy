@@ -16,8 +16,8 @@ declare fset_to_fset[simp]
 lemma fst_snd_convol_o[simp]: "<fst o s, snd o s> = s"
 apply(rule ext) by (simp add: convol_def)
 
-abbreviation sm_abbrev (infix "\<oplus>" 60) 
-where "f \<oplus> g \<equiv> Sum_Type.sum_map f g" 
+abbreviation sm_abbrev (infix "\<oplus>" 60)
+where "f \<oplus> g \<equiv> Sum_Type.sum_map f g"
 
 lemma sum_map_InlD: "(f \<oplus> g) z = Inl x \<Longrightarrow> \<exists>y. z = Inl y \<and> f y = x"
 by (cases z) auto
@@ -48,7 +48,7 @@ assumes "Inr tr \<in> (id \<oplus> f) ` tns"
 shows "\<exists> n. Inr n \<in> tns \<and> f n = tr"
 using assms apply clarify by (case_tac x, auto)
 
-lemma Inr_oplus_iff[simp]: 
+lemma Inr_oplus_iff[simp]:
 "Inr tr \<in> (id \<oplus> f) ` tns \<longleftrightarrow> (\<exists> n. Inr n \<in> tns \<and> f n = tr)"
 apply (rule iffI)
  apply (metis Inr_oplus_elim)

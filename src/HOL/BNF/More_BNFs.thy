@@ -1285,8 +1285,8 @@ next
   qed
 qed (unfold set_of_empty, auto)
 
-inductive multiset_rel' where 
-Zero: "multiset_rel' R {#} {#}" 
+inductive multiset_rel' where
+Zero: "multiset_rel' R {#} {#}"
 |
 Plus: "\<lbrakk>R a b; multiset_rel' R M N\<rbrakk> \<Longrightarrow> multiset_rel' R (M + {#a#}) (N + {#b#})"
 
@@ -1388,13 +1388,13 @@ proof-
   thus ?thesis unfolding A_def mcard_def multiset_map_def by (simp add: mmap_def)
 qed
 
-lemma multiset_rel_mcard: 
-assumes "multiset_rel R M N" 
+lemma multiset_rel_mcard:
+assumes "multiset_rel R M N"
 shows "mcard M = mcard N"
 using assms unfolding multiset_rel_def relcomp_unfold Gr_def by auto
 
 lemma multiset_induct2[case_names empty addL addR]:
-assumes empty: "P {#} {#}" 
+assumes empty: "P {#} {#}"
 and addL: "\<And>M N a. P M N \<Longrightarrow> P (M + {#a#}) N"
 and addR: "\<And>M N a. P M N \<Longrightarrow> P M (N + {#a#})"
 shows "P M N"
@@ -1458,7 +1458,7 @@ proof-
   obtain N1 where N: "N = N1 + {#snd ab#}" and K1N1: "multiset_map snd K1 = N1"
   using msed_map_invL[OF KN[unfolded K]] by auto
   have Rab: "R a (snd ab)" using sK a unfolding K by auto
-  have "multiset_rel R M N1" using sK K1M K1N1 
+  have "multiset_rel R M N1" using sK K1M K1N1
   unfolding K multiset_rel_def Gr_def relcomp_unfold by auto
   thus ?thesis using N Rab by auto
 qed
