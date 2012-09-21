@@ -604,13 +604,19 @@ session "HOL-Cardinals-Base" in Cardinals = HOL +
 
 session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
   description {* Ordinals and Cardinals, Full Theories *}
+  options [document = false]
   theories Cardinals
   files
     "document/intro.tex"
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-BNF" in BNF = "HOL-Cardinals" +
+session "HOL-BNF-LFP" in BNF = "HOL-Cardinals-Base" +
+  description {* Bounded Natural Functors for Datatypes *}
+  options [document = false]
+  theories BNF_LFP
+
+session "HOL-BNF" in BNF = "HOL-BNF-LFP" +
   description {* Bounded Natural Functors for (Co)datatypes *}
   options [document = false]
   theories BNF
