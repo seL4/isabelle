@@ -62,11 +62,11 @@ sig
   val min_algN: string
   val morN: string
   val nchotomyN: string
-  val pred_coinductN: string
-  val pred_simpN: string
-  val pred_strong_coinductN: string
   val recN: string
   val recsN: string
+  val rel_coinductN: string
+  val rel_simpN: string
+  val rel_strong_coinductN: string
   val rvN: string
   val sel_unfoldsN: string
   val sel_corecsN: string
@@ -222,14 +222,14 @@ val coinductN = coN ^ inductN
 val ctor_inductN = ctorN ^ "_" ^ inductN
 val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_coinductN = dtorN ^ "_" ^ coinductN
-val pred_coinductN = predN ^ "_" ^ coinductN
+val rel_coinductN = relN ^ "_" ^ coinductN
 val srel_coinductN = srelN ^ "_" ^ coinductN
 val simpN = "_simp";
 val srel_simpN = srelN ^ simpN;
-val pred_simpN = predN ^ simpN;
+val rel_simpN = relN ^ simpN;
 val strongN = "strong_"
 val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN
-val pred_strong_coinductN = predN ^ "_" ^ strongN ^ coinductN
+val rel_strong_coinductN = relN ^ "_" ^ strongN ^ coinductN
 val srel_strong_coinductN = srelN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"

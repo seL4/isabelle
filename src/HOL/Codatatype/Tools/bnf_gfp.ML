@@ -2178,8 +2178,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val timer = time (timer "corec definitions & thms");
 
-    val (dtor_coinduct_thm, coinduct_params, srel_coinduct_thm, pred_coinduct_thm,
-         dtor_strong_coinduct_thm, srel_strong_coinduct_thm, pred_strong_coinduct_thm) =
+    val (dtor_coinduct_thm, coinduct_params, srel_coinduct_thm, rel_coinduct_thm,
+         dtor_strong_coinduct_thm, srel_strong_coinduct_thm, rel_strong_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -2269,14 +2269,14 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               (tcoalg_thm RS bis_diag_thm))))
           |> Thm.close_derivation;
 
-        val pred_of_srel_thms =
+        val rel_of_srel_thms =
           srel_defs @ @{thms Id_def' mem_Collect_eq fst_conv snd_conv split_conv};
 
-        val pred_coinduct = unfold_thms lthy pred_of_srel_thms srel_coinduct;
-        val pred_strong_coinduct = unfold_thms lthy pred_of_srel_thms srel_strong_coinduct;
+        val rel_coinduct = unfold_thms lthy rel_of_srel_thms srel_coinduct;
+        val rel_strong_coinduct = unfold_thms lthy rel_of_srel_thms srel_strong_coinduct;
       in
-        (dtor_coinduct, rev (Term.add_tfrees dtor_coinduct_goal []), srel_coinduct, pred_coinduct,
-         dtor_strong_coinduct, srel_strong_coinduct, pred_strong_coinduct)
+        (dtor_coinduct, rev (Term.add_tfrees dtor_coinduct_goal []), srel_coinduct, rel_coinduct,
+         dtor_strong_coinduct, srel_strong_coinduct, rel_strong_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2882,18 +2882,18 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val srels = map2 (fn Ds => mk_srel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Jsrels = map (mk_srel_of_bnf deads passiveAs passiveBs) Jbnfs;
-        val preds = map2 (fn Ds => mk_pred_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
-        val Jpreds = map (mk_pred_of_bnf deads passiveAs passiveBs) Jbnfs;
+        val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
+        val Jrels = map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
 
         val JrelRs = map (fn Jsrel => Term.list_comb (Jsrel, JRs)) Jsrels;
         val relRs = map (fn srel => Term.list_comb (srel, JRs @ JrelRs)) srels;
-        val Jpredphis = map (fn Jsrel => Term.list_comb (Jsrel, Jphis)) Jpreds;
-        val predphis = map (fn srel => Term.list_comb (srel, Jphis @ Jpredphis)) preds;
+        val Jpredphis = map (fn Jsrel => Term.list_comb (Jsrel, Jphis)) Jrels;
+        val predphis = map (fn srel => Term.list_comb (srel, Jphis @ Jpredphis)) rels;
 
         val in_srels = map in_srel_of_bnf bnfs;
         val in_Jsrels = map in_srel_of_bnf Jbnfs;
         val Jsrel_defs = map srel_def_of_bnf Jbnfs;
-        val Jpred_defs = map pred_def_of_bnf Jbnfs;
+        val Jrel_defs = map rel_def_of_bnf Jbnfs;
 
         val folded_map_simp_thms = map fold_maps map_simp_thms;
         val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
@@ -2917,7 +2917,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               dtor_inject_thms dtor_ctor_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
 
-        val Jpred_simp_thms =
+        val Jrel_simp_thms =
           let
             fun mk_goal Jz Jz' dtor dtor' Jpredphi predphi = fold_rev Logic.all (Jz :: Jz' :: Jphis)
               (mk_Trueprop_eq (Jpredphi $ Jz $ Jz', predphi $ (dtor $ Jz) $ (dtor' $ Jz')));
@@ -2925,7 +2925,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             map3 (fn goal => fn srel_def => fn Jsrel_simp =>
               Skip_Proof.prove lthy [] [] goal
-                (mk_pred_simp_tac srel_def Jpred_defs Jsrel_defs Jsrel_simp)
+                (mk_rel_simp_tac srel_def Jrel_defs Jsrel_defs Jsrel_simp)
               |> Thm.close_derivation)
             goals srel_defs Jsrel_simp_thms
           end;
@@ -2942,7 +2942,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val Jbnf_notes =
           [(map_simpsN, map single folded_map_simp_thms),
-          (pred_simpN, map single Jpred_simp_thms),
+          (rel_simpN, map single Jrel_simp_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss),
           (srel_simpN, map single Jsrel_simp_thms)] @
@@ -2958,8 +2958,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
         (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
-        (pred_coinductN, [pred_coinduct_thm]),
-        (pred_strong_coinductN, [pred_strong_coinduct_thm]),
+        (rel_coinductN, [rel_coinduct_thm]),
+        (rel_strong_coinductN, [rel_strong_coinduct_thm]),
         (srel_coinductN, [srel_coinduct_thm]),
         (srel_strong_coinductN, [srel_strong_coinduct_thm])]
         |> map (fn (thmN, thms) =>

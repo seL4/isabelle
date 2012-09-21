@@ -80,12 +80,12 @@ definition setr :: "'a + 'b \<Rightarrow> 'b set" where
 
 lemmas sum_set_defs = setl_def[abs_def] setr_def[abs_def]
 
-definition sum_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'c \<Rightarrow> 'b + 'd \<Rightarrow> bool" where
-"sum_pred \<phi> \<psi> x y =
+definition sum_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a + 'c \<Rightarrow> 'b + 'd \<Rightarrow> bool" where
+"sum_rel \<phi> \<psi> x y =
  (case x of Inl a1 \<Rightarrow> (case y of Inl a2 \<Rightarrow> \<phi> a1 a2 | Inr _ \<Rightarrow> False)
           | Inr b1 \<Rightarrow> (case y of Inl _ \<Rightarrow> False | Inr b2 \<Rightarrow> \<psi> b1 b2))"
 
-bnf_def sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_pred
+bnf_def sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
@@ -196,10 +196,10 @@ next
   qed
 next
   fix R S
-  show "{p. sum_pred (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) (fst p) (snd p)} =
+  show "{p. sum_rel (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) (fst p) (snd p)} =
         (Gr {x. setl x \<subseteq> R \<and> setr x \<subseteq> S} (sum_map fst fst))\<inverse> O
         Gr {x. setl x \<subseteq> R \<and> setr x \<subseteq> S} (sum_map snd snd)"
-  unfolding setl_def setr_def sum_pred_def Gr_def relcomp_unfold converse_unfold
+  unfolding setl_def setr_def sum_rel_def Gr_def relcomp_unfold converse_unfold
   by (fastforce split: sum.splits)
 qed (auto simp: sum_set_defs)
 
@@ -221,10 +221,10 @@ definition snds :: "'a \<times> 'b \<Rightarrow> 'b set" where
 
 lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 
-definition prod_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool" where
-"prod_pred \<phi> \<psi> p1 p2 = (case p1 of (a1, b1) \<Rightarrow> case p2 of (a2, b2) \<Rightarrow> \<phi> a1 a2 \<and> \<psi> b1 b2)"
+definition prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool" where
+"prod_rel \<phi> \<psi> p1 p2 = (case p1 of (a1, b1) \<Rightarrow> case p2 of (a2, b2) \<Rightarrow> \<phi> a1 a2 \<and> \<psi> b1 b2)"
 
-bnf_def map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_pred
+bnf_def map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_rel
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -301,10 +301,10 @@ next
     unfolding wpull_def by simp fast
 next
   fix R S
-  show "{p. prod_pred (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) (fst p) (snd p)} =
+  show "{p. prod_rel (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) (fst p) (snd p)} =
         (Gr {x. {fst x} \<subseteq> R \<and> {snd x} \<subseteq> S} (map_pair fst fst))\<inverse> O
         Gr {x. {fst x} \<subseteq> R \<and> {snd x} \<subseteq> S} (map_pair snd snd)"
-  unfolding prod_set_defs prod_pred_def Gr_def relcomp_unfold converse_unfold
+  unfolding prod_set_defs prod_rel_def Gr_def relcomp_unfold converse_unfold
   by auto
 qed simp+
 
@@ -344,11 +344,11 @@ proof -
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
-definition fun_pred :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> ('c \<Rightarrow> 'b) \<Rightarrow> bool" where
-"fun_pred \<phi> f g = (\<forall>x. \<phi> (f x) (g x))"
+definition fun_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> ('c \<Rightarrow> 'b) \<Rightarrow> bool" where
+"fun_rel \<phi> f g = (\<forall>x. \<phi> (f x) (g x))"
 
 bnf_def "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|" ["%c x::'b::type. c::'a::type"]
-  fun_pred
+  fun_rel
 proof
   fix f show "id \<circ> f = id f" by simp
 next
@@ -408,9 +408,9 @@ next
   qed
 next
   fix R
-  show "{p. fun_pred (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
+  show "{p. fun_rel (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
         (Gr {x. range x \<subseteq> R} (op \<circ> fst))\<inverse> O Gr {x. range x \<subseteq> R} (op \<circ> snd)"
-  unfolding fun_pred_def Gr_def relcomp_unfold converse_unfold
+  unfolding fun_rel_def Gr_def relcomp_unfold converse_unfold
   by (auto intro!: exI dest!: in_mono)
 qed auto
 

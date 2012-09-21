@@ -1722,19 +1722,19 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val srels = map2 (fn Ds => mk_srel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Isrels = map (mk_srel_of_bnf deads passiveAs passiveBs) Ibnfs;
-        val preds = map2 (fn Ds => mk_pred_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
-        val Ipreds = map (mk_pred_of_bnf deads passiveAs passiveBs) Ibnfs;
+        val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
+        val Irels = map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
 
         val IrelRs = map (fn Isrel => Term.list_comb (Isrel, IRs)) Isrels;
         val relRs = map (fn srel => Term.list_comb (srel, IRs @ IrelRs)) srels;
-        val Ipredphis = map (fn Isrel => Term.list_comb (Isrel, Iphis)) Ipreds;
-        val predphis = map (fn srel => Term.list_comb (srel, Iphis @ Ipredphis)) preds;
+        val Ipredphis = map (fn Isrel => Term.list_comb (Isrel, Iphis)) Irels;
+        val predphis = map (fn srel => Term.list_comb (srel, Iphis @ Ipredphis)) rels;
 
         val in_srels = map in_srel_of_bnf bnfs;
         val in_Isrels = map in_srel_of_bnf Ibnfs;
         val srel_defs = map srel_def_of_bnf bnfs;
         val Isrel_defs = map srel_def_of_bnf Ibnfs;
-        val Ipred_defs = map pred_def_of_bnf Ibnfs;
+        val Irel_defs = map rel_def_of_bnf Ibnfs;
 
         val set_incl_thmss = map (map (fold_sets o hd)) Fset_set_thmsss;
         val set_set_incl_thmsss = map (transpose o map (map fold_sets o tl)) Fset_set_thmsss;
@@ -1760,7 +1760,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               ctor_inject_thms ctor_dtor_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
 
-        val Ipred_simp_thms =
+        val Irel_simp_thms =
           let
             fun mk_goal xF yF ctor ctor' Ipredphi predphi = fold_rev Logic.all (xF :: yF :: Iphis)
               (mk_Trueprop_eq (Ipredphi $ (ctor $ xF) $ (ctor' $ yF), predphi $ xF $ yF));
@@ -1768,7 +1768,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             map3 (fn goal => fn srel_def => fn Isrel_simp =>
               Skip_Proof.prove lthy [] [] goal
-                (mk_pred_simp_tac srel_def Ipred_defs Isrel_defs Isrel_simp)
+                (mk_rel_simp_tac srel_def Irel_defs Isrel_defs Isrel_simp)
               |> Thm.close_derivation)
             goals srel_defs Isrel_simp_thms
           end;
@@ -1787,7 +1787,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss),
           (srel_simpN, map single Isrel_simp_thms),
-          (pred_simpN, map single Ipred_simp_thms)] @
+          (rel_simpN, map single Irel_simp_thms)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
