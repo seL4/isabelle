@@ -76,9 +76,9 @@ fun join_halves n half_xss other_half_xss =
 
 fun mk_undefined T = Const (@{const_name undefined}, T);
 
-fun mk_ctr Ts ctr =
-  let val Type (_, Ts0) = body_type (fastype_of ctr) in
-    Term.subst_atomic_types (Ts0 ~~ Ts) ctr
+fun mk_ctr Ts t =
+  let val Type (_, Ts0) = body_type (fastype_of t) in
+    Term.subst_atomic_types (Ts0 ~~ Ts) t
   end;
 
 fun mk_disc_or_sel Ts t =
@@ -90,7 +90,7 @@ fun base_name_of_ctr c =
     | Free (s, _) => s
     | _ => error "Cannot extract name of constructor");
 
-fun rap u t = betapply (t, u);
+fun rapp u t = betapply (t, u);
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
@@ -226,7 +226,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
           fun disc_spec b exist_xs_u_eq_ctr = mk_Trueprop_eq (disc_free b $ u, exist_xs_u_eq_ctr);
 
-          fun alternate_disc k = Term.lambda u (alternate_disc_lhs (K o rap u o disc_free) (3 - k));
+          fun alternate_disc k =
+            Term.lambda u (alternate_disc_lhs (K o rapp u o disc_free) (3 - k));
 
           fun mk_default T t =
             let
@@ -306,11 +307,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           val discs = map (mk_disc_or_sel As) discs0;
           val selss = map (map (mk_disc_or_sel As)) selss0;
 
-          val udiscs = map (rap u) discs;
-          val uselss = map (map (rap u)) selss;
+          val udiscs = map (rapp u) discs;
+          val uselss = map (map (rapp u)) selss;
 
-          val vdiscs = map (rap v) discs;
-          val vselss = map (map (rap v)) selss;
+          val vdiscs = map (rapp v) discs;
+          val vselss = map (map (rapp v)) selss;
         in
           (all_sels_distinct, discs, selss, udiscs, uselss, vdiscs, vselss, disc_defs, sel_defs,
            sel_defss, lthy')
