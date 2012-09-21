@@ -40,6 +40,7 @@ val disc_exhaustN = "disc_exhaust";
 val discsN = "discs";
 val distinctN = "distinct";
 val exhaustN = "exhaust";
+val expandN = "expand";
 val injectN = "inject";
 val nchotomyN = "nchotomy";
 val selsN = "sels";
@@ -60,10 +61,18 @@ fun pad_list x n xs = xs @ replicate (n - length xs) x;
 fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
 
 fun mk_half_pairss' _ [] = []
-  | mk_half_pairss' indent (y :: ys) =
-    indent @ fold_rev (cons o single o pair y) ys (mk_half_pairss' ([] :: indent) ys);
+  | mk_half_pairss' indent (x :: xs) =
+    indent @ fold_rev (cons o single o pair x) xs (mk_half_pairss' ([] :: indent) xs);
 
-fun mk_half_pairss ys = mk_half_pairss' [[]] ys;
+fun mk_half_pairss xs = mk_half_pairss' [[]] xs;
+
+fun join_halves n half_xss other_half_xss =
+  let
+    val xsss =
+      map2 (map2 append) (Library.chop_groups n half_xss)
+        (transpose (Library.chop_groups n other_half_xss))
+    val xs = interleave (flat half_xss) (flat other_half_xss);
+  in (xs, xsss |> `transpose) end;
 
 fun mk_undefined T = Const (@{const_name undefined}, T);
 
@@ -80,6 +89,8 @@ fun base_name_of_ctr c =
       Const (s, _) => s
     | Free (s, _) => s
     | _ => error "Cannot extract name of constructor");
+
+fun rap u t = betapply (t, u);
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
@@ -160,19 +171,16 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val casex = mk_case As B;
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((xss, xss'), yss), fs), gs), (v, v')), w), (p, p')), names_lthy) = no_defs_lthy |>
+    val ((((((((xss, xss'), yss), fs), gs), (u, u')), v), (p, p')), names_lthy) = no_defs_lthy |>
       mk_Freess' "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "v") dataT
-      ||>> yield_singleton (mk_Frees "w") dataT
+      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "u") dataT
+      ||>> yield_singleton (mk_Frees "v") dataT
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
 
     val q = Free (fst p', mk_pred1T B);
-
-    fun ap_v t = t $ v;
-    fun mk_v_eq_v () = HOLogic.mk_eq (v, v);
 
     val xctrs = map2 (curry Term.list_comb) ctrs xss;
     val yctrs = map2 (curry Term.list_comb) ctrs yss;
@@ -186,28 +194,37 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val fcase = Term.list_comb (casex, eta_fs);
     val gcase = Term.list_comb (casex, eta_gs);
 
-    val exist_xs_v_eq_ctrs =
-      map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (v, xctr))) xctrs xss;
+    val ufcase = fcase $ u;
+    val vfcase = fcase $ v;
+    val vgcase = gcase $ v;
+
+    fun mk_u_eq_u () = HOLogic.mk_eq (u, u);
+
+    val u_eq_v = mk_Trueprop_eq (u, v);
+
+    val exist_xs_u_eq_ctrs =
+      map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (u, xctr))) xctrs xss;
 
     val unique_disc_no_def = TrueI; (*arbitrary marker*)
     val alternate_disc_no_def = FalseE; (*arbitrary marker*)
 
-    fun alternate_disc_lhs get_disc k =
+    fun alternate_disc_lhs get_udisc k =
       HOLogic.mk_not
         (case nth disc_bindings (k - 1) of
-          NONE => nth exist_xs_v_eq_ctrs (k - 1)
-        | SOME b => get_disc b (k - 1) $ v);
+          NONE => nth exist_xs_u_eq_ctrs (k - 1)
+        | SOME b => get_udisc b (k - 1));
 
-    val (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy') =
+    val (all_sels_distinct, discs, selss, udiscs, uselss, vdiscs, vselss, disc_defs, sel_defs,
+         sel_defss, lthy') =
       if no_dests then
-        (true, [], [], [], [], [], no_defs_lthy)
+        (true, [], [], [], [], [], [], [], [], [], no_defs_lthy)
       else
         let
           fun disc_free b = Free (Binding.name_of b, mk_pred1T dataT);
 
-          fun disc_spec b exist_xs_v_eq_ctr = mk_Trueprop_eq (disc_free b $ v, exist_xs_v_eq_ctr);
+          fun disc_spec b exist_xs_u_eq_ctr = mk_Trueprop_eq (disc_free b $ u, exist_xs_u_eq_ctr);
 
-          fun alternate_disc k = Term.lambda v (alternate_disc_lhs (K o disc_free) (3 - k));
+          fun alternate_disc k = Term.lambda u (alternate_disc_lhs (K o rap u o disc_free) (3 - k));
 
           fun mk_default T t =
             let
@@ -239,8 +256,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     quote (Binding.name_of b) ^ ": " ^ quote (Syntax.string_of_typ no_defs_lthy T) ^
                     " vs. " ^ quote (Syntax.string_of_typ no_defs_lthy T')));
             in
-              mk_Trueprop_eq (Free (Binding.name_of b, dataT --> T) $ v,
-                Term.list_comb (mk_case As T, mk_sel_case_args b proto_sels T) $ v)
+              mk_Trueprop_eq (Free (Binding.name_of b, dataT --> T) $ u,
+                Term.list_comb (mk_case As T, mk_sel_case_args b proto_sels T) $ u)
             end;
 
           val sel_bindings = flat sel_bindingss;
@@ -262,14 +279,14 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             no_defs_lthy
-            |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_v_eq_ctr =>
+            |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_u_eq_ctr =>
               fn NONE =>
-                 if n = 1 then pair (Term.lambda v (mk_v_eq_v ()), unique_disc_no_def)
-                 else if m = 0 then pair (Term.lambda v exist_xs_v_eq_ctr, refl)
+                 if n = 1 then pair (Term.lambda u (mk_u_eq_u ()), unique_disc_no_def)
+                 else if m = 0 then pair (Term.lambda u exist_xs_u_eq_ctr, refl)
                  else pair (alternate_disc k, alternate_disc_no_def)
                | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
-                   ((Thm.def_binding b, []), disc_spec b exist_xs_v_eq_ctr)) #>> apsnd snd)
-              ks ms exist_xs_v_eq_ctrs disc_bindings
+                   ((Thm.def_binding b, []), disc_spec b exist_xs_u_eq_ctr)) #>> apsnd snd)
+              ks ms exist_xs_u_eq_ctrs disc_bindings
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
               Specification.definition (SOME (b, NONE, NoSyn),
                 ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
@@ -286,15 +303,22 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
           val discs = map (mk_disc_or_sel As) discs0;
           val selss = map (map (mk_disc_or_sel As)) selss0;
+
+          val udiscs = map (rap u) discs;
+          val uselss = map (map (rap u)) selss;
+
+          val vdiscs = map (rap v) discs;
+          val vselss = map (map (rap v)) selss;
         in
-          (all_sels_distinct, discs, selss, disc_defs, sel_defs, sel_defss, lthy')
+          (all_sels_distinct, discs, selss, udiscs, uselss, vdiscs, vselss, disc_defs, sel_defs,
+           sel_defss, lthy')
         end;
 
     fun mk_imp_p Qs = Logic.list_implies (Qs, HOLogic.mk_Trueprop p);
 
     val exhaust_goal =
-      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (v, xctr)]) in
-        fold_rev Logic.all [p, v] (mk_imp_p (map2 mk_prem xctrs xss))
+      let fun mk_prem xctr xs = fold_rev Logic.all xs (mk_imp_p [mk_Trueprop_eq (u, xctr)]) in
+        fold_rev Logic.all [p, u] (mk_imp_p (map2 mk_prem xctrs xss))
       end;
 
     val inject_goalss =
@@ -329,35 +353,34 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
         val inject_thms = flat inject_thmss;
 
-        val exhaust_thm' =
-          let val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As) in
-            Drule.instantiate' [] [SOME (certify lthy v)]
-              (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes exhaust_thm))
-          end;
+        val Tinst = map (pairself (certifyT lthy)) (map Logic.varifyT_global As ~~ As);
+
+        fun inst_thm t thm =
+          Drule.instantiate' [] [SOME (certify lthy t)]
+            (Thm.instantiate (Tinst, []) (Drule.zero_var_indexes thm));
+
+        val uexhaust_thm = inst_thm u exhaust_thm;
 
         val exhaust_cases = map base_name_of_ctr ctrs;
 
         val other_half_distinct_thmss = map (map (fn thm => thm RS not_sym)) half_distinct_thmss;
 
-        val (distinct_thmsss', distinct_thmsss) =
-          map2 (map2 append) (Library.chop_groups n half_distinct_thmss)
-            (transpose (Library.chop_groups n other_half_distinct_thmss))
-          |> `transpose;
-        val distinct_thms = interleave (flat half_distinct_thmss) (flat other_half_distinct_thmss);
+        val (distinct_thms, (distinct_thmsss', distinct_thmsss)) =
+          join_halves n half_distinct_thmss other_half_distinct_thmss;
 
         val nchotomy_thm =
           let
             val goal =
-              HOLogic.mk_Trueprop (HOLogic.mk_all (fst v', snd v',
-                Library.foldr1 HOLogic.mk_disj exist_xs_v_eq_ctrs));
+              HOLogic.mk_Trueprop (HOLogic.mk_all (fst u', snd u',
+                Library.foldr1 HOLogic.mk_disj exist_xs_u_eq_ctrs));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
           end;
 
         val (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-             disc_exhaust_thms, collapse_thms, case_eq_thms) =
+             disc_exhaust_thms, collapse_thms, expand_thms, case_eq_thms) =
           if no_dests then
-            ([], [], [], [], [], [], [], [], [])
+            ([], [], [], [], [], [], [], [], [], [])
           else
             let
               fun make_sel_thm xs' case_thm sel_def =
@@ -382,9 +405,9 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
               fun mk_unique_disc_def () =
                 let
                   val m = the_single ms;
-                  val goal = mk_Trueprop_eq (mk_v_eq_v (), the_single exist_xs_v_eq_ctrs);
+                  val goal = mk_Trueprop_eq (mk_u_eq_u (), the_single exist_xs_u_eq_ctrs);
                 in
-                  Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m exhaust_thm')
+                  Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
                   |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
@@ -392,12 +415,12 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
               fun mk_alternate_disc_def k =
                 let
                   val goal =
-                    mk_Trueprop_eq (alternate_disc_lhs (K (nth discs)) (3 - k),
-                      nth exist_xs_v_eq_ctrs (k - 1));
+                    mk_Trueprop_eq (alternate_disc_lhs (K (nth udiscs)) (3 - k),
+                      nth exist_xs_u_eq_ctrs (k - 1));
                 in
                   Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
-                      (nth distinct_thms (2 - k)) exhaust_thm')
+                      (nth distinct_thms (2 - k)) uexhaust_thm)
                   |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
                 end;
@@ -431,103 +454,117 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
               val disc_thms = flat (map2 (fn true => K [] | false => I) no_discs disc_thmss);
 
-              val disc_exclude_thms =
-                if has_alternate_disc_def then
-                  []
-                else
-                  let
-                    fun mk_goal [] = []
-                      | mk_goal [((_, true), (_, true))] = []
-                      | mk_goal [(((_, disc), _), ((_, disc'), _))] =
-                        [Logic.all v (Logic.mk_implies (HOLogic.mk_Trueprop (betapply (disc, v)),
-                           HOLogic.mk_Trueprop (HOLogic.mk_not (betapply (disc', v)))))];
-                    fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
+              val (disc_exclude_thms, (disc_exclude_thmsss', disc_exclude_thmsss)) =
+                let
+                  fun mk_goal [] = []
+                    | mk_goal [((_, udisc), (_, udisc'))] =
+                      [Logic.all u (Logic.mk_implies (HOLogic.mk_Trueprop udisc,
+                         HOLogic.mk_Trueprop (HOLogic.mk_not udisc')))];
 
-                    val infos = ms ~~ discD_thms ~~ discs ~~ no_discs;
-                    val half_pairss = mk_half_pairss infos;
+                  fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
-                    val half_goalss = map mk_goal half_pairss;
-                    val half_thmss =
-                      map3 (fn [] => K (K []) | [goal] => fn [((((m, discD), _), _), _)] =>
-                          fn disc_thm => [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
-                        half_goalss half_pairss (flat disc_thmss');
+                  val infos = ms ~~ discD_thms ~~ udiscs;
+                  val half_pairss = mk_half_pairss infos;
 
-                    val other_half_goalss = map (mk_goal o map swap) half_pairss;
-                    val other_half_thmss =
-                      map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
-                        other_half_goalss;
-                  in
-                    interleave (flat half_thmss) (flat other_half_thmss)
-                  end;
+                  val half_goalss = map mk_goal half_pairss;
+                  val half_thmss =
+                    map3 (fn [] => K (K []) | [goal] => fn [(((m, discD), _), _)] =>
+                        fn disc_thm => [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
+                      half_goalss half_pairss (flat disc_thmss');
+
+                  val other_half_goalss = map (mk_goal o map swap) half_pairss;
+                  val other_half_thmss =
+                    map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
+                      other_half_goalss;
+                in
+                  join_halves n half_thmss other_half_thmss
+                  |>> has_alternate_disc_def ? K []
+                end;
+
+              val disc_exhaust_thm =
+                let
+                  fun mk_prem udisc = mk_imp_p [HOLogic.mk_Trueprop udisc];
+                  val goal = fold_rev Logic.all [p, u] (mk_imp_p (map mk_prem udiscs));
+                in
+                  Skip_Proof.prove lthy [] [] goal (fn _ =>
+                    mk_disc_exhaust_tac n exhaust_thm discI_thms)
+                end;
 
               val disc_exhaust_thms =
-                if has_alternate_disc_def orelse no_discs_at_all then
-                  []
-                else
-                  let
-                    fun mk_prem disc = mk_imp_p [HOLogic.mk_Trueprop (betapply (disc, v))];
-                    val goal = fold_rev Logic.all [p, v] (mk_imp_p (map mk_prem discs));
-                  in
-                    [Skip_Proof.prove lthy [] [] goal (fn _ =>
-                       mk_disc_exhaust_tac n exhaust_thm discI_thms)]
-                  end;
+                if has_alternate_disc_def orelse no_discs_at_all then [] else [disc_exhaust_thm];
 
-              val collapse_thms =
-                if no_dests then
-                  []
-                else
-                  let
-                    fun mk_goal ctr disc sels =
-                      let
-                        val prem = HOLogic.mk_Trueprop (betapply (disc, v));
-                        val concl =
-                          mk_Trueprop_eq ((null sels ? swap)
-                            (Term.list_comb (ctr, map ap_v sels), v));
-                      in
-                        if prem aconv concl then NONE
-                        else SOME (Logic.all v (Logic.mk_implies (prem, concl)))
-                      end;
-                    val goals = map3 mk_goal ctrs discs selss;
-                  in
-                    map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
-                      Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                        mk_collapse_tac ctxt m discD sel_thms)
-                      |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
-                    |> map_filter I
-                  end;
+              val (collapse_thms, collapse_thm_opts) =
+                let
+                  fun mk_goal ctr udisc usels =
+                    let
+                      val prem = HOLogic.mk_Trueprop udisc;
+                      val concl =
+                        mk_Trueprop_eq ((null usels ? swap) (Term.list_comb (ctr, usels), u));
+                    in
+                      if prem aconv concl then NONE
+                      else SOME (Logic.all u (Logic.mk_implies (prem, concl)))
+                    end;
+                  val goals = map3 mk_goal ctrs udiscs uselss;
+                in
+                  map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
+                    Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                      mk_collapse_tac ctxt m discD sel_thms)
+                    |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
+                  |> `(map_filter I)
+                end;
+
+              val expand_thms =
+                let
+                  fun mk_prems k udisc usels vdisc vsels =
+                    (if k = n then [] else [mk_Trueprop_eq (udisc, vdisc)]) @
+                    (if null usels then
+                       []
+                     else
+                       [Logic.list_implies
+                          (if n = 1 then [] else map HOLogic.mk_Trueprop [udisc, vdisc],
+                             HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+                               (map2 (curry HOLogic.mk_eq) usels vsels)))]);
+
+                  val uncollapse_thms =
+                    map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
+
+                  val goal =
+                    Library.foldr Logic.list_implies
+                      (map5 mk_prems ks udiscs uselss vdiscs vselss, u_eq_v);
+                in
+                  [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                     mk_expand_tac ctxt n ms (inst_thm u disc_exhaust_thm)
+                       (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
+                       disc_exclude_thmsss')]
+                  |> Proof_Context.export names_lthy lthy
+                end;
 
               val case_eq_thms =
-                if no_dests then
-                  []
-                else
-                  let
-                    fun mk_body f sels = Term.list_comb (f, map ap_v sels);
-                    val goal =
-                      mk_Trueprop_eq (fcase $ v, mk_IfN B (map ap_v discs) (map2 mk_body fs selss));
-                  in
-                    [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                      mk_case_eq_tac ctxt n exhaust_thm' case_thms disc_thmss' sel_thmss)]
-                    |> Proof_Context.export names_lthy lthy
-                  end;
+                let
+                  fun mk_body f usels = Term.list_comb (f, usels);
+                  val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs (map2 mk_body fs uselss));
+                in
+                  [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                     mk_case_eq_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
+                  |> Proof_Context.export names_lthy lthy
+                end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-               disc_exhaust_thms, collapse_thms, case_eq_thms)
+               disc_exhaust_thms, collapse_thms, expand_thms, case_eq_thms)
             end;
 
         val (case_cong_thm, weak_case_cong_thm) =
           let
             fun mk_prem xctr xs f g =
-              fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (w, xctr),
+              fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (v, xctr),
                 mk_Trueprop_eq (f, g)));
 
-            val v_eq_w = mk_Trueprop_eq (v, w);
-
             val goal =
-              Logic.list_implies (v_eq_w :: map4 mk_prem xctrs xss fs gs,
-                 mk_Trueprop_eq (fcase $ v, gcase $ w));
-            val weak_goal = Logic.mk_implies (v_eq_w, mk_Trueprop_eq (fcase $ v, fcase $ w));
+              Logic.list_implies (u_eq_v :: map4 mk_prem xctrs xss fs gs,
+                 mk_Trueprop_eq (ufcase, vgcase));
+            val weak_goal = Logic.mk_implies (u_eq_v, mk_Trueprop_eq (ufcase, vfcase));
           in
-            (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac exhaust_thm' case_thms),
+            (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
              Skip_Proof.prove lthy [] [] weak_goal (K (etac arg_cong 1)))
             |> pairself (singleton (Proof_Context.export names_lthy lthy))
           end;
@@ -535,12 +572,12 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         val (split_thm, split_asm_thm) =
           let
             fun mk_conjunct xctr xs f_xs =
-              list_all_free xs (HOLogic.mk_imp (HOLogic.mk_eq (v, xctr), q $ f_xs));
+              list_all_free xs (HOLogic.mk_imp (HOLogic.mk_eq (u, xctr), q $ f_xs));
             fun mk_disjunct xctr xs f_xs =
-              list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (v, xctr),
+              list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (u, xctr),
                 HOLogic.mk_not (q $ f_xs)));
 
-            val lhs = q $ (fcase $ v);
+            val lhs = q $ ufcase;
 
             val goal =
               mk_Trueprop_eq (lhs, Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct xctrs xss xfs));
@@ -550,7 +587,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
             val split_thm =
               Skip_Proof.prove lthy [] [] goal
-                (fn _ => mk_split_tac exhaust_thm' case_thms inject_thmss distinct_thmsss)
+                (fn _ => mk_split_tac uexhaust_thm case_thms inject_thmss distinct_thmsss)
               |> singleton (Proof_Context.export names_lthy lthy)
             val split_asm_thm =
               Skip_Proof.prove lthy [] [] asm_goal (fn {context = ctxt, ...} =>
@@ -573,6 +610,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
            (disc_exhaustN, disc_exhaust_thms, [exhaust_case_names_attr]),
            (distinctN, distinct_thms, simp_attrs @ induct_simp_attrs),
            (exhaustN, [exhaust_thm], [exhaust_case_names_attr, cases_type_attr]),
+           (expandN, expand_thms, []),
            (injectN, inject_thms, iff_attrs @ induct_simp_attrs),
            (nchotomyN, [nchotomy_thm], []),
            (selsN, all_sel_thms, simp_attrs),
