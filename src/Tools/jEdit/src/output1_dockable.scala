@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/output2_dockable.scala
+/*  Title:      Tools/jEdit/src/output1_dockable.scala
     Author:     Makarius
 
 Dockable window with result message output.
@@ -21,7 +21,7 @@ import java.awt.event.{ComponentEvent, ComponentAdapter}
 import org.gjt.sp.jedit.View
 
 
-class Output2_Dockable(view: View, position: String) extends Dockable(view, position)
+class Output1_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   Swing_Thread.require()
 
@@ -31,22 +31,52 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   private var zoom_factor = 100
   private var show_tracing = false
   private var do_update = true
-  private var current_snapshot = Document.State.init.snapshot()
   private var current_state = Command.empty.init_state
-  private var current_output: List[XML.Tree] = Nil
+  private var current_body: XML.Body = Nil
 
 
-  /* pretty text panel */
+  /* HTML panel */
 
-  private val pretty_text_area = new Pretty_Text_Area(view)
-  set_content(pretty_text_area)
+  private val html_panel =
+    new HTML_Panel(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+  {
+    override val handler: PartialFunction[HTML_Panel.Event, Unit] =
+    {
+      case HTML_Panel.Mouse_Click(elem, event)
+      if Protocol.Sendback.unapply(elem.getUserData(Markup.Data.name)).isDefined =>
+        val sendback = Protocol.Sendback.unapply(elem.getUserData(Markup.Data.name)).get
+        Document_View(view.getTextArea) match {
+          case Some(doc_view) =>
+            doc_view.rich_text_area.robust_body() {
+              val cmd = current_state.command
+              val model = doc_view.model
+              val buffer = model.buffer
+              val snapshot = model.snapshot()
+              snapshot.node.command_start(cmd) match {
+                case Some(start) if !snapshot.is_outdated =>
+                  val text = Pretty.string_of(sendback)
+                  try {
+                    buffer.beginCompoundEdit()
+                    buffer.remove(start, cmd.proper_range.length)
+                    buffer.insert(start, text)
+                  }
+                  finally { buffer.endCompoundEdit() }
+                case _ =>
+              }
+            }
+          case None =>
+        }
+    }
+  }
+
+  set_content(html_panel)
 
 
   private def handle_resize()
   {
     Swing_Thread.require()
 
-    pretty_text_area.resize(Isabelle.font_family(),
+    html_panel.resize(Isabelle.font_family(),
       scala.math.round(Isabelle.font_size() * zoom_factor / 100))
   }
 
@@ -54,34 +84,30 @@ class Output2_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     Swing_Thread.require()
 
-    val (new_snapshot, new_state) =
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val snapshot = doc_view.model.snapshot()
-          if (follow && !snapshot.is_outdated) {
+    val new_state =
+      if (follow) {
+        Document_View(view.getTextArea) match {
+          case Some(doc_view) =>
+            val snapshot = doc_view.model.snapshot()
             snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-              case Some(cmd) =>
-                (snapshot, snapshot.state.command_state(snapshot.version, cmd))
-              case None =>
-                (Document.State.init.snapshot(), Command.empty.init_state)
+              case Some(cmd) => snapshot.state.command_state(snapshot.version, cmd)
+              case None => Command.empty.init_state
             }
-          }
-          else (current_snapshot, current_state)
-        case None => (current_snapshot, current_state)
+          case None => Command.empty.init_state
+        }
       }
+      else current_state
 
-    val new_output =
+    val new_body =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
         new_state.results.iterator.map(_._2)
           .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList  // FIXME not scalable
-      else current_output
+      else current_body
 
-    if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, Library.separate(Pretty.Separator, new_output))
+    if (new_body != current_body) html_panel.render(new_body)
 
-    current_snapshot = new_snapshot
     current_state = new_state
-    current_output = new_output
+    current_body = new_body
   }
 
 

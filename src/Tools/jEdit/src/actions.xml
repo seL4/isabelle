@@ -22,9 +22,9 @@
 			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.output2-panel">
+	<ACTION NAME="isabelle.output1-panel">
 		<CODE>
-			wm.addDockableWindow("isabelle-output2");
+			wm.addDockableWindow("isabelle-output1");
 		</CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.raw-output-panel">
