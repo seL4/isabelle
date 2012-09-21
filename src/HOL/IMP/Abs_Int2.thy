@@ -119,7 +119,7 @@ proof(induction e arbitrary: a S)
   case N thus ?case by simp (metis test_num')
 next
   case (V x)
-  obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>f S'" using `s : \<gamma>\<^isub>o S`
+  obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>s S'" using `s : \<gamma>\<^isub>o S`
     by(auto simp: in_gamma_option_iff)
   moreover hence "s x : \<gamma> (fun S' x)"
     using V(1,2) by(simp add: \<gamma>_st_def L_st_def)
@@ -176,7 +176,7 @@ by(induct c arbitrary: S) (simp_all add: Let_def)
 subsubsection "Soundness"
 
 lemma in_gamma_update:
-  "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(update S x a)"
+  "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(update S x a)"
 by(simp add: \<gamma>_st_def)
 
 theorem step_preserves_le:

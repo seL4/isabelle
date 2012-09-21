@@ -275,16 +275,16 @@ lemma strip_step'[simp]: "strip(step' S C) = strip C"
 by(induct C arbitrary: S) (simp_all add: Let_def)
 
 
-abbreviation \<gamma>\<^isub>f :: "'av st \<Rightarrow> state set"
-where "\<gamma>\<^isub>f == \<gamma>_fun \<gamma>"
+abbreviation \<gamma>\<^isub>s :: "'av st \<Rightarrow> state set"
+where "\<gamma>\<^isub>s == \<gamma>_fun \<gamma>"
 
 abbreviation \<gamma>\<^isub>o :: "'av st option \<Rightarrow> state set"
-where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>f"
+where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>s"
 
 abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
 where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
 
-lemma gamma_f_Top[simp]: "\<gamma>\<^isub>f Top = UNIV"
+lemma gamma_s_Top[simp]: "\<gamma>\<^isub>s Top = UNIV"
 by(simp add: Top_fun_def \<gamma>_fun_def)
 
 lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o Top = UNIV"
@@ -292,23 +292,23 @@ by (simp add: Top_option_def)
 
 (* FIXME (maybe also le \<rightarrow> sqle?) *)
 
-lemma mono_gamma_f: "f1 \<sqsubseteq> f2 \<Longrightarrow> \<gamma>\<^isub>f f1 \<subseteq> \<gamma>\<^isub>f f2"
+lemma mono_gamma_s: "f1 \<sqsubseteq> f2 \<Longrightarrow> \<gamma>\<^isub>s f1 \<subseteq> \<gamma>\<^isub>s f2"
 by(auto simp: le_fun_def \<gamma>_fun_def dest: mono_gamma)
 
 lemma mono_gamma_o:
   "S1 \<sqsubseteq> S2 \<Longrightarrow> \<gamma>\<^isub>o S1 \<subseteq> \<gamma>\<^isub>o S2"
-by(induction S1 S2 rule: le_option.induct)(simp_all add: mono_gamma_f)
+by(induction S1 S2 rule: le_option.induct)(simp_all add: mono_gamma_s)
 
 lemma mono_gamma_c: "C1 \<sqsubseteq> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
 by (induction C1 C2 rule: le_acom.induct) (simp_all add:mono_gamma_o)
 
 text{* Soundness: *}
 
-lemma aval'_sound: "s : \<gamma>\<^isub>f S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_sound: "s : \<gamma>\<^isub>s S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induct a) (auto simp: gamma_num' gamma_plus' \<gamma>_fun_def)
 
 lemma in_gamma_update:
-  "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(S(x := a))"
+  "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(S(x := a))"
 by(simp add: \<gamma>_fun_def)
 
 lemma step_preserves_le:

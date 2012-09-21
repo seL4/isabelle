@@ -48,7 +48,7 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = fun S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-lemma aval'_sound: "s : \<gamma>\<^isub>f S \<Longrightarrow> vars a \<subseteq> dom S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
+lemma aval'_sound: "s : \<gamma>\<^isub>s S \<Longrightarrow> vars a \<subseteq> dom S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def)
 
 end
@@ -81,7 +81,7 @@ by(induct C arbitrary: S) (simp_all add: Let_def)
 text{* Soundness: *}
 
 lemma in_gamma_update:
-  "\<lbrakk> s : \<gamma>\<^isub>f S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>f(update S x a)"
+  "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(update S x a)"
 by(simp add: \<gamma>_st_def)
 
 theorem step_preserves_le:
