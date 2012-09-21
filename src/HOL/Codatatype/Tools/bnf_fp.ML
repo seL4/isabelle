@@ -22,24 +22,35 @@ sig
   val coitersN: string
   val corecN: string
   val corecsN: string
+  val ctorN: string
+  val ctor_dtorN: string
+  val ctor_dtor_coitersN: string
+  val ctor_dtor_corecsN: string
+  val ctor_exhaustN: string
+  val ctor_induct2N: string
+  val ctor_inductN: string
+  val ctor_injectN: string
+  val ctor_iterN: string
+  val ctor_iter_uniqueN: string
+  val ctor_itersN: string
+  val ctor_recN: string
+  val ctor_recsN: string
   val disc_coiter_iffN: string
   val disc_coitersN: string
   val disc_corec_iffN: string
   val disc_corecsN: string
+  val dtorN: string
+  val dtor_coinductN: string
+  val dtor_coiterN: string
+  val dtor_coiter_uniqueN: string
+  val dtor_coitersN: string
+  val dtor_corecN: string
+  val dtor_corecsN: string
+  val dtor_exhaustN: string
+  val dtor_ctorN: string
+  val dtor_injectN: string
+  val dtor_strong_coinductN: string
   val exhaustN: string
-  val fldN: string
-  val fld_exhaustN: string
-  val fld_induct2N: string
-  val fld_inductN: string
-  val fld_injectN: string
-  val fld_iterN: string
-  val fld_iter_uniqueN: string
-  val fld_itersN: string
-  val fld_recN: string
-  val fld_recsN: string
-  val fld_unfN: string
-  val fld_unf_coitersN: string
-  val fld_unf_corecsN: string
   val hsetN: string
   val hset_recN: string
   val inductN: string
@@ -72,17 +83,6 @@ sig
   val strongN: string
   val sum_bdN: string
   val sum_bdTN: string
-  val unfN: string
-  val unf_coinductN: string
-  val unf_coiterN: string
-  val unf_coiter_uniqueN: string
-  val unf_coitersN: string
-  val unf_corecN: string
-  val unf_corecsN: string
-  val unf_exhaustN: string
-  val unf_fldN: string
-  val unf_injectN: string
-  val unf_strong_coinductN: string
   val uniqueN: string
 
   val mk_exhaustN: string -> string
@@ -166,15 +166,15 @@ val coiterN = coN ^ iterN
 val coitersN = coiterN ^ "s"
 val uniqueN = "_unique"
 val simpsN = "simps"
-val fldN = "fld"
-val unfN = "unf"
-val fld_iterN = fldN ^ "_" ^ iterN
-val fld_itersN = fld_iterN ^ "s"
-val unf_coiterN = unfN ^ "_" ^ coiterN
-val unf_coitersN = unf_coiterN ^ "s"
-val fld_iter_uniqueN = fld_iterN ^ uniqueN
-val unf_coiter_uniqueN = unf_coiterN ^ uniqueN
-val fld_unf_coitersN = fldN ^ "_" ^ unf_coiterN ^ "s"
+val ctorN = "ctor"
+val dtorN = "dtor"
+val ctor_iterN = ctorN ^ "_" ^ iterN
+val ctor_itersN = ctor_iterN ^ "s"
+val dtor_coiterN = dtorN ^ "_" ^ coiterN
+val dtor_coitersN = dtor_coiterN ^ "s"
+val ctor_iter_uniqueN = ctor_iterN ^ uniqueN
+val dtor_coiter_uniqueN = dtor_coiterN ^ uniqueN
+val ctor_dtor_coitersN = ctorN ^ "_" ^ dtor_coiterN ^ "s"
 val map_simpsN = mapN ^ "_" ^ simpsN
 val map_uniqueN = mapN ^ uniqueN
 val min_algN = "min_alg"
@@ -198,36 +198,36 @@ val recN = "rec"
 val recsN = recN ^ "s"
 val corecN = coN ^ recN
 val corecsN = corecN ^ "s"
-val fld_recN = fldN ^ "_" ^ recN
-val fld_recsN = fld_recN ^ "s"
-val unf_corecN = unfN ^ "_" ^ corecN
-val unf_corecsN = unf_corecN ^ "s"
-val fld_unf_corecsN = fldN ^ "_" ^ unf_corecN ^ "s"
+val ctor_recN = ctorN ^ "_" ^ recN
+val ctor_recsN = ctor_recN ^ "s"
+val dtor_corecN = dtorN ^ "_" ^ corecN
+val dtor_corecsN = dtor_corecN ^ "s"
+val ctor_dtor_corecsN = ctorN ^ "_" ^ dtor_corecN ^ "s"
 
-val fld_unfN = fldN ^ "_" ^ unfN
-val unf_fldN = unfN ^ "_" ^ fldN
+val ctor_dtorN = ctorN ^ "_" ^ dtorN
+val dtor_ctorN = dtorN ^ "_" ^ ctorN
 val nchotomyN = "nchotomy"
 fun mk_nchotomyN s = s ^ "_" ^ nchotomyN
 val injectN = "inject"
 fun mk_injectN s = s ^ "_" ^ injectN
 val exhaustN = "exhaust"
 fun mk_exhaustN s = s ^ "_" ^ exhaustN
-val fld_injectN = mk_injectN fldN
-val fld_exhaustN = mk_exhaustN fldN
-val unf_injectN = mk_injectN unfN
-val unf_exhaustN = mk_exhaustN unfN
+val ctor_injectN = mk_injectN ctorN
+val ctor_exhaustN = mk_exhaustN ctorN
+val dtor_injectN = mk_injectN dtorN
+val dtor_exhaustN = mk_exhaustN dtorN
 val inductN = "induct"
 val coinductN = coN ^ inductN
-val fld_inductN = fldN ^ "_" ^ inductN
-val fld_induct2N = fld_inductN ^ "2"
-val unf_coinductN = unfN ^ "_" ^ coinductN
+val ctor_inductN = ctorN ^ "_" ^ inductN
+val ctor_induct2N = ctor_inductN ^ "2"
+val dtor_coinductN = dtorN ^ "_" ^ coinductN
 val rel_coinductN = relN ^ "_" ^ coinductN
 val pred_coinductN = predN ^ "_" ^ coinductN
 val simpN = "_simp";
 val rel_simpN = relN ^ simpN;
 val pred_simpN = predN ^ simpN;
 val strongN = "strong_"
-val unf_strong_coinductN = unfN ^ "_" ^ strongN ^ coinductN
+val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN
 val rel_strong_coinductN = relN ^ "_" ^ strongN ^ coinductN
 val pred_strong_coinductN = predN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"

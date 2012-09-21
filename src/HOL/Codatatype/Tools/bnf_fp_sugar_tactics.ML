@@ -9,10 +9,10 @@ signature BNF_FP_SUGAR_TACTICS =
 sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coiter_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
+  val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
+    tactic
   val mk_disc_coiter_like_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
-  val mk_fld_iff_unf_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
-    tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int list -> int list list -> int list list list -> thm list ->
     thm -> thm list -> thm list list -> tactic
@@ -43,47 +43,47 @@ fun inst_spurious_fs lthy thm =
 
 val inst_spurious_fs_tac = PRIMITIVE o inst_spurious_fs;
 
-fun mk_case_tac ctxt n k m case_def ctr_def unf_fld =
-  unfold_defs_tac ctxt [case_def, ctr_def, unf_fld] THEN
+fun mk_case_tac ctxt n k m case_def ctr_def dtor_ctor =
+  unfold_defs_tac ctxt [case_def, ctr_def, dtor_ctor] THEN
   (rtac (mk_sum_casesN_balanced n k RS ssubst) THEN'
    REPEAT_DETERM_N (Int.max (0, m - 1)) o rtac (@{thm split} RS ssubst) THEN'
    rtac refl) 1;
 
-fun mk_exhaust_tac ctxt n ctr_defs fld_iff_unf sumEN' =
-  unfold_defs_tac ctxt (fld_iff_unf :: ctr_defs) THEN rtac sumEN' 1 THEN
+fun mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor sumEN' =
+  unfold_defs_tac ctxt (ctor_iff_dtor :: ctr_defs) THEN rtac sumEN' 1 THEN
   unfold_defs_tac ctxt @{thms all_prod_eq} THEN
   EVERY' (maps (fn k => [select_prem_tac n (rotate_tac 1) k, REPEAT_DETERM o dtac meta_spec,
     etac meta_mp, atac]) (1 upto n)) 1;
 
-fun mk_fld_iff_unf_tac ctxt cTs cfld cunf fld_unf unf_fld =
+fun mk_ctor_iff_dtor_tac ctxt cTs cctor cdtor ctor_dtor dtor_ctor =
   (rtac iffI THEN'
    EVERY' (map3 (fn cTs => fn cx => fn th =>
      dtac (Drule.instantiate' cTs [NONE, NONE, SOME cx] arg_cong) THEN'
      SELECT_GOAL (unfold_defs_tac ctxt [th]) THEN'
-     atac) [rev cTs, cTs] [cunf, cfld] [unf_fld, fld_unf])) 1;
+     atac) [rev cTs, cTs] [cdtor, cctor] [dtor_ctor, ctor_dtor])) 1;
 
-fun mk_half_distinct_tac ctxt fld_inject ctr_defs =
-  unfold_defs_tac ctxt (fld_inject :: @{thms sum.inject} @ ctr_defs) THEN
+fun mk_half_distinct_tac ctxt ctor_inject ctr_defs =
+  unfold_defs_tac ctxt (ctor_inject :: @{thms sum.inject} @ ctr_defs) THEN
   rtac @{thm sum.distinct(1)} 1;
 
-fun mk_inject_tac ctxt ctr_def fld_inject =
-  unfold_defs_tac ctxt [ctr_def] THEN rtac (fld_inject RS ssubst) 1 THEN
+fun mk_inject_tac ctxt ctr_def ctor_inject =
+  unfold_defs_tac ctxt [ctr_def] THEN rtac (ctor_inject RS ssubst) 1 THEN
   unfold_defs_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
 val iter_like_unfold_thms =
   @{thms case_unit comp_def convol_def id_apply map_pair_def sum.simps(5,6) sum_map.simps
       split_conv};
 
-fun mk_iter_like_tac pre_map_defs map_ids iter_like_defs fld_iter_like ctr_def ctxt =
-  unfold_defs_tac ctxt (ctr_def :: fld_iter_like :: iter_like_defs @ pre_map_defs @ map_ids @
+fun mk_iter_like_tac pre_map_defs map_ids iter_like_defs ctor_iter_like ctr_def ctxt =
+  unfold_defs_tac ctxt (ctr_def :: ctor_iter_like :: iter_like_defs @ pre_map_defs @ map_ids @
     iter_like_unfold_thms) THEN unfold_defs_tac ctxt @{thms id_def} THEN rtac refl 1;
 
 val coiter_like_ss = ss_only @{thms if_True if_False};
 val coiter_like_unfold_thms = @{thms id_apply map_pair_def sum_map.simps prod.cases};
 
-fun mk_coiter_like_tac coiter_like_defs map_ids fld_unf_coiter_like pre_map_def ctr_def ctxt =
+fun mk_coiter_like_tac coiter_like_defs map_ids ctor_dtor_coiter_like pre_map_def ctr_def ctxt =
   unfold_defs_tac ctxt (ctr_def :: coiter_like_defs) THEN
-  subst_tac ctxt [fld_unf_coiter_like] 1 THEN asm_simp_tac coiter_like_ss 1 THEN
+  subst_tac ctxt [ctor_dtor_coiter_like] 1 THEN asm_simp_tac coiter_like_ss 1 THEN
   unfold_defs_tac ctxt (pre_map_def :: coiter_like_unfold_thms @ map_ids) THEN
   unfold_defs_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
@@ -120,12 +120,12 @@ fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k kks =
       mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs]
   end;
 
-fun mk_induct_tac ctxt ns mss kkss ctr_defs fld_induct' set_natural's pre_set_defss =
+fun mk_induct_tac ctxt ns mss kkss ctr_defs ctor_induct' set_natural's pre_set_defss =
   let
     val nn = length ns;
     val n = Integer.sum ns;
   in
-    unfold_defs_tac ctxt ctr_defs THEN rtac fld_induct' 1 THEN inst_spurious_fs_tac ctxt THEN
+    unfold_defs_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_spurious_fs_tac ctxt THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
       pre_set_defss mss (unflat mss (1 upto n)) kkss)
   end;

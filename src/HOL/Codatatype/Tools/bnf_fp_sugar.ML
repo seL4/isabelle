@@ -169,8 +169,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val fp_eqs =
       map dest_TFree Bs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctr_sum_prod_TsBs;
 
-    val (pre_bnfs, ((unfs0, flds0, fp_iters0, fp_recs0, fp_induct, unf_flds, fld_unfs, fld_injects,
-        fp_iter_thms, fp_rec_thms), lthy)) =
+    val (pre_bnfs, ((dtors0, ctors0, fp_iters0, fp_recs0, fp_induct, dtor_ctors, ctor_dtors,
+           ctor_injects, fp_iter_thms, fp_rec_thms), lthy)) =
       fp_bnf construct fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
 
     fun add_nesty_bnf_names Us =
@@ -190,18 +190,18 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     val timer = time (Timer.startRealTimer ());
 
-    fun mk_unf_or_fld get_T Ts t =
+    fun mk_ctor_or_dtor get_T Ts t =
       let val Type (_, Ts0) = get_T (fastype_of t) in
         Term.subst_atomic_types (Ts0 ~~ Ts) t
       end;
 
-    val mk_unf = mk_unf_or_fld domain_type;
-    val mk_fld = mk_unf_or_fld range_type;
+    val mk_ctor = mk_ctor_or_dtor range_type;
+    val mk_dtor = mk_ctor_or_dtor domain_type;
 
-    val unfs = map (mk_unf As) unfs0;
-    val flds = map (mk_fld As) flds0;
+    val ctors = map (mk_ctor As) ctors0;
+    val dtors = map (mk_dtor As) dtors0;
 
-    val fpTs = map (domain_type o fastype_of) unfs;
+    val fpTs = map (domain_type o fastype_of) dtors;
 
     val exists_fp_subtype = exists_subtype (member (op =) fpTs);
 
@@ -329,20 +329,20 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
              (mk_terms sssss hssss, (h_sum_prod_Ts, ph_Tss)))), lthy)
         end;
 
-    fun define_ctrs_case_for_type ((((((((((((((((((fp_b, fpT), C), fld), unf), fp_iter), fp_rec),
-          fld_unf), unf_fld), fld_inject), n), ks), ms), ctr_bindings), ctr_mixfixes), ctr_Tss),
+    fun define_ctrs_case_for_type ((((((((((((((((((fp_b, fpT), C), ctor), dtor), fp_iter), fp_rec),
+          ctor_dtor), dtor_ctor), ctor_inject), n), ks), ms), ctr_bindings), ctr_mixfixes), ctr_Tss),
         disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
       let
         val fp_b_name = Binding.name_of fp_b;
 
-        val unfT = domain_type (fastype_of fld);
+        val dtorT = domain_type (fastype_of ctor);
         val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
         val ctr_sum_prod_T = mk_sumTN_balanced ctr_prod_Ts;
         val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
         val ((((w, fs), xss), u'), _) =
           no_defs_lthy
-          |> yield_singleton (mk_Frees "w") unfT
+          |> yield_singleton (mk_Frees "w") dtorT
           ||>> mk_Frees "f" case_Ts
           ||>> mk_Freess "x" ctr_Tss
           ||>> yield_singleton Variable.variant_fixes fp_b_name;
@@ -350,14 +350,14 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val u = Free (u', fpT);
 
         val ctr_rhss =
-          map2 (fn k => fn xs => fold_rev Term.lambda xs (fld $
+          map2 (fn k => fn xs => fold_rev Term.lambda xs (ctor $
             mk_InN_balanced ctr_sum_prod_T n (HOLogic.mk_tuple xs) k)) ks xss;
 
         val case_binding = Binding.suffix_name ("_" ^ caseN) fp_b;
 
         val case_rhs =
           fold_rev Term.lambda (fs @ [u])
-            (mk_sum_caseN_balanced (map2 mk_uncurried_fun fs xss) $ (unf $ u));
+            (mk_sum_caseN_balanced (map2 mk_uncurried_fun fs xss) $ (dtor $ u));
 
         val ((raw_case :: raw_ctrs, raw_case_def :: raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
@@ -377,15 +377,15 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
         fun exhaust_tac {context = ctxt, ...} =
           let
-            val fld_iff_unf_thm =
+            val ctor_iff_dtor_thm =
               let
                 val goal =
                   fold_rev Logic.all [w, u]
-                    (mk_Trueprop_eq (HOLogic.mk_eq (u, fld $ w), HOLogic.mk_eq (unf $ u, w)));
+                    (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
               in
                 Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                  mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unfT, fpT])
-                    (certify lthy fld) (certify lthy unf) fld_unf unf_fld)
+                  mk_ctor_iff_dtor_tac ctxt (map (SOME o certifyT lthy) [dtorT, fpT])
+                    (certify lthy ctor) (certify lthy dtor) ctor_dtor dtor_ctor)
                 |> Thm.close_derivation
                 |> Morphism.thm phi
               end;
@@ -396,20 +396,20 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
                    (mk_sumEN_balanced n))
               |> Morphism.thm phi;
           in
-            mk_exhaust_tac ctxt n ctr_defs fld_iff_unf_thm sumEN_thm'
+            mk_exhaust_tac ctxt n ctr_defs ctor_iff_dtor_thm sumEN_thm'
           end;
 
         val inject_tacss =
           map2 (fn 0 => K [] | _ => fn ctr_def => [fn {context = ctxt, ...} =>
-              mk_inject_tac ctxt ctr_def fld_inject]) ms ctr_defs;
+              mk_inject_tac ctxt ctr_def ctor_inject]) ms ctr_defs;
 
         val half_distinct_tacss =
           map (map (fn (def, def') => fn {context = ctxt, ...} =>
-            mk_half_distinct_tac ctxt fld_inject [def, def'])) (mk_half_pairss ctr_defs);
+            mk_half_distinct_tac ctxt ctor_inject [def, def'])) (mk_half_pairss ctr_defs);
 
         val case_tacs =
           map3 (fn k => fn m => fn ctr_def => fn {context = ctxt, ...} =>
-            mk_case_tac ctxt n k m case_def ctr_def unf_fld) ks ms ctr_defs;
+            mk_case_tac ctxt n k m case_def ctr_def dtor_ctor) ks ms ctr_defs;
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
 
@@ -601,11 +601,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
-            val fld_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
+            val ctor_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt ns mss kksss (flat ctr_defss) fld_induct'
+                mk_induct_tac ctxt ns mss kksss (flat ctr_defss) ctor_induct'
                   nested_set_natural's pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
           in
@@ -875,8 +875,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
       fold_map2 (curry (op o)) define_iter_likess wraps lthy |>> split_list8
 
     val lthy' = lthy
-      |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ flds ~~ unfs ~~ fp_iters ~~
-        fp_recs ~~ fld_unfs ~~ unf_flds ~~ fld_injects ~~ ns ~~ kss ~~ mss ~~ ctr_bindingss ~~
+      |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~ fp_iters ~~
+        fp_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ ns ~~ kss ~~ mss ~~ ctr_bindingss ~~
         ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_defaultsss)
       |>> split_list |> wrap_types_and_define_iter_likes
       |> (if lfp then derive_induct_iter_rec_thms_for_types

@@ -38,6 +38,11 @@ sig
   val mk_congruent_str_final_tac: int -> thm -> thm -> thm -> thm list -> tactic
   val mk_corec_tac: int -> thm list -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
+  val mk_dtor_coinduct_tac: int -> int list -> thm -> thm -> tactic
+  val mk_dtor_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm -> thm ->
+    thm -> tactic
+  val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list ->
+    {prems: 'a, context: Proof.context} -> tactic
   val mk_equiv_lsbis_tac: thm -> thm -> thm -> thm -> thm -> thm -> tactic
   val mk_hset_minimal_tac: int -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
   val mk_hset_rec_minimal_tac: int -> cterm option list -> thm list -> thm list ->
@@ -110,11 +115,6 @@ sig
   val mk_strT_hset_tac: int -> int -> int -> ctyp option list -> ctyp option list ->
     cterm option list -> thm list -> thm list -> thm list -> thm list -> thm list list ->
     thm list list -> thm list list -> thm -> thm list list -> tactic
-  val mk_unf_coinduct_tac: int -> int list -> thm -> thm -> tactic
-  val mk_unf_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm -> thm ->
-    thm -> tactic
-  val mk_unf_o_fld_tac: thm -> thm -> thm -> thm -> thm list ->
-    {prems: 'a, context: Proof.context} -> tactic
   val mk_unique_mor_tac: thm list -> thm -> tactic
   val mk_wit_tac: int -> thm list -> thm list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
@@ -1061,16 +1061,16 @@ fun mk_mor_Abs_tac defs Abs_inverses {context = ctxt, prems = _} =
     CONJ_WRAP' (K (rtac ballI THEN' rtac UNIV_I)) Abs_inverses,
     CONJ_WRAP' (fn thm => rtac ballI THEN' etac (thm RS arg_cong RS sym)) Abs_inverses] 1;
 
-fun mk_mor_coiter_tac m mor_UNIV unf_defs coiter_defs Abs_inverses morEs map_comp_ids map_congs =
+fun mk_mor_coiter_tac m mor_UNIV dtor_defs coiter_defs Abs_inverses morEs map_comp_ids map_congs =
   EVERY' [rtac iffD2, rtac mor_UNIV,
-    CONJ_WRAP' (fn ((Abs_inverse, morE), ((unf_def, coiter_def), (map_comp_id, map_cong))) =>
-      EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (unf_def RS trans),
+    CONJ_WRAP' (fn ((Abs_inverse, morE), ((dtor_def, coiter_def), (map_comp_id, map_cong))) =>
+      EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (dtor_def RS trans),
         rtac (coiter_def RS arg_cong RS trans), rtac (Abs_inverse RS arg_cong RS trans),
         rtac (morE RS arg_cong RS trans), rtac (map_comp_id RS trans),
         rtac (o_apply RS trans RS sym), rtac map_cong,
         REPEAT_DETERM_N m o rtac refl,
         EVERY' (map (fn thm => rtac (thm RS trans) THEN' rtac (o_apply RS sym)) coiter_defs)])
-    ((Abs_inverses ~~ morEs) ~~ ((unf_defs ~~ coiter_defs) ~~ (map_comp_ids ~~ map_congs)))] 1;
+    ((Abs_inverses ~~ morEs) ~~ ((dtor_defs ~~ coiter_defs) ~~ (map_comp_ids ~~ map_congs)))] 1;
 
 fun mk_raw_coind_tac bis_def bis_cong bis_O bis_converse bis_Gr tcoalg coalgT mor_T_final
   sbis_lsbis lsbis_incls incl_lsbiss equiv_LSBISs mor_Rep Rep_injects =
@@ -1109,12 +1109,12 @@ fun mk_coiter_unique_mor_tac raw_coinds bis mor coiter_defs =
       rtac @{thm image2_eqI}, rtac refl, rtac (coiter_def RS arg_cong RS trans),
       rtac (o_apply RS sym), rtac UNIV_I]) (raw_coinds ~~ coiter_defs) 1;
 
-fun mk_unf_o_fld_tac fld_def coiter map_comp_id map_congL coiter_o_unfs
+fun mk_dtor_o_ctor_tac ctor_def coiter map_comp_id map_congL coiter_o_dtors
   {context = ctxt, prems = _} =
-  unfold_defs_tac ctxt [fld_def] THEN EVERY' [rtac ext, rtac trans, rtac o_apply,
+  unfold_defs_tac ctxt [ctor_def] THEN EVERY' [rtac ext, rtac trans, rtac o_apply,
     rtac trans, rtac coiter, rtac trans, rtac map_comp_id, rtac trans, rtac map_congL,
     EVERY' (map (fn thm =>
-      rtac ballI THEN' rtac (trans OF [thm RS fun_cong, @{thm id_apply}])) coiter_o_unfs),
+      rtac ballI THEN' rtac (trans OF [thm RS fun_cong, @{thm id_apply}])) coiter_o_dtors),
     rtac sym, rtac @{thm id_apply}] 1;
 
 fun mk_corec_tac m corec_defs coiter map_cong corec_Inls {context = ctxt, prems = _} =
@@ -1144,7 +1144,7 @@ fun mk_rel_strong_coinduct_tac m cTs cts rel_coinduct rel_monos rel_Ids =
     rtac impI, REPEAT_DETERM o etac conjE,
     CONJ_WRAP' (K (rtac impI THEN' etac mp THEN' etac disjI1)) rel_Ids] 1;
 
-fun mk_unf_coinduct_tac m ks raw_coind bis_def =
+fun mk_dtor_coinduct_tac m ks raw_coind bis_def =
   let
     val n = length ks;
   in
@@ -1165,8 +1165,8 @@ fun mk_unf_coinduct_tac m ks raw_coind bis_def =
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
 
-fun mk_unf_strong_coinduct_tac ks cTs cts unf_coinduct bis_def bis_diag =
-  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts unf_coinduct),
+fun mk_dtor_strong_coinduct_tac ks cTs cts dtor_coinduct bis_def bis_diag =
+  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_coinduct),
     EVERY' (map (fn i =>
       EVERY' [etac disjE, REPEAT_DETERM o dtac @{thm meta_spec}, etac @{thm meta_mp},
         atac, rtac rev_mp, rtac subst, rtac bis_def, rtac bis_diag,
@@ -1201,9 +1201,9 @@ fun mk_set_simp_tac n set_le set_incl_hset set_hset_incl_hsets =
     REPEAT_DETERM_N (n - 1) o rtac @{thm Un_least},
     EVERY' (map (fn thm => rtac @{thm UN_least} THEN' etac thm) set_hset_incl_hsets)] 1;
 
-fun mk_map_id_tac maps coiter_unique coiter_unf =
+fun mk_map_id_tac maps coiter_unique coiter_dtor =
   EVERY' [rtac (coiter_unique RS trans), EVERY' (map (fn thm => rtac (thm RS sym)) maps),
-    rtac coiter_unf] 1;
+    rtac coiter_dtor] 1;
 
 fun mk_map_comp_tac m n maps map_comps map_congs coiter_unique =
   EVERY' [rtac coiter_unique,
@@ -1473,11 +1473,11 @@ fun mk_wpull_tac m coalg_thePull mor_thePull_fst mor_thePull_snd mor_thePull_pic
         rtac @{thm prod_caseI}, etac conjI, etac conjI, atac])
     (pick_cols ~~ hset_defs)] 1;
 
-fun mk_wit_tac n unf_flds set_simp wit coind_wits {context = ctxt, prems = _} =
+fun mk_wit_tac n dtor_ctors set_simp wit coind_wits {context = ctxt, prems = _} =
   ALLGOALS (TRY o (eresolve_tac coind_wits THEN' rtac refl)) THEN
   REPEAT_DETERM (atac 1 ORELSE
     EVERY' [dtac set_rev_mp, rtac equalityD1, resolve_tac set_simp,
-    K (unfold_defs_tac ctxt unf_flds),
+    K (unfold_defs_tac ctxt dtor_ctors),
     REPEAT_DETERM_N n o etac UnE,
     REPEAT_DETERM o
       (TRY o REPEAT_DETERM o etac UnE THEN' TRY o etac @{thm UN_E} THEN'
@@ -1485,7 +1485,7 @@ fun mk_wit_tac n unf_flds set_simp wit coind_wits {context = ctxt, prems = _} =
         (dresolve_tac wit THEN'
           (etac FalseE ORELSE'
           EVERY' [hyp_subst_tac, dtac set_rev_mp, rtac equalityD1, resolve_tac set_simp,
-            K (unfold_defs_tac ctxt unf_flds), REPEAT_DETERM_N n o etac UnE]))))] 1);
+            K (unfold_defs_tac ctxt dtor_ctors), REPEAT_DETERM_N n o etac UnE]))))] 1);
 
 fun mk_coind_wit_tac induct coiters set_nats wits {context = ctxt, prems = _} =
   rtac induct 1 THEN ALLGOALS (TRY o rtac impI THEN' TRY o hyp_subst_tac) THEN
@@ -1494,7 +1494,7 @@ fun mk_coind_wit_tac induct coiters set_nats wits {context = ctxt, prems = _} =
   ALLGOALS (TRY o
     FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
 
-fun mk_rel_simp_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_inject unf_fld
+fun mk_rel_simp_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps dtor_inject dtor_ctor
   set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;
@@ -1519,7 +1519,7 @@ fun mk_rel_simp_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_i
           EVERY' [rtac trans, rtac map_comp, rtac trans, rtac map_cong,
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
           REPEAT_DETERM_N n o EVERY' (map rtac [trans, o_apply, conv]),
-          rtac trans, rtac sym, rtac map_simp, rtac (unf_inject RS iffD2), atac])
+          rtac trans, rtac sym, rtac map_simp, rtac (dtor_inject RS iffD2), atac])
         @{thms fst_conv snd_conv}];
     val only_if_tac =
       EVERY' [dtac (in_rel RS iffD1), REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE],
@@ -1527,11 +1527,11 @@ fun mk_rel_simp_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_i
         CONJ_WRAP' (fn (set_simp, passive_set_natural) =>
           EVERY' [rtac ord_eq_le_trans, rtac set_simp, rtac @{thm Un_least},
             rtac ord_eq_le_trans, rtac box_equals, rtac passive_set_natural,
-            rtac (unf_fld RS sym RS arg_cong), rtac trans_fun_cong_image_id_id_apply, atac,
+            rtac (dtor_ctor RS sym RS arg_cong), rtac trans_fun_cong_image_id_id_apply, atac,
             CONJ_WRAP_GEN' (rtac (Thm.permute_prems 0 1 @{thm Un_least}))
               (fn (active_set_natural, in_Jrel) => EVERY' [rtac ord_eq_le_trans,
                 rtac @{thm UN_cong[OF _ refl]}, rtac @{thm box_equals[OF _ _ refl]},
-                rtac active_set_natural, rtac (unf_fld RS sym RS arg_cong), rtac @{thm UN_least},
+                rtac active_set_natural, rtac (dtor_ctor RS sym RS arg_cong), rtac @{thm UN_least},
                 dtac set_rev_mp, etac @{thm image_mono}, etac imageE,
                 dtac @{thm ssubst_mem[OF pair_collapse]}, dtac (in_Jrel RS iffD1),
                 dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
@@ -1540,8 +1540,8 @@ fun mk_rel_simp_tac in_Jrels i in_rel map_comp map_cong map_simp set_simps unf_i
             (rev (active_set_naturals ~~ in_Jrels))])
         (set_simps ~~ passive_set_naturals),
         rtac conjI,
-        REPEAT_DETERM_N 2 o EVERY'[rtac (unf_inject RS iffD1), rtac trans, rtac map_simp,
-          rtac box_equals, rtac map_comp, rtac (unf_fld RS sym RS arg_cong), rtac trans,
+        REPEAT_DETERM_N 2 o EVERY'[rtac (dtor_inject RS iffD1), rtac trans, rtac map_simp,
+          rtac box_equals, rtac map_comp, rtac (dtor_ctor RS sym RS arg_cong), rtac trans,
           rtac map_cong, REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},
           EVERY' (map (fn in_Jrel => EVERY' [rtac trans, rtac o_apply, dtac set_rev_mp, atac,
             dtac @{thm ssubst_mem[OF pair_collapse]}, dtac (in_Jrel RS iffD1), dtac @{thm someI_ex},
