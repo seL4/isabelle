@@ -14,7 +14,7 @@ Contributions to this Isabelle version
   Sublist_Order) w.r.t. prefixes, suffixes, and embedding on lists.
 
 * August 2012: Dmitriy Traytel, Andrei Popescu, Jasmin Blanchette, TUM
-  New (co)datatype package.
+  New BNF-based (co)datatype package.
 
 * August 2012: Andrei Popescu and Dmitriy Traytel, TUM
   Theories of ordinals and cardinals.

@@ -610,13 +610,13 @@ session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
     "document/root.tex"
     "document/root.bib"
 
-session "HOL-Codatatype" in Codatatype = "HOL-Cardinals" +
-  description {* New (Co)datatype Package *}
+session "HOL-BNF" in BNF = "HOL-Cardinals" +
+  description {* Bounded Natural Functors for (Co)datatypes *}
   options [document = false]
-  theories Codatatype
+  theories BNF
 
-session "HOL-Codatatype-Examples" in "Codatatype/Examples" = "HOL-Codatatype" +
-  description {* Examples for the New (Co)datatype Package *}
+session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
+  description {* Examples for Bounded Natural Functors *}
   options [document = false]
   theories
     HFset

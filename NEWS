@@ -100,8 +100,9 @@ INCOMPATIBILITY.  Related changes are:
 
     INCOMPATIBILITY.
 
-* HOL/Codatatype: New (co)datatype package with support for mixed,
-nested recursion and interesting non-free datatypes.
+* HOL/BNF: New (co)datatype package based on bounded natural
+functors with support for mixed, nested recursion and interesting
+non-free datatypes.
 
 * HOL/Cardinals: Theories of ordinals and cardinals
 (supersedes the AFP entry "Ordinals_and_Cardinals").
