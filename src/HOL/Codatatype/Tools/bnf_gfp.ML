@@ -2176,7 +2176,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val timer = time (timer "corec definitions & thms");
 
     val (unf_coinduct_thm, coinduct_params, rel_coinduct_thm, pred_coinduct_thm,
-         unf_coinduct_upto_thm, rel_coinduct_upto_thm, pred_coinduct_upto_thm) =
+         unf_strong_coinduct_thm, rel_strong_coinduct_thm, pred_strong_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -2253,16 +2253,16 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val cTs = map (SOME o certifyT lthy o TFree) coinduct_params;
         val cts = map3 (SOME o certify lthy ooo mk_phi true) phis Jzs1 Jzs2;
 
-        val rel_coinduct_upto = singleton (Proof_Context.export names_lthy lthy)
+        val rel_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (rel_upto_prems, concl)))
-            (K (mk_rel_coinduct_upto_tac m cTs cts rel_coinduct rel_monos rel_Ids)))
+            (K (mk_rel_strong_coinduct_tac m cTs cts rel_coinduct rel_monos rel_Ids)))
           |> Thm.close_derivation;
 
-        val unf_coinduct_upto = singleton (Proof_Context.export names_lthy lthy)
+        val unf_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (unf_upto_prems, concl)))
-            (K (mk_unf_coinduct_upto_tac ks cTs cts unf_coinduct bis_def
+            (K (mk_unf_strong_coinduct_tac ks cTs cts unf_coinduct bis_def
               (tcoalg_thm RS bis_diag_thm))))
           |> Thm.close_derivation;
 
@@ -2270,10 +2270,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           rel_defs @ @{thms Id_def' mem_Collect_eq fst_conv snd_conv split_conv};
 
         val pred_coinduct = unfold_defs lthy pred_of_rel_thms rel_coinduct;
-        val pred_coinduct_upto = unfold_defs lthy pred_of_rel_thms rel_coinduct_upto;
+        val pred_strong_coinduct = unfold_defs lthy pred_of_rel_thms rel_strong_coinduct;
       in
         (unf_coinduct, rev (Term.add_tfrees unf_coinduct_goal []), rel_coinduct, pred_coinduct,
-         unf_coinduct_upto, rel_coinduct_upto, pred_coinduct_upto)
+         unf_strong_coinduct, rel_strong_coinduct, pred_strong_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2955,9 +2955,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         [(unf_coinductN, [unf_coinduct_thm]),
         (rel_coinductN, [rel_coinduct_thm]),
         (pred_coinductN, [pred_coinduct_thm]),
-        (unf_coinduct_uptoN, [unf_coinduct_upto_thm]),
-        (rel_coinduct_uptoN, [rel_coinduct_upto_thm]),
-        (pred_coinduct_uptoN, [pred_coinduct_upto_thm])]
+        (unf_strong_coinductN, [unf_strong_coinduct_thm]),
+        (rel_strong_coinductN, [rel_strong_coinduct_thm]),
+        (pred_strong_coinductN, [pred_strong_coinduct_thm])]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 

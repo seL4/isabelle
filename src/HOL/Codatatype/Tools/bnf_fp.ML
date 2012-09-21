@@ -54,13 +54,13 @@ sig
   val morN: string
   val nchotomyN: string
   val pred_coinductN: string
-  val pred_coinduct_uptoN: string
   val pred_simpN: string
+  val pred_strong_coinductN: string
   val recN: string
   val recsN: string
   val rel_coinductN: string
-  val rel_coinduct_uptoN: string
   val rel_simpN: string
+  val rel_strong_coinductN: string
   val rvN: string
   val sel_coitersN: string
   val sel_corecsN: string
@@ -69,11 +69,11 @@ sig
   val simpsN: string
   val strTN: string
   val str_initN: string
+  val strongN: string
   val sum_bdN: string
   val sum_bdTN: string
   val unfN: string
   val unf_coinductN: string
-  val unf_coinduct_uptoN: string
   val unf_coiterN: string
   val unf_coiter_uniqueN: string
   val unf_coitersN: string
@@ -82,8 +82,8 @@ sig
   val unf_exhaustN: string
   val unf_fldN: string
   val unf_injectN: string
+  val unf_strong_coinductN: string
   val uniqueN: string
-  val uptoN: string
 
   val mk_exhaustN: string -> string
   val mk_injectN: string -> string
@@ -226,10 +226,10 @@ val pred_coinductN = predN ^ "_" ^ coinductN
 val simpN = "_simp";
 val rel_simpN = relN ^ simpN;
 val pred_simpN = predN ^ simpN;
-val uptoN = "upto"
-val unf_coinduct_uptoN = unf_coinductN ^ "_" ^ uptoN
-val rel_coinduct_uptoN = rel_coinductN ^ "_" ^ uptoN
-val pred_coinduct_uptoN = pred_coinductN ^ "_" ^ uptoN
+val strongN = "strong_"
+val unf_strong_coinductN = unfN ^ "_" ^ strongN ^ coinductN
+val rel_strong_coinductN = relN ^ "_" ^ strongN ^ coinductN
+val pred_strong_coinductN = predN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"

@@ -88,7 +88,7 @@ sig
   val mk_raw_coind_tac: thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
     thm list -> thm list -> thm -> thm list -> tactic
   val mk_rel_coinduct_tac: 'a list -> thm -> thm -> tactic
-  val mk_rel_coinduct_upto_tac: int -> ctyp option list -> cterm option list -> thm -> thm list ->
+  val mk_rel_strong_coinduct_tac: int -> ctyp option list -> cterm option list -> thm -> thm list ->
     thm list -> tactic
   val mk_rel_simp_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
     thm list -> thm list -> thm list list -> tactic
@@ -111,7 +111,7 @@ sig
     cterm option list -> thm list -> thm list -> thm list -> thm list -> thm list list ->
     thm list list -> thm list list -> thm -> thm list list -> tactic
   val mk_unf_coinduct_tac: int -> int list -> thm -> thm -> tactic
-  val mk_unf_coinduct_upto_tac: int list -> ctyp option list -> cterm option list -> thm -> thm ->
+  val mk_unf_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm -> thm ->
     thm -> tactic
   val mk_unf_o_fld_tac: thm -> thm -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
@@ -1132,7 +1132,7 @@ fun mk_rel_coinduct_tac ks raw_coind bis_rel =
     CONJ_WRAP' (K (EVERY' [rtac impI, rtac @{thm IdD}, etac set_mp,
       rtac CollectI, etac @{thm prod_caseI}])) ks] 1;
 
-fun mk_rel_coinduct_upto_tac m cTs cts rel_coinduct rel_monos rel_Ids =
+fun mk_rel_strong_coinduct_tac m cTs cts rel_coinduct rel_monos rel_Ids =
   EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts rel_coinduct),
     EVERY' (map2 (fn rel_mono => fn rel_Id =>
       EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], REPEAT_DETERM o etac allE,
@@ -1165,7 +1165,7 @@ fun mk_unf_coinduct_tac m ks raw_coind bis_def =
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
 
-fun mk_unf_coinduct_upto_tac ks cTs cts unf_coinduct bis_def bis_diag =
+fun mk_unf_strong_coinduct_tac ks cTs cts unf_coinduct bis_def bis_diag =
   EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts unf_coinduct),
     EVERY' (map (fn i =>
       EVERY' [etac disjE, REPEAT_DETERM o dtac @{thm meta_spec}, etac @{thm meta_mp},
