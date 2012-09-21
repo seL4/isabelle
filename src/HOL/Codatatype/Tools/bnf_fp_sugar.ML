@@ -52,11 +52,11 @@ fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 fun mk_uncurried2_fun f xss =
   mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat xss);
 
-fun tick v f = Term.lambda v (HOLogic.mk_prod (v, f $ v));
+fun tick u f = Term.lambda u (HOLogic.mk_prod (u, f $ u));
 
-fun tack z_name (c, v) f =
-  let val z = Free (z_name, mk_sumT (fastype_of v, fastype_of c)) in
-    Term.lambda z (mk_sum_case (Term.lambda v v, Term.lambda c (f $ c)) $ z)
+fun tack z_name (c, u) f =
+  let val z = Free (z_name, mk_sumT (fastype_of u, fastype_of c)) in
+    Term.lambda z (mk_sum_case (Term.lambda u u, Term.lambda c (f $ c)) $ z)
   end;
 
 fun cannot_merge_types () = error "Mutually recursive types must have the same type parameters";
@@ -92,7 +92,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     val nn = length specs;
     val fp_bs = map type_binding_of specs;
-    val fp_common_name = mk_common_name fp_bs;
+    val fp_b_names = map Binding.name_of fp_bs;
+    val fp_common_name = mk_common_name fp_b_names;
 
     fun prepare_type_arg (ty, c) =
       let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in
@@ -132,8 +133,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
     val disc_bindingss = map (map disc_of) ctr_specss;
     val ctr_bindingss =
-      map2 (fn fp_b => map (Binding.qualify false (Binding.name_of fp_b) o ctr_of))
-        fp_bs ctr_specss;
+      map2 (fn fp_b_name => map (Binding.qualify false fp_b_name o ctr_of)) fp_b_names ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
     val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
@@ -333,19 +333,21 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
           fld_unf), unf_fld), fld_inject), n), ks), ms), ctr_bindings), ctr_mixfixes), ctr_Tss),
         disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
       let
+        val fp_b_name = Binding.name_of fp_b;
+
         val unfT = domain_type (fastype_of fld);
         val ctr_prod_Ts = map HOLogic.mk_tupleT ctr_Tss;
         val ctr_sum_prod_T = mk_sumTN_balanced ctr_prod_Ts;
         val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
-        val ((((u, fs), xss), v'), _) =
+        val ((((w, fs), xss), u'), _) =
           no_defs_lthy
-          |> yield_singleton (mk_Frees "u") unfT
+          |> yield_singleton (mk_Frees "w") unfT
           ||>> mk_Frees "f" case_Ts
           ||>> mk_Freess "x" ctr_Tss
-          ||>> yield_singleton (Variable.variant_fixes) (Binding.name_of fp_b);
+          ||>> yield_singleton Variable.variant_fixes fp_b_name;
 
-        val v = Free (v', fpT);
+        val u = Free (u', fpT);
 
         val ctr_rhss =
           map2 (fn k => fn xs => fold_rev Term.lambda xs (fld $
@@ -354,8 +356,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val case_binding = Binding.suffix_name ("_" ^ caseN) fp_b;
 
         val case_rhs =
-          fold_rev Term.lambda (fs @ [v])
-            (mk_sum_caseN_balanced (map2 mk_uncurried_fun fs xss) $ (unf $ v));
+          fold_rev Term.lambda (fs @ [u])
+            (mk_sum_caseN_balanced (map2 mk_uncurried_fun fs xss) $ (unf $ u));
 
         val ((raw_case :: raw_ctrs, raw_case_def :: raw_ctr_defs), (lthy', lthy)) = no_defs_lthy
           |> apfst split_list o fold_map3 (fn b => fn mx => fn rhs =>
@@ -378,8 +380,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             val fld_iff_unf_thm =
               let
                 val goal =
-                  fold_rev Logic.all [u, v]
-                    (mk_Trueprop_eq (HOLogic.mk_eq (v, fld $ u), HOLogic.mk_eq (unf $ v, u)));
+                  fold_rev Logic.all [w, u]
+                    (mk_Trueprop_eq (HOLogic.mk_eq (u, fld $ w), HOLogic.mk_eq (unf $ u, w)));
               in
                 Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                   mk_fld_iff_unf_tac ctxt (map (SOME o certifyT lthy) [unfT, fpT])
@@ -525,12 +527,12 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     fun derive_induct_iter_rec_thms_for_types ((wrap_ress, ctrss, iters, recs, xsss, ctr_defss,
         iter_defs, rec_defs), lthy) =
       let
-        val (((phis, phis'), vs'), names_lthy) =
+        val (((phis, phis'), us'), names_lthy) =
           lthy
           |> mk_Frees' "P" (map mk_pred1T fpTs)
-          ||>> Variable.variant_fixes (map Binding.name_of fp_bs);
+          ||>> Variable.variant_fixes fp_b_names;
 
-        val vs = map2 (curry Free) vs' fpTs;
+        val us = map2 (curry Free) us' fpTs;
 
         fun mk_sets_nested bnf =
           let
@@ -595,7 +597,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             val goal =
               Library.foldr (Logic.list_implies o apfst (map mk_prem)) (raw_premss,
-                HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 (curry (op $)) phis vs)));
+                HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 (curry (op $)) phis us)));
 
             val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
@@ -629,7 +631,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               else
                 (case find_index (curry (op =) T) fpTs of
                   ~1 => build_map (build_call fiter_likes maybe_tick) T U
-                | j => maybe_tick (nth vs j) (nth fiter_likes j));
+                | j => maybe_tick (nth us j) (nth fiter_likes j));
 
             fun mk_U maybe_mk_prodT =
               typ_subst (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
@@ -696,11 +698,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val discIss = map #7 wrap_ress;
         val sel_thmsss = map #8 wrap_ress;
 
-        val (vs', _) =
+        val (us', _) =
           lthy
-          |> Variable.variant_fixes (map Binding.name_of fp_bs);
+          |> Variable.variant_fixes fp_b_names;
 
-        val vs = map2 (curry Free) vs' fpTs;
+        val us = map2 (curry Free) us' fpTs;
 
         val (coinduct_thms, coinduct_thm) =
           let
@@ -728,7 +730,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               else
                 (case find_index (curry (op =) U) fpTs of
                   ~1 => build_map (build_call fiter_likes maybe_tack) T U
-                | j => maybe_tack (nth cs j, nth vs j) (nth fiter_likes j));
+                | j => maybe_tack (nth cs j, nth us j) (nth fiter_likes j));
 
             fun mk_U maybe_mk_sumT =
               typ_subst (map2 (fn C => fn fpT => (maybe_mk_sumT fpT C, fpT)) Cs fpTs);

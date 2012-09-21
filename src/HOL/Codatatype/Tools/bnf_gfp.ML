@@ -64,7 +64,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val ks = 1 upto n;
     val m = live - n (*passive, if 0 don't generate a new BNF*);
     val ls = 1 upto m;
-    val b = Binding.name (mk_common_name bs);
+    val b = Binding.name (mk_common_name (map Binding.name_of bs));
 
     (* TODO: check if m, n, etc., are sane *)
 

@@ -112,6 +112,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
     val Type (dataT_name, As0) = body_type (fastype_of (hd ctrs0));
     val data_b = Binding.qualified_name dataT_name;
+    val data_b_name = Binding.name_of data_b;
 
     val (As, B) =
       no_defs_lthy
@@ -135,12 +136,12 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
     val std_disc_binding =
-      Binding.qualify false (Binding.name_of data_b) o Binding.name o prefix isN o base_name_of_ctr;
+      Binding.qualify false data_b_name o Binding.name o prefix isN o base_name_of_ctr;
 
     val disc_bindings =
       raw_disc_bindings'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
-        Option.map (Binding.qualify false (Binding.name_of data_b))
+        Option.map (Binding.qualify false data_b_name)
           (if Binding.eq_name (disc, Binding.empty) then
              if can_omit_disc_binding k m then NONE else SOME (std_disc_binding ctr)
            else if Binding.eq_name (disc, std_binding) then
@@ -156,7 +157,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val sel_bindingss =
       pad_list [] n raw_sel_bindingss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        Binding.qualify false (Binding.name_of data_b)
+        Binding.qualify false data_b_name
           (if Binding.eq_name (sel, Binding.empty) orelse Binding.eq_name (sel, std_binding) then
             std_sel_binding m l ctr
           else
@@ -171,15 +172,16 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val casex = mk_case As B;
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
-    val ((((((((xss, xss'), yss), fs), gs), (u, u')), v), (p, p')), names_lthy) = no_defs_lthy |>
+    val (((((((xss, xss'), yss), fs), gs), [u', v']), (p, p')), names_lthy) = no_defs_lthy |>
       mk_Freess' "x" ctr_Tss
       ||>> mk_Freess "y" ctr_Tss
       ||>> mk_Frees "f" case_Ts
       ||>> mk_Frees "g" case_Ts
-      ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "u") dataT
-      ||>> yield_singleton (mk_Frees "v") dataT
+      ||>> (apfst (map (rpair dataT)) oo Variable.variant_fixes) [data_b_name, data_b_name ^ "'"]
       ||>> yield_singleton (apfst (op ~~) oo mk_Frees' "P") HOLogic.boolT;
 
+    val u = Free u';
+    val v = Free v';
     val q = Free (fst p', mk_pred1T B);
 
     val xctrs = map2 (curry Term.list_comb) ctrs xss;
@@ -619,8 +621,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
            (weak_case_cong_thmsN, [weak_case_cong_thm], cong_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true (Binding.name_of data_b) (Binding.name thmN), attrs),
-             [(thms, [])]));
+            ((Binding.qualify true data_b_name (Binding.name thmN), attrs), [(thms, [])]));
 
         val notes' =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
