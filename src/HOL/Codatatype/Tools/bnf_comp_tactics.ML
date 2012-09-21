@@ -35,7 +35,7 @@ sig
   val mk_permute_in_bd_tac: ''a list -> ''a list -> thm -> thm -> thm -> tactic
 
   val mk_map_wpull_tac: thm -> thm list -> thm -> tactic
-  val mk_simple_rel_O_Gr_tac: Proof.context -> thm -> thm -> thm -> tactic
+  val mk_simple_srel_O_Gr_tac: Proof.context -> thm -> thm -> thm -> tactic
   val mk_simple_wit_tac: thm list -> tactic
 end;
 
@@ -407,9 +407,9 @@ fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
   WRAP (fn thm => rtac thm 1 THEN REPEAT_DETERM (atac 1)) (K all_tac) inner_map_wpulls all_tac THEN
   TRY (REPEAT_DETERM (atac 1 ORELSE rtac @{thm wpull_id} 1));
 
-fun mk_simple_rel_O_Gr_tac ctxt rel_def rel_O_Gr in_alt_thm =
-  rtac (unfold_thms ctxt [rel_def] (trans OF [rel_O_Gr, in_alt_thm RS @{thm subst_rel_def} RS sym]))
-    1;
+fun mk_simple_srel_O_Gr_tac ctxt srel_def srel_O_Gr in_alt_thm =
+  rtac (unfold_thms ctxt [srel_def]
+    (trans OF [srel_O_Gr, in_alt_thm RS @{thm subst_rel_def} RS sym])) 1;
 
 fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));
 

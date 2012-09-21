@@ -67,15 +67,15 @@ sig
   val pred_strong_coinductN: string
   val recN: string
   val recsN: string
-  val rel_coinductN: string
-  val rel_simpN: string
-  val rel_strong_coinductN: string
   val rvN: string
   val sel_unfoldsN: string
   val sel_corecsN: string
   val set_inclN: string
   val set_set_inclN: string
   val simpsN: string
+  val srel_coinductN: string
+  val srel_simpN: string
+  val srel_strong_coinductN: string
   val strTN: string
   val str_initN: string
   val strongN: string
@@ -222,15 +222,15 @@ val coinductN = coN ^ inductN
 val ctor_inductN = ctorN ^ "_" ^ inductN
 val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_coinductN = dtorN ^ "_" ^ coinductN
-val rel_coinductN = relN ^ "_" ^ coinductN
 val pred_coinductN = predN ^ "_" ^ coinductN
+val srel_coinductN = srelN ^ "_" ^ coinductN
 val simpN = "_simp";
-val rel_simpN = relN ^ simpN;
+val srel_simpN = srelN ^ simpN;
 val pred_simpN = predN ^ simpN;
 val strongN = "strong_"
 val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN
-val rel_strong_coinductN = relN ^ "_" ^ strongN ^ coinductN
 val pred_strong_coinductN = predN ^ "_" ^ strongN ^ coinductN
+val srel_strong_coinductN = srelN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"

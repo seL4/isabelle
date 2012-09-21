@@ -13,7 +13,7 @@ sig
   val map_unfolds_of: unfold_set -> thm list
   val set_unfoldss_of: unfold_set -> thm list list
   val pred_unfolds_of: unfold_set -> thm list
-  val rel_unfolds_of: unfold_set -> thm list
+  val srel_unfolds_of: unfold_set -> thm list
 
   val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> typ -> unfold_set * Proof.context ->
@@ -38,29 +38,29 @@ type unfold_set = {
   map_unfolds: thm list,
   set_unfoldss: thm list list,
   pred_unfolds: thm list,
-  rel_unfolds: thm list
+  srel_unfolds: thm list
 };
 
-val empty_unfolds = {map_unfolds = [], set_unfoldss = [], pred_unfolds = [], rel_unfolds = []};
+val empty_unfolds = {map_unfolds = [], set_unfoldss = [], pred_unfolds = [], srel_unfolds = []};
 
 fun add_to_thms thms new = thms |> not (Thm.is_reflexive new) ? insert Thm.eq_thm new;
 fun adds_to_thms thms news = insert (eq_set Thm.eq_thm) (no_reflexive news) thms;
 
-fun add_to_unfolds map sets pred rel
-  {map_unfolds, set_unfoldss, pred_unfolds, rel_unfolds} =
+fun add_to_unfolds map sets pred srel
+  {map_unfolds, set_unfoldss, pred_unfolds, srel_unfolds} =
   {map_unfolds = add_to_thms map_unfolds map,
     set_unfoldss = adds_to_thms set_unfoldss sets,
     pred_unfolds = add_to_thms pred_unfolds pred,
-    rel_unfolds = add_to_thms rel_unfolds rel};
+    srel_unfolds = add_to_thms srel_unfolds srel};
 
 fun add_bnf_to_unfolds bnf =
   add_to_unfolds (map_def_of_bnf bnf) (set_defs_of_bnf bnf) (pred_def_of_bnf bnf)
-    (rel_def_of_bnf bnf);
+    (srel_def_of_bnf bnf);
 
 val map_unfolds_of = #map_unfolds;
 val set_unfoldss_of = #set_unfoldss;
 val pred_unfolds_of = #pred_unfolds;
-val rel_unfolds_of = #rel_unfolds;
+val srel_unfolds_of = #srel_unfolds;
 
 val bdTN = "bdT";
 
@@ -230,25 +230,25 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     fun map_wpull_tac _ =
       mk_map_wpull_tac in_alt_thm (map map_wpull_of_bnf inners) (map_wpull_of_bnf outer);
 
-    fun rel_O_Gr_tac _ =
+    fun srel_O_Gr_tac _ =
       let
         val basic_thms = @{thms mem_Collect_eq fst_conv snd_conv}; (*TODO: tune*)
-        val outer_rel_Gr = rel_Gr_of_bnf outer RS sym;
-        val outer_rel_cong = rel_cong_of_bnf outer;
+        val outer_srel_Gr = srel_Gr_of_bnf outer RS sym;
+        val outer_srel_cong = srel_cong_of_bnf outer;
         val thm =
           (trans OF [in_alt_thm RS @{thm subst_rel_def},
              trans OF [@{thm arg_cong2[of _ _ _ _ relcomp]} OF
-               [trans OF [outer_rel_Gr RS @{thm arg_cong[of _ _ converse]},
-                 rel_converse_of_bnf outer RS sym], outer_rel_Gr],
-               trans OF [rel_O_of_bnf outer RS sym, outer_rel_cong OF
-                 (map (fn bnf => rel_O_Gr_of_bnf bnf RS sym) inners)]]] RS sym)
-          |> unfold_thms lthy (basic_thms @ rel_def_of_bnf outer :: map rel_def_of_bnf inners);
+               [trans OF [outer_srel_Gr RS @{thm arg_cong[of _ _ converse]},
+                 srel_converse_of_bnf outer RS sym], outer_srel_Gr],
+               trans OF [srel_O_of_bnf outer RS sym, outer_srel_cong OF
+                 (map (fn bnf => srel_O_Gr_of_bnf bnf RS sym) inners)]]] RS sym)
+          |> unfold_thms lthy (basic_thms @ srel_def_of_bnf outer :: map srel_def_of_bnf inners);
       in
         unfold_thms_tac lthy basic_thms THEN rtac thm 1
       end;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong_tac set_natural_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_O_Gr_tac;
+      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac srel_O_Gr_tac;
 
     val outer_wits = mk_wits_of_bnf (replicate onwits oDs) (replicate onwits CAs) outer;
 
@@ -341,24 +341,24 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
         (bd_Cinfinite_of_bnf bnf) (bd_Cnotzero_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
-    fun rel_O_Gr_tac _ =
+    fun srel_O_Gr_tac _ =
       let
-        val rel_Gr = rel_Gr_of_bnf bnf RS sym
+        val srel_Gr = srel_Gr_of_bnf bnf RS sym
         val thm =
           (trans OF [in_alt_thm RS @{thm subst_rel_def},
             trans OF [@{thm arg_cong2[of _ _ _ _ relcomp]} OF
-              [trans OF [rel_Gr RS @{thm arg_cong[of _ _ converse]},
-                rel_converse_of_bnf bnf RS sym], rel_Gr],
-              trans OF [rel_O_of_bnf bnf RS sym, rel_cong_of_bnf bnf OF
+              [trans OF [srel_Gr RS @{thm arg_cong[of _ _ converse]},
+                srel_converse_of_bnf bnf RS sym], srel_Gr],
+              trans OF [srel_O_of_bnf bnf RS sym, srel_cong_of_bnf bnf OF
                 (replicate n @{thm trans[OF Gr_UNIV_id[OF refl] Id_alt[symmetric]]} @
                  replicate (live - n) @{thm Gr_fst_snd})]]] RS sym)
-          |> unfold_thms lthy (rel_def_of_bnf bnf :: @{thms Id_def' mem_Collect_eq split_conv});
+          |> unfold_thms lthy (srel_def_of_bnf bnf :: @{thms Id_def' mem_Collect_eq split_conv});
       in
         rtac thm 1
       end;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong_tac set_natural_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_O_Gr_tac;
+      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac srel_O_Gr_tac;
 
     val bnf_wits = mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf;
 
@@ -441,11 +441,11 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     fun in_bd_tac _ = mk_lift_in_bd_tac n in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
-    fun rel_O_Gr_tac _ =
-      mk_simple_rel_O_Gr_tac lthy (rel_def_of_bnf bnf) (rel_O_Gr_of_bnf bnf) in_alt_thm;
+    fun srel_O_Gr_tac _ =
+      mk_simple_srel_O_Gr_tac lthy (srel_def_of_bnf bnf) (srel_O_Gr_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong_tac set_natural_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_O_Gr_tac;
+      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac srel_O_Gr_tac;
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
@@ -518,11 +518,11 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
       mk_permute_in_bd_tac src dest in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
     fun map_wpull_tac _ = mk_map_wpull_tac in_alt_thm [] (map_wpull_of_bnf bnf);
 
-    fun rel_O_Gr_tac _ =
-      mk_simple_rel_O_Gr_tac lthy (rel_def_of_bnf bnf) (rel_O_Gr_of_bnf bnf) in_alt_thm;
+    fun srel_O_Gr_tac _ =
+      mk_simple_srel_O_Gr_tac lthy (srel_def_of_bnf bnf) (srel_O_Gr_of_bnf bnf) in_alt_thm;
 
     val tacs = zip_axioms map_id_tac map_comp_tac map_cong_tac set_natural_tacs bd_card_order_tac
-      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac rel_O_Gr_tac;
+      bd_cinfinite_tac set_bd_tacs in_bd_tac map_wpull_tac srel_O_Gr_tac;
 
     val wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
@@ -607,7 +607,7 @@ fun seal_bnf unfold_set b Ds bnf lthy =
     val map_unfolds = map_unfolds_of unfold_set;
     val set_unfoldss = set_unfoldss_of unfold_set;
     val pred_unfolds = pred_unfolds_of unfold_set;
-    val rel_unfolds = rel_unfolds_of unfold_set;
+    val srel_unfolds = srel_unfolds_of unfold_set;
 
     val expand_maps = fold expand_term_const (map (single o Logic.dest_equals o Thm.prop_of)
       map_unfolds);
@@ -618,8 +618,8 @@ fun seal_bnf unfold_set b Ds bnf lthy =
     val unfold_maps = fold (unfold_thms lthy o single) map_unfolds;
     val unfold_sets = fold (unfold_thms lthy) set_unfoldss;
     val unfold_preds = unfold_thms lthy pred_unfolds;
-    val unfold_rels = unfold_thms lthy rel_unfolds;
-    val unfold_all = unfold_sets o unfold_maps o unfold_preds o unfold_rels;
+    val unfold_srels = unfold_thms lthy srel_unfolds;
+    val unfold_all = unfold_sets o unfold_maps o unfold_preds o unfold_srels;
     val bnf_map = expand_maps (mk_map_of_bnf Ds As Bs bnf);
     val bnf_sets = map (expand_maps o expand_sets)
       (mk_sets_of_bnf (replicate live Ds) (replicate live As) bnf);
@@ -665,7 +665,7 @@ fun seal_bnf unfold_set b Ds bnf lthy =
       (mk_tac (map_cong_of_bnf bnf)) (map mk_tac (set_natural_of_bnf bnf))
       (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1)) (map mk_tac set_bds) (mk_tac in_bd)
       (mk_tac (map_wpull_of_bnf bnf))
-      (mk_tac (unfold_thms lthy [rel_def_of_bnf bnf] (rel_O_Gr_of_bnf bnf)));
+      (mk_tac (unfold_thms lthy [srel_def_of_bnf bnf] (srel_O_Gr_of_bnf bnf)));
 
     val bnf_wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 

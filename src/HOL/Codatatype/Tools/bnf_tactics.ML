@@ -26,7 +26,7 @@ sig
   val mk_Abs_bij_thm: Proof.context -> thm -> thm -> thm
   val mk_Abs_inj_thm: thm -> thm
 
-  val simple_rel_O_Gr_tac: Proof.context -> tactic
+  val simple_srel_O_Gr_tac: Proof.context -> tactic
   val mk_pred_simp_tac: thm -> thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
     tactic
 
@@ -98,14 +98,14 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
     gen_tac
   end;
 
-fun simple_rel_O_Gr_tac ctxt =
+fun simple_srel_O_Gr_tac ctxt =
   unfold_thms_tac ctxt @{thms Collect_fst_snd_mem_eq Collect_pair_mem_eq} THEN rtac refl 1;
 
-fun mk_pred_simp_tac rel_def IJpred_defs IJrel_defs rel_simp {context = ctxt, prems = _} =
+fun mk_pred_simp_tac srel_def IJpred_defs IJsrel_defs srel_simp {context = ctxt, prems = _} =
   unfold_thms_tac ctxt IJpred_defs THEN
-  subst_tac ctxt [unfold_thms ctxt (IJpred_defs @ IJrel_defs @
-    @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) rel_simp] 1 THEN
-  unfold_thms_tac ctxt (rel_def ::
+  subst_tac ctxt [unfold_thms ctxt (IJpred_defs @ IJsrel_defs @
+    @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) srel_simp] 1 THEN
+  unfold_thms_tac ctxt (srel_def ::
     @{thms Collect_fst_snd_mem_eq mem_Collect_eq pair_mem_Collect_split fst_conv snd_conv
       split_conv}) THEN
   rtac refl 1;
