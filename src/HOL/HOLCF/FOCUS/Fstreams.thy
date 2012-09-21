@@ -64,15 +64,18 @@ lemma slen_fstreams2[simp]: "#(s ooo <a>) = eSuc (#s)"
 apply (cases "#s")
 apply (auto simp add: eSuc_enat)
 apply (insert slen_sconc [of _ s "Suc 0" "<a>"], auto)
-by (simp add: sconc_def)
+apply (simp add: sconc_def)
+done
 
 lemma j_th_0_fsingleton[simp]:"jth 0 (<a>) = a"
 apply (simp add: fsingleton_def2 jth_def)
-by (simp add: i_th_def enat_0)
+apply (simp add: i_th_def enat_0)
+done
 
 lemma jth_0[simp]: "jth 0 (<a> ooo s) = a"  
 apply (simp add: fsingleton_def2 jth_def)
-by (simp add: i_th_def enat_0)
+apply (simp add: i_th_def enat_0)
+done
 
 lemma first_sconc[simp]: "first (<a> ooo s) = a"
 by (simp add: first_def)
@@ -83,12 +86,14 @@ by (simp add: first_def)
 lemma jth_n[simp]: "enat n = #s ==> jth n (s ooo <a>) = a"
 apply (simp add: jth_def, auto)
 apply (simp add: i_th_def rt_sconc1)
-by (simp add: enat_defs split: enat.splits)
+apply (simp add: enat_defs split: enat.splits)
+done
 
 lemma last_sconc[simp]: "enat n = #s ==> last (s ooo <a>) = a"
 apply (simp add: last_def)
 apply (simp add: enat_defs split:enat.splits)
-by (drule sym, auto)
+apply (drule sym, auto)
+done
 
 lemma last_fsingleton[simp]: "last (<a>) = a"
 by (simp add: last_def)
@@ -122,7 +127,8 @@ apply (simp add: i_th_def)
 apply (case_tac "i_rt n s = UU", auto)
 apply (drule i_rt_slen [THEN iffD1])
 apply (drule slen_take_eq_rev [rule_format, THEN iffD2],auto)
-by (drule not_Undef_is_Def [THEN iffD1], auto)
+apply (drule not_Undef_is_Def [THEN iffD1], auto)
+done
 
 
 lemma fsingleton_lemma1[simp]: "(<a> = <b>) = (a=b)"
@@ -138,13 +144,15 @@ lemma fstreams_ind:
   "[| adm P; P <>; !!a s. P s ==> P (<a> ooo s) |] ==> P x"
 apply (simp add: fsingleton_def2)
 apply (rule stream.induct, auto)
-by (drule not_Undef_is_Def [THEN iffD1], auto)
+apply (drule not_Undef_is_Def [THEN iffD1], auto)
+done
 
 lemma fstreams_ind2:
   "[| adm P; P <>; !!a. P (<a>); !!a b s. P s ==> P (<a> ooo <b> ooo s) |] ==> P x"
 apply (simp add: fsingleton_def2)
 apply (rule stream_ind2, auto)
-by (drule not_Undef_is_Def [THEN iffD1], auto)+
+apply (drule not_Undef_is_Def [THEN iffD1], auto)+
+done
 
 lemma fstreams_take_Suc[simp]: "stream_take (Suc n)$(<a> ooo s) = <a> ooo stream_take n$s"
 by (simp add: fsingleton_def2)
@@ -159,7 +167,8 @@ lemma fstreams_exhaust: "x = UU | (EX a s. x = <a> ooo s)"
 apply (simp add: fsingleton_def2, auto)
 apply (erule contrapos_pp, auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
-by (drule not_Undef_is_Def [THEN iffD1], auto)
+apply (drule not_Undef_is_Def [THEN iffD1], auto)
+done
 
 lemma fstreams_cases: "[| x = UU ==> P; !!a y. x = <a> ooo y ==> P |] ==> P"
 by (insert fstreams_exhaust [of x], auto)
@@ -167,7 +176,8 @@ by (insert fstreams_exhaust [of x], auto)
 lemma fstreams_exhaust_eq: "(x ~= UU) = (? a y. x = <a> ooo y)"
 apply (simp add: fsingleton_def2, auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
-by (drule not_Undef_is_Def [THEN iffD1], auto)
+apply (drule not_Undef_is_Def [THEN iffD1], auto)
+done
 
 lemma fstreams_inject: "(<a> ooo s = <b> ooo t) = (a=b & s=t)"
 by (simp add: fsingleton_def2)
@@ -182,7 +192,8 @@ apply (auto, case_tac "x=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
 apply (simp add: fsingleton_def2, auto)
 apply (drule ax_flat, simp)
-by (erule sconc_mono)
+apply (erule sconc_mono)
+done
 
 lemma ft_fstreams[simp]: "ft$(<a> ooo s) = Def a"
 by (simp add: fsingleton_def2)
@@ -192,7 +203,8 @@ by (simp add: fsingleton_def2)
 
 lemma ft_eq[simp]: "(ft$s = Def a) = (EX t. s = <a> ooo t)"
 apply (cases s, auto)
-by ((*drule sym,*) auto simp add: fsingleton_def2)
+apply (auto simp add: fsingleton_def2)
+done
 
 lemma surjective_fstreams: "(<d> ooo y = x) = (ft$x = Def d & rt$x = y)"
 by auto
@@ -229,13 +241,15 @@ apply (simp add: flat_below_iff)
 apply (erule_tac x="tt" in allE)
 apply (erule_tac x="yb" in allE, auto)
 apply (simp add: flat_below_iff)
-by (simp add: flat_below_iff)
+apply (simp add: flat_below_iff)
+done
 
 lemma fstreams_lub_lemma1: "[| chain Y; (LUB i. Y i) = <a> ooo s |] ==> EX j t. Y j = <a> ooo t"
 apply (subgoal_tac "(LUB i. Y i) ~= UU")
 apply (frule lub_eq_bottom_iff, auto)
 apply (drule_tac x="i" in is_ub_thelub, auto)
-by (drule fstreams_prefix' [THEN iffD1], auto)
+apply (drule fstreams_prefix' [THEN iffD1], auto)
+done
 
 lemma fstreams_lub1: 
  "[| chain Y; (LUB i. Y i) = <a> ooo s |]
@@ -280,14 +294,16 @@ apply (case_tac "snd (Y j) = UU",auto)
 apply (case_tac "Y j", auto)
 apply (rule_tac x="j" in exI)
 apply (case_tac "Y j",auto)
-by (drule chain_mono, auto)
+apply (drule chain_mono, auto)
+done
 
 lemma fstreams_lub_lemma2: 
   "[| chain Y; (LUB i. Y i) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] ==> EX j t. Y j = (a, <m> ooo t)"
 apply (frule lub_Pair_not_UU_lemma, auto)
 apply (drule_tac x="j" in is_ub_thelub, auto)
 apply (drule ax_flat, clarsimp)
-by (drule fstreams_prefix' [THEN iffD1], auto)
+apply (drule fstreams_prefix' [THEN iffD1], auto)
+done
 
 lemma fstreams_lub2:
   "[| chain Y; (LUB i. Y i) = (a, <m> ooo ms); (a::'a::flat) ~= UU |] 
@@ -321,11 +337,14 @@ apply (subgoal_tac "fst (Y j) ~= fst (Y ja) | snd (Y j) ~= snd (Y ja)", simp)
 apply (drule ax_flat, simp)+
 apply (drule prod_eqI, auto)
 apply (simp add: chain_mono)
-by (rule stream_reach2)
+apply (rule stream_reach2)
+done
 
 
 lemma cpo_cont_lemma:
   "[| monofun (f::'a::cpo => 'b::cpo); (!Y. chain Y --> f (lub(range Y)) << (LUB i. f (Y i))) |] ==> cont f"
-by (erule contI2, simp)
+apply (erule contI2)
+apply simp
+done
 
 end
