@@ -443,9 +443,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             val [iter_def, rec_def] = map (Morphism.thm phi) defs;
 
-            val [iter, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
+            val [iterx, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
           in
-            ((wrap_res, ctrs, iter, recx, xss, ctr_defs, iter_def, rec_def), lthy)
+            ((wrap_res, ctrs, iterx, recx, xss, ctr_defs, iter_def, rec_def), lthy)
           end;
 
         fun define_coiter_corec (wrap_res, no_defs_lthy) =

@@ -514,17 +514,17 @@ fun mk_iter_unique_mor_tac type_defs init_unique_mors Reps mor_comp mor_Abs mor_
     CONJ_WRAP' mk_unique type_defs 1
   end;
 
-fun mk_dtor_o_ctor_tac dtor_def iter map_comp_id map_congL ctor_o_iters =
-  EVERY' [stac dtor_def, rtac ext, rtac trans, rtac o_apply, rtac trans, rtac iter,
+fun mk_dtor_o_ctor_tac dtor_def iterx map_comp_id map_congL ctor_o_iters =
+  EVERY' [stac dtor_def, rtac ext, rtac trans, rtac o_apply, rtac trans, rtac iterx,
     rtac trans, rtac map_comp_id, rtac trans, rtac map_congL,
     EVERY' (map (fn thm => rtac ballI THEN' rtac (trans OF [thm RS fun_cong, id_apply]))
       ctor_o_iters),
     rtac sym, rtac id_apply] 1;
 
-fun mk_rec_tac rec_defs iter fst_recs {context = ctxt, prems = _}=
+fun mk_rec_tac rec_defs iterx fst_recs {context = ctxt, prems = _}=
   unfold_defs_tac ctxt
     (rec_defs @ map (fn thm => thm RS @{thm convol_expand_snd}) fst_recs) THEN
-  EVERY' [rtac trans, rtac o_apply, rtac trans, rtac (iter RS @{thm arg_cong[of _ _ snd]}),
+  EVERY' [rtac trans, rtac o_apply, rtac trans, rtac (iterx RS @{thm arg_cong[of _ _ snd]}),
     rtac @{thm snd_convol'}] 1;
 
 fun mk_ctor_induct_tac m set_natural'ss init_induct morEs mor_Abs Rep_invs Abs_invs Reps =
@@ -570,8 +570,8 @@ fun mk_ctor_induct2_tac cTs cts ctor_induct weak_ctor_inducts {context = ctxt, p
       CONJ_WRAP' (K atac) ks] 1
   end;
 
-fun mk_map_tac m n iter map_comp_id map_cong =
-  EVERY' [rtac ext, rtac trans, rtac o_apply, rtac trans, rtac iter, rtac trans, rtac o_apply,
+fun mk_map_tac m n iterx map_comp_id map_cong =
+  EVERY' [rtac ext, rtac trans, rtac o_apply, rtac trans, rtac iterx, rtac trans, rtac o_apply,
     rtac trans, rtac (map_comp_id RS arg_cong), rtac trans, rtac (map_cong RS arg_cong),
     REPEAT_DETERM_N m o rtac refl,
     REPEAT_DETERM_N n o (EVERY' (map rtac [trans, o_apply, id_apply])),
@@ -591,8 +591,8 @@ fun mk_map_unique_tac m mor_def iter_unique_mor map_comp_ids map_congs =
       CONJ_WRAP' mk_mor (map_comp_ids ~~ map_congs)] 1
   end;
 
-fun mk_set_tac iter = EVERY' [rtac ext, rtac trans, rtac o_apply,
-  rtac trans, rtac iter, rtac sym, rtac o_apply] 1;
+fun mk_set_tac iterx = EVERY' [rtac ext, rtac trans, rtac o_apply,
+  rtac trans, rtac iterx, rtac sym, rtac o_apply] 1;
 
 fun mk_set_simp_tac set set_natural' set_natural's =
   let

@@ -1051,7 +1051,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val iter_fun = Term.absfree iter_f'
       (mk_mor UNIVs ctors active_UNIVs ss (map (mk_nthN n iter_f) ks));
-    val iter = HOLogic.choice_const iterT $ iter_fun;
+    val iterx = HOLogic.choice_const iterT $ iter_fun;
 
     fun iter_bind i = Binding.suffix_name ("_" ^ ctor_iterN) (nth bs (i - 1));
     val iter_name = Binding.name_of o iter_bind;
@@ -1062,7 +1062,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val iterT = Library.foldr (op -->) (sTs, T --> AT);
 
         val lhs = Term.list_comb (Free (iter_name i, iterT), ss);
-        val rhs = mk_nthN n iter i;
+        val rhs = mk_nthN n iterx i;
       in
         mk_Trueprop_eq (lhs, rhs)
       end;
@@ -1175,9 +1175,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           mk_Trueprop_eq (HOLogic.mk_comp (dtor, ctor), HOLogic.id_const FT);
         val goals = map3 mk_goal dtors ctors FTs;
       in
-        map5 (fn goal => fn dtor_def => fn iter => fn map_comp_id => fn map_congL =>
+        map5 (fn goal => fn dtor_def => fn iterx => fn map_comp_id => fn map_congL =>
           Skip_Proof.prove lthy [] [] goal
-            (K (mk_dtor_o_ctor_tac dtor_def iter map_comp_id map_congL ctor_o_iter_thms))
+            (K (mk_dtor_o_ctor_tac dtor_def iterx map_comp_id map_congL ctor_o_iter_thms))
           |> Thm.close_derivation)
         goals dtor_defs iter_thms map_comp_id_thms map_congL_thms
       end;
@@ -1256,8 +1256,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           end;
         val goals = map5 mk_goal ks rec_ss rec_maps_rev ctors xFs;
       in
-        map2 (fn goal => fn iter =>
-          Skip_Proof.prove lthy [] [] goal (mk_rec_tac rec_defs iter fst_rec_pair_thms)
+        map2 (fn goal => fn iterx =>
+          Skip_Proof.prove lthy [] [] goal (mk_rec_tac rec_defs iterx fst_rec_pair_thms)
           |> Thm.close_derivation)
         goals iter_thms
       end;
@@ -1401,8 +1401,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 HOLogic.mk_comp (ctor', Term.list_comb (map, fs @ fs_maps))));
             val goals = map4 mk_goal fs_maps map_FTFT's ctors ctor's;
             val maps =
-              map4 (fn goal => fn iter => fn map_comp_id => fn map_cong =>
-                Skip_Proof.prove lthy [] [] goal (K (mk_map_tac m n iter map_comp_id map_cong))
+              map4 (fn goal => fn iterx => fn map_comp_id => fn map_cong =>
+                Skip_Proof.prove lthy [] [] goal (K (mk_map_tac m n iterx map_comp_id map_cong))
                 |> Thm.close_derivation)
               goals iter_thms map_comp_id_thms map_congs;
           in
@@ -1461,8 +1461,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 HOLogic.mk_comp (col, Term.list_comb (map, passive_ids @ sets)));
             val goalss =
               map3 (fn sets => map4 (mk_goal sets) ctors sets) setss_by_range colss map_setss;
-            val setss = map (map2 (fn iter => fn goal =>
-              Skip_Proof.prove lthy [] [] goal (K (mk_set_tac iter)) |> Thm.close_derivation)
+            val setss = map (map2 (fn iterx => fn goal =>
+              Skip_Proof.prove lthy [] [] goal (K (mk_set_tac iterx)) |> Thm.close_derivation)
               iter_thms) goalss;
 
             fun mk_simp_goal pas_set act_sets sets ctor z set =
