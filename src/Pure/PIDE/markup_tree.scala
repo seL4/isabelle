@@ -12,16 +12,35 @@ import java.lang.System
 import javax.swing.tree.DefaultMutableTreeNode
 
 import scala.collection.immutable.SortedMap
+import scala.annotation.tailrec
 
 
 object Markup_Tree
 {
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
+  def merge_disjoint(trees: List[Markup_Tree]): Markup_Tree =
+    trees match {
+      case Nil => empty
+      case head :: tail =>
+        new Markup_Tree(
+          (head.branches /: tail) {
+            case (branches, tree) =>
+              (branches /: tree.branches) {
+                case (bs, (r, entry)) =>
+                  require(!bs.isDefinedAt(r))
+                  bs + (r -> entry)
+              }
+          })
+    }
+
   object Entry
   {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
       Entry(markup.range, List(markup.info), Set(markup.info.markup.name), subtree)
+
+    def apply(range: Text.Range, rev_markups: List[XML.Elem], subtree: Markup_Tree): Entry =
+      Entry(range, rev_markups, Set.empty ++ rev_markups.iterator.map(_.markup.name), subtree)
   }
 
   sealed case class Entry(
@@ -35,30 +54,50 @@ object Markup_Tree
       else copy(rev_markup = info :: rev_markup, elements = elements + info.markup.name)
 
     def markup: List[XML.Elem] = rev_markup.reverse
-
-    def reverse_markup: Entry =
-      copy(rev_markup = rev_markup.reverse, subtree = subtree.reverse_markup)
   }
 
   object Branches
   {
     type T = SortedMap[Text.Range, Entry]
     val empty: T = SortedMap.empty(Text.Range.Ordering)
-
-    def reverse_markup(branches: T): T =
-      (empty /: branches.iterator) { case (bs, (r, entry)) => bs + (r -> entry.reverse_markup) }
   }
+
+
+  /* XML representation */
+
+  @tailrec private def strip_elems(markups: List[Markup], body: XML.Body): (List[Markup], XML.Body) =
+    body match {
+      case List(XML.Elem(markup1, body1)) => strip_elems(markup1 :: markups, body1)
+      case _ => (markups, body)
+    }
+
+  private def make_trees(acc: (Int, List[Markup_Tree]), tree: XML.Tree): (Int, List[Markup_Tree]) =
+    {
+      val (offset, markup_trees) = acc
+
+      strip_elems(Nil, List(tree)) match {
+        case (Nil, body) =>
+          (offset + XML.text_length(body), markup_trees)
+
+        case (elems, body) =>
+          val (end_offset, subtrees) = ((offset, Nil: List[Markup_Tree]) /: body)(make_trees)
+          val range = Text.Range(offset, end_offset)
+          val entry = Entry(range, elems.map(XML.Elem(_, Nil)), merge_disjoint(subtrees))
+          (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
+      }
+    }
+
+  def from_XML(body: XML.Body): Markup_Tree =
+    merge_disjoint(((0, Nil: List[Markup_Tree]) /: body)(make_trees)._2)
 }
 
 
-final class Markup_Tree private(branches: Markup_Tree.Branches.T)
+final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
 {
   import Markup_Tree._
 
   private def this(branches: Markup_Tree.Branches.T, entry: Markup_Tree.Entry) =
     this(branches + (entry.range -> entry))
-
-  def reverse_markup: Markup_Tree = new Markup_Tree(Branches.reverse_markup(branches))
 
   override def toString =
     branches.toList.map(_._2) match {
@@ -162,15 +201,13 @@ final class Markup_Tree private(branches: Markup_Tree.Branches.T)
       List((Text.Info(root_range, root_info), overlapping(root_range).toStream)))
   }
 
-  def swing_tree(parent: DefaultMutableTreeNode)
-    (swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
+  def swing_tree(parent: DefaultMutableTreeNode,
+    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
   {
     for ((_, entry) <- branches) {
-      var current = parent
       val node = swing_node(Text.Info(entry.range, entry.markup))
-      current.add(node)
-      current = node
-      entry.subtree.swing_tree(current)(swing_node)
+      entry.subtree.swing_tree(node, swing_node)
+      parent.add(node)
     }
   }
 }

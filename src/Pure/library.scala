@@ -199,4 +199,13 @@ class Basic_Library
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
+
+
+  /* parallel tasks */
+
+  implicit def function_as_callable[A](f: () => A) =
+    new java.util.concurrent.Callable[A] { def call = f() }
+
+  val default_thread_pool =
+    scala.collection.parallel.ThreadPoolTasks.defaultThreadPool
 }

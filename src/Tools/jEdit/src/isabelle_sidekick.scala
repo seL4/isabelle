@@ -198,7 +198,7 @@ class Isabelle_Sidekick_Raw
         val root = data.root
         for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
           snapshot.state.command_state(snapshot.version, command).markup
-            .swing_tree(root)((info: Text.Info[List[XML.Elem]]) =>
+            .swing_tree(root, (info: Text.Info[List[XML.Elem]]) =>
               {
                 val range = info.range + command_start
                 val content = command.source(info.range).replace('\n', ' ')

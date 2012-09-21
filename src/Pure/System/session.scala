@@ -172,12 +172,15 @@ class Session(val thy_load: Thy_Load)
     previous: Document.Version,
     version: Document.Version)
   private case class Messages(msgs: List[Isabelle_Process.Message])
+  private case class Finished_Scala(id: String, tag: Invoke_Scala.Tag.Value, result: String)
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     val this_actor = self
 
     var prune_next = System.currentTimeMillis() + prune_delay.ms
+
+    var futures = Map.empty[String, java.util.concurrent.Future[Unit]]
 
 
     /* buffered prover messages */
@@ -338,14 +341,21 @@ class Session(val thy_load: Thy_Load)
           }
 
         case Isabelle_Markup.Invoke_Scala(name, id) if output.is_protocol =>
-          Future.fork {
-            val arg = XML.content(output.body)
-            val (tag, res) = Invoke_Scala.method(name, arg)
-            prover.get.invoke_scala(id, tag, res)
-          }
+          futures += (id ->
+            default_thread_pool.submit(() =>
+              {
+                val arg = XML.content(output.body)
+                val (tag, result) = Invoke_Scala.method(name, arg)
+                this_actor ! Finished_Scala(id, tag, result)
+              }))
 
         case Isabelle_Markup.Cancel_Scala(id) if output.is_protocol =>
-          System.err.println("cancel_scala " + id)  // FIXME actually cancel JVM task
+          futures.get(id) match {
+            case Some(future) =>
+              future.cancel(true)
+              this_actor ! Finished_Scala(id, Invoke_Scala.Tag.INTERRUPT, "")
+            case None =>
+          }
 
         case _ if output.is_init =>
             phase = Session.Ready
@@ -415,6 +425,12 @@ class Session(val thy_load: Thy_Load)
         case change: Change
         if prover.isDefined && global_state().is_assigned(change.previous) =>
           handle_change(change)
+
+        case Finished_Scala(id, tag, result) if prover.isDefined =>
+          if (futures.isDefinedAt(id)) {
+            prover.get.invoke_scala(id, tag, result)
+            futures -= id
+          }
 
         case bad if !bad.isInstanceOf[Change] =>
           System.err.println("session_actor: ignoring bad message " + bad)

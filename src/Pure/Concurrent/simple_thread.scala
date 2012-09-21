@@ -15,6 +15,12 @@ import scala.actors.Actor
 
 object Simple_Thread
 {
+  /* prending interrupts */
+
+  def interrupted_exception(): Unit =
+    if (Thread.interrupted()) throw new InterruptedException
+
+
   /* plain thread */
 
   def fork(name: String = "", daemon: Boolean = false)(body: => Unit): Thread =
