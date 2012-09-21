@@ -15,7 +15,7 @@ sig
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_set_natural': thm -> thm
 
-  val mk_rel_Gr_tac: thm list -> thm -> thm -> thm -> thm -> thm -> thm -> thm list ->
+  val mk_rel_Gr_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
   val mk_rel_Id_tac: int -> thm -> thm -> {prems: 'a, context: Proof.context} -> tactic
   val mk_rel_O_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
@@ -63,7 +63,7 @@ fun mk_map_wppull_tac map_id map_cong map_wpull map_comp set_naturals =
         rtac (o_apply RS trans RS sym), rtac (o_apply RS trans), rtac thm,
         rtac conjunct2, etac bspec, etac set_mp, atac]]) [conjunct1, conjunct2]] 1;
 
-fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_wpull in_cong map_id' map_comp set_naturals
+fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_id' map_comp set_naturals
   {context = ctxt, prems = _} =
   let
     val n = length set_naturals;
@@ -89,17 +89,19 @@ fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_wpull in_cong map_id' map_comp s
         rtac @{thm subrelI}, etac CollectE, REPEAT_DETERM o eresolve_tac [exE, conjE],
         REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
-        rtac allE, rtac subst, rtac @{thm wpull_def}, rtac map_wpull,
-        REPEAT_DETERM_N n o rtac @{thm wpull_Gr}, etac allE, etac impE, rtac conjI, atac,
-        rtac conjI, REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac CollectI,
-        CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
-          rtac @{thm image_mono}, atac]) set_naturals,
-        rtac sym, rtac map_id', REPEAT_DETERM o eresolve_tac [bexE, conjE],
         rtac @{thm relcompI}, rtac @{thm converseI},
-        REPEAT_DETERM_N 2 o EVERY' [rtac CollectI, rtac exI,
-          rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl, etac sym,
-          etac @{thm set_rev_mp}, rtac equalityD1, rtac in_cong,
-          REPEAT_DETERM_N n o rtac @{thm Gr_def}]] 1
+        EVERY' (map2 (fn convol => fn map_id =>
+          EVERY' [rtac CollectI, rtac exI, rtac conjI,
+            rtac Pair_eqI, rtac conjI, rtac refl, rtac sym,
+            rtac (box_equals OF [map_cong, map_comp RS sym, map_id]),
+            REPEAT_DETERM_N n o rtac (convol RS fun_cong),
+            REPEAT_DETERM o eresolve_tac [CollectE, conjE],
+            rtac CollectI,
+            CONJ_WRAP' (fn thm =>
+              EVERY' [rtac @{thm ord_eq_le_trans}, rtac thm, rtac @{thm image_subsetI},
+                rtac @{thm convol_memI[of id _ "%x. x", OF id_apply refl]}, etac set_mp, atac])
+            set_naturals])
+          @{thms fst_convol snd_convol} [map_id', refl])] 1
   end;
 
 fun mk_rel_Id_tac n rel_Gr map_id {context = ctxt, prems = _} =

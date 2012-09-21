@@ -25,6 +25,23 @@ lemma converse_shift:
 "R1 \<subseteq> R2 ^-1 \<Longrightarrow> R1 ^-1 \<subseteq> R2"
 unfolding converse_def by auto
 
+definition convol ("<_ , _>") where
+"<f , g> \<equiv> %a. (f a, g a)"
+
+lemma fst_convol:
+"fst o <f , g> = f"
+apply(rule ext)
+unfolding convol_def by simp
+
+lemma snd_convol:
+"snd o <f , g> = g"
+apply(rule ext)
+unfolding convol_def by simp
+
+lemma convol_memI:
+"\<lbrakk>f x = f' x; g x = g' x; P x\<rbrakk> \<Longrightarrow> <f , g> x \<in> {(f' a, g' a) |a. P a}"
+unfolding convol_def by auto
+
 definition csquare where
 "csquare A f1 f2 p1 p2 \<longleftrightarrow> (\<forall> a \<in> A. f1 (p1 a) = f2 (p2 a))"
 

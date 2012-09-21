@@ -38,19 +38,6 @@ by simp
 lemma Un_cong: "\<lbrakk>A = B; C = D\<rbrakk> \<Longrightarrow> A \<union> C = B \<union> D"
 by simp
 
-definition convol ("<_ , _>") where
-"<f , g> \<equiv> %a. (f a, g a)"
-
-lemma fst_convol:
-"fst o <f , g> = f"
-apply(rule ext)
-unfolding convol_def by simp
-
-lemma snd_convol:
-"snd o <f , g> = g"
-apply(rule ext)
-unfolding convol_def by simp
-
 lemma pointfree_idE: "f o g = id \<Longrightarrow> f (g x) = x"
 unfolding o_def fun_eq_iff by simp
 

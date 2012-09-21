@@ -989,8 +989,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal
-              (mk_rel_Gr_tac rel_O_Grs (#map_id axioms) (#map_cong axioms)
-                (#map_wpull axioms) (Lazy.force in_cong) (Lazy.force map_id')
+              (mk_rel_Gr_tac rel_O_Grs (#map_id axioms) (#map_cong axioms) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
           end;
