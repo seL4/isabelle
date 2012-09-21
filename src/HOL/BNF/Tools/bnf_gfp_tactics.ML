@@ -38,6 +38,8 @@ sig
   val mk_corec_tac: int -> thm list -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_dtor_coinduct_tac: int -> int list -> thm -> thm -> tactic
+  val mk_dtor_srel_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
+    thm list -> thm list -> thm list list -> tactic
   val mk_dtor_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm ->
     thm -> thm -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list ->
@@ -109,8 +111,6 @@ sig
   val mk_srel_coinduct_tac: 'a list -> thm -> thm -> tactic
   val mk_srel_strong_coinduct_tac: int -> ctyp option list -> cterm option list -> thm ->
     thm list -> thm list -> tactic
-  val mk_srel_simp_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
-    thm list -> thm list -> thm list list -> tactic
   val mk_strT_hset_tac: int -> int -> int -> ctyp option list -> ctyp option list ->
     cterm option list -> thm list -> thm list -> thm list -> thm list -> thm list list ->
     thm list list -> thm list list -> thm -> thm list list -> tactic
@@ -1494,7 +1494,7 @@ fun mk_coind_wit_tac induct unfolds set_nats wits {context = ctxt, prems = _} =
   ALLGOALS (TRY o
     FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
 
-fun mk_srel_simp_tac in_Jsrels i in_srel map_comp map_cong map_simp set_simps dtor_inject dtor_ctor
+fun mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong map_simp set_simps dtor_inject dtor_ctor
   set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;

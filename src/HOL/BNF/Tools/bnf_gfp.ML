@@ -2899,7 +2899,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
         val folded_set_simp_thmss' = transpose folded_set_simp_thmss;
 
-        val Jsrel_simp_thms =
+        val dtor_Jsrel_thms =
           let
             fun mk_goal Jz Jz' dtor dtor' JsrelR srelR = fold_rev Logic.all (Jz :: Jz' :: JRs)
               (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (Jz, Jz'), JsrelR),
@@ -2910,24 +2910,24 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               fn map_simp => fn set_simps => fn dtor_inject => fn dtor_ctor =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-                (K (mk_srel_simp_tac in_Jsrels i in_srel map_comp map_cong map_simp set_simps
+                (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong map_simp set_simps
                   dtor_inject dtor_ctor set_naturals set_incls set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_srels map_comp's map_congs folded_map_simp_thms folded_set_simp_thmss'
               dtor_inject_thms dtor_ctor_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
 
-        val Jrel_simp_thms =
+        val dtor_Jrel_thms =
           let
             fun mk_goal Jz Jz' dtor dtor' Jpredphi predphi = fold_rev Logic.all (Jz :: Jz' :: Jphis)
               (mk_Trueprop_eq (Jpredphi $ Jz $ Jz', predphi $ (dtor $ Jz) $ (dtor' $ Jz')));
             val goals = map6 mk_goal Jzs Jz's dtors dtor's Jrelphis relphis;
           in
-            map3 (fn goal => fn srel_def => fn Jsrel_simp =>
+            map3 (fn goal => fn srel_def => fn dtor_Jsrel =>
               Skip_Proof.prove lthy [] [] goal
-                (mk_rel_simp_tac srel_def Jrel_defs Jsrel_defs Jsrel_simp)
+                (mk_dtor_rel_tac srel_def Jrel_defs Jsrel_defs dtor_Jsrel)
               |> Thm.close_derivation)
-            goals srel_defs Jsrel_simp_thms
+            goals srel_defs dtor_Jsrel_thms
           end;
 
         val timer = time (timer "additional properties");
@@ -2941,11 +2941,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
         val Jbnf_notes =
-          [(map_simpsN, map single folded_map_simp_thms),
-          (rel_simpN, map single Jrel_simp_thms),
+          [(dtor_relN, map single dtor_Jrel_thms),
+          (dtor_srelN, map single dtor_Jsrel_thms),
+          (map_simpsN, map single folded_map_simp_thms),
           (set_inclN, set_incl_thmss),
-          (set_set_inclN, map flat set_set_incl_thmsss),
-          (srel_simpN, map single Jsrel_simp_thms)] @
+          (set_set_inclN, map flat set_set_incl_thmsss)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
