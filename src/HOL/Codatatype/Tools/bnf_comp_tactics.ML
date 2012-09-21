@@ -64,8 +64,8 @@ val trans_o_apply = @{thm trans[OF o_apply]};
 (* Composition *)
 
 fun mk_comp_set_alt_tac ctxt collect_set_natural =
-  unfold_defs_tac ctxt @{thms sym[OF o_assoc]} THEN
-  unfold_defs_tac ctxt [collect_set_natural RS sym] THEN
+  unfold_thms_tac ctxt @{thms sym[OF o_assoc]} THEN
+  unfold_thms_tac ctxt [collect_set_natural RS sym] THEN
   rtac refl 1;
 
 fun mk_comp_map_comp_tac Gmap_comp Gmap_cong map_comps =
@@ -138,9 +138,9 @@ fun mk_comp_set_bd_tac ctxt comp_set_alt Gset_Fset_bds =
       rtac bd;
     fun gen_after _ = rtac @{thm ordIso_imp_ordLeq} THEN' rtac @{thm cprod_csum_distrib1};
   in
-    unfold_defs_tac ctxt [comp_set_alt] THEN
+    unfold_thms_tac ctxt [comp_set_alt] THEN
     rtac @{thm comp_set_bd_Union_o_collect} 1 THEN
-    unfold_defs_tac ctxt @{thms Union_image_insert Union_image_empty Union_Un_distrib o_apply} THEN
+    unfold_thms_tac ctxt @{thms Union_image_insert Union_image_empty Union_Un_distrib o_apply} THEN
     (rtac ctrans THEN'
      WRAP' gen_before gen_after bds (rtac last_bd) THEN'
      rtac @{thm ordIso_imp_ordLeq} THEN'
@@ -152,12 +152,12 @@ val comp_in_alt_thms = @{thms o_apply collect_def SUP_def image_insert image_emp
   conj_assoc};
 
 fun mk_comp_in_alt_tac ctxt comp_set_alts =
-  unfold_defs_tac ctxt (comp_set_alts @ comp_in_alt_thms) THEN
-  unfold_defs_tac ctxt @{thms set_eq_subset} THEN
+  unfold_thms_tac ctxt (comp_set_alts @ comp_in_alt_thms) THEN
+  unfold_thms_tac ctxt @{thms set_eq_subset} THEN
   rtac conjI 1 THEN
   REPEAT_DETERM (
     rtac @{thm subsetI} 1 THEN
-    unfold_defs_tac ctxt @{thms mem_Collect_eq Ball_def} THEN
+    unfold_thms_tac ctxt @{thms mem_Collect_eq Ball_def} THEN
     (REPEAT_DETERM (CHANGED (etac conjE 1)) THEN
      REPEAT_DETERM (CHANGED ((
        (rtac conjI THEN' (atac ORELSE' rtac subset_UNIV)) ORELSE'
@@ -214,7 +214,7 @@ val comp_wit_thms = @{thms Union_empty_conv o_apply collect_def SUP_def
 
 fun mk_comp_wit_tac ctxt Gwit_thms collect_set_natural Fwit_thms =
   ALLGOALS (dtac @{thm in_Union_o_assoc}) THEN
-  unfold_defs_tac ctxt (collect_set_natural :: comp_wit_thms) THEN
+  unfold_thms_tac ctxt (collect_set_natural :: comp_wit_thms) THEN
   REPEAT_DETERM (
     atac 1 ORELSE
     REPEAT_DETERM (eresolve_tac @{thms UnionE UnE imageE} 1) THEN
@@ -408,7 +408,7 @@ fun mk_map_wpull_tac comp_in_alt inner_map_wpulls outer_map_wpull =
   TRY (REPEAT_DETERM (atac 1 ORELSE rtac @{thm wpull_id} 1));
 
 fun mk_simple_rel_O_Gr_tac ctxt rel_def rel_O_Gr in_alt_thm =
-  rtac (unfold_defs ctxt [rel_def] (trans OF [rel_O_Gr, in_alt_thm RS @{thm subst_rel_def} RS sym]))
+  rtac (unfold_thms ctxt [rel_def] (trans OF [rel_O_Gr, in_alt_thm RS @{thm subst_rel_def} RS sym]))
     1;
 
 fun mk_simple_wit_tac wit_thms = ALLGOALS (atac ORELSE' eresolve_tac (@{thm emptyE} :: wit_thms));

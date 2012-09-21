@@ -443,7 +443,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                   disc_defs';
               val not_discI_thms =
                 map2 (fn m => fn def => funpow m (fn thm => allI RS thm)
-                    (unfold_defs lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
+                    (unfold_thms lthy @{thms not_ex} (def RS @{thm ssubst[of _ _ Not]})))
                   ms disc_defs';
 
               val (disc_thmss', disc_thmss) =

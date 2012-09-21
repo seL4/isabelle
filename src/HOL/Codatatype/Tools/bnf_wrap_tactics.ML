@@ -42,7 +42,7 @@ fun mk_unique_disc_def_tac m uexhaust =
 
 fun mk_alternate_disc_def_tac ctxt k other_disc_def distinct uexhaust =
   EVERY' ([subst_tac ctxt [other_disc_def], rtac @{thm iffI_np}, REPEAT_DETERM o etac exE,
-    hyp_subst_tac, SELECT_GOAL (unfold_defs_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI,
+    hyp_subst_tac, SELECT_GOAL (unfold_thms_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI,
     rtac distinct, rtac uexhaust] @
     (([etac notE, REPEAT_DETERM o rtac exI, atac], [REPEAT_DETERM o rtac exI, atac])
      |> k = 1 ? swap |> op @)) 1;
@@ -63,7 +63,7 @@ fun mk_collapse_tac ctxt m discD sels =
       atac
     else
       REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac THEN'
-      SELECT_GOAL (unfold_defs_tac ctxt sels) THEN' rtac refl)) 1;
+      SELECT_GOAL (unfold_thms_tac ctxt sels) THEN' rtac refl)) 1;
 
 fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss
     disc_excludesss' =
@@ -98,7 +98,7 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
 fun mk_case_eq_tac ctxt n uexhaust cases discss' selss =
   (rtac uexhaust THEN'
    EVERY' (map3 (fn casex => fn if_discs => fn sels =>
-       EVERY' [hyp_subst_tac, SELECT_GOAL (unfold_defs_tac ctxt (if_discs @ sels)), rtac casex])
+       EVERY' [hyp_subst_tac, SELECT_GOAL (unfold_thms_tac ctxt (if_discs @ sels)), rtac casex])
      cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss)) 1;
 
 fun mk_case_cong_tac uexhaust cases =
@@ -117,6 +117,6 @@ fun mk_split_tac uexhaust cases injectss distinctsss =
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};
 
 fun mk_split_asm_tac ctxt split =
-  rtac (split RS trans) 1 THEN unfold_defs_tac ctxt split_asm_thms THEN rtac refl 1;
+  rtac (split RS trans) 1 THEN unfold_thms_tac ctxt split_asm_thms THEN rtac refl 1;
 
 end;

@@ -18,32 +18,30 @@ sig
   val caseN: string
   val coN: string
   val coinductN: string
-  val coiterN: string
-  val coitersN: string
   val corecN: string
   val corecsN: string
   val ctorN: string
   val ctor_dtorN: string
-  val ctor_dtor_coitersN: string
+  val ctor_dtor_unfoldsN: string
   val ctor_dtor_corecsN: string
   val ctor_exhaustN: string
   val ctor_induct2N: string
   val ctor_inductN: string
   val ctor_injectN: string
-  val ctor_iterN: string
-  val ctor_iter_uniqueN: string
-  val ctor_itersN: string
+  val ctor_foldN: string
+  val ctor_fold_uniqueN: string
+  val ctor_foldsN: string
   val ctor_recN: string
   val ctor_recsN: string
-  val disc_coiter_iffN: string
-  val disc_coitersN: string
+  val disc_unfold_iffN: string
+  val disc_unfoldsN: string
   val disc_corec_iffN: string
   val disc_corecsN: string
   val dtorN: string
   val dtor_coinductN: string
-  val dtor_coiterN: string
-  val dtor_coiter_uniqueN: string
-  val dtor_coitersN: string
+  val dtor_unfoldN: string
+  val dtor_unfold_uniqueN: string
+  val dtor_unfoldsN: string
   val dtor_corecN: string
   val dtor_corecsN: string
   val dtor_exhaustN: string
@@ -51,13 +49,13 @@ sig
   val dtor_injectN: string
   val dtor_strong_coinductN: string
   val exhaustN: string
+  val foldN: string
+  val foldsN: string
   val hsetN: string
   val hset_recN: string
   val inductN: string
   val injectN: string
   val isNodeN: string
-  val iterN: string
-  val itersN: string
   val lsbisN: string
   val map_simpsN: string
   val map_uniqueN: string
@@ -73,7 +71,7 @@ sig
   val rel_simpN: string
   val rel_strong_coinductN: string
   val rvN: string
-  val sel_coitersN: string
+  val sel_unfoldsN: string
   val sel_corecsN: string
   val set_inclN: string
   val set_set_inclN: string
@@ -83,6 +81,8 @@ sig
   val strongN: string
   val sum_bdN: string
   val sum_bdTN: string
+  val unfoldN: string
+  val unfoldsN: string
   val uniqueN: string
 
   val mk_exhaustN: string -> string
@@ -158,23 +158,24 @@ val preN = "pre_"
 val rawN = "raw_"
 
 val coN = "co"
+val unN = "un"
 val algN = "alg"
 val IITN = "IITN"
-val iterN = "iter"
-val itersN = iterN ^ "s"
-val coiterN = coN ^ iterN
-val coitersN = coiterN ^ "s"
+val foldN = "fold"
+val foldsN = foldN ^ "s"
+val unfoldN = unN ^ foldN
+val unfoldsN = unfoldN ^ "s"
 val uniqueN = "_unique"
 val simpsN = "simps"
 val ctorN = "ctor"
 val dtorN = "dtor"
-val ctor_iterN = ctorN ^ "_" ^ iterN
-val ctor_itersN = ctor_iterN ^ "s"
-val dtor_coiterN = dtorN ^ "_" ^ coiterN
-val dtor_coitersN = dtor_coiterN ^ "s"
-val ctor_iter_uniqueN = ctor_iterN ^ uniqueN
-val dtor_coiter_uniqueN = dtor_coiterN ^ uniqueN
-val ctor_dtor_coitersN = ctorN ^ "_" ^ dtor_coiterN ^ "s"
+val ctor_foldN = ctorN ^ "_" ^ foldN
+val ctor_foldsN = ctor_foldN ^ "s"
+val dtor_unfoldN = dtorN ^ "_" ^ unfoldN
+val dtor_unfoldsN = dtor_unfoldN ^ "s"
+val ctor_fold_uniqueN = ctor_foldN ^ uniqueN
+val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
+val ctor_dtor_unfoldsN = ctorN ^ "_" ^ dtor_unfoldN ^ "s"
 val map_simpsN = mapN ^ "_" ^ simpsN
 val map_uniqueN = mapN ^ uniqueN
 val min_algN = "min_alg"
@@ -237,13 +238,13 @@ val set_set_inclN = "set_set_incl"
 
 val caseN = "case"
 val discN = "disc"
-val disc_coitersN = discN ^ "_" ^ coitersN
+val disc_unfoldsN = discN ^ "_" ^ unfoldsN
 val disc_corecsN = discN ^ "_" ^ corecsN
 val iffN = "_iff"
-val disc_coiter_iffN = discN ^ "_" ^ coiterN ^ iffN
+val disc_unfold_iffN = discN ^ "_" ^ unfoldN ^ iffN
 val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
 val selN = "sel"
-val sel_coitersN = selN ^ "_" ^ coitersN
+val sel_unfoldsN = selN ^ "_" ^ unfoldsN
 val sel_corecsN = selN ^ "_" ^ corecsN
 
 val mk_common_name = space_implode "_";

@@ -134,8 +134,8 @@ sig
   val no_refl: thm list -> thm list
   val no_reflexive: thm list -> thm list
 
-  val fold_defs: Proof.context -> thm list -> thm -> thm
-  val unfold_defs: Proof.context -> thm list -> thm -> thm
+  val fold_thms: Proof.context -> thm list -> thm -> thm
+  val unfold_thms: Proof.context -> thm list -> thm -> thm
 
   val mk_permute: ''a list -> ''a list -> 'b list -> 'b list
   val find_indices: ''a list -> ''a list -> int list
@@ -613,7 +613,7 @@ fun is_refl thm =
 val no_refl = filter_out is_refl;
 val no_reflexive = filter_out Thm.is_reflexive;
 
-fun fold_defs ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
-fun unfold_defs ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
+fun fold_thms ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
+fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);
 
 end;

@@ -1060,9 +1060,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
           val sum_card_order = mk_sum_card_order bd_card_orders;
 
-          val sbd_ordIso = fold_defs lthy [sbd_def]
+          val sbd_ordIso = fold_thms lthy [sbd_def]
             (@{thm dir_image} OF [Abs_sbdT_inj, sum_Card_order]);
-          val sbd_card_order =  fold_defs lthy [sbd_def]
+          val sbd_card_order =  fold_thms lthy [sbd_def]
             (@{thm card_order_dir_image} OF [Abs_sbdT_bij, sum_card_order]);
           val sbd_Cinfinite = @{thm Cinfinite_cong} OF [sbd_ordIso, sum_Cinfinite];
           val sbd_Cnotzero = sbd_Cinfinite RS @{thm Cinfinite_Cnotzero};
@@ -1854,14 +1854,14 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val sndsTs = map snd_const prodTs;
     val dtorTs = map2 (curry (op -->)) Ts FTs;
     val ctorTs = map2 (curry (op -->)) FTs Ts;
-    val coiter_fTs = map2 (curry op -->) activeAs Ts;
+    val unfold_fTs = map2 (curry op -->) activeAs Ts;
     val corec_sTs = map (Term.typ_subst_atomic (activeBs ~~ Ts)) sum_sTs;
     val corec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls;
     val corec_maps_rev = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls_rev;
     val corec_Inls = map (Term.subst_atomic_types (activeBs ~~ Ts)) Inls;
 
     val (((((((((((((Jzs, Jzs'), (Jz's, Jz's')), Jzs_copy), Jzs1), Jzs2), Jpairs),
-      FJzs), TRs), coiter_fs), coiter_fs_copy), corec_ss), phis), names_lthy) = names_lthy
+      FJzs), TRs), unfold_fs), unfold_fs_copy), corec_ss), phis), names_lthy) = names_lthy
       |> mk_Frees' "z" Ts
       ||>> mk_Frees' "z" Ts'
       ||>> mk_Frees "z" Ts
@@ -1870,8 +1870,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees "j" (map2 (curry HOLogic.mk_prodT) Ts Ts')
       ||>> mk_Frees "x" prodFTs
       ||>> mk_Frees "R" (map (mk_relT o `I) Ts)
-      ||>> mk_Frees "f" coiter_fTs
-      ||>> mk_Frees "g" coiter_fTs
+      ||>> mk_Frees "f" unfold_fTs
+      ||>> mk_Frees "g" unfold_fTs
       ||>> mk_Frees "s" corec_sTs
       ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
 
@@ -1927,38 +1927,38 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val timer = time (timer "dtor definitions & thms");
 
-    fun coiter_bind i = Binding.suffix_name ("_" ^ dtor_coiterN) (nth bs (i - 1));
-    val coiter_name = Binding.name_of o coiter_bind;
-    val coiter_def_bind = rpair [] o Thm.def_binding o coiter_bind;
+    fun unfold_bind i = Binding.suffix_name ("_" ^ dtor_unfoldN) (nth bs (i - 1));
+    val unfold_name = Binding.name_of o unfold_bind;
+    val unfold_def_bind = rpair [] o Thm.def_binding o unfold_bind;
 
-    fun coiter_spec i T AT abs f z z' =
+    fun unfold_spec i T AT abs f z z' =
       let
-        val coiterT = Library.foldr (op -->) (sTs, AT --> T);
+        val unfoldT = Library.foldr (op -->) (sTs, AT --> T);
 
-        val lhs = Term.list_comb (Free (coiter_name i, coiterT), ss);
+        val lhs = Term.list_comb (Free (unfold_name i, unfoldT), ss);
         val rhs = Term.absfree z' (abs $ (f $ z));
       in
         mk_Trueprop_eq (lhs, rhs)
       end;
 
-    val ((coiter_frees, (_, coiter_def_frees)), (lthy, lthy_old)) =
+    val ((unfold_frees, (_, unfold_def_frees)), (lthy, lthy_old)) =
       lthy
       |> fold_map7 (fn i => fn T => fn AT => fn abs => fn f => fn z => fn z' =>
         Specification.definition
-          (SOME (coiter_bind i, NONE, NoSyn), (coiter_def_bind i, coiter_spec i T AT abs f z z')))
+          (SOME (unfold_bind i, NONE, NoSyn), (unfold_def_bind i, unfold_spec i T AT abs f z z')))
           ks Ts activeAs Abs_Ts (map (fn i => HOLogic.mk_comp
             (mk_proj (mk_LSBIS passive_UNIVs i), mk_beh ss i)) ks) zs zs'
       |>> apsnd split_list o split_list
       ||> `Local_Theory.restore;
 
     val phi = Proof_Context.export_morphism lthy_old lthy;
-    val coiters = map (Morphism.term phi) coiter_frees;
-    val coiter_names = map (fst o dest_Const) coiters;
-    fun mk_coiter Ts ss i = Term.list_comb (Const (nth coiter_names (i - 1), Library.foldr (op -->)
+    val unfolds = map (Morphism.term phi) unfold_frees;
+    val unfold_names = map (fst o dest_Const) unfolds;
+    fun mk_unfold Ts ss i = Term.list_comb (Const (nth unfold_names (i - 1), Library.foldr (op -->)
       (map fastype_of ss, domain_type (fastype_of (nth ss (i - 1))) --> nth Ts (i - 1))), ss);
-    val coiter_defs = map ((fn thm => thm RS fun_cong) o Morphism.thm phi) coiter_def_frees;
+    val unfold_defs = map ((fn thm => thm RS fun_cong) o Morphism.thm phi) unfold_def_frees;
 
-    val mor_coiter_thm =
+    val mor_unfold_thm =
       let
         val Abs_inverses' = map2 (curry op RS) in_car_final_thms Abs_inverses;
         val morEs' = map (fn thm =>
@@ -1966,12 +1966,12 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       in
         Skip_Proof.prove lthy [] []
           (fold_rev Logic.all ss
-            (HOLogic.mk_Trueprop (mk_mor active_UNIVs ss UNIVs dtors (map (mk_coiter Ts ss) ks))))
-          (K (mk_mor_coiter_tac m mor_UNIV_thm dtor_defs coiter_defs Abs_inverses' morEs'
+            (HOLogic.mk_Trueprop (mk_mor active_UNIVs ss UNIVs dtors (map (mk_unfold Ts ss) ks))))
+          (K (mk_mor_unfold_tac m mor_UNIV_thm dtor_defs unfold_defs Abs_inverses' morEs'
             map_comp_id_thms map_congs))
         |> Thm.close_derivation
       end;
-    val coiter_thms = map (fn thm => (thm OF [mor_coiter_thm, UNIV_I]) RS sym) morE_thms;
+    val dtor_unfold_thms = map (fn thm => (thm OF [mor_unfold_thm, UNIV_I]) RS sym) morE_thms;
 
     val (raw_coind_thms, raw_coind_thm) =
       let
@@ -1990,15 +1990,15 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val unique_mor_thms =
       let
         val prems = [HOLogic.mk_Trueprop (mk_coalg passive_UNIVs Bs ss), HOLogic.mk_Trueprop
-          (HOLogic.mk_conj (mk_mor Bs ss UNIVs dtors coiter_fs,
-            mk_mor Bs ss UNIVs dtors coiter_fs_copy))];
+          (HOLogic.mk_conj (mk_mor Bs ss UNIVs dtors unfold_fs,
+            mk_mor Bs ss UNIVs dtors unfold_fs_copy))];
         fun mk_fun_eq B f g z = HOLogic.mk_imp
           (HOLogic.mk_mem (z, B), HOLogic.mk_eq (f $ z, g $ z));
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-          (map4 mk_fun_eq Bs coiter_fs coiter_fs_copy zs));
+          (map4 mk_fun_eq Bs unfold_fs unfold_fs_copy zs));
 
         val unique_mor = Skip_Proof.prove lthy [] []
-          (fold_rev Logic.all (Bs @ ss @ coiter_fs @ coiter_fs_copy @ zs)
+          (fold_rev Logic.all (Bs @ ss @ unfold_fs @ unfold_fs_copy @ zs)
             (Logic.list_implies (prems, unique)))
           (K (mk_unique_mor_tac raw_coind_thms bis_image2_thm))
           |> Thm.close_derivation;
@@ -2006,38 +2006,38 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         map (fn thm => conjI RSN (2, thm RS mp)) (split_conj_thm unique_mor)
       end;
 
-    val (coiter_unique_mor_thms, coiter_unique_mor_thm) =
+    val (unfold_unique_mor_thms, unfold_unique_mor_thm) =
       let
-        val prem = HOLogic.mk_Trueprop (mk_mor active_UNIVs ss UNIVs dtors coiter_fs);
-        fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_coiter Ts ss i);
+        val prem = HOLogic.mk_Trueprop (mk_mor active_UNIVs ss UNIVs dtors unfold_fs);
+        fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_unfold Ts ss i);
         val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
-          (map2 mk_fun_eq coiter_fs ks));
+          (map2 mk_fun_eq unfold_fs ks));
 
         val bis_thm = tcoalg_thm RSN (2, tcoalg_thm RS bis_image2_thm);
         val mor_thm = mor_comp_thm OF [tcoalg_thm RS mor_final_thm, mor_Abs_thm];
 
         val unique_mor = Skip_Proof.prove lthy [] []
-          (fold_rev Logic.all (ss @ coiter_fs) (Logic.mk_implies (prem, unique)))
-          (K (mk_coiter_unique_mor_tac raw_coind_thms bis_thm mor_thm coiter_defs))
+          (fold_rev Logic.all (ss @ unfold_fs) (Logic.mk_implies (prem, unique)))
+          (K (mk_unfold_unique_mor_tac raw_coind_thms bis_thm mor_thm unfold_defs))
           |> Thm.close_derivation;
       in
         `split_conj_thm unique_mor
       end;
 
-    val (coiter_unique_thms, coiter_unique_thm) = `split_conj_thm (split_conj_prems n
-      (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS coiter_unique_mor_thm));
+    val (dtor_unfold_unique_thms, dtor_unfold_unique_thm) = `split_conj_thm (split_conj_prems n
+      (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS unfold_unique_mor_thm));
 
-    val coiter_dtor_thms = map (fn thm => mor_id_thm RS thm RS sym) coiter_unique_mor_thms;
+    val unfold_dtor_thms = map (fn thm => mor_id_thm RS thm RS sym) unfold_unique_mor_thms;
 
-    val coiter_o_dtor_thms =
+    val unfold_o_dtor_thms =
       let
-        val mor = mor_comp_thm OF [mor_str_thm, mor_coiter_thm];
+        val mor = mor_comp_thm OF [mor_str_thm, mor_unfold_thm];
       in
-        map2 (fn unique => fn coiter_ctor =>
-          trans OF [mor RS unique, coiter_ctor]) coiter_unique_mor_thms coiter_dtor_thms
+        map2 (fn unique => fn unfold_ctor =>
+          trans OF [mor RS unique, unfold_ctor]) unfold_unique_mor_thms unfold_dtor_thms
       end;
 
-    val timer = time (timer "coiter definitions & thms");
+    val timer = time (timer "unfold definitions & thms");
 
     val map_dtors = map2 (fn Ds => fn bnf =>
       Term.list_comb (mk_map_of_bnf Ds (passiveAs @ Ts) (passiveAs @ FTs) bnf,
@@ -2050,7 +2050,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     fun ctor_spec i ctorT =
       let
         val lhs = Free (ctor_name i, ctorT);
-        val rhs = mk_coiter Ts map_dtors i;
+        val rhs = mk_unfold Ts map_dtors i;
       in
         mk_Trueprop_eq (lhs, rhs)
       end;
@@ -2070,7 +2070,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val ctors = mk_ctors params';
     val ctor_defs = map (Morphism.thm phi) ctor_def_frees;
 
-    val ctor_o_dtor_thms = map2 (fold_defs lthy o single) ctor_defs coiter_o_dtor_thms;
+    val ctor_o_dtor_thms = map2 (fold_thms lthy o single) ctor_defs unfold_o_dtor_thms;
 
     val dtor_o_ctor_thms =
       let
@@ -2078,11 +2078,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
          mk_Trueprop_eq (HOLogic.mk_comp (dtor, ctor), HOLogic.id_const FT);
         val goals = map3 mk_goal dtors ctors FTs;
       in
-        map5 (fn goal => fn ctor_def => fn coiter => fn map_comp_id => fn map_congL =>
+        map5 (fn goal => fn ctor_def => fn unfold => fn map_comp_id => fn map_congL =>
           Skip_Proof.prove lthy [] [] goal
-            (mk_dtor_o_ctor_tac ctor_def coiter map_comp_id map_congL coiter_o_dtor_thms)
+            (mk_dtor_o_ctor_tac ctor_def unfold map_comp_id map_congL unfold_o_dtor_thms)
           |> Thm.close_derivation)
-          goals ctor_defs coiter_thms map_comp_id_thms map_congL_thms
+          goals ctor_defs dtor_unfold_thms map_comp_id_thms map_congL_thms
       end;
 
     val dtor_ctor_thms = map (fn thm => thm RS @{thm pointfree_idE}) dtor_o_ctor_thms;
@@ -2104,20 +2104,20 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val ctor_inject_thms = map (fn thm => thm RS @{thm inj_eq}) inj_ctor_thms;
     val ctor_exhaust_thms = map (fn thm => thm RS exE) ctor_nchotomy_thms;
 
-    fun mk_ctor_dtor_coiter_like_thm dtor_inject dtor_ctor coiter =
-      iffD1 OF [dtor_inject, trans OF [coiter, dtor_ctor RS sym]];
+    fun mk_ctor_dtor_unfold_like_thm dtor_inject dtor_ctor unfold =
+      iffD1 OF [dtor_inject, trans OF [unfold, dtor_ctor RS sym]];
 
-    val ctor_coiter_thms =
-      map3 mk_ctor_dtor_coiter_like_thm dtor_inject_thms dtor_ctor_thms coiter_thms;
+    val ctor_dtor_unfold_thms =
+      map3 mk_ctor_dtor_unfold_like_thm dtor_inject_thms dtor_ctor_thms dtor_unfold_thms;
 
     val timer = time (timer "ctor definitions & thms");
 
     val corec_Inl_sum_thms =
       let
-        val mor = mor_comp_thm OF [mor_sum_case_thm, mor_coiter_thm];
+        val mor = mor_comp_thm OF [mor_sum_case_thm, mor_unfold_thm];
       in
-        map2 (fn unique => fn coiter_dtor =>
-          trans OF [mor RS unique, coiter_dtor]) coiter_unique_mor_thms coiter_dtor_thms
+        map2 (fn unique => fn unfold_dtor =>
+          trans OF [mor RS unique, unfold_dtor]) unfold_unique_mor_thms unfold_dtor_thms
       end;
 
     fun corec_bind i = Binding.suffix_name ("_" ^ dtor_corecN) (nth bs (i - 1));
@@ -2132,7 +2132,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           dtors corec_ss corec_maps;
 
         val lhs = Term.list_comb (Free (corec_name i, corecT), corec_ss);
-        val rhs = HOLogic.mk_comp (mk_coiter Ts maps i, Inr_const T AT);
+        val rhs = HOLogic.mk_comp (mk_unfold Ts maps i, Inr_const T AT);
       in
         mk_Trueprop_eq (lhs, rhs)
       end;
@@ -2155,7 +2155,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val sum_cases =
       map2 (fn T => fn i => mk_sum_case (HOLogic.id_const T, mk_corec corec_ss i)) Ts ks;
-    val corec_thms =
+    val dtor_corec_thms =
       let
         fun mk_goal i corec_s corec_map dtor z =
           let
@@ -2166,15 +2166,15 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           end;
         val goals = map5 mk_goal ks corec_ss corec_maps_rev dtors zs;
       in
-        map3 (fn goal => fn coiter => fn map_cong =>
+        map3 (fn goal => fn unfold => fn map_cong =>
           Skip_Proof.prove lthy [] [] goal
-            (mk_corec_tac m corec_defs coiter map_cong corec_Inl_sum_thms)
+            (mk_corec_tac m corec_defs unfold map_cong corec_Inl_sum_thms)
           |> Thm.close_derivation)
-        goals coiter_thms map_congs
+        goals dtor_unfold_thms map_congs
       end;
 
-    val ctor_corec_thms =
-      map3 mk_ctor_dtor_coiter_like_thm dtor_inject_thms dtor_ctor_thms corec_thms;
+    val ctor_dtor_corec_thms =
+      map3 mk_ctor_dtor_unfold_like_thm dtor_inject_thms dtor_ctor_thms dtor_corec_thms;
 
     val timer = time (timer "corec definitions & thms");
 
@@ -2216,7 +2216,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val rel_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (rel_prems, concl));
         val coinduct_params = rev (Term.add_tfrees rel_coinduct_goal []);
 
-        val rel_coinduct = unfold_defs lthy @{thms diag_UNIV}
+        val rel_coinduct = unfold_thms lthy @{thms diag_UNIV}
           (Skip_Proof.prove lthy [] [] rel_coinduct_goal
             (K (mk_rel_coinduct_tac ks raw_coind_thm bis_rel_thm))
           |> Thm.close_derivation);
@@ -2272,8 +2272,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val pred_of_rel_thms =
           rel_defs @ @{thms Id_def' mem_Collect_eq fst_conv snd_conv split_conv};
 
-        val pred_coinduct = unfold_defs lthy pred_of_rel_thms rel_coinduct;
-        val pred_strong_coinduct = unfold_defs lthy pred_of_rel_thms rel_strong_coinduct;
+        val pred_coinduct = unfold_thms lthy pred_of_rel_thms rel_coinduct;
+        val pred_strong_coinduct = unfold_thms lthy pred_of_rel_thms rel_strong_coinduct;
       in
         (dtor_coinduct, rev (Term.add_tfrees dtor_coinduct_goal []), rel_coinduct, pred_coinduct,
          dtor_strong_coinduct, rel_strong_coinduct, pred_strong_coinduct)
@@ -2332,7 +2332,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           map2 (fn Ds => mk_map_of_bnf Ds (ATs @ Ts) (BTs @ map mk_T Ts)) Dss bnfs;
         fun mk_Fmap mk_const fs Ts Fmap = Term.list_comb (Fmap, fs @ map mk_const Ts);
         fun mk_map mk_const mk_T Ts fs Ts' dtors mk_maps =
-          mk_coiter Ts' (map2 (fn dtor => fn Fmap =>
+          mk_unfold Ts' (map2 (fn dtor => fn Fmap =>
             HOLogic.mk_comp (mk_Fmap mk_const fs Ts Fmap, dtor)) dtors (mk_maps Ts mk_T));
         val mk_map_id = mk_map HOLogic.id_const I;
         val mk_mapsAB = mk_maps passiveAs passiveBs;
@@ -2374,11 +2374,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val goals = map4 mk_goal fs_maps map_FTFT's dtors dtor's;
             val cTs = map (SOME o certifyT lthy) FTs';
             val maps =
-              map5 (fn goal => fn cT => fn coiter => fn map_comp' => fn map_cong =>
+              map5 (fn goal => fn cT => fn unfold => fn map_comp' => fn map_cong =>
                 Skip_Proof.prove lthy [] [] goal
-                  (K (mk_map_tac m n cT coiter map_comp' map_cong))
+                  (K (mk_map_tac m n cT unfold map_comp' map_cong))
                 |> Thm.close_derivation)
-              goals cTs coiter_thms map_comp's map_congs;
+              goals cTs dtor_unfold_thms map_comp's map_congs;
           in
             map_split (fn thm => (thm RS @{thm pointfreeE}, thm)) maps
           end;
@@ -2392,7 +2392,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 fs_maps gs_maps fgs_maps)))
           in
             split_conj_thm (Skip_Proof.prove lthy [] [] goal
-              (K (mk_map_comp_tac m n map_thms map_comps map_congs coiter_unique_thm))
+              (K (mk_map_comp_tac m n map_thms map_comps map_congs dtor_unfold_unique_thm))
               |> Thm.close_derivation)
           end;
 
@@ -2408,7 +2408,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (mk_map_unique_tac coiter_unique_thm map_comps)
+              (mk_map_unique_tac dtor_unfold_unique_thm map_comps)
               |> Thm.close_derivation
           end;
 
@@ -2566,7 +2566,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           (map2 (curry (op $)) dtors Jzs) (map2 (curry (op $)) dtor's Jz's);
         val pickF_ss = map3 (fn pickF => fn z => fn z' =>
           HOLogic.mk_split (Term.absfree z (Term.absfree z' pickF))) pickFs Jzs' Jz's';
-        val picks = map (mk_coiter XTs pickF_ss) ks;
+        val picks = map (mk_unfold XTs pickF_ss) ks;
 
         val wpull_prem = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
           (map8 mk_wpull AXs B1s B2s f1s f2s (replicate m NONE) p1s p2s));
@@ -2613,7 +2613,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               map_comp's pickWP_assms_tacs) |> Thm.close_derivation,
             Skip_Proof.prove lthy [] [] snd_goal (mk_mor_thePull_snd_tac m mor_def map_wpull_thms
               map_comp's pickWP_assms_tacs) |> Thm.close_derivation,
-            Skip_Proof.prove lthy [] [] pick_goal (mk_mor_thePull_pick_tac mor_def coiter_thms
+            Skip_Proof.prove lthy [] [] pick_goal (mk_mor_thePull_pick_tac mor_def dtor_unfold_thms
               map_comp's) |> Thm.close_derivation)
           end;
 
@@ -2637,8 +2637,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val thms =
               map5 (fn j => fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
                 singleton (Proof_Context.export names_lthy lthy) (Skip_Proof.prove lthy [] [] goal
-                  (mk_pick_col_tac m j cts rec_0s rec_Sucs coiter_thms set_natural'ss map_wpull_thms
-                    pickWP_assms_tacs))
+                  (mk_pick_col_tac m j cts rec_0s rec_Sucs dtor_unfold_thms set_natural'ss
+                    map_wpull_thms pickWP_assms_tacs))
                 |> Thm.close_derivation)
               ls goals ctss hset_rec_0ss' hset_rec_Sucss';
           in
@@ -2647,7 +2647,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val timer = time (timer "helpers for BNF properties");
 
-        val map_id_tacs = map2 (K oo mk_map_id_tac map_thms) coiter_unique_thms coiter_dtor_thms;
+        val map_id_tacs =
+          map2 (K oo mk_map_id_tac map_thms) dtor_unfold_unique_thms unfold_dtor_thms;
         val map_comp_tacs = map (fn thm => K (rtac (thm RS sym) 1)) map_comp_thms;
         val map_cong_tacs = map (mk_map_cong_tac m) map_cong_thms;
         val set_nat_tacss =
@@ -2716,7 +2717,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               map6 (fn set_minimal => fn set_set_inclss => fn jsets => fn y => fn y' => fn phis =>
                 ((set_minimal
                   |> Drule.instantiate' [] (mk_induct_tinst phis jsets y y')
-                  |> unfold_defs lthy incls) OF
+                  |> unfold_thms lthy incls) OF
                   (replicate n ballI @
                     maps (map (fn thm => thm RS @{thm subset_CollectI})) set_set_inclss))
                 |> singleton (Proof_Context.export names_lthy lthy)
@@ -2806,7 +2807,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           end;
 
         fun mk_coind_wits ((I, dummys), (args, thms)) =
-          ((I, dummys), (map (fn i => mk_coiter Ts args i $ HOLogic.unit) ks, thms));
+          ((I, dummys), (map (fn i => mk_unfold Ts args i $ HOLogic.unit) ks, thms));
 
         val coind_witss =
           maps (map (mk_coind_wits o prepare_args)) nonredundant_coind_wit_argsss;
@@ -2830,7 +2831,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             map2 (fn goal => fn induct =>
               Skip_Proof.prove lthy [] [] goal
-                (mk_coind_wit_tac induct coiter_thms (flat set_natural'ss) wit_thms)
+                (mk_coind_wit_tac induct dtor_unfold_thms (flat set_natural'ss) wit_thms)
               |> Thm.close_derivation)
             goals hset_induct_thms
             |> map split_conj_thm
@@ -2867,10 +2868,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs fs_maps setss_by_bnf Ts all_witss lthy;
 
-        val fold_maps = fold_defs lthy (map (fn bnf =>
+        val fold_maps = fold_thms lthy (map (fn bnf =>
           mk_unabs_def m (map_def_of_bnf bnf RS @{thm meta_eq_to_obj_eq})) Jbnfs);
 
-        val fold_sets = fold_defs lthy (maps (fn bnf =>
+        val fold_sets = fold_thms lthy (maps (fn bnf =>
          map (fn thm => thm RS @{thm meta_eq_to_obj_eq}) (set_defs_of_bnf bnf)) Jbnfs);
 
         val timer = time (timer "registered new codatatypes as BNFs");
@@ -2965,25 +2966,25 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
       val notes =
-        [(dtor_coitersN, coiter_thms),
-        (dtor_coiter_uniqueN, coiter_unique_thms),
-        (dtor_corecsN, corec_thms),
-        (dtor_ctorN, dtor_ctor_thms),
-        (ctor_dtorN, ctor_dtor_thms),
-        (dtor_injectN, dtor_inject_thms),
-        (dtor_exhaustN, dtor_exhaust_thms),
-        (ctor_injectN, ctor_inject_thms),
+        [(ctor_dtorN, ctor_dtor_thms),
+        (ctor_dtor_unfoldsN, ctor_dtor_unfold_thms),
+        (ctor_dtor_corecsN, ctor_dtor_corec_thms),
         (ctor_exhaustN, ctor_exhaust_thms),
-        (ctor_dtor_coitersN, ctor_coiter_thms),
-        (ctor_dtor_corecsN, ctor_corec_thms)]
+        (ctor_injectN, ctor_inject_thms),
+        (dtor_corecsN, dtor_corec_thms),
+        (dtor_ctorN, dtor_ctor_thms),
+        (dtor_exhaustN, dtor_exhaust_thms),
+        (dtor_injectN, dtor_inject_thms),
+        (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
+        (dtor_unfoldsN, dtor_unfold_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((dtors, ctors, coiters, corecs, dtor_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
-      ctor_inject_thms, ctor_coiter_thms, ctor_corec_thms),
+    ((dtors, ctors, unfolds, corecs, dtor_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
+      ctor_inject_thms, ctor_dtor_unfold_thms, ctor_dtor_corec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

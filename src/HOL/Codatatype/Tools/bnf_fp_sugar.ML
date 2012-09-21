@@ -169,8 +169,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val fp_eqs =
       map dest_TFree Bs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctr_sum_prod_TsBs;
 
-    val (pre_bnfs, ((dtors0, ctors0, fp_iters0, fp_recs0, fp_induct, dtor_ctors, ctor_dtors,
-           ctor_injects, fp_iter_thms, fp_rec_thms), lthy)) =
+    val (pre_bnfs, ((dtors0, ctors0, fp_folds0, fp_recs0, fp_induct, dtor_ctors, ctor_dtors,
+           ctor_injects, fp_fold_thms, fp_rec_thms), lthy)) =
       fp_bnf construct fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
 
     fun add_nesty_bnf_names Us =
@@ -211,7 +211,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
     val mss = map (map length) ctr_Tsss;
     val Css = map2 replicate ns Cs;
 
-    fun mk_iter_like Ts Us t =
+    fun mk_rec_like Ts Us t =
       let
         val (bindings, body) = strip_type (fastype_of t);
         val (f_Us, prebody) = split_last bindings;
@@ -221,20 +221,20 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
       end;
 
-    val fp_iters as fp_iter1 :: _ = map (mk_iter_like As Cs) fp_iters0;
-    val fp_recs as fp_rec1 :: _ = map (mk_iter_like As Cs) fp_recs0;
+    val fp_folds as fp_fold1 :: _ = map (mk_rec_like As Cs) fp_folds0;
+    val fp_recs as fp_rec1 :: _ = map (mk_rec_like As Cs) fp_recs0;
 
-    val fp_iter_fun_Ts = fst (split_last (binder_types (fastype_of fp_iter1)));
+    val fp_fold_fun_Ts = fst (split_last (binder_types (fastype_of fp_fold1)));
     val fp_rec_fun_Ts = fst (split_last (binder_types (fastype_of fp_rec1)));
 
-    val (((iter_only as (gss, _, _), rec_only as (hss, _, _)),
-          (zs, cs, cpss, coiter_only as ((pgss, crgsss), _), corec_only as ((phss, cshsss), _))),
+    val (((fold_only as (gss, _, _), rec_only as (hss, _, _)),
+          (zs, cs, cpss, unfold_only as ((pgss, crgsss), _), corec_only as ((phss, cshsss), _))),
          names_lthy) =
       if lfp then
         let
           val y_Tsss =
             map3 (fn n => fn ms => map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type)
-              ns mss fp_iter_fun_Ts;
+              ns mss fp_fold_fun_Ts;
           val g_Tss = map2 (map2 (curry (op --->))) y_Tsss Css;
 
           val ((gss, ysss), lthy) =
@@ -287,7 +287,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               val pf_Tss = map3 zip_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
             in (q_Tssss, f_sum_prod_Ts, f_Tssss, pf_Tss) end;
 
-          val (r_Tssss, g_sum_prod_Ts, g_Tssss, pg_Tss) = mk_types single fp_iter_fun_Ts;
+          val (r_Tssss, g_sum_prod_Ts, g_Tssss, pg_Tss) = mk_types single fp_fold_fun_Ts;
 
           val ((((Free (z, _), cs), pss), gssss), lthy) =
             lthy
@@ -329,7 +329,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
              (mk_terms sssss hssss, (h_sum_prod_Ts, ph_Tss)))), lthy)
         end;
 
-    fun define_ctrs_case_for_type ((((((((((((((((((fp_b, fpT), C), ctor), dtor), fp_iter), fp_rec),
+    fun define_ctrs_case_for_type ((((((((((((((((((fp_b, fpT), C), ctor), dtor), fp_fold), fp_rec),
           ctor_dtor), dtor_ctor), ctor_inject), n), ks), ms), ctr_bindings), ctr_mixfixes), ctr_Tss),
         disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
       let
@@ -391,7 +391,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               end;
 
             val sumEN_thm' =
-              unfold_defs lthy @{thms all_unit_eq}
+              unfold_thms lthy @{thms all_unit_eq}
                 (Drule.instantiate' (map (SOME o certifyT lthy) ctr_prod_Ts) []
                    (mk_sumEN_balanced n))
               |> Morphism.thm phi;
@@ -413,25 +413,25 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
         val tacss = [exhaust_tac] :: inject_tacss @ half_distinct_tacss @ [case_tacs];
 
-        fun define_iter_rec (wrap_res, no_defs_lthy) =
+        fun define_fold_rec (wrap_res, no_defs_lthy) =
           let
             val fpT_to_C = fpT --> C;
 
-            fun generate_iter_like (suf, fp_iter_like, (fss, f_Tss, xssss)) =
+            fun generate_rec_like (suf, fp_rec_like, (fss, f_Tss, xssss)) =
               let
                 val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
                 val binding = Binding.suffix_name ("_" ^ suf) fp_b;
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
-                    Term.list_comb (fp_iter_like,
+                    Term.list_comb (fp_rec_like,
                       map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss));
               in (binding, spec) end;
 
-            val iter_like_infos =
-              [(iterN, fp_iter, iter_only),
+            val rec_like_infos =
+              [(foldN, fp_fold, fold_only),
                (recN, fp_rec, rec_only)];
 
-            val (bindings, specs) = map generate_iter_like iter_like_infos |> split_list;
+            val (bindings, specs) = map generate_rec_like rec_like_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
@@ -441,14 +441,14 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             val phi = Proof_Context.export_morphism lthy lthy';
 
-            val [iter_def, rec_def] = map (Morphism.thm phi) defs;
+            val [fold_def, rec_def] = map (Morphism.thm phi) defs;
 
-            val [iterx, recx] = map (mk_iter_like As Cs o Morphism.term phi) csts;
+            val [foldx, recx] = map (mk_rec_like As Cs o Morphism.term phi) csts;
           in
-            ((wrap_res, ctrs, iterx, recx, xss, ctr_defs, iter_def, rec_def), lthy)
+            ((wrap_res, ctrs, foldx, recx, xss, ctr_defs, fold_def, rec_def), lthy)
           end;
 
-        fun define_coiter_corec (wrap_res, no_defs_lthy) =
+        fun define_unfold_corec (wrap_res, no_defs_lthy) =
           let
             val B_to_fpT = C --> fpT;
 
@@ -456,22 +456,22 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               Term.lambda c (mk_IfN sum_prod_T cps
                 (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)));
 
-            fun generate_coiter_like (suf, fp_iter_like, ((pfss, cqfsss), (f_sum_prod_Ts,
+            fun generate_corec_like (suf, fp_rec_like, ((pfss, cqfsss), (f_sum_prod_Ts,
                 pf_Tss))) =
               let
                 val res_T = fold_rev (curry (op --->)) pf_Tss B_to_fpT;
                 val binding = Binding.suffix_name ("_" ^ suf) fp_b;
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
-                    Term.list_comb (fp_iter_like,
+                    Term.list_comb (fp_rec_like,
                       map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss));
               in (binding, spec) end;
 
-            val coiter_like_infos =
-              [(coiterN, fp_iter, coiter_only),
+            val corec_like_infos =
+              [(unfoldN, fp_fold, unfold_only),
                (corecN, fp_rec, corec_only)];
 
-            val (bindings, specs) = map generate_coiter_like coiter_like_infos |> split_list;
+            val (bindings, specs) = map generate_corec_like corec_like_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
               |> apfst split_list o fold_map2 (fn b => fn spec =>
@@ -481,11 +481,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             val phi = Proof_Context.export_morphism lthy lthy';
 
-            val [coiter_def, corec_def] = map (Morphism.thm phi) defs;
+            val [unfold_def, corec_def] = map (Morphism.thm phi) defs;
 
-            val [coiter, corec] = map (mk_iter_like As Cs o Morphism.term phi) csts;
+            val [unfold, corec] = map (mk_rec_like As Cs o Morphism.term phi) csts;
           in
-            ((wrap_res, ctrs, coiter, corec, xss, ctr_defs, coiter_def, corec_def), lthy)
+            ((wrap_res, ctrs, unfold, corec, xss, ctr_defs, unfold_def, corec_def), lthy)
           end;
 
         fun wrap lthy =
@@ -494,9 +494,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               sel_defaultss))) lthy
           end;
 
-        val define_iter_likes = if lfp then define_iter_rec else define_coiter_corec;
+        val define_rec_likes = if lfp then define_fold_rec else define_unfold_corec;
       in
-        ((wrap, define_iter_likes), lthy')
+        ((wrap, define_rec_likes), lthy')
       end;
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
@@ -521,11 +521,11 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
       in Term.list_comb (mapx, args) end;
 
     val mk_simp_thmss =
-      map3 (fn (_, _, injects, distincts, cases, _, _, _) => fn rec_likes => fn iter_likes =>
-        injects @ distincts @ cases @ rec_likes @ iter_likes);
+      map3 (fn (_, _, injects, distincts, cases, _, _, _) => fn rec_likes => fn rec_likes =>
+        injects @ distincts @ cases @ rec_likes @ rec_likes);
 
-    fun derive_induct_iter_rec_thms_for_types ((wrap_ress, ctrss, iters, recs, xsss, ctr_defss,
-        iter_defs, rec_defs), lthy) =
+    fun derive_induct_fold_rec_thms_for_types ((wrap_ress, ctrss, folds, recs, xsss, ctr_defss,
+        fold_defs, rec_defs), lthy) =
       let
         val (((phis, phis'), us'), names_lthy) =
           lthy
@@ -615,55 +615,55 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         (* TODO: Generate nicer names in case of clashes *)
         val induct_cases = Datatype_Prop.indexify_names (maps (map base_name_of_ctr) ctrss);
 
-        val (iter_thmss, rec_thmss) =
+        val (fold_thmss, rec_thmss) =
           let
             val xctrss = map2 (map2 (curry Term.list_comb)) ctrss xsss;
-            val giters = map (lists_bmoc gss) iters;
+            val gfolds = map (lists_bmoc gss) folds;
             val hrecs = map (lists_bmoc hss) recs;
 
-            fun mk_goal fss fiter_like xctr f xs fxs =
+            fun mk_goal fss frec_like xctr f xs fxs =
               fold_rev (fold_rev Logic.all) (xs :: fss)
-                (mk_Trueprop_eq (fiter_like $ xctr, Term.list_comb (f, fxs)));
+                (mk_Trueprop_eq (frec_like $ xctr, Term.list_comb (f, fxs)));
 
-            fun build_call fiter_likes maybe_tick (T, U) =
+            fun build_call frec_likes maybe_tick (T, U) =
               if T = U then
                 id_const T
               else
                 (case find_index (curry (op =) T) fpTs of
-                  ~1 => build_map (build_call fiter_likes maybe_tick) T U
-                | j => maybe_tick (nth us j) (nth fiter_likes j));
+                  ~1 => build_map (build_call frec_likes maybe_tick) T U
+                | j => maybe_tick (nth us j) (nth frec_likes j));
 
             fun mk_U maybe_mk_prodT =
               typ_subst (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
 
-            fun intr_calls fiter_likes maybe_cons maybe_tick maybe_mk_prodT (x as Free (_, T)) =
+            fun intr_calls frec_likes maybe_cons maybe_tick maybe_mk_prodT (x as Free (_, T)) =
               if member (op =) fpTs T then
-                maybe_cons x [build_call fiter_likes (K I) (T, mk_U (K I) T) $ x]
+                maybe_cons x [build_call frec_likes (K I) (T, mk_U (K I) T) $ x]
               else if exists_fp_subtype T then
-                [build_call fiter_likes maybe_tick (T, mk_U maybe_mk_prodT T) $ x]
+                [build_call frec_likes maybe_tick (T, mk_U maybe_mk_prodT T) $ x]
               else
                 [x];
 
-            val gxsss = map (map (maps (intr_calls giters (K I) (K I) (K I)))) xsss;
+            val gxsss = map (map (maps (intr_calls gfolds (K I) (K I) (K I)))) xsss;
             val hxsss = map (map (maps (intr_calls hrecs cons tick (curry HOLogic.mk_prodT)))) xsss;
 
-            val iter_goalss = map5 (map4 o mk_goal gss) giters xctrss gss xsss gxsss;
+            val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
             val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
 
-            val iter_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs nesting_map_ids iter_defs) fp_iter_thms
+            val fold_tacss =
+              map2 (map o mk_rec_like_tac pre_map_defs nesting_map_ids fold_defs) fp_fold_thms
                 ctr_defss;
             val rec_tacss =
-              map2 (map o mk_iter_like_tac pre_map_defs nesting_map_ids rec_defs) fp_rec_thms
+              map2 (map o mk_rec_like_tac pre_map_defs nesting_map_ids rec_defs) fp_rec_thms
                 ctr_defss;
 
             fun prove goal tac = Skip_Proof.prove lthy [] [] goal (tac o #context);
           in
-            (map2 (map2 prove) iter_goalss iter_tacss,
+            (map2 (map2 prove) fold_goalss fold_tacss,
              map2 (map2 prove) rec_goalss rec_tacss)
           end;
 
-        val simp_thmss = mk_simp_thmss wrap_ress rec_thmss iter_thmss;
+        val simp_thmss = mk_simp_thmss wrap_ress rec_thmss fold_thmss;
 
         val induct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names induct_cases));
         fun induct_type_attr T_name = Attrib.internal (K (Induct.induct_type T_name));
@@ -678,7 +678,7 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         val notes =
           [(inductN, map single induct_thms,
             fn T_name => [induct_case_names_attr, induct_type_attr T_name]),
-           (itersN, iter_thmss, K (Code.add_default_eqn_attrib :: simp_attrs)),
+           (foldsN, fold_thmss, K (Code.add_default_eqn_attrib :: simp_attrs)),
            (recsN, rec_thmss, K (Code.add_default_eqn_attrib :: simp_attrs)),
            (simpsN, simp_thmss, K [])]
           |> maps (fn (thmN, thmss, attrs) =>
@@ -689,8 +689,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         lthy |> Local_Theory.notes (common_notes @ notes) |> snd
       end;
 
-    fun derive_coinduct_coiter_corec_thms_for_types ((wrap_ress, ctrss, coiters, corecs, _,
-        ctr_defss, coiter_defs, corec_defs), lthy) =
+    fun derive_coinduct_unfold_corec_thms_for_types ((wrap_ress, ctrss, unfolds, corecs, _,
+        ctr_defss, unfold_defs, corec_defs), lthy) =
       let
         val discss = map (map (mk_disc_or_sel As) o #1) wrap_ress;
         val selsss = map #2 wrap_ress;
@@ -714,79 +714,79 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
 
         val z = the_single zs;
-        val gcoiters = map (lists_bmoc pgss) coiters;
+        val gunfolds = map (lists_bmoc pgss) unfolds;
         val hcorecs = map (lists_bmoc phss) corecs;
 
-        val (coiter_thmss, corec_thmss, safe_coiter_thmss, safe_corec_thmss) =
+        val (unfold_thmss, corec_thmss, safe_unfold_thmss, safe_corec_thmss) =
           let
-            fun mk_goal pfss c cps fcoiter_like n k ctr m cfs' =
+            fun mk_goal pfss c cps fcorec_like n k ctr m cfs' =
               fold_rev (fold_rev Logic.all) ([c] :: pfss)
                 (Logic.list_implies (seq_conds (HOLogic.mk_Trueprop oo mk_maybe_not) n k cps,
-                   mk_Trueprop_eq (fcoiter_like $ c, Term.list_comb (ctr, take m cfs'))));
+                   mk_Trueprop_eq (fcorec_like $ c, Term.list_comb (ctr, take m cfs'))));
 
-            fun build_call fiter_likes maybe_tack (T, U) =
+            fun build_call frec_likes maybe_tack (T, U) =
               if T = U then
                 id_const T
               else
                 (case find_index (curry (op =) U) fpTs of
-                  ~1 => build_map (build_call fiter_likes maybe_tack) T U
-                | j => maybe_tack (nth cs j, nth us j) (nth fiter_likes j));
+                  ~1 => build_map (build_call frec_likes maybe_tack) T U
+                | j => maybe_tack (nth cs j, nth us j) (nth frec_likes j));
 
             fun mk_U maybe_mk_sumT =
               typ_subst (map2 (fn C => fn fpT => (maybe_mk_sumT fpT C, fpT)) Cs fpTs);
 
-            fun intr_calls fiter_likes maybe_mk_sumT maybe_tack cqf =
+            fun intr_calls frec_likes maybe_mk_sumT maybe_tack cqf =
               let val T = fastype_of cqf in
                 if exists_subtype (member (op =) Cs) T then
-                  build_call fiter_likes maybe_tack (T, mk_U maybe_mk_sumT T) $ cqf
+                  build_call frec_likes maybe_tack (T, mk_U maybe_mk_sumT T) $ cqf
                 else
                   cqf
               end;
 
-            val crgsss' = map (map (map (intr_calls gcoiters (K I) (K I)))) crgsss;
+            val crgsss' = map (map (map (intr_calls gunfolds (K I) (K I)))) crgsss;
             val cshsss' = map (map (map (intr_calls hcorecs (curry mk_sumT) (tack z)))) cshsss;
 
-            val coiter_goalss =
-              map8 (map4 oooo mk_goal pgss) cs cpss gcoiters ns kss ctrss mss crgsss';
+            val unfold_goalss =
+              map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss';
             val corec_goalss =
               map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
 
-            val coiter_tacss =
-              map3 (map oo mk_coiter_like_tac coiter_defs nesting_map_ids) fp_iter_thms pre_map_defs
+            val unfold_tacss =
+              map3 (map oo mk_corec_like_tac unfold_defs nesting_map_ids) fp_fold_thms pre_map_defs
                 ctr_defss;
             val corec_tacss =
-              map3 (map oo mk_coiter_like_tac corec_defs nesting_map_ids) fp_rec_thms pre_map_defs
+              map3 (map oo mk_corec_like_tac corec_defs nesting_map_ids) fp_rec_thms pre_map_defs
                 ctr_defss;
 
             fun prove goal tac =
               Skip_Proof.prove lthy [] [] goal (tac o #context) |> Thm.close_derivation;
 
-            val coiter_thmss = map2 (map2 prove) coiter_goalss coiter_tacss;
+            val unfold_thmss = map2 (map2 prove) unfold_goalss unfold_tacss;
             val corec_thmss =
               map2 (map2 prove) corec_goalss corec_tacss
-              |> map (map (unfold_defs lthy @{thms sum_case_if}));
+              |> map (map (unfold_thms lthy @{thms sum_case_if}));
 
-            val coiter_safesss = map2 (map2 (map2 (curry (op =)))) crgsss' crgsss;
+            val unfold_safesss = map2 (map2 (map2 (curry (op =)))) crgsss' crgsss;
             val corec_safesss = map2 (map2 (map2 (curry (op =)))) cshsss' cshsss;
 
             val filter_safesss =
               map2 (map_filter (fn (safes, thm) => if forall I safes then SOME thm else NONE) oo
                 curry (op ~~));
 
-            val safe_coiter_thmss = filter_safesss coiter_safesss coiter_thmss;
+            val safe_unfold_thmss = filter_safesss unfold_safesss unfold_thmss;
             val safe_corec_thmss = filter_safesss corec_safesss corec_thmss;
           in
-            (coiter_thmss, corec_thmss, safe_coiter_thmss, safe_corec_thmss)
+            (unfold_thmss, corec_thmss, safe_unfold_thmss, safe_corec_thmss)
           end;
 
-        val (disc_coiter_iff_thmss, disc_corec_iff_thmss) =
+        val (disc_unfold_iff_thmss, disc_corec_iff_thmss) =
           let
-            fun mk_goal c cps fcoiter_like n k disc =
-              mk_Trueprop_eq (disc $ (fcoiter_like $ c),
+            fun mk_goal c cps fcorec_like n k disc =
+              mk_Trueprop_eq (disc $ (fcorec_like $ c),
                 if n = 1 then @{const True}
                 else Library.foldr1 HOLogic.mk_conj (seq_conds mk_maybe_not n k cps));
 
-            val coiter_goalss = map6 (map2 oooo mk_goal) cs cpss gcoiters ns kss discss;
+            val unfold_goalss = map6 (map2 oooo mk_goal) cs cpss gunfolds ns kss discss;
             val corec_goalss = map6 (map2 oooo mk_goal) cs cpss hcorecs ns kss discss;
 
             fun mk_case_split' cp =
@@ -794,10 +794,10 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
             val case_splitss' = map (map mk_case_split') cpss;
 
-            val coiter_tacss =
-              map3 (map oo mk_disc_coiter_like_iff_tac) case_splitss' coiter_thmss disc_thmsss;
+            val unfold_tacss =
+              map3 (map oo mk_disc_corec_like_iff_tac) case_splitss' unfold_thmss disc_thmsss;
             val corec_tacss =
-              map3 (map oo mk_disc_coiter_like_iff_tac) case_splitss' corec_thmss disc_thmsss;
+              map3 (map oo mk_disc_corec_like_iff_tac) case_splitss' corec_thmss disc_thmsss;
 
             fun prove goal tac =
               Skip_Proof.prove lthy [] [] goal (tac o #context)
@@ -807,17 +807,17 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
             fun proves [_] [_] = []
               | proves goals tacs = map2 prove goals tacs;
           in
-            (map2 proves coiter_goalss coiter_tacss,
+            (map2 proves unfold_goalss unfold_tacss,
              map2 proves corec_goalss corec_tacss)
           end;
 
-        fun mk_disc_coiter_like_thms coiter_likes discIs =
-          map (op RS) (filter_out (is_triv_implies o snd) (coiter_likes ~~ discIs));
+        fun mk_disc_corec_like_thms corec_likes discIs =
+          map (op RS) (filter_out (is_triv_implies o snd) (corec_likes ~~ discIs));
 
-        val disc_coiter_thmss = map2 mk_disc_coiter_like_thms coiter_thmss discIss;
-        val disc_corec_thmss = map2 mk_disc_coiter_like_thms corec_thmss discIss;
+        val disc_unfold_thmss = map2 mk_disc_corec_like_thms unfold_thmss discIss;
+        val disc_corec_thmss = map2 mk_disc_corec_like_thms corec_thmss discIss;
 
-        fun mk_sel_coiter_like_thm coiter_like_thm sel sel_thm =
+        fun mk_sel_corec_like_thm corec_like_thm sel sel_thm =
           let
             val (domT, ranT) = dest_funT (fastype_of sel);
             val arg_cong' =
@@ -826,25 +826,25 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
               |> Thm.varifyT_global;
             val sel_thm' = sel_thm RSN (2, trans);
           in
-            coiter_like_thm RS arg_cong' RS sel_thm'
+            corec_like_thm RS arg_cong' RS sel_thm'
           end;
 
-        fun mk_sel_coiter_like_thms coiter_likess =
-          map3 (map3 (map2 o mk_sel_coiter_like_thm)) coiter_likess selsss sel_thmsss |> map flat;
+        fun mk_sel_corec_like_thms corec_likess =
+          map3 (map3 (map2 o mk_sel_corec_like_thm)) corec_likess selsss sel_thmsss |> map flat;
 
-        val sel_coiter_thmss = mk_sel_coiter_like_thms coiter_thmss;
-        val sel_corec_thmss = mk_sel_coiter_like_thms corec_thmss;
+        val sel_unfold_thmss = mk_sel_corec_like_thms unfold_thmss;
+        val sel_corec_thmss = mk_sel_corec_like_thms corec_thmss;
 
-        fun zip_coiter_like_thms coiter_likes disc_coiter_likes sel_coiter_likes =
-          coiter_likes @ disc_coiter_likes @ sel_coiter_likes;
+        fun zip_corec_like_thms corec_likes disc_corec_likes sel_corec_likes =
+          corec_likes @ disc_corec_likes @ sel_corec_likes;
 
         val simp_thmss =
           mk_simp_thmss wrap_ress
-            (map3 zip_coiter_like_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
-            (map3 zip_coiter_like_thms safe_coiter_thmss disc_coiter_thmss sel_coiter_thmss);
+            (map3 zip_corec_like_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
+            (map3 zip_corec_like_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss);
 
         val anonymous_notes =
-          [(flat safe_coiter_thmss @ flat safe_corec_thmss, simp_attrs)]
+          [(flat safe_unfold_thmss @ flat safe_corec_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
         val common_notes =
@@ -854,13 +854,13 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
         val notes =
           [(coinductN, map single coinduct_thms, []), (* FIXME: attribs *)
-           (coitersN, coiter_thmss, []),
+           (unfoldsN, unfold_thmss, []),
            (corecsN, corec_thmss, []),
-           (disc_coiter_iffN, disc_coiter_iff_thmss, simp_attrs),
-           (disc_coitersN, disc_coiter_thmss, simp_attrs),
+           (disc_unfold_iffN, disc_unfold_iff_thmss, simp_attrs),
+           (disc_unfoldsN, disc_unfold_thmss, simp_attrs),
            (disc_corec_iffN, disc_corec_iff_thmss, simp_attrs),
            (disc_corecsN, disc_corec_thmss, simp_attrs),
-           (sel_coitersN, sel_coiter_thmss, simp_attrs),
+           (sel_unfoldsN, sel_unfold_thmss, simp_attrs),
            (sel_corecsN, sel_corec_thmss, simp_attrs),
            (simpsN, simp_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
@@ -871,16 +871,16 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         lthy |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
       end;
 
-    fun wrap_types_and_define_iter_likes ((wraps, define_iter_likess), lthy) =
-      fold_map2 (curry (op o)) define_iter_likess wraps lthy |>> split_list8
+    fun wrap_types_and_define_rec_likes ((wraps, define_rec_likess), lthy) =
+      fold_map2 (curry (op o)) define_rec_likess wraps lthy |>> split_list8
 
     val lthy' = lthy
-      |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~ fp_iters ~~
+      |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~ fp_folds ~~
         fp_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ ns ~~ kss ~~ mss ~~ ctr_bindingss ~~
         ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_defaultsss)
-      |>> split_list |> wrap_types_and_define_iter_likes
-      |> (if lfp then derive_induct_iter_rec_thms_for_types
-          else derive_coinduct_coiter_corec_thms_for_types);
+      |>> split_list |> wrap_types_and_define_rec_likes
+      |> (if lfp then derive_induct_fold_rec_thms_for_types
+          else derive_coinduct_unfold_corec_thms_for_types);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if lfp then "" else "co") ^ "datatype"));

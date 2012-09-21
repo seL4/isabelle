@@ -69,8 +69,8 @@ fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_id' map_comp set_naturals
     val n = length set_naturals;
   in
     if null set_naturals then
-      unfold_defs_tac ctxt rel_O_Grs THEN EVERY' [rtac @{thm Gr_UNIV_id}, rtac map_id] 1
-    else unfold_defs_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
+      unfold_thms_tac ctxt rel_O_Grs THEN EVERY' [rtac @{thm Gr_UNIV_id}, rtac map_id] 1
+    else unfold_thms_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac subsetI,
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o dtac Pair_eqD,
@@ -105,7 +105,7 @@ fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_id' map_comp set_naturals
   end;
 
 fun mk_rel_Id_tac n rel_Gr map_id {context = ctxt, prems = _} =
-  unfold_defs_tac ctxt [rel_Gr, @{thm Id_alt}] THEN
+  unfold_thms_tac ctxt [rel_Gr, @{thm Id_alt}] THEN
   subst_tac ctxt [map_id] 1 THEN
     (if n = 0 then rtac refl 1
     else EVERY' [rtac @{thm arg_cong2[of _ _ _ _ Gr]},
@@ -113,7 +113,7 @@ fun mk_rel_Id_tac n rel_Gr map_id {context = ctxt, prems = _} =
       CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto n), rtac refl] 1);
 
 fun mk_rel_mono_tac rel_O_Grs in_mono {context = ctxt, prems = _} =
-  unfold_defs_tac ctxt rel_O_Grs THEN
+  unfold_thms_tac ctxt rel_O_Grs THEN
     EVERY' [rtac @{thm relcomp_mono}, rtac @{thm iffD2[OF converse_mono]},
       rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac,
       rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac] 1;
@@ -124,8 +124,8 @@ fun mk_rel_converse_le_tac rel_O_Grs rel_Id map_cong map_comp set_naturals
     val n = length set_naturals;
   in
     if null set_naturals then
-      unfold_defs_tac ctxt [rel_Id] THEN rtac equalityD2 1 THEN rtac @{thm converse_Id} 1
-    else unfold_defs_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
+      unfold_thms_tac ctxt [rel_Id] THEN rtac equalityD2 1 THEN rtac @{thm converse_Id} 1
+    else unfold_thms_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o dtac Pair_eqD,
@@ -151,8 +151,8 @@ fun mk_rel_O_tac rel_O_Grs rel_Id map_cong map_wppull map_comp set_naturals
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
           rtac @{thm image_subsetI}, rtac nthO_in, etac set_mp, atac]) set_naturals;
   in
-    if null set_naturals then unfold_defs_tac ctxt [rel_Id] THEN rtac (@{thm Id_O_R} RS sym) 1
-    else unfold_defs_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
+    if null set_naturals then unfold_thms_tac ctxt [rel_Id] THEN rtac (@{thm Id_O_R} RS sym) 1
+    else unfold_thms_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o dtac Pair_eqD,
@@ -197,7 +197,7 @@ fun mk_in_rel_tac rel_O_Grs m {context = ctxt, prems = _} =
   let
     val ls' = replicate (Int.max (1, m)) ();
   in
-    unfold_defs_tac ctxt (rel_O_Grs @
+    unfold_thms_tac ctxt (rel_O_Grs @
       @{thms Gr_def converse_unfold relcomp_unfold mem_Collect_eq prod.cases Pair_eq}) THEN
     EVERY' [rtac iffI, REPEAT_DETERM o eresolve_tac [exE, conjE], hyp_subst_tac, rtac exI,
       rtac conjI, CONJ_WRAP' (K atac) ls', rtac conjI, rtac refl, rtac refl,

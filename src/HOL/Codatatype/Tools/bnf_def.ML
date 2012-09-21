@@ -1180,7 +1180,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
   let
     val wits_tac =
       K (TRYALL Goal.conjunction_tac) THEN' K (TRYALL (rtac TrueI)) THEN'
-      mk_unfold_defs_then_tac lthy one_step_defs wit_tac;
+      mk_unfold_thms_then_tac lthy one_step_defs wit_tac;
     val wit_goals = map mk_conjunction_balanced' wit_goalss;
     val wit_thms =
       Skip_Proof.prove lthy [] [] (mk_conjunction_balanced' wit_goals) wits_tac
@@ -1189,7 +1189,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
   in
     map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
-      goals (map (mk_unfold_defs_then_tac lthy one_step_defs) tacs)
+      goals (map (mk_unfold_thms_then_tac lthy one_step_defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify (K I) Ds;
 
