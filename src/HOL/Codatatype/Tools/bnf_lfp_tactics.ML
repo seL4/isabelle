@@ -86,7 +86,6 @@ val fst_snd_convs = @{thms fst_conv snd_conv};
 val id_apply = @{thm id_apply};
 val meta_mp = @{thm meta_mp};
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
-val subset_UNIV = @{thm subset_UNIV};
 val subset_trans = @{thm subset_trans};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 

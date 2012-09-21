@@ -205,7 +205,7 @@ fun mk_set_hset_incl_hset_tac n defs rec_Suc i =
     [etac @{thm UN_I}, atac]) 1;
 
 fun mk_set_incl_hin_tac incls =
-  if null incls then rtac @{thm subset_UNIV} 1
+  if null incls then rtac subset_UNIV 1
   else EVERY' [rtac subsetI, rtac CollectI,
     CONJ_WRAP' (fn incl => EVERY' [rtac subset_trans, etac incl, atac]) incls] 1;
 
@@ -534,7 +534,7 @@ fun mk_card_of_carT_tac m isNode_defs sbd_sbd
         REPEAT_DETERM o eresolve_tac [exE, conjE], rtac @{thm image_eqI}, atac, rtac CollectI,
         REPEAT_DETERM_N m o (rtac conjI THEN' atac),
         CONJ_WRAP' (K (EVERY' [etac ord_eq_le_trans, rtac subset_trans,
-          rtac @{thm subset_UNIV}, rtac equalityD2, rtac @{thm Field_card_order},
+          rtac subset_UNIV, rtac equalityD2, rtac @{thm Field_card_order},
           rtac sbd_card_order])) isNode_defs]) (1 upto n ~~ isNode_defs),
       atac] 1
   end;
@@ -1154,7 +1154,7 @@ fun mk_unf_coinduct_tac m ks raw_coind bis_def =
         rtac impI, REPEAT_DETERM o dtac @{thm meta_spec}, etac CollectE, etac @{thm meta_impE},
         atac, etac exE, etac conjE, etac conjE, rtac bexI, rtac conjI,
         etac @{thm fst_conv[THEN subst]}, etac @{thm snd_conv[THEN subst]},
-        rtac CollectI, REPEAT_DETERM_N m o (rtac conjI THEN' rtac @{thm subset_UNIV}),
+        rtac CollectI, REPEAT_DETERM_N m o (rtac conjI THEN' rtac subset_UNIV),
         CONJ_WRAP' (fn i' => EVERY' [rtac subsetI, rtac CollectI, dtac (mk_conjunctN n i'),
           REPEAT_DETERM o etac allE, etac mp, rtac @{thm ssubst_mem[OF pair_collapse]}, atac])
         ks])
@@ -1377,7 +1377,7 @@ fun mk_coalg_thePull_tac m coalg_def map_wpulls set_naturalss pickWP_assms_tacs
       SELECT_GOAL (unfold_defs_tac ctxt @{thms o_apply prod.cases}), rtac impI,
       REPEAT_DETERM o eresolve_tac [CollectE, conjE],
       rtac CollectI,
-      REPEAT_DETERM_N m o (rtac conjI THEN' rtac @{thm subset_UNIV}),
+      REPEAT_DETERM_N m o (rtac conjI THEN' rtac subset_UNIV),
       CONJ_WRAP' (fn set_natural =>
         EVERY' [rtac ord_eq_le_trans, rtac trans, rtac set_natural,
           rtac trans_fun_cong_image_id_id_apply, atac])

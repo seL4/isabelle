@@ -36,7 +36,7 @@ open BNF_Tactics
 fun mk_id' id = mk_trans (fun_cong OF [id]) @{thm id_apply};
 fun mk_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
 fun mk_set_natural' set_natural = set_natural RS @{thm pointfreeE};
-fun mk_in_mono_tac n = if n = 0 then rtac @{thm subset_UNIV} 1
+fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   else (rtac subsetI THEN'
   rtac CollectI) 1 THEN
   REPEAT_DETERM (eresolve_tac [CollectE, conjE] 1) THEN
@@ -107,8 +107,8 @@ fun mk_rel_Id_tac n rel_Gr map_id {context = ctxt, prems = _} =
   subst_tac ctxt [map_id] 1 THEN
     (if n = 0 then rtac refl 1
     else EVERY' [rtac @{thm arg_cong2[of _ _ _ _ Gr]},
-      rtac equalityI, rtac @{thm subset_UNIV}, rtac subsetI, rtac CollectI,
-      CONJ_WRAP' (K (rtac @{thm subset_UNIV})) (1 upto n), rtac refl] 1);
+      rtac equalityI, rtac subset_UNIV, rtac subsetI, rtac CollectI,
+      CONJ_WRAP' (K (rtac subset_UNIV)) (1 upto n), rtac refl] 1);
 
 fun mk_rel_mono_tac rel_O_Grs in_mono {context = ctxt, prems = _} =
   unfold_defs_tac ctxt rel_O_Grs THEN

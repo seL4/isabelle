@@ -123,6 +123,7 @@ sig
   val o_apply: thm
   val set_mp: thm
   val set_rev_mp: thm
+  val subset_UNIV: thm
   val Pair_eqD: thm
   val Pair_eqI: thm
   val mk_sym: thm -> thm
@@ -524,6 +525,7 @@ val ctrans = @{thm ordLeq_transitive};
 val o_apply = @{thm o_apply};
 val set_mp = @{thm set_mp};
 val set_rev_mp = @{thm set_rev_mp};
+val subset_UNIV = @{thm subset_UNIV};
 val Pair_eqD = @{thm iffD1[OF Pair_eq]};
 val Pair_eqI = @{thm iffD2[OF Pair_eq]};
 
