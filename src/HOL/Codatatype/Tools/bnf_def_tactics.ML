@@ -33,8 +33,6 @@ struct
 open BNF_Util
 open BNF_Tactics
 
-val set_mp = @{thm set_mp};
-
 fun mk_id' id = mk_trans (fun_cong OF [id]) @{thm id_apply};
 fun mk_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
 fun mk_set_natural' set_natural = set_natural RS @{thm pointfreeE};
@@ -75,9 +73,9 @@ fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_wpull in_cong map_id' map_comp s
     else unfold_defs_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac subsetI,
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
+        REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
-        rtac CollectI, rtac exI, rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl,
+        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
         rtac sym, rtac trans, rtac map_comp, rtac map_cong,
         REPEAT_DETERM_N n o EVERY' [dtac @{thm set_rev_mp}, atac,
           REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac,
@@ -89,7 +87,7 @@ fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_wpull in_cong map_id' map_comp s
           REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac,
           stac @{thm fst_conv}, atac]) set_naturals,
         rtac @{thm subrelI}, etac CollectE, REPEAT_DETERM o eresolve_tac [exE, conjE],
-        REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
+        REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
         rtac allE, rtac subst, rtac @{thm wpull_def}, rtac map_wpull,
         REPEAT_DETERM_N n o rtac @{thm wpull_Gr}, etac allE, etac impE, rtac conjI, atac,
@@ -99,7 +97,7 @@ fun mk_rel_Gr_tac rel_O_Grs map_id map_cong map_wpull in_cong map_id' map_comp s
         rtac sym, rtac map_id', REPEAT_DETERM o eresolve_tac [bexE, conjE],
         rtac @{thm relcompI}, rtac @{thm converseI},
         REPEAT_DETERM_N 2 o EVERY' [rtac CollectI, rtac exI,
-          rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl, etac sym,
+          rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl, etac sym,
           etac @{thm set_rev_mp}, rtac equalityD1, rtac in_cong,
           REPEAT_DETERM_N n o rtac @{thm Gr_def}]] 1
   end;
@@ -128,11 +126,11 @@ fun mk_rel_converse_le_tac rel_O_Grs rel_Id map_cong map_comp set_naturals
     else unfold_defs_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
+        REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac, rtac @{thm converseI},
         rtac @{thm relcompI}, rtac @{thm converseI},
         EVERY' (map (fn thm => EVERY' [rtac CollectI, rtac exI,
-          rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl, rtac trans,
+          rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl, rtac trans,
           rtac map_cong, REPEAT_DETERM_N n o rtac thm,
           rtac (map_comp RS sym), rtac CollectI,
           CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
@@ -155,32 +153,32 @@ fun mk_rel_O_tac rel_O_Grs rel_Id map_cong map_wppull map_comp set_naturals
     else unfold_defs_tac ctxt (@{thm Gr_def} :: rel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
-        REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
+        REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
         rtac @{thm relcompI}, rtac @{thm relcompI}, rtac @{thm converseI},
-        rtac CollectI, rtac exI, rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl,
+        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
         rtac sym, rtac trans, rtac map_comp, rtac sym, rtac map_cong,
         REPEAT_DETERM_N n o rtac @{thm fst_fstO},
         in_tac @{thm fstO_in},
-        rtac CollectI, rtac exI, rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl,
+        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
         rtac sym, rtac trans, rtac map_comp, rtac map_cong,
         REPEAT_DETERM_N n o EVERY' [rtac trans, rtac o_apply, rtac ballE, rtac subst,
           rtac @{thm csquare_def}, rtac @{thm csquare_fstO_sndO}, atac, etac notE,
           etac set_mp, atac],
         in_tac @{thm fstO_in},
         rtac @{thm relcompI}, rtac @{thm converseI},
-        rtac CollectI, rtac exI, rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl,
+        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
         rtac sym, rtac trans, rtac map_comp, rtac map_cong,
         REPEAT_DETERM_N n o rtac o_apply,
         in_tac @{thm sndO_in},
-        rtac CollectI, rtac exI, rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl,
+        rtac CollectI, rtac exI, rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl,
         rtac sym, rtac trans, rtac map_comp, rtac sym, rtac map_cong,
         REPEAT_DETERM_N n o rtac @{thm snd_sndO},
         in_tac @{thm sndO_in},
         rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o eresolve_tac [exE, conjE],
-        REPEAT_DETERM o dtac @{thm Pair_eq[THEN subst, of "%x. x"]},
+        REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
         rtac allE, rtac subst, rtac @{thm wppull_def}, rtac map_wppull,
         CONJ_WRAP' (K (rtac @{thm wppull_fstO_sndO})) set_naturals,
@@ -188,7 +186,7 @@ fun mk_rel_O_tac rel_O_Grs rel_Id map_cong map_wppull map_comp set_naturals
         REPEAT_DETERM o eresolve_tac [bexE, conjE],
         rtac @{thm relcompI}, rtac @{thm converseI},
         EVERY' (map (fn thm => EVERY' [rtac CollectI, rtac exI,
-          rtac conjI, stac @{thm Pair_eq}, rtac conjI, rtac refl, rtac sym, rtac trans,
+          rtac conjI, rtac Pair_eqI, rtac conjI, rtac refl, rtac sym, rtac trans,
           rtac trans, rtac map_cong, REPEAT_DETERM_N n o rtac thm,
           rtac (map_comp RS sym), atac, atac]) [@{thm fst_fstO}, @{thm snd_sndO}])] 1
   end;

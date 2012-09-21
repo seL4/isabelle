@@ -56,7 +56,6 @@ val ctwo_Cnotzero = @{thm ctwo_Cnotzero};
 val o_eq_dest_lhs = @{thm o_eq_dest_lhs};
 val ordIso_transitive = @{thm ordIso_transitive};
 val ordLeq_csum2 = @{thm ordLeq_csum2};
-val set_mp = @{thm set_mp};
 val subset_UNIV = @{thm subset_UNIV};
 val trans_image_cong_o_apply = @{thm trans[OF image_cong[OF o_apply refl]]};
 val trans_o_apply = @{thm trans[OF o_apply]};

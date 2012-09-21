@@ -86,15 +86,12 @@ val fst_snd_convs = @{thms fst_conv snd_conv};
 val id_apply = @{thm id_apply};
 val meta_mp = @{thm meta_mp};
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
-val set_mp = @{thm set_mp};
-val set_rev_mp = @{thm set_rev_mp};
 val subset_UNIV = @{thm subset_UNIV};
 val subset_trans = @{thm subset_trans};
-val subst_id = @{thm subst[of _ _ "\<lambda>x. x"]};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 
 fun mk_alg_set_tac alg_def =
-  dtac (alg_def RS subst_id) 1 THEN
+  dtac (alg_def RS iffD1) 1 THEN
   REPEAT_DETERM (etac conjE 1) THEN
   EVERY' [etac bspec, rtac CollectI] 1 THEN
   REPEAT_DETERM (etac conjI 1) THEN atac 1;
@@ -161,8 +158,8 @@ fun mk_mor_inv_tac alg_def mor_def set_natural's morEs map_comp_ids map_congLs =
            (EVERY' [rtac subst, rtac @{thm inver_pointfree}, etac @{thm inver_mono}, atac])];
   in
     (stac mor_def THEN'
-    dtac (alg_def RS subst_id) THEN'
-    dtac (alg_def RS subst_id) THEN'
+    dtac (alg_def RS iffD1) THEN'
+    dtac (alg_def RS iffD1) THEN'
     REPEAT o etac conjE THEN'
     rtac conjI THEN'
     CONJ_WRAP' (K fbetw_tac) set_natural's THEN'
@@ -281,7 +278,7 @@ fun mk_min_algs_tac worel in_congs =
     (rtac (worel RS (@{thm wo_rel.worec_fixpoint} RS fun_cong)) THEN' rtac ssubst THEN'
     rtac meta_eq_to_obj_eq THEN' rtac (worel RS @{thm wo_rel.adm_wo_def}) THEN'
     REPEAT_DETERM_N 3 o rtac allI THEN' rtac impI THEN'
-    CONJ_WRAP_GEN' (EVERY' [rtac ssubst, rtac @{thm Pair_eq}, rtac conjI]) minH_tac in_congs) 1
+    CONJ_WRAP_GEN' (EVERY' [rtac Pair_eqI, rtac conjI]) minH_tac in_congs) 1
   end;
 
 fun mk_min_algs_mono_tac min_algs = EVERY' [stac @{thm relChain_def}, rtac allI, rtac allI,

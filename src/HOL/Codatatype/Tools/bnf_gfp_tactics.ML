@@ -129,25 +129,20 @@ open BNF_Util
 open BNF_FP
 open BNF_GFP_Util
 
-val Pair_eq_subst_id = @{thm Pair_eq[THEN subst, of "%x. x"]};
 val fst_convol_fun_cong_sym = @{thm fst_convol} RS fun_cong RS sym;
-val list_inject_subst_id = @{thm list.inject[THEN subst, of "%x. x"]};
+val list_inject_iffD1 = @{thm list.inject[THEN iffD1]};
 val nat_induct = @{thm nat_induct};
 val o_apply_trans_sym = o_apply RS trans RS sym;
 val ord_eq_le_trans = @{thm ord_eq_le_trans};
 val ord_eq_le_trans_trans_fun_cong_image_id_id_apply =
   @{thm ord_eq_le_trans[OF trans[OF fun_cong[OF image_id] id_apply]]};
 val ordIso_ordLeq_trans = @{thm ordIso_ordLeq_trans};
-val set_mp = @{thm set_mp};
-val set_rev_mp = @{thm set_rev_mp};
 val snd_convol_fun_cong_sym = @{thm snd_convol} RS fun_cong RS sym;
-val ssubst_id = @{thm ssubst[of _ _ "%x. x"]};
-val subst_id = @{thm subst[of _ _ "%x. x"]};
 val sum_case_weak_cong = @{thm sum_case_weak_cong};
 val trans_fun_cong_image_id_id_apply = @{thm trans[OF fun_cong[OF image_id] id_apply]};
 
 fun mk_coalg_set_tac coalg_def =
-  dtac (coalg_def RS subst_id) 1 THEN
+  dtac (coalg_def RS iffD1) 1 THEN
   REPEAT_DETERM (etac conjE 1) THEN
   EVERY' [dtac @{thm rev_bspec}, atac] 1 THEN
   REPEAT_DETERM (eresolve_tac [CollectE, conjE] 1) THEN atac 1;
@@ -291,7 +286,7 @@ fun mk_bis_rel_tac m bis_def rel_O_Grs map_comps map_congs set_naturalss =
         dtac (rel_O_Gr RS equalityD1 RS set_mp),
         REPEAT_DETERM o eresolve_tac [CollectE, @{thm relcompE}, @{thm converseE}],
         REPEAT_DETERM o eresolve_tac [@{thm GrE}, exE, conjE],
-        REPEAT_DETERM o dtac Pair_eq_subst_id,
+        REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE,
         hyp_subst_tac,
         REPEAT_DETERM o eresolve_tac [CollectE, conjE],
@@ -319,7 +314,7 @@ fun mk_bis_rel_tac m bis_def rel_O_Grs map_comps map_congs set_naturalss =
   end;
 
 fun mk_bis_converse_tac m bis_rel rel_congs rel_converses =
-  EVERY' [stac bis_rel, dtac (bis_rel RS subst_id),
+  EVERY' [stac bis_rel, dtac (bis_rel RS iffD1),
     REPEAT_DETERM o etac conjE, rtac conjI,
     CONJ_WRAP' (K (EVERY' [rtac @{thm converse_shift}, etac subset_trans,
       rtac equalityD2, rtac @{thm converse_Times}])) rel_congs,
@@ -333,7 +328,7 @@ fun mk_bis_converse_tac m bis_rel rel_congs rel_converses =
         rtac @{thm converseI}, etac mp, etac @{thm converseD}]) (rel_congs ~~ rel_converses)] 1;
 
 fun mk_bis_O_tac m bis_rel rel_congs rel_Os =
-  EVERY' [stac bis_rel, REPEAT_DETERM o dtac (bis_rel RS subst_id),
+  EVERY' [stac bis_rel, REPEAT_DETERM o dtac (bis_rel RS iffD1),
     REPEAT_DETERM o etac conjE, rtac conjI,
     CONJ_WRAP' (K (EVERY' [etac @{thm relcomp_subset_Sigma}, atac])) rel_congs,
     CONJ_WRAP' (fn (rel_cong, rel_O) =>
@@ -343,7 +338,7 @@ fun mk_bis_O_tac m bis_rel rel_congs rel_Os =
         REPEAT_DETERM_N (length rel_congs) o rtac refl,
         rtac rel_O,
         etac @{thm relcompE},
-        REPEAT_DETERM o dtac Pair_eq_subst_id,
+        REPEAT_DETERM o dtac Pair_eqD,
         etac conjE, hyp_subst_tac,
         REPEAT_DETERM o etac allE, rtac @{thm relcompI},
         etac mp, atac, etac mp, atac]) (rel_congs ~~ rel_Os)] 1;
@@ -391,17 +386,17 @@ fun mk_incl_lsbis_tac n i lsbis_def =
     rtac (mk_nth_conv n i)] 1;
 
 fun mk_equiv_lsbis_tac sbis_lsbis lsbis_incl incl_lsbis bis_diag bis_converse bis_O =
-  EVERY' [rtac (@{thm equiv_def} RS ssubst_id),
+  EVERY' [rtac (@{thm equiv_def} RS iffD2),
 
-    rtac conjI, rtac (@{thm refl_on_def} RS ssubst_id),
+    rtac conjI, rtac (@{thm refl_on_def} RS iffD2),
     rtac conjI, rtac lsbis_incl, rtac ballI, rtac set_mp,
     rtac incl_lsbis, rtac bis_diag, atac, etac @{thm diagI},
 
-    rtac conjI, rtac (@{thm sym_def} RS ssubst_id),
+    rtac conjI, rtac (@{thm sym_def} RS iffD2),
     rtac allI, rtac allI, rtac impI, rtac set_mp,
     rtac incl_lsbis, rtac bis_converse, rtac sbis_lsbis, etac @{thm converseI},
 
-    rtac (@{thm trans_def} RS ssubst_id),
+    rtac (@{thm trans_def} RS iffD2),
     rtac allI, rtac allI, rtac allI, rtac impI, rtac impI, rtac set_mp,
     rtac incl_lsbis, rtac bis_O, rtac sbis_lsbis, rtac sbis_lsbis,
     etac @{thm relcompI}, atac] 1;
@@ -535,7 +530,7 @@ fun mk_card_of_carT_tac m isNode_defs sbd_sbd
       hyp_subst_tac, etac @{thm emptyE}, rtac (@{thm Ffunc_def} RS equalityD2 RS set_mp),
       rtac CollectI, rtac conjI, rtac ballI, dtac bspec, etac thin_rl, atac, dtac conjunct1,
       CONJ_WRAP_GEN' (etac disjE) (fn (i, def) => EVERY'
-        [rtac (mk_UnIN n i), dtac (def RS subst_id),
+        [rtac (mk_UnIN n i), dtac (def RS iffD1),
         REPEAT_DETERM o eresolve_tac [exE, conjE], rtac @{thm image_eqI}, atac, rtac CollectI,
         REPEAT_DETERM_N m o (rtac conjI THEN' atac),
         CONJ_WRAP' (K (EVERY' [etac ord_eq_le_trans, rtac subset_trans,
@@ -547,9 +542,9 @@ fun mk_card_of_carT_tac m isNode_defs sbd_sbd
 fun mk_carT_set_tac n i carT_def strT_def isNode_def set_natural {context = ctxt, prems = _}=
   EVERY' [dtac (carT_def RS equalityD1 RS set_mp),
     REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE],
-    dtac Pair_eq_subst_id,
+    dtac Pair_eqD,
     etac conjE, hyp_subst_tac,
-    dtac (isNode_def RS subst_id),
+    dtac (isNode_def RS iffD1),
     REPEAT_DETERM o eresolve_tac [exE, conjE],
     rtac (equalityD2 RS set_mp),
     rtac (strT_def RS arg_cong RS trans),
@@ -573,8 +568,8 @@ fun mk_strT_hset_tac n m j arg_cong_cTs cTs cts carT_defs strT_defs isNode_defs
           rtac (mk_sum_casesN n i RS (Drule.instantiate' [cT] [] arg_cong) RS sym)]
         else EVERY' [dtac (carT_def RS equalityD1 RS set_mp),
           REPEAT_DETERM o eresolve_tac [CollectE, exE], etac conjE,
-          dtac conjunct2, dtac Pair_eq_subst_id, etac conjE,
-          hyp_subst_tac, dtac (isNode_def RS subst_id),
+          dtac conjunct2, dtac Pair_eqD, etac conjE,
+          hyp_subst_tac, dtac (isNode_def RS iffD1),
           REPEAT_DETERM o eresolve_tac [exE, conjE],
           rtac (mk_InN_not_InM i i' RS notE), etac (sym RS trans), atac]))
       (ks ~~ (carT_defs ~~ isNode_defs));
@@ -719,8 +714,8 @@ fun mk_set_rv_Lev_tac m cts Lev_0s Lev_Sucs rv_Nils rv_Conss coalg_setss from_to
       CONJ_WRAP' (fn (i, ((Lev_0, rv_Nil), coalg_sets)) =>
         EVERY' [rtac impI, REPEAT_DETERM o etac conjE,
           dtac (Lev_0 RS equalityD1 RS set_mp), etac @{thm singletonE}, etac ssubst,
-          rtac (rv_Nil RS arg_cong RS ssubst_id),
-          rtac (mk_sum_casesN n i RS ssubst_id),
+          rtac (rv_Nil RS arg_cong RS iffD2),
+          rtac (mk_sum_casesN n i RS iffD2),
           CONJ_WRAP' (fn thm => etac thm THEN' atac) (take m coalg_sets)])
       (ks ~~ ((Lev_0s ~~ rv_Nils) ~~ coalg_setss)),
       REPEAT_DETERM o rtac allI,
@@ -729,8 +724,8 @@ fun mk_set_rv_Lev_tac m cts Lev_0s Lev_Sucs rv_Nils rv_Conss coalg_setss from_to
           CONJ_WRAP_GEN' (etac (Thm.permute_prems 1 1 UnE))
             (fn (i, (from_to_sbd, coalg_set)) =>
               EVERY' [REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac,
-              rtac (rv_Cons RS arg_cong RS ssubst_id),
-              rtac (mk_sum_casesN n i RS arg_cong RS trans RS ssubst_id),
+              rtac (rv_Cons RS arg_cong RS iffD2),
+              rtac (mk_sum_casesN n i RS arg_cong RS trans RS iffD2),
               etac (from_to_sbd RS arg_cong), REPEAT_DETERM o etac allE,
               dtac (mk_conjunctN n i), etac mp, etac conjI, etac set_rev_mp,
               etac coalg_set, atac])
@@ -802,7 +797,7 @@ fun mk_set_image_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss to_s
                 hyp_subst_tac,
                 CONJ_WRAP_GEN' (etac (Thm.permute_prems 1 1 UnE))
                   (fn k => REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE] THEN'
-                    dtac list_inject_subst_id THEN' etac conjE THEN'
+                    dtac list_inject_iffD1 THEN' etac conjE THEN'
                     (if k = i'
                     then EVERY' [dtac (mk_InN_inject n k), hyp_subst_tac, etac imageI]
                     else etac (mk_InN_not_InM i' k RS notE)))
@@ -822,10 +817,10 @@ fun mk_set_image_Lev_tac cts Lev_0s Lev_Sucs rv_Nils rv_Conss from_to_sbdss to_s
                 dtac (Lev_Suc RS equalityD1 RS set_mp) THEN'
                 CONJ_WRAP_GEN' (etac (Thm.permute_prems 1 1 UnE)) (fn k =>
                   REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE] THEN'
-                  dtac list_inject_subst_id THEN' etac conjE THEN'
+                  dtac list_inject_iffD1 THEN' etac conjE THEN'
                   (if k = i
                   then EVERY' [dtac (mk_InN_inject n i),
-                    dtac (Thm.permute_prems 0 2 (to_sbd_inj RS subst_id)),
+                    dtac (Thm.permute_prems 0 2 (to_sbd_inj RS iffD1)),
                     atac, atac, hyp_subst_tac] THEN'
                     CONJ_WRAP' (fn i'' =>
                       EVERY' [rtac impI, dtac (sym RS trans),
@@ -957,7 +952,7 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
           rtac (mk_sum_casesN n i) THEN' rtac (mk_sum_casesN n i RS trans)),
         rtac (map_comp_id RS trans), rtac (map_cong OF replicate m refl),
         EVERY' (map3 (fn i' => fn to_sbd_inj => fn from_to_sbd =>
-          DETERM o EVERY' [rtac trans, rtac o_apply, rtac ssubst, rtac @{thm Pair_eq}, rtac conjI,
+          DETERM o EVERY' [rtac trans, rtac o_apply, rtac Pair_eqI, rtac conjI,
             rtac trans, rtac @{thm Shift_def},
             rtac equalityI, rtac subsetI, etac thin_rl, etac thin_rl,
             REPEAT_DETERM o eresolve_tac [CollectE, @{thm UN_E}], dtac length_Lev', dtac asm_rl,
@@ -965,9 +960,9 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
             rtac (@{thm length_Cons} RS arg_cong RS trans), rtac Lev_Suc,
             CONJ_WRAP_GEN' (etac (Thm.permute_prems 1 1 UnE)) (fn i'' =>
               EVERY' [REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE],
-                dtac list_inject_subst_id, etac conjE,
+                dtac list_inject_iffD1, etac conjE,
                 if i' = i'' then EVERY' [dtac (mk_InN_inject n i'),
-                  dtac (Thm.permute_prems 0 2 (to_sbd_inj RS subst_id)),
+                  dtac (Thm.permute_prems 0 2 (to_sbd_inj RS iffD1)),
                   atac, atac, hyp_subst_tac, etac @{thm UN_I[OF UNIV_I]}]
                 else etac (mk_InN_not_InM i' i'' RS notE)])
             (rev ks),
@@ -980,9 +975,9 @@ fun mk_mor_beh_tac m mor_def mor_cong beh_defs carT_defs strT_defs isNode_defs
             dtac (Lev_Suc RS equalityD1 RS set_mp),
             CONJ_WRAP_GEN' (etac (Thm.permute_prems 1 1 UnE)) (fn i'' =>
               EVERY' [REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE],
-                dtac list_inject_subst_id, etac conjE,
+                dtac list_inject_iffD1, etac conjE,
                 if i' = i'' then EVERY' [dtac (mk_InN_inject n i'),
-                  dtac (Thm.permute_prems 0 2 (to_sbd_inj RS subst_id)),
+                  dtac (Thm.permute_prems 0 2 (to_sbd_inj RS iffD1)),
                   atac, atac, hyp_subst_tac, atac]
                 else etac (mk_InN_not_InM i' i'' RS notE)])
             (rev ks),
@@ -1067,7 +1062,7 @@ fun mk_mor_Abs_tac defs Abs_inverses {context = ctxt, prems = _} =
     CONJ_WRAP' (fn thm => rtac ballI THEN' etac (thm RS arg_cong RS sym)) Abs_inverses] 1;
 
 fun mk_mor_coiter_tac m mor_UNIV unf_defs coiter_defs Abs_inverses morEs map_comp_ids map_congs =
-  EVERY' [rtac ssubst_id, rtac mor_UNIV,
+  EVERY' [rtac iffD2, rtac mor_UNIV,
     CONJ_WRAP' (fn ((Abs_inverse, morE), ((unf_def, coiter_def), (map_comp_id, map_cong))) =>
       EVERY' [rtac ext, rtac (o_apply RS trans RS sym), rtac (unf_def RS trans),
         rtac (coiter_def RS arg_cong RS trans), rtac (Abs_inverse RS arg_cong RS trans),
@@ -1082,7 +1077,7 @@ fun mk_raw_coind_tac bis_def bis_cong bis_O bis_converse bis_Gr tcoalg coalgT mo
   let
     val n = length Rep_injects;
   in
-    EVERY' [rtac rev_mp, ftac (bis_def RS subst_id),
+    EVERY' [rtac rev_mp, ftac (bis_def RS iffD1),
       REPEAT_DETERM o etac conjE, rtac bis_cong, rtac bis_O, rtac bis_converse,
       rtac bis_Gr, rtac tcoalg, rtac mor_Rep, rtac bis_O, atac, rtac bis_Gr, rtac tcoalg,
       rtac mor_Rep, REPEAT_DETERM_N n o etac @{thm relImage_Gr},
@@ -1456,7 +1451,7 @@ fun mk_pick_col_tac m j cts rec_0s rec_Sucs coiters set_naturalss map_wpulls pic
 
 fun mk_wpull_tac m coalg_thePull mor_thePull_fst mor_thePull_snd mor_thePull_pick
   mor_unique pick_cols hset_defs =
-  EVERY' [rtac (@{thm wpull_def} RS ssubst_id), REPEAT_DETERM o rtac allI, rtac impI,
+  EVERY' [rtac (@{thm wpull_def} RS iffD2), REPEAT_DETERM o rtac allI, rtac impI,
     REPEAT_DETERM o etac conjE, rtac bexI, rtac conjI,
     rtac box_equals, rtac mor_unique,
     rtac coalg_thePull, REPEAT_DETERM_N (m - 1) o etac conjI, atac,
