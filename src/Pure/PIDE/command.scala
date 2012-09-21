@@ -60,16 +60,15 @@ object Command
         case XML.Elem(Markup(name, atts), body) =>
           atts match {
             case Isabelle_Markup.Serial(i) =>
-              val props = Position.purge(atts)
-              val result = XML.Elem(Markup(name, props), body)
-              val result_message = XML.Elem(Markup(Isabelle_Markup.message(name), props), body)
+              val message1 = XML.Elem(Markup(Isabelle_Markup.message(name), atts), body)
+              val message2 = XML.Elem(Markup(name, Position.purge(atts)), body)
 
-              val st0 = copy(results = results + (i -> result_message))
+              val st0 = copy(results = results + (i -> message1))
               val st1 =
-                if (Protocol.is_tracing(result)) st0
+                if (Protocol.is_tracing(message)) st0
                 else
                   (st0 /: Protocol.message_positions(command, message))(
-                    (st, range) => st.add_markup(Text.Info(range, result)))
+                    (st, range) => st.add_markup(Text.Info(range, message2)))
 
               st1
             case _ => System.err.println("Ignored message without serial number: " + message); this

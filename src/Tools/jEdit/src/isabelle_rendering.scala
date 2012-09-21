@@ -125,6 +125,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   val quoted_color = color_value("quoted_color")
   val highlight_color = color_value("highlight_color")
   val hyperlink_color = color_value("hyperlink_color")
+  val sendback_color = color_value("sendback_color")
+  val sendback_active_color = color_value("sendback_active_color")
   val keyword1_color = color_value("keyword1_color")
   val keyword2_color = color_value("keyword2_color")
 
@@ -234,6 +236,26 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
               case _ => links
             }
         }) match { case Text.Info(_, info :: _) #:: _ => Some(info) case _ => None }
+  }
+
+
+  def sendback(range: Text.Range): Option[Text.Info[Document.Exec_ID]] =
+  {
+    val results =
+      snapshot.cumulate_markup[(Option[Document.Exec_ID], Option[Text.Range])](range,
+        (None, None), Some(messages_include + Isabelle_Markup.SENDBACK),
+          {
+            case ((_, info), Text.Info(_, XML.Elem(Markup(name, Position.Id(id)), _)))
+            if messages_include(name) => (Some(id), info)
+
+            case ((id, _), Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, _), _))) =>
+              (id, Some(snapshot.convert(info_range)))
+          })
+
+    (for (Text.Info(_, (Some(id), Some(r))) <- results) yield Text.Info(r, id)) match {
+      case res #:: _ => Some(res)
+      case _ => None
+    }
   }
 
 
@@ -357,6 +379,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   }
 
 
+  private val messages_include =
+    Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.TRACING_MESSAGE,
+      Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
+
   private val message_colors = Map(
     Isabelle_Rendering.writeln_pri -> writeln_message_color,
     Isabelle_Rendering.tracing_pri -> tracing_message_color,
@@ -365,11 +391,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
-    val messages =
-      Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.TRACING_MESSAGE,
-        Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(messages),
+      snapshot.cumulate_markup[Int](range, 0, Some(messages_include),
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Isabelle_Markup.WRITELN_MESSAGE ||
@@ -388,6 +411,13 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
     message_colors.get(pri).map((_, is_separator))
   }
 
+
+  private val background1_include =
+    Protocol.command_status_markup + Isabelle_Markup.WRITELN_MESSAGE +
+      Isabelle_Markup.TRACING_MESSAGE + Isabelle_Markup.WARNING_MESSAGE +
+      Isabelle_Markup.ERROR_MESSAGE + Isabelle_Markup.BAD + Isabelle_Markup.INTENSIFY +
+      Isabelle_Markup.SENDBACK
+
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
     if (snapshot.is_outdated) Stream(Text.Info(range, outdated_color))
@@ -395,10 +425,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
       for {
         Text.Info(r, result) <-
           snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None),
-            Some(Protocol.command_status_markup + Isabelle_Markup.WRITELN_MESSAGE +
-              Isabelle_Markup.TRACING_MESSAGE + Isabelle_Markup.WARNING_MESSAGE +
-              Isabelle_Markup.ERROR_MESSAGE + Isabelle_Markup.BAD + Isabelle_Markup.INTENSIFY),
+            range, (Some(Protocol.Status.init), None), Some(background1_include),
             {
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
@@ -407,6 +434,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.SENDBACK, _), _))) =>
+                (None, Some(sendback_color))
             })
         color <-
           (result match {
