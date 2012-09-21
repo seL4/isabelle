@@ -1026,10 +1026,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         val srel_cong = mk_lazy mk_srel_cong;
 
         fun mk_srel_Id () =
-          let val relAsAs = mk_bnf_srel self_setRTs CA' CA' in
+          let val srelAsAs = mk_bnf_srel self_setRTs CA' CA' in
             Skip_Proof.prove lthy [] []
               (HOLogic.mk_Trueprop
-                (HOLogic.mk_eq (Term.list_comb (relAsAs, map Id_const As'), Id_const CA')))
+                (HOLogic.mk_eq (Term.list_comb (srelAsAs, map Id_const As'), Id_const CA')))
               (mk_srel_Id_tac live (Lazy.force srel_Gr) (#map_id axioms))
             |> Thm.close_derivation
           end;
@@ -1038,8 +1038,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         fun mk_srel_converse () =
           let
-            val relBsAs = mk_bnf_srel setRT's CB' CA';
-            val lhs = Term.list_comb (relBsAs, map mk_converse Rs);
+            val srelBsAs = mk_bnf_srel setRT's CB' CA';
+            val lhs = Term.list_comb (srelBsAs, map mk_converse Rs);
             val rhs = mk_converse (Term.list_comb (srel, Rs));
             val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_subset lhs rhs));
             val le_thm = Skip_Proof.prove lthy [] [] le_goal
@@ -1056,10 +1056,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         fun mk_srel_O () =
           let
-            val relAsCs = mk_bnf_srel setRTsAsCs CA' CC';
-            val relBsCs = mk_bnf_srel setRTsBsCs CB' CC';
-            val lhs = Term.list_comb (relAsCs, map2 (curry mk_rel_comp) Rs Ss);
-            val rhs = mk_rel_comp (Term.list_comb (srel, Rs), Term.list_comb (relBsCs, Ss));
+            val srelAsCs = mk_bnf_srel setRTsAsCs CA' CC';
+            val srelBsCs = mk_bnf_srel setRTsBsCs CB' CC';
+            val lhs = Term.list_comb (srelAsCs, map2 (curry mk_rel_comp) Rs Ss);
+            val rhs = mk_rel_comp (Term.list_comb (srel, Rs), Term.list_comb (srelBsCs, Ss));
             val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
             Skip_Proof.prove lthy [] [] goal

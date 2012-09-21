@@ -1725,10 +1725,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Irels = map (mk_rel_of_bnf deads passiveAs passiveBs) Ibnfs;
 
-        val IrelRs = map (fn Isrel => Term.list_comb (Isrel, IRs)) Isrels;
-        val relRs = map (fn srel => Term.list_comb (srel, IRs @ IrelRs)) srels;
-        val Ipredphis = map (fn Isrel => Term.list_comb (Isrel, Iphis)) Irels;
-        val predphis = map (fn srel => Term.list_comb (srel, Iphis @ Ipredphis)) rels;
+        val IsrelRs = map (fn Isrel => Term.list_comb (Isrel, IRs)) Isrels;
+        val srelRs = map (fn srel => Term.list_comb (srel, IRs @ IsrelRs)) srels;
+        val Irelphis = map (fn Isrel => Term.list_comb (Isrel, Iphis)) Irels;
+        val relphis = map (fn srel => Term.list_comb (srel, Iphis @ Irelphis)) rels;
 
         val in_srels = map in_srel_of_bnf bnfs;
         val in_Isrels = map in_srel_of_bnf Ibnfs;
@@ -1744,10 +1744,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val Isrel_simp_thms =
           let
-            fun mk_goal xF yF ctor ctor' IrelR relR = fold_rev Logic.all (xF :: yF :: IRs)
-              (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (ctor $ xF, ctor' $ yF), IrelR),
-                  HOLogic.mk_mem (HOLogic.mk_prod (xF, yF), relR)));
-            val goals = map6 mk_goal xFs yFs ctors ctor's IrelRs relRs;
+            fun mk_goal xF yF ctor ctor' IsrelR srelR = fold_rev Logic.all (xF :: yF :: IRs)
+              (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (ctor $ xF, ctor' $ yF), IsrelR),
+                  HOLogic.mk_mem (HOLogic.mk_prod (xF, yF), srelR)));
+            val goals = map6 mk_goal xFs yFs ctors ctor's IsrelRs srelRs;
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
               fn map_simp => fn set_simps => fn ctor_inject => fn ctor_dtor =>
@@ -1764,7 +1764,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           let
             fun mk_goal xF yF ctor ctor' Ipredphi predphi = fold_rev Logic.all (xF :: yF :: Iphis)
               (mk_Trueprop_eq (Ipredphi $ (ctor $ xF) $ (ctor' $ yF), predphi $ xF $ yF));
-            val goals = map6 mk_goal xFs yFs ctors ctor's Ipredphis predphis;
+            val goals = map6 mk_goal xFs yFs ctors ctor's Irelphis relphis;
           in
             map3 (fn goal => fn srel_def => fn Isrel_simp =>
               Skip_Proof.prove lthy [] [] goal
@@ -1784,10 +1784,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val Ibnf_notes =
           [(map_simpsN, map single folded_map_simp_thms),
+          (rel_simpN, map single Irel_simp_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss),
-          (srel_simpN, map single Isrel_simp_thms),
-          (rel_simpN, map single Irel_simp_thms)] @
+          (srel_simpN, map single Isrel_simp_thms)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>

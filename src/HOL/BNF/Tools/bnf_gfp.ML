@@ -2885,10 +2885,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val rels = map2 (fn Ds => mk_rel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Jrels = map (mk_rel_of_bnf deads passiveAs passiveBs) Jbnfs;
 
-        val JrelRs = map (fn Jsrel => Term.list_comb (Jsrel, JRs)) Jsrels;
-        val relRs = map (fn srel => Term.list_comb (srel, JRs @ JrelRs)) srels;
-        val Jpredphis = map (fn Jsrel => Term.list_comb (Jsrel, Jphis)) Jrels;
-        val predphis = map (fn srel => Term.list_comb (srel, Jphis @ Jpredphis)) rels;
+        val JsrelRs = map (fn Jsrel => Term.list_comb (Jsrel, JRs)) Jsrels;
+        val srelRs = map (fn srel => Term.list_comb (srel, JRs @ JsrelRs)) srels;
+        val Jrelphis = map (fn Jsrel => Term.list_comb (Jsrel, Jphis)) Jrels;
+        val relphis = map (fn srel => Term.list_comb (srel, Jphis @ Jrelphis)) rels;
 
         val in_srels = map in_srel_of_bnf bnfs;
         val in_Jsrels = map in_srel_of_bnf Jbnfs;
@@ -2901,10 +2901,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val Jsrel_simp_thms =
           let
-            fun mk_goal Jz Jz' dtor dtor' JrelR relR = fold_rev Logic.all (Jz :: Jz' :: JRs)
-              (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (Jz, Jz'), JrelR),
-                  HOLogic.mk_mem (HOLogic.mk_prod (dtor $ Jz, dtor' $ Jz'), relR)));
-            val goals = map6 mk_goal Jzs Jz's dtors dtor's JrelRs relRs;
+            fun mk_goal Jz Jz' dtor dtor' JsrelR srelR = fold_rev Logic.all (Jz :: Jz' :: JRs)
+              (mk_Trueprop_eq (HOLogic.mk_mem (HOLogic.mk_prod (Jz, Jz'), JsrelR),
+                  HOLogic.mk_mem (HOLogic.mk_prod (dtor $ Jz, dtor' $ Jz'), srelR)));
+            val goals = map6 mk_goal Jzs Jz's dtors dtor's JsrelRs srelRs;
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
               fn map_simp => fn set_simps => fn dtor_inject => fn dtor_ctor =>
@@ -2921,7 +2921,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           let
             fun mk_goal Jz Jz' dtor dtor' Jpredphi predphi = fold_rev Logic.all (Jz :: Jz' :: Jphis)
               (mk_Trueprop_eq (Jpredphi $ Jz $ Jz', predphi $ (dtor $ Jz) $ (dtor' $ Jz')));
-            val goals = map6 mk_goal Jzs Jz's dtors dtor's Jpredphis predphis;
+            val goals = map6 mk_goal Jzs Jz's dtors dtor's Jrelphis relphis;
           in
             map3 (fn goal => fn srel_def => fn Jsrel_simp =>
               Skip_Proof.prove lthy [] [] goal
