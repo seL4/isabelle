@@ -23,7 +23,11 @@ import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 
 
-class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabelle_Rendering)
+class Rich_Text_Area(
+  view: View,
+  text_area: TextArea,
+  get_rendering: () => Isabelle_Rendering,
+  hovering: Boolean)
 {
   private val buffer = text_area.getBuffer
 
@@ -123,8 +127,11 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
 
   private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.highlight _)
   private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
-  private val active_areas = List(highlight_area, hyperlink_area)
-  private def active_reset(): Unit = active_areas.foreach(_.reset)
+  private val sendback_area = new Active_Area[Sendback]((r: Isabelle_Rendering) => r.sendback _)
+
+  private val active_areas =
+    List((highlight_area, true), (hyperlink_area, true), (sendback_area, false))
+  private def active_reset(): Unit = active_areas.foreach(_._1.reset)
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) { robust_body(()) { active_reset() } }
@@ -139,7 +146,11 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
     override def mouseClicked(e: MouseEvent) {
       robust_body(()) {
         hyperlink_area.info match {
-          case Some(Text.Info(range, link)) => link.follow(view)
+          case Some(Text.Info(_, link)) => link.follow(view)
+          case None =>
+        }
+        sendback_area.info match {
+          case Some(Text.Info(_, sendback)) => sendback.activate(view)
           case None =>
         }
       }
@@ -150,12 +161,18 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
     override def mouseMoved(e: MouseEvent) {
       robust_body(()) {
         control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
-        if (control && !buffer.isLoading) {
+
+        if ((control || hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
             val rendering = get_rendering()
             val mouse_offset = text_area.xyToOffset(e.getX(), e.getY())
             val mouse_range = JEdit_Lib.point_range(buffer, mouse_offset)
-            active_areas.foreach(_.update_rendering(rendering, mouse_range))
+            for ((area, require_control) <- active_areas)
+            {
+              if (control == require_control)
+                area.update_rendering(rendering, mouse_range)
+              else area.reset
+            }
           }
         }
         else active_reset()
@@ -212,6 +229,16 @@ class Rich_Text_Area(view: View, text_area: TextArea, get_rendering: () => Isabe
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
               gfx.setColor(color)
+              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+            }
+
+            // sendback range -- potentially from other snapshot
+            for {
+              info <- sendback_area.info
+              Text.Info(range, _) <- info.try_restrict(line_range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
+            } {
+              gfx.setColor(rendering.sendback_active_color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 

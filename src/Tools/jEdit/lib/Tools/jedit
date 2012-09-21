@@ -30,6 +30,7 @@ declare -a SOURCES=(
   "src/readme_dockable.scala"
   "src/rich_text_area.scala"
   "src/scala_console.scala"
+  "src/sendback.scala"
   "src/session_dockable.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"

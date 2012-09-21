@@ -70,7 +70,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def get_rendering(): Isabelle_Rendering =
     Isabelle_Rendering(model.snapshot(), Isabelle.options.value)
 
-  val rich_text_area = new Rich_Text_Area(text_area.getView, text_area, get_rendering _)
+  val rich_text_area = new Rich_Text_Area(text_area.getView, text_area, get_rendering _, false)
 
 
   /* perspective */
