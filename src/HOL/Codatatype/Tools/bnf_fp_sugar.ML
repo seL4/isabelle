@@ -521,8 +521,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
       in Term.list_comb (mapx, args) end;
 
     val mk_simp_thmss =
-      map3 (fn (_, _, injects, distincts, cases, _, _, _) => fn rec_likes => fn rec_likes =>
-        injects @ distincts @ cases @ rec_likes @ rec_likes);
+      map3 (fn (_, _, injects, distincts, cases, _, _, _) => fn rec_likes => fn fold_likes =>
+        injects @ distincts @ cases @ rec_likes @ fold_likes);
 
     fun derive_induct_fold_rec_thms_for_types ((wrap_ress, ctrss, folds, recs, xsss, ctr_defss,
         fold_defs, rec_defs), lthy) =
