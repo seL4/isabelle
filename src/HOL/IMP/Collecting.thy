@@ -1,5 +1,5 @@
 theory Collecting
-imports Complete_Lattice ACom
+imports Complete_Lattice Big_Step ACom
 begin
 
 subsection "Collecting Semantics of Commands"
@@ -138,6 +138,7 @@ qed
 lemma le_post: "c \<le> d \<Longrightarrow> post c \<le> post d"
 by(induction c d rule: less_eq_acom.induct) auto
 
+
 subsubsection "Collecting semantics"
 
 fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom" where
@@ -181,5 +182,56 @@ by (metis CS_def lfp_cs_unfold)
 
 lemma strip_CS[simp]: "strip(CS c) = c"
 by(simp add: CS_def index_lfp[simplified])
+
+
+subsubsection "Relation to big-step semantics"
+
+lemma post_Union_acom: "\<forall> c' \<in> M. strip c' = c \<Longrightarrow> post (Union_acom c M) = post ` M"
+proof(induction c arbitrary: M)
+  case (Seq c1 c2)
+  have "post ` M = post ` sub\<^isub>2 ` M" using Seq.prems by (force simp: strip_eq_Seq)
+  moreover have "\<forall> c' \<in> sub\<^isub>2 ` M. strip c' = c2" using Seq.prems by (auto simp: strip_eq_Seq)
+  ultimately show ?case using Seq.IH(2)[of "sub\<^isub>2 ` M"] by simp
+qed simp_all
+
+
+lemma post_lfp: "post(lfp c f) = (\<Inter>{post C|C. strip C = c \<and> f C \<le> C})"
+by(auto simp add: lfp_def post_Union_acom)
+
+lemma big_step_post_step:
+  "\<lbrakk> (c, s) \<Rightarrow> t;  strip C = c;  s \<in> S;  step S C \<le> C \<rbrakk> \<Longrightarrow> t \<in> post C"
+proof(induction arbitrary: C S rule: big_step_induct)
+  case Skip thus ?case by(auto simp: strip_eq_SKIP)
+next
+  case Assign thus ?case by(fastforce simp: strip_eq_Assign)
+next
+  case Seq thus ?case by(fastforce simp: strip_eq_Seq)
+next
+  case IfTrue thus ?case apply(auto simp: strip_eq_If)
+    by (metis (lifting) mem_Collect_eq set_mp)
+next
+  case IfFalse thus ?case apply(auto simp: strip_eq_If)
+    by (metis (lifting) mem_Collect_eq set_mp)
+next
+  case (WhileTrue b s1 c' s2 s3)
+  from WhileTrue.prems(1) obtain I P C' Q where "C = {I} WHILE b DO {P} C' {Q}" "strip C' = c'"
+    by(auto simp: strip_eq_While)
+  from WhileTrue.prems(3) `C = _`
+  have "step P C' \<le> C'"  "{s \<in> I. bval b s} \<le> P"  "S \<le> I"  "step (post C') C \<le> C"  by auto
+  have "step {s \<in> I. bval b s} C' \<le> C'"
+    by (rule order_trans[OF mono2_step[OF order_refl `{s \<in> I. bval b s} \<le> P`] `step P C' \<le> C'`])
+  have "s1: {s:I. bval b s}" using `s1 \<in> S` `S \<subseteq> I` `bval b s1` by auto
+  note s2_in_post_C' = WhileTrue.IH(1)[OF `strip C' = c'` this `step {s \<in> I. bval b s} C' \<le> C'`]
+  from WhileTrue.IH(2)[OF WhileTrue.prems(1) s2_in_post_C' `step (post C') C \<le> C`]
+  show ?case .
+next
+  case (WhileFalse b s1 c') thus ?case by (force simp: strip_eq_While)
+qed
+
+lemma big_step_lfp: "\<lbrakk> (c,s) \<Rightarrow> t;  s \<in> S \<rbrakk> \<Longrightarrow> t \<in> post(lfp c (step S))"
+by(auto simp add: post_lfp intro: big_step_post_step)
+
+lemma big_step_CS: "(c,s) \<Rightarrow> t \<Longrightarrow> t : post(CS c)"
+by(simp add: CS_def big_step_lfp)
 
 end
