@@ -9,18 +9,12 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.{View, jEdit}
-import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.View
 
 
 object Sendback
 {
-  def apply(command: Command, body: XML.Body): Sendback = new Sendback(command, body)
-}
-
-class Sendback private(command: Command, body: XML.Body)
-{
-  def activate(view: View)
+  def activate(view: View, text: String, exec_id: Document.Exec_ID)
   {
     Swing_Thread.require()
 
@@ -30,15 +24,19 @@ class Sendback private(command: Command, body: XML.Body)
           val model = doc_view.model
           val buffer = model.buffer
           val snapshot = model.snapshot()
-          snapshot.node.command_start(command) match {
-            case Some(start) if !snapshot.is_outdated =>
-              val text = Pretty.string_of(body)
-              try {
-                buffer.beginCompoundEdit()
-                buffer.remove(start, command.proper_range.length)
-                buffer.insert(start, text)
+
+          snapshot.state.execs.get(exec_id).map(_.command) match {
+            case Some(command) if !snapshot.is_outdated =>
+              snapshot.node.command_start(command) match {
+                case Some(start) =>
+                  try {
+                    buffer.beginCompoundEdit()
+                    buffer.remove(start, command.proper_range.length)
+                    buffer.insert(start, text)
+                  }
+                  finally { buffer.endCompoundEdit() }
+                case None =>
               }
-              finally { buffer.endCompoundEdit() }
             case _ =>
           }
         }

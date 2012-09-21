@@ -239,17 +239,21 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   }
 
 
-  def sendback(range: Text.Range): Option[Text.Info[Sendback]] =
+  def sendback(range: Text.Range): Option[Text.Info[Document.Exec_ID]] =
   {
-    snapshot.select_markup(range, Some(Set(Isabelle_Markup.SENDBACK)),
-        {
-          case Text.Info(info_range, Protocol.Sendback(body)) =>
-            Text.Info(snapshot.convert(info_range), body)
-        }) match
-    {
-      case Text.Info(_, Text.Info(range, body)) #:: _ =>
-        snapshot.node.command_at(range.start)
-          .map(command_range => Text.Info(range, Sendback(command_range._1, body)))
+    val results =
+      snapshot.cumulate_markup[(Option[Document.Exec_ID], Option[Text.Range])](range,
+        (None, None), Some(messages_include + Isabelle_Markup.SENDBACK),
+          {
+            case ((_, info), Text.Info(_, XML.Elem(Markup(name, Position.Id(id)), _)))
+            if messages_include(name) => (Some(id), info)
+
+            case ((id, _), Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, _), _))) =>
+              (id, Some(snapshot.convert(info_range)))
+          })
+
+    (for (Text.Info(_, (Some(id), Some(r))) <- results) yield Text.Info(r, id)) match {
+      case res #:: _ => Some(res)
       case _ => None
     }
   }
@@ -375,6 +379,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   }
 
 
+  private val messages_include =
+    Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.TRACING_MESSAGE,
+      Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
+
   private val message_colors = Map(
     Isabelle_Rendering.writeln_pri -> writeln_message_color,
     Isabelle_Rendering.tracing_pri -> tracing_message_color,
@@ -383,11 +391,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
-    val messages =
-      Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.TRACING_MESSAGE,
-        Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(messages),
+      snapshot.cumulate_markup[Int](range, 0, Some(messages_include),
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Isabelle_Markup.WRITELN_MESSAGE ||
