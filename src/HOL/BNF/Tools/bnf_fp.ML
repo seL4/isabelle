@@ -33,6 +33,8 @@ sig
   val ctor_foldsN: string
   val ctor_recN: string
   val ctor_recsN: string
+  val ctor_relN: string
+  val ctor_srelN: string
   val disc_unfold_iffN: string
   val disc_unfoldsN: string
   val disc_corec_iffN: string
@@ -42,9 +44,10 @@ sig
   val dtor_relN: string
   val dtor_corecN: string
   val dtor_corecsN: string
-  val dtor_exhaustN: string
   val dtor_ctorN: string
+  val dtor_exhaustN: string
   val dtor_injectN: string
+  val dtor_srelN: string
   val dtor_strong_coinductN: string
   val dtor_unfoldN: string
   val dtor_unfold_uniqueN: string
@@ -74,7 +77,6 @@ sig
   val set_set_inclN: string
   val simpsN: string
   val srel_coinductN: string
-  val dtor_srelN: string
   val srel_strong_coinductN: string
   val strTN: string
   val str_initN: string
@@ -225,7 +227,9 @@ val dtor_coinductN = dtorN ^ "_" ^ coinductN
 val rel_coinductN = relN ^ "_" ^ coinductN
 val srel_coinductN = srelN ^ "_" ^ coinductN
 val simpN = "_simp";
+val ctor_srelN = ctorN ^ "_" ^ srelN
 val dtor_srelN = dtorN ^ "_" ^ srelN
+val ctor_relN = ctorN ^ "_" ^ relN
 val dtor_relN = dtorN ^ "_" ^ relN
 val strongN = "strong_"
 val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN

@@ -2925,7 +2925,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             map3 (fn goal => fn srel_def => fn dtor_Jsrel =>
               Skip_Proof.prove lthy [] [] goal
-                (mk_dtor_rel_tac srel_def Jrel_defs Jsrel_defs dtor_Jsrel)
+                (mk_ctor_or_dtor_rel_tac srel_def Jrel_defs Jsrel_defs dtor_Jsrel)
               |> Thm.close_derivation)
             goals srel_defs dtor_Jsrel_thms
           end;

@@ -27,8 +27,8 @@ sig
   val mk_Abs_inj_thm: thm -> thm
 
   val simple_srel_O_Gr_tac: Proof.context -> tactic
-  val mk_dtor_rel_tac: thm -> thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
-    tactic
+  val mk_ctor_or_dtor_rel_tac:
+    thm -> thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} -> tactic
 
   val mk_map_comp_id_tac: thm -> tactic
   val mk_map_cong_tac: int -> thm -> {prems: 'a, context: Proof.context} -> tactic
@@ -101,7 +101,7 @@ fun mk_rotate_eq_tac refl_tac trans assoc com cong =
 fun simple_srel_O_Gr_tac ctxt =
   unfold_thms_tac ctxt @{thms Collect_fst_snd_mem_eq Collect_pair_mem_eq} THEN rtac refl 1;
 
-fun mk_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context = ctxt, prems = _} =
+fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context = ctxt, prems = _} =
   unfold_thms_tac ctxt IJrel_defs THEN
   subst_tac ctxt [unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
     @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel] 1 THEN

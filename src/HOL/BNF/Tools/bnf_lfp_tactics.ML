@@ -22,9 +22,9 @@ sig
     thm list -> tactic
   val mk_ctor_induct2_tac: ctyp option list -> cterm option list -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
-  val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
-  val mk_dtor_srel_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
+  val mk_ctor_srel_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
     thm list -> thm list -> thm list list -> tactic
+  val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_ex_copy_alg_tac: int -> thm -> thm -> tactic
   val mk_in_bd_tac: thm -> thm -> thm -> thm -> tactic
   val mk_incl_min_alg_tac: (int -> tactic) -> thm list list list -> thm list -> thm ->
@@ -770,7 +770,7 @@ fun mk_wit_tac n set_simp wit =
           EVERY' [hyp_subst_tac, dtac set_rev_mp, rtac equalityD1, resolve_tac set_simp,
             REPEAT_DETERM_N n o etac UnE]))))] 1);
 
-fun mk_dtor_srel_tac in_Isrels i in_srel map_comp map_cong map_simp set_simps ctor_inject
+fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong map_simp set_simps ctor_inject
   ctor_dtor set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;

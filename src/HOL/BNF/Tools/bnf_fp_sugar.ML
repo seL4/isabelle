@@ -499,6 +499,9 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         ((wrap, define_rec_likes), lthy')
       end;
 
+    fun wrap_types_and_define_rec_likes ((wraps, define_rec_likess), lthy) =
+      fold_map2 (curry (op o)) define_rec_likess wraps lthy |>> split_list8
+
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
@@ -854,7 +857,6 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
 
         val notes =
           [(coinductN, map single coinduct_thms, []), (* FIXME: attribs *)
-           (unfoldsN, unfold_thmss, []),
            (corecsN, corec_thmss, []),
            (disc_unfold_iffN, disc_unfold_iff_thmss, simp_attrs),
            (disc_unfoldsN, disc_unfold_thmss, simp_attrs),
@@ -862,7 +864,8 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
            (disc_corecsN, disc_corec_thmss, simp_attrs),
            (sel_unfoldsN, sel_unfold_thmss, simp_attrs),
            (sel_corecsN, sel_corec_thmss, simp_attrs),
-           (simpsN, simp_thmss, [])]
+           (simpsN, simp_thmss, []),
+           (unfoldsN, unfold_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map_filter (fn (_, []) => NONE | (b, thms) =>
               SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
@@ -871,16 +874,19 @@ fun define_datatype prepare_constraint prepare_typ prepare_term lfp construct (n
         lthy |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
       end;
 
-    fun wrap_types_and_define_rec_likes ((wraps, define_rec_likess), lthy) =
-      fold_map2 (curry (op o)) define_rec_likess wraps lthy |>> split_list8
+    fun derive_pred_thms_for_types ((wrap_ress, ctrss, unfolds, corecs, _, ctr_defss, unfold_defs,
+        corec_defs), lthy) =
+      lthy;
 
     val lthy' = lthy
       |> fold_map define_ctrs_case_for_type (fp_bs ~~ fpTs ~~ Cs ~~ ctors ~~ dtors ~~ fp_folds ~~
         fp_recs ~~ ctor_dtors ~~ dtor_ctors ~~ ctor_injects ~~ ns ~~ kss ~~ mss ~~ ctr_bindingss ~~
         ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~ raw_sel_defaultsss)
       |>> split_list |> wrap_types_and_define_rec_likes
-      |> (if lfp then derive_induct_fold_rec_thms_for_types
-          else derive_coinduct_unfold_corec_thms_for_types);
+      |> `(if lfp then derive_induct_fold_rec_thms_for_types
+           else derive_coinduct_unfold_corec_thms_for_types)
+      |> swap |>> fst
+      |> derive_pred_thms_for_types;
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
       (if lfp then "" else "co") ^ "datatype"));
