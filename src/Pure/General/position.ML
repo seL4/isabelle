@@ -49,7 +49,7 @@ sig
   val range: T -> T -> range
   val thread_data: unit -> T
   val setmp_thread_data: T -> ('a -> 'b) -> 'a -> 'b
-  val default: T -> T
+  val default: T -> bool * T
 end;
 
 structure Position: POSITION =
@@ -222,7 +222,7 @@ fun setmp_thread_data pos = Library.setmp_thread_data tag (thread_data ()) pos;
 end;
 
 fun default pos =
-  if pos = none then thread_data ()
-  else pos;
+  if pos = none then (false, thread_data ())
+  else (true, pos);
 
 end;

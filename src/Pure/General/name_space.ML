@@ -400,7 +400,7 @@ fun declare context strict binding space =
     val name = Long_Name.implode (map fst spec);
     val _ = name = "" andalso err_bad binding;
 
-    val pos = Position.default (Binding.pos_of binding);
+    val (proper_pos, pos) = Position.default (Binding.pos_of binding);
     val entry =
      {concealed = concealed,
       group = group,
@@ -411,8 +411,10 @@ fun declare context strict binding space =
       |> fold (add_name name) accs
       |> new_entry strict (name, (accs', entry));
     val _ =
-      Context_Position.report_generic context pos
-        (entry_markup true (kind_of space) (name, entry));
+      if proper_pos then
+        Context_Position.report_generic context pos
+          (entry_markup true (kind_of space) (name, entry))
+      else ();
   in (name, space') end;
 
 
