@@ -6,6 +6,15 @@ New in this Isabelle version
 
 *** General ***
 
+* Prover IDE (PIDE) improvements:
+    . parallel terminal proofs ('by');
+    . improved output panel with tooltips, hyperlinks etc.;
+    . more efficient painting, improved reactivity;
+    . more robust incremental parsing of outer syntax (partial
+      comments, malformed symbols);
+    . more plugin options and preferences, based on Isabelle/Scala;
+    . uniform Java 7 platform on Linux, Mac OS X, Windows;
+
 * Command 'ML_file' evaluates ML text from a file directly within the
 theory, without any predeclaration via 'uses' in the theory header.
 
