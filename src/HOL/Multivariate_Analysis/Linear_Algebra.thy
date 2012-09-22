@@ -128,7 +128,8 @@ lemma dot_norm: "x \<bullet> y = (norm(x + y) ^2 - norm x ^ 2 - norm y ^ 2) / 2"
   unfolding power2_norm_eq_inner inner_simps inner_commute by auto 
 
 lemma dot_norm_neg: "x \<bullet> y = ((norm x ^ 2 + norm y ^ 2) - norm(x - y) ^ 2) / 2"
-  unfolding power2_norm_eq_inner inner_simps inner_commute by(auto simp add:algebra_simps)
+  unfolding power2_norm_eq_inner inner_simps inner_commute
+  by (auto simp add: algebra_simps)
 
 text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
@@ -161,7 +162,7 @@ lemma norm_triangle_lt: "norm(x) + norm(y) < e ==> norm(x + y) < e"
 
 lemma setsum_clauses:
   shows "setsum f {} = 0"
-  and "finite S \<Longrightarrow> setsum f (insert x S) = (if x \<in> S then setsum f S else f x + setsum f S)"
+    and "finite S \<Longrightarrow> setsum f (insert x S) = (if x \<in> S then setsum f S else f x + setsum f S)"
   by (auto simp add: insert_absorb)
 
 lemma setsum_norm_le:
@@ -410,8 +411,8 @@ lemma seq_mono_lemma: assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n" a
 
 lemma infinite_enumerate: assumes fS: "infinite S"
   shows "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> S)"
-unfolding subseq_def
-using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
+  unfolding subseq_def
+  using enumerate_in_set[OF fS] enumerate_mono[of _ _ S] fS by auto
 
 lemma approachable_lt_le: "(\<exists>(d::real)>0. \<forall>x. f x < d \<longrightarrow> P x) \<longleftrightarrow> (\<exists>d>0. \<forall>x. f x \<le> d \<longrightarrow> P x)"
   apply auto
