@@ -22,7 +22,7 @@ object Session
   /* events */
 
   //{{{
-  case object Global_Settings
+  case object Global_Options
   case object Caret_Focus
   case class Raw_Edits(edits: List[Document.Edit_Text])
   case class Commands_Changed(
@@ -57,7 +57,7 @@ class Session(val thy_load: Thy_Load)
 
   /* pervasive event buses */
 
-  val global_settings = new Event_Bus[Session.Global_Settings.type]
+  val global_options = new Event_Bus[Session.Global_Options.type]
   val caret_focus = new Event_Bus[Session.Caret_Focus.type]
   val raw_edits = new Event_Bus[Session.Raw_Edits]
   val commands_changed = new Event_Bus[Session.Commands_Changed]

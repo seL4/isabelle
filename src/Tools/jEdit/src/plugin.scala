@@ -318,7 +318,7 @@ class Plugin extends EBPlugin
 
         case msg: PropertiesChanged =>
           Isabelle.setup_tooltips()
-          Isabelle.session.global_settings.event(Session.Global_Settings)
+          Isabelle.session.global_options.event(Session.Global_Options)
 
         case _ =>
       }

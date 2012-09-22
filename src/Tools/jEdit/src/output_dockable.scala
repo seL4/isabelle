@@ -90,7 +90,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main_actor = actor {
     loop {
       react {
-        case Session.Global_Settings =>
+        case Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
         case changed: Session.Commands_Changed =>
           Swing_Thread.later { handle_update(do_update, Some(changed.commands)) }
@@ -105,7 +105,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    Isabelle.session.global_settings += main_actor
+    Isabelle.session.global_options += main_actor
     Isabelle.session.commands_changed += main_actor
     Isabelle.session.caret_focus += main_actor
     handle_update(true, None)
@@ -115,7 +115,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    Isabelle.session.global_settings -= main_actor
+    Isabelle.session.global_options -= main_actor
     Isabelle.session.commands_changed -= main_actor
     Isabelle.session.caret_focus -= main_actor
     delay_resize.revoke()
