@@ -373,12 +373,12 @@ object Document
     def accumulate(id: ID, message: XML.Elem): (Command.State, State) =
       execs.get(id) match {
         case Some(st) =>
-          val new_st = st + message
+          val new_st = st + (id, message)
           (new_st, copy(execs = execs + (id -> new_st)))
         case None =>
           commands.get(id) match {
             case Some(st) =>
-              val new_st = st + message
+              val new_st = st + (id, message)
               (new_st, copy(commands = commands + (id -> new_st)))
             case None => fail
           }

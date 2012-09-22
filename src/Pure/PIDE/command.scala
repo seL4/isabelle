@@ -28,7 +28,7 @@ object Command
     private def add_status(st: Markup): State = copy(status = st :: status)
     private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
 
-    def + (message: XML.Elem): Command.State =
+    def + (alt_id: Document.ID, message: XML.Elem): Command.State =
       message match {
         case XML.Elem(Markup(Isabelle_Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
@@ -43,7 +43,8 @@ object Command
           (this /: msgs)((state, msg) =>
             msg match {
               case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
-              if id == command.id && command.range.contains(command.decode(raw_range)) =>
+              if (id == command.id || id == alt_id) &&
+                  command.range.contains(command.decode(raw_range)) =>
                 val range = command.decode(raw_range)
                 val props = Position.purge(atts)
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
