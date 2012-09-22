@@ -95,3 +95,5 @@ option editor_output_delay : real = 0.1
 option editor_update_delay : real = 0.5
   -- "delay for physical GUI updates"
 
+option editor_reparse_limit : int = 10000
+  -- "maximum amount of reparsed text outside perspective"

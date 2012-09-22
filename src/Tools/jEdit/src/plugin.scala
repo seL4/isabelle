@@ -344,8 +344,10 @@ class Plugin extends EBPlugin
 
       val content = Isabelle_Logic.session_content(false)
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
+
       Isabelle.session = new Session(thy_load) {
         override def output_delay = Time.seconds(Isabelle.options.real("editor_output_delay"))
+        override def reparse_limit = Isabelle.options.int("editor_reparse_limit")
       }
 
       Isabelle.session.phase_changed += session_manager

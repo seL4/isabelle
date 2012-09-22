@@ -53,6 +53,7 @@ class Session(val thy_load: Thy_Load)
   def prune_delay: Time = Time.seconds(60.0)  // prune history -- delete old versions
   def prune_size: Int = 0  // size of retained history
   def syslog_limit: Int = 100
+  def reparse_limit: Int = 0
 
 
   /* pervasive event buses */
@@ -107,7 +108,7 @@ class Session(val thy_load: Thy_Load)
           val prev = previous.get_finished
           val (doc_edits, version) =
             Timing.timeit("Thy_Syntax.text_edits", timing) {
-              Thy_Syntax.text_edits(thy_load.base_syntax, prev, text_edits)
+              Thy_Syntax.text_edits(thy_load.base_syntax, reparse_limit, prev, text_edits)
             }
           version_result.fulfill(version)
           sender ! Change(doc_edits, prev, version)

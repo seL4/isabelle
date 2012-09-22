@@ -263,6 +263,7 @@ object Thy_Syntax
 
   private def consolidate_spans(
     syntax: Outer_Syntax,
+    reparse_limit: Int,
     name: Document.Node.Name,
     perspective: Command.Perspective,
     commands: Linear_Set[Command]): Linear_Set[Command] =
@@ -274,7 +275,14 @@ object Thy_Syntax
           val visible = perspective.commands.toSet
           commands.reverse.find(visible) match {
             case Some(last_visible) =>
-              reparse_spans(syntax, name, commands, first_unfinished, last_visible)
+              val it = commands.iterator(last_visible)
+              var last = last_visible
+              var i = 0
+              while (i < reparse_limit && it.hasNext) {
+                last = it.next
+                i += last.length
+              }
+              reparse_spans(syntax, name, commands, first_unfinished, last)
             case None => commands
           }
         case None => commands
@@ -295,7 +303,7 @@ object Thy_Syntax
     inserted.map(cmd => (new_cmds.prev(cmd), Some(cmd)))
   }
 
-  private def text_edit(syntax: Outer_Syntax,
+  private def text_edit(syntax: Outer_Syntax, reparse_limit: Int,
     node: Document.Node, edit: Document.Edit_Text): Document.Node =
   {
     edit match {
@@ -313,13 +321,14 @@ object Thy_Syntax
         val perspective = command_perspective(node, text_perspective)
         if (node.perspective same perspective) node
         else
-          node.update_perspective(perspective)
-            .update_commands(consolidate_spans(syntax, name, perspective, node.commands))
+          node.update_perspective(perspective).update_commands(
+            consolidate_spans(syntax, reparse_limit, name, perspective, node.commands))
     }
   }
 
   def text_edits(
       base_syntax: Outer_Syntax,
+      reparse_limit: Int,
       previous: Document.Version,
       edits: List[Document.Edit_Text])
     : (List[Document.Edit_Command], Document.Version) =
@@ -343,7 +352,7 @@ object Thy_Syntax
           if (reparse_set(name) && !commands.isEmpty)
             node.update_commands(reparse_spans(syntax, name, commands, commands.head, commands.last))
           else node
-        val node2 = (node1 /: edits)(text_edit(syntax, _, _))
+        val node2 = (node1 /: edits)(text_edit(syntax, reparse_limit, _, _))
 
         if (!(node.perspective same node2.perspective))
           doc_edits += (name -> Document.Node.Perspective(node2.perspective))
