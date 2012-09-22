@@ -48,7 +48,8 @@ object Command
                 val props = Position.purge(atts)
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
-              case XML.Elem(Markup(name, atts), args) =>
+              case XML.Elem(Markup(name, atts), args)
+              if !atts.exists({ case (a, _) => Isabelle_Markup.POSITION_PROPERTIES(a) }) =>
                 val range = command.proper_range
                 val props = Position.purge(atts)
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
