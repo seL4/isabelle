@@ -266,7 +266,7 @@ structure Code_Data = Theory_Data
   type T = spec * (data * theory_ref) option Synchronized.var;
   val empty = (make_spec (false, (Symtab.empty,
     (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_dataref ());
-  val extend = I  (* FIXME empty_dataref!?! *)
+  val extend = apsnd (K (empty_dataref ()));
   fun merge ((spec1, _), (spec2, _)) =
     (merge_spec (spec1, spec2), empty_dataref ());
 );
