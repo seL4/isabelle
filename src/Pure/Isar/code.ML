@@ -116,6 +116,23 @@ fun string_of_const thy c =
 
 (* constants *)
 
+fun const_typ thy = Type.strip_sorts o Sign.the_const_type thy;
+
+fun args_number thy = length o binder_types o const_typ thy;
+
+fun devarify ty =
+  let
+    val tys = fold_atyps (fn TVar vi_sort => AList.update (op =) vi_sort) ty [];
+    val vs = Name.invent Name.context Name.aT (length tys);
+    val mapping = map2 (fn v => fn (vi, sort) => (vi, TFree (v, sort))) vs tys;
+  in Term.typ_subst_TVars mapping ty end;
+
+fun typscheme thy (c, ty) =
+  (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
+
+fun typscheme_equiv (ty1, ty2) =
+  Type.raw_instance (devarify ty1, ty2) andalso Type.raw_instance (devarify ty2, ty1);
+
 fun check_bare_const thy t = case try dest_Const t
  of SOME c_ty => c_ty
   | NONE => error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
@@ -125,7 +142,7 @@ fun check_unoverload thy (c, ty) =
     val c' = AxClass.unoverload_const thy (c, ty);
     val ty_decl = Sign.the_const_type thy c';
   in
-    if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts (Logic.varifyT_global ty))
+    if typscheme_equiv (ty_decl, Logic.varifyT_global ty)
     then c'
     else
       error ("Type\n" ^ string_of_typ thy ty ^
@@ -329,18 +346,6 @@ end; (*local*)
 
 (** foundation **)
 
-(* constants *)
-
-fun const_typ thy = Type.strip_sorts o Sign.the_const_type thy;
-
-fun args_number thy = length o binder_types o const_typ thy;
-
-fun logical_typscheme thy (c, ty) =
-  (map dest_TFree (Sign.const_typargs thy (c, ty)), Type.strip_sorts ty);
-
-fun typscheme thy (c, ty) = logical_typscheme thy (c, ty);
-
-
 (* datatypes *)
 
 fun no_constr thy s (c, ty) = error ("Not a datatype constructor:\n" ^ string_of_const thy c
@@ -383,7 +388,7 @@ fun constrset_of_consts thy cs =
       let
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
         val ty' = map_type_tfree (fn (v, _) => TFree (the_v v)) ty;
-        val (vs'', _) = logical_typscheme thy (c, ty');
+        val (vs'', _) = typscheme thy (c, ty');
       in (c, (vs'', binder_types ty')) end;
     val c' :: cs' = map (analyze_constructor thy) cs;
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
@@ -444,7 +449,7 @@ fun is_linear thm =
 fun check_decl_ty thy (c, ty) =
   let
     val ty_decl = Sign.the_const_type thy c;
-  in if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty) then ()
+  in if typscheme_equiv (ty_decl, ty) then ()
     else bad_thm ("Type\n" ^ string_of_typ thy ty
       ^ "\nof constant " ^ quote c
       ^ "\nis too specific compared to declared type\n"
@@ -647,7 +652,7 @@ fun check_abstype_cert thy proto_thm =
     val ((tyco, sorts), (abs, (vs, ty'))) =
       analyze_constructor thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
-    val (vs', _) = logical_typscheme thy (abs, ty');
+    val (vs', _) = typscheme thy (abs, ty');
   in (tyco, (vs ~~ sorts, ((abs, (vs', ty)), (rep, thm)))) end;
 
 
@@ -711,7 +716,7 @@ with
 fun empty_cert thy c = 
   let
     val raw_ty = Logic.unvarifyT_global (const_typ thy c);
-    val (vs, _) = logical_typscheme thy (c, raw_ty);
+    val (vs, _) = typscheme thy (c, raw_ty);
     val sortargs = case AxClass.class_of_param thy c
      of SOME class => [[class]]
       | NONE => (case get_type_of_constr_or_abstr thy c
