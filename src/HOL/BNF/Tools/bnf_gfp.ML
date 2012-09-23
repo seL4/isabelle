@@ -2366,7 +2366,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val p2id_Fmaps = map (mk_Fmap HOLogic.id_const p2s prodTs) (mk_mapsXB prodTs I);
         val pid_Fmaps = map (mk_Fmap HOLogic.id_const ps prodTs) (mk_mapsXC prodTs I);
 
-        val (map_simp_thms, map_thms) =
+        val (dtor_map_thms, map_thms) =
           let
             fun mk_goal fs_map map dtor dtor' = fold_rev Logic.all fs
               (mk_Trueprop_eq (HOLogic.mk_comp (dtor', fs_map),
@@ -2482,7 +2482,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               map4 (fn goal => fn cts => fn rec_0s => fn rec_Sucs =>
                 singleton (Proof_Context.export names_lthy lthy)
                   (Skip_Proof.prove lthy [] [] (HOLogic.mk_Trueprop goal)
-                    (mk_col_natural_tac cts rec_0s rec_Sucs map_simp_thms set_natural'ss))
+                    (mk_col_natural_tac cts rec_0s rec_Sucs dtor_map_thms set_natural'ss))
                 |> Thm.close_derivation)
               goals ctss hset_rec_0ss' hset_rec_Sucss';
           in
@@ -2550,7 +2550,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
             val thm = singleton (Proof_Context.export names_lthy lthy)
               (Skip_Proof.prove lthy [] [] goal
-              (K (mk_mcong_tac m (rtac coinduct) map_comp's map_simp_thms map_congs set_natural'ss
+              (K (mk_mcong_tac m (rtac coinduct) map_comp's dtor_map_thms map_congs set_natural'ss
               set_hset_thmss set_hset_hset_thmsss)))
               |> Thm.close_derivation
           in
@@ -2572,7 +2572,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           (map8 mk_wpull AXs B1s B2s f1s f2s (replicate m NONE) p1s p2s));
 
         val map_eq_thms = map2 (fn simp => fn diff => box_equals OF [diff RS iffD2, simp, simp])
-          map_simp_thms dtor_inject_thms;
+          dtor_map_thms dtor_inject_thms;
         val map_wpull_thms = map (fn thm => thm OF
           (replicate m asm_rl @ replicate n @{thm wpull_thePull})) map_wpulls;
         val pickWP_assms_tacs =
@@ -2893,7 +2893,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val Jsrel_defs = map srel_def_of_bnf Jbnfs;
         val Jrel_defs = map rel_def_of_bnf Jbnfs;
 
-        val folded_map_simp_thms = map fold_maps map_simp_thms;
+        val folded_dtor_map_thms = map fold_maps dtor_map_thms;
         val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
         val folded_set_simp_thmss' = transpose folded_set_simp_thmss;
 
@@ -2905,13 +2905,13 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val goals = map6 mk_goal Jzs Jz's dtors dtor's JsrelRs srelRs;
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
-              fn map_simp => fn set_simps => fn dtor_inject => fn dtor_ctor =>
+              fn dtor_map => fn set_simps => fn dtor_inject => fn dtor_ctor =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-                (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong map_simp set_simps
+                (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map set_simps
                   dtor_inject dtor_ctor set_naturals set_incls set_set_inclss))
               |> Thm.close_derivation)
-            ks goals in_srels map_comp's map_congs folded_map_simp_thms folded_set_simp_thmss'
+            ks goals in_srels map_comp's map_congs folded_dtor_map_thms folded_set_simp_thmss'
               dtor_inject_thms dtor_ctor_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
 
@@ -2939,9 +2939,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
         val Jbnf_notes =
-          [(dtor_relN, map single dtor_Jrel_thms),
+          [(dtor_mapN, map single folded_dtor_map_thms),
+          (dtor_relN, map single dtor_Jrel_thms),
           (dtor_srelN, map single dtor_Jsrel_thms),
-          (map_simpsN, map single folded_map_simp_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss

@@ -1394,7 +1394,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val p1s_maps = map (mk_map XTs p1s Ts ctors (mk_passive_maps passiveXs passiveAs)) ks;
         val p2s_maps = map (mk_map XTs p2s Ts' ctor's (mk_passive_maps passiveXs passiveBs)) ks;
 
-        val map_simp_thms =
+        val ctor_map_thms =
           let
             fun mk_goal fs_map map ctor ctor' = fold_rev Logic.all fs
               (mk_Trueprop_eq (HOLogic.mk_comp (fs_map, ctor),
@@ -1520,7 +1520,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                   (map4 (mk_set_natural f) fs_maps Izs sets sets')))
                   fs setss_by_range setss_by_range';
 
-            fun mk_tac induct = mk_set_nat_tac m (rtac induct) set_natural'ss map_simp_thms;
+            fun mk_tac induct = mk_set_nat_tac m (rtac induct) set_natural'ss ctor_map_thms;
             val thms =
               map5 (fn goal => fn csets => fn set_simps => fn induct => fn i =>
                 singleton (Proof_Context.export names_lthy lthy)
@@ -1581,7 +1581,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
             val thm = singleton (Proof_Context.export names_lthy lthy)
               (Skip_Proof.prove lthy [] [] goal
-              (mk_mcong_tac (rtac induct) Fset_set_thmsss map_congs map_simp_thms))
+              (mk_mcong_tac (rtac induct) Fset_set_thmsss map_congs ctor_map_thms))
               |> Thm.close_derivation;
           in
             split_conj_thm thm
@@ -1650,7 +1650,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
             val thm = singleton (Proof_Context.export names_lthy lthy)
               (Skip_Proof.prove lthy [] [] goal
-              (K (mk_lfp_map_wpull_tac m (rtac induct) map_wpulls map_simp_thms
+              (K (mk_lfp_map_wpull_tac m (rtac induct) map_wpulls ctor_map_thms
                 (transpose set_simp_thmss) Fset_set_thmsss ctor_inject_thms)))
               |> Thm.close_derivation;
           in
@@ -1661,7 +1661,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val map_id_tacs = map (K o mk_map_id_tac map_ids) map_unique_thms;
         val map_comp_tacs =
-          map2 (K oo mk_map_comp_tac map_comp's map_simp_thms) map_unique_thms ks;
+          map2 (K oo mk_map_comp_tac map_comp's ctor_map_thms) map_unique_thms ks;
         val map_cong_tacs = map (mk_map_cong_tac m) map_cong_thms;
         val set_nat_tacss = map (map (K o mk_set_natural_tac)) (transpose set_natural_thmss);
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac bd_card_orders));
@@ -1736,7 +1736,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val set_incl_thmss = map (map (fold_sets o hd)) Fset_set_thmsss;
         val set_set_incl_thmsss = map (transpose o map (map fold_sets o tl)) Fset_set_thmsss;
-        val folded_map_simp_thms = map fold_maps map_simp_thms;
+        val folded_ctor_map_thms = map fold_maps ctor_map_thms;
         val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
         val folded_set_simp_thmss' = transpose folded_set_simp_thmss;
 
@@ -1748,13 +1748,13 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val goals = map6 mk_goal xFs yFs ctors ctor's IsrelRs srelRs;
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
-              fn map_simp => fn set_simps => fn ctor_inject => fn ctor_dtor =>
+              fn ctor_map => fn set_simps => fn ctor_inject => fn ctor_dtor =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-               (K (mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong map_simp set_simps
+               (K (mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map set_simps
                  ctor_inject ctor_dtor set_naturals set_incls set_set_inclss))
               |> Thm.close_derivation)
-            ks goals in_srels map_comp's map_congs folded_map_simp_thms folded_set_simp_thmss'
+            ks goals in_srels map_comp's map_congs folded_ctor_map_thms folded_set_simp_thmss'
               ctor_inject_thms ctor_dtor_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
           end;
 
@@ -1781,9 +1781,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
         val Ibnf_notes =
-          [(ctor_relN, map single ctor_Irel_thms),
+          [(ctor_mapN, map single folded_ctor_map_thms),
+          (ctor_relN, map single ctor_Irel_thms),
           (ctor_srelN, map single ctor_Isrel_thms),
-          (map_simpsN, map single folded_map_simp_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss)] @
           map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss

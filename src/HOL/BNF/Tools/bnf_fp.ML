@@ -31,6 +31,7 @@ sig
   val ctor_foldN: string
   val ctor_fold_uniqueN: string
   val ctor_foldsN: string
+  val ctor_mapN: string
   val ctor_recN: string
   val ctor_recsN: string
   val ctor_relN: string
@@ -41,6 +42,7 @@ sig
   val disc_corecsN: string
   val dtorN: string
   val dtor_coinductN: string
+  val dtor_mapN: string
   val dtor_relN: string
   val dtor_corecN: string
   val dtor_corecsN: string
@@ -61,7 +63,6 @@ sig
   val injectN: string
   val isNodeN: string
   val lsbisN: string
-  val map_simpsN: string
   val map_uniqueN: string
   val min_algN: string
   val morN: string
@@ -180,7 +181,8 @@ val dtor_unfoldsN = dtor_unfoldN ^ "s"
 val ctor_fold_uniqueN = ctor_foldN ^ uniqueN
 val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
 val ctor_dtor_unfoldsN = ctorN ^ "_" ^ dtor_unfoldN ^ "s"
-val map_simpsN = mapN ^ "_" ^ simpsN
+val ctor_mapN = ctorN ^ "_" ^ mapN
+val dtor_mapN = dtorN ^ "_" ^ mapN
 val map_uniqueN = mapN ^ uniqueN
 val min_algN = "min_alg"
 val morN = "mor"
