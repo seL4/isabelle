@@ -607,7 +607,7 @@ fun mk_set_simp_tac set set_natural' set_natural's =
   end;
 
 fun mk_set_nat_tac m induct_tac set_natural'ss
-    ctor_maps csets set_simps i {context = ctxt, prems = _} =
+    ctor_maps csets ctor_sets i {context = ctxt, prems = _} =
   let
     val n = length ctor_maps;
 
@@ -623,12 +623,12 @@ fun mk_set_nat_tac m induct_tac set_natural'ss
         REPEAT_DETERM_N (n - 1) o EVERY' (map rtac (trans :: @{thms image_Un Un_cong})),
         EVERY' (map useIH (drop m set_nats))];
   in
-    (induct_tac THEN' EVERY' (map4 mk_set_nat csets ctor_maps set_simps set_natural'ss)) 1
+    (induct_tac THEN' EVERY' (map4 mk_set_nat csets ctor_maps ctor_sets set_natural'ss)) 1
   end;
 
-fun mk_set_bd_tac m induct_tac bd_Cinfinite set_bdss set_simps i {context = ctxt, prems = _} =
+fun mk_set_bd_tac m induct_tac bd_Cinfinite set_bdss ctor_sets i {context = ctxt, prems = _} =
   let
-    val n = length set_simps;
+    val n = length ctor_sets;
 
     fun useIH set_bd = EVERY' [rtac @{thm UNION_Cinfinite_bound}, rtac set_bd, rtac ballI,
       Goal.assume_rule_tac ctxt, rtac bd_Cinfinite];
@@ -639,7 +639,7 @@ fun mk_set_bd_tac m induct_tac bd_Cinfinite set_bdss set_simps i {context = ctxt
         REPEAT_DETERM_N (n - 1) o rtac (bd_Cinfinite RSN (3, @{thm Un_Cinfinite_bound})),
         EVERY' (map useIH (drop m set_bds))];
   in
-    (induct_tac THEN' EVERY' (map2 mk_set_nat set_simps set_bdss)) 1
+    (induct_tac THEN' EVERY' (map2 mk_set_nat ctor_sets set_bdss)) 1
   end;
 
 fun mk_mcong_tac induct_tac set_setsss map_congs ctor_maps {context = ctxt, prems = _} =
@@ -676,7 +676,7 @@ fun mk_incl_min_alg_tac induct_tac set_setsss alg_sets alg_min_alg {context = ct
     (induct_tac THEN' EVERY' (map2 mk_incl alg_sets set_setsss)) 1
   end;
 
-fun mk_lfp_map_wpull_tac m induct_tac wpulls ctor_maps set_simpss set_setsss ctor_injects =
+fun mk_lfp_map_wpull_tac m induct_tac wpulls ctor_maps ctor_setss set_setsss ctor_injects =
   let
     val n = length wpulls;
     val ks = 1 upto n;
@@ -701,7 +701,7 @@ fun mk_lfp_map_wpull_tac m induct_tac wpulls ctor_maps set_simpss set_setsss cto
         EVERY' [rtac @{thm UN_least}, rtac CollectE, etac set_rev_mp, atac,
           REPEAT_DETERM o etac conjE, atac]];
 
-    fun mk_wpull wpull ctor_map set_simps set_setss ctor_inject =
+    fun mk_wpull wpull ctor_map ctor_sets set_setss ctor_inject =
       EVERY' [rtac impI, REPEAT_DETERM o eresolve_tac [CollectE, conjE],
         rtac rev_mp, rtac wpull,
         EVERY' (map (fn i => REPEAT_DETERM_N (i - 1) o etac thin_rl THEN' atac) ls),
@@ -715,9 +715,9 @@ fun mk_lfp_map_wpull_tac m induct_tac wpulls ctor_maps set_simpss set_setsss cto
         rtac subst, rtac ctor_inject, rtac trans, rtac sym, rtac ctor_map,
         rtac trans, atac, rtac ctor_map, REPEAT_DETERM o eresolve_tac [CollectE, conjE, bexE],
         hyp_subst_tac, rtac bexI, rtac conjI, rtac ctor_map, rtac ctor_map, rtac CollectI,
-        CONJ_WRAP' mk_subset set_simps];
+        CONJ_WRAP' mk_subset ctor_sets];
   in
-    (induct_tac THEN' EVERY' (map5 mk_wpull wpulls ctor_maps set_simpss set_setsss ctor_injects)) 1
+    (induct_tac THEN' EVERY' (map5 mk_wpull wpulls ctor_maps ctor_setss set_setsss ctor_injects)) 1
   end;
 
 (* BNF tactics *)
@@ -770,7 +770,7 @@ fun mk_wit_tac n set_simp wit =
           EVERY' [hyp_subst_tac, dtac set_rev_mp, rtac equalityD1, resolve_tac set_simp,
             REPEAT_DETERM_N n o etac UnE]))))] 1);
 
-fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map set_simps ctor_inject
+fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map ctor_sets ctor_inject
   ctor_dtor set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;
@@ -819,7 +819,7 @@ fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map set_simps ct
                 dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac,
                 hyp_subst_tac, REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
             (rev (active_set_naturals ~~ in_Isrels))])
-        (set_simps ~~ passive_set_naturals),
+        (ctor_sets ~~ passive_set_naturals),
         rtac conjI,
         REPEAT_DETERM_N 2 o EVERY' [rtac trans, rtac ctor_map, rtac (ctor_inject RS iffD2),
           rtac trans, rtac map_comp, rtac trans, rtac map_cong,

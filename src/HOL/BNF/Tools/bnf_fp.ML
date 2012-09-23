@@ -90,11 +90,13 @@ sig
   val unfoldsN: string
   val uniqueN: string
 
+  val mk_ctor_setsN: int -> string
+  val mk_dtor_set_inductN: int -> string
+  val mk_dtor_setsN: int -> string
   val mk_exhaustN: string -> string
   val mk_injectN: string -> string
   val mk_nchotomyN: string -> string
-  val mk_set_simpsN: int -> string
-  val mk_set_minimalN: int -> string
+  val mk_setsN: int -> string
   val mk_set_inductN: int -> string
 
   val mk_common_name: string list -> string
@@ -196,9 +198,11 @@ val isNodeN = "isNode"
 val LevN = "Lev"
 val rvN = "recover"
 val behN = "beh"
-fun mk_set_simpsN i = mk_setN i ^ "_" ^ simpsN
-fun mk_set_minimalN i = mk_setN i ^ "_minimal"
+fun mk_setsN i = mk_setN i ^ "s"
+val mk_ctor_setsN = prefix (ctorN ^ "_") o mk_setsN
+val mk_dtor_setsN = prefix (dtorN ^ "_") o mk_setsN
 fun mk_set_inductN i = mk_setN i ^ "_induct"
+val mk_dtor_set_inductN = prefix (dtorN ^ "_") o mk_set_inductN
 
 val str_initN = "str_init"
 val recN = "rec"

@@ -70,6 +70,8 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
   unfold_thms_tac ctxt [ctr_def] THEN rtac (ctor_inject RS ssubst) 1 THEN
   unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
+(* TODO: Try "map_pair_simp" instead of "map_pair_def" everywhere. *)
+
 val rec_like_unfold_thms =
   @{thms comp_def convol_def id_apply map_pair_def prod_case_Pair_iden sum.simps(5,6) sum_map.simps
       split_conv unit_case_Unity};
@@ -79,7 +81,7 @@ fun mk_rec_like_tac pre_map_defs map_ids rec_like_defs ctor_rec_like ctr_def ctx
     rec_like_unfold_thms) THEN unfold_thms_tac ctxt @{thms id_def} THEN rtac refl 1;
 
 val corec_like_ss = ss_only @{thms if_True if_False};
-val corec_like_unfold_thms = @{thms id_apply map_pair_def sum_map.simps prod.cases};
+val corec_like_unfold_thms = @{thms id_apply map_pair_def prod.cases sum_map.simps};
 
 fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN

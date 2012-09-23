@@ -1475,13 +1475,13 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                   FTs_setss ctors xFs sets)
                 ls setss_by_range;
 
-            val set_simpss = map3 (fn i => map3 (fn set_nats => fn goal => fn set =>
+            val ctor_setss = map3 (fn i => map3 (fn set_nats => fn goal => fn set =>
                 Skip_Proof.prove lthy [] [] goal
                   (K (mk_set_simp_tac set (nth set_nats (i - 1)) (drop m set_nats)))
                 |> Thm.close_derivation)
               set_natural'ss) ls simp_goalss setss;
           in
-            set_simpss
+            ctor_setss
           end;
 
         fun mk_set_thms set_simp = (@{thm xt1(3)} OF [set_simp, @{thm Un_upper1}]) ::
@@ -1522,9 +1522,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
             fun mk_tac induct = mk_set_nat_tac m (rtac induct) set_natural'ss ctor_map_thms;
             val thms =
-              map5 (fn goal => fn csets => fn set_simps => fn induct => fn i =>
+              map5 (fn goal => fn csets => fn ctor_sets => fn induct => fn i =>
                 singleton (Proof_Context.export names_lthy lthy)
-                  (Skip_Proof.prove lthy [] [] goal (mk_tac induct csets set_simps i))
+                  (Skip_Proof.prove lthy [] [] goal (mk_tac induct csets ctor_sets i))
                 |> Thm.close_derivation)
               goals csetss set_simp_thmss inducts ls;
           in
@@ -1549,9 +1549,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
             fun mk_tac induct = mk_set_bd_tac m (rtac induct) bd_Cinfinite set_bd_cpowss;
             val thms =
-              map4 (fn goal => fn set_simps => fn induct => fn i =>
+              map4 (fn goal => fn ctor_sets => fn induct => fn i =>
                 singleton (Proof_Context.export names_lthy lthy)
-                  (Skip_Proof.prove lthy [] [] goal (mk_tac induct set_simps i))
+                  (Skip_Proof.prove lthy [] [] goal (mk_tac induct ctor_sets i))
                 |> Thm.close_derivation)
               goals set_simp_thmss inducts ls;
           in
@@ -1748,10 +1748,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val goals = map6 mk_goal xFs yFs ctors ctor's IsrelRs srelRs;
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
-              fn ctor_map => fn set_simps => fn ctor_inject => fn ctor_dtor =>
+              fn ctor_map => fn ctor_sets => fn ctor_inject => fn ctor_dtor =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-               (K (mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map set_simps
+               (K (mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map ctor_sets
                  ctor_inject ctor_dtor set_naturals set_incls set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_srels map_comp's map_congs folded_ctor_map_thms folded_set_simp_thmss'
@@ -1786,7 +1786,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           (ctor_srelN, map single ctor_Isrel_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss)] @
-          map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
+          map2 (fn i => fn thms => (mk_ctor_setsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))

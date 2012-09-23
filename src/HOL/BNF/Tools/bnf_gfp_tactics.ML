@@ -1494,7 +1494,7 @@ fun mk_coind_wit_tac induct unfolds set_nats wits {context = ctxt, prems = _} =
   ALLGOALS (TRY o
     FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
 
-fun mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map set_simps dtor_inject dtor_ctor
+fun mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map dtor_sets dtor_inject dtor_ctor
   set_naturals set_incls set_set_inclss =
   let
     val m = length set_incls;
@@ -1538,7 +1538,7 @@ fun mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map set_simps dt
                 dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac,
                 hyp_subst_tac, REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
             (rev (active_set_naturals ~~ in_Jsrels))])
-        (set_simps ~~ passive_set_naturals),
+        (dtor_sets ~~ passive_set_naturals),
         rtac conjI,
         REPEAT_DETERM_N 2 o EVERY'[rtac (dtor_inject RS iffD1), rtac trans, rtac dtor_map,
           rtac box_equals, rtac map_comp, rtac (dtor_ctor RS sym RS arg_cong), rtac trans,

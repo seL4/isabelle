@@ -2302,7 +2302,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val YTs = mk_Ts passiveYs;
 
         val ((((((((((((((((((((fs, fs'), fs_copy), gs), us),
-          (Jys, Jys')), (Jys_copy, Jys'_copy)), set_induct_phiss), JRs), Jphis),
+          (Jys, Jys')), (Jys_copy, Jys'_copy)), dtor_set_induct_phiss), JRs), Jphis),
           B1s), B2s), AXs), f1s), f2s), p1s), p2s), ps), (ys, ys')), (ys_copy, ys'_copy)),
           names_lthy) = names_lthy
           |> mk_Frees' "f" fTs
@@ -2677,7 +2677,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val tacss = map10 zip_axioms map_id_tacs map_comp_tacs map_cong_tacs set_nat_tacss
           bd_co_tacs bd_cinf_tacs set_bd_tacss in_bd_tacs map_wpull_tacs srel_O_Gr_tacs;
 
-        val (hset_dtor_incl_thmss, hset_hset_dtor_incl_thmsss, hset_induct_thms) =
+        val (hset_dtor_incl_thmss, hset_hset_dtor_incl_thmsss, dtor_hset_induct_thms) =
           let
             fun tinst_of dtor =
               map (SOME o certify lthy) (dtor :: remove (op =) dtor dtors);
@@ -2713,7 +2713,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 SOME (certify lthy (Term.absfree Jz' (HOLogic.mk_Collect (fst y', snd y',
                   HOLogic.mk_conj (HOLogic.mk_mem (y, jset $ Jz), phi $ y $ Jz))))))
               phis jsets Jzs Jzs';
-            val set_induct_thms =
+            val dtor_set_induct_thms =
               map6 (fn set_minimal => fn set_set_inclss => fn jsets => fn y => fn y' => fn phis =>
                 ((set_minimal
                   |> Drule.instantiate' [] (mk_induct_tinst phis jsets y y')
@@ -2722,9 +2722,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                     maps (map (fn thm => thm RS @{thm subset_CollectI})) set_set_inclss))
                 |> singleton (Proof_Context.export names_lthy lthy)
                 |> rule_by_tactic lthy (ALLGOALS (TRY o etac asm_rl)))
-              set_minimal_thms set_set_incl_thmsss' setss_by_range ys ys' set_induct_phiss
+              set_minimal_thms set_set_incl_thmsss' setss_by_range ys ys' dtor_set_induct_phiss
           in
-            (set_incl_thmss, set_set_incl_thmsss, set_induct_thms)
+            (set_incl_thmss, set_set_incl_thmsss, dtor_set_induct_thms)
           end;
 
         fun close_wit I wit = (I, fold_rev Term.absfree (map (nth ys') I) wit);
@@ -2833,7 +2833,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               Skip_Proof.prove lthy [] [] goal
                 (mk_coind_wit_tac induct dtor_unfold_thms (flat set_natural'ss) wit_thms)
               |> Thm.close_derivation)
-            goals hset_induct_thms
+            goals dtor_hset_induct_thms
             |> map split_conj_thm
             |> transpose
             |> map (map_filter (try (fn thm => thm RS bspec RS mp)))
@@ -2876,7 +2876,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val set_incl_thmss = map (map fold_sets) hset_dtor_incl_thmss;
         val set_set_incl_thmsss = map (map (map fold_sets)) hset_hset_dtor_incl_thmsss;
-        val set_induct_thms = map fold_sets hset_induct_thms;
+        val dtor_set_induct_thms = map fold_sets dtor_hset_induct_thms;
 
         val srels = map2 (fn Ds => mk_srel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
         val Jsrels = map (mk_srel_of_bnf deads passiveAs passiveBs) Jbnfs;
@@ -2905,10 +2905,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val goals = map6 mk_goal Jzs Jz's dtors dtor's JsrelRs srelRs;
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
-              fn dtor_map => fn set_simps => fn dtor_inject => fn dtor_ctor =>
+              fn dtor_map => fn dtor_sets => fn dtor_inject => fn dtor_ctor =>
               fn set_naturals => fn set_incls => fn set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
-                (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map set_simps
+                (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map dtor_sets
                   dtor_inject dtor_ctor set_naturals set_incls set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_srels map_comp's map_congs folded_dtor_map_thms folded_set_simp_thmss'
@@ -2934,7 +2934,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val Jbnf_common_notes =
           [(map_uniqueN, [fold_maps map_unique_thm])] @
-          map2 (fn i => fn thm => (mk_set_inductN i, [thm])) ls' set_induct_thms
+          map2 (fn i => fn thm => (mk_dtor_set_inductN i, [thm])) ls' dtor_set_induct_thms
           |> map (fn (thmN, thms) =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
@@ -2944,7 +2944,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           (dtor_srelN, map single dtor_Jsrel_thms),
           (set_inclN, set_incl_thmss),
           (set_set_inclN, map flat set_set_incl_thmsss)] @
-          map2 (fn i => fn thms => (mk_set_simpsN i, map single thms)) ls' folded_set_simp_thmss
+          map2 (fn i => fn thms => (mk_dtor_setsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
