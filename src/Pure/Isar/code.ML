@@ -293,7 +293,7 @@ in
 
 (* access to executable code *)
 
-val the_exec = fst o Code_Data.get;
+val the_exec : theory -> spec = fst o Code_Data.get;
 
 fun map_exec_purge f = Code_Data.map (fn (exec, _) => (f exec, empty_dataref ()));
 
