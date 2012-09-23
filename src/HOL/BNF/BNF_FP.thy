@@ -14,8 +14,11 @@ keywords
   "defaults"
 begin
 
-lemma case_unit: "(case u of () => f) = f"
+lemma unit_case_Unity: "(case u of () => f) = f"
 by (cases u) (hypsubst, rule unit.cases)
+
+lemma prod_case_Pair_iden: "(case p of (x, y) \<Rightarrow> (x, y)) = p"
+by simp
 
 lemma unit_all_impI: "(P () \<Longrightarrow> Q ()) \<Longrightarrow> \<forall>x. P x \<longrightarrow> Q x"
 by simp
