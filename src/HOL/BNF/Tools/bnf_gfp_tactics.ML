@@ -1495,10 +1495,10 @@ fun mk_coind_wit_tac induct unfolds set_nats wits {context = ctxt, prems = _} =
     FIRST' [rtac TrueI, rtac refl, etac (refl RSN (2, mp)), dresolve_tac wits THEN' etac FalseE])
 
 fun mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map dtor_sets dtor_inject dtor_ctor
-  set_naturals set_incls set_set_inclss =
+  set_naturals dtor_set_incls dtor_set_set_inclss =
   let
-    val m = length set_incls;
-    val n = length set_set_inclss;
+    val m = length dtor_set_incls;
+    val n = length dtor_set_set_inclss;
     val (passive_set_naturals, active_set_naturals) = chop m set_naturals;
     val in_Jsrel = nth in_Jsrels (i - 1);
     val if_tac =
@@ -1508,13 +1508,13 @@ fun mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map dtor_sets dt
           EVERY' [rtac conjI, rtac ord_eq_le_trans, rtac set_natural,
             rtac ord_eq_le_trans, rtac trans_fun_cong_image_id_id_apply,
             etac (set_incl RS @{thm subset_trans})])
-        passive_set_naturals set_incls),
-        CONJ_WRAP' (fn (in_Jsrel, (set_natural, set_set_incls)) =>
+        passive_set_naturals dtor_set_incls),
+        CONJ_WRAP' (fn (in_Jsrel, (set_natural, dtor_set_set_incls)) =>
           EVERY' [rtac ord_eq_le_trans, rtac set_natural, rtac @{thm image_subsetI},
             rtac (in_Jsrel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
-            CONJ_WRAP' (fn thm => etac (thm RS @{thm subset_trans}) THEN' atac) set_set_incls,
+            CONJ_WRAP' (fn thm => etac (thm RS @{thm subset_trans}) THEN' atac) dtor_set_set_incls,
             rtac conjI, rtac refl, rtac refl])
-        (in_Jsrels ~~ (active_set_naturals ~~ set_set_inclss)),
+        (in_Jsrels ~~ (active_set_naturals ~~ dtor_set_set_inclss)),
         CONJ_WRAP' (fn conv =>
           EVERY' [rtac trans, rtac map_comp, rtac trans, rtac map_cong,
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},

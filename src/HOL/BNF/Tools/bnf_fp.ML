@@ -36,6 +36,8 @@ sig
   val ctor_recN: string
   val ctor_recsN: string
   val ctor_relN: string
+  val ctor_set_inclN: string
+  val ctor_set_set_inclN: string
   val ctor_srelN: string
   val disc_unfold_iffN: string
   val disc_unfoldsN: string
@@ -51,6 +53,8 @@ sig
   val dtor_exhaustN: string
   val dtor_injectN: string
   val dtor_map_uniqueN: string
+  val dtor_set_inclN: string
+  val dtor_set_set_inclN: string
   val dtor_srelN: string
   val dtor_strong_coinductN: string
   val dtor_unfoldN: string
@@ -249,7 +253,11 @@ val srel_strong_coinductN = srelN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"
+val ctor_set_inclN = ctorN ^ "_" ^ set_inclN
+val dtor_set_inclN = dtorN ^ "_" ^ set_inclN
 val set_set_inclN = "set_set_incl"
+val ctor_set_set_inclN = ctorN ^ "_" ^ set_set_inclN
+val dtor_set_set_inclN = dtorN ^ "_" ^ set_set_inclN
 
 val caseN = "case"
 val discN = "disc"

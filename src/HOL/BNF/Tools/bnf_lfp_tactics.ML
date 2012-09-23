@@ -771,10 +771,10 @@ fun mk_wit_tac n set_simp wit =
             REPEAT_DETERM_N n o etac UnE]))))] 1);
 
 fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map ctor_sets ctor_inject
-  ctor_dtor set_naturals set_incls set_set_inclss =
+  ctor_dtor set_naturals ctor_set_incls ctor_set_set_inclss =
   let
-    val m = length set_incls;
-    val n = length set_set_inclss;
+    val m = length ctor_set_incls;
+    val n = length ctor_set_set_inclss;
 
     val (passive_set_naturals, active_set_naturals) = chop m set_naturals;
     val in_Isrel = nth in_Isrels (i - 1);
@@ -783,19 +783,19 @@ fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map ctor_sets ct
     val if_tac =
       EVERY' [dtac (in_Isrel RS iffD1), REPEAT_DETERM o eresolve_tac [exE, conjE, CollectE],
         rtac (in_srel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
-        EVERY' (map2 (fn set_natural => fn set_incl =>
+        EVERY' (map2 (fn set_natural => fn ctor_set_incl =>
           EVERY' [rtac conjI, rtac ord_eq_le_trans, rtac set_natural,
             rtac ord_eq_le_trans, rtac trans_fun_cong_image_id_id_apply,
-            rtac (set_incl RS subset_trans), etac le_arg_cong_ctor_dtor])
-        passive_set_naturals set_incls),
-        CONJ_WRAP' (fn (in_Isrel, (set_natural, set_set_incls)) =>
+            rtac (ctor_set_incl RS subset_trans), etac le_arg_cong_ctor_dtor])
+        passive_set_naturals ctor_set_incls),
+        CONJ_WRAP' (fn (in_Isrel, (set_natural, ctor_set_set_incls)) =>
           EVERY' [rtac ord_eq_le_trans, rtac set_natural, rtac @{thm image_subsetI},
             rtac (in_Isrel RS iffD2), rtac exI, rtac conjI, rtac CollectI,
             CONJ_WRAP' (fn thm =>
               EVERY' (map etac [thm RS subset_trans, le_arg_cong_ctor_dtor]))
-            set_set_incls,
+            ctor_set_set_incls,
             rtac conjI, rtac refl, rtac refl])
-        (in_Isrels ~~ (active_set_naturals ~~ set_set_inclss)),
+        (in_Isrels ~~ (active_set_naturals ~~ ctor_set_set_inclss)),
         CONJ_WRAP' (fn conv =>
           EVERY' [rtac trans, rtac map_comp, rtac trans, rtac map_cong,
           REPEAT_DETERM_N m o rtac @{thm fun_cong[OF o_id]},

@@ -2874,8 +2874,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val timer = time (timer "registered new codatatypes as BNFs");
 
-        val set_incl_thmss = map (map fold_sets) hset_dtor_incl_thmss;
-        val set_set_incl_thmsss = map (map (map fold_sets)) hset_hset_dtor_incl_thmsss;
+        val dtor_set_incl_thmss = map (map fold_sets) hset_dtor_incl_thmss;
+        val dtor_set_set_incl_thmsss = map (map (map fold_sets)) hset_hset_dtor_incl_thmsss;
         val dtor_set_induct_thms = map fold_sets dtor_hset_induct_thms;
 
         val srels = map2 (fn Ds => mk_srel_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
@@ -2906,13 +2906,14 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             map12 (fn i => fn goal => fn in_srel => fn map_comp => fn map_cong =>
               fn dtor_map => fn dtor_sets => fn dtor_inject => fn dtor_ctor =>
-              fn set_naturals => fn set_incls => fn set_set_inclss =>
+              fn set_naturals => fn dtor_set_incls => fn dtor_set_set_inclss =>
               Skip_Proof.prove lthy [] [] goal
                 (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map dtor_sets
-                  dtor_inject dtor_ctor set_naturals set_incls set_set_inclss))
+                  dtor_inject dtor_ctor set_naturals dtor_set_incls dtor_set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_srels map_comp's map_congs folded_dtor_map_thms folded_set_simp_thmss'
-              dtor_inject_thms dtor_ctor_thms set_natural'ss set_incl_thmss set_set_incl_thmsss
+              dtor_inject_thms dtor_ctor_thms set_natural'ss dtor_set_incl_thmss
+              dtor_set_set_incl_thmsss
           end;
 
         val dtor_Jrel_thms =
@@ -2941,9 +2942,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val Jbnf_notes =
           [(dtor_mapN, map single folded_dtor_map_thms),
           (dtor_relN, map single dtor_Jrel_thms),
-          (dtor_srelN, map single dtor_Jsrel_thms),
-          (set_inclN, set_incl_thmss),
-          (set_set_inclN, map flat set_set_incl_thmsss)] @
+          (dtor_set_inclN, dtor_set_incl_thmss),
+          (dtor_set_set_inclN, map flat dtor_set_set_incl_thmsss),
+          (dtor_srelN, map single dtor_Jsrel_thms)] @
           map2 (fn i => fn thms => (mk_dtor_setsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
