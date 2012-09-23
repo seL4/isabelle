@@ -11,8 +11,8 @@ signature BNF_GFP =
 sig
   val bnf_gfp: mixfix list -> (string * sort) list option -> binding list ->
     typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * term list * term list * thm * thm list * thm list * thm list *
-      thm list * thm list) * local_theory
+    (term list * term list * term list * term list * term list * thm * thm list * thm list *
+      thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -2282,7 +2282,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val timer = time (timer "coinduction");
 
     (*register new codatatypes as BNFs*)
-    val lthy = if m = 0 then lthy else
+    val (Jrels, lthy) = if m = 0 then ([], lthy) else
       let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
@@ -2952,7 +2952,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        timer; lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd
+        timer; (Jrels, lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
       end;
 
       val common_notes =
@@ -2983,7 +2983,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((dtors, ctors, unfolds, corecs, dtor_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
+    ((dtors, ctors, Jrels, unfolds, corecs, dtor_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
       ctor_inject_thms, ctor_dtor_unfold_thms, ctor_dtor_corec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;

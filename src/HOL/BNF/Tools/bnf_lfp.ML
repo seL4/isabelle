@@ -10,8 +10,8 @@ signature BNF_LFP =
 sig
   val bnf_lfp: mixfix list -> (string * sort) list option -> binding list ->
     typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * term list * term list * thm * thm list * thm list * thm list *
-      thm list * thm list) * local_theory
+    (term list * term list * term list * term list * term list * thm * thm list * thm list *
+      thm list * thm list * thm list) * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -1343,7 +1343,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val timer = time (timer "induction");
 
     (*register new datatypes as BNFs*)
-    val lthy = if m = 0 then lthy else
+    val (Irels, lthy) = if m = 0 then ([], lthy) else
       let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;
@@ -1374,8 +1374,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "p1" p1Ts
           ||>> mk_Frees "p2" p2Ts
           ||>> mk_Frees' "y" passiveAs
-          ||>> mk_Frees "R" IRTs
-          ||>> mk_Frees "P" IphiTs;
+          ||>> mk_Frees "S" IRTs
+          ||>> mk_Frees "R" IphiTs;
 
         val map_FTFT's = map2 (fn Ds =>
           mk_map_of_bnf Ds (passiveAs @ Ts) (passiveBs @ Ts')) Dss bnfs;
@@ -1794,7 +1794,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        timer; lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd
+        timer; (Irels, lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
       end;
 
       val common_notes =
@@ -1819,8 +1819,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((dtors, ctors, folds, recs, ctor_induct_thm, dtor_ctor_thms, ctor_dtor_thms, ctor_inject_thms,
-      ctor_fold_thms, ctor_rec_thms),
+    ((dtors, ctors, Irels, folds, recs, ctor_induct_thm, dtor_ctor_thms, ctor_dtor_thms,
+      ctor_inject_thms, ctor_fold_thms, ctor_rec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

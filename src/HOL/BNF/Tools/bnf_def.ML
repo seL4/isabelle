@@ -692,9 +692,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||>> mk_Frees "p1" (map2 (curry (op -->)) domTs B1Ts)
       ||>> mk_Frees "p2" (map2 (curry (op -->)) domTs B2Ts)
       ||>> mk_Frees "b" As'
-      ||>> mk_Frees' "R" setRTs
-      ||>> mk_Frees "R" setRTs
-      ||>> mk_Frees "S" setRTsBsCs
+      ||>> mk_Frees' "S" setRTs
+      ||>> mk_Frees "S" setRTs
+      ||>> mk_Frees "T" setRTsBsCs
       ||>> mk_Frees' "Q" QTs;
 
     (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)

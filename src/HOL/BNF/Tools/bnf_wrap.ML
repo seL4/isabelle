@@ -84,13 +84,16 @@ fun mk_ctr Ts t =
 fun mk_disc_or_sel Ts t =
   Term.subst_atomic_types (snd (Term.dest_Type (domain_type (fastype_of t))) ~~ Ts) t;
 
+fun mk_case Ts T t =
+  let val (Type (_, Ts0), body) = strip_type (fastype_of t) |>> List.last in
+    Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) t
+  end;
+
 fun base_name_of_ctr c =
   Long_Name.base_name (case head_of c of
       Const (s, _) => s
     | Free (s, _) => s
     | _ => error "Cannot extract name of constructor");
-
-fun rapp u t = betapply (t, u);
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
@@ -163,13 +166,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           else
             sel)) (1 upto m) o pad_list Binding.empty m) ctrs0 ms;
 
-    fun mk_case Ts T =
-      let
-        val (bindings, body) = strip_type (fastype_of case0)
-        val Type (_, Ts0) = List.last bindings
-      in Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) case0 end;
-
-    val casex = mk_case As B;
+    val casex = mk_case As B case0;
     val case_Ts = map (fn Ts => Ts ---> B) ctr_Tss;
 
     val (((((((xss, xss'), yss), fs), gs), [u', v']), (p, p')), names_lthy) = no_defs_lthy |>
@@ -260,7 +257,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     " vs. " ^ quote (Syntax.string_of_typ no_defs_lthy T')));
             in
               mk_Trueprop_eq (Free (Binding.name_of b, dataT --> T) $ u,
-                Term.list_comb (mk_case As T, mk_sel_case_args b proto_sels T) $ u)
+                Term.list_comb (mk_case As T case0, mk_sel_case_args b proto_sels T) $ u)
             end;
 
           val sel_bindings = flat sel_bindingss;

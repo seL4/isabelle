@@ -70,9 +70,11 @@ sig
   val recsN: string
   val rel_coinductN: string
   val rel_strong_coinductN: string
+  val relsN: string
   val rvN: string
-  val sel_unfoldsN: string
   val sel_corecsN: string
+  val sel_relsN: string
+  val sel_unfoldsN: string
   val set_inclN: string
   val set_set_inclN: string
   val simpsN: string
@@ -226,7 +228,6 @@ val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_coinductN = dtorN ^ "_" ^ coinductN
 val rel_coinductN = relN ^ "_" ^ coinductN
 val srel_coinductN = srelN ^ "_" ^ coinductN
-val simpN = "_simp";
 val ctor_srelN = ctorN ^ "_" ^ srelN
 val dtor_srelN = dtorN ^ "_" ^ srelN
 val ctor_relN = ctorN ^ "_" ^ relN
@@ -247,7 +248,9 @@ val disc_corecsN = discN ^ "_" ^ corecsN
 val iffN = "_iff"
 val disc_unfold_iffN = discN ^ "_" ^ unfoldN ^ iffN
 val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
+val relsN = relN ^ "s"
 val selN = "sel"
+val sel_relsN = selN ^ "_" ^ relsN
 val sel_unfoldsN = selN ^ "_" ^ unfoldsN
 val sel_corecsN = selN ^ "_" ^ corecsN
 

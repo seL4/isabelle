@@ -102,6 +102,8 @@ sig
   val mk_subset: term -> term -> term
   val mk_wpull: term -> term -> term -> term -> term -> (term * term) option -> term -> term -> term
 
+  val rapp: term -> term -> term
+
   val list_all_free: term list -> term -> term
   val list_exists_free: term list -> term -> term
 
@@ -503,6 +505,8 @@ fun mk_collect xs defT =
   in Const (@{const_name collect}, HOLogic.mk_setT T --> T) $ (HOLogic.mk_set T xs) end;
 
 fun mk_permute src dest xs = map (nth xs o (fn x => find_index ((curry op =) x) src)) dest;
+
+fun rapp u t = betapply (t, u);
 
 val list_all_free =
   fold_rev (fn free => fn P =>
