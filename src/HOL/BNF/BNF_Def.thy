@@ -145,7 +145,20 @@ by auto
 lemma pointfreeE: "f o g = f' o g' \<Longrightarrow> f (g x) = f' (g' x)"
 unfolding o_def fun_eq_iff by simp
 
+lemma eqset_imp_iff_pair: "A = B \<Longrightarrow> (a, b) \<in> A \<longleftrightarrow> (a, b) \<in> B"
+by (rule eqset_imp_iff)
+
+lemma fun_cong_pair: "f = g \<Longrightarrow> f {(a, b). R a b} = g {(a, b). R a b}"
+by (rule fun_cong)
+
+lemma flip_as_converse: "{(a, b). R b a} = converse {(a, b). R a b}"
+unfolding converse_def mem_Collect_eq prod.cases
+apply (rule arg_cong[of _ _ "\<lambda>x. Collect (prod_case x)"])
+apply (rule ext)+
+apply (unfold conversep_iff)
+by (rule refl)
+
 ML_file "Tools/bnf_def_tactics.ML"
-ML_file"Tools/bnf_def.ML"
+ML_file "Tools/bnf_def.ML"
 
 end
