@@ -59,7 +59,7 @@ sig
     thm list list -> thm list list list -> tactic
   val mk_map_id_tac: thm list -> thm -> thm -> tactic
   val mk_map_tac: int -> int -> ctyp option -> thm -> thm -> thm -> tactic
-  val mk_map_unique_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_dtor_map_unique_tac: thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
   val mk_mor_Abs_tac: thm list -> thm list -> {prems: 'a, context: Proof.context} -> tactic
   val mk_mor_Rep_tac: int -> thm list -> thm list -> thm list -> thm list list -> thm list ->
     thm list -> {prems: 'a, context: Proof.context} -> tactic
@@ -1255,7 +1255,7 @@ fun mk_mcong_tac m coinduct_tac map_comp's dtor_maps map_congs set_naturalss set
            rtac conjI, rtac refl, rtac refl]) ks]) 1
   end
 
-fun mk_map_unique_tac unfold_unique map_comps {context = ctxt, prems = _} =
+fun mk_dtor_map_unique_tac unfold_unique map_comps {context = ctxt, prems = _} =
   rtac unfold_unique 1 THEN
   unfold_thms_tac ctxt (map (fn thm => thm RS sym) map_comps @ @{thms o_assoc id_o o_id}) THEN
   ALLGOALS (etac sym);

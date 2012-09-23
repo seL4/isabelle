@@ -42,7 +42,7 @@ sig
   val mk_map_comp_tac: thm list -> thm list -> thm -> int -> tactic
   val mk_map_id_tac: thm list -> thm -> tactic
   val mk_map_tac: int -> int -> thm -> thm -> thm -> tactic
-  val mk_map_unique_tac: int -> thm -> thm -> thm list -> thm list -> tactic
+  val mk_ctor_map_unique_tac: int -> thm -> thm -> thm list -> thm list -> tactic
   val mk_mcong_tac: (int -> tactic) -> thm list list list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_min_algs_card_of_tac: ctyp -> cterm -> int -> thm -> thm list -> thm list -> thm -> thm ->
@@ -577,7 +577,7 @@ fun mk_map_tac m n foldx map_comp_id map_cong =
     REPEAT_DETERM_N n o (EVERY' (map rtac [trans, o_apply, id_apply])),
     rtac sym, rtac o_apply] 1;
 
-fun mk_map_unique_tac m mor_def fold_unique_mor map_comp_ids map_congs =
+fun mk_ctor_map_unique_tac m mor_def fold_unique_mor map_comp_ids map_congs =
   let
     val n = length map_congs;
     fun mk_mor (comp_id, cong) = EVERY' [rtac ballI, rtac trans, etac @{thm pointfreeE},

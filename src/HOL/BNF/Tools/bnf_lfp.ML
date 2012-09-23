@@ -1409,7 +1409,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             map (fn thm => thm RS @{thm pointfreeE}) maps
           end;
 
-        val (map_unique_thms, map_unique_thm) =
+        val (ctor_map_unique_thms, ctor_map_unique_thm) =
           let
             fun mk_prem u map ctor ctor' =
               mk_Trueprop_eq (HOLogic.mk_comp (u, ctor),
@@ -1420,7 +1420,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 (map2 (curry HOLogic.mk_eq) us fs_maps));
             val unique = Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (K (mk_map_unique_tac m mor_def fold_unique_mor_thm map_comp_id_thms map_congs))
+              (K (mk_ctor_map_unique_tac m mor_def fold_unique_mor_thm map_comp_id_thms map_congs))
               |> Thm.close_derivation;
           in
             `split_conj_thm unique
@@ -1659,9 +1659,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
         val timer = time (timer "helpers for BNF properties");
 
-        val map_id_tacs = map (K o mk_map_id_tac map_ids) map_unique_thms;
+        val map_id_tacs = map (K o mk_map_id_tac map_ids) ctor_map_unique_thms;
         val map_comp_tacs =
-          map2 (K oo mk_map_comp_tac map_comp's ctor_map_thms) map_unique_thms ks;
+          map2 (K oo mk_map_comp_tac map_comp's ctor_map_thms) ctor_map_unique_thms ks;
         val map_cong_tacs = map (mk_map_cong_tac m) map_cong_thms;
         val set_nat_tacss = map (map (K o mk_set_natural_tac)) (transpose set_natural_thmss);
         val bd_co_tacs = replicate n (K (mk_bd_card_order_tac bd_card_orders));
@@ -1776,7 +1776,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val ls' = if m = 1 then [0] else ls
 
         val Ibnf_common_notes =
-          [(map_uniqueN, [fold_maps map_unique_thm])]
+          [(ctor_map_uniqueN, [fold_maps ctor_map_unique_thm])]
           |> map (fn (thmN, thms) =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 

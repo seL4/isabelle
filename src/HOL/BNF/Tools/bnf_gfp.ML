@@ -2396,7 +2396,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               |> Thm.close_derivation)
           end;
 
-        val map_unique_thm =
+        val dtor_map_unique_thm =
           let
             fun mk_prem u map dtor dtor' =
               mk_Trueprop_eq (HOLogic.mk_comp (dtor', u),
@@ -2408,7 +2408,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             Skip_Proof.prove lthy [] []
               (fold_rev Logic.all (us @ fs) (Logic.list_implies (prems, goal)))
-              (mk_map_unique_tac dtor_unfold_unique_thm map_comps)
+              (mk_dtor_map_unique_tac dtor_unfold_unique_thm map_comps)
               |> Thm.close_derivation
           end;
 
@@ -2933,7 +2933,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val ls' = if m = 1 then [0] else ls;
 
         val Jbnf_common_notes =
-          [(map_uniqueN, [fold_maps map_unique_thm])] @
+          [(dtor_map_uniqueN, [fold_maps dtor_map_unique_thm])] @
           map2 (fn i => fn thm => (mk_dtor_set_inductN i, [thm])) ls' dtor_set_induct_thms
           |> map (fn (thmN, thms) =>
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
