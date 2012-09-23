@@ -45,17 +45,21 @@ sig
   val disc_corecsN: string
   val dtorN: string
   val dtor_coinductN: string
-  val dtor_mapN: string
-  val dtor_relN: string
   val dtor_corecN: string
   val dtor_corecsN: string
   val dtor_ctorN: string
   val dtor_exhaustN: string
   val dtor_injectN: string
+  val dtor_mapN: string
   val dtor_map_uniqueN: string
+  val dtor_relN: string
+  val dtor_rel_coinductN: string
+  val dtor_rel_strong_coinductN: string
   val dtor_set_inclN: string
   val dtor_set_set_inclN: string
   val dtor_srelN: string
+  val dtor_srel_coinductN: string
+  val dtor_srel_strong_coinductN: string
   val dtor_strong_coinductN: string
   val dtor_unfoldN: string
   val dtor_unfold_uniqueN: string
@@ -75,8 +79,6 @@ sig
   val nchotomyN: string
   val recN: string
   val recsN: string
-  val rel_coinductN: string
-  val rel_strong_coinductN: string
   val relsN: string
   val rvN: string
   val sel_corecsN: string
@@ -85,8 +87,6 @@ sig
   val set_inclN: string
   val set_set_inclN: string
   val simpsN: string
-  val srel_coinductN: string
-  val srel_strong_coinductN: string
   val strTN: string
   val str_initN: string
   val strongN: string
@@ -235,21 +235,21 @@ val ctor_injectN = mk_injectN ctorN
 val ctor_exhaustN = mk_exhaustN ctorN
 val dtor_injectN = mk_injectN dtorN
 val dtor_exhaustN = mk_exhaustN dtorN
+val ctor_relN = ctorN ^ "_" ^ relN
+val dtor_relN = dtorN ^ "_" ^ relN
+val ctor_srelN = ctorN ^ "_" ^ srelN
+val dtor_srelN = dtorN ^ "_" ^ srelN
 val inductN = "induct"
 val coinductN = coN ^ inductN
 val ctor_inductN = ctorN ^ "_" ^ inductN
 val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_coinductN = dtorN ^ "_" ^ coinductN
-val rel_coinductN = relN ^ "_" ^ coinductN
-val srel_coinductN = srelN ^ "_" ^ coinductN
-val ctor_srelN = ctorN ^ "_" ^ srelN
-val dtor_srelN = dtorN ^ "_" ^ srelN
-val ctor_relN = ctorN ^ "_" ^ relN
-val dtor_relN = dtorN ^ "_" ^ relN
+val dtor_rel_coinductN = dtor_relN ^ "_" ^ coinductN
+val dtor_srel_coinductN = dtor_srelN ^ "_" ^ coinductN
 val strongN = "strong_"
 val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN
-val rel_strong_coinductN = relN ^ "_" ^ strongN ^ coinductN
-val srel_strong_coinductN = srelN ^ "_" ^ strongN ^ coinductN
+val dtor_rel_strong_coinductN = dtor_relN ^ "_" ^ strongN ^ coinductN
+val dtor_srel_strong_coinductN = dtor_srelN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"

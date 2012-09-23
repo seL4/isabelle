@@ -38,6 +38,9 @@ sig
   val mk_corec_tac: int -> thm list -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_dtor_coinduct_tac: int -> int list -> thm -> thm -> tactic
+  val mk_dtor_srel_coinduct_tac: 'a list -> thm -> thm -> tactic
+  val mk_dtor_srel_strong_coinduct_tac: int -> ctyp option list -> cterm option list -> thm ->
+    thm list -> thm list -> tactic
   val mk_dtor_srel_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
     thm list -> thm list -> thm list list -> tactic
   val mk_dtor_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm ->
@@ -108,9 +111,6 @@ sig
   val mk_set_rv_Lev_tac: int -> cterm option list -> thm list -> thm list -> thm list -> thm list ->
     thm list list -> thm list list -> tactic
   val mk_set_simp_tac: int -> thm -> thm -> thm list -> tactic
-  val mk_srel_coinduct_tac: 'a list -> thm -> thm -> tactic
-  val mk_srel_strong_coinduct_tac: int -> ctyp option list -> cterm option list -> thm ->
-    thm list -> thm list -> tactic
   val mk_strT_hset_tac: int -> int -> int -> ctyp option list -> ctyp option list ->
     cterm option list -> thm list -> thm list -> thm list -> thm list -> thm list list ->
     thm list list -> thm list list -> thm -> thm list list -> tactic
@@ -1123,7 +1123,7 @@ fun mk_corec_tac m corec_defs unfold map_cong corec_Inls {context = ctxt, prems 
     REPEAT_DETERM_N m o rtac refl,
     EVERY' (map (fn thm => rtac @{thm sum_case_expand_Inr} THEN' rtac thm) corec_Inls)] 1;
 
-fun mk_srel_coinduct_tac ks raw_coind bis_srel =
+fun mk_dtor_srel_coinduct_tac ks raw_coind bis_srel =
   EVERY' [rtac rev_mp, rtac raw_coind, rtac ssubst, rtac bis_srel, rtac conjI,
     CONJ_WRAP' (K (rtac @{thm ord_le_eq_trans[OF subset_UNIV UNIV_Times_UNIV[THEN sym]]})) ks,
     CONJ_WRAP' (K (EVERY' [rtac allI, rtac allI, rtac impI,
@@ -1132,8 +1132,8 @@ fun mk_srel_coinduct_tac ks raw_coind bis_srel =
     CONJ_WRAP' (K (EVERY' [rtac impI, rtac @{thm IdD}, etac set_mp,
       rtac CollectI, etac @{thm prod_caseI}])) ks] 1;
 
-fun mk_srel_strong_coinduct_tac m cTs cts srel_coinduct srel_monos srel_Ids =
-  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts srel_coinduct),
+fun mk_dtor_srel_strong_coinduct_tac m cTs cts dtor_srel_coinduct srel_monos srel_Ids =
+  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_srel_coinduct),
     EVERY' (map2 (fn srel_mono => fn srel_Id =>
       EVERY' [REPEAT_DETERM o resolve_tac [allI, impI], REPEAT_DETERM o etac allE,
         etac disjE, etac mp, atac, hyp_subst_tac, rtac (srel_mono RS set_mp),

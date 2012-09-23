@@ -2178,8 +2178,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val timer = time (timer "corec definitions & thms");
 
-    val (dtor_coinduct_thm, coinduct_params, srel_coinduct_thm, rel_coinduct_thm,
-         dtor_strong_coinduct_thm, srel_strong_coinduct_thm, rel_strong_coinduct_thm) =
+    val (dtor_coinduct_thm, coinduct_params, dtor_srel_coinduct_thm, dtor_rel_coinduct_thm,
+         dtor_strong_coinduct_thm, dtor_srel_strong_coinduct_thm, dtor_rel_strong_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -2213,12 +2213,13 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val srel_prems = map5 (mk_srel_prem false) phis dtors srels Jzs Jzs_copy;
         val srel_upto_prems = map5 (mk_srel_prem true) phis dtors srels Jzs Jzs_copy;
 
-        val srel_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (srel_prems, concl));
-        val coinduct_params = rev (Term.add_tfrees srel_coinduct_goal []);
+        val dtor_srel_coinduct_goal =
+          fold_rev Logic.all frees (Logic.list_implies (srel_prems, concl));
+        val coinduct_params = rev (Term.add_tfrees dtor_srel_coinduct_goal []);
 
-        val srel_coinduct = unfold_thms lthy @{thms diag_UNIV}
-          (Skip_Proof.prove lthy [] [] srel_coinduct_goal
-            (K (mk_srel_coinduct_tac ks raw_coind_thm bis_srel_thm))
+        val dtor_srel_coinduct = unfold_thms lthy @{thms diag_UNIV}
+          (Skip_Proof.prove lthy [] [] dtor_srel_coinduct_goal
+            (K (mk_dtor_srel_coinduct_tac ks raw_coind_thm bis_srel_thm))
           |> Thm.close_derivation);
 
         fun mk_dtor_prem upto_eq phi dtor map_nth sets Jz Jz_copy FJz =
@@ -2256,10 +2257,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val cTs = map (SOME o certifyT lthy o TFree) coinduct_params;
         val cts = map3 (SOME o certify lthy ooo mk_phi true) phis Jzs1 Jzs2;
 
-        val srel_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
+        val dtor_srel_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (srel_upto_prems, concl)))
-            (K (mk_srel_strong_coinduct_tac m cTs cts srel_coinduct srel_monos srel_Ids)))
+            (K (mk_dtor_srel_strong_coinduct_tac m cTs cts dtor_srel_coinduct srel_monos srel_Ids)))
           |> Thm.close_derivation;
 
         val dtor_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
@@ -2272,11 +2273,12 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val rel_of_srel_thms =
           srel_defs @ @{thms Id_def' mem_Collect_eq fst_conv snd_conv split_conv};
 
-        val rel_coinduct = unfold_thms lthy rel_of_srel_thms srel_coinduct;
-        val rel_strong_coinduct = unfold_thms lthy rel_of_srel_thms srel_strong_coinduct;
+        val dtor_rel_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_coinduct;
+        val dtor_rel_strong_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_strong_coinduct;
       in
-        (dtor_coinduct, rev (Term.add_tfrees dtor_coinduct_goal []), srel_coinduct, rel_coinduct,
-         dtor_strong_coinduct, srel_strong_coinduct, rel_strong_coinduct)
+        (dtor_coinduct, rev (Term.add_tfrees dtor_coinduct_goal []), dtor_srel_coinduct,
+         dtor_rel_coinduct, dtor_strong_coinduct, dtor_srel_strong_coinduct,
+         dtor_rel_strong_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2957,10 +2959,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
         (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
-        (rel_coinductN, [rel_coinduct_thm]),
-        (rel_strong_coinductN, [rel_strong_coinduct_thm]),
-        (srel_coinductN, [srel_coinduct_thm]),
-        (srel_strong_coinductN, [srel_strong_coinduct_thm])]
+        (dtor_rel_coinductN, [dtor_rel_coinduct_thm]),
+        (dtor_rel_strong_coinductN, [dtor_rel_strong_coinduct_thm]),
+        (dtor_srel_coinductN, [dtor_srel_coinduct_thm]),
+        (dtor_srel_strong_coinductN, [dtor_srel_strong_coinduct_thm])]
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
