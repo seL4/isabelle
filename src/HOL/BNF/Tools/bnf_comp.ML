@@ -270,7 +270,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         (maps wit_thms_of_bnf inners);
 
     val (bnf', lthy') =
-      bnf_def const_policy (K Derive_Few_Facts) qualify tacs wit_tac (SOME (oDs @ flat Dss))
+      bnf_def const_policy (K Dont_Note) qualify tacs wit_tac (SOME (oDs @ flat Dss))
         (((((b, mapx), sets), bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
@@ -368,7 +368,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME (killedAs @ Ds))
+      bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME (killedAs @ Ds))
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
@@ -452,7 +452,7 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME Ds)
+      bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds)
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
 
   in
@@ -529,7 +529,7 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
     fun wit_tac _ = mk_simple_wit_tac (wit_thms_of_bnf bnf);
 
     val (bnf', lthy') =
-      bnf_def Smart_Inline (K Derive_Few_Facts) qualify tacs wit_tac (SOME Ds)
+      bnf_def Smart_Inline (K Dont_Note) qualify tacs wit_tac (SOME Ds)
         (((((b, mapx), sets), Term.absdummy T bd), wits), SOME rel) lthy;
   in
     (bnf', (add_bnf_to_unfolds bnf' unfold_set, lthy'))
@@ -671,9 +671,7 @@ fun seal_bnf unfold_set b Ds bnf lthy =
 
     fun wit_tac _ = mk_simple_wit_tac (map unfold_all (wit_thms_of_bnf bnf));
 
-    val policy = user_policy Derive_All_Facts;
-
-    val (bnf', lthy') = bnf_def Hardly_Inline policy I tacs wit_tac (SOME deads)
+    val (bnf', lthy') = bnf_def Hardly_Inline (user_policy Dont_Note) I tacs wit_tac (SOME deads)
       (((((b, bnf_map), bnf_sets), Term.absdummy T bnf_bd'), bnf_wits), SOME bnf_rel) lthy;
   in
     ((bnf', deads), lthy')

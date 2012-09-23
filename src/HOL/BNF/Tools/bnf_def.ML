@@ -82,8 +82,8 @@ sig
   val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a -> 'a list
 
   datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline
-  datatype fact_policy =
-    Derive_Few_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms
+  datatype fact_policy = Dont_Note | Note_Some | Note_All
+
   val bnf_note_all: bool Config.T
   val user_policy: fact_policy -> Proof.context -> fact_policy
 
@@ -516,13 +516,11 @@ val srel_O_GrN = "srel_comp_Gr";
 
 datatype const_policy = Dont_Inline | Hardly_Inline | Smart_Inline | Do_Inline;
 
-datatype fact_policy =
-  Derive_Few_Facts | Derive_All_Facts | Derive_All_Facts_Note_Most | Note_All_Facts_and_Axioms;
+datatype fact_policy = Dont_Note | Note_Some | Note_All;
 
 val bnf_note_all = Attrib.setup_config_bool @{binding bnf_note_all} (K false);
 
-fun user_policy policy ctxt =
-  if Config.get ctxt bnf_note_all then Note_All_Facts_and_Axioms else policy;
+fun user_policy policy ctxt = if Config.get ctxt bnf_note_all then Note_All else policy;
 
 val smart_max_inline_size = 25; (*FUDGE*)
 
@@ -559,7 +557,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     fun maybe_define user_specified (b, rhs) lthy =
       let
         val inline =
-          (user_specified orelse fact_policy = Derive_Few_Facts) andalso
+          (user_specified orelse fact_policy = Dont_Note) andalso
           (case const_policy of
             Dont_Inline => false
           | Hardly_Inline => Term.is_Free rhs orelse Term.is_Const rhs
@@ -904,8 +902,6 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         val bd_Cinfinite = @{thm conjI} OF [#bd_cinfinite axioms, bd_Card_order];
         val bd_Cnotzero = bd_Cinfinite RS @{thm Cinfinite_Cnotzero};
 
-        fun mk_lazy f = if fact_policy <> Derive_Few_Facts then Lazy.value (f ()) else Lazy.lazy f;
-
         fun mk_collect_set_natural () =
           let
             val defT = mk_bnf_T Ts CA --> HOLogic.mk_setT T;
@@ -923,7 +919,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val collect_set_natural = mk_lazy mk_collect_set_natural;
+        val collect_set_natural = Lazy.lazy mk_collect_set_natural;
 
         fun mk_in_mono () =
           let
@@ -937,7 +933,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val in_mono = mk_lazy mk_in_mono;
+        val in_mono = Lazy.lazy mk_in_mono;
 
         fun mk_in_cong () =
           let
@@ -951,13 +947,13 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val in_cong = mk_lazy mk_in_cong;
+        val in_cong = Lazy.lazy mk_in_cong;
 
-        val map_id' = mk_lazy (fn () => mk_id' (#map_id axioms));
-        val map_comp' = mk_lazy (fn () => mk_comp' (#map_comp axioms));
+        val map_id' = Lazy.lazy (fn () => mk_id' (#map_id axioms));
+        val map_comp' = Lazy.lazy (fn () => mk_comp' (#map_comp axioms));
 
         val set_natural' =
-          map (fn thm => mk_lazy (fn () => mk_set_natural' thm)) (#set_natural axioms);
+          map (fn thm => Lazy.lazy (fn () => mk_set_natural' thm)) (#set_natural axioms);
 
         fun mk_map_wppull () =
           let
@@ -997,7 +993,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         val srel_O_Grs = no_refl [#srel_O_Gr axioms];
 
-        val map_wppull = mk_lazy mk_map_wppull;
+        val map_wppull = Lazy.lazy mk_map_wppull;
 
         fun mk_srel_Gr () =
           let
@@ -1011,7 +1007,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val srel_Gr = mk_lazy mk_srel_Gr;
+        val srel_Gr = Lazy.lazy mk_srel_Gr;
 
         fun mk_srel_prems f = map2 (HOLogic.mk_Trueprop oo f) Rs Rs_copy
         fun mk_srel_concl f = HOLogic.mk_Trueprop
@@ -1039,8 +1035,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val srel_mono = mk_lazy mk_srel_mono;
-        val srel_cong = mk_lazy mk_srel_cong;
+        val srel_mono = Lazy.lazy mk_srel_mono;
+        val srel_cong = Lazy.lazy mk_srel_cong;
 
         fun mk_srel_Id () =
           let val srelAsAs = mk_bnf_srel self_setRTs CA' CA' in
@@ -1051,7 +1047,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val srel_Id = mk_lazy mk_srel_Id;
+        val srel_Id = Lazy.lazy mk_srel_Id;
 
         fun mk_srel_converse () =
           let
@@ -1069,7 +1065,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val srel_converse = mk_lazy mk_srel_converse;
+        val srel_converse = Lazy.lazy mk_srel_converse;
 
         fun mk_srel_O () =
           let
@@ -1085,7 +1081,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val srel_O = mk_lazy mk_srel_O;
+        val srel_O = Lazy.lazy mk_srel_O;
 
         fun mk_in_srel () =
           let
@@ -1105,7 +1101,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Thm.close_derivation
           end;
 
-        val in_srel = mk_lazy mk_in_srel;
+        val in_srel = Lazy.lazy mk_in_srel;
 
         val eqset_imp_iff_pair = @{thm eqset_imp_iff_pair};
         val mem_Collect_etc = @{thms mem_Collect_eq fst_conv snd_conv prod.cases};
@@ -1116,7 +1112,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                RS eqset_imp_iff_pair RS sym)
           |> Drule.zero_var_indexes;
 
-        val rel_as_srel = mk_lazy mk_rel_as_srel;
+        val rel_as_srel = Lazy.lazy mk_rel_as_srel;
 
         fun mk_rel_flip () =
           let
@@ -1130,7 +1126,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             |> Drule.zero_var_indexes |> Thm.generalize ([], map fst Qs') 1
           end;
 
-        val rel_flip = mk_lazy mk_rel_flip;
+        val rel_flip = Lazy.lazy mk_rel_flip;
 
         val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def bnf_srel_def;
 
@@ -1149,7 +1145,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           wits bnf_rel bnf_srel;
       in
         (bnf, lthy
-          |> (if fact_policy = Note_All_Facts_and_Axioms then
+          |> (if fact_policy = Note_All then
                 let
                   val witNs = if length wits = 1 then [witN] else map mk_witN (1 upto length wits);
                   val notes =
@@ -1176,8 +1172,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                 end
               else
                 I)
-          |> (if fact_policy = Note_All_Facts_and_Axioms orelse
-                 fact_policy = Derive_All_Facts_Note_Most then
+          |> (if fact_policy <> Dont_Note then
                 let
                   val notes =
                     [(map_comp'N, [Lazy.force (#map_comp' facts)]),
@@ -1241,7 +1236,7 @@ val bnf_def_cmd = (fn (key, goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd o register_bnf key oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
-  prepare_def Do_Inline (user_policy Derive_All_Facts_Note_Most) I Syntax.read_term NONE;
+  prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_term NONE;
 
 fun print_bnfs ctxt =
   let
