@@ -80,7 +80,6 @@ fun mk_rel Ts Us t =
   let
     val ((Type (_, Ts0), Type (_, Us0)), body) =
       strip_type (fastype_of t) |>> split_last |>> apfst List.last;
-val _ = tracing ("*** " ^ PolyML.makestring (Ts, "***", Us, "***", t, Ts0, Us0)) (*###*)
   in
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
@@ -933,7 +932,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct (
               map5 (fn xctr => fn xs => fn sels =>
                 map2 (mk_goal threl xctr xs sels))) threls xctrss xsss selsss yctrss ysss;
 *)
-val _ = tracing ("goalsss: " ^ PolyML.makestring goalsss) (*###*)
+(* val _ = tracing ("goalsss: " ^ PolyML.makestring goalsss) (*###*) *)
           in
             ([], [])
           end;
