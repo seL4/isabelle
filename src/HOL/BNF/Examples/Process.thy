@@ -45,7 +45,7 @@ iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow
 Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> \<phi> p p'" and
 Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> \<phi> p p' \<and> \<phi> q q'"
 shows "p = p'"
-proof(intro mp[OF process.rel_coinduct, of \<phi>, OF _ phi], clarify)
+proof(intro mp[OF process.dtor_rel_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
   show "pre_process_rel (op =) \<phi> (process_dtor p) (process_dtor p')"
   proof(cases rule: process.exhaust[of p])
@@ -75,7 +75,7 @@ iss: "\<And>p p'. \<phi> p p' \<Longrightarrow> (isAction p \<longleftrightarrow
 Act: "\<And> a a' p p'. \<phi> (Action a p) (Action a' p') \<Longrightarrow> a = a' \<and> (\<phi> p p' \<or> p = p')" and
 Ch: "\<And> p q p' q'. \<phi> (Choice p q) (Choice p' q') \<Longrightarrow> (\<phi> p p' \<or> p = p') \<and> (\<phi> q q' \<or> q = q')"
 shows "p = p'"
-proof(intro mp[OF process.rel_strong_coinduct, of \<phi>, OF _ phi], clarify)
+proof(intro mp[OF process.dtor_rel_strong_coinduct, of \<phi>, OF _ phi], clarify)
   fix p p'  assume \<phi>: "\<phi> p p'"
   show "pre_process_rel (op =) (\<lambda>a b. \<phi> a b \<or> a = b) (process_dtor p) (process_dtor p')"
   proof(cases rule: process.exhaust[of p])
