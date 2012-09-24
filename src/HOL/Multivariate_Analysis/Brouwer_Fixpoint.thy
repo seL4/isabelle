@@ -28,15 +28,20 @@ lemma brouwer_compactness_lemma:
 proof (cases "s={}")
   case False
   have "continuous_on s (norm \<circ> f)"
-    by(rule continuous_on_intros continuous_on_norm assms(2))+
+    by (rule continuous_on_intros continuous_on_norm assms(2))+
   with False obtain x where x: "x\<in>s" "\<forall>y\<in>s. (norm \<circ> f) x \<le> (norm \<circ> f) y"
     using continuous_attains_inf[OF assms(1), of "norm \<circ> f"] unfolding o_def by auto
   have "(norm \<circ> f) x > 0" using assms(3) and x(1) by auto
   then show ?thesis by (rule that) (insert x(2), auto simp: o_def)
-qed (rule that [of 1], auto)
+next
+  case True
+  show thesis by (rule that [of 1]) (auto simp: True)
+qed
 
-lemma kuhn_labelling_lemma: fixes type::"'a::euclidean_space"
-  assumes "(\<forall>x::'a. P x \<longrightarrow> P (f x))"  "\<forall>x. P x \<longrightarrow> (\<forall>i<DIM('a). Q i \<longrightarrow> 0 \<le> x$$i \<and> x$$i \<le> 1)"
+lemma kuhn_labelling_lemma:
+  fixes type::"'a::euclidean_space"
+  assumes "(\<forall>x::'a. P x \<longrightarrow> P (f x))"
+    and "\<forall>x. P x \<longrightarrow> (\<forall>i<DIM('a). Q i \<longrightarrow> 0 \<le> x$$i \<and> x$$i \<le> 1)"
   shows "\<exists>l. (\<forall>x.\<forall> i<DIM('a). l x i \<le> (1::nat)) \<and>
              (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 0) \<longrightarrow> (l x i = 0)) \<and>
              (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 1) \<longrightarrow> (l x i = 1)) \<and>
@@ -45,7 +50,7 @@ lemma kuhn_labelling_lemma: fixes type::"'a::euclidean_space"
 proof -
   have and_forall_thm:"\<And>P Q. (\<forall>x. P x) \<and> (\<forall>x. Q x) \<longleftrightarrow> (\<forall>x. P x \<and> Q x)"
     by auto
-  have *:"\<forall>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow> (x \<noteq> 1 \<and> x \<le> y \<or> x \<noteq> 0 \<and> y \<le> x)"
+  have *: "\<forall>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow> (x \<noteq> 1 \<and> x \<le> y \<or> x \<noteq> 0 \<and> y \<le> x)"
     by auto
   show ?thesis
     unfolding and_forall_thm
@@ -150,12 +155,11 @@ lemma card_1_exists: "card s = 1 \<longleftrightarrow> (\<exists>!x. x \<in> s)"
   apply rule
   apply (drule card_eq_SucD)
   defer
-  apply(erule ex1E)
+  apply (erule ex1E)
 proof -
   fix x assume as:"x \<in> s" "\<forall>y. y \<in> s \<longrightarrow> y = x"
   have *: "s = insert x {}"
-    apply -
-    apply (rule set_eqI,rule) unfolding singleton_iff
+    apply (rule set_eqI, rule) unfolding singleton_iff
     apply (rule as(2)[rule_format]) using as(1)
     apply auto
     done
@@ -166,72 +170,132 @@ lemma card_2_exists: "card s = 2 \<longleftrightarrow> (\<exists>x\<in>s. \<exis
 proof
   assume "card s = 2"
   then obtain x y where obt:"s = {x, y}" "x\<noteq>y" unfolding numeral_2_eq_2
-    apply - apply(erule exE conjE|drule card_eq_SucD)+ apply auto done
-  show "\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y)" using obt by auto next
+    apply - apply (erule exE conjE | drule card_eq_SucD)+ apply auto done
+  show "\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y)" using obt by auto
+next
   assume "\<exists>x\<in>s. \<exists>y\<in>s. x \<noteq> y \<and> (\<forall>z\<in>s. z = x \<or> z = y)"
-  then guess x ..
-  from this(2) guess y ..
-  with `x\<in>s` have *: "s = {x, y}" "x\<noteq>y" by auto
-  from this(2) show "card s = 2" unfolding * by auto
+  then obtain x y where "x\<in>s" "y\<in>s" "x \<noteq> y" "\<forall>z\<in>s. z = x \<or> z = y" by auto
+  then have "s = {x, y}" by auto
+  with `x \<noteq> y` show "card s = 2" by auto
 qed
 
-lemma image_lemma_0: assumes "card {a\<in>s. f ` (s - {a}) = t - {b}} = n"
-  shows "card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> (f ` s' = t - {b})} = n" proof-
-  have *:"{s'. \<exists>a\<in>s. (s' = s - {a}) \<and> (f ` s' = t - {b})} = (\<lambda>a. s - {a}) ` {a\<in>s. f ` (s - {a}) = t - {b}}" by auto
+lemma image_lemma_0:
+  assumes "card {a\<in>s. f ` (s - {a}) = t - {b}} = n"
+  shows "card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> (f ` s' = t - {b})} = n"
+proof -
+  have *:"{s'. \<exists>a\<in>s. (s' = s - {a}) \<and> (f ` s' = t - {b})} = (\<lambda>a. s - {a}) ` {a\<in>s. f ` (s - {a}) = t - {b}}"
+    by auto
   show ?thesis unfolding * unfolding assms[THEN sym] apply(rule card_image) unfolding inj_on_def 
-    apply(rule,rule,rule) unfolding mem_Collect_eq by auto qed
+    apply (rule, rule, rule) unfolding mem_Collect_eq apply auto done
+qed
 
-lemma image_lemma_1: assumes "finite s" "finite t" "card s = card t" "f ` s = t" "b \<in> t"
-  shows "card {s'. \<exists>a\<in>s. s' = s - {a} \<and>  f ` s' = t - {b}} = 1" proof-
-  obtain a where a:"b = f a" "a\<in>s" using assms(4-5) by auto
-  have inj:"inj_on f s" apply(rule eq_card_imp_inj_on) using assms(1-4) by auto
-  have *:"{a \<in> s. f ` (s - {a}) = t - {b}} = {a}" apply(rule set_eqI) unfolding singleton_iff
-    apply(rule,rule inj[unfolded inj_on_def,rule_format]) unfolding a using a(2) and assms and inj[unfolded inj_on_def] by auto
-  show ?thesis apply(rule image_lemma_0) unfolding *  by auto qed
+lemma image_lemma_1:
+  assumes "finite s" "finite t" "card s = card t" "f ` s = t" "b \<in> t"
+  shows "card {s'. \<exists>a\<in>s. s' = s - {a} \<and>  f ` s' = t - {b}} = 1"
+proof -
+  obtain a where a: "b = f a" "a\<in>s" using assms(4-5) by auto
+  have inj: "inj_on f s" apply (rule eq_card_imp_inj_on) using assms(1-4) apply auto done
+  have *: "{a \<in> s. f ` (s - {a}) = t - {b}} = {a}" apply (rule set_eqI) unfolding singleton_iff
+    apply (rule, rule inj[unfolded inj_on_def, rule_format])
+    unfolding a using a(2) and assms and inj[unfolded inj_on_def] apply auto
+    done
+  show ?thesis apply (rule image_lemma_0) unfolding * apply auto done
+qed
 
-lemma image_lemma_2: assumes "finite s" "finite t" "card s = card t" "f ` s \<subseteq> t" "f ` s \<noteq> t" "b \<in> t"
+lemma image_lemma_2:
+  assumes "finite s" "finite t" "card s = card t" "f ` s \<subseteq> t" "f ` s \<noteq> t" "b \<in> t"
   shows "(card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> f ` s' = t - {b}} = 0) \<or>
-         (card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> f ` s' = t - {b}} = 2)" proof(cases "{a\<in>s. f ` (s - {a}) = t - {b}} = {}")
-  case True thus ?thesis apply-apply(rule disjI1, rule image_lemma_0) using assms(1) by auto
-next let ?M = "{a\<in>s. f ` (s - {a}) = t - {b}}"
-  case False then obtain a where "a\<in>?M" by auto hence a:"a\<in>s" "f ` (s - {a}) = t - {b}" by auto
+         (card {s'. \<exists>a\<in>s. (s' = s - {a}) \<and> f ` s' = t - {b}} = 2)"
+proof (cases "{a\<in>s. f ` (s - {a}) = t - {b}} = {}")
+  case True
+  then show ?thesis
+    apply -
+    apply (rule disjI1, rule image_lemma_0) using assms(1) apply auto done
+next
+  let ?M = "{a\<in>s. f ` (s - {a}) = t - {b}}"
+  case False
+  then obtain a where "a\<in>?M" by auto
+  then have a: "a\<in>s" "f ` (s - {a}) = t - {b}" by auto
   have "f a \<in> t - {b}" using a and assms by auto
-  hence "\<exists>c \<in> s - {a}. f a = f c" unfolding image_iff[symmetric] and a by auto
+  then have "\<exists>c \<in> s - {a}. f a = f c" unfolding image_iff[symmetric] and a by auto
   then obtain c where c:"c \<in> s" "a \<noteq> c" "f a = f c" by auto
-  hence *:"f ` (s - {c}) = f ` (s - {a})" apply-apply(rule set_eqI,rule) proof-
-    fix x assume "x \<in> f ` (s - {a})" then obtain y where y:"f y = x" "y\<in>s- {a}" by auto
-    thus "x \<in> f ` (s - {c})" unfolding image_iff apply(rule_tac x="if y = c then a else y" in bexI) using c a by auto qed auto
+  then have *: "f ` (s - {c}) = f ` (s - {a})"
+    apply -
+    apply (rule set_eqI, rule)
+  proof -
+    fix x
+    assume "x \<in> f ` (s - {a})"
+    then obtain y where y: "f y = x" "y\<in>s- {a}" by auto
+    then show "x \<in> f ` (s - {c})"
+      unfolding image_iff
+      apply (rule_tac x = "if y = c then a else y" in bexI)
+      using c a apply auto done
+  qed auto
   have "c\<in>?M" unfolding mem_Collect_eq and * using a and c(1) by auto
-  show ?thesis apply(rule disjI2, rule image_lemma_0) unfolding card_2_exists
-    apply(rule bexI[OF _ `a\<in>?M`], rule bexI[OF _ `c\<in>?M`],rule,rule `a\<noteq>c`) proof(rule,unfold mem_Collect_eq,erule conjE)
-    fix z assume as:"z \<in> s" "f ` (s - {z}) = t - {b}"
-    have inj:"inj_on f (s - {z})" apply(rule eq_card_imp_inj_on) unfolding as using as(1) and assms by auto
-    show "z = a \<or> z = c" proof(rule ccontr)
-      assume "\<not> (z = a \<or> z = c)" thus False using inj[unfolded inj_on_def,THEN bspec[where x=a],THEN bspec[where x=c]]
-        using `a\<in>s` `c\<in>s` `f a = f c` `a\<noteq>c` by auto qed qed qed
+  show ?thesis
+    apply (rule disjI2, rule image_lemma_0) unfolding card_2_exists
+    apply (rule bexI[OF _ `a\<in>?M`], rule bexI[OF _ `c\<in>?M`],rule,rule `a\<noteq>c`)
+  proof (rule, unfold mem_Collect_eq, erule conjE)
+    fix z
+    assume as: "z \<in> s" "f ` (s - {z}) = t - {b}"
+    have inj: "inj_on f (s - {z})"
+      apply (rule eq_card_imp_inj_on)
+      unfolding as using as(1) and assms apply auto
+      done
+    show "z = a \<or> z = c"
+    proof (rule ccontr)
+      assume "\<not> ?thesis"
+      then show False
+        using inj[unfolded inj_on_def, THEN bspec[where x=a], THEN bspec[where x=c]]
+        using `a\<in>s` `c\<in>s` `f a = f c` `a\<noteq>c` apply auto
+        done
+    qed
+  qed
+qed
+
 
 subsection {* Combine this with the basic counting lemma. *}
 
 lemma kuhn_complete_lemma:
   assumes "finite simplices"
-  "\<forall>f s. face f s \<longleftrightarrow> (\<exists>a\<in>s. f = s - {a})" "\<forall>s\<in>simplices. card s = n + 2" "\<forall>s\<in>simplices. (rl ` s) \<subseteq> {0..n+1}"
-  "\<forall>f\<in> {f. \<exists>s\<in>simplices. face f s}. bnd f  \<longrightarrow> (card {s\<in>simplices. face f s} = 1)"
-  "\<forall>f\<in> {f. \<exists>s\<in>simplices. face f s}. \<not>bnd f \<longrightarrow> (card {s\<in>simplices. face f s} = 2)"
-  "odd(card {f\<in>{f. \<exists>s\<in>simplices. face f s}. rl ` f = {0..n} \<and> bnd f})"
+    "\<forall>f s. face f s \<longleftrightarrow> (\<exists>a\<in>s. f = s - {a})"
+    "\<forall>s\<in>simplices. card s = n + 2" "\<forall>s\<in>simplices. (rl ` s) \<subseteq> {0..n+1}"
+    "\<forall>f\<in> {f. \<exists>s\<in>simplices. face f s}. bnd f  \<longrightarrow> (card {s\<in>simplices. face f s} = 1)"
+    "\<forall>f\<in> {f. \<exists>s\<in>simplices. face f s}. \<not>bnd f \<longrightarrow> (card {s\<in>simplices. face f s} = 2)"
+    "odd(card {f\<in>{f. \<exists>s\<in>simplices. face f s}. rl ` f = {0..n} \<and> bnd f})"
   shows "odd (card {s\<in>simplices. (rl ` s = {0..n+1})})" 
-  apply(rule kuhn_counting_lemma) defer apply(rule assms)+ prefer 3 apply(rule assms) proof(rule_tac[1-2] ballI impI)+ 
-  have *:"{f. \<exists>s\<in>simplices. \<exists>a\<in>s. f = s - {a}} = (\<Union>s\<in>simplices. {f. \<exists>a\<in>s. (f = s - {a})})" by auto
-  have **: "\<forall>s\<in>simplices. card s = n + 2 \<and> finite s" using assms(3) by (auto intro: card_ge_0_finite)
-  show "finite {f. \<exists>s\<in>simplices. face f s}" unfolding assms(2)[rule_format] and *
-    apply(rule finite_UN_I[OF assms(1)]) using ** by auto
-  have *:"\<And> P f s. s\<in>simplices \<Longrightarrow> (f \<in> {f. \<exists>s\<in>simplices. \<exists>a\<in>s. f = s - {a}}) \<and>
+  apply (rule kuhn_counting_lemma)
+  defer
+  apply (rule assms)+
+  prefer 3
+  apply (rule assms)
+proof (rule_tac[1-2] ballI impI)+
+  have *: "{f. \<exists>s\<in>simplices. \<exists>a\<in>s. f = s - {a}} = (\<Union>s\<in>simplices. {f. \<exists>a\<in>s. (f = s - {a})})"
+    by auto
+  have **: "\<forall>s\<in>simplices. card s = n + 2 \<and> finite s"
+    using assms(3) by (auto intro: card_ge_0_finite)
+  show "finite {f. \<exists>s\<in>simplices. face f s}"
+    unfolding assms(2)[rule_format] and *
+    apply (rule finite_UN_I[OF assms(1)]) using ** apply auto
+    done
+  have *: "\<And>P f s. s\<in>simplices \<Longrightarrow> (f \<in> {f. \<exists>s\<in>simplices. \<exists>a\<in>s. f = s - {a}}) \<and>
     (\<exists>a\<in>s. (f = s - {a})) \<and> P f \<longleftrightarrow> (\<exists>a\<in>s. (f = s - {a}) \<and> P f)" by auto
-  fix s assume s:"s\<in>simplices" let ?S = "{f \<in> {f. \<exists>s\<in>simplices. face f s}. face f s \<and> rl ` f = {0..n}}"
-    have "{0..n + 1} - {n + 1} = {0..n}" by auto
-    hence S:"?S = {s'. \<exists>a\<in>s. s' = s - {a} \<and> rl ` s' = {0..n + 1} - {n + 1}}" apply- apply(rule set_eqI)
-      unfolding assms(2)[rule_format] mem_Collect_eq and *[OF s, unfolded mem_Collect_eq, where P="\<lambda>x. rl ` x = {0..n}"] by auto
-    show "rl ` s = {0..n+1} \<Longrightarrow> card ?S = 1" "rl ` s \<noteq> {0..n+1} \<Longrightarrow> card ?S = 0 \<or> card ?S = 2" unfolding S
-      apply(rule_tac[!] image_lemma_1 image_lemma_2) using ** assms(4) and s by auto qed
+  fix s assume s: "s\<in>simplices"
+  let ?S = "{f \<in> {f. \<exists>s\<in>simplices. face f s}. face f s \<and> rl ` f = {0..n}}"
+  have "{0..n + 1} - {n + 1} = {0..n}" by auto
+  then have S: "?S = {s'. \<exists>a\<in>s. s' = s - {a} \<and> rl ` s' = {0..n + 1} - {n + 1}}"
+    apply -
+    apply (rule set_eqI)
+    unfolding assms(2)[rule_format] mem_Collect_eq and *[OF s, unfolded mem_Collect_eq, where P="\<lambda>x. rl ` x = {0..n}"]
+    apply auto
+    done
+  show "rl ` s = {0..n+1} \<Longrightarrow> card ?S = 1" "rl ` s \<noteq> {0..n+1} \<Longrightarrow> card ?S = 0 \<or> card ?S = 2"
+    unfolding S
+    apply(rule_tac[!] image_lemma_1 image_lemma_2)
+    using ** assms(4) and s apply auto
+    done
+qed
+
 
 subsection {*We use the following notion of ordering rather than pointwise indexing. *}
 
@@ -243,49 +307,125 @@ lemma kle_antisym: "kle n x y \<and> kle n y x \<longleftrightarrow> (x = y)"
   unfolding kle_def apply rule apply(rule ext) by auto
 
 lemma pointwise_minimal_pointwise_maximal: fixes s::"(nat\<Rightarrow>nat) set"
-  assumes  "finite s" "s \<noteq> {}" "\<forall>x\<in>s. \<forall>y\<in>s. (\<forall>j. x j \<le> y j) \<or> (\<forall>j. y j \<le> x j)"
+  assumes "finite s" "s \<noteq> {}" "\<forall>x\<in>s. \<forall>y\<in>s. (\<forall>j. x j \<le> y j) \<or> (\<forall>j. y j \<le> x j)"
   shows "\<exists>a\<in>s. \<forall>x\<in>s. \<forall>j. a j \<le> x j" "\<exists>a\<in>s. \<forall>x\<in>s. \<forall>j. x j \<le> a j"
-  using assms unfolding atomize_conj apply- proof(induct s rule:finite_induct)
-  fix x and F::"(nat\<Rightarrow>nat) set" assume as:"finite F" "x \<notin> F" 
+  using assms unfolding atomize_conj
+proof (induct s rule:finite_induct)
+  fix x and F::"(nat\<Rightarrow>nat) set"
+  assume as:"finite F" "x \<notin> F" 
     "\<lbrakk>F \<noteq> {}; \<forall>x\<in>F. \<forall>y\<in>F. (\<forall>j. x j \<le> y j) \<or> (\<forall>j. y j \<le> x j)\<rbrakk>
         \<Longrightarrow> (\<exists>a\<in>F. \<forall>x\<in>F. \<forall>j. a j \<le> x j) \<and> (\<exists>a\<in>F. \<forall>x\<in>F. \<forall>j. x j \<le> a j)" "insert x F \<noteq> {}"
     "\<forall>xa\<in>insert x F. \<forall>y\<in>insert x F. (\<forall>j. xa j \<le> y j) \<or> (\<forall>j. y j \<le> xa j)"
-  show "(\<exists>a\<in>insert x F. \<forall>x\<in>insert x F. \<forall>j. a j \<le> x j) \<and> (\<exists>a\<in>insert x F. \<forall>x\<in>insert x F. \<forall>j. x j \<le> a j)" proof(cases "F={}")
-    case True thus ?thesis apply-apply(rule,rule_tac[!] x=x in bexI) by auto next
-    case False obtain a b where a:"a\<in>insert x F" "\<forall>x\<in>F. \<forall>j. a j \<le> x j" and
-      b:"b\<in>insert x F" "\<forall>x\<in>F. \<forall>j. x j \<le> b j" using as(3)[OF False] using as(5) by auto
+  show "(\<exists>a\<in>insert x F. \<forall>x\<in>insert x F. \<forall>j. a j \<le> x j) \<and> (\<exists>a\<in>insert x F. \<forall>x\<in>insert x F. \<forall>j. x j \<le> a j)"
+  proof (cases "F = {}")
+    case True
+    then show ?thesis
+      apply -
+      apply (rule, rule_tac[!] x=x in bexI)
+      apply auto
+      done
+  next
+    case False
+    obtain a b where a: "a\<in>insert x F" "\<forall>x\<in>F. \<forall>j. a j \<le> x j" and
+      b: "b\<in>insert x F" "\<forall>x\<in>F. \<forall>j. x j \<le> b j" using as(3)[OF False] using as(5) by auto
     have "\<exists>a\<in>insert x F. \<forall>x\<in>insert x F. \<forall>j. a j \<le> x j"
-      using as(5)[rule_format,OF a(1) insertI1] apply- proof(erule disjE)
-      assume "\<forall>j. a j \<le> x j" thus ?thesis apply(rule_tac x=a in bexI) using a by auto next
-      assume "\<forall>j. x j \<le> a j" thus ?thesis apply(rule_tac x=x in bexI) apply(rule,rule) using a apply -
-        apply(erule_tac x=xa in ballE) apply(erule_tac x=j in allE)+ by auto qed moreover
+      using as(5)[rule_format,OF a(1) insertI1]
+      apply -
+    proof (erule disjE)
+      assume "\<forall>j. a j \<le> x j"
+      then show ?thesis
+        apply (rule_tac x=a in bexI) using a apply auto done
+    next
+      assume "\<forall>j. x j \<le> a j"
+      then show ?thesis
+        apply (rule_tac x=x in bexI)
+        apply (rule, rule) using a apply -
+        apply (erule_tac x=xa in ballE)
+        apply (erule_tac x=j in allE)+
+        apply auto
+        done
+    qed
+    moreover
     have "\<exists>b\<in>insert x F. \<forall>x\<in>insert x F. \<forall>j. x j \<le> b j"
-      using as(5)[rule_format,OF b(1) insertI1] apply- proof(erule disjE)
-      assume "\<forall>j. x j \<le> b j" thus ?thesis apply(rule_tac x=b in bexI) using b by auto next
-      assume "\<forall>j. b j \<le> x j" thus ?thesis apply(rule_tac x=x in bexI) apply(rule,rule) using b apply -
-        apply(erule_tac x=xa in ballE) apply(erule_tac x=j in allE)+ by auto qed
-    ultimately show  ?thesis by auto qed qed(auto)
+      using as(5)[rule_format,OF b(1) insertI1] apply-
+    proof (erule disjE)
+      assume "\<forall>j. x j \<le> b j"
+      then show ?thesis
+        apply(rule_tac x=b in bexI) using b
+        apply auto
+        done
+    next
+      assume "\<forall>j. b j \<le> x j"
+      then show ?thesis
+        apply (rule_tac x=x in bexI)
+        apply (rule, rule) using b apply -
+        apply (erule_tac x=xa in ballE)
+        apply (erule_tac x=j in allE)+
+        apply auto
+        done
+    qed
+    ultimately show ?thesis by auto
+  qed
+qed auto
+
 
 lemma kle_imp_pointwise: "kle n x y \<Longrightarrow> (\<forall>j. x j \<le> y j)" unfolding kle_def by auto
 
-lemma pointwise_antisym: fixes x::"nat \<Rightarrow> nat"
+lemma pointwise_antisym:
+  fixes x :: "nat \<Rightarrow> nat"
   shows "(\<forall>j. x j \<le> y j) \<and> (\<forall>j. y j \<le> x j) \<longleftrightarrow> (x = y)"
-  apply(rule, rule ext,erule conjE) apply(erule_tac x=xa in allE)+ by auto
+  apply (rule, rule ext, erule conjE)
+  apply (erule_tac x=xa in allE)+
+  apply auto
+  done
 
-lemma kle_trans: assumes "kle n x y" "kle n y z" "kle n x z \<or> kle n z x" shows "kle n x z"
-  using assms apply- apply(erule disjE) apply assumption proof- case goal1
-  hence "x=z" apply- apply(rule ext) apply(drule kle_imp_pointwise)+ 
-    apply(erule_tac x=xa in allE)+ by auto thus ?case by auto qed
+lemma kle_trans:
+  assumes "kle n x y" "kle n y z" "kle n x z \<or> kle n z x"
+  shows "kle n x z"
+  using assms
+    apply -
+    apply (erule disjE)
+    apply assumption
+proof -
+  case goal1
+  then have "x = z"
+    apply -
+    apply (rule ext)
+    apply (drule kle_imp_pointwise)+
+    apply (erule_tac x=xa in allE)+
+    apply auto
+    done
+  then show ?case by auto
+qed
 
-lemma kle_strict: assumes "kle n x y" "x \<noteq> y"
+lemma kle_strict:
+  assumes "kle n x y" "x \<noteq> y"
   shows "\<forall>j. x j \<le> y j"  "\<exists>k. 1 \<le> k \<and> k \<le> n \<and> x(k) < y(k)"
-  apply(rule kle_imp_pointwise[OF assms(1)]) proof-
+  apply (rule kle_imp_pointwise[OF assms(1)])
+proof -
   guess k using assms(1)[unfolded kle_def] .. note k = this
-  show "\<exists>k. 1 \<le> k \<and> k \<le> n \<and> x(k) < y(k)" proof(cases "k={}")
-    case True hence "x=y" apply-apply(rule ext) using k by auto
-    thus ?thesis using assms(2) by auto next
-    case False hence "(SOME k'. k' \<in> k) \<in> k" apply-apply(rule someI_ex) by auto
-    thus ?thesis apply(rule_tac x="SOME k'. k' \<in> k" in exI) using k by auto qed qed
+  show "\<exists>k. 1 \<le> k \<and> k \<le> n \<and> x(k) < y(k)"
+proof (cases "k={}")
+  case True
+  then have "x = y"
+    apply -
+    apply (rule ext)
+    using k apply auto
+    done
+  then show ?thesis using assms(2) by auto
+next
+  case False
+  then have "(SOME k'. k' \<in> k) \<in> k"
+    apply -
+    apply (rule someI_ex)
+    apply auto
+    done
+  then show ?thesis
+    apply (rule_tac x = "SOME k'. k' \<in> k" in exI)
+    using k apply auto
+    done
+  qed
+qed
 
 lemma kle_minimal: assumes "finite s" "s \<noteq> {}" "\<forall>x\<in>s. \<forall>y\<in>s. kle n x y \<or> kle n y x"
   shows "\<exists>a\<in>s. \<forall>x\<in>s. kle n a x" proof-
