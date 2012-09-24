@@ -221,69 +221,44 @@ next
 qed
 
 
-locale Abs_Int_measure =
-  Abs_Int_mono where \<gamma>=\<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set" +
-fixes m :: "'av \<Rightarrow> nat"
+locale Measure1 =
+fixes m :: "'av::preord \<Rightarrow> nat"
 fixes h :: "nat"
 assumes m1: "x \<sqsubseteq> y \<Longrightarrow> m x \<ge> m y"
-assumes m2: "x \<sqsubset> y \<Longrightarrow> m x > m y"
 assumes h: "m x \<le> h"
 begin
 
-definition m_st :: "'av st \<Rightarrow> nat" ("m\<^isub>s\<^isub>t") where
-"m_st S = (\<Sum> x \<in> dom S. m(fun S x))"
+definition m_s :: "'av st \<Rightarrow> nat" ("m\<^isub>s") where
+"m_s S = (\<Sum> x \<in> dom S. m(fun S x))"
 
-lemma m_st_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_st x \<le> h * card X"
-by(simp add: L_st_def m_st_def)
+lemma m_s_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_s x \<le> h * card X"
+by(simp add: L_st_def m_s_def)
   (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
 
-lemma m_st1: "S1 \<sqsubseteq> S2 \<Longrightarrow> m_st S1 \<ge> m_st S2"
-proof(auto simp add: le_st_def m_st_def)
+lemma m_s1: "S1 \<sqsubseteq> S2 \<Longrightarrow> m_s S1 \<ge> m_s S2"
+proof(auto simp add: le_st_def m_s_def)
   assume "\<forall>x\<in>dom S2. fun S1 x \<sqsubseteq> fun S2 x"
   hence "\<forall>x\<in>dom S2. m(fun S1 x) \<ge> m(fun S2 x)" by (metis m1)
   thus "(\<Sum>x\<in>dom S2. m (fun S2 x)) \<le> (\<Sum>x\<in>dom S2. m (fun S1 x))"
     by (metis setsum_mono)
 qed
 
-lemma m_st2: "finite(dom S1) \<Longrightarrow> S1 \<sqsubset> S2 \<Longrightarrow> m_st S1 > m_st S2"
-proof(auto simp add: le_st_def m_st_def)
-  assume "finite(dom S2)" and 0: "\<forall>x\<in>dom S2. fun S1 x \<sqsubseteq> fun S2 x"
-  hence 1: "\<forall>x\<in>dom S2. m(fun S1 x) \<ge> m(fun S2 x)" by (metis m1)
-  fix x assume "x \<in> dom S2" "\<not> fun S2 x \<sqsubseteq> fun S1 x"
-  hence 2: "\<exists>x\<in>dom S2. m(fun S1 x) > m(fun S2 x)" using 0 m2 by blast
-  from setsum_strict_mono_ex1[OF `finite(dom S2)` 1 2]
-  show "(\<Sum>x\<in>dom S2. m (fun S2 x)) < (\<Sum>x\<in>dom S2. m (fun S1 x))" .
-qed
-
-
 definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" ("m\<^isub>o") where
-"m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_st S)"
+"m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_s S)"
 
 lemma m_o_h: "ost \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_o (card X) ost \<le> (h*card X + 1)"
-by(auto simp add: m_o_def m_st_h split: option.split dest!:m_st_h)
+by(auto simp add: m_o_def m_s_h split: option.split dest!:m_s_h)
 
 lemma m_o1: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
   o1 \<sqsubseteq> o2 \<Longrightarrow> m_o (card X) o1 \<ge> m_o (card X) o2"
 proof(induction o1 o2 rule: le_option.induct)
-  case 1 thus ?case by (simp add: m_o_def)(metis m_st1)
+  case 1 thus ?case by (simp add: m_o_def)(metis m_s1)
 next
   case 2 thus ?case
-    by(simp add: L_option_def m_o_def le_SucI m_st_h split: option.splits)
+    by(simp add: L_option_def m_o_def le_SucI m_s_h split: option.splits)
 next
   case 3 thus ?case by simp
 qed
-
-lemma m_o2: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
-  o1 \<sqsubset> o2 \<Longrightarrow> m_o (card X) o1 > m_o (card X) o2"
-proof(induction o1 o2 rule: le_option.induct)
-  case 1 thus ?case by (simp add: m_o_def L_st_def m_st2)
-next
-  case 2 thus ?case
-    by(auto simp add: m_o_def le_imp_less_Suc m_st_h)
-next
-  case 3 thus ?case by simp
-qed
-
 
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^isub>c") where
 "m_c C = (\<Sum>i<size(annos C). m_o (card(vars(strip C))) (annos C ! i))"
@@ -302,6 +277,34 @@ proof-
   also have "\<dots> = ?a * (h * ?n + 1)" by simp
   finally show ?thesis .
 qed
+
+end
+
+locale Measure = Measure1 +
+assumes m2: "x \<sqsubset> y \<Longrightarrow> m x > m y"
+begin
+
+lemma m_s2: "finite(dom S1) \<Longrightarrow> S1 \<sqsubset> S2 \<Longrightarrow> m_s S1 > m_s S2"
+proof(auto simp add: le_st_def m_s_def)
+  assume "finite(dom S2)" and 0: "\<forall>x\<in>dom S2. fun S1 x \<sqsubseteq> fun S2 x"
+  hence 1: "\<forall>x\<in>dom S2. m(fun S1 x) \<ge> m(fun S2 x)" by (metis m1)
+  fix x assume "x \<in> dom S2" "\<not> fun S2 x \<sqsubseteq> fun S1 x"
+  hence 2: "\<exists>x\<in>dom S2. m(fun S1 x) > m(fun S2 x)" using 0 m2 by blast
+  from setsum_strict_mono_ex1[OF `finite(dom S2)` 1 2]
+  show "(\<Sum>x\<in>dom S2. m (fun S2 x)) < (\<Sum>x\<in>dom S2. m (fun S1 x))" .
+qed
+
+lemma m_o2: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
+  o1 \<sqsubset> o2 \<Longrightarrow> m_o (card X) o1 > m_o (card X) o2"
+proof(induction o1 o2 rule: le_option.induct)
+  case 1 thus ?case by (simp add: m_o_def L_st_def m_s2)
+next
+  case 2 thus ?case
+    by(auto simp add: m_o_def le_imp_less_Suc m_s_h)
+next
+  case 3 thus ?case by simp
+qed
+
 
 lemma m_c2: "C1 \<in> L(vars(strip C1)) \<Longrightarrow> C2 \<in> L(vars(strip C2)) \<Longrightarrow>
   C1 \<sqsubset> C2 \<Longrightarrow> m_c C1 > m_c C2"
@@ -323,6 +326,13 @@ proof(auto simp add: le_iff_le_annos m_c_def size_annos_same[of C1 C2] L_acom_de
          < (\<Sum>i<size(annos C2). m_o ?n (annos C1 ! i))"
     apply(rule setsum_strict_mono_ex1) using 1 2 by (auto)
 qed
+
+end
+
+locale Abs_Int_measure =
+  Abs_Int_mono where \<gamma>=\<gamma> + Measure where m=m
+  for \<gamma> :: "'av::semilattice \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
+begin
 
 lemma AI_Some_measure: "\<exists>C. AI c = Some C"
 unfolding AI_def

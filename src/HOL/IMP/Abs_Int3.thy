@@ -420,39 +420,20 @@ value "show_acom_opt (AI_ivl' test6_ivl)"
 
 subsubsection "Generic Termination Proof"
 
-locale Abs_Int2_measure = Abs_Int2
-  where \<gamma>=\<gamma> for \<gamma> :: "'av::{WN,lattice} \<Rightarrow> val set" +
-fixes m :: "'av \<Rightarrow> nat"
+locale Measure_WN = Measure1 where m=m for m :: "'av::WN \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
-fixes h :: "nat"
-assumes m_anti_mono: "x \<sqsubseteq> y \<Longrightarrow> m x \<ge> m y"
 assumes m_widen: "~ y \<sqsubseteq> x \<Longrightarrow> m(x \<nabla> y) < m x"
-assumes m_height: "m x \<le> h"
 assumes n_mono: "x \<sqsubseteq> y \<Longrightarrow> n x \<le> n y"
 assumes n_narrow: "~ x \<sqsubseteq> x \<triangle> y \<Longrightarrow> n(x \<triangle> y) < n x"
 
 begin
 
-definition "m_st S = (SUM x:dom S. m(fun S x))"
-
-lemma m_st_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_st x \<le> h * card X"
-by(simp add: L_st_def m_st_def)
-  (metis nat_mult_commute of_nat_id setsum_bounded[OF m_height])
-
-lemma m_st_anti_mono: "S1 \<sqsubseteq> S2 \<Longrightarrow> m_st S1 \<ge> m_st S2"
-proof(auto simp add: le_st_def m_st_def)
-  assume "\<forall>x\<in>dom S2. fun S1 x \<sqsubseteq> fun S2 x"
-  hence "\<forall>x\<in>dom S2. m(fun S1 x) \<ge> m(fun S2 x)" by (metis m_anti_mono)
-  thus "(\<Sum>x\<in>dom S2. m (fun S2 x)) \<le> (\<Sum>x\<in>dom S2. m (fun S1 x))"
-    by (metis setsum_mono)
-qed
-
-lemma m_st_widen: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X \<Longrightarrow>
-  ~ S2 \<sqsubseteq> S1 \<Longrightarrow> m_st(S1 \<nabla> S2) < m_st S1"
-proof(auto simp add: le_st_def m_st_def L_st_def widen_st_def)
+lemma m_s_widen: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X \<Longrightarrow>
+  ~ S2 \<sqsubseteq> S1 \<Longrightarrow> m_s(S1 \<nabla> S2) < m_s S1"
+proof(auto simp add: le_st_def m_s_def L_st_def widen_st_def)
   assume "finite(dom S1)"
   have 1: "\<forall>x\<in>dom S1. m(fun S1 x) \<ge> m(fun S1 x \<nabla> fun S2 x)"
-    by (metis m_anti_mono WN_class.widen1)
+    by (metis m1 WN_class.widen1)
   fix x assume "x \<in> dom S1" "\<not> fun S2 x \<sqsubseteq> fun S1 x"
   hence 2: "EX x : dom S1. m(fun S1 x) > m(fun S1 x \<nabla> fun S2 x)"
     using m_widen by blast
@@ -460,87 +441,10 @@ proof(auto simp add: le_st_def m_st_def L_st_def widen_st_def)
   show "(\<Sum>x\<in>dom S1. m (fun S1 x \<nabla> fun S2 x)) < (\<Sum>x\<in>dom S1. m (fun S1 x))" .
 qed
 
-definition "n_st S = (\<Sum>x\<in>dom S. n(fun S x))"
-
-lemma n_st_mono: assumes "S1 \<sqsubseteq> S2" shows "n_st S1 \<le> n_st S2"
-proof-
-  from assms have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S1 x \<sqsubseteq> fun S2 x"
-    by(simp_all add: le_st_def)
-  have "(\<Sum>x\<in>dom S1. n(fun S1 x)) \<le> (\<Sum>x\<in>dom S1. n(fun S2 x))"
-    by(rule setsum_mono)(simp add: le_st_def n_mono)
-  thus ?thesis by(simp add: n_st_def)
-qed
-
-lemma n_st_narrow:
-assumes "finite(dom S1)" and "S2 \<sqsubseteq> S1" "\<not> S1 \<sqsubseteq> S1 \<triangle> S2"
-shows "n_st (S1 \<triangle> S2) < n_st S1"
-proof-
-  from `S2\<sqsubseteq>S1` have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S2 x \<sqsubseteq> fun S1 x"
-    by(simp_all add: le_st_def)
-  have 1: "\<forall>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) \<le> n(fun S1 x)"
-    by(auto simp: le_st_def narrow_st_def n_mono WN_class.narrow2)
-  have 2: "\<exists>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) < n(fun S1 x)" using `\<not> S1 \<sqsubseteq> S1 \<triangle> S2`
-    by(auto simp: le_st_def narrow_st_def intro: n_narrow)
-  have "(\<Sum>x\<in>dom S1. n(fun (S1 \<triangle> S2) x)) < (\<Sum>x\<in>dom S1. n(fun S1 x))"
-    apply(rule setsum_strict_mono_ex1[OF `finite(dom S1)`]) using 1 2 by blast+
-  moreover have "dom (S1 \<triangle> S2) = dom S1" by(simp add: narrow_st_def)
-  ultimately show ?thesis by(simp add: n_st_def)
-qed
-
-definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" where
-"m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_st S)"
-
-lemma m_o_h: "ost \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_o (card X) ost \<le> (h*card X + 1)"
-by(auto simp add: m_o_def m_st_h split: option.split dest!:m_st_h)
-
-lemma m_o_anti_mono: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X \<Longrightarrow>
-  S1 \<sqsubseteq> S2 \<Longrightarrow> m_o (card X) S2 \<le> m_o (card X) S1"
-apply(induction S1 S2 rule: le_option.induct)
-apply(auto simp: m_o_def m_st_anti_mono le_SucI m_st_h L_st_def
-           split: option.splits)
-done
-
 lemma m_o_widen: "\<lbrakk> S1 \<in> L X; S2 \<in> L X; finite X; \<not> S2 \<sqsubseteq> S1 \<rbrakk> \<Longrightarrow>
   m_o (card X) (S1 \<nabla> S2) < m_o (card X) S1"
-by(auto simp: m_o_def L_st_def m_st_h less_Suc_eq_le m_st_widen
+by(auto simp: m_o_def L_st_def m_s_h less_Suc_eq_le m_s_widen
         split: option.split)
-
-definition "n_o opt = (case opt of None \<Rightarrow> 0 | Some x \<Rightarrow> n_st x + 1)"
-
-lemma n_o_mono: "S1 \<sqsubseteq> S2 \<Longrightarrow> n_o S1 \<le> n_o S2"
-by(induction S1 S2 rule: le_option.induct)(auto simp: n_o_def n_st_mono)
-
-lemma n_o_narrow:
-  "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X
-  \<Longrightarrow> S2 \<sqsubseteq> S1 \<Longrightarrow> \<not> S1 \<sqsubseteq> S1 \<triangle> S2 \<Longrightarrow> n_o (S1 \<triangle> S2) < n_o S1"
-apply(induction S1 S2 rule: narrow_option.induct)
-apply(auto simp: n_o_def L_st_def n_st_narrow)
-done
-
-
-lemma annos_narrow_acom[simp]: "strip C2 = strip (C1::'a::WN_Lc acom) \<Longrightarrow>
-  annos(C1 \<triangle> C2) = map (\<lambda>(x,y).x\<triangle>y) (zip (annos C1) (annos C2))"
-by(induction "narrow::'a\<Rightarrow>'a\<Rightarrow>'a" C1 C2 rule: map2_acom.induct)
-  (simp_all add: narrow_acom_def size_annos_same2)
-
-
-definition "m_c C = (let as = annos C in
-  \<Sum>i<size as. m_o (card(vars(strip C))) (as!i))"
-
-lemma m_c_h: assumes "C \<in> L(vars(strip C))"
-shows "m_c C \<le> size(annos C) * (h * card(vars(strip C)) + 1)"
-proof-
-  let ?X = "vars(strip C)" let ?n = "card ?X" let ?a = "size(annos C)"
-  { fix i assume "i < ?a"
-    hence "annos C ! i \<in> L ?X" using assms by(simp add: L_acom_def)
-    note m_o_h[OF this finite_cvars]
-  } note 1 = this
-  have "m_c C = (\<Sum>i<?a. m_o ?n (annos C ! i))" by(simp add: m_c_def Let_def)
-  also have "\<dots> \<le> (\<Sum>i<?a. h * ?n + 1)"
-    apply(rule setsum_mono) using 1 by simp
-  also have "\<dots> = ?a * (h * ?n + 1)" by simp
-  finally show ?thesis .
-qed
 
 lemma m_c_widen:
   "C1 \<in> Lc c \<Longrightarrow> C2 \<in> Lc c \<Longrightarrow> \<not> C2 \<sqsubseteq> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
@@ -551,12 +455,53 @@ apply (auto)
 apply(rule setsum_strict_mono_ex1)
 apply simp
 apply (clarsimp)
-apply(simp add: m_o_anti_mono finite_cvars widen1[where c = "strip C2"])
+apply(simp add: m_o1 finite_cvars widen1[where c = "strip C2"])
 apply(auto simp: le_iff_le_annos listrel_iff_nth)
 apply(rule_tac x=i in bexI)
 prefer 2 apply simp
 apply(rule m_o_widen)
 apply (simp add: finite_cvars)+
+done
+
+
+definition "n_s S = (\<Sum>x\<in>dom S. n(fun S x))"
+
+lemma n_s_mono: assumes "S1 \<sqsubseteq> S2" shows "n_s S1 \<le> n_s S2"
+proof-
+  from assms have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S1 x \<sqsubseteq> fun S2 x"
+    by(simp_all add: le_st_def)
+  have "(\<Sum>x\<in>dom S1. n(fun S1 x)) \<le> (\<Sum>x\<in>dom S1. n(fun S2 x))"
+    by(rule setsum_mono)(simp add: le_st_def n_mono)
+  thus ?thesis by(simp add: n_s_def)
+qed
+
+lemma n_s_narrow:
+assumes "finite(dom S1)" and "S2 \<sqsubseteq> S1" "\<not> S1 \<sqsubseteq> S1 \<triangle> S2"
+shows "n_s (S1 \<triangle> S2) < n_s S1"
+proof-
+  from `S2\<sqsubseteq>S1` have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S2 x \<sqsubseteq> fun S1 x"
+    by(simp_all add: le_st_def)
+  have 1: "\<forall>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) \<le> n(fun S1 x)"
+    by(auto simp: le_st_def narrow_st_def n_mono WN_class.narrow2)
+  have 2: "\<exists>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) < n(fun S1 x)" using `\<not> S1 \<sqsubseteq> S1 \<triangle> S2`
+    by(auto simp: le_st_def narrow_st_def intro: n_narrow)
+  have "(\<Sum>x\<in>dom S1. n(fun (S1 \<triangle> S2) x)) < (\<Sum>x\<in>dom S1. n(fun S1 x))"
+    apply(rule setsum_strict_mono_ex1[OF `finite(dom S1)`]) using 1 2 by blast+
+  moreover have "dom (S1 \<triangle> S2) = dom S1" by(simp add: narrow_st_def)
+  ultimately show ?thesis by(simp add: n_s_def)
+qed
+
+
+definition "n_o opt = (case opt of None \<Rightarrow> 0 | Some x \<Rightarrow> n_s x + 1)"
+
+lemma n_o_mono: "S1 \<sqsubseteq> S2 \<Longrightarrow> n_o S1 \<le> n_o S2"
+by(induction S1 S2 rule: le_option.induct)(auto simp: n_o_def n_s_mono)
+
+lemma n_o_narrow:
+  "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X
+  \<Longrightarrow> S2 \<sqsubseteq> S1 \<Longrightarrow> \<not> S1 \<sqsubseteq> S1 \<triangle> S2 \<Longrightarrow> n_o (S1 \<triangle> S2) < n_o S1"
+apply(induction S1 S2 rule: narrow_option.induct)
+apply(auto simp: n_o_def L_st_def n_s_narrow)
 done
 
 definition "n_c C = (let as = annos C in \<Sum>i=0..<size as. n_o (as!i))"
@@ -589,13 +534,12 @@ assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
 and P_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \<nabla> C2)"
 and m_widen: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> ~ C2 \<sqsubseteq> C1 \<Longrightarrow> m(C1 \<nabla> C2) < m C1"
 and "P C" shows "EX C'. iter_widen f C = Some C'"
-proof(simp add: iter_widen_def, rule wf_while_option_Some[where P = P])
-  show "wf {(cc, c). (P c \<and> \<not> f c \<sqsubseteq> c) \<and> cc = c \<nabla> f c}"
-    by(rule wf_subset[OF wf_measure[of "m"]])(auto simp: m_widen P_f)
-next
+proof(simp add: iter_widen_def,
+      rule measure_while_option_Some[where P = P and f=m])
   show "P C" by(rule `P C`)
 next
-  fix C assume "P C" thus "P (C \<nabla> f C)" by(simp add: P_f P_widen)
+  fix C assume "P C" "\<not> f C \<sqsubseteq> C" thus "P (C \<nabla> f C) \<and> m (C \<nabla> f C) < m C"
+    by(simp add: P_f P_widen m_widen)
 qed
 
 lemma iter_narrow_termination:
@@ -605,18 +549,22 @@ and P_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \
 and mono: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C1 \<sqsubseteq> C2 \<Longrightarrow> f C1 \<sqsubseteq> f C2"
 and n_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C2 \<sqsubseteq> C1 \<Longrightarrow> ~ C1 \<sqsubseteq> C1 \<triangle> C2 \<Longrightarrow> n(C1 \<triangle> C2) < n C1"
 and init: "P C" "f C \<sqsubseteq> C" shows "EX C'. iter_narrow f C = Some C'"
-proof(simp add: iter_narrow_def, rule wf_while_option_Some[where P = "%C. P C \<and> f C \<sqsubseteq> C"])
-  show "wf {(c', c). ((P c \<and> f c \<sqsubseteq> c) \<and> \<not> c \<sqsubseteq> c \<triangle> f c) \<and> c' = c \<triangle> f c}"
-    by(rule wf_subset[OF wf_measure[of "n"]])(auto simp: n_narrow P_f)
-next
+proof(simp add: iter_narrow_def,
+      rule measure_while_option_Some[where f=n and P = "%C. P C \<and> f C \<sqsubseteq> C"])
   show "P C \<and> f C \<sqsubseteq> C" using init by blast
 next
-  fix C assume 1: "P C \<and> f C \<sqsubseteq> C"
+  fix C assume 1: "P C \<and> f C \<sqsubseteq> C" and 2: "\<not> C \<sqsubseteq> C \<triangle> f C"
   hence "P (C \<triangle> f C)" by(simp add: P_f P_narrow)
   moreover then have "f (C \<triangle> f C) \<sqsubseteq> C \<triangle> f C"
     by (metis narrow1 narrow2 1 mono preord_class.le_trans)
-  ultimately show "P (C \<triangle> f C) \<and> f (C \<triangle> f C) \<sqsubseteq> C \<triangle> f C" ..
+  moreover have "n (C \<triangle> f C) < n C" using 1 2 by(simp add: n_narrow P_f)
+  ultimately show "(P (C \<triangle> f C) \<and> f (C \<triangle> f C) \<sqsubseteq> C \<triangle> f C) \<and> n(C \<triangle> f C) < n C"
+    by blast
 qed
+
+locale Abs_Int2_measure =
+  Abs_Int2 where \<gamma>=\<gamma> + Measure_WN where m=m
+  for \<gamma> :: "'av::{WN,lattice} \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 
 
 subsubsection "Termination: Intervals"
@@ -657,9 +605,9 @@ and m = m_ivl and n = n_ivl and h = 2
 proof
   case goal1 thus ?case by(rule m_ivl_anti_mono)
 next
-  case goal2 thus ?case by(rule m_ivl_widen)
+  case goal2 thus ?case by(rule m_ivl_height)
 next
-  case goal3 thus ?case by(rule m_ivl_height)
+  case goal3 thus ?case by(rule m_ivl_widen)
 next
   case goal4 thus ?case by(rule n_ivl_mono)
 next
