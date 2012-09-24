@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+#
+# Author: Markus Kaiser, TU Muenchen
+# Author: Makarius
+#
+# DESCRIPTION: graphview command-line tool wrapper
+
+## sources
+
+declare -a SOURCES=(
+#  "src/dockable.scala"
+  "src/floating_dialog.scala"
+  "src/frame.scala"
+  "src/graph_panel.scala"
+  "src/graph_xml.scala"
+  "src/layout_pendulum.scala"
+  "src/main_panel.scala"
+  "src/model.scala"
+  "src/mutator_dialog.scala"
+  "src/mutator_event.scala"
+  "src/mutator.scala"
+  "src/parameters.scala"
+  "src/popups.scala"
+  "src/shapes.scala"
+  "src/tooltips.scala"
+  "src/visualizer.scala"
+  "../jEdit/src/html_panel.scala"
+)
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] GRAPH_FILE"
+  echo
+  echo "  Options are:"
+  echo "    -b           build only"
+  echo "    -f           fresh build"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function failed()
+{
+  fail "Failed!"
+}
+
+
+## process command line
+
+# options
+
+BUILD_ONLY=false
+BUILD_JARS="jars"
+
+while getopts "bf" OPT
+do
+  case "$OPT" in
+    b)
+      BUILD_ONLY=true
+      ;;
+    f)
+      BUILD_JARS="jars_fresh"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+
+# args
+
+GRAPH_FILE=""
+
+if [ "$#" -eq 0 -a "$BUILD_ONLY" = false ]; then
+  usage
+elif [ "$#" -eq 1 ]; then
+  GRAPH_FILE="$1"
+  shift
+else
+  usage
+fi
+
+
+## build
+
+[ -e "$ISABELLE_HOME/Admin/build" ] && \
+  { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
+
+pushd "$GRAPHVIEW_HOME" >/dev/null || failed
+
+PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
+COBRA_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
+
+TARGET_DIR="$ISABELLE_HOME/lib/classes"
+TARGET="$TARGET_DIR/ext/Graphview.jar"
+
+declare -a UPDATED=()
+
+if [ "$BUILD_JARS" = jars_fresh ]; then
+  OUTDATED=true
+else
+  OUTDATED=false
+  if [ ! -e "$TARGET" ]; then
+    OUTDATED=true
+  else
+    if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+      declare -a DEPS=("$COBRA_JAR" "$PURE_JAR" "${SOURCES[@]}")
+    elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
+      declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}")
+    else
+      declare -a DEPS=()
+    fi
+    for DEP in "${DEPS[@]}"
+    do
+      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
+      [ "$DEP" -nt "$TARGET" ] && {
+        OUTDATED=true
+        UPDATED["${#UPDATED[@]}"]="$DEP"
+      }
+    done
+  fi
+fi
+
+if [ "$OUTDATED" = true ]
+then
+  echo "### Building Isabelle/Graphview ..."
+
+  [ "${#UPDATED[@]}" -gt 0 ] && {
+    echo "Changed files:"
+    for FILE in "${UPDATED[@]}"
+    do
+      echo "  $FILE"
+    done
+  }
+
+  [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
+    fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
+
+  rm -rf classes && mkdir classes
+
+  cp -p -R -f "$COBRA_JAR" "$TARGET_DIR/ext" || failed
+
+  (
+    for JAR in "$COBRA_JAR" "$PURE_JAR"
+    do
+      CLASSPATH="$CLASSPATH:$JAR"
+    done
+    CLASSPATH="$(jvmpath "$CLASSPATH")"
+    exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d classes "${SOURCES[@]}"
+  ) || fail "Failed to compile sources"
+
+  cd classes
+  isabelle_jdk jar cf "$TARGET" * || failed
+  cd ..
+  rm -rf classes
+fi
+
+popd >/dev/null
+
+
+## run
+
+[ "$BUILD_ONLY" = true ] || {
+  exec "$ISABELLE_TOOL" java isabelle.graphview.Graphview_Frame "$(jvmpath "$GRAPH_FILE")"
+}

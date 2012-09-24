@@ -7,7 +7,8 @@ Filters and add-operations on graphs.
 package isabelle.graphview
 
 
-import isabelle.Graph
+import isabelle._
+
 import java.awt.Color
 import scala.collection.immutable.SortedSet
 

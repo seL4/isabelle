@@ -6,27 +6,15 @@ Visual parameters with fallbacks for non-jEdit-environment.
 
 package isabelle.graphview
 
-
 import isabelle._
-import isabelle.jedit._
+
 import java.awt.Color
 
 
-//LocaleBrowser may or may not run within jEdit, so all jEdit specific options
-//have to have fallbacks.
 object Parameters
 {
-  def font_family(): String =
-    try {
-      Isabelle.font_family()
-    }
-    catch { case _ => "IsabelleText" }
-
-  def font_size(): Int =
-    try {
-      scala.math.round(Isabelle.font_size())
-    }
-    catch { case _ => 16 }
+  val font_family: String = "IsabelleText"
+  val font_size: Int = 16
 
   //Should not fail since this is in the isabelle environment.
   def tooltip_css(): String =

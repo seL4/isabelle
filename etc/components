@@ -1,5 +1,6 @@
 src/Tools/Code
 src/Tools/jEdit
+src/Tools/Graphview
 src/Tools/WWW_Find
 src/HOL/Mirabelle
 src/HOL/Mutabelle

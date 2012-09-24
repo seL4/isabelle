@@ -8,7 +8,7 @@ package isabelle.graphview
 
 
 import isabelle._
-import isabelle.jedit._
+import isabelle.jedit.HTML_Panel
 
 import scala.swing.{Dialog, BorderPanel, Component}
 import java.awt.{Point, Dimension}

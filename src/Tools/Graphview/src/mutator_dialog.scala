@@ -6,6 +6,7 @@ Mutator selection and configuration dialog.
 
 package isabelle.graphview
 
+import isabelle._
 
 import java.awt.Color
 import java.awt.FocusTraversalPolicy

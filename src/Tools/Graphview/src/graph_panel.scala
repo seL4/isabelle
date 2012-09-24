@@ -6,6 +6,7 @@ Graphview Java2D drawing panel.
 
 package isabelle.graphview
 
+import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}

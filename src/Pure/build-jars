@@ -126,8 +126,7 @@ shift $(($OPTIND - 1))
 [ "$#" -ne 0 ] && usage
 
 
-
-# build
+## build
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 TARGET="$TARGET_DIR/ext/Pure.jar"

@@ -10,7 +10,7 @@ package isabelle.graphview
 import isabelle._
 import isabelle.graphview.Mutators._
 import javax.swing.JPopupMenu
-import scala.swing.{Action, Menu, MenuItem, Seperator}
+import scala.swing.{Action, Menu, MenuItem, Separator}
 
 
 object Popups {

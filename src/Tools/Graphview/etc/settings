@@ -1,0 +1,6 @@
+# -*- shell-script -*- :mode=shellscript:
+
+GRAPHVIEW_HOME="$COMPONENT"
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$GRAPHVIEW_HOME/lib/Tools"
+
