@@ -178,23 +178,32 @@ fun map2_acom :: "('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a acom \
 "map2_acom f ({a1} WHILE b DO {p} C {a2}) ({a3} WHILE b' DO {p'} C' {a4}) =
   ({f a1 a3} WHILE b DO {f p p'} map2_acom f C C' {f a2 a4})"
 
+
+instantiation acom :: (widen)widen
+begin
+definition "widen_acom = map2_acom (op \<nabla>)"
+instance ..
+end
+
+instantiation acom :: (narrow)narrow
+begin
+definition "narrow_acom = map2_acom (op \<triangle>)"
+instance ..
+end
+
 instantiation acom :: (WN_Lc)WN_Lc
 begin
 
-definition "widen_acom = map2_acom (op \<nabla>)"
-
-definition "narrow_acom = map2_acom (op \<triangle>)"
-
-lemma widen_acom1:
-  "\<lbrakk>\<forall>a\<in>set(annos x). a \<in> Lc c; \<forall>a\<in>set (annos y). a \<in> Lc c; strip x = strip y\<rbrakk>
-   \<Longrightarrow> x \<sqsubseteq> x \<nabla> y"
-by(induct x y rule: le_acom.induct)
+lemma widen_acom1: fixes C1 :: "'a acom" shows
+  "\<lbrakk>\<forall>a\<in>set(annos C1). a \<in> Lc c; \<forall>a\<in>set (annos C2). a \<in> Lc c; strip C1 = strip C2\<rbrakk>
+   \<Longrightarrow> C1 \<sqsubseteq> C1 \<nabla> C2"
+by(induct C1 C2 rule: le_acom.induct)
   (auto simp: widen_acom_def widen1 Lc_acom_def)
 
-lemma widen_acom2:
-  "\<lbrakk>\<forall>a\<in>set(annos x). a \<in> Lc c; \<forall>a\<in>set (annos y). a \<in> Lc c; strip x = strip y\<rbrakk>
-   \<Longrightarrow> y \<sqsubseteq> x \<nabla> y"
-by(induct x y rule: le_acom.induct)
+lemma widen_acom2: fixes C1 :: "'a acom" shows
+  "\<lbrakk>\<forall>a\<in>set(annos C1). a \<in> Lc c; \<forall>a\<in>set (annos C2). a \<in> Lc c; strip C1 = strip C2\<rbrakk>
+   \<Longrightarrow> C2 \<sqsubseteq> C1 \<nabla> C2"
+by(induct C1 C2 rule: le_acom.induct)
   (auto simp: widen_acom_def widen2 Lc_acom_def)
 
 lemma strip_map2_acom[simp]:
@@ -203,11 +212,11 @@ by(induct f C1 C2 rule: map2_acom.induct) simp_all
 
 lemma strip_widen_acom[simp]:
   "strip C1 = strip C2 \<Longrightarrow> strip(C1 \<nabla> C2) = strip C1"
-by(simp add: widen_acom_def strip_map2_acom)
+by(simp add: widen_acom_def)
 
 lemma strip_narrow_acom[simp]:
   "strip C1 = strip C2 \<Longrightarrow> strip(C1 \<triangle> C2) = strip C1"
-by(simp add: narrow_acom_def strip_map2_acom)
+by(simp add: narrow_acom_def)
 
 lemma annos_map2_acom[simp]: "strip C2 = strip C1 \<Longrightarrow>
   annos(map2_acom f C1 C2) = map (%(x,y).f x y) (zip (annos C1) (annos C2))"
@@ -261,17 +270,17 @@ by(simp add: Lc_acom_def bot_def)
 subsubsection "Post-fixed point computation"
 
 definition iter_widen :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> ('a::{preord,widen})option"
-where "iter_widen f = while_option (\<lambda>c. \<not> f c \<sqsubseteq> c) (\<lambda>c. c \<nabla> f c)"
+where "iter_widen f = while_option (\<lambda>x. \<not> f x \<sqsubseteq> x) (\<lambda>x. x \<nabla> f x)"
 
 definition iter_narrow :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> ('a::{preord,narrow})option"
-where "iter_narrow f = while_option (\<lambda>c. \<not> c \<sqsubseteq> c \<triangle> f c) (\<lambda>c. c \<triangle> f c)"
+where "iter_narrow f = while_option (\<lambda>x. \<not> x \<sqsubseteq> x \<triangle> f x) (\<lambda>x. x \<triangle> f x)"
 
-definition pfp_wn :: "(('a::WN_Lc option acom) \<Rightarrow> 'a option acom) \<Rightarrow> com \<Rightarrow> 'a option acom option"
-where "pfp_wn f c =
-  (case iter_widen f (bot c) of None \<Rightarrow> None | Some c' \<Rightarrow> iter_narrow f c')"
+definition pfp_wn :: "('a::{preord,widen,narrow} \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option"
+where "pfp_wn f x =
+  (case iter_widen f x of None \<Rightarrow> None | Some y \<Rightarrow> iter_narrow f y)"
 
 
-lemma iter_widen_pfp: "iter_widen f c = Some c' \<Longrightarrow> f c' \<sqsubseteq> c'"
+lemma iter_widen_pfp: "iter_widen f x = Some p \<Longrightarrow> f p \<sqsubseteq> p"
 by(auto simp add: iter_widen_def dest: while_option_stop)
 
 lemma iter_widen_inv:
@@ -286,7 +295,7 @@ shows "strip C' = strip C"
 using while_option_rule[where P = "\<lambda>C'. strip C' = strip C", OF _ assms(2)]
 by (metis assms(1))
 
-lemma strip_iter_widen: fixes f :: "'a::WN_Lc acom \<Rightarrow> 'a acom"
+lemma strip_iter_widen: fixes f :: "'a::{preord,widen} acom \<Rightarrow> 'a acom"
 assumes "\<forall>C. strip (f C) = strip C" and "iter_widen f C = Some C'"
 shows "strip C' = strip C"
 proof-
@@ -296,25 +305,25 @@ proof-
 qed
 
 lemma iter_narrow_pfp:
-assumes mono: "!!c1 c2::_::WN_Lc. P c1 \<Longrightarrow>  P c2 \<Longrightarrow> c1 \<sqsubseteq> c2 \<Longrightarrow> f c1 \<sqsubseteq> f c2"
-and Pinv: "!!c. P c \<Longrightarrow> P(f c)" "!!c1 c2. P c1 \<Longrightarrow> P c2 \<Longrightarrow> P(c1 \<triangle> c2)" and "P c0"
-and "f c0 \<sqsubseteq> c0" and "iter_narrow f c0 = Some c"
-shows "P c \<and> f c \<sqsubseteq> c"
+assumes mono: "!!x1 x2::_::WN_Lc. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<sqsubseteq> x2 \<Longrightarrow> f x1 \<sqsubseteq> f x2"
+and Pinv: "!!x. P x \<Longrightarrow> P(f x)" "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)" and "P x0"
+and "f x0 \<sqsubseteq> x0" and "iter_narrow f x0 = Some x"
+shows "P x \<and> f x \<sqsubseteq> x"
 proof-
-  let ?Q = "%c. P c \<and> f c \<sqsubseteq> c \<and> c \<sqsubseteq> c0"
-  { fix c assume "?Q c"
+  let ?Q = "%x. P x \<and> f x \<sqsubseteq> x \<and> x \<sqsubseteq> x0"
+  { fix x assume "?Q x"
     note P = conjunct1[OF this] and 12 = conjunct2[OF this]
     note 1 = conjunct1[OF 12] and 2 = conjunct2[OF 12]
-    let ?c' = "c \<triangle> f c"
-    have "?Q ?c'"
+    let ?x' = "x \<triangle> f x"
+    have "?Q ?x'"
     proof auto
-      show "P ?c'" by (blast intro: P Pinv)
-      have "f ?c' \<sqsubseteq> f c" by(rule mono[OF `P (c \<triangle> f c)`  P narrow2[OF 1]])
-      also have "\<dots> \<sqsubseteq> ?c'" by(rule narrow1[OF 1])
-      finally show "f ?c' \<sqsubseteq> ?c'" .
-      have "?c' \<sqsubseteq> c" by (rule narrow2[OF 1])
-      also have "c \<sqsubseteq> c0" by(rule 2)
-      finally show "?c' \<sqsubseteq> c0" .
+      show "P ?x'" by (blast intro: P Pinv)
+      have "f ?x' \<sqsubseteq> f x" by(rule mono[OF `P (x \<triangle> f x)`  P narrow2[OF 1]])
+      also have "\<dots> \<sqsubseteq> ?x'" by(rule narrow1[OF 1])
+      finally show "f ?x' \<sqsubseteq> ?x'" .
+      have "?x' \<sqsubseteq> x" by (rule narrow2[OF 1])
+      also have "x \<sqsubseteq> x0" by(rule 2)
+      finally show "?x' \<sqsubseteq> x0" .
     qed
   }
   thus ?thesis
@@ -323,14 +332,14 @@ proof-
 qed
 
 lemma pfp_wn_pfp:
-assumes mono: "!!c1 c2::_::WN_Lc option acom. P c1 \<Longrightarrow>  P c2 \<Longrightarrow> c1 \<sqsubseteq> c2 \<Longrightarrow> f c1 \<sqsubseteq> f c2"
-and Pinv: "P (bot c)"  "!!c. P c \<Longrightarrow> P(f c)"
-  "!!c1 c2. P c1 \<Longrightarrow> P c2 \<Longrightarrow> P(c1 \<nabla> c2)"
-  "!!c1 c2. P c1 \<Longrightarrow> P c2 \<Longrightarrow> P(c1 \<triangle> c2)"
-and pfp_wn: "pfp_wn f c = Some c'" shows "P c' \<and> f c' \<sqsubseteq> c'"
+assumes mono: "!!x1 x2::_::WN_Lc. P x1 \<Longrightarrow>  P x2 \<Longrightarrow> x1 \<sqsubseteq> x2 \<Longrightarrow> f x1 \<sqsubseteq> f x2"
+and Pinv: "P x"  "!!x. P x \<Longrightarrow> P(f x)"
+  "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<nabla> x2)"
+  "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)"
+and pfp_wn: "pfp_wn f x = Some x'" shows "P x' \<and> f x' \<sqsubseteq> x'"
 proof-
   from pfp_wn obtain p
-    where its: "iter_widen f (bot c) = Some p" "iter_narrow f p = Some c'"
+    where its: "iter_widen f x = Some p" "iter_narrow f p = Some x'"
     by(auto simp: pfp_wn_def split: option.splits)
   have "P p" by (blast intro: iter_widen_inv[where P="P"] its(1) Pinv(1-3))
   thus ?thesis
@@ -339,9 +348,9 @@ proof-
 qed
 
 lemma strip_pfp_wn:
-  "\<lbrakk> \<forall>c. strip(f c) = strip c; pfp_wn f c = Some c' \<rbrakk> \<Longrightarrow> strip c' = c"
+  "\<lbrakk> \<forall>C. strip(f C) = strip C; pfp_wn f C = Some C' \<rbrakk> \<Longrightarrow> strip C' = strip C"
 by(auto simp add: pfp_wn_def iter_narrow_def split: option.splits)
-  (metis (no_types) narrow_acom_def strip_bot strip_iter_widen strip_map2_acom strip_while)
+  (metis (no_types) narrow_acom_def strip_iter_widen strip_map2_acom strip_while)
 
 
 locale Abs_Int2 = Abs_Int1_mono
@@ -349,13 +358,13 @@ where \<gamma>=\<gamma> for \<gamma> :: "'av::{WN,lattice} \<Rightarrow> val set
 begin
 
 definition AI_wn :: "com \<Rightarrow> 'av st option acom option" where
-"AI_wn c = pfp_wn (step' (top c)) c"
+"AI_wn c = pfp_wn (step' (top c)) (bot c)"
 
 lemma AI_wn_sound: "AI_wn c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_wn_def)
-  assume 1: "pfp_wn (step' (top c)) c = Some C"
+  assume 1: "pfp_wn (step' (top c)) (bot c) = Some C"
   have 2: "(strip C = c & C \<in> L(vars c)) \<and> step' \<top>\<^bsub>c\<^esub> C \<sqsubseteq> C"
-    by(rule pfp_wn_pfp[where c=c])
+    by(rule pfp_wn_pfp[where x="bot c"])
       (simp_all add: 1 mono_step'_top widen_c_in_L narrow_c_in_L)
   have 3: "strip (\<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)) = c" by(simp add: strip_pfp_wn[OF _ 1])
   have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)"
