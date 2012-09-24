@@ -46,12 +46,12 @@ int main(int argc, char *argv[])
   /* exec */
 
   char *cmd_line[4];
-  cmd_line[0] = "/bin/bash";
+  cmd_line[0] = "bash";
   cmd_line[1] = "-c";
   cmd_line[2] = script;
   cmd_line[3] = NULL;
 
-  execv("/bin/bash", cmd_line);
+  execvp(cmd_line[0], cmd_line);
   fail("Cannot exec process");
 }
 
