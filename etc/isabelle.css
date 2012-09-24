@@ -44,3 +44,6 @@ body { background-color: #FFFFFF; }
 .control        { background-color: #FF6A6A; }
 .bad            { background-color: #FF6A6A; }
 
+.keyword1       { font-weight: bold; }
+.keyword2       { font-weight: bold; }
+

@@ -152,6 +152,9 @@ object Isabelle_Markup
   val COMMENT = "comment"
   val CONTROL = "control"
 
+  val KEYWORD1 = "keyword1"
+  val KEYWORD2 = "keyword2"
+
 
   /* timing */
 

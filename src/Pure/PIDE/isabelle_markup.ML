@@ -75,6 +75,8 @@ sig
   val commentN: string val comment: Markup.T
   val controlN: string val control: Markup.T
   val tokenN: string val token: Properties.T -> Markup.T
+  val keyword1N: string val keyword1: Markup.T
+  val keyword2N: string val keyword2: Markup.T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -240,6 +242,9 @@ val (controlN, control) = markup_elem "control";
 
 val tokenN = "token";
 fun token props = (tokenN, props);
+
+val (keyword1N, keyword1) = markup_elem "keyword1";
+val (keyword2N, keyword2) = markup_elem "keyword2";
 
 
 (* timing *)

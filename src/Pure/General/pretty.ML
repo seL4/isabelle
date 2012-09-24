@@ -37,8 +37,8 @@ sig
   val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
   val marks_str: Markup.T list * string -> T
-  val keyword: string -> T
   val command: string -> T
+  val keyword: string -> T
   val markup_chunks: Markup.T -> T list -> T
   val chunks: T list -> T
   val chunks2: T list -> T
@@ -150,8 +150,8 @@ fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
 
-fun keyword name = mark_str (Isabelle_Markup.keyword, name);
-fun command name = mark_str (Isabelle_Markup.command, name);
+fun command name = mark_str (Isabelle_Markup.keyword1, name);
+fun keyword name = mark_str (Isabelle_Markup.keyword2, name);
 
 fun markup_chunks m prts = markup m (fbreaks prts);
 val chunks = markup_chunks Markup.empty;
