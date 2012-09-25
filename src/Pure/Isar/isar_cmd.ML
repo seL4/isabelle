@@ -403,8 +403,11 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
         val parents = map Context.theory_name (Theory.parents_of node);
         val session = Present.session_name node;
         val unfold = (session = thy_session);
-      in {name = name, ID = name, parents = parents, dir = session, unfold = unfold, path = ""} end);
-  in Present.display_graph gr end);
+      in
+       {name = name, ID = name, parents = parents, dir = session,
+        unfold = unfold, path = "", content = []}
+      end);
+  in Graph_Display.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
@@ -413,11 +416,11 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
     val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
       (i, {name = Name_Space.extern ctxt space c, ID = c, parents = Graph.Keys.dest cs,
-            dir = "", unfold = true, path = ""});
+            dir = "", unfold = true, path = "", content = []});
     val gr =
       Graph.fold (cons o entry) classes []
       |> sort (int_ord o pairself #1) |> map #2;
-  in Present.display_graph gr end);
+  in Graph_Display.display_graph gr end);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   Thm_Deps.thm_deps (Toplevel.theory_of state)
