@@ -71,8 +71,7 @@ object Mutators {
     name,
     description,
     g => (g /: g.dest) {
-      (graph, k) => {
-        val (from, tos) = k
+      case (graph, ((from, _), tos)) => {
         (graph /: tos) {
           (gr, to) => if (pred(gr, from, to)) gr
                       else gr.del_edge(from, to)

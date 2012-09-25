@@ -8,7 +8,6 @@
 ## sources
 
 declare -a SOURCES=(
-#  "src/dockable.scala"
   "src/floating_dialog.scala"
   "src/frame.scala"
   "src/graph_panel.scala"
@@ -39,6 +38,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -b           build only"
+  echo "    -c           cleanup -- remove GRAPH_FILE after use"
   echo "    -f           fresh build"
   echo
   exit 1
@@ -61,13 +61,17 @@ function failed()
 # options
 
 BUILD_ONLY=false
+CLEAN=""
 BUILD_JARS="jars"
 
-while getopts "bf" OPT
+while getopts "bcf" OPT
 do
   case "$OPT" in
     b)
       BUILD_ONLY=true
+      ;;
+    c)
+      CLEAN="true"
       ;;
     f)
       BUILD_JARS="jars_fresh"
@@ -77,6 +81,8 @@ do
       ;;
   esac
 done
+
+shift $(($OPTIND - 1))
 
 
 # args
@@ -102,6 +108,7 @@ pushd "$GRAPHVIEW_HOME" >/dev/null || failed
 
 PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
 COBRA_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
+JS_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 TARGET="$TARGET_DIR/ext/Graphview.jar"
@@ -116,7 +123,7 @@ else
     OUTDATED=true
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-      declare -a DEPS=("$COBRA_JAR" "$PURE_JAR" "${SOURCES[@]}")
+      declare -a DEPS=("$COBRA_JAR" "$JS_JAR" "$PURE_JAR" "${SOURCES[@]}")
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
       declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}")
     else
@@ -151,9 +158,10 @@ then
   rm -rf classes && mkdir classes
 
   cp -p -R -f "$COBRA_JAR" "$TARGET_DIR/ext" || failed
+  cp -p -R -f "$JS_JAR" "$TARGET_DIR/ext" || failed
 
   (
-    for JAR in "$COBRA_JAR" "$PURE_JAR"
+    for JAR in "$COBRA_JAR" "$JS_JAR" "$PURE_JAR"
     do
       CLASSPATH="$CLASSPATH:$JAR"
     done
@@ -172,6 +180,17 @@ popd >/dev/null
 
 ## run
 
-[ "$BUILD_ONLY" = true ] || {
-  exec "$ISABELLE_TOOL" java isabelle.graphview.Graphview_Frame "$(jvmpath "$GRAPH_FILE")"
-}
+if [ "$BUILD_ONLY" = false ]; then
+  PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$""$(basename "$GRAPH_FILE")"
+  if [ "$CLEAN" = true ]; then
+    mv -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot move file: $GRAPH_FILE"
+  else
+    cp -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot copy file: $GRAPH_FILE"
+  fi
+
+  "$ISABELLE_TOOL" java isabelle.graphview.Graphview_Frame "$(jvmpath "$PRIVATE_FILE")"
+  RC="$?"
+
+  rm -f "$PRIVATE_FILE"
+  echo "$RC"
+fi
