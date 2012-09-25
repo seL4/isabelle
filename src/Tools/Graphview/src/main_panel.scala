@@ -18,12 +18,12 @@ import java.awt.Dimension
 import java.io.File
 
 
-class Main_Panel(xml: XML.Tree) extends BorderPanel
+class Main_Panel(graph: Model.Graph) extends BorderPanel
 {
   focusable = true
   requestFocus()
   
-  val model = new Model(Graph_XML(xml))
+  val model = new Model(graph)
   val visualizer = new Visualizer(model)
   val graph_panel = new Graph_Panel(visualizer)
   

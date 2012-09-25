@@ -25,9 +25,7 @@ class Mutator_Dialog(
   reverse_caption: String = "Inverse", show_color_chooser: Boolean = true)
 extends Dialog
 {
-  type Key = String
-  type Entry = Option[Locale]
-  type Mutator_Markup = (Boolean, Color, Mutator[Key, Entry])
+  type Mutator_Markup = (Boolean, Color, Mutator)
   
   title = caption
   
@@ -112,7 +110,7 @@ extends Dialog
 
   val filterPanel = new BoxPanel(Orientation.Vertical) {}
 
-  private val mutatorBox = new ComboBox[Mutator[Key, Entry]](container.available)
+  private val mutatorBox = new ComboBox[Mutator](container.available)
 
   private val addButton: Button = new Button{
     action = Action("Add") {

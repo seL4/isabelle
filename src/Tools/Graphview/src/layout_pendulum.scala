@@ -12,26 +12,25 @@ import isabelle._
 
 object Layout_Pendulum {
   type Key = String
-  type Entry = Option[Locale]
   type Point = (Double, Double)
   type Coordinates = Map[Key, Point]
   type Level = List[Key]
   type Levels = List[Level]
   type Layout = (Coordinates, Map[(Key, Key), List[Point]])
-  type Dummies = (Graph[Key, Entry], List[Key], Map[Key, Int])
+  type Dummies = (Model.Graph, List[Key], Map[Key, Int])
   
   val x_distance = 350
   val y_distance = 350
   val pendulum_iterations = 10
   
-  def apply(graph: Graph[Key, Entry]): Layout = {
+  def apply(graph: Model.Graph): Layout = {
     if (graph.entries.isEmpty)
       (Map[Key, Point](), Map[(Key, Key), List[Point]]())
     else {
       val (dummy_graph, dummies, dummy_levels) = {
         val initial_levels = level_map(graph)
 
-        def add_dummies(graph: Graph[Key, Entry], from: Key, to: Key,
+        def add_dummies(graph: Model.Graph, from: Key, to: Key,
                         levels: Map[Key, Int]): Dummies = {
           val ds = 
             ((levels(from) + 1) until levels(to))
@@ -44,7 +43,7 @@ object Layout_Pendulum {
 
           val next_nodes = 
             (graph /: ds) {
-              (graph, d) => graph.new_node(d, None)
+              (graph, d) => graph.new_node(d, Model.empty_info)
             }
 
           val next =
@@ -89,7 +88,7 @@ object Layout_Pendulum {
     }
   }
   
-  def level_map(graph: Graph[Key, Entry]): Map[Key, Int] = 
+  def level_map(graph: Model.Graph): Map[Key, Int] = 
     (Map[Key, Int]() /: graph.topological_order){
       (levels, key) => {
         val pred_levels = graph.imm_preds(key).map(levels(_)) + (-1)
@@ -108,7 +107,7 @@ object Layout_Pendulum {
         }
     }.map(_._2)
   
-  def count_crossings(graph: Graph[Key, Entry], levels: Levels): Int = {
+  def count_crossings(graph: Model.Graph, levels: Levels): Int = {
     def in_level(ls: Levels): Int = ls match {
       case List(top, bot) =>
         top.zipWithIndex.map{
@@ -131,7 +130,7 @@ object Layout_Pendulum {
     levels.sliding(2).map(in_level).sum
   }
   
-  def minimize_crossings(graph: Graph[Key, Entry], levels: Levels): Levels = {
+  def minimize_crossings(graph: Model.Graph, levels: Levels): Levels = {
     def resort_level(parent: Level, child: Level, top_down: Boolean): Level = 
       child.map(k => {
           val ps = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
@@ -167,7 +166,7 @@ object Layout_Pendulum {
   }
   
   def initial_coordinates(levels: Levels): Coordinates =
-    (Map[Key, Point]() /: levels.reverse.zipWithIndex){
+    (Map[Key, Point]() /: levels.zipWithIndex){
       case (coords, (level, yi)) =>
         (coords /: level.zipWithIndex) {
           case (coords, (node, xi)) => 
@@ -175,7 +174,7 @@ object Layout_Pendulum {
         }
     }
   
-  def pendulum(graph: Graph[Key, Entry],
+  def pendulum(graph: Model.Graph,
                levels: Levels, coords: Map[Key, Point]): Coordinates =
   {
     type Regions = List[List[Region]]
@@ -260,7 +259,7 @@ object Layout_Pendulum {
     }._2
   }
   
-  protected class Region(val graph: Graph[Key, Entry], node: Key) {
+  protected class Region(val graph: Model.Graph, node: Key) {
     var nodes: List[Key] = List(node)
        
     def left(coords: Coordinates): Double =

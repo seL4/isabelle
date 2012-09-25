@@ -61,6 +61,7 @@ sig
   val output: int option -> T -> Output.output
   val string_of_margin: int -> T -> string
   val string_of: T -> string
+  val symbolic_string_of: T -> string
   val str_of: T -> string
   val writeln: T -> unit
   val to_ML: T -> ML_Pretty.pretty
@@ -324,6 +325,7 @@ fun output_buffer margin prt =
 val output = Buffer.content oo output_buffer;
 fun string_of_margin margin = Output.escape o output (SOME margin);
 val string_of = Output.escape o output NONE;
+val symbolic_string_of = Output.escape o Buffer.content o symbolic;
 val str_of = Output.escape o Buffer.content o unformatted;
 val writeln = Output.writeln o string_of;
 

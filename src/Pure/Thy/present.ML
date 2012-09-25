@@ -324,7 +324,7 @@ fun isabelle_browser graph = Isabelle_System.with_tmp_dir "browser" (fn dir =>
     val pdf_path = Path.append dir graph_pdf_path;
     val eps_path = Path.append dir graph_eps_path;
     val graph_path = Path.append dir graph_path;
-    val _ = Graph_Display.write_graph graph_path graph;
+    val _ = Graph_Display.write_graph_browser graph_path graph;
     val args = "-o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path graph_path;
   in
     if Isabelle_System.isabelle_tool "browser" args = 0 andalso
@@ -371,7 +371,7 @@ fun finish () =
         create_index html_prefix;
         if length path > 1 then update_index parent_html_prefix name else ();
         (case readme of NONE => () | SOME path => File.copy path html_prefix);
-        Graph_Display.write_graph (Path.append html_prefix graph_path) sorted_graph;
+        Graph_Display.write_graph_browser (Path.append html_prefix graph_path) sorted_graph;
         Isabelle_System.isabelle_tool "browser" "-b";
         File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
         List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)

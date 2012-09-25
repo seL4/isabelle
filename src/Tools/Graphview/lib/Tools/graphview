@@ -11,7 +11,6 @@ declare -a SOURCES=(
   "src/floating_dialog.scala"
   "src/frame.scala"
   "src/graph_panel.scala"
-  "src/graph_xml.scala"
   "src/layout_pendulum.scala"
   "src/main_panel.scala"
   "src/model.scala"
@@ -21,7 +20,6 @@ declare -a SOURCES=(
   "src/parameters.scala"
   "src/popups.scala"
   "src/shapes.scala"
-  "src/tooltips.scala"
   "src/visualizer.scala"
   "../jEdit/src/html_panel.scala"
 )
@@ -60,15 +58,15 @@ function failed()
 
 # options
 
-BUILD_ONLY=false
-CLEAN=""
+BUILD_ONLY="false"
+CLEAN="false"
 BUILD_JARS="jars"
 
 while getopts "bcf" OPT
 do
   case "$OPT" in
     b)
-      BUILD_ONLY=true
+      BUILD_ONLY="true"
       ;;
     c)
       CLEAN="true"
@@ -88,15 +86,9 @@ shift $(($OPTIND - 1))
 # args
 
 GRAPH_FILE=""
-
-if [ "$#" -eq 0 -a "$BUILD_ONLY" = false ]; then
-  usage
-elif [ "$#" -eq 1 ]; then
-  GRAPH_FILE="$1"
-  shift
-else
-  usage
-fi
+[ "$#" -gt 0 ] && { GRAPH_FILE="$1"; shift; }
+[ "$#" -ne 0 ] && usage
+[ -z "$GRAPH_FILE" -a "$BUILD_ONLY" = false ] && usage
 
 
 ## build
@@ -182,13 +174,13 @@ popd >/dev/null
 
 if [ "$BUILD_ONLY" = false ]; then
   PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$""$(basename "$GRAPH_FILE")"
-  if [ "$CLEAN" = true ]; then
+  if [ "$CLEAN" = "true" ]; then
     mv -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot move file: $GRAPH_FILE"
   else
     cp -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot copy file: $GRAPH_FILE"
   fi
 
-  "$ISABELLE_TOOL" java isabelle.graphview.Graphview_Frame "$(jvmpath "$PRIVATE_FILE")"
+  "$ISABELLE_TOOL" java $GRAPHVIEW_JAVA_OPTIONS isabelle.graphview.Frame "$PRIVATE_FILE"
   RC="$?"
 
   rm -f "$PRIVATE_FILE"

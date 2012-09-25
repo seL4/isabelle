@@ -13,60 +13,57 @@ import java.awt.Color
 import scala.collection.immutable.SortedSet
 
 
-trait Mutator[Key, Entry]
+trait Mutator
 {
   val name: String
   val description: String
-  def mutate(complete: Graph[Key, Entry], sub: Graph[Key, Entry]): Graph[Key, Entry]
+  def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph
 
   override def toString() = name
 }
 
-trait Filter[Key, Entry]
-extends Mutator[Key, Entry]
+trait Filter extends Mutator
 {
-  def mutate(complete: Graph[Key, Entry], sub: Graph[Key, Entry]) = filter(sub)
-  def filter(sub: Graph[Key, Entry]) : Graph[Key, Entry]
+  def mutate(complete: Model.Graph, sub: Model.Graph) = filter(sub)
+  def filter(sub: Model.Graph) : Model.Graph
 }
 
 object Mutators {
-  type Key = String
-  type Entry = Option[Locale]
-  type Mutator_Markup = (Boolean, Color, Mutator[Key, Entry])
+  type Mutator_Markup = (Boolean, Color, Mutator)
   
   val Enabled = true
   val Disabled = false
   
-  def create(m: Mutator[Key, Entry]): Mutator_Markup =
+  def create(m: Mutator): Mutator_Markup =
     (Mutators.Enabled, Parameters.Colors.next, m)
 
-  class Graph_Filter[Key, Entry](val name: String, val description: String,
-    pred: Graph[Key, Entry] => Graph[Key, Entry])
-  extends Filter[Key, Entry]
+  class Graph_Filter(val name: String, val description: String,
+    pred: Model.Graph => Model.Graph)
+  extends Filter
   {
-    def filter(sub: Graph[Key, Entry]) : Graph[Key, Entry] = pred(sub)
+    def filter(sub: Model.Graph) : Model.Graph = pred(sub)
   }
 
-  class Graph_Mutator[Key, Entry](val name: String, val description: String,
-    pred: (Graph[Key, Entry], Graph[Key, Entry]) => Graph[Key, Entry])
-  extends Mutator[Key, Entry]
+  class Graph_Mutator(val name: String, val description: String,
+    pred: (Model.Graph, Model.Graph) => Model.Graph)
+  extends Mutator
   {
-    def mutate(complete: Graph[Key, Entry], sub: Graph[Key, Entry]): Graph[Key, Entry] =
+    def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph =
           pred(complete, sub)
   }
 
-  class Node_Filter[Key, Entry](name: String, description: String,
-    pred: (Graph[Key, Entry], Key) => Boolean)
-    extends Graph_Filter[Key, Entry] (
+  class Node_Filter(name: String, description: String,
+    pred: (Model.Graph, String) => Boolean)
+    extends Graph_Filter (
 
     name,
     description,
     g => g.restrict(pred(g, _))
   )
 
-  class Edge_Filter[Key, Entry](name: String, description: String,
-    pred: (Graph[Key, Entry], Key, Key) => Boolean)
-    extends Graph_Filter[Key, Entry] (
+  class Edge_Filter(name: String, description: String,
+    pred: (Model.Graph, String, String) => Boolean)
+    extends Graph_Filter (
 
     name,
     description,
@@ -80,10 +77,10 @@ object Mutators {
     }
   )
 
-  class Node_Family_Filter[Key, Entry](name: String, description: String,
+  class Node_Family_Filter(name: String, description: String,
       reverse: Boolean, parents: Boolean, children: Boolean,
-      pred: (Graph[Key, Entry], Key) => Boolean)
-    extends Node_Filter[Key, Entry](
+      pred: (Model.Graph, String) => Boolean)
+    extends Node_Filter(
 
     name,
     description,
@@ -95,7 +92,7 @@ object Mutators {
   )  
   
   case class Identity()
-    extends Graph_Filter[Key, Entry](
+    extends Graph_Filter(
 
     "Identity",
     "Does not change the graph.",
@@ -104,7 +101,7 @@ object Mutators {
 
   case class Node_Expression(regex: String,
     reverse: Boolean, parents: Boolean, children: Boolean)
-    extends Node_Family_Filter[Key, Entry](
+    extends Node_Family_Filter(
 
     "Filter by Name",
     "Only shows or hides all nodes with any family member's name matching " +
@@ -117,7 +114,7 @@ object Mutators {
 
   case class Node_List(list: List[String],
     reverse: Boolean, parents: Boolean, children: Boolean)
-    extends Node_Family_Filter[Key, Entry](
+    extends Node_Family_Filter(
 
     "Filter by Name List",
     "Only shows or hides all nodes with any family member's name matching " +
@@ -129,7 +126,7 @@ object Mutators {
   )
 
   case class Edge_Endpoints(source: String, dest: String)
-    extends Edge_Filter[Key, Entry](
+    extends Edge_Filter(
 
     "Hide edge",
     "Hides the edge whose endpoints match strings.",
@@ -137,7 +134,7 @@ object Mutators {
   )
 
   case class Edge_Transitive()
-    extends Edge_Filter[Key, Entry](
+    extends Edge_Filter(
 
     "Hide transitive edges",
     "Hides all transitive edges.",
@@ -147,8 +144,8 @@ object Mutators {
     }
   )
 
-  private def add_node_group(from: Graph[Key, Entry], to: Graph[Key, Entry],
-    keys: List[Key]) = {
+  private def add_node_group(from: Model.Graph, to: Model.Graph,
+    keys: List[String]) = {
     
     // Add Nodes
     val with_nodes = 
@@ -159,7 +156,7 @@ object Mutators {
     // Add Edges
     (with_nodes /: keys) {
       (gv, key) => {
-        def add_edges(g: Graph[Key, Entry], keys: SortedSet[Key], succs: Boolean) =
+        def add_edges(g: Model.Graph, keys: SortedSet[String], succs: Boolean) =
           (g /: keys) {
             (graph, end) => {
               if (!graph.keys.contains(end)) graph
@@ -180,7 +177,7 @@ object Mutators {
   }  
   
   case class Add_Node_Expression(regex: String)
-    extends Graph_Mutator[Key, Entry](
+    extends Graph_Mutator(
 
     "Add by name",
     "Adds every node whose name matches the regex. " +
@@ -193,7 +190,7 @@ object Mutators {
   )
   
   case class Add_Transitive_Closure(parents: Boolean, children: Boolean)
-    extends Graph_Mutator[Key, Entry](
+    extends Graph_Mutator(
 
     "Add transitive closure",
     "Adds all family members of all current nodes.",

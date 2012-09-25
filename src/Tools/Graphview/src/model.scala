@@ -14,8 +14,8 @@ import scala.actors.Actor
 import scala.actors.Actor._
 
 
-class Mutator_Container(val available: List[Mutator[String, Option[Locale]]]) {
-    type Mutator_Markup = (Boolean, Color, Mutator[String, Option[Locale]])
+class Mutator_Container(val available: List[Mutator]) {
+    type Mutator_Markup = (Boolean, Color, Mutator)
     
     val events = new Event_Bus[Mutator_Event.Message]
     
@@ -34,7 +34,33 @@ class Mutator_Container(val available: List[Mutator[String, Option[Locale]]]) {
     }
 }
 
-class Model(private val graph: Graph[String, Option[Locale]]) {  
+
+object Model
+{
+  /* node info */
+
+  sealed case class Info(name: String, content: XML.Body)
+
+  val empty_info: Info = Info("", Nil)
+
+  val decode_info: XML.Decode.T[Info] = (body: XML.Body) =>
+  {
+    import XML.Decode._
+
+    val (name, content) = pair(string, x => x)(body)
+    Info(name, content)
+  }
+
+
+  /* graph */
+
+  type Graph = isabelle.Graph[String, Info]
+
+  val decode_graph: XML.Decode.T[Graph] =
+    isabelle.Graph.decode(XML.Decode.string, decode_info)
+}
+
+class Model(private val graph: Model.Graph) {  
   val Mutators = new Mutator_Container(
     List(
       Node_Expression(".*", false, false, false),
@@ -57,7 +83,7 @@ class Model(private val graph: Graph[String, Option[Locale]]) {
     current.keys.map(k => current.imm_succs(k).map((k, _))).flatten
   
   def complete = graph
-  def current: Graph[String, Option[Locale]] =
+  def current: Model.Graph =
       (graph /: Mutators()) {
         case (g, (enabled, _, mutator)) => {
           if (!enabled) g

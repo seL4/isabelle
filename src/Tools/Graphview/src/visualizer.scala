@@ -6,6 +6,7 @@ Graph visualization interface.
 
 package isabelle.graphview
 
+import isabelle._
 
 import java.awt.{RenderingHints, Graphics2D}
 
@@ -142,8 +143,14 @@ class Visualizer(val model: Model) {
   
   object Tooltip {
     import java.awt.FontMetrics
-    
-    def apply(l: String, fm: FontMetrics) = Tooltips.locale(l, model, fm)
+
+    def apply(l: String, fm: FontMetrics): String =
+    {
+      val info = model.complete.get_node(l)
+      XML.string_of_body(
+        Pretty.formatted(info.content, 76, Pretty.font_metric(fm))
+          .map(t => XML.Elem(Markup(HTML.PRE, Nil), HTML.spans(t, false))))
+    }
   }
   
   object Font {

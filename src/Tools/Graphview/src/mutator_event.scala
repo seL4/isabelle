@@ -12,9 +12,7 @@ import java.awt.Color
 
 object Mutator_Event
 {
-  type Key = String
-  type Entry = Option[Locale]
-  type Mutator_Markup = (Boolean, Color, Mutator[Key, Entry])
+  type Mutator_Markup = (Boolean, Color, Mutator)
   
   sealed abstract class Message
   case class Add(m: Mutator_Markup) extends Message
