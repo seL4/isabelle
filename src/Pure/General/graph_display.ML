@@ -13,6 +13,7 @@ sig
   val write_graph_browser: Path.T -> graph -> unit
   val browserN: string
   val graphviewN: string
+  val graphview_reportN: string
   val display_graph: graph -> unit
 end;
 
@@ -32,6 +33,7 @@ type graph = node list;
 
 val browserN = "browser";
 val graphviewN = "graphview";
+val graphview_reportN = "graphview_report";
 
 fun write_graph_browser path (graph: graph) =
   File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents, ...} =>
@@ -54,19 +56,24 @@ fun write_graph_graphview path graph =
 (* display graph *)
 
 fun display_graph graph =
-  let
-    val browser =
-      (case find_first (fn m => m = browserN orelse m = graphviewN) (print_mode_value ()) of
-        SOME m => m = browserN
-      | NONE => true);
-    val (write, tool) =
-      if browser then (write_graph_browser, "browser") else (write_graph_graphview, "graphview");
+  if print_mode_active graphview_reportN then
+    Output.report
+      (YXML.string_of (XML.Elem ((Isabelle_Markup.graphviewN, []), encode_graphview graph)))
+  else
+    let
+      val browser =
+        (case find_first (fn m => m = browserN orelse m = graphviewN) (print_mode_value ()) of
+          SOME m => m = browserN
+        | NONE => true);
+      val (write, tool) =
+        if browser then (write_graph_browser, "browser")
+        else (write_graph_graphview, "graphview");
 
-    val _ = writeln "Displaying graph ...";
-    val path = Isabelle_System.create_tmp_path "graph" "";
-    val _ = write path graph;
-    val _ = Isabelle_System.isabelle_tool tool ("-c " ^ File.shell_path path ^ " &");
-  in () end;
+      val _ = writeln "Displaying graph ...";
+      val path = Isabelle_System.create_tmp_path "graph" "";
+      val _ = write path graph;
+      val _ = Isabelle_System.isabelle_tool tool ("-c " ^ File.shell_path path ^ " &");
+    in () end;
 
 end;
 

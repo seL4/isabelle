@@ -100,6 +100,7 @@ sig
   val reportN: string val report: Markup.T
   val no_reportN: string val no_report: Markup.T
   val badN: string val bad: Markup.T
+  val graphviewN: string
   val functionN: string
   val assign_execs: Properties.T
   val removed_versions: Properties.T
@@ -295,6 +296,8 @@ val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
 val (badN, bad) = markup_elem "bad";
+
+val graphviewN = "graphview";
 
 
 (* protocol message functions *)
