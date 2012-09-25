@@ -17,8 +17,7 @@ import scala.swing.{TextArea, ScrollPane}
 import org.gjt.sp.jedit.View
 
 
-class Raw_Output_Dockable(view: View, position: String)
-  extends Dockable(view: View, position: String)
+class Raw_Output_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   private val text_area = new TextArea
   set_content(new ScrollPane(text_area))

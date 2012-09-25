@@ -12,12 +12,10 @@ import isabelle._
 import scala.actors.Actor._
 import scala.swing.TextArea
 
-import java.lang.System
-
 import org.gjt.sp.jedit.View
 
 
-class Syslog_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
+class Syslog_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   /* GUI components */
 
@@ -42,7 +40,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view: View,
         case output: Isabelle_Process.Output =>
           if (output.is_syslog) update_syslog()
 
-        case bad => System.err.println("Syslog_Dockable: ignoring bad message " + bad)
+        case bad => java.lang.System.err.println("Syslog_Dockable: ignoring bad message " + bad)
       }
     }
   }

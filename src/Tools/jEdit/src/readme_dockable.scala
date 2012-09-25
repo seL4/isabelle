@@ -12,7 +12,7 @@ import isabelle._
 import org.gjt.sp.jedit.View
 
 
-class README_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
+class README_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   private val readme = new HTML_Panel("SansSerif", 14)
   private val readme_path = Path.explode("$JEDIT_HOME/README.html")
