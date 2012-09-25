@@ -21,9 +21,35 @@ object Graph
   def empty[Key, A](implicit ord: Ordering[Key]): Graph[Key, A] =
     new Graph[Key, A](SortedMap.empty(ord))
 
+  def make[Key, A](entries: List[((Key, A), List[Key])])(implicit ord: Ordering[Key])
+    : Graph[Key, A] =
+  {
+    val graph1 =
+      (empty[Key, A](ord) /: entries) { case (graph, ((x, info), _)) => graph.new_node(x, info) }
+    val graph2 =
+      (graph1 /: entries) { case (graph, ((x, _), ys)) => (graph /: ys)(_.add_edge(x, _)) }
+    graph2
+  }
+
   def string[A]: Graph[String, A] = empty(Ordering.String)
   def int[A]: Graph[Int, A] = empty(Ordering.Int)
   def long[A]: Graph[Long, A] = empty(Ordering.Long)
+
+
+  /* XML data representation */
+
+  def encode[Key, A](key: XML.Encode.T[Key], info: XML.Encode.T[A]): XML.Encode.T[Graph[Key, A]] =
+    ((graph: Graph[Key, A]) => {
+      import XML.Encode._
+      list(pair(pair(key, info), list(key)))(graph.dest)
+    })
+
+  def decode[Key, A](key: XML.Decode.T[Key], info: XML.Decode.T[A])(implicit ord: Ordering[Key])
+      : XML.Decode.T[Graph[Key, A]] =
+    ((body: XML.Body) => {
+      import XML.Decode._
+      make(list(pair(pair(key, info), list(key)))(body))(ord)
+    })
 }
 
 
@@ -44,11 +70,12 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   def entries: Iterator[(Key, Entry)] = rep.iterator
   def keys: Iterator[Key] = entries.map(_._1)
 
-  def dest: List[(Key, List[Key])] =
-    (for ((x, (_, (_, succs))) <- entries) yield (x, succs.toList)).toList
+  def dest: List[((Key, A), List[Key])] =
+    (for ((x, (i, (_, succs))) <- entries) yield ((x, i), succs.toList)).toList
 
   override def toString: String =
-    dest.map(p => p._1.toString + " -> " + p._2.map(_.toString).mkString("{", ", ", "}"))
+    dest.map({ case ((x, _), ys) =>
+        x.toString + " -> " + ys.iterator.map(_.toString).mkString("{", ", ", "}") })
       .mkString("Graph(", ", ", ")")
 
   private def get_entry(x: Key): Entry =

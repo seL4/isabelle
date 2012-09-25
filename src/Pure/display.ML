@@ -194,7 +194,8 @@ fun pretty_full_theory verbose thy =
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
 
-    val clsses = Name_Space.dest_table ctxt (class_space, Symtab.make (Graph.dest classes));
+    val clsses =
+      Name_Space.dest_table ctxt (class_space, Symtab.make (map (apfst fst) (Graph.dest classes)));
     val tdecls = Name_Space.dest_table ctxt types;
     val arties = Name_Space.dest_table ctxt (Type.type_space tsig, arities);
 

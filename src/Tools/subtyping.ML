@@ -908,7 +908,7 @@ fun add_coercion raw_t context =
             Syntax.string_of_typ ctxt T1 ^ "!\n\nCannot add coercion of type: " ^
             Syntax.string_of_typ ctxt (T1 --> T2));
         val new_edges =
-          flat (Graph.dest G'' |> map (fn (x, ys) => ys |> map_filter (fn y =>
+          flat (Graph.dest G'' |> map (fn ((x, _), ys) => ys |> map_filter (fn y =>
             if Graph.is_edge G' (x, y) then NONE else SOME (x, y))));
         val G_and_new = Graph.add_edge (a, b) G';
 
