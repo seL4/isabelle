@@ -275,7 +275,7 @@ local
 fun cmts (t1 :: t2 :: toks) =
       if Token.keyword_with (fn s => s = "--") t1 then t2 :: cmts toks
       else cmts (t2 :: toks)
-  | cmts toks = [];
+  | cmts _ = [];
 
 in
 
