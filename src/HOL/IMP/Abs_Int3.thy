@@ -277,7 +277,7 @@ where "iter_narrow f = while_option (\<lambda>x. \<not> x \<sqsubseteq> x \<tria
 
 definition pfp_wn :: "('a::{preord,widen,narrow} \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option"
 where "pfp_wn f x =
-  (case iter_widen f x of None \<Rightarrow> None | Some y \<Rightarrow> iter_narrow f y)"
+  (case iter_widen f x of None \<Rightarrow> None | Some p \<Rightarrow> iter_narrow f p)"
 
 
 lemma iter_widen_pfp: "iter_widen f x = Some p \<Longrightarrow> f p \<sqsubseteq> p"
@@ -306,24 +306,24 @@ qed
 
 lemma iter_narrow_pfp:
 assumes mono: "!!x1 x2::_::WN_Lc. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<sqsubseteq> x2 \<Longrightarrow> f x1 \<sqsubseteq> f x2"
-and Pinv: "!!x. P x \<Longrightarrow> P(f x)" "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)" and "P x0"
-and "f x0 \<sqsubseteq> x0" and "iter_narrow f x0 = Some x"
-shows "P x \<and> f x \<sqsubseteq> x"
+and Pinv: "!!x. P x \<Longrightarrow> P(f x)" "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)"
+and "P p0" and "f p0 \<sqsubseteq> p0" and "iter_narrow f p0 = Some p"
+shows "P p \<and> f p \<sqsubseteq> p"
 proof-
-  let ?Q = "%x. P x \<and> f x \<sqsubseteq> x \<and> x \<sqsubseteq> x0"
-  { fix x assume "?Q x"
+  let ?Q = "%p. P p \<and> f p \<sqsubseteq> p \<and> p \<sqsubseteq> p0"
+  { fix p assume "?Q p"
     note P = conjunct1[OF this] and 12 = conjunct2[OF this]
     note 1 = conjunct1[OF 12] and 2 = conjunct2[OF 12]
-    let ?x' = "x \<triangle> f x"
-    have "?Q ?x'"
+    let ?p' = "p \<triangle> f p"
+    have "?Q ?p'"
     proof auto
-      show "P ?x'" by (blast intro: P Pinv)
-      have "f ?x' \<sqsubseteq> f x" by(rule mono[OF `P (x \<triangle> f x)`  P narrow2[OF 1]])
-      also have "\<dots> \<sqsubseteq> ?x'" by(rule narrow1[OF 1])
-      finally show "f ?x' \<sqsubseteq> ?x'" .
-      have "?x' \<sqsubseteq> x" by (rule narrow2[OF 1])
-      also have "x \<sqsubseteq> x0" by(rule 2)
-      finally show "?x' \<sqsubseteq> x0" .
+      show "P ?p'" by (blast intro: P Pinv)
+      have "f ?p' \<sqsubseteq> f p" by(rule mono[OF `P (p \<triangle> f p)`  P narrow2[OF 1]])
+      also have "\<dots> \<sqsubseteq> ?p'" by(rule narrow1[OF 1])
+      finally show "f ?p' \<sqsubseteq> ?p'" .
+      have "?p' \<sqsubseteq> p" by (rule narrow2[OF 1])
+      also have "p \<sqsubseteq> p0" by(rule 2)
+      finally show "?p' \<sqsubseteq> p0" .
     qed
   }
   thus ?thesis
@@ -332,16 +332,16 @@ proof-
 qed
 
 lemma pfp_wn_pfp:
-assumes mono: "!!x1 x2::_::WN_Lc. P x1 \<Longrightarrow>  P x2 \<Longrightarrow> x1 \<sqsubseteq> x2 \<Longrightarrow> f x1 \<sqsubseteq> f x2"
+assumes mono: "!!x1 x2::_::WN_Lc. P x1 \<Longrightarrow> P x2 \<Longrightarrow> x1 \<sqsubseteq> x2 \<Longrightarrow> f x1 \<sqsubseteq> f x2"
 and Pinv: "P x"  "!!x. P x \<Longrightarrow> P(f x)"
   "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<nabla> x2)"
   "!!x1 x2. P x1 \<Longrightarrow> P x2 \<Longrightarrow> P(x1 \<triangle> x2)"
-and pfp_wn: "pfp_wn f x = Some x'" shows "P x' \<and> f x' \<sqsubseteq> x'"
+and pfp_wn: "pfp_wn f x = Some p" shows "P p \<and> f p \<sqsubseteq> p"
 proof-
-  from pfp_wn obtain p
-    where its: "iter_widen f x = Some p" "iter_narrow f p = Some x'"
+  from pfp_wn obtain p0
+    where its: "iter_widen f x = Some p0" "iter_narrow f p0 = Some p"
     by(auto simp: pfp_wn_def split: option.splits)
-  have "P p" by (blast intro: iter_widen_inv[where P="P"] its(1) Pinv(1-3))
+  have "P p0" by (blast intro: iter_widen_inv[where P="P"] its(1) Pinv(1-3))
   thus ?thesis
     by - (assumption |
           rule iter_narrow_pfp[where P=P] mono Pinv(2,4) iter_widen_pfp its)+
@@ -433,7 +433,7 @@ locale Measure_WN = Measure1 where m=m for m :: "'av::WN \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
 assumes m_widen: "~ y \<sqsubseteq> x \<Longrightarrow> m(x \<nabla> y) < m x"
 assumes n_mono: "x \<sqsubseteq> y \<Longrightarrow> n x \<le> n y"
-assumes n_narrow: "~ x \<sqsubseteq> x \<triangle> y \<Longrightarrow> n(x \<triangle> y) < n x"
+assumes n_narrow: "y \<sqsubseteq> x \<Longrightarrow> ~ x \<sqsubseteq> x \<triangle> y \<Longrightarrow> n(x \<triangle> y) < n x"
 
 begin
 
@@ -473,9 +473,10 @@ apply (simp add: finite_cvars)+
 done
 
 
-definition "n_s S = (\<Sum>x\<in>dom S. n(fun S x))"
+definition n_s :: "'av st \<Rightarrow> nat" ("n\<^isub>s") where
+"n\<^isub>s S = (\<Sum>x\<in>dom S. n(fun S x))"
 
-lemma n_s_mono: assumes "S1 \<sqsubseteq> S2" shows "n_s S1 \<le> n_s S2"
+lemma n_s_mono: assumes "S1 \<sqsubseteq> S2" shows "n\<^isub>s S1 \<le> n\<^isub>s S2"
 proof-
   from assms have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S1 x \<sqsubseteq> fun S2 x"
     by(simp_all add: le_st_def)
@@ -486,14 +487,14 @@ qed
 
 lemma n_s_narrow:
 assumes "finite(dom S1)" and "S2 \<sqsubseteq> S1" "\<not> S1 \<sqsubseteq> S1 \<triangle> S2"
-shows "n_s (S1 \<triangle> S2) < n_s S1"
+shows "n\<^isub>s (S1 \<triangle> S2) < n\<^isub>s S1"
 proof-
   from `S2\<sqsubseteq>S1` have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S2 x \<sqsubseteq> fun S1 x"
     by(simp_all add: le_st_def)
   have 1: "\<forall>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) \<le> n(fun S1 x)"
     by(auto simp: le_st_def narrow_st_def n_mono WN_class.narrow2)
   have 2: "\<exists>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) < n(fun S1 x)" using `\<not> S1 \<sqsubseteq> S1 \<triangle> S2`
-    by(auto simp: le_st_def narrow_st_def intro: n_narrow)
+    by(force simp: le_st_def narrow_st_def intro: n_narrow)
   have "(\<Sum>x\<in>dom S1. n(fun (S1 \<triangle> S2) x)) < (\<Sum>x\<in>dom S1. n(fun S1 x))"
     apply(rule setsum_strict_mono_ex1[OF `finite(dom S1)`]) using 1 2 by blast+
   moreover have "dom (S1 \<triangle> S2) = dom S1" by(simp add: narrow_st_def)
@@ -501,22 +502,25 @@ proof-
 qed
 
 
-definition "n_o opt = (case opt of None \<Rightarrow> 0 | Some x \<Rightarrow> n_s x + 1)"
+definition n_o :: "'av st option \<Rightarrow> nat" ("n\<^isub>o") where
+"n\<^isub>o opt = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s S + 1)"
 
-lemma n_o_mono: "S1 \<sqsubseteq> S2 \<Longrightarrow> n_o S1 \<le> n_o S2"
+lemma n_o_mono: "S1 \<sqsubseteq> S2 \<Longrightarrow> n\<^isub>o S1 \<le> n\<^isub>o S2"
 by(induction S1 S2 rule: le_option.induct)(auto simp: n_o_def n_s_mono)
 
 lemma n_o_narrow:
   "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X
-  \<Longrightarrow> S2 \<sqsubseteq> S1 \<Longrightarrow> \<not> S1 \<sqsubseteq> S1 \<triangle> S2 \<Longrightarrow> n_o (S1 \<triangle> S2) < n_o S1"
+  \<Longrightarrow> S2 \<sqsubseteq> S1 \<Longrightarrow> \<not> S1 \<sqsubseteq> S1 \<triangle> S2 \<Longrightarrow> n\<^isub>o (S1 \<triangle> S2) < n\<^isub>o S1"
 apply(induction S1 S2 rule: narrow_option.induct)
 apply(auto simp: n_o_def L_st_def n_s_narrow)
 done
 
-definition "n_c C = (let as = annos C in \<Sum>i=0..<size as. n_o (as!i))"
+
+definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^isub>c") where
+"n\<^isub>c C = (let as = annos C in \<Sum>i<size as. n\<^isub>o (as!i))"
 
 lemma n_c_narrow: "C1 \<in> Lc c \<Longrightarrow> C2 \<in> Lc c \<Longrightarrow>
-  C2 \<sqsubseteq> C1 \<Longrightarrow> \<not> C1 \<sqsubseteq> C1 \<triangle> C2 \<Longrightarrow> n_c (C1 \<triangle> C2) < n_c C1"
+  C2 \<sqsubseteq> C1 \<Longrightarrow> \<not> C1 \<sqsubseteq> C1 \<triangle> C2 \<Longrightarrow> n\<^isub>c (C1 \<triangle> C2) < n\<^isub>c C1"
 apply(auto simp: n_c_def Let_def Lc_acom_def narrow_acom_def)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
 prefer 2 apply (simp add: size_annos_same2)
@@ -620,7 +624,8 @@ next
 next
   case goal4 thus ?case by(rule n_ivl_mono)
 next
-  case goal5 thus ?case by(rule n_ivl_narrow)
+  case goal5 from goal5(2) show ?case by(rule n_ivl_narrow)
+  -- "note that the first assms is unnecessary for intervals"
 qed
 
 
