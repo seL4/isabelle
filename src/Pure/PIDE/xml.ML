@@ -47,7 +47,6 @@ sig
   val parse_element: string list -> tree * string list
   val parse_document: string list -> tree * string list
   val parse: string -> tree
-  val cache: unit -> tree -> tree
   exception XML_ATOM of string
   exception XML_BODY of body
   structure Encode: XML_DATA_OPS
@@ -227,48 +226,6 @@ fun parse s =
   | (_, ys) => error ("XML parsing error: unprocessed input\n" ^ Symbol.beginning 100 ys));
 
 end;
-
-
-(** cache for substructural sharing **)
-
-fun tree_ord tu =
-  if pointer_eq tu then EQUAL
-  else
-    (case tu of
-      (Text _, Elem _) => LESS
-    | (Elem _, Text _) => GREATER
-    | (Text s, Text s') => fast_string_ord (s, s')
-    | (Elem e, Elem e') =>
-        prod_ord
-          (prod_ord fast_string_ord (list_ord (prod_ord fast_string_ord fast_string_ord)))
-          (list_ord tree_ord) (e, e'));
-
-structure Treetab = Table(type key = tree val ord = tree_ord);
-
-fun cache () =
-  let
-    val strings = Unsynchronized.ref (Symtab.empty: unit Symtab.table);
-    val trees = Unsynchronized.ref (Treetab.empty: unit Treetab.table);
-
-    fun string s =
-      if size s <= 1 then s
-      else
-        (case Symtab.lookup_key (! strings) s of
-          SOME (s', ()) => s'
-        | NONE => (Unsynchronized.change strings (Symtab.update (s, ())); s));
-
-    fun tree t =
-      (case Treetab.lookup_key (! trees) t of
-        SOME (t', ()) => t'
-      | NONE =>
-          let
-            val t' =
-              (case t of
-                Elem ((a, ps), b) => Elem ((string a, map (pairself string) ps), map tree b)
-              | Text s => Text (string s));
-            val _ = Unsynchronized.change trees (Treetab.update (t', ()));
-          in t' end);
-  in tree end;
 
 
 
