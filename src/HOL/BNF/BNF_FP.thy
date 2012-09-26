@@ -17,7 +17,7 @@ begin
 lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
 by auto
 
-lemma eq_sym_Unity_imp: "x = (() = ()) \<Longrightarrow> x"
+lemma eq_sym_Unity_conv: "(x = (() = ())) = x"
 by blast
 
 lemma unit_case_Unity: "(case u of () => f) = f"

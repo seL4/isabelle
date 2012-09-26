@@ -7,6 +7,10 @@ Shared library for the datatype and codatatype constructions.
 
 signature BNF_FP =
 sig
+  type fp_result =
+    BNF_Def.BNF list * term list * term list * term list * term list * thm * thm * thm list *
+      thm list * thm list * thm list * thm list list * thm list * thm list * thm list
+
   val time: Timer.real_timer -> string -> Timer.real_timer
 
   val IITN: string
@@ -91,7 +95,7 @@ sig
   val simpsN: string
   val strTN: string
   val str_initN: string
-  val strongN: string
+  val strong_coinductN: string
   val sum_bdN: string
   val sum_bdTN: string
   val unfoldN: string
@@ -159,6 +163,10 @@ struct
 open BNF_Comp
 open BNF_Def
 open BNF_Util
+
+type fp_result =
+  BNF_Def.BNF list * term list * term list * term list * term list * thm * thm * thm list *
+    thm list * thm list * thm list * thm list list * thm list * thm list * thm list;
 
 val timing = true;
 fun time timer msg = (if timing
@@ -242,10 +250,10 @@ val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_map_coinductN = dtor_mapN ^ "_" ^ coinductN
 val dtor_coinductN = dtorN ^ "_" ^ coinductN
 val dtor_srel_coinductN = dtor_srelN ^ "_" ^ coinductN
-val strongN = "strong_"
-val dtor_map_strong_coinductN = dtor_mapN ^ "_" ^ strongN ^ coinductN
-val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN
-val dtor_srel_strong_coinductN = dtor_srelN ^ "_" ^ strongN ^ coinductN
+val strong_coinductN = "strong_" ^ coinductN
+val dtor_map_strong_coinductN = dtor_mapN ^ "_" ^ strong_coinductN
+val dtor_strong_coinductN = dtorN ^ "_" ^ strong_coinductN
+val dtor_srel_strong_coinductN = dtor_srelN ^ "_" ^ strong_coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"
 val set_inclN = "set_incl"
@@ -408,7 +416,7 @@ fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_se
     val Ds = fold (fold Term.add_tfreesT) deadss [];
 
     val _ = (case Library.inter (op =) Ds lhss of [] => ()
-      | A :: _ => error ("Nonadmissible type recursion (cannot take fixed point of dead type \
+      | A :: _ => error ("Inadmissible type recursion (cannot take fixed point of dead type \
         \variable " ^ quote (Syntax.string_of_typ lthy (TFree A)) ^ ")"));
 
     val timer = time (timer "Construction of BNFs");

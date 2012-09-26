@@ -12,8 +12,8 @@ sig
   val sum_prod_thms_rel: thm list
 
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
-  val mk_coinduct_tac: Proof.context -> int -> int list -> thm -> thm list -> thm list ->
-    thm list -> thm list list -> thm list list list -> thm list list -> tactic
+  val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
+    thm list -> thm list -> thm list list -> thm list list list -> thm list list list -> tactic
   val mk_corec_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
@@ -42,7 +42,9 @@ val sum_prod_thms_set0 =
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
       mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
-val sum_prod_thms_rel = @{thms prod.cases prod_rel_def sum.cases sum_rel_def};
+val sum_prod_thms_rel =
+  @{thms prod.cases prod_rel_def sum.cases sum_rel_def
+      sum.inject sum.distinct[THEN eq_False[THEN iffD2]]};
 
 val ss_if_True_False = ss_only @{thms if_True if_False};
 
@@ -141,38 +143,37 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_natural's pre_se
       pre_set_defss mss (unflat mss (1 upto n)) kkss)
   end;
 
-fun mk_coinduct_choose_prem_tac nn kk =
-  EVERY' [rtac allI, rtac allI, rtac impI,
-    select_prem_tac nn (dtac meta_spec) kk,
-    dtac meta_spec, dtac meta_mp, atac];
-
-fun mk_coinduct_same_ctr ctxt pre_rel_def dtor_ctor ctr_def sels disc =
-  hyp_subst_tac THEN' subst_tac ctxt (SOME [1, 2]) [ctr_def] THEN'
+fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
+  hyp_subst_tac THEN'
+  subst_tac ctxt (SOME [1, 2]) [ctr_def] THEN'
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels @ sum_prod_thms_rel)) THEN'
-  (rtac refl ORELSE' atac ORELSE'
-   full_simp_tac (ss_only (disc :: more_simp_thms)));
+  (atac ORELSE' REPEAT o etac conjE THEN'
+     full_simp_tac
+       (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms)) THEN_MAYBE'
+     REPEAT o hyp_subst_tac THEN' REPEAT o rtac conjI THEN' REPEAT o rtac refl);
 
-fun mk_coinduct_distinct_ctrs discs =
-  hyp_subst_tac THEN' full_simp_tac (ss_only (refl :: discs @ basic_simp_thms));
+fun mk_coinduct_distinct_ctrs discs discs' =
+  hyp_subst_tac THEN' REPEAT o etac conjE THEN'
+  full_simp_tac (ss_only (refl :: no_refl (discs @ discs') @ basic_simp_thms));
 
-fun mk_coinduct_exhaust_tac ctxt exhaust k i =
-  rtac exhaust i THEN inst_as_projs_tac ctxt k;
-
-fun mk_coinduct_discharge_prem_tac ctxt nn kk n pre_rel_def dtor_ctor exhaust ctr_defs selss discs =
+fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor exhaust ctr_defs
+    discss selss =
   let val ks = 1 upto n in
-    EVERY' ([mk_coinduct_choose_prem_tac nn kk, mk_coinduct_exhaust_tac ctxt exhaust 1,
-        hyp_subst_tac] @
-      map4 (fn k => fn ctr_def => fn sels => fn disc =>
-        EVERY' (mk_coinduct_exhaust_tac ctxt exhaust 2 ::
-          map2 (fn k' => fn disc' =>
-            if k' = k then mk_coinduct_same_ctr ctxt pre_rel_def dtor_ctor ctr_def sels disc
-            else mk_coinduct_distinct_ctrs [disc, disc']) ks discs)) ks ctr_defs selss discs)
+    EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk, dtac
+        meta_spec, dtac meta_mp, atac, rtac exhaust, K (inst_as_projs_tac ctxt 1), hyp_subst_tac] @
+      map4 (fn k => fn ctr_def => fn discs => fn sels =>
+        EVERY' ([rtac exhaust, K (inst_as_projs_tac ctxt 2)] @
+          map2 (fn k' => fn discs' =>
+            if k' = k then
+              mk_coinduct_same_ctr ctxt rel_eqs' pre_rel_def dtor_ctor ctr_def discs sels
+            else
+              mk_coinduct_distinct_ctrs discs discs') ks discss)) ks ctr_defs discss selss)
   end;
 
-fun mk_coinduct_tac ctxt nn ns dtor_coinduct pre_rel_defs dtor_ctors exhausts ctr_defss selsss
-    discss =
-  (rtac dtor_coinduct THEN'
-   EVERY' (map8 (mk_coinduct_discharge_prem_tac ctxt nn)
-     (1 upto nn) ns pre_rel_defs dtor_ctors exhausts ctr_defss selsss discss)) 1
+fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs dtor_ctors exhausts ctr_defss
+    discsss selsss =
+  (rtac dtor_coinduct' THEN'
+   EVERY' (map8 (mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn)
+     (1 upto nn) ns pre_rel_defs dtor_ctors exhausts ctr_defss discsss selsss)) 1;
 
 end;

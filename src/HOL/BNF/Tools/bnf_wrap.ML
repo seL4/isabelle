@@ -18,7 +18,7 @@ sig
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((bool * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
-    (term list * term list list * thm list * thm list * thm list * thm list list * thm list *
+    (term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
      thm list list) * local_theory
   val parse_wrap_options: bool parser
   val parse_bound_term: (binding * string) parser
@@ -65,7 +65,7 @@ fun pad_list x n xs = xs @ replicate (n - length xs) x;
 fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
 
 fun mk_half_pairss' _ ([], []) = []
-  | mk_half_pairss' indent (x :: xs, y :: ys) =
+  | mk_half_pairss' indent (x :: xs, _ :: ys) =
     indent @ fold_rev (cons o single o pair x) ys (mk_half_pairss' ([] :: indent) (xs, ys));
 
 fun mk_half_pairss p = mk_half_pairss' [[]] p;
@@ -201,9 +201,9 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val vfcase = fcase $ v;
     val vgcase = gcase $ v;
 
-    fun mk_u_eq_u () = HOLogic.mk_eq (u, u);
+    fun mk_uu_eq () = HOLogic.mk_eq (u, u);
 
-    val u_eq_v = mk_Trueprop_eq (u, v);
+    val uv_eq = mk_Trueprop_eq (u, v);
 
     val exist_xs_u_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (u, xctr))) xctrs xss;
@@ -285,7 +285,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
             no_defs_lthy
             |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_u_eq_ctr =>
               fn NONE =>
-                 if n = 1 then pair (Term.lambda u (mk_u_eq_u ()), unique_disc_no_def)
+                 if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
                  else if m = 0 then pair (Term.lambda u exist_xs_u_eq_ctr, refl)
                  else pair (alternate_disc k, alternate_disc_no_def)
                | SOME b => Specification.definition (SOME (b, NONE, NoSyn),
@@ -409,7 +409,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
               fun mk_unique_disc_def () =
                 let
                   val m = the_single ms;
-                  val goal = mk_Trueprop_eq (mk_u_eq_u (), the_single exist_xs_u_eq_ctrs);
+                  val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
                 in
                   Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
                   |> singleton (Proof_Context.export names_lthy lthy)
@@ -525,12 +525,12 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                              HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
                                (map2 (curry HOLogic.mk_eq) usels vsels)))]);
 
-                  val uncollapse_thms =
-                    map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
-
                   val goal =
                     Library.foldr Logic.list_implies
-                      (map5 mk_prems ks udiscs uselss vdiscs vselss, u_eq_v);
+                      (map5 mk_prems ks udiscs uselss vdiscs vselss, uv_eq);
+
+                  val uncollapse_thms =
+                    map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
                 in
                   [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                      mk_expand_tac ctxt n ms (inst_thm u disc_exhaust_thm)
@@ -560,9 +560,9 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                 mk_Trueprop_eq (f, g)));
 
             val goal =
-              Logic.list_implies (u_eq_v :: map4 mk_prem xctrs xss fs gs,
+              Logic.list_implies (uv_eq :: map4 mk_prem xctrs xss fs gs,
                  mk_Trueprop_eq (ufcase, vgcase));
-            val weak_goal = Logic.mk_implies (u_eq_v, mk_Trueprop_eq (ufcase, vfcase));
+            val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
             (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
              Skip_Proof.prove lthy [] [] weak_goal (K (etac arg_cong 1)))
@@ -625,8 +625,8 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ((discs, selss, inject_thms, distinct_thms, case_thms, disc_thmss, discI_thms, sel_thmss),
-         lthy |> Local_Theory.notes (notes' @ notes) |> snd)
+        ((discs, selss, exhaust_thm, inject_thms, distinct_thms, case_thms, disc_thmss, discI_thms,
+          sel_thmss), lthy |> Local_Theory.notes (notes' @ notes) |> snd)
       end;
   in
     (goalss, after_qed, lthy')
