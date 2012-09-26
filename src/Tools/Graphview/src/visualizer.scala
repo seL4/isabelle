@@ -142,14 +142,14 @@ class Visualizer(val model: Model) {
   }
   
   object Tooltip {
-    import java.awt.FontMetrics
+    def content(name: String): XML.Body = model.complete.get_node(name).content
 
-    def apply(l: String, fm: FontMetrics): String =
+    def text(name: String, fm: java.awt.FontMetrics): String =
     {
-      val info = model.complete.get_node(l)
-      XML.string_of_body(
-        Pretty.formatted(info.content, 76, Pretty.font_metric(fm))
-          .map(t => XML.Elem(Markup(HTML.PRE, Nil), HTML.spans(t, false))))
+      val txt = Pretty.string_of(content(name), 76, Pretty.font_metric(fm))
+      "<html><pre style=\"font-family: " + Parameters.font_family + "; font-size: " +
+          Parameters.font_size + "px; \">" +  // FIXME proper scaling (!?)
+        HTML.encode(txt) + "</pre></html>"
     }
   }
   

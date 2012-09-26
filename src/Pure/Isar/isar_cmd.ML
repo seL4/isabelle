@@ -60,8 +60,9 @@ sig
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
-  val class_deps: Toplevel.transition -> Toplevel.transition
   val thy_deps: Toplevel.transition -> Toplevel.transition
+  val locale_deps: Toplevel.transition -> Toplevel.transition
+  val class_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
@@ -407,6 +408,14 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
        {name = name, ID = name, parents = parents, dir = session,
         unfold = unfold, path = "", content = []}
       end);
+  in Graph_Display.display_graph gr end);
+
+val locale_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let
+    val thy = Toplevel.theory_of state;
+    val gr = Locale.pretty_locale_deps thy |> map (fn {name, parents, body} =>
+     {name = Locale.extern thy name, ID = name, parents = parents,
+      dir = "", unfold = true, path = "", content = [body]});
   in Graph_Display.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>

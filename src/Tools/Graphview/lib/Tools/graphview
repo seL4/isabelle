@@ -21,7 +21,6 @@ declare -a SOURCES=(
   "src/popups.scala"
   "src/shapes.scala"
   "src/visualizer.scala"
-  "../jEdit/src/html_panel.scala"
 )
 
 
@@ -99,8 +98,6 @@ GRAPH_FILE=""
 pushd "$GRAPHVIEW_HOME" >/dev/null || failed
 
 PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
-COBRA_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
-JS_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 TARGET="$TARGET_DIR/ext/Graphview.jar"
@@ -114,9 +111,7 @@ else
   if [ ! -e "$TARGET" ]; then
     OUTDATED=true
   else
-    if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-      declare -a DEPS=("$COBRA_JAR" "$JS_JAR" "$PURE_JAR" "${SOURCES[@]}")
-    elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
+    if [ -e "$ISABELLE_HOME/Admin/build" ]; then
       declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}")
     else
       declare -a DEPS=()
@@ -144,19 +139,10 @@ then
     done
   }
 
-  [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
-    fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
-
   rm -rf classes && mkdir classes
 
-  cp -p -R -f "$COBRA_JAR" "$TARGET_DIR/ext" || failed
-  cp -p -R -f "$JS_JAR" "$TARGET_DIR/ext" || failed
-
   (
-    for JAR in "$COBRA_JAR" "$JS_JAR" "$PURE_JAR"
-    do
-      CLASSPATH="$CLASSPATH:$JAR"
-    done
+    CLASSPATH="$CLASSPATH:$PURE_JAR"
     CLASSPATH="$(jvmpath "$CLASSPATH")"
     exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d classes "${SOURCES[@]}"
   ) || fail "Failed to compile sources"

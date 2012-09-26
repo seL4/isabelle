@@ -203,7 +203,7 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
       def moved(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)
         node(c) match {
-          case Some(l) => panel.tooltip = vis.Tooltip(l, g.getFontMetrics)
+          case Some(l) => panel.tooltip = vis.Tooltip.text(l, g.getFontMetrics)
           case None => panel.tooltip = null
         }
       }
@@ -260,7 +260,7 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
                 val p = at.clone.asInstanceOf[Point]
                 SwingUtilities.convertPointToScreen(p, panel.peer)
                 new Floating_Dialog(
-                  vis.Tooltip(l, g.getFontMetrics()),
+                  vis.Tooltip.content(l),
                   vis.Caption(l),
                   at
                 ).open

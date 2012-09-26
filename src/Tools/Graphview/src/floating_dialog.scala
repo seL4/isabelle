@@ -8,13 +8,12 @@ package isabelle.graphview
 
 
 import isabelle._
-import isabelle.jedit.HTML_Panel
 
-import scala.swing.{Dialog, BorderPanel, Component}
-import java.awt.{Point, Dimension}
+import scala.swing.{Dialog, BorderPanel, Component, TextArea}
+import java.awt.{Font, Point, Dimension}
 
 
-class Floating_Dialog(private val html: String, _title: String, _location: Point)
+class Floating_Dialog(content: XML.Body, _title: String, _location: Point)
 extends Dialog
 {    
   location = _location
@@ -24,20 +23,11 @@ extends Dialog
   preferredSize = new Dimension(300, 300)
   peer.setAlwaysOnTop(true)
 
-  private def render_document(text: String) =
-    html_panel.peer.render_document("http://localhost", text)
+  private val text_font = new Font(Parameters.font_family, Font.PLAIN, Parameters.font_size)
+  private val text = new TextArea
+  text.peer.setFont(text_font)
+  text.editable = false
 
-  private val html_panel = new Component()
-  {
-    override lazy val peer: HTML_Panel =
-      new HTML_Panel(Parameters.font_family, Parameters.font_size) with SuperMixin
-      {
-        setPreferredWidth(290)
-      }
-  }
-  
-  render_document(html)
-  contents = new BorderPanel {
-    add(html_panel, BorderPanel.Position.Center)
-  }
+  contents = new BorderPanel { add(text, BorderPanel.Position.Center) }
+  text.text = Pretty.string_of(content, 76, Pretty.font_metric(text.peer.getFontMetrics(text_font)))
 }
