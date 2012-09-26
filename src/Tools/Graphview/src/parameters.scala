@@ -16,11 +16,6 @@ object Parameters
   val font_family: String = "IsabelleText"
   val font_size: Int = 16
 
-  //Should not fail since this is in the isabelle environment.
-  def tooltip_css(): String =
-    File.try_read(
-      Path.split(Isabelle_System.getenv_strict("JEDIT_STYLE_SHEETS")))
-  
   object Colors {
     val Filter_Colors = List(
       
