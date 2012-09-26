@@ -29,6 +29,9 @@ open BNF_LFP_Tactics
 fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
+
+    val note_all = Config.get lthy bnf_note_all;
+
     val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
@@ -1785,8 +1788,11 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           [(ctor_mapN, map single folded_ctor_map_thms),
           (ctor_relN, map single ctor_Irel_thms),
           (ctor_set_inclN, ctor_set_incl_thmss),
-          (ctor_set_set_inclN, map flat ctor_set_set_incl_thmsss),
-          (ctor_srelN, map single ctor_Isrel_thms)] @
+          (ctor_set_set_inclN, map flat ctor_set_set_incl_thmsss)] @
+          (if note_all then
+             [(ctor_srelN, map single ctor_Isrel_thms)]
+           else
+             []) @
           map2 (fn i => fn thms => (mk_ctor_setsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>

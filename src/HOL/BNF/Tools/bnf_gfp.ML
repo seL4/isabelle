@@ -59,6 +59,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
+    val note_all = Config.get lthy bnf_note_all;
+
     val live = live_of_bnf (hd bnfs);
     val n = length bnfs; (*active*)
     val ks = 1 upto n;
@@ -2945,8 +2947,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           [(dtor_mapN, map single folded_dtor_map_thms),
           (dtor_relN, map single dtor_Jrel_thms),
           (dtor_set_inclN, dtor_set_incl_thmss),
-          (dtor_set_set_inclN, map flat dtor_set_set_incl_thmsss),
-          (dtor_srelN, map single dtor_Jsrel_thms)] @
+          (dtor_set_set_inclN, map flat dtor_set_set_incl_thmsss)] @
+          (if note_all then
+             [(dtor_srelN, map single dtor_Jsrel_thms)]
+           else
+             []) @
           map2 (fn i => fn thms => (mk_dtor_setsN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
@@ -2957,19 +2962,22 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
       val common_notes =
-        [(dtor_coinductN, [dtor_coinduct_thm]),
-        (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
-        (dtor_rel_coinductN, [dtor_rel_coinduct_thm]),
-        (dtor_rel_strong_coinductN, [dtor_rel_strong_coinduct_thm]),
-        (dtor_srel_coinductN, [dtor_srel_coinduct_thm]),
-        (dtor_srel_strong_coinductN, [dtor_srel_strong_coinduct_thm])]
+        [(dtor_rel_coinductN, [dtor_rel_coinduct_thm]),
+        (dtor_rel_strong_coinductN, [dtor_rel_strong_coinduct_thm])] @
+        (if note_all then
+           [(dtor_coinductN, [dtor_coinduct_thm]),
+           (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
+           (dtor_srel_coinductN, [dtor_srel_coinduct_thm]),
+           (dtor_srel_strong_coinductN, [dtor_srel_strong_coinduct_thm])]
+         else
+           [])
         |> map (fn (thmN, thms) =>
           ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]));
 
       val notes =
         [(ctor_dtorN, ctor_dtor_thms),
-        (ctor_dtor_unfoldsN, ctor_dtor_unfold_thms),
         (ctor_dtor_corecsN, ctor_dtor_corec_thms),
+        (ctor_dtor_unfoldsN, ctor_dtor_unfold_thms),
         (ctor_exhaustN, ctor_exhaust_thms),
         (ctor_injectN, ctor_inject_thms),
         (dtor_corecsN, dtor_corec_thms),
