@@ -46,6 +46,13 @@ fun typ_subst inst (T as Type (s, Ts)) =
     | SOME T' => T')
   | typ_subst inst T = the_default T (AList.lookup (op =) inst T);
 
+fun variant_types ss Ss ctxt =
+  let
+    val (tfrees, _) =
+      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
+    val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
+  in (tfrees, ctxt') end;
+
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
@@ -139,7 +146,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct (
     val ((Xs, Cs), no_defs_lthy) =
       no_defs_lthy0
       |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
-      |> mk_TFrees nn
+      |> variant_types (map (prefix "'") fp_b_names) (replicate nn HOLogic.typeS) |>> map TFree
       ||>> mk_TFrees nn;
 
     (* TODO: cleaner handling of fake contexts, without "background_theory" *)
