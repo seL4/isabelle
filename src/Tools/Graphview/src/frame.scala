@@ -27,7 +27,7 @@ object Frame extends SwingApplication
 
         args.toList match {
           case List(arg) =>
-            Model.decode_graph(YXML.parse_body(File.read(Path.explode(arg))))
+            Model.decode_graph(YXML.parse_body(Symbol.decode(File.read(Path.explode(arg)))))
           case _ => error("Bad arguments:\n" + cat_lines(args))
         }
       }
