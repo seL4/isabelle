@@ -715,7 +715,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||>> mk_Frees' "r" setRTs
       ||>> mk_Frees "r" setRTs
       ||>> mk_Frees "s" setRTsBsCs
-      ||>> mk_Frees' "R" QTs;
+      ||>> mk_Frees' "P" QTs;
 
     (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)
     val O_Gr =

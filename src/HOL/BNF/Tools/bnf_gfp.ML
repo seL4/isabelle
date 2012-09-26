@@ -1874,7 +1874,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Frees "f" unfold_fTs
       ||>> mk_Frees "g" unfold_fTs
       ||>> mk_Frees "s" corec_sTs
-      ||>> mk_Frees "R" (map2 mk_pred2T Ts Ts);
+      ||>> mk_Frees "P" (map2 mk_pred2T Ts Ts);
 
     fun dtor_bind i = Binding.suffix_name ("_" ^ dtorN) (nth bs (i - 1));
     val dtor_name = Binding.name_of o dtor_bind;
@@ -2318,7 +2318,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           ||>> mk_Frees "u" uTs
           ||>> mk_Frees' "b" Ts'
           ||>> mk_Frees' "b" Ts'
-          ||>> mk_Freess "R" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
+          ||>> mk_Freess "P" (map (fn A => map (mk_pred2T A) Ts) passiveAs)
           ||>> mk_Frees "r" JRTs
           ||>> mk_Frees "P" JphiTs
           ||>> mk_Frees "B1" B1Ts

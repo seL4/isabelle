@@ -84,7 +84,8 @@ sig
   val nchotomyN: string
   val recN: string
   val recsN: string
-  val relsN: string
+  val rel_injectN: string
+  val rel_distinctN: string
   val rvN: string
   val sel_corecsN: string
   val sel_relsN: string
@@ -270,6 +271,10 @@ val disc_corecsN = discN ^ "_" ^ corecsN
 val iffsN = "_iffs"
 val disc_unfold_iffsN = discN ^ "_" ^ unfoldN ^ iffsN
 val disc_corec_iffsN = discN ^ "_" ^ corecN ^ iffsN
+val distinctN = "distinct"
+val rel_distinctN = relN ^ "_" ^ distinctN
+val injectN = "inject"
+val rel_injectN = relN ^ "_" ^ injectN
 val relsN = relN ^ "s"
 val selN = "sel"
 val sel_relsN = selN ^ "_" ^ relsN

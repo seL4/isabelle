@@ -532,27 +532,29 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
               |> postproc |> thaw (xs @ ys);
 
-            fun mk_pos_rel_thm (((ctr_def', xs), cxIn), ((_, ys), cyIn)) =
+            fun mk_rel_inject_thm (((ctr_def', xs), cxIn), ((_, ys), cyIn)) =
               mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] xs cxIn ys cyIn;
 
-            val pos_rel_thms = map mk_pos_rel_thm (op ~~ rel_infos);
+            val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
 
-            fun mk_half_neg_rel_thm (((xctr_def', xs), cxIn), ((yctr_def', ys), cyIn)) =
+            fun mk_half_rel_distinct_thm (((xctr_def', xs), cxIn), ((yctr_def', ys), cyIn)) =
               mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
                 xs cxIn ys cyIn;
 
-            fun mk_other_half_neg_rel_thm thm =
+            fun mk_other_half_rel_distinct_thm thm =
               flip_rels lthy live thm RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
 
-            val half_neg_rel_thmss = map (map mk_half_neg_rel_thm) (mk_half_pairss rel_infos);
-            val other_half_neg_rel_thmss = map (map mk_other_half_neg_rel_thm) half_neg_rel_thmss;
-            val (neg_rel_thms, _) = join_halves n half_neg_rel_thmss other_half_neg_rel_thmss;
-
-            val rel_thms = pos_rel_thms @ neg_rel_thms;
+            val half_rel_distinct_thmss =
+              map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
+            val other_half_rel_distinct_thmss =
+              map (map mk_other_half_rel_distinct_thm) half_rel_distinct_thmss;
+            val (rel_distinct_thms, _) =
+              join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
             val notes =
               [(mapsN, map_thms, code_simp_attrs),
-               (relsN, rel_thms, code_simp_attrs),
+               (rel_distinctN, rel_distinct_thms, code_simp_attrs),
+               (rel_injectN, rel_inject_thms, code_simp_attrs),
                (setsN, flat set_thmss, code_simp_attrs)]
               |> filter_out (null o #2)
               |> map (fn (thmN, thms, attrs) =>
