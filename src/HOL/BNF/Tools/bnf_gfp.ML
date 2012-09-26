@@ -2969,11 +2969,11 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
       val common_notes =
         [(dtor_coinductN, [dtor_coinduct_thm]),
+        (dtor_map_coinductN, [dtor_map_coinduct_thm]),
+        (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
         (dtor_strong_coinductN, [dtor_strong_coinduct_thm])] @
         (if note_all then
-           [(dtor_map_coinductN, [dtor_map_coinduct_thm]),
-           (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
-           (dtor_srel_coinductN, [dtor_srel_coinduct_thm]),
+           [(dtor_srel_coinductN, [dtor_srel_coinduct_thm]),
            (dtor_srel_strong_coinductN, [dtor_srel_strong_coinduct_thm])]
          else
            [])

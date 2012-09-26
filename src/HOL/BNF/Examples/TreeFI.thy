@@ -52,7 +52,7 @@ and step: "\<And>a b. phi a b \<Longrightarrow>
    lengthh (sub a) = lengthh (sub b) \<and>
    (\<forall>i < lengthh (sub a). phi (nthh (sub a) i) (nthh (sub b) i))"
 shows "x = y"
-proof (rule mp[OF treeFI.dtor_coinduct, of phi, OF _ *])
+proof (rule mp[OF treeFI.dtor_map_coinduct, of phi, OF _ *])
   fix a b :: "'a treeFI"
   let ?zs = "zipp (sub a) (sub b)"
   let ?z = "(lab a, ?zs)"
