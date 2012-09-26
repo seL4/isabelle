@@ -1,0 +1,8 @@
+# -*- shell-script -*- :mode=shellscript:
+
+GRAPHVIEW_HOME="$COMPONENT"
+
+GRAPHVIEW_JAVA_OPTIONS="-Xms128m -Xmx1024m -Xss4m"
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$GRAPHVIEW_HOME/lib/Tools"
+

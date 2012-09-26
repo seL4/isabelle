@@ -11,6 +11,7 @@ declare -a SOURCES=(
   "src/dockable.scala"
   "src/document_model.scala"
   "src/document_view.scala"
+  "src/graphview_dockable.scala"
   "src/html_panel.scala"
   "src/hyperlink.scala"
   "src/isabelle_encoding.scala"
@@ -89,6 +90,7 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
+FRESH_OPTION=""
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
@@ -113,6 +115,7 @@ function getoptions()
         fi
         ;;
       f)
+        FRESH_OPTION="-f"
         BUILD_JARS="jars_fresh"
         ;;
       j)
@@ -162,9 +165,13 @@ fi
 ## dependencies
 
 [ -e "$ISABELLE_HOME/Admin/build" ] && \
-  { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
+  {
+    "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
+    "$ISABELLE_TOOL" graphview -b $FRESH_OPTION || exit $?
+  }
 
 PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
+GRAPHVIEW_JAR="$ISABELLE_HOME/lib/classes/ext/Graphview.jar"
 
 pushd "$JEDIT_HOME" >/dev/null || failed
 
@@ -193,9 +200,12 @@ else
     OUTDATED=true
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-      declare -a DEPS=("$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
+      declare -a DEPS=(
+        "$JEDIT_JAR" "${JEDIT_JARS[@]}"
+        "$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}"
+      )
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
-      declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
+      declare -a DEPS=("$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}")
     else
       declare -a DEPS=()
     fi
@@ -247,7 +257,8 @@ then
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$GRAPHVIEW_JAR" \
+      "$SCALA_HOME/lib/scala-compiler.jar"
     do
       CLASSPATH="$CLASSPATH:$JAR"
     done

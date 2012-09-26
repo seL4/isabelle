@@ -315,8 +315,8 @@ fun present_graph gr =
       |> commas;
     val prgr = map (fn (consts, constss) =>
       { name = namify consts, ID = namify consts, dir = "", unfold = true,
-        path = "", parents = map namify constss }) conn;
-  in Present.display_graph prgr end;
+        path = "", parents = map namify constss, content = [] }) conn;
+  in Graph_Display.display_graph prgr end;
 
 
 end;

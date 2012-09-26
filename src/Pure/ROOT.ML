@@ -50,7 +50,6 @@ use "General/heap.ML";
 use "General/same.ML";
 use "General/ord_list.ML";
 use "General/balanced_tree.ML";
-use "General/graph.ML";
 use "General/linear_set.ML";
 use "General/buffer.ML";
 use "General/pretty.ML";
@@ -65,6 +64,8 @@ if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
 
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
+
+use "General/graph.ML";
 
 
 (* concurrency within the ML runtime *)
@@ -249,6 +250,7 @@ use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";
 use "PIDE/command.ML";
 use "Isar/outer_syntax.ML";
+use "General/graph_display.ML";
 use "Thy/present.ML";
 use "Thy/thy_load.ML";
 use "Thy/thy_info.ML";

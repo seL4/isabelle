@@ -77,7 +77,7 @@ theory Pure
     "print_theorems" "print_locales" "print_classes" "print_locale"
     "print_interps" "print_dependencies" "print_attributes"
     "print_simpset" "print_rules" "print_trans_rules" "print_methods"
-    "print_antiquotations" "thy_deps" "class_deps" "thm_deps"
+    "print_antiquotations" "thy_deps" "locale_deps" "class_deps" "thm_deps"
     "print_binds" "print_facts" "print_cases" "print_statement" "thm"
     "prf" "full_prf" "prop" "term" "typ" "print_codesetup" "unused_thms"
     :: diag

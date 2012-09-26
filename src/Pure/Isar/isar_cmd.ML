@@ -60,8 +60,9 @@ sig
   val print_trans_rules: Toplevel.transition -> Toplevel.transition
   val print_methods: Toplevel.transition -> Toplevel.transition
   val print_antiquotations: Toplevel.transition -> Toplevel.transition
-  val class_deps: Toplevel.transition -> Toplevel.transition
   val thy_deps: Toplevel.transition -> Toplevel.transition
+  val locale_deps: Toplevel.transition -> Toplevel.transition
+  val class_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
@@ -403,8 +404,19 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
         val parents = map Context.theory_name (Theory.parents_of node);
         val session = Present.session_name node;
         val unfold = (session = thy_session);
-      in {name = name, ID = name, parents = parents, dir = session, unfold = unfold, path = ""} end);
-  in Present.display_graph gr end);
+      in
+       {name = name, ID = name, parents = parents, dir = session,
+        unfold = unfold, path = "", content = []}
+      end);
+  in Graph_Display.display_graph gr end);
+
+val locale_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let
+    val thy = Toplevel.theory_of state;
+    val gr = Locale.pretty_locale_deps thy |> map (fn {name, parents, body} =>
+     {name = Locale.extern thy name, ID = name, parents = parents,
+      dir = "", unfold = true, path = "", content = [body]});
+  in Graph_Display.display_graph gr end);
 
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
@@ -413,11 +425,11 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
     val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
       (i, {name = Name_Space.extern ctxt space c, ID = c, parents = Graph.Keys.dest cs,
-            dir = "", unfold = true, path = ""});
+            dir = "", unfold = true, path = "", content = []});
     val gr =
       Graph.fold (cons o entry) classes []
       |> sort (int_ord o pairself #1) |> map #2;
-  in Present.display_graph gr end);
+  in Graph_Display.display_graph gr end);
 
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   Thm_Deps.thm_deps (Toplevel.theory_of state)

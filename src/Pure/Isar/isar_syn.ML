@@ -858,6 +858,10 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.thy_deps));
 
 val _ =
+  Outer_Syntax.improper_command @{command_spec "locale_deps"} "visualize locale dependencies"
+    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.locale_deps));
+
+val _ =
   Outer_Syntax.improper_command @{command_spec "class_deps"} "visualize class dependencies"
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.class_deps));
 

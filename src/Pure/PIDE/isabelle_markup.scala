@@ -254,6 +254,8 @@ object Isabelle_Markup
 
   val BAD = "bad"
 
+  val GRAPHVIEW = "graphview"
+
 
   /* protocol message functions */
 

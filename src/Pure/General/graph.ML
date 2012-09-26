@@ -22,7 +22,6 @@ sig
   val empty: 'a T
   val is_empty: 'a T -> bool
   val keys: 'a T -> key list
-  val dest: 'a T -> (key * key list) list
   val get_first: (key * ('a * (Keys.T * Keys.T)) -> 'b option) -> 'a T -> 'b option
   val fold: (key * ('a * (Keys.T * Keys.T)) -> 'b -> 'b) -> 'a T -> 'b -> 'b
   val get_entry: 'a T -> key -> key * ('a * (Keys.T * Keys.T))        (*exception UNDEF*)
@@ -48,6 +47,8 @@ sig
   val add_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
   val del_edge: key * key -> 'a T -> 'a T                             (*exception UNDEF*)
   val restrict: (key -> bool) -> 'a T -> 'a T
+  val dest: 'a T -> ((key * 'a) * key list) list
+  val make: ((key * 'a) * key list) list -> 'a T                      (*exception DUP | UNDEF*)
   val merge: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T                 (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a T * 'a T -> 'a T                                               (*exception DUP*)
@@ -61,6 +62,8 @@ sig
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
   exception DEP of key * key
   val schedule: ((key * 'b) list -> key * 'a -> 'b) -> 'a T -> 'b list  (*exception DEP*)
+  val encode: key XML.Encode.T -> 'a XML.Encode.T -> 'a T XML.Encode.T
+  val decode: key XML.Decode.T -> 'a XML.Decode.T -> 'a T XML.Decode.T
 end;
 
 functor Graph(Key: KEY): GRAPH =
@@ -108,7 +111,6 @@ exception SAME = Table.SAME;
 val empty = Graph Table.empty;
 fun is_empty (Graph tab) = Table.is_empty tab;
 fun keys (Graph tab) = Table.keys tab;
-fun dest (Graph tab) = map (fn (x, (_, (_, succs))) => (x, Keys.dest succs)) (Table.dest tab);
 
 fun get_first f (Graph tab) = Table.get_first f tab;
 fun fold_graph f (Graph tab) = Table.fold f tab;
@@ -215,10 +217,20 @@ fun del_edge (x, y) G =
   else G;
 
 fun diff_edges G1 G2 =
-  flat (dest G1 |> map (fn (x, ys) => ys |> map_filter (fn y =>
-    if is_edge G2 (x, y) then NONE else SOME (x, y))));
+  fold_graph (fn (x, (_, (_, succs))) =>
+    Keys.fold (fn y => not (is_edge G2 (x, y)) ? cons (x, y)) succs) G1 [];
 
 fun edges G = diff_edges G empty;
+
+
+(* dest and make *)
+
+fun dest G = fold_graph (fn (x, (i, (_, succs))) => cons ((x, i), Keys.dest succs)) G [];
+
+fun make entries =
+  empty
+  |> fold (new_node o fst) entries
+  |> fold (fn ((x, _), ys) => fold (fn y => add_edge (x, y)) ys) entries;
 
 
 (* join and merge *)
@@ -310,6 +322,19 @@ fun schedule f G =
           | NONE => raise DEP (x, y)));
       in Table.update (x, f deps (x, a)) tab end);
   in map (the o Table.lookup results) xs end;
+
+
+(* XML data representation *)
+
+fun encode key info G =
+  dest G |>
+    let open XML.Encode
+    in list (pair (pair key info) (list key)) end;
+
+fun decode key info body =
+  body |>
+    let open XML.Decode
+    in list (pair (pair key info) (list key)) end |> make;
 
 
 (*final declarations of this structure!*)

@@ -908,7 +908,7 @@ fun add_coercion raw_t context =
             Syntax.string_of_typ ctxt T1 ^ "!\n\nCannot add coercion of type: " ^
             Syntax.string_of_typ ctxt (T1 --> T2));
         val new_edges =
-          flat (Graph.dest G'' |> map (fn (x, ys) => ys |> map_filter (fn y =>
+          flat (Graph.dest G'' |> map (fn ((x, _), ys) => ys |> map_filter (fn y =>
             if Graph.is_edge G' (x, y) then NONE else SOME (x, y))));
         val G_and_new = Graph.add_edge (a, b) G';
 
@@ -950,9 +950,10 @@ fun delete_coercion raw_t context =
             if member (op aconv) ts t then (a, b) :: pairs else pairs) tab [(a, b)];
         fun delete pair (G, tab) = (Graph.del_edge pair G, Symreltab.delete_safe pair tab);
         val (G', tab') = fold delete pairs (G, tab);
-        fun reinsert pair (G, xs) = (case (Graph.irreducible_paths G pair) of
-              [] => (G, xs)
-            | _ => (Graph.add_edge pair G, (pair, transitive_coercion ctxt tab' G' pair) :: xs));
+        fun reinsert pair (G, xs) =
+          (case Graph.irreducible_paths G pair of
+            [] => (G, xs)
+          | _ => (Graph.add_edge pair G, (pair, transitive_coercion ctxt tab' G' pair) :: xs));
         val (G'', ins) = fold reinsert pairs (G', []);
       in
         (fold Symreltab.update ins tab', G'', restrict_graph G'')

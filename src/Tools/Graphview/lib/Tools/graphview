@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+#
+# Author: Markus Kaiser, TU Muenchen
+# Author: Makarius
+#
+# DESCRIPTION: graphview command-line tool wrapper
+
+## sources
+
+declare -a SOURCES=(
+  "src/floating_dialog.scala"
+  "src/graph_panel.scala"
+  "src/graphview.scala"
+  "src/layout_pendulum.scala"
+  "src/main_panel.scala"
+  "src/model.scala"
+  "src/mutator_dialog.scala"
+  "src/mutator_event.scala"
+  "src/mutator.scala"
+  "src/parameters.scala"
+  "src/popups.scala"
+  "src/shapes.scala"
+  "src/visualizer.scala"
+)
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] GRAPH_FILE"
+  echo
+  echo "  Options are:"
+  echo "    -b           build only"
+  echo "    -c           cleanup -- remove GRAPH_FILE after use"
+  echo "    -f           fresh build"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function failed()
+{
+  fail "Failed!"
+}
+
+
+## process command line
+
+# options
+
+BUILD_ONLY="false"
+CLEAN="false"
+BUILD_JARS="jars"
+
+while getopts "bcf" OPT
+do
+  case "$OPT" in
+    b)
+      BUILD_ONLY="true"
+      ;;
+    c)
+      CLEAN="true"
+      ;;
+    f)
+      BUILD_JARS="jars_fresh"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+GRAPH_FILE=""
+[ "$#" -gt 0 ] && { GRAPH_FILE="$1"; shift; }
+[ "$#" -ne 0 ] && usage
+[ -z "$GRAPH_FILE" -a "$BUILD_ONLY" = false ] && usage
+
+
+## build
+
+[ -e "$ISABELLE_HOME/Admin/build" ] && \
+  { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
+
+pushd "$GRAPHVIEW_HOME" >/dev/null || failed
+
+PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
+
+TARGET_DIR="$ISABELLE_HOME/lib/classes"
+TARGET="$TARGET_DIR/ext/Graphview.jar"
+
+declare -a UPDATED=()
+
+if [ "$BUILD_JARS" = jars_fresh ]; then
+  OUTDATED=true
+else
+  OUTDATED=false
+  if [ ! -e "$TARGET" ]; then
+    OUTDATED=true
+  else
+    if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+      declare -a DEPS=("$PURE_JAR" "${SOURCES[@]}")
+    else
+      declare -a DEPS=()
+    fi
+    for DEP in "${DEPS[@]}"
+    do
+      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
+      [ "$DEP" -nt "$TARGET" ] && {
+        OUTDATED=true
+        UPDATED["${#UPDATED[@]}"]="$DEP"
+      }
+    done
+  fi
+fi
+
+if [ "$OUTDATED" = true ]
+then
+  echo "### Building Isabelle/Graphview ..."
+
+  [ "${#UPDATED[@]}" -gt 0 ] && {
+    echo "Changed files:"
+    for FILE in "${UPDATED[@]}"
+    do
+      echo "  $FILE"
+    done
+  }
+
+  rm -rf classes && mkdir classes
+
+  (
+    CLASSPATH="$CLASSPATH:$PURE_JAR"
+    CLASSPATH="$(jvmpath "$CLASSPATH")"
+    exec "$SCALA_HOME/bin/scalac" $ISABELLE_SCALA_BUILD_OPTIONS -d classes "${SOURCES[@]}"
+  ) || fail "Failed to compile sources"
+
+  cd classes
+  isabelle_jdk jar cf "$(jvmpath "$TARGET")" * || failed
+  cd ..
+  rm -rf classes
+fi
+
+popd >/dev/null
+
+
+## run
+
+if [ "$BUILD_ONLY" = false ]; then
+  PRIVATE_FILE="${ISABELLE_TMP:-/tmp}/$$""$(basename "$GRAPH_FILE")"
+  if [ "$CLEAN" = "true" ]; then
+    mv -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot move file: $GRAPH_FILE"
+  else
+    cp -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot copy file: $GRAPH_FILE"
+  fi
+
+  "$ISABELLE_TOOL" java $GRAPHVIEW_JAVA_OPTIONS isabelle.graphview.Graphview "$PRIVATE_FILE"
+  RC="$?"
+
+  rm -f "$PRIVATE_FILE"
+  echo "$RC"
+fi

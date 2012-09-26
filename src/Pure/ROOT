@@ -67,6 +67,7 @@ session Pure =
     "General/buffer.ML"
     "General/file.ML"
     "General/graph.ML"
+    "General/graph_display.ML"
     "General/heap.ML"
     "General/integer.ML"
     "General/linear_set.ML"

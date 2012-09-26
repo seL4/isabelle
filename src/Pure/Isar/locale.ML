@@ -76,14 +76,11 @@ sig
     morphism -> theory -> theory
 
   (* Diagnostic *)
-  val all_locales: theory -> string list
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring * Position.T -> unit
   val print_registrations: Proof.context -> xstring * Position.T -> unit
   val print_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> unit
-  val locale_deps: theory ->
-    {params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list} Graph.T
-      * term list list Symtab.table Symtab.table
+  val pretty_locale_deps: theory -> {name: string, parents: string list, body: Pretty.T} list
 end;
 
 structure Locale: LOCALE =
@@ -610,16 +607,13 @@ val _ = Context.>> (Context.map_theory
 
 (*** diagnostic commands and interfaces ***)
 
-val all_locales = Symtab.keys o snd o Locales.get;
-
 fun print_locales thy =
   Pretty.strs ("locales:" ::
     map #1 (Name_Space.extern_table (Proof_Context.init_global thy) (Locales.get thy)))
   |> Pretty.writeln;
 
-fun print_locale thy show_facts raw_name =
+fun pretty_locale thy show_facts name =
   let
-    val name = check thy raw_name;
     val ctxt = init name thy;
     fun cons_elem (elem as Notes _) = show_facts ? cons elem
       | cons_elem elem = cons elem;
@@ -627,9 +621,13 @@ fun print_locale thy show_facts raw_name =
       activate_all name thy cons_elem (K (Element.transfer_morphism thy)) (empty_idents, [])
       |> snd |> rev;
   in
-    Pretty.big_list "locale elements:" (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)
-    |> Pretty.writeln
+    Pretty.block
+      (Pretty.command "locale" :: Pretty.brk 1 :: Pretty.str (extern thy name) ::
+        maps (fn elem => [Pretty.fbrk, Pretty.chunks (Element.pretty_ctxt ctxt elem)]) elems)
   end;
+
+fun print_locale thy show_facts raw_name =
+  Pretty.writeln (pretty_locale thy show_facts (check thy raw_name));
 
 fun print_registrations ctxt raw_name =
   let
@@ -651,34 +649,12 @@ fun print_dependencies ctxt clean export insts =
     | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt) (rev deps)))
   end |> Pretty.writeln;
 
-fun locale_deps thy =
+fun pretty_locale_deps thy =
   let
-    val names = all_locales thy;
-    fun add_locale_node name =
-      let
-        val params = params_of thy name;
-        val axioms =
-          these (Option.map (Logic.strip_imp_prems o Thm.prop_of) (fst (intros_of thy name)));
-        val registrations =
-          map (instance_of thy name o snd) (registrations_of (Context.Theory thy) name);
-      in
-        Graph.new_node (name, {params = params, axioms = axioms, registrations = registrations})
-      end;
-    fun add_locale_deps name =
-      let
-        val dependencies =
-          map (apsnd (instance_of thy name o op $>) o fst) (dependencies_of thy name);
-      in
-        fold (fn (super, ts) => fn (gr, deps) =>
-         (gr |> Graph.add_edge (super, name),
-          deps |> Symtab.map_default (super, Symtab.empty) (Symtab.cons_list (name, ts))))
-            dependencies
-      end;
-  in
-    Graph.empty
-    |> fold add_locale_node names
-    |> rpair Symtab.empty
-    |> fold add_locale_deps names
-  end;
+    fun make_node name =
+     {name = name,
+      parents = map (fst o fst) (dependencies_of thy name),
+      body = pretty_locale thy false name};
+  in map make_node (Symtab.keys (#2 (Locales.get thy))) end;
 
 end;

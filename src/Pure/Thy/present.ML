@@ -13,10 +13,6 @@ signature PRESENT =
 sig
   include BASIC_PRESENT
   val session_name: theory -> string
-  val write_graph: {name: string, ID: string, dir: string, unfold: bool,
-   path: string, parents: string list} list -> Path.T -> unit
-  val display_graph: {name: string, ID: string, dir: string, unfold: bool,
-   path: string, parents: string list} list -> unit
   datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty
   val dump_mode: string -> dump_mode
   val read_variant: string -> string * string
@@ -82,24 +78,6 @@ val session_name = #name o get_info;
 
 (** graphs **)
 
-type graph_node =
-  {name: string, ID: string, dir: string, unfold: bool,
-   path: string, parents: string list};
-
-fun write_graph gr path =
-  File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents} =>
-    "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
-    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") gr));
-
-fun display_graph gr =
-  let
-    val path = Isabelle_System.create_tmp_path "graph" "";
-    val _ = write_graph gr path;
-    val _ = writeln "Displaying graph ...";
-    val _ = Isabelle_System.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
-  in () end;
-
-
 fun ID_of sess s = space_implode "/" (sess @ [s]);
 fun ID_of_thy thy = ID_of (#session (get_info thy)) (Context.theory_name thy);
 
@@ -118,10 +96,11 @@ fun init_graph remote_path curr_sess = rev o map (fn thy =>
             (Path.append (Path.make session) (html_path name))))
         else Path.implode (Path.append (mk_rel_path curr_sess session) (html_path name)),
       unfold = false,
-      parents = map ID_of_thy (Theory.parents_of thy)};
+      parents = map ID_of_thy (Theory.parents_of thy),
+      content = []};
   in (0, entry) end);
 
-fun ins_graph_entry (i, entry as {ID, ...}) (gr: (int * graph_node) list) =
+fun ins_graph_entry (i, entry as {ID, ...}) (gr: (int * Graph_Display.node) list) =
   (i, entry) :: filter_out (fn (_, entry') => #ID entry' = ID) gr;
 
 
@@ -144,7 +123,8 @@ fun map_theory_info f {tex_source, html_source, html} =
 (* type browser_info *)
 
 type browser_info = {theories: theory_info Symtab.table, files: (Path.T * string) list,
-  tex_index: (int * string) list, html_index: (int * string) list, graph: (int * graph_node) list};
+  tex_index: (int * string) list, html_index: (int * string) list,
+  graph: (int * Graph_Display.node) list};
 
 fun make_browser_info (theories, files, tex_index, html_index, graph) =
   {theories = theories, files = files, tex_index = tex_index, html_index = html_index,
@@ -344,7 +324,7 @@ fun isabelle_browser graph = Isabelle_System.with_tmp_dir "browser" (fn dir =>
     val pdf_path = Path.append dir graph_pdf_path;
     val eps_path = Path.append dir graph_eps_path;
     val graph_path = Path.append dir graph_path;
-    val _ = write_graph graph graph_path;
+    val _ = Graph_Display.write_graph_browser graph_path graph;
     val args = "-o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path graph_path;
   in
     if Isabelle_System.isabelle_tool "browser" args = 0 andalso
@@ -391,7 +371,7 @@ fun finish () =
         create_index html_prefix;
         if length path > 1 then update_index parent_html_prefix name else ();
         (case readme of NONE => () | SOME path => File.copy path html_prefix);
-        write_graph sorted_graph (Path.append html_prefix graph_path);
+        Graph_Display.write_graph_browser (Path.append html_prefix graph_path) sorted_graph;
         Isabelle_System.isabelle_tool "browser" "-b";
         File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
         List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
@@ -509,7 +489,8 @@ fun begin_theory update_time dir files thy =
     val entry =
      {name = name, ID = ID_of path name, dir = sess_name, unfold = true,
       path = Path.implode (html_path name),
-      parents = map ID_of_thy parents};
+      parents = map ID_of_thy parents,
+      content = []};
   in
     change_theory_info name prep_html_source;
     add_graph_entry (update_time, entry);

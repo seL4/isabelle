@@ -21,7 +21,7 @@ import javax.swing.border.{BevelBorder, SoftBevelBorder}
 import org.gjt.sp.jedit.{View, jEdit}
 
 
-class Session_Dockable(view: View, position: String) extends Dockable(view: View, position: String)
+class Session_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   /* status */
 

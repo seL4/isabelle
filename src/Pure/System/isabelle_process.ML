@@ -161,6 +161,10 @@ end;
 
 (* init *)
 
+val default_modes1 = [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN];
+val default_modes2 =
+  [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN, Graph_Display.graphview_reportN];
+
 fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
   let
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
@@ -174,9 +178,7 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val _ = Context.set_thread_data NONE;
     val _ =
       Unsynchronized.change print_mode
-        (fn mode =>
-          (mode @ [Syntax_Trans.no_bracketsN, Syntax_Trans.no_type_bracketsN])
-          |> fold (update op =) [Symbol.xsymbolsN, isabelle_processN, Pretty.symbolicN]);
+        (fn mode => (mode @ default_modes1) |> fold (update op =) default_modes2);
 
     val channel = rendezvous ();
     val _ = init_channels channel;

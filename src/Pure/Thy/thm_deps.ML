@@ -38,10 +38,11 @@ fun thm_deps thy thms =
                dir = space_implode "/" (session @ prefix),
                unfold = false,
                path = "",
-               parents = parents};
+               parents = parents,
+               content = []};
           in cons entry end;
     val deps = Proofterm.fold_body_thms add_dep (Thm.proof_bodies_of thms) [];
-  in Present.display_graph (sort_wrt #ID deps) end;
+  in Graph_Display.display_graph (sort_wrt #ID deps) end;
 
 
 (* unused_thms *)
