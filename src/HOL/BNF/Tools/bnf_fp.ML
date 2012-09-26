@@ -96,9 +96,9 @@ sig
   val unfoldsN: string
   val uniqueN: string
 
-  val mk_ctor_setsN: int -> string
+  val mk_ctor_setN: int -> string
+  val mk_dtor_setN: int -> string
   val mk_dtor_set_inductN: int -> string
-  val mk_dtor_setsN: int -> string
   val mk_exhaustN: string -> string
   val mk_injectN: string -> string
   val mk_nchotomyN: string -> string
@@ -207,8 +207,8 @@ val LevN = "Lev"
 val rvN = "recover"
 val behN = "beh"
 fun mk_setsN i = mk_setN i ^ "s"
-val mk_ctor_setsN = prefix (ctorN ^ "_") o mk_setsN
-val mk_dtor_setsN = prefix (dtorN ^ "_") o mk_setsN
+val mk_ctor_setN = prefix (ctorN ^ "_") o mk_setN
+val mk_dtor_setN = prefix (dtorN ^ "_") o mk_setN
 fun mk_set_inductN i = mk_setN i ^ "_induct"
 val mk_dtor_set_inductN = prefix (dtorN ^ "_") o mk_set_inductN
 

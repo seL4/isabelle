@@ -1793,7 +1793,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
              [(ctor_srelN, map single ctor_Isrel_thms)]
            else
              []) @
-          map2 (fn i => fn thms => (mk_ctor_setsN i, map single thms)) ls' folded_set_simp_thmss
+          map2 (fn i => fn thms => (mk_ctor_setN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))

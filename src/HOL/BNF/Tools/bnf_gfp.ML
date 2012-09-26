@@ -2951,7 +2951,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
              [(dtor_srelN, map single dtor_Jsrel_thms)]
            else
              []) @
-          map2 (fn i => fn thms => (mk_dtor_setsN i, map single thms)) ls' folded_set_simp_thmss
+          map2 (fn i => fn thms => (mk_dtor_setN i, map single thms)) ls' folded_set_simp_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
