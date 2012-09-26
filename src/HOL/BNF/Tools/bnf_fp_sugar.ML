@@ -398,7 +398,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val ctr_sum_prod_T = mk_sumTN_balanced ctr_prod_Ts;
         val case_Ts = map (fn Ts => Ts ---> C) ctr_Tss;
 
-        val (((((w, fs), xss), yss), u'), _) =
+        val (((((w, fs), xss), yss), u'), names_lthy) =
           no_defs_lthy
           |> yield_singleton (mk_Frees "w") dtorT
           ||>> mk_Frees "f" case_Ts
@@ -501,22 +501,20 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val cxIns = map2 (mk_cIn I) tuple_xs ks;
             val cyIns = map2 (mk_cIn B_ify) tuple_ys ks;
 
-            fun thaw xs = Thm.generalize ([], map (fst o dest_Free) xs) 1 o Drule.zero_var_indexes;
-
             fun mk_map_thm ctr_def' xs cxIn =
               fold_thms lthy [ctr_def']
                 (unfold_thms lthy (pre_map_def ::
                      (if lfp then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
                    (cterm_instantiate_pos (nones @ [SOME cxIn])
                       (if lfp then fp_map_thm else fp_map_thm RS ctor_cong)))
-              |> thaw xs;
+              |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
             fun mk_set_thm fp_set_thm ctr_def' xs cxIn =
               fold_thms lthy [ctr_def']
                 (unfold_thms lthy (pre_set_defs @ nested_set_natural's @ nesting_set_natural's @
                      (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_set)
                    (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
-              |> thaw xs;
+              |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
             fun mk_set_thms fp_set_thm = map3 (mk_set_thm fp_set_thm) ctr_defs' xss cxIns;
 
@@ -530,7 +528,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                  (unfold_thms lthy (pre_rel_def :: (if lfp then [] else [dtor_ctor]) @
                       sum_prod_thms_rel)
                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
-              |> postproc |> thaw (xs @ ys);
+              |> postproc
+              |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
             fun mk_rel_inject_thm (((ctr_def', xs), cxIn), ((_, ys), cyIn)) =
               mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] xs cxIn ys cyIn;
