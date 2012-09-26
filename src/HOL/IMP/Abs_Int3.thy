@@ -661,4 +661,48 @@ done
 
 (*unused_thms Abs_Int_init -*)
 
+subsubsection "Counterexamples"
+
+text{* Widening is increasing by assumption,
+but @{prop"x \<sqsubseteq> f x"} is not an invariant of widening. It can already
+be lost after the first step: *}
+
+lemma assumes "!!x y::'a::WN. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+and "x \<sqsubseteq> f x" and "\<not> f x \<sqsubseteq> x" shows "x \<nabla> f x \<sqsubseteq> f(x \<nabla> f x)"
+nitpick[card = 3, expect = genuine, show_consts]
+(*
+1 < 2 < 3,
+f x = 2,
+x widen y = 3 -- guarantees termination with top=3
+x = 1
+Now f is mono, x <= f x, not f x <= x
+but x widen f x = 3, f 3 = 2, but not 3 <= 2
+*)
+oops
+
+text{* Widening terminates but may converge more slowly than Kleene iteration.
+In the following model, Kleene iteration goes from 0 to the least pfp
+in one step but widening takes 2 steps to reach a strictly larger pfp: *}
+lemma assumes "!!x y::'a::WN. x \<sqsubseteq> y \<Longrightarrow> f x \<sqsubseteq> f y"
+and "x \<sqsubseteq> f x" and "\<not> f x \<sqsubseteq> x" and "f(f x) \<sqsubseteq> f x"
+shows "f(x \<nabla> f x) \<sqsubseteq> x \<nabla> f x"
+nitpick[card = 4, expect = genuine, show_consts]
+(*
+
+   0 < 1 < 2 < 3
+f: 1   1   3   3
+
+0 widen 1 = 2
+2 widen 3 = 3
+and x widen y arbitrary, eg 3, which guarantees termination
+
+Kleene: f(f 0) = f 1 = 1 <= 1 = f 1
+
+but
+
+because not f 0 <= 0, we obtain 0 widen f 0 = 0 wide 1 = 2,
+which is again not a pfp: not f 2 = 3 <= 2
+Another widening step yields 2 widen f 2 = 2 widen 3 = 3
+*)
+
 end
