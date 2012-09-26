@@ -319,11 +319,11 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
           val p_Tss = map2 (fn n => replicate (Int.max (0, n - 1)) o mk_pred1T) ns Cs;
 
-          fun zip_predss_getterss qss fss = maps (op @) (qss ~~ fss);
+          fun flat_predss_getterss qss fss = maps (op @) (qss ~~ fss);
 
-          fun zip_preds_predsss_gettersss [] [qss] [fss] = zip_predss_getterss qss fss
-            | zip_preds_predsss_gettersss (p :: ps) (qss :: qsss) (fss :: fsss) =
-              p :: zip_predss_getterss qss fss @ zip_preds_predsss_gettersss ps qsss fsss;
+          fun flat_preds_predsss_gettersss [] [qss] [fss] = flat_predss_getterss qss fss
+            | flat_preds_predsss_gettersss (p :: ps) (qss :: qsss) (fss :: fsss) =
+              p :: flat_predss_getterss qss fss @ flat_preds_predsss_gettersss ps qsss fsss;
 
           fun mk_types maybe_dest_sumT fun_Ts =
             let
@@ -334,7 +334,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                   Cs mss' f_prod_Tss;
               val q_Tssss =
                 map (map (map (fn [_] => [] | [_, C] => [mk_pred1T (domain_type C)]))) f_Tssss;
-              val pf_Tss = map3 zip_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
+              val pf_Tss = map3 flat_preds_predsss_gettersss p_Tss q_Tssss f_Tssss;
             in (q_Tssss, f_sum_prod_Ts, f_Tssss, pf_Tss) end;
 
           val (r_Tssss, g_sum_prod_Ts, g_Tssss, pg_Tss) = mk_types single fp_fold_fun_Ts;
@@ -368,7 +368,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
           fun mk_terms qssss fssss =
             let
-              val pfss = map3 zip_preds_predsss_gettersss pss qssss fssss;
+              val pfss = map3 flat_preds_predsss_gettersss pss qssss fssss;
               val cqssss = map2 (fn c => map (map (map (fn f => f $ c)))) cs qssss;
               val cfssss = map2 (fn c => map (map (map (fn f => f $ c)))) cs fssss;
               val cqfsss = map2 (map2 (map2 mk_preds_getters_join)) cqssss cfssss;
@@ -968,13 +968,13 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val sel_unfold_thmss = mk_sel_corec_like_thms unfold_thmss;
         val sel_corec_thmss = mk_sel_corec_like_thms corec_thmss;
 
-        fun zip_corec_like_thms corec_likes disc_corec_likes sel_corec_likes =
+        fun flat_corec_like_thms corec_likes disc_corec_likes sel_corec_likes =
           corec_likes @ disc_corec_likes @ sel_corec_likes;
 
         val simp_thmss =
           mk_simp_thmss wrap_ress
-            (map3 zip_corec_like_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
-            (map3 zip_corec_like_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss);
+            (map3 flat_corec_like_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
+            (map3 flat_corec_like_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss);
 
         val anonymous_notes =
           [(flat safe_unfold_thmss @ flat safe_corec_thmss, simp_attrs)]
