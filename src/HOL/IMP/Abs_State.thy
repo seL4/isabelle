@@ -60,7 +60,7 @@ instance ..
 end
 
 class semilatticeL = join + L +
-fixes top :: "com \<Rightarrow> 'a" ("\<top>\<^bsub>_\<^esub>")
+fixes top :: "com \<Rightarrow> 'a"
 assumes join_ge1 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<sqsubseteq> x \<squnion> y"
 and join_ge2 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> y \<sqsubseteq> x \<squnion> y"
 and join_least[simp]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
@@ -68,6 +68,8 @@ and top[simp]: "x \<in> L(vars c) \<Longrightarrow> x \<sqsubseteq> top c"
 and top_in_L[simp]: "top c \<in> L(vars c)"
 and join_in_L[simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<squnion> y \<in> L X"
 
+notation (input) top ("\<top>\<^bsub>_\<^esub>")
+notation (latex output) top ("\<top>\<^bsub>\<^raw:\isa{>_\<^raw:}>\<^esub>")
 
 instantiation option :: (semilatticeL)semilatticeL
 begin
