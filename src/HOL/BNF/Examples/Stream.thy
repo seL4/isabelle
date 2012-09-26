@@ -12,21 +12,21 @@ theory Stream
 imports TreeFI
 begin
 
-hide_const (open) Quotient_Product.prod_rel
-hide_fact (open) Quotient_Product.prod_rel_def
-
-codata_raw stream: 's = "'a \<times> 's"
+codata 'a stream = Stream (hdd: 'a) (tll: "'a stream")
 
 (* selectors for streams *)
-definition "hdd as \<equiv> fst (stream_dtor as)"
-definition "tll as \<equiv> snd (stream_dtor as)"
+lemma hdd_def': "hdd as = fst (stream_dtor as)"
+unfolding hdd_def stream_case_def fst_def by (rule refl)
+
+lemma tll_def': "tll as = snd (stream_dtor as)"
+unfolding tll_def stream_case_def snd_def by (rule refl)
 
 lemma unfold_pair_fun_hdd[simp]: "hdd (stream_dtor_unfold (f \<odot> g) t) = f t"
-unfolding hdd_def pair_fun_def stream.dtor_unfold by simp
+unfolding hdd_def' pair_fun_def stream.dtor_unfold by simp
 
 lemma unfold_pair_fun_tll[simp]: "tll (stream_dtor_unfold (f \<odot> g) t) =
  stream_dtor_unfold (f \<odot> g) (g t)"
-unfolding tll_def pair_fun_def stream.dtor_unfold by simp
+unfolding tll_def' pair_fun_def stream.dtor_unfold by simp
 
 (* infinite trees: *)
 coinductive infiniteTr where
@@ -51,12 +51,10 @@ by (erule infiniteTr.cases) blast
 definition "konigPath \<equiv> stream_dtor_unfold
   (lab \<odot> (\<lambda>tr. SOME tr'. tr' \<in> listF_set (sub tr) \<and> infiniteTr tr'))"
 
-lemma hdd_simps1[simp]: "hdd (konigPath t) = lab t"
-unfolding konigPath_def by simp
-
-lemma tll_simps2[simp]: "tll (konigPath t) =
-  konigPath (SOME tr. tr \<in> listF_set (sub t) \<and> infiniteTr tr)"
-unfolding konigPath_def by simp
+lemma konigPath_simps[simp]:
+"hdd (konigPath t) = lab t"
+"tll (konigPath t) = konigPath (SOME tr. tr \<in> listF_set (sub t) \<and> infiniteTr tr)"
+unfolding konigPath_def by simp+
 
 (* proper paths in trees: *)
 coinductive properPath where
@@ -115,14 +113,8 @@ qed
 (* some more stream theorems *)
 
 lemma stream_map[simp]: "stream_map f = stream_dtor_unfold (f o hdd \<odot> tll)"
-unfolding stream_map_def pair_fun_def hdd_def[abs_def] tll_def[abs_def]
+unfolding stream_map_def pair_fun_def hdd_def'[abs_def] tll_def'[abs_def]
   map_pair_def o_def prod_case_beta by simp
-
-lemma prod_rel[simp]: "prod_rel \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \<and> \<phi>2 (snd a) (snd b))"
-unfolding prod_rel_def by auto
-
-lemmas stream_coind =
-  mp[OF stream.dtor_coinduct, unfolded prod_rel[abs_def], folded hdd_def tll_def]
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
   [simp]: "plus xs ys =
@@ -136,22 +128,22 @@ definition twos :: "nat stream" where [simp]: "twos = stream_dtor_unfold ((%x. 2
 definition ns :: "nat \<Rightarrow> nat stream" where [simp]: "ns n = scalar n ones"
 
 lemma "ones \<oplus> ones = twos"
-by (intro stream_coind[where P="%x1 x2. \<exists>x. x1 = ones \<oplus> ones \<and> x2 = twos"]) auto
+by (rule stream.coinduct[of "%x1 x2. \<exists>x. x1 = ones \<oplus> ones \<and> x2 = twos"]) auto
 
 lemma "n \<cdot> twos = ns (2 * n)"
-by (intro stream_coind[where P="%x1 x2. \<exists>n. x1 = n \<cdot> twos \<and> x2 = ns (2 * n)"]) force+
+by (rule stream.coinduct[of "%x1 x2. \<exists>n. x1 = n \<cdot> twos \<and> x2 = ns (2 * n)"]) force+
 
 lemma prod_scalar: "(n * m) \<cdot> xs = n \<cdot> m \<cdot> xs"
-by (intro stream_coind[where P="%x1 x2. \<exists>n m xs. x1 = (n * m) \<cdot> xs \<and> x2 = n \<cdot> m \<cdot> xs"]) force+
+by (rule stream.coinduct[of "%x1 x2. \<exists>n m xs. x1 = (n * m) \<cdot> xs \<and> x2 = n \<cdot> m \<cdot> xs"]) force+
 
 lemma scalar_plus: "n \<cdot> (xs \<oplus> ys) = n \<cdot> xs \<oplus> n \<cdot> ys"
-by (intro stream_coind[where P="%x1 x2. \<exists>n xs ys. x1 = n \<cdot> (xs \<oplus> ys) \<and> x2 = n \<cdot> xs \<oplus> n \<cdot> ys"])
+by (rule stream.coinduct[of "%x1 x2. \<exists>n xs ys. x1 = n \<cdot> (xs \<oplus> ys) \<and> x2 = n \<cdot> xs \<oplus> n \<cdot> ys"])
    (force simp: add_mult_distrib2)+
 
 lemma plus_comm: "xs \<oplus> ys = ys \<oplus> xs"
-by (intro stream_coind[where P="%x1 x2. \<exists>xs ys. x1 = xs \<oplus> ys \<and> x2 = ys \<oplus> xs"]) force+
+by (rule stream.coinduct[of "%x1 x2. \<exists>xs ys. x1 = xs \<oplus> ys \<and> x2 = ys \<oplus> xs"]) force+
 
 lemma plus_assoc: "(xs \<oplus> ys) \<oplus> zs = xs \<oplus> ys \<oplus> zs"
-by (intro stream_coind[where P="%x1 x2. \<exists>xs ys zs. x1 = (xs \<oplus> ys) \<oplus> zs \<and> x2 = xs \<oplus> ys \<oplus> zs"]) force+
+by (rule stream.coinduct[of "%x1 x2. \<exists>xs ys zs. x1 = (xs \<oplus> ys) \<oplus> zs \<and> x2 = xs \<oplus> ys \<oplus> zs"]) force+
 
 end

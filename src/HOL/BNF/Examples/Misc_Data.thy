@@ -21,6 +21,8 @@ data 'a mylist = MyNil | MyCons 'a "'a mylist"
 data ('b, 'c, 'd, 'e) some_passive =
   SP1 "('b, 'c, 'd, 'e) some_passive" | SP2 'b | SP3 'c | SP4 'd | SP5 'e
 
+data hfset = HFset "hfset fset"
+
 data lambda =
   Var string |
   App lambda lambda |
