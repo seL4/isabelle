@@ -41,7 +41,7 @@ fun mk_unique_disc_def_tac m uexhaust =
   EVERY' [rtac iffI, rtac uexhaust, REPEAT_DETERM_N m o rtac exI, atac, rtac refl] 1;
 
 fun mk_alternate_disc_def_tac ctxt k other_disc_def distinct uexhaust =
-  EVERY' ([subst_tac ctxt [other_disc_def], rtac @{thm iffI_np}, REPEAT_DETERM o etac exE,
+  EVERY' ([subst_tac ctxt NONE [other_disc_def], rtac @{thm iffI_np}, REPEAT_DETERM o etac exE,
     hyp_subst_tac, SELECT_GOAL (unfold_thms_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI,
     rtac distinct, rtac uexhaust] @
     (([etac notE, REPEAT_DETERM o rtac exI, atac], [REPEAT_DETERM o rtac exI, atac])
@@ -76,7 +76,7 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
     in
       (rtac udisc_exhaust THEN'
        EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' => fn uuncollapse =>
-         EVERY' [if m = 0 then K all_tac else subst_tac ctxt [uuncollapse] THEN' maybe_atac,
+         EVERY' [if m = 0 then K all_tac else subst_tac ctxt NONE [uuncollapse] THEN' maybe_atac,
            rtac sym, rtac vdisc_exhaust,
            EVERY' (map4 (fn k' => fn disc_excludes => fn disc_excludes' => fn vuncollapse =>
              EVERY'
@@ -84,7 +84,7 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
                   if m = 0 then
                     [hyp_subst_tac, rtac refl]
                   else
-                    [subst_tac ctxt [vuncollapse], maybe_atac,
+                    [subst_tac ctxt NONE [vuncollapse], maybe_atac,
                      if n = 1 then K all_tac else EVERY' [dtac meta_mp, atac, dtac meta_mp, atac],
                      REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE, asm_simp_tac (ss_only [])]
                 else
@@ -107,6 +107,7 @@ fun mk_case_cong_tac uexhaust cases =
 
 val naked_ctxt = Proof_Context.init_global @{theory HOL};
 
+(* TODO: More precise "simp_thms"; get rid of "blast_tac" *)
 fun mk_split_tac uexhaust cases injectss distinctsss =
   rtac uexhaust 1 THEN
   ALLGOALS (fn k => (hyp_subst_tac THEN'

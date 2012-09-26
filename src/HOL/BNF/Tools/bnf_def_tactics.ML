@@ -106,7 +106,7 @@ fun mk_srel_Gr_tac srel_O_Grs map_id map_cong map_id' map_comp set_naturals
 
 fun mk_srel_Id_tac n srel_Gr map_id {context = ctxt, prems = _} =
   unfold_thms_tac ctxt [srel_Gr, @{thm Id_alt}] THEN
-  subst_tac ctxt [map_id] 1 THEN
+  subst_tac ctxt NONE [map_id] 1 THEN
     (if n = 0 then rtac refl 1
     else EVERY' [rtac @{thm arg_cong2[of _ _ _ _ Gr]},
       rtac equalityI, rtac subset_UNIV, rtac subsetI, rtac CollectI,

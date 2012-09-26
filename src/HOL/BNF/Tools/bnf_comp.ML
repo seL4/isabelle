@@ -167,7 +167,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
           |> sort (rev_order o int_ord o pairself fst)
           |> map snd) @ [map_id_of_bnf outer];
       in
-        (EVERY' (map (fn thm => subst_tac ctxt [thm]) thms) THEN' rtac refl) 1
+        (EVERY' (map (fn thm => subst_tac ctxt NONE [thm]) thms) THEN' rtac refl) 1
       end;
 
     fun map_comp_tac _ =

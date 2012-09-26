@@ -13,8 +13,7 @@ sig
   val prefer_tac: int -> tactic
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
-  val subst_asm_tac: Proof.context -> thm list -> int -> tactic
-  val subst_tac: Proof.context -> thm list -> int -> tactic
+  val subst_tac: Proof.context -> int list option -> thm list -> int -> tactic
   val substs_tac: Proof.context -> thm list -> int -> tactic
   val unfold_thms_tac: Proof.context -> thm list -> tactic
   val mk_unfold_thms_then_tac: Proof.context -> thm list -> ('a -> tactic) -> 'a -> tactic
@@ -61,10 +60,9 @@ fun unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_
 
 fun mk_unfold_thms_then_tac lthy defs tac x = unfold_thms_tac lthy defs THEN tac x;
 
-(*unlike "unfold_thms_tac", succeeds when the RHS contains schematic variables not in the LHS*)
-fun subst_asm_tac ctxt = EqSubst.eqsubst_asm_tac ctxt [0];
-fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt [0];
-fun substs_tac ctxt = REPEAT_DETERM oo subst_tac ctxt;
+(*unlike "unfold_thms_tac", these succeed when the RHS contains schematic variables not in the LHS*)
+fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt o the_default [0];
+fun substs_tac ctxt = REPEAT_DETERM oo subst_tac ctxt NONE;
 
 
 (* Theorems for open typedefs with UNIV as representing set *)
@@ -103,7 +101,7 @@ fun simple_srel_O_Gr_tac ctxt =
 
 fun mk_ctor_or_dtor_rel_tac srel_def IJrel_defs IJsrel_defs dtor_srel {context = ctxt, prems = _} =
   unfold_thms_tac ctxt IJrel_defs THEN
-  subst_tac ctxt [unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
+  subst_tac ctxt NONE [unfold_thms ctxt (IJrel_defs @ IJsrel_defs @
     @{thms Collect_pair_mem_eq mem_Collect_eq fst_conv snd_conv}) dtor_srel] 1 THEN
   unfold_thms_tac ctxt (srel_def ::
     @{thms Collect_fst_snd_mem_eq mem_Collect_eq pair_mem_Collect_split fst_conv snd_conv

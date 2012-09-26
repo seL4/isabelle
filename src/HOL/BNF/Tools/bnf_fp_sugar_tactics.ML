@@ -95,10 +95,10 @@ val corec_like_ss = ss_only @{thms if_True if_False};
 
 fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
-  subst_tac ctxt [ctor_dtor_corec_like] 1 THEN asm_simp_tac corec_like_ss 1 THEN
+  subst_tac ctxt NONE [ctor_dtor_corec_like] 1 THEN asm_simp_tac corec_like_ss 1 THEN
   unfold_thms_tac ctxt (pre_map_def :: sum_prod_thms_map @ map_ids) THEN
   unfold_thms_tac ctxt @{thms id_def} THEN
-  TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
+  TRY ((rtac refl ORELSE' subst_tac ctxt NONE @{thms unit_eq} THEN' rtac refl) 1);
 
 fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
   EVERY (map3 (fn case_split_tac => fn corec_like_thm => fn disc =>

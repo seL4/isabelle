@@ -493,9 +493,6 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     mk_disc_exhaust_tac n exhaust_thm discI_thms)
                 end;
 
-              val disc_exhaust_thms =
-                if has_alternate_disc_def orelse no_discs_at_all then [] else [disc_exhaust_thm];
-
               val (collapse_thms, collapse_thm_opts) =
                 let
                   fun mk_goal ctr udisc usels =
@@ -553,7 +550,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-               disc_exhaust_thms, collapse_thms, expand_thms, case_eq_thms)
+               [disc_exhaust_thm], collapse_thms, expand_thms, case_eq_thms)
             end;
 
         val (case_cong_thm, weak_case_cong_thm) =
