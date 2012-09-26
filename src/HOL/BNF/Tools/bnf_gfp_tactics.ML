@@ -37,14 +37,14 @@ sig
   val mk_congruent_str_final_tac: int -> thm -> thm -> thm -> thm list -> tactic
   val mk_corec_tac: int -> thm list -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
-  val mk_dtor_coinduct_tac: int -> int list -> thm -> thm -> tactic
+  val mk_dtor_map_coinduct_tac: int -> int list -> thm -> thm -> tactic
+  val mk_dtor_map_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm ->
+    thm -> thm -> tactic
   val mk_dtor_srel_coinduct_tac: 'a list -> thm -> thm -> tactic
   val mk_dtor_srel_strong_coinduct_tac: int -> ctyp option list -> cterm option list -> thm ->
     thm list -> thm list -> tactic
   val mk_dtor_srel_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
     thm list -> thm list -> thm list list -> tactic
-  val mk_dtor_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm ->
-    thm -> thm -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_equiv_lsbis_tac: thm -> thm -> thm -> thm -> thm -> thm -> tactic
@@ -1144,7 +1144,7 @@ fun mk_dtor_srel_strong_coinduct_tac m cTs cts dtor_srel_coinduct srel_monos sre
     rtac impI, REPEAT_DETERM o etac conjE,
     CONJ_WRAP' (K (rtac impI THEN' etac mp THEN' etac disjI1)) srel_Ids] 1;
 
-fun mk_dtor_coinduct_tac m ks raw_coind bis_def =
+fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
   let
     val n = length ks;
   in
@@ -1165,8 +1165,8 @@ fun mk_dtor_coinduct_tac m ks raw_coind bis_def =
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
 
-fun mk_dtor_strong_coinduct_tac ks cTs cts dtor_coinduct bis_def bis_diag =
-  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_coinduct),
+fun mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def bis_diag =
+  EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_map_coinduct),
     EVERY' (map (fn i =>
       EVERY' [etac disjE, REPEAT_DETERM o dtac @{thm meta_spec}, etac @{thm meta_mp},
         atac, rtac rev_mp, rtac subst, rtac bis_def, rtac bis_diag,

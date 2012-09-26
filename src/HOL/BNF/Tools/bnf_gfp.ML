@@ -2180,8 +2180,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val timer = time (timer "corec definitions & thms");
 
-    val (dtor_coinduct_thm, coinduct_params, dtor_srel_coinduct_thm, dtor_rel_coinduct_thm,
-         dtor_strong_coinduct_thm, dtor_srel_strong_coinduct_thm, dtor_rel_strong_coinduct_thm) =
+    val (dtor_map_coinduct_thm, coinduct_params, dtor_srel_coinduct_thm, dtor_rel_coinduct_thm,
+         dtor_map_strong_coinduct_thm, dtor_srel_strong_coinduct_thm,
+         dtor_rel_strong_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -2251,9 +2252,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val dtor_prems = mk_dtor_prems false;
         val dtor_upto_prems = mk_dtor_prems true;
 
-        val dtor_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (dtor_prems, concl));
-        val dtor_coinduct = Skip_Proof.prove lthy [] [] dtor_coinduct_goal
-          (K (mk_dtor_coinduct_tac m ks raw_coind_thm bis_def))
+        val dtor_map_coinduct_goal = fold_rev Logic.all frees (Logic.list_implies (dtor_prems, concl));
+        val dtor_map_coinduct = Skip_Proof.prove lthy [] [] dtor_map_coinduct_goal
+          (K (mk_dtor_map_coinduct_tac m ks raw_coind_thm bis_def))
           |> Thm.close_derivation;
 
         val cTs = map (SOME o certifyT lthy o TFree) coinduct_params;
@@ -2265,10 +2266,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             (K (mk_dtor_srel_strong_coinduct_tac m cTs cts dtor_srel_coinduct srel_monos srel_Ids)))
           |> Thm.close_derivation;
 
-        val dtor_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
+        val dtor_map_strong_coinduct = singleton (Proof_Context.export names_lthy lthy)
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (dtor_upto_prems, concl)))
-            (K (mk_dtor_strong_coinduct_tac ks cTs cts dtor_coinduct bis_def
+            (K (mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def
               (tcoalg_thm RS bis_diag_thm))))
           |> Thm.close_derivation;
 
@@ -2278,8 +2279,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val dtor_rel_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_coinduct;
         val dtor_rel_strong_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_strong_coinduct;
       in
-        (dtor_coinduct, rev (Term.add_tfrees dtor_coinduct_goal []), dtor_srel_coinduct,
-         dtor_rel_coinduct, dtor_strong_coinduct, dtor_srel_strong_coinduct,
+        (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []), dtor_srel_coinduct,
+         dtor_rel_coinduct, dtor_map_strong_coinduct, dtor_srel_strong_coinduct,
          dtor_rel_strong_coinduct)
       end;
 
@@ -2546,7 +2547,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val cphis =
               map9 mk_cphi setss_by_bnf Jzs' Jzs fs_maps fs_copy_maps Jys' Jys Jys'_copy Jys_copy;
 
-            val coinduct = Drule.instantiate' cTs (map SOME cphis) dtor_coinduct_thm;
+            val coinduct = Drule.instantiate' cTs (map SOME cphis) dtor_map_coinduct_thm;
 
             val goal =
               HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
@@ -2965,8 +2966,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         [(dtor_rel_coinductN, [dtor_rel_coinduct_thm]),
         (dtor_rel_strong_coinductN, [dtor_rel_strong_coinduct_thm])] @
         (if note_all then
-           [(dtor_coinductN, [dtor_coinduct_thm]),
-           (dtor_strong_coinductN, [dtor_strong_coinduct_thm]),
+           [(dtor_map_coinductN, [dtor_map_coinduct_thm]),
+           (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),
            (dtor_srel_coinductN, [dtor_srel_coinduct_thm]),
            (dtor_srel_strong_coinductN, [dtor_srel_strong_coinduct_thm])]
          else
@@ -2992,7 +2993,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((dtors, ctors, Jrels, unfolds, corecs, dtor_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
+    ((dtors, ctors, Jrels, unfolds, corecs, dtor_map_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
       ctor_inject_thms, ctor_dtor_unfold_thms, ctor_dtor_corec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
