@@ -22,11 +22,11 @@ definition "hdd as \<equiv> fst (stream_dtor as)"
 definition "tll as \<equiv> snd (stream_dtor as)"
 
 lemma unfold_pair_fun_hdd[simp]: "hdd (stream_dtor_unfold (f \<odot> g) t) = f t"
-unfolding hdd_def pair_fun_def stream.dtor_unfolds by simp
+unfolding hdd_def pair_fun_def stream.dtor_unfold by simp
 
 lemma unfold_pair_fun_tll[simp]: "tll (stream_dtor_unfold (f \<odot> g) t) =
  stream_dtor_unfold (f \<odot> g) (g t)"
-unfolding tll_def pair_fun_def stream.dtor_unfolds by simp
+unfolding tll_def pair_fun_def stream.dtor_unfold by simp
 
 (* infinite trees: *)
 coinductive infiniteTr where

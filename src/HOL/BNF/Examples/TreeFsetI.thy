@@ -28,10 +28,10 @@ lemma dtor[simp]: "treeFsetI_dtor t = (lab t, sub t)"
 unfolding lab_def sub_def by simp
 
 lemma unfold_pair_fun_lab: "lab (treeFsetI_dtor_unfold (f \<odot> g) t) = f t"
-unfolding lab_def pair_fun_def treeFsetI.dtor_unfolds pre_treeFsetI_map_def by simp
+unfolding lab_def pair_fun_def treeFsetI.dtor_unfold pre_treeFsetI_map_def by simp
 
 lemma unfold_pair_fun_sub: "sub (treeFsetI_dtor_unfold (f \<odot> g) t) = map_fset (treeFsetI_dtor_unfold (f \<odot> g)) (g t)"
-unfolding sub_def pair_fun_def treeFsetI.dtor_unfolds pre_treeFsetI_map_def by simp
+unfolding sub_def pair_fun_def treeFsetI.dtor_unfold pre_treeFsetI_map_def by simp
 
 (* tree map (contrived example): *)
 definition "tmap f \<equiv> treeFsetI_dtor_unfold (f o lab \<odot> sub)"

@@ -23,34 +23,30 @@ sig
   val coN: string
   val coinductN: string
   val corecN: string
-  val corecsN: string
   val ctorN: string
   val ctor_dtorN: string
-  val ctor_dtor_unfoldsN: string
-  val ctor_dtor_corecsN: string
+  val ctor_dtor_corecN: string
+  val ctor_dtor_unfoldN: string
   val ctor_exhaustN: string
   val ctor_induct2N: string
   val ctor_inductN: string
   val ctor_injectN: string
   val ctor_foldN: string
   val ctor_fold_uniqueN: string
-  val ctor_foldsN: string
   val ctor_mapN: string
   val ctor_map_uniqueN: string
   val ctor_recN: string
-  val ctor_recsN: string
   val ctor_relN: string
   val ctor_set_inclN: string
   val ctor_set_set_inclN: string
   val ctor_srelN: string
-  val disc_unfold_iffsN: string
-  val disc_unfoldsN: string
-  val disc_corec_iffsN: string
-  val disc_corecsN: string
+  val disc_unfoldN: string
+  val disc_unfold_iffN: string
+  val disc_corecN: string
+  val disc_corec_iffN: string
   val dtorN: string
   val dtor_coinductN: string
   val dtor_corecN: string
-  val dtor_corecsN: string
   val dtor_ctorN: string
   val dtor_exhaustN: string
   val dtor_injectN: string
@@ -67,31 +63,27 @@ sig
   val dtor_strong_coinductN: string
   val dtor_unfoldN: string
   val dtor_unfold_uniqueN: string
-  val dtor_unfoldsN: string
   val exhaustN: string
   val foldN: string
-  val foldsN: string
   val hsetN: string
   val hset_recN: string
   val inductN: string
   val injectN: string
   val isNodeN: string
   val lsbisN: string
+  val mapN: string
   val map_uniqueN: string
-  val mapsN: string
   val min_algN: string
   val morN: string
   val nchotomyN: string
   val recN: string
-  val recsN: string
   val rel_injectN: string
   val rel_distinctN: string
   val rvN: string
-  val sel_corecsN: string
-  val sel_relsN: string
-  val sel_unfoldsN: string
+  val sel_corecN: string
   val set_inclN: string
   val set_set_inclN: string
+  val sel_unfoldN: string
   val setsN: string
   val simpsN: string
   val strTN: string
@@ -100,7 +92,6 @@ sig
   val sum_bdN: string
   val sum_bdTN: string
   val unfoldN: string
-  val unfoldsN: string
   val uniqueN: string
 
   (* TODO: Don't index set facts. Isabelle packages traditionally generate uniform names. *)
@@ -182,21 +173,16 @@ val unN = "un"
 val algN = "alg"
 val IITN = "IITN"
 val foldN = "fold"
-val foldsN = foldN ^ "s"
 val unfoldN = unN ^ foldN
-val unfoldsN = unfoldN ^ "s"
 val uniqueN = "_unique"
 val simpsN = "simps"
 val ctorN = "ctor"
 val dtorN = "dtor"
 val ctor_foldN = ctorN ^ "_" ^ foldN
-val ctor_foldsN = ctor_foldN ^ "s"
 val dtor_unfoldN = dtorN ^ "_" ^ unfoldN
-val dtor_unfoldsN = dtor_unfoldN ^ "s"
 val ctor_fold_uniqueN = ctor_foldN ^ uniqueN
 val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
-val ctor_dtor_unfoldsN = ctorN ^ "_" ^ dtor_unfoldN ^ "s"
-val mapsN = mapN ^ "s"
+val ctor_dtor_unfoldN = ctorN ^ "_" ^ dtor_unfoldN
 val ctor_mapN = ctorN ^ "_" ^ mapN
 val dtor_mapN = dtorN ^ "_" ^ mapN
 val map_uniqueN = mapN ^ uniqueN
@@ -222,14 +208,10 @@ val mk_dtor_set_inductN = prefix (dtorN ^ "_") o mk_set_inductN
 
 val str_initN = "str_init"
 val recN = "rec"
-val recsN = recN ^ "s"
 val corecN = coN ^ recN
-val corecsN = corecN ^ "s"
 val ctor_recN = ctorN ^ "_" ^ recN
-val ctor_recsN = ctor_recN ^ "s"
 val dtor_corecN = dtorN ^ "_" ^ corecN
-val dtor_corecsN = dtor_corecN ^ "s"
-val ctor_dtor_corecsN = ctorN ^ "_" ^ dtor_corecN ^ "s"
+val ctor_dtor_corecN = ctorN ^ "_" ^ dtor_corecN
 
 val ctor_dtorN = ctorN ^ "_" ^ dtorN
 val dtor_ctorN = dtorN ^ "_" ^ ctorN
@@ -266,20 +248,19 @@ val dtor_set_set_inclN = dtorN ^ "_" ^ set_set_inclN
 
 val caseN = "case"
 val discN = "disc"
-val disc_unfoldsN = discN ^ "_" ^ unfoldsN
-val disc_corecsN = discN ^ "_" ^ corecsN
-val iffsN = "_iffs"
-val disc_unfold_iffsN = discN ^ "_" ^ unfoldN ^ iffsN
-val disc_corec_iffsN = discN ^ "_" ^ corecN ^ iffsN
+val disc_unfoldN = discN ^ "_" ^ unfoldN
+val disc_corecN = discN ^ "_" ^ corecN
+val iffN = "_iff"
+val disc_unfold_iffN = discN ^ "_" ^ unfoldN ^ iffN
+val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
 val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
 val rel_injectN = relN ^ "_" ^ injectN
 val relsN = relN ^ "s"
 val selN = "sel"
-val sel_relsN = selN ^ "_" ^ relsN
-val sel_unfoldsN = selN ^ "_" ^ unfoldsN
-val sel_corecsN = selN ^ "_" ^ corecsN
+val sel_unfoldN = selN ^ "_" ^ unfoldN
+val sel_corecN = selN ^ "_" ^ corecN
 
 val mk_common_name = space_implode "_";
 

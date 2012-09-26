@@ -35,9 +35,9 @@ val unN = "un_";
 fun mk_unN 1 1 suf = unN ^ suf
   | mk_unN _ l suf = unN ^ suf ^ string_of_int l;
 
+val caseN = "case";
 val case_congN = "case_cong";
-val case_eqN = "case_eq";
-val casesN = "cases";
+val case_convN = "case_conv";
 val collapseN = "collapse";
 val disc_excludeN = "disc_exclude";
 val disc_exhaustN = "disc_exhaust";
@@ -382,7 +382,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           end;
 
         val (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-             disc_exhaust_thms, collapse_thms, expand_thms, case_eq_thms) =
+             disc_exhaust_thms, collapse_thms, expand_thms, case_conv_thms) =
           if no_dests then
             ([], [], [], [], [], [], [], [], [], [])
           else
@@ -539,18 +539,18 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                   |> Proof_Context.export names_lthy lthy
                 end;
 
-              val case_eq_thms =
+              val case_conv_thms =
                 let
                   fun mk_body f usels = Term.list_comb (f, usels);
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs (map2 mk_body fs uselss));
                 in
                   [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                     mk_case_eq_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
+                     mk_case_conv_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
                   |> Proof_Context.export names_lthy lthy
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
-               [disc_exhaust_thm], collapse_thms, expand_thms, case_eq_thms)
+               [disc_exhaust_thm], collapse_thms, expand_thms, case_conv_thms)
             end;
 
         val (case_cong_thm, weak_case_cong_thm) =
@@ -601,9 +601,9 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         val cases_type_attr = Attrib.internal (K (Induct.cases_type dataT_name));
 
         val notes =
-          [(case_congN, [case_cong_thm], []),
-           (case_eqN, case_eq_thms, []),
-           (casesN, case_thms, simp_attrs),
+          [(caseN, case_thms, simp_attrs),
+           (case_congN, [case_cong_thm], []),
+           (case_convN, case_conv_thms, []),
            (collapseN, collapse_thms, simp_attrs),
            (discsN, disc_thms, simp_attrs),
            (disc_excludeN, disc_exclude_thms, []),

@@ -58,10 +58,10 @@ sig
   val map_id_of_bnf: BNF -> thm
   val map_wppull_of_bnf: BNF -> thm
   val map_wpull_of_bnf: BNF -> thm
-  val rel_as_srel_of_bnf: BNF -> thm
   val rel_def_of_bnf: BNF -> thm
   val rel_eq_of_bnf: BNF -> thm
   val rel_flip_of_bnf: BNF -> thm
+  val rel_srel_of_bnf: BNF -> thm
   val set_bd_of_bnf: BNF -> thm list
   val set_defs_of_bnf: BNF -> thm list
   val set_natural'_of_bnf: BNF -> thm list
@@ -186,9 +186,9 @@ type facts = {
   map_comp': thm lazy,
   map_id': thm lazy,
   map_wppull: thm lazy,
-  rel_as_srel: thm lazy,
   rel_eq: thm lazy,
   rel_flip: thm lazy,
+  rel_srel: thm lazy,
   set_natural': thm lazy list,
   srel_cong: thm lazy,
   srel_mono: thm lazy,
@@ -199,7 +199,7 @@ type facts = {
 };
 
 fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_natural in_cong in_mono in_srel
-    map_comp' map_id' map_wppull rel_as_srel rel_eq rel_flip set_natural' srel_cong srel_mono
+    map_comp' map_id' map_wppull rel_eq rel_flip rel_srel set_natural' srel_cong srel_mono
     srel_Id srel_Gr srel_converse srel_O = {
   bd_Card_order = bd_Card_order,
   bd_Cinfinite = bd_Cinfinite,
@@ -211,9 +211,9 @@ fun mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_natural in_cong 
   map_comp' = map_comp',
   map_id' = map_id',
   map_wppull = map_wppull,
-  rel_as_srel = rel_as_srel,
   rel_eq = rel_eq,
   rel_flip = rel_flip,
+  rel_srel = rel_srel,
   set_natural' = set_natural',
   srel_cong = srel_cong,
   srel_mono = srel_mono,
@@ -233,9 +233,9 @@ fun map_facts f {
   map_comp',
   map_id',
   map_wppull,
-  rel_as_srel,
   rel_eq,
   rel_flip,
+  rel_srel,
   set_natural',
   srel_cong,
   srel_mono,
@@ -253,9 +253,9 @@ fun map_facts f {
     map_comp' = Lazy.map f map_comp',
     map_id' = Lazy.map f map_id',
     map_wppull = Lazy.map f map_wppull,
-    rel_as_srel = Lazy.map f rel_as_srel,
     rel_eq = Lazy.map f rel_eq,
     rel_flip = Lazy.map f rel_flip,
+    rel_srel = Lazy.map f rel_srel,
     set_natural' = map (Lazy.map f) set_natural',
     srel_cong = Lazy.map f srel_cong,
     srel_mono = Lazy.map f srel_mono,
@@ -374,10 +374,10 @@ val map_comp'_of_bnf = Lazy.force o #map_comp' o #facts o rep_bnf;
 val map_cong_of_bnf = #map_cong o #axioms o rep_bnf;
 val map_wppull_of_bnf = Lazy.force o #map_wppull o #facts o rep_bnf;
 val map_wpull_of_bnf = #map_wpull o #axioms o rep_bnf;
-val rel_as_srel_of_bnf = Lazy.force o #rel_as_srel o #facts o rep_bnf;
 val rel_def_of_bnf = #rel_def o #defs o rep_bnf;
 val rel_eq_of_bnf = Lazy.force o #rel_eq o #facts o rep_bnf;
 val rel_flip_of_bnf = Lazy.force o #rel_flip o #facts o rep_bnf;
+val rel_srel_of_bnf = Lazy.force o #rel_srel o #facts o rep_bnf;
 val set_bd_of_bnf = #set_bd o #axioms o rep_bnf;
 val set_defs_of_bnf = #set_defs o #defs o rep_bnf;
 val set_natural_of_bnf = #set_natural o #axioms o rep_bnf;
@@ -509,9 +509,9 @@ val map_compN = "map_comp";
 val map_comp'N = "map_comp'";
 val map_congN = "map_cong";
 val map_wpullN = "map_wpull";
-val rel_as_srelN = "rel_as_srel";
 val rel_eqN = "rel_eq";
 val rel_flipN = "rel_flip";
+val rel_srelN = "rel_srel";
 val set_naturalN = "set_natural";
 val set_natural'N = "set_natural'";
 val set_bdN = "set_bd";
@@ -1115,13 +1115,13 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         val mem_Collect_etc = @{thms fst_conv mem_Collect_eq prod.cases snd_conv};
         val mem_Collect_etc' = @{thms fst_conv mem_Collect_eq pair_in_Id_conv snd_conv};
 
-        fun mk_rel_as_srel () =
+        fun mk_rel_srel () =
           unfold_thms lthy mem_Collect_etc
             (funpow live (fn thm => thm RS @{thm fun_cong_pair}) (bnf_srel_def RS meta_eq_to_obj_eq)
                RS eqset_imp_iff_pair RS sym)
           |> Drule.zero_var_indexes;
 
-        val rel_as_srel = Lazy.lazy mk_rel_as_srel;
+        val rel_srel = Lazy.lazy mk_rel_srel;
 
         fun mk_rel_eq () =
           unfold_thms lthy (bnf_srel_def :: mem_Collect_etc')
@@ -1146,7 +1146,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         val defs = mk_defs bnf_map_def bnf_set_defs bnf_rel_def bnf_srel_def;
 
         val facts = mk_facts bd_Card_order bd_Cinfinite bd_Cnotzero collect_set_natural in_cong
-          in_mono in_srel map_comp' map_id' map_wppull rel_as_srel rel_eq rel_flip set_natural'
+          in_mono in_srel map_comp' map_id' map_wppull rel_eq rel_flip rel_srel set_natural'
           srel_cong srel_mono srel_Id srel_Gr srel_converse srel_O;
 
         val wits = map2 mk_witness bnf_wits wit_thms;
@@ -1193,9 +1193,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                     [(map_comp'N, [Lazy.force (#map_comp' facts)]),
                     (map_congN, [#map_cong axioms]),
                     (map_id'N, [Lazy.force (#map_id' facts)]),
-                    (rel_as_srelN, [Lazy.force (#rel_as_srel facts)]),
                     (rel_eqN, [Lazy.force (#rel_eq facts)]),
                     (rel_flipN, [Lazy.force (#rel_flip facts)]),
+                    (rel_srelN, [Lazy.force (#rel_srel facts)]),
                     (set_natural'N, map Lazy.force (#set_natural' facts)),
                     (srel_O_GrN, srel_O_Grs),
                     (srel_IdN, [Lazy.force (#srel_Id facts)]),

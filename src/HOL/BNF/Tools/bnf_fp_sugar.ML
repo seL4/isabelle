@@ -551,7 +551,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
             val notes =
-              [(mapsN, map_thms, code_simp_attrs),
+              [(mapN, map_thms, code_simp_attrs),
                (rel_distinctN, rel_distinct_thms, code_simp_attrs),
                (rel_injectN, rel_inject_thms, code_simp_attrs),
                (setsN, flat set_thmss, code_simp_attrs)]
@@ -818,8 +818,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val notes =
           [(inductN, map single induct_thms,
             fn T_name => [induct_case_names_attr, induct_type_attr T_name]),
-           (foldsN, fold_thmss, K (code_simp_attrs)),
-           (recsN, rec_thmss, K (code_simp_attrs)),
+           (foldN, fold_thmss, K (code_simp_attrs)),
+           (recN, rec_thmss, K (code_simp_attrs)),
            (simpsN, simp_thmss, K [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map3 (fn b => fn Type (T_name, _) => fn thms =>
@@ -1076,16 +1076,16 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
         val notes =
           [(coinductN, map single coinduct_thms, []), (* FIXME: attribs *)
-           (corecsN, corec_thmss, []),
-           (disc_corec_iffsN, disc_corec_iff_thmss, simp_attrs),
-           (disc_corecsN, disc_corec_thmss, simp_attrs),
-           (disc_unfold_iffsN, disc_unfold_iff_thmss, simp_attrs),
-           (disc_unfoldsN, disc_unfold_thmss, simp_attrs),
-           (sel_unfoldsN, sel_unfold_thmss, simp_attrs),
-           (sel_corecsN, sel_corec_thmss, simp_attrs),
+           (corecN, corec_thmss, []),
+           (disc_corecN, disc_corec_thmss, simp_attrs),
+           (disc_corec_iffN, disc_corec_iff_thmss, simp_attrs),
+           (disc_unfoldN, disc_unfold_thmss, simp_attrs),
+           (disc_unfold_iffN, disc_unfold_iff_thmss, simp_attrs),
+           (sel_corecN, sel_corec_thmss, simp_attrs),
+           (sel_unfoldN, sel_unfold_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
            (strong_coinductN, map single strong_coinduct_thms, []), (* FIXME: attribs *)
-           (unfoldsN, unfold_thmss, [])]
+           (unfoldN, unfold_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map_filter (fn (_, []) => NONE | (b, thms) =>
               SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),

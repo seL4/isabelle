@@ -2980,16 +2980,16 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
       val notes =
         [(ctor_dtorN, ctor_dtor_thms),
-        (ctor_dtor_corecsN, ctor_dtor_corec_thms),
-        (ctor_dtor_unfoldsN, ctor_dtor_unfold_thms),
+        (ctor_dtor_corecN, ctor_dtor_corec_thms),
+        (ctor_dtor_unfoldN, ctor_dtor_unfold_thms),
         (ctor_exhaustN, ctor_exhaust_thms),
         (ctor_injectN, ctor_inject_thms),
-        (dtor_corecsN, dtor_corec_thms),
+        (dtor_corecN, dtor_corec_thms),
         (dtor_ctorN, dtor_ctor_thms),
         (dtor_exhaustN, dtor_exhaust_thms),
         (dtor_injectN, dtor_inject_thms),
-        (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
-        (dtor_unfoldsN, dtor_unfold_thms)]
+        (dtor_unfoldN, dtor_unfold_thms),
+        (dtor_unfold_uniqueN, dtor_unfold_unique_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>

@@ -1815,10 +1815,10 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       val notes =
         [(ctor_dtorN, ctor_dtor_thms),
         (ctor_exhaustN, ctor_exhaust_thms),
+        (ctor_foldN, ctor_fold_thms),
         (ctor_fold_uniqueN, ctor_fold_unique_thms),
-        (ctor_foldsN, ctor_fold_thms),
         (ctor_injectN, ctor_inject_thms),
-        (ctor_recsN, ctor_rec_thms),
+        (ctor_recN, ctor_rec_thms),
         (dtor_ctorN, dtor_ctor_thms),
         (dtor_exhaustN, dtor_exhaust_thms),
         (dtor_injectN, dtor_inject_thms)]

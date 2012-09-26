@@ -9,7 +9,7 @@ signature BNF_WRAP_TACTICS =
 sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_cong_tac: thm -> thm list -> tactic
-  val mk_case_eq_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
+  val mk_case_conv_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
     tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
@@ -95,7 +95,7 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
          ks ms disc_excludesss disc_excludesss' uncollapses)) 1
     end;
 
-fun mk_case_eq_tac ctxt n uexhaust cases discss' selss =
+fun mk_case_conv_tac ctxt n uexhaust cases discss' selss =
   (rtac uexhaust THEN'
    EVERY' (map3 (fn casex => fn if_discs => fn sels =>
        EVERY' [hyp_subst_tac, SELECT_GOAL (unfold_thms_tac ctxt (if_discs @ sels)), rtac casex])

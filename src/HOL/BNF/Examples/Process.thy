@@ -135,7 +135,7 @@ definition
 
 lemma BX: "BX = Action ''a'' BX"
 unfolding BX_def
-using process.unfolds(1)[of "\<lambda> P. True" "()"  "\<lambda> P. ''a''" "\<lambda> P. P"] by simp
+using process.unfold(1)[of "\<lambda> P. True" "()"  "\<lambda> P. ''a''" "\<lambda> P. P"] by simp
 
 
 subsection{* Multi-guard fixpoint definitions, simulated with auxiliary arguments *}
@@ -156,9 +156,9 @@ definition "X = F x"  definition "Y = F y"  definition "AX = F ax"
 
 lemma X_Y_AX: "X = Choice AX Y"  "Y = Action ''b'' X"  "AX = Action ''a'' X"
 unfolding X_def Y_def AX_def F_def
-using process.unfolds(2)[of isA x "pr" co c1 c2]
-      process.unfolds(1)[of isA y "pr" co c1 c2]
-      process.unfolds(1)[of isA ax "pr" co c1 c2]
+using process.unfold(2)[of isA x "pr" co c1 c2]
+      process.unfold(1)[of isA y "pr" co c1 c2]
+      process.unfold(1)[of isA ax "pr" co c1 c2]
 unfolding Action_defs Choice_defs by simp_all
 
 (* end product: *)
@@ -237,14 +237,14 @@ lemma solution_Action:
 assumes "isACT sys T"
 shows "solution sys T = Action (PREF sys T) (solution sys (CONT sys T))"
 unfolding solution_def
-using process.unfolds(1)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
+using process.unfold(1)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
   assms by simp
 
 lemma solution_Choice:
 assumes "\<not> isACT sys T"
 shows "solution sys T = Choice (solution sys (CH1 sys T)) (solution sys (CH2 sys T))"
 unfolding solution_def
-using process.unfolds(2)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
+using process.unfold(2)[of "isACT sys" T "PREF sys" "CONT sys" "CH1 sys" "CH2 sys"]
   assms by simp
 
 lemma isACT_VAR:

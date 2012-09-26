@@ -141,21 +141,21 @@ definition "trmrec var app lam lt \<equiv> trm_ctor_rec (sumJoin4 var app lam lt
 
 lemma trmrec_Var[simp]:
 "trmrec var app lam lt (Var x) = var x"
-unfolding trmrec_def Var_def trm.ctor_recs pre_trm_map(1) by simp
+unfolding trmrec_def Var_def trm.ctor_rec pre_trm_map(1) by simp
 
 lemma trmrec_App[simp]:
 "trmrec var app lam lt (App t1 t2) =
  app t1 (trmrec var app lam lt t1) t2 (trmrec var app lam lt t2)"
-unfolding trmrec_def App_def trm.ctor_recs pre_trm_map(2) convol_def by simp
+unfolding trmrec_def App_def trm.ctor_rec pre_trm_map(2) convol_def by simp
 
 lemma trmrec_Lam[simp]:
 "trmrec var app lam lt (Lam x t) = lam x t (trmrec var app lam lt t)"
-unfolding trmrec_def Lam_def trm.ctor_recs pre_trm_map(3) convol_def by simp
+unfolding trmrec_def Lam_def trm.ctor_rec pre_trm_map(3) convol_def by simp
 
 lemma trmrec_Lt[simp]:
 "trmrec var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,t,trmrec var app lam lt t)) xts) t (trmrec var app lam lt t)"
-unfolding trmrec_def Lt_def trm.ctor_recs pre_trm_map(4) convol_def by simp
+unfolding trmrec_def Lt_def trm.ctor_rec pre_trm_map(4) convol_def by simp
 
 definition
 "sumJoinI4 f1 f2 f3 f4 \<equiv>
@@ -178,21 +178,21 @@ definition "trmfold var app lam lt \<equiv> trm_ctor_fold (sumJoinI4 var app lam
 
 lemma trmfold_Var[simp]:
 "trmfold var app lam lt (Var x) = var x"
-unfolding trmfold_def Var_def trm.ctor_folds pre_trm_map(1) by simp
+unfolding trmfold_def Var_def trm.ctor_fold pre_trm_map(1) by simp
 
 lemma trmfold_App[simp]:
 "trmfold var app lam lt (App t1 t2) =
  app (trmfold var app lam lt t1) (trmfold var app lam lt t2)"
-unfolding trmfold_def App_def trm.ctor_folds pre_trm_map(2) by simp
+unfolding trmfold_def App_def trm.ctor_fold pre_trm_map(2) by simp
 
 lemma trmfold_Lam[simp]:
 "trmfold var app lam lt (Lam x t) = lam x (trmfold var app lam lt t)"
-unfolding trmfold_def Lam_def trm.ctor_folds pre_trm_map(3) by simp
+unfolding trmfold_def Lam_def trm.ctor_fold pre_trm_map(3) by simp
 
 lemma trmfold_Lt[simp]:
 "trmfold var app lam lt (Lt xts t) =
  lt (map_fset (\<lambda> (x,t). (x,trmfold var app lam lt t)) xts) (trmfold var app lam lt t)"
-unfolding trmfold_def Lt_def trm.ctor_folds pre_trm_map(4) by simp
+unfolding trmfold_def Lt_def trm.ctor_fold pre_trm_map(4) by simp
 
 
 subsection{* Example: The set of all variables varsOf and free variables fvarsOf of a term: *}

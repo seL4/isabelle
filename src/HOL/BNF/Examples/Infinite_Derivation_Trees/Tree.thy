@@ -177,7 +177,7 @@ unfolding TTree_unfold_def by simp
 theorem TTree_unfold:
 "root (TTree_unfold rt ct b) = rt b"
 "ccont (TTree_unfold rt ct b) = map_fset (id \<oplus> TTree_unfold rt ct) (ct b)"
-using Tree.dtor_unfolds[of "<rt,ct>" b] unfolding Tree_unfold_unfold fst_convol snd_convol
+using Tree.dtor_unfold[of "<rt,ct>" b] unfolding Tree_unfold_unfold fst_convol snd_convol
 unfolding pre_Tree_map' fst_convol' snd_convol'
 unfolding Tree_dtor_root_ccont by simp_all
 
@@ -194,7 +194,7 @@ unfolding TTree_corec_def by simp
 theorem TTree_corec:
 "root (TTree_corec rt ct b) = rt b"
 "ccont (TTree_corec rt ct b) = map_fset (id \<oplus> ([[id, TTree_corec rt ct]]) ) (ct b)"
-using Tree.dtor_corecs[of "<rt,ct>" b] unfolding Tree_dtor_corec_corec fst_convol snd_convol
+using Tree.dtor_corec[of "<rt,ct>" b] unfolding Tree_dtor_corec_corec fst_convol snd_convol
 unfolding pre_Tree_map' fst_convol' snd_convol'
 unfolding Tree_dtor_root_ccont by simp_all
 
