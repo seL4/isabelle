@@ -20,7 +20,8 @@ case "$ISABELLE_PLATFORM" in
     then
       ML_PLATFORM="$ISABELLE_PLATFORM32"
     else
-      echo >&2 "### Cannot execute Poly/ML in 32bit mode -- using bulky 64bit version instead"
+      echo >&2 "### Cannot execute Poly/ML in 32bit mode: missing shared libraries for C/C++"
+      echo >&2 "### Using more voluminous 64bit version of Poly/ML instead"
       ML_PLATFORM="$ISABELLE_PLATFORM64"
     fi
     ;;
