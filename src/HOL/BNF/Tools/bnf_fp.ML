@@ -115,7 +115,6 @@ sig
   val mk_sumTN_balanced: typ list -> typ
 
   val id_const: typ -> term
-  val id_abs: typ -> term
 
   val Inl_const: typ -> typ -> term
   val Inr_const: typ -> typ -> term
@@ -289,7 +288,6 @@ val mk_sumTN = Library.foldr1 mk_sumT;
 val mk_sumTN_balanced = Balanced_Tree.make mk_sumT;
 
 fun id_const T = Const (@{const_name id}, T --> T);
-fun id_abs T = Abs (Name.uu, T, Bound 0);
 
 fun Inl_const LT RT = Const (@{const_name Inl}, LT --> mk_sumT (LT, RT));
 fun mk_Inl RT t = Inl_const (fastype_of t) RT $ t;

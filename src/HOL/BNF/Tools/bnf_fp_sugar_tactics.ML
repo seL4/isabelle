@@ -42,18 +42,20 @@ val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
 
 val sum_prod_thms_rel = @{thms prod.cases prod_rel_def sum.cases sum_rel_def};
 
-fun inst_spurious_fs lthy thm =
+fun mk_proj n k T = funpow n (fn t => Abs (Name.uu, T, t)) (Bound (n - k));
+
+fun inst_as_projs ctxt n k thm =
   let
     val fs =
       Term.add_vars (prop_of thm) []
       |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
     val cfs =
-      map (fn f as (_, T) => (certify lthy (Var f), certify lthy (id_abs (domain_type T)))) fs;
+      map (fn f as (_, T) => (certify ctxt (Var f), certify ctxt (mk_proj n k (domain_type T)))) fs;
   in
     Drule.cterm_instantiate cfs thm
   end;
 
-val inst_spurious_fs_tac = PRIMITIVE o inst_spurious_fs;
+val inst_as_projs_tac = PRIMITIVE ooo inst_as_projs;
 
 fun mk_case_tac ctxt n k m case_def ctr_def dtor_ctor =
   unfold_thms_tac ctxt [case_def, ctr_def, dtor_ctor] THEN
@@ -132,7 +134,7 @@ fun mk_induct_tac ctxt ns mss kkss ctr_defs ctor_induct' set_natural's pre_set_d
     val nn = length ns;
     val n = Integer.sum ns;
   in
-    unfold_thms_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_spurious_fs_tac ctxt THEN
+    unfold_thms_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_as_projs_tac ctxt 1 1 THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
       pre_set_defss mss (unflat mss (1 upto n)) kkss)
   end;
