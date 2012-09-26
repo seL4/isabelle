@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/graph_dockable.scala
+/*  Title:      Tools/jEdit/src/graphview_dockable.scala
     Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
@@ -18,7 +18,7 @@ import scala.actors.Actor._
 import org.gjt.sp.jedit.View
 
 
-class Graph_Dockable(view: View, position: String) extends Dockable(view, position)
+class Graphview_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   Swing_Thread.require()
 
@@ -105,7 +105,7 @@ class Graph_Dockable(view: View, position: String) extends Dockable(view, positi
           Swing_Thread.later { handle_update(do_update, None) }
 
         case bad =>
-          java.lang.System.err.println("Graph_Dockable: ignoring bad message " + bad)
+          java.lang.System.err.println("Graphview_Dockable: ignoring bad message " + bad)
       }
     }
   }
