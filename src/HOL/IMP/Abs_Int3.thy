@@ -86,15 +86,15 @@ begin
 definition "widen_ivl ivl1 ivl2 =
   ((*if is_empty ivl1 then ivl2 else
    if is_empty ivl2 then ivl1 else*)
-     case (ivl1,ivl2) of (I l1 h1, I l2 h2) \<Rightarrow>
-       I (if le_option False l2 l1 \<and> l2 \<noteq> l1 then None else l1)
-         (if le_option True h1 h2 \<and> h1 \<noteq> h2 then None else h1))"
+     case (ivl1,ivl2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow>
+       Ivl (if le_option False l2 l1 \<and> l2 \<noteq> l1 then None else l1)
+           (if le_option True h1 h2 \<and> h1 \<noteq> h2 then None else h1))"
 
 definition "narrow_ivl ivl1 ivl2 =
   ((*if is_empty ivl1 \<or> is_empty ivl2 then empty else*)
-     case (ivl1,ivl2) of (I l1 h1, I l2 h2) \<Rightarrow>
-       I (if l1 = None then l2 else l1)
-         (if h1 = None then h2 else h1))"
+     case (ivl1,ivl2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow>
+       Ivl (if l1 = None then l2 else l1)
+           (if h1 = None then h2 else h1))"
 
 instance
 proof qed
@@ -583,7 +583,7 @@ locale Abs_Int2_measure =
 subsubsection "Termination: Intervals"
 
 definition m_ivl :: "ivl \<Rightarrow> nat" where
-"m_ivl ivl = (case ivl of I l h \<Rightarrow>
+"m_ivl ivl = (case ivl of Ivl l h \<Rightarrow>
      (case l of None \<Rightarrow> 0 | Some _ \<Rightarrow> 1) + (case h of None \<Rightarrow> 0 | Some _ \<Rightarrow> 1))"
 
 lemma m_ivl_height: "m_ivl ivl \<le> 2"

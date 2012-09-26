@@ -6,30 +6,30 @@ begin
 
 subsection "Interval Analysis"
 
-datatype ivl = I "int option" "int option"
+datatype ivl = Ivl "int option" "int option"
 
 definition "\<gamma>_ivl i = (case i of
-  I (Some l) (Some h) \<Rightarrow> {l..h} |
-  I (Some l) None \<Rightarrow> {l..} |
-  I None (Some h) \<Rightarrow> {..h} |
-  I None None \<Rightarrow> UNIV)"
+  Ivl (Some l) (Some h) \<Rightarrow> {l..h} |
+  Ivl (Some l) None \<Rightarrow> {l..} |
+  Ivl None (Some h) \<Rightarrow> {..h} |
+  Ivl None None \<Rightarrow> UNIV)"
 
-abbreviation I_Some_Some :: "int \<Rightarrow> int \<Rightarrow> ivl"  ("{_\<dots>_}") where
-"{lo\<dots>hi} == I (Some lo) (Some hi)"
-abbreviation I_Some_None :: "int \<Rightarrow> ivl"  ("{_\<dots>}") where
-"{lo\<dots>} == I (Some lo) None"
-abbreviation I_None_Some :: "int \<Rightarrow> ivl"  ("{\<dots>_}") where
-"{\<dots>hi} == I None (Some hi)"
-abbreviation I_None_None :: "ivl"  ("{\<dots>}") where
-"{\<dots>} == I None None"
+abbreviation Ivl_Some_Some :: "int \<Rightarrow> int \<Rightarrow> ivl"  ("{_\<dots>_}") where
+"{lo\<dots>hi} == Ivl (Some lo) (Some hi)"
+abbreviation Ivl_Some_None :: "int \<Rightarrow> ivl"  ("{_\<dots>}") where
+"{lo\<dots>} == Ivl (Some lo) None"
+abbreviation Ivl_None_Some :: "int \<Rightarrow> ivl"  ("{\<dots>_}") where
+"{\<dots>hi} == Ivl None (Some hi)"
+abbreviation Ivl_None_None :: "ivl"  ("{\<dots>}") where
+"{\<dots>} == Ivl None None"
 
 definition "num_ivl n = {n\<dots>n}"
 
 fun in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool" where
-"in_ivl k (I (Some l) (Some h)) \<longleftrightarrow> l \<le> k \<and> k \<le> h" |
-"in_ivl k (I (Some l) None) \<longleftrightarrow> l \<le> k" |
-"in_ivl k (I None (Some h)) \<longleftrightarrow> k \<le> h" |
-"in_ivl k (I None None) \<longleftrightarrow> True"
+"in_ivl k (Ivl (Some l) (Some h)) \<longleftrightarrow> l \<le> k \<and> k \<le> h" |
+"in_ivl k (Ivl (Some l) None) \<longleftrightarrow> l \<le> k" |
+"in_ivl k (Ivl None (Some h)) \<longleftrightarrow> k \<le> h" |
+"in_ivl k (Ivl None None) \<longleftrightarrow> True"
 
 instantiation option :: (plus)plus
 begin
@@ -48,7 +48,7 @@ fun is_empty where
 "is_empty {l\<dots>h} = (h<l)" |
 "is_empty _ = False"
 
-lemma [simp]: "is_empty(I l h) =
+lemma [simp]: "is_empty(Ivl l h) =
   (case l of Some l \<Rightarrow> (case h of Some h \<Rightarrow> h<l | None \<Rightarrow> False) | None \<Rightarrow> False)"
 by(auto split:option.split)
 
@@ -56,7 +56,7 @@ lemma [simp]: "is_empty i \<Longrightarrow> \<gamma>_ivl i = {}"
 by(auto simp add: \<gamma>_ivl_def split: ivl.split option.split)
 
 definition "plus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
-  case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1+l2) (h1+h2))"
+  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (l1+l2) (h1+h2))"
 
 instantiation ivl :: semilattice
 begin
@@ -67,7 +67,7 @@ definition le_option :: "bool \<Rightarrow> int option \<Rightarrow> int option 
   | None \<Rightarrow> (case y of Some j \<Rightarrow> \<not>pos | None \<Rightarrow> True))"
 
 fun le_aux where
-"le_aux (I l1 h1) (I l2 h2) = (le_option False l2 l1 & le_option True h1 h2)"
+"le_aux (Ivl l1 h1) (Ivl l2 h2) = (le_option False l2 l1 & le_option True h1 h2)"
 
 definition le_ivl where
 "i1 \<sqsubseteq> i2 =
@@ -82,8 +82,8 @@ definition max_option :: "bool \<Rightarrow> int option \<Rightarrow> int option
 
 definition "i1 \<squnion> i2 =
  (if is_empty i1 then i2 else if is_empty i2 then i1
-  else case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow>
-          I (min_option False l1 l2) (max_option True h1 h2))"
+  else case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow>
+          Ivl (min_option False l1 l2) (max_option True h1 h2))"
 
 definition "\<top> = {\<dots>}"
 
@@ -115,8 +115,8 @@ instantiation ivl :: lattice
 begin
 
 definition "i1 \<sqinter> i2 = (if is_empty i1 \<or> is_empty i2 then empty else
-  case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow>
-    I (max_option False l1 l2) (min_option True h1 h2))"
+  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow>
+    Ivl (max_option False l1 l2) (min_option True h1 h2))"
 
 definition "\<bottom> = empty"
 
@@ -148,7 +148,7 @@ instance ..
 end
 
 definition "minus_ivl i1 i2 = (if is_empty i1 | is_empty i2 then empty else
-  case (i1,i2) of (I l1 h1, I l2 h2) \<Rightarrow> I (l1-h2) (h1-l2))"
+  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (l1-h2) (h1-l2))"
 
 lemma gamma_minus_ivl:
   "n1 : \<gamma>_ivl i1 \<Longrightarrow> n2 : \<gamma>_ivl i2 \<Longrightarrow> n1-n2 : \<gamma>_ivl(minus_ivl i1 i2)"
@@ -158,12 +158,12 @@ definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
   i1 \<sqinter> minus_ivl i i2, i2 \<sqinter> minus_ivl i i1)"
 
 fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
-"filter_less_ivl res (I l1 h1) (I l2 h2) =
-  (if is_empty(I l1 h1) \<or> is_empty(I l2 h2) then (empty, empty) else
+"filter_less_ivl res (Ivl l1 h1) (Ivl l2 h2) =
+  (if is_empty(Ivl l1 h1) \<or> is_empty(Ivl l2 h2) then (empty, empty) else
    if res
-   then (I l1 (min_option True h1 (h2 - Some 1)),
-         I (max_option False (l1 + Some 1) l2) h2)
-   else (I (max_option False l1 l2) h1, I l2 (min_option True h1 h2)))"
+   then (Ivl l1 (min_option True h1 (h2 - Some 1)),
+         Ivl (max_option False (l1 + Some 1) l2) h2)
+   else (Ivl (max_option False l1 l2) h1, Ivl l2 (min_option True h1 h2)))"
 
 interpretation Val_abs
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
