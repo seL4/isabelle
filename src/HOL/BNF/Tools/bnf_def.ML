@@ -688,9 +688,10 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val bnf_bd_As = mk_bnf_t As' bnf_bd;
     val bnf_wit_As = map (apsnd (mk_bnf_t As')) bnf_wits;
 
+    val pre_names_lthy = lthy;
     val (((((((((((((((((((((((((fs, fs_copy), gs), hs), p), (x, x')), (y, y')), (z, z')), zs), As),
       As_copy), Xs), B1s), B2s), f1s), f2s), e1s), e2s), p1s), p2s), bs), (Rs, Rs')), Rs_copy), Ss),
-      (Qs, Qs')), _) = lthy
+      (Qs, Qs')), names_lthy) = pre_names_lthy
       |> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "f" (map2 (curry (op -->)) As' Bs')
       ||>> mk_Frees "g" (map2 (curry (op -->)) Bs' Cs)
@@ -1137,8 +1138,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
           in
             unfold_thms lthy (bnf_srel_def :: @{thm converse_iff} :: mem_Collect_etc)
               (srel_converse_thm' RS eqset_imp_iff_pair)
-            |> Drule.zero_var_indexes
-            |> Thm.generalize (map (fst o dest_TFree) (As' @ Bs'), map fst Qs') 1
+            |> singleton (Proof_Context.export names_lthy pre_names_lthy)
           end;
 
         val rel_flip = Lazy.lazy mk_rel_flip;

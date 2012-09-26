@@ -801,8 +801,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               Skip_Proof.prove lthy [] [] goal (tac o #context)
               |> Thm.close_derivation;
           in
-            (map2 (map2 prove) fold_goalss fold_tacss,
-             map2 (map2 prove) rec_goalss rec_tacss)
+            (map2 (map2 prove) fold_goalss fold_tacss, map2 (map2 prove) rec_goalss rec_tacss)
           end;
 
         val simp_thmss = mk_simp_thmss wrap_ress rec_thmss fold_thmss;
