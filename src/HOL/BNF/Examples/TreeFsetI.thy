@@ -50,7 +50,7 @@ apply (cases b)
 apply (simp add: pre_treeFsetI_rel_def prod_rel_def fset_rel_def)
 done
 
-lemmas treeFsetI_coind = mp[OF treeFsetI.dtor_rel_coinduct]
+lemmas treeFsetI_coind = mp[OF treeFsetI.dtor_coinduct]
 
 lemma "tmap (f o g) x = tmap f (tmap g x)"
 by (intro treeFsetI_coind[where P="%x1 x2. \<exists>x. x1 = tmap (f o g) x \<and> x2 = tmap f (tmap g x)"])

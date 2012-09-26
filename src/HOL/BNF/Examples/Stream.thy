@@ -122,7 +122,7 @@ lemma prod_rel[simp]: "prod_rel \<phi>1 \<phi>2 a b = (\<phi>1 (fst a) (fst b) \
 unfolding prod_rel_def by auto
 
 lemmas stream_coind =
-  mp[OF stream.dtor_rel_coinduct, unfolded prod_rel[abs_def], folded hdd_def tll_def]
+  mp[OF stream.dtor_coinduct, unfolded prod_rel[abs_def], folded hdd_def tll_def]
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
   [simp]: "plus xs ys =

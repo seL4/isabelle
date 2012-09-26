@@ -44,6 +44,7 @@ sig
   val disc_corec_iffN: string
   val disc_corecsN: string
   val dtorN: string
+  val dtor_coinductN: string
   val dtor_corecN: string
   val dtor_corecsN: string
   val dtor_ctorN: string
@@ -54,13 +55,12 @@ sig
   val dtor_map_strong_coinductN: string
   val dtor_map_uniqueN: string
   val dtor_relN: string
-  val dtor_rel_coinductN: string
-  val dtor_rel_strong_coinductN: string
   val dtor_set_inclN: string
   val dtor_set_set_inclN: string
   val dtor_srelN: string
   val dtor_srel_coinductN: string
   val dtor_srel_strong_coinductN: string
+  val dtor_strong_coinductN: string
   val dtor_unfoldN: string
   val dtor_unfold_uniqueN: string
   val dtor_unfoldsN: string
@@ -244,11 +244,11 @@ val coinductN = coN ^ inductN
 val ctor_inductN = ctorN ^ "_" ^ inductN
 val ctor_induct2N = ctor_inductN ^ "2"
 val dtor_map_coinductN = dtor_mapN ^ "_" ^ coinductN
-val dtor_rel_coinductN = dtor_relN ^ "_" ^ coinductN
+val dtor_coinductN = dtorN ^ "_" ^ coinductN
 val dtor_srel_coinductN = dtor_srelN ^ "_" ^ coinductN
 val strongN = "strong_"
 val dtor_map_strong_coinductN = dtor_mapN ^ "_" ^ strongN ^ coinductN
-val dtor_rel_strong_coinductN = dtor_relN ^ "_" ^ strongN ^ coinductN
+val dtor_strong_coinductN = dtorN ^ "_" ^ strongN ^ coinductN
 val dtor_srel_strong_coinductN = dtor_srelN ^ "_" ^ strongN ^ coinductN
 val hsetN = "Hset"
 val hset_recN = hsetN ^ "_rec"

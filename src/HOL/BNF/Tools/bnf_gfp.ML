@@ -2180,9 +2180,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val timer = time (timer "corec definitions & thms");
 
-    val (dtor_map_coinduct_thm, coinduct_params, dtor_srel_coinduct_thm, dtor_rel_coinduct_thm,
-         dtor_map_strong_coinduct_thm, dtor_srel_strong_coinduct_thm,
-         dtor_rel_strong_coinduct_thm) =
+    val (dtor_map_coinduct_thm, coinduct_params, dtor_srel_coinduct_thm, dtor_coinduct_thm,
+         dtor_map_strong_coinduct_thm, dtor_srel_strong_coinduct_thm, dtor_strong_coinduct_thm) =
       let
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
@@ -2276,12 +2275,11 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val rel_of_srel_thms =
           srel_defs @ @{thms Id_def' mem_Collect_eq fst_conv snd_conv split_conv};
 
-        val dtor_rel_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_coinduct;
-        val dtor_rel_strong_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_strong_coinduct;
+        val dtor_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_coinduct;
+        val dtor_strong_coinduct = unfold_thms lthy rel_of_srel_thms dtor_srel_strong_coinduct;
       in
         (dtor_map_coinduct, rev (Term.add_tfrees dtor_map_coinduct_goal []), dtor_srel_coinduct,
-         dtor_rel_coinduct, dtor_map_strong_coinduct, dtor_srel_strong_coinduct,
-         dtor_rel_strong_coinduct)
+         dtor_coinduct, dtor_map_strong_coinduct, dtor_srel_strong_coinduct, dtor_strong_coinduct)
       end;
 
     val timer = time (timer "coinduction");
@@ -2963,8 +2961,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
       val common_notes =
-        [(dtor_rel_coinductN, [dtor_rel_coinduct_thm]),
-        (dtor_rel_strong_coinductN, [dtor_rel_strong_coinduct_thm])] @
+        [(dtor_coinductN, [dtor_coinduct_thm]),
+        (dtor_strong_coinductN, [dtor_strong_coinduct_thm])] @
         (if note_all then
            [(dtor_map_coinductN, [dtor_map_coinduct_thm]),
            (dtor_map_strong_coinductN, [dtor_map_strong_coinduct_thm]),

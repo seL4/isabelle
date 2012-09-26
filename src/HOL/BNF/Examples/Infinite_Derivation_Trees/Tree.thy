@@ -130,7 +130,7 @@ NNode: "\<And> n1 n2 as1 as2.
           \<lbrakk>\<phi> (NNode n1 as1) (NNode n2 as2)\<rbrakk> \<Longrightarrow>
           n1 = n2 \<and> llift2 \<phi> as1 as2"
 shows "tr1 = tr2"
-apply(rule mp[OF Tree.dtor_rel_coinduct[of \<phi> tr1 tr2] phi]) proof clarify
+apply(rule mp[OF Tree.dtor_coinduct[of \<phi> tr1 tr2] phi]) proof clarify
   fix tr1 tr2  assume \<phi>: "\<phi> tr1 tr2"
   show "pre_Tree_rel \<phi> (Tree_dtor tr1) (Tree_dtor tr2)"
   apply(cases rule: Tree.ctor_exhaust[of tr1], cases rule: Tree.ctor_exhaust[of tr2])
