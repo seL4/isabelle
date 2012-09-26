@@ -9,8 +9,8 @@
 
 declare -a SOURCES=(
   "src/floating_dialog.scala"
-  "src/frame.scala"
   "src/graph_panel.scala"
+  "src/graphview.scala"
   "src/layout_pendulum.scala"
   "src/main_panel.scala"
   "src/model.scala"
@@ -166,7 +166,7 @@ if [ "$BUILD_ONLY" = false ]; then
     cp -f "$GRAPH_FILE" "$PRIVATE_FILE" || fail "Cannot copy file: $GRAPH_FILE"
   fi
 
-  "$ISABELLE_TOOL" java $GRAPHVIEW_JAVA_OPTIONS isabelle.graphview.Frame "$PRIVATE_FILE"
+  "$ISABELLE_TOOL" java $GRAPHVIEW_JAVA_OPTIONS isabelle.graphview.Graphview "$PRIVATE_FILE"
   RC="$?"
 
   rm -f "$PRIVATE_FILE"

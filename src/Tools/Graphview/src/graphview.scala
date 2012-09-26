@@ -1,7 +1,7 @@
-/*  Title:      Tools/Graphview/src/frame.scala
+/*  Title:      Tools/Graphview/src/graphview.scala
     Author:     Markus Kaiser, TU Muenchen
 
-Graphview standalone frame.
+Graphview standalone application.
 */
 
 package isabelle.graphview
@@ -14,7 +14,7 @@ import scala.swing.{MainFrame, BorderPanel, Window, SwingApplication}
 import javax.swing.border.EmptyBorder
 
 
-object Frame extends SwingApplication
+object Graphview extends SwingApplication
 {
   def startup(args : Array[String])
   {
