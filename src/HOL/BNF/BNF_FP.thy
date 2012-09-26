@@ -14,6 +14,9 @@ keywords
   "defaults"
 begin
 
+lemma eq_sym_Unity_imp: "x = (() = ()) \<Longrightarrow> x"
+by blast
+
 lemma unit_case_Unity: "(case u of () => f) = f"
 by (cases u) (hypsubst, rule unit.cases)
 
@@ -96,6 +99,11 @@ by simp
 
 lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
 by blast
+
+lemma UN_compreh_eq_eq:
+"\<Union>{y. \<exists>x\<in>A. y = {}} = {}"
+"\<Union>{y. \<exists>x\<in>A. y = {x}} = A"
+by blast+
 
 lemma prod_set_simps:
 "fsts (x, y) = {x}"

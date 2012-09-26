@@ -8,10 +8,11 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val bnf_lfp: mixfix list -> (string * sort) list option -> binding list ->
+  val construct_lfp: mixfix list -> (string * sort) list option -> binding list ->
     typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * term list * term list * term list * thm * thm list * thm list *
-      thm list * thm list * thm list) * local_theory
+    (BNF_Def.BNF list * term list * term list * term list * term list * thm * thm list *
+      thm list * thm list * thm list * thm list list * thm list * thm list * thm list) *
+    local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -20,13 +21,14 @@ struct
 open BNF_Def
 open BNF_Util
 open BNF_Tactics
+open BNF_Comp
 open BNF_FP
 open BNF_FP_Sugar
 open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
+fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
@@ -208,8 +210,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       end;
 
     val map_congL_thms = map5 mk_map_congL xFs mapsAsAs setssAs map_congs map_id's;
-    val in_mono'_thms = map (fn bnf => in_mono_of_bnf bnf OF (replicate m subset_refl)) bnfs
-    val in_cong'_thms = map (fn bnf => in_cong_of_bnf bnf OF (replicate m refl)) bnfs
+    val in_mono'_thms = map (fn bnf => in_mono_of_bnf bnf OF (replicate m subset_refl)) bnfs;
+    val in_cong'_thms = map (fn bnf => in_cong_of_bnf bnf OF (replicate m refl)) bnfs;
 
     val timer = time (timer "Derived simple theorems");
 
@@ -1346,8 +1348,12 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val timer = time (timer "induction");
 
     (*register new datatypes as BNFs*)
-    val (Irels, lthy) = if m = 0 then ([], lthy) else
-      let
+    val (Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms, lthy) =
+      if m = 0 then
+        let val dummy_thms = replicate n Drule.dummy_thm in
+          (replicate n DEADID_bnf, dummy_thms, replicate n [], dummy_thms, lthy)
+        end
+      else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;
         val f2Ts = map2 (curry op -->) passiveBs passiveYs;
@@ -1457,7 +1463,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val setss_by_range = map (fn cols => map (mk_fold Ts cols) ks) colss;
         val setss_by_bnf = transpose setss_by_range;
 
-        val set_simp_thmss =
+        val ctor_set_thmss =
           let
             fun mk_goal sets ctor set col map =
               mk_Trueprop_eq (HOLogic.mk_comp (set, ctor),
@@ -1480,19 +1486,19 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
             val ctor_setss = map3 (fn i => map3 (fn set_nats => fn goal => fn set =>
                 Skip_Proof.prove lthy [] [] goal
-                  (K (mk_set_simp_tac set (nth set_nats (i - 1)) (drop m set_nats)))
+                  (K (mk_ctor_set_tac set (nth set_nats (i - 1)) (drop m set_nats)))
                 |> Thm.close_derivation)
               set_natural'ss) ls simp_goalss setss;
           in
             ctor_setss
           end;
 
-        fun mk_set_thms set_simp = (@{thm xt1(3)} OF [set_simp, @{thm Un_upper1}]) ::
-          map (fn i => (@{thm xt1(3)} OF [set_simp, @{thm Un_upper2}]) RS
+        fun mk_set_thms ctor_set = (@{thm xt1(3)} OF [ctor_set, @{thm Un_upper1}]) ::
+          map (fn i => (@{thm xt1(3)} OF [ctor_set, @{thm Un_upper2}]) RS
             (mk_Un_upper n i RS subset_trans) RSN
             (2, @{thm UN_upper} RS subset_trans))
             (1 upto n);
-        val Fset_set_thmsss = transpose (map (map mk_set_thms) set_simp_thmss);
+        val Fset_set_thmsss = transpose (map (map mk_set_thms) ctor_set_thmss);
 
         val timer = time (timer "set functions for the new datatypes");
 
@@ -1529,7 +1535,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 singleton (Proof_Context.export names_lthy lthy)
                   (Skip_Proof.prove lthy [] [] goal (mk_tac induct csets ctor_sets i))
                 |> Thm.close_derivation)
-              goals csetss set_simp_thmss inducts ls;
+              goals csetss ctor_set_thmss inducts ls;
           in
             map split_conj_thm thms
           end;
@@ -1556,7 +1562,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 singleton (Proof_Context.export names_lthy lthy)
                   (Skip_Proof.prove lthy [] [] goal (mk_tac induct ctor_sets i))
                 |> Thm.close_derivation)
-              goals set_simp_thmss inducts ls;
+              goals ctor_set_thmss inducts ls;
           in
             map split_conj_thm thms
           end;
@@ -1654,7 +1660,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             val thm = singleton (Proof_Context.export names_lthy lthy)
               (Skip_Proof.prove lthy [] [] goal
               (K (mk_lfp_map_wpull_tac m (rtac induct) map_wpulls ctor_map_thms
-                (transpose set_simp_thmss) Fset_set_thmsss ctor_inject_thms)))
+                (transpose ctor_set_thmss) Fset_set_thmsss ctor_inject_thms)))
               |> Thm.close_derivation;
           in
             split_conj_thm thm
@@ -1704,7 +1710,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
               ctors (0 upto n - 1) witss
           end;
 
-        fun wit_tac _ = mk_wit_tac n (flat set_simp_thmss) (maps wit_thms_of_bnf bnfs);
+        fun wit_tac _ = mk_wit_tac n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Ibnfs, lthy) =
           fold_map6 (fn tacs => fn b => fn mapx => fn sets => fn T => fn wits => fn lthy =>
@@ -1714,10 +1720,10 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           tacss bs fs_maps setss_by_bnf Ts ctor_witss lthy;
 
         val fold_maps = fold_thms lthy (map (fn bnf =>
-          mk_unabs_def m (map_def_of_bnf bnf RS @{thm meta_eq_to_obj_eq})) Ibnfs);
+          mk_unabs_def m (map_def_of_bnf bnf RS meta_eq_to_obj_eq)) Ibnfs);
 
         val fold_sets = fold_thms lthy (maps (fn bnf =>
-          map (fn thm => thm RS @{thm meta_eq_to_obj_eq}) (set_defs_of_bnf bnf)) Ibnfs);
+          map (fn thm => thm RS meta_eq_to_obj_eq) (set_defs_of_bnf bnf)) Ibnfs);
 
         val timer = time (timer "registered new datatypes as BNFs");
 
@@ -1740,8 +1746,8 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val ctor_set_incl_thmss = map (map (fold_sets o hd)) Fset_set_thmsss;
         val ctor_set_set_incl_thmsss = map (transpose o map (map fold_sets o tl)) Fset_set_thmsss;
         val folded_ctor_map_thms = map fold_maps ctor_map_thms;
-        val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
-        val folded_set_simp_thmss' = transpose folded_set_simp_thmss;
+        val folded_ctor_set_thmss = map (map fold_sets) ctor_set_thmss;
+        val folded_ctor_set_thmss' = transpose folded_ctor_set_thmss;
 
         val ctor_Isrel_thms =
           let
@@ -1757,7 +1763,7 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                (K (mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong ctor_map ctor_sets
                  ctor_inject ctor_dtor set_naturals ctor_set_incls ctor_set_set_inclss))
               |> Thm.close_derivation)
-            ks goals in_srels map_comp's map_congs folded_ctor_map_thms folded_set_simp_thmss'
+            ks goals in_srels map_comp's map_congs folded_ctor_map_thms folded_ctor_set_thmss'
               ctor_inject_thms ctor_dtor_thms set_natural'ss ctor_set_incl_thmss
               ctor_set_set_incl_thmsss
           end;
@@ -1793,13 +1799,14 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
              [(ctor_srelN, map single ctor_Isrel_thms)]
            else
              []) @
-          map2 (fn i => fn thms => (mk_ctor_setN i, map single thms)) ls' folded_set_simp_thmss
+          map2 (fn i => fn thms => (mk_ctor_setN i, map single thms)) ls' folded_ctor_set_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        timer; (Irels, lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
+        timer; (Ibnfs, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms,
+          lthy |> Local_Theory.notes (Ibnf_common_notes @ Ibnf_notes) |> snd)
       end;
 
       val common_notes =
@@ -1824,8 +1831,9 @@ fun bnf_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((dtors, ctors, Irels, folds, recs, ctor_induct_thm, dtor_ctor_thms, ctor_dtor_thms,
-      ctor_inject_thms, ctor_fold_thms, ctor_rec_thms),
+    ((Ibnfs, dtors, ctors, folds, recs, ctor_induct_thm, dtor_ctor_thms, ctor_dtor_thms,
+      ctor_inject_thms, folded_ctor_map_thms, folded_ctor_set_thmss', ctor_Irel_thms,
+      ctor_fold_thms, ctor_rec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
@@ -1834,10 +1842,10 @@ val _ =
     "define BNF-based inductive datatypes (low-level)"
     (Parse.and_list1
       ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
-      (snd oo fp_bnf_cmd bnf_lfp o apsnd split_list o split_list));
+      (snd oo fp_bnf_cmd construct_lfp o apsnd split_list o split_list));
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "data"} "define BNF-based inductive datatypes"
-    (parse_datatype_cmd true bnf_lfp);
+    (parse_datatype_cmd true construct_lfp);
 
 end;

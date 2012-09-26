@@ -101,7 +101,7 @@ fun mk_comp_map_cong_tac comp_set_alts map_cong map_congs =
     else rtac map_cong 1 THEN
       EVERY' (map_index (fn (i, map_cong) =>
         rtac map_cong THEN' EVERY' (map_index (fn (k, set_alt) =>
-          EVERY' [select_prem_tac n (dtac @{thm meta_spec}) (k + 1), etac @{thm meta_mp},
+          EVERY' [select_prem_tac n (dtac @{thm meta_spec}) (k + 1), etac meta_mp,
             rtac (equalityD2 RS set_mp), rtac (set_alt RS fun_cong RS trans),
             rtac trans_o_apply, rtac (@{thm collect_def} RS arg_cong_Union),
             rtac @{thm UnionI}, rtac @{thm UN_I}, REPEAT_DETERM_N i o rtac @{thm insertI2},

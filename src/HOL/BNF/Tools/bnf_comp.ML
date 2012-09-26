@@ -8,6 +8,9 @@ Composition of bounded natural functors.
 
 signature BNF_COMP =
 sig
+  val ID_bnf: BNF_Def.BNF
+  val DEADID_bnf: BNF_Def.BNF
+
   type unfold_set
   val empty_unfolds: unfold_set
   val map_unfolds_of: unfold_set -> thm list
@@ -34,6 +37,10 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Comp_Tactics
 
+val ID_bnf = the (bnf_of @{context} "Basic_BNFs.ID");
+val DEADID_bnf = the (bnf_of @{context} "Basic_BNFs.DEADID");
+
+(* TODO: Replace by "BNF_Defs.defs list" *)
 type unfold_set = {
   map_unfolds: thm list,
   set_unfoldss: thm list list,
@@ -676,9 +683,6 @@ fun seal_bnf unfold_set b Ds bnf lthy =
   in
     ((bnf', deads), lthy')
   end;
-
-val ID_bnf = the (bnf_of @{context} "Basic_BNFs.ID");
-val DEADID_bnf = the (bnf_of @{context} "Basic_BNFs.DEADID");
 
 fun bnf_of_typ _ _ _ (T as TFree _) accum = ((ID_bnf, ([], [T])), accum)
   | bnf_of_typ _ _ _ (TVar _) _ = error "Unexpected schematic variable"

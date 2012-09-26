@@ -29,6 +29,8 @@ sig
   val srelN: string
 
   val map_of_bnf: BNF -> term
+  val sets_of_bnf: BNF -> term list
+  val rel_of_bnf: BNF -> term
 
   val mk_T_of_bnf: typ list -> typ list -> BNF -> typ
   val mk_bd_of_bnf: typ list -> typ list -> BNF -> term
@@ -63,7 +65,6 @@ sig
   val set_defs_of_bnf: BNF -> thm list
   val set_natural'_of_bnf: BNF -> thm list
   val set_natural_of_bnf: BNF -> thm list
-  val sets_of_bnf: BNF -> term list
   val srel_def_of_bnf: BNF -> thm
   val srel_Gr_of_bnf: BNF -> thm
   val srel_Id_of_bnf: BNF -> thm
@@ -704,9 +705,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
       ||>> mk_Frees "p1" (map2 (curry (op -->)) domTs B1Ts)
       ||>> mk_Frees "p2" (map2 (curry (op -->)) domTs B2Ts)
       ||>> mk_Frees "b" As'
-      ||>> mk_Frees' "S" setRTs
-      ||>> mk_Frees "S" setRTs
-      ||>> mk_Frees "T" setRTsBsCs
+      ||>> mk_Frees' "r" setRTs
+      ||>> mk_Frees "r" setRTs
+      ||>> mk_Frees "s" setRTsBsCs
       ||>> mk_Frees' "R" QTs;
 
     (*Gr (in R1 .. Rn) (map fst .. fst)^-1 O Gr (in R1 .. Rn) (map snd .. snd)*)
@@ -1117,13 +1118,13 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
         fun mk_rel_flip () =
           let
             val srel_converse_thm = Lazy.force srel_converse;
-            val Rs' = Term.add_vars (prop_of srel_converse_thm) [];
-            val cts = map (pairself (certify lthy)) (map Var Rs' ~~ sQs);
-            val srel_converse_thm' = Drule.cterm_instantiate cts srel_converse_thm;
+            val cts = map (SOME o certify lthy) sQs;
+            val srel_converse_thm' = cterm_instantiate_pos cts srel_converse_thm;
           in
             unfold_thms lthy (bnf_srel_def :: @{thm converse_iff} :: mem_Collect_etc)
               (srel_converse_thm' RS eqset_imp_iff_pair)
-            |> Drule.zero_var_indexes |> Thm.generalize ([], map fst Qs') 1
+            |> Drule.zero_var_indexes
+            |> Thm.generalize (map (fst o dest_TFree) (As' @ Bs'), map fst Qs') 1
           end;
 
         val rel_flip = Lazy.lazy mk_rel_flip;

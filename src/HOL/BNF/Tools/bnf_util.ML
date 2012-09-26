@@ -121,13 +121,16 @@ sig
   val mk_ordLeq_csum: int -> int -> thm -> thm
   val mk_UnIN: int -> int -> thm
 
+  val Pair_eqD: thm
+  val Pair_eqI: thm
   val ctrans: thm
+  val id_apply: thm
+  val meta_mp: thm
+  val meta_spec: thm
   val o_apply: thm
   val set_mp: thm
   val set_rev_mp: thm
   val subset_UNIV: thm
-  val Pair_eqD: thm
-  val Pair_eqI: thm
   val mk_sym: thm -> thm
   val mk_trans: thm -> thm -> thm
   val mk_unabs_def: int -> thm -> thm
@@ -136,6 +139,7 @@ sig
   val no_refl: thm list -> thm list
   val no_reflexive: thm list -> thm list
 
+  val cterm_instantiate_pos: cterm option list -> thm -> thm
   val fold_thms: Proof.context -> thm list -> thm -> thm
   val unfold_thms: Proof.context -> thm list -> thm -> thm
 
@@ -525,13 +529,16 @@ fun mk_trans thm1 thm2 = trans OF [thm1, thm2];
 fun mk_sym thm = sym OF [thm];
 
 (*TODO: antiquote heavily used theorems once*)
+val Pair_eqD = @{thm iffD1[OF Pair_eq]};
+val Pair_eqI = @{thm iffD2[OF Pair_eq]};
 val ctrans = @{thm ordLeq_transitive};
+val id_apply = @{thm id_apply};
+val meta_mp = @{thm meta_mp};
+val meta_spec = @{thm meta_spec};
 val o_apply = @{thm o_apply};
 val set_mp = @{thm set_mp};
 val set_rev_mp = @{thm set_rev_mp};
 val subset_UNIV = @{thm subset_UNIV};
-val Pair_eqD = @{thm iffD1[OF Pair_eq]};
-val Pair_eqI = @{thm iffD2[OF Pair_eq]};
 
 fun mk_nthN 1 t 1 = t
   | mk_nthN _ t 1 = HOLogic.mk_fst t
@@ -607,8 +614,7 @@ fun seq_conds f n k xs =
       map (f false) negs @ [f true pos]
     end;
 
-fun mk_unabs_def 0 thm = thm
-  | mk_unabs_def n thm = mk_unabs_def (n - 1) thm RS @{thm spec[OF iffD1[OF fun_eq_iff]]};
+fun mk_unabs_def n = funpow n (fn thm => thm RS fun_cong);
 
 fun is_refl thm =
   op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm)))
@@ -616,6 +622,17 @@ fun is_refl thm =
 
 val no_refl = filter_out is_refl;
 val no_reflexive = filter_out Thm.is_reflexive;
+
+fun cterm_instantiate_pos cts thm =
+  let
+    val cert = Thm.cterm_of (Thm.theory_of_thm thm);
+    val vars = Term.add_vars (prop_of thm) [];
+    val vars' = rev (drop (length vars - length cts) vars);
+    val ps = map_filter (fn (_, NONE) => NONE
+      | (var, SOME ct) => SOME (cert (Var var), ct)) (vars' ~~ cts);
+  in
+    Drule.cterm_instantiate ps thm
+  end;
 
 fun fold_thms ctxt thms = Local_Defs.fold ctxt (distinct Thm.eq_thm_prop thms);
 fun unfold_thms ctxt thms = Local_Defs.unfold ctxt (distinct Thm.eq_thm_prop thms);

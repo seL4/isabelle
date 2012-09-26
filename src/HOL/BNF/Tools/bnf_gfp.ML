@@ -9,10 +9,11 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val bnf_gfp: mixfix list -> (string * sort) list option -> binding list ->
+  val construct_gfp: mixfix list -> (string * sort) list option -> binding list ->
     typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    (term list * term list * term list * term list * term list * thm * thm list * thm list *
-      thm list * thm list * thm list) * local_theory
+    (BNF_Def.BNF list * term list * term list * term list * term list * thm * thm list *
+      thm list * thm list * thm list * thm list list * thm list * thm list * thm list) *
+    local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -21,6 +22,7 @@ struct
 open BNF_Def
 open BNF_Util
 open BNF_Tactics
+open BNF_Comp
 open BNF_FP
 open BNF_FP_Sugar
 open BNF_GFP_Util
@@ -55,7 +57,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
+fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
@@ -2285,8 +2287,12 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val timer = time (timer "coinduction");
 
     (*register new codatatypes as BNFs*)
-    val (Jrels, lthy) = if m = 0 then ([], lthy) else
-      let
+    val (Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_Jrel_thms, lthy) =
+      if m = 0 then
+        let val dummy_thms = replicate n Drule.dummy_thm in
+          (replicate n DEADID_bnf, dummy_thms, replicate n [], dummy_thms, lthy)
+        end
+      else let
         val fTs = map2 (curry op -->) passiveAs passiveBs;
         val gTs = map2 (curry op -->) passiveBs passiveCs;
         val f1Ts = map2 (curry op -->) passiveAs passiveYs;
@@ -2425,7 +2431,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val setss_by_bnf' = map (fn i => map2 (mk_hset dtor's i) ls passiveBs) ks;
         val setss_by_range = transpose setss_by_bnf;
 
-        val set_simp_thmss =
+        val dtor_set_thmss =
           let
             fun mk_simp_goal relate pas_set act_sets sets dtor z set =
               relate (set $ z, mk_union (pas_set $ (dtor $ z),
@@ -2454,7 +2460,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           in
             map4 (map4 (fn goal => fn set_le => fn set_incl_hset => fn set_hset_incl_hsets =>
               Skip_Proof.prove lthy [] [] goal
-                (K (mk_set_simp_tac n set_le set_incl_hset set_hset_incl_hsets))
+                (K (mk_dtor_set_tac n set_le set_incl_hset set_hset_incl_hsets))
               |> Thm.close_derivation))
             simp_goalss set_le_thmss set_incl_hset_thmss' set_hset_incl_hset_thmsss'
           end;
@@ -2860,7 +2866,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           coind_wit_thms (map (pair []) ctor_witss)
           |> map (apsnd (map snd o minimize_wits));
 
-        val wit_tac = mk_wit_tac n dtor_ctor_thms (flat set_simp_thmss) (maps wit_thms_of_bnf bnfs);
+        val wit_tac = mk_wit_tac n dtor_ctor_thms (flat dtor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Jbnfs, lthy) =
           fold_map6 (fn tacs => fn b => fn mapx => fn sets => fn T => fn (thms, wits) => fn lthy =>
@@ -2870,10 +2876,10 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           tacss bs fs_maps setss_by_bnf Ts all_witss lthy;
 
         val fold_maps = fold_thms lthy (map (fn bnf =>
-          mk_unabs_def m (map_def_of_bnf bnf RS @{thm meta_eq_to_obj_eq})) Jbnfs);
+          mk_unabs_def m (map_def_of_bnf bnf RS meta_eq_to_obj_eq)) Jbnfs);
 
         val fold_sets = fold_thms lthy (maps (fn bnf =>
-         map (fn thm => thm RS @{thm meta_eq_to_obj_eq}) (set_defs_of_bnf bnf)) Jbnfs);
+         map (fn thm => thm RS meta_eq_to_obj_eq) (set_defs_of_bnf bnf)) Jbnfs);
 
         val timer = time (timer "registered new codatatypes as BNFs");
 
@@ -2897,8 +2903,8 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val Jrel_defs = map rel_def_of_bnf Jbnfs;
 
         val folded_dtor_map_thms = map fold_maps dtor_map_thms;
-        val folded_set_simp_thmss = map (map fold_sets) set_simp_thmss;
-        val folded_set_simp_thmss' = transpose folded_set_simp_thmss;
+        val folded_dtor_set_thmss = map (map fold_sets) dtor_set_thmss;
+        val folded_dtor_set_thmss' = transpose folded_dtor_set_thmss;
 
         val dtor_Jsrel_thms =
           let
@@ -2914,7 +2920,7 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 (K (mk_dtor_srel_tac in_Jsrels i in_srel map_comp map_cong dtor_map dtor_sets
                   dtor_inject dtor_ctor set_naturals dtor_set_incls dtor_set_set_inclss))
               |> Thm.close_derivation)
-            ks goals in_srels map_comp's map_congs folded_dtor_map_thms folded_set_simp_thmss'
+            ks goals in_srels map_comp's map_congs folded_dtor_map_thms folded_dtor_set_thmss'
               dtor_inject_thms dtor_ctor_thms set_natural'ss dtor_set_incl_thmss
               dtor_set_set_incl_thmsss
           end;
@@ -2951,13 +2957,14 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
              [(dtor_srelN, map single dtor_Jsrel_thms)]
            else
              []) @
-          map2 (fn i => fn thms => (mk_dtor_setN i, map single thms)) ls' folded_set_simp_thmss
+          map2 (fn i => fn thms => (mk_dtor_setN i, map single thms)) ls' folded_dtor_set_thmss
           |> maps (fn (thmN, thmss) =>
             map2 (fn b => fn thms =>
               ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
             bs thmss)
       in
-        timer; (Jrels, lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
+        timer; (Jbnfs, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_Jrel_thms,
+          lthy |> Local_Theory.notes (Jbnf_common_notes @ Jbnf_notes) |> snd)
       end;
 
       val common_notes =
@@ -2991,8 +2998,9 @@ fun bnf_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ((dtors, ctors, Jrels, unfolds, corecs, dtor_map_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
-      ctor_inject_thms, ctor_dtor_unfold_thms, ctor_dtor_corec_thms),
+    ((Jbnfs, dtors, ctors, unfolds, corecs, dtor_map_coinduct_thm, dtor_ctor_thms, ctor_dtor_thms,
+      ctor_inject_thms, folded_dtor_map_thms, folded_dtor_set_thmss', dtor_Jrel_thms,
+      ctor_dtor_unfold_thms, ctor_dtor_corec_thms),
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 
@@ -3001,10 +3009,10 @@ val _ =
     "define BNF-based coinductive datatypes (low-level)"
     (Parse.and_list1
       ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
-      (snd oo fp_bnf_cmd bnf_gfp o apsnd split_list o split_list));
+      (snd oo fp_bnf_cmd construct_gfp o apsnd split_list o split_list));
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "codata"} "define BNF-based coinductive datatypes"
-    (parse_datatype_cmd false bnf_gfp);
+    (parse_datatype_cmd false construct_gfp);
 
 end;

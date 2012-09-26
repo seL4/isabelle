@@ -7,6 +7,10 @@ Tactics for datatype and codatatype sugar.
 
 signature BNF_FP_SUGAR_TACTICS =
 sig
+  val sum_prod_thms_map: thm list
+  val sum_prod_thms_set: thm list
+  val sum_prod_thms_rel: thm list
+
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_corec_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
@@ -27,8 +31,16 @@ open BNF_Tactics
 open BNF_Util
 open BNF_FP
 
-val meta_mp = @{thm meta_mp};
-val meta_spec = @{thm meta_spec};
+val sum_prod_thms_map = @{thms id_apply map_pair_simp sum_map.simps prod.cases};
+
+val sum_prod_thms_set0 =
+  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
+      Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
+      mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
+
+val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
+
+val sum_prod_thms_rel = @{thms prod.cases prod_rel_def sum.cases sum_rel_def};
 
 fun inst_spurious_fs lthy thm =
   let
@@ -70,8 +82,7 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
   unfold_thms_tac ctxt [ctr_def] THEN rtac (ctor_inject RS ssubst) 1 THEN
   unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
-(* TODO: Try "map_pair_simp" instead of "map_pair_def" everywhere. *)
-
+(*TODO: Try "sum_prod_thms_map" here, enriched with a few theorems*)
 val rec_like_unfold_thms =
   @{thms comp_def convol_def id_apply map_pair_def prod_case_Pair_iden sum.simps(5,6) sum_map.simps
       split_conv unit_case_Unity};
@@ -81,12 +92,11 @@ fun mk_rec_like_tac pre_map_defs map_ids rec_like_defs ctor_rec_like ctr_def ctx
     rec_like_unfold_thms) THEN unfold_thms_tac ctxt @{thms id_def} THEN rtac refl 1;
 
 val corec_like_ss = ss_only @{thms if_True if_False};
-val corec_like_unfold_thms = @{thms id_apply map_pair_def prod.cases sum_map.simps};
 
 fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
   subst_tac ctxt [ctor_dtor_corec_like] 1 THEN asm_simp_tac corec_like_ss 1 THEN
-  unfold_thms_tac ctxt (pre_map_def :: corec_like_unfold_thms @ map_ids) THEN
+  unfold_thms_tac ctxt (pre_map_def :: sum_prod_thms_map @ map_ids) THEN
   unfold_thms_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt @{thms unit_eq} THEN' rtac refl) 1);
 
@@ -102,14 +112,9 @@ val solve_prem_prem_tac =
     hyp_subst_tac ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
-val induct_prem_prem_thms =
-  @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
-      Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
-      mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
-
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs =
   EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_natural's @ induct_prem_prem_thms)),
+     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_natural's @ sum_prod_thms_set0)),
      solve_prem_prem_tac]) (rev kks)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k kks =

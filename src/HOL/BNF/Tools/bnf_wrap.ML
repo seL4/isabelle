@@ -7,10 +7,14 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
-  val mk_half_pairss: 'a list -> ('a * 'a) list list
+  val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
+  val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
+
   val mk_ctr: typ list -> term -> term
   val mk_disc_or_sel: typ list -> term -> term
+
   val base_name_of_ctr: term -> string
+
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((bool * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
@@ -60,11 +64,11 @@ fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
 fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
 
-fun mk_half_pairss' _ [] = []
-  | mk_half_pairss' indent (x :: xs) =
-    indent @ fold_rev (cons o single o pair x) xs (mk_half_pairss' ([] :: indent) xs);
+fun mk_half_pairss' _ ([], []) = []
+  | mk_half_pairss' indent (x :: xs, y :: ys) =
+    indent @ fold_rev (cons o single o pair x) ys (mk_half_pairss' ([] :: indent) (xs, ys));
 
-fun mk_half_pairss xs = mk_half_pairss' [[]] xs;
+fun mk_half_pairss p = mk_half_pairss' [[]] p;
 
 fun join_halves n half_xss other_half_xss =
   let
@@ -72,7 +76,7 @@ fun join_halves n half_xss other_half_xss =
       map2 (map2 append) (Library.chop_groups n half_xss)
         (transpose (Library.chop_groups n other_half_xss))
     val xs = interleave (flat half_xss) (flat other_half_xss);
-  in (xs, xsss |> `transpose) end;
+  in (xs, xsss) end;
 
 fun mk_undefined T = Const (@{const_name undefined}, T);
 
@@ -337,7 +341,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
           fold_rev Logic.all (xs @ xs')
             (HOLogic.mk_Trueprop (HOLogic.mk_not (HOLogic.mk_eq (xc, xc'))));
       in
-        map (map mk_goal) (mk_half_pairss (xss ~~ xctrs))
+        map (map mk_goal) (mk_half_pairss (`I (xss ~~ xctrs)))
       end;
 
     val cases_goal =
@@ -366,7 +370,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
         val other_half_distinct_thmss = map (map (fn thm => thm RS not_sym)) half_distinct_thmss;
 
         val (distinct_thms, (distinct_thmsss', distinct_thmsss)) =
-          join_halves n half_distinct_thmss other_half_distinct_thmss;
+          join_halves n half_distinct_thmss other_half_distinct_thmss ||> `transpose;
 
         val nchotomy_thm =
           let
@@ -463,8 +467,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
 
                   fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
 
-                  val infos = ms ~~ discD_thms ~~ udiscs;
-                  val half_pairss = mk_half_pairss infos;
+                  val half_pairss = mk_half_pairss (`I (ms ~~ discD_thms ~~ udiscs));
 
                   val half_goalss = map mk_goal half_pairss;
                   val half_thmss =
@@ -477,7 +480,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
                     map2 (map2 (prove o mk_other_half_disc_exclude_tac)) half_thmss
                       other_half_goalss;
                 in
-                  join_halves n half_thmss other_half_thmss
+                  join_halves n half_thmss other_half_thmss ||> `transpose
                   |>> has_alternate_disc_def ? K []
                 end;
 

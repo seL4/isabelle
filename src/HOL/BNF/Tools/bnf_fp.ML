@@ -39,9 +39,9 @@ sig
   val ctor_set_inclN: string
   val ctor_set_set_inclN: string
   val ctor_srelN: string
-  val disc_unfold_iffN: string
+  val disc_unfold_iffsN: string
   val disc_unfoldsN: string
-  val disc_corec_iffN: string
+  val disc_corec_iffsN: string
   val disc_corecsN: string
   val dtorN: string
   val dtor_coinductN: string
@@ -74,6 +74,7 @@ sig
   val isNodeN: string
   val lsbisN: string
   val map_uniqueN: string
+  val mapsN: string
   val min_algN: string
   val morN: string
   val nchotomyN: string
@@ -86,6 +87,7 @@ sig
   val sel_unfoldsN: string
   val set_inclN: string
   val set_set_inclN: string
+  val setsN: string
   val simpsN: string
   val strTN: string
   val str_initN: string
@@ -96,13 +98,10 @@ sig
   val unfoldsN: string
   val uniqueN: string
 
+  (* TODO: Don't index set facts. Isabelle packages traditionally generate uniform names. *)
   val mk_ctor_setN: int -> string
   val mk_dtor_setN: int -> string
   val mk_dtor_set_inductN: int -> string
-  val mk_exhaustN: string -> string
-  val mk_injectN: string -> string
-  val mk_nchotomyN: string -> string
-  val mk_setsN: int -> string
   val mk_set_inductN: int -> string
 
   val mk_common_name: string list -> string
@@ -189,6 +188,7 @@ val dtor_unfoldsN = dtor_unfoldN ^ "s"
 val ctor_fold_uniqueN = ctor_foldN ^ uniqueN
 val dtor_unfold_uniqueN = dtor_unfoldN ^ uniqueN
 val ctor_dtor_unfoldsN = ctorN ^ "_" ^ dtor_unfoldN ^ "s"
+val mapsN = mapN ^ "s"
 val ctor_mapN = ctorN ^ "_" ^ mapN
 val dtor_mapN = dtorN ^ "_" ^ mapN
 val map_uniqueN = mapN ^ uniqueN
@@ -206,7 +206,7 @@ val isNodeN = "isNode"
 val LevN = "Lev"
 val rvN = "recover"
 val behN = "beh"
-fun mk_setsN i = mk_setN i ^ "s"
+val setsN = "sets"
 val mk_ctor_setN = prefix (ctorN ^ "_") o mk_setN
 val mk_dtor_setN = prefix (dtorN ^ "_") o mk_setN
 fun mk_set_inductN i = mk_setN i ^ "_induct"
@@ -226,15 +226,12 @@ val ctor_dtor_corecsN = ctorN ^ "_" ^ dtor_corecN ^ "s"
 val ctor_dtorN = ctorN ^ "_" ^ dtorN
 val dtor_ctorN = dtorN ^ "_" ^ ctorN
 val nchotomyN = "nchotomy"
-fun mk_nchotomyN s = s ^ "_" ^ nchotomyN
 val injectN = "inject"
-fun mk_injectN s = s ^ "_" ^ injectN
 val exhaustN = "exhaust"
-fun mk_exhaustN s = s ^ "_" ^ exhaustN
-val ctor_injectN = mk_injectN ctorN
-val ctor_exhaustN = mk_exhaustN ctorN
-val dtor_injectN = mk_injectN dtorN
-val dtor_exhaustN = mk_exhaustN dtorN
+val ctor_injectN = ctorN ^ "_" ^ injectN
+val ctor_exhaustN = ctorN ^ "_" ^ exhaustN
+val dtor_injectN = dtorN ^ "_" ^ injectN
+val dtor_exhaustN = dtorN ^ "_" ^ exhaustN
 val ctor_relN = ctorN ^ "_" ^ relN
 val dtor_relN = dtorN ^ "_" ^ relN
 val ctor_srelN = ctorN ^ "_" ^ srelN
@@ -263,9 +260,9 @@ val caseN = "case"
 val discN = "disc"
 val disc_unfoldsN = discN ^ "_" ^ unfoldsN
 val disc_corecsN = discN ^ "_" ^ corecsN
-val iffN = "_iff"
-val disc_unfold_iffN = discN ^ "_" ^ unfoldN ^ iffN
-val disc_corec_iffN = discN ^ "_" ^ corecN ^ iffN
+val iffsN = "_iffs"
+val disc_unfold_iffsN = discN ^ "_" ^ unfoldN ^ iffsN
+val disc_corec_iffsN = discN ^ "_" ^ corecN ^ iffsN
 val relsN = relN ^ "s"
 val selN = "sel"
 val sel_relsN = selN ^ "_" ^ relsN
@@ -401,7 +398,7 @@ fun fp_sort lhss NONE Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   | fp_sort lhss (SOME resBs) Ass =
     (subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs)) @ lhss;
 
-fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold_set lthy =
+fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_set lthy =
   let
     val name = mk_common_name (map Binding.name_of bs);
     fun qualify i =
@@ -429,14 +426,14 @@ fun mk_fp_bnf timer construct resBs bs sort lhss bnfs deadss livess unfold_set l
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct resBs bs (map TFree resDs, deadss) bnfs'' lthy'';
+    val res = construct_fp resBs bs (map TFree resDs, deadss) bnfs'' lthy'';
 
     val timer = time (timer "FP construction in total");
   in
     timer; (bnfs'', res)
   end;
 
-fun fp_bnf construct bs mixfixes resBs eqs lthy =
+fun fp_bnf construct_fp bs mixfixes resBs eqs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
@@ -446,10 +443,10 @@ fun fp_bnf construct bs mixfixes resBs eqs lthy =
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (qualify b) sort) bs rhss
         (empty_unfolds, lthy));
   in
-    mk_fp_bnf timer (construct mixfixes) (SOME resBs) bs sort lhss bnfs Dss Ass unfold_set lthy'
+    mk_fp_bnf timer (construct_fp mixfixes) (SOME resBs) bs sort lhss bnfs Dss Ass unfold_set lthy'
   end;
 
-fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
+fun fp_bnf_cmd construct_fp (bs, (raw_lhss, raw_bnfs)) lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val lhss = map (dest_TFree o Syntax.read_typ lthy) raw_lhss;
@@ -461,7 +458,7 @@ fun fp_bnf_cmd construct (bs, (raw_lhss, raw_bnfs)) lthy =
       bs raw_bnfs (empty_unfolds, lthy));
   in
     snd (mk_fp_bnf timer
-      (construct (map (K NoSyn) bs)) NONE bs sort lhss bnfs Dss Ass unfold_set lthy')
+      (construct_fp (map (K NoSyn) bs)) NONE bs sort lhss bnfs Dss Ass unfold_set lthy')
   end;
 
 end;
