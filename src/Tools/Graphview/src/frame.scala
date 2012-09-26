@@ -23,6 +23,7 @@ object Frame extends SwingApplication
       try {
         Platform.init_laf()
         Isabelle_System.init()
+        Isabelle_System.install_fonts()
 
         args.toList match {
           case List(arg) =>
