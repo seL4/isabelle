@@ -518,12 +518,12 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val rel_infos = (ctr_defs' ~~ xss ~~ cxIns, ctr_defs' ~~ yss ~~ cyIns);
 
-            fun mk_rel_thm finish_off ctr_defs' xs cxIn ys cyIn =
+            fun mk_rel_thm postproc ctr_defs' xs cxIn ys cyIn =
               fold_thms lthy ctr_defs'
                  (unfold_thms lthy (pre_rel_def ::
                       (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_rel)
                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
-              |> finish_off |> thaw (xs @ ys);
+              |> postproc |> thaw (xs @ ys);
 
             fun mk_pos_rel_thm (((ctr_def', xs), cxIn), ((_, ys), cyIn)) =
               mk_rel_thm (perhaps (try (fn th => th RS @{thm eq_sym_Unity_imp}))) [ctr_def']
@@ -737,7 +737,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val induct_thm =
               Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt ns mss kksss (flat ctr_defss) ctor_induct'
+                mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct'
                   nested_set_natural's pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
           in
@@ -836,8 +836,10 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
         val (coinduct_thms, coinduct_thm) =
           let
-(*            val goal =
-  *)
+            fun postproc nn thm =
+              Thm.permute_prems 0 nn
+                (if nn = 1 then thm RS mp else funpow nn (fn thm => thm RS @{thm mp_conj}) thm)
+              |> Drule.zero_var_indexes;
 
             val coinduct_thm = fp_induct;
           in

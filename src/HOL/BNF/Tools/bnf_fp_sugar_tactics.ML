@@ -12,14 +12,16 @@ sig
   val sum_prod_thms_rel: thm list
 
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
+  val mk_coinduct_tac: Proof.context -> int -> int list -> thm -> thm list -> thm list ->
+    thm list -> thm list list -> thm list list list -> thm list list -> tactic
   val mk_corec_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_disc_corec_like_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
-  val mk_induct_tac: Proof.context -> int list -> int list list -> int list list list -> thm list ->
-    thm -> thm list -> thm list list -> tactic
+  val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
+    thm list -> thm -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
   val mk_rec_like_tac: thm list -> thm list -> thm list -> thm -> thm -> Proof.context -> tactic
 end;
@@ -31,31 +33,36 @@ open BNF_Tactics
 open BNF_Util
 open BNF_FP
 
-val sum_prod_thms_map = @{thms id_apply map_pair_simp sum_map.simps prod.cases};
+val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
+val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 
+val sum_prod_thms_map = @{thms id_apply map_pair_simp sum_map.simps prod.cases};
 val sum_prod_thms_set0 =
   @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
       mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
-
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
-
 val sum_prod_thms_rel = @{thms prod.cases prod_rel_def sum.cases sum_rel_def};
 
-fun mk_proj n k T = funpow n (fn t => Abs (Name.uu, T, t)) (Bound (n - k));
+val ss_if_True_False = ss_only @{thms if_True if_False};
 
-fun inst_as_projs ctxt n k thm =
+fun mk_proj T k =
+  let val binders = binder_types T in
+    fold_rev (fn T => fn t => Abs (Name.uu, T, t)) binders (Bound (length binders - k))
+  end;
+
+fun inst_as_projs ctxt k thm =
   let
     val fs =
       Term.add_vars (prop_of thm) []
       |> filter (fn (_, Type (@{type_name fun}, [_, T'])) => T' <> HOLogic.boolT | _ => false);
     val cfs =
-      map (fn f as (_, T) => (certify ctxt (Var f), certify ctxt (mk_proj n k (domain_type T)))) fs;
+      map (fn f as (_, T) => (certify ctxt (Var f), certify ctxt (mk_proj T k))) fs;
   in
     Drule.cterm_instantiate cfs thm
   end;
 
-val inst_as_projs_tac = PRIMITIVE ooo inst_as_projs;
+val inst_as_projs_tac = PRIMITIVE oo inst_as_projs;
 
 fun mk_case_tac ctxt n k m case_def ctr_def dtor_ctor =
   unfold_thms_tac ctxt [case_def, ctr_def, dtor_ctor] THEN
@@ -93,11 +100,9 @@ fun mk_rec_like_tac pre_map_defs map_ids rec_like_defs ctor_rec_like ctr_def ctx
   unfold_thms_tac ctxt (ctr_def :: ctor_rec_like :: rec_like_defs @ pre_map_defs @ map_ids @
     rec_like_unfold_thms) THEN unfold_thms_tac ctxt @{thms id_def} THEN rtac refl 1;
 
-val corec_like_ss = ss_only @{thms if_True if_False};
-
 fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
-  subst_tac ctxt NONE [ctor_dtor_corec_like] 1 THEN asm_simp_tac corec_like_ss 1 THEN
+  subst_tac ctxt NONE [ctor_dtor_corec_like] 1 THEN asm_simp_tac ss_if_True_False 1 THEN
   unfold_thms_tac ctxt (pre_map_def :: sum_prod_thms_map @ map_ids) THEN
   unfold_thms_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt NONE @{thms unit_eq} THEN' rtac refl) 1);
@@ -105,7 +110,7 @@ fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def c
 fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
   EVERY (map3 (fn case_split_tac => fn corec_like_thm => fn disc =>
       case_split_tac 1 THEN unfold_thms_tac ctxt [corec_like_thm] THEN
-      asm_simp_tac (ss_only @{thms simp_thms(7,8,12,14,22,24)}) 1 THEN
+      asm_simp_tac (ss_only basic_simp_thms) 1 THEN
       (if is_refl disc then all_tac else rtac disc 1))
     (map rtac case_splits' @ [K all_tac]) corec_likes discs);
 
@@ -129,14 +134,45 @@ fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k kks =
       mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs]
   end;
 
-fun mk_induct_tac ctxt ns mss kkss ctr_defs ctor_induct' set_natural's pre_set_defss =
-  let
-    val nn = length ns;
-    val n = Integer.sum ns;
-  in
-    unfold_thms_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_as_projs_tac ctxt 1 1 THEN
+fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_natural's pre_set_defss =
+  let val n = Integer.sum ns in
+    unfold_thms_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_as_projs_tac ctxt 1 THEN
     EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
       pre_set_defss mss (unflat mss (1 upto n)) kkss)
   end;
+
+fun mk_coinduct_choose_prem_tac nn kk =
+  EVERY' [rtac allI, rtac allI, rtac impI,
+    select_prem_tac nn (dtac meta_spec) kk,
+    dtac meta_spec, dtac meta_mp, atac];
+
+fun mk_coinduct_same_ctr ctxt pre_rel_def dtor_ctor ctr_def sels disc =
+  hyp_subst_tac THEN' subst_tac ctxt (SOME [1, 2]) [ctr_def] THEN'
+  SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels @ sum_prod_thms_rel)) THEN'
+  (rtac refl ORELSE' atac ORELSE'
+   full_simp_tac (ss_only (disc :: more_simp_thms)));
+
+fun mk_coinduct_distinct_ctrs discs =
+  hyp_subst_tac THEN' full_simp_tac (ss_only (refl :: discs @ basic_simp_thms));
+
+fun mk_coinduct_exhaust_tac ctxt exhaust k i =
+  rtac exhaust i THEN inst_as_projs_tac ctxt k;
+
+fun mk_coinduct_discharge_prem_tac ctxt nn kk n pre_rel_def dtor_ctor exhaust ctr_defs selss discs =
+  let val ks = 1 upto n in
+    EVERY' ([mk_coinduct_choose_prem_tac nn kk, mk_coinduct_exhaust_tac ctxt exhaust 1,
+        hyp_subst_tac] @
+      map4 (fn k => fn ctr_def => fn sels => fn disc =>
+        EVERY' (mk_coinduct_exhaust_tac ctxt exhaust 2 ::
+          map2 (fn k' => fn disc' =>
+            if k' = k then mk_coinduct_same_ctr ctxt pre_rel_def dtor_ctor ctr_def sels disc
+            else mk_coinduct_distinct_ctrs [disc, disc']) ks discs)) ks ctr_defs selss discs)
+  end;
+
+fun mk_coinduct_tac ctxt nn ns dtor_coinduct pre_rel_defs dtor_ctors exhausts ctr_defss selsss
+    discss =
+  (rtac dtor_coinduct THEN'
+   EVERY' (map8 (mk_coinduct_discharge_prem_tac ctxt nn)
+     (1 upto nn) ns pre_rel_defs dtor_ctors exhausts ctr_defss selsss discss)) 1
 
 end;

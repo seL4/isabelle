@@ -14,6 +14,9 @@ keywords
   "defaults"
 begin
 
+lemma mp_conj: "(P \<longrightarrow> Q) \<and> R \<Longrightarrow> P \<Longrightarrow> R \<and> Q"
+by auto
+
 lemma eq_sym_Unity_imp: "x = (() = ()) \<Longrightarrow> x"
 by blast
 
