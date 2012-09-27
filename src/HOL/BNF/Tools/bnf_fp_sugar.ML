@@ -116,10 +116,6 @@ fun merge_type_arg T T' = if T = T' then T else cannot_merge_types ();
 fun merge_type_args (As, As') =
   if length As = length As' then map2 merge_type_arg As As' else cannot_merge_types ();
 
-fun is_triv_implies thm =
-  op aconv (Logic.dest_implies (Thm.prop_of thm))
-  handle TERM _ => false;
-
 fun reassoc_conjs thm =
   reassoc_conjs (thm RS @{thm conj_assoc[THEN iffD1]})
   handle THM _ => thm;
@@ -1027,8 +1023,10 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
              map2 proves corec_goalss corec_tacss)
           end;
 
+        val is_triv_discI = is_triv_implies orf is_concl_refl;
+
         fun mk_disc_corec_like_thms corec_likes discIs =
-          map (op RS) (filter_out (is_triv_implies o snd) (corec_likes ~~ discIs));
+          map (op RS) (filter_out (is_triv_discI o snd) (corec_likes ~~ discIs));
 
         val disc_unfold_thmss = map2 mk_disc_corec_like_thms unfold_thmss discIss;
         val disc_corec_thmss = map2 mk_disc_corec_like_thms corec_thmss discIss;

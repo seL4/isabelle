@@ -135,7 +135,9 @@ sig
   val mk_trans: thm -> thm -> thm
   val mk_unabs_def: int -> thm -> thm
 
+  val is_triv_implies: thm -> bool
   val is_refl: thm -> bool
+  val is_concl_refl: thm -> bool
   val no_refl: thm list -> thm list
   val no_reflexive: thm list -> thm list
 
@@ -616,9 +618,16 @@ fun seq_conds f n k xs =
 
 fun mk_unabs_def n = funpow n (fn thm => thm RS fun_cong);
 
-fun is_refl thm =
-  op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of thm)))
+fun is_triv_implies thm =
+  op aconv (Logic.dest_implies (Thm.prop_of thm))
   handle TERM _ => false;
+
+fun is_refl_prop t =
+  op aconv (HOLogic.dest_eq (HOLogic.dest_Trueprop t))
+  handle TERM _ => false;
+
+val is_refl = is_refl_prop o Thm.prop_of;
+val is_concl_refl = is_refl_prop o Logic.strip_imp_concl o Thm.prop_of;
 
 val no_refl = filter_out is_refl;
 val no_reflexive = filter_out Thm.is_reflexive;
