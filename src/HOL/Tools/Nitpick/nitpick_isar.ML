@@ -44,7 +44,7 @@ type raw_param = string * string list
 val default_default_params =
   [("card", "1\<emdash>10"),
    ("iter", "0,1,2,4,8,12,16,20,24,28"),
-   ("bits", "1,2,3,4,6,8,10,12,14,16"),
+   ("bits", "1\<emdash>10"),
    ("bisim_depth", "9"),
    ("box", "smart"),
    ("finitize", "smart"),
