@@ -68,7 +68,7 @@
 \renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
 \renewenvironment{isamarkuptxt}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
 
-\newcommand{\noquotes}[1]{{\renewcommand{\isachardoublequote}{}#1}}
+\newcommand{\noquotes}[1]{{\renewcommand{\isachardoublequote}{}\renewcommand{\isachardoublequoteopen}{}\renewcommand{\isachardoublequoteclose}{}#1}}
 \newcommand{\concept}[1]{\textbf{#1}}
 \newcommand{\xsymbol}[1]{\texttt{\char`\\\char`<#1>}}
 
