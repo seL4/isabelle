@@ -105,7 +105,7 @@ object File
   /* copy */
 
   def eq(file1: JFile, file2: JFile): Boolean =
-    file1.getCanonicalPath == file2.getCanonicalPath  // FIXME prefer java.nio.file.Files.isSameFile of Java 1.7
+    java.nio.file.Files.isSameFile(file1.toPath, file2.toPath)
 
   def copy(src: JFile, dst: JFile)
   {
