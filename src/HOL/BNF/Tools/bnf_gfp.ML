@@ -104,6 +104,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     fun mk_FTs Ts = map2 (fn Ds => mk_T_of_bnf Ds Ts) Dss bnfs;
     val (params, params') = `(map Term.dest_TFree) (mk_params passiveAs);
+    val (dead_params, dead_params') = `(map Term.dest_TFree) (subtract (op =) passiveAs params');
     val FTsAs = mk_FTs allAs;
     val FTsBs = mk_FTs allBs;
     val FTsCs = mk_FTs allCs;
@@ -1022,10 +1023,10 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           val sbdT_bind = Binding.suffix_name ("_" ^ sum_bdTN) b;
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
-            typedef false NONE (sbdT_bind, params, NoSyn)
+            typedef false NONE (sbdT_bind, dead_params, NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
-          val sbdT = Type (sbdT_name, params');
+          val sbdT = Type (sbdT_name, dead_params');
           val Abs_sbdT = Const (#Abs_name sbdT_glob_info, sum_bdT --> sbdT);
 
           val sbd_bind = Binding.suffix_name ("_" ^ sum_bdN) b;
