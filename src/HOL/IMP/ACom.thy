@@ -18,44 +18,57 @@ datatype 'a acom =
   While 'a bexp 'a "('a acom)" 'a
     ("({_}//WHILE _//DO ({_}//_)//{_})"  [0, 0, 0, 61, 0] 61)
 
+text_raw{*\snip{postdef}{2}{1}{% *}
 fun post :: "'a acom \<Rightarrow>'a" where
 "post (SKIP {P}) = P" |
 "post (x ::= e {P}) = P" |
-"post (C1; C2) = post C2" |
-"post (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = Q" |
-"post ({Inv} WHILE b DO {P} C {Q}) = Q"
+"post (C\<^isub>1; C\<^isub>2) = post C\<^isub>2" |
+"post (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) = Q" |
+"post ({I} WHILE b DO {P} C {Q}) = Q"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{stripdef}{1}{1}{% *}
 fun strip :: "'a acom \<Rightarrow> com" where
 "strip (SKIP {P}) = com.SKIP" |
-"strip (x ::= e {P}) = (x ::= e)" |
-"strip (C1;C2) = (strip C1; strip C2)" |
-"strip (IF b THEN {P1} C1 ELSE {P2} C2 {P}) = (IF b THEN strip C1 ELSE strip C2)" |
-"strip ({Inv} WHILE b DO {Pc} c {P}) = (WHILE b DO strip c)"
+"strip (x ::= e {P}) = x ::= e" |
+"strip (C\<^isub>1;C\<^isub>2) = strip C\<^isub>1; strip C\<^isub>2" |
+"strip (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {P}) =
+  IF b THEN strip C\<^isub>1 ELSE strip C\<^isub>2" |
+"strip ({I} WHILE b DO {P} C {Q}) = WHILE b DO strip C"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{annodef}{1}{1}{% *}
 fun anno :: "'a \<Rightarrow> com \<Rightarrow> 'a acom" where
-"anno a com.SKIP = SKIP {a}" |
-"anno a (x ::= e) = (x ::= e {a})" |
-"anno a (c1;c2) = (anno a c1; anno a c2)" |
-"anno a (IF b THEN c1 ELSE c2) =
-  (IF b THEN {a} anno a c1 ELSE {a} anno a c2 {a})" |
-"anno a (WHILE b DO c) =
-  ({a} WHILE b DO {a} anno a c {a})"
+"anno A com.SKIP = SKIP {A}" |
+"anno A (x ::= e) = x ::= e {A}" |
+"anno A (c\<^isub>1;c\<^isub>2) = anno A c\<^isub>1; anno A c\<^isub>2" |
+"anno A (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
+  IF b THEN {A} anno A c\<^isub>1 ELSE {A} anno A c\<^isub>2 {A}" |
+"anno A (WHILE b DO c) =
+  {A} WHILE b DO {A} anno A c {A}"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{annosdef}{1}{1}{% *}
 fun annos :: "'a acom \<Rightarrow> 'a list" where
-"annos (SKIP {a}) = [a]" |
-"annos (x::=e {a}) = [a]" |
-"annos (C1;C2) = annos C1 @ annos C2" |
-"annos (IF b THEN {a1} C1 ELSE {a2} C2 {a}) = a1 # a2 #a #  annos C1 @ annos C2" |
-"annos ({i} WHILE b DO {ac} C {a}) = i # ac # a # annos C"
+"annos (SKIP {P}) = [P]" |
+"annos (x ::= e {P}) = [P]" |
+"annos (C\<^isub>1;C\<^isub>2) = annos C\<^isub>1 @ annos C\<^isub>2" |
+"annos (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) =
+  P\<^isub>1 # P\<^isub>2 # Q # annos C\<^isub>1 @ annos C\<^isub>2" |
+"annos ({I} WHILE b DO {P} C {Q}) = I # P # Q # annos C"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{mapacomdef}{1}{2}{% *}
 fun map_acom :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a acom \<Rightarrow> 'b acom" where
 "map_acom f (SKIP {P}) = SKIP {f P}" |
-"map_acom f (x ::= e {P}) = (x ::= e {f P})" |
-"map_acom f (C1;C2) = (map_acom f C1; map_acom f C2)" |
-"map_acom f (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-  (IF b THEN {f P1} map_acom f C1 ELSE {f P2} map_acom f C2 {f Q})" |
-"map_acom f ({Inv} WHILE b DO {P} C {Q}) =
-  ({f Inv} WHILE b DO {f P} map_acom f C {f Q})"
+"map_acom f (x ::= e {P}) = x ::= e {f P}" |
+"map_acom f (C\<^isub>1;C\<^isub>2) = map_acom f C\<^isub>1; map_acom f C\<^isub>2" |
+"map_acom f (IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) =
+  IF b THEN {f P\<^isub>1} map_acom f C\<^isub>1 ELSE {f P\<^isub>2} map_acom f C\<^isub>2
+  {f Q}" |
+"map_acom f ({I} WHILE b DO {P} C {Q}) =
+  {f I} WHILE b DO {f P} map_acom f C {f Q}"
+text_raw{*}%endsnip*}
 
 
 lemma post_map_acom[simp]: "post(map_acom f C) = f(post C)"
