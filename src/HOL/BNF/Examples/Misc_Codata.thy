@@ -58,11 +58,15 @@ codata ('a, 'b, 'c) some_killing =
    and ('a, 'b, 'c) in_here =
   IH1 'b 'a | IH2 'c
 
-codata_raw some_killing': 'a = "'b \<Rightarrow> 'd \<Rightarrow> ('a + 'c)"
-and in_here': 'c = "'d + 'e"
+codata ('a, 'b, 'c) some_killing' =
+  SK' "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b, 'c) some_killing' + ('a, 'b, 'c) in_here'"
+   and ('a, 'b, 'c) in_here' =
+  IH1' 'b | IH2' 'c
 
-codata_raw some_killing'': 'a = "'b \<Rightarrow> 'c"
-and in_here'': 'c = "'d \<times> 'b + 'e"
+codata ('a, 'b, 'c) some_killing'' =
+  SK'' "'a \<Rightarrow> ('a, 'b, 'c) in_here''"
+   and ('a, 'b, 'c) in_here'' =
+  IH1'' 'b 'a | IH2'' 'c
 
 codata ('b, 'c) less_killing = LK "'b \<Rightarrow> 'c"
 
