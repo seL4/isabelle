@@ -22,7 +22,6 @@ object Markup
   /* elements */
 
   val Empty = Markup("", Nil)
-  val Data = Markup("data", Nil)
   val Broken = Markup("broken", Nil)
 }
 

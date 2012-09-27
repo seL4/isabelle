@@ -29,6 +29,8 @@ object HTML
   }
 
 
+  /// FIXME unused stuff
+
   // common elements and attributes
 
   val BODY = "body"
@@ -55,14 +57,12 @@ object HTML
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))
   def bold(txt: String): XML.Elem = span("bold", List(XML.Text(txt)))
 
-  def spans(input: XML.Tree, original_data: Boolean = false): XML.Body =
+  def spans(input: XML.Tree): XML.Body =
   {
     def html_spans(tree: XML.Tree): XML.Body =
       tree match {
         case XML.Elem(m @ Markup(name, props), ts) =>
-          val html_span = span(name, ts.flatMap(html_spans))
-          if (original_data) List(XML.Elem(Markup.Data, List(tree, html_span)))
-          else List(html_span)
+          List(span(name, ts.flatMap(html_spans)))
         case XML.Text(txt) =>
           val ts = new ListBuffer[XML.Tree]
           val t = new StringBuilder
