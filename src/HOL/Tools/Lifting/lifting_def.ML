@@ -344,32 +344,23 @@ fun mk_readable_rsp_thm_eq tm lthy =
   let
     val ctm = cterm_of (Proof_Context.theory_of lthy) tm
     
-    fun norm_fun_eq ctm = 
-      let
-        fun abs_conv2 cv = Conv.abs_conv (K (Conv.abs_conv (K cv) lthy)) lthy
-        fun erase_quants ctm' =
-          case (Thm.term_of ctm') of
-            Const ("HOL.eq", _) $ _ $ _ => Conv.all_conv ctm'
-            | _ => (Conv.binder_conv (K erase_quants) lthy then_conv 
-              Conv.rewr_conv @{thm fun_eq_iff[symmetric, THEN eq_reflection]}) ctm'
-      in
-        (abs_conv2 erase_quants then_conv Thm.eta_conversion) ctm
-      end
-
     fun simp_arrows_conv ctm =
       let
         val unfold_conv = Conv.rewrs_conv 
-          [@{thm fun_rel_eq_invariant[THEN eq_reflection]}, @{thm fun_rel_eq_rel[THEN eq_reflection]}, 
+          [@{thm fun_rel_eq_invariant[THEN eq_reflection]}, 
+            @{thm fun_rel_eq[THEN eq_reflection]},
+            @{thm fun_rel_eq_rel[THEN eq_reflection]}, 
             @{thm fun_rel_def[THEN eq_reflection]}]
-        val left_conv = simp_arrows_conv then_conv Conv.try_conv norm_fun_eq
         fun binop_conv2 cv1 cv2 = Conv.combination_conv (Conv.arg_conv cv1) cv2
         val invariant_commute_conv = Conv.bottom_conv
           (K (Conv.try_conv (Conv.rewrs_conv (Lifting_Info.get_invariant_commute_rules lthy)))) lthy
+        val relator_eq_conv = Conv.bottom_conv
+          (K (Conv.try_conv (Conv.rewrs_conv (Transfer.get_relator_eq lthy)))) lthy
       in
         case (Thm.term_of ctm) of
           Const (@{const_name "fun_rel"}, _) $ _ $ _ => 
-            (binop_conv2  left_conv simp_arrows_conv then_conv unfold_conv) ctm
-          | _ => invariant_commute_conv ctm
+            (binop_conv2 simp_arrows_conv simp_arrows_conv then_conv unfold_conv) ctm
+          | _ => (invariant_commute_conv then_conv relator_eq_conv) ctm
       end
     
     val unfold_ret_val_invs = Conv.bottom_conv 
