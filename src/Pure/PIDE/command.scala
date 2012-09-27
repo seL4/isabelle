@@ -23,6 +23,9 @@ object Command
     val results: SortedMap[Long, XML.Tree] = SortedMap.empty,
     val markup: Markup_Tree = Markup_Tree.empty)
   {
+    def markup_to_XML: XML.Body = markup.to_XML(command.source)
+
+
     /* accumulate content */
 
     private def add_status(st: Markup): State = copy(status = st :: status)

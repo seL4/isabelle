@@ -12,6 +12,7 @@ import java.lang.System
 import javax.swing.tree.DefaultMutableTreeNode
 
 import scala.collection.immutable.SortedMap
+import scala.collection.mutable
 import scala.annotation.tailrec
 
 
@@ -65,6 +66,7 @@ object Markup_Tree
 
   /* XML representation */
 
+  // FIXME decode markup body
   @tailrec private def strip_elems(markups: List[Markup], body: XML.Body): (List[Markup], XML.Body) =
     body match {
       case List(XML.Elem(markup1, body1)) => strip_elems(markup1 :: markups, body1)
@@ -142,13 +144,45 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
     }
   }
 
+  def to_XML(root_range: Text.Range, text: CharSequence, filter: XML.Elem => Boolean): XML.Body =
+  {
+    def make_text(start: Text.Offset, stop: Text.Offset): XML.Body =
+      if (start == stop) Nil
+      else List(XML.Text(text.subSequence(start, stop).toString))
+
+    def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
+      (body /: rev_markups) {
+        case (b, elem) => // FIXME encode markup body
+          if (filter(elem)) List(XML.Elem(elem.markup, b)) else b
+      }
+
+    def make_body(elem_range: Text.Range, elem_markup: List[XML.Elem], entries: Branches.T)
+      : XML.Body =
+    {
+      val body = new mutable.ListBuffer[XML.Tree]
+      var last = elem_range.start
+      for ((range, entry) <- entries) {
+        val subrange = range.restrict(elem_range)
+        body ++= make_text(last, subrange.start)
+        body ++= make_body(subrange, entry.rev_markup, entry.subtree.overlapping(subrange))
+        last = subrange.stop
+      }
+      body ++= make_text(last, elem_range.stop)
+      make_elems(elem_markup, body.toList)
+    }
+   make_body(root_range, Nil, overlapping(root_range))
+  }
+
+  def to_XML(text: CharSequence): XML.Body =
+    to_XML(Text.Range(0, text.length), text, (_: XML.Elem) => true)
+
   def cumulate[A](root_range: Text.Range, root_info: A, result_elements: Option[Set[String]],
     result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
   {
     def results(x: A, entry: Entry): Option[A] =
       if (result_elements match { case Some(es) => es.exists(entry.elements) case None => true }) {
         val (y, changed) =
-          (entry.markup :\ (x, false))((info, res) =>
+          ((x, false) /: entry.rev_markup)((res, info) =>  // FIXME proper order!?
             {
               val (y, changed) = res
               val arg = (y, Text.Info(entry.range, info))
