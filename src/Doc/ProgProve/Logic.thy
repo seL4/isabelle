@@ -87,10 +87,12 @@ of the construct.
 \begin{warn}
 In @{term"{x. P}"} the @{text x} must be a variable. Set comprehension
 involving a proper term @{text t} must be written
-@{term[source]"{t | x y z. P}"},
-where @{text "x y z"} are the free variables in @{text t}.
-This is just a shorthand for @{term"{v. EX x y z. v = t \<and> P}"}, where
-@{text v} is a new variable.
+\noquotes{@{term[source] "{t | x y. P}"}},
+where @{text "x y"} are those free variables in @{text t}
+that occur in @{text P}.
+This is just a shorthand for @{term"{v. EX x y. v = t \<and> P}"}, where
+@{text v} is a new variable. For example, @{term"{x+y|x. x \<in> A}"}
+is short for \noquotes{@{term[source]"{v. \<exists>x. v = x+y \<and> x \<in> A}"}}.
 \end{warn}
 
 Here are the ASCII representations of the mathematical symbols:
