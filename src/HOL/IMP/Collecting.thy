@@ -144,11 +144,11 @@ subsubsection "Collecting semantics"
 fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom" where
 "step S (SKIP {P}) = (SKIP {S})" |
 "step S (x ::= e {P}) =
-  (x ::= e {{s'. EX s:S. s' = s(x := aval e s)}})" |
+  x ::= e {{s(x := aval e s) |s. s : S}}" |
 "step S (C1; C2) = step S C1; step (post C1) C2" |
 "step S (IF b THEN {P1} C1 ELSE {P2} C2 {P}) =
-   IF b THEN {{s:S. bval b s}} step P1 C1 ELSE {{s:S. \<not> bval b s}} step P2 C2
-   {post C1 \<union> post C2}" |
+  IF b THEN {{s:S. bval b s}} step P1 C1 ELSE {{s:S. \<not> bval b s}} step P2 C2
+  {post C1 \<union> post C2}" |
 "step S ({I} WHILE b DO {P} C {P'}) =
   {S \<union> post C} WHILE b DO {{s:I. bval b s}} step P C {{s:I. \<not> bval b s}}"
 
