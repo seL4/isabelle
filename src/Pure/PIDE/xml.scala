@@ -7,7 +7,6 @@ Untyped XML trees and basic data representation.
 
 package isabelle
 
-import java.lang.System
 import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory
@@ -167,35 +166,6 @@ object XML
     def cache_markup(x: Markup): Markup = synchronized { _cache_markup(x) }
     def cache_tree(x: XML.Tree): XML.Tree = synchronized { _cache_tree(x) }
     def cache_body(x: XML.Body): XML.Body = synchronized { _cache_body(x) }
-  }
-
-
-
-  /** document object model (W3C DOM) **/
-
-  def get_data(node: org.w3c.dom.Node): Option[XML.Tree] =
-    node.getUserData(Markup.Data.name) match {
-      case tree: XML.Tree => Some(tree)
-      case _ => None
-    }
-
-  def document_node(doc: org.w3c.dom.Document, tree: Tree): org.w3c.dom.Node =
-  {
-    def DOM(tr: Tree): org.w3c.dom.Node = tr match {
-      case Elem(Markup.Data, List(data, t)) =>
-        val node = DOM(t)
-        node.setUserData(Markup.Data.name, data, null)
-        node
-      case Elem(Markup(name, atts), ts) =>
-        if (name == Markup.Data.name)
-          error("Malformed data element: " + tr.toString)
-        val node = doc.createElement(name)
-        for ((name, value) <- atts) node.setAttribute(name, value)
-        for (t <- ts) node.appendChild(DOM(t))
-        node
-      case Text(txt) => doc.createTextNode(txt)
-    }
-    DOM(tree)
   }
 
 
