@@ -316,7 +316,7 @@ fun add_lift_def var qty rhs rsp_thm lthy =
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
     val transfer_thm = ([quot_thm, rsp_thm, def_thm] MRSL @{thm Quotient_to_transfer})
-        |> Raw_Simplifier.rewrite_rule (Transfer.get_relator_eq lthy')
+        |> Raw_Simplifier.rewrite_rule (Transfer.get_sym_relator_eq lthy')
      
     val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
     val maybe_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)

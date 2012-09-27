@@ -8,6 +8,7 @@ signature TRANSFER =
 sig
   val prep_conv: conv
   val get_relator_eq: Proof.context -> thm list
+  val get_sym_relator_eq: Proof.context -> thm list
   val transfer_add: attribute
   val transfer_del: attribute
   val transfer_rule_of_term: Proof.context -> term -> thm
@@ -47,7 +48,11 @@ structure Data = Generic_Data
 
 fun get_relator_eq ctxt = ctxt
   |> (Item_Net.content o #relator_eq o Data.get o Context.Proof)
-  |> map (Thm.symmetric o mk_meta_eq)
+  |> map safe_mk_meta_eq
+
+fun get_sym_relator_eq ctxt = ctxt
+  |> (Item_Net.content o #relator_eq o Data.get o Context.Proof)
+  |> map (Thm.symmetric o safe_mk_meta_eq)
 
 fun get_transfer_raw ctxt = ctxt
   |> (Item_Net.content o #transfer_raw o Data.get o Context.Proof)
@@ -130,7 +135,7 @@ fun eq_tac ctxt = SUBGOAL (fn (t, i) =>
   let
     val T = RelT (HOLogic.dest_Trueprop (Logic.strip_assums_concl t))
     val cT = ctyp_of (Proof_Context.theory_of ctxt) T
-    val rews = get_relator_eq ctxt
+    val rews = get_sym_relator_eq ctxt
     val thm1 = Drule.instantiate' [SOME cT] [] @{thm Rel_eq_refl}
     val thm2 = Raw_Simplifier.rewrite_rule rews thm1
   in
