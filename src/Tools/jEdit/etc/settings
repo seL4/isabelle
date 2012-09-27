@@ -10,8 +10,6 @@ JEDIT_SYSTEM_OPTIONS="-Dapple.laf.useScreenMenuBar=false
 -Dcom.apple.mrj.application.apple.menu.about.name=Isabelle/jEdit
 -Dscala.repl.no-threads=true"
 
-JEDIT_STYLE_SHEETS="$ISABELLE_HOME/etc/isabelle.css:$JEDIT_HOME/etc/isabelle-jedit.css:$ISABELLE_HOME_USER/etc/isabelle.css:$ISABELLE_HOME_USER/etc/isabelle-jedit.css"
-
 ISABELLE_JEDIT_OPTIONS=""
 
 ISABELLE_TOOLS="$ISABELLE_TOOLS:$JEDIT_HOME/lib/Tools"
