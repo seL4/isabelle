@@ -110,7 +110,6 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
     val start = Text.Range(range.start)
     val stop = Text.Range(range.stop)
     val bs = branches.range(start, stop)
-    // FIXME check after Scala 2.8.x
     branches.get(stop) match {
       case Some(end) if range overlaps end.range => bs + (end.range -> end)
       case _ => bs
@@ -132,14 +131,8 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
           new Markup_Tree(Branches.empty, Entry(new_markup, this))
         else {
           val body = overlapping(new_range)
-          if (body.forall(e => new_range.contains(e._1))) {
-            val rest = // branches -- body, modulo workarounds for Redblack in Scala 2.8.0 FIXME
-              if (body.size > 1)
-                (Branches.empty /: branches)((rest, entry) =>
-                  if (body.isDefinedAt(entry._1)) rest else rest + entry)
-              else branches
-            new Markup_Tree(rest, Entry(new_markup, new Markup_Tree(body)))
-          }
+          if (body.forall(e => new_range.contains(e._1)))
+            new Markup_Tree(branches -- body.keys, Entry(new_markup, new Markup_Tree(body)))
           else { // FIXME split markup!?
             System.err.println("Ignored overlapping markup information: " + new_markup +
               body.filter(e => !new_range.contains(e._1)).mkString("\n"))
