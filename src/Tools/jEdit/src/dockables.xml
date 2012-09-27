@@ -17,9 +17,6 @@
 	<DOCKABLE NAME="isabelle-graphview" MOVABLE="TRUE">
 		new isabelle.jedit.Graphview_Dockable(view, position);
 	</DOCKABLE>
-	<DOCKABLE NAME="isabelle-output1" MOVABLE="TRUE">
-		new isabelle.jedit.Output1_Dockable(view, position);
-	</DOCKABLE>
 	<DOCKABLE NAME="isabelle-raw-output" MOVABLE="TRUE">
 		new isabelle.jedit.Raw_Output_Dockable(view, position);
 	</DOCKABLE>

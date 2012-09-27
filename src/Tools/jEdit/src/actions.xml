@@ -22,11 +22,6 @@
 			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.output1-panel">
-		<CODE>
-			wm.addDockableWindow("isabelle-output1");
-		</CODE>
-	</ACTION>
 	<ACTION NAME="isabelle.graphview-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-graphview");
