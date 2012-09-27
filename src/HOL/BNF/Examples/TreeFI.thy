@@ -14,36 +14,27 @@ begin
 
 hide_const (open) Sublist.sub
 
-codata_raw treeFI: 'tree = "'a \<times> 'tree listF"
+codata 'a treeFI = Tree (lab: 'a) (sub: "'a treeFI listF")
 
 lemma pre_treeFI_listF_set[simp]: "pre_treeFI_set2 (i, xs) = listF_set xs"
 unfolding pre_treeFI_set2_def collect_def[abs_def] prod_set_defs
 by (auto simp add: listF.set_natural')
 
-(* selectors for trees *)
-definition "lab tr \<equiv> fst (treeFI_dtor tr)"
-definition "sub tr \<equiv> snd (treeFI_dtor tr)"
-
 lemma dtor[simp]: "treeFI_dtor tr = (lab tr, sub tr)"
-unfolding lab_def sub_def by simp
+unfolding lab_def sub_def treeFI_case_def
+by (metis fst_def pair_collapse snd_def)
 
 definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"
 
-lemma unfold_pair_fun_lab: "lab (treeFI_dtor_unfold (f \<odot> g) t) = f t"
-unfolding lab_def pair_fun_def treeFI.dtor_unfold pre_treeFI_map_def by simp
-
-lemma unfold_pair_fun_sub: "sub (treeFI_dtor_unfold (f \<odot> g) t) = listF_map (treeFI_dtor_unfold (f \<odot> g)) (g t)"
-unfolding sub_def pair_fun_def treeFI.dtor_unfold pre_treeFI_map_def by simp
-
 (* Tree reverse:*)
-definition "trev \<equiv> treeFI_dtor_unfold (lab \<odot> lrev o sub)"
+definition "trev \<equiv> treeFI_unfold lab (lrev o sub)"
 
 lemma trev_simps1[simp]: "lab (trev t) = lab t"
-unfolding trev_def by (simp add: unfold_pair_fun_lab)
+unfolding trev_def by simp
 
 lemma trev_simps2[simp]: "sub (trev t) = listF_map trev (lrev (sub t))"
-unfolding trev_def by (simp add: unfold_pair_fun_sub)
+unfolding trev_def by simp
 
 lemma treeFI_coinduct:
 assumes *: "phi x y"
