@@ -8,7 +8,7 @@ Tactics for definition of bounded natural functors.
 
 signature BNF_DEF_TACTICS =
 sig
-  val mk_collect_set_natural_tac: Proof.context -> thm list -> tactic
+  val mk_collect_set_natural_tac: thm list -> tactic
   val mk_id': thm -> thm
   val mk_comp': thm -> thm
   val mk_in_mono_tac: int -> tactic
@@ -44,8 +44,12 @@ fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
     ((rtac conjI THEN' etac subset_trans THEN' atac) 1) THEN
   (etac subset_trans THEN' atac) 1;
 
-fun mk_collect_set_natural_tac ctxt set_naturals =
-  substs_tac ctxt (@{thms collect_o image_insert image_empty} @ set_naturals) 1 THEN rtac refl 1;
+fun mk_collect_set_natural_tac set_naturals =
+  (rtac (@{thm collect_o} RS trans) THEN' rtac @{thm arg_cong[of _ _ collect]} THEN'
+  EVERY' (map (fn set_natural =>
+    rtac (mk_trans @{thm image_insert} @{thm arg_cong2[of _ _ _ _ insert]}) THEN'
+    rtac set_natural) set_naturals) THEN'
+  rtac @{thm image_empty}) 1;
 
 fun mk_map_wppull_tac map_id map_cong map_wpull map_comp set_naturals =
   if null set_naturals then

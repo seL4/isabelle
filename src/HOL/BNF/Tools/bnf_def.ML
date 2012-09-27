@@ -923,8 +923,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             (*collect {set1 ... setm} o map f1 ... fm = collect {f1` o set1 ... fm` o setm}*)
             val goal = fold_rev Logic.all hs (mk_Trueprop_eq (collect_map, image_collect));
           in
-            Skip_Proof.prove lthy [] [] goal
-              (fn {context = ctxt, ...} => mk_collect_set_natural_tac ctxt (#set_natural axioms))
+            Skip_Proof.prove lthy [] [] goal (K (mk_collect_set_natural_tac (#set_natural axioms)))
             |> Thm.close_derivation
           end;
 
