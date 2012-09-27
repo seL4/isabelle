@@ -28,6 +28,19 @@ open BNF_Def
 open BNF_FP
 open BNF_FP_Sugar_Tactics
 
+(* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A") *)
+fun quasi_unambiguous_case_names names =
+  let
+    val ps = map (`Long_Name.base_name) names;
+    val dups = Library.duplicates (op =) (map fst ps);
+    fun underscore s =
+      let val ss = space_explode Long_Name.separator s in
+        space_implode "_" (drop (length ss - 2) ss)
+      end;
+  in
+    map (fn (base, full) => if member (op =) dups base then underscore full else base) ps
+  end;
+
 val mp_conj = @{thm mp_conj};
 
 val simp_attrs = @{attributes [simp]};
@@ -747,8 +760,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             `(conj_dests nn) thm
           end;
 
-        (* TODO: Generate nicer names in case of clashes *)
-        val induct_cases = Datatype_Prop.indexify_names (maps (map base_name_of_ctr) ctrss);
+        val induct_cases = quasi_unambiguous_case_names (maps (map name_of_ctr) ctrss);
 
         val (fold_thmss, rec_thmss) =
           let
@@ -813,8 +825,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val notes =
           [(inductN, map single induct_thms,
             fn T_name => [induct_case_names_attr, induct_type_attr T_name]),
-           (foldN, fold_thmss, K (code_simp_attrs)),
-           (recN, rec_thmss, K (code_simp_attrs)),
+           (foldN, fold_thmss, K code_simp_attrs),
+           (recN, rec_thmss, K code_simp_attrs),
            (simpsN, simp_thmss, K [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map3 (fn b => fn Type (T_name, _) => fn thms =>

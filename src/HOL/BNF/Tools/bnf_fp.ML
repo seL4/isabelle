@@ -257,7 +257,6 @@ val distinctN = "distinct"
 val rel_distinctN = relN ^ "_" ^ distinctN
 val injectN = "inject"
 val rel_injectN = relN ^ "_" ^ injectN
-val relsN = relN ^ "s"
 val selN = "sel"
 val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN

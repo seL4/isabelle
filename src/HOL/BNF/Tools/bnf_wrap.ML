@@ -13,7 +13,7 @@ sig
   val mk_ctr: typ list -> term -> term
   val mk_disc_or_sel: typ list -> term -> term
 
-  val base_name_of_ctr: term -> string
+  val name_of_ctr: term -> string
 
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     ((bool * term list) * term) *
@@ -93,11 +93,13 @@ fun mk_case Ts T t =
     Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) t
   end;
 
-fun base_name_of_ctr c =
-  Long_Name.base_name (case head_of c of
-      Const (s, _) => s
-    | Free (s, _) => s
-    | _ => error "Cannot extract name of constructor");
+fun name_of_ctr c =
+  (case head_of c of
+    Const (s, _) => s
+  | Free (s, _) => s
+  | _ => error "Cannot extract name of constructor");
+
+val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
