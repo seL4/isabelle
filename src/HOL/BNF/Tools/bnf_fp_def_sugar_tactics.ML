@@ -107,7 +107,7 @@ fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def c
   (rtac (ctor_dtor_corec_like RS trans) THEN' asm_simp_tac ss_if_True_False) 1 THEN
   unfold_thms_tac ctxt (pre_map_def :: sum_prod_thms_map @ map_ids) THEN
   unfold_thms_tac ctxt @{thms id_def} THEN
-  TRY ((rtac refl ORELSE' subst_tac ctxt NONE @{thms unit_eq} THEN' rtac refl) 1);
+  (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)) 1;
 
 fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
   EVERY (map3 (fn case_split_tac => fn corec_like_thm => fn disc =>
