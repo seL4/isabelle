@@ -76,7 +76,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       {
         val new_output =
           new_state.results.iterator.map(_._2)
-            .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList  // FIXME not scalable
+            .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList
         val new_tracing =
           new_state.results.iterator.map(_._2).filter(Protocol.is_tracing(_)).length
         (new_output, new_tracing)
@@ -149,9 +149,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
-  private def tracing_text(n: Int): String =
-    if (n == 0) "Tracing" else "Tracing (" + n.toString + ")"
-
+  private def tracing_text(n: Int): String = "Tracing (" + n.toString + ")"
   private val tracing = new CheckBox(tracing_text(current_tracing)) {
     reactions += {
       case ButtonClicked(_) => show_tracing = this.selected; handle_update(do_update, None) }

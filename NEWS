@@ -12,6 +12,7 @@ New in this Isabelle version
     . more efficient painting, improved reactivity;
     . more robust incremental parsing of outer syntax (partial
       comments, malformed symbols);
+    . smarter handling of tracing messages (via tracing_limit);
     . more plugin options and preferences, based on Isabelle/Scala;
     . uniform Java 7 platform on Linux, Mac OS X, Windows;
 
