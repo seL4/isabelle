@@ -104,7 +104,7 @@ fun mk_rec_like_tac pre_map_defs map_ids rec_like_defs ctor_rec_like ctr_def ctx
 
 fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
-  subst_tac ctxt NONE [ctor_dtor_corec_like] 1 THEN asm_simp_tac ss_if_True_False 1 THEN
+  (rtac (ctor_dtor_corec_like RS trans) THEN' asm_simp_tac ss_if_True_False) 1 THEN
   unfold_thms_tac ctxt (pre_map_def :: sum_prod_thms_map @ map_ids) THEN
   unfold_thms_tac ctxt @{thms id_def} THEN
   TRY ((rtac refl ORELSE' subst_tac ctxt NONE @{thms unit_eq} THEN' rtac refl) 1);
