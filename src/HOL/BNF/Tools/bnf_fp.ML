@@ -144,9 +144,6 @@ sig
     typ list * typ list list -> BNF_Def.BNF list -> local_theory -> 'a) ->
     binding list -> mixfix list -> (string * sort) list -> ((string * sort) * typ) list ->
     local_theory -> BNF_Def.BNF list * 'a
-  val fp_bnf_cmd: (mixfix list -> (string * sort) list option -> binding list ->
-    typ list * typ list list -> BNF_Def.BNF list -> local_theory -> 'a) ->
-    binding list * (string list * string list) -> local_theory -> 'a
 end;
 
 structure BNF_FP : BNF_FP =
@@ -435,21 +432,6 @@ fun fp_bnf construct_fp bs mixfixes resBs eqs lthy =
         (empty_unfolds, lthy));
   in
     mk_fp_bnf timer (construct_fp mixfixes) (SOME resBs) bs sort lhss bnfs Dss Ass unfold_set lthy'
-  end;
-
-fun fp_bnf_cmd construct_fp (bs, (raw_lhss, raw_bnfs)) lthy =
-  let
-    val timer = time (Timer.startRealTimer ());
-    val lhss = map (dest_TFree o Syntax.read_typ lthy) raw_lhss;
-    val sort = fp_sort lhss NONE;
-    fun qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
-    val ((bnfs, (Dss, Ass)), (unfold_set, lthy')) = apfst (apsnd split_list o split_list)
-      (fold_map2 (fn b => fn rawT =>
-        (bnf_of_typ Smart_Inline (qualify b) sort (Syntax.read_typ lthy rawT)))
-      bs raw_bnfs (empty_unfolds, lthy));
-  in
-    snd (mk_fp_bnf timer
-      (construct_fp (map (K NoSyn) bs)) NONE bs sort lhss bnfs Dss Ass unfold_set lthy')
   end;
 
 end;

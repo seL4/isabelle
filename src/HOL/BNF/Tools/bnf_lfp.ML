@@ -1835,13 +1835,6 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "data_raw"}
-    "define BNF-based inductive datatypes (low-level)"
-    (Parse.and_list1
-      ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
-      (snd oo fp_bnf_cmd construct_lfp o apsnd split_list o split_list));
-
-val _ =
   Outer_Syntax.local_theory @{command_spec "data"} "define BNF-based inductive datatypes"
     (parse_datatype_cmd true construct_lfp);
 

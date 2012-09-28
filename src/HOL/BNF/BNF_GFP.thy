@@ -10,7 +10,6 @@ header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_GFP
 imports BNF_FP Equiv_Relations_More "~~/src/HOL/Library/Prefix_Order"
 keywords
-  "codata_raw" :: thy_decl and
   "codata" :: thy_decl
 begin
 

@@ -3004,13 +3004,6 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
   end;
 
 val _ =
-  Outer_Syntax.local_theory @{command_spec "codata_raw"}
-    "define BNF-based coinductive datatypes (low-level)"
-    (Parse.and_list1
-      ((Parse.binding --| @{keyword ":"}) -- (Parse.typ --| @{keyword "="} -- Parse.typ)) >>
-      (snd oo fp_bnf_cmd construct_gfp o apsnd split_list o split_list));
-
-val _ =
   Outer_Syntax.local_theory @{command_spec "codata"} "define BNF-based coinductive datatypes"
     (parse_datatype_cmd false construct_gfp);
 

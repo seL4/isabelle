@@ -10,7 +10,6 @@ header {* Least Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_LFP
 imports BNF_FP
 keywords
-  "data_raw" :: thy_decl and
   "data" :: thy_decl
 begin
 
