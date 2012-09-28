@@ -137,17 +137,17 @@ proof -
   proof -
     fix x
     assume "x \<in> op *\<^sub>R (1 / 2) ` {0::real..1}"
-    hence "x \<le> 1 / 2" unfolding image_iff by auto
-    thus "(g1 +++ g2) x = g1 (2 *\<^sub>R x)" unfolding joinpaths_def by auto
+    then have "x \<le> 1 / 2" unfolding image_iff by auto
+    then show "(g1 +++ g2) x = g1 (2 *\<^sub>R x)" unfolding joinpaths_def by auto
   next
     fix x
     assume "x \<in> (\<lambda>x. (1 / 2) *\<^sub>R (x + 1)) ` {0::real..1}"
-    hence "x \<ge> 1 / 2" unfolding image_iff by auto
-    thus "(g1 +++ g2) x = g2 (2 *\<^sub>R x - 1)"
+    then have "x \<ge> 1 / 2" unfolding image_iff by auto
+    then show "(g1 +++ g2) x = g2 (2 *\<^sub>R x - 1)"
     proof (cases "x = 1 / 2")
       case True
-      hence "x = (1/2) *\<^sub>R 1" by auto
-      thus ?thesis
+      then have "x = (1/2) *\<^sub>R 1" by auto
+      then show ?thesis
         unfolding joinpaths_def
         using assms[unfolded pathstart_def pathfinish_def]
         by (auto simp add: mult_ac)
@@ -202,7 +202,7 @@ proof
   assume "x \<in> path_image (g1 +++ g2)"
   then obtain y where y:"y\<in>{0..1}" "x = (if y \<le> 1 / 2 then g1 (2 *\<^sub>R y) else g2 (2 *\<^sub>R y - 1))"
     unfolding path_image_def image_iff joinpaths_def by auto
-  thus "x \<in> path_image g1 \<union> path_image g2"
+  then show "x \<in> path_image g1 \<union> path_image g2"
     apply (cases "y \<le> 1/2")
     apply (rule_tac UnI1) defer
     apply (rule_tac UnI2)
@@ -227,7 +227,7 @@ proof (erule disjE)
   assume "x \<in> path_image g1"
   then obtain y where y: "y\<in>{0..1}" "x = g1 y"
     unfolding path_image_def image_iff by auto
-  thus "x \<in> path_image (g1 +++ g2)"
+  then show "x \<in> path_image (g1 +++ g2)"
     unfolding joinpaths_def path_image_def image_iff
     apply (rule_tac x="(1/2) *\<^sub>R y" in bexI)
     apply auto
@@ -274,7 +274,7 @@ proof ((rule ballI)+, rule impI)
   show "x = y \<or> x = 0 \<and> y = 1 \<or> x = 1 \<and> y = 0"
   proof (case_tac "x \<le> 1/2", case_tac[!] "y \<le> 1/2", unfold not_le)
     assume as: "x \<le> 1 / 2" "y \<le> 1 / 2"
-    hence "g1 (2 *\<^sub>R x) = g1 (2 *\<^sub>R y)"
+    then have "g1 (2 *\<^sub>R x) = g1 (2 *\<^sub>R y)"
       using xy(3) unfolding joinpaths_def by auto
     moreover
     have "2 *\<^sub>R x \<in> {0..1}" "2 *\<^sub>R y \<in> {0..1}" using xy(1,2) as
@@ -283,7 +283,7 @@ proof ((rule ballI)+, rule impI)
     show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] by auto
   next
     assume as:"x > 1 / 2" "y > 1 / 2"
-    hence "g2 (2 *\<^sub>R x - 1) = g2 (2 *\<^sub>R y - 1)"
+    then have "g2 (2 *\<^sub>R x - 1) = g2 (2 *\<^sub>R y - 1)"
       using xy(3) unfolding joinpaths_def by auto
     moreover
     have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}"
@@ -292,7 +292,7 @@ proof ((rule ballI)+, rule impI)
     show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] by auto
   next
     assume as:"x \<le> 1 / 2" "y > 1 / 2"
-    hence "?g x \<in> path_image g1" "?g y \<in> path_image g2"
+    then have "?g x \<in> path_image g1" "?g y \<in> path_image g2"
       unfolding path_image_def joinpaths_def
       using xy(1,2) by auto
     moreover
@@ -301,7 +301,7 @@ proof ((rule ballI)+, rule impI)
       by (auto simp add: field_simps)
     ultimately
     have *:"?g x = pathstart g1" using assms(4) unfolding xy(3) by auto
-    hence "x = 0" unfolding pathstart_def joinpaths_def using as(1) and xy(1)
+    then have "x = 0" unfolding pathstart_def joinpaths_def using as(1) and xy(1)
       using inj(1)[of "2 *\<^sub>R x" 0] by auto
     moreover
     have "y = 1" using * unfolding xy(3) assms(3)[THEN sym]
@@ -310,7 +310,7 @@ proof ((rule ballI)+, rule impI)
     ultimately show ?thesis by auto
   next
     assume as: "x > 1 / 2" "y \<le> 1 / 2"
-    hence "?g x \<in> path_image g2" "?g y \<in> path_image g1"
+    then have "?g x \<in> path_image g2" "?g y \<in> path_image g1"
       unfolding path_image_def joinpaths_def
       using xy(1,2) by auto
     moreover
@@ -319,7 +319,7 @@ proof ((rule ballI)+, rule impI)
       by (auto simp add: field_simps)
     ultimately
     have *: "?g y = pathstart g1" using assms(4) unfolding xy(3) by auto
-    hence "y = 0" unfolding pathstart_def joinpaths_def using as(2) and xy(2)
+    then have "y = 0" unfolding pathstart_def joinpaths_def using as(2) and xy(2)
       using inj(1)[of "2 *\<^sub>R y" 0] by auto
     moreover
     have "x = 1" using * unfolding xy(3)[THEN sym] assms(3)[THEN sym]
@@ -342,31 +342,31 @@ proof (rule, rule, rule)
   show "x = y"
   proof (cases "x \<le> 1/2", case_tac[!] "y \<le> 1/2", unfold not_le)
     assume "x \<le> 1 / 2" "y \<le> 1 / 2"
-    thus ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] and xy
+    then show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] and xy
       unfolding joinpaths_def by auto
   next
     assume "x > 1 / 2" "y > 1 / 2"
-    thus ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] and xy
+    then show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] and xy
       unfolding joinpaths_def by auto
   next
     assume as: "x \<le> 1 / 2" "y > 1 / 2"
-    hence "?g x \<in> path_image g1" "?g y \<in> path_image g2"
+    then have "?g x \<in> path_image g1" "?g y \<in> path_image g2"
       unfolding path_image_def joinpaths_def
       using xy(1,2) by auto
-    hence "?g x = pathfinish g1" "?g y = pathstart g2"
+    then have "?g x = pathfinish g1" "?g y = pathstart g2"
       using assms(4) unfolding assms(3) xy(3) by auto
-    thus ?thesis
+    then show ?thesis
       using as and inj(1)[of "2 *\<^sub>R x" 1] inj(2)[of "2 *\<^sub>R y - 1" 0] and xy(1,2)
       unfolding pathstart_def pathfinish_def joinpaths_def
       by auto
   next
     assume as:"x > 1 / 2" "y \<le> 1 / 2" 
-    hence "?g x \<in> path_image g2" "?g y \<in> path_image g1"
+    then have "?g x \<in> path_image g2" "?g y \<in> path_image g1"
       unfolding path_image_def joinpaths_def
       using xy(1,2) by auto
-    hence "?g x = pathstart g2" "?g y = pathfinish g1"
+    then have "?g x = pathstart g2" "?g y = pathfinish g1"
       using assms(4) unfolding assms(3) xy(3) by auto
-    thus ?thesis using as and inj(2)[of "2 *\<^sub>R x - 1" 0] inj(1)[of "2 *\<^sub>R y" 1] and xy(1,2)
+    then show ?thesis using as and inj(2)[of "2 *\<^sub>R x - 1" 0] inj(1)[of "2 *\<^sub>R y" 1] and xy(1,2)
       unfolding pathstart_def pathfinish_def joinpaths_def
       by auto
   qed
@@ -431,21 +431,21 @@ lemma path_image_shiftpath:
 proof -
   { fix x
     assume as:"g 1 = g 0" "x \<in> {0..1::real}" " \<forall>y\<in>{0..1} \<inter> {x. \<not> a + x \<le> 1}. g x \<noteq> g (a + y - 1)" 
-    hence "\<exists>y\<in>{0..1} \<inter> {x. a + x \<le> 1}. g x = g (a + y)"
+    then have "\<exists>y\<in>{0..1} \<inter> {x. a + x \<le> 1}. g x = g (a + y)"
     proof (cases "a \<le> x")
       case False
-      thus ?thesis
+      then show ?thesis
         apply (rule_tac x="1 + x - a" in bexI)
         using as(1,2) and as(3)[THEN bspec[where x="1 + x - a"]] and assms(1)
         apply (auto simp add: field_simps atomize_not)
         done
     next
       case True
-      thus ?thesis using as(1-2) and assms(1) apply(rule_tac x="x - a" in bexI)
+      then show ?thesis using as(1-2) and assms(1) apply(rule_tac x="x - a" in bexI)
         by(auto simp add: field_simps)
     qed
   }
-  thus ?thesis
+  then show ?thesis
     using assms unfolding shiftpath_def path_image_def pathfinish_def pathstart_def
     by(auto simp add: image_iff)
 qed
@@ -490,9 +490,9 @@ lemma injective_path_linepath:
 proof -
   { fix x y :: "real"
     assume "x *\<^sub>R b + y *\<^sub>R a = x *\<^sub>R a + y *\<^sub>R b"
-    hence "(x - y) *\<^sub>R a = (x - y) *\<^sub>R b" by (simp add: algebra_simps)
+    then have "(x - y) *\<^sub>R a = (x - y) *\<^sub>R b" by (simp add: algebra_simps)
     with assms have "x = y" by simp }
-  thus ?thesis
+  then show ?thesis
     unfolding injective_path_def linepath_def
     by (auto simp add: algebra_simps)
 qed
@@ -511,7 +511,7 @@ proof -
   obtain a where "a \<in> path_image g" "\<forall>y \<in> path_image g. dist z a \<le> dist z y"
     using distance_attains_inf[OF _ path_image_nonempty, of g z]
     using compact_path_image[THEN compact_imp_closed, OF assms(1)] by auto
-  thus ?thesis
+  then show ?thesis
     apply (rule_tac x="dist z a" in exI)
     using assms(2)
     apply (auto intro!: dist_pos_lt)
@@ -667,7 +667,7 @@ lemma open_path_component:
 proof
   fix y
   assume as: "y \<in> {y. path_component s x y}"
-  hence "y \<in> s"
+  then have "y \<in> s"
     apply -
     apply (rule path_component_mem(2))
     unfolding mem_Collect_eq
@@ -682,7 +682,7 @@ proof
   proof -
     fix z
     assume "dist y z < e"
-    thus "path_component s x z"
+    then show "path_component s x z"
       apply (rule_tac path_component_trans[of _ _ y]) defer
       apply (rule path_component_of_subset[OF e(2)])
       apply (rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format])
@@ -708,7 +708,7 @@ proof
   proof (rule ccontr)
     fix z
     assume "z \<in> ball y e" "\<not> z \<notin> {y. path_component s x y}"
-    hence "y \<in> {y. path_component s x y}"
+    then have "y \<in> {y. path_component s x y}"
       unfolding not_not mem_Collect_eq using `e>0`
       apply -
       apply (rule path_component_trans, assumption)
@@ -716,7 +716,7 @@ proof
       apply (rule convex_imp_path_connected[OF convex_ball, unfolded path_connected_component, rule_format])
       apply auto
       done
-    thus False using as by auto
+    then show False using as by auto
   qed (insert e(2), auto)
 qed
 
@@ -751,7 +751,7 @@ proof (rule, rule)
   assume "x' \<in> f ` s" "y' \<in> f ` s"
   then obtain x y where xy: "x\<in>s" "y\<in>s" "x' = f x" "y' = f y" by auto
   guess g using assms(2)[unfolded path_connected_def, rule_format, OF xy(1,2)] ..
-  thus "\<exists>g. path g \<and> path_image g \<subseteq> f ` s \<and> pathstart g = x' \<and> pathfinish g = y'"
+  then show "\<exists>g. path g \<and> path_image g \<subseteq> f ` s \<and> pathstart g = x' \<and> pathfinish g = y'"
     unfolding xy
     apply (rule_tac x="f \<circ> g" in exI)
     unfolding path_defs
@@ -787,7 +787,7 @@ proof (rule, rule)
   fix x y
   assume as: "x \<in> s \<union> t" "y \<in> s \<union> t"
   from assms(3) obtain z where "z \<in> s \<inter> t" by auto
-  thus "path_component (s \<union> t) x y"
+  then show "path_component (s \<union> t) x y"
     using as and assms(1-2)[unfolded path_connected_component]
     apply - 
     apply (erule_tac[!] UnE)+
@@ -804,11 +804,11 @@ lemma path_connected_UNION:
 proof clarify
   fix x i y j
   assume *: "i \<in> A" "x \<in> S i" "j \<in> A" "y \<in> S j"
-  hence "path_component (S i) x z" and "path_component (S j) z y"
+  then have "path_component (S i) x z" and "path_component (S j) z y"
     using assms by (simp_all add: path_connected_component)
-  hence "path_component (\<Union>i\<in>A. S i) x z" and "path_component (\<Union>i\<in>A. S i) z y"
+  then have "path_component (\<Union>i\<in>A. S i) x z" and "path_component (\<Union>i\<in>A. S i) z y"
     using *(1,3) by (auto elim!: path_component_of_subset [rotated])
-  thus "path_component (\<Union>i\<in>A. S i) x y"
+  then show "path_component (\<Union>i\<in>A. S i) x y"
     by (rule path_component_trans)
 qed
 
@@ -827,7 +827,7 @@ proof -
   proof (rule path_connected_UNION)
     fix i
     assume "i \<in> {..<DIM('a)}"
-    thus "(\<chi>\<chi> i. a $$ i - 1) \<in> {x::'a. x $$ i < a $$ i}" by simp
+    then show "(\<chi>\<chi> i. a $$ i - 1) \<in> {x::'a. x $$ i < a $$ i}" by simp
     show "path_connected {x. x $$ i < a $$ i}" unfolding euclidean_component_def
       by (rule convex_imp_path_connected [OF convex_halfspace_lt])
   qed
@@ -835,13 +835,13 @@ proof -
   proof (rule path_connected_UNION)
     fix i
     assume "i \<in> {..<DIM('a)}"
-    thus "(\<chi>\<chi> i. a $$ i + 1) \<in> {x::'a. a $$ i < x $$ i}" by simp
+    then show "(\<chi>\<chi> i. a $$ i + 1) \<in> {x::'a. a $$ i < x $$ i}" by simp
     show "path_connected {x. a $$ i < x $$ i}" unfolding euclidean_component_def
       by (rule convex_imp_path_connected [OF convex_halfspace_gt])
   qed
   from assms have "1 < DIM('a)" by auto
-  hence "a + basis 0 - basis 1 \<in> ?A \<inter> ?B" by auto
-  hence "?A \<inter> ?B \<noteq> {}" by fast
+  then have "a + basis 0 - basis 1 \<in> ?A \<inter> ?B" by auto
+  then have "?A \<inter> ?B \<noteq> {}" by fast
   with A B have "path_connected (?A \<union> ?B)"
     by (rule path_connected_Un)
   also have "?A \<union> ?B = {x. \<exists>i\<in>{..<DIM('a)}. x $$ i \<noteq> a $$ i}"
@@ -857,14 +857,14 @@ lemma path_connected_sphere:
   shows "path_connected {x::'a::euclidean_space. norm(x - a) = r}"
 proof (rule linorder_cases [of r 0])
   assume "r < 0"
-  hence "{x::'a. norm(x - a) = r} = {}" by auto
-  thus ?thesis using path_connected_empty by simp
+  then have "{x::'a. norm(x - a) = r} = {}" by auto
+  then show ?thesis using path_connected_empty by simp
 next
   assume "r = 0"
-  thus ?thesis using path_connected_singleton by simp
+  then show ?thesis using path_connected_singleton by simp
 next
   assume r: "0 < r"
-  hence *: "{x::'a. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}"
+  then have *: "{x::'a. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}"
     apply -
     apply (rule set_eqI, rule)
     unfolding image_iff
@@ -881,7 +881,7 @@ next
     done
   have "continuous_on (UNIV - {0}) (\<lambda>x::'a. 1 / norm x)"
     unfolding field_divide_inverse by (simp add: continuous_on_intros)
-  thus ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
+  then show ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
     by (auto intro!: path_connected_continuous_image continuous_on_intros)
 qed
 
