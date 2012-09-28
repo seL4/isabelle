@@ -158,17 +158,9 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
     (*(inner_1.bd +c ... +c inner_m.bd) *c outer.bd*)
     val bd = Term.absdummy CCA (mk_cprod (Library.foldr1 (uncurry mk_csum) inner_bds) outer_bd);
 
-    fun map_id_tac {context = ctxt, ...} =
-      let
-        (*order the theorems by reverse size to prevent bad interaction with nonconfluent rewrite
-          rules*)
-        val thms = (map map_id_of_bnf inners
-          |> map (`(Term.size_of_term o Thm.prop_of))
-          |> sort (rev_order o int_ord o pairself fst)
-          |> map snd) @ [map_id_of_bnf outer];
-      in
-        (EVERY' (map (fn thm => subst_tac ctxt NONE [thm]) thms) THEN' rtac refl) 1
-      end;
+    fun map_id_tac _ =
+      mk_comp_map_id_tac (map_id_of_bnf outer) (map_cong_of_bnf outer)
+        (map map_id_of_bnf inners);
 
     fun map_comp_tac _ =
       mk_comp_map_comp_tac (map_comp_of_bnf outer) (map_cong_of_bnf outer)
