@@ -41,7 +41,8 @@ fun mk_unique_disc_def_tac m uexhaust =
   EVERY' [rtac iffI, rtac uexhaust, REPEAT_DETERM_N m o rtac exI, atac, rtac refl] 1;
 
 fun mk_alternate_disc_def_tac ctxt k other_disc_def distinct uexhaust =
-  EVERY' ([subst_tac ctxt NONE [other_disc_def], rtac @{thm iffI_np}, REPEAT_DETERM o etac exE,
+  EVERY' ([rtac (other_disc_def RS @{thm arg_cong[of _ _ Not]} RS trans),
+    rtac @{thm iffI_np}, REPEAT_DETERM o etac exE,
     hyp_subst_tac, SELECT_GOAL (unfold_thms_tac ctxt [not_ex]), REPEAT_DETERM o rtac allI,
     rtac distinct, rtac uexhaust] @
     (([etac notE, REPEAT_DETERM o rtac exI, atac], [REPEAT_DETERM o rtac exI, atac])
