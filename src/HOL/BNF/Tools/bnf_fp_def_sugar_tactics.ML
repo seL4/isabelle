@@ -42,10 +42,7 @@ val sum_prod_thms_set0 =
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
       mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
-(* FIXME: Need "prod.cases" and "sum.cases"? And why "sum.inject" but no "prod.inject"? *)
-val sum_prod_thms_rel =
-  @{thms prod.cases prod_rel_simp sum.cases sum_rel_simps
-      sum.inject sum.distinct[THEN eq_False[THEN iffD2]]};
+val sum_prod_thms_rel = @{thms prod_rel_simp sum_rel_simps};
 
 val ss_if_True_False = ss_only @{thms if_True if_False};
 
