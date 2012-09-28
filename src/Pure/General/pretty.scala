@@ -97,11 +97,7 @@ object Pretty
     val emergencypos = margin / 2
 
     def content_length(tree: XML.Tree): Double =
-      tree match {
-        case XML.Wrapped_Elem(_, _, body) => (0.0 /: body)(_ + content_length(_))
-        case XML.Elem(_, body) => (0.0 /: body)(_ + content_length(_))
-        case XML.Text(s) => metric(s)
-      }
+      XML.traverse_text(List(tree))(0.0)(_ + metric(_))
 
     def breakdist(trees: XML.Body, after: Double): Double =
       trees match {
