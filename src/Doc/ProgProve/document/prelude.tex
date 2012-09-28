@@ -57,12 +57,13 @@
 \renewcommand{\isamarkupsubsection}[1]{{\rmfamily\subsubsection{#1}}}
 % isabelle in-text command font
 \newcommand{\isacom}[1]{\isa{\isacommand{#1}}}
+
+\protected\def\isacharunderscore{\raisebox{2pt}{\_\kern-1.7pt}}
+\protected\def\isacharunderscorekeyword{\raisebox{2pt}{\_}}
 % isabelle keyword, adapted from isabelle.sty
 \renewcommand{\isakeyword}[1]
-{\emph{\def\isachardot{.}%
+{\emph{\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
 \def\isacharbraceleft{\{}\def\isacharbraceright{\}}\textbf{#1}}}
-\renewcommand{\isacharunderscore}{\_}
-\renewcommand{\isacharunderscorekeyword}{\_}
 
 % add \noindent to text blocks automatically
 \renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}
