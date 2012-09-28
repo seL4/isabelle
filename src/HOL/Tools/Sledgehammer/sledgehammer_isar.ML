@@ -278,7 +278,7 @@ fun extract_params mode default_params override_params =
       | SOME s => case s |> space_explode " " |> map Real.fromString of
                     [SOME r1, SOME r2] => (r1, r2)
                   | _ => error ("Parameter " ^ quote name ^
-                                "must be assigned a pair of floating-point \
+                                " must be assigned a pair of floating-point \
                                 \values (e.g., \"0.6 0.95\")")
     fun lookup_option lookup' name =
       case lookup name of
