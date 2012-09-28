@@ -42,8 +42,9 @@ val sum_prod_thms_set0 =
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
       mem_Collect_eq mem_UN_compreh_eq prod_set_simps sum_map.simps sum_set_simps};
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
+(* FIXME: Need "prod.cases" and "sum.cases"? And why "sum.inject" but no "prod.inject"? *)
 val sum_prod_thms_rel =
-  @{thms prod.cases prod_rel_def sum.cases sum_rel_def
+  @{thms prod.cases prod_rel_simp sum.cases sum_rel_simps
       sum.inject sum.distinct[THEN eq_False[THEN iffD2]]};
 
 val ss_if_True_False = ss_only @{thms if_True if_False};
@@ -146,6 +147,7 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_natural's pre_se
 fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   hyp_subst_tac THEN'
   subst_tac ctxt (SOME [1, 2]) [ctr_def] THEN'
+  SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels)) THEN'
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels @ sum_prod_thms_rel)) THEN'
   (atac ORELSE' REPEAT o etac conjE THEN'
      full_simp_tac
