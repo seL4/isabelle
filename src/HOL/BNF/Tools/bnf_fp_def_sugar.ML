@@ -1,11 +1,11 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_sugar.ML
+(*  Title:      HOL/BNF/Tools/bnf_fp_def_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
 Sugared datatype and codatatype constructions.
 *)
 
-signature BNF_FP_SUGAR =
+signature BNF_FP_DEF_SUGAR =
 sig
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
@@ -19,14 +19,14 @@ sig
     (local_theory -> local_theory) parser
 end;
 
-structure BNF_FP_Sugar : BNF_FP_SUGAR =
+structure BNF_FP_Def_Sugar : BNF_FP_DEF_SUGAR =
 struct
 
 open BNF_Util
 open BNF_Wrap
 open BNF_Def
 open BNF_FP
-open BNF_FP_Sugar_Tactics
+open BNF_FP_Def_Sugar_Tactics
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A") *)
 fun quasi_unambiguous_case_names names =

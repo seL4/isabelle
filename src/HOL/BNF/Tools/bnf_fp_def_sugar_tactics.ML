@@ -1,11 +1,11 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp_sugar_tactics.ML
+(*  Title:      HOL/BNF/Tools/bnf_fp_def_sugar_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
 Tactics for datatype and codatatype sugar.
 *)
 
-signature BNF_FP_SUGAR_TACTICS =
+signature BNF_FP_DEF_SUGAR_TACTICS =
 sig
   val sum_prod_thms_map: thm list
   val sum_prod_thms_set: thm list
@@ -26,7 +26,7 @@ sig
   val mk_rec_like_tac: thm list -> thm list -> thm list -> thm -> thm -> Proof.context -> tactic
 end;
 
-structure BNF_FP_Sugar_Tactics : BNF_FP_SUGAR_TACTICS =
+structure BNF_FP_Def_Sugar_Tactics : BNF_FP_DEF_SUGAR_TACTICS =
 struct
 
 open BNF_Tactics
