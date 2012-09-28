@@ -18,7 +18,7 @@ notation inner (infix "\<bullet>" 70)
 lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
 proof -
   have "(x + 1/2)^2 + 3/4 > 0" using zero_le_power2[of "x+1/2"] by arith
-  thus ?thesis by (simp add: field_simps power2_eq_square)
+  then show ?thesis by (simp add: field_simps power2_eq_square)
 qed
 
 lemma square_continuous: "0 < (e::real) ==> \<exists>d. 0 < d \<and> (\<forall>y. abs(y - x) < d \<longrightarrow> abs(y * y - x * x) < e)"
@@ -135,11 +135,12 @@ text{* Equality of vectors in terms of @{term "op \<bullet>"} products.    *}
 
 lemma vector_eq: "x = y \<longleftrightarrow> x \<bullet> x = x \<bullet> y \<and> y \<bullet> y = x \<bullet> x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?lhs then show ?rhs by simp
+  assume ?lhs
+  then show ?rhs by simp
 next
   assume ?rhs
   then have "x \<bullet> x - x \<bullet> y = 0 \<and> x \<bullet> y - y \<bullet> y = 0" by simp
-  hence "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_diff inner_commute)
+  then have "x \<bullet> (x - y) = 0 \<and> y \<bullet> (x - y) = 0" by (simp add: inner_diff inner_commute)
   then have "(x - y) \<bullet> (x - y) = 0" by (simp add: field_simps inner_diff inner_commute)
   then show "x = y" by (simp)
 qed
@@ -192,7 +193,7 @@ proof
   assume "\<forall>x. x \<bullet> y = x \<bullet> z"
   then have "\<forall>x. x \<bullet> (y - z) = 0" by (simp add: inner_diff)
   then have "(y - z) \<bullet> (y - z) = 0" ..
-  thus "y = z" by simp
+  then show "y = z" by simp
 qed simp
 
 lemma vector_eq_rdot: "(\<forall>z. x \<bullet> z = y \<bullet> z) \<longleftrightarrow> x = y"
@@ -200,7 +201,7 @@ proof
   assume "\<forall>z. x \<bullet> z = y \<bullet> z"
   then have "\<forall>z. (x - y) \<bullet> z = 0" by (simp add: inner_diff)
   then have "(x - y) \<bullet> (x - y) = 0" ..
-  thus "x = y" by simp
+  then show "x = y" by simp
 qed simp
 
 
@@ -389,11 +390,11 @@ proof (rule some_equality)
   show "\<forall>x y. inner (f x) y = inner x (g y)" using assms .
 next
   fix h assume "\<forall>x y. inner (f x) y = inner x (h y)"
-  hence "\<forall>x y. inner x (g y) = inner x (h y)" using assms by simp
-  hence "\<forall>x y. inner x (g y - h y) = 0" by (simp add: inner_diff_right)
-  hence "\<forall>y. inner (g y - h y) (g y - h y) = 0" by simp
-  hence "\<forall>y. h y = g y" by simp
-  thus "h = g" by (simp add: ext)
+  then have "\<forall>x y. inner x (g y) = inner x (h y)" using assms by simp
+  then have "\<forall>x y. inner x (g y - h y) = 0" by (simp add: inner_diff_right)
+  then have "\<forall>y. inner (g y - h y) (g y - h y) = 0" by simp
+  then have "\<forall>y. h y = g y" by simp
+  then show "h = g" by (simp add: ext)
 qed
 
 lemma choice_iff: "(\<forall>x. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x. P x (f x))" by metis
@@ -465,9 +466,9 @@ lemma hull_minimal: "s \<subseteq> t \<Longrightarrow> S t ==> (S hull s) \<subs
 lemma subset_hull: "S t ==> S hull s \<subseteq> t \<longleftrightarrow>  s \<subseteq> t"
   unfolding hull_def by blast
 
-lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow> (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' ==> t \<subseteq> t')
-           ==> (S hull s = t)"
-unfolding hull_def by auto
+lemma hull_unique: "s \<subseteq> t \<Longrightarrow> S t \<Longrightarrow>
+    (\<And>t'. s \<subseteq> t' \<Longrightarrow> S t' \<Longrightarrow> t \<subseteq> t') \<Longrightarrow> (S hull s = t)"
+  unfolding hull_def by auto
 
 lemma hull_induct: "(\<And>x. x\<in> S \<Longrightarrow> P x) \<Longrightarrow> Q {x. P x} \<Longrightarrow> \<forall>x\<in> Q hull S. P x"
   using hull_minimal[of S "{x. P x}" Q]
@@ -854,7 +855,7 @@ proof (rule span_unique)
   show "subspace (range (\<lambda>k. k *\<^sub>R x))"
     unfolding subspace_def
     by (auto intro: scaleR_add_left [symmetric])
-  fix T assume "{x} \<subseteq> T" and "subspace T" thus "range (\<lambda>k. k *\<^sub>R x) \<subseteq> T"
+  fix T assume "{x} \<subseteq> T" and "subspace T" then show "range (\<lambda>k. k *\<^sub>R x) \<subseteq> T"
     unfolding subspace_def by auto
 qed
 
@@ -904,7 +905,7 @@ proof-
       by (simp add: algebra_simps)
     from k have "(1/k) *\<^sub>R (a - k*\<^sub>R b) \<in> span (S - {b})"
       by (rule span_mul)
-    hence th: "(1/k) *\<^sub>R a - b \<in> span (S - {b})"
+    then have th: "(1/k) *\<^sub>R a - b \<in> span (S - {b})"
       unfolding eq' .
 
     from k
@@ -1147,10 +1148,10 @@ next
       unfolding dependent_def using x by blast
     from x have xsA: "x \<in> span A" by (blast intro: span_superset)
     have "A - {x} \<subseteq> A" by blast
-    hence th1:"span (A - {x}) \<subseteq> span A" by (metis span_mono)
+    then have th1:"span (A - {x}) \<subseteq> span A" by (metis span_mono)
     { assume xB: "x \<notin> B"
       from xB BA have "B \<subseteq> A -{x}" by blast
-      hence "span B \<subseteq> span (A - {x})" by (metis span_mono)
+      then have "span B \<subseteq> span (A - {x})" by (metis span_mono)
       with th1 th0 sAB have "x \<notin> span A" by blast
       with x have False by (metis span_superset) }
     then have "x \<in> B" by blast }
@@ -1934,7 +1935,7 @@ proof -
     then have "dim (span S) = dim (UNIV :: ('a) set)" by simp
     then have "dim S = DIM('a)" by (simp add: dim_span dim_UNIV)
     with d have False by arith }
-  hence th: "span S \<noteq> UNIV" by blast
+  then have th: "span S \<noteq> UNIV" by blast
   from span_not_univ_subset_hyperplane[OF th] show ?thesis .
 qed
 
@@ -1948,7 +1949,7 @@ lemma linear_indep_image_lemma:
   shows "x = 0"
   using fB ifB fi xsB fx
 proof (induct arbitrary: x rule: finite_induct[OF fB])
-  case 1 thus ?case by auto
+  case 1 then show ?case by auto
 next
   case (2 a b x)
   have fb: "finite b" using "2.prems" by simp
@@ -2003,7 +2004,7 @@ lemma linear_independent_extend_lemma:
            \<and> (\<forall>x\<in> B. g x = f x)"
 using ib fi
 proof (induct rule: finite_induct[OF fi])
-  case 1 thus ?case by auto
+  case 1 then show ?case by auto
 next
   case (2 a b)
   from "2.prems" "2.hyps" have ibf: "independent b" "finite b"
@@ -2022,7 +2023,7 @@ next
         by (simp add: field_simps scaleR_left_distrib [symmetric])
       from span_sub[OF th0 k]
       have khz: "(k - ?h z) *\<^sub>R a \<in> span b" by (simp add: eq)
-      { assume "k \<noteq> ?h z" hence k0: "k - ?h z \<noteq> 0" by simp
+      { assume "k \<noteq> ?h z" then have k0: "k - ?h z \<noteq> 0" by simp
         from k0 span_mul[OF khz, of "1 /(k - ?h z)"]
         have "a \<in> span b" by simp
         with "2.prems"(1) "2.hyps"(2) have False
@@ -2600,7 +2601,7 @@ lemma infnorm_mul_lemma: "infnorm(a *\<^sub>R x) <= \<bar>a\<bar> * infnorm x"
 
 lemma infnorm_mul: "infnorm(a *\<^sub>R x) = abs a * infnorm x"
 proof -
-  { assume a0: "a = 0" hence ?thesis by (simp add: infnorm_0) }
+  { assume a0: "a = 0" then have ?thesis by (simp add: infnorm_0) }
   moreover
   { assume a0: "a \<noteq> 0"
     from a0 have th: "(1/a) *\<^sub>R (a *\<^sub>R x) = x" by simp
@@ -2629,7 +2630,7 @@ lemma norm_le_infnorm: "norm(x) <= sqrt(real DIM('a)) * infnorm(x::'a::euclidean
 proof -
   let ?d = "DIM('a)"
   have "real ?d \<ge> 0" by simp
-  hence d2: "(sqrt (real ?d))^2 = real ?d"
+  then have d2: "(sqrt (real ?d))^2 = real ?d"
     by (auto intro: real_sqrt_pow2)
   have th: "sqrt (real ?d) * infnorm x \<ge> 0"
     by (simp add: zero_le_mult_iff infnorm_pos_le)
