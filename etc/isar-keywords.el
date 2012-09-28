@@ -342,6 +342,7 @@
     "overloaded"
     "permissive"
     "pervasive"
+    "rep_compat"
     "shows"
     "structure"
     "unchecked"

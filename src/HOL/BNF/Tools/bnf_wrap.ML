@@ -7,6 +7,8 @@ Wrapping existing datatypes.
 
 signature BNF_WRAP =
 sig
+  val rep_compat_prefix: string
+
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
   val join_halves: int -> 'a list list -> 'a list list -> 'a list * 'a list list list
 
@@ -16,11 +18,11 @@ sig
   val name_of_ctr: term -> string
 
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
-    ((bool * term list) * term) *
+    (((bool * bool) * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     (term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
      thm list list) * local_theory
-  val parse_wrap_options: bool parser
+  val parse_wrap_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
 
@@ -29,6 +31,8 @@ struct
 
 open BNF_Util
 open BNF_Wrap_Tactics
+
+val rep_compat_prefix = "new";
 
 val isN = "is_";
 val unN = "un_";
@@ -49,6 +53,7 @@ val injectN = "inject";
 val nchotomyN = "nchotomy";
 val selsN = "sels";
 val splitN = "split";
+val splitsN = "splits";
 val split_asmN = "split_asm";
 val weak_case_cong_thmsN = "weak_case_cong";
 
@@ -103,7 +108,7 @@ val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
+fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_case),
     (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -122,6 +127,10 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val Type (dataT_name, As0) = body_type (fastype_of (hd ctrs0));
     val data_b = Binding.qualified_name dataT_name;
     val data_b_name = Binding.name_of data_b;
+
+    fun qualify mandatory =
+      Binding.qualify mandatory data_b_name o
+      (rep_compat ? Binding.qualify false rep_compat_prefix);
 
     val (As, B) =
       no_defs_lthy
@@ -144,13 +153,12 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     fun can_omit_disc_binding k m =
       n = 1 orelse m = 0 orelse (n = 2 andalso can_rely_on_disc (3 - k));
 
-    val std_disc_binding =
-      Binding.qualify false data_b_name o Binding.name o prefix isN o base_name_of_ctr;
+    val std_disc_binding = qualify false o Binding.name o prefix isN o base_name_of_ctr;
 
     val disc_bindings =
       raw_disc_bindings'
       |> map4 (fn k => fn m => fn ctr => fn disc =>
-        Option.map (Binding.qualify false data_b_name)
+        Option.map (qualify false)
           (if Binding.eq_name (disc, Binding.empty) then
              if can_omit_disc_binding k m then NONE else SOME (std_disc_binding ctr)
            else if Binding.eq_name (disc, std_binding) then
@@ -166,7 +174,7 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
     val sel_bindingss =
       pad_list [] n raw_sel_bindingss
       |> map3 (fn ctr => fn m => map2 (fn l => fn sel =>
-        Binding.qualify false data_b_name
+        qualify false
           (if Binding.eq_name (sel, Binding.empty) orelse Binding.eq_name (sel, std_binding) then
             std_sel_binding m l ctr
           else
@@ -618,10 +626,11 @@ fun prepare_wrap_datatype prep_term (((no_dests, raw_ctrs), raw_case),
            (selsN, all_sel_thms, simp_attrs),
            (splitN, [split_thm], []),
            (split_asmN, [split_asm_thm], []),
+           (splitsN, [split_thm, split_asm_thm], []),
            (weak_case_cong_thmsN, [weak_case_cong_thm], cong_attrs)]
           |> filter_out (null o #2)
           |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true data_b_name (Binding.name thmN), attrs), [(thms, [])]));
+            ((qualify true (Binding.name thmN), attrs), [(thms, [])]));
 
         val notes' =
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
@@ -652,7 +661,9 @@ val parse_bound_terms = parse_bracket_list parse_bound_term;
 val parse_bound_termss = parse_bracket_list parse_bound_terms;
 
 val parse_wrap_options =
-  Scan.optional (@{keyword "("} |-- (@{keyword "no_dests"} >> K true) --| @{keyword ")"}) false;
+  Scan.optional (@{keyword "("} |-- Parse.list1 ((@{keyword "no_dests"} >> K (true, false)) ||
+      (@{keyword "rep_compat"} >> K (false, true))) --| @{keyword ")"}
+    >> (pairself (exists I) o split_list)) (false, false);
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"

@@ -11,7 +11,8 @@ theory BNF_Wrap
 imports BNF_Util
 keywords
   "wrap_data" :: thy_goal and
-  "no_dests"
+  "no_dests" and
+  "rep_compat"
 begin
 
 lemma iffI_np: "\<lbrakk>x \<Longrightarrow> \<not> y; \<not> x \<Longrightarrow> y\<rbrakk> \<Longrightarrow> \<not> x \<longleftrightarrow> y"

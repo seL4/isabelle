@@ -10,7 +10,7 @@ sig
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
       BNF_Def.BNF list -> local_theory -> BNF_FP.fp_result * local_theory) ->
-    bool * ((((typ * sort) list * binding) * mixfix) * ((((binding * binding) *
+    (bool * bool) * ((((typ * sort) list * binding) * mixfix) * ((((binding * binding) *
       (binding * typ) list) * (binding * term) list) * mixfix) list) list ->
     local_theory -> local_theory
   val parse_datatype_cmd: bool ->
@@ -144,14 +144,17 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_fp (no_dests, specs)
-    no_defs_lthy0 =
+fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_fp
+    (wrap_opts as (no_dests, rep_compat), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
     (* TODO: integration with function package ("size") *)
 
     val _ = if not lfp andalso no_dests then error "Cannot define destructor-less codatatypes"
       else ();
+
+    fun qualify mandatory fp_b_name =
+      Binding.qualify mandatory fp_b_name o (rep_compat ? Binding.qualify false rep_compat_prefix);
 
     val nn = length specs;
     val fp_bs = map type_binding_of specs;
@@ -198,7 +201,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
     val disc_bindingss = map (map disc_of) ctr_specss;
     val ctr_bindingss =
-      map2 (fn fp_b_name => map (Binding.qualify false fp_b_name o ctr_of)) fp_b_names ctr_specss;
+      map2 (fn fp_b_name => map (qualify false fp_b_name o ctr_of)) fp_b_names ctr_specss;
     val ctr_argsss = map (map args_of) ctr_specss;
     val ctr_mixfixess = map (map ctr_mixfix_of) ctr_specss;
 
@@ -424,7 +427,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           map3 (fn k => fn xs => fn tuple_x => fold_rev Term.lambda xs (ctor $
             mk_InN_balanced ctr_sum_prod_T n tuple_x k)) ks xss tuple_xs;
 
-        val case_binding = Binding.suffix_name ("_" ^ caseN) fp_b;
+        val case_binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ caseN) fp_b);
 
         val case_rhs =
           fold_rev Term.lambda (fs @ [u])
@@ -490,7 +493,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss
           in
-            wrap_datatype tacss (((no_dests, ctrs0), casex0), (disc_bindings, (sel_bindingss,
+            wrap_datatype tacss (((wrap_opts, ctrs0), casex0), (disc_bindings, (sel_bindingss,
               sel_defaultss))) lthy
           end;
 
@@ -566,7 +569,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                (setsN, flat set_thmss, code_simp_attrs)]
               |> filter_out (null o #2)
               |> map (fn (thmN, thms, attrs) =>
-                ((Binding.qualify true fp_b_name (Binding.name thmN), attrs), [(thms, [])]));
+                ((qualify true fp_b_name (Binding.name thmN), attrs), [(thms, [])]));
           in
             (wrap_res, lthy |> Local_Theory.notes notes |> snd)
           end;
@@ -578,7 +581,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             fun generate_rec_like (suf, fp_rec_like, (fss, f_Tss, xssss)) =
               let
                 val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
-                val binding = Binding.suffix_name ("_" ^ suf) fp_b;
+                val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
                     Term.list_comb (fp_rec_like,
@@ -618,7 +621,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                 pf_Tss))) =
               let
                 val res_T = fold_rev (curry (op --->)) pf_Tss B_to_fpT;
-                val binding = Binding.suffix_name ("_" ^ suf) fp_b;
+                val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
                     Term.list_comb (fp_rec_like,
@@ -820,18 +823,18 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], [induct_case_names_attr])] else [])
           |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
+            ((qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
 
         val notes =
-          [(inductN, map single induct_thms,
+          [(foldN, fold_thmss, K code_simp_attrs),
+           (inductN, map single induct_thms,
             fn T_name => [induct_case_names_attr, induct_type_attr T_name]),
-           (foldN, fold_thmss, K code_simp_attrs),
            (recN, rec_thmss, K code_simp_attrs),
            (simpsN, simp_thmss, K [])]
           |> maps (fn (thmN, thmss, attrs) =>
-            map3 (fn b => fn Type (T_name, _) => fn thms =>
-              ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs T_name),
-                [(thms, [])])) fp_bs fpTs thmss);
+            map3 (fn fp_b_name => fn Type (T_name, _) => fn thms =>
+              ((qualify true fp_b_name (Binding.name thmN), attrs T_name),
+               [(thms, [])])) fp_b_names fpTs thmss);
       in
         lthy |> Local_Theory.notes (common_notes @ notes) |> snd
       end;
@@ -1081,7 +1084,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
            else
              [])
           |> map (fn (thmN, thms, attrs) =>
-            ((Binding.qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
+            ((qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
 
         val notes =
           [(coinductN, map single coinduct_thms, []), (* FIXME: attribs *)
@@ -1096,9 +1099,9 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
            (strong_coinductN, map single strong_coinduct_thms, []), (* FIXME: attribs *)
            (unfoldN, unfold_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
-            map_filter (fn (_, []) => NONE | (b, thms) =>
-              SOME ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), attrs),
-                [(thms, [])])) (fp_bs ~~ thmss));
+            map_filter (fn (_, []) => NONE | (fp_b_name, thms) =>
+              SOME ((qualify true fp_b_name (Binding.name thmN), attrs),
+                [(thms, [])])) (fp_b_names ~~ thmss));
       in
         lthy |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
       end;
