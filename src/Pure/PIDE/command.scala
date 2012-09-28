@@ -23,7 +23,8 @@ object Command
     val results: SortedMap[Long, XML.Tree] = SortedMap.empty,
     val markup: Markup_Tree = Markup_Tree.empty)
   {
-    def markup_to_XML: XML.Body = markup.to_XML(command.source)
+    def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
+      markup.to_XML(command.range, command.source, filter)
 
 
     /* accumulate content */
