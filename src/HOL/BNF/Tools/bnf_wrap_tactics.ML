@@ -77,7 +77,7 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
     in
       (rtac udisc_exhaust THEN'
        EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' => fn uuncollapse =>
-         EVERY' [if m = 0 then K all_tac else subst_tac ctxt NONE [uuncollapse] THEN' maybe_atac,
+         EVERY' [if m = 0 then K all_tac else rtac (uuncollapse RS trans) THEN' maybe_atac,
            rtac sym, rtac vdisc_exhaust,
            EVERY' (map4 (fn k' => fn disc_excludes => fn disc_excludes' => fn vuncollapse =>
              EVERY'
@@ -85,7 +85,7 @@ fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_exclude
                   if m = 0 then
                     [hyp_subst_tac, rtac refl]
                   else
-                    [subst_tac ctxt NONE [vuncollapse], maybe_atac,
+                    [rtac (vuncollapse RS trans), maybe_atac,
                      if n = 1 then K all_tac else EVERY' [dtac meta_mp, atac, dtac meta_mp, atac],
                      REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE, asm_simp_tac (ss_only [])]
                 else
