@@ -66,11 +66,14 @@ object Markup_Tree
 
   /* XML representation */
 
-  // FIXME decode markup body
-  @tailrec private def strip_elems(markups: List[Markup], body: XML.Body): (List[Markup], XML.Body) =
+  @tailrec private def strip_elems(
+      elems: List[XML.Elem], body: XML.Body): (List[XML.Elem], XML.Body) =
     body match {
-      case List(XML.Elem(markup1, body1)) => strip_elems(markup1 :: markups, body1)
-      case _ => (markups, body)
+      case List(XML.Wrapped_Elem(markup1, body1, body2)) =>
+        strip_elems(XML.Elem(markup1, body1) :: elems, body2)
+      case List(XML.Elem(markup1, body1)) =>
+        strip_elems(XML.Elem(markup1, Nil) :: elems, body1)
+      case _ => (elems, body)
     }
 
   private def make_trees(acc: (Int, List[Markup_Tree]), tree: XML.Tree): (Int, List[Markup_Tree]) =
@@ -84,7 +87,7 @@ object Markup_Tree
         case (elems, body) =>
           val (end_offset, subtrees) = ((offset, Nil: List[Markup_Tree]) /: body)(make_trees)
           val range = Text.Range(offset, end_offset)
-          val entry = Entry(range, elems.map(XML.Elem(_, Nil)), merge_disjoint(subtrees))
+          val entry = Entry(range, elems, merge_disjoint(subtrees))
           (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
       }
     }
@@ -152,8 +155,10 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
 
     def make_elems(rev_markups: List[XML.Elem], body: XML.Body): XML.Body =
       (body /: rev_markups) {
-        case (b, elem) => // FIXME encode markup body
-          if (filter(elem)) List(XML.Elem(elem.markup, b)) else b
+        case (b, elem) =>
+          if (!filter(elem)) b
+          else if (elem.body.isEmpty) List(XML.Elem(elem.markup, b))
+          else List(XML.Wrapped_Elem(elem.markup, elem.body, b))
       }
 
     def make_body(elem_range: Text.Range, elem_markup: List[XML.Elem], entries: Branches.T)

@@ -61,8 +61,10 @@ object HTML
   {
     def html_spans(tree: XML.Tree): XML.Body =
       tree match {
-        case XML.Elem(m @ Markup(name, props), ts) =>
-          List(span(name, ts.flatMap(html_spans)))
+        case XML.Wrapped_Elem(markup, _, ts) =>
+          List(span(markup.name, ts.flatMap(html_spans)))
+        case XML.Elem(markup, ts) =>
+          List(span(markup.name, ts.flatMap(html_spans)))
         case XML.Text(txt) =>
           val ts = new ListBuffer[XML.Tree]
           val t = new StringBuilder

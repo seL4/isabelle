@@ -66,6 +66,8 @@ object Pretty
 
   def standard_format(body: XML.Body): XML.Body =
     body flatMap {
+      case XML.Wrapped_Elem(markup, body1, body2) =>
+        List(XML.Wrapped_Elem(markup, body1, standard_format(body)))
       case XML.Elem(markup, body) => List(XML.Elem(markup, standard_format(body)))
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
@@ -96,6 +98,7 @@ object Pretty
 
     def content_length(tree: XML.Tree): Double =
       tree match {
+        case XML.Wrapped_Elem(_, _, body) => (0.0 /: body)(_ + content_length(_))
         case XML.Elem(_, body) => (0.0 /: body)(_ + content_length(_))
         case XML.Text(s) => metric(s)
       }
@@ -136,13 +139,21 @@ object Pretty
           else format(ts, blockin, after, text.newline.blanks(blockin.toInt))
         case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin.toInt))
 
+        case XML.Wrapped_Elem(markup, body1, body2) :: ts =>
+          val btext = format(body2, blockin, breakdist(ts, after), text.copy(tx = Nil))
+          val ts1 = if (text.nl < btext.nl) forcenext(ts) else ts
+          val btext1 = btext.copy(tx = XML.Wrapped_Elem(markup, body1, btext.content) :: text.tx)
+          format(ts1, blockin, after, btext1)
+
         case XML.Elem(markup, body) :: ts =>
           val btext = format(body, blockin, breakdist(ts, after), text.copy(tx = Nil))
           val ts1 = if (text.nl < btext.nl) forcenext(ts) else ts
           val btext1 = btext.copy(tx = XML.Elem(markup, btext.content) :: text.tx)
           format(ts1, blockin, after, btext1)
+
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s, metric(s)))
       }
+
     format(standard_format(input), 0.0, 0.0, Text()).content
   }
 
@@ -160,6 +171,8 @@ object Pretty
         case Block(_, body) => body.flatMap(fmt)
         case Break(wd) => List(XML.Text(spaces(wd)))
         case FBreak => List(XML.Text(space))
+        case XML.Wrapped_Elem(markup, body1, body2) =>
+          List(XML.Wrapped_Elem(markup, body1, body2.flatMap(fmt)))
         case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
       }

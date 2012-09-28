@@ -123,12 +123,17 @@ object Protocol
       case XML.Elem(Markup(Isabelle_Markup.REPORT, _), _) => false
       case XML.Elem(Markup(Isabelle_Markup.NO_REPORT, _), _) => false
       case _ => true
-    } map { case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts)) case t => t }
+    } map {
+      case XML.Wrapped_Elem(markup, body, ts) => XML.Wrapped_Elem(markup, body, clean_message(ts))
+      case XML.Elem(markup, ts) => XML.Elem(markup, clean_message(ts))
+      case t => t
+    }
 
   def message_reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
       case XML.Elem(Markup(Isabelle_Markup.REPORT, ps), ts) =>
         List(XML.Elem(Markup(Isabelle_Markup.REPORT, props ::: ps), ts))
+      case XML.Wrapped_Elem(_, _, ts) => message_reports(props, ts)
       case XML.Elem(_, ts) => message_reports(props, ts)
       case XML.Text(_) => Nil
     }
@@ -175,13 +180,24 @@ object Protocol
 
   def message_positions(command: Command, message: XML.Elem): Set[Text.Range] =
   {
+    def elem_positions(raw_range: Text.Range, set: Set[Text.Range], body: XML.Body)
+      : Set[Text.Range] =
+    {
+      val range = command.decode(raw_range).restrict(command.range)
+      body.foldLeft(if (range.is_singularity) set else set + range)(positions)
+    }
     def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
-        case XML.Elem(Markup(name, Position.Id_Range(id, raw_range)), body)
-        if include_pos(name) && id == command.id =>
-          val range = command.decode(raw_range).restrict(command.range)
-          body.foldLeft(if (range.is_singularity) set else set + range)(positions)
-        case XML.Elem(Markup(name, _), body) => body.foldLeft(set)(positions)
+        case XML.Wrapped_Elem(Markup(name, Position.Id_Range(id, range)), _, body)
+        if include_pos(name) && id == command.id => elem_positions(range, set, body)
+
+        case XML.Elem(Markup(name, Position.Id_Range(id, range)), body)
+        if include_pos(name) && id == command.id => elem_positions(range, set, body)
+
+        case XML.Wrapped_Elem(_, _, body) => body.foldLeft(set)(positions)
+
+        case XML.Elem(_, body) => body.foldLeft(set)(positions)
+
         case _ => set
       }
     val set = positions(Set.empty, message)

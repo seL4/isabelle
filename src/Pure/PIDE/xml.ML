@@ -33,6 +33,8 @@ sig
       Elem of (string * attributes) * tree list
     | Text of string
   type body = tree list
+  val wrap_elem: ((string * attributes) * tree list) * tree list -> tree
+  val unwrap_elem: tree -> (((string * attributes) * tree list) * tree list) option
   val add_content: tree -> Buffer.T -> Buffer.T
   val content_of: body -> string
   val header: string
@@ -66,8 +68,31 @@ datatype tree =
 
 type body = tree list;
 
-fun add_content (Elem (_, ts)) = fold add_content ts
-  | add_content (Text s) = Buffer.add s;
+
+(* wrapped elements *)
+
+val xml_elemN = "xml_elem";
+val xml_nameN = "xml_name";
+val xml_bodyN = "xml_body";
+
+fun wrap_elem (((a, atts), body1), body2) =
+  Elem ((xml_elemN, (xml_nameN, a) :: atts), Elem ((xml_bodyN, []), body1) :: body2);
+
+fun unwrap_elem (Elem ((name, (n, a) :: atts), Elem ((name', atts'), body1) :: body2)) =
+      if name = xml_elemN andalso n = xml_nameN andalso name' = xml_bodyN andalso null atts'
+      then SOME (((a, atts), body1), body2) else NONE
+  | unwrap_elem _ = NONE;
+
+
+(* text context *)
+
+fun add_content tree =
+  (case unwrap_elem tree of
+    SOME (_, ts) => fold add_content ts
+  | NONE =>
+      (case tree of
+        Elem (_, ts) => fold add_content ts
+      | Text s => Buffer.add s));
 
 fun content_of body = Buffer.empty |> fold add_content body |> Buffer.content;
 
