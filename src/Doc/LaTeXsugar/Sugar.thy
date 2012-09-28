@@ -525,6 +525,16 @@ like this:
 \end{quote}
 The \texttt{isabelle} environment is the one defined in the standard file
 \texttt{isabelle.sty} which most likely you are loading anyway.
+
+
+\section{Antiquotation}
+
+You want to show a constant and its type? Instead of going
+\verb!@!\verb!{const myconst}! \verb!@!\verb!{text "::"}! \verb!@!\verb!{typeof myconst}!,
+you can just write \verb!@!\verb!{const_typ myconst}! using the new antiquotation
+\texttt{const\_typ} defined in \texttt{LaTeXsugar}. For example,
+\verb!@!\verb!{const_typ length}! produces @{const_typ length}.
+
 *}
 
 (*<*)
