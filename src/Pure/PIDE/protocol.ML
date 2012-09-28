@@ -60,6 +60,7 @@ val _ =
               |> YXML.string_of_body);
 
         val _ = Goal.cancel_futures ();
+        val _ = Isabelle_Process.reset_tracing_limits ();
         val _ = Document.start_execution state';
       in state' end));
 

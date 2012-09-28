@@ -478,6 +478,8 @@ object Document
       }
     }
 
+    def markup_to_XML(version: Version, node: Node, filter: XML.Elem => Boolean): XML.Body =
+      node.commands.toList.map(cmd => command_state(version, cmd).markup_to_XML(filter)).flatten
 
     // persistent user-view
     def snapshot(name: Node.Name = Node.Name.empty, pending_edits: List[Text.Edit] = Nil)

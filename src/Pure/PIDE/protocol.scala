@@ -166,15 +166,6 @@ object Protocol
       case _ => false
     }
 
-  object Sendback
-  {
-    def unapply(msg: Any): Option[XML.Body] =
-      msg match {
-        case XML.Elem(Markup(Isabelle_Markup.SENDBACK, _), body) => Some(body)
-        case _ => None
-      }
-  }
-
 
   /* reported positions */
 

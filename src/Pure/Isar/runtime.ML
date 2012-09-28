@@ -76,6 +76,7 @@ fun exn_messages exn_position e =
             | TOPLEVEL_ERROR => "Error"
             | ERROR msg => msg
             | Fail msg => raised exn "Fail" [msg]
+            | Output.TRACING_LIMIT n => "Tracing limit exceeded: " ^ string_of_int n
             | THEORY (msg, thys) =>
                 raised exn "THEORY" (msg :: map Context.str_of_thy thys)
             | Ast.AST (msg, asts) =>
