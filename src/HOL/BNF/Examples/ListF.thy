@@ -12,29 +12,10 @@ theory ListF
 imports "../BNF"
 begin
 
-data_raw listF: 'list = "unit + 'a \<times> 'list"
-
-definition "NilF = listF_ctor (Inl ())"
-definition "Conss a as \<equiv> listF_ctor (Inr (a, as))"
-
-lemma listF_map_NilF[simp]: "listF_map f NilF = NilF"
-unfolding listF_map_def pre_listF_map_def NilF_def listF.ctor_fold by simp
-
-lemma listF_map_Conss[simp]:
-  "listF_map f (Conss x xs) = Conss (f x) (listF_map f xs)"
-unfolding listF_map_def pre_listF_map_def Conss_def listF.ctor_fold by simp
-
-lemma listF_set_NilF[simp]: "listF_set NilF = {}"
-unfolding listF_set_def NilF_def listF.ctor_fold pre_listF_set1_def pre_listF_set2_def
-  sum_set_defs pre_listF_map_def collect_def[abs_def] by simp
-
-lemma listF_set_Conss[simp]: "listF_set (Conss x xs) = {x} \<union> listF_set xs"
-unfolding listF_set_def Conss_def listF.ctor_fold pre_listF_set1_def pre_listF_set2_def
-  sum_set_defs prod_set_defs pre_listF_map_def collect_def[abs_def] by simp
+data (rep_compat) 'a listF = NilF | Conss 'a "'a listF"
 
 lemma fold_sum_case_NilF: "listF_ctor_fold (sum_case f g) NilF = f ()"
 unfolding NilF_def listF.ctor_fold pre_listF_map_def by simp
-
 
 lemma fold_sum_case_Conss:
   "listF_ctor_fold (sum_case f g) (Conss y ys) = g (y, listF_ctor_fold (sum_case f g) ys)"
