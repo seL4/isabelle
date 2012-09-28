@@ -1125,7 +1125,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         fun mk_rel_eq () =
           unfold_thms lthy (bnf_srel_def :: mem_Collect_etc')
-            (Lazy.force srel_Id RS @{thm arg_cong[of _ _ "%A x y. (x, y) : A"]});
+            (Lazy.force srel_Id RS @{thm arg_cong[of _ _ "%A x y. (x, y) : A"]})
+          |> Drule.eta_contraction_rule;
 
         val rel_eq = Lazy.lazy mk_rel_eq;
 
