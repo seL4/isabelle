@@ -644,16 +644,16 @@ let
       Const (@{syntax_const "_bound"}, _) $ Free (v', _) => v = v'
     | _ => false);
   fun contains_var v = Term.exists_subterm (fn Free (x, _) => x = v | _ => false);
-  fun mk v c n P = Syntax.const c $ Syntax_Trans.mark_bound v $ n $ P;
+  fun mk x c n P = Syntax.const c $ Syntax_Trans.mark_bound_body x $ n $ P;
 
   fun tr' q = (q,
-    fn [Const (@{syntax_const "_bound"}, _) $ Free (v, _),
+    fn [Const (@{syntax_const "_bound"}, _) $ Free (v, T),
         Const (c, _) $ (Const (d, _) $ t $ u) $ P] =>
         (case AList.lookup (op =) trans (q, c, d) of
           NONE => raise Match
         | SOME (l, g) =>
-            if matches_bound v t andalso not (contains_var v u) then mk v l u P
-            else if matches_bound v u andalso not (contains_var v t) then mk v g t P
+            if matches_bound v t andalso not (contains_var v u) then mk (v, T) l u P
+            else if matches_bound v u andalso not (contains_var v t) then mk (v, T) g t P
             else raise Match)
      | _ => raise Match);
 in [tr' All_binder, tr' Ex_binder] end

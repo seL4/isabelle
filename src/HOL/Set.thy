@@ -270,17 +270,17 @@ let
     ((Ex_binder, conj, sbset), @{syntax_const "_setlessEx"}),
     ((Ex_binder, conj, sbset_eq), @{syntax_const "_setleEx"})];
 
-  fun mk v v' c n P =
+  fun mk v (v', T) c n P =
     if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
-    then Syntax.const c $ Syntax_Trans.mark_bound v' $ n $ P else raise Match;
+    then Syntax.const c $ Syntax_Trans.mark_bound_body (v', T) $ n $ P else raise Match;
 
   fun tr' q = (q,
         fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (@{type_name set}, _)),
             Const (c, _) $
-              (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', _)) $ n) $ P] =>
+              (Const (d, _) $ (Const (@{syntax_const "_bound"}, _) $ Free (v', T)) $ n) $ P] =>
             (case AList.lookup (op =) trans (q, c, d) of
               NONE => raise Match
-            | SOME l => mk v v' l n P)
+            | SOME l => mk v (v', T) l n P)
          | _ => raise Match);
 in
   [tr' All_binder, tr' Ex_binder]

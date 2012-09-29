@@ -451,12 +451,12 @@ fun case_tr' cname ctxt ts =
         let val xs = Term.add_frees pat [] in
           Syntax.const @{syntax_const "_case1"} $
             map_aterms
-              (fn Free p => Syntax_Trans.mark_boundT p
+              (fn Free p => Syntax_Trans.mark_bound_abs p
                 | Const (s, _) => Syntax.const (Lexicon.mark_const s)
                 | t => t) pat $
             map_aterms
-              (fn x as Free (s, T) =>
-                  if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
+              (fn x as Free v =>
+                  if member (op =) xs v then Syntax_Trans.mark_bound_body v else x
                 | t => t) rhs
         end;
     in

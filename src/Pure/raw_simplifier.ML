@@ -302,7 +302,7 @@ fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
   let
     val names = Term.declare_term_names t Name.context;
     val xs = rev (#1 (fold_map Name.variant (rev (map #2 bs)) names));
-    fun subst (((b, T), _), x') = (Free (b, T), Syntax_Trans.mark_boundT (x', T));
+    fun subst (((b, T), _), x') = (Free (b, T), Syntax_Trans.mark_bound_abs (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 
 fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^

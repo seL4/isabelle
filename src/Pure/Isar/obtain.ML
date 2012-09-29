@@ -232,7 +232,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
       handle Type.TUNIFY =>
         err ("Failed to unify variable " ^
           string_of_term (Free (x, Envir.norm_type tyenv T)) ^ " against parameter " ^
-          string_of_term (Syntax_Trans.mark_boundT (y, Envir.norm_type tyenv U)) ^ " in") rule;
+          string_of_term (Syntax_Trans.mark_bound_abs (y, Envir.norm_type tyenv U)) ^ " in") rule;
     val (tyenv, _) = fold unify (map #1 vars ~~ take m params)
       (Vartab.empty, Int.max (maxidx, Thm.maxidx_of rule));
     val norm_type = Envir.norm_type tyenv;

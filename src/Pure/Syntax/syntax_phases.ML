@@ -550,8 +550,12 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
           Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Syntax.var xi) T) (map ast_of ts)
-      | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
+      | ((c as Const ("_bound", B)), Free (x, T) :: ts) =>
+          let
+            val X =
+              if show_markup andalso not show_types orelse B <> dummyT then T
+              else dummyT;
+          in Ast.mk_appl (constrain (c $ Syntax.free x) X) (map ast_of ts) end
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
       | (const as Const (c, T), ts) =>

@@ -30,8 +30,8 @@ sig
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val eta_contract_default: bool Unsynchronized.ref
   val eta_contract_raw: Config.raw
-  val mark_bound: string -> term
-  val mark_boundT: string * typ -> term
+  val mark_bound_abs: string * typ -> term
+  val mark_bound_body: string * typ -> term
   val bound_vars: (string * typ) list -> term -> term
   val abs_tr': Proof.context -> term -> term
   val atomic_abs_tr': string * typ * term -> term * term
@@ -312,11 +312,11 @@ fun eta_contr ctxt tm =
 
 (* abstraction *)
 
-fun mark_boundT (x, T) = Const ("_bound", T --> T) $ Free (x, T);
-fun mark_bound x = mark_boundT (x, dummyT);
+fun mark_bound_abs (x, T) = Const ("_bound", T --> T) $ Free (x, T);
+fun mark_bound_body (x, T) = Const ("_bound", dummyT) $ Free (x, T);
 
 fun bound_vars vars body =
-  subst_bounds (map mark_boundT (Term.rename_wrt_term body vars), body);
+  subst_bounds (map mark_bound_abs (Term.rename_wrt_term body vars), body);
 
 fun strip_abss vars_of body_of tm =
   let
@@ -326,7 +326,7 @@ fun strip_abss vars_of body_of tm =
     fun subst (x, T) b =
       if can Name.dest_internal x andalso not (Term.is_dependent b)
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
-      else (mark_boundT (x, T), Term.subst_bound (mark_bound x, b));
+      else (mark_bound_abs (x, T), Term.subst_bound (mark_bound_body (x, T), b));
     val (rev_vars', body') = fold_map subst rev_new_vars body;
   in (rev rev_vars', body') end;
 
@@ -337,7 +337,7 @@ fun abs_tr' ctxt tm =
 
 fun atomic_abs_tr' (x, T, t) =
   let val [xT] = Term.rename_wrt_term t [(x, T)]
-  in (mark_boundT xT, subst_bound (mark_bound (fst xT), t)) end;
+  in (mark_bound_abs xT, subst_bound (mark_bound_body xT, t)) end;
 
 fun abs_ast_tr' asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
@@ -437,12 +437,12 @@ fun var_abs mark (x, T, b) =
   in (x', subst_bound (mark (x', T), b)) end;
 
 val variant_abs = var_abs Free;
-val variant_abs' = var_abs mark_boundT;
+val variant_abs' = var_abs mark_bound_abs;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if Term.is_dependent B then
         let val (x', B') = variant_abs' (x, dummyT, B);
-        in Term.list_comb (Syntax.const q $ mark_boundT (x', T) $ A $ B', ts) end
+        in Term.list_comb (Syntax.const q $ mark_bound_abs (x', T) $ A $ B', ts) end
       else Term.list_comb (Syntax.const r $ A $ incr_boundvars ~1 B, ts)
   | dependent_tr' _ _ = raise Match;
 
