@@ -30,37 +30,43 @@ fun special ch = chr 1 ^ ch;
 local
 
 fun render_trees ts = fold render_tree ts
-and render_tree (XML.Text s) = Buffer.add s
-  | render_tree (XML.Elem ((name, props), ts)) =
-      let
-        val (bg1, en1) =
-          if name <> Isabelle_Markup.promptN andalso print_mode_active test_markupN
-          then XML.output_markup (name, props)
-          else Markup.no_output;
-        val (bg2, en2) =
-          if null ts then Markup.no_output
-          else if name = Isabelle_Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
-          else if name = Isabelle_Markup.sendbackN then (special "W", special "X")
-          else if name = Isabelle_Markup.intensifyN then (special "0", special "1")
-          else if name = Isabelle_Markup.tfreeN then (special "C", special "A")
-          else if name = Isabelle_Markup.tvarN then (special "D", special "A")
-          else if name = Isabelle_Markup.freeN then (special "E", special "A")
-          else if name = Isabelle_Markup.boundN then (special "F", special "A")
-          else if name = Isabelle_Markup.varN then (special "G", special "A")
-          else if name = Isabelle_Markup.skolemN then (special "H", special "A")
-          else
-            (case Isabelle_Markup.get_entity_kind (name, props) of
-              SOME kind =>
-                if kind = Isabelle_Markup.classN then (special "B", special "A")
-                else Markup.no_output
-            | NONE => Markup.no_output);
-      in
-        Buffer.add bg1 #>
-        Buffer.add bg2 #>
-        render_trees ts #>
-        Buffer.add en2 #>
-        Buffer.add en1
-      end;
+
+and render_tree t =
+  (case XML.unwrap_elem t of
+    SOME (_, ts) => render_trees ts
+  | NONE =>
+      (case t of
+        XML.Text s => Buffer.add s
+      | XML.Elem ((name, props), ts) =>
+          let
+            val (bg1, en1) =
+              if name <> Isabelle_Markup.promptN andalso print_mode_active test_markupN
+              then XML.output_markup (name, props)
+              else Markup.no_output;
+            val (bg2, en2) =
+              if null ts then Markup.no_output
+              else if name = Isabelle_Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
+              else if name = Isabelle_Markup.sendbackN then (special "W", special "X")
+              else if name = Isabelle_Markup.intensifyN then (special "0", special "1")
+              else if name = Isabelle_Markup.tfreeN then (special "C", special "A")
+              else if name = Isabelle_Markup.tvarN then (special "D", special "A")
+              else if name = Isabelle_Markup.freeN then (special "E", special "A")
+              else if name = Isabelle_Markup.boundN then (special "F", special "A")
+              else if name = Isabelle_Markup.varN then (special "G", special "A")
+              else if name = Isabelle_Markup.skolemN then (special "H", special "A")
+              else
+                (case Isabelle_Markup.get_entity_kind (name, props) of
+                  SOME kind =>
+                    if kind = Isabelle_Markup.classN then (special "B", special "A")
+                    else Markup.no_output
+                | NONE => Markup.no_output);
+          in
+            Buffer.add bg1 #>
+            Buffer.add bg2 #>
+            render_trees ts #>
+            Buffer.add en2 #>
+            Buffer.add en1
+          end));
 
 in
 
