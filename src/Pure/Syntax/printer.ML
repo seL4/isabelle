@@ -11,6 +11,7 @@ sig
   val show_sorts: bool Config.T
   val show_free_types: bool Config.T
   val show_all_types: bool Config.T
+  val show_markup: bool Config.T
   val show_structs: bool Config.T
   val show_question_marks: bool Config.T
   val pretty_priority: int Config.T
@@ -25,6 +26,8 @@ sig
   val show_types_raw: Config.raw
   val show_sorts_default: bool Unsynchronized.ref
   val show_sorts_raw: Config.raw
+  val show_markup_default: bool Unsynchronized.ref
+  val show_markup_raw: Config.raw
   val show_structs_raw: Config.raw
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_raw: Config.raw
@@ -64,6 +67,10 @@ val show_sorts = Config.bool show_sorts_raw;
 
 val show_free_types = Config.bool (Config.declare "show_free_types" (fn _ => Config.Bool true));
 val show_all_types = Config.bool (Config.declare "show_all_types" (fn _ => Config.Bool false));
+
+val show_markup_default = Unsynchronized.ref false;
+val show_markup_raw = Config.declare "show_markup" (fn _ => Config.Bool (! show_markup_default));
+val show_markup = Config.bool show_markup_raw;
 
 val show_structs_raw = Config.declare "show_structs" (fn _ => Config.Bool false);
 val show_structs = Config.bool show_structs_raw;

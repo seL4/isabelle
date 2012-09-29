@@ -519,6 +519,7 @@ val _ = Context.>> (Context.map_theory
   register_config Printer.show_brackets_raw #>
   register_config Printer.show_sorts_raw #>
   register_config Printer.show_types_raw #>
+  register_config Printer.show_markup_raw #>
   register_config Printer.show_structs_raw #>
   register_config Printer.show_question_marks_raw #>
   register_config Syntax.ambiguity_warning_raw #>

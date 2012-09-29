@@ -67,7 +67,7 @@ object Pretty
   def standard_format(body: XML.Body): XML.Body =
     body flatMap {
       case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(XML.Wrapped_Elem(markup, body1, standard_format(body)))
+        List(XML.Wrapped_Elem(markup, body1, standard_format(body2)))
       case XML.Elem(markup, body) => List(XML.Elem(markup, standard_format(body)))
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }

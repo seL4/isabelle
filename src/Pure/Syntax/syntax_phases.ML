@@ -499,6 +499,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     val show_structs = Config.get ctxt show_structs;
     val show_free_types = Config.get ctxt show_free_types;
     val show_all_types = Config.get ctxt show_all_types;
+    val show_markup = Config.get ctxt show_markup;
 
     val {structs, fixes} = idents;
 
@@ -563,14 +564,14 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
       handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and constrain t T =
-      if show_types andalso T <> dummyT then
+      if (show_types orelse show_markup) andalso T <> dummyT then
         Ast.Appl [Ast.Constant "_constrain", simple_ast_of ctxt t,
           ast_of_termT ctxt trf (term_of_typ ctxt T)]
       else simple_ast_of ctxt t;
   in
     tm
     |> Syntax_Trans.prop_tr'
-    |> show_types ? (#1 o prune_typs o rpair [])
+    |> (show_types andalso not show_markup) ? (#1 o prune_typs o rpair [])
     |> mark_atoms
     |> ast_of
   end;
@@ -601,9 +602,26 @@ fun var_or_skolem s =
       | SOME x' => (Isabelle_Markup.skolem, Term.string_of_vname (x', i)))
   | NONE => (Isabelle_Markup.var, s));
 
+val typing_elem = YXML.output_markup_elem Isabelle_Markup.typing;
+
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
+    val show_markup = Config.get ctxt show_markup;
+
     val syn = Proof_Context.syn_of ctxt;
+    val prtabs = Syntax.prtabs syn;
+    val trf = Syntax.print_ast_translation syn;
+
+    fun markup_extern c =
+      (case Syntax.lookup_const syn c of
+        SOME "" => ([], c)
+      | SOME b => markup_extern b
+      | NONE => c |> Lexicon.unmark
+         {case_class = fn x => (markup_class ctxt x, Proof_Context.extern_class ctxt x),
+          case_type = fn x => (markup_type ctxt x, Proof_Context.extern_type ctxt x),
+          case_const = fn x => (markup_const ctxt x, Proof_Context.extern_const ctxt x),
+          case_fixed = fn x => free_or_skolem ctxt x,
+          case_default = fn x => ([], x)});
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Isabelle_Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Isabelle_Markup.tvar, x))
@@ -616,23 +634,26 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       | token_trans _ _ = NONE;
 
     fun markup_trans a [Ast.Variable x] = token_trans a x
-      | markup_trans _ _ = NONE;
+      | markup_trans "_constrain" [t, ty] =
+          if show_markup then
+            let
+              val ((bg1, bg2), en) = typing_elem;
+              val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
+            in SOME (Pretty.raw_markup (bg, en) (0, [pretty_ast Markup.empty t])) end
+          else NONE
+      | markup_trans _ _ = NONE
 
-    fun markup_extern c =
-      (case Syntax.lookup_const syn c of
-        SOME "" => ([], c)
-      | SOME b => markup_extern b
-      | NONE => c |> Lexicon.unmark
-         {case_class = fn x => (markup_class ctxt x, Proof_Context.extern_class ctxt x),
-          case_type = fn x => (markup_type ctxt x, Proof_Context.extern_type ctxt x),
-          case_const = fn x => (markup_const ctxt x, Proof_Context.extern_const ctxt x),
-          case_fixed = fn x => free_or_skolem ctxt x,
-          case_default = fn x => ([], x)});
+    and pretty_typ_ast m ast = ast
+      |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans markup_extern
+      |> Pretty.markup m
+
+    and pretty_ast m ast = ast
+      |> prt_t ctxt prtabs trf markup_trans markup_extern
+      |> Pretty.markup m;
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> prt_t ctxt (Syntax.prtabs syn) (Syntax.print_ast_translation syn) markup_trans markup_extern
-    |> Pretty.markup markup
+    |> pretty_ast markup
   end;
 
 in
