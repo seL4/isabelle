@@ -571,7 +571,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
   in
     tm
     |> Syntax_Trans.prop_tr'
-    |> (show_types andalso not show_markup) ? (#1 o prune_typs o rpair [])
+    |> show_types ? (#1 o prune_typs o rpair [])
     |> mark_atoms
     |> ast_of
   end;
@@ -606,6 +606,9 @@ val typing_elem = YXML.output_markup_elem Isabelle_Markup.typing;
 
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
+    val show_types =
+      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
+      Config.get ctxt show_all_types;
     val show_markup = Config.get ctxt show_markup;
 
     val syn = Proof_Context.syn_of ctxt;
@@ -635,7 +638,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
 
     fun markup_trans a [Ast.Variable x] = token_trans a x
       | markup_trans "_constrain" [t, ty] =
-          if show_markup then
+          if not show_types andalso show_markup then
             let
               val ((bg1, bg2), en) = typing_elem;
               val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
