@@ -312,7 +312,7 @@ lemma linear_setsum_mul:
 lemma linear_injective_0:
   assumes lf: "linear f"
   shows "inj f \<longleftrightarrow> (\<forall>x. f x = 0 \<longrightarrow> x = 0)"
-proof-
+proof -
   have "inj f \<longleftrightarrow> (\<forall> x y. f x = f y \<longrightarrow> x = y)" by (simp add: inj_on_def)
   also have "\<dots> \<longleftrightarrow> (\<forall> x y. f x - f y = 0 \<longrightarrow> x - y = 0)" by simp
   also have "\<dots> \<longleftrightarrow> (\<forall> x y. f (x - y) = 0 \<longrightarrow> x - y = 0)"
@@ -328,6 +328,7 @@ definition "bilinear f \<longleftrightarrow> (\<forall>x. linear(\<lambda>y. f x
 
 lemma bilinear_ladd: "bilinear h ==> h (x + y) z = (h x z) + (h y z)"
   by (simp add: bilinear_def linear_def)
+
 lemma bilinear_radd: "bilinear h ==> h x (y + z) = (h x y) + (h x z)"
   by (simp add: bilinear_def linear_def)
 
@@ -346,13 +347,11 @@ lemma bilinear_rneg: "bilinear h ==> h x (- y) = - h x y"
 lemma  (in ab_group_add) eq_add_iff: "x = x + y \<longleftrightarrow> y = 0"
   using add_imp_eq[of x y 0] by auto
 
-lemma bilinear_lzero:
-  assumes bh: "bilinear h" shows "h 0 x = 0"
-  using bilinear_ladd[OF bh, of 0 0 x] by (simp add: eq_add_iff field_simps)
+lemma bilinear_lzero: assumes "bilinear h" shows "h 0 x = 0"
+  using bilinear_ladd [OF assms, of 0 0 x] by (simp add: eq_add_iff field_simps)
 
-lemma bilinear_rzero:
-  assumes bh: "bilinear h" shows "h x 0 = 0"
-  using bilinear_radd[OF bh, of x 0 0 ] by (simp add: eq_add_iff field_simps)
+lemma bilinear_rzero: assumes "bilinear h" shows "h x 0 = 0"
+  using bilinear_radd [OF assms, of x 0 0 ] by (simp add: eq_add_iff field_simps)
 
 lemma bilinear_lsub: "bilinear h ==> h (x - y) z = h x z - h y z"
   by (simp  add: diff_minus bilinear_ladd bilinear_lneg)
@@ -361,7 +360,9 @@ lemma bilinear_rsub: "bilinear h ==> h z (x - y) = h z x - h z y"
   by (simp  add: diff_minus bilinear_radd bilinear_rneg)
 
 lemma bilinear_setsum:
-  assumes bh: "bilinear h" and fS: "finite S" and fT: "finite T"
+  assumes bh: "bilinear h"
+    and fS: "finite S"
+    and fT: "finite T"
   shows "h (setsum f S) (setsum g T) = setsum (\<lambda>(i,j). h (f i) (g j)) (S \<times> T) "
 proof -
   have "h (setsum f S) (setsum g T) = setsum (\<lambda>x. h (f x) (setsum g T)) S"
@@ -886,7 +887,7 @@ text {* Hence some "reversal" results. *}
 lemma in_span_insert:
   assumes a: "a \<in> span (insert b S)" and na: "a \<notin> span S"
   shows "b \<in> span (insert a S)"
-proof-
+proof -
   from span_breakdown[of b "insert b S" a, OF insertI1 a]
   obtain k where k: "a - k*\<^sub>R b \<in> span (S - {b})" by auto
   { assume k0: "k = 0"
@@ -952,7 +953,7 @@ text {* An explicit expansion is sometimes needed. *}
 lemma span_explicit:
   "span P = {y. \<exists>S u. finite S \<and> S \<subseteq> P \<and> setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
   (is "_ = ?E" is "_ = {y. ?h y}" is "_ = {y. \<exists>S u. ?Q S u y}")
-proof-
+proof -
   { fix x assume x: "x \<in> ?E"
     then obtain S u where fS: "finite S" and SP: "S\<subseteq>P" and u: "setsum (\<lambda>v. u v *\<^sub>R v) S = x"
       by blast
@@ -1138,8 +1139,8 @@ lemma spanning_subset_independent:
     and AsB: "A \<subseteq> span B"
   shows "A = B"
 proof
-  from BA show "B \<subseteq> A" .
-next
+  show "B \<subseteq> A" by (rule BA)
+
   from span_mono[OF BA] span_mono[OF AsB]
   have sAB: "span A = span B" unfolding span_span by blast
 
@@ -1164,7 +1165,7 @@ lemma exchange_lemma:
   assumes f:"finite t" and i: "independent s"
     and sp:"s \<subseteq> span t"
   shows "\<exists>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
-using f i sp
+  using f i sp
 proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
   case less
   note ft = `finite t` and s = `independent s` and sp = `s \<subseteq> span t`
@@ -1255,11 +1256,12 @@ qed
 subsection{* Euclidean Spaces as Typeclass*}
 
 lemma independent_eq_inj_on:
-  fixes D :: nat and f :: "nat \<Rightarrow> 'c::real_vector"
-  assumes *: "inj_on f {..<D}"
+  fixes D :: nat
+    and f :: "nat \<Rightarrow> 'c::real_vector"
+  assumes "inj_on f {..<D}"
   shows "independent (f ` {..<D}) \<longleftrightarrow> (\<forall>a u. a < D \<longrightarrow> (\<Sum>i\<in>{..<D}-{a}. u (f i) *\<^sub>R f i) \<noteq> f a)"
 proof -
-  from * have eq: "\<And>i. i < D \<Longrightarrow> f ` {..<D} - {f i} = f`({..<D} - {i})"
+  from assms have eq: "\<And>i. i < D \<Longrightarrow> f ` {..<D} - {f i} = f`({..<D} - {i})"
     and inj: "\<And>i. inj_on f ({..<D} - {i})"
     by (auto simp: inj_on_def)
   have *: "\<And>i. finite (f ` {..<D} - {i})" by simp
@@ -1267,8 +1269,7 @@ proof -
     by (auto simp: eq setsum_reindex[OF inj])
 qed
 
-lemma independent_basis:
-  "independent (basis ` {..<DIM('a)} :: 'a::euclidean_space set)"
+lemma independent_basis: "independent (basis ` {..<DIM('a)} :: 'a::euclidean_space set)"
   unfolding independent_eq_inj_on [OF basis_inj]
   apply clarify
   apply (drule_tac f="inner (basis a)" in arg_cong)
@@ -1276,14 +1277,13 @@ lemma independent_basis:
   done
 
 lemma (in euclidean_space) range_basis:
-    "range basis = insert 0 (basis ` {..<DIM('a)})"
+  "range basis = insert 0 (basis ` {..<DIM('a)})"
 proof -
   have *: "UNIV = {..<DIM('a)} \<union> {DIM('a)..}" by auto
   show ?thesis unfolding * image_Un basis_finite by auto
 qed
 
-lemma (in euclidean_space) range_basis_finite[intro]:
-    "finite (range basis)"
+lemma (in euclidean_space) range_basis_finite[intro]: "finite (range basis)"
   unfolding range_basis by auto
 
 lemma span_basis: "span (range basis) = (UNIV :: 'a::euclidean_space set)"
@@ -1306,10 +1306,15 @@ proof -
 qed
 
 lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = UNIV"
-  apply(subst span_basis[symmetric]) unfolding range_basis apply auto done
+  apply(subst span_basis[symmetric])
+  unfolding range_basis
+  apply auto
+  done
 
 lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = DIM('a)"
-  apply(subst card_image) using basis_inj apply auto done
+  apply (subst card_image)
+  using basis_inj apply auto
+  done
 
 lemma in_span_basis: "(x::'a::euclidean_space) \<in> span (basis ` {..<DIM('a)})"
   unfolding span_basis' ..
@@ -1338,7 +1343,7 @@ proof -
     by (rule setsum_commute)
   have th1: "2 * ?d * e = of_nat (card ?U) * (2 * e)" by (simp add: real_of_nat_def)
   have "setsum ?nf P \<le> setsum (\<lambda>x. setsum (\<lambda>i. \<bar>f x $$ i\<bar>) ?U) P"
-    apply (rule setsum_mono)    by (rule norm_le_l1)
+    by (rule setsum_mono) (rule norm_le_l1)
   also have "\<dots> \<le> 2 * ?d * e"
     unfolding th0 th1
   proof (rule setsum_bounded)
@@ -1369,7 +1374,7 @@ lemma choice_iff': "(\<forall>x<d. \<exists>y. P x y) \<longleftrightarrow> (\<e
 
 lemma lambda_skolem': "(\<forall>i<DIM('a::euclidean_space). \<exists>x. P i x) \<longleftrightarrow>
    (\<exists>x::'a. \<forall>i<DIM('a). P i (x$$i))" (is "?lhs \<longleftrightarrow> ?rhs")
-proof-
+proof -
   let ?S = "{..<DIM('a)}"
   { assume H: "?rhs"
     then have ?lhs by auto }
@@ -1399,18 +1404,20 @@ proof -
   { fix x:: "'a"
     let ?g = "(\<lambda> i. (x$$i) *\<^sub>R (basis i) :: 'a)"
     have "norm (f x) = norm (f (setsum (\<lambda>i. (x$$i) *\<^sub>R (basis i)) ?S))"
-      apply(subst euclidean_representation[of x]) apply rule done
+      apply (subst euclidean_representation[of x])
+      apply rule
+      done
     also have "\<dots> = norm (setsum (\<lambda> i. (x$$i) *\<^sub>R f (basis i)) ?S)"
       using linear_setsum[OF lf fS, of ?g, unfolded o_def] linear_cmul[OF lf] by auto
     finally have th0: "norm (f x) = norm (setsum (\<lambda>i. (x$$i) *\<^sub>R f (basis i))?S)" .
     { fix i assume i: "i \<in> ?S"
       from component_le_norm[of x i]
       have "norm ((x$$i) *\<^sub>R f (basis i :: 'a)) \<le> norm (f (basis i)) * norm x"
-      unfolding norm_scaleR
-      apply (simp only: mult_commute)
-      apply (rule mult_mono)
-      apply (auto simp add: field_simps)
-      done }
+        unfolding norm_scaleR
+        apply (simp only: mult_commute)
+        apply (rule mult_mono)
+        apply (auto simp add: field_simps)
+        done }
     then have th: "\<forall>i\<in> ?S. norm ((x$$i) *\<^sub>R f (basis i :: 'a)) \<le> norm (f (basis i)) * norm x"
       by metis
     from setsum_norm_le[of _ "\<lambda>i. (x$$i) *\<^sub>R (f (basis i))", OF th]
@@ -1422,28 +1429,27 @@ lemma linear_bounded_pos:
   fixes f:: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes lf: "linear f"
   shows "\<exists>B > 0. \<forall>x. norm (f x) \<le> B * norm x"
-proof-
+proof -
   from linear_bounded[OF lf] obtain B where
     B: "\<forall>x. norm (f x) \<le> B * norm x" by blast
   let ?K = "\<bar>B\<bar> + 1"
   have Kp: "?K > 0" by arith
-    { assume C: "B < 0"
-      have "((\<chi>\<chi> i. 1)::'a) \<noteq> 0" unfolding euclidean_eq[where 'a='a]
-        by(auto intro!:exI[where x=0])
-      then have "norm ((\<chi>\<chi> i. 1)::'a) > 0" by auto
-      with C have "B * norm ((\<chi>\<chi> i. 1)::'a) < 0"
-        by (simp add: mult_less_0_iff)
-      with B[rule_format, of "(\<chi>\<chi> i. 1)::'a"] norm_ge_zero[of "f ((\<chi>\<chi> i. 1)::'a)"] have False by simp
-    }
-    then have Bp: "B \<ge> 0" by (metis not_leE)
-    { fix x::"'a"
-      have "norm (f x) \<le> ?K *  norm x"
+  { assume C: "B < 0"
+    have "((\<chi>\<chi> i. 1)::'a) \<noteq> 0" unfolding euclidean_eq[where 'a='a]
+      by(auto intro!:exI[where x=0])
+    then have "norm ((\<chi>\<chi> i. 1)::'a) > 0" by auto
+    with C have "B * norm ((\<chi>\<chi> i. 1)::'a) < 0"
+      by (simp add: mult_less_0_iff)
+    with B[rule_format, of "(\<chi>\<chi> i. 1)::'a"] norm_ge_zero[of "f ((\<chi>\<chi> i. 1)::'a)"] have False by simp
+  }
+  then have Bp: "B \<ge> 0" by (metis not_leE)
+  { fix x::"'a"
+    have "norm (f x) \<le> ?K *  norm x"
       using B[rule_format, of x] norm_ge_zero[of x] norm_ge_zero[of "f x"] Bp
       apply (auto simp add: field_simps split add: abs_split)
       apply (erule order_trans, simp)
       done
-  }
-  then show ?thesis using Kp by blast
+  } then show ?thesis using Kp by blast
 qed
 
 lemma linear_conv_bounded_linear:
@@ -1575,13 +1581,15 @@ lemma independent_bound:
   shows "independent S \<Longrightarrow> finite S \<and> card S <= DIM('a::euclidean_space)"
   using independent_span_bound[of "(basis::nat=>'a) ` {..<DIM('a)}" S] by auto
 
-lemma dependent_biggerset: "(finite (S::('a::euclidean_space) set) ==> card S > DIM('a)) ==> dependent S"
+lemma dependent_biggerset:
+  "(finite (S::('a::euclidean_space) set) ==> card S > DIM('a)) ==> dependent S"
   by (metis independent_bound not_less)
 
 text {* Hence we can create a maximal independent subset. *}
 
 lemma maximal_independent_subset_extend:
-  assumes sv: "(S::('a::euclidean_space) set) \<subseteq> V" and iS: "independent S"
+  assumes sv: "(S::('a::euclidean_space) set) \<subseteq> V"
+    and iS: "independent S"
   shows "\<exists>B. S \<subseteq> B \<and> B \<subseteq> V \<and> independent B \<and> V \<subseteq> span B"
   using sv iS
 proof (induct "DIM('a) - card S" arbitrary: S rule: less_induct)
@@ -1684,8 +1692,10 @@ proof -
 qed
 
 lemma card_le_dim_spanning:
-  assumes BV: "(B:: ('a::euclidean_space) set) \<subseteq> V" and VB: "V \<subseteq> span B"
-    and fB: "finite B" and dVB: "dim V \<ge> card B"
+  assumes BV: "(B:: ('a::euclidean_space) set) \<subseteq> V"
+    and VB: "V \<subseteq> span B"
+    and fB: "finite B"
+    and dVB: "dim V \<ge> card B"
   shows "independent B"
 proof -
   { fix a assume a: "a \<in> B" "a \<in> span (B -{a})"
@@ -1739,13 +1749,15 @@ lemma span_eq_dim: "span (S:: ('a::euclidean_space) set) = span T ==> dim S = di
   by (metis dim_span)
 
 lemma spans_image:
-  assumes lf: "linear f" and VB: "V \<subseteq> span B"
+  assumes lf: "linear f"
+    and VB: "V \<subseteq> span B"
   shows "f ` V \<subseteq> span (f ` B)"
   unfolding span_linear_image[OF lf] by (metis VB image_mono)
 
 lemma dim_image_le:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
-  assumes lf: "linear f" shows "dim (f ` S) \<le> dim (S)"
+  assumes lf: "linear f"
+  shows "dim (f ` S) \<le> dim (S)"
 proof -
   from basis_exists[of S] obtain B where
     B: "B \<subseteq> S" "independent B" "S \<subseteq> span B" "card B = dim S" by blast
@@ -1764,17 +1776,20 @@ lemma spanning_surjective_image:
   assumes us: "UNIV \<subseteq> span S"
     and lf: "linear f" and sf: "surj f"
   shows "UNIV \<subseteq> span (f ` S)"
-proof-
+proof -
   have "UNIV \<subseteq> f ` UNIV" using sf by (auto simp add: surj_def)
   also have " \<dots> \<subseteq> span (f ` S)" using spans_image[OF lf us] .
 finally show ?thesis .
 qed
 
 lemma independent_injective_image:
-  assumes iS: "independent S" and lf: "linear f" and fi: "inj f"
+  assumes iS: "independent S"
+    and lf: "linear f"
+    and fi: "inj f"
   shows "independent (f ` S)"
-proof-
-  { fix a assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
+proof -
+  { fix a
+    assume a: "a \<in> S" "f a \<in> span (f ` S - {f a})"
     have eq: "f ` S - {f a} = f ` (S - {a})" using fi
       by (auto simp add: inj_on_def)
     from a have "f a \<in> f ` span (S -{a})"
@@ -1855,7 +1870,7 @@ qed
 lemma orthogonal_basis_exists:
   fixes V :: "('a::euclidean_space) set"
   shows "\<exists>B. independent B \<and> B \<subseteq> span V \<and> V \<subseteq> span B \<and> (card B = dim V) \<and> pairwise orthogonal B"
-proof-
+proof -
   from basis_exists[of V] obtain B where
     B: "B \<subseteq> V" "independent B" "V \<subseteq> span B" "card B = dim V" by blast
   from B have fB: "finite B" "card B = dim V" using independent_bound by auto
@@ -1927,7 +1942,8 @@ lemma span_not_univ_subset_hyperplane:
   shows "\<exists> a. a \<noteq>0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
   using span_not_univ_orthogonal[OF SU] by auto
 
-lemma lowdim_subset_hyperplane: fixes S::"('a::euclidean_space) set"
+lemma lowdim_subset_hyperplane:
+  fixes S::"('a::euclidean_space) set"
   assumes d: "dim S < DIM('a)"
   shows "\<exists>(a::'a). a  \<noteq> 0 \<and> span S \<subseteq> {x. a \<bullet> x = 0}"
 proof -
@@ -1942,14 +1958,17 @@ qed
 text {* We can extend a linear basis-basis injection to the whole set. *}
 
 lemma linear_indep_image_lemma:
-  assumes lf: "linear f" and fB: "finite B"
+  assumes lf: "linear f"
+    and fB: "finite B"
     and ifB: "independent (f ` B)"
-    and fi: "inj_on f B" and xsB: "x \<in> span B"
+    and fi: "inj_on f B"
+    and xsB: "x \<in> span B"
     and fx: "f x = 0"
   shows "x = 0"
   using fB ifB fi xsB fx
 proof (induct arbitrary: x rule: finite_induct[OF fB])
-  case 1 then show ?case by auto
+  case 1
+  then show ?case by auto
 next
   case (2 a b x)
   have fb: "finite b" using "2.prems" by simp
@@ -2002,9 +2021,10 @@ lemma linear_independent_extend_lemma:
   shows "\<exists>g. (\<forall>x\<in> span B. \<forall>y\<in> span B. g (x + y) = g x + g y)
            \<and> (\<forall>x\<in> span B. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x)
            \<and> (\<forall>x\<in> B. g x = f x)"
-using ib fi
+  using ib fi
 proof (induct rule: finite_induct[OF fi])
-  case 1 then show ?case by auto
+  case 1
+  then show ?case by auto
 next
   case (2 a b)
   from "2.prems" "2.hyps" have ibf: "independent b" "finite b"
@@ -2083,7 +2103,11 @@ next
       have "?g x = f x"
         by (simp add: h0[symmetric] g(3)[rule_format, OF xb]) }
     ultimately have "?g x = f x" using x by blast }
-  ultimately show ?case apply - apply (rule exI[where x="?g"]) apply blast done
+  ultimately show ?case
+    apply -
+    apply (rule exI[where x="?g"])
+    apply blast
+    done
 qed
 
 lemma linear_independent_extend:
@@ -2098,15 +2122,18 @@ proof -
            \<and> (\<forall>x\<in> span C. \<forall>c. g (c*\<^sub>R x) = c *\<^sub>R g x)
            \<and> (\<forall>x\<in> C. g x = f x)" by blast
   from g show ?thesis unfolding linear_def using C
-    apply clarsimp apply blast done
+    apply clarsimp
+    apply blast
+    done
 qed
 
 text {* Can construct an isomorphism between spaces of same dimension. *}
 
 lemma card_le_inj:
-  assumes fA: "finite A" and fB: "finite B"
+  assumes fA: "finite A"
+    and fB: "finite B"
     and c: "card A \<le> card B"
-  shows "(\<exists>f. f ` A \<subseteq> B \<and> inj_on f A)"
+  shows "\<exists>f. f ` A \<subseteq> B \<and> inj_on f A"
   using fA fB c
 proof (induct arbitrary: B rule: finite_induct)
   case empty
@@ -2131,7 +2158,9 @@ next
 qed
 
 lemma card_subset_eq:
-  assumes fB: "finite B" and AB: "A \<subseteq> B" and c: "card A = card B"
+  assumes fB: "finite B"
+    and AB: "A \<subseteq> B"
+    and c: "card A = card B"
   shows "A = B"
 proof -
   from fB AB have fA: "finite A" by (auto intro: finite_subset)
@@ -2200,15 +2229,19 @@ lemma linear_eq_0_span:
   by (rule span_induct')
 
 lemma linear_eq_0:
-  assumes lf: "linear f" and SB: "S \<subseteq> span B" and f0: "\<forall>x\<in>B. f x = 0"
+  assumes lf: "linear f"
+    and SB: "S \<subseteq> span B"
+    and f0: "\<forall>x\<in>B. f x = 0"
   shows "\<forall>x \<in> S. f x = 0"
   by (metis linear_eq_0_span[OF lf] subset_eq SB f0)
 
 lemma linear_eq:
-  assumes lf: "linear f" and lg: "linear g" and S: "S \<subseteq> span B"
+  assumes lf: "linear f"
+    and lg: "linear g"
+    and S: "S \<subseteq> span B"
     and fg: "\<forall> x\<in> B. f x = g x"
   shows "\<forall>x\<in> S. f x = g x"
-proof-
+proof -
   let ?h = "\<lambda>x. f x - g x"
   from fg have fg': "\<forall>x\<in> B. ?h x = 0" by simp
   from linear_eq_0[OF linear_compose_sub[OF lf lg] S fg']
@@ -2216,17 +2249,21 @@ proof-
 qed
 
 lemma linear_eq_stdbasis:
-  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> _)" and lg: "linear g"
+  assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> _)"
+    and lg: "linear g"
     and fg: "\<forall>i<DIM('a::euclidean_space). f (basis i) = g(basis i)"
   shows "f = g"
-proof-
+proof -
   let ?U = "{..<DIM('a)}"
   let ?I = "(basis::nat=>'a) ` {..<DIM('a)}"
   { fix x assume x: "x \<in> (UNIV :: 'a set)"
     from equalityD2[OF span_basis'[where 'a='a]]
     have IU: " (UNIV :: 'a set) \<subseteq> span ?I" by blast
-    have "f x = g x" apply(rule linear_eq[OF lf lg IU,rule_format]) using fg x by auto }
-  then show ?thesis by auto
+    have "f x = g x"
+      apply (rule linear_eq[OF lf lg IU,rule_format])
+      using fg x apply auto
+      done
+  } then show ?thesis by auto
 qed
 
 text {* Similar results for bilinear functions. *}
@@ -2237,11 +2274,12 @@ lemma bilinear_eq:
     and SB: "S \<subseteq> span B" and TC: "T \<subseteq> span C"
     and fg: "\<forall>x\<in> B. \<forall>y\<in> C. f x y = g x y"
   shows "\<forall>x\<in>S. \<forall>y\<in>T. f x y = g x y "
-proof-
+proof -
   let ?P = "{x. \<forall>y\<in> span C. f x y = g x y}"
   from bf bg have sp: "subspace ?P"
     unfolding bilinear_def linear_def subspace_def bf bg
-    by(auto simp add: span_0 bilinear_lzero[OF bf] bilinear_lzero[OF bg] span_add Ball_def intro:  bilinear_ladd[OF bf])
+    by (auto simp add: span_0 bilinear_lzero[OF bf] bilinear_lzero[OF bg] span_add Ball_def
+      intro: bilinear_ladd[OF bf])
 
   have "\<forall>x \<in> span B. \<forall>y\<in> span C. f x y = g x y"
     apply (rule span_induct' [OF _ sp])
@@ -2251,7 +2289,7 @@ proof-
     apply (auto simp add: subspace_def)
     using bf bg unfolding bilinear_def linear_def
     apply (auto simp add: span_0 bilinear_rzero[OF bf] bilinear_rzero[OF bg] span_add Ball_def
-      intro:  bilinear_ladd[OF bf])
+      intro: bilinear_ladd[OF bf])
     done
   then show ?thesis using SB TC by auto
 qed
@@ -2277,8 +2315,8 @@ lemma linear_injective_left_inverse:
   shows "\<exists>g. linear g \<and> g o f = id"
 proof -
   from linear_independent_extend[OF independent_injective_image, OF independent_basis, OF lf fi]
-  obtain h:: "'b => 'a" where h: "linear h"
-    "\<forall>x \<in> f ` basis ` {..<DIM('a)}. h x = inv f x" by blast
+  obtain h:: "'b => 'a" where
+    h: "linear h" "\<forall>x \<in> f ` basis ` {..<DIM('a)}. h x = inv f x" by blast
   from h(2) have th: "\<forall>i<DIM('a). (h \<circ> f) (basis i) = id (basis i)"
     using inv_o_cancel[OF fi, unfolded fun_eq_iff id_def o_def]
     by auto
@@ -2335,12 +2373,15 @@ qed
 text {* And vice versa. *}
 
 lemma surjective_iff_injective_gen:
-  assumes fS: "finite S" and fT: "finite T" and c: "card S = card T"
+  assumes fS: "finite S"
+    and fT: "finite T"
+    and c: "card S = card T"
     and ST: "f ` S \<subseteq> T"
   shows "(\<forall>y \<in> T. \<exists>x \<in> S. f x = y) \<longleftrightarrow> inj_on f S" (is "?lhs \<longleftrightarrow> ?rhs")
 proof -
   { assume h: "?lhs"
-    { fix x y assume x: "x \<in> S" and y: "y \<in> S" and f: "f x = f y"
+    { fix x y
+      assume x: "x \<in> S" and y: "y \<in> S" and f: "f x = f y"
       from x fS have S0: "card S \<noteq> 0" by auto
       { assume xy: "x \<noteq> y"
         have th: "card S \<le> card (f ` (S - {y}))"
@@ -2538,8 +2579,9 @@ proof -
     unfolding infnorm_def
     unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image ball_simps
-    apply(subst (1) euclidean_eq)
-    by auto
+    apply (subst (1) euclidean_eq)
+    apply auto
+    done
   then show ?thesis using infnorm_pos_le[of x] by simp
 qed
 
@@ -2638,12 +2680,13 @@ proof -
     unfolding power_mult_distrib d2
     unfolding real_of_nat_def apply(subst euclidean_inner)
     apply (subst power2_abs[symmetric])
-    apply(rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<twosuperior>"]])
-    apply(auto simp add: power2_eq_square[symmetric])
+    apply (rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<twosuperior>"]])
+    apply (auto simp add: power2_eq_square[symmetric])
     apply (subst power2_abs[symmetric])
     apply (rule power_mono)
     unfolding infnorm_def  Sup_finite_ge_iff[OF infnorm_set_lemma]
-    unfolding infnorm_set_image bex_simps apply(rule_tac x=i in bexI)
+    unfolding infnorm_set_image bex_simps
+    apply (rule_tac x=i in bexI)
     apply auto
     done
   from real_le_lsqrt[OF inner_ge_zero th th1]
