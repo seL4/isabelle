@@ -23,6 +23,7 @@ sig
   val output_markup: Markup.T -> string * string
   val string_of_body: XML.body -> string
   val string_of: XML.tree -> string
+  val output_markup_elem: Markup.T -> (string * string) * string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
 end;
@@ -73,6 +74,16 @@ fun string_of_body body =
   in Buffer.empty |> trees body |> Buffer.content end;
 
 val string_of = string_of_body o single;
+
+
+(* wrapped elements *)
+
+val Z = chr 0;
+val Z_text = [XML.Text Z];
+
+fun output_markup_elem markup =
+  let val [bg1, bg2, en] = space_explode Z (string_of (XML.wrap_elem ((markup, Z_text), Z_text)))
+  in ((bg1, bg2), en) end;
 
 
 

@@ -33,6 +33,7 @@ sig
   val blk: int * T list -> T
   val block: T list -> T
   val strs: string list -> T
+  val raw_markup: Output.output * Output.output -> int * T list -> T
   val markup: Markup.T -> T list -> T
   val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
@@ -61,9 +62,10 @@ sig
   val output: int option -> T -> Output.output
   val string_of_margin: int -> T -> string
   val string_of: T -> string
+  val writeln: T -> unit
+  val symbolic_output: T -> Output.output
   val symbolic_string_of: T -> string
   val str_of: T -> string
-  val writeln: T -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
 end;
@@ -134,13 +136,13 @@ val fbrk = Break (true, 1);
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
 
-fun block_markup m (indent, es) =
+fun raw_markup m (indent, es) =
   let
     fun sum [] k = k
       | sum (e :: es) k = sum es (length e + k);
   in Block (m, es, indent, sum es 0) end;
 
-fun markup_block m arg = block_markup (Markup.output m) arg;
+fun markup_block m arg = raw_markup (Markup.output m) arg;
 
 val blk = markup_block Markup.empty;
 fun block prts = blk (2, prts);
@@ -325,9 +327,12 @@ fun output_buffer margin prt =
 val output = Buffer.content oo output_buffer;
 fun string_of_margin margin = Output.escape o output (SOME margin);
 val string_of = Output.escape o output NONE;
-val symbolic_string_of = Output.escape o Buffer.content o symbolic;
-val str_of = Output.escape o Buffer.content o unformatted;
 val writeln = Output.writeln o string_of;
+
+val symbolic_output = Buffer.content o symbolic;
+val symbolic_string_of = Output.escape o symbolic_output;
+
+val str_of = Output.escape o Buffer.content o unformatted;
 
 
 
@@ -337,7 +342,7 @@ fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
   | to_ML (String s) = ML_Pretty.String s
   | to_ML (Break b) = ML_Pretty.Break b;
 
-fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML prts)
+fun from_ML (ML_Pretty.Block (m, prts, ind)) = raw_markup m (ind, map from_ML prts)
   | from_ML (ML_Pretty.String s) = String s
   | from_ML (ML_Pretty.Break b) = Break b;
 
