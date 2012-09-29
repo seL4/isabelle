@@ -193,6 +193,8 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
     val _ = Output.physical_stderr Symbol.STX;
 
+    (* FIXME proper system options *)
+    val _ = Printer.show_markup_default := true;
     val _ = quick_and_dirty := false;
     val _ = Goal.parallel_proofs := 4;
     val _ =
