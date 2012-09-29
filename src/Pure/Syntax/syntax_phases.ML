@@ -641,14 +641,17 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       | token_trans _ _ = NONE;
 
     fun markup_trans a [Ast.Variable x] = token_trans a x
-      | markup_trans "_constrain" [t, ty] =
-          if not show_types andalso show_markup then
-            let
-              val ((bg1, bg2), en) = typing_elem;
-              val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
-            in SOME (Pretty.raw_markup (bg, en) (0, [pretty_ast Markup.empty t])) end
-          else NONE
+      | markup_trans "_constrain" [t, ty] = constrain_trans t ty
+      | markup_trans "_idtyp" [t, ty] = constrain_trans t ty
       | markup_trans _ _ = NONE
+
+    and constrain_trans t ty =
+      if not show_types andalso show_markup then
+        let
+          val ((bg1, bg2), en) = typing_elem;
+          val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
+        in SOME (Pretty.raw_markup (bg, en) (0, [pretty_ast Markup.empty t])) end
+      else NONE
 
     and pretty_typ_ast m ast = ast
       |> Printer.pretty_typ_ast ctxt prtabs trf markup_trans markup_extern
