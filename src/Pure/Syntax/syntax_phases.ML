@@ -615,6 +615,9 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       | token_trans "_inner_string" x = SOME (Pretty.mark_str (Isabelle_Markup.inner_string, x))
       | token_trans _ _ = NONE;
 
+    fun markup_trans a [Ast.Variable x] = token_trans a x
+      | markup_trans _ _ = NONE;
+
     fun markup_extern c =
       (case Syntax.lookup_const syn c of
         SOME "" => ([], c)
@@ -628,7 +631,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> prt_t ctxt (Syntax.prtabs syn) (Syntax.print_ast_translation syn) token_trans markup_extern
+    |> prt_t ctxt (Syntax.prtabs syn) (Syntax.print_ast_translation syn) markup_trans markup_extern
     |> Pretty.markup markup
   end;
 

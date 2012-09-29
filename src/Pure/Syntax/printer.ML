@@ -35,12 +35,12 @@ sig
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: bool -> Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
-    (string -> string -> Pretty.T option) ->
+    (string -> Ast.ast list -> Pretty.T option) ->
     (string -> Markup.T list * string) ->
     Ast.ast -> Pretty.T list
   val pretty_typ_ast: Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
-    (string -> string -> Pretty.T option) ->
+    (string -> Ast.ast list -> Pretty.T option) ->
     (string -> Markup.T list * string) -> Ast.ast -> Pretty.T list
 end;
 
@@ -167,7 +167,7 @@ fun is_chain [Block (_, pr)] = is_chain pr
 
 val pretty_priority = Config.int (Config.declare "Syntax.pretty_priority" (K (Config.Int 0)));
 
-fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
+fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
   let
     val show_brackets = Config.get ctxt show_brackets;
 
@@ -188,7 +188,7 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
             if type_mode then (astT (t, p) @ Ts, args')
             else
               (pretty true curried (Config.put pretty_priority p ctxt)
-                tabs trf token_trans markup_extern t @ Ts, args')
+                tabs trf markup_trans markup_extern t @ Ts, args')
           end
       | synT m (String s :: symbs, args) =
           let
@@ -242,13 +242,10 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
                 astT (appT (splitT n ([c], args)), p)
               else prnt (prnps, tbs);
       in
-        (case tokentrT a args of
+        (case markup_trans a args of
           SOME prt => [prt]
         | NONE => astT (trf a ctxt args, p) handle Match => prnt ([], tabs))
       end
-
-    and tokentrT a [Ast.Variable x] = token_trans a x
-      | tokentrT _ _ = NONE
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
       | astT (ast as Ast.Variable _, _) = [Ast.pretty_ast ast]
@@ -260,14 +257,14 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
 
 (* pretty_term_ast *)
 
-fun pretty_term_ast curried ctxt prtabs trf tokentrf extern ast =
-  pretty false curried ctxt (mode_tabs prtabs (print_mode_value ())) trf tokentrf extern ast;
+fun pretty_term_ast curried ctxt prtabs trf markup_trans extern ast =
+  pretty false curried ctxt (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast;
 
 
 (* pretty_typ_ast *)
 
-fun pretty_typ_ast ctxt prtabs trf tokentrf extern ast =
-  pretty true false ctxt (mode_tabs prtabs (print_mode_value ())) trf tokentrf extern ast;
+fun pretty_typ_ast ctxt prtabs trf markup_trans extern ast =
+  pretty true false ctxt (mode_tabs prtabs (print_mode_value ())) trf markup_trans extern ast;
 
 end;
 
