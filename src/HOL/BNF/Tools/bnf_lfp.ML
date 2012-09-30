@@ -1625,7 +1625,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val map_wpull_thms =
           let
             val cTs = map (SOME o certifyT lthy o TFree) induct2_params;
-            val cxs = map (SOME o certify lthy) (interleave Izs1 Izs2);
+            val cxs = map (SOME o certify lthy) (splice Izs1 Izs2);
 
             fun mk_prem z1 z2 sets1 sets2 map1 map2 =
               HOLogic.mk_conj

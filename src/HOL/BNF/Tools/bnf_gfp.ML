@@ -2698,7 +2698,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
                 Thm.instantiate (Tinst, []) o Drule.zero_var_indexes))
               dtors set_incl_hset_thmss;
 
-            val tinst = interleave (map (SOME o certify lthy) dtors) (replicate n NONE)
+            val tinst = splice (map (SOME o certify lthy) dtors) (replicate n NONE)
             val set_minimal_thms =
               map (Drule.instantiate' [] tinst o Thm.instantiate (Tinst, []) o
                 Drule.zero_var_indexes)

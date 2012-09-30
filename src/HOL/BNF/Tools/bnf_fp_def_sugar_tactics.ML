@@ -51,6 +51,12 @@ fun mk_proj T k =
     fold_rev (fn T => fn t => Abs (Name.uu, T, t)) binders (Bound (length binders - k))
   end;
 
+fun hhf_concl_conv cv ctxt ct =
+  (case Thm.term_of ct of
+    Const (@{const_name all}, _) $ Abs _ =>
+    Conv.arg_conv (Conv.abs_conv (hhf_concl_conv cv o snd) ctxt) ct
+  | _ => Conv.concl_conv ~1 cv ct);
+
 fun inst_as_projs ctxt k thm =
   let
     val fs =
@@ -141,15 +147,6 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_natural's pre_se
       pre_set_defss mss (unflat mss (1 upto n)) kkss)
   end;
 
-local
-
-fun hhf_concl_conv cv ctxt ct =
-  (case Thm.term_of ct of
-    Const ("all", _) $ Abs _ => Conv.arg_conv (Conv.abs_conv (hhf_concl_conv cv o snd) ctxt) ct
-  | _ => Conv.concl_conv ~1 cv ct);
-
-in
-
 fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   hyp_subst_tac THEN'
   CONVERSION (hhf_concl_conv
@@ -160,8 +157,6 @@ fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
      full_simp_tac
        (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms)) THEN_MAYBE'
      REPEAT o hyp_subst_tac THEN' REPEAT o rtac conjI THEN' REPEAT o rtac refl);
-
-end;
 
 fun mk_coinduct_distinct_ctrs discs discs' =
   hyp_subst_tac THEN' REPEAT o etac conjE THEN'

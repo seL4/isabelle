@@ -80,7 +80,7 @@ fun join_halves n half_xss other_half_xss =
     val xsss =
       map2 (map2 append) (Library.chop_groups n half_xss)
         (transpose (Library.chop_groups n other_half_xss))
-    val xs = interleave (flat half_xss) (flat other_half_xss);
+    val xs = splice (flat half_xss) (flat other_half_xss);
   in (xs, xsss) end;
 
 fun mk_undefined T = Const (@{const_name undefined}, T);

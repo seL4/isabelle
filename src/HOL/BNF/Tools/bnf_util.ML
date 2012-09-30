@@ -40,7 +40,7 @@ sig
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g -> 'h list * 'g
   val fold_map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i * 'h) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h -> 'i list * 'h
-  val interleave: 'a list -> 'a list -> 'a list
+  val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
 
@@ -602,7 +602,7 @@ in
     | mk_UnIN n m = mk_UnIN' (n - m)
 end;
 
-fun interleave xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
+fun splice xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 
 fun transpose [] = []
   | transpose ([] :: xss) = transpose xss
