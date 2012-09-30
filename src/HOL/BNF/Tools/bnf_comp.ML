@@ -194,7 +194,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
 
     val set_bd_tacs =
       if ! quick_and_dirty then
-        replicate (length set_alt_thms) (K all_tac)
+        replicate ilive (K all_tac)
       else
         let
           val outer_set_bds = set_bd_of_bnf outer;
