@@ -13,7 +13,6 @@ sig
   val prefer_tac: int -> tactic
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
-  val subst_tac: Proof.context -> int list option -> thm list -> int -> tactic
   val unfold_thms_tac: Proof.context -> thm list -> tactic
   val mk_unfold_thms_then_tac: Proof.context -> thm list -> ('a -> tactic) -> 'a -> tactic
 
@@ -58,9 +57,6 @@ fun fo_rtac thm = Subgoal.FOCUS (fn {concl, ...} =>
 fun unfold_thms_tac ctxt thms = Local_Defs.unfold_tac ctxt (distinct Thm.eq_thm_prop thms);
 
 fun mk_unfold_thms_then_tac lthy defs tac x = unfold_thms_tac lthy defs THEN tac x;
-
-(*unlike "unfold_thms_tac", these succeed when the RHS contains schematic variables not in the LHS*)
-fun subst_tac ctxt = EqSubst.eqsubst_tac ctxt o the_default [0];
 
 
 (* Theorems for open typedefs with UNIV as representing set *)
