@@ -389,6 +389,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                 Library.foldr1 HOLogic.mk_disj exist_xs_u_eq_ctrs));
           in
             Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
+            |> Thm.close_derivation
           end;
 
         val (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
@@ -475,7 +476,9 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                       [Logic.all u (Logic.mk_implies (HOLogic.mk_Trueprop udisc,
                          HOLogic.mk_Trueprop (HOLogic.mk_not udisc')))];
 
-                  fun prove tac goal = Skip_Proof.prove lthy [] [] goal (K tac);
+                  fun prove tac goal =
+                    Skip_Proof.prove lthy [] [] goal (K tac)
+                    |> Thm.close_derivation;
 
                   val half_pairss = mk_half_pairss (`I (ms ~~ discD_thms ~~ udiscs));
 
@@ -501,6 +504,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                 in
                   Skip_Proof.prove lthy [] [] goal (fn _ =>
                     mk_disc_exhaust_tac n exhaust_thm discI_thms)
+                  |> Thm.close_derivation
                 end;
 
               val (collapse_thms, collapse_thm_opts) =
@@ -519,6 +523,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
                     Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                       mk_collapse_tac ctxt m discD sel_thms)
+                    |> Thm.close_derivation
                     |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
                   |> `(map_filter I)
                 end;
@@ -542,11 +547,12 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   val uncollapse_thms =
                     map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
                 in
-                  [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
-                     mk_expand_tac ctxt n ms (inst_thm u disc_exhaust_thm)
+                  [Skip_Proof.prove lthy [] [] goal (fn _ =>
+                     mk_expand_tac n ms (inst_thm u disc_exhaust_thm)
                        (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
                        disc_exclude_thmsss')]
                   |> Proof_Context.export names_lthy lthy
+                  |> map Thm.close_derivation
                 end;
 
               val case_conv_thms =
@@ -557,6 +563,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                      mk_case_conv_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
                   |> Proof_Context.export names_lthy lthy
+                  |> map Thm.close_derivation
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
@@ -576,7 +583,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
           in
             (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
              Skip_Proof.prove lthy [] [] weak_goal (K (etac arg_cong 1)))
-            |> pairself (singleton (Proof_Context.export names_lthy lthy))
+            |> pairself (singleton (Proof_Context.export names_lthy lthy) #> Thm.close_derivation)
           end;
 
         val (split_thm, split_asm_thm) =
@@ -599,10 +606,12 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
               Skip_Proof.prove lthy [] [] goal
                 (fn _ => mk_split_tac uexhaust_thm case_thms inject_thmss distinct_thmsss)
               |> singleton (Proof_Context.export names_lthy lthy)
+              |> Thm.close_derivation;
             val split_asm_thm =
               Skip_Proof.prove lthy [] [] asm_goal (fn {context = ctxt, ...} =>
                 mk_split_asm_tac ctxt split_thm)
               |> singleton (Proof_Context.export names_lthy lthy)
+              |> Thm.close_derivation;
           in
             (split_thm, split_asm_thm)
           end;
@@ -644,7 +653,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
   end;
 
 fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
-  map2 (map2 (Skip_Proof.prove lthy [] [])) goalss tacss
+  map2 (map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])) goalss tacss
   |> (fn thms => after_qed thms lthy)) oo prepare_wrap_datatype (K I);
 
 val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>

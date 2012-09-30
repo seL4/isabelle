@@ -13,8 +13,8 @@ sig
     tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
-  val mk_expand_tac: Proof.context -> int -> int list -> thm -> thm -> thm list ->
-    thm list list list -> thm list list list -> tactic
+  val mk_expand_tac: int -> int list -> thm -> thm -> thm list -> thm list list list ->
+    thm list list list -> tactic
   val mk_half_disc_exclude_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
@@ -66,8 +66,7 @@ fun mk_collapse_tac ctxt m discD sels =
       REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac THEN'
       SELECT_GOAL (unfold_thms_tac ctxt sels) THEN' rtac refl)) 1;
 
-fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss
-    disc_excludesss' =
+fun mk_expand_tac n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss disc_excludesss' =
   if ms = [0] then
     rtac (@{thm trans_sym} OF (replicate 2 (the_single uncollapses RS sym))) 1
   else
