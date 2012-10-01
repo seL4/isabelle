@@ -20,19 +20,6 @@ object Isabelle_Process
 {
   /* messages */
 
-  object Kind
-  {
-    val message_markup = Map(
-      ('A' : Int) -> Isabelle_Markup.INIT,
-      ('B' : Int) -> Isabelle_Markup.STATUS,
-      ('C' : Int) -> Isabelle_Markup.REPORT,
-      ('D' : Int) -> Isabelle_Markup.WRITELN,
-      ('E' : Int) -> Isabelle_Markup.TRACING,
-      ('F' : Int) -> Isabelle_Markup.WARNING,
-      ('G' : Int) -> Isabelle_Markup.ERROR,
-      ('H' : Int) -> Isabelle_Markup.PROTOCOL)
-  }
-
   sealed abstract class Message
 
   class Input(name: String, args: List[String]) extends Message
@@ -375,9 +362,8 @@ class Isabelle_Process(
             //{{{
             val header = read_chunk(true)
             header match {
-              case List(XML.Elem(Markup(name, props), Nil))
-                  if name.size == 1 && Kind.message_markup.isDefinedAt(name(0)) =>
-                val kind = Kind.message_markup(name(0))
+              case List(XML.Elem(Markup(name, props), Nil)) =>
+                val kind = name.intern
                 val body = read_chunk(kind != Isabelle_Markup.PROTOCOL)
                 output_message(kind, props, body)
               case _ =>

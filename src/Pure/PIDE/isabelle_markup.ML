@@ -96,6 +96,13 @@ sig
   val finishedN: string val finished: Markup.T
   val failedN: string val failed: Markup.T
   val serialN: string
+  val initN: string
+  val statusN: string
+  val writelnN: string
+  val tracingN: string
+  val warningN: string
+  val errorN: string
+  val protocolN: string
   val legacyN: string val legacy: Markup.T
   val promptN: string val prompt: Markup.T
   val reportN: string val report: Markup.T
@@ -290,6 +297,14 @@ val (failedN, failed) = markup_elem "failed";
 (* messages *)
 
 val serialN = "serial";
+
+val initN = "init";
+val statusN = "status";
+val writelnN = "writeln";
+val tracingN = "tracing";
+val warningN = "warning";
+val errorN = "error";
+val protocolN = "protocol";
 
 val (legacyN, legacy) = markup_elem "legacy";
 val (promptN, prompt) = markup_elem "prompt";
