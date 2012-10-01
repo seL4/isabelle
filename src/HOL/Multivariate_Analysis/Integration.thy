@@ -20,7 +20,9 @@ lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distri
 
 lemma real_arch_invD:
   "0 < (e::real) \<Longrightarrow> (\<exists>n::nat. n \<noteq> 0 \<and> 0 < inverse (real n) \<and> inverse (real n) < e)"
-  by(subst(asm) real_arch_inv)
+  by (subst(asm) real_arch_inv)
+
+
 subsection {* Sundries *}
 
 lemma conjunctD2: assumes "a \<and> b" shows a b using assms by auto
@@ -35,86 +37,167 @@ lemma simple_image: "{f x |x . x \<in> s} = f ` s" by blast
 lemma linear_simps:  assumes "bounded_linear f"
   shows "f (a + b) = f a + f b" "f (a - b) = f a - f b" "f 0 = 0" "f (- a) = - f a" "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
   apply(rule_tac[!] additive.add additive.minus additive.diff additive.zero bounded_linear.scaleR)
-  using assms unfolding bounded_linear_def additive_def by auto
+  using assms unfolding bounded_linear_def additive_def
+  apply auto
+  done
 
-lemma bounded_linearI:assumes "\<And>x y. f (x + y) = f x + f y"
-  "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x" "\<And>x. norm (f x) \<le> norm x * K"
+lemma bounded_linearI:
+  assumes "\<And>x y. f (x + y) = f x + f y"
+    and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x" "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
   unfolding bounded_linear_def additive_def bounded_linear_axioms_def using assms by auto
  
 lemma real_le_inf_subset:
-  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. b <=* s" shows "Inf s <= Inf (t::real set)"
-  apply(rule isGlb_le_isLb) apply(rule Inf[OF assms(1)])
-  using assms apply-apply(erule exE) apply(rule_tac x=b in exI)
-  unfolding isLb_def setge_def by auto
+  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. b <=* s"
+  shows "Inf s <= Inf (t::real set)"
+  apply (rule isGlb_le_isLb)
+  apply (rule Inf[OF assms(1)])
+  using assms apply -
+  apply (erule exE)
+  apply (rule_tac x=b in exI)
+  unfolding isLb_def setge_def
+  apply auto
+  done
 
 lemma real_ge_sup_subset:
-  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. s *<= b" shows "Sup s >= Sup (t::real set)"
-  apply(rule isLub_le_isUb) apply(rule Sup[OF assms(1)])
-  using assms apply-apply(erule exE) apply(rule_tac x=b in exI)
-  unfolding isUb_def setle_def by auto
+  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. s *<= b"
+  shows "Sup s >= Sup (t::real set)"
+  apply (rule isLub_le_isUb)
+  apply (rule Sup[OF assms(1)])
+  using assms apply -
+  apply (erule exE)
+  apply (rule_tac x=b in exI)
+  unfolding isUb_def setle_def
+  apply auto
+  done
 
 lemma bounded_linear_component[intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x $$ k)"
-  apply(rule bounded_linearI[where K=1]) 
-  using component_le_norm[of _ k] unfolding real_norm_def by auto
+  apply (rule bounded_linearI[where K=1])
+  using component_le_norm[of _ k]
+  unfolding real_norm_def
+  apply auto
+  done
 
 lemma transitive_stepwise_lt_eq:
   assumes "(\<And>x y z::nat. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z)"
   shows "((\<forall>m. \<forall>n>m. R m n) \<longleftrightarrow> (\<forall>n. R n (Suc n)))" (is "?l = ?r")
-proof(safe) assume ?r fix n m::nat assume "m < n" thus "R m n" apply-
-  proof(induct n arbitrary: m) case (Suc n) show ?case 
-    proof(cases "m < n") case True
-      show ?thesis apply(rule assms[OF Suc(1)[OF True]]) using `?r` by auto
-    next case False hence "m = n" using Suc(2) by auto
+proof (safe)
+  assume ?r
+  fix n m :: nat
+  assume "m < n"
+  then show "R m n"
+  proof (induct n arbitrary: m)
+    case (Suc n)
+    show ?case 
+    proof (cases "m < n")
+      case True
+      show ?thesis
+        apply (rule assms[OF Suc(1)[OF True]])
+        using `?r` apply auto
+        done
+    next
+      case False
+      hence "m = n" using Suc(2) by auto
       thus ?thesis using `?r` by auto
-    qed qed auto qed auto
+    qed
+  qed auto
+qed auto
 
 lemma transitive_stepwise_gt:
   assumes "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" "\<And>n. R n (Suc n) "
   shows "\<forall>n>m. R m n"
-proof- have "\<forall>m. \<forall>n>m. R m n" apply(subst transitive_stepwise_lt_eq)
-    apply(rule assms) apply(assumption,assumption) using assms(2) by auto
-  thus ?thesis by auto qed
+proof -
+  have "\<forall>m. \<forall>n>m. R m n"
+    apply (subst transitive_stepwise_lt_eq)
+    apply (rule assms)
+    apply assumption
+    apply assumption
+    using assms(2) apply auto
+    done
+  thus ?thesis by auto
+qed
 
 lemma transitive_stepwise_le_eq:
   assumes "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z"
   shows "(\<forall>m. \<forall>n\<ge>m. R m n) \<longleftrightarrow> (\<forall>n. R n (Suc n))" (is "?l = ?r")
-proof safe assume ?r fix m n::nat assume "m\<le>n" thus "R m n" apply-
-  proof(induct n arbitrary: m) case (Suc n) show ?case 
-    proof(cases "m \<le> n") case True show ?thesis apply(rule assms(2))
-        apply(rule Suc(1)[OF True]) using `?r` by auto
-    next case False hence "m = Suc n" using Suc(2) by auto
+proof safe
+  assume ?r
+  fix m n :: nat
+  assume "m \<le> n"
+  thus "R m n"
+  proof (induct n arbitrary: m)
+    case (Suc n)
+    show ?case
+    proof (cases "m \<le> n")
+      case True
+      show ?thesis
+        apply (rule assms(2))
+        apply (rule Suc(1)[OF True])
+        using `?r` apply auto
+        done
+    next
+      case False
+      hence "m = Suc n" using Suc(2) by auto
       thus ?thesis using assms(1) by auto
-    qed qed(insert assms(1), auto) qed auto
+    qed
+  qed (insert assms(1), auto)
+qed auto
 
 lemma transitive_stepwise_le:
   assumes "\<And>x. R x x" "\<And>x y z. R x y \<Longrightarrow> R y z \<Longrightarrow> R x z" "\<And>n. R n (Suc n) "
   shows "\<forall>n\<ge>m. R m n"
-proof- have "\<forall>m. \<forall>n\<ge>m. R m n" apply(subst transitive_stepwise_le_eq)
-    apply(rule assms) apply(rule assms,assumption,assumption) using assms(3) by auto
-  thus ?thesis by auto qed
+proof -
+  have "\<forall>m. \<forall>n\<ge>m. R m n"
+    apply (subst transitive_stepwise_le_eq)
+    apply (rule assms)
+    apply (rule assms,assumption,assumption)
+    using assms(3) apply auto
+    done
+  thus ?thesis by auto
+qed
+
 
 subsection {* Some useful lemmas about intervals. *}
 
 abbreviation One  where "One \<equiv> ((\<chi>\<chi> i. 1)::_::ordered_euclidean_space)"
 
 lemma empty_as_interval: "{} = {One..0}"
-  apply(rule set_eqI,rule) defer unfolding mem_interval
-  using UNIV_witness[where 'a='n] apply(erule_tac exE,rule_tac x=x in allE) by auto
+  apply (rule set_eqI,rule)
+  defer
+  unfolding mem_interval
+  using UNIV_witness[where 'a='n]
+  apply (erule_tac exE, rule_tac x=x in allE)
+  apply auto
+  done
 
 lemma interior_subset_union_intervals: 
-  assumes "i = {a..b::'a::ordered_euclidean_space}" "j = {c..d}" "interior j \<noteq> {}" "i \<subseteq> j \<union> s" "interior(i) \<inter> interior(j) = {}"
-  shows "interior i \<subseteq> interior s" proof-
-  have "{a<..<b} \<inter> {c..d} = {}" using inter_interval_mixed_eq_empty[of c d a b] and assms(3,5)
+  assumes "i = {a..b::'a::ordered_euclidean_space}" "j = {c..d}"
+    "interior j \<noteq> {}" "i \<subseteq> j \<union> s" "interior(i) \<inter> interior(j) = {}"
+  shows "interior i \<subseteq> interior s"
+proof -
+  have "{a<..<b} \<inter> {c..d} = {}"
+    using inter_interval_mixed_eq_empty[of c d a b] and assms(3,5)
     unfolding assms(1,2) interior_closed_interval by auto
-  moreover have "{a<..<b} \<subseteq> {c..d} \<union> s" apply(rule order_trans,rule interval_open_subset_closed)
-    using assms(4) unfolding assms(1,2) by auto
-  ultimately show ?thesis apply-apply(rule interior_maximal) defer apply(rule open_interior)
-    unfolding assms(1,2) interior_closed_interval by auto qed
+  moreover
+    have "{a<..<b} \<subseteq> {c..d} \<union> s"
+      apply (rule order_trans,rule interval_open_subset_closed)
+      using assms(4) unfolding assms(1,2)
+      apply auto
+      done
+  ultimately
+  show ?thesis
+    apply -
+    apply (rule interior_maximal) defer
+    apply (rule open_interior)
+    unfolding assms(1,2) interior_closed_interval apply auto
+    done
+qed
 
-lemma inter_interior_unions_intervals: fixes f::"('a::ordered_euclidean_space) set set"
+lemma inter_interior_unions_intervals:
+  fixes f::"('a::ordered_euclidean_space) set set"
   assumes "finite f" "open s" "\<forall>t\<in>f. \<exists>a b. t = {a..b}" "\<forall>t\<in>f. s \<inter> (interior t) = {}"
-  shows "s \<inter> interior(\<Union>f) = {}" proof(rule ccontr,unfold ex_in_conv[THEN sym]) case goal1
+  shows "s \<inter> interior(\<Union>f) = {}"
+proof (rule ccontr,unfold ex_in_conv[THEN sym]) case goal1
   have lem1:"\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U" apply rule  defer apply(rule_tac Int_greatest)
     unfolding open_subset_interior[OF open_ball]  using interior_subset by auto
   have lem2:"\<And>x s P. \<exists>x\<in>s. P x \<Longrightarrow> \<exists>x\<in>insert x s. P x" by auto
