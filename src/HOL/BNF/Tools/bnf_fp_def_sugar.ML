@@ -67,8 +67,6 @@ val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
-fun mk_uncurried2_fun f xss =
-  mk_tupled_fun (HOLogic.mk_tuple (map HOLogic.mk_tuple xss)) f (flat xss);
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
@@ -247,6 +245,22 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
     val timer = time (Timer.startRealTimer ());
 
+    fun build_map build_arg (Type (s, Ts)) (Type (_, Us)) =
+      let
+        val bnf = the (bnf_of lthy s);
+        val live = live_of_bnf bnf;
+        val mapx = mk_map live Ts Us (map_of_bnf bnf);
+        val TUs' = map dest_funT (fst (strip_typeN live (fastype_of mapx)));
+      in Term.list_comb (mapx, map build_arg TUs') end;
+
+    fun build_rel_step build_arg (Type (s, Ts)) =
+      let
+        val bnf = the (bnf_of lthy s);
+        val live = live_of_bnf bnf;
+        val rel = mk_rel live Ts Ts (rel_of_bnf bnf);
+        val Ts' = map domain_type (fst (strip_typeN live (fastype_of rel)));
+      in Term.list_comb (rel, map build_arg Ts') end;
+
     fun add_nesty_bnf_names Us =
       let
         fun add (Type (s, Ts)) ss =
@@ -265,8 +279,11 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
+    val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
+    val nested_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nested_bnfs;
     val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
+    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def}) nesting_map_ids;
+    val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
     val nesting_set_natural's = maps set_natural'_of_bnf nesting_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
@@ -283,6 +300,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fpTs = map (domain_type o fastype_of) dtors;
 
     val exists_fp_subtype = exists_subtype (member (op =) fpTs);
+    val exists_Cs_subtype = exists_subtype (member (op =) Cs);
 
     val ctr_Tsss = map (map (map (Term.typ_subst_atomic (Xs ~~ fpTs)))) ctr_TsssXs;
     val ns = map length ctr_Tsss;
@@ -310,25 +328,25 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             lthy
             |> mk_Freess "f" g_Tss
             ||>> mk_Freesss "x" y_Tsss;
-          val yssss = map (map (map single)) ysss;
 
-          fun dest_rec_prodT (T as Type (@{type_name prod}, Us as [_, U])) =
-              if member (op =) Cs U then Us else [T]
-            | dest_rec_prodT T = [T];
+          fun proj_recT proj (Type (s as @{type_name prod}, Ts as [T, U])) =
+              if member (op =) fpTs T then proj (T, U) else Type (s, map (proj_recT proj) Ts)
+            | proj_recT proj (Type (s, Ts)) = Type (s, map (proj_recT proj) Ts)
+            | proj_recT _ T = T;
 
-          val z_Tssss =
-            map3 (fn n => fn ms => map2 (map dest_rec_prodT oo dest_tupleT) ms o
-              dest_sumTN_balanced n o domain_type) ns mss fp_rec_fun_Ts;
+          fun unzip_recT T =
+            if exists_fp_subtype T then [proj_recT fst T, proj_recT snd T] else [T];
+
+          val z_Tsss =
+            map3 (fn n => fn ms => map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type)
+              ns mss fp_rec_fun_Ts;
+          val z_Tssss = map (map (map unzip_recT)) z_Tsss;
           val h_Tss = map2 (map2 (fold_rev (curry (op --->)))) z_Tssss Css;
 
           val hss = map2 (map2 retype_free) h_Tss gss;
-          val zssss_hd = map2 (map2 (map2 (retype_free o hd))) z_Tssss ysss;
-          val (zssss_tl, lthy) =
-            lthy
-            |> mk_Freessss "y" (map (map (map tl)) z_Tssss);
-          val zssss = map2 (map2 (map2 cons)) zssss_hd zssss_tl;
+          val zsss = map2 (map2 (map2 retype_free)) z_Tsss ysss;
         in
-          ((((gss, g_Tss, yssss), (hss, h_Tss, zssss)),
+          ((((gss, g_Tss, ysss), (hss, h_Tss, zsss)),
             ([], [], [], (([], []), ([], [])), (([], []), ([], [])))), lthy)
         end
       else
@@ -578,14 +596,37 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           let
             val fpT_to_C = fpT --> C;
 
-            fun generate_rec_like (suf, fp_rec_like, (fss, f_Tss, xssss)) =
+            fun build_ctor_rec_arg mk_proj (T, U) =
+              if T = U then
+                id_const T
+              else
+                (case (T, U) of
+                  (Type (s, _), Type (s', _)) =>
+                  if s = s' then build_map (build_ctor_rec_arg mk_proj) T U else mk_proj T
+                | _ => mk_proj T);
+
+            fun mk_U proj (T as Type (@{type_name prod}, [T', U])) =
+                if member (op =) fpTs T' then proj (T', U) else T
+              | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
+              | mk_U _ T = T;
+
+            fun unzip_rec (x as Free (_, T)) =
+              if exists_fp_subtype T then
+                [build_ctor_rec_arg fst_const (T, mk_U fst T) $ x,
+                 build_ctor_rec_arg snd_const (T, mk_U snd T) $ x]
+              else
+                [x];
+
+            fun mk_rec_like_arg f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f (maps unzip_rec xs);
+
+            fun generate_rec_like (suf, fp_rec_like, (fss, f_Tss, xsss)) =
               let
                 val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
                 val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
                     Term.list_comb (fp_rec_like,
-                      map2 (mk_sum_caseN_balanced oo map2 mk_uncurried2_fun) fss xssss));
+                      map2 (mk_sum_caseN_balanced oo map2 mk_rec_like_arg) fss xsss));
               in (binding, spec) end;
 
             val rec_like_infos =
@@ -660,14 +701,6 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     fun wrap_types_and_more (wrap_types_and_mores, lthy) =
       fold_map I wrap_types_and_mores lthy
       |>> apsnd split_list4 o apfst split_list4 o split_list;
-
-    fun build_map build_arg (Type (s, Ts)) (Type (_, Us)) =
-      let
-        val bnf = the (bnf_of lthy s);
-        val live = live_of_bnf bnf;
-        val mapx = mk_map live Ts Us (map_of_bnf bnf);
-        val TUs' = map dest_funT (fst (strip_typeN live (fastype_of mapx)));
-      in Term.list_comb (mapx, map build_arg TUs') end;
 
     (* TODO: Add map, sets, rel simps *)
     val mk_simp_thmss =
@@ -787,10 +820,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               typ_subst (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
 
             fun intr_rec_likes frec_likes maybe_cons maybe_tick maybe_mk_prodT (x as Free (_, T)) =
-              if member (op =) fpTs T then
+              if exists_fp_subtype T then
                 maybe_cons x [build_rec_like frec_likes (K I) (T, mk_U (K I) T) $ x]
-              else if exists_fp_subtype T then
-                [build_rec_like frec_likes maybe_tick (T, mk_U maybe_mk_prodT T) $ x]
               else
                 [x];
 
@@ -802,11 +833,11 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
 
             val fold_tacss =
-              map2 (map o mk_rec_like_tac pre_map_defs nesting_map_ids fold_defs) fp_fold_thms
+              map2 (map o mk_rec_like_tac pre_map_defs [] nesting_map_ids'' fold_defs) fp_fold_thms
                 ctr_defss;
             val rec_tacss =
-              map2 (map o mk_rec_like_tac pre_map_defs nesting_map_ids rec_defs) fp_rec_thms
-                ctr_defss;
+              map2 (map o mk_rec_like_tac pre_map_defs nested_map_comp's
+                (nested_map_ids'' @ nesting_map_ids'') rec_defs) fp_rec_thms ctr_defss;
 
             fun prove goal tac =
               Skip_Proof.prove lthy [] [] goal (tac o #context)
@@ -872,14 +903,6 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val strong_rs =
               map4 (fn u => fn v => fn uvr => fn uv_eq =>
                 fold_rev Term.lambda [u, v] (HOLogic.mk_disj (uvr, uv_eq))) us vs uvrs uv_eqs;
-
-            fun build_rel_step build_arg (Type (s, Ts)) =
-              let
-                val bnf = the (bnf_of lthy s);
-                val live = live_of_bnf bnf;
-                val rel = mk_rel live Ts Ts (rel_of_bnf bnf);
-                val Ts' = map domain_type (fst (strip_typeN live (fastype_of rel)));
-              in Term.list_comb (rel, map build_arg Ts') end;
 
             fun build_rel rs' T =
               (case find_index (curry (op =) T) fpTs of
@@ -963,7 +986,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             fun intr_corec_likes fcorec_likes maybe_mk_sumT maybe_tack cqf =
               let val T = fastype_of cqf in
-                if exists_subtype (member (op =) Cs) T then
+                if exists_Cs_subtype T then
                   build_corec_like fcorec_likes maybe_tack (T, mk_U maybe_mk_sumT T) $ cqf
                 else
                   cqf

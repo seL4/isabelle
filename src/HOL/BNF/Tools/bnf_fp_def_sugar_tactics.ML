@@ -23,7 +23,8 @@ sig
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
-  val mk_rec_like_tac: thm list -> thm list -> thm list -> thm -> thm -> Proof.context -> tactic
+  val mk_rec_like_tac: thm list -> thm list -> thm list -> thm list -> thm -> thm -> Proof.context
+    -> tactic
 end;
 
 structure BNF_FP_Def_Sugar_Tactics : BNF_FP_DEF_SUGAR_TACTICS =
@@ -99,12 +100,12 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
 
 (*TODO: Try "sum_prod_thms_map" here, enriched with a few theorems*)
 val rec_like_unfold_thms =
-  @{thms comp_def convol_def id_apply map_pair_def prod_case_Pair_iden sum.simps(5,6) sum_map.simps
-      split_conv unit_case_Unity};
+  @{thms comp_def convol_def fst_conv id_def map_pair_def prod_case_Pair_iden snd_conv split_conv
+      sum.simps(5,6) sum_map.simps unit_case_Unity};
 
-fun mk_rec_like_tac pre_map_defs map_ids rec_like_defs ctor_rec_like ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_rec_like :: rec_like_defs @ pre_map_defs @ map_ids @
-    rec_like_unfold_thms) THEN unfold_thms_tac ctxt @{thms id_def} THEN rtac refl 1;
+fun mk_rec_like_tac pre_map_defs map_comp's map_ids'' rec_like_defs ctor_rec_like ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: ctor_rec_like :: rec_like_defs @ pre_map_defs @ map_comp's @
+    map_ids'' @ rec_like_unfold_thms) THEN rtac refl 1;
 
 fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
