@@ -110,22 +110,18 @@ object Document
   final class Node private(
     val header: Node.Header = Node.bad_header("Bad theory header"),
     val perspective: Command.Perspective = Command.Perspective.empty,
-    val blobs: Map[String, Blob] = Map.empty,
     val commands: Linear_Set[Command] = Linear_Set.empty)
   {
     def clear: Node = new Node(header = header)
 
     def update_header(new_header: Node.Header): Node =
-      new Node(new_header, perspective, blobs, commands)
+      new Node(new_header, perspective, commands)
 
     def update_perspective(new_perspective: Command.Perspective): Node =
-      new Node(header, new_perspective, blobs, commands)
-
-    def update_blobs(new_blobs: Map[String, Blob]): Node =
-      new Node(header, perspective, new_blobs, commands)
+      new Node(header, new_perspective, commands)
 
     def update_commands(new_commands: Linear_Set[Command]): Node =
-      new Node(header, perspective, blobs, new_commands)
+      new Node(header, perspective, new_commands)
 
 
     /* commands */
