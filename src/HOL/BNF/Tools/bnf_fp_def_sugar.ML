@@ -113,8 +113,6 @@ fun liveness_of_fp_bnf n bnf =
     Type (_, Ts) => map (not o member (op =) (deads_of_bnf bnf)) Ts
   | _ => replicate n false);
 
-fun tick u f = Term.lambda u (HOLogic.mk_prod (u, f $ u));
-
 fun tack z_name (c, u) f =
   let val z = Free (z_name, mk_sumT (fastype_of u, fastype_of c)) in
     Term.lambda z (mk_sum_case (Term.lambda u u, Term.lambda c (f $ c)) $ z)
@@ -546,7 +544,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val cxIns = map2 (mk_cIn I) tuple_xs ks;
             val cyIns = map2 (mk_cIn B_ify) tuple_ys ks;
 
-            fun mk_map_thm ctr_def' xs cxIn =
+            fun mk_map_thm ctr_def' cxIn =
               fold_thms lthy [ctr_def']
                 (unfold_thms lthy (pre_map_def ::
                      (if lfp then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
@@ -554,21 +552,21 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                       (if lfp then fp_map_thm else fp_map_thm RS ctor_cong)))
               |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-            fun mk_set_thm fp_set_thm ctr_def' xs cxIn =
+            fun mk_set_thm fp_set_thm ctr_def' cxIn =
               fold_thms lthy [ctr_def']
                 (unfold_thms lthy (pre_set_defs @ nested_set_natural's @ nesting_set_natural's @
                      (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_set)
                    (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
               |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-            fun mk_set_thms fp_set_thm = map3 (mk_set_thm fp_set_thm) ctr_defs' xss cxIns;
+            fun mk_set_thms fp_set_thm = map2 (mk_set_thm fp_set_thm) ctr_defs' cxIns;
 
-            val map_thms = map3 mk_map_thm ctr_defs' xss cxIns;
+            val map_thms = map2 mk_map_thm ctr_defs' cxIns;
             val set_thmss = map mk_set_thms fp_set_thms;
 
-            val rel_infos = (ctr_defs' ~~ xss ~~ cxIns, ctr_defs' ~~ yss ~~ cyIns);
+            val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 
-            fun mk_rel_thm postproc ctr_defs' xs cxIn ys cyIn =
+            fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
               fold_thms lthy ctr_defs'
                  (unfold_thms lthy (pre_rel_def :: (if lfp then [] else [dtor_ctor]) @
                       sum_prod_thms_rel)
@@ -576,14 +574,14 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               |> postproc
               |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-            fun mk_rel_inject_thm (((ctr_def', xs), cxIn), ((_, ys), cyIn)) =
-              mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] xs cxIn ys cyIn;
+            fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
+              mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
 
             val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
 
-            fun mk_half_rel_distinct_thm (((xctr_def', xs), cxIn), ((yctr_def', ys), cyIn)) =
+            fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
               mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
-                xs cxIn ys cyIn;
+                cxIn cyIn;
 
             fun mk_other_half_rel_distinct_thm thm =
               flip_rels lthy live thm RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
@@ -824,26 +822,24 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               fold_rev (fold_rev Logic.all) (xs :: fss)
                 (mk_Trueprop_eq (frec_like $ xctr, Term.list_comb (f, fxs)));
 
-            fun build_rec_like frec_likes maybe_tick (T, U) =
+            fun build_rec_like frec_likes (T, U) =
               if T = U then
                 id_const T
               else
                 (case find_index (curry (op =) T) fpTs of
-                  ~1 => build_map (build_rec_like frec_likes maybe_tick) T U
-                | kk => maybe_tick (nth us kk) (nth frec_likes kk));
+                  ~1 => build_map (build_rec_like frec_likes) T U
+                | kk => nth frec_likes kk);
 
-            fun mk_U maybe_mk_prodT =
-              typ_subst (map2 (fn fpT => fn C => (fpT, maybe_mk_prodT fpT C)) fpTs Cs);
+            val mk_U = typ_subst (map2 pair fpTs Cs);
 
-            fun intr_rec_likes frec_likes maybe_cons maybe_tick maybe_mk_prodT (x as Free (_, T)) =
+            fun intr_rec_likes frec_likes maybe_cons (x as Free (_, T)) =
               if exists_fp_subtype T then
-                maybe_cons x [build_rec_like frec_likes (K I) (T, mk_U (K I) T) $ x]
+                maybe_cons x [build_rec_like frec_likes (T, mk_U T) $ x]
               else
                 [x];
 
-            val gxsss = map (map (maps (intr_rec_likes gfolds (K I) (K I) (K I)))) xsss;
-            val hxsss =
-              map (map (maps (intr_rec_likes hrecs cons tick (curry HOLogic.mk_prodT)))) xsss;
+            val gxsss = map (map (maps (intr_rec_likes gfolds (K I)))) xsss;
+            val hxsss = map (map (maps (intr_rec_likes hrecs cons))) xsss;
 
             val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
             val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
