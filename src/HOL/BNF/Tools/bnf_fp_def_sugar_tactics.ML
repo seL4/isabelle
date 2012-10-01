@@ -14,7 +14,8 @@ sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list list -> thm list list list -> thm list list list -> tactic
-  val mk_corec_like_tac: thm list -> thm list -> thm -> thm -> thm -> Proof.context -> tactic
+  val mk_corec_like_tac: thm list -> thm list -> thm list -> thm list -> thm list -> thm -> thm ->
+    thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
   val mk_disc_corec_like_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
@@ -37,7 +38,7 @@ open BNF_FP
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};
 
-val sum_prod_thms_map = @{thms id_apply map_pair_simp sum_map.simps prod.cases};
+val sum_prod_thms_map = @{thms id_apply map_pair_simp prod.cases sum.cases sum_map.simps};
 val sum_prod_thms_set0 =
   @{thms SUP_empty Sup_empty Sup_insert UN_insert Un_empty_left Un_empty_right Un_iff
       Union_Un_distrib collect_def[abs_def] image_def o_apply map_pair_simp
@@ -107,10 +108,16 @@ fun mk_rec_like_tac pre_map_defs map_comp's map_ids'' rec_like_defs ctor_rec_lik
   unfold_thms_tac ctxt (ctr_def :: ctor_rec_like :: rec_like_defs @ pre_map_defs @ map_comp's @
     map_ids'' @ rec_like_unfold_thms) THEN rtac refl 1;
 
-fun mk_corec_like_tac corec_like_defs map_ids'' ctor_dtor_corec_like pre_map_def ctr_def ctxt =
+(*TODO: sum_case_if needed?*)
+val corec_like_unfold_thms =
+  @{thms id_def ident_o_ident sum_case_if sum_case_o_inj} @ sum_prod_thms_map;
+
+fun mk_corec_like_tac corec_like_defs map_comps'' map_comp's map_ids'' map_if_distribs
+    ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
   (rtac (ctor_dtor_corec_like RS trans) THEN' asm_simp_tac ss_if_True_False) 1 THEN_MAYBE
-  (unfold_thms_tac ctxt (pre_map_def :: @{thm id_def} :: sum_prod_thms_map @ map_ids'') THEN
+  (unfold_thms_tac ctxt (pre_map_def :: map_comp's @ map_comps'' @ map_ids'' @ map_if_distribs @
+    corec_like_unfold_thms) THEN
    (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)) 1);
 
 fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =

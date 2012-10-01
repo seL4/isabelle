@@ -47,11 +47,11 @@ by simp
 lemma Un_cong: "\<lbrakk>A = B; C = D\<rbrakk> \<Longrightarrow> A \<union> C = B \<union> D"
 by simp
 
-lemma pointfree_idE: "f o g = id \<Longrightarrow> f (g x) = x"
+lemma pointfree_idE: "f \<circ> g = id \<Longrightarrow> f (g x) = x"
 unfolding o_def fun_eq_iff by simp
 
 lemma o_bij:
-  assumes gf: "g o f = id" and fg: "f o g = id"
+  assumes gf: "g \<circ> f = id" and fg: "f \<circ> g = id"
   shows "bij f"
 unfolding bij_def inj_on_def surj_def proof safe
   fix a1 a2 assume "f a1 = f a2"
@@ -67,8 +67,8 @@ qed
 lemma ssubst_mem: "\<lbrakk>t = s; s \<in> X\<rbrakk> \<Longrightarrow> t \<in> X" by simp
 
 lemma sum_case_step:
-  "sum_case (sum_case f' g') g (Inl p) = sum_case f' g' p"
-  "sum_case f (sum_case f' g') (Inr p) = sum_case f' g' p"
+"sum_case (sum_case f' g') g (Inl p) = sum_case f' g' p"
+"sum_case f (sum_case f' g') (Inr p) = sum_case f' g' p"
 by auto
 
 lemma one_pointE: "\<lbrakk>\<And>x. s = x \<Longrightarrow> P\<rbrakk> \<Longrightarrow> P"
@@ -99,6 +99,14 @@ by (rule allI) (rule obj_sum_step')
 lemma sum_case_if:
 "sum_case f g (if p then Inl x else Inr y) = (if p then f x else g y)"
 by simp
+
+lemma sum_case_o_inj:
+"sum_case f g \<circ> Inl = f"
+"sum_case f g \<circ> Inr = g"
+by auto
+
+lemma ident_o_ident: "(\<lambda>x. x) \<circ> (\<lambda>x. x) = (\<lambda>x. x)"
+by (rule o_def)
 
 lemma mem_UN_compreh_eq: "(z : \<Union>{y. \<exists>x\<in>A. y = F x}) = (\<exists>x\<in>A. z : F x)"
 by blast

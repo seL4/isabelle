@@ -69,7 +69,7 @@ subsection{* The characteristic theorems transported from fset to set *}
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"
 definition "unfold rt ct \<equiv> Tree_unfold rt (the_inv fset o ct)"
-definition "corec rt ct \<equiv> Tree_corec rt (the_inv fset o ct)"
+definition "corec rt qt ct dt \<equiv> Tree_corec rt qt (the_inv fset o ct) (the_inv fset o dt)"
 
 definition lift ("_ ^#" 200) where
 "lift \<phi> as \<longleftrightarrow> (\<forall> tr. Inr tr \<in> as \<longrightarrow> \<phi> tr)"
@@ -179,9 +179,11 @@ unfolding cont_def comp_def
 by (metis (no_types) fset_to_fset map_fset_image)
 
 theorem corec:
-"root (corec rt ct b) = rt b"
-"finite (ct b) \<Longrightarrow> cont (corec rt ct b) = image (id \<oplus> ([[id, corec rt ct]])) (ct b)"
-using Tree.sel_corec[of rt "the_inv fset \<circ> ct" b] unfolding corec_def
+"root (corec rt qt ct dt b) = rt b"
+"\<lbrakk>finite (ct b); finite (dt b)\<rbrakk> \<Longrightarrow>
+ cont (corec rt qt ct dt b) =
+ (if qt b then ct b else image (id \<oplus> corec rt qt ct dt) (dt b))"
+using Tree.sel_corec[of rt qt "the_inv fset \<circ> ct" "the_inv fset \<circ> dt" b] unfolding corec_def
 apply -
 apply simp
 unfolding cont_def comp_def id_def
