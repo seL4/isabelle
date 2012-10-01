@@ -30,11 +30,13 @@ syntax "_finite_vec" :: "type \<Rightarrow> type \<Rightarrow> type" ("(_ ^/ _)"
 parse_translation {*
 let
   fun vec t u = Syntax.const @{type_syntax vec} $ t $ u;
-  fun finite_vec_tr [t, u as Free (x, _)] =
+  fun finite_vec_tr [t, u] =
+    (case Term_Position.strip_positions u of
+      v as Free (x, _) =>
         if Lexicon.is_tid x then
-          vec t (Syntax.const @{syntax_const "_ofsort"} $ u $ Syntax.const @{class_syntax finite})
+          vec t (Syntax.const @{syntax_const "_ofsort"} $ v $ Syntax.const @{class_syntax finite})
         else vec t u
-    | finite_vec_tr [t, u] = vec t u
+    | _ => vec t u)
 in
   [(@{syntax_const "_finite_vec"}, finite_vec_tr)]
 end

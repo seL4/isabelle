@@ -108,6 +108,7 @@ object Isabelle_Markup
   val TERM = "term"
   val PROP = "prop"
 
+  val SORTING = "sorting"
   val TYPING = "typing"
 
   val ATTRIBUTE = "attribute"

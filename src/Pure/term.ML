@@ -467,7 +467,7 @@ fun replace_types (Const (c, _)) (T :: Ts) = (Const (c, T), Ts)
 
 fun burrow_types f ts =
   let
-    val Ts = rev (fold (fold_types cons) ts []);
+    val Ts = rev ((fold o fold_types) cons ts []);
     val Ts' = f Ts;
     val (ts', []) = fold_map replace_types ts Ts';
   in ts' end;

@@ -48,6 +48,7 @@ sig
   val typN: string val typ: Markup.T
   val termN: string val term: Markup.T
   val propN: string val prop: Markup.T
+  val sortingN: string val sorting: Markup.T
   val typingN: string val typing: Markup.T
   val ML_keywordN: string val ML_keyword: Markup.T
   val ML_delimiterN: string val ML_delimiter: Markup.T
@@ -200,6 +201,7 @@ val (typN, typ) = markup_elem "typ";
 val (termN, term) = markup_elem "term";
 val (propN, prop) = markup_elem "prop";
 
+val (sortingN, sorting) = markup_elem "sorting";
 val (typingN, typing) = markup_elem "typing";
 
 

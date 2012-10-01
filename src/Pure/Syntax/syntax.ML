@@ -539,11 +539,12 @@ val token_markers =
   ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
 
 val basic_nonterms =
-  (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
+  Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
     "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
     "any", "prop'", "num_const", "float_const", "xnum_const", "num_position",
-    "float_position", "xnum_position", "index", "struct", "id_position",
-    "longid_position", "str_position", "type_name", "class_name"]);
+    "float_position", "xnum_position", "index", "struct", "tid_position",
+    "tvar_position", "id_position", "longid_position", "str_position",
+    "type_name", "class_name"];
 
 
 

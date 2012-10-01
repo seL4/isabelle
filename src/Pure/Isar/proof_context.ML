@@ -70,7 +70,8 @@ sig
   val read_arity: Proof.context -> xstring * string list * string -> arity
   val cert_arity: Proof.context -> arity -> arity
   val allow_dummies: Proof.context -> Proof.context
-  val prepare_sorts: Proof.context -> typ list -> typ list
+  val prepare_sortsT: Proof.context -> typ list -> string * typ list
+  val prepare_sorts: Proof.context -> term list -> string * term list
   val check_tfree: Proof.context -> string * sort -> string * sort
   val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
@@ -615,13 +616,15 @@ end;
 
 (* sort constraints *)
 
-fun prepare_sorts ctxt tys =
+local
+
+fun prepare_sorts_env ctxt tys =
   let
     val tsig = tsig_of ctxt;
     val defaultS = Type.defaultS tsig;
 
     fun constraint (xi, S) env =
-      if S = dummyS then env
+      if S = dummyS orelse Term_Position.is_positionS S then env
       else
         Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
           handle Vartab.DUP _ =>
@@ -644,18 +647,57 @@ fun prepare_sorts ctxt tys =
             error ("Sort constraint " ^ Syntax.string_of_sort ctxt S ^
               " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
               " for type variable " ^ quote (Term.string_of_vname' xi)));
-  in
-    (map o map_atyps)
-      (fn T =>
-        if Term_Position.is_positionT T then T
-        else
-          (case T of
-            TFree (x, _) => TFree (x, get_sort (x, ~1))
-          | TVar (xi, _) => TVar (xi, get_sort xi)
-          | _ => T)) tys
-  end;
 
-fun check_tfree ctxt v = dest_TFree (singleton (prepare_sorts ctxt) (TFree v));
+    fun add_report raw_S S reports =
+      (case Term_Position.decode_positionS raw_S of
+        SOME pos =>
+          if Position.is_reported pos andalso not (AList.defined (op =) reports pos) then
+            (pos, Position.reported_text pos Isabelle_Markup.sorting (Syntax.string_of_sort ctxt S))
+              :: reports
+          else reports
+      | NONE => reports);
+
+    val reports =
+      (fold o fold_atyps)
+        (fn T =>
+          if Term_Position.is_positionT T then I
+          else
+            (case T of
+              TFree (x, raw_S) => add_report raw_S (get_sort (x, ~1))
+            | TVar (xi, raw_S) => add_report raw_S (get_sort xi)
+            | _ => I)) tys [];
+
+  in (implode (map #2 reports), get_sort) end;
+
+fun replace_sortsT get_sort =
+  map_atyps
+    (fn T =>
+      if Term_Position.is_positionT T then T
+      else
+        (case T of
+          TFree (x, _) => TFree (x, get_sort (x, ~1))
+        | TVar (xi, _) => TVar (xi, get_sort xi)
+        | _ => T));
+
+in
+
+fun prepare_sortsT ctxt tys =
+  let val (sorting_report, get_sort) = prepare_sorts_env ctxt tys
+  in (sorting_report, map (replace_sortsT get_sort) tys) end;
+
+fun prepare_sorts ctxt tms =
+  let
+    val tys = rev ((fold o fold_types) cons tms []);
+    val (sorting_report, get_sort) = prepare_sorts_env ctxt tys;
+  in (sorting_report, (map o map_types) (replace_sortsT get_sort) tms) end;
+
+fun check_tfree ctxt v =
+  let
+    val (sorting_report, [TFree a]) = prepare_sortsT ctxt [TFree v];
+    val _ = Context_Position.if_visible ctxt Output.report sorting_report;
+  in a end;
+
+end;
 
 
 (* certify terms *)

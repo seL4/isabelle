@@ -86,14 +86,16 @@ fun decode_sort tm =
     fun err () = raise TERM ("decode_sort: bad encoding of classes", [tm]);
 
     fun class s = Lexicon.unmark_class s handle Fail _ => err ();
+    fun class_pos s = if is_some (Term_Position.decode s) then s else err ();
 
     fun classes (Const (s, _)) = [class s]
       | classes (Const ("_classes", _) $ Const (s, _) $ cs) = class s :: classes cs
       | classes _ = err ();
 
     fun sort (Const ("_topsort", _)) = []
-      | sort (Const (s, _)) = [class s]
       | sort (Const ("_sort", _) $ cs) = classes cs
+      | sort (Const (s, _)) = [class s]
+      | sort (Free (s, _)) = [class_pos s]
       | sort _ = err ();
   in sort tm end;
 
@@ -138,7 +140,18 @@ fun parsetree_to_ast ctxt raw trf parsetree =
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => f ctxt args);
 
-    fun asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
+    fun asts_of_token tok =
+      if Lexicon.valued_token tok
+      then [Ast.Variable (Lexicon.str_of_token tok)]
+      else [];
+
+    fun asts_of_position c tok =
+      if raw then asts_of_token tok
+      else
+        [Ast.Appl [Ast.Constant c, ast_of (Parser.Tip tok),
+          Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
+
+    and asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
             val pos = Lexicon.pos_of_token tok;
             val c = Proof_Context.read_class ctxt (Lexicon.str_of_token tok)
@@ -153,11 +166,8 @@ fun parsetree_to_ast ctxt raw trf parsetree =
                 handle ERROR msg => error (msg ^ Position.here pos);
             val _ = report pos (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
-      | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
-          if raw then [ast_of pt]
-          else
-            [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
+      | asts_of (Parser.Node ("_position", [Parser.Tip tok])) = asts_of_position "_constrain" tok
+      | asts_of (Parser.Node ("_position_sort", [Parser.Tip tok])) = asts_of_position "_ofsort" tok
       | asts_of (Parser.Node (a, pts)) =
           let
             val _ = pts |> List.app
@@ -165,10 +175,7 @@ fun parsetree_to_ast ctxt raw trf parsetree =
                 if Lexicon.valued_token tok then ()
                 else report (Lexicon.pos_of_token tok) (markup_entity ctxt) a);
           in [trans a (maps asts_of pts)] end
-      | asts_of (Parser.Tip tok) =
-          if Lexicon.valued_token tok
-          then [Ast.Variable (Lexicon.str_of_token tok)]
-          else []
+      | asts_of (Parser.Tip tok) = asts_of_token tok
 
     and ast_of pt =
       (case asts_of pt of
@@ -823,27 +830,34 @@ val apply_term_uncheck = check snd true;
 
 in
 
-fun check_typs ctxt =
-  Proof_Context.prepare_sorts ctxt #>
-  apply_typ_check ctxt #>
-  Term_Sharing.typs (Proof_Context.theory_of ctxt);
+fun check_typs ctxt raw_tys =
+  let
+    val (sorting_report, tys) = Proof_Context.prepare_sortsT ctxt raw_tys;
+    val _ = Context_Position.if_visible ctxt Output.report sorting_report;
+  in
+    tys
+    |> apply_typ_check ctxt
+    |> Term_Sharing.typs (Proof_Context.theory_of ctxt)
+  end;
 
 fun check_terms ctxt raw_ts =
   let
-    val (ts, ps) = raw_ts
-      |> Term.burrow_types (Proof_Context.prepare_sorts ctxt)
-      |> Type_Infer_Context.prepare_positions ctxt;
+    val (sorting_report, raw_ts') = Proof_Context.prepare_sorts ctxt raw_ts;
+    val (ts, ps) = Type_Infer_Context.prepare_positions ctxt raw_ts';
+
     val tys = map (Logic.mk_type o snd) ps;
     val (ts', tys') = ts @ tys
       |> apply_term_check ctxt
       |> chop (length ts);
-    val _ =
-      map2 (fn (pos, _) => fn ty =>
+    val typing_report =
+      fold2 (fn (pos, _) => fn ty =>
         if Position.is_reported pos then
-          Markup.markup (Position.markup pos Isabelle_Markup.typing)
-            (Syntax.string_of_typ ctxt (Logic.dest_type ty))
-        else "") ps tys'
-      |> implode |> Output.report
+          cons (Position.reported_text pos Isabelle_Markup.typing
+            (Syntax.string_of_typ ctxt (Logic.dest_type ty)))
+        else I) ps tys' []
+      |> implode;
+
+    val _ = Context_Position.if_visible ctxt Output.report (sorting_report ^ typing_report);
   in Term_Sharing.terms (Proof_Context.theory_of ctxt) ts' end;
 
 fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
