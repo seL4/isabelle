@@ -281,8 +281,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
     val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
     val nested_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nested_bnfs;
-    val nesting_map_ids = map map_id_of_bnf nesting_bnfs;
-    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def}) nesting_map_ids;
+    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
     val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
     val nesting_set_natural's = maps set_natural'_of_bnf nesting_bnfs;
 
@@ -1002,10 +1001,10 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss';
 
             val unfold_tacss =
-              map3 (map oo mk_corec_like_tac unfold_defs nesting_map_ids) fp_fold_thms pre_map_defs
-                ctr_defss;
+              map3 (map oo mk_corec_like_tac unfold_defs nesting_map_ids'') fp_fold_thms
+                pre_map_defs ctr_defss;
             val corec_tacss =
-              map3 (map oo mk_corec_like_tac corec_defs nesting_map_ids) fp_rec_thms pre_map_defs
+              map3 (map oo mk_corec_like_tac corec_defs nesting_map_ids'') fp_rec_thms pre_map_defs
                 ctr_defss;
 
             fun prove goal tac =

@@ -107,11 +107,10 @@ fun mk_rec_like_tac pre_map_defs map_comp's map_ids'' rec_like_defs ctor_rec_lik
   unfold_thms_tac ctxt (ctr_def :: ctor_rec_like :: rec_like_defs @ pre_map_defs @ map_comp's @
     map_ids'' @ rec_like_unfold_thms) THEN rtac refl 1;
 
-fun mk_corec_like_tac corec_like_defs map_ids ctor_dtor_corec_like pre_map_def ctr_def ctxt =
+fun mk_corec_like_tac corec_like_defs map_ids'' ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
   (rtac (ctor_dtor_corec_like RS trans) THEN' asm_simp_tac ss_if_True_False) 1 THEN
-  unfold_thms_tac ctxt (pre_map_def :: sum_prod_thms_map @ map_ids) THEN
-  unfold_thms_tac ctxt @{thms id_def} THEN
+  unfold_thms_tac ctxt (pre_map_def :: @{thm id_def} :: sum_prod_thms_map @ map_ids'') THEN
   (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)) 1;
 
 fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
