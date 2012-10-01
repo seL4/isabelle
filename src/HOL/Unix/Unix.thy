@@ -1035,7 +1035,7 @@ proof -
               have "lookup root ((path @ [y]) @ (us @ [u])) \<noteq> None \<or>
                   lookup root ((path @ [y]) @ us) \<noteq> None"
                 by cases (auto dest: access_some_lookup)
-              then show ?thesis 
+              then show ?thesis
                 by (fastforce dest!: lookup_some_append)
             qed
             finally show ?thesis .
