@@ -525,8 +525,8 @@ lemma [code, code del]:
   "(HOL.equal :: (_, _, _) env \<Rightarrow> _) = HOL.equal" ..
 
 lemma equal_env_code [code]:
-  fixes x y :: "'a\<Colon>equal"
-    and f g :: "'c\<Colon>{equal, finite} \<Rightarrow> ('b\<Colon>equal, 'a, 'c) env option"
+  fixes x y :: "'a::equal"
+    and f g :: "'c::{equal, finite} \<Rightarrow> ('b::equal, 'a, 'c) env option"
   shows
     "HOL.equal (Env x f) (Env y g) \<longleftrightarrow>
       HOL.equal x y \<and> (\<forall>z \<in> UNIV.
@@ -554,14 +554,13 @@ proof (unfold equal)
     qed
   qed
   then show "Env x f = Env y g \<longleftrightarrow>
-    x = y \<and> (\<forall>z\<in>UNIV.
+    x = y \<and> (\<forall>z \<in> UNIV.
       case f z of
         None \<Rightarrow> (case g z of None \<Rightarrow> True | Some _ \<Rightarrow> False)
       | Some a \<Rightarrow> (case g z of None \<Rightarrow> False | Some b \<Rightarrow> a = b))" by simp
 qed simp_all
 
-lemma [code nbe]:
-  "HOL.equal (x :: (_, _, _) env) x \<longleftrightarrow> True"
+lemma [code nbe]: "HOL.equal (x :: (_, _, _) env) x \<longleftrightarrow> True"
   by (fact equal_refl)
 
 lemma [code, code del]:
