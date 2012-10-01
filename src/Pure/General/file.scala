@@ -105,7 +105,8 @@ object File
   /* copy */
 
   def eq(file1: JFile, file2: JFile): Boolean =
-    java.nio.file.Files.isSameFile(file1.toPath, file2.toPath)
+    try { java.nio.file.Files.isSameFile(file1.toPath, file2.toPath) }
+    catch { case ERROR(_) => false }
 
   def copy(src: JFile, dst: JFile)
   {
