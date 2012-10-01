@@ -100,7 +100,7 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
 
 (*TODO: Try "sum_prod_thms_map" here, enriched with a few theorems*)
 val rec_like_unfold_thms =
-  @{thms comp_def convol_def fst_conv id_def map_pair_def prod_case_Pair_iden snd_conv split_conv
+  @{thms comp_def convol_def fst_conv id_def map_pair_simp prod_case_Pair_iden snd_conv split_conv
       sum.simps(5,6) sum_map.simps unit_case_Unity};
 
 fun mk_rec_like_tac pre_map_defs map_comp's map_ids'' rec_like_defs ctor_rec_like ctr_def ctxt =

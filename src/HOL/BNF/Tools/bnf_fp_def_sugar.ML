@@ -604,8 +604,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                   if s = s' then build_map (build_ctor_rec_arg mk_proj) T U else mk_proj T
                 | _ => mk_proj T);
 
-            fun mk_U proj (T as Type (@{type_name prod}, [T', U])) =
-                if member (op =) fpTs T' then proj (T', U) else T
+            fun mk_U proj (Type (s as @{type_name prod}, Ts as [T', U])) =
+                if member (op =) fpTs T' then proj (T', U) else Type (s, map (mk_U proj) Ts)
               | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
               | mk_U _ T = T;
 
