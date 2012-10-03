@@ -124,8 +124,8 @@ simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
 typed_print_translation (advanced) {*
   let
     fun tr' c = (c, fn ctxt => fn T => fn ts =>
-      if not (null ts) orelse T = dummyT
-        orelse not (Config.get ctxt show_types) andalso can Term.dest_Type T
+      if not (null ts) orelse T = dummyT orelse
+        not (Printer.show_type_constraint ctxt) andalso can Term.dest_Type T
       then raise Match
       else
         Syntax.const @{syntax_const "_constrain"} $ Syntax.const c $

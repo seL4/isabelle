@@ -31,6 +31,8 @@ sig
   val show_structs_raw: Config.raw
   val show_question_marks_default: bool Unsynchronized.ref
   val show_question_marks_raw: Config.raw
+  val show_type_constraint: Proof.context -> bool
+  val show_sort_constraint: Proof.context -> bool
   type prtabs
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
@@ -79,6 +81,9 @@ val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_raw =
   Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
 val show_question_marks = Config.bool show_question_marks_raw;
+
+fun show_type_constraint ctxt = Config.get ctxt show_types orelse Config.get ctxt show_markup;
+fun show_sort_constraint ctxt = Config.get ctxt show_sorts orelse Config.get ctxt show_markup;
 
 
 
