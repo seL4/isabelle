@@ -1,7 +1,7 @@
 MAILTO=isatest@mailbroy.informatik.tu-muenchen.de
 
-28 06 * * 0-5                export FLYSPECK_SKIP_PROOFS=true && $HOME/afp/devel/admin/regression -
-28 06 * * 6                  $HOME/afp/devel/admin/regression -
+28 06 * * 0-5                $HOME/afp/devel/admin/regression -
+28 06 * * 6                  export ISABELLE_FULL_TEST=true && $HOME/afp/devel/admin/regression -
 # 17 11 * * 6                  $HOME/afp/devel/admin/regression -f -
 # 32 11 * * 0                  $HOME/afp/release/admin/regression Isabelle2011-1
 
