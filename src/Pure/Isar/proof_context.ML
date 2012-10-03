@@ -630,8 +630,7 @@ fun prepare_sorts_env ctxt tys =
           Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
             handle Vartab.DUP _ =>
               error ("Inconsistent sort constraints for type variable " ^
-                quote (Term.string_of_vname' xi) ^
-                space_implode " " (map Position.here ps))
+                quote (Term.string_of_vname' xi) ^ Position.here_list ps)
       end;
 
     val env =
@@ -658,7 +657,11 @@ fun prepare_sorts_env ctxt tys =
           :: reports
       else reports;
 
-    val decode_pos = #1 o Term_Position.decode_positionS;
+    fun get_sort_reports xi raw_S =
+      let
+        val ps = #1 (Term_Position.decode_positionS raw_S);
+        val S = get_sort xi handle ERROR msg => error (msg ^ Position.here_list ps);
+      in fold (add_report S) ps end;
 
     val reports =
       (fold o fold_atyps)
@@ -666,8 +669,8 @@ fun prepare_sorts_env ctxt tys =
           if Term_Position.is_positionT T then I
           else
             (case T of
-              TFree (x, raw_S) => fold (add_report (get_sort (x, ~1))) (decode_pos raw_S)
-            | TVar (xi, raw_S) => fold (add_report (get_sort xi)) (decode_pos raw_S)
+              TFree (x, raw_S) => get_sort_reports (x, ~1) raw_S
+            | TVar (xi, raw_S) => get_sort_reports xi raw_S
             | _ => I)) tys [];
 
   in (implode (map #2 reports), get_sort) end;

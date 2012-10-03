@@ -42,6 +42,7 @@ sig
   val reports: report list -> unit
   val store_reports: report list Unsynchronized.ref -> T list -> ('a -> Markup.T list) -> 'a -> unit
   val here: T -> string
+  val here_list: T list -> string
   type range = T * T
   val no_range: range
   val set_range: range -> T
@@ -197,6 +198,8 @@ fun here pos =
       (if s = "" then "" else " ") ^
         Markup.markup (Markup.properties props Isabelle_Markup.position) s
   end;
+
+val here_list = space_implode " " o map here;
 
 
 (* range *)
