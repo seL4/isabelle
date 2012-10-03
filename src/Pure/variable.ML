@@ -213,9 +213,9 @@ val declare_type_occs = map_type_occs o decl_type_occs;
 
 (* constraints *)
 
-fun constrain_tvar (xi, S) =
-  if S = dummyS orelse Term_Position.is_positionS S
-  then Vartab.delete_safe xi else Vartab.update (xi, S);
+fun constrain_tvar (xi, raw_S) =
+  let val (_, S) = Term_Position.decode_positionS raw_S
+  in if S = dummyS then Vartab.delete_safe xi else Vartab.update (xi, S) end;
 
 fun declare_constraints t = map_constraints (fn (types, sorts) =>
   let

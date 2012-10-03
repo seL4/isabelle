@@ -86,7 +86,6 @@ fun decode_sort tm =
     fun err () = raise TERM ("decode_sort: bad encoding of classes", [tm]);
 
     fun class s = Lexicon.unmark_class s handle Fail _ => err ();
-    fun class_pos s = if is_some (Term_Position.decode s) then s else err ();
 
     fun classes (Const (s, _)) = [class s]
       | classes (Const ("_classes", _) $ Const (s, _) $ cs) = class s :: classes cs
@@ -95,37 +94,44 @@ fun decode_sort tm =
     fun sort (Const ("_topsort", _)) = []
       | sort (Const ("_sort", _) $ cs) = classes cs
       | sort (Const (s, _)) = [class s]
-      | sort (Free (s, _)) = [class_pos s]
       | sort _ = err ();
   in sort tm end;
 
 
 (* decode_typ *)
 
+fun decode_pos (Free (s, _)) =
+      if is_some (Term_Position.decode s) then SOME s else NONE
+  | decode_pos _ = NONE;
+
 fun decode_typ tm =
   let
     fun err () = raise TERM ("decode_typ: bad encoding of type", [tm]);
 
-    fun typ (Free (x, _)) = TFree (x, dummyS)
-      | typ (Var (xi, _)) = TVar (xi, dummyS)
-      | typ (Const ("_tfree",_) $ (t as Free _)) = typ t
-      | typ (Const ("_tvar",_) $ (t as Var _)) = typ t
-      | typ (Const ("_ofsort", _) $ Free (x, _) $ s) = TFree (x, decode_sort s)
-      | typ (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ s) =
-          TFree (x, decode_sort s)
-      | typ (Const ("_ofsort", _) $ Var (xi, _) $ s) = TVar (xi, decode_sort s)
-      | typ (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ s) =
-          TVar (xi, decode_sort s)
-      | typ (Const ("_dummy_ofsort", _) $ s) = TFree ("'_dummy_", decode_sort s)
-      | typ t =
-          let
-            val (head, args) = Term.strip_comb t;
-            val a =
-              (case head of
-                Const (c, _) => (Lexicon.unmark_type c handle Fail _ => err ())
-              | _ => err ());
-          in Type (a, map typ args) end;
-  in typ tm end;
+    fun typ ps sort tm =
+      (case tm of
+        Const ("_tfree", _) $ t => typ ps sort t
+      | Const ("_tvar", _) $ t => typ ps sort t
+      | Const ("_ofsort", _) $ t $ s =>
+          (case decode_pos s of
+            SOME p => typ (p :: ps) sort t
+          | NONE =>
+              if is_none sort then typ ps (SOME (decode_sort s)) t
+              else err ())
+      | Const ("_dummy_ofsort", _) $ s => TFree ("'_dummy_", decode_sort s)
+      | Free (x, _) => TFree (x, ps @ the_default dummyS sort)
+      | Var (xi, _) => TVar (xi, ps @ the_default dummyS sort)
+      | _ =>
+          if null ps andalso is_none sort then
+            let
+              val (head, args) = Term.strip_comb tm;
+              val a =
+                (case head of
+                  Const (c, _) => (Lexicon.unmark_type c handle Fail _ => err ())
+                | _ => err ());
+            in Type (a, map (typ [] NONE) args) end
+          else err ());
+  in typ [] NONE tm end;
 
 
 (* parsetree_to_ast *)

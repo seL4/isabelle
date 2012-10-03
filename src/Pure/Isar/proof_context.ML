@@ -623,13 +623,17 @@ fun prepare_sorts_env ctxt tys =
     val tsig = tsig_of ctxt;
     val defaultS = Type.defaultS tsig;
 
-    fun constraint (xi, S) env =
-      if S = dummyS orelse Term_Position.is_positionS S then env
-      else
-        Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
-          handle Vartab.DUP _ =>
-            error ("Inconsistent sort constraints for type variable " ^
-              quote (Term.string_of_vname' xi));
+    fun constraint (xi, raw_S) env =
+      let val (ps, S) = Term_Position.decode_positionS raw_S in
+        if S = dummyS then env
+        else
+          Vartab.insert (op =) (xi, Type.minimize_sort tsig S) env
+            handle Vartab.DUP _ =>
+              error ("Inconsistent sort constraints for type variable " ^
+                quote (Term.string_of_vname' xi) ^
+                space_implode " " (map Position.here ps))
+      end;
+
     val env =
       (fold o fold_atyps)
         (fn TFree (x, S) => constraint ((x, ~1), S)
@@ -648,14 +652,13 @@ fun prepare_sorts_env ctxt tys =
               " inconsistent with default " ^ Syntax.string_of_sort ctxt S' ^
               " for type variable " ^ quote (Term.string_of_vname' xi)));
 
-    fun add_report raw_S S reports =
-      (case Term_Position.decode_positionS raw_S of
-        SOME pos =>
-          if Position.is_reported pos andalso not (AList.defined (op =) reports pos) then
-            (pos, Position.reported_text pos Isabelle_Markup.sorting (Syntax.string_of_sort ctxt S))
-              :: reports
-          else reports
-      | NONE => reports);
+    fun add_report S pos reports =
+      if Position.is_reported pos andalso not (AList.defined (op =) reports pos) then
+        (pos, Position.reported_text pos Isabelle_Markup.sorting (Syntax.string_of_sort ctxt S))
+          :: reports
+      else reports;
+
+    val decode_pos = #1 o Term_Position.decode_positionS;
 
     val reports =
       (fold o fold_atyps)
@@ -663,8 +666,8 @@ fun prepare_sorts_env ctxt tys =
           if Term_Position.is_positionT T then I
           else
             (case T of
-              TFree (x, raw_S) => add_report raw_S (get_sort (x, ~1))
-            | TVar (xi, raw_S) => add_report raw_S (get_sort xi)
+              TFree (x, raw_S) => fold (add_report (get_sort (x, ~1))) (decode_pos raw_S)
+            | TVar (xi, raw_S) => fold (add_report (get_sort xi)) (decode_pos raw_S)
             | _ => I)) tys [];
 
   in (implode (map #2 reports), get_sort) end;
