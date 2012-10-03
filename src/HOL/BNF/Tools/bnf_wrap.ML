@@ -423,8 +423,8 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
                 in
                   Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
-                  |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
+                  |> singleton (Proof_Context.export names_lthy lthy)
                 end;
 
               fun mk_alternate_disc_def k =
@@ -436,8 +436,8 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
-                  |> singleton (Proof_Context.export names_lthy lthy)
                   |> Thm.close_derivation
+                  |> singleton (Proof_Context.export names_lthy lthy)
                 end;
 
               val has_alternate_disc_def =
@@ -551,8 +551,8 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                      mk_expand_tac n ms (inst_thm u disc_exhaust_thm)
                        (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
                        disc_exclude_thmsss')]
-                  |> Proof_Context.export names_lthy lthy
                   |> map Thm.close_derivation
+                  |> Proof_Context.export names_lthy lthy
                 end;
 
               val case_conv_thms =
@@ -562,8 +562,8 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                 in
                   [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
                      mk_case_conv_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
-                  |> Proof_Context.export names_lthy lthy
                   |> map Thm.close_derivation
+                  |> Proof_Context.export names_lthy lthy
                 end;
             in
               (all_sel_thms, sel_thmss, disc_thmss, disc_thms, discI_thms, disc_exclude_thms,
@@ -583,7 +583,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
           in
             (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
              Skip_Proof.prove lthy [] [] weak_goal (K (etac arg_cong 1)))
-            |> pairself (singleton (Proof_Context.export names_lthy lthy) #> Thm.close_derivation)
+            |> pairself (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
           end;
 
         val (split_thm, split_asm_thm) =
@@ -605,13 +605,13 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
             val split_thm =
               Skip_Proof.prove lthy [] [] goal
                 (fn _ => mk_split_tac uexhaust_thm case_thms inject_thmss distinct_thmsss)
-              |> singleton (Proof_Context.export names_lthy lthy)
-              |> Thm.close_derivation;
+              |> Thm.close_derivation
+              |> singleton (Proof_Context.export names_lthy lthy);
             val split_asm_thm =
               Skip_Proof.prove lthy [] [] asm_goal (fn {context = ctxt, ...} =>
                 mk_split_asm_tac ctxt split_thm)
-              |> singleton (Proof_Context.export names_lthy lthy)
-              |> Thm.close_derivation;
+              |> Thm.close_derivation
+              |> singleton (Proof_Context.export names_lthy lthy);
           in
             (split_thm, split_asm_thm)
           end;
