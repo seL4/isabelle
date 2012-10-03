@@ -451,17 +451,20 @@ fun term_of_sort S =
 fun term_of_typ ctxt ty =
   let
     val show_sorts = Config.get ctxt show_sorts;
+    val show_markup = Config.get ctxt show_markup;
 
-    fun of_sort t S =
-      if show_sorts then Syntax.const "_ofsort" $ t $ term_of_sort S
+    fun ofsort t raw_S =
+      if show_sorts orelse show_markup then
+        let val S = #2 (Term_Position.decode_positionS raw_S)
+        in if S = dummyS then t else Syntax.const "_ofsort" $ t $ term_of_sort S end
       else t;
 
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Syntax.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
           if is_some (Term_Position.decode x) then Syntax.free x
-          else of_sort (Syntax.const "_tfree" $ Syntax.free x) S
-      | term_of (TVar (xi, S)) = of_sort (Syntax.const "_tvar" $ Syntax.var xi) S;
+          else ofsort (Syntax.const "_tfree" $ Syntax.free x) S
+      | term_of (TVar (xi, S)) = ofsort (Syntax.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
 
 
@@ -620,13 +623,15 @@ fun var_or_skolem s =
   | NONE => (Isabelle_Markup.var, s));
 
 val typing_elem = YXML.output_markup_elem Isabelle_Markup.typing;
+val sorting_elem = YXML.output_markup_elem Isabelle_Markup.sorting;
 
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
-    val show_types =
-      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
-      Config.get ctxt show_all_types;
     val show_markup = Config.get ctxt show_markup;
+    val show_sorts = Config.get ctxt show_sorts;
+    val show_types =
+      Config.get ctxt show_types orelse show_sorts orelse
+      Config.get ctxt show_all_types;
 
     val syn = Proof_Context.syn_of ctxt;
     val prtabs = Syntax.prtabs syn;
@@ -656,14 +661,23 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
     fun markup_trans a [Ast.Variable x] = token_trans a x
       | markup_trans "_constrain" [t, ty] = constrain_trans t ty
       | markup_trans "_idtyp" [t, ty] = constrain_trans t ty
+      | markup_trans "_ofsort" [ty, s] = ofsort_trans ty s
       | markup_trans _ _ = NONE
 
     and constrain_trans t ty =
-      if not show_types andalso show_markup then
+      if show_markup andalso not show_types then
         let
           val ((bg1, bg2), en) = typing_elem;
           val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty ty) ^ bg2;
         in SOME (Pretty.raw_markup (bg, en) (0, [pretty_ast Markup.empty t])) end
+      else NONE
+
+    and ofsort_trans ty s =
+      if show_markup andalso not show_sorts then
+        let
+          val ((bg1, bg2), en) = sorting_elem;
+          val bg = bg1 ^ Pretty.symbolic_output (pretty_typ_ast Markup.empty s) ^ bg2;
+        in SOME (Pretty.raw_markup (bg, en) (0, [pretty_typ_ast Markup.empty ty])) end
       else NONE
 
     and pretty_typ_ast m ast = ast
