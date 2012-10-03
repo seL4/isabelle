@@ -640,7 +640,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val [foldx, recx] = map (mk_rec_like lfp As Cs o Morphism.term phi) csts;
           in
-            ((foldx, recx, fold_def, rec_def), lthy)
+            ((foldx, recx, fold_def, rec_def), lthy')
           end;
 
         fun define_unfold_corec no_defs_lthy =
@@ -698,7 +698,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val [unfold, corec] = map (mk_rec_like lfp As Cs o Morphism.term phi) csts;
           in
-            ((unfold, corec, unfold_def, corec_def), lthy)
+            ((unfold, corec, unfold_def, corec_def), lthy')
           end;
 
         val define_rec_likes = if lfp then define_fold_rec else define_unfold_corec;

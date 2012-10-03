@@ -631,7 +631,7 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
     "Infinite_Derivation_Trees/Gram_Lang"
     "Infinite_Derivation_Trees/Parallel"
     Stream
-  theories [parallel_proofs = 0, condition = ISABELLE_FULL_TEST]
+  theories [condition = ISABELLE_FULL_TEST]
     Misc_Codata
     Misc_Data
 
