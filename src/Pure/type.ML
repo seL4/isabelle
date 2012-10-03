@@ -61,6 +61,7 @@ sig
   (*special treatment of type vars*)
   val sort_of_atyp: typ -> sort
   val strip_sorts: typ -> typ
+  val strip_sorts_dummy: typ -> typ
   val no_tvars: typ -> typ
   val varify_global: (string * sort) list -> term -> ((string * sort) * indexname) list * term
   val legacy_freeze_thaw_type: typ -> typ * (typ -> typ)
@@ -335,9 +336,13 @@ fun sort_of_atyp (TFree (_, S)) = S
 
 (* strip_sorts *)
 
-fun strip_sorts (Type (a, Ts)) = Type (a, map strip_sorts Ts)
-  | strip_sorts (TFree (x, _)) = TFree (x, [])
-  | strip_sorts (TVar (xi, _)) = TVar (xi, []);
+val strip_sorts = map_atyps
+  (fn TFree (x, _) => TFree (x, [])
+    | TVar (xi, _) => TVar (xi, []));
+
+val strip_sorts_dummy = map_atyps
+  (fn TFree (x, _) => TFree (x, dummyS)
+    | TVar (xi, _) => TVar (xi, dummyS));
 
 
 (* no_tvars *)

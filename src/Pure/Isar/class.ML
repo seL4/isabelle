@@ -173,7 +173,7 @@ fun print_classes ctxt =
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
     fun mk_param (c, ty) =
       Pretty.str (Proof_Context.extern_const ctxt c ^ " :: " ^
-        Syntax.string_of_typ (Config.put show_sorts false ctxt) (Type.strip_sorts ty));
+        Syntax.string_of_typ ctxt (Type.strip_sorts_dummy ty));
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
       (SOME o Pretty.str) ("class " ^ Proof_Context.extern_class ctxt class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
