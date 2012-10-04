@@ -872,6 +872,8 @@ proof -
   qed
 qed
 
+declare image_mset.identity [simp]
+
 
 subsection {* Alternative representations *}
 
