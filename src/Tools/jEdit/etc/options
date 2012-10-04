@@ -18,6 +18,9 @@ option jedit_tooltip_margin : int = 60
 option jedit_tooltip_dismiss_delay : real = 8.0
   -- "global delay for Swing tooltips"
 
+option jedit_text_overview : bool = true
+  -- "paint text overview column (potentially slow for large files)"
+
 
 section "Rendering of Document Content"
 

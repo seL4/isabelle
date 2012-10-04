@@ -69,7 +69,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
       JEdit_Lib.buffer_lock(buffer) {
         val snapshot = doc_view.model.snapshot()
 
-        if (snapshot.is_outdated) {
+        if (snapshot.is_outdated || !Isabelle.options.bool("jedit_text_overview")) {
           gfx.setColor(Isabelle.options.color_value("outdated_color"))
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
         }
