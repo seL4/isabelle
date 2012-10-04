@@ -126,6 +126,7 @@ subsection {* Details of printed content *}
 
 text {*
   \begin{tabular}{rcll}
+    @{attribute_def show_markup} & : & @{text attribute} \\
     @{attribute_def show_types} & : & @{text attribute} & default @{text false} \\
     @{attribute_def show_sorts} & : & @{text attribute} & default @{text false} \\
     @{attribute_def show_consts} & : & @{text attribute} & default @{text false} \\
@@ -149,11 +150,21 @@ text {*
 
   \begin{description}
 
+  \item @{attribute show_markup} controls direct inlining of markup
+  into the printed representation of formal entities --- notably type
+  and sort constraints.  This enables Prover IDE users to retrieve
+  that information via tooltips or popups while hovering with the
+  mouse over the output window, for example.  Consequently, this
+  option is enabled by default for Isabelle/jEdit, but disabled for
+  TTY and Proof~General~/Emacs where document markup would not work.
+
   \item @{attribute show_types} and @{attribute show_sorts} control
   printing of type constraints for term variables, and sort
   constraints for type variables.  By default, neither of these are
   shown in output.  If @{attribute show_sorts} is enabled, types are
-  always shown as well.
+  always shown as well.  In Isabelle/jEdit, manual setting of these
+  options is normally not required thanks to @{attribute show_markup}
+  above.
 
   Note that displaying types and sorts may explain why a polymorphic
   inference rule fails to resolve with some goal, or why a rewrite
