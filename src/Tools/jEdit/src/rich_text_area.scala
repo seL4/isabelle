@@ -10,14 +10,12 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Window, Color, Point, BorderLayout}
+import java.awt.{Graphics2D, Shape, Window, Color, Point}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
 import java.text.AttributedString
 import java.util.ArrayList
-import javax.swing.{SwingUtilities, JWindow, JPanel}
-import javax.swing.border.LineBorder
 
 import org.gjt.sp.util.Log
 import org.gjt.sp.jedit.{OperatingSystem, Debug, View}
@@ -202,43 +200,12 @@ class Rich_Text_Area(
         val rendering = get_rendering()
         val snapshot = rendering.snapshot
         if (!snapshot.is_outdated) {
-          val painter = text_area.getPainter
-          val fm = painter.getFontMetrics
-
           val offset = text_area.xyToOffset(x, y)
           val range = Text.Range(offset, offset + 1)
           val tip =
             if (control) rendering.tooltip(range)
             else rendering.tooltip_message(range)
-          if (!tip.isEmpty) {
-            val point = {
-              val bounds = painter.getBounds()
-              val point = new Point(bounds.x + x, bounds.y + fm.getHeight + y)
-              SwingUtilities.convertPointToScreen(point, painter)
-              point
-            }
-
-            val tooltip_text = new Pretty_Text_Area(view)
-            tooltip_text.resize(Isabelle.font_family(),
-              Isabelle.font_size("jedit_tooltip_font_scale").round)
-
-            tooltip_text.update(snapshot, tip)
-
-            val window = new JWindow(view) {
-              addWindowFocusListener(new WindowAdapter {
-                override def windowLostFocus(e: WindowEvent) { dispose() }
-              })
-              setContentPane(new JPanel(new BorderLayout) {
-                override def getFocusTraversalKeysEnabled(): Boolean = false
-              })
-              getRootPane.setBorder(new LineBorder(Color.BLACK))
-
-              add(tooltip_text)
-              setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
-              setLocation(point.x, point.y)
-              setVisible(true)
-            }
-          }
+          if (!tip.isEmpty) new Pretty_Tooltip(view, text_area, rendering, x, y, tip)
         }
         null
       }
