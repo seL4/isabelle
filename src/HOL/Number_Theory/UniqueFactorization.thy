@@ -30,46 +30,22 @@ declare One_nat_def [simp del]
      count M x > 0
 *)
 
-
-(* useful facts *)
-
-lemma setsum_Un2: "finite (A Un B) \<Longrightarrow> 
-    setsum f (A Un B) = setsum f (A - B) + setsum f (B - A) + 
-      setsum f (A Int B)"
-  apply (subgoal_tac "A Un B = (A - B) Un (B - A) Un (A Int B)")
-  apply (erule ssubst)
-  apply (subst setsum_Un_disjoint)
-  apply auto
-  apply (subst setsum_Un_disjoint)
-  apply auto
-  done
-
-lemma setprod_Un2: "finite (A Un B) \<Longrightarrow> 
-    setprod f (A Un B) = setprod f (A - B) * setprod f (B - A) * 
-      setprod f (A Int B)"
-  apply (subgoal_tac "A Un B = (A - B) Un (B - A) Un (A Int B)")
-  apply (erule ssubst)
-  apply (subst setprod_Un_disjoint)
-  apply auto
-  apply (subst setprod_Un_disjoint)
-  apply auto
-  done
- 
 (* Here is a version of set product for multisets. Is it worth moving
    to multiset.thy? If so, one should similarly define msetsum for abelian 
    semirings, using of_nat. Also, is it worth developing bounded quantifiers 
    "ALL i :# M. P i"? 
 *)
 
-definition msetprod :: "('a => ('b::{power,comm_monoid_mult})) => 'a multiset => 'b" where
-  "msetprod f M == setprod (%x. (f x)^(count M x)) (set_of M)"
+definition (in comm_monoid_mult) msetprod :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
+where
+  "msetprod f M = setprod (\<lambda>x. f x ^ count M x) (set_of M)"
 
 syntax
-  "_msetprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult" 
+  "_msetprod" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
       ("(3PROD _:#_. _)" [0, 51, 10] 10)
 
 translations
-  "PROD i :# A. b" == "CONST msetprod (%i. b) A"
+  "PROD i :# A. b" == "CONST msetprod (\<lambda>i. b) A"
 
 lemma msetprod_empty: "msetprod f {#} = 1"
   by (simp add: msetprod_def)
@@ -77,7 +53,7 @@ lemma msetprod_empty: "msetprod f {#} = 1"
 lemma msetprod_singleton: "msetprod f {#x#} = f x"
   by (simp add: msetprod_def)
 
-lemma msetprod_Un: "msetprod f (A+B) = msetprod f A * msetprod f B" 
+lemma msetprod_Un: "msetprod f (A + B) = msetprod f A * msetprod f B" 
   apply (simp add: msetprod_def power_add)
   apply (subst setprod_Un2)
   apply auto
