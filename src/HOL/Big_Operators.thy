@@ -447,6 +447,15 @@ lemma setsum_Un: "finite A ==> finite B ==>
    setsum f A + setsum f B - setsum f (A Int B)"
 by (subst setsum_Un_Int [symmetric], auto simp add: algebra_simps)
 
+lemma setsum_Un2:
+  assumes "finite (A \<union> B)"
+  shows "setsum f (A \<union> B) = setsum f (A - B) + setsum f (B - A) + setsum f (A \<inter> B)"
+proof -
+  have "A \<union> B = A - B \<union> (B - A) \<union> A \<inter> B"
+    by auto
+  with assms show ?thesis by simp (subst setsum_Un_disjoint, auto)+
+qed
+
 lemma (in comm_monoid_add) setsum_eq_general_reverses:
   assumes fS: "finite S" and fT: "finite T"
   and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
@@ -1086,6 +1095,15 @@ lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==
   (setprod f (A Un B) :: 'a ::{field})
    = setprod f A * setprod f B / setprod f (A Int B)"
 by (subst setprod_Un_Int [symmetric], auto)
+
+lemma setprod_Un2:
+  assumes "finite (A \<union> B)"
+  shows "setprod f (A \<union> B) = setprod f (A - B) * setprod f (B - A) * setprod f (A \<inter> B)"
+proof -
+  have "A \<union> B = A - B \<union> (B - A) \<union> A \<inter> B"
+    by auto
+  with assms show ?thesis by simp (subst setprod_Un_disjoint, auto)+
+qed
 
 lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   (setprod f (A - {a}) :: 'a :: {field}) =
