@@ -374,7 +374,7 @@ object Build
             echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
 
           val sources =
-            try { all_files.map(p => (p, SHA1.digest(p))) }
+            try { all_files.map(p => (p, SHA1.digest(p.file))) }
             catch {
               case ERROR(msg) =>
                 error(msg + "\nThe error(s) above occurred in session " +
