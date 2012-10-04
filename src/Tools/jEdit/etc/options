@@ -9,8 +9,8 @@ option jedit_auto_start : bool = true
 option jedit_font_scale : real = 1.0
   -- "scale factor of add-on panels wrt. main text area"
 
-option jedit_tooltip_font_size : int = 10
-  -- "tooltip font size (according to HTML)"
+option jedit_tooltip_font_scale : real = 0.85
+  -- "scale factor of tooltips wrt. main text area"
 
 option jedit_tooltip_margin : int = 60
   -- "margin for tooltip pretty-printing"

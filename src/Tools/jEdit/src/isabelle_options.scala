@@ -42,7 +42,7 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
   // FIXME avoid hard-wired stuff
   private val relevant_options =
     Set("jedit_logic", "jedit_auto_start", "jedit_font_scale", "jedit_text_overview",
-      "jedit_tooltip_font_size", "jedit_tooltip_margin", "jedit_tooltip_dismiss_delay",
+      "jedit_tooltip_font_scale", "jedit_tooltip_margin", "jedit_tooltip_dismiss_delay",
       "editor_load_delay", "editor_input_delay", "editor_output_delay",
       "editor_update_delay", "editor_reparse_limit")
 

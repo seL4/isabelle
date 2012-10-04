@@ -51,16 +51,11 @@ object Isabelle
 
   def font_family(): String = jEdit.getProperty("view.font")
 
-  def font_size(): Float =
-    (jEdit.getIntegerProperty("view.fontsize", 16) * options.real("jedit_font_scale")).toFloat
+  def font_size(scale: String): Float =
+    (jEdit.getIntegerProperty("view.fontsize", 16) * options.real(scale)).toFloat
 
 
-  /* tooltip markup */
-
-  def tooltip(text: String): String =
-    "<html><pre style=\"font-family: " + font_family() + "; font-size: " +
-        options.int("jedit_tooltip_font_size").toString + "px; \">" +  // FIXME proper scaling (!?)
-      HTML.encode(text) + "</pre></html>"
+  /* tooltip delay */
 
   private val tooltip_lb = Time.seconds(0.5)
   private val tooltip_ub = Time.seconds(60.0)

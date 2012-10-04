@@ -202,6 +202,9 @@ class Rich_Text_Area(
         val rendering = get_rendering()
         val snapshot = rendering.snapshot
         if (!snapshot.is_outdated) {
+          val painter = text_area.getPainter
+          val fm = painter.getFontMetrics
+
           val offset = text_area.xyToOffset(x, y)
           val range = Text.Range(offset, offset + 1)
           val tip =
@@ -209,15 +212,16 @@ class Rich_Text_Area(
             else rendering.tooltip_message(range)
           if (!tip.isEmpty) {
             val point = {
-              val painter = text_area.getPainter
               val bounds = painter.getBounds()
-              val point = new Point(bounds.x + x, bounds.y + painter.getFontMetrics.getHeight + y)
+              val point = new Point(bounds.x + x, bounds.y + fm.getHeight + y)
               SwingUtilities.convertPointToScreen(point, painter)
               point
             }
 
             val tooltip_text = new Pretty_Text_Area(view)
-            tooltip_text.resize(Isabelle.font_family(), Isabelle.font_size().round) // FIXME tooltip_scale
+            tooltip_text.resize(Isabelle.font_family(),
+              Isabelle.font_size("jedit_tooltip_font_scale").round)
+
             tooltip_text.update(snapshot, tip)
 
             val window = new JWindow(view) {
@@ -230,7 +234,7 @@ class Rich_Text_Area(
               getRootPane.setBorder(new LineBorder(Color.BLACK))
 
               add(tooltip_text)
-              setSize(300, 100)
+              setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
               setLocation(point.x, point.y)
               setVisible(true)
             }
