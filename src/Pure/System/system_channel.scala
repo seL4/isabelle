@@ -36,6 +36,8 @@ private object Fifo_Channel
 
 private class Fifo_Channel extends System_Channel
 {
+  require(!Platform.is_windows)
+
   private def mk_fifo(): String =
   {
     val i = Fifo_Channel.next_fifo()
@@ -47,21 +49,10 @@ private class Fifo_Channel extends System_Channel
     if (rc == 0) out else error(err.trim)
   }
 
-  private def rm_fifo(fifo: String): Boolean =
-    Path.explode(if (Platform.is_windows) fifo + ".lnk" else fifo).file.delete
+  private def rm_fifo(fifo: String): Boolean = (new JFile(fifo)).delete
 
-  private def fifo_input_stream(fifo: String): InputStream =
-  {
-    require(!Platform.is_windows)
-    new FileInputStream(fifo)
-  }
-
-  private def fifo_output_stream(fifo: String): OutputStream =
-  {
-    require(!Platform.is_windows)
-    new FileOutputStream(fifo)
-  }
-
+  private def fifo_input_stream(fifo: String): InputStream = new FileInputStream(fifo)
+  private def fifo_output_stream(fifo: String): OutputStream = new FileOutputStream(fifo)
 
   private val fifo1 = mk_fifo()
   private val fifo2 = mk_fifo()
