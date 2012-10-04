@@ -259,13 +259,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   }
 
 
-  private def tooltip_text(msg: XML.Tree): String =
-    Pretty.string_of(List(msg), margin = options.int("jedit_tooltip_margin"))
-
-  def tooltip_message(range: Text.Range): Option[String] =
+  def tooltip_message(range: Text.Range): XML.Body =
   {
     val msgs =
-      snapshot.cumulate_markup[SortedMap[Long, String]](range, SortedMap.empty,
+      snapshot.cumulate_markup[SortedMap[Long, XML.Tree]](range, SortedMap.empty,
         Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR,
           Isabelle_Markup.BAD)),
         {
@@ -274,11 +271,11 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           if markup == Isabelle_Markup.WRITELN ||
               markup == Isabelle_Markup.WARNING ||
               markup == Isabelle_Markup.ERROR =>
-            msgs + (serial -> tooltip_text(msg))
+            msgs + (serial -> msg)
           case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), body)))
-          if !body.isEmpty => msgs + (Document.new_id() -> tooltip_text(msg))
+          if !body.isEmpty => msgs + (Document.new_id() -> msg)
         }).toList.flatMap(_.info)
-    if (msgs.isEmpty) None else Some(cat_lines(msgs.iterator.map(_._2)))
+    Library.separate(Pretty.Separator, msgs.iterator.map(_._2).toList)
   }
 
 
@@ -302,38 +299,37 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
     Set(Isabelle_Markup.ENTITY, Isabelle_Markup.SORTING, Isabelle_Markup.TYPING,
       Isabelle_Markup.ML_TYPING, Isabelle_Markup.PATH) ++ tooltips.keys
 
-  private def string_of_typing(kind: String, body: XML.Body): String =
-    Pretty.string_of(List(Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)),
-      margin = options.int("jedit_tooltip_margin"))
+  private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
+    Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
 
-  def tooltip(range: Text.Range): Option[String] =
+  def tooltip(range: Text.Range): XML.Body =
   {
-    def add(prev: Text.Info[List[(Boolean, String)]], r: Text.Range, p: (Boolean, String)) =
+    def add(prev: Text.Info[List[(Boolean, XML.Tree)]], r: Text.Range, p: (Boolean, XML.Tree)) =
       if (prev.range == r) Text.Info(r, p :: prev.info) else Text.Info(r, List(p))
 
     val tips =
-      snapshot.cumulate_markup[Text.Info[(List[(Boolean, String)])]](
+      snapshot.cumulate_markup[Text.Info[(List[(Boolean, XML.Tree)])]](
         range, Text.Info(range, Nil), Some(tooltip_elements),
         {
           case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Entity(kind, name), _))) =>
             val kind1 = space_explode('_', kind).mkString(" ")
-            add(prev, r, (true, kind1 + " " + quote(name)))
+            add(prev, r, (true, XML.Text(kind1 + " " + quote(name))))
           case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
-            add(prev, r, (true, "file " + quote(jedit_file)))
+            add(prev, r, (true, XML.Text("file " + quote(jedit_file))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
           if name == Isabelle_Markup.SORTING || name == Isabelle_Markup.TYPING =>
-            add(prev, r, (true, string_of_typing("::", body)))
+            add(prev, r, (true, pretty_typing("::", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.ML_TYPING, _), body))) =>
-            add(prev, r, (false, string_of_typing("ML:", body)))
+            add(prev, r, (false, pretty_typing("ML:", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _)))
-          if tooltips.isDefinedAt(name) => add(prev, r, (true, tooltips(name)))
+          if tooltips.isDefinedAt(name) => add(prev, r, (true, XML.Text(tooltips(name))))
         }).toList.flatMap(_.info.info)
 
     val all_tips =
       (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
-    if (all_tips.isEmpty) None else Some(cat_lines(all_tips))
+    Library.separate(Pretty.FBreak, all_tips.toList)
   }
 
 

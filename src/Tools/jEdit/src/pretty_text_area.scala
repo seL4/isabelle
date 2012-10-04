@@ -40,8 +40,6 @@ object Pretty_Text_Area
     val version0 = base_snapshot.version
     val nodes0 = version0.nodes
 
-    assert(nodes0(node_name).commands.isEmpty)
-
     val nodes1 = nodes0 + (node_name -> nodes0(node_name).update_commands(Linear_Set(command)))
     val version1 = Document.Version.make(version0.syntax, nodes1)
     val state1 =
