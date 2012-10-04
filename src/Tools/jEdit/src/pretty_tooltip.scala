@@ -34,11 +34,6 @@ class Pretty_Tooltip(
     point
   }
 
-  val pretty_text_area = new Pretty_Text_Area(view)
-  pretty_text_area.resize(
-    Isabelle.font_family(), Isabelle.font_size("jedit_tooltip_font_scale").round)
-  pretty_text_area.update(rendering.snapshot, body)
-
   addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) { dispose() }
   })
@@ -47,9 +42,17 @@ class Pretty_Tooltip(
   })
   getRootPane.setBorder(new LineBorder(Color.BLACK))
 
-  add(pretty_text_area)
-  setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
   setLocation(point.x, point.y)
+  setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
+
+  val pretty_text_area = new Pretty_Text_Area(view)
+  add(pretty_text_area)
+
+  pretty_text_area.resize(
+    Isabelle.font_family(), Isabelle.font_size("jedit_tooltip_font_scale").round)
+  pretty_text_area.update(rendering.snapshot, body)
+
   setVisible(true)
+  pretty_text_area.refresh()
 }
 
