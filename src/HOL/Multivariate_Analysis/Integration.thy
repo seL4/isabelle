@@ -338,48 +338,72 @@ lemma content_pos_lt_eq: "0 < content {a..b::'a::ordered_euclidean_space} \<long
 
 lemma content_empty[simp]: "content {} = 0" unfolding content_def by auto
 
-lemma content_subset: assumes "{a..b} \<subseteq> {c..d}" shows "content {a..b::'a::ordered_euclidean_space} \<le> content {c..d}" proof(cases "{a..b}={}")
-  case True thus ?thesis using content_pos_le[of c d] by auto next
-  case False hence ab_ne:"\<forall>i<DIM('a). a $$ i \<le> b $$ i" unfolding interval_ne_empty by auto
+lemma content_subset:
+  assumes "{a..b} \<subseteq> {c..d}"
+  shows "content {a..b::'a::ordered_euclidean_space} \<le> content {c..d}"
+proof (cases "{a..b} = {}")
+  case True
+  thus ?thesis using content_pos_le[of c d] by auto
+next
+  case False
+  hence ab_ne:"\<forall>i<DIM('a). a $$ i \<le> b $$ i" unfolding interval_ne_empty by auto
   hence ab_ab:"a\<in>{a..b}" "b\<in>{a..b}" unfolding mem_interval by auto
   have "{c..d} \<noteq> {}" using assms False by auto
   hence cd_ne:"\<forall>i<DIM('a). c $$ i \<le> d $$ i" using assms unfolding interval_ne_empty by auto
-  show ?thesis unfolding content_def unfolding interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
-    unfolding if_not_P[OF False] if_not_P[OF `{c..d} \<noteq> {}`] apply(rule setprod_mono,rule) proof
-    fix i assume i:"i\<in>{..<DIM('a)}"
+  show ?thesis
+    unfolding content_def
+    unfolding interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
+    unfolding if_not_P[OF False] if_not_P[OF `{c..d} \<noteq> {}`]
+    apply(rule setprod_mono,rule)
+  proof
+    fix i
+    assume i:"i\<in>{..<DIM('a)}"
     show "0 \<le> b $$ i - a $$ i" using ab_ne[THEN spec[where x=i]] i by auto
     show "b $$ i - a $$ i \<le> d $$ i - c $$ i"
       using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(2),of i]
-      using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(1),of i] using i by auto qed qed
+      using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(1),of i]
+      using i by auto
+  qed
+qed
 
 lemma content_lt_nz: "0 < content {a..b} \<longleftrightarrow> content {a..b} \<noteq> 0"
   unfolding content_pos_lt_eq content_eq_0 unfolding not_ex not_le by fastforce
+
 
 subsection {* The notion of a gauge --- simply an open set containing the point. *}
 
 definition gauge where "gauge d \<longleftrightarrow> (\<forall>x. x\<in>(d x) \<and> open(d x))"
 
-lemma gaugeI:assumes "\<And>x. x\<in>g x" "\<And>x. open (g x)" shows "gauge g"
+lemma gaugeI: assumes "\<And>x. x\<in>g x" "\<And>x. open (g x)" shows "gauge g"
   using assms unfolding gauge_def by auto
 
-lemma gaugeD[dest]: assumes "gauge d" shows "x\<in>d x" "open (d x)" using assms unfolding gauge_def by auto
+lemma gaugeD[dest]: assumes "gauge d" shows "x\<in>d x" "open (d x)"
+  using assms unfolding gauge_def by auto
 
 lemma gauge_ball_dependent: "\<forall>x. 0 < e x \<Longrightarrow> gauge (\<lambda>x. ball x (e x))"
   unfolding gauge_def by auto 
 
 lemma gauge_ball[intro]: "0 < e \<Longrightarrow> gauge (\<lambda>x. ball x e)" unfolding gauge_def by auto 
 
-lemma gauge_trivial[intro]: "gauge (\<lambda>x. ball x 1)" apply(rule gauge_ball) by auto
+lemma gauge_trivial[intro]: "gauge (\<lambda>x. ball x 1)"
+  by (rule gauge_ball) auto
 
 lemma gauge_inter[intro]: "gauge d1 \<Longrightarrow> gauge d2 \<Longrightarrow> gauge (\<lambda>x. (d1 x) \<inter> (d2 x))"
   unfolding gauge_def by auto 
 
-lemma gauge_inters: assumes "finite s" "\<forall>d\<in>s. gauge (f d)" shows "gauge(\<lambda>x. \<Inter> {f d x | d. d \<in> s})" proof-
-  have *:"\<And>x. {f d x |d. d \<in> s} = (\<lambda>d. f d x) ` s" by auto show ?thesis
-  unfolding gauge_def unfolding * 
-  using assms unfolding Ball_def Inter_iff mem_Collect_eq gauge_def by auto qed
+lemma gauge_inters:
+  assumes "finite s" "\<forall>d\<in>s. gauge (f d)"
+  shows "gauge(\<lambda>x. \<Inter> {f d x | d. d \<in> s})"
+proof -
+  have *:"\<And>x. {f d x |d. d \<in> s} = (\<lambda>d. f d x) ` s" by auto
+  show ?thesis
+    unfolding gauge_def unfolding * 
+    using assms unfolding Ball_def Inter_iff mem_Collect_eq gauge_def by auto
+qed
 
-lemma gauge_existence_lemma: "(\<forall>x. \<exists>d::real. p x \<longrightarrow> 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. p x \<longrightarrow> q d x)" by(meson zero_less_one)
+lemma gauge_existence_lemma: "(\<forall>x. \<exists>d::real. p x \<longrightarrow> 0 < d \<and> q d x) \<longleftrightarrow> (\<forall>x. \<exists>d>0. p x \<longrightarrow> q d x)"
+  by(meson zero_less_one)
+
 
 subsection {* Divisions. *}
 
@@ -390,13 +414,15 @@ definition division_of (infixl "division'_of" 40) where
         (\<forall>k1\<in>s. \<forall>k2\<in>s. k1 \<noteq> k2 \<longrightarrow> interior(k1) \<inter> interior(k2) = {}) \<and>
         (\<Union>s = i)"
 
-lemma division_ofD[dest]: assumes  "s division_of i"
-  shows"finite s" "\<And>k. k\<in>s \<Longrightarrow> k \<subseteq> i" "\<And>k. k\<in>s \<Longrightarrow>  k \<noteq> {}" "\<And>k. k\<in>s \<Longrightarrow> (\<exists>a b. k = {a..b})"
-  "\<And>k1 k2. \<lbrakk>k1\<in>s; k2\<in>s; k1 \<noteq> k2\<rbrakk> \<Longrightarrow> interior(k1) \<inter> interior(k2) = {}" "\<Union>s = i" using assms unfolding division_of_def by auto
+lemma division_ofD[dest]:
+  assumes "s division_of i"
+  shows "finite s" "\<And>k. k\<in>s \<Longrightarrow> k \<subseteq> i" "\<And>k. k\<in>s \<Longrightarrow>  k \<noteq> {}" "\<And>k. k\<in>s \<Longrightarrow> (\<exists>a b. k = {a..b})"
+    "\<And>k1 k2. \<lbrakk>k1\<in>s; k2\<in>s; k1 \<noteq> k2\<rbrakk> \<Longrightarrow> interior(k1) \<inter> interior(k2) = {}" "\<Union>s = i"
+  using assms unfolding division_of_def by auto
 
 lemma division_ofI:
   assumes "finite s" "\<And>k. k\<in>s \<Longrightarrow> k \<subseteq> i" "\<And>k. k\<in>s \<Longrightarrow>  k \<noteq> {}" "\<And>k. k\<in>s \<Longrightarrow> (\<exists>a b. k = {a..b})"
-  "\<And>k1 k2. \<lbrakk>k1\<in>s; k2\<in>s; k1 \<noteq> k2\<rbrakk> \<Longrightarrow> interior(k1) \<inter> interior(k2) = {}" "\<Union>s = i"
+    "\<And>k1 k2. \<lbrakk>k1\<in>s; k2\<in>s; k1 \<noteq> k2\<rbrakk> \<Longrightarrow> interior(k1) \<inter> interior(k2) = {}" "\<Union>s = i"
   shows "s division_of i" using assms unfolding division_of_def by auto
 
 lemma division_of_finite: "s division_of i \<Longrightarrow> finite s"
@@ -407,19 +433,30 @@ lemma division_of_self[intro]: "{a..b} \<noteq> {} \<Longrightarrow> {{a..b}} di
 
 lemma division_of_trivial[simp]: "s division_of {} \<longleftrightarrow> s = {}" unfolding division_of_def by auto 
 
-lemma division_of_sing[simp]: "s division_of {a..a::'a::ordered_euclidean_space} \<longleftrightarrow> s = {{a..a}}" (is "?l = ?r") proof
-  assume ?r moreover { assume "s = {{a}}" moreover fix k assume "k\<in>s" 
-    ultimately have"\<exists>x y. k = {x..y}" apply(rule_tac x=a in exI)+ unfolding interval_sing by auto }
-  ultimately show ?l unfolding division_of_def interval_sing by auto next
-  assume ?l note as=conjunctD4[OF this[unfolded division_of_def interval_sing]]
+lemma division_of_sing[simp]:
+  "s division_of {a..a::'a::ordered_euclidean_space} \<longleftrightarrow> s = {{a..a}}" (is "?l = ?r")
+proof
+  assume ?r
+  moreover {
+    assume "s = {{a}}"
+    moreover fix k assume "k\<in>s" 
+    ultimately have"\<exists>x y. k = {x..y}"
+      apply (rule_tac x=a in exI)+ unfolding interval_sing by auto
+  }
+  ultimately show ?l unfolding division_of_def interval_sing by auto
+next
+  assume ?l
+  note as=conjunctD4[OF this[unfolded division_of_def interval_sing]]
   { fix x assume x:"x\<in>s" have "x={a}" using as(2)[rule_format,OF x] by auto }
-  moreover have "s \<noteq> {}" using as(4) by auto ultimately show ?r unfolding interval_sing by auto qed
+  moreover have "s \<noteq> {}" using as(4) by auto
+  ultimately show ?r unfolding interval_sing by auto
+qed
 
 lemma elementary_empty: obtains p where "p division_of {}"
   unfolding division_of_trivial by auto
 
-lemma elementary_interval: obtains p where  "p division_of {a..b}"
-  by(metis division_of_trivial division_of_self)
+lemma elementary_interval: obtains p where "p division_of {a..b}"
+  by (metis division_of_trivial division_of_self)
 
 lemma division_contains: "s division_of i \<Longrightarrow> \<forall>x\<in>i. \<exists>k\<in>s. x \<in> k"
   unfolding division_of_def by auto
@@ -429,14 +466,27 @@ lemma forall_in_division:
   unfolding division_of_def by fastforce
 
 lemma division_of_subset: assumes "p division_of (\<Union>p)" "q \<subseteq> p" shows "q division_of (\<Union>q)"
-  apply(rule division_ofI) proof- note as=division_ofD[OF assms(1)]
-  show "finite q" apply(rule finite_subset) using as(1) assms(2) by auto
-  { fix k assume "k \<in> q" hence kp:"k\<in>p" using assms(2) by auto show "k\<subseteq>\<Union>q" using `k \<in> q` by auto
-  show "\<exists>a b. k = {a..b}" using as(4)[OF kp] by auto show "k \<noteq> {}" using as(3)[OF kp] by auto }
-  fix k1 k2 assume "k1 \<in> q" "k2 \<in> q" "k1 \<noteq> k2" hence *:"k1\<in>p" "k2\<in>p" "k1\<noteq>k2" using assms(2) by auto
-  show "interior k1 \<inter> interior k2 = {}" using as(5)[OF *] by auto qed auto
+  apply (rule division_ofI)
+proof -
+  note as=division_ofD[OF assms(1)]
+  show "finite q"
+    apply (rule finite_subset)
+    using as(1) assms(2) apply auto
+    done
+  { fix k
+    assume "k \<in> q"
+    hence kp:"k\<in>p" using assms(2) by auto
+    show "k\<subseteq>\<Union>q" using `k \<in> q` by auto
+    show "\<exists>a b. k = {a..b}" using as(4)[OF kp]
+      by auto show "k \<noteq> {}" using as(3)[OF kp] by auto }
+  fix k1 k2
+  assume "k1 \<in> q" "k2 \<in> q" "k1 \<noteq> k2"
+  hence *: "k1\<in>p" "k2\<in>p" "k1\<noteq>k2" using assms(2) by auto
+  show "interior k1 \<inter> interior k2 = {}" using as(5)[OF *] by auto
+qed auto
 
-lemma division_of_union_self[intro]: "p division_of s \<Longrightarrow> p division_of (\<Union>p)" unfolding division_of_def by auto
+lemma division_of_union_self[intro]: "p division_of s \<Longrightarrow> p division_of (\<Union>p)"
+  unfolding division_of_def by auto
 
 lemma division_of_content_0: assumes "content {a..b} = 0" "d division_of {a..b}" shows "\<forall>k\<in>d. content k = 0"
   unfolding forall_in_division[OF assms(2)] apply(rule,rule,rule) apply(drule division_ofD(2)[OF assms(2)])
