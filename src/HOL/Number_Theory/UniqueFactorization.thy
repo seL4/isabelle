@@ -36,42 +36,46 @@ declare One_nat_def [simp del]
    "ALL i :# M. P i"? 
 *)
 
-definition (in comm_monoid_mult) msetprod :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
+definition (in comm_monoid_mult) msetprod :: "'a multiset \<Rightarrow> 'a"
 where
-  "msetprod f M = setprod (\<lambda>x. f x ^ count M x) (set_of M)"
+  "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
+
+abbreviation (in comm_monoid_mult) msetprod_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
+where
+  "msetprod_image f M \<equiv> msetprod (image_mset f M)"
 
 syntax
-  "_msetprod" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
       ("(3PROD _:#_. _)" [0, 51, 10] 10)
 
 translations
-  "PROD i :# A. b" == "CONST msetprod (\<lambda>i. b) A"
+  "PROD i :# A. b" == "CONST msetprod_image (\<lambda>i. b) A"
 
-lemma msetprod_empty: "msetprod f {#} = 1"
+lemma msetprod_empty: "msetprod {#} = 1"
   by (simp add: msetprod_def)
 
-lemma msetprod_singleton: "msetprod f {#x#} = f x"
+lemma msetprod_singleton: "msetprod {#x#} = x"
   by (simp add: msetprod_def)
 
-lemma msetprod_Un: "msetprod f (A + B) = msetprod f A * msetprod f B" 
+lemma msetprod_Un: "msetprod (A + B) = msetprod A * msetprod B" 
   apply (simp add: msetprod_def power_add)
   apply (subst setprod_Un2)
   apply auto
   apply (subgoal_tac 
-      "(PROD x:set_of A - set_of B. f x ^ count A x * f x ^ count B x) =
-       (PROD x:set_of A - set_of B. f x ^ count A x)")
+      "(PROD x:set_of A - set_of B. x ^ count A x * x ^ count B x) =
+       (PROD x:set_of A - set_of B. x ^ count A x)")
   apply (erule ssubst)
   apply (subgoal_tac 
-      "(PROD x:set_of B - set_of A. f x ^ count A x * f x ^ count B x) =
-       (PROD x:set_of B - set_of A. f x ^ count B x)")
+      "(PROD x:set_of B - set_of A. x ^ count A x * x ^ count B x) =
+       (PROD x:set_of B - set_of A. x ^ count B x)")
   apply (erule ssubst)
-  apply (subgoal_tac "(PROD x:set_of A. f x ^ count A x) = 
-    (PROD x:set_of A - set_of B. f x ^ count A x) *
-    (PROD x:set_of A Int set_of B. f x ^ count A x)")
+  apply (subgoal_tac "(PROD x:set_of A. x ^ count A x) = 
+    (PROD x:set_of A - set_of B. x ^ count A x) *
+    (PROD x:set_of A Int set_of B. x ^ count A x)")
   apply (erule ssubst)
-  apply (subgoal_tac "(PROD x:set_of B. f x ^ count B x) = 
-    (PROD x:set_of B - set_of A. f x ^ count B x) *
-    (PROD x:set_of A Int set_of B. f x ^ count B x)")
+  apply (subgoal_tac "(PROD x:set_of B. x ^ count B x) = 
+    (PROD x:set_of B - set_of A. x ^ count B x) *
+    (PROD x:set_of A Int set_of B. x ^ count B x)")
   apply (erule ssubst)
   apply (subst setprod_timesf)
   apply (force simp add: mult_ac)
@@ -198,7 +202,8 @@ lemma multiset_prime_factorization: "n > 0 ==>
   apply (frule multiset_prime_factorization_exists)
   apply clarify
   apply (rule theI)
-  apply (insert multiset_prime_factorization_unique, blast)+
+  apply (insert multiset_prime_factorization_unique)
+  apply auto
 done
 
 
