@@ -339,29 +339,32 @@ lemma neq_zero_eq_gt_zero_nat: "((x::nat) ~= 0) = (x > 0)"
   by auto
 
 lemma prime_factorization_unique_nat: 
-    "S = { (p::nat) . f p > 0} \<Longrightarrow> finite S \<Longrightarrow> (ALL p : S. prime p) \<Longrightarrow>
-      n = (PROD p : S. p^(f p)) \<Longrightarrow>
-        S = prime_factors n & (ALL p. f p = multiplicity p n)"
-  apply (subgoal_tac "multiset_prime_factorization n = Abs_multiset f")
-  apply (unfold prime_factors_nat_def multiplicity_nat_def)
-  apply (simp add: set_of_def Abs_multiset_inverse multiset_def)
-  apply (unfold multiset_prime_factorization_def)
-  apply (subgoal_tac "n > 0")
-  prefer 2
-  apply force
-  apply (subst if_P, assumption)
-  apply (rule the1_equality)
-  apply (rule ex_ex1I)
-  apply (rule multiset_prime_factorization_exists, assumption)
-  apply (rule multiset_prime_factorization_unique)
-  apply force
-  apply force
-  apply force
-  unfolding set_of_def msetprod_def
-  apply (subgoal_tac "f : multiset")
-  apply (auto simp only: Abs_multiset_inverse)
-  unfolding multiset_def apply force 
-  done
+  fixes f :: "nat \<Rightarrow> _"
+  assumes S_eq: "S = {p. 0 < f p}" and "finite S"
+    and "\<forall>p\<in>S. prime p" "n = (\<Prod>p\<in>S. p ^ f p)"
+  shows "S = prime_factors n \<and> (\<forall>p. f p = multiplicity p n)"
+proof -
+  from assms have "f \<in> multiset"
+    by (auto simp add: multiset_def)
+  moreover from assms have "n > 0" by force
+  ultimately have "multiset_prime_factorization n = Abs_multiset f"
+    apply (unfold multiset_prime_factorization_def)
+    apply (subst if_P, assumption)
+    apply (rule the1_equality)
+    apply (rule ex_ex1I)
+    apply (rule multiset_prime_factorization_exists, assumption)
+    apply (rule multiset_prime_factorization_unique)
+    apply force
+    apply force
+    apply force
+    using assms
+    apply (simp add: Abs_multiset_inverse set_of_def msetprod_def)
+    done
+  with `f \<in> multiset` have "count (multiset_prime_factorization n) = f"
+    by (simp add: Abs_multiset_inverse)
+  with S_eq show ?thesis
+    by (simp add: set_of_def multiset_def prime_factors_nat_def multiplicity_nat_def)
+qed
 
 lemma prime_factors_characterization_nat: "S = {p. 0 < f (p::nat)} \<Longrightarrow> 
     finite S \<Longrightarrow> (ALL p:S. prime p) \<Longrightarrow> n = (PROD p:S. p ^ f p) \<Longrightarrow>
@@ -874,3 +877,4 @@ lemma gcd_lcm_distrib_int: "gcd (x::int) (lcm y z) = lcm (gcd x y) (gcd x z)"
   done
 
 end
+
