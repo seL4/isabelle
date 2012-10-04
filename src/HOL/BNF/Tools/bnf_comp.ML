@@ -13,10 +13,6 @@ sig
 
   type unfold_set
   val empty_unfolds: unfold_set
-  val map_unfolds_of: unfold_set -> thm list
-  val rel_unfolds_of: unfold_set -> thm list
-  val set_unfoldss_of: unfold_set -> thm list list
-  val srel_unfolds_of: unfold_set -> thm list
 
   val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> typ -> unfold_set * Proof.context ->
@@ -63,11 +59,6 @@ fun add_to_unfolds map sets rel srel
 fun add_bnf_to_unfolds bnf =
   add_to_unfolds (map_def_of_bnf bnf) (set_defs_of_bnf bnf) (rel_def_of_bnf bnf)
     (srel_def_of_bnf bnf);
-
-val map_unfolds_of = #map_unfolds;
-val set_unfoldss_of = #set_unfoldss;
-val rel_unfolds_of = #rel_unfolds;
-val srel_unfolds_of = #srel_unfolds;
 
 val bdTN = "bdT";
 
@@ -603,10 +594,10 @@ fun seal_bnf unfold_set b Ds bnf lthy =
     val (Bs, _) = apfst (map TFree)
       (Variable.invent_types (replicate live HOLogic.typeS) lthy1);
 
-    val map_unfolds = map_unfolds_of unfold_set;
-    val set_unfoldss = set_unfoldss_of unfold_set;
-    val rel_unfolds = rel_unfolds_of unfold_set;
-    val srel_unfolds = srel_unfolds_of unfold_set;
+    val map_unfolds = #map_unfolds unfold_set;
+    val set_unfoldss = #set_unfoldss unfold_set;
+    val rel_unfolds = #rel_unfolds unfold_set;
+    val srel_unfolds = #srel_unfolds unfold_set;
 
     val expand_maps =
       fold expand_term_const (map (single o Logic.dest_equals o Thm.prop_of) map_unfolds);
