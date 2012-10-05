@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Toolkit, Color, Point, BorderLayout}
+import java.awt.{Toolkit, Color, Point, BorderLayout, Window}
 import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, WindowAdapter}
 import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, KeyStroke}
 import javax.swing.border.LineBorder
@@ -23,19 +23,28 @@ class Pretty_Tooltip(
   text_area: TextArea,
   rendering: Isabelle_Rendering,
   mouse_x: Int, mouse_y: Int, body: XML.Body)
-  extends JWindow(JEdit_Lib.parent_frame(text_area) getOrElse view)
+  extends JWindow(JEdit_Lib.parent_window(text_area) getOrElse view)
 {
   window =>
 
   window.addWindowFocusListener(new WindowAdapter {
-    override def windowLostFocus(e: WindowEvent) { window.dispose() }
+    override def windowLostFocus(e: WindowEvent) {
+      if (!Window.getWindows.exists(w =>
+            w.isDisplayable && JEdit_Lib.ancestors(w).exists(_ == window)))
+        window.dispose()
+    }
   })
 
   window.setContentPane(new JPanel(new BorderLayout) {
     private val action_listener = new ActionListener {
       def actionPerformed(e: ActionEvent) {
         e.getActionCommand match {
-          case "close" => window.dispose()
+          case "close" =>
+            window.dispose()
+            JEdit_Lib.ancestors(window) foreach {
+              case c: Pretty_Tooltip => c.dispose
+              case _ =>
+            }
           case _ =>
         }
       }

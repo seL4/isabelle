@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Component, Container, Frame}
+import java.awt.{Component, Container, Frame, Window}
 
 import scala.annotation.tailrec
 
@@ -20,18 +20,31 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 object JEdit_Lib
 {
-  /* frames */
+  /* GUI components */
+
+  def get_parent(component: Component): Option[Container] =
+    component.getParent match {
+      case null => None
+      case parent => Some(parent)
+    }
+
+  def ancestors(component: Component): Iterator[Container] = new Iterator[Container] {
+    private var next_elem = get_parent(component)
+    def hasNext(): Boolean = next_elem.isDefined
+    def next(): Container =
+      next_elem match {
+        case Some(parent) =>
+          next_elem = get_parent(parent)
+          parent
+        case None => Iterator.empty.next()
+      }
+  }
+
+  def parent_window(component: Component): Option[Window] =
+    ancestors(component).find(_.isInstanceOf[Window]).map(_.asInstanceOf[Window])
 
   def parent_frame(component: Component): Option[Frame] =
-  {
-    @tailrec def find(c: Container): Option[Frame] =
-      c match {
-        case null => None
-        case frame: Frame => Some(frame)
-        case _ => find(c.getParent)
-      }
-    find(component.getParent)
-  }
+    ancestors(component).find(_.isInstanceOf[Frame]).map(_.asInstanceOf[Frame])
 
 
   /* buffers */
