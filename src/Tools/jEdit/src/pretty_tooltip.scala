@@ -22,7 +22,7 @@ class Pretty_Tooltip(
   view: View,
   text_area: TextArea,
   rendering: Isabelle_Rendering,
-  x: Int, y: Int, body: XML.Body) extends JWindow(view)
+  mouse_x: Int, mouse_y: Int, body: XML.Body) extends JWindow(view)
 {
   window =>
 
@@ -55,14 +55,6 @@ class Pretty_Tooltip(
   window.add(pretty_text_area)
 
   {
-    val container = text_area.getPainter
-    val font_metrics = container.getFontMetrics
-    val point = new Point(x, y + font_metrics.getHeight / 2)
-    SwingUtilities.convertPointToScreen(point, container)
-    window.setLocation(point.x, point.y)
-  }
-
-  {
     val font_metrics = pretty_text_area.getPainter.getFontMetrics
     val margin = Isabelle.options.int("jedit_tooltip_margin")  // FIXME via rendering?!
     val lines =  // FIXME avoid redundant formatting
@@ -73,6 +65,18 @@ class Pretty_Tooltip(
     val w = (font_metrics.charWidth(Pretty.spc) * margin) min (screen.width / 2)
     val h = (font_metrics.getHeight * (lines + 2)) min (screen.height / 2)
     window.setSize(w, h)
+  }
+
+  {
+    val container = text_area.getPainter
+    val font_metrics = container.getFontMetrics
+    val point = new Point(mouse_x, mouse_y + font_metrics.getHeight / 2)
+    SwingUtilities.convertPointToScreen(point, container)
+
+    val screen = Toolkit.getDefaultToolkit.getScreenSize
+    val x = point.x min (screen.width - window.getWidth)
+    val y = point.y min (screen.height - window.getHeight)
+    window.setLocation(x, y)
   }
 
   window.setVisible(true)
