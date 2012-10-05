@@ -22,7 +22,8 @@ class Pretty_Tooltip(
   view: View,
   text_area: TextArea,
   rendering: Isabelle_Rendering,
-  mouse_x: Int, mouse_y: Int, body: XML.Body) extends JWindow(view)
+  mouse_x: Int, mouse_y: Int, body: XML.Body)
+  extends JWindow(JEdit_Lib.parent_frame(text_area) getOrElse view)
 {
   window =>
 
