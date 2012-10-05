@@ -10,8 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Point, BorderLayout}
-import java.awt.event.{WindowEvent, WindowAdapter}
-import javax.swing.{SwingUtilities, JWindow, JPanel}
+import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, WindowAdapter}
+import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, KeyStroke}
 import javax.swing.border.LineBorder
 
 import org.gjt.sp.jedit.View
@@ -24,6 +24,8 @@ class Pretty_Tooltip(
   rendering: Isabelle_Rendering,
   x: Int, y: Int, body: XML.Body) extends JWindow(view)
 {
+  window =>
+
   private val painter = text_area.getPainter
   private val fm = painter.getFontMetrics
 
@@ -34,25 +36,37 @@ class Pretty_Tooltip(
     point
   }
 
-  addWindowFocusListener(new WindowAdapter {
-    override def windowLostFocus(e: WindowEvent) { dispose() }
+  window.addWindowFocusListener(new WindowAdapter {
+    override def windowLostFocus(e: WindowEvent) { window.dispose() }
   })
-  setContentPane(new JPanel(new BorderLayout) {
+
+  window.setContentPane(new JPanel(new BorderLayout) {
+    private val action_listener = new ActionListener {
+      def actionPerformed(e: ActionEvent) {
+        e.getActionCommand match {
+          case "close" => window.dispose()
+          case _ =>
+        }
+      }
+    }
+    registerKeyboardAction(action_listener, "close",
+      KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
+
     override def getFocusTraversalKeysEnabled(): Boolean = false
   })
-  getRootPane.setBorder(new LineBorder(Color.BLACK))
+  window.getRootPane.setBorder(new LineBorder(Color.BLACK))
 
-  setLocation(point.x, point.y)
-  setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
+  window.setLocation(point.x, point.y)
+  window.setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
 
   val pretty_text_area = new Pretty_Text_Area(view)
-  add(pretty_text_area)
+  window.add(pretty_text_area)
 
   pretty_text_area.resize(
     Isabelle.font_family(), Isabelle.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, body)
 
-  setVisible(true)
+  window.setVisible(true)
   pretty_text_area.refresh()
 }
 
