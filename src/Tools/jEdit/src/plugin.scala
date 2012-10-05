@@ -55,22 +55,6 @@ object Isabelle
     (jEdit.getIntegerProperty("view.fontsize", 16) * options.real(scale)).toFloat
 
 
-  /* tooltip delay */
-
-  private val tooltip_lb = Time.seconds(0.5)
-  private val tooltip_ub = Time.seconds(60.0)
-  def tooltip_dismiss_delay(): Time =
-    Time.seconds(options.real("jedit_tooltip_dismiss_delay")) max tooltip_lb min tooltip_ub
-
-  def setup_tooltips()
-  {
-    Swing_Thread.now {
-      val manager = javax.swing.ToolTipManager.sharedInstance
-      manager.setDismissDelay(tooltip_dismiss_delay().ms.toInt)
-    }
-  }
-
-
   /* document model and view */
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
@@ -312,7 +296,6 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
-          Isabelle.setup_tooltips()
           Isabelle.session.global_options.event(Session.Global_Options)
 
         case _ =>
@@ -328,10 +311,7 @@ class Plugin extends EBPlugin
       Isabelle_System.install_fonts()
 
       val init_options = Options.init()
-      Swing_Thread.now {
-        Isabelle.options.update(init_options)
-        Isabelle.setup_tooltips()
-      }
+      Swing_Thread.now { Isabelle.options.update(init_options)  }
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
