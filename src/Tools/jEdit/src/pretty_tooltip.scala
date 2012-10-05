@@ -26,15 +26,6 @@ class Pretty_Tooltip(
 {
   window =>
 
-  private val point = {
-    val painter = text_area.getPainter
-    val fm = painter.getFontMetrics
-    val bounds = painter.getBounds()
-    val point = new Point(bounds.x + x, bounds.y + fm.getHeight + y)
-    SwingUtilities.convertPointToScreen(point, painter)
-    point
-  }
-
   window.addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) { window.dispose() }
   })
@@ -62,7 +53,14 @@ class Pretty_Tooltip(
   pretty_text_area.update(rendering.snapshot, body)
 
   window.add(pretty_text_area)
-  window.setLocation(point.x, point.y)
+
+  {
+    val container = text_area.getPainter
+    val font_metrics = container.getFontMetrics
+    val point = new Point(x, y + font_metrics.getHeight / 2)
+    SwingUtilities.convertPointToScreen(point, container)
+    window.setLocation(point.x, point.y)
+  }
 
   {
     val font_metrics = pretty_text_area.getPainter.getFontMetrics
