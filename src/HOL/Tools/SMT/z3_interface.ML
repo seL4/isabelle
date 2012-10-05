@@ -127,9 +127,10 @@ fun get_mk_builtins ctxt = map snd (Mk_Builtins.get (Context.Proof ctxt))
 
 (** basic and additional constructors **)
 
-fun mk_builtin_typ _ (Sym ("bool", _)) = SOME @{typ bool}
+fun mk_builtin_typ _ (Sym ("Bool", _)) = SOME @{typ bool}
   | mk_builtin_typ _ (Sym ("Int", _)) = SOME @{typ int}
-  | mk_builtin_typ _ (Sym ("int", _)) = SOME @{typ int}  (*FIXME: delete*)
+  | mk_builtin_typ _ (Sym ("bool", _)) = SOME @{typ bool}  (*FIXME: legacy*)
+  | mk_builtin_typ _ (Sym ("int", _)) = SOME @{typ int}  (*FIXME: legacy*)
   | mk_builtin_typ ctxt sym = chained_mk_builtin_typ (get_mk_builtins ctxt) sym
 
 fun mk_builtin_num _ i @{typ int} = SOME (Numeral.mk_cnumber @{ctyp int} i)
