@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Color, Point, BorderLayout}
+import java.awt.{Toolkit, Color, Point, BorderLayout}
 import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, WindowAdapter}
 import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, KeyStroke}
 import javax.swing.border.LineBorder
@@ -63,10 +63,21 @@ class Pretty_Tooltip(
 
   window.add(pretty_text_area)
   window.setLocation(point.x, point.y)
-  window.setSize(pretty_text_area.getPainter.getFontMetrics.charWidth(Pretty.spc) *
-    Isabelle.options.int("jedit_tooltip_margin"), 100)
+
+  {
+    val font_metrics = pretty_text_area.getPainter.getFontMetrics
+    val margin = Isabelle.options.int("jedit_tooltip_margin")  // FIXME via rendering?!
+    val lines =  // FIXME avoid redundant formatting
+      XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(font_metrics)))(0)(
+        (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
+
+    val screen = Toolkit.getDefaultToolkit.getScreenSize
+    val w = (font_metrics.charWidth(Pretty.spc) * margin) min (screen.width / 2)
+    val h = (font_metrics.getHeight * (lines + 2)) min (screen.height / 2)
+    window.setSize(w, h)
+  }
 
   window.setVisible(true)
-  pretty_text_area.refresh()
+  pretty_text_area.refresh()  // FIXME avoid redundant formatting
 }
 
