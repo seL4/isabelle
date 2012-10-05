@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Window, Color}
+import java.awt.{Graphics2D, Shape, Window, Color, Point}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
@@ -198,12 +198,16 @@ class Rich_Text_Area(
     {
       robust_body(null: String) {
         val rendering = get_rendering()
-        val offset = text_area.xyToOffset(x, y)
-        val range = Text.Range(offset, offset + 1)
-        val tip =
-          if (control) rendering.tooltip(range)
-          else rendering.tooltip_message(range)
-        tip.map(Isabelle.tooltip(_)) getOrElse null
+        val snapshot = rendering.snapshot
+        if (!snapshot.is_outdated) {
+          val offset = text_area.xyToOffset(x, y)
+          val range = Text.Range(offset, offset + 1)
+          val tip =
+            if (control) rendering.tooltip(range)
+            else rendering.tooltip_message(range)
+          if (!tip.isEmpty) new Pretty_Tooltip(view, text_area, rendering, x, y, tip)
+        }
+        null
       }
     }
   }

@@ -9,6 +9,9 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.awt.{Component, Container, Frame, Window}
+
+import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -17,6 +20,33 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 object JEdit_Lib
 {
+  /* GUI components */
+
+  def get_parent(component: Component): Option[Container] =
+    component.getParent match {
+      case null => None
+      case parent => Some(parent)
+    }
+
+  def ancestors(component: Component): Iterator[Container] = new Iterator[Container] {
+    private var next_elem = get_parent(component)
+    def hasNext(): Boolean = next_elem.isDefined
+    def next(): Container =
+      next_elem match {
+        case Some(parent) =>
+          next_elem = get_parent(parent)
+          parent
+        case None => Iterator.empty.next()
+      }
+  }
+
+  def parent_window(component: Component): Option[Window] =
+    ancestors(component).find(_.isInstanceOf[Window]).map(_.asInstanceOf[Window])
+
+  def parent_frame(component: Component): Option[Frame] =
+    ancestors(component).find(_.isInstanceOf[Frame]).map(_.asInstanceOf[Frame])
+
+
   /* buffers */
 
   def swing_buffer_lock[A](buffer: JEditBuffer)(body: => A): A =

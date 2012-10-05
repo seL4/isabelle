@@ -44,7 +44,7 @@ class JEdit_Options extends Options_Variable
       def load = button.setSelectedColor(Color_Value(string(opt_name)))
       def save = string(opt_name) = Color_Value.print(button.getSelectedColor)
     }
-    component.tooltip = Isabelle.tooltip(opt.print_default)
+    component.tooltip = opt.print_default
     component
   }
 
@@ -91,7 +91,7 @@ class JEdit_Options extends Options_Variable
         text_area
       }
     component.load()
-    component.tooltip = Isabelle.tooltip(opt.print_default)
+    component.tooltip = opt.print_default
     component
   }
 

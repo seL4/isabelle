@@ -9,8 +9,8 @@ option jedit_auto_start : bool = true
 option jedit_font_scale : real = 1.0
   -- "scale factor of add-on panels wrt. main text area"
 
-option jedit_tooltip_font_size : int = 10
-  -- "tooltip font size (according to HTML)"
+option jedit_tooltip_font_scale : real = 0.85
+  -- "scale factor of tooltips wrt. main text area"
 
 option jedit_tooltip_margin : int = 60
   -- "margin for tooltip pretty-printing"
@@ -30,6 +30,7 @@ option unprocessed1_color : string = "FFA0A032"
 option running_color : string = "610061FF"
 option running1_color : string = "61006164"
 option light_color : string = "F0F0F0FF"
+option tooltip_color : string = "FFFFE9FF"
 option writeln_color : string = "C0C0C0FF"
 option warning_color : string = "FF8C00FF"
 option error_color : string = "B22222FF"

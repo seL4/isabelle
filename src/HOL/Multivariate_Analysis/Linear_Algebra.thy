@@ -708,8 +708,10 @@ lemma (in real_vector) independent_mono: "independent A \<Longrightarrow> B \<su
 lemma (in real_vector) span_subspace: "A \<subseteq> B \<Longrightarrow> B \<le> span A \<Longrightarrow>  subspace B \<Longrightarrow> span A = B"
   by (metis order_antisym span_def hull_minimal)
 
-lemma (in real_vector) span_induct': assumes SP: "\<forall>x \<in> S. P x"
-  and P: "subspace {x. P x}" shows "\<forall>x \<in> span S. P x"
+lemma (in real_vector) span_induct':
+  assumes SP: "\<forall>x \<in> S. P x"
+    and P: "subspace {x. P x}"
+  shows "\<forall>x \<in> span S. P x"
   using span_induct SP P by blast
 
 inductive_set (in real_vector) span_induct_alt_help for S:: "'a set"
@@ -842,7 +844,8 @@ next
   ultimately show "subspace ((\<lambda>(a, b). a + b) ` (span A \<times> span B))"
     by (rule subspace_linear_image)
 next
-  fix T assume "A \<union> B \<subseteq> T" and "subspace T"
+  fix T
+  assume "A \<union> B \<subseteq> T" and "subspace T"
   then show "(\<lambda>(a, b). a + b) ` (span A \<times> span B) \<subseteq> T"
     by (auto intro!: subspace_add elim: span_induct)
 qed
@@ -885,7 +888,8 @@ lemma span_breakdown_eq: "x \<in> span (insert a S) \<longleftrightarrow> (\<exi
 text {* Hence some "reversal" results. *}
 
 lemma in_span_insert:
-  assumes a: "a \<in> span (insert b S)" and na: "a \<notin> span S"
+  assumes a: "a \<in> span (insert b S)"
+    and na: "a \<notin> span S"
   shows "b \<in> span (insert a S)"
 proof -
   from span_breakdown[of b "insert b S" a, OF insertI1 a]
@@ -1073,7 +1077,8 @@ lemma span_finite:
   shows "span S = {y. \<exists>u. setsum (\<lambda>v. u v *\<^sub>R v) S = y}"
   (is "_ = ?rhs")
 proof -
-  { fix y assume y: "y \<in> span S"
+  { fix y
+    assume y: "y \<in> span S"
     from y obtain S' u where fS': "finite S'" and SS': "S' \<subseteq> S" and
       u: "setsum (\<lambda>v. u v *\<^sub>R v) S' = y" unfolding span_explicit by blast
     let ?u = "\<lambda>x. if x \<in> S' then u x else 0"
@@ -1135,7 +1140,8 @@ lemma mem_delete: "x \<in> (A - {a}) \<longleftrightarrow> x \<noteq> a \<and> x
   by blast
 
 lemma spanning_subset_independent:
-  assumes BA: "B \<subseteq> A" and iA: "independent A"
+  assumes BA: "B \<subseteq> A"
+    and iA: "independent A"
     and AsB: "A \<subseteq> span B"
   shows "A = B"
 proof
@@ -1162,8 +1168,9 @@ qed
 text {* The general case of the Exchange Lemma, the key to what follows. *}
 
 lemma exchange_lemma:
-  assumes f:"finite t" and i: "independent s"
-    and sp:"s \<subseteq> span t"
+  assumes f:"finite t"
+    and i: "independent s"
+    and sp: "s \<subseteq> span t"
   shows "\<exists>t'. (card t' = card t) \<and> finite t' \<and> s \<subseteq> t' \<and> t' \<subseteq> s \<union> t \<and> s \<subseteq> span t'"
   using f i sp
 proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
@@ -1177,11 +1184,12 @@ proof (induct "card (t - s)" arbitrary: s t rule: less_induct)
       done }
   moreover
   { assume st: "t \<subseteq> s"
-
     from spanning_subset_independent[OF st s sp]
-      st ft span_mono[OF st] have ?ths apply - apply (rule exI[where x=t])
-      apply (auto intro: span_superset)
-      done }
+      st ft span_mono[OF st] have ?ths
+        apply -
+        apply (rule exI[where x=t])
+        apply (auto intro: span_superset)
+        done }
   moreover
   { assume st: "\<not> s \<subseteq> t" "\<not> t \<subseteq> s"
     from st(2) obtain b where b: "b \<in> t" "b \<notin> s" by blast
@@ -1276,8 +1284,7 @@ lemma independent_basis: "independent (basis ` {..<DIM('a)} :: 'a::euclidean_spa
   apply (simp add: inner_setsum_right dot_basis)
   done
 
-lemma (in euclidean_space) range_basis:
-  "range basis = insert 0 (basis ` {..<DIM('a)})"
+lemma (in euclidean_space) range_basis: "range basis = insert 0 (basis ` {..<DIM('a)})"
 proof -
   have *: "UNIV = {..<DIM('a)} \<union> {DIM('a)..}" by auto
   show ?thesis unfolding * image_Un basis_finite by auto
@@ -1508,7 +1515,8 @@ proof -
       apply (rule setsum_norm_le)
       using fN fM
       apply simp
-      apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] field_simps simp del: scaleR_scaleR)
+      apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
+        field_simps simp del: scaleR_scaleR)
       apply (rule mult_mono)
       apply (auto simp add: zero_le_mult_iff component_le_norm)
       apply (rule mult_mono)
@@ -1930,7 +1938,8 @@ proof -
         apply (clarsimp simp add: inner_add inner_setsum_left)
         apply (rule setsum_0', rule ballI)
         unfolding inner_commute
-        apply (auto simp add: x field_simps intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
+        apply (auto simp add: x field_simps
+          intro: B(5)[unfolded pairwise_def orthogonal_def, rule_format])
         done }
     then show "\<forall>x \<in> B. ?a \<bullet> x = 0" by blast
   qed

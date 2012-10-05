@@ -56,7 +56,7 @@ object Isabelle_Logic
       component.listenTo(component.selection)
       component.reactions += { case SelectionChanged(_) => component.save() }
     }
-    component.tooltip = Isabelle.tooltip(Isabelle.options.value.check_name(opt_name).print_default)
+    component.tooltip = Isabelle.options.value.check_name(opt_name).print_default
     component
   }
 

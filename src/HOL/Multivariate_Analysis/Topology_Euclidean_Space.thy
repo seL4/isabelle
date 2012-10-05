@@ -28,12 +28,14 @@ lemma topology_inverse_iff: "istopology U \<longleftrightarrow> openin (topology
 
 lemma topology_eq: "T1 = T2 \<longleftrightarrow> (\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S)"
 proof-
-  {assume "T1=T2" hence "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S" by simp}
+  { assume "T1=T2"
+    hence "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S" by simp }
   moreover
-  {assume H: "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S"
+  { assume H: "\<forall>S. openin T1 S \<longleftrightarrow> openin T2 S"
     hence "openin T1 = openin T2" by (simp add: fun_eq_iff)
     hence "topology (openin T1) = topology (openin T2)" by simp
-    hence "T1 = T2" unfolding openin_inverse .}
+    hence "T1 = T2" unfolding openin_inverse .
+  }
   ultimately show ?thesis by blast
 qed
 
@@ -66,9 +68,11 @@ lemma openin_Un[intro]: "openin U S \<Longrightarrow> openin U T \<Longrightarro
 
 lemma openin_topspace[intro, simp]: "openin U (topspace U)" by (simp add: openin_Union topspace_def)
 
-lemma openin_subopen: "openin U S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>T. openin U T \<and> x \<in> T \<and> T \<subseteq> S)" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma openin_subopen: "openin U S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>T. openin U T \<and> x \<in> T \<and> T \<subseteq> S)"
+  (is "?lhs \<longleftrightarrow> ?rhs")
 proof
-  assume ?lhs then show ?rhs by auto
+  assume ?lhs
+  then show ?rhs by auto
 next
   assume H: ?rhs
   let ?t = "\<Union>{T. openin U T \<and> T \<subseteq> S}"
@@ -76,6 +80,7 @@ next
   also have "?t = S" using H by auto
   finally show "openin U S" .
 qed
+
 
 subsubsection {* Closed sets *}
 
@@ -167,9 +172,11 @@ lemma openin_subtopology_refl: "openin (subtopology U V) V \<longleftrightarrow>
   apply (rule iffI, clarify)
   apply (frule openin_subset[of U])  apply blast
   apply (rule exI[where x="topspace U"])
-  by auto
+  apply auto
+  done
 
-lemma subtopology_superset: assumes UV: "topspace U \<subseteq> V"
+lemma subtopology_superset:
+  assumes UV: "topspace U \<subseteq> V"
   shows "subtopology U V = U"
 proof-
   {fix S
