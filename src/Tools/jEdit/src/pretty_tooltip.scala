@@ -26,10 +26,9 @@ class Pretty_Tooltip(
 {
   window =>
 
-  private val painter = text_area.getPainter
-  private val fm = painter.getFontMetrics
-
   private val point = {
+    val painter = text_area.getPainter
+    val fm = painter.getFontMetrics
     val bounds = painter.getBounds()
     val point = new Point(bounds.x + x, bounds.y + fm.getHeight + y)
     SwingUtilities.convertPointToScreen(point, painter)
@@ -56,15 +55,16 @@ class Pretty_Tooltip(
   })
   window.getRootPane.setBorder(new LineBorder(Color.BLACK))
 
-  window.setLocation(point.x, point.y)
-  window.setSize(fm.charWidth(Pretty.spc) * Isabelle.options.int("jedit_tooltip_margin"), 100)
-
   val pretty_text_area = new Pretty_Text_Area(view)
-  window.add(pretty_text_area)
-
+  pretty_text_area.getPainter.setBackground(rendering.tooltip_color)
   pretty_text_area.resize(
     Isabelle.font_family(), Isabelle.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, body)
+
+  window.add(pretty_text_area)
+  window.setLocation(point.x, point.y)
+  window.setSize(pretty_text_area.getPainter.getFontMetrics.charWidth(Pretty.spc) *
+    Isabelle.options.int("jedit_tooltip_margin"), 100)
 
   window.setVisible(true)
   pretty_text_area.refresh()

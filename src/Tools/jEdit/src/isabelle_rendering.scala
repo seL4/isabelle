@@ -112,6 +112,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   val running_color = color_value("running_color")
   val running1_color = color_value("running1_color")
   val light_color = color_value("light_color")
+  val tooltip_color = color_value("tooltip_color")
   val writeln_color = color_value("writeln_color")
   val warning_color = color_value("warning_color")
   val error_color = color_value("error_color")
