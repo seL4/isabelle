@@ -266,12 +266,12 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
         Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR,
           Isabelle_Markup.BAD)),
         {
-          case (msgs, Text.Info(_, msg @
-              XML.Elem(Markup(markup, Isabelle_Markup.Serial(serial)), _)))
-          if markup == Isabelle_Markup.WRITELN ||
-              markup == Isabelle_Markup.WARNING ||
-              markup == Isabelle_Markup.ERROR =>
-            msgs + (serial -> msg)
+          case (msgs, Text.Info(_,
+            XML.Elem(Markup(name, props @ Isabelle_Markup.Serial(serial)), body)))
+          if name == Isabelle_Markup.WRITELN ||
+              name == Isabelle_Markup.WARNING ||
+              name == Isabelle_Markup.ERROR =>
+            msgs + (serial -> XML.Elem(Markup(Isabelle_Markup.message(name), props), body))
           case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), body)))
           if !body.isEmpty => msgs + (Document.new_id() -> msg)
         }).toList.flatMap(_.info)
