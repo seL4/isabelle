@@ -710,6 +710,25 @@ qed (simp)
 
 end
 
+lemma fold_cong:
+  assumes "comp_fun_commute f" "comp_fun_commute g"
+  assumes "finite A" and cong: "\<And>x. x \<in> A \<Longrightarrow> f x = g x"
+    and "A = B" and "s = t"
+  shows "Finite_Set.fold f s A = Finite_Set.fold g t B"
+proof -
+  have "Finite_Set.fold f s A = Finite_Set.fold g s A"  
+  using `finite A` cong proof (induct A)
+    case empty then show ?case by simp
+  next
+    case (insert x A)
+    interpret f: comp_fun_commute f by (fact `comp_fun_commute f`)
+    interpret g: comp_fun_commute g by (fact `comp_fun_commute g`)
+    from insert show ?case by simp
+  qed
+  with assms show ?thesis by simp
+qed
+
+
 text{* A simplified version for idempotent functions: *}
 
 locale comp_fun_idem = comp_fun_commute +
