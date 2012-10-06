@@ -1249,6 +1249,19 @@ primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Ri
 
 end
 
+lemma funpow_Suc_right:
+  "f ^^ Suc n = f ^^ n \<circ> f"
+proof (induct n)
+  case 0 then show ?case by simp
+next
+  fix n
+  assume "f ^^ Suc n = f ^^ n \<circ> f"
+  then show "f ^^ Suc (Suc n) = f ^^ Suc n \<circ> f"
+    by (simp add: o_assoc)
+qed
+
+lemmas funpow_simps_right = funpow.simps(1) funpow_Suc_right
+
 text {* for code generation *}
 
 definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where

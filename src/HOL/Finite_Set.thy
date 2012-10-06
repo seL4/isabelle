@@ -739,7 +739,7 @@ by(simp add:fold_fun_comm)
 end
 
 
-subsubsection {* Expressing set operations via @{const fold} *}
+subsubsection {* Liftings to @{text comp_fun_commute} etc. *}
 
 lemma (in comp_fun_commute) comp_comp_fun_commute:
   "comp_fun_commute (f \<circ> g)"
@@ -750,6 +750,47 @@ lemma (in comp_fun_idem) comp_comp_fun_idem:
   "comp_fun_idem (f \<circ> g)"
   by (rule comp_fun_idem.intro, rule comp_comp_fun_commute, unfold_locales)
     (simp_all add: comp_fun_idem)
+
+lemma (in comp_fun_commute) comp_fun_commute_funpow:
+  "comp_fun_commute (\<lambda>x. f x ^^ g x)"
+proof
+  fix y x
+  show "f y ^^ g y \<circ> f x ^^ g x = f x ^^ g x \<circ> f y ^^ g y"
+  proof (cases "x = y")
+    case True then show ?thesis by simp
+  next
+    case False show ?thesis
+    proof (induct "g x" arbitrary: g)
+      case 0 then show ?case by simp
+    next
+      case (Suc n g)
+      have hyp1: "f y ^^ g y \<circ> f x = f x \<circ> f y ^^ g y"
+      proof (induct "g y" arbitrary: g)
+        case 0 then show ?case by simp
+      next
+        case (Suc n g)
+        def h \<equiv> "\<lambda>z. g z - 1"
+        with Suc have "n = h y" by simp
+        with Suc have hyp: "f y ^^ h y \<circ> f x = f x \<circ> f y ^^ h y"
+          by auto
+        from Suc h_def have "g y = Suc (h y)" by simp
+        then show ?case by (simp add: o_assoc [symmetric] hyp)
+          (simp add: o_assoc comp_fun_commute)
+      qed
+      def h \<equiv> "\<lambda>z. if z = x then g x - 1 else g z"
+      with Suc have "n = h x" by simp
+      with Suc have "f y ^^ h y \<circ> f x ^^ h x = f x ^^ h x \<circ> f y ^^ h y"
+        by auto
+      with False h_def have hyp2: "f y ^^ g y \<circ> f x ^^ h x = f x ^^ h x \<circ> f y ^^ g y" by simp
+      from Suc h_def have "g x = Suc (h x)" by simp
+      then show ?case by (simp del: funpow.simps add: funpow_Suc_right o_assoc hyp2)
+        (simp add: o_assoc [symmetric] hyp1)
+    qed
+  qed
+qed
+
+
+subsubsection {* Expressing set operations via @{const fold} *}
 
 lemma comp_fun_idem_insert:
   "comp_fun_idem insert"
@@ -2400,3 +2441,4 @@ qed
 hide_const (open) Finite_Set.fold Finite_Set.filter
 
 end
+
