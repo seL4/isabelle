@@ -52,6 +52,7 @@ isabelle.syslog-panel.label=Syslog panel
 #dockables
 isabelle-session.title=Prover Session
 isabelle-output.title=Output
+isabelle-info.title=Info
 isabelle-graphview.title=Graphview
 isabelle-raw-output.title=Raw Output
 isabelle-protocol.title=Protocol

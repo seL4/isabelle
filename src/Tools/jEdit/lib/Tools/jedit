@@ -14,6 +14,7 @@ declare -a SOURCES=(
   "src/graphview_dockable.scala"
   "src/html_panel.scala"
   "src/hyperlink.scala"
+  "src/info_dockable.scala"
   "src/isabelle_encoding.scala"
   "src/isabelle_logic.scala"
   "src/isabelle_options.scala"
