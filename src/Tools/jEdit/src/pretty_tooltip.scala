@@ -14,6 +14,9 @@ import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, Windo
 import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, KeyStroke}
 import javax.swing.border.LineBorder
 
+import scala.swing.{FlowPanel, Label}
+import scala.swing.event.MouseClicked
+
 import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.TextArea
 
@@ -26,6 +29,9 @@ class Pretty_Tooltip(
   extends JWindow(JEdit_Lib.parent_window(text_area) getOrElse view)
 {
   window =>
+
+  Swing_Thread.require()
+
 
   window.addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) {
@@ -56,6 +62,9 @@ class Pretty_Tooltip(
   })
   window.getRootPane.setBorder(new LineBorder(Color.BLACK))
 
+
+  /* pretty text area */
+
   val pretty_text_area = new Pretty_Text_Area(view)
   pretty_text_area.getPainter.setBackground(rendering.tooltip_color)
   pretty_text_area.resize(
@@ -63,6 +72,22 @@ class Pretty_Tooltip(
   pretty_text_area.update(rendering.snapshot, body)
 
   window.add(pretty_text_area)
+
+
+  /* controls */
+
+  private val close = new Label {
+    icon = Isabelle_Rendering.tooltip_close_icon
+    tooltip = "Close tooltip window"
+    listenTo(mouse.clicks)
+    reactions += { case _: MouseClicked => window.dispose() }
+  }
+
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(close)
+  window.add(controls.peer, BorderLayout.NORTH)
+
+
+  /* window geometry */
 
   {
     val font_metrics = pretty_text_area.getPainter.getFontMetrics
@@ -73,7 +98,7 @@ class Pretty_Tooltip(
 
     val screen = Toolkit.getDefaultToolkit.getScreenSize
     val w = (font_metrics.charWidth(Pretty.spc) * margin) min (screen.width / 2)
-    val h = (font_metrics.getHeight * (lines + 2)) min (screen.height / 2)
+    val h = (font_metrics.getHeight * (lines + 3)) min (screen.height / 2)
     window.setSize(w, h)
   }
 

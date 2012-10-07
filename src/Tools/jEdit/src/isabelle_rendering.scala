@@ -56,6 +56,8 @@ object Isabelle_Rendering
     legacy_pri -> load_icon("16x16/status/dialog-warning.png"),
     error_pri -> load_icon("16x16/status/dialog-error.png"))
 
+  val tooltip_close_icon = load_icon("16x16/actions/document-close.png")
+
 
   /* token markup -- text styles */
 
