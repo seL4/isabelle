@@ -41,21 +41,21 @@ class Pretty_Tooltip(
     }
   })
 
-  window.setContentPane(new JPanel(new BorderLayout) {
-    private val action_listener = new ActionListener {
-      def actionPerformed(e: ActionEvent) {
-        e.getActionCommand match {
-          case "close" =>
-            window.dispose()
-            JEdit_Lib.ancestors(window) foreach {
-              case c: Pretty_Tooltip => c.dispose
-              case _ =>
-            }
-          case _ =>
-        }
+  private val action_listener = new ActionListener {
+    def actionPerformed(e: ActionEvent) {
+      e.getActionCommand match {
+        case "close_all" =>
+          Window.getWindows foreach {
+            case c: Pretty_Tooltip => c.dispose
+            case _ =>
+          }
+        case _ =>
       }
     }
-    registerKeyboardAction(action_listener, "close",
+  }
+
+  window.setContentPane(new JPanel(new BorderLayout) {
+    registerKeyboardAction(action_listener, "close_all",
       KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
 
     override def getFocusTraversalKeysEnabled(): Boolean = false
@@ -70,6 +70,9 @@ class Pretty_Tooltip(
   pretty_text_area.resize(
     Isabelle.font_family(), Isabelle.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, body)
+
+  pretty_text_area.registerKeyboardAction(action_listener, "close_all",
+      KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
 
   window.add(pretty_text_area)
 
