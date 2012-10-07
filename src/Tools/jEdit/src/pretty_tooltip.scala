@@ -76,6 +76,13 @@ class Pretty_Tooltip(
 
   /* controls */
 
+  private val close = new Label {
+    icon = Isabelle_Rendering.tooltip_close_icon
+    tooltip = "Close tooltip window"
+    listenTo(mouse.clicks)
+    reactions += { case _: MouseClicked => window.dispose() }
+  }
+
   private val detach = new Label {
     icon = Isabelle_Rendering.tooltip_detach_icon
     tooltip = "Detach tooltip window"
@@ -85,14 +92,7 @@ class Pretty_Tooltip(
     }
   }
 
-  private val close = new Label {
-    icon = Isabelle_Rendering.tooltip_close_icon
-    tooltip = "Close tooltip window"
-    listenTo(mouse.clicks)
-    reactions += { case _: MouseClicked => window.dispose() }
-  }
-
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(detach, close)
+  private val controls = new FlowPanel(FlowPanel.Alignment.Left)(close, detach)
   window.add(controls.peer, BorderLayout.NORTH)
 
 
