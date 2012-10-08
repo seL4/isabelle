@@ -137,9 +137,9 @@ class Visualizer(val model: Model) {
   }  
   
   object Caption {    
-    def apply(k: String) =
-      if (Parameters.long_names) k
-      else  k.split('.').last
+    def apply(key: String) =
+      if (Parameters.long_names) key
+      else model.complete.get_node(key).name
   }
   
   object Font {
