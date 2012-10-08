@@ -10,6 +10,7 @@ import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
+import java.awt.image.BufferedImage
 import javax.swing.{JScrollPane, JComponent}
 
 import scala.swing.{Panel, ScrollPane}
@@ -23,12 +24,18 @@ class Graph_Panel(
 {
   panel =>
 
-  private var tooltip_content: XML.Body = Nil
+  tooltip = ""
 
   override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
     override def getToolTipText(event: java.awt.event.MouseEvent): String =
-      if (tooltip_content.isEmpty) null
-      else make_tooltip(panel.peer, event.getX, event.getY, tooltip_content)
+      node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
+        case Some(name) =>
+          visualizer.model.complete.get_node(name).content match {
+            case Nil => null
+            case content => make_tooltip(panel.peer, event.getX, event.getY, content)
+          }
+        case None => null
+      }
   }
 
   peer.setWheelScrollingEnabled(false)
@@ -37,6 +44,15 @@ class Graph_Panel(
   
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
+
+  private val gfx_aux =
+    new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
+  gfx_aux.setFont(visualizer.Font())
+  gfx_aux.setRenderingHints(visualizer.rendering_hints)
+
+  def node(at: Point2D): Option[String] =
+    visualizer.model.visible_nodes()
+      .find(name => visualizer.Drawer.shape(gfx_aux, Some(name)).contains(at))
 
   def fit_to_window() = {
     Transform.fit_to_window()
@@ -172,16 +188,11 @@ class Graph_Panel(
     }
     
     object Mouse {
-      import java.awt.image.BufferedImage
       import scala.swing.event.Key.Modifier._
       type Modifiers = Int
       type Dummy = ((String, String), Int)
       
       private var draginfo: (Point, Iterable[String], Iterable[Dummy]) = null
-      private val g =
-        new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
-      g.setFont(visualizer.Font())
-      g.setRenderingHints(visualizer.rendering_hints)
 
       val react: PartialFunction[Event, Unit] = {   
         case MousePressed(_, p, _, _, _) => pressed(p)
@@ -192,36 +203,18 @@ class Graph_Panel(
           }
         case MouseWheelMoved(_, p, _, r) => wheel(r, p)
         case e@MouseClicked(_, p, m, n, _) => click(p, m, n, e)
-        case MouseMoved(_, p, _) => moved(p)
       }
-      
-      def node(at: Point2D): Option[String] = 
-        visualizer.model.visible_nodes().find({
-            l => visualizer.Drawer.shape(g, Some(l)).contains(at)
-          })
       
       def dummy(at: Point2D): Option[Dummy] =
         visualizer.model.visible_edges().map({
             i => visualizer.Coordinates(i).zipWithIndex.map((i, _))
           }).flatten.find({
             case (_, ((x, y), _)) => 
-              visualizer.Drawer.shape(g, None).contains(at.getX() - x, at.getY() - y)
+              visualizer.Drawer.shape(gfx_aux, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
           }
-      
-      def moved(at: Point) {
-        val c = Transform.pane_to_graph_coordinates(at)
-        node(c) match {
-          case Some(l) =>
-            panel.tooltip = ""
-            panel.tooltip_content = visualizer.Tooltip.content(l)
-          case None =>
-            panel.tooltip = null
-            panel.tooltip_content = Nil
-        }
-      }
       
       def pressed(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)

@@ -142,10 +142,6 @@ class Visualizer(val model: Model) {
       else  k.split('.').last
   }
   
-  object Tooltip {
-    def content(name: String): XML.Body = model.complete.get_node(name).content
-  }
-
   object Font {
     import java.awt.{Font => awtFont}
     
