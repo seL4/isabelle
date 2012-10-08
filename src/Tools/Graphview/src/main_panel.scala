@@ -18,14 +18,25 @@ import java.awt.Dimension
 import java.io.File
 
 
-class Main_Panel(graph: Model.Graph) extends BorderPanel
+class Main_Panel(graph: Model.Graph)
+  extends BorderPanel
 {
+  def make_tooltip(body: XML.Body): String =
+  {
+    if (body.isEmpty) null
+    else {
+      val txt = Pretty.string_of(body)
+      "<html><pre style=\"font-family: " + Parameters.font_family + "; font-size: " +
+          Parameters.tooltip_font_size + "px; \">" + HTML.encode(txt) + "</pre></html>"
+    }
+  }
+
   focusable = true
   requestFocus()
   
   val model = new Model(graph)
   val visualizer = new Visualizer(model)
-  val graph_panel = new Graph_Panel(visualizer)
+  val graph_panel = new Graph_Panel(visualizer, make_tooltip)
   
   listenTo(keys)
   reactions += graph_panel.reactions

@@ -10,19 +10,30 @@ import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
-import javax.swing.ToolTipManager
+import javax.swing.JScrollPane
+
 import scala.swing.{Panel, ScrollPane}
 import scala.swing.event._
 
 
-class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
-  this.peer.setWheelScrollingEnabled(false)
+class Graph_Panel(vis: Visualizer, make_tooltip: XML.Body => String)
+  extends ScrollPane
+{
+  private val panel = this
+
+  private var tooltip_content: XML.Body = Nil
+
+  override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
+    override def getToolTipText(): String = make_tooltip(tooltip_content)
+  }
+
+  peer.setWheelScrollingEnabled(false)
   focusable = true
   requestFocus()
   
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  
+
   def visualizer = vis
   
   def fit_to_window() = {
@@ -82,7 +93,6 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
   }
   vis.model.Colors.events += r
   vis.model.Mutators.events += r
-  ToolTipManager.sharedInstance.setDismissDelay(1000*60*60)
   
   apply_layout()
   fit_to_window()
@@ -126,7 +136,6 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
     }
   }
   
-  private val panel = this
   object Interaction {
     object Keyboard {
       import scala.swing.event.Key._
@@ -203,8 +212,8 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
       def moved(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)
         node(c) match {
-          case Some(l) => panel.tooltip = vis.Tooltip.text(l, g.getFontMetrics)
-          case None => panel.tooltip = null
+          case Some(l) => panel.tooltip = ""; panel.tooltip_content = vis.Tooltip.content(l)
+          case None => panel.tooltip = null; panel.tooltip_content = Nil
         }
       }
       
@@ -254,27 +263,9 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
           menu.show(panel.peer, at.x, at.y)
         }
         
-        def double_click() {
-          p match {
-            case Some(l) => {
-                val p = at.clone.asInstanceOf[Point]
-                SwingUtilities.convertPointToScreen(p, panel.peer)
-                new Floating_Dialog(
-                  vis.Tooltip.content(l),
-                  vis.Caption(l),
-                  at
-                ).open
-            }
-            
-            case None =>
-          }          
-        }
-        
         if (clicks < 2) {
           if (SwingUtilities.isRightMouseButton(e.peer)) right_click()
           else left_click()
-        } else if (clicks == 2) {
-          if (SwingUtilities.isLeftMouseButton(e.peer)) double_click()
         }
       }   
 

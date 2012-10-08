@@ -12,6 +12,7 @@ import isabelle._
 import java.awt.Dimension
 import scala.swing.{MainFrame, BorderPanel, Window, SwingApplication}
 import javax.swing.border.EmptyBorder
+import javax.swing.ToolTipManager
 
 
 object Graphview extends SwingApplication
@@ -24,6 +25,7 @@ object Graphview extends SwingApplication
         Platform.init_laf()
         Isabelle_System.init()
         Isabelle_System.install_fonts()
+        ToolTipManager.sharedInstance.setDismissDelay(1000*60*60)
 
         args.toList match {
           case List(arg) =>

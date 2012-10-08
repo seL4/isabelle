@@ -8,7 +8,6 @@
 ## sources
 
 declare -a SOURCES=(
-  "src/floating_dialog.scala"
   "src/graph_panel.scala"
   "src/graphview.scala"
   "src/layout_pendulum.scala"
