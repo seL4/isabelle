@@ -16,10 +16,12 @@ import scala.swing.{Panel, ScrollPane}
 import scala.swing.event._
 
 
-class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body) => String)
+class Graph_Panel(
+    val visualizer: Visualizer,
+    make_tooltip: (JComponent, Int, Int, XML.Body) => String)
   extends ScrollPane
 {
-  private val panel = this
+  panel =>
 
   private var tooltip_content: XML.Body = Nil
 
@@ -36,18 +38,16 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
-  def visualizer = vis
-  
   def fit_to_window() = {
     Transform.fit_to_window()
     repaint()
   }
   
-  def apply_layout() = vis.Coordinates.layout()  
+  def apply_layout() = visualizer.Coordinates.layout()  
 
   private val paint_panel = new Panel {    
     def set_preferred_size() {
-        val (minX, minY, maxX, maxY) = vis.Coordinates.bounds()
+        val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
         val s = Transform.scale
         val (px, py) = Transform.padding
 
@@ -62,7 +62,7 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
       super.paintComponent(g)
       g.transform(Transform())
       
-      vis.Drawer.paint_all_visible(g, true)
+      visualizer.Drawer.paint_all_visible(g, true)
     }
   }
   contents = paint_panel
@@ -93,8 +93,8 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
       }
     }
   }
-  vis.model.Colors.events += r
-  vis.model.Mutators.events += r
+  visualizer.model.Colors.events += r
+  visualizer.model.Mutators.events += r
   
   apply_layout()
   fit_to_window()
@@ -110,7 +110,7 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
                 }
                 
     def apply() = {
-      val (minX, minY, _, _) = vis.Coordinates.bounds()
+      val (minX, minY, _, _) = visualizer.Coordinates.bounds()
       
       val at = AffineTransform.getScaleInstance(scale, scale)
       at.translate(-minX + padding._1 / 2, -minY + padding._2 / 2)
@@ -118,10 +118,10 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
     }
     
     def fit_to_window() {
-      if (vis.model.visible_nodes().isEmpty)
+      if (visualizer.model.visible_nodes().isEmpty)
         scale = 1
       else {
-        val (minX, minY, maxX, maxY) = vis.Coordinates.bounds()
+        val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
 
         val (dx, dy) = (maxX - minX + padding._1, maxY - minY + padding._2)
         val (sx, sy) = (1d * size.width / dx, 1d * size.height / dy)
@@ -160,7 +160,7 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
         }
         
         case('1', _) => {
-            vis.Coordinates.layout()
+            visualizer.Coordinates.layout()
         }
 
         case('2', _) => {
@@ -180,8 +180,8 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
       private var draginfo: (Point, Iterable[String], Iterable[Dummy]) = null
       private val g =
         new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
-      g.setFont(vis.Font())
-      g.setRenderingHints(vis.rendering_hints)
+      g.setFont(visualizer.Font())
+      g.setRenderingHints(visualizer.rendering_hints)
 
       val react: PartialFunction[Event, Unit] = {   
         case MousePressed(_, p, _, _, _) => pressed(p)
@@ -196,16 +196,16 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
       }
       
       def node(at: Point2D): Option[String] = 
-        vis.model.visible_nodes().find({
-            l => vis.Drawer.shape(g, Some(l)).contains(at)
+        visualizer.model.visible_nodes().find({
+            l => visualizer.Drawer.shape(g, Some(l)).contains(at)
           })
       
       def dummy(at: Point2D): Option[Dummy] =
-        vis.model.visible_edges().map({
-            i => vis.Coordinates(i).zipWithIndex.map((i, _))
+        visualizer.model.visible_edges().map({
+            i => visualizer.Coordinates(i).zipWithIndex.map((i, _))
           }).flatten.find({
             case (_, ((x, y), _)) => 
-              vis.Drawer.shape(g, None).contains(at.getX() - x, at.getY() - y)
+              visualizer.Drawer.shape(g, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
@@ -214,19 +214,20 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
       def moved(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)
         node(c) match {
-          case Some(l) => panel.tooltip = ""; panel.tooltip_content = vis.Tooltip.content(l)
-          case None => panel.tooltip = null; panel.tooltip_content = Nil
+          case Some(l) =>
+            panel.tooltip = ""
+            panel.tooltip_content = visualizer.Tooltip.content(l)
+          case None =>
+            panel.tooltip = null
+            panel.tooltip_content = Nil
         }
       }
       
       def pressed(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)
         val l = node(c) match {
-          case Some(l) => if (vis.Selection(l))
-                            vis.Selection()
-                          else
-                            List(l)
-          
+          case Some(l) =>
+            if (visualizer.Selection(l)) visualizer.Selection() else List(l)
           case None => Nil
         }
         val d = l match {
@@ -249,19 +250,19 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
         
         def left_click() {
           (p, m) match {
-            case (Some(l), Control) => vis.Selection.add(l)
+            case (Some(l), Control) => visualizer.Selection.add(l)
             case (None, Control) =>
 
-            case (Some(l), Shift) => vis.Selection.add(l)
+            case (Some(l), Shift) => visualizer.Selection.add(l)
             case (None, Shift) =>
 
-            case (Some(l), _) => vis.Selection.set(List(l))
-            case (None, _) => vis.Selection.clear
+            case (Some(l), _) => visualizer.Selection.set(List(l))
+            case (None, _) => visualizer.Selection.clear
           }          
         }
         
         def right_click() {
-          val menu = Popups(panel, p, vis.Selection())
+          val menu = Popups(panel, p, visualizer.Selection())
           menu.show(panel.peer, at.x, at.y)
         }
         
@@ -285,10 +286,10 @@ class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body
           }
             
           case (Nil, ds) =>
-            ds.foreach(d => vis.Coordinates.translate(d, (dx / s, dy / s)))
+            ds.foreach(d => visualizer.Coordinates.translate(d, (dx / s, dy / s)))
                      
           case (ls, _) =>
-            ls.foreach(l => vis.Coordinates.translate(l, (dx / s, dy / s)))
+            ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
         }
       }
 
