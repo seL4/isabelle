@@ -61,9 +61,9 @@ object Popups {
 
 
         if (edges) {
-          val outs = ls.map(l => (l, curr.imm_succs(l)))
+          val outs = ls.map(l => (l, curr.imm_succs(l)))  // FIXME iterator
                       .filter(_._2.size > 0).sortBy(_._1)
-          val ins = ls.map(l => (l, curr.imm_preds(l)))
+          val ins = ls.map(l => (l, curr.imm_preds(l)))  // FIXME iterator
                       .filter(_._2.size > 0).sortBy(_._1)
 
           if (outs.nonEmpty || ins.nonEmpty) {

@@ -22,12 +22,15 @@ object Layout_Pendulum {
   val x_distance = 350
   val y_distance = 350
   val pendulum_iterations = 10
+  val minimize_crossings_iterations = 40
   
-  def apply(graph: Model.Graph): Layout = {
-    if (graph.entries.isEmpty)
+  def apply(graph: Model.Graph): Layout =
+  {
+    if (graph.is_empty)
       (Map[Key, Point](), Map[(Key, Key), List[Point]]())
     else {
-      val (dummy_graph, dummies, dummy_levels) = {
+      val (dummy_graph, dummies, dummy_levels) =
+      {
         val initial_levels = level_map(graph)
 
         def add_dummies(graph: Model.Graph, from: Key, to: Key,
@@ -79,7 +82,7 @@ object Layout_Pendulum {
                 initial_coordinates(levels)
         )
 
-      val dummy_coords = 
+      val dummy_coords =
         (Map[(Key, Key), List[Point]]() /: dummies.keys) {
           case (map, key) => map + (key -> dummies(key).map(coords(_)))
         }
@@ -87,32 +90,30 @@ object Layout_Pendulum {
       (coords, dummy_coords)
     }
   }
-  
+
   def level_map(graph: Model.Graph): Map[Key, Int] = 
-    (Map[Key, Int]() /: graph.topological_order){
+    (Map[Key, Int]() /: graph.topological_order) {
       (levels, key) => {
-        val pred_levels = graph.imm_preds(key).map(levels(_)) + (-1)
-        levels + (key -> (pred_levels.max + 1))
-      }}
+        val lev = 1 + (-1 /: graph.imm_preds(key)) { case (m, key) => m max levels(key) }
+        levels + (key -> lev)
+      }
+    }
   
   def level_list(map: Map[Key, Int]): Levels =
-    (map.toList.sortBy(_._2) :\ List[(Int, Level)]()){
-        case ((key, i), list) => {
-            if (list.isEmpty) (i, List(key)) :: list
-            else {
-              val (j, l) = list.head
-              if (i == j) (i, key :: l) :: list.tail
-              else (i, List(key)) :: list
-            }
-        }
-    }.map(_._2)
-  
+  {
+    val max_lev = (-1 /: map) { case (m, (_, l)) => m max l }
+    val buckets = new Array[Level](max_lev + 1)
+    for (l <- 0 to max_lev) { buckets(l) = Nil }
+    for ((key, l) <- map) { buckets(l) = key :: buckets(l) }
+    buckets.iterator.map(_.sorted).toList
+  }
+
   def count_crossings(graph: Model.Graph, levels: Levels): Int = {
     def in_level(ls: Levels): Int = ls match {
       case List(top, bot) =>
         top.zipWithIndex.map{
           case (outer_parent, outer_parent_index) => 
-            graph.imm_succs(outer_parent).map(bot.indexOf(_))
+            graph.imm_succs(outer_parent).map(bot.indexOf(_))  // FIXME iterator
             .map(outer_child => {
               (0 until outer_parent_index)
               .map(inner_parent => 
@@ -153,11 +154,11 @@ object Layout_Pendulum {
         }
       }
     
-    ((levels, count_crossings(graph, levels), true) /: (1 to 40)) {
+    ((levels, count_crossings(graph, levels), true) /: (1 to minimize_crossings_iterations)) {
       case ((old_levels, old_crossings, top_down), _) => {
           val new_levels = resort(old_levels, top_down)
           val new_crossings = count_crossings(graph, new_levels)
-          if ( new_crossings < old_crossings)
+          if (new_crossings < old_crossings)
             (new_levels, new_crossings, !top_down)
           else
             (old_levels, old_crossings, !top_down)
@@ -250,7 +251,7 @@ object Layout_Pendulum {
     val regions = levels.map(level => level.map(new Region(graph, _)))
     
     ((regions, coords, true, true) /: (1 to pendulum_iterations)) {
-      case ((regions, coords, top_down, moved), _) => 
+      case ((regions, coords, top_down, moved), i) =>
         if (moved) {
           val (nextr, nextc, m) = iteration(regions, coords, top_down)
           (nextr, nextc, !top_down, m)
@@ -272,7 +273,7 @@ object Layout_Pendulum {
     
     def deflection(coords: Coordinates, use_preds: Boolean) = 
       nodes.map(k => (coords(k)._1,
-                      if (use_preds) graph.imm_preds(k).toList
+                      if (use_preds) graph.imm_preds(k).toList  // FIXME iterator
                       else graph.imm_succs(k).toList))
       .map({case (x, as) => as.map(coords(_)._1 - x).sum / math.max(as.length, 1)})
       .sum / nodes.length

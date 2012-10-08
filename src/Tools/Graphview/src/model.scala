@@ -78,7 +78,7 @@ class Model(private val graph: Model.Graph) {
   def visible_nodes(): Iterator[String] = current.keys
   
   def visible_edges(): Iterator[(String, String)] =
-    current.keys.map(k => current.imm_succs(k).map((k, _))).flatten
+    current.keys.map(k => current.imm_succs(k).map((k, _))).flatten  // FIXME iterator
   
   def complete = graph
   def current: Model.Graph =

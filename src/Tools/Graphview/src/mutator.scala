@@ -139,7 +139,7 @@ object Mutators {
     "Hide transitive edges",
     "Hides all transitive edges.",
     (g, s, d) => {
-      !g.imm_succs(s).filter(_ != d)
+      !g.imm_succs(s).filter(_ != d)  // FIXME iterator
       .exists(p => !(g.irreducible_paths(p, d).isEmpty))
     }
   )
