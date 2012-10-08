@@ -54,9 +54,15 @@ class Graph_Panel(
     visualizer.model.visible_nodes()
       .find(name => visualizer.Drawer.shape(gfx_aux, Some(name)).contains(at))
 
+  def refresh()
+  {
+    paint_panel.set_preferred_size()
+    paint_panel.repaint()
+  }
+
   def fit_to_window() = {
     Transform.fit_to_window()
-    repaint()
+    refresh()
   }
   
   def apply_layout() = visualizer.Coordinates.layout()  
@@ -74,7 +80,6 @@ class Graph_Panel(
       }  
     
     override def paint(g: Graphics2D) {
-      set_preferred_size()
       super.paintComponent(g)
       g.transform(Transform())
       
