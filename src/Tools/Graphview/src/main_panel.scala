@@ -14,10 +14,13 @@ import scala.collection.JavaConversions._
 import scala.swing.{BorderPanel, Button, BoxPanel,
   Orientation, Swing, CheckBox, Action, FileChooser}
 
+import java.io.File
+import java.awt.{Color, Dimension}
+import java.awt.geom.Rectangle2D
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 import javax.swing.border.EmptyBorder
 import javax.swing.JComponent
-import java.awt.Dimension
-import java.io.File
 
 
 class Main_Panel(graph: Model.Graph)
@@ -115,11 +118,6 @@ class Main_Panel(graph: Model.Graph)
   add(options_panel, BorderPanel.Position.North)
   
   private def export(file: File) {
-    import java.awt.image.BufferedImage
-    import javax.imageio.ImageIO
-    import java.awt.geom.Rectangle2D
-    import java.awt.Color    
-    
     val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds
     val img = new BufferedImage((math.abs(maxX - minX) + 400).toInt,
                                 (math.abs(maxY - minY) + 200).toInt,
@@ -132,10 +130,7 @@ class Main_Panel(graph: Model.Graph)
     visualizer.Drawer.paint_all_visible(g, false)
     g.dispose()    
     
-    try {
-      ImageIO.write(img, "png", file)
-    } catch {
-      case ex: Exception => ex.printStackTrace
-    }  
+    try { ImageIO.write(img, "png", file) }
+    catch { case ex: Exception => ex.printStackTrace }  // FIXME !?
   }
 }
