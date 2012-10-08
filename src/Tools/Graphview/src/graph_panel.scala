@@ -97,20 +97,9 @@ class Graph_Panel(
       case MouseClicked(_, _, _, _, _) => {repaint(); requestFocus()}
       case MouseMoved(_, _, _) => repaint()
     }
-  private val r = {
-    import scala.actors.Actor._
-    
-    actor {
-      loop {
-        react {
-          // FIXME Swing thread!?
-          case _ => repaint()
-        }
-      }
-    }
-  }
-  visualizer.model.Colors.events += r
-  visualizer.model.Mutators.events += r
+
+  visualizer.model.Colors.events += { case _ => repaint() }
+  visualizer.model.Mutators.events += { case _ => repaint() }
   
   apply_layout()
   fit_to_window()
