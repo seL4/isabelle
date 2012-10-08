@@ -166,7 +166,7 @@ lemma %quote powers_append:
 lemma %quote powers_power:
   "powers xs \<circ> power x = power x \<circ> powers xs"
   by (induct xs)
-    (simp_all del: o_apply id_apply add: o_assoc [symmetric],
+    (simp_all del: o_apply id_apply add: comp_assoc,
       simp del: o_apply add: o_assoc power_commute)
 
 lemma %quote powers_rev:

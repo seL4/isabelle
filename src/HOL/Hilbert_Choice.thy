@@ -144,7 +144,7 @@ lemma inv_o_cancel[simp]: "inj f ==> inv f o f = id"
 by (simp add: inj_iff)
 
 lemma o_inv_o_cancel[simp]: "inj f ==> g o inv f o f = g"
-by (simp add: o_assoc[symmetric])
+by (simp add: comp_assoc)
 
 lemma inv_into_image_cancel[simp]:
   "inj_on f A ==> S <= A ==> inv_into A f ` f ` S = S"

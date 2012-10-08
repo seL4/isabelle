@@ -41,34 +41,41 @@ notation (xsymbols)
 notation (HTML output)
   comp  (infixl "\<circ>" 55)
 
-lemma o_apply [simp]: "(f o g) x = f (g x)"
-by (simp add: comp_def)
+lemma comp_apply [simp]: "(f o g) x = f (g x)"
+  by (simp add: comp_def)
 
-lemma o_assoc: "f o (g o h) = f o g o h"
-by (simp add: comp_def)
+lemma comp_assoc: "(f o g) o h = f o (g o h)"
+  by (simp add: fun_eq_iff)
 
-lemma id_o [simp]: "id o g = g"
-by (simp add: comp_def)
+lemma id_comp [simp]: "id o g = g"
+  by (simp add: fun_eq_iff)
 
-lemma o_id [simp]: "f o id = f"
-by (simp add: comp_def)
+lemma comp_id [simp]: "f o id = f"
+  by (simp add: fun_eq_iff)
 
-lemma o_eq_dest:
+lemma comp_eq_dest:
   "a o b = c o d \<Longrightarrow> a (b v) = c (d v)"
-  by (simp only: comp_def) (fact fun_cong)
+  by (simp add: fun_eq_iff)
 
-lemma o_eq_elim:
+lemma comp_eq_elim:
   "a o b = c o d \<Longrightarrow> ((\<And>v. a (b v) = c (d v)) \<Longrightarrow> R) \<Longrightarrow> R"
-  by (erule meta_mp) (fact o_eq_dest) 
+  by (simp add: fun_eq_iff) 
 
-lemma image_compose: "(f o g) ` r = f`(g`r)"
-by (simp add: comp_def, blast)
-
-lemma vimage_compose: "(g \<circ> f) -` x = f -` (g -` x)"
+lemma image_comp:
+  "(f o g) ` r = f ` (g ` r)"
   by auto
 
-lemma UN_o: "UNION A (g o f) = UNION (f`A) g"
-by (unfold comp_def, blast)
+lemma vimage_comp:
+  "(g \<circ> f) -` x = f -` (g -` x)"
+  by auto
+
+lemma INF_comp:
+  "INFI A (g \<circ> f) = INFI (f ` A) g"
+  by (simp add: INF_def image_comp)
+
+lemma SUP_comp:
+  "SUPR A (g \<circ> f) = SUPR (f ` A) g"
+  by (simp add: SUP_def image_comp)
 
 
 subsection {* The Forward Composition Operator @{text fcomp} *}
@@ -735,10 +742,6 @@ lemma the_inv_f_f:
   by (rule the_inv_into_f_f)
 
 
-text{*compatibility*}
-lemmas o_def = comp_def
-
-
 subsection {* Cantor's Paradox *}
 
 lemma Cantors_paradox [no_atp]:
@@ -806,7 +809,19 @@ enriched_type map_fun: map_fun
   by (simp_all add: fun_eq_iff)
 
 enriched_type vimage
-  by (simp_all add: fun_eq_iff vimage_compose)
+  by (simp_all add: fun_eq_iff vimage_comp)
+
+text {* Legacy theorem names *}
+
+lemmas o_def = comp_def
+lemmas o_apply = comp_apply
+lemmas o_assoc = comp_assoc [symmetric]
+lemmas id_o = id_comp
+lemmas o_id = comp_id
+lemmas o_eq_dest = comp_eq_dest
+lemmas o_eq_elim = comp_eq_elim
+lemmas image_compose = image_comp
+lemmas vimage_compose = vimage_comp
 
 end
 

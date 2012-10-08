@@ -793,7 +793,7 @@ proof
         with Suc have hyp: "f y ^^ h y \<circ> f x = f x \<circ> f y ^^ h y"
           by auto
         from Suc h_def have "g y = Suc (h y)" by simp
-        then show ?case by (simp add: o_assoc [symmetric] hyp)
+        then show ?case by (simp add: comp_assoc hyp)
           (simp add: o_assoc comp_fun_commute)
       qed
       def h \<equiv> "\<lambda>z. if z = x then g x - 1 else g z"
@@ -803,7 +803,7 @@ proof
       with False h_def have hyp2: "f y ^^ g y \<circ> f x ^^ h x = f x ^^ h x \<circ> f y ^^ g y" by simp
       from Suc h_def have "g x = Suc (h x)" by simp
       then show ?case by (simp del: funpow.simps add: funpow_Suc_right o_assoc hyp2)
-        (simp add: o_assoc [symmetric] hyp1)
+        (simp add: comp_assoc hyp1)
     qed
   qed
 qed
@@ -1507,7 +1507,7 @@ lemma comp_fun_commute':
   assumes "finite A"
   shows "f x \<circ> F A = F A \<circ> f x"
   using assms by (induct A)
-    (simp, simp del: o_apply add: o_assoc, simp del: o_apply add: o_assoc [symmetric] comp_fun_commute)
+    (simp, simp del: o_apply add: o_assoc, simp del: o_apply add: comp_assoc comp_fun_commute)
 
 lemma commute_left_comp':
   assumes "finite A"
@@ -1518,14 +1518,14 @@ lemma comp_fun_commute'':
   assumes "finite A" and "finite B"
   shows "F B \<circ> F A = F A \<circ> F B"
   using assms by (induct A)
-    (simp_all add: o_assoc, simp add: o_assoc [symmetric] comp_fun_commute')
+    (simp_all add: o_assoc, simp add: comp_assoc comp_fun_commute')
 
 lemma commute_left_comp'':
   assumes "finite A" and "finite B"
   shows "F B \<circ> (F A \<circ> g) = F A \<circ> (F B \<circ> g)"
   using assms by (simp add: o_assoc comp_fun_commute'')
 
-lemmas comp_fun_commutes = o_assoc [symmetric] comp_fun_commute commute_left_comp
+lemmas comp_fun_commutes = comp_assoc comp_fun_commute commute_left_comp
   comp_fun_commute' commute_left_comp' comp_fun_commute'' commute_left_comp''
 
 lemma union_inter:

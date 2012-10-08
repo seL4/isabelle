@@ -292,7 +292,7 @@ lemma swapidseq_comp_add: "swapidseq n p \<Longrightarrow> swapidseq m q ==> swa
   next
     case (comp_Suc n p a b m q)
     have th: "Suc n + m = Suc (n + m)" by arith
-    show ?case unfolding th o_assoc[symmetric]
+    show ?case unfolding th comp_assoc
       apply (rule swapidseq.comp_Suc) using comp_Suc.hyps(2)[OF comp_Suc.prems]  comp_Suc.hyps(3) by blast+
 qed
 
@@ -302,7 +302,7 @@ lemma permutation_compose: "permutation p \<Longrightarrow> permutation q ==> pe
 lemma swapidseq_endswap: "swapidseq n p \<Longrightarrow> a \<noteq> b ==> swapidseq (Suc n) (p o Fun.swap a b id)"
   apply (induct n p rule: swapidseq.induct)
   using swapidseq_swap[of a b]
-  by (auto simp add: o_assoc[symmetric] intro: swapidseq.comp_Suc)
+  by (auto simp add: comp_assoc intro: swapidseq.comp_Suc)
 
 lemma swapidseq_inverse_exists: "swapidseq n p ==> \<exists>q. swapidseq n q \<and> p o q = id \<and> q o p = id"
 proof(induct n p rule: swapidseq.induct)
@@ -418,7 +418,7 @@ next
     have th2: "swapidseq (n - 1) (Fun.swap a z id o q)" "n \<noteq> 0" by blast+
     have th: "Suc n - 1 = Suc (n - 1)" using th2(2) by auto
     have ?case unfolding cdqm(2) H o_assoc th
-      apply (simp only: Suc_not_Zero simp_thms o_assoc[symmetric])
+      apply (simp only: Suc_not_Zero simp_thms comp_assoc)
       apply (rule comp_Suc)
       using th2 H apply blast+
       done}
@@ -734,7 +734,7 @@ apply auto
 apply (rule permutes_compose)
 using q apply auto
 apply (rule_tac x = "x o inv q" in exI)
-by (simp add: o_assoc permutes_inv permutes_compose permutes_inv_o o_assoc[symmetric])
+by (simp add: o_assoc permutes_inv permutes_compose permutes_inv_o comp_assoc)
 
 lemma permutes_in_seg: "p permutes {1 ..n} \<Longrightarrow> i \<in> {1..n} ==> 1 <= p i \<and> p i <= n"
 
@@ -770,7 +770,7 @@ proof-
   proof-
     fix p r
     assume "p permutes S" and r:"r permutes S" and rp: "q \<circ> p = q \<circ> r"
-    hence "inv q o q o p = inv q o q o r" by (simp add: o_assoc[symmetric])
+    hence "inv q o q o p = inv q o q o r" by (simp add: comp_assoc)
     with permutes_inj[OF q, unfolded inj_iff]
 
     show "p = r" by simp

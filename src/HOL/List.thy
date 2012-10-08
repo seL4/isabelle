@@ -2398,7 +2398,7 @@ lemma fold_remove1_split:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     and x: "x \<in> set xs"
   shows "fold f xs = fold f (remove1 x xs) \<circ> f x"
-  using assms by (induct xs) (auto simp add: o_assoc [symmetric])
+  using assms by (induct xs) (auto simp add: comp_assoc)
 
 lemma fold_cong [fundef_cong]:
   "a = b \<Longrightarrow> xs = ys \<Longrightarrow> (\<And>x. x \<in> set xs \<Longrightarrow> f x = g x)

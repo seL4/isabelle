@@ -102,7 +102,7 @@ lemma td_conds:
   "norm o norm = norm ==> (fr o norm = norm o fr) = 
     (norm o fr o norm = fr o norm & norm o fr o norm = norm o fr)"
   apply safe
-    apply (simp_all add: o_assoc [symmetric])
+    apply (simp_all add: comp_assoc)
    apply (simp_all add: o_assoc)
   done
 
@@ -192,7 +192,7 @@ lemma fns3:
   apply (fold eq_norm')
   apply safe
    prefer 2
-   apply (simp add: o_assoc [symmetric])
+   apply (simp add: comp_assoc)
   apply (rule ext)
   apply (drule fun_cong)
   apply simp
@@ -208,7 +208,7 @@ lemma fns:
    apply (rule fns3 [THEN iffD1])
      prefer 3
      apply (rule fns2 [THEN iffD1])
-       apply (simp_all add: o_assoc [symmetric])
+       apply (simp_all add: comp_assoc)
    apply (simp_all add: o_assoc)
   done
 

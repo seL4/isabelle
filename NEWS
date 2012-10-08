@@ -62,6 +62,8 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Theorem UN_o generalized to SUP_comp.  INCOMPATIBILITY.
+
 * Class "comm_monoid_diff" formalises properties of bounded
 subtraction, with natural numbers and multisets as typical instances.
 
