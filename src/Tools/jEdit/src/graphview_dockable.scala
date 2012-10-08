@@ -11,7 +11,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.BorderLayout
-import javax.swing.JPanel
+import javax.swing.{JPanel, JComponent}
 
 import scala.actors.Actor._
 
@@ -41,7 +41,15 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   {
     graphview.removeAll()
     graphview.setLayout(new BorderLayout)
-    val panel = new isabelle.graphview.Main_Panel(isabelle.graphview.Model.decode_graph(graph))
+    val panel =
+      new isabelle.graphview.Main_Panel(isabelle.graphview.Model.decode_graph(graph)) {
+        override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
+        {
+          val rendering = Isabelle_Rendering(current_snapshot, Isabelle.options.value)
+          new Pretty_Tooltip(view, parent, rendering, x, y, body)
+          null
+        }
+      }
     graphview.add(panel.peer, BorderLayout.CENTER)
   }
 

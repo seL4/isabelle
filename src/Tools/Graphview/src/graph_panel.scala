@@ -10,13 +10,13 @@ import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
-import javax.swing.JScrollPane
+import javax.swing.{JScrollPane, JComponent}
 
 import scala.swing.{Panel, ScrollPane}
 import scala.swing.event._
 
 
-class Graph_Panel(vis: Visualizer, make_tooltip: XML.Body => String)
+class Graph_Panel(vis: Visualizer, make_tooltip: (JComponent, Int, Int, XML.Body) => String)
   extends ScrollPane
 {
   private val panel = this
@@ -24,7 +24,9 @@ class Graph_Panel(vis: Visualizer, make_tooltip: XML.Body => String)
   private var tooltip_content: XML.Body = Nil
 
   override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
-    override def getToolTipText(): String = make_tooltip(tooltip_content)
+    override def getToolTipText(event: java.awt.event.MouseEvent): String =
+      if (tooltip_content.isEmpty) null
+      else make_tooltip(panel.peer, event.getX, event.getY, tooltip_content)
   }
 
   peer.setWheelScrollingEnabled(false)

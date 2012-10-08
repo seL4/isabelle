@@ -205,7 +205,11 @@ class Rich_Text_Area(
           val tip =
             if (control) rendering.tooltip(range)
             else rendering.tooltip_message(range)
-          if (!tip.isEmpty) new Pretty_Tooltip(view, text_area, rendering, x, y, tip)
+          if (!tip.isEmpty) {
+            val painter = text_area.getPainter
+            val y1 = y + painter.getFontMetrics.getHeight / 2
+            new Pretty_Tooltip(view, painter, rendering, x, y1, tip)
+          }
         }
         null
       }

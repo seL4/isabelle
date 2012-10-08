@@ -23,10 +23,10 @@ import org.gjt.sp.jedit.textarea.TextArea
 
 class Pretty_Tooltip(
   view: View,
-  text_area: TextArea,
+  parent: JComponent,
   rendering: Isabelle_Rendering,
   mouse_x: Int, mouse_y: Int, body: XML.Body)
-  extends JWindow(JEdit_Lib.parent_window(text_area) getOrElse view)
+  extends JWindow(JEdit_Lib.parent_window(parent) getOrElse view)
 {
   window =>
 
@@ -115,10 +115,8 @@ class Pretty_Tooltip(
   }
 
   {
-    val container = text_area.getPainter
-    val font_metrics = container.getFontMetrics
-    val point = new Point(mouse_x, mouse_y + font_metrics.getHeight / 2)
-    SwingUtilities.convertPointToScreen(point, container)
+    val point = new Point(mouse_x, mouse_y)
+    SwingUtilities.convertPointToScreen(point, parent)
 
     val screen = Toolkit.getDefaultToolkit.getScreenSize
     val x = point.x min (screen.width - window.getWidth)

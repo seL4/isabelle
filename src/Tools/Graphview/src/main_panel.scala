@@ -12,8 +12,10 @@ import isabelle.graphview.Mutators._
 
 import scala.collection.JavaConversions._
 import scala.swing.{BorderPanel, Button, BoxPanel,
-                    Orientation, Swing, CheckBox, Action, FileChooser}
+  Orientation, Swing, CheckBox, Action, FileChooser}
+
 import javax.swing.border.EmptyBorder
+import javax.swing.JComponent
 import java.awt.Dimension
 import java.io.File
 
@@ -21,15 +23,10 @@ import java.io.File
 class Main_Panel(graph: Model.Graph)
   extends BorderPanel
 {
-  def make_tooltip(body: XML.Body): String =
-  {
-    if (body.isEmpty) null
-    else {
-      val txt = Pretty.string_of(body)
-      "<html><pre style=\"font-family: " + Parameters.font_family + "; font-size: " +
-          Parameters.tooltip_font_size + "px; \">" + HTML.encode(txt) + "</pre></html>"
-    }
-  }
+  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
+    "<html><pre style=\"font-family: " + Parameters.font_family +
+      "; font-size: " + Parameters.tooltip_font_size + "px; \">" +
+      HTML.encode(Pretty.string_of(body)) + "</pre></html>"
 
   focusable = true
   requestFocus()
