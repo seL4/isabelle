@@ -19,7 +19,7 @@ trait Mutator
   val description: String
   def mutate(complete: Model.Graph, sub: Model.Graph): Model.Graph
 
-  override def toString() = name
+  override def toString: String = name
 }
 
 trait Filter extends Mutator
