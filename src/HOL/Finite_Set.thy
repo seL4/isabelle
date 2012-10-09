@@ -848,27 +848,24 @@ proof -
   then show ?thesis ..
 qed
 
-definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" 
-  where "filter P A = fold (\<lambda>x A'. if P x then Set.insert x A' else A') {} A"
-
 lemma comp_fun_commute_filter_fold: "comp_fun_commute (\<lambda>x A'. if P x then Set.insert x A' else A')"
 proof - 
   interpret comp_fun_idem Set.insert by (fact comp_fun_idem_insert)
   show ?thesis by default (auto simp: fun_eq_iff)
 qed
 
-lemma inter_filter:     
-  assumes "finite B"
-  shows "A \<inter> B = filter (\<lambda>x. x \<in> A) B"
-using assms 
-by (induct B) (auto simp: filter_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
-
-lemma project_filter:
+lemma Set_filter_fold:
   assumes "finite A"
-  shows "Set.filter P A = filter P A"
+  shows "Set.filter P A = fold (\<lambda>x A'. if P x then Set.insert x A' else A') {} A"
 using assms
 by (induct A) 
-  (auto simp add: filter_def Set.filter_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
+  (auto simp add: Set.filter_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
+
+lemma inter_Set_filter:     
+  assumes "finite B"
+  shows "A \<inter> B = Set.filter (\<lambda>x. x \<in> A) B"
+using assms 
+by (induct B) (auto simp: Set.filter_def)
 
 lemma image_fold_insert:
   assumes "finite A"
@@ -2457,7 +2454,7 @@ proof
     by simp
 qed
 
-hide_const (open) Finite_Set.fold Finite_Set.filter
+hide_const (open) Finite_Set.fold
 
 end
 

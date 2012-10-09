@@ -187,9 +187,9 @@ qed
 definition rbt_filter :: "('a :: linorder \<Rightarrow> bool) \<Rightarrow> ('a, 'b) rbt \<Rightarrow> 'a set" where
   "rbt_filter P t = fold (\<lambda>k _ A'. if P k then Set.insert k A' else A') t {}"
 
-lemma finite_filter_rbt_filter:
-  "Finite_Set.filter P (Set t) = rbt_filter P t"
-by (simp add: fold_keys_def Finite_Set.filter_def rbt_filter_def 
+lemma Set_filter_rbt_filter:
+  "Set.filter P (Set t) = rbt_filter P t"
+by (simp add: fold_keys_def Set_filter_fold rbt_filter_def 
   finite_fold_fold_keys[OF comp_fun_commute_filter_fold])
 
 
@@ -568,7 +568,7 @@ qed
 
 lemma inter_Set [code]:
   "A \<inter> Set t = rbt_filter (\<lambda>k. k \<in> A) t"
-by (simp add: inter_filter finite_filter_rbt_filter)
+by (simp add: inter_Set_filter Set_filter_rbt_filter)
 
 lemma minus_Set [code]:
   "A - Set t = fold_keys Set.remove t A"
@@ -604,7 +604,7 @@ by (simp add: inter_Set[simplified Int_commute])
 
 lemma filter_Set [code]:
   "Set.filter P (Set t) = (rbt_filter P t)"
-by (auto simp add: project_filter finite_filter_rbt_filter)
+by (auto simp add: Set_filter_rbt_filter)
 
 lemma image_Set [code]:
   "image f (Set t) = fold_keys (\<lambda>k A. Set.insert (f k) A) t {}"
