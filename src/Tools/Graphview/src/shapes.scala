@@ -13,18 +13,18 @@ import java.awt.geom.{AffineTransform, GeneralPath, Path2D, Rectangle2D}
 
 object Shapes {
   trait Node {
-    def shape(g: Graphics2D, vis: Visualizer, peer: Option[String]): Shape
-    def paint(g: Graphics2D, vis: Visualizer, peer: Option[String]): Unit
+    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Shape
+    def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Unit
   }
 
   object Growing_Node extends Node {
     private val stroke =
       new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-    def shape(g: Graphics2D, vis: Visualizer, peer: Option[String]) = {
-      val caption = vis.Caption(peer.get)
+    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) = {
+      val caption = visualizer.Caption(peer.get)
       val bounds = g.getFontMetrics.getStringBounds(caption, g)
-      val (x, y) = vis.Coordinates(peer.get)
+      val (x, y) = visualizer.Coordinates(peer.get)
 
       new Rectangle2D.Double(
         x -(bounds.getWidth / 2 + 25),
@@ -34,12 +34,12 @@ object Shapes {
       )
     }
 
-    def paint(g: Graphics2D, vis: Visualizer, peer: Option[String]) {
-      val caption = vis.Caption(peer.get)
+    def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) {
+      val caption = visualizer.Caption(peer.get)
       val bounds = g.getFontMetrics.getStringBounds(caption, g)
-      val s = shape(g, vis, peer)
+      val s = shape(g, visualizer, peer)
 
-      val (border, background, foreground) = vis.Color(peer)
+      val (border, background, foreground) = visualizer.Color(peer)
       g.setStroke(stroke)
       g.setColor(border)
       g.draw(s)
@@ -59,14 +59,14 @@ object Shapes {
     private val shape = new Rectangle2D.Double(-8, -8, 16, 16)
     private val identity = new AffineTransform()
 
-    def shape(g: Graphics2D, vis: Visualizer, peer: Option[String]) = shape
+    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) = shape
 
-    def paint(g: Graphics2D, vis: Visualizer, peer: Option[String]) =
-      paint_transformed(g, vis, peer, identity)
+    def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) =
+      paint_transformed(g, visualizer, peer, identity)
     
-    def paint_transformed(g: Graphics2D, vis: Visualizer,
+    def paint_transformed(g: Graphics2D, visualizer: Visualizer,
                           peer: Option[String], at: AffineTransform) = {
-      val (border, background, foreground) = vis.Color(peer)
+      val (border, background, foreground) = visualizer.Color(peer)
       g.setStroke(stroke)
       g.setColor(border)
       g.draw(at.createTransformedShape(shape))
@@ -74,7 +74,7 @@ object Shapes {
   }
 
   trait Edge {
-    def paint(g: Graphics2D, vis: Visualizer, peer: (String, String),
+    def paint(g: Graphics2D, visualizer: Visualizer, peer: (String, String),
               head: Boolean, dummies: Boolean)
   }
 
@@ -82,14 +82,14 @@ object Shapes {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-    def paint(g: Graphics2D, vis: Visualizer,
+    def paint(g: Graphics2D, visualizer: Visualizer,
               peer: (String, String), head: Boolean, dummies: Boolean) {
       val ((fx, fy), (tx, ty)) =
-        (vis.Coordinates(peer._1), vis.Coordinates(peer._2))
+        (visualizer.Coordinates(peer._1), visualizer.Coordinates(peer._2))
       val ds = {
         val (min, max) = (math.min(fy, ty), math.max(fy, ty))
         
-        vis.Coordinates(peer).filter({case (_, y) => y > min && y < max})
+        visualizer.Coordinates(peer).filter({case (_, y) => y > min && y < max})
       }
       val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
 
@@ -101,16 +101,16 @@ object Shapes {
         ds.foreach({
             case (x, y) => {
               val at = AffineTransform.getTranslateInstance(x, y)
-              Dummy.paint_transformed(g, vis, None, at)
+              Dummy.paint_transformed(g, visualizer, None, at)
             }
           })
       }
       
       g.setStroke(stroke)
-      g.setColor(vis.Color(peer))
+      g.setColor(visualizer.Color(peer))
       g.draw(path)
       
-      if (head) Arrow_Head.paint(g, path, vis.Drawer.shape(g, Some(peer._2)))
+      if (head) Arrow_Head.paint(g, path, visualizer.Drawer.shape(g, Some(peer._2)))
     }
   }
   
@@ -119,17 +119,17 @@ object Shapes {
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
     private val slack = 0.1
 
-    def paint(g: Graphics2D, vis: Visualizer,
+    def paint(g: Graphics2D, visualizer: Visualizer,
               peer: (String, String), head: Boolean, dummies: Boolean) {
       val ((fx, fy), (tx, ty)) =
-        (vis.Coordinates(peer._1), vis.Coordinates(peer._2))
+        (visualizer.Coordinates(peer._1), visualizer.Coordinates(peer._2))
       val ds = {
         val (min, max) = (math.min(fy, ty), math.max(fy, ty))
         
-        vis.Coordinates(peer).filter({case (_, y) => y > min && y < max})
+        visualizer.Coordinates(peer).filter({case (_, y) => y > min && y < max})
       }
       
-      if (ds.isEmpty) Straight_Edge.paint(g, vis, peer, head, dummies)
+      if (ds.isEmpty) Straight_Edge.paint(g, visualizer, peer, head, dummies)
       else {
         val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
         path.moveTo(fx, fy)
@@ -158,16 +158,16 @@ object Shapes {
           ds.foreach({
               case (x, y) => {
                 val at = AffineTransform.getTranslateInstance(x, y)
-                Dummy.paint_transformed(g, vis, None, at)
+                Dummy.paint_transformed(g, visualizer, None, at)
               }
             })
         }
 
         g.setStroke(stroke)
-        g.setColor(vis.Color(peer))
+        g.setColor(visualizer.Color(peer))
         g.draw(path)
 
-        if (head) Arrow_Head.paint(g, path, vis.Drawer.shape(g, Some(peer._2)))        
+        if (head) Arrow_Head.paint(g, path, visualizer.Drawer.shape(g, Some(peer._2)))        
       }
     }    
   }
