@@ -8,7 +8,7 @@ theory Sfun
 imports Cfun
 begin
 
-pcpodef (open) ('a, 'b) sfun (infixr "->!" 0)
+pcpodef ('a, 'b) sfun (infixr "->!" 0)
   = "{f :: 'a \<rightarrow> 'b. f\<cdot>\<bottom> = \<bottom>}"
 by simp_all
 

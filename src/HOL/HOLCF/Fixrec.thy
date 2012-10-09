@@ -13,7 +13,7 @@ subsection {* Pattern-match monad *}
 
 default_sort cpo
 
-pcpodef (open) 'a match = "UNIV::(one ++ 'a u) set"
+pcpodef 'a match = "UNIV::(one ++ 'a u) set"
 by simp_all
 
 definition

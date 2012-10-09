@@ -19,7 +19,7 @@ definition
       (fst p = TT \<and> fst (snd p) \<noteq> \<bottom> \<and> snd (snd p) = \<bottom>) \<or>
       (fst p = FF \<and> fst (snd p) = \<bottom> \<and> snd (snd p) \<noteq> \<bottom>)}"
 
-pcpodef (open) ('a, 'b) ssum (infixr "++" 10) = "ssum :: (tr \<times> 'a \<times> 'b) set"
+pcpodef ('a, 'b) ssum (infixr "++" 10) = "ssum :: (tr \<times> 'a \<times> 'b) set"
   unfolding ssum_def by simp_all
 
 instance ssum :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin

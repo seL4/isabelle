@@ -17,11 +17,11 @@ sig
       DEFL : thm
     }
 
-  val add_domaindef: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_domaindef: binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> theory ->
     (Typedef.info * Cpodef.cpo_info * Cpodef.pcpo_info * rep_info) * theory
 
-  val domaindef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string
+  val domaindef_cmd: (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> theory
 end
 
@@ -78,8 +78,6 @@ fun mk_cast (t, x) =
 
 fun gen_add_domaindef
       (prep_term: Proof.context -> 'a -> term)
-      (def: bool)
-      (name: binding)
       (typ as (tname, raw_args, _) : binding * (string * sort) list * mixfix)
       (raw_defl: 'a)
       (opt_morphs: (binding * binding) option)
@@ -106,7 +104,7 @@ fun gen_add_domaindef
 
     (*morphisms*)
     val morphs = opt_morphs
-      |> the_default (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name)
+      |> the_default (Binding.prefix_name "Rep_" tname, Binding.prefix_name "Abs_" tname)
 
     (*set*)
     val set = @{term "defl_set :: udom defl => udom set"} $ defl
@@ -115,7 +113,7 @@ fun gen_add_domaindef
     val tac1 = rtac @{thm defl_set_bottom} 1
     val tac2 = rtac @{thm adm_defl_set} 1
     val ((info, cpo_info, pcpo_info), thy) = thy
-      |> Cpodef.add_pcpodef def (SOME name) typ set (SOME morphs) (tac1, tac2)
+      |> Cpodef.add_pcpodef typ set (SOME morphs) (tac1, tac2)
 
     (*definitions*)
     val Rep_const = Const (#Rep_name (#1 info), newT --> udomT)
@@ -134,7 +132,7 @@ fun gen_add_domaindef
         Abs ("t", Term.itselfT newT,
           mk_capply (@{const liftdefl_of}, defl_const newT $ Logic.mk_type newT)))
 
-    val name_def = Thm.def_binding name
+    val name_def = Thm.def_binding tname
     val emb_bind = (Binding.prefix_name "emb_" name_def, [])
     val prj_bind = (Binding.prefix_name "prj_" name_def, [])
     val defl_bind = (Binding.prefix_name "defl_" name_def, [])
@@ -179,9 +177,9 @@ fun gen_add_domaindef
     (*other theorems*)
     val defl_thm' = Thm.transfer thy defl_def
     val (DEFL_thm, thy) = thy
-      |> Sign.add_path (Binding.name_of name)
+      |> Sign.add_path (Binding.name_of tname)
       |> Global_Theory.add_thm
-         ((Binding.prefix_name "DEFL_" name,
+         ((Binding.prefix_name "DEFL_" tname,
           Drule.zero_var_indexes (@{thm typedef_DEFL} OF [defl_thm'])), [])
       ||> Sign.restore_naming thy
 
@@ -193,35 +191,28 @@ fun gen_add_domaindef
     ((info, cpo_info, pcpo_info, rep_info), thy)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in domaindef " ^ Binding.print name)
+    cat_error msg ("The error(s) above occurred in domaindef " ^ Binding.print tname)
 
-fun add_domaindef def opt_name typ defl opt_morphs thy =
-  let
-    val name = the_default (#1 typ) opt_name
-  in
-    gen_add_domaindef Syntax.check_term def name typ defl opt_morphs thy
-  end
+fun add_domaindef typ defl opt_morphs thy =
+  gen_add_domaindef Syntax.check_term typ defl opt_morphs thy
 
-fun domaindef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
+fun domaindef_cmd ((b, raw_args, mx), A, morphs) thy =
   let
     val ctxt = Proof_Context.init_global thy
     val args = map (apsnd (Typedecl.read_constraint ctxt)) raw_args
-  in snd (gen_add_domaindef Syntax.read_term def name (b, args, mx) A morphs thy) end
+  in snd (gen_add_domaindef Syntax.read_term (b, args, mx) A morphs thy) end
 
 
 (** outer syntax **)
 
 val domaindef_decl =
-  Scan.optional (@{keyword "("} |--
-      ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
-        Parse.binding >> (fn s => (true, SOME s)))
-        --| @{keyword ")"}) (true, NONE) --
-    (Parse.type_args_constrained -- Parse.binding) --
-    Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
-    Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
+  (Parse.type_args_constrained -- Parse.binding) --
+  Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
+  Scan.option
+    (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
 
-fun mk_domaindef ((((((def, opt_name), (args, t)), mx), A), morphs)) =
-  domaindef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs)
+fun mk_domaindef (((((args, t)), mx), A), morphs) =
+  domaindef_cmd ((t, args, mx), A, morphs)
 
 val _ =
   Outer_Syntax.command @{command_spec "domaindef"} "HOLCF definition of domains from deflations"

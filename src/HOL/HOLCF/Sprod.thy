@@ -15,7 +15,7 @@ subsection {* Definition of strict product type *}
 
 definition "sprod = {p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 
-pcpodef (open) ('a, 'b) sprod (infixr "**" 20) = "sprod :: ('a \<times> 'b) set"
+pcpodef ('a, 'b) sprod (infixr "**" 20) = "sprod :: ('a \<times> 'b) set"
   unfolding sprod_def by simp_all
 
 instance sprod :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin

@@ -14,27 +14,27 @@ sig
     { Rep_strict: thm, Abs_strict: thm,
       Rep_bottom_iff: thm, Abs_bottom_iff: thm }
 
-  val add_podef: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_podef: binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory ->
     (Typedef.info * thm) * theory
-  val add_cpodef: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_cpodef: binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic * tactic -> theory ->
     (Typedef.info * cpo_info) * theory
-  val add_pcpodef: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_pcpodef: binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic * tactic -> theory ->
     (Typedef.info * cpo_info * pcpo_info) * theory
 
-  val cpodef_proof: (bool * binding)
-    * (binding * (string * sort) list * mixfix) * term
+  val cpodef_proof:
+    (binding * (string * sort) list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
-  val cpodef_proof_cmd: (bool * binding)
-    * (binding * (string * string option) list * mixfix) * string
+  val cpodef_proof_cmd:
+    (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> Proof.state
-  val pcpodef_proof: (bool * binding)
-    * (binding * (string * sort) list * mixfix) * term
+  val pcpodef_proof:
+    (binding * (string * sort) list * mixfix) * term
     * (binding * binding) option -> theory -> Proof.state
-  val pcpodef_proof_cmd: (bool * binding)
-    * (binding * (string * string option) list * mixfix) * string
+  val pcpodef_proof_cmd:
+    (binding * (string * string option) list * mixfix) * string
     * (binding * binding) option -> theory -> Proof.state
 end
 
@@ -180,11 +180,11 @@ fun prepare prep_term name (tname, raw_args, _) raw_set opt_morphs thy =
     (newT, oldT, set, morphs)
   end
 
-fun add_podef def opt_name typ set opt_morphs tac thy =
+fun add_podef typ set opt_morphs tac thy =
   let
-    val name = the_default (#1 typ) opt_name
+    val name = #1 typ
     val ((full_tname, info as ({Rep_name, ...}, {type_definition, ...})), thy) = thy
-      |> Typedef.add_typedef_global def opt_name typ set opt_morphs tac
+      |> Typedef.add_typedef_global false NONE typ set opt_morphs tac
     val oldT = #rep_type (#1 info)
     val newT = #abs_type (#1 info)
     val lhs_tfrees = map dest_TFree (snd (dest_Type newT))
@@ -205,14 +205,13 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
 
 fun prepare_cpodef
       (prep_term: Proof.context -> 'a -> term)
-      (def: bool)
-      (name: binding)
       (typ: binding * (string * sort) list * mixfix)
       (raw_set: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
     : term * term * (thm -> thm -> theory -> (Typedef.info * cpo_info) * theory) =
   let
+    val name = #1 typ
     val (newT, oldT, set, morphs) =
       prepare prep_term name typ raw_set opt_morphs thy
 
@@ -224,7 +223,7 @@ fun prepare_cpodef
     fun cpodef_result nonempty admissible thy =
       let
         val ((info as (_, {type_definition, set_def, ...}), below_def), thy) = thy
-          |> add_podef def (SOME name) typ set opt_morphs (Tactic.rtac nonempty 1)
+          |> add_podef typ set opt_morphs (Tactic.rtac nonempty 1)
         val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition set_def below_def admissible
       in
@@ -234,18 +233,17 @@ fun prepare_cpodef
     (goal_nonempty, goal_admissible, cpodef_result)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in cpodef " ^ Binding.print name)
+    cat_error msg ("The error(s) above occurred in cpodef " ^ Binding.print (#1 typ))
 
 fun prepare_pcpodef
       (prep_term: Proof.context -> 'a -> term)
-      (def: bool)
-      (name: binding)
       (typ: binding * (string * sort) list * mixfix)
       (raw_set: 'a)
       (opt_morphs: (binding * binding) option)
       (thy: theory)
     : term * term * (thm -> thm -> theory -> (Typedef.info * cpo_info * pcpo_info) * theory) =
   let
+    val name = #1 typ
     val (newT, oldT, set, morphs) =
       prepare prep_term name typ raw_set opt_morphs thy
 
@@ -259,7 +257,7 @@ fun prepare_pcpodef
       let
         val tac = Tactic.rtac exI 1 THEN Tactic.rtac bottom_mem 1
         val ((info as (_, {type_definition, set_def, ...}), below_def), thy) = thy
-          |> add_podef def (SOME name) typ set opt_morphs tac
+          |> add_podef typ set opt_morphs tac
         val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition set_def below_def admissible
         val (pcpo_info, thy) = thy
@@ -271,16 +269,15 @@ fun prepare_pcpodef
     (goal_bottom_mem, goal_admissible, pcpodef_result)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in pcpodef " ^ Binding.print name)
+    cat_error msg ("The error(s) above occurred in pcpodef " ^ Binding.print (#1 typ))
 
 
 (* tactic interface *)
 
-fun add_cpodef def opt_name typ set opt_morphs (tac1, tac2) thy =
+fun add_cpodef typ set opt_morphs (tac1, tac2) thy =
   let
-    val name = the_default (#1 typ) opt_name
     val (goal1, goal2, cpodef_result) =
-      prepare_cpodef Syntax.check_term def name typ set opt_morphs thy
+      prepare_cpodef Syntax.check_term typ set opt_morphs thy
     val thm1 = Goal.prove_global thy [] [] goal1 (K tac1)
       handle ERROR msg => cat_error msg
         ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set))
@@ -289,11 +286,10 @@ fun add_cpodef def opt_name typ set opt_morphs (tac1, tac2) thy =
         ("Failed to prove admissibility of " ^ quote (Syntax.string_of_term_global thy set))
   in cpodef_result thm1 thm2 thy end
 
-fun add_pcpodef def opt_name typ set opt_morphs (tac1, tac2) thy =
+fun add_pcpodef typ set opt_morphs (tac1, tac2) thy =
   let
-    val name = the_default (#1 typ) opt_name
     val (goal1, goal2, pcpodef_result) =
-      prepare_pcpodef Syntax.check_term def name typ set opt_morphs thy
+      prepare_pcpodef Syntax.check_term typ set opt_morphs thy
     val thm1 = Goal.prove_global thy [] [] goal1 (K tac1)
       handle ERROR msg => cat_error msg
         ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set))
@@ -308,23 +304,23 @@ fun add_pcpodef def opt_name typ set opt_morphs (tac1, tac2) thy =
 local
 
 fun gen_cpodef_proof prep_term prep_constraint
-    ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
+    ((b, raw_args, mx), set, opt_morphs) thy =
   let
     val ctxt = Proof_Context.init_global thy
     val args = map (apsnd (prep_constraint ctxt)) raw_args
     val (goal1, goal2, make_result) =
-      prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy
+      prepare_cpodef prep_term (b, args, mx) set opt_morphs thy
     fun after_qed [[th1, th2]] = Proof_Context.background_theory (snd o make_result th1 th2)
       | after_qed _ = raise Fail "cpodef_proof"
   in Proof.theorem NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end
 
 fun gen_pcpodef_proof prep_term prep_constraint
-    ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
+    ((b, raw_args, mx), set, opt_morphs) thy =
   let
     val ctxt = Proof_Context.init_global thy
     val args = map (apsnd (prep_constraint ctxt)) raw_args
     val (goal1, goal2, make_result) =
-      prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy
+      prepare_pcpodef prep_term (b, args, mx) set opt_morphs thy
     fun after_qed [[th1, th2]] = Proof_Context.background_theory (snd o make_result th1 th2)
       | after_qed _ = raise Fail "pcpodef_proof"
   in Proof.theorem NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end
@@ -344,17 +340,14 @@ end
 (** outer syntax **)
 
 val typedef_proof_decl =
-  Scan.optional (@{keyword "("} |--
-      ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
-        Parse.binding >> (fn s => (true, SOME s)))
-        --| @{keyword ")"}) (true, NONE) --
-    (Parse.type_args_constrained -- Parse.binding) -- Parse.opt_mixfix --
-    (@{keyword "="} |-- Parse.term) --
-    Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
+  (Parse.type_args_constrained -- Parse.binding) -- Parse.opt_mixfix --
+  (@{keyword "="} |-- Parse.term) --
+  Scan.option
+    (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
 
-fun mk_pcpodef_proof pcpo ((((((def, opt_name), (args, t)), mx), A), morphs)) =
+fun mk_pcpodef_proof pcpo ((((args, t), mx), A), morphs) =
   (if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)
-    ((def, the_default t opt_name), (t, args, mx), A, morphs)
+    ((t, args, mx), A, morphs)
 
 val _ =
   Outer_Syntax.command @{command_spec "pcpodef"}

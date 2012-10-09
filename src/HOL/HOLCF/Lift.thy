@@ -10,7 +10,7 @@ begin
 
 default_sort type
 
-pcpodef (open) 'a lift = "UNIV :: 'a discr u set"
+pcpodef 'a lift = "UNIV :: 'a discr u set"
 by simp_all
 
 lemmas inst_lift_pcpo = Abs_lift_strict [symmetric]
