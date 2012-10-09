@@ -103,27 +103,27 @@ object Layout_Pendulum
     buckets.iterator.map(_.sorted).toList
   }
 
-  def count_crossings(graph: Model.Graph, levels: Levels): Int = {
+  def count_crossings(graph: Model.Graph, levels: Levels): Int =
+  {
     def in_level(ls: Levels): Int = ls match {
       case List(top, bot) =>
-        top.zipWithIndex.map{
-          case (outer_parent, outer_parent_index) => 
-            graph.imm_succs(outer_parent).map(bot.indexOf(_))  // FIXME iterator
-            .map(outer_child => {
+        top.iterator.zipWithIndex.map {
+          case (outer_parent, outer_parent_index) =>
+            graph.imm_succs(outer_parent).iterator.map(bot.indexOf(_))
+            .map(outer_child =>
               (0 until outer_parent_index)
-              .map(inner_parent => 
-                graph.imm_succs(top(inner_parent))
-                .map(bot.indexOf(_))
+              .map(inner_parent =>
+                graph.imm_succs(top(inner_parent)).iterator.map(bot.indexOf(_))
                 .filter(inner_child => outer_child < inner_child)
                 .size
               ).sum
-            }).sum
+            ).sum
         }.sum
-      
+
       case _ => 0
     }
-    
-    levels.sliding(2).map(in_level).sum
+
+    levels.iterator.sliding(2).map(ls => in_level(ls.toList)).sum
   }
   
   def minimize_crossings(graph: Model.Graph, levels: Levels): Levels =
@@ -247,7 +247,7 @@ object Layout_Pendulum
     val regions = levels.map(level => level.map(new Region(graph, _)))
     
     ((regions, coords, true, true) /: (1 to pendulum_iterations)) {
-      case ((regions, coords, top_down, moved), i) =>
+      case ((regions, coords, top_down, moved), _) =>
         if (moved) {
           val (nextr, nextc, m) = iteration(regions, coords, top_down)
           (nextr, nextc, !top_down, m)
