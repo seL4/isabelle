@@ -527,11 +527,11 @@ fun bind_def ctxt eq (xs, env, eqs) =
     val b' = norm_term env b;
     fun err msg = error (msg ^ ": " ^ quote y);
   in
-    case filter (fn (Free (y', _), _) => y = y' | _ => false) env of
-      [] => (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs) |
-      dups => if forall (fn (_, b'') => b' aconv b'') dups
-        then (xs, env, eqs)
-        else err "Attempt to redefine variable"
+    (case filter (fn (Free (y', _), _) => y = y' | _ => false) env of
+      [] => (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
+    | dups =>
+        if forall (fn (_, b'') => b' aconv b'') dups then (xs, env, eqs)
+        else err "Attempt to redefine variable")
   end;
 
 (* text has the following structure:
