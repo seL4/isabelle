@@ -10,14 +10,12 @@ package isabelle.graphview
 import isabelle._
 import isabelle.graphview.Mutators._
 import java.awt.Color
-import scala.actors.Actor
-import scala.actors.Actor._
 
 
 class Mutator_Container(val available: List[Mutator]) {
     type Mutator_Markup = (Boolean, Color, Mutator)
     
-    val events = new Event_Bus[Mutator_Event.Message]
+    val events = new Mutator_Event.Bus
     
     private var _mutators : List[Mutator_Markup] = Nil
     def apply() = _mutators
@@ -80,7 +78,7 @@ class Model(private val graph: Model.Graph) {
   def visible_nodes(): Iterator[String] = current.keys
   
   def visible_edges(): Iterator[(String, String)] =
-    current.keys.map(k => current.imm_succs(k).map((k, _))).flatten
+    current.keys.map(k => current.imm_succs(k).map((k, _))).flatten  // FIXME iterator
   
   def complete = graph
   def current: Model.Graph =
@@ -103,11 +101,5 @@ class Model(private val graph: Model.Graph) {
           }
     })
   }
-  Colors.events += actor {
-    loop {
-      react {
-        case _ => build_colors()
-      }
-    }
-  }
+  Colors.events += { case _ => build_colors() }
 }

@@ -12,20 +12,31 @@ import isabelle.graphview.Mutators._
 
 import scala.collection.JavaConversions._
 import scala.swing.{BorderPanel, Button, BoxPanel,
-                    Orientation, Swing, CheckBox, Action, FileChooser}
-import javax.swing.border.EmptyBorder
-import java.awt.Dimension
+  Orientation, Swing, CheckBox, Action, FileChooser}
+
 import java.io.File
+import java.awt.{Color, Dimension}
+import java.awt.geom.Rectangle2D
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
+import javax.swing.border.EmptyBorder
+import javax.swing.JComponent
 
 
-class Main_Panel(graph: Model.Graph) extends BorderPanel
+class Main_Panel(graph: Model.Graph)
+  extends BorderPanel
 {
+  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
+    "<html><pre style=\"font-family: " + Parameters.font_family +
+      "; font-size: " + Parameters.tooltip_font_size + "px; \">" +
+      HTML.encode(Pretty.string_of(body)) + "</pre></html>"
+
   focusable = true
   requestFocus()
   
   val model = new Model(graph)
   val visualizer = new Visualizer(model)
-  val graph_panel = new Graph_Panel(visualizer)
+  val graph_panel = new Graph_Panel(visualizer, make_tooltip)
   
   listenTo(keys)
   reactions += graph_panel.reactions
@@ -107,11 +118,6 @@ class Main_Panel(graph: Model.Graph) extends BorderPanel
   add(options_panel, BorderPanel.Position.North)
   
   private def export(file: File) {
-    import java.awt.image.BufferedImage
-    import javax.imageio.ImageIO
-    import java.awt.geom.Rectangle2D
-    import java.awt.Color    
-    
     val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds
     val img = new BufferedImage((math.abs(maxX - minX) + 400).toInt,
                                 (math.abs(maxY - minY) + 200).toInt,
@@ -124,10 +130,7 @@ class Main_Panel(graph: Model.Graph) extends BorderPanel
     visualizer.Drawer.paint_all_visible(g, false)
     g.dispose()    
     
-    try {
-      ImageIO.write(img, "png", file)
-    } catch {
-      case ex: Exception => ex.printStackTrace
-    }  
+    try { ImageIO.write(img, "png", file) }
+    catch { case ex: Exception => ex.printStackTrace }  // FIXME !?
   }
 }

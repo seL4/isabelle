@@ -10,31 +10,66 @@ import isabelle._
 
 import java.awt.{Dimension, Graphics2D, Point, Rectangle}
 import java.awt.geom.{AffineTransform, Point2D}
-import javax.swing.ToolTipManager
+import java.awt.image.BufferedImage
+import javax.swing.{JScrollPane, JComponent}
+
 import scala.swing.{Panel, ScrollPane}
 import scala.swing.event._
 
 
-class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
-  this.peer.setWheelScrollingEnabled(false)
+class Graph_Panel(
+    val visualizer: Visualizer,
+    make_tooltip: (JComponent, Int, Int, XML.Body) => String)
+  extends ScrollPane
+{
+  panel =>
+
+  tooltip = ""
+
+  override lazy val peer: JScrollPane = new JScrollPane with SuperMixin {
+    override def getToolTipText(event: java.awt.event.MouseEvent): String =
+      node(Transform.pane_to_graph_coordinates(event.getPoint)) match {
+        case Some(name) =>
+          visualizer.model.complete.get_node(name).content match {
+            case Nil => null
+            case content => make_tooltip(panel.peer, event.getX, event.getY, content)
+          }
+        case None => null
+      }
+  }
+
+  peer.setWheelScrollingEnabled(false)
   focusable = true
   requestFocus()
   
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
-  
-  def visualizer = vis
-  
+
+  private val gfx_aux =
+    new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
+  gfx_aux.setFont(visualizer.Font())
+  gfx_aux.setRenderingHints(visualizer.rendering_hints)
+
+  def node(at: Point2D): Option[String] =
+    visualizer.model.visible_nodes()
+      .find(name => visualizer.Drawer.shape(gfx_aux, Some(name)).contains(at))
+
+  def refresh()
+  {
+    paint_panel.set_preferred_size()
+    paint_panel.repaint()
+  }
+
   def fit_to_window() = {
     Transform.fit_to_window()
-    repaint()
+    refresh()
   }
   
-  def apply_layout() = vis.Coordinates.layout()  
+  def apply_layout() = visualizer.Coordinates.layout()  
 
   private val paint_panel = new Panel {    
     def set_preferred_size() {
-        val (minX, minY, maxX, maxY) = vis.Coordinates.bounds()
+        val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
         val s = Transform.scale
         val (px, py) = Transform.padding
 
@@ -45,11 +80,10 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
       }  
     
     override def paint(g: Graphics2D) {
-      set_preferred_size()
       super.paintComponent(g)
       g.transform(Transform())
       
-      vis.Drawer.paint_all_visible(g, true)
+      visualizer.Drawer.paint_all_visible(g, true)
     }
   }
   contents = paint_panel
@@ -68,21 +102,9 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
       case MouseClicked(_, _, _, _, _) => {repaint(); requestFocus()}
       case MouseMoved(_, _, _) => repaint()
     }
-  private val r = {
-    import scala.actors.Actor._
-    
-    actor {
-      loop {
-        react {
-          // FIXME Swing thread!?
-          case _ => repaint()
-        }
-      }
-    }
-  }
-  vis.model.Colors.events += r
-  vis.model.Mutators.events += r
-  ToolTipManager.sharedInstance.setDismissDelay(1000*60*60)
+
+  visualizer.model.Colors.events += { case _ => repaint() }
+  visualizer.model.Mutators.events += { case _ => repaint() }
   
   apply_layout()
   fit_to_window()
@@ -98,7 +120,7 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
                 }
                 
     def apply() = {
-      val (minX, minY, _, _) = vis.Coordinates.bounds()
+      val (minX, minY, _, _) = visualizer.Coordinates.bounds()
       
       val at = AffineTransform.getScaleInstance(scale, scale)
       at.translate(-minX + padding._1 / 2, -minY + padding._2 / 2)
@@ -106,10 +128,10 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
     }
     
     def fit_to_window() {
-      if (vis.model.visible_nodes().isEmpty)
+      if (visualizer.model.visible_nodes().isEmpty)
         scale = 1
       else {
-        val (minX, minY, maxX, maxY) = vis.Coordinates.bounds()
+        val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
 
         val (dx, dy) = (maxX - minX + padding._1, maxY - minY + padding._2)
         val (sx, sy) = (1d * size.width / dx, 1d * size.height / dy)
@@ -126,7 +148,6 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
     }
   }
   
-  private val panel = this
   object Interaction {
     object Keyboard {
       import scala.swing.event.Key._
@@ -149,7 +170,7 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
         }
         
         case('1', _) => {
-            vis.Coordinates.layout()
+            visualizer.Coordinates.layout()
         }
 
         case('2', _) => {
@@ -161,16 +182,11 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
     }
     
     object Mouse {
-      import java.awt.image.BufferedImage
       import scala.swing.event.Key.Modifier._
       type Modifiers = Int
       type Dummy = ((String, String), Int)
       
       private var draginfo: (Point, Iterable[String], Iterable[Dummy]) = null
-      private val g =
-        new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
-      g.setFont(vis.Font())
-      g.setRenderingHints(vis.rendering_hints)
 
       val react: PartialFunction[Event, Unit] = {   
         case MousePressed(_, p, _, _, _) => pressed(p)
@@ -181,41 +197,24 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
           }
         case MouseWheelMoved(_, p, _, r) => wheel(r, p)
         case e@MouseClicked(_, p, m, n, _) => click(p, m, n, e)
-        case MouseMoved(_, p, _) => moved(p)
       }
       
-      def node(at: Point2D): Option[String] = 
-        vis.model.visible_nodes().find({
-            l => vis.Drawer.shape(g, Some(l)).contains(at)
-          })
-      
       def dummy(at: Point2D): Option[Dummy] =
-        vis.model.visible_edges().map({
-            i => vis.Coordinates(i).zipWithIndex.map((i, _))
+        visualizer.model.visible_edges().map({
+            i => visualizer.Coordinates(i).zipWithIndex.map((i, _))
           }).flatten.find({
             case (_, ((x, y), _)) => 
-              vis.Drawer.shape(g, None).contains(at.getX() - x, at.getY() - y)
+              visualizer.Drawer.shape(gfx_aux, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
           }
       
-      def moved(at: Point) {
-        val c = Transform.pane_to_graph_coordinates(at)
-        node(c) match {
-          case Some(l) => panel.tooltip = vis.Tooltip.text(l, g.getFontMetrics)
-          case None => panel.tooltip = null
-        }
-      }
-      
       def pressed(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)
         val l = node(c) match {
-          case Some(l) => if (vis.Selection(l))
-                            vis.Selection()
-                          else
-                            List(l)
-          
+          case Some(l) =>
+            if (visualizer.Selection(l)) visualizer.Selection() else List(l)
           case None => Nil
         }
         val d = l match {
@@ -238,43 +237,25 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
         
         def left_click() {
           (p, m) match {
-            case (Some(l), Control) => vis.Selection.add(l)
+            case (Some(l), Control) => visualizer.Selection.add(l)
             case (None, Control) =>
 
-            case (Some(l), Shift) => vis.Selection.add(l)
+            case (Some(l), Shift) => visualizer.Selection.add(l)
             case (None, Shift) =>
 
-            case (Some(l), _) => vis.Selection.set(List(l))
-            case (None, _) => vis.Selection.clear
+            case (Some(l), _) => visualizer.Selection.set(List(l))
+            case (None, _) => visualizer.Selection.clear
           }          
         }
         
         def right_click() {
-          val menu = Popups(panel, p, vis.Selection())
+          val menu = Popups(panel, p, visualizer.Selection())
           menu.show(panel.peer, at.x, at.y)
-        }
-        
-        def double_click() {
-          p match {
-            case Some(l) => {
-                val p = at.clone.asInstanceOf[Point]
-                SwingUtilities.convertPointToScreen(p, panel.peer)
-                new Floating_Dialog(
-                  vis.Tooltip.content(l),
-                  vis.Caption(l),
-                  at
-                ).open
-            }
-            
-            case None =>
-          }          
         }
         
         if (clicks < 2) {
           if (SwingUtilities.isRightMouseButton(e.peer)) right_click()
           else left_click()
-        } else if (clicks == 2) {
-          if (SwingUtilities.isLeftMouseButton(e.peer)) double_click()
         }
       }   
 
@@ -292,10 +273,10 @@ class Graph_Panel(private val vis: Visualizer) extends ScrollPane {
           }
             
           case (Nil, ds) =>
-            ds.foreach(d => vis.Coordinates.translate(d, (dx / s, dy / s)))
+            ds.foreach(d => visualizer.Coordinates.translate(d, (dx / s, dy / s)))
                      
           case (ls, _) =>
-            ls.foreach(l => vis.Coordinates.translate(l, (dx / s, dy / s)))
+            ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
         }
       }
 

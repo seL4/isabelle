@@ -9,6 +9,7 @@ package isabelle.graphview
 import isabelle._
 
 import java.awt.{RenderingHints, Graphics2D}
+import javax.swing.JComponent
 
 
 class Visualizer(val model: Model) {
@@ -136,23 +137,9 @@ class Visualizer(val model: Model) {
   }  
   
   object Caption {    
-    def apply(k: String) =
-      if (Parameters.long_names) k
-      else  k.split('.').last
-  }
-  
-  object Tooltip {
-    def content(name: String): XML.Body = model.complete.get_node(name).content
-
-    def text(name: String, fm: java.awt.FontMetrics): String = // null
-    {
-      val txt = Pretty.string_of(content(name), 76, Pretty.font_metric(fm))
-      if (txt == "") null
-      else
-        "<html><pre style=\"font-family: " + Parameters.font_family + "; font-size: " +
-            Parameters.font_size + "px; \">" +  // FIXME proper scaling (!?)
-          HTML.encode(txt) + "</pre></html>"
-    }
+    def apply(key: String) =
+      if (Parameters.long_names) key
+      else model.complete.get_node(key).name
   }
   
   object Font {

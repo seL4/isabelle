@@ -14,16 +14,15 @@ import javax.swing.JColorChooser
 import javax.swing.border.EmptyBorder
 import scala.collection.JavaConversions._
 import scala.swing._
-import scala.actors.Actor
-import scala.actors.Actor._
 import isabelle.graphview.Mutators._
 import scala.swing.event.ValueChanged
 
 
 class Mutator_Dialog(
-  container: Mutator_Container, caption: String,
-  reverse_caption: String = "Inverse", show_color_chooser: Boolean = true)
-extends Dialog
+    container: Mutator_Container, caption: String,
+    reverse_caption: String = "Inverse",
+    show_color_chooser: Boolean = true)
+  extends Dialog
 {
   type Mutator_Markup = (Boolean, Color, Mutator)
   
@@ -36,15 +35,9 @@ extends Dialog
     paintPanels
   }
 
-  container.events += actor {
-    loop {
-      react {
-        case Mutator_Event.Add(m) => addPanel(new Mutator_Panel(m))
-        case Mutator_Event.NewList(ms) => {
-            panels = getPanels(ms)
-        }
-      }
-    }
+  container.events += {
+    case Mutator_Event.Add(m) => addPanel(new Mutator_Panel(m))
+    case Mutator_Event.NewList(ms) => panels = getPanels(ms)
   }
 
   override def open() {

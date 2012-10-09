@@ -15,6 +15,8 @@ object Parameters
 {
   val font_family: String = "IsabelleText"
   val font_size: Int = 16
+  val tooltip_font_size: Int = 10
+
 
   object Colors {
     val Filter_Colors = List(
@@ -40,6 +42,6 @@ object Parameters
     val No_Axioms = Color.LIGHT_GRAY
   }
   
-  var long_names = true
+  var long_names = false
   var arrow_heads = false
 }
