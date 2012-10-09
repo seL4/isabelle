@@ -49,7 +49,7 @@ lemma [code, code del]:
   "UNIV = UNIV" ..
 
 lemma [code, code del]:
-  "Set.project = Set.project" ..
+  "Set.filter = Set.filter" ..
 
 lemma [code, code del]:
   "image = image" ..
@@ -602,8 +602,8 @@ lemma minus_Coset [code]:
   "A - Coset t = rbt_filter (\<lambda>k. k \<in> A) t"
 by (simp add: inter_Set[simplified Int_commute])
 
-lemma project_Set [code]:
-  "Set.project P (Set t) = (rbt_filter P t)"
+lemma filter_Set [code]:
+  "Set.filter P (Set t) = (rbt_filter P t)"
 by (auto simp add: project_filter finite_filter_rbt_filter)
 
 lemma image_Set [code]:

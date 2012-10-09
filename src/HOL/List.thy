@@ -5627,8 +5627,8 @@ lemma remove_code [code]:
   "Set.remove x (List.coset xs) = List.coset (List.insert x xs)"
   by (simp_all add: remove_def Compl_insert)
 
-lemma project_set [code]:
-  "Set.project P (set xs) = set (filter P xs)"
+lemma filter_set [code]:
+  "Set.filter P (set xs) = set (filter P xs)"
   by auto
 
 lemma image_set [code]:

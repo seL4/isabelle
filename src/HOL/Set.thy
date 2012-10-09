@@ -1825,14 +1825,14 @@ lemma member_remove [simp]:
   "x \<in> Set.remove y A \<longleftrightarrow> x \<in> A \<and> x \<noteq> y"
   by (simp add: remove_def)
 
-definition project :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
-  [code_abbrev]: "project P A = {a \<in> A. P a}"
+definition filter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  [code_abbrev]: "filter P A = {a \<in> A. P a}"
 
-hide_const (open) project
+hide_const (open) filter
 
-lemma member_project [simp]:
-  "x \<in> Set.project P A \<longleftrightarrow> x \<in> A \<and> P x"
-  by (simp add: project_def)
+lemma member_filter [simp]:
+  "x \<in> Set.filter P A \<longleftrightarrow> x \<in> A \<and> P x"
+  by (simp add: filter_def)
 
 instantiation set :: (equal) equal
 begin

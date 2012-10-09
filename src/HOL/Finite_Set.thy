@@ -865,10 +865,10 @@ by (induct B) (auto simp: filter_def comp_fun_commute.fold_insert[OF comp_fun_co
 
 lemma project_filter:
   assumes "finite A"
-  shows "Set.project P A = filter P A"
+  shows "Set.filter P A = filter P A"
 using assms
 by (induct A) 
-  (auto simp add: filter_def project_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
+  (auto simp add: filter_def Set.filter_def comp_fun_commute.fold_insert[OF comp_fun_commute_filter_fold])
 
 lemma image_fold_insert:
   assumes "finite A"

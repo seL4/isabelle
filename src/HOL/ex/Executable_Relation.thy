@@ -46,7 +46,7 @@ lemma [code]:
 by transfer auto
 
 lemma [code]:
-   "relcomp (Rel X R) (Rel Y S) = Rel (X Int Y) (Set.project (%(x, y). y : Y) R Un (Set.project (%(x, y). x : X) S Un R O S))"
+   "relcomp (Rel X R) (Rel Y S) = Rel (X Int Y) (Set.filter (%(x, y). y : Y) R Un (Set.filter (%(x, y). x : X) S Un R O S))"
 by transfer (auto simp add: Id_on_eqI relcomp.simps)
 
 lemma [code]:
