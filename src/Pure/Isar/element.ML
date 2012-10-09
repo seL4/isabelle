@@ -493,9 +493,9 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
   | init (Defines defs) = Context.map_proof (fn ctxt =>
       let
         val defs' = Attrib.map_specs (map (Attrib.attribute ctxt)) defs;
-        val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
-            in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
+        val asms = defs' |> map (fn (b, (t, ps)) =>
+            let val (_, t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
+            in (t', (b, [(t', ps)])) end);
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (map #1 asms)
           |> Proof_Context.add_assms_i Local_Defs.def_export (map #2 asms);
@@ -507,7 +507,13 @@ fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
 
 fun activate_i elem ctxt =
   let
-    val elem' = map_ctxt_attrib Args.assignable elem;
+    val elem' =
+      (case map_ctxt_attrib Args.assignable elem of
+        Defines defs =>
+          Defines (defs |> map (fn ((a, atts), (t, ps)) =>
+            ((Thm.def_binding_optional (Binding.name (#1 (#1 (Local_Defs.cert_def ctxt t)))) a, atts),
+              (t, ps))))
+      | e => e);
     val ctxt' = Context.proof_map (init elem') ctxt;
   in (map_ctxt_attrib Args.closure elem', ctxt') end;
 
