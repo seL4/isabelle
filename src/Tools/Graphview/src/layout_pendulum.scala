@@ -10,7 +10,8 @@ package isabelle.graphview
 import isabelle._
 
 
-object Layout_Pendulum {
+object Layout_Pendulum
+{
   type Key = String
   type Point = (Double, Double)
   type Coordinates = Map[Key, Point]
@@ -29,46 +30,20 @@ object Layout_Pendulum {
     if (graph.is_empty)
       (Map[Key, Point](), Map[(Key, Key), List[Point]]())
     else {
+      val initial_levels = level_map(graph)
+
       val (dummy_graph, dummies, dummy_levels) =
-      {
-        val initial_levels = level_map(graph)
-
-        def add_dummies(graph: Model.Graph, from: Key, to: Key,
-                        levels: Map[Key, Int]): Dummies = {
-          val ds = 
-            ((levels(from) + 1) until levels(to))
-            .map("%s$%s$%d" format (from, to, _)).toList
-
-          val ls = 
-            (levels /: ((levels(from) + 1) until levels(to)).zip(ds)) {
-              case (ls, (l, d)) => ls + (d -> l)
-            }
-
-          val next_nodes = 
-            (graph /: ds) {
-              (graph, d) => graph.new_node(d, Model.empty_info)
-            }
-
-          val next =
-            (next_nodes.del_edge(from, to) /: (from :: ds ::: List(to)).sliding(2)) {
-                case (graph, List(f, t)) => graph.add_edge(f, t)
-            }
-          (next, ds, ls)
-        }
-
         ((graph, Map[(Key, Key), List[Key]](), initial_levels) /: graph.keys) {
-          case ((graph, dummies, levels), from) => {
+          case ((graph, dummies, levels), from) =>
             ((graph, dummies, levels) /: graph.imm_succs(from)) {
-              case ((graph, dummies, levels), to) => {
-                  if (levels(to) - levels(from) <= 1) (graph, dummies, levels)
-                  else add_dummies(graph, from, to, levels) match {
+              case ((graph, dummies, levels), to) =>
+                if (levels(to) - levels(from) <= 1) (graph, dummies, levels)
+                else
+                  add_dummies(graph, from, to, levels) match {
                     case (next, ds, ls) => (next, dummies + ((from, to) -> ds), ls)
                   }
-              }
             }
-          }
         }
-      }
       
       val levels =
         minimize_crossings(
@@ -89,6 +64,26 @@ object Layout_Pendulum {
 
       (coords, dummy_coords)
     }
+  }
+
+
+  def add_dummies(graph: Model.Graph, from: Key, to: Key, levels: Map[Key, Int]): Dummies =
+  {
+    val ds =
+      ((levels(from) + 1) until levels(to))
+      .map("%s$%s$%d" format (from, to, _)).toList
+
+    val ls =
+      (levels /: ((levels(from) + 1) until levels(to)).zip(ds)) {
+        case (ls, (l, d)) => ls + (d -> l)
+      }
+
+    val graph1 = (graph /: ds)(_.new_node(_, Model.empty_info))
+    val graph2 =
+      (graph1.del_edge(from, to) /: (from :: ds ::: List(to)).sliding(2)) {
+        case (g, List(x, y)) => g.add_edge(x, y)
+      }
+    (graph2, ds, ls)
   }
 
   def level_map(graph: Model.Graph): Map[Key, Int] = 
