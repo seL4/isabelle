@@ -126,12 +126,13 @@ object Layout_Pendulum
     levels.sliding(2).map(in_level).sum
   }
   
-  def minimize_crossings(graph: Model.Graph, levels: Levels): Levels = {
+  def minimize_crossings(graph: Model.Graph, levels: Levels): Levels =
+  {
     def resort_level(parent: Level, child: Level, top_down: Boolean): Level = 
       child.map(k => {
           val ps = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
           val weight = 
-            (0d /: ps) {
+            (0.0 /: ps) {
               (w, p) => w + math.max(0, parent.indexOf(p))
             } / math.max(ps.size, 1)
           (k, weight)

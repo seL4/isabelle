@@ -181,10 +181,10 @@ object Shapes {
                             shape: Shape): Option[(Point, Point)] = {
         import java.awt.geom.PathIterator
 
-        val i = path.getPathIterator(null, 1d)
+        val i = path.getPathIterator(null, 1.0)
         var seg = Array[Double](0,0,0,0,0,0)
-        var p1 = (0d, 0d)
-        var p2 = (0d, 0d)
+        var p1 = (0.0, 0.0)
+        var p2 = (0.0, 0.0)
         while (!i.isDone()) {
           i.currentSegment(seg) match {
             case PathIterator.SEG_MOVETO => p2 = (seg(0), seg(1))
@@ -210,12 +210,12 @@ object Shapes {
           None
         else {
           val (dx, dy) = (fx - tx, fy - ty)
-          if ( (dx * dx + dy * dy) < 1d ) {
+          if ((dx * dx + dy * dy) < 1.0) {
             val at = AffineTransform.getTranslateInstance(fx, fy)
             at.rotate(- (math.atan2(dx, dy) + math.Pi / 2))
             Some(at)
           } else {
-            val (mx, my) = (fx + (tx - fx) / 2d, fy + (ty - fy) / 2d)
+            val (mx, my) = (fx + (tx - fx) / 2.0, fy + (ty - fy) / 2.0)
             if (shape.contains(fx, fy) == shape.contains(mx, my))
               binary_search(((mx, my), (tx, ty)), shape)
             else

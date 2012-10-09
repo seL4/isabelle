@@ -112,7 +112,7 @@ class Graph_Panel(
   protected object Transform {
     val padding = (4000, 2000)
     
-    private var _scale = 1d
+    private var _scale = 1.0
     def scale = _scale
     def scale_= (s: Double) = {
                   _scale = math.max(math.min(s, 10), 0.01)
@@ -134,7 +134,7 @@ class Graph_Panel(
         val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
 
         val (dx, dy) = (maxX - minX + padding._1, maxY - minY + padding._2)
-        val (sx, sy) = (1d * size.width / dx, 1d * size.height / dy)
+        val (sx, sy) = (1.0 * size.width / dx, 1.0 * size.height / dy)
         scale = math.min(sx, sy)
       }
     }
@@ -158,11 +158,11 @@ class Graph_Panel(
       
       def typed(c: Char, m: Modifiers) = (c, m) match {
         case ('+', _) => {
-          Transform.scale *= 5d/4
+          Transform.scale *= 5.0/4
         }
 
         case ('-', _) => {
-          Transform.scale *= 4d/5
+          Transform.scale *= 4.0/5
         }
 
         case ('0', _) => {
@@ -283,7 +283,7 @@ class Graph_Panel(
       def wheel(rotation: Int, at: Point) {
         val at2 = Transform.pane_to_graph_coordinates(at)
         // > 0 -> up
-        Transform.scale *= (if (rotation > 0) 4d/5 else 5d/4)
+        Transform.scale *= (if (rotation > 0) 4.0/5 else 5.0/4)
 
         // move mouseposition to center
         Transform().transform(at2, at2)
