@@ -32,8 +32,8 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
-  val add_global: Context.generic -> binding * thm list -> T -> string * T
-  val add_local: Context.generic -> bool -> binding * thm list -> T -> string * T
+  val add_static: Context.generic -> {strict: bool, index: bool} ->
+    binding * thm list -> T -> string * T
   val add_dynamic: Context.generic -> binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
@@ -188,25 +188,14 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
 
 (* add static entries *)
 
-local
-
-fun add context strict do_props (b, ths) (Facts {facts, props}) =
+fun add_static context {strict, index} (b, ths) (Facts {facts, props}) =
   let
     val (name, facts') =
       if Binding.is_empty b then ("", facts)
       else Name_Space.define context strict (b, Static ths) facts;
-    val props' =
-      if do_props
-      then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
-      else props;
+    val props' = props
+      |> index ? fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths;
   in (name, make_facts facts' props') end;
-
-in
-
-fun add_global context = add context true false;
-fun add_local context = add context false;
-
-end;
 
 
 (* add dynamic entries *)
