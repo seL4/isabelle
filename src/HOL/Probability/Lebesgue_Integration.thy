@@ -355,6 +355,113 @@ lemma borel_measurable_implies_simple_function_sequence':
     "\<And>x. (SUP i. f i x) = max 0 (u x)" "\<And>i x. 0 \<le> f i x"
   using borel_measurable_implies_simple_function_sequence[OF u] by auto
 
+lemma simple_function_induct[consumes 1, case_names cong set mult add, induct set: simple_function]:
+  fixes u :: "'a \<Rightarrow> ereal"
+  assumes u: "simple_function M u"
+  assumes cong: "\<And>f g. simple_function M f \<Longrightarrow> simple_function M g \<Longrightarrow> (AE x in M. f x = g x) \<Longrightarrow> P f \<Longrightarrow> P g"
+  assumes set: "\<And>A. A \<in> sets M \<Longrightarrow> P (indicator A)"
+  assumes mult: "\<And>u c. P u \<Longrightarrow> P (\<lambda>x. c * u x)"
+  assumes add: "\<And>u v. P u \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
+  shows "P u"
+proof (rule cong)
+  from AE_space show "AE x in M. (\<Sum>y\<in>u ` space M. y * indicator (u -` {y} \<inter> space M) x) = u x"
+  proof eventually_elim
+    fix x assume x: "x \<in> space M"
+    from simple_function_indicator_representation[OF u x]
+    show "(\<Sum>y\<in>u ` space M. y * indicator (u -` {y} \<inter> space M) x) = u x" ..
+  qed
+next
+  from u have "finite (u ` space M)"
+    unfolding simple_function_def by auto
+  then show "P (\<lambda>x. \<Sum>y\<in>u ` space M. y * indicator (u -` {y} \<inter> space M) x)"
+  proof induct
+    case empty show ?case
+      using set[of "{}"] by (simp add: indicator_def[abs_def])
+  qed (auto intro!: add mult set simple_functionD u)
+next
+  show "simple_function M (\<lambda>x. (\<Sum>y\<in>u ` space M. y * indicator (u -` {y} \<inter> space M) x))"
+    apply (subst simple_function_cong)
+    apply (rule simple_function_indicator_representation[symmetric])
+    apply (auto intro: u)
+    done
+qed fact
+
+lemma simple_function_induct_nn[consumes 2, case_names cong set mult add]:
+  fixes u :: "'a \<Rightarrow> ereal"
+  assumes u: "simple_function M u" and nn: "AE x in M. 0 \<le> u x"
+  assumes cong: "\<And>f g. simple_function M f \<Longrightarrow> simple_function M g \<Longrightarrow> (AE x in M. f x = g x) \<Longrightarrow> P f \<Longrightarrow> P g"
+  assumes set: "\<And>A. A \<in> sets M \<Longrightarrow> P (indicator A)"
+  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
+  assumes add: "\<And>u v. P u \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
+  shows "P u"
+proof -
+  def v \<equiv> "max 0 \<circ> u"
+  have v: "simple_function M v"
+    unfolding v_def using u by (rule simple_function_compose)
+  have v_nn: "\<And>x. 0 \<le> v x"
+    unfolding v_def by (auto simp: max_def)
+
+  show ?thesis
+  proof (rule cong)
+    have "AE x in M. u x = v x"
+      unfolding v_def using nn by eventually_elim (auto simp: max_def)
+    with AE_space
+    show "AE x in M. (\<Sum>y\<in>v ` space M. y * indicator (v -` {y} \<inter> space M) x) = u x"
+    proof eventually_elim
+      fix x assume x: "x \<in> space M" and "u x = v x"
+      from simple_function_indicator_representation[OF v x]
+      show "(\<Sum>y\<in>v ` space M. y * indicator (v -` {y} \<inter> space M) x) = u x"
+        unfolding `u x = v x` ..
+    qed
+  next
+    show "simple_function M (\<lambda>x. (\<Sum>y\<in>v ` space M. y * indicator (v -` {y} \<inter> space M) x))"
+      apply (subst simple_function_cong)
+      apply (rule simple_function_indicator_representation[symmetric])
+      apply (auto intro: v)
+      done
+  next
+    from v v_nn have "finite (v ` space M)" "\<And>x. x \<in> v ` space M \<Longrightarrow> 0 \<le> x"
+      unfolding simple_function_def by auto
+    then show "P (\<lambda>x. \<Sum>y\<in>v ` space M. y * indicator (v -` {y} \<inter> space M) x)"
+    proof induct
+      case empty show ?case
+        using set[of "{}"] by (simp add: indicator_def[abs_def])
+    qed (auto intro!: add mult set simple_functionD v)
+  qed fact
+qed
+
+lemma borel_measurable_induct[consumes 2, case_names cong set mult add seq, induct set: borel_measurable]:
+  fixes u :: "'a \<Rightarrow> ereal"
+  assumes u: "u \<in> borel_measurable M" "AE x in M. 0 \<le> u x"
+  assumes cong: "\<And>f g. f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (AE x in M. f x = g x) \<Longrightarrow> P f \<Longrightarrow> P g"
+  assumes set: "\<And>A. A \<in> sets M \<Longrightarrow> P (indicator A)"
+  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
+  assumes add: "\<And>u v. P u \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
+  assumes seq: "\<And>U. (\<And>i. P (U i)) \<Longrightarrow> incseq U \<Longrightarrow> P (SUP i. U i)"
+  shows "P u"
+  using u
+proof (induct rule: borel_measurable_implies_simple_function_sequence')
+  fix U assume "\<And>i. simple_function M (U i)" "incseq U" "\<And>i. \<infinity> \<notin> range (U i)" and
+    sup: "\<And>x. (SUP i. U i x) = max 0 (u x)" and nn: "\<And>i x. 0 \<le> U i x"
+  have u_eq: "max 0 \<circ> u = (SUP i. U i)" and "\<And>i. AE x in M. 0 \<le> U i x"
+    using nn u sup by (auto simp: max_def)
+  
+  have "max 0 \<circ> u \<in> borel_measurable M" "u \<in> borel_measurable M"
+    by (auto intro!: measurable_comp u borel_measurable_ereal_max simp: id_def[symmetric])
+  moreover have "AE x in M. (max 0 \<circ> u) x = u x"
+    using u(2) by eventually_elim (auto simp: max_def)
+  moreover have "P (max 0 \<circ> u)"
+    unfolding u_eq
+  proof (rule seq)
+    fix i show "P (U i)"
+      using `simple_function M (U i)` `AE x in M. 0 \<le> U i x`
+      by (induct rule: simple_function_induct_nn)
+         (auto intro: set mult add cong dest!: borel_measurable_simple_function)
+  qed fact
+  ultimately show "P u"
+    by fact
+qed
+
 lemma simple_function_If_set:
   assumes sf: "simple_function M f" "simple_function M g" and A: "A \<inter> space M \<in> sets M"
   shows "simple_function M (\<lambda>x. if x \<in> A then f x else g x)" (is "simple_function M ?IF")
@@ -595,7 +702,7 @@ qed simp
 
 lemma simple_integral_indicator:
   assumes "A \<in> sets M"
-  assumes "simple_function M f"
+  assumes f: "simple_function M f"
   shows "(\<integral>\<^isup>Sx. f x * indicator A x \<partial>M) =
     (\<Sum>x \<in> f ` space M. x * (emeasure M) (f -` {x} \<inter> space M \<inter> A))"
 proof cases
