@@ -133,10 +133,15 @@ val tac =
 
 fun conv ctxt t =
   let
-    fun mk_thm t' = Goal.prove ctxt [] []
-      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) (K (tac 1));
+    val ct = cterm_of (Proof_Context.theory_of ctxt) t
+    val Bex_def = mk_meta_eq @{thm Bex_def}
+    val unfold_eq = Conv.bottom_conv (K (Conv.try_conv (Conv.rewr_conv Bex_def))) ctxt ct
+    val t' = term_of (Thm.rhs_of unfold_eq) 
+    fun mk_thm t'' = Goal.prove ctxt [] []
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (K (tac 1))
+    fun unfold th = th RS ((unfold_eq RS meta_eq_to_obj_eq) RS @{thm trans})
   in
-    Option.map mk_thm (rewrite_term t)
+    Option.map (unfold o mk_thm) (rewrite_term t')
   end;
 
 (* simproc *)
