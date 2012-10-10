@@ -219,26 +219,26 @@ proof -
   with AE_in_set_eq_1 assms show ?thesis by simp
 qed
 
-lemma (in prob_space) prob_space_increasing: "increasing M prob"
+lemma (in finite_measure) prob_space_increasing: "increasing M (measure M)"
   by (auto intro!: finite_measure_mono simp: increasing_def)
 
-lemma (in prob_space) prob_zero_union:
-  assumes "s \<in> events" "t \<in> events" "prob t = 0"
-  shows "prob (s \<union> t) = prob s"
+lemma (in finite_measure) prob_zero_union:
+  assumes "s \<in> sets M" "t \<in> sets M" "measure M t = 0"
+  shows "measure M (s \<union> t) = measure M s"
 using assms
 proof -
-  have "prob (s \<union> t) \<le> prob s"
+  have "measure M (s \<union> t) \<le> measure M s"
     using finite_measure_subadditive[of s t] assms by auto
-  moreover have "prob (s \<union> t) \<ge> prob s"
+  moreover have "measure M (s \<union> t) \<ge> measure M s"
     using assms by (blast intro: finite_measure_mono)
   ultimately show ?thesis by simp
 qed
 
-lemma (in prob_space) prob_eq_compl:
-  assumes "s \<in> events" "t \<in> events"
-  assumes "prob (space M - s) = prob (space M - t)"
-  shows "prob s = prob t"
-  using assms prob_compl by auto
+lemma (in finite_measure) prob_eq_compl:
+  assumes "s \<in> sets M" "t \<in> sets M"
+  assumes "measure M (space M - s) = measure M (space M - t)"
+  shows "measure M s = measure M t"
+  using assms finite_measure_compl by auto
 
 lemma (in prob_space) prob_one_inter:
   assumes events:"s \<in> events" "t \<in> events"
@@ -253,26 +253,26 @@ proof -
     using events by (auto intro!: prob_eq_compl[of "s \<inter> t" s])
 qed
 
-lemma (in prob_space) prob_eq_bigunion_image:
-  assumes "range f \<subseteq> events" "range g \<subseteq> events"
+lemma (in finite_measure) prob_eq_bigunion_image:
+  assumes "range f \<subseteq> sets M" "range g \<subseteq> sets M"
   assumes "disjoint_family f" "disjoint_family g"
-  assumes "\<And> n :: nat. prob (f n) = prob (g n)"
-  shows "(prob (\<Union> i. f i) = prob (\<Union> i. g i))"
+  assumes "\<And> n :: nat. measure M (f n) = measure M (g n)"
+  shows "measure M (\<Union> i. f i) = measure M (\<Union> i. g i)"
 using assms
 proof -
-  have a: "(\<lambda> i. prob (f i)) sums (prob (\<Union> i. f i))"
+  have a: "(\<lambda> i. measure M (f i)) sums (measure M (\<Union> i. f i))"
     by (rule finite_measure_UNION[OF assms(1,3)])
-  have b: "(\<lambda> i. prob (g i)) sums (prob (\<Union> i. g i))"
+  have b: "(\<lambda> i. measure M (g i)) sums (measure M (\<Union> i. g i))"
     by (rule finite_measure_UNION[OF assms(2,4)])
   show ?thesis using sums_unique[OF b] sums_unique[OF a] assms by simp
 qed
 
-lemma (in prob_space) prob_countably_zero:
-  assumes "range c \<subseteq> events"
-  assumes "\<And> i. prob (c i) = 0"
-  shows "prob (\<Union> i :: nat. c i) = 0"
+lemma (in finite_measure) prob_countably_zero:
+  assumes "range c \<subseteq> sets M"
+  assumes "\<And> i. measure M (c i) = 0"
+  shows "measure M (\<Union> i :: nat. c i) = 0"
 proof (rule antisym)
-  show "prob (\<Union> i :: nat. c i) \<le> 0"
+  show "measure M (\<Union> i :: nat. c i) \<le> 0"
     using finite_measure_subadditive_countably[OF assms(1)] by (simp add: assms(2))
 qed (simp add: measure_nonneg)
 
@@ -557,7 +557,7 @@ proof (rule sigma_finite_measure.density_unique[OF T])
       using A Pxy
       by (subst ST.positive_integral_snd_measurable) (simp_all add: emeasure_density distributed_borel_measurable)
     also have "\<dots> = (\<integral>\<^isup>+y. (\<integral>\<^isup>+x. Pxy (x, y) \<partial>S) * indicator A y \<partial>T)"
-      using measurable_comp[OF measurable_Pair1[OF measurable_identity] distributed_borel_measurable[OF Pxy]]
+      using measurable_comp[OF measurable_Pair1[OF measurable_ident] distributed_borel_measurable[OF Pxy]]
       using distributed_borel_measurable[OF Pxy] distributed_AE[OF Pxy, THEN ST.AE_pair]
       by (subst (asm) ST.AE_commute) (auto intro!: positive_integral_cong_AE positive_integral_multc cong: positive_integral_cong simp: * comp_def)
     also have "\<dots> = emeasure (density T (\<lambda>x. \<integral>\<^isup>+ xa. Pxy (xa, x) \<partial>S)) A"
