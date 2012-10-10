@@ -335,6 +335,18 @@ next
     by (rule indep_sets_mono_sets) (intro subsetI sigma_sets.Basic)
 qed
 
+lemma (in prob_space)
+  "indep_vars M' X I \<longleftrightarrow>
+    (\<forall>i\<in>I. random_variable (M' i) (X i)) \<and>
+    indep_sets (\<lambda>i. { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
+  unfolding indep_vars_def
+  apply (rule conj_cong[OF refl])
+  apply (rule indep_sets_sigma_sets_iff)
+  apply (auto simp: Int_stable_def)
+  apply (rule_tac x="A \<inter> Aa" in exI)
+  apply auto
+  done
+
 lemma (in prob_space) indep_sets2_eq:
   "indep_set A B \<longleftrightarrow> A \<subseteq> events \<and> B \<subseteq> events \<and> (\<forall>a\<in>A. \<forall>b\<in>B. prob (a \<inter> b) = prob a * prob b)"
   unfolding indep_set_def
@@ -512,12 +524,14 @@ qed (auto intro!: sigma_sets.Compl sigma_sets.Empty)
 
 lemma (in prob_space) kolmogorov_0_1_law:
   fixes A :: "nat \<Rightarrow> 'a set set"
-  assumes A: "\<And>i. A i \<subseteq> events"
   assumes "\<And>i::nat. sigma_algebra (space M) (A i)"
   assumes indep: "indep_sets A UNIV"
   and X: "X \<in> tail_events A"
   shows "prob X = 0 \<or> prob X = 1"
 proof -
+  have A: "\<And>i. A i \<subseteq> events"
+    using indep unfolding indep_sets_def by simp
+
   let ?D = "{D \<in> events. prob (X \<inter> D) = prob X * prob D}"
   interpret A: sigma_algebra "space M" "A i" for i by fact
   interpret T: sigma_algebra "space M" "tail_events A"
@@ -635,14 +649,13 @@ qed
 
 lemma (in prob_space) borel_0_1_law:
   fixes F :: "nat \<Rightarrow> 'a set"
-  assumes F: "range F \<subseteq> events" "indep_events F UNIV"
+  assumes F2: "indep_events F UNIV"
   shows "prob (\<Inter>n. \<Union>m\<in>{n..}. F m) = 0 \<or> prob (\<Inter>n. \<Union>m\<in>{n..}. F m) = 1"
 proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
-  show "\<And>i. sigma_sets (space M) {F i} \<subseteq> events"
-    using F(1) sets_into_space
-    by (subst sigma_sets_singleton) auto
+  have F1: "range F \<subseteq> events"
+    using F2 by (simp add: indep_events_def subset_eq)
   { fix i show "sigma_algebra (space M) (sigma_sets (space M) {F i})"
-      using sigma_algebra_sigma_sets[of "{F i}" "space M"] F sets_into_space
+      using sigma_algebra_sigma_sets[of "{F i}" "space M"] F1 sets_into_space
       by auto }
   show "indep_sets (\<lambda>i. sigma_sets (space M) {F i}) UNIV"
   proof (rule indep_sets_sigma)
@@ -657,12 +670,12 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
   proof
     fix j
     interpret S: sigma_algebra "space M" "sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
-      using order_trans[OF F(1) space_closed]
+      using order_trans[OF F1 space_closed]
       by (intro sigma_algebra_sigma_sets) (simp add: sigma_sets_singleton subset_eq)
     have "(\<Inter>n. ?Q n) = (\<Inter>n\<in>{j..}. ?Q n)"
       by (intro decseq_SucI INT_decseq_offset UN_mono) auto
     also have "\<dots> \<in> sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
-      using order_trans[OF F(1) space_closed]
+      using order_trans[OF F1 space_closed]
       by (safe intro!: S.countable_INT S.countable_UN)
          (auto simp: sigma_sets_singleton intro!: sigma_sets.Basic bexI)
     finally show "(\<Inter>n. ?Q n) \<in> sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
