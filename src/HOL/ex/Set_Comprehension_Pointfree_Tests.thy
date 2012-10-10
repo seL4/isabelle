@@ -60,10 +60,8 @@ lemma
   by simp
 
 lemma
-  "finite {s'. EX s:S. s' = f a e s}"
-  unfolding Bex_def
-  apply simp
-  oops
+  "finite S ==> finite {s'. EX s:S. s' = f a e s}"
+  by simp
 
 schematic_lemma (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
