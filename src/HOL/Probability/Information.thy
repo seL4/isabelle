@@ -1367,6 +1367,20 @@ proof -
   finally show ?thesis ..
 qed
 
+lemma (in information_space) mutual_information_eq_entropy_conditional_entropy':
+  fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real" and Pxy :: "('b \<times> 'c) \<Rightarrow> real"
+  assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
+  assumes Px: "distributed M S X Px" and Py: "distributed M T Y Py"
+  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  assumes Ix: "integrable(S \<Otimes>\<^isub>M T) (\<lambda>x. Pxy x * log b (Px (fst x)))"
+  assumes Iy: "integrable(S \<Otimes>\<^isub>M T) (\<lambda>x. Pxy x * log b (Py (snd x)))"
+  assumes Ixy: "integrable(S \<Otimes>\<^isub>M T) (\<lambda>x. Pxy x * log b (Pxy x))"
+  shows  "mutual_information b S T X Y = entropy b S X - conditional_entropy b S T X Y"
+  using
+    mutual_information_eq_entropy_conditional_entropy_distr[OF S T Px Py Pxy Ix Iy Ixy]
+    conditional_entropy_eq_entropy[OF S T Py Pxy Ixy Iy]
+  by simp
+
 lemma (in information_space) mutual_information_eq_entropy_conditional_entropy:
   assumes sf_X: "simple_function M X" and sf_Y: "simple_function M Y"
   shows  "\<I>(X ; Y) = \<H>(X) - \<H>(X | Y)"
