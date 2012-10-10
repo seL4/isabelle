@@ -273,7 +273,7 @@ qed
 
 
 lemma embed_underS:
-assumes WELL: "Well_order r" and WELL: "Well_order r'" and
+assumes WELL: "Well_order r" and WELL': "Well_order r'" and
         EMB: "embed r r' f" and IN: "a \<in> Field r"
 shows "bij_betw f (rel.underS r a) (rel.underS r' (f a))"
 proof-

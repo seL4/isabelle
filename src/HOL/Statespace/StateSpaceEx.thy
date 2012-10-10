@@ -84,7 +84,7 @@ The resulting lemma is also recorded in locale @{text "vars"} for
 later use and is automatically propagated to all its interpretations.
 Here is another example: *}
 
-statespace 'a varsX = vars [n=N, b=B] + vars + x::'a
+statespace 'a varsX = NB: vars [n=N, b=B] + vars + x::'a
 
 text {* \noindent The state space @{text "varsX"} imports two copies
 of the state space @{text "vars"}, where one has the variables renamed
@@ -179,7 +179,7 @@ proof -
 qed
 
 
-statespace 'a dup = 'a foo [f=F, a=A] + 'a foo +
+statespace 'a dup = FA: 'a foo [f=F, a=A] + 'a foo +
   x::int
 
 lemma (in dup)
