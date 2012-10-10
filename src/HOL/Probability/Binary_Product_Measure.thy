@@ -331,7 +331,7 @@ proof -
   qed
 qed
 
-sublocale pair_sigma_finite \<subseteq> sigma_finite_measure "M1 \<Otimes>\<^isub>M M2"
+sublocale pair_sigma_finite \<subseteq> P: sigma_finite_measure "M1 \<Otimes>\<^isub>M M2"
 proof
   from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
   show "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> sets (M1 \<Otimes>\<^isub>M M2) \<and> (\<Union>i. F i) = space (M1 \<Otimes>\<^isub>M M2) \<and> (\<forall>i. emeasure (M1 \<Otimes>\<^isub>M M2) (F i) \<noteq> \<infinity>)"
@@ -472,105 +472,58 @@ qed
 
 section "Fubinis theorem"
 
-lemma (in pair_sigma_finite) simple_function_cut:
-  assumes f: "simple_function (M1 \<Otimes>\<^isub>M M2) f" "\<And>x. 0 \<le> f x"
-  shows "(\<lambda>x. \<integral>\<^isup>+y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
-    and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) f"
-proof -
-  have f_borel: "f \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2)"
-    using f(1) by (rule borel_measurable_simple_function)
-  let ?F = "\<lambda>z. f -` {z} \<inter> space (M1 \<Otimes>\<^isub>M M2)"
-  let ?F' = "\<lambda>x z. Pair x -` ?F z"
-  { fix x assume "x \<in> space M1"
-    have [simp]: "\<And>z y. indicator (?F z) (x, y) = indicator (?F' x z) y"
-      by (auto simp: indicator_def)
-    have "\<And>y. y \<in> space M2 \<Longrightarrow> (x, y) \<in> space (M1 \<Otimes>\<^isub>M M2)" using `x \<in> space M1`
-      by (simp add: space_pair_measure)
-    moreover have "\<And>x z. ?F' x z \<in> sets M2" using f_borel
-      by (rule sets_Pair1[OF measurable_sets]) auto
-    ultimately have "simple_function M2 (\<lambda> y. f (x, y))"
-      apply (rule_tac simple_function_cong[THEN iffD2, OF _])
-      apply (rule simple_function_indicator_representation[OF f(1)])
-      using `x \<in> space M1` by auto }
-  note M2_sf = this
-  { fix x assume x: "x \<in> space M1"
-    then have "(\<integral>\<^isup>+y. f (x, y) \<partial>M2) = (\<Sum>z\<in>f ` space (M1 \<Otimes>\<^isub>M M2). z * emeasure M2 (?F' x z))"
-      unfolding positive_integral_eq_simple_integral[OF M2_sf[OF x] f(2)]
-      unfolding simple_integral_def
-    proof (safe intro!: setsum_mono_zero_cong_left)
-      from f(1) show "finite (f ` space (M1 \<Otimes>\<^isub>M M2))" by (rule simple_functionD)
-    next
-      fix y assume "y \<in> space M2" then show "f (x, y) \<in> f ` space (M1 \<Otimes>\<^isub>M M2)"
-        using `x \<in> space M1` by (auto simp: space_pair_measure)
-    next
-      fix x' y assume "(x', y) \<in> space (M1 \<Otimes>\<^isub>M M2)"
-        "f (x', y) \<notin> (\<lambda>y. f (x, y)) ` space M2"
-      then have *: "?F' x (f (x', y)) = {}"
-        by (force simp: space_pair_measure)
-      show  "f (x', y) * emeasure M2 (?F' x (f (x', y))) = 0"
-        unfolding * by simp
-    qed (simp add: vimage_compose[symmetric] comp_def
-                   space_pair_measure) }
-  note eq = this
-  moreover have "\<And>z. ?F z \<in> sets (M1 \<Otimes>\<^isub>M M2)"
-    by (auto intro!: f_borel borel_measurable_vimage)
-  moreover then have "\<And>z. (\<lambda>x. emeasure M2 (?F' x z)) \<in> borel_measurable M1"
-    by (auto intro!: measurable_emeasure_Pair1 simp del: vimage_Int)
-  moreover have *: "\<And>i x. 0 \<le> emeasure M2 (Pair x -` (f -` {i} \<inter> space (M1 \<Otimes>\<^isub>M M2)))"
-    using f(1)[THEN simple_functionD(2)] f(2) by (intro emeasure_nonneg)
-  moreover { fix i assume "i \<in> f`space (M1 \<Otimes>\<^isub>M M2)"
-    with * have "\<And>x. 0 \<le> i * emeasure M2 (Pair x -` (f -` {i} \<inter> space (M1 \<Otimes>\<^isub>M M2)))"
-      using f(2) by auto }
-  ultimately
-  show "(\<lambda>x. \<integral>\<^isup>+y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
-    and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) f" using f(2)
-    by (auto simp del: vimage_Int cong: measurable_cong intro!: setsum_cong
-             simp add: positive_integral_setsum simple_integral_def
-                       positive_integral_cmult
-                       positive_integral_cong[OF eq]
-                       positive_integral_eq_simple_integral[OF f]
-                       M2.emeasure_pair_measure_alt[symmetric])
-qed
+lemma measurable_compose_Pair1:
+  "x \<in> space M1 \<Longrightarrow> g \<in> measurable (M1 \<Otimes>\<^isub>M M2) L \<Longrightarrow> (\<lambda>y. g (x, y)) \<in> measurable M2 L"
+  by (rule measurable_compose[OF measurable_Pair]) auto
+
+lemma (in pair_sigma_finite) borel_measurable_positive_integral_fst:
+  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2)" "\<And>x. 0 \<le> f x"
+  shows "(\<lambda>x. \<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
+using f proof induct
+  case (cong u v)
+  then have "\<And>w x. w \<in> space M1 \<Longrightarrow> x \<in> space M2 \<Longrightarrow> u (w, x) = v (w, x)"
+    by (auto simp: space_pair_measure)
+  show ?case
+    apply (subst measurable_cong)
+    apply (rule positive_integral_cong)
+    apply fact+
+    done
+next
+  case (set Q)
+  have [simp]: "\<And>x y. indicator Q (x, y) = indicator (Pair x -` Q) y"
+    by (auto simp: indicator_def)
+  have "\<And>x. x \<in> space M1 \<Longrightarrow> emeasure M2 (Pair x -` Q) = \<integral>\<^isup>+ y. indicator Q (x, y) \<partial>M2"
+    by (simp add: sets_Pair1[OF set])
+  from this M2.measurable_emeasure_Pair[OF set] show ?case
+    by (rule measurable_cong[THEN iffD1])
+qed (simp_all add: positive_integral_add positive_integral_cmult measurable_compose_Pair1
+                   positive_integral_monotone_convergence_SUP incseq_def le_fun_def
+              cong: measurable_cong)
+
+lemma (in pair_sigma_finite) positive_integral_fst:
+  assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2)" "\<And>x. 0 \<le> f x"
+  shows "(\<integral>\<^isup>+ x. \<integral>\<^isup>+ y. f (x, y) \<partial>M2 \<partial>M1) = integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) f" (is "?I f = _")
+using f proof induct
+  case (cong u v)
+  moreover then have "?I u = ?I v"
+    by (intro positive_integral_cong) (auto simp: space_pair_measure)
+  ultimately show ?case
+    by (simp cong: positive_integral_cong)
+qed (simp_all add: M2.emeasure_pair_measure positive_integral_cmult positive_integral_add
+                   positive_integral_monotone_convergence_SUP
+                   measurable_compose_Pair1 positive_integral_positive
+                   borel_measurable_positive_integral_fst positive_integral_mono incseq_def le_fun_def
+              cong: positive_integral_cong)
 
 lemma (in pair_sigma_finite) positive_integral_fst_measurable:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2)"
   shows "(\<lambda>x. \<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
       (is "?C f \<in> borel_measurable M1")
     and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) f"
-proof -
-  from borel_measurable_implies_simple_function_sequence'[OF f] guess F . note F = this
-  then have F_borel: "\<And>i. F i \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2)"
-    by (auto intro: borel_measurable_simple_function)
-  note sf = simple_function_cut[OF F(1,5)]
-  then have "(\<lambda>x. SUP i. ?C (F i) x) \<in> borel_measurable M1"
-    using F(1) by auto
-  moreover
-  { fix x assume "x \<in> space M1"
-    from F measurable_Pair2[OF F_borel `x \<in> space M1`]
-    have "(\<integral>\<^isup>+y. (SUP i. F i (x, y)) \<partial>M2) = (SUP i. ?C (F i) x)"
-      by (intro positive_integral_monotone_convergence_SUP)
-         (auto simp: incseq_Suc_iff le_fun_def)
-    then have "(SUP i. ?C (F i) x) = ?C f x"
-      unfolding F(4) positive_integral_max_0 by simp }
-  note SUPR_C = this
-  ultimately show "?C f \<in> borel_measurable M1"
-    by (simp cong: measurable_cong)
-  have "(\<integral>\<^isup>+x. (SUP i. F i x) \<partial>(M1 \<Otimes>\<^isub>M M2)) = (SUP i. integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) (F i))"
-    using F_borel F
-    by (intro positive_integral_monotone_convergence_SUP) auto
-  also have "(SUP i. integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) (F i)) = (SUP i. \<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. F i (x, y) \<partial>M2) \<partial>M1)"
-    unfolding sf(2) by simp
-  also have "\<dots> = \<integral>\<^isup>+ x. (SUP i. \<integral>\<^isup>+ y. F i (x, y) \<partial>M2) \<partial>M1" using F sf(1)
-    by (intro positive_integral_monotone_convergence_SUP[symmetric])
-       (auto intro!: positive_integral_mono positive_integral_positive
-             simp: incseq_Suc_iff le_fun_def)
-  also have "\<dots> = \<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. (SUP i. F i (x, y)) \<partial>M2) \<partial>M1"
-    using F_borel F(2,5)
-    by (auto intro!: positive_integral_cong positive_integral_monotone_convergence_SUP[symmetric] measurable_Pair2
-             simp: incseq_Suc_iff le_fun_def)
-  finally show "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P (M1 \<Otimes>\<^isub>M M2) f"
-    using F by (simp add: positive_integral_max_0)
-qed
+  using f
+    borel_measurable_positive_integral_fst[of "\<lambda>x. max 0 (f x)"]
+    positive_integral_fst[of "\<lambda>x. max 0 (f x)"]
+  unfolding positive_integral_max_0 by auto
 
 lemma (in pair_sigma_finite) positive_integral_snd_measurable:
   assumes f: "f \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2)"

@@ -2320,6 +2320,11 @@ lemma positive_integral_distr:
   apply (auto simp: f T)
   done
 
+lemma integral_distr:
+  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^isup>L (distr M M' T) f = (\<integral> x. f (T x) \<partial>M)"
+  unfolding lebesgue_integral_def
+  by (subst (1 2) positive_integral_distr) auto
+
 lemma integrable_distr_eq:
   assumes T: "T \<in> measurable M M'" "f \<in> borel_measurable M'"
   shows "integrable (distr M M' T) f \<longleftrightarrow> integrable M (\<lambda>x. f (T x))"
