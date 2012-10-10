@@ -452,7 +452,7 @@ locale constr_dense_linorder = linorder_no_lb + linorder_no_ub +
   assumes between_less: "less x y \<Longrightarrow> less x (between x y) \<and> less (between x y) y"
     and between_same: "between x x = x"
 
-sublocale  constr_dense_linorder < dense_linorder 
+sublocale  constr_dense_linorder < dlo: dense_linorder 
   apply unfold_locales
   using gt_ex lt_ex between_less
   apply auto

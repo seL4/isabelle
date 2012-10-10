@@ -104,7 +104,7 @@ definition lor (infixl "||" 50) where
 end
 print_locale! logic
 
-locale use_decl = logic + semi "op ||"
+locale use_decl = l: logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
 locale extra_type =

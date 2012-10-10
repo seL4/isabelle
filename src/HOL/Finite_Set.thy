@@ -1771,7 +1771,7 @@ subsubsection {* The image case with fixed function and idempotency *}
 locale folding_image_simple_idem = folding_image_simple +
   assumes idem: "x * x = x"
 
-sublocale folding_image_simple_idem < semilattice proof
+sublocale folding_image_simple_idem < semilattice: semilattice proof
 qed (fact idem)
 
 context folding_image_simple_idem
@@ -1912,7 +1912,7 @@ subsubsection {* The neutral-less case with idempotency *}
 locale folding_one_idem = folding_one +
   assumes idem: "x * x = x"
 
-sublocale folding_one_idem < semilattice proof
+sublocale folding_one_idem < semilattice: semilattice proof
 qed (fact idem)
 
 context folding_one_idem
