@@ -990,7 +990,7 @@ lemma sets_product_borel:
 proof (subst sigma_prod_algebra_sigma_eq[where S="\<lambda>_ i::nat. {..<real i}" and E="\<lambda>_. range lessThan", OF I])
   show "sigma_sets (space (Pi\<^isub>M I (\<lambda>i. lborel))) {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> range lessThan} = ?G"
     by (intro arg_cong2[where f=sigma_sets]) (auto simp: space_PiM image_iff bchoice_iff)
-qed (auto simp: borel_eq_lessThan incseq_def reals_Archimedean2 image_iff intro: real_natceiling_ge)
+qed (auto simp: borel_eq_lessThan reals_Archimedean2)
 
 lemma measurable_e2p:
   "e2p \<in> measurable (borel::'a::ordered_euclidean_space measure) (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. (lborel :: real measure))"

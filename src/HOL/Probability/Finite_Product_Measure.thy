@@ -1024,8 +1024,7 @@ lemma sets_Collect_single:
 
 lemma sigma_prod_algebra_sigma_eq_infinite:
   fixes E :: "'i \<Rightarrow> 'a set set"
-  assumes S_mono: "\<And>i. i \<in> I \<Longrightarrow> incseq (S i)"
-    and S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
+  assumes S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
     and S_in_E: "\<And>i. i \<in> I \<Longrightarrow> range (S i) \<subseteq> E i"
   assumes E_closed: "\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> Pow (space (M i))"
     and E_generates: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sigma_sets (space (M i)) (E i)"
@@ -1067,11 +1066,13 @@ proof
     by (intro sigma_sets_subset) (auto simp: E_generates sets_Collect_single)
 qed
 
+lemma bchoice_iff: "(\<forall>a\<in>A. \<exists>b. P a b) \<longleftrightarrow> (\<exists>f. \<forall>a\<in>A. P a (f a))"
+  by metis
+
 lemma sigma_prod_algebra_sigma_eq:
-  fixes E :: "'i \<Rightarrow> 'a set set"
+  fixes E :: "'i \<Rightarrow> 'a set set" and S :: "'i \<Rightarrow> nat \<Rightarrow> 'a set"
   assumes "finite I"
-  assumes S_mono: "\<And>i. i \<in> I \<Longrightarrow> incseq (S i)"
-    and S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
+  assumes S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
     and S_in_E: "\<And>i. i \<in> I \<Longrightarrow> range (S i) \<subseteq> E i"
   assumes E_closed: "\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> Pow (space (M i))"
     and E_generates: "\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sigma_sets (space (M i)) (E i)"
@@ -1079,6 +1080,9 @@ lemma sigma_prod_algebra_sigma_eq:
   shows "sets (PiM I M) = sigma_sets (space (PiM I M)) P"
 proof
   let ?P = "sigma (space (Pi\<^isub>M I M)) P"
+  from `finite I`[THEN ex_bij_betw_finite_nat] guess T ..
+  then have T: "\<And>i. i \<in> I \<Longrightarrow> T i < card I" "\<And>i. i\<in>I \<Longrightarrow> the_inv_into I T (T i) = i"
+    by (auto simp add: bij_betw_def set_eq_iff image_iff the_inv_into_f_f)
   have P_closed: "P \<subseteq> Pow (space (Pi\<^isub>M I M))"
     using E_closed by (auto simp: space_PiM P_def Pi_iff subset_eq)
   then have space_P: "space ?P = (\<Pi>\<^isub>E i\<in>I. space (M i))"
@@ -1101,15 +1105,18 @@ proof
           using E_closed `i \<in> I` by (auto simp: space_P Pi_iff subset_eq split: split_if_asm)
         also have "\<dots> = (\<Pi>\<^isub>E j\<in>I. \<Union>n. if i = j then A else S j n)"
           by (intro PiE_cong) (simp add: S_union)
-        also have "\<dots> = (\<Union>n. \<Pi>\<^isub>E j\<in>I. if i = j then A else S j n)"
-          using S_mono
-          by (subst Pi_UN[symmetric, OF `finite I`]) (auto simp: incseq_def)
+        also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>\<^isub>E j\<in>I. if i = j then A else S j (xs ! T j))"
+          using T
+          apply (auto simp: Pi_iff bchoice_iff)
+          apply (rule_tac x="map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]" in exI)
+          apply (auto simp: bij_betw_def)
+          done
         also have "\<dots> \<in> sets ?P"
         proof (safe intro!: countable_UN)
-          fix n show "(\<Pi>\<^isub>E j\<in>I. if i = j then A else S j n) \<in> sets ?P"
+          fix xs show "(\<Pi>\<^isub>E j\<in>I. if i = j then A else S j (xs ! T j)) \<in> sets ?P"
             using A S_in_E
             by (simp add: P_closed)
-               (auto simp: P_def subset_eq intro!: exI[of _ "\<lambda>j. if i = j then A else S j n"])
+               (auto simp: P_def subset_eq intro!: exI[of _ "\<lambda>j. if i = j then A else S j (xs ! T j)"])
         qed
         finally show "(\<lambda>x. x i) -` A \<inter> space ?P \<in> sets ?P"
           using P_closed by simp
