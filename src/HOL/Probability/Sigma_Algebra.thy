@@ -1292,11 +1292,11 @@ qed
 
 lemma measurable_If_set:
   assumes measure: "f \<in> measurable M M'" "g \<in> measurable M M'"
-  assumes P: "A \<in> sets M"
+  assumes P: "A \<inter> space M \<in> sets M"
   shows "(\<lambda>x. if x \<in> A then f x else g x) \<in> measurable M M'"
 proof (rule measurable_If[OF measure])
-  have "{x \<in> space M. x \<in> A} = A" using `A \<in> sets M` sets_into_space by auto
-  thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<in> sets M` by auto
+  have "{x \<in> space M. x \<in> A} = A \<inter> space M" by auto
+  thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<inter> space M \<in> sets M` by auto
 qed
 
 lemma measurable_ident[intro, simp]: "id \<in> measurable M M"
