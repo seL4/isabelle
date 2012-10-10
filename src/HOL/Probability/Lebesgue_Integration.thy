@@ -391,8 +391,8 @@ lemma simple_function_induct_nn[consumes 2, case_names cong set mult add]:
   assumes u: "simple_function M u" and nn: "AE x in M. 0 \<le> u x"
   assumes cong: "\<And>f g. simple_function M f \<Longrightarrow> simple_function M g \<Longrightarrow> (AE x in M. f x = g x) \<Longrightarrow> P f \<Longrightarrow> P g"
   assumes set: "\<And>A. A \<in> sets M \<Longrightarrow> P (indicator A)"
-  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
-  assumes add: "\<And>u v. P u \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
+  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> simple_function M u \<Longrightarrow> (\<And>x. 0 \<le> u x) \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
+  assumes add: "\<And>u v. simple_function M u \<Longrightarrow> (\<And>x. 0 \<le> u x) \<Longrightarrow> P u \<Longrightarrow> simple_function M v \<Longrightarrow> (\<And>x. 0 \<le> v x) \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
   shows "P u"
 proof -
   def v \<equiv> "max 0 \<circ> u"
@@ -426,7 +426,8 @@ proof -
     proof induct
       case empty show ?case
         using set[of "{}"] by (simp add: indicator_def[abs_def])
-    qed (auto intro!: add mult set simple_functionD v)
+    qed (auto intro!: add mult set simple_functionD v setsum_nonneg
+       simple_function_setsum)
   qed fact
 qed
 
@@ -435,17 +436,20 @@ lemma borel_measurable_induct[consumes 2, case_names cong set mult add seq, indu
   assumes u: "u \<in> borel_measurable M" "AE x in M. 0 \<le> u x"
   assumes cong: "\<And>f g. f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (AE x in M. f x = g x) \<Longrightarrow> P f \<Longrightarrow> P g"
   assumes set: "\<And>A. A \<in> sets M \<Longrightarrow> P (indicator A)"
-  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
-  assumes add: "\<And>u v. P u \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
-  assumes seq: "\<And>U. (\<And>i. P (U i)) \<Longrightarrow> incseq U \<Longrightarrow> P (SUP i. U i)"
+  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> u \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 \<le> u x) \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
+  assumes add: "\<And>u v. u \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 \<le> u x) \<Longrightarrow> P u \<Longrightarrow> v \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 \<le> v x) \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
+  assumes seq: "\<And>U. (\<And>i. U i \<in> borel_measurable M) \<Longrightarrow>  (\<And>i x. 0 \<le> U i x) \<Longrightarrow>  (\<And>i. P (U i)) \<Longrightarrow> incseq U \<Longrightarrow> P (SUP i. U i)"
   shows "P u"
   using u
 proof (induct rule: borel_measurable_implies_simple_function_sequence')
-  fix U assume "\<And>i. simple_function M (U i)" "incseq U" "\<And>i. \<infinity> \<notin> range (U i)" and
+  fix U assume U: "\<And>i. simple_function M (U i)" "incseq U" "\<And>i. \<infinity> \<notin> range (U i)" and
     sup: "\<And>x. (SUP i. U i x) = max 0 (u x)" and nn: "\<And>i x. 0 \<le> U i x"
   have u_eq: "max 0 \<circ> u = (SUP i. U i)" and "\<And>i. AE x in M. 0 \<le> U i x"
     using nn u sup by (auto simp: max_def)
   
+  from U have "\<And>i. U i \<in> borel_measurable M"
+    by (simp add: borel_measurable_simple_function)
+
   have "max 0 \<circ> u \<in> borel_measurable M" "u \<in> borel_measurable M"
     by (auto intro!: measurable_comp u borel_measurable_ereal_max simp: id_def[symmetric])
   moreover have "AE x in M. (max 0 \<circ> u) x = u x"
@@ -457,7 +461,7 @@ proof (induct rule: borel_measurable_implies_simple_function_sequence')
       using `simple_function M (U i)` `AE x in M. 0 \<le> U i x`
       by (induct rule: simple_function_induct_nn)
          (auto intro: set mult add cong dest!: borel_measurable_simple_function)
-  qed fact
+  qed fact+
   ultimately show "P u"
     by fact
 qed
@@ -776,32 +780,6 @@ lemma simple_integral_cong_AE_mult_indicator:
   assumes sf: "simple_function M f" and eq: "AE x in M. x \<in> S" and "S \<in> sets M"
   shows "integral\<^isup>S M f = (\<integral>\<^isup>Sx. f x * indicator S x \<partial>M)"
   using assms by (intro simple_integral_cong_AE) auto
-
-lemma simple_integral_distr:
-  assumes T: "T \<in> measurable M M'"
-    and f: "simple_function M' f"
-  shows "integral\<^isup>S (distr M M' T) f = (\<integral>\<^isup>S x. f (T x) \<partial>M)"
-  unfolding simple_integral_def
-proof (intro setsum_mono_zero_cong_right ballI)
-  show "(\<lambda>x. f (T x)) ` space M \<subseteq> f ` space (distr M M' T)"
-    using T unfolding measurable_def by auto
-  show "finite (f ` space (distr M M' T))"
-    using f unfolding simple_function_def by auto
-next
-  fix i assume "i \<in> f ` space (distr M M' T) - (\<lambda>x. f (T x)) ` space M"
-  then have "T -` (f -` {i} \<inter> space (distr M M' T)) \<inter> space M = {}" by (auto simp: image_iff)
-  with f[THEN simple_functionD(2), of "{i}"]
-  show "i * emeasure (distr M M' T) (f -` {i} \<inter> space (distr M M' T)) = 0"
-    using T by (simp add: emeasure_distr)
-next
-  fix i assume "i \<in> (\<lambda>x. f (T x)) ` space M"
-  then have "T -` (f -` {i} \<inter> space M') \<inter> space M = (\<lambda>x. f (T x)) -` {i} \<inter> space M"
-    using T unfolding measurable_def by auto
-  with f[THEN simple_functionD(2), of "{i}"] T
-  show "i * emeasure (distr M M' T) (f -` {i} \<inter> space (distr M M' T)) =
-      i * (emeasure M) ((\<lambda>x. f (T x)) -` {i} \<inter> space M)"
-    by (auto simp add: emeasure_distr)
-qed
 
 lemma simple_integral_cmult_indicator:
   assumes A: "A \<in> sets M"
@@ -2330,45 +2308,43 @@ qed
 
 section {* Distributions *}
 
-lemma simple_function_distr[simp]:
-  "simple_function (distr M M' T) f \<longleftrightarrow> simple_function M' (\<lambda>x. f x)"
- unfolding simple_function_def by simp
+lemma positive_integral_distr':
+  assumes T: "T \<in> measurable M M'"
+  and f: "f \<in> borel_measurable (distr M M' T)" "AE x in (distr M M' T). 0 \<le> f x"
+  shows "integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
+  using f 
+proof induct
+  case (cong f g)
+  then have eq: "AE x in (distr M M' T). g x = f x" "AE x in M. g (T x) = f (T x)"
+    by (auto dest: AE_distrD[OF T])
+  show ?case
+    apply (subst eq(1)[THEN positive_integral_cong_AE])
+    apply (subst eq(2)[THEN positive_integral_cong_AE])
+    apply fact
+    done
+next
+  case (set A)
+  then have eq: "\<And>x. x \<in> space M \<Longrightarrow> indicator A (T x) = indicator (T -` A \<inter> space M) x"
+    by (auto simp: indicator_def)
+  from set T show ?case
+    by (subst positive_integral_cong[OF eq])
+       (auto simp add: emeasure_distr intro!: positive_integral_indicator[symmetric] measurable_sets)
+next
+  case (seq U) 
+  moreover then have "incseq (\<lambda>i x. U i (T x))"
+    by (force simp: le_fun_def incseq_def)
+  ultimately show ?case
+    by (simp_all add: measurable_compose[OF T] positive_integral_monotone_convergence_SUP)
+qed (simp_all add: measurable_compose[OF T] T positive_integral_cmult positive_integral_add)
 
 lemma positive_integral_distr:
   assumes T: "T \<in> measurable M M'"
   and f: "f \<in> borel_measurable M'"
   shows "integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
-proof -
-  from borel_measurable_implies_simple_function_sequence'[OF f]
-  guess f' . note f' = this
-  then have f_distr: "\<And>i. simple_function (distr M M' T) (f' i)"
-    by simp
-  let ?f = "\<lambda>i x. f' i (T x)"
-  have inc: "incseq ?f" using f' by (force simp: le_fun_def incseq_def)
-  have sup: "\<And>x. (SUP i. ?f i x) = max 0 (f (T x))"
-    using f'(4) .
-  have sf: "\<And>i. simple_function M (\<lambda>x. f' i (T x))"
-    using simple_function_comp[OF T(1) f'(1)] .
-  show "integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
-    using
-      positive_integral_monotone_convergence_simple[OF f'(2,5) f_distr]
-      positive_integral_monotone_convergence_simple[OF inc f'(5) sf]
-    by (simp add: positive_integral_max_0 simple_integral_distr[OF T f'(1)] f')
-qed
-
-lemma integral_distr:
-  assumes T: "T \<in> measurable M M'"
-  assumes f: "f \<in> borel_measurable M'"
-  shows "integral\<^isup>L (distr M M' T) f = (\<integral>x. f (T x) \<partial>M)"
-proof -
-  from measurable_comp[OF T, of f borel]
-  have borel: "(\<lambda>x. ereal (f x)) \<in> borel_measurable M'" "(\<lambda>x. ereal (- f x)) \<in> borel_measurable M'"
-    and "(\<lambda>x. f (T x)) \<in> borel_measurable M"
-    using f by (auto simp: comp_def)
-  then show ?thesis
-    using f unfolding lebesgue_integral_def integrable_def
-    by (auto simp: borel[THEN positive_integral_distr[OF T]])
-qed
+  apply (subst (1 2) positive_integral_max_0[symmetric])
+  apply (rule positive_integral_distr')
+  apply (auto simp: f T)
+  done
 
 lemma integrable_distr_eq:
   assumes T: "T \<in> measurable M M'" "f \<in> borel_measurable M'"
