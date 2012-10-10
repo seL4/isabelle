@@ -1035,7 +1035,7 @@ proof -
     fix X assume "X \<in> ?E"
     then obtain A B where X[simp]: "X = A \<times> B" and A: "A \<in> sets M1" and B: "B \<in> sets M2" by auto
     then have "emeasure ?P X = emeasure M1 A * emeasure M2 B"
-       by (simp add: emeasure_pair_measure_Times)
+       by (simp add: M2.emeasure_pair_measure_Times)
     also have "\<dots> = emeasure M (A \<times> B)"
       using A B emeasure by auto
     finally show "emeasure ?P X = emeasure M X"
@@ -1143,7 +1143,7 @@ next
       also have "\<dots> = emeasure (?S \<Otimes>\<^isub>M ?T) (A \<times> B)"
         unfolding `?S \<Otimes>\<^isub>M ?T = ?J` ..
       also have "\<dots> = emeasure ?S A * emeasure ?T B"
-        using ab by (simp add: XY.emeasure_pair_measure_Times)
+        using ab by (simp add: Y.emeasure_pair_measure_Times)
       finally show "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) =
         prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
         using rvs ab by (simp add: emeasure_eq_measure emeasure_distr)

@@ -8,31 +8,6 @@ theory Infinite_Product_Measure
   imports Probability_Measure Caratheodory
 begin
 
-lemma (in product_sigma_finite)
-  assumes IJ: "I \<inter> J = {}" "finite I" "finite J" and A: "A \<in> sets (Pi\<^isub>M (I \<union> J) M)"
-  shows emeasure_fold_integral:
-    "emeasure (Pi\<^isub>M (I \<union> J) M) A = (\<integral>\<^isup>+x. emeasure (Pi\<^isub>M J M) (merge I x J -` A \<inter> space (Pi\<^isub>M J M)) \<partial>Pi\<^isub>M I M)" (is ?I)
-    and emeasure_fold_measurable:
-    "(\<lambda>x. emeasure (Pi\<^isub>M J M) (merge I x J -` A \<inter> space (Pi\<^isub>M J M))) \<in> borel_measurable (Pi\<^isub>M I M)" (is ?B)
-proof -
-  interpret I: finite_product_sigma_finite M I by default fact
-  interpret J: finite_product_sigma_finite M J by default fact
-  interpret IJ: pair_sigma_finite "Pi\<^isub>M I M" "Pi\<^isub>M J M" ..
-  have merge: "(\<lambda>(x, y). merge I x J y) -` A \<inter> space (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M) \<in> sets (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M)"
-    by (intro measurable_sets[OF _ A] measurable_merge assms)
-
-  show ?I
-    apply (subst distr_merge[symmetric, OF IJ])
-    apply (subst emeasure_distr[OF measurable_merge[OF IJ(1)] A])
-    apply (subst IJ.emeasure_pair_measure_alt[OF merge])
-    apply (auto intro!: positive_integral_cong arg_cong2[where f=emeasure] simp: space_pair_measure)
-    done
-
-  show ?B
-    using IJ.measurable_emeasure_Pair1[OF merge]
-    by (simp add: vimage_compose[symmetric] comp_def space_pair_measure cong: measurable_cong)
-qed
-
 lemma restrict_extensional_sub[intro]: "A \<subseteq> B \<Longrightarrow> restrict f A \<in> extensional B"
   unfolding restrict_def extensional_def by auto
 

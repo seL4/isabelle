@@ -194,7 +194,7 @@ lemma (in sigma_finite_measure) KL_density:
   unfolding KL_divergence_def
 proof (subst integral_density)
   show "entropy_density b M (density M (\<lambda>x. ereal (f x))) \<in> borel_measurable M"
-    using f `1 < b`
+    using f
     by (auto simp: comp_def entropy_density_def intro!: borel_measurable_log borel_measurable_RN_deriv_density)
   have "density M (RN_deriv M (density M f)) = density M f"
     using f by (intro density_RN_deriv_density) auto

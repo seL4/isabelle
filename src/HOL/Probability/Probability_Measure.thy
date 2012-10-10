@@ -407,7 +407,7 @@ locale pair_prob_space = pair_sigma_finite M1 M2 + M1: prob_space M1 + M2: prob_
 sublocale pair_prob_space \<subseteq> P: prob_space "M1 \<Otimes>\<^isub>M M2"
 proof
   show "emeasure (M1 \<Otimes>\<^isub>M M2) (space (M1 \<Otimes>\<^isub>M M2)) = 1"
-    by (simp add: emeasure_pair_measure_Times M1.emeasure_space_1 M2.emeasure_space_1 space_pair_measure)
+    by (simp add: M2.emeasure_pair_measure_Times M1.emeasure_space_1 M2.emeasure_space_1 space_pair_measure)
 qed
 
 locale product_prob_space = product_sigma_finite M for M :: "'i \<Rightarrow> 'a measure" +
