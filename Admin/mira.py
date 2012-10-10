@@ -10,11 +10,7 @@ from datetime import datetime
 import re
 
 import util
-from util import Lazy
 
-from mira.report import Report, Report_Content
-from mira.case import Case
-from mira.tools import tool
 from mira import schedule, misc
 from mira.environment import scheduler
 from mira import repositories
@@ -98,36 +94,6 @@ def extract_report_data(isabelle_home, logdata):
     return {
         'timing': extract_isabelle_run_timing(logdata),
         'image_size': extract_image_size(isabelle_home) }
-
-
-@tool
-def import_isatest_log(env, conf, logfile):
-
-    """Imports isatest log file as a report."""
-
-    def the_match(pat, text, name):
-        match = re.search(pat, text)
-        if not match: raise Exception('No match found for ' + name)
-        return match.groups()
-
-    def parse_date(d):
-        return datetime.strptime(d, '%a %b %d %H:%M:%S %Z %Y')
-
-    log = util.readfile(logfile)
-
-    (begin_date, host) = the_match(r'-+ starting test -+ ([^-]*) -+ (\S*)', log, 'start tag')
-    (isabelle_version,) = the_match(r'Isabelle version: ([a-f0-9]{12})', log, 'Isabelle version')
-    (success, end_date) = the_match(r'-+ test (successful|FAILED) -+ ([^-]*) -', log, 'end tag')
-    summary = extract_isabelle_run_summary(log)
-    data = {'timing': extract_isabelle_run_timing(log)}
-    atts = {'log': Lazy.simple(log)}
-
-    content = Report_Content(summary, host, parse_date(begin_date),
-      parse_date(end_date), Lazy.simple(data), atts)
-    revision = ('Isabelle', env.repositories.get('Isabelle')[isabelle_version].hex())
-    case = Case(conf, [revision])
-
-    env.report_db.put(case, (success == 'successful'), content)
 
 
 def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
@@ -381,29 +347,4 @@ def SML_makeall(*args):
     """SML/NJ build of all possible sessions"""
     return isabelle_build(*(args + ("-j", "3", "-a")), more_settings=smlnj_settings)
 
-
-# Legacy Isabelle configurations
-
-# distribution and documentation Build
-
-@configuration(repos = [Isabelle], deps = [])
-def Distribution(env, case, paths, dep_paths, playground):
-    """Build of distribution"""
-    ## FIXME This is rudimentary; study Admin/CHECKLIST to complete this configuration accordingly
-    isabelle_home = paths[0]
-    (return_code, log) = env.run_process(path.join(isabelle_home, 'Admin', 'Release', 'makedist'),
-      REPOS = repositories.get(Isabelle).local_path, DISTPREFIX = os.getcwd())
-    return (return_code == 0, '', ## FIXME might add summary here
-      {}, {'log': log}, None) ## FIXME might add proper result here
-
-
-def isabelle_dependency_only(env, case, paths, dep_paths, playground):
-
-    isabelle_home = paths[0]
-    result = path.join(isabelle_home, 'heaps')
-    os.makedirs(result)
-    for dep_path in dep_paths:
-        subprocess.check_call(['cp', '-R'] + glob(dep_path + '/*') + [result])
-
-    return (True, 'ok', {}, {}, result)
 
