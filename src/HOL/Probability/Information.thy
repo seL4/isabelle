@@ -1121,7 +1121,6 @@ abbreviation (in information_space)
 lemma (in information_space)
   fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
-  assumes Px: "distributed M S X Px"
   assumes Py: "distributed M T Y Py"
   assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
   assumes I1: "integrable (S \<Otimes>\<^isub>M T) (\<lambda>x. Pxy x * log b (Pxy x))"
@@ -1149,17 +1148,13 @@ proof -
     by (subst distributed_transform_integral[OF Pxy Py, where T=snd]) (auto intro!: integral_cong)
   finally have e_eq: "entropy b T Y = - (\<integral>(x,y). Pxy (x,y) * log b (Py y) \<partial>(S \<Otimes>\<^isub>M T))" .
   
-  have ae1: "AE x in S \<Otimes>\<^isub>M T. Px (fst x) = 0 \<longrightarrow> Pxy x = 0"
-    by (intro subdensity_real[of fst, OF _ Pxy Px]) (auto intro: measurable_Pair)
-  moreover have ae2: "AE x in S \<Otimes>\<^isub>M T. Py (snd x) = 0 \<longrightarrow> Pxy x = 0"
+  have ae2: "AE x in S \<Otimes>\<^isub>M T. Py (snd x) = 0 \<longrightarrow> Pxy x = 0"
     by (intro subdensity_real[of snd, OF _ Pxy Py]) (auto intro: measurable_Pair)
-  moreover have ae3: "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Px (fst x)"
-    using Px by (intro ST.AE_pair_measure) (auto simp: comp_def intro!: measurable_fst'' dest: distributed_real_AE distributed_real_measurable)
   moreover have ae4: "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Py (snd x)"
     using Py by (intro ST.AE_pair_measure) (auto simp: comp_def intro!: measurable_snd'' dest: distributed_real_AE distributed_real_measurable)
   moreover note ae5 = Pxy[THEN distributed_real_AE]
-  ultimately have pos: "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Pxy x \<and> 0 \<le> Px (fst x) \<and> 0 \<le> Py (snd x) \<and>
-    (Pxy x = 0 \<or> (Pxy x \<noteq> 0 \<longrightarrow> 0 < Pxy x \<and> 0 < Px (fst x) \<and> 0 < Py (snd x)))"
+  ultimately have pos: "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Pxy x \<and> 0 \<le> Py (snd x) \<and>
+    (Pxy x = 0 \<or> (Pxy x \<noteq> 0 \<longrightarrow> 0 < Pxy x \<and> 0 < Py (snd x)))"
     by eventually_elim auto
 
   from pos have ae: "AE x in S \<Otimes>\<^isub>M T.
@@ -1180,7 +1175,7 @@ lemma (in information_space) conditional_entropy_eq:
   assumes XY: "simple_distributed M (\<lambda>x. (X x, Y x)) Pxy"
     shows "\<H>(X | Y) = - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
 proof (subst conditional_entropy_generic_eq[OF _ _
-  simple_distributed[OF simple_distributedI[OF X refl]] simple_distributed[OF Y] simple_distributed_joint[OF XY]])
+  simple_distributed[OF Y] simple_distributed_joint[OF XY]])
   have [simp]: "finite (X`space M)" using X by (simp add: simple_function_def)
   note Y[THEN simple_distributed_finite, simp]
   show "sigma_finite_measure (count_space (X ` space M))"
@@ -1234,7 +1229,7 @@ proof -
     apply (auto intro!: setsum_cong simp: Pxxy_eq setsum_negf[symmetric] eq setsum_reindex[OF inj]
                 log_simps zero_less_mult_iff zero_le_mult_iff field_simps mult_less_0_iff AE_count_space)
     using Py[THEN simple_distributed, THEN distributed_real_AE] Pxy[THEN simple_distributed, THEN distributed_real_AE]
-    apply (auto simp add: not_le[symmetric] AE_count_space)
+  apply (auto simp add: not_le[symmetric] AE_count_space)
     done
 qed
 
