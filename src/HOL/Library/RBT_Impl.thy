@@ -1725,10 +1725,9 @@ where
   "skip_red (Branch color.R l k v r) = l"
 | "skip_red t = t"
 
-fun skip_black :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
+definition skip_black :: "('a, 'b) rbt \<Rightarrow> ('a, 'b) rbt"
 where
-  "skip_black (Branch color.B l k v r) = l"
-| "skip_black t = t"
+  "skip_black t = (let t' = skip_red t in case t' of Branch color.B l k v r \<Rightarrow> l | _ \<Rightarrow> t')"
 
 datatype compare = LT | GT | EQ
 
@@ -1761,9 +1760,9 @@ hide_fact (open)
   compare.eq.refl compare.eq.simps
   compare.EQ_def compare.GT_def compare.LT_def
   equal_compare_def
-  skip_red_def skip_red.simps skip_red.induct 
-  skip_black_def skip_black.simps skip_black.induct
-  compare_height.simps
+  skip_red_def skip_red.simps skip_red.cases skip_red.induct 
+  skip_black_def
+  compare_height_def compare_height.simps
 
 subsection {* union and intersection of sorted associative lists *}
 
