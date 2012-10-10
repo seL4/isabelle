@@ -2041,4 +2041,25 @@ proof -
     using assms by (auto simp: dynkin_def)
 qed
 
+lemma sigma_sets_induct_disjoint[consumes 3, case_names basic empty compl union]:
+  assumes "Int_stable G"
+    and closed: "G \<subseteq> Pow \<Omega>"
+    and A: "A \<in> sigma_sets \<Omega> G"
+  assumes basic: "\<And>A. A \<in> G \<Longrightarrow> P A"
+    and empty: "P {}"
+    and compl: "\<And>A. A \<in> sigma_sets \<Omega> G \<Longrightarrow> P A \<Longrightarrow> P (\<Omega> - A)"
+    and union: "\<And>A. disjoint_family A \<Longrightarrow> range A \<subseteq> sigma_sets \<Omega> G \<Longrightarrow> (\<And>i. P (A i)) \<Longrightarrow> P (\<Union>i::nat. A i)"
+  shows "P A"
+proof -
+  let ?D = "{ A \<in> sigma_sets \<Omega> G. P A }"
+  interpret sigma_algebra \<Omega> "sigma_sets \<Omega> G"
+    using closed by (rule sigma_algebra_sigma_sets)
+  from compl[OF _ empty] closed have space: "P \<Omega>" by simp
+  interpret dynkin_system \<Omega> ?D
+    by default (auto dest: sets_into_space intro!: space compl union)
+  have "sigma_sets \<Omega> G = ?D"
+    by (rule dynkin_lemma) (auto simp: basic `Int_stable G`)
+  with A show ?thesis by auto
+qed
+
 end

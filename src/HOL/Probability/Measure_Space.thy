@@ -633,48 +633,45 @@ lemma measure_eqI_generator_eq:
 proof -
   let ?\<mu>  = "emeasure M" and ?\<nu> = "emeasure N"
   interpret S: sigma_algebra \<Omega> "sigma_sets \<Omega> E" by (rule sigma_algebra_sigma_sets) fact
-  { fix F assume "F \<in> E" and "?\<mu> F \<noteq> \<infinity>"
+  have "space M = \<Omega>"
+    using top[of M] space_closed[of M] S.top S.space_closed `sets M = sigma_sets \<Omega> E` by blast
+
+  { fix F D assume "F \<in> E" and "?\<mu> F \<noteq> \<infinity>"
     then have [intro]: "F \<in> sigma_sets \<Omega> E" by auto
-    let ?D = "{D \<in> sigma_sets \<Omega> E. ?\<mu> (F \<inter> D) = ?\<nu> (F \<inter> D)}"
     have "?\<nu> F \<noteq> \<infinity>" using `?\<mu> F \<noteq> \<infinity>` `F \<in> E` eq by simp
-    interpret D: dynkin_system \<Omega> ?D
-    proof (rule dynkin_systemI, simp_all)
-      fix A assume "A \<in> sigma_sets \<Omega> E \<and> ?\<mu> (F \<inter> A) = ?\<nu> (F \<inter> A)"
-      then show "A \<subseteq> \<Omega>" using S.sets_into_space by auto
+    assume "D \<in> sets M"
+    with `Int_stable E` `E \<subseteq> Pow \<Omega>` have "emeasure M (F \<inter> D) = emeasure N (F \<inter> D)"
+      unfolding M
+    proof (induct rule: sigma_sets_induct_disjoint)
+      case (basic A)
+      then have "F \<inter> A \<in> E" using `Int_stable E` `F \<in> E` by (auto simp: Int_stable_def)
+      then show ?case using eq by auto
     next
-      have "F \<inter> \<Omega> = F" using `F \<in> E` `E \<subseteq> Pow \<Omega>` by auto
-      then show "?\<mu> (F \<inter> \<Omega>) = ?\<nu> (F \<inter> \<Omega>)"
-        using `F \<in> E` eq by (auto intro: sigma_sets_top)
+      case empty then show ?case by simp
     next
-      fix A assume *: "A \<in> sigma_sets \<Omega> E \<and> ?\<mu> (F \<inter> A) = ?\<nu> (F \<inter> A)"
+      case (compl A)
       then have **: "F \<inter> (\<Omega> - A) = F - (F \<inter> A)"
         and [intro]: "F \<inter> A \<in> sigma_sets \<Omega> E"
-        using `F \<in> E` S.sets_into_space by auto
+        using `F \<in> E` S.sets_into_space by (auto simp: M)
       have "?\<nu> (F \<inter> A) \<le> ?\<nu> F" by (auto intro!: emeasure_mono simp: M N)
       then have "?\<nu> (F \<inter> A) \<noteq> \<infinity>" using `?\<nu> F \<noteq> \<infinity>` by auto
       have "?\<mu> (F \<inter> A) \<le> ?\<mu> F" by (auto intro!: emeasure_mono simp: M N)
       then have "?\<mu> (F \<inter> A) \<noteq> \<infinity>" using `?\<mu> F \<noteq> \<infinity>` by auto
       then have "?\<mu> (F \<inter> (\<Omega> - A)) = ?\<mu> F - ?\<mu> (F \<inter> A)" unfolding **
         using `F \<inter> A \<in> sigma_sets \<Omega> E` by (auto intro!: emeasure_Diff simp: M N)
-      also have "\<dots> = ?\<nu> F - ?\<nu> (F \<inter> A)" using eq `F \<in> E` * by simp
+      also have "\<dots> = ?\<nu> F - ?\<nu> (F \<inter> A)" using eq `F \<in> E` compl by simp
       also have "\<dots> = ?\<nu> (F \<inter> (\<Omega> - A))" unfolding **
         using `F \<inter> A \<in> sigma_sets \<Omega> E` `?\<nu> (F \<inter> A) \<noteq> \<infinity>`
         by (auto intro!: emeasure_Diff[symmetric] simp: M N)
-      finally show "\<Omega> - A \<in> sigma_sets \<Omega> E \<and> ?\<mu> (F \<inter> (\<Omega> - A)) = ?\<nu> (F \<inter> (\<Omega> - A))"
-        using * by auto
+      finally show ?case
+        using `space M = \<Omega>` by auto
     next
-      fix A :: "nat \<Rightarrow> 'a set"
-      assume "disjoint_family A" and A: "range A \<subseteq> {X \<in> sigma_sets \<Omega> E. ?\<mu> (F \<inter> X) = ?\<nu> (F \<inter> X)}"
+      case (union A)
       then have "?\<mu> (\<Union>x. F \<inter> A x) = ?\<nu> (\<Union>x. F \<inter> A x)"
         by (subst (1 2) suminf_emeasure[symmetric]) (auto simp: disjoint_family_on_def subset_eq M N)
-      with A show "(\<Union>x. A x) \<in> sigma_sets \<Omega> E \<and> ?\<mu> (F \<inter> (\<Union>x. A x)) = ?\<nu> (F \<inter> (\<Union>x. A x))"
+      with A show ?case
         by auto
-    qed
-    have *: "sigma_sets \<Omega> E = ?D"
-      using `F \<in> E` `Int_stable E`
-      by (intro D.dynkin_lemma) (auto simp add: Int_stable_def eq)
-    have "\<And>D. D \<in> sets M \<Longrightarrow> emeasure M (F \<inter> D) = emeasure N (F \<inter> D)"
-      unfolding M by (subst (asm) *) auto }
+    qed }
   note * = this
   show "M = N"
   proof (rule measure_eqI)
@@ -684,9 +681,7 @@ proof -
       using A(1) by (auto simp: subset_eq M)
     fix F assume "F \<in> sets M"
     let ?D = "disjointed (\<lambda>i. F \<inter> A i)"
-    have "space M = \<Omega>"
-      using top[of M] space_closed[of M] S.top S.space_closed `sets M = sigma_sets \<Omega> E` by blast
-    then have F_eq: "F = (\<Union>i. ?D i)"
+    from `space M = \<Omega>` have F_eq: "F = (\<Union>i. ?D i)"
       using `F \<in> sets M`[THEN sets_into_space] A(2)[symmetric] by (auto simp: UN_disjointed_eq)
     have [simp, intro]: "\<And>i. ?D i \<in> sets M"
       using range_disjointed_sets[of "\<lambda>i. F \<inter> A i" M] `F \<in> sets M`

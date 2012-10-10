@@ -33,15 +33,18 @@ definition pair_measure (infixr "\<Otimes>\<^isub>M" 80) where
       {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}
       (\<lambda>X. \<integral>\<^isup>+x. (\<integral>\<^isup>+y. indicator X (x,y) \<partial>B) \<partial>A)"
 
+lemma pair_measure_closed: "{a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B} \<subseteq> Pow (space A \<times> space B)"
+  using space_closed[of A] space_closed[of B] by auto
+
 lemma space_pair_measure:
   "space (A \<Otimes>\<^isub>M B) = space A \<times> space B"
-  unfolding pair_measure_def using space_closed[of A] space_closed[of B]
-  by (intro space_measure_of) auto
+  unfolding pair_measure_def using pair_measure_closed[of A B]
+  by (rule space_measure_of)
 
 lemma sets_pair_measure:
   "sets (A \<Otimes>\<^isub>M B) = sigma_sets (space A \<times> space B) {a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B}"
-  unfolding pair_measure_def using space_closed[of A] space_closed[of B]
-  by (intro sets_measure_of) auto
+  unfolding pair_measure_def using pair_measure_closed[of A B]
+  by (rule sets_measure_of)
 
 lemma sets_pair_measure_cong[cong]:
   "sets M1 = sets M1' \<Longrightarrow> sets M2 = sets M2' \<Longrightarrow> sets (M1 \<Otimes>\<^isub>M M2) = sets (M1' \<Otimes>\<^isub>M M2')"
@@ -162,40 +165,24 @@ lemma (in finite_measure) finite_measure_cut_measurable:
   assumes "Q \<in> sets (N \<Otimes>\<^isub>M M)"
   shows "(\<lambda>x. emeasure M (Pair x -` Q)) \<in> borel_measurable N"
     (is "?s Q \<in> _")
-proof -
-  let ?\<Omega> = "space N \<times> space M" and ?D = "{A\<in>sets (N \<Otimes>\<^isub>M M). ?s A \<in> borel_measurable N}"
-  note space_pair_measure[simp]
-  interpret dynkin_system ?\<Omega> ?D
-  proof (intro dynkin_systemI)
-    fix A assume "A \<in> ?D" then show "A \<subseteq> ?\<Omega>"
-      using sets_into_space[of A "N \<Otimes>\<^isub>M M"] by simp
-  next
-    from top show "?\<Omega> \<in> ?D"
-      by (auto simp add: if_distrib intro!: measurable_If)
-  next
-    fix A assume "A \<in> ?D"
-    with sets_into_space have "\<And>x. emeasure M (Pair x -` (?\<Omega> - A)) =
-        (if x \<in> space N then emeasure M (space M) - ?s A x else 0)"
-      by (auto intro!: emeasure_compl simp: vimage_Diff sets_Pair1)
-    with `A \<in> ?D` top show "?\<Omega> - A \<in> ?D"
-      by (auto intro!: measurable_If)
-  next
-    fix F :: "nat \<Rightarrow> ('b\<times>'a) set" assume "disjoint_family F" "range F \<subseteq> ?D"
-    moreover then have "\<And>x. emeasure M (\<Union>i. Pair x -` F i) = (\<Sum>i. ?s (F i) x)"
-      by (intro suminf_emeasure[symmetric]) (auto simp: disjoint_family_on_def sets_Pair1)
-    ultimately show "(\<Union>i. F i) \<in> ?D"
-      by (auto simp: vimage_UN intro!: borel_measurable_psuminf)
-  qed
-  let ?G = "{a \<times> b | a b. a \<in> sets N \<and> b \<in> sets M}"
-  have "sigma_sets ?\<Omega> ?G = ?D"
-  proof (rule dynkin_lemma)
-    show "?G \<subseteq> ?D"
-      by (auto simp: if_distrib Int_def[symmetric] intro!: measurable_If)
-  qed (auto simp: sets_pair_measure  Int_stable_pair_measure_generator)
-  with `Q \<in> sets (N \<Otimes>\<^isub>M M)` have "Q \<in> ?D"
-    by (simp add: sets_pair_measure[symmetric])
-  then show "?s Q \<in> borel_measurable N" by simp
-qed
+  using Int_stable_pair_measure_generator pair_measure_closed assms
+  unfolding sets_pair_measure
+proof (induct rule: sigma_sets_induct_disjoint)
+  case (compl A)
+  with sets_into_space have "\<And>x. emeasure M (Pair x -` ((space N \<times> space M) - A)) =
+      (if x \<in> space N then emeasure M (space M) - ?s A x else 0)"
+    unfolding sets_pair_measure[symmetric]
+    by (auto intro!: emeasure_compl simp: vimage_Diff sets_Pair1)
+  with compl top show ?case
+    by (auto intro!: measurable_If simp: space_pair_measure)
+next
+  case (union F)
+  moreover then have "\<And>x. emeasure M (\<Union>i. Pair x -` F i) = (\<Sum>i. ?s (F i) x)"
+    unfolding sets_pair_measure[symmetric]
+    by (intro suminf_emeasure[symmetric]) (auto simp: disjoint_family_on_def sets_Pair1)
+  ultimately show ?case
+    by (auto simp: vimage_UN)
+qed (auto simp add: if_distrib Int_def[symmetric] intro!: measurable_If)
 
 lemma (in sigma_finite_measure) measurable_emeasure_Pair:
   assumes Q: "Q \<in> sets (N \<Otimes>\<^isub>M M)" shows "(\<lambda>x. emeasure M (Pair x -` Q)) \<in> borel_measurable N" (is "?s Q \<in> _")
