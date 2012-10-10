@@ -1310,6 +1310,10 @@ lemma measurable_comp[intro]:
   apply force+
   done
 
+lemma measurable_compose:
+  "f \<in> measurable M N \<Longrightarrow> g \<in> measurable N L \<Longrightarrow> (\<lambda>x. g (f x)) \<in> measurable M L"
+  using measurable_comp[of f M N g L] by (simp add: comp_def)
+
 lemma measurable_Least:
   assumes meas: "\<And>i::nat. {x\<in>space M. P i x} \<in> M"
   shows "(\<lambda>x. LEAST j. P j x) -` A \<inter> space M \<in> sets M"
