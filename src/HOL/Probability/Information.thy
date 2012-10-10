@@ -1227,12 +1227,16 @@ proof -
 qed
 
 lemma (in information_space) conditional_entropy_eq:
-  assumes Y: "simple_distributed M Y Py" and X: "simple_function M X"
+  assumes Y: "simple_distributed M Y Py"
   assumes XY: "simple_distributed M (\<lambda>x. (X x, Y x)) Pxy"
     shows "\<H>(X | Y) = - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
 proof (subst conditional_entropy_generic_eq[OF _ _
   simple_distributed[OF Y] simple_distributed_joint[OF XY]])
-  have [simp]: "finite (X`space M)" using X by (simp add: simple_function_def)
+  have "finite ((\<lambda>x. (X x, Y x))`space M)"
+    using XY unfolding simple_distributed_def by auto
+  from finite_imageI[OF this, of fst]
+  have [simp]: "finite (X`space M)"
+    by (simp add: image_compose[symmetric] comp_def)
   note Y[THEN simple_distributed_finite, simp]
   show "sigma_finite_measure (count_space (X ` space M))"
     by (simp add: sigma_finite_measure_count_space_finite)
@@ -1241,11 +1245,11 @@ proof (subst conditional_entropy_generic_eq[OF _ _
   let ?f = "(\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy x else 0)"
   have "count_space (X ` space M) \<Otimes>\<^isub>M count_space (Y ` space M) = count_space (X`space M \<times> Y`space M)"
     (is "?P = ?C")
-    using X Y by (simp add: simple_distributed_finite pair_measure_count_space)
+    using Y by (simp add: simple_distributed_finite pair_measure_count_space)
   have eq: "(\<lambda>(x, y). ?f (x, y) * log b (?f (x, y) / Py y)) =
     (\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy x * log b (Pxy x / Py (snd x)) else 0)"
     by auto
-  from X Y show "- (\<integral> (x, y). ?f (x, y) * log b (?f (x, y) / Py y) \<partial>?P) =
+  from Y show "- (\<integral> (x, y). ?f (x, y) * log b (?f (x, y) / Py y) \<partial>?P) =
     - (\<Sum>(x, y)\<in>(\<lambda>x. (X x, Y x)) ` space M. Pxy (x, y) * log b (Pxy (x, y) / Py y))"
     by (auto intro!: setsum_cong simp add: `?P = ?C` lebesgue_integral_count_space_finite simple_distributed_finite eq setsum_cases split_beta')
 qed
@@ -1277,7 +1281,7 @@ proof -
     by (intro subdensity_real[of snd, OF _ Pxy[THEN simple_distributed] Py[THEN simple_distributed]]) (auto intro: measurable_Pair)
   then show ?thesis
     apply (subst conditional_mutual_information_eq[OF Py Pxy Pxy Pxxy])
-    apply (subst conditional_entropy_eq[OF Py X Pxy])
+    apply (subst conditional_entropy_eq[OF Py Pxy])
     apply (auto intro!: setsum_cong simp: Pxxy_eq setsum_negf[symmetric] eq setsum_reindex[OF inj]
                 log_simps zero_less_mult_iff zero_le_mult_iff field_simps mult_less_0_iff AE_count_space)
     using Py[THEN simple_distributed, THEN distributed_real_AE] Pxy[THEN simple_distributed, THEN distributed_real_AE]

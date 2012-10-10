@@ -306,7 +306,6 @@ lemma conditional_entropy_eq_ce_with_hypothesis:
      log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
   apply (subst conditional_entropy_eq[OF
     simple_distributedI[OF simple_function_finite refl]
-    simple_function_finite
     simple_distributedI[OF simple_function_finite refl]])
   unfolding space_point_measure
 proof -
