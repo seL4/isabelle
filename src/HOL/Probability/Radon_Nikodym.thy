@@ -933,7 +933,7 @@ lemma (in sigma_finite_measure) density_unique_iff:
   shows "density M f = density M f' \<longleftrightarrow> (AE x in M. f x = f' x)"
   using density_unique[OF assms] density_cong[OF f f'] by auto
 
-lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
+lemma (in sigma_finite_measure) sigma_finite_iff_density_finite':
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   shows "sigma_finite_measure (density M f) \<longleftrightarrow> (AE x in M. f x \<noteq> \<infinity>)"
     (is "sigma_finite_measure ?N \<longleftrightarrow> _")
@@ -1018,6 +1018,13 @@ next
       using A_in_sets Q f by (auto simp: emeasure_density)
   qed
 qed
+
+lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
+  "f \<in> borel_measurable M \<Longrightarrow> sigma_finite_measure (density M f) \<longleftrightarrow> (AE x in M. f x \<noteq> \<infinity>)"
+  apply (subst density_max_0)
+  apply (subst sigma_finite_iff_density_finite')
+  apply (auto simp: max_def intro!: measurable_If)
+  done
 
 section "Radon-Nikodym derivative"
 
