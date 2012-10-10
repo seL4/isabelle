@@ -695,6 +695,69 @@ proof -
   qed
 qed
 
+lemma borel_measurable_real_induct[consumes 2, case_names cong set mult add seq, induct set: borel_measurable]:
+  fixes u :: "'a \<Rightarrow> real"
+  assumes u: "u \<in> borel_measurable M" "\<And>x. 0 \<le> u x"
+  assumes cong: "\<And>f g. f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<And>x. x \<in> space M \<Longrightarrow> f x = g x) \<Longrightarrow> P g \<Longrightarrow> P f"
+  assumes set: "\<And>A. A \<in> sets M \<Longrightarrow> P (indicator A)"
+  assumes mult: "\<And>u c. 0 \<le> c \<Longrightarrow> u \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 \<le> u x) \<Longrightarrow> P u \<Longrightarrow> P (\<lambda>x. c * u x)"
+  assumes add: "\<And>u v. u \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 \<le> u x) \<Longrightarrow> P u \<Longrightarrow> v \<in> borel_measurable M \<Longrightarrow> (\<And>x. 0 \<le> v x) \<Longrightarrow> P v \<Longrightarrow> P (\<lambda>x. v x + u x)"
+  assumes seq: "\<And>U u. (\<And>i. U i \<in> borel_measurable M) \<Longrightarrow> (\<And>i x. 0 \<le> U i x) \<Longrightarrow> (\<And>x. (\<lambda>i. U i x) ----> u x) \<Longrightarrow> (\<And>i. P (U i)) \<Longrightarrow> incseq U \<Longrightarrow> P u"
+  shows "P u"
+proof -
+  have "(\<lambda>x. ereal (u x)) \<in> borel_measurable M"
+    using u by auto
+  then obtain U where U: "\<And>i. simple_function M (U i)" "incseq U" "\<And>i. \<infinity> \<notin> range (U i)" and
+    "\<And>x. (SUP i. U i x) = max 0 (ereal (u x))" and nn: "\<And>i x. 0 \<le> U i x"
+    using borel_measurable_implies_simple_function_sequence'[of u M] by auto
+  then have u_eq: "\<And>x. ereal (u x) = (SUP i. U i x)"
+    using u by (auto simp: max_def)
+
+  have [simp]: "\<And>i x. U i x \<noteq> \<infinity>" using U by (auto simp: image_def eq_commute)
+
+  { fix i x have [simp]: "U i x \<noteq> -\<infinity>" using nn[of i x] by auto }
+  note this[simp]
+
+  show "P u"
+  proof (rule seq)
+    show "\<And>i. (\<lambda>x. real (U i x)) \<in> borel_measurable M"
+      using U by (auto intro: borel_measurable_simple_function)
+    show "\<And>i x. 0 \<le> real (U i x)"
+      using nn by (auto simp: real_of_ereal_pos)
+    show "incseq (\<lambda>i x. real (U i x))"
+      using U(2) by (auto simp: incseq_def image_iff le_fun_def intro!: real_of_ereal_positive_mono nn)
+    then show "\<And>x. (\<lambda>i. real (U i x)) ----> u x"
+      by (intro SUP_eq_LIMSEQ[THEN iffD1])
+         (auto simp: incseq_mono incseq_def le_fun_def u_eq ereal_real
+               intro!: arg_cong2[where f=SUPR] ext)
+    show "\<And>i. P (\<lambda>x. real (U i x))"
+    proof (rule cong)
+      fix x i assume x: "x \<in> space M"
+      have [simp]: "\<And>A x. real (indicator A x :: ereal) = indicator A x"
+        by (auto simp: indicator_def one_ereal_def)
+      { fix y assume "y \<in> U i ` space M"
+        then have "0 \<le> y" "y \<noteq> \<infinity>" using nn by auto
+        then have "\<bar>y * indicator (U i -` {y} \<inter> space M) x\<bar> \<noteq> \<infinity>"
+          by (auto simp: indicator_def) }
+      then show "real (U i x) = (\<Sum>y \<in> U i ` space M. real y * indicator (U i -` {y} \<inter> space M) x)"
+        unfolding simple_function_indicator_representation[OF U(1) x]
+        by (subst setsum_real_of_ereal[symmetric]) auto
+    next
+      fix i
+      have "finite (U i ` space M)" "\<And>x. x \<in> U i ` space M \<Longrightarrow> 0 \<le> x""\<And>x. x \<in> U i ` space M \<Longrightarrow> x \<noteq> \<infinity>"
+        using U(1) nn by (auto simp: simple_function_def)
+      then show "P (\<lambda>x. \<Sum>y \<in> U i ` space M. real y * indicator (U i -` {y} \<inter> space M) x)"
+      proof induct
+        case empty then show ?case
+          using set[of "{}"] by (simp add: indicator_def[abs_def])
+      qed (auto intro!: add mult set simple_functionD U setsum_nonneg borel_measurable_setsum mult_nonneg_nonneg real_of_ereal_pos)
+    qed (auto intro: borel_measurable_simple_function U simple_functionD intro!: borel_measurable_setsum borel_measurable_times)
+  qed
+qed
+
+lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
+  by (auto simp: indicator_def one_ereal_def)
+
 lemma positive_integral_has_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable lebesgue" "range f \<subseteq> {0..<\<infinity>}" "integral\<^isup>P lebesgue f \<noteq> \<infinity>"
