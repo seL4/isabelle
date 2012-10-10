@@ -385,7 +385,7 @@ proof -
     then show "sets ?D = sigma_sets (space ?P) ?E"
       by simp
   next
-    show "range F \<subseteq> ?E" "incseq F" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
+    show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
       using F by (auto simp: space_pair_measure)
   next
     fix X assume "X \<in> ?E"

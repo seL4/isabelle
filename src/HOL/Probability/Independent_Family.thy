@@ -23,18 +23,29 @@ proof safe
 qed auto
 
 definition (in prob_space)
-  "indep_events A I \<longleftrightarrow> (A`I \<subseteq> events) \<and>
-    (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
-
-definition (in prob_space)
-  "indep_event A B \<longleftrightarrow> indep_events (bool_case A B) UNIV"
-
-definition (in prob_space)
   "indep_sets F I \<longleftrightarrow> (\<forall>i\<in>I. F i \<subseteq> events) \<and>
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> (\<forall>A\<in>Pi J F. prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))))"
 
 definition (in prob_space)
   "indep_set A B \<longleftrightarrow> indep_sets (bool_case A B) UNIV"
+
+definition (in prob_space)
+  indep_events_def_alt: "indep_events A I \<longleftrightarrow> indep_sets (\<lambda>i. {A i}) I"
+
+lemma image_subset_iff_funcset: "F ` A \<subseteq> B \<longleftrightarrow> F \<in> A \<rightarrow> B"
+  by auto
+
+lemma (in prob_space) indep_events_def:
+  "indep_events A I \<longleftrightarrow> (A`I \<subseteq> events) \<and>
+    (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
+  unfolding indep_events_def_alt indep_sets_def
+  apply (simp add: Ball_def Pi_iff image_subset_iff_funcset)
+  apply (intro conj_cong refl arg_cong[where f=All] ext imp_cong)
+  apply auto
+  done
+
+definition (in prob_space)
+  "indep_event A B \<longleftrightarrow> indep_events (bool_case A B) UNIV"
 
 definition (in prob_space)
   "indep_vars M' X I \<longleftrightarrow>
@@ -47,11 +58,6 @@ definition (in prob_space)
 lemma (in prob_space) indep_sets_cong:
   "I = J \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i = G i) \<Longrightarrow> indep_sets F I \<longleftrightarrow> indep_sets G J"
   by (simp add: indep_sets_def, intro conj_cong all_cong imp_cong ball_cong) blast+
-
-lemma (in prob_space) indep_sets_singleton_iff_indep_events:
-  "indep_sets (\<lambda>i. {F i}) I \<longleftrightarrow> indep_events F I"
-  unfolding indep_sets_def indep_events_def
-  by (simp, intro conj_cong ball_cong all_cong imp_cong) (auto simp: Pi_iff)
 
 lemma (in prob_space) indep_events_finite_index_events:
   "indep_events F I \<longleftrightarrow> (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> indep_events F J)"
@@ -660,7 +666,7 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
   show "indep_sets (\<lambda>i. sigma_sets (space M) {F i}) UNIV"
   proof (rule indep_sets_sigma)
     show "indep_sets (\<lambda>i. {F i}) UNIV"
-      unfolding indep_sets_singleton_iff_indep_events by fact
+      unfolding indep_events_def_alt[symmetric] by fact
     fix i show "Int_stable {F i}"
       unfolding Int_stable_def by simp
   qed
@@ -892,7 +898,7 @@ proof -
       show "sets ?P' = sigma_sets (space ?P) (prod_algebra I M')"
         by (simp add: sets_PiM space_PiM cong: prod_algebra_cong)
       let ?A = "\<lambda>i. \<Pi>\<^isub>E i\<in>I. space (M' i)"
-      show "range ?A \<subseteq> prod_algebra I M'" "incseq ?A" "(\<Union>i. ?A i) = space (Pi\<^isub>M I M')"
+      show "range ?A \<subseteq> prod_algebra I M'" "(\<Union>i. ?A i) = space (Pi\<^isub>M I M')"
         by (auto simp: space_PiM intro!: space_in_prod_algebra cong: prod_algebra_cong)
       { fix i show "emeasure ?D (\<Pi>\<^isub>E i\<in>I. space (M' i)) \<noteq> \<infinity>" by auto }
     next
@@ -1042,7 +1048,7 @@ proof -
     then show "sets M = sigma_sets (space ?P) ?E"
       using sets[symmetric] by simp
   next
-    show "range F \<subseteq> ?E" "incseq F" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
+    show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
       using F by (auto simp: space_pair_measure)
   next
     fix X assume "X \<in> ?E"

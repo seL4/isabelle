@@ -87,7 +87,7 @@ proof (rule measure_eqI_generator_eq)
   let ?\<Omega> = "(\<Pi>\<^isub>E k\<in>J. space (M k))"
   show "Int_stable ?J"
     by (rule Int_stable_PiE)
-  show "range ?F \<subseteq> ?J" "incseq ?F" "(\<Union>i. ?F i) = ?\<Omega>"
+  show "range ?F \<subseteq> ?J" "(\<Union>i. ?F i) = ?\<Omega>"
     using `finite J` by (auto intro!: prod_algebraI_finite)
   { fix i show "emeasure ?P (?F i) \<noteq> \<infinity>" by simp }
   show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)

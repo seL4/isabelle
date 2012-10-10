@@ -751,7 +751,6 @@ proof -
 
     show "range ?F \<subseteq> prod_algebra (I \<union> J) M" using F
       using fin by (auto simp: prod_algebra_eq_finite)
-    show "incseq ?F" by fact
     show "(\<Union>i. \<Pi>\<^isub>E ia\<in>I \<union> J. F ia i) = (\<Pi>\<^isub>E i\<in>I \<union> J. space (M i))"
       using F(3) by (simp add: space_PiM)
   next

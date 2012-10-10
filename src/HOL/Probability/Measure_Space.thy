@@ -628,7 +628,7 @@ lemma measure_eqI_generator_eq:
   and eq: "\<And>X. X \<in> E \<Longrightarrow> emeasure M X = emeasure N X"
   and M: "sets M = sigma_sets \<Omega> E"
   and N: "sets N = sigma_sets \<Omega> E"
-  and A: "range A \<subseteq> E" "incseq A" "(\<Union>i. A i) = \<Omega>" "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
+  and A: "range A \<subseteq> E" "(\<Union>i. A i) = \<Omega>" "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
   shows "M = N"
 proof -
   let ?\<mu>  = "emeasure M" and ?\<nu> = "emeasure N"
@@ -673,25 +673,38 @@ proof -
     have *: "sigma_sets \<Omega> E = ?D"
       using `F \<in> E` `Int_stable E`
       by (intro D.dynkin_lemma) (auto simp add: Int_stable_def eq)
-    have "\<And>D. D \<in> sigma_sets \<Omega> E \<Longrightarrow> ?\<mu> (F \<inter> D) = ?\<nu> (F \<inter> D)"
-      by (subst (asm) *) auto }
+    have "\<And>D. D \<in> sets M \<Longrightarrow> emeasure M (F \<inter> D) = emeasure N (F \<inter> D)"
+      unfolding M by (subst (asm) *) auto }
   note * = this
   show "M = N"
   proof (rule measure_eqI)
     show "sets M = sets N"
       using M N by simp
+    have [simp, intro]: "\<And>i. A i \<in> sets M"
+      using A(1) by (auto simp: subset_eq M)
     fix F assume "F \<in> sets M"
-    then have "F \<in> sigma_sets \<Omega> E"
-      using M by simp
-    let ?A = "\<lambda>i. A i \<inter> F"
-    have "range ?A \<subseteq> sigma_sets \<Omega> E" "incseq ?A"
-      using A(1,2) `F \<in> sigma_sets \<Omega> E` by (auto simp: incseq_def)
-    moreover
-    { fix i have "?\<mu> (?A i) = ?\<nu> (?A i)"
-        using *[of "A i" F] `F \<in> sigma_sets \<Omega> E` A finite by auto }
-    ultimately show "?\<mu> F = ?\<nu> F"
-      using SUP_emeasure_incseq[of ?A M] SUP_emeasure_incseq[of ?A N] A(3) `F \<in> sigma_sets \<Omega> E`
-      by (auto simp: M N SUP_emeasure_incseq)
+    let ?D = "disjointed (\<lambda>i. F \<inter> A i)"
+    have "space M = \<Omega>"
+      using top[of M] space_closed[of M] S.top S.space_closed `sets M = sigma_sets \<Omega> E` by blast
+    then have F_eq: "F = (\<Union>i. ?D i)"
+      using `F \<in> sets M`[THEN sets_into_space] A(2)[symmetric] by (auto simp: UN_disjointed_eq)
+    have [simp, intro]: "\<And>i. ?D i \<in> sets M"
+      using range_disjointed_sets[of "\<lambda>i. F \<inter> A i" M] `F \<in> sets M`
+      by (auto simp: subset_eq)
+    have "disjoint_family ?D"
+      by (auto simp: disjoint_family_disjointed)
+     moreover
+    { fix i
+      have "A i \<inter> ?D i = ?D i"
+        by (auto simp: disjointed_def)
+      then have "emeasure M (?D i) = emeasure N (?D i)"
+        using *[of "A i" "?D i", OF _ A(3)] A(1) by auto }
+     ultimately show "emeasure M F = emeasure N F"
+      using N M
+      apply (subst (1 2) F_eq)
+      apply (subst (1 2) suminf_emeasure[symmetric])
+      apply auto
+      done
   qed
 qed
 

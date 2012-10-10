@@ -569,7 +569,6 @@ proof (rule measure_eqI_generator_eq[OF Int_stable_atLeastAtMost])
     by (simp_all add: borel_eq_atLeastAtMost sets_eq)
 
   show "range cube \<subseteq> ?E" unfolding cube_def [abs_def] by auto
-  show "incseq cube" using cube_subset_Suc by (auto intro!: incseq_SucI)
   { fix x :: 'a have "\<exists>n. x \<in> cube n" using mem_big_cube[of x] by fastforce }
   then show "(\<Union>i. cube i :: 'a set) = UNIV" by auto
 
