@@ -86,6 +86,15 @@ proof -
     using indep by (auto simp: indep_sets_def)
 qed
 
+lemma (in prob_space) indep_sets_mono:
+  assumes indep: "indep_sets F I"
+  assumes mono: "J \<subseteq> I" "\<And>i. i\<in>J \<Longrightarrow> G i \<subseteq> F i"
+  shows "indep_sets G J"
+  apply (rule indep_sets_mono_sets)
+  apply (rule indep_sets_mono_index)
+  apply (fact +)
+  done
+
 lemma (in prob_space) indep_setsI:
   assumes "\<And>i. i \<in> I \<Longrightarrow> F i \<subseteq> events"
     and "\<And>A J. J \<noteq> {} \<Longrightarrow> J \<subseteq> I \<Longrightarrow> finite J \<Longrightarrow> (\<forall>j\<in>J. A j \<in> F j) \<Longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))"
@@ -468,27 +477,25 @@ proof -
     by (simp cong: indep_sets_cong)
 qed
 
-definition (in prob_space) terminal_events where
-  "terminal_events A = (\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
+definition (in prob_space) tail_events where
+  "tail_events A = (\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
 
-lemma (in prob_space) terminal_events_sets:
-  assumes A: "\<And>i. A i \<subseteq> events"
-  assumes "\<And>i::nat. sigma_algebra (space M) (A i)"
-  assumes X: "X \<in> terminal_events A"
-  shows "X \<in> events"
-proof -
+lemma (in prob_space) tail_events_sets:
+  assumes A: "\<And>i::nat. A i \<subseteq> events"
+  shows "tail_events A \<subseteq> events"
+proof
+  fix X assume X: "X \<in> tail_events A"
   let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
-  interpret A: sigma_algebra "space M" "A i" for i by fact
-  from X have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by (auto simp: terminal_events_def)
+  from X have "\<And>n::nat. X \<in> sigma_sets (space M) (UNION {n..} A)" by (auto simp: tail_events_def)
   from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
   then show "X \<in> events"
     by induct (insert A, auto)
 qed
 
-lemma (in prob_space) sigma_algebra_terminal_events:
+lemma (in prob_space) sigma_algebra_tail_events:
   assumes "\<And>i::nat. sigma_algebra (space M) (A i)"
-  shows "sigma_algebra (space M) (terminal_events A)"
-  unfolding terminal_events_def
+  shows "sigma_algebra (space M) (tail_events A)"
+  unfolding tail_events_def
 proof (simp add: sigma_algebra_iff2, safe)
   let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
   interpret A: sigma_algebra "space M" "A i" for i by fact
@@ -508,17 +515,17 @@ lemma (in prob_space) kolmogorov_0_1_law:
   assumes A: "\<And>i. A i \<subseteq> events"
   assumes "\<And>i::nat. sigma_algebra (space M) (A i)"
   assumes indep: "indep_sets A UNIV"
-  and X: "X \<in> terminal_events A"
+  and X: "X \<in> tail_events A"
   shows "prob X = 0 \<or> prob X = 1"
 proof -
   let ?D = "{D \<in> events. prob (X \<inter> D) = prob X * prob D}"
   interpret A: sigma_algebra "space M" "A i" for i by fact
-  interpret T: sigma_algebra "space M" "terminal_events A"
-    by (rule sigma_algebra_terminal_events) fact
+  interpret T: sigma_algebra "space M" "tail_events A"
+    by (rule sigma_algebra_tail_events) fact
   have "X \<subseteq> space M" using T.space_closed X by auto
 
   have X_in: "X \<in> events"
-    by (rule terminal_events_sets) fact+
+    using tail_events_sets A X by auto
 
   interpret D: dynkin_system "space M" ?D
   proof (rule dynkin_systemI)
@@ -583,7 +590,7 @@ proof -
     proof (simp add: subset_eq, rule)
       fix D assume D: "D \<in> sigma_sets (space M) (\<Union>m\<in>{..n}. A m)"
       have "X \<in> sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m)"
-        using X unfolding terminal_events_def by simp
+        using X unfolding tail_events_def by simp
       from indep_setD[OF indep D this] indep_setD_ev1[OF indep] D
       show "D \<in> events \<and> prob (X \<inter> D) = prob X * prob D"
         by (auto simp add: ac_simps)
@@ -591,12 +598,12 @@ proof -
   then have "(\<Union>n. sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) \<subseteq> ?D" (is "?A \<subseteq> _")
     by auto
 
-  note `X \<in> terminal_events A`
+  note `X \<in> tail_events A`
   also {
     have "\<And>n. sigma_sets (space M) (\<Union>i\<in>{n..}. A i) \<subseteq> sigma_sets (space M) ?A"
       by (intro sigma_sets_subseteq UN_mono) auto
-   then have "terminal_events A \<subseteq> sigma_sets (space M) ?A"
-      unfolding terminal_events_def by auto }
+   then have "tail_events A \<subseteq> sigma_sets (space M) ?A"
+      unfolding tail_events_def by auto }
   also have "sigma_sets (space M) ?A = dynkin (space M) ?A"
   proof (rule sigma_eq_dynkin)
     { fix B n assume "B \<in> sigma_sets (space M) (\<Union>m\<in>{..n}. A m)"
@@ -645,8 +652,8 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
       unfolding Int_stable_def by simp
   qed
   let ?Q = "\<lambda>n. \<Union>i\<in>{n..}. F i"
-  show "(\<Inter>n. \<Union>m\<in>{n..}. F m) \<in> terminal_events (\<lambda>i. sigma_sets (space M) {F i})"
-    unfolding terminal_events_def
+  show "(\<Inter>n. \<Union>m\<in>{n..}. F m) \<in> tail_events (\<lambda>i. sigma_sets (space M) {F i})"
+    unfolding tail_events_def
   proof
     fix j
     interpret S: sigma_algebra "space M" "sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
