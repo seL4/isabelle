@@ -2329,13 +2329,8 @@ next
   from set T show ?case
     by (subst positive_integral_cong[OF eq])
        (auto simp add: emeasure_distr intro!: positive_integral_indicator[symmetric] measurable_sets)
-next
-  case (seq U) 
-  moreover then have "incseq (\<lambda>i x. U i (T x))"
-    by (force simp: le_fun_def incseq_def)
-  ultimately show ?case
-    by (simp_all add: measurable_compose[OF T] positive_integral_monotone_convergence_SUP)
-qed (simp_all add: measurable_compose[OF T] T positive_integral_cmult positive_integral_add)
+qed (simp_all add: measurable_compose[OF T] T positive_integral_cmult positive_integral_add
+                   positive_integral_monotone_convergence_SUP le_fun_def incseq_def)
 
 lemma positive_integral_distr:
   assumes T: "T \<in> measurable M M'"
@@ -2532,60 +2527,52 @@ next
        (auto elim: eventually_elim2)
 qed
 
-lemma positive_integral_density:
+lemma positive_integral_density':
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
-  assumes g': "g' \<in> borel_measurable M"
-  shows "integral\<^isup>P (density M f) g' = (\<integral>\<^isup>+ x. f x * g' x \<partial>M)"
-proof -
-  def g \<equiv> "\<lambda>x. max 0 (g' x)"
-  then have g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
-    using g' by auto
-  from borel_measurable_implies_simple_function_sequence'[OF g(1)] guess G . note G = this
-  note G' = borel_measurable_simple_function[OF this(1)] simple_functionD[OF G(1)]
-  note G'(2)[simp]
-  with G(4) f g have G_M': "AE x in density M f. (SUP i. G i x) = g x"
-    by (auto simp add: AE_density[OF f(1)] max_def)
-  { fix i
-    let ?I = "\<lambda>y x. indicator (G i -` {y} \<inter> space M) x"
-    { fix x assume *: "x \<in> space M" "0 \<le> f x" "0 \<le> g x"
-      then have [simp]: "G i ` space M \<inter> {y. G i x = y \<and> x \<in> space M} = {G i x}" by auto
-      from * G' G have "(\<Sum>y\<in>G i`space M. y * (f x * ?I y x)) = f x * (\<Sum>y\<in>G i`space M. (y * ?I y x))"
-        by (subst setsum_ereal_right_distrib) (auto simp: ac_simps)
-      also have "\<dots> = f x * G i x"
-        by (simp add: indicator_def if_distrib setsum_cases)
-      finally have "(\<Sum>y\<in>G i`space M. y * (f x * ?I y x)) = f x * G i x" . }
-    note to_singleton = this
-    have "integral\<^isup>P (density M f) (G i) = integral\<^isup>S (density M f) (G i)"
-      using G by (intro positive_integral_eq_simple_integral) simp_all
-    also have "\<dots> = (\<Sum>y\<in>G i`space M. y * (\<integral>\<^isup>+x. f x * ?I y x \<partial>M))"
-      using f G(1)
-      by (auto intro!: setsum_cong arg_cong2[where f="op *"] emeasure_density
-               simp: simple_function_def simple_integral_def)
-    also have "\<dots> = (\<Sum>y\<in>G i`space M. (\<integral>\<^isup>+x. y * (f x * ?I y x) \<partial>M))"
-      using f G' G by (auto intro!: setsum_cong positive_integral_cmult[symmetric])
-    also have "\<dots> = (\<integral>\<^isup>+x. (\<Sum>y\<in>G i`space M. y * (f x * ?I y x)) \<partial>M)"
-      using f G' G by (auto intro!: positive_integral_setsum[symmetric])
-    finally have "integral\<^isup>P (density M f) (G i) = (\<integral>\<^isup>+x. f x * G i x \<partial>M)"
-      using f g G' to_singleton by (auto intro!: positive_integral_cong_AE) }
-  note [simp] = this
-  have "integral\<^isup>P (density M f) g = (SUP i. integral\<^isup>P (density M f) (G i))" using G'(1) G_M'(1) G
-    using positive_integral_monotone_convergence_SUP[symmetric, OF `incseq G`, of "density M f"]
-    by (simp cong: positive_integral_cong_AE)
-  also have "\<dots> = (SUP i. (\<integral>\<^isup>+x. f x * G i x \<partial>M))" by simp
-  also have "\<dots> = (\<integral>\<^isup>+x. (SUP i. f x * G i x) \<partial>M)"
-    using f G' G(2)[THEN incseq_SucD] G
-    by (intro positive_integral_monotone_convergence_SUP_AE[symmetric])
-       (auto simp: ereal_mult_left_mono le_fun_def ereal_zero_le_0_iff)
-  also have "\<dots> = (\<integral>\<^isup>+x. f x * g x \<partial>M)" using f G' G g
-    by (intro positive_integral_cong_AE)
-       (auto simp add: SUPR_ereal_cmult split: split_max)
-  also have "\<dots> = (\<integral>\<^isup>+x. f x * g' x \<partial>M)"
-    using f(2)
-    by (subst (2) positive_integral_max_0[symmetric])
-       (auto simp: g_def max_def ereal_zero_le_0_iff intro!: positive_integral_cong_AE)
-  finally show "integral\<^isup>P (density M f) g' = (\<integral>\<^isup>+x. f x * g' x \<partial>M)"
-    unfolding g_def positive_integral_max_0 .
+  assumes g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
+  shows "integral\<^isup>P (density M f) g = (\<integral>\<^isup>+ x. f x * g x \<partial>M)"
+using g proof induct
+  case (cong u v)
+  then have eq: "AE x in density M f. v x = u x" "AE x in M. f x * v x = f x * u x"
+    by (auto simp: AE_density f)
+  show ?case
+    apply (subst positive_integral_cong_AE[OF eq(1)])
+    apply (subst positive_integral_cong_AE[OF eq(2)])
+    apply fact
+    done
+next
+  case (set A) then show ?case
+    by (simp add: emeasure_density f)
+next
+  case (mult u c)
+  moreover have "\<And>x. f x * (c * u x) = c * (f x * u x)" by (simp add: field_simps)
+  ultimately show ?case
+    by (simp add: f positive_integral_cmult)
+next
+  case (add u v)
+  moreover then have "\<And>x. f x * (v x + u x) = f x * v x + f x * u x"
+    by (simp add: ereal_right_distrib)
+  moreover note f
+  ultimately show ?case
+    by (auto simp add: positive_integral_add ereal_zero_le_0_iff intro!: positive_integral_add[symmetric])
+next
+  case (seq U)
+  from f(2) have eq: "AE x in M. f x * (SUP i. U i x) = (SUP i. f x * U i x)"
+    by eventually_elim (simp add: SUPR_ereal_cmult seq)
+  from seq f show ?case
+    apply (simp add: positive_integral_monotone_convergence_SUP)
+    apply (subst positive_integral_cong_AE[OF eq])
+    apply (subst positive_integral_monotone_convergence_SUP_AE)
+    apply (auto simp: incseq_def le_fun_def intro!: ereal_mult_left_mono)
+    done
 qed
+
+lemma positive_integral_density:
+  "f \<in> borel_measurable M \<Longrightarrow> AE x in M. 0 \<le> f x \<Longrightarrow> g' \<in> borel_measurable M \<Longrightarrow> 
+    integral\<^isup>P (density M f) g' = (\<integral>\<^isup>+ x. f x * g' x \<partial>M)"
+  by (subst (1 2) positive_integral_max_0[symmetric])
+     (auto intro!: positive_integral_cong_AE
+           simp: measurable_If max_def ereal_zero_le_0_iff positive_integral_density')
 
 lemma integral_density:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
