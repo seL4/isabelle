@@ -26,6 +26,20 @@ fun mk_inf (t1, t2) =
     Const (@{const_name Lattices.inf_class.inf}, T --> T --> T) $ t1 $ t2
   end
 
+fun mk_sup (t1, t2) =
+  let
+    val T = fastype_of t1
+  in
+    Const (@{const_name Lattices.sup_class.sup}, T --> T --> T) $ t1 $ t2
+  end
+
+fun mk_Compl t =
+  let
+    val T = fastype_of t
+  in
+    Const (@{const_name "Groups.uminus_class.uminus"}, T --> T) $ t
+  end
+
 fun mk_image t1 t2 =
   let
     val T as Type (@{type_name fun}, [_ , R]) = fastype_of t1
