@@ -414,7 +414,6 @@ apply (induct n)
 apply (auto simp add: poly_exp poly_mult)
 done
 
-lemma (in semiring_1) one_neq_zero[simp]: "1 \<noteq> 0" using zero_neq_one by blast
 lemma (in comm_ring_1) poly_prime_eq_zero[simp]: "poly [a,1] \<noteq> poly []"
 apply (simp add: fun_eq)
 apply (rule_tac x = "minus one a" in exI)

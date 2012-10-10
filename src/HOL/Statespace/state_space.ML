@@ -21,18 +21,18 @@ sig
   val define_statespace :
      string list ->
      string ->
-     (string list * bstring * (string * string) list) list ->
+     ((string * bool) * (string list * bstring * (string * string) list)) list ->
      (string * string) list -> theory -> theory
   val define_statespace_i :
      string option ->
      string list ->
      string ->
-     (typ list * bstring * (string * string) list) list ->
+     ((string * bool) * (typ list * bstring * (string * string) list)) list ->
      (string * typ) list -> theory -> theory
 
   val statespace_decl :
      ((string list * bstring) *
-       ((string list * xstring * (bstring * bstring) list) list *
+       (((string * bool) * (string list * xstring * (bstring * bstring) list)) list *
         (bstring * string) list)) parser
 
 
@@ -355,7 +355,7 @@ fun parent_components thy (Ts, pname, renaming) =
     val inst = map fst args ~~ Ts;
     val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
     val parent_comps =
-      maps (fn (Ts',n,rs) => parent_components thy (map subst Ts',n,rs)) parents;
+      maps (fn (Ts',n,rs) => parent_components thy (map subst Ts', n, rs)) parents;
     val all_comps = rename renaming (parent_comps @ map (apsnd subst) components);
   in all_comps end;
 
@@ -369,8 +369,8 @@ fun statespace_definition state_type args name parents parent_comps components t
     val components' = map (fn (n,T) => (n,(T,full_name))) components;
     val all_comps' = map (fn (n,T) => (n,(T,full_name))) all_comps;
 
-    fun parent_expr (_,n,rs) = (suffix namespaceN n,((n,false),Expression.Positional rs));
-        (* FIXME: a more specific renaming-prefix (including parameter names) may be nicer *)
+    fun parent_expr (prefix, (_, n, rs)) =
+      (suffix namespaceN n, (prefix, Expression.Positional rs));
     val parents_expr = map parent_expr parents;
     fun distinct_types Ts =
       let val tab = fold (fn T => fn tab => Typtab.update (T,()) tab) Ts Typtab.empty;
@@ -386,14 +386,14 @@ fun statespace_definition state_type args name parents parent_comps components t
     fun projectT T = valueT --> T;
     fun injectT T = T --> valueT;
     val locinsts = map (fn T => (project_injectL,
-                    (("",false),Expression.Positional
+                    ((encode_type T,false),Expression.Positional
                              [SOME (Free (project_name T,projectT T)),
                               SOME (Free ((inject_name T,injectT T)))]))) Ts;
     val locs = maps (fn T => [(Binding.name (project_name T),NONE,NoSyn),
                                      (Binding.name (inject_name T),NONE,NoSyn)]) Ts;
     val constrains = maps (fn T => [(project_name T,projectT T),(inject_name T,injectT T)]) Ts;
 
-    fun interprete_parent_valuetypes (Ts, pname, _) thy =
+    fun interprete_parent_valuetypes (prefix, (Ts, pname, _)) thy =
       let
         val {args,types,...} =
              the (Symtab.lookup (StateSpaceData.get (Context.Theory thy)) pname);
@@ -402,15 +402,15 @@ fun statespace_definition state_type args name parents parent_comps components t
         val pars = maps ((fn T => [project_name T,inject_name T]) o subst) types;
 
         val expr = ([(suffix valuetypesN name,
-                     (("",false),Expression.Positional (map SOME pars)))],[]);
+                     (prefix, Expression.Positional (map SOME pars)))],[]);
       in
         prove_interpretation_in (ALLGOALS o solve_tac o Assumption.all_prems_of)
           (suffix valuetypesN name, expr) thy
       end;
 
-    fun interprete_parent (_, pname, rs) =
+    fun interprete_parent (prefix, (_, pname, rs)) =
       let
-        val expr = ([(pname, (("",false), Expression.Positional rs))],[])
+        val expr = ([(pname, (prefix, Expression.Positional rs))],[])
       in prove_interpretation_in
            (fn ctxt => Locale.intro_locales_tac false ctxt [])
            (full_name, expr) end;
@@ -449,7 +449,7 @@ fun statespace_definition state_type args name parents parent_comps components t
      |> namespace_definition
            (suffix namespaceN name) nameT (parents_expr,[])
            (map fst parent_comps) (map fst components)
-     |> Context.theory_map (add_statespace full_name args parents components [])
+     |> Context.theory_map (add_statespace full_name args (map snd parents) components [])
      |> add_locale (suffix valuetypesN name) (locinsts,locs) []
      |> Proof_Context.theory_of
      |> fold interprete_parent_valuetypes parents
@@ -495,8 +495,13 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
 
     val ctxt = Proof_Context.init_global thy;
 
-    fun add_parent (Ts,pname,rs) env =
+    fun add_parent (prefix, (Ts, pname, rs)) env =
       let
+        val prefix' =
+          (case prefix of
+            ("", mandatory) => (pname, mandatory)
+          | _ => prefix);
+
         val full_pname = Sign.full_bname thy pname;
         val {args,components,...} =
               (case get_statespace (Context.Theory thy) full_pname of
@@ -526,8 +531,9 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
 
         val rs' = map (AList.lookup (op =) rs o fst) components;
         val errs =err_insts @ err_dup_renamings @ err_rename_unknowns
-      in if null errs then ((Ts',full_pname,rs'),env')
-         else error (cat_lines (errs @ ["in parent statespace " ^ quote pname]))
+      in
+        if null errs then ((prefix', (Ts', full_pname, rs')), env')
+        else error (cat_lines (errs @ ["in parent statespace " ^ quote pname]))
       end;
 
     val (parents',env) = fold_map add_parent parents [];
@@ -562,7 +568,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
     fun fst_eq ((x:string,_),(y,_)) = x = y;
     fun snd_eq ((_,t:typ),(_,u)) = t = u;
 
-    val raw_parent_comps = maps (parent_components thy) parents';
+    val raw_parent_comps = maps (parent_components thy o snd) parents';
     fun check_type (n,T) =
           (case distinct (snd_eq) (filter (curry fst_eq (n,T)) raw_parent_comps) of
              []  => []
@@ -687,8 +693,9 @@ val rename = Parse.name -- (mapsto |-- Parse.name);
 val renames = Scan.optional (@{keyword "["} |-- Parse.!!! (Parse.list1 rename --| @{keyword "]"})) [];
 
 val parent =
+  Parse_Spec.locale_prefix false --
   ((type_insts -- Parse.xname) || (Parse.xname >> pair [])) -- renames
-    >> (fn ((insts, name), renames) => (insts,name, renames));
+    >> (fn ((prefix, (insts, name)), renames) => (prefix, (insts, name, renames)));
 
 in
 

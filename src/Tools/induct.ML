@@ -705,15 +705,15 @@ fun add_defs def_insts =
     fun add (SOME (_, (t, true))) ctxt = ((SOME t, []), ctxt)
       | add (SOME (SOME x, (t, _))) ctxt =
           let val ([(lhs, (_, th))], ctxt') =
-            Local_Defs.add_defs [((x, NoSyn), (Thm.empty_binding, t))] ctxt
+            Local_Defs.add_defs [((x, NoSyn), ((Thm.def_binding x, []), t))] ctxt
           in ((SOME lhs, [th]), ctxt') end
       | add (SOME (NONE, (t as Free _, _))) ctxt = ((SOME t, []), ctxt)
       | add (SOME (NONE, (t, _))) ctxt =
           let
             val (s, _) = Name.variant "x" (Variable.names_of ctxt);
-            val ([(lhs, (_, th))], ctxt') =
-              Local_Defs.add_defs [((Binding.name s, NoSyn),
-                (Thm.empty_binding, t))] ctxt
+            val x = Binding.name s;
+            val ([(lhs, (_, th))], ctxt') = ctxt
+              |> Local_Defs.add_defs [((x, NoSyn), ((Thm.def_binding x, []), t))];
           in ((SOME lhs, [th]), ctxt') end
       | add NONE ctxt = ((NONE, []), ctxt);
   in fold_map add def_insts #> apfst (split_list #> apsnd flat) end;

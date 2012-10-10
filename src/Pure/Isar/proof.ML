@@ -643,7 +643,11 @@ fun gen_def prep_att prep_vars prep_binds args state =
     |>> map (fn (x, _, mx) => (x, mx))
     |-> (fn vars =>
       map_context_result (prep_binds false (map swap raw_rhss))
-      #-> (fn rhss => map_context_result (Local_Defs.add_defs (vars ~~ (name_atts ~~ rhss)))))
+      #-> (fn rhss =>
+        let
+          val defs = (vars ~~ (name_atts ~~ rhss)) |> map (fn ((x, mx), ((a, atts), rhs)) =>
+            ((x, mx), ((Thm.def_binding_optional x a, atts), rhs)));
+        in map_context_result (Local_Defs.add_defs defs) end))
     |-> (set_facts o map (#2 o #2))
   end;
 

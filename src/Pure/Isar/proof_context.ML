@@ -938,8 +938,8 @@ end;
 local
 
 fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b))
-  | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add_local (Context.Proof ctxt) do_props (b, ths) #> snd);
+  | update_thms flags (b, SOME ths) ctxt = ctxt |> map_facts
+      (Facts.add_static (Context.Proof ctxt) flags (b, ths) #> snd);
 
 in
 
@@ -952,12 +952,12 @@ fun note_thmss kind = fold_map (fn ((b, more_atts), raw_facts) => fn ctxt =>
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = Global_Theory.name_thms false false name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
-  in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
+  in ((name, thms), ctxt' |> update_thms {strict = false, index = stmt} (b, SOME thms)) end);
 
-fun put_thms do_props thms ctxt = ctxt
+fun put_thms index thms ctxt = ctxt
   |> map_naming (K Name_Space.local_naming)
   |> Context_Position.set_visible false
-  |> update_thms do_props (apfst Binding.name thms)
+  |> update_thms {strict = false, index = index} (apfst Binding.name thms)
   |> Context_Position.restore_visible ctxt
   |> restore_naming ctxt;
 

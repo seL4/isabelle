@@ -203,11 +203,11 @@ next
 qed
 
 lemma (in group) inv_comm:
-  assumes inv: "x \<cdot> y = \<one>"
+  assumes "x \<cdot> y = \<one>"
       and G: "x \<in> carrier(G)"  "y \<in> carrier(G)"
   shows "y \<cdot> x = \<one>"
 proof -
-  from G have "x \<cdot> y \<cdot> x = x \<cdot> \<one>" by (auto simp add: inv)
+  from G have "x \<cdot> y \<cdot> x = x \<cdot> \<one>" by (auto simp add: assms)
   with G show ?thesis by (simp del: r_one add: m_assoc)
 qed
 
@@ -490,11 +490,12 @@ by (simp add: subgroup.is_group)
 
 lemma (in group) subgroupI:
   assumes subset: "H \<subseteq> carrier(G)" and non_empty: "H \<noteq> 0"
-    and inv: "!!a. a \<in> H ==> inv a \<in> H"
-    and mult: "!!a b. [|a \<in> H; b \<in> H|] ==> a \<cdot> b \<in> H"
+    and "!!a. a \<in> H ==> inv a \<in> H"
+    and "!!a b. [|a \<in> H; b \<in> H|] ==> a \<cdot> b \<in> H"
   shows "subgroup(H,G)"
 proof (simp add: subgroup_def assms)
-  show "\<one> \<in> H" by (rule one_in_subset) (auto simp only: assms)
+  show "\<one> \<in> H"
+    by (rule one_in_subset) (auto simp only: assms)
 qed
 
 
@@ -595,7 +596,7 @@ definition
   "set_inv\<^bsub>G\<^esub> H == \<Union>h\<in>H. {inv\<^bsub>G\<^esub> h}"
 
 
-locale normal = subgroup + group +
+locale normal = subgroup: subgroup + group +
   assumes coset_eq: "(\<forall>x \<in> carrier(G). H #> x = x <# H)"
 
 notation

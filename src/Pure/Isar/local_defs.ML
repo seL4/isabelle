@@ -89,16 +89,14 @@ fun def_export _ defs = (expand defs, expand_term defs);
 fun add_defs defs ctxt =
   let
     val ((xs, mxs), specs) = defs |> split_list |>> split_list;
-    val ((bfacts, atts), rhss) = specs |> split_list |>> split_list;
-    val names = map2 Thm.def_binding_optional xs bfacts;
+    val (bs, rhss) = specs |> split_list;
     val eqs = mk_def ctxt (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
     |> Proof_Context.add_fixes (map2 (fn x => fn mx => (x, NONE, mx)) xs mxs) |> #2
     |> fold Variable.declare_term eqs
-    |> Proof_Context.add_assms_i def_export
-      (map2 (fn a => fn eq => (a, [(eq, [])])) (names ~~ atts) eqs)
+    |> Proof_Context.add_assms_i def_export (map2 (fn b => fn eq => (b, [(eq, [])])) bs eqs)
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
 
