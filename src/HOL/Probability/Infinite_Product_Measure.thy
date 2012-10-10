@@ -174,15 +174,24 @@ proof (intro conjI ballI)
 qed
 
 lemma (in product_prob_space) sets_PiM_generator:
-  assumes "I \<noteq> {}" shows "sets (PiM I M) = sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) generator"
-proof
-  show "sets (Pi\<^isub>M I M) \<subseteq> sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) generator"
-    unfolding sets_PiM
-  proof (safe intro!: sigma_sets_subseteq)
-    fix A assume "A \<in> prod_algebra I M" with `I \<noteq> {}` show "A \<in> generator"
-      by (auto intro!: generatorI' elim!: prod_algebraE)
-  qed
-qed (auto simp: generator_def space_PiM[symmetric] intro!: sigma_sets_subset)
+  "sets (PiM I M) = sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) generator"
+proof cases
+  assume "I = {}" then show ?thesis
+    unfolding generator_def
+    by (auto simp: sets_PiM_empty sigma_sets_empty_eq cong: conj_cong)
+next
+  assume "I \<noteq> {}"
+  show ?thesis
+  proof
+    show "sets (Pi\<^isub>M I M) \<subseteq> sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) generator"
+      unfolding sets_PiM
+    proof (safe intro!: sigma_sets_subseteq)
+      fix A assume "A \<in> prod_algebra I M" with `I \<noteq> {}` show "A \<in> generator"
+        by (auto intro!: generatorI' elim!: prod_algebraE)
+    qed
+  qed (auto simp: generator_def space_PiM[symmetric] intro!: sigma_sets_subset)
+qed
+
 
 lemma (in product_prob_space) generatorI:
   "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> A = emb I J X \<Longrightarrow> A \<in> generator"
@@ -628,7 +637,7 @@ next
       using X by (auto simp add: emeasure_PiM) 
   next
     show "positive (sets (Pi\<^isub>M I M)) \<mu>" "countably_additive (sets (Pi\<^isub>M I M)) \<mu>"
-      using \<mu> unfolding sets_PiM_generator[OF `I \<noteq> {}`] by (auto simp: measure_space_def)
+      using \<mu> unfolding sets_PiM_generator by (auto simp: measure_space_def)
   qed
 qed
 
