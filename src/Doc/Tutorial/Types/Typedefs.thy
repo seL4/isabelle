@@ -69,7 +69,7 @@ Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:
 *}
 
-typedef three = "{0::nat, 1, 2}"
+typedef (open) three = "{0::nat, 1, 2}"
 
 txt{*\noindent
 In order to enforce that the representing set on the right-hand side is
@@ -90,14 +90,9 @@ is expressed via a bijection between the \emph{type} @{typ three} and the
 constants behind the scenes:
 \begin{center}
 \begin{tabular}{rcl}
-@{term three} &::& @{typ"nat set"} \\
 @{term Rep_three} &::& @{typ"three \<Rightarrow> nat"}\\
 @{term Abs_three} &::& @{typ"nat \<Rightarrow> three"}
 \end{tabular}
-\end{center}
-where constant @{term three} is explicitly defined as the representing set:
-\begin{center}
-@{thm three_def}\hfill(@{thm[source]three_def})
 \end{center}
 The situation is best summarized with the help of the following diagram,
 where squares denote types and the irregular region denotes a set:
@@ -105,7 +100,7 @@ where squares denote types and the irregular region denotes a set:
 \includegraphics[scale=.8]{typedef}
 \end{center}
 Finally, \isacommand{typedef} asserts that @{term Rep_three} is
-surjective on the subset @{term three} and @{term Abs_three} and @{term
+surjective on the subset and @{term Abs_three} and @{term
 Rep_three} are inverses of each other:
 \begin{center}
 \begin{tabular}{@ {}r@ {\qquad\qquad}l@ {}}
@@ -153,7 +148,7 @@ express injectivity of @{term Rep_three} and @{term Abs_three}:
 \begin{tabular}{@ {}r@ {\qquad}l@ {}}
 @{thm Rep_three_inject[no_vars]} & (@{thm[source]Rep_three_inject}) \\
 \begin{tabular}{@ {}l@ {}}
-@{text"\<lbrakk>x \<in> three; y \<in> three \<rbrakk>"} \\
+@{text"\<lbrakk>x \<in> {0, 1, 2}; y \<in> {0, 1, 2} \<rbrakk>"} \\
 @{text"\<Longrightarrow> (Abs_three x = Abs_three y) = (x = y)"}
 \end{tabular} & (@{thm[source]Abs_three_inject}) \\
 \end{tabular}
@@ -168,7 +163,7 @@ The following ones allow to replace some @{text"x::three"} by
 @{thm Abs_three_induct[no_vars]} & (@{thm[source]Abs_three_induct}) \\
 \end{tabular}
 \end{center}
-These theorems are proved for any type definition, with @{term three}
+These theorems are proved for any type definition, with @{text three}
 replaced by the name of the type in question.
 
 Distinctness of @{term A}, @{term B} and @{term C} follows immediately
@@ -177,7 +172,7 @@ of @{term Abs_three}:
 *}
 
 lemma "A \<noteq> B \<and> B \<noteq> A \<and> A \<noteq> C \<and> C \<noteq> A \<and> B \<noteq> C \<and> C \<noteq> B"
-by(simp add: Abs_three_inject A_def B_def C_def three_def)
+by(simp add: Abs_three_inject A_def B_def C_def)
 
 text{*\noindent
 Of course we rely on the simplifier to solve goals like @{prop"(0::nat) \<noteq> 1"}.
@@ -195,11 +190,11 @@ apply(induct_tac x)
 
 txt{*
 @{subgoals[display,indent=0]}
-Simplification with @{thm[source]three_def} leads to the disjunction @{prop"y
+Simplification leads to the disjunction @{prop"y
 = 0 \<or> y = 1 \<or> y = (2::nat)"} which \isa{auto} separates into three
 subgoals, each of which is easily solved by simplification: *}
 
-apply(auto simp add: three_def A_def B_def C_def)
+apply(auto simp add: A_def B_def C_def)
 done
 
 text{*\noindent

@@ -9,9 +9,11 @@ theory Float
 imports Complex_Main "~~/src/HOL/Library/Lattice_Algebras"
 begin
 
-typedef float = "{m * 2 powr e | (m :: int) (e :: int). True }"
+definition "float = {m * 2 powr e | (m :: int) (e :: int). True}"
+
+typedef (open) float = float
   morphisms real_of_float float_of
-  by auto
+  unfolding float_def by auto
 
 defs (overloaded)
   real_of_float_def[code_unfold]: "real \<equiv> real_of_float"

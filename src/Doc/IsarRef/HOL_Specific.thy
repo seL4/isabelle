@@ -1189,7 +1189,7 @@ text {* Type definitions permit the introduction of abstract data
   \medskip The following trivial example pulls a three-element type
   into existence within the formal logical environment of HOL. *}
 
-typedef three = "{(True, True), (True, False), (False, True)}"
+typedef (open) three = "{(True, True), (True, False), (False, True)}"
   by blast
 
 definition "One = Abs_three (True, True)"
@@ -1197,11 +1197,11 @@ definition "Two = Abs_three (True, False)"
 definition "Three = Abs_three (False, True)"
 
 lemma three_distinct: "One \<noteq> Two"  "One \<noteq> Three"  "Two \<noteq> Three"
-  by (simp_all add: One_def Two_def Three_def Abs_three_inject three_def)
+  by (simp_all add: One_def Two_def Three_def Abs_three_inject)
 
 lemma three_cases:
   fixes x :: three obtains "x = One" | "x = Two" | "x = Three"
-  by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject three_def)
+  by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject)
 
 text {* Note that such trivial constructions are better done with
   derived specification mechanisms such as @{command datatype}: *}
