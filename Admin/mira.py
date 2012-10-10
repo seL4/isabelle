@@ -119,11 +119,6 @@ def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
     # misc preparations
     if 'lxbroy10' in misc.hostnames():  # special settings for lxbroy10
         more_settings += '''
-ML_PLATFORM="x86_64-linux"
-ML_HOME="/home/polyml/polyml-5.4.1/x86_64-linux"
-ML_SYSTEM="polyml-5.4.1"
-ML_OPTIONS="-H 4000 --gcthreads 4"
-
 ISABELLE_GHC="/usr/bin/ghc"
 '''
 
