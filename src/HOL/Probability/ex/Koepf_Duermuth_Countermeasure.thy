@@ -145,7 +145,7 @@ definition msgs :: "('key \<times> 'message list) set" where
   "msgs = keys \<times> {ms. set ms \<subseteq> messages \<and> length ms = n}"
 
 definition P :: "('key \<times> 'message list) \<Rightarrow> real" where
-  "P = (\<lambda>(k, ms). K k * (\<Prod>i<length ms. M (ms ! i)))"
+  "P = (\<lambda>(k, ms). K k * (\<Prod>i<n. M (ms ! i)))"
 
 end
 
@@ -191,7 +191,10 @@ definition OB :: "'key \<times> 'message list \<Rightarrow> 'observation list" w
   "OB = (\<lambda>(k, ms). map (observe k) ms)"
 
 definition t :: "'observation list \<Rightarrow> 'observation \<Rightarrow> nat" where
-  "t seq obs = length (filter (op = obs) seq)"
+  t_def2: "t seq obs = card { i. i < length seq \<and> seq ! i = obs}"
+
+lemma t_def: "t seq obs = length (filter (op = obs) seq)"
+  unfolding t_def2 length_filter_conv_card by (subst eq_commute) simp
 
 lemma card_T_bound: "card ((t\<circ>OB)`msgs) \<le> (n+1)^card observations"
 proof -
@@ -306,7 +309,6 @@ lemma conditional_entropy_eq_ce_with_hypothesis:
      log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))"
   apply (subst conditional_entropy_eq[OF
     simple_distributedI[OF simple_function_finite refl]
-    simple_function_finite
     simple_distributedI[OF simple_function_finite refl]])
   unfolding space_point_measure
 proof -
@@ -325,7 +327,7 @@ proof -
     -(\<Sum>y\<in>Y`msgs. (\<P>(Y) {y}) * (\<Sum>x\<in>X`msgs. (\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}) * log b ((\<P>(X ; Y) {(x,y)}) / (\<P>(Y) {y}))))" .
 qed
 
-lemma ce_OB_eq_ce_t: "\<H>(fst | OB) = \<H>(fst | t\<circ>OB)"
+lemma ce_OB_eq_ce_t: "\<I>(fst ; OB) = \<I>(fst ; t\<circ>OB)"
 proof -
   txt {* Lemma 2 *}
 
@@ -434,7 +436,6 @@ proof -
   note P_t_sum_P_O = this
 
   txt {* Lemma 3 *}
-  txt {* Lemma 3 *}
   have "\<H>(fst | OB) = -(\<Sum>obs\<in>OB`msgs. \<P>(OB) {obs} * ?Ht (t obs))"
     unfolding conditional_entropy_eq_ce_with_hypothesis using * by simp
   also have "\<dots> = -(\<Sum>obs\<in>t`OB`msgs. \<P>(t\<circ>OB) {obs} * ?Ht obs)"
@@ -452,16 +453,15 @@ proof -
   also have "\<dots> = \<H>(fst | t\<circ>OB)"
     unfolding conditional_entropy_eq_ce_with_hypothesis
     by (simp add: comp_def image_image[symmetric])
-  finally show ?thesis .
+  finally show ?thesis
+    by (subst (1 2) mutual_information_eq_entropy_conditional_entropy) simp_all
 qed
 
 theorem "\<I>(fst ; OB) \<le> real (card observations) * log b (real n + 1)"
 proof -
-  from simple_function_finite simple_function_finite
-  have "\<I>(fst ; OB) = \<H>(fst) - \<H>(fst | OB)"
-    by (rule mutual_information_eq_entropy_conditional_entropy)
-  also have "\<dots> = \<H>(fst) - \<H>(fst | t\<circ>OB)"
-    unfolding ce_OB_eq_ce_t ..
+  have "\<I>(fst ; OB) = \<H>(fst) - \<H>(fst | t\<circ>OB)"
+    unfolding ce_OB_eq_ce_t
+    by (rule mutual_information_eq_entropy_conditional_entropy simple_function_finite)+
   also have "\<dots> = \<H>(t\<circ>OB) - \<H>(t\<circ>OB | fst)"
     unfolding entropy_chain_rule[symmetric, OF simple_function_finite simple_function_finite] sign_simps
     by (subst entropy_commute) simp
