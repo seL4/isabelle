@@ -2611,8 +2611,13 @@ proof -
 qed
 
 lemma emeasure_point_measure_finite:
-  "finite A \<Longrightarrow> (\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a|a\<in>X. f a)"
+  "finite A \<Longrightarrow> (\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> X \<subseteq> A \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"
   by (subst emeasure_point_measure) (auto dest: finite_subset intro!: setsum_mono_zero_left simp: less_le)
+
+lemma emeasure_point_measure_finite2:
+  "X \<subseteq> A \<Longrightarrow> finite X \<Longrightarrow> (\<And>i. i \<in> X \<Longrightarrow> 0 \<le> f i) \<Longrightarrow> emeasure (point_measure A f) X = (\<Sum>a\<in>X. f a)"
+  by (subst emeasure_point_measure)
+     (auto dest: finite_subset intro!: setsum_mono_zero_left simp: less_le)
 
 lemma null_sets_point_measure_iff:
   "X \<in> null_sets (point_measure A f) \<longleftrightarrow> X \<subseteq> A \<and> (\<forall>x\<in>X. f x \<le> 0)"

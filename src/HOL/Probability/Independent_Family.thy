@@ -1170,4 +1170,12 @@ next
   qed
 qed
 
+lemma (in prob_space) distributed_joint_indep:
+  assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
+  assumes X: "distributed M S X Px" and Y: "distributed M T Y Py"
+  assumes indep: "indep_var S X T Y"
+  shows "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) (\<lambda>(x, y). Px x * Py y)"
+  using indep_var_distribution_eq[of S X T Y] indep
+  by (intro distributed_joint_indep'[OF S T X Y]) auto
+
 end

@@ -723,6 +723,54 @@ lemma (in prob_space) distributed_marginal_eq_joint2:
   shows "AE y in T. Py y = (\<integral>\<^isup>+x. Pxy (x, y) \<partial>S)"
   using Py distr_marginal2[OF S T Pxy] by (rule distributed_unique)
 
+lemma (in prob_space) distributed_joint_indep':
+  assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
+  assumes X: "distributed M S X Px" and Y: "distributed M T Y Py"
+  assumes indep: "distr M S X \<Otimes>\<^isub>M distr M T Y = distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))"
+  shows "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) (\<lambda>(x, y). Px x * Py y)"
+  unfolding distributed_def
+proof safe
+  interpret S: sigma_finite_measure S by fact
+  interpret T: sigma_finite_measure T by fact
+  interpret ST: pair_sigma_finite S T by default
+
+  interpret X: prob_space "density S Px"
+    unfolding distributed_distr_eq_density[OF X, symmetric]
+    using distributed_measurable[OF X]
+    by (rule prob_space_distr)
+  have sf_X: "sigma_finite_measure (density S Px)" ..
+
+  interpret Y: prob_space "density T Py"
+    unfolding distributed_distr_eq_density[OF Y, symmetric]
+    using distributed_measurable[OF Y]
+    by (rule prob_space_distr)
+  have sf_Y: "sigma_finite_measure (density T Py)" ..
+
+  show "distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) = density (S \<Otimes>\<^isub>M T) (\<lambda>(x, y). Px x * Py y)"
+    unfolding indep[symmetric] distributed_distr_eq_density[OF X] distributed_distr_eq_density[OF Y]
+    using distributed_borel_measurable[OF X] distributed_AE[OF X]
+    using distributed_borel_measurable[OF Y] distributed_AE[OF Y]
+    by (rule pair_measure_density[OF _ _ _ _ S T sf_X sf_Y])
+
+  show "random_variable (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))"
+    using distributed_measurable[OF X] distributed_measurable[OF Y]
+    by (auto intro: measurable_Pair)
+
+  show Pxy: "(\<lambda>(x, y). Px x * Py y) \<in> borel_measurable (S \<Otimes>\<^isub>M T)"
+    by (auto simp: split_beta' 
+             intro!: measurable_compose[OF _ distributed_borel_measurable[OF X]]
+                     measurable_compose[OF _ distributed_borel_measurable[OF Y]])
+
+  show "AE x in S \<Otimes>\<^isub>M T. 0 \<le> (case x of (x, y) \<Rightarrow> Px x * Py y)"
+    apply (intro ST.AE_pair_measure borel_measurable_ereal_le Pxy borel_measurable_const)
+    using distributed_AE[OF X]
+    apply eventually_elim
+    using distributed_AE[OF Y]
+    apply eventually_elim
+    apply auto
+    done
+qed
+
 definition
   "simple_distributed M X f \<longleftrightarrow> distributed M (count_space (X`space M)) X (\<lambda>x. ereal (f x)) \<and>
     finite (X`space M)"
