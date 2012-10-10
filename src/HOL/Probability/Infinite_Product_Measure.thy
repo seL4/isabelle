@@ -14,10 +14,10 @@ lemma restrict_extensional_sub[intro]: "A \<subseteq> B \<Longrightarrow> restri
 lemma restrict_restrict[simp]: "restrict (restrict f A) B = restrict f (A \<inter> B)"
   unfolding restrict_def by (simp add: fun_eq_iff)
 
-lemma split_merge: "P (merge I x J y i) \<longleftrightarrow> (i \<in> I \<longrightarrow> P (x i)) \<and> (i \<in> J - I \<longrightarrow> P (y i)) \<and> (i \<notin> I \<union> J \<longrightarrow> P undefined)"
+lemma split_merge: "P (merge I J (x,y) i) \<longleftrightarrow> (i \<in> I \<longrightarrow> P (x i)) \<and> (i \<in> J - I \<longrightarrow> P (y i)) \<and> (i \<notin> I \<union> J \<longrightarrow> P undefined)"
   unfolding merge_def by auto
 
-lemma extensional_merge_sub: "I \<union> J \<subseteq> K \<Longrightarrow> merge I x J y \<in> extensional K"
+lemma extensional_merge_sub: "I \<union> J \<subseteq> K \<Longrightarrow> merge I J (x, y) \<in> extensional K"
   unfolding merge_def extensional_def by auto
 
 lemma injective_vimage_restrict:
@@ -32,7 +32,7 @@ proof  (intro set_eqI)
   show "x \<in> A \<longleftrightarrow> x \<in> B"
   proof cases
     assume x: "x \<in> (\<Pi>\<^isub>E i\<in>J. S i)"
-    have "x \<in> A \<longleftrightarrow> merge J x (I - J) y \<in> (\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^isub>E i\<in>I. S i)"
+    have "x \<in> A \<longleftrightarrow> merge J (I - J) (x,y) \<in> (\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^isub>E i\<in>I. S i)"
       using y x `J \<subseteq> I` by (auto simp add: Pi_iff extensional_restrict extensional_merge_sub split: split_merge)
     then show "x \<in> A \<longleftrightarrow> x \<in> B"
       using y x `J \<subseteq> I` by (auto simp add: Pi_iff extensional_restrict extensional_merge_sub eq split: split_merge)
@@ -131,7 +131,7 @@ proof (rule injective_vimage_restrict)
   show "X \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))" "Y \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
     using sets[THEN sets_into_space] by (auto simp: space_PiM)
   have "\<forall>i\<in>L. \<exists>x. x \<in> space (M i)"
-    using M.not_empty by auto
+      using M.not_empty by auto
   from bchoice[OF this]
   show "(\<Pi>\<^isub>E i\<in>L. space (M i)) \<noteq> {}" by auto
   show "(\<lambda>x. restrict x J) -` X \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i)) = (\<lambda>x. restrict x J) -` Y \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i))"
@@ -230,23 +230,19 @@ proof -
 qed
 
 lemma (in product_prob_space) merge_sets:
-  assumes "finite J" "finite K" "J \<inter> K = {}" and A: "A \<in> sets (Pi\<^isub>M (J \<union> K) M)" and x: "x \<in> space (Pi\<^isub>M J M)"
-  shows "merge J x K -` A \<inter> space (Pi\<^isub>M K M) \<in> sets (Pi\<^isub>M K M)"
-proof -
-  from sets_Pair1[OF
-    measurable_merge[THEN measurable_sets, OF `J \<inter> K = {}`], OF A, of x] x
-  show ?thesis
-      by (simp add: space_pair_measure comp_def vimage_compose[symmetric])
-qed
+  assumes "J \<inter> K = {}" and A: "A \<in> sets (Pi\<^isub>M (J \<union> K) M)" and x: "x \<in> space (Pi\<^isub>M J M)"
+  shows "(\<lambda>y. merge J K (x,y)) -` A \<inter> space (Pi\<^isub>M K M) \<in> sets (Pi\<^isub>M K M)"
+  by (rule measurable_sets[OF _ A] measurable_compose[OF measurable_Pair measurable_merge]  
+           measurable_const x measurable_ident)+
 
 lemma (in product_prob_space) merge_emb:
   assumes "K \<subseteq> I" "J \<subseteq> I" and y: "y \<in> space (Pi\<^isub>M J M)"
-  shows "(merge J y (I - J) -` emb I K X \<inter> space (Pi\<^isub>M I M)) =
-    emb I (K - J) (merge J y (K - J) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M))"
+  shows "((\<lambda>x. merge J (I - J) (y, x)) -` emb I K X \<inter> space (Pi\<^isub>M I M)) =
+    emb I (K - J) ((\<lambda>x. merge J (K - J) (y, x)) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M))"
 proof -
-  have [simp]: "\<And>x J K L. merge J y K (restrict x L) = merge J y (K \<inter> L) x"
+  have [simp]: "\<And>x J K L. merge J K (y, restrict x L) = merge J (K \<inter> L) (y, x)"
     by (auto simp: restrict_def merge_def)
-  have [simp]: "\<And>x J K L. restrict (merge J y K x) L = merge (J \<inter> L) y (K \<inter> L) x"
+  have [simp]: "\<And>x J K L. restrict (merge J K (y, x)) L = merge (J \<inter> L) (K \<inter> L) (y, x)"
     by (auto simp: restrict_def merge_def)
   have [simp]: "(I - J) \<inter> K = K - J" using `K \<subseteq> I` `J \<subseteq> I` by auto
   have [simp]: "(K - J) \<inter> (K \<union> J) = K - J" by auto
@@ -331,16 +327,16 @@ next
       "K - J \<noteq> {}" "K - J \<subseteq> I" "\<mu>G Z = emeasure (Pi\<^isub>M K M) X"
       by (auto simp: subset_insertI)
 
-    let ?M = "\<lambda>y. merge J y (K - J) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M)"
+    let ?M = "\<lambda>y. (\<lambda>x. merge J (K - J) (y, x)) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M)"
     { fix y assume y: "y \<in> space (Pi\<^isub>M J M)"
       note * = merge_emb[OF `K \<subseteq> I` `J \<subseteq> I` y, of X]
       moreover
       have **: "?M y \<in> sets (Pi\<^isub>M (K - J) M)"
         using J K y by (intro merge_sets) auto
       ultimately
-      have ***: "(merge J y (I - J) -` Z \<inter> space (Pi\<^isub>M I M)) \<in> ?G"
+      have ***: "((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)) \<in> ?G"
         using J K by (intro generatorI) auto
-      have "\<mu>G (merge J y (I - J) -` emb I K X \<inter> space (Pi\<^isub>M I M)) = emeasure (Pi\<^isub>M (K - J) M) (?M y)"
+      have "\<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` emb I K X \<inter> space (Pi\<^isub>M I M)) = emeasure (Pi\<^isub>M (K - J) M) (?M y)"
         unfolding * using K J by (subst \<mu>G_eq[OF _ _ _ **]) auto
       note * ** *** this }
     note merge_in_G = this
@@ -354,7 +350,7 @@ next
       using K J by simp
     also have "\<dots> = (\<integral>\<^isup>+ x. emeasure (Pi\<^isub>M (K - J) M) (?M x) \<partial>Pi\<^isub>M J M)"
       using K J by (subst emeasure_fold_integral) auto
-    also have "\<dots> = (\<integral>\<^isup>+ y. \<mu>G (merge J y (I - J) -` Z \<inter> space (Pi\<^isub>M I M)) \<partial>Pi\<^isub>M J M)"
+    also have "\<dots> = (\<integral>\<^isup>+ y. \<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)) \<partial>Pi\<^isub>M J M)"
       (is "_ = (\<integral>\<^isup>+x. \<mu>G (?MZ x) \<partial>Pi\<^isub>M J M)")
     proof (intro positive_integral_cong)
       fix x assume x: "x \<in> space (Pi\<^isub>M J M)"
@@ -370,7 +366,7 @@ next
         by (intro KmJ.measure_le_1 merge_in_G(2)[OF x]) }
     note le_1 = this
 
-    let ?q = "\<lambda>y. \<mu>G (merge J y (I - J) -` Z \<inter> space (Pi\<^isub>M I M))"
+    let ?q = "\<lambda>y. \<mu>G ((\<lambda>x. merge J (I - J) (y,x)) -` Z \<inter> space (Pi\<^isub>M I M))"
     have "?q \<in> borel_measurable (Pi\<^isub>M J M)"
       unfolding `Z = emb I K X` using J K merge_in_G(3)
       by (simp add: merge_in_G  \<mu>G_eq emeasure_fold_measurable cong: measurable_cong)
@@ -416,7 +412,7 @@ next
         using \<mu>G_spec[of "J 0" "A 0" "X 0"] J A_eq
         by (auto intro!: INF_lower2[of 0] J.measure_le_1)
 
-      let ?M = "\<lambda>K Z y. merge K y (I - K) -` Z \<inter> space (Pi\<^isub>M I M)"
+      let ?M = "\<lambda>K Z y. (\<lambda>x. merge K (I - K) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)"
 
       { fix Z k assume Z: "range Z \<subseteq> ?G" "decseq Z" "\<forall>n. ?a / 2^k \<le> \<mu>G (Z n)"
         then have Z_sets: "\<And>n. Z n \<in> ?G" by auto
@@ -524,9 +520,9 @@ next
             from Ex_w[OF this `?D \<noteq> {}`] J[of "Suc k"]
             obtain w' where w': "w' \<in> space (Pi\<^isub>M ?D M)"
               "\<forall>n. ?a / 2 ^ (Suc k + 1) \<le> \<mu>G (?M ?D (?M (J k) (A n) (w k)) w')" by auto
-            let ?w = "merge (J k) (w k) ?D w'"
-            have [simp]: "\<And>x. merge (J k) (w k) (I - J k) (merge ?D w' (I - ?D) x) =
-              merge (J (Suc k)) ?w (I - (J (Suc k))) x"
+            let ?w = "merge (J k) ?D (w k, w')"
+            have [simp]: "\<And>x. merge (J k) (I - J k) (w k, merge ?D (I - ?D) (w', x)) =
+              merge (J (Suc k)) (I - (J (Suc k))) (?w, x)"
               using J(3)[of "Suc k"] J(3)[of k] J_mono[of k "Suc k"]
               by (auto intro!: ext split: split_merge)
             have *: "\<And>n. ?M ?D (?M (J k) (A n) (w k)) w' = ?M (J (Suc k)) (A n) ?w"
@@ -552,7 +548,7 @@ next
           using positive_\<mu>G[OF I_not_empty, unfolded positive_def] `0 < ?a` `?a \<le> 1`
           by (cases ?a) (auto simp: divide_le_0_iff power_le_zero_eq)
         then obtain x where "x \<in> ?M (J k) (A k) (w k)" by auto
-        then have "merge (J k) (w k) (I - J k) x \<in> A k" by auto
+        then have "merge (J k) (I - J k) (w k, x) \<in> A k" by auto
         then have "\<exists>x\<in>A k. restrict x (J k) = w k"
           using `w k \<in> space (Pi\<^isub>M (J k) M)`
           by (intro rev_bexI) (auto intro!: ext simp: extensional_def space_PiM)
