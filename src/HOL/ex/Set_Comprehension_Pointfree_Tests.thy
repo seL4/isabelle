@@ -59,6 +59,12 @@ lemma
   \<Longrightarrow> finite ({f a b c d| a b c d. a : A \<and> b : B \<and> c : C \<and> d : D})"
   by simp
 
+lemma
+  "finite {s'. EX s:S. s' = f a e s}"
+  unfolding Bex_def
+  apply simp
+  oops
+
 schematic_lemma (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
    = finite ((\<lambda>(a:: ?'A, b :: ?'B). Pair_Rep a b) ` (UNIV \<times> UNIV))"
