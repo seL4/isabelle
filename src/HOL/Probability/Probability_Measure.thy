@@ -506,6 +506,16 @@ lemma subdensity_real:
   shows "AE x in P. g (T x) = 0 \<longrightarrow> f x = 0"
   using subdensity[OF T, of M X "\<lambda>x. ereal (f x)" Y "\<lambda>x. ereal (g x)"] assms by auto
 
+lemma distributed_emeasure:
+  "distributed M N X f \<Longrightarrow> A \<in> sets N \<Longrightarrow> emeasure M (X -` A \<inter> space M) = (\<integral>\<^isup>+x. f x * indicator A x \<partial>N)"
+  by (auto simp: distributed_measurable distributed_AE distributed_borel_measurable
+                 distributed_distr_eq_density[symmetric] emeasure_density[symmetric] emeasure_distr)
+
+lemma distributed_positive_integral:
+  "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>\<^isup>+x. f x * g x \<partial>N) = (\<integral>\<^isup>+x. g (X x) \<partial>M)"
+  by (auto simp: distributed_measurable distributed_AE distributed_borel_measurable
+                 distributed_distr_eq_density[symmetric] positive_integral_density[symmetric] positive_integral_distr)
+
 lemma distributed_integral:
   "distributed M N X f \<Longrightarrow> g \<in> borel_measurable N \<Longrightarrow> (\<integral>x. f x * g x \<partial>N) = (\<integral>x. g (X x) \<partial>M)"
   by (auto simp: distributed_real_measurable distributed_real_AE distributed_measurable
@@ -526,54 +536,116 @@ proof -
   finally show ?thesis .
 qed
 
-lemma distributed_marginal_eq_joint:
-  assumes T: "sigma_finite_measure T"
-  assumes S: "sigma_finite_measure S"
+lemma (in prob_space) distributed_unique:
   assumes Px: "distributed M S X Px"
-  assumes Py: "distributed M T Y Py"
-  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
-  shows "AE y in T. Py y = (\<integral>\<^isup>+x. Pxy (x, y) \<partial>S)"
-proof (rule sigma_finite_measure.density_unique[OF T])
-  interpret ST: pair_sigma_finite S T using S T unfolding pair_sigma_finite_def by simp
-  show "Py \<in> borel_measurable T" "AE y in T. 0 \<le> Py y"
-    "(\<lambda>x. \<integral>\<^isup>+ xa. Pxy (xa, x) \<partial>S) \<in> borel_measurable T" "AE y in T. 0 \<le> \<integral>\<^isup>+ x. Pxy (x, y) \<partial>S"
-    using Pxy[THEN distributed_borel_measurable]
-    by (auto intro!: Py[THEN distributed_borel_measurable] Py[THEN distributed_AE]
-                     ST.positive_integral_snd_measurable' positive_integral_positive)
+  assumes Py: "distributed M S X Py"
+  shows "AE x in S. Px x = Py x"
+proof -
+  interpret X: prob_space "distr M S X"
+    using distributed_measurable[OF Px] by (rule prob_space_distr)
+  have "sigma_finite_measure (distr M S X)" ..
+  with sigma_finite_density_unique[of Px S Py ] Px Py
+  show ?thesis
+    by (auto simp: distributed_def)
+qed
 
-  show "density T Py = density T (\<lambda>x. \<integral>\<^isup>+ xa. Pxy (xa, x) \<partial>S)"
-  proof (rule measure_eqI)
-    fix A assume A: "A \<in> sets (density T Py)"
-    have *: "\<And>x y. x \<in> space S \<Longrightarrow> indicator (space S \<times> A) (x, y) = indicator A y"
-      by (auto simp: indicator_def)
-    have "emeasure (density T Py) A = emeasure (distr M T Y) A"
-      unfolding Py[THEN distributed_distr_eq_density] ..
-    also have "\<dots> = emeasure (distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))) (space S \<times> A)"
-      using A Px Py Pxy
-      by (subst (1 2) emeasure_distr)
-         (auto dest: measurable_space distributed_measurable intro!: arg_cong[where f="emeasure M"])
-    also have "\<dots> = emeasure (density (S \<Otimes>\<^isub>M T) Pxy) (space S \<times> A)"
-      unfolding Pxy[THEN distributed_distr_eq_density] ..
-    also have "\<dots> = (\<integral>\<^isup>+ x. Pxy x * indicator (space S \<times> A) x \<partial>(S \<Otimes>\<^isub>M T))"
-      using A Pxy by (simp add: emeasure_density distributed_borel_measurable)
-    also have "\<dots> = (\<integral>\<^isup>+y. \<integral>\<^isup>+x. Pxy (x, y) * indicator (space S \<times> A) (x, y) \<partial>S \<partial>T)"
-      using A Pxy
-      by (subst ST.positive_integral_snd_measurable) (simp_all add: emeasure_density distributed_borel_measurable)
-    also have "\<dots> = (\<integral>\<^isup>+y. (\<integral>\<^isup>+x. Pxy (x, y) \<partial>S) * indicator A y \<partial>T)"
-      using measurable_comp[OF measurable_Pair1[OF measurable_ident] distributed_borel_measurable[OF Pxy]]
-      using distributed_borel_measurable[OF Pxy] distributed_AE[OF Pxy, THEN ST.AE_pair]
-      by (subst (asm) ST.AE_commute) (auto intro!: positive_integral_cong_AE positive_integral_multc cong: positive_integral_cong simp: * comp_def)
-    also have "\<dots> = emeasure (density T (\<lambda>x. \<integral>\<^isup>+ xa. Pxy (xa, x) \<partial>S)) A"
-      using A by (intro emeasure_density[symmetric])  (auto intro!: ST.positive_integral_snd_measurable' Pxy[THEN distributed_borel_measurable])
-    finally show "emeasure (density T Py) A = emeasure (density T (\<lambda>x. \<integral>\<^isup>+ xa. Pxy (xa, x) \<partial>S)) A" .
-  qed simp
+lemma (in prob_space) distributed_jointI:
+  assumes "sigma_finite_measure S" "sigma_finite_measure T"
+  assumes X[simp]: "X \<in> measurable M S" and Y[simp]: "Y \<in> measurable M T"
+  assumes f[simp]: "f \<in> borel_measurable (S \<Otimes>\<^isub>M T)" "AE x in S \<Otimes>\<^isub>M T. 0 \<le> f x"
+  assumes eq: "\<And>A B. A \<in> sets S \<Longrightarrow> B \<in> sets T \<Longrightarrow> 
+    emeasure M {x \<in> space M. X x \<in> A \<and> Y x \<in> B} = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. f (x, y) * indicator B y \<partial>T) * indicator A x \<partial>S)"
+  shows "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) f"
+  unfolding distributed_def
+proof safe
+  interpret S: sigma_finite_measure S by fact
+  interpret T: sigma_finite_measure T by fact
+  interpret ST: pair_sigma_finite S T by default
+
+  from ST.sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('b \<times> 'c) set" .. note F = this
+  let ?E = "{a \<times> b |a b. a \<in> sets S \<and> b \<in> sets T}"
+  let ?P = "S \<Otimes>\<^isub>M T"
+  show "distr M ?P (\<lambda>x. (X x, Y x)) = density ?P f" (is "?L = ?R")
+  proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of S T]])
+    show "?E \<subseteq> Pow (space ?P)"
+      using space_closed[of S] space_closed[of T] by (auto simp: space_pair_measure)
+    show "sets ?L = sigma_sets (space ?P) ?E"
+      by (simp add: sets_pair_measure space_pair_measure)
+    then show "sets ?R = sigma_sets (space ?P) ?E"
+      by simp
+  next
+    interpret L: prob_space ?L
+      by (rule prob_space_distr) (auto intro!: measurable_Pair)
+    show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?L (F i) \<noteq> \<infinity>"
+      using F by (auto simp: space_pair_measure)
+  next
+    fix E assume "E \<in> ?E"
+    then obtain A B where E[simp]: "E = A \<times> B" and A[simp]: "A \<in> sets S" and B[simp]: "B \<in> sets T" by auto
+    have "emeasure ?L E = emeasure M {x \<in> space M. X x \<in> A \<and> Y x \<in> B}"
+      by (auto intro!: arg_cong[where f="emeasure M"] simp add: emeasure_distr measurable_Pair)
+    also have "\<dots> = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. (f (x, y) * indicator B y) * indicator A x \<partial>T) \<partial>S)"
+      by (auto simp add: eq measurable_Pair measurable_compose[OF _ f(1)] positive_integral_multc
+               intro!: positive_integral_cong)
+    also have "\<dots> = emeasure ?R E"
+      by (auto simp add: emeasure_density ST.positive_integral_fst_measurable(2)[symmetric]
+               intro!: positive_integral_cong split: split_indicator)
+    finally show "emeasure ?L E = emeasure ?R E" .
+  qed
+qed (auto intro!: measurable_Pair)
+
+lemma (in prob_space) distributed_swap:
+  assumes "sigma_finite_measure S" "sigma_finite_measure T"
+  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  shows "distributed M (T \<Otimes>\<^isub>M S) (\<lambda>x. (Y x, X x)) (\<lambda>(x, y). Pxy (y, x))"
+proof -
+  interpret S: sigma_finite_measure S by fact
+  interpret T: sigma_finite_measure T by fact
+  interpret ST: pair_sigma_finite S T by default
+  interpret TS: pair_sigma_finite T S by default
+
+  note measurable_Pxy = measurable_compose[OF _ distributed_borel_measurable[OF Pxy]]
+  show ?thesis 
+    apply (subst TS.distr_pair_swap)
+    unfolding distributed_def
+  proof safe
+    let ?D = "distr (S \<Otimes>\<^isub>M T) (T \<Otimes>\<^isub>M S) (\<lambda>(x, y). (y, x))"
+    show 1: "(\<lambda>(x, y). Pxy (y, x)) \<in> borel_measurable ?D"
+      by (auto simp: measurable_split_conv intro!: measurable_Pair measurable_Pxy)
+    with Pxy
+    show "AE x in distr (S \<Otimes>\<^isub>M T) (T \<Otimes>\<^isub>M S) (\<lambda>(x, y). (y, x)). 0 \<le> (case x of (x, y) \<Rightarrow> Pxy (y, x))"
+      by (subst AE_distr_iff)
+         (auto dest!: distributed_AE
+               simp: measurable_split_conv split_beta
+               intro!: measurable_Pair borel_measurable_ereal_le)
+    show 2: "random_variable (distr (S \<Otimes>\<^isub>M T) (T \<Otimes>\<^isub>M S) (\<lambda>(x, y). (y, x))) (\<lambda>x. (Y x, X x))"
+      using measurable_compose[OF distributed_measurable[OF Pxy] measurable_fst]
+      using measurable_compose[OF distributed_measurable[OF Pxy] measurable_snd]
+      by (auto intro!: measurable_Pair)
+    { fix A assume A: "A \<in> sets (T \<Otimes>\<^isub>M S)"
+      let ?B = "(\<lambda>(x, y). (y, x)) -` A \<inter> space (S \<Otimes>\<^isub>M T)"
+      from sets_into_space[OF A]
+      have "emeasure M ((\<lambda>x. (Y x, X x)) -` A \<inter> space M) =
+        emeasure M ((\<lambda>x. (X x, Y x)) -` ?B \<inter> space M)"
+        by (auto intro!: arg_cong2[where f=emeasure] simp: space_pair_measure)
+      also have "\<dots> = (\<integral>\<^isup>+ x. Pxy x * indicator ?B x \<partial>(S \<Otimes>\<^isub>M T))"
+        using Pxy A by (intro distributed_emeasure measurable_sets) (auto simp: measurable_split_conv measurable_Pair)
+      finally have "emeasure M ((\<lambda>x. (Y x, X x)) -` A \<inter> space M) =
+        (\<integral>\<^isup>+ x. Pxy x * indicator A (snd x, fst x) \<partial>(S \<Otimes>\<^isub>M T))"
+        by (auto intro!: positive_integral_cong split: split_indicator) }
+    note * = this
+    show "distr M ?D (\<lambda>x. (Y x, X x)) = density ?D (\<lambda>(x, y). Pxy (y, x))"
+      apply (intro measure_eqI)
+      apply (simp_all add: emeasure_distr[OF 2] emeasure_density[OF 1])
+      apply (subst positive_integral_distr)
+      apply (auto intro!: measurable_pair measurable_Pxy * simp: comp_def split_beta)
+      done
+  qed
 qed
 
 lemma (in prob_space) distr_marginal1:
-  fixes Pxy :: "('b \<times> 'c) \<Rightarrow> real"
   assumes "sigma_finite_measure S" "sigma_finite_measure T"
   assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
-  defines "Px \<equiv> \<lambda>x. real (\<integral>\<^isup>+z. Pxy (x, z) \<partial>T)"
+  defines "Px \<equiv> \<lambda>x. (\<integral>\<^isup>+z. Pxy (x, z) \<partial>T)"
   shows "distributed M S X Px"
   unfolding distributed_def
 proof safe
@@ -588,18 +660,15 @@ proof safe
   from XY have Y: "Y \<in> measurable M T"
     unfolding measurable_pair_iff by (simp add: comp_def)
 
-  from Pxy show borel: "(\<lambda>x. ereal (Px x)) \<in> borel_measurable S"
-    by (auto intro!: ST.positive_integral_fst_measurable borel_measurable_real_of_ereal dest!: distributed_real_measurable simp: Px_def)
+  from Pxy show borel: "Px \<in> borel_measurable S"
+    by (auto intro!: ST.positive_integral_fst_measurable dest!: distributed_borel_measurable simp: Px_def)
 
   interpret Pxy: prob_space "distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))"
     using XY by (rule prob_space_distr)
-  have "(\<integral>\<^isup>+ x. max 0 (ereal (- Pxy x)) \<partial>(S \<Otimes>\<^isub>M T)) = (\<integral>\<^isup>+ x. 0 \<partial>(S \<Otimes>\<^isub>M T))"
+  have "(\<integral>\<^isup>+ x. max 0 (- Pxy x) \<partial>(S \<Otimes>\<^isub>M T)) = (\<integral>\<^isup>+ x. 0 \<partial>(S \<Otimes>\<^isub>M T))"
     using Pxy
-    by (intro positive_integral_cong_AE) (auto simp: max_def dest: distributed_real_measurable distributed_real_AE)
-  then have Pxy_integrable: "integrable (S \<Otimes>\<^isub>M T) Pxy"
-    using Pxy Pxy.emeasure_space_1
-    by (simp add: integrable_def emeasure_density positive_integral_max_0 distributed_def borel_measurable_ereal_iff cong: positive_integral_cong)
-    
+    by (intro positive_integral_cong_AE) (auto simp: max_def dest: distributed_borel_measurable distributed_AE)
+
   show "distr M S X = density S Px"
   proof (rule measure_eqI)
     fix A assume A: "A \<in> sets (distr M S X)"
@@ -608,30 +677,51 @@ proof safe
                intro!: arg_cong[where f="emeasure M"] dest: measurable_space)
     also have "\<dots> = emeasure (density (S \<Otimes>\<^isub>M T) Pxy) (A \<times> space T)"
       using Pxy by (simp add: distributed_def)
-    also have "\<dots> = \<integral>\<^isup>+ x. \<integral>\<^isup>+ y. ereal (Pxy (x, y)) * indicator (A \<times> space T) (x, y) \<partial>T \<partial>S"
+    also have "\<dots> = \<integral>\<^isup>+ x. \<integral>\<^isup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T \<partial>S"
       using A borel Pxy
       by (simp add: emeasure_density ST.positive_integral_fst_measurable(2)[symmetric] distributed_def)
-    also have "\<dots> = \<integral>\<^isup>+ x. ereal (Px x) * indicator A x \<partial>S"
+    also have "\<dots> = \<integral>\<^isup>+ x. Px x * indicator A x \<partial>S"
       apply (rule positive_integral_cong_AE)
-      using Pxy[THEN distributed_real_AE, THEN ST.AE_pair] ST.integrable_fst_measurable(1)[OF Pxy_integrable] AE_space
+      using Pxy[THEN distributed_AE, THEN ST.AE_pair] AE_space
     proof eventually_elim
-      fix x assume "x \<in> space S" "AE y in T. 0 \<le> Pxy (x, y)" and i: "integrable T (\<lambda>y. Pxy (x, y))"
+      fix x assume "x \<in> space S" "AE y in T. 0 \<le> Pxy (x, y)"
       moreover have eq: "\<And>y. y \<in> space T \<Longrightarrow> indicator (A \<times> space T) (x, y) = indicator A x"
         by (auto simp: indicator_def)
-      ultimately have "(\<integral>\<^isup>+ y. ereal (Pxy (x, y)) * indicator (A \<times> space T) (x, y) \<partial>T) =
-          (\<integral>\<^isup>+ y. ereal (Pxy (x, y)) \<partial>T) * indicator A x"
-        using Pxy[THEN distributed_real_measurable] by (simp add: eq positive_integral_multc measurable_Pair2 cong: positive_integral_cong)
-      also have "(\<integral>\<^isup>+ y. ereal (Pxy (x, y)) \<partial>T) = Px x"
-        using i by (simp add: Px_def ereal_real integrable_def positive_integral_positive)
-      finally show "(\<integral>\<^isup>+ y. ereal (Pxy (x, y)) * indicator (A \<times> space T) (x, y) \<partial>T) = ereal (Px x) * indicator A x" .
+      ultimately have "(\<integral>\<^isup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T) = (\<integral>\<^isup>+ y. Pxy (x, y) \<partial>T) * indicator A x"
+        using Pxy[THEN distributed_borel_measurable] by (simp add: eq positive_integral_multc measurable_Pair2 cong: positive_integral_cong)
+      also have "(\<integral>\<^isup>+ y. Pxy (x, y) \<partial>T) = Px x"
+        by (simp add: Px_def ereal_real positive_integral_positive)
+      finally show "(\<integral>\<^isup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T) = Px x * indicator A x" .
     qed
     finally show "emeasure (distr M S X) A = emeasure (density S Px) A"
       using A borel Pxy by (simp add: emeasure_density)
   qed simp
   
-  show "AE x in S. 0 \<le> ereal (Px x)"
+  show "AE x in S. 0 \<le> Px x"
     by (simp add: Px_def positive_integral_positive real_of_ereal_pos)
 qed
+
+lemma (in prob_space) distr_marginal2:
+  assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
+  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  shows "distributed M T Y (\<lambda>y. (\<integral>\<^isup>+x. Pxy (x, y) \<partial>S))"
+  using distr_marginal1[OF T S distributed_swap[OF S T]] Pxy by simp
+
+lemma (in prob_space) distributed_marginal_eq_joint1:
+  assumes T: "sigma_finite_measure T"
+  assumes S: "sigma_finite_measure S"
+  assumes Px: "distributed M S X Px"
+  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  shows "AE x in S. Px x = (\<integral>\<^isup>+y. Pxy (x, y) \<partial>T)"
+  using Px distr_marginal1[OF S T Pxy] by (rule distributed_unique)
+
+lemma (in prob_space) distributed_marginal_eq_joint2:
+  assumes T: "sigma_finite_measure T"
+  assumes S: "sigma_finite_measure S"
+  assumes Py: "distributed M T Y Py"
+  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  shows "AE y in T. Py y = (\<integral>\<^isup>+x. Pxy (x, y) \<partial>S)"
+  using Py distr_marginal2[OF S T Pxy] by (rule distributed_unique)
 
 definition
   "simple_distributed M X f \<longleftrightarrow> distributed M (count_space (X`space M)) X (\<lambda>x. ereal (f x)) \<and>
@@ -795,18 +885,20 @@ proof -
   note Px = simple_distributedI[OF Px refl]
   have *: "\<And>f A. setsum (\<lambda>x. max 0 (ereal (f x))) A = ereal (setsum (\<lambda>x. max 0 (f x)) A)"
     by (simp add: setsum_ereal[symmetric] zero_ereal_def)
-  from distributed_marginal_eq_joint[OF sigma_finite_measure_count_space_finite sigma_finite_measure_count_space_finite
-    simple_distributed[OF Px] simple_distributed[OF Py] simple_distributed_joint[OF Pxy],
+  from distributed_marginal_eq_joint2[OF
+    sigma_finite_measure_count_space_finite
+    sigma_finite_measure_count_space_finite
+    simple_distributed[OF Py] simple_distributed_joint[OF Pxy],
     OF Py[THEN simple_distributed_finite] Px[THEN simple_distributed_finite]]
-    y Px[THEN simple_distributed_finite] Py[THEN simple_distributed_finite]
+    y
+    Px[THEN simple_distributed_finite]
+    Py[THEN simple_distributed_finite]
     Pxy[THEN simple_distributed, THEN distributed_real_AE]
   show ?thesis
     unfolding AE_count_space
-    apply (elim ballE[where x=y])
     apply (auto simp add: positive_integral_count_space_finite * intro!: setsum_cong split: split_max)
     done
 qed
-
 
 lemma prob_space_uniform_measure:
   assumes A: "emeasure M A \<noteq> 0" "emeasure M A \<noteq> \<infinity>"
