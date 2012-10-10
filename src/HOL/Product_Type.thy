@@ -1117,6 +1117,17 @@ next
 qed
 
 
+subsection {* Simproc for rewriting a set comprehension into a pointfree expression *}
+
+ML_file "Tools/set_comprehension_pointfree.ML"
+
+setup {*
+  Code_Preproc.map_pre (fn ss => ss addsimprocs
+    [Raw_Simplifier.make_simproc {name = "set comprehension", lhss = [@{cpat "Collect ?P"}],
+    proc = K Set_Comprehension_Pointfree.code_simproc, identifier = []}])
+*}
+
+
 subsection {* Inductively defined sets *}
 
 ML_file "Tools/inductive_set.ML"
