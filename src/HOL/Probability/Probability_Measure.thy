@@ -316,7 +316,7 @@ qed
 
 lemma (in prob_space) expectation_less:
   assumes [simp]: "integrable M X"
-  assumes gt: "\<forall>x\<in>space M. X x < b"
+  assumes gt: "AE x in M. X x < b"
   shows "expectation X < b"
 proof -
   have "expectation X < expectation (\<lambda>x. b)"
@@ -327,7 +327,7 @@ qed
 
 lemma (in prob_space) expectation_greater:
   assumes [simp]: "integrable M X"
-  assumes gt: "\<forall>x\<in>space M. a < X x"
+  assumes gt: "AE x in M. a < X x"
   shows "a < expectation X"
 proof -
   have "expectation (\<lambda>x. a) < expectation X"
@@ -338,13 +338,13 @@ qed
 
 lemma (in prob_space) jensens_inequality:
   fixes a b :: real
-  assumes X: "integrable M X" "X ` space M \<subseteq> I"
+  assumes X: "integrable M X" "AE x in M. X x \<in> I"
   assumes I: "I = {a <..< b} \<or> I = {a <..} \<or> I = {..< b} \<or> I = UNIV"
   assumes q: "integrable M (\<lambda>x. q (X x))" "convex_on I q"
   shows "q (expectation X) \<le> expectation (\<lambda>x. q (X x))"
 proof -
   let ?F = "\<lambda>x. Inf ((\<lambda>t. (q x - q t) / (x - t)) ` ({x<..} \<inter> I))"
-  from not_empty X(2) have "I \<noteq> {}" by auto
+  from X(2) AE_False have "I \<noteq> {}" by auto
 
   from I have "open I" by auto
 
@@ -376,9 +376,12 @@ proof -
       using prob_space by (simp add: X)
     also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
       using `x \<in> I` `open I` X(2)
-      by (intro integral_mono integral_add integral_cmult integral_diff
-                lebesgue_integral_const X q convex_le_Inf_differential)
-         (auto simp: interior_open)
+      apply (intro integral_mono_AE integral_add integral_cmult integral_diff
+                lebesgue_integral_const X q)
+      apply (elim eventually_elim1)
+      apply (intro convex_le_Inf_differential)
+      apply (auto simp: interior_open q)
+      done
     finally show "k \<le> expectation (\<lambda>w. q (X w))" using x by auto
   qed
   finally show "q (expectation X) \<le> expectation (\<lambda>x. q (X x))" .

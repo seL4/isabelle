@@ -696,6 +696,98 @@ proof (subst integral_cong_AE)
        (auto simp: borel_measurable_ereal_iff)
 qed 
 
+lemma (in prob_space) distributed_imp_emeasure_nonzero:
+  assumes X: "distributed M MX X Px"
+  shows "emeasure MX {x \<in> space MX. Px x \<noteq> 0} \<noteq> 0"
+proof
+  note Px = distributed_borel_measurable[OF X] distributed_AE[OF X]
+  interpret X: prob_space "distr M MX X"
+    using distributed_measurable[OF X] by (rule prob_space_distr)
+
+  assume "emeasure MX {x \<in> space MX. Px x \<noteq> 0} = 0"
+  with Px have "AE x in MX. Px x = 0"
+    by (intro AE_I[OF subset_refl]) (auto simp: borel_measurable_ereal_iff)
+  moreover
+  from X.emeasure_space_1 have "(\<integral>\<^isup>+x. Px x \<partial>MX) = 1"
+    unfolding distributed_distr_eq_density[OF X] using Px
+    by (subst (asm) emeasure_density)
+       (auto simp: borel_measurable_ereal_iff intro!: integral_cong cong: positive_integral_cong)
+  ultimately show False
+    by (simp add: positive_integral_cong_AE)
+qed
+
+lemma (in information_space) entropy_le:
+  fixes Px :: "'b \<Rightarrow> real" and MX :: "'b measure"
+  assumes X: "distributed M MX X Px"
+  and fin: "emeasure MX {x \<in> space MX. Px x \<noteq> 0} \<noteq> \<infinity>"
+  and int: "integrable MX (\<lambda>x. - Px x * log b (Px x))"
+  shows "entropy b MX X \<le> log b (measure MX {x \<in> space MX. Px x \<noteq> 0})"
+proof -
+  note Px = distributed_borel_measurable[OF X] distributed_AE[OF X]
+  interpret X: prob_space "distr M MX X"
+    using distributed_measurable[OF X] by (rule prob_space_distr)
+
+  have " - log b (measure MX {x \<in> space MX. Px x \<noteq> 0}) = 
+    - log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX)"
+    using Px fin
+    by (subst integral_indicator) (auto simp: measure_def borel_measurable_ereal_iff)
+  also have "- log b (\<integral> x. indicator {x \<in> space MX. Px x \<noteq> 0} x \<partial>MX) = - log b (\<integral> x. 1 / Px x \<partial>distr M MX X)"
+    unfolding distributed_distr_eq_density[OF X] using Px
+    apply (intro arg_cong[where f="log b"] arg_cong[where f=uminus])
+    by (subst integral_density) (auto simp: borel_measurable_ereal_iff intro!: integral_cong)
+  also have "\<dots> \<le> (\<integral> x. - log b (1 / Px x) \<partial>distr M MX X)"
+  proof (rule X.jensens_inequality[of "\<lambda>x. 1 / Px x" "{0<..}" 0 1 "\<lambda>x. - log b x"])
+    show "AE x in distr M MX X. 1 / Px x \<in> {0<..}"
+      unfolding distributed_distr_eq_density[OF X]
+      using Px by (auto simp: AE_density)
+    have [simp]: "\<And>x. x \<in> space MX \<Longrightarrow> ereal (if Px x = 0 then 0 else 1) = indicator {x \<in> space MX. Px x \<noteq> 0} x"
+      by (auto simp: one_ereal_def)
+    have "(\<integral>\<^isup>+ x. max 0 (ereal (- (if Px x = 0 then 0 else 1))) \<partial>MX) = (\<integral>\<^isup>+ x. 0 \<partial>MX)"
+      by (intro positive_integral_cong) (auto split: split_max)
+    then show "integrable (distr M MX X) (\<lambda>x. 1 / Px x)"
+      unfolding distributed_distr_eq_density[OF X] using Px
+      by (auto simp: positive_integral_density integrable_def borel_measurable_ereal_iff fin positive_integral_max_0
+              cong: positive_integral_cong)
+    have "integrable MX (\<lambda>x. Px x * log b (1 / Px x)) =
+      integrable MX (\<lambda>x. - Px x * log b (Px x))"
+      using Px
+      by (intro integrable_cong_AE)
+         (auto simp: borel_measurable_ereal_iff log_divide_eq
+                  intro!: measurable_If)
+    then show "integrable (distr M MX X) (\<lambda>x. - log b (1 / Px x))"
+      unfolding distributed_distr_eq_density[OF X]
+      using Px int
+      by (subst integral_density) (auto simp: borel_measurable_ereal_iff)
+  qed (auto simp: minus_log_convex[OF b_gt_1])
+  also have "\<dots> = (\<integral> x. log b (Px x) \<partial>distr M MX X)"
+    unfolding distributed_distr_eq_density[OF X] using Px
+    by (intro integral_cong_AE) (auto simp: AE_density log_divide_eq)
+  also have "\<dots> = - entropy b MX X"
+    unfolding distributed_distr_eq_density[OF X] using Px
+    by (subst entropy_distr[OF X]) (auto simp: borel_measurable_ereal_iff integral_density)
+  finally show ?thesis
+    by simp
+qed
+
+lemma (in information_space) entropy_le_space:
+  fixes Px :: "'b \<Rightarrow> real" and MX :: "'b measure"
+  assumes X: "distributed M MX X Px"
+  and fin: "finite_measure MX"
+  and int: "integrable MX (\<lambda>x. - Px x * log b (Px x))"
+  shows "entropy b MX X \<le> log b (measure MX (space MX))"
+proof -
+  note Px = distributed_borel_measurable[OF X] distributed_AE[OF X]
+  interpret finite_measure MX by fact
+  have "entropy b MX X \<le> log b (measure MX {x \<in> space MX. Px x \<noteq> 0})"
+    using int X by (intro entropy_le) auto
+  also have "\<dots> \<le> log b (measure MX (space MX))"
+    using Px distributed_imp_emeasure_nonzero[OF X]
+    by (intro log_le)
+       (auto intro!: borel_measurable_ereal_iff finite_measure_mono b_gt_1
+                     less_le[THEN iffD2] measure_nonneg simp: emeasure_eq_measure)
+  finally show ?thesis .
+qed
+
 lemma (in prob_space) uniform_distributed_params:
   assumes X: "distributed M MX X (\<lambda>x. indicator A x / measure MX A)"
   shows "A \<in> sets MX" "measure MX A \<noteq> 0"
@@ -731,13 +823,9 @@ proof (subst entropy_distr[OF X])
 qed
 
 lemma (in information_space) entropy_simple_distributed:
-  fixes X :: "'a \<Rightarrow> 'b"
-  assumes X: "simple_distributed M X f"
-  shows "\<H>(X) = - (\<Sum>x\<in>X`space M. f x * log b (f x))"
-proof (subst entropy_distr[OF simple_distributed[OF X]])
-  show "- (\<integral>x. f x * log b (f x) \<partial>(count_space (X`space M))) = - (\<Sum>x\<in>X ` space M. f x * log b (f x))"
-    using X by (auto simp add: lebesgue_integral_count_space_finite)
-qed
+  "simple_distributed M X f \<Longrightarrow> \<H>(X) = - (\<Sum>x\<in>X`space M. f x * log b (f x))"
+  by (subst entropy_distr[OF simple_distributed])
+     (auto simp add: lebesgue_integral_count_space_finite)
 
 lemma (in information_space) entropy_le_card_not_0:
   assumes X: "simple_distributed M X f"
@@ -1058,7 +1146,7 @@ proof -
     by (subst distr_distr[OF measurable_snd]) (auto dest: distributed_measurable simp: comp_def)
 
   have "entropy b T Y = - (\<integral>y. Py y * log b (Py y) \<partial>T)"
-    by (rule entropy_distr[OF T Py])
+    by (rule entropy_distr[OF Py])
   also have "\<dots> = - (\<integral>(x,y). Pxy (x,y) * log b (Py y) \<partial>(S \<Otimes>\<^isub>M T))"
     using b_gt_1 Py[THEN distributed_real_measurable]
     by (subst distributed_transform_integral[OF Pxy Py, where T=snd]) (auto intro!: integral_cong)
@@ -1083,7 +1171,7 @@ proof -
   with I1 I2 show ?thesis
     unfolding conditional_entropy_def
     apply (subst e_eq)
-    apply (subst entropy_distr[OF ST Pxy])
+    apply (subst entropy_distr[OF Pxy])
     unfolding minus_diff_minus
     apply (subst integral_diff(2)[symmetric])
     apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
@@ -1172,14 +1260,14 @@ lemma (in information_space) mutual_information_eq_entropy_conditional_entropy_d
 proof -
   have X: "entropy b S X = - (\<integral>x. Pxy x * log b (Px (fst x)) \<partial>(S \<Otimes>\<^isub>M T))"
     using b_gt_1 Px[THEN distributed_real_measurable]
-    apply (subst entropy_distr[OF S Px])
+    apply (subst entropy_distr[OF Px])
     apply (subst distributed_transform_integral[OF Pxy Px, where T=fst])
     apply (auto intro!: integral_cong)
     done
 
   have Y: "entropy b T Y = - (\<integral>x. Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^isub>M T))"
     using b_gt_1 Py[THEN distributed_real_measurable]
-    apply (subst entropy_distr[OF T Py])
+    apply (subst entropy_distr[OF Py])
     apply (subst distributed_transform_integral[OF Pxy Py, where T=snd])
     apply (auto intro!: integral_cong)
     done
@@ -1190,7 +1278,7 @@ proof -
   have ST: "sigma_finite_measure (S \<Otimes>\<^isub>M T)" ..
 
   have XY: "entropy b (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) = - (\<integral>x. Pxy x * log b (Pxy x) \<partial>(S \<Otimes>\<^isub>M T))"
-    by (subst entropy_distr[OF ST Pxy]) (auto intro!: integral_cong)
+    by (subst entropy_distr[OF Pxy]) (auto intro!: integral_cong)
   
   have "AE x in S \<Otimes>\<^isub>M T. Px (fst x) = 0 \<longrightarrow> Pxy x = 0"
     by (intro subdensity_real[of fst, OF _ Pxy Px]) (auto intro: measurable_Pair)
@@ -1303,7 +1391,7 @@ proof -
   also have "\<dots> = - (\<Sum>x\<in>(\<lambda>x. (Y x, X x)) ` space M. ?h x * log b (?h x))"
     by (auto intro!: setsum_cong)
   also have "\<dots> = entropy b (count_space (Y ` space M) \<Otimes>\<^isub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))"
-    by (subst entropy_distr[OF _ simple_distributed_joint[OF YX]])
+    by (subst entropy_distr[OF simple_distributed_joint[OF YX]])
        (auto simp: pair_measure_count_space sigma_finite_measure_count_space_finite lebesgue_integral_count_space_finite
              cong del: setsum_cong  intro!: setsum_mono_zero_left)
   finally have "\<H>(\<lambda>x. (X x, Y x)) = entropy b (count_space (Y ` space M) \<Otimes>\<^isub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))" .
