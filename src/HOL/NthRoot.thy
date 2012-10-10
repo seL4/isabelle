@@ -398,9 +398,9 @@ qed
 
 lemma DERIV_real_root_generic:
   assumes "0 < n" and "x \<noteq> 0"
-  and even: "\<lbrakk> even n ; 0 < x \<rbrakk> \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
-  and even: "\<lbrakk> even n ; x < 0 \<rbrakk> \<Longrightarrow> D = - inverse (real n * root n x ^ (n - Suc 0))"
-  and odd: "odd n \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
+    and "\<lbrakk> even n ; 0 < x \<rbrakk> \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
+    and "\<lbrakk> even n ; x < 0 \<rbrakk> \<Longrightarrow> D = - inverse (real n * root n x ^ (n - Suc 0))"
+    and "odd n \<Longrightarrow> D = inverse (real n * root n x ^ (n - Suc 0))"
   shows "DERIV (root n) x :> D"
 using assms by (cases "even n", cases "0 < x",
   auto intro: DERIV_real_root[THEN DERIV_cong]
