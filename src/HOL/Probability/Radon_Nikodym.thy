@@ -776,15 +776,16 @@ lemma finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
   and fin: "integral\<^isup>P M f \<noteq> \<infinity>"
-  shows "(\<forall>A\<in>sets M. (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. g x * indicator A x \<partial>M))
-    \<longleftrightarrow> (AE x in M. f x = g x)"
-    (is "(\<forall>A\<in>sets M. ?P f A = ?P g A) \<longleftrightarrow> _")
+  shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
 proof (intro iffI ballI)
   fix A assume eq: "AE x in M. f x = g x"
-  then show "?P f A = ?P g A"
-    by (auto intro: positive_integral_cong_AE)
+  with borel show "density M f = density M g"
+    by (auto intro: density_cong)
 next
-  assume eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
+  let ?P = "\<lambda>f A. \<integral>\<^isup>+ x. f x * indicator A x \<partial>M"
+  assume "density M f = density M g"
+  with borel have eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
+    by (simp add: emeasure_density[symmetric])
   from this[THEN bspec, OF top] fin
   have g_fin: "integral\<^isup>P M g \<noteq> \<infinity>" by (simp cong: positive_integral_cong)
   { fix f g assume borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
@@ -844,7 +845,7 @@ proof -
     unfolding indicator_def by auto
   have "\<forall>i. AE x in M. ?f (Q i) x = ?f' (Q i) x" using borel Q_fin Q pos
     by (intro finite_density_unique[THEN iffD1] allI)
-       (auto intro!: borel_measurable_ereal_times f Int simp: *)
+       (auto intro!: borel_measurable_ereal_times f measure_eqI Int simp: emeasure_density * subset_eq)
   moreover have "AE x in M. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> ereal" assume borel: "f \<in> borel_measurable M"
@@ -932,6 +933,41 @@ lemma (in sigma_finite_measure) density_unique_iff:
   assumes f': "f' \<in> borel_measurable M" and "AE x in M. 0 \<le> f' x"
   shows "density M f = density M f' \<longleftrightarrow> (AE x in M. f x = f' x)"
   using density_unique[OF assms] density_cong[OF f f'] by auto
+
+lemma sigma_finite_density_unique:
+  assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  assumes pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
+  and fin: "sigma_finite_measure (density M f)"
+  shows "density M f = density M g \<longleftrightarrow> (AE x in M. f x = g x)"
+proof
+  assume "AE x in M. f x = g x" with borel show "density M f = density M g" 
+    by (auto intro: density_cong)
+next
+  assume eq: "density M f = density M g"
+  interpret f!: sigma_finite_measure "density M f" by fact
+  from f.sigma_finite_incseq guess A . note cover = this
+
+  have "AE x in M. \<forall>i. x \<in> A i \<longrightarrow> f x = g x"
+    unfolding AE_all_countable
+  proof
+    fix i
+    have "density (density M f) (indicator (A i)) = density (density M g) (indicator (A i))"
+      unfolding eq ..
+    moreover have "(\<integral>\<^isup>+x. f x * indicator (A i) x \<partial>M) \<noteq> \<infinity>"
+      using cover(1) cover(3)[of i] borel by (auto simp: emeasure_density subset_eq)
+    ultimately have "AE x in M. f x * indicator (A i) x = g x * indicator (A i) x"
+      using borel pos cover(1) pos
+      by (intro finite_density_unique[THEN iffD1])
+         (auto simp: density_density_eq subset_eq)
+    then show "AE x in M. x \<in> A i \<longrightarrow> f x = g x"
+      by auto
+  qed
+  with AE_space show "AE x in M. f x = g x"
+    apply eventually_elim
+    using cover(2)[symmetric]
+    apply auto
+    done
+qed
 
 lemma (in sigma_finite_measure) sigma_finite_iff_density_finite':
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
@@ -1076,15 +1112,17 @@ lemma (in sigma_finite_measure) RN_deriv_unique:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   and eq: "density M f = N"
   shows "AE x in M. f x = RN_deriv M N x"
-proof (rule density_unique)
-  have ac: "absolutely_continuous M N"
-    using f(1) unfolding eq[symmetric] by (rule absolutely_continuousI_density)
-  have eq2: "sets N = sets M"
-    unfolding eq[symmetric] by simp
-  show "RN_deriv M N \<in> borel_measurable M" "AE x in M. 0 \<le> RN_deriv M N x"
-    "density M f = density M (RN_deriv M N)"
-    using RN_deriv[OF ac eq2] eq by auto
-qed fact+
+  unfolding eq[symmetric]
+  by (intro density_unique_iff[THEN iffD1] f borel_measurable_RN_deriv_density
+            RN_deriv_density_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
+
+lemma RN_deriv_unique_sigma_finite:
+  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
+  and eq: "density M f = N" and fin: "sigma_finite_measure N"
+  shows "AE x in M. f x = RN_deriv M N x"
+  using fin unfolding eq[symmetric]
+  by (intro sigma_finite_density_unique[THEN iffD1] f borel_measurable_RN_deriv_density
+            RN_deriv_density_nonneg[THEN AE_I2] density_RN_deriv_density[symmetric])
 
 lemma (in sigma_finite_measure) RN_deriv_distr:
   fixes T :: "'a \<Rightarrow> 'b"

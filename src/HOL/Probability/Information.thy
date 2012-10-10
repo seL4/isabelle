@@ -666,41 +666,75 @@ abbreviation (in information_space)
 
 lemma (in information_space) entropy_distr:
   fixes X :: "'a \<Rightarrow> 'b"
-  assumes "sigma_finite_measure MX" and X: "distributed M MX X f"
+  assumes X: "distributed M MX X f"
   shows "entropy b MX X = - (\<integral>x. f x * log b (f x) \<partial>MX)"
+  unfolding entropy_def KL_divergence_def entropy_density_def comp_def
+proof (subst integral_cong_AE)
+  note D = distributed_measurable[OF X] distributed_borel_measurable[OF X] distributed_AE[OF X]
+  interpret X: prob_space "distr M MX X"
+    using D(1) by (rule prob_space_distr)
+
+  have sf: "sigma_finite_measure (distr M MX X)" by default
+  have ae: "AE x in MX. f x = RN_deriv MX (density MX f) x"
+    using D
+    by (intro RN_deriv_unique_sigma_finite)
+       (auto intro: divide_nonneg_nonneg measure_nonneg
+             simp: distributed_distr_eq_density[symmetric, OF X] sf)
+  show "AE x in distr M MX X. log b (real (RN_deriv MX (distr M MX X) x)) =
+    log b (f x)"
+    unfolding distributed_distr_eq_density[OF X]
+    apply (subst AE_density)
+    using D apply simp
+    using ae apply eventually_elim
+    apply (subst (asm) eq_commute)
+    apply auto
+    done
+  show "- (\<integral> x. log b (f x) \<partial>distr M MX X) = - (\<integral> x. f x * log b (f x) \<partial>MX)"
+    unfolding distributed_distr_eq_density[OF X]
+    using D
+    by (subst integral_density)
+       (auto simp: borel_measurable_ereal_iff)
+qed 
+
+lemma (in prob_space) uniform_distributed_params:
+  assumes X: "distributed M MX X (\<lambda>x. indicator A x / measure MX A)"
+  shows "A \<in> sets MX" "measure MX A \<noteq> 0"
 proof -
-  interpret MX: sigma_finite_measure MX by fact
-  from X show ?thesis
-    unfolding entropy_def X[THEN distributed_distr_eq_density]
-    by (subst MX.KL_density[OF b_gt_1]) (simp_all add: distributed_real_AE distributed_real_measurable)
+  interpret X: prob_space "distr M MX X"
+    using distributed_measurable[OF X] by (rule prob_space_distr)
+
+  show "measure MX A \<noteq> 0"
+  proof
+    assume "measure MX A = 0"
+    with X.emeasure_space_1 X.prob_space distributed_distr_eq_density[OF X]
+    show False
+      by (simp add: emeasure_density zero_ereal_def[symmetric])
+  qed
+  with measure_notin_sets[of A MX] show "A \<in> sets MX"
+    by blast
 qed
 
 lemma (in information_space) entropy_uniform:
-  assumes "sigma_finite_measure MX"
-  assumes A: "A \<in> sets MX" "emeasure MX A \<noteq> 0" "emeasure MX A \<noteq> \<infinity>"
-  assumes X: "distributed M MX X (\<lambda>x. 1 / measure MX A * indicator A x)"
+  assumes X: "distributed M MX X (\<lambda>x. indicator A x / measure MX A)" (is "distributed _ _ _ ?f")
   shows "entropy b MX X = log b (measure MX A)"
-proof (subst entropy_distr[OF _ X])
-  let ?f = "\<lambda>x. 1 / measure MX A * indicator A x"
-  have "- (\<integral>x. ?f x * log b (?f x) \<partial>MX) = 
-    - (\<integral>x. (log b (1 / measure MX A) / measure MX A) * indicator A x \<partial>MX)"
-    by (auto intro!: integral_cong simp: indicator_def)
-  also have "\<dots> = - log b (inverse (measure MX A))"
-    using A by (subst integral_cmult(2))
-               (simp_all add: measure_def real_of_ereal_eq_0 integral_cmult inverse_eq_divide)
-  also have "\<dots> = log b (measure MX A)"
-    using b_gt_1 A by (subst log_inverse) (auto simp add: measure_def less_le real_of_ereal_eq_0
-                                                          emeasure_nonneg real_of_ereal_pos)
-  finally show "- (\<integral>x. ?f x * log b (?f x) \<partial>MX) = log b (measure MX A)" by simp
-qed fact+
+proof (subst entropy_distr[OF X])
+  have [simp]: "emeasure MX A \<noteq> \<infinity>"
+    using uniform_distributed_params[OF X] by (auto simp add: measure_def)
+  have eq: "(\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
+    (\<integral> x. (- log b (measure MX A) / measure MX A) * indicator A x \<partial>MX)"
+    using measure_nonneg[of MX A] uniform_distributed_params[OF X]
+    by (auto intro!: integral_cong split: split_indicator simp: log_divide_eq)
+  show "- (\<integral> x. indicator A x / measure MX A * log b (indicator A x / measure MX A) \<partial>MX) =
+    log b (measure MX A)"
+    unfolding eq using uniform_distributed_params[OF X]
+    by (subst lebesgue_integral_cmult) (auto simp: measure_def)
+qed
 
 lemma (in information_space) entropy_simple_distributed:
   fixes X :: "'a \<Rightarrow> 'b"
   assumes X: "simple_distributed M X f"
   shows "\<H>(X) = - (\<Sum>x\<in>X`space M. f x * log b (f x))"
-proof (subst entropy_distr[OF _ simple_distributed[OF X]])
-  show "sigma_finite_measure (count_space (X ` space M))"
-    using X by (simp add: sigma_finite_measure_count_space_finite simple_distributed_def)
+proof (subst entropy_distr[OF simple_distributed[OF X]])
   show "- (\<integral>x. f x * log b (f x) \<partial>(count_space (X`space M))) = - (\<Sum>x\<in>X ` space M. f x * log b (f x))"
     using X by (auto simp add: lebesgue_integral_count_space_finite)
 qed
