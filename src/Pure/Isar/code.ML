@@ -437,9 +437,14 @@ fun is_abstr thy c = case get_type_of_constr_or_abstr thy c
 
 exception BAD_THM of string;
 fun bad_thm msg = raise BAD_THM msg;
-fun error_thm f thm = f thm handle BAD_THM msg => error msg;
-fun warning_thm f thm = SOME (f thm) handle BAD_THM msg => (warning msg; NONE)
-fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
+fun error_thm f thy (thm, proper) = f (thm, proper)
+  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Display.string_of_thm_global thy thm);
+fun error_abs_thm f thy thm = f thm
+  handle BAD_THM msg => error (msg ^ ", in theorem:\n" ^ Display.string_of_thm_global thy thm);
+fun warning_thm f thy (thm, proper) = SOME (f (thm, proper))
+  handle BAD_THM msg => (warning (msg ^ ", in theorem:\n" ^ Display.string_of_thm_global thy thm); NONE)
+fun try_thm f thm_proper = SOME (f thm_proper)
+  handle BAD_THM _ => NONE;
 
 fun is_linear thm =
   let val (_, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm
@@ -458,30 +463,29 @@ fun check_decl_ty thy (c, ty) =
 
 fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
   let
-    fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
     fun vars_of t = fold_aterms (fn Var (v, _) => insert (op =) v
-      | Free _ => bad "Illegal free variable in equation"
+      | Free _ => bad_thm "Illegal free variable"
       | _ => I) t [];
     fun tvars_of t = fold_term_types (fn _ =>
       fold_atyps (fn TVar (v, _) => insert (op =) v
-        | TFree _ => bad "Illegal free type variable in equation")) t [];
+        | TFree _ => bad_thm "Illegal free type variable")) t [];
     val lhs_vs = vars_of lhs;
     val rhs_vs = vars_of rhs;
     val lhs_tvs = tvars_of lhs;
     val rhs_tvs = tvars_of rhs;
     val _ = if null (subtract (op =) lhs_vs rhs_vs)
       then ()
-      else bad "Free variables on right hand side of equation";
+      else bad_thm "Free variables on right hand side of equation";
     val _ = if null (subtract (op =) lhs_tvs rhs_tvs)
       then ()
-      else bad "Free type variables on right hand side of equation";
+      else bad_thm "Free type variables on right hand side of equation";
     val (head, args) = strip_comb lhs;
     val (c, ty) = case head
      of Const (c_ty as (_, ty)) => (AxClass.unoverload_const thy c_ty, ty)
-      | _ => bad "Equation not headed by constant";
-    fun check _ (Abs _) = bad "Abstraction on left hand side of equation"
+      | _ => bad_thm "Equation not headed by constant";
+    fun check _ (Abs _) = bad_thm "Abstraction on left hand side of equation"
       | check 0 (Var _) = ()
-      | check _ (Var _) = bad "Variable with application on left hand side of equation"
+      | check _ (Var _) = bad_thm "Variable with application on left hand side of equation"
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
       | check n (Const (c_ty as (c, ty))) =
           if allow_pats then let
@@ -489,70 +493,68 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
           in if n = (length o binder_types) ty
             then if allow_consts orelse is_constr thy c'
               then ()
-              else bad (quote c ^ " is not a constructor, on left hand side of equation")
-            else bad ("Partially applied constant " ^ quote c ^ " on left hand side of equation")
-          end else bad ("Pattern not allowed here, but constant " ^ quote c ^ " encountered on left hand side")
+              else bad_thm (quote c ^ " is not a constructor, on left hand side of equation")
+            else bad_thm ("Partially applied constant " ^ quote c ^ " on left hand side of equation")
+          end else bad_thm ("Pattern not allowed here, but constant " ^ quote c ^ " encountered on left hand side of equation")
     val _ = map (check 0) args;
     val _ = if allow_nonlinear orelse is_linear thm then ()
-      else bad "Duplicate variables on left hand side of equation";
+      else bad_thm "Duplicate variables on left hand side of equation";
     val _ = if (is_none o AxClass.class_of_param thy) c then ()
-      else bad "Overloaded constant as head in equation";
+      else bad_thm "Overloaded constant as head in equation";
     val _ = if not (is_constr thy c) then ()
-      else bad "Constructor as head in equation";
+      else bad_thm "Constructor as head in equation";
     val _ = if not (is_abstr thy c) then ()
-      else bad "Abstractor as head in equation";
+      else bad_thm "Abstractor as head in equation";
     val _ = check_decl_ty thy (c, ty);
   in () end;
 
 fun gen_assert_eqn thy check_patterns (thm, proper) =
   let
-    fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
-      handle TERM _ => bad "Not an equation"
-           | THM _ => bad "Not a proper equation";
+      handle TERM _ => bad_thm "Not an equation"
+           | THM _ => bad_thm "Not a proper equation";
     val _ = check_eqn thy { allow_nonlinear = not proper,
       allow_consts = not (proper andalso check_patterns), allow_pats = true } thm (lhs, rhs);
   in (thm, proper) end;
 
 fun assert_abs_eqn thy some_tyco thm =
   let
-    fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
     val (full_lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
-      handle TERM _ => bad "Not an equation"
-           | THM _ => bad "Not a proper equation";
+      handle TERM _ => bad_thm "Not an equation"
+           | THM _ => bad_thm "Not a proper equation";
     val (rep, lhs) = dest_comb full_lhs
-      handle TERM _ => bad "Not an abstract equation";
+      handle TERM _ => bad_thm "Not an abstract equation";
     val (rep_const, ty) = dest_Const rep
-      handle TERM _ => bad "Not an abstract equation";
+      handle TERM _ => bad_thm "Not an abstract equation";
     val (tyco, Ts) = (dest_Type o domain_type) ty
-      handle TERM _ => bad "Not an abstract equation"
-           | TYPE _ => bad "Not an abstract equation";
+      handle TERM _ => bad_thm "Not an abstract equation"
+           | TYPE _ => bad_thm "Not an abstract equation";
     val _ = case some_tyco of SOME tyco' => if tyco = tyco' then ()
-          else bad ("Abstract type mismatch:" ^ quote tyco ^ " vs. " ^ quote tyco')
+          else bad_thm ("Abstract type mismatch:" ^ quote tyco ^ " vs. " ^ quote tyco')
       | NONE => ();
     val (vs', (_, (rep', _))) = get_abstype_spec thy tyco;
     val _ = if rep_const = rep' then ()
-      else bad ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
+      else bad_thm ("Projection mismatch: " ^ quote rep_const ^ " vs. " ^ quote rep');
     val _ = check_eqn thy { allow_nonlinear = false,
       allow_consts = false, allow_pats = false } thm (lhs, rhs);
     val _ = if forall2 (fn T => fn (_, sort) => Sign.of_sort thy (T, sort)) Ts vs' then ()
       else error ("Type arguments do not satisfy sort constraints of abstype certificate.");
   in (thm, tyco) end;
 
-fun assert_eqn thy = error_thm (gen_assert_eqn thy true);
+fun assert_eqn thy = error_thm (gen_assert_eqn thy true) thy;
 
 fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
 
-fun mk_eqn thy = error_thm (gen_assert_eqn thy false) o
+fun mk_eqn thy = error_thm (gen_assert_eqn thy false) thy o
   apfst (meta_rewrite thy);
 
 fun mk_eqn_warning thy = Option.map (fn (thm, _) => (thm, is_linear thm))
-  o warning_thm (gen_assert_eqn thy false) o rpair false o meta_rewrite thy;
+  o warning_thm (gen_assert_eqn thy false) thy o rpair false o meta_rewrite thy;
 
 fun mk_eqn_liberal thy = Option.map (fn (thm, _) => (thm, is_linear thm))
   o try_thm (gen_assert_eqn thy false) o rpair false o meta_rewrite thy;
 
-fun mk_abs_eqn thy = error_thm (assert_abs_eqn thy NONE) o meta_rewrite thy;
+fun mk_abs_eqn thy = error_abs_thm (assert_abs_eqn thy NONE) thy o meta_rewrite thy;
 
 val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
@@ -632,23 +634,22 @@ fun canonize_thms thy = desymbolize_tvars #> same_arity thy #> map desymbolize_v
 fun check_abstype_cert thy proto_thm =
   let
     val thm = (AxClass.unoverload thy o meta_rewrite thy) proto_thm;
-    fun bad s = bad_thm (s ^ ":\n" ^ Display.string_of_thm_global thy thm);
     val (lhs, rhs) = Logic.dest_equals (Thm.plain_prop_of thm)
-      handle TERM _ => bad "Not an equation"
-           | THM _ => bad "Not a proper equation";
+      handle TERM _ => bad_thm "Not an equation"
+           | THM _ => bad_thm "Not a proper equation";
     val ((abs, raw_ty), ((rep, rep_ty), param)) = (apsnd (apfst dest_Const o dest_comb)
         o apfst dest_Const o dest_comb) lhs
-      handle TERM _ => bad "Not an abstype certificate";
+      handle TERM _ => bad_thm "Not an abstype certificate";
     val _ = pairself (fn c => if (is_some o AxClass.class_of_param thy) c
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val _ = check_decl_ty thy (abs, raw_ty);
     val _ = check_decl_ty thy (rep, rep_ty);
     val _ = if length (binder_types raw_ty) = 1
       then ()
-      else bad "Bad type for abstract constructor";
+      else bad_thm "Bad type for abstract constructor";
     val _ = (fst o dest_Var) param
-      handle TERM _ => bad "Not an abstype certificate";
-    val _ = if param = rhs then () else bad "Not an abstype certificate";
+      handle TERM _ => bad_thm "Not an abstype certificate";
+    val _ = if param = rhs then () else bad_thm "Not an abstype certificate";
     val ((tyco, sorts), (abs, (vs, ty'))) =
       analyze_constructor thy (abs, Logic.unvarifyT_global raw_ty);
     val ty = domain_type ty';
@@ -1198,7 +1199,7 @@ fun abstype_interpretation f = Abstype_Interpretation.interpretation
 fun add_abstype proto_thm thy =
   let
     val (tyco, (vs, (abs_ty as (abs, (_, ty)), (rep, cert)))) =
-      error_thm (check_abstype_cert thy) proto_thm;
+      error_abs_thm (check_abstype_cert thy) thy proto_thm;
   in
     thy
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
