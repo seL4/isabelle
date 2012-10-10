@@ -47,14 +47,6 @@ lemma (in prob_space) indep_events_def:
 definition (in prob_space)
   "indep_event A B \<longleftrightarrow> indep_events (bool_case A B) UNIV"
 
-definition (in prob_space)
-  "indep_vars M' X I \<longleftrightarrow>
-    (\<forall>i\<in>I. random_variable (M' i) (X i)) \<and>
-    indep_sets (\<lambda>i. sigma_sets (space M) { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
-
-definition (in prob_space)
-  "indep_var Ma A Mb B \<longleftrightarrow> indep_vars (bool_case Ma Mb) (bool_case A B) UNIV"
-
 lemma (in prob_space) indep_sets_cong:
   "I = J \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i = G i) \<Longrightarrow> indep_sets F I \<longleftrightarrow> indep_sets G J"
   by (simp add: indep_sets_def, intro conj_cong all_cong imp_cong ball_cong) blast+
@@ -131,16 +123,6 @@ lemma (in prob_space) indep_setD:
   shows "prob (a \<inter> b) = prob a * prob b"
   using indep[unfolded indep_set_def, THEN indep_setsD, of UNIV "bool_case a b"] ev
   by (simp add: ac_simps UNIV_bool)
-
-lemma (in prob_space) indep_var_eq:
-  "indep_var S X T Y \<longleftrightarrow>
-    (random_variable S X \<and> random_variable T Y) \<and>
-    indep_set
-      (sigma_sets (space M) { X -` A \<inter> space M | A. A \<in> sets S})
-      (sigma_sets (space M) { Y -` A \<inter> space M | A. A \<in> sets T})"
-  unfolding indep_var_def indep_vars_def indep_set_def UNIV_bool
-  by (intro arg_cong2[where f="op \<and>"] arg_cong2[where f=indep_sets] ext)
-     (auto split: bool.split)
 
 lemma (in prob_space)
   assumes indep: "indep_set A B"
@@ -341,17 +323,35 @@ next
     by (rule indep_sets_mono_sets) (intro subsetI sigma_sets.Basic)
 qed
 
-lemma (in prob_space)
-  "indep_vars M' X I \<longleftrightarrow>
+definition (in prob_space)
+  indep_vars_def2: "indep_vars M' X I \<longleftrightarrow>
     (\<forall>i\<in>I. random_variable (M' i) (X i)) \<and>
     indep_sets (\<lambda>i. { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
-  unfolding indep_vars_def
+
+definition (in prob_space)
+  "indep_var Ma A Mb B \<longleftrightarrow> indep_vars (bool_case Ma Mb) (bool_case A B) UNIV"
+
+lemma (in prob_space) indep_vars_def:
+  "indep_vars M' X I \<longleftrightarrow>
+    (\<forall>i\<in>I. random_variable (M' i) (X i)) \<and>
+    indep_sets (\<lambda>i. sigma_sets (space M) { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
+  unfolding indep_vars_def2
   apply (rule conj_cong[OF refl])
-  apply (rule indep_sets_sigma_sets_iff)
+  apply (rule indep_sets_sigma_sets_iff[symmetric])
   apply (auto simp: Int_stable_def)
   apply (rule_tac x="A \<inter> Aa" in exI)
   apply auto
   done
+
+lemma (in prob_space) indep_var_eq:
+  "indep_var S X T Y \<longleftrightarrow>
+    (random_variable S X \<and> random_variable T Y) \<and>
+    indep_set
+      (sigma_sets (space M) { X -` A \<inter> space M | A. A \<in> sets S})
+      (sigma_sets (space M) { Y -` A \<inter> space M | A. A \<in> sets T})"
+  unfolding indep_var_def indep_vars_def indep_set_def UNIV_bool
+  by (intro arg_cong2[where f="op \<and>"] arg_cong2[where f=indep_sets] ext)
+     (auto split: bool.split)
 
 lemma (in prob_space) indep_sets2_eq:
   "indep_set A B \<longleftrightarrow> A \<subseteq> events \<and> B \<subseteq> events \<and> (\<forall>a\<in>A. \<forall>b\<in>B. prob (a \<inter> b) = prob a * prob b)"
