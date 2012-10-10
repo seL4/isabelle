@@ -1296,7 +1296,7 @@ begin
 definition
   "\<bottom> = (\<lambda>x. \<bottom>)"
 
-lemma bot_apply [simp] (* CANDIDATE [code] *):
+lemma bot_apply [simp, code]:
   "\<bottom> x = \<bottom>"
   by (simp add: bot_fun_def)
 
@@ -1311,7 +1311,7 @@ begin
 definition
   [no_atp]: "\<top> = (\<lambda>x. \<top>)"
 
-lemma top_apply [simp] (* CANDIDATE [code] *):
+lemma top_apply [simp, code]:
   "\<top> x = \<top>"
   by (simp add: top_fun_def)
 

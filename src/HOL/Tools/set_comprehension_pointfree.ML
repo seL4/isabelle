@@ -26,6 +26,20 @@ fun mk_inf (t1, t2) =
     Const (@{const_name Lattices.inf_class.inf}, T --> T --> T) $ t1 $ t2
   end
 
+fun mk_sup (t1, t2) =
+  let
+    val T = fastype_of t1
+  in
+    Const (@{const_name Lattices.sup_class.sup}, T --> T --> T) $ t1 $ t2
+  end
+
+fun mk_Compl t =
+  let
+    val T = fastype_of t
+  in
+    Const (@{const_name "Groups.uminus_class.uminus"}, T --> T) $ t
+  end
+
 fun mk_image t1 t2 =
   let
     val T as Type (@{type_name fun}, [_ , R]) = fastype_of t1
@@ -68,11 +82,13 @@ fun list_tupled_abs [] f = f
 fun mk_pointfree_expr t =
   let
     val (vs, t'') = strip_ex (dest_Collect t)
-    val (eq::conjs) = HOLogic.dest_conj t''
-    val f = if fst (HOLogic.dest_eq eq) = Bound (length vs)
-            then snd (HOLogic.dest_eq eq)
-            else raise TERM("mk_pointfree_expr", [t]);
-    val mems = map (apfst dest_Bound o HOLogic.dest_mem) conjs
+    val conjs = HOLogic.dest_conj t''
+    val is_the_eq =
+      the_default false o (try (fn eq => fst (HOLogic.dest_eq eq) = Bound (length vs)))
+    val SOME eq = find_first is_the_eq conjs
+    val f = snd (HOLogic.dest_eq eq)
+    val conjs' = filter_out (fn t => eq = t) conjs
+    val mems = map (apfst dest_Bound o HOLogic.dest_mem) conjs'
     val grouped_mems = AList.group (op =) mems
     fun mk_grouped_unions (i, T) =
       case AList.lookup (op =) grouped_mems i of
@@ -107,9 +123,8 @@ val dest_image_Sigma_tac = etac @{thm imageE}
 
 val intro_Collect_tac = rtac @{thm iffD2[OF mem_Collect_eq]}
   THEN' REPEAT_DETERM1 o resolve_tac @{thms exI}
-  THEN' (TRY o (rtac @{thm conjI}))
-  THEN' (TRY o hyp_subst_tac)
-  THEN' rtac @{thm refl};
+  THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
+  THEN' (K (ALLGOALS (TRY o ((TRY o hyp_subst_tac) THEN' rtac @{thm refl}))))
 
 val tac =
   let
@@ -125,20 +140,22 @@ val tac =
     val subset_tac2 = rtac @{thm subsetI}
       THEN' dest_image_Sigma_tac
       THEN' intro_Collect_tac
-      THEN' REPEAT_DETERM o
-        (rtac @{thm conjI}
-        ORELSE' eresolve_tac @{thms IntD1 IntD2}
-        ORELSE' atac);
+      THEN' REPEAT_DETERM o (eresolve_tac @{thms IntD1 IntD2} ORELSE' atac);
   in
     rtac @{thm subset_antisym} THEN' subset_tac1 THEN' subset_tac2
   end;
 
 fun conv ctxt t =
   let
-    fun mk_thm t' = Goal.prove ctxt [] []
-      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t'))) (K (tac 1));
+    val ct = cterm_of (Proof_Context.theory_of ctxt) t
+    val Bex_def = mk_meta_eq @{thm Bex_def}
+    val unfold_eq = Conv.bottom_conv (K (Conv.try_conv (Conv.rewr_conv Bex_def))) ctxt ct
+    val t' = term_of (Thm.rhs_of unfold_eq) 
+    fun mk_thm t'' = Goal.prove ctxt [] []
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (K (tac 1))
+    fun unfold th = th RS ((unfold_eq RS meta_eq_to_obj_eq) RS @{thm trans})
   in
-    Option.map mk_thm (rewrite_term t)
+    Option.map (unfold o mk_thm) (rewrite_term t')
   end;
 
 (* simproc *)
@@ -152,15 +169,23 @@ fun base_simproc ss redex =
     |> Option.map (fn thm => thm RS @{thm eq_reflection})
   end;
 
-(* FIXME: turn into generic simproc for many predicates, i.e., remove hard-coded finite! *)
+fun instantiate_arg_cong ctxt pred =
+  let
+    val certify = cterm_of (Proof_Context.theory_of ctxt)
+    val arg_cong = @{thm arg_cong}
+    val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (concl_of arg_cong)))
+  in
+    cterm_instantiate [(certify f, certify pred)] arg_cong
+  end;
+
 fun simproc ss redex =
   let
     val ctxt = Simplifier.the_context ss
-    val _ $ set_compr = term_of redex
+    val pred $ set_compr = term_of redex
+    val arg_cong' = instantiate_arg_cong ctxt pred
   in
     conv ctxt set_compr
-    |> Option.map (fn thm =>
-         thm RS @{thm arg_cong[of _ _ finite]} RS @{thm eq_reflection})
+    |> Option.map (fn thm => thm RS arg_cong' RS @{thm eq_reflection})
   end;
 
 fun code_simproc ss redex =

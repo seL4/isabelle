@@ -16,18 +16,7 @@ inductive finite :: "'a set \<Rightarrow> bool"
     emptyI [simp, intro!]: "finite {}"
   | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
 
-(* FIXME: move to Set theory *)
-ML_file "Tools/set_comprehension_pointfree.ML"
-
-simproc_setup finite_Collect ("finite (Collect P)") =
-  {* K Set_Comprehension_Pointfree.simproc *}
-
-(* FIXME: move to Set theory*)
-setup {*
-  Code_Preproc.map_pre (fn ss => ss addsimprocs
-    [Raw_Simplifier.make_simproc {name = "set comprehension", lhss = [@{cpat "Collect ?P"}],
-    proc = K Set_Comprehension_Pointfree.code_simproc, identifier = []}])
-*}
+simproc_setup finite_Collect ("finite (Collect P)") = {* K Set_Comprehension_Pointfree.simproc *}
 
 lemma finite_induct [case_names empty insert, induct set: finite]:
   -- {* Discharging @{text "x \<notin> F"} entails extra work. *}

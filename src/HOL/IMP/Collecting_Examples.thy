@@ -7,12 +7,6 @@ declare insert_code[code del] union_coset_filter[code del]
 lemma insert_code [code]:  "insert x (set xs) = set (x#xs)"
 by simp
 
-text{* Make assignment rule executable: *}
-declare step.simps(2)[code del]
-lemma [code]: "step S (x ::= e {P}) = (x ::= e {(%s. s(x := aval e s)) ` S})"
-by auto
-declare step.simps(1,3-)[code]
-
 text{* The example: *}
 definition "c = WHILE Less (V ''x'') (N 3)
                 DO ''x'' ::= Plus (V ''x'') (N 2)"
