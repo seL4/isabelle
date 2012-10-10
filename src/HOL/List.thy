@@ -5514,8 +5514,22 @@ lemma list_ex_iff_not_all_inverval_int [code_unfold]:
   "list_ex P [i..j] \<longleftrightarrow> \<not> (all_interval_int (Not \<circ> P) i j)"
   by (simp add: list_ex_iff all_interval_int_def)
 
-hide_const (open) member null maps map_filter all_interval_nat all_interval_int
+text {* optimized code (tail-recursive) for @{term length} *}
 
+definition gen_length :: "nat \<Rightarrow> 'a list \<Rightarrow> nat"
+where "gen_length n xs = n + length xs"
+
+lemma gen_length_code [code]:
+  "gen_length n [] = n"
+  "gen_length n (x # xs) = gen_length (Suc n) xs"
+by(simp_all add: gen_length_def)
+
+declare list.size(3-4)[code del]
+
+lemma length_code [code]: "length = gen_length 0"
+by(simp add: gen_length_def fun_eq_iff)
+
+hide_const (open) member null maps map_filter all_interval_nat all_interval_int gen_length
 
 subsubsection {* Pretty lists *}
 
