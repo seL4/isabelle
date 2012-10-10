@@ -22,104 +22,6 @@ lemma setsum_cartesian_product':
   "(\<Sum>x\<in>A \<times> B. f x) = (\<Sum>x\<in>A. setsum (\<lambda>y. f (x, y)) B)"
   unfolding setsum_cartesian_product by simp
 
-section "Convex theory"
-
-lemma log_setsum:
-  assumes "finite s" "s \<noteq> {}"
-  assumes "b > 1"
-  assumes "(\<Sum> i \<in> s. a i) = 1"
-  assumes "\<And> i. i \<in> s \<Longrightarrow> a i \<ge> 0"
-  assumes "\<And> i. i \<in> s \<Longrightarrow> y i \<in> {0 <..}"
-  shows "log b (\<Sum> i \<in> s. a i * y i) \<ge> (\<Sum> i \<in> s. a i * log b (y i))"
-proof -
-  have "convex_on {0 <..} (\<lambda> x. - log b x)"
-    by (rule minus_log_convex[OF `b > 1`])
-  hence "- log b (\<Sum> i \<in> s. a i * y i) \<le> (\<Sum> i \<in> s. a i * - log b (y i))"
-    using convex_on_setsum[of _ _ "\<lambda> x. - log b x"] assms pos_is_convex by fastforce
-  thus ?thesis by (auto simp add:setsum_negf le_imp_neg_le)
-qed
-
-lemma log_setsum':
-  assumes "finite s" "s \<noteq> {}"
-  assumes "b > 1"
-  assumes "(\<Sum> i \<in> s. a i) = 1"
-  assumes pos: "\<And> i. i \<in> s \<Longrightarrow> 0 \<le> a i"
-          "\<And> i. \<lbrakk> i \<in> s ; 0 < a i \<rbrakk> \<Longrightarrow> 0 < y i"
-  shows "log b (\<Sum> i \<in> s. a i * y i) \<ge> (\<Sum> i \<in> s. a i * log b (y i))"
-proof -
-  have "\<And>y. (\<Sum> i \<in> s - {i. a i = 0}. a i * y i) = (\<Sum> i \<in> s. a i * y i)"
-    using assms by (auto intro!: setsum_mono_zero_cong_left)
-  moreover have "log b (\<Sum> i \<in> s - {i. a i = 0}. a i * y i) \<ge> (\<Sum> i \<in> s - {i. a i = 0}. a i * log b (y i))"
-  proof (rule log_setsum)
-    have "setsum a (s - {i. a i = 0}) = setsum a s"
-      using assms(1) by (rule setsum_mono_zero_cong_left) auto
-    thus sum_1: "setsum a (s - {i. a i = 0}) = 1"
-      "finite (s - {i. a i = 0})" using assms by simp_all
-
-    show "s - {i. a i = 0} \<noteq> {}"
-    proof
-      assume *: "s - {i. a i = 0} = {}"
-      hence "setsum a (s - {i. a i = 0}) = 0" by (simp add: * setsum_empty)
-      with sum_1 show False by simp
-    qed
-
-    fix i assume "i \<in> s - {i. a i = 0}"
-    hence "i \<in> s" "a i \<noteq> 0" by simp_all
-    thus "0 \<le> a i" "y i \<in> {0<..}" using pos[of i] by auto
-  qed fact+
-  ultimately show ?thesis by simp
-qed
-
-lemma log_setsum_divide:
-  assumes "finite S" and "S \<noteq> {}" and "1 < b"
-  assumes "(\<Sum>x\<in>S. g x) = 1"
-  assumes pos: "\<And>x. x \<in> S \<Longrightarrow> g x \<ge> 0" "\<And>x. x \<in> S \<Longrightarrow> f x \<ge> 0"
-  assumes g_pos: "\<And>x. \<lbrakk> x \<in> S ; 0 < g x \<rbrakk> \<Longrightarrow> 0 < f x"
-  shows "- (\<Sum>x\<in>S. g x * log b (g x / f x)) \<le> log b (\<Sum>x\<in>S. f x)"
-proof -
-  have log_mono: "\<And>x y. 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log b x \<le> log b y"
-    using `1 < b` by (subst log_le_cancel_iff) auto
-
-  have "- (\<Sum>x\<in>S. g x * log b (g x / f x)) = (\<Sum>x\<in>S. g x * log b (f x / g x))"
-  proof (unfold setsum_negf[symmetric], rule setsum_cong)
-    fix x assume x: "x \<in> S"
-    show "- (g x * log b (g x / f x)) = g x * log b (f x / g x)"
-    proof (cases "g x = 0")
-      case False
-      with pos[OF x] g_pos[OF x] have "0 < f x" "0 < g x" by simp_all
-      thus ?thesis using `1 < b` by (simp add: log_divide field_simps)
-    qed simp
-  qed rule
-  also have "... \<le> log b (\<Sum>x\<in>S. g x * (f x / g x))"
-  proof (rule log_setsum')
-    fix x assume x: "x \<in> S" "0 < g x"
-    with g_pos[OF x] show "0 < f x / g x" by (safe intro!: divide_pos_pos)
-  qed fact+
-  also have "... = log b (\<Sum>x\<in>S - {x. g x = 0}. f x)" using `finite S`
-    by (auto intro!: setsum_mono_zero_cong_right arg_cong[where f="log b"]
-        split: split_if_asm)
-  also have "... \<le> log b (\<Sum>x\<in>S. f x)"
-  proof (rule log_mono)
-    have "0 = (\<Sum>x\<in>S - {x. g x = 0}. 0)" by simp
-    also have "... < (\<Sum>x\<in>S - {x. g x = 0}. f x)" (is "_ < ?sum")
-    proof (rule setsum_strict_mono)
-      show "finite (S - {x. g x = 0})" using `finite S` by simp
-      show "S - {x. g x = 0} \<noteq> {}"
-      proof
-        assume "S - {x. g x = 0} = {}"
-        hence "(\<Sum>x\<in>S. g x) = 0" by (subst setsum_0') auto
-        with `(\<Sum>x\<in>S. g x) = 1` show False by simp
-      qed
-      fix x assume "x \<in> S - {x. g x = 0}"
-      thus "0 < f x" using g_pos[of x] pos(1)[of x] by auto
-    qed
-    finally show "0 < ?sum" .
-    show "(\<Sum>x\<in>S - {x. g x = 0}. f x) \<le> (\<Sum>x\<in>S. f x)"
-      using `finite S` pos by (auto intro!: setsum_mono2)
-  qed
-  finally show ?thesis .
-qed
-
 lemma split_pairs:
   "((A, B) = X) \<longleftrightarrow> (fst X = A \<and> snd X = B)" and
   "(X = (A, B)) \<longleftrightarrow> (fst X = A \<and> snd X = B)" by auto
@@ -831,39 +733,25 @@ lemma (in information_space) entropy_le_card_not_0:
   assumes X: "simple_distributed M X f"
   shows "\<H>(X) \<le> log b (card (X ` space M \<inter> {x. f x \<noteq> 0}))"
 proof -
-  have "\<H>(X) = (\<Sum>x\<in>X`space M. f x * log b (1 / f x))"
-    unfolding entropy_simple_distributed[OF X] setsum_negf[symmetric]
-    using X by (auto dest: simple_distributed_nonneg intro!: setsum_cong simp: log_simps less_le)
-  also have "\<dots> \<le> log b (\<Sum>x\<in>X`space M. f x * (1 / f x))"
-    using not_empty b_gt_1 `simple_distributed M X f`
-    by (intro log_setsum') (auto simp: simple_distributed_nonneg simple_distributed_setsum_space)
-  also have "\<dots> = log b (\<Sum>x\<in>X`space M. if f x \<noteq> 0 then 1 else 0)"
-    by (intro arg_cong[where f="\<lambda>X. log b X"] setsum_cong) auto
-  finally show ?thesis
-    using `simple_distributed M X f` by (auto simp: setsum_cases real_eq_of_nat)
+  let ?X = "count_space (X`space M)"
+  have "\<H>(X) \<le> log b (measure ?X {x \<in> space ?X. f x \<noteq> 0})"
+    by (rule entropy_le[OF simple_distributed[OF X]])
+       (simp_all add: simple_distributed_finite[OF X] subset_eq integrable_count_space emeasure_count_space)
+  also have "measure ?X {x \<in> space ?X. f x \<noteq> 0} = card (X ` space M \<inter> {x. f x \<noteq> 0})"
+    by (simp_all add: simple_distributed_finite[OF X] subset_eq emeasure_count_space measure_def Int_def)
+  finally show ?thesis .
 qed
 
 lemma (in information_space) entropy_le_card:
-  assumes "simple_distributed M X f"
+  assumes X: "simple_distributed M X f"
   shows "\<H>(X) \<le> log b (real (card (X ` space M)))"
-proof cases
-  assume "X ` space M \<inter> {x. f x \<noteq> 0} = {}"
-  then have "\<And>x. x\<in>X`space M \<Longrightarrow> f x = 0" by auto
-  moreover
-  have "0 < card (X`space M)"
-    using `simple_distributed M X f` not_empty by (auto simp: card_gt_0_iff)
-  then have "log b 1 \<le> log b (real (card (X`space M)))"
-    using b_gt_1 by (intro log_le) auto
-  ultimately show ?thesis using assms by (simp add: entropy_simple_distributed)
-next
-  assume False: "X ` space M \<inter> {x. f x \<noteq> 0} \<noteq> {}"
-  have "card (X ` space M \<inter> {x. f x \<noteq> 0}) \<le> card (X ` space M)"
-    (is "?A \<le> ?B") using assms not_empty
-    by (auto intro!: card_mono simp: simple_function_def simple_distributed_def)
-  note entropy_le_card_not_0[OF assms]
-  also have "log b (real ?A) \<le> log b (real ?B)"
-    using b_gt_1 False not_empty `?A \<le> ?B` assms
-    by (auto intro!: log_le simp: card_gt_0_iff simp: simple_distributed_def)
+proof -
+  let ?X = "count_space (X`space M)"
+  have "\<H>(X) \<le> log b (measure ?X (space ?X))"
+    by (rule entropy_le_space[OF simple_distributed[OF X]])
+       (simp_all add: simple_distributed_finite[OF X] subset_eq integrable_count_space emeasure_count_space finite_measure_count_space)
+  also have "measure ?X (space ?X) = card (X ` space M)"
+    by (simp_all add: simple_distributed_finite[OF X] subset_eq emeasure_count_space measure_def)
   finally show ?thesis .
 qed
 
@@ -879,7 +767,18 @@ abbreviation (in information_space)
   "\<I>(X ; Y | Z) \<equiv> conditional_mutual_information b
     (count_space (X ` space M)) (count_space (Y ` space M)) (count_space (Z ` space M)) X Y Z"
 
-lemma (in information_space) conditional_mutual_information_generic_eq:
+lemma (in pair_sigma_finite) borel_measurable_positive_integral_fst:
+  "(\<lambda>(x, y). f x y) \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2) \<Longrightarrow> (\<lambda>x. \<integral>\<^isup>+ y. f x y \<partial>M2) \<in> borel_measurable M1"
+  using positive_integral_fst_measurable(1)[of "\<lambda>(x, y). f x y"] by simp
+
+lemma (in pair_sigma_finite) borel_measurable_positive_integral_snd:
+  assumes "(\<lambda>(x, y). f x y) \<in> borel_measurable (M2 \<Otimes>\<^isub>M M1)" shows "(\<lambda>x. \<integral>\<^isup>+ y. f x y \<partial>M1) \<in> borel_measurable M2"
+proof -
+  interpret Q: pair_sigma_finite M2 M1 by default
+  from Q.borel_measurable_positive_integral_fst assms show ?thesis by simp
+qed
+
+lemma (in information_space)
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T" and P: "sigma_finite_measure P"
   assumes Px: "distributed M S X Px"
   assumes Pz: "distributed M P Z Pz"
@@ -888,16 +787,19 @@ lemma (in information_space) conditional_mutual_information_generic_eq:
   assumes Pxyz: "distributed M (S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P) (\<lambda>x. (X x, Y x, Z x)) Pxyz"
   assumes I1: "integrable (S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Px x * Pyz (y, z))))"
   assumes I2: "integrable (S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxz (x, z) / (Px x * Pz z)))"
-  shows "conditional_mutual_information b S T P X Y Z
-    = (\<integral>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))) \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P))"
+  shows conditional_mutual_information_generic_eq: "conditional_mutual_information b S T P X Y Z
+    = (\<integral>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))) \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P))" (is "?eq")
+    and conditional_mutual_information_generic_nonneg: "0 \<le> conditional_mutual_information b S T P X Y Z" (is "?nonneg")
 proof -
   interpret S: sigma_finite_measure S by fact
   interpret T: sigma_finite_measure T by fact
   interpret P: sigma_finite_measure P by fact
   interpret TP: pair_sigma_finite T P ..
   interpret SP: pair_sigma_finite S P ..
+  interpret ST: pair_sigma_finite S T ..
   interpret SPT: pair_sigma_finite "S \<Otimes>\<^isub>M P" T ..
   interpret STP: pair_sigma_finite S "T \<Otimes>\<^isub>M P" ..
+  interpret TPS: pair_sigma_finite "T \<Otimes>\<^isub>M P" S ..
   have TP: "sigma_finite_measure (T \<Otimes>\<^isub>M P)" ..
   have SP: "sigma_finite_measure (S \<Otimes>\<^isub>M P)" ..
   have YZ: "random_variable (T \<Otimes>\<^isub>M P) (\<lambda>x. (Y x, Z x))"
@@ -933,27 +835,27 @@ proof -
   finally have mi_eq:
     "mutual_information b S P X Z = (\<integral>(x,y,z). Pxyz (x,y,z) * log b (Pxz (x,z) / (Px x * Pz z)) \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P))" .
   
-  have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Px (fst x) = 0 \<longrightarrow> Pxyz x = 0"
+  have ae1: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Px (fst x) = 0 \<longrightarrow> Pxyz x = 0"
     by (intro subdensity_real[of fst, OF _ Pxyz Px]) auto
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pz (snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
+  moreover have ae2: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pz (snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
     by (intro subdensity_real[of "\<lambda>x. snd (snd x)", OF _ Pxyz Pz]) (auto intro: measurable_snd')
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pxz (fst x, snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
+  moreover have ae3: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pxz (fst x, snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
     by (intro subdensity_real[of "\<lambda>x. (fst x, snd (snd x))", OF _ Pxyz Pxz]) (auto intro: measurable_Pair measurable_snd')
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pyz (snd x) = 0 \<longrightarrow> Pxyz x = 0"
+  moreover have ae4: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pyz (snd x) = 0 \<longrightarrow> Pxyz x = 0"
     by (intro subdensity_real[of snd, OF _ Pxyz Pyz]) (auto intro: measurable_Pair)
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Px (fst x)"
+  moreover have ae5: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Px (fst x)"
     using Px by (intro STP.AE_pair_measure) (auto simp: comp_def intro!: measurable_fst'' dest: distributed_real_AE distributed_real_measurable)
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Pyz (snd x)"
+  moreover have ae6: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Pyz (snd x)"
     using Pyz by (intro STP.AE_pair_measure) (auto simp: comp_def intro!: measurable_snd'' dest: distributed_real_AE distributed_real_measurable)
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Pz (snd (snd x))"
+  moreover have ae7: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Pz (snd (snd x))"
     using Pz Pz[THEN distributed_real_measurable] by (auto intro!: measurable_snd'' TP.AE_pair_measure STP.AE_pair_measure AE_I2[of S] dest: distributed_real_AE)
-  moreover have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Pxz (fst x, snd (snd x))"
+  moreover have ae8: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. 0 \<le> Pxz (fst x, snd (snd x))"
     using Pxz[THEN distributed_real_AE, THEN SP.AE_pair]
     using measurable_comp[OF measurable_Pair[OF measurable_fst measurable_comp[OF measurable_snd measurable_snd]] Pxz[THEN distributed_real_measurable], of T]
     using measurable_comp[OF measurable_snd measurable_Pair2[OF Pxz[THEN distributed_real_measurable]], of _ T]
     by (auto intro!: TP.AE_pair_measure STP.AE_pair_measure simp: comp_def)
   moreover note Pxyz[THEN distributed_real_AE]
-  ultimately have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P.
+  ultimately have ae: "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P.
     Pxyz x * log b (Pxyz x / (Px (fst x) * Pyz (snd x))) -
     Pxyz x * log b (Pxz (fst x, snd (snd x)) / (Px (fst x) * Pz (snd (snd x)))) =
     Pxyz x * log b (Pxyz x * Pz (snd (snd x)) / (Pxz (fst x, snd (snd x)) * Pyz (snd x))) "
@@ -968,13 +870,164 @@ proof -
         using b_gt_1 by (simp add: log_simps mult_pos_pos less_imp_le field_simps)
     qed simp
   qed
-  with I1 I2 show ?thesis
+  with I1 I2 show ?eq
     unfolding conditional_mutual_information_def
     apply (subst mi_eq)
     apply (subst mutual_information_distr[OF S TP Px Pyz Pxyz])
     apply (subst integral_diff(2)[symmetric])
     apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
     done
+
+  let ?P = "density (S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P) Pxyz"
+  interpret P: prob_space ?P
+    unfolding distributed_distr_eq_density[OF Pxyz, symmetric]
+    using distributed_measurable[OF Pxyz] by (rule prob_space_distr)
+
+  let ?Q = "density (T \<Otimes>\<^isub>M P) Pyz"
+  interpret Q: prob_space ?Q
+    unfolding distributed_distr_eq_density[OF Pyz, symmetric]
+    using distributed_measurable[OF Pyz] by (rule prob_space_distr)
+
+  let ?f = "\<lambda>(x, y, z). Pxz (x, z) * (Pyz (y, z) / Pz z) / Pxyz (x, y, z)"
+
+  from subdensity_real[of snd, OF _ Pyz Pz]
+  have aeX1: "AE x in T \<Otimes>\<^isub>M P. Pz (snd x) = 0 \<longrightarrow> Pyz x = 0" by (auto simp: comp_def)
+  have aeX2: "AE x in T \<Otimes>\<^isub>M P. 0 \<le> Pz (snd x)"
+    using Pz by (intro TP.AE_pair_measure) (auto simp: comp_def intro!: measurable_snd'' dest: distributed_real_AE distributed_real_measurable)
+
+  have aeX3: "AE y in T \<Otimes>\<^isub>M P. (\<integral>\<^isup>+ x. ereal (Pxz (x, snd y)) \<partial>S) = ereal (Pz (snd y))"
+    using Pz distributed_marginal_eq_joint[OF P S Px Pz Pxz]
+    apply (intro TP.AE_pair_measure)
+    apply (auto simp: comp_def measurable_split_conv
+                intro!: measurable_snd'' borel_measurable_ereal_eq borel_measurable_ereal
+                        SP.borel_measurable_positive_integral_snd measurable_compose[OF _ Pxz[THEN distributed_real_measurable]]
+                        measurable_Pair
+                dest: distributed_real_AE distributed_real_measurable)
+    done
+
+  note M = borel_measurable_divide borel_measurable_diff borel_measurable_times borel_measurable_ereal
+           measurable_compose[OF _ measurable_snd]
+           measurable_Pair
+           measurable_compose[OF _ Pxyz[THEN distributed_real_measurable]]
+           measurable_compose[OF _ Pxz[THEN distributed_real_measurable]]
+           measurable_compose[OF _ Pyz[THEN distributed_real_measurable]]
+           measurable_compose[OF _ Pz[THEN distributed_real_measurable]]
+           measurable_compose[OF _ Px[THEN distributed_real_measurable]]
+           STP.borel_measurable_positive_integral_snd
+  have "(\<integral>\<^isup>+ x. ?f x \<partial>?P) \<le> (\<integral>\<^isup>+ (x, y, z). Pxz (x, z) * (Pyz (y, z) / Pz z) \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P))"
+    apply (subst positive_integral_density)
+    apply (rule distributed_borel_measurable[OF Pxyz])
+    apply (rule distributed_AE[OF Pxyz])
+    apply (auto simp add: borel_measurable_ereal_iff split_beta' intro!: M) []
+    apply (rule positive_integral_mono_AE)
+    using ae5 ae6 ae7 ae8
+    apply eventually_elim
+    apply (auto intro!: divide_nonneg_nonneg mult_nonneg_nonneg)
+    done
+  also have "\<dots> = (\<integral>\<^isup>+(y, z). \<integral>\<^isup>+ x. ereal (Pxz (x, z)) * ereal (Pyz (y, z) / Pz z) \<partial>S \<partial>T \<Otimes>\<^isub>M P)"
+    by (subst STP.positive_integral_snd_measurable[symmetric])
+       (auto simp add: borel_measurable_ereal_iff split_beta' intro!: M)
+  also have "\<dots> = (\<integral>\<^isup>+x. ereal (Pyz x) * 1 \<partial>T \<Otimes>\<^isub>M P)"
+    apply (rule positive_integral_cong_AE)
+    using aeX1 aeX2 aeX3 distributed_AE[OF Pyz] AE_space
+    apply eventually_elim
+  proof (case_tac x, simp del: times_ereal.simps add: space_pair_measure)
+    fix a b assume "Pz b = 0 \<longrightarrow> Pyz (a, b) = 0" "0 \<le> Pz b" "a \<in> space T \<and> b \<in> space P"
+      "(\<integral>\<^isup>+ x. ereal (Pxz (x, b)) \<partial>S) = ereal (Pz b)" "0 \<le> Pyz (a, b)" 
+    then show "(\<integral>\<^isup>+ x. ereal (Pxz (x, b)) * ereal (Pyz (a, b) / Pz b) \<partial>S) = ereal (Pyz (a, b))"
+      apply (subst positive_integral_multc)
+      apply (auto intro!: borel_measurable_ereal divide_nonneg_nonneg
+                          measurable_compose[OF _ Pxz[THEN distributed_real_measurable]] measurable_Pair
+                  split: prod.split)
+      done
+  qed
+  also have "\<dots> = 1"
+    using Q.emeasure_space_1 distributed_AE[OF Pyz] distributed_distr_eq_density[OF Pyz]
+    by (subst positive_integral_density[symmetric]) (auto intro!: M)
+  finally have le1: "(\<integral>\<^isup>+ x. ?f x \<partial>?P) \<le> 1" .
+  also have "\<dots> < \<infinity>" by simp
+  finally have fin: "(\<integral>\<^isup>+ x. ?f x \<partial>?P) \<noteq> \<infinity>" by simp
+
+  have pos: "(\<integral>\<^isup>+ x. ?f x \<partial>?P) \<noteq> 0"
+    apply (subst positive_integral_density)
+    apply (rule distributed_borel_measurable[OF Pxyz])
+    apply (rule distributed_AE[OF Pxyz])
+    apply (auto simp add: borel_measurable_ereal_iff split_beta' intro!: M) []
+    apply (simp add: split_beta')
+  proof
+    let ?g = "\<lambda>x. ereal (if Pxyz x = 0 then 0 else Pxz (fst x, snd (snd x)) * Pyz (snd x) / Pz (snd (snd x)))"
+    assume "(\<integral>\<^isup>+ x. ?g x \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P)) = 0"
+    then have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. ?g x \<le> 0"
+      by (intro positive_integral_0_iff_AE[THEN iffD1]) (auto intro!: M borel_measurable_ereal measurable_If)
+    then have "AE x in S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P. Pxyz x = 0"
+      using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
+      by eventually_elim (auto split: split_if_asm simp: mult_le_0_iff divide_le_0_iff)
+    then have "(\<integral>\<^isup>+ x. ereal (Pxyz x) \<partial>S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P) = 0"
+      by (subst positive_integral_cong_AE[of _ "\<lambda>x. 0"]) auto
+    with P.emeasure_space_1 show False
+      by (subst (asm) emeasure_density) (auto intro!: M cong: positive_integral_cong)
+  qed
+
+  have neg: "(\<integral>\<^isup>+ x. - ?f x \<partial>?P) = 0"
+    apply (rule positive_integral_0_iff_AE[THEN iffD2])
+    apply (auto intro!: M simp: split_beta') []
+    apply (subst AE_density)
+    apply (auto intro!: M simp: split_beta') []
+    using ae5 ae6 ae7 ae8
+    apply eventually_elim
+    apply (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+    done
+
+  have I3: "integrable (S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P) (\<lambda>(x, y, z). Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
+    apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ integral_diff(1)[OF I1 I2]])
+    using ae
+    apply (auto intro!: M simp: split_beta')
+    done
+
+  have "- log b 1 \<le> - log b (integral\<^isup>L ?P ?f)"
+  proof (intro le_imp_neg_le log_le[OF b_gt_1])
+    show "0 < integral\<^isup>L ?P ?f"
+      using neg pos fin positive_integral_positive[of ?P ?f]
+      by (cases "(\<integral>\<^isup>+ x. ?f x \<partial>?P)") (auto simp add: lebesgue_integral_def less_le split_beta')
+    show "integral\<^isup>L ?P ?f \<le> 1"
+      using neg le1 fin positive_integral_positive[of ?P ?f]
+      by (cases "(\<integral>\<^isup>+ x. ?f x \<partial>?P)") (auto simp add: lebesgue_integral_def split_beta' one_ereal_def)
+  qed
+  also have "- log b (integral\<^isup>L ?P ?f) \<le> (\<integral> x. - log b (?f x) \<partial>?P)"
+  proof (rule P.jensens_inequality[where a=0 and b=1 and I="{0<..}"])
+    show "AE x in ?P. ?f x \<in> {0<..}"
+      unfolding AE_density[OF distributed_borel_measurable[OF Pxyz]]
+      using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
+      by eventually_elim (auto simp: divide_pos_pos mult_pos_pos)
+    show "integrable ?P ?f"
+      unfolding integrable_def 
+      using fin neg by (auto intro!: M simp: split_beta')
+    show "integrable ?P (\<lambda>x. - log b (?f x))"
+      apply (subst integral_density)
+      apply (auto intro!: M) []
+      apply (auto intro!: M distributed_real_AE[OF Pxyz]) []
+      apply (auto intro!: M borel_measurable_uminus borel_measurable_log simp: split_beta') []
+      apply (rule integrable_cong_AE[THEN iffD1, OF _ _ _ I3])
+      apply (auto intro!: M borel_measurable_uminus borel_measurable_log simp: split_beta') []
+      apply (auto intro!: M borel_measurable_uminus borel_measurable_log simp: split_beta') []
+      using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
+      apply eventually_elim
+      apply (auto simp: log_divide_eq log_mult_eq zero_le_mult_iff zero_less_mult_iff zero_less_divide_iff field_simps)
+      done
+  qed (auto simp: b_gt_1 minus_log_convex)
+  also have "\<dots> = conditional_mutual_information b S T P X Y Z"
+    unfolding `?eq`
+    apply (subst integral_density)
+    apply (auto intro!: M) []
+    apply (auto intro!: M distributed_real_AE[OF Pxyz]) []
+    apply (auto intro!: M borel_measurable_uminus borel_measurable_log simp: split_beta') []
+    apply (intro integral_cong_AE)
+    using ae1 ae2 ae3 ae4 ae5 ae6 ae7 ae8 Pxyz[THEN distributed_real_AE]
+    apply eventually_elim
+    apply (auto simp: log_divide_eq zero_less_mult_iff zero_less_divide_iff field_simps)
+    done
+  finally show ?nonneg
+    by simp
 qed
 
 lemma (in information_space) conditional_mutual_information_eq:
@@ -1031,86 +1084,21 @@ lemma (in information_space) conditional_mutual_information_nonneg:
   assumes X: "simple_function M X" and Y: "simple_function M Y" and Z: "simple_function M Z"
   shows "0 \<le> \<I>(X ; Y | Z)"
 proof -
-  def Pz \<equiv> "\<lambda>x. if x \<in> Z`space M then measure M (Z -` {x} \<inter> space M) else 0"
-  def Pxz \<equiv> "\<lambda>x. if x \<in> (\<lambda>x. (X x, Z x))`space M then measure M ((\<lambda>x. (X x, Z x)) -` {x} \<inter> space M) else 0"
-  def Pyz \<equiv> "\<lambda>x. if x \<in> (\<lambda>x. (Y x, Z x))`space M then measure M ((\<lambda>x. (Y x, Z x)) -` {x} \<inter> space M) else 0"
-  def Pxyz \<equiv> "\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x, Z x))`space M then measure M ((\<lambda>x. (X x, Y x, Z x)) -` {x} \<inter> space M) else 0"
-  let ?M = "X`space M \<times> Y`space M \<times> Z`space M"
-
-  note XZ = simple_function_Pair[OF X Z]
-  note YZ = simple_function_Pair[OF Y Z]
-  note XYZ = simple_function_Pair[OF X simple_function_Pair[OF Y Z]]
-  have Pz: "simple_distributed M Z Pz"
-    using Z by (rule simple_distributedI) (auto simp: Pz_def)
-  have Pxz: "simple_distributed M (\<lambda>x. (X x, Z x)) Pxz"
-    using XZ by (rule simple_distributedI) (auto simp: Pxz_def)
-  have Pyz: "simple_distributed M (\<lambda>x. (Y x, Z x)) Pyz"
-    using YZ by (rule simple_distributedI) (auto simp: Pyz_def)
-  have Pxyz: "simple_distributed M (\<lambda>x. (X x, Y x, Z x)) Pxyz"
-    using XYZ by (rule simple_distributedI) (auto simp: Pxyz_def)
-
-  { fix z assume z: "z \<in> Z ` space M" then have "(\<Sum>x\<in>X ` space M. Pxz (x, z)) = Pz z"
-      using distributed_marginal_eq_joint_simple[OF X Pz Pxz z]
-      by (auto intro!: setsum_cong simp: Pxz_def) }
-  note marginal1 = this
-
-  { fix z assume z: "z \<in> Z ` space M" then have "(\<Sum>y\<in>Y ` space M. Pyz (y, z)) = Pz z"
-      using distributed_marginal_eq_joint_simple[OF Y Pz Pyz z]
-      by (auto intro!: setsum_cong simp: Pyz_def) }
-  note marginal2 = this
-
-  have "- \<I>(X ; Y | Z) = - (\<Sum>(x, y, z) \<in> ?M. Pxyz (x, y, z) * log b (Pxyz (x, y, z) / (Pxz (x, z) * (Pyz (y,z) / Pz z))))"
-    unfolding conditional_mutual_information_eq[OF Pz Pyz Pxz Pxyz]
-    using X Y Z by (auto intro!: setsum_mono_zero_left simp: Pxyz_def simple_functionD)
-  also have "\<dots> \<le> log b (\<Sum>(x, y, z) \<in> ?M. Pxz (x, z) * (Pyz (y,z) / Pz z))"
-    unfolding split_beta'
-  proof (rule log_setsum_divide)
-    show "?M \<noteq> {}" using not_empty by simp
-    show "1 < b" using b_gt_1 .
-
-    show "finite ?M" using X Y Z by (auto simp: simple_functionD)
-
-    then show "(\<Sum>x\<in>?M. Pxyz (fst x, fst (snd x), snd (snd x))) = 1"
-      apply (subst Pxyz[THEN simple_distributed_setsum_space, symmetric])
-      apply simp
-      apply (intro setsum_mono_zero_right)
-      apply (auto simp: Pxyz_def)
-      done
-    let ?N = "(\<lambda>x. (X x, Y x, Z x)) ` space M"
-    fix x assume x: "x \<in> ?M"
-    let ?Q = "Pxyz (fst x, fst (snd x), snd (snd x))"
-    let ?P = "Pxz (fst x, snd (snd x)) * (Pyz (fst (snd x), snd (snd x)) / Pz (snd (snd x)))"
-    from x show "0 \<le> ?Q" "0 \<le> ?P"
-      using Pxyz[THEN simple_distributed, THEN distributed_real_AE]
-      using Pxz[THEN simple_distributed, THEN distributed_real_AE]
-      using Pyz[THEN simple_distributed, THEN distributed_real_AE]
-      using Pz[THEN simple_distributed, THEN distributed_real_AE]
-      by (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg simp: AE_count_space Pxyz_def Pxz_def Pyz_def Pz_def)
-    moreover assume "0 < ?Q"
-    moreover have "AE x in count_space ?N. Pz (snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
-      by (intro subdensity_real[of "\<lambda>x. snd (snd x)", OF _ Pxyz[THEN simple_distributed] Pz[THEN simple_distributed]]) (auto intro: measurable_snd')
-    then have "\<And>x. Pz (snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
-      by (auto simp: Pz_def Pxyz_def AE_count_space)
-    moreover have "AE x in count_space ?N. Pxz (fst x, snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
-      by (intro subdensity_real[of "\<lambda>x. (fst x, snd (snd x))", OF _ Pxyz[THEN simple_distributed] Pxz[THEN simple_distributed]]) (auto intro: measurable_Pair measurable_snd')
-    then have "\<And>x. Pxz (fst x, snd (snd x)) = 0 \<longrightarrow> Pxyz x = 0"
-      by (auto simp: Pz_def Pxyz_def AE_count_space)
-    moreover have "AE x in count_space ?N. Pyz (snd x) = 0 \<longrightarrow> Pxyz x = 0"
-      by (intro subdensity_real[of snd, OF _ Pxyz[THEN simple_distributed] Pyz[THEN simple_distributed]]) (auto intro: measurable_Pair)
-    then have "\<And>x. Pyz (snd x) = 0 \<longrightarrow> Pxyz x = 0"
-      by (auto simp: Pz_def Pxyz_def AE_count_space)
-    ultimately show "0 < ?P" using x by (auto intro!: divide_pos_pos mult_pos_pos simp: less_le)
-  qed
-  also have "(\<Sum>(x, y, z) \<in> ?M. Pxz (x, z) * (Pyz (y,z) / Pz z)) = (\<Sum>z\<in>Z`space M. Pz z)"
-    apply (simp add: setsum_cartesian_product')
-    apply (subst setsum_commute)
-    apply (subst (2) setsum_commute)
-    apply (auto simp: setsum_divide_distrib[symmetric] setsum_product[symmetric] marginal1 marginal2
-          intro!: setsum_cong)
-    done
-  also have "log b (\<Sum>z\<in>Z`space M. Pz z) = 0"
-    using Pz[THEN simple_distributed_setsum_space] by simp
-  finally show ?thesis by simp
+  have [simp]: "count_space (X ` space M) \<Otimes>\<^isub>M count_space (Y ` space M) \<Otimes>\<^isub>M count_space (Z ` space M) =
+      count_space (X`space M \<times> Y`space M \<times> Z`space M)"
+    by (simp add: pair_measure_count_space X Y Z simple_functionD)
+  note sf = sigma_finite_measure_count_space_finite[OF simple_functionD(1)]
+  note sd = simple_distributedI[OF _ refl]
+  note sp = simple_function_Pair
+  show ?thesis
+   apply (rule conditional_mutual_information_generic_nonneg[OF sf[OF X] sf[OF Y] sf[OF Z]])
+   apply (rule simple_distributed[OF sd[OF X]])
+   apply (rule simple_distributed[OF sd[OF Z]])
+   apply (rule simple_distributed_joint[OF sd[OF sp[OF Y Z]]])
+   apply (rule simple_distributed_joint[OF sd[OF sp[OF X Z]]])
+   apply (rule simple_distributed_joint2[OF sd[OF sp[OF X sp[OF Y Z]]]])
+   apply (auto intro!: integrable_count_space simp: X Y Z simple_functionD)
+   done
 qed
 
 subsection {* Conditional Entropy *}
