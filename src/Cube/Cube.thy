@@ -10,6 +10,15 @@ begin
 
 setup Pure_Thy.old_appl_syntax_setup
 
+ML {*
+  structure Rules = Named_Thms
+  (
+    val name = @{binding rules}
+    val description = "Cube inference rules"
+  )
+*}
+setup Rules.setup
+
 typedecl "term"
 typedecl "context"
 typedecl typing
@@ -72,8 +81,7 @@ axiomatization where
 
   beta: "Abs(A, f)^a == f(a)"
 
-lemmas simple = s_b strip_s strip_b app lam_ss pi_ss
-lemmas rules = simple
+lemmas [rules] = s_b strip_s strip_b app lam_ss pi_ss
 
 lemma imp_elim:
   assumes "f:A\<rightarrow>B" and "a:A" and "f^a:B ==> PROP P"
@@ -90,7 +98,7 @@ locale L2 =
                    ==> Abs(A,f) : Prod(A,B)"
 begin
 
-lemmas rules = simple lam_bs pi_bs
+lemmas [rules] = lam_bs pi_bs
 
 end
 
@@ -102,7 +110,7 @@ locale Lomega =
                    ==> Abs(A,f) : Prod(A,B)"
 begin
 
-lemmas rules = simple lam_bb pi_bb
+lemmas [rules] = lam_bb pi_bb
 
 end
 
@@ -113,7 +121,7 @@ locale LP =
                    ==> Abs(A,f) : Prod(A,B)"
 begin
 
-lemmas rules = simple lam_sb pi_sb
+lemmas [rules] = lam_sb pi_sb
 
 end
 
@@ -121,7 +129,7 @@ end
 locale LP2 = LP + L2
 begin
 
-lemmas rules = simple lam_bs pi_bs lam_sb pi_sb
+lemmas [rules] = lam_bs pi_bs lam_sb pi_sb
 
 end
 
@@ -129,7 +137,7 @@ end
 locale Lomega2 = L2 + Lomega
 begin
 
-lemmas rules = simple lam_bs pi_bs lam_bb pi_bb
+lemmas [rules] = lam_bs pi_bs lam_bb pi_bb
 
 end
 
@@ -137,7 +145,7 @@ end
 locale LPomega = LP + Lomega
 begin
 
-lemmas rules = simple lam_bb pi_bb lam_sb pi_sb
+lemmas [rules] = lam_bb pi_bb lam_sb pi_sb
 
 end
 
@@ -145,7 +153,7 @@ end
 locale CC = L2 + LP + Lomega
 begin
 
-lemmas rules = simple lam_bs pi_bs lam_bb pi_bb lam_sb pi_sb
+lemmas [rules] = lam_bs pi_bs lam_bb pi_bb lam_sb pi_sb
 
 end
 
