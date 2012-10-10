@@ -566,21 +566,31 @@ abbreviation (in information_space)
   entropy_Pow ("\<H>'(_')") where
   "\<H>(X) \<equiv> entropy b (count_space (X`space M)) X"
 
+lemma (in prob_space) distributed_RN_deriv:
+  assumes X: "distributed M S X Px"
+  shows "AE x in S. RN_deriv S (density S Px) x = Px x"
+proof -
+  note D = distributed_measurable[OF X] distributed_borel_measurable[OF X] distributed_AE[OF X]
+  interpret X: prob_space "distr M S X"
+    using D(1) by (rule prob_space_distr)
+
+  have sf: "sigma_finite_measure (distr M S X)" by default
+  show ?thesis
+    using D
+    apply (subst eq_commute)
+    apply (intro RN_deriv_unique_sigma_finite)
+    apply (auto intro: divide_nonneg_nonneg measure_nonneg
+             simp: distributed_distr_eq_density[symmetric, OF X] sf)
+    done
+qed
+
 lemma (in information_space)
   fixes X :: "'a \<Rightarrow> 'b"
   assumes X: "distributed M MX X f"
   shows entropy_distr: "entropy b MX X = - (\<integral>x. f x * log b (f x) \<partial>MX)" (is ?eq)
 proof -
   note D = distributed_measurable[OF X] distributed_borel_measurable[OF X] distributed_AE[OF X]
-    interpret X: prob_space "distr M MX X"
-    using D(1) by (rule prob_space_distr)
-
-  have sf: "sigma_finite_measure (distr M MX X)" by default
-  have ae: "AE x in MX. f x = RN_deriv MX (density MX f) x"
-    using D
-    by (intro RN_deriv_unique_sigma_finite)
-       (auto intro: divide_nonneg_nonneg measure_nonneg
-             simp: distributed_distr_eq_density[symmetric, OF X] sf)
+  note ae = distributed_RN_deriv[OF X]
 
   have ae_eq: "AE x in distr M MX X. log b (real (RN_deriv MX (distr M MX X) x)) =
     log b (f x)"
@@ -588,7 +598,6 @@ proof -
     apply (subst AE_density)
     using D apply simp
     using ae apply eventually_elim
-    apply (subst (asm) eq_commute)
     apply auto
     done
 
@@ -1112,34 +1121,64 @@ qed
 subsection {* Conditional Entropy *}
 
 definition (in prob_space)
-  "conditional_entropy b S T X Y = entropy b (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) - entropy b T Y"
+  "conditional_entropy b S T X Y = - (\<integral>(x, y). log b (real (RN_deriv (S \<Otimes>\<^isub>M T) (distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))) (x, y)) / 
+    real (RN_deriv T (distr M T Y) y)) \<partial>distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)))"
 
 abbreviation (in information_space)
   conditional_entropy_Pow ("\<H>'(_ | _')") where
   "\<H>(X | Y) \<equiv> conditional_entropy b (count_space (X`space M)) (count_space (Y`space M)) X Y"
 
-lemma (in information_space)
+lemma (in information_space) conditional_entropy_generic_eq:
+  fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
+  assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
+  assumes Py: "distributed M T Y Py"
+  assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
+  shows "conditional_entropy b S T X Y = - (\<integral>(x, y). Pxy (x, y) * log b (Pxy (x, y) / Py y) \<partial>(S \<Otimes>\<^isub>M T))"
+proof -
+  interpret S: sigma_finite_measure S by fact
+  interpret T: sigma_finite_measure T by fact
+  interpret ST: pair_sigma_finite S T ..
+
+  have "AE x in density (S \<Otimes>\<^isub>M T) (\<lambda>x. ereal (Pxy x)). Pxy x = real (RN_deriv (S \<Otimes>\<^isub>M T) (distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))) x)"
+    unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
+    unfolding distributed_distr_eq_density[OF Pxy]
+    using distributed_RN_deriv[OF Pxy]
+    by auto
+  moreover
+  have "AE x in density (S \<Otimes>\<^isub>M T) (\<lambda>x. ereal (Pxy x)). Py (snd x) = real (RN_deriv T (distr M T Y) (snd x))"
+    unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
+    unfolding distributed_distr_eq_density[OF Py]
+    apply (rule ST.AE_pair_measure)
+    apply (auto intro!: sets_Collect borel_measurable_eq measurable_compose[OF _ distributed_real_measurable[OF Py]]
+                        distributed_real_measurable[OF Pxy] distributed_real_AE[OF Py]
+                        borel_measurable_real_of_ereal measurable_compose[OF _ borel_measurable_RN_deriv_density])
+    using distributed_RN_deriv[OF Py]
+    apply auto
+    done    
+  ultimately
+  have "conditional_entropy b S T X Y = - (\<integral>x. Pxy x * log b (Pxy x / Py (snd x)) \<partial>(S \<Otimes>\<^isub>M T))"
+    unfolding conditional_entropy_def neg_equal_iff_equal
+    apply (subst integral_density(1)[symmetric])
+    apply (auto simp: distributed_real_measurable[OF Pxy] distributed_real_AE[OF Pxy]
+                      measurable_compose[OF _ distributed_real_measurable[OF Py]]
+                      distributed_distr_eq_density[OF Pxy]
+                intro!: integral_cong_AE)
+    done
+  then show ?thesis by (simp add: split_beta')
+qed
+
+lemma (in information_space) conditional_entropy_eq_entropy:
   fixes Px :: "'b \<Rightarrow> real" and Py :: "'c \<Rightarrow> real"
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T"
   assumes Py: "distributed M T Y Py"
   assumes Pxy: "distributed M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) Pxy"
   assumes I1: "integrable (S \<Otimes>\<^isub>M T) (\<lambda>x. Pxy x * log b (Pxy x))"
   assumes I2: "integrable (S \<Otimes>\<^isub>M T) (\<lambda>x. Pxy x * log b (Py (snd x)))"
-  shows conditional_entropy_generic_eq: "conditional_entropy b S T X Y = - (\<integral>(x, y). Pxy (x, y) * log b (Pxy (x, y) / Py y) \<partial>(S \<Otimes>\<^isub>M T))" (is ?eq)
+  shows "conditional_entropy b S T X Y = entropy b (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x)) - entropy b T Y"
 proof -
   interpret S: sigma_finite_measure S by fact
   interpret T: sigma_finite_measure T by fact
   interpret ST: pair_sigma_finite S T ..
-  have ST: "sigma_finite_measure (S \<Otimes>\<^isub>M T)" ..
-
-  let ?P = "density (S \<Otimes>\<^isub>M T) Pxy"
-  interpret Pxy: prob_space ?P
-    unfolding Pxy[THEN distributed_distr_eq_density, symmetric]
-    using Pxy[THEN distributed_measurable] by (rule prob_space_distr)
-
-  from Py Pxy have distr_eq: "distr M T Y =
-    distr (distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))) T snd"
-    by (subst distr_distr[OF measurable_snd]) (auto dest: distributed_measurable simp: comp_def)
 
   have "entropy b T Y = - (\<integral>y. Py y * log b (Py y) \<partial>T)"
     by (rule entropy_distr[OF Py])
@@ -1147,27 +1186,44 @@ proof -
     using b_gt_1 Py[THEN distributed_real_measurable]
     by (subst distributed_transform_integral[OF Pxy Py, where T=snd]) (auto intro!: integral_cong)
   finally have e_eq: "entropy b T Y = - (\<integral>(x,y). Pxy (x,y) * log b (Py y) \<partial>(S \<Otimes>\<^isub>M T))" .
-  
+
   have ae2: "AE x in S \<Otimes>\<^isub>M T. Py (snd x) = 0 \<longrightarrow> Pxy x = 0"
     by (intro subdensity_real[of snd, OF _ Pxy Py]) (auto intro: measurable_Pair)
   moreover have ae4: "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Py (snd x)"
     using Py by (intro ST.AE_pair_measure) (auto simp: comp_def intro!: measurable_snd'' dest: distributed_real_AE distributed_real_measurable)
   moreover note ae5 = Pxy[THEN distributed_real_AE]
-  ultimately have pos: "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Pxy x \<and> 0 \<le> Py (snd x) \<and>
+  ultimately have "AE x in S \<Otimes>\<^isub>M T. 0 \<le> Pxy x \<and> 0 \<le> Py (snd x) \<and>
     (Pxy x = 0 \<or> (Pxy x \<noteq> 0 \<longrightarrow> 0 < Pxy x \<and> 0 < Py (snd x)))"
     by eventually_elim auto
-
-  from pos have ae: "AE x in S \<Otimes>\<^isub>M T.
+  then have ae: "AE x in S \<Otimes>\<^isub>M T.
      Pxy x * log b (Pxy x) - Pxy x * log b (Py (snd x)) = Pxy x * log b (Pxy x / Py (snd x))"
     by eventually_elim (auto simp: log_simps mult_pos_pos field_simps b_gt_1)
-  with I1 I2 show ?eq
-    unfolding conditional_entropy_def
-    apply (subst e_eq)
-    apply (subst entropy_distr[OF Pxy])
-    unfolding minus_diff_minus
-    apply (subst integral_diff(2)[symmetric])
-    apply (auto intro!: integral_cong_AE simp: split_beta' simp del: integral_diff)
+  have "conditional_entropy b S T X Y = 
+    - (\<integral>x. Pxy x * log b (Pxy x) - Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^isub>M T))"
+    unfolding conditional_entropy_generic_eq[OF S T Py Pxy] neg_equal_iff_equal
+    apply (intro integral_cong_AE)
+    using ae
+    apply eventually_elim
+    apply auto
     done
+  also have "\<dots> = - (\<integral>x. Pxy x * log b (Pxy x) \<partial>(S \<Otimes>\<^isub>M T)) - - (\<integral>x.  Pxy x * log b (Py (snd x)) \<partial>(S \<Otimes>\<^isub>M T))"
+    by (simp add: integral_diff[OF I1 I2])
+  finally show ?thesis 
+    unfolding conditional_entropy_generic_eq[OF S T Py Pxy] entropy_distr[OF Pxy] e_eq
+    by (simp add: split_beta')
+qed
+
+lemma (in information_space) conditional_entropy_eq_entropy_simple:
+  assumes X: "simple_function M X" and Y: "simple_function M Y"
+  shows "\<H>(X | Y) = entropy b (count_space (X`space M) \<Otimes>\<^isub>M count_space (Y`space M)) (\<lambda>x. (X x, Y x)) - \<H>(Y)"
+proof -
+  have "count_space (X ` space M) \<Otimes>\<^isub>M count_space (Y ` space M) = count_space (X`space M \<times> Y`space M)"
+    (is "?P = ?C") using X Y by (simp add: simple_functionD pair_measure_count_space)
+  show ?thesis
+    by (rule conditional_entropy_eq_entropy sigma_finite_measure_count_space_finite
+                 simple_functionD  X Y simple_distributed simple_distributedI[OF _ refl]
+                 simple_distributed_joint simple_function_Pair integrable_count_space)+
+       (auto simp: `?P = ?C` intro!: integrable_count_space simple_functionD  X Y)
 qed
 
 lemma (in information_space) conditional_entropy_eq:
@@ -1186,10 +1242,6 @@ proof (subst conditional_entropy_generic_eq[OF _ _
   have "count_space (X ` space M) \<Otimes>\<^isub>M count_space (Y ` space M) = count_space (X`space M \<times> Y`space M)"
     (is "?P = ?C")
     using X Y by (simp add: simple_distributed_finite pair_measure_count_space)
-  with X Y show
-      "integrable ?P (\<lambda>x. ?f x * log b (?f x))"
-      "integrable ?P (\<lambda>x. ?f x * log b (Py (snd x)))"
-    by (auto intro!: integrable_count_space simp: simple_distributed_finite)
   have eq: "(\<lambda>(x, y). ?f (x, y) * log b (?f (x, y) / Py y)) =
     (\<lambda>x. if x \<in> (\<lambda>x. (X x, Y x)) ` space M then Pxy x * log b (Pxy x / Py (snd x)) else 0)"
     by auto
@@ -1331,7 +1383,7 @@ proof -
     using sigma_finite_measure_count_space_finite sigma_finite_measure_count_space_finite simple_distributed[OF X] simple_distributed[OF Y] simple_distributed_joint[OF XY]
     by (rule mutual_information_eq_entropy_conditional_entropy_distr) (auto simp: eq integrable_count_space)
   then show ?thesis
-    unfolding conditional_entropy_def by simp
+    unfolding conditional_entropy_eq_entropy_simple[OF sf_X sf_Y] by simp
 qed
 
 lemma (in information_space) mutual_information_nonneg_simple:
@@ -1388,7 +1440,7 @@ proof -
              cong del: setsum_cong  intro!: setsum_mono_zero_left)
   finally have "\<H>(\<lambda>x. (X x, Y x)) = entropy b (count_space (Y ` space M) \<Otimes>\<^isub>M count_space (X ` space M)) (\<lambda>x. (Y x, X x))" .
   then show ?thesis
-    unfolding conditional_entropy_def by simp
+    unfolding conditional_entropy_eq_entropy_simple[OF Y X] by simp
 qed
 
 lemma (in information_space) entropy_partition:
