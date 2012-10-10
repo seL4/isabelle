@@ -68,11 +68,13 @@ fun list_tupled_abs [] f = f
 fun mk_pointfree_expr t =
   let
     val (vs, t'') = strip_ex (dest_Collect t)
-    val (eq::conjs) = HOLogic.dest_conj t''
-    val f = if fst (HOLogic.dest_eq eq) = Bound (length vs)
-            then snd (HOLogic.dest_eq eq)
-            else raise TERM("mk_pointfree_expr", [t]);
-    val mems = map (apfst dest_Bound o HOLogic.dest_mem) conjs
+    val conjs = HOLogic.dest_conj t''
+    val is_the_eq =
+      the_default false o (try (fn eq => fst (HOLogic.dest_eq eq) = Bound (length vs)))
+    val SOME eq = find_first is_the_eq conjs
+    val f = snd (HOLogic.dest_eq eq)
+    val conjs' = filter_out (fn t => eq = t) conjs
+    val mems = map (apfst dest_Bound o HOLogic.dest_mem) conjs'
     val grouped_mems = AList.group (op =) mems
     fun mk_grouped_unions (i, T) =
       case AList.lookup (op =) grouped_mems i of
@@ -107,9 +109,8 @@ val dest_image_Sigma_tac = etac @{thm imageE}
 
 val intro_Collect_tac = rtac @{thm iffD2[OF mem_Collect_eq]}
   THEN' REPEAT_DETERM1 o resolve_tac @{thms exI}
-  THEN' (TRY o (rtac @{thm conjI}))
-  THEN' (TRY o hyp_subst_tac)
-  THEN' rtac @{thm refl};
+  THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
+  THEN' (K (ALLGOALS (TRY o ((TRY o hyp_subst_tac) THEN' rtac @{thm refl}))))
 
 val tac =
   let
@@ -125,10 +126,7 @@ val tac =
     val subset_tac2 = rtac @{thm subsetI}
       THEN' dest_image_Sigma_tac
       THEN' intro_Collect_tac
-      THEN' REPEAT_DETERM o
-        (rtac @{thm conjI}
-        ORELSE' eresolve_tac @{thms IntD1 IntD2}
-        ORELSE' atac);
+      THEN' REPEAT_DETERM o (eresolve_tac @{thms IntD1 IntD2} ORELSE' atac);
   in
     rtac @{thm subset_antisym} THEN' subset_tac1 THEN' subset_tac2
   end;
