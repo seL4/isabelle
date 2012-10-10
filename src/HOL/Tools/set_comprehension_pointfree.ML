@@ -150,15 +150,23 @@ fun base_simproc ss redex =
     |> Option.map (fn thm => thm RS @{thm eq_reflection})
   end;
 
-(* FIXME: turn into generic simproc for many predicates, i.e., remove hard-coded finite! *)
+fun instantiate_arg_cong ctxt pred =
+  let
+    val certify = cterm_of (Proof_Context.theory_of ctxt)
+    val arg_cong = @{thm arg_cong}
+    val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (concl_of arg_cong)))
+  in
+    cterm_instantiate [(certify f, certify pred)] arg_cong
+  end;
+
 fun simproc ss redex =
   let
     val ctxt = Simplifier.the_context ss
-    val _ $ set_compr = term_of redex
+    val pred $ set_compr = term_of redex
+    val arg_cong' = instantiate_arg_cong ctxt pred
   in
     conv ctxt set_compr
-    |> Option.map (fn thm =>
-         thm RS @{thm arg_cong[of _ _ finite]} RS @{thm eq_reflection})
+    |> Option.map (fn thm => thm RS arg_cong' RS @{thm eq_reflection})
   end;
 
 fun code_simproc ss redex =
