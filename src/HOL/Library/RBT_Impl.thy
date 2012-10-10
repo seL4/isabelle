@@ -1076,8 +1076,8 @@ lemma fold_simps [simp]:
   by (simp_all add: fold_def fun_eq_iff)
 
 lemma fold_code [code]:
-  "fold f Empty c = c"
-  "fold f (Branch c lt k v rt) c = fold f rt (f k v (fold f lt c))"
+  "fold f Empty x = x"
+  "fold f (Branch c lt k v rt) x = fold f rt (f k v (fold f lt x))"
 by(simp_all)
 
 (* fold with continuation predicate *)
