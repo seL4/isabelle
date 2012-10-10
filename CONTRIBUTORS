@@ -9,6 +9,9 @@ Contributions to this Isabelle version
 * 2012: Makarius Wenzel, Université Paris-Sud / LRI
   Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
 
+* October 2012: Andreas Lochbihler, KIT
+  Efficient construction of red black trees from sorted associative lists.
+
 * September 2012: Florian Haftmann, TUM
   Lattice instances for type option.
 

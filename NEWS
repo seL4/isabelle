@@ -134,6 +134,10 @@ execution for code generated towards Isabelle/ML.
 appear in a constant's type. This alternative to adding TYPE('a) as
 another parameter avoids unnecessary closures in generated code.
 
+* Library/RBT_Impl.thy: efficient construction of red-black trees 
+from sorted associative lists. Merging two trees with rbt_union may
+return a structurally different tree than before. MINOR INCOMPATIBILITY.
+
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
