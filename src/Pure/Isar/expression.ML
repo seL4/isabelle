@@ -287,13 +287,9 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 (** Finish locale elements **)
 
-fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
-      let val x = Binding.name_of binding
-      in (binding, AList.lookup (op =) parms x, mx) end) fixes)
-  | finish_primitive _ _ (Constrains _) = Constrains []
-  | finish_primitive _ close (Assumes asms) = close (Assumes asms)
-  | finish_primitive _ close (Defines defs) = close (Defines defs)
-  | finish_primitive _ _ (Notes facts) = Notes facts;
+fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
+  let val x = Binding.name_of binding
+  in (binding, AList.lookup (op =) parms x, mx) end);
 
 local
 
@@ -320,8 +316,11 @@ fun closeup _ _ false elem = elem
         | e => e)
       end;
 
-fun finish_elem ctxt parms do_close elem =
-  finish_primitive parms (closeup ctxt parms do_close) elem;
+fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
+  | finish_elem _ _ _ (Constrains _) = Constrains []
+  | finish_elem ctxt parms do_close (Assumes asms) = closeup ctxt parms do_close (Assumes asms)
+  | finish_elem ctxt parms do_close (Defines defs) = closeup ctxt parms do_close (Defines defs)
+  | finish_elem _ _ _ (Notes facts) = Notes facts;
 
 fun finish_inst ctxt (loc, (prfx, inst)) =
   let
@@ -406,7 +405,7 @@ fun prep_full_context_statement
     val (Ts, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
-    val Fixes fors' = finish_primitive parms I (Fixes fors);
+    val fors' = finish_fixes parms fors;
     val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
     val (deps, elems'') = finish ctxt6 parms do_close insts elems';
 
