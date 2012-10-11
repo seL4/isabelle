@@ -90,12 +90,12 @@ type entry =
 fun entry_markup def kind (name, {pos, id, ...}: entry) =
   Markup.properties (Position.entity_properties_of def id pos) (Isabelle_Markup.entity kind name);
 
-fun print_entry def kind (name, entry) =
-  quote (Markup.markup (entry_markup def kind (name, entry)) name);
+fun print_entry_ref kind (name, entry) =
+  quote (Markup.markup (entry_markup false kind (name, entry)) name);
 
-fun err_dup kind entry1 entry2 =
+fun err_dup kind entry1 entry2 pos =
   error ("Duplicate " ^ kind ^ " declaration " ^
-    print_entry true kind entry1 ^ " vs. " ^ print_entry true kind entry2);
+    print_entry_ref kind entry1 ^ " vs. " ^ print_entry_ref kind entry2 ^ Position.here pos);
 
 fun undefined kind name = "Undefined " ^ kind ^ ": " ^ quote name;
 
@@ -239,7 +239,7 @@ fun merge
     val entries' = (entries1, entries2) |> Symtab.join
       (fn name => fn ((_, entry1), (_, entry2)) =>
         if #id entry1 = #id entry2 then raise Symtab.SAME
-        else err_dup kind' (name, entry1) (name, entry2));
+        else err_dup kind' (name, entry1) (name, entry2) Position.none);
   in make_name_space (kind', internals', entries') end;
 
 
@@ -387,7 +387,7 @@ fun new_entry strict (name, (externals, entry)) =
       val entries' =
         (if strict then Symtab.update_new else Symtab.update) (name, (externals, entry)) entries
           handle Symtab.DUP dup =>
-            err_dup kind (dup, #2 (the (Symtab.lookup entries dup))) (name, entry);
+            err_dup kind (dup, #2 (the (Symtab.lookup entries dup))) (name, entry) (#pos entry);
     in (kind, internals, entries') end);
 
 fun declare context strict binding space =
