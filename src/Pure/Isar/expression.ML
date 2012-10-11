@@ -615,11 +615,14 @@ fun atomize_spec thy ts =
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
 
-fun aprop_tr' n c = (Lexicon.mark_const c, fn ctxt => fn args =>
-  if length args = n then
-    Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
-      Term.list_comb (Syntax.free (Proof_Context.extern_const ctxt c), args)
-  else raise Match);
+fun aprop_tr' n c =
+  let
+    val c' = Lexicon.mark_const c;
+    fun tr' T args =
+      if T <> dummyT andalso length args = n
+      then Syntax.const "_aprop" $ Term.list_comb (Syntax.const c', args)
+      else raise Match;
+  in (c', tr') end;
 
 (* define one predicate including its intro rule and axioms
    - binding: predicate name
@@ -649,7 +652,7 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val ([pred_def], defs_thy) =
       thy
-      |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
+      |> bodyT = propT ? Sign.add_trfunsT [aprop_tr' (length args) name]
       |> Sign.declare_const_global ((Binding.conceal binding, predT), NoSyn) |> snd
       |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
