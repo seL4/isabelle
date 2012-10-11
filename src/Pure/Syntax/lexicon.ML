@@ -44,6 +44,7 @@ sig
   val tvarT: typ
   val terminals: string list
   val is_terminal: string -> bool
+  val literal_markup: string -> Markup.T
   val report_of_token: token -> Position.report
   val reported_token_range: Proof.context -> token -> string
   val matching_tokens: token * token -> bool
@@ -188,25 +189,24 @@ val is_terminal = member (op =) terminals;
 
 (* markup *)
 
+fun literal_markup s =
+  if is_ascii_identifier s
+  then Isabelle_Markup.literal
+  else Isabelle_Markup.delimiter;
+
 val token_kind_markup =
- fn Literal     => Isabelle_Markup.literal
-  | IdentSy     => Markup.empty
-  | LongIdentSy => Markup.empty
-  | VarSy       => Isabelle_Markup.var
-  | TFreeSy     => Isabelle_Markup.tfree
-  | TVarSy      => Isabelle_Markup.tvar
-  | NumSy       => Isabelle_Markup.numeral
-  | FloatSy     => Isabelle_Markup.numeral
-  | XNumSy      => Isabelle_Markup.numeral
-  | StrSy       => Isabelle_Markup.inner_string
-  | Space       => Markup.empty
-  | Comment     => Isabelle_Markup.inner_comment
-  | EOF         => Markup.empty;
+ fn VarSy   => Isabelle_Markup.var
+  | TFreeSy => Isabelle_Markup.tfree
+  | TVarSy  => Isabelle_Markup.tvar
+  | NumSy   => Isabelle_Markup.numeral
+  | FloatSy => Isabelle_Markup.numeral
+  | XNumSy  => Isabelle_Markup.numeral
+  | StrSy   => Isabelle_Markup.inner_string
+  | Comment => Isabelle_Markup.inner_comment
+  | _       => Markup.empty;
 
 fun report_of_token (Token (kind, s, (pos, _))) =
-  let val markup =
-    if kind = Literal andalso not (is_ascii_identifier s) then Isabelle_Markup.delimiter
-    else token_kind_markup kind
+  let val markup = if kind = Literal then literal_markup s else token_kind_markup kind
   in (pos, markup) end;
 
 fun reported_token_range ctxt tok =

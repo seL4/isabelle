@@ -92,8 +92,7 @@ fun show_sort_constraint ctxt = Config.get ctxt show_sorts orelse Config.get ctx
 datatype symb =
   Arg of int |
   TypArg of int |
-  String of string |
-  Space of string |
+  String of bool * string |
   Break of int |
   Block of int * symb list;
 
@@ -113,11 +112,12 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
           (if Lexicon.is_terminal s then 1000 else p);
 
         fun xsyms_to_syms (Syntax_Ext.Delim s :: xsyms) =
-              apfst (cons (String s)) (xsyms_to_syms xsyms)
+              apfst (cons (String (not (exists Symbol.is_block_ctrl (Symbol.explode s)), s)))
+                (xsyms_to_syms xsyms)
           | xsyms_to_syms (Syntax_Ext.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Syntax_Ext.Space s :: xsyms) =
-              apfst (cons (Space s)) (xsyms_to_syms xsyms)
+              apfst (cons (String (false, s))) (xsyms_to_syms xsyms)
           | xsyms_to_syms (Syntax_Ext.Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
@@ -133,7 +133,6 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
         fun nargs (Arg _ :: syms) = nargs syms + 1
           | nargs (TypArg _ :: syms) = nargs syms + 1
           | nargs (String _ :: syms) = nargs syms
-          | nargs (Space _ :: syms) = nargs syms
           | nargs (Break _ :: syms) = nargs syms
           | nargs (Block (_, bsyms) :: syms) = nargs syms + nargs bsyms
           | nargs [] = 0;
@@ -202,17 +201,14 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
               (pretty true curried (Config.put pretty_priority p ctxt)
                 tabs trf markup_trans markup_extern t @ Ts, args')
           end
-      | synT m (String s :: symbs, args) =
+      | synT m (String (do_mark, s) :: symbs, args) =
           let
             val (Ts, args') = synT m (symbs, args);
             val T =
-              if exists Symbol.is_block_ctrl (Symbol.explode s)
-              then Pretty.str s
-              else Pretty.marks_str (m, s);
+              if do_mark
+              then Pretty.marks_str (m @ [Lexicon.literal_markup s], s)
+              else Pretty.str s;
           in (T :: Ts, args') end
-      | synT m (Space s :: symbs, args) =
-          let val (Ts, args') = synT m (symbs, args);
-          in (Pretty.str s :: Ts, args') end
       | synT m (Block (i, bsymbs) :: symbs, args) =
           let
             val (bTs, args') = synT m (bsymbs, args);
@@ -229,7 +225,7 @@ fun pretty type_mode curried ctxt tabs trf markup_trans markup_extern ast0 =
 
     and parT m (pr, args, p, p': int) = #1 (synT m
           (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr))
-           then [Block (1, Space "(" :: pr @ [Space ")"])]
+           then [Block (1, String (false, "(") :: pr @ [String (false, ")")])]
            else pr, args))
 
     and atomT a = Pretty.marks_str (markup_extern a)
