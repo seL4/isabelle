@@ -1007,17 +1007,6 @@ abbreviation (in information_space)
   "\<I>(X ; Y | Z) \<equiv> conditional_mutual_information b
     (count_space (X ` space M)) (count_space (Y ` space M)) (count_space (Z ` space M)) X Y Z"
 
-lemma (in pair_sigma_finite) borel_measurable_positive_integral_fst:
-  "(\<lambda>(x, y). f x y) \<in> borel_measurable (M1 \<Otimes>\<^isub>M M2) \<Longrightarrow> (\<lambda>x. \<integral>\<^isup>+ y. f x y \<partial>M2) \<in> borel_measurable M1"
-  using positive_integral_fst_measurable(1)[of "\<lambda>(x, y). f x y"] by simp
-
-lemma (in pair_sigma_finite) borel_measurable_positive_integral_snd:
-  assumes "(\<lambda>(x, y). f x y) \<in> borel_measurable (M2 \<Otimes>\<^isub>M M1)" shows "(\<lambda>x. \<integral>\<^isup>+ y. f x y \<partial>M1) \<in> borel_measurable M2"
-proof -
-  interpret Q: pair_sigma_finite M2 M1 by default
-  from Q.borel_measurable_positive_integral_fst assms show ?thesis by simp
-qed
-
 lemma (in information_space)
   assumes S: "sigma_finite_measure S" and T: "sigma_finite_measure T" and P: "sigma_finite_measure P"
   assumes Px: "distributed M S X Px"
