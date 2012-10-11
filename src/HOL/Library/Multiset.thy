@@ -744,34 +744,44 @@ subsection {* Image *}
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
   "image_mset f = fold (plus o single o f) {#}"
 
-interpretation image_fun_commute: comp_fun_commute "op + o single o f" for f
-proof qed (simp add: add_ac fun_eq_iff)
+lemma comp_fun_commute_mset_image:
+  "comp_fun_commute (plus o single o f)"
+proof
+qed (simp add: add_ac fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
-by (simp add: image_mset_def)
+  by (simp add: image_mset_def)
 
 lemma image_mset_single [simp]: "image_mset f {#x#} = {#f x#}"
-by (simp add: image_mset_def)
-
-lemma image_mset_insert:
-  "image_mset f (M + {#a#}) = image_mset f M + {#f a#}"
-by (simp add: image_mset_def add_ac)
+proof -
+  interpret comp_fun_commute "plus o single o f"
+    by (fact comp_fun_commute_mset_image)
+  show ?thesis by (simp add: image_mset_def)
+qed
 
 lemma image_mset_union [simp]:
-  "image_mset f (M+N) = image_mset f M + image_mset f N"
-apply (induct N)
- apply simp
-apply (simp add: add_assoc [symmetric] image_mset_insert)
-done
+  "image_mset f (M + N) = image_mset f M + image_mset f N"
+proof -
+  interpret comp_fun_commute "plus o single o f"
+    by (fact comp_fun_commute_mset_image)
+  show ?thesis by (induct N) (simp_all add: image_mset_def add_ac)
+qed
 
-lemma set_of_image_mset [simp]: "set_of (image_mset f M) = image f (set_of M)"
-by (induct M) simp_all
+corollary image_mset_insert:
+  "image_mset f (M + {#a#}) = image_mset f M + {#f a#}"
+  by simp
 
-lemma size_image_mset [simp]: "size (image_mset f M) = size M"
-by (induct M) simp_all
+lemma set_of_image_mset [simp]:
+  "set_of (image_mset f M) = image f (set_of M)"
+  by (induct M) simp_all
 
-lemma image_mset_is_empty_iff [simp]: "image_mset f M = {#} \<longleftrightarrow> M = {#}"
-by (cases M) auto
+lemma size_image_mset [simp]:
+  "size (image_mset f M) = size M"
+  by (induct M) simp_all
+
+lemma image_mset_is_empty_iff [simp]:
+  "image_mset f M = {#} \<longleftrightarrow> M = {#}"
+  by (cases M) auto
 
 syntax
   "_comprehension1_mset" :: "'a \<Rightarrow> 'b \<Rightarrow> 'b multiset \<Rightarrow> 'a multiset"
