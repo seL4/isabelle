@@ -144,13 +144,14 @@ fun parameters_of thy strict (expr, fixed) =
 local
 
 fun prep_inst prep_term ctxt parms (Positional insts) =
-      (insts ~~ parms) |> map (fn
-        (NONE, p) => Free (p, dummyT) |
-        (SOME t, _) => prep_term ctxt t)
+      (insts ~~ parms) |> map
+        (fn (NONE, p) => Free (p, dummyT)
+          | (SOME t, _) => prep_term ctxt t)
   | prep_inst prep_term ctxt parms (Named insts) =
-      parms |> map (fn p => case AList.lookup (op =) insts p of
-        SOME t => prep_term ctxt t |
-        NONE => Free (p, dummyT));
+      parms |> map (fn p =>
+        (case AList.lookup (op =) insts p of
+          SOME t => prep_term ctxt t |
+          NONE => Free (p, dummyT)));
 
 in
 
@@ -286,6 +287,16 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 (** Finish locale elements **)
 
+fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
+      let val x = Binding.name_of binding
+      in (binding, AList.lookup (op =) parms x, mx) end) fixes)
+  | finish_primitive _ _ (Constrains _) = Constrains []
+  | finish_primitive _ close (Assumes asms) = close (Assumes asms)
+  | finish_primitive _ close (Defines defs) = close (Defines defs)
+  | finish_primitive _ _ (Notes facts) = Notes facts;
+
+local
+
 fun closeup _ _ false elem = elem
   | closeup ctxt parms true elem =
       let
@@ -309,13 +320,8 @@ fun closeup _ _ false elem = elem
         | e => e)
       end;
 
-fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
-      let val x = Binding.name_of binding
-      in (binding, AList.lookup (op =) parms x, mx) end) fixes)
-  | finish_primitive _ _ (Constrains _) = Constrains []
-  | finish_primitive _ close (Assumes asms) = close (Assumes asms)
-  | finish_primitive _ close (Defines defs) = close (Defines defs)
-  | finish_primitive _ _ (Notes facts) = Notes facts;
+fun finish_elem ctxt parms do_close elem =
+  finish_primitive parms (closeup ctxt parms do_close) elem;
 
 fun finish_inst ctxt (loc, (prfx, inst)) =
   let
@@ -324,14 +330,15 @@ fun finish_inst ctxt (loc, (prfx, inst)) =
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
 
-fun finish_elem ctxt parms do_close elem =
-  finish_primitive parms (closeup ctxt parms do_close) elem;
+in
 
 fun finish ctxt parms do_close insts elems =
   let
     val deps = map (finish_inst ctxt) insts;
     val elems' = map (finish_elem ctxt parms do_close) elems;
   in (deps, elems') end;
+
+end;
 
 
 (** Process full context statement: instantiations + elements + conclusion **)
@@ -428,12 +435,12 @@ local
 
 fun prep_statement prep activate raw_elems raw_concl context =
   let
-     val ((_, _, elems, concl), _) =
-       prep {strict = true, do_close = false, fixed_frees = true}
+    val ((_, _, elems, concl), _) =
+      prep {strict = true, do_close = false, fixed_frees = true}
         ([], []) I raw_elems raw_concl context;
-     val (_, context') = context |>
-       Proof_Context.set_stmt true |>
-       fold_map activate elems;
+    val (_, context') = context
+      |> Proof_Context.set_stmt true
+      |> fold_map activate elems;
   in (concl, context') end;
 
 in
