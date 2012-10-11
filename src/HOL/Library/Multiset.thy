@@ -657,146 +657,82 @@ qed
 
 subsection {* The fold combinator *}
 
-text {*
-  The intended behaviour is
-  @{text "fold_mset f z {#x\<^isub>1, ..., x\<^isub>n#} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
-  if @{text f} is associative-commutative. 
-*}
-
-text {*
-  The graph of @{text "fold_mset"}, @{text "z"}: the start element,
-  @{text "f"}: folding function, @{text "A"}: the multiset, @{text
-  "y"}: the result.
-*}
-inductive 
-  fold_msetG :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b \<Rightarrow> bool" 
-  for f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" 
-  and z :: 'b
+definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b"
 where
-  emptyI [intro]:  "fold_msetG f z {#} z"
-| insertI [intro]: "fold_msetG f z A y \<Longrightarrow> fold_msetG f z (A + {#x#}) (f x y)"
+  "fold f s M = Finite_Set.fold (\<lambda>x. f x ^^ count M x) s (set_of M)"
 
-inductive_cases empty_fold_msetGE [elim!]: "fold_msetG f z {#} x"
-inductive_cases insert_fold_msetGE: "fold_msetG f z (A + {#}) y" 
-
-definition
-  fold_mset :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a multiset \<Rightarrow> 'b" where
-  "fold_mset f z A = (THE x. fold_msetG f z A x)"
-
-lemma Diff1_fold_msetG:
-  "fold_msetG f z (A - {#x#}) y \<Longrightarrow> x \<in># A \<Longrightarrow> fold_msetG f z A (f x y)"
-apply (frule_tac x = x in fold_msetG.insertI)
-apply auto
-done
-
-lemma fold_msetG_nonempty: "\<exists>x. fold_msetG f z A x"
-apply (induct A)
- apply blast
-apply clarsimp
-apply (drule_tac x = x in fold_msetG.insertI)
-apply auto
-done
-
-lemma fold_mset_empty[simp]: "fold_mset f z {#} = z"
-unfolding fold_mset_def by blast
+lemma fold_mset_empty [simp]:
+  "fold f s {#} = s"
+  by (simp add: fold_def)
 
 context comp_fun_commute
 begin
 
-lemma fold_msetG_insertE_aux:
-  "fold_msetG f z A y \<Longrightarrow> a \<in># A \<Longrightarrow> \<exists>y'. y = f a y' \<and> fold_msetG f z (A - {#a#}) y'"
-proof (induct set: fold_msetG)
-  case (insertI A y x) show ?case
-  proof (cases "x = a")
-    assume "x = a" with insertI show ?case by auto
-  next
-    assume "x \<noteq> a"
-    then obtain y' where y: "y = f a y'" and y': "fold_msetG f z (A - {#a#}) y'"
-      using insertI by auto
-    have "f x y = f a (f x y')"
-      unfolding y by (rule fun_left_comm)
-    moreover have "fold_msetG f z (A + {#x#} - {#a#}) (f x y')"
-      using y' and `x \<noteq> a`
-      by (simp add: diff_union_swap [symmetric] fold_msetG.insertI)
-    ultimately show ?case by fast
-  qed
-qed simp
-
-lemma fold_msetG_insertE:
-  assumes "fold_msetG f z (A + {#x#}) v"
-  obtains y where "v = f x y" and "fold_msetG f z A y"
-using assms by (auto dest: fold_msetG_insertE_aux [where a=x])
-
-lemma fold_msetG_determ:
-  "fold_msetG f z A x \<Longrightarrow> fold_msetG f z A y \<Longrightarrow> y = x"
-proof (induct arbitrary: y set: fold_msetG)
-  case (insertI A y x v)
-  from `fold_msetG f z (A + {#x#}) v`
-  obtain y' where "v = f x y'" and "fold_msetG f z A y'"
-    by (rule fold_msetG_insertE)
-  from `fold_msetG f z A y'` have "y' = y" by (rule insertI)
-  with `v = f x y'` show "v = f x y" by simp
-qed fast
-
-lemma fold_mset_equality: "fold_msetG f z A y \<Longrightarrow> fold_mset f z A = y"
-unfolding fold_mset_def by (blast intro: fold_msetG_determ)
-
-lemma fold_msetG_fold_mset: "fold_msetG f z A (fold_mset f z A)"
+lemma fold_mset_insert:
+  "fold f s (M + {#x#}) = f x (fold f s M)"
 proof -
-  from fold_msetG_nonempty fold_msetG_determ
-  have "\<exists>!x. fold_msetG f z A x" by (rule ex_ex1I)
-  then show ?thesis unfolding fold_mset_def by (rule theI')
+  interpret mset: comp_fun_commute "\<lambda>y. f y ^^ count M y"
+    by (fact comp_fun_commute_funpow)
+  interpret mset_union: comp_fun_commute "\<lambda>y. f y ^^ count (M + {#x#}) y"
+    by (fact comp_fun_commute_funpow)
+  show ?thesis
+  proof (cases "x \<in> set_of M")
+    case False
+    then have *: "count (M + {#x#}) x = 1" by simp
+    from False have "Finite_Set.fold (\<lambda>y. f y ^^ count (M + {#x#}) y) s (set_of M) =
+      Finite_Set.fold (\<lambda>y. f y ^^ count M y) s (set_of M)"
+      by (auto intro!: Finite_Set.fold_cong comp_fun_commute_funpow)
+    with False * show ?thesis
+      by (simp add: fold_def del: count_union)
+  next
+    case True
+    def N \<equiv> "set_of M - {x}"
+    from N_def True have *: "set_of M = insert x N" "x \<notin> N" "finite N" by auto
+    then have "Finite_Set.fold (\<lambda>y. f y ^^ count (M + {#x#}) y) s N =
+      Finite_Set.fold (\<lambda>y. f y ^^ count M y) s N"
+      by (auto intro!: Finite_Set.fold_cong comp_fun_commute_funpow)
+    with * show ?thesis by (simp add: fold_def del: count_union) simp
+  qed
 qed
 
-lemma fold_mset_insert:
-  "fold_mset f z (A + {#x#}) = f x (fold_mset f z A)"
-by (intro fold_mset_equality fold_msetG.insertI fold_msetG_fold_mset)
+corollary fold_mset_single [simp]:
+  "fold f s {#x#} = f x s"
+proof -
+  have "fold f s ({#} + {#x#}) = f x s" by (simp only: fold_mset_insert) simp
+  then show ?thesis by simp
+qed
 
-lemma fold_mset_commute: "f x (fold_mset f z A) = fold_mset f (f x z) A"
-by (induct A) (auto simp: fold_mset_insert fun_left_comm [of x])
-
-lemma fold_mset_single [simp]: "fold_mset f z {#x#} = f x z"
-using fold_mset_insert [of z "{#}"] by simp
+lemma fold_mset_fun_comm:
+  "f x (fold f s M) = fold f (f x s) M"
+  by (induct M) (simp_all add: fold_mset_insert fun_left_comm)
 
 lemma fold_mset_union [simp]:
-  "fold_mset f z (A+B) = fold_mset f (fold_mset f z A) B"
-proof (induct A)
+  "fold f s (M + N) = fold f (fold f s M) N"
+proof (induct M)
   case empty then show ?case by simp
 next
-  case (add A x)
-  have "A + {#x#} + B = (A+B) + {#x#}" by (simp add: add_ac)
-  then have "fold_mset f z (A + {#x#} + B) = f x (fold_mset f z (A + B))" 
-    by (simp add: fold_mset_insert)
-  also have "\<dots> = fold_mset f (fold_mset f z (A + {#x#})) B"
-    by (simp add: fold_mset_commute[of x,symmetric] add fold_mset_insert)
-  finally show ?case .
+  case (add M x)
+  have "M + {#x#} + N = (M + N) + {#x#}"
+    by (simp add: add_ac)
+  with add show ?case by (simp add: fold_mset_insert fold_mset_fun_comm)
 qed
 
 lemma fold_mset_fusion:
   assumes "comp_fun_commute g"
-  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A" (is "PROP ?P")
+  shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold g w A) = fold f (h w) A" (is "PROP ?P")
 proof -
   interpret comp_fun_commute g by (fact assms)
   show "PROP ?P" by (induct A) auto
-qed
-
-lemma fold_mset_rec:
-  assumes "a \<in># A" 
-  shows "fold_mset f z A = f a (fold_mset f z (A - {#a#}))"
-proof -
-  from assms obtain A' where "A = A' + {#a#}"
-    by (blast dest: multi_member_split)
-  then show ?thesis by simp
 qed
 
 end
 
 text {*
   A note on code generation: When defining some function containing a
-  subterm @{term"fold_mset F"}, code generation is not automatic. When
+  subterm @{term "fold F"}, code generation is not automatic. When
   interpreting locale @{text left_commutative} with @{text F}, the
-  would be code thms for @{const fold_mset} become thms like
-  @{term"fold_mset F z {#} = z"} where @{text F} is not a pattern but
+  would be code thms for @{const fold} become thms like
+  @{term "fold F z {#} = z"} where @{text F} is not a pattern but
   contains defined symbols, i.e.\ is not a code thm. Hence a separate
   constant with its own code thms needs to be introduced for @{text
   F}. See the image operator below.
@@ -806,7 +742,7 @@ text {*
 subsection {* Image *}
 
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
-  "image_mset f = fold_mset (op + o single o f) {#}"
+  "image_mset f = fold (plus o single o f) {#}"
 
 interpretation image_fun_commute: comp_fun_commute "op + o single o f" for f
 proof qed (simp add: add_ac fun_eq_iff)
@@ -989,7 +925,7 @@ lemma multiset_of_eq_length_filter:
 lemma fold_multiset_equiv:
   assumes f: "\<And>x y. x \<in> set xs \<Longrightarrow> y \<in> set xs \<Longrightarrow> f x \<circ> f y = f y \<circ> f x"
     and equiv: "multiset_of xs = multiset_of ys"
-  shows "fold f xs = fold f ys"
+  shows "List.fold f xs = List.fold f ys"
 using f equiv [symmetric]
 proof (induct xs arbitrary: ys)
   case Nil then show ?case by simp
@@ -999,8 +935,8 @@ next
   have "\<And>x y. x \<in> set ys \<Longrightarrow> y \<in> set ys \<Longrightarrow> f x \<circ> f y = f y \<circ> f x" 
     by (rule Cons.prems(1)) (simp_all add: *)
   moreover from * have "x \<in> set ys" by simp
-  ultimately have "fold f ys = fold f (remove1 x ys) \<circ> f x" by (fact fold_remove1_split)
-  moreover from Cons.prems have "fold f xs = fold f (remove1 x ys)" by (auto intro: Cons.hyps)
+  ultimately have "List.fold f ys = List.fold f (remove1 x ys) \<circ> f x" by (fact fold_remove1_split)
+  moreover from Cons.prems have "List.fold f xs = List.fold f (remove1 x ys)" by (auto intro: Cons.hyps)
   ultimately show ?case by simp
 qed
 
@@ -1914,6 +1850,8 @@ declaration {*
 Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
     multiset_postproc
 *}
+
+hide_const (open) fold
 
 end
 

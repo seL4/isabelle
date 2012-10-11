@@ -62,6 +62,16 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Theory "Library/Multiset":
+
+  - Renamed constants
+      fold_mset ~> Multiset.fold  -- for coherence with other fold combinators
+
+  - Renamed facts
+      fold_mset_commute ~> fold_mset_comm  -- for coherence with fold_comm
+
+INCOMPATIBILITY.
+
 * Theorem UN_o generalized to SUP_comp.  INCOMPATIBILITY.
 
 * Class "comm_monoid_diff" formalises properties of bounded
