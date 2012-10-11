@@ -287,6 +287,13 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 (** Finish locale elements **)
 
+fun finish_inst ctxt (loc, (prfx, inst)) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
+    val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
+  in (loc, morph) end;
+
 fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
   let val x = Binding.name_of binding
   in (binding, AList.lookup (op =) parms x, mx) end);
@@ -294,14 +301,15 @@ fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
 local
 
 fun closeup _ _ false elem = elem
-  | closeup ctxt parms true elem =
+  | closeup (outer_ctxt, ctxt) parms true elem =
       let
         (* FIXME consider closing in syntactic phase -- before type checking *)
         fun close_frees t =
           let
             val rev_frees =
               Term.fold_aterms (fn Free (x, T) =>
-                if AList.defined (op =) parms x then I else insert (op =) (x, T) | _ => I) t [];
+                if Variable.is_fixed outer_ctxt x orelse AList.defined (op =) parms x then I
+                else insert (op =) (x, T) | _ => I) t [];
           in fold (Logic.all o Free) rev_frees t end;
 
         fun no_binds [] = []
@@ -316,26 +324,13 @@ fun closeup _ _ false elem = elem
         | e => e)
       end;
 
-fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
-  | finish_elem _ _ _ (Constrains _) = Constrains []
-  | finish_elem ctxt parms do_close (Assumes asms) = closeup ctxt parms do_close (Assumes asms)
-  | finish_elem ctxt parms do_close (Defines defs) = closeup ctxt parms do_close (Defines defs)
-  | finish_elem _ _ _ (Notes facts) = Notes facts;
-
-fun finish_inst ctxt (loc, (prfx, inst)) =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
-    val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
-  in (loc, morph) end;
-
 in
 
-fun finish ctxt parms do_close insts elems =
-  let
-    val deps = map (finish_inst ctxt) insts;
-    val elems' = map (finish_elem ctxt parms do_close) elems;
-  in (deps, elems') end;
+fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
+  | finish_elem _ _ _ (Constrains _) = Constrains []
+  | finish_elem ctxts parms do_close (Assumes asms) = closeup ctxts parms do_close (Assumes asms)
+  | finish_elem ctxts parms do_close (Defines defs) = closeup ctxts parms do_close (Defines defs)
+  | finish_elem _ _ _ (Notes facts) = Notes facts;
 
 end;
 
@@ -407,7 +402,8 @@ fun prep_full_context_statement
 
     val fors' = finish_fixes parms fors;
     val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
-    val (deps, elems'') = finish ctxt6 parms do_close insts elems';
+    val deps = map (finish_inst ctxt6) insts;
+    val elems'' = map (finish_elem (ctxt1, ctxt6) parms do_close) elems';
 
   in ((fixed, deps, elems'', concl), (parms, ctxt7)) end
 
