@@ -144,13 +144,14 @@ fun parameters_of thy strict (expr, fixed) =
 local
 
 fun prep_inst prep_term ctxt parms (Positional insts) =
-      (insts ~~ parms) |> map (fn
-        (NONE, p) => Free (p, dummyT) |
-        (SOME t, _) => prep_term ctxt t)
+      (insts ~~ parms) |> map
+        (fn (NONE, p) => Free (p, dummyT)
+          | (SOME t, _) => prep_term ctxt t)
   | prep_inst prep_term ctxt parms (Named insts) =
-      parms |> map (fn p => case AList.lookup (op =) insts p of
-        SOME t => prep_term ctxt t |
-        NONE => Free (p, dummyT));
+      parms |> map (fn p =>
+        (case AList.lookup (op =) insts p of
+          SOME t => prep_term ctxt t |
+          NONE => Free (p, dummyT)));
 
 in
 
@@ -286,15 +287,29 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 (** Finish locale elements **)
 
+fun finish_inst ctxt (loc, (prfx, inst)) =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
+    val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
+  in (loc, morph) end;
+
+fun finish_fixes (parms: (string * typ) list) = map (fn (binding, _, mx) =>
+  let val x = Binding.name_of binding
+  in (binding, AList.lookup (op =) parms x, mx) end);
+
+local
+
 fun closeup _ _ false elem = elem
-  | closeup ctxt parms true elem =
+  | closeup (outer_ctxt, ctxt) parms true elem =
       let
         (* FIXME consider closing in syntactic phase -- before type checking *)
         fun close_frees t =
           let
             val rev_frees =
               Term.fold_aterms (fn Free (x, T) =>
-                if AList.defined (op =) parms x then I else insert (op =) (x, T) | _ => I) t [];
+                if Variable.is_fixed outer_ctxt x orelse AList.defined (op =) parms x then I
+                else insert (op =) (x, T) | _ => I) t [];
           in fold (Logic.all o Free) rev_frees t end;
 
         fun no_binds [] = []
@@ -309,29 +324,15 @@ fun closeup _ _ false elem = elem
         | e => e)
       end;
 
-fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
-      let val x = Binding.name_of binding
-      in (binding, AList.lookup (op =) parms x, mx) end) fixes)
-  | finish_primitive _ _ (Constrains _) = Constrains []
-  | finish_primitive _ close (Assumes asms) = close (Assumes asms)
-  | finish_primitive _ close (Defines defs) = close (Defines defs)
-  | finish_primitive _ _ (Notes facts) = Notes facts;
+in
 
-fun finish_inst ctxt (loc, (prfx, inst)) =
-  let
-    val thy = Proof_Context.theory_of ctxt;
-    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
-    val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
-  in (loc, morph) end;
+fun finish_elem _ parms _ (Fixes fixes) = Fixes (finish_fixes parms fixes)
+  | finish_elem _ _ _ (Constrains _) = Constrains []
+  | finish_elem ctxts parms do_close (Assumes asms) = closeup ctxts parms do_close (Assumes asms)
+  | finish_elem ctxts parms do_close (Defines defs) = closeup ctxts parms do_close (Defines defs)
+  | finish_elem _ _ _ (Notes facts) = Notes facts;
 
-fun finish_elem ctxt parms do_close elem =
-  finish_primitive parms (closeup ctxt parms do_close) elem;
-
-fun finish ctxt parms do_close insts elems =
-  let
-    val deps = map (finish_inst ctxt) insts;
-    val elems' = map (finish_elem ctxt parms do_close) elems;
-  in (deps, elems') end;
+end;
 
 
 (** Process full context statement: instantiations + elements + conclusion **)
@@ -399,9 +400,10 @@ fun prep_full_context_statement
     val (Ts, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
-    val Fixes fors' = finish_primitive parms I (Fixes fors);
+    val fors' = finish_fixes parms fors;
     val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
-    val (deps, elems'') = finish ctxt6 parms do_close insts elems';
+    val deps = map (finish_inst ctxt6) insts;
+    val elems'' = map (finish_elem (ctxt1, ctxt6) parms do_close) elems';
 
   in ((fixed, deps, elems'', concl), (parms, ctxt7)) end
 
@@ -428,12 +430,12 @@ local
 
 fun prep_statement prep activate raw_elems raw_concl context =
   let
-     val ((_, _, elems, concl), _) =
-       prep {strict = true, do_close = false, fixed_frees = true}
+    val ((_, _, elems, concl), _) =
+      prep {strict = true, do_close = false, fixed_frees = true}
         ([], []) I raw_elems raw_concl context;
-     val (_, context') = context |>
-       Proof_Context.set_stmt true |>
-       fold_map activate elems;
+    val (_, context') = context
+      |> Proof_Context.set_stmt true
+      |> fold_map activate elems;
   in (concl, context') end;
 
 in
@@ -613,11 +615,14 @@ fun atomize_spec thy ts =
 
 (* achieve plain syntax for locale predicates (without "PROP") *)
 
-fun aprop_tr' n c = (Lexicon.mark_const c, fn ctxt => fn args =>
-  if length args = n then
-    Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
-      Term.list_comb (Syntax.free (Proof_Context.extern_const ctxt c), args)
-  else raise Match);
+fun aprop_tr' n c =
+  let
+    val c' = Lexicon.mark_const c;
+    fun tr' T args =
+      if T <> dummyT andalso length args = n
+      then Syntax.const "_aprop" $ Term.list_comb (Syntax.const c', args)
+      else raise Match;
+  in (c', tr') end;
 
 (* define one predicate including its intro rule and axioms
    - binding: predicate name
@@ -647,7 +652,7 @@ fun def_pred binding parms defs ts norm_ts thy =
 
     val ([pred_def], defs_thy) =
       thy
-      |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
+      |> bodyT = propT ? Sign.add_trfunsT [aprop_tr' (length args) name]
       |> Sign.declare_const_global ((Binding.conceal binding, predT), NoSyn) |> snd
       |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];

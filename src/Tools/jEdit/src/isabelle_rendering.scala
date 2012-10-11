@@ -211,10 +211,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
             Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, 0, 0)) :: links
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _)))
-          if (props.find(
+          if !props.exists(
             { case (Markup.KIND, Isabelle_Markup.ML_OPEN) => true
               case (Markup.KIND, Isabelle_Markup.ML_STRUCT) => true
-              case _ => false }).isEmpty) =>
+              case _ => false }) =>
 
             props match {
               case Position.Def_Line_File(line, name) if Path.is_ok(name) =>
