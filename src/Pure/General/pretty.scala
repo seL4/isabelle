@@ -59,7 +59,8 @@ object Pretty
 
   val FBreak = XML.Text("\n")
 
-  val Separator = XML.elem(Isabelle_Markup.SEPARATOR, List(FBreak))
+  val Separator = List(XML.elem(Isabelle_Markup.SEPARATOR, List(XML.Text(space))), FBreak)
+  def separate(ts: List[XML.Tree]): XML.Body = ts.map(t => t :: Separator).flatten
 
 
   /* formatted output */

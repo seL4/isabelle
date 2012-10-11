@@ -84,7 +84,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       else (current_output, current_tracing)
 
     if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, Library.separate(Pretty.Separator, new_output))
+      pretty_text_area.update(new_snapshot, Pretty.separate(new_output))
 
     if (new_tracing != current_tracing)
       tracing.text = tracing_text(new_tracing)

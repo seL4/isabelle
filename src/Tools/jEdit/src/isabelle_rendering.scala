@@ -279,7 +279,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), body)))
           if !body.isEmpty => msgs + (Document.new_id() -> msg)
         }).toList.flatMap(_.info)
-    Library.separate(Pretty.Separator, msgs.iterator.map(_._2).toList)
+    Pretty.separate(msgs.iterator.map(_._2).toList)
   }
 
 
