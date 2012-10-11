@@ -90,6 +90,19 @@ lemma power_numeral_odd:
   unfolding numeral_Bit1 One_nat_def add_Suc_right add_0_right
   unfolding power_Suc power_add Let_def mult_assoc ..
 
+lemma funpow_times_power:
+  "(times x ^^ f x) = times (x ^ f x)"
+proof (induct "f x" arbitrary: f)
+  case 0 then show ?case by (simp add: fun_eq_iff)
+next
+  case (Suc n)
+  def g \<equiv> "\<lambda>x. f x - 1"
+  with Suc have "n = g x" by simp
+  with Suc have "times x ^^ g x = times (x ^ g x)" by simp
+  moreover from Suc g_def have "f x = g x + 1" by simp
+  ultimately show ?case by (simp add: power_add funpow_add fun_eq_iff mult_assoc)
+qed
+
 end
 
 context comm_monoid_mult
@@ -727,3 +740,4 @@ code_modulename Haskell
   Power Arith
 
 end
+

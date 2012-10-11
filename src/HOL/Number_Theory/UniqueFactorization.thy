@@ -36,54 +36,66 @@ declare One_nat_def [simp del]
    "ALL i :# M. P i"? 
 *)
 
-definition (in comm_monoid_mult) msetprod :: "'a multiset \<Rightarrow> 'a"
-where
-  "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
+context comm_monoid_mult
+begin
 
-abbreviation (in comm_monoid_mult) msetprod_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
+definition msetprod :: "'a multiset \<Rightarrow> 'a"
+where
+  "msetprod M = Multiset.fold times 1 M"
+
+lemma msetprod_empty [simp]:
+  "msetprod {#} = 1"
+  by (simp add: msetprod_def)
+
+lemma msetprod_singleton [simp]:
+  "msetprod {#x#} = x"
+proof -
+  interpret comp_fun_commute times
+    by (fact comp_fun_commute)
+  show ?thesis by (simp add: msetprod_def)
+qed
+
+lemma msetprod_Un [simp]:
+  "msetprod (A + B) = msetprod A * msetprod B" 
+proof -
+  interpret comp_fun_commute times
+    by (fact comp_fun_commute)
+  show ?thesis by (induct B) (simp_all add: msetprod_def mult_ac)
+qed
+
+lemma msetprod_multiplicity:
+  "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
+  by (simp add: msetprod_def setprod_def Multiset.fold_def fold_image_def funpow_times_power)
+
+abbreviation msetprod_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
 where
   "msetprod_image f M \<equiv> msetprod (image_mset f M)"
+
+end
 
 syntax
   "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
       ("(3PROD _:#_. _)" [0, 51, 10] 10)
 
+syntax (xsymbols)
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+      ("(3\<Pi>_\<in>#_. _)" [0, 51, 10] 10)
+
+syntax (HTML output)
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+      ("(3\<Pi>_\<in>#_. _)" [0, 51, 10] 10)
+
 translations
   "PROD i :# A. b" == "CONST msetprod_image (\<lambda>i. b) A"
 
-lemma msetprod_empty: "msetprod {#} = 1"
-  by (simp add: msetprod_def)
-
-lemma msetprod_singleton: "msetprod {#x#} = x"
-  by (simp add: msetprod_def)
-
-lemma msetprod_Un: "msetprod (A + B) = msetprod A * msetprod B" 
-  apply (simp add: msetprod_def power_add)
-  apply (subst setprod_Un2)
-  apply auto
-  apply (subgoal_tac 
-      "(PROD x:set_of A - set_of B. x ^ count A x * x ^ count B x) =
-       (PROD x:set_of A - set_of B. x ^ count A x)")
-  apply (erule ssubst)
-  apply (subgoal_tac 
-      "(PROD x:set_of B - set_of A. x ^ count A x * x ^ count B x) =
-       (PROD x:set_of B - set_of A. x ^ count B x)")
-  apply (erule ssubst)
-  apply (subgoal_tac "(PROD x:set_of A. x ^ count A x) = 
-    (PROD x:set_of A - set_of B. x ^ count A x) *
-    (PROD x:set_of A Int set_of B. x ^ count A x)")
-  apply (erule ssubst)
-  apply (subgoal_tac "(PROD x:set_of B. x ^ count B x) = 
-    (PROD x:set_of B - set_of A. x ^ count B x) *
-    (PROD x:set_of A Int set_of B. x ^ count B x)")
-  apply (erule ssubst)
-  apply (subst setprod_timesf)
-  apply (force simp add: mult_ac)
-  apply (subst setprod_Un_disjoint [symmetric])
-  apply (auto intro: setprod_cong)
-  apply (subst setprod_Un_disjoint [symmetric])
-  apply (auto intro: setprod_cong)
-  done
+lemma (in comm_semiring_1) dvd_msetprod:
+  assumes "x \<in># A"
+  shows "x dvd msetprod A"
+proof -
+  from assms have "A = (A - {#x#}) + {#x#}" by simp
+  then obtain B where "A = B + {#x#}" ..
+  then show ?thesis by simp
+qed
 
 
 subsection {* unique factorization: multiset version *}
@@ -104,7 +116,7 @@ proof (rule nat_less_induct, clarify)
   } moreover {
     assume "n > 1" and "prime n"
     then have "(ALL p : set_of {# n #}. prime p) & n = (PROD i :# {# n #}. i)"
-      by (auto simp add: msetprod_def)
+      by auto
   } moreover {
     assume "n > 1" and "~ prime n"
     with not_prime_eq_prod_nat
@@ -132,10 +144,10 @@ proof cases
   assume M: "a : set_of M"
   with assms have a: "prime a" by auto
   with M have "a ^ count M a dvd (PROD i :# M. i)"
-    by (auto intro: dvd_setprod simp add: msetprod_def)
+    by (auto simp add: msetprod_multiplicity intro: dvd_setprod)
   also have "... dvd (PROD i :# N. i)" by (rule assms)
   also have "... = (PROD i : (set_of N). i ^ (count N i))"
-    by (simp add: msetprod_def)
+    by (simp add: msetprod_multiplicity)
   also have "... = a^(count N a) * (PROD i : (set_of N - {a}). i ^ (count N i))"
   proof (cases)
     assume "a : set_of N"
@@ -330,7 +342,7 @@ lemma prime_factors_altdef_int: "prime_factors (n::int) =
 lemma prime_factorization_nat: "(n::nat) > 0 \<Longrightarrow> 
     n = (PROD p : prime_factors n. p^(multiplicity p n))"
   apply (frule multiset_prime_factorization)
-  apply (simp add: prime_factors_nat_def multiplicity_nat_def msetprod_def)
+  apply (simp add: prime_factors_nat_def multiplicity_nat_def msetprod_multiplicity)
   done
 
 lemma prime_factorization_int: 
@@ -363,7 +375,7 @@ proof -
     apply force
     apply force
     using assms
-    apply (simp add: Abs_multiset_inverse set_of_def msetprod_def)
+    apply (simp add: Abs_multiset_inverse set_of_def msetprod_multiplicity)
     done
   with `f \<in> multiset` have "count (multiset_prime_factorization n) = f"
     by (simp add: Abs_multiset_inverse)
