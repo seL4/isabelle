@@ -230,7 +230,7 @@ class Rich_Text_Area(
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
+            val line_range = Text.Range(start(i), end(i))
 
             // line background color
             for { (color, separator) <- rendering.line_background(line_range) }
@@ -415,7 +415,7 @@ class Rich_Text_Area(
       robust_rendering { rendering =>
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
+            val line_range = Text.Range(start(i), end(i))
 
             // foreground color
             for {

@@ -109,13 +109,6 @@ object JEdit_Lib
     }
 
 
-  /* proper line range */
-
-  // NB: TextArea.getScreenLineEndOffset of last line is beyond Buffer.getLength
-  def proper_line_range(buffer: JEditBuffer, start: Text.Offset, end: Text.Offset): Text.Range =
-    Text.Range(start, end min buffer.getLength)
-
-
   /* visible text range */
 
   def visible_range(text_area: TextArea): Option[Text.Range] =
@@ -125,7 +118,8 @@ object JEdit_Lib
     if (n > 0) {
       val start = text_area.getScreenLineStartOffset(0)
       val raw_end = text_area.getScreenLineEndOffset(n - 1)
-      Some(proper_line_range(buffer, start, if (raw_end >= 0) raw_end else buffer.getLength))
+      val end = if (raw_end >= 0) raw_end min buffer.getLength else buffer.getLength
+      Some(Text.Range(start, end))
     }
     else None
   }
@@ -154,7 +148,7 @@ object JEdit_Lib
 
   class Gfx_Range(val x: Int, val y: Int, val length: Int)
 
-  // NB: jEdit already normalizes \r\n and \r to \n
+  // NB: jEdit always normalizes \r\n and \r to \n
   // NB: last line lacks \n
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
   {
@@ -165,7 +159,7 @@ object JEdit_Lib
     val end = buffer.getLength
     val stop = range.stop
     val (q, r) =
-      if (stop >= end) (text_area.offsetToXY(end), char_width(text_area))
+      if (stop >= end) (text_area.offsetToXY(end), char_width(text_area) * (stop - end))
       else if (stop > 0 && buffer.getText(stop - 1, 1) == "\n")
         (text_area.offsetToXY(stop - 1), char_width(text_area))
       else (text_area.offsetToXY(stop), 0)

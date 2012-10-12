@@ -126,7 +126,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
-                val line_range = JEdit_Lib.proper_line_range(buffer, start(i), end(i))
+                val line_range = Text.Range(start(i), end(i))
 
                 // gutter icons
                 rendering.gutter_message(line_range) match {
@@ -201,7 +201,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                           line <- 0 until text_area.getVisibleLines
                           start = text_area.getScreenLineStartOffset(line) if start >= 0
                           end = text_area.getScreenLineEndOffset(line) if end >= 0
-                          range = JEdit_Lib.proper_line_range(buffer, start, end)
+                          range = Text.Range(start, end)
                           line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
                           if line_cmds.exists(changed.commands)
                         } text_area.invalidateScreenLineRange(line, line)
