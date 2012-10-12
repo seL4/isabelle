@@ -55,6 +55,7 @@ class Pretty_Tooltip(
   }
 
   window.setContentPane(new JPanel(new BorderLayout) {
+    setBackground(rendering.tooltip_color)
     registerKeyboardAction(action_listener, "close_all",
       KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
 
@@ -95,7 +96,9 @@ class Pretty_Tooltip(
     }
   }
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Left)(close, detach)
+  private val controls = new FlowPanel(FlowPanel.Alignment.Left)(close, detach) {
+    background = rendering.tooltip_color
+  }
   window.add(controls.peer, BorderLayout.NORTH)
 
 
