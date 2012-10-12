@@ -172,7 +172,7 @@ fun base_simproc ss redex =
 fun instantiate_arg_cong ctxt pred =
   let
     val certify = cterm_of (Proof_Context.theory_of ctxt)
-    val arg_cong = @{thm arg_cong}
+    val arg_cong = Thm.incr_indexes (maxidx_of_term pred + 1) @{thm arg_cong}
     val f $ _ = fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (concl_of arg_cong)))
   in
     cterm_instantiate [(certify f, certify pred)] arg_cong
