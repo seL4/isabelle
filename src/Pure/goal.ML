@@ -160,7 +160,7 @@ fun fork_name name e =
                 (case result of
                   Exn.Res _ => ()
                 | Exn.Exn exn =>
-                    if Exn.is_interrupt exn then ()
+                    if id = 0 orelse Exn.is_interrupt exn then ()
                     else
                       (status task [Isabelle_Markup.failed];
                        Output.report (Markup.markup_only Isabelle_Markup.bad);
