@@ -198,7 +198,7 @@ done
 
 subsection {* Defining the universal domain by ideal completion *}
 
-typedef (open) udom = "{S. udom.ideal S}"
+typedef udom = "{S. udom.ideal S}"
 by (rule udom.ex_ideal)
 
 instantiation udom :: below
@@ -247,7 +247,7 @@ by (rule udom_minimal [THEN bottomI, symmetric])
 
 subsection {* Compact bases of domains *}
 
-typedef (open) 'a compact_basis = "{x::'a::pcpo. compact x}"
+typedef 'a compact_basis = "{x::'a::pcpo. compact x}"
 by auto
 
 lemma Rep_compact_basis' [simp]: "compact (Rep_compact_basis a)"

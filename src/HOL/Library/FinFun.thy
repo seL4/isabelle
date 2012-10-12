@@ -83,7 +83,7 @@ subsection {* The finfun type *}
 
 definition "finfun = {f::'a\<Rightarrow>'b. \<exists>b. finite {a. f a \<noteq> b}}"
 
-typedef (open) ('a,'b) finfun  ("(_ =>f /_)" [22, 21] 21) = "finfun :: ('a => 'b) set"
+typedef ('a,'b) finfun  ("(_ =>f /_)" [22, 21] 21) = "finfun :: ('a => 'b) set"
   morphisms finfun_apply Abs_finfun
 proof -
   have "\<exists>f. finite {x. f x \<noteq> undefined}"

@@ -144,7 +144,7 @@ subsection{*The Initial Algebra: A Quotiented Message Type*}
 
 definition "Exp = UNIV//exprel"
 
-typedef (open) exp = Exp
+typedef exp = Exp
   morphisms Rep_Exp Abs_Exp
   unfolding Exp_def by (auto simp add: quotient_def)
 

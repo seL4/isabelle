@@ -55,7 +55,7 @@ inductive_set
 
 definition "List = list (range Leaf)"
 
-typedef (open) 'a list = "List :: 'a item set"
+typedef 'a list = "List :: 'a item set"
   morphisms Rep_List Abs_List
   unfolding List_def by (blast intro: list.NIL_I)
 

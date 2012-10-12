@@ -4,7 +4,7 @@ begin
 
 subsection {* Type of target language numerals *}
 
-typedef (open) int = "UNIV \<Colon> int set"
+typedef int = "UNIV \<Colon> int set"
   morphisms int_of of_int ..
 
 hide_type (open) int

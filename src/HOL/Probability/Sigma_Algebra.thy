@@ -997,7 +997,7 @@ definition countably_additive :: "'a set set \<Rightarrow> ('a set \<Rightarrow>
 definition measure_space :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> bool" where
   "measure_space \<Omega> A \<mu> \<longleftrightarrow> sigma_algebra \<Omega> A \<and> positive A \<mu> \<and> countably_additive A \<mu>"
 
-typedef (open) 'a measure = "{(\<Omega>::'a set, A, \<mu>). (\<forall>a\<in>-A. \<mu> a = 0) \<and> measure_space \<Omega> A \<mu> }"
+typedef 'a measure = "{(\<Omega>::'a set, A, \<mu>). (\<forall>a\<in>-A. \<mu> a = 0) \<and> measure_space \<Omega> A \<mu> }"
 proof
   have "sigma_algebra UNIV {{}, UNIV}"
     by (auto simp: sigma_algebra_iff2)

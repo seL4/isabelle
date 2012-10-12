@@ -1189,7 +1189,7 @@ text {* Type definitions permit the introduction of abstract data
   \medskip The following trivial example pulls a three-element type
   into existence within the formal logical environment of HOL. *}
 
-typedef (open) three = "{(True, True), (True, False), (False, True)}"
+typedef three = "{(True, True), (True, False), (False, True)}"
   by blast
 
 definition "One = Abs_three (True, True)"

@@ -119,7 +119,7 @@ done
 
 subsection {* Type definition *}
 
-typedef (open) 'a convex_pd =
+typedef 'a convex_pd =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (rule convex_le.ex_ideal)
 

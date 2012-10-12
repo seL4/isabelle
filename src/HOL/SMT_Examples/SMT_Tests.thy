@@ -760,7 +760,7 @@ subsubsection {* Type definitions *}
 
 definition "three = {1, 2, 3::int}"
 
-typedef (open) three = three
+typedef three = three
   unfolding three_def by auto
 
 definition n1 where "n1 = Abs_three 1"

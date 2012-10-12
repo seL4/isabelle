@@ -13,7 +13,7 @@ text {*
 
 subsection {* Datatype of target language numerals *}
 
-typedef (open) code_numeral = "UNIV \<Colon> nat set"
+typedef code_numeral = "UNIV \<Colon> nat set"
   morphisms nat_of of_nat ..
 
 lemma of_nat_nat_of [simp]:

@@ -74,7 +74,7 @@ done
 
 subsection {* Type definition *}
 
-typedef (open) 'a lower_pd =
+typedef 'a lower_pd =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (rule lower_le.ex_ideal)
 

@@ -55,7 +55,7 @@ lemma equiv_fractrel_iff [iff]:
 
 definition "fract = {(x::'a\<times>'a). snd x \<noteq> (0::'a::idom)} // fractrel"
 
-typedef (open) 'a fract = "fract :: ('a * 'a::idom) set set"
+typedef 'a fract = "fract :: ('a * 'a::idom) set set"
   unfolding fract_def
 proof
   have "(0::'a, 1::'a) \<in> {x. snd x \<noteq> 0}" by simp

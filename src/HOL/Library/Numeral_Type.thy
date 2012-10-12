@@ -10,16 +10,16 @@ begin
 
 subsection {* Numeral Types *}
 
-typedef (open) num0 = "UNIV :: nat set" ..
-typedef (open) num1 = "UNIV :: unit set" ..
+typedef num0 = "UNIV :: nat set" ..
+typedef num1 = "UNIV :: unit set" ..
 
-typedef (open) 'a bit0 = "{0 ..< 2 * int CARD('a::finite)}"
+typedef 'a bit0 = "{0 ..< 2 * int CARD('a::finite)}"
 proof
   show "0 \<in> {0 ..< 2 * int CARD('a)}"
     by simp
 qed
 
-typedef (open) 'a bit1 = "{0 ..< 1 + 2 * int CARD('a::finite)}"
+typedef 'a bit1 = "{0 ..< 1 + 2 * int CARD('a::finite)}"
 proof
   show "0 \<in> {0 ..< 1 + 2 * int CARD('a)}"
     by simp

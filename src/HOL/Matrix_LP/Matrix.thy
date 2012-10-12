@@ -13,7 +13,7 @@ definition nonzero_positions :: "(nat \<Rightarrow> nat \<Rightarrow> 'a::zero) 
 
 definition "matrix = {(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"
 
-typedef (open) 'a matrix = "matrix :: (nat \<Rightarrow> nat \<Rightarrow> 'a::zero) set"
+typedef 'a matrix = "matrix :: (nat \<Rightarrow> nat \<Rightarrow> 'a::zero) set"
   unfolding matrix_def
 proof
   show "(\<lambda>j i. 0) \<in> {(f::(nat \<Rightarrow> nat \<Rightarrow> 'a::zero)). finite (nonzero_positions f)}"

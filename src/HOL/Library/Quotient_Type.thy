@@ -60,7 +60,7 @@ text {*
 
 definition "quot = {{x. a \<sim> x} | a::'a::eqv. True}"
 
-typedef (open) 'a quot = "quot :: 'a::eqv set set"
+typedef 'a quot = "quot :: 'a::eqv set set"
   unfolding quot_def by blast
 
 lemma quotI [intro]: "{x. a \<sim> x} \<in> quot"

@@ -276,17 +276,12 @@ end;
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "typedef"}
     "HOL type definition (requires non-emptiness proof)"
-    (Scan.optional (@{keyword "("} |--
-        ((@{keyword "open"} >> K false) -- Scan.option Parse.binding ||
-          Parse.binding >> (fn s => (true, SOME s))) --| @{keyword ")"}) (true, NONE) --
+    (Scan.option (@{keyword "("} |-- Parse.binding --| @{keyword ")"}) --
       (Parse.type_args_constrained -- Parse.binding) --
         Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-    >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) => fn lthy =>
-          (if def then
-            error "typedef with implicit set definition -- use \"typedef (open)\" instead"
-           else ();
-           typedef_cmd (the_default t opt_name, (t, args, mx), A, morphs) lthy)));
+    >> (fn (((((opt_name, (args, t)), mx), A), morphs)) => fn lthy =>
+           typedef_cmd (the_default t opt_name, (t, args, mx), A, morphs) lthy));
 
 end;
 

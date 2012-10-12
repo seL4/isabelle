@@ -8,7 +8,7 @@ begin
 
 subsection {* The type of distinct lists *}
 
-typedef (open) 'a dlist = "{xs::'a list. distinct xs}"
+typedef 'a dlist = "{xs::'a list. distinct xs}"
   morphisms list_of_dlist Abs_dlist
 proof
   show "[] \<in> {xs. distinct xs}" by simp

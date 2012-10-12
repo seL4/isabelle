@@ -191,7 +191,7 @@ lemma games_lfp_represent: "x \<in> games_lfp \<Longrightarrow> \<exists> l r. x
 
 definition "game = games_lfp"
 
-typedef (open) game = game
+typedef game = game
   unfolding game_def by (blast intro: games_lfp_nonempty)
 
 definition left_options :: "game \<Rightarrow> game zet" where
@@ -843,7 +843,7 @@ definition eq_game_rel :: "(game * game) set" where
 
 definition "Pg = UNIV//eq_game_rel"
 
-typedef (open) Pg = Pg
+typedef Pg = Pg
   unfolding Pg_def by (auto simp add: quotient_def)
 
 lemma equiv_eq_game[simp]: "equiv UNIV eq_game_rel"

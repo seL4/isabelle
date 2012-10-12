@@ -46,7 +46,7 @@ qed
 
 definition "preal = {A. cut A}"
 
-typedef (open) preal = preal
+typedef preal = preal
   unfolding preal_def by (blast intro: cut_of_rat [OF zero_less_one])
 
 definition
@@ -1171,7 +1171,7 @@ definition
 
 definition "Real = UNIV//realrel"
 
-typedef (open) real = Real
+typedef real = Real
   morphisms Rep_Real Abs_Real
   unfolding Real_def by (auto simp add: quotient_def)
 

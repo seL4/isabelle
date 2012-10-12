@@ -17,7 +17,7 @@ by (induct xs) auto
 
 subsection {* Type @{text "('key, 'value) alist" } *}
 
-typedef (open) ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. (distinct o map fst) xs}"
+typedef ('key, 'value) alist = "{xs :: ('key \<times> 'value) list. (distinct o map fst) xs}"
   morphisms impl_of Alist
 proof
   show "[] \<in> {xs. (distinct o map fst) xs}" by simp

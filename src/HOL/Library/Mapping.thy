@@ -8,7 +8,7 @@ begin
 
 subsection {* Type definition and primitive operations *}
 
-typedef (open) ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
+typedef ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
   morphisms lookup Mapping ..
 
 lemma lookup_Mapping [simp]:

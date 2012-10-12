@@ -10,7 +10,7 @@ begin
 
 definition set where "set = (UNIV :: ('a \<Rightarrow> bool) set)"
 
-typedef (open) 'a set = "set :: ('a \<Rightarrow> bool) set"
+typedef 'a set = "set :: ('a \<Rightarrow> bool) set"
   morphisms member Set
   unfolding set_def by auto
 

@@ -11,7 +11,7 @@ begin
 
 subsection {* The type of formal power series*}
 
-typedef (open) 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
+typedef 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
   morphisms fps_nth Abs_fps
   by simp
 

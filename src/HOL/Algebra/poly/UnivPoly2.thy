@@ -42,7 +42,7 @@ qed
 
 definition "UP = {f :: nat => 'a::zero. EX n. bound n f}"
 
-typedef (open) 'a up = "UP :: (nat => 'a::zero) set"
+typedef 'a up = "UP :: (nat => 'a::zero) set"
   morphisms Rep_UP Abs_UP
 proof -
   have "bound 0 (\<lambda>_. 0::'a)" by (rule boundI) (rule refl)

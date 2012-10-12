@@ -13,7 +13,7 @@ subsection {* Definition of type @{text poly} *}
 
 definition "Poly = {f::nat \<Rightarrow> 'a::zero. \<exists>n. \<forall>i>n. f i = 0}"
 
-typedef (open) 'a poly = "Poly :: (nat => 'a::zero) set"
+typedef 'a poly = "Poly :: (nat => 'a::zero) set"
   morphisms coeff Abs_poly
   unfolding Poly_def by auto
 

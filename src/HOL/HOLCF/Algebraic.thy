@@ -12,7 +12,7 @@ default_sort bifinite
 
 subsection {* Type constructor for finite deflations *}
 
-typedef (open) 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
+typedef 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_bottom)
 
 instantiation fin_defl :: (bifinite) below
@@ -74,7 +74,7 @@ by (rule finite_deflation_imp_compact)
 
 subsection {* Defining algebraic deflations by ideal completion *}
 
-typedef (open) 'a defl = "{S::'a fin_defl set. below.ideal S}"
+typedef 'a defl = "{S::'a fin_defl set. below.ideal S}"
 by (rule below.ex_ideal)
 
 instantiation defl :: (bifinite) below
