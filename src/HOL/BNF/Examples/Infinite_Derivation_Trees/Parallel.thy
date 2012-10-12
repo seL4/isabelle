@@ -11,14 +11,14 @@ theory Parallel
 imports Tree
 begin
 
-
+no_notation plus_class.plus (infixl "+" 65)
+no_notation Sublist.parallel (infixl "\<parallel>" 50)
+    
 consts Nplus :: "N \<Rightarrow> N \<Rightarrow> N" (infixl "+" 60)
 
 axiomatization where
     Nplus_comm: "(a::N) + b = b + (a::N)"
 and Nplus_assoc: "((a::N) + b) + c = a + (b + c)"
-
-
 
 section{* Parallel composition *}
 
