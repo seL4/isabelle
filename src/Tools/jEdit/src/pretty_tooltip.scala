@@ -113,7 +113,7 @@ class Pretty_Tooltip(
 
     val screen = Toolkit.getDefaultToolkit.getScreenSize
     val w = (font_metrics.charWidth(Pretty.spc) * margin) min (screen.width / 2)
-    val h = (font_metrics.getHeight * (lines + 3)) min (screen.height / 2)
+    val h = (font_metrics.getHeight * (lines + 2) + 25) min (screen.height / 2)
     window.setSize(w, h)
   }
 
