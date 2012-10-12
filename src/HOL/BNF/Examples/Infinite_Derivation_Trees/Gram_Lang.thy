@@ -173,8 +173,12 @@ using subtr_trans_Un[OF assms] by simp
 lemma subtr_StepL:
 assumes r: "root tr1 \<in> ns" and tr12: "Inr tr1 \<in> cont tr2" and s: "subtr ns tr2 tr3"
 shows "subtr ns tr1 tr3"
-apply(rule subtr_trans[OF _ s]) apply(rule Step[of tr2 ns tr1 tr1])
-by (metis assms subtr_rootL_in Refl)+
+apply(rule subtr_trans[OF _ s])
+apply(rule Step[of tr2 ns tr1 tr1])
+apply(rule subtr_rootL_in[OF s])
+apply(rule Refl[OF r])
+apply(rule tr12)
+done
 
 (* alternative definition: *)
 inductive subtr2 where
@@ -220,8 +224,12 @@ using subtr2_trans_Un[OF assms] by simp
 lemma subtr2_StepR:
 assumes r: "root tr3 \<in> ns" and tr23: "Inr tr2 \<in> cont tr3" and s: "subtr2 ns tr1 tr2"
 shows "subtr2 ns tr1 tr3"
-apply(rule subtr2_trans[OF s]) apply(rule Step[of _ _ tr3])
-by (metis assms subtr2_rootR_in Refl)+
+apply(rule subtr2_trans[OF s])
+apply(rule Step[of _ _ tr3])
+apply(rule subtr2_rootR_in[OF s])
+apply(rule tr23)
+apply(rule Refl[OF r])
+done
 
 lemma subtr_subtr2:
 "subtr = subtr2"
@@ -311,7 +319,7 @@ using assms apply(induct rule: inItr.induct) apply safe
 corollary Itr_subtr_cont:
 "Itr ns tr = {root tr' | tr'. subtr ns tr' tr}"
 unfolding Itr_def apply safe
-  apply (metis (lifting, mono_tags) UnionI inItr_subtr mem_Collect_eq vimageI2)
+  apply (metis (lifting, mono_tags) inItr_subtr)
   by (metis inItr.Base subtr_inItr subtr_rootL_in)
 
 
@@ -512,7 +520,7 @@ definition hsubst :: "Tree \<Rightarrow> Tree" where
 "hsubst \<equiv> unfold hsubst_r hsubst_c"
 
 lemma finite_hsubst_c: "finite (hsubst_c n)"
-unfolding hsubst_c_def by (metis finite_cont)
+unfolding hsubst_c_def by (metis (full_types) finite_cont)
 
 lemma root_hsubst[simp]: "root (hsubst tr) = root tr"
 using unfold(1)[of hsubst_r hsubst_c tr] unfolding hsubst_def hsubst_r_def by simp
@@ -703,7 +711,7 @@ unfolding regular_def proof safe
   apply(rule exI[of _ g])
   using f deftr_simps(1) unfolding g_def reg_def apply safe
     apply (metis (lifting) inItr.Base subtr_inItr subtr_rootL_in)
-    by (metis (full_types) inItr_subtr subtr_subtr2)
+    by (metis (full_types) inItr_subtr)
 qed auto
 
 lemma reg_root:
@@ -823,7 +831,7 @@ using assms proof(induct rule: length_induct)
     show ?thesis apply(rule exI[of _ nl]) using path.Base unfolding nl Nil by simp
   next
     case (Cons n1 nl2)
-    hence p1: "path f nl1" by (metis list.simps nl p_nl path_post)
+    hence p1: "path f nl1" by (metis list.simps(3) nl p_nl path_post)
     show ?thesis
     proof(cases "n \<in> set nl1")
       case False
@@ -1132,7 +1140,7 @@ shows "Fr ns tr =
        \<Union> {Fr (ns - {root tr}) tr' | tr'. Inr tr' \<in> cont tr}"
 unfolding Fr_def
 using In inFr.Base regular_inFr[OF assms] apply safe
-apply (simp, metis (full_types) UnionI mem_Collect_eq)
+apply (simp, metis (full_types) mem_Collect_eq)
 apply simp
 by (simp, metis (lifting) inFr_Ind_minus insert_Diff)
 
