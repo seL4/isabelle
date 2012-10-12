@@ -62,6 +62,13 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Simplified 'typedef' specifications: historical options for implicit
+set definition and alternative name have been discontinued.  The
+former behavior of "typedef (open) t = A" is now the default, but
+written just "typedef t = A".  INCOMPATIBILITY, need to adapt theories
+accordingly.
+
+
 * Theory "Library/Multiset":
 
   - Renamed constants
