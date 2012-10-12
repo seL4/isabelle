@@ -559,15 +559,13 @@ fun dest_n_tuple 1 t = [t]
 
 type typedef_info =
   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-   set_def: thm option, prop_of_Rep: thm, set_name: string,
-   Abs_inverse: thm option, Rep_inverse: thm option}
+   prop_of_Rep: thm, set_name: string, Abs_inverse: thm option, Rep_inverse: thm option}
 
 fun typedef_info ctxt s =
   if is_frac_type ctxt (Type (s, [])) then
     SOME {abs_type = Type (s, []), rep_type = @{typ "int * int"},
           Abs_name = @{const_name Nitpick.Abs_Frac},
           Rep_name = @{const_name Nitpick.Rep_Frac},
-          set_def = NONE,
           prop_of_Rep = @{prop "Nitpick.Rep_Frac x \<in> Collect Nitpick.Frac"}
                         |> Logic.varify_global,
           set_name = @{const_name Nitpick.Frac}, Abs_inverse = NONE,
@@ -579,10 +577,10 @@ fun typedef_info ctxt s =
        types's type variables sometimes clash with locally fixed type variables.
        Remove these calls once "Typedef" is fully localized. *)
     ({abs_type, rep_type, Abs_name, Rep_name, ...},
-     {set_def, Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
+     {Rep, Abs_inverse, Rep_inverse, ...}) :: _ =>
     SOME {abs_type = Logic.varifyT_global abs_type,
           rep_type = Logic.varifyT_global rep_type, Abs_name = Abs_name,
-          Rep_name = Rep_name, set_def = set_def, prop_of_Rep = prop_of Rep,
+          Rep_name = Rep_name, prop_of_Rep = prop_of Rep,
           set_name = set_prefix ^ s, Abs_inverse = SOME Abs_inverse,
           Rep_inverse = SOME Rep_inverse}
   | _ => NONE
@@ -683,13 +681,10 @@ fun is_pure_typedef ctxt (T as Type (s, _)) =
   | is_pure_typedef _ _ = false
 fun is_univ_typedef ctxt (Type (s, _)) =
     (case typedef_info ctxt s of
-       SOME {set_def, prop_of_Rep, ...} =>
+       SOME {prop_of_Rep, ...} =>
        let
          val t_opt =
-           case set_def of
-             SOME thm => try (snd o Logic.dest_equals o prop_of) thm
-           | NONE => try (snd o HOLogic.dest_mem o HOLogic.dest_Trueprop)
-                         prop_of_Rep
+           try (snd o HOLogic.dest_mem o HOLogic.dest_Trueprop) prop_of_Rep
        in
          case t_opt of
            SOME (Const (@{const_name top}, _)) => true

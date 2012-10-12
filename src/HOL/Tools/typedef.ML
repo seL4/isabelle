@@ -9,21 +9,21 @@ signature TYPEDEF =
 sig
   type info =
    {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, axiom_name: string} *
-   {inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
-    Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
+   {inhabited: thm, type_definition: thm, Rep: thm, Rep_inverse: thm, Abs_inverse: thm,
+    Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
     Rep_induct: thm, Abs_induct: thm}
   val transform_info: morphism -> info -> info
   val get_info: Proof.context -> string -> info list
   val get_info_global: theory -> string -> info list
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
-  val add_typedef: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_typedef: binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> local_theory -> (string * info) * local_theory
-  val add_typedef_global: bool -> binding option -> binding * (string * sort) list * mixfix ->
+  val add_typedef_global: binding option -> binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
-  val typedef: (bool * binding) * (binding * (string * sort) list * mixfix) * term *
+  val typedef: binding * (binding * (string * sort) list * mixfix) * term *
     (binding * binding) option -> local_theory -> Proof.state
-  val typedef_cmd: (bool * binding) * (binding * (string * string option) list * mixfix) * string *
+  val typedef_cmd: binding * (binding * (string * string option) list * mixfix) * string *
     (binding * binding) option -> local_theory -> Proof.state
 end;
 
@@ -38,23 +38,22 @@ type info =
   (*global part*)
   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, axiom_name: string} *
   (*local part*)
-  {inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
-    Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
+  {inhabited: thm, type_definition: thm, Rep: thm, Rep_inverse: thm, Abs_inverse: thm,
+    Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
     Rep_induct: thm, Abs_induct: thm};
 
 fun transform_info phi (info: info) =
   let
     val thm = Morphism.thm phi;
-    val (global_info, {inhabited, type_definition,
-      set_def, Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
-      Rep_cases, Abs_cases, Rep_induct, Abs_induct}) = info;
+    val (global_info, {inhabited, type_definition, Rep, Rep_inverse, Abs_inverse,
+      Rep_inject, Abs_inject, Rep_cases, Abs_cases, Rep_induct, Abs_induct}) = info;
   in
     (global_info,
      {inhabited = thm inhabited, type_definition = thm type_definition,
-      set_def = Option.map thm set_def, Rep = thm Rep, Rep_inverse = thm Rep_inverse,
-      Abs_inverse = thm Abs_inverse, Rep_inject = thm Rep_inject, Abs_inject = thm Abs_inject,
-      Rep_cases = thm Rep_cases, Abs_cases = thm Abs_cases, Rep_induct = thm Rep_induct,
-      Abs_induct = thm Abs_induct})
+      Rep = thm Rep, Rep_inverse = thm Rep_inverse, Abs_inverse = thm Abs_inverse,
+      Rep_inject = thm Rep_inject, Abs_inject = thm Abs_inject,
+      Rep_cases = thm Rep_cases, Abs_cases = thm Abs_cases,
+      Rep_induct = thm Rep_induct, Abs_induct = thm Abs_induct})
   end;
 
 structure Data = Generic_Data
@@ -129,7 +128,7 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A lthy =
 
 (* prepare_typedef *)
 
-fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_morphs lthy =
+fun prepare_typedef prep_term name (tname, raw_args, mx) raw_set opt_morphs lthy =
   let
     val full_name = Local_Theory.full_name lthy name;
     val bname = Binding.name_of name;
@@ -160,16 +159,6 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
     val lhs_tfrees = map Term.dest_TFree type_args;
 
 
-    (* set definition *)
-
-    val ((set', set_def), set_lthy) =
-      if def_set then
-        typedecl_lthy
-        |> Local_Theory.define ((name, NoSyn), ((Thm.def_binding name, []), set))
-        |>> (fn (set', (_, set_def)) => (set', SOME set_def))
-      else ((set, NONE), typedecl_lthy);
-
-
     (* axiomatization *)
 
     val (Rep_name, Abs_name) =
@@ -179,21 +168,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     val typedef_name = Binding.prefix_name "type_definition_" name;
 
-    val ((RepC, AbsC, axiom_name, typedef), typedef_lthy) =
-      let
-        val thy = Proof_Context.theory_of set_lthy;
-        val cert = Thm.cterm_of thy;
-        val ((defs, _), A) =
-          Local_Defs.export_cterm set_lthy (Proof_Context.init_global thy) (cert set')
-          ||> Thm.term_of;
-
-        val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy
-          |> primitive_typedef typedef_name newT oldT Rep_name Abs_name A;
-
-        val cert = Thm.cterm_of (Proof_Context.theory_of axiom_lthy);
-        val typedef =
-          Local_Defs.contract defs (cert (mk_typedef newT oldT RepC AbsC set')) axiom;
-      in ((RepC, AbsC, axiom_name, typedef), axiom_lthy) end;
+    val ((RepC, AbsC, axiom_name, typedef), typedef_lthy) = typedecl_lthy
+      |> primitive_typedef typedef_name newT oldT Rep_name Abs_name set;
 
     val alias_lthy = typedef_lthy
       |> Local_Theory.const_alias Rep_name (#1 (Term.dest_Const RepC))
@@ -209,9 +185,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
     fun typedef_result inhabited lthy1 =
       let
         val cert = Thm.cterm_of (Proof_Context.theory_of lthy1);
-        val inhabited' =
-          Local_Defs.contract (the_list set_def) (cert (mk_inhabited set')) inhabited;
-        val typedef' = inhabited' RS typedef;
+        val typedef' = inhabited RS typedef;
         fun make th = Goal.norm_result (typedef' RS th);
         val (((((((((((_, [type_definition]), Rep), Rep_inverse), Abs_inverse), Rep_inject),
             Abs_inject), Rep_cases), Abs_cases), Rep_induct), Abs_induct), lthy2) = lthy1
@@ -241,7 +215,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
         val info =
           ({rep_type = oldT, abs_type = newT, Rep_name = #1 (Term.dest_Const RepC),
             Abs_name = #1 (Term.dest_Const AbsC), axiom_name = axiom_name},
-           {inhabited = inhabited, type_definition = type_definition, set_def = set_def,
+           {inhabited = inhabited, type_definition = type_definition,
             Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
             Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
           Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct});
@@ -260,19 +234,19 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
 (* add_typedef: tactic interface *)
 
-fun add_typedef def opt_name typ set opt_morphs tac lthy =
+fun add_typedef opt_name typ set opt_morphs tac lthy =
   let
     val name = the_default (#1 typ) opt_name;
     val ((goal, _, typedef_result), lthy') =
-      prepare_typedef Syntax.check_term def name typ set opt_morphs lthy;
+      prepare_typedef Syntax.check_term name typ set opt_morphs lthy;
     val inhabited =
       Goal.prove lthy' [] [] goal (K tac)
       |> Goal.norm_result |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 
-fun add_typedef_global def opt_name typ set opt_morphs tac =
+fun add_typedef_global opt_name typ set opt_morphs tac =
   Named_Target.theory_init
-  #> add_typedef def opt_name typ set opt_morphs tac
+  #> add_typedef opt_name typ set opt_morphs tac
   #> Local_Theory.exit_result_global (apsnd o transform_info);
 
 
@@ -280,11 +254,11 @@ fun add_typedef_global def opt_name typ set opt_morphs tac =
 
 local
 
-fun gen_typedef prep_term prep_constraint ((def, name), (b, raw_args, mx), set, opt_morphs) lthy =
+fun gen_typedef prep_term prep_constraint (name, (b, raw_args, mx), set, opt_morphs) lthy =
   let
     val args = map (apsnd (prep_constraint lthy)) raw_args;
     val ((goal, goal_pat, typedef_result), lthy') =
-      prepare_typedef prep_term def name (b, args, mx) set opt_morphs lthy;
+      prepare_typedef prep_term name (b, args, mx) set opt_morphs lthy;
     fun after_qed [[th]] = snd o typedef_result th;
   in Proof.theorem NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
@@ -310,9 +284,9 @@ val _ =
         Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
     >> (fn ((((((def, opt_name), (args, t)), mx), A), morphs)) => fn lthy =>
           (if def then
-            legacy_feature "typedef with implicit set definition -- use \"typedef (open)\" instead"
+            error "typedef with implicit set definition -- use \"typedef (open)\" instead"
            else ();
-           typedef_cmd ((def, the_default t opt_name), (t, args, mx), A, morphs) lthy)));
+           typedef_cmd (the_default t opt_name, (t, args, mx), A, morphs) lthy)));
 
 end;
 

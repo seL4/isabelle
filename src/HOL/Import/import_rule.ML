@@ -220,7 +220,7 @@ fun tydef' tycname abs_name rep_name cP ct td_th thy =
     val tfrees = Term.add_tfrees c []
     val tnames = sort_strings (map fst tfrees)
     val ((_, typedef_info), thy') =
-     Typedef.add_typedef_global false NONE
+     Typedef.add_typedef_global NONE
        (Binding.name tycname, map (rpair dummyS) tnames, NoSyn) c
        (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
     val aty = #abs_type (#1 typedef_info)

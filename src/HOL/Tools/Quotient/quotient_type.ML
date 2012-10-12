@@ -45,7 +45,7 @@ fun typedef_make (vs, qty_name, mx, rel, rty) equiv_thm lthy =
     val typedef_tac =
       EVERY1 (map rtac [@{thm part_equivp_typedef}, equiv_thm])
   in
-    Typedef.add_typedef false NONE (qty_name, map (rpair dummyS) vs, mx)
+    Typedef.add_typedef NONE (qty_name, map (rpair dummyS) vs, mx)
       (typedef_term rel rty lthy) NONE typedef_tac lthy
   end
 

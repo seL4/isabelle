@@ -162,12 +162,8 @@ fun gen_add_domaindef
     val liftemb_def = singleton (Proof_Context.export lthy ctxt_thy) liftemb_ldef
     val liftprj_def = singleton (Proof_Context.export lthy ctxt_thy) liftprj_ldef
     val liftdefl_def = singleton (Proof_Context.export lthy ctxt_thy) liftdefl_ldef
-    val type_definition_thm =
-      Raw_Simplifier.rewrite_rule
-        (the_list (#set_def (#2 info)))
-        (#type_definition (#2 info))
     val typedef_thms =
-      [type_definition_thm, #below_def cpo_info, emb_def, prj_def, defl_def,
+      [#type_definition (#2 info), #below_def cpo_info, emb_def, prj_def, defl_def,
       liftemb_def, liftprj_def, liftdefl_def]
     val thy = lthy
       |> Class.prove_instantiation_instance

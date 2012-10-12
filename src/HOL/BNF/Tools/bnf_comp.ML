@@ -625,7 +625,7 @@ fun seal_bnf unfold_set b Ds bnf lthy =
     val deads = map TFree params;
 
     val ((bdT_name, (bdT_glob_info, bdT_loc_info)), lthy) =
-      typedef false NONE (bdT_bind, params, NoSyn)
+      typedef NONE (bdT_bind, params, NoSyn)
         (HOLogic.mk_UNIV bd_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val bnf_bd' = mk_dir_image bnf_bd
