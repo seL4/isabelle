@@ -736,8 +736,8 @@ In case the goal is an implication, induction does one more thing: the
 proposition to be proved in each case is not the whole implication but only
 its conclusion; the premises of the implication are immediately made
 assumptions of that case. That is, if in the above proof we replace
-\isacom{show}~@{text"P(n)"} by
-\mbox{\isacom{show}~@{text"A(n) \<Longrightarrow> P(n)"}}
+\isacom{show}~@{text"\"P(n)\""} by
+\mbox{\isacom{show}~@{text"\"A(n) \<Longrightarrow> P(n)\""}}
 then \isacom{case}~@{text 0} stands for
 \begin{quote}
 \isacom{assume} \ @{text"0: \"A(0)\""}\\
