@@ -315,7 +315,7 @@ by (metis (lifting) Field_card_of Field_natLeq card_of_mono2 card_of_nat
 
 subsection{*  The type of countable sets *}
 
-typedef (open) 'a cset = "{A :: 'a set. countable A}"
+typedef 'a cset = "{A :: 'a set. countable A}"
 apply(rule exI[of _ "{}"]) by simp
 
 abbreviation rcset where "rcset \<equiv> Rep_cset"

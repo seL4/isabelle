@@ -11,7 +11,7 @@ begin
 
 definition "float = {m * 2 powr e | (m :: int) (e :: int). True}"
 
-typedef (open) float = float
+typedef float = float
   morphisms real_of_float float_of
   unfolding float_def by auto
 

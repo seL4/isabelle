@@ -25,7 +25,7 @@ text {*
   infinity.
 *}
 
-typedef (open) enat = "UNIV :: nat option set" ..
+typedef enat = "UNIV :: nat option set" ..
  
 definition enat :: "nat \<Rightarrow> enat" where
   "enat n = Abs_enat (Some n)"

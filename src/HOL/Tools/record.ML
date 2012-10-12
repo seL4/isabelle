@@ -112,7 +112,7 @@ fun do_typedef raw_tyco repT raw_vs thy =
     val vs = map (Proof_Context.check_tfree ctxt) raw_vs;
   in
     thy
-    |> Typedef.add_typedef_global false (SOME raw_tyco) (raw_tyco, vs, NoSyn)
+    |> Typedef.add_typedef_global (raw_tyco, vs, NoSyn)
         (HOLogic.mk_UNIV repT) NONE (rtac UNIV_witness 1)
     |-> (fn (tyco, info) => get_typedef_info tyco vs info)
   end;

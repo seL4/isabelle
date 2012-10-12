@@ -13,7 +13,7 @@ begin
 
 subsection {* Finite Cartesian products, with indexing and lambdas. *}
 
-typedef (open) ('a, 'b) vec = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
+typedef ('a, 'b) vec = "UNIV :: (('b::finite) \<Rightarrow> 'a) set"
   morphisms vec_nth vec_lambda ..
 
 notation

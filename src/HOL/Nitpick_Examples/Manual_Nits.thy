@@ -95,7 +95,7 @@ oops
 subsection {* 2.7. Typedefs, Records, Rationals, and Reals *}
 
 definition "three = {0\<Colon>nat, 1, 2}"
-typedef (open) three = three
+typedef three = three
   unfolding three_def by blast
 
 definition A :: three where "A \<equiv> Abs_three 0"
@@ -201,7 +201,7 @@ subsection {* 2.9. Coinductive Datatypes *}
 (* BEGIN LAZY LIST SETUP *)
 definition "llist = (UNIV\<Colon>('a list + (nat \<Rightarrow> 'a)) set)"
 
-typedef (open) 'a llist = "llist\<Colon>('a list + (nat \<Rightarrow> 'a)) set"
+typedef 'a llist = "llist\<Colon>('a list + (nat \<Rightarrow> 'a)) set"
 unfolding llist_def by auto
 
 definition LNil where

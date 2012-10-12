@@ -72,7 +72,7 @@ done
 
 subsection {* Type definition *}
 
-typedef (open) 'a upper_pd =
+typedef 'a upper_pd =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (rule upper_le.ex_ideal)
 

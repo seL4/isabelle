@@ -10,7 +10,7 @@ begin
 
 subsection {* Bits as a datatype *}
 
-typedef (open) bit = "UNIV :: bool set" ..
+typedef bit = "UNIV :: bool set" ..
 
 instantiation bit :: "{zero, one}"
 begin

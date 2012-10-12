@@ -10,7 +10,7 @@ begin
 
 subsection {* Type definition *}
 
-typedef (open) ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
+typedef ('a, 'b) rbt = "{t :: ('a\<Colon>linorder, 'b) RBT_Impl.rbt. is_rbt t}"
   morphisms impl_of RBT
 proof -
   have "RBT_Impl.Empty \<in> ?rbt" by simp

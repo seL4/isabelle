@@ -12,7 +12,7 @@ subsection {* The type of multisets *}
 
 definition "multiset = {f :: 'a => nat. finite {x. f x > 0}}"
 
-typedef (open) 'a multiset = "multiset :: ('a => nat) set"
+typedef 'a multiset = "multiset :: ('a => nat) set"
   morphisms count Abs_multiset
   unfolding multiset_def
 proof

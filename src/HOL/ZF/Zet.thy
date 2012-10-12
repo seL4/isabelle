@@ -11,7 +11,7 @@ begin
 
 definition "zet = {A :: 'a set | A f z. inj_on f A \<and> f ` A \<subseteq> explode z}"
 
-typedef (open) 'a zet = "zet :: 'a set set"
+typedef 'a zet = "zet :: 'a set set"
   unfolding zet_def by blast
 
 definition zin :: "'a \<Rightarrow> 'a zet \<Rightarrow> bool" where

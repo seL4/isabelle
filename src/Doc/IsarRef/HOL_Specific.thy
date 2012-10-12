@@ -1089,11 +1089,9 @@ text {*
   abbreviations, without any logical significance.
 
   @{rail "
-    @@{command (HOL) typedef} alt_name? abs_type '=' rep_set
+    @@{command (HOL) typedef} abs_type '=' rep_set
     ;
 
-    alt_name: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
-    ;
     abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
     rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
@@ -1117,13 +1115,12 @@ text {*
   and the new type @{text t} may then change in different application
   contexts.
 
-  By default, @{command (HOL) "typedef"} defines both a type
-  constructor @{text t} for the new type, and a term constant @{text
-  t} for the representing set within the old type.  Use the ``@{text
-  "(open)"}'' option to suppress a separate constant definition
-  altogether.  The injection from type to set is called @{text Rep_t},
-  its inverse @{text Abs_t}, unless explicit @{keyword (HOL)
-  "morphisms"} specification provides alternative names.
+  For @{command (HOL) "typedef"}~@{text "t = A"} the newly introduced
+  type @{text t} is accompanied by a pair of morphisms to relate it to
+  the representing set over the old type.  By default, the injection
+  from type to set is called @{text Rep_t} and its inverse @{text
+  Abs_t}: An explicit @{keyword (HOL) "morphisms"} specification
+  allows to provide alternative names.
 
   The core axiomatization uses the locale predicate @{const
   type_definition} as defined in Isabelle/HOL.  Various basic
@@ -1147,10 +1144,6 @@ text {*
   for the generic @{method cases} and @{method induct} methods,
   respectively.
 
-  An alternative name for the set definition (and other derived
-  entities) may be specified in parentheses; the default is to use
-  @{text t} directly.
-
   \end{description}
 
   \begin{warn}
@@ -1160,8 +1153,7 @@ text {*
   HOL logic.  Moreover, one needs to demonstrate that the
   interpretation of such free-form axiomatizations can coexist with
   that of the regular @{command_def typedef} scheme, and any extension
-  that other people might have introduced elsewhere (e.g.\ in HOLCF
-  \cite{MuellerNvOS99}).
+  that other people might have introduced elsewhere.
   \end{warn}
 *}
 
@@ -1189,7 +1181,7 @@ text {* Type definitions permit the introduction of abstract data
   \medskip The following trivial example pulls a three-element type
   into existence within the formal logical environment of HOL. *}
 
-typedef (open) three = "{(True, True), (True, False), (False, True)}"
+typedef three = "{(True, True), (True, False), (False, True)}"
   by blast
 
 definition "One = Abs_three (True, True)"

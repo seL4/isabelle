@@ -572,7 +572,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val (typedefs, thy6) =
       thy4
       |> fold_map (fn (((name, mx), tvs), (cname, U)) => fn thy =>
-          Typedef.add_typedef_global false NONE
+          Typedef.add_typedef_global
             (name, map (fn (v, _) => (v, dummyS)) tvs, mx)  (* FIXME keep constraints!? *)
             (Const (@{const_name Collect}, (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE

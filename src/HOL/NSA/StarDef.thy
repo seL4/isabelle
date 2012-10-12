@@ -40,7 +40,7 @@ definition
 
 definition "star = (UNIV :: (nat \<Rightarrow> 'a) set) // starrel"
 
-typedef (open) 'a star = "star :: (nat \<Rightarrow> 'a) set set"
+typedef 'a star = "star :: (nat \<Rightarrow> 'a) set set"
   unfolding star_def by (auto intro: quotientI)
 
 definition

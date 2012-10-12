@@ -69,7 +69,7 @@ Let us work a simple example, the definition of a three-element type.
 It is easily represented by the first three natural numbers:
 *}
 
-typedef (open) three = "{0::nat, 1, 2}"
+typedef three = "{0::nat, 1, 2}"
 
 txt{*\noindent
 In order to enforce that the representing set on the right-hand side is

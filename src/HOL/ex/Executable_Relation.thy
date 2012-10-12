@@ -6,7 +6,7 @@ subsection {* A dedicated type for relations *}
 
 subsubsection {* Definition of the dedicated type for relations *}
 
-typedef (open) 'a rel = "UNIV :: (('a * 'a) set) set"
+typedef 'a rel = "UNIV :: (('a * 'a) set) set"
 morphisms set_of_rel rel_of_set by simp
 
 setup_lifting type_definition_rel

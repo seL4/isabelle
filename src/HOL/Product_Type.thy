@@ -43,7 +43,7 @@ code_instance bool :: equal
 
 subsection {* The @{text unit} type *}
 
-typedef (open) unit = "{True}"
+typedef unit = "{True}"
   by auto
 
 definition Unity :: unit  ("'(')")
@@ -132,7 +132,7 @@ definition Pair_Rep :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<
 
 definition "prod = {f. \<exists>a b. f = Pair_Rep (a\<Colon>'a) (b\<Colon>'b)}"
 
-typedef (open) ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
+typedef ('a, 'b) prod (infixr "*" 20) = "prod :: ('a \<Rightarrow> 'b \<Rightarrow> bool) set"
   unfolding prod_def by auto
 
 type_notation (xsymbols)

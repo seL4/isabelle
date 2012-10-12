@@ -152,7 +152,7 @@ definition chars :: string where
 
 subsection {* Strings as dedicated type *}
 
-typedef (open) literal = "UNIV :: string set"
+typedef literal = "UNIV :: string set"
   morphisms explode STR ..
 
 instantiation literal :: size

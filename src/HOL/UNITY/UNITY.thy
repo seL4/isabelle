@@ -17,7 +17,7 @@ definition
     {(init:: 'a set, acts :: ('a * 'a)set set,
       allowed :: ('a * 'a)set set). Id \<in> acts & Id: allowed}"
 
-typedef (open) 'a program = "Program :: ('a set * ('a * 'a) set set * ('a * 'a) set set) set"
+typedef 'a program = "Program :: ('a set * ('a * 'a) set set * ('a * 'a) set set) set"
   morphisms Rep_Program Abs_Program
   unfolding Program_def by blast
 

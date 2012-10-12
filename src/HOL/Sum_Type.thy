@@ -19,7 +19,7 @@ definition Inr_Rep :: "'b \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool \
 
 definition "sum = {f. (\<exists>a. f = Inl_Rep (a::'a)) \<or> (\<exists>b. f = Inr_Rep (b::'b))}"
 
-typedef (open) ('a, 'b) sum (infixr "+" 10) = "sum :: ('a => 'b => bool => bool) set"
+typedef ('a, 'b) sum (infixr "+" 10) = "sum :: ('a => 'b => bool => bool) set"
   unfolding sum_def by auto
 
 lemma Inl_RepI: "Inl_Rep a \<in> sum"

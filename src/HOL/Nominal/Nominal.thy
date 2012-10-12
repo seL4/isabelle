@@ -3376,7 +3376,7 @@ inductive_set ABS_set :: "('x\<Rightarrow>('a noption)) set"
 
 definition "ABS = ABS_set"
 
-typedef (open) ('x,'a) ABS ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000) =
+typedef ('x,'a) ABS ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000) =
     "ABS::('x\<Rightarrow>('a noption)) set"
   morphisms Rep_ABS Abs_ABS
   unfolding ABS_def

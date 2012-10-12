@@ -25,7 +25,7 @@ code_reserved Haskell_Quickcheck Typerep
 
 subsubsection {* Type @{text "code_int"} for Haskell Quickcheck's Int type *}
 
-typedef (open) code_int = "UNIV \<Colon> int set"
+typedef code_int = "UNIV \<Colon> int set"
   morphisms int_of of_int by rule
 
 lemma of_int_int_of [simp]:

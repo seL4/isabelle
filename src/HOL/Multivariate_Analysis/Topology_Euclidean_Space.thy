@@ -13,7 +13,7 @@ begin
 subsection {* General notion of a topology as a value *}
 
 definition "istopology L \<longleftrightarrow> L {} \<and> (\<forall>S T. L S \<longrightarrow> L T \<longrightarrow> L (S \<inter> T)) \<and> (\<forall>K. Ball K L \<longrightarrow> L (\<Union> K))"
-typedef (open) 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
+typedef 'a topology = "{L::('a set) \<Rightarrow> bool. istopology L}"
   morphisms "openin" "topology"
   unfolding istopology_def by blast
 

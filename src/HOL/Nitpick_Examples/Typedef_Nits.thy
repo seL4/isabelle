@@ -15,7 +15,7 @@ nitpick_params [verbose, card = 1\<emdash>4, sat_solver = MiniSat_JNI, max_threa
                 timeout = 240]
 
 definition "three = {0\<Colon>nat, 1, 2}"
-typedef (open) three = three
+typedef three = three
 unfolding three_def by blast
 
 definition A :: three where "A \<equiv> Abs_three 0"
@@ -28,7 +28,7 @@ oops
 
 definition "one_or_two = {undefined False\<Colon>'a, undefined True}"
 
-typedef (open) 'a one_or_two = "one_or_two :: 'a set"
+typedef 'a one_or_two = "one_or_two :: 'a set"
 unfolding one_or_two_def by auto
 
 lemma "x = (y\<Colon>unit one_or_two)"
@@ -54,7 +54,7 @@ oops
 
 definition "bounded = {n\<Colon>nat. finite (UNIV \<Colon> 'a set) \<longrightarrow> n < card (UNIV \<Colon> 'a set)}"
 
-typedef (open) 'a bounded = "bounded(TYPE('a))"
+typedef 'a bounded = "bounded(TYPE('a))"
 unfolding bounded_def
 apply (rule_tac x = 0 in exI)
 apply (case_tac "card UNIV = 0")
