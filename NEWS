@@ -9,6 +9,7 @@ New in this Isabelle version
 * Prover IDE (PIDE) improvements:
     . parallel terminal proofs ('by');
     . improved output panel with tooltips, hyperlinks etc.;
+    . improved tooltips with nested tooltips, hyperlinks etc.;
     . more efficient painting, improved reactivity;
     . more robust incremental parsing of outer syntax (partial
       comments, malformed symbols);
@@ -35,6 +36,10 @@ is called fastforce / fast_force_tac already since Isabelle2011-1.
 
 * Updated and extended "isar-ref" manual, reduced remaining material
 in old "ref" manual.
+
+* Improved support for auxiliary contexts indicate block structure for
+specifications: nesting of "context fixes ... context assumes ..."
+and "class ... context ...".
 
 
 *** Pure ***
