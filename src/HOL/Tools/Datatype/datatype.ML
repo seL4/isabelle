@@ -190,7 +190,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       |> Sign.parent_path
       |> fold_map
         (fn (((name, mx), tvs), c) =>
-          Typedef.add_typedef_global NONE (name, tvs, mx)
+          Typedef.add_typedef_global (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)

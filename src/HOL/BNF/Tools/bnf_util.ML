@@ -154,7 +154,7 @@ sig
   val parse_binding_colon: Token.T list -> binding * Token.T list
   val parse_opt_binding_colon: Token.T list -> binding * Token.T list
 
-  val typedef: binding option -> binding * (string * sort) list * mixfix -> term ->
+  val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
 
   val WRAP: ('a -> tactic) -> ('a -> tactic) -> 'a list -> tactic -> tactic
@@ -280,11 +280,11 @@ val parse_binding_colon = Parse.binding --| @{keyword ":"};
 val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 (*TODO: is this really different from Typedef.add_typedef_global?*)
-fun typedef opt_name typ set opt_morphs tac lthy =
+fun typedef typ set opt_morphs tac lthy =
   let
     val ((name, info), (lthy, lthy_old)) =
       lthy
-      |> Typedef.add_typedef opt_name typ set opt_morphs tac
+      |> Typedef.add_typedef typ set opt_morphs tac
       ||> `Local_Theory.restore;
     val phi = Proof_Context.export_morphism lthy_old lthy;
   in

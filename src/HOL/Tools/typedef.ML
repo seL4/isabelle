@@ -17,13 +17,13 @@ sig
   val get_info_global: theory -> string -> info list
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
-  val add_typedef: binding option -> binding * (string * sort) list * mixfix ->
+  val add_typedef: binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> local_theory -> (string * info) * local_theory
-  val add_typedef_global: binding option -> binding * (string * sort) list * mixfix ->
+  val add_typedef_global: binding * (string * sort) list * mixfix ->
     term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
-  val typedef: binding * (binding * (string * sort) list * mixfix) * term *
+  val typedef: (binding * (string * sort) list * mixfix) * term *
     (binding * binding) option -> local_theory -> Proof.state
-  val typedef_cmd: binding * (binding * (string * string option) list * mixfix) * string *
+  val typedef_cmd: (binding * (string * string option) list * mixfix) * string *
     (binding * binding) option -> local_theory -> Proof.state
 end;
 
@@ -128,9 +128,8 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A lthy =
 
 (* prepare_typedef *)
 
-fun prepare_typedef prep_term name (tname, raw_args, mx) raw_set opt_morphs lthy =
+fun prepare_typedef prep_term (name, raw_args, mx) raw_set opt_morphs lthy =
   let
-    val full_name = Local_Theory.full_name lthy name;
     val bname = Binding.name_of name;
 
 
@@ -152,10 +151,10 @@ fun prepare_typedef prep_term name (tname, raw_args, mx) raw_set opt_morphs lthy
 
     val args = map (Proof_Context.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
-      |> Typedecl.typedecl (tname, args, mx)
+      |> Typedecl.typedecl (name, args, mx)
       ||> Variable.declare_term set;
 
-    val Type (full_tname, type_args) = newT;
+    val Type (full_name, type_args) = newT;
     val lhs_tfrees = map Term.dest_TFree type_args;
 
 
@@ -203,13 +202,13 @@ fun prepare_typedef prep_term name (tname, raw_args, mx) raw_set opt_morphs lthy
                 [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.cases_pred full_name]),
               make @{thm type_definition.Rep_cases})
           ||>> note_qualify ((Binding.suffix_name "_cases" Abs_name,
-                [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.cases_type full_tname]),
+                [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.cases_type full_name]),
               make @{thm type_definition.Abs_cases})
           ||>> note_qualify ((Binding.suffix_name "_induct" Rep_name,
                 [Rule_Cases.case_names [Binding.name_of Rep_name], Induct.induct_pred full_name]),
               make @{thm type_definition.Rep_induct})
           ||>> note_qualify ((Binding.suffix_name "_induct" Abs_name,
-                [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.induct_type full_tname]),
+                [Rule_Cases.case_names [Binding.name_of Abs_name], Induct.induct_type full_name]),
               make @{thm type_definition.Abs_induct});
 
         val info =
@@ -222,9 +221,9 @@ fun prepare_typedef prep_term name (tname, raw_args, mx) raw_set opt_morphs lthy
       in
         lthy2
         |> Local_Theory.declaration {syntax = false, pervasive = true}
-          (fn phi => put_info full_tname (transform_info phi info))
-        |> Local_Theory.background_theory (Typedef_Interpretation.data full_tname)
-        |> pair (full_tname, info)
+          (fn phi => put_info full_name (transform_info phi info))
+        |> Local_Theory.background_theory (Typedef_Interpretation.data full_name)
+        |> pair (full_name, info)
       end;
 
   in ((goal, goal_pat, typedef_result), alias_lthy) end
@@ -234,19 +233,18 @@ fun prepare_typedef prep_term name (tname, raw_args, mx) raw_set opt_morphs lthy
 
 (* add_typedef: tactic interface *)
 
-fun add_typedef opt_name typ set opt_morphs tac lthy =
+fun add_typedef typ set opt_morphs tac lthy =
   let
-    val name = the_default (#1 typ) opt_name;
     val ((goal, _, typedef_result), lthy') =
-      prepare_typedef Syntax.check_term name typ set opt_morphs lthy;
+      prepare_typedef Syntax.check_term typ set opt_morphs lthy;
     val inhabited =
       Goal.prove lthy' [] [] goal (K tac)
       |> Goal.norm_result |> Thm.close_derivation;
   in typedef_result inhabited lthy' end;
 
-fun add_typedef_global opt_name typ set opt_morphs tac =
+fun add_typedef_global typ set opt_morphs tac =
   Named_Target.theory_init
-  #> add_typedef opt_name typ set opt_morphs tac
+  #> add_typedef typ set opt_morphs tac
   #> Local_Theory.exit_result_global (apsnd o transform_info);
 
 
@@ -254,11 +252,11 @@ fun add_typedef_global opt_name typ set opt_morphs tac =
 
 local
 
-fun gen_typedef prep_term prep_constraint (name, (b, raw_args, mx), set, opt_morphs) lthy =
+fun gen_typedef prep_term prep_constraint ((b, raw_args, mx), set, opt_morphs) lthy =
   let
     val args = map (apsnd (prep_constraint lthy)) raw_args;
     val ((goal, goal_pat, typedef_result), lthy') =
-      prepare_typedef prep_term name (b, args, mx) set opt_morphs lthy;
+      prepare_typedef prep_term (b, args, mx) set opt_morphs lthy;
     fun after_qed [[th]] = snd o typedef_result th;
   in Proof.theorem NONE after_qed [[(goal, [goal_pat])]] lthy' end;
 
@@ -276,12 +274,10 @@ end;
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "typedef"}
     "HOL type definition (requires non-emptiness proof)"
-    (Scan.option (@{keyword "("} |-- Parse.binding --| @{keyword ")"}) --
-      (Parse.type_args_constrained -- Parse.binding) --
-        Parse.opt_mixfix -- (@{keyword "="} |-- Parse.term) --
-        Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
-    >> (fn (((((opt_name, (args, t)), mx), A), morphs)) => fn lthy =>
-           typedef_cmd (the_default t opt_name, (t, args, mx), A, morphs) lthy));
+    (Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
+      (@{keyword "="} |-- Parse.term) --
+      Scan.option (@{keyword "morphisms"} |-- Parse.!!! (Parse.binding -- Parse.binding))
+    >> (fn ((((vs, t), mx), A), morphs) => fn lthy => typedef_cmd ((t, vs, mx), A, morphs) lthy));
 
 end;
 

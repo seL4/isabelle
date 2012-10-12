@@ -1023,7 +1023,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           val sbdT_bind = Binding.suffix_name ("_" ^ sum_bdTN) b;
 
           val ((sbdT_name, (sbdT_glob_info, sbdT_loc_info)), lthy) =
-            typedef NONE (sbdT_bind, dead_params, NoSyn)
+            typedef (sbdT_bind, dead_params, NoSyn)
               (HOLogic.mk_UNIV sum_bdT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
           val sbdT = Type (sbdT_name, dead_params');
@@ -1824,7 +1824,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
       |> fold_map4 (fn b => fn mx => fn car_final => fn in_car_final =>
-        typedef NONE (b, params, mx) car_final NONE
+        typedef (b, params, mx) car_final NONE
           (EVERY' [rtac exI, rtac in_car_final] 1)) bs mixfixes car_finals in_car_final_thms
       |>> apsnd split_list o split_list;
 

@@ -776,7 +776,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val IIT_bind = Binding.suffix_name ("_" ^ IITN) b;
 
     val ((IIT_name, (IIT_glob_info, IIT_loc_info)), lthy) =
-      typedef NONE (IIT_bind, params, NoSyn)
+      typedef (IIT_bind, params, NoSyn)
         (HOLogic.mk_UNIV II_repT) NONE (EVERY' [rtac exI, rtac UNIV_I] 1) lthy;
 
     val IIT = Type (IIT_name, params');
@@ -936,7 +936,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
 
     val ((T_names, (T_glob_infos, T_loc_infos)), lthy) =
       lthy
-      |> fold_map3 (fn b => fn mx => fn car_init => typedef NONE (b, params, mx) car_init NONE
+      |> fold_map3 (fn b => fn mx => fn car_init => typedef (b, params, mx) car_init NONE
           (EVERY' [rtac ssubst, rtac @{thm ex_in_conv}, resolve_tac alg_not_empty_thms,
             rtac alg_init_thm] 1)) bs mixfixes car_inits
       |>> apsnd split_list o split_list;
