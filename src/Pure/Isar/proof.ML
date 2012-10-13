@@ -33,7 +33,6 @@ sig
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
   val pretty_state: int -> state -> Pretty.T list
-  val pretty_goals: bool -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
   val refine_end: Method.text -> state -> state Seq.seq
   val refine_insert: thm list -> state -> state
@@ -378,14 +377,6 @@ fun pretty_state nr state =
      else prt_goal (try find_goal state))
   end;
 
-fun pretty_goals main state =
-  let
-    val (_, (_, goal)) = get_goal state;
-    val ctxt = context_of state
-      |> Config.put Goal_Display.show_main_goal main
-      |> Config.put Goal_Display.goals_total false;
-  in Goal_Display.pretty_goals ctxt goal end;
-
 
 
 (** proof steps **)
@@ -490,18 +481,14 @@ end;
 
 (* conclude goal *)
 
-fun unfinished_goal_msg ctxt goal =
-  Pretty.string_of (Pretty.chunks
-    (Goal_Display.pretty_goals ctxt goal @
-      [Pretty.str (string_of_int (Thm.nprems_of goal) ^ " unsolved goal(s)")]));
-
 fun conclude_goal ctxt goal propss =
   let
     val thy = Proof_Context.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = Display.string_of_thm ctxt;
 
-    val _ = Thm.no_prems goal orelse error (unfinished_goal_msg ctxt goal);
+    val _ = Thm.no_prems goal orelse
+      error (Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt goal));
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
@@ -535,7 +522,10 @@ fun the_finished_goal results =
         else
           (case Seq.pull (Seq.filter (Thm.no_prems o #2 o #2 o get_goal o #2) rest) of
             SOME ((f, state), _) => f state
-          | NONE => error ("Failed to finish proof:\n" ^ unfinished_goal_msg ctxt1 goal1))
+          | NONE =>
+              error ("Failed to finish proof:\n" ^
+                Pretty.string_of
+                  (Goal_Display.pretty_goal {main = true, limit = false} ctxt1 goal1)))
       end
   | NONE => error "Failed to finish proof");
 

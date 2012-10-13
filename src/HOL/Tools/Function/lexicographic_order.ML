@@ -122,10 +122,9 @@ fun prove_row (c :: cs) =
 (** Error reporting **)
 
 fun pr_goals ctxt st =
-  Goal_Display.pretty_goals
-    (Config.put Goal_Display.goals_limit (Thm.nprems_of st) ctxt) st
-  |> Pretty.chunks
-  |> Pretty.string_of
+  Pretty.string_of
+    (Goal_Display.pretty_goal
+      {main = Config.get ctxt Goal_Display.show_main_goal, limit = false} ctxt st)
 
 fun row_index i = chr (i + 97)
 fun col_index j = string_of_int (j + 1)

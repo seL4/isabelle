@@ -609,14 +609,13 @@ end;
 local
 
 fun proof_state state =
-  (case try Toplevel.proof_of state of
-    SOME prf => prf
+  (case try (Proof.goal o Toplevel.proof_of) state of
+    SOME {goal, ...} => goal
   | _ => error "No proof state");
 
-fun goal_state name main_goal = antiquotation name (Scan.succeed ())
+fun goal_state name main = antiquotation name (Scan.succeed ())
   (fn {state, context = ctxt, ...} => fn () => output ctxt
-    [Pretty.chunks
-      (Proof.pretty_goals main_goal (Proof.map_context (K ctxt) (proof_state state)))]);
+    [Goal_Display.pretty_goal {main = main, limit = true} ctxt (proof_state state)]);
 
 in
 

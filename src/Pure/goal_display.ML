@@ -20,6 +20,7 @@ sig
   val pretty_flexpair: Proof.context -> term * term -> Pretty.T
   val pretty_goals: Proof.context -> thm -> Pretty.T list
   val pretty_goals_without_context: thm -> Pretty.T list
+  val pretty_goal: {main: bool, limit: bool} -> Proof.context -> thm -> Pretty.T
 end;
 
 structure Goal_Display: GOAL_DISPLAY =
@@ -147,6 +148,13 @@ fun pretty_goals_without_context th =
   let val ctxt =
     Config.put show_main_goal true (Syntax.init_pretty_global (Thm.theory_of_thm th))
   in pretty_goals ctxt th end;
+
+fun pretty_goal {main, limit} ctxt th =
+  Pretty.chunks (pretty_goals
+    (ctxt
+      |> Config.put show_main_goal main
+      |> not limit ? Config.put goals_limit (Thm.nprems_of th)
+      |> Config.put goals_total false) th);
 
 end;
 
