@@ -21,7 +21,7 @@ sig
   val init: cterm -> thm
   val protect: thm -> thm
   val conclude: thm -> thm
-  val check_finished: Proof.context -> thm -> unit
+  val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
   val fork_name: string -> (unit -> 'a) -> 'a future
@@ -85,7 +85,7 @@ fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
 *)
 fun check_finished ctxt th =
   (case Thm.nprems_of th of
-    0 => ()
+    0 => th
   | n => raise THM ("Proof failed.\n" ^
       Pretty.string_of (Pretty.chunks
         (Goal_Display.pretty_goals
@@ -94,7 +94,7 @@ fun check_finished ctxt th =
             |> Config.put Goal_Display.show_main_goal true) th)) ^
       "\n" ^ string_of_int n ^ " unsolved goal(s)!", 0, [th]));
 
-fun finish ctxt th = (check_finished ctxt th; conclude th);
+fun finish ctxt = check_finished ctxt #> conclude;
 
 
 

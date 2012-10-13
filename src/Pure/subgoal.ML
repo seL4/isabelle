@@ -140,7 +140,7 @@ val FOCUS_PARAMS = GEN_FOCUS (false, false);
 val FOCUS_PREMS = GEN_FOCUS (true, false);
 val FOCUS = GEN_FOCUS (true, true);
 
-fun SUBPROOF tac ctxt = FOCUS (Seq.map (tap (Goal.check_finished ctxt)) oo tac) ctxt;
+fun SUBPROOF tac ctxt = FOCUS (Seq.map (Goal.check_finished ctxt) oo tac) ctxt;
 
 end;
 
