@@ -983,8 +983,27 @@ fun global_qed txt = global_qeds txt #> the_finished_goal;
 
 (* concluding steps *)
 
+local
+
+fun failure_initial state =
+  let
+    val (ctxt, (facts, goal)) = get_goal state;
+    val pr_facts =
+      if null facts then ""
+      else Pretty.string_of (Pretty.big_list "facts:" (map (Display.pretty_thm ctxt) facts)) ^ "\n";
+    val pr_goal =
+      "goal:\n" ^ Pretty.string_of (Goal_Display.pretty_goal {main = false, limit = false} ctxt goal);
+  in error ("Failure of initial proof method on goal state:\n" ^ pr_facts ^ pr_goal) end;
+
+fun failure_terminal _ = error "Failure of terminal proof method";
+
+val op ORELSE = Seq.ORELSE;
+
 fun terminal_proof qeds initial terminal =
-  proof (SOME initial) #> Seq.maps (qeds terminal) #> the_finished_goal;
+  (((proof (SOME initial) ORELSE failure_initial)
+    #> Seq.maps (qeds terminal)) ORELSE failure_terminal) #> the_finished_goal;
+
+in
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof (Method.default_text, NONE);
@@ -997,6 +1016,8 @@ val global_default_proof = global_terminal_proof (Method.default_text, NONE);
 val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
 fun global_skip_proof int = global_terminal_proof (Method.sorry_text int, NONE);
 val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false);
+
+end;
 
 
 (* common goal statements *)
