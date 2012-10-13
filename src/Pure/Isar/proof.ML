@@ -488,7 +488,12 @@ fun refine_goals print_rule inner raw_rules state =
 end;
 
 
-(* conclude_goal *)
+(* conclude goal *)
+
+fun unfinished_goal_msg ctxt goal =
+  Pretty.string_of (Pretty.chunks
+    (Goal_Display.pretty_goals ctxt goal @
+      [Pretty.str (string_of_int (Thm.nprems_of goal) ^ " unsolved goal(s)")]));
 
 fun conclude_goal ctxt goal propss =
   let
@@ -496,10 +501,7 @@ fun conclude_goal ctxt goal propss =
     val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = Display.string_of_thm ctxt;
 
-    val ngoals = Thm.nprems_of goal;
-    val _ = ngoals = 0 orelse error (Pretty.string_of (Pretty.chunks
-      (Goal_Display.pretty_goals ctxt goal @
-        [Pretty.str (string_of_int ngoals ^ " unsolved goal(s)")])));
+    val _ = Thm.no_prems goal orelse error (unfinished_goal_msg ctxt goal);
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
@@ -524,6 +526,18 @@ fun conclude_goal ctxt goal propss =
       | recover_result [] [] = []
       | recover_result _ _ = lost_structure ();
   in recover_result propss results end;
+
+fun the_finished_goal results =
+  (case Seq.pull results of
+    SOME ((f1, state1), rest) =>
+      let val (ctxt1, (_, goal1)) = get_goal state1 in
+        if Thm.no_prems goal1 then f1 state1
+        else
+          (case Seq.pull (Seq.filter (Thm.no_prems o #2 o #2 o get_goal o #2) rest) of
+            SOME ((f, state), _) => f state
+          | NONE => error ("Failed to finish proof:\n" ^ unfinished_goal_msg ctxt1 goal1))
+      end
+  | NONE => error "Failed to finish proof");
 
 
 (* goal views -- corresponding to methods *)
@@ -836,8 +850,6 @@ fun check_result msg sq =
     NONE => error msg
   | SOME (s, _) => s);
 
-fun check_finish sq = check_result "Failed to finish proof" sq;
-
 
 (* unstructured refinement *)
 
@@ -952,10 +964,10 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
 
 fun local_qeds txt =
   end_proof false txt
-  #> Seq.map (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => after_qed results));
+  #> Seq.map (pair (generic_qed Proof_Context.auto_bind_facts #->
+    (fn ((after_qed, _), results) => after_qed results)));
 
-fun local_qed txt = local_qeds txt #> check_finish;
+fun local_qed txt = local_qeds txt #> the_finished_goal;
 
 
 (* global goals *)
@@ -973,16 +985,16 @@ val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
 
 fun global_qeds txt =
   end_proof true txt
-  #> Seq.map (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
-    after_qed results (context_of state)));
+  #> Seq.map (pair (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
+    after_qed results (context_of state))));
 
-fun global_qed txt = global_qeds txt #> check_finish;
+fun global_qed txt = global_qeds txt #> the_finished_goal;
 
 
 (* concluding steps *)
 
-fun terminal_proof qed initial terminal =
-  proof (SOME initial) #> Seq.maps (qed terminal) #> check_finish;
+fun terminal_proof qeds initial terminal =
+  proof (SOME initial) #> Seq.maps (qeds terminal) #> the_finished_goal;
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof (Method.default_text, NONE);

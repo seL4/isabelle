@@ -33,7 +33,6 @@ sig
   val assm_tac: Proof.context -> int -> tactic
   val all_assm_tac: Proof.context -> tactic
   val assumption: Proof.context -> method
-  val close: bool -> Proof.context -> method
   val rule_trace: bool Config.T
   val trace: Proof.context -> thm list -> unit
   val rule_tac: thm list -> thm list -> int -> tactic
@@ -184,15 +183,20 @@ fun assm_tac ctxt =
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 
-fun all_assm_tac ctxt st = EVERY1 (replicate (Thm.nprems_of st) (assm_tac ctxt)) st;
+fun all_assm_tac ctxt =
+  let
+    fun tac i st =
+      if i > Thm.nprems_of st then all_tac st
+      else ((assm_tac ctxt i THEN tac i) ORELSE tac (i + 1)) st;
+  in tac 1 end;
 
 fun assumption ctxt = METHOD (HEADGOAL o
   (fn [] => assm_tac ctxt
     | [fact] => solve_tac [fact]
     | _ => K no_tac));
 
-fun close immed ctxt = METHOD (K
-  (FILTER Thm.no_prems ((if immed then all_assm_tac ctxt else all_tac) THEN flexflex_tac)));
+fun finish immed ctxt =
+  METHOD (K ((if immed then all_assm_tac ctxt else all_tac) THEN flexflex_tac));
 
 end;
 
@@ -299,8 +303,8 @@ val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
 fun sorry_text int = Basic (cheating int);
 
-fun finish_text (NONE, immed) = Basic (close immed)
-  | finish_text (SOME txt, immed) = Then [txt, Basic (close immed)];
+fun finish_text (NONE, immed) = Basic (finish immed)
+  | finish_text (SOME txt, immed) = Then [txt, Basic (finish immed)];
 
 
 (* method definitions *)
