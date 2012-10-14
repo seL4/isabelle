@@ -93,13 +93,14 @@ class Model(private val graph: Model.Graph) {
   def colors = _colors
   
   private def build_colors() {
-    (Map[String, Color]() /: Colors()) ({
-        case (colors, (enabled, color, mutator)) => {
-            (colors /: mutator.mutate(graph, graph).keys) ({
-                case (colors, k) => colors + (k -> color)
-              })
-          }
-    })
+    _colors = 
+      (Map[String, Color]() /: Colors()) ({
+          case (colors, (enabled, color, mutator)) => {
+              (colors /: mutator.mutate(graph, graph).keys) ({
+                  case (colors, k) => colors + (k -> color)
+                })
+            }
+      })
   }
   Colors.events += { case _ => build_colors() }
 }
