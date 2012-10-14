@@ -84,6 +84,13 @@ lemma
 apply simp
 oops
 
+lemma "finite B ==> finite {c. EX x. x : B & c = a * x}"
+by simp
+
+lemma
+  "finite A ==> finite B ==> finite {f a * g b |a b. a : A & b : B}"
+by simp
+
 schematic_lemma (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
    = finite ((\<lambda>(b :: ?'B, a:: ?'A). Pair_Rep a b) ` (UNIV \<times> UNIV))"
