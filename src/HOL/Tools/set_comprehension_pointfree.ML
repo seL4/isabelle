@@ -264,6 +264,11 @@ fun tac ctxt fm =
 
 (* main simprocs *)
 
+val post_thms =
+  map mk_meta_eq [@{thm Times_Un_distrib1[symmetric]},
+  @{lemma "A \<times> B \<union> A \<times> C = A \<times> (B \<union> C)" by auto},
+  @{lemma "(A \<times> B \<inter> C \<times> D) = (A \<inter> C) \<times> (B \<inter> D)" by auto}]
+
 fun conv ctxt t =
   let
     val ct = cterm_of (Proof_Context.theory_of ctxt) t
@@ -273,8 +278,10 @@ fun conv ctxt t =
     fun mk_thm (fm, t'') = Goal.prove ctxt [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (fn {context, ...} => tac context fm 1)
     fun unfold th = th RS ((unfold_eq RS meta_eq_to_obj_eq) RS @{thm trans})
+    fun post th = Conv.fconv_rule (Trueprop_conv (eq_conv Conv.all_conv
+      (Raw_Simplifier.rewrite true post_thms))) th
   in
-    Option.map (unfold o mk_thm) (rewrite_term t')
+    Option.map (post o unfold o mk_thm) (rewrite_term t')
   end;
 
 fun base_simproc ss redex =
