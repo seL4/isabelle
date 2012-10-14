@@ -130,6 +130,8 @@ fun mk_formula (@{const HOL.conj} $ t1 $ t2) = merge Int (mk_formula t1) (mk_for
   | mk_formula (@{const HOL.disj} $ t1 $ t2) = merge Un (mk_formula t1) (mk_formula t2)
   | mk_formula t = apfst single (mk_atom t)
 
+fun strip_Int (Int (fm1, fm2)) = fm1 :: (strip_Int fm2) 
+  | strip_Int fm = [fm]
 
 (* term construction *)
 
@@ -208,12 +210,6 @@ val elim_image_tac = etac @{thm imageE}
   THEN' (TRY o REPEAT_DETERM1 o Splitter.split_asm_tac @{thms prod.split_asm})
   THEN' hyp_subst_tac
 
-val intro_Collect_tac = rtac @{thm iffD2[OF mem_Collect_eq]}
-  THEN' REPEAT_DETERM1 o resolve_tac @{thms exI}
-  THEN' (TRY o (rtac @{thm conjI}))
-  THEN' (TRY o hyp_subst_tac)
-  THEN' rtac @{thm refl};
-
 fun tac1_of_formula (Int (fm1, fm2)) =
     TRY o etac @{thm conjE}
     THEN' rtac @{thm IntI}
@@ -255,8 +251,12 @@ fun tac ctxt fm =
       THEN' (tac1_of_formula fm)
     val subset_tac2 = rtac @{thm subsetI}
       THEN' elim_image_tac
-      THEN' intro_Collect_tac
-      THEN' tac2_of_formula fm
+      THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
+      THEN' REPEAT_DETERM1 o resolve_tac @{thms exI}
+      THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
+      THEN' (K (SOMEGOAL ((TRY o hyp_subst_tac) THEN' rtac @{thm refl})))
+      THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
+        REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula f (i + j)) (strip_Int fm))))
   in
     rtac @{thm subset_antisym} THEN' subset_tac1 THEN' subset_tac2
   end;
