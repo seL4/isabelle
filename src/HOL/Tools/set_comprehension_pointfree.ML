@@ -58,7 +58,7 @@ fun mk_sigma (t1, t2) =
       T1 --> (setT --> T2) --> resT) $ t1 $ absdummy setT t2
   end;
 
-fun dest_Collect (Const (@{const_name Collect}, _) $ Abs (_, _, t)) = t
+fun dest_Collect (Const (@{const_name Collect}, _) $ Abs (x, T, t)) = ((x, T), t)
   | dest_Collect t = raise TERM ("dest_Collect", [t])
 
 (* Copied from predicate_compile_aux.ML *)
@@ -151,14 +151,15 @@ fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
 
 fun mk_pointfree_expr t =
   let
-    val (vs, t'') = strip_ex (dest_Collect t)
+    val ((x, T), (vs, t'')) = apsnd strip_ex (dest_Collect t)
     val Ts = map snd (rev vs)
     fun mk_mem_UNIV n = HOLogic.mk_mem (Bound n, HOLogic.mk_UNIV (nth Ts n))
     fun lookup (pat', t) pat = if pat = pat' then t else HOLogic.mk_UNIV (type_of_pattern Ts pat)
     val conjs = HOLogic.dest_conj t''
+    val refl = HOLogic.eq_const T $ Bound (length vs) $ Bound (length vs)
     val is_the_eq =
       the_default false o (try (fn eq => fst (HOLogic.dest_eq eq) = Bound (length vs)))
-    val SOME eq = find_first is_the_eq conjs
+    val eq = the_default refl (find_first is_the_eq conjs)
     val f = snd (HOLogic.dest_eq eq)
     val conjs' = filter_out (fn t => eq = t) conjs
     val unused_bounds = subtract (op =) (distinct (op =) (maps loose_bnos conjs'))
@@ -169,7 +170,7 @@ fun mk_pointfree_expr t =
       | mk_set (Un (f1, f2)) = mk_sup (mk_set f1, mk_set f2)
       | mk_set (Int (f1, f2)) = mk_inf (mk_set f1, mk_set f2)
     val pat = foldr1 (mk_prod1 Ts) (map (term_of_pattern Ts) pats)
-    val t = mk_split_abs (rev vs) pat (reorder_bounds pats f)
+    val t = mk_split_abs (rev ((x, T) :: vs)) pat (reorder_bounds pats f)
   in
     (fm, mk_image t (mk_set fm))
   end;
@@ -196,7 +197,7 @@ fun eq_conv cv1 cv2 ct =
 val elim_Collect_tac = dtac @{thm iffD1[OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
   THEN' TRY o etac @{thm conjE}
-  THEN' hyp_subst_tac;
+  THEN' TRY o hyp_subst_tac;
 
 fun intro_image_tac ctxt = rtac @{thm image_eqI}
     THEN' (REPEAT_DETERM1 o
@@ -252,9 +253,9 @@ fun tac ctxt fm =
     val subset_tac2 = rtac @{thm subsetI}
       THEN' elim_image_tac
       THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
-      THEN' REPEAT_DETERM1 o resolve_tac @{thms exI}
+      THEN' REPEAT_DETERM o resolve_tac @{thms exI}
       THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
-      THEN' (K (SOMEGOAL ((TRY o hyp_subst_tac) THEN' rtac @{thm refl})))
+      THEN' (K (TRY (SOMEGOAL ((TRY o hyp_subst_tac) THEN' rtac @{thm refl}))))
       THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
         REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula f (i + j)) (strip_Int fm))))
   in
