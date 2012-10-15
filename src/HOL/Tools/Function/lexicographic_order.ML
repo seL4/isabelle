@@ -105,7 +105,6 @@ fun search_table [] = SOME []
 
 (** Proof Reconstruction **)
 
-(* prove row :: cell list -> tactic *)
 fun prove_row (c :: cs) =
   (case Lazy.force c of
      Less thm =>
@@ -126,23 +125,23 @@ fun pr_goals ctxt st =
     (Goal_Display.pretty_goal
       {main = Config.get ctxt Goal_Display.show_main_goal, limit = false} ctxt st)
 
-fun row_index i = chr (i + 97)
-fun col_index j = string_of_int (j + 1)
+fun row_index i = chr (i + 97)  (* FIXME not scalable wrt. chr range *)
+fun col_index j = string_of_int (j + 1)  (* FIXME not scalable wrt. table layout *)
 
-fun pr_unprovable_cell _ ((i,j), Less _) = ""
+fun pr_unprovable_cell _ ((i,j), Less _) = []
   | pr_unprovable_cell ctxt ((i,j), LessEq (_, st)) =
-      "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st
+      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st]
   | pr_unprovable_cell ctxt ((i,j), None (st_leq, st_less)) =
-      "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st_less
-      ^ "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^ pr_goals ctxt st_leq
+      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st_less ^
+       "\n(" ^ row_index i ^ ", " ^ col_index j ^ ", <=):\n" ^ pr_goals ctxt st_leq]
   | pr_unprovable_cell ctxt ((i,j), False st) =
-      "(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st
+      ["(" ^ row_index i ^ ", " ^ col_index j ^ ", <):\n" ^ pr_goals ctxt st]
 
 fun pr_unprovable_subgoals ctxt table =
   table
   |> map_index (fn (i,cs) => map_index (fn (j,x) => ((i,j), x)) cs)
   |> flat
-  |> map (pr_unprovable_cell ctxt)
+  |> maps (pr_unprovable_cell ctxt)
 
 fun pr_cell (Less _ ) = " < "
   | pr_cell (LessEq _) = " <="
