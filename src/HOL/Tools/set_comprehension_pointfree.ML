@@ -58,6 +58,13 @@ fun mk_sigma (t1, t2) =
       T1 --> (setT --> T2) --> resT) $ t1 $ absdummy setT t2
   end;
 
+fun mk_vimage f s =
+  let
+    val T as Type (@{type_name fun}, [T1, T2]) = fastype_of f
+  in
+    Const (@{const_name vimage}, T --> HOLogic.mk_setT T2 --> HOLogic.mk_setT T1) $ f $ s
+  end; 
+
 fun dest_Collect (Const (@{const_name Collect}, _) $ Abs (x, T, t)) = ((x, T), t)
   | dest_Collect t = raise TERM ("dest_Collect", [t])
 
@@ -76,6 +83,11 @@ fun mk_prod1 Ts (t1, t2) =
   in
     HOLogic.pair_const T1 T2 $ t1 $ t2
   end;
+
+fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
+  | mk_split_abs vs (Const ("Product_Type.Pair", _) $ u $ v) t =
+      HOLogic.mk_split (mk_split_abs vs u (mk_split_abs vs v t))
+  | mk_split_abs _ t _ = raise TERM ("mk_split_abs: bad term", [t]);
 
 
 (* patterns *)
@@ -107,8 +119,25 @@ fun bounds_of_pattern (TBound i) = [i]
 
 datatype formula = Atom of (pattern * term) | Int of formula * formula | Un of formula * formula
 
-fun mk_atom (Const (@{const_name "Set.member"}, _) $ x $ s) = (mk_pattern x, Atom (mk_pattern x, s))
-  | mk_atom (Const (@{const_name "HOL.Not"}, _) $ (Const (@{const_name "Set.member"}, _) $ x $ s)) =
+fun mk_atom vs (Const (@{const_name "Set.member"}, _) $ x $ s) =
+    (case try mk_pattern x of
+      SOME pat => (pat, Atom (pat, s))
+    | NONE =>
+      let
+        val bs = loose_bnos x
+        val vs' = map (nth (rev vs)) bs
+        val x' = subst_atomic (map_index (fn (i, j) => (Bound j, Bound i)) (rev bs)) x
+        val tuple = foldr1 TPair (map TBound bs)
+        val rT = HOLogic.dest_setT (fastype_of s)
+        fun mk_split [(x, T)] t = (T, Abs (x, T, t))
+          | mk_split ((x, T) :: vs) t =
+              let
+                val (T', t') = mk_split vs t
+                val t'' = HOLogic.split_const (T, T', rT) $ (Abs (x, T, t'))
+              in (domain_type (fastype_of t''), t'') end
+        val (_, f) = mk_split vs' x'
+      in (tuple, Atom (tuple, mk_vimage f s)) end)
+  | mk_atom _ (Const (@{const_name "HOL.Not"}, _) $ (Const (@{const_name "Set.member"}, _) $ x $ s)) =
       (mk_pattern x, Atom (mk_pattern x, mk_Compl s))
 
 fun can_merge (pats1, pats2) =
@@ -126,9 +155,9 @@ fun merge_patterns (pats1, pats2) =
 
 fun merge oper (pats1, sp1) (pats2, sp2) = (merge_patterns (pats1, pats2), oper (sp1, sp2))
 
-fun mk_formula (@{const HOL.conj} $ t1 $ t2) = merge Int (mk_formula t1) (mk_formula t2)
-  | mk_formula (@{const HOL.disj} $ t1 $ t2) = merge Un (mk_formula t1) (mk_formula t2)
-  | mk_formula t = apfst single (mk_atom t)
+fun mk_formula vs (@{const HOL.conj} $ t1 $ t2) = merge Int (mk_formula vs t1) (mk_formula vs t2)
+  | mk_formula vs (@{const HOL.disj} $ t1 $ t2) = merge Un (mk_formula vs t1) (mk_formula vs t2)
+  | mk_formula vs t = apfst single (mk_atom vs t)
 
 fun strip_Int (Int (fm1, fm2)) = fm1 :: (strip_Int fm2) 
   | strip_Int fm = [fm]
@@ -143,11 +172,6 @@ fun reorder_bounds pats t =
   in
     subst_bounds (map Bound bperm, t)
   end;
-
-fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
-  | mk_split_abs vs (Const ("Product_Type.Pair", _) $ u $ v) t =
-      HOLogic.mk_split (mk_split_abs vs u (mk_split_abs vs v t))
-  | mk_split_abs _ t _ = raise TERM ("mk_split_abs: bad term", [t]);
 
 fun mk_pointfree_expr t =
   let
@@ -165,7 +189,7 @@ fun mk_pointfree_expr t =
     val unused_bounds = subtract (op =) (distinct (op =) (maps loose_bnos conjs'))
       (0 upto (length vs - 1))
     val (pats, fm) =
-      mk_formula (foldr1 HOLogic.mk_conj (conjs' @ map mk_mem_UNIV unused_bounds))
+      mk_formula vs (foldr1 HOLogic.mk_conj (conjs' @ map mk_mem_UNIV unused_bounds))
     fun mk_set (Atom pt) = (case map (lookup pt) pats of [t'] => t' | ts => foldr1 mk_sigma ts)
       | mk_set (Un (f1, f2)) = mk_sup (mk_set f1, mk_set f2)
       | mk_set (Int (f1, f2)) = mk_inf (mk_set f1, mk_set f2)
