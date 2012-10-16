@@ -120,10 +120,9 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
     val pr_facts =
       if null facts then ""
       else
-        Pretty.string_of
-          (Pretty.chunks
-            (Pretty.block [Pretty.command "using", Pretty.brk 1, Pretty.str "this:"] ::
-              map (Display.pretty_thm ctxt) facts)) ^ "\n";
+        (Pretty.string_of o Pretty.block o Pretty.fbreaks)
+          (Pretty.block [Pretty.command "using", Pretty.brk 1, Pretty.str "this:"] ::
+            map (Display.pretty_thm ctxt) facts) ^ "\n";
     val pr_goal = string_of_goal ctxt goal;
   in pr_header ^ pr_facts ^ pr_goal end);
 

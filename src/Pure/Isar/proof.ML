@@ -338,7 +338,7 @@ fun get_goal state =
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
-      [Pretty.chunks
+      [(Pretty.block o Pretty.fbreaks)
         (Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"] ::
           map (Display.pretty_thm ctxt) ths), Pretty.str ""];
 
