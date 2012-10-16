@@ -77,10 +77,13 @@ sig
   val begin_notepad: context -> state
   val end_notepad: state -> context
   val proof: Method.text option -> state -> state Seq.seq
+  val proof_results: Method.text option -> state -> state Seq.result Seq.seq
   val defer: int option -> state -> state Seq.seq
   val prefer: int -> state -> state Seq.seq
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
+  val apply_results: Method.text -> state -> state Seq.result Seq.seq
+  val apply_end_results: Method.text -> state -> state Seq.result Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (context -> 'a -> attribute) ->
     ('b list -> context -> (term list list * (context -> context)) * context) ->
@@ -529,8 +532,8 @@ fun status_markup state =
     SOME {goal, ...} => Isabelle_Markup.proof_state (Thm.nprems_of goal)
   | NONE => Markup.empty);
 
-fun method_error name state =
-  Seq.single (Proof_Display.method_error name (raw_goal state));
+fun method_error kind state =
+  Seq.single (Proof_Display.method_error kind (raw_goal state));
 
 
 
@@ -808,6 +811,9 @@ fun proof opt_text =
   #> refine (the_default Method.default_text opt_text)
   #> Seq.map (using_facts [] #> enter_forward);
 
+fun proof_results opt_text =
+  Seq.APPEND (proof opt_text #> Seq.make_results, method_error "initial");
+
 fun end_proof bot txt =
   Seq.APPEND (fn state =>
     state
@@ -818,7 +824,7 @@ fun end_proof bot txt =
     |> using_facts []
     |> `before_qed |-> (refine o the_default Method.succeed_text)
     |> Seq.maps (refine (Method.finish_text txt))
-    |> Seq.map Seq.Result, method_error "terminal")
+    |> Seq.make_results, method_error "terminal")
   #> Seq.maps_results (Seq.single o finished_goal);
 
 fun check_result msg sq =
@@ -834,6 +840,9 @@ fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
 
 fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
 fun apply_end text = assert_forward #> refine_end text;
+
+fun apply_results text = Seq.APPEND (apply text #> Seq.make_results, method_error "");
+fun apply_end_results text = Seq.APPEND (apply_end text #> Seq.make_results, method_error "");
 
 
 
@@ -970,8 +979,8 @@ fun global_qed txt = global_qeds txt #> Seq.the_result finished_goal_error;
 (* concluding steps *)
 
 fun terminal_proof qeds initial terminal =
-  Seq.APPEND (proof (SOME initial) #> Seq.map Seq.Result, method_error "initial")
-  #> Seq.maps_results (qeds terminal) #> Seq.the_result "";
+  proof_results (SOME initial) #> Seq.maps_results (qeds terminal)
+  #> Seq.the_result "";
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof (Method.default_text, NONE);

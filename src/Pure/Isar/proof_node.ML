@@ -11,7 +11,7 @@ sig
   val current: T -> Proof.state
   val position: T -> int
   val back: T -> T
-  val applys: (Proof.state -> Proof.state Seq.seq) -> T -> T
+  val applys: (Proof.state -> Proof.state Seq.result Seq.seq) -> T -> T
   val apply: (Proof.state -> Proof.state) -> T -> T
 end;
 
@@ -42,10 +42,8 @@ fun back (Proof_Node ((_, stq), n)) =
 (* apply transformer *)
 
 fun applys f (Proof_Node ((st, _), n)) =
-  (case Seq.pull (f st) of
-    NONE => error "empty result sequence -- proof command failed"
-  | SOME res => Proof_Node (res, n + 1));
+  Proof_Node (Seq.first_result "Empty result sequence -- proof command failed" (f st), n + 1);
 
-fun apply f = applys (Seq.single o f);
+fun apply f = applys (Seq.single o Seq.Result o f);
 
 end;

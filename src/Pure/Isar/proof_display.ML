@@ -111,9 +111,9 @@ fun string_of_goal ctxt goal =
 
 (* method_error *)
 
-fun method_error name {context = ctxt, facts, goal} = Seq.Error (fn () =>
+fun method_error kind {context = ctxt, facts, goal} = Seq.Error (fn () =>
   let
-    val pr_header = "Failure of " ^ (if name = "" then "" else name ^ " ") ^ "proof method:\n";
+    val pr_header = "Failed to apply " ^ (if kind = "" then "" else kind ^ " ") ^ "proof method:\n";
     val pr_facts =
       if null facts then ""
       else
