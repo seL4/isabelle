@@ -514,20 +514,16 @@ fun conclude_goal ctxt goal propss =
       | recover_result _ _ = lost_structure ();
   in recover_result propss results end;
 
-fun the_finished_goal results =
-  (case Seq.pull results of
-    SOME ((f1, state1), rest) =>
-      let val (ctxt1, (_, goal1)) = get_goal state1 in
-        if Thm.no_prems goal1 then f1 state1
-        else
-          (case Seq.pull (Seq.filter (Thm.no_prems o #2 o #2 o get_goal o #2) rest) of
-            SOME ((f, state), _) => f state
-          | NONE =>
-              error ("Failed to finish proof:\n" ^
-                Pretty.string_of
-                  (Goal_Display.pretty_goal {main = true, limit = false} ctxt1 goal1)))
-      end
-  | NONE => error "Failed to finish proof");
+val finished_goal_error = "Failed to finish proof";
+
+fun finished_goal state =
+  let val (ctxt, (_, goal)) = get_goal state in
+    if Thm.no_prems goal then Seq.Result state
+    else
+      Seq.Error (fn () =>
+        finished_goal_error ^ ":\n" ^
+          Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt goal))
+  end;
 
 
 (* goal views -- corresponding to methods *)
@@ -833,7 +829,8 @@ fun end_proof bot txt state =
   |> assert_current_goal true
   |> using_facts []
   |> `before_qed |-> (refine o the_default Method.succeed_text)
-  |> Seq.maps (refine (Method.finish_text txt));
+  |> Seq.maps (refine (Method.finish_text txt))
+  |> Seq.map finished_goal;
 
 fun check_result msg sq =
   (case Seq.pull sq of
@@ -954,10 +951,10 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
 
 fun local_qeds txt =
   end_proof false txt
-  #> Seq.map (pair (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => after_qed results)));
+  #> Seq.map_result (generic_qed Proof_Context.auto_bind_facts #->
+    (fn ((after_qed, _), results) => after_qed results));
 
-fun local_qed txt = local_qeds txt #> the_finished_goal;
+fun local_qed txt = local_qeds txt #> Seq.the_result finished_goal_error;
 
 
 (* global goals *)
@@ -975,33 +972,34 @@ val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
 
 fun global_qeds txt =
   end_proof true txt
-  #> Seq.map (pair (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
-    after_qed results (context_of state))));
+  #> Seq.map_result (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
+    after_qed results (context_of state)));
 
-fun global_qed txt = global_qeds txt #> the_finished_goal;
+fun global_qed txt = global_qeds txt #> Seq.the_result finished_goal_error;
 
 
 (* concluding steps *)
 
-local
-
-fun failure_initial state =
+fun method_error name state = Seq.Error (fn () =>
   let
     val (ctxt, (facts, goal)) = get_goal state;
+    val pr_header =
+      "Failure of " ^ (if name = "" then "" else name ^ " ") ^ "proof method on goal state:\n";
     val pr_facts =
       if null facts then ""
       else Pretty.string_of (Pretty.big_list "facts:" (map (Display.pretty_thm ctxt) facts)) ^ "\n";
     val pr_goal =
       "goal:\n" ^ Pretty.string_of (Goal_Display.pretty_goal {main = false, limit = false} ctxt goal);
-  in error ("Failure of initial proof method on goal state:\n" ^ pr_facts ^ pr_goal) end;
+  in pr_header ^ pr_facts ^ pr_goal end);
 
-fun failure_terminal _ = error "Failure of terminal proof method";
+local
 
-val op ORELSE = Seq.ORELSE;
+val op APPEND = Seq.APPEND;
 
 fun terminal_proof qeds initial terminal =
-  (((proof (SOME initial) ORELSE failure_initial)
-    #> Seq.maps (qeds terminal)) ORELSE failure_terminal) #> the_finished_goal;
+  ((proof (SOME initial) #> Seq.map Seq.Result) APPEND (Seq.single o method_error "initial"))
+  #> Seq.maps_results (qeds terminal APPEND (Seq.single o method_error "terminal"))
+  #> Seq.the_result "";
 
 in
 
