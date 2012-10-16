@@ -17,6 +17,9 @@ sig
   val pretty_full_theory: bool -> theory -> Pretty.T
   val print_theory: theory -> unit
   val string_of_rule: Proof.context -> string -> thm -> string
+  val pretty_goal_header: thm -> Pretty.T
+  val string_of_goal: Proof.context -> thm -> string
+  val method_error: string -> {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val print_results: Markup.T -> bool -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val print_consts: bool -> Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
@@ -84,6 +87,42 @@ fun pretty_rule ctxt s thm =
     Pretty.fbrk, Display.pretty_thm_aux ctxt false thm];
 
 val string_of_rule = Pretty.string_of ooo pretty_rule;
+
+
+(* goals *)
+
+local
+
+fun subgoals 0 = []
+  | subgoals 1 = [Pretty.brk 1, Pretty.str "(1 subgoal)"]
+  | subgoals n = [Pretty.brk 1, Pretty.str ("(" ^ string_of_int n ^ " subgoals)")];
+
+in
+
+fun pretty_goal_header goal =
+  Pretty.block ([Pretty.command "goal"] @ subgoals (Thm.nprems_of goal) @ [Pretty.str ":"]);
+
+end;
+
+fun string_of_goal ctxt goal =
+  Pretty.string_of (Pretty.chunks
+    [pretty_goal_header goal, Goal_Display.pretty_goal {main = true, limit = false} ctxt goal]);
+
+
+(* method_error *)
+
+fun method_error name {context = ctxt, facts, goal} = Seq.Error (fn () =>
+  let
+    val pr_header = "Failure of " ^ (if name = "" then "" else name ^ " ") ^ "proof method:\n";
+    val pr_facts =
+      if null facts then ""
+      else
+        Pretty.string_of
+          (Pretty.chunks
+            (Pretty.block [Pretty.command "using", Pretty.brk 1, Pretty.str "this:"] ::
+              map (Display.pretty_thm ctxt) facts)) ^ "\n";
+    val pr_goal = string_of_goal ctxt goal;
+  in pr_header ^ pr_facts ^ pr_goal end);
 
 
 (* results *)

@@ -333,32 +333,20 @@ fun get_goal state =
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
-      [Pretty.big_list (s ^ "this:") (map (Display.pretty_thm ctxt) ths), Pretty.str ""];
+      [Pretty.chunks
+        (Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"] ::
+          map (Display.pretty_thm ctxt) ths), Pretty.str ""];
 
 fun pretty_state nr state =
   let
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
-    fun levels_up 0 = ""
-      | levels_up 1 = "1 level up"
-      | levels_up i = string_of_int i ^ " levels up";
-
-    fun subgoals 0 = ""
-      | subgoals 1 = "1 subgoal"
-      | subgoals n = string_of_int n ^ " subgoals";
-
-    fun description strs =
-      (case filter_out (fn s => s = "") strs of [] => ""
-      | strs' => enclose " (" ")" (commas strs'));
-
-    fun prt_goal (SOME (_, (i,
+    fun prt_goal (SOME (_, (_,
       {statement = ((_, pos), _, _), messages, using, goal, before_qed = _, after_qed = _}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
-          [Pretty.str ("goal" ^
-            description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
-          Goal_Display.pretty_goals ctxt goal @
+          [Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal @
           (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
       | prt_goal NONE = [];
 
@@ -487,8 +475,7 @@ fun conclude_goal ctxt goal propss =
     val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = Display.string_of_thm ctxt;
 
-    val _ = Thm.no_prems goal orelse
-      error (Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt goal));
+    val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
@@ -519,10 +506,7 @@ val finished_goal_error = "Failed to finish proof";
 fun finished_goal state =
   let val (ctxt, (_, goal)) = get_goal state in
     if Thm.no_prems goal then Seq.Result state
-    else
-      Seq.Error (fn () =>
-        finished_goal_error ^ ":\n" ^
-          Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt goal))
+    else Seq.Error (fn () => finished_goal_error ^ ":\n" ^ Proof_Display.string_of_goal ctxt goal)
   end;
 
 
@@ -980,28 +964,13 @@ fun global_qed txt = global_qeds txt #> Seq.the_result finished_goal_error;
 
 (* concluding steps *)
 
-fun method_error name state = Seq.Error (fn () =>
-  let
-    val (ctxt, (facts, goal)) = get_goal state;
-    val pr_header =
-      "Failure of " ^ (if name = "" then "" else name ^ " ") ^ "proof method on goal state:\n";
-    val pr_facts =
-      if null facts then ""
-      else Pretty.string_of (Pretty.big_list "facts:" (map (Display.pretty_thm ctxt) facts)) ^ "\n";
-    val pr_goal =
-      "goal:\n" ^ Pretty.string_of (Goal_Display.pretty_goal {main = false, limit = false} ctxt goal);
-  in pr_header ^ pr_facts ^ pr_goal end);
-
-local
-
+fun method_error name state = Seq.single (Proof_Display.method_error name (raw_goal state));
 val op APPEND = Seq.APPEND;
 
 fun terminal_proof qeds initial terminal =
-  ((proof (SOME initial) #> Seq.map Seq.Result) APPEND (Seq.single o method_error "initial"))
-  #> Seq.maps_results (qeds terminal APPEND (Seq.single o method_error "terminal"))
+  ((proof (SOME initial) #> Seq.map Seq.Result) APPEND method_error "initial")
+  #> Seq.maps_results (qeds terminal APPEND method_error "terminal")
   #> Seq.the_result "";
-
-in
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof (Method.default_text, NONE);
@@ -1014,8 +983,6 @@ val global_default_proof = global_terminal_proof (Method.default_text, NONE);
 val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
 fun global_skip_proof int = global_terminal_proof (Method.sorry_text int, NONE);
 val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false);
-
-end;
 
 
 (* common goal statements *)
