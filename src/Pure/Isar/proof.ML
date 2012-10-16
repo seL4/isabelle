@@ -77,30 +77,30 @@ sig
   val begin_notepad: context -> state
   val end_notepad: state -> context
   val proof: Method.text option -> state -> state Seq.seq
-  val proof_results: Method.text option -> state -> state Seq.result Seq.seq
+  val proof_results: Method.text_position option -> state -> state Seq.result Seq.seq
   val defer: int -> state -> state
   val prefer: int -> state -> state
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
-  val apply_results: Method.text -> state -> state Seq.result Seq.seq
-  val apply_end_results: Method.text -> state -> state Seq.result Seq.seq
+  val apply_results: Method.text_position -> state -> state Seq.result Seq.seq
+  val apply_end_results: Method.text_position -> state -> state Seq.result Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (context -> 'a -> attribute) ->
     ('b list -> context -> (term list list * (context -> context)) * context) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
-  val local_qed: Method.text option * bool -> state -> state
+  val local_qed: Method.text_position option * bool -> state -> state
   val theorem: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
   val theorem_cmd: Method.text option -> (thm list list -> context -> context) ->
     (string * string list) list list -> context -> state
-  val global_qed: Method.text option * bool -> state -> context
-  val local_terminal_proof: Method.text * Method.text option -> state -> state
+  val global_qed: Method.text_position option * bool -> state -> context
+  val local_terminal_proof: Method.text_position * Method.text_position option -> state -> state
   val local_default_proof: state -> state
   val local_immediate_proof: state -> state
   val local_skip_proof: bool -> state -> state
   val local_done_proof: state -> state
-  val global_terminal_proof: Method.text * Method.text option -> state -> context
+  val global_terminal_proof: Method.text_position * Method.text_position option -> state -> context
   val global_default_proof: state -> context
   val global_immediate_proof: state -> context
   val global_skip_proof: bool -> state -> context
@@ -116,8 +116,10 @@ sig
   val schematic_goal: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
   val global_future_proof: (state -> ('a * context) future) -> state -> 'a future * context
-  val local_future_terminal_proof: Method.text * Method.text option -> bool -> state -> state
-  val global_future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
+  val local_future_terminal_proof: Method.text_position * Method.text_position option -> bool ->
+    state -> state
+  val global_future_terminal_proof: Method.text_position * Method.text_position option -> bool ->
+    state -> context
 end;
 
 structure Proof: PROOF =
@@ -532,8 +534,8 @@ fun status_markup state =
     SOME {goal, ...} => Isabelle_Markup.proof_state (Thm.nprems_of goal)
   | NONE => Markup.empty);
 
-fun method_error kind state =
-  Seq.single (Proof_Display.method_error kind (raw_goal state));
+fun method_error kind pos state =
+  Seq.single (Proof_Display.method_error kind pos (raw_goal state));
 
 
 
@@ -811,10 +813,11 @@ fun proof opt_text =
   #> refine (the_default Method.default_text opt_text)
   #> Seq.map (using_facts [] #> enter_forward);
 
-fun proof_results opt_text =
-  Seq.APPEND (proof opt_text #> Seq.make_results, method_error "initial");
+fun proof_results arg =
+  Seq.APPEND (proof (Method.text arg) #> Seq.make_results,
+    method_error "initial" (Method.position arg));
 
-fun end_proof bot txt =
+fun end_proof bot (arg, immed) =
   Seq.APPEND (fn state =>
     state
     |> assert_forward
@@ -823,8 +826,8 @@ fun end_proof bot txt =
     |> assert_current_goal true
     |> using_facts []
     |> `before_qed |-> (refine o the_default Method.succeed_text)
-    |> Seq.maps (refine (Method.finish_text txt))
-    |> Seq.make_results, method_error "terminal")
+    |> Seq.maps (refine (Method.finish_text (Method.text arg, immed)))
+    |> Seq.make_results, method_error "terminal" (Method.position arg))
   #> Seq.maps_results (Seq.single o finished_goal);
 
 fun check_result msg sq =
@@ -844,10 +847,14 @@ fun prefer i =
   refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL prefer_tac i))) #> Seq.hd;
 
 fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
+
 fun apply_end text = assert_forward #> refine_end text;
 
-fun apply_results text = Seq.APPEND (apply text #> Seq.make_results, method_error "");
-fun apply_end_results text = Seq.APPEND (apply_end text #> Seq.make_results, method_error "");
+fun apply_results (text, pos) =
+  Seq.APPEND (apply text #> Seq.make_results, method_error "" pos);
+
+fun apply_end_results (text, pos) =
+  Seq.APPEND (apply_end text #> Seq.make_results, method_error "" pos);
 
 
 
@@ -952,12 +959,12 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
     |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
-fun local_qeds txt =
-  end_proof false txt
+fun local_qeds arg =
+  end_proof false arg
   #> Seq.map_result (generic_qed Proof_Context.auto_bind_facts #->
     (fn ((after_qed, _), results) => after_qed results));
 
-fun local_qed txt = local_qeds txt #> Seq.the_result finished_goal_error;
+fun local_qed arg = local_qeds arg #> Seq.the_result finished_goal_error;
 
 
 (* global goals *)
@@ -973,12 +980,12 @@ fun global_goal prepp before_qed after_qed propp =
 val theorem = global_goal Proof_Context.bind_propp_schematic_i;
 val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
 
-fun global_qeds txt =
-  end_proof true txt
+fun global_qeds arg =
+  end_proof true arg
   #> Seq.map_result (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
     after_qed results (context_of state)));
 
-fun global_qed txt = global_qeds txt #> Seq.the_result finished_goal_error;
+fun global_qed arg = global_qeds arg #> Seq.the_result finished_goal_error;
 
 
 (* concluding steps *)
@@ -988,16 +995,16 @@ fun terminal_proof qeds initial terminal =
   #> Seq.the_result "";
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
-val local_default_proof = local_terminal_proof (Method.default_text, NONE);
-val local_immediate_proof = local_terminal_proof (Method.this_text, NONE);
-fun local_skip_proof int = local_terminal_proof (Method.sorry_text int, NONE);
-val local_done_proof = terminal_proof local_qeds Method.done_text (NONE, false);
+val local_default_proof = local_terminal_proof ((Method.default_text, Position.none), NONE);
+val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.none), NONE);
+fun local_skip_proof int = local_terminal_proof ((Method.sorry_text int, Position.none), NONE);
+val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.none) (NONE, false);
 
 fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
-val global_default_proof = global_terminal_proof (Method.default_text, NONE);
-val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
-fun global_skip_proof int = global_terminal_proof (Method.sorry_text int, NONE);
-val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false);
+val global_default_proof = global_terminal_proof ((Method.default_text, Position.none), NONE);
+val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.none), NONE);
+fun global_skip_proof int = global_terminal_proof ((Method.sorry_text int, Position.none), NONE);
+val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.none) (NONE, false);
 
 
 (* common goal statements *)

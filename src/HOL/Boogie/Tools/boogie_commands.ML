@@ -318,7 +318,7 @@ val status_test =
     Args.$$$ "narrow" |-- timeout "step_timeout" quick_timeout --
       timeout "final_timeout" default_timeout >> boogie_narrow_vc) --
   vc_name -- Method.parse >>
-  (fn ((f, vc_name), meth) => f vc_name meth)
+  (fn ((f, vc_name), (meth, _)) => f vc_name meth)
 
 val status_vc =
   (scan_arg

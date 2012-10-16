@@ -19,7 +19,8 @@ sig
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
-  val method_error: string -> {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
+  val method_error: string -> Position.T ->
+    {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val print_results: Markup.T -> bool -> Proof.context ->
     ((string * string) * (string * thm list) list) -> unit
   val print_consts: bool -> Proof.context -> (string * typ -> bool) -> (string * typ) list -> unit
@@ -111,9 +112,11 @@ fun string_of_goal ctxt goal =
 
 (* method_error *)
 
-fun method_error kind {context = ctxt, facts, goal} = Seq.Error (fn () =>
+fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
   let
-    val pr_header = "Failed to apply " ^ (if kind = "" then "" else kind ^ " ") ^ "proof method:\n";
+    val pr_header =
+      "Failed to apply " ^ (if kind = "" then "" else kind ^ " ") ^
+      "proof method" ^ Position.here pos ^ ":\n";
     val pr_facts =
       if null facts then ""
       else

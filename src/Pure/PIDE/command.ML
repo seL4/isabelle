@@ -22,14 +22,8 @@ struct
 
 (* span range *)
 
-fun range [] = (Position.none, Position.none)
-  | range toks =
-      let
-        val start_pos = Token.position_of (hd toks);
-        val end_pos = Token.end_position_of (List.last toks);
-      in (start_pos, end_pos) end;
-
-val proper_range = range o #1 o take_suffix Token.is_space;
+val range = Token.position_range_of;
+val proper_range = Token.position_range_of o #1 o take_suffix Token.is_space;
 
 
 (* memo results *)
