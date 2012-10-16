@@ -21,7 +21,7 @@ and finite_in_P: "\<And> n tns. (n,tns) \<in> P \<longrightarrow> finite tns"
 and used: "\<And> n. \<exists> tns. (n,tns) \<in> P"
 
 
-subsection{* Tree basics: frontier, interior, etc. *}
+subsection{* Tree Basics: frontier, interior, etc. *}
 
 
 (* Frontier *)
@@ -309,7 +309,7 @@ unfolding Itr_def apply safe
   by (metis inItr.Base subtr_inItr subtr_rootL_in)
 
 
-subsection{* The immediate subtree function *}
+subsection{* The Immediate Subtree Function *}
 
 (* production of: *)
 abbreviation "prodOf tr \<equiv> (id \<oplus> root) ` (cont tr)"
@@ -343,7 +343,7 @@ shows "Inr (root tr') \<in> prodOf tr"
 by (metis (lifting) assms image_iff sum_map.simps(2))
 
 
-subsection{* Well-formed derivation trees *}
+subsection{* Well-Formed Derivation Trees *}
 
 hide_const wf
 
@@ -448,7 +448,7 @@ proof-
 qed
 
 
-subsection{* Default trees *}
+subsection{* Default Trees *}
 
 (* Pick a left-hand side of a production for each nonterminal *)
 definition S where "S n \<equiv> SOME tns. (n,tns) \<in> P"
@@ -488,7 +488,7 @@ proof-
 qed
 
 
-subsection{* Hereditary substitution *}
+subsection{* Hereditary Substitution *}
 
 (* Auxiliary concept: The root-ommiting frontier: *)
 definition "inFrr ns tr t \<equiv> \<exists> tr'. Inr tr' \<in> cont tr \<and> inFr ns tr' t"
@@ -679,7 +679,7 @@ using inFr_self_hsubst[OF assms] unfolding Frr Fr_def by auto
 end (* context *)
 
 
-subsection{* Regular trees *}
+subsection{* Regular Trees *}
 
 hide_const regular
 
@@ -771,7 +771,7 @@ qed
 
 
 
-subsection {* Paths in a regular tree *}
+subsection {* Paths in a Regular Tree *}
 
 inductive path :: "(N \<Rightarrow> dtree) \<Rightarrow> N list \<Rightarrow> bool" for f where
 Base: "path f [n]"
@@ -915,7 +915,7 @@ by (metis f inFr.Base path_subtr subtr_inFr subtr_mono subtr_rootL_in)
 
 
 
-subsection{* The regular cut of a tree *}
+subsection{* The Regular Cut of a Tree *}
 
 context fixes tr0 :: dtree
 begin
@@ -1082,7 +1082,7 @@ by (metis (lifting) root_H inItr.Base reg_def reg_root subtr_rootR_in)
 end (* context *)
 
 
-subsection{* Recursive description of the regular tree frontiers *}
+subsection{* Recursive Description of the Regular Tree Frontiers *}
 
 lemma regular_inFr:
 assumes r: "regular tr" and In: "root tr \<in> ns"
@@ -1131,7 +1131,7 @@ apply simp
 by (simp, metis (lifting) inFr_Ind_minus insert_Diff)
 
 
-subsection{* The generated languages *}
+subsection{* The Generated Languages *}
 
 (* The (possibly inifinite tree) generated language *)
 definition "L ns n \<equiv> {Fr ns tr | tr. wf tr \<and> root tr = n}"

@@ -18,8 +18,7 @@ typedecl T
 
 codata dtree = NNode (root: N) (ccont: "(T + dtree) fset")
 
-
-subsection{* The characteristic lemmas transported from fset to set *}
+subsection{* Transporting the Characteristic Lemmas from @{text "fset"} to @{text "set"} *}
 
 definition "Node n as \<equiv> NNode n (the_inv fset as)"
 definition "cont \<equiv> fset o ccont"

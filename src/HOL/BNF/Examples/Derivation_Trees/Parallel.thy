@@ -20,7 +20,7 @@ axiomatization where
     Nplus_comm: "(a::N) + b = b + (a::N)"
 and Nplus_assoc: "((a::N) + b) + c = a + (b + c)"
 
-section{* Parallel composition *}
+subsection{* Corecursive Definition of Parallel Composition *}
 
 fun par_r where "par_r (tr1,tr2) = root tr1 + root tr2"
 fun par_c where
@@ -30,7 +30,6 @@ fun par_c where
 
 declare par_r.simps[simp del]  declare par_c.simps[simp del]
 
-(* Corecursive definition of parallel composition: *)
 definition par :: "dtree \<times> dtree \<Rightarrow> dtree" where
 "par \<equiv> unfold par_r par_c"
 
@@ -67,7 +66,7 @@ lemma Inr_in_cont_par:
 using Inr_cont_par[of tr1 tr2] unfolding vimage_def by auto
 
 
-section{* Structural coinductive proofs *}
+subsection{* Structural Coinduction Proofs *}
 
 lemma set_rel_sum_rel_eq[simp]:
 "set_rel (sum_rel (op =) \<phi>) A1 A2 \<longleftrightarrow>
