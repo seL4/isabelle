@@ -53,6 +53,7 @@ sig
   val rename_tac: string list -> int -> tactic
   val rotate_tac: int -> int -> tactic
   val defer_tac: int -> tactic
+  val prefer_tac: int -> tactic
   val filter_prems_tac: (term -> bool) -> int -> tactic
 end;
 
@@ -317,6 +318,9 @@ fun rotate_tac 0 i = all_tac
 
 (*Rotates the given subgoal to be the last.*)
 fun defer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1);
+
+(*Rotates the given subgoal to be the first.*)
+fun prefer_tac i = PRIMITIVE (Thm.permute_prems (i - 1) 1 #> Thm.permute_prems 0 ~1);
 
 (* remove premises that do not satisfy p; fails if all prems satisfy p *)
 fun filter_prems_tac p =

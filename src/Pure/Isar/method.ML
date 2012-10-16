@@ -20,8 +20,6 @@ sig
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
-  val defer: int option -> method
-  val prefer: int -> method
   val cheating: bool -> Proof.context -> method
   val intro: thm list -> method
   val elim: thm list -> method
@@ -122,12 +120,6 @@ fun SIMPLE_METHOD'' quant tac = METHOD (fn facts => quant (insert_tac facts THEN
 val SIMPLE_METHOD' = SIMPLE_METHOD'' HEADGOAL;
 
 end;
-
-
-(* shuffle subgoals *)
-
-fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
-fun defer opt_i = METHOD (K (Tactic.defer_tac (the_default 1 opt_i)));
 
 
 (* cheating *)

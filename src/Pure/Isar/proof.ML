@@ -78,8 +78,8 @@ sig
   val end_notepad: state -> context
   val proof: Method.text option -> state -> state Seq.seq
   val proof_results: Method.text option -> state -> state Seq.result Seq.seq
-  val defer: int option -> state -> state Seq.seq
-  val prefer: int -> state -> state Seq.seq
+  val defer: int -> state -> state
+  val prefer: int -> state -> state
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
   val apply_results: Method.text -> state -> state Seq.result Seq.seq
@@ -835,8 +835,13 @@ fun check_result msg sq =
 
 (* unstructured refinement *)
 
-fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i)));
-fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
+fun defer i =
+  assert_no_chain #>
+  refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL defer_tac i))) #> Seq.hd;
+
+fun prefer i =
+  assert_no_chain #>
+  refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL prefer_tac i))) #> Seq.hd;
 
 fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
 fun apply_end text = assert_forward #> refine_end text;

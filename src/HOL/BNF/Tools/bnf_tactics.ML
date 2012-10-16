@@ -10,7 +10,6 @@ signature BNF_TACTICS =
 sig
   val ss_only: thm list -> simpset
 
-  val prefer_tac: int -> tactic
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
   val unfold_thms_tac: Proof.context -> thm list -> tactic
@@ -38,9 +37,6 @@ struct
 open BNF_Util
 
 fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms;
-
-(* FIXME: why not in "Pure"? *)
-fun prefer_tac i = defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1);
 
 fun select_prem_tac n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac thin_rl,
   tac, REPEAT_DETERM_N (n - k) o etac thin_rl]);

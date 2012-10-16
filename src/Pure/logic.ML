@@ -557,8 +557,10 @@ fun unvarify_global tm = tm
 
 (* goal states *)
 
-fun get_goal st i = nth_prem (i, st)
-  handle TERM _ => error "Goal number out of range";
+fun get_goal st i =
+  nth_prem (i, st) handle TERM _ =>
+    error ("Subgoal number " ^ string_of_int i ^ " out of range (a total of " ^
+      string_of_int (count_prems st)  ^ " subgoals)");
 
 (*reverses parameters for substitution*)
 fun goal_params st i =

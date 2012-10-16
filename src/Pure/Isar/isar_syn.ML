@@ -681,12 +681,11 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "defer"} "shuffle internal proof state"
-    (Scan.option Parse.nat >> (fn n =>
-      (Toplevel.print o Toplevel.proofs (Seq.make_results o Proof.defer n))));
+    (Scan.optional Parse.nat 1 >> (fn n => Toplevel.print o Toplevel.proof (Proof.defer n)));
 
 val _ =
   Outer_Syntax.command @{command_spec "prefer"} "shuffle internal proof state"
-    (Parse.nat >> (fn n => Toplevel.print o Toplevel.proofs (Seq.make_results o Proof.prefer n)));
+    (Parse.nat >> (fn n => Toplevel.print o Toplevel.proof (Proof.prefer n)));
 
 val _ =
   Outer_Syntax.command @{command_spec "apply"} "initial refinement step (unstructured)"
