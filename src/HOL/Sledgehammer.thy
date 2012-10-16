@@ -14,6 +14,7 @@ begin
 ML_file "Tools/Sledgehammer/async_manager.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_util.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_fact.ML"
+ML_file "Tools/Sledgehammer/sledgehammer_reconstruct.ML" 
 ML_file "Tools/Sledgehammer/sledgehammer_provers.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_minimize.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_mepo.ML"

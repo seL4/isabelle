@@ -149,6 +149,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
+open Sledgehammer_Reconstruct
 
 
 (** The Sledgehammer **)
