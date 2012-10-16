@@ -12,8 +12,8 @@ imports DTree
 begin
 
 
-(* We assume that the sets of terminals, and the left-hand sides of 
-productions are finite and that the grammar has no unused nonterminals. *)  
+(* We assume that the sets of terminals, and the left-hand sides of
+productions are finite and that the grammar has no unused nonterminals. *)
 consts P :: "(N \<times> (T + N) set) set"
 axiomatization where
     finite_N: "finite (UNIV::N set)"
@@ -343,9 +343,9 @@ shows "Inr (root tr') \<in> prodOf tr"
 by (metis (lifting) assms image_iff sum_map.simps(2))
 
 
-subsection{* Well-formed derivation trees *}  
+subsection{* Well-formed derivation trees *}
 
-hide_const wf  
+hide_const wf
 
 coinductive wf where
 dtree: "\<lbrakk>(root tr, (id \<oplus> root) ` (cont tr)) \<in> P; inj_on root (Inr -` cont tr);
@@ -400,7 +400,7 @@ lemma wf_subtr_inj_on:
 assumes d: "wf tr1" and s: "subtr ns tr tr1"
 shows "inj_on root (Inr -` cont tr)"
 using s d apply(induct rule: subtr.induct)
-apply (metis (lifting) wf_inj_on) by (metis wf_cont) 
+apply (metis (lifting) wf_inj_on) by (metis wf_cont)
 
 lemma wf_subtr_P:
 assumes d: "wf tr1" and s: "subtr ns tr tr1"
@@ -1256,7 +1256,7 @@ by(pat_completeness, auto)
 termination apply(relation "inv_image (measure card) fst")
 using card_N by auto
 
-declare LL.simps[code] 
+declare LL.simps[code]
 declare LL.simps[simp del]
 
 lemma Lr_LL: "Lr ns n \<subseteq> LL ns n"

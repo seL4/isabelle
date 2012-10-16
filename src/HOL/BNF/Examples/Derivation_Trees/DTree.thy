@@ -60,7 +60,7 @@ assumes "root tr = root tr'" and "cont tr = cont tr'"
 shows "tr = tr'"
 by (metis Node_root_cont assms)
 
-lemma set_rel_cont: 
+lemma set_rel_cont:
 "set_rel \<chi> (cont tr1) (cont tr2) = fset_rel \<chi> (ccont tr1) (ccont tr2)"
 unfolding cont_def comp_def fset_rel_fset ..
 
@@ -70,8 +70,8 @@ Lift: "\<And> tr1 tr2. \<phi> tr1 tr2 \<Longrightarrow>
                   root tr1 = root tr2 \<and> set_rel (sum_rel op = \<phi>) (cont tr1) (cont tr2)"
 shows "tr1 = tr2"
 using phi apply(elim dtree.coinduct)
-apply(rule Lift[unfolded set_rel_cont]) . 
- 
+apply(rule Lift[unfolded set_rel_cont]) .
+
 lemma unfold:
 "root (unfold rt ct b) = rt b"
 "finite (ct b) \<Longrightarrow> cont (unfold rt ct b) = image (id \<oplus> unfold rt ct) (ct b)"
@@ -85,7 +85,7 @@ lemma corec:
 "\<lbrakk>finite (ct b); finite (dt b)\<rbrakk> \<Longrightarrow>
  cont (corec rt qt ct dt b) =
  (if qt b then ct b else image (id \<oplus> corec rt qt ct dt) (dt b))"
-using dtree.sel_corec[of rt qt "the_inv fset \<circ> ct" "the_inv fset \<circ> dt" b] 
+using dtree.sel_corec[of rt qt "the_inv fset \<circ> ct" "the_inv fset \<circ> dt" b]
 unfolding corec_def
 apply -
 apply simp

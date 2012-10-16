@@ -13,7 +13,7 @@ begin
 
 no_notation plus_class.plus (infixl "+" 65)
 no_notation Sublist.parallel (infixl "\<parallel>" 50)
-    
+
 consts Nplus :: "N \<Rightarrow> N \<Rightarrow> N" (infixl "+" 60)
 
 axiomatization where
@@ -69,8 +69,8 @@ using Inr_cont_par[of tr1 tr2] unfolding vimage_def by auto
 
 section{* Structural coinductive proofs *}
 
-lemma set_rel_sum_rel_eq[simp]: 
-"set_rel (sum_rel (op =) \<phi>) A1 A2 \<longleftrightarrow> 
+lemma set_rel_sum_rel_eq[simp]:
+"set_rel (sum_rel (op =) \<phi>) A1 A2 \<longleftrightarrow>
  Inl -` A1 = Inl -` A2 \<and> set_rel \<phi> (Inr -` A1) (Inr -` A2)"
 unfolding set_rel_sum_rel set_rel_eq ..
 
@@ -80,7 +80,7 @@ proof-
   let ?\<theta> = "\<lambda> trA trB. \<exists> tr1 tr2. trA = tr1 \<parallel> tr2 \<and> trB = tr2 \<parallel> tr1"
   {fix trA trB
    assume "?\<theta> trA trB" hence "trA = trB"
-   apply (induct rule: dtree_coinduct) 
+   apply (induct rule: dtree_coinduct)
    unfolding set_rel_sum_rel set_rel_eq unfolding set_rel_def proof safe
      fix tr1 tr2  show "root (tr1 \<parallel> tr2) = root (tr2 \<parallel> tr1)"
      unfolding root_par by (rule Nplus_comm)
@@ -115,15 +115,15 @@ proof-
   "\<lambda> trA trB. \<exists> tr1 tr2 tr3. trA = (tr1 \<parallel> tr2) \<parallel> tr3 \<and> trB = tr1 \<parallel> (tr2 \<parallel> tr3)"
   {fix trA trB
    assume "?\<theta> trA trB" hence "trA = trB"
-   apply (induct rule: dtree_coinduct) 
+   apply (induct rule: dtree_coinduct)
    unfolding set_rel_sum_rel set_rel_eq unfolding set_rel_def proof safe
      fix tr1 tr2 tr3  show "root ((tr1 \<parallel> tr2) \<parallel> tr3) = root (tr1 \<parallel> (tr2 \<parallel> tr3))"
      unfolding root_par by (rule Nplus_assoc)
    next
-     fix n tr1 tr2 tr3 assume "Inl n \<in> (cont ((tr1 \<parallel> tr2) \<parallel> tr3))" 
+     fix n tr1 tr2 tr3 assume "Inl n \<in> (cont ((tr1 \<parallel> tr2) \<parallel> tr3))"
      thus "n \<in> Inl -` (cont (tr1 \<parallel> tr2 \<parallel> tr3))" unfolding Inl_in_cont_par by simp
    next
-     fix n tr1 tr2 tr3 assume "Inl n \<in> (cont (tr1 \<parallel> tr2 \<parallel> tr3))" 
+     fix n tr1 tr2 tr3 assume "Inl n \<in> (cont (tr1 \<parallel> tr2 \<parallel> tr3))"
      thus "n \<in> Inl -` (cont ((tr1 \<parallel> tr2) \<parallel> tr3))" unfolding Inl_in_cont_par by simp
    next
      fix trA' tr1 tr2 tr3 assume "Inr trA' \<in> cont ((tr1 \<parallel> tr2) \<parallel> tr3)"
