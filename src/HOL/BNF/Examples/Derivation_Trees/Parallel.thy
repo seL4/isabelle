@@ -146,8 +146,4 @@ proof-
   thus ?thesis by blast
 qed
 
-
-
-
-
 end

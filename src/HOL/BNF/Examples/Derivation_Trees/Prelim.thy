@@ -62,6 +62,4 @@ assumes "Inl -` A = Inl -` B" and "Inr -` A = Inr -` B"
 shows "A = B"
 apply safe using assms apply(case_tac x, auto) by(case_tac x, auto)
 
-
-
 end

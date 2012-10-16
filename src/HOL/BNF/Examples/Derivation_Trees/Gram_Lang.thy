@@ -1356,5 +1356,4 @@ by (metis (lifting) LL_L Lr_LL Lr_subs_L incl_subs leqv_def subs_trans)
 lemma LL_leqv_Lr: "leqv (LL UNIV ts) (Lr UNIV ts)"
 using Lr_leqv_L LL_leqv_L by (metis leqv_Sym leqv_trans)
 
-
 end
