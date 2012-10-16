@@ -246,10 +246,12 @@ fun tac1_of_formula (Int (fm1, fm2)) =
     THEN' rtac @{thm UnI2}
     THEN' tac1_of_formula fm2
   | tac1_of_formula (Atom _) =
-    (REPEAT_DETERM1 o (rtac @{thm SigmaI}
+    REPEAT_DETERM1 o (rtac @{thm SigmaI}
+      ORELSE' (rtac @{thm vimageI2} THEN'
+        TRY o Simplifier.simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])) 
       ORELSE' rtac @{thm UNIV_I}
       ORELSE' rtac @{thm iffD2[OF Compl_iff]}
-      ORELSE' atac))
+      ORELSE' atac)
 
 fun tac2_of_formula (Int (fm1, fm2)) =
     TRY o etac @{thm IntE}
@@ -265,6 +267,9 @@ fun tac2_of_formula (Int (fm1, fm2)) =
     TRY o REPEAT_DETERM1 o
       (dtac @{thm iffD1[OF mem_Sigma_iff]}
        ORELSE' etac @{thm conjE}
+       ORELSE' (etac @{thm vimageE}
+        THEN' TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])
+        THEN' TRY o hyp_subst_tac)
        ORELSE' etac @{thm ComplE}
        ORELSE' atac)
 
