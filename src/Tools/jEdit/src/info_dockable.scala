@@ -16,7 +16,7 @@ import scala.swing.event.ButtonClicked
 
 import java.lang.System
 import java.awt.BorderLayout
-import java.awt.event.{ComponentEvent, ComponentAdapter}
+import java.awt.event.{ComponentEvent, ComponentAdapter, WindowFocusListener, WindowEvent}
 
 import org.gjt.sp.jedit.View
 
@@ -28,17 +28,20 @@ object Info_Dockable
   private var implicit_snapshot = Document.State.init.snapshot()
   private var implicit_info: XML.Body = Nil
 
-  def apply(view: View, snapshot: Document.Snapshot, info: XML.Body)
+  private def set_implicit(snapshot: Document.Snapshot, info: XML.Body)
   {
     Swing_Thread.require()
 
     implicit_snapshot = snapshot
     implicit_info = info
+  }
 
+  private def reset_implicit(): Unit = set_implicit(Document.State.init.snapshot(), Nil)
+
+  def apply(view: View, snapshot: Document.Snapshot, info: XML.Body)
+  {
+    set_implicit(snapshot, info)
     view.getDockableWindowManager.floatDockableWindow("isabelle-info")
-
-    implicit_snapshot = Document.State.init.snapshot()
-    implicit_info = Nil
   }
 }
 
@@ -52,13 +55,22 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private var zoom_factor = 100
 
+  private val snapshot = Info_Dockable.implicit_snapshot
+  private val info = Info_Dockable.implicit_info
+
+  private val window_focus_listener =
+    new WindowFocusListener {
+      def windowGainedFocus(e: WindowEvent) { Info_Dockable.set_implicit(snapshot, info) }
+      def windowLostFocus(e: WindowEvent) { Info_Dockable.reset_implicit() }
+    }
+
 
   /* pretty text area */
 
   private val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
-  pretty_text_area.update(Info_Dockable.implicit_snapshot, Info_Dockable.implicit_info)
+  pretty_text_area.update(snapshot, info)
 
   private def handle_resize()
   {
@@ -85,6 +97,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   {
     Swing_Thread.require()
 
+    JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
     Isabelle.session.global_options += main_actor
     handle_resize()
   }
@@ -93,6 +106,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   {
     Swing_Thread.require()
 
+    JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
     Isabelle.session.global_options -= main_actor
     delay_resize.revoke()
   }
