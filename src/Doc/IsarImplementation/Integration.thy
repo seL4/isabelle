@@ -154,7 +154,7 @@ text %mlref {*
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.proof: "(Proof.state -> Proof.state) ->
   Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.seq) ->
+  @{index_ML Toplevel.proofs: "(Proof.state -> Proof.state Seq.result Seq.seq) ->
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.end_proof: "(bool -> Proof.state -> Proof.context) ->
   Toplevel.transition -> Toplevel.transition"} \\
