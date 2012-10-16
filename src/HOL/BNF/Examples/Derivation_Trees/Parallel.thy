@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Infinite_Derivation_Trees/Parallel.thy
+(*  Title:      HOL/BNF/Examples/Derivation_Trees/Parallel.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,7 +8,7 @@ Parallel composition.
 header {* Parallel Composition *}
 
 theory Parallel
-imports Tree
+imports DTree
 begin
 
 no_notation plus_class.plus (infixl "+" 65)
@@ -30,7 +30,8 @@ fun par_c where
 
 declare par_r.simps[simp del]  declare par_c.simps[simp del]
 
-definition par :: "Tree \<times> Tree \<Rightarrow> Tree" where
+(* Corecursive definition of parallel composition: *)
+definition par :: "dtree \<times> dtree \<Rightarrow> dtree" where
 "par \<equiv> unfold par_r par_c"
 
 abbreviation par_abbr (infixr "\<parallel>" 80) where "tr1 \<parallel> tr2 \<equiv> par (tr1, tr2)"
@@ -66,80 +67,80 @@ lemma Inr_in_cont_par:
 using Inr_cont_par[of tr1 tr2] unfolding vimage_def by auto
 
 
-section{* =-coinductive proofs *}
+section{* Structural coinductive proofs *}
+
+lemma set_rel_sum_rel_eq[simp]: 
+"set_rel (sum_rel (op =) \<phi>) A1 A2 \<longleftrightarrow> 
+ Inl -` A1 = Inl -` A2 \<and> set_rel \<phi> (Inr -` A1) (Inr -` A2)"
+unfolding set_rel_sum_rel set_rel_eq ..
 
 (* Detailed proofs of commutativity and associativity: *)
 theorem par_com: "tr1 \<parallel> tr2 = tr2 \<parallel> tr1"
 proof-
-  let ?\<phi> = "\<lambda> trA trB. \<exists> tr1 tr2. trA = tr1 \<parallel> tr2 \<and> trB = tr2 \<parallel> tr1"
+  let ?\<theta> = "\<lambda> trA trB. \<exists> tr1 tr2. trA = tr1 \<parallel> tr2 \<and> trB = tr2 \<parallel> tr1"
   {fix trA trB
-   assume "?\<phi> trA trB" hence "trA = trB"
-   proof (induct rule: Tree_coind, safe)
-     fix tr1 tr2
-     show "root (tr1 \<parallel> tr2) = root (tr2 \<parallel> tr1)"
+   assume "?\<theta> trA trB" hence "trA = trB"
+   apply (induct rule: dtree_coinduct) 
+   unfolding set_rel_sum_rel set_rel_eq unfolding set_rel_def proof safe
+     fix tr1 tr2  show "root (tr1 \<parallel> tr2) = root (tr2 \<parallel> tr1)"
      unfolding root_par by (rule Nplus_comm)
    next
-     fix tr1 tr2 :: Tree
-     let ?trA = "tr1 \<parallel> tr2"  let ?trB = "tr2 \<parallel> tr1"
-     show "(?\<phi> ^#2) (cont ?trA) (cont ?trB)"
-     unfolding lift2_def proof(intro conjI allI impI)
-       fix n show "Inl n \<in> cont (tr1 \<parallel> tr2) \<longleftrightarrow> Inl n \<in> cont (tr2 \<parallel> tr1)"
-       unfolding Inl_in_cont_par by auto
-     next
-       fix trA' assume "Inr trA' \<in> cont ?trA"
-       then obtain tr1' tr2' where "trA' = tr1' \<parallel> tr2'"
-       and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
-       unfolding Inr_in_cont_par by auto
-       thus "\<exists> trB'. Inr trB' \<in> cont ?trB \<and> ?\<phi> trA' trB'"
-       apply(intro exI[of _ "tr2' \<parallel> tr1'"]) unfolding Inr_in_cont_par by auto
-     next
-       fix trB' assume "Inr trB' \<in> cont ?trB"
-       then obtain tr1' tr2' where "trB' = tr2' \<parallel> tr1'"
-       and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
-       unfolding Inr_in_cont_par by auto
-       thus "\<exists> trA'. Inr trA' \<in> cont ?trA \<and> ?\<phi> trA' trB'"
-       apply(intro exI[of _ "tr1' \<parallel> tr2'"]) unfolding Inr_in_cont_par by auto
-     qed
+     fix n tr1 tr2 assume "Inl n \<in> cont (tr1 \<parallel> tr2)" thus "n \<in> Inl -` (cont (tr2 \<parallel> tr1))"
+     unfolding Inl_in_cont_par by auto
+   next
+     fix n tr1 tr2 assume "Inl n \<in> cont (tr2 \<parallel> tr1)" thus "n \<in> Inl -` (cont (tr1 \<parallel> tr2))"
+     unfolding Inl_in_cont_par by auto
+   next
+     fix tr1 tr2 trA' assume "Inr trA' \<in> cont (tr1 \<parallel> tr2)"
+     then obtain tr1' tr2' where "trA' = tr1' \<parallel> tr2'"
+     and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
+     unfolding Inr_in_cont_par by auto
+     thus "\<exists> trB' \<in> Inr -` (cont (tr2 \<parallel> tr1)). ?\<theta> trA' trB'"
+     apply(intro bexI[of _ "tr2' \<parallel> tr1'"]) unfolding Inr_in_cont_par by auto
+   next
+     fix tr1 tr2 trB' assume "Inr trB' \<in> cont (tr2 \<parallel> tr1)"
+     then obtain tr1' tr2' where "trB' = tr2' \<parallel> tr1'"
+     and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
+     unfolding Inr_in_cont_par by auto
+     thus "\<exists> trA' \<in> Inr -` (cont (tr1 \<parallel> tr2)). ?\<theta> trA' trB'"
+     apply(intro bexI[of _ "tr1' \<parallel> tr2'"]) unfolding Inr_in_cont_par by auto
    qed
   }
   thus ?thesis by blast
 qed
 
-theorem par_assoc: "(tr1 \<parallel> tr2) \<parallel> tr3 = tr1 \<parallel> (tr2 \<parallel> tr3)"
+lemma par_assoc: "(tr1 \<parallel> tr2) \<parallel> tr3 = tr1 \<parallel> (tr2 \<parallel> tr3)"
 proof-
-  let ?\<phi> =
-  "\<lambda> trA trB. \<exists> tr1 tr2 tr3. trA = (tr1 \<parallel> tr2) \<parallel> tr3 \<and>
-                             trB = tr1 \<parallel> (tr2 \<parallel> tr3)"
+  let ?\<theta> =
+  "\<lambda> trA trB. \<exists> tr1 tr2 tr3. trA = (tr1 \<parallel> tr2) \<parallel> tr3 \<and> trB = tr1 \<parallel> (tr2 \<parallel> tr3)"
   {fix trA trB
-   assume "?\<phi> trA trB" hence "trA = trB"
-   proof (induct rule: Tree_coind, safe)
-     fix tr1 tr2 tr3
-     show "root ((tr1 \<parallel> tr2) \<parallel> tr3) = root (tr1 \<parallel> (tr2 \<parallel> tr3))"
+   assume "?\<theta> trA trB" hence "trA = trB"
+   apply (induct rule: dtree_coinduct) 
+   unfolding set_rel_sum_rel set_rel_eq unfolding set_rel_def proof safe
+     fix tr1 tr2 tr3  show "root ((tr1 \<parallel> tr2) \<parallel> tr3) = root (tr1 \<parallel> (tr2 \<parallel> tr3))"
      unfolding root_par by (rule Nplus_assoc)
    next
-     fix tr1 tr2 tr3
-     let ?trA = "(tr1 \<parallel> tr2) \<parallel> tr3"  let ?trB = "tr1 \<parallel> (tr2 \<parallel> tr3)"
-     show "(?\<phi> ^#2) (cont ?trA) (cont ?trB)"
-     unfolding lift2_def proof(intro conjI allI impI)
-       fix n show "Inl n \<in> (cont ?trA) \<longleftrightarrow> Inl n \<in> (cont ?trB)"
-       unfolding Inl_in_cont_par by simp
-     next
-       fix trA' assume "Inr trA' \<in> cont ?trA"
-       then obtain tr1' tr2' tr3' where "trA' = (tr1' \<parallel> tr2') \<parallel> tr3'"
-       and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
-       and "Inr tr3' \<in> cont tr3" unfolding Inr_in_cont_par by auto
-       thus "\<exists> trB'. Inr trB' \<in> cont ?trB \<and> ?\<phi> trA' trB'"
-       apply(intro exI[of _ "tr1' \<parallel> (tr2' \<parallel> tr3')"])
-       unfolding Inr_in_cont_par by auto
-     next
-       fix trB' assume "Inr trB' \<in> cont ?trB"
-       then obtain tr1' tr2' tr3' where "trB' = tr1' \<parallel> (tr2' \<parallel> tr3')"
-       and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
-       and "Inr tr3' \<in> cont tr3" unfolding Inr_in_cont_par by auto
-       thus "\<exists> trA'. Inr trA' \<in> cont ?trA \<and> ?\<phi> trA' trB'"
-       apply(intro exI[of _ "(tr1' \<parallel> tr2') \<parallel> tr3'"])
-       unfolding Inr_in_cont_par by auto
-     qed
+     fix n tr1 tr2 tr3 assume "Inl n \<in> (cont ((tr1 \<parallel> tr2) \<parallel> tr3))" 
+     thus "n \<in> Inl -` (cont (tr1 \<parallel> tr2 \<parallel> tr3))" unfolding Inl_in_cont_par by simp
+   next
+     fix n tr1 tr2 tr3 assume "Inl n \<in> (cont (tr1 \<parallel> tr2 \<parallel> tr3))" 
+     thus "n \<in> Inl -` (cont ((tr1 \<parallel> tr2) \<parallel> tr3))" unfolding Inl_in_cont_par by simp
+   next
+     fix trA' tr1 tr2 tr3 assume "Inr trA' \<in> cont ((tr1 \<parallel> tr2) \<parallel> tr3)"
+     then obtain tr1' tr2' tr3' where "trA' = (tr1' \<parallel> tr2') \<parallel> tr3'"
+     and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
+     and "Inr tr3' \<in> cont tr3" unfolding Inr_in_cont_par by auto
+     thus "\<exists> trB' \<in> Inr -` (cont (tr1 \<parallel> tr2 \<parallel> tr3)). ?\<theta> trA' trB'"
+     apply(intro bexI[of _ "tr1' \<parallel> tr2' \<parallel> tr3'"])
+     unfolding Inr_in_cont_par by auto
+   next
+     fix trB' tr1 tr2 tr3 assume "Inr trB' \<in> cont (tr1 \<parallel> tr2 \<parallel> tr3)"
+     then obtain tr1' tr2' tr3' where "trB' = tr1' \<parallel> (tr2' \<parallel> tr3')"
+     and "Inr tr1' \<in> cont tr1" and "Inr tr2' \<in> cont tr2"
+     and "Inr tr3' \<in> cont tr3" unfolding Inr_in_cont_par by auto
+     thus "\<exists> trA' \<in> Inr -` cont ((tr1 \<parallel> tr2) \<parallel> tr3). ?\<theta> trA' trB'"
+     apply(intro bexI[of _ "(tr1' \<parallel> tr2') \<parallel> tr3'"])
+     unfolding Inr_in_cont_par by auto
    qed
   }
   thus ?thesis by blast

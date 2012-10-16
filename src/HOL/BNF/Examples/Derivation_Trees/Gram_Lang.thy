@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Infinite_Derivation_Trees/Gram_Lang.thy
+(*  Title:      HOL/BNF/Examples/Derivation_Trees/Gram_Lang.thy
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
@@ -8,10 +8,12 @@ Language of a grammar.
 header {* Language of a Grammar *}
 
 theory Gram_Lang
-imports Tree
+imports DTree
 begin
 
 
+(* We assume that the sets of terminals, and the left-hand sides of 
+productions are finite and that the grammar has no unused nonterminals. *)
 consts P :: "(N \<times> (T + N) set) set"
 axiomatization where
     finite_N: "finite (UNIV::N set)"
@@ -21,26 +23,10 @@ and used: "\<And> n. \<exists> tns. (n,tns) \<in> P"
 
 subsection{* Tree basics: frontier, interior, etc. *}
 
-lemma Tree_cong:
-assumes "root tr = root tr'" and "cont tr = cont tr'"
-shows "tr = tr'"
-by (metis Node_root_cont assms)
-
-inductive finiteT where
-Node: "\<lbrakk>finite as; (finiteT^#) as\<rbrakk> \<Longrightarrow> finiteT (Node a as)"
-monos lift_mono
-
-lemma finiteT_induct[consumes 1, case_names Node, induct pred: finiteT]:
-assumes 1: "finiteT tr"
-and IH: "\<And>as n. \<lbrakk>finite as; (\<phi>^#) as\<rbrakk> \<Longrightarrow> \<phi> (Node n as)"
-shows "\<phi> tr"
-using 1 apply(induct rule: finiteT.induct)
-apply(rule IH) apply assumption apply(elim mono_lift) by simp
-
 
 (* Frontier *)
 
-inductive inFr :: "N set \<Rightarrow> Tree \<Rightarrow> T \<Rightarrow> bool" where
+inductive inFr :: "N set \<Rightarrow> dtree \<Rightarrow> T \<Rightarrow> bool" where
 Base: "\<lbrakk>root tr \<in> ns; Inl t \<in> cont tr\<rbrakk> \<Longrightarrow> inFr ns tr t"
 |
 Ind: "\<lbrakk>root tr \<in> ns; Inr tr1 \<in> cont tr; inFr ns tr1 t\<rbrakk> \<Longrightarrow> inFr ns tr t"
@@ -64,7 +50,7 @@ using assms apply(induct rule: inFr.induct)
   by (metis inFr.simps inFr_mono insertI1 subset_insertI)
 
 (* alternative definition *)
-inductive inFr2 :: "N set \<Rightarrow> Tree \<Rightarrow> T \<Rightarrow> bool" where
+inductive inFr2 :: "N set \<Rightarrow> dtree \<Rightarrow> T \<Rightarrow> bool" where
 Base: "\<lbrakk>root tr \<in> ns; Inl t \<in> cont tr\<rbrakk> \<Longrightarrow> inFr2 ns tr t"
 |
 Ind: "\<lbrakk>Inr tr1 \<in> cont tr; inFr2 ns1 tr1 t\<rbrakk>
@@ -103,7 +89,7 @@ assumes "root tr \<notin> ns"
 shows "\<not> inFr ns tr t"
 by (metis assms inFr_root_in)
 
-theorem not_root_Fr:
+lemma not_root_Fr:
 assumes "root tr \<notin> ns"
 shows "Fr ns tr = {}"
 using not_root_inFr[OF assms] unfolding Fr_def by auto
@@ -111,7 +97,7 @@ using not_root_inFr[OF assms] unfolding Fr_def by auto
 
 (* Interior *)
 
-inductive inItr :: "N set \<Rightarrow> Tree \<Rightarrow> N \<Rightarrow> bool" where
+inductive inItr :: "N set \<Rightarrow> dtree \<Rightarrow> N \<Rightarrow> bool" where
 Base: "root tr \<in> ns \<Longrightarrow> inItr ns tr (root tr)"
 |
 Ind: "\<lbrakk>root tr \<in> ns; Inr tr1 \<in> cont tr; inItr ns tr1 n\<rbrakk> \<Longrightarrow> inItr ns tr n"
@@ -357,105 +343,105 @@ shows "Inr (root tr') \<in> prodOf tr"
 by (metis (lifting) assms image_iff sum_map.simps(2))
 
 
-subsection{* Derivation trees *}
+subsection{* Well-formed derivation trees *}  
 
-coinductive dtree where
-Tree: "\<lbrakk>(root tr, (id \<oplus> root) ` (cont tr)) \<in> P; inj_on root (Inr -` cont tr);
-        lift dtree (cont tr)\<rbrakk> \<Longrightarrow> dtree tr"
-monos lift_mono
+hide_const wf  
+
+coinductive wf where
+dtree: "\<lbrakk>(root tr, (id \<oplus> root) ` (cont tr)) \<in> P; inj_on root (Inr -` cont tr);
+        \<And> tr'. tr' \<in> Inr -` (cont tr) \<Longrightarrow> wf tr'\<rbrakk> \<Longrightarrow> wf tr"
 
 (* destruction rules: *)
-lemma dtree_P:
-assumes "dtree tr"
+lemma wf_P:
+assumes "wf tr"
 shows "(root tr, (id \<oplus> root) ` (cont tr)) \<in> P"
-using assms unfolding dtree.simps by auto
+using assms wf.simps[of tr] by auto
 
-lemma dtree_inj_on:
-assumes "dtree tr"
+lemma wf_inj_on:
+assumes "wf tr"
 shows "inj_on root (Inr -` cont tr)"
-using assms unfolding dtree.simps by auto
+using assms wf.simps[of tr] by auto
 
-lemma dtree_inj[simp]:
-assumes "dtree tr" and "Inr tr1 \<in> cont tr" and "Inr tr2 \<in> cont tr"
+lemma wf_inj[simp]:
+assumes "wf tr" and "Inr tr1 \<in> cont tr" and "Inr tr2 \<in> cont tr"
 shows "root tr1 = root tr2 \<longleftrightarrow> tr1 = tr2"
-using assms dtree_inj_on unfolding inj_on_def by auto
+using assms wf_inj_on unfolding inj_on_def by auto
 
-lemma dtree_lift:
-assumes "dtree tr"
-shows "lift dtree (cont tr)"
-using assms unfolding dtree.simps by auto
+lemma wf_cont:
+assumes "wf tr" and "Inr tr' \<in> cont tr"
+shows "wf tr'"
+using assms wf.simps[of tr] by auto
 
 
 (* coinduction:*)
-lemma dtree_coind[elim, consumes 1, case_names Hyp]:
+lemma wf_coind[elim, consumes 1, case_names Hyp]:
 assumes phi: "\<phi> tr"
 and Hyp:
 "\<And> tr. \<phi> tr \<Longrightarrow>
        (root tr, image (id \<oplus> root) (cont tr)) \<in> P \<and>
        inj_on root (Inr -` cont tr) \<and>
-       lift (\<lambda> tr. \<phi> tr \<or> dtree tr) (cont tr)"
-shows "dtree tr"
-apply(rule dtree.coinduct[of \<phi> tr, OF phi])
+       (\<forall> tr' \<in> Inr -` (cont tr). \<phi> tr' \<or> wf tr')"
+shows "wf tr"
+apply(rule wf.coinduct[of \<phi> tr, OF phi])
 using Hyp by blast
 
-lemma dtree_raw_coind[elim, consumes 1, case_names Hyp]:
+lemma wf_raw_coind[elim, consumes 1, case_names Hyp]:
 assumes phi: "\<phi> tr"
 and Hyp:
 "\<And> tr. \<phi> tr \<Longrightarrow>
        (root tr, image (id \<oplus> root) (cont tr)) \<in> P \<and>
        inj_on root (Inr -` cont tr) \<and>
-       lift \<phi> (cont tr)"
-shows "dtree tr"
-using phi apply(induct rule: dtree_coind)
-using Hyp mono_lift
-by (metis (mono_tags) mono_lift)
+       (\<forall> tr' \<in> Inr -` (cont tr). \<phi> tr')"
+shows "wf tr"
+using phi apply(induct rule: wf_coind)
+using Hyp by (metis (mono_tags))
 
-lemma dtree_subtr_inj_on:
-assumes d: "dtree tr1" and s: "subtr ns tr tr1"
+lemma wf_subtr_inj_on:
+assumes d: "wf tr1" and s: "subtr ns tr tr1"
 shows "inj_on root (Inr -` cont tr)"
 using s d apply(induct rule: subtr.induct)
-apply (metis (lifting) dtree_inj_on) by (metis dtree_lift lift_def)
+apply (metis (lifting) wf_inj_on) by (metis wf_cont) 
 
-lemma dtree_subtr_P:
-assumes d: "dtree tr1" and s: "subtr ns tr tr1"
+lemma wf_subtr_P:
+assumes d: "wf tr1" and s: "subtr ns tr tr1"
 shows "(root tr, (id \<oplus> root) ` cont tr) \<in> P"
 using s d apply(induct rule: subtr.induct)
-apply (metis (lifting) dtree_P) by (metis dtree_lift lift_def)
+apply (metis (lifting) wf_P) by (metis wf_cont)
 
 lemma subtrOf_root[simp]:
-assumes tr: "dtree tr" and cont: "Inr tr' \<in> cont tr"
+assumes tr: "wf tr" and cont: "Inr tr' \<in> cont tr"
 shows "subtrOf tr (root tr') = tr'"
 proof-
   have 0: "Inr (subtrOf tr (root tr')) \<in> cont tr" using Inr_subtrOf
   by (metis (lifting) cont root_prodOf)
   have "root (subtrOf tr (root tr')) = root tr'"
   using root_subtrOf by (metis (lifting) cont root_prodOf)
-  thus ?thesis unfolding dtree_inj[OF tr 0 cont] .
+  thus ?thesis unfolding wf_inj[OF tr 0 cont] .
 qed
 
 lemma surj_subtrOf:
-assumes "dtree tr" and 0: "Inr tr' \<in> cont tr"
+assumes "wf tr" and 0: "Inr tr' \<in> cont tr"
 shows "\<exists> n. Inr n \<in> prodOf tr \<and> subtrOf tr n = tr'"
 apply(rule exI[of _ "root tr'"])
 using root_prodOf[OF 0] subtrOf_root[OF assms] by simp
 
-lemma dtree_subtr:
-assumes "dtree tr1" and "subtr ns tr tr1"
-shows "dtree tr"
+lemma wf_subtr:
+assumes "wf tr1" and "subtr ns tr tr1"
+shows "wf tr"
 proof-
-  have "(\<exists> ns tr1. dtree tr1 \<and> subtr ns tr tr1) \<Longrightarrow> dtree tr"
-  proof (induct rule: dtree_raw_coind)
+  have "(\<exists> ns tr1. wf tr1 \<and> subtr ns tr tr1) \<Longrightarrow> wf tr"
+  proof (induct rule: wf_raw_coind)
     case (Hyp tr)
-    then obtain ns tr1 where tr1: "dtree tr1" and tr_tr1: "subtr ns tr tr1" by auto
-    show ?case unfolding lift_def proof safe
-      show "(root tr, (id \<oplus> root) ` cont tr) \<in> P" using dtree_subtr_P[OF tr1 tr_tr1] .
+    then obtain ns tr1 where tr1: "wf tr1" and tr_tr1: "subtr ns tr tr1" by auto
+    show ?case proof safe
+      show "(root tr, (id \<oplus> root) ` cont tr) \<in> P" using wf_subtr_P[OF tr1 tr_tr1] .
     next
-      show "inj_on root (Inr -` cont tr)" using dtree_subtr_inj_on[OF tr1 tr_tr1] .
+      show "inj_on root (Inr -` cont tr)" using wf_subtr_inj_on[OF tr1 tr_tr1] .
     next
       fix tr' assume tr': "Inr tr' \<in> cont tr"
       have tr_tr1: "subtr (ns \<union> {root tr'}) tr tr1" using subtr_mono[OF tr_tr1] by auto
       have "subtr (ns \<union> {root tr'}) tr' tr1" using subtr_StepL[OF _ tr' tr_tr1] by auto
-      thus "\<exists>ns' tr1. dtree tr1 \<and> subtr ns' tr' tr1" using tr1 by blast
+      thus "\<exists>ns' tr1. wf tr1 \<and> subtr ns' tr' tr1" using tr1 by blast
     qed
   qed
   thus ?thesis using assms by auto
@@ -475,7 +461,7 @@ using S_P finite_in_P by auto
 
 
 (* The default tree of a nonterminal *)
-definition deftr :: "N \<Rightarrow> Tree" where
+definition deftr :: "N \<Rightarrow> dtree" where
 "deftr \<equiv> unfold id S"
 
 lemma deftr_simps[simp]:
@@ -490,13 +476,13 @@ lemmas cont_deftr = deftr_simps(2)
 lemma root_o_deftr[simp]: "root o deftr = id"
 by (rule ext, auto)
 
-lemma dtree_deftr: "dtree (deftr n)"
+lemma wf_deftr: "wf (deftr n)"
 proof-
-  {fix tr assume "\<exists> n. tr = deftr n" hence "dtree tr"
-   apply(induct rule: dtree_raw_coind) apply safe
+  {fix tr assume "\<exists> n. tr = deftr n" hence "wf tr"
+   apply(induct rule: wf_raw_coind) apply safe
    unfolding deftr_simps image_compose[symmetric] sum_map.comp id_o
    root_o_deftr sum_map.id image_id id_apply apply(rule S_P)
-   unfolding inj_on_def lift_def by auto
+   unfolding inj_on_def by auto
   }
   thus ?thesis by auto
 qed
@@ -509,14 +495,14 @@ definition "inFrr ns tr t \<equiv> \<exists> tr'. Inr tr' \<in> cont tr \<and> i
 definition "Frr ns tr \<equiv> {t. \<exists> tr'. Inr tr' \<in> cont tr \<and> t \<in> Fr ns tr'}"
 
 context
-fixes tr0 :: Tree
+fixes tr0 :: dtree
 begin
 
 definition "hsubst_r tr \<equiv> root tr"
 definition "hsubst_c tr \<equiv> if root tr = root tr0 then cont tr0 else cont tr"
 
 (* Hereditary substitution: *)
-definition hsubst :: "Tree \<Rightarrow> Tree" where
+definition hsubst :: "dtree \<Rightarrow> dtree" where
 "hsubst \<equiv> unfold hsubst_r hsubst_c"
 
 lemma finite_hsubst_c: "finite (hsubst_c n)"
@@ -538,7 +524,7 @@ unfolding hsubst_def hsubst_c_def using assms by simp
 lemma hsubst_eq:
 assumes "root tr = root tr0"
 shows "hsubst tr = hsubst tr0"
-apply(rule Tree_cong) using assms cont_hsubst_eq by auto
+apply(rule dtree_cong) using assms cont_hsubst_eq by auto
 
 lemma cont_hsubst_neq[simp]:
 assumes "root tr \<noteq> root tr0"
@@ -567,27 +553,27 @@ assumes "root tr \<noteq> root tr0"
 shows "Inr -` cont (hsubst tr) = hsubst ` Inr -` cont tr"
 unfolding cont_hsubst_neq[OF assms] by simp
 
-lemma dtree_hsubst:
-assumes tr0: "dtree tr0" and tr: "dtree tr"
-shows "dtree (hsubst tr)"
+lemma wf_hsubst:
+assumes tr0: "wf tr0" and tr: "wf tr"
+shows "wf (hsubst tr)"
 proof-
-  {fix tr1 have "(\<exists> tr. dtree tr \<and> tr1 = hsubst tr) \<Longrightarrow> dtree tr1"
-   proof (induct rule: dtree_raw_coind)
+  {fix tr1 have "(\<exists> tr. wf tr \<and> tr1 = hsubst tr) \<Longrightarrow> wf tr1"
+   proof (induct rule: wf_raw_coind)
      case (Hyp tr1) then obtain tr
-     where dtr: "dtree tr" and tr1: "tr1 = hsubst tr" by auto
-     show ?case unfolding lift_def tr1 proof safe
+     where dtr: "wf tr" and tr1: "tr1 = hsubst tr" by auto
+     show ?case unfolding tr1 proof safe
        show "(root (hsubst tr), prodOf (hsubst tr)) \<in> P"
        unfolding tr1 apply(cases "root tr = root tr0")
-       using  dtree_P[OF dtr] dtree_P[OF tr0]
+       using  wf_P[OF dtr] wf_P[OF tr0]
        by (auto simp add: image_compose[symmetric] sum_map.comp)
        show "inj_on root (Inr -` cont (hsubst tr))"
-       apply(cases "root tr = root tr0") using dtree_inj_on[OF dtr] dtree_inj_on[OF tr0]
+       apply(cases "root tr = root tr0") using wf_inj_on[OF dtr] wf_inj_on[OF tr0]
        unfolding inj_on_def by (auto, blast)
        fix tr' assume "Inr tr' \<in> cont (hsubst tr)"
-       thus "\<exists>tra. dtree tra \<and> tr' = hsubst tra"
+       thus "\<exists>tra. wf tra \<and> tr' = hsubst tra"
        apply(cases "root tr = root tr0", simp_all)
-         apply (metis dtree_lift lift_def tr0)
-         by (metis dtr dtree_lift lift_def)
+         apply (metis wf_cont tr0)
+         by (metis dtr wf_cont)
      qed
    qed
   }
@@ -685,7 +671,7 @@ next
   thus ?A using 1 inFr.Ind assms by (metis root_hsubst)
 qed
 
-theorem Fr_self_hsubst:
+lemma Fr_self_hsubst:
 assumes "root tr0 \<in> ns"
 shows "Fr ns (hsubst tr0) = Inl -` (cont tr0) \<union> Frr (ns - {root tr0}) tr0"
 using inFr_self_hsubst[OF assms] unfolding Frr Fr_def by auto
@@ -762,8 +748,8 @@ qed
 lemma reg_deftr: "reg deftr (deftr n)"
 unfolding reg_def using subtr_deftr by auto
 
-lemma dtree_subtrOf_Union:
-assumes "dtree tr"
+lemma wf_subtrOf_Union:
+assumes "wf tr"
 shows "\<Union>{K tr' |tr'. Inr tr' \<in> cont tr} =
        \<Union>{K (subtrOf tr n) |n. Inr n \<in> prodOf tr}"
 unfolding Union_eq Bex_def mem_Collect_eq proof safe
@@ -787,7 +773,7 @@ qed
 
 subsection {* Paths in a regular tree *}
 
-inductive path :: "(N \<Rightarrow> Tree) \<Rightarrow> N list \<Rightarrow> bool" for f where
+inductive path :: "(N \<Rightarrow> dtree) \<Rightarrow> N list \<Rightarrow> bool" for f where
 Base: "path f [n]"
 |
 Ind: "\<lbrakk>path f (n1 # nl); Inr (f n1) \<in> cont (f n)\<rbrakk>
@@ -931,7 +917,7 @@ by (metis f inFr.Base path_subtr subtr_inFr subtr_mono subtr_rootL_in)
 
 subsection{* The regular cut of a tree *}
 
-context fixes tr0 :: Tree
+context fixes tr0 :: dtree
 begin
 
 (* Picking a subtree of a certain root: *)
@@ -949,16 +935,16 @@ qed
 lemmas subtr_pick = pick[THEN conjunct1]
 lemmas root_pick = pick[THEN conjunct2]
 
-lemma dtree_pick:
-assumes tr0: "dtree tr0" and n: "inItr UNIV tr0 n"
-shows "dtree (pick n)"
-using dtree_subtr[OF tr0 subtr_pick[OF n]] .
+lemma wf_pick:
+assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
+shows "wf (pick n)"
+using wf_subtr[OF tr0 subtr_pick[OF n]] .
 
 definition "regOf_r n \<equiv> root (pick n)"
 definition "regOf_c n \<equiv> (id \<oplus> root) ` cont (pick n)"
 
 (* The regular tree of a function: *)
-definition regOf :: "N \<Rightarrow> Tree" where
+definition regOf :: "N \<Rightarrow> dtree" where
 "regOf \<equiv> unfold regOf_r regOf_c"
 
 lemma finite_regOf_c: "finite (regOf_c n)"
@@ -1023,26 +1009,26 @@ using assms apply(cases t_tr)
   by (metis UNIV_I)
 
 lemma regOf_P:
-assumes tr0: "dtree tr0" and n: "inItr UNIV tr0 n"
+assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
 shows "(n, (id \<oplus> root) ` cont (regOf n)) \<in> P" (is "?L \<in> P")
 proof-
   have "?L = (n, (id \<oplus> root) ` cont (pick n))"
   unfolding cont_regOf image_compose[symmetric] sum_map.comp id_o o_assoc
   unfolding Pair_eq apply(rule conjI[OF refl]) apply(rule image_cong[OF refl])
   by(rule root_regOf_root[OF n])
-  moreover have "... \<in> P" by (metis (lifting) dtree_pick root_pick dtree_P n tr0)
+  moreover have "... \<in> P" by (metis (lifting) wf_pick root_pick wf_P n tr0)
   ultimately show ?thesis by simp
 qed
 
-lemma dtree_regOf:
-assumes tr0: "dtree tr0" and "inItr UNIV tr0 n"
-shows "dtree (regOf n)"
+lemma wf_regOf:
+assumes tr0: "wf tr0" and "inItr UNIV tr0 n"
+shows "wf (regOf n)"
 proof-
-  {fix tr have "\<exists> n. inItr UNIV tr0 n \<and> tr = regOf n \<Longrightarrow> dtree tr"
-   proof (induct rule: dtree_raw_coind)
+  {fix tr have "\<exists> n. inItr UNIV tr0 n \<and> tr = regOf n \<Longrightarrow> wf tr"
+   proof (induct rule: wf_raw_coind)
      case (Hyp tr)
      then obtain n where n: "inItr UNIV tr0 n" and tr: "tr = regOf n" by auto
-     show ?case unfolding lift_def apply safe
+     show ?case apply safe
      apply (metis (lifting) regOf_P root_regOf n tr tr0)
      unfolding tr Inr_cont_regOf unfolding inj_on_def apply clarsimp using root_regOf
      apply (metis UNIV_I inItr.Base n pick subtr2.simps subtr_inItr subtr_subtr2)
@@ -1055,7 +1041,7 @@ qed
 (* The regular cut of a tree: *)
 definition "rcut \<equiv> regOf (root tr0)"
 
-theorem reg_rcut: "reg regOf rcut"
+lemma reg_rcut: "reg regOf rcut"
 unfolding reg_def rcut_def
 by (metis inItr.Base root_regOf subtr_regOf UNIV_I)
 
@@ -1064,13 +1050,13 @@ assumes "reg regOf tr0"
 shows "rcut = tr0"
 using assms unfolding rcut_def reg_def by (metis subtr.Refl UNIV_I)
 
-theorem rcut_eq: "rcut = tr0 \<longleftrightarrow> reg regOf tr0"
+lemma rcut_eq: "rcut = tr0 \<longleftrightarrow> reg regOf tr0"
 using reg_rcut rcut_reg by metis
 
-theorem regular_rcut: "regular rcut"
+lemma regular_rcut: "regular rcut"
 using reg_rcut unfolding regular_def by blast
 
-theorem Fr_rcut: "Fr UNIV rcut \<subseteq> Fr UNIV tr0"
+lemma Fr_rcut: "Fr UNIV rcut \<subseteq> Fr UNIV tr0"
 proof safe
   fix t assume "t \<in> Fr UNIV rcut"
   then obtain tr where t: "Inl t \<in> cont tr" and tr: "subtr UNIV tr (regOf (root tr0))"
@@ -1084,12 +1070,12 @@ proof safe
   ultimately show "t \<in> Fr UNIV tr0" unfolding Fr_subtr_cont by auto
 qed
 
-theorem dtree_rcut:
-assumes "dtree tr0"
-shows "dtree rcut"
-unfolding rcut_def using dtree_regOf[OF assms inItr.Base] by simp
+lemma wf_rcut:
+assumes "wf tr0"
+shows "wf rcut"
+unfolding rcut_def using wf_regOf[OF assms inItr.Base] by simp
 
-theorem root_rcut[simp]: "root rcut = root tr0"
+lemma root_rcut[simp]: "root rcut = root tr0"
 unfolding rcut_def
 by (metis (lifting) root_regOf inItr.Base reg_def reg_root subtr_rootR_in)
 
@@ -1133,7 +1119,7 @@ proof-
   qed
 qed
 
-theorem regular_Fr:
+lemma regular_Fr:
 assumes r: "regular tr" and In: "root tr \<in> ns"
 shows "Fr ns tr =
        Inl -` (cont tr) \<union>
@@ -1148,33 +1134,33 @@ by (simp, metis (lifting) inFr_Ind_minus insert_Diff)
 subsection{* The generated languages *}
 
 (* The (possibly inifinite tree) generated language *)
-definition "L ns n \<equiv> {Fr ns tr | tr. dtree tr \<and> root tr = n}"
+definition "L ns n \<equiv> {Fr ns tr | tr. wf tr \<and> root tr = n}"
 
 (* The regular-tree generated language *)
-definition "Lr ns n \<equiv> {Fr ns tr | tr. dtree tr \<and> root tr = n \<and> regular tr}"
+definition "Lr ns n \<equiv> {Fr ns tr | tr. wf tr \<and> root tr = n \<and> regular tr}"
 
-theorem L_rec_notin:
+lemma L_rec_notin:
 assumes "n \<notin> ns"
 shows "L ns n = {{}}"
 using assms unfolding L_def apply safe
   using not_root_Fr apply force
   apply(rule exI[of _ "deftr n"])
-  by (metis (no_types) dtree_deftr not_root_Fr root_deftr)
+  by (metis (no_types) wf_deftr not_root_Fr root_deftr)
 
-theorem Lr_rec_notin:
+lemma Lr_rec_notin:
 assumes "n \<notin> ns"
 shows "Lr ns n = {{}}"
 using assms unfolding Lr_def apply safe
   using not_root_Fr apply force
   apply(rule exI[of _ "deftr n"])
-  by (metis (no_types) regular_def dtree_deftr not_root_Fr reg_deftr root_deftr)
+  by (metis (no_types) regular_def wf_deftr not_root_Fr reg_deftr root_deftr)
 
-lemma dtree_subtrOf:
-assumes "dtree tr" and "Inr n \<in> prodOf tr"
-shows "dtree (subtrOf tr n)"
-by (metis assms dtree_lift lift_def subtrOf)
+lemma wf_subtrOf:
+assumes "wf tr" and "Inr n \<in> prodOf tr"
+shows "wf (subtrOf tr n)"
+by (metis assms wf_cont subtrOf)
 
-theorem Lr_rec_in:
+lemma Lr_rec_in:
 assumes n: "n \<in> ns"
 shows "Lr ns n \<subseteq>
 {Inl -` tns \<union> (\<Union> {K n' | n'. Inr n' \<in> tns}) | tns K.
@@ -1183,7 +1169,7 @@ shows "Lr ns n \<subseteq>
 (is "Lr ns n \<subseteq> {?F tns K | tns K. (n,tns) \<in> P \<and> ?\<phi> tns K}")
 proof safe
   fix ts assume "ts \<in> Lr ns n"
-  then obtain tr where dtr: "dtree tr" and r: "root tr = n" and tr: "regular tr"
+  then obtain tr where dtr: "wf tr" and r: "root tr = n" and tr: "regular tr"
   and ts: "ts = Fr ns tr" unfolding Lr_def by auto
   def tns \<equiv> "(id \<oplus> root) ` (cont tr)"
   def K \<equiv> "\<lambda> n'. Fr (ns - {n}) (subtrOf tr n')"
@@ -1192,12 +1178,12 @@ proof safe
     show "ts = Inl -` tns \<union> \<Union>{K n' |n'. Inr n' \<in> tns}"
     unfolding ts regular_Fr[OF tr n[unfolded r[symmetric]]]
     unfolding tns_def K_def r[symmetric]
-    unfolding Inl_prodOf dtree_subtrOf_Union[OF dtr] ..
-    show "(n, tns) \<in> P" unfolding tns_def r[symmetric] using dtree_P[OF dtr] .
+    unfolding Inl_prodOf wf_subtrOf_Union[OF dtr] ..
+    show "(n, tns) \<in> P" unfolding tns_def r[symmetric] using wf_P[OF dtr] .
     fix n' assume "Inr n' \<in> tns" thus "K n' \<in> Lr (ns - {n}) n'"
     unfolding K_def Lr_def mem_Collect_eq apply(intro exI[of _ "subtrOf tr n'"])
     using dtr tr apply(intro conjI refl)  unfolding tns_def
-      apply(erule dtree_subtrOf[OF dtr])
+      apply(erule wf_subtrOf[OF dtr])
       apply (metis subtrOf)
       by (metis Inr_subtrOf UNIV_I regular_subtr subtr.simps)
   qed
@@ -1206,7 +1192,7 @@ qed
 lemma hsubst_aux:
 fixes n ftr tns
 assumes n: "n \<in> ns" and tns: "finite tns" and
-1: "\<And> n'. Inr n' \<in> tns \<Longrightarrow> dtree (ftr n')"
+1: "\<And> n'. Inr n' \<in> tns \<Longrightarrow> wf (ftr n')"
 defines "tr \<equiv> Node n ((id \<oplus> ftr) ` tns)"  defines "tr' \<equiv> hsubst tr tr"
 shows "Fr ns tr' = Inl -` tns \<union> \<Union>{Fr (ns - {n}) (ftr n') |n'. Inr n' \<in> tns}"
 (is "_ = ?B") proof-
@@ -1220,7 +1206,7 @@ shows "Fr ns tr' = Inl -` tns \<union> \<Union>{Fr (ns - {n}) (ftr n') |n'. Inr 
   finally show ?thesis .
 qed
 
-theorem L_rec_in:
+lemma L_rec_in:
 assumes n: "n \<in> ns"
 shows "
 {Inl -` tns \<union> (\<Union> {K n' | n'. Inr n' \<in> tns}) | tns K.
@@ -1232,11 +1218,11 @@ proof safe
   assume P: "(n, tns) \<in> P" and 0: "\<forall>n'. Inr n' \<in> tns \<longrightarrow> K n' \<in> L (ns - {n}) n'"
   {fix n' assume "Inr n' \<in> tns"
    hence "K n' \<in> L (ns - {n}) n'" using 0 by auto
-   hence "\<exists> tr'. K n' = Fr (ns - {n}) tr' \<and> dtree tr' \<and> root tr' = n'"
+   hence "\<exists> tr'. K n' = Fr (ns - {n}) tr' \<and> wf tr' \<and> root tr' = n'"
    unfolding L_def mem_Collect_eq by auto
   }
   then obtain ftr where 0: "\<And> n'. Inr n' \<in> tns \<Longrightarrow>
-  K n' = Fr (ns - {n}) (ftr n') \<and> dtree (ftr n') \<and> root (ftr n') = n'"
+  K n' = Fr (ns - {n}) (ftr n') \<and> wf (ftr n') \<and> root (ftr n') = n'"
   by metis
   def tr \<equiv> "Node n ((id \<oplus> ftr) ` tns)"  def tr' \<equiv> "hsubst tr tr"
   have rtr: "root tr = n" and ctr: "cont tr = (id \<oplus> ftr) ` tns"
@@ -1246,10 +1232,10 @@ proof safe
   using 0 unfolding image_def apply force apply simp by (metis 0 vimageI2)
   have 1: "{K n' |n'. Inr n' \<in> tns} = {Fr (ns - {n}) (ftr n') |n'. Inr n' \<in> tns}"
   using 0 by auto
-  have dtr: "dtree tr" apply(rule dtree.Tree)
+  have dtr: "wf tr" apply(rule wf.dtree)
     apply (metis (lifting) P prtr rtr)
-    unfolding inj_on_def ctr lift_def using 0 by auto
-  hence dtr': "dtree tr'" unfolding tr'_def by (metis dtree_hsubst)
+    unfolding inj_on_def ctr using 0 by auto
+  hence dtr': "wf tr'" unfolding tr'_def by (metis wf_hsubst)
   have tns: "finite tns" using finite_in_P P by simp
   have "Inl -` tns \<union> \<Union>{Fr (ns - {n}) (ftr n') |n'. Inr n' \<in> tns} \<in> L ns n"
   unfolding L_def mem_Collect_eq apply(intro exI[of _ tr'] conjI)
@@ -1270,10 +1256,10 @@ by(pat_completeness, auto)
 termination apply(relation "inv_image (measure card) fst")
 using card_N by auto
 
-declare LL.simps[code]  (* TODO: Does code generation for LL work? *)
+declare LL.simps[code] 
 declare LL.simps[simp del]
 
-theorem Lr_LL: "Lr ns n \<subseteq> LL ns n"
+lemma Lr_LL: "Lr ns n \<subseteq> LL ns n"
 proof (induct ns arbitrary: n rule: measure_induct[of card])
   case (1 ns n) show ?case proof(cases "n \<in> ns")
     case False thus ?thesis unfolding Lr_rec_notin[OF False] by (simp add: LL.simps)
@@ -1294,7 +1280,7 @@ proof (induct ns arbitrary: n rule: measure_induct[of card])
   qed
 qed
 
-theorem LL_L: "LL ns n \<subseteq> L ns n"
+lemma LL_L: "LL ns n \<subseteq> L ns n"
 proof (induct ns arbitrary: n rule: measure_induct[of card])
   case (1 ns n) show ?case proof(cases "n \<in> ns")
     case False thus ?thesis unfolding L_rec_notin[OF False] by (simp add: LL.simps)
@@ -1354,20 +1340,20 @@ unfolding Lr_def L_def by auto
 lemma Lr_subs_L: "subs (Lr UNIV ts) (L UNIV ts)"
 unfolding subs_def proof safe
   fix ts2 assume "ts2 \<in> L UNIV ts"
-  then obtain tr where ts2: "ts2 = Fr UNIV tr" and dtr: "dtree tr" and rtr: "root tr = ts"
+  then obtain tr where ts2: "ts2 = Fr UNIV tr" and dtr: "wf tr" and rtr: "root tr = ts"
   unfolding L_def by auto
   thus "\<exists>ts1\<in>Lr UNIV ts. ts1 \<subseteq> ts2"
   apply(intro bexI[of _ "Fr UNIV (rcut tr)"])
-  unfolding Lr_def L_def using Fr_rcut dtree_rcut root_rcut regular_rcut by auto
+  unfolding Lr_def L_def using Fr_rcut wf_rcut root_rcut regular_rcut by auto
 qed
 
-theorem Lr_leqv_L: "leqv (Lr UNIV ts) (L UNIV ts)"
+lemma Lr_leqv_L: "leqv (Lr UNIV ts) (L UNIV ts)"
 using Lr_subs_L unfolding leqv_def by (metis (lifting) Lr_incl_L incl_subs)
 
-theorem LL_leqv_L: "leqv (LL UNIV ts) (L UNIV ts)"
+lemma LL_leqv_L: "leqv (LL UNIV ts) (L UNIV ts)"
 by (metis (lifting) LL_L Lr_LL Lr_subs_L incl_subs leqv_def subs_trans)
 
-theorem LL_leqv_Lr: "leqv (LL UNIV ts) (Lr UNIV ts)"
+lemma LL_leqv_Lr: "leqv (LL UNIV ts) (Lr UNIV ts)"
 using Lr_leqv_L LL_leqv_L by (metis leqv_Sym leqv_trans)
 
 
