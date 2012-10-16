@@ -41,6 +41,9 @@ in old "ref" manual.
 specifications: nesting of "context fixes ... context assumes ..."
 and "class ... context ...".
 
+* More informative error messages for Isar proof commands involving
+lazy enumerations (method applications etc.).
+
 
 *** Pure ***
 
@@ -200,6 +203,10 @@ document/IsaMakefile.  Minor INCOMPATIBILITY.
 
 
 *** ML ***
+
+* Type Seq.results and related operations support embedded error
+messages within lazy enumerations, and thus allow to provide
+informative errors in the absence of any usable results.
 
 * Renamed Position.str_of to Position.here to emphasize that this is a
 formal device to inline positions into message text, but not
