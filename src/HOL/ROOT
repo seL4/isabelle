@@ -628,8 +628,8 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
     Lambda_Term
     Process
     TreeFsetI
-    "Infinite_Derivation_Trees/Gram_Lang"
-    "Infinite_Derivation_Trees/Parallel"
+    "Derivation_Trees/Gram_Lang"
+    "Derivation_Trees/Parallel"
     Stream
   theories [condition = ISABELLE_FULL_TEST]
     Misc_Codata
