@@ -315,8 +315,10 @@ fun add_lift_def var qty rhs rsp_thm lthy =
     val ((_, (_ , def_thm)), lthy') = 
       Local_Theory.define (var, ((Thm.def_binding (#1 var), []), newrhs)) lthy
 
+    fun top_rewr_conv rewrs = Conv.top_conv (K (Conv.try_conv (Conv.rewrs_conv rewrs))) lthy'
+    val expand_rel_conv = Trueprop_conv (Conv.fun2_conv(top_rewr_conv (Transfer.get_sym_relator_eq lthy')))
     val transfer_thm = ([quot_thm, rsp_thm, def_thm] MRSL @{thm Quotient_to_transfer})
-        |> Raw_Simplifier.rewrite_rule (Transfer.get_sym_relator_eq lthy')
+        |> Conv.fconv_rule expand_rel_conv
      
     val abs_eq_thm = generate_abs_eq lthy' def_thm rsp_thm quot_thm
     val maybe_rep_eq_thm = generate_rep_eq lthy' def_thm rsp_thm (rty_forced, qty)
