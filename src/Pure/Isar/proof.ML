@@ -77,27 +77,30 @@ sig
   val begin_notepad: context -> state
   val end_notepad: state -> context
   val proof: Method.text option -> state -> state Seq.seq
-  val defer: int option -> state -> state Seq.seq
-  val prefer: int -> state -> state Seq.seq
+  val proof_results: Method.text_position option -> state -> state Seq.result Seq.seq
+  val defer: int -> state -> state
+  val prefer: int -> state -> state
   val apply: Method.text -> state -> state Seq.seq
   val apply_end: Method.text -> state -> state Seq.seq
+  val apply_results: Method.text_position -> state -> state Seq.result Seq.seq
+  val apply_end_results: Method.text_position -> state -> state Seq.result Seq.seq
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (context -> 'a -> attribute) ->
     ('b list -> context -> (term list list * (context -> context)) * context) ->
     string -> Method.text option -> (thm list list -> state -> state) ->
     ((binding * 'a list) * 'b) list -> state -> state
-  val local_qed: Method.text option * bool -> state -> state
+  val local_qed: Method.text_position option * bool -> state -> state
   val theorem: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
   val theorem_cmd: Method.text option -> (thm list list -> context -> context) ->
     (string * string list) list list -> context -> state
-  val global_qed: Method.text option * bool -> state -> context
-  val local_terminal_proof: Method.text * Method.text option -> state -> state
+  val global_qed: Method.text_position option * bool -> state -> context
+  val local_terminal_proof: Method.text_position * Method.text_position option -> state -> state
   val local_default_proof: state -> state
   val local_immediate_proof: state -> state
   val local_skip_proof: bool -> state -> state
   val local_done_proof: state -> state
-  val global_terminal_proof: Method.text * Method.text option -> state -> context
+  val global_terminal_proof: Method.text_position * Method.text_position option -> state -> context
   val global_default_proof: state -> context
   val global_immediate_proof: state -> context
   val global_skip_proof: bool -> state -> context
@@ -113,8 +116,10 @@ sig
   val schematic_goal: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
   val global_future_proof: (state -> ('a * context) future) -> state -> 'a future * context
-  val local_future_terminal_proof: Method.text * Method.text option -> bool -> state -> state
-  val global_future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
+  val local_future_terminal_proof: Method.text_position * Method.text_position option -> bool ->
+    state -> state
+  val global_future_terminal_proof: Method.text_position * Method.text_position option -> bool ->
+    state -> context
 end;
 
 structure Proof: PROOF =
@@ -333,32 +338,20 @@ fun get_goal state =
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
-      [Pretty.big_list (s ^ "this:") (map (Display.pretty_thm ctxt) ths), Pretty.str ""];
+      [(Pretty.block o Pretty.fbreaks)
+        (Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"] ::
+          map (Display.pretty_thm ctxt) ths), Pretty.str ""];
 
 fun pretty_state nr state =
   let
     val {context = ctxt, facts, mode, goal = _} = top state;
     val verbose = Config.get ctxt Proof_Context.verbose;
 
-    fun levels_up 0 = ""
-      | levels_up 1 = "1 level up"
-      | levels_up i = string_of_int i ^ " levels up";
-
-    fun subgoals 0 = ""
-      | subgoals 1 = "1 subgoal"
-      | subgoals n = string_of_int n ^ " subgoals";
-
-    fun description strs =
-      (case filter_out (fn s => s = "") strs of [] => ""
-      | strs' => enclose " (" ")" (commas strs'));
-
-    fun prt_goal (SOME (_, (i,
+    fun prt_goal (SOME (_, (_,
       {statement = ((_, pos), _, _), messages, using, goal, before_qed = _, after_qed = _}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
-          [Pretty.str ("goal" ^
-            description [levels_up (i div 2), subgoals (Thm.nprems_of goal)] ^ ":")] @
-          Goal_Display.pretty_goals ctxt goal @
+          [Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal @
           (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
       | prt_goal NONE = [];
 
@@ -487,8 +480,7 @@ fun conclude_goal ctxt goal propss =
     val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = Display.string_of_thm ctxt;
 
-    val _ = Thm.no_prems goal orelse
-      error (Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt goal));
+    val _ = Thm.no_prems goal orelse error (Proof_Display.string_of_goal ctxt goal);
 
     val extra_hyps = Assumption.extra_hyps ctxt goal;
     val _ = null extra_hyps orelse
@@ -514,20 +506,13 @@ fun conclude_goal ctxt goal propss =
       | recover_result _ _ = lost_structure ();
   in recover_result propss results end;
 
-fun the_finished_goal results =
-  (case Seq.pull results of
-    SOME ((f1, state1), rest) =>
-      let val (ctxt1, (_, goal1)) = get_goal state1 in
-        if Thm.no_prems goal1 then f1 state1
-        else
-          (case Seq.pull (Seq.filter (Thm.no_prems o #2 o #2 o get_goal o #2) rest) of
-            SOME ((f, state), _) => f state
-          | NONE =>
-              error ("Failed to finish proof:\n" ^
-                Pretty.string_of
-                  (Goal_Display.pretty_goal {main = true, limit = false} ctxt1 goal1)))
-      end
-  | NONE => error "Failed to finish proof");
+val finished_goal_error = "Failed to finish proof";
+
+fun finished_goal state =
+  let val (ctxt, (_, goal)) = get_goal state in
+    if Thm.no_prems goal then Seq.Result state
+    else Seq.Error (fn () => finished_goal_error ^ ":\n" ^ Proof_Display.string_of_goal ctxt goal)
+  end;
 
 
 (* goal views -- corresponding to methods *)
@@ -548,6 +533,9 @@ fun status_markup state =
   (case try goal state of
     SOME {goal, ...} => Isabelle_Markup.proof_state (Thm.nprems_of goal)
   | NONE => Markup.empty);
+
+fun method_error kind pos state =
+  Seq.single (Proof_Display.method_error kind pos (raw_goal state));
 
 
 
@@ -825,15 +813,22 @@ fun proof opt_text =
   #> refine (the_default Method.default_text opt_text)
   #> Seq.map (using_facts [] #> enter_forward);
 
-fun end_proof bot txt state =
-  state
-  |> assert_forward
-  |> assert_bottom bot
-  |> close_block
-  |> assert_current_goal true
-  |> using_facts []
-  |> `before_qed |-> (refine o the_default Method.succeed_text)
-  |> Seq.maps (refine (Method.finish_text txt));
+fun proof_results arg =
+  Seq.APPEND (proof (Method.text arg) #> Seq.make_results,
+    method_error "initial" (Method.position arg));
+
+fun end_proof bot (arg, immed) =
+  Seq.APPEND (fn state =>
+    state
+    |> assert_forward
+    |> assert_bottom bot
+    |> close_block
+    |> assert_current_goal true
+    |> using_facts []
+    |> `before_qed |-> (refine o the_default Method.succeed_text)
+    |> Seq.maps (refine (Method.finish_text (Method.text arg, immed)))
+    |> Seq.make_results, method_error "terminal" (Method.position arg))
+  #> Seq.maps_results (Seq.single o finished_goal);
 
 fun check_result msg sq =
   (case Seq.pull sq of
@@ -843,11 +838,23 @@ fun check_result msg sq =
 
 (* unstructured refinement *)
 
-fun defer i = assert_no_chain #> refine (Method.Basic (K (Method.defer i)));
-fun prefer i = assert_no_chain #> refine (Method.Basic (K (Method.prefer i)));
+fun defer i =
+  assert_no_chain #>
+  refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL defer_tac i))) #> Seq.hd;
+
+fun prefer i =
+  assert_no_chain #>
+  refine (Method.Basic (fn _ => METHOD (fn _ => ASSERT_SUBGOAL prefer_tac i))) #> Seq.hd;
 
 fun apply text = assert_backward #> refine text #> Seq.map (using_facts []);
+
 fun apply_end text = assert_forward #> refine_end text;
+
+fun apply_results (text, pos) =
+  Seq.APPEND (apply text #> Seq.make_results, method_error "" pos);
+
+fun apply_end_results (text, pos) =
+  Seq.APPEND (apply_end text #> Seq.make_results, method_error "" pos);
 
 
 
@@ -952,12 +959,12 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
     |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
-fun local_qeds txt =
-  end_proof false txt
-  #> Seq.map (pair (generic_qed Proof_Context.auto_bind_facts #->
-    (fn ((after_qed, _), results) => after_qed results)));
+fun local_qeds arg =
+  end_proof false arg
+  #> Seq.map_result (generic_qed Proof_Context.auto_bind_facts #->
+    (fn ((after_qed, _), results) => after_qed results));
 
-fun local_qed txt = local_qeds txt #> the_finished_goal;
+fun local_qed arg = local_qeds arg #> Seq.the_result finished_goal_error;
 
 
 (* global goals *)
@@ -973,51 +980,31 @@ fun global_goal prepp before_qed after_qed propp =
 val theorem = global_goal Proof_Context.bind_propp_schematic_i;
 val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
 
-fun global_qeds txt =
-  end_proof true txt
-  #> Seq.map (pair (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
-    after_qed results (context_of state))));
+fun global_qeds arg =
+  end_proof true arg
+  #> Seq.map_result (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
+    after_qed results (context_of state)));
 
-fun global_qed txt = global_qeds txt #> the_finished_goal;
+fun global_qed arg = global_qeds arg #> Seq.the_result finished_goal_error;
 
 
 (* concluding steps *)
 
-local
-
-fun failure_initial state =
-  let
-    val (ctxt, (facts, goal)) = get_goal state;
-    val pr_facts =
-      if null facts then ""
-      else Pretty.string_of (Pretty.big_list "facts:" (map (Display.pretty_thm ctxt) facts)) ^ "\n";
-    val pr_goal =
-      "goal:\n" ^ Pretty.string_of (Goal_Display.pretty_goal {main = false, limit = false} ctxt goal);
-  in error ("Failure of initial proof method on goal state:\n" ^ pr_facts ^ pr_goal) end;
-
-fun failure_terminal _ = error "Failure of terminal proof method";
-
-val op ORELSE = Seq.ORELSE;
-
 fun terminal_proof qeds initial terminal =
-  (((proof (SOME initial) ORELSE failure_initial)
-    #> Seq.maps (qeds terminal)) ORELSE failure_terminal) #> the_finished_goal;
-
-in
+  proof_results (SOME initial) #> Seq.maps_results (qeds terminal)
+  #> Seq.the_result "";
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
-val local_default_proof = local_terminal_proof (Method.default_text, NONE);
-val local_immediate_proof = local_terminal_proof (Method.this_text, NONE);
-fun local_skip_proof int = local_terminal_proof (Method.sorry_text int, NONE);
-val local_done_proof = terminal_proof local_qeds Method.done_text (NONE, false);
+val local_default_proof = local_terminal_proof ((Method.default_text, Position.none), NONE);
+val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.none), NONE);
+fun local_skip_proof int = local_terminal_proof ((Method.sorry_text int, Position.none), NONE);
+val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.none) (NONE, false);
 
 fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
-val global_default_proof = global_terminal_proof (Method.default_text, NONE);
-val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
-fun global_skip_proof int = global_terminal_proof (Method.sorry_text int, NONE);
-val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false);
-
-end;
+val global_default_proof = global_terminal_proof ((Method.default_text, Position.none), NONE);
+val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.none), NONE);
+fun global_skip_proof int = global_terminal_proof ((Method.sorry_text int, Position.none), NONE);
+val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.none) (NONE, false);
 
 
 (* common goal statements *)

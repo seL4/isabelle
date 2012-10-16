@@ -55,6 +55,7 @@ sig
   val TRYALL: (int -> tactic) -> tactic
   val CSUBGOAL: ((cterm * int) -> tactic) -> int -> tactic
   val SUBGOAL: ((term * int) -> tactic) -> int -> tactic
+  val ASSERT_SUBGOAL: (int -> tactic) -> int -> tactic
   val CHANGED_GOAL: (int -> tactic) -> int -> tactic
   val SOLVED': (int -> tactic) -> int -> tactic
   val THEN_ALL_NEW: (int -> tactic) * (int -> tactic) -> int -> tactic
@@ -327,6 +328,8 @@ fun CSUBGOAL goalfun i st =
 
 fun SUBGOAL goalfun =
   CSUBGOAL (fn (goal, i) => goalfun (Thm.term_of goal, i));
+
+fun ASSERT_SUBGOAL (tac: int -> tactic) i st = (Logic.get_goal (Thm.prop_of st) i; tac i st);
 
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)

@@ -74,9 +74,9 @@ sig
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
   val present_proof: (state -> unit) -> transition -> transition
-  val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
+  val proofs': (bool -> Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
-  val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
+  val proofs: (Proof.state -> Proof.state Seq.result Seq.seq) -> transition -> transition
   val proof: (Proof.state -> Proof.state) -> transition -> transition
   val actual_proof: (Proof_Node.T -> Proof_Node.T) -> transition -> transition
   val skip_proof: (int -> int) -> transition -> transition
@@ -556,7 +556,7 @@ fun proofs' f = transaction (fn int =>
     | skip as SkipProof _ => skip
     | _ => raise UNDEF));
 
-fun proof' f = proofs' (Seq.single oo f);
+fun proof' f = proofs' ((Seq.single o Seq.Result) oo f);
 val proofs = proofs' o K;
 val proof = proof' o K;
 

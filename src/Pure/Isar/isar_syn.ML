@@ -681,24 +681,24 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "defer"} "shuffle internal proof state"
-    (Scan.option Parse.nat >> (Toplevel.print oo (Toplevel.proofs o Proof.defer)));
+    (Scan.optional Parse.nat 1 >> (fn n => Toplevel.print o Toplevel.proof (Proof.defer n)));
 
 val _ =
   Outer_Syntax.command @{command_spec "prefer"} "shuffle internal proof state"
-    (Parse.nat >> (Toplevel.print oo (Toplevel.proofs o Proof.prefer)));
+    (Parse.nat >> (fn n => Toplevel.print o Toplevel.proof (Proof.prefer n)));
 
 val _ =
   Outer_Syntax.command @{command_spec "apply"} "initial refinement step (unstructured)"
-    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply)));
+    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_results)));
 
 val _ =
   Outer_Syntax.command @{command_spec "apply_end"} "terminal refinement (unstructured)"
-    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end)));
+    (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end_results)));
 
 val _ =
   Outer_Syntax.command @{command_spec "proof"} "backward proof"
     (Scan.option Method.parse >> (fn m => Toplevel.print o
-      Toplevel.actual_proof (Proof_Node.applys (Proof.proof m)) o
+      Toplevel.actual_proof (Proof_Node.applys (Proof.proof_results m)) o
       Toplevel.skip_proof (fn i => i + 1)));
 
 

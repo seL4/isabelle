@@ -305,17 +305,6 @@ use "ProofGeneral/proof_general_pgip.ML";
 use "ProofGeneral/proof_general_emacs.ML";
 
 
-(* the Pure theory *)
-
-use "pure_syn.ML";
-Thy_Info.use_thy ("Pure", Position.none);
-Context.set_thread_data NONE;
-structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
-
-
-use "ProofGeneral/pgip_tests.ML";
-
-
 (* ML toplevel pretty printing *)
 
 toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
@@ -326,7 +315,6 @@ toplevel_pp ["Binding", "binding"] "Pretty.str o Binding.print";
 toplevel_pp ["Thm", "thm"] "Proof_Display.pp_thm";
 toplevel_pp ["Thm", "cterm"] "Proof_Display.pp_cterm";
 toplevel_pp ["Thm", "ctyp"] "Proof_Display.pp_ctyp";
-toplevel_pp ["typ"] "Proof_Display.pp_typ Pure.thy";
 toplevel_pp ["Context", "theory"] "Context.pretty_thy";
 toplevel_pp ["Context", "theory_ref"] "Context.pretty_thy o Theory.deref";
 toplevel_pp ["Context", "Proof", "context"] "Proof_Display.pp_context";
@@ -337,6 +325,18 @@ toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
 if ML_System.is_polyml then use "ML/install_pp_polyml.ML" else ();
+
+
+(* the Pure theory *)
+
+use "pure_syn.ML";
+Toplevel.program (fn () => Thy_Info.use_thy ("Pure", Position.none));
+Context.set_thread_data NONE;
+structure Pure = struct val thy = Thy_Info.get_theory "Pure" end;
+
+toplevel_pp ["typ"] "Proof_Display.pp_typ Pure.thy";
+
+use "ProofGeneral/pgip_tests.ML";
 
 
 (* ML toplevel commands *)

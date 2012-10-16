@@ -20,8 +20,6 @@ sig
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
-  val defer: int option -> method
-  val prefer: int -> method
   val cheating: bool -> Proof.context -> method
   val intro: thm list -> method
   val elim: thm list -> method
@@ -75,7 +73,10 @@ sig
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
-  val parse: text parser
+  type text_position = text * Position.T
+  val parse: text_position parser
+  val text: text_position option -> text option
+  val position: text_position option -> Position.T
 end;
 
 structure Method: METHOD =
@@ -122,12 +123,6 @@ fun SIMPLE_METHOD'' quant tac = METHOD (fn facts => quant (insert_tac facts THEN
 val SIMPLE_METHOD' = SIMPLE_METHOD'' HEADGOAL;
 
 end;
-
-
-(* shuffle subgoals *)
-
-fun prefer i = METHOD (K (Tactic.defer_tac i THEN PRIMITIVE (Thm.permute_prems 0 ~1)));
-fun defer opt_i = METHOD (K (Tactic.defer_tac (the_default 1 opt_i)));
 
 
 (* cheating *)
@@ -419,7 +414,23 @@ and meth2 x =
 and meth1 x = (Parse.enum1 "," meth2 >> (fn [m] => m | ms => Then ms)) x
 and meth0 x = (Parse.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
 
-in val parse = meth3 end;
+in
+
+val parse =
+  Scan.trace meth3 >> (fn (m, toks) => (m, Position.set_range (Token.position_range_of toks)));
+
+end;
+
+
+(* text position *)
+
+type text_position = text * Position.T;
+
+fun text NONE = NONE
+  | text (SOME (txt, _)) = SOME txt;
+
+fun position NONE = Position.none
+  | position (SOME (_, pos)) = pos;
 
 
 (* theory setup *)

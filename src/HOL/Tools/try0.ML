@@ -55,7 +55,7 @@ val parse_method =
   #> Outer_Syntax.scan Position.start
   #> filter Token.is_proper
   #> Scan.read Token.stopper Method.parse
-  #> (fn SOME (Method.Source src) => src | _ => raise Fail "expected Source")
+  #> (fn SOME (Method.Source src, _) => src | _ => raise Fail "expected Source")
 
 fun apply_named_method_on_first_goal method thy =
   method |> parse_method

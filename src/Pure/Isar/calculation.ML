@@ -13,12 +13,12 @@ sig
   val sym_add: attribute
   val sym_del: attribute
   val symmetric: attribute
-  val also: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
+  val also: thm list option -> bool -> Proof.state -> Proof.state Seq.result Seq.seq
   val also_cmd: (Facts.ref * Attrib.src list) list option ->
-    bool -> Proof.state -> Proof.state Seq.seq
-  val finally: thm list option -> bool -> Proof.state -> Proof.state Seq.seq
+    bool -> Proof.state -> Proof.state Seq.result Seq.seq
+  val finally: thm list option -> bool -> Proof.state -> Proof.state Seq.result Seq.seq
   val finally_cmd: (Facts.ref * Attrib.src list) list option -> bool ->
-    Proof.state -> Proof.state Seq.seq
+    Proof.state -> Proof.state Seq.result Seq.seq
   val moreover: bool -> Proof.state -> Proof.state
   val ultimately: bool -> Proof.state -> Proof.state
 end;
@@ -129,32 +129,48 @@ fun maintain_calculation int final calc state =
 fun calculate prep_rules final raw_rules int state =
   let
     val ctxt = Proof.context_of state;
+    val pretty_thm = Display.pretty_thm ctxt;
 
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
     val eq_prop = op aconv o pairself (Envir.beta_eta_contract o strip_assums_concl);
-    fun projection ths th = exists (curry eq_prop th) ths;
+    fun check_projection ths th =
+      (case find_index (curry eq_prop th) ths of
+        ~1 => Seq.Result [th]
+      | i =>
+          Seq.Error (fn () =>
+            (Pretty.string_of o Pretty.chunks)
+             [Pretty.block [Pretty.str "Vacuous calculation result:", Pretty.brk 1, pretty_thm th],
+              (Pretty.block o Pretty.fbreaks)
+                (Pretty.str ("derived as projection (" ^ string_of_int (i + 1) ^ ") from:") ::
+                  map pretty_thm ths)]));
 
     val opt_rules = Option.map (prep_rules ctxt) raw_rules;
     fun combine ths =
-      (case opt_rules of SOME rules => rules
-      | NONE =>
-          (case ths of
-            [] => Item_Net.content (#1 (get_rules ctxt))
-          | th :: _ => Item_Net.retrieve (#1 (get_rules ctxt)) (strip_assums_concl th)))
-      |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
-      |> Seq.filter (not o projection ths);
+      Seq.append
+        ((case opt_rules of
+          SOME rules => rules
+        | NONE =>
+            (case ths of
+              [] => Item_Net.content (#1 (get_rules ctxt))
+            | th :: _ => Item_Net.retrieve (#1 (get_rules ctxt)) (strip_assums_concl th)))
+        |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
+        |> Seq.map (check_projection ths))
+        (Seq.single (Seq.Error (fn () =>
+          (Pretty.string_of o Pretty.block o Pretty.fbreaks)
+            (Pretty.str "No matching trans rules for calculation:" ::
+              map pretty_thm ths))));
 
     val facts = Proof.the_facts (assert_sane final state);
     val (initial, calculations) =
       (case get_calculation state of
-        NONE => (true, Seq.single facts)
-      | SOME calc => (false, Seq.map single (combine (calc @ facts))));
+        NONE => (true, Seq.single (Seq.Result facts))
+      | SOME calc => (false, combine (calc @ facts)));
 
     val _ = initial andalso final andalso error "No calculation yet";
     val _ = initial andalso is_some opt_rules andalso
       error "Initial calculation -- no rules to be given";
   in
-    calculations |> Seq.map (fn calc => maintain_calculation int final calc state)
+    calculations |> Seq.map_result (fn calc => maintain_calculation int final calc state)
   end;
 
 val also = calculate (K I) false;

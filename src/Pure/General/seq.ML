@@ -35,6 +35,14 @@ sig
   val singleton: ('a list -> 'b list seq) -> 'a -> 'b seq
   val print: (int -> 'a -> unit) -> int -> 'a seq -> unit
   val it_right : ('a * 'b seq -> 'b seq) -> 'a seq * 'b seq -> 'b seq
+  datatype 'a result = Result of 'a | Error of unit -> string
+  val make_results: 'a seq -> 'a result seq
+  val filter_results: 'a result seq -> 'a seq
+  val maps_results: ('a -> 'b result seq) -> 'a result seq -> 'b result seq
+  val maps_result: ('a -> 'b seq) -> 'a result seq -> 'b result seq
+  val map_result: ('a -> 'b) -> 'a result seq -> 'b result seq
+  val first_result: string -> 'a result seq -> 'a * 'a seq
+  val the_result: string -> 'a result seq -> 'a
   val succeed: 'a -> 'a seq
   val fail: 'a -> 'b seq
   val THEN: ('a -> 'b seq) * ('b -> 'c seq) -> 'a -> 'c seq
@@ -110,7 +118,7 @@ fun list_of xq =
 fun of_list xs = fold_rev cons xs empty;
 
 
-(*sequence append:  put the elements of xq in front of those of yq*)
+(*sequence append: put the elements of xq in front of those of yq*)
 fun append xq yq =
   let
     fun copy s =
@@ -161,7 +169,12 @@ fun map f xq =
       NONE => NONE
     | SOME (x, xq') => SOME (f x, map f xq')));
 
-fun maps f = flat o map f;
+fun maps f xq =
+  make (fn () =>
+    (case pull xq of
+      NONE => NONE
+    | SOME (x, xq') => pull (append (f x) (maps f xq'))));
+
 fun map_filter f = maps (fn x => (case f x of NONE => empty | SOME y => single y));
 
 fun lift f xq y = map (fn x => f x y) xq;
@@ -189,6 +202,38 @@ fun it_right f (xq, yq) =
           NONE => pull yq
         | SOME (a, s') => pull (f (a, its s'))))
   in its xq end;
+
+
+(* embedded errors *)
+
+datatype 'a result = Result of 'a | Error of unit -> string;
+
+fun make_results xq = map Result xq;
+fun filter_results xq = map_filter (fn Result x => SOME x | Error _ => NONE) xq;
+
+fun maps_results f xq =
+  make (fn () =>
+    (case pull xq of
+      NONE => NONE
+    | SOME (Result x, xq') => pull (append (f x) (maps_results f xq'))
+    | SOME (Error msg, xq') => SOME (Error msg, maps_results f xq')));
+
+fun maps_result f = maps_results (map Result o f);
+fun map_result f = maps_result (single o f);
+
+(*first result or first error within sequence*)
+fun first_result default_msg seq =
+  let
+    fun result opt_msg xq =
+      (case (opt_msg, pull xq) of
+        (_, SOME (Result x, xq')) => (x, filter_results xq')
+      | (SOME _, SOME (Error _, xq')) => result opt_msg xq'
+      | (NONE, SOME (Error msg, xq')) => result (SOME msg) xq'
+      | (SOME msg, NONE) => error (msg ())
+      | (NONE, NONE) => error (if default_msg = "" then "Empty result sequence" else default_msg));
+  in result NONE seq end;
+
+fun the_result default_msg seq = #1 (first_result default_msg seq);
 
 
 
