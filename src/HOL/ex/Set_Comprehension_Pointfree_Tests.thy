@@ -91,6 +91,20 @@ lemma
   "finite A ==> finite B ==> finite {f a * g b |a b. a : A & b : B}"
 by simp
 
+lemma
+  "finite S ==> inj (%(x, y). g x y) ==> finite {f x y| x y. g x y : S}"
+  by (auto intro: finite_vimageI)
+
+lemma
+  "finite A ==> finite S ==> inj (%(x, y). g x y) ==> finite {f x y z | x y z. g x y : S & z : A}"
+  by (auto intro: finite_vimageI)
+
+lemma
+  "finite S ==> finite A ==> inj (%(x, y). g x y) ==> inj (%(x, y). h x y)
+    ==> finite {f a b c d | a b c d. g a c : S & h b d : A}"
+  by (auto intro: finite_vimageI)
+
+
 schematic_lemma (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
    = finite ((\<lambda>(b :: ?'B, a:: ?'A). Pair_Rep a b) ` (UNIV \<times> UNIV))"
@@ -105,5 +119,19 @@ proof -
     unfolding eq by (auto intro!: finite_vimageI simp add: inj_on_def)
     (* to be automated with further rules and automation *)
 qed
+
+section {* Testing simproc in code generation *}
+
+definition union :: "nat set => nat set => nat set"
+where
+  "union A B = {x. x : A \<or> x : B}"
+
+definition common_subsets :: "nat set => nat set => nat set set"
+where
+  "common_subsets S1 S2 = {S. S \<subseteq> S1 \<and> S \<subseteq> S2}"
+
+export_code union common_subsets in Haskell file -
+
+
 
 end
