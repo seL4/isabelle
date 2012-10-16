@@ -709,12 +709,12 @@ val calc_args =
 
 val _ =
   Outer_Syntax.command @{command_spec "also"} "combine calculation and current facts"
-    (calc_args >> (fn args => Toplevel.proofs' (Seq.make_results oo Calculation.also_cmd args)));
+    (calc_args >> (Toplevel.proofs' o Calculation.also_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "finally"}
     "combine calculation and current facts, exhibit result"
-    (calc_args >> (fn args => Toplevel.proofs' (Seq.make_results oo Calculation.finally_cmd args)));
+    (calc_args >> (Toplevel.proofs' o Calculation.finally_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "moreover"} "augment calculation by current facts"
