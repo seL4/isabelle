@@ -13,7 +13,7 @@ begin
 
 
 (* We assume that the sets of terminals, and the left-hand sides of 
-productions are finite and that the grammar has no unused nonterminals. *)
+productions are finite and that the grammar has no unused nonterminals. *)  
 consts P :: "(N \<times> (T + N) set) set"
 axiomatization where
     finite_N: "finite (UNIV::N set)"
@@ -940,117 +940,117 @@ assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
 shows "wf (pick n)"
 using wf_subtr[OF tr0 subtr_pick[OF n]] .
 
-definition "regOf_r n \<equiv> root (pick n)"
-definition "regOf_c n \<equiv> (id \<oplus> root) ` cont (pick n)"
+definition "H_r n \<equiv> root (pick n)"
+definition "H_c n \<equiv> (id \<oplus> root) ` cont (pick n)"
 
 (* The regular tree of a function: *)
-definition regOf :: "N \<Rightarrow> dtree" where
-"regOf \<equiv> unfold regOf_r regOf_c"
+definition H :: "N \<Rightarrow> dtree" where
+"H \<equiv> unfold H_r H_c"
 
-lemma finite_regOf_c: "finite (regOf_c n)"
-unfolding regOf_c_def by (metis finite_cont finite_imageI)
+lemma finite_H_c: "finite (H_c n)"
+unfolding H_c_def by (metis finite_cont finite_imageI)
 
-lemma root_regOf_pick: "root (regOf n) = root (pick n)"
-using unfold(1)[of regOf_r regOf_c n] unfolding regOf_def regOf_r_def by simp
+lemma root_H_pick: "root (H n) = root (pick n)"
+using unfold(1)[of H_r H_c n] unfolding H_def H_r_def by simp
 
-lemma root_regOf[simp]:
+lemma root_H[simp]:
 assumes "inItr UNIV tr0 n"
-shows "root (regOf n) = n"
-unfolding root_regOf_pick root_pick[OF assms] ..
+shows "root (H n) = n"
+unfolding root_H_pick root_pick[OF assms] ..
 
-lemma cont_regOf[simp]:
-"cont (regOf n) = (id \<oplus> (regOf o root)) ` cont (pick n)"
+lemma cont_H[simp]:
+"cont (H n) = (id \<oplus> (H o root)) ` cont (pick n)"
 apply(subst id_o[symmetric, of id]) unfolding sum_map.comp[symmetric]
-unfolding image_compose unfolding regOf_c_def[symmetric]
-using unfold(2)[of regOf_c n regOf_r, OF finite_regOf_c]
-unfolding regOf_def ..
+unfolding image_compose unfolding H_c_def[symmetric]
+using unfold(2)[of H_c n H_r, OF finite_H_c]
+unfolding H_def ..
 
-lemma Inl_cont_regOf[simp]:
-"Inl -` (cont (regOf n)) = Inl -` (cont (pick n))"
-unfolding cont_regOf by simp
+lemma Inl_cont_H[simp]:
+"Inl -` (cont (H n)) = Inl -` (cont (pick n))"
+unfolding cont_H by simp
 
-lemma Inr_cont_regOf:
-"Inr -` (cont (regOf n)) = (regOf \<circ> root) ` (Inr -` cont (pick n))"
-unfolding cont_regOf by simp
+lemma Inr_cont_H:
+"Inr -` (cont (H n)) = (H \<circ> root) ` (Inr -` cont (pick n))"
+unfolding cont_H by simp
 
-lemma subtr_regOf:
-assumes n: "inItr UNIV tr0 n" and "subtr UNIV tr1 (regOf n)"
-shows "\<exists> n1. inItr UNIV tr0 n1 \<and> tr1 = regOf n1"
+lemma subtr_H:
+assumes n: "inItr UNIV tr0 n" and "subtr UNIV tr1 (H n)"
+shows "\<exists> n1. inItr UNIV tr0 n1 \<and> tr1 = H n1"
 proof-
   {fix tr ns assume "subtr UNIV tr1 tr"
-   hence "tr = regOf n \<longrightarrow> (\<exists> n1. inItr UNIV tr0 n1 \<and> tr1 = regOf n1)"
+   hence "tr = H n \<longrightarrow> (\<exists> n1. inItr UNIV tr0 n1 \<and> tr1 = H n1)"
    proof (induct rule: subtr_UNIV_inductL)
      case (Step tr2 tr1 tr)
      show ?case proof
-       assume "tr = regOf n"
+       assume "tr = H n"
        then obtain n1 where tr2: "Inr tr2 \<in> cont tr1"
-       and tr1_tr: "subtr UNIV tr1 tr" and n1: "inItr UNIV tr0 n1" and tr1: "tr1 = regOf n1"
+       and tr1_tr: "subtr UNIV tr1 tr" and n1: "inItr UNIV tr0 n1" and tr1: "tr1 = H n1"
        using Step by auto
-       obtain tr2' where tr2: "tr2 = regOf (root tr2')"
+       obtain tr2' where tr2: "tr2 = H (root tr2')"
        and tr2': "Inr tr2' \<in> cont (pick n1)"
-       using tr2 Inr_cont_regOf[of n1]
+       using tr2 Inr_cont_H[of n1]
        unfolding tr1 image_def o_def using vimage_eq by auto
        have "inItr UNIV tr0 (root tr2')"
        using inItr.Base inItr.Ind n1 pick subtr_inItr tr2' by (metis iso_tuple_UNIV_I)
-       thus "\<exists>n2. inItr UNIV tr0 n2 \<and> tr2 = regOf n2" using tr2 by blast
+       thus "\<exists>n2. inItr UNIV tr0 n2 \<and> tr2 = H n2" using tr2 by blast
      qed
    qed(insert n, auto)
   }
   thus ?thesis using assms by auto
 qed
 
-lemma root_regOf_root:
+lemma root_H_root:
 assumes n: "inItr UNIV tr0 n" and t_tr: "t_tr \<in> cont (pick n)"
-shows "(id \<oplus> (root \<circ> regOf \<circ> root)) t_tr = (id \<oplus> root) t_tr"
+shows "(id \<oplus> (root \<circ> H \<circ> root)) t_tr = (id \<oplus> root) t_tr"
 using assms apply(cases t_tr)
   apply (metis (lifting) sum_map.simps(1))
-  using pick regOf_def regOf_r_def unfold(1)
+  using pick H_def H_r_def unfold(1)
       inItr.Base o_apply subtr_StepL subtr_inItr sum_map.simps(2)
   by (metis UNIV_I)
 
-lemma regOf_P:
+lemma H_P:
 assumes tr0: "wf tr0" and n: "inItr UNIV tr0 n"
-shows "(n, (id \<oplus> root) ` cont (regOf n)) \<in> P" (is "?L \<in> P")
+shows "(n, (id \<oplus> root) ` cont (H n)) \<in> P" (is "?L \<in> P")
 proof-
   have "?L = (n, (id \<oplus> root) ` cont (pick n))"
-  unfolding cont_regOf image_compose[symmetric] sum_map.comp id_o o_assoc
+  unfolding cont_H image_compose[symmetric] sum_map.comp id_o o_assoc
   unfolding Pair_eq apply(rule conjI[OF refl]) apply(rule image_cong[OF refl])
-  by(rule root_regOf_root[OF n])
+  by(rule root_H_root[OF n])
   moreover have "... \<in> P" by (metis (lifting) wf_pick root_pick wf_P n tr0)
   ultimately show ?thesis by simp
 qed
 
-lemma wf_regOf:
+lemma wf_H:
 assumes tr0: "wf tr0" and "inItr UNIV tr0 n"
-shows "wf (regOf n)"
+shows "wf (H n)"
 proof-
-  {fix tr have "\<exists> n. inItr UNIV tr0 n \<and> tr = regOf n \<Longrightarrow> wf tr"
+  {fix tr have "\<exists> n. inItr UNIV tr0 n \<and> tr = H n \<Longrightarrow> wf tr"
    proof (induct rule: wf_raw_coind)
      case (Hyp tr)
-     then obtain n where n: "inItr UNIV tr0 n" and tr: "tr = regOf n" by auto
+     then obtain n where n: "inItr UNIV tr0 n" and tr: "tr = H n" by auto
      show ?case apply safe
-     apply (metis (lifting) regOf_P root_regOf n tr tr0)
-     unfolding tr Inr_cont_regOf unfolding inj_on_def apply clarsimp using root_regOf
+     apply (metis (lifting) H_P root_H n tr tr0)
+     unfolding tr Inr_cont_H unfolding inj_on_def apply clarsimp using root_H
      apply (metis UNIV_I inItr.Base n pick subtr2.simps subtr_inItr subtr_subtr2)
-     by (metis n subtr.Refl subtr_StepL subtr_regOf tr UNIV_I)
+     by (metis n subtr.Refl subtr_StepL subtr_H tr UNIV_I)
    qed
   }
   thus ?thesis using assms by blast
 qed
 
 (* The regular cut of a tree: *)
-definition "rcut \<equiv> regOf (root tr0)"
+definition "rcut \<equiv> H (root tr0)"
 
-lemma reg_rcut: "reg regOf rcut"
+lemma reg_rcut: "reg H rcut"
 unfolding reg_def rcut_def
-by (metis inItr.Base root_regOf subtr_regOf UNIV_I)
+by (metis inItr.Base root_H subtr_H UNIV_I)
 
 lemma rcut_reg:
-assumes "reg regOf tr0"
+assumes "reg H tr0"
 shows "rcut = tr0"
 using assms unfolding rcut_def reg_def by (metis subtr.Refl UNIV_I)
 
-lemma rcut_eq: "rcut = tr0 \<longleftrightarrow> reg regOf tr0"
+lemma rcut_eq: "rcut = tr0 \<longleftrightarrow> reg H tr0"
 using reg_rcut rcut_reg by metis
 
 lemma regular_rcut: "regular rcut"
@@ -1059,12 +1059,12 @@ using reg_rcut unfolding regular_def by blast
 lemma Fr_rcut: "Fr UNIV rcut \<subseteq> Fr UNIV tr0"
 proof safe
   fix t assume "t \<in> Fr UNIV rcut"
-  then obtain tr where t: "Inl t \<in> cont tr" and tr: "subtr UNIV tr (regOf (root tr0))"
-  using Fr_subtr[of UNIV "regOf (root tr0)"] unfolding rcut_def
+  then obtain tr where t: "Inl t \<in> cont tr" and tr: "subtr UNIV tr (H (root tr0))"
+  using Fr_subtr[of UNIV "H (root tr0)"] unfolding rcut_def
   by (metis (full_types) Fr_def inFr_subtr mem_Collect_eq)
-  obtain n where n: "inItr UNIV tr0 n" and tr: "tr = regOf n" using tr
-  by (metis (lifting) inItr.Base subtr_regOf UNIV_I)
-  have "Inl t \<in> cont (pick n)" using t using Inl_cont_regOf[of n] unfolding tr
+  obtain n where n: "inItr UNIV tr0 n" and tr: "tr = H n" using tr
+  by (metis (lifting) inItr.Base subtr_H UNIV_I)
+  have "Inl t \<in> cont (pick n)" using t using Inl_cont_H[of n] unfolding tr
   by (metis (lifting) vimageD vimageI2)
   moreover have "subtr UNIV (pick n) tr0" using subtr_pick[OF n] ..
   ultimately show "t \<in> Fr UNIV tr0" unfolding Fr_subtr_cont by auto
@@ -1073,11 +1073,11 @@ qed
 lemma wf_rcut:
 assumes "wf tr0"
 shows "wf rcut"
-unfolding rcut_def using wf_regOf[OF assms inItr.Base] by simp
+unfolding rcut_def using wf_H[OF assms inItr.Base] by simp
 
 lemma root_rcut[simp]: "root rcut = root tr0"
 unfolding rcut_def
-by (metis (lifting) root_regOf inItr.Base reg_def reg_root subtr_rootR_in)
+by (metis (lifting) root_H inItr.Base reg_def reg_root subtr_rootR_in)
 
 end (* context *)
 

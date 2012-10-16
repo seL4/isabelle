@@ -1581,6 +1581,4 @@ next
 qed
 
 
-
-
 end
