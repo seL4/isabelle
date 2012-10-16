@@ -265,6 +265,8 @@ fun tac ctxt fm =
 
 (* main simprocs *)
 
+val prep_thms = map mk_meta_eq [@{thm Bex_def}, @{thm Pow_iff[symmetric]}]
+
 val post_thms =
   map mk_meta_eq [@{thm Times_Un_distrib1[symmetric]},
   @{lemma "A \<times> B \<union> A \<times> C = A \<times> (B \<union> C)" by auto},
@@ -273,12 +275,11 @@ val post_thms =
 fun conv ctxt t =
   let
     val ct = cterm_of (Proof_Context.theory_of ctxt) t
-    val Bex_def = mk_meta_eq @{thm Bex_def}
-    val unfold_eq = Conv.bottom_conv (K (Conv.try_conv (Conv.rewr_conv Bex_def))) ctxt ct
-    val t' = term_of (Thm.rhs_of unfold_eq)
+    val prep_eq = Raw_Simplifier.rewrite true prep_thms ct 
+    val t' = term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t'') = Goal.prove ctxt [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (fn {context, ...} => tac context fm 1)
-    fun unfold th = th RS ((unfold_eq RS meta_eq_to_obj_eq) RS @{thm trans})
+    fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
     fun post th = Conv.fconv_rule (Trueprop_conv (eq_conv Conv.all_conv
       (Raw_Simplifier.rewrite true post_thms))) th
   in
