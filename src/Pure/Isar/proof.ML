@@ -529,6 +529,9 @@ fun status_markup state =
     SOME {goal, ...} => Isabelle_Markup.proof_state (Thm.nprems_of goal)
   | NONE => Markup.empty);
 
+fun method_error name state =
+  Seq.single (Proof_Display.method_error name (raw_goal state));
+
 
 
 (*** structured proof commands ***)
@@ -805,16 +808,18 @@ fun proof opt_text =
   #> refine (the_default Method.default_text opt_text)
   #> Seq.map (using_facts [] #> enter_forward);
 
-fun end_proof bot txt state =
-  state
-  |> assert_forward
-  |> assert_bottom bot
-  |> close_block
-  |> assert_current_goal true
-  |> using_facts []
-  |> `before_qed |-> (refine o the_default Method.succeed_text)
-  |> Seq.maps (refine (Method.finish_text txt))
-  |> Seq.map finished_goal;
+fun end_proof bot txt =
+  Seq.APPEND (fn state =>
+    state
+    |> assert_forward
+    |> assert_bottom bot
+    |> close_block
+    |> assert_current_goal true
+    |> using_facts []
+    |> `before_qed |-> (refine o the_default Method.succeed_text)
+    |> Seq.maps (refine (Method.finish_text txt))
+    |> Seq.map Seq.Result, method_error "terminal")
+  #> Seq.maps_results (Seq.single o finished_goal);
 
 fun check_result msg sq =
   (case Seq.pull sq of
@@ -964,13 +969,9 @@ fun global_qed txt = global_qeds txt #> Seq.the_result finished_goal_error;
 
 (* concluding steps *)
 
-fun method_error name state = Seq.single (Proof_Display.method_error name (raw_goal state));
-val op APPEND = Seq.APPEND;
-
 fun terminal_proof qeds initial terminal =
-  ((proof (SOME initial) #> Seq.map Seq.Result) APPEND method_error "initial")
-  #> Seq.maps_results (qeds terminal APPEND method_error "terminal")
-  #> Seq.the_result "";
+  Seq.APPEND (proof (SOME initial) #> Seq.map Seq.Result, method_error "initial")
+  #> Seq.maps_results (qeds terminal) #> Seq.the_result "";
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof (Method.default_text, NONE);
