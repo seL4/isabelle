@@ -72,6 +72,8 @@ fun finish () =
     Keyword.status ();
     Outer_Syntax.check_syntax ();
     Future.shutdown ();
+    Goal.finish_futures ();
+    Goal.cancel_futures ();
     Options.reset_default ();
     session_finished := true);
 
