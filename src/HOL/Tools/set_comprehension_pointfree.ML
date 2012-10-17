@@ -292,6 +292,43 @@ fun tac ctxt fm =
   end;
 
 
+(* preprocessing conversion:
+  rewrites {(x1, ..., xn). P x1 ... xn} to {(x1, ..., xn) | x1 ... xn. P x1 ... xn} *)
+
+fun comprehension_conv ctxt ct =
+let
+  fun dest_Collect (Const (@{const_name Collect}, T) $ t) = (HOLogic.dest_setT (body_type T), t)
+    | dest_Collect t = raise TERM ("dest_Collect", [t])
+  fun list_ex Ts t = fold_rev (fn T => fn t => HOLogic.exists_const T $ absdummy T t) Ts t
+  fun mk_term t =
+    let
+      val (T, t') = dest_Collect t
+      val (t'', Ts, fp) = HOLogic.strip_psplits t'
+      val eq = HOLogic.eq_const T $ Bound (length Ts) $
+        (HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (fn (i, _) => Bound i) Ts)))
+    in
+      HOLogic.Collect_const T $ absdummy T (list_ex Ts (HOLogic.mk_conj (eq, t'')))
+    end;
+  val tac = 
+    rtac @{thm set_eqI}
+    THEN' Simplifier.simp_tac
+      (HOL_basic_ss addsimps [@{thm split_paired_all}, @{thm mem_Collect_eq}, @{thm prod.cases}])
+    THEN' rtac @{thm iffI}
+    THEN' REPEAT_DETERM o rtac @{thm exI}
+    THEN' rtac @{thm conjI} THEN' rtac @{thm refl} THEN' atac
+    THEN' REPEAT_DETERM o etac @{thm exE}
+    THEN' etac @{thm conjE}
+    THEN' REPEAT_DETERM o etac @{thm Pair_inject}
+    THEN' hyp_subst_tac THEN' atac
+in
+  case try mk_term (term_of ct) of
+    NONE => Thm.reflexive ct
+  | SOME t' =>
+     Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (term_of ct, t'))) (K (tac 1))
+       RS @{thm eq_reflection}
+end
+
+
 (* main simprocs *)
 
 val prep_thms = map mk_meta_eq [@{thm Bex_def}, @{thm Pow_iff[symmetric]}]
@@ -304,7 +341,7 @@ val post_thms =
 fun conv ctxt t =
   let
     val ct = cterm_of (Proof_Context.theory_of ctxt) t
-    val prep_eq = Raw_Simplifier.rewrite true prep_thms ct 
+    val prep_eq = (comprehension_conv ctxt then_conv Raw_Simplifier.rewrite true prep_thms) ct 
     val t' = term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t'') = Goal.prove ctxt [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (fn {context, ...} => tac context fm 1)
