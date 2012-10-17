@@ -89,6 +89,17 @@ fun mk_split_abs vs (Bound i) t = let val (x, T) = nth vs i in Abs (x, T, t) end
       HOLogic.mk_split (mk_split_abs vs u (mk_split_abs vs v t))
   | mk_split_abs _ t _ = raise TERM ("mk_split_abs: bad term", [t]);
 
+(* a variant of HOLogic.strip_psplits *)
+val strip_psplits =
+  let
+    fun strip [] qs vs t = (t, rev vs, qs)
+      | strip (p :: ps) qs vs (Const ("Product_Type.prod.prod_case", _) $ t) =
+          strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) vs t
+      | strip (p :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
+      | strip (p :: ps) qs vs t = strip ps qs
+          ((Name.uu_, hd (binder_types (fastype_of1 (map snd vs, t)))) :: vs)
+          (incr_boundvars 1 t $ Bound 0)
+  in strip [[]] [] [] end;
 
 (* patterns *)
 
@@ -305,17 +316,18 @@ fun comprehension_conv ctxt ct =
 let
   fun dest_Collect (Const (@{const_name Collect}, T) $ t) = (HOLogic.dest_setT (body_type T), t)
     | dest_Collect t = raise TERM ("dest_Collect", [t])
-  fun list_ex Ts t = fold_rev (fn T => fn t => HOLogic.exists_const T $ absdummy T t) Ts t
+  fun list_ex vs t = fold_rev (fn (x, T) => fn t => HOLogic.exists_const T $ Abs (x, T, t)) vs t
   fun mk_term t =
     let
       val (T, t') = dest_Collect t
-      val (t'', Ts, fp) = case HOLogic.strip_psplits t' of
+      val (t'', vs, fp) = case strip_psplits t' of
           (_, [_], _) => raise TERM("mk_term", [t'])
-        | (t'', Ts, fp) => (t'', Ts, fp)
+        | (t'', vs, fp) => (t'', vs, fp)
+      val Ts = map snd vs
       val eq = HOLogic.eq_const T $ Bound (length Ts) $
         (HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (fn (i, _) => Bound i) Ts)))
     in
-      HOLogic.Collect_const T $ absdummy T (list_ex Ts (HOLogic.mk_conj (eq, t'')))
+      HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
     end;
   val tac = 
     rtac @{thm set_eqI}
@@ -327,7 +339,8 @@ let
     THEN' REPEAT_DETERM o etac @{thm exE}
     THEN' etac @{thm conjE}
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-    THEN' hyp_subst_tac THEN' atac
+    THEN' hyp_subst_tac
+    THEN' (atac ORELSE' rtac @{thm refl})
 in
   case try mk_term (term_of ct) of
     NONE => Thm.reflexive ct
