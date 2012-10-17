@@ -1002,21 +1002,32 @@ fun global_qed arg =
 
 (* concluding steps *)
 
+local
+
 fun terminal_proof qeds initial terminal =
   proof_results (SOME initial) #> Seq.maps_results (qeds (#2 (#2 initial), terminal))
   #> Seq.the_result "";
 
+fun skipped_proof x =
+  (Output.report (Markup.markup Isabelle_Markup.bad "Skipped proof"); x);
+
+in
+
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof ((Method.default_text, Position.no_range), NONE);
 val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.no_range), NONE);
-fun local_skip_proof int = local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE);
+fun local_skip_proof int =
+  local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) #> skipped_proof;
 val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.no_range) (NONE, false);
 
 fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
 val global_default_proof = global_terminal_proof ((Method.default_text, Position.no_range), NONE);
 val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.no_range), NONE);
-fun global_skip_proof int = global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE);
+fun global_skip_proof int =
+  global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) #> skipped_proof;
 val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false);
+
+end;
 
 
 (* common goal statements *)
