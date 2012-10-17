@@ -119,26 +119,32 @@ fun bounds_of_pattern (TBound i) = [i]
 
 datatype formula = Atom of (pattern * term) | Int of formula * formula | Un of formula * formula
 
+fun map_atom f (Atom a) = Atom (f a)
+  | map_atom _ x = x
+
 fun mk_atom vs (Const (@{const_name "Set.member"}, _) $ x $ s) =
-    (case try mk_pattern x of
+    if not (null (loose_bnos s)) then
+      raise TERM ("mk_atom: bound variables in the set expression", [s])
+    else
+      (case try mk_pattern x of
       SOME pat => (pat, Atom (pat, s))
     | NONE =>
-      let
-        val bs = loose_bnos x
-        val vs' = map (nth (rev vs)) bs
-        val x' = subst_atomic (map_index (fn (i, j) => (Bound j, Bound i)) (rev bs)) x
-        val tuple = foldr1 TPair (map TBound bs)
-        val rT = HOLogic.dest_setT (fastype_of s)
-        fun mk_split [(x, T)] t = (T, Abs (x, T, t))
-          | mk_split ((x, T) :: vs) t =
-              let
-                val (T', t') = mk_split vs t
-                val t'' = HOLogic.split_const (T, T', rT) $ (Abs (x, T, t'))
-              in (domain_type (fastype_of t''), t'') end
-        val (_, f) = mk_split vs' x'
-      in (tuple, Atom (tuple, mk_vimage f s)) end)
-  | mk_atom _ (Const (@{const_name "HOL.Not"}, _) $ (Const (@{const_name "Set.member"}, _) $ x $ s)) =
-      (mk_pattern x, Atom (mk_pattern x, mk_Compl s))
+        let
+          val bs = loose_bnos x
+          val vs' = map (nth (rev vs)) bs
+          val x' = subst_atomic (map_index (fn (i, j) => (Bound j, Bound i)) (rev bs)) x
+          val tuple = foldr1 TPair (map TBound bs)
+          val rT = HOLogic.dest_setT (fastype_of s)
+          fun mk_split [(x, T)] t = (T, Abs (x, T, t))
+            | mk_split ((x, T) :: vs) t =
+                let
+                  val (T', t') = mk_split vs t
+                  val t'' = HOLogic.split_const (T, T', rT) $ (Abs (x, T, t'))
+                in (domain_type (fastype_of t''), t'') end
+          val (_, f) = mk_split vs' x'
+        in (tuple, Atom (tuple, mk_vimage f s)) end)
+  | mk_atom vs (Const (@{const_name "HOL.Not"}, _) $ t) =
+      apsnd (map_atom (apsnd mk_Compl)) (mk_atom vs t)
 
 fun can_merge (pats1, pats2) =
   let
