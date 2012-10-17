@@ -704,5 +704,6 @@ because not f 0 <= 0, we obtain 0 widen f 0 = 0 wide 1 = 2,
 which is again not a pfp: not f 2 = 3 <= 2
 Another widening step yields 2 widen f 2 = 2 widen 3 = 3
 *)
+oops
 
 end
