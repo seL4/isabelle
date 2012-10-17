@@ -12,6 +12,7 @@ sig
     Named of (string * Position.T) * interval list option |
     Fact of string
   val named: string -> ref
+  val string_of_selection: interval list option -> string
   val string_of_ref: ref -> string
   val name_of_ref: ref -> string
   val pos_of_ref: ref -> Position.T
@@ -77,7 +78,7 @@ datatype ref =
 fun named name = Named ((name, Position.none), NONE);
 
 fun name_pos_of_ref (Named (name_pos, _)) = name_pos
-  | name_pos_of_ref (Fact _) = error "Illegal literal fact";
+  | name_pos_of_ref (Fact _) = raise Fail "Illegal literal fact";
 
 val name_of_ref = #1 o name_pos_of_ref;
 val pos_of_ref = #2 o name_pos_of_ref;
@@ -85,10 +86,11 @@ val pos_of_ref = #2 o name_pos_of_ref;
 fun map_name_of_ref f (Named ((name, pos), is)) = Named ((f name, pos), is)
   | map_name_of_ref _ r = r;
 
-fun string_of_ref (Named ((name, _), NONE)) = name
-  | string_of_ref (Named ((name, _), SOME is)) =
-      name ^ enclose "(" ")" (commas (map string_of_interval is))
-  | string_of_ref (Fact _) = error "Illegal literal fact";
+fun string_of_selection NONE = ""
+  | string_of_selection (SOME is) = enclose "(" ")" (commas (map string_of_interval is));
+
+fun string_of_ref (Named ((name, _), sel)) = name ^ string_of_selection sel
+  | string_of_ref (Fact _) = raise Fail "Illegal literal fact";
 
 
 (* select *)
