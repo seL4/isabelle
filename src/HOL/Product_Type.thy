@@ -306,6 +306,12 @@ code_const "HOL.equal \<Colon> 'a \<times> 'b \<Rightarrow> 'a \<times> 'b \<Rig
 
 subsubsection {* Fundamental operations and properties *}
 
+lemma Pair_inject:
+  assumes "(a, b) = (a', b')"
+    and "a = a' ==> b = b' ==> R"
+  shows R
+  using assms by simp
+
 lemma surj_pair [simp]: "EX x y. p = (x, y)"
   by (cases p) simp
 
@@ -1139,12 +1145,6 @@ subsection {* Legacy theorem bindings and duplicates *}
 lemma PairE:
   obtains x y where "p = (x, y)"
   by (fact prod.exhaust)
-
-lemma Pair_inject:
-  assumes "(a, b) = (a', b')"
-    and "a = a' ==> b = b' ==> R"
-  shows R
-  using assms by simp
 
 lemmas Pair_eq = prod.inject
 
