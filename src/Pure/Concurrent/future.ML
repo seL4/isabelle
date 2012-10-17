@@ -183,7 +183,9 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 fun cancel_now group = (*requires SYNCHRONIZED*)
   let
     val running = Task_Queue.cancel (! queue) group;
-    val _ = List.app Simple_Thread.interrupt_unsynchronized running;
+    val _ = running |> List.app (fn thread =>
+      if Simple_Thread.is_self thread then ()
+      else Simple_Thread.interrupt_unsynchronized thread);
   in running end;
 
 fun cancel_all () = (*requires SYNCHRONIZED*)
