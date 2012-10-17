@@ -39,7 +39,7 @@ lemma
     finite {f a b c d e | a b c d e. a : A \<and> b : B \<and> c : C \<and> d : D \<and> e : E}"
   by simp
 
-lemma (* check arbitrary ordering *)
+lemma
   "finite A ==> finite B ==> finite C ==> finite D ==> finite E \<Longrightarrow>
     finite {f a d c b e | e b c d a. b : B \<and> a : A \<and> e : E' \<and> c : C \<and> d : D \<and> e : E \<and> b : B'}"
   by simp
@@ -104,21 +104,16 @@ lemma
     ==> finite {f a b c d | a b c d. g a c : S & h b d : A}"
   by (auto intro: finite_vimageI)
 
+lemma
+  assumes "finite S" shows "finite {(a,b,c,d). ([a, b], [c, d]) : S}"
+using assms by (auto intro!: finite_vimageI simp add: inj_on_def)
+  (* injectivity to be automated with further rules and automation *)
 
 schematic_lemma (* check interaction with schematics *)
   "finite {x :: ?'A \<Rightarrow> ?'B \<Rightarrow> bool. \<exists>a b. x = Pair_Rep a b}
    = finite ((\<lambda>(b :: ?'B, a:: ?'A). Pair_Rep a b) ` (UNIV \<times> UNIV))"
   by simp
 
-lemma
-  assumes "finite S" shows "finite {(a,b,c,d). ([a, b], [c, d]) : S}"
-proof -
-  have eq: "{(a,b,c,d). ([a, b], [c, d]) : S} = ((%(a, b, c, d). ([a, b], [c, d])) -` S)"
-   unfolding vimage_def by (auto split: prod.split)  (* to be proved with the simproc *)
-  from `finite S` show ?thesis
-    unfolding eq by (auto intro!: finite_vimageI simp add: inj_on_def)
-    (* to be automated with further rules and automation *)
-qed
 
 section {* Testing simproc in code generation *}
 
@@ -131,7 +126,5 @@ where
   "common_subsets S1 S2 = {S. S \<subseteq> S1 \<and> S \<subseteq> S2}"
 
 export_code union common_subsets in Haskell file -
-
-
 
 end
