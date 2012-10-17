@@ -30,8 +30,8 @@ sig
   val hence: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val show: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val thus: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
-  val qed: Method.text_position option -> Toplevel.transition -> Toplevel.transition
-  val terminal_proof: Method.text_position * Method.text_position option ->
+  val qed: Method.text_range option -> Toplevel.transition -> Toplevel.transition
+  val terminal_proof: Method.text_range * Method.text_range option ->
     Toplevel.transition -> Toplevel.transition
   val default_proof: Toplevel.transition -> Toplevel.transition
   val immediate_proof: Toplevel.transition -> Toplevel.transition

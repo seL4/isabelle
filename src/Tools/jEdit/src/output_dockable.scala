@@ -169,6 +169,15 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
   update.tooltip = "Update display according to the command at cursor position"
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update)
+  private val detach = new Button("Detach") {
+    reactions += {
+      case ButtonClicked(_) =>
+        Info_Dockable(view, current_snapshot, Pretty.separate(current_output))
+    }
+  }
+  detach.tooltip = "Detach window with static copy of current output"
+
+  private val controls =
+    new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update, detach)
   add(controls.peer, BorderLayout.NORTH)
 }

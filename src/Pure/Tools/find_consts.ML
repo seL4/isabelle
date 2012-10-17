@@ -55,12 +55,14 @@ fun pretty_criterion (b, c) =
     | Name name => Pretty.str (prfx "name: " ^ quote name))
   end;
 
-fun pretty_const ctxt (nm, ty) =
+fun pretty_const ctxt (c, ty) =
   let
     val ty' = Logic.unvarifyT_global ty;
+    val consts_space = Consts.space_of (Sign.consts_of (Proof_Context.theory_of ctxt));
+    val markup = Name_Space.markup consts_space c;
   in
     Pretty.block
-     [Pretty.str nm, Pretty.str " ::", Pretty.brk 1,
+     [Pretty.mark markup (Pretty.str c), Pretty.str " ::", Pretty.brk 1,
       Pretty.quote (Syntax.pretty_typ ctxt ty')]
   end;
 

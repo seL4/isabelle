@@ -6,6 +6,7 @@ Simplified thread operations.
 
 signature SIMPLE_THREAD =
 sig
+  val is_self: Thread.thread -> bool
   val attributes: bool -> Thread.threadAttribute list
   val fork: bool -> (unit -> unit) -> Thread.thread
   val interrupt_unsynchronized: Thread.thread -> unit
@@ -14,6 +15,8 @@ end;
 
 structure Simple_Thread: SIMPLE_THREAD =
 struct
+
+fun is_self thread = Thread.equal (Thread.self (), thread);
 
 fun attributes interrupts =
   if interrupts then Multithreading.public_interrupts else Multithreading.no_interrupts;
