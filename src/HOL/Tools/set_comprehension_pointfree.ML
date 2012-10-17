@@ -303,7 +303,9 @@ let
   fun mk_term t =
     let
       val (T, t') = dest_Collect t
-      val (t'', Ts, fp) = HOLogic.strip_psplits t'
+      val (t'', Ts, fp) = case HOLogic.strip_psplits t' of
+          (_, [_], _) => raise TERM("mk_term", [t'])
+        | (t'', Ts, fp) => (t'', Ts, fp)
       val eq = HOLogic.eq_const T $ Bound (length Ts) $
         (HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (fn (i, _) => Bound i) Ts)))
     in
@@ -341,7 +343,7 @@ val post_thms =
 fun conv ctxt t =
   let
     val ct = cterm_of (Proof_Context.theory_of ctxt) t
-    val prep_eq = (comprehension_conv ctxt then_conv Raw_Simplifier.rewrite true prep_thms) ct 
+    val prep_eq = (comprehension_conv ctxt then_conv Raw_Simplifier.rewrite true prep_thms) ct
     val t' = term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t'') = Goal.prove ctxt [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (fn {context, ...} => tac context fm 1)
