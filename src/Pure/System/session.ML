@@ -74,6 +74,7 @@ fun finish () =
     Future.shutdown ();
     Goal.finish_futures ();
     Goal.cancel_futures ();
+    Future.shutdown ();
     Options.reset_default ();
     session_finished := true);
 
