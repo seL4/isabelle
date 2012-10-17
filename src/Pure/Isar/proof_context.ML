@@ -51,6 +51,7 @@ sig
   val background_theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
+  val markup_fact: Proof.context -> string -> Markup.T
   val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val read_class: Proof.context -> xstring -> class

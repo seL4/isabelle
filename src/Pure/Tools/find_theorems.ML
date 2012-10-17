@@ -554,12 +554,21 @@ fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
 val find_theorems = gen_find_theorems filter_theorems;
 val find_theorems_cmd = gen_find_theorems filter_theorems_cmd;
 
-fun pretty_theorem ctxt (Internal (thmref, thm)) = Pretty.block
-      [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
-        Display.pretty_thm ctxt thm]
-  | pretty_theorem ctxt (External (thmref, prop)) = Pretty.block
-      [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
-        Syntax.unparse_term ctxt prop];
+fun pretty_ref ctxt thmref =
+  let
+    val (name, sel) =
+      (case thmref of
+        Facts.Named ((name, _), sel) => (name, sel)
+      | Facts.Fact _ => raise Fail "Illegal literal fact");
+  in
+    [Pretty.mark (Proof_Context.markup_fact ctxt name) (Pretty.str name),
+      Pretty.str (Facts.string_of_selection sel), Pretty.str ":", Pretty.brk 1]
+  end;
+
+fun pretty_theorem ctxt (Internal (thmref, thm)) =
+      Pretty.block (pretty_ref ctxt thmref @ [Display.pretty_thm ctxt thm])
+  | pretty_theorem ctxt (External (thmref, prop)) =
+      Pretty.block (pretty_ref ctxt thmref @ [Syntax.unparse_term ctxt prop]);
 
 fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm));
 
