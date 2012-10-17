@@ -73,10 +73,10 @@ sig
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
-  type text_position = text * Position.T
-  val parse: text_position parser
-  val text: text_position option -> text option
-  val position: text_position option -> Position.T
+  type text_range = text * Position.range
+  val parse: text_range parser
+  val text: text_range option -> text option
+  val position: text_range option -> Position.T
 end;
 
 structure Method: METHOD =
@@ -417,20 +417,20 @@ and meth0 x = (Parse.enum1 "|" meth1 >> (fn [m] => m | ms => Orelse ms)) x;
 in
 
 val parse =
-  Scan.trace meth3 >> (fn (m, toks) => (m, Position.set_range (Token.position_range_of toks)));
+  Scan.trace meth3 >> (fn (m, toks) => (m, Token.position_range_of toks));
 
 end;
 
 
 (* text position *)
 
-type text_position = text * Position.T;
+type text_range = text * Position.range;
 
 fun text NONE = NONE
   | text (SOME (txt, _)) = SOME txt;
 
 fun position NONE = Position.none
-  | position (SOME (_, pos)) = pos;
+  | position (SOME (_, range)) = Position.set_range range;
 
 
 (* theory setup *)
