@@ -722,8 +722,8 @@ proof-
                           (snd o h1) y = (snd o h2) y" by auto
     hence "(fst o h1)`(rel.underS r x) = (fst o h2)`(rel.underS r x) \<and>
            (snd o h1)`(rel.underS r x) = (snd o h2)`(rel.underS r x)"
-    by (auto simp add: image_def)
-    thus "H h1 x = H h2 x" by (simp add: H_def)
+      by (auto simp add: image_def)
+    thus "H h1 x = H h2 x" by (simp add: H_def del: not_False_in_image_Ball)
   qed
   (* More constant definitions:  *)
   obtain h::"'a \<Rightarrow> 'a' * bool" and f::"'a \<Rightarrow> 'a'" and g::"'a \<Rightarrow> bool"
