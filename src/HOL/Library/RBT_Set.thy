@@ -140,18 +140,14 @@ subsection {* Auxiliary lemmas *}
 lemma [simp]: "x \<noteq> Some () \<longleftrightarrow> x = None"
 by (auto simp: not_Some_eq[THEN iffD1])
 
+lemma Set_set_keys: "Set x = dom (lookup x)" 
+by (auto simp: Set_def)
+
 lemma finite_Set [simp, intro!]: "finite (Set x)"
-proof -
-  have "Set x = dom (lookup x)" by (auto simp: Set_def)
-  then show ?thesis by simp
-qed
+by (simp add: Set_set_keys)
 
 lemma set_keys: "Set t = set(keys t)"
-proof -
- have "\<And>k. ((k, ()) \<in> set (entries t)) = (k \<in> set (keys t))" 
-    by (simp add: keys_entries)
-  then show ?thesis by (auto simp: lookup_in_tree Set_def)
-qed
+by (simp add: Set_set_keys lookup_keys)
 
 subsection {* fold and filter *}
 
