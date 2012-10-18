@@ -339,8 +339,10 @@ fun get_goal state =
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
       [(Pretty.block o Pretty.fbreaks)
-        (Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"] ::
-          map (Display.pretty_thm ctxt) ths), Pretty.str ""];
+        ((if s = "" then Pretty.str "this:"
+          else Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"]) ::
+          map (Display.pretty_thm ctxt) ths),
+        Pretty.str ""];
 
 fun pretty_state nr state =
   let
@@ -349,7 +351,7 @@ fun pretty_state nr state =
 
     fun prt_goal (SOME (_, (_,
       {statement = ((_, pos), _, _), messages, using, goal, before_qed = _, after_qed = _}))) =
-          pretty_facts "using " ctxt
+          pretty_facts "using" ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal @
           (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
@@ -366,7 +368,7 @@ fun pretty_state nr state =
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
        pretty_facts "" ctxt facts @ prt_goal (try find_goal state)
-     else if mode = Chain then pretty_facts "picking " ctxt facts
+     else if mode = Chain then pretty_facts "picking" ctxt facts
      else prt_goal (try find_goal state))
   end;
 
