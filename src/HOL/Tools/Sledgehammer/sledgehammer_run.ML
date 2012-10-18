@@ -8,8 +8,8 @@ Sledgehammer's heart.
 
 signature SLEDGEHAMMER_RUN =
 sig
-  type minimize_command = ATP_Proof_Reconstruct.minimize_command
   type fact_override = Sledgehammer_Fact.fact_override
+  type minimize_command = Sledgehammer_Reconstruct.minimize_command
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
 

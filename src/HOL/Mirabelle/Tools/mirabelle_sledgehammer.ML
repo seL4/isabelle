@@ -450,7 +450,7 @@ fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
         preplay =
-          K (ATP_Proof_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
+          K (Sledgehammer_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail}
          : Sledgehammer_Provers.prover_result,

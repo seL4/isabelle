@@ -11,9 +11,9 @@ sig
   type failure = ATP_Proof.failure
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
-  type reconstructor = ATP_Proof_Reconstruct.reconstructor
-  type play = ATP_Proof_Reconstruct.play
-  type minimize_command = ATP_Proof_Reconstruct.minimize_command
+  type reconstructor = Sledgehammer_Reconstruct.reconstructor
+  type play = Sledgehammer_Reconstruct.play
+  type minimize_command = Sledgehammer_Reconstruct.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | MaSh | Auto_Minimize | Minimize
 

@@ -8,7 +8,7 @@ Minimization of fact list for Metis using external provers.
 signature SLEDGEHAMMER_MINIMIZE =
 sig
   type stature = ATP_Problem_Generate.stature
-  type play = ATP_Proof_Reconstruct.play
+  type play = Sledgehammer_Reconstruct.play
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
@@ -34,9 +34,9 @@ struct
 open ATP_Util
 open ATP_Proof
 open ATP_Problem_Generate
-open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Fact
+open Sledgehammer_Reconstruct
 open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
