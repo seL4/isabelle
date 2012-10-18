@@ -2,8 +2,8 @@
 
 init_components /home/isabelle/contrib "$HOME/admin/components/main"
 
-  POLYML_HOME="/home/polyml/polyml-5.5.0"
-  ML_SYSTEM="polyml-5.5.0"
+  POLYML_HOME="/home/polyml/polyml-5.4.1"
+  ML_SYSTEM="polyml-5.4.1"
   ML_PLATFORM="x86_64-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
   ML_OPTIONS="-H 2000 --gcthreads 8"
