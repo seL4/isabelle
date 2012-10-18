@@ -1000,7 +1000,7 @@ fun global_qed arg =
   global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
 
 
-(* concluding steps *)
+(* terminal proof steps *)
 
 local
 
@@ -1008,24 +1008,38 @@ fun terminal_proof qeds initial terminal =
   proof_results (SOME initial) #> Seq.maps_results (qeds (#2 (#2 initial), terminal))
   #> Seq.the_result "";
 
-fun skipped_proof x =
-  (Output.report (Markup.markup Isabelle_Markup.bad "Skipped proof"); x);
-
 in
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof ((Method.default_text, Position.no_range), NONE);
 val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.no_range), NONE);
-fun local_skip_proof int =
-  local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) #> skipped_proof;
 val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.no_range) (NONE, false);
 
 fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
 val global_default_proof = global_terminal_proof ((Method.default_text, Position.no_range), NONE);
 val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.no_range), NONE);
-fun global_skip_proof int =
-  global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) #> skipped_proof;
 val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false);
+
+end;
+
+
+(* skip proofs *)
+
+local
+
+fun skipped_proof state =
+  Context_Position.if_visible (context_of state) Output.report
+    (Markup.markup Isabelle_Markup.bad "Skipped proof");
+
+in
+
+fun local_skip_proof int state =
+  local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
+  skipped_proof state;
+
+fun global_skip_proof int state =
+  global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
+  skipped_proof state;
 
 end;
 
@@ -1069,7 +1083,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     state
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
     |> int ? (fn goal_state =>
-      (case test_proof goal_state of
+      (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
         Exn.Res (SOME _) => goal_state
       | Exn.Res NONE => error (fail_msg (context_of goal_state))
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
