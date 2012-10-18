@@ -882,6 +882,11 @@ fun run_atp mode name
               end,
            fn preplay =>
               let
+                val _ =
+                  if verbose then
+                    Output.urgent_message "Generating proof text..."
+                  else
+                    ()
                 val isar_params =
                   (debug, verbose, isar_shrinkage, pool, fact_names, sym_tab,
                    atp_proof, goal)

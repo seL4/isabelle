@@ -634,7 +634,8 @@ fun string_for_proof ctxt type_enc lam_trans i n =
       maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
       o annotate_types ctxt
     val reconstr = Metis (type_enc, lam_trans)
-    fun do_facts (ls, ss) =
+    fun do_facts ind (ls, ss) =
+      "\n" ^ do_indent (ind + 1) ^
       reconstructor_command reconstr 1 1 [] 0
           (ls |> sort_distinct (prod_ord string_ord int_ord),
            ss |> sort_distinct string_ord)
@@ -646,12 +647,12 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
       | do_step ind (Prove (qs, l, t, By_Metis facts)) =
         do_indent ind ^ do_have qs ^ " " ^
-        do_label l ^ do_term t ^ " " ^ do_facts facts ^ "\n"
+        do_label l ^ do_term t ^ do_facts ind facts ^ "\n"
       | do_step ind (Prove (qs, l, t, Case_Split (proofs, facts))) =
         implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
                      proofs) ^
-        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^ " " ^
-        do_facts facts ^ "\n"
+        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
+        do_facts ind facts ^ "\n"
     and do_steps prefix suffix ind steps =
       let val s = implode (map (do_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
