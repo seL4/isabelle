@@ -67,16 +67,16 @@ fun init_name reset parent name =
 (* finish *)
 
 fun finish () =
-  (Thy_Info.finish ();
-    Present.finish ();
-    Keyword.status ();
-    Outer_Syntax.check_syntax ();
-    Future.shutdown ();
-    Goal.finish_futures ();
-    Goal.cancel_futures ();
-    Future.shutdown ();
-    Options.reset_default ();
-    session_finished := true);
+ (Future.shutdown ();
+  Goal.finish_futures ();
+  Thy_Info.finish ();
+  Present.finish ();
+  Keyword.status ();
+  Outer_Syntax.check_syntax ();
+  Goal.cancel_futures ();
+  Future.shutdown ();
+  Options.reset_default ();
+  session_finished := true);
 
 
 (* use_dir *)
@@ -124,12 +124,16 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
-     (Output.physical_stderr
-        "### Legacy feature: old \"isabelle usedir\" -- use \"isabelle build\" instead!\n";
-      init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
-        (doc_dump dump) rpath verbose;
-      with_timing item timing use root;
-      finish ()))
+    let
+      val _ =
+        Output.physical_stderr
+          "### Legacy feature: old \"isabelle usedir\" -- use \"isabelle build\" instead!\n";
+      val _ =
+        init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
+          (doc_dump dump) rpath verbose;
+      val res1 = (use |> with_timing item timing |> Exn.capture) root;
+      val res2 = Exn.capture finish ();
+    in ignore (Par_Exn.release_all [res1, res2]) end)
     |> Unsynchronized.setmp Proofterm.proofs level
     |> Unsynchronized.setmp print_mode (modes @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs parallel_proofs

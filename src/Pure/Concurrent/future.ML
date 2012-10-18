@@ -26,10 +26,10 @@ Notes:
   * Future tasks are organized in groups, which are block-structured.
     When forking a new new task, the default is to open an individual
     subgroup, unless some common group is specified explicitly.
-    Failure of one group member causes the immediate peers to be
-    interrupted eventually (i.e. none by default).  Interrupted tasks
-    that lack regular result information, will pick up parallel
-    exceptions from the cumulative group context (as Par_Exn).
+    Failure of one group member causes peer and subgroup members to be
+    interrupted eventually.  Interrupted tasks that lack regular
+    result information, will pick up parallel exceptions from the
+    cumulative group context (as Par_Exn).
 
   * Future task groups may be canceled: present and future group
     members will be interrupted eventually.
@@ -63,7 +63,6 @@ sig
   val join_result: 'a future -> 'a Exn.result
   val joins: 'a future list -> 'a list
   val join: 'a future -> 'a
-  val join_tasks: task list -> unit
   val value_result: 'a Exn.result -> 'a future
   val value: 'a -> 'a future
   val cond_forks: params -> (unit -> 'a) list -> 'a future list
@@ -72,9 +71,8 @@ sig
   val promise: (unit -> unit) -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
   val fulfill: 'a future -> 'a -> unit
+  val terminate: group -> unit
   val shutdown: unit -> unit
-  val group_tasks: group -> task list
-  val queue_status: unit -> {ready: int, pending: int, running: int, passive: int}
 end;
 
 structure Future: FUTURE =
@@ -410,12 +408,15 @@ fun scheduler_check () = (*requires SYNCHRONIZED*)
 
 (* cancel *)
 
-fun cancel_group group = SYNCHRONIZED "cancel_group" (fn () =>
+fun cancel_group_unsynchronized group = (*requires SYNCHRONIZED*)
   let
     val _ = if null (cancel_now group) then () else cancel_later group;
     val _ = signal work_available;
     val _ = scheduler_check ();
-  in () end);
+  in () end;
+
+fun cancel_group group =
+  SYNCHRONIZED "cancel_group" (fn () => cancel_group_unsynchronized group);
 
 fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
@@ -542,13 +543,6 @@ fun join_result x = singleton join_results x;
 fun joins xs = Par_Exn.release_all (join_results xs);
 fun join x = Exn.release (join_result x);
 
-fun join_tasks [] = ()
-  | join_tasks tasks =
-      (singleton o forks)
-        {name = "join_tasks", group = SOME (new_group NONE),
-          deps = tasks, pri = 0, interrupts = false} I
-      |> join;
-
 
 (* fast-path versions -- bypassing task queue *)
 
@@ -569,7 +563,7 @@ fun cond_forks args es =
 fun map_future f x =
   let
     val task = task_of x;
-    val group = new_group (SOME (Task_Queue.group_of_task task));
+    val group = Task_Queue.group_of_task task;
     val (result, job) = future_job group true (fn () => f (join x));
 
     val extended = SYNCHRONIZED "extend" (fn () =>
@@ -633,6 +627,24 @@ fun fulfill_result (Future {promised, task, result}) res =
 fun fulfill x res = fulfill_result x (Exn.Res res);
 
 
+(* terminate *)
+
+fun terminate group =
+  let
+    val tasks =
+      SYNCHRONIZED "terminate" (fn () =>
+        let val _ = cancel_group_unsynchronized group;
+        in Task_Queue.group_tasks (! queue) group end);
+  in
+    if null tasks then ()
+    else
+      (singleton o forks)
+        {name = "terminate", group = SOME (new_group NONE),
+          deps = tasks, pri = 0, interrupts = false} I
+      |> join
+  end;
+
+
 (* shutdown *)
 
 fun shutdown () =
@@ -644,8 +656,6 @@ fun shutdown () =
 
 
 (* queue status *)
-
-fun group_tasks group = Task_Queue.group_tasks (! queue) group;
 
 fun queue_status () = Task_Queue.status (! queue);
 
