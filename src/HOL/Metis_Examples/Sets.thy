@@ -21,7 +21,7 @@ by metis
 lemma "P(n::nat) ==> ~P(0) ==> n ~= 0"
 by metis
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 1]
+sledgehammer_params [isar_proofs, isar_shrinkage = 1]
 
 (*multiple versions of this example*)
 lemma (*equal_union: *)
@@ -70,7 +70,7 @@ proof -
   ultimately show "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V\<Colon>'a set. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))" by metis
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 2]
+sledgehammer_params [isar_proofs, isar_shrinkage = 2]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
@@ -107,7 +107,7 @@ proof -
   ultimately show "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V\<Colon>'a set. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))" by metis
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 3]
+sledgehammer_params [isar_proofs, isar_shrinkage = 3]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
@@ -124,7 +124,7 @@ proof -
   ultimately show "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V\<Colon>'a set. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))" by (metis Un_commute Un_upper2)
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 4]
+sledgehammer_params [isar_proofs, isar_shrinkage = 4]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"
@@ -140,7 +140,7 @@ proof -
   ultimately show "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V\<Colon>'a set. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))" by (metis Un_subset_iff Un_upper2)
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 1]
+sledgehammer_params [isar_proofs, isar_shrinkage = 1]
 
 lemma (*equal_union: *)
    "(X = Y \<union> Z) = (Y \<subseteq> X \<and> Z \<subseteq> X \<and> (\<forall>V. Y \<subseteq> V \<and> Z \<subseteq> V \<longrightarrow> X \<subseteq> V))"

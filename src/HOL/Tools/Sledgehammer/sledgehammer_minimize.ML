@@ -54,7 +54,7 @@ fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  max_new_mono_instances, type_enc, strict, lam_trans,
-                 uncurried_aliases, isar_proof, isar_shrink_factor,
+                 uncurried_aliases, isar_proofs, isar_shrinkage,
                  preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
@@ -72,9 +72,9 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
        learn = false, fact_filter = NONE, max_facts = SOME (length facts),
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
-       max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
-       isar_shrink_factor = isar_shrink_factor, slice = false,
-       minimize = SOME false, timeout = timeout,
+       max_new_mono_instances = max_new_mono_instances,
+       isar_proofs = isar_proofs, isar_shrinkage = isar_shrinkage,
+       slice = false, minimize = SOME false, timeout = timeout,
        preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
@@ -236,8 +236,8 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
 fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
          lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
-         fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proof,
-         isar_shrink_factor, slice, minimize, timeout, preplay_timeout, expect}
+         fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
+         isar_shrinkage, slice, minimize, timeout, preplay_timeout, expect}
          : params) =
   let
     fun lookup_override name default_value =
@@ -254,14 +254,13 @@ fun adjust_reconstructor_params override_params
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, slice = slice,
-     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
-     expect = expect}
+     max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
+     isar_shrinkage = isar_shrinkage, slice = slice, minimize = minimize,
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun maybe_minimize ctxt mode do_learn name
-        (params as {verbose, isar_proof, minimize, ...})
+        (params as {verbose, isar_proofs, minimize, ...})
         ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
         (result as {outcome, used_facts, run_time, preplay, message,
                     message_tail} : prover_result) =
@@ -282,7 +281,7 @@ fun maybe_minimize ctxt mode do_learn name
                 <= Config.get ctxt auto_minimize_max_time
               fun prover_fast_enough () = can_min_fast_enough run_time
             in
-              if isar_proof then
+              if isar_proofs then
                 ((prover_fast_enough (), (name, params)), preplay)
               else
                 let val preplay = preplay () in

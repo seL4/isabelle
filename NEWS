@@ -185,6 +185,8 @@ Minor INCOMPATIBILITY.
   - Rationalized type encodings ("type_enc" option).
   - Renamed "kill_provers" subcommand to "kill"
   - Renamed options:
+      isar_proof ~> isar_proofs
+      isar_shrink_factor ~> isar_shrinkage
       max_relevant ~> max_facts
       relevance_thresholds ~> fact_thresholds
 

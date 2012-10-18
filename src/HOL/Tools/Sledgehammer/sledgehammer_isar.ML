@@ -94,8 +94,8 @@ val default_default_params =
    ("fact_thresholds", "0.45 0.85"),
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
-   ("isar_proof", "false"),
-   ("isar_shrink_factor", "1"),
+   ("isar_proofs", "false"),
+   ("isar_shrinkage", "10"),
    ("slice", "true"),
    ("minimize", "smart"),
    ("preplay_timeout", "3")]
@@ -112,14 +112,14 @@ val negated_alias_params =
    ("non_strict", "strict"),
    ("no_uncurried_aliases", "uncurried_aliases"),
    ("dont_learn", "learn"),
-   ("no_isar_proof", "isar_proof"),
+   ("no_isar_proofs", "isar_proofs"),
    ("dont_slice", "slice"),
    ("dont_minimize", "minimize")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
-   "isar_proof", "isar_shrink_factor", "timeout", "preplay_timeout"]
+   "isar_proofs", "isar_shrinkage", "timeout", "preplay_timeout"]
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -272,6 +272,13 @@ fun extract_params mode default_params override_params =
                     SOME n => n
                   | NONE => error ("Parameter " ^ quote name ^
                                    " must be assigned an integer value.")
+    fun lookup_real name =
+      case lookup name of
+        NONE => 0.0
+      | SOME s => case Real.fromString s of
+                    SOME n => n
+                  | NONE => error ("Parameter " ^ quote name ^
+                                   " must be assigned a real value.")
     fun lookup_real_pair name =
       case lookup name of
         NONE => (0.0, 0.0)
@@ -308,8 +315,8 @@ fun extract_params mode default_params override_params =
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
-    val isar_proof = lookup_bool "isar_proof"
-    val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
+    val isar_proofs = lookup_bool "isar_proofs"
+    val isar_shrinkage = Real.max (1.0, lookup_real "isar_shrinkage")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =
       if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
@@ -325,10 +332,9 @@ fun extract_params mode default_params override_params =
      lam_trans = lam_trans, uncurried_aliases = uncurried_aliases,
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, slice = slice,
-     minimize = minimize, timeout = timeout, preplay_timeout = preplay_timeout,
-     expect = expect}
+     max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
+     isar_shrinkage = isar_shrinkage, slice = slice, minimize = minimize,
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

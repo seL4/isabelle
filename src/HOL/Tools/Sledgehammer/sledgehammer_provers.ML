@@ -33,8 +33,8 @@ sig
      fact_thresholds : real * real,
      max_mono_iters : int option,
      max_new_mono_instances : int option,
-     isar_proof : bool,
-     isar_shrink_factor : int,
+     isar_proofs : bool,
+     isar_shrinkage : real,
      slice : bool,
      minimize : bool option,
      timeout : Time.time,
@@ -326,8 +326,8 @@ type params =
    fact_thresholds : real * real,
    max_mono_iters : int option,
    max_new_mono_instances : int option,
-   isar_proof : bool,
-   isar_shrink_factor : int,
+   isar_proofs : bool,
+   isar_shrinkage : real,
    slice : bool,
    minimize : bool option,
    timeout : Time.time,
@@ -642,7 +642,7 @@ fun run_atp mode name
           best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, max_facts, max_mono_iters,
-                    max_new_mono_instances, isar_proof, isar_shrink_factor,
+                    max_new_mono_instances, isar_proofs, isar_shrinkage,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
@@ -777,7 +777,7 @@ fun run_atp mode name
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
-            val full_proof = debug orelse isar_proof
+            val full_proof = debug orelse isar_proofs
             val args = arguments ctxt full_proof extra slice_timeout
                                  (ord, ord_info, sel_weights)
             val command =
@@ -883,7 +883,7 @@ fun run_atp mode name
            fn preplay =>
               let
                 val isar_params =
-                  (debug, isar_shrink_factor, pool, fact_names, sym_tab,
+                  (debug, verbose, isar_shrinkage, pool, fact_names, sym_tab,
                    atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
@@ -891,7 +891,7 @@ fun run_atp mode name
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
-                proof_text ctxt isar_proof isar_params num_chained
+                proof_text ctxt isar_proofs isar_params num_chained
                            one_line_params
               end,
            (if verbose then

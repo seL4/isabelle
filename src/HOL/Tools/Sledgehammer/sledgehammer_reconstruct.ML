@@ -23,7 +23,7 @@ sig
   type one_line_params =
     play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
-    bool * int * string Symtab.table * (string * stature) list vector
+    bool * bool * real * string Symtab.table * (string * stature) list vector
     * int Symtab.table * string proof * thm
 
   val smtN : string
@@ -52,6 +52,7 @@ open ATP_Problem
 open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
+open Sledgehammer_Util
 
 structure String_Redirect = ATP_Proof_Redirect(
   type key = step_name
@@ -448,9 +449,9 @@ and delete_dependency name lines =
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
-fun add_desired_line _ _ _ (line as Definition_Step (name, _, _)) (j, lines) =
+fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
-  | add_desired_line isar_shrink_factor fact_names frees
+  | add_desired_line fact_names frees
         (Inference_Step (name as (_, ss), t, rule, deps)) (j, lines) =
     (j + 1,
      if is_fact fact_names ss orelse
@@ -460,7 +461,7 @@ fun add_desired_line _ _ _ (line as Definition_Step (name, _, _)) (j, lines) =
         (not (is_only_type_information t) andalso
          null (Term.add_tvars t []) andalso
          not (exists_subterm (is_bad_free frees) t) andalso
-         length deps >= 2 andalso j mod isar_shrink_factor = 0 andalso
+         length deps >= 2 andalso
          (* kill next to last line, which usually results in a trivial step *)
          j <> 1) then
        Inference_Step (name, t, rule, deps) :: lines  (* keep line *)
@@ -751,7 +752,7 @@ val relabel_proof =
 
 val merge_timeout_slack = 1.2
 
-fun minimize_locally ctxt type_enc lam_trans proof =
+fun shrink_locally ctxt type_enc lam_trans isar_shrinkage proof =
   let
     (* Merging spots, greedy algorithm *)
     fun cost (Prove (_, _ , t, _)) = Term.size_of_term t
@@ -824,24 +825,26 @@ fun minimize_locally ctxt type_enc lam_trans proof =
          SOME (front @ (the_list s0 @ s12 :: tail)))
         handle _ => NONE
       end
-    fun merge_steps proof [] = proof
-      | merge_steps proof (i :: is) = 
-        case try_merge proof i of 
-          NONE => merge_steps proof is
+    fun spill_shrinkage shrinkage = isar_shrinkage + shrinkage - 1.0
+    fun merge_steps _ proof [] = proof
+      | merge_steps shrinkage proof (i :: is) = 
+        if shrinkage < 1.5 then
+          merge_steps (spill_shrinkage shrinkage) proof is
+        else case try_merge proof i of
+          NONE => merge_steps (spill_shrinkage shrinkage) proof is
         | SOME proof' =>
-          merge_steps proof' (map (fn j => if j > i then j - 1 else j) is)
-  in merge_steps proof merge_spots end
+          merge_steps (shrinkage - 1.0) proof'
+            (map (fn j => if j > i then j - 1 else j) is)
+  in merge_steps isar_shrinkage proof merge_spots end
 
 type isar_params =
-  bool * int * string Symtab.table * (string * stature) list vector
+  bool * bool * real * string Symtab.table * (string * stature) list vector
   * int Symtab.table * string proof * thm
 
-fun isar_proof_text ctxt isar_proof_requested
-        (debug, isar_shrink_factor, pool, fact_names, sym_tab, atp_proof, goal)
-        (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
+fun isar_proof_text ctxt isar_proofs
+    (debug, verbose, isar_shrinkage, pool, fact_names, sym_tab, atp_proof, goal)
+    (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
-    val isar_shrink_factor =
-      (if isar_proof_requested then 1 else 2) * isar_shrink_factor
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val one_line_proof = one_line_proof_text 0 one_line_params
@@ -862,7 +865,7 @@ fun isar_proof_text ctxt isar_proof_requested
           |> repair_waldmeister_endgame
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])
-          |-> fold_rev (add_desired_line isar_shrink_factor fact_names frees)
+          |-> fold_rev (add_desired_line fact_names frees)
           |> snd
         val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
         val conjs =
@@ -908,42 +911,54 @@ fun isar_proof_text ctxt isar_proof_requested
           map (do_inf outer) infs
         val isar_proof =
           (if null params then [] else [Fix params]) @
-           (ref_graph
+          (ref_graph
            |> redirect_graph axioms tainted
            |> chain_direct_proof
            |> map (do_inf true)
            |> kill_duplicate_assumptions_in_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> minimize_locally ctxt type_enc lam_trans)
-          |> string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
+           |> shrink_locally ctxt type_enc lam_trans
+                (if isar_proofs then isar_shrinkage else 1000.0))
+        val num_steps = length isar_proof
+        val isar_text =
+          string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
+                           isar_proof
       in
-        case isar_proof of
+        case isar_text of
           "" =>
-          if isar_proof_requested then
+          if isar_proofs then
             "\nNo structured proof available (proof too short)."
           else
             ""
         | _ =>
-          "\n\n" ^ (if isar_proof_requested then "Structured proof"
-                    else "Perhaps this will work") ^
-          ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_proof
+          "\n\n" ^
+          (if isar_proofs then
+             "Structured proof" ^
+             (if verbose then
+                " (" ^ string_of_int num_steps ^ " step" ^ plural_s num_steps ^
+                ")"
+              else
+                "")
+           else
+             "Perhaps this will work") ^
+          ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_text
       end
     val isar_proof =
       if debug then
         isar_proof_of ()
       else case try isar_proof_of () of
         SOME s => s
-      | NONE => if isar_proof_requested then
+      | NONE => if isar_proofs then
                   "\nWarning: The Isar proof construction failed."
                 else
                   ""
   in one_line_proof ^ isar_proof end
 
-fun proof_text ctxt isar_proof isar_params num_chained
+fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if case preplay of Failed_to_Play _ => true | _ => isar_proof then
-     isar_proof_text ctxt isar_proof isar_params
+  (if case preplay of Failed_to_Play _ => true | _ => isar_proofs then
+     isar_proof_text ctxt isar_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params
 

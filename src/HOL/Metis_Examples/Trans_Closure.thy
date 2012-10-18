@@ -44,7 +44,7 @@ qed
 
 lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b,c) \<in> R\<^sup>*\<rbrakk>
        \<Longrightarrow> \<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*"
-(* sledgehammer [isar_proof, isar_shrink_factor = 2] *)
+(* sledgehammer [isar_proofs, isar_shrinkage = 2] *)
 proof -
   assume A1: "f c = Intg x"
   assume A2: "\<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x"

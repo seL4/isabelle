@@ -29,7 +29,7 @@ by (metis (no_types) abs_ge_zero
 
 (*** Now various verions with an increasing shrink factor ***)
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 1]
+sledgehammer_params [isar_proofs, isar_shrinkage = 1]
 
 lemma
   "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
@@ -60,7 +60,7 @@ proof -
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis F4)
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 2]
+sledgehammer_params [isar_proofs, isar_shrinkage = 2]
 
 lemma
   "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
@@ -83,7 +83,7 @@ proof -
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis F2)
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 3]
+sledgehammer_params [isar_proofs, isar_shrinkage = 3]
 
 lemma
   "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
@@ -103,7 +103,7 @@ proof -
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis A1 abs_ge_zero)
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 4]
+sledgehammer_params [isar_proofs, isar_shrinkage = 4]
 
 lemma
   "(\<exists>c\<Colon>'a\<Colon>linordered_idom.
@@ -123,7 +123,7 @@ proof -
   thus "\<bar>h x\<bar> \<le> \<bar>c\<bar> * \<bar>f x\<bar>" by (metis abs_mult)
 qed
 
-sledgehammer_params [isar_proof, isar_shrink_factor = 1]
+sledgehammer_params [isar_proofs, isar_shrinkage = 1]
 
 lemma bigo_alt_def: "O(f) = {h. \<exists>c. (0 < c \<and> (\<forall>x. abs (h x) <= c * abs (f x)))}"
 by (auto simp add: bigo_def bigo_pos_const)
