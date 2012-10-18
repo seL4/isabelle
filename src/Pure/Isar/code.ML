@@ -372,29 +372,24 @@ fun analyze_constructor thy (c, ty) =
     val (_, vs) = last_typ (c, ty) ty;
   in ((tyco, map snd vs), (c, (map fst vs, ty))) end;
 
-fun constrset_of_consts thy cs =
+fun constrset_of_consts thy consts =
   let
     val _ = map (fn (c, _) => if (is_some o AxClass.class_of_param thy) c
-      then error ("Is a class parameter: " ^ string_of_const thy c) else ()) cs;
-    fun add ((tyco', sorts'), c) ((tyco, sorts), cs) =
-      let
-        val _ = if (tyco' : string) <> tyco
-          then error "Different type constructors in constructor set"
-          else ();
-        val sorts'' =
-          map2 (curry (Sorts.inter_sort (Sign.classes_of thy))) sorts' sorts
-      in ((tyco, sorts''), c :: cs) end;
+      then error ("Is a class parameter: " ^ string_of_const thy c) else ()) consts;
+    val raw_constructors = map (analyze_constructor thy) consts;
+    val tyco = case distinct (op =) (map (fst o fst) raw_constructors)
+     of [tyco] => tyco
+      | [] => error "Empty constructor set"
+      | tycos => error ("Different type constructors in constructor set: " ^ commas_quote tycos)
+    val vs = Name.invent Name.context Name.aT (Sign.arity_number thy tyco);
     fun inst vs' (c, (vs, ty)) =
       let
         val the_v = the o AList.lookup (op =) (vs ~~ vs');
-        val ty' = map_type_tfree (fn (v, _) => TFree (the_v v)) ty;
-        val (vs'', _) = typscheme thy (c, ty');
-      in (c, (vs'', binder_types ty')) end;
-    val c' :: cs' = map (analyze_constructor thy) cs;
-    val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
-    val vs = Name.invent_names Name.context Name.aT sorts;
-    val cs''' = map (inst vs) cs'';
-  in (tyco, (vs, rev cs''')) end;
+        val ty' = map_type_tfree (fn (v, _) => TFree (the_v v, [])) ty;
+        val (vs'', ty'') = typscheme thy (c, ty');
+      in (c, (vs'', binder_types ty'')) end;
+    val constructors = map (inst vs o snd) raw_constructors;
+  in (tyco, (map (rpair []) vs, constructors)) end;
 
 fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
  of (_, entry) :: _ => SOME entry
