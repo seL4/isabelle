@@ -339,8 +339,10 @@ fun get_goal state =
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
       [(Pretty.block o Pretty.fbreaks)
-        (Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"] ::
-          map (Display.pretty_thm ctxt) ths), Pretty.str ""];
+        ((if s = "" then Pretty.str "this:"
+          else Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"]) ::
+          map (Display.pretty_thm ctxt) ths),
+        Pretty.str ""];
 
 fun pretty_state nr state =
   let
@@ -349,7 +351,7 @@ fun pretty_state nr state =
 
     fun prt_goal (SOME (_, (_,
       {statement = ((_, pos), _, _), messages, using, goal, before_qed = _, after_qed = _}))) =
-          pretty_facts "using " ctxt
+          pretty_facts "using" ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Proof_Display.pretty_goal_header goal] @ Goal_Display.pretty_goals ctxt goal @
           (map (fn msg => Position.setmp_thread_data pos msg ()) (rev messages))
@@ -366,7 +368,7 @@ fun pretty_state nr state =
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
     (if verbose orelse mode = Forward then
        pretty_facts "" ctxt facts @ prt_goal (try find_goal state)
-     else if mode = Chain then pretty_facts "picking " ctxt facts
+     else if mode = Chain then pretty_facts "picking" ctxt facts
      else prt_goal (try find_goal state))
   end;
 
@@ -1000,7 +1002,7 @@ fun global_qed arg =
   global_qeds (Position.none, arg) #> Seq.the_result finished_goal_error;
 
 
-(* concluding steps *)
+(* terminal proof steps *)
 
 local
 
@@ -1008,24 +1010,38 @@ fun terminal_proof qeds initial terminal =
   proof_results (SOME initial) #> Seq.maps_results (qeds (#2 (#2 initial), terminal))
   #> Seq.the_result "";
 
-fun skipped_proof x =
-  (Output.report (Markup.markup Isabelle_Markup.bad "Skipped proof"); x);
-
 in
 
 fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof ((Method.default_text, Position.no_range), NONE);
 val local_immediate_proof = local_terminal_proof ((Method.this_text, Position.no_range), NONE);
-fun local_skip_proof int =
-  local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) #> skipped_proof;
 val local_done_proof = terminal_proof local_qeds (Method.done_text, Position.no_range) (NONE, false);
 
 fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
 val global_default_proof = global_terminal_proof ((Method.default_text, Position.no_range), NONE);
 val global_immediate_proof = global_terminal_proof ((Method.this_text, Position.no_range), NONE);
-fun global_skip_proof int =
-  global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) #> skipped_proof;
 val global_done_proof = terminal_proof global_qeds (Method.done_text, Position.no_range) (NONE, false);
+
+end;
+
+
+(* skip proofs *)
+
+local
+
+fun skipped_proof state =
+  Context_Position.if_visible (context_of state) Output.report
+    (Markup.markup Isabelle_Markup.bad "Skipped proof");
+
+in
+
+fun local_skip_proof int state =
+  local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
+  skipped_proof state;
+
+fun global_skip_proof int state =
+  global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
+  skipped_proof state;
 
 end;
 
@@ -1069,7 +1085,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     state
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
     |> int ? (fn goal_state =>
-      (case test_proof goal_state of
+      (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
         Exn.Res (SOME _) => goal_state
       | Exn.Res NONE => error (fail_msg (context_of goal_state))
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
@@ -1109,6 +1125,21 @@ fun is_relevant state =
 
 local
 
+structure Result = Proof_Data
+(
+  type T = thm option;
+  val empty = NONE;
+  fun init _ = empty;
+);
+
+fun the_result ctxt =
+  (case Result.get ctxt of
+    NONE => error "No result of forked proof"
+  | SOME th => th);
+
+val set_result = Result.put o SOME;
+val reset_result = Result.put NONE;
+
 fun future_proof done get_context fork_proof state =
   let
     val _ = assert_backward state;
@@ -1124,20 +1155,16 @@ fun future_proof done get_context fork_proof state =
     val statement' = (kind, [[], [prop']], prop');
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
-
-    fun after_local' [[th]] = put_thms false (Auto_Bind.thisN, SOME [th]);
-    fun after_global' [[th]] = Proof_Context.put_thms false (Auto_Bind.thisN, SOME [th]);
-    val after_qed' = (after_local', after_global');
-    val this_name = Proof_Context.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
+    val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
 
     val result_ctxt =
       state
+      |> map_context reset_result
       |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
         (fold (Variable.declare_typ o TFree) goal_tfrees)
       |> fork_proof;
 
-    val future_thm = result_ctxt |> Future.map (fn (_, x) =>
-      Proof_Context.get_fact_single (get_context x) (Facts.named this_name));
+    val future_thm = result_ctxt |> Future.map (fn (_, x) => the_result (get_context x));
     val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
