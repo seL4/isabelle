@@ -9,11 +9,9 @@ sig
   type isar_params = ATP_Proof_Reconstruct.isar_params
   type one_line_params = ATP_Proof_Reconstruct.one_line_params
   val isar_proof_text :
-    Proof.context -> bool -> isar_params -> 
-      one_line_params -> string
+    Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool -> isar_params -> 
-      int -> one_line_params -> string
+    Proof.context -> bool -> isar_params -> int -> one_line_params -> string
 end;
 
 structure Sledgehammer_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -223,17 +221,18 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-fun min_local ctxt type_enc lam_trans proof =
+fun minimize_locally ctxt type_enc lam_trans proof =
   let
     (* Merging spots, greedy algorithm *)
     fun cost (Prove (_, _ , t, _)) = Term.size_of_term t
       | cost _ = ~1
-    fun can_merge (Prove (_, lbl, _, By_Metis _))  (Prove (_, _, _, By_Metis _)) =
-      (lbl = no_label)
+    fun can_merge (Prove (_, lbl, _, By_Metis _))
+                  (Prove (_, _, _, By_Metis _)) =
+        (lbl = no_label)
       | can_merge _ _ = false
     val merge_spots = 
-      fold_index 
-        (fn (i, s2) => fn (s1, pile) => (s2, pile |> can_merge s1 s2 ? cons (i, cost s1)))
+      fold_index (fn (i, s2) => fn (s1, pile) =>
+          (s2, pile |> can_merge s1 s2 ? cons (i, cost s1)))
         (tl proof) (hd proof, [])
     |> snd |> sort (rev_order o int_ord o pairself snd) |> map fst
 
@@ -241,8 +240,8 @@ fun min_local ctxt type_enc lam_trans proof =
     val thy = Proof_Context.theory_of ctxt
     fun sorry t = Skip_Proof.make_thm thy (HOLogic.mk_Trueprop t) (* FIXME: mk_Trueprop always ok? *)
     fun enrich_ctxt' (Prove (_, lbl, t, _)) ctxt = 
-      if lbl = no_label then ctxt 
-      else Proof_Context.put_thms false (string_for_label lbl, SOME [sorry t]) ctxt
+        ctxt |> lbl <> no_label
+          ? Proof_Context.put_thms false (string_for_label lbl, SOME [sorry t])
       | enrich_ctxt' _ ctxt = ctxt
     val rich_ctxt = fold enrich_ctxt' proof ctxt
 
@@ -256,12 +255,12 @@ fun min_local ctxt type_enc lam_trans proof =
     fun try_metis (Prove (qs, _, t, By_Metis fact_names)) s0 =
       let
         fun thmify (Prove (_, _, t, _)) = sorry t
-        val facts = fact_names |>> map string_for_label
-                               |> op@
-                               |> map (Proof_Context.get_thm rich_ctxt)
-                               |> (if member op= qs Then 
-                                   then cons (the s0 |> thmify)
-                                   else I)
+        val facts =
+          fact_names
+          |>> map string_for_label
+          |> op @
+          |> map (Proof_Context.get_thm rich_ctxt)
+          |> (if member (op =) qs Then then cons (the s0 |> thmify) else I)
         val goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop t) (* FIXME: mk_Trueprop always ok? *)
         fun tac {context = ctxt, prems = _} =
           Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
@@ -273,31 +272,37 @@ fun min_local ctxt type_enc lam_trans proof =
     fun merge (Prove (qs1, _, _, By_Metis (ls1, ss1))) 
               (Prove (qs2, lbl , t, By_Metis (ls2, ss2))) =
       let
-        val qs = (inter op= qs1 qs2) (* FIXME: Is this correct? *)
-          |> member op= (union op= qs1 qs2) Ultimately ? cons Ultimately
-          |> member op= qs2 Show ? cons Show
-      in Prove (qs, lbl, t, By_Metis (ls1@ls2, ss1@ss2)) end
+        val qs =
+          inter (op =) qs1 qs2 (* FIXME: Is this correct? *)
+          |> member (op =) (union (op =) qs1 qs2) Ultimately ? cons Ultimately
+          |> member (op =) qs2 Show ? cons Show
+      in Prove (qs, lbl, t, By_Metis (ls1 @ ls2, ss1 @ ss2)) end
     fun try_merge proof i =
       let
         val (front, s0, s1, s2, tail) = 
           case (proof, i) of
-            ((s1::s2::proof), 0) => ([], NONE, s1, s2, proof)
-          | _ => let val (front, s0::s1::s2::tail) = chop (i-1) proof
-                 in (front, SOME s0, s1, s2, tail) end
+            ((s1 :: s2 :: proof), 0) => ([], NONE, s1, s2, proof)
+          | _ =>
+            let val (front, s0 :: s1 :: s2 :: tail) = chop (i - 1) proof in
+              (front, SOME s0, s1, s2, tail)
+            end
         val s12 = merge s1 s2
         val t1 = try_metis s1 s0 ()
         val t2 = try_metis s2 (SOME s1) ()
         val tlimit = t1 + t2 |> Time.toReal |> curry Real.* 1.2 |> Time.fromReal
       in
         (TimeLimit.timeLimit tlimit (try_metis s12 s0) ();
-          SOME (front @ (case s0 of NONE => s12::tail | SOME s => s::s12::tail)))
+         SOME (front @ (case s0 of
+                          NONE => s12 :: tail
+                        | SOME s => s :: s12 :: tail)))
         handle _ => NONE
       end
     fun merge_steps proof [] = proof
-      | merge_steps proof (i::is) = 
+      | merge_steps proof (i :: is) = 
         case try_merge proof i of 
           NONE => merge_steps proof is
-        | SOME proof' => merge_steps proof' (map (fn j => if j>i then j-1 else j) is)
+        | SOME proof' =>
+          merge_steps proof' (map (fn j => if j > i then j - 1 else j) is)
   in merge_steps proof merge_spots end
 
 fun isar_proof_text ctxt isar_proof_requested
@@ -379,7 +384,7 @@ fun isar_proof_text ctxt isar_proof_requested
            |> kill_duplicate_assumptions_in_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> min_local ctxt type_enc lam_trans)
+           |> minimize_locally ctxt type_enc lam_trans)
           |> string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
       in
         case isar_proof of
