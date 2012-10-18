@@ -28,7 +28,7 @@ proof (rule classical)
       with `\<not> (\<exists>x. \<not> P x)` show ?thesis by contradiction
     qed
   qed
-  with `\<not> (\<forall>x. P x)` show ?thesis ..
+  with `\<not> (\<forall>x. P x)` show ?thesis by contradiction
 qed
 
 theorem Drinker's_Principle: "\<exists>x. drunk x \<longrightarrow> (\<forall>x. drunk x)"
