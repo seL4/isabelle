@@ -749,6 +749,8 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
+val merge_timeout_slack = 1.2
+
 fun minimize_locally ctxt type_enc lam_trans proof =
   let
     (* Merging spots, greedy algorithm *)
@@ -762,9 +764,9 @@ fun minimize_locally ctxt type_enc lam_trans proof =
       fold_index (fn (i, s2) => fn (s1, pile) =>
           (s2, pile |> can_merge s1 s2 ? cons (i, cost s1)))
         (tl proof) (hd proof, [])
-    |> snd |> sort (rev_order o int_ord o pairself snd) |> map fst
+      |> snd |> sort (rev_order o int_ord o pairself snd) |> map fst
 
-    (* Enrich context with facts *)
+    (* Enrich context with local facts *)
     val thy = Proof_Context.theory_of ctxt
     fun sorry t = Skip_Proof.make_thm thy (HOLogic.mk_Trueprop t)
     fun enrich_ctxt' (Prove (_, lbl, t, _)) ctxt = 
@@ -775,8 +777,8 @@ fun minimize_locally ctxt type_enc lam_trans proof =
 
     (* Timing *)
     fun take_time tac arg =
-      let val t_start = Timing.start () in
-        (tac arg; Timing.result t_start |> #cpu)
+      let val timing = Timing.start () in
+        (tac arg; Timing.result timing |> #cpu)
       end
     fun try_metis (Prove (qs, _, t, By_Metis fact_names)) s0 =
       let
@@ -814,9 +816,11 @@ fun minimize_locally ctxt type_enc lam_trans proof =
         val s12 = merge s1 s2
         val t1 = try_metis s1 s0 ()
         val t2 = try_metis s2 (SOME s1) ()
-        val tlimit = t1 + t2 |> Time.toReal |> curry Real.* 1.2 |> Time.fromReal
+        val timeout =
+          t1 + t2 |> Time.toReal |> curry Real.* merge_timeout_slack
+                  |> Time.fromReal
       in
-        (TimeLimit.timeLimit tlimit (try_metis s12 s0) ();
+        (TimeLimit.timeLimit timeout (try_metis s12 s0) ();
          SOME (front @ (the_list s0 @ s12 :: tail)))
         handle _ => NONE
       end
