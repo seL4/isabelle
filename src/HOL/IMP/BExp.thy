@@ -80,7 +80,7 @@ text_raw{*}%endsnip*}
 
 value "bsimp (And (Less (N 0) (N 1)) b)"
 
-value "bsimp (And (Less (N 1) (N 0)) (B True))"
+value "bsimp (And (Less (N 1) (N 0)) (Bc True))"
 
 theorem "bval (bsimp b) s = bval b s"
 apply(induction b)
