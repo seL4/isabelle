@@ -27,8 +27,7 @@ sig
   val fork_name: string -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
   val peek_futures: serial -> unit future list
-  val finish_futures: unit -> unit
-  val cancel_futures: unit -> unit
+  val reset_futures: unit -> Future.group list
   val future_enabled_level: int -> bool
   val future_enabled: unit -> bool
   val future_enabled_nested: int -> bool
@@ -174,14 +173,9 @@ fun forked_count () = #1 (Synchronized.value forked_proofs);
 fun peek_futures id =
   Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
 
-fun finish_futures () =
-  (case map_filter Task_Queue.group_status (#2 (Synchronized.value forked_proofs)) of
-    [] => ()
-  | exns => raise Par_Exn.make exns);
-
-fun cancel_futures () =
-  Synchronized.change forked_proofs (fn (m, groups, tab) =>
-    (List.app Future.cancel_group groups; (0, [], Inttab.empty)));
+fun reset_futures () =
+  Synchronized.change_result forked_proofs (fn (m, groups, tab) =>
+    (groups, (0, [], Inttab.empty)));
 
 end;
 

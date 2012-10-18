@@ -66,15 +66,18 @@ fun init_name reset parent name =
 
 (* finish *)
 
+fun finish_futures () =
+  (case map_filter Task_Queue.group_status (Goal.reset_futures ()) of
+    [] => ()
+  | exns => raise Par_Exn.make exns);
+
 fun finish () =
  (Future.shutdown ();
-  Goal.finish_futures ();
+  finish_futures ();
   Thy_Info.finish ();
   Present.finish ();
   Keyword.status ();
   Outer_Syntax.check_syntax ();
-  Goal.cancel_futures ();
-  Future.shutdown ();
   Options.reset_default ();
   session_finished := true);
 
