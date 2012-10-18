@@ -549,23 +549,21 @@ qed (auto intro: bool_induct)
 
 end
 
+lemma not_False_in_image_Ball [simp]:
+  "False \<notin> P ` A \<longleftrightarrow> Ball A P"
+  by auto
+
+lemma True_in_image_Bex [simp]:
+  "True \<in> P ` A \<longleftrightarrow> Bex A P"
+  by auto
+
 lemma INF_bool_eq [simp]:
   "INFI = Ball"
-proof (rule ext)+
-  fix A :: "'a set"
-  fix P :: "'a \<Rightarrow> bool"
-  show "(\<Sqinter>x\<in>A. P x) \<longleftrightarrow> (\<forall>x\<in>A. P x)"
-    by (auto simp add: INF_def)
-qed
+  by (simp add: fun_eq_iff INF_def)
 
 lemma SUP_bool_eq [simp]:
   "SUPR = Bex"
-proof (rule ext)+
-  fix A :: "'a set"
-  fix P :: "'a \<Rightarrow> bool"
-  show "(\<Squnion>x\<in>A. P x) \<longleftrightarrow> (\<exists>x\<in>A. P x)"
-    by (auto simp add: SUP_def)
-qed
+  by (simp add: fun_eq_iff SUP_def)
 
 instance bool :: complete_boolean_algebra proof
 qed (auto intro: bool_induct)
@@ -1220,3 +1218,4 @@ lemmas mem_simps =
   -- {* Each of these has ALREADY been added @{text "[simp]"} above. *}
 
 end
+

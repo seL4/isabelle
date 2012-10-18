@@ -188,25 +188,30 @@ lemma inj_on_UNION_chain:
   assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
          INJ: "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
   shows "inj_on f (\<Union> i \<in> I. A i)"
-proof(unfold inj_on_def UNION_eq, auto)
-  fix i j x y
-  assume *: "i \<in> I" "j \<in> I" and **: "x \<in> A i" "y \<in> A j"
-         and ***: "f x = f y"
-  show "x = y"
-  proof-
-    {assume "A i \<le> A j"
-     with ** have "x \<in> A j" by auto
-     with INJ * ** *** have ?thesis
-     by(auto simp add: inj_on_def)
-    }
-    moreover
-    {assume "A j \<le> A i"
-     with ** have "y \<in> A i" by auto
-     with INJ * ** *** have ?thesis
-     by(auto simp add: inj_on_def)
-    }
-    ultimately show ?thesis using  CH * by blast
-  qed
+proof -
+  {
+    fix i j x y
+    assume *: "i \<in> I" "j \<in> I" and **: "x \<in> A i" "y \<in> A j"
+      and ***: "f x = f y"
+    have "x = y"
+    proof -
+      {
+        assume "A i \<le> A j"
+        with ** have "x \<in> A j" by auto
+        with INJ * ** *** have ?thesis
+        by(auto simp add: inj_on_def)
+      }
+      moreover
+      {
+        assume "A j \<le> A i"
+        with ** have "y \<in> A i" by auto
+        with INJ * ** *** have ?thesis
+        by(auto simp add: inj_on_def)
+      }
+      ultimately show ?thesis using CH * by blast
+    qed
+  }
+  then show ?thesis by (unfold inj_on_def UNION_eq) auto
 qed
 
 lemma surj_id: "surj id"
@@ -416,7 +421,7 @@ lemma bij_betw_UNION_chain:
   assumes CH: "\<And> i j. \<lbrakk>i \<in> I; j \<in> I\<rbrakk> \<Longrightarrow> A i \<le> A j \<or> A j \<le> A i" and
          BIJ: "\<And> i. i \<in> I \<Longrightarrow> bij_betw f (A i) (A' i)"
   shows "bij_betw f (\<Union> i \<in> I. A i) (\<Union> i \<in> I. A' i)"
-proof(unfold bij_betw_def, auto simp add: image_def)
+proof (unfold bij_betw_def, auto)
   have "\<And> i. i \<in> I \<Longrightarrow> inj_on f (A i)"
   using BIJ bij_betw_def[of f] by auto
   thus "inj_on f (\<Union> i \<in> I. A i)"
@@ -430,8 +435,9 @@ next
   fix i x'
   assume *: "i \<in> I" "x' \<in> A' i"
   hence "\<exists>x \<in> A i. x' = f x" using BIJ bij_betw_def[of f] by blast
-  thus "\<exists>j \<in> I. \<exists>x \<in> A j. x' = f x"
-  using * by blast
+  then have "\<exists>j \<in> I. \<exists>x \<in> A j. x' = f x"
+    using * by blast
+  then show "x' \<in> f ` (\<Union>x\<in>I. A x)" by (simp add: image_def)
 qed
 
 lemma bij_betw_subset:
