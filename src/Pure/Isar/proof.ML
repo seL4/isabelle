@@ -1125,6 +1125,21 @@ fun is_relevant state =
 
 local
 
+structure Result = Proof_Data
+(
+  type T = thm option;
+  val empty = NONE;
+  fun init _ = empty;
+);
+
+fun the_result ctxt =
+  (case Result.get ctxt of
+    NONE => error "No result of forked proof"
+  | SOME th => th);
+
+val set_result = Result.put o SOME;
+val reset_result = Result.put NONE;
+
 fun future_proof done get_context fork_proof state =
   let
     val _ = assert_backward state;
@@ -1140,20 +1155,16 @@ fun future_proof done get_context fork_proof state =
     val statement' = (kind, [[], [prop']], prop');
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
-
-    fun after_local' [[th]] = put_thms false (Auto_Bind.thisN, SOME [th]);
-    fun after_global' [[th]] = Proof_Context.put_thms false (Auto_Bind.thisN, SOME [th]);
-    val after_qed' = (after_local', after_global');
-    val this_name = Proof_Context.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
+    val after_qed' = (fn [[th]] => map_context (set_result th), fn [[th]] => set_result th);
 
     val result_ctxt =
       state
+      |> map_context reset_result
       |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
         (fold (Variable.declare_typ o TFree) goal_tfrees)
       |> fork_proof;
 
-    val future_thm = result_ctxt |> Future.map (fn (_, x) =>
-      Proof_Context.get_fact_single (get_context x) (Facts.named this_name));
+    val future_thm = result_ctxt |> Future.map (fn (_, x) => the_result (get_context x));
     val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
