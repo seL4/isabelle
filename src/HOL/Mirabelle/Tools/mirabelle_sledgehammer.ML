@@ -486,19 +486,6 @@ fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)
 
-fun thms_of_name ctxt name =
-  let
-    val lex = Keyword.get_lexicons
-    val get = maps (Proof_Context.get_fact ctxt o fst)
-  in
-    Source.of_string name
-    |> Symbol.source
-    |> Token.source {do_recover=SOME false} lex Position.start
-    |> Token.source_proper
-    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
-    |> Source.exhaust
-  end
-
 in
 
 fun run_sledgehammer trivial args reconstructor named_thms id
@@ -544,7 +531,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
       SH_OK (time_isa, time_prover, names) =>
         let
           fun get_thms (name, stature) =
-            try (thms_of_name (Proof.context_of st)) name
+            try (Sledgehammer_Reconstruct.thms_of_name (Proof.context_of st))
+              name
             |> Option.map (pair (name, stature))
         in
           change_data id inc_sh_success;
