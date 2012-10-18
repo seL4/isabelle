@@ -8,34 +8,33 @@ theory AList_Mapping
 imports AList Mapping
 begin
 
-definition Mapping :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" where
-  "Mapping xs = Mapping.Mapping (map_of xs)"
+lift_definition Mapping :: "('a \<times> 'b) list \<Rightarrow> ('a, 'b) mapping" is map_of .
 
 code_datatype Mapping
 
 lemma lookup_Mapping [simp, code]:
   "Mapping.lookup (Mapping xs) = map_of xs"
-  by (simp add: Mapping_def)
+  by transfer rule
 
 lemma keys_Mapping [simp, code]:
-  "Mapping.keys (Mapping xs) = set (map fst xs)"
-  by (simp add: keys_def dom_map_of_conv_image_fst)
+  "Mapping.keys (Mapping xs) = set (map fst xs)" 
+  by transfer (simp add: dom_map_of_conv_image_fst)
 
 lemma empty_Mapping [code]:
   "Mapping.empty = Mapping []"
-  by (rule mapping_eqI) simp
+  by transfer simp
 
 lemma is_empty_Mapping [code]:
   "Mapping.is_empty (Mapping xs) \<longleftrightarrow> List.null xs"
-  by (cases xs) (simp_all add: is_empty_def null_def)
+  by (case_tac xs) (simp_all add: is_empty_def null_def)
 
 lemma update_Mapping [code]:
   "Mapping.update k v (Mapping xs) = Mapping (AList.update k v xs)"
-  by (rule mapping_eqI) (simp add: update_conv')
+  by transfer (simp add: update_conv')
 
 lemma delete_Mapping [code]:
   "Mapping.delete k (Mapping xs) = Mapping (AList.delete k xs)"
-  by (rule mapping_eqI) (simp add: delete_conv')
+  by transfer (simp add: delete_conv')
 
 lemma ordered_keys_Mapping [code]:
   "Mapping.ordered_keys (Mapping xs) = sort (remdups (map fst xs))"
@@ -47,11 +46,11 @@ lemma size_Mapping [code]:
 
 lemma tabulate_Mapping [code]:
   "Mapping.tabulate ks f = Mapping (map (\<lambda>k. (k, f k)) ks)"
-  by (rule mapping_eqI) (simp add: map_of_map_restrict)
+  by transfer (simp add: map_of_map_restrict)
 
 lemma bulkload_Mapping [code]:
   "Mapping.bulkload vs = Mapping (map (\<lambda>n. (n, vs ! n)) [0..<length vs])"
-  by (rule mapping_eqI) (simp add: map_of_map_restrict fun_eq_iff)
+  by transfer (simp add: map_of_map_restrict fun_eq_iff)
 
 lemma equal_Mapping [code]:
   "HOL.equal (Mapping xs) (Mapping ys) \<longleftrightarrow>
@@ -60,9 +59,8 @@ lemma equal_Mapping [code]:
 proof -
   have aux: "\<And>a b xs. (a, b) \<in> set xs \<Longrightarrow> a \<in> fst ` set xs"
     by (auto simp add: image_def intro!: bexI)
-  show ?thesis
-    by (auto intro!: map_of_eqI simp add: Let_def equal Mapping_def)
-      (auto dest!: map_of_eq_dom intro: aux)
+  show ?thesis apply transfer 
+  by (auto intro!: map_of_eqI) (auto dest!: map_of_eq_dom intro: aux)
 qed
 
 lemma [code nbe]:

@@ -1,4 +1,6 @@
-(* Author: Florian Haftmann, TU Muenchen *)
+(*  Title:      HOL/Library/RBT_Mapping.thy
+    Author:     Florian Haftmann and Ondrej Kuncar
+*)
 
 header {* Implementation of mappings with Red-Black Trees *}
 
@@ -9,62 +11,69 @@ begin
 
 subsection {* Implementation of mappings *}
 
-definition Mapping :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" where
-  "Mapping t = Mapping.Mapping (lookup t)"
+lift_definition Mapping :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) mapping" is lookup .
 
 code_datatype Mapping
 
 lemma lookup_Mapping [simp, code]:
   "Mapping.lookup (Mapping t) = lookup t"
-  by (simp add: Mapping_def)
+   by (transfer fixing: t) rule
 
-lemma empty_Mapping [code]:
-  "Mapping.empty = Mapping empty"
-  by (rule mapping_eqI) simp
+lemma empty_Mapping [code]: "Mapping.empty = Mapping empty"
+proof -
+  note RBT.empty.transfer[transfer_rule del]
+  show ?thesis by transfer simp
+qed
 
 lemma is_empty_Mapping [code]:
   "Mapping.is_empty (Mapping t) \<longleftrightarrow> is_empty t"
-  by (simp add: rbt_eq_iff Mapping.is_empty_empty Mapping_def)
+  unfolding is_empty_def by (transfer fixing: t) simp
 
 lemma insert_Mapping [code]:
   "Mapping.update k v (Mapping t) = Mapping (insert k v t)"
-  by (rule mapping_eqI) simp
+  by (transfer fixing: t) simp
 
 lemma delete_Mapping [code]:
   "Mapping.delete k (Mapping t) = Mapping (delete k t)"
-  by (rule mapping_eqI) simp
+  by (transfer fixing: t) simp
 
 lemma map_entry_Mapping [code]:
   "Mapping.map_entry k f (Mapping t) = Mapping (map_entry k f t)"
-  by (rule mapping_eqI) simp
+  apply (transfer fixing: t) by (case_tac "lookup t k") auto
 
 lemma keys_Mapping [code]:
   "Mapping.keys (Mapping t) = set (keys t)"
-  by (simp add: RBT.keys_def Mapping_def Mapping.keys_def lookup_def rbt_lookup_keys)
+by (transfer fixing: t) (simp add: lookup_keys)
 
 lemma ordered_keys_Mapping [code]:
   "Mapping.ordered_keys (Mapping t) = keys t"
-  by (rule sorted_distinct_set_unique) (simp_all add: ordered_keys_def keys_Mapping)
+unfolding ordered_keys_def 
+by (transfer fixing: t) (auto simp add: lookup_keys intro: sorted_distinct_set_unique)
 
 lemma Mapping_size_card_keys: (*FIXME*)
   "Mapping.size m = card (Mapping.keys m)"
-  by (simp add: Mapping.size_def Mapping.keys_def)
+unfolding size_def by transfer simp
 
 lemma size_Mapping [code]:
   "Mapping.size (Mapping t) = length (keys t)"
-  by (simp add: Mapping_size_card_keys keys_Mapping distinct_card)
+unfolding size_def
+by (transfer fixing: t) (simp add: lookup_keys distinct_card)
 
-lemma tabulate_Mapping [code]:
-  "Mapping.tabulate ks f = Mapping (bulkload (List.map (\<lambda>k. (k, f k)) ks))"
-  by (rule mapping_eqI) (simp add: map_of_map_restrict)
-
-lemma bulkload_Mapping [code]:
-  "Mapping.bulkload vs = Mapping (bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
-  by (rule mapping_eqI) (simp add: map_of_map_restrict fun_eq_iff)
+context
+  notes RBT.bulkload.transfer[transfer_rule del]
+begin
+  lemma tabulate_Mapping [code]:
+    "Mapping.tabulate ks f = Mapping (bulkload (List.map (\<lambda>k. (k, f k)) ks))"
+  by transfer (simp add: map_of_map_restrict)
+  
+  lemma bulkload_Mapping [code]:
+    "Mapping.bulkload vs = Mapping (bulkload (List.map (\<lambda>n. (n, vs ! n)) [0..<length vs]))"
+  by transfer (simp add: map_of_map_restrict fun_eq_iff)
+end
 
 lemma equal_Mapping [code]:
   "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"
-  by (simp add: equal Mapping_def entries_lookup)
+by (transfer fixing: t1 t2) (simp add: entries_lookup)
 
 lemma [code nbe]:
   "HOL.equal (x :: (_, _) mapping) x \<longleftrightarrow> True"

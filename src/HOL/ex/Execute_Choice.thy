@@ -26,7 +26,7 @@ proof (cases "Mapping.is_empty m")
   case True then show ?thesis by (simp add: is_empty_def keys_def valuesum_def)
 next
   case False
-  then have l: "\<exists>l. l \<in> dom (Mapping.lookup m)" by (auto simp add: is_empty_def keys_def)
+  then have l: "\<exists>l. l \<in> dom (Mapping.lookup m)" unfolding is_empty_def by transfer auto
   then have "(let l = SOME l. l \<in> dom (Mapping.lookup m) in
      the (Mapping.lookup m l) + (\<Sum>k \<in> dom (Mapping.lookup m) - {l}. the (Mapping.lookup m k))) =
        (\<Sum>k \<in> dom (Mapping.lookup m). the (Mapping.lookup m k))"
@@ -41,7 +41,7 @@ next
         (\<Sum>k \<in> dom (Mapping.lookup m). the (Mapping.lookup m k))"
       by simp
    qed
-  then show ?thesis by (simp add: keys_def valuesum_def is_empty_def)
+  then show ?thesis unfolding is_empty_def valuesum_def by transfer simp
 qed
 
 text {*
@@ -54,7 +54,7 @@ lemma valuesum_choice:
   "finite (Mapping.keys M) \<Longrightarrow> x \<in> Mapping.keys M \<Longrightarrow> y \<in> Mapping.keys M \<Longrightarrow>
     the (Mapping.lookup M x) + valuesum (Mapping.delete x M) =
     the (Mapping.lookup M y) + valuesum (Mapping.delete y M)"
-  by (simp add: valuesum_def keys_def setsum_diff)
+  unfolding valuesum_def  by transfer (simp add: setsum_diff)
 
 text {*
   Given @{text valuesum_rec} as initial description, we stepwise refine it to something executable;
