@@ -751,7 +751,7 @@ fun minimize_locally ctxt type_enc lam_trans proof =
 
     (* Enrich context with facts *)
     val thy = Proof_Context.theory_of ctxt
-    fun sorry t = Skip_Proof.make_thm thy (HOLogic.mk_Trueprop t) (* FIXME: mk_Trueprop always ok? *)
+    fun sorry t = Skip_Proof.make_thm thy (HOLogic.mk_Trueprop t)
     fun enrich_ctxt' (Prove (_, lbl, t, _)) ctxt = 
         ctxt |> lbl <> no_label
           ? Proof_Context.put_thms false (string_for_label lbl, SOME [sorry t])
@@ -760,21 +760,18 @@ fun minimize_locally ctxt type_enc lam_trans proof =
 
     (* Timing *)
     fun take_time tac arg =
-      let
-        val t_start = Timing.start ()
-      in
-        (tac arg ; Timing.result t_start |> #cpu)
+      let val t_start = Timing.start () in
+        (tac arg; Timing.result t_start |> #cpu)
       end
     fun try_metis (Prove (qs, _, t, By_Metis fact_names)) s0 =
       let
         fun thmify (Prove (_, _, t, _)) = sorry t
         val facts =
           fact_names
-          |>> map string_for_label
-          |> op @
+          |>> map string_for_label |> op @
           |> map (Proof_Context.get_thm rich_ctxt)
           |> (if member (op =) qs Then then cons (the s0 |> thmify) else I)
-        val goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop t) (* FIXME: mk_Trueprop always ok? *)
+        val goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop t)
         fun tac {context = ctxt, prems = _} =
           Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
       in
@@ -805,9 +802,7 @@ fun minimize_locally ctxt type_enc lam_trans proof =
         val tlimit = t1 + t2 |> Time.toReal |> curry Real.* 1.2 |> Time.fromReal
       in
         (TimeLimit.timeLimit tlimit (try_metis s12 s0) ();
-         SOME (front @ (case s0 of
-                          NONE => s12 :: tail
-                        | SOME s => s :: s12 :: tail)))
+         SOME (front @ (the_list s0 @ s12 :: tail)))
         handle _ => NONE
       end
     fun merge_steps proof [] = proof
