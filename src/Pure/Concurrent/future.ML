@@ -563,7 +563,7 @@ fun cond_forks args es =
 fun map_future f x =
   let
     val task = task_of x;
-    val group = new_group (SOME (Task_Queue.group_of_task task));
+    val group = Task_Queue.group_of_task task;
     val (result, job) = future_job group true (fn () => f (join x));
 
     val extended = SYNCHRONIZED "extend" (fn () =>
