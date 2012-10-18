@@ -352,7 +352,8 @@ end
 
 (* main simprocs *)
 
-val prep_thms = map mk_meta_eq [@{thm Bex_def}, @{thm Pow_iff[symmetric]}]
+val prep_thms =
+  map mk_meta_eq ([@{thm Bex_def}, @{thm Pow_iff[symmetric]}] @ @{thms ex_simps[symmetric]})
 
 val post_thms =
   map mk_meta_eq [@{thm Times_Un_distrib1[symmetric]},
