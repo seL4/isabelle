@@ -623,7 +623,7 @@ session "HOL-BNF" in BNF = "HOL-Cardinals" +
 
 session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
   description {* Examples for Bounded Natural Functors *}
-  options [document = false, threads = 1]
+  options [document = false]
   theories
     Lambda_Term
     Process
