@@ -88,13 +88,16 @@ fun build args_file = Command_Line.tool (fn () =>
           (Options.string options "document_dump",
             Present.dump_mode (Options.string options "document_dump_mode"))
           "" verbose;
-      val _ =
+
+      val res1 =
         theories |>
           (List.app use_theories
             |> Session.with_timing name verbose
-            |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads"));
+            |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
+            |> Exn.capture);
+      val res2 = Exn.capture Session.finish ();
+      val _ = Par_Exn.release_all [res1, res2];
 
-      val _ = Session.finish ();
       val _ = if do_output then () else exit 0;
     in 0 end);
 
