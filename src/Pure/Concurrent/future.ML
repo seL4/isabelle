@@ -26,10 +26,10 @@ Notes:
   * Future tasks are organized in groups, which are block-structured.
     When forking a new new task, the default is to open an individual
     subgroup, unless some common group is specified explicitly.
-    Failure of one group member causes the immediate peers to be
-    interrupted eventually (i.e. none by default).  Interrupted tasks
-    that lack regular result information, will pick up parallel
-    exceptions from the cumulative group context (as Par_Exn).
+    Failure of one group member causes peer and subgroup members to be
+    interrupted eventually.  Interrupted tasks that lack regular
+    result information, will pick up parallel exceptions from the
+    cumulative group context (as Par_Exn).
 
   * Future task groups may be canceled: present and future group
     members will be interrupted eventually.
