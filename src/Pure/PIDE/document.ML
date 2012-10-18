@@ -318,14 +318,8 @@ fun finished_theory node =
 (** document execution **)
 
 val discontinue_execution = execution_of #> (fn (_, _, running) => running := false);
-
 val cancel_execution = execution_of #> (fn (_, group, _) => Future.cancel_group group);
-
-fun terminate_execution state =
-  let
-    val (_, group, _) = execution_of state;
-    val _ = Future.cancel_group group;
-  in Future.join_tasks (Future.group_tasks group) end;
+val terminate_execution = execution_of #> (fn (_, group, _) => Future.terminate group);
 
 fun start_execution state =
   let
