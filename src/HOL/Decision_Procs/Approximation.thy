@@ -305,7 +305,7 @@ next
   finally have "sqrt x < (?b + x / ?b)/2" using sqrt_ub_pos_pos_1[OF Suc _ `0 < real x`] by auto
   also have "\<dots> \<le> (?b + (float_divr prec x ?b))/2" by (rule divide_right_mono, auto simp add: float_divr)
   also have "\<dots> = (Float 1 -1) * (?b + (float_divr prec x ?b))" by simp
-  finally show ?case unfolding sqrt_iteration.simps Let_def right_distrib .
+  finally show ?case unfolding sqrt_iteration.simps Let_def distrib_left .
 qed
 
 lemma sqrt_iteration_lower_bound: assumes "0 < real x"
@@ -955,7 +955,7 @@ proof (cases "real x = 0")
       using Maclaurin_sin_expansion3[OF `0 < 2 * n + 1` `0 < real x`]
       unfolding sin_coeff_def by auto
 
-    have "?rest = cos t * -1^n" unfolding sin_add cos_add real_of_nat_add left_distrib right_distrib by auto
+    have "?rest = cos t * -1^n" unfolding sin_add cos_add real_of_nat_add distrib_right distrib_left by auto
     moreover
     have "t \<le> pi / 2" using `t < real x` and `x \<le> pi / 2` by auto
     hence "0 \<le> cos t" using `0 < t` and cos_ge_zero by auto
@@ -1173,7 +1173,7 @@ lemma cos_periodic_nat[simp]: fixes n :: nat shows "cos (x + n * (2 * pi)) = cos
 proof (induct n arbitrary: x)
   case (Suc n)
   have split_pi_off: "x + (Suc n) * (2 * pi) = (x + n * (2 * pi)) + 2 * pi"
-    unfolding Suc_eq_plus1 real_of_nat_add real_of_one left_distrib by auto
+    unfolding Suc_eq_plus1 real_of_nat_add real_of_one distrib_right by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed auto
 
@@ -1714,7 +1714,7 @@ qed
 lemma ln_add: assumes "0 < x" and "0 < y" shows "ln (x + y) = ln x + ln (1 + y / x)"
 proof -
   have "x \<noteq> 0" using assms by auto
-  have "x + y = x * (1 + y / x)" unfolding right_distrib times_divide_eq_right nonzero_mult_divide_cancel_left[OF `x \<noteq> 0`] by auto
+  have "x + y = x * (1 + y / x)" unfolding distrib_left times_divide_eq_right nonzero_mult_divide_cancel_left[OF `x \<noteq> 0`] by auto
   moreover
   have "0 < y / x" using assms divide_pos_pos by auto
   hence "0 < 1 + y / x" by auto

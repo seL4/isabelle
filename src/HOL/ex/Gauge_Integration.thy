@@ -521,9 +521,9 @@ apply (subgoal_tac "inverse (z - x) * (f z - f x - f' x * (z - x))
                     = (f z - f x) / (z - x) - f' x")
  apply (simp add: abs_mult [symmetric] mult_ac diff_minus)
 apply (subst mult_commute)
-apply (simp add: left_distrib diff_minus)
+apply (simp add: distrib_right diff_minus)
 apply (simp add: mult_assoc divide_inverse)
-apply (simp add: left_distrib)
+apply (simp add: distrib_right)
 done
 
 lemma lemma_straddle:

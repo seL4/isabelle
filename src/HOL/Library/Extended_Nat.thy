@@ -196,7 +196,7 @@ instance proof
     by (simp split: enat.split)
   show "(a + b) * c = a * c + b * c"
     unfolding times_enat_def zero_enat_def
-    by (simp split: enat.split add: left_distrib)
+    by (simp split: enat.split add: distrib_right)
   show "0 * a = 0"
     unfolding times_enat_def zero_enat_def
     by (simp split: enat.split)

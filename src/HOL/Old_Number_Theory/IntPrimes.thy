@@ -341,7 +341,7 @@ text {* \medskip @{term xzgcd} linear *}
 lemma xzgcda_linear_aux1:
   "(a - r * b) * m + (c - r * d) * (n::int) =
    (a * m + c * n) - r * (b * m + d * n)"
-  by (simp add: left_diff_distrib right_distrib mult_assoc)
+  by (simp add: left_diff_distrib distrib_left mult_assoc)
 
 lemma xzgcda_linear_aux2:
   "r' = s' * m + t' * n ==> r = s * m + t * n

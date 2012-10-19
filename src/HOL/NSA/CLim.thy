@@ -140,7 +140,7 @@ lemma CDERIV_pow [simp]:
      "DERIV (%x. x ^ n) x :> (complex_of_real (real n)) * (x ^ (n - Suc 0))"
 apply (induct n)
 apply (drule_tac [2] DERIV_ident [THEN DERIV_mult])
-apply (auto simp add: left_distrib real_of_nat_Suc)
+apply (auto simp add: distrib_right real_of_nat_Suc)
 apply (case_tac "n")
 apply (auto simp add: mult_ac add_commute)
 done

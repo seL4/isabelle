@@ -208,7 +208,7 @@ lemma zmult_zless_mono2_lemma:
   apply(induct "k")
   apply(simp)
   apply(case_tac "k = 0")
-  apply(simp_all add: left_distrib add_strict_mono)
+  apply(simp_all add: distrib_right add_strict_mono)
   done
 
 lemma zero_le_imp_eq_int_raw:
@@ -248,8 +248,8 @@ proof
 qed
 
 lemmas int_distrib =
-  left_distrib [of z1 z2 w]
-  right_distrib [of w z1 z2]
+  distrib_right [of z1 z2 w]
+  distrib_left [of w z1 z2]
   left_diff_distrib [of z1 z2 w]
   right_diff_distrib [of w z1 z2]
   minus_add_distrib[of z1 z2]

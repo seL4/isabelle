@@ -411,7 +411,7 @@ proof -
       from x y have "\<parallel>x + y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>" ..
       with a have " \<parallel>f\<parallel>\<hyphen>F * \<parallel>x + y\<parallel> \<le> \<parallel>f\<parallel>\<hyphen>F * (\<parallel>x\<parallel> + \<parallel>y\<parallel>)"
         by (simp add: mult_left_mono)
-      also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>" by (simp only: right_distrib)
+      also have "\<dots> = \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel> + \<parallel>f\<parallel>\<hyphen>F * \<parallel>y\<parallel>" by (simp only: distrib_left)
       also have "\<dots> = p x + p y" by (simp only: p_def)
       finally show ?thesis .
     qed

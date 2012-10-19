@@ -828,8 +828,8 @@ subsection {* Ring and field classes *}
 
 instance star :: (semiring) semiring
 apply (intro_classes)
-apply (transfer, rule left_distrib)
-apply (transfer, rule right_distrib)
+apply (transfer, rule distrib_right)
+apply (transfer, rule distrib_left)
 done
 
 instance star :: (semiring_0) semiring_0 
@@ -838,7 +838,7 @@ by intro_classes (transfer, simp)+
 instance star :: (semiring_0_cancel) semiring_0_cancel ..
 
 instance star :: (comm_semiring) comm_semiring 
-by (intro_classes, transfer, rule left_distrib)
+by (intro_classes, transfer, rule distrib_right)
 
 instance star :: (comm_semiring_0) comm_semiring_0 ..
 instance star :: (comm_semiring_0_cancel) comm_semiring_0_cancel ..

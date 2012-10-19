@@ -140,7 +140,7 @@ proof -
         also from y1 y2 have "h (y1 + y2) = h y1 + h y2"
           by simp
         also have "\<dots> + (a1 + a2) * xi = (h y1 + a1 * xi) + (h y2 + a2 * xi)"
-          by (simp add: left_distrib)
+          by (simp add: distrib_right)
         also from h'_def x1_rep E HE y1 x0
         have "h y1 + a1 * xi = h' x1"
           by (rule h'_definite [symmetric])
@@ -179,7 +179,7 @@ proof -
         also from y1 have "h (c \<cdot> y1) = c * h y1"
           by simp
         also have "\<dots> + (c * a1) * xi = c * (h y1 + a1 * xi)"
-          by (simp only: right_distrib)
+          by (simp only: distrib_left)
         also from h'_def x1_rep E HE y1 x0 have "h y1 + a1 * xi = h' x1"
           by (rule h'_definite [symmetric])
         finally show ?thesis .

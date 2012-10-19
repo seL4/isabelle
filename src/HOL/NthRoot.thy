@@ -598,7 +598,7 @@ lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<twosuperior> + (b + d)\<twosuperior>) \<le> sqrt (a\<twosuperior> + b\<twosuperior>) + sqrt (c\<twosuperior> + d\<twosuperior>)"
 apply (rule power2_le_imp_le, simp)
 apply (simp add: power2_sum)
-apply (simp only: mult_assoc right_distrib [symmetric])
+apply (simp only: mult_assoc distrib_left [symmetric])
 apply (rule mult_left_mono)
 apply (rule power2_le_imp_le)
 apply (simp add: power2_sum power_mult_distrib)

@@ -128,7 +128,7 @@ apply(case_tac ys)
 apply simp
 apply(case_tac zs)
 apply (simp)
-apply(simp add: left_distrib)
+apply(simp add: distrib_right)
 done
 
 lemma iprod_left_diff_distrib: "\<langle>xs - ys, zs\<rangle> = \<langle>xs,zs\<rangle> - \<langle>ys,zs\<rangle>"
@@ -146,7 +146,7 @@ apply(induct xs arbitrary: ys)
 apply simp
 apply(case_tac ys)
 apply (simp)
-apply (simp add: right_distrib mult_assoc)
+apply (simp add: distrib_left mult_assoc)
 done
 
 end

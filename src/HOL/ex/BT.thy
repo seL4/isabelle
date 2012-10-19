@@ -107,7 +107,7 @@ lemma depth_bt_map [simp]: "depth (bt_map f t) = depth t"
 
 lemma n_leaves_bt_map [simp]: "n_leaves (bt_map f t) = n_leaves t"
   apply (induct t)
-   apply (simp_all add: left_distrib)
+   apply (simp_all add: distrib_right)
   done
 
 lemma preorder_reflect: "preorder (reflect t) = rev (postorder t)"
@@ -148,7 +148,7 @@ lemma depth_append [simp]: "depth (append t1 t2) = depth t1 + depth t2"
 lemma n_leaves_append [simp]:
      "n_leaves (append t1 t2) = n_leaves t1 * n_leaves t2"
   apply (induct t1)
-   apply (simp_all add: left_distrib)
+   apply (simp_all add: distrib_right)
   done
 
 lemma bt_map_append:

@@ -123,7 +123,7 @@ lemma One_rat_def: "1 = Fract 1 1"
 
 lift_definition plus_rat :: "rat \<Rightarrow> rat \<Rightarrow> rat"
   is "\<lambda>x y. (fst x * snd y + fst y * snd x, snd x * snd y)"
-  by (clarsimp, simp add: left_distrib, simp add: mult_ac)
+  by (clarsimp, simp add: distrib_right, simp add: mult_ac)
 
 lemma add_rat [simp]:
   assumes "b \<noteq> 0" and "d \<noteq> 0"
@@ -616,8 +616,8 @@ declaration {*
     (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
   #> Lin_Arith.add_simps [@{thm neg_less_iff_less},
       @{thm True_implies_equals},
-      read_instantiate @{context} [(("a", 0), "(numeral ?v)")] @{thm right_distrib},
-      read_instantiate @{context} [(("a", 0), "(neg_numeral ?v)")] @{thm right_distrib},
+      read_instantiate @{context} [(("a", 0), "(numeral ?v)")] @{thm distrib_left},
+      read_instantiate @{context} [(("a", 0), "(neg_numeral ?v)")] @{thm distrib_left},
       @{thm divide_1}, @{thm divide_zero_left},
       @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
       @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,

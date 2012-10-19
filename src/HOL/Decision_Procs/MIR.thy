@@ -743,11 +743,11 @@ lemma numadd[simp]: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
 apply (induct t s rule: numadd.induct, simp_all add: Let_def)
  apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
   apply (case_tac "n1 = n2", simp_all add: algebra_simps)
-  apply (simp only: left_distrib[symmetric])
+  apply (simp only: distrib_right[symmetric])
  apply simp
 apply (case_tac "lex_bnd t1 t2", simp_all)
  apply (case_tac "c1+c2 = 0")
-  by (case_tac "t1 = t2", simp_all add: algebra_simps left_distrib[symmetric] real_of_int_mult[symmetric] real_of_int_add[symmetric]del: real_of_int_mult real_of_int_add left_distrib)
+  by (case_tac "t1 = t2", simp_all add: algebra_simps distrib_right[symmetric] real_of_int_mult[symmetric] real_of_int_add[symmetric]del: real_of_int_mult real_of_int_add distrib_right)
 
 lemma numadd_nb[simp]: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
@@ -1493,7 +1493,7 @@ next
   with bluddy abjt have th3: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   from abjs 6  have th2: "(?I x (CN 0 ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
   from th3[simplified] th2[simplified] th[simplified] show ?case 
-    by (simp add: left_distrib)
+    by (simp add: distrib_right)
 next
   case (7 s t n a)
   let ?ns = "fst (zsplit0 s)"
@@ -1518,7 +1518,7 @@ next
     by (simp add: Let_def split_def)
   from abj 8 have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   hence "?I x (Mul i t) = (real i) * ?I x (CN 0 ?nt ?at)" by simp
-  also have "\<dots> = ?I x (CN 0 (i*?nt) (Mul i ?at))" by (simp add: right_distrib)
+  also have "\<dots> = ?I x (CN 0 (i*?nt) (Mul i ?at))" by (simp add: distrib_left)
   finally show ?case using th th2 by simp
 next
   case (9 t n a)

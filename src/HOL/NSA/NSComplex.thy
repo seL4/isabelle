@@ -547,7 +547,7 @@ lemma hcis_hypreal_of_nat_Suc_mult:
    "!!a. hcis (hypreal_of_nat (Suc n) * a) =
      hcis a * hcis (hypreal_of_nat n * a)"
 apply transfer
-apply (simp add: left_distrib cis_mult)
+apply (simp add: distrib_right cis_mult)
 done
 
 lemma NSDeMoivre: "!!a. (hcis a) ^ n = hcis (hypreal_of_nat n * a)"
@@ -559,7 +559,7 @@ done
 lemma hcis_hypreal_of_hypnat_Suc_mult:
      "!! a n. hcis (hypreal_of_hypnat (n + 1) * a) =
       hcis a * hcis (hypreal_of_hypnat n * a)"
-by transfer (simp add: left_distrib cis_mult)
+by transfer (simp add: distrib_right cis_mult)
 
 lemma NSDeMoivre_ext:
   "!!a n. (hcis a) pow n = hcis (hypreal_of_hypnat n * a)"

@@ -413,7 +413,7 @@ apply (induct t s rule: numadd.induct, simp_all add: Let_def)
 apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
  apply (case_tac "n1 = n2")
   apply(simp_all add: algebra_simps)
-apply(simp add: left_distrib[symmetric])
+apply(simp add: distrib_right[symmetric])
 done
 
 lemma numadd_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
@@ -727,7 +727,7 @@ next
       by (simp add: Let_def split_def)
     from abj 3 m0 have th2: "(?I x (CN 0 ?j ?b) = ?I x a) \<and> ?N ?b" by blast
     from th have "?I x (CN 0 n a') = ?I x (CN 0 (i+?j) ?b)" by simp
-    also from th2 have "\<dots> = ?I x (CN 0 i (CN 0 ?j ?b))" by (simp add: left_distrib)
+    also from th2 have "\<dots> = ?I x (CN 0 i (CN 0 ?j ?b))" by (simp add: distrib_right)
   finally have "?I x (CN 0 n a') = ?I  x (CN 0 i a)" using th2 by simp
   with th2 th have ?case using m0 by blast} 
 ultimately show ?case by blast
@@ -754,7 +754,7 @@ next
   with bluddy abjt have th3: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   from abjs 5 have th2: "(?I x (CN 0 ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
   from th3[simplified] th2[simplified] th[simplified] show ?case 
-    by (simp add: left_distrib)
+    by (simp add: distrib_right)
 next
   case (6 s t n a)
   let ?ns = "fst (zsplit0 s)"
@@ -779,7 +779,7 @@ next
     by (simp add: Let_def split_def)
   from abj 7 have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   hence "?I x (Mul i t) = i * ?I x (CN 0 ?nt ?at)" by simp
-  also have "\<dots> = ?I x (CN 0 (i*?nt) (Mul i ?at))" by (simp add: right_distrib)
+  also have "\<dots> = ?I x (CN 0 (i*?nt) (Mul i ?at))" by (simp add: distrib_left)
   finally show ?case using th th2 by simp
 qed
 

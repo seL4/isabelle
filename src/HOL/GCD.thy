@@ -1199,7 +1199,7 @@ proof-
           from H (3) have "d + (b - 1) * (b*x) = d + (b - 1) * (a*y + d)"
             by simp
           hence "d + (b - 1) * a * y + (b - 1) * d = d + (b - 1) * b * x"
-            by (simp only: mult_assoc right_distrib)
+            by (simp only: mult_assoc distrib_left)
           hence "a * ((b - 1) * y) + d * (b - 1 + 1) = d + x*b*(b - 1)"
             by algebra
           hence "a * ((b - 1) * y) = d + x*b*(b - 1) - d*b" using bp by simp

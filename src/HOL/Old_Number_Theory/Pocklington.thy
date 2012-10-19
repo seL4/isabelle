@@ -161,7 +161,7 @@ proof-
     and q12': "y + n*q1' = y'+n*q2'" unfolding nat_mod by blast+
   from th[OF q12 q12' yx yx']
   have "(x - y) + n*(q1 + q2') = (x' - y') + n*(q2 + q1')"
-    by (simp add: right_distrib)
+    by (simp add: distrib_left)
   thus ?thesis unfolding nat_mod by blast
 qed
 

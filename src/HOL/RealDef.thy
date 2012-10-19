@@ -494,7 +494,7 @@ instance proof
   show "1 * a = a"
     by transfer (simp add: mult_ac realrel_def)
   show "(a + b) * c = a * c + b * c"
-    by transfer (simp add: left_distrib realrel_def)
+    by transfer (simp add: distrib_right realrel_def)
   show "(0\<Colon>real) \<noteq> (1\<Colon>real)"
     by transfer (simp add: realrel_def)
   show "a \<noteq> 0 \<Longrightarrow> inverse a * a = 1"

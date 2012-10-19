@@ -165,7 +165,7 @@ lemma setL2_mult_ineq: "(\<Sum>i\<in>A. \<bar>f i\<bar> * \<bar>g i\<bar>) \<le>
   apply (simp add: mult_nonneg_nonneg setsum_nonneg)
   apply (simp add: power2_sum)
   apply (simp add: power_mult_distrib)
-  apply (simp add: right_distrib left_distrib)
+  apply (simp add: distrib_left distrib_right)
   apply (rule ord_le_eq_trans)
   apply (rule setL2_mult_ineq_lemma)
   apply simp

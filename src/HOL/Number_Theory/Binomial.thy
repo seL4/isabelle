@@ -205,7 +205,7 @@ proof -
   also note two
   also with less have "(n - k) * fact n + (k + 1) * fact n= fact (n + 1)" 
     apply (subst fact_plus_one_nat)
-    apply (subst left_distrib [symmetric])
+    apply (subst distrib_right [symmetric])
     apply simp
     done
   finally show "fact (k + 1) * fact (n - k) * (n + 1 choose (k + 1)) = 

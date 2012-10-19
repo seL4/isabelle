@@ -128,7 +128,7 @@ lemma poly_cmult_distr [rule_format]:
      "\<forall>q. a %* ( p +++ q) = (a %* p +++ a %* q)"
 apply (induct "p", simp, clarify) 
 apply (case_tac "q")
-apply (simp_all add: right_distrib)
+apply (simp_all add: distrib_left)
 done
 
 lemma pmult_by_x[simp]: "[0, 1] *** t = ((0)#t)"
@@ -142,13 +142,13 @@ lemma poly_add: "poly (p1 +++ p2) x = poly p1 x + poly p2 x"
 apply (subgoal_tac "\<forall>p2. poly (p1 +++ p2) x = poly (p1) x + poly (p2) x")
 apply (induct_tac [2] "p1", auto)
 apply (case_tac "p2")
-apply (auto simp add: right_distrib)
+apply (auto simp add: distrib_left)
 done
 
 lemma poly_cmult: "poly (c %* p) x = c * poly p x"
 apply (induct "p") 
 apply (case_tac [2] "x=0")
-apply (auto simp add: right_distrib mult_ac)
+apply (auto simp add: distrib_left mult_ac)
 done
 
 lemma poly_minus: "poly (-- p) x = - (poly p x)"
@@ -162,7 +162,7 @@ apply (simp (no_asm_simp))
 apply (induct "p1")
 apply (auto simp add: poly_cmult)
 apply (case_tac p1)
-apply (auto simp add: poly_cmult poly_add left_distrib right_distrib mult_ac)
+apply (auto simp add: poly_cmult poly_add distrib_right distrib_left mult_ac)
 done
 
 lemma poly_exp: "poly (p %^ n) (x::'a::comm_ring_1) = (poly p x) ^ n"
@@ -206,7 +206,7 @@ by (cut_tac t = t and a = a in lemma_poly_linear_rem, auto)
 
 
 lemma poly_linear_divides: "(poly p a = 0) = ((p = []) | (\<exists>q. p = [-a, 1] *** q))"
-apply (auto simp add: poly_add poly_cmult right_distrib)
+apply (auto simp add: poly_add poly_cmult distrib_left)
 apply (case_tac "p", simp) 
 apply (cut_tac h = aa and t = list and a = a in poly_linear_rem, safe)
 apply (case_tac "q", auto)
@@ -408,7 +408,7 @@ lemma poly_add_minus_zero_iff: "(poly (p +++ -- q) = poly []) = (poly p = poly q
 by (auto simp add: field_simps poly_add poly_minus_def fun_eq poly_cmult)
 
 lemma poly_add_minus_mult_eq: "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
-by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult right_distrib)
+by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult distrib_left)
 
 lemma poly_mult_left_cancel: "(poly (p *** q) = poly (p *** r)) = (poly p = poly ([]::('a::{idom, ring_char_0}) list) | poly q = poly r)"
 apply (rule_tac p1 = "p *** q" in poly_add_minus_zero_iff [THEN subst])
@@ -464,9 +464,9 @@ done
 text{*Basics of divisibility.*}
 
 lemma poly_primes: "([a, (1::'a::idom)] divides (p *** q)) = ([a, 1] divides p | [a, 1] divides q)"
-apply (auto simp add: divides_def fun_eq poly_mult poly_add poly_cmult left_distrib [symmetric])
+apply (auto simp add: divides_def fun_eq poly_mult poly_add poly_cmult distrib_right [symmetric])
 apply (drule_tac x = "-a" in spec)
-apply (auto simp add: poly_linear_divides poly_add poly_cmult left_distrib [symmetric])
+apply (auto simp add: poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
 apply (rule_tac x = "qa *** q" in exI)
 apply (rule_tac [2] x = "p *** qa" in exI)
 apply (auto simp add: poly_add poly_mult poly_cmult mult_ac)
@@ -501,7 +501,7 @@ lemma poly_divides_add:
    "[| p divides q; p divides r |] ==> p divides (q +++ r)"
 apply (simp add: divides_def, auto)
 apply (rule_tac x = "qa +++ qaa" in exI)
-apply (auto simp add: poly_add fun_eq poly_mult right_distrib)
+apply (auto simp add: poly_add fun_eq poly_mult distrib_left)
 done
 
 lemma poly_divides_diff:
@@ -557,7 +557,7 @@ apply (rule_tac x = n in exI, safe)
 apply (unfold divides_def)
 apply (rule_tac x = q in exI)
 apply (induct_tac "n", simp)
-apply (simp (no_asm_simp) add: poly_add poly_cmult poly_mult right_distrib mult_ac)
+apply (simp (no_asm_simp) add: poly_add poly_cmult poly_mult distrib_left mult_ac)
 apply safe
 apply (subgoal_tac "poly (mulexp n [- a, 1] q) \<noteq> poly ([- a, 1] %^ Suc n *** qa)") 
 apply simp 

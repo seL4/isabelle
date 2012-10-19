@@ -66,7 +66,7 @@ next
     "\<dots> = (c + a div b) * b + (a + c * b) mod b"
       by (simp add: algebra_simps)
   finally have "a = a div b * b + (a + c * b) mod b"
-    by (simp add: add_commute [of a] add_assoc left_distrib)
+    by (simp add: add_commute [of a] add_assoc distrib_right)
   then have "a div b * b + (a + c * b) mod b = a div b * b + a mod b"
     by (simp add: mod_div_equality)
   then show ?thesis by simp
@@ -1274,9 +1274,9 @@ apply (subgoal_tac "r' + b * (q'-q) \<le> r")
  prefer 2 apply (simp add: right_diff_distrib)
 apply (subgoal_tac "0 < b * (1 + q - q') ")
 apply (erule_tac [2] order_le_less_trans)
- prefer 2 apply (simp add: right_diff_distrib right_distrib)
+ prefer 2 apply (simp add: right_diff_distrib distrib_left)
 apply (subgoal_tac "b * q' < b * (1 + q) ")
- prefer 2 apply (simp add: right_diff_distrib right_distrib)
+ prefer 2 apply (simp add: right_diff_distrib distrib_left)
 apply (simp add: mult_less_cancel_left)
 done
 
@@ -1332,11 +1332,11 @@ theorem posDivAlg_correct:
   apply (induct a b rule: posDivAlg.induct)
   apply auto
   apply (simp add: divmod_int_rel_def)
-  apply (subst posDivAlg_eqn, simp add: right_distrib)
+  apply (subst posDivAlg_eqn, simp add: distrib_left)
   apply (case_tac "a < b")
   apply simp_all
   apply (erule splitE)
-  apply (auto simp add: right_distrib Let_def mult_ac mult_2_right)
+  apply (auto simp add: distrib_left Let_def mult_ac mult_2_right)
   done
 
 
@@ -1366,7 +1366,7 @@ lemma negDivAlg_correct:
   apply (case_tac "a + b < (0\<Colon>int)")
   apply simp_all
   apply (erule splitE)
-  apply (auto simp add: right_distrib Let_def mult_ac mult_2_right)
+  apply (auto simp add: distrib_left Let_def mult_ac mult_2_right)
   done
 
 
@@ -1732,7 +1732,7 @@ lemma q_pos_lemma:
      "[| 0 \<le> b'*q' + r'; r' < b';  0 < b' |] ==> 0 \<le> (q'::int)"
 apply (subgoal_tac "0 < b'* (q' + 1) ")
  apply (simp add: zero_less_mult_iff)
-apply (simp add: right_distrib)
+apply (simp add: distrib_left)
 done
 
 lemma zdiv_mono2_lemma:
@@ -1744,7 +1744,7 @@ apply (subgoal_tac "b*q < b* (q' + 1) ")
  apply (simp add: mult_less_cancel_left)
 apply (subgoal_tac "b*q = r' - r + b'*q'")
  prefer 2 apply simp
-apply (simp (no_asm_simp) add: right_distrib)
+apply (simp (no_asm_simp) add: distrib_left)
 apply (subst add_commute, rule add_less_le_mono, arith)
 apply (rule mult_right_mono, auto)
 done
@@ -1773,7 +1773,7 @@ lemma zdiv_mono2_neg_lemma:
 apply (frule q_neg_lemma, assumption+) 
 apply (subgoal_tac "b*q' < b* (q + 1) ")
  apply (simp add: mult_less_cancel_left)
-apply (simp add: right_distrib)
+apply (simp add: distrib_left)
 apply (subgoal_tac "b*q' \<le> b'*q'")
  prefer 2 apply (simp add: mult_right_mono_neg, arith)
 done
@@ -1795,7 +1795,7 @@ text{*proving (a*b) div c = a * (b div c) + a * (b mod c) *}
 lemma zmult1_lemma:
      "[| divmod_int_rel b c (q, r) |]  
       ==> divmod_int_rel (a * b) c (a*q + a*r div c, a*r mod c)"
-by (auto simp add: split_ifs divmod_int_rel_def linorder_neq_iff right_distrib mult_ac)
+by (auto simp add: split_ifs divmod_int_rel_def linorder_neq_iff distrib_left mult_ac)
 
 lemma zdiv_zmult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::int)"
 apply (case_tac "c = 0", simp)
@@ -1807,7 +1807,7 @@ text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
 lemma zadd1_lemma:
      "[| divmod_int_rel a c (aq, ar);  divmod_int_rel b c (bq, br) |]  
       ==> divmod_int_rel (a+b) c (aq + bq + (ar+br) div c, (ar+br) mod c)"
-by (force simp add: split_ifs divmod_int_rel_def linorder_neq_iff right_distrib)
+by (force simp add: split_ifs divmod_int_rel_def linorder_neq_iff distrib_left)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
 lemma zdiv_zadd1_eq:
@@ -1900,7 +1900,7 @@ done
 lemma zmult2_lemma: "[| divmod_int_rel a b (q, r); 0 < c |]  
       ==> divmod_int_rel a (b * c) (q div c, b*(q mod c) + r)"
 by (auto simp add: mult_ac divmod_int_rel_def linorder_neq_iff
-                   zero_less_mult_iff right_distrib [symmetric] 
+                   zero_less_mult_iff distrib_left [symmetric] 
                    zmult2_lemma_aux1 zmult2_lemma_aux2 zmult2_lemma_aux3 zmult2_lemma_aux4 mult_less_0_iff split: split_if_asm)
 
 lemma zdiv_zmult2_eq: "(0::int) < c ==> a div (b*c) = (a div b) div c"

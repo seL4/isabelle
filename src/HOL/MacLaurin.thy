@@ -415,7 +415,7 @@ text{*It is unclear why so many variant results are needed.*}
 lemma sin_expansion_lemma:
      "sin (x + real (Suc m) * pi / 2) =
       cos (x + real (m) * pi / 2)"
-by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib left_distrib, auto)
+by (simp only: cos_add sin_add real_of_nat_Suc add_divide_distrib distrib_right, auto)
 
 lemma Maclaurin_sin_expansion2:
      "\<exists>t. abs t \<le> abs x &
@@ -489,7 +489,7 @@ by (induct "n", auto)
 
 lemma cos_expansion_lemma:
   "cos (x + real(Suc m) * pi / 2) = -sin (x + real m * pi / 2)"
-by (simp only: cos_add sin_add real_of_nat_Suc left_distrib add_divide_distrib, auto)
+by (simp only: cos_add sin_add real_of_nat_Suc distrib_right add_divide_distrib, auto)
 
 lemma Maclaurin_cos_expansion:
      "\<exists>t. abs t \<le> abs x &

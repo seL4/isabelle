@@ -238,7 +238,7 @@ proof(induct n rule: nat_less_induct)
     have th4: "cmod (complex_of_real (cmod b) / b) *
    cmod (1 + b * (v ^ n / complex_of_real (cmod b)))
    < cmod (complex_of_real (cmod b) / b) * 1"
-      apply (simp only: norm_mult[symmetric] right_distrib)
+      apply (simp only: norm_mult[symmetric] distrib_left)
       using b v by (simp add: th2)
 
     from mult_less_imp_less_left[OF th4 th3]

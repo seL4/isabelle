@@ -35,7 +35,7 @@ apply (rule cringI)
   apply (rule abelian_groupI, simp_all)
   defer 1
   apply (rule comm_monoidI, simp_all)
- apply (rule left_distrib)
+ apply (rule distrib_right)
 apply (fast intro: left_minus)
 done
 
@@ -165,7 +165,7 @@ interpretation int: "domain" \<Z>
     and "a_inv \<Z> x = - x"
     and "a_minus \<Z> x y = x - y"
 proof -
-  show "domain \<Z>" by unfold_locales (auto simp: left_distrib right_distrib)
+  show "domain \<Z>" by unfold_locales (auto simp: distrib_right distrib_left)
 qed (simp
     add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq int_a_inv_eq int_a_minus_eq)+
 

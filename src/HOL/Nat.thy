@@ -312,7 +312,7 @@ lemma nat_mult_commute: "m * n = n * (m::nat)"
   by (rule mult_commute)
 
 lemma add_mult_distrib2: "k * (m + n) = (k * m) + ((k * n)::nat)"
-  by (rule right_distrib)
+  by (rule distrib_left)
 
 lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
   by (induct m) auto
@@ -1342,7 +1342,7 @@ lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
   by (induct m) (simp_all add: add_ac)
 
 lemma of_nat_mult: "of_nat (m * n) = of_nat m * of_nat n"
-  by (induct m) (simp_all add: add_ac left_distrib)
+  by (induct m) (simp_all add: add_ac distrib_right)
 
 primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" where
   "of_nat_aux inc 0 i = i"

@@ -569,7 +569,7 @@ lemma numadd[simp]: "Inum bs (numadd (t,s)) = Inum bs (Add t s)"
 apply (induct t s rule: numadd.induct, simp_all add: Let_def)
 apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
 apply (case_tac "n1 = n2", simp_all add: algebra_simps)
-by (simp only: left_distrib[symmetric],simp)
+by (simp only: distrib_right[symmetric],simp)
 
 lemma numadd_nb[simp]: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
@@ -937,7 +937,7 @@ proof (induct t rule: rsplit0.induct)
     by (simp add: Let_def split_def algebra_simps)
   also have "\<dots> = Inum bs a + Inum bs b" using 2 by (cases "rsplit0 a") auto
   finally show ?case using nb by simp 
-qed (auto simp add: Let_def split_def algebra_simps, simp add: right_distrib[symmetric])
+qed (auto simp add: Let_def split_def algebra_simps, simp add: distrib_left[symmetric])
 
     (* Linearize a formula*)
 definition

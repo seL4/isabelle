@@ -301,7 +301,7 @@ lemma less_le_mult':
   apply assumption
   done
 
-lemmas less_le_mult = less_le_mult' [simplified left_distrib, simplified]
+lemmas less_le_mult = less_le_mult' [simplified distrib_right, simplified]
 
 lemmas less_le_mult_minus = iffD2 [OF le_diff_eq less_le_mult, 
   simplified left_diff_distrib]

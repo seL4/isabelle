@@ -34,7 +34,7 @@ declare powr_one_gt_zero_iff [THEN iffD2, simp]
 
 lemma powr_mult: 
       "[| 0 < x; 0 < y |] ==> (x * y) powr a = (x powr a) * (y powr a)"
-by (simp add: powr_def exp_add [symmetric] ln_mult right_distrib)
+by (simp add: powr_def exp_add [symmetric] ln_mult distrib_left)
 
 lemma powr_gt_zero [simp]: "0 < x powr a"
 by (simp add: powr_def)
@@ -58,7 +58,7 @@ lemma powr_divide2: "x powr a / x powr b = x powr (a - b)"
 done
 
 lemma powr_add: "x powr (a + b) = (x powr a) * (x powr b)"
-by (simp add: powr_def exp_add [symmetric] left_distrib)
+by (simp add: powr_def exp_add [symmetric] distrib_right)
 
 lemma powr_mult_base:
   "0 < x \<Longrightarrow>x * x powr y = x powr (1 + y)"
@@ -112,7 +112,7 @@ by (simp add: log_def powr_def)
 lemma log_mult: 
      "[| 0 < a; a \<noteq> 1; 0 < x; 0 < y |]  
       ==> log a (x * y) = log a x + log a y"
-by (simp add: log_def ln_mult divide_inverse left_distrib)
+by (simp add: log_def ln_mult divide_inverse distrib_right)
 
 lemma log_eq_div_ln_mult_log: 
      "[| 0 < a; a \<noteq> 1; 0 < b; b \<noteq> 1; 0 < x |]  

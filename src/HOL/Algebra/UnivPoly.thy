@@ -1818,7 +1818,7 @@ definition
 
 lemma INTEG_cring: "cring INTEG"
   by (unfold INTEG_def) (auto intro!: cringI abelian_groupI comm_monoidI
-    left_minus left_distrib)
+    left_minus distrib_right)
 
 lemma INTEG_id_eval:
   "UP_pre_univ_prop INTEG INTEG id"

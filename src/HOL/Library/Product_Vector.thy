@@ -421,7 +421,7 @@ instance proof
   show "norm (scaleR r x) = \<bar>r\<bar> * norm x"
     unfolding norm_prod_def
     apply (simp add: power_mult_distrib)
-    apply (simp add: right_distrib [symmetric])
+    apply (simp add: distrib_left [symmetric])
     apply (simp add: real_sqrt_mult_distrib)
     done
   show "sgn x = scaleR (inverse (norm x)) x"
@@ -475,7 +475,7 @@ proof
     apply (rule allI)
     apply (simp add: norm_Pair)
     apply (rule order_trans [OF sqrt_add_le_add_sqrt], simp, simp)
-    apply (simp add: right_distrib)
+    apply (simp add: distrib_left)
     apply (rule add_mono [OF norm_f norm_g])
     done
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
@@ -528,7 +528,7 @@ instance proof
     by (simp add: inner_add_left)
   show "inner (scaleR r x) y = r * inner x y"
     unfolding inner_prod_def
-    by (simp add: right_distrib)
+    by (simp add: distrib_left)
   show "0 \<le> inner x x"
     unfolding inner_prod_def
     by (intro add_nonneg_nonneg inner_ge_zero)

@@ -285,7 +285,7 @@ proof (unfold add_set_def, clarify)
   show "\<exists>x' \<in> A. \<exists>y'\<in>B. z = x' + y'"
   proof (intro bexI)
     show "z = x*?f + y*?f"
-      by (simp add: left_distrib [symmetric] divide_inverse mult_ac
+      by (simp add: distrib_right [symmetric] divide_inverse mult_ac
           order_less_imp_not_eq2)
   next
     show "y * ?f \<in> B"
@@ -534,7 +534,7 @@ done
 lemma distrib_subset1:
      "Rep_preal (w * (x + y)) \<subseteq> Rep_preal (w * x + w * y)"
 apply (auto simp add: Bex_def mem_Rep_preal_add_iff mem_Rep_preal_mult_iff)
-apply (force simp add: right_distrib)
+apply (force simp add: distrib_left)
 done
 
 lemma preal_add_mult_distrib_mean:
@@ -555,13 +555,13 @@ proof
   proof (cases rule: linorder_le_cases)
     assume "a \<le> b"
     hence "?c \<le> b"
-      by (simp add: pos_divide_le_eq right_distrib mult_right_mono
+      by (simp add: pos_divide_le_eq distrib_left mult_right_mono
                     order_less_imp_le)
     thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal b cpos])
   next
     assume "b \<le> a"
     hence "?c \<le> a"
-      by (simp add: pos_divide_le_eq right_distrib mult_right_mono
+      by (simp add: pos_divide_le_eq distrib_left mult_right_mono
                     order_less_imp_le)
     thus ?thesis by (rule preal_downwards_closed' [OF Rep_preal a cpos])
   qed
@@ -1333,7 +1333,7 @@ lemma real_mult_congruent2_lemma:
           x * x1 + y * y1 + (x * y2 + y * x2) =
           x * x2 + y * y2 + (x * y1 + y * x1)"
 apply (simp add: add_left_commute add_assoc [symmetric])
-apply (simp add: add_assoc right_distrib [symmetric])
+apply (simp add: add_assoc distrib_left [symmetric])
 apply (simp add: add_commute)
 done
 
@@ -1543,7 +1543,7 @@ lemma real_mult_less_mono2: "[| (0::real) < z; x < y |] ==> z * x < z * y"
 apply (rule real_sum_gt_zero_less)
 apply (drule real_less_sum_gt_zero [of x y])
 apply (drule real_mult_order, assumption)
-apply (simp add: right_distrib)
+apply (simp add: distrib_left)
 done
 
 instantiation real :: distrib_lattice
@@ -1986,7 +1986,7 @@ proof (rule ccontr)
     from t_is_Lub have "x * of_nat (Suc n) \<le> t"
       by (simp add: isLubD2)
     hence  "x * (of_nat n) + x \<le> t"
-      by (simp add: right_distrib)
+      by (simp add: distrib_left)
     thus  "x * (of_nat n) \<le> t + - x" by arith
   qed
 

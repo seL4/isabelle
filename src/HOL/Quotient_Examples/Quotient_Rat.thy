@@ -128,7 +128,7 @@ instance proof
   show "1 * a = a"
     by partiality_descending auto
   show "a + b + c = a + (b + c)"
-    by partiality_descending (auto simp add: mult_commute right_distrib)
+    by partiality_descending (auto simp add: mult_commute distrib_left)
   show "a + b = b + a"
     by partiality_descending auto
   show "0 + a = a"
@@ -138,7 +138,7 @@ instance proof
   show "a - b = a + - b"
     by (simp add: minus_rat_def)
   show "(a + b) * c = a * c + b * c"
-    by partiality_descending (auto simp add: mult_commute right_distrib)
+    by partiality_descending (auto simp add: mult_commute distrib_left)
   show "(0 :: rat) \<noteq> (1 :: rat)"
     by partiality_descending auto
 qed

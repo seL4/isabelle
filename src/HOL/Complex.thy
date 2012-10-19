@@ -141,7 +141,7 @@ lemma complex_Im_inverse:
 
 instance
   by intro_classes (simp_all add: complex_mult_def
-    right_distrib left_distrib right_diff_distrib left_diff_distrib
+    distrib_left distrib_right right_diff_distrib left_diff_distrib
     complex_inverse_def complex_divide_def
     power2_eq_square add_divide_distrib [symmetric]
     complex_eq_iff)
@@ -206,9 +206,9 @@ instance
 proof
   fix a b :: real and x y :: complex
   show "scaleR a (x + y) = scaleR a x + scaleR a y"
-    by (simp add: complex_eq_iff right_distrib)
+    by (simp add: complex_eq_iff distrib_left)
   show "scaleR (a + b) x = scaleR a x + scaleR b x"
-    by (simp add: complex_eq_iff left_distrib)
+    by (simp add: complex_eq_iff distrib_right)
   show "scaleR a (scaleR b x) = scaleR (a * b) x"
     by (simp add: complex_eq_iff mult_assoc)
   show "scaleR 1 x = x"
@@ -297,7 +297,7 @@ instance proof
        (simp add: real_sqrt_sum_squares_triangle_ineq)
   show "norm (scaleR r x) = \<bar>r\<bar> * norm x"
     by (induct x)
-       (simp add: power_mult_distrib right_distrib [symmetric] real_sqrt_mult)
+       (simp add: power_mult_distrib distrib_left [symmetric] real_sqrt_mult)
   show "norm (x * y) = norm x * norm y"
     by (induct x, induct y)
        (simp add: real_sqrt_mult [symmetric] power2_eq_square algebra_simps)
@@ -730,7 +730,7 @@ proof (simp add: arg_def assms, rule someI_ex)
     unfolding z b_def rcis_def using `r \<noteq> 0`
     by (simp add: of_real_def sgn_scaleR sgn_if, simp add: cis_def)
   have cis_2pi_nat: "\<And>n. cis (2 * pi * real_of_nat n) = 1"
-    by (induct_tac n, simp_all add: right_distrib cis_mult [symmetric],
+    by (induct_tac n, simp_all add: distrib_left cis_mult [symmetric],
       simp add: cis_def)
   have cis_2pi_int: "\<And>x. cis (2 * pi * real_of_int x) = 1"
     by (case_tac x rule: int_diff_cases,

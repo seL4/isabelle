@@ -153,7 +153,7 @@ lemma Dig_times [numeral, simp, code]:
   "Dig1 n * Dig0 m = Dig0 (n * Dig0 m + m)"
   "Dig1 n * Dig1 m = Dig1 (n * Dig1 m + m)"
   by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult
-                    left_distrib right_distrib)
+                    distrib_right distrib_left)
 
 lemma less_eq_num_code [numeral, simp, code]:
   "One \<le> n \<longleftrightarrow> True"
@@ -243,7 +243,7 @@ lemma of_num_add: "of_num (m + n) = of_num m + of_num n"
   by (induct n rule: num_induct) (simp_all add: add_One add_inc of_num_inc add_ac)
 
 lemma of_num_mult: "of_num (m * n) = of_num m * of_num n"
-  by (induct n rule: num_induct) (simp_all add: mult_One mult_inc of_num_add of_num_inc right_distrib)
+  by (induct n rule: num_induct) (simp_all add: mult_One mult_inc of_num_add of_num_inc distrib_left)
 
 declare of_num.simps [simp del]
 
@@ -792,7 +792,7 @@ begin
 
 lemma mult_of_num_commute: "x * of_num n = of_num n * x"
 by (induct n)
-  (simp_all only: of_num.simps left_distrib right_distrib mult_1_left mult_1_right)
+  (simp_all only: of_num.simps distrib_right distrib_left mult_1_left mult_1_right)
 
 definition
   "commutes_with a b \<longleftrightarrow> a * b = b * a"

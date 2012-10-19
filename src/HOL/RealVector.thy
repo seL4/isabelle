@@ -1081,8 +1081,8 @@ end
 lemma bounded_bilinear_mult:
   "bounded_bilinear (op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra)"
 apply (rule bounded_bilinear.intro)
-apply (rule left_distrib)
-apply (rule right_distrib)
+apply (rule distrib_right)
+apply (rule distrib_left)
 apply (rule mult_scaleR_left)
 apply (rule mult_scaleR_right)
 apply (rule_tac x="1" in exI)

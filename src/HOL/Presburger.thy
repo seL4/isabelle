@@ -54,7 +54,7 @@ lemma inf_period:
   "(d::'a::{comm_ring,Rings.dvd}) dvd D \<Longrightarrow> \<forall>x k. (\<not>d dvd x + t) = (\<not>d dvd (x - k*D) + t)"
   "\<forall>x k. F = F"
 apply (auto elim!: dvdE simp add: algebra_simps)
-unfolding mult_assoc [symmetric] left_distrib [symmetric] left_diff_distrib [symmetric]
+unfolding mult_assoc [symmetric] distrib_right [symmetric] left_diff_distrib [symmetric]
 unfolding dvd_def mult_commute [of d] 
 by auto
 

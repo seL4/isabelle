@@ -201,7 +201,7 @@ instance proof
   show "inner x y = inner y x"
     unfolding inner_real_def by (rule mult_commute)
   show "inner (x + y) z = inner x z + inner y z"
-    unfolding inner_real_def by (rule left_distrib)
+    unfolding inner_real_def by (rule distrib_right)
   show "inner (scaleR r x) y = r * inner x y"
     unfolding inner_real_def real_scaleR_def by (rule mult_assoc)
   show "0 \<le> inner x x"
@@ -225,9 +225,9 @@ instance proof
   show "inner x y = inner y x"
     unfolding inner_complex_def by (simp add: mult_commute)
   show "inner (x + y) z = inner x z + inner y z"
-    unfolding inner_complex_def by (simp add: left_distrib)
+    unfolding inner_complex_def by (simp add: distrib_right)
   show "inner (scaleR r x) y = r * inner x y"
-    unfolding inner_complex_def by (simp add: right_distrib)
+    unfolding inner_complex_def by (simp add: distrib_left)
   show "0 \<le> inner x x"
     unfolding inner_complex_def by simp
   show "inner x x = 0 \<longleftrightarrow> x = 0"

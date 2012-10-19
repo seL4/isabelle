@@ -153,7 +153,7 @@ definition [simp, code del]:
   "n < m \<longleftrightarrow> nat_of n < nat_of m"
 
 instance proof
-qed (auto simp add: code_numeral left_distrib intro: mult_commute)
+qed (auto simp add: code_numeral distrib_right intro: mult_commute)
 
 end
 
