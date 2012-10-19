@@ -97,9 +97,6 @@ lemma keys_impl_of:
   "RBT_Impl.keys (impl_of t) = keys t"
   by transfer (rule refl)
 
-(* FIXME *)
-lemma [transfer_rule]: "(fun_rel (fun_rel op = op =) op =) dom dom" unfolding fun_rel_def by auto
-
 lemma lookup_keys: 
   "dom (lookup t) = set (keys t)" 
   by transfer (simp add: rbt_lookup_keys)
