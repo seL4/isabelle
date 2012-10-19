@@ -819,7 +819,7 @@ fun shrink_locally ctxt type_enc lam_trans isar_shrinkage proof =
         val t1 = try_metis s1 s0 ()
         val t2 = try_metis s2 (SOME s1) ()
         val timeout =
-          t1 + t2 |> Time.toReal |> curry Real.* merge_timeout_slack
+          Time.+ (t1, t2) |> Time.toReal |> curry Real.* merge_timeout_slack
                   |> Time.fromReal
       in
         (TimeLimit.timeLimit timeout (try_metis s12 s0) ();
