@@ -75,7 +75,7 @@ SESSION_DATA="/tmp/isatest$$.dat"
 mkdir -p "$DIR" || fail "Bad directory: $DIR"
 
 $ZGREP "^Finished .*elapsed" \
-  $(find "$LOG_DIR" -name "$LOG_NAME" -ctime "-${TIMESPAN}") | \
+  $(find "$LOG_DIR" -name "$LOG_NAME" -mtime "-${TIMESPAN}") | \
 perl -e '
   while (<>) {
     if (m/(\d\d\d\d)-(\d\d)-(\d\d).*:Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time/) {
