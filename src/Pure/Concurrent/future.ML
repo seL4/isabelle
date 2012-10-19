@@ -497,8 +497,6 @@ fun fork e = fork_pri 0 e;
 
 (* join *)
 
-local
-
 fun get_result x =
   (case peek x of
     NONE => Exn.Exn (Fail "Unfinished future")
@@ -508,6 +506,8 @@ fun get_result x =
           NONE => res
         | SOME exn => Exn.Exn exn)
       else res);
+
+local
 
 fun join_next deps = (*requires SYNCHRONIZED*)
   if null deps then NONE
@@ -561,23 +561,25 @@ fun cond_forks args es =
   else map (fn e => value_result (Exn.interruptible_capture e ())) es;
 
 fun map_future f x =
-  let
-    val task = task_of x;
-    val group = Task_Queue.group_of_task task;
-    val (result, job) = future_job group true (fn () => f (join x));
+  if is_finished x then value (f (join x))
+  else
+    let
+      val task = task_of x;
+      val group = Task_Queue.group_of_task task;
+      val (result, job) = future_job group true (fn () => f (join x));
 
-    val extended = SYNCHRONIZED "extend" (fn () =>
-      (case Task_Queue.extend task job (! queue) of
-        SOME queue' => (queue := queue'; true)
-      | NONE => false));
-  in
-    if extended then Future {promised = false, task = task, result = result}
-    else
-      (singleton o cond_forks)
-        {name = "map_future", group = SOME group, deps = [task],
-          pri = Task_Queue.pri_of_task task, interrupts = true}
-        (fn () => f (join x))
-  end;
+      val extended = SYNCHRONIZED "extend" (fn () =>
+        (case Task_Queue.extend task job (! queue) of
+          SOME queue' => (queue := queue'; true)
+        | NONE => false));
+    in
+      if extended then Future {promised = false, task = task, result = result}
+      else
+        (singleton o cond_forks)
+          {name = "map_future", group = SOME group, deps = [task],
+            pri = Task_Queue.pri_of_task task, interrupts = true}
+          (fn () => f (join x))
+    end;
 
 
 (* promised futures -- fulfilled by external means *)
