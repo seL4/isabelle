@@ -173,14 +173,16 @@ class Rich_Text_Area(
 
         if ((control || hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
-            val rendering = get_rendering()
-            val mouse_offset = text_area.xyToOffset(e.getX(), e.getY())
-            val mouse_range = JEdit_Lib.point_range(buffer, mouse_offset)
-            for ((area, require_control) <- active_areas)
-            {
-              if (control == require_control)
-                area.update_rendering(rendering, mouse_range)
-              else area.reset
+            JEdit_Lib.pixel_range(text_area, e.getX(), e.getY()) match {
+              case None =>
+              case Some(range) =>
+                val rendering = get_rendering()
+                for ((area, require_control) <- active_areas)
+                {
+                  if (control == require_control)
+                    area.update_rendering(rendering, range)
+                  else area.reset
+                }
             }
           }
         }
@@ -200,15 +202,17 @@ class Rich_Text_Area(
         val rendering = get_rendering()
         val snapshot = rendering.snapshot
         if (!snapshot.is_outdated) {
-          val offset = text_area.xyToOffset(x, y)
-          val range = Text.Range(offset, offset + 1)
-          val tip =
-            if (control) rendering.tooltip(range)
-            else rendering.tooltip_message(range)
-          if (!tip.isEmpty) {
-            val painter = text_area.getPainter
-            val y1 = y + painter.getFontMetrics.getHeight / 2
-            new Pretty_Tooltip(view, painter, rendering, x, y1, tip)
+          JEdit_Lib.pixel_range(text_area, x, y) match {
+            case None =>
+            case Some(range) =>
+              val tip =
+                if (control) rendering.tooltip(range)
+                else rendering.tooltip_message(range)
+              if (!tip.isEmpty) {
+                val painter = text_area.getPainter
+                val y1 = y + painter.getFontMetrics.getHeight / 2
+                new Pretty_Tooltip(view, painter, rendering, x, y1, tip)
+              }
           }
         }
         null

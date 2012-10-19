@@ -168,5 +168,17 @@ object JEdit_Lib
       Some(new Gfx_Range(p.x, p.y, q.x + r - p.x))
     else None
   }
+
+
+  /* pixel range */
+
+  def pixel_range(text_area: TextArea, x: Int, y: Int): Option[Text.Range] =
+  {
+    val range = point_range(text_area.getBuffer, text_area.xyToOffset(x, y))
+    gfx_range(text_area, range) match {
+      case Some(g) if (g.x <= x && x < g.x + g.length) => Some(range)
+      case _ => None
+    }
+  }
 }
 
