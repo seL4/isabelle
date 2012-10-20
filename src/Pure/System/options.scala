@@ -198,32 +198,36 @@ final class Options private(
 
   /* internal lookup and update */
 
-  val bool = new Object
+  class Bool_Access
   {
     def apply(name: String): Boolean = get(name, Options.Bool, Properties.Value.Boolean.unapply)
     def update(name: String, x: Boolean): Options =
       put(name, Options.Bool, Properties.Value.Boolean(x))
   }
+  val bool = new Bool_Access
 
-  val int = new Object
+  class Int_Access
   {
     def apply(name: String): Int = get(name, Options.Int, Properties.Value.Int.unapply)
     def update(name: String, x: Int): Options =
       put(name, Options.Int, Properties.Value.Int(x))
   }
+  val int = new Int_Access
 
-  val real = new Object
+  class Real_Access
   {
     def apply(name: String): Double = get(name, Options.Real, Properties.Value.Double.unapply)
     def update(name: String, x: Double): Options =
       put(name, Options.Real, Properties.Value.Double(x))
   }
+  val real = new Real_Access
 
-  val string = new Object
+  class String_Access
   {
     def apply(name: String): String = get(name, Options.String, s => Some(s))
     def update(name: String, x: String): Options = put(name, Options.String, x)
   }
+  val string = new String_Access
 
 
   /* external updates */
@@ -363,7 +367,7 @@ class Options_Variable
     options = options + (name, x)
   }
 
-  val bool = new Object
+  class Bool_Access
   {
     def apply(name: String): Boolean = options.bool(name)
     def update(name: String, x: Boolean)
@@ -372,8 +376,9 @@ class Options_Variable
       options = options.bool.update(name, x)
     }
   }
+  val bool = new Bool_Access
 
-  val int = new Object
+  class Int_Access
   {
     def apply(name: String): Int = options.int(name)
     def update(name: String, x: Int)
@@ -382,8 +387,9 @@ class Options_Variable
       options = options.int.update(name, x)
     }
   }
+  val int = new Int_Access
 
-  val real = new Object
+  class Real_Access
   {
     def apply(name: String): Double = options.real(name)
     def update(name: String, x: Double)
@@ -392,8 +398,9 @@ class Options_Variable
       options = options.real.update(name, x)
     }
   }
+  val real = new Real_Access
 
-  val string = new Object
+  class String_Access
   {
     def apply(name: String): String = options.string(name)
     def update(name: String, x: String)
@@ -402,5 +409,6 @@ class Options_Variable
       options = options.string.update(name, x)
     }
   }
+  val string = new String_Access
 }
 

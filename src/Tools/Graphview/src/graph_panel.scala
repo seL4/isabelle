@@ -67,7 +67,7 @@ class Graph_Panel(
   
   def apply_layout() = visualizer.Coordinates.layout()  
 
-  private val paint_panel = new Panel {    
+  private class Paint_Panel extends Panel {
     def set_preferred_size() {
         val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
         val s = Transform.scale
@@ -86,6 +86,7 @@ class Graph_Panel(
       visualizer.Drawer.paint_all_visible(g, true)
     }
   }
+  private val paint_panel = new Paint_Panel
   contents = paint_panel
   
   listenTo(keys)
