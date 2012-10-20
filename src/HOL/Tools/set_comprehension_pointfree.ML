@@ -235,6 +235,10 @@ fun eq_conv cv1 cv2 ct =
     Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
   | _ => raise CTERM ("eq_conv", [ct]))
 
+val vimageI2' = @{lemma "f a \<notin> A ==> a \<notin> f -` A" by simp}
+val vimageE' =
+  @{lemma "a \<notin> f -` B ==> (\<And> x. f a = x ==> x \<notin> B ==> P) ==> P" by simp}
+
 val elim_Collect_tac = dtac @{thm iffD1[OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
   THEN' TRY o etac @{thm conjE}
@@ -264,7 +268,7 @@ fun tac1_of_formula (Int (fm1, fm2)) =
     THEN' tac1_of_formula fm2
   | tac1_of_formula (Atom _) =
     REPEAT_DETERM1 o (rtac @{thm SigmaI}
-      ORELSE' (rtac @{thm vimageI2} THEN'
+      ORELSE' ((rtac @{thm vimageI2} ORELSE' rtac vimageI2') THEN'
         TRY o Simplifier.simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])) 
       ORELSE' rtac @{thm UNIV_I}
       ORELSE' rtac @{thm iffD2[OF Compl_iff]}
@@ -284,10 +288,10 @@ fun tac2_of_formula (Int (fm1, fm2)) =
     TRY o REPEAT_DETERM1 o
       (dtac @{thm iffD1[OF mem_Sigma_iff]}
        ORELSE' etac @{thm conjE}
-       ORELSE' (etac @{thm vimageE}
+       ORELSE' etac @{thm ComplE}
+       ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
         THEN' TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])
         THEN' TRY o hyp_subst_tac)
-       ORELSE' etac @{thm ComplE}
        ORELSE' atac)
 
 fun tac ctxt fm =
