@@ -37,7 +37,71 @@ qed
 end
 
 
-subsection {* Equality and order on functions *}
+subsection {* Implementations using @{class enum} *}
+
+subsubsection {* Unbounded operations and quantifiers *}
+
+lemma Collect_code [code]:
+  "Collect P = set (filter P enum)"
+  by (auto simp add: enum_UNIV)
+
+definition card_UNIV :: "'a itself \<Rightarrow> nat"
+where
+  [code del]: "card_UNIV TYPE('a) = card (UNIV :: 'a set)"
+
+lemma [code]:
+  "card_UNIV TYPE('a :: enum) = card (set (Enum.enum :: 'a list))"
+  by (simp only: card_UNIV_def enum_UNIV)
+
+lemma all_code [code]: "(\<forall>x. P x) \<longleftrightarrow> enum_all P"
+  by (simp add: enum_all)
+
+lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> enum_ex P"
+  by (simp add: enum_ex)
+
+lemma exists1_code [code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P enum"
+  by (auto simp add: enum_UNIV list_ex1_iff)
+
+
+subsubsection {* An executable choice operator *}
+
+definition
+  [code del]: "enum_the = The"
+
+lemma [code]:
+  "The P = (case filter P enum of [x] => x | _ => enum_the P)"
+proof -
+  {
+    fix a
+    assume filter_enum: "filter P enum = [a]"
+    have "The P = a"
+    proof (rule the_equality)
+      fix x
+      assume "P x"
+      show "x = a"
+      proof (rule ccontr)
+        assume "x \<noteq> a"
+        from filter_enum obtain us vs
+          where enum_eq: "enum = us @ [a] @ vs"
+          and "\<forall> x \<in> set us. \<not> P x"
+          and "\<forall> x \<in> set vs. \<not> P x"
+          and "P a"
+          by (auto simp add: filter_eq_Cons_iff) (simp only: filter_empty_conv[symmetric])
+        with `P x` in_enum[of x, unfolded enum_eq] `x \<noteq> a` show "False" by auto
+      qed
+    next
+      from filter_enum show "P a" by (auto simp add: filter_eq_Cons_iff)
+    qed
+  }
+  from this show ?thesis
+    unfolding enum_the_def by (auto split: list.split)
+qed
+
+code_abort enum_the
+code_const enum_the (Eval "(fn p => raise Match)")
+
+
+subsubsection {* Equality and order on functions *}
 
 instantiation "fun" :: (enum, equal) equal
 begin
@@ -65,19 +129,43 @@ lemma order_fun [code]:
   by (simp_all add: enum_all enum_ex fun_eq_iff le_fun_def order_less_le)
 
 
-subsection {* Quantifiers *}
+subsubsection {* Operations on relations *}
 
-lemma all_code [code]: "(\<forall>x. P x) \<longleftrightarrow> enum_all P"
-  by (simp add: enum_all)
+lemma [code]:
+  "Id = image (\<lambda>x. (x, x)) (set Enum.enum)"
+  by (auto intro: imageI in_enum)
 
-lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> enum_ex P"
-  by (simp add: enum_ex)
+lemma tranclp_unfold [code, no_atp]:
+  "tranclp r a b \<longleftrightarrow> (a, b) \<in> trancl {(x, y). r x y}"
+  by (simp add: trancl_def)
 
-lemma exists1_code[code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P enum"
-  by (auto simp add: enum_UNIV list_ex1_iff)
+lemma rtranclp_rtrancl_eq [code, no_atp]:
+  "rtranclp r x y \<longleftrightarrow> (x, y) \<in> rtrancl {(x, y). r x y}"
+  by (simp add: rtrancl_def)
+
+lemma max_ext_eq [code]:
+  "max_ext R = {(X, Y). finite X \<and> finite Y \<and> Y \<noteq> {} \<and> (\<forall>x. x \<in> X \<longrightarrow> (\<exists>xa \<in> Y. (x, xa) \<in> R))}"
+  by (auto simp add: max_ext.simps)
+
+lemma max_extp_eq [code]:
+  "max_extp r x y \<longleftrightarrow> (x, y) \<in> max_ext {(x, y). r x y}"
+  by (simp add: max_ext_def)
+
+lemma mlex_eq [code]:
+  "f <*mlex*> R = {(x, y). f x < f y \<or> (f x \<le> f y \<and> (x, y) \<in> R)}"
+  by (auto simp add: mlex_prod_def)
+
+lemma [code]:
+  fixes xs :: "('a::finite \<times> 'a) list"
+  shows "acc (set xs) = bacc (set xs) (card_UNIV TYPE('a))"
+  by (simp add: card_UNIV_def acc_bacc_eq)
+
+lemma [code]:
+  "accp r = (\<lambda>x. x \<in> acc {(x, y). r x y})"
+  by (simp add: acc_def)
 
 
-subsection {* Default instances *}
+subsection {* Default instances for @{class enum} *}
 
 lemma map_of_zip_enum_is_Some:
   assumes "length ys = length (enum \<Colon> 'a\<Colon>enum list)"
@@ -650,91 +738,6 @@ end
 
 hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3 a\<^isub>4 a\<^isub>5
 
-
-subsection {* An executable THE operator on finite types *}
-
-definition
-  [code del]: "enum_the = The"
-
-lemma [code]:
-  "The P = (case filter P enum of [x] => x | _ => enum_the P)"
-proof -
-  {
-    fix a
-    assume filter_enum: "filter P enum = [a]"
-    have "The P = a"
-    proof (rule the_equality)
-      fix x
-      assume "P x"
-      show "x = a"
-      proof (rule ccontr)
-        assume "x \<noteq> a"
-        from filter_enum obtain us vs
-          where enum_eq: "enum = us @ [a] @ vs"
-          and "\<forall> x \<in> set us. \<not> P x"
-          and "\<forall> x \<in> set vs. \<not> P x"
-          and "P a"
-          by (auto simp add: filter_eq_Cons_iff) (simp only: filter_empty_conv[symmetric])
-        with `P x` in_enum[of x, unfolded enum_eq] `x \<noteq> a` show "False" by auto
-      qed
-    next
-      from filter_enum show "P a" by (auto simp add: filter_eq_Cons_iff)
-    qed
-  }
-  from this show ?thesis
-    unfolding enum_the_def by (auto split: list.split)
-qed
-
-code_abort enum_the
-code_const enum_the (Eval "(fn p => raise Match)")
-
-
-subsection {* Further operations on finite types *}
-
-lemma Collect_code [code]:
-  "Collect P = set (filter P enum)"
-by (auto simp add: enum_UNIV)
-
-lemma [code]:
-  "Id = image (%x. (x, x)) (set Enum.enum)"
-by (auto intro: imageI in_enum)
-
-lemma tranclp_unfold [code, no_atp]:
-  "tranclp r a b \<equiv> (a, b) \<in> trancl {(x, y). r x y}"
-by (simp add: trancl_def)
-
-lemma rtranclp_rtrancl_eq [code, no_atp]:
-  "rtranclp r x y = ((x, y) : rtrancl {(x, y). r x y})"
-unfolding rtrancl_def by auto
-
-lemma max_ext_eq [code]:
-  "max_ext R = {(X, Y). finite X & finite Y & Y ~={} & (ALL x. x : X --> (EX xa : Y. (x, xa) : R))}"
-by (auto simp add: max_ext.simps)
-
-lemma max_extp_eq[code]:
-  "max_extp r x y = ((x, y) : max_ext {(x, y). r x y})"
-unfolding max_ext_def by auto
-
-lemma mlex_eq[code]:
-  "f <*mlex*> R = {(x, y). f x < f y \<or> (f x <= f y \<and> (x, y) : R)}"
-unfolding mlex_prod_def by auto
-
-subsection {* Executable accessible part *}
-
-definition 
-  [code del]: "card_UNIV = card UNIV"
-
-lemma [code]:
-  "card_UNIV TYPE('a :: enum) = card (set (Enum.enum :: 'a list))"
-  unfolding card_UNIV_def enum_UNIV ..
-
-lemma [code]:
-  fixes xs :: "('a::finite \<times> 'a) list"
-  shows "acc (set xs) = bacc (set xs) (card_UNIV TYPE('a))"
-  by (simp add: card_UNIV_def acc_bacc_eq)
-
-lemma [code_unfold]: "accp r = (\<lambda>x. x \<in> acc {(x, y). r x y})"
-  unfolding acc_def by simp
 
 subsection {* Closing up *}
 
