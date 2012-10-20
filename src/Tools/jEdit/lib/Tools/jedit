@@ -92,7 +92,6 @@ function failed()
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
-FRESH_OPTION=""
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
@@ -117,7 +116,6 @@ function getoptions()
         fi
         ;;
       f)
-        FRESH_OPTION="-f"
         BUILD_JARS="jars_fresh"
         ;;
       j)
@@ -166,11 +164,14 @@ fi
 
 ## dependencies
 
-[ -e "$ISABELLE_HOME/Admin/build" ] && \
-  {
+if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+  if [ "$BUILD_JARS" = jars_fresh ]; then
+    "$ISABELLE_TOOL" graphview -b -f || exit $?
+  else
     "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?
-    "$ISABELLE_TOOL" graphview -b $FRESH_OPTION || exit $?
-  }
+    "$ISABELLE_TOOL" graphview -b || exit $?
+  fi
+fi
 
 PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
 GRAPHVIEW_JAR="$ISABELLE_HOME/lib/classes/ext/Graphview.jar"
