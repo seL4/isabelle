@@ -690,7 +690,8 @@ object Build
     val rc = (0 /: results)({ case (rc1, (_, res)) => rc1 max res.rc })
     if (rc != 0 && (verbose || !no_build)) {
       val unfinished =
-        (for ((name, res) <- results.iterator if res.rc != 0) yield name).toList.sorted
+        (for ((name, res) <- results.iterator if res.rc != 0) yield name).toList
+          .sorted(scala.math.Ordering.String)  // FIXME scala-2.10.0-RC1
       echo("Unfinished session(s): " + commas(unfinished))
     }
     rc
