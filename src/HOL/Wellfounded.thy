@@ -764,9 +764,9 @@ proof (rule acc_wfI, intro allI)
             with Mw show "?N2 \<in> ?W" by (simp only:)
           next
             assume "M \<noteq> {}"
-            have N2: "(?N2, M) \<in> max_ext r" 
-              by (rule max_extI[OF _ _ `M \<noteq> {}`]) (insert asm1, auto intro: finites)
-            
+            from asm1 finites have N2: "(?N2, M) \<in> max_ext r" 
+              by (rule_tac max_extI[OF _ _ `M \<noteq> {}`]) auto
+
             with `M \<in> ?W` show "?N2 \<in> ?W" by (rule acc_downward)
           qed
           with finites have "?N1 \<union> ?N2 \<in> ?W" 
