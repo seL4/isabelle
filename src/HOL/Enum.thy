@@ -11,20 +11,23 @@ subsection {* Class @{text enum} *}
 class enum =
   fixes enum :: "'a list"
   fixes enum_all :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
-  fixes enum_ex  :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
+  fixes enum_ex :: "('a \<Rightarrow> bool) \<Rightarrow> bool"
   assumes UNIV_enum: "UNIV = set enum"
     and enum_distinct: "distinct enum"
-  assumes enum_all : "enum_all P = (\<forall> x. P x)"
-  assumes enum_ex  : "enum_ex P = (\<exists> x. P x)" 
+  assumes enum_all_UNIV: "enum_all P \<longleftrightarrow> Ball UNIV P"
+  assumes enum_ex_UNIV: "enum_ex P \<longleftrightarrow> Bex UNIV P" 
+   -- {* tailored towards simple instantiation *}
 begin
 
 subclass finite proof
 qed (simp add: UNIV_enum)
 
-lemma enum_UNIV: "set enum = UNIV" unfolding UNIV_enum ..
+lemma enum_UNIV:
+  "set enum = UNIV"
+  by (simp only: UNIV_enum)
 
 lemma in_enum: "x \<in> set enum"
-  unfolding enum_UNIV by auto
+  by (simp add: enum_UNIV)
 
 lemma enum_eq_I:
   assumes "\<And>x. x \<in> set xs"
@@ -33,6 +36,14 @@ proof -
   from assms UNIV_eq_I have "UNIV = set xs" by auto
   with enum_UNIV show ?thesis by simp
 qed
+
+lemma enum_all [simp]:
+  "enum_all = HOL.All"
+  by (simp add: fun_eq_iff enum_all_UNIV)
+
+lemma enum_ex [simp]:
+  "enum_ex = HOL.Ex" 
+  by (simp add: fun_eq_iff enum_ex_UNIV)
 
 end
 
@@ -43,7 +54,7 @@ subsubsection {* Unbounded operations and quantifiers *}
 
 lemma Collect_code [code]:
   "Collect P = set (filter P enum)"
-  by (auto simp add: enum_UNIV)
+  by (simp add: enum_UNIV)
 
 definition card_UNIV :: "'a itself \<Rightarrow> nat"
 where
@@ -54,13 +65,13 @@ lemma [code]:
   by (simp only: card_UNIV_def enum_UNIV)
 
 lemma all_code [code]: "(\<forall>x. P x) \<longleftrightarrow> enum_all P"
-  by (simp add: enum_all)
+  by simp
 
 lemma exists_code [code]: "(\<exists>x. P x) \<longleftrightarrow> enum_ex P"
-  by (simp add: enum_ex)
+  by simp
 
 lemma exists1_code [code]: "(\<exists>!x. P x) \<longleftrightarrow> list_ex1 P enum"
-  by (auto simp add: enum_UNIV list_ex1_iff)
+  by (auto simp add: list_ex1_iff enum_UNIV)
 
 
 subsubsection {* An executable choice operator *}
@@ -110,13 +121,13 @@ definition
   "HOL.equal f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
 
 instance proof
-qed (simp_all add: equal_fun_def enum_UNIV fun_eq_iff)
+qed (simp_all add: equal_fun_def fun_eq_iff enum_UNIV)
 
 end
 
 lemma [code]:
   "HOL.equal f g \<longleftrightarrow> enum_all (%x. f x = g x)"
-by (auto simp add: equal enum_all fun_eq_iff)
+  by (auto simp add: equal fun_eq_iff)
 
 lemma [code nbe]:
   "HOL.equal (f :: _ \<Rightarrow> _) f \<longleftrightarrow> True"
@@ -126,7 +137,7 @@ lemma order_fun [code]:
   fixes f g :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>order"
   shows "f \<le> g \<longleftrightarrow> enum_all (\<lambda>x. f x \<le> g x)"
     and "f < g \<longleftrightarrow> f \<le> g \<and> enum_ex (\<lambda>x. f x \<noteq> g x)"
-  by (simp_all add: enum_all enum_ex fun_eq_iff le_fun_def order_less_le)
+  by (simp_all add: fun_eq_iff le_fun_def order_less_le)
 
 
 subsubsection {* Operations on relations *}
@@ -199,26 +210,23 @@ proof -
   with length enum_distinct show "xs = ys" by (rule map_of_zip_inject)
 qed
 
-definition
-  all_n_lists :: "(('a :: enum) list \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> bool"
+definition all_n_lists :: "(('a :: enum) list \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> bool"
 where
-  "all_n_lists P n = (\<forall>xs \<in> set (List.n_lists n enum). P xs)"
+  "all_n_lists P n \<longleftrightarrow> (\<forall>xs \<in> set (List.n_lists n enum). P xs)"
 
 lemma [code]:
-  "all_n_lists P n = (if n = 0 then P [] else enum_all (%x. all_n_lists (%xs. P (x # xs)) (n - 1)))"
-unfolding all_n_lists_def enum_all
-by (cases n) (auto simp add: enum_UNIV)
+  "all_n_lists P n \<longleftrightarrow> (if n = 0 then P [] else enum_all (%x. all_n_lists (%xs. P (x # xs)) (n - 1)))"
+  unfolding all_n_lists_def enum_all
+  by (cases n) (auto simp add: enum_UNIV)
 
-definition
-  ex_n_lists :: "(('a :: enum) list \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> bool"
+definition ex_n_lists :: "(('a :: enum) list \<Rightarrow> bool) \<Rightarrow> nat \<Rightarrow> bool"
 where
-  "ex_n_lists P n = (\<exists>xs \<in> set (List.n_lists n enum). P xs)"
+  "ex_n_lists P n \<longleftrightarrow> (\<exists>xs \<in> set (List.n_lists n enum). P xs)"
 
 lemma [code]:
-  "ex_n_lists P n = (if n = 0 then P [] else enum_ex (%x. ex_n_lists (%xs. P (x # xs)) (n - 1)))"
-unfolding ex_n_lists_def enum_ex
-by (cases n) (auto simp add: enum_UNIV)
-
+  "ex_n_lists P n \<longleftrightarrow> (if n = 0 then P [] else enum_ex (%x. ex_n_lists (%xs. P (x # xs)) (n - 1)))"
+  unfolding ex_n_lists_def enum_ex
+  by (cases n) (auto simp add: enum_UNIV)
 
 instantiation "fun" :: (enum, enum) enum
 begin
@@ -231,7 +239,6 @@ definition
 
 definition
   "enum_ex P = ex_n_lists (\<lambda>bs. P (the o map_of (zip enum bs))) (length (enum :: 'a list))"
-
 
 instance proof
   show "UNIV = set (enum \<Colon> ('a \<Rightarrow> 'b) list)"
@@ -246,13 +253,13 @@ next
   from map_of_zip_enum_inject
   show "distinct (enum \<Colon> ('a \<Rightarrow> 'b) list)"
     by (auto intro!: inj_onI simp add: enum_fun_def
-      distinct_map distinct_n_lists enum_distinct set_n_lists enum_all)
+      distinct_map distinct_n_lists enum_distinct set_n_lists)
 next
   fix P
-  show "enum_all (P :: ('a \<Rightarrow> 'b) \<Rightarrow> bool) = (\<forall>x. P x)"
+  show "enum_all (P :: ('a \<Rightarrow> 'b) \<Rightarrow> bool) = Ball UNIV P"
   proof
     assume "enum_all P"
-    show "\<forall>x. P x"
+    show "Ball UNIV P"
     proof
       fix f :: "'a \<Rightarrow> 'b"
       have f: "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
@@ -266,19 +273,19 @@ next
       from this f show "P f" by auto
     qed
   next
-    assume "\<forall>x. P x"
+    assume "Ball UNIV P"
     from this show "enum_all P"
       unfolding enum_all_fun_def all_n_lists_def by auto
   qed
 next
   fix P
-  show "enum_ex (P :: ('a \<Rightarrow> 'b) \<Rightarrow> bool) = (\<exists>x. P x)"
+  show "enum_ex (P :: ('a \<Rightarrow> 'b) \<Rightarrow> bool) = Bex UNIV P"
   proof
     assume "enum_ex P"
-    from this show "\<exists>x. P x"
+    from this show "Bex UNIV P"
       unfolding enum_ex_fun_def ex_n_lists_def by auto
   next
-    assume "\<exists>x. P x"
+    assume "Bex UNIV P"
     from this obtain f where "P f" ..
     have f: "f = the \<circ> map_of (zip (enum \<Colon> 'a\<Colon>enum list) (map f enum))"
       by (auto simp add: map_of_zip_map fun_eq_iff intro: in_enum) 
@@ -302,188 +309,12 @@ lemma enum_fun_code [code]: "enum = (let enum_a = (enum \<Colon> 'a\<Colon>{enum
 lemma enum_all_fun_code [code]:
   "enum_all P = (let enum_a = (enum :: 'a::{enum, equal} list)
    in all_n_lists (\<lambda>bs. P (the o map_of (zip enum_a bs))) (length enum_a))"
-  by (simp add: enum_all_fun_def Let_def)
+  by (simp only: enum_all_fun_def Let_def)
 
 lemma enum_ex_fun_code [code]:
   "enum_ex P = (let enum_a = (enum :: 'a::{enum, equal} list)
    in ex_n_lists (\<lambda>bs. P (the o map_of (zip enum_a bs))) (length enum_a))"
-  by (simp add: enum_ex_fun_def Let_def)
-
-instantiation unit :: enum
-begin
-
-definition
-  "enum = [()]"
-
-definition
-  "enum_all P = P ()"
-
-definition
-  "enum_ex P = P ()"
-
-instance proof
-qed (auto simp add: enum_unit_def UNIV_unit enum_all_unit_def enum_ex_unit_def intro: unit.exhaust)
-
-end
-
-instantiation bool :: enum
-begin
-
-definition
-  "enum = [False, True]"
-
-definition
-  "enum_all P = (P False \<and> P True)"
-
-definition
-  "enum_ex P = (P False \<or> P True)"
-
-instance proof
-  fix P
-  show "enum_all (P :: bool \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_bool_def by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: bool \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_bool_def by (auto, case_tac x) auto
-qed (auto simp add: enum_bool_def UNIV_bool)
-
-end
-
-instantiation prod :: (enum, enum) enum
-begin
-
-definition
-  "enum = List.product enum enum"
-
-definition
-  "enum_all P = enum_all (%x. enum_all (%y. P (x, y)))"
-
-definition
-  "enum_ex P = enum_ex (%x. enum_ex (%y. P (x, y)))"
-
- 
-instance by default
-  (simp_all add: enum_prod_def product_list_set distinct_product
-    enum_UNIV enum_distinct enum_all_prod_def enum_all enum_ex_prod_def enum_ex)
-
-end
-
-instantiation sum :: (enum, enum) enum
-begin
-
-definition
-  "enum = map Inl enum @ map Inr enum"
-
-definition
-  "enum_all P = (enum_all (%x. P (Inl x)) \<and> enum_all (%x. P (Inr x)))"
-
-definition
-  "enum_ex P = (enum_ex (%x. P (Inl x)) \<or> enum_ex (%x. P (Inr x)))"
-
-instance proof
-  fix P
-  show "enum_all (P :: ('a + 'b) \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_sum_def enum_all
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: ('a + 'b) \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_sum_def enum_ex
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_UNIV enum_sum_def, case_tac x, auto intro: inj_onI simp add: distinct_map enum_distinct)
-
-end
-
-instantiation nibble :: enum
-begin
-
-definition
-  "enum = [Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
-    Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF]"
-
-definition
-  "enum_all P = (P Nibble0 \<and> P Nibble1 \<and> P Nibble2 \<and> P Nibble3 \<and> P Nibble4 \<and> P Nibble5 \<and> P Nibble6 \<and> P Nibble7
-     \<and> P Nibble8 \<and> P Nibble9 \<and> P NibbleA \<and> P NibbleB \<and> P NibbleC \<and> P NibbleD \<and> P NibbleE \<and> P NibbleF)"
-
-definition
-  "enum_ex P = (P Nibble0 \<or> P Nibble1 \<or> P Nibble2 \<or> P Nibble3 \<or> P Nibble4 \<or> P Nibble5 \<or> P Nibble6 \<or> P Nibble7
-     \<or> P Nibble8 \<or> P Nibble9 \<or> P NibbleA \<or> P NibbleB \<or> P NibbleC \<or> P NibbleD \<or> P NibbleE \<or> P NibbleF)"
-
-instance proof
-  fix P
-  show "enum_all (P :: nibble \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_nibble_def
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: nibble \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_nibble_def
-    by (auto, case_tac x) auto
-qed (simp_all add: enum_nibble_def UNIV_nibble)
-
-end
-
-instantiation char :: enum
-begin
-
-definition
-  "enum = map (split Char) (List.product enum enum)"
-
-lemma enum_chars [code]:
-  "enum = chars"
-  unfolding enum_char_def chars_def enum_nibble_def by simp
-
-definition
-  "enum_all P = list_all P chars"
-
-definition
-  "enum_ex P = list_ex P chars"
-
-lemma set_enum_char: "set (enum :: char list) = UNIV"
-    by (auto intro: char.exhaust simp add: enum_char_def product_list_set enum_UNIV full_SetCompr_eq [symmetric])
-
-instance proof
-  fix P
-  show "enum_all (P :: char \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_char_def enum_chars[symmetric]
-    by (auto simp add: list_all_iff set_enum_char)
-next
-  fix P
-  show "enum_ex (P :: char \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_char_def enum_chars[symmetric]
-    by (auto simp add: list_ex_iff set_enum_char)
-next
-  show "distinct (enum :: char list)"
-    by (auto intro: inj_onI simp add: enum_char_def product_list_set distinct_map distinct_product enum_distinct)
-qed (auto simp add: set_enum_char)
-
-end
-
-instantiation option :: (enum) enum
-begin
-
-definition
-  "enum = None # map Some enum"
-
-definition
-  "enum_all P = (P None \<and> enum_all (%x. P (Some x)))"
-
-definition
-  "enum_ex P = (P None \<or> enum_ex (%x. P (Some x)))"
-
-instance proof
-  fix P
-  show "enum_all (P :: 'a option \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_option_def enum_all
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: 'a option \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_option_def enum_ex
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_UNIV enum_option_def, rule option.exhaust, auto intro: simp add: distinct_map enum_distinct)
-end
+  by (simp only: enum_ex_fun_def Let_def)
 
 instantiation set :: (enum) enum
 begin
@@ -503,6 +334,133 @@ qed (simp_all add: enum_set_def enum_all_set_def enum_ex_set_def sublists_powset
 
 end
 
+instantiation unit :: enum
+begin
+
+definition
+  "enum = [()]"
+
+definition
+  "enum_all P = P ()"
+
+definition
+  "enum_ex P = P ()"
+
+instance proof
+qed (auto simp add: enum_unit_def enum_all_unit_def enum_ex_unit_def)
+
+end
+
+instantiation bool :: enum
+begin
+
+definition
+  "enum = [False, True]"
+
+definition
+  "enum_all P \<longleftrightarrow> P False \<and> P True"
+
+definition
+  "enum_ex P \<longleftrightarrow> P False \<or> P True"
+
+instance proof
+qed (simp_all only: enum_bool_def enum_all_bool_def enum_ex_bool_def UNIV_bool, simp_all)
+
+end
+
+instantiation prod :: (enum, enum) enum
+begin
+
+definition
+  "enum = List.product enum enum"
+
+definition
+  "enum_all P = enum_all (%x. enum_all (%y. P (x, y)))"
+
+definition
+  "enum_ex P = enum_ex (%x. enum_ex (%y. P (x, y)))"
+
+ 
+instance by default
+  (simp_all add: enum_prod_def product_list_set distinct_product
+    enum_UNIV enum_distinct enum_all_prod_def enum_ex_prod_def)
+
+end
+
+instantiation sum :: (enum, enum) enum
+begin
+
+definition
+  "enum = map Inl enum @ map Inr enum"
+
+definition
+  "enum_all P \<longleftrightarrow> enum_all (\<lambda>x. P (Inl x)) \<and> enum_all (\<lambda>x. P (Inr x))"
+
+definition
+  "enum_ex P \<longleftrightarrow> enum_ex (\<lambda>x. P (Inl x)) \<or> enum_ex (\<lambda>x. P (Inr x))"
+
+instance proof
+qed (simp_all only: enum_sum_def enum_all_sum_def enum_ex_sum_def UNIV_sum,
+  auto simp add: enum_UNIV distinct_map enum_distinct)
+
+end
+
+instantiation nibble :: enum
+begin
+
+definition
+  "enum = [Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
+    Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF]"
+
+definition
+  "enum_all P \<longleftrightarrow> P Nibble0 \<and> P Nibble1 \<and> P Nibble2 \<and> P Nibble3 \<and> P Nibble4 \<and> P Nibble5 \<and> P Nibble6 \<and> P Nibble7
+     \<and> P Nibble8 \<and> P Nibble9 \<and> P NibbleA \<and> P NibbleB \<and> P NibbleC \<and> P NibbleD \<and> P NibbleE \<and> P NibbleF"
+
+definition
+  "enum_ex P \<longleftrightarrow> P Nibble0 \<or> P Nibble1 \<or> P Nibble2 \<or> P Nibble3 \<or> P Nibble4 \<or> P Nibble5 \<or> P Nibble6 \<or> P Nibble7
+     \<or> P Nibble8 \<or> P Nibble9 \<or> P NibbleA \<or> P NibbleB \<or> P NibbleC \<or> P NibbleD \<or> P NibbleE \<or> P NibbleF"
+
+instance proof
+qed (simp_all only: enum_nibble_def enum_all_nibble_def enum_ex_nibble_def UNIV_nibble, simp_all)
+
+end
+
+instantiation char :: enum
+begin
+
+definition
+  "enum = chars"
+
+definition
+  "enum_all P \<longleftrightarrow> list_all P chars"
+
+definition
+  "enum_ex P \<longleftrightarrow> list_ex P chars"
+
+instance proof
+qed (simp_all only: enum_char_def enum_all_char_def enum_ex_char_def UNIV_set_chars distinct_chars,
+  simp_all add: list_all_iff list_ex_iff)
+
+end
+
+instantiation option :: (enum) enum
+begin
+
+definition
+  "enum = None # map Some enum"
+
+definition
+  "enum_all P \<longleftrightarrow> P None \<and> enum_all (\<lambda>x. P (Some x))"
+
+definition
+  "enum_ex P \<longleftrightarrow> P None \<or> enum_ex (\<lambda>x. P (Some x))"
+
+instance proof
+qed (simp_all only: enum_option_def enum_all_option_def enum_ex_option_def UNIV_option_conv,
+  auto simp add: distinct_map enum_UNIV enum_distinct)
+
+end
+
 
 subsection {* Small finite types *}
 
@@ -511,6 +469,10 @@ text {* We define small finite types for the use in Quickcheck *}
 datatype finite_1 = a\<^isub>1
 
 notation (output) a\<^isub>1  ("a\<^isub>1")
+
+lemma UNIV_finite_1:
+  "UNIV = {a\<^isub>1}"
+  by (auto intro: finite_1.exhaust)
 
 instantiation finite_1 :: enum
 begin
@@ -525,29 +487,20 @@ definition
   "enum_ex P = P a\<^isub>1"
 
 instance proof
-  fix P
-  show "enum_all (P :: finite_1 \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_finite_1_def
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: finite_1 \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_finite_1_def
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_finite_1_def intro: finite_1.exhaust)
+qed (simp_all only: enum_finite_1_def enum_all_finite_1_def enum_ex_finite_1_def UNIV_finite_1, simp_all)
 
 end
 
 instantiation finite_1 :: linorder
 begin
 
-definition less_eq_finite_1 :: "finite_1 \<Rightarrow> finite_1 \<Rightarrow> bool"
-where
-  "less_eq_finite_1 x y = True"
-
 definition less_finite_1 :: "finite_1 \<Rightarrow> finite_1 \<Rightarrow> bool"
 where
-  "less_finite_1 x y = False"
+  "x < (y :: finite_1) \<longleftrightarrow> False"
+
+definition less_eq_finite_1 :: "finite_1 \<Rightarrow> finite_1 \<Rightarrow> bool"
+where
+  "x \<le> (y :: finite_1) \<longleftrightarrow> True"
 
 instance
 apply (intro_classes)
@@ -564,6 +517,10 @@ datatype finite_2 = a\<^isub>1 | a\<^isub>2
 notation (output) a\<^isub>1  ("a\<^isub>1")
 notation (output) a\<^isub>2  ("a\<^isub>2")
 
+lemma UNIV_finite_2:
+  "UNIV = {a\<^isub>1, a\<^isub>2}"
+  by (auto intro: finite_2.exhaust)
+
 instantiation finite_2 :: enum
 begin
 
@@ -571,22 +528,13 @@ definition
   "enum = [a\<^isub>1, a\<^isub>2]"
 
 definition
-  "enum_all P = (P a\<^isub>1 \<and> P a\<^isub>2)"
+  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2"
 
 definition
-  "enum_ex P = (P a\<^isub>1 \<or> P a\<^isub>2)"
+  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2"
 
 instance proof
-  fix P
-  show "enum_all (P :: finite_2 \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_finite_2_def
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: finite_2 \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_finite_2_def
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_finite_2_def intro: finite_2.exhaust)
+qed (simp_all only: enum_finite_2_def enum_all_finite_2_def enum_ex_finite_2_def UNIV_finite_2, simp_all)
 
 end
 
@@ -595,29 +543,31 @@ begin
 
 definition less_finite_2 :: "finite_2 \<Rightarrow> finite_2 \<Rightarrow> bool"
 where
-  "less_finite_2 x y = ((x = a\<^isub>1) & (y = a\<^isub>2))"
+  "x < y \<longleftrightarrow> x = a\<^isub>1 \<and> y = a\<^isub>2"
 
 definition less_eq_finite_2 :: "finite_2 \<Rightarrow> finite_2 \<Rightarrow> bool"
 where
-  "less_eq_finite_2 x y = ((x = y) \<or> (x < y))"
-
+  "x \<le> y \<longleftrightarrow> x = y \<or> x < (y :: finite_2)"
 
 instance
 apply (intro_classes)
 apply (auto simp add: less_finite_2_def less_eq_finite_2_def)
-apply (metis finite_2.distinct finite_2.nchotomy)+
+apply (metis finite_2.nchotomy)+
 done
 
 end
 
 hide_const (open) a\<^isub>1 a\<^isub>2
 
-
 datatype finite_3 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3
 
 notation (output) a\<^isub>1  ("a\<^isub>1")
 notation (output) a\<^isub>2  ("a\<^isub>2")
 notation (output) a\<^isub>3  ("a\<^isub>3")
+
+lemma UNIV_finite_3:
+  "UNIV = {a\<^isub>1, a\<^isub>2, a\<^isub>3}"
+  by (auto intro: finite_3.exhaust)
 
 instantiation finite_3 :: enum
 begin
@@ -626,22 +576,13 @@ definition
   "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3]"
 
 definition
-  "enum_all P = (P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3)"
+  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3"
 
 definition
-  "enum_ex P = (P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3)"
+  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3"
 
 instance proof
-  fix P
-  show "enum_all (P :: finite_3 \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_finite_3_def
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: finite_3 \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_finite_3_def
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_finite_3_def intro: finite_3.exhaust)
+qed (simp_all only: enum_finite_3_def enum_all_finite_3_def enum_ex_finite_3_def UNIV_finite_3, simp_all)
 
 end
 
@@ -650,13 +591,11 @@ begin
 
 definition less_finite_3 :: "finite_3 \<Rightarrow> finite_3 \<Rightarrow> bool"
 where
-  "less_finite_3 x y = (case x of a\<^isub>1 => (y \<noteq> a\<^isub>1)
-     | a\<^isub>2 => (y = a\<^isub>3)| a\<^isub>3 => False)"
+  "x < y = (case x of a\<^isub>1 \<Rightarrow> y \<noteq> a\<^isub>1 | a\<^isub>2 \<Rightarrow> y = a\<^isub>3 | a\<^isub>3 \<Rightarrow> False)"
 
 definition less_eq_finite_3 :: "finite_3 \<Rightarrow> finite_3 \<Rightarrow> bool"
 where
-  "less_eq_finite_3 x y = ((x = y) \<or> (x < y))"
-
+  "x \<le> y \<longleftrightarrow> x = y \<or> x < (y :: finite_3)"
 
 instance proof (intro_classes)
 qed (auto simp add: less_finite_3_def less_eq_finite_3_def split: finite_3.split_asm)
@@ -665,13 +604,16 @@ end
 
 hide_const (open) a\<^isub>1 a\<^isub>2 a\<^isub>3
 
-
 datatype finite_4 = a\<^isub>1 | a\<^isub>2 | a\<^isub>3 | a\<^isub>4
 
 notation (output) a\<^isub>1  ("a\<^isub>1")
 notation (output) a\<^isub>2  ("a\<^isub>2")
 notation (output) a\<^isub>3  ("a\<^isub>3")
 notation (output) a\<^isub>4  ("a\<^isub>4")
+
+lemma UNIV_finite_4:
+  "UNIV = {a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4}"
+  by (auto intro: finite_4.exhaust)
 
 instantiation finite_4 :: enum
 begin
@@ -680,22 +622,13 @@ definition
   "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4]"
 
 definition
-  "enum_all P = (P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3 \<and> P a\<^isub>4)"
+  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3 \<and> P a\<^isub>4"
 
 definition
-  "enum_ex P = (P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3 \<or> P a\<^isub>4)"
+  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3 \<or> P a\<^isub>4"
 
 instance proof
-  fix P
-  show "enum_all (P :: finite_4 \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_finite_4_def
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: finite_4 \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_finite_4_def
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_finite_4_def intro: finite_4.exhaust)
+qed (simp_all only: enum_finite_4_def enum_all_finite_4_def enum_ex_finite_4_def UNIV_finite_4, simp_all)
 
 end
 
@@ -710,6 +643,10 @@ notation (output) a\<^isub>3  ("a\<^isub>3")
 notation (output) a\<^isub>4  ("a\<^isub>4")
 notation (output) a\<^isub>5  ("a\<^isub>5")
 
+lemma UNIV_finite_5:
+  "UNIV = {a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4, a\<^isub>5}"
+  by (auto intro: finite_5.exhaust)
+
 instantiation finite_5 :: enum
 begin
 
@@ -717,22 +654,13 @@ definition
   "enum = [a\<^isub>1, a\<^isub>2, a\<^isub>3, a\<^isub>4, a\<^isub>5]"
 
 definition
-  "enum_all P = (P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3 \<and> P a\<^isub>4 \<and> P a\<^isub>5)"
+  "enum_all P \<longleftrightarrow> P a\<^isub>1 \<and> P a\<^isub>2 \<and> P a\<^isub>3 \<and> P a\<^isub>4 \<and> P a\<^isub>5"
 
 definition
-  "enum_ex P = (P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3 \<or> P a\<^isub>4 \<or> P a\<^isub>5)"
+  "enum_ex P \<longleftrightarrow> P a\<^isub>1 \<or> P a\<^isub>2 \<or> P a\<^isub>3 \<or> P a\<^isub>4 \<or> P a\<^isub>5"
 
 instance proof
-  fix P
-  show "enum_all (P :: finite_5 \<Rightarrow> bool) = (\<forall>x. P x)"
-    unfolding enum_all_finite_5_def
-    by (auto, case_tac x) auto
-next
-  fix P
-  show "enum_ex (P :: finite_5 \<Rightarrow> bool) = (\<exists>x. P x)"
-    unfolding enum_ex_finite_5_def
-    by (auto, case_tac x) auto
-qed (auto simp add: enum_finite_5_def intro: finite_5.exhaust)
+qed (simp_all only: enum_finite_5_def enum_all_finite_5_def enum_ex_finite_5_def UNIV_finite_5, simp_all)
 
 end
 
