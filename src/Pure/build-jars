@@ -211,6 +211,9 @@ then
   [ -e "$SCALA_HOME/lib/scala-actors.jar" ] && \
     cp "$SCALA_HOME/lib/scala-actors.jar" "$TARGET_DIR/ext"
 
+  [ -e "$SCALA_HOME/lib/scala-reflect.jar" ] && \
+    cp "$SCALA_HOME/lib/scala-reflect.jar" "$TARGET_DIR/ext"
+
   popd >/dev/null
 
   rm -rf classes
