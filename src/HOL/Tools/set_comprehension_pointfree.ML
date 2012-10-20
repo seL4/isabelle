@@ -241,7 +241,7 @@ val vimageE' =
 
 val elim_Collect_tac = dtac @{thm iffD1[OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
-  THEN' TRY o etac @{thm conjE}
+  THEN' REPEAT_DETERM o etac @{thm conjE}
   THEN' TRY o hyp_subst_tac;
 
 fun intro_image_tac ctxt = rtac @{thm image_eqI}
