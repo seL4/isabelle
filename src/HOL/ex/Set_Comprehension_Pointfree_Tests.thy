@@ -125,6 +125,12 @@ definition common_subsets :: "nat set => nat set => nat set set"
 where
   "common_subsets S1 S2 = {S. S \<subseteq> S1 \<and> S \<subseteq> S2}"
 
-export_code union common_subsets in Haskell file -
+definition products :: "nat set => nat set => nat set"
+where
+  "products A B = {c. EX a b. a : A & b : B & c = a * b}"
+
+export_code products in Haskell file -
+
+export_code union common_subsets products in Haskell file -
 
 end
