@@ -63,6 +63,11 @@ lemma [code, code del]:
 lemma [code, code del]:
   "Bex = Bex" ..
 
+term can_select
+
+lemma [code, code del]:
+  "can_select = can_select" ..
+
 lemma [code, code del]:
   "Set.union = Set.union" ..
 

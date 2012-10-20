@@ -209,8 +209,19 @@ proof (rule set_eqI)
   show "u \<in> UNIV <+> UNIV \<longleftrightarrow> u \<in> UNIV" by (cases u) auto
 qed
 
+lemma UNIV_sum:
+  "UNIV = Inl ` UNIV \<union> Inr ` UNIV"
+proof -
+  { fix x :: "'a + 'b"
+    assume "x \<notin> range Inr"
+    then have "x \<in> range Inl"
+    by (cases x) simp_all
+  } then show ?thesis by auto
+qed
+
 hide_const (open) Suml Sumr Projl Projr
 
 hide_const (open) sum
 
 end
+

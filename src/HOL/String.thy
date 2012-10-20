@@ -149,6 +149,14 @@ definition chars :: string where
   Char NibbleF NibbleA, Char NibbleF NibbleB, Char NibbleF NibbleC,
   Char NibbleF NibbleD, Char NibbleF NibbleE, Char NibbleF NibbleF]"
 
+lemma UNIV_set_chars:
+  "UNIV = set chars"
+  by (simp only: UNIV_char UNIV_nibble) code_simp
+
+lemma distinct_chars:
+  "distinct chars"
+  by code_simp
+
 
 subsection {* Strings as dedicated type *}
 
@@ -213,3 +221,4 @@ code_const "HOL.equal \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
 hide_type (open) literal
 
 end
+

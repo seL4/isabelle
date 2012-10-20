@@ -70,6 +70,9 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Moved operation product, sublists and n_lists from Enum.thy
+to List.thy.  INCOMPATIBILITY.
+
 * Simplified 'typedef' specifications: historical options for implicit
 set definition and alternative name have been discontinued.  The
 former behavior of "typedef (open) t = A" is now the default, but

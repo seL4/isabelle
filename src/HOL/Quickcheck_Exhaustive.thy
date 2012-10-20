@@ -234,7 +234,7 @@ where
   "enum_term_of_fun = (%_ _. let
     enum_term_of_a = enum_term_of (TYPE('a));
     mk_term = mk_map_term (%_. Typerep.typerep (TYPE('a))) (%_. Typerep.typerep (TYPE('b))) enum_term_of_a
-  in map (%ys. mk_term (%_. ys) ()) (Enum.n_lists (length (enum_term_of_a ())) (enum_term_of (TYPE('b)) ())))"
+  in map (%ys. mk_term (%_. ys) ()) (List.n_lists (length (enum_term_of_a ())) (enum_term_of (TYPE('b)) ())))"
  
 instance ..
 
@@ -308,7 +308,7 @@ definition
 definition enum_term_of_prod :: "('a * 'b) itself => unit => term list"
 where
   "enum_term_of_prod = (%_ _. map (%(x, y). termify_pair TYPE('a) TYPE('b) x y)
-     (Enum.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))"
+     (List.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))"
 
 instance ..
 

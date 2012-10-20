@@ -6,7 +6,7 @@
 header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
-imports Nat Wellfounded Plain
+imports Nat Wellfounded Big_Operators
 keywords "specification" "ax_specification" :: thy_goal
 begin
 
@@ -643,6 +643,144 @@ lemma Greatest_le:
   done
 
 
+subsection {* An aside: bounded accessible part *}
+
+text {* Finite monotone eventually stable sequences *}
+
+lemma finite_mono_remains_stable_implies_strict_prefix:
+  fixes f :: "nat \<Rightarrow> 'a::order"
+  assumes S: "finite (range f)" "mono f" and eq: "\<forall>n. f n = f (Suc n) \<longrightarrow> f (Suc n) = f (Suc (Suc n))"
+  shows "\<exists>N. (\<forall>n\<le>N. \<forall>m\<le>N. m < n \<longrightarrow> f m < f n) \<and> (\<forall>n\<ge>N. f N = f n)"
+  using assms
+proof -
+  have "\<exists>n. f n = f (Suc n)"
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "\<And>n. f n \<noteq> f (Suc n)" by auto
+    then have "\<And>n. f n < f (Suc n)"
+      using  `mono f` by (auto simp: le_less mono_iff_le_Suc)
+    with lift_Suc_mono_less_iff[of f]
+    have "\<And>n m. n < m \<Longrightarrow> f n < f m" by auto
+    then have "inj f"
+      by (auto simp: inj_on_def) (metis linorder_less_linear order_less_imp_not_eq)
+    with `finite (range f)` have "finite (UNIV::nat set)"
+      by (rule finite_imageD)
+    then show False by simp
+  qed
+  then obtain n where n: "f n = f (Suc n)" ..
+  def N \<equiv> "LEAST n. f n = f (Suc n)"
+  have N: "f N = f (Suc N)"
+    unfolding N_def using n by (rule LeastI)
+  show ?thesis
+  proof (intro exI[of _ N] conjI allI impI)
+    fix n assume "N \<le> n"
+    then have "\<And>m. N \<le> m \<Longrightarrow> m \<le> n \<Longrightarrow> f m = f N"
+    proof (induct rule: dec_induct)
+      case (step n) then show ?case
+        using eq[rule_format, of "n - 1"] N
+        by (cases n) (auto simp add: le_Suc_eq)
+    qed simp
+    from this[of n] `N \<le> n` show "f N = f n" by auto
+  next
+    fix n m :: nat assume "m < n" "n \<le> N"
+    then show "f m < f n"
+    proof (induct rule: less_Suc_induct[consumes 1])
+      case (1 i)
+      then have "i < N" by simp
+      then have "f i \<noteq> f (Suc i)"
+        unfolding N_def by (rule not_less_Least)
+      with `mono f` show ?case by (simp add: mono_iff_le_Suc less_le)
+    qed auto
+  qed
+qed
+
+lemma finite_mono_strict_prefix_implies_finite_fixpoint:
+  fixes f :: "nat \<Rightarrow> 'a set"
+  assumes S: "\<And>i. f i \<subseteq> S" "finite S"
+    and inj: "\<exists>N. (\<forall>n\<le>N. \<forall>m\<le>N. m < n \<longrightarrow> f m \<subset> f n) \<and> (\<forall>n\<ge>N. f N = f n)"
+  shows "f (card S) = (\<Union>n. f n)"
+proof -
+  from inj obtain N where inj: "(\<forall>n\<le>N. \<forall>m\<le>N. m < n \<longrightarrow> f m \<subset> f n)" and eq: "(\<forall>n\<ge>N. f N = f n)" by auto
+
+  { fix i have "i \<le> N \<Longrightarrow> i \<le> card (f i)"
+    proof (induct i)
+      case 0 then show ?case by simp
+    next
+      case (Suc i)
+      with inj[rule_format, of "Suc i" i]
+      have "(f i) \<subset> (f (Suc i))" by auto
+      moreover have "finite (f (Suc i))" using S by (rule finite_subset)
+      ultimately have "card (f i) < card (f (Suc i))" by (intro psubset_card_mono)
+      with Suc show ?case using inj by auto
+    qed
+  }
+  then have "N \<le> card (f N)" by simp
+  also have "\<dots> \<le> card S" using S by (intro card_mono)
+  finally have "f (card S) = f N" using eq by auto
+  then show ?thesis using eq inj[rule_format, of N]
+    apply auto
+    apply (case_tac "n < N")
+    apply (auto simp: not_less)
+    done
+qed
+
+primrec bacc :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> 'a set" 
+where
+  "bacc r 0 = {x. \<forall> y. (y, x) \<notin> r}"
+| "bacc r (Suc n) = (bacc r n \<union> {x. \<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r n})"
+
+lemma bacc_subseteq_acc:
+  "bacc r n \<subseteq> acc r"
+  by (induct n) (auto intro: acc.intros)
+
+lemma bacc_mono:
+  "n \<le> m \<Longrightarrow> bacc r n \<subseteq> bacc r m"
+  by (induct rule: dec_induct) auto
+  
+lemma bacc_upper_bound:
+  "bacc (r :: ('a \<times> 'a) set)  (card (UNIV :: 'a::finite set)) = (\<Union>n. bacc r n)"
+proof -
+  have "mono (bacc r)" unfolding mono_def by (simp add: bacc_mono)
+  moreover have "\<forall>n. bacc r n = bacc r (Suc n) \<longrightarrow> bacc r (Suc n) = bacc r (Suc (Suc n))" by auto
+  moreover have "finite (range (bacc r))" by auto
+  ultimately show ?thesis
+   by (intro finite_mono_strict_prefix_implies_finite_fixpoint)
+     (auto intro: finite_mono_remains_stable_implies_strict_prefix)
+qed
+
+lemma acc_subseteq_bacc:
+  assumes "finite r"
+  shows "acc r \<subseteq> (\<Union>n. bacc r n)"
+proof
+  fix x
+  assume "x : acc r"
+  then have "\<exists> n. x : bacc r n"
+  proof (induct x arbitrary: rule: acc.induct)
+    case (accI x)
+    then have "\<forall>y. \<exists> n. (y, x) \<in> r --> y : bacc r n" by simp
+    from choice[OF this] obtain n where n: "\<forall>y. (y, x) \<in> r \<longrightarrow> y \<in> bacc r (n y)" ..
+    obtain n where "\<And>y. (y, x) : r \<Longrightarrow> y : bacc r n"
+    proof
+      fix y assume y: "(y, x) : r"
+      with n have "y : bacc r (n y)" by auto
+      moreover have "n y <= Max ((%(y, x). n y) ` r)"
+        using y `finite r` by (auto intro!: Max_ge)
+      note bacc_mono[OF this, of r]
+      ultimately show "y : bacc r (Max ((%(y, x). n y) ` r))" by auto
+    qed
+    then show ?case
+      by (auto simp add: Let_def intro!: exI[of _ "Suc n"])
+  qed
+  then show "x : (UN n. bacc r n)" by auto
+qed
+
+lemma acc_bacc_eq:
+  fixes A :: "('a :: finite \<times> 'a) set"
+  assumes "finite A"
+  shows "acc A = bacc A (card (UNIV :: 'a set))"
+  using assms by (metis acc_subseteq_bacc bacc_subseteq_acc bacc_upper_bound order_eq_iff)
+
+
 subsection {* Specification package -- Hilbertized version *}
 
 lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
@@ -651,3 +789,4 @@ lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
 ML_file "Tools/choice_specification.ML"
 
 end
+

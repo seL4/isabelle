@@ -5,7 +5,7 @@
 header {* Test of the code generator using an implementation of sets by RBT trees *}
 
 theory RBT_Set_Test
-imports Library "~~/src/HOL/Library/RBT_Set"
+imports "~~/src/HOL/Library/Library" "~~/src/HOL/Library/RBT_Set"
 begin
 
 (* 
