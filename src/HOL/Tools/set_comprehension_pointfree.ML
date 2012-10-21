@@ -95,8 +95,8 @@ val strip_psplits =
     fun strip [] qs vs t = (t, rev vs, qs)
       | strip (p :: ps) qs vs (Const ("Product_Type.prod.prod_case", _) $ t) =
           strip ((1 :: p) :: (2 :: p) :: ps) (p :: qs) vs t
-      | strip (p :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
-      | strip (p :: ps) qs vs t = strip ps qs
+      | strip (_ :: ps) qs vs (Abs (s, T, t)) = strip ps qs ((s, T) :: vs) t
+      | strip (_ :: ps) qs vs t = strip ps qs
           ((Name.uu_, hd (binder_types (fastype_of1 (map snd vs, t)))) :: vs)
           (incr_boundvars 1 t $ Bound 0)
   in strip [[]] [] [] end;
@@ -316,8 +316,9 @@ fun tac ctxt fm =
 (* preprocessing conversion:
   rewrites {(x1, ..., xn). P x1 ... xn} to {(x1, ..., xn) | x1 ... xn. P x1 ... xn} *)
 
-fun comprehension_conv ctxt ct =
+fun comprehension_conv ss ct =
 let
+  val ctxt = Simplifier.the_context ss
   fun dest_Collect (Const (@{const_name Collect}, T) $ t) = (HOLogic.dest_setT (body_type T), t)
     | dest_Collect t = raise TERM ("dest_Collect", [t])
   fun list_ex vs t = fold_rev (fn (x, T) => fn t => HOLogic.exists_const T $ Abs (x, T, t)) vs t
@@ -333,24 +334,26 @@ let
     in
       HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
     end;
-  val tac = 
+  val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
+  fun tac ctxt = 
     rtac @{thm set_eqI}
     THEN' Simplifier.simp_tac
-      (HOL_basic_ss addsimps [@{thm split_paired_all}, @{thm mem_Collect_eq}, @{thm prod.cases}])
+      (Simplifier.inherit_context ss (HOL_basic_ss addsimps unfold_thms))
     THEN' rtac @{thm iffI}
     THEN' REPEAT_DETERM o rtac @{thm exI}
     THEN' rtac @{thm conjI} THEN' rtac @{thm refl} THEN' atac
     THEN' REPEAT_DETERM o etac @{thm exE}
     THEN' etac @{thm conjE}
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-    THEN' hyp_subst_tac
-    THEN' (atac ORELSE' rtac @{thm refl})
+    THEN' Subgoal.FOCUS (fn {prems, ...} =>
+      Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_ss addsimps prems)) 1) ctxt
 in
   case try mk_term (term_of ct) of
     NONE => Thm.reflexive ct
   | SOME t' =>
-     Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (term_of ct, t'))) (K (tac 1))
-       RS @{thm eq_reflection}
+    Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (term_of ct, t')))
+        (fn {context, ...} => tac context 1)
+      RS @{thm eq_reflection}
 end
 
 
@@ -364,26 +367,28 @@ val post_thms =
   @{lemma "A \<times> B \<union> A \<times> C = A \<times> (B \<union> C)" by auto},
   @{lemma "(A \<times> B \<inter> C \<times> D) = (A \<inter> C) \<times> (B \<inter> D)" by auto}]
 
-fun conv ctxt t =
+fun conv ss t =
   let
+    val ctxt = Simplifier.the_context ss
     val ct = cterm_of (Proof_Context.theory_of ctxt) t
-    val prep_eq = (comprehension_conv ctxt then_conv Raw_Simplifier.rewrite true prep_thms) ct
+    fun unfold_conv thms =
+      Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
+        (Raw_Simplifier.inherit_context ss empty_ss addsimps thms)
+    val prep_eq = (comprehension_conv ss then_conv unfold_conv prep_thms) ct
     val t' = term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t'') = Goal.prove ctxt [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (fn {context, ...} => tac context fm 1)
     fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
-    fun post th = Conv.fconv_rule (Trueprop_conv (eq_conv Conv.all_conv
-      (Raw_Simplifier.rewrite true post_thms))) th
+    val post = Conv.fconv_rule (Trueprop_conv (eq_conv Conv.all_conv (unfold_conv post_thms)))
   in
     Option.map (post o unfold o mk_thm) (rewrite_term t')
   end;
 
 fun base_simproc ss redex =
   let
-    val ctxt = Simplifier.the_context ss
     val set_compr = term_of redex
   in
-    conv ctxt set_compr
+    conv ss set_compr
     |> Option.map (fn thm => thm RS @{thm eq_reflection})
   end;
 
@@ -402,7 +407,7 @@ fun simproc ss redex =
     val pred $ set_compr = term_of redex
     val arg_cong' = instantiate_arg_cong ctxt pred
   in
-    conv ctxt set_compr
+    conv ss set_compr
     |> Option.map (fn thm => thm RS arg_cong' RS @{thm eq_reflection})
   end;
 
