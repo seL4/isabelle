@@ -349,7 +349,7 @@ let
     THEN' Subgoal.FOCUS (fn {prems, ...} =>
       Simplifier.simp_tac
         (Simplifier.inherit_context ss (HOL_basic_ss addsimps (filter is_eq prems))) 1) ctxt
-    THEN' atac
+    THEN' TRY o atac
 in
   case try mk_term (term_of ct) of
     NONE => Thm.reflexive ct
