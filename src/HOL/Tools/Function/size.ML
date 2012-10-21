@@ -13,7 +13,7 @@ end;
 structure Size: SIZE =
 struct
 
-structure SizeData = Theory_Data
+structure Data = Theory_Data
 (
   type T = (string * thm list) Symtab.table;
   val empty = Symtab.empty;
@@ -21,7 +21,7 @@ structure SizeData = Theory_Data
   fun merge data = Symtab.merge (K true) data;
 );
 
-val lookup_size = SizeData.get #> Symtab.lookup;
+val lookup_size = Data.get #> Symtab.lookup;
 
 fun plus (t1, t2) = Const (@{const_name Groups.plus},
   HOLogic.natT --> HOLogic.natT --> HOLogic.natT) $ t1 $ t2;
@@ -210,7 +210,7 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
           [(size_eqns, [])])];
 
   in
-    SizeData.map (fold (Symtab.update_new o apsnd (rpair size_thms))
+    Data.map (fold (Symtab.update_new o apsnd (rpair size_thms))
       (new_type_names ~~ size_names)) thy''
   end;
 
