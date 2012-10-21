@@ -4,7 +4,19 @@
 Some common tools for working with sum types in balanced tree form.
 *)
 
-structure SumTree =
+signature SUM_TREE =
+sig
+  val sumcase_split_ss: simpset
+  val access_top_down: {init: 'a, left: 'a -> 'a, right: 'a -> 'a} -> int -> int -> 'a
+  val mk_sumT: typ -> typ -> typ
+  val mk_sumcase: typ -> typ -> typ -> term -> term -> term
+  val App: term -> term -> term
+  val mk_inj: typ -> int -> int -> term -> term
+  val mk_proj: typ -> int -> int -> term -> term
+  val mk_sumcases: typ -> term list -> term
+end
+
+structure SumTree: SUM_TREE =
 struct
 
 (* Theory dependencies *)
@@ -43,7 +55,7 @@ fun mk_proj ST n i =
   |> snd
 
 fun mk_sumcases T fs =
-  Balanced_Tree.make (fn ((f, fT), (g, gT)) => (mk_sumcase fT gT T f g, mk_sumT fT gT)) 
+  Balanced_Tree.make (fn ((f, fT), (g, gT)) => (mk_sumcase fT gT T f g, mk_sumT fT gT))
     (map (fn f => (f, domain_type (fastype_of f))) fs)
   |> fst
 

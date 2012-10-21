@@ -44,7 +44,57 @@ type info =
 
 end
 
-structure Function_Common =
+signature FUNCTION_COMMON =
+sig
+  include FUNCTION_DATA
+  val profile : bool Unsynchronized.ref
+  val PROFILE : string -> ('a -> 'b) -> 'a -> 'b
+  val mk_acc : typ -> term -> term
+  val function_name : string -> string
+  val graph_name : string -> string
+  val rel_name : string -> string
+  val dom_name : string -> string
+  val apply_termination_rule : Proof.context -> int -> tactic
+  datatype function_result = FunctionResult of
+   {fs: term list,
+    G: term,
+    R: term,
+    psimps : thm list,
+    simple_pinducts : thm list,
+    cases : thm,
+    termination : thm,
+    domintros : thm list option}
+  val transform_function_data : info -> morphism -> info
+  val get_function : Proof.context -> (term * info) Item_Net.T
+  val import_function_data : term -> Proof.context -> info option
+  val import_last_function : Proof.context -> info option
+  val add_function_data : info -> Context.generic -> Context.generic
+  structure Termination_Simps: NAMED_THMS
+  val set_termination_prover : (Proof.context -> tactic) -> Context.generic -> Context.generic
+  val get_termination_prover : Proof.context -> tactic
+  datatype function_config = FunctionConfig of
+   {sequential: bool,
+    default: string option,
+    domintros: bool,
+    partials: bool}
+  val default_config : function_config
+  val split_def : Proof.context -> (string -> 'a) -> term ->
+    string * (string * typ) list * term list * term list * term
+  val check_defs : Proof.context -> ((string * typ) * 'a) list -> term list -> unit
+  type fixes = ((string * typ) * mixfix) list
+  type 'a spec = (Attrib.binding * 'a list) list
+  type preproc = function_config -> Proof.context -> fixes -> term spec ->
+    (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
+  val fname_of : term -> string
+  val mk_case_names : int -> string -> int -> string list
+  val empty_preproc : (Proof.context -> ((string * typ) * mixfix) list -> term list -> 'c) -> preproc
+  val get_preproc: Proof.context -> preproc
+  val set_preproc: preproc -> Context.generic -> Context.generic
+  val function_parser : function_config ->
+    ((function_config * (binding * string option * mixfix) list) * (Attrib.binding * string) list) parser
+end
+
+structure Function_Common : FUNCTION_COMMON =
 struct
 
 open Function_Data
@@ -55,7 +105,6 @@ local open Function_Lib in
 val profile = Unsynchronized.ref false;
 
 fun PROFILE msg = if !profile then timeap_msg msg else I
-
 
 val acc_const_name = @{const_name accp}
 fun mk_acc domT R =
@@ -179,7 +228,7 @@ structure TerminationProver = Generic_Data
 )
 
 val set_termination_prover = TerminationProver.put
-val get_termination_prover = TerminationProver.get o Context.Proof
+fun get_termination_prover ctxt = TerminationProver.get (Context.Proof ctxt) ctxt
 
 
 (* Configuration management *)
@@ -306,7 +355,7 @@ fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
   | mk_case_names _ n 1 = [n]
   | mk_case_names _ n k = map (fn i => n ^ "_" ^ string_of_int i) (1 upto k)
 
-fun empty_preproc check _ ctxt fixes spec =
+fun empty_preproc check (_: function_config) (ctxt: Proof.context) (fixes: fixes) spec =
   let
     val (bnds, tss) = split_list spec
     val ts = flat tss
