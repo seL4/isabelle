@@ -38,18 +38,18 @@ qed
 
 lemma setsum_const: "finite X ==> setsum (%x. (c :: int)) X = c * int(card X)"
   apply (induct set: finite)
-  apply (auto simp add: left_distrib right_distrib)
+  apply (auto simp add: distrib_right distrib_left)
   done
 
 lemma setsum_const2: "finite X ==> int (setsum (%x. (c :: nat)) X) =
     int(c) * int(card X)"
   apply (induct set: finite)
-  apply (auto simp add: right_distrib)
+  apply (auto simp add: distrib_left)
   done
 
 lemma setsum_const_mult: "finite A ==> setsum (%x. c * ((f x)::int)) A =
     c * setsum f A"
-  by (induct set: finite) (auto simp add: right_distrib)
+  by (induct set: finite) (auto simp add: distrib_left)
 
 
 subsection {* Cardinality of explicit finite sets *}

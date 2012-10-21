@@ -975,7 +975,7 @@ next
   assume "y \<noteq> 0"
   hence "pdivmod_rel (x + z * y) y (z + x div y) (x mod y)"
     using pdivmod_rel [of x y]
-    by (simp add: pdivmod_rel_def left_distrib)
+    by (simp add: pdivmod_rel_def distrib_right)
   thus "(x + z * y) div y = z + x div y"
     by (rule div_poly_eq)
 next

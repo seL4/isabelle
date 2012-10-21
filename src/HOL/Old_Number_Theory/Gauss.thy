@@ -341,7 +341,7 @@ proof -
     apply (elim zcong_trans)
     by (simp only: zcong_refl)
   also have "y * a + ya * a = a * (y + ya)"
-    by (simp add: right_distrib mult_commute)
+    by (simp add: distrib_left mult_commute)
   finally have "[a * (y + ya) = 0] (mod p)" .
   with p_prime a_nonzero zcong_zprime_prod_zero [of p a "y + ya"]
     p_a_relprime

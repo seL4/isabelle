@@ -224,7 +224,7 @@ lemma tmadd[simp]: "Itm vs bs (tmadd (t,s)) = Itm vs bs (Add t s)"
 apply (induct t s rule: tmadd.induct, simp_all add: Let_def)
 apply (case_tac "c1 +\<^sub>p c2 = 0\<^sub>p",case_tac "n1 \<le> n2", simp_all)
 apply (case_tac "n1 = n2", simp_all add: field_simps)
-apply (simp only: right_distrib[symmetric]) 
+apply (simp only: distrib_left[symmetric]) 
 by (auto simp del: polyadd simp add: polyadd[symmetric])
 
 lemma tmadd_nb0[simp]: "\<lbrakk> tmbound0 t ; tmbound0 s\<rbrakk> \<Longrightarrow> tmbound0 (tmadd (t,s))"
@@ -358,7 +358,7 @@ lemma split0:
   apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def field_simps)
-  apply (simp add: Let_def split_def mult_assoc right_distrib[symmetric])
+  apply (simp add: Let_def split_def mult_assoc distrib_left[symmetric])
   apply (simp add: Let_def split_def field_simps)
   apply (simp add: Let_def split_def field_simps)
   done
@@ -1933,7 +1933,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> 2*?d * (?a * (-?s / (2*?d)) + ?r) = 0"
       using d mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2*?d*?r= 0"
-      by (simp add: field_simps right_distrib[of "2*?d"] del: right_distrib)
+      by (simp add: field_simps distrib_left[of "2*?d"] del: distrib_left)
     
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r = 0" using d by simp 
     finally have ?thesis using c d 
@@ -1947,7 +1947,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> 2*?c * (?a * (-?t / (2*?c)) + ?r) = 0" 
       using c mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2*?c) / (2*?c) + 2*?c*?r= 0"
-      by (simp add: field_simps right_distrib[of "2*?c"] del: right_distrib)
+      by (simp add: field_simps distrib_left[of "2*?c"] del: distrib_left)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r = 0" using c by simp 
     finally have ?thesis using c d 
       by (simp add: r[of "- (?t/ (2*?c))"] msubsteq_def Let_def evaldjf_ex)
@@ -1964,7 +1964,7 @@ proof-
       using c d mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r =0" 
       using nonzero_mult_divide_cancel_left [OF dc] c d
-      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using c d 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubsteq_def Let_def evaldjf_ex field_simps)
   }
@@ -2015,7 +2015,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> 2*?d * (?a * (-?s / (2*?d)) + ?r) \<noteq> 0" 
       using d mult_cancel_left[of "2*?d" "(?a * (-?s / (2*?d)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (- ?a * ?s) * (2*?d / (2*?d)) + 2*?d*?r\<noteq> 0"
-      by (simp add: field_simps right_distrib[of "2*?d"] del: right_distrib)
+      by (simp add: field_simps distrib_left[of "2*?d"] del: distrib_left)
     
     also have "\<dots> \<longleftrightarrow> - (?a * ?s) + 2*?d*?r \<noteq> 0" using d by simp 
     finally have ?thesis using c d 
@@ -2029,7 +2029,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> 2*?c * (?a * (-?t / (2*?c)) + ?r) \<noteq> 0" 
       using c mult_cancel_left[of "2*?c" "(?a * (-?t / (2*?c)) + ?r)" 0] by simp
     also have "\<dots> \<longleftrightarrow> (?a * -?t)* (2*?c) / (2*?c) + 2*?c*?r \<noteq> 0"
-      by (simp add: field_simps right_distrib[of "2*?c"] del: right_distrib)
+      by (simp add: field_simps distrib_left[of "2*?c"] del: distrib_left)
     also have "\<dots> \<longleftrightarrow> - (?a * ?t) + 2*?c*?r \<noteq> 0" using c by simp 
     finally have ?thesis using c d 
       by (simp add: r[of "- (?t/ (2*?c))"] msubstneq_def Let_def evaldjf_ex)
@@ -2046,7 +2046,7 @@ proof-
       using c d mult_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r \<noteq> 0" 
       using nonzero_mult_divide_cancel_left[OF dc] c d
-      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using c d 
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstneq_def Let_def evaldjf_ex field_simps)
   }
@@ -2112,7 +2112,7 @@ proof-
       using dc' dc'' mult_less_cancel_left_disj[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r < 0" 
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd dc'
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
   }
@@ -2134,7 +2134,7 @@ proof-
       using dc' order_less_not_sym[OF dc'] mult_less_cancel_left_disj[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2*?c*?d*?r < 0" 
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
   }
@@ -2149,7 +2149,7 @@ proof-
       using c mult_less_cancel_left_disj[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?t+  2*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c
-      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2163,7 +2163,7 @@ proof-
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_less_cancel_left_disj[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
-        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?t / (2*?c))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2179,7 +2179,7 @@ proof-
       using d mult_less_cancel_left_disj[of "2 * ?d" "?a* (- ?s / (2*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?s+  2*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d
-      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2193,7 +2193,7 @@ proof-
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_less_cancel_left_disj[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?s -  2*?d *?r < 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
-        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?s / (2*?d))"] msubstlt_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2258,7 +2258,7 @@ proof-
       using dc' dc'' mult_le_cancel_left[of "2 * ?c * ?d" "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r" 0] by simp
     also have "\<dots> \<longleftrightarrow> ?a * (- (?d * ?t + ?c* ?s )) + 2*?c*?d*?r <= 0" 
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd dc'
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
   }
@@ -2280,7 +2280,7 @@ proof-
       using dc' order_less_not_sym[OF dc'] mult_le_cancel_left[of "2 * ?c * ?d" 0 "?a * (- (?d * ?t + ?c* ?s)/ (2*?c*?d)) + ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a * ((?d * ?t + ?c* ?s )) - 2*?c*?d*?r <= 0" 
       using nonzero_mult_divide_cancel_left[of "2*?c*?d"] c d
-      by (simp add: algebra_simps diff_divide_distrib del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib del: distrib_right)
     finally  have ?thesis using dc c d  nc nd
       by (simp add: r[of "(- (?d * ?t) + - (?c *?s)) / (2 * ?c * ?d)"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm) 
   }
@@ -2295,7 +2295,7 @@ proof-
       using c mult_le_cancel_left[of "2 * ?c" "?a* (- ?t / (2*?c))+ ?r" 0] c' c'' order_less_not_sym[OF c''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?t+  2*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c
-      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2309,7 +2309,7 @@ proof-
       using c order_less_not_sym[OF c''] less_imp_neq[OF c''] c'' mult_le_cancel_left[of "2 * ?c" 0 "?a* (- ?t / (2*?c))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?t -  2*?c *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF c'] c order_less_not_sym[OF c''] less_imp_neq[OF c''] c''
-        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?t / (2*?c))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2325,7 +2325,7 @@ proof-
       using d mult_le_cancel_left[of "2 * ?d" "?a* (- ?s / (2*?d))+ ?r" 0] d' d'' order_less_not_sym[OF d''] by simp
     also have "\<dots> \<longleftrightarrow> - ?a*?s+  2*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d
-      by (simp add: algebra_simps diff_divide_distrib less_le del: left_distrib)
+      by (simp add: algebra_simps diff_divide_distrib less_le del: distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }
@@ -2339,7 +2339,7 @@ proof-
       using d order_less_not_sym[OF d''] less_imp_neq[OF d''] d'' mult_le_cancel_left[of "2 * ?d" 0 "?a* (- ?s / (2*?d))+ ?r"] by simp
     also have "\<dots> \<longleftrightarrow> ?a*?s -  2*?d *?r <= 0" 
       using nonzero_mult_divide_cancel_left[OF d'] d order_less_not_sym[OF d''] less_imp_neq[OF d''] d''
-        by (simp add: algebra_simps diff_divide_distrib del:  left_distrib)
+        by (simp add: algebra_simps diff_divide_distrib del:  distrib_right)
     finally have ?thesis using c d nc nd 
       by(simp add: r[of "- (?s / (2*?d))"] msubstle_def Let_def evaldjf_ex field_simps lt polyneg_norm polymul_norm)
   }

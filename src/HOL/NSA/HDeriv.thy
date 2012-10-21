@@ -209,7 +209,7 @@ apply (drule_tac D = Db in lemma_nsderiv2, assumption+)
 apply (drule_tac
      approx_minus_iff [THEN iffD2, THEN bex_Infinitesimal_iff2 [THEN iffD2]])
 apply (auto intro!: approx_add_mono1
-            simp add: left_distrib right_distrib mult_commute add_assoc)
+            simp add: distrib_right distrib_left mult_commute add_assoc)
 apply (rule_tac b1 = "star_of Db * star_of (f x)"
          in add_commute [THEN subst])
 apply (auto intro!: Infinitesimal_add_approx_self2 [THEN approx_sym]
@@ -357,7 +357,7 @@ apply (simp add: inverse_add nonzero_inverse_mult_distrib [symmetric] power_Suc
             del: inverse_mult_distrib inverse_minus_eq
                  minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (subst mult_commute, simp add: nonzero_mult_divide_cancel_right)
-apply (simp (no_asm_simp) add: mult_assoc [symmetric] left_distrib
+apply (simp (no_asm_simp) add: mult_assoc [symmetric] distrib_right
             del: minus_mult_left [symmetric] minus_mult_right [symmetric])
 apply (rule_tac y = "inverse (- (star_of x * star_of x))" in approx_trans)
 apply (rule inverse_add_Infinitesimal_approx2)
@@ -451,7 +451,7 @@ apply (frule_tac b1 = "hypreal_of_real (D) + y"
 apply (erule_tac [2] V = "(( *f* f) (hypreal_of_real (x) + h) - hypreal_of_real (f x)) / h = hypreal_of_real (D) + y" in thin_rl)
 apply assumption
 apply (simp add: times_divide_eq_right [symmetric])
-apply (auto simp add: left_distrib)
+apply (auto simp add: distrib_right)
 done
 
 lemma increment_thm2:
@@ -464,7 +464,7 @@ by (blast dest!: mem_infmal_iff [THEN iffD2] intro!: increment_thm)
 lemma increment_approx_zero: "[| NSDERIV f x :> D; h \<approx> 0; h \<noteq> 0 |]
       ==> increment f x h \<approx> 0"
 apply (drule increment_thm2,
-       auto intro!: Infinitesimal_HFinite_mult2 HFinite_add simp add: left_distrib [symmetric] mem_infmal_iff [symmetric])
+       auto intro!: Infinitesimal_HFinite_mult2 HFinite_add simp add: distrib_right [symmetric] mem_infmal_iff [symmetric])
 apply (erule Infinitesimal_subset_HFinite [THEN subsetD])
 done
 

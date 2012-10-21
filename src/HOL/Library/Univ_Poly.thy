@@ -125,7 +125,7 @@ done
 
 lemma (in semiring_0) poly_cmult_distr: "a %* ( p +++ q) = (a %* p +++ a %* q)"
 apply (induct p arbitrary: q, simp)
-apply (case_tac q, simp_all add: right_distrib)
+apply (case_tac q, simp_all add: distrib_left)
 done
 
 lemma (in ring_1) pmult_by_x[simp]: "[0, 1] *** t = ((0)#t)"
@@ -141,17 +141,17 @@ proof(induct p1 arbitrary: p2)
   case Nil thus ?case by simp
 next
   case (Cons a as p2) thus ?case
-    by (cases p2, simp_all  add: add_ac right_distrib)
+    by (cases p2, simp_all  add: add_ac distrib_left)
 qed
 
 lemma (in comm_semiring_0) poly_cmult: "poly (c %* p) x = c * poly p x"
 apply (induct "p")
 apply (case_tac [2] "x=zero")
-apply (auto simp add: right_distrib mult_ac)
+apply (auto simp add: distrib_left mult_ac)
 done
 
 lemma (in comm_semiring_0) poly_cmult_map: "poly (map (op * c) p) x = c*poly p x"
-  by (induct p, auto simp add: right_distrib mult_ac)
+  by (induct p, auto simp add: distrib_left mult_ac)
 
 lemma (in comm_ring_1) poly_minus: "poly (-- p) x = - (poly p x)"
 apply (simp add: poly_minus_def)
@@ -164,7 +164,7 @@ proof(induct p1 arbitrary: p2)
 next
   case (Cons a as p2)
   thus ?case by (cases as,
-    simp_all add: poly_cmult poly_add left_distrib right_distrib mult_ac)
+    simp_all add: poly_cmult poly_add distrib_right distrib_left mult_ac)
 qed
 
 class idom_char_0 = idom + ring_char_0
@@ -394,7 +394,7 @@ lemma (in comm_ring_1) poly_add_minus_zero_iff: "(poly (p +++ -- q) = poly []) =
 by (auto simp add: algebra_simps poly_add poly_minus_def fun_eq poly_cmult minus_mult_left[symmetric])
 
 lemma (in comm_ring_1) poly_add_minus_mult_eq: "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
-by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult right_distrib minus_mult_left[symmetric] minus_mult_right[symmetric])
+by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult distrib_left minus_mult_left[symmetric] minus_mult_right[symmetric])
 
 subclass (in idom_char_0) comm_ring_1 ..
 lemma (in idom_char_0) poly_mult_left_cancel: "(poly (p *** q) = poly (p *** r)) = (poly p = poly [] | poly q = poly r)"
@@ -458,9 +458,9 @@ lemma (in idom_char_0) poly_0: "list_all (\<lambda>c. c = 0) p \<Longrightarrow>
 text{*Basics of divisibility.*}
 
 lemma (in idom) poly_primes: "([a, 1] divides (p *** q)) = ([a, 1] divides p | [a, 1] divides q)"
-apply (auto simp add: divides_def fun_eq poly_mult poly_add poly_cmult left_distrib [symmetric])
+apply (auto simp add: divides_def fun_eq poly_mult poly_add poly_cmult distrib_right [symmetric])
 apply (drule_tac x = "uminus a" in spec)
-apply (simp add: poly_linear_divides poly_add poly_cmult left_distrib [symmetric])
+apply (simp add: poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
 apply (cases "p = []")
 apply (rule exI[where x="[]"])
 apply simp
@@ -471,10 +471,10 @@ apply clarsimp
 apply (cases "\<exists>q\<Colon>'a list. p = a %* q +++ ((0\<Colon>'a) # q)")
 apply (clarsimp simp add: poly_add poly_cmult)
 apply (rule_tac x="qa" in exI)
-apply (simp add: left_distrib [symmetric])
+apply (simp add: distrib_right [symmetric])
 apply clarsimp
 
-apply (auto simp add: right_minus poly_linear_divides poly_add poly_cmult left_distrib [symmetric])
+apply (auto simp add: right_minus poly_linear_divides poly_add poly_cmult distrib_right [symmetric])
 apply (rule_tac x = "pmult qa q" in exI)
 apply (rule_tac [2] x = "pmult p qa" in exI)
 apply (auto simp add: poly_add poly_mult poly_cmult mult_ac)
@@ -509,7 +509,7 @@ lemma (in comm_semiring_0) poly_divides_add:
    "[| p divides q; p divides r |] ==> p divides (q +++ r)"
 apply (simp add: divides_def, auto)
 apply (rule_tac x = "padd qa qaa" in exI)
-apply (auto simp add: poly_add fun_eq poly_mult right_distrib)
+apply (auto simp add: poly_add fun_eq poly_mult distrib_left)
 done
 
 lemma (in comm_ring_1) poly_divides_diff:
@@ -605,7 +605,7 @@ apply (rule_tac x = n in exI, safe)
 apply (unfold divides_def)
 apply (rule_tac x = q in exI)
 apply (induct_tac "n", simp)
-apply (simp (no_asm_simp) add: poly_add poly_cmult poly_mult right_distrib mult_ac)
+apply (simp (no_asm_simp) add: poly_add poly_cmult poly_mult distrib_left mult_ac)
 apply safe
 apply (subgoal_tac "?poly (?mulexp n [uminus a, one] q) \<noteq> ?poly (pmult (?pexp [uminus a, one] (Suc n)) qa)")
 apply simp
@@ -948,7 +948,7 @@ next
   case (Suc n a p)
   have eq: "poly ([a,1] %^(Suc n) *** p) = poly ([a,1] %^ n *** ([a,1] *** p))"
     apply (rule ext, simp add: poly_mult poly_add poly_cmult)
-    by (simp add: mult_ac add_ac right_distrib)
+    by (simp add: mult_ac add_ac distrib_left)
   note deq = degree_unique[OF eq]
   {assume p: "poly p = poly []"
     with eq have eq': "poly ([a,1] %^(Suc n) *** p) = poly []"

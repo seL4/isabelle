@@ -14,14 +14,14 @@ imports Groups
 begin
 
 class semiring = ab_semigroup_add + semigroup_mult +
-  assumes left_distrib[algebra_simps, field_simps]: "(a + b) * c = a * c + b * c"
-  assumes right_distrib[algebra_simps, field_simps]: "a * (b + c) = a * b + a * c"
+  assumes distrib_right[algebra_simps, field_simps]: "(a + b) * c = a * c + b * c"
+  assumes distrib_left[algebra_simps, field_simps]: "a * (b + c) = a * b + a * c"
 begin
 
 text{*For the @{text combine_numerals} simproc*}
 lemma combine_common_factor:
   "a * e + (b * e + c) = (a + b) * e + c"
-by (simp add: left_distrib add_ac)
+by (simp add: distrib_right add_ac)
 
 end
 
@@ -37,11 +37,11 @@ begin
 subclass semiring_0
 proof
   fix a :: 'a
-  have "0 * a + 0 * a = 0 * a + 0" by (simp add: left_distrib [symmetric])
+  have "0 * a + 0 * a = 0 * a + 0" by (simp add: distrib_right [symmetric])
   thus "0 * a = 0" by (simp only: add_left_cancel)
 next
   fix a :: 'a
-  have "a * 0 + a * 0 = a * 0 + 0" by (simp add: right_distrib [symmetric])
+  have "a * 0 + a * 0 = a * 0 + 0" by (simp add: distrib_left [symmetric])
   thus "a * 0 = 0" by (simp only: add_left_cancel)
 qed
 
@@ -177,7 +177,7 @@ lemma dvd_add[simp]:
 proof -
   from `a dvd b` obtain b' where "b = a * b'" ..
   moreover from `a dvd c` obtain c' where "c = a * c'" ..
-  ultimately have "b + c = a * (b' + c')" by (simp add: right_distrib)
+  ultimately have "b + c = a * (b' + c')" by (simp add: distrib_left)
   then show ?thesis ..
 qed
 
@@ -227,10 +227,10 @@ subclass semiring_0_cancel ..
 text {* Distribution rules *}
 
 lemma minus_mult_left: "- (a * b) = - a * b"
-by (rule minus_unique) (simp add: left_distrib [symmetric]) 
+by (rule minus_unique) (simp add: distrib_right [symmetric]) 
 
 lemma minus_mult_right: "- (a * b) = a * - b"
-by (rule minus_unique) (simp add: right_distrib [symmetric]) 
+by (rule minus_unique) (simp add: distrib_left [symmetric]) 
 
 text{*Extract signs from products*}
 lemmas mult_minus_left [simp, no_atp] = minus_mult_left [symmetric]
@@ -243,13 +243,13 @@ lemma minus_mult_commute: "- a * b = a * - b"
 by simp
 
 lemma right_diff_distrib[algebra_simps, field_simps]: "a * (b - c) = a * b - a * c"
-by (simp add: right_distrib diff_minus)
+by (simp add: distrib_left diff_minus)
 
 lemma left_diff_distrib[algebra_simps, field_simps]: "(a - b) * c = a * c - b * c"
-by (simp add: left_distrib diff_minus)
+by (simp add: distrib_right diff_minus)
 
 lemmas ring_distribs[no_atp] =
-  right_distrib left_distrib left_diff_distrib right_diff_distrib
+  distrib_left distrib_right left_diff_distrib right_diff_distrib
 
 lemma eq_add_iff1:
   "a * e + c = b * e + d \<longleftrightarrow> (a - b) * e + c = d"
@@ -262,7 +262,7 @@ by (simp add: algebra_simps)
 end
 
 lemmas ring_distribs[no_atp] =
-  right_distrib left_distrib left_diff_distrib right_diff_distrib
+  distrib_left distrib_right left_diff_distrib right_diff_distrib
 
 class comm_ring = comm_semiring + ab_group_add
 begin
@@ -506,7 +506,7 @@ lemma convex_bound_le:
 proof-
   from assms have "u * x + v * y \<le> u * a + v * a"
     by (simp add: add_mono mult_left_mono)
-  thus ?thesis using assms unfolding left_distrib[symmetric] by simp
+  thus ?thesis using assms unfolding distrib_right[symmetric] by simp
 qed
 
 end
@@ -640,7 +640,7 @@ proof -
   from assms have "u * x + v * y < u * a + v * a"
     by (cases "u = 0")
        (auto intro!: add_less_le_mono mult_strict_left_mono mult_left_mono)
-  thus ?thesis using assms unfolding left_distrib[symmetric] by simp
+  thus ?thesis using assms unfolding distrib_right[symmetric] by simp
 qed
 
 end

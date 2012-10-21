@@ -699,7 +699,7 @@ proof (cases "finite A")
   proof induct
     case empty thus ?case by simp
   next
-    case (insert x A) thus ?case by (simp add: right_distrib)
+    case (insert x A) thus ?case by (simp add: distrib_left)
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)
@@ -713,7 +713,7 @@ proof (cases "finite A")
   proof induct
     case empty thus ?case by simp
   next
-    case (insert x A) thus ?case by (simp add: left_distrib)
+    case (insert x A) thus ?case by (simp add: distrib_right)
   qed
 next
   case False thus ?thesis by (simp add: setsum_def)

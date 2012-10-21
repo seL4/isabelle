@@ -85,7 +85,7 @@ lemma even_div_2_prop2: "x \<in> zEven ==> (2 * (x div 2)) = x"
 
 lemma even_plus_even: "[| x \<in> zEven; y \<in> zEven |] ==> x + y \<in> zEven"
   apply (auto simp add: zEven_def)
-  apply (auto simp only: right_distrib [symmetric])
+  apply (auto simp only: distrib_left [symmetric])
   done
 
 lemma even_times_either: "x \<in> zEven ==> x * y \<in> zEven"
@@ -113,9 +113,9 @@ lemma odd_minus_even: "[| x \<in> zOdd; y \<in> zEven |] ==> x - y \<in> zOdd"
   done
 
 lemma odd_times_odd: "[| x \<in> zOdd;  y \<in> zOdd |] ==> x * y \<in> zOdd"
-  apply (auto simp add: zOdd_def left_distrib right_distrib)
+  apply (auto simp add: zOdd_def distrib_right distrib_left)
   apply (rule_tac x = "2 * ka * k + ka + k" in exI)
-  apply (auto simp add: left_distrib)
+  apply (auto simp add: distrib_right)
   done
 
 lemma odd_iff_not_even: "(x \<in> zOdd) = (~ (x \<in> zEven))"

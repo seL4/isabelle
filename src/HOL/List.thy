@@ -3205,11 +3205,11 @@ done
 
 lemma (in monoid_add) listsum_triv:
   "(\<Sum>x\<leftarrow>xs. r) = of_nat (length xs) * r"
-  by (induct xs) (simp_all add: left_distrib)
+  by (induct xs) (simp_all add: distrib_right)
 
 lemma (in monoid_add) listsum_0 [simp]:
   "(\<Sum>x\<leftarrow>xs. 0) = 0"
-  by (induct xs) (simp_all add: left_distrib)
+  by (induct xs) (simp_all add: distrib_right)
 
 text{* For non-Abelian groups @{text xs} needs to be reversed on one side: *}
 lemma (in ab_group_add) uminus_listsum_map:

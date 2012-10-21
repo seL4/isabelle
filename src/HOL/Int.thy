@@ -136,7 +136,7 @@ lemma zmult_zless_mono2_lemma:
      "(i::int)<j ==> 0<k ==> int k * i < int k * j"
 apply (induct k)
 apply simp
-apply (simp add: left_distrib)
+apply (simp add: distrib_right)
 apply (case_tac "k=0")
 apply (simp_all add: add_strict_mono)
 done
@@ -193,8 +193,8 @@ apply arith
 done
 
 lemmas int_distrib =
-  left_distrib [of z1 z2 w]
-  right_distrib [of w z1 z2]
+  distrib_right [of z1 z2 w]
+  distrib_left [of w z1 z2]
   left_diff_distrib [of z1 z2 w]
   right_diff_distrib [of w z1 z2]
   for z1 z2 w :: int
@@ -499,7 +499,7 @@ text {* Preliminaries *}
 lemma even_less_0_iff:
   "a + a < 0 \<longleftrightarrow> a < (0::'a::linordered_idom)"
 proof -
-  have "a + a < 0 \<longleftrightarrow> (1+1)*a < 0" by (simp add: left_distrib del: one_add_one)
+  have "a + a < 0 \<longleftrightarrow> (1+1)*a < 0" by (simp add: distrib_right del: one_add_one)
   also have "(1+1)*a < 0 \<longleftrightarrow> a < 0"
     by (simp add: mult_less_0_iff zero_less_two 
                   order_less_not_sym [OF zero_less_two])
@@ -1097,8 +1097,8 @@ subsubsection{*Special Simplification for Constants*}
 
 text{*These distributive laws move literals inside sums and differences.*}
 
-lemmas left_distrib_numeral [simp] = left_distrib [of _ _ "numeral v"] for v
-lemmas right_distrib_numeral [simp] = right_distrib [of "numeral v"] for v
+lemmas distrib_right_numeral [simp] = distrib_right [of _ _ "numeral v"] for v
+lemmas distrib_left_numeral [simp] = distrib_left [of "numeral v"] for v
 lemmas left_diff_distrib_numeral [simp] = left_diff_distrib [of _ _ "numeral v"] for v
 lemmas right_diff_distrib_numeral [simp] = right_diff_distrib [of "numeral v"] for v
 

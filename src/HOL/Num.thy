@@ -138,7 +138,7 @@ lemma mult_num_simps [simp, code]:
   "Bit1 m * Bit0 n = Bit0 (Bit1 m * n)"
   "Bit1 m * Bit1 n = Bit1 (m + n + Bit0 (m * n))"
   by (simp_all add: num_eq_iff nat_of_num_add
-    nat_of_num_mult left_distrib right_distrib)
+    nat_of_num_mult distrib_right distrib_left)
 
 lemma eq_num_simps:
   "One = One \<longleftrightarrow> True"
@@ -510,7 +510,7 @@ subclass numeral ..
 lemma numeral_mult: "numeral (m * n) = numeral m * numeral n"
   apply (induct n rule: num_induct)
   apply (simp add: numeral_One)
-  apply (simp add: mult_inc numeral_inc numeral_add right_distrib)
+  apply (simp add: mult_inc numeral_inc numeral_add distrib_left)
   done
 
 lemma numeral_times_numeral: "numeral m * numeral n = numeral (m * n)"
@@ -532,10 +532,10 @@ lemma of_nat_numeral [simp]: "of_nat (numeral n) = numeral n"
     simp_all only: numeral.simps numeral_class.numeral.simps of_nat_add of_nat_1)
 
 lemma mult_2: "2 * z = z + z"
-  unfolding one_add_one [symmetric] left_distrib by simp
+  unfolding one_add_one [symmetric] distrib_right by simp
 
 lemma mult_2_right: "z * 2 = z + z"
-  unfolding one_add_one [symmetric] right_distrib by simp
+  unfolding one_add_one [symmetric] distrib_left by simp
 
 end
 

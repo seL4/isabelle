@@ -1068,7 +1068,7 @@ proof -
           x: "setsum (\<lambda>i. (x$i) *s column i A) ?U = y2" by blast
         let ?x = "(\<chi> j. if j = i then c + (x$i) else (x$j))::real^'m"
         show "?P (c*s y1 + y2)"
-        proof (rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] if_distrib right_distrib cond_application_beta cong del: if_weak_cong)
+        proof (rule exI[where x= "?x"], vector, auto simp add: i x[symmetric] if_distrib distrib_left cond_application_beta cong del: if_weak_cong)
           fix j
           have th: "\<forall>xa \<in> ?U. (if xa = i then (c + (x$i)) * ((column xa A)$j)
               else (x$xa) * ((column xa A$j))) = (if xa = i then c * ((column i A)$j) else 0) + ((x$xa) * ((column xa A)$j))"

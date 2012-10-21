@@ -94,7 +94,7 @@ apply(case_tac ys)
 apply(simp)
 apply(case_tac zs)
  apply(simp)
-apply(simp add:add_assoc)
+apply(simp add: add_assoc)
 done
 
 subsection "Inner product"
@@ -103,13 +103,13 @@ definition iprod :: "'a::ring list \<Rightarrow> 'a list \<Rightarrow> 'a" ("\<l
 "\<langle>xs,ys\<rangle> = (\<Sum>(x,y) \<leftarrow> zip xs ys. x*y)"
 
 lemma iprod_Nil[simp]: "\<langle>[],ys\<rangle> = 0"
-by(simp add:iprod_def)
+by(simp add: iprod_def)
 
 lemma iprod_Nil2[simp]: "\<langle>xs,[]\<rangle> = 0"
-by(simp add:iprod_def)
+by(simp add: iprod_def)
 
 lemma iprod_Cons[simp]: "\<langle>x#xs,y#ys\<rangle> = x*y + \<langle>xs,ys\<rangle>"
-by(simp add:iprod_def)
+by(simp add: iprod_def)
 
 lemma iprod0_if_coeffs0: "\<forall>c\<in>set cs. c = 0 \<Longrightarrow> \<langle>cs,xs\<rangle> = 0"
 apply(induct cs arbitrary:xs)
@@ -128,7 +128,7 @@ apply(case_tac ys)
 apply simp
 apply(case_tac zs)
 apply (simp)
-apply(simp add:left_distrib)
+apply(simp add: distrib_right)
 done
 
 lemma iprod_left_diff_distrib: "\<langle>xs - ys, zs\<rangle> = \<langle>xs,zs\<rangle> - \<langle>ys,zs\<rangle>"
@@ -138,7 +138,7 @@ apply(case_tac ys)
 apply simp
 apply(case_tac zs)
 apply (simp)
-apply(simp add:left_diff_distrib)
+apply(simp add: left_diff_distrib)
 done
 
 lemma iprod_assoc: "\<langle>x *\<^sub>s xs, ys\<rangle> = x * \<langle>xs,ys\<rangle>"
@@ -146,7 +146,7 @@ apply(induct xs arbitrary: ys)
 apply simp
 apply(case_tac ys)
 apply (simp)
-apply (simp add:right_distrib mult_assoc)
+apply (simp add: distrib_left mult_assoc)
 done
 
 end

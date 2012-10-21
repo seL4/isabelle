@@ -55,7 +55,7 @@ proof -
     apply (rule f.pos_bounded [THEN exE], rename_tac Kf)
     apply (rule g.pos_bounded [THEN exE], rename_tac Kg)
     apply (rule_tac x="Kf + Kg" in exI, safe)
-    apply (subst right_distrib)
+    apply (subst distrib_left)
     apply (rule order_trans [OF norm_triangle_ineq])
     apply (rule add_mono, erule spec, erule spec)
     done
@@ -413,8 +413,8 @@ lemma FDERIV_power_Suc:
  apply (induct n)
   apply (simp add: FDERIV_ident)
  apply (drule FDERIV_mult [OF FDERIV_ident])
- apply (simp only: of_nat_Suc left_distrib mult_1_left)
- apply (simp only: power_Suc right_distrib add_ac mult_ac)
+ apply (simp only: of_nat_Suc distrib_right mult_1_left)
+ apply (simp only: power_Suc distrib_left add_ac mult_ac)
 done
 
 lemma FDERIV_power:

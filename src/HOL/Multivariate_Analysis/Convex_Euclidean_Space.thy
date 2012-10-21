@@ -1450,7 +1450,7 @@ next
     have u2:"u2 \<le> 1" unfolding obt2(3)[symmetric] and not_le using obt2(2) by auto
     have "u1 * u + u2 * v \<le> (max u1 u2) * u + (max u1 u2) * v" apply(rule add_mono)
       apply(rule_tac [!] mult_right_mono) using as(1,2) obt1(1,2) obt2(1,2) by auto
-    also have "\<dots> \<le> 1" unfolding right_distrib[symmetric] and as(3) using u1 u2 by auto
+    also have "\<dots> \<le> 1" unfolding distrib_left[symmetric] and as(3) using u1 u2 by auto
     finally
     show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull" unfolding mem_Collect_eq apply(rule_tac x="u * u1 + v * u2" in exI)
       apply(rule conjI) defer apply(rule_tac x="1 - u * u1 - v * u2" in exI) unfolding Bex_def

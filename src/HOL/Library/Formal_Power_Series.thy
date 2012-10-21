@@ -260,11 +260,11 @@ instance fps :: (semiring_0) semiring
 proof
   fix a b c :: "'a fps"
   show "(a + b) * c = a * c + b * c"
-    by (simp add: expand_fps_eq fps_mult_nth left_distrib setsum_addf)
+    by (simp add: expand_fps_eq fps_mult_nth distrib_right setsum_addf)
 next
   fix a b c :: "'a fps"
   show "a * (b + c) = a * b + a * c"
-    by (simp add: expand_fps_eq fps_mult_nth right_distrib setsum_addf)
+    by (simp add: expand_fps_eq fps_mult_nth distrib_left setsum_addf)
 qed
 
 instance fps :: (semiring_0) semiring_0
@@ -363,10 +363,10 @@ subsection {* Formal power series form an integral domain*}
 instance fps :: (ring) ring ..
 
 instance fps :: (ring_1) ring_1
-  by (intro_classes, auto simp add: diff_minus left_distrib)
+  by (intro_classes, auto simp add: diff_minus distrib_right)
 
 instance fps :: (comm_ring_1) comm_ring_1
-  by (intro_classes, auto simp add: diff_minus left_distrib)
+  by (intro_classes, auto simp add: diff_minus distrib_right)
 
 instance fps :: (ring_no_zero_divisors) ring_no_zero_divisors
 proof
@@ -3200,7 +3200,7 @@ proof-
   show ?thesis
     using fps_sin_cos_sum_of_squares[of c]
     apply (simp add: fps_tan_def fps_divide_deriv[OF th0] fps_sin_deriv fps_cos_deriv add: fps_const_neg[symmetric] field_simps power2_eq_square del: fps_const_neg)
-    unfolding right_distrib[symmetric]
+    unfolding distrib_left[symmetric]
     by simp
 qed
 

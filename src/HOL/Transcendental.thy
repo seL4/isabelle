@@ -35,7 +35,7 @@ apply (induct n, simp)
 apply (simp del: setsum_op_ivl_Suc)
 apply (subst setsum_op_ivl_Suc)
 apply (subst lemma_realpow_diff_sumr)
-apply (simp add: right_distrib del: setsum_op_ivl_Suc)
+apply (simp add: distrib_left del: setsum_op_ivl_Suc)
 apply (subst mult_left_commute [of "x - y"])
 apply (erule subst)
 apply (simp add: algebra_simps)
@@ -922,7 +922,7 @@ next
     by (simp only: Suc)
   also have "\<dots> = x * (\<Sum>i=0..n. S x i * S y (n-i))
                 + y * (\<Sum>i=0..n. S x i * S y (n-i))"
-    by (rule left_distrib)
+    by (rule distrib_right)
   also have "\<dots> = (\<Sum>i=0..n. (x * S x i) * S y (n-i))
                 + (\<Sum>i=0..n. S x i * (y * S y (n-i)))"
     by (simp only: setsum_right_distrib mult_ac)
@@ -1001,7 +1001,7 @@ by simp
 
 lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
 apply (induct "n")
-apply (auto simp add: real_of_nat_Suc right_distrib exp_add mult_commute)
+apply (auto simp add: real_of_nat_Suc distrib_left exp_add mult_commute)
 done
 
 text {* Strict monotonicity of exponential. *}
@@ -1626,7 +1626,7 @@ by (simp add: cos_add cos_double)
 
 lemma cos_npi [simp]: "cos (real n * pi) = -1 ^ n"
 apply (induct "n")
-apply (auto simp add: real_of_nat_Suc left_distrib)
+apply (auto simp add: real_of_nat_Suc distrib_right)
 done
 
 lemma cos_npi2 [simp]: "cos (pi * real n) = -1 ^ n"
@@ -1638,7 +1638,7 @@ qed
 
 lemma sin_npi [simp]: "sin (real (n::nat) * pi) = 0"
 apply (induct "n")
-apply (auto simp add: real_of_nat_Suc left_distrib)
+apply (auto simp add: real_of_nat_Suc distrib_right)
 done
 
 lemma sin_npi2 [simp]: "sin (pi * real (n::nat)) = 0"
@@ -1784,7 +1784,7 @@ lemma sin_zero_lemma:
       \<exists>n::nat. even n & x = real n * (pi/2)"
 apply (subgoal_tac "\<exists>n::nat. ~ even n & x + pi/2 = real n * (pi/2) ")
  apply (clarify, rule_tac x = "n - 1" in exI)
- apply (force simp add: odd_Suc_mult_two_ex real_of_nat_Suc left_distrib)
+ apply (force simp add: odd_Suc_mult_two_ex real_of_nat_Suc distrib_right)
 apply (rule cos_zero_lemma)
 apply (simp_all add: cos_add)
 done
@@ -1799,7 +1799,7 @@ apply (cut_tac linorder_linear [of 0 x], safe)
 apply (drule cos_zero_lemma, assumption+)
 apply (cut_tac x="-x" in cos_zero_lemma, simp, simp)
 apply (force simp add: minus_equation_iff [of x])
-apply (auto simp only: odd_Suc_mult_two_ex real_of_nat_Suc left_distrib)
+apply (auto simp only: odd_Suc_mult_two_ex real_of_nat_Suc distrib_right)
 apply (auto simp add: cos_add)
 done
 
@@ -2029,7 +2029,7 @@ lemma tan_periodic_pi[simp]: "tan (x + pi) = tan x"
 lemma tan_periodic_nat[simp]: fixes n :: nat shows "tan (x + real n * pi) = tan x"
 proof (induct n arbitrary: x)
   case (Suc n)
-  have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi" unfolding Suc_eq_plus1 real_of_nat_add real_of_one left_distrib by auto
+  have split_pi_off: "x + real (Suc n) * pi = (x + real n * pi) + pi" unfolding Suc_eq_plus1 real_of_nat_add real_of_one distrib_right by auto
   show ?case unfolding split_pi_off using Suc by auto
 qed auto
 
@@ -2212,7 +2212,7 @@ proof (rule power2_eq_imp_eq)
   show "0 \<le> cos (arctan x)"
     by (intro less_imp_le cos_gt_zero_pi arctan_lbound arctan_ubound)
   have "(cos (arctan x))\<twosuperior> * (1 + (tan (arctan x))\<twosuperior>) = 1"
-    unfolding tan_def by (simp add: right_distrib power_divide)
+    unfolding tan_def by (simp add: distrib_left power_divide)
   thus "(cos (arctan x))\<twosuperior> = (1 / sqrt (1 + x\<twosuperior>))\<twosuperior>"
     using `0 < 1 + x\<twosuperior>` by (simp add: power_divide eq_divide_eq)
 qed
@@ -2226,7 +2226,7 @@ lemma tan_sec: "cos x \<noteq> 0 ==> 1 + tan(x) ^ 2 = inverse(cos x) ^ 2"
 apply (rule power_inverse [THEN subst])
 apply (rule_tac c1 = "(cos x)\<twosuperior>" in real_mult_right_cancel [THEN iffD1])
 apply (auto dest: field_power_not_zero
-        simp add: power_mult_distrib left_distrib power_divide tan_def
+        simp add: power_mult_distrib distrib_right power_divide tan_def
                   mult_assoc power_inverse [symmetric])
 done
 
@@ -2397,7 +2397,7 @@ proof -
   have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
     by (auto simp add: algebra_simps sin_add)
   thus ?thesis
-    by (simp add: real_of_nat_Suc left_distrib add_divide_distrib
+    by (simp add: real_of_nat_Suc distrib_right add_divide_distrib
                   mult_commute [of pi])
 qed
 
@@ -2418,7 +2418,7 @@ apply (subst sin_add, simp)
 done
 
 lemma cos_pi_eq_zero [simp]: "cos (pi * real (Suc (2 * m)) / 2) = 0"
-by (simp only: cos_add sin_add real_of_nat_Suc left_distrib right_distrib add_divide_distrib, auto)
+by (simp only: cos_add sin_add real_of_nat_Suc distrib_right distrib_left add_divide_distrib, auto)
 
 lemma DERIV_cos_add [simp]: "DERIV (%x. cos (x + k)) xa :> - sin (xa + k)"
   by (auto intro!: DERIV_intros)

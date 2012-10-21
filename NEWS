@@ -79,7 +79,6 @@ former behavior of "typedef (open) t = A" is now the default, but
 written just "typedef t = A".  INCOMPATIBILITY, need to adapt theories
 accordingly.
 
-
 * Theory "Library/Multiset":
 
   - Renamed constants
@@ -144,6 +143,13 @@ INCOMPATIBILITY.  Related changes are:
       not_le_list_length ~> Sublist.not_sub_length
 
     INCOMPATIBILITY.
+
+* HOL/Rings: renamed lemmas
+
+left_distrib ~> distrib_right
+right_distrib ~> distrib_left
+
+in class semiring.  INCOMPATIBILITY.
 
 * HOL/BNF: New (co)datatype package based on bounded natural
 functors with support for mixed, nested recursion and interesting

@@ -447,7 +447,7 @@ proof (rule natfloor_eq)
     done
   thus "x / real y < real (natfloor x div y) + 1"
     using assms
-    by (simp add: divide_less_eq natfloor_less_iff left_distrib)
+    by (simp add: divide_less_eq natfloor_less_iff distrib_right)
 qed
 
 lemma le_mult_natfloor:

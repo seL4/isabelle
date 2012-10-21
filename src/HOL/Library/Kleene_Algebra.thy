@@ -141,13 +141,13 @@ subclass ordered_semiring proof
   show "c * a \<le> c * b"
   proof (rule ord_intro)
     from `a \<le> b` have "c * (a + b) = c * b" by simp
-    thus "c * a + c * b = c * b" by (simp add: right_distrib)
+    thus "c * a + c * b = c * b" by (simp add: distrib_left)
   qed
 
   show "a * c \<le> b * c"
   proof (rule ord_intro)
     from `a \<le> b` have "(a + b) * c = b * c" by simp
-    thus "a * c + b * c = b * c" by (simp add: left_distrib)
+    thus "a * c + b * c = b * c" by (simp add: distrib_right)
   qed
 qed
 
@@ -206,7 +206,7 @@ lemma ka1 [simp]: "x * star x \<le> star x"
 by (metis less_add(2) star_unfold_left)
 
 lemma star_mult_idem [simp]: "star x * star x = star x"
-by (metis add_commute add_est1 eq_iff mult_1_right right_distrib star3 star_unfold_left)
+by (metis add_commute add_est1 eq_iff mult_1_right distrib_left star3 star_unfold_left)
 
 lemma less_star [simp]: "x \<le> star x"
 by (metis less_add(2) mult_1_right mult_left_mono one_less_star order_trans star_unfold_left zero_minimum)
@@ -232,7 +232,7 @@ proof (rule star4', rule order_trans)
   thus "x + star b * x * a \<le> x + star b * b * x"
     using add_mono by auto
   show "\<dots> \<le> star b * x"
-    by (metis add_supremum left_distrib less_add mult.left_neutral mult_assoc mult_right_mono star_unfold_right zero_minimum)
+    by (metis add_supremum distrib_right less_add mult.left_neutral mult_assoc mult_right_mono star_unfold_right zero_minimum)
 qed
 
 lemma star_simulation [simp]:
@@ -273,10 +273,10 @@ lemma star_sub: "x \<le> 1 \<Longrightarrow> star x = 1"
 by (metis add_commute ord_simp star_idemp star_mono star_mult_idem star_one star_unfold_left)
 
 lemma star_unfold2: "star x * y = y + x * star x * y"
-by (subst star_unfold_right[symmetric]) (simp add: mult_assoc left_distrib)
+by (subst star_unfold_right[symmetric]) (simp add: mult_assoc distrib_right)
 
 lemma star_absorb_one [simp]: "star (x + 1) = star x"
-by (metis add_commute eq_iff left_distrib less_add mult_1_left mult_assoc star3 star_mono star_mult_idem star_unfold2 x_less_star)
+by (metis add_commute eq_iff distrib_right less_add mult_1_left mult_assoc star3 star_mono star_mult_idem star_unfold2 x_less_star)
 
 lemma star_absorb_one' [simp]: "star (1 + x) = star x"
 by (subst add_commute) (fact star_absorb_one)
@@ -292,13 +292,13 @@ by (metis ka1 mult_assoc mult_right_mono zero_minimum)
 
 lemma ka18: "(x * star x) * star (y * star x) + (y * star x) * star (y * star x)
   \<le> star x * star (y * star x)"
-by (metis ka16 ka17 left_distrib mult_assoc plus_leI)
+by (metis ka16 ka17 distrib_right mult_assoc plus_leI)
 
 lemma star_decomp: "star (x + y) = star x * star (y * star x)"
 proof (rule antisym)
   have "1 + (x + y) * star x * star (y * star x) \<le>
     1 + x * star x * star (y * star x) + y * star x * star (y * star x)"
-    by (metis add_commute add_left_commute eq_iff left_distrib mult_assoc)
+    by (metis add_commute add_left_commute eq_iff distrib_right mult_assoc)
   also have "\<dots> \<le> star x * star (y * star x)"
     by (metis add_commute add_est1 add_left_commute ka18 plus_leI star_unfold_left x_less_star)
   finally show "star (x + y) \<le> star x * star (y * star x)"
@@ -342,7 +342,7 @@ lemma ka28: "star (star x + star y) = star (x + y)"
 by (metis add_commute ka27)
 
 lemma ka29: "(y * (1 + x) \<le> (1 + x) * star y) = (y * x \<le> (1 + x) * star y)"
-by (metis add_supremum left_distrib less_add(1) less_star mult.left_neutral mult.right_neutral order_trans right_distrib)
+by (metis add_supremum distrib_right less_add(1) less_star mult.left_neutral mult.right_neutral order_trans distrib_left)
 
 lemma ka30: "star x * star y \<le> star (x + y)"
 by (metis mult_left_mono star_decomp star_mono x_less_star zero_minimum)

@@ -107,7 +107,7 @@ definition [simp, code del]:
   "n < m \<longleftrightarrow> int_of n < int_of m"
 
 instance proof
-qed (auto simp add: code_int left_distrib zmult_zless_mono2)
+qed (auto simp add: code_int distrib_right zmult_zless_mono2)
 
 end
 

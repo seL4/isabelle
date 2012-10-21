@@ -1456,7 +1456,7 @@ next
           by (auto simp add: norm_minus_commute)
         also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
           unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
-          unfolding left_distrib using `x\<noteq>y`[unfolded dist_nz, unfolded dist_norm] by auto
+          unfolding distrib_right using `x\<noteq>y`[unfolded dist_nz, unfolded dist_norm] by auto
         also have "\<dots> \<le> e - d/2" using `d \<le> dist x y` and `d>0` and `?rhs` by(auto simp add: dist_norm)
         finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using `d>0` by auto
 
@@ -1583,7 +1583,7 @@ next
         by (auto simp add: algebra_simps)
       also have "\<dots> = \<bar>1 + d / (2 * norm (y - x))\<bar> * norm (y - x)"
         using ** by auto
-      also have "\<dots> = (dist y x) + d/2"using ** by (auto simp add: left_distrib dist_norm)
+      also have "\<dots> = (dist y x) + d/2"using ** by (auto simp add: distrib_right dist_norm)
       finally have "e \<ge> dist x y +d/2" using *[unfolded mem_cball] by (auto simp add: dist_commute)
       thus "y \<in> ball x e" unfolding mem_ball using `d>0` by auto
     qed  }

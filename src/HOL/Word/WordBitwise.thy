@@ -308,7 +308,7 @@ next
     using Cons
     apply (simp add: trans [OF of_bl_append add_commute]
                      rbl_mul_simps rbl_word_plus'
-                     Cons.hyps left_distrib mult_bit
+                     Cons.hyps distrib_right mult_bit
                      shiftl rbl_shiftl)
     apply (simp add: takefill_alt word_size rev_map take_rbl_plus
                      min_def)

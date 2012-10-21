@@ -223,7 +223,7 @@ lemma n_leaves_append [simp]:
 apply (induct t1)
  apply (metis append.simps(1) n_leaves.simps(1) nat_mult_1 plus_nat.simps(1)
               Suc_eq_plus1)
-by (simp add: left_distrib)
+by (simp add: distrib_right)
 
 lemma (*bt_map_append:*)
      "bt_map f (append t1 t2) = append (bt_map f t1) (bt_map f t2)"
