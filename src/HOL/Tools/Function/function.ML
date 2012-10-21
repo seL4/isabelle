@@ -168,11 +168,15 @@ fun prepare_termination_proof prep_term raw_term_opt lthy =
   let
     val term_opt = Option.map (prep_term lthy) raw_term_opt
     val info =
-      the (case term_opt of
-             SOME t => (import_function_data t lthy
-               handle Option.Option =>
-                 error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
-           | NONE => (import_last_function lthy handle Option.Option => error "Not a function"))
+      (case term_opt of
+        SOME t =>
+          (case import_function_data t lthy of
+            SOME info => info
+          | NONE => error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
+      | NONE =>
+          (case import_last_function lthy of
+            SOME info => info
+          | NONE => error "Not a function"))
 
     val { termination, fs, R, add_simps, case_names, psimps,
       pinducts, defname, ...} = info
