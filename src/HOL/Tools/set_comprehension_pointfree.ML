@@ -335,6 +335,7 @@ let
       HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
     end;
   val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
+  fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
   fun tac ctxt = 
     rtac @{thm set_eqI}
     THEN' Simplifier.simp_tac
@@ -346,7 +347,9 @@ let
     THEN' etac @{thm conjE}
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
     THEN' Subgoal.FOCUS (fn {prems, ...} =>
-      Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_ss addsimps prems)) 1) ctxt
+      Simplifier.simp_tac
+        (Simplifier.inherit_context ss (HOL_basic_ss addsimps (filter is_eq prems))) 1) ctxt
+    THEN' atac
 in
   case try mk_term (term_of ct) of
     NONE => Thm.reflexive ct
