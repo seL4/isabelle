@@ -193,14 +193,12 @@ fun import_function_data t ctxt =
 fun import_last_function ctxt =
   case Item_Net.content (get_function ctxt) of
     [] => NONE
-  | (t, data) :: _ =>
+  | (t, _) :: _ =>
     let
       val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     in
       import_function_data t' ctxt'
     end
-
-val all_function_data = Item_Net.content o get_function
 
 fun add_function_data (data : info as {fs, termination, ...}) =
   FunctionData.map (fold (fn f => Item_Net.update (f, data)) fs)
