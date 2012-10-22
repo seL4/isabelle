@@ -34,9 +34,15 @@ declare norm_triangle_ineq4[intro]
 
 lemma simple_image: "{f x |x . x \<in> s} = f ` s" by blast
 
-lemma linear_simps:  assumes "bounded_linear f"
-  shows "f (a + b) = f a + f b" "f (a - b) = f a - f b" "f 0 = 0" "f (- a) = - f a" "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
-  apply(rule_tac[!] additive.add additive.minus additive.diff additive.zero bounded_linear.scaleR)
+lemma linear_simps:
+  assumes "bounded_linear f"
+  shows
+    "f (a + b) = f a + f b"
+    "f (a - b) = f a - f b"
+    "f 0 = 0"
+    "f (- a) = - f a"
+    "f (s *\<^sub>R v) = s *\<^sub>R (f v)"
+  apply (rule_tac[!] additive.add additive.minus additive.diff additive.zero bounded_linear.scaleR)
   using assms unfolding bounded_linear_def additive_def
   apply auto
   done
@@ -52,11 +58,10 @@ lemma real_le_inf_subset:
   shows "Inf s <= Inf (t::real set)"
   apply (rule isGlb_le_isLb)
   apply (rule Inf[OF assms(1)])
-  using assms apply -
+  apply (insert assms)
   apply (erule exE)
-  apply (rule_tac x=b in exI)
-  unfolding isLb_def setge_def
-  apply auto
+  apply (rule_tac x = b in exI)
+  apply (auto simp: isLb_def setge_def)
   done
 
 lemma real_ge_sup_subset:
@@ -64,14 +69,13 @@ lemma real_ge_sup_subset:
   shows "Sup s >= Sup (t::real set)"
   apply (rule isLub_le_isUb)
   apply (rule Sup[OF assms(1)])
-  using assms apply -
+  apply (insert assms)
   apply (erule exE)
-  apply (rule_tac x=b in exI)
-  unfolding isUb_def setle_def
-  apply auto
+  apply (rule_tac x = b in exI)
+  apply (auto simp: isUb_def setle_def)
   done
 
-lemma bounded_linear_component[intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x $$ k)"
+lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x $$ k)"
   apply (rule bounded_linearI[where K=1])
   using component_le_norm[of _ k]
   unfolding real_norm_def
@@ -97,8 +101,8 @@ proof (safe)
         done
     next
       case False
-      hence "m = n" using Suc(2) by auto
-      thus ?thesis using `?r` by auto
+      then have "m = n" using Suc(2) by auto
+      then show ?thesis using `?r` by auto
     qed
   qed auto
 qed auto
@@ -114,7 +118,7 @@ proof -
     apply assumption
     using assms(2) apply auto
     done
-  thus ?thesis by auto
+  then show ?thesis by auto
 qed
 
 lemma transitive_stepwise_le_eq:
@@ -126,6 +130,9 @@ proof safe
   assume "m \<le> n"
   thus "R m n"
   proof (induct n arbitrary: m)
+    case 0
+    with assms show ?case by auto
+  next
     case (Suc n)
     show ?case
     proof (cases "m \<le> n")
@@ -140,7 +147,7 @@ proof safe
       hence "m = Suc n" using Suc(2) by auto
       thus ?thesis using assms(1) by auto
     qed
-  qed (insert assms(1), auto)
+  qed
 qed auto
 
 lemma transitive_stepwise_le:
@@ -153,7 +160,7 @@ proof -
     apply (rule assms,assumption,assumption)
     using assms(3) apply auto
     done
-  thus ?thesis by auto
+  then show ?thesis by auto
 qed
 
 
@@ -162,11 +169,11 @@ subsection {* Some useful lemmas about intervals. *}
 abbreviation One  where "One \<equiv> ((\<chi>\<chi> i. 1)::_::ordered_euclidean_space)"
 
 lemma empty_as_interval: "{} = {One..0}"
-  apply (rule set_eqI,rule)
+  apply (rule set_eqI, rule)
   defer
   unfolding mem_interval
   using UNIV_witness[where 'a='n]
-  apply (erule_tac exE, rule_tac x=x in allE)
+  apply (erule_tac exE, rule_tac x = x in allE)
   apply auto
   done
 
@@ -179,17 +186,19 @@ proof -
     using inter_interval_mixed_eq_empty[of c d a b] and assms(3,5)
     unfolding assms(1,2) interior_closed_interval by auto
   moreover
-    have "{a<..<b} \<subseteq> {c..d} \<union> s"
-      apply (rule order_trans,rule interval_open_subset_closed)
-      using assms(4) unfolding assms(1,2)
-      apply auto
-      done
+  have "{a<..<b} \<subseteq> {c..d} \<union> s"
+    apply (rule order_trans,rule interval_open_subset_closed)
+    using assms(4) unfolding assms(1,2)
+    apply auto
+    done
   ultimately
   show ?thesis
     apply -
-    apply (rule interior_maximal) defer
+    apply (rule interior_maximal)
+    defer
     apply (rule open_interior)
-    unfolding assms(1,2) interior_closed_interval apply auto
+    unfolding assms(1,2) interior_closed_interval
+    apply auto
     done
 qed
 
@@ -197,134 +206,362 @@ lemma inter_interior_unions_intervals:
   fixes f::"('a::ordered_euclidean_space) set set"
   assumes "finite f" "open s" "\<forall>t\<in>f. \<exists>a b. t = {a..b}" "\<forall>t\<in>f. s \<inter> (interior t) = {}"
   shows "s \<inter> interior(\<Union>f) = {}"
-proof (rule ccontr,unfold ex_in_conv[THEN sym]) case goal1
-  have lem1:"\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U" apply rule  defer apply(rule_tac Int_greatest)
-    unfolding open_subset_interior[OF open_ball]  using interior_subset by auto
-  have lem2:"\<And>x s P. \<exists>x\<in>s. P x \<Longrightarrow> \<exists>x\<in>insert x s. P x" by auto
-  have "\<And>f. finite f \<Longrightarrow> (\<forall>t\<in>f. \<exists>a b. t = {a..b}) \<Longrightarrow> (\<exists>x. x \<in> s \<inter> interior (\<Union>f)) \<Longrightarrow> (\<exists>t\<in>f. \<exists>x. \<exists>e>0. ball x e \<subseteq> s \<inter> t)" proof- case goal1
-  thus ?case proof(induct rule:finite_induct) 
-    case empty from this(2) guess x .. hence False unfolding Union_empty interior_empty by auto thus ?case by auto next
-    case (insert i f) guess x using insert(5) .. note x = this
-    then guess e unfolding open_contains_ball_eq[OF open_Int[OF assms(2) open_interior],rule_format] .. note e=this
-    guess a using insert(4)[rule_format,OF insertI1] .. then guess b .. note ab = this
-    show ?case proof(cases "x\<in>i") case False hence "x \<in> UNIV - {a..b}" unfolding ab by auto
-      then guess d unfolding open_contains_ball_eq[OF open_Diff[OF open_UNIV closed_interval],rule_format] ..
-      hence "0 < d" "ball x (min d e) \<subseteq> UNIV - i" unfolding ab ball_min_Int by auto
-      hence "ball x (min d e) \<subseteq> s \<inter> interior (\<Union>f)" using e unfolding lem1 unfolding  ball_min_Int by auto
-      hence "x \<in> s \<inter> interior (\<Union>f)" using `d>0` e by auto
-      hence "\<exists>t\<in>f. \<exists>x e. 0 < e \<and> ball x e \<subseteq> s \<inter> t" apply-apply(rule insert(3)) using insert(4) by auto thus ?thesis by auto next
-    case True show ?thesis proof(cases "x\<in>{a<..<b}")
-      case True then guess d unfolding open_contains_ball_eq[OF open_interval,rule_format] ..
-      thus ?thesis apply(rule_tac x=i in bexI,rule_tac x=x in exI,rule_tac x="min d e" in exI)
-        unfolding ab using interval_open_subset_closed[of a b] and e by fastforce+ next
-    case False then obtain k where "x$$k \<le> a$$k \<or> x$$k \<ge> b$$k" and k:"k<DIM('a)" unfolding mem_interval by(auto simp add:not_less) 
-    hence "x$$k = a$$k \<or> x$$k = b$$k" using True unfolding ab and mem_interval apply(erule_tac x=k in allE) by auto
-    hence "\<exists>x. ball x (e/2) \<subseteq> s \<inter> (\<Union>f)" proof(erule_tac disjE)
-      let ?z = "x - (e/2) *\<^sub>R basis k" assume as:"x$$k = a$$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
-        fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
-        hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
-        hence "y$$k < a$$k" using e[THEN conjunct1] k by(auto simp add:field_simps as)
-        hence "y \<notin> i" unfolding ab mem_interval not_all apply(rule_tac x=k in exI) using k by auto thus False using yi by auto qed
-      moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
-        fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R basis k)"
-           apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R basis k"])
-          unfolding norm_scaleR norm_basis by auto
-        also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
-        finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
-      ultimately show ?thesis apply(rule_tac x="?z" in exI) unfolding Union_insert by auto
-    next let ?z = "x + (e/2) *\<^sub>R basis k" assume as:"x$$k = b$$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
-        fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
-        hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
-        hence "y$$k > b$$k" using e[THEN conjunct1] k by(auto simp add:field_simps as)
-        hence "y \<notin> i" unfolding ab mem_interval not_all using k by(rule_tac x=k in exI,auto) thus False using yi by auto qed
-      moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
-        fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R basis k)"
-           apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R basis k"])
-          unfolding norm_scaleR by auto
-        also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
-        finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
-      ultimately show ?thesis apply(rule_tac x="?z" in exI) unfolding Union_insert by auto qed 
-    then guess x .. hence "x \<in> s \<inter> interior (\<Union>f)" unfolding lem1[where U="\<Union>f",THEN sym] using centre_in_ball e[THEN conjunct1] by auto
-    thus ?thesis apply-apply(rule lem2,rule insert(3)) using insert(4) by auto qed qed qed qed note * = this
-  guess t using *[OF assms(1,3) goal1]  .. from this(2) guess x .. then guess e ..
-  hence "x \<in> s" "x\<in>interior t" defer using open_subset_interior[OF open_ball, of x e t] by auto
-  thus False using `t\<in>f` assms(4) by auto qed
+proof (rule ccontr, unfold ex_in_conv[THEN sym])
+  case goal1
+  have lem1: "\<And>x e s U. ball x e \<subseteq> s \<inter> interior U \<longleftrightarrow> ball x e \<subseteq> s \<inter> U"
+    apply rule
+    defer
+    apply (rule_tac Int_greatest)
+    unfolding open_subset_interior[OF open_ball]
+    using interior_subset
+    apply auto
+    done
+  have lem2: "\<And>x s P. \<exists>x\<in>s. P x \<Longrightarrow> \<exists>x\<in>insert x s. P x" by auto
+  have "\<And>f. finite f \<Longrightarrow> (\<forall>t\<in>f. \<exists>a b. t = {a..b}) \<Longrightarrow>
+    (\<exists>x. x \<in> s \<inter> interior (\<Union>f)) \<Longrightarrow> (\<exists>t\<in>f. \<exists>x. \<exists>e>0. ball x e \<subseteq> s \<inter> t)"
+  proof -
+    case goal1
+    then show ?case
+    proof (induct rule: finite_induct)
+      case empty from this(2) guess x ..
+      hence False unfolding Union_empty interior_empty by auto
+      thus ?case by auto
+    next
+      case (insert i f) guess x using insert(5) .. note x = this
+      then guess e unfolding open_contains_ball_eq[OF open_Int[OF assms(2) open_interior],rule_format] .. note e=this
+      guess a using insert(4)[rule_format,OF insertI1] ..
+      then guess b .. note ab = this
+      show ?case
+      proof (cases "x\<in>i")
+        case False
+        hence "x \<in> UNIV - {a..b}" unfolding ab by auto
+        then guess d unfolding open_contains_ball_eq[OF open_Diff[OF open_UNIV closed_interval],rule_format] ..
+        hence "0 < d" "ball x (min d e) \<subseteq> UNIV - i" unfolding ab ball_min_Int by auto
+        hence "ball x (min d e) \<subseteq> s \<inter> interior (\<Union>f)"
+          using e unfolding lem1 unfolding  ball_min_Int by auto
+        hence "x \<in> s \<inter> interior (\<Union>f)" using `d>0` e by auto
+        hence "\<exists>t\<in>f. \<exists>x e. 0 < e \<and> ball x e \<subseteq> s \<inter> t"
+          apply -
+          apply (rule insert(3))
+          using insert(4)
+          apply auto
+          done
+        thus ?thesis by auto
+      next
+        case True show ?thesis
+        proof (cases "x\<in>{a<..<b}")
+          case True
+          then guess d unfolding open_contains_ball_eq[OF open_interval,rule_format] ..
+          thus ?thesis
+            apply (rule_tac x=i in bexI, rule_tac x=x in exI, rule_tac x="min d e" in exI)
+            unfolding ab
+            using interval_open_subset_closed[of a b] and e apply fastforce+
+            done
+        next
+          case False
+          then obtain k where "x$$k \<le> a$$k \<or> x$$k \<ge> b$$k" and k:"k<DIM('a)"
+            unfolding mem_interval by (auto simp add: not_less)
+          hence "x$$k = a$$k \<or> x$$k = b$$k"
+            using True unfolding ab and mem_interval
+              apply (erule_tac x = k in allE)
+              apply auto
+              done
+          hence "\<exists>x. ball x (e/2) \<subseteq> s \<inter> (\<Union>f)"
+          proof (erule_tac disjE)
+            let ?z = "x - (e/2) *\<^sub>R basis k"
+            assume as: "x$$k = a$$k"
+            have "ball ?z (e / 2) \<inter> i = {}"
+              apply (rule ccontr)
+              unfolding ex_in_conv[THEN sym]
+            proof (erule exE)
+              fix y
+              assume "y \<in> ball ?z (e / 2) \<inter> i"
+              hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
+              hence "\<bar>(?z - y) $$ k\<bar> < e/2"
+                using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
+              hence "y$$k < a$$k"
+                using e[THEN conjunct1] k by (auto simp add: field_simps as)
+              hence "y \<notin> i"
+                unfolding ab mem_interval not_all
+                apply (rule_tac x=k in exI)
+                using k apply auto
+                done
+              thus False using yi by auto
+            qed
+            moreover
+            have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)"
+              apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]])
+            proof
+              fix y
+              assume as: "y\<in> ball ?z (e/2)"
+              have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R basis k)"
+                apply -
+                apply (rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R basis k"])
+                unfolding norm_scaleR norm_basis
+                apply auto
+                done
+              also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
+                apply (rule add_strict_left_mono)
+                using as unfolding mem_ball dist_norm
+                using e apply (auto simp add: field_simps)
+                done
+              finally show "y\<in>ball x e"
+                unfolding mem_ball dist_norm using e by (auto simp add:field_simps)
+            qed
+            ultimately show ?thesis
+              apply (rule_tac x="?z" in exI)
+              unfolding Union_insert
+              apply auto
+              done
+          next
+            let ?z = "x + (e/2) *\<^sub>R basis k"
+            assume as: "x$$k = b$$k"
+            have "ball ?z (e / 2) \<inter> i = {}"
+              apply (rule ccontr)
+              unfolding ex_in_conv[THEN sym]
+            proof(erule exE)
+              fix y
+              assume "y \<in> ball ?z (e / 2) \<inter> i"
+              hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
+              hence "\<bar>(?z - y) $$ k\<bar> < e/2"
+                using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
+              hence "y$$k > b$$k"
+                using e[THEN conjunct1] k by(auto simp add:field_simps as)
+              hence "y \<notin> i"
+                unfolding ab mem_interval not_all
+                using k apply (rule_tac x=k in exI)
+                apply auto
+                done
+              thus False using yi by auto
+            qed
+            moreover
+            have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)"
+              apply (rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]])
+            proof
+              fix y
+              assume as: "y\<in> ball ?z (e/2)"
+              have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R basis k)"
+                apply -
+                apply(rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R basis k"])
+                unfolding norm_scaleR
+                apply auto
+                done
+              also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
+                apply (rule add_strict_left_mono)
+                using as unfolding mem_ball dist_norm
+                using e apply (auto simp add: field_simps)
+                done
+              finally show "y\<in>ball x e"
+                unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
+            qed
+            ultimately show ?thesis
+              apply (rule_tac x="?z" in exI)
+              unfolding Union_insert
+              apply auto
+              done
+          qed 
+          then guess x ..
+          hence "x \<in> s \<inter> interior (\<Union>f)"
+            unfolding lem1[where U="\<Union>f",THEN sym]
+            using centre_in_ball e[THEN conjunct1] by auto
+          thus ?thesis
+            apply -
+            apply (rule lem2, rule insert(3))
+            using insert(4) apply auto
+            done
+        qed
+      qed
+    qed
+  qed
+  note * = this
+  guess t using *[OF assms(1,3) goal1] ..
+  from this(2) guess x ..
+  then guess e ..
+  hence "x \<in> s" "x\<in>interior t"
+    defer
+    using open_subset_interior[OF open_ball, of x e t] apply auto
+    done
+  thus False using `t\<in>f` assms(4) by auto
+qed
+
 
 subsection {* Bounds on intervals where they exist. *}
 
-definition "interval_upperbound (s::('a::ordered_euclidean_space) set) = ((\<chi>\<chi> i. Sup {a. \<exists>x\<in>s. x$$i = a})::'a)"
+definition "interval_upperbound (s::('a::ordered_euclidean_space) set) =
+  ((\<chi>\<chi> i. Sup {a. \<exists>x\<in>s. x$$i = a})::'a)"
 
-definition "interval_lowerbound (s::('a::ordered_euclidean_space) set) = ((\<chi>\<chi> i. Inf {a. \<exists>x\<in>s. x$$i = a})::'a)"
+definition "interval_lowerbound (s::('a::ordered_euclidean_space) set) =
+  ((\<chi>\<chi> i. Inf {a. \<exists>x\<in>s. x$$i = a})::'a)"
 
-lemma interval_upperbound[simp]: assumes "\<forall>i<DIM('a::ordered_euclidean_space). a$$i \<le> (b::'a)$$i" shows "interval_upperbound {a..b} = b"
-  using assms unfolding interval_upperbound_def apply(subst euclidean_eq[where 'a='a]) apply safe
-  unfolding euclidean_lambda_beta' apply(erule_tac x=i in allE)
-  apply(rule Sup_unique) unfolding setle_def apply rule unfolding mem_Collect_eq apply(erule bexE) unfolding mem_interval defer
-  apply(rule,rule) apply(rule_tac x="b$$i" in bexI) defer unfolding mem_Collect_eq apply(rule_tac x=b in bexI)
-  unfolding mem_interval using assms by auto
+lemma interval_upperbound[simp]:
+  assumes "\<forall>i<DIM('a::ordered_euclidean_space). a$$i \<le> (b::'a)$$i"
+  shows "interval_upperbound {a..b} = b"
+  using assms
+  unfolding interval_upperbound_def
+  apply (subst euclidean_eq[where 'a='a])
+  apply safe
+  unfolding euclidean_lambda_beta'
+  apply (erule_tac x=i in allE)
+  apply (rule Sup_unique)
+  unfolding setle_def
+  apply rule
+  unfolding mem_Collect_eq
+  apply (erule bexE)
+  unfolding mem_interval
+  defer
+  apply (rule, rule)
+  apply (rule_tac x="b$$i" in bexI)
+  defer
+  unfolding mem_Collect_eq
+  apply (rule_tac x=b in bexI)
+  unfolding mem_interval
+  using assms apply auto
+  done
 
-lemma interval_lowerbound[simp]: assumes "\<forall>i<DIM('a::ordered_euclidean_space). a$$i \<le> (b::'a)$$i" shows "interval_lowerbound {a..b} = a"
-  using assms unfolding interval_lowerbound_def apply(subst euclidean_eq[where 'a='a]) apply safe
-  unfolding euclidean_lambda_beta' apply(erule_tac x=i in allE)
-  apply(rule Inf_unique) unfolding setge_def apply rule unfolding mem_Collect_eq apply(erule bexE) unfolding mem_interval defer
-  apply(rule,rule) apply(rule_tac x="a$$i" in bexI) defer unfolding mem_Collect_eq apply(rule_tac x=a in bexI)
-  unfolding mem_interval using assms by auto 
+lemma interval_lowerbound[simp]:
+  assumes "\<forall>i<DIM('a::ordered_euclidean_space). a$$i \<le> (b::'a)$$i"
+  shows "interval_lowerbound {a..b} = a"
+  using assms
+  unfolding interval_lowerbound_def
+  apply (subst euclidean_eq[where 'a='a])
+  apply safe
+  unfolding euclidean_lambda_beta'
+  apply (erule_tac x=i in allE)
+  apply (rule Inf_unique)
+  unfolding setge_def
+  apply rule
+  unfolding mem_Collect_eq
+  apply (erule bexE)
+  unfolding mem_interval
+  defer
+  apply (rule, rule)
+  apply (rule_tac x = "a$$i" in bexI)
+  defer
+  unfolding mem_Collect_eq
+  apply (rule_tac x=a in bexI)
+  unfolding mem_interval
+  using assms apply auto
+  done
 
 lemmas interval_bounds = interval_upperbound interval_lowerbound
 
-lemma interval_bounds'[simp]: assumes "{a..b}\<noteq>{}" shows "interval_upperbound {a..b} = b" "interval_lowerbound {a..b} = a"
+lemma interval_bounds'[simp]:
+  assumes "{a..b}\<noteq>{}"
+  shows "interval_upperbound {a..b} = b" "interval_lowerbound {a..b} = a"
   using assms unfolding interval_ne_empty by auto
 
 subsection {* Content (length, area, volume...) of an interval. *}
 
 definition "content (s::('a::ordered_euclidean_space) set) =
-       (if s = {} then 0 else (\<Prod>i<DIM('a). (interval_upperbound s)$$i - (interval_lowerbound s)$$i))"
+  (if s = {} then 0 else (\<Prod>i<DIM('a). (interval_upperbound s)$$i - (interval_lowerbound s)$$i))"
 
 lemma interval_not_empty:"\<forall>i<DIM('a). a$$i \<le> b$$i \<Longrightarrow> {a..b::'a::ordered_euclidean_space} \<noteq> {}"
   unfolding interval_eq_empty unfolding not_ex not_less by auto
 
-lemma content_closed_interval: fixes a::"'a::ordered_euclidean_space" assumes "\<forall>i<DIM('a). a$$i \<le> b$$i"
+lemma content_closed_interval:
+  fixes a::"'a::ordered_euclidean_space"
+  assumes "\<forall>i<DIM('a). a$$i \<le> b$$i"
   shows "content {a..b} = (\<Prod>i<DIM('a). b$$i - a$$i)"
-  using interval_not_empty[OF assms] unfolding content_def interval_upperbound[OF assms] interval_lowerbound[OF assms] by auto
+  using interval_not_empty[OF assms]
+  unfolding content_def interval_upperbound[OF assms] interval_lowerbound[OF assms]
+  by auto
 
-lemma content_closed_interval': fixes a::"'a::ordered_euclidean_space" assumes "{a..b}\<noteq>{}" shows "content {a..b} = (\<Prod>i<DIM('a). b$$i - a$$i)"
-  apply(rule content_closed_interval) using assms unfolding interval_ne_empty .
+lemma content_closed_interval':
+  fixes a::"'a::ordered_euclidean_space"
+  assumes "{a..b}\<noteq>{}"
+  shows "content {a..b} = (\<Prod>i<DIM('a). b$$i - a$$i)"
+  apply (rule content_closed_interval)
+  using assms unfolding interval_ne_empty
+  apply assumption
+  done
 
-lemma content_real:assumes "a\<le>b" shows "content {a..b} = b-a"
-proof- have *:"{..<Suc 0} = {0}" by auto
-  show ?thesis unfolding content_def using assms by(auto simp: *)
+lemma content_real:
+  assumes "a\<le>b"
+  shows "content {a..b} = b-a"
+proof -
+  have *: "{..<Suc 0} = {0}" by auto
+  show ?thesis unfolding content_def using assms by (auto simp: *)
 qed
 
-lemma content_unit[intro]: "content{0..One::'a::ordered_euclidean_space} = 1" proof-
-  have *:"\<forall>i<DIM('a). (0::'a)$$i \<le> (One::'a)$$i" by auto
+lemma content_unit[intro]: "content{0..One::'a::ordered_euclidean_space} = 1"
+proof -
+  have *: "\<forall>i<DIM('a). (0::'a)$$i \<le> (One::'a)$$i" by auto
   have "0 \<in> {0..One::'a}" unfolding mem_interval by auto
-  thus ?thesis unfolding content_def interval_bounds[OF *] using setprod_1 by auto qed
+  thus ?thesis unfolding content_def interval_bounds[OF *] using setprod_1 by auto
+qed
 
-lemma content_pos_le[intro]: fixes a::"'a::ordered_euclidean_space" shows "0 \<le> content {a..b}" proof(cases "{a..b}={}")
-  case False hence *:"\<forall>i<DIM('a). a $$ i \<le> b $$ i" unfolding interval_ne_empty by assumption
+lemma content_pos_le[intro]:
+  fixes a::"'a::ordered_euclidean_space"
+  shows "0 \<le> content {a..b}"
+proof (cases "{a..b} = {}")
+  case False
+  hence *: "\<forall>i<DIM('a). a $$ i \<le> b $$ i" unfolding interval_ne_empty .
   have "(\<Prod>i<DIM('a). interval_upperbound {a..b} $$ i - interval_lowerbound {a..b} $$ i) \<ge> 0"
-    apply(rule setprod_nonneg) unfolding interval_bounds[OF *] using * apply(erule_tac x=x in allE) by auto
-  thus ?thesis unfolding content_def by(auto simp del:interval_bounds') qed(unfold content_def, auto)
+    apply (rule setprod_nonneg)
+    unfolding interval_bounds[OF *]
+    using *
+    apply (erule_tac x=x in allE)
+    apply auto
+    done
+  thus ?thesis unfolding content_def by (auto simp del:interval_bounds')
+qed (unfold content_def, auto)
 
-lemma content_pos_lt: fixes a::"'a::ordered_euclidean_space" assumes "\<forall>i<DIM('a). a$$i < b$$i" shows "0 < content {a..b}"
-proof- have help_lemma1: "\<forall>i<DIM('a). a$$i < b$$i \<Longrightarrow> \<forall>i<DIM('a). a$$i \<le> ((b$$i)::real)" apply(rule,erule_tac x=i in allE) by auto
-  show ?thesis unfolding content_closed_interval[OF help_lemma1[OF assms]] apply(rule setprod_pos)
-    using assms apply(erule_tac x=x in allE) by auto qed
+lemma content_pos_lt:
+  fixes a::"'a::ordered_euclidean_space"
+  assumes "\<forall>i<DIM('a). a$$i < b$$i"
+  shows "0 < content {a..b}"
+proof -
+  have help_lemma1: "\<forall>i<DIM('a). a$$i < b$$i \<Longrightarrow> \<forall>i<DIM('a). a$$i \<le> ((b$$i)::real)"
+    apply (rule, erule_tac x=i in allE)
+    apply auto
+    done
+  show ?thesis unfolding content_closed_interval[OF help_lemma1[OF assms]]
+    apply(rule setprod_pos)
+    using assms apply (erule_tac x=x in allE)
+    apply auto
+    done
+qed
 
-lemma content_eq_0: "content{a..b::'a::ordered_euclidean_space} = 0 \<longleftrightarrow> (\<exists>i<DIM('a). b$$i \<le> a$$i)" proof(cases "{a..b} = {}")
-  case True thus ?thesis unfolding content_def if_P[OF True] unfolding interval_eq_empty apply-
-    apply(rule,erule exE) apply(rule_tac x=i in exI) by auto next
-  case False note this[unfolded interval_eq_empty not_ex not_less]
-  hence as:"\<forall>i<DIM('a). b $$ i \<ge> a $$ i" by fastforce
-  show ?thesis unfolding content_def if_not_P[OF False] setprod_zero_iff[OF finite_lessThan]
-    apply(rule) apply(erule_tac[!] exE bexE) unfolding interval_bounds[OF as] apply(rule_tac x=x in exI) defer
-    apply(rule_tac x=i in bexI) using as apply(erule_tac x=i in allE) by auto qed
+lemma content_eq_0: "content{a..b::'a::ordered_euclidean_space} = 0 \<longleftrightarrow> (\<exists>i<DIM('a). b$$i \<le> a$$i)"
+proof (cases "{a..b} = {}")
+  case True
+  thus ?thesis
+    unfolding content_def if_P[OF True]
+    unfolding interval_eq_empty
+    apply -
+    apply (rule, erule exE)
+    apply (rule_tac x = i in exI)
+    apply auto
+    done
+next
+  case False
+  from this[unfolded interval_eq_empty not_ex not_less]
+  have as: "\<forall>i<DIM('a). b $$ i \<ge> a $$ i" by fastforce
+  show ?thesis
+    unfolding content_def if_not_P[OF False] setprod_zero_iff[OF finite_lessThan]
+    apply rule
+    apply (erule_tac[!] exE bexE)
+    unfolding interval_bounds[OF as]
+    apply (rule_tac x=x in exI)
+    defer
+    apply (rule_tac x=i in bexI)
+    using as apply (erule_tac x=i in allE)
+    apply auto
+    done
+qed
 
 lemma cond_cases:"(P \<Longrightarrow> Q x) \<Longrightarrow> (\<not> P \<Longrightarrow> Q y) \<Longrightarrow> Q (if P then x else y)" by auto
 
 lemma content_closed_interval_cases:
-  "content {a..b::'a::ordered_euclidean_space} = (if \<forall>i<DIM('a). a$$i \<le> b$$i then setprod (\<lambda>i. b$$i - a$$i) {..<DIM('a)} else 0)" apply(rule cond_cases) 
-  apply(rule content_closed_interval) unfolding content_eq_0 not_all not_le defer apply(erule exE,rule_tac x=x in exI) by auto
+  "content {a..b::'a::ordered_euclidean_space} =
+    (if \<forall>i<DIM('a). a$$i \<le> b$$i then setprod (\<lambda>i. b$$i - a$$i) {..<DIM('a)} else 0)"
+  apply (rule cond_cases) 
+  apply (rule content_closed_interval)
+  unfolding content_eq_0 not_all not_le
+  defer
+  apply (erule exE,rule_tac x=x in exI)
+  apply auto
+  done
 
 lemma content_eq_0_interior: "content {a..b} = 0 \<longleftrightarrow> interior({a..b}) = {}"
   unfolding content_eq_0 interior_closed_interval interval_eq_empty by auto
@@ -333,10 +570,17 @@ lemma content_eq_0_interior: "content {a..b} = 0 \<longleftrightarrow> interior(
   unfolding content_eq_0 by auto*)
 
 lemma content_pos_lt_eq: "0 < content {a..b::'a::ordered_euclidean_space} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < b$$i)"
-  apply(rule) defer apply(rule content_pos_lt,assumption) proof- assume "0 < content {a..b}"
-  hence "content {a..b} \<noteq> 0" by auto thus "\<forall>i<DIM('a). a$$i < b$$i" unfolding content_eq_0 not_ex not_le by fastforce qed
+  apply rule
+  defer
+  apply (rule content_pos_lt, assumption)
+proof -
+  assume "0 < content {a..b}"
+  hence "content {a..b} \<noteq> 0" by auto
+  thus "\<forall>i<DIM('a). a$$i < b$$i"
+    unfolding content_eq_0 not_ex not_le by fastforce
+qed
 
-lemma content_empty[simp]: "content {} = 0" unfolding content_def by auto
+lemma content_empty [simp]: "content {} = 0" unfolding content_def by auto
 
 lemma content_subset:
   assumes "{a..b} \<subseteq> {c..d}"
@@ -488,50 +732,111 @@ qed auto
 lemma division_of_union_self[intro]: "p division_of s \<Longrightarrow> p division_of (\<Union>p)"
   unfolding division_of_def by auto
 
-lemma division_of_content_0: assumes "content {a..b} = 0" "d division_of {a..b}" shows "\<forall>k\<in>d. content k = 0"
-  unfolding forall_in_division[OF assms(2)] apply(rule,rule,rule) apply(drule division_ofD(2)[OF assms(2)])
-  apply(drule content_subset) unfolding assms(1) proof- case goal1 thus ?case using content_pos_le[of a b] by auto qed
+lemma division_of_content_0:
+  assumes "content {a..b} = 0" "d division_of {a..b}"
+  shows "\<forall>k\<in>d. content k = 0"
+  unfolding forall_in_division[OF assms(2)]
+  apply(rule,rule,rule)
+  apply(drule division_ofD(2)[OF assms(2)])
+  apply(drule content_subset) unfolding assms(1)
+proof -
+  case goal1
+  thus ?case using content_pos_le[of a b] by auto
+qed
 
-lemma division_inter: assumes "p1 division_of s1" "p2 division_of (s2::('a::ordered_euclidean_space) set)"
-  shows "{k1 \<inter> k2 | k1 k2 .k1 \<in> p1 \<and> k2 \<in> p2 \<and> k1 \<inter> k2 \<noteq> {}} division_of (s1 \<inter> s2)" (is "?A' division_of _") proof-
-let ?A = "{s. s \<in>  (\<lambda>(k1,k2). k1 \<inter> k2) ` (p1 \<times> p2) \<and> s \<noteq> {}}" have *:"?A' = ?A" by auto
-show ?thesis unfolding * proof(rule division_ofI) have "?A \<subseteq> (\<lambda>(x, y). x \<inter> y) ` (p1 \<times> p2)" by auto
-  moreover have "finite (p1 \<times> p2)" using assms unfolding division_of_def by auto ultimately show "finite ?A" by auto
-  have *:"\<And>s. \<Union>{x\<in>s. x \<noteq> {}} = \<Union>s" by auto show "\<Union>?A = s1 \<inter> s2" apply(rule set_eqI) unfolding * and Union_image_eq UN_iff
-    using division_ofD(6)[OF assms(1)] and division_ofD(6)[OF assms(2)] by auto
-  { fix k assume "k\<in>?A" then obtain k1 k2 where k:"k = k1 \<inter> k2" "k1\<in>p1" "k2\<in>p2" "k\<noteq>{}" by auto thus "k \<noteq> {}" by auto
-  show "k \<subseteq> s1 \<inter> s2" using division_ofD(2)[OF assms(1) k(2)] and division_ofD(2)[OF assms(2) k(3)] unfolding k by auto
-  guess a1 using division_ofD(4)[OF assms(1) k(2)] .. then guess b1 .. note ab1=this
-  guess a2 using division_ofD(4)[OF assms(2) k(3)] .. then guess b2 .. note ab2=this
-  show "\<exists>a b. k = {a..b}" unfolding k ab1 ab2 unfolding inter_interval by auto } fix k1 k2
-  assume "k1\<in>?A" then obtain x1 y1 where k1:"k1 = x1 \<inter> y1" "x1\<in>p1" "y1\<in>p2" "k1\<noteq>{}" by auto
-  assume "k2\<in>?A" then obtain x2 y2 where k2:"k2 = x2 \<inter> y2" "x2\<in>p1" "y2\<in>p2" "k2\<noteq>{}" by auto
-  assume "k1 \<noteq> k2" hence th:"x1\<noteq>x2 \<or> y1\<noteq>y2" unfolding k1 k2 by auto
-  have *:"(interior x1 \<inter> interior x2 = {} \<or> interior y1 \<inter> interior y2 = {}) \<Longrightarrow>
+lemma division_inter:
+  assumes "p1 division_of s1" "p2 division_of (s2::('a::ordered_euclidean_space) set)"
+  shows "{k1 \<inter> k2 | k1 k2 .k1 \<in> p1 \<and> k2 \<in> p2 \<and> k1 \<inter> k2 \<noteq> {}} division_of (s1 \<inter> s2)"
+  (is "?A' division_of _")
+proof -
+  let ?A = "{s. s \<in>  (\<lambda>(k1,k2). k1 \<inter> k2) ` (p1 \<times> p2) \<and> s \<noteq> {}}"
+  have *:"?A' = ?A" by auto
+  show ?thesis unfolding *
+  proof (rule division_ofI)
+    have "?A \<subseteq> (\<lambda>(x, y). x \<inter> y) ` (p1 \<times> p2)" by auto
+    moreover have "finite (p1 \<times> p2)" using assms unfolding division_of_def by auto
+    ultimately show "finite ?A" by auto
+    have *:"\<And>s. \<Union>{x\<in>s. x \<noteq> {}} = \<Union>s" by auto
+    show "\<Union>?A = s1 \<inter> s2"
+      apply (rule set_eqI)
+      unfolding * and Union_image_eq UN_iff
+      using division_ofD(6)[OF assms(1)] and division_ofD(6)[OF assms(2)]
+      apply auto
+      done
+    { fix k
+      assume "k\<in>?A"
+      then obtain k1 k2 where k: "k = k1 \<inter> k2" "k1\<in>p1" "k2\<in>p2" "k\<noteq>{}" by auto
+      thus "k \<noteq> {}" by auto
+      show "k \<subseteq> s1 \<inter> s2"
+        using division_ofD(2)[OF assms(1) k(2)] and division_ofD(2)[OF assms(2) k(3)]
+        unfolding k by auto
+      guess a1 using division_ofD(4)[OF assms(1) k(2)] ..
+      then guess b1 .. note ab1=this
+      guess a2 using division_ofD(4)[OF assms(2) k(3)] ..
+      then guess b2 .. note ab2=this
+      show "\<exists>a b. k = {a..b}"
+        unfolding k ab1 ab2 unfolding inter_interval by auto }
+    fix k1 k2
+    assume "k1\<in>?A"
+    then obtain x1 y1 where k1:"k1 = x1 \<inter> y1" "x1\<in>p1" "y1\<in>p2" "k1\<noteq>{}" by auto
+    assume "k2\<in>?A"
+    then obtain x2 y2 where k2:"k2 = x2 \<inter> y2" "x2\<in>p1" "y2\<in>p2" "k2\<noteq>{}" by auto
+    assume "k1 \<noteq> k2"
+    hence th:"x1\<noteq>x2 \<or> y1\<noteq>y2" unfolding k1 k2 by auto
+    have *:"(interior x1 \<inter> interior x2 = {} \<or> interior y1 \<inter> interior y2 = {}) \<Longrightarrow>
       interior(x1 \<inter> y1) \<subseteq> interior(x1) \<Longrightarrow> interior(x1 \<inter> y1) \<subseteq> interior(y1) \<Longrightarrow>
       interior(x2 \<inter> y2) \<subseteq> interior(x2) \<Longrightarrow> interior(x2 \<inter> y2) \<subseteq> interior(y2)
       \<Longrightarrow> interior(x1 \<inter> y1) \<inter> interior(x2 \<inter> y2) = {}" by auto
-  show "interior k1 \<inter> interior k2 = {}" unfolding k1 k2 apply(rule *) defer apply(rule_tac[1-4] interior_mono)
-    using division_ofD(5)[OF assms(1) k1(2) k2(2)]
-    using division_ofD(5)[OF assms(2) k1(3) k2(3)] using th by auto qed qed
+    show "interior k1 \<inter> interior k2 = {}"
+      unfolding k1 k2
+      apply (rule *)
+      defer
+      apply (rule_tac[1-4] interior_mono)
+      using division_ofD(5)[OF assms(1) k1(2) k2(2)]
+      using division_ofD(5)[OF assms(2) k1(3) k2(3)]
+      using th apply auto done
+  qed
+qed
 
-lemma division_inter_1: assumes "d division_of i" "{a..b::'a::ordered_euclidean_space} \<subseteq> i"
-  shows "{ {a..b} \<inter> k |k. k \<in> d \<and> {a..b} \<inter> k \<noteq> {} } division_of {a..b}" proof(cases "{a..b} = {}")
-  case True show ?thesis unfolding True and division_of_trivial by auto next
-  have *:"{a..b} \<inter> i = {a..b}" using assms(2) by auto 
-  case False show ?thesis using division_inter[OF division_of_self[OF False] assms(1)] unfolding * by auto qed
+lemma division_inter_1:
+  assumes "d division_of i" "{a..b::'a::ordered_euclidean_space} \<subseteq> i"
+  shows "{ {a..b} \<inter> k |k. k \<in> d \<and> {a..b} \<inter> k \<noteq> {} } division_of {a..b}"
+proof (cases "{a..b} = {}")
+  case True
+  show ?thesis unfolding True and division_of_trivial by auto
+next
+  case False
+  have *: "{a..b} \<inter> i = {a..b}" using assms(2) by auto
+  show ?thesis using division_inter[OF division_of_self[OF False] assms(1)] unfolding * by auto
+qed
 
-lemma elementary_inter: assumes "p1 division_of s" "p2 division_of (t::('a::ordered_euclidean_space) set)"
+lemma elementary_inter:
+  assumes "p1 division_of s" "p2 division_of (t::('a::ordered_euclidean_space) set)"
   shows "\<exists>p. p division_of (s \<inter> t)"
-  by(rule,rule division_inter[OF assms])
+  by (rule, rule division_inter[OF assms])
 
-lemma elementary_inters: assumes "finite f" "f\<noteq>{}" "\<forall>s\<in>f. \<exists>p. p division_of (s::('a::ordered_euclidean_space) set)"
-  shows "\<exists>p. p division_of (\<Inter> f)" using assms apply-proof(induct f rule:finite_induct)
-case (insert x f) show ?case proof(cases "f={}")
-  case True thus ?thesis unfolding True using insert by auto next
-  case False guess p using insert(3)[OF False insert(5)[unfolded ball_simps,THEN conjunct2]] ..
-  moreover guess px using insert(5)[rule_format,OF insertI1] .. ultimately
-  show ?thesis unfolding Inter_insert apply(rule_tac elementary_inter) by assumption+ qed qed auto
+lemma elementary_inters:
+  assumes "finite f" "f\<noteq>{}" "\<forall>s\<in>f. \<exists>p. p division_of (s::('a::ordered_euclidean_space) set)"
+  shows "\<exists>p. p division_of (\<Inter> f)"
+  using assms
+proof (induct f rule: finite_induct)
+  case (insert x f)
+  show ?case
+  proof (cases "f = {}")
+    case True
+    thus ?thesis unfolding True using insert by auto
+  next
+    case False
+    guess p using insert(3)[OF False insert(5)[unfolded ball_simps,THEN conjunct2]] ..
+    moreover guess px using insert(5)[rule_format,OF insertI1] ..
+    ultimately show ?thesis
+      unfolding Inter_insert
+      apply (rule_tac elementary_inter)
+      apply assumption
+      apply assumption
+      done
+  qed
+qed auto
 
 lemma division_disjoint_union:
   assumes "p1 division_of s1" "p2 division_of s2" "interior s1 \<inter> interior s2 = {}"
