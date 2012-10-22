@@ -6,17 +6,6 @@ New in this Isabelle version
 
 *** General ***
 
-* Prover IDE (PIDE) improvements:
-    . parallel terminal proofs ('by');
-    . improved output panel with tooltips, hyperlinks etc.;
-    . improved tooltips with nested tooltips, hyperlinks etc.;
-    . more efficient painting, improved reactivity;
-    . more robust incremental parsing of outer syntax (partial
-      comments, malformed symbols);
-    . smarter handling of tracing messages (via tracing_limit);
-    . more plugin options and preferences, based on Isabelle/Scala;
-    . uniform Java 7 platform on Linux, Mac OS X, Windows;
-
 * Configuration option show_markup controls direct inlining of markup
 into the printed representation of formal entities --- notably type
 and sort constraints.  This enables Prover IDE users to retrieve that
@@ -43,6 +32,46 @@ and "class ... context ...".
 
 * More informative error messages for Isar proof commands involving
 lazy enumerations (method applications etc.).
+
+
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Parallel terminal proofs ('by') are enabled by default, likewise
+proofs that are built into packages like 'datatype', 'function'.  This
+allows to "run ahead" checking the theory specifications on the
+surface, while the prover is still crunching on internal
+justifications.  Unfinished / cancelled proofs are restarted as
+required to complete full proof checking eventually.
+
+* Improved output panel with tooltips, hyperlinks etc. based on the
+same Rich_Text_Area as regular Isabelle/jEdit buffers.  Activation of
+tooltips leads to some window that supports the same recursively,
+which can lead to stacks of tooltips as the semantic document content
+is explored.  ESCAPE closes the whole stack, individual windows may be
+closed separately, or detached to become independent jEdit dockables.
+
+* More robust incremental parsing of outer syntax (partial comments,
+malformed symbols).  Changing the balance of open/close quotes and
+comment delimiters works more conveniently with unfinished situations
+that frequently occur in user interaction.
+
+* More efficient painting and improved reactivity when editing large
+files.  More scalable management of formal document content.
+
+* Smarter handling of tracing messages: output window informs about
+accumulated messages; prover transactions are limited to emit maximum
+amount of output, before being canceled (cf. tracing_limit option).
+This avoids swamping the front-end with potentially infinite message
+streams.
+
+* More plugin options and preferences, based on Isabelle/Scala.  The
+jEdit plugin option panel provides access to some Isabelle/Scala
+options, including tuning parameters for editor reactivity and color
+schemes.
+
+* Uniform Java 7 platform on Linux, Mac OS X, Windows: recent updates
+from Oracle provide better multi-platform experience.  This version is
+now bundled exclusively with Isabelle.
 
 
 *** Pure ***
