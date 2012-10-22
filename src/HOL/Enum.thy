@@ -3,7 +3,7 @@
 header {* Finite types as explicit enumerations *}
 
 theory Enum
-imports Map String
+imports Map
 begin
 
 subsection {* Class @{text enum} *}
@@ -36,6 +36,10 @@ proof -
   from assms UNIV_eq_I have "UNIV = set xs" by auto
   with enum_UNIV show ?thesis by simp
 qed
+
+lemma card_UNIV_length_enum:
+  "card (UNIV :: 'a set) = length enum"
+  by (simp add: UNIV_enum distinct_card enum_distinct)
 
 lemma enum_all [simp]:
   "enum_all = HOL.All"
@@ -402,44 +406,6 @@ definition
 instance proof
 qed (simp_all only: enum_sum_def enum_all_sum_def enum_ex_sum_def UNIV_sum,
   auto simp add: enum_UNIV distinct_map enum_distinct)
-
-end
-
-instantiation nibble :: enum
-begin
-
-definition
-  "enum = [Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
-    Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF]"
-
-definition
-  "enum_all P \<longleftrightarrow> P Nibble0 \<and> P Nibble1 \<and> P Nibble2 \<and> P Nibble3 \<and> P Nibble4 \<and> P Nibble5 \<and> P Nibble6 \<and> P Nibble7
-     \<and> P Nibble8 \<and> P Nibble9 \<and> P NibbleA \<and> P NibbleB \<and> P NibbleC \<and> P NibbleD \<and> P NibbleE \<and> P NibbleF"
-
-definition
-  "enum_ex P \<longleftrightarrow> P Nibble0 \<or> P Nibble1 \<or> P Nibble2 \<or> P Nibble3 \<or> P Nibble4 \<or> P Nibble5 \<or> P Nibble6 \<or> P Nibble7
-     \<or> P Nibble8 \<or> P Nibble9 \<or> P NibbleA \<or> P NibbleB \<or> P NibbleC \<or> P NibbleD \<or> P NibbleE \<or> P NibbleF"
-
-instance proof
-qed (simp_all only: enum_nibble_def enum_all_nibble_def enum_ex_nibble_def UNIV_nibble, simp_all)
-
-end
-
-instantiation char :: enum
-begin
-
-definition
-  "enum = chars"
-
-definition
-  "enum_all P \<longleftrightarrow> list_all P chars"
-
-definition
-  "enum_ex P \<longleftrightarrow> list_ex P chars"
-
-instance proof
-qed (simp_all only: enum_char_def enum_all_char_def enum_ex_char_def UNIV_set_chars distinct_chars,
-  simp_all add: list_all_iff list_ex_iff)
 
 end
 

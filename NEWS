@@ -99,6 +99,9 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
+* Removed constant "chars".  Prefer "Enum.enum" on type "char"
+directly.  INCOMPATIBILITY.
+
 * Moved operation product, sublists and n_lists from Enum.thy
 to List.thy.  INCOMPATIBILITY.
 

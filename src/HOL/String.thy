@@ -3,10 +3,10 @@
 header {* Character and string types *}
 
 theory String
-imports List
+imports List Enum
 begin
 
-subsection {* Characters *}
+subsection {* Characters and strings *}
 
 datatype nibble =
     Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
@@ -19,57 +19,41 @@ proof (rule UNIV_eq_I)
   fix x show "x \<in> ?A" by (cases x) simp_all
 qed
 
-instance nibble :: finite
-  by default (simp add: UNIV_nibble)
+lemma size_nibble [code, simp]:
+  "size (x::nibble) = 0" by (cases x) simp_all
+
+lemma nibble_size [code, simp]:
+  "nibble_size (x::nibble) = 0" by (cases x) simp_all
+
+instantiation nibble :: enum
+begin
+
+definition
+  "Enum.enum = [Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
+    Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF]"
+
+definition
+  "Enum.enum_all P \<longleftrightarrow> P Nibble0 \<and> P Nibble1 \<and> P Nibble2 \<and> P Nibble3 \<and> P Nibble4 \<and> P Nibble5 \<and> P Nibble6 \<and> P Nibble7
+     \<and> P Nibble8 \<and> P Nibble9 \<and> P NibbleA \<and> P NibbleB \<and> P NibbleC \<and> P NibbleD \<and> P NibbleE \<and> P NibbleF"
+
+definition
+  "Enum.enum_ex P \<longleftrightarrow> P Nibble0 \<or> P Nibble1 \<or> P Nibble2 \<or> P Nibble3 \<or> P Nibble4 \<or> P Nibble5 \<or> P Nibble6 \<or> P Nibble7
+     \<or> P Nibble8 \<or> P Nibble9 \<or> P NibbleA \<or> P NibbleB \<or> P NibbleC \<or> P NibbleD \<or> P NibbleE \<or> P NibbleF"
+
+instance proof
+qed (simp_all only: enum_nibble_def enum_all_nibble_def enum_ex_nibble_def UNIV_nibble, simp_all)
+
+end
+
+lemma card_UNIV_nibble:
+  "card (UNIV :: nibble set) = 16"
+  by (simp add: card_UNIV_length_enum enum_nibble_def)
 
 datatype char = Char nibble nibble
   -- "Note: canonical order of character encoding coincides with standard term ordering"
 
-lemma UNIV_char:
-  "UNIV = image (split Char) (UNIV \<times> UNIV)"
-proof (rule UNIV_eq_I)
-  fix x show "x \<in> image (split Char) (UNIV \<times> UNIV)" by (cases x) auto
-qed
-
-instance char :: finite
-  by default (simp add: UNIV_char)
-
-lemma size_char [code, simp]:
-  "size (c::char) = 0" by (cases c) simp
-
-lemma char_size [code, simp]:
-  "char_size (c::char) = 0" by (cases c) simp
-
-primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
-  "nibble_pair_of_char (Char n m) = (n, m)"
-
-setup {*
-let
-  val nibbles = map_range (Thm.cterm_of @{theory} o HOLogic.mk_nibble) 16;
-  val thms = map_product
-   (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
-      nibbles nibbles;
-in
-  Global_Theory.note_thmss ""
-    [((@{binding nibble_pair_of_char_simps}, []), [(thms, [])])]
-  #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
-end
-*}
-
-lemma char_case_nibble_pair [code, code_unfold]:
-  "char_case f = split f o nibble_pair_of_char"
-  by (simp add: fun_eq_iff split: char.split)
-
-lemma char_rec_nibble_pair [code, code_unfold]:
-  "char_rec f = split f o nibble_pair_of_char"
-  unfolding char_case_nibble_pair [symmetric]
-  by (simp add: fun_eq_iff split: char.split)
-
 syntax
   "_Char" :: "str_position => char"    ("CHR _")
-
-
-subsection {* Strings *}
 
 type_synonym string = "char list"
 
@@ -79,8 +63,23 @@ syntax
 ML_file "Tools/string_syntax.ML"
 setup String_Syntax.setup
 
-definition chars :: string where
-  "chars = [Char Nibble0 Nibble0, Char Nibble0 Nibble1, Char Nibble0 Nibble2,
+lemma UNIV_char:
+  "UNIV = image (split Char) (UNIV \<times> UNIV)"
+proof (rule UNIV_eq_I)
+  fix x show "x \<in> image (split Char) (UNIV \<times> UNIV)" by (cases x) auto
+qed
+
+lemma size_char [code, simp]:
+  "size (c::char) = 0" by (cases c) simp
+
+lemma char_size [code, simp]:
+  "char_size (c::char) = 0" by (cases c) simp
+
+instantiation char :: enum
+begin
+
+definition
+  "Enum.enum = [Char Nibble0 Nibble0, Char Nibble0 Nibble1, Char Nibble0 Nibble2,
   Char Nibble0 Nibble3, Char Nibble0 Nibble4, Char Nibble0 Nibble5,
   Char Nibble0 Nibble6, Char Nibble0 Nibble7, Char Nibble0 Nibble8,
   Char Nibble0 Nibble9, Char Nibble0 NibbleA, Char Nibble0 NibbleB,
@@ -149,13 +148,55 @@ definition chars :: string where
   Char NibbleF NibbleA, Char NibbleF NibbleB, Char NibbleF NibbleC,
   Char NibbleF NibbleD, Char NibbleF NibbleE, Char NibbleF NibbleF]"
 
-lemma UNIV_set_chars:
-  "UNIV = set chars"
-  by (simp only: UNIV_char UNIV_nibble) code_simp
+definition
+  "Enum.enum_all P \<longleftrightarrow> list_all P (Enum.enum :: char list)"
 
-lemma distinct_chars:
-  "distinct chars"
-  by code_simp
+definition
+  "Enum.enum_ex P \<longleftrightarrow> list_ex P (Enum.enum :: char list)"
+
+instance proof
+  have enum: "(Enum.enum :: char list) = map (split Char) (List.product Enum.enum Enum.enum)"
+    by (simp add: enum_char_def enum_nibble_def)
+  show UNIV: "UNIV = set (Enum.enum :: char list)"
+    by (simp add: enum UNIV_char product_list_set enum_UNIV)
+  show "distinct (Enum.enum :: char list)"
+    by (auto intro: inj_onI simp add: enum distinct_map distinct_product enum_distinct)
+  show "\<And>P. Enum.enum_all P \<longleftrightarrow> Ball (UNIV :: char set) P"
+    by (simp add: UNIV enum_all_char_def list_all_iff)
+  show "\<And>P. Enum.enum_ex P \<longleftrightarrow> Bex (UNIV :: char set) P"
+    by (simp add: UNIV enum_ex_char_def list_ex_iff)
+qed
+
+end
+
+lemma card_UNIV_char:
+  "card (UNIV :: char set) = 256"
+  by (simp add: card_UNIV_length_enum enum_char_def)
+
+primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
+  "nibble_pair_of_char (Char n m) = (n, m)"
+
+setup {*
+let
+  val nibbles = map_range (Thm.cterm_of @{theory} o HOLogic.mk_nibble) 16;
+  val thms = map_product
+   (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
+      nibbles nibbles;
+in
+  Global_Theory.note_thmss ""
+    [((@{binding nibble_pair_of_char_simps}, []), [(thms, [])])]
+  #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
+end
+*}
+
+lemma char_case_nibble_pair [code, code_unfold]:
+  "char_case f = split f o nibble_pair_of_char"
+  by (simp add: fun_eq_iff split: char.split)
+
+lemma char_rec_nibble_pair [code, code_unfold]:
+  "char_rec f = split f o nibble_pair_of_char"
+  unfolding char_case_nibble_pair [symmetric]
+  by (simp add: fun_eq_iff split: char.split)
 
 
 subsection {* Strings as dedicated type *}

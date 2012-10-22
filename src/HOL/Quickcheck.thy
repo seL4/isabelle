@@ -52,7 +52,7 @@ instantiation char :: random
 begin
 
 definition
-  "random _ = Random.select chars \<circ>\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Evaluation.term_of c))"
+  "random _ = Random.select (Enum.enum :: char list) \<circ>\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Evaluation.term_of c))"
 
 instance ..
 
@@ -281,3 +281,4 @@ hide_const (open) iter' iter empty single bind union if_randompred
   iterate_upto not_randompred Random map
 
 end
+

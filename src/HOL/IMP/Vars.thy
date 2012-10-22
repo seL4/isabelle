@@ -16,7 +16,7 @@ text {* Sets may be infinite and are not always displayed by element
 *}
 definition 
   letters :: "string list" where
-  "letters = map (\<lambda>c. [c]) chars"
+  "letters = map (\<lambda>c. [c]) Enum.enum"
 
 definition 
   "show" :: "string set \<Rightarrow> string list" where
@@ -91,3 +91,4 @@ proof(induction b)
 qed simp_all
 
 end
+
