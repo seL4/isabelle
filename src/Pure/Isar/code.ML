@@ -31,6 +31,7 @@ sig
   val empty_cert: theory -> string -> cert
   val cert_of_eqns: theory -> string -> (thm * bool) list -> cert
   val constrain_cert: theory -> sort list -> cert -> cert
+  val conclude_cert: cert -> cert
   val typargs_deps_of_cert: theory -> cert -> (string * sort) list * (string * typ list) list
   val equations_of_cert: theory -> cert -> ((string * sort) list * typ)
     * (((term * string option) list * (term * string option)) * (thm option * bool)) list
@@ -781,6 +782,13 @@ fun constrain_cert thy sorts (Equations (cert_thm, propers)) =
       cert
   | constrain_cert thy sorts (Abstract (abs_thm, tyco)) =
       Abstract (snd (constrain_thm thy (fst (typscheme_abs thy abs_thm)) sorts abs_thm), tyco);
+
+fun conclude_cert (Equations (cert_thm, propers)) =
+      (Equations (Thm.close_derivation cert_thm, propers))
+  | conclude_cert (cert as Projection _) =
+      cert
+  | conclude_cert (Abstract (abs_thm, tyco)) =
+      (Abstract (Thm.close_derivation abs_thm, tyco));
 
 fun typscheme_of_cert thy (Equations (cert_thm, _)) =
       fst (get_head thy cert_thm)
