@@ -15,8 +15,8 @@ option jedit_tooltip_font_scale : real = 0.85
 option jedit_tooltip_margin : int = 60
   -- "margin for tooltip pretty-printing"
 
-option jedit_text_overview : bool = true
-  -- "paint text overview column (potentially slow for large files)"
+option jedit_text_overview_limit : int = 100000
+  -- "maximum amount of text to visualize in overview column"
 
 
 section "Rendering of Document Content"

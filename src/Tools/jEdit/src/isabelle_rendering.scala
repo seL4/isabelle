@@ -149,6 +149,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
   /* command overview */
 
+  val overview_limit = options.int("jedit_text_overview_limit")
+
   def overview_color(range: Text.Range): Option[Color] =
   {
     if (snapshot.is_outdated) None

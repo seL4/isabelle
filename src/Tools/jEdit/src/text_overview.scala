@@ -55,6 +55,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
   private var last_snapshot = Document.State.init.snapshot()
   private var last_options = Isabelle.options.value
+  private var last_relevant_range = Text.Range(0)
   private var last_line_count = 0
   private var last_char_count = 0
   private var last_L = 0
@@ -67,10 +68,12 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
     doc_view.rich_text_area.robust_body(()) {
       JEdit_Lib.buffer_lock(buffer) {
-        val snapshot = doc_view.model.snapshot()
+        val rendering = doc_view.get_rendering()
+        val snapshot = rendering.snapshot
+        val options = rendering.options
 
-        if (snapshot.is_outdated || !Isabelle.options.bool("jedit_text_overview")) {
-          gfx.setColor(Isabelle.options.color_value("outdated_color"))
+        if (snapshot.is_outdated) {
+          gfx.setColor(rendering.outdated_color)
           gfx.asInstanceOf[Graphics2D].fill(gfx.getClipBounds)
         }
         else {
@@ -83,14 +86,20 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
           val L = lines()
           val H = getHeight()
 
-          val options = Isabelle.options.value
+          val relevant_range =
+            JEdit_Lib.visible_range(text_area) match {
+              case None => Text.Range(0)
+              case Some(visible_range) =>
+                val len = rendering.overview_limit max visible_range.length
+                val start = ((visible_range.start + visible_range.stop - len) / 2) max 0
+                val stop = (start + len) min char_count
+                Text.Range(start, stop)
+            }
 
           if (!(line_count == last_line_count && char_count == last_char_count &&
-                L == last_L && H == last_H && (snapshot eq_markup last_snapshot) &&
-                (options eq last_options)))
+                L == last_L && H == last_H && relevant_range == last_relevant_range &&
+                (snapshot eq_markup last_snapshot) && (options eq last_options)))
           {
-            val rendering = Isabelle_Rendering(snapshot, options)
-
             @tailrec def loop(l: Int, h: Int, p: Int, q: Int, colors: List[(Color, Int, Int)])
               : List[(Color, Int, Int)] =
             {
@@ -107,8 +116,11 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
                   else char_count
                 val range = Text.Range(start, end)
 
+                val range_color =
+                  if (range overlaps relevant_range) rendering.overview_color(range)
+                  else Some(rendering.outdated_color)
                 val colors1 =
-                  (rendering.overview_color(range), colors) match {
+                  (range_color, colors) match {
                     case (Some(color), (old_color, old_h, old_h1) :: rest)
                     if color == old_color && old_h1 == h => (color, old_h, h1) :: rest
                     case (Some(color), _) => (color, h, h1) :: colors
@@ -122,6 +134,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
             last_snapshot = snapshot
             last_options = options
+            last_relevant_range = relevant_range
             last_line_count = line_count
             last_char_count = char_count
             last_L = L
