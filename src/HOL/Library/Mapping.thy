@@ -71,6 +71,15 @@ definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> '
 
 subsection {* Properties *}
 
+lemma lookup_update: "lookup (update k v m) k = Some v" 
+  by transfer simp
+
+lemma lookup_update_neq: "k \<noteq> k' \<Longrightarrow> lookup (update k v m) k' = lookup m k'" 
+  by transfer simp
+
+lemma lookup_empty: "lookup empty k = None" 
+  by transfer simp
+
 lemma keys_is_none_rep [code_unfold]:
   "k \<in> keys m \<longleftrightarrow> \<not> (Option.is_none (lookup m k))"
   by transfer (auto simp add: is_none_def)
