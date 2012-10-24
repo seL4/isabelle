@@ -289,15 +289,18 @@ fun transfer_tac equiv ctxt i =
     val rules = get_transfer_raw ctxt
     (* allow unsolved subgoals only for standard transfer method, not for transfer' *)
     val end_tac = if equiv then K all_tac else K no_tac
+    val err_msg = "Transfer failed to convert goal to an object-logic formula"
+    fun main_tac (t, i) =
+      rtac start_rule i THEN
+      (rtac (transfer_rule_of_term ctxt (HOLogic.dest_Trueprop t))
+        THEN_ALL_NEW
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
+            ORELSE' end_tac)) (i + 1)
+        handle TERM (_, ts) => raise TERM (err_msg, ts)
   in
     EVERY
       [rewrite_goal_tac pre_simps i THEN
-       SUBGOAL (fn (t, i) =>
-         rtac start_rule i THEN
-         (rtac (transfer_rule_of_term ctxt (HOLogic.dest_Trueprop t))
-           THEN_ALL_NEW
-             (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
-               ORELSE' end_tac)) (i + 1)) i,
+       SUBGOAL main_tac i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
        rewrite_goal_tac post_simps i,
        rtac @{thm _} i]
