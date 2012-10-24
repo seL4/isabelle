@@ -262,7 +262,7 @@ fun transfer_rule_of_term ctxt t =
           (Abs (x, dummyT, t'), ctxt)
         end
       | skeleton (tu as (t $ u)) ctxt =
-        if is_rhs tu then dummy ctxt else
+        if is_rhs tu andalso not (Term.is_open tu) then dummy ctxt else
         let
           val (t', ctxt) = skeleton t ctxt
           val (u', ctxt) = skeleton u ctxt
