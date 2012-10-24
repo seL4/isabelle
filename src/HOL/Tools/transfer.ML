@@ -85,20 +85,6 @@ fun add_transfer_thm thm = Data.map
 
 fun del_transfer_thm thm = Data.map (map_transfer_raw (Item_Net.remove thm))
 
-val relator_eq_setup =
-  let
-    val name = @{binding relator_eq}
-    fun add_thm thm = Data.map (map_relator_eq (Item_Net.update thm))
-    fun del_thm thm = Data.map (map_relator_eq (Item_Net.remove thm))
-    val add = Thm.declaration_attribute add_thm
-    val del = Thm.declaration_attribute del_thm
-    val text = "declaration of relator equality rule (used by transfer method)"
-    val content = Item_Net.content o #relator_eq o Data.get
-  in
-    Attrib.setup name (Attrib.add_del add del) text
-    #> Global_Theory.add_thms_dynamic (name, content)
-  end
-
 (** Conversions **)
 
 val Rel_rule = Thm.symmetric @{thm Rel_def}
@@ -125,22 +111,60 @@ fun prep_conv ct = (
       else_conv
       Conv.all_conv) ct
 
-(** Transfer proof method **)
+(** Replacing explicit equalities with is_equality premises **)
 
-fun RelT (Const (@{const_name Rel}, _) $ _ $ _ $ y) = fastype_of y
-  | RelT t = raise TERM ("RelT", [t])
+fun mk_is_equality t =
+  Const (@{const_name is_equality}, Term.fastype_of t --> HOLogic.boolT) $ t
 
-(* Tactic to correspond a value to itself *)
-fun eq_tac ctxt = SUBGOAL (fn (t, i) =>
+val is_equality_lemma =
+  @{lemma "(!!R. is_equality R ==> PROP (P R)) == PROP (P (op =))"
+    by (unfold is_equality_def, rule, drule meta_spec,
+      erule meta_mp, rule refl, simp)}
+
+fun gen_abstract_equalities (dest : term -> term * (term -> term)) thm =
   let
-    val T = RelT (HOLogic.dest_Trueprop (Logic.strip_assums_concl t))
-    val cT = ctyp_of (Proof_Context.theory_of ctxt) T
-    val rews = get_sym_relator_eq ctxt
-    val thm1 = Drule.instantiate' [SOME cT] [] @{thm Rel_eq_refl}
-    val thm2 = Raw_Simplifier.rewrite_rule rews thm1
+    val thy = Thm.theory_of_thm thm
+    val prop = Thm.prop_of thm
+    val (t, mk_prop') = dest prop
+    val add_eqs = Term.fold_aterms
+      (fn t as Const (@{const_name HOL.eq}, _) => insert (op =) t | _ => I)
+    val eq_consts = rev (add_eqs t [])
+    val eqTs = map (snd o dest_Const) eq_consts
+    val used = Term.add_free_names prop []
+    val names = map (K "") eqTs |> Name.variant_list used
+    val frees = map Free (names ~~ eqTs)
+    val prems = map (HOLogic.mk_Trueprop o mk_is_equality) frees
+    val prop1 = mk_prop' (Term.subst_atomic (eq_consts ~~ frees) t)
+    val prop2 = fold Logic.all frees (Logic.list_implies (prems, prop1))
+    val cprop = Thm.cterm_of thy prop2
+    val equal_thm = Raw_Simplifier.rewrite false [is_equality_lemma] cprop
+    fun forall_elim thm = Thm.forall_elim_vars (Thm.maxidx_of thm + 1) thm
   in
-    rtac thm2 i
-  end handle Match => no_tac | TERM _ => no_tac)
+    forall_elim (thm COMP (equal_thm COMP @{thm equal_elim_rule2}))
+  end
+    handle TERM _ => thm
+
+fun abstract_equalities_transfer thm =
+  let
+    fun dest prop =
+      let
+        val prems = Logic.strip_imp_prems prop
+        val concl = HOLogic.dest_Trueprop (Logic.strip_imp_concl prop)
+        val ((rel, x), y) = apfst Term.dest_comb (Term.dest_comb concl)
+      in
+        (rel, fn rel' =>
+          Logic.list_implies (prems, HOLogic.mk_Trueprop (rel' $ x $ y)))
+      end
+  in
+    gen_abstract_equalities dest thm
+  end
+
+fun abstract_equalities_relator_eq rel_eq_thm =
+  gen_abstract_equalities (fn x => (x, I))
+    (rel_eq_thm RS @{thm is_equality_def [THEN iffD2]})
+
+
+(** Transfer proof method **)
 
 val post_simps =
   @{thms transfer_forall_eq [symmetric]
@@ -273,7 +297,7 @@ fun transfer_tac equiv ctxt i =
          (rtac (transfer_rule_of_term ctxt (HOLogic.dest_Trueprop t))
            THEN_ALL_NEW
              (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
-               ORELSE' eq_tac ctxt ORELSE' end_tac)) (i + 1)) i,
+               ORELSE' end_tac)) (i + 1)) i,
        (* FIXME: rewrite_goal_tac does unwanted eta-contraction *)
        rewrite_goal_tac post_simps i,
        rtac @{thm _} i]
@@ -289,8 +313,7 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
       [CONVERSION prep_conv i,
        rtac @{thm transfer_prover_start} i,
        (rtac rule1 THEN_ALL_NEW
-         REPEAT_ALL_NEW
-           (resolve_tac rules ORELSE' eq_tac ctxt)) (i+1),
+         REPEAT_ALL_NEW (resolve_tac rules)) (i+1),
        rtac @{thm refl} i]
   end)
 
@@ -311,7 +334,7 @@ val transfer_prover_method : (Proof.context -> Method.method) context_parser =
 
 (* Attribute for transfer rules *)
 
-val prep_rule = Conv.fconv_rule prep_conv
+val prep_rule = abstract_equalities_transfer o Conv.fconv_rule prep_conv
 
 val transfer_add =
   Thm.declaration_attribute (add_transfer_thm o prep_rule)
@@ -323,6 +346,22 @@ val transfer_attribute =
   Attrib.add_del transfer_add transfer_del
 
 (* Theory setup *)
+
+val relator_eq_setup =
+  let
+    val name = @{binding relator_eq}
+    fun add_thm thm = Data.map (map_relator_eq (Item_Net.update thm))
+      #> add_transfer_thm (abstract_equalities_relator_eq thm)
+    fun del_thm thm = Data.map (map_relator_eq (Item_Net.remove thm))
+      #> del_transfer_thm (abstract_equalities_relator_eq thm)
+    val add = Thm.declaration_attribute add_thm
+    val del = Thm.declaration_attribute del_thm
+    val text = "declaration of relator equality rule (used by transfer method)"
+    val content = Item_Net.content o #relator_eq o Data.get
+  in
+    Attrib.setup name (Attrib.add_del add del) text
+    #> Global_Theory.add_thms_dynamic (name, content)
+  end
 
 val setup =
   relator_eq_setup

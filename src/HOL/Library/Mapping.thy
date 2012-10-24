@@ -5,7 +5,7 @@
 header {* An abstract view on maps for code generation. *}
 
 theory Mapping
-imports Main
+imports Main Quotient_Option
 begin
 
 subsection {* Type definition and primitive operations *}
@@ -61,10 +61,8 @@ lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarro
     | Some v \<Rightarrow> m (k \<mapsto> (f v)))" .
 
 lemma map_entry_code [code]: "map_entry k f m = (case lookup m k of None \<Rightarrow> m
-    | Some v \<Rightarrow> update k (f v) m)" 
-    apply (cases "lookup m k") 
-    apply simp_all 
-    by (transfer, simp)+
+    | Some v \<Rightarrow> update k (f v) m)"
+  by transfer rule
 
 definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
   "map_default k v f m = map_entry k f (default k v m)" 

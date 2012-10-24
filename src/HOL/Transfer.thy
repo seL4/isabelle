@@ -52,6 +52,11 @@ text {* Explicit tag for relation membership allows for
 definition Rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> bool"
   where "Rel r \<equiv> r"
 
+text {* Handling of equality relations *}
+
+definition is_equality :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> bool"
+  where "is_equality R \<longleftrightarrow> R = (op =)"
+
 text {* Handling of meta-logic connectives *}
 
 definition transfer_forall where
@@ -97,6 +102,8 @@ lemma Rel_abs:
 
 ML_file "Tools/transfer.ML"
 setup Transfer.setup
+
+declare refl [transfer_rule]
 
 declare fun_rel_eq [relator_eq]
 
@@ -171,6 +178,9 @@ lemma right_unique_OO:
 
 
 subsection {* Properties of relators *}
+
+lemma is_equality_eq [transfer_rule]: "is_equality (op =)"
+  unfolding is_equality_def by simp
 
 lemma right_total_eq [transfer_rule]: "right_total (op =)"
   unfolding right_total_def by simp
