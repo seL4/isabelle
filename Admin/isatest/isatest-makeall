@@ -127,7 +127,7 @@ for SETTINGS in $@; do
         # error log
         echo "Test for platform ${SHORT} failed. Log file attached." >> $ERRORLOG
         echo "[...]" >> $ERRORLOG
-        tail -3 $TESTLOG >> $ERRORLOG
+        tail -4 $TESTLOG >> $ERRORLOG
         echo >> $ERRORLOG
 
         FAIL="$FAIL$SHORT "
