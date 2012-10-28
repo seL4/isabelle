@@ -72,6 +72,7 @@ sig
   structure Termination_Simps: NAMED_THMS
   val set_termination_prover : (Proof.context -> tactic) -> Context.generic -> Context.generic
   val get_termination_prover : Proof.context -> tactic
+  val store_termination_rule : thm -> Context.generic -> Context.generic
   datatype function_config = FunctionConfig of
    {sequential: bool,
     default: string option,
