@@ -612,8 +612,8 @@ fun the_remote_system name versions =
   | (NONE, syss) =>
     case syss |> filter_out (String.isPrefix "%")
               |> filter_out (curry (op =) "") of
-      [] => error ("SystemOnTPTP is not available.")
-    | [msg] => error ("SystemOnTPTP is not available: " ^ msg ^ ".")
+      [] => error ("SystemOnTPTP is currently not available.")
+    | [msg] => error ("SystemOnTPTP is currently not available: " ^ msg ^ ".")
     | syss =>
       error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n" ^
              "(Available systems: " ^ commas_quote syss ^ ".)")
