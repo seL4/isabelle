@@ -590,8 +590,7 @@ fun get_remote_systems () =
           (warning (case extract_known_failure known_perl_failures output of
                       SOME failure => string_for_failure failure
                     | NONE => trim_line output ^ "."); [])) ()
-  handle TimeLimit.TimeOut =>
-         (warning "Cannot retrieve system list from SystemOnTPTP."; [])
+  handle TimeLimit.TimeOut => []
 
 fun find_remote_system name [] systems =
     find_first (String.isPrefix (name ^ "---")) systems
