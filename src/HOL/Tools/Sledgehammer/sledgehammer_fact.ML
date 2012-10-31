@@ -232,8 +232,9 @@ fun is_theorem_bad_for_atps ho_atp th =
   end
 
 fun hackish_string_for_term thy t =
-  Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                   (print_mode_value ())) (Syntax.string_of_term_global thy) t
+  Print_Mode.setmp
+    (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ()))
+    (Syntax.string_of_term_global thy) t
   |> String.translate (fn c => if Char.isPrint c then str c else "")
   |> simplify_spaces
 
@@ -241,9 +242,8 @@ fun hackish_string_for_term thy t =
    they are displayed as "M" and we want to avoid clashes with these. But
    sometimes it's even worse: "Ma__" encodes "M". So we simply reserve all
    prefixes of all free variables. In the worse case scenario, where the fact
-   won't be resolved correctly, the user can fix it manually, e.g., by naming
-   the fact in question. Ideally we would need nothing of it, but backticks
-   simply don't work with schematic variables. *)
+   won't be resolved correctly, the user can fix it manually, e.g., by giving a
+   name to the offending fact. *)
 fun all_prefixes_of s =
   map (fn i => String.extract (s, 0, SOME i)) (1 upto size s - 1)
 
