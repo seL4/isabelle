@@ -8,7 +8,7 @@ Nitpick: Yet another counterexample generator for Isabelle/HOL.
 header {* Nitpick: Yet Another Counterexample Generator for Isabelle/HOL *}
 
 theory Nitpick
-imports Map Quotient SAT Record
+imports Hilbert_Choice List Map Quotient Record Sledgehammer
 keywords "nitpick" :: diag and "nitpick_params" :: thy_decl
 begin
 

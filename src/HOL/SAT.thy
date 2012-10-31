@@ -2,15 +2,17 @@
     Author:     Alwen Tiu, Tjark Weber
     Copyright   2005
 
-Basic setup for the 'sat' and 'satx' tactic.
+Basic setup for the 'sat' and 'satx' tactics.
 *)
 
 header {* Reconstructing external resolution proofs for propositional logic *}
 
 theory SAT
-imports Hilbert_Choice List Sledgehammer
+imports HOL
 begin
 
+ML_file "Tools/prop_logic.ML"
+ML_file "Tools/sat_solver.ML"
 ML_file "Tools/sat_funcs.ML"
 
 ML {* structure sat = SATFunc(cnf) *}

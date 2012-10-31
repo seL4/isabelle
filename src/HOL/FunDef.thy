@@ -5,12 +5,9 @@
 header {* Function Definitions and Termination Proofs *}
 
 theory FunDef
-imports Partial_Function Wellfounded
+imports Partial_Function SAT Wellfounded
 keywords "function" "termination" :: thy_goal and "fun" :: thy_decl
 begin
-
-ML_file "Tools/prop_logic.ML"
-ML_file "Tools/sat_solver.ML"
 
 subsection {* Definitions with default value. *}
 
