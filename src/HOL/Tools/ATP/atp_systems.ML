@@ -578,9 +578,9 @@ val spass_poly = (spass_polyN, fn () => spass_poly_config)
 
 (* Remote ATP invocation via SystemOnTPTP *)
 
-val systems = Synchronized.var "atp_systems" ([] : string list)
+val remote_systems = Synchronized.var "atp_remote_systems" ([] : string list)
 
-fun get_systems () =
+fun get_remote_systems () =
   case Isabelle_System.bash_output
            "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
     (output, 0) => split_lines output
@@ -589,20 +589,20 @@ fun get_systems () =
              SOME failure => string_for_failure failure
            | NONE => trim_line output ^ ".")
 
-fun find_system name [] systems =
+fun find_remote_system name [] systems =
     find_first (String.isPrefix (name ^ "---")) systems
-  | find_system name (version :: versions) systems =
+  | find_remote_system name (version :: versions) systems =
     case find_first (String.isPrefix (name ^ "---" ^ version)) systems of
-      NONE => find_system name versions systems
+      NONE => find_remote_system name versions systems
     | res => res
 
-fun get_system name versions =
-  Synchronized.change_result systems
-      (fn systems => (if null systems then get_systems () else systems)
-                     |> `(`(find_system name versions)))
+fun get_remote_system name versions =
+  Synchronized.change_result remote_systems
+      (fn systems => (if null systems then get_remote_systems () else systems)
+                     |> `(`(find_remote_system name versions)))
 
-fun the_system name versions =
-  case get_system name versions of
+fun the_remote_system name versions =
+  case get_remote_system name versions of
     (SOME sys, _) => sys
   | (NONE, []) => error ("SystemOnTPTP is not available.")
   | (NONE, syss) =>
@@ -621,7 +621,7 @@ fun remote_config system_name system_versions proof_delims known_failures
   {exec = (["ISABELLE_ATP"], ["scripts/remote_atp"]),
    arguments = fn _ => fn _ => fn command => fn timeout => fn _ =>
        (if command <> "" then "-c " ^ quote command ^ " " else "") ^
-       "-s " ^ the_system system_name system_versions ^ " " ^
+       "-s " ^ the_remote_system system_name system_versions ^ " " ^
        "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs 1 timeout)),
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @ known_says_failures,
@@ -702,7 +702,7 @@ fun is_atp_installed thy name =
   end
 
 fun refresh_systems_on_tptp () =
-  Synchronized.change systems (fn _ => get_systems ())
+  Synchronized.change remote_systems (fn _ => get_remote_systems ())
 
 fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
