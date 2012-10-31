@@ -157,8 +157,6 @@ local
   fun rewrite _ [] = I
     | rewrite ctxt eqs = Conv.fconv_rule (rewrite_conv ctxt eqs)
 
-  fun burrow_snd_option f (i, thm) = Option.map (pair i) (f thm)
-
   fun lookup_assm assms_net ct =
     Z3_Proof_Tools.net_instances assms_net ct
     |> map (fn ithm as (_, thm) => (ithm, Thm.cprop_of thm aconvc ct))

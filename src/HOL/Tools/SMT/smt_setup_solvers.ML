@@ -60,7 +60,8 @@ fun on_first_line test_outcome solver_name lines =
 local
   fun cvc3_options ctxt = [
     "-seed", string_of_int (Config.get ctxt SMT_Config.random_seed),
-    "-lang", "smtlib", "-output-lang", "presentation"]
+    "-lang", "smtlib", "-output-lang", "presentation",
+    "-timeout", string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout))]
 
   fun mk is_remote = {
     name = make_name is_remote "cvc3",
@@ -91,6 +92,8 @@ fun yices () = {
   command = make_local_command "YICES",
   options = (fn ctxt => [
     "--rand-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
+    "--timeout=" ^
+      string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout)),
     "--smtlib"]),
   default_max_relevant = 350 (* FUDGE *),
   supports_filter = false,
@@ -143,9 +146,12 @@ local
 
   fun z3_options ctxt =
     ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
-      "MODEL=true", "-smt"]
+      "MODEL=true",
+      "SOFT_TIMEOUT=" ^
+        string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout)),
+      "-smt"]
     |> not (Config.get ctxt SMT_Config.oracle) ?
-         append ["DISPLAY_PROOF=true","PROOF_MODE=2"]
+         append ["DISPLAY_PROOF=true", "PROOF_MODE=2"]
 
   fun z3_on_first_or_last_line solver_name lines =
     let
