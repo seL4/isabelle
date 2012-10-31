@@ -581,13 +581,17 @@ val spass_poly = (spass_polyN, fn () => spass_poly_config)
 val remote_systems = Synchronized.var "atp_remote_systems" ([] : string list)
 
 fun get_remote_systems () =
-  case Isabelle_System.bash_output
-           "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
-    (output, 0) => split_lines output
-  | (output, _) =>
-    error (case extract_known_failure known_perl_failures output of
-             SOME failure => string_for_failure failure
-           | NONE => trim_line output ^ ".")
+  TimeLimit.timeLimit (seconds 10.0)
+    (fn () =>
+        case Isabelle_System.bash_output
+            "\"$ISABELLE_ATP/scripts/remote_atp\" -w 2>&1" of
+          (output, 0) => split_lines output
+        | (output, _) =>
+          (warning (case extract_known_failure known_perl_failures output of
+                      SOME failure => string_for_failure failure
+                    | NONE => trim_line output ^ "."); [])) ()
+  handle TimeLimit.TimeOut =>
+         (warning "Cannot retrieve system list from SystemOnTPTP."; [])
 
 fun find_remote_system name [] systems =
     find_first (String.isPrefix (name ^ "---")) systems
