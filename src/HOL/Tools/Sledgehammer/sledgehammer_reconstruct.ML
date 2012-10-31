@@ -205,11 +205,13 @@ fun string_for_label (s, num) = s ^ string_of_int num
 fun show_time NONE = ""
   | show_time (SOME ext_time) = " (" ^ string_from_ext_time ext_time ^ ")"
 
+(* FIXME: Various bugs, esp. with "unfolding"
 fun unusing_chained_facts _ 0 = ""
   | unusing_chained_facts used_chaineds num_chained =
     if length used_chaineds = num_chained then ""
     else if null used_chaineds then "(* using no facts *) "
     else "(* using only " ^ space_implode " " used_chaineds ^ " *) "
+*)
 
 fun apply_on_subgoal _ 1 = "by "
   | apply_on_subgoal 1 _ = "apply "
@@ -225,7 +227,7 @@ fun command_call name [] =
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
 
 fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
-  unusing_chained_facts used_chaineds num_chained ^
+  (* unusing_chained_facts used_chaineds num_chained ^ *)
   using_labels ls ^ apply_on_subgoal i n ^
   command_call (string_for_reconstructor reconstr) ss
 
