@@ -788,7 +788,7 @@ fun constify_lifted (t $ u) = constify_lifted t $ constify_lifted u
   | constify_lifted t = t
 
 fun lift_lams_part_1 ctxt type_enc =
-  map close_form #> rpair ctxt
+  map hol_close_form #> rpair ctxt
   #-> Lambda_Lifting.lift_lambdas
           (SOME ((if is_type_enc_polymorphic type_enc then
                     lam_lifted_poly_prefix
@@ -805,8 +805,8 @@ fun lift_lams_part_2 ctxt (facts, lifted) =
   |> pairself (map constify_lifted)
   (* Requires bound variables not to clash with any schematic variables (as
      should be the case right after lambda-lifting). *)
-  |>> map (open_form (unprefix close_form_prefix))
-  ||> map (open_form I)
+  |>> map (hol_open_form (unprefix hol_close_form_prefix))
+  ||> map (hol_open_form I)
 
 fun lift_lams ctxt = lift_lams_part_2 ctxt oo lift_lams_part_1 ctxt
 

@@ -34,9 +34,9 @@ sig
   val s_disj : term * term -> term
   val s_imp : term * term -> term
   val s_iff : term * term -> term
-  val close_form_prefix : string
-  val close_form : term -> term
-  val open_form : (string -> string) -> term -> term
+  val hol_close_form_prefix : string
+  val hol_close_form : term -> term
+  val hol_open_form : (string -> string) -> term -> term
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val cong_extensionalize_term : theory -> term -> term
@@ -298,24 +298,25 @@ fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
-val close_form_prefix = "ATP.close_form."
+val hol_close_form_prefix = "ATP.close_form."
 
-fun close_form t =
+fun hol_close_form t =
   fold (fn ((s, i), T) => fn t' =>
            HOLogic.all_const T
-           $ Abs (close_form_prefix ^ s, T,
+           $ Abs (hol_close_form_prefix ^ s, T,
                   abstract_over (Var ((s, i), T), t')))
        (Term.add_vars t []) t
 
-fun open_form unprefix (t as Const (@{const_name All}, _) $ Abs (s, T, t')) =
+fun hol_open_form unprefix
+      (t as Const (@{const_name All}, _) $ Abs (s, T, t')) =
     (case try unprefix s of
        SOME s =>
        let
          val names = Name.make_context (map fst (Term.add_var_names t' []))
          val (s, _) = Name.variant s names
-       in open_form unprefix (subst_bound (Var ((s, 0), T), t')) end
+       in hol_open_form unprefix (subst_bound (Var ((s, 0), T), t')) end
      | NONE => t)
-  | open_form _ t = t
+  | hol_open_form _ t = t
 
 fun monomorphic_term subst =
   map_types (map_type_tvar (fn v =>
