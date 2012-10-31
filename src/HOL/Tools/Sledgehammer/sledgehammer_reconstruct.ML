@@ -889,14 +889,14 @@ fun isar_proof_text ctxt isar_proofs
                           if member (op = o apsnd fst) tainted s then
                             t |> s_not
                               |> fold exists_of (map Var (Term.add_vars t []))
-                              |> HOLogic.mk_Trueprop
                           else
-                            t |> HOLogic.mk_Trueprop
-                              |> close_form))
+                            t))
                   atp_proof
         fun prop_of_clause c =
           fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
                @{term False}
+          |> HOLogic.mk_Trueprop
+          |> close_form
         fun label_of_clause [name] = raw_label_for_name name
           | label_of_clause c = (space_implode "___" (map fst c), 0)
         fun maybe_show outer c =
