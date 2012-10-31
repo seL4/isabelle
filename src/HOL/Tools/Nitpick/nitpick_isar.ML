@@ -351,8 +351,6 @@ fun handle_exceptions ctxt f x =
                    commas (map (quote o Syntax.string_of_term ctxt) ts)) ^
                 " (" ^ quote loc ^ "): " ^
                 commas (map (Syntax.string_of_typ ctxt) Ts) ^ ".")
-       | Refute.REFUTE (loc, details) =>
-         error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
 fun pick_nits override_params mode i step state =
   let

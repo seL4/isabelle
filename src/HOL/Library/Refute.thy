@@ -12,7 +12,7 @@ imports Hilbert_Choice List Sledgehammer
 keywords "refute" :: diag and "refute_params" :: thy_decl
 begin
 
-ML_file "Tools/refute.ML"
+ML_file "refute.ML"
 setup Refute.setup
 
 refute_params

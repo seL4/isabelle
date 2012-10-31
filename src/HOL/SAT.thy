@@ -8,7 +8,7 @@ Basic setup for the 'sat' and 'satx' tactic.
 header {* Reconstructing external resolution proofs for propositional logic *}
 
 theory SAT
-imports Refute
+imports Hilbert_Choice List Sledgehammer
 begin
 
 ML_file "Tools/sat_funcs.ML"

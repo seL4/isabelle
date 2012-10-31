@@ -252,14 +252,34 @@ val bool_T = @{typ bool}
 val nat_T = @{typ nat}
 val int_T = @{typ int}
 
-val simple_string_of_typ = Refute.string_of_typ
-val is_real_constr = Refute.is_IDT_constructor
+fun simple_string_of_typ (Type (s, _))     = s
+  | simple_string_of_typ (TFree (s, _))    = s
+  | simple_string_of_typ (TVar ((s, _), _)) = s
+
+fun is_real_constr thy (s, T) =
+  case body_type T of
+    Type (s', _) =>
+    (case Datatype.get_constrs thy s' of
+       SOME constrs =>
+       List.exists (fn (cname, cty) =>
+         cname = s andalso Sign.typ_instance thy (T, cty)) constrs
+     | NONE => false)
+  | _  => false
+
 val typ_of_dtyp = ATP_Util.typ_of_dtyp
 val varify_type = ATP_Util.varify_type
 val instantiate_type = ATP_Util.instantiate_type
 val varify_and_instantiate_type = ATP_Util.varify_and_instantiate_type
-val is_of_class_const = Refute.is_const_of_class
-val get_class_def = Refute.get_classdef
+
+fun is_of_class_const thy (s, _) =
+  member (op =) (map Logic.const_of_class (Sign.all_classes thy)) s
+
+fun get_class_def thy class =
+  let val axname = class ^ "_class_def" in
+    Option.map (pair axname)
+      (AList.lookup (op =) (Theory.all_axioms_of thy) axname)
+  end;
+
 val monomorphic_term = ATP_Util.monomorphic_term
 val specialize_type = ATP_Util.specialize_type
 val eta_expand = ATP_Util.eta_expand

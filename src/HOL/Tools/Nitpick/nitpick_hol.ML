@@ -1311,10 +1311,10 @@ fun all_defs_of thy subst =
     |> map snd
   end
 
-(* Ideally we would check against "Complex_Main", not "Refute", but any theory
-   will do as long as it contains all the "axioms" and "axiomatization"
+(* Ideally we would check against "Complex_Main", not "Hilbert_Choice", but any
+   theory will do as long as it contains all the "axioms" and "axiomatization"
    commands. *)
-fun is_built_in_theory thy = Theory.subthy (thy, @{theory Refute})
+fun is_built_in_theory thy = Theory.subthy (thy, @{theory Hilbert_Choice})
 
 fun all_nondefs_of ctxt subst =
   ctxt |> Spec_Rules.get

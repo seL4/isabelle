@@ -49,6 +49,7 @@ session "HOL-Library" in Library = HOL +
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
     Target_Numeral
+    Refute
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
   files "document/root.bib" "document/root.tex"
@@ -422,6 +423,7 @@ session "HOL-ex" in ex = HOL +
     Chinese
     Serbian
     "~~/src/HOL/Library/FinFun_Syntax"
+    "~~/src/HOL/Library/Refute"
   theories
     Iff_Oracle
     Coercion_Examples

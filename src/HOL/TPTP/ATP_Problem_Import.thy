@@ -5,7 +5,10 @@
 header {* ATP Problem Importer *}
 
 theory ATP_Problem_Import
-imports Complex_Main TPTP_Interpret
+imports
+  Complex_Main
+  TPTP_Interpret
+  "~~/src/HOL/Library/Refute"
 begin
 
 ML_file "sledgehammer_tactics.ML"
