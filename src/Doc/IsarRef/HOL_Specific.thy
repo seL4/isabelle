@@ -1785,10 +1785,8 @@ text {*
     @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "values"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "quickcheck"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "refute"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "nitpick"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "refute_params"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "quickcheck_generator"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "find_unused_assms"} & : & @{text "context \<rightarrow>"}
@@ -1801,11 +1799,11 @@ text {*
     @@{command (HOL) values} modes? @{syntax nat}? @{syntax term}
     ;
 
-    (@@{command (HOL) quickcheck} | @@{command (HOL) refute} | @@{command (HOL) nitpick})
+    (@@{command (HOL) quickcheck} | @@{command (HOL) nitpick})
       ( '[' args ']' )? @{syntax nat}?
     ;
 
-    (@@{command (HOL) quickcheck_params} | @@{command (HOL) refute_params} |
+    (@@{command (HOL) quickcheck_params} |
       @@{command (HOL) nitpick_params}) ( '[' args ']' )?
     ;
 
@@ -1931,40 +1929,6 @@ text {*
   exhaustive value generators for a given type and operations.  It
   generates values by using the operations as if they were
   constructors of that type.
-
-  \item @{command (HOL) "refute"} tests the current goal for
-  counterexamples using a reduction to SAT. The following
-  configuration options are supported:
-
-    \begin{description}
-
-    \item[@{text minsize}] specifies the minimum size (cardinality) of
-    the models to search for.
-
-    \item[@{text maxsize}] specifies the maximum size (cardinality) of
-    the models to search for. Nonpositive values mean @{text "\<infinity>"}.
-
-    \item[@{text maxvars}] specifies the maximum number of Boolean
-    variables to use when transforming the term into a propositional
-    formula.  Nonpositive values mean @{text "\<infinity>"}.
-
-    \item[@{text satsolver}] specifies the SAT solver to use.
-
-    \item[@{text no_assms}] specifies whether assumptions in
-    structured proofs should be ignored.
-
-    \item[@{text maxtime}] sets the time limit in seconds.
-
-    \item[@{text expect}] can be used to check if the user's
-    expectation was met (@{text genuine}, @{text potential}, @{text
-    none}, or @{text unknown}).
-
-    \end{description}
-
-  These option can be given within square brackets.
-
-  \item @{command (HOL) "refute_params"} changes @{command (HOL)
-  "refute"} configuration options persistently.
 
   \item @{command (HOL) "nitpick"} tests the current goal for
   counterexamples using a reduction to first-order relational
