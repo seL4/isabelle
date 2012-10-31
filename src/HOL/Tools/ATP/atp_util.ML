@@ -34,6 +34,7 @@ sig
   val s_disj : term * term -> term
   val s_imp : term * term -> term
   val s_iff : term * term -> term
+  val close_form : term -> term
   val hol_close_form_prefix : string
   val hol_close_form : term -> term
   val hol_open_form : (string -> string) -> term -> term
@@ -297,6 +298,12 @@ fun s_imp (@{const True}, t2) = t2
 fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
+
+(* cf. "close_form" in "refute.ML" *)
+fun close_form t =
+  fold (fn ((s, i), T) => fn t' =>
+           Logic.all_const T $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
+       (Term.add_vars t []) t
 
 val hol_close_form_prefix = "ATP.close_form."
 

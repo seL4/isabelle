@@ -39,12 +39,6 @@ val overlord = false
 
 (** TPTP parsing **)
 
-(* cf. "close_form" in "refute.ML" *)
-fun close_form t =
-  fold (fn ((s, i), T) => fn t' =>
-           Logic.all_const T $ Abs (s, T, abstract_over (Var ((s, i), T), t')))
-       (Term.add_vars t []) t
-
 fun read_tptp_file thy postproc file_name =
   let
     fun has_role role (_, role', _, _) = (role' = role)

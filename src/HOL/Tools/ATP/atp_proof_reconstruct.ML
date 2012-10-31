@@ -23,8 +23,9 @@ sig
   val partial_type_encs : string list
   val metis_default_lam_trans : string
   val metis_call : string -> string -> string
-  val unalias_type_enc : string -> string list
   val forall_of : term -> term -> term
+  val exists_of : term -> term -> term
+  val unalias_type_enc : string -> string list
   val term_from_atp :
     Proof.context -> bool -> int Symtab.table -> typ option ->
     (string, string) ho_term -> term

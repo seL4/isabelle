@@ -770,7 +770,7 @@ fun shrink_locally ctxt type_enc lam_trans isar_shrinkage proof =
 
     (* Enrich context with local facts *)
     val thy = Proof_Context.theory_of ctxt
-    fun sorry t = Skip_Proof.make_thm thy (HOLogic.mk_Trueprop t)
+    fun sorry t = Skip_Proof.make_thm thy t
     fun enrich_ctxt' (Prove (_, lbl, t, _)) ctxt = 
         ctxt |> lbl <> no_label
           ? Proof_Context.put_thms false (string_for_label lbl, SOME [sorry t])
@@ -790,7 +790,7 @@ fun shrink_locally ctxt type_enc lam_trans isar_shrinkage proof =
           |>> map string_for_label |> op @
           |> map (the_single o thms_of_name rich_ctxt)
           |> (if member (op =) qs Then then cons (the s0 |> thmify) else I)
-        val goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop t)
+        val goal = Goal.prove ctxt [] [] t
         fun tac {context = ctxt, prems = _} =
           Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
       in
@@ -884,8 +884,13 @@ fun isar_proof_text ctxt isar_proofs
           |> fold (fn Definition_Step _ => I (* FIXME *)
                     | Inference_Step ((s, _), t, _, _) =>
                       Symtab.update_new (s,
-                          t |> fold forall_of (map Var (Term.add_vars t []))
-                            |> member (op = o apsnd fst) tainted s ? s_not))
+                          if member (op = o apsnd fst) tainted s then
+                            t |> s_not
+                              |> fold exists_of (map Var (Term.add_vars t []))
+                              |> HOLogic.mk_Trueprop
+                          else
+                            t |> HOLogic.mk_Trueprop
+                              |> close_form))
                   atp_proof
         fun prop_of_clause c =
           fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
