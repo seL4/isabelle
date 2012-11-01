@@ -126,15 +126,14 @@ lemma
   "\<not>((\<exists>x. \<not>P x) \<and> ((\<exists>x. P x) \<or> (\<exists>x. P x \<and> Q x)) \<and> \<not>(\<exists>x. P x))"
   by smt+
 
-lemma  (* only without proofs: *)
+lemma
   "\<exists>x y. x = y"
   "\<exists>x. P x \<longrightarrow> (\<exists>y. P x \<and> P y)"
   "(\<exists>x. P x) \<or> R \<longleftrightarrow> (\<exists>x. P x \<or> R)"
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
-  "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x" 
+  "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x"
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-  using [[smt_oracle=true, z3_options="AUTO_CONFIG=false SATURATE=true"]]
-  by smt+
+by smt+
 
 lemma
   "(\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
@@ -144,7 +143,7 @@ lemma
   "(\<forall>x y. R x y = x) \<and> (\<forall>x. \<exists>y. R x y) = (\<forall>x. R x c) \<longrightarrow> (\<exists>y. R x y) = R x c"
   by smt+
 
-lemma  (* only without proofs: *)
+lemma
   "\<forall>x. \<exists>y. f x y = f x (g x)"
   "(\<not>\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<not>(\<forall>x. \<not> P x))"
   "\<forall>u. \<exists>v. \<forall>w. \<exists>x. f u v w x = f u (g u) w (h u w)"
@@ -153,7 +152,6 @@ lemma  (* only without proofs: *)
   "(\<exists>x. \<forall>y. P x \<longleftrightarrow> P y) \<longrightarrow> ((\<exists>x. P x) \<longleftrightarrow> (\<forall>y. P y))"
   "\<exists>z. P z \<longrightarrow> (\<forall>x. P x)"
   "(\<exists>y. \<forall>x. R x y) \<longrightarrow> (\<forall>x. \<exists>y. R x y)"
-  using [[smt_oracle=true]]
   by smt+
 
 lemma
@@ -563,7 +561,7 @@ lemma
   "x < 0 \<longrightarrow> -x > 0"
   by smt+
 
-lemma 
+lemma
   "(x::real) - 0 = x"
   "0 - x = -x"
   "x < y \<longrightarrow> x - y < 0"
