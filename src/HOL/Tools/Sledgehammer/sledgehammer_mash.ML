@@ -783,7 +783,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     else
       let
         val all_names =
-          facts |> map snd |> map (rpair () o nickname_of) |> Symtab.make
+          Symtab.empty
+          |> fold Symtab.update (facts |> map (rpair () o nickname_of o snd))
         fun deps_of status th =
           if status = Non_Rec_Def orelse status = Rec_Def then
             SOME []
