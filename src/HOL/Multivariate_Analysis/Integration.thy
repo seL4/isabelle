@@ -2750,7 +2750,8 @@ proof- have lem:"\<And>a b i (j::'b). \<And>g f::'a \<Rightarrow> 'b. (f has_int
     guess p using fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] unfolding fine_inter .
     note p = this(1) conjunctD2[OF this(2)]  note le_less_trans[OF component_le_norm, of _ _ k] term g
     note this[OF d1(2)[OF conjI[OF p(1,2)]]] this[OF d2(2)[OF conjI[OF p(1,3)]]]
-    thus False unfolding euclidean_simps using rsum_component_le[OF p(1) goal1(3)] apply simp by smt
+    thus False unfolding euclidean_simps using rsum_component_le[OF p(1) goal1(3)] apply simp
+      using [[z3_with_extensions]] by smt
   qed let ?P = "\<exists>a b. s = {a..b}"
   { presume "\<not> ?P \<Longrightarrow> ?thesis" thus ?thesis proof(cases ?P)
       case True then guess a b apply-by(erule exE)+ note s=this
