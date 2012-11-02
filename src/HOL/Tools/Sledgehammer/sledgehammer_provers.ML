@@ -888,8 +888,8 @@ fun run_atp mode name
                   else
                     ()
                 val isar_params =
-                  (debug, verbose, isar_shrinkage, pool, fact_names, sym_tab,
-                   atp_proof, goal)
+                  (debug, verbose, preplay_timeout, isar_shrinkage,
+                   pool, fact_names, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command params minimize_command name preplay,

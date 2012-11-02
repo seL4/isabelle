@@ -28,7 +28,6 @@ sig
 
   datatype direct_inference =
     Have of rich_sequent |
-    Hence of rich_sequent |
     Cases of (clause * direct_inference list) list
 
   type direct_proof = direct_inference list
@@ -64,7 +63,6 @@ type rich_sequent = clause list * clause
 
 datatype direct_inference =
   Have of rich_sequent |
-  Hence of rich_sequent |
   Cases of (clause * direct_inference list) list
 
 type direct_proof = direct_inference list
@@ -118,7 +116,6 @@ fun direct_graph seqs =
 fun disj cs = fold (union atom_eq) cs [] |> sort Atom.ord
 
 fun succedent_of_inference (Have (_, c)) = c
-  | succedent_of_inference (Hence (_, c)) = c
   | succedent_of_inference (Cases cases) = succedent_of_cases cases
 and succedent_of_case (c, []) = c
   | succedent_of_case (_, infs) = succedent_of_inference (List.last infs)
@@ -192,9 +189,6 @@ fun redirect_graph axioms tainted ref_graph =
 val chain_direct_proof =
   let
     fun chain_inf cl0 (seq as Have (cs, c)) =
-        if member clause_eq cs cl0 then
-          Hence (filter_out (curry clause_eq cl0) cs, c)
-        else
           seq
       | chain_inf _ (Cases cases) = Cases (map chain_case cases)
     and chain_case (c, is) = (c, chain_proof (SOME c) is)
@@ -221,8 +215,6 @@ fun string_of_case depth (c, proof) =
 
 and string_of_inference depth (Have seq) =
     indent depth ^ string_of_rich_sequent "\<triangleright>" seq
-  | string_of_inference depth (Hence seq) =
-    indent depth ^ string_of_rich_sequent "\<guillemotright>" seq
   | string_of_inference depth (Cases cases) =
     indent depth ^ "[\n" ^
     space_implode ("\n" ^ indent depth ^ "|\n")
