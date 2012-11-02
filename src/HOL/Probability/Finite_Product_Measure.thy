@@ -795,7 +795,7 @@ proof -
   show ?thesis
     apply (subst distr_merge[OF IJ, symmetric])
     apply (subst positive_integral_distr[OF measurable_merge f])
-    apply (subst P.positive_integral_fst_measurable(2)[symmetric, OF P_borel])
+    apply (subst J.positive_integral_fst_measurable(2)[symmetric, OF P_borel])
     apply simp
     done
 qed

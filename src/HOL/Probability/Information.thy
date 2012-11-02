@@ -1128,8 +1128,8 @@ proof -
     using Pz distributed_marginal_eq_joint2[OF P S Pz Pxz]
     apply (intro TP.AE_pair_measure)
     apply (auto simp: comp_def measurable_split_conv
-                intro!: measurable_snd'' borel_measurable_ereal_eq borel_measurable_ereal
-                        SP.borel_measurable_positive_integral_snd measurable_compose[OF _ Pxz[THEN distributed_real_measurable]]
+                intro!: measurable_snd'' measurable_fst'' borel_measurable_ereal_eq borel_measurable_ereal
+                        S.borel_measurable_positive_integral measurable_compose[OF _ Pxz[THEN distributed_real_measurable]]
                         measurable_Pair
                 dest: distributed_real_AE distributed_real_measurable)
     done
@@ -1142,7 +1142,7 @@ proof -
            measurable_compose[OF _ Pyz[THEN distributed_real_measurable]]
            measurable_compose[OF _ Pz[THEN distributed_real_measurable]]
            measurable_compose[OF _ Px[THEN distributed_real_measurable]]
-           STP.borel_measurable_positive_integral_snd
+           TP.borel_measurable_positive_integral
   have "(\<integral>\<^isup>+ x. ?f x \<partial>?P) \<le> (\<integral>\<^isup>+ (x, y, z). Pxz (x, z) * (Pyz (y, z) / Pz z) \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P))"
     apply (subst positive_integral_density)
     apply (rule distributed_borel_measurable[OF Pxyz])
@@ -1418,8 +1418,8 @@ proof -
     using Pz distributed_marginal_eq_joint2[OF P S Pz Pxz]
     apply (intro TP.AE_pair_measure)
     apply (auto simp: comp_def measurable_split_conv
-                intro!: measurable_snd'' borel_measurable_ereal_eq borel_measurable_ereal
-                        SP.borel_measurable_positive_integral_snd measurable_compose[OF _ Pxz[THEN distributed_real_measurable]]
+                intro!: measurable_snd'' measurable_fst'' borel_measurable_ereal_eq borel_measurable_ereal
+                        S.borel_measurable_positive_integral measurable_compose[OF _ Pxz[THEN distributed_real_measurable]]
                         measurable_Pair
                 dest: distributed_real_AE distributed_real_measurable)
     done
@@ -1432,7 +1432,7 @@ proof -
            measurable_compose[OF _ Pyz[THEN distributed_real_measurable]]
            measurable_compose[OF _ Pz[THEN distributed_real_measurable]]
            measurable_compose[OF _ Px[THEN distributed_real_measurable]]
-           STP.borel_measurable_positive_integral_snd
+           TP.borel_measurable_positive_integral
   have "(\<integral>\<^isup>+ x. ?f x \<partial>?P) \<le> (\<integral>\<^isup>+ (x, y, z). Pxz (x, z) * (Pyz (y, z) / Pz z) \<partial>(S \<Otimes>\<^isub>M T \<Otimes>\<^isub>M P))"
     apply (subst positive_integral_density)
     apply (rule distributed_borel_measurable[OF Pxyz])
