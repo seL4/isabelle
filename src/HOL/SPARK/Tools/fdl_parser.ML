@@ -166,6 +166,8 @@ val quantification_kind = $$$ "for_all" || $$$ "for_some";
 val quantification_generator =
   list1 identifier --| $$$ ":" -- identifier;
 
+fun opt_parens p = $$$ "(" |-- p --| $$$ ")" || p;
+
 fun expression xs = group "expression"
   (binop disjunction ($$$ "->" || $$$ "<->")) xs
 
@@ -214,14 +216,14 @@ and record_args s xs =
   (list1 (identifier --| $$$ ":=" -- !!! expression) >> (pair s #> Record)) xs
 
 and array_args s xs =
-  (   expression -- Scan.optional ($$$ "," |-- !!! array_associations) [] >>
-        (fn (default, assocs) => Array (s, SOME default, assocs))
-   || array_associations >> (fn assocs => Array (s, NONE, assocs))) xs
+  (   array_associations >> (fn assocs => Array (s, NONE, assocs))
+   || expression -- Scan.optional ($$$ "," |-- !!! array_associations) [] >>
+        (fn (default, assocs) => Array (s, SOME default, assocs))) xs
 
 and array_associations xs =
-  (list1 (enum1 "&" ($$$ "[" |--
+  (list1 (opt_parens (enum1 "&" ($$$ "[" |--
      !!! (list1 (expression -- Scan.option ($$$ ".." |-- !!! expression)) --|
-       $$$ "]")) --| $$$ ":=" -- expression)) xs;
+       $$$ "]"))) --| $$$ ":=" -- expression)) xs;
 
 
 (* verification conditions *)
