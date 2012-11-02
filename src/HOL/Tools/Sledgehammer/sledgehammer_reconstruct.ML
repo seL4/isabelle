@@ -303,11 +303,16 @@ fun raw_label_for_name (num, ss) =
     [j] => (conjecture_prefix, j)
   | _ => (raw_prefix ^ ascii_of num, 0)
 
-fun add_fact_from_dependency fact_names (name as (_, ss)) =
-  if is_fact fact_names ss then
-    apsnd (union (op =) (map fst (resolve_fact fact_names ss)))
-  else
-    apfst (insert (op =) (raw_label_for_name name))
+fun label_of_clause [name] = raw_label_for_name name
+  | label_of_clause c = (space_implode "___" (map fst c), 0)
+
+fun add_fact_from_dependencies fact_names (names as [(_, ss)]) =
+    if is_fact fact_names ss then
+      apsnd (union (op =) (map fst (resolve_fact fact_names ss)))
+    else
+      apfst (insert (op =) (label_of_clause names))
+  | add_fact_from_dependencies fact_names names =
+    apfst (insert (op =) (label_of_clause names))
 
 fun repair_name "$true" = "c_True"
   | repair_name "$false" = "c_False"
@@ -1001,15 +1006,13 @@ fun isar_proof_text ctxt isar_proofs
                @{term False}
           |> HOLogic.mk_Trueprop
           |> close_form
-        fun label_of_clause [name] = raw_label_for_name name
-          | label_of_clause c = (space_implode "___" (map fst c), 0)
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
         fun do_have outer qs (gamma, c) =
           Prove (maybe_show outer c qs, label_of_clause c, prop_of_clause c,
-                 By_Metis (fold (add_fact_from_dependency fact_names
-                                 o the_single) gamma ([], [])))
+                 By_Metis (fold (add_fact_from_dependencies fact_names) gamma
+                                ([], [])))
         fun do_inf outer (Have z) = do_have outer [] z
           | do_inf outer (Cases cases) =
             let val c = succedent_of_cases cases in
