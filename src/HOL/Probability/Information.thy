@@ -446,7 +446,7 @@ lemma (in information_space) finite_entropy_integrable_transform:
   shows "integrable T (\<lambda>x. Py x * log b (Px (f x)))"
   using assms unfolding finite_entropy_def
   using distributed_transform_integrable[of M T Y Py S X Px f "\<lambda>x. log b (Px x)"]
-  by (auto intro: distributed_real_measurable)
+  by (auto dest!: distributed_real_measurable)
 
 subsection {* Mutual Information *}
 
@@ -1578,7 +1578,7 @@ proof (subst conditional_mutual_information_generic_eq[OF _ _ _ _
   have "random_variable (count_space (X ` space M)) X"
     by (simp add: comp_def)
   then have "simple_function M X"    
-    unfolding simple_function_def by auto
+    unfolding simple_function_def by (auto simp: measurable_count_space_eq2)
   then have "simple_distributed M X ?Px"
     by (rule simple_distributedI) auto
   then show "distributed M (count_space (X ` space M)) X ?Px"

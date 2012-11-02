@@ -100,7 +100,9 @@ lemma measurable_snd'': "f \<in> measurable M N \<Longrightarrow> (\<lambda>x. f
 
 lemma measurable_pair_iff:
   "f \<in> measurable M (M1 \<Otimes>\<^isub>M M2) \<longleftrightarrow> (fst \<circ> f) \<in> measurable M M1 \<and> (snd \<circ> f) \<in> measurable M M2"
-  using measurable_pair[of f M M1 M2] by auto
+  using measurable_pair[of f M M1 M2]
+  using [[simproc del: measurable]] (* the measurable method is nonterminating when using measurable_pair *)
+  by auto
 
 lemma measurable_split_conv:
   "(\<lambda>(x, y). f x y) \<in> measurable A B \<longleftrightarrow> (\<lambda>x. f (fst x) (snd x)) \<in> measurable A B"

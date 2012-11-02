@@ -876,7 +876,7 @@ proof safe
     then have "a \<notin> X`space M \<Longrightarrow> X -` {a} \<inter> space M = {}" by auto
     with A a X have "emeasure (distr M S X) {a} = P' a"
       by (subst emeasure_distr)
-         (auto simp add: S_def P'_def simple_functionD emeasure_eq_measure
+         (auto simp add: S_def P'_def simple_functionD emeasure_eq_measure measurable_count_space_eq2
                intro!: arg_cong[where f=prob])
     also have "\<dots> = (\<integral>\<^isup>+x. ereal (P' a) * indicator {a} x \<partial>S)"
       using A X a
@@ -934,7 +934,7 @@ qed
 lemma simple_distributed_simple_function:
   "simple_distributed M X Px \<Longrightarrow> simple_function M X"
   unfolding simple_distributed_def distributed_def
-  by (auto simp: simple_function_def)
+  by (auto simp: simple_function_def measurable_count_space_eq2)
 
 lemma simple_distributed_measure:
   "simple_distributed M X P \<Longrightarrow> a \<in> X`space M \<Longrightarrow> P a = measure M (X -` {a} \<inter> space M)"

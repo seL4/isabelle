@@ -70,7 +70,7 @@ proof -
   have "g -` X \<inter> space M = g -` (X \<inter> g`space M) \<inter> space M" by auto
   also have "\<dots> = (\<Union>x\<in>X \<inter> g`space M. g-`{x} \<inter> space M)" by auto
   finally show "g -` X \<inter> space M \<in> sets M" using assms
-    by (auto intro!: finite_UN simp del: UN_simps simp: simple_function_def)
+    by (auto simp del: UN_simps simp: simple_function_def)
 qed
 
 lemma simple_function_measurable2[intro]:
@@ -167,7 +167,7 @@ next
     (\<Union>x\<in>?G. f -` {x} \<inter> space M)" by auto
   show "(g \<circ> f) -` {(g \<circ> f) x} \<inter> space M \<in> sets M"
     using assms unfolding simple_function_def *
-    by (rule_tac finite_UN) (auto intro!: finite_UN)
+    by (rule_tac finite_UN) auto
 qed
 
 lemma simple_function_indicator[intro, simp]:
@@ -1210,7 +1210,7 @@ proof cases
     case (insert i P)
     then have "f i \<in> borel_measurable M" "AE x in M. 0 \<le> f i x"
       "(\<lambda>x. \<Sum>i\<in>P. f i x) \<in> borel_measurable M" "AE x in M. 0 \<le> (\<Sum>i\<in>P. f i x)"
-      by (auto intro!: borel_measurable_ereal_setsum setsum_nonneg)
+      by (auto intro!: setsum_nonneg)
     from positive_integral_add[OF this]
     show ?case using insert by auto
   qed simp
@@ -1230,7 +1230,7 @@ proof -
       simp: indicator_def ereal_zero_le_0_iff)
   also have "\<dots> = c * (\<integral>\<^isup>+ x. u x * indicator A x \<partial>M)"
     using assms
-    by (auto intro!: positive_integral_cmult borel_measurable_indicator simp: ereal_zero_le_0_iff)
+    by (auto intro!: positive_integral_cmult simp: ereal_zero_le_0_iff)
   finally show ?thesis .
 qed
 
@@ -1633,7 +1633,7 @@ lemma integral_add[simp, intro]:
 lemma integral_zero[simp, intro]:
   shows "integrable M (\<lambda>x. 0)" "(\<integral> x.0 \<partial>M) = 0"
   unfolding integrable_def lebesgue_integral_def
-  by (auto simp add: borel_measurable_const)
+  by auto
 
 lemma integral_cmult[simp, intro]:
   assumes "integrable M f"
@@ -1644,7 +1644,7 @@ proof -
   proof (cases rule: le_cases)
     assume "0 \<le> a" show ?thesis
       using integral_linear[OF assms integral_zero(1) `0 \<le> a`]
-      by (simp add: integral_zero)
+      by simp
   next
     assume "a \<le> 0" hence "0 \<le> - a" by auto
     have *: "\<And>t. - a * t + 0 = (-a) * t" by simp
@@ -1718,7 +1718,7 @@ proof -
     by (auto split: split_indicator simp: positive_integral_0_iff_AE one_ereal_def)
   show ?int ?able
     using assms unfolding lebesgue_integral_def integrable_def
-    by (auto simp: * positive_integral_indicator borel_measurable_indicator)
+    by (auto simp: *)
 qed
 
 lemma integral_cmul_indicator:
@@ -1850,7 +1850,7 @@ lemma integral_positive:
   assumes "integrable M f" "\<And>x. x \<in> space M \<Longrightarrow> 0 \<le> f x"
   shows "0 \<le> integral\<^isup>L M f"
 proof -
-  have "0 = (\<integral>x. 0 \<partial>M)" by (auto simp: integral_zero)
+  have "0 = (\<integral>x. 0 \<partial>M)" by auto
   also have "\<dots> \<le> integral\<^isup>L M f"
     using assms by (rule integral_mono[OF integral_zero(1)])
   finally show ?thesis .
@@ -2206,7 +2206,7 @@ proof -
     let ?F = "\<lambda>n y. (\<Sum>i = 0..<n. \<bar>f i y\<bar>)"
     let ?w' = "\<lambda>n y. if y \<in> space M then ?F n y else 0"
     have "\<And>n. integrable M (?F n)"
-      using borel by (auto intro!: integral_setsum integrable_abs)
+      using borel by (auto intro!: integrable_abs)
     thus "\<And>n. integrable M (?w' n)" by (simp cong: integrable_cong)
     show "AE x in M. mono (\<lambda>n. ?w' n x)"
       by (auto simp: mono_def le_fun_def intro!: setsum_mono2)
@@ -2436,7 +2436,7 @@ lemma density_ereal_max_0: "density M (\<lambda>x. ereal (f x)) = density M (\<l
   by (subst density_max_0) (auto intro!: arg_cong[where f="density M"] split: split_max)
 
 lemma emeasure_density:
-  assumes f: "f \<in> borel_measurable M" and A: "A \<in> sets M"
+  assumes f[measurable]: "f \<in> borel_measurable M" and A[measurable]: "A \<in> sets M"
   shows "emeasure (density M f) A = (\<integral>\<^isup>+ x. f x * indicator A x \<partial>M)"
     (is "_ = ?\<mu> A")
   unfolding density_def
@@ -2453,8 +2453,9 @@ proof (rule emeasure_measure_of_sigma)
     unfolding \<mu>_eq
   proof (intro countably_additiveI)
     fix A :: "nat \<Rightarrow> 'a set" assume "range A \<subseteq> sets M"
+    then have "\<And>i. A i \<in> sets M" by auto
     then have *: "\<And>i. (\<lambda>x. max 0 (f x) * indicator (A i) x) \<in> borel_measurable M"
-      using f by (auto intro!: borel_measurable_ereal_times)
+      by (auto simp: set_eq_iff)
     assume disj: "disjoint_family A"
     have "(\<Sum>n. ?\<mu>' (A n)) = (\<integral>\<^isup>+ x. (\<Sum>n. max 0 (f x) * indicator (A n) x) \<partial>M)"
       using f * by (simp add: positive_integral_suminf)
@@ -2483,8 +2484,7 @@ proof -
       by (intro positive_integral_0_iff) auto
     also have "\<dots> \<longleftrightarrow> (AE x in M. max 0 (f x) * indicator A x = 0)"
       using f `A \<in> sets M`
-      by (intro AE_iff_measurable[OF _ refl, symmetric])
-         (auto intro!: sets_Collect borel_measurable_ereal_eq)
+      by (intro AE_iff_measurable[OF _ refl, symmetric]) auto
     also have "(AE x in M. max 0 (f x) * indicator A x = 0) \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)"
       by (auto simp add: indicator_def max_def split: split_if_asm)
     finally have "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = 0 \<longleftrightarrow> (AE x in M. x \<in> A \<longrightarrow> f x \<le> 0)" . }
@@ -2649,7 +2649,7 @@ lemma measurable_point_measure_eq2_finite[simp]:
   "finite A \<Longrightarrow>
    g \<in> measurable M (point_measure A f) \<longleftrightarrow>
     (g \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. g -` {a} \<inter> space M \<in> sets M))"
-  unfolding point_measure_def by simp
+  unfolding point_measure_def by (simp add: measurable_count_space_eq2)
 
 lemma simple_function_point_measure[simp]:
   "simple_function (point_measure A f) g \<longleftrightarrow> finite (g ` A)"

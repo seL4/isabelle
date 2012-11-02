@@ -100,7 +100,7 @@ proof -
   with assms show ?thesis by auto
 qed
 
-lemma (in semiring_of_sets) sets_Collect_finite_All:
+lemma (in semiring_of_sets) sets_Collect_finite_All':
   assumes "\<And>i. i \<in> S \<Longrightarrow> {x\<in>\<Omega>. P i x} \<in> M" "finite S" "S \<noteq> {}"
   shows "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} \<in> M"
 proof -
@@ -1209,6 +1209,15 @@ lemma measurable_sets:
   "f \<in> measurable M A \<Longrightarrow> S \<in> sets A \<Longrightarrow> f -` S \<inter> space M \<in> sets M"
    unfolding measurable_def by auto
 
+lemma measurable_sets_Collect:
+  assumes f: "f \<in> measurable M N" and P: "{x\<in>space N. P x} \<in> sets N" shows "{x\<in>space M. P (f x)} \<in> sets M"
+proof -
+  have "f -` {x \<in> space N. P x} \<inter> space M = {x\<in>space M. P (f x)}"
+    using measurable_space[OF f] by auto
+  with measurable_sets[OF f P] show ?thesis
+    by simp
+qed
+
 lemma measurable_sigma_sets:
   assumes B: "sets N = sigma_sets \<Omega> A" "A \<subseteq> Pow \<Omega>"
       and f: "f \<in> space M \<rightarrow> \<Omega>"
@@ -1302,6 +1311,9 @@ qed
 lemma measurable_ident[intro, simp]: "id \<in> measurable M M"
   by (auto simp add: measurable_def)
 
+lemma measurable_ident'[intro, simp]: "(\<lambda>x. x) \<in> measurable M M"
+  by (auto simp add: measurable_def)
+
 lemma measurable_comp[intro]:
   fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'c"
   shows "f \<in> measurable a b \<Longrightarrow> g \<in> measurable b c \<Longrightarrow> (g o f) \<in> measurable a c"
@@ -1314,7 +1326,7 @@ lemma measurable_compose:
   "f \<in> measurable M N \<Longrightarrow> g \<in> measurable N L \<Longrightarrow> (\<lambda>x. g (f x)) \<in> measurable M L"
   using measurable_comp[of f M N g L] by (simp add: comp_def)
 
-lemma measurable_Least:
+lemma sets_Least:
   assumes meas: "\<And>i::nat. {x\<in>space M. P i x} \<in> M"
   shows "(\<lambda>x. LEAST j. P j x) -` A \<inter> space M \<in> sets M"
 proof -
@@ -1370,6 +1382,368 @@ lemma measurable_mono1:
   "M' \<subseteq> Pow \<Omega> \<Longrightarrow> M \<subseteq> M' \<Longrightarrow>
     measurable (measure_of \<Omega> M \<mu>) N \<subseteq> measurable (measure_of \<Omega> M' \<mu>') N"
   using measure_of_subset[of M' \<Omega> M] by (auto simp add: measurable_def)
+
+section {* Counting space *}
+
+definition count_space :: "'a set \<Rightarrow> 'a measure" where
+  "count_space \<Omega> = measure_of \<Omega> (Pow \<Omega>) (\<lambda>A. if finite A then ereal (card A) else \<infinity>)"
+
+lemma 
+  shows space_count_space[simp]: "space (count_space \<Omega>) = \<Omega>"
+    and sets_count_space[simp]: "sets (count_space \<Omega>) = Pow \<Omega>"
+  using sigma_sets_into_sp[of "Pow \<Omega>" \<Omega>]
+  by (auto simp: count_space_def)
+
+lemma measurable_count_space_eq1[simp]:
+  "f \<in> measurable (count_space A) M \<longleftrightarrow> f \<in> A \<rightarrow> space M"
+ unfolding measurable_def by simp
+
+lemma measurable_count_space_eq2:
+  assumes "finite A"
+  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
+proof -
+  { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
+    with `finite A` have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)" "finite X"
+      by (auto dest: finite_subset)
+    moreover assume "\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M"
+    ultimately have "f -` X \<inter> space M \<in> sets M"
+      using `X \<subseteq> A` by (auto intro!: finite_UN simp del: UN_simps) }
+  then show ?thesis
+    unfolding measurable_def by auto
+qed
+
+lemma measurable_compose_countable:
+  assumes f: "\<And>i::'i::countable. (\<lambda>x. f i x) \<in> measurable M N" and g: "g \<in> measurable M (count_space UNIV)"
+  shows "(\<lambda>x. f (g x) x) \<in> measurable M N"
+  unfolding measurable_def
+proof safe
+  fix x assume "x \<in> space M" then show "f (g x) x \<in> space N"
+    using f[THEN measurable_space] g[THEN measurable_space] by auto
+next
+  fix A assume A: "A \<in> sets N"
+  have "(\<lambda>x. f (g x) x) -` A \<inter> space M = (\<Union>i. (g -` {i} \<inter> space M) \<inter> (f i -` A \<inter> space M))"
+    by auto
+  also have "\<dots> \<in> sets M" using f[THEN measurable_sets, OF A] g[THEN measurable_sets]
+    by (auto intro!: countable_UN measurable_sets)
+  finally show "(\<lambda>x. f (g x) x) -` A \<inter> space M \<in> sets M" .
+qed
+
+subsection {* Measurable method *}
+
+lemma (in algebra) sets_Collect_finite_All:
+  assumes "\<And>i. i \<in> S \<Longrightarrow> {x\<in>\<Omega>. P i x} \<in> M" "finite S"
+  shows "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} \<in> M"
+proof -
+  have "{x\<in>\<Omega>. \<forall>i\<in>S. P i x} = (if S = {} then \<Omega> else \<Inter>i\<in>S. {x\<in>\<Omega>. P i x})"
+    by auto
+  with assms show ?thesis by (auto intro!: sets_Collect_finite_All')
+qed
+
+abbreviation "pred M P \<equiv> P \<in> measurable M (count_space (UNIV::bool set))"
+
+lemma pred_def: "pred M P \<longleftrightarrow> {x\<in>space M. P x} \<in> sets M"
+proof
+  assume "pred M P"
+  then have "P -` {True} \<inter> space M \<in> sets M"
+    by (auto simp: measurable_count_space_eq2)
+  also have "P -` {True} \<inter> space M = {x\<in>space M. P x}" by auto
+  finally show "{x\<in>space M. P x} \<in> sets M" .
+next
+  assume P: "{x\<in>space M. P x} \<in> sets M"
+  moreover
+  { fix X
+    have "X \<in> Pow (UNIV :: bool set)" by simp
+    then have "P -` X \<inter> space M = {x\<in>space M. ((X = {True} \<longrightarrow> P x) \<and> (X = {False} \<longrightarrow> \<not> P x) \<and> X \<noteq> {})}"
+      unfolding UNIV_bool Pow_insert Pow_empty by auto
+    then have "P -` X \<inter> space M \<in> sets M"
+      by (auto intro!: sets_Collect_neg sets_Collect_imp sets_Collect_conj sets_Collect_const P) }
+  then show "pred M P"
+    by (auto simp: measurable_def)
+qed
+
+lemma pred_sets1: "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> f \<in> measurable N M \<Longrightarrow> pred N (\<lambda>x. P (f x))"
+  by (rule measurable_compose[where f=f and N=M]) (auto simp: pred_def)
+
+lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> pred M (\<lambda>x. f x \<in> A)"
+  by (rule measurable_compose[where f=f and N=N]) (auto simp: pred_def Int_def[symmetric])
+
+lemma measurable_count_space_const:
+  "(\<lambda>x. c) \<in> measurable M (count_space UNIV)"
+  by auto
+
+lemma measurable_count_space:
+  "f \<in> measurable (count_space A) (count_space UNIV)"
+  by simp
+
+lemma measurable_compose_rev:
+  assumes f: "f \<in> measurable L N" and g: "g \<in> measurable M L"
+  shows "(\<lambda>x. f (g x)) \<in> measurable M N"
+  using measurable_compose[OF g f] .
+
+ML {*
+
+structure Measurable =
+struct
+
+datatype level = Concrete | Generic;
+
+structure Data = Generic_Data
+(
+  type T = thm list * thm list;
+  val empty = ([], []);
+  val extend = I;
+  val merge = fn ((a, b), (c, d)) => (a @ c, b @ d);
+);
+
+val debug =
+  Attrib.setup_config_bool @{binding measurable_debug} (K false)
+
+val backtrack =
+  Attrib.setup_config_int @{binding measurable_backtrack} (K 40)
+
+fun get lv = (case lv of Concrete => fst | Generic => snd) o Data.get o Context.Proof; 
+fun get_all ctxt = get Concrete ctxt @ get Generic ctxt;
+
+fun update f lv = Data.map (case lv of Concrete => apfst f | Generic => apsnd f);
+fun add thms' = update (fn thms => thms @ thms');
+
+fun TRYALL' tacs = fold_rev (curry op APPEND') tacs (K no_tac);
+
+fun is_too_generic thm =
+  let 
+    val concl = concl_of thm
+    val concl' = HOLogic.dest_Trueprop concl handle TERM _ => concl
+  in is_Var (head_of concl') end
+
+fun import_theorem thm = if is_too_generic thm then [] else
+  [thm] @ map_filter (try (fn th' => thm RS th'))
+    [@{thm measurable_compose_rev}, @{thm pred_sets1}, @{thm pred_sets2}, @{thm sets_into_space}];
+
+fun add_thm (raw, lv) thm = add (if raw then [thm] else import_theorem thm) lv;
+
+fun debug_tac ctxt msg f = if Config.get ctxt debug then K (print_tac (msg ())) THEN' f else f
+
+fun TAKE n f thm = Seq.take n (f thm)
+
+fun nth_hol_goal thm i =
+  HOLogic.dest_Trueprop (Logic.strip_imp_concl (strip_all_body (nth (prems_of thm) (i - 1))))
+
+fun dest_measurable_fun t =
+  (case t of
+    (Const (@{const_name "Set.member"}, _) $ f $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => f
+  | _ => raise (TERM ("not a measurability predicate", [t])))
+
+fun indep (Bound i) t b = i < b orelse t <= i
+  | indep (f $ t) top bot = indep f top bot andalso indep t top bot
+  | indep (Abs (_,_,t)) top bot = indep t (top + 1) (bot + 1)
+  | indep _ _ _ = true;
+
+fun cnt_prefixes ctxt (Abs (n, T, t)) = let
+      fun is_countable t = Type.of_sort (Proof_Context.tsig_of ctxt) (t, @{sort countable})
+      fun cnt_walk (Abs (ns, T, t)) Ts =
+          map (fn (t', t'') => (Abs (ns, T, t'), t'')) (cnt_walk t (T::Ts))
+        | cnt_walk (f $ g) Ts = let
+            val n = length Ts - 1
+          in
+            map (fn (f', t) => (f' $ g, t)) (cnt_walk f Ts) @
+            map (fn (g', t) => (f $ g', t)) (cnt_walk g Ts) @
+            (if is_countable (fastype_of1 (Ts, g)) andalso loose_bvar1 (g, n)
+                andalso indep g n 0 andalso g <> Bound n
+              then [(f $ Bound (n + 1), incr_boundvars (~ n) g)]
+              else [])
+          end
+        | cnt_walk _ _ = []
+    in map (fn (t1, t2) => let
+        val T1 = fastype_of1 ([T], t2)
+        val T2 = fastype_of1 ([T], t)
+      in ([SOME (Abs (n, T1, Abs (n, T, t1))), NONE, NONE, SOME (Abs (n, T, t2))],
+        [SOME T1, SOME T, SOME T2])
+      end) (cnt_walk t [T])
+    end
+  | cnt_prefixes _ _ = []
+
+val split_fun_tac =
+  Subgoal.FOCUS (fn {context = ctxt, ...} => SUBGOAL (fn (t, i) =>
+    let
+      val f = dest_measurable_fun (HOLogic.dest_Trueprop t)
+      fun cert f = map (Option.map (f (Proof_Context.theory_of ctxt)))
+      fun inst t (ts, Ts) = Drule.instantiate' (cert ctyp_of Ts) (cert cterm_of ts) t
+      val cps = cnt_prefixes ctxt f |> map (inst @{thm measurable_compose_countable})
+    in if null cps then no_tac else debug_tac ctxt (K "split fun") (resolve_tac cps) i end
+    handle TERM _ => no_tac) 1)
+
+fun single_measurable_tac ctxt facts =
+  debug_tac ctxt (fn () => "single + " ^ Pretty.str_of (Pretty.block (map (Syntax.pretty_term ctxt o prop_of) facts)))
+  (resolve_tac ((maps (import_theorem o Simplifier.norm_hhf) facts) @ get_all ctxt)
+    APPEND' (split_fun_tac ctxt));
+
+fun is_cond_formlua n thm = if length (prems_of thm) < n then false else
+  (case nth_hol_goal thm n of
+    (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "sets"}, _) $ _)) => false
+  | (Const (@{const_name "Set.member"}, _) $ _ $ (Const (@{const_name "measurable"}, _) $ _ $ _)) => false
+  | _ => true)
+  handle TERM _ => true;
+
+fun measurable_tac' ctxt ss facts n =
+  TAKE (Config.get ctxt backtrack)
+  ((single_measurable_tac ctxt facts THEN'
+   REPEAT o (single_measurable_tac ctxt facts APPEND'
+             SOLVED' (fn n => COND (is_cond_formlua n) (debug_tac ctxt (K "simp") (asm_full_simp_tac ss) n) no_tac))) n);
+
+fun measurable_tac ctxt = measurable_tac' ctxt (simpset_of ctxt);
+
+val attr_add = Thm.declaration_attribute o add_thm;
+
+val attr : attribute context_parser =
+  Scan.lift (Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
+     Scan.optional (Args.$$$ "generic" >> K Generic) Concrete)) (false, Concrete) >> attr_add);
+
+val method : (Proof.context -> Method.method) context_parser =
+  Scan.lift (Scan.succeed (fn ctxt => METHOD (fn facts => measurable_tac ctxt facts 1)));
+
+fun simproc ss redex = let
+    val ctxt = Simplifier.the_context ss;
+    val t = HOLogic.mk_Trueprop (term_of redex);
+    fun tac {context = ctxt, ...} =
+      SOLVE (measurable_tac' ctxt ss (Simplifier.prems_of ss) 1);
+  in try (fn () => Goal.prove ctxt [] [] t tac RS @{thm Eq_TrueI}) () end;
+
+end
+
+*}
+
+attribute_setup measurable = {* Measurable.attr *} "declaration of measurability theorems"
+method_setup measurable = {* Measurable.method *} "measurability prover"
+simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
+
+declare
+  top[measurable]
+  empty_sets[measurable (raw)]
+  Un[measurable (raw)]
+  Diff[measurable (raw)]
+
+declare
+  measurable_count_space[measurable (raw)]
+  measurable_ident[measurable (raw)]
+  measurable_ident'[measurable (raw)]
+  measurable_count_space_const[measurable (raw)]
+  measurable_const[measurable (raw)]
+  measurable_If[measurable (raw)]
+  measurable_comp[measurable (raw)]
+  measurable_sets[measurable (raw)]
+
+lemma predE[measurable (raw)]: 
+  "pred M P \<Longrightarrow> {x\<in>space M. P x} \<in> sets M"
+  unfolding pred_def .
+
+lemma pred_intros_imp'[measurable (raw)]:
+  "(K \<Longrightarrow> pred M (\<lambda>x. P x)) \<Longrightarrow> pred M (\<lambda>x. K \<longrightarrow> P x)"
+  by (cases K) auto
+
+lemma pred_intros_conj1'[measurable (raw)]:
+  "(K \<Longrightarrow> pred M (\<lambda>x. P x)) \<Longrightarrow> pred M (\<lambda>x. K \<and> P x)"
+  by (cases K) auto
+
+lemma pred_intros_conj2'[measurable (raw)]:
+  "(K \<Longrightarrow> pred M (\<lambda>x. P x)) \<Longrightarrow> pred M (\<lambda>x. P x \<and> K)"
+  by (cases K) auto
+
+lemma pred_intros_disj1'[measurable (raw)]:
+  "(\<not> K \<Longrightarrow> pred M (\<lambda>x. P x)) \<Longrightarrow> pred M (\<lambda>x. K \<or> P x)"
+  by (cases K) auto
+
+lemma pred_intros_disj2'[measurable (raw)]:
+  "(\<not> K \<Longrightarrow> pred M (\<lambda>x. P x)) \<Longrightarrow> pred M (\<lambda>x. P x \<or> K)"
+  by (cases K) auto
+
+lemma pred_intros_logic[measurable (raw)]:
+  "pred M (\<lambda>x. x \<in> space M)"
+  "pred M (\<lambda>x. P x) \<Longrightarrow> pred M (\<lambda>x. \<not> P x)"
+  "pred M (\<lambda>x. Q x) \<Longrightarrow> pred M (\<lambda>x. P x) \<Longrightarrow> pred M (\<lambda>x. Q x \<and> P x)"
+  "pred M (\<lambda>x. Q x) \<Longrightarrow> pred M (\<lambda>x. P x) \<Longrightarrow> pred M (\<lambda>x. Q x \<longrightarrow> P x)"
+  "pred M (\<lambda>x. Q x) \<Longrightarrow> pred M (\<lambda>x. P x) \<Longrightarrow> pred M (\<lambda>x. Q x \<or> P x)"
+  "pred M (\<lambda>x. Q x) \<Longrightarrow> pred M (\<lambda>x. P x) \<Longrightarrow> pred M (\<lambda>x. Q x = P x)"
+  "pred M (\<lambda>x. f x \<in> UNIV)"
+  "pred M (\<lambda>x. f x \<in> {})"
+  "pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> - (B x))"
+  "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) - (B x))"
+  "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) \<inter> (B x))"
+  "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) \<union> (B x))"
+  "pred M (\<lambda>x. g x (f x) \<in> (X x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (g x) -` (X x))"
+  by (auto intro!: sets_Collect simp: iff_conv_conj_imp pred_def)
+
+lemma pred_intros_countable[measurable (raw)]:
+  fixes P :: "'a \<Rightarrow> 'i :: countable \<Rightarrow> bool"
+  shows 
+    "(\<And>i. pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i. P x i)"
+    "(\<And>i. pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i. P x i)"
+  by (auto intro!: sets_Collect_countable_All sets_Collect_countable_Ex simp: pred_def)
+
+lemma pred_intros_countable_bounded[measurable (raw)]:
+  fixes X :: "'i :: countable set"
+  shows 
+    "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Inter>i\<in>X. N x i))"
+    "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Union>i\<in>X. N x i))"
+    "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i\<in>X. P x i)"
+    "(\<And>i. i \<in> X \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i\<in>X. P x i)"
+  by (auto simp: Bex_def Ball_def)
+
+lemma pred_intros_finite[measurable (raw)]:
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Inter>i\<in>I. N x i))"
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Union>i\<in>I. N x i))"
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i\<in>I. P x i)"
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i\<in>I. P x i)"
+  by (auto intro!: sets_Collect_finite_Ex sets_Collect_finite_All simp: iff_conv_conj_imp pred_def)
+
+lemma countable_Un_Int[measurable (raw)]:
+  "(\<And>i :: 'i :: countable. i \<in> I \<Longrightarrow> N i \<in> sets M) \<Longrightarrow> (\<Union>i\<in>I. N i) \<in> sets M"
+  "I \<noteq> {} \<Longrightarrow> (\<And>i :: 'i :: countable. i \<in> I \<Longrightarrow> N i \<in> sets M) \<Longrightarrow> (\<Inter>i\<in>I. N i) \<in> sets M"
+  by auto
+
+declare
+  finite_UN[measurable (raw)]
+  finite_INT[measurable (raw)]
+
+lemma sets_Int_pred[measurable (raw)]:
+  assumes space: "A \<inter> B \<subseteq> space M" and [measurable]: "pred M (\<lambda>x. x \<in> A)" "pred M (\<lambda>x. x \<in> B)"
+  shows "A \<inter> B \<in> sets M"
+proof -
+  have "{x\<in>space M. x \<in> A \<inter> B} \<in> sets M" by auto
+  also have "{x\<in>space M. x \<in> A \<inter> B} = A \<inter> B"
+    using space by auto
+  finally show ?thesis .
+qed
+
+lemma [measurable (raw generic)]:
+  assumes f: "f \<in> measurable M N" and c: "{c} \<in> sets N"
+  shows pred_eq_const1: "pred M (\<lambda>x. f x = c)"
+    and pred_eq_const2: "pred M (\<lambda>x. c = f x)"
+  using measurable_sets[OF f c] by (auto simp: Int_def conj_commute eq_commute pred_def)
+
+lemma pred_le_const[measurable (raw generic)]:
+  assumes f: "f \<in> measurable M N" and c: "{.. c} \<in> sets N" shows "pred M (\<lambda>x. f x \<le> c)"
+  using measurable_sets[OF f c]
+  by (auto simp: Int_def conj_commute eq_commute pred_def)
+
+lemma pred_const_le[measurable (raw generic)]:
+  assumes f: "f \<in> measurable M N" and c: "{c ..} \<in> sets N" shows "pred M (\<lambda>x. c \<le> f x)"
+  using measurable_sets[OF f c]
+  by (auto simp: Int_def conj_commute eq_commute pred_def)
+
+lemma pred_less_const[measurable (raw generic)]:
+  assumes f: "f \<in> measurable M N" and c: "{..< c} \<in> sets N" shows "pred M (\<lambda>x. f x < c)"
+  using measurable_sets[OF f c]
+  by (auto simp: Int_def conj_commute eq_commute pred_def)
+
+lemma pred_const_less[measurable (raw generic)]:
+  assumes f: "f \<in> measurable M N" and c: "{c <..} \<in> sets N" shows "pred M (\<lambda>x. c < f x)"
+  using measurable_sets[OF f c]
+  by (auto simp: Int_def conj_commute eq_commute pred_def)
+
+declare
+  Int[measurable (raw)]
+
+hide_const (open) pred
 
 subsection {* Extend measure *}
 

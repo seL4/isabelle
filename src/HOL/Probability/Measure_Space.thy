@@ -447,14 +447,14 @@ qed
 
 lemma emeasure_Diff:
   assumes finite: "emeasure M B \<noteq> \<infinity>"
-  and measurable: "A \<in> sets M" "B \<in> sets M" "B \<subseteq> A"
+  and [measurable]: "A \<in> sets M" "B \<in> sets M" and "B \<subseteq> A"
   shows "emeasure M (A - B) = emeasure M A - emeasure M B"
 proof -
   have "0 \<le> emeasure M B" using assms by auto
   have "(A - B) \<union> B = A" using `B \<subseteq> A` by auto
   then have "emeasure M A = emeasure M ((A - B) \<union> B)" by simp
   also have "\<dots> = emeasure M (A - B) + emeasure M B"
-    using measurable by (subst plus_emeasure[symmetric]) auto
+    by (subst plus_emeasure[symmetric]) auto
   finally show "emeasure M (A - B) = emeasure M A - emeasure M B"
     unfolding ereal_eq_minus_iff
     using finite `0 \<le> emeasure M B` by auto
@@ -519,12 +519,11 @@ lemma Lim_emeasure_decseq:
   using INF_emeasure_decseq[OF A fin] by simp
 
 lemma emeasure_subadditive:
-  assumes measurable: "A \<in> sets M" "B \<in> sets M"
+  assumes [measurable]: "A \<in> sets M" "B \<in> sets M"
   shows "emeasure M (A \<union> B) \<le> emeasure M A + emeasure M B"
 proof -
   from plus_emeasure[of A M "B - A"]
-  have "emeasure M (A \<union> B) = emeasure M A + emeasure M (B - A)"
-    using assms by (simp add: Diff)
+  have "emeasure M (A \<union> B) = emeasure M A + emeasure M (B - A)" by simp
   also have "\<dots> \<le> emeasure M A + emeasure M B"
     using assms by (auto intro!: add_left_mono emeasure_mono)
   finally show ?thesis .
@@ -538,7 +537,7 @@ using assms proof induct
   then have "emeasure M (\<Union>i\<in>insert i I. A i) = emeasure M (A i \<union> (\<Union>i\<in>I. A i))"
     by simp
   also have "\<dots> \<le> emeasure M (A i) + emeasure M (\<Union>i\<in>I. A i)"
-    using insert by (intro emeasure_subadditive finite_UN) auto
+    using insert by (intro emeasure_subadditive) auto
   also have "\<dots> \<le> emeasure M (A i) + (\<Sum>i\<in>I. emeasure M (A i))"
     using insert by (intro add_mono) auto
   also have "\<dots> = (\<Sum>i\<in>insert i I. emeasure M (A i))"
@@ -688,18 +687,17 @@ proof -
       by (auto simp: subset_eq)
     have "disjoint_family ?D"
       by (auto simp: disjoint_family_disjointed)
-     moreover
-    { fix i
+    moreover
+    have "(\<Sum>i. emeasure M (?D i)) = (\<Sum>i. emeasure N (?D i))"
+    proof (intro arg_cong[where f=suminf] ext)
+      fix i
       have "A i \<inter> ?D i = ?D i"
         by (auto simp: disjointed_def)
-      then have "emeasure M (?D i) = emeasure N (?D i)"
-        using *[of "A i" "?D i", OF _ A(3)] A(1) by auto }
-     ultimately show "emeasure M F = emeasure N F"
-      using N M
-      apply (subst (1 2) F_eq)
-      apply (subst (1 2) suminf_emeasure[symmetric])
-      apply auto
-      done
+      then show "emeasure M (?D i) = emeasure N (?D i)"
+        using *[of "A i" "?D i", OF _ A(3)] A(1) by auto
+    qed
+    ultimately show "emeasure M F = emeasure N F"
+      by (simp add: image_subset_iff `sets M = sets N`[symmetric] F_eq[symmetric] suminf_emeasure)
   qed
 qed
 
@@ -1112,32 +1110,23 @@ proof -
 qed
 
 lemma AE_distr_iff:
-  assumes f: "f \<in> measurable M N" and P: "{x \<in> space N. P x} \<in> sets N"
+  assumes f[measurable]: "f \<in> measurable M N" and P[measurable]: "{x \<in> space N. P x} \<in> sets N"
   shows "(AE x in distr M N f. P x) \<longleftrightarrow> (AE x in M. P (f x))"
 proof (subst (1 2) AE_iff_measurable[OF _ refl])
-  from P show "{x \<in> space (distr M N f). \<not> P x} \<in> sets (distr M N f)"
-    by (auto intro!: sets_Collect_neg)
-  moreover
-  have "f -` {x \<in> space N. P x} \<inter> space M = {x \<in> space M. P (f x)}"
-    using f by (auto dest: measurable_space)
-  then show "{x \<in> space M. \<not> P (f x)} \<in> sets M"
-    using measurable_sets[OF f P] by (auto intro!: sets_Collect_neg)
-  moreover have "f -` {x\<in>space N. \<not> P x} \<inter> space M = {x \<in> space M. \<not> P (f x)}"
-    using f by (auto dest: measurable_space)
-  ultimately show "(emeasure (distr M N f) {x \<in> space (distr M N f). \<not> P x} = 0) =
+  have "f -` {x\<in>space N. \<not> P x} \<inter> space M = {x \<in> space M. \<not> P (f x)}"
+    using f[THEN measurable_space] by auto
+  then show "(emeasure (distr M N f) {x \<in> space (distr M N f). \<not> P x} = 0) =
     (emeasure M {x \<in> space M. \<not> P (f x)} = 0)"
-    using f by (simp add: emeasure_distr)
-qed
+    by (simp add: emeasure_distr)
+qed auto
 
 lemma null_sets_distr_iff:
   "f \<in> measurable M N \<Longrightarrow> A \<in> null_sets (distr M N f) \<longleftrightarrow> f -` A \<inter> space M \<in> null_sets M \<and> A \<in> sets N"
-  by (auto simp add: null_sets_def emeasure_distr measurable_sets)
+  by (auto simp add: null_sets_def emeasure_distr)
 
 lemma distr_distr:
-  assumes f: "g \<in> measurable N L" and g: "f \<in> measurable M N"
-  shows "distr (distr M N f) L g = distr M L (g \<circ> f)" (is "?L = ?R")
-  using measurable_comp[OF g f] f g
-  by (auto simp add: emeasure_distr measurable_sets measurable_space
+  "g \<in> measurable N L \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> distr (distr M N f) L g = distr M L (g \<circ> f)"
+  by (auto simp add: emeasure_distr measurable_space
            intro!: arg_cong[where f="emeasure M"] measure_eqI)
 
 section {* Real measure values *}
@@ -1380,33 +1369,6 @@ lemma (in finite_measure) finite_measure_eq_AE:
   using assms emeasure_eq_AE[OF assms] by (simp add: emeasure_eq_measure)
 
 section {* Counting space *}
-
-definition count_space :: "'a set \<Rightarrow> 'a measure" where
-  "count_space \<Omega> = measure_of \<Omega> (Pow \<Omega>) (\<lambda>A. if finite A then ereal (card A) else \<infinity>)"
-
-lemma 
-  shows space_count_space[simp]: "space (count_space \<Omega>) = \<Omega>"
-    and sets_count_space[simp]: "sets (count_space \<Omega>) = Pow \<Omega>"
-  using sigma_sets_into_sp[of "Pow \<Omega>" \<Omega>]
-  by (auto simp: count_space_def)
-
-lemma measurable_count_space_eq1[simp]:
-  "f \<in> measurable (count_space A) M \<longleftrightarrow> f \<in> A \<rightarrow> space M"
- unfolding measurable_def by simp
-
-lemma measurable_count_space_eq2[simp]:
-  assumes "finite A"
-  shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"
-proof -
-  { fix X assume "X \<subseteq> A" "f \<in> space M \<rightarrow> A"
-    with `finite A` have "f -` X \<inter> space M = (\<Union>a\<in>X. f -` {a} \<inter> space M)" "finite X"
-      by (auto dest: finite_subset)
-    moreover assume "\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M"
-    ultimately have "f -` X \<inter> space M \<in> sets M"
-      using `X \<subseteq> A` by (auto intro!: finite_UN simp del: UN_simps) }
-  then show ?thesis
-    unfolding measurable_def by auto
-qed
 
 lemma strict_monoI_Suc:
   assumes ord [simp]: "(\<And>n. f n < f (Suc n))" shows "strict_mono f"
