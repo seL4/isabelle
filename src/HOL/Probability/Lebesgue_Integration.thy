@@ -121,7 +121,7 @@ lemma simple_function_cong_algebra:
   shows "simple_function M f \<longleftrightarrow> simple_function N f"
   unfolding simple_function_def assms ..
 
-lemma borel_measurable_simple_function:
+lemma borel_measurable_simple_function[measurable_dest]:
   assumes "simple_function M f"
   shows "f \<in> borel_measurable M"
 proof (rule borel_measurableI)
@@ -918,7 +918,7 @@ proof (rule ereal_le_mult_one_interval)
   hence "a \<noteq> 0" by auto
   let ?B = "\<lambda>i. {x \<in> space M. a * u x \<le> f i x}"
   have B: "\<And>i. ?B i \<in> sets M"
-    using f `simple_function M u` by (auto simp: borel_measurable_simple_function)
+    using f `simple_function M u` by auto
 
   let ?uB = "\<lambda>i x. u x * indicator (?B i) x"
 
@@ -1436,6 +1436,10 @@ definition integrable :: "'a measure \<Rightarrow> ('a \<Rightarrow> real) \<Rig
   "integrable M f \<longleftrightarrow> f \<in> borel_measurable M \<and>
     (\<integral>\<^isup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity> \<and> (\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
 
+lemma borel_measurable_integrable[measurable_dest]:
+  "integrable M f \<Longrightarrow> f \<in> borel_measurable M"
+  by (auto simp: integrable_def)
+
 lemma integrableD[dest]:
   assumes "integrable M f"
   shows "f \<in> borel_measurable M" "(\<integral>\<^isup>+ x. ereal (f x) \<partial>M) \<noteq> \<infinity>" "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>"
@@ -1776,7 +1780,7 @@ proof -
 qed
 
 lemma integrable_abs:
-  assumes f: "integrable M f"
+  assumes f[measurable]: "integrable M f"
   shows "integrable M (\<lambda> x. \<bar>f x\<bar>)"
 proof -
   from assms have *: "(\<integral>\<^isup>+x. ereal (- \<bar>f x\<bar>)\<partial>M) = 0"
@@ -1871,7 +1875,7 @@ proof -
     from mono pos show "AE x in M. ereal (f i x) \<le> ereal (f (Suc i) x) \<and> 0 \<le> ereal (f i x)"
       by eventually_elim (auto simp: mono_def)
     show "(\<lambda>x. ereal (f i x)) \<in> borel_measurable M"
-      using i by (auto simp: integrable_def)
+      using i by auto
   next
     show "(\<integral>\<^isup>+ x. ereal (u x) \<partial>M) = \<integral>\<^isup>+ x. (SUP i. ereal (f i x)) \<partial>M"
       apply (rule positive_integral_cong_AE)
@@ -2045,10 +2049,10 @@ lemma (in finite_measure) integral_less_AE_space:
   using gt by (intro integral_less_AE[OF int, where A="space M"]) auto
 
 lemma integral_dominated_convergence:
-  assumes u: "\<And>i. integrable M (u i)" and bound: "\<And>j. AE x in M. \<bar>u j x\<bar> \<le> w x"
-  and w: "integrable M w"
+  assumes u[measurable]: "\<And>i. integrable M (u i)" and bound: "\<And>j. AE x in M. \<bar>u j x\<bar> \<le> w x"
+  and w[measurable]: "integrable M w"
   and u': "AE x in M. (\<lambda>i. u i x) ----> u' x"
-  and borel: "u' \<in> borel_measurable M"
+  and [measurable]: "u' \<in> borel_measurable M"
   shows "integrable M u'"
   and "(\<lambda>i. (\<integral>x. \<bar>u i x - u' x\<bar> \<partial>M)) ----> 0" (is "?lim_diff")
   and "(\<lambda>i. integral\<^isup>L M (u i)) ----> integral\<^isup>L M u'" (is ?lim)
@@ -2120,7 +2124,7 @@ proof -
       qed (rule trivial_limit_sequentially)
     qed
     also have "\<dots> \<le> liminf (\<lambda>n. \<integral>\<^isup>+ x. max 0 (ereal (?diff n x)) \<partial>M)"
-      using borel w u unfolding integrable_def
+      using w u unfolding integrable_def
       by (intro positive_integral_lim_INF) (auto intro!: positive_integral_lim_INF)
     also have "\<dots> = (\<integral>\<^isup>+ x. ereal (2 * w x) \<partial>M) -
         limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
@@ -2171,7 +2175,7 @@ proof -
 qed
 
 lemma integral_sums:
-  assumes borel: "\<And>i. integrable M (f i)"
+  assumes integrable[measurable]: "\<And>i. integrable M (f i)"
   and summable: "\<And>x. x \<in> space M \<Longrightarrow> summable (\<lambda>i. \<bar>f i x\<bar>)"
   and sums: "summable (\<lambda>i. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
   shows "integrable M (\<lambda>x. (\<Sum>i. f i x))" (is "integrable M ?S")
@@ -2182,7 +2186,7 @@ proof -
   from bchoice[OF this]
   obtain w where w: "\<And>x. x \<in> space M \<Longrightarrow> (\<lambda>i. \<bar>f i x\<bar>) sums w x" by auto
   then have w_borel: "w \<in> borel_measurable M" unfolding sums_def
-    by (rule borel_measurable_LIMSEQ) (auto simp: borel[THEN integrableD(1)])
+    by (rule borel_measurable_LIMSEQ) auto
 
   let ?w = "\<lambda>y. if y \<in> space M then w y else 0"
 
@@ -2190,7 +2194,7 @@ proof -
     using sums unfolding summable_def ..
 
   have 1: "\<And>n. integrable M (\<lambda>x. \<Sum>i = 0..<n. f i x)"
-    using borel by auto
+    using integrable by auto
 
   have 2: "\<And>j. AE x in M. \<bar>\<Sum>i = 0..<j. f i x\<bar> \<le> ?w x"
     using AE_space
@@ -2206,14 +2210,14 @@ proof -
     let ?F = "\<lambda>n y. (\<Sum>i = 0..<n. \<bar>f i y\<bar>)"
     let ?w' = "\<lambda>n y. if y \<in> space M then ?F n y else 0"
     have "\<And>n. integrable M (?F n)"
-      using borel by (auto intro!: integrable_abs)
+      using integrable by (auto intro!: integrable_abs)
     thus "\<And>n. integrable M (?w' n)" by (simp cong: integrable_cong)
     show "AE x in M. mono (\<lambda>n. ?w' n x)"
       by (auto simp: mono_def le_fun_def intro!: setsum_mono2)
     show "AE x in M. (\<lambda>n. ?w' n x) ----> ?w x"
         using w by (simp_all add: tendsto_const sums_def)
     have *: "\<And>n. integral\<^isup>L M (?w' n) = (\<Sum>i = 0..< n. (\<integral>x. \<bar>f i x\<bar> \<partial>M))"
-      using borel by (simp add: integrable_abs cong: integral_cong)
+      using integrable by (simp add: integrable_abs cong: integral_cong)
     from abs_sum
     show "(\<lambda>i. integral\<^isup>L M (?w' i)) ----> x" unfolding * sums_def .
   qed (simp add: w_borel measurable_If_set)
@@ -2223,11 +2227,11 @@ proof -
     by (auto intro: summable_sumr_LIMSEQ_suminf)
 
   note int = integral_dominated_convergence(1,3)[OF 1 2 3 4
-    borel_measurable_suminf[OF integrableD(1)[OF borel]]]
+    borel_measurable_suminf[OF integrableD(1)[OF integrable]]]
 
   from int show "integrable M ?S" by simp
 
-  show ?integral unfolding sums_def integral_setsum(1)[symmetric, OF borel]
+  show ?integral unfolding sums_def integral_setsum(1)[symmetric, OF integrable]
     using int(2) by simp
 qed
 
@@ -2317,13 +2321,9 @@ qed (simp_all add: measurable_compose[OF T] T positive_integral_cmult positive_i
                    positive_integral_monotone_convergence_SUP le_fun_def incseq_def)
 
 lemma positive_integral_distr:
-  assumes T: "T \<in> measurable M M'"
-  and f: "f \<in> borel_measurable M'"
-  shows "integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
-  apply (subst (1 2) positive_integral_max_0[symmetric])
-  apply (rule positive_integral_distr')
-  apply (auto simp: f T)
-  done
+  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^isup>P (distr M M' T) f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
+  by (subst (1 2) positive_integral_max_0[symmetric])
+     (simp add: positive_integral_distr')
 
 lemma integral_distr:
   "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integral\<^isup>L (distr M M' T) f = (\<integral> x. f (T x) \<partial>M)"
@@ -2331,15 +2331,13 @@ lemma integral_distr:
   by (subst (1 2) positive_integral_distr) auto
 
 lemma integrable_distr_eq:
-  assumes T: "T \<in> measurable M M'" "f \<in> borel_measurable M'"
-  shows "integrable (distr M M' T) f \<longleftrightarrow> integrable M (\<lambda>x. f (T x))"
-  using T measurable_comp[OF T]
+  "T \<in> measurable M M' \<Longrightarrow> f \<in> borel_measurable M' \<Longrightarrow> integrable (distr M M' T) f \<longleftrightarrow> integrable M (\<lambda>x. f (T x))"
   unfolding integrable_def 
   by (subst (1 2) positive_integral_distr) (auto simp: comp_def)
 
 lemma integrable_distr:
-  assumes T: "T \<in> measurable M M'" shows "integrable (distr M M' T) f \<Longrightarrow> integrable M (\<lambda>x. f (T x))"
-  by (subst integrable_distr_eq[symmetric, OF T]) auto
+  "T \<in> measurable M M' \<Longrightarrow> integrable (distr M M' T) f \<Longrightarrow> integrable M (\<lambda>x. f (T x))"
+  by (subst integrable_distr_eq[symmetric]) auto
 
 section {* Lebesgue integration on @{const count_space} *}
 
@@ -2413,6 +2411,10 @@ lemma
   shows sets_density[simp]: "sets (density M f) = sets M"
     and space_density[simp]: "space (density M f) = space M"
   by (auto simp: density_def)
+
+(* FIXME: add conversion to simplify space, sets and measurable *)
+lemma space_density_imp[measurable_dest]:
+  "\<And>x M f. x \<in> space (density M f) \<Longrightarrow> x \<in> space M" by auto
 
 lemma 
   shows measurable_density_eq1[simp]: "g \<in> measurable (density Mg f) Mg' \<longleftrightarrow> g \<in> measurable Mg Mg'"
@@ -2533,7 +2535,7 @@ next
   case (mult u c)
   moreover have "\<And>x. f x * (c * u x) = c * (f x * u x)" by (simp add: field_simps)
   ultimately show ?case
-    by (simp add: f positive_integral_cmult)
+    using f by (simp add: positive_integral_cmult)
 next
   case (add u v)
   moreover then have "\<And>x. f x * (v x + u x) = f x * v x + f x * u x"

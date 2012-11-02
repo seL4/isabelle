@@ -99,7 +99,8 @@ proof (rule measure_eqI_generator_eq)
   
   fix X assume "X \<in> ?J"
   then obtain E where [simp]: "X = Pi\<^isub>E J E" and E: "\<forall>i\<in>J. E i \<in> sets (M i)" by auto
-  with `finite J` have X: "X \<in> sets (Pi\<^isub>M J M)" by auto
+  with `finite J` have X: "X \<in> sets (Pi\<^isub>M J M)"
+    by simp
 
   have "emeasure ?P X = (\<Prod> i\<in>J. emeasure (M i) (E i))"
     using E by (simp add: J.measure_times)
@@ -190,7 +191,7 @@ next
       unfolding sets_PiM
     proof (safe intro!: sigma_sets_subseteq)
       fix A assume "A \<in> prod_algebra I M" with `I \<noteq> {}` show "A \<in> generator"
-        by (auto intro!: generatorI' elim!: prod_algebraE)
+        by (auto intro!: generatorI' sets_PiM_I_finite elim!: prod_algebraE)
     qed
   qed (auto simp: generator_def space_PiM[symmetric] intro!: sigma_sets_subset)
 qed
@@ -242,10 +243,8 @@ proof -
 qed
 
 lemma (in product_prob_space) merge_sets:
-  assumes "J \<inter> K = {}" and A: "A \<in> sets (Pi\<^isub>M (J \<union> K) M)" and x: "x \<in> space (Pi\<^isub>M J M)"
-  shows "(\<lambda>y. merge J K (x,y)) -` A \<inter> space (Pi\<^isub>M K M) \<in> sets (Pi\<^isub>M K M)"
-  by (rule measurable_sets[OF _ A] measurable_compose[OF measurable_Pair measurable_merge]  
-           measurable_const x measurable_ident)+
+  "J \<inter> K = {} \<Longrightarrow> A \<in> sets (Pi\<^isub>M (J \<union> K) M) \<Longrightarrow> x \<in> space (Pi\<^isub>M J M) \<Longrightarrow> (\<lambda>y. merge J K (x,y)) -` A \<inter> space (Pi\<^isub>M K M) \<in> sets (Pi\<^isub>M K M)"
+  by simp
 
 lemma (in product_prob_space) merge_emb:
   assumes "K \<subseteq> I" "J \<subseteq> I" and y: "y \<in> space (Pi\<^isub>M J M)"
@@ -622,7 +621,7 @@ next
     then show "emb I J (Pi\<^isub>E J X) \<in> Pow (\<Pi>\<^isub>E i\<in>I. space (M i))"
       by (auto simp: Pi_iff prod_emb_def dest: sets_into_space)
     have "emb I J (Pi\<^isub>E J X) \<in> generator"
-      using J `I \<noteq> {}` by (intro generatorI') auto
+      using J `I \<noteq> {}` by (intro generatorI') (auto simp: Pi_iff)
     then have "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))"
       using \<mu> by simp
     also have "\<dots> = (\<Prod> j\<in>J. if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"

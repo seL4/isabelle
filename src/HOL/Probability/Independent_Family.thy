@@ -1004,6 +1004,9 @@ lemma borel_measurable_indicator':
   "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> (\<lambda>x. indicator A (f x)) \<in> borel_measurable M"
   using measurable_comp[OF _ borel_measurable_indicator, of f M N A] by (auto simp add: comp_def)
 
+lemma measurable_id_prod[measurable (raw)]: "i = j \<Longrightarrow> (\<lambda>x. x) \<in> measurable (M i) (M j)"
+  by simp
+
 lemma (in product_sigma_finite) distr_component:
   "distr (M i) (Pi\<^isub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x) = Pi\<^isub>M {i} M" (is "?D = ?P")
 proof (intro measure_eqI[symmetric])
@@ -1015,15 +1018,10 @@ proof (intro measure_eqI[symmetric])
   fix A assume A: "A \<in> sets ?P"
   then have "emeasure ?P A = (\<integral>\<^isup>+x. indicator A x \<partial>?P)" 
     by simp
-  also have "\<dots> = (\<integral>\<^isup>+x. indicator ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i)) x \<partial>M i)" 
-    apply (subst product_positive_integral_singleton[symmetric])
-    apply (force intro!: measurable_restrict measurable_sets A)
-    apply (auto intro!: positive_integral_cong simp: space_PiM indicator_def simp: eq)
-    done
-  also have "\<dots> = emeasure (M i) ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i))"
-    by (force intro!: measurable_restrict measurable_sets A positive_integral_indicator)
+  also have "\<dots> = (\<integral>\<^isup>+x. indicator ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i)) (x i) \<partial>PiM {i} M)" 
+    by (intro positive_integral_cong) (auto simp: space_PiM indicator_def simp: eq)
   also have "\<dots> = emeasure ?D A"
-    using A by (auto intro!: emeasure_distr[symmetric] measurable_restrict) 
+    using A by (simp add: product_positive_integral_singleton emeasure_distr)
   finally show "emeasure (Pi\<^isub>M {i} M) A = emeasure ?D A" .
 qed simp
 

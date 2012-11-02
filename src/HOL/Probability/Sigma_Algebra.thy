@@ -1263,6 +1263,11 @@ lemma measurable_iff_measure_of:
   shows "f \<in> measurable M (measure_of \<Omega> N \<mu>) \<longleftrightarrow> (\<forall>A\<in>N. f -` A \<inter> space M \<in> sets M)"
   by (metis assms in_measure_of measurable_measure_of assms measurable_sets)
 
+lemma measurable_cong_sets:
+  assumes sets: "sets M = sets M'" "sets N = sets N'"
+  shows "measurable M N = measurable M' N'"
+  using sets[THEN sets_eq_imp_space_eq] sets by (simp add: measurable_def)
+
 lemma measurable_cong:
   assumes "\<And> w. w \<in> space M \<Longrightarrow> f w = g w"
   shows "f \<in> measurable M M' \<longleftrightarrow> g \<in> measurable M M'"
@@ -1275,7 +1280,22 @@ lemma measurable_eqI:
       \<Longrightarrow> measurable m1 m2 = measurable m1' m2'"
   by (simp add: measurable_def sigma_algebra_iff2)
 
-lemma measurable_const[intro, simp]:
+lemma measurable_compose:
+  assumes f: "f \<in> measurable M N" and g: "g \<in> measurable N L"
+  shows "(\<lambda>x. g (f x)) \<in> measurable M L"
+proof -
+  have "\<And>A. (\<lambda>x. g (f x)) -` A \<inter> space M = f -` (g -` A \<inter> space N) \<inter> space M"
+    using measurable_space[OF f] by auto
+  with measurable_space[OF f] measurable_space[OF g] show ?thesis
+    by (auto intro: measurable_sets[OF f] measurable_sets[OF g]
+             simp del: vimage_Int simp add: measurable_def)
+qed
+
+lemma measurable_comp:
+  "f \<in> measurable M N \<Longrightarrow> g \<in> measurable N L \<Longrightarrow> g \<circ> f \<in> measurable M L"
+  using measurable_compose[of f M N g L] by (simp add: comp_def)
+
+lemma measurable_const:
   "c \<in> space M' \<Longrightarrow> (\<lambda>x. c) \<in> measurable M M'"
   by (auto simp add: measurable_def)
 
@@ -1308,23 +1328,11 @@ proof (rule measurable_If[OF measure])
   thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<inter> space M \<in> sets M` by auto
 qed
 
-lemma measurable_ident[intro, simp]: "id \<in> measurable M M"
+lemma measurable_ident: "id \<in> measurable M M"
   by (auto simp add: measurable_def)
 
-lemma measurable_ident'[intro, simp]: "(\<lambda>x. x) \<in> measurable M M"
+lemma measurable_ident': "(\<lambda>x. x) \<in> measurable M M"
   by (auto simp add: measurable_def)
-
-lemma measurable_comp[intro]:
-  fixes f :: "'a \<Rightarrow> 'b" and g :: "'b \<Rightarrow> 'c"
-  shows "f \<in> measurable a b \<Longrightarrow> g \<in> measurable b c \<Longrightarrow> (g o f) \<in> measurable a c"
-  apply (auto simp add: measurable_def vimage_compose)
-  apply (subgoal_tac "f -` g -` y \<inter> space a = f -` (g -` y \<inter> space b) \<inter> space a")
-  apply force+
-  done
-
-lemma measurable_compose:
-  "f \<in> measurable M N \<Longrightarrow> g \<in> measurable N L \<Longrightarrow> (\<lambda>x. g (f x)) \<in> measurable M L"
-  using measurable_comp[of f M N g L] by (simp add: comp_def)
 
 lemma sets_Least:
   assumes meas: "\<And>i::nat. {x\<in>space M. P i x} \<in> M"
@@ -1469,7 +1477,7 @@ lemma pred_sets2: "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Lon
 
 lemma measurable_count_space_const:
   "(\<lambda>x. c) \<in> measurable M (count_space UNIV)"
-  by auto
+  by (simp add: measurable_const)
 
 lemma measurable_count_space:
   "f \<in> measurable (count_space A) (count_space UNIV)"
@@ -1489,10 +1497,10 @@ datatype level = Concrete | Generic;
 
 structure Data = Generic_Data
 (
-  type T = thm list * thm list;
-  val empty = ([], []);
+  type T = (thm list * thm list) * thm list;
+  val empty = (([], []), []);
   val extend = I;
-  val merge = fn ((a, b), (c, d)) => (a @ c, b @ d);
+  val merge = fn (((c1, g1), d1), ((c2, g2), d2)) => ((c1 @ c2, g1 @ g2), d1 @ d2);
 );
 
 val debug =
@@ -1501,11 +1509,14 @@ val debug =
 val backtrack =
   Attrib.setup_config_int @{binding measurable_backtrack} (K 40)
 
-fun get lv = (case lv of Concrete => fst | Generic => snd) o Data.get o Context.Proof; 
+fun get lv = (case lv of Concrete => fst | Generic => snd) o fst o Data.get o Context.Proof; 
 fun get_all ctxt = get Concrete ctxt @ get Generic ctxt;
 
-fun update f lv = Data.map (case lv of Concrete => apfst f | Generic => apsnd f);
+fun update f lv = Data.map (apfst (case lv of Concrete => apfst f | Generic => apsnd f));
 fun add thms' = update (fn thms => thms @ thms');
+
+val get_dest = snd o Data.get;
+fun add_dest thm = Data.map (apsnd (fn thms => thms @ [thm]));
 
 fun TRYALL' tacs = fold_rev (curry op APPEND') tacs (K no_tac);
 
@@ -1515,11 +1526,10 @@ fun is_too_generic thm =
     val concl' = HOLogic.dest_Trueprop concl handle TERM _ => concl
   in is_Var (head_of concl') end
 
-fun import_theorem thm = if is_too_generic thm then [] else
-  [thm] @ map_filter (try (fn th' => thm RS th'))
-    [@{thm measurable_compose_rev}, @{thm pred_sets1}, @{thm pred_sets2}, @{thm sets_into_space}];
+fun import_theorem ctxt thm = if is_too_generic thm then [] else
+  [thm] @ map_filter (try (fn th' => thm RS th')) (get_dest ctxt);
 
-fun add_thm (raw, lv) thm = add (if raw then [thm] else import_theorem thm) lv;
+fun add_thm (raw, lv) thm ctxt = add (if raw then [thm] else import_theorem ctxt thm) lv ctxt;
 
 fun debug_tac ctxt msg f = if Config.get ctxt debug then K (print_tac (msg ())) THEN' f else f
 
@@ -1573,8 +1583,9 @@ val split_fun_tac =
     handle TERM _ => no_tac) 1)
 
 fun single_measurable_tac ctxt facts =
-  debug_tac ctxt (fn () => "single + " ^ Pretty.str_of (Pretty.block (map (Syntax.pretty_term ctxt o prop_of) facts)))
-  (resolve_tac ((maps (import_theorem o Simplifier.norm_hhf) facts) @ get_all ctxt)
+  debug_tac ctxt (fn () => "single + " ^
+    Pretty.str_of (Pretty.block (Pretty.commas (map (Syntax.pretty_term ctxt o prop_of) (maps (import_theorem (Context.Proof ctxt)) facts)))))
+  (resolve_tac ((maps (import_theorem (Context.Proof ctxt) o Simplifier.norm_hhf) facts) @ get_all ctxt)
     APPEND' (split_fun_tac ctxt));
 
 fun is_cond_formlua n thm = if length (prems_of thm) < n then false else
@@ -1598,6 +1609,9 @@ val attr : attribute context_parser =
   Scan.lift (Scan.optional (Args.parens (Scan.optional (Args.$$$ "raw" >> K true) false --
      Scan.optional (Args.$$$ "generic" >> K Generic) Concrete)) (false, Concrete) >> attr_add);
 
+val dest_attr : attribute context_parser =
+  Scan.lift (Scan.succeed (Thm.declaration_attribute add_dest));
+
 val method : (Proof.context -> Method.method) context_parser =
   Scan.lift (Scan.succeed (fn ctxt => METHOD (fn facts => measurable_tac ctxt facts 1)));
 
@@ -1613,8 +1627,15 @@ end
 *}
 
 attribute_setup measurable = {* Measurable.attr *} "declaration of measurability theorems"
+attribute_setup measurable_dest = {* Measurable.dest_attr *} "add dest rule for measurability prover"
 method_setup measurable = {* Measurable.method *} "measurability prover"
 simproc_setup measurable ("A \<in> sets M" | "f \<in> measurable M N") = {* K Measurable.simproc *}
+
+declare
+  measurable_compose_rev[measurable_dest]
+  pred_sets1[measurable_dest]
+  pred_sets2[measurable_dest]
+  sets_into_space[measurable_dest]
 
 declare
   top[measurable]
@@ -1670,7 +1691,7 @@ lemma pred_intros_logic[measurable (raw)]:
   "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) \<inter> (B x))"
   "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) \<union> (B x))"
   "pred M (\<lambda>x. g x (f x) \<in> (X x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (g x) -` (X x))"
-  by (auto intro!: sets_Collect simp: iff_conv_conj_imp pred_def)
+  by (auto simp: iff_conv_conj_imp pred_def)
 
 lemma pred_intros_countable[measurable (raw)]:
   fixes P :: "'a \<Rightarrow> 'i :: countable \<Rightarrow> bool"
@@ -1742,6 +1763,34 @@ lemma pred_const_less[measurable (raw generic)]:
 
 declare
   Int[measurable (raw)]
+
+lemma pred_in_If[measurable (raw)]:
+  "pred M (\<lambda>x. (P x \<longrightarrow> x \<in> A x) \<and> (\<not> P x \<longrightarrow> x \<in> B x)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (if P x then A x else B x))"
+  by auto
+
+lemma sets_range[measurable_dest]:
+  "A ` I \<subseteq> sets M \<Longrightarrow> i \<in> I \<Longrightarrow> A i \<in> sets M"
+  by auto
+
+lemma pred_sets_range[measurable_dest]:
+  "A ` I \<subseteq> sets N \<Longrightarrow> i \<in> I \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> pred M (\<lambda>x. f x \<in> A i)"
+  using pred_sets2[OF sets_range] by auto
+
+lemma sets_All[measurable_dest]:
+  "\<forall>i. A i \<in> sets (M i) \<Longrightarrow> A i \<in> sets (M i)"
+  by auto
+
+lemma pred_sets_All[measurable_dest]:
+  "\<forall>i. A i \<in> sets (N i) \<Longrightarrow> f \<in> measurable M (N i) \<Longrightarrow> pred M (\<lambda>x. f x \<in> A i)"
+  using pred_sets2[OF sets_All, of A N f] by auto
+
+lemma sets_Ball[measurable_dest]:
+  "\<forall>i\<in>I. A i \<in> sets (M i) \<Longrightarrow> i\<in>I \<Longrightarrow> A i \<in> sets (M i)"
+  by auto
+
+lemma pred_sets_Ball[measurable_dest]:
+  "\<forall>i\<in>I. A i \<in> sets (N i) \<Longrightarrow> i\<in>I \<Longrightarrow> f \<in> measurable M (N i) \<Longrightarrow> pred M (\<lambda>x. f x \<in> A i)"
+  using pred_sets2[OF sets_Ball, of _ _ _ f] by auto
 
 hide_const (open) pred
 

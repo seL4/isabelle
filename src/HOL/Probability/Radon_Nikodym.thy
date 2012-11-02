@@ -47,7 +47,7 @@ lemma (in sigma_finite_measure) Ex_finite_integrable_function:
   shows "\<exists>h\<in>borel_measurable M. integral\<^isup>P M h \<noteq> \<infinity> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<infinity>) \<and> (\<forall>x. 0 \<le> h x)"
 proof -
   obtain A :: "nat \<Rightarrow> 'a set" where
-    range: "range A \<subseteq> sets M" and
+    range[measurable]: "range A \<subseteq> sets M" and
     space: "(\<Union>i. A i) = space M" and
     measure: "\<And>i. emeasure M (A i) \<noteq> \<infinity>" and
     disjoint: "disjoint_family A"
@@ -97,10 +97,7 @@ proof -
       assume "x \<notin> space M" then have "\<And>i. x \<notin> A i" using space by auto
       then show "0 \<le> ?h x" by auto
     qed
-  next
-    show "?h \<in> borel_measurable M" using range n
-      by (auto intro!: borel_measurable_psuminf borel_measurable_ereal_times ereal_0_le_mult intro: less_imp_le)
-  qed
+  qed measurable
 qed
 
 subsection "Absolutely continuous"
@@ -298,6 +295,8 @@ lemma (in finite_measure) Radon_Nikodym_finite_measure:
 proof -
   interpret N: finite_measure N by fact
   def G \<equiv> "{g \<in> borel_measurable M. (\<forall>x. 0 \<le> g x) \<and> (\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> N A)}"
+  { fix f have "f \<in> G \<Longrightarrow> f \<in> borel_measurable M" by (auto simp: G_def) }
+  note this[measurable_dest]
   have "(\<lambda>x. 0) \<in> G" unfolding G_def by auto
   hence "G \<noteq> {}" by auto
   { fix f g assume f: "f \<in> G" and g: "g \<in> G"
@@ -329,10 +328,10 @@ proof -
     qed }
   note max_in_G = this
   { fix f assume  "incseq f" and f: "\<And>i. f i \<in> G"
+    then have [measurable]: "\<And>i. f i \<in> borel_measurable M" by (auto simp: G_def)
     have "(\<lambda>x. SUP i. f i x) \<in> G" unfolding G_def
     proof safe
-      show "(\<lambda>x. SUP i. f i x) \<in> borel_measurable M"
-        using f by (auto simp: G_def)
+      show "(\<lambda>x. SUP i. f i x) \<in> borel_measurable M" by measurable
       { fix x show "0 \<le> (SUP i. f i x)"
           using f by (auto simp: G_def intro: SUP_upper2) }
     next
@@ -379,7 +378,7 @@ proof -
   note g_in_G = this
   have "incseq ?g" using gs_not_empty
     by (auto intro!: incseq_SucI le_funI simp add: atMost_Suc)
-  from SUP_in_G[OF this g_in_G] have "f \<in> G" unfolding f_def .
+  from SUP_in_G[OF this g_in_G] have [measurable]: "f \<in> G" unfolding f_def .
   then have [simp, intro]: "f \<in> borel_measurable M" unfolding G_def by auto
   have "integral\<^isup>P M f = (SUP i. integral\<^isup>P M (?g i))" unfolding f_def
     using g_in_G `incseq ?g`
@@ -467,7 +466,7 @@ proof -
       hence "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) =
           (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + b * emeasure M (A \<inter> A0)"
         using `A0 \<in> sets M` `A \<inter> A0 \<in> sets M` A b `f \<in> G`
-        by (simp add: G_def positive_integral_add positive_integral_cmult_indicator) }
+        by (simp add: positive_integral_add positive_integral_cmult_indicator G_def) }
     note f0_eq = this
     { fix A assume A: "A \<in> sets M"
       hence "A \<inter> A0 \<in> sets M" using `A0 \<in> sets M` by auto
@@ -484,8 +483,8 @@ proof -
         using f_le_v N.emeasure_eq_measure[of A] positive_integral_positive[of M "?F A"]
         by (cases "\<integral>\<^isup>+x. ?F A x \<partial>M", cases "N A") auto
       finally have "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) \<le> N A" . }
-    hence "?f0 \<in> G" using `A0 \<in> sets M` b `f \<in> G` unfolding G_def
-      by (auto intro!: ereal_add_nonneg_nonneg)
+    hence "?f0 \<in> G" using `A0 \<in> sets M` b `f \<in> G`
+      by (auto intro!: ereal_add_nonneg_nonneg simp: G_def)
     have int_f_finite: "integral\<^isup>P M f \<noteq> \<infinity>"
       by (metis N.emeasure_finite ereal_infty_less_eq2(1) int_f_eq_y y_le)
     have  "0 < ?M (space M) - emeasure ?Mb (space M)"
@@ -676,6 +675,7 @@ proof -
     with Q_fin show "finite_measure (?N i)"
       by (auto intro!: finite_measureI)
     show "sets (?N i) = sets (?M i)" by (simp add: sets_eq)
+    have [measurable]: "\<And>A. A \<in> sets M \<Longrightarrow> A \<in> sets N" by (simp add: sets_eq)
     show "absolutely_continuous (?M i) (?N i)"
       using `absolutely_continuous M N` `Q i \<in> sets M`
       by (auto simp: absolutely_continuous_def null_sets_density_iff sets_eq
@@ -731,9 +731,7 @@ proof -
       ultimately have "N A = (\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M)"
         using plus_emeasure[of "(\<Union>i. Q i) \<inter> A" N "Q0 \<inter> A"] by (simp add: sets_eq)
       with `A \<in> sets M` borel Q Q0(1) show "emeasure (density M ?f) A = N A"
-        by (subst emeasure_density)
-           (auto intro!: borel_measurable_ereal_add borel_measurable_psuminf measurable_If
-                 simp: subset_eq)
+        by (auto simp: subset_eq emeasure_density)
     qed (simp add: sets_eq)
   qed
 qed
@@ -845,7 +843,7 @@ proof -
     unfolding indicator_def by auto
   have "\<forall>i. AE x in M. ?f (Q i) x = ?f' (Q i) x" using borel Q_fin Q pos
     by (intro finite_density_unique[THEN iffD1] allI)
-       (auto intro!: borel_measurable_ereal_times f measure_eqI Int simp: emeasure_density * subset_eq)
+       (auto intro!: f measure_eqI simp: emeasure_density * subset_eq)
   moreover have "AE x in M. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> ereal" assume borel: "f \<in> borel_measurable M"
@@ -1083,7 +1081,7 @@ qed
 
 lemma (in sigma_finite_measure) RN_deriv:
   assumes "absolutely_continuous M N" "sets N = sets M"
-  shows borel_measurable_RN_deriv: "RN_deriv M N \<in> borel_measurable M" (is ?borel)
+  shows borel_measurable_RN_deriv[measurable]: "RN_deriv M N \<in> borel_measurable M" (is ?borel)
     and density_RN_deriv: "density M (RN_deriv M N) = N" (is ?density)
     and RN_deriv_nonneg: "0 \<le> RN_deriv M N x" (is ?pos)
 proof -
@@ -1164,7 +1162,7 @@ proof (rule RN_deriv_unique)
     qed
   qed
   have "(RN_deriv ?M' ?N') \<circ> T \<in> borel_measurable M"
-    using T ac by (intro measurable_comp[where b="?M'"] M'.borel_measurable_RN_deriv) simp_all
+    using T ac by measurable simp
   then show "(\<lambda>x. RN_deriv ?M' ?N' (T x)) \<in> borel_measurable M"
     by (simp add: comp_def)
   show "AE x in M. 0 \<le> RN_deriv ?M' ?N' (T x)" using M'.RN_deriv_nonneg[OF ac] by auto

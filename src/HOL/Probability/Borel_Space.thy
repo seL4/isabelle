@@ -36,14 +36,14 @@ lemma space_in_borel[measurable]: "UNIV \<in> sets borel"
 lemma pred_Collect_borel[measurable (raw)]: "Sigma_Algebra.pred borel P \<Longrightarrow> {x. P x} \<in> sets borel"
   unfolding borel_def pred_def by auto
 
-lemma borel_open[simp, measurable (raw generic)]:
+lemma borel_open[measurable (raw generic)]:
   assumes "open A" shows "A \<in> sets borel"
 proof -
   have "A \<in> {S. open S}" unfolding mem_Collect_eq using assms .
   thus ?thesis unfolding borel_def by auto
 qed
 
-lemma borel_closed[simp, measurable (raw generic)]:
+lemma borel_closed[measurable (raw generic)]:
   assumes "closed A" shows "A \<in> sets borel"
 proof -
   have "space borel - (- A) \<in> sets borel"
@@ -51,11 +51,11 @@ proof -
   thus ?thesis by simp
 qed
 
-lemma borel_insert[measurable]:
-  "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets (borel :: 'a::t2_space measure)"
+lemma borel_singleton[measurable]:
+  "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets (borel :: 'a::t1_space measure)"
   unfolding insert_def by (rule Un) auto
 
-lemma borel_comp[intro, simp, measurable]: "A \<in> sets borel \<Longrightarrow> - A \<in> sets borel"
+lemma borel_comp[measurable]: "A \<in> sets borel \<Longrightarrow> - A \<in> sets borel"
   unfolding Compl_eq_Diff_UNIV by simp
 
 lemma borel_measurable_vimage:
@@ -74,19 +74,11 @@ proof (rule measurable_measure_of, simp_all)
     using assms[of S] by simp
 qed
 
-lemma borel_singleton[simp, intro]:
-  fixes x :: "'a::t1_space"
-  shows "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets borel"
-  proof (rule insert_in_sets)
-    show "{x} \<in> sets borel"
-      using closed_singleton[of x] by (rule borel_closed)
-  qed simp
-
-lemma borel_measurable_const[simp, intro, measurable (raw)]:
+lemma borel_measurable_const[measurable (raw)]:
   "(\<lambda>x. c) \<in> borel_measurable M"
   by auto
 
-lemma borel_measurable_indicator[simp, intro!]:
+lemma borel_measurable_indicator:
   assumes A: "A \<in> sets M"
   shows "indicator A \<in> borel_measurable M"
   unfolding indicator_def [abs_def] using A
@@ -137,7 +129,7 @@ lemma borel_measurable_euclidean_component:
   "(f :: 'a \<Rightarrow> 'b::euclidean_space) \<in> borel_measurable M \<Longrightarrow>(\<lambda>x. f x $$ i) \<in> borel_measurable M"
   by simp
 
-lemma [simp, intro, measurable]:
+lemma [measurable]:
   fixes a b :: "'a\<Colon>ordered_euclidean_space"
   shows lessThan_borel: "{..< a} \<in> sets borel"
     and greaterThan_borel: "{a <..} \<in> sets borel"
@@ -151,13 +143,13 @@ lemma [simp, intro, measurable]:
   by (blast intro: borel_open borel_closed)+
 
 lemma 
-  shows hafspace_less_borel[simp, intro]: "{x::'a::euclidean_space. a < x $$ i} \<in> sets borel"
-    and hafspace_greater_borel[simp, intro]: "{x::'a::euclidean_space. x $$ i < a} \<in> sets borel"
-    and hafspace_less_eq_borel[simp, intro]: "{x::'a::euclidean_space. a \<le> x $$ i} \<in> sets borel"
-    and hafspace_greater_eq_borel[simp, intro]: "{x::'a::euclidean_space. x $$ i \<le> a} \<in> sets borel"
+  shows hafspace_less_borel: "{x::'a::euclidean_space. a < x $$ i} \<in> sets borel"
+    and hafspace_greater_borel: "{x::'a::euclidean_space. x $$ i < a} \<in> sets borel"
+    and hafspace_less_eq_borel: "{x::'a::euclidean_space. a \<le> x $$ i} \<in> sets borel"
+    and hafspace_greater_eq_borel: "{x::'a::euclidean_space. x $$ i \<le> a} \<in> sets borel"
   by simp_all
 
-lemma borel_measurable_less[simp, intro, measurable]:
+lemma borel_measurable_less[measurable]:
   fixes f :: "'a \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
@@ -169,7 +161,7 @@ proof -
     by simp
 qed
 
-lemma [simp, intro]:
+lemma
   fixes f :: "'a \<Rightarrow> real"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes g[measurable]: "g \<in> borel_measurable M"
@@ -633,7 +625,7 @@ lemma borel_measurable_continuous_on_open:
   using measurable_comp[OF g borel_measurable_continuous_on_open'[OF cont], of c]
   by (simp add: comp_def)
 
-lemma borel_measurable_uminus[simp, intro, measurable (raw)]:
+lemma borel_measurable_uminus[measurable (raw)]:
   fixes g :: "'a \<Rightarrow> real"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. - g x) \<in> borel_measurable M"
@@ -644,7 +636,7 @@ lemma euclidean_component_prod:
   shows "x $$ i = (if i < DIM('a) then fst x $$ i else snd x $$ (i - DIM('a)))"
   unfolding euclidean_component_def basis_prod_def inner_prod_def by auto
 
-lemma borel_measurable_Pair[simp, intro, measurable (raw)]:
+lemma borel_measurable_Pair[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> 'b::ordered_euclidean_space" and g :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
@@ -675,8 +667,8 @@ qed
 
 lemma borel_measurable_continuous_Pair:
   fixes f :: "'a \<Rightarrow> 'b::ordered_euclidean_space" and g :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
-  assumes [simp]: "f \<in> borel_measurable M"
-  assumes [simp]: "g \<in> borel_measurable M"
+  assumes [measurable]: "f \<in> borel_measurable M"
+  assumes [measurable]: "g \<in> borel_measurable M"
   assumes H: "continuous_on UNIV (\<lambda>x. H (fst x) (snd x))"
   shows "(\<lambda>x. H (f x) (g x)) \<in> borel_measurable M"
 proof -
@@ -685,7 +677,7 @@ proof -
     unfolding eq by (rule borel_measurable_continuous_on[OF H]) auto
 qed
 
-lemma borel_measurable_add[simp, intro, measurable (raw)]:
+lemma borel_measurable_add[measurable (raw)]:
   fixes f g :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
@@ -694,7 +686,7 @@ lemma borel_measurable_add[simp, intro, measurable (raw)]:
   by (rule borel_measurable_continuous_Pair)
      (auto intro: continuous_on_fst continuous_on_snd continuous_on_add)
 
-lemma borel_measurable_setsum[simp, intro, measurable (raw)]:
+lemma borel_measurable_setsum[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
@@ -703,14 +695,14 @@ proof cases
   thus ?thesis using assms by induct auto
 qed simp
 
-lemma borel_measurable_diff[simp, intro, measurable (raw)]:
+lemma borel_measurable_diff[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
-  unfolding diff_minus using assms by fast
+  unfolding diff_minus using assms by simp
 
-lemma borel_measurable_times[simp, intro, measurable (raw)]:
+lemma borel_measurable_times[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
@@ -724,7 +716,7 @@ lemma continuous_on_dist:
   shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. dist (f x) (g x))"
   unfolding continuous_on_eq_continuous_within by (auto simp: continuous_dist)
 
-lemma borel_measurable_dist[simp, intro, measurable (raw)]:
+lemma borel_measurable_dist[measurable (raw)]:
   fixes g f :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
@@ -769,7 +761,7 @@ lemma borel_measurable_const_add[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. a + f x ::'a::real_normed_vector) \<in> borel_measurable M"
   using affine_borel_measurable_vector[of f M a 1] by simp
 
-lemma borel_measurable_setprod[simp, intro, measurable (raw)]:
+lemma borel_measurable_setprod[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
@@ -778,53 +770,36 @@ proof cases
   thus ?thesis using assms by induct auto
 qed simp
 
-lemma borel_measurable_inverse[simp, intro, measurable (raw)]:
+lemma borel_measurable_inverse[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. inverse (f x)) \<in> borel_measurable M"
 proof -
-  have *: "\<And>x::real. inverse x = (if x \<in> UNIV - {0} then inverse x else 0)" by auto
-  show ?thesis
-    apply (subst *)
-    apply (rule borel_measurable_continuous_on_open)
-    apply (auto intro!: f continuous_on_inverse continuous_on_id)
-    done
+  have "(\<lambda>x::real. if x \<in> UNIV - {0} then inverse x else 0) \<in> borel_measurable borel"
+    by (intro borel_measurable_continuous_on_open' continuous_on_inverse continuous_on_id) auto
+  also have "(\<lambda>x::real. if x \<in> UNIV - {0} then inverse x else 0) = inverse" by (intro ext) auto
+  finally show ?thesis using f by simp
 qed
 
-lemma borel_measurable_divide[simp, intro, measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> real"
-  assumes "f \<in> borel_measurable M"
-  and "g \<in> borel_measurable M"
-  shows "(\<lambda>x. f x / g x) \<in> borel_measurable M"
-  unfolding field_divide_inverse
-  by (rule borel_measurable_inverse borel_measurable_times assms)+
+lemma borel_measurable_divide[measurable (raw)]:
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. f x / g x::real) \<in> borel_measurable M"
+  by (simp add: field_divide_inverse)
 
-lemma borel_measurable_max[intro, simp, measurable (raw)]:
-  fixes f g :: "'a \<Rightarrow> real"
-  assumes "f \<in> borel_measurable M"
-  assumes "g \<in> borel_measurable M"
-  shows "(\<lambda>x. max (g x) (f x)) \<in> borel_measurable M"
-  unfolding max_def by (auto intro!: assms measurable_If)
+lemma borel_measurable_max[measurable (raw)]:
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. max (g x) (f x) :: real) \<in> borel_measurable M"
+  by (simp add: max_def)
 
-lemma borel_measurable_min[intro, simp, measurable (raw)]:
-  fixes f g :: "'a \<Rightarrow> real"
-  assumes "f \<in> borel_measurable M"
-  assumes "g \<in> borel_measurable M"
-  shows "(\<lambda>x. min (g x) (f x)) \<in> borel_measurable M"
-  unfolding min_def by (auto intro!: assms measurable_If)
+lemma borel_measurable_min[measurable (raw)]:
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. min (g x) (f x) :: real) \<in> borel_measurable M"
+  by (simp add: min_def)
 
-lemma borel_measurable_abs[simp, intro, measurable (raw)]:
-  assumes "f \<in> borel_measurable M"
-  shows "(\<lambda>x. \<bar>f x :: real\<bar>) \<in> borel_measurable M"
-proof -
-  have *: "\<And>x. \<bar>f x\<bar> = max 0 (f x) + max 0 (- f x)" by (simp add: max_def)
-  show ?thesis unfolding * using assms by auto
-qed
+lemma borel_measurable_abs[measurable (raw)]:
+  "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. \<bar>f x :: real\<bar>) \<in> borel_measurable M"
+  unfolding abs_real_def by simp
 
-lemma borel_measurable_nth[simp, intro, measurable (raw)]:
+lemma borel_measurable_nth[measurable (raw)]:
   "(\<lambda>x::real^'n. x $ i) \<in> borel_measurable borel"
-  using borel_measurable_euclidean_component'
-  unfolding nth_conv_component by auto
+  by (simp add: nth_conv_component)
 
 lemma convex_measurable:
   fixes a b :: real
@@ -843,7 +818,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma borel_measurable_ln[simp, intro, measurable (raw)]:
+lemma borel_measurable_ln[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. ln (f x)) \<in> borel_measurable M"
 proof -
@@ -864,7 +839,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma borel_measurable_log[simp, intro, measurable (raw)]:
+lemma borel_measurable_log[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. log (g x) (f x)) \<in> borel_measurable M"
   unfolding log_def by auto
 
@@ -902,17 +877,17 @@ lemma measurable_real_ceiling[measurable]:
 lemma borel_measurable_real_floor: "(\<lambda>x::real. real \<lfloor>x\<rfloor>) \<in> borel_measurable borel"
   by simp
 
-lemma borel_measurable_real_natfloor[intro, simp]:
+lemma borel_measurable_real_natfloor:
   "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. real (natfloor (f x))) \<in> borel_measurable M"
   by simp
 
 subsection "Borel space on the extended reals"
 
-lemma borel_measurable_ereal[simp, intro, measurable (raw)]:
+lemma borel_measurable_ereal[measurable (raw)]:
   assumes f: "f \<in> borel_measurable M" shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M"
   using continuous_on_ereal f by (rule borel_measurable_continuous_on)
 
-lemma borel_measurable_real_of_ereal[simp, intro, measurable (raw)]:
+lemma borel_measurable_real_of_ereal[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> ereal" 
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. real (f x)) \<in> borel_measurable M"
@@ -937,10 +912,10 @@ proof -
 qed
 
 lemma
-  fixes f :: "'a \<Rightarrow> ereal" assumes f[simp]: "f \<in> borel_measurable M"
-  shows borel_measurable_ereal_abs[intro, simp, measurable(raw)]: "(\<lambda>x. \<bar>f x\<bar>) \<in> borel_measurable M"
-    and borel_measurable_ereal_inverse[simp, intro, measurable(raw)]: "(\<lambda>x. inverse (f x) :: ereal) \<in> borel_measurable M"
-    and borel_measurable_uminus_ereal[intro, measurable(raw)]: "(\<lambda>x. - f x :: ereal) \<in> borel_measurable M"
+  fixes f :: "'a \<Rightarrow> ereal" assumes f[measurable]: "f \<in> borel_measurable M"
+  shows borel_measurable_ereal_abs[measurable(raw)]: "(\<lambda>x. \<bar>f x\<bar>) \<in> borel_measurable M"
+    and borel_measurable_ereal_inverse[measurable(raw)]: "(\<lambda>x. inverse (f x) :: ereal) \<in> borel_measurable M"
+    and borel_measurable_uminus_ereal[measurable(raw)]: "(\<lambda>x. - f x :: ereal) \<in> borel_measurable M"
   by (auto simp del: abs_real_of_ereal simp: borel_measurable_ereal_cases[OF f] measurable_If)
 
 lemma borel_measurable_uminus_eq_ereal[simp]:
@@ -968,15 +943,18 @@ proof -
     by (subst *) (simp del: space_borel split del: split_if)
 qed
 
-lemma
+lemma [measurable]:
   fixes f g :: "'a \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
-  shows borel_measurable_ereal_le[intro,simp,measurable(raw)]: "{x \<in> space M. f x \<le> g x} \<in> sets M"
-    and borel_measurable_ereal_less[intro,simp,measurable(raw)]: "{x \<in> space M. f x < g x} \<in> sets M"
-    and borel_measurable_ereal_eq[intro,simp,measurable(raw)]: "{w \<in> space M. f w = g w} \<in> sets M"
-    and borel_measurable_ereal_neq[intro,simp]: "{w \<in> space M. f w \<noteq> g w} \<in> sets M"
-  using f g by (auto simp: f g set_Collect_ereal2[OF f g] intro!: sets_Collect_neg)
+  shows borel_measurable_ereal_le: "{x \<in> space M. f x \<le> g x} \<in> sets M"
+    and borel_measurable_ereal_less: "{x \<in> space M. f x < g x} \<in> sets M"
+    and borel_measurable_ereal_eq: "{w \<in> space M. f w = g w} \<in> sets M"
+  using f g by (simp_all add: set_Collect_ereal2)
+
+lemma borel_measurable_ereal_neq:
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> {w \<in> space M. f w \<noteq> (g w :: ereal)} \<in> sets M"
+  by simp
 
 lemma borel_measurable_ereal_iff:
   shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M"
@@ -1102,24 +1080,24 @@ lemma
     and borel_measurable_ereal_neq_const: "{x\<in>space M. f x \<noteq> c} \<in> sets M"
   using f by auto
 
-lemma [intro, simp, measurable(raw)]:
+lemma [measurable(raw)]:
   fixes f :: "'a \<Rightarrow> ereal"
-  assumes [simp]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  assumes [measurable]: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
   shows borel_measurable_ereal_add: "(\<lambda>x. f x + g x) \<in> borel_measurable M"
     and borel_measurable_ereal_times: "(\<lambda>x. f x * g x) \<in> borel_measurable M"
     and borel_measurable_ereal_min: "(\<lambda>x. min (g x) (f x)) \<in> borel_measurable M"
     and borel_measurable_ereal_max: "(\<lambda>x. max (g x) (f x)) \<in> borel_measurable M"
-  by (auto simp add: borel_measurable_ereal2 measurable_If min_def max_def)
+  by (simp_all add: borel_measurable_ereal2 min_def max_def)
 
-lemma [simp, intro, measurable(raw)]:
+lemma [measurable(raw)]:
   fixes f g :: "'a \<Rightarrow> ereal"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows borel_measurable_ereal_diff: "(\<lambda>x. f x - g x) \<in> borel_measurable M"
     and borel_measurable_ereal_divide: "(\<lambda>x. f x / g x) \<in> borel_measurable M"
-  unfolding minus_ereal_def divide_ereal_def using assms by auto
+  using assms by (simp_all add: minus_ereal_def divide_ereal_def)
 
-lemma borel_measurable_ereal_setsum[simp, intro,measurable (raw)]:
+lemma borel_measurable_ereal_setsum[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
@@ -1129,7 +1107,7 @@ proof cases
     by induct auto
 qed simp
 
-lemma borel_measurable_ereal_setprod[simp, intro,measurable (raw)]:
+lemma borel_measurable_ereal_setprod[measurable (raw)]:
   fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
@@ -1138,7 +1116,7 @@ proof cases
   thus ?thesis using assms by induct auto
 qed simp
 
-lemma borel_measurable_SUP[simp, intro,measurable (raw)]:
+lemma borel_measurable_SUP[measurable (raw)]:
   fixes f :: "'d\<Colon>countable \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. SUP i : A. f i x) \<in> borel_measurable M" (is "?sup \<in> borel_measurable M")
@@ -1151,7 +1129,7 @@ proof
     using assms by auto
 qed
 
-lemma borel_measurable_INF[simp, intro,measurable (raw)]:
+lemma borel_measurable_INF[measurable (raw)]:
   fixes f :: "'d :: countable \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. i \<in> A \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. INF i : A. f i x) \<in> borel_measurable M" (is "?inf \<in> borel_measurable M")
@@ -1164,12 +1142,44 @@ proof
     using assms by auto
 qed
 
-lemma [simp, intro, measurable (raw)]:
+lemma [measurable (raw)]:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
   assumes "\<And>i. f i \<in> borel_measurable M"
   shows borel_measurable_liminf: "(\<lambda>x. liminf (\<lambda>i. f i x)) \<in> borel_measurable M"
     and borel_measurable_limsup: "(\<lambda>x. limsup (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding liminf_SUPR_INFI limsup_INFI_SUPR using assms by auto
+
+lemma sets_Collect_eventually_sequientially[measurable]:
+  "(\<And>i. {x\<in>space M. P x i} \<in> sets M) \<Longrightarrow> {x\<in>space M. eventually (P x) sequentially} \<in> sets M"
+  unfolding eventually_sequentially by simp
+
+lemma convergent_ereal:
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "convergent X \<longleftrightarrow> limsup X = liminf X"
+  using ereal_Liminf_eq_Limsup_iff[of sequentially]
+  by (auto simp: convergent_def)
+
+lemma convergent_ereal_limsup:
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "convergent X \<Longrightarrow> limsup X = lim X"
+  by (auto simp: convergent_def limI lim_imp_Limsup)
+
+lemma sets_Collect_ereal_convergent[measurable]: 
+  fixes f :: "nat \<Rightarrow> 'a => ereal"
+  assumes f[measurable]: "\<And>i. f i \<in> borel_measurable M"
+  shows "{x\<in>space M. convergent (\<lambda>i. f i x)} \<in> sets M"
+  unfolding convergent_ereal by auto
+
+lemma borel_measurable_extreal_lim[measurable (raw)]:
+  fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
+  assumes [measurable]: "\<And>i. f i \<in> borel_measurable M"
+  shows "(\<lambda>x. lim (\<lambda>i. f i x)) \<in> borel_measurable M"
+proof -
+  have "\<And>x. lim (\<lambda>i. f i x) = (if convergent (\<lambda>i. f i x) then limsup (\<lambda>i. f i x) else (THE i. False))"
+    using convergent_ereal_limsup by (simp add: lim_def convergent_def)
+  then show ?thesis
+    by simp
+qed
 
 lemma borel_measurable_ereal_LIMSEQ:
   fixes u :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
@@ -1179,17 +1189,14 @@ lemma borel_measurable_ereal_LIMSEQ:
 proof -
   have "\<And>x. x \<in> space M \<Longrightarrow> u' x = liminf (\<lambda>n. u n x)"
     using u' by (simp add: lim_imp_Liminf[symmetric])
-  then show ?thesis by (simp add: u cong: measurable_cong)
+  with u show ?thesis by (simp cong: measurable_cong)
 qed
 
-lemma borel_measurable_psuminf[simp, intro, measurable (raw)]:
+lemma borel_measurable_extreal_suminf[measurable (raw)]:
   fixes f :: "nat \<Rightarrow> 'a \<Rightarrow> ereal"
-  assumes "\<And>i. f i \<in> borel_measurable M" and pos: "\<And>i x. x \<in> space M \<Longrightarrow> 0 \<le> f i x"
+  assumes [measurable]: "\<And>i. f i \<in> borel_measurable M"
   shows "(\<lambda>x. (\<Sum>i. f i x)) \<in> borel_measurable M"
-  apply (subst measurable_cong)
-  apply (subst suminf_ereal_eq_SUPR)
-  apply (rule pos)
-  using assms by auto
+  unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
 section "LIMSEQ is borel measurable"
 
