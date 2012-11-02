@@ -395,6 +395,81 @@ lemma (in prob_space) prob_x_eq_1_imp_prob_y_eq_0:
   shows "prob {y} = 0"
   using prob_one_inter[of "{y}" "{x}"] assms by auto
 
+subsection  {* Introduce binder for probability *}
+
+syntax
+  "_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("('\<P>'(_ in _. _'))")
+
+translations
+  "\<P>(x in M. P)" => "CONST measure M {x \<in> CONST space M. P}"
+
+definition
+  "cond_prob M P Q = \<P>(\<omega> in M. P \<omega> \<and> Q \<omega>) / \<P>(\<omega> in M. Q \<omega>)"
+
+syntax
+  "_conditional_prob" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("('\<P>'(_ in _. _ \<bar>/ _'))")
+
+translations
+  "\<P>(x in M. P \<bar> Q)" => "CONST cond_prob M (\<lambda>x. P) (\<lambda>x. Q)"
+
+lemma (in prob_space) AE_E_prob:
+  assumes ae: "AE x in M. P x"
+  obtains S where "S \<subseteq> {x \<in> space M. P x}" "S \<in> events" "prob S = 1"
+proof -
+  from ae[THEN AE_E] guess N .
+  then show thesis
+    by (intro that[of "space M - N"])
+       (auto simp: prob_compl prob_space emeasure_eq_measure)
+qed
+
+lemma (in prob_space) prob_neg: "{x\<in>space M. P x} \<in> events \<Longrightarrow> \<P>(x in M. \<not> P x) = 1 - \<P>(x in M. P x)"
+  by (auto intro!: arg_cong[where f=prob] simp add: prob_compl[symmetric])
+
+lemma (in prob_space) prob_eq_AE:
+  "(AE x in M. P x \<longleftrightarrow> Q x) \<Longrightarrow> {x\<in>space M. P x} \<in> events \<Longrightarrow> {x\<in>space M. Q x} \<in> events \<Longrightarrow> \<P>(x in M. P x) = \<P>(x in M. Q x)"
+  by (rule finite_measure_eq_AE) auto
+
+lemma (in prob_space) prob_eq_0_AE:
+  assumes not: "AE x in M. \<not> P x" shows "\<P>(x in M. P x) = 0"
+proof cases
+  assume "{x\<in>space M. P x} \<in> events"
+  with not have "\<P>(x in M. P x) = \<P>(x in M. False)"
+    by (intro prob_eq_AE) auto
+  then show ?thesis by simp
+qed (simp add: measure_notin_sets)
+
+lemma (in prob_space) prob_sums:
+  assumes P: "\<And>n. {x\<in>space M. P n x} \<in> events"
+  assumes Q: "{x\<in>space M. Q x} \<in> events"
+  assumes ae: "AE x in M. (\<forall>n. P n x \<longrightarrow> Q x) \<and> (Q x \<longrightarrow> (\<exists>!n. P n x))"
+  shows "(\<lambda>n. \<P>(x in M. P n x)) sums \<P>(x in M. Q x)"
+proof -
+  from ae[THEN AE_E_prob] guess S . note S = this
+  then have disj: "disjoint_family (\<lambda>n. {x\<in>space M. P n x} \<inter> S)"
+    by (auto simp: disjoint_family_on_def)
+  from S have ae_S:
+    "AE x in M. x \<in> {x\<in>space M. Q x} \<longleftrightarrow> x \<in> (\<Union>n. {x\<in>space M. P n x} \<inter> S)"
+    "\<And>n. AE x in M. x \<in> {x\<in>space M. P n x} \<longleftrightarrow> x \<in> {x\<in>space M. P n x} \<inter> S"
+    using ae by (auto dest!: AE_prob_1)
+  from ae_S have *:
+    "\<P>(x in M. Q x) = prob (\<Union>n. {x\<in>space M. P n x} \<inter> S)"
+    using P Q S by (intro finite_measure_eq_AE) auto
+  from ae_S have **:
+    "\<And>n. \<P>(x in M. P n x) = prob ({x\<in>space M. P n x} \<inter> S)"
+    using P Q S by (intro finite_measure_eq_AE) auto
+  show ?thesis
+    unfolding * ** using S P disj
+    by (intro finite_measure_UNION) auto
+qed
+
+lemma (in prob_space) cond_prob_eq_AE:
+  assumes P: "AE x in M. Q x \<longrightarrow> P x \<longleftrightarrow> P' x" "{x\<in>space M. P x} \<in> events" "{x\<in>space M. P' x} \<in> events"
+  assumes Q: "AE x in M. Q x \<longleftrightarrow> Q' x" "{x\<in>space M. Q x} \<in> events" "{x\<in>space M. Q' x} \<in> events"
+  shows "cond_prob M P Q = cond_prob M P' Q'"
+  using P Q
+  by (auto simp: cond_prob_def intro!: arg_cong2[where f="op /"] prob_eq_AE sets_Collect_conj)
+
+
 lemma (in prob_space) joint_distribution_Times_le_fst:
   "random_variable MX X \<Longrightarrow> random_variable MY Y \<Longrightarrow> A \<in> sets MX \<Longrightarrow> B \<in> sets MY
     \<Longrightarrow> emeasure (distr M (MX \<Otimes>\<^isub>M MY) (\<lambda>x. (X x, Y x))) (A \<times> B) \<le> emeasure (distr M MX X) A"
@@ -587,7 +662,7 @@ proof safe
       by (auto simp add: eq measurable_Pair measurable_compose[OF _ f(1)] positive_integral_multc
                intro!: positive_integral_cong)
     also have "\<dots> = emeasure ?R E"
-      by (auto simp add: emeasure_density ST.positive_integral_fst_measurable(2)[symmetric]
+      by (auto simp add: emeasure_density T.positive_integral_fst_measurable(2)[symmetric]
                intro!: positive_integral_cong split: split_indicator)
     finally show "emeasure ?L E = emeasure ?R E" .
   qed
@@ -661,7 +736,7 @@ proof safe
     unfolding measurable_pair_iff by (simp add: comp_def)
 
   from Pxy show borel: "Px \<in> borel_measurable S"
-    by (auto intro!: ST.positive_integral_fst_measurable dest!: distributed_borel_measurable simp: Px_def)
+    by (auto intro!: T.positive_integral_fst_measurable dest!: distributed_borel_measurable simp: Px_def)
 
   interpret Pxy: prob_space "distr M (S \<Otimes>\<^isub>M T) (\<lambda>x. (X x, Y x))"
     using XY by (rule prob_space_distr)
@@ -679,7 +754,7 @@ proof safe
       using Pxy by (simp add: distributed_def)
     also have "\<dots> = \<integral>\<^isup>+ x. \<integral>\<^isup>+ y. Pxy (x, y) * indicator (A \<times> space T) (x, y) \<partial>T \<partial>S"
       using A borel Pxy
-      by (simp add: emeasure_density ST.positive_integral_fst_measurable(2)[symmetric] distributed_def)
+      by (simp add: emeasure_density T.positive_integral_fst_measurable(2)[symmetric] distributed_def)
     also have "\<dots> = \<integral>\<^isup>+ x. Px x * indicator A x \<partial>S"
       apply (rule positive_integral_cong_AE)
       using Pxy[THEN distributed_AE, THEN ST.AE_pair] AE_space

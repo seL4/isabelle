@@ -1095,6 +1095,10 @@ proof (rule emeasure_measure_of_sigma)
   show "sigma_algebra (space N) (sets N)" ..
 qed fact
 
+lemma measure_distr:
+  "f \<in> measurable M N \<Longrightarrow> S \<in> sets N \<Longrightarrow> measure (distr M N f) S = measure M (f -` S \<inter> space M)"
+  by (simp add: emeasure_distr measure_def)
+
 lemma AE_distrD:
   assumes f: "f \<in> measurable M M'"
     and AE: "AE x in distr M M' f. P x"

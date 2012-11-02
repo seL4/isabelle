@@ -1403,6 +1403,11 @@ proof -
   finally show ?thesis .
 qed
 
+lemma AE_iff_positive_integral: 
+  "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> integral\<^isup>P M (indicator {x. \<not> P x}) = 0"
+  by (subst positive_integral_0_iff_AE)
+     (auto simp: one_ereal_def zero_ereal_def sets_Collect_neg indicator_def[abs_def] measurable_If)
+
 lemma positive_integral_const_If:
   "(\<integral>\<^isup>+x. a \<partial>M) = (if 0 \<le> a then a * (emeasure M) (space M) else 0)"
   by (auto intro!: positive_integral_0_iff_AE[THEN iffD2])

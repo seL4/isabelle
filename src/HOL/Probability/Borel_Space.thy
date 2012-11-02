@@ -91,6 +91,11 @@ lemma borel_measurable_indicator[simp, intro!]:
   unfolding indicator_def [abs_def] using A
   by (auto intro!: measurable_If_set)
 
+lemma borel_measurable_indicator': 
+  "{x\<in>space M. x \<in> A} \<in> sets M \<Longrightarrow> indicator A \<in> borel_measurable M"
+  unfolding indicator_def[abs_def]
+  by (auto intro!: measurable_If)
+
 lemma borel_measurable_indicator_iff:
   "(indicator A :: 'a \<Rightarrow> 'x::{t1_space, zero_neq_one}) \<in> borel_measurable M \<longleftrightarrow> A \<inter> space M \<in> sets M"
     (is "?I \<in> borel_measurable M \<longleftrightarrow> _")
