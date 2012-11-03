@@ -3,33 +3,9 @@
 \label{chap:simplification}
 \index{simplification|(}
 
-This chapter describes Isabelle's generic simplification package.  It performs
-conditional and unconditional rewriting and uses contextual information
-(`local assumptions').  It provides several general hooks, which can provide
-automatic case splits during rewriting, for example.  The simplifier is
-already set up for many of Isabelle's logics: FOL, ZF, HOL, HOLCF.
-
-The first section is a quick introduction to the simplifier that
-should be sufficient to get started.  The later sections explain more
-advanced features.
-
 
 \section{Simplification for dummies}
 \label{sec:simp-for-dummies}
-
-Basic use of the simplifier is particularly easy because each theory
-is equipped with sensible default information controlling the rewrite
-process --- namely the implicit {\em current
-  simpset}\index{simpset!current}.  A suite of simple commands is
-provided that refer to the implicit simpset of the current theory
-context.
-
-\begin{warn}
-  Make sure that you are working within the correct theory context.
-  Executing proofs interactively, or loading them from ML files
-  without associated theories may require setting the current theory
-  manually via the \ttindex{context} command.
-\end{warn}
 
 \subsection{Simplification tactics} \label{sec:simp-for-dummies-tacs}
 \begin{ttbox}
@@ -37,8 +13,6 @@ Simp_tac          : int -> tactic
 Asm_simp_tac      : int -> tactic
 Full_simp_tac     : int -> tactic
 Asm_full_simp_tac : int -> tactic
-trace_simp        : bool ref \hfill{\bf initially false}
-debug_simp        : bool ref \hfill{\bf initially false}
 \end{ttbox}
 
 \begin{ttdescription}
@@ -60,12 +34,6 @@ debug_simp        : bool ref \hfill{\bf initially false}
 \footnote{\texttt{Asm_full_simp_tac} used to process the assumptions from
   left to right. For backwards compatibilty reasons only there is now
   \texttt{Asm_lr_simp_tac} that behaves like the old \texttt{Asm_full_simp_tac}.}
-\item[set \ttindexbold{trace_simp};] makes the simplifier output internal
-  operations.  This includes rewrite steps, but also bookkeeping like
-  modifications of the simpset.
-\item[set \ttindexbold{debug_simp};] makes the simplifier output some extra
-  information about internal operations.  This includes any attempted
-  invocation of simplification procedures.
 \end{ttdescription}
 
 \medskip
@@ -121,14 +89,6 @@ whereas applying the same tactic to
 {\out  1. [| y = x; f x = f y; P (f x) |] ==> Q}
 \end{ttbox}
 terminates.
-
-\medskip
-
-Using the simplifier effectively may take a bit of experimentation.
-Set the \verb$trace_simp$\index{tracing!of simplification} flag to get
-a better idea of what is going on.  The resulting output can be
-enormous, especially since invocations of the simplifier are often
-nested (e.g.\ when solving conditions of rewrite rules).
 
 
 \subsection{Modifying the current simpset}

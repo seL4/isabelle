@@ -377,7 +377,22 @@ text {*
 
 section {* The Simplifier \label{sec:simplifier} *}
 
-subsection {* Simplification methods *}
+text {* The Simplifier performs conditional and unconditional
+  rewriting and uses contextual information: rule declarations in the
+  background theory or local proof context are taken into account, as
+  well as chained facts and subgoal premises (``local assumptions'').
+  There are several general hooks that allow to modify the
+  simplification strategy, or incorporate other proof tools that solve
+  sub-problems, produce rewrite rules on demand etc.
+
+  The default Simplifier setup of major object logics (HOL, HOLCF,
+  FOL, ZF) makes the Simplifier ready for immediate use, without
+  engaging into the internal structures.  Thus it serves as
+  general-purpose proof tool with the main focus on equational
+  reasoning, and a bit more than that.  *}
+
+
+subsection {* Simplification methods \label{sec:simp-meth} *}
 
 text {*
   \begin{matharray}{rcl}
@@ -391,21 +406,34 @@ text {*
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
-    @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
-      'split' (() | 'add' | 'del')) ':' @{syntax thmrefs}
+    @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'split' (() | 'add' | 'del') |
+      'cong' (() | 'add' | 'del')) ':' @{syntax thmrefs}
   "}
 
   \begin{description}
 
-  \item @{method simp} invokes the Simplifier, after declaring
-  additional rules according to the arguments given.  Note that the
-  @{text only} modifier first removes all other rewrite rules,
-  congruences, and looper tactics (including splits), and then behaves
-  like @{text add}.
+  \item @{method simp} invokes the Simplifier on the first subgoal,
+  after inserting chained facts as additional goal premises; further
+  rule declarations may be included via @{text "(simp add: facts)"}.
+  The proof method fails if the subgoal remains unchanged after
+  simplification.
 
-  \medskip The @{text cong} modifiers add or delete Simplifier
-  congruence rules (see also \secref{sec:simp-cong}), the default is
-  to add.
+  Note that the original goal premises and chained facts are subject
+  to simplification themselves, while declarations via @{text
+  "add"}/@{text "del"} merely follow the policies of the object-logic
+  to extract rewrite rules from theorems, without further
+  simplification.  This may lead to slightly different behavior in
+  either case, which might be required precisely like that in some
+  boundary situations to perform the intended simplification step!
+
+  \medskip The @{text only} modifier first removes all other rewrite
+  rules, looper tactics (including split rules), congruence rules, and
+  then behaves like @{text add}.  Implicit solvers remain, which means
+  that trivial rules like reflexivity or introduction of @{text
+  "True"} are available to solve the simplified subgoals, but also
+  non-trivial tools like linear arithmetic in HOL.  The latter may
+  lead to some surprise of the meaning of ``only'' in Isabelle/HOL
+  compared to English!
 
   \medskip The @{text split} modifiers add or delete rules for the
   Splitter (see also \cite{isabelle-ref}), the default is to add.
@@ -413,36 +441,60 @@ text {*
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
   ZF do this already).
 
+  \medskip The @{text cong} modifiers add or delete Simplifier
+  congruence rules (see also \secref{sec:simp-rules}); the default is
+  to add.
+
   \item @{method simp_all} is similar to @{method simp}, but acts on
-  all goals (backwards from the last to the first one).
+  all goals, working backwards from the last to the first one as usual
+  in Isabelle.\footnote{The order is irrelevant for goals without
+  schematic variables, so simplification might actually be performed
+  in parallel here.}
+
+  Chained facts are inserted into all subgoals, before the
+  simplification process starts.  Further rule declarations are the
+  same as for @{method simp}.
+
+  The proof method fails if all subgoals remain unchanged after
+  simplification.
 
   \end{description}
 
-  By default the Simplifier methods take local assumptions fully into
-  account, using equational assumptions in the subsequent
-  normalization process, or simplifying assumptions themselves (cf.\
-  @{ML asm_full_simp_tac} in \cite{isabelle-ref}).  In structured
-  proofs this is usually quite well behaved in practice: just the
-  local premises of the actual goal are involved, additional facts may
-  be inserted via explicit forward-chaining (via @{command "then"},
-  @{command "from"}, @{command "using"} etc.).
+  By default the Simplifier methods above take local assumptions fully
+  into account, using equational assumptions in the subsequent
+  normalization process, or simplifying assumptions themselves.
+  Further options allow to fine-tune the behavior of the Simplifier
+  in this respect, corresponding to a variety of ML tactics as
+  follows.\footnote{Unlike the corresponding Isar proof methods, the
+  ML tactics do not insist in changing the goal state.}
 
-  Additional Simplifier options may be specified to tune the behavior
-  further (mostly for unstructured scripts with many accidental local
-  facts): ``@{text "(no_asm)"}'' means assumptions are ignored
-  completely (cf.\ @{ML simp_tac}), ``@{text "(no_asm_simp)"}'' means
-  assumptions are used in the simplification of the conclusion but are
-  not themselves simplified (cf.\ @{ML asm_simp_tac}), and ``@{text
-  "(no_asm_use)"}'' means assumptions are simplified but are not used
-  in the simplification of each other or the conclusion (cf.\ @{ML
-  full_simp_tac}).  For compatibility reasons, there is also an option
-  ``@{text "(asm_lr)"}'', which means that an assumption is only used
-  for simplifying assumptions which are to the right of it (cf.\ @{ML
-  asm_lr_simp_tac}).
+  \begin{center}
+  \small
+  \begin{tabular}{|l|l|p{0.3\textwidth}|}
+  \hline
+  Isar method & ML tactic & behavior \\\hline
 
-  The configuration option @{text "depth_limit"} limits the number of
-  recursive invocations of the simplifier during conditional
-  rewriting.
+  @{text "(simp (no_asm))"} & @{ML simp_tac} & assumptions are ignored
+  completely \\\hline
+
+  @{text "(simp (no_asm_simp))"} & @{ML asm_simp_tac} & assumptions
+  are used in the simplification of the conclusion but are not
+  themselves simplified \\\hline
+
+  @{text "(simp (no_asm_use))"} & @{ML full_simp_tac} & assumptions
+  are simplified but are not used in the simplification of each other
+  or the conclusion \\\hline
+
+  @{text "(simp)"} & @{ML asm_full_simp_tac} & assumptions are used in
+  the simplification of the conclusion and to simplify other
+  assumptions \\\hline
+
+  @{text "(simp (asm_lr))"} & @{ML asm_lr_simp_tac} & compatibility
+  mode: an assumption is only used for simplifying assumptions which
+  are to the right of it \\\hline
+
+  \end{tabular}
+  \end{center}
 
   \medskip The Splitter package is usually configured to work as part
   of the Simplifier.  The effect of repeatedly applying @{ML
@@ -452,50 +504,44 @@ text {*
 *}
 
 
-subsection {* Declaring rules *}
+subsection {* Declaring rules \label{sec:simp-rules} *}
 
 text {*
   \begin{matharray}{rcl}
     @{command_def "print_simpset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def simp} & : & @{text attribute} \\
     @{attribute_def split} & : & @{text attribute} \\
+    @{attribute_def cong} & : & @{text attribute} \\
   \end{matharray}
 
   @{rail "
-    (@@{attribute simp} | @@{attribute split}) (() | 'add' | 'del')
+    (@@{attribute simp} | @@{attribute split} | @@{attribute cong})
+      (() | 'add' | 'del')
   "}
 
   \begin{description}
 
   \item @{command "print_simpset"} prints the collection of rules
   declared to the Simplifier, which is also known as ``simpset''
-  internally \cite{isabelle-ref}.
+  internally.
+
+  For historical reasons, simpsets may occur independently from the
+  current context, but are conceptually dependent on it.  When the
+  Simplifier is invoked via one of its main entry points in the Isar
+  source language (as proof method \secref{sec:simp-meth} or rule
+  attribute \secref{sec:simp-meth}), its simpset is derived from the
+  current proof context, and carries a back-reference to that for
+  other tools that might get invoked internally (e.g.\ simplification
+  procedures \secref{sec:simproc}).  A mismatch of the context of the
+  simpset and the context of the problem being simplified may lead to
+  unexpected results.
 
   \item @{attribute simp} declares simplification rules.
 
   \item @{attribute split} declares case split rules.
 
-  \end{description}
-*}
-
-
-subsection {* Congruence rules\label{sec:simp-cong} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{attribute_def cong} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    @@{attribute cong} (() | 'add' | 'del')
-  "}
-
-  \begin{description}
-
   \item @{attribute cong} declares congruence rules to the Simplifier
   context.
-
-  \end{description}
 
   Congruence rules are equalities of the form @{text [display]
   "\<dots> \<Longrightarrow> f ?x\<^sub>1 \<dots> ?x\<^sub>n = f ?y\<^sub>1 \<dots> ?y\<^sub>n"}
@@ -532,10 +578,47 @@ text {*
   Only the first argument is simplified; the others remain unchanged.
   This can make simplification much faster, but may require an extra
   case split over the condition @{text "?q"} to prove the goal.
+
+  \end{description}
 *}
 
 
-subsection {* Simplification procedures *}
+subsection {* Configuration options \label{sec:simp-config} *}
+
+text {*
+  \begin{tabular}{rcll}
+    @{attribute_def simp_depth_limit} & : & @{text attribute} & default @{text 100} \\
+    @{attribute_def simp_trace} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def simp_trace_depth_limit} & : & @{text attribute} & default @{text 1} \\
+    @{attribute_def simp_debug} & : & @{text attribute} & default @{text false} \\
+  \end{tabular}
+  \medskip
+
+  These configurations options control further aspects of the Simplifier.
+  See also \secref{sec:config}.
+
+  \begin{description}
+
+  \item @{attribute simp_depth_limit} limits the number of recursive
+  invocations of the Simplifier during conditional rewriting.
+
+  \item @{attribute simp_trace} makes the Simplifier output internal
+  operations.  This includes rewrite steps, but also bookkeeping like
+  modifications of the simpset.
+
+  \item @{attribute simp_trace_depth_limit} limits the effect of
+  @{attribute simp_trace} to the given depth of recursive Simplifier
+  invocations (when solving conditions of rewrite rules).
+
+  \item @{attribute simp_debug} makes the Simplifier output some extra
+  information about internal operations.  This includes any attempted
+  invocation of simplification procedures.
+
+  \end{description}
+*}
+
+
+subsection {* Simplification procedures \label{sec:simproc} *}
 
 text {* Simplification procedures are ML functions that produce proven
   rewrite rules on demand.  They are associated with higher-order
@@ -616,7 +699,7 @@ text {* Since the Simplifier applies simplification procedures
   reasonably fast. *}
 
 
-subsection {* Forward simplification *}
+subsection {* Forward simplification \label{sec:simp-forward} *}
 
 text {*
   \begin{matharray}{rcl}
