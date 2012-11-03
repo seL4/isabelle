@@ -24,8 +24,9 @@ sig
   val not_elim: thm  (* ~P ==> P ==> R *)
   val swap: thm  (* ~ P ==> (~ R ==> P) ==> R *)
   val classical: thm  (* (~ P ==> P) ==> P *)
-  val sizef: thm -> int  (* size function for BEST_FIRST *)
-  val hyp_subst_tacs: (int -> tactic) list
+  val sizef: thm -> int  (* size function for BEST_FIRST, typically size_of_thm *)
+  val hyp_subst_tacs: (int -> tactic) list (* optional tactics for substitution in
+    the hypotheses; assumed to be safe! *)
 end;
 
 signature BASIC_CLASSICAL =

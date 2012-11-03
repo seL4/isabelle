@@ -170,52 +170,6 @@ rules.  First, it attempts to prove the goal using \texttt{assume_tac} or
 resolution and also elim-resolution with the swapped form.
 \end{ttdescription}
 
-
-\section{Setting up the classical reasoner}\label{sec:classical-setup}
-\index{classical reasoner!setting up}
-Isabelle's classical object-logics, including \texttt{FOL} and \texttt{HOL}, 
-have the classical reasoner already set up.  
-When defining a new classical logic, you should set up the reasoner yourself.  
-It consists of the \ML{} functor \ttindex{ClassicalFun}, which takes the 
-argument signature \texttt{CLASSICAL_DATA}:
-\begin{ttbox} 
-signature CLASSICAL_DATA =
-  sig
-  val mp             : thm
-  val not_elim       : thm
-  val swap           : thm
-  val sizef          : thm -> int
-  val hyp_subst_tacs : (int -> tactic) list
-  end;
-\end{ttbox}
-Thus, the functor requires the following items:
-\begin{ttdescription}
-\item[\tdxbold{mp}] should be the Modus Ponens rule
-$\List{\Var{P}\imp\Var{Q};\; \Var{P}} \Imp \Var{Q}$.
-
-\item[\tdxbold{not_elim}] should be the contradiction rule
-$\List{\neg\Var{P};\; \Var{P}} \Imp \Var{R}$.
-
-\item[\tdxbold{swap}] should be the swap rule
-$\List{\neg \Var{P}; \; \neg \Var{R}\Imp \Var{P}} \Imp \Var{R}$.
-
-\item[\ttindexbold{sizef}] is the heuristic function used for best-first
-search.  It should estimate the size of the remaining subgoals.  A good
-heuristic function is \ttindex{size_of_thm}, which measures the size of the
-proof state.  Another size function might ignore certain subgoals (say,
-those concerned with type-checking).  A heuristic function might simply
-count the subgoals.
-
-\item[\ttindexbold{hyp_subst_tacs}] is a list of tactics for substitution in
-the hypotheses, typically created by \ttindex{HypsubstFun} (see
-Chapter~\ref{substitution}).  This list can, of course, be empty.  The
-tactics are assumed to be safe!
-\end{ttdescription}
-The functor is not at all sensitive to the formalization of the
-object-logic.  It does not even examine the rules, but merely applies
-them according to its fixed strategy.  The functor resides in {\tt
-  Provers/classical.ML} in the Isabelle sources.
-
 \index{classical reasoner|)}
 
 %%% Local Variables: 
