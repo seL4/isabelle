@@ -496,11 +496,101 @@ text {*
   \end{tabular}
   \end{center}
 
+  %FIXME move?
   \medskip The Splitter package is usually configured to work as part
   of the Simplifier.  The effect of repeatedly applying @{ML
   split_tac} can be simulated by ``@{text "(simp only: split:
   a\<^sub>1 \<dots> a\<^sub>n)"}''.  There is also a separate @{text split}
   method available for single-step case splitting.
+*}
+
+
+subsubsection {* Examples *}
+
+text {* We consider basic algebraic simplifications in Isabelle/HOL.
+  The rather trivial goal @{prop "0 + (x + 0) = x + 0 + 0"} looks like
+  a good candidate to be solved by a single call of @{method simp}:
+*}
+
+lemma "0 + (x + 0) = x + 0 + 0" apply simp? oops
+
+text {* The above attempt \emph{fails}, because @{term "0"} and @{term
+  "op +"} in the HOL library are declared as generic type class
+  operations, without stating any algebraic laws yet.  More specific
+  types are required to get access to certain standard simplifications
+  of the theory context, e.g.\ like this: *}
+
+lemma fixes x :: nat shows "0 + (x + 0) = x + 0 + 0" by simp
+lemma fixes x :: int shows "0 + (x + 0) = x + 0 + 0" by simp
+lemma fixes x :: "'a :: monoid_add" shows "0 + (x + 0) = x + 0 + 0" by simp
+
+text {*
+  \medskip In many cases, assumptions of a subgoal are also needed in
+  the simplification process.  For example:
+*}
+
+lemma fixes x :: nat shows "x = 0 \<Longrightarrow> x + x = 0" by simp
+lemma fixes x :: nat assumes "x = 0" shows "x + x = 0" apply simp oops
+lemma fixes x :: nat assumes "x = 0" shows "x + x = 0" using assms by simp
+
+text {* As seen above, local assumptions that shall contribute to
+  simplification need to be part of the subgoal already, or indicated
+  explicitly for use by the subsequent method invocation.  Both too
+  little or too much information can make simplification fail, for
+  different reasons.
+
+  In the next example the malicious assumption @{prop "\<And>x::nat. f x =
+  g (f (g x))"} does not contribute to solve the problem, but makes
+  the default @{method simp} method loop: the rewrite rule @{text "f
+  ?x \<equiv> g (f (g ?x))"} extracted from the assumption does not
+  terminate.  The Simplifier notices certain simple forms of
+  nontermination, but not this one.  The problem can be solved
+  nonetheless, by ignoring assumptions via special options as
+  explained before:
+*}
+
+lemma "(\<And>x::nat. f x = g (f (g x))) \<Longrightarrow> f 0 = f 0 + 0"
+  by (simp (no_asm))
+
+text {* The latter form is typical for long unstructured proof
+  scripts, where the control over the goal content is limited.  In
+  structured proofs it is usually better to avoid pushing too many
+  facts into the goal state in the first place.  Assumptions in the
+  Isar proof context do not intrude the reasoning if not used
+  explicitly.  This is illustrated for a toplevel statement and a
+  local proof body as follows:
+*}
+
+lemma
+  assumes "\<And>x::nat. f x = g (f (g x))"
+  shows "f 0 = f 0 + 0" by simp
+
+notepad
+begin
+  assume "\<And>x::nat. f x = g (f (g x))"
+  have "f 0 = f 0 + 0" by simp
+end
+
+text {* \medskip Because assumptions may simplify each other, there
+  can be very subtle cases of nontermination. For example, the regular
+  @{method simp} method applied to @{prop "P (f x) \<Longrightarrow> y = x \<Longrightarrow> f x = f y
+  \<Longrightarrow> Q"} gives rise to the infinite reduction sequence
+  \[
+  @{text "P (f x)"} \stackrel{@{text "f x \<equiv> f y"}}{\longmapsto}
+  @{text "P (f y)"} \stackrel{@{text "y \<equiv> x"}}{\longmapsto}
+  @{text "P (f x)"} \stackrel{@{text "f x \<equiv> f y"}}{\longmapsto} \cdots
+  \]
+  whereas applying the same to @{prop "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow>
+  Q"} terminates (without solving the goal):
+*}
+
+lemma "y = x \<Longrightarrow> f x = f y \<Longrightarrow> P (f x) \<Longrightarrow> Q"
+  apply simp
+  oops
+
+text {* See also \secref{sec:simp-config} for options to enable
+  Simplifier trace mode, which often helps to diagnose problems with
+  rewrite systems.
 *}
 
 
