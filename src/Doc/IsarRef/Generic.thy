@@ -849,7 +849,7 @@ text {*
 
   Note that forward simplification restricts the simplifier to its
   most basic operation of term rewriting; solver and looper tactics
-  \cite{isabelle-ref} are \emph{not} involved here.  The @{text
+  \cite{isabelle-ref} are \emph{not} involved here.  The @{attribute
   simplified} attribute should be only rarely required under normal
   circumstances.
 

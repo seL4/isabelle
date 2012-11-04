@@ -80,13 +80,11 @@ text {*
 
 section {* Simplifier tactics *}
 
-text {*
-  The main Simplifier tactics @{ML simp_tac} and variants (cf.\
-  \cite{isabelle-ref}) are all covered by the @{method simp} and
-  @{method simp_all} methods (see \secref{sec:simplifier}).  Note that
-  there is no individual goal addressing available, simplification
-  acts either on the first goal (@{method simp}) or all goals
-  (@{method simp_all}).
+text {* The main Simplifier tactics @{ML simp_tac} and variants are
+  all covered by the @{method simp} and @{method simp_all} methods
+  (see \secref{sec:simplifier}).  Note that there is no individual
+  goal addressing available, simplification acts either on the first
+  goal (@{method simp}) or all goals (@{method simp_all}).
 
   \medskip
   \begin{tabular}{lll}
