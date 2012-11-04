@@ -1,18 +1,12 @@
 \documentclass[12pt,a4paper]{report}
 \usepackage{graphicx,iman,extra,ttbox,proof,pdfsetup}
 
-%%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
-%%% to delete old ones:  \\indexbold{\*[^}]*}
-%% run    sedindex ref    to prepare index file
-%%% needs chapter on Provers/typedsimp.ML?
 \title{\includegraphics[scale=0.5]{isabelle} \\[4ex] Old Isabelle Reference Manual}
 
 \author{{\em Lawrence C. Paulson}\\
         Computer Laboratory \\ University of Cambridge \\
         \texttt{lcp@cl.cam.ac.uk}\\[3ex] 
         With Contributions by Tobias Nipkow and Markus Wenzel}  
-
-\makeindex
 
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
 
@@ -61,5 +55,4 @@ Tobias Nipkow, of T. U. Munich, wrote most of
   \bibliography{manual}
 \endgroup
 
-\printindex
 \end{document}
