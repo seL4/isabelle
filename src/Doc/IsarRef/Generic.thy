@@ -441,6 +441,11 @@ text {*
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
   ZF do this already).
 
+  There is also a separate @{method_ref split} method available for
+  single-step case splitting.  The effect of repeatedly applying
+  @{text "(split thms)"} can be imitated by ``@{text "(simp only:
+  split: thms)"}''.
+
   \medskip The @{text cong} modifiers add or delete Simplifier
   congruence rules (see also \secref{sec:simp-rules}); the default is
   to add.
@@ -470,7 +475,7 @@ text {*
 
   \begin{center}
   \small
-  \begin{tabular}{|l|l|p{0.3\textwidth}|}
+  \begin{supertabular}{|l|l|p{0.3\textwidth}|}
   \hline
   Isar method & ML tactic & behavior \\\hline
 
@@ -493,15 +498,8 @@ text {*
   mode: an assumption is only used for simplifying assumptions which
   are to the right of it \\\hline
 
-  \end{tabular}
+  \end{supertabular}
   \end{center}
-
-  %FIXME move?
-  \medskip The Splitter package is usually configured to work as part
-  of the Simplifier.  The effect of repeatedly applying @{ML
-  split_tac} can be simulated by ``@{text "(simp only: split:
-  a\<^sub>1 \<dots> a\<^sub>n)"}''.  There is also a separate @{text split}
-  method available for single-step case splitting.
 *}
 
 
@@ -626,7 +624,13 @@ text {*
   simpset and the context of the problem being simplified may lead to
   unexpected results.
 
-  \item @{attribute simp} declares simplification rules.
+  \item @{attribute simp} declares simplification rules, by adding or
+  deleting them from the simpset within the theory or proof context.
+
+  Internally, all rewrite rules have to be expressed as Pure
+  equalities, potentially with some conditions of arbitrary form.
+  Such rewrite rules in Pure are derived automatically from
+  object-level equations that are supplied by the user.
 
   \item @{attribute split} declares case split rules.
 
@@ -670,6 +674,37 @@ text {*
   case split over the condition @{text "?q"} to prove the goal.
 
   \end{description}
+
+  The implicit simpset of the theory context is propagated
+  monotonically through the theory hierarchy: forming a new theory,
+  the union of the simpsets of its imports are taken as starting
+  point.  Also note that definitional packages like @{command
+  "datatype"}, @{command "primrec"}, @{command "fun"} routinely
+  declare Simplifier rules to the target context, while plain
+  @{command "definition"} is an exception in \emph{not} declaring
+  anything.
+
+  \medskip It is up the user to manipulate the current simpset further
+  by explicitly adding or deleting theorems as simplification rules,
+  or installing other tools via simplification procedures
+  (\secref{sec:simproc}).  Good simpsets are hard to design.  Rules
+  that obviously simplify, like @{text "?n + 0 \<equiv> ?n"} are good
+  candidates for the implicit simpset, unless a special
+  non-normalizing behavior of certain operations is intended.  More
+  specific rules (such as distributive laws, which duplicate subterms)
+  should be added only for specific proof steps.  Conversely,
+  sometimes a rule needs to be deleted just for some part of a proof.
+  The need of frequent additions or deletions may indicate a poorly
+  designed simpset.
+
+  \begin{warn}
+  The union of simpsets from theory imports (as described above) is
+  not always a good starting point for the new theory.  If some
+  ancestors have deleted simplification rules because they are no
+  longer wanted, while others have left those rules in, then the union
+  will contain the unwanted rules, and thus have to be deleted again
+  in the theory body.
+  \end{warn}
 *}
 
 
