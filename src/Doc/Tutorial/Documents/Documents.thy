@@ -11,7 +11,7 @@ text {*
   for the parser and output templates for the pretty printer.
 
   In full generality, parser and pretty printer configuration is a
-  subtle affair~\cite{isabelle-ref}.  Your syntax specifications need
+  subtle affair~\cite{isabelle-isar-ref}.  Your syntax specifications need
   to interact properly with the existing setup of Isabelle/Pure and
   Isabelle/HOL\@.  To avoid creating ambiguities with existing
   elements, it is particularly important to give new syntactic
@@ -154,7 +154,7 @@ text {*
   be displayed after further input.
 
   More flexible is to provide alternative syntax forms
-  through the \bfindex{print mode} concept~\cite{isabelle-ref}.  By
+  through the \bfindex{print mode} concept~\cite{isabelle-isar-ref}.  By
   convention, the mode of ``$xsymbols$'' is enabled whenever
   Proof~General's X-Symbol mode or {\LaTeX} output is active.  Now
   consider the following hybrid declaration of @{text xor}:
@@ -188,7 +188,7 @@ subsection {* Prefix Annotations *}
 
 text {*
   Prefix syntax annotations\index{prefix annotation} are another form
-  of mixfixes \cite{isabelle-ref}, without any template arguments or
+  of mixfixes \cite{isabelle-isar-ref}, without any template arguments or
   priorities --- just some literal syntax.  The following example
   associates common symbols with the constructors of a datatype.
 *}
@@ -263,7 +263,7 @@ definitions.
 
 Abbreviations are a simplified form of the general concept of
 \emph{syntax translations}; even heavier transformations may be
-written in ML \cite{isabelle-ref}.
+written in ML \cite{isabelle-isar-ref}.
 *}
 
 
@@ -531,7 +531,7 @@ text {*
   theory or proof context (\bfindex{text blocks}).
 
   \medskip Marginal comments are part of each command's concrete
-  syntax \cite{isabelle-ref}; the common form is ``\verb,--,~$text$''
+  syntax \cite{isabelle-isar-ref}; the common form is ``\verb,--,~$text$''
   where $text$ is delimited by \verb,",@{text \<dots>}\verb,", or
   \verb,{,\verb,*,~@{text \<dots>}~\verb,*,\verb,}, as before.  Multiple
   marginal comments may be given at the same time.  Here is a simple
