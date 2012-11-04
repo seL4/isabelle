@@ -1189,7 +1189,7 @@ text {*
 *}
 
 
-subsection {* Automated methods *}
+subsection {* Fully automated methods *}
 
 text {*
   \begin{matharray}{rcl}
@@ -1324,7 +1324,7 @@ text {*
 *}
 
 
-subsection {* Semi-automated methods *}
+subsection {* Partially automated methods *}
 
 text {* These proof methods may help in situations when the
   fully-automated tools fail.  The result is a simpler subgoal that
@@ -1370,9 +1370,9 @@ text {*
     @{index_ML clarify_step_tac: "Proof.context -> int -> tactic"} \\
   \end{matharray}
 
-  These are the primitive tactics behind the (semi)automated proof
-  methods of the Classical Reasoner.  By calling them yourself, you
-  can execute these procedures one step at a time.
+  These are the primitive tactics behind the automated proof methods
+  of the Classical Reasoner.  By calling them yourself, you can
+  execute these procedures one step at a time.
 
   \begin{description}
 
