@@ -83,7 +83,7 @@ subsection {* Total version *}
 definition while :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a"
 where "while b c s = the (while_option b c s)"
 
-lemma while_unfold:
+lemma while_unfold [code]:
   "while b c s = (if b s then while b c (c s) else s)"
 unfolding while_def by (subst while_option_unfold) simp
 
