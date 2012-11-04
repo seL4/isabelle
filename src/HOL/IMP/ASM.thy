@@ -32,8 +32,7 @@ fun exec :: "instr list \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> st
 "exec (i#is) s stk = exec is s (exec1 i s stk)"
 text_raw{*}%endsnip*}
 
-value "exec [LOADI 5, LOAD ''y'', ADD]
- <''x'' := 42, ''y'' := 43> [50]"
+value "exec [LOADI 5, LOAD ''y'', ADD] <''x'' := 42, ''y'' := 43> [50]"
 
 lemma exec_append[simp]:
   "exec (is1@is2) s stk = exec is2 s (exec is1 s stk)"

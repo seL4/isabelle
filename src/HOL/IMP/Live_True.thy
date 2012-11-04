@@ -90,6 +90,7 @@ next
   with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
 qed
 
+subsection "Executability"
 
 instantiation com :: vars
 begin
@@ -123,14 +124,27 @@ by (induction b) auto
 lemma cfinite[simp]: "finite(vars(c::com))"
 by (induction c) auto
 
-text{* For code generation: *}
+text{* Some code generation magic: executing @{const lfp} *}
+
+(* FIXME mv into Library *)
+lemma lfp_while:
+  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  shows "lfp f = while (\<lambda>A. f A \<noteq> A) f {}"
+unfolding while_def using assms by (rule lfp_the_while_option) blast
+
+text{* Make @{const L} executable by replacing @{const lfp} with the @{const
+while} combinator from theory @{theory While_Combinator}. The @{const while}
+combinator obeys the recursion equation
+@{thm[display] While_Combinator.while_unfold[no_vars]}
+and is thus executable. *}
+
 lemma L_While: fixes b c X
 assumes "finite X" defines "f == \<lambda>A. vars b \<union> X \<union> L c A"
-shows "L (WHILE b DO c) X = the(while_option (\<lambda>A. f A \<noteq> A) f {})" (is "_ = ?r")
+shows "L (WHILE b DO c) X = while (\<lambda>A. f A \<noteq> A) f {}" (is "_ = ?r")
 proof -
   let ?V = "vars b \<union> vars c \<union> X"
   have "lfp f = ?r"
-  proof(rule lfp_the_while_option[where C = "?V"])
+  proof(rule lfp_while[where C = "?V"])
     show "mono f" by(simp add: f_def mono_union_L)
   next
     fix Y show "Y \<subseteq> ?V \<Longrightarrow> f Y \<subseteq> ?V"
@@ -141,30 +155,59 @@ proof -
   thus ?thesis by (simp add: f_def)
 qed
 
-text{* An approximate computation of the WHILE-case: *}
+lemma L_While_set: "L (WHILE b DO c) (set xs) =
+  (let f = (\<lambda>A. vars b \<union> set xs \<union> L c A)
+   in while (\<lambda>A. f A \<noteq> A) f {})"
+by(simp add: L_While del: L.simps(5))
 
-fun iter :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-where
+text{* Replace the equation for L WHILE by the executable @{thm[source] L_While_set}: *}
+lemmas [code] = L.simps(1-4) L_While_set
+text{* Sorry, this syntax is odd. *}
+
+lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x''; ''x'' ::= V ''z''
+  in L (WHILE b DO c) {''y''}) = {''x'', ''y'', ''z''}"
+by eval
+
+
+subsection "Approximating WHILE"
+
+text{* The final parameter is the default value: *}
+
+fun iter :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
 "iter f 0 p d = d" |
 "iter f (Suc n) p d = (if f p = p then p else iter f n (f p) d)"
 
-lemma iter_pfp:
-  "f d \<le> d \<Longrightarrow> mono f \<Longrightarrow> x \<le> f x \<Longrightarrow> f(iter f i x d) \<le> iter f i x d"
-apply(induction i arbitrary: x)
- apply simp
-apply (simp add: mono_def)
-done
+text{* A version of @{const L} with a bounded number of iterations (here: 2)
+in the WHILE case: *}
 
-lemma iter_While_pfp:
-fixes b c X W k f
-defines "f == \<lambda>A. vars b \<union> X \<union> L c A" and "W == vars b \<union> vars c \<union> X"
-and "P == iter f k {} W"
-shows "f P \<subseteq> P"
-proof-
-  have "f W \<subseteq> W" unfolding f_def W_def using L_subset_vars[of c] by blast
-  have "mono f" by(simp add: f_def mono_union_L)
-  from iter_pfp[of f, OF `f W \<subseteq> W` `mono f` empty_subsetI]
-  show ?thesis by(simp add: P_def)
+fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
+"Lb SKIP X = X" |
+"Lb (x ::= a) X = (if x:X then X-{x} \<union> vars a else X)" |
+"Lb (c\<^isub>1; c\<^isub>2) X = (Lb c\<^isub>1 \<circ> Lb c\<^isub>2) X" |
+"Lb (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> Lb c\<^isub>1 X \<union> Lb c\<^isub>2 X" |
+"Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> vars c \<union> X)"
+
+lemma lfp_subset_iter:
+  "\<lbrakk> mono f; !!X. f X \<subseteq> f' X; lfp f \<subseteq> D \<rbrakk> \<Longrightarrow> lfp f \<subseteq> iter f' n A D"
+proof(induction n arbitrary: A)
+  case 0 thus ?case by simp
+next
+  case Suc thus ?case by simp (metis lfp_lowerbound)
 qed
+
+lemma "L c X \<subseteq> Lb c X"
+proof(induction c arbitrary: X)
+  case (While b c)
+  let ?f  = "\<lambda>A. vars b \<union> X \<union> L  c A"
+  let ?fb = "\<lambda>A. vars b \<union> X \<union> Lb c A"
+  show ?case
+  proof (simp, rule lfp_subset_iter[OF mono_union_L])
+    show "!!X. ?f X \<subseteq> ?fb X" using While.IH by blast
+    show "lfp ?f \<subseteq> vars b \<union> vars c \<union> X"
+      by (metis (full_types) L.simps(5) L_subset_vars vars_com.simps(5))
+  qed
+next
+  case Seq thus ?case by simp (metis (full_types) L_mono monoD subset_trans)
+qed auto
 
 end
