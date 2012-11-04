@@ -358,31 +358,6 @@ rewrite rules are solved recursively before the rewrite rule is applied.
 \end{ttdescription}
 
 
-\section{Forward rules and conversions}
-\index{simplification!forward rules}\index{simplification!conversions}
-\begin{ttbox}\index{*simplify}\index{*asm_simplify}\index{*full_simplify}\index{*asm_full_simplify}\index{*Simplifier.rewrite}\index{*Simplifier.asm_rewrite}\index{*Simplifier.full_rewrite}\index{*Simplifier.asm_full_rewrite}
-simplify          : simpset -> thm -> thm
-asm_simplify      : simpset -> thm -> thm
-full_simplify     : simpset -> thm -> thm
-asm_full_simplify : simpset -> thm -> thm\medskip
-Simplifier.rewrite           : simpset -> cterm -> thm
-Simplifier.asm_rewrite       : simpset -> cterm -> thm
-Simplifier.full_rewrite      : simpset -> cterm -> thm
-Simplifier.asm_full_rewrite  : simpset -> cterm -> thm
-\end{ttbox}
-
-The first four of these functions provide \emph{forward} rules for
-simplification.  Their effect is analogous to the corresponding
-tactics described in {\S}\ref{simp-tactics}, but affect the whole
-theorem instead of just a certain subgoal.  Also note that the
-looper~/ solver process as described in {\S}\ref{sec:simp-looper} and
-{\S}\ref{sec:simp-solver} is omitted in forward simplification.
-
-The latter four are \emph{conversions}, establishing proven equations
-of the form $t \equiv u$ where the l.h.s.\ $t$ has been given as
-argument.
-
-
 \section{Permutative rewrite rules}
 \index{rewrite rules!permutative|(}
 
