@@ -66,14 +66,14 @@ next
   case (IfTrue b s c1 s' c2)
   hence "s = t on vars b" "s = t on L c1 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue(3)[OF `s = t on L c1 X`] obtain t' where
+  from IfTrue.IH[OF `s = t on L c1 X`] obtain t' where
     "(c1, t) \<Rightarrow> t'" "s' = t' on X" by auto
   thus ?case using `bval b t` by auto
 next
   case (IfFalse b s c2 s' c1)
   hence "s = t on vars b" "s = t on L c2 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse(3)[OF `s = t on L c2 X`] obtain t' where
+  from IfFalse.IH[OF `s = t on L c2 X`] obtain t' where
     "(c2, t) \<Rightarrow> t'" "s' = t' on X" by auto
   thus ?case using `~bval b t` by auto
 next
@@ -100,7 +100,7 @@ subsection "Program Optimization"
 text{* Burying assignments to dead variables: *}
 fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury SKIP X = SKIP" |
-"bury (x ::= a) X = (if x:X then x::= a else SKIP)" |
+"bury (x ::= a) X = (if x \<in> X then x ::= a else SKIP)" |
 "bury (c\<^isub>1; c\<^isub>2) X = (bury c\<^isub>1 (L c\<^isub>2 X); bury c\<^isub>2 X)" |
 "bury (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = IF b THEN bury c\<^isub>1 X ELSE bury c\<^isub>2 X" |
 "bury (WHILE b DO c) X = WHILE b DO bury c (vars b \<union> X \<union> L c X)"
@@ -130,14 +130,14 @@ next
   case (IfTrue b s c1 s' c2)
   hence "s = t on vars b" "s = t on L c1 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue(3)[OF `s = t on L c1 X`] obtain t' where
+  from IfTrue.IH[OF `s = t on L c1 X`] obtain t' where
     "(bury c1 X, t) \<Rightarrow> t'" "s' =t' on X" by auto
   thus ?case using `bval b t` by auto
 next
   case (IfFalse b s c2 s' c1)
   hence "s = t on vars b" "s = t on L c2 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse(3)[OF `s = t on L c2 X`] obtain t' where
+  from IfFalse.IH[OF `s = t on L c2 X`] obtain t' where
     "(bury c2 X, t) \<Rightarrow> t'" "s' = t' on X" by auto
   thus ?case using `~bval b t` by auto
 next

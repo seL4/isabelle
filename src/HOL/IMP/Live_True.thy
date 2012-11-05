@@ -8,10 +8,10 @@ subsection "True Liveness Analysis"
 
 fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "L SKIP X = X" |
-"L (x ::= a) X = (if x:X then X-{x} \<union> vars a else X)" |
+"L (x ::= a) X = (if x \<in> X then X - {x} \<union> vars a else X)" |
 "L (c\<^isub>1; c\<^isub>2) X = (L c\<^isub>1 \<circ> L c\<^isub>2) X" |
 "L (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> L c\<^isub>1 X \<union> L c\<^isub>2 X" |
-"L (WHILE b DO c) X = lfp(%Y. vars b \<union> X \<union> L c Y)"
+"L (WHILE b DO c) X = lfp(\<lambda>Y. vars b \<union> X \<union> L c Y)"
 
 lemma L_mono: "mono (L c)"
 proof-
@@ -30,7 +30,7 @@ proof-
 qed
 
 lemma mono_union_L:
-  "mono (%Y. X \<union> L c Y)"
+  "mono (\<lambda>Y. X \<union> L c Y)"
 by (metis (no_types) L_mono mono_def order_eq_iff set_eq_subset sup_mono)
 
 lemma L_While_unfold:
@@ -59,16 +59,16 @@ next
   show ?case using t12 t23 s3t3 by auto
 next
   case (IfTrue b s c1 s' c2)
-  hence "s = t on vars b" "s = t on L c1 X" by auto
+  hence "s = t on vars b" and "s = t on L c1 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfTrue(1) have "bval b t" by simp
-  from IfTrue(3)[OF `s = t on L c1 X`] obtain t' where
+  from IfTrue.IH[OF `s = t on L c1 X`] obtain t' where
     "(c1, t) \<Rightarrow> t'" "s' = t' on X" by auto
   thus ?case using `bval b t` by auto
 next
   case (IfFalse b s c2 s' c1)
   hence "s = t on vars b" "s = t on L c2 X" by auto
   from  bval_eq_if_eq_on_vars[OF this(1)] IfFalse(1) have "~bval b t" by simp
-  from IfFalse(3)[OF `s = t on L c2 X`] obtain t' where
+  from IfFalse.IH[OF `s = t on L c2 X`] obtain t' where
     "(c2, t) \<Rightarrow> t'" "s' = t' on X" by auto
   thus ?case using `~bval b t` by auto
 next
@@ -90,6 +90,7 @@ next
   with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
 qed
 
+
 subsection "Executability"
 
 instantiation com :: vars
@@ -109,7 +110,7 @@ end
 lemma L_subset_vars: "L c X \<subseteq> vars c \<union> X"
 proof(induction c arbitrary: X)
   case (While b c)
-  have "lfp(%Y. vars b \<union> X \<union> L c Y) \<subseteq> vars b \<union> vars c \<union> X"
+  have "lfp(\<lambda>Y. vars b \<union> X \<union> L c Y) \<subseteq> vars b \<union> vars c \<union> X"
     using While.IH[of "vars b \<union> vars c \<union> X"]
     by (auto intro!: lfp_lowerbound)
   thus ?case by simp
@@ -169,7 +170,7 @@ lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x''; ''x'' ::= V ''z''
 by eval
 
 
-subsection "Approximating WHILE"
+subsection "Limiting the number of iterations"
 
 text{* The final parameter is the default value: *}
 
@@ -182,10 +183,15 @@ in the WHILE case: *}
 
 fun Lb :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "Lb SKIP X = X" |
-"Lb (x ::= a) X = (if x:X then X-{x} \<union> vars a else X)" |
+"Lb (x ::= a) X = (if x \<in> X then X - {x} \<union> vars a else X)" |
 "Lb (c\<^isub>1; c\<^isub>2) X = (Lb c\<^isub>1 \<circ> Lb c\<^isub>2) X" |
 "Lb (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> Lb c\<^isub>1 X \<union> Lb c\<^isub>2 X" |
 "Lb (WHILE b DO c) X = iter (\<lambda>A. vars b \<union> X \<union> Lb c A) 2 {} (vars b \<union> vars c \<union> X)"
+
+text{* @{const Lb} (and @{const iter}) is not monotone! *}
+lemma "let w = WHILE Bc False DO (''x'' ::= V ''y''; ''z'' ::= V ''x'')
+  in \<not> (Lb w {''z''} \<subseteq> Lb w {''y'',''z''})"
+by eval
 
 lemma lfp_subset_iter:
   "\<lbrakk> mono f; !!X. f X \<subseteq> f' X; lfp f \<subseteq> D \<rbrakk> \<Longrightarrow> lfp f \<subseteq> iter f' n A D"
