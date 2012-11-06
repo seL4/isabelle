@@ -998,8 +998,14 @@ fun isar_proof_text ctxt isar_proofs
              | _ => the_default @{term False} (Symtab.lookup props s)
                     |> HOLogic.mk_Trueprop |> close_form)
           | prop_of_clause names =
-            fold (curry s_disj) (map_filter (Symtab.lookup props o fst) names)
-                 @{term False}
+            let val lits = map_filter (Symtab.lookup props o fst) names in
+              case List.partition (can HOLogic.dest_not) lits of
+                (negs as _ :: _, pos as _ :: _) =>
+                HOLogic.mk_imp
+                  (Library.foldr1 s_conj (map HOLogic.dest_not negs),
+                   Library.foldr1 s_disj pos)
+              | _ => fold (curry s_disj) lits @{term False}
+            end
             |> HOLogic.mk_Trueprop |> close_form
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
