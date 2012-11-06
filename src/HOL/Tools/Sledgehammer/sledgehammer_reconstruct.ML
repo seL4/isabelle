@@ -968,12 +968,12 @@ fun isar_proof_text ctxt isar_proofs
               | _ => NONE)
         val assms =
           atp_proof |> map_filter
-            (fn Inference_Step (name as (_, ss), _, t, _, []) =>
-                if exists (String.isPrefix conjecture_prefix) ss andalso
-                   not (member (op =) conjs name) then
-                  SOME (Assume (raw_label_for_name name, t))
-                else
-                  NONE
+            (fn Inference_Step (name as (_, ss), _, _, _, []) =>
+                (case resolve_conjecture ss of
+                   [j] =>
+                   if j = length hyp_ts then NONE
+                   else SOME (Assume (raw_label_for_name name, nth hyp_ts j))
+                 | _ => NONE)
               | _ => NONE)
         fun dep_of_step (Definition_Step _) = NONE
           | dep_of_step (Inference_Step (name, _, _, _, from)) =
@@ -984,19 +984,25 @@ fun isar_proof_text ctxt isar_proofs
         val props =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
-                    | Inference_Step ((s, _), role, t, _, _) =>
+                    | Inference_Step (name as (s, ss), role, t, _, _) =>
                       Symtab.update_new (s,
+                        case resolve_conjecture ss of
+                          [j] =>
+                          if j = length hyp_ts then concl_t
+                          else nth hyp_ts j
+                        | _ =>
                           if member (op = o apsnd fst) tainted s then
                             t |> role <> Conjecture ? s_not
                               |> fold exists_of (map Var (Term.add_vars t []))
                           else
                             t))
                   atp_proof
+        (* The assumptions and conjecture are props; the rest are bools. *)
         fun prop_of_clause c =
           fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
                @{term False}
-          |> HOLogic.mk_Trueprop
-          |> close_form
+          |> (fn t => t |> fastype_of t = @{typ bool}
+                           ? (HOLogic.mk_Trueprop #> close_form))
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
