@@ -9,6 +9,7 @@ Abstract representation of ATP proofs and TSTP/SPASS syntax.
 signature ATP_PROOF =
 sig
   type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
+  type formula_role = ATP_Problem.formula_role
   type ('a, 'b, 'c, 'd) formula = ('a, 'b, 'c, 'd) ATP_Problem.formula
   type 'a problem = 'a ATP_Problem.problem
 
@@ -38,7 +39,7 @@ sig
 
   datatype 'a step =
     Definition_Step of step_name * 'a * 'a |
-    Inference_Step of step_name * 'a * string * step_name list
+    Inference_Step of step_name * formula_role * 'a * string * step_name list
 
   type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
@@ -213,12 +214,12 @@ fun step_name_ord p =
 
 datatype 'a step =
   Definition_Step of step_name * 'a * 'a |
-  Inference_Step of step_name * 'a * string * step_name list
+  Inference_Step of step_name * formula_role * 'a * string * step_name list
 
 type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
 fun step_name (Definition_Step (name, _, _)) = name
-  | step_name (Inference_Step (name, _, _, _)) = name
+  | step_name (Inference_Step (name, _, _, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -374,6 +375,15 @@ fun find_formula_in_problem problem phi =
 fun commute_eq (AAtom (ATerm ((s, []), tms))) = AAtom (ATerm ((s, []), rev tms))
   | commute_eq _ = raise Fail "expected equation"
 
+fun role_of_tptp_string "axiom" = Axiom
+  | role_of_tptp_string "definition" = Definition
+  | role_of_tptp_string "lemma" = Lemma
+  | role_of_tptp_string "hypothesis" = Hypothesis
+  | role_of_tptp_string "conjecture" = Conjecture
+  | role_of_tptp_string "negated_conjecture" = Negated_Conjecture
+  | role_of_tptp_string "plain" = Plain
+  | role_of_tptp_string _ = Unknown
+
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
             <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
@@ -407,16 +417,18 @@ fun parse_tstp_line problem =
                   phi), "", [])
               | Inference_Source (rule, deps) => (((num, []), phi), rule, deps)
             fun mk_step () =
-              Inference_Step (name, phi, rule, map (rpair []) deps)
+              Inference_Step (name, role_of_tptp_string role, phi, rule,
+                              map (rpair []) deps)
           in
-            case role of
-              "definition" =>
+            case role_of_tptp_string role of
+              Definition =>
               (case phi of
                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
                  Definition_Step (name, phi1, phi2)
                | AAtom (ATerm (("equal", []), _)) =>
                  (* Vampire's equality proxy axiom *)
-                 Inference_Step (name, phi, rule, map (rpair []) deps)
+                 Inference_Step (name, Definition, phi, rule,
+                                 map (rpair []) deps)
                | _ => mk_step ())
             | _ => mk_step ()
           end)
@@ -462,7 +474,8 @@ fun parse_spass_line x =
      -- Scan.option (Scan.this_string "derived from formulae "
                      |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
    >> (fn ((((num, rule), deps), u), names) =>
-          Inference_Step ((num, these names), u, rule, map (rpair []) deps))) x
+          Inference_Step ((num, these names), Unknown, u, rule,
+                          map (rpair []) deps))) x
 
 val satallax_coreN = "__satallax_core" (* arbitrary *)
 val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
@@ -471,12 +484,14 @@ val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
 fun parse_z3_tptp_line x =
   (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
    >> (fn (name, names) =>
-          Inference_Step (("", name :: names), dummy_phi, z3_tptp_coreN, []))) x
+          Inference_Step (("", name :: names), Unknown, dummy_phi,
+                          z3_tptp_coreN, []))) x
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference_Step ((s, [s]), dummy_phi, satallax_coreN, []))) x
+   >> (fn s => Inference_Step ((s, [s]), Unknown, dummy_phi, satallax_coreN,
+                               []))) x
 
 fun parse_line problem =
   parse_tstp_line problem || parse_spass_line || parse_z3_tptp_line
@@ -499,8 +514,9 @@ fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen
                           ((step as Definition_Step (name, _, _)) :: steps) =
     step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen (Inference_Step (name, u, rule, deps) :: steps) =
-    Inference_Step (name, u, rule,
+  | clean_up_dependencies seen
+        (Inference_Step (name, role, u, rule, deps) :: steps) =
+    Inference_Step (name, role, u, rule,
         map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
     clean_up_dependencies (name :: seen) steps
 
@@ -516,8 +532,8 @@ fun map_term_names_in_formula f (AQuant (q, xs, phi)) =
 fun map_term_names_in_step f (Definition_Step (name, phi1, phi2)) =
     Definition_Step (name, map_term_names_in_formula f phi1,
                      map_term_names_in_formula f phi2)
-  | map_term_names_in_step f (Inference_Step (name, phi, rule, deps)) =
-    Inference_Step (name, map_term_names_in_formula f phi, rule, deps)
+  | map_term_names_in_step f (Inference_Step (name, role, phi, rule, deps)) =
+    Inference_Step (name, role, map_term_names_in_formula f phi, rule, deps)
 fun map_term_names_in_atp_proof f = map (map_term_names_in_step f)
 
 fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s

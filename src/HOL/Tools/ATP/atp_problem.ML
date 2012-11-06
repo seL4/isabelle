@@ -42,7 +42,10 @@ sig
     THF of polymorphism * tptp_explicitness * thf_choice * thf_defs |
     DFG of polymorphism
 
-  datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
+  datatype formula_role =
+    Axiom | Definition | Lemma | Hypothesis | Conjecture | Negated_Conjecture |
+    Plain | Unknown
+
   datatype 'a problem_line =
     Class_Decl of string * 'a * 'a list |
     Type_Decl of string * 'a * int |
@@ -178,7 +181,10 @@ datatype atp_format =
   THF of polymorphism * tptp_explicitness * thf_choice * thf_defs |
   DFG of polymorphism
 
-datatype formula_role = Axiom | Definition | Lemma | Hypothesis | Conjecture
+datatype formula_role =
+  Axiom | Definition | Lemma | Hypothesis | Conjecture | Negated_Conjecture |
+  Plain | Unknown
+
 datatype 'a problem_line =
   Class_Decl of string * 'a * 'a list |
   Type_Decl of string * 'a * int |
@@ -325,6 +331,9 @@ fun tptp_string_for_role Axiom = "axiom"
   | tptp_string_for_role Lemma = "lemma"
   | tptp_string_for_role Hypothesis = "hypothesis"
   | tptp_string_for_role Conjecture = "conjecture"
+  | tptp_string_for_role Negated_Conjecture = "negated_conjecture"
+  | tptp_string_for_role Plain = "plain"
+  | tptp_string_for_role Unknown = "unknown"
 
 fun tptp_string_for_app _ func [] = func
   | tptp_string_for_app format func args =

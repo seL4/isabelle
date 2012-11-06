@@ -129,7 +129,8 @@ fun is_lam_lifted s =
 val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 
 fun is_axiom_used_in_proof pred =
-  exists (fn Inference_Step ((_, ss), _, _, []) => exists pred ss | _ => false)
+  exists (fn Inference_Step ((_, ss), _, _, _, []) => exists pred ss
+           | _ => false)
 
 fun lam_trans_from_atp_proof atp_proof default =
   case (is_axiom_used_in_proof is_combinator_def atp_proof,
@@ -163,7 +164,7 @@ fun ext_name ctxt =
 val leo2_ext = "extcnf_equal_neg"
 val leo2_unfold_def = "unfold_def"
 
-fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, rule, deps)) =
+fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, _, rule, deps)) =
     (if rule = leo2_ext then
        insert (op =) (ext_name ctxt, (Global, General))
      else if rule = leo2_unfold_def then
@@ -367,13 +368,13 @@ fun decode_line sym_tab (Definition_Step (name, phi1, phi2)) ctxt =
       (Definition_Step (name, t1, t2),
        fold Variable.declare_term (maps Misc_Legacy.term_frees [t1, t2]) ctxt)
     end
-  | decode_line sym_tab (Inference_Step (name, u, rule, deps)) ctxt =
+  | decode_line sym_tab (Inference_Step (name, role, u, rule, deps)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
       val t = u |> prop_from_atp ctxt true sym_tab
                 |> uncombine_term thy |> infer_formula_types ctxt
     in
-      (Inference_Step (name, t, rule, deps),
+      (Inference_Step (name, role, t, rule, deps),
        fold Variable.declare_term (Misc_Legacy.term_frees t) ctxt)
     end
 fun decode_lines ctxt sym_tab lines =
@@ -382,8 +383,9 @@ fun decode_lines ctxt sym_tab lines =
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
 fun replace_dependencies_in_line _ (line as Definition_Step _) = line
-  | replace_dependencies_in_line p (Inference_Step (name, t, rule, deps)) =
-    Inference_Step (name, t, rule,
+  | replace_dependencies_in_line p
+        (Inference_Step (name, role, t, rule, deps)) =
+    Inference_Step (name, role, t, rule,
                     fold (union (op =) o replace_one_dependency p) deps [])
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
@@ -391,12 +393,13 @@ fun replace_dependencies_in_line _ (line as Definition_Step _) = line
 fun is_only_type_information t = t aconv @{term True}
 
 fun is_same_inference _ (Definition_Step _) = false
-  | is_same_inference t (Inference_Step (_, t', _, _)) = t aconv t'
+  | is_same_inference t (Inference_Step (_, _, t', _, _)) = t aconv t'
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
 fun add_line _ (line as Definition_Step _) lines = line :: lines
-  | add_line fact_names (Inference_Step (name as (_, ss), t, rule, [])) lines =
+  | add_line fact_names (Inference_Step (name as (_, ss), role, t, rule, []))
+             lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if is_fact fact_names ss then
@@ -406,24 +409,24 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
       (* Is there a repetition? If so, replace later line by earlier one. *)
       else case take_prefix (not o is_same_inference t) lines of
         (_, []) => lines (* no repetition of proof line *)
-      | (pre, Inference_Step (name', _, _, _) :: post) =>
+      | (pre, Inference_Step (name', _, _, _, _) :: post) =>
         pre @ map (replace_dependencies_in_line (name', [name])) post
       | _ => raise Fail "unexpected inference"
     else if is_conjecture ss then
-      Inference_Step (name, t, rule, []) :: lines
+      Inference_Step (name, role, t, rule, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line _ (Inference_Step (name, t, rule, deps)) lines =
+  | add_line _ (Inference_Step (name, role, t, rule, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
-      Inference_Step (name, t, rule, deps) :: lines
+      Inference_Step (name, role, t, rule, deps) :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
     else case take_prefix (not o is_same_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types? *)
-       (_, []) => Inference_Step (name, t, rule, deps) :: lines
-     | (pre, Inference_Step (name', t', rule, _) :: post) =>
-       Inference_Step (name, t', rule, deps) ::
+       (_, []) => Inference_Step (name, role, t, rule, deps) :: lines
+     | (pre, Inference_Step (name', role, t', rule, _) :: post) =>
+       Inference_Step (name, role, t', rule, deps) ::
        pre @ map (replace_dependencies_in_line (name', [name])) post
      | _ => raise Fail "unexpected inference"
 
@@ -431,18 +434,18 @@ val waldmeister_conjecture_num = "1.0.0.0"
 
 val repair_waldmeister_endgame =
   let
-    fun do_tail (Inference_Step (name, t, rule, deps)) =
-        Inference_Step (name, s_not t, rule, deps)
+    fun do_tail (Inference_Step (name, role, t, rule, deps)) =
+        Inference_Step (name, role, s_not t, rule, deps)
       | do_tail line = line
     fun do_body [] = []
-      | do_body ((line as Inference_Step ((num, _), _, _, _)) :: lines) =
+      | do_body ((line as Inference_Step ((num, _), _, _, _, _)) :: lines) =
         if num = waldmeister_conjecture_num then map do_tail (line :: lines)
         else line :: do_body lines
       | do_body (line :: lines) = line :: do_body lines
   in do_body end
 
 (* Recursively delete empty lines (type information) from the proof. *)
-fun add_nontrivial_line (line as Inference_Step (name, t, _, [])) lines =
+fun add_nontrivial_line (line as Inference_Step (name, _, t, _, [])) lines =
     if is_only_type_information t then delete_dependency name lines
     else line :: lines
   | add_nontrivial_line line lines = line :: lines
@@ -458,7 +461,7 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
 fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
   | add_desired_line fact_names frees
-        (Inference_Step (name as (_, ss), t, rule, deps)) (j, lines) =
+        (Inference_Step (name as (_, ss), role, t, rule, deps)) (j, lines) =
     (j + 1,
      if is_fact fact_names ss orelse
         is_conjecture ss orelse
@@ -470,7 +473,7 @@ fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
          length deps >= 2 andalso
          (* kill next to last line, which usually results in a trivial step *)
          j <> 1) then
-       Inference_Step (name, t, rule, deps) :: lines  (* keep line *)
+       Inference_Step (name, role, t, rule, deps) :: lines  (* keep line *)
      else
        map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
@@ -960,12 +963,12 @@ fun isar_proof_text ctxt isar_proofs
         val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
         val conjs =
           atp_proof |> map_filter
-            (fn Inference_Step (name as (_, ss), _, _, []) =>
+            (fn Inference_Step (name as (_, ss), _, _, _, []) =>
                 if member (op =) ss conj_name then SOME name else NONE
               | _ => NONE)
         val assms =
           atp_proof |> map_filter
-            (fn Inference_Step (name as (_, ss), t, _, []) =>
+            (fn Inference_Step (name as (_, ss), _, t, _, []) =>
                 if exists (String.isPrefix conjecture_prefix) ss andalso
                    not (member (op =) conjs name) then
                   SOME (Assume (raw_label_for_name name, t))
@@ -973,17 +976,18 @@ fun isar_proof_text ctxt isar_proofs
                   NONE
               | _ => NONE)
         fun dep_of_step (Definition_Step _) = NONE
-          | dep_of_step (Inference_Step (name, _, _, from)) = SOME (from, name)
+          | dep_of_step (Inference_Step (name, _, _, _, from)) =
+            SOME (from, name)
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
         val axioms = axioms_of_ref_graph ref_graph conjs
         val tainted = tainted_atoms_of_ref_graph ref_graph conjs
         val props =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
-                    | Inference_Step ((s, _), t, _, _) =>
+                    | Inference_Step ((s, _), role, t, _, _) =>
                       Symtab.update_new (s,
                           if member (op = o apsnd fst) tainted s then
-                            t |> s_not
+                            t |> role <> Conjecture ? s_not
                               |> fold exists_of (map Var (Term.add_vars t []))
                           else
                             t))
