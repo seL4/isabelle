@@ -799,10 +799,9 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay
 
     (* Enrich context with local facts *)
     val thy = Proof_Context.theory_of ctxt
-    fun sorry t = Skip_Proof.make_thm thy (HOLogic.mk_Trueprop t)
     fun enrich_ctxt' (Prove (_, label, t, _)) ctxt =
-        Proof_Context.put_thms false (string_for_label label, SOME [sorry t])
-                               ctxt
+        Proof_Context.put_thms false
+            (string_for_label label, SOME [Skip_Proof.make_thm thy t]) ctxt
       | enrich_ctxt' _ ctxt = ctxt
     val rich_ctxt = fold enrich_ctxt' proof ctxt
 
@@ -827,8 +826,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay
             fact_names
             |>> map string_for_label |> op @
             |> map (the_single o thms_of_name rich_ctxt)
-          val goal = Goal.prove (Config.put Metis_Tactic.verbose debug ctxt)
-            [] [] (HOLogic.mk_Trueprop t)
+          val goal =
+            Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
           fun tac {context = ctxt, prems = _} =
             Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
         in
