@@ -294,7 +294,6 @@ and byline =
   By_Metis of facts |
   Case_Split of isar_step list list * facts
 
-val assum_prefix = "a"
 val have_prefix = "f"
 val raw_prefix = "x"
 
@@ -677,27 +676,6 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-(* FIXME: Still needed? Try with SPASS proofs perhaps. *)
-val kill_duplicate_assumptions_in_proof =
-  let
-    fun relabel_facts subst =
-      apfst (map (fn l => AList.lookup (op =) subst l |> the_default l))
-    fun do_step (step as Assume (l, t)) (proof, subst, assums) =
-        (case AList.lookup (op aconv) assums t of
-           SOME l' => (proof, (l, l') :: subst, assums)
-         | NONE => (step :: proof, subst, (t, l) :: assums))
-      | do_step (Prove (qs, l, t, by)) (proof, subst, assums) =
-        (Prove (qs, l, t,
-                case by of
-                  By_Metis facts => By_Metis (relabel_facts subst facts)
-                | Case_Split (proofs, facts) =>
-                  Case_Split (map do_proof proofs,
-                              relabel_facts subst facts)) ::
-         proof, subst, assums)
-      | do_step step (proof, subst, assums) = (step :: proof, subst, assums)
-    and do_proof proof = fold do_step proof ([], [], []) |> #1 |> rev
-  in do_proof end
-
 fun used_labels_of_step (Prove (_, _, _, by)) =
     (case by of
        By_Metis (ls, _) => ls
@@ -729,7 +707,7 @@ val relabel_proof =
         if l = no_label then
           Assume (l, t) :: aux subst depth (next_assum, next_fact) proof
         else
-          let val l' = (prefix_for_depth depth assum_prefix, next_assum) in
+          let val l' = (prefix_for_depth depth have_prefix, next_assum) in
             Assume (l', t) ::
             aux ((l, l') :: subst) depth (next_assum + 1, next_fact) proof
           end
@@ -981,10 +959,19 @@ fun isar_proof_text ctxt isar_proofs
           |> snd
         val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
         val conjs =
-          atp_proof
-          |> map_filter (fn Inference_Step (name as (_, ss), _, _, []) =>
-                            if member (op =) ss conj_name then SOME name else NONE
-                          | _ => NONE)
+          atp_proof |> map_filter
+            (fn Inference_Step (name as (_, ss), _, _, []) =>
+                if member (op =) ss conj_name then SOME name else NONE
+              | _ => NONE)
+        val assms =
+          atp_proof |> map_filter
+            (fn Inference_Step (name as (_, ss), t, _, []) =>
+                if exists (String.isPrefix conjecture_prefix) ss andalso
+                   not (member (op =) conjs name) then
+                  SOME (Assume (raw_label_for_name name, t))
+                else
+                  NONE
+              | _ => NONE)
         fun dep_of_step (Definition_Step _) = NONE
           | dep_of_step (Inference_Step (name, _, _, from)) = SOME (from, name)
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
@@ -1027,7 +1014,7 @@ fun isar_proof_text ctxt isar_proofs
           ref_graph
           |> redirect_graph axioms tainted
           |> map (do_inf true)
-          |> kill_duplicate_assumptions_in_proof
+          |> append assms
           |> (if isar_shrinkage <= 1.0 andalso isar_proofs then
                 pair (true, seconds 0.0)
               else
