@@ -984,23 +984,22 @@ fun isar_proof_text ctxt isar_proofs
           |> fold (fn Definition_Step _ => I (* FIXME *)
                     | Inference_Step (name as (s, ss), role, t, _, _) =>
                       Symtab.update_new (s,
-                        case resolve_conjecture ss of
-                          [j] =>
-                          if j = length hyp_ts then concl_t
-                          else nth hyp_ts j
-                        | _ =>
-                          if member (op = o apsnd fst) tainted s then
-                            t |> role <> Conjecture ? s_not
-                              |> fold exists_of (map Var (Term.add_vars t []))
-                          else
-                            t))
+                        if member (op = o apsnd fst) tainted s then
+                          t |> role <> Conjecture ? s_not
+                            |> fold exists_of (map Var (Term.add_vars t []))
+                        else
+                          t))
                   atp_proof
         (* The assumptions and conjecture are props; the rest are bools. *)
-        fun prop_of_clause c =
-          fold (curry s_disj) (map_filter (Symtab.lookup props o fst) c)
-               @{term False}
-          |> (fn t => t |> fastype_of t = @{typ bool}
-                           ? (HOLogic.mk_Trueprop #> close_form))
+        fun prop_of_clause [name as (s, ss)] =
+            (case resolve_conjecture ss of
+               [j] => if j = length hyp_ts then concl_t else nth hyp_ts j
+             | _ => the_default @{term False} (Symtab.lookup props s)
+                    |> HOLogic.mk_Trueprop |> close_form)
+          | prop_of_clause names =
+            fold (curry s_disj) (map_filter (Symtab.lookup props o fst) names)
+                 @{term False}
+            |> HOLogic.mk_Trueprop |> close_form
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
