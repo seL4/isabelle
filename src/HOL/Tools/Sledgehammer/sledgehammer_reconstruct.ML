@@ -814,9 +814,9 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay
       end
     val sum_up_time =
       Vector.foldl
-      ((fn (SOME t, (b, s)) => (b, t + s)
-         | (NONE, (_, s)) => (true, preplay_timeout + s)) o apfst Lazy.force)
-      (false, seconds 0.0)
+        ((fn (SOME t, (b, s)) => (b, t + s)
+           | (NONE, (_, s)) => (true, preplay_timeout + s)) o apfst Lazy.force)
+        (false, seconds 0.0)
 
     (* Metis Preplaying *)
     fun try_metis timeout (Prove (_, _, t, By_Metis fact_names)) =
@@ -891,10 +891,9 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay
             val refed_by = refed_by |> fold
               (update (Ord_List.remove int_ord i #> Ord_List.insert int_ord j)) refs
             val new_candidates =
-              fold
-                (fn (i, [_]) => cons (cost (get i proof_vect |> the), i) | _ => I)
+              fold (fn (i, [_]) => cons (cost (get i proof_vect |> the), i)
+                     | _ => I)
                 (map (fn i => (i, get i refed_by)) refs) []
-              |> sort cand_ord
             val cand_tab = add_list cand_tab new_candidates
             val proof_vect = proof_vect |> replace NONE i |> replace s j
           in
