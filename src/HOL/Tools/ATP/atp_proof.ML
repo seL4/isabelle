@@ -250,18 +250,22 @@ val dummy_inference = Inference_Source ("", [])
 
 (* "skip_term" is there to cope with Waldmeister nonsense such as
    "theory(equality)". *)
-val parse_dependency = scan_general_id --| skip_term
-val parse_dependencies =
-  parse_dependency ::: Scan.repeat ($$ "," |-- parse_dependency)
-
-fun parse_source x =
-  (Scan.this_string "file" |-- $$ "(" |-- scan_general_id --
-     Scan.option ($$ "," |-- scan_general_id) --| $$ ")"
-     >> File_Source
-   || Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
-        --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
-        -- parse_dependencies --| $$ "]" --| $$ ")"
-       >> Inference_Source
+fun parse_dependency x =
+  (parse_inference_source >> snd
+   || scan_general_id --| skip_term >> single) x
+and parse_dependencies x =
+  (parse_dependency ::: Scan.repeat ($$ "," |-- parse_dependency)
+   >> flat) x
+and parse_file_source x =
+  (Scan.this_string "file" |-- $$ "(" |-- scan_general_id
+   -- Scan.option ($$ "," |-- scan_general_id) --| $$ ")") x
+and parse_inference_source x =
+  (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
+   --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
+   -- parse_dependencies --| $$ "]" --| $$ ")") x
+and parse_source x =
+  (parse_file_source >> File_Source
+   || parse_inference_source >> Inference_Source
    || skip_term >> K dummy_inference) x
 
 fun list_app (f, args) =
