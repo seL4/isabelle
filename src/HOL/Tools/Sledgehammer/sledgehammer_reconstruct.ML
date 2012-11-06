@@ -295,6 +295,7 @@ and byline =
   By_Metis of facts |
   Case_Split of isar_step list list * facts
 
+val assume_prefix = "a"
 val have_prefix = "f"
 val raw_prefix = "x"
 
@@ -706,24 +707,24 @@ fun prefix_for_depth n = replicate_string (n + 1)
 val relabel_proof =
   let
     fun aux _ _ _ [] = []
-      | aux subst depth (next_assum, next_fact) (Assume (l, t) :: proof) =
+      | aux subst depth (next_assum, next_have) (Assume (l, t) :: proof) =
         if l = no_label then
-          Assume (l, t) :: aux subst depth (next_assum, next_fact) proof
+          Assume (l, t) :: aux subst depth (next_assum, next_have) proof
         else
-          let val l' = (prefix_for_depth depth have_prefix, next_assum) in
+          let val l' = (prefix_for_depth depth assume_prefix, next_assum) in
             Assume (l', t) ::
-            aux ((l, l') :: subst) depth (next_assum + 1, next_fact) proof
+            aux ((l, l') :: subst) depth (next_assum + 1, next_have) proof
           end
-      | aux subst depth (next_assum, next_fact)
+      | aux subst depth (next_assum, next_have)
             (Prove (qs, l, t, by) :: proof) =
         let
-          val (l', subst, next_fact) =
+          val (l', subst, next_have) =
             if l = no_label then
-              (l, subst, next_fact)
+              (l, subst, next_have)
             else
-              let
-                val l' = (prefix_for_depth depth have_prefix, next_fact)
-              in (l', (l, l') :: subst, next_fact + 1) end
+              let val l' = (prefix_for_depth depth have_prefix, next_have) in
+                (l', (l, l') :: subst, next_have + 1)
+              end
           val relabel_facts =
             apfst (maps (the_list o AList.lookup (op =) subst))
           val by =
@@ -733,7 +734,7 @@ val relabel_proof =
               Case_Split (map (aux subst (depth + 1) (1, 1)) proofs,
                           relabel_facts facts)
         in
-          Prove (qs, l', t, by) :: aux subst depth (next_assum, next_fact) proof
+          Prove (qs, l', t, by) :: aux subst depth (next_assum, next_have) proof
         end
       | aux subst depth nextp (step :: proof) =
         step :: aux subst depth nextp proof
