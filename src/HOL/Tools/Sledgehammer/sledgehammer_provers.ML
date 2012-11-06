@@ -34,7 +34,7 @@ sig
      max_mono_iters : int option,
      max_new_mono_instances : int option,
      isar_proofs : bool,
-     isar_shrinkage : real,
+     isar_shrink : real,
      slice : bool,
      minimize : bool option,
      timeout : Time.time,
@@ -327,7 +327,7 @@ type params =
    max_mono_iters : int option,
    max_new_mono_instances : int option,
    isar_proofs : bool,
-   isar_shrinkage : real,
+   isar_shrink : real,
    slice : bool,
    minimize : bool option,
    timeout : Time.time,
@@ -642,7 +642,7 @@ fun run_atp mode name
           best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, max_facts, max_mono_iters,
-                    max_new_mono_instances, isar_proofs, isar_shrinkage,
+                    max_new_mono_instances, isar_proofs, isar_shrink,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
@@ -888,7 +888,7 @@ fun run_atp mode name
                   else
                     ()
                 val isar_params =
-                  (debug, verbose, preplay_timeout, isar_shrinkage,
+                  (debug, verbose, preplay_timeout, isar_shrink,
                    pool, fact_names, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,

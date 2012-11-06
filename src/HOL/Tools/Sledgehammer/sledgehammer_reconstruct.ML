@@ -748,8 +748,8 @@ structure Label_Table = Table(
   type key = label
   val ord = label_ord)
 
-fun shrink_proof debug ctxt type_enc lam_trans preplay
-                 preplay_timeout isar_shrinkage proof =
+fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
+                 isar_shrink proof =
   let
     (* clean vector interface *)
     fun get i v = Vector.sub (v, i)
@@ -770,7 +770,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay
     (* proof vector *)
     val proof_vect = proof |> map SOME |> Vector.fromList
     val n = Vector.length proof_vect
-    val n_target = Real.fromInt n / isar_shrinkage |> Real.round
+    val n_target = Real.fromInt n / isar_shrink |> Real.round
 
     (* table for mapping from label to proof position *)
     fun update_table (i, Prove (_, label, _, _)) =
@@ -932,8 +932,8 @@ type isar_params =
   * (string * stature) list vector * int Symtab.table * string proof * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, isar_shrinkage,
-     pool, fact_names, sym_tab, atp_proof, goal)
+    (debug, verbose, preplay_timeout, isar_shrink, pool, fact_names, sym_tab,
+     atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
@@ -1030,8 +1030,7 @@ fun isar_proof_text ctxt isar_proofs
           |> map (do_inf true)
           |> append assms
           |> shrink_proof debug ctxt type_enc lam_trans preplay
-                 preplay_timeout
-                 (if isar_proofs then isar_shrinkage else 1000.0)
+                 preplay_timeout (if isar_proofs then isar_shrink else 1000.0)
        (* ||> reorder_proof_to_minimize_jumps (* ? *) *)
           ||> chain_direct_proof
           ||> kill_useless_labels_in_proof

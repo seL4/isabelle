@@ -54,7 +54,7 @@ fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  max_new_mono_instances, type_enc, strict, lam_trans,
-                 uncurried_aliases, isar_proofs, isar_shrinkage,
+                 uncurried_aliases, isar_proofs, isar_shrink,
                  preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
@@ -73,7 +73,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        learn = false, fact_filter = NONE, max_facts = SOME (length facts),
        fact_thresholds = (1.01, 1.01), max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances,
-       isar_proofs = isar_proofs, isar_shrinkage = isar_shrinkage,
+       isar_proofs = isar_proofs, isar_shrink = isar_shrink,
        slice = false, minimize = SOME false, timeout = timeout,
        preplay_timeout = preplay_timeout, expect = ""}
     val problem =
@@ -237,7 +237,7 @@ fun adjust_reconstructor_params override_params
         ({debug, verbose, overlord, blocking, provers, type_enc, strict,
          lam_trans, uncurried_aliases, learn, fact_filter, max_facts,
          fact_thresholds, max_mono_iters, max_new_mono_instances, isar_proofs,
-         isar_shrinkage, slice, minimize, timeout, preplay_timeout, expect}
+         isar_shrink, slice, minimize, timeout, preplay_timeout, expect}
          : params) =
   let
     fun lookup_override name default_value =
@@ -255,7 +255,7 @@ fun adjust_reconstructor_params override_params
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_shrinkage = isar_shrinkage, slice = slice, minimize = minimize,
+     isar_shrink = isar_shrink, slice = slice, minimize = minimize,
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
