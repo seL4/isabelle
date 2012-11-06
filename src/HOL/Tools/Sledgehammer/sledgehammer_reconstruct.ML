@@ -1029,12 +1029,9 @@ fun isar_proof_text ctxt isar_proofs
           |> redirect_graph axioms tainted
           |> map (do_inf true)
           |> append assms
-          |> (if isar_shrinkage <= 1.0 andalso isar_proofs then
-                pair (true, seconds 0.0)
-              else
-                shrink_proof debug ctxt type_enc lam_trans preplay
-                     preplay_timeout
-                     (if isar_proofs then isar_shrinkage else 1000.0))
+          |> shrink_proof debug ctxt type_enc lam_trans preplay
+                 preplay_timeout
+                 (if isar_proofs then isar_shrinkage else 1000.0)
        (* ||> reorder_proof_to_minimize_jumps (* ? *) *)
           ||> chain_direct_proof
           ||> kill_useless_labels_in_proof
@@ -1052,21 +1049,15 @@ fun isar_proof_text ctxt isar_proofs
           else
             ""
         | _ =>
-          "\n\n" ^
-          (if isar_proofs then
-             "Structured proof" ^
-             (if verbose then
-                " (" ^ string_of_int num_steps ^ " step" ^ plural_s num_steps ^
-                (if preplay andalso isar_shrinkage > 1.0 then
-                   ", " ^ string_from_ext_time ext_time
-                 else
-                   "") ^
-                ")"
-              else
-                "")
+          "\n\nStructured proof" ^
+          (if verbose then
+             " (" ^ string_of_int num_steps ^ " step" ^ plural_s num_steps ^
+             (if preplay then ", " ^ string_from_ext_time ext_time
+              else "") ^ ")"
+           else if preplay then
+             " (" ^ string_from_ext_time ext_time ^ ")"
            else
-             "Perhaps this will work") ^
-          ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_text
+             "") ^ ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_text
       end
     val isar_proof =
       if debug then
