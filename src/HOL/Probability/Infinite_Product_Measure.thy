@@ -8,15 +8,6 @@ theory Infinite_Product_Measure
   imports Probability_Measure Caratheodory
 begin
 
-lemma extensional_UNIV[simp]: "extensional UNIV = UNIV"
-  by (auto simp: extensional_def)
-
-lemma restrict_extensional_sub[intro]: "A \<subseteq> B \<Longrightarrow> restrict f A \<in> extensional B"
-  unfolding restrict_def extensional_def by auto
-
-lemma restrict_restrict[simp]: "restrict (restrict f A) B = restrict f (A \<inter> B)"
-  unfolding restrict_def by (simp add: fun_eq_iff)
-
 lemma split_merge: "P (merge I J (x,y) i) \<longleftrightarrow> (i \<in> I \<longrightarrow> P (x i)) \<and> (i \<in> J - I \<longrightarrow> P (y i)) \<and> (i \<notin> I \<union> J \<longrightarrow> P undefined)"
   unfolding merge_def by auto
 
@@ -43,39 +34,6 @@ proof  (intro set_eqI)
     assume "x \<notin> (\<Pi>\<^isub>E i\<in>J. S i)" with sets show "x \<in> A \<longleftrightarrow> x \<in> B" by auto
   qed
 qed
-
-lemma prod_algebraI_finite:
-  "finite I \<Longrightarrow> (\<forall>i\<in>I. E i \<in> sets (M i)) \<Longrightarrow> (Pi\<^isub>E I E) \<in> prod_algebra I M"
-  using prod_algebraI[of I I E M] prod_emb_PiE_same_index[of I E M, OF sets_into_space] by simp
-
-lemma Int_stable_PiE: "Int_stable {Pi\<^isub>E J E | E. \<forall>i\<in>I. E i \<in> sets (M i)}"
-proof (safe intro!: Int_stableI)
-  fix E F assume "\<forall>i\<in>I. E i \<in> sets (M i)" "\<forall>i\<in>I. F i \<in> sets (M i)"
-  then show "\<exists>G. Pi\<^isub>E J E \<inter> Pi\<^isub>E J F = Pi\<^isub>E J G \<and> (\<forall>i\<in>I. G i \<in> sets (M i))"
-    by (auto intro!: exI[of _ "\<lambda>i. E i \<inter> F i"])
-qed
-
-lemma prod_emb_trans[simp]:
-  "J \<subseteq> K \<Longrightarrow> K \<subseteq> L \<Longrightarrow> prod_emb L M K (prod_emb K M J X) = prod_emb L M J X"
-  by (auto simp add: Int_absorb1 prod_emb_def)
-
-lemma prod_emb_Pi:
-  assumes "X \<in> (\<Pi> j\<in>J. sets (M j))" "J \<subseteq> K"
-  shows "prod_emb K M J (Pi\<^isub>E J X) = (\<Pi>\<^isub>E i\<in>K. if i \<in> J then X i else space (M i))"
-  using assms space_closed
-  by (auto simp: prod_emb_def Pi_iff split: split_if_asm) blast+
-
-lemma prod_emb_id:
-  "B \<subseteq> (\<Pi>\<^isub>E i\<in>L. space (M i)) \<Longrightarrow> prod_emb L M L B = B"
-  by (auto simp: prod_emb_def Pi_iff subset_eq extensional_restrict)
-
-lemma measurable_prod_emb[intro, simp]:
-  "J \<subseteq> L \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> prod_emb L M J X \<in> sets (Pi\<^isub>M L M)"
-  unfolding prod_emb_def space_PiM[symmetric]
-  by (auto intro!: measurable_sets measurable_restrict measurable_component_singleton)
-
-lemma measurable_restrict_subset: "J \<subseteq> L \<Longrightarrow> (\<lambda>f. restrict f J) \<in> measurable (Pi\<^isub>M L M) (Pi\<^isub>M J M)"
-  by (intro measurable_restrict measurable_component_singleton) auto
 
 lemma (in product_prob_space) distr_restrict:
   assumes "J \<noteq> {}" "J \<subseteq> K" "finite K"
