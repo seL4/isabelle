@@ -922,8 +922,7 @@ proof -
   then show "AE x in M. f x = f' x"
     unfolding eventually_ae_filter using h_borel pos
     by (auto simp add: h_null_sets null_sets_density_iff not_less[symmetric]
-                          AE_iff_null_sets[symmetric])
-       blast
+                          AE_iff_null_sets[symmetric]) blast
 qed
 
 lemma (in sigma_finite_measure) density_unique_iff:
@@ -1126,7 +1125,7 @@ lemma (in sigma_finite_measure) RN_deriv_distr:
   fixes T :: "'a \<Rightarrow> 'b"
   assumes T: "T \<in> measurable M M'" and T': "T' \<in> measurable M' M"
     and inv: "\<forall>x\<in>space M. T' (T x) = x"
-  and ac: "absolutely_continuous (distr M M' T) (distr N M' T)"
+  and ac[simp]: "absolutely_continuous (distr M M' T) (distr N M' T)"
   and N: "sets N = sets M"
   shows "AE x in M. RN_deriv (distr M M' T) (distr N M' T) (T x) = RN_deriv M N x"
 proof (rule RN_deriv_unique)
@@ -1162,7 +1161,7 @@ proof (rule RN_deriv_unique)
     qed
   qed
   have "(RN_deriv ?M' ?N') \<circ> T \<in> borel_measurable M"
-    using T ac by measurable simp
+    using T ac by measurable
   then show "(\<lambda>x. RN_deriv ?M' ?N' (T x)) \<in> borel_measurable M"
     by (simp add: comp_def)
   show "AE x in M. 0 \<le> RN_deriv ?M' ?N' (T x)" using M'.RN_deriv_nonneg[OF ac] by auto

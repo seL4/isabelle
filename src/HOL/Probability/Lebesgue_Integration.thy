@@ -270,7 +270,7 @@ proof -
     have "simple_function M (\<lambda>x. real (f x i))"
     proof (intro simple_function_borel_measurable)
       show "(\<lambda>x. real (f x i)) \<in> borel_measurable M"
-        using u by (auto intro!: measurable_If simp: real_f)
+        using u by (auto simp: real_f)
       have "(\<lambda>x. real (f x i))`space M \<subseteq> real`{..i*2^i}"
         using f_upper[of _ i] by auto
       then show "finite ((\<lambda>x. real (f x i))`space M)"

@@ -1004,9 +1004,6 @@ lemma borel_measurable_indicator':
   "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> (\<lambda>x. indicator A (f x)) \<in> borel_measurable M"
   using measurable_comp[OF _ borel_measurable_indicator, of f M N A] by (auto simp add: comp_def)
 
-lemma measurable_id_prod[measurable (raw)]: "i = j \<Longrightarrow> (\<lambda>x. x) \<in> measurable (M i) (M j)"
-  by simp
-
 lemma (in product_sigma_finite) distr_component:
   "distr (M i) (Pi\<^isub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x) = Pi\<^isub>M {i} M" (is "?D = ?P")
 proof (intro measure_eqI[symmetric])

@@ -480,7 +480,7 @@ lemma sets_PiM_I_finite[measurable]:
   shows "(PIE j:I. E j) \<in> sets (PIM i:I. M i)"
   using sets_PiM_I[of I I E M] sets_into_space[OF sets] `finite I` sets by auto
 
-lemma measurable_component_singleton[measurable (raw)]:
+lemma measurable_component_singleton:
   assumes "i \<in> I" shows "(\<lambda>x. x i) \<in> measurable (Pi\<^isub>M I M) (M i)"
 proof (unfold measurable_def, intro CollectI conjI ballI)
   fix A assume "A \<in> sets (M i)"
@@ -490,6 +490,18 @@ proof (unfold measurable_def, intro CollectI conjI ballI)
   then show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>M I M) \<in> sets (Pi\<^isub>M I M)"
     using `A \<in> sets (M i)` `i \<in> I` by (auto intro!: sets_PiM_I)
 qed (insert `i \<in> I`, auto simp: space_PiM)
+
+lemma measurable_component_singleton'[measurable_app]:
+  assumes f: "f \<in> measurable N (Pi\<^isub>M I M)"
+  assumes i: "i \<in> I"
+  shows "(\<lambda>x. (f x) i) \<in> measurable N (M i)"
+  using measurable_compose[OF f measurable_component_singleton, OF i] .
+
+lemma measurable_nat_case[measurable (raw)]:
+  assumes [measurable (raw)]: "i = 0 \<Longrightarrow> f \<in> measurable M N"
+    "\<And>j. i = Suc j \<Longrightarrow> (\<lambda>x. g x j) \<in> measurable M N"
+  shows "(\<lambda>x. nat_case (f x) (g x) i) \<in> measurable M N"
+  by (cases i) simp_all
 
 lemma measurable_add_dim[measurable]:
   "(\<lambda>(f, y). f(i := y)) \<in> measurable (Pi\<^isub>M I M \<Otimes>\<^isub>M M i) (Pi\<^isub>M (insert i I) M)"

@@ -74,7 +74,7 @@ proof (rule measurable_measure_of, simp_all)
     using assms[of S] by simp
 qed
 
-lemma borel_measurable_const[measurable (raw)]:
+lemma borel_measurable_const:
   "(\<lambda>x. c) \<in> borel_measurable M"
   by auto
 
@@ -168,7 +168,8 @@ lemma
   shows borel_measurable_le[measurable]: "{w \<in> space M. f w \<le> g w} \<in> sets M"
     and borel_measurable_eq[measurable]: "{w \<in> space M. f w = g w} \<in> sets M"
     and borel_measurable_neq: "{w \<in> space M. f w \<noteq> g w} \<in> sets M"
-  unfolding eq_iff not_less[symmetric] by measurable+
+  unfolding eq_iff not_less[symmetric]
+  by measurable
 
 subsection "Borel space equals sigma algebras over intervals"
 
