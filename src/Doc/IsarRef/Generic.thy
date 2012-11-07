@@ -1362,13 +1362,13 @@ text {* These proof methods may help in situations when the
 subsection {* Single-step tactics *}
 
 text {*
-  \begin{matharray}{rcl}
+  \begin{mldecls}
     @{index_ML safe_step_tac: "Proof.context -> int -> tactic"} \\
     @{index_ML inst_step_tac: "Proof.context -> int -> tactic"} \\
     @{index_ML step_tac: "Proof.context -> int -> tactic"} \\
     @{index_ML slow_step_tac: "Proof.context -> int -> tactic"} \\
     @{index_ML clarify_step_tac: "Proof.context -> int -> tactic"} \\
-  \end{matharray}
+  \end{mldecls}
 
   These are the primitive tactics behind the automated proof methods
   of the Classical Reasoner.  By calling them yourself, you can
@@ -1400,6 +1400,94 @@ text {*
   assumption, Modus Ponens, etc., may be performed provided they do
   not instantiate unknowns.  Assumptions of the form @{text "x = t"}
   may be eliminated.  The safe wrapper tactical is applied.
+
+  \end{description}
+*}
+
+
+subsection {* Modifying the search step *}
+
+text {*
+  \begin{mldecls}
+    @{index_ML_type wrapper: "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
+    @{index_ML_op addSWrapper: "claset * (string * (Proof.context -> wrapper))
+  -> claset"} \\
+    @{index_ML_op addSbefore: "claset * (string * (int -> tactic)) -> claset"} \\
+    @{index_ML_op addSafter: "claset * (string * (int -> tactic)) -> claset"} \\
+    @{index_ML_op delSWrapper: "claset * string -> claset"} \\[0.5ex]
+    @{index_ML_op addWrapper: "claset * (string * (Proof.context -> wrapper))
+  -> claset"} \\
+    @{index_ML_op addbefore: "claset * (string * (int -> tactic)) -> claset"} \\
+    @{index_ML_op addafter: "claset * (string * (int -> tactic)) -> claset"} \\
+    @{index_ML_op delWrapper: "claset * string -> claset"} \\[0.5ex]
+    @{index_ML addSss: "Proof.context -> Proof.context"} \\
+    @{index_ML addss: "Proof.context -> Proof.context"} \\
+  \end{mldecls}
+
+  The proof strategy of the Classical Reasoner is simple.  Perform as
+  many safe inferences as possible; or else, apply certain safe rules,
+  allowing instantiation of unknowns; or else, apply an unsafe rule.
+  The tactics also eliminate assumptions of the form @{text "x = t"}
+  by substitution if they have been set up to do so.  They may perform
+  a form of Modus Ponens: if there are assumptions @{text "P \<longrightarrow> Q"} and
+  @{text "P"}, then replace @{text "P \<longrightarrow> Q"} by @{text "Q"}.
+
+  The classical reasoning tools --- except @{method blast} --- allow
+  to modify this basic proof strategy by applying two lists of
+  arbitrary \emph{wrapper tacticals} to it.  The first wrapper list,
+  which is considered to contain safe wrappers only, affects @{ML
+  safe_step_tac} and all the tactics that call it.  The second one,
+  which may contain unsafe wrappers, affects the unsafe parts of @{ML
+  step_tac}, @{ML slow_step_tac}, and the tactics that call them.  A
+  wrapper transforms each step of the search, for example by
+  attempting other tactics before or after the original step tactic.
+  All members of a wrapper list are applied in turn to the respective
+  step tactic.
+
+  Initially the two wrapper lists are empty, which means no
+  modification of the step tactics. Safe and unsafe wrappers are added
+  to a claset with the functions given below, supplying them with
+  wrapper names.  These names may be used to selectively delete
+  wrappers.
+
+  \begin{description}
+
+  \item @{text "cs addSWrapper (name, wrapper)"} adds a new wrapper,
+  which should yield a safe tactic, to modify the existing safe step
+  tactic.
+
+  \item @{text "cs addSbefore (name, tac)"} adds the given tactic as a
+  safe wrapper, such that it is tried \emph{before} each safe step of
+  the search.
+
+  \item @{text "cs addSafter (name, tac)"} adds the given tactic as a
+  safe wrapper, such that it is tried when a safe step of the search
+  would fail.
+
+  \item @{text "cs delSWrapper name"} deletes the safe wrapper with
+  the given name.
+
+  \item @{text "cs addWrapper (name, wrapper)"} adds a new wrapper to
+  modify the existing (unsafe) step tactic.
+
+  \item @{text "cs addbefore (name, tac)"} adds the given tactic as an
+  unsafe wrapper, such that it its result is concatenated
+  \emph{before} the result of each unsafe step.
+
+  \item @{text "cs addafter (name, tac)"} adds the given tactic as an
+  unsafe wrapper, such that it its result is concatenated \emph{after}
+  the result of each unsafe step.
+
+  \item @{text "cs delWrapper name"} deletes the unsafe wrapper with
+  the given name.
+
+  \item @{text "addSss"} adds the simpset of the context to its
+  classical set. The assumptions and goal will be simplified, in a
+  rather safe way, after each safe step of the search.
+
+  \item @{text "addss"} adds the simpset of the context to its
+  classical set. The assumptions and goal will be simplified, before
+  the each unsafe step of the search.
 
   \end{description}
 *}

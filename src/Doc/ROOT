@@ -261,7 +261,6 @@ session Ref (doc) in "Ref" = Pure +
     "../proof.sty"
     "../manual.bib"
     "document/build"
-    "document/classical.tex"
     "document/root.tex"
     "document/simplifier.tex"
     "document/substitution.tex"
