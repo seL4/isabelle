@@ -5,7 +5,7 @@
 header {*Infinite Product Measure*}
 
 theory Infinite_Product_Measure
-  imports Probability_Measure Caratheodory
+  imports Probability_Measure Caratheodory Projective_Family
 begin
 
 lemma split_merge: "P (merge I J (x,y) i) \<longleftrightarrow> (i \<in> I \<longrightarrow> P (x i)) \<and> (i \<in> J - I \<longrightarrow> P (y i)) \<and> (i \<notin> I \<union> J \<longrightarrow> P undefined)"
@@ -76,16 +76,20 @@ proof (rule measure_eqI_generator_eq)
     by (auto intro!: measurable_restrict_subset simp: space_PiM)
 qed
 
-abbreviation (in product_prob_space)
-  "emb L K X \<equiv> prod_emb L M K X"
-
 lemma (in product_prob_space) emeasure_prod_emb[simp]:
   assumes L: "J \<noteq> {}" "J \<subseteq> L" "finite L" and X: "X \<in> sets (Pi\<^isub>M J M)"
-  shows "emeasure (Pi\<^isub>M L M) (emb L J X) = emeasure (Pi\<^isub>M J M) X"
+  shows "emeasure (Pi\<^isub>M L M) (prod_emb L M J X) = emeasure (Pi\<^isub>M J M) X"
   by (subst distr_restrict[OF L])
      (simp add: prod_emb_def space_PiM emeasure_distr measurable_restrict_subset L X)
 
-lemma (in product_prob_space) prod_emb_injective:
+sublocale product_prob_space \<subseteq> projective_family I "\<lambda>J. PiM J M" M
+proof
+  fix J::"'i set" assume "finite J"
+  interpret f: finite_product_prob_space M J proof qed fact
+  show "emeasure (Pi\<^isub>M J M) (space (Pi\<^isub>M J M)) \<noteq> \<infinity>" by simp
+qed simp_all
+
+lemma (in projective_family) prod_emb_injective:
   assumes "J \<noteq> {}" "J \<subseteq> L" "finite J" and sets: "X \<in> sets (Pi\<^isub>M J M)" "Y \<in> sets (Pi\<^isub>M J M)"
   assumes "prod_emb L M J X = prod_emb L M J Y"
   shows "X = Y"
@@ -100,14 +104,17 @@ proof (rule injective_vimage_restrict)
     using `prod_emb L M J X = prod_emb L M J Y` by (simp add: prod_emb_def)
 qed fact
 
-definition (in product_prob_space) generator :: "('i \<Rightarrow> 'a) set set" where
+abbreviation (in projective_family)
+  "emb L K X \<equiv> prod_emb L M K X"
+
+definition (in projective_family) generator :: "('i \<Rightarrow> 'a) set set" where
   "generator = (\<Union>J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emb I J ` sets (Pi\<^isub>M J M))"
 
-lemma (in product_prob_space) generatorI':
+lemma (in projective_family) generatorI':
   "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> emb I J X \<in> generator"
   unfolding generator_def by auto
 
-lemma (in product_prob_space) algebra_generator:
+lemma (in projective_family) algebra_generator:
   assumes "I \<noteq> {}" shows "algebra (\<Pi>\<^isub>E i\<in>I. space (M i)) generator" (is "algebra ?\<Omega> ?G")
   unfolding algebra_def algebra_axioms_def ring_of_sets_iff
 proof (intro conjI ballI)
@@ -135,7 +142,7 @@ proof (intro conjI ballI)
     unfolding * using XA XB by (safe intro!: generatorI') auto
 qed
 
-lemma (in product_prob_space) sets_PiM_generator:
+lemma (in projective_family) sets_PiM_generator:
   "sets (PiM I M) = sigma_sets (\<Pi>\<^isub>E i\<in>I. space (M i)) generator"
 proof cases
   assume "I = {}" then show ?thesis
@@ -154,57 +161,56 @@ next
   qed (auto simp: generator_def space_PiM[symmetric] intro!: sigma_sets_subset)
 qed
 
-
-lemma (in product_prob_space) generatorI:
+lemma (in projective_family) generatorI:
   "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> A = emb I J X \<Longrightarrow> A \<in> generator"
   unfolding generator_def by auto
 
-definition (in product_prob_space)
+definition (in projective_family)
   "\<mu>G A =
-    (THE x. \<forall>J. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> J \<subseteq> I \<longrightarrow> (\<forall>X\<in>sets (Pi\<^isub>M J M). A = emb I J X \<longrightarrow> x = emeasure (Pi\<^isub>M J M) X))"
+    (THE x. \<forall>J. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> J \<subseteq> I \<longrightarrow> (\<forall>X\<in>sets (Pi\<^isub>M J M). A = emb I J X \<longrightarrow> x = emeasure (PiP J M P) X))"
 
-lemma (in product_prob_space) \<mu>G_spec:
+lemma (in projective_family) \<mu>G_spec:
   assumes J: "J \<noteq> {}" "finite J" "J \<subseteq> I" "A = emb I J X" "X \<in> sets (Pi\<^isub>M J M)"
-  shows "\<mu>G A = emeasure (Pi\<^isub>M J M) X"
+  shows "\<mu>G A = emeasure (PiP J M P) X"
   unfolding \<mu>G_def
 proof (intro the_equality allI impI ballI)
   fix K Y assume K: "K \<noteq> {}" "finite K" "K \<subseteq> I" "A = emb I K Y" "Y \<in> sets (Pi\<^isub>M K M)"
-  have "emeasure (Pi\<^isub>M K M) Y = emeasure (Pi\<^isub>M (K \<union> J) M) (emb (K \<union> J) K Y)"
+  have "emeasure (PiP K M P) Y = emeasure (PiP (K \<union> J) M P) (emb (K \<union> J) K Y)"
     using K J by simp
   also have "emb (K \<union> J) K Y = emb (K \<union> J) J X"
     using K J by (simp add: prod_emb_injective[of "K \<union> J" I])
-  also have "emeasure (Pi\<^isub>M (K \<union> J) M) (emb (K \<union> J) J X) = emeasure (Pi\<^isub>M J M) X"
+  also have "emeasure (PiP (K \<union> J) M P) (emb (K \<union> J) J X) = emeasure (PiP J M P) X"
     using K J by simp
-  finally show "emeasure (Pi\<^isub>M J M) X = emeasure (Pi\<^isub>M K M) Y" ..
+  finally show "emeasure (PiP J M P) X = emeasure (PiP K M P) Y" ..
 qed (insert J, force)
 
-lemma (in product_prob_space) \<mu>G_eq:
-  "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> \<mu>G (emb I J X) = emeasure (Pi\<^isub>M J M) X"
+lemma (in projective_family) \<mu>G_eq:
+  "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> \<mu>G (emb I J X) = emeasure (PiP J M P) X"
   by (intro \<mu>G_spec) auto
 
-lemma (in product_prob_space) generator_Ex:
+lemma (in projective_family) generator_Ex:
   assumes *: "A \<in> generator"
-  shows "\<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A = emb I J X \<and> \<mu>G A = emeasure (Pi\<^isub>M J M) X"
+  shows "\<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A = emb I J X \<and> \<mu>G A = emeasure (PiP J M P) X"
 proof -
   from * obtain J X where J: "J \<noteq> {}" "finite J" "J \<subseteq> I" "A = emb I J X" "X \<in> sets (Pi\<^isub>M J M)"
     unfolding generator_def by auto
   with \<mu>G_spec[OF this] show ?thesis by auto
 qed
 
-lemma (in product_prob_space) generatorE:
+lemma (in projective_family) generatorE:
   assumes A: "A \<in> generator"
-  obtains J X where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A" "\<mu>G A = emeasure (Pi\<^isub>M J M) X"
+  obtains J X where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A" "\<mu>G A = emeasure (PiP J M P) X"
 proof -
   from generator_Ex[OF A] obtain X J where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A"
-    "\<mu>G A = emeasure (Pi\<^isub>M J M) X" by auto
+    "\<mu>G A = emeasure (PiP J M P) X" by auto
   then show thesis by (intro that) auto
 qed
 
-lemma (in product_prob_space) merge_sets:
+lemma (in projective_family) merge_sets:
   "J \<inter> K = {} \<Longrightarrow> A \<in> sets (Pi\<^isub>M (J \<union> K) M) \<Longrightarrow> x \<in> space (Pi\<^isub>M J M) \<Longrightarrow> (\<lambda>y. merge J K (x,y)) -` A \<inter> space (Pi\<^isub>M K M) \<in> sets (Pi\<^isub>M K M)"
   by simp
 
-lemma (in product_prob_space) merge_emb:
+lemma (in projective_family) merge_emb:
   assumes "K \<subseteq> I" "J \<subseteq> I" and y: "y \<in> space (Pi\<^isub>M J M)"
   shows "((\<lambda>x. merge J (I - J) (y, x)) -` emb I K X \<inter> space (Pi\<^isub>M I M)) =
     emb I (K - J) ((\<lambda>x. merge J (K - J) (y, x)) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M))"
@@ -221,7 +227,7 @@ proof -
        auto
 qed
 
-lemma (in product_prob_space) positive_\<mu>G: 
+lemma (in projective_family) positive_\<mu>G:
   assumes "I \<noteq> {}"
   shows "positive generator \<mu>G"
 proof -
@@ -241,7 +247,7 @@ proof -
   qed
 qed
 
-lemma (in product_prob_space) additive_\<mu>G: 
+lemma (in projective_family) additive_\<mu>G:
   assumes "I \<noteq> {}"
   shows "additive generator \<mu>G"
 proof -
@@ -263,13 +269,17 @@ proof -
       using J K by simp_all
     then have "\<mu>G (A \<union> B) = \<mu>G (emb I (J \<union> K) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y))"
       by simp
-    also have "\<dots> = emeasure (Pi\<^isub>M (J \<union> K) M) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
+    also have "\<dots> = emeasure (PiP (J \<union> K) M P) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
       using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq Un del: prod_emb_Un)
     also have "\<dots> = \<mu>G A + \<mu>G B"
       using J K JK_disj by (simp add: plus_emeasure[symmetric])
     finally show "\<mu>G (A \<union> B) = \<mu>G A + \<mu>G B" .
   qed
 qed
+
+lemma (in product_prob_space) PiP_PiM_finite[simp]:
+  assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" shows "PiP J M (\<lambda>J. PiM J M) = PiM J M"
+  using assms by (simp add: PiP_finite)
 
 lemma (in product_prob_space) emeasure_PiM_emb_not_empty:
   assumes X: "J \<noteq> {}" "J \<subseteq> I" "finite J" "\<forall>i\<in>J. X i \<in> sets (M i)"
@@ -295,7 +305,6 @@ next
     ultimately have K: "K \<noteq> {}" "finite K" "K \<subseteq> I" "X \<in> sets (Pi\<^isub>M K M)" "Z = emb I K X"
       "K - J \<noteq> {}" "K - J \<subseteq> I" "\<mu>G Z = emeasure (Pi\<^isub>M K M) X"
       by (auto simp: subset_insertI)
-
     let ?M = "\<lambda>y. (\<lambda>x. merge J (K - J) (y, x)) -` emb (J \<union> K) K X \<inter> space (Pi\<^isub>M (K - J) M)"
     { fix y assume y: "y \<in> space (Pi\<^isub>M J M)"
       note * = merge_emb[OF `K \<subseteq> I` `J \<subseteq> I` y, of X]
@@ -360,7 +369,7 @@ next
         using A positive_\<mu>G[OF I_not_empty] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
 
-      have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (Pi\<^isub>M J M) X"
+      have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (PiP J M (\<lambda>J. (Pi\<^isub>M J M))) X"
         using A by (intro allI generator_Ex) auto
       then obtain J' X' where J': "\<And>n. J' n \<noteq> {}" "\<And>n. finite (J' n)" "\<And>n. J' n \<subseteq> I" "\<And>n. X' n \<in> sets (Pi\<^isub>M (J' n) M)"
         and A': "\<And>n. A n = emb I (J' n) (X' n)"
