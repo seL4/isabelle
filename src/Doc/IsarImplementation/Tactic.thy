@@ -462,6 +462,56 @@ text %mlref {*
   \end{description}
 *}
 
+
+subsection {* Raw composition: resolution without lifting *}
+
+text {*
+  Raw composition of two rules means resolving them without prior
+  lifting or renaming of unknowns.  This low-level operation, which
+  underlies the resolution tactics, may occasionally be useful for
+  special effects.  Schematic variables are not renamed, so beware of
+  clashes!
+*}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML compose_tac: "(bool * thm * int) -> int -> tactic"} \\
+  @{index_ML compose: "thm * int * thm -> thm list"} \\
+  @{index_ML_op COMP: "thm * thm -> thm"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML compose_tac}~@{text "(flag, rule, m) i"} refines subgoal
+  @{text "i"} using @{text "rule"}, without lifting.  The @{text
+  "rule"} is taken to have the form @{text "\<psi>\<^sub>1 \<Longrightarrow> \<dots> \<psi>\<^sub>m \<Longrightarrow> \<psi>"}, where
+  @{text "\<psi>"} need not be atomic; thus @{text "m"} determines the
+  number of new subgoals.  If @{text "flag"} is @{text "true"} then it
+  performs elim-resolution --- it solves the first premise of @{text
+  "rule"} by assumption and deletes that assumption.
+
+  \item @{ML compose}~@{text "(thm\<^sub>1, i, thm\<^sub>2)"} uses @{text "thm\<^sub>1"},
+  regarded as an atomic formula, to solve premise @{text "i"} of
+  @{text "thm\<^sub>2"}.  Let @{text "thm\<^sub>1"} and @{text "thm\<^sub>2"} be @{text
+  "\<psi>"} and @{text "\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>"}.  For each @{text "s"} that unifies
+  @{text "\<psi>"} and @{text "\<phi>"}, the result list contains the theorem
+  @{text "(\<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>i\<^sub>-\<^sub>1 \<Longrightarrow> \<phi>\<^sub>i\<^sub>+\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> \<phi>)s"}.
+
+  \item @{text "thm\<^sub>1 COMP thm\<^sub>2"} calls @{text "compose (thm\<^sub>1, 1,
+  thm\<^sub>2)"} and returns the result, if unique; otherwise, it raises
+  exception @{ML THM}.
+
+  \end{description}
+
+  \begin{warn}
+  These low-level operations are stepping outside the structure
+  imposed by regular rule resolution.  Used without understanding of
+  the consequences, they may produce results that cause problems with
+  standard rules and tactics later on.
+  \end{warn}
+*}
+
+
 section {* Tacticals \label{sec:tacticals} *}
 
 text {* A \emph{tactical} is a functional combinator for building up

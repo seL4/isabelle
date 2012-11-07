@@ -309,11 +309,13 @@ g(b)$.
 Most of these rules have the sole purpose of implementing particular
 tactics.  There are few occasions for applying them directly to a theorem.
 
-\subsection{Resolution}
+\subsection{Resolution and raw composition}
 \index{resolution}
 \begin{ttbox} 
 biresolution : bool -> (bool*thm)list -> int -> thm
                -> thm Seq.seq
+bicompose : bool -> bool * thm * int -> int -> thm
+            -> thm Seq.seq
 \end{ttbox}
 \begin{ttdescription}
 \item[\ttindexbold{biresolution} $match$ $rules$ $i$ $state$] 
@@ -321,38 +323,6 @@ performs bi-resolution on subgoal~$i$ of $state$, using the list of $\it
 (flag,rule)$ pairs.  For each pair, it applies resolution if the flag
 is~{\tt false} and elim-resolution if the flag is~{\tt true}.  If $match$
 is~{\tt true}, the $state$ is not instantiated.
-\end{ttdescription}
-
-
-\subsection{Composition: resolution without lifting}
-\index{resolution!without lifting}
-\begin{ttbox}
-compose   : thm * int * thm -> thm list
-COMP      : thm * thm -> thm
-bicompose : bool -> bool * thm * int -> int -> thm
-            -> thm Seq.seq
-\end{ttbox}
-In forward proof, a typical use of composition is to regard an assertion of
-the form $\phi\Imp\psi$ as atomic.  Schematic variables are not renamed, so
-beware of clashes!
-\begin{ttdescription}
-\item[\ttindexbold{compose} ($thm@1$, $i$, $thm@2$)] 
-uses $thm@1$, regarded as an atomic formula, to solve premise~$i$
-of~$thm@2$.  Let $thm@1$ and $thm@2$ be $\psi$ and $\List{\phi@1; \ldots;
-\phi@n} \Imp \phi$.  For each $s$ that unifies~$\psi$ and $\phi@i$, the
-result list contains the theorem
-\[ (\List{\phi@1; \ldots; \phi@{i-1}; \phi@{i+1}; \ldots; \phi@n} \Imp \phi)s.
-\]
-
-\item[$thm@1$ \ttindexbold{COMP} $thm@2$] 
-calls \hbox{\tt compose ($thm@1$, 1, $thm@2$)} and returns the result, if
-unique; otherwise, it raises exception~\xdx{THM}\@.  It is
-analogous to {\tt RS}\@.  
-
-For example, suppose that $thm@1$ is $a=b\Imp b=a$, a symmetry rule, and
-that $thm@2$ is $\List{P\Imp Q; \neg Q} \Imp\neg P$, which is the
-principle of contrapositives.  Then the result would be the
-derived rule $\neg(b=a)\Imp\neg(a=b)$.
 
 \item[\ttindexbold{bicompose} $match$ ($flag$, $rule$, $m$) $i$ $state$]
 refines subgoal~$i$ of $state$ using $rule$, without lifting.  The $rule$
