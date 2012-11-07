@@ -25,14 +25,14 @@ locale projective_family =
   fixes I::"'i set" and P::"'i set \<Rightarrow> ('i \<Rightarrow> 'a) measure" and M::"('i \<Rightarrow> 'a measure)"
   assumes projective: "\<And>J H X. J \<noteq> {} \<Longrightarrow> J \<subseteq> H \<Longrightarrow> H \<subseteq> I \<Longrightarrow> finite H \<Longrightarrow> X \<in> sets (PiM J M) \<Longrightarrow>
      (P H) (prod_emb H M J X) = (P J) X"
+  assumes prob_space: "\<And>J. finite J \<Longrightarrow> prob_space (P J)"
   assumes proj_space: "\<And>J. finite J \<Longrightarrow> space (P J) = space (PiM J M)"
   assumes proj_sets: "\<And>J. finite J \<Longrightarrow> sets (P J) = sets (PiM J M)"
   assumes proj_finite_measure: "\<And>J. finite J \<Longrightarrow> emeasure (P J) (space (PiM J M)) \<noteq> \<infinity>"
-  assumes prob_space: "\<And>i. prob_space (M i)"
+  assumes measure_space: "\<And>i. prob_space (M i)"
 begin
 
 lemma emeasure_PiP:
-  assumes "J \<noteq> {}"
   assumes "finite J"
   assumes "J \<subseteq> I"
   assumes A: "\<And>i. i\<in>J \<Longrightarrow> A i \<in> sets (M i)"
@@ -49,30 +49,27 @@ proof -
     emeasure (PiP J M P) (prod_emb J M J (Pi\<^isub>E J A))"
     using assms(1-3) sets_into_space by (auto simp add: prod_emb_id Pi_def)
   also have "\<dots> = emeasure (P J) (Pi\<^isub>E J A)"
-  proof (rule emeasure_extend_measure[OF PiP_def, where i="(J, A)", simplified,
-        of J M "P J" P])
-    show "positive (sets (PiM J M)) (P J)" unfolding positive_def by auto
-    show "countably_additive (sets (PiM J M)) (P J)" unfolding countably_additive_def
+  proof (rule emeasure_extend_measure_Pair[OF PiP_def])
+    show "positive (sets (PiP J M P)) (P J)" unfolding positive_def by auto
+    show "countably_additive (sets (PiP J M P)) (P J)" unfolding countably_additive_def
       by (auto simp: suminf_emeasure proj_sets[OF `finite J`])
-    show "(\<lambda>(Ja, X). prod_emb J M Ja (Pi\<^isub>E Ja X)) ` {(Ja, X). (Ja = {} \<longrightarrow> J = {}) \<and>
-      finite Ja \<and> Ja \<subseteq> J \<and> X \<in> (\<Pi> j\<in>Ja. sets (M j))} \<subseteq> Pow (\<Pi> i\<in>J. space (M i)) \<and>
-      (\<lambda>(Ja, X). prod_emb J M Ja (Pi\<^isub>E Ja X)) `
-        {(Ja, X). (Ja = {} \<longrightarrow> J = {}) \<and> finite Ja \<and> Ja \<subseteq> J \<and> X \<in> (\<Pi> j\<in>Ja. sets (M j))} \<subseteq>
-        Pow (extensional J)" by (auto simp: prod_emb_def)
-    show "(J = {} \<longrightarrow> J = {}) \<and> finite J \<and> J \<subseteq> J \<and> A \<in> (\<Pi> j\<in>J. sets (M j))"
+    show "(J \<noteq> {} \<or> J = {}) \<and> finite J \<and> J \<subseteq> J \<and> A \<in> (\<Pi> j\<in>J. sets (M j))"
       using assms by auto
-    fix i
-    assume
-      "case i of (Ja, X) \<Rightarrow> (Ja = {} \<longrightarrow> J = {}) \<and> finite Ja \<and> Ja \<subseteq> J \<and> X \<in> (\<Pi> j\<in>Ja. sets (M j))"
-    thus "emeasure (P J) (case i of (Ja, X) \<Rightarrow> prod_emb J M Ja (Pi\<^isub>E Ja X)) =
-        (case i of (J, X) \<Rightarrow> emeasure (P J) (Pi\<^isub>E J X))" using assms
-      by (cases i) (auto simp add: intro!: projective sets_PiM_I_finite)
+    fix K and X::"'i \<Rightarrow> 'a set"
+    show "prod_emb J M K (Pi\<^isub>E K X) \<in> Pow (\<Pi>\<^isub>E i\<in>J. space (M i))"
+      by (auto simp: prod_emb_def)
+    assume JX: "(K \<noteq> {} \<or> J = {}) \<and> finite K \<and> K \<subseteq> J \<and> X \<in> (\<Pi> j\<in>K. sets (M j))"
+    thus "emeasure (P J) (prod_emb J M K (Pi\<^isub>E K X)) = emeasure (P K) (Pi\<^isub>E K X)"
+      using assms
+      apply (cases "J = {}")
+      apply (simp add: prod_emb_id)
+      apply (fastforce simp add: intro!: projective sets_PiM_I_finite)
+      done
   qed
   finally show ?thesis .
 qed
 
 lemma PiP_finite:
-  assumes "J \<noteq> {}"
   assumes "finite J"
   assumes "J \<subseteq> I"
   shows "PiP J M P = P J" (is "?P = _")
@@ -108,6 +105,6 @@ lemma emeasure_fun_emb[simp]:
 end
 
 sublocale projective_family \<subseteq> M: prob_space "M i" for i
-  by (rule prob_space)
+  by (rule measure_space)
 
 end

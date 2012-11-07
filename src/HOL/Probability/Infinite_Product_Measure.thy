@@ -87,6 +87,11 @@ proof
   fix J::"'i set" assume "finite J"
   interpret f: finite_product_prob_space M J proof qed fact
   show "emeasure (Pi\<^isub>M J M) (space (Pi\<^isub>M J M)) \<noteq> \<infinity>" by simp
+  show "\<exists>A. range A \<subseteq> sets (Pi\<^isub>M J M) \<and>
+            (\<Union>i. A i) = space (Pi\<^isub>M J M) \<and>
+            (\<forall>i. emeasure (Pi\<^isub>M J M) (A i) \<noteq> \<infinity>)" using sigma_finite[OF `finite J`]
+    by (auto simp add: sigma_finite_measure_def)
+  show "emeasure (Pi\<^isub>M J M) (space (Pi\<^isub>M J M)) = 1" by (rule f.emeasure_space_1)
 qed simp_all
 
 lemma (in projective_family) prod_emb_injective:
