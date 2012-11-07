@@ -4,25 +4,6 @@
 
 \section{Other basic tactics}
 
-\subsection{Inserting premises and facts}\label{cut_facts_tac}
-\index{tactics!for inserting facts}\index{assumptions!inserting}
-\begin{ttbox} 
-cut_facts_tac : thm list -> int -> tactic
-\end{ttbox}
-These tactics add assumptions to a subgoal.
-\begin{ttdescription}
-\item[\ttindexbold{cut_facts_tac} {\it thms} {\it i}] 
-  adds the {\it thms} as new assumptions to subgoal~$i$.  Once they have
-  been inserted as assumptions, they become subject to tactics such as {\tt
-    eresolve_tac} and {\tt rewrite_goals_tac}.  Only rules with no premises
-  are inserted: Isabelle cannot use assumptions that contain $\Imp$
-  or~$\Forall$.  Sometimes the theorems are premises of a rule being
-  derived, returned by~{\tt goal}; instead of calling this tactic, you
-  could state the goal with an outermost meta-quantifier.
-
-\end{ttdescription}
-
-
 \subsection{Composition: resolution without lifting}
 \index{tactics!for composition}
 \begin{ttbox}
@@ -50,45 +31,6 @@ strategies.  Higher-order resolution involving a long list of rules is
 slow.  Filtering techniques can shorten the list of rules given to
 resolution, and can also detect whether a subgoal is too flexible,
 with too many rules applicable.
-
-\subsection{Combined resolution and elim-resolution} \label{biresolve_tac}
-\index{tactics!resolution}
-\begin{ttbox} 
-biresolve_tac   : (bool*thm)list -> int -> tactic
-bimatch_tac     : (bool*thm)list -> int -> tactic
-subgoals_of_brl : bool*thm -> int
-lessb           : (bool*thm) * (bool*thm) -> bool
-\end{ttbox}
-{\bf Bi-resolution} takes a list of $\it (flag,rule)$ pairs.  For each
-pair, it applies resolution if the flag is~{\tt false} and
-elim-resolution if the flag is~{\tt true}.  A single tactic call handles a
-mixture of introduction and elimination rules.
-
-\begin{ttdescription}
-\item[\ttindexbold{biresolve_tac} {\it brls} {\it i}] 
-refines the proof state by resolution or elim-resolution on each rule, as
-indicated by its flag.  It affects subgoal~$i$ of the proof state.
-
-\item[\ttindexbold{bimatch_tac}] 
-is like {\tt biresolve_tac}, but performs matching: unknowns in the
-proof state are never updated (see~{\S}\ref{match_tac}).
-
-\item[\ttindexbold{subgoals_of_brl}({\it flag},{\it rule})] 
-returns the number of new subgoals that bi-res\-o\-lu\-tion would yield for the
-pair (if applied to a suitable subgoal).  This is $n$ if the flag is
-{\tt false} and $n-1$ if the flag is {\tt true}, where $n$ is the number
-of premises of the rule.  Elim-resolution yields one fewer subgoal than
-ordinary resolution because it solves the major premise by assumption.
-
-\item[\ttindexbold{lessb} ({\it brl1},{\it brl2})] 
-returns the result of 
-\begin{ttbox}
-subgoals_of_brl{\it brl1} < subgoals_of_brl{\it brl2}
-\end{ttbox}
-\end{ttdescription}
-Note that \hbox{\tt sort lessb {\it brls}} sorts a list of $\it
-(flag,rule)$ pairs by the number of new subgoals they will yield.  Thus,
-those that yield the fewest subgoals should be tried first.
 
 
 \subsection{Discrimination nets for fast resolution}\label{filt_resolve_tac}

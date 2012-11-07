@@ -265,12 +265,14 @@ text %mlref {*
   @{index_ML resolve_tac: "thm list -> int -> tactic"} \\
   @{index_ML eresolve_tac: "thm list -> int -> tactic"} \\
   @{index_ML dresolve_tac: "thm list -> int -> tactic"} \\
-  @{index_ML forward_tac: "thm list -> int -> tactic"} \\[1ex]
+  @{index_ML forward_tac: "thm list -> int -> tactic"} \\
+  @{index_ML biresolve_tac: "(bool * thm) list -> int -> tactic"} \\[1ex]
   @{index_ML assume_tac: "int -> tactic"} \\
   @{index_ML eq_assume_tac: "int -> tactic"} \\[1ex]
   @{index_ML match_tac: "thm list -> int -> tactic"} \\
   @{index_ML ematch_tac: "thm list -> int -> tactic"} \\
   @{index_ML dmatch_tac: "thm list -> int -> tactic"} \\
+  @{index_ML bimatch_tac: "(bool * thm) list -> int -> tactic"} \\
   \end{mldecls}
 
   \begin{description}
@@ -297,6 +299,16 @@ text %mlref {*
   selected assumption is not deleted.  It applies a rule to an
   assumption, adding the result as a new assumption.
 
+  \item @{ML biresolve_tac}~@{text "brls i"} refines the proof state
+  by resolution or elim-resolution on each rule, as indicated by its
+  flag.  It affects subgoal @{text "i"} of the proof state.
+
+  For each pair @{text "(flag, rule)"}, it applies resolution if the
+  flag is @{text "false"} and elim-resolution if the flag is @{text
+  "true"}.  A single tactic call handles a mixture of introduction and
+  elimination rules, which is useful to organize the search process
+  systematically in proof tools.
+
   \item @{ML assume_tac}~@{text i} attempts to solve subgoal @{text i}
   by assumption (modulo higher-order unification).
 
@@ -306,10 +318,10 @@ text %mlref {*
   assumptions is equal to the subgoal's conclusion.  Since it does not
   instantiate variables, it cannot make other subgoals unprovable.
 
-  \item @{ML match_tac}, @{ML ematch_tac}, and @{ML dmatch_tac} are
-  similar to @{ML resolve_tac}, @{ML eresolve_tac}, and @{ML
-  dresolve_tac}, respectively, but do not instantiate schematic
-  variables in the goal state.
+  \item @{ML match_tac}, @{ML ematch_tac}, @{ML dmatch_tac}, and @{ML
+  bimatch_tac} are similar to @{ML resolve_tac}, @{ML eresolve_tac},
+  @{ML dresolve_tac}, and @{ML biresolve_tac}, respectively, but do
+  not instantiate schematic variables in the goal state.
 
   Flexible subgoals are not updated at will, but are left alone.
   Strictly speaking, matching means to treat the unknowns in the goal
