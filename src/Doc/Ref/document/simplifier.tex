@@ -1,40 +1,8 @@
 
 \chapter{Simplification}
 \label{chap:simplification}
-\index{simplification|(}
 
 \section{Simplification sets}\index{simplification sets} 
-
-The simplifier is controlled by information contained in {\bf
-  simpsets}.  These consist of several components, including rewrite
-rules, simplification procedures, congruence rules, and the subgoaler,
-solver and looper tactics.  The simplifier should be set up with
-sensible defaults so that most simplifier calls specify only rewrite
-rules or simplification procedures.  Experienced users can exploit the
-other components to streamline proofs in more sophisticated manners.
-
-\subsection{Building simpsets}
-\begin{ttbox}
-empty_ss : simpset
-merge_ss : simpset * simpset -> simpset
-\end{ttbox}
-\begin{ttdescription}
-  
-\item[\ttindexbold{empty_ss}] is the empty simpset.  This is not very useful
-  under normal circumstances because it doesn't contain suitable tactics
-  (subgoaler etc.).  When setting up the simplifier for a particular
-  object-logic, one will typically define a more appropriate ``almost empty''
-  simpset.  For example, in HOL this is called \ttindexbold{HOL_basic_ss}.
-  
-\item[\ttindexbold{merge_ss} ($ss@1$, $ss@2$)] merges simpsets $ss@1$
-  and $ss@2$ by building the union of their respective rewrite rules,
-  simplification procedures and congruences.  The other components
-  (tactics etc.) cannot be merged, though; they are taken from either
-  simpset\footnote{Actually from $ss@1$, but it would unwise to count
-    on that.}.
-
-\end{ttdescription}
-
 
 \subsection{Rewrite rules}
 \begin{ttbox}
@@ -312,50 +280,6 @@ by (simp_tac (simpset() addsplits [split_if]) 1);
 \end{ttbox}
 Case-splitting on conditional expressions is usually beneficial, so it is
 enabled by default in the object-logics \texttt{HOL} and \texttt{FOL}.
-
-
-\section{The simplification tactics}\label{simp-tactics}
-\index{simplification!tactics}\index{tactics!simplification}
-\begin{ttbox}
-generic_simp_tac       : bool -> bool * bool * bool -> 
-                         simpset -> int -> tactic
-simp_tac               : simpset -> int -> tactic
-asm_simp_tac           : simpset -> int -> tactic
-full_simp_tac          : simpset -> int -> tactic
-asm_full_simp_tac      : simpset -> int -> tactic
-safe_asm_full_simp_tac : simpset -> int -> tactic
-\end{ttbox}
-
-\texttt{generic_simp_tac} is the basic tactic that is underlying any actual
-simplification work. The others are just instantiations of it. The rewriting 
-strategy is always strictly bottom up, except for congruence rules, 
-which are applied while descending into a term.  Conditions in conditional 
-rewrite rules are solved recursively before the rewrite rule is applied.
-
-\begin{ttdescription}
-  
-\item[\ttindexbold{generic_simp_tac} $safe$ ($simp\_asm$, $use\_asm$, $mutual$)] 
-  gives direct access to the various simplification modes: 
-  \begin{itemize}
-  \item if $safe$ is {\tt true}, the safe solver is used as explained in
-  {\S}\ref{sec:simp-solver},  
-  \item $simp\_asm$ determines whether the local assumptions are simplified,
-  \item $use\_asm$ determines whether the assumptions are used as local rewrite 
-   rules, and
-  \item $mutual$ determines whether assumptions can simplify each other rather
-  than being processed from left to right. 
-  \end{itemize}
-  This generic interface is intended 
-  for building special tools, e.g.\ for combining the simplifier with the 
-  classical reasoner. It is rarely used directly.
-  
-\item[\ttindexbold{simp_tac}, \ttindexbold{asm_simp_tac},
-  \ttindexbold{full_simp_tac}, \ttindexbold{asm_full_simp_tac}] are
-  the basic simplification tactics that work exactly like their
-  namesakes in {\S}\ref{sec:simp-for-dummies}, except that they are
-  explicitly supplied with a simpset.
-  
-\end{ttdescription}
 
 
 \section{Permutative rewrite rules}

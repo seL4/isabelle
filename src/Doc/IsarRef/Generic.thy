@@ -385,11 +385,17 @@ text {* The Simplifier performs conditional and unconditional
   simplification strategy, or incorporate other proof tools that solve
   sub-problems, produce rewrite rules on demand etc.
 
+  The rewriting strategy is always strictly bottom up, except for
+  congruence rules, which are applied while descending into a term.
+  Conditions in conditional rewrite rules are solved recursively
+  before the rewrite rule is applied.
+
   The default Simplifier setup of major object logics (HOL, HOLCF,
   FOL, ZF) makes the Simplifier ready for immediate use, without
   engaging into the internal structures.  Thus it serves as
   general-purpose proof tool with the main focus on equational
-  reasoning, and a bit more than that.  *}
+  reasoning, and a bit more than that.
+*}
 
 
 subsection {* Simplification methods \label{sec:simp-meth} *}
