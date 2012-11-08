@@ -2,7 +2,7 @@
 \chapter{Simplification}
 \label{chap:simplification}
 
-\section{Simplification sets}\index{simplification sets} 
+\section{Configurable Simplifier components}
 
 \subsection{*The subgoaler}\label{sec:simp-subgoaler}
 \begin{ttbox}
@@ -273,105 +273,26 @@ Martin and Nipkow~\cite{martin-nipkow} discuss the theory and give many
 examples; other algebraic structures are amenable to ordered rewriting,
 such as boolean rings.
 
-\subsection{Example: sums of natural numbers}
-
-This example is again set in HOL (see \texttt{HOL/ex/NatSum}).  Theory
-\thydx{Arith} contains natural numbers arithmetic.  Its associated simpset
-contains many arithmetic laws including distributivity of~$\times$ over~$+$,
-while \texttt{add_ac} is a list consisting of the A, C and LC laws for~$+$ on
-type \texttt{nat}.  Let us prove the theorem
-\[ \sum@{i=1}^n i = n\times(n+1)/2. \]
-%
-A functional~\texttt{sum} represents the summation operator under the
-interpretation $\texttt{sum} \, f \, (n + 1) = \sum@{i=0}^n f\,i$.  We
-extend \texttt{Arith} as follows:
-\begin{ttbox}
-NatSum = Arith +
-consts sum     :: [nat=>nat, nat] => nat
-primrec 
-  "sum f 0 = 0"
-  "sum f (Suc n) = f(n) + sum f n"
-end
-\end{ttbox}
-The \texttt{primrec} declaration automatically adds rewrite rules for
-\texttt{sum} to the default simpset.  We now remove the
-\texttt{nat_cancel} simplification procedures (in order not to spoil
-the example) and insert the AC-rules for~$+$:
-\begin{ttbox}
-Delsimprocs nat_cancel;
-Addsimps add_ac;
-\end{ttbox}
-Our desired theorem now reads $\texttt{sum} \, (\lambda i.i) \, (n+1) =
-n\times(n+1)/2$.  The Isabelle goal has both sides multiplied by~$2$:
-\begin{ttbox}
-Goal "2 * sum (\%i.i) (Suc n) = n * Suc n";
-{\out Level 0}
-{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
-{\out  1. 2 * sum (\%i. i) (Suc n) = n * Suc n}
-\end{ttbox}
-Induction should not be applied until the goal is in the simplest
-form:
-\begin{ttbox}
-by (Simp_tac 1);
-{\out Level 1}
-{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
-{\out  1. n + (sum (\%i. i) n + sum (\%i. i) n) = n * n}
-\end{ttbox}
-Ordered rewriting has sorted the terms in the left-hand side.  The
-subgoal is now ready for induction:
-\begin{ttbox}
-by (induct_tac "n" 1);
-{\out Level 2}
-{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
-{\out  1. 0 + (sum (\%i. i) 0 + sum (\%i. i) 0) = 0 * 0}
-\ttbreak
-{\out  2. !!n. n + (sum (\%i. i) n + sum (\%i. i) n) = n * n}
-{\out           ==> Suc n + (sum (\%i. i) (Suc n) + sum (\%i.\,i) (Suc n)) =}
-{\out               Suc n * Suc n}
-\end{ttbox}
-Simplification proves both subgoals immediately:\index{*ALLGOALS}
-\begin{ttbox}
-by (ALLGOALS Asm_simp_tac);
-{\out Level 3}
-{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
-{\out No subgoals!}
-\end{ttbox}
-Simplification cannot prove the induction step if we omit \texttt{add_ac} from
-the simpset.  Observe that like terms have not been collected:
-\begin{ttbox}
-{\out Level 3}
-{\out 2 * sum (\%i. i) (Suc n) = n * Suc n}
-{\out  1. !!n. n + sum (\%i. i) n + (n + sum (\%i. i) n) = n + n * n}
-{\out           ==> n + (n + sum (\%i. i) n) + (n + (n + sum (\%i.\,i) n)) =}
-{\out               n + (n + (n + n * n))}
-\end{ttbox}
-Ordered rewriting proves this by sorting the left-hand side.  Proving
-arithmetic theorems without ordered rewriting requires explicit use of
-commutativity.  This is tedious; try it and see!
-
-Ordered rewriting is equally successful in proving
-$\sum@{i=1}^n i^3 = n^2\times(n+1)^2/4$.
-
 
 \subsection{Re-orienting equalities}
-Ordered rewriting with the derived rule \texttt{symmetry} can reverse
+Ordered rewriting with the derived rule \texttt{eq_commute} can reverse
 equations:
 \begin{ttbox}
-val symmetry = prove_goal HOL.thy "(x=y) = (y=x)"
+val eq_commute = prove_goal HOL.thy "(x=y) = (y=x)"
                  (fn _ => [Blast_tac 1]);
 \end{ttbox}
 This is frequently useful.  Assumptions of the form $s=t$, where $t$ occurs
 in the conclusion but not~$s$, can often be brought into the right form.
-For example, ordered rewriting with \texttt{symmetry} can prove the goal
+For example, ordered rewriting with \texttt{eq_commute} can prove the goal
 \[ f(a)=b \conj f(a)=c \imp b=c. \]
-Here \texttt{symmetry} reverses both $f(a)=b$ and $f(a)=c$
+Here \texttt{eq_commute} reverses both $f(a)=b$ and $f(a)=c$
 because $f(a)$ is lexicographically greater than $b$ and~$c$.  These
 re-oriented equations, as rewrite rules, replace $b$ and~$c$ in the
 conclusion by~$f(a)$. 
 
 Another example is the goal $\neg(t=u) \imp \neg(u=t)$.
 The differing orientations make this appear difficult to prove.  Ordered
-rewriting with \texttt{symmetry} makes the equalities agree.  (Without
+rewriting with \texttt{eq_commute} makes the equalities agree.  (Without
 knowing more about~$t$ and~$u$ we cannot say whether they both go to $t=u$
 or~$u=t$.)  Then the simplifier can prove the goal outright.
 
