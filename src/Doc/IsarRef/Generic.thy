@@ -630,13 +630,65 @@ text {*
   simpset and the context of the problem being simplified may lead to
   unexpected results.
 
-  \item @{attribute simp} declares simplification rules, by adding or
+  \item @{attribute simp} declares rewrite rules, by adding or
   deleting them from the simpset within the theory or proof context.
+  Rewrite rules are theorems expressing some form of equality, for
+  example:
 
-  Internally, all rewrite rules have to be expressed as Pure
-  equalities, potentially with some conditions of arbitrary form.
-  Such rewrite rules in Pure are derived automatically from
-  object-level equations that are supplied by the user.
+  @{text "Suc ?m + ?n = ?m + Suc ?n"} \\
+  @{text "?P \<and> ?P \<longleftrightarrow> ?P"} \\
+  @{text "?A \<union> ?B \<equiv> {x. x \<in> ?A \<or> x \<in> ?B}"}
+
+  \smallskip
+  Conditional rewrites such as @{text "?m < ?n \<Longrightarrow> ?m div ?n = 0"} are
+  also permitted; the conditions can be arbitrary formulas.
+
+  \medskip Internally, all rewrite rules are translated into Pure
+  equalities, theorems with conclusion @{text "lhs \<equiv> rhs"}. The
+  simpset contains a function for extracting equalities from arbitrary
+  theorems, which is usually installed when the object-logic is
+  configured initially. For example, @{text "\<not> ?x \<in> {}"} could be
+  turned into @{text "?x \<in> {} \<equiv> False"}. Theorems that are declared as
+  @{attribute simp} and local assumptions within a goal are treated
+  uniformly in this respect.
+
+  The Simplifier accepts the following formats for the @{text "lhs"}
+  term:
+
+  \begin{enumerate}
+
+  \item First-order patterns, considering the sublanguage of
+  application of constant operators to variable operands, without
+  @{text "\<lambda>"}-abstractions or functional variables.
+  For example:
+
+  @{text "(?x + ?y) + ?z \<equiv> ?x + (?y + ?z)"} \\
+  @{text "f (f ?x ?y) ?z \<equiv> f ?x (f ?y ?z)"}
+
+  \item Higher-order patterns in the sense of \cite{nipkow-patterns}.
+  These are terms in @{text "\<beta>"}-normal form (this will always be the
+  case unless you have done something strange) where each occurrence
+  of an unknown is of the form @{text "?F x\<^sub>1 \<dots> x\<^sub>n"}, where the
+  @{text "x\<^sub>i"} are distinct bound variables.
+
+  For example, @{text "(\<forall>x. ?P x \<and> ?Q x) \<equiv> (\<forall>x. ?P x) \<and> (\<forall>x. ?Q x)"}
+  or its symmetric form, since the @{text "rhs"} is also a
+  higher-order pattern.
+
+  \item Physical first-order patterns over raw @{text "\<lambda>"}-term
+  structure without @{text "\<alpha>\<beta>\<eta>"}-equality; abstractions and bound
+  variables are treated like quasi-constant term material.
+
+  For example, the rule @{text "?f ?x \<in> range ?f = True"} rewrites the
+  term @{text "g a \<in> range g"} to @{text "True"}, but will fail to
+  match @{text "g (h b) \<in> range (\<lambda>x. g (h x))"}. However, offending
+  subterms (in our case @{text "?f ?x"}, which is not a pattern) can
+  be replaced by adding new variables and conditions like this: @{text
+  "?y = ?f ?x \<Longrightarrow> ?y \<in> range ?f = True"} is acceptable as a conditional
+  rewrite rule of the second category since conditions can be
+  arbitrary terms.
+
+  \end{enumerate}
 
   \item @{attribute split} declares case split rules.
 
