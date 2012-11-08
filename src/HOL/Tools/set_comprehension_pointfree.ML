@@ -289,7 +289,7 @@ fun mk_pointfree_expr t =
       (0 upto (length vs - 1))
     val (pats, fm) =
       mk_formula ((x, T) :: vs) (foldr1 HOLogic.mk_conj (conjs' @ map mk_mem_UNIV unused_bounds))
-    fun mk_set (Atom pt) = (case map (lookup pt) pats of [t'] => t' | ts => foldr1 mk_sigma ts)
+    fun mk_set (Atom pt) = foldr1 mk_sigma (map (lookup pt) pats)
       | mk_set (Un (f1, f2)) = mk_sup (mk_set f1, mk_set f2)
       | mk_set (Int (f1, f2)) = mk_inf (mk_set f1, mk_set f2)
     val pat = foldr1 (mk_prod1 Ts) (map (term_of_pattern Ts) pats)
