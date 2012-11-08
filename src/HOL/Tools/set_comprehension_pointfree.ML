@@ -15,7 +15,6 @@ end
 structure Set_Comprehension_Pointfree : SET_COMPREHENSION_POINTFREE =
 struct
 
-
 (* syntactic operations *)
 
 fun mk_inf (t1, t2) =
@@ -110,10 +109,6 @@ fun dest_Pattern (Pattern bs) = bs
 fun dest_bound (Bound i) = i
   | dest_bound t = raise TERM("dest_bound", [t]);
 
-fun mk_pattern t = case try ((map dest_bound) o HOLogic.strip_tuple) t of
-    SOME p => Pattern p 
-  | NONE => raise TERM ("mk_pattern: only tuples of bound variables supported", [t]);
-
 fun type_of_pattern Ts (Pattern bs) = HOLogic.mk_tupleT (map (nth Ts) bs)
 
 fun term_of_pattern Ts (Pattern bs) =
@@ -141,40 +136,40 @@ fun mk_split _ [(x, T)] t = (T, Abs (x, T, t))
       val t'' = HOLogic.split_const (T, T', rT) $ (Abs (x, T, t'))
     in (domain_type (fastype_of t''), t'') end
 
+fun mk_term vs t =
+  let
+    val bs = loose_bnos t
+    val vs' = map (nth (rev vs)) bs
+    val subst = map_index (fn (i, j) => (j, Bound i)) (rev bs)
+      |> sort (fn (p1, p2) => int_ord (fst p1, fst p2))
+      |> (fn subst' => map (fn i => the_default (Bound i) (AList.lookup (op =) subst' i)) (0 upto (fst (snd (split_last subst')))))
+    val t' = subst_bounds (subst, t)
+    val tuple = Pattern bs
+  in (tuple, (vs', t')) end
+
+fun default_atom vs t =
+  let
+    val (tuple, (vs', t')) = mk_term vs t
+    val T = HOLogic.mk_tupleT (map snd vs')
+    val s = HOLogic.Collect_const T $ (snd (mk_split @{typ bool} vs' t'))
+  in
+    (tuple, Atom (tuple, s))
+  end
+
 fun mk_atom vs (Const (@{const_name "Set.member"}, _) $ x $ s) =
     if not (null (loose_bnos s)) then
       raise TERM ("mk_atom: bound variables in the set expression", [s])
     else
-      (case try mk_pattern x of
-      SOME pat => (pat, Atom (pat, s))
+      (case try ((map dest_bound) o HOLogic.strip_tuple) x of
+      SOME pat => (Pattern pat, Atom (Pattern pat, s))
     | NONE =>
         let
-          val bs = loose_bnos x
-          val vs' = map (nth (rev vs)) bs
-          val subst = map_index (fn (i, j) => (j, Bound i)) (rev bs)
-            |> sort (fn (p1, p2) => int_ord (fst p1, fst p2))
-            |> (fn subst' => map (fn i => the_default (Bound i) (AList.lookup (op =) subst' i)) (0 upto (fst (snd (split_last subst')))))  
-          val x' = subst_bounds (subst, x)
-          val tuple = Pattern bs
+          val (tuple, (vs', x')) = mk_term vs x 
           val rT = HOLogic.dest_setT (fastype_of s)
-          val (_, f) = mk_split rT vs' x'
-        in (tuple, Atom (tuple, mk_vimage f s)) end)
-  | mk_atom vs (Const (@{const_name "HOL.Not"}, _) $ t) =
-      apsnd (map_atom (apsnd mk_Compl)) (mk_atom vs t)
-  | mk_atom vs t =
-    let
-      val bs = loose_bnos t
-      val vs' = map (nth (rev vs)) bs
-      val subst = map_index (fn (i, j) => (j, Bound i)) (rev bs)
-        |> sort (fn (p1, p2) => int_ord (fst p1, fst p2))
-        |> (fn subst' => map (fn i => the_default (Bound i) (AList.lookup (op =) subst' i)) (0 upto (fst (snd (split_last subst')))))
-      val t' = subst_bounds (subst, t)
-      val tuple = Pattern bs
-      val setT = HOLogic.mk_tupleT (map snd vs')
-      val (_, s) = mk_split @{typ bool} vs' t'
-    in
-      (tuple, Atom (tuple, HOLogic.Collect_const setT $ s))
-    end
+          val s = mk_vimage (snd (mk_split rT vs' x')) s
+        in (tuple, Atom (tuple, s)) end)
+  | mk_atom vs (Const (@{const_name "HOL.Not"}, _) $ t) = apsnd (map_atom (apsnd mk_Compl)) (mk_atom vs t)
+  | mk_atom vs t = default_atom vs t
 
 fun merge' [] (pats1, pats2) = ([], (pats1, pats2))
   | merge' pat (pats, []) = (pat, (pats, []))
