@@ -523,11 +523,14 @@ fun simproc ss redex =
 
 fun code_simproc ss redex =
   let
-    val prep_thm = Raw_Simplifier.rewrite false @{thms eq_equal[symmetric]} redex
+    fun unfold_conv thms =
+      Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
+        (Raw_Simplifier.inherit_context ss empty_ss addsimps thms)
+    val prep_thm = unfold_conv @{thms eq_equal[symmetric]} redex
   in
     case base_simproc ss (Thm.rhs_of prep_thm) of
       SOME rewr_thm => SOME (transitive_thm OF [transitive_thm OF [prep_thm, rewr_thm],
-        Raw_Simplifier.rewrite false @{thms eq_equal} (Thm.rhs_of rewr_thm)])
+        unfold_conv @{thms eq_equal} (Thm.rhs_of rewr_thm)])
     | NONE => NONE
   end;
 
