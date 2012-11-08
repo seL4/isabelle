@@ -244,7 +244,7 @@ apply safe
  apply (elim dividesE, intro dividesI, assumption)
  apply (rule l_cancel[of c])
     apply (simp add: m_assoc carr)+
-apply (fast intro: divides_mult_lI carr)
+apply (fast intro: carr)
 done
 
 lemma (in comm_monoid) divides_mult_rI [intro]:

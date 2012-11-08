@@ -193,7 +193,7 @@ next
   show ?case
   proof (intro exI[of _ "Fun.swap 0 1 id"] conjI allI impI)
     show "bij_betw (Fun.swap 0 1 id) {..<length (y # x # l)} {..<length (x # y # l)}"
-      by (auto simp: bij_betw_def bij_betw_swap_iff)
+      by (auto simp: bij_betw_def)
     fix i assume "i < length(y#x#l)"
     show "(y # x # l) ! i = (x # y # l) ! (Fun.swap 0 1 id) i"
       by (cases i) (auto simp: Fun.swap_def gr0_conv_Suc)

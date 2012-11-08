@@ -24,7 +24,7 @@ lemma two_is_prime: "prime 2"
 
 lemma prime_imp_relprime: "prime p ==> \<not> p dvd n ==> gcd p n = 1"
   apply (auto simp add: prime_def)
-  apply (metis One_nat_def gcd_dvd1 gcd_dvd2)
+  apply (metis gcd_dvd1 gcd_dvd2)
   done
 
 text {*
