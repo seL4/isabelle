@@ -478,18 +478,21 @@ val post_thms =
 fun conv ss t =
   let
     val ctxt = Simplifier.the_context ss
-    val ct = cterm_of (Proof_Context.theory_of ctxt) t
+    val ([t'], ctxt') = Variable.import_terms true [t] (Variable.declare_term t ctxt)
+    val ss' = Simplifier.context ctxt' ss
+    val ct = cterm_of (Proof_Context.theory_of ctxt') t'
     fun unfold_conv thms =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
-        (Raw_Simplifier.inherit_context ss empty_ss addsimps thms)
-    val prep_eq = (comprehension_conv ss then_conv unfold_conv prep_thms) ct
-    val t' = term_of (Thm.rhs_of prep_eq)
-    fun mk_thm (fm, t'') = Goal.prove ctxt [] []
-      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t', t''))) (fn {context, ...} => tac context fm 1)
+        (Raw_Simplifier.inherit_context ss' empty_ss addsimps thms)
+    val prep_eq = (comprehension_conv ss' then_conv unfold_conv prep_thms) ct
+    val t'' = term_of (Thm.rhs_of prep_eq)
+    fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac context fm 1)
     fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
     val post = Conv.fconv_rule (Trueprop_conv (eq_conv Conv.all_conv (unfold_conv post_thms)))
+    val export = singleton (Variable.export ctxt' ctxt)
   in
-    Option.map (post o unfold o mk_thm) (rewrite_term t')
+    Option.map (export o post o unfold o mk_thm) (rewrite_term t'')
   end;
 
 fun base_simproc ss redex =
