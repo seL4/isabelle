@@ -707,7 +707,7 @@ and 2: "{a. h a = b \<and> 0 < f a} = {a. h a = b' \<and> 0 < f a}" (is "?A = ?A
 shows "b = b'"
 proof-
   have "finite ?A'" using f unfolding multiset_def by auto
-  hence "?A' \<noteq> {}" using 1 setsum_gt_0_iff by auto
+  hence "?A' \<noteq> {}" using 1 by (auto simp add: setsum_gt_0_iff)
   thus ?thesis using 2 by auto
 qed
 
@@ -722,7 +722,7 @@ unfolding mmap_def[abs_def] comp_def proof(rule ext)+
   let ?B = "{b. h2 b = c \<and> 0 < setsum f (?As b)}"
   have 0: "{?As b | b.  b \<in> ?B} = ?As ` ?B" by auto
   have "\<And> b. finite (?As b)" using f unfolding multiset_def by simp
-  hence "?B = {b. h2 b = c \<and> ?As b \<noteq> {}}" using setsum_gt_0_iff by auto
+  hence "?B = {b. h2 b = c \<and> ?As b \<noteq> {}}" by (auto simp add: setsum_gt_0_iff)
   hence A: "?A = \<Union> {?As b | b.  b \<in> ?B}" by auto
   have "setsum f ?A = setsum (setsum f) {?As b | b.  b \<in> ?B}"
   unfolding A apply(rule setsum_Union_disjoint)
@@ -749,7 +749,7 @@ using assms unfolding mmap_def[abs_def] multiset_def proof safe
   (is "finite {b. 0 < setsum f (?As b)}")
   proof- let ?B = "{b. 0 < setsum f (?As b)}"
     have "\<And> b. finite (?As b)" using assms unfolding multiset_def by simp
-    hence B: "?B = {b. ?As b \<noteq> {}}" using setsum_gt_0_iff by auto
+    hence B: "?B = {b. ?As b \<noteq> {}}" by (auto simp add: setsum_gt_0_iff)
     hence "?B \<subseteq> h ` ?A" by auto
     thus ?thesis using finite_surj[OF fin] by auto
   qed
@@ -769,7 +769,7 @@ unfolding mmap_def[abs_def] comp_def proof-
   have "\<And> b. finite {a. h a = b \<and> 0 < f a}" (is "\<And> b. finite (?As b)")
   using f unfolding multiset_def by auto
   thus "{b. 0 < setsum f (?As b)} = h ` {a. 0 < f a}"
-  using setsum_gt_0_iff by auto
+  by (auto simp add:  setsum_gt_0_iff)
 qed
 
 lemma mmap_image:

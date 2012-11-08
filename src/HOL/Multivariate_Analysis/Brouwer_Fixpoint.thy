@@ -693,6 +693,7 @@ proof(cases "\<forall>x\<in>s. kle n a x") case True thus ?thesis by auto next n
 
 subsection {* The lemmas about simplices that we need. *}
 
+(* FIXME: These are clones of lemmas in Library/FuncSet *) 
 lemma card_funspace': assumes "finite s" "finite t" "card s = m" "card t = n"
   shows "card {f. (\<forall>x\<in>s. f x \<in> t) \<and> (\<forall>x\<in>UNIV - s. f x = d)} = n ^ m" (is "card (?M s) = _")
   using assms apply - proof(induct m arbitrary: s)
@@ -731,7 +732,7 @@ proof (cases "card t > 0")
   case True
   have "card ?S = (card t) ^ (card s)"
     using assms by (auto intro!: card_funspace)
-  thus ?thesis using True by (auto intro: card_ge_0_finite)
+  thus ?thesis using True by (rule_tac card_ge_0_finite) simp
 next
   case False hence "t = {}" using `finite t` by auto
   show ?thesis

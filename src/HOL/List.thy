@@ -4026,7 +4026,7 @@ lemma finite_lists_length_le:
  (is "finite ?S")
 proof-
   have "?S = (\<Union>n\<in>{0..n}. {xs. set xs \<subseteq> A \<and> length xs = n})" by auto
-  thus ?thesis by (auto intro: finite_lists_length_eq[OF `finite A`])
+  thus ?thesis by (auto intro!: finite_lists_length_eq[OF `finite A`] simp only:)
 qed
 
 lemma card_lists_length_le:

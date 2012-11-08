@@ -214,26 +214,8 @@ proof -
   ultimately show "finite {x. x < Suc n}" by (simp)
 qed
 
-lemma finite_natarray2: "finite {pos. (fst pos) < (m::nat) & (snd pos) < (n::nat)}"
-  apply (induct m)
-  apply (simp+)
-  proof -
-    fix m::nat
-    let ?s0 = "{pos. fst pos < m & snd pos < n}"
-    let ?s1 = "{pos. fst pos < (Suc m) & snd pos < n}"
-    let ?sd = "{pos. fst pos = m & snd pos < n}"
-    assume f0: "finite ?s0"
-    have f1: "finite ?sd"
-    proof -
-      let ?f = "% x. (m, x)"
-      have "{pos. fst pos = m & snd pos < n} = ?f ` {x. x < n}" by (rule set_eqI, simp add: image_def, auto)
-      moreover have "finite {x. x < n}" by (simp add: finite_natarray1)
-      ultimately show "finite {pos. fst pos = m & snd pos < n}" by (simp)
-    qed
-    have su: "?s0 \<union> ?sd = ?s1" by (rule set_eqI, simp, arith)
-    from f0 f1 have "finite (?s0 \<union> ?sd)" by (rule finite_UnI)
-    with su show "finite ?s1" by (simp)
-qed
+lemma finite_natarray2: "finite {(x, y). x < (m::nat) & y < (n::nat)}"
+by simp
 
 lemma RepAbs_matrix:
   assumes aem: "? m. ! j i. m <= j \<longrightarrow> x j i = 0" (is ?em) and aen:"? n. ! j i. (n <= i \<longrightarrow> x j i = 0)" (is ?en)
@@ -243,8 +225,8 @@ apply (simp add: matrix_def nonzero_positions_def)
 proof -
   from aem obtain m where a: "! j i. m <= j \<longrightarrow> x j i = 0" by (blast)
   from aen obtain n where b: "! j i. n <= i \<longrightarrow> x j i = 0" by (blast)
-  let ?u = "{pos. x (fst pos) (snd pos) \<noteq> 0}"
-  let ?v = "{pos. fst pos < m & snd pos < n}"
+  let ?u = "{(i, j). x i j \<noteq> 0}"
+  let ?v = "{(i, j). i < m & j < n}"
   have c: "!! (m::nat) a. ~(m <= a) \<Longrightarrow> a < m" by (arith)
   from a b have "(?u \<inter> (-?v)) = {}"
     apply (simp)
@@ -254,7 +236,9 @@ proof -
     by (rule c, auto)+
   then have d: "?u \<subseteq> ?v" by blast
   moreover have "finite ?v" by (simp add: finite_natarray2)
-  ultimately show "finite ?u" by (rule finite_subset)
+  moreover have "{pos. x (fst pos) (snd pos) \<noteq> 0} = ?u" by auto
+  ultimately show "finite {pos. x (fst pos) (snd pos) \<noteq> 0}"
+    by (metis (lifting) finite_subset)
 qed
 
 definition apply_infmatrix :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a infmatrix \<Rightarrow> 'b infmatrix" where

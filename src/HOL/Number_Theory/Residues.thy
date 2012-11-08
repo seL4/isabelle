@@ -131,8 +131,10 @@ lemma res_neg_eq: "\<ominus> x = (- x) mod m"
 lemma finite [iff]: "finite (carrier R)"
   by (subst res_carrier_eq, auto)
 
+declare [[simproc del: finite_Collect]]
 lemma finite_Units [iff]: "finite (Units R)"
-  by (subst res_units_eq, auto)
+  by (subst res_units_eq) auto
+declare [[simproc add: finite_Collect]]
 
 (* The function a -> a mod m maps the integers to the
    residue classes. The following lemmas show that this mapping
