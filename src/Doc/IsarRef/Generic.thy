@@ -602,10 +602,10 @@ subsection {* Declaring rules \label{sec:simp-rules} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_simpset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def simp} & : & @{text attribute} \\
     @{attribute_def split} & : & @{text attribute} \\
     @{attribute_def cong} & : & @{text attribute} \\
+    @{command_def "print_simpset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   @{rail "
@@ -614,21 +614,6 @@ text {*
   "}
 
   \begin{description}
-
-  \item @{command "print_simpset"} prints the collection of rules
-  declared to the Simplifier, which is also known as ``simpset''
-  internally.
-
-  For historical reasons, simpsets may occur independently from the
-  current context, but are conceptually dependent on it.  When the
-  Simplifier is invoked via one of its main entry points in the Isar
-  source language (as proof method \secref{sec:simp-meth} or rule
-  attribute \secref{sec:simp-meth}), its simpset is derived from the
-  current proof context, and carries a back-reference to that for
-  other tools that might get invoked internally (e.g.\ simplification
-  procedures \secref{sec:simproc}).  A mismatch of the context of the
-  simpset and the context of the problem being simplified may lead to
-  unexpected results.
 
   \item @{attribute simp} declares rewrite rules, by adding or
   deleting them from the simpset within the theory or proof context.
@@ -730,6 +715,21 @@ text {*
   Only the first argument is simplified; the others remain unchanged.
   This can make simplification much faster, but may require an extra
   case split over the condition @{text "?q"} to prove the goal.
+
+  \item @{command "print_simpset"} prints the collection of rules
+  declared to the Simplifier, which is also known as ``simpset''
+  internally.
+
+  For historical reasons, simpsets may occur independently from the
+  current context, but are conceptually dependent on it.  When the
+  Simplifier is invoked via one of its main entry points in the Isar
+  source language (as proof method \secref{sec:simp-meth} or rule
+  attribute \secref{sec:simp-meth}), its simpset is derived from the
+  current proof context, and carries a back-reference to that for
+  other tools that might get invoked internally (e.g.\ simplification
+  procedures \secref{sec:simproc}).  A mismatch of the context of the
+  simpset and the context of the problem being simplified may lead to
+  unexpected results.
 
   \end{description}
 
