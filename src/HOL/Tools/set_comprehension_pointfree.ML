@@ -214,7 +214,7 @@ fun map_atoms f (Atom a) = Atom (f a)
   | map_atoms f (Un (fm1, fm2)) = Un (pairself (map_atoms f) (fm1, fm2))
   | map_atoms f (Int (fm1, fm2)) = Int (pairself (map_atoms f) (fm1, fm2))
 
-fun extend Ts bs t = fold (fn b => fn t => mk_sigma (t, HOLogic.mk_UNIV (nth Ts b))) bs t
+fun extend Ts bs t = foldr1 mk_sigma (t :: map (fn b => HOLogic.mk_UNIV (nth Ts b)) bs)
 
 fun rearrange vs (pat, pat') t =
   let
@@ -345,8 +345,10 @@ fun intro_image_tac ctxt = rtac @{thm image_eqI}
         (Trueprop_conv (eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq prod_case_distrib)))))) ctxt)))
 
 val elim_image_tac = etac @{thm imageE}
-  THEN' (TRY o REPEAT_DETERM1 o Splitter.split_asm_tac @{thms prod.split_asm})
-  THEN' hyp_subst_tac
+  THEN' REPEAT_DETERM o CHANGED o
+    (TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps @{thms split_paired_all prod.cases})
+    THEN' REPEAT_DETERM o etac @{thm Pair_inject}
+    THEN' TRY o hyp_subst_tac)
 
 fun tac1_of_formula (Int (fm1, fm2)) =
     TRY o etac @{thm conjE}
@@ -359,7 +361,8 @@ fun tac1_of_formula (Int (fm1, fm2)) =
     THEN' rtac @{thm UnI2}
     THEN' tac1_of_formula fm2
   | tac1_of_formula (Atom _) =
-    REPEAT_DETERM1 o (rtac @{thm SigmaI}
+    REPEAT_DETERM1 o (atac
+      ORELSE' rtac @{thm SigmaI}
       ORELSE' ((rtac @{thm CollectI} ORELSE' rtac collectI') THEN' TRY o Simplifier.simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}]))
       ORELSE' ((rtac @{thm vimageI2} ORELSE' rtac vimageI2') THEN'
         TRY o Simplifier.simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])) 
@@ -383,21 +386,21 @@ fun tac2_of_formula (Int (fm1, fm2)) =
     THEN' tac2_of_formula fm2
   | tac2_of_formula (Atom _) =
     REPEAT_DETERM o
-      (dtac @{thm iffD1[OF mem_Sigma_iff]}
+      (atac
+       ORELSE' dtac @{thm iffD1[OF mem_Sigma_iff]}
+       ORELSE' etac @{thm conjE}
        ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
          TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}]) THEN'
          REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl})
-       ORELSE' (REPEAT_DETERM1 o etac @{thm imageE}
-         THEN' (TRY o REPEAT_DETERM1 o Splitter.split_asm_tac @{thms prod.split_asm})
+       ORELSE' (etac @{thm imageE}
+         THEN' (REPEAT_DETERM o CHANGED o
+         (TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps @{thms split_paired_all prod.cases})
          THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-         THEN' TRY o hyp_subst_tac)
-       ORELSE' etac @{thm conjE}
+         THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl})))
        ORELSE' etac @{thm ComplE}
        ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
         THEN' TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])
-        THEN' TRY o hyp_subst_tac)
-       ORELSE' (REPEAT_DETERM1 o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac)
-       ORELSE' atac)
+        THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl}))
 
 fun tac ctxt fm =
   let
