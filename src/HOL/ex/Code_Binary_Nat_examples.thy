@@ -1,10 +1,10 @@
-(*  Title:      HOL/ex/Code_Nat_examples.thy
+(*  Title:      HOL/ex/Code_Binary_Nat_examples.thy
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Simple examples for Code\_Numeral\_Nat theory. *}
+header {* Simple examples for natural numbers implemented in binary representation theory. *}
 
-theory Code_Nat_examples
+theory Code_Binary_Nat_examples
 imports Complex_Main "~~/src/HOL/Library/Efficient_Nat"
 begin
 

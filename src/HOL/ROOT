@@ -48,7 +48,7 @@ session "HOL-Library" in Library = HOL +
     Efficient_Nat
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
-    Target_Numeral
+    Code_Target_Numeral
     Refute
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
@@ -415,7 +415,7 @@ session "HOL-ex" in ex = HOL +
   options [timeout = 3600, condition = ISABELLE_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
-    Code_Nat_examples
+    Code_Binary_Nat_examples
     "~~/src/HOL/Library/FuncSet"
     Eval_Examples
     Normalization_by_Evaluation

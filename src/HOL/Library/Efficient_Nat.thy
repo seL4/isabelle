@@ -5,7 +5,7 @@
 header {* Implementation of natural numbers by target-language integers *}
 
 theory Efficient_Nat
-imports Code_Nat Code_Integer Main
+imports Code_Binary_Nat Code_Integer Main
 begin
 
 text {*
@@ -217,14 +217,14 @@ code_const "minus \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"
   (Scala infixl 7 "-")
   (Eval "Integer.max/ 0/ (_ -/ _)")
 
-code_const Code_Nat.dup
+code_const Code_Binary_Nat.dup
   (SML "IntInf.*/ (2,/ (_))")
   (OCaml "Big'_int.mult'_big'_int/ 2")
   (Haskell "!(2 * _)")
   (Scala "!(2 * _)")
   (Eval "!(2 * _)")
 
-code_const Code_Nat.sub
+code_const Code_Binary_Nat.sub
   (SML "!(raise/ Fail/ \"sub\")")
   (OCaml "failwith/ \"sub\"")
   (Haskell "error/ \"sub\"")
@@ -302,3 +302,4 @@ code_modulename Haskell
 hide_const (open) int
 
 end
+

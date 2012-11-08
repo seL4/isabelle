@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Code_Nat.thy
+(*  Title:      HOL/Library/Code_Binary_Nat.thy
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 *)
 
 header {* Implementation of natural numbers as binary numerals *}
 
-theory Code_Nat
+theory Code_Binary_Nat
 imports Main
 begin
 
@@ -19,11 +19,11 @@ text {*
 
 subsection {* Representation *}
 
+code_datatype "0::nat" nat_of_num
+
 lemma [code_abbrev]:
   "nat_of_num = numeral"
   by (fact nat_of_num_numeral)
-
-code_datatype "0::nat" nat_of_num
 
 lemma [code]:
   "num_of_nat 0 = Num.One"
@@ -61,7 +61,7 @@ definition dup :: "nat \<Rightarrow> nat" where
 lemma dup_code [code]:
   "dup 0 = 0"
   "dup (nat_of_num k) = nat_of_num (Num.Bit0 k)"
-  unfolding Num_def by (simp_all add: dup_def numeral_Bit0)
+  by (simp_all add: dup_def numeral_Bit0)
 
 definition sub :: "num \<Rightarrow> num \<Rightarrow> nat option" where
   "sub k l = (if k \<ge> l then Some (numeral k - numeral l) else None)"
@@ -245,14 +245,15 @@ end;
 (*>*)
 
 code_modulename SML
-  Code_Nat Arith
+  Code_Binary_Nat Arith
 
 code_modulename OCaml
-  Code_Nat Arith
+  Code_Binary_Nat Arith
 
 code_modulename Haskell
-  Code_Nat Arith
+  Code_Binary_Nat Arith
 
 hide_const (open) dup sub
 
 end
+
