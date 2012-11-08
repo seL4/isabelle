@@ -207,6 +207,9 @@ return a structurally different tree than before. MINOR INCOMPATIBILITY.
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
+* Preprocessing of the code generator rewrites set comprehensions into
+pointfree expressions.
+
 * Quickcheck:
 
   - added an optimisation for equality premises.
