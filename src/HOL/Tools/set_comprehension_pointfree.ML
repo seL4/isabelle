@@ -326,10 +326,10 @@ val vimageE' =
 val collectI' = @{lemma "\<not> P a ==> a \<notin> {x. P x}" by auto}
 val collectE' = @{lemma "a \<notin> {x. P x} ==> (\<not> P a ==> Q) ==> Q" by auto}
 
-val elim_Collect_tac = dtac @{thm iffD1[OF mem_Collect_eq]}
+fun elim_Collect_tac ss = dtac @{thm iffD1[OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
   THEN' REPEAT_DETERM o etac @{thm conjE}
-  THEN' TRY o hyp_subst_tac;
+  THEN' TRY o hyp_subst_tac' ss;
 
 fun intro_image_tac ctxt = rtac @{thm image_eqI}
     THEN' (REPEAT_DETERM1 o
@@ -343,7 +343,7 @@ fun elim_image_tac ss = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
     (TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps @{thms split_paired_all prod.cases}))
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-    THEN' TRY o hyp_subst_tac)
+    THEN' TRY o hyp_subst_tac' ss)
 
 fun tac1_of_formula ss (Int (fm1, fm2)) =
     TRY o etac @{thm conjE}
@@ -387,21 +387,21 @@ fun tac2_of_formula ss (Int (fm1, fm2)) =
        ORELSE' etac @{thm conjE}
        ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
          TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}])) THEN'
-         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl})
+         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac' ss THEN' TRY o rtac @{thm refl})
        ORELSE' (etac @{thm imageE}
          THEN' (REPEAT_DETERM o CHANGED o
          (TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps @{thms split_paired_all prod.cases}))
          THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-         THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl})))
+         THEN' TRY o hyp_subst_tac' ss THEN' TRY o rtac @{thm refl})))
        ORELSE' etac @{thm ComplE}
        ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
         THEN' TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}]))
-        THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl}))
+        THEN' TRY o hyp_subst_tac' ss THEN' TRY o rtac @{thm refl}))
 
 fun tac ss ctxt fm =
   let
     val subset_tac1 = rtac @{thm subsetI}
-      THEN' elim_Collect_tac
+      THEN' elim_Collect_tac ss
       THEN' intro_image_tac ctxt
       THEN' tac1_of_formula ss fm
     val subset_tac2 = rtac @{thm subsetI}
@@ -409,7 +409,7 @@ fun tac ss ctxt fm =
       THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
       THEN' REPEAT_DETERM o resolve_tac @{thms exI}
       THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
-      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac) THEN' rtac @{thm refl}))))
+      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac' ss) THEN' rtac @{thm refl}))))
       THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
         REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula ss f (i + j)) (strip_Int fm))))
   in
