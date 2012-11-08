@@ -344,28 +344,29 @@ fun intro_image_tac ctxt = rtac @{thm image_eqI}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
         (Trueprop_conv (eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq prod_case_distrib)))))) ctxt)))
 
-val elim_image_tac = etac @{thm imageE}
+fun elim_image_tac ss = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
-    (TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps @{thms split_paired_all prod.cases})
+    (TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps @{thms split_paired_all prod.cases}))
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
     THEN' TRY o hyp_subst_tac)
 
-fun tac1_of_formula (Int (fm1, fm2)) =
+fun tac1_of_formula ss (Int (fm1, fm2)) =
     TRY o etac @{thm conjE}
     THEN' rtac @{thm IntI}
-    THEN' (fn i => tac1_of_formula fm2 (i + 1))
-    THEN' tac1_of_formula fm1
-  | tac1_of_formula (Un (fm1, fm2)) =
+    THEN' (fn i => tac1_of_formula ss fm2 (i + 1))
+    THEN' tac1_of_formula ss fm1
+  | tac1_of_formula ss (Un (fm1, fm2)) =
     etac @{thm disjE} THEN' rtac @{thm UnI1}
-    THEN' tac1_of_formula fm1
+    THEN' tac1_of_formula ss fm1
     THEN' rtac @{thm UnI2}
-    THEN' tac1_of_formula fm2
-  | tac1_of_formula (Atom _) =
+    THEN' tac1_of_formula ss fm2
+  | tac1_of_formula ss (Atom _) =
     REPEAT_DETERM1 o (atac
       ORELSE' rtac @{thm SigmaI}
-      ORELSE' ((rtac @{thm CollectI} ORELSE' rtac collectI') THEN' TRY o Simplifier.simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}]))
+      ORELSE' ((rtac @{thm CollectI} ORELSE' rtac collectI') THEN'
+        TRY o Simplifier.simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}])))
       ORELSE' ((rtac @{thm vimageI2} ORELSE' rtac vimageI2') THEN'
-        TRY o Simplifier.simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])) 
+        TRY o Simplifier.simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}]))) 
       ORELSE' (rtac @{thm image_eqI} THEN'
     (REPEAT_DETERM o
       (rtac @{thm refl}
@@ -374,48 +375,48 @@ fun tac1_of_formula (Int (fm1, fm2)) =
       ORELSE' rtac @{thm iffD2[OF Compl_iff]}
       ORELSE' atac)
 
-fun tac2_of_formula (Int (fm1, fm2)) =
+fun tac2_of_formula ss (Int (fm1, fm2)) =
     TRY o etac @{thm IntE}
     THEN' TRY o rtac @{thm conjI}
-    THEN' (fn i => tac2_of_formula fm2 (i + 1))
-    THEN' tac2_of_formula fm1
-  | tac2_of_formula (Un (fm1, fm2)) =
+    THEN' (fn i => tac2_of_formula ss fm2 (i + 1))
+    THEN' tac2_of_formula ss fm1
+  | tac2_of_formula ss (Un (fm1, fm2)) =
     etac @{thm UnE} THEN' rtac @{thm disjI1}
-    THEN' tac2_of_formula fm1
+    THEN' tac2_of_formula ss fm1
     THEN' rtac @{thm disjI2}
-    THEN' tac2_of_formula fm2
-  | tac2_of_formula (Atom _) =
+    THEN' tac2_of_formula ss fm2
+  | tac2_of_formula ss (Atom _) =
     REPEAT_DETERM o
       (atac
        ORELSE' dtac @{thm iffD1[OF mem_Sigma_iff]}
        ORELSE' etac @{thm conjE}
        ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
-         TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}]) THEN'
+         TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}])) THEN'
          REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl})
        ORELSE' (etac @{thm imageE}
          THEN' (REPEAT_DETERM o CHANGED o
-         (TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps @{thms split_paired_all prod.cases})
+         (TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps @{thms split_paired_all prod.cases}))
          THEN' REPEAT_DETERM o etac @{thm Pair_inject}
          THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl})))
        ORELSE' etac @{thm ComplE}
        ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
-        THEN' TRY o Simplifier.full_simp_tac (HOL_basic_ss addsimps [@{thm prod.cases}])
+        THEN' TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}]))
         THEN' TRY o hyp_subst_tac THEN' TRY o rtac @{thm refl}))
 
-fun tac ctxt fm =
+fun tac ss ctxt fm =
   let
     val subset_tac1 = rtac @{thm subsetI}
       THEN' elim_Collect_tac
-      THEN' (intro_image_tac ctxt)
-      THEN' (tac1_of_formula fm)
+      THEN' intro_image_tac ctxt
+      THEN' tac1_of_formula ss fm
     val subset_tac2 = rtac @{thm subsetI}
-      THEN' elim_image_tac
+      THEN' elim_image_tac ss
       THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
       THEN' REPEAT_DETERM o resolve_tac @{thms exI}
       THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
       THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac) THEN' rtac @{thm refl}))))
       THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
-        REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula f (i + j)) (strip_Int fm))))
+        REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula ss f (i + j)) (strip_Int fm))))
   in
     rtac @{thm subset_antisym} THEN' subset_tac1 THEN' subset_tac2
   end;
@@ -442,8 +443,8 @@ let
     in
       HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
     end;
-  val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
   fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
+  val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
   fun tac ctxt = 
     rtac @{thm set_eqI}
     THEN' Simplifier.simp_tac
@@ -490,7 +491,7 @@ fun conv ss t =
     val prep_eq = (comprehension_conv ss' then_conv unfold_conv prep_thms) ct
     val t'' = term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
-      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac context fm 1)
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac ss' context fm 1)
     fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
     val post = Conv.fconv_rule (Trueprop_conv (eq_conv Conv.all_conv (unfold_conv post_thms)))
     val export = singleton (Variable.export ctxt' ctxt)
