@@ -156,9 +156,9 @@ fun default_atom vs t =
     (tuple, Atom (tuple, s))
   end
 
-fun mk_atom vs (Const (@{const_name "Set.member"}, _) $ x $ s) =
+fun mk_atom vs (t as Const (@{const_name "Set.member"}, _) $ x $ s) =
     if not (null (loose_bnos s)) then
-      raise TERM ("mk_atom: bound variables in the set expression", [s])
+      default_atom vs t
     else
       (case try ((map dest_bound) o HOLogic.strip_tuple) x of
       SOME pat => (Pattern pat, Atom (Pattern pat, s))
