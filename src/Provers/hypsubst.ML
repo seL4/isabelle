@@ -48,6 +48,7 @@ signature HYPSUBST =
 sig
   val bound_hyp_subst_tac    : int -> tactic
   val hyp_subst_tac          : int -> tactic
+  val hyp_subst_tac'         : simpset -> int -> tactic
   val blast_hyp_subst_tac    : bool -> int -> tactic
   val stac                   : thm -> int -> tactic
   val hypsubst_setup         : theory -> theory
@@ -126,12 +127,14 @@ in
 
   (*Select a suitable equality assumption; substitute throughout the subgoal
     If bnd is true, then it replaces Bound variables only. *)
-  fun gen_hyp_subst_tac bnd =
+  fun gen_hyp_subst_tac opt_ss bnd =
     let fun tac i st = SUBGOAL (fn (Bi, _) =>
       let
         val (k, _) = eq_var bnd true Bi
-        val hyp_subst_ss = Simplifier.global_context (Thm.theory_of_thm st) empty_ss
-          |> Simplifier.set_mksimps (K (mk_eqs bnd))
+        val map_simpset = case opt_ss of
+          NONE => Simplifier.global_context (Thm.theory_of_thm st)
+        | SOME ss => Simplifier.inherit_context ss
+        val hyp_subst_ss = map_simpset empty_ss |> Simplifier.set_mksimps (K (mk_eqs bnd))
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ss i,
         etac thin_rl i, rotate_tac (~k) i]
       end handle THM _ => no_tac | EQ_VAR => no_tac) i st
@@ -195,11 +198,14 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
 
 (*Substitutes for Free or Bound variables*)
 val hyp_subst_tac = FIRST' [ematch_tac [Data.thin_refl],
-        gen_hyp_subst_tac false, vars_gen_hyp_subst_tac false];
+        gen_hyp_subst_tac NONE false, vars_gen_hyp_subst_tac false];
+
+fun hyp_subst_tac' ss = FIRST' [ematch_tac [Data.thin_refl],
+        gen_hyp_subst_tac (SOME ss) false, vars_gen_hyp_subst_tac false];
 
 (*Substitutes for Bound variables only -- this is always safe*)
 val bound_hyp_subst_tac =
-    gen_hyp_subst_tac true ORELSE' vars_gen_hyp_subst_tac true;
+    gen_hyp_subst_tac NONE true ORELSE' vars_gen_hyp_subst_tac true;
 
 
 (** Version for Blast_tac.  Hyps that are affected by the substitution are
