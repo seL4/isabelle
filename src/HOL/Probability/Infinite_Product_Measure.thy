@@ -102,7 +102,11 @@ proof (rule injective_vimage_restrict)
   show "X \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))" "Y \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
     using sets[THEN sets_into_space] by (auto simp: space_PiM)
   have "\<forall>i\<in>L. \<exists>x. x \<in> space (M i)"
-      using M.not_empty by auto
+  proof
+    fix i assume "i \<in> L"
+    interpret prob_space "P {i}" using prob_space by simp
+    from not_empty show "\<exists>x. x \<in> space (M i)" by (auto simp add: proj_space space_PiM)
+  qed
   from bchoice[OF this]
   show "(\<Pi>\<^isub>E i\<in>L. space (M i)) \<noteq> {}" by auto
   show "(\<lambda>x. restrict x J) -` X \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i)) = (\<lambda>x. restrict x J) -` Y \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i))"
@@ -240,14 +244,12 @@ proof -
   show ?thesis
   proof (intro positive_def[THEN iffD2] conjI ballI)
     from generatorE[OF G.empty_sets] guess J X . note this[simp]
-    interpret J: finite_product_sigma_finite M J by default fact
     have "X = {}"
       by (rule prod_emb_injective[of J I]) simp_all
     then show "\<mu>G {} = 0" by simp
   next
     fix A assume "A \<in> generator"
     from generatorE[OF this] guess J X . note this[simp]
-    interpret J: finite_product_sigma_finite M J by default fact
     show "0 \<le> \<mu>G A" by (simp add: emeasure_nonneg)
   qed
 qed
@@ -264,7 +266,6 @@ proof -
     assume "A \<inter> B = {}"
     have JK: "J \<union> K \<noteq> {}" "J \<union> K \<subseteq> I" "finite (J \<union> K)"
       using J K by auto
-    interpret JK: finite_product_sigma_finite M "J \<union> K" by default fact
     have JK_disj: "emb (J \<union> K) J X \<inter> emb (J \<union> K) K Y = {}"
       apply (rule prod_emb_injective[of "J \<union> K" I])
       apply (insert `A \<inter> B = {}` JK J K)

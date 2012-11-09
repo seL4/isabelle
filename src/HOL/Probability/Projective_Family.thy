@@ -28,8 +28,6 @@ locale projective_family =
   assumes prob_space: "\<And>J. finite J \<Longrightarrow> prob_space (P J)"
   assumes proj_space: "\<And>J. finite J \<Longrightarrow> space (P J) = space (PiM J M)"
   assumes proj_sets: "\<And>J. finite J \<Longrightarrow> sets (P J) = sets (PiM J M)"
-  assumes proj_finite_measure: "\<And>J. finite J \<Longrightarrow> emeasure (P J) (space (PiM J M)) \<noteq> \<infinity>"
-  assumes measure_space: "\<And>i. prob_space (M i)"
 begin
 
 lemma emeasure_PiP:
@@ -79,8 +77,7 @@ proof (rule measure_eqI_generator_eq)
   let ?\<Omega> = "(\<Pi>\<^isub>E k\<in>J. space (M k))"
   show "Int_stable ?J"
     by (rule Int_stable_PiE)
-  interpret finite_measure "P J" using proj_finite_measure `finite J`
-    by (intro finite_measureI) (simp add: proj_space)
+  interpret prob_space "P J" using prob_space `finite J` by simp
   show "emeasure ?P (?F _) \<noteq> \<infinity>" using assms `finite J` by (auto simp: emeasure_PiP)
   show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)
   show "sets (PiP J M P) = sigma_sets ?\<Omega> ?J" "sets (P J) = sigma_sets ?\<Omega> ?J"
@@ -103,8 +100,5 @@ lemma emeasure_fun_emb[simp]:
   by (subst PiP_finite) (auto simp: PiP_finite finite_subset projective)
 
 end
-
-sublocale projective_family \<subseteq> M: prob_space "M i" for i
-  by (rule measure_space)
 
 end

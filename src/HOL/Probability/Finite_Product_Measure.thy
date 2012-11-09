@@ -276,6 +276,10 @@ lemma prod_emb_id:
   "B \<subseteq> (\<Pi>\<^isub>E i\<in>L. space (M i)) \<Longrightarrow> prod_emb L M L B = B"
   by (auto simp: prod_emb_def Pi_iff subset_eq extensional_restrict)
 
+lemma prod_emb_mono:
+  "F \<subseteq> G \<Longrightarrow> prod_emb A M B F \<subseteq> prod_emb A M B G"
+  by (auto simp: prod_emb_def)
+
 definition PiM :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i \<Rightarrow> 'a) measure" where
   "PiM I M = extend_measure (\<Pi>\<^isub>E i\<in>I. space (M i))
     {(J, X). (J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}
