@@ -94,6 +94,33 @@ lemma restrict_merge[simp]:
   "J \<inter> I = {} \<Longrightarrow> restrict (merge I J (x, y)) J = restrict y J"
   by (auto simp: restrict_def)
 
+lemma split_merge: "P (merge I J (x,y) i) \<longleftrightarrow> (i \<in> I \<longrightarrow> P (x i)) \<and> (i \<in> J - I \<longrightarrow> P (y i)) \<and> (i \<notin> I \<union> J \<longrightarrow> P undefined)"
+  unfolding merge_def by auto
+
+lemma extensional_merge_sub: "I \<union> J \<subseteq> K \<Longrightarrow> merge I J (x, y) \<in> extensional K"
+  unfolding merge_def extensional_def by auto
+
+lemma injective_vimage_restrict:
+  assumes J: "J \<subseteq> I"
+  and sets: "A \<subseteq> (\<Pi>\<^isub>E i\<in>J. S i)" "B \<subseteq> (\<Pi>\<^isub>E i\<in>J. S i)" and ne: "(\<Pi>\<^isub>E i\<in>I. S i) \<noteq> {}"
+  and eq: "(\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^isub>E i\<in>I. S i) = (\<lambda>x. restrict x J) -` B \<inter> (\<Pi>\<^isub>E i\<in>I. S i)"
+  shows "A = B"
+proof  (intro set_eqI)
+  fix x
+  from ne obtain y where y: "\<And>i. i \<in> I \<Longrightarrow> y i \<in> S i" by auto
+  have "J \<inter> (I - J) = {}" by auto
+  show "x \<in> A \<longleftrightarrow> x \<in> B"
+  proof cases
+    assume x: "x \<in> (\<Pi>\<^isub>E i\<in>J. S i)"
+    have "x \<in> A \<longleftrightarrow> merge J (I - J) (x,y) \<in> (\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^isub>E i\<in>I. S i)"
+      using y x `J \<subseteq> I` by (auto simp add: Pi_iff extensional_restrict extensional_merge_sub split: split_merge)
+    then show "x \<in> A \<longleftrightarrow> x \<in> B"
+      using y x `J \<subseteq> I` by (auto simp add: Pi_iff extensional_restrict extensional_merge_sub eq split: split_merge)
+  next
+    assume "x \<notin> (\<Pi>\<^isub>E i\<in>J. S i)" with sets show "x \<in> A \<longleftrightarrow> x \<in> B" by auto
+  qed
+qed
+
 lemma extensional_insert_undefined[intro, simp]:
   assumes "a \<in> extensional (insert i I)"
   shows "a(i := undefined) \<in> extensional I"
