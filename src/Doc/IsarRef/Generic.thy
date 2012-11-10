@@ -442,7 +442,7 @@ text {*
   compared to English!
 
   \medskip The @{text split} modifiers add or delete rules for the
-  Splitter (see also \cite{isabelle-ref}), the default is to add.
+  Splitter (see also \secref{sec:simp-strategies} on the looper).
   This works only if the Simplifier method has been properly setup to
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
   ZF do this already).
@@ -882,6 +882,253 @@ text {* Since the Simplifier applies simplification procedures
   reasonably fast. *}
 
 
+subsection {* Configurable Simplifier strategies \label{sec:simp-strategies} *}
+
+text {* The core term-rewriting engine of the Simplifier is normally
+  used in combination with some add-on components that modify the
+  strategy and allow to integrate other non-Simplifier proof tools.
+  These may be reconfigured in ML as explained below.  Even if the
+  default strategies of object-logics like Isabelle/HOL are used
+  unchanged, it helps to understand how the standard Simplifier
+  strategies work. *}
+
+
+subsubsection {* The subgoaler *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML Simplifier.set_subgoaler: "(simpset -> int -> tactic) ->
+  simpset -> simpset"} \\
+  @{index_ML Simplifier.prems_of: "simpset -> thm list"} \\
+  \end{mldecls}
+
+  The subgoaler is the tactic used to solve subgoals arising out of
+  conditional rewrite rules or congruence rules.  The default should
+  be simplification itself.  In rare situations, this strategy may
+  need to be changed.  For example, if the premise of a conditional
+  rule is an instance of its conclusion, as in @{text "Suc ?m < ?n \<Longrightarrow>
+  ?m < ?n"}, the default strategy could loop.  % FIXME !??
+
+  \begin{description}
+
+  \item @{ML Simplifier.set_subgoaler}~@{text "ss tac"} sets the
+  subgoaler of simpset @{text "ss"} to @{text "tac"}.  The tactic will
+  be applied to the context of the running Simplifier instance,
+  expressed as a simpset.
+
+  \item @{ML Simplifier.prems_of}~@{text "ss"} retrieves the current
+  set of premises from simpset @{text "ss"} that represents the
+  context of the running Simplifier.  This may be non-empty only if
+  the Simplifier has been told to utilize local assumptions in the
+  first place (cf.\ the options in \secref{sec:simp-meth}).
+
+  \end{description}
+
+  As an example, consider the following alternative subgoaler:
+*}
+
+ML {*
+  fun subgoaler_tac ss =
+    assume_tac ORELSE'
+    resolve_tac (Simplifier.prems_of ss) ORELSE'
+    asm_simp_tac ss
+*}
+
+text {* This tactic first tries to solve the subgoal by assumption or
+  by resolving with with one of the premises, calling simplification
+  only if that fails. *}
+
+
+subsubsection {* The solver *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML_type solver} \\
+  @{index_ML Simplifier.mk_solver: "string -> (simpset -> int -> tactic) ->
+  solver"} \\
+  @{index_ML_op setSolver: "simpset * solver -> simpset"} \\
+  @{index_ML_op addSolver: "simpset * solver -> simpset"} \\
+  @{index_ML_op setSSolver: "simpset * solver -> simpset"} \\
+  @{index_ML_op addSSolver: "simpset * solver -> simpset"} \\
+  \end{mldecls}
+
+  A solver is a tactic that attempts to solve a subgoal after
+  simplification.  Its core functionality is to prove trivial subgoals
+  such as @{prop "True"} and @{text "t = t"}, but object-logics might
+  be more ambitious.  For example, Isabelle/HOL performs a restricted
+  version of linear arithmetic here.
+
+  Solvers are packaged up in abstract type @{ML_type solver}, with
+  @{ML Simplifier.mk_solver} as the only operation to create a solver.
+
+  \medskip Rewriting does not instantiate unknowns.  For example,
+  rewriting alone cannot prove @{text "a \<in> ?A"} since this requires
+  instantiating @{text "?A"}.  The solver, however, is an arbitrary
+  tactic and may instantiate unknowns as it pleases.  This is the only
+  way the Simplifier can handle a conditional rewrite rule whose
+  condition contains extra variables.  When a simplification tactic is
+  to be combined with other provers, especially with the Classical
+  Reasoner, it is important whether it can be considered safe or not.
+  For this reason a simpset contains two solvers: safe and unsafe.
+
+  The standard simplification strategy solely uses the unsafe solver,
+  which is appropriate in most cases.  For special applications where
+  the simplification process is not allowed to instantiate unknowns
+  within the goal, simplification starts with the safe solver, but may
+  still apply the ordinary unsafe one in nested simplifications for
+  conditional rules or congruences. Note that in this way the overall
+  tactic is not totally safe: it may instantiate unknowns that appear
+  also in other subgoals.
+
+  \begin{description}
+
+  \item @{ML Simplifier.mk_solver}~@{text "name tac"} turns @{text
+  "tac"} into a solver; the @{text "name"} is only attached as a
+  comment and has no further significance.
+
+  \item @{text "ss setSSolver solver"} installs @{text "solver"} as
+  the safe solver of @{text "ss"}.
+
+  \item @{text "ss addSSolver solver"} adds @{text "solver"} as an
+  additional safe solver; it will be tried after the solvers which had
+  already been present in @{text "ss"}.
+
+  \item @{text "ss setSolver solver"} installs @{text "solver"} as the
+  unsafe solver of @{text "ss"}.
+
+  \item @{text "ss addSolver solver"} adds @{text "solver"} as an
+  additional unsafe solver; it will be tried after the solvers which
+  had already been present in @{text "ss"}.
+
+  \end{description}
+
+  \medskip The solver tactic is invoked with a simpset that represents
+  the context of the running Simplifier.  Further simpset operations
+  may be used to retrieve relevant information, such as the list of
+  local Simplifier premises via @{ML Simplifier.prems_of} --- this
+  list may be non-empty only if the Simplifier runs in a mode that
+  utilizes local assumptions (see also \secref{sec:simp-meth}).  The
+  solver is also presented the full goal including its assumptions in
+  any case.  Thus it can use these (e.g.\ by calling @{ML
+  assume_tac}), even if the Simplifier proper happens to ignore local
+  premises at the moment.
+
+  \medskip As explained before, the subgoaler is also used to solve
+  the premises of congruence rules.  These are usually of the form
+  @{text "s = ?x"}, where @{text "s"} needs to be simplified and
+  @{text "?x"} needs to be instantiated with the result.  Typically,
+  the subgoaler will invoke the Simplifier at some point, which will
+  eventually call the solver.  For this reason, solver tactics must be
+  prepared to solve goals of the form @{text "t = ?x"}, usually by
+  reflexivity.  In particular, reflexivity should be tried before any
+  of the fancy automated proof tools.
+
+  It may even happen that due to simplification the subgoal is no
+  longer an equality.  For example, @{text "False \<longleftrightarrow> ?Q"} could be
+  rewritten to @{text "\<not> ?Q"}.  To cover this case, the solver could
+  try resolving with the theorem @{text "\<not> False"} of the
+  object-logic.
+
+  \medskip
+
+  \begin{warn}
+  If a premise of a congruence rule cannot be proved, then the
+  congruence is ignored.  This should only happen if the rule is
+  \emph{conditional} --- that is, contains premises not of the form
+  @{text "t = ?x"}.  Otherwise it indicates that some congruence rule,
+  or possibly the subgoaler or solver, is faulty.
+  \end{warn}
+*}
+
+
+subsubsection {* The looper *}
+
+text {*
+  \begin{mldecls}
+  @{index_ML_op setloop: "simpset * (int -> tactic) -> simpset"} \\
+  @{index_ML_op setloop': "simpset * (simpset -> int -> tactic) -> simpset"} \\
+  @{index_ML_op addloop: "simpset * (string * (int -> tactic)) -> simpset"} \\
+  @{index_ML_op addloop': "simpset * (string * (simpset -> int -> tactic))
+  -> simpset"} \\
+  @{index_ML_op delloop: "simpset * string -> simpset"} \\
+  @{index_ML_op Splitter.add_split: "thm -> simpset -> simpset"} \\
+  @{index_ML_op Splitter.del_split: "thm -> simpset -> simpset"} \\
+  \end{mldecls}
+
+  The looper is a list of tactics that are applied after
+  simplification, in case the solver failed to solve the simplified
+  goal.  If the looper succeeds, the simplification process is started
+  all over again.  Each of the subgoals generated by the looper is
+  attacked in turn, in reverse order.
+
+  A typical looper is \emph{case splitting}: the expansion of a
+  conditional.  Another possibility is to apply an elimination rule on
+  the assumptions.  More adventurous loopers could start an induction.
+
+  \begin{description}
+
+  \item @{text "ss setloop tac"} installs @{text "tac"} as the only
+  looper tactic of @{text "ss"}.  The variant @{text "setloop'"}
+  allows the tactic to depend on the running Simplifier context, which
+  is represented as simpset.
+
+  \item @{text "ss addloop (name, tac)"} adds @{text "tac"} as an
+  additional looper tactic with name @{text "name"}, which is
+  significant for managing the collection of loopers.  The tactic will
+  be tried after the looper tactics that had already been present in
+  @{text "ss"}.  The variant @{text "addloop'"} allows the tactic to
+  depend on the running Simplifier context, which is represented as
+  simpset.
+
+  \item @{text "ss delloop name"} deletes the looper tactic that was
+  associated with @{text "name"} from @{text "ss"}.
+
+  \item @{ML Splitter.add_split}~@{text "thm ss"} adds split tactics
+  for @{text "thm"} as additional looper tactics of @{text "ss"}.
+
+  \item @{ML Splitter.del_split}~@{text "thm ss"} deletes the split
+  tactic corresponding to @{text thm} from the looper tactics of
+  @{text "ss"}.
+
+  \end{description}
+
+  The splitter replaces applications of a given function; the
+  right-hand side of the replacement can be anything.  For example,
+  here is a splitting rule for conditional expressions:
+
+  @{text [display] "?P (if ?Q ?x ?y) \<longleftrightarrow> (?Q \<longrightarrow> ?P ?x) \<and> (\<not> ?Q \<longrightarrow> ?P ?y)"}
+
+  Another example is the elimination operator for Cartesian products
+  (which happens to be called @{text split} in Isabelle/HOL:
+
+  @{text [display] "?P (split ?f ?p) \<longleftrightarrow> (\<forall>a b. ?p = (a, b) \<longrightarrow> ?P (f a b))"}
+
+  For technical reasons, there is a distinction between case splitting
+  in the conclusion and in the premises of a subgoal.  The former is
+  done by @{ML Splitter.split_tac} with rules like @{thm [source]
+  split_if} or @{thm [source] option.split}, which do not split the
+  subgoal, while the latter is done by @{ML Splitter.split_asm_tac}
+  with rules like @{thm [source] split_if_asm} or @{thm [source]
+  option.split_asm}, which split the subgoal.  The function @{ML
+  Splitter.add_split} automatically takes care of which tactic to
+  call, analyzing the form of the rules given as argument; it is the
+  same operation behind @{text "split"} attribute or method modifier
+  syntax in the Isar source language.
+
+  Case splits should be allowed only when necessary; they are
+  expensive and hard to control.  Case-splitting on if-expressions in
+  the conclusion is usually beneficial, so it is enabled by default in
+  Isabelle/HOL and Isabelle/FOL/ZF.
+
+  \begin{warn}
+  With @{ML Splitter.split_asm_tac} as looper component, the
+  Simplifier may split subgoals!  This might cause unexpected problems
+  in tactic expressions that silently assume 0 or 1 subgoals after
+  simplification.
+  \end{warn}
+*}
+
+
 subsection {* Forward simplification \label{sec:simp-forward} *}
 
 text {*
@@ -907,9 +1154,9 @@ text {*
 
   Note that forward simplification restricts the simplifier to its
   most basic operation of term rewriting; solver and looper tactics
-  \cite{isabelle-ref} are \emph{not} involved here.  The @{attribute
-  simplified} attribute should be only rarely required under normal
-  circumstances.
+  (\secref{sec:simp-strategies}) are \emph{not} involved here.  The
+  @{attribute simplified} attribute should be only rarely required
+  under normal circumstances.
 
   \end{description}
 *}
