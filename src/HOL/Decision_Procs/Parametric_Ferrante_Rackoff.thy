@@ -1129,7 +1129,7 @@ definition list_disj :: "fm list \<Rightarrow> fm" where
 lemma list_conj: "Ifm vs bs (list_conj ps) = (\<forall>p\<in> set ps. Ifm vs bs p)"
   by (induct ps, auto simp add: list_conj_def)
 lemma list_conj_qf: " \<forall>p\<in> set ps. qfree p \<Longrightarrow> qfree (list_conj ps)"
-  by (induct ps, auto simp add: list_conj_def conj_qf)
+  by (induct ps, auto simp add: list_conj_def)
 lemma list_disj: "Ifm vs bs (list_disj ps) = (\<exists>p\<in> set ps. Ifm vs bs p)"
   by (induct ps, auto simp add: list_disj_def)
 
@@ -1586,7 +1586,7 @@ proof-
   then obtain c s where csU: "(c,s) \<in> set (uset p)" and x: "(Ipoly vs c < 0 \<and> Ipoly vs c * x \<le> - Itm vs (x#bs) s) \<or>  (Ipoly vs c > 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s)" by blast
   hence "x \<ge> (- Itm vs (x#bs) s) / Ipoly vs c"
     using divide_le_eq[of "- Itm vs (x#bs) s" "Ipoly vs c" x]
-    by (auto simp add: mult_commute del: divide_minus_left)
+      by (auto simp add: mult_commute)
   thus ?thesis using csU by auto
 qed
 
@@ -2733,7 +2733,7 @@ proof-
    evaldjf (\<lambda>((b,a),(d,c)). msubst2 ?q (C (-2, 1) *\<^sub>p b*\<^sub>p d) (Add (Mul d a) (Mul b c))) (alluopairs ?U)]"
   from subst0_nb[of "CP 0\<^sub>p" ?q] q_qf evaldjf_bound0[OF bnd1] evaldjf_bound0[OF bnd0] mp_nb pp_nb stupid
   have nb: "bound0 ?R "
-    by (simp add: list_disj_def disj_nb0 simpfm_bound0)
+    by (simp add: list_disj_def simpfm_bound0)
   let ?s = "\<lambda>((b,a),(d,c)). msubst2 ?q (C (-2, 1) *\<^sub>p b*\<^sub>p d) (Add (Mul d a) (Mul b c))"
 
   {fix b a d c assume baU: "(b,a) \<in> set ?U" and dcU: "(d,c) \<in> set ?U"
@@ -2789,227 +2789,168 @@ proof-
 show ?thesis  unfolding frpar2_def by (auto simp add: prep)
 qed
 
-ML {* 
-structure ReflectedFRPar = 
-struct
+oracle frpar_oracle = {*
+let
 
-val bT = HOLogic.boolT;
-fun num rT x = HOLogic.mk_number rT x;
-fun rrelT rT = [rT,rT] ---> rT;
-fun rrT rT = [rT, rT] ---> bT;
-fun divt rT = Const(@{const_name Fields.divide},rrelT rT);
-fun timest rT = Const(@{const_name Groups.times},rrelT rT);
-fun plust rT = Const(@{const_name Groups.plus},rrelT rT);
-fun minust rT = Const(@{const_name Groups.minus},rrelT rT);
-fun uminust rT = Const(@{const_name Groups.uminus}, rT --> rT);
-fun powt rT = Const(@{const_name "power"}, [rT,@{typ "nat"}] ---> rT);
-val brT = [bT, bT] ---> bT;
-val nott = @{term "Not"};
-val conjt = @{term HOL.conj};
-val disjt = @{term HOL.disj};
-val impt = @{term HOL.implies};
-val ifft = @{term "op = :: bool => _"}
-fun llt rT = Const(@{const_name Orderings.less},rrT rT);
-fun lle rT = Const(@{const_name Orderings.less},rrT rT);
-fun eqt rT = Const(@{const_name HOL.eq},rrT rT);
-fun rz rT = Const(@{const_name Groups.zero},rT);
+fun binopT T = T --> T --> T;
+fun relT T = T --> T --> @{typ bool};
 
-fun dest_nat t = case t of
-  Const (@{const_name Suc}, _) $ t' => 1 + dest_nat t'
-| _ => (snd o HOLogic.dest_number) t;
+val dest_num = snd o HOLogic.dest_number;
 
-fun num_of_term m t = 
- case t of
-   Const(@{const_name Groups.uminus},_)$t => @{code poly.Neg} (num_of_term m t)
- | Const(@{const_name Groups.plus},_)$a$b => @{code poly.Add} (num_of_term m a, num_of_term m b)
- | Const(@{const_name Groups.minus},_)$a$b => @{code poly.Sub} (num_of_term m a, num_of_term m b)
- | Const(@{const_name Groups.times},_)$a$b => @{code poly.Mul} (num_of_term m a, num_of_term m b)
- | Const(@{const_name Power.power},_)$a$n => @{code poly.Pw} (num_of_term m a, dest_nat n)
- | Const(@{const_name Fields.divide},_)$a$b => @{code poly.C} (HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
- | _ => (@{code poly.C} (HOLogic.dest_number t |> snd,1) 
-         handle TERM _ => @{code poly.Bound} (AList.lookup (op aconv) m t |> the));
+fun try_dest_num t = SOME ((snd o HOLogic.dest_number) t)
+  handle TERM _ => NONE;
 
-fun tm_of_term m m' t = 
- case t of
-   Const(@{const_name Groups.uminus},_)$t => @{code Neg} (tm_of_term m m' t)
- | Const(@{const_name Groups.plus},_)$a$b => @{code Add} (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name Groups.minus},_)$a$b => @{code Sub} (tm_of_term m m' a, tm_of_term m m' b)
- | Const(@{const_name Groups.times},_)$a$b => @{code Mul} (num_of_term m' a, tm_of_term m m' b)
- | _ => (@{code CP} (num_of_term m' t) 
-         handle TERM _ => @{code Bound} (AList.lookup (op aconv) m t |> the)
-              | Option => @{code Bound} (AList.lookup (op aconv) m t |> the));
+fun dest_nat (t as Const (@{const_name Suc}, _)) = HOLogic.dest_nat t
+  | dest_nat t = dest_num t;
 
-fun term_of_num T m t = 
- case t of
-  @{code poly.C} (a,b) => (if b = 1 then num T a else if b=0 then (rz T) 
-                                        else (divt T) $ num T a $ num T b)
-| @{code poly.Bound} i => AList.lookup (op = : int*int -> bool) m i |> the
-| @{code poly.Add} (a,b) => (plust T)$(term_of_num T m a)$(term_of_num T m b)
-| @{code poly.Mul} (a,b) => (timest T)$(term_of_num T m a)$(term_of_num T m b)
-| @{code poly.Sub} (a,b) => (minust T)$(term_of_num T m a)$(term_of_num T m b)
-| @{code poly.Neg} a => (uminust T)$(term_of_num T m a)
-| @{code poly.Pw} (a,n) => (powt T)$(term_of_num T m t)$(HOLogic.mk_number HOLogic.natT n)
-| @{code poly.CN} (c,n,p) => term_of_num T m (@{code poly.Add} (c, @{code poly.Mul} (@{code poly.Bound} n, p)))
-| _ => error "term_of_num: Unknown term";
+fun the_index ts t =
+  let
+    val k = find_index (fn t' => t aconv t') ts;
+  in if k < 0 then raise General.Subscript else k end;
 
-fun term_of_tm T m m' t = 
- case t of
-  @{code CP} p => term_of_num T m' p
-| @{code Bound} i => AList.lookup (op = : int*int -> bool) m i |> the
-| @{code Add} (a,b) => (plust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
-| @{code Mul} (a,b) => (timest T)$(term_of_num T m' a)$(term_of_tm T m m' b)
-| @{code Sub} (a,b) => (minust T)$(term_of_tm T m m' a)$(term_of_tm T m m' b)
-| @{code Neg} a => (uminust T)$(term_of_tm T m m' a)
-| @{code CNP} (n,c,p) => term_of_tm T m m' (@{code Add}
-     (@{code Mul} (c, @{code Bound} n), p))
-| _ => error "term_of_tm: Unknown term";
+fun num_of_term ps (Const (@{const_name Groups.uminus}, _) $ t) = @{code poly.Neg} (num_of_term ps t)
+  | num_of_term ps (Const (@{const_name Groups.plus}, _) $ a $ b) = @{code poly.Add} (num_of_term ps a, num_of_term ps b)
+  | num_of_term ps (Const (@{const_name Groups.minus}, _) $ a $ b) = @{code poly.Sub} (num_of_term ps a, num_of_term ps b)
+  | num_of_term ps (Const (@{const_name Groups.times}, _) $ a $ b) = @{code poly.Mul} (num_of_term ps a, num_of_term ps b)
+  | num_of_term ps (Const (@{const_name Power.power}, _) $ a $ n) = @{code poly.Pw} (num_of_term ps a, dest_nat n)
+  | num_of_term ps (Const (@{const_name Fields.divide}, _) $ a $ b) = @{code poly.C} (dest_num a, dest_num b)
+  | num_of_term ps t = (case try_dest_num t
+     of SOME k => @{code poly.C} (k, 1)
+      | NONE => @{code poly.Bound} (the_index ps t));
 
-fun fm_of_term m m' fm = 
- case fm of
-    Const(@{const_name True},_) => @{code T}
-  | Const(@{const_name False},_) => @{code F}
-  | Const(@{const_name Not},_)$p => @{code NOT} (fm_of_term m m' p)
-  | Const(@{const_name HOL.conj},_)$p$q => @{code And} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const(@{const_name HOL.disj},_)$p$q => @{code Or} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const(@{const_name HOL.implies},_)$p$q => @{code Imp} (fm_of_term m m' p, fm_of_term m m' q)
-  | Const(@{const_name HOL.eq},ty)$p$q => 
-       if domain_type ty = bT then @{code Iff} (fm_of_term m m' p, fm_of_term m m' q)
-       else @{code Eq} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Orderings.less},_)$p$q => 
-        @{code Lt} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Orderings.less_eq},_)$p$q => 
-        @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
-  | Const(@{const_name Ex},_)$Abs(xn,xT,p) => 
-     let val (xn', p') = Syntax_Trans.variant_abs (xn,xT,p)  (* FIXME !? *)
-         val x = Free(xn',xT)
-         fun incr i = i + 1
-         val m0 = (x,0):: (map (apsnd incr) m)
-      in @{code E} (fm_of_term m0 m' p') end
-  | Const(@{const_name All},_)$Abs(xn,xT,p) => 
-     let val (xn', p') = Syntax_Trans.variant_abs (xn,xT,p)  (* FIXME !? *)
-         val x = Free(xn',xT)
-         fun incr i = i + 1
-         val m0 = (x,0):: (map (apsnd incr) m)
-      in @{code A} (fm_of_term m0 m' p') end
-  | _ => error "fm_of_term";
+fun tm_of_term fs ps (Const(@{const_name Groups.uminus}, _) $ t) = @{code Neg} (tm_of_term fs ps t)
+  | tm_of_term fs ps (Const(@{const_name Groups.plus}, _) $ a $ b) = @{code Add} (tm_of_term fs ps a, tm_of_term fs ps b)
+  | tm_of_term fs ps (Const(@{const_name Groups.minus}, _) $ a $ b) = @{code Sub} (tm_of_term fs ps a, tm_of_term fs ps b)
+  | tm_of_term fs ps (Const(@{const_name Groups.times}, _) $ a $ b) = @{code Mul} (num_of_term ps a, tm_of_term fs ps b)
+  | tm_of_term fs ps t = (@{code CP} (num_of_term ps t) 
+      handle TERM _ => @{code Bound} (the_index fs t)
+           | General.Subscript => @{code Bound} (the_index fs t));
 
+fun fm_of_term fs ps @{term True} = @{code T}
+  | fm_of_term fs ps @{term False} = @{code F}
+  | fm_of_term fs ps (Const (@{const_name Not}, _) $ p) = @{code NOT} (fm_of_term fs ps p)
+  | fm_of_term fs ps (Const (@{const_name HOL.conj}, _) $ p $ q) = @{code And} (fm_of_term fs ps p, fm_of_term fs ps q)
+  | fm_of_term fs ps (Const (@{const_name HOL.disj}, _) $ p $ q) = @{code Or} (fm_of_term fs ps p, fm_of_term fs ps q)
+  | fm_of_term fs ps (Const (@{const_name HOL.implies}, _) $ p $ q) = @{code Imp} (fm_of_term fs ps p, fm_of_term fs ps q)
+  | fm_of_term fs ps (@{term HOL.iff} $ p $ q) = @{code Iff} (fm_of_term fs ps p, fm_of_term fs ps q)
+  | fm_of_term fs ps (Const (@{const_name HOL.eq}, T) $ p $ q) =
+      @{code Eq} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
+  | fm_of_term fs ps (Const (@{const_name Orderings.less}, _) $ p $ q) =
+      @{code Lt} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
+  | fm_of_term fs ps (Const (@{const_name Orderings.less_eq}, _) $ p $ q) =
+      @{code Le} (@{code Sub} (tm_of_term fs ps p, tm_of_term fs ps q))
+  | fm_of_term fs ps (Const (@{const_name Ex}, _) $ Abs (abs as (_, xT, _))) =
+      let
+        val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
+      in @{code E} (fm_of_term (Free (xn', xT) :: fs) ps p') end
+  | fm_of_term fs ps (Const (@{const_name All},_) $ Abs (abs as (_, xT, _))) =
+      let
+        val (xn', p') = Syntax_Trans.variant_abs abs;  (* FIXME !? *)
+      in @{code A} (fm_of_term (Free (xn', xT) :: fs) ps p') end
+  | fm_of_term fs ps _ = error "fm_of_term";
 
-fun term_of_fm T m m' t = 
-  case t of
-    @{code T} => Const(@{const_name True},bT)
-  | @{code F} => Const(@{const_name False},bT)
-  | @{code NOT} p => nott $ (term_of_fm T m m' p)
-  | @{code And} (p,q) => conjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | @{code Or} (p,q) => disjt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | @{code Imp} (p,q) => impt $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | @{code Iff} (p,q) => ifft $ (term_of_fm T m m' p) $ (term_of_fm T m m' q)
-  | @{code Lt} p => (llt T) $ (term_of_tm T m m' p) $ (rz T)
-  | @{code Le} p => (lle T) $ (term_of_tm T m m' p) $ (rz T)
-  | @{code Eq} p => (eqt T) $ (term_of_tm T m m' p) $ (rz T)
-  | @{code NEq} p => nott $ ((eqt T) $ (term_of_tm T m m' p) $ (rz T))
-  | _ => error "term_of_fm: quantifiers!!!!???";
+fun term_of_num T ps (@{code poly.C} (a, b)) = 
+    (if b = 1 then HOLogic.mk_number T a
+     else if b = 0 then Const (@{const_name Groups.zero}, T)
+     else Const (@{const_name Fields.divide}, binopT T) $ HOLogic.mk_number T a $ HOLogic.mk_number T b)
+  | term_of_num T ps (@{code poly.Bound} i) = nth ps i
+  | term_of_num T ps (@{code poly.Add} (a, b)) = Const (@{const_name Groups.plus}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
+  | term_of_num T ps (@{code poly.Mul} (a, b)) = Const (@{const_name Groups.times}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
+  | term_of_num T ps (@{code poly.Sub} (a, b)) = Const (@{const_name Groups.minus}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
+  | term_of_num T ps (@{code poly.Neg} a) = Const (@{const_name Groups.uminus}, T --> T) $ term_of_num T ps a
+  | term_of_num T ps (@{code poly.Pw} (a, n)) =
+      Const (@{const_name Power.power}, T --> @{typ nat} --> T) $ term_of_num T ps a $ HOLogic.mk_number HOLogic.natT n
+  | term_of_num T ps (@{code poly.CN} (c, n, p)) =
+      term_of_num T ps (@{code poly.Add} (c, @{code poly.Mul} (@{code poly.Bound} n, p)));
 
-fun frpar_oracle (T,m, m', fm) = 
- let 
-   val t = HOLogic.dest_Trueprop fm
-   val im = 0 upto (length m - 1)
-   val im' = 0 upto (length m' - 1)   
- in HOLogic.mk_Trueprop (HOLogic.mk_eq(t, term_of_fm T (im ~~ m) (im' ~~ m')  
-                                                     (@{code frpar} (fm_of_term (m ~~ im) (m' ~~ im') t))))
- end;
+fun term_of_tm T fs ps (@{code CP} p) = term_of_num T ps p
+  | term_of_tm T fs ps (@{code Bound} i) = nth fs i
+  | term_of_tm T fs ps (@{code Add} (a, b)) = Const (@{const_name Groups.plus}, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
+  | term_of_tm T fs ps (@{code Mul} (a, b)) = Const (@{const_name Groups.times}, binopT T) $ term_of_num T ps a $ term_of_tm T fs ps b
+  | term_of_tm T fs ps (@{code Sub} (a, b)) = Const (@{const_name Groups.minus}, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
+  | term_of_tm T fs ps (@{code Neg} a) = Const (@{const_name Groups.uminus}, T --> T) $ term_of_tm T fs ps a
+  | term_of_tm T fs ps (@{code CNP} (n, c, p)) = term_of_tm T fs ps
+     (@{code Add} (@{code Mul} (c, @{code Bound} n), p));
 
-fun frpar_oracle2 (T,m, m', fm) = 
- let 
-   val t = HOLogic.dest_Trueprop fm
-   val im = 0 upto (length m - 1)
-   val im' = 0 upto (length m' - 1)   
- in HOLogic.mk_Trueprop (HOLogic.mk_eq(t, term_of_fm T (im ~~ m) (im' ~~ m')  
-                                                     (@{code frpar2} (fm_of_term (m ~~ im) (m' ~~ im') t))))
- end;
+fun term_of_fm T fs ps @{code T} = @{term True}
+  | term_of_fm T fs ps @{code F} = @{term False}
+  | term_of_fm T fs ps (@{code NOT} p) = @{term Not} $ term_of_fm T fs ps p
+  | term_of_fm T fs ps (@{code And} (p, q)) = @{term HOL.conj} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+  | term_of_fm T fs ps (@{code Or} (p, q)) = @{term HOL.disj} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+  | term_of_fm T fs ps (@{code Imp} (p, q)) = @{term HOL.implies} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+  | term_of_fm T fs ps (@{code Iff} (p, q)) = @{term HOL.iff} $ term_of_fm T fs ps p $ term_of_fm T fs ps q
+  | term_of_fm T fs ps (@{code Lt} p) = Const (@{const_name Orderings.less}, relT T) $ term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T)
+  | term_of_fm T fs ps (@{code Le} p) = Const (@{const_name Orderings.less_eq}, relT T) $ term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T)
+  | term_of_fm T fs ps (@{code Eq} p) = Const (@{const_name HOL.eq}, relT T) $ term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T)
+  | term_of_fm T fs ps (@{code NEq} p) = @{term Not} $ (Const (@{const_name HOL.eq}, relT T) $ term_of_tm T fs ps p $ Const (@{const_name Groups.zero}, T))
+  | term_of_fm T fs ps _ = error "term_of_fm: quantifiers";
 
-end;
+fun frpar_procedure alternative T ps fm =
+  let 
+    val frpar = if alternative then @{code frpar2} else @{code frpar};
+    val fs = subtract (op aconv) (map Free (Term.add_frees fm [])) ps;
+    val eval = term_of_fm T fs ps o frpar o fm_of_term fs ps;
+    val t = HOLogic.dest_Trueprop fm;
+  in
+    (HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, eval t)
+  end;
 
+in
 
+  fn (ctxt, alternative, ty, ps, ct) => 
+    cterm_of (Proof_Context.theory_of ctxt)
+      (frpar_procedure alternative ty ps (term_of ct))
+
+end
 *}
 
-oracle frpar_oracle = {* fn (ty, ts, ts', ct) => 
- let 
-  val thy = Thm.theory_of_cterm ct
- in cterm_of thy (ReflectedFRPar.frpar_oracle (ty,ts, ts', term_of ct))
- end *}
-
-oracle frpar_oracle2 = {* fn (ty, ts, ts', ct) => 
- let 
-  val thy = Thm.theory_of_cterm ct
- in cterm_of thy (ReflectedFRPar.frpar_oracle2 (ty,ts, ts', term_of ct))
- end *}
-
-ML{* 
-structure FRParTac = 
+ML {* 
+structure Parametric_Ferrante_Rackoff = 
 struct
 
-fun frpar_tac T ps ctxt = 
- Object_Logic.full_atomize_tac
- THEN' CSUBGOAL (fn (g, i) =>
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val fs = subtract (op aconv) (map Free (Term.add_frees (term_of g) [])) ps
-    val th = frpar_oracle (T, fs, ps, (* Pattern.eta_long [] *) g)
-  in rtac (th RS iffD2) i end);
+fun tactic ctxt alternative T ps = 
+  Object_Logic.full_atomize_tac
+  THEN' CSUBGOAL (fn (g, i) =>
+    let
+      val th = frpar_oracle (ctxt, alternative, T, ps, g)
+    in rtac (th RS iffD2) i end);
 
-fun frpar2_tac T ps ctxt = 
- Object_Logic.full_atomize_tac
- THEN' CSUBGOAL (fn (g, i) =>
+fun method alternative =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val fs = subtract (op aconv) (map Free (Term.add_frees (term_of g) [])) ps
-    val th = frpar_oracle2 (T, fs, ps, (* Pattern.eta_long [] *) g)
-  in rtac (th RS iffD2) i end);
+    fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
+    val parsN = "pars"
+    val typN = "type"
+    val any_keyword = keyword parsN || keyword typN
+    val terms = Scan.repeat (Scan.unless any_keyword Args.term)
+    val typ = Scan.unless any_keyword Args.typ
+  in
+    (keyword typN |-- typ) -- (keyword parsN |-- terms) >>
+      (fn (T, ps) => fn ctxt => SIMPLE_METHOD' (tactic ctxt alternative T ps))
+  end
 
 end;
-
 *}
 
 method_setup frpar = {*
-let
- fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
- fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
- val parsN = "pars"
- val typN = "type"
- val any_keyword = keyword parsN || keyword typN
- val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat
- val cterms = thms >> map Drule.dest_term;
- val terms = Scan.repeat (Scan.unless any_keyword Args.term)
- val typ = Scan.unless any_keyword Args.typ
-in
- (keyword typN |-- typ) -- (keyword parsN |-- terms) >>
-  (fn (T,ps) => fn ctxt => SIMPLE_METHOD' (FRParTac.frpar_tac T ps ctxt))
-end
-*} "parametric QE for linear Arithmetic over fields, Version 1"
+  Parametric_Ferrante_Rackoff.method false
+*} "parametric QE for linear Arithmetic over fields"
 
 method_setup frpar2 = {*
-let
- fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ()
- fun simple_keyword k = Scan.lift (Args.$$$ k) >> K ()
- val parsN = "pars"
- val typN = "type"
- val any_keyword = keyword parsN || keyword typN
- val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat
- val cterms = thms >> map Drule.dest_term;
- val terms = Scan.repeat (Scan.unless any_keyword Args.term)
- val typ = Scan.unless any_keyword Args.typ
-in
- (keyword typN |-- typ) -- (keyword parsN |-- terms) >>
-  (fn (T,ps) => fn ctxt => SIMPLE_METHOD' (FRParTac.frpar2_tac T ps ctxt))
-end
+  Parametric_Ferrante_Rackoff.method true
 *} "parametric QE for linear Arithmetic over fields, Version 2"
-
 
 lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
   apply (frpar type: "'a::{linordered_field_inverse_zero}" pars: "y::'a::{linordered_field_inverse_zero}")
   apply (simp add: field_simps)
   apply (rule spec[where x=y])
   apply (frpar type: "'a::{linordered_field_inverse_zero}" pars: "z::'a::{linordered_field_inverse_zero}")
+  by simp
+
+lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
+  apply (frpar2 type: "'a::{linordered_field_inverse_zero}" pars: "y::'a::{linordered_field_inverse_zero}")
+  apply (simp add: field_simps)
+  apply (rule spec[where x=y])
+  apply (frpar2 type: "'a::{linordered_field_inverse_zero}" pars: "z::'a::{linordered_field_inverse_zero}")
   by simp
 
 text{* Collins/Jones Problem *}
@@ -3029,13 +2970,6 @@ lemma "ALL (x::'a::{linordered_field_inverse_zero, number_ring}) y. (1 - t)*x \<
 apply (frpar type: "'a::{linordered_field_inverse_zero, number_ring}" pars: "t::'a::{linordered_field_inverse_zero, number_ring}")
 oops
 *)
-
-lemma "\<exists>(x::'a::{linordered_field_inverse_zero}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"
-  apply (frpar2 type: "'a::{linordered_field_inverse_zero}" pars: "y::'a::{linordered_field_inverse_zero}")
-  apply (simp add: field_simps)
-  apply (rule spec[where x=y])
-  apply (frpar2 type: "'a::{linordered_field_inverse_zero}" pars: "z::'a::{linordered_field_inverse_zero}")
-  by simp
 
 text{* Collins/Jones Problem *}
 
@@ -3058,3 +2992,4 @@ apply ferrack
 oops
 *)
 end
+
