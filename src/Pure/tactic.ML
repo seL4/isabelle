@@ -153,16 +153,15 @@ fun dmatch_tac rls   = ematch_tac (map make_elim rls);
 val flexflex_tac = PRIMSEQ Thm.flexflex_rule;
 
 (*Remove duplicate subgoals.*)
-val perm_tac = PRIMITIVE oo Thm.permute_prems;
-
+val permute_tac = PRIMITIVE oo Thm.permute_prems;
 fun distinct_tac (i, k) =
-  perm_tac 0 (i - 1) THEN
-  perm_tac 1 (k - 1) THEN
+  permute_tac 0 (i - 1) THEN
+  permute_tac 1 (k - 1) THEN
   DETERM (PRIMSEQ (fn st =>
     Thm.compose_no_flatten false (st, 0) 1
       (Drule.incr_indexes st Drule.distinct_prems_rl))) THEN
-  perm_tac 1 (1 - k) THEN
-  perm_tac 0 (1 - i);
+  permute_tac 1 (1 - k) THEN
+  permute_tac 0 (1 - i);
 
 fun distinct_subgoal_tac i st =
   (case drop (i - 1) (Thm.prems_of st) of
