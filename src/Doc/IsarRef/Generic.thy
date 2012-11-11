@@ -1976,4 +1976,49 @@ text {*
   \end{description}
 *}
 
+
+section {* Tracing higher-order unification *}
+
+text {*
+  \begin{tabular}{rcll}
+    @{attribute_def unify_trace_simp} & : & @{text "attribute"} & default @{text "false"} \\
+    @{attribute_def unify_trace_types} & : & @{text "attribute"} & default @{text "false"} \\
+    @{attribute_def unify_trace_bound} & : & @{text "attribute"} & default @{text "50"} \\
+    @{attribute_def unify_search_bound} & : & @{text "attribute"} & default @{text "60"} \\
+  \end{tabular}
+  \medskip
+
+  Higher-order unification works well in most practical situations,
+  but sometimes needs extra care to identify problems.  These tracing
+  options may help.
+
+  \begin{description}
+
+  \item @{attribute unify_trace_simp} controls tracing of the
+  simplification phase of higher-order unification.
+
+  \item @{attribute unify_trace_types} controls warnings of
+  incompleteness, when unification is not considering all possible
+  instantiations of schematic type variables.
+
+  \item @{attribute unify_trace_bound} determines the depth where
+  unification starts to print tracing information once it reaches
+  depth; 0 for full tracing.  At the default value, tracing
+  information is almost never printed in practice.
+
+  \item @{attribute unify_search_bound} prevents unification from
+  searching past the given depth.  Because of this bound, higher-order
+  unification cannot return an infinite sequence, though it can return
+  an exponentially long one.  The search rarely approaches the default
+  value in practice.  If the search is cut off, unification prints a
+  warning ``Unification bound exceeded''.
+
+  \end{description}
+
+  \begin{warn}
+  Options for unification cannot be modified in a local context.  Only
+  the global theory content is taken into account.
+  \end{warn}
+*}
+
 end

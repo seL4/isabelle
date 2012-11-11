@@ -46,39 +46,6 @@ information.  This operation is performed by \texttt{strip_shyps} and
 \end{ttdescription}
 
 
-\subsection{Tracing flags for unification}
-
-\begin{ttbox} 
-Unify.trace_simp   : bool ref \hfill\textbf{initially false}
-Unify.trace_types  : bool ref \hfill\textbf{initially false}
-Unify.trace_bound  : int ref \hfill\textbf{initially 10}
-Unify.search_bound : int ref \hfill\textbf{initially 20}
-\end{ttbox}
-Tracing the search may be useful when higher-order unification behaves
-unexpectedly.  Letting {\tt res_inst_tac} circumvent the problem is easier,
-though.
-\begin{ttdescription}
-\item[set Unify.trace_simp;] 
-causes tracing of the simplification phase.
-
-\item[set Unify.trace_types;] 
-generates warnings of incompleteness, when unification is not considering
-all possible instantiations of type unknowns.
-
-\item[Unify.trace_bound := $n$;] 
-causes unification to print tracing information once it reaches depth~$n$.
-Use $n=0$ for full tracing.  At the default value of~10, tracing
-information is almost never printed.
-
-\item[Unify.search_bound := $n$;] prevents unification from
-  searching past the depth~$n$.  Because of this bound, higher-order
-  unification cannot return an infinite sequence, though it can return
-  an exponentially long one.  The search rarely approaches the default value
-  of~20.  If the search is cut off, unification prints a warning
-  \texttt{Unification bound exceeded}.
-\end{ttdescription}
-
-
 \section{*Primitive meta-level inference rules}
 
 \subsection{Logical equivalence rules}
