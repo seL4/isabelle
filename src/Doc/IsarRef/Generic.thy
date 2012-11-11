@@ -766,6 +766,105 @@ text {*
 *}
 
 
+subsection {* Ordered rewriting with permutative rules *}
+
+text {* A rewrite rule is \emph{permutative} if the left-hand side and
+  right-hand side are the equal up to renaming of variables.  The most
+  common permutative rule is commutativity: @{text "?x + ?y = ?y +
+  ?x"}.  Other examples include @{text "(?x - ?y) - ?z = (?x - ?z) -
+  ?y"} in arithmetic and @{text "insert ?x (insert ?y ?A) = insert ?y
+  (insert ?x ?A)"} for sets.  Such rules are common enough to merit
+  special attention.
+
+  Because ordinary rewriting loops given such rules, the Simplifier
+  employs a special strategy, called \emph{ordered rewriting}.
+  Permutative rules are detected and only applied if the rewriting
+  step decreases the redex wrt.\ a given term ordering.  For example,
+  commutativity rewrites @{text "b + a"} to @{text "a + b"}, but then
+  stops, because the redex cannot be decreased further in the sense of
+  the term ordering.
+
+  The default is lexicographic ordering of term structure, but this
+  could be also changed locally for special applications via
+  @{index_ML Simplifier.set_termless} in Isabelle/ML.
+
+  \medskip Permutative rewrite rules are declared to the Simplifier
+  just like other rewrite rules.  Their special status is recognized
+  automatically, and their application is guarded by the term ordering
+  accordingly. *}
+
+
+subsubsection {* Rewriting with AC operators *}
+
+text {* Ordered rewriting is particularly effective in the case of
+  associative-commutative operators.  (Associativity by itself is not
+  permutative.)  When dealing with an AC-operator @{text "f"}, keep
+  the following points in mind:
+
+  \begin{itemize}
+
+  \item The associative law must always be oriented from left to
+  right, namely @{text "f (f x y) z = f x (f y z)"}.  The opposite
+  orientation, if used with commutativity, leads to looping in
+  conjunction with the standard term order.
+
+  \item To complete your set of rewrite rules, you must add not just
+  associativity (A) and commutativity (C) but also a derived rule
+  \emph{left-commutativity} (LC): @{text "f x (f y z) = f y (f x z)"}.
+
+  \end{itemize}
+
+  Ordered rewriting with the combination of A, C, and LC sorts a term
+  lexicographically --- the rewriting engine imitates bubble-sort.
+*}
+
+locale AC_example =
+  fixes f :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infix "\<bullet>" 60)
+  assumes assoc: "(x \<bullet> y) \<bullet> z = x \<bullet> (y \<bullet> z)"
+  assumes commute: "x \<bullet> y = y \<bullet> x"
+begin
+
+lemma left_commute: "x \<bullet> (y \<bullet> z) = y \<bullet> (x \<bullet> z)"
+proof -
+  have "(x \<bullet> y) \<bullet> z = (y \<bullet> x) \<bullet> z" by (simp only: commute)
+  then show ?thesis by (simp only: assoc)
+qed
+
+lemmas AC_rules = assoc commute left_commute
+
+text {* Thus the Simplifier is able to establish equalities with
+  arbitrary permutations of subterms, by normalizing to a common
+  standard form.  For example: *}
+
+lemma "(b \<bullet> c) \<bullet> a = xxx"
+  apply (simp only: AC_rules)
+  txt {* @{subgoals} *}
+  oops
+
+lemma "(b \<bullet> c) \<bullet> a = a \<bullet> (b \<bullet> c)" by (simp only: AC_rules)
+lemma "(b \<bullet> c) \<bullet> a = c \<bullet> (b \<bullet> a)" by (simp only: AC_rules)
+lemma "(b \<bullet> c) \<bullet> a = (c \<bullet> b) \<bullet> a" by (simp only: AC_rules)
+
+end
+
+text {* Martin and Nipkow \cite{martin-nipkow} discuss the theory and
+  give many examples; other algebraic structures are amenable to
+  ordered rewriting, such as boolean rings.  The Boyer-Moore theorem
+  prover \cite{bm88book} also employs ordered rewriting.
+*}
+
+
+subsubsection {* Re-orienting equalities *}
+
+text {* Another application of ordered rewriting uses the derived rule
+  @{thm [source] eq_commute}: @{thm [source = false] eq_commute} to
+  reverse equations.
+
+  This is occasionally useful to re-orient local assumptions according
+  to the term ordering, when other built-in mechanisms of
+  reorientation and mutual simplification fail to apply.  *}
+
+
 subsection {* Configuration options \label{sec:simp-config} *}
 
 text {*
