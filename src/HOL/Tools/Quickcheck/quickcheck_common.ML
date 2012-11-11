@@ -83,8 +83,6 @@ fun test_term (name, (_, compile)) ctxt catch_code_errors (t, eval_terms) =
     val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
     val current_result = Unsynchronized.ref Quickcheck.empty_result 
-    fun excipit () =
-      "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val act = if catch_code_errors then try else (fn f => SOME o f) 
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
         (fn () => act (compile ctxt) [(t, eval_terms)]);
@@ -133,44 +131,6 @@ fun test_term (name, (_, compile)) ctxt catch_code_errors (t, eval_terms) =
         val _ = Quickcheck.add_timing exec_time current_result
       in !current_result end
   end;
-
-fun validate_terms ctxt ts =
-  let
-    val _ = map check_test_term ts
-    val size = Config.get ctxt Quickcheck.size
-    val (test_funs, comp_time) = cpu_time "quickcheck batch compilation"
-      (fn () => Quickcheck.mk_batch_validator ctxt ts) 
-    fun with_size tester k =
-      if k > size then true
-      else if tester k then with_size tester (k + 1) else false
-    val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
-        Option.map (map (fn test_fun =>
-          TimeLimit.timeLimit (seconds (Config.get ctxt Quickcheck.timeout))
-              (fn () => with_size test_fun 1) ()
-             handle TimeLimit.TimeOut => true)) test_funs)
-  in
-    (results, [comp_time, exec_time])
-  end
-  
-fun test_terms ctxt ts =
-  let
-    val _ = map check_test_term ts
-    val size = Config.get ctxt Quickcheck.size
-    val namess = map (fn t => Term.add_free_names t []) ts
-    val (test_funs, comp_time) =
-      cpu_time "quickcheck batch compilation" (fn () => Quickcheck.mk_batch_tester ctxt ts) 
-    fun with_size tester k =
-      if k > size then NONE
-      else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
-    val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
-        Option.map (map (fn test_fun =>
-          TimeLimit.timeLimit (seconds (Config.get ctxt Quickcheck.timeout))
-              (fn () => with_size test_fun 1) ()
-             handle TimeLimit.TimeOut => NONE)) test_funs)
-  in
-    (Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results,
-      [comp_time, exec_time])
-  end
 
 fun test_term_with_cardinality (name, (size_matters_for, compile)) ctxt catch_code_errors ts =
   let
@@ -294,7 +254,7 @@ val register_predicate = Subtype_Predicates.map o AList.update (op =)
 fun subtype_preprocess ctxt (T, (t, ts)) =
   let
     val preds = Subtype_Predicates.get (Context.Proof ctxt)
-    fun matches (p $ x) = AList.defined Term.could_unify preds p  
+    fun matches (p $ _) = AList.defined Term.could_unify preds p  
     fun get_match (p $ x) = Option.map (rpair x) (AList.lookup Term.could_unify preds p)
     fun subst_of (tyco, v as Free (x, repT)) =
       let
@@ -330,9 +290,9 @@ fun instantiate_goals lthy insts goals =
           [(NONE, Term (preprocess lthy check_goal, eval_terms))]) goals
     val error_msg =
       cat_lines
-        (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
+        (maps (map_filter (fn (_, Term _) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
     fun is_wellsorted_term (T, Term t) = SOME (T, t)
-      | is_wellsorted_term (_, Wellsorted_Error s) = NONE
+      | is_wellsorted_term (_, Wellsorted_Error _) = NONE
     val correct_inst_goals =
       case map (map_filter is_wellsorted_term) inst_goals of
         [[]] => error error_msg
@@ -498,7 +458,7 @@ fun make_set T1 [] = Const (@{const_abbrev Set.empty}, T1 --> @{typ bool})
   | make_set T1 ((t1, @{const True}) :: tps) =
     Const (@{const_name insert}, T1 --> (T1 --> @{typ bool}) --> T1 --> @{typ bool})
       $ t1 $ (make_set T1 tps)
-  | make_set T1 ((_, t) :: tps) = raise TERM ("make_set", [t])
+  | make_set T1 ((_, t) :: _) = raise TERM ("make_set", [t])
 
 fun make_coset T [] = Const (@{const_abbrev UNIV}, T --> @{typ bool})
   | make_coset T tps = 

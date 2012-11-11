@@ -45,25 +45,6 @@ val bounded_forall = Attrib.setup_config_bool @{binding quickcheck_bounded_foral
 val full_support = Attrib.setup_config_bool @{binding quickcheck_full_support} (K true)
 val quickcheck_pretty = Attrib.setup_config_bool @{binding quickcheck_pretty} (K true)
  
-(** general term functions **)
-
-fun mk_measure f =
-  let
-    val Type ("fun", [T, @{typ nat}]) = fastype_of f 
-  in
-    Const (@{const_name Wellfounded.measure},
-      (T --> @{typ nat}) --> HOLogic.mk_prodT (T, T) --> @{typ bool})
-    $ f
-  end
-
-fun mk_sumcases rT f (Type (@{type_name Sum_Type.sum}, [TL, TR])) =
-  let
-    val lt = mk_sumcases rT f TL
-    val rt = mk_sumcases rT f TR
-  in
-    SumTree.mk_sumcase TL TR rT lt rt
-  end
-  | mk_sumcases _ f T = f T
 
 (** abstract syntax **)
 
@@ -79,9 +60,6 @@ fun mk_none_continuation (x, y) =
   in
     Const (@{const_name "Quickcheck_Exhaustive.orelse"}, T --> T --> T) $ x $ y
   end
-
-fun mk_unit_let (x, y) =
-  Const (@{const_name "Let"}, @{typ "unit => (unit => unit) => unit"}) $ x $ absdummy @{typ unit} y
 
 fun mk_if (b, t, e) =
   let
@@ -100,7 +78,6 @@ val resultT =  @{typ "(bool * term list) option"};
 
 val exhaustiveN = "exhaustive";
 val full_exhaustiveN = "full_exhaustive";
-val fast_exhaustiveN = "fast_exhaustive";
 val bounded_forallN = "bounded_forall";
 
 fun fast_exhaustiveT T = (T --> @{typ unit})
@@ -145,20 +122,6 @@ fun gen_mk_consexpr test_function simpleT (c, xs) =
     val bounds = map Bound (((length xs) - 1) downto 0)
     val start_term = test_function simpleT $ list_comb (constr, bounds)
   in fold_rev (fn f => fn t => f t) fns start_term end
-      
-fun mk_fast_equations functerms =
-  let
-    fun test_function T = Free ("f", T --> @{typ "unit"})
-    val mk_call = gen_mk_call (fn T =>
-      Const (@{const_name "Quickcheck_Exhaustive.fast_exhaustive_class.fast_exhaustive"},
-        fast_exhaustiveT T))
-    val mk_aux_call = gen_mk_aux_call functerms
-    val mk_consexpr = gen_mk_consexpr test_function
-    fun mk_rhs exprs = @{term "If :: bool => unit => unit => unit"}
-        $ size_ge_zero $ (foldr1 mk_unit_let exprs) $ @{term "()"}
-  in
-    mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
-  end
 
 fun mk_equations functerms =
   let
@@ -228,26 +191,6 @@ fun mk_full_equations functerms =
     mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
   
-(** foundational definition with the function package **)
-
-val less_int_pred = @{lemma "i > 0 ==> Code_Numeral.nat_of ((i :: code_numeral) - 1) < Code_Numeral.nat_of i" by auto}
-
-fun mk_single_measure T = HOLogic.mk_comp (@{term "Code_Numeral.nat_of"},
-    Const (@{const_name "Product_Type.snd"}, T --> @{typ "code_numeral"}))
-
-fun mk_termination_measure T =
-  let
-    val T' = fst (HOLogic.dest_prodT (HOLogic.dest_setT T))
-  in
-    mk_measure (mk_sumcases @{typ nat} mk_single_measure T')
-  end
-
-fun termination_tac ctxt = 
-  Function_Relation.relation_tac ctxt mk_termination_measure 1
-  THEN rtac @{thm wf_measure} 1
-  THEN (REPEAT_DETERM (Simplifier.asm_full_simp_tac 
-    (HOL_basic_ss addsimps [@{thm in_measure}, @{thm o_def}, @{thm snd_conv},
-     @{thm nat_mono_iff}, less_int_pred] @ @{thms sum.cases}) 1))
 
 (** instantiating generator classes **)
   
@@ -277,10 +220,6 @@ fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
 val instantiate_bounded_forall_datatype = instantiate_datatype
  ("bounded universal quantifiers", bounded_forallN, @{sort bounded_forall},
    mk_bounded_forall_equations, bounded_forallT, ["P", "i"]);
-
-val instantiate_fast_exhaustive_datatype = instantiate_datatype 
- ("fast exhaustive generators", fast_exhaustiveN, @{sort fast_exhaustive},
-   mk_fast_equations, fast_exhaustiveT, ["f", "i"])
 
 val instantiate_exhaustive_datatype = instantiate_datatype  
   ("exhaustive generators", exhaustiveN, @{sort exhaustive},
@@ -479,7 +418,7 @@ fun mk_validator_expr ctxt t =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"}, bounded_forallT T)
         $ lambda (Free (s, T)) t $ depth
     fun mk_safe_if (cond, then_t, else_t) genuine = mk_if (cond, then_t, else_t genuine)
-    fun mk_let safe def v_opt t e = mk_let_expr (the_default def v_opt, t, e)
+    fun mk_let _ def v_opt t e = mk_let_expr (the_default def v_opt, t, e)
     val mk_test_term =
       mk_test_term lookup mk_bounded_forall mk_safe_if mk_let @{term True} (K @{term False}) ctxt
   in lambda depth (mk_test_term t) end

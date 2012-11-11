@@ -157,11 +157,11 @@ lemma [code]:
       (i, random j \<circ>\<rightarrow> (%x. random_aux_set (i - 1) j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
 proof (induct i rule: code_numeral.induct)
   case zero
-  show ?case by (subst select_weight_drop_zero[symmetric])
-    (simp add: filter.simps random_aux_set.simps[simplified])
+  show ?case by (subst select_weight_drop_zero [symmetric])
+    (simp add: random_aux_set.simps [simplified])
 next
   case (Suc i)
-  show ?case by (simp only: random_aux_set.simps(2)[of "i"] Suc_code_numeral_minus_one)
+  show ?case by (simp only: random_aux_set.simps(2) [of "i"] Suc_code_numeral_minus_one)
 qed
 
 definition "random_set i = random_aux_set i i"

@@ -126,8 +126,6 @@ val narrowingN = "narrowing";
 fun narrowingT T =
   @{typ Quickcheck_Narrowing.code_int} --> Type (@{type_name Quickcheck_Narrowing.narrowing_cons}, [T])
 
-fun mk_empty T = Const (@{const_name Quickcheck_Narrowing.empty}, narrowingT T)
-
 fun mk_cons c T = Const (@{const_name Quickcheck_Narrowing.cons}, T --> narrowingT T) $ Const (c, T)
 
 fun mk_apply (T, t) (U, u) =
@@ -147,7 +145,7 @@ fun mk_sum (t, u) =
 
 (** deriving narrowing instances **)
 
-fun mk_equations descr vs tycos narrowings (Ts, Us) =
+fun mk_equations descr vs narrowings =
   let
     fun mk_call T =
       (T, Const (@{const_name "Quickcheck_Narrowing.narrowing_class.narrowing"}, narrowingT T))
@@ -188,7 +186,7 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
       thy
       |> Class.instantiation (tycos, vs, @{sort narrowing})
       |> Quickcheck_Common.define_functions
-        (fn narrowings => mk_equations descr vs tycos narrowings (Ts, Us), NONE)
+        (fn narrowings => mk_equations descr vs narrowings, NONE)
         prfx [] narrowingsN (map narrowingT (Ts @ Us))
       |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
     else
@@ -221,15 +219,13 @@ fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
   
-fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code_modules, value_name) =
+fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt cookie (code_modules, _) =
   let
     val ((is_genuine, counterexample_of), (get, put, put_ml)) = cookie
     fun message s = if quiet then () else Output.urgent_message s
     fun verbose_message s = if not quiet andalso verbose then Output.urgent_message s else ()
     val current_size = Unsynchronized.ref 0
     val current_result = Unsynchronized.ref Quickcheck.empty_result 
-    fun excipit () =
-      "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val tmp_prefix = "Quickcheck_Narrowing"
     val ghc_options = Config.get ctxt ghc_options
     val with_tmp_dir =
@@ -262,7 +258,7 @@ fun value (contains_existentials, ((genuine_only, (quiet, verbose)), size)) ctxt
           ghc_options ^ " " ^
           (space_implode " " (map File.shell_path (map fst includes @ [code_file, narrowing_engine_file, main_file]))) ^
           " -o " ^ executable ^ ";"
-        val (result, compilation_time) =
+        val (_, compilation_time) =
           elapsed_time "Haskell compilation" (fn () => Isabelle_System.bash cmd)
         val _ = Quickcheck.add_timing compilation_time current_result
         fun haskell_string_of_bool v = if v then "True" else "False"
@@ -357,7 +353,7 @@ fun finitize_functions (xTs, t) =
     fun mk_eval_cfun dT rT =
       Const (@{const_name "Quickcheck_Narrowing.eval_cfun"}, 
         Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT]) --> dT --> rT)
-    fun eval_function (T as Type (@{type_name fun}, [dT, rT])) =
+    fun eval_function (Type (@{type_name fun}, [dT, rT])) =
       let
         val (rt', rT') = eval_function rT
       in
@@ -433,7 +429,7 @@ fun mk_property qs t =
 fun mk_case_term ctxt p ((@{const_name Ex}, (x, T)) :: qs') (Existential_Counterexample cs) =
     Datatype_Case.make_case ctxt Datatype_Case.Quiet [] (Free (x, T)) (map (fn (t, c) =>
       (t, mk_case_term ctxt (p - 1) qs' c)) cs)
-  | mk_case_term ctxt p ((@{const_name All}, (x, T)) :: qs') (Universal_Counterexample (t, c)) =
+  | mk_case_term ctxt p ((@{const_name All}, _) :: qs') (Universal_Counterexample (t, c)) =
     if p = 0 then t else mk_case_term ctxt (p - 1) qs' c
 
 val post_process = (perhaps (try Quickcheck_Common.post_process_term)) o eval_finite_functions
@@ -443,11 +439,11 @@ fun mk_terms ctxt qs result =
     val
       ps = filter (fn (_, (@{const_name All}, _)) => true | _ => false) (map_index I qs)
     in
-      map (fn (p, (_, (x, T))) => (x, mk_case_term ctxt p qs result)) ps
+      map (fn (p, (_, (x, _))) => (x, mk_case_term ctxt p qs result)) ps
       |> map (apsnd post_process)
     end
   
-fun test_term ctxt catch_code_errors (t, eval_terms) =
+fun test_term ctxt catch_code_errors (t, _) =
   let
     fun dest_result (Quickcheck.Result r) = r 
     val opts =

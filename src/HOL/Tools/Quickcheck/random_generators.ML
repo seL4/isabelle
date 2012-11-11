@@ -42,7 +42,7 @@ fun random_fun T1 T2 eq term_of random random_split seed =
   let
     val fun_upd = Const (@{const_name fun_upd},
       (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
-    val ((y, t2), seed') = random seed;
+    val ((_, t2), seed') = random seed;
     val (seed'', seed''') = random_split seed';
 
     val state = Unsynchronized.ref (seed'', [], fn () => Abs ("x", T1, t2 ()));
@@ -62,10 +62,6 @@ fun random_fun T1 T2 eq term_of random random_split seed =
     fun term_fun' () = #3 (! state) ();
   in ((random_fun', term_fun'), seed''') end;
 
-fun mk_if (b, t, e) =
-  let
-    val T = fastype_of t
-  in Const (@{const_name "HOL.If"}, @{typ bool} --> T --> T --> T) $ b $ t $ e end
   
 (** datatypes **)
 
@@ -77,7 +73,6 @@ fun dest_ctyp_nth k cT = nth (Thm.dest_ctyp cT) k;
 val eq = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg |> Thm.dest_arg;
 val lhs = eq |> Thm.dest_arg1;
 val pt_random_aux = lhs |> Thm.dest_fun;
-val ct_k = lhs |> Thm.dest_arg;
 val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
 val aT = pt_random_aux |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
 
@@ -187,14 +182,13 @@ fun random_aux_specification prfx name eqs lthy =
 
 val random_auxN = "random_aux";
 
-fun mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us) =
+fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
   let
     val mk_const = curry (Sign.mk_const thy);
     val random_auxsN = map (prefix (random_auxN ^ "_")) (names @ auxnames);
     val rTs = Ts @ Us;
     fun random_resultT T = @{typ Random.seed}
       --> HOLogic.mk_prodT (termifyT T,@{typ Random.seed});
-    val pTs = map random_resultT rTs;
     fun sizeT T = @{typ code_numeral} --> @{typ code_numeral} --> T;
     val random_auxT = sizeT o random_resultT;
     val random_auxs = map2 (fn s => fn rT => Free (s, random_auxT rT))
@@ -257,7 +251,7 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
             $ HOLogic.mk_number @{typ code_numeral} l $ size
       | NONE => size;
     val (random_auxs, auxs_eqs) = (apsnd o map) mk_prop_eq
-      (mk_random_aux_eqs thy descr vs tycos (names, auxnames) (Ts, Us));
+      (mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us));
     val random_defs = map_index (fn (k, T) => mk_prop_eq
       (HOLogic.mk_random T size, nth random_auxs k $ mk_size_arg k $ size)) Ts;
   in
@@ -294,7 +288,7 @@ val put_counterexample_report = Counterexample_Report.put;
 
 val target = "Quickcheck";
 
-fun mk_generator_expr ctxt (t, eval_terms) =
+fun mk_generator_expr ctxt (t, _) =
   let  
     val thy = Proof_Context.theory_of ctxt
     val prop = fold_rev absfree (Term.add_frees t []) t
@@ -304,7 +298,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
     val result = list_comb (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
-    val ([genuine_only_name], ctxt') = Variable.variant_fixes ["genuine_only"] ctxt
+    val ([genuine_only_name], _) = Variable.variant_fixes ["genuine_only"] ctxt
     val genuine_only = Free (genuine_only_name, @{typ bool})
     val none_t = Const (@{const_name "None"}, resultT)
     val check = Quickcheck_Common.mk_safe_if genuine_only none_t (result, none_t,
@@ -327,7 +321,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
   end;
 
-fun mk_reporting_generator_expr ctxt (t, eval_terms) =
+fun mk_reporting_generator_expr ctxt (t, _) =
   let
     val thy = Proof_Context.theory_of ctxt
     val resultT = @{typ "(bool * term list) option * (bool list * bool)"}
@@ -348,7 +342,7 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
     fun mk_concl_report b =
       HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT (replicate (length assms) @{term True}),
         Quickcheck_Common.reflect_bool b)
-    val ([genuine_only_name], ctxt') = Variable.variant_fixes ["genuine_only"] ctxt
+    val ([genuine_only_name], _) = Variable.variant_fixes ["genuine_only"] ctxt
     val genuine_only = Free (genuine_only_name, @{typ bool})
     val none_t = HOLogic.mk_prod (@{term "None :: (bool * term list) option"}, mk_concl_report true)
     val concl_check = Quickcheck_Common.mk_safe_if genuine_only none_t (concl, none_t,
@@ -422,7 +416,7 @@ fun compile_generator_expr ctxt ts =
           (fn proc => fn g => fn c => fn b => fn s => g c b s
             #>> (apfst o Option.map o apsnd o map) proc) t' [];
         fun single_tester c b s = compile c b s |> Random_Engine.run
-        fun iterate_and_collect _ (card, size) 0 report = (NONE, report)
+        fun iterate_and_collect _ _ 0 report = (NONE, report)
           | iterate_and_collect genuine_only (card, size) j report =
             let
               val (test_result, single_report) = apsnd Run (single_tester card genuine_only size)
@@ -444,7 +438,7 @@ fun compile_generator_expr ctxt ts =
           (fn proc => fn g => fn c => fn b => fn s => g c b s
             #>> (Option.map o apsnd o map) proc) t' [];
         fun single_tester c b s = compile c b s |> Random_Engine.run
-        fun iterate _ (card, size) 0 = NONE
+        fun iterate _ _ 0 = NONE
           | iterate genuine_only (card, size) j =
             case single_tester card genuine_only size of
               NONE => iterate genuine_only (card, size) (j - 1)

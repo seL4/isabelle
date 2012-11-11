@@ -411,34 +411,6 @@ lemma [code]:
      Code_Evaluation.term_of (- (int_of i) div 2) else Code_Evaluation.term_of ((int_of i + 1) div 2))"
 by (rule partial_term_of_anything)+
 
-text {* Defining integers by positive and negative copy of naturals *}
-(*
-datatype simple_int = Positive nat | Negative nat
-
-primrec int_of_simple_int :: "simple_int => int"
-where
-  "int_of_simple_int (Positive n) = int n"
-| "int_of_simple_int (Negative n) = (-1 - int n)"
-
-instantiation int :: narrowing
-begin
-
-definition narrowing_int :: "code_int => int cons"
-where
-  "narrowing_int d = map_cons int_of_simple_int ((narrowing :: simple_int narrowing) d)"
-
-instance ..
-
-end
-
-text {* printing the partial terms *}
-
-lemma [code]:
-  "partial_term_of (ty :: int itself) t == Code_Evaluation.App (Code_Evaluation.Const (STR ''Quickcheck_Narrowing.int_of_simple_int'')
-     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Quickcheck_Narrowing.simple_int'') [], Typerep.Typerep (STR ''Int.int'') []])) (partial_term_of (TYPE(simple_int)) t)"
-by (rule partial_term_of_anything)
-
-*)
 
 subsection {* The @{text find_unused_assms} command *}
 
