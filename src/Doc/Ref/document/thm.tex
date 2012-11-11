@@ -1,159 +1,8 @@
 
 \chapter{Theorems and Forward Proof}
-\index{theorems|(}
-
-Theorems, which represent the axioms, theorems and rules of
-object-logics, have type \mltydx{thm}.  This chapter describes
-operations that join theorems in forward proof.  Most theorem
-operations are intended for advanced applications, such as programming
-new proof procedures.
-
-
-\subsection{Instantiating unknowns in a theorem} \label{sec:instantiate}
-\index{instantiation}
-\begin{alltt}\footnotesize
-read_instantiate    :                (string*string) list -> thm -> thm
-read_instantiate_sg :     Sign.sg -> (string*string) list -> thm -> thm
-cterm_instantiate   :                  (cterm*cterm) list -> thm -> thm
-instantiate'      : ctyp option list -> cterm option list -> thm -> thm
-\end{alltt}
-These meta-rules instantiate type and term unknowns in a theorem.  They are
-occasionally useful.  They can prevent difficulties with higher-order
-unification, and define specialized versions of rules.
-\begin{ttdescription}
-\item[\ttindexbold{read_instantiate} {\it insts} {\it thm}] 
-processes the instantiations {\it insts} and instantiates the rule~{\it
-thm}.  The processing of instantiations is described
-in \S\ref{res_inst_tac}, under {\tt res_inst_tac}.  
-
-Use {\tt res_inst_tac}, not {\tt read_instantiate}, to instantiate a rule
-and refine a particular subgoal.  The tactic allows instantiation by the
-subgoal's parameters, and reads the instantiations using the signature
-associated with the proof state.
-
-Use {\tt read_instantiate_sg} below if {\it insts\/} appears to be treated
-incorrectly.
-
-\item[\ttindexbold{read_instantiate_sg} {\it sg} {\it insts} {\it thm}]
-  is like \texttt{read_instantiate {\it insts}~{\it thm}}, but it reads
-  the instantiations under signature~{\it sg}.  This is necessary to
-  instantiate a rule from a general theory, such as first-order logic,
-  using the notation of some specialized theory.  Use the function {\tt
-    sign_of} to get a theory's signature.
-
-\item[\ttindexbold{cterm_instantiate} {\it ctpairs} {\it thm}] 
-is similar to {\tt read_instantiate}, but the instantiations are provided
-as pairs of certified terms, not as strings to be read.
-
-\item[\ttindexbold{instantiate'} {\it ctyps} {\it cterms} {\it thm}]
-  instantiates {\it thm} according to the positional arguments {\it
-    ctyps} and {\it cterms}.  Counting from left to right, schematic
-  variables $?x$ are either replaced by $t$ for any argument
-  \texttt{Some\(\;t\)}, or left unchanged in case of \texttt{None} or
-  if the end of the argument list is encountered.  Types are
-  instantiated before terms.
-
-\end{ttdescription}
-
-
-\subsection{Miscellaneous forward rules}\label{MiscellaneousForwardRules}
-\index{theorems!standardizing}
-\begin{ttbox} 
-standard         :               thm -> thm
-zero_var_indexes :               thm -> thm
-make_elim        :               thm -> thm
-rule_by_tactic   :     tactic -> thm -> thm
-rotate_prems     :        int -> thm -> thm
-permute_prems    : int -> int -> thm -> thm
-rearrange_prems  :   int list -> thm -> thm
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{standard} $thm$] puts $thm$ into the standard form
-  of object-rules.  It discharges all meta-assumptions, replaces free
-  variables by schematic variables, renames schematic variables to
-  have subscript zero, also strips outer (meta) quantifiers and
-  removes dangling sort hypotheses.
-
-\item[\ttindexbold{zero_var_indexes} $thm$] 
-makes all schematic variables have subscript zero, renaming them to avoid
-clashes. 
-
-\item[\ttindexbold{make_elim} $thm$] 
-\index{rules!converting destruction to elimination}
-converts $thm$, which should be  a destruction rule of the form
-$\List{P@1;\ldots;P@m}\Imp 
-Q$, to the elimination rule $\List{P@1; \ldots; P@m; Q\Imp R}\Imp R$.  This
-is the basis for destruct-resolution: {\tt dresolve_tac}, etc.
-
-\item[\ttindexbold{rule_by_tactic} {\it tac} {\it thm}] 
-  applies {\it tac\/} to the {\it thm}, freezing its variables first, then
-  yields the proof state returned by the tactic.  In typical usage, the
-  {\it thm\/} represents an instance of a rule with several premises, some
-  with contradictory assumptions (because of the instantiation).  The
-  tactic proves those subgoals and does whatever else it can, and returns
-  whatever is left.
-  
-\item[\ttindexbold{rotate_prems} $k$ $thm$] rotates the premises of $thm$ to
-  the left by~$k$ positions (to the right if $k<0$).  It simply calls
-  \texttt{permute_prems}, below, with $j=0$.  Used with
-  \texttt{eresolve_tac}\index{*eresolve_tac!on other than first premise}, it
-  gives the effect of applying the tactic to some other premise of $thm$ than
-  the first.
-
-\item[\ttindexbold{permute_prems} $j$ $k$ $thm$] rotates the premises of $thm$
-  leaving the first $j$ premises unchanged.  It
-  requires $0\leq j\leq n$, where $n$ is the number of premises.  If $k$ is
-  positive then it rotates the remaining $n-j$ premises to the left; if $k$ is
-  negative then it rotates the premises to the right.
-
-\item[\ttindexbold{rearrange_prems} $ps$ $thm$] permutes the premises of $thm$
-   where the value at the $i$-th position (counting from $0$) in the list $ps$
-   gives the position within the original thm to be transferred to position $i$.
-   Any remaining trailing positions are left unchanged.
-\end{ttdescription}
-
-
-\subsection{Taking a theorem apart}
-\index{theorems!taking apart}
-\index{flex-flex constraints}
-\begin{ttbox} 
-cprop_of      : thm -> cterm
-concl_of      : thm -> term
-prems_of      : thm -> term list
-cprems_of     : thm -> cterm list
-nprems_of     : thm -> int
-tpairs_of     : thm -> (term*term) list
-theory_of_thm : thm -> theory
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{cprop_of} $thm$] returns the statement of $thm$ as
-  a certified term.
-  
-\item[\ttindexbold{concl_of} $thm$] returns the conclusion of $thm$ as
-  a term.
-  
-\item[\ttindexbold{prems_of} $thm$] returns the premises of $thm$ as a
-  list of terms.
-  
-\item[\ttindexbold{cprems_of} $thm$] returns the premises of $thm$ as
-  a list of certified terms.
-
-\item[\ttindexbold{nprems_of} $thm$] 
-returns the number of premises in $thm$, and is equivalent to {\tt
-  length~(prems_of~$thm$)}.
-
-\item[\ttindexbold{tpairs_of} $thm$] returns the flex-flex constraints
-  of $thm$.
-  
-\item[\ttindexbold{theory_of_thm} $thm$] returns the theory associated
-  with $thm$.  Note that this does a lookup in Isabelle's global
-  database of loaded theories.
-
-\end{ttdescription}
-
 
 \subsection{*Sort hypotheses} \label{sec:sort-hyps}
-\index{sort hypotheses}
+
 \begin{ttbox} 
 strip_shyps         : thm -> thm
 strip_shyps_warning : thm -> thm
@@ -198,7 +47,7 @@ information.  This operation is performed by \texttt{strip_shyps} and
 
 
 \subsection{Tracing flags for unification}
-\index{tracing!of unification}
+
 \begin{ttbox} 
 Unify.trace_simp   : bool ref \hfill\textbf{initially false}
 Unify.trace_types  : bool ref \hfill\textbf{initially false}
@@ -231,10 +80,9 @@ information is almost never printed.
 
 
 \section{*Primitive meta-level inference rules}
-\index{meta-rules|(}
 
 \subsection{Logical equivalence rules}
-\index{meta-equality}
+
 \begin{ttbox} 
 equal_intr : thm -> thm -> thm 
 equal_elim : thm -> thm -> thm
@@ -253,7 +101,7 @@ $\phi\equiv\psi$ and $\phi$ to the conclusion~$\psi$.
 
 
 \subsection{Equality rules}
-\index{meta-equality}
+
 \begin{ttbox} 
 reflexive  : cterm -> thm
 symmetric  : thm -> thm
@@ -272,7 +120,7 @@ maps the premises $a\equiv b$ and $b\equiv c$ to the conclusion~${a\equiv c}$.
 
 
 \subsection{The $\lambda$-conversion rules}
-\index{lambda calc@$\lambda$-calculus}
+
 \begin{ttbox} 
 beta_conversion : cterm -> thm
 extensional     : thm -> thm
@@ -303,52 +151,6 @@ conclusion, the bound variable is named~$v$.
 maps the premises $f\equiv g$ and $a\equiv b$ to the conclusion~$f(a)\equiv
 g(b)$.
 \end{ttdescription}
-
-
-\section{Derived rules for goal-directed proof}
-Most of these rules have the sole purpose of implementing particular
-tactics.  There are few occasions for applying them directly to a theorem.
-
-\subsection{Resolution and raw composition}
-\index{resolution}
-\begin{ttbox} 
-biresolution : bool -> (bool*thm)list -> int -> thm
-               -> thm Seq.seq
-bicompose : bool -> bool * thm * int -> int -> thm
-            -> thm Seq.seq
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{biresolution} $match$ $rules$ $i$ $state$] 
-performs bi-resolution on subgoal~$i$ of $state$, using the list of $\it
-(flag,rule)$ pairs.  For each pair, it applies resolution if the flag
-is~{\tt false} and elim-resolution if the flag is~{\tt true}.  If $match$
-is~{\tt true}, the $state$ is not instantiated.
-
-\item[\ttindexbold{bicompose} $match$ ($flag$, $rule$, $m$) $i$ $state$]
-refines subgoal~$i$ of $state$ using $rule$, without lifting.  The $rule$
-is taken to have the form $\List{\psi@1; \ldots; \psi@m} \Imp \psi$, where
-$\psi$ need not be atomic; thus $m$ determines the number of new
-subgoals.  If $flag$ is {\tt true} then it performs elim-resolution --- it
-solves the first premise of~$rule$ by assumption and deletes that
-assumption.  If $match$ is~{\tt true}, the $state$ is not instantiated.
-\end{ttdescription}
-
-
-\subsection{Other meta-rules}
-\begin{ttbox} 
-rename_params_rule : string list * int -> thm -> thm
-\end{ttbox}
-\begin{ttdescription}
-
-\item[\ttindexbold{rename_params_rule} ({\it names}, {\it i}) $thm$] 
-uses the $names$ to rename the parameters of premise~$i$ of $thm$.  The
-names must be distinct.  If there are fewer names than parameters, then the
-rule renames the innermost parameters and may modify the remaining ones to
-ensure that all the parameters are distinct.
-\index{parameters!renaming}
-
-\end{ttdescription}
-\index{meta-rules|)}
 
 
 \section{Proof terms}\label{sec:proofObjects}
