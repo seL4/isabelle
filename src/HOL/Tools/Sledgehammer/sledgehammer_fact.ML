@@ -207,9 +207,12 @@ fun is_that_fact th =
 
 fun is_likely_tautology_or_too_meta th =
   let
-    val is_boring_const = member (op =) atp_widely_irrelevant_consts
+    fun is_interesting_subterm (Const (s, _)) =
+        not (member (op =) atp_widely_irrelevant_consts s)
+      | is_interesting_subterm (Free _) = true
+      | is_interesting_subterm _ = false
     fun is_boring_bool t =
-      not (exists_Const (not o is_boring_const o fst) t) orelse
+      not (exists_subterm is_interesting_subterm t) orelse
       exists_type (exists_subtype (curry (op =) @{typ prop})) t
     fun is_boring_prop (@{const Trueprop} $ t) = is_boring_bool t
       | is_boring_prop (@{const "==>"} $ t $ u) =

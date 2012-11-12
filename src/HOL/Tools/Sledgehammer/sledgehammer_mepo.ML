@@ -536,8 +536,7 @@ fun mepo_suggested_facts ctxt
   end
 
 (* Ad hoc score function roughly based on Blanchette's Ringberg 2011 data. *)
-fun weight_of_fact rank =
-  Math.pow (1.5, 15.5 - 0.05 * Real.fromInt rank) + 15.0
+fun weight_of_fact rank = Math.pow (1.5, 15.5 - 0.05 * Real.fromInt rank) + 15.0
 
 fun weight_mepo_facts facts =
   facts ~~ map weight_of_fact (0 upto length facts - 1)
