@@ -16,11 +16,13 @@ Seq2:    "(c\<^isub>1,s) \<rightarrow> (c\<^isub>1',s') \<Longrightarrow> (c\<^i
 IfTrue:  "bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>1,s)" |
 IfFalse: "\<not>bval b s \<Longrightarrow> (IF b THEN c\<^isub>1 ELSE c\<^isub>2,s) \<rightarrow> (c\<^isub>2,s)" |
 
-While:   "(WHILE b DO c,s) \<rightarrow> (IF b THEN c; WHILE b DO c ELSE SKIP,s)"
+While:   "(WHILE b DO c,s) \<rightarrow>
+            (IF b THEN c; WHILE b DO c ELSE SKIP,s)"
 text_raw{*}%endsnip*}
 
 
-abbreviation small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
+abbreviation
+  small_steps :: "com * state \<Rightarrow> com * state \<Rightarrow> bool" (infix "\<rightarrow>*" 55)
 where "x \<rightarrow>* y == star small_step x y"
 
 subsection{* Executability *}

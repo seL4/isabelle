@@ -14,13 +14,13 @@ Seq:     "\<lbrakk> (c\<^isub>1,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (c\<^isub
           (c\<^isub>1;c\<^isub>2, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
 
 IfTrue:  "\<lbrakk> bval b s;  (c\<^isub>1,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
-         (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
+          (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
 IfFalse: "\<lbrakk> \<not>bval b s;  (c\<^isub>2,s) \<Rightarrow> t \<rbrakk> \<Longrightarrow>
-         (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
+          (IF b THEN c\<^isub>1 ELSE c\<^isub>2, s) \<Rightarrow> t" |
 
 WhileFalse: "\<not>bval b s \<Longrightarrow> (WHILE b DO c,s) \<Rightarrow> s" |
 WhileTrue:  "\<lbrakk> bval b s\<^isub>1;  (c,s\<^isub>1) \<Rightarrow> s\<^isub>2;  (WHILE b DO c, s\<^isub>2) \<Rightarrow> s\<^isub>3 \<rbrakk> \<Longrightarrow>
-             (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
+                (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3"
 text_raw{*}%endsnip*}
 
 text_raw{*\snip{BigStepEx}{1}{2}{% *}
