@@ -4,7 +4,7 @@
 header {* Depth-Limited Sequences with failure element *}
 
 theory New_DSequence
-imports Random_Sequence
+imports DSequence
 begin
 
 subsection {* Positive Depth-Limited Sequence *}

@@ -2,7 +2,7 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
 theory New_Random_Sequence
-imports Quickcheck New_DSequence
+imports Random_Sequence
 begin
 
 type_synonym 'a pos_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a New_DSequence.pos_dseq"

@@ -4,7 +4,7 @@
 header {* Lazy sequences *}
 
 theory Lazy_Sequence
-imports List Code_Numeral
+imports Predicate
 begin
 
 datatype 'a lazy_sequence = Empty | Insert 'a "'a lazy_sequence"

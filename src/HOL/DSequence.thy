@@ -4,7 +4,7 @@
 header {* Depth-Limited Sequences with failure element *}
 
 theory DSequence
-imports Lazy_Sequence Code_Numeral
+imports Lazy_Sequence
 begin
 
 type_synonym 'a dseq = "code_numeral => bool => 'a Lazy_Sequence.lazy_sequence option"
