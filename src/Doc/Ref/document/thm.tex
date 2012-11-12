@@ -1,7 +1,7 @@
 
 \chapter{Theorems and Forward Proof}
 
-\subsection{*Sort hypotheses} \label{sec:sort-hyps}
+\section{*Sort hypotheses} \label{sec:sort-hyps}
 
 \begin{ttbox} 
 strip_shyps         : thm -> thm
@@ -43,80 +43,6 @@ information.  This operation is performed by \texttt{strip_shyps} and
   issues a warning message of any pending sort hypotheses that do not have a
   (syntactic) witness.
 
-\end{ttdescription}
-
-
-\section{*Primitive meta-level inference rules}
-
-\subsection{Logical equivalence rules}
-
-\begin{ttbox} 
-equal_intr : thm -> thm -> thm 
-equal_elim : thm -> thm -> thm
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{equal_intr} $thm@1$ $thm@2$] 
-applies $({\equiv}I)$ to $thm@1$ and~$thm@2$.  It maps the premises~$\psi$
-and~$\phi$ to the conclusion~$\phi\equiv\psi$; the assumptions are those of
-the first premise with~$\phi$ removed, plus those of
-the second premise with~$\psi$ removed.
-
-\item[\ttindexbold{equal_elim} $thm@1$ $thm@2$] 
-applies $({\equiv}E)$ to $thm@1$ and~$thm@2$.  It maps the premises
-$\phi\equiv\psi$ and $\phi$ to the conclusion~$\psi$.
-\end{ttdescription}
-
-
-\subsection{Equality rules}
-
-\begin{ttbox} 
-reflexive  : cterm -> thm
-symmetric  : thm -> thm
-transitive : thm -> thm -> thm
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{reflexive} $ct$] 
-makes the theorem \(ct\equiv ct\). 
-
-\item[\ttindexbold{symmetric} $thm$] 
-maps the premise $a\equiv b$ to the conclusion $b\equiv a$.
-
-\item[\ttindexbold{transitive} $thm@1$ $thm@2$] 
-maps the premises $a\equiv b$ and $b\equiv c$ to the conclusion~${a\equiv c}$.
-\end{ttdescription}
-
-
-\subsection{The $\lambda$-conversion rules}
-
-\begin{ttbox} 
-beta_conversion : cterm -> thm
-extensional     : thm -> thm
-abstract_rule   : string -> cterm -> thm -> thm
-combination     : thm -> thm -> thm
-\end{ttbox} 
-There is no rule for $\alpha$-conversion because Isabelle regards
-$\alpha$-convertible theorems as equal.
-\begin{ttdescription}
-\item[\ttindexbold{beta_conversion} $ct$] 
-makes the theorem $((\lambda x.a)(b)) \equiv a[b/x]$, where $ct$ is the
-term $(\lambda x.a)(b)$.
-
-\item[\ttindexbold{extensional} $thm$] 
-maps the premise $f(x) \equiv g(x)$ to the conclusion $f\equiv g$.
-Parameter~$x$ is taken from the premise.  It may be an unknown or a free
-variable (provided it does not occur in the assumptions); it must not occur
-in $f$ or~$g$.
-
-\item[\ttindexbold{abstract_rule} $v$ $x$ $thm$] 
-maps the premise $a\equiv b$ to the conclusion $(\lambda x.a) \equiv
-(\lambda x.b)$, abstracting over all occurrences (if any!) of~$x$.
-Parameter~$x$ is supplied as a cterm.  It may be an unknown or a free
-variable (provided it does not occur in the assumptions).  In the
-conclusion, the bound variable is named~$v$.
-
-\item[\ttindexbold{combination} $thm@1$ $thm@2$] 
-maps the premises $f\equiv g$ and $a\equiv b$ to the conclusion~$f(a)\equiv
-g(b)$.
 \end{ttdescription}
 
 

@@ -31,7 +31,43 @@ text {* Equality is one of the most fundamental concepts of
 
 section {* Basic equality rules \label{sec:eq-rules} *}
 
-text {* FIXME *}
+text {* Isabelle/Pure uses @{text "\<equiv>"} for equality of arbitrary
+  terms, which includes equivalence of propositions of the logical
+  framework.  The conceptual axiomatization of the constant @{text "\<equiv>
+  :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> prop"} is given in \figref{fig:pure-equality}.  The
+  inference kernel presents slightly different equality rules, which
+  may be understood as derived rules from this minimal axiomatization.
+  The Pure theory also provides some theorems that express the same
+  reasoning schemes as theorems that can be composed like object-level
+  rules as explained in \secref{sec:obj-rules}.
+
+  For example, @{ML Thm.symmetric} as Pure inference is an ML function
+  that maps a theorem @{text "th"} stating @{text "t \<equiv> u"} to one
+  stating @{text "u \<equiv> t"}.  In contrast, @{thm [source]
+  Pure.symmetric} as Pure theorem expresses the same reasoning in
+  declarative form.  If used like @{text "th [THEN Pure.symmetric]"}
+  in Isar source notation, it achieves a similar effect as the ML
+  inference function, although the rule attribute @{attribute THEN} or
+  ML operator @{ML "op RS"} involve the full machinery of higher-order
+  unification (modulo @{text "\<beta>\<eta>"}-conversion) and lifting of @{text
+  "\<And>/\<Longrightarrow>"} contexts. *}
+
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML Thm.reflexive: "cterm -> thm"} \\
+  @{index_ML Thm.symmetric: "thm -> thm"} \\
+  @{index_ML Thm.transitive: "thm -> thm -> thm"} \\
+  @{index_ML Thm.abstract_rule: "string -> cterm -> thm -> thm"} \\
+  @{index_ML Thm.combination: "thm -> thm -> thm"} \\[0.5ex]
+  @{index_ML Thm.equal_intr: "thm -> thm -> thm"} \\
+  @{index_ML Thm.equal_elim: "thm -> thm -> thm"} \\
+  \end{mldecls}
+
+  See also @{"file" "~~/src/Pure/thm.ML" } for further description of
+  these inference rules, and a few more for primitive @{text "\<beta>"} and
+  @{text "\<eta>"} conversions.  Note that @{text "\<alpha>"} conversion is
+  implicit due to the representation of terms with de-Bruijn indices
+  (\secref{sec:terms}). *}
 
 
 section {* Conversions \label{sec:conv} *}
