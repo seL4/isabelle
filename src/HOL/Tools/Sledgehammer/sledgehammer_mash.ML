@@ -188,7 +188,7 @@ fun nickname_of th =
       | NONE => hint
     end
   else
-    backquote_thm th
+    backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th
 
 fun suggested_facts suggs facts =
   let

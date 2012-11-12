@@ -23,7 +23,7 @@ sig
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
-  val backquote_thm : thm -> string
+  val backquote_thm : Proof.context -> thm -> string
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
@@ -231,10 +231,10 @@ fun is_theorem_bad_for_atps ho_atp th =
     exists_low_level_class_const t orelse is_that_fact th
   end
 
-fun hackish_string_for_term thy t =
+fun hackish_string_for_term ctxt t =
   Print_Mode.setmp
     (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ()))
-    (Syntax.string_of_term_global thy) t
+    (Syntax.string_of_term ctxt) t
   |> String.translate (fn c => if Char.isPrint c then str c else "")
   |> simplify_spaces
 
@@ -259,12 +259,12 @@ fun close_form t =
           (Term.add_vars t [] |> sort_wrt (fst o fst))
   |> fst
 
-fun backquote_term thy t =
+fun backquote_term ctxt t =
   t |> close_form
-    |> hackish_string_for_term thy
+    |> hackish_string_for_term ctxt
     |> backquote
 
-fun backquote_thm th = backquote_term (theory_of_thm th) (prop_of th)
+fun backquote_thm ctxt th = backquote_term ctxt (prop_of th)
 
 fun clasimpset_rule_table_of ctxt =
   let
@@ -328,14 +328,13 @@ fun struct_induct_rule_on th =
 
 fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
   let
-    val thy = Proof_Context.theory_of ctxt
     fun varify_noninducts (t as Free (s, T)) =
         if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
       | varify_noninducts t = t
     val p_inst =
       concl_prop |> map_aterms varify_noninducts |> close_form
                  |> lambda (Free ind_x)
-                 |> hackish_string_for_term thy
+                 |> hackish_string_for_term ctxt
   in
     ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]",
       stature), th |> read_instantiate ctxt [((p_name, 0), p_inst)])
@@ -417,7 +416,7 @@ fun all_facts ctxt ho_atp reserved add_ths chained css =
                              val new =
                                (((fn () =>
                                      if name0 = "" then
-                                       backquote_thm th
+                                       backquote_thm ctxt th
                                      else
                                        [Facts.extern ctxt facts name0,
                                         Name_Space.extern ctxt full_space name0]
