@@ -72,12 +72,12 @@ fun prove_param options ctxt nargs t deriv =
     val param_derivations = param_derivations_of deriv
     val ho_args = ho_args_of mode args
     val f_tac = case f of
-      Const (name, T) => simp_tac (HOL_basic_ss addsimps 
+      Const (name, _) => simp_tac (HOL_basic_ss addsimps 
          [@{thm eval_pred}, predfun_definition_of ctxt name mode,
          @{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
          @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
     | Free _ =>
-      Subgoal.FOCUS_PREMS (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
+      Subgoal.FOCUS_PREMS (fn {context, params = params, prems, asms, concl, schematics} =>
         let
           val prems' = maps dest_conjunct_prem (take nargs prems)
         in
@@ -97,7 +97,7 @@ fun prove_param options ctxt nargs t deriv =
 
 fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
   case strip_comb t of
-    (Const (name, T), args) =>
+    (Const (name, _), args) =>
       let
         val mode = head_mode_of deriv
         val introrule = predfun_intro_of ctxt name mode
@@ -117,7 +117,7 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
       end
   | (Free _, _) =>
     print_tac options "proving parameter call.."
-    THEN Subgoal.FOCUS_PREMS (fn {context = ctxt, params, prems, asms, concl, schematics} =>
+    THEN Subgoal.FOCUS_PREMS (fn {context, params, prems, asms, concl, schematics} =>
         let
           val param_prem = nth prems premposition
           val (param, _) = strip_comb (HOLogic.dest_Trueprop (prop_of param_prem))
@@ -135,23 +135,6 @@ fun prove_expr options ctxt nargs (premposition : int) (t, deriv) =
     THEN print_tac options "after prove parameter call"
 
 fun SOLVED tac st = FILTER (fn st' => nprems_of st' = nprems_of st - 1) tac st;
-
-fun SOLVEDALL tac st = FILTER (fn st' => nprems_of st' = 0) tac st
-
-fun check_format ctxt st =
-  let
-    val concl' = Logic.strip_assums_concl (hd (prems_of st))
-    val concl = HOLogic.dest_Trueprop concl'
-    val expr = fst (strip_comb (fst (Predicate_Comp_Funs.dest_Eval concl)))
-    fun valid_expr (Const (@{const_name Predicate.bind}, _)) = true
-      | valid_expr (Const (@{const_name Predicate.single}, _)) = true
-      | valid_expr _ = false
-  in
-    if valid_expr expr then
-      ((*tracing "expression is valid";*) Seq.single st)
-    else
-      ((*tracing "expression is not valid";*) Seq.empty) (* error "check_format: wrong format" *)
-  end
 
 fun prove_match options ctxt nargs out_ts =
   let
@@ -175,7 +158,7 @@ fun prove_match options ctxt nargs out_ts =
     THEN print_tac options "after prove_match:"
     THEN (DETERM (TRY 
            (rtac eval_if_P 1
-           THEN (SUBPROOF (fn {context = ctxt, params, prems, asms, concl, schematics} =>
+           THEN (SUBPROOF (fn {context, params, prems, asms, concl, schematics} =>
              (REPEAT_DETERM (rtac @{thm conjI} 1
              THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1))))
              THEN print_tac options "if condition to be solved:"
@@ -197,7 +180,7 @@ fun prove_match options ctxt nargs out_ts =
 fun prove_sidecond ctxt t =
   let
     fun preds_of t nameTs = case strip_comb t of 
-      (f as Const (name, T), args) =>
+      (Const (name, T), args) =>
         if is_registered ctxt name then (name, T) :: nameTs
           else fold preds_of args nameTs
       | _ => nameTs
@@ -221,7 +204,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
       THEN asm_full_simp_tac HOL_basic_ss' 1
       THEN print_tac options "before single intro rule"
       THEN Subgoal.FOCUS_PREMS
-             (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
+             (fn {context, params, prems, asms, concl, schematics} =>
               let
                 val prems' = maps dest_conjunct_prem (take nargs prems)
               in
@@ -267,7 +250,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
               THEN (if (is_some name) then
                   print_tac options "before applying not introduction rule"
                   THEN Subgoal.FOCUS_PREMS
-                    (fn {context = ctxt, params = params, prems, asms, concl, schematics} =>
+                    (fn {context, params = params, prems, asms, concl, schematics} =>
                       rtac (the neg_intro_rule) 1
                       THEN rtac (nth prems premposition) 1) ctxt 1
                   THEN print_tac options "after applying not introduction rule"
@@ -364,7 +347,7 @@ fun prove_param2 options ctxt t deriv =
     val param_derivations = param_derivations_of deriv
     val ho_args = ho_args_of mode args
     val f_tac = case f of
-        Const (name, T) => full_simp_tac (HOL_basic_ss addsimps 
+        Const (name, _) => full_simp_tac (HOL_basic_ss addsimps 
            (@{thm eval_pred}::(predfun_definition_of ctxt name mode)
            :: @{thm "Product_Type.split_conv"}::[])) 1
       | Free _ => all_tac
@@ -378,7 +361,7 @@ fun prove_param2 options ctxt t deriv =
 
 fun prove_expr2 options ctxt (t, deriv) = 
   (case strip_comb t of
-      (Const (name, T), args) =>
+      (Const (name, _), args) =>
         let
           val mode = head_mode_of deriv
           val param_derivations = param_derivations_of deriv
@@ -396,7 +379,7 @@ fun prove_expr2 options ctxt (t, deriv) =
 
 fun prove_sidecond2 options ctxt t = let
   fun preds_of t nameTs = case strip_comb t of 
-    (f as Const (name, T), args) =>
+    (Const (name, T), args) =>
       if is_registered ctxt name then (name, T) :: nameTs
         else fold preds_of args nameTs
     | _ => nameTs
@@ -415,7 +398,7 @@ fun prove_sidecond2 options ctxt t = let
 fun prove_clause2 options ctxt pred mode (ts, ps) i =
   let
     val pred_intro_rule = nth (intros_of ctxt pred) (i - 1)
-    val (in_ts, clause_out_ts) = split_mode mode ts;
+    val (in_ts, _) = split_mode mode ts;
     val split_ss = HOL_basic_ss' addsimps [@{thm split_eta}, @{thm split_beta},
       @{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
     fun prove_prems2 out_ts [] =
@@ -506,7 +489,7 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
 
 (** proof procedure **)
 
-fun prove_pred options thy clauses preds pred (pol, mode) (moded_clauses, compiled_term) =
+fun prove_pred options thy clauses preds pred (_, mode) (moded_clauses, compiled_term) =
   let
     val ctxt = Proof_Context.init_global thy
     val clauses = case AList.lookup (op =) clauses pred of SOME rs => rs | NONE => []

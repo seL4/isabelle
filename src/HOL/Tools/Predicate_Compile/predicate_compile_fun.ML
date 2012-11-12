@@ -40,7 +40,7 @@ fun lookup thy net t =
 fun pred_of_function thy name =
   case Item_Net.retrieve (Fun_Pred.get thy) (Const (name, dummyT)) of
     [] => NONE
-  | [(f, p)] => SOME (fst (dest_Const p))
+  | [(_, p)] => SOME (fst (dest_Const p))
   | _ => error ("Multiple matches possible for lookup of constant " ^ name)
 
 fun defined_const thy name = is_some (pred_of_function thy name)
@@ -78,20 +78,6 @@ fun dest_code_eqn eqn = let
   val (func, args) = strip_comb lhs
 in ((func, args), rhs) end;
 
-(* TODO: does not work with higher order functions yet *)
-fun mk_rewr_eq (func, pred) =
-  let
-    val (argTs, resT) = strip_type (fastype_of func)
-    val nctxt =
-      Name.make_context (Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) (func $ pred) [])
-    val (argnames, nctxt') = fold_map Name.variant (replicate (length argTs) "a") nctxt
-    val (resname, nctxt'') = Name.variant "r" nctxt'
-    val args = map Free (argnames ~~ argTs)
-    val res = Free (resname, resT)
-  in Logic.mk_equals
-      (HOLogic.mk_eq (res, list_comb (func, args)), list_comb (pred, args @ [res]))
-  end;
-
 fun folds_map f xs y =
   let
     fun folds_map' acc [] y = [(rev acc, y)]
@@ -126,7 +112,7 @@ fun flatten thy lookup_pred t (names, prems) =
                 fun mk_exists (x, T) t = HOLogic.mk_exists (x, T, t)
                 val vTs = 
                   fold Term.add_frees inner_prems []
-                  |> filter (fn (x, T) => member (op =) inner_names x)
+                  |> filter (fn (x, _) => member (op =) inner_names x)
                 val t = 
                   fold mk_exists vTs
                   (foldr1 HOLogic.mk_conj (HOLogic.mk_eq (res, resvar) ::
@@ -149,8 +135,8 @@ fun flatten thy lookup_pred t (names, prems) =
         else
           error ("unexpected input for flatten or lift" ^ Syntax.string_of_term_global thy t ^
           ", " ^  Syntax.string_of_typ_global thy T)
-    and flatten' (t as Const (name, T)) (names, prems) = [(t, (names, prems))]
-      | flatten' (t as Free (f, T)) (names, prems) = [(t, (names, prems))]
+    and flatten' (t as Const _) (names, prems) = [(t, (names, prems))]
+      | flatten' (t as Free _) (names, prems) = [(t, (names, prems))]
       | flatten' (t as Abs _) (names, prems) = [(t, (names, prems))]
       | flatten' (t as _ $ _) (names, prems) =
       if Predicate_Compile_Aux.is_constrt thy t orelse keep_functions thy t then
@@ -182,10 +168,9 @@ fun flatten thy lookup_pred t (names, prems) =
         case find_split_thm thy (fst (strip_comb t)) of
           SOME raw_split_thm =>
           let
-            val (f, args) = strip_comb t
             val split_thm = prepare_split_thm (Proof_Context.init_global thy) raw_split_thm
             val (assms, concl) = Logic.strip_horn (prop_of split_thm)
-            val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl)
+            val (_, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl)
             val t' = case_betapply thy t
             val subst = Pattern.match thy (split_t, t') (Vartab.empty, Vartab.empty)
             fun flatten_of_assm assm =
@@ -267,7 +252,6 @@ fun define_predicates specs thy =
     ([], thy)
   else
     let
-      val consts = map fst specs
       val eqns = maps snd specs
       (* create prednames *)
       val ((funs, argss), rhss) = map_split dest_code_eqn eqns |>> split_list
@@ -293,10 +277,9 @@ fun define_predicates specs thy =
           let
             val names = Term.add_free_names rhs []
           in flatten thy lookup_pred rhs (names, [])
-            |> map (fn (resultt, (names', prems)) =>
+            |> map (fn (resultt, (_, prems)) =>
               Logic.list_implies (prems, HOLogic.mk_Trueprop (list_comb (pred, args @ [resultt]))))
           end
-      fun mk_rewr_thm (func, pred) = @{thm refl}
       val intr_ts = maps mk_intros ((funs ~~ preds) ~~ (argss' ~~ rhss))
       val (intrs, thy') = thy
         |> Sign.add_consts_i

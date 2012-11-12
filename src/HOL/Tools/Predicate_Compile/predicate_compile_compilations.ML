@@ -89,20 +89,20 @@ val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.cps_plus};
 fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.cps_if},
   HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = error "not implemented yet"
+fun mk_iterate_upto _ _ = error "not implemented yet"
 
 fun mk_not t =
   let
     val T = mk_monadT HOLogic.unitT
   in Const (@{const_name Quickcheck_Exhaustive.cps_not}, T --> T) $ t end
 
-fun mk_Enum f = error "not implemented"
+fun mk_Enum _ = error "not implemented"
 
-fun mk_Eval (f, x) = error "not implemented"
+fun mk_Eval _ = error "not implemented"
 
-fun dest_Eval t = error "not implemented"
+fun dest_Eval _ = error "not implemented"
 
-fun mk_map T1 T2 tf tp = error "not implemented"
+fun mk_map _ _ _ _ = error "not implemented"
 
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
@@ -138,7 +138,7 @@ val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.pos_bound_cps_
 fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_if},
   HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = error "not implemented yet"
+fun mk_iterate_upto _ _ = error "not implemented yet"
 
 fun mk_not t =
   let
@@ -148,13 +148,13 @@ fun mk_not t =
     val T = mk_monadT HOLogic.unitT
   in Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_not}, nT --> T) $ t end
 
-fun mk_Enum f = error "not implemented"
+fun mk_Enum _ = error "not implemented"
 
-fun mk_Eval (f, x) = error "not implemented"
+fun mk_Eval _ = error "not implemented"
 
-fun dest_Eval t = error "not implemented"
+fun dest_Eval _ = error "not implemented"
 
-fun mk_map T1 T2 tf tp = error "not implemented"
+fun mk_map _ _ _ _ = error "not implemented"
 
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
@@ -193,7 +193,7 @@ val mk_plus = HOLogic.mk_binop @{const_name Quickcheck_Exhaustive.neg_bound_cps_
 fun mk_if cond = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_if},
   HOLogic.boolT --> mk_monadT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = error "not implemented"
+fun mk_iterate_upto _ _ = error "not implemented"
 
 fun mk_not t =
   let
@@ -202,13 +202,13 @@ fun mk_not t =
       --> @{typ "code_numeral => (bool * Code_Evaluation.term list) option"}
   in Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_not}, pT --> T) $ t end
 
-fun mk_Enum f = error "not implemented"
+fun mk_Enum _ = error "not implemented"
 
-fun mk_Eval (f, x) = error "not implemented"
+fun mk_Eval _ = error "not implemented"
 
-fun dest_Eval t = error "not implemented"
+fun dest_Eval _ = error "not implemented"
 
-fun mk_map T1 T2 tf tp = error "not implemented"
+fun mk_map _ _ _ _  = error "not implemented"
 
 val compfuns = Predicate_Compile_Aux.CompilationFuns
     {mk_monadT = mk_monadT, dest_monadT = dest_monadT, mk_empty = mk_empty,
@@ -296,7 +296,7 @@ val mk_plus = HOLogic.mk_binop @{const_name DSequence.union};
 fun mk_if cond = Const (@{const_name DSequence.if_seq},
   HOLogic.boolT --> mk_dseqT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
 fun mk_not t = let val T = mk_dseqT HOLogic.unitT
   in Const (@{const_name DSequence.not_seq}, T --> T) $ t end
@@ -347,7 +347,7 @@ val mk_plus = HOLogic.mk_binop @{const_name New_DSequence.pos_union};
 fun mk_if cond = Const (@{const_name New_DSequence.pos_if_seq},
   HOLogic.boolT --> mk_pos_dseqT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
 fun mk_not t =
   let
@@ -408,7 +408,7 @@ val mk_plus = HOLogic.mk_binop @{const_name New_DSequence.neg_union};
 fun mk_if cond = Const (@{const_name New_DSequence.neg_if_seq},
   HOLogic.boolT --> mk_neg_dseqT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
 fun mk_not t =
   let
@@ -599,7 +599,7 @@ val mk_plus = HOLogic.mk_binop @{const_name Random_Sequence.union};
 fun mk_if cond = Const (@{const_name Random_Sequence.if_random_dseq},
   HOLogic.boolT --> mk_random_dseqT HOLogic.unitT) $ cond;
 
-fun mk_iterate_upto T (f, from, to) = raise Fail "No iterate_upto compilation"
+fun mk_iterate_upto _ _ = raise Fail "No iterate_upto compilation"
 
 fun mk_not t =
   let

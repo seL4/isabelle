@@ -212,8 +212,7 @@ fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
     fun PEEK f dependent_tactic st = dependent_tactic (f st) st
     fun meta_eq_of th = th RS @{thm eq_reflection}
     val tuple_rew_rules = map meta_eq_of [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}]
-    fun instantiate i n {context = ctxt, params = p, prems = prems,
-      asms = a, concl = cl, schematics = s}  =
+    fun instantiate i n {context, params, prems, asms, concl, schematics} =
       let
         fun term_pair_of (ix, (ty,t)) = (Var (ix,ty), t)
         fun inst_of_matches tts = fold (Pattern.match thy) tts (Vartab.empty, Vartab.empty)
@@ -293,10 +292,10 @@ fun depending_preds_of ctxt (key, value) =
 
 fun add_intro (opt_case_name, thm) thy =
   let
-    val (name, T) = dest_Const (fst (strip_intro_concl thm))
+    val (name, _) = dest_Const (fst (strip_intro_concl thm))
     fun cons_intro gr =
      case try (Graph.get_node gr) name of
-       SOME pred_data => Graph.map_node name (map_pred_data
+       SOME _ => Graph.map_node name (map_pred_data
          (apfst (apfst (apfst (fn intros => intros @ [(opt_case_name, thm)]))))) gr
      | NONE => Graph.new_node (name, mk_pred_data ((([(opt_case_name, thm)], NONE), false), no_compilation)) gr
   in PredData.map cons_intro thy end
@@ -386,9 +385,6 @@ fun preprocess_intros name thy =
         val pred = Const (name, Sign.the_const_type thy name)
         val ctxt = Proof_Context.init_global thy
         val elim_t = mk_casesrule ctxt pred (map snd named_intros')
-        val nparams = (case try (Inductive.the_inductive ctxt) name of
-            SOME (_, result) => length (Inductive.params_of (#raw_induct result))
-          | NONE => 0)
         val elim' = prove_casesrule ctxt (pred, (elim, 0)) elim_t
       in
         ((named_intros', SOME elim'), true)
@@ -417,7 +413,7 @@ fun force_modes_and_compilations pred_name compilations =
     (* thm refl is a dummy thm *)
     val modes = map fst compilations
     val (needs_random, non_random_modes) = pairself (map fst)
-      (List.partition (fn (m, (fun_name, random)) => random) compilations)
+      (List.partition (fn (_, (_, random)) => random) compilations)
     val non_random_dummys = map (rpair "dummy") non_random_modes
     val all_dummys = map (rpair "dummy") modes
     val dummy_function_names = map (rpair all_dummys) Predicate_Compile_Aux.random_compilations

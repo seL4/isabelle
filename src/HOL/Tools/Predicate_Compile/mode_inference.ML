@@ -60,13 +60,6 @@ open Core_Data;
 datatype mode_derivation = Mode_App of mode_derivation * mode_derivation | Context of mode
   | Mode_Pair of mode_derivation * mode_derivation | Term of mode
 
-fun string_of_derivation (Mode_App (m1, m2)) =
-  "App (" ^ string_of_derivation m1 ^ ", " ^ string_of_derivation m2 ^ ")"
-  | string_of_derivation (Mode_Pair (m1, m2)) =
-  "Pair (" ^ string_of_derivation m1 ^ ", " ^ string_of_derivation m2 ^ ")"
-  | string_of_derivation (Term m) = "Term (" ^ string_of_mode m ^ ")"
-  | string_of_derivation (Context m) = "Context (" ^ string_of_mode m ^ ")"
-
 fun strip_mode_derivation deriv =
   let
     fun strip (Mode_App (deriv1, deriv2)) ds = strip deriv1 (deriv2 :: ds)
@@ -118,43 +111,20 @@ fun string_of_prem ctxt (Prem t) =
     (Syntax.string_of_term ctxt t) ^ "(sidecondition)"
   | string_of_prem ctxt _ = raise Fail "string_of_prem: unexpected input"
 
-fun string_of_clause ctxt pred (ts, prems) =
-  (space_implode " --> "
-  (map (string_of_prem ctxt) prems)) ^ " --> " ^ pred ^ " "
-   ^ (space_implode " " (map (Syntax.string_of_term ctxt) ts))
-
 type mode_analysis_options =
   {use_generators : bool,
   reorder_premises : bool,
   infer_pos_and_neg_modes : bool}
-
-fun is_constrt thy =
-  let
-    val cnstrs = flat (maps
-      (map (fn (_, (Tname, _, cs)) => map (apsnd (rpair Tname o length)) cs) o #descr o snd)
-      (Symtab.dest (Datatype.get_all thy)));
-    fun check t = (case strip_comb t of
-        (Free _, []) => true
-      | (Const (s, T), ts) => (case (AList.lookup (op =) cnstrs s, body_type T) of
-            (SOME (i, Tname), Type (Tname', _)) =>
-              length ts = i andalso Tname = Tname' andalso forall check ts
-          | _ => false)
-      | _ => false)
-  in check end;
 
 (*** check if a type is an equality type (i.e. doesn't contain fun)
   FIXME this is only an approximation ***)
 fun is_eqT (Type (s, Ts)) = s <> "fun" andalso forall is_eqT Ts
   | is_eqT _ = true;
 
-fun term_vs tm = fold_aterms (fn Free (x, T) => cons x | _ => I) tm [];
+fun term_vs tm = fold_aterms (fn Free (x, _) => cons x | _ => I) tm [];
 val terms_vs = distinct (op =) o maps term_vs;
 
-(** collect all Frees in a term (with duplicates!) **)
-fun term_vTs tm =
-  fold_aterms (fn Free xT => cons xT | _ => I) tm [];
-
-fun print_failed_mode options thy modes p (pol, m) rs is =
+fun print_failed_mode options p (_, m) is =
   if show_mode_inference options then
     let
       val _ = tracing ("Clauses " ^ commas (map (fn i => string_of_int (i + 1)) is) ^ " of " ^
@@ -162,7 +132,7 @@ fun print_failed_mode options thy modes p (pol, m) rs is =
     in () end
   else ()
 
-fun error_of p (pol, m) is =
+fun error_of p (_, m) is =
   "  Clauses " ^ commas (map (fn i => string_of_int (i + 1)) is) ^ " of " ^
         p ^ " violates mode " ^ string_of_mode m
 
@@ -195,27 +165,10 @@ fun find_least ord xs =
     fold find' xs NONE
   end
   
-fun term_vs tm = fold_aterms (fn Free (x, T) => cons x | _ => I) tm [];
-val terms_vs = distinct (op =) o maps term_vs;
-
-fun input_mode T =
-  let
-    val (Ts, U) = strip_type T
-  in
-    fold_rev (curry Fun) (map (K Input) Ts) Input
-  end
-
-fun output_mode T =
-  let
-    val (Ts, U) = strip_type T
-  in
-    fold_rev (curry Fun) (map (K Output) Ts) Output
-  end
-
 fun is_invertible_function ctxt (Const (f, _)) = is_constr ctxt f
   | is_invertible_function ctxt _ = false
 
-fun non_invertible_subterms ctxt (t as Free _) = []
+fun non_invertible_subterms ctxt (Free _) = []
   | non_invertible_subterms ctxt t = 
   let
     val (f, args) = strip_comb t
@@ -281,7 +234,7 @@ fun output_terms (Const (@{const_name Pair}, _) $ t1 $ t2, Mode_Pair (d1, d2)) =
   | output_terms (t, Term Output) = [t]
   | output_terms _ = []
 
-fun lookup_mode modes (Const (s, T)) =
+fun lookup_mode modes (Const (s, _)) =
    (case (AList.lookup (op =) modes s) of
       SOME ms => SOME (map (fn m => (Context m, [])) ms)
     | NONE => NONE)
@@ -312,7 +265,7 @@ fun derivations_of (ctxt : Proof.context) modes vs (Const (@{const_name Pair}, _
     end*)
     (case try (all_derivations_of ctxt modes vs) t  of
       SOME derivs =>
-        filter (fn (d, mvars) => eq_mode (mode_of d, m) andalso null (output_terms (t, d))) derivs
+        filter (fn (d, _) => eq_mode (mode_of d, m) andalso null (output_terms (t, d))) derivs
     | NONE => (if is_all_input m then [(Context m, [])] else []))
   | derivations_of ctxt modes vs t m =
     if eq_mode (m, Input) then
@@ -353,7 +306,7 @@ fun random_mode_in_deriv modes t deriv =
     SOME (s, _) =>
       (case AList.lookup (op =) modes s of
         SOME ms =>
-          (case AList.lookup (op =) (map (fn ((p, m), r) => (m, r)) ms) (head_mode_of deriv) of
+          (case AList.lookup (op =) (map (fn ((_, m), r) => (m, r)) ms) (head_mode_of deriv) of
             SOME r => r
           | NONE => false)
       | NONE => false)
@@ -370,21 +323,16 @@ fun number_of_output_positions mode =
     length (filter contains_output args)
   end
 
-fun lex_ord ord1 ord2 (x, x') =
-  case ord1 (x, x') of
-    EQUAL => ord2 (x, x')
-  | ord => ord
-
 fun lexl_ord [] (x, x') = EQUAL
   | lexl_ord (ord :: ords') (x, x') =
     case ord (x, x') of
       EQUAL => lexl_ord ords' (x, x')
     | ord => ord
 
-fun deriv_ord' ctxt pol pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
+fun deriv_ord' ctxt _ pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
   let
     (* prefer functional modes if it is a function *)
-    fun fun_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+    fun fun_ord ((t1, deriv1, _), (t2, deriv2, _)) =
       let
         fun is_functional t mode =
           case try (fst o dest_Const o fst o strip_comb) t of
@@ -398,20 +346,20 @@ fun deriv_ord' ctxt pol pred modes t1 t2 ((deriv1, mvars1), (deriv2, mvars2)) =
         | (false, false) => EQUAL
       end
     (* prefer modes without requirement for generating random values *)
-    fun mvars_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+    fun mvars_ord ((_, _, mvars1), (_, _, mvars2)) =
       int_ord (length mvars1, length mvars2)
     (* prefer non-random modes *)
-    fun random_mode_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+    fun random_mode_ord ((t1, deriv1, _), (t2, deriv2, _)) =
       int_ord (if random_mode_in_deriv modes t1 deriv1 then 1 else 0,
                if random_mode_in_deriv modes t2 deriv2 then 1 else 0)
     (* prefer modes with more input and less output *)
-    fun output_mode_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+    fun output_mode_ord ((_, deriv1, _), (_, deriv2, _)) =
       int_ord (number_of_output_positions (head_mode_of deriv1),
         number_of_output_positions (head_mode_of deriv2))
     (* prefer recursive calls *)
     fun is_rec_premise t =
-      case fst (strip_comb t) of Const (c, T) => c = pred | _ => false
-    fun recursive_ord ((t1, deriv1, mvars1), (t2, deriv2, mvars2)) =
+      case fst (strip_comb t) of Const (c, _) => c = pred | _ => false
+    fun recursive_ord ((t1, _, _), (t2, deriv2, _)) =
       int_ord (if is_rec_premise t1 then 0 else 1,
         if is_rec_premise t2 then 0 else 1)
     val ord = lexl_ord [mvars_ord, fun_ord, random_mode_ord, output_mode_ord, recursive_ord]
@@ -424,10 +372,6 @@ fun deriv_ord ctxt pol pred modes t = deriv_ord' ctxt pol pred modes t t
 fun premise_ord thy pol pred modes ((prem1, a1), (prem2, a2)) =
   rev_option_ord (deriv_ord' thy pol pred modes (dest_indprem prem1) (dest_indprem prem2)) (a1, a2)
 
-fun print_mode_list modes =
-  tracing ("modes: " ^ (commas (map (fn (s, ms) => s ^ ": " ^
-    commas (map (fn (m, r) => string_of_mode m ^ (if r then " random " else " not ")) ms)) modes)))
-
 fun select_mode_prem (mode_analysis_options : mode_analysis_options) (ctxt : Proof.context) pred
   pol (modes, (pos_modes, neg_modes)) vs ps =
   let
@@ -435,7 +379,7 @@ fun select_mode_prem (mode_analysis_options : mode_analysis_options) (ctxt : Pro
           find_least (deriv_ord ctxt pol pred modes t) (all_derivations_of ctxt pos_modes vs t)
       | choose_mode_of_prem (Sidecond t) = SOME (Context Bool, missing_vars vs t)
       | choose_mode_of_prem (Negprem t) = find_least (deriv_ord ctxt (not pol) pred modes t)
-          (filter (fn (d, missing_vars) => is_all_input (head_mode_of d))
+          (filter (fn (d, _) => is_all_input (head_mode_of d))
              (all_derivations_of ctxt neg_modes vs t))
       | choose_mode_of_prem p = raise Fail ("choose_mode_of_prem: unexpected premise " ^ string_of_prem ctxt p)
   in
@@ -451,17 +395,16 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) ctxt pred
     val vTs = distinct (op =) (fold Term.add_frees (map dest_indprem ps) (fold Term.add_frees ts []))
     val modes' = modes @ (param_vs ~~ map (fn x => [((true, x), false), ((false, x), false)]) (ho_arg_modes_of mode))
     fun retrieve_modes_of_pol pol = map (fn (s, ms) =>
-      (s, map_filter (fn ((p, m), r) => if p = pol then SOME m else NONE | _ => NONE) ms))
+      (s, map_filter (fn ((p, m), _) => if p = pol then SOME m else NONE | _ => NONE) ms))
     val (pos_modes', neg_modes') =
       if #infer_pos_and_neg_modes mode_analysis_options then
         (retrieve_modes_of_pol pol modes', retrieve_modes_of_pol (not pol) modes')
       else
         let
-          val modes = map (fn (s, ms) => (s, map (fn ((p, m), r) => m) ms)) modes'
+          val modes = map (fn (s, ms) => (s, map (fn ((_, m), _) => m) ms)) modes'
         in (modes, modes) end
     val (in_ts, out_ts) = split_mode mode ts
     val in_vs = union (op =) param_vs (maps (vars_of_destructable_term ctxt) in_ts)
-    val out_vs = terms_vs out_ts
     fun known_vs_after p vs = (case p of
         Prem t => union (op =) vs (term_vs t)
       | Sidecond t => union (op =) vs (term_vs t)
@@ -480,7 +423,7 @@ fun check_mode_clause' (mode_analysis_options : mode_analysis_options) ctxt pred
                 (distinct (op =) missing_vars))
                 @ acc_ps) true (known_vs_after p vs) (filter_out (equal p) ps)
           else NONE
-        | SOME (p, NONE) => NONE
+        | SOME (_, NONE) => NONE
         | NONE => NONE)
   in
     case check_mode_prems [] false in_vs ps of
@@ -508,7 +451,7 @@ fun check_modes_pred' mode_analysis_options options thy param_vs clauses modes (
     fun split xs =
       let
         fun split' [] (ys, zs) = (rev ys, rev zs)
-          | split' ((m, Error z) :: xs) (ys, zs) = split' xs (ys, z :: zs)
+          | split' ((_, Error z) :: xs) (ys, zs) = split' xs (ys, z :: zs)
           | split' (((m : bool * mode), Success rnd) :: xs) (ys, zs) = split' xs ((m, rnd) :: ys, zs)
        in
          split' xs ([], [])
@@ -522,7 +465,7 @@ fun check_modes_pred' mode_analysis_options options thy param_vs clauses modes (
         cond_timeit false "aux part of check_mode for one mode" (fn _ => 
         case find_indices is_none res of
           [] => Success (exists (fn SOME (_, _, true) => true | _ => false) res)
-        | is => (print_failed_mode options thy modes p m rs is; Error (error_of p m is)))
+        | is => (print_failed_mode options p m is; Error (error_of p m is)))
       end
     val _ = if show_mode_inference options then
         tracing ("checking " ^ string_of_int (length ms) ^ " modes ...")
@@ -537,9 +480,9 @@ fun get_modes_pred' mode_analysis_options thy param_vs clauses modes (p, ms) =
   let
     val rs = these (AList.lookup (op =) clauses p)
   in
-    (p, map (fn (m, rnd) =>
+    (p, map (fn (m, _) =>
       (m, map
-        ((fn (ts, ps, rnd) => (ts, ps)) o the o
+        ((fn (ts, ps, _) => (ts, ps)) o the o
           check_mode_clause' mode_analysis_options thy p param_vs modes m) rs)) ms)
   end;
 
@@ -567,18 +510,12 @@ fun print_extra_modes options modes =
 fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, needs_random) ctxt
   preds all_modes param_vs clauses =
   let
-    fun appair f (x1, x2) (y1, y2) = (f x1 y1, f x2 y2)
     fun add_needs_random s (false, m) = ((false, m), false)
       | add_needs_random s (true, m) = ((true, m), needs_random s m)
     fun add_polarity_and_random_bit s b ms = map (fn m => add_needs_random s (b, m)) ms
     val prednames = map fst preds
     (* extramodes contains all modes of all constants, should we only use the necessary ones
        - what is the impact on performance? *)
-    fun predname_of (Prem t) =
-        (case try dest_Const (fst (strip_comb t)) of SOME (c, _) => insert (op =) c | NONE => I)
-      | predname_of (Negprem t) =
-        (case try dest_Const (fst (strip_comb t)) of SOME (c, _) => insert (op =) c | NONE => I)
-      | predname_of _ = I
     val relevant_prednames = fold (fn (_, clauses') =>
       fold (fn (_, ps) => fold Term.add_const_names (map dest_indprem ps)) clauses') clauses []
       |> filter_out (fn name => member (op =) prednames name)

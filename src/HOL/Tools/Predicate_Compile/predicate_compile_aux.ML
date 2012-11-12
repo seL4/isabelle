@@ -931,7 +931,7 @@ fun instantiated_case_rewrites thy Tcon =
     let
       val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
       val Type ("fun", [uninst_T, uninst_T']) = fastype_of f
-      val ([tname, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
+      val ([_, tname', uname, yname], ctxt') = Variable.add_fixes ["'t", "'t'", "'u", "y"] ctxt
       val T' = TFree (tname', HOLogic.typeS)
       val U = TFree (uname, HOLogic.typeS)
       val y = Free (yname, U)

@@ -157,7 +157,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
         map (apsnd (map fst)) proposed_modes,
       proposed_names =
         maps (fn (predname, ms) => (map_filter
-          (fn (m, NONE) => NONE | (m, SOME name) => SOME ((predname, m), name))) ms) proposed_modes,
+          (fn (_, NONE) => NONE | (m, SOME name) => SOME ((predname, m), name))) ms) proposed_modes,
       show_steps = chk "show_steps",
       show_intermediate_results = chk "show_intermediate_results",
       show_proof_trace = chk "show_proof_trace",

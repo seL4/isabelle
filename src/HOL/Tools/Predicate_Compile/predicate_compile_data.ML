@@ -80,13 +80,13 @@ fun defining_const_of_introrule th =
     | _ => raise TERM ("defining_const_of_introrule failed: Not a constant", [prop_of th])
 
 (*TODO*)
-fun is_introlike_term t = true
+fun is_introlike_term _ = true
 
 val is_introlike = is_introlike_term o prop_of
 
-fun check_equation_format_term (t as (Const ("==", _) $ u $ v)) =
+fun check_equation_format_term (t as (Const ("==", _) $ u $ _)) =
   (case strip_comb u of
-    (Const (c, T), args) =>
+    (Const (_, T), args) =>
       if (length (binder_types T) = length args) then
         true
       else
@@ -98,7 +98,7 @@ fun check_equation_format_term (t as (Const ("==", _) $ u $ v)) =
 val check_equation_format = check_equation_format_term o prop_of
 
 
-fun defining_term_of_equation_term (t as (Const ("==", _) $ u $ v)) = fst (strip_comb u)
+fun defining_term_of_equation_term (Const ("==", _) $ u $ _) = fst (strip_comb u)
   | defining_term_of_equation_term t =
     raise TERM ("defining_const_of_equation_term failed: Not an equation", [t])
 
@@ -135,7 +135,7 @@ fun declare_names s xs ctxt =
 fun split_all_pairs thy th =
   let
     val ctxt = Proof_Context.init_global thy
-    val ((_, [th']), ctxt') = Variable.import true [th] ctxt
+    val ((_, [th']), _) = Variable.import true [th] ctxt
     val t = prop_of th'
     val frees = Term.add_frees t [] 
     val freenames = Term.add_free_names t []
@@ -230,7 +230,7 @@ val logic_operator_names =
    @{const_name HOL.conj},
    @{const_name HOL.disj}]
 
-fun special_cases (c, T) = member (op =) [
+fun special_cases (c, _) = member (op =) [
   @{const_name Product_Type.Unity},
   @{const_name False},
   @{const_name Suc}, @{const_name Nat.zero_nat_inst.zero_nat},
@@ -253,18 +253,12 @@ fun special_cases (c, T) = member (op =) [
   ] c
 
 
-fun print_specification options thy constname specs = 
-  if show_intermediate_results options then
-    tracing ("Specification of " ^ constname ^ ":\n" ^
-      cat_lines (map (Display.string_of_thm_global thy) specs))
-  else ()
-
 fun obtain_specification_graph options thy t =
   let
     val ctxt = Proof_Context.init_global thy
-    fun is_nondefining_const (c, T) = member (op =) logic_operator_names c
-    fun has_code_pred_intros (c, T) = can (Core_Data.intros_of ctxt) c
-    fun case_consts (c, T) = is_some (Datatype.info_of_case thy c)
+    fun is_nondefining_const (c, _) = member (op =) logic_operator_names c
+    fun has_code_pred_intros (c, _) = can (Core_Data.intros_of ctxt) c
+    fun case_consts (c, _) = is_some (Datatype.info_of_case thy c)
     fun is_datatype_constructor (c, T) = is_some (Datatype.info_of_constr thy (c, T))
     fun defiants_of specs =
       fold (Term.add_consts o prop_of) specs []

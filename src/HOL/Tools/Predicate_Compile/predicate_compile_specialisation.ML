@@ -26,15 +26,9 @@ structure Specialisations = Theory_Data
 fun specialisation_of thy atom =
   Item_Net.retrieve (Specialisations.get thy) atom
 
-fun print_specialisations thy =
-  tracing (cat_lines (map (fn (t, spec_t) =>
-      Syntax.string_of_term_global thy t ^ " ~~~> " ^ Syntax.string_of_term_global thy spec_t)
-    (Item_Net.content (Specialisations.get thy))))
-
-fun import (pred, intros) args ctxt =
+fun import (_, intros) args ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val ((Tinst, intros'), ctxt') = Variable.importT intros ctxt
+    val ((_, intros'), ctxt') = Variable.importT intros ctxt
     val pred' = fst (strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of (hd intros')))))
     val Ts = binder_types (fastype_of pred')
     val argTs = map fastype_of args
@@ -68,7 +62,6 @@ fun specialise_intros black_list (pred, intros) pats thy =
     val maxidx = fold (Term.maxidx_term o prop_of) intros ~1
     val pats = map (Logic.incr_indexes ([],  maxidx + 1)) pats
     val (((pred, intros), pats), ctxt') = import (pred, intros) pats ctxt
-    val intros_t = map prop_of intros
     val result_pats = map Var (fold_rev Term.add_vars pats [])
     fun mk_fresh_name names =
       let
@@ -85,9 +78,6 @@ fun specialise_intros black_list (pred, intros) pats thy =
     val constname = mk_fresh_name []
     val constT = map fastype_of result_pats ---> @{typ bool}
     val specialised_const = Const (constname, constT)
-    val specialisation =
-      [(HOLogic.mk_Trueprop (list_comb (pred, pats)),
-        HOLogic.mk_Trueprop (list_comb (specialised_const, result_pats)))]
     fun specialise_intro intro =
       (let
         val (prems, concl) = Logic.strip_horn (prop_of intro)
@@ -141,7 +131,7 @@ and find_specialisations black_list specs thy =
       end
       | restrict_pattern' thy ((T as TFree _, t) :: Tts) free_names =
         replace_term_and_restrict thy T t Tts free_names
-      | restrict_pattern' thy ((T as Type (Tcon, Ts), t) :: Tts) free_names =
+      | restrict_pattern' thy ((T as Type (Tcon, _), t) :: Tts) free_names =
         case Datatype.get_constrs thy Tcon of
           NONE => replace_term_and_restrict thy T t Tts free_names
         | SOME constrs => (case strip_comb t of
@@ -169,7 +159,6 @@ and find_specialisations black_list specs thy =
         (pred as Const (pred_name, _), args) =>
           let
           val Ts = binder_types (Sign.the_const_type thy pred_name)
-          val vnames = map fst (fold Term.add_var_names args [])
           val pats = restrict_pattern thy Ts args
         in
           if (exists (is_nontrivial_constrt thy) pats)
@@ -187,7 +176,7 @@ and find_specialisations black_list specs thy =
                       | SOME intros =>
                           specialise_intros ((map fst specs) @ (pred_name :: black_list))
                             (pred, intros) pats thy)
-                  | (t, specialised_t) :: _ => thy
+                  | _ :: _ => thy
                 val atom' =
                   case specialisation_of thy' atom of
                     [] => atom

@@ -19,7 +19,7 @@ struct
 
 open Predicate_Compile_Aux
 
-fun is_compound ((Const (@{const_name Not}, _)) $ t) =
+fun is_compound ((Const (@{const_name Not}, _)) $ _) =
     error "is_compound: Negation should not occur; preprocessing is defect"
   | is_compound ((Const (@{const_name Ex}, _)) $ _) = true
   | is_compound ((Const (@{const_name HOL.disj}, _)) $ _ $ _) = true
@@ -37,7 +37,7 @@ fun try_destruct_case thy names atom =
       (*val ((_, [isplit_thm]), _) =
         Variable.import true [split_thm] (Proof_Context.init_global thy)*)
       val (assms, concl) = Logic.strip_horn (prop_of split_thm)
-      val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
+      val (_, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
       val atom' = case_betapply thy atom
       val subst = Pattern.match thy (split_t, atom') (Vartab.empty, Vartab.empty)
       val names' = Term.add_free_names atom' names
@@ -156,7 +156,7 @@ fun introrulify thy ths =
         val nctxt = Name.make_context frees
         fun mk_introrule t =
           let
-            val ((ps, t'), nctxt') = focus_ex t nctxt
+            val ((ps, t'), _) = focus_ex t nctxt
             val prems = map HOLogic.mk_Trueprop (HOLogic.dest_conj t')
           in
             (ps, Logic.list_implies (prems, HOLogic.mk_Trueprop lhs))
@@ -223,11 +223,6 @@ fun preprocess options (constname, specs) thy =
     in
       (full_spec, thy'')
     end;
-
-fun preprocess_term t thy = error "preprocess_pred_term: to implement" 
-
-fun is_Abs (Abs _) = true
-  | is_Abs _       = false
 
 fun flat_higher_order_arguments (intross, thy) =
   let
