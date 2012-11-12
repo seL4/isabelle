@@ -232,7 +232,7 @@ fun is_theorem_bad_for_atps ho_atp th =
   end
 
 fun hackish_string_for_term ctxt =
-  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> repair_printed_term
+  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
 
 (* This is a terrible hack. Free variables are sometimes coded as "M__" when
    they are displayed as "M" and we want to avoid clashes with these. But

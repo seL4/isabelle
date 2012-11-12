@@ -19,7 +19,6 @@ sig
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : unit Symtab.table option -> thm -> string list
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
-  val repair_printed_term : string -> string
 end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -106,9 +105,5 @@ fun thms_in_proof all_names th =
 fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                            (print_mode_value ())) f x
-
-val repair_printed_term =
-  String.translate (fn c => if Char.isPrint c then str c else "")
-  #> simplify_spaces
 
 end;

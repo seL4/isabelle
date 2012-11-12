@@ -628,7 +628,7 @@ fun string_for_proof ctxt type_enc lam_trans i n =
     fun do_indent ind = replicate_string (ind * indent_size) " "
     fun do_free (s, T) =
       maybe_quote s ^ " :: " ^
-      maybe_quote (repair_printed_term (with_vanilla_print_mode
+      maybe_quote (simplify_spaces (with_vanilla_print_mode
         (Syntax.string_of_typ ctxt) T))
     fun do_label l = if l = no_label then "" else string_for_label l ^ ": "
     fun do_have qs =
@@ -641,7 +641,7 @@ fun string_for_proof ctxt type_enc lam_trans i n =
     val do_term =
       annotate_types ctxt
       #> with_vanilla_print_mode (Syntax.string_of_term ctxt)
-      #> repair_printed_term
+      #> simplify_spaces
       #> maybe_quote
     val reconstr = Metis (type_enc, lam_trans)
     fun do_facts ind (ls, ss) =
