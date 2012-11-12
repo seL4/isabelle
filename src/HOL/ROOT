@@ -91,7 +91,7 @@ session "HOL-IMP" in IMP = HOL +
   theories
     BExp
     ASM
-    Small_Step
+    Finite_Reachable
     Denotation
     Comp_Rev
     Poly_Types
