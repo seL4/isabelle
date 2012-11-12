@@ -18,6 +18,8 @@ sig
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : unit Symtab.table option -> thm -> string list
+  val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
+  val repair_printed_term : string -> string
 end;
 
 structure Sledgehammer_Util : SLEDGEHAMMER_UTIL =
@@ -100,5 +102,13 @@ fun thms_in_proof all_names th =
     val names =
       [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
   in names end
+
+fun with_vanilla_print_mode f x =
+  Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
+                           (print_mode_value ())) f x
+
+val repair_printed_term =
+  String.translate (fn c => if Char.isPrint c then str c else "")
+  #> simplify_spaces
 
 end;

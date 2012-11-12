@@ -231,12 +231,8 @@ fun is_theorem_bad_for_atps ho_atp th =
     exists_low_level_class_const t orelse is_that_fact th
   end
 
-fun hackish_string_for_term ctxt t =
-  Print_Mode.setmp
-    (filter (curry (op =) Symbol.xsymbolsN) (print_mode_value ()))
-    (Syntax.string_of_term ctxt) t
-  |> String.translate (fn c => if Char.isPrint c then str c else "")
-  |> simplify_spaces
+fun hackish_string_for_term ctxt =
+  with_vanilla_print_mode (Syntax.string_of_term ctxt) #> repair_printed_term
 
 (* This is a terrible hack. Free variables are sometimes coded as "M__" when
    they are displayed as "M" and we want to avoid clashes with these. But

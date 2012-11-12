@@ -625,13 +625,11 @@ val no_label = ("", ~1)
 
 fun string_for_proof ctxt type_enc lam_trans i n =
   let
-    fun fix_print_mode f x =
-      Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
-                               (print_mode_value ())) f x
     fun do_indent ind = replicate_string (ind * indent_size) " "
     fun do_free (s, T) =
       maybe_quote s ^ " :: " ^
-      maybe_quote (fix_print_mode (Syntax.string_of_typ ctxt) T)
+      maybe_quote (repair_printed_term (with_vanilla_print_mode
+        (Syntax.string_of_typ ctxt) T))
     fun do_label l = if l = no_label then "" else string_for_label l ^ ": "
     fun do_have qs =
       (if member (op =) qs Moreover then "moreover " else "") ^
@@ -641,8 +639,10 @@ fun string_for_proof ctxt type_enc lam_trans i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term =
-      maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-      o annotate_types ctxt
+      annotate_types ctxt
+      #> with_vanilla_print_mode (Syntax.string_of_term ctxt)
+      #> repair_printed_term
+      #> maybe_quote
     val reconstr = Metis (type_enc, lam_trans)
     fun do_facts ind (ls, ss) =
       "\n" ^ do_indent (ind + 1) ^
@@ -780,7 +780,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
     (* proof references *)
     fun refs (Prove (_, _, _, By_Metis (refs, _))) =
-      map (the o Label_Table.lookup label_index_table) refs
+        map (the o Label_Table.lookup label_index_table) refs
       | refs _ = []
     val refed_by_vect =
       Vector.tabulate (n, (fn _ => []))
@@ -791,7 +791,6 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
        algorithm) *)
     fun cost (Prove (_, _ , t, _)) = Term.size_of_term t
       | cost _ = 0
-    val cand_ord =  rev_order o prod_ord int_ord int_ord
     val cand_tab =
       v_fold_index
         (fn (i, [_]) => cons (get i proof_vect |> the |> cost, i)
