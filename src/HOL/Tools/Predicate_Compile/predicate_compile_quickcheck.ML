@@ -6,15 +6,16 @@ A quickcheck generator based on the predicate compiler.
 
 signature PREDICATE_COMPILE_QUICKCHECK =
 sig
+  type seed = Random_Engine.seed
   (*val quickcheck : Proof.context -> term -> int -> term list option*)
   val put_pred_result :
-    (unit -> int -> int -> int -> int * int -> term list Predicate.pred) ->
+    (unit -> int -> int -> int -> seed -> term list Predicate.pred) ->
       Proof.context -> Proof.context;
   val put_dseq_result :
-    (unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)) ->
+    (unit -> int -> int -> seed -> term list DSequence.dseq * seed) ->
       Proof.context -> Proof.context;
   val put_lseq_result :
-    (unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence) ->
+    (unit -> int -> int -> seed -> int -> term list Lazy_Sequence.lazy_sequence) ->
       Proof.context -> Proof.context;
   val put_new_dseq_result : (unit -> int -> term list Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
@@ -34,11 +35,13 @@ struct
 
 open Predicate_Compile_Aux;
 
+type seed = Random_Engine.seed:
+
 (* FIXME just one data slot (record) per program unit *)
 
 structure Pred_Result = Proof_Data
 (
-  type T = unit -> int -> int -> int -> int * int -> term list Predicate.pred
+  type T = unit -> int -> int -> int -> seed -> term list Predicate.pred
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Pred_Result"
 );
@@ -46,7 +49,7 @@ val put_pred_result = Pred_Result.put;
 
 structure Dseq_Result = Proof_Data
 (
-  type T = unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)
+  type T = unit -> int -> int -> seed -> term list DSequence.dseq * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Result"
 );
@@ -54,7 +57,7 @@ val put_dseq_result = Dseq_Result.put;
 
 structure Lseq_Result = Proof_Data
 (
-  type T = unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence
+  type T = unit -> int -> int -> seed -> int -> term list Lazy_Sequence.lazy_sequence
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Result"
 );
@@ -259,7 +262,7 @@ fun compile_term compilation options ctxt t =
             | Pos_Generator_DSeq => mk_new_dseqT (HOLogic.mk_tupleT (map snd vs'))
             | Depth_Limited_Random =>
               [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
-              @{typ "code_numeral * code_numeral"}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
+              @{typ Random.seed}] ---> mk_predT (HOLogic.mk_tupleT (map snd vs'))
             | Pos_Generator_CPS => mk_cpsT (HOLogic.mk_tupleT (map snd vs'))
         in
           Const (name, T)
@@ -283,7 +286,7 @@ fun compile_term compilation options ctxt t =
                 (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))     
         | Depth_Limited_Random => fold_rev absdummy
             [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
-             @{typ "code_numeral * code_numeral"}]
+             @{typ Random.seed}]
             (mk_bind' (list_comb (prog, map Bound (3 downto 0)),
             mk_split_lambda (map Free vs') (mk_return' (HOLogic.mk_list @{typ term}
             (map2 HOLogic.mk_term_of (map snd vs') (map Free vs'))))))

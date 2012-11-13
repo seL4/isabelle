@@ -6,6 +6,7 @@ A compiler from predicates specified by intro/elim rules to equations.
 
 signature PREDICATE_COMPILE_CORE =
 sig
+  type seed = Random_Engine.seed
   type mode = Predicate_Compile_Aux.mode
   type options = Predicate_Compile_Aux.options
   type compilation = Predicate_Compile_Aux.compilation
@@ -23,18 +24,18 @@ sig
   val print_all_modes : compilation -> Proof.context -> unit
 
   val put_pred_result : (unit -> term Predicate.pred) -> Proof.context -> Proof.context
-  val put_pred_random_result : (unit -> int * int -> term Predicate.pred * (int * int)) ->
+  val put_pred_random_result : (unit -> seed -> term Predicate.pred * seed) ->
     Proof.context -> Proof.context
   val put_dseq_result : (unit -> term DSequence.dseq) -> Proof.context -> Proof.context
-  val put_dseq_random_result : (unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)) ->
+  val put_dseq_random_result : (unit -> int -> int -> seed -> term DSequence.dseq * seed) ->
     Proof.context -> Proof.context
   val put_new_dseq_result : (unit -> int -> term Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
   val put_lseq_random_result :
-    (unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence) ->
+    (unit -> int -> int -> seed -> int -> term Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
   val put_lseq_random_stats_result :
-    (unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence) ->
+    (unit -> int -> int -> seed -> int -> (term * int) Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
 
   val code_pred_intro_attrib : attribute
@@ -69,6 +70,9 @@ open Predicate_Compile_Aux;
 open Core_Data;
 open Mode_Inference;
 open Predicate_Compile_Proof;
+
+type seed = Random_Engine.seed;
+
 
 (** fundamentals **)
 
@@ -1635,7 +1639,7 @@ val put_pred_result = Pred_Result.put;
 
 structure Pred_Random_Result = Proof_Data
 (
-  type T = unit -> int * int -> term Predicate.pred * (int * int)
+  type T = unit -> seed -> term Predicate.pred * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Pred_Random_Result"
 );
@@ -1651,7 +1655,7 @@ val put_dseq_result = Dseq_Result.put;
 
 structure Dseq_Random_Result = Proof_Data
 (
-  type T = unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)
+  type T = unit -> int -> int -> seed -> term DSequence.dseq * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Random_Result"
 );
@@ -1667,7 +1671,7 @@ val put_new_dseq_result = New_Dseq_Result.put;
 
 structure Lseq_Random_Result = Proof_Data
 (
-  type T = unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence
+  type T = unit -> int -> int -> seed -> int -> term Lazy_Sequence.lazy_sequence
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Random_Result"
 );
@@ -1675,7 +1679,7 @@ val put_lseq_random_result = Lseq_Random_Result.put;
 
 structure Lseq_Random_Stats_Result = Proof_Data
 (
-  type T = unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence
+  type T = unit -> int -> int -> seed -> int -> (term * int) Lazy_Sequence.lazy_sequence
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Random_Stats_Result"
 );
