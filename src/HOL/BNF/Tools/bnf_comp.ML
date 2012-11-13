@@ -585,7 +585,7 @@ fun compose_bnf const_policy qualify sort outer inners oDs Dss tfreess (unfold_s
 
 (* Hide the type of the bound (optimization) and unfold the definitions (nicer to the user) *)
 
-fun seal_bnf unfold_set b Ds bnf lthy =
+fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
   let
     val live = live_of_bnf bnf;
     val nwits = nwits_of_bnf bnf;
