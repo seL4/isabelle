@@ -25,6 +25,7 @@ sig
   val mk_nat_rec: term -> term -> term
   val mk_pickWP: term -> term -> term -> term -> term -> term
   val mk_prefCl: term -> term
+  val mk_prefixeq: term -> term -> term
   val mk_proj: term -> term
   val mk_quotient: term -> term -> term
   val mk_shift: term -> term -> term
@@ -92,6 +93,9 @@ fun mk_shift lab k =
 
 fun mk_prefCl A =
   Const (@{const_name prefCl}, fastype_of A --> HOLogic.boolT) $ A;
+
+fun mk_prefixeq xs ys =
+  Const (@{const_name prefixeq}, fastype_of xs --> fastype_of ys --> HOLogic.boolT) $ xs $ ys;
 
 fun mk_clists r =
   let val T = fastype_of r;

@@ -1610,7 +1610,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val prefCl_Lev_thms =
       let
         fun mk_conjunct i z = HOLogic.mk_imp
-          (HOLogic.mk_conj (HOLogic.mk_mem (kl, mk_Lev ss nat i $ z), mk_subset kl_copy kl),
+          (HOLogic.mk_conj (HOLogic.mk_mem (kl, mk_Lev ss nat i $ z), mk_prefixeq kl_copy kl),
           HOLogic.mk_mem (kl_copy, mk_Lev ss (mk_size kl_copy) i $ z));
         val goal = list_all_free (kl :: kl_copy :: zs)
           (Library.foldr1 HOLogic.mk_conj (map2 mk_conjunct ks zs));
