@@ -35,7 +35,7 @@ subsection {* Basic properties of @{term exec_n} *}
 
 lemma exec_n_exec:
   "P \<turnstile> c \<rightarrow>^n c' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c'"
-  by (induct n arbitrary: c) auto
+  by (induct n arbitrary: c) (auto simp del: exec1_def)
 
 lemma exec_0 [intro!]: "P \<turnstile> c \<rightarrow>^0 c" by simp
 
@@ -45,7 +45,7 @@ lemma exec_Suc:
 
 lemma exec_exec_n:
   "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> \<exists>n. P \<turnstile> c \<rightarrow>^n c'"
-  by (induct rule: exec.induct) (auto intro: exec_Suc)
+  by (induct rule: exec.induct) (auto simp del: exec1_def intro: exec_Suc)
     
 lemma exec_eq_exec_n:
   "(P \<turnstile> c \<rightarrow>* c') = (\<exists>n. P \<turnstile> c \<rightarrow>^n c')"
@@ -132,9 +132,9 @@ proof
 qed
 
 lemma succs_iexec1:
-  assumes "P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'" "0 \<le> i" "i < isize P"
+  assumes "c' = iexec (P!!i) (i,s,stk)" "0 \<le> i" "i < isize P"
   shows "fst c' \<in> succs P 0"
-  using assms by (auto elim!: iexec1.cases simp: succs_def isuccs_def)
+  using assms by (auto simp: succs_def isuccs_def split: instr.split)
 
 lemma succs_shift:
   "(p - n \<in> succs P 0) = (p \<in> succs P n)" 
@@ -253,7 +253,7 @@ subsection {* Splitting up machine executions *}
 lemma exec1_split:
   "P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow> (j,s') \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < isize c \<Longrightarrow> 
   c \<turnstile> (i,s) \<rightarrow> (j - isize P, s')"
-  by (auto elim!: iexec1.cases)
+  by (auto split: instr.splits)
 
 lemma exec_n_split:
   assumes "P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow>^n (j, s')"
@@ -294,7 +294,7 @@ next
     assume "j0 \<notin> {0 ..< isize c}"
     moreover
     from c j0 have "j0 \<in> succs c 0"
-      by (auto dest: succs_iexec1)
+      by (auto dest: succs_iexec1 simp del: iexec.simps)
     ultimately
     have "j0 \<in> exits c" by (simp add: exits_def)
     with c j0 rest
@@ -331,7 +331,7 @@ proof -
   have "n = isize P1 + (n - isize P1)" by simp 
   then obtain n' where "n = isize P1 + n'" ..
   ultimately 
-  show ?thesis using assms by clarsimp
+  show ?thesis using assms by (clarsimp simp del: iexec.simps)
 qed
 
 lemma exec_n_drop_left:
@@ -346,13 +346,13 @@ next
   obtain i' s'' stk'' where
     step: "P @ P' \<turnstile> (i, s, stk) \<rightarrow> (i', s'', stk'')" and
     rest: "P @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^k (n, s', stk')"
-    by auto
+    by (auto simp del: exec1_def)
   from step `isize P \<le> i`
   have "P' \<turnstile> (i - isize P, s, stk) \<rightarrow> (i' - isize P, s'', stk'')" 
     by (rule exec1_drop_left)
   moreover
   then have "i' - isize P \<in> succs P' 0"
-    by (fastforce dest!: succs_iexec1)
+    by (fastforce dest!: succs_iexec1 simp del: iexec.simps)
   with `exits P' \<subseteq> {0..}`
   have "isize P \<le> i'" by (auto simp: exits_def)
   from rest this `exits P' \<subseteq> {0..}`     

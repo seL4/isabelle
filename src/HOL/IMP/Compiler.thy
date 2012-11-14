@@ -26,7 +26,7 @@ text {*
 lemma inth_append [simp]:
   "0 \<le> n \<Longrightarrow>
   (xs @ ys) !! n = (if n < isize xs then xs !! n else ys !! (n - isize xs))"
-  by (induction xs arbitrary: n) (auto simp: algebra_simps)
+by (induction xs arbitrary: n) (auto simp: algebra_simps)
 
 subsection "Instructions and Stack Machine"
 
@@ -45,35 +45,32 @@ type_synonym config = "int \<times> state \<times> stack"
 abbreviation "hd2 xs == hd(tl xs)"
 abbreviation "tl2 xs == tl(tl xs)"
 
-inductive iexec1 :: "instr \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
-    ("(_/ \<turnstile>i (_ \<rightarrow>/ _))" [59,0,59] 60)
-where
-"LOADI n \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, n#stk)" |
-"LOAD x  \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, s x # stk)" |
-"ADD     \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s, (hd2 stk + hd stk) # tl2 stk)" |
-"STORE x \<turnstile>i (i,s,stk) \<rightarrow> (i+1,s(x := hd stk),tl stk)" |
-"JMP n   \<turnstile>i (i,s,stk) \<rightarrow> (i+1+n,s,stk)" |
-"JMPLESS n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk < hd stk then i+1+n else i+1,s,tl2 stk)" |
-"JMPGE n \<turnstile>i (i,s,stk) \<rightarrow> (if hd2 stk >= hd stk then i+1+n else i+1,s,tl2 stk)"
-
-code_pred iexec1 .
-
-declare iexec1.intros
+fun iexec :: "instr \<Rightarrow> config \<Rightarrow> config" where
+"iexec instr (i,s,stk) = (case instr of
+  LOADI n \<Rightarrow> (i+1,s, n#stk) |
+  LOAD x \<Rightarrow> (i+1,s, s x # stk) |
+  ADD \<Rightarrow> (i+1,s, (hd2 stk + hd stk) # tl2 stk) |
+  STORE x \<Rightarrow> (i+1,s(x := hd stk),tl stk) |
+  JMP n \<Rightarrow>  (i+1+n,s,stk) |
+  JMPLESS n \<Rightarrow> (if hd2 stk < hd stk then i+1+n else i+1,s,tl2 stk) |
+  JMPGE n \<Rightarrow> (if hd2 stk >= hd stk then i+1+n else i+1,s,tl2 stk))"
 
 definition
-  exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"  ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [59,0,59] 60) 
+  exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
+     ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [59,0,59] 60) 
 where
   "P \<turnstile> c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i,s,stk) \<and> P!!i \<turnstile>i (i,s,stk) \<rightarrow> c' \<and> 0 \<le> i \<and> i < isize P)"
+  (\<exists>i s stk. c = (i,s,stk) \<and> c' = iexec(P!!i) (i,s,stk) \<and> 0 \<le> i \<and> i < isize P)"
 
-declare exec1_def [simp] 
+declare exec1_def [simp]
 
 lemma exec1I [intro, code_pred_intro]:
-  assumes "P!!i \<turnstile>i (i,s,stk) \<rightarrow> c'" "0 \<le> i" "i < isize P" 
-  shows "P \<turnstile> (i,s,stk) \<rightarrow> c'"
-  using assms by simp
+  "c' = iexec (P!!i) (i,s,stk) \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < isize P
+  \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
+by simp
 
-inductive exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" ("_/ \<turnstile> (_ \<rightarrow>*/ _)" 50)
+inductive exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
+   ("(_/ \<turnstile> (_ \<rightarrow>*/ _))" 50)
 where
 refl: "P \<turnstile> c \<rightarrow>* c" |
 step: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
@@ -93,68 +90,31 @@ values
 subsection{* Verification infrastructure *}
 
 lemma exec_trans: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
-  by (induction rule: exec.induct) fastforce+
-
-inductive_cases iexec1_cases [elim!]:
-  "LOADI n \<turnstile>i c \<rightarrow> c'" 
-  "LOAD x  \<turnstile>i c \<rightarrow> c'"
-  "ADD     \<turnstile>i c \<rightarrow> c'"
-  "STORE n \<turnstile>i c \<rightarrow> c'" 
-  "JMP n   \<turnstile>i c \<rightarrow> c'"
-  "JMPLESS n \<turnstile>i c \<rightarrow> c'"
-  "JMPGE n \<turnstile>i c \<rightarrow> c'"
-
-text {* Simplification rules for @{const iexec1}. *}
-lemma iexec1_simps [simp]:
-  "LOADI n \<turnstile>i c \<rightarrow> c' = (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s, n # stk))"
-  "LOAD x \<turnstile>i c \<rightarrow> c' = (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s, s x # stk))"
-  "ADD \<turnstile>i c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s, (hd2 stk + hd stk) # tl2 stk))"
-  "STORE x \<turnstile>i c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1, s(x := hd stk), tl stk))"
-  "JMP n \<turnstile>i c \<rightarrow> c' = (\<exists>i s stk. c = (i, s, stk) \<and> c' = (i + 1 + n, s, stk))"
-   "JMPLESS n \<turnstile>i c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i, s, stk) \<and> 
-             c' = (if hd2 stk < hd stk then i + 1 + n else i + 1, s, tl2 stk))"  
-  "JMPGE n \<turnstile>i c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i, s, stk) \<and> 
-             c' = (if hd stk \<le> hd2 stk then i + 1 + n else i + 1, s, tl2 stk))"
-  by (auto split del: split_if intro!: iexec1.intros)
-
+by (induction rule: exec.induct) fastforce+
 
 text{* Below we need to argue about the execution of code that is embedded in
 larger programs. For this purpose we show that execution is preserved by
 appending code to the left or right of a program. *}
 
+lemma iexec_shift [simp]: 
+  "((n+i',s',stk') = iexec x (n+i,s,stk)) = ((i',s',stk') = iexec x (i,s,stk))"
+by(auto split:instr.split)
+
 lemma exec1_appendR: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow> c'"
-  by auto
+by auto
 
 lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow>* c'"
-  by (induction rule: exec.induct) (fastforce intro: exec1_appendR)+
+by (induction rule: exec.induct) (fastforce intro: exec1_appendR)+
 
-lemma iexec1_shiftI:
-  assumes "X \<turnstile>i (i,s,stk) \<rightarrow> (i',s',stk')"
-  shows "X \<turnstile>i (n+i,s,stk) \<rightarrow> (n+i',s',stk')"
-  using assms by cases auto
-
-lemma iexec1_shiftD:
-  assumes "X \<turnstile>i (n+i,s,stk) \<rightarrow> (n+i',s',stk')"
-  shows "X \<turnstile>i (i,s,stk) \<rightarrow> (i',s',stk')"
-  using assms by cases auto
-
-lemma iexec_shift [simp]: 
-  "(X \<turnstile>i (n+i,s,stk) \<rightarrow> (n+i',s',stk')) = (X \<turnstile>i (i,s,stk) \<rightarrow> (i',s',stk'))"
-  by (blast intro: iexec1_shiftI dest: iexec1_shiftD)
-  
 lemma exec1_appendL:
   "P \<turnstile> (i,s,stk) \<rightarrow> (i',s',stk') \<Longrightarrow>
    P' @ P \<turnstile> (isize(P')+i,s,stk) \<rightarrow> (isize(P')+i',s',stk')"
-  by simp
+by (auto split: instr.split)
 
 lemma exec_appendL:
  "P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')  \<Longrightarrow>
   P' @ P \<turnstile> (isize(P')+i,s,stk) \<rightarrow>* (isize(P')+i',s',stk')"
-  by (induction rule: exec_induct) (blast intro!: exec1_appendL)+
+by (induction rule: exec_induct) (blast intro!: exec1_appendL)+
 
 text{* Now we specialise the above lemmas to enable automatic proofs of
 @{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
@@ -167,13 +127,13 @@ If we have just executed the first instruction of the program, drop it: *}
 lemma exec_Cons_1 [intro]:
   "P \<turnstile> (0,s,stk) \<rightarrow>* (j,t,stk') \<Longrightarrow>
   instr#P \<turnstile> (1,s,stk) \<rightarrow>* (1+j,t,stk')"
-  by (drule exec_appendL[where P'="[instr]"]) simp
+by (drule exec_appendL[where P'="[instr]"]) simp
 
 lemma exec_appendL_if[intro]:
  "isize P' <= i
   \<Longrightarrow> P \<turnstile> (i - isize P',s,stk) \<rightarrow>* (i',s',stk')
   \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (isize P' + i',s',stk')"
-  by (drule exec_appendL[where P'=P']) simp
+by (drule exec_appendL[where P'=P']) simp
 
 text{* Split the execution of a compound program up into the excution of its
 parts: *}
@@ -185,10 +145,10 @@ lemma exec_append_trans[intro]:
  j'' = isize P + i''
  \<Longrightarrow>
  P @ P' \<turnstile> (0,s,stk) \<rightarrow>* (j'',s'',stk'')"
-  by(metis exec_trans[OF exec_appendR exec_appendL_if])
+by(metis exec_trans[OF exec_appendR exec_appendL_if])
 
 
-declare Let_def[simp] 
+declare Let_def[simp]
 
 
 subsection "Compilation"
@@ -200,7 +160,7 @@ fun acomp :: "aexp \<Rightarrow> instr list" where
 
 lemma acomp_correct[intro]:
   "acomp a \<turnstile> (0,s,stk) \<rightarrow>* (isize(acomp a),s,aval a s#stk)"
-  by (induction a arbitrary: stk) fastforce+
+by (induction a arbitrary: stk) fastforce+
 
 fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list" where
 "bcomp (Bc v) c n = (if v=c then [JMP n] else [])" |
@@ -226,7 +186,7 @@ proof(induction b arbitrary: c n)
   from Not(1)[where c="~c"] Not(2) show ?case by fastforce
 next
   case (And b1 b2)
-  from And(1)[of "if c then isize (bcomp b2 c n) else isize (bcomp b2 c n) + n" 
+  from And(1)[of "if c then isize(bcomp b2 c n) else isize(bcomp b2 c n) + n" 
                  "False"] 
        And(2)[of n  "c"] And(3) 
   show ?case by fastforce
