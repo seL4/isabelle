@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "A Compiler for IMP"
+header "Compiler for IMP"
 
 theory Compiler imports Big_Step 
 begin

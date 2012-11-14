@@ -2,7 +2,7 @@ theory Comp_Rev
 imports Compiler
 begin
 
-section {* Compiler Correctness, 2nd direction *}
+section {* Compiler Correctness, Reverse Direction *}
 
 subsection {* Definitions *}
 
