@@ -8,20 +8,6 @@ theory Independent_Family
   imports Probability_Measure Infinite_Product_Measure
 begin
 
-lemma INT_decseq_offset:
-  assumes "decseq F"
-  shows "(\<Inter>i. F i) = (\<Inter>i\<in>{n..}. F i)"
-proof safe
-  fix x i assume x: "x \<in> (\<Inter>i\<in>{n..}. F i)"
-  show "x \<in> F i"
-  proof cases
-    from x have "x \<in> F n" by auto
-    also assume "i \<le> n" with `decseq F` have "F n \<subseteq> F i"
-      unfolding decseq_def by simp
-    finally show ?thesis .
-  qed (insert x, simp)
-qed auto
-
 definition (in prob_space)
   "indep_sets F I \<longleftrightarrow> (\<forall>i\<in>I. F i \<subseteq> events) \<and>
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> (\<forall>A\<in>Pi J F. prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))))"

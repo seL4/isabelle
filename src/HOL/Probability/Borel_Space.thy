@@ -173,87 +173,6 @@ lemma
 
 subsection "Borel space equals sigma algebras over intervals"
 
-lemma rational_boxes:
-  fixes x :: "'a\<Colon>ordered_euclidean_space"
-  assumes "0 < e"
-  shows "\<exists>a b. (\<forall>i. a $$ i \<in> \<rat>) \<and> (\<forall>i. b $$ i \<in> \<rat>) \<and> x \<in> {a <..< b} \<and> {a <..< b} \<subseteq> ball x e"
-proof -
-  def e' \<equiv> "e / (2 * sqrt (real (DIM ('a))))"
-  then have e: "0 < e'" using assms by (auto intro!: divide_pos_pos)
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x $$ i \<and> x $$ i - y < e'" (is "\<forall>i. ?th i")
-  proof
-    fix i from Rats_dense_in_real[of "x $$ i - e'" "x $$ i"] e
-    show "?th i" by auto
-  qed
-  from choice[OF this] guess a .. note a = this
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x $$ i < y \<and> y - x $$ i < e'" (is "\<forall>i. ?th i")
-  proof
-    fix i from Rats_dense_in_real[of "x $$ i" "x $$ i + e'"] e
-    show "?th i" by auto
-  qed
-  from choice[OF this] guess b .. note b = this
-  { fix y :: 'a assume *: "Chi a < y" "y < Chi b"
-    have "dist x y = sqrt (\<Sum>i<DIM('a). (dist (x $$ i) (y $$ i))\<twosuperior>)"
-      unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
-    also have "\<dots> < sqrt (\<Sum>i<DIM('a). e^2 / real (DIM('a)))"
-    proof (rule real_sqrt_less_mono, rule setsum_strict_mono)
-      fix i assume i: "i \<in> {..<DIM('a)}"
-      have "a i < y$$i \<and> y$$i < b i" using * i eucl_less[where 'a='a] by auto
-      moreover have "a i < x$$i" "x$$i - a i < e'" using a by auto
-      moreover have "x$$i < b i" "b i - x$$i < e'" using b by auto
-      ultimately have "\<bar>x$$i - y$$i\<bar> < 2 * e'" by auto
-      then have "dist (x $$ i) (y $$ i) < e/sqrt (real (DIM('a)))"
-        unfolding e'_def by (auto simp: dist_real_def)
-      then have "(dist (x $$ i) (y $$ i))\<twosuperior> < (e/sqrt (real (DIM('a))))\<twosuperior>"
-        by (rule power_strict_mono) auto
-      then show "(dist (x $$ i) (y $$ i))\<twosuperior> < e\<twosuperior> / real DIM('a)"
-        by (simp add: power_divide)
-    qed auto
-    also have "\<dots> = e" using `0 < e` by (simp add: real_eq_of_nat DIM_positive)
-    finally have "dist x y < e" . }
-  with a b show ?thesis
-    apply (rule_tac exI[of _ "Chi a"])
-    apply (rule_tac exI[of _ "Chi b"])
-    using eucl_less[where 'a='a] by auto
-qed
-
-lemma ex_rat_list:
-  fixes x :: "'a\<Colon>ordered_euclidean_space"
-  assumes "\<And> i. x $$ i \<in> \<rat>"
-  shows "\<exists> r. length r = DIM('a) \<and> (\<forall> i < DIM('a). of_rat (r ! i) = x $$ i)"
-proof -
-  have "\<forall>i. \<exists>r. x $$ i = of_rat r" using assms unfolding Rats_def by blast
-  from choice[OF this] guess r ..
-  then show ?thesis by (auto intro!: exI[of _ "map r [0 ..< DIM('a)]"])
-qed
-
-lemma open_UNION:
-  fixes M :: "'a\<Colon>ordered_euclidean_space set"
-  assumes "open M"
-  shows "M = UNION {(a, b) | a b. {Chi (of_rat \<circ> op ! a) <..< Chi (of_rat \<circ> op ! b)} \<subseteq> M}
-                   (\<lambda> (a, b). {Chi (of_rat \<circ> op ! a) <..< Chi (of_rat \<circ> op ! b)})"
-    (is "M = UNION ?idx ?box")
-proof safe
-  fix x assume "x \<in> M"
-  obtain e where e: "e > 0" "ball x e \<subseteq> M"
-    using openE[OF assms `x \<in> M`] by auto
-  then obtain a b where ab: "x \<in> {a <..< b}" "\<And>i. a $$ i \<in> \<rat>" "\<And>i. b $$ i \<in> \<rat>" "{a <..< b} \<subseteq> ball x e"
-    using rational_boxes[OF e(1)] by blast
-  then obtain p q where pq: "length p = DIM ('a)"
-                            "length q = DIM ('a)"
-                            "\<forall> i < DIM ('a). of_rat (p ! i) = a $$ i \<and> of_rat (q ! i) = b $$ i"
-    using ex_rat_list[OF ab(2)] ex_rat_list[OF ab(3)] by blast
-  hence p: "Chi (of_rat \<circ> op ! p) = a"
-    using euclidean_eq[of "Chi (of_rat \<circ> op ! p)" a]
-    unfolding o_def by auto
-  from pq have q: "Chi (of_rat \<circ> op ! q) = b"
-    using euclidean_eq[of "Chi (of_rat \<circ> op ! q)" b]
-    unfolding o_def by auto
-  have "x \<in> ?box (p, q)"
-    using p q ab by auto
-  thus "x \<in> UNION ?idx ?box" using ab e p q exI[of _ p] exI[of _ q] by auto
-qed auto
-
 lemma borel_sigma_sets_subset:
   "A \<subseteq> sets borel \<Longrightarrow> sigma_sets UNIV A \<subseteq> sets borel"
   using sigma_sets_subset[of A borel] by simp
@@ -518,6 +437,39 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_lessThan])
   then show "{..< x} \<in> ?SIGMA"
     by (auto intro: sigma_sets.intros)
 qed auto
+
+lemma borel_eq_closed: "borel = sigma UNIV (Collect closed)"
+  unfolding borel_def
+proof (intro sigma_eqI sigma_sets_eqI, safe)
+  fix x :: "'a set" assume "open x"
+  hence "x = UNIV - (UNIV - x)" by auto
+  also have "\<dots> \<in> sigma_sets UNIV (Collect closed)"
+    by (rule sigma_sets.Compl)
+       (auto intro!: sigma_sets.Basic simp: `open x`)
+  finally show "x \<in> sigma_sets UNIV (Collect closed)" by simp
+next
+  fix x :: "'a set" assume "closed x"
+  hence "x = UNIV - (UNIV - x)" by auto
+  also have "\<dots> \<in> sigma_sets UNIV (Collect open)"
+    by (rule sigma_sets.Compl)
+       (auto intro!: sigma_sets.Basic simp: `closed x`)
+  finally show "x \<in> sigma_sets UNIV (Collect open)" by simp
+qed simp_all
+
+lemma borel_eq_enum_basis:
+  "borel = sigma UNIV (range enum_basis)"
+  unfolding borel_def
+proof (intro sigma_eqI sigma_sets_eqI, safe)
+  fix x::"'a set" assume "open x"
+  from open_enumerable_basisE[OF this] guess N .
+  hence x: "x = (\<Union>n. if n \<in> N then enum_basis n else {})" by (auto split: split_if_asm)
+  also have "\<dots> \<in> sigma_sets UNIV (range enum_basis)" by (rule Union) auto
+  finally show "x \<in> sigma_sets UNIV (range enum_basis)" .
+next
+  fix n
+  have "open (enum_basis n)" by (rule open_enum_basis) simp
+  thus "enum_basis n \<in> sigma_sets UNIV (Collect open)" by auto
+qed simp_all
 
 lemma borel_measurable_halfspacesI:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"

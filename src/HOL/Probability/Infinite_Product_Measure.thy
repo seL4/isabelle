@@ -8,69 +8,6 @@ theory Infinite_Product_Measure
   imports Probability_Measure Caratheodory Projective_Family
 begin
 
-lemma (in product_prob_space) distr_restrict:
-  assumes "J \<noteq> {}" "J \<subseteq> K" "finite K"
-  shows "(\<Pi>\<^isub>M i\<in>J. M i) = distr (\<Pi>\<^isub>M i\<in>K. M i) (\<Pi>\<^isub>M i\<in>J. M i) (\<lambda>f. restrict f J)" (is "?P = ?D")
-proof (rule measure_eqI_generator_eq)
-  have "finite J" using `J \<subseteq> K` `finite K` by (auto simp add: finite_subset)
-  interpret J: finite_product_prob_space M J proof qed fact
-  interpret K: finite_product_prob_space M K proof qed fact
-
-  let ?J = "{Pi\<^isub>E J E | E. \<forall>i\<in>J. E i \<in> sets (M i)}"
-  let ?F = "\<lambda>i. \<Pi>\<^isub>E k\<in>J. space (M k)"
-  let ?\<Omega> = "(\<Pi>\<^isub>E k\<in>J. space (M k))"
-  show "Int_stable ?J"
-    by (rule Int_stable_PiE)
-  show "range ?F \<subseteq> ?J" "(\<Union>i. ?F i) = ?\<Omega>"
-    using `finite J` by (auto intro!: prod_algebraI_finite)
-  { fix i show "emeasure ?P (?F i) \<noteq> \<infinity>" by simp }
-  show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)
-  show "sets (\<Pi>\<^isub>M i\<in>J. M i) = sigma_sets ?\<Omega> ?J" "sets ?D = sigma_sets ?\<Omega> ?J"
-    using `finite J` by (simp_all add: sets_PiM prod_algebra_eq_finite Pi_iff)
-  
-  fix X assume "X \<in> ?J"
-  then obtain E where [simp]: "X = Pi\<^isub>E J E" and E: "\<forall>i\<in>J. E i \<in> sets (M i)" by auto
-  with `finite J` have X: "X \<in> sets (Pi\<^isub>M J M)"
-    by simp
-
-  have "emeasure ?P X = (\<Prod> i\<in>J. emeasure (M i) (E i))"
-    using E by (simp add: J.measure_times)
-  also have "\<dots> = (\<Prod> i\<in>J. emeasure (M i) (if i \<in> J then E i else space (M i)))"
-    by simp
-  also have "\<dots> = (\<Prod> i\<in>K. emeasure (M i) (if i \<in> J then E i else space (M i)))"
-    using `finite K` `J \<subseteq> K`
-    by (intro setprod_mono_one_left) (auto simp: M.emeasure_space_1)
-  also have "\<dots> = emeasure (Pi\<^isub>M K M) (\<Pi>\<^isub>E i\<in>K. if i \<in> J then E i else space (M i))"
-    using E by (simp add: K.measure_times)
-  also have "(\<Pi>\<^isub>E i\<in>K. if i \<in> J then E i else space (M i)) = (\<lambda>f. restrict f J) -` Pi\<^isub>E J E \<inter> (\<Pi>\<^isub>E i\<in>K. space (M i))"
-    using `J \<subseteq> K` sets_into_space E by (force simp:  Pi_iff split: split_if_asm)
-  finally show "emeasure (Pi\<^isub>M J M) X = emeasure ?D X"
-    using X `J \<subseteq> K` apply (subst emeasure_distr)
-    by (auto intro!: measurable_restrict_subset simp: space_PiM)
-qed
-
-lemma (in product_prob_space) emeasure_prod_emb[simp]:
-  assumes L: "J \<noteq> {}" "J \<subseteq> L" "finite L" and X: "X \<in> sets (Pi\<^isub>M J M)"
-  shows "emeasure (Pi\<^isub>M L M) (prod_emb L M J X) = emeasure (Pi\<^isub>M J M) X"
-  by (subst distr_restrict[OF L])
-     (simp add: prod_emb_def space_PiM emeasure_distr measurable_restrict_subset L X)
-
-sublocale product_prob_space \<subseteq> projective_family I "\<lambda>J. PiM J M" M
-proof
-  fix J::"'i set" assume "finite J"
-  interpret f: finite_product_prob_space M J proof qed fact
-  show "emeasure (Pi\<^isub>M J M) (space (Pi\<^isub>M J M)) \<noteq> \<infinity>" by simp
-  show "\<exists>A. range A \<subseteq> sets (Pi\<^isub>M J M) \<and>
-            (\<Union>i. A i) = space (Pi\<^isub>M J M) \<and>
-            (\<forall>i. emeasure (Pi\<^isub>M J M) (A i) \<noteq> \<infinity>)" using sigma_finite[OF `finite J`]
-    by (auto simp add: sigma_finite_measure_def)
-  show "emeasure (Pi\<^isub>M J M) (space (Pi\<^isub>M J M)) = 1" by (rule f.emeasure_space_1)
-qed simp_all
-
-lemma (in product_prob_space) PiP_PiM_finite[simp]:
-  assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" shows "PiP J M (\<lambda>J. PiM J M) = PiM J M"
-  using assms by (simp add: PiP_finite)
-
 lemma (in product_prob_space) emeasure_PiM_emb_not_empty:
   assumes X: "J \<noteq> {}" "J \<subseteq> I" "finite J" "\<forall>i\<in>J. X i \<in> sets (M i)"
   shows "emeasure (Pi\<^isub>M I M) (emb I J (Pi\<^isub>E J X)) = emeasure (Pi\<^isub>M J M) (Pi\<^isub>E J X)"

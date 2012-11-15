@@ -13,6 +13,7 @@ imports
   Convex
   Countable
   Debug
+  Diagonal_Subsequence
   Dlist
   Eval_Witness
   Extended_Nat

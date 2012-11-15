@@ -171,6 +171,12 @@ next
   thus ?case by arith
 qed
 
+lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r \<circ> s)"
+  unfolding subseq_def by simp
+
+lemma subseq_mono: assumes "subseq r" "m < n" shows "r m < r n"
+  using assms by (auto simp: subseq_def)
+
 lemma incseq_imp_monoseq:  "incseq X \<Longrightarrow> monoseq X"
   by (simp add: incseq_def monoseq_def)
 
@@ -180,6 +186,20 @@ lemma decseq_imp_monoseq:  "decseq X \<Longrightarrow> monoseq X"
 lemma decseq_eq_incseq:
   fixes X :: "nat \<Rightarrow> 'a::ordered_ab_group_add" shows "decseq X = incseq (\<lambda>n. - X n)" 
   by (simp add: decseq_def incseq_def)
+
+lemma INT_decseq_offset:
+  assumes "decseq F"
+  shows "(\<Inter>i. F i) = (\<Inter>i\<in>{n..}. F i)"
+proof safe
+  fix x i assume x: "x \<in> (\<Inter>i\<in>{n..}. F i)"
+  show "x \<in> F i"
+  proof cases
+    from x have "x \<in> F n" by auto
+    also assume "i \<le> n" with `decseq F` have "F n \<subseteq> F i"
+      unfolding decseq_def by simp
+    finally show ?thesis .
+  qed (insert x, simp)
+qed auto
 
 subsection {* Defintions of limits *}
 

@@ -1161,9 +1161,6 @@ proof
     by (intro sigma_sets_subset) (auto simp: E_generates sets_Collect_single)
 qed
 
-lemma bchoice_iff: "(\<forall>a\<in>A. \<exists>b. P a b) \<longleftrightarrow> (\<exists>f. \<forall>a\<in>A. P a (f a))"
-  by metis
-
 lemma sigma_prod_algebra_sigma_eq:
   fixes E :: "'i \<Rightarrow> 'a set set" and S :: "'i \<Rightarrow> nat \<Rightarrow> 'a set"
   assumes "finite I"

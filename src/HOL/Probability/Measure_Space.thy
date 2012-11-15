@@ -169,6 +169,27 @@ proof (auto simp add: increasing_def)
   finally show "f x \<le> f y" by simp
 qed
 
+lemma (in ring_of_sets) subadditive:
+  assumes f: "positive M f" "additive M f" and A: "range A \<subseteq> M" and S: "finite S"
+  shows "f (\<Union>i\<in>S. A i) \<le> (\<Sum>i\<in>S. f (A i))"
+using S
+proof (induct S)
+  case empty thus ?case using f by (auto simp: positive_def)
+next
+  case (insert x F)
+  hence in_M: "A x \<in> M" "(\<Union> i\<in>F. A i) \<in> M" "(\<Union> i\<in>F. A i) - A x \<in> M" using A by force+
+  have subs: "(\<Union> i\<in>F. A i) - A x \<subseteq> (\<Union> i\<in>F. A i)" by auto
+  have "(\<Union> i\<in>(insert x F). A i) = A x \<union> ((\<Union> i\<in>F. A i) - A x)" by auto
+  hence "f (\<Union> i\<in>(insert x F). A i) = f (A x \<union> ((\<Union> i\<in>F. A i) - A x))"
+    by simp
+  also have "\<dots> = f (A x) + f ((\<Union> i\<in>F. A i) - A x)"
+    using f(2) by (rule additiveD) (insert in_M, auto)
+  also have "\<dots> \<le> f (A x) + f (\<Union> i\<in>F. A i)"
+    using additive_increasing[OF f] in_M subs by (auto simp: increasing_def intro: add_left_mono)
+  also have "\<dots> \<le> f (A x) + (\<Sum>i\<in>F. f (A i))" using insert by (auto intro: add_left_mono)
+  finally show "f (\<Union> i\<in>(insert x F). A i) \<le> (\<Sum>i\<in>(insert x F). f (A i))" using insert by simp
+qed
+
 lemma (in ring_of_sets) countably_additive_additive:
   assumes posf: "positive M f" and ca: "countably_additive M f"
   shows "additive M f"

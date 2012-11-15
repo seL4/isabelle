@@ -7,8 +7,209 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Linear_Algebra "~~/src/HOL/Library/Glbs" Norm_Arith
+imports
+  SEQ
+  "~~/src/HOL/Library/Diagonal_Subsequence"
+  "~~/src/HOL/Library/Countable"
+  Linear_Algebra
+  "~~/src/HOL/Library/Glbs"
+  Norm_Arith
 begin
+
+subsection {* Topological Basis *}
+
+context topological_space
+begin
+
+definition "topological_basis B =
+  ((\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> Union B' = x)))"
+
+lemma topological_basis_iff:
+  assumes "\<And>B'. B' \<in> B \<Longrightarrow> open B'"
+  shows "topological_basis B \<longleftrightarrow> (\<forall>O'. open O' \<longrightarrow> (\<forall>x\<in>O'. \<exists>B'\<in>B. x \<in> B' \<and> B' \<subseteq> O'))"
+    (is "_ \<longleftrightarrow> ?rhs")
+proof safe
+  fix O' and x::'a
+  assume H: "topological_basis B" "open O'" "x \<in> O'"
+  hence "(\<exists>B'\<subseteq>B. \<Union>B' = O')" by (simp add: topological_basis_def)
+  then obtain B' where "B' \<subseteq> B" "O' = \<Union>B'" by auto
+  thus "\<exists>B'\<in>B. x \<in> B' \<and> B' \<subseteq> O'" using H by auto
+next
+  assume H: ?rhs
+  show "topological_basis B" using assms unfolding topological_basis_def
+  proof safe
+    fix O'::"'a set" assume "open O'"
+    with H obtain f where "\<forall>x\<in>O'. f x \<in> B \<and> x \<in> f x \<and> f x \<subseteq> O'"
+      by (force intro: bchoice simp: Bex_def)
+    thus "\<exists>B'\<subseteq>B. \<Union>B' = O'"
+      by (auto intro: exI[where x="{f x |x. x \<in> O'}"])
+  qed
+qed
+
+lemma topological_basisI:
+  assumes "\<And>B'. B' \<in> B \<Longrightarrow> open B'"
+  assumes "\<And>O' x. open O' \<Longrightarrow> x \<in> O' \<Longrightarrow> \<exists>B'\<in>B. x \<in> B' \<and> B' \<subseteq> O'"
+  shows "topological_basis B"
+  using assms by (subst topological_basis_iff) auto
+
+lemma topological_basisE:
+  fixes O'
+  assumes "topological_basis B"
+  assumes "open O'"
+  assumes "x \<in> O'"
+  obtains B' where "B' \<in> B" "x \<in> B'" "B' \<subseteq> O'"
+proof atomize_elim
+  from assms have "\<And>B'. B'\<in>B \<Longrightarrow> open B'" by (simp add: topological_basis_def)
+  with topological_basis_iff assms
+  show  "\<exists>B'. B' \<in> B \<and> x \<in> B' \<and> B' \<subseteq> O'" using assms by (simp add: Bex_def)
+qed
+
+end
+
+subsection {* Enumerable Basis *}
+
+class enumerable_basis = topological_space +
+  assumes ex_enum_basis: "\<exists>f::nat \<Rightarrow> 'a set. topological_basis (range f)"
+begin
+
+definition enum_basis'::"nat \<Rightarrow> 'a set"
+  where "enum_basis' = Eps (topological_basis o range)"
+
+lemma enumerable_basis': "topological_basis (range enum_basis')"
+  using ex_enum_basis
+  unfolding enum_basis'_def o_def
+  by (rule someI_ex)
+
+lemmas enumerable_basisE' = topological_basisE[OF enumerable_basis']
+
+text {* Extend enumeration of basis, such that it is closed under (finite) Union *}
+
+definition enum_basis::"nat \<Rightarrow> 'a set"
+  where "enum_basis n = \<Union>(set (map enum_basis' (from_nat n)))"
+
+lemma
+  open_enum_basis:
+  assumes "B \<in> range enum_basis"
+  shows "open B"
+  using assms enumerable_basis'
+  by (force simp add: topological_basis_def enum_basis_def)
+
+lemma enumerable_basis: "topological_basis (range enum_basis)"
+proof (rule topological_basisI[OF open_enum_basis])
+  fix O' x assume "open O'" "x \<in> O'"
+  from topological_basisE[OF enumerable_basis' this] guess B' . note B' = this
+  moreover then obtain n where "B' = enum_basis' n" by auto
+  moreover hence "B' = enum_basis (to_nat [n])" by (auto simp: enum_basis_def)
+  ultimately show "\<exists>B'\<in>range enum_basis. x \<in> B' \<and> B' \<subseteq> O'" by blast
+qed
+
+lemmas enumerable_basisE = topological_basisE[OF enumerable_basis]
+
+lemma open_enumerable_basis_ex:
+  assumes "open X"
+  shows "\<exists>N. X = (\<Union>n\<in>N. enum_basis n)"
+proof -
+  from enumerable_basis assms obtain B' where "B' \<subseteq> range enum_basis" "X = Union B'"
+    unfolding topological_basis_def by blast
+  hence "Union B' = (\<Union>n\<in>{n. enum_basis n \<in> B'}. enum_basis n)" by auto
+  with `X = Union B'` show ?thesis by blast
+qed
+
+lemma open_enumerable_basisE:
+  assumes "open X"
+  obtains N where "X = (\<Union>n\<in>N. enum_basis n)"
+  using assms open_enumerable_basis_ex by (atomize_elim) simp
+
+lemma countable_dense_set:
+  shows "\<exists>x::nat \<Rightarrow> _. \<forall>y. open y \<longrightarrow> y \<noteq> {} \<longrightarrow> (\<exists>n. x n \<in> y)"
+proof -
+  def x \<equiv> "\<lambda>n. (SOME x::'a. x \<in> enum_basis n)"
+  have x: "\<And>n. enum_basis n \<noteq> ({}::'a set) \<Longrightarrow> x n \<in> enum_basis n" unfolding x_def
+    by (rule someI_ex) auto
+  have "\<forall>y. open y \<longrightarrow> y \<noteq> {} \<longrightarrow> (\<exists>n. x n \<in> y)"
+  proof (intro allI impI)
+    fix y::"'a set" assume "open y" "y \<noteq> {}"
+    from open_enumerable_basisE[OF `open y`] guess N . note N = this
+    obtain n where n: "n \<in> N" "enum_basis n \<noteq> ({}::'a set)"
+    proof (atomize_elim, rule ccontr, clarsimp)
+      assume "\<forall>n. n \<in> N \<longrightarrow> enum_basis n = ({}::'a set)"
+      hence "(\<Union>n\<in>N. enum_basis n) = (\<Union>n\<in>N. {}::'a set)"
+        by (intro UN_cong) auto
+      hence "y = {}" unfolding N by simp
+      with `y \<noteq> {}` show False by auto
+    qed
+    with x N n have "x n \<in> y" by auto
+    thus "\<exists>n. x n \<in> y" ..
+  qed
+  thus ?thesis by blast
+qed
+
+lemma countable_dense_setE:
+  obtains x :: "nat \<Rightarrow> _"
+  where "\<And>y. open y \<Longrightarrow> y \<noteq> {} \<Longrightarrow> \<exists>n. x n \<in> y"
+  using countable_dense_set by blast
+
+text {* Construction of an Increasing Sequence Approximating Open Sets *}
+
+lemma empty_basisI[intro]: "{} \<in> range enum_basis"
+proof
+  show "{} = enum_basis (to_nat ([]::nat list))" by (simp add: enum_basis_def)
+qed rule
+
+lemma union_basisI[intro]:
+  assumes "A \<in> range enum_basis" "B \<in> range enum_basis"
+  shows "A \<union> B \<in> range enum_basis"
+proof -
+  from assms obtain a b where "A \<union> B = enum_basis a \<union> enum_basis b" by auto
+  also have "\<dots> = enum_basis (to_nat (from_nat a @ from_nat b::nat list))"
+    by (simp add: enum_basis_def)
+  finally show ?thesis by simp
+qed
+
+lemma open_imp_Union_of_incseq:
+  assumes "open X"
+  shows "\<exists>S. incseq S \<and> (\<Union>j. S j) = X \<and> range S \<subseteq> range enum_basis"
+proof -
+  from open_enumerable_basis_ex[OF `open X`] obtain N where N: "X = (\<Union>n\<in>N. enum_basis n)" by auto
+  hence X: "X = (\<Union>n. if n \<in> N then enum_basis n else {})" by (auto split: split_if_asm)
+  def S \<equiv> "nat_rec (if 0 \<in> N then enum_basis 0 else {})
+    (\<lambda>n S. if (Suc n) \<in> N then S \<union> enum_basis (Suc n) else S)"
+  have S_simps[simp]:
+    "S 0 = (if 0 \<in> N then enum_basis 0 else {})"
+    "\<And>n. S (Suc n) = (if (Suc n) \<in> N then S n \<union> enum_basis (Suc n) else S n)"
+    by (simp_all add: S_def)
+  have "incseq S" by (rule incseq_SucI) auto
+  moreover
+  have "(\<Union>j. S j) = X" unfolding N
+  proof safe
+    fix x n assume "n \<in> N" "x \<in> enum_basis n"
+    hence "x \<in> S n" by (cases n) auto
+    thus "x \<in> (\<Union>j. S j)" by auto
+  next
+    fix x j
+    assume "x \<in> S j"
+    thus "x \<in> UNION N enum_basis" by (induct j) (auto split: split_if_asm)
+  qed
+  moreover have "range S \<subseteq> range enum_basis"
+  proof safe
+    fix j show "S j \<in> range enum_basis" by (induct j) auto
+  qed
+  ultimately show ?thesis by auto
+qed
+
+lemma open_incseqE:
+  assumes "open X"
+  obtains S where "incseq S" "(\<Union>j. S j) = X" "range S \<subseteq> range enum_basis"
+  using open_imp_Union_of_incseq assms by atomize_elim
+
+end
+
+subsection {* Polish spaces *}
+
+text {* Textbooks define Polish spaces as completely metrizable.
+  We assume the topology to be complete for a given metric. *}
+
+class polish_space = complete_space + enumerable_basis
 
 subsection {* General notion of a topology as a value *}
 
@@ -377,6 +578,86 @@ lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
 
 lemma ball_empty[intro]: "e \<le> 0 ==> ball x e = {}" by simp
 
+lemma rational_boxes:
+  fixes x :: "'a\<Colon>ordered_euclidean_space"
+  assumes "0 < e"
+  shows "\<exists>a b. (\<forall>i. a $$ i \<in> \<rat>) \<and> (\<forall>i. b $$ i \<in> \<rat>) \<and> x \<in> {a <..< b} \<and> {a <..< b} \<subseteq> ball x e"
+proof -
+  def e' \<equiv> "e / (2 * sqrt (real (DIM ('a))))"
+  then have e: "0 < e'" using assms by (auto intro!: divide_pos_pos)
+  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x $$ i \<and> x $$ i - y < e'" (is "\<forall>i. ?th i")
+  proof
+    fix i from Rats_dense_in_real[of "x $$ i - e'" "x $$ i"] e
+    show "?th i" by auto
+  qed
+  from choice[OF this] guess a .. note a = this
+  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x $$ i < y \<and> y - x $$ i < e'" (is "\<forall>i. ?th i")
+  proof
+    fix i from Rats_dense_in_real[of "x $$ i" "x $$ i + e'"] e
+    show "?th i" by auto
+  qed
+  from choice[OF this] guess b .. note b = this
+  { fix y :: 'a assume *: "Chi a < y" "y < Chi b"
+    have "dist x y = sqrt (\<Sum>i<DIM('a). (dist (x $$ i) (y $$ i))\<twosuperior>)"
+      unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
+    also have "\<dots> < sqrt (\<Sum>i<DIM('a). e^2 / real (DIM('a)))"
+    proof (rule real_sqrt_less_mono, rule setsum_strict_mono)
+      fix i assume i: "i \<in> {..<DIM('a)}"
+      have "a i < y$$i \<and> y$$i < b i" using * i eucl_less[where 'a='a] by auto
+      moreover have "a i < x$$i" "x$$i - a i < e'" using a by auto
+      moreover have "x$$i < b i" "b i - x$$i < e'" using b by auto
+      ultimately have "\<bar>x$$i - y$$i\<bar> < 2 * e'" by auto
+      then have "dist (x $$ i) (y $$ i) < e/sqrt (real (DIM('a)))"
+        unfolding e'_def by (auto simp: dist_real_def)
+      then have "(dist (x $$ i) (y $$ i))\<twosuperior> < (e/sqrt (real (DIM('a))))\<twosuperior>"
+        by (rule power_strict_mono) auto
+      then show "(dist (x $$ i) (y $$ i))\<twosuperior> < e\<twosuperior> / real DIM('a)"
+        by (simp add: power_divide)
+    qed auto
+    also have "\<dots> = e" using `0 < e` by (simp add: real_eq_of_nat DIM_positive)
+    finally have "dist x y < e" . }
+  with a b show ?thesis
+    apply (rule_tac exI[of _ "Chi a"])
+    apply (rule_tac exI[of _ "Chi b"])
+    using eucl_less[where 'a='a] by auto
+qed
+
+lemma ex_rat_list:
+  fixes x :: "'a\<Colon>ordered_euclidean_space"
+  assumes "\<And> i. x $$ i \<in> \<rat>"
+  shows "\<exists> r. length r = DIM('a) \<and> (\<forall> i < DIM('a). of_rat (r ! i) = x $$ i)"
+proof -
+  have "\<forall>i. \<exists>r. x $$ i = of_rat r" using assms unfolding Rats_def by blast
+  from choice[OF this] guess r ..
+  then show ?thesis by (auto intro!: exI[of _ "map r [0 ..< DIM('a)]"])
+qed
+
+lemma open_UNION:
+  fixes M :: "'a\<Colon>ordered_euclidean_space set"
+  assumes "open M"
+  shows "M = UNION {(a, b) | a b. {Chi (of_rat \<circ> op ! a) <..< Chi (of_rat \<circ> op ! b)} \<subseteq> M}
+                   (\<lambda> (a, b). {Chi (of_rat \<circ> op ! a) <..< Chi (of_rat \<circ> op ! b)})"
+    (is "M = UNION ?idx ?box")
+proof safe
+  fix x assume "x \<in> M"
+  obtain e where e: "e > 0" "ball x e \<subseteq> M"
+    using openE[OF assms `x \<in> M`] by auto
+  then obtain a b where ab: "x \<in> {a <..< b}" "\<And>i. a $$ i \<in> \<rat>" "\<And>i. b $$ i \<in> \<rat>" "{a <..< b} \<subseteq> ball x e"
+    using rational_boxes[OF e(1)] by blast
+  then obtain p q where pq: "length p = DIM ('a)"
+                            "length q = DIM ('a)"
+                            "\<forall> i < DIM ('a). of_rat (p ! i) = a $$ i \<and> of_rat (q ! i) = b $$ i"
+    using ex_rat_list[OF ab(2)] ex_rat_list[OF ab(3)] by blast
+  hence p: "Chi (of_rat \<circ> op ! p) = a"
+    using euclidean_eq[of "Chi (of_rat \<circ> op ! p)" a]
+    unfolding o_def by auto
+  from pq have q: "Chi (of_rat \<circ> op ! q) = b"
+    using euclidean_eq[of "Chi (of_rat \<circ> op ! q)" b]
+    unfolding o_def by auto
+  have "x \<in> ?box (p, q)"
+    using p q ab by auto
+  thus "x \<in> UNION ?idx ?box" using ab e p q exI[of _ p] exI[of _ q] by auto
+qed auto
 
 subsection{* Connectedness *}
 
@@ -802,7 +1083,6 @@ lemma frontier_complement: "frontier(- S) = frontier S"
 lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> open S"
   using frontier_complement frontier_subset_eq[of "- S"]
   unfolding open_closed by auto
-
 
 subsection {* Filters and the ``eventually true'' quantifier *}
 
@@ -1360,6 +1640,121 @@ lemma closed_approachable:
   fixes S :: "'a::metric_space set"
   shows "closed S ==> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
   by (metis closure_closed closure_approachable)
+
+subsection {* Infimum Distance *}
+
+definition "infdist x A = (if A = {} then 0 else Inf {dist x a|a. a \<in> A})"
+
+lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = Inf {dist x a|a. a \<in> A}"
+  by (simp add: infdist_def)
+
+lemma infdist_nonneg:
+  shows "0 \<le> infdist x A"
+  using assms by (auto simp add: infdist_def)
+
+lemma infdist_le:
+  assumes "a \<in> A"
+  assumes "d = dist x a"
+  shows "infdist x A \<le> d"
+  using assms by (auto intro!: SupInf.Inf_lower[where z=0] simp add: infdist_def)
+
+lemma infdist_zero[simp]:
+  assumes "a \<in> A" shows "infdist a A = 0"
+proof -
+  from infdist_le[OF assms, of "dist a a"] have "infdist a A \<le> 0" by auto
+  with infdist_nonneg[of a A] assms show "infdist a A = 0" by auto
+qed
+
+lemma infdist_triangle:
+  shows "infdist x A \<le> infdist y A + dist x y"
+proof cases
+  assume "A = {}" thus ?thesis by (simp add: infdist_def)
+next
+  assume "A \<noteq> {}" then obtain a where "a \<in> A" by auto
+  have "infdist x A \<le> Inf {dist x y + dist y a |a. a \<in> A}"
+  proof
+    from `A \<noteq> {}` show "{dist x y + dist y a |a. a \<in> A} \<noteq> {}" by simp
+    fix d assume "d \<in> {dist x y + dist y a |a. a \<in> A}"
+    then obtain a where d: "d = dist x y + dist y a" "a \<in> A" by auto
+    show "infdist x A \<le> d"
+      unfolding infdist_notempty[OF `A \<noteq> {}`]
+    proof (rule Inf_lower2)
+      show "dist x a \<in> {dist x a |a. a \<in> A}" using `a \<in> A` by auto
+      show "dist x a \<le> d" unfolding d by (rule dist_triangle)
+      fix d assume "d \<in> {dist x a |a. a \<in> A}"
+      then obtain a where "a \<in> A" "d = dist x a" by auto
+      thus "infdist x A \<le> d" by (rule infdist_le)
+    qed
+  qed
+  also have "\<dots> = dist x y + infdist y A"
+  proof (rule Inf_eq, safe)
+    fix a assume "a \<in> A"
+    thus "dist x y + infdist y A \<le> dist x y + dist y a" by (auto intro: infdist_le)
+  next
+    fix i assume inf: "\<And>d. d \<in> {dist x y + dist y a |a. a \<in> A} \<Longrightarrow> i \<le> d"
+    hence "i - dist x y \<le> infdist y A" unfolding infdist_notempty[OF `A \<noteq> {}`] using `a \<in> A`
+      by (intro Inf_greatest) (auto simp: field_simps)
+    thus "i \<le> dist x y + infdist y A" by simp
+  qed
+  finally show ?thesis by simp
+qed
+
+lemma
+  in_closure_iff_infdist_zero:
+  assumes "A \<noteq> {}"
+  shows "x \<in> closure A \<longleftrightarrow> infdist x A = 0"
+proof
+  assume "x \<in> closure A"
+  show "infdist x A = 0"
+  proof (rule ccontr)
+    assume "infdist x A \<noteq> 0"
+    with infdist_nonneg[of x A] have "infdist x A > 0" by auto
+    hence "ball x (infdist x A) \<inter> closure A = {}" apply auto
+      by (metis `0 < infdist x A` `x \<in> closure A` closure_approachable dist_commute
+        eucl_less_not_refl euclidean_trans(2) infdist_le)
+    hence "x \<notin> closure A" by (metis `0 < infdist x A` centre_in_ball disjoint_iff_not_equal)
+    thus False using `x \<in> closure A` by simp
+  qed
+next
+  assume x: "infdist x A = 0"
+  then obtain a where "a \<in> A" by atomize_elim (metis all_not_in_conv assms)
+  show "x \<in> closure A" unfolding closure_approachable
+  proof (safe, rule ccontr)
+    fix e::real assume "0 < e"
+    assume "\<not> (\<exists>y\<in>A. dist y x < e)"
+    hence "infdist x A \<ge> e" using `a \<in> A`
+      unfolding infdist_def
+      by (force intro: Inf_greatest simp: dist_commute)
+    with x `0 < e` show False by auto
+  qed
+qed
+
+lemma
+  in_closed_iff_infdist_zero:
+  assumes "closed A" "A \<noteq> {}"
+  shows "x \<in> A \<longleftrightarrow> infdist x A = 0"
+proof -
+  have "x \<in> closure A \<longleftrightarrow> infdist x A = 0"
+    by (rule in_closure_iff_infdist_zero) fact
+  with assms show ?thesis by simp
+qed
+
+lemma tendsto_infdist [tendsto_intros]:
+  assumes f: "(f ---> l) F"
+  shows "((\<lambda>x. infdist (f x) A) ---> infdist l A) F"
+proof (rule tendstoI)
+  fix e ::real assume "0 < e"
+  from tendstoD[OF f this]
+  show "eventually (\<lambda>x. dist (infdist (f x) A) (infdist l A) < e) F"
+  proof (eventually_elim)
+    fix x
+    from infdist_triangle[of l A "f x"] infdist_triangle[of "f x" A l]
+    have "dist (infdist (f x) A) (infdist l A) \<le> dist (f x) l"
+      by (simp add: dist_commute dist_real_def)
+    also assume "dist (f x) l < e"
+    finally show "dist (infdist (f x) A) (infdist l A) < e" .
+  qed
+qed
 
 text{* Some other lemmas about sequences. *}
 
@@ -2696,6 +3091,157 @@ next
   assume ?rhs thus ?lhs by (rule bolzano_weierstrass_imp_compact)
 qed
 
+lemma bchoice_iff: "(\<forall>a\<in>A. \<exists>b. P a b) \<longleftrightarrow> (\<exists>f. \<forall>a\<in>A. P a (f a))"
+  by metis
+
+lemma nat_approx_posE:
+  fixes e::real
+  assumes "0 < e"
+  obtains n::nat where "1 / (Suc n) < e"
+proof atomize_elim
+  have " 1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
+    by (rule divide_strict_left_mono) (auto intro!: mult_pos_pos simp: `0 < e`)
+  also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
+    by (rule divide_left_mono) (auto intro!: divide_pos_pos simp: `0 < e`)
+  also have "\<dots> = e" by simp
+  finally show  "\<exists>n. 1 / real (Suc n) < e" ..
+qed
+
+lemma compact_eq_totally_bounded:
+  shows "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k)))"
+proof (safe intro!: compact_imp_complete)
+  fix e::real
+  def f \<equiv> "(\<lambda>x::'a. ball x e) ` UNIV"
+  assume "0 < e" "compact s"
+  hence "(\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f \<longrightarrow> (\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')"
+    by (simp add: compact_eq_heine_borel)
+  moreover
+  have d0: "\<And>x::'a. dist x x < e" using `0 < e` by simp
+  hence "(\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f" by (auto simp: f_def intro!: d0)
+  ultimately have "(\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')" ..
+  then guess K .. note K = this
+  have "\<forall>K'\<in>K. \<exists>k. K' = ball k e" using K by (auto simp: f_def)
+  then obtain k where "\<And>K'. K' \<in> K \<Longrightarrow> K' = ball (k K') e" unfolding bchoice_iff by blast
+  thus "\<exists>k. finite k \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" using K
+    by (intro exI[where x="k ` K"]) (auto simp: f_def)
+next
+  assume assms: "complete s" "\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k"
+  show "compact s"
+  proof cases
+    assume "s = {}" thus "compact s" by (simp add: compact_def)
+  next
+    assume "s \<noteq> {}"
+    show ?thesis
+      unfolding compact_def
+    proof safe
+      fix f::"nat \<Rightarrow> _" assume "\<forall>n. f n \<in> s" hence f: "\<And>n. f n \<in> s" by simp
+      from assms have "\<forall>e. \<exists>k. e>0 \<longrightarrow> finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))" by simp
+      then obtain K where
+        K: "\<And>e. e > 0 \<Longrightarrow> finite (K e) \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` (K e)))"
+        unfolding choice_iff by blast
+      {
+        fix e::real and f' have f': "\<And>n::nat. (f o f') n \<in> s" using f by auto
+        assume "e > 0"
+        from K[OF this] have K: "finite (K e)" "s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` (K e)))"
+          by simp_all
+        have "\<exists>k\<in>(K e). \<exists>r. subseq r \<and> (\<forall>i. (f o f' o r) i \<in> ball k e)"
+        proof (rule ccontr)
+          from K have "finite (K e)" "K e \<noteq> {}" "s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` (K e)))"
+            using `s \<noteq> {}`
+            by auto
+          moreover
+          assume "\<not> (\<exists>k\<in>K e. \<exists>r. subseq r \<and> (\<forall>i. (f \<circ> f' o r) i \<in> ball k e))"
+          hence "\<And>r k. k \<in> K e \<Longrightarrow> subseq r \<Longrightarrow> (\<exists>i. (f o f' o r) i \<notin> ball k e)" by simp
+          ultimately
+          show False using f'
+          proof (induct arbitrary: s f f' rule: finite_ne_induct)
+            case (singleton x)
+            have "\<exists>i. (f \<circ> f' o id) i \<notin> ball x e" by (rule singleton) (auto simp: subseq_def)
+            thus ?case using singleton by (auto simp: ball_def)
+          next
+            case (insert x A)
+            show ?case
+            proof cases
+              have inf_ms: "infinite ((f o f') -` s)" using insert by (simp add: vimage_def)
+              have "infinite ((f o f') -` \<Union>((\<lambda>x. ball x e) ` (insert x A)))"
+                using insert by (intro infinite_super[OF _ inf_ms]) auto
+              also have "((f o f') -` \<Union>((\<lambda>x. ball x e) ` (insert x A))) =
+                {m. (f o f') m \<in> ball x e} \<union> {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}" by auto
+              finally have "infinite \<dots>" .
+              moreover assume "finite {m. (f o f') m \<in> ball x e}"
+              ultimately have inf: "infinite {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}" by blast
+              hence "A \<noteq> {}" by auto then obtain k where "k \<in> A" by auto
+              def r \<equiv> "enumerate {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}"
+              have r_mono: "\<And>n m. n < m \<Longrightarrow> r n < r m"
+                using enumerate_mono[OF _ inf] by (simp add: r_def)
+              hence "subseq r" by (simp add: subseq_def)
+              have r_in_set: "\<And>n. r n \<in> {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}"
+                using enumerate_in_set[OF inf] by (simp add: r_def)
+              show False
+              proof (rule insert)
+                show "\<Union>(\<lambda>x. ball x e) ` A \<subseteq> \<Union>(\<lambda>x. ball x e) ` A" by simp
+                fix k s assume "k \<in> A" "subseq s"
+                thus "\<exists>i. (f o f' o r o s) i \<notin> ball k e" using `subseq r`
+                  by (subst (2) o_assoc[symmetric]) (intro insert(6) subseq_o, simp_all)
+              next
+                fix n show "(f \<circ> f' o r) n \<in> \<Union>(\<lambda>x. ball x e) ` A" using r_in_set by auto
+              qed
+            next
+              assume inf: "infinite {m. (f o f') m \<in> ball x e}"
+              def r \<equiv> "enumerate {m. (f o f') m \<in> ball x e}"
+              have r_mono: "\<And>n m. n < m \<Longrightarrow> r n < r m"
+                using enumerate_mono[OF _ inf] by (simp add: r_def)
+              hence "subseq r" by (simp add: subseq_def)
+              from insert(6)[OF insertI1 this] obtain i where "(f o f') (r i) \<notin> ball x e" by auto
+              moreover
+              have r_in_set: "\<And>n. r n \<in> {m. (f o f') m \<in> ball x e}"
+                using enumerate_in_set[OF inf] by (simp add: r_def)
+              hence "(f o f') (r i) \<in> ball x e" by simp
+              ultimately show False by simp
+            qed
+          qed
+        qed
+      }
+      hence ex: "\<forall>f'. \<forall>e > 0. (\<exists>k\<in>K e. \<exists>r. subseq r \<and> (\<forall>i. (f o f' \<circ> r) i \<in> ball k e))" by simp
+      let ?e = "\<lambda>n. 1 / real (Suc n)"
+      let ?P = "\<lambda>n s. \<exists>k\<in>K (?e n). (\<forall>i. (f o s) i \<in> ball k (?e n))"
+      interpret subseqs ?P using ex by unfold_locales force
+      from `complete s` have limI: "\<And>f. (\<And>n. f n \<in> s) \<Longrightarrow> Cauchy f \<Longrightarrow> (\<exists>l\<in>s. f ----> l)"
+        by (simp add: complete_def)
+      have "\<exists>l\<in>s. (f o diagseq) ----> l"
+      proof (intro limI metric_CauchyI)
+        fix e::real assume "0 < e" hence "0 < e / 2" by auto
+        from nat_approx_posE[OF this] guess n . note n = this
+        show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist ((f \<circ> diagseq) m) ((f \<circ> diagseq) n) < e"
+        proof (rule exI[where x="Suc n"], safe)
+          fix m mm assume "Suc n \<le> m" "Suc n \<le> mm"
+          let ?e = "1 / real (Suc n)"
+          from reducer_reduces[of n] obtain k where
+            "k\<in>K ?e"  "\<And>i. (f o seqseq (Suc n)) i \<in> ball k ?e"
+            unfolding seqseq_reducer by auto
+          moreover
+          note diagseq_sub[OF `Suc n \<le> m`] diagseq_sub[OF `Suc n \<le> mm`]
+          ultimately have "{(f o diagseq) m, (f o diagseq) mm} \<subseteq> ball k ?e" by auto
+          also have "\<dots> \<subseteq> ball k (e / 2)" using n by (intro subset_ball) simp
+          finally
+          have "dist k ((f \<circ> diagseq) m) + dist k ((f \<circ> diagseq) mm) < e / 2 + e /2"
+            by (intro add_strict_mono) auto
+          hence "dist ((f \<circ> diagseq) m) k + dist ((f \<circ> diagseq) mm) k < e"
+            by (simp add: dist_commute)
+          moreover have "dist ((f \<circ> diagseq) m) ((f \<circ> diagseq) mm) \<le>
+            dist ((f \<circ> diagseq) m) k + dist ((f \<circ> diagseq) mm) k"
+            by (rule dist_triangle2)
+          ultimately show "dist ((f \<circ> diagseq) m) ((f \<circ> diagseq) mm) < e"
+            by simp
+        qed
+      next
+        fix n show "(f o diagseq) n \<in> s" using f by simp
+      qed
+      thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l" using subseq_diagseq by auto
+    qed
+  qed
+qed
+
 lemma compact_eq_bounded_closed:
   fixes s :: "'a::heine_borel set"
   shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
@@ -2738,9 +3284,6 @@ lemma compact_empty[simp]:
   unfolding compact_def
   by simp
 
-lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r \<circ> s)"
-  unfolding subseq_def by simp (* TODO: move somewhere else *)
-
 lemma compact_union [intro]:
   assumes "compact s" and "compact t"
   shows "compact (s \<union> t)"
@@ -2770,6 +3313,13 @@ proof (rule compactI)
     thus ?thesis by auto
   qed
 qed
+
+lemma compact_Union [intro]: "finite S \<Longrightarrow> (\<And>T. T \<in> S \<Longrightarrow> compact T) \<Longrightarrow> compact (\<Union>S)"
+  by (induct set: finite) auto
+
+lemma compact_UN [intro]:
+  "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
+  unfolding SUP_def by (rule compact_Union) auto
 
 lemma compact_inter_closed [intro]:
   assumes "compact s" and "closed t"
@@ -3293,6 +3843,11 @@ lemma continuous_dist:
   assumes "continuous F f" and "continuous F g"
   shows "continuous F (\<lambda>x. dist (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_dist)
+
+lemma continuous_infdist:
+  assumes "continuous F f"
+  shows "continuous F (\<lambda>x. infdist (f x) A)"
+  using assms unfolding continuous_def by (rule tendsto_infdist)
 
 lemma continuous_norm:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. norm (f x))"
@@ -4885,6 +5440,39 @@ proof-
     hence "a$$i \<le> x$$i" by(rule ccontr)auto  }
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
+
+instance ordered_euclidean_space \<subseteq> enumerable_basis
+proof
+  def to_cube \<equiv> "\<lambda>(a, b). {Chi (real_of_rat \<circ> op ! a)<..<Chi (real_of_rat \<circ> op ! b)}::'a set"
+  def enum \<equiv> "\<lambda>n. (to_cube (from_nat n)::'a set)"
+  have "Ball (range enum) open" unfolding enum_def
+  proof safe
+    fix n show "open (to_cube (from_nat n))"
+      by (cases "from_nat n::rat list \<times> rat list")
+         (simp add: open_interval to_cube_def)
+  qed
+  moreover have "(\<forall>x. open x \<longrightarrow> (\<exists>B'\<subseteq>range enum. \<Union>B' = x))"
+  proof safe
+    fix x::"'a set" assume "open x"
+    def lists \<equiv> "{(a, b) |a b. to_cube (a, b) \<subseteq> x}"
+    from open_UNION[OF `open x`]
+    have "\<Union>(to_cube ` lists) = x" unfolding lists_def to_cube_def
+     by simp
+    moreover have "to_cube ` lists \<subseteq> range enum"
+    proof
+      fix x assume "x \<in> to_cube ` lists"
+      then obtain l where "l \<in> lists" "x = to_cube l" by auto
+      hence "x = enum (to_nat l)" by (simp add: to_cube_def enum_def)
+      thus "x \<in> range enum" by simp
+    qed
+    ultimately
+    show "\<exists>B'\<subseteq>range enum. \<Union>B' = x" by blast
+  qed
+  ultimately
+  show "\<exists>f::nat\<Rightarrow>'a set. topological_basis (range f)" unfolding topological_basis_def by blast
+qed
+
+instance ordered_euclidean_space \<subseteq> polish_space ..
 
 text {* Intervals in general, including infinite and mixtures of open and closed. *}
 
