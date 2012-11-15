@@ -35,7 +35,7 @@ struct
 
 open Predicate_Compile_Aux;
 
-type seed = Random_Engine.seed:
+type seed = Random_Engine.seed;
 
 (* FIXME just one data slot (record) per program unit *)
 
