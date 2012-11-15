@@ -620,6 +620,17 @@ qed
 
 end
 
+hide_const (open) PiF
+hide_const (open) Pi\<^isub>F
+hide_const (open) Pi'
+hide_const (open) Abs_finmap
+hide_const (open) Rep_finmap
+hide_const (open) finmap_of
+hide_const (open) finmapset
+hide_const (open) proj
+hide_const (open) domain
+hide_const (open) enum_basis_finmap
+
 sublocale polish_projective \<subseteq> P!: prob_space "(PiB I P)"
 proof
   show "emeasure (PiB I P) (space (PiB I P)) = 1"
