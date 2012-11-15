@@ -120,23 +120,17 @@ next
   finally show "?P (Suc n)" by simp
 qed
 
-text {* Comparing these examples with the tactic script version
-  @{file "~~/src/HOL/ex/NatSum.thy"}, we note an important difference
-  of how induction vs.\ simplification is
-  applied.  While \cite[\S10]{isabelle-ref} advises for these examples
-  that ``induction should not be applied until the goal is in the
-  simplest form'' this would be a very bad idea in our setting.
+text {* Note that in contrast to older traditions of tactical proof
+  scripts, the structured proof applies induction on the original,
+  unsimplified statement.  This allows to state the induction cases
+  robustly and conveniently.  Simplification (or other automated)
+  methods are then applied in terminal position to solve certain
+  sub-problems completely.
 
-  Simplification normalizes all arithmetic expressions involved,
-  producing huge intermediate goals.  With applying induction
-  afterwards, the Isar proof text would have to reflect the emerging
-  configuration by appropriate sub-proofs.  This would result in badly
-  structured, low-level technical reasoning, without any good idea of
-  the actual point.
-
-  \medskip As a general rule of good proof style, automatic methods
-  such as $\idt{simp}$ or $\idt{auto}$ should normally be never used
-  as initial proof methods, but only as terminal ones, solving certain
-  goals completely.  *}
+  As a general rule of good proof style, automatic methods such as
+  $\idt{simp}$ or $\idt{auto}$ should normally be never used as
+  initial proof methods with a nested sub-proof to address the
+  automatically produced situation, but only as terminal ones to solve
+  sub-problems.  *}
 
 end
