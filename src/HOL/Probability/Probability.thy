@@ -3,7 +3,7 @@ imports
   Complete_Measure
   Probability_Measure
   Infinite_Product_Measure
-  Regularity
+  Projective_Limit
   Independent_Family
   Information
 begin
