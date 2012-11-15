@@ -2,52 +2,11 @@
     Author:     Fabian Immler, TU München
 *)
 
+header {* Regularity of Measures *}
+
 theory Regularity
 imports Measure_Space Borel_Space
 begin
-
-instantiation nat::topological_space
-begin
-
-definition open_nat::"nat set \<Rightarrow> bool"
-  where "open_nat s = True"
-
-instance proof qed (auto simp: open_nat_def)
-end
-
-instantiation nat::metric_space
-begin
-
-definition dist_nat::"nat \<Rightarrow> nat \<Rightarrow> real"
-  where "dist_nat n m = (if n = m then 0 else 1)"
-
-instance proof qed (auto simp: open_nat_def dist_nat_def intro: exI[where x=1])
-end
-
-instance nat::complete_space
-proof
-  fix X::"nat\<Rightarrow>nat" assume "Cauchy X"
-  hence "\<exists>n. \<forall>m\<ge>n. X m = X n"
-    by (force simp: dist_nat_def Cauchy_def split: split_if_asm dest:spec[where x=1])
-  then guess n ..
-  thus "convergent X"
-    apply (intro convergentI[where L="X n"] tendstoI)
-    unfolding eventually_sequentially dist_nat_def
-    apply (intro exI[where x=n])
-    apply (intro allI)
-    apply (drule_tac x=na in spec)
-    apply simp
-    done
-qed
-
-instance nat::enumerable_basis
-proof
-  have "topological_basis (range (\<lambda>n::nat. {n}))"
-    by (intro topological_basisI) (auto simp: open_nat_def)
-  thus "\<exists>f::nat\<Rightarrow>nat set. topological_basis (range f)" by blast
-qed
-
-subsection {* Regularity of Measures *}
 
 lemma ereal_approx_SUP:
   fixes x::ereal
