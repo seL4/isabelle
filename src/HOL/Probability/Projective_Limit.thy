@@ -1,4 +1,4 @@
-(*  Title:      HOL/Probability/Projective_Family.thy
+(*  Title:      HOL/Probability/Projective_Limit.thy
     Author:     Fabian Immler, TU München
 *)
 

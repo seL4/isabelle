@@ -1,12 +1,12 @@
-(*  Title:      HOL/Probability/Projective_Family.thy
+(*  Title:      HOL/Probability/Fin_Map.thy
     Author:     Fabian Immler, TU München
 *)
+
+header {* Finite Maps *}
 
 theory Fin_Map
 imports Finite_Product_Measure
 begin
-
-section {* Finite Maps *}
 
 text {* Auxiliary type that is instantiated to @{class polish_space}, needed for the proof of
   projective limit. @{const extensional} functions are used for the representation in order to
