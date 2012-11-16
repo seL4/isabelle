@@ -207,7 +207,7 @@ proof -
       OF `I \<noteq> {}`, OF `I \<noteq> {}`])
     fix A assume "A \<in> ?G"
     with generatorE guess J X . note JX = this
-    interpret prob_space "P J" using prob_space[OF `finite J`] .
+    interpret prob_space "P J" using proj_prob_space[OF `finite J`] .
     show "\<mu>G A \<noteq> \<infinity>" using JX by (simp add: limP_finite)
   next
     fix Z assume Z: "range Z \<subseteq> ?G" "decseq Z" "(\<Inter>i. Z i) = {}"
@@ -241,7 +241,7 @@ proof -
       note [simp] = `\<And>n. finite (J n)`
       from J  Z_emb have Z_eq: "\<And>n. Z n = emb I (J n) (B n)" "\<And>n. Z n \<in> ?G"
         unfolding J_def B_def by (subst prod_emb_trans) (insert Z, auto)
-      interpret prob_space "P (J i)" for i using prob_space by simp
+      interpret prob_space "P (J i)" for i using proj_prob_space by simp
       have "?a \<le> \<mu>G (Z 0)" by (auto intro: INF_lower)
       also have "\<dots> < \<infinity>" using J by (auto simp: Z_eq \<mu>G_eq limP_finite proj_sets)
       finally have "?a \<noteq> \<infinity>" by simp
@@ -636,13 +636,13 @@ proof
   show "emeasure (lim\<^isub>B I P) (space (lim\<^isub>B I P)) = 1"
   proof cases
     assume "I = {}"
-    interpret prob_space "P {}" using prob_space by simp
+    interpret prob_space "P {}" using proj_prob_space by simp
     show ?thesis
       by (simp add: space_PiM_empty limP_finite emeasure_space_1 `I = {}`)
   next
     assume "I \<noteq> {}"
     then obtain i where "i \<in> I" by auto
-    interpret prob_space "P {i}" using prob_space by simp
+    interpret prob_space "P {i}" using proj_prob_space by simp
     have R: "(space (lim\<^isub>B I P)) = (emb I {i} (Pi\<^isub>E {i} (\<lambda>_. space borel)))"
       by (auto simp: prod_emb_def space_PiM)
     moreover have "extensional {i} = space (P {i})" by (simp add: proj_space space_PiM)
@@ -660,7 +660,7 @@ lemma emeasure_limB_emb:
   assumes X: "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
   shows "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (P J) (Pi\<^isub>E J B)"
 proof cases
-  interpret prob_space "P {}" using prob_space by simp
+  interpret prob_space "P {}" using proj_prob_space by simp
   assume "J = {}"
   moreover have "emb I {} {\<lambda>x. undefined} = space (lim\<^isub>B I P)"
     by (auto simp: space_PiM prod_emb_def)
@@ -677,7 +677,7 @@ lemma measure_limB_emb:
   assumes "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
   shows "measure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = measure (P J) (Pi\<^isub>E J B)"
 proof -
-  interpret prob_space "P J" using prob_space assms by simp
+  interpret prob_space "P J" using proj_prob_space assms by simp
   show ?thesis
     using emeasure_limB_emb[OF assms]
     unfolding emeasure_eq_measure limP_finite[OF `finite J` `J \<subseteq> I`] P.emeasure_eq_measure

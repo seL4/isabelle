@@ -81,7 +81,7 @@ locale projective_family =
   fixes I::"'i set" and P::"'i set \<Rightarrow> ('i \<Rightarrow> 'a) measure" and M::"('i \<Rightarrow> 'a measure)"
   assumes projective: "\<And>J H X. J \<noteq> {} \<Longrightarrow> J \<subseteq> H \<Longrightarrow> H \<subseteq> I \<Longrightarrow> finite H \<Longrightarrow> X \<in> sets (PiM J M) \<Longrightarrow>
      (P H) (prod_emb H M J X) = (P J) X"
-  assumes prob_space: "\<And>J. finite J \<Longrightarrow> prob_space (P J)"
+  assumes proj_prob_space: "\<And>J. finite J \<Longrightarrow> prob_space (P J)"
   assumes proj_space: "\<And>J. finite J \<Longrightarrow> space (P J) = space (PiM J M)"
   assumes proj_sets: "\<And>J. finite J \<Longrightarrow> sets (P J) = sets (PiM J M)"
 begin
@@ -133,7 +133,7 @@ proof (rule measure_eqI_generator_eq)
   let ?\<Omega> = "(\<Pi>\<^isub>E k\<in>J. space (M k))"
   show "Int_stable ?J"
     by (rule Int_stable_PiE)
-  interpret prob_space "P J" using prob_space `finite J` by simp
+  interpret prob_space "P J" using proj_prob_space `finite J` by simp
   show "emeasure ?P (?F _) \<noteq> \<infinity>" using assms `finite J` by (auto simp: emeasure_limP)
   show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)
   show "sets (limP J M P) = sigma_sets ?\<Omega> ?J" "sets (P J) = sigma_sets ?\<Omega> ?J"
@@ -165,7 +165,7 @@ proof (rule injective_vimage_restrict)
   have "\<forall>i\<in>L. \<exists>x. x \<in> space (M i)"
   proof
     fix i assume "i \<in> L"
-    interpret prob_space "P {i}" using prob_space by simp
+    interpret prob_space "P {i}" using proj_prob_space by simp
     from not_empty show "\<exists>x. x \<in> space (M i)" by (auto simp add: proj_space space_PiM)
   qed
   from bchoice[OF this]
