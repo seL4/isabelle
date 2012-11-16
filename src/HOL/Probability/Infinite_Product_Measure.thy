@@ -96,7 +96,7 @@ next
         using A positive_\<mu>G[OF I_not_empty] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
 
-      have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (PiP J M (\<lambda>J. (Pi\<^isub>M J M))) X"
+      have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (limP J M (\<lambda>J. (Pi\<^isub>M J M))) X"
         using A by (intro allI generator_Ex) auto
       then obtain J' X' where J': "\<And>n. J' n \<noteq> {}" "\<And>n. finite (J' n)" "\<And>n. J' n \<subseteq> I" "\<And>n. X' n \<in> sets (Pi\<^isub>M (J' n) M)"
         and A': "\<And>n. A n = emb I (J' n) (X' n)"

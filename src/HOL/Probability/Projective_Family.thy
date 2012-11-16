@@ -57,22 +57,24 @@ lemma (in product_prob_space) emeasure_prod_emb[simp]:
      (simp add: prod_emb_def space_PiM emeasure_distr measurable_restrict_subset L X)
 
 definition
-  PiP :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i set \<Rightarrow> ('i \<Rightarrow> 'a) measure) \<Rightarrow> ('i \<Rightarrow> 'a) measure" where
-  "PiP I M P = extend_measure (\<Pi>\<^isub>E i\<in>I. space (M i))
+  limP :: "'i set \<Rightarrow> ('i \<Rightarrow> 'a measure) \<Rightarrow> ('i set \<Rightarrow> ('i \<Rightarrow> 'a) measure) \<Rightarrow> ('i \<Rightarrow> 'a) measure" where
+  "limP I M P = extend_measure (\<Pi>\<^isub>E i\<in>I. space (M i))
     {(J, X). (J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}
     (\<lambda>(J, X). prod_emb I M J (\<Pi>\<^isub>E j\<in>J. X j))
     (\<lambda>(J, X). emeasure (P J) (Pi\<^isub>E J X))"
 
-lemma space_PiP[simp]: "space (PiP I M P) = space (PiM I M)"
-  by (auto simp add: PiP_def space_PiM prod_emb_def intro!: space_extend_measure)
+abbreviation "lim\<^isub>P \<equiv> limP"
 
-lemma sets_PiP[simp]: "sets (PiP I M P) = sets (PiM I M)"
-  by (auto simp add: PiP_def sets_PiM prod_algebra_def prod_emb_def intro!: sets_extend_measure)
+lemma space_limP[simp]: "space (limP I M P) = space (PiM I M)"
+  by (auto simp add: limP_def space_PiM prod_emb_def intro!: space_extend_measure)
 
-lemma measurable_PiP1[simp]: "measurable (PiP I M P) M' = measurable (\<Pi>\<^isub>M i\<in>I. M i) M'"
+lemma sets_limP[simp]: "sets (limP I M P) = sets (PiM I M)"
+  by (auto simp add: limP_def sets_PiM prod_algebra_def prod_emb_def intro!: sets_extend_measure)
+
+lemma measurable_limP1[simp]: "measurable (limP I M P) M' = measurable (\<Pi>\<^isub>M i\<in>I. M i) M'"
   unfolding measurable_def by auto
 
-lemma measurable_PiP2[simp]: "measurable M' (PiP I M P) = measurable M' (\<Pi>\<^isub>M i\<in>I. M i)"
+lemma measurable_limP2[simp]: "measurable M' (limP I M P) = measurable M' (\<Pi>\<^isub>M i\<in>I. M i)"
   unfolding measurable_def by auto
 
 locale projective_family =
@@ -84,11 +86,11 @@ locale projective_family =
   assumes proj_sets: "\<And>J. finite J \<Longrightarrow> sets (P J) = sets (PiM J M)"
 begin
 
-lemma emeasure_PiP:
+lemma emeasure_limP:
   assumes "finite J"
   assumes "J \<subseteq> I"
   assumes A: "\<And>i. i\<in>J \<Longrightarrow> A i \<in> sets (M i)"
-  shows "emeasure (PiP J M P) (Pi\<^isub>E J A) = emeasure (P J) (Pi\<^isub>E J A)"
+  shows "emeasure (limP J M P) (Pi\<^isub>E J A) = emeasure (P J) (Pi\<^isub>E J A)"
 proof -
   have "Pi\<^isub>E J (restrict A J) \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
   proof safe
@@ -97,13 +99,13 @@ proof -
     also have "\<dots> \<subseteq> space (M j)" using sets_into_space A `j \<in> J` by auto
     finally show "x j \<in> space (M j)" .
   qed
-  hence "emeasure (PiP J M P) (Pi\<^isub>E J A) =
-    emeasure (PiP J M P) (prod_emb J M J (Pi\<^isub>E J A))"
+  hence "emeasure (limP J M P) (Pi\<^isub>E J A) =
+    emeasure (limP J M P) (prod_emb J M J (Pi\<^isub>E J A))"
     using assms(1-3) sets_into_space by (auto simp add: prod_emb_id Pi_def)
   also have "\<dots> = emeasure (P J) (Pi\<^isub>E J A)"
-  proof (rule emeasure_extend_measure_Pair[OF PiP_def])
-    show "positive (sets (PiP J M P)) (P J)" unfolding positive_def by auto
-    show "countably_additive (sets (PiP J M P)) (P J)" unfolding countably_additive_def
+  proof (rule emeasure_extend_measure_Pair[OF limP_def])
+    show "positive (sets (limP J M P)) (P J)" unfolding positive_def by auto
+    show "countably_additive (sets (limP J M P)) (P J)" unfolding countably_additive_def
       by (auto simp: suminf_emeasure proj_sets[OF `finite J`])
     show "(J \<noteq> {} \<or> J = {}) \<and> finite J \<and> J \<subseteq> J \<and> A \<in> (\<Pi> j\<in>J. sets (M j))"
       using assms by auto
@@ -121,10 +123,10 @@ proof -
   finally show ?thesis .
 qed
 
-lemma PiP_finite:
+lemma limP_finite:
   assumes "finite J"
   assumes "J \<subseteq> I"
-  shows "PiP J M P = P J" (is "?P = _")
+  shows "limP J M P = P J" (is "?P = _")
 proof (rule measure_eqI_generator_eq)
   let ?J = "{Pi\<^isub>E J E | E. \<forall>i\<in>J. E i \<in> sets (M i)}"
   let ?F = "\<lambda>i. \<Pi>\<^isub>E k\<in>J. space (M k)"
@@ -132,26 +134,26 @@ proof (rule measure_eqI_generator_eq)
   show "Int_stable ?J"
     by (rule Int_stable_PiE)
   interpret prob_space "P J" using prob_space `finite J` by simp
-  show "emeasure ?P (?F _) \<noteq> \<infinity>" using assms `finite J` by (auto simp: emeasure_PiP)
+  show "emeasure ?P (?F _) \<noteq> \<infinity>" using assms `finite J` by (auto simp: emeasure_limP)
   show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)
-  show "sets (PiP J M P) = sigma_sets ?\<Omega> ?J" "sets (P J) = sigma_sets ?\<Omega> ?J"
+  show "sets (limP J M P) = sigma_sets ?\<Omega> ?J" "sets (P J) = sigma_sets ?\<Omega> ?J"
     using `finite J` proj_sets by (simp_all add: sets_PiM prod_algebra_eq_finite Pi_iff)
   fix X assume "X \<in> ?J"
   then obtain E where X: "X = Pi\<^isub>E J E" and E: "\<forall>i\<in>J. E i \<in> sets (M i)" by auto
-  with `finite J` have "X \<in> sets (PiP J M P)" by simp
+  with `finite J` have "X \<in> sets (limP J M P)" by simp
   have emb_self: "prod_emb J M J (Pi\<^isub>E J E) = Pi\<^isub>E J E"
     using E sets_into_space
     by (auto intro!: prod_emb_PiE_same_index)
-  show "emeasure (PiP J M P) X = emeasure (P J) X"
+  show "emeasure (limP J M P) X = emeasure (P J) X"
     unfolding X using E
-    by (intro emeasure_PiP assms) simp
+    by (intro emeasure_limP assms) simp
 qed (insert `finite J`, auto intro!: prod_algebraI_finite)
 
 lemma emeasure_fun_emb[simp]:
   assumes L: "J \<noteq> {}" "J \<subseteq> L" "finite L" "L \<subseteq> I" and X: "X \<in> sets (PiM J M)"
-  shows "emeasure (PiP L M P) (prod_emb L M J X) = emeasure (PiP J M P) X"
+  shows "emeasure (limP L M P) (prod_emb L M J X) = emeasure (limP J M P) X"
   using assms
-  by (subst PiP_finite) (auto simp: PiP_finite finite_subset projective)
+  by (subst limP_finite) (auto simp: limP_finite finite_subset projective)
 
 lemma prod_emb_injective:
   assumes "J \<noteq> {}" "J \<subseteq> L" "finite J" and sets: "X \<in> sets (Pi\<^isub>M J M)" "Y \<in> sets (Pi\<^isub>M J M)"
@@ -235,30 +237,30 @@ lemma generatorI:
 
 definition
   "\<mu>G A =
-    (THE x. \<forall>J. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> J \<subseteq> I \<longrightarrow> (\<forall>X\<in>sets (Pi\<^isub>M J M). A = emb I J X \<longrightarrow> x = emeasure (PiP J M P) X))"
+    (THE x. \<forall>J. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> J \<subseteq> I \<longrightarrow> (\<forall>X\<in>sets (Pi\<^isub>M J M). A = emb I J X \<longrightarrow> x = emeasure (limP J M P) X))"
 
 lemma \<mu>G_spec:
   assumes J: "J \<noteq> {}" "finite J" "J \<subseteq> I" "A = emb I J X" "X \<in> sets (Pi\<^isub>M J M)"
-  shows "\<mu>G A = emeasure (PiP J M P) X"
+  shows "\<mu>G A = emeasure (limP J M P) X"
   unfolding \<mu>G_def
 proof (intro the_equality allI impI ballI)
   fix K Y assume K: "K \<noteq> {}" "finite K" "K \<subseteq> I" "A = emb I K Y" "Y \<in> sets (Pi\<^isub>M K M)"
-  have "emeasure (PiP K M P) Y = emeasure (PiP (K \<union> J) M P) (emb (K \<union> J) K Y)"
+  have "emeasure (limP K M P) Y = emeasure (limP (K \<union> J) M P) (emb (K \<union> J) K Y)"
     using K J by simp
   also have "emb (K \<union> J) K Y = emb (K \<union> J) J X"
     using K J by (simp add: prod_emb_injective[of "K \<union> J" I])
-  also have "emeasure (PiP (K \<union> J) M P) (emb (K \<union> J) J X) = emeasure (PiP J M P) X"
+  also have "emeasure (limP (K \<union> J) M P) (emb (K \<union> J) J X) = emeasure (limP J M P) X"
     using K J by simp
-  finally show "emeasure (PiP J M P) X = emeasure (PiP K M P) Y" ..
+  finally show "emeasure (limP J M P) X = emeasure (limP K M P) Y" ..
 qed (insert J, force)
 
 lemma \<mu>G_eq:
-  "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> \<mu>G (emb I J X) = emeasure (PiP J M P) X"
+  "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> \<mu>G (emb I J X) = emeasure (limP J M P) X"
   by (intro \<mu>G_spec) auto
 
 lemma generator_Ex:
   assumes *: "A \<in> generator"
-  shows "\<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A = emb I J X \<and> \<mu>G A = emeasure (PiP J M P) X"
+  shows "\<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A = emb I J X \<and> \<mu>G A = emeasure (limP J M P) X"
 proof -
   from * obtain J X where J: "J \<noteq> {}" "finite J" "J \<subseteq> I" "A = emb I J X" "X \<in> sets (Pi\<^isub>M J M)"
     unfolding generator_def by auto
@@ -267,10 +269,10 @@ qed
 
 lemma generatorE:
   assumes A: "A \<in> generator"
-  obtains J X where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A" "\<mu>G A = emeasure (PiP J M P) X"
+  obtains J X where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A" "\<mu>G A = emeasure (limP J M P) X"
 proof -
   from generator_Ex[OF A] obtain X J where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A"
-    "\<mu>G A = emeasure (PiP J M P) X" by auto
+    "\<mu>G A = emeasure (limP J M P) X" by auto
   then show thesis by (intro that) auto
 qed
 
@@ -334,7 +336,7 @@ proof -
       using J K by simp_all
     then have "\<mu>G (A \<union> B) = \<mu>G (emb I (J \<union> K) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y))"
       by simp
-    also have "\<dots> = emeasure (PiP (J \<union> K) M P) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
+    also have "\<dots> = emeasure (limP (J \<union> K) M P) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
       using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq Un del: prod_emb_Un)
     also have "\<dots> = \<mu>G A + \<mu>G B"
       using J K JK_disj by (simp add: plus_emeasure[symmetric])
@@ -356,8 +358,8 @@ proof
   show "emeasure (Pi\<^isub>M J M) (space (Pi\<^isub>M J M)) = 1" by (rule f.emeasure_space_1)
 qed simp_all
 
-lemma (in product_prob_space) PiP_PiM_finite[simp]:
-  assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" shows "PiP J M (\<lambda>J. PiM J M) = PiM J M"
-  using assms by (simp add: PiP_finite)
+lemma (in product_prob_space) limP_PiM_finite[simp]:
+  assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" shows "limP J M (\<lambda>J. PiM J M) = PiM J M"
+  using assms by (simp add: limP_finite)
 
 end

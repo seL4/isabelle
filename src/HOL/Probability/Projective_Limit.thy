@@ -189,13 +189,13 @@ locale polish_projective = projective_family I P "\<lambda>_. borel::'a::polish_
   for I::"'i set" and P
 begin
 
-abbreviation "PiB \<equiv> (\<lambda>J P. PiP J (\<lambda>_. borel) P)"
+abbreviation "lim\<^isub>B \<equiv> (\<lambda>J P. limP J (\<lambda>_. borel) P)"
 
 lemma
-  emeasure_PiB_emb_not_empty:
+  emeasure_limB_emb_not_empty:
   assumes "I \<noteq> {}"
   assumes X: "J \<noteq> {}" "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
-  shows "emeasure (PiB I P) (emb I J (Pi\<^isub>E J B)) = emeasure (PiB J P) (Pi\<^isub>E J B)"
+  shows "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (lim\<^isub>B J P) (Pi\<^isub>E J B)"
 proof -
   let ?\<Omega> = "\<Pi>\<^isub>E i\<in>I. space borel"
   let ?G = generator
@@ -208,7 +208,7 @@ proof -
     fix A assume "A \<in> ?G"
     with generatorE guess J X . note JX = this
     interpret prob_space "P J" using prob_space[OF `finite J`] .
-    show "\<mu>G A \<noteq> \<infinity>" using JX by (simp add: PiP_finite)
+    show "\<mu>G A \<noteq> \<infinity>" using JX by (simp add: limP_finite)
   next
     fix Z assume Z: "range Z \<subseteq> ?G" "decseq Z" "(\<Inter>i. Z i) = {}"
     then have "decseq (\<lambda>i. \<mu>G (Z i))"
@@ -222,7 +222,7 @@ proof -
       ultimately have "0 < ?a" by auto
       hence "?a \<noteq> -\<infinity>" by auto
       have "\<forall>n. \<exists>J B. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> B \<in> sets (Pi\<^isub>M J (\<lambda>_. borel)) \<and>
-        Z n = emb I J B \<and> \<mu>G (Z n) = emeasure (PiB J P) B"
+        Z n = emb I J B \<and> \<mu>G (Z n) = emeasure (lim\<^isub>B J P) B"
         using Z by (intro allI generator_Ex) auto
       then obtain J' B' where J': "\<And>n. J' n \<noteq> {}" "\<And>n. finite (J' n)" "\<And>n. J' n \<subseteq> I"
           "\<And>n. B' n \<in> sets (\<Pi>\<^isub>M i\<in>J' n. borel)"
@@ -243,10 +243,10 @@ proof -
         unfolding J_def B_def by (subst prod_emb_trans) (insert Z, auto)
       interpret prob_space "P (J i)" for i using prob_space by simp
       have "?a \<le> \<mu>G (Z 0)" by (auto intro: INF_lower)
-      also have "\<dots> < \<infinity>" using J by (auto simp: Z_eq \<mu>G_eq PiP_finite proj_sets)
+      also have "\<dots> < \<infinity>" using J by (auto simp: Z_eq \<mu>G_eq limP_finite proj_sets)
       finally have "?a \<noteq> \<infinity>" by simp
       have "\<And>n. \<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>" unfolding Z_eq using J J_mono
-        by (subst \<mu>G_eq) (auto simp: PiP_finite proj_sets \<mu>G_eq)
+        by (subst \<mu>G_eq) (auto simp: limP_finite proj_sets \<mu>G_eq)
 
       interpret finite_set_sequence J by unfold_locales simp
       def Utn \<equiv> Un_to_nat
@@ -380,20 +380,20 @@ proof -
             (\<Inter> i\<in>{1..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))" .
         hence "Y n \<in> ?G" using J J_mono K_sets `n \<ge> 1` by (intro generatorI[OF _ _ _ _ Y_emb]) auto
         hence "\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>" unfolding Y_emb using J J_mono K_sets `n \<ge> 1`
-          by (subst \<mu>G_eq) (auto simp: PiP_finite proj_sets \<mu>G_eq)
-        interpret finite_measure "(PiP (J n) (\<lambda>_. borel) P)"
+          by (subst \<mu>G_eq) (auto simp: limP_finite proj_sets \<mu>G_eq)
+        interpret finite_measure "(limP (J n) (\<lambda>_. borel) P)"
         proof
-          have "emeasure (PiP (J n) (\<lambda>_. borel) P) (J n \<rightarrow>\<^isub>E space borel) \<noteq> \<infinity>"
-            using J by (subst emeasure_PiP) auto
-          thus  "emeasure (PiP (J n) (\<lambda>_. borel) P) (space (PiP (J n) (\<lambda>_. borel) P)) \<noteq> \<infinity>"
+          have "emeasure (limP (J n) (\<lambda>_. borel) P) (J n \<rightarrow>\<^isub>E space borel) \<noteq> \<infinity>"
+            using J by (subst emeasure_limP) auto
+          thus  "emeasure (limP (J n) (\<lambda>_. borel) P) (space (limP (J n) (\<lambda>_. borel) P)) \<noteq> \<infinity>"
              by (simp add: space_PiM)
         qed
-        have "\<mu>G (Z n) = PiP (J n) (\<lambda>_. borel) P (B n)"
+        have "\<mu>G (Z n) = limP (J n) (\<lambda>_. borel) P (B n)"
           unfolding Z_eq using J by (auto simp: \<mu>G_eq)
         moreover have "\<mu>G (Y n) =
-          PiP (J n) (\<lambda>_. borel) P (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))"
+          limP (J n) (\<lambda>_. borel) P (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))"
           unfolding Y_emb using J J_mono K_sets `n \<ge> 1` by (subst \<mu>G_eq) auto
-        moreover have "\<mu>G (Z n - Y n) = PiP (J n) (\<lambda>_. borel) P
+        moreover have "\<mu>G (Z n - Y n) = limP (J n) (\<lambda>_. borel) P
           (B n - (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i)))"
           unfolding Z_eq Y_emb prod_emb_Diff[symmetric] using J J_mono K_sets `n \<ge> 1`
           by (subst \<mu>G_eq) (auto intro!: Diff)
@@ -420,7 +420,7 @@ proof -
             unfolding Z'_def Z_eq by simp
           also have "\<dots> = P (J i) (B i - K i)"
             apply (subst \<mu>G_eq) using J K_sets apply auto
-            apply (subst PiP_finite) apply auto
+            apply (subst limP_finite) apply auto
             done
           also have "\<dots> = P (J i) (B i) - P (J i) (K i)"
             apply (subst emeasure_Diff) using K_sets J `K _ \<subseteq> B _` apply (auto simp: proj_sets)
@@ -593,10 +593,10 @@ proof -
   qed
   then guess \<mu> .. note \<mu> = this
   def f \<equiv> "finmap_of J B"
-  show "emeasure (PiB I P) (emb I J (Pi\<^isub>E J B)) = emeasure (PiB J P) (Pi\<^isub>E J B)"
-  proof (subst emeasure_extend_measure_Pair[OF PiP_def, of I "\<lambda>_. borel" \<mu>])
-    show "positive (sets (PiB I P)) \<mu>" "countably_additive (sets (PiB I P)) \<mu>"
-      using \<mu> unfolding sets_PiP sets_PiM_generator by (auto simp: measure_space_def)
+  show "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (lim\<^isub>B J P) (Pi\<^isub>E J B)"
+  proof (subst emeasure_extend_measure_Pair[OF limP_def, of I "\<lambda>_. borel" \<mu>])
+    show "positive (sets (lim\<^isub>B I P)) \<mu>" "countably_additive (sets (lim\<^isub>B I P)) \<mu>"
+      using \<mu> unfolding sets_limP sets_PiM_generator by (auto simp: measure_space_def)
   next
     show "(J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> B \<in> J \<rightarrow> sets borel"
       using assms by (auto simp: f_def)
@@ -610,11 +610,11 @@ proof -
     hence "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))" using \<mu> by simp
     also have "\<dots> = emeasure (P J) (Pi\<^isub>E J X)"
       using JX assms proj_sets
-      by (subst \<mu>G_eq) (auto simp: \<mu>G_eq PiP_finite intro: sets_PiM_I_finite)
+      by (subst \<mu>G_eq) (auto simp: \<mu>G_eq limP_finite intro: sets_PiM_I_finite)
     finally show "\<mu> (emb I J (Pi\<^isub>E J X)) = emeasure (P J) (Pi\<^isub>E J X)" .
   next
-    show "emeasure (P J) (Pi\<^isub>E J B) = emeasure (PiP J (\<lambda>_. borel) P) (Pi\<^isub>E J B)"
-      using assms by (simp add: f_def PiP_finite Pi_def)
+    show "emeasure (P J) (Pi\<^isub>E J B) = emeasure (limP J (\<lambda>_. borel) P) (Pi\<^isub>E J B)"
+      using assms by (simp add: f_def limP_finite Pi_def)
   qed
 qed
 
@@ -631,56 +631,56 @@ hide_const (open) proj
 hide_const (open) domain
 hide_const (open) enum_basis_finmap
 
-sublocale polish_projective \<subseteq> P!: prob_space "(PiB I P)"
+sublocale polish_projective \<subseteq> P!: prob_space "(lim\<^isub>B I P)"
 proof
-  show "emeasure (PiB I P) (space (PiB I P)) = 1"
+  show "emeasure (lim\<^isub>B I P) (space (lim\<^isub>B I P)) = 1"
   proof cases
     assume "I = {}"
     interpret prob_space "P {}" using prob_space by simp
     show ?thesis
-      by (simp add: space_PiM_empty PiP_finite emeasure_space_1 `I = {}`)
+      by (simp add: space_PiM_empty limP_finite emeasure_space_1 `I = {}`)
   next
     assume "I \<noteq> {}"
     then obtain i where "i \<in> I" by auto
     interpret prob_space "P {i}" using prob_space by simp
-    have R: "(space (PiB I P)) = (emb I {i} (Pi\<^isub>E {i} (\<lambda>_. space borel)))"
+    have R: "(space (lim\<^isub>B I P)) = (emb I {i} (Pi\<^isub>E {i} (\<lambda>_. space borel)))"
       by (auto simp: prod_emb_def space_PiM)
     moreover have "extensional {i} = space (P {i})" by (simp add: proj_space space_PiM)
     ultimately show ?thesis using `i \<in> I`
       apply (subst R)
-      apply (subst emeasure_PiB_emb_not_empty)
-      apply (auto simp: PiP_finite emeasure_space_1)
+      apply (subst emeasure_limB_emb_not_empty)
+      apply (auto simp: limP_finite emeasure_space_1)
       done
   qed
 qed
 
 context polish_projective begin
 
-lemma emeasure_PiB_emb:
+lemma emeasure_limB_emb:
   assumes X: "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
-  shows "emeasure (PiB I P) (emb I J (Pi\<^isub>E J B)) = emeasure (P J) (Pi\<^isub>E J B)"
+  shows "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (P J) (Pi\<^isub>E J B)"
 proof cases
   interpret prob_space "P {}" using prob_space by simp
   assume "J = {}"
-  moreover have "emb I {} {\<lambda>x. undefined} = space (PiB I P)"
+  moreover have "emb I {} {\<lambda>x. undefined} = space (lim\<^isub>B I P)"
     by (auto simp: space_PiM prod_emb_def)
-  moreover have "{\<lambda>x. undefined} = space (PiB {} P)"
+  moreover have "{\<lambda>x. undefined} = space (lim\<^isub>B {} P)"
     by (auto simp: space_PiM prod_emb_def)
   ultimately show ?thesis
-    by (simp add: P.emeasure_space_1 PiP_finite emeasure_space_1 del: space_PiP)
+    by (simp add: P.emeasure_space_1 limP_finite emeasure_space_1 del: space_limP)
 next
   assume "J \<noteq> {}" with X show ?thesis
-    by (subst emeasure_PiB_emb_not_empty) (auto simp: PiP_finite)
+    by (subst emeasure_limB_emb_not_empty) (auto simp: limP_finite)
 qed
 
-lemma measure_PiB_emb:
+lemma measure_limB_emb:
   assumes "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
-  shows "measure (PiB I P) (emb I J (Pi\<^isub>E J B)) = measure (P J) (Pi\<^isub>E J B)"
+  shows "measure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = measure (P J) (Pi\<^isub>E J B)"
 proof -
   interpret prob_space "P J" using prob_space assms by simp
   show ?thesis
-    using emeasure_PiB_emb[OF assms]
-    unfolding emeasure_eq_measure PiP_finite[OF `finite J` `J \<subseteq> I`] P.emeasure_eq_measure
+    using emeasure_limB_emb[OF assms]
+    unfolding emeasure_eq_measure limP_finite[OF `finite J` `J \<subseteq> I`] P.emeasure_eq_measure
     by simp
 qed
 
@@ -693,9 +693,9 @@ sublocale polish_product_prob_space \<subseteq> P: polish_projective I "\<lambda
 proof qed
 
 lemma (in polish_product_prob_space)
-  PiP_eq_PiM:
-  "I \<noteq> {} \<Longrightarrow> PiP I (\<lambda>_. borel) (\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)) =
+  limP_eq_PiM:
+  "I \<noteq> {} \<Longrightarrow> lim\<^isub>P I (\<lambda>_. borel) (\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)) =
     PiM I (\<lambda>_. borel)"
-  by (rule PiM_eq) (auto simp: emeasure_PiM emeasure_PiB_emb)
+  by (rule PiM_eq) (auto simp: emeasure_PiM emeasure_limB_emb)
 
 end
