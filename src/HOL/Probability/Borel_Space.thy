@@ -84,8 +84,13 @@ lemma borel_measurable_indicator:
   unfolding indicator_def [abs_def] using A
   by (auto intro!: measurable_If_set)
 
-lemma borel_measurable_indicator'[measurable]:
-  "{x\<in>space M. x \<in> A} \<in> sets M \<Longrightarrow> indicator A \<in> borel_measurable M"
+lemma borel_measurable_count_space[measurable (raw)]:
+  "f \<in> borel_measurable (count_space S)"
+  unfolding measurable_def by auto
+
+lemma borel_measurable_indicator'[measurable (raw)]:
+  assumes [measurable]: "{x\<in>space M. f x \<in> A x} \<in> sets M"
+  shows "(\<lambda>x. indicator (A x) (f x)) \<in> borel_measurable M"
   unfolding indicator_def[abs_def]
   by (auto intro!: measurable_If)
 

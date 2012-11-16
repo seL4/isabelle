@@ -1616,7 +1616,7 @@ val split_countable_tac =
       fun cert f = map (Option.map (f (Proof_Context.theory_of ctxt)))
       fun inst t (ts, Ts) = Drule.instantiate' (cert ctyp_of Ts) (cert cterm_of ts) t
       val cps = cnt_prefixes ctxt f |> map (inst @{thm measurable_compose_countable})
-    in if null cps then no_tac else debug_tac ctxt (K ("split countable fun")) (resolve_tac cps i) end
+    in if null cps then no_tac else debug_tac ctxt (K "split countable fun") (resolve_tac cps i) end
     handle TERM _ => no_tac) 1)
 
 fun measurable_tac' ctxt ss facts = let
@@ -1764,7 +1764,7 @@ lemma pred_intros_logic[measurable (raw)]:
   "pred M (\<lambda>x. Q x) \<Longrightarrow> pred M (\<lambda>x. P x) \<Longrightarrow> pred M (\<lambda>x. Q x = P x)"
   "pred M (\<lambda>x. f x \<in> UNIV)"
   "pred M (\<lambda>x. f x \<in> {})"
-  "pred M (\<lambda>x. P' (f x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> {x. P' x})"
+  "pred M (\<lambda>x. P' (f x) x) \<Longrightarrow> pred M (\<lambda>x. f x \<in> {y. P' y x})"
   "pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> - (B x))"
   "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) - (B x))"
   "pred M (\<lambda>x. f x \<in> (A x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (B x)) \<Longrightarrow> pred M (\<lambda>x. f x \<in> (A x) \<inter> (B x))"
@@ -1815,10 +1815,23 @@ proof -
 qed
 
 lemma [measurable (raw generic)]:
-  assumes f: "f \<in> measurable M N" and c: "{c} \<in> sets N"
+  assumes f: "f \<in> measurable M N" and c: "c \<in> space N \<Longrightarrow> {c} \<in> sets N"
   shows pred_eq_const1: "pred M (\<lambda>x. f x = c)"
     and pred_eq_const2: "pred M (\<lambda>x. c = f x)"
-  using measurable_sets[OF f c] by (auto simp: Int_def conj_commute eq_commute pred_def)
+proof -
+  show "pred M (\<lambda>x. f x = c)"
+  proof cases
+    assume "c \<in> space N"
+    with measurable_sets[OF f c] show ?thesis
+      by (auto simp: Int_def conj_commute pred_def)
+  next
+    assume "c \<notin> space N"
+    with f[THEN measurable_space] have "{x \<in> space M. f x = c} = {}" by auto
+    then show ?thesis by (auto simp: pred_def cong: conj_cong)
+  qed
+  then show "pred M (\<lambda>x. c = f x)"
+    by (simp add: eq_commute)
+qed
 
 lemma pred_le_const[measurable (raw generic)]:
   assumes f: "f \<in> measurable M N" and c: "{.. c} \<in> sets N" shows "pred M (\<lambda>x. f x \<le> c)"
@@ -1871,6 +1884,21 @@ lemma sets_Ball[measurable_dest]:
 lemma pred_sets_Ball[measurable_dest]:
   "\<forall>i\<in>I. A i \<in> sets (N i) \<Longrightarrow> i\<in>I \<Longrightarrow> f \<in> measurable M (N i) \<Longrightarrow> pred M (\<lambda>x. f x \<in> A i)"
   using pred_sets2[OF sets_Ball, of _ _ _ f] by auto
+
+lemma measurable_finite[measurable (raw)]:
+  fixes S :: "'a \<Rightarrow> nat set"
+  assumes [measurable]: "\<And>i. {x\<in>space M. i \<in> S x} \<in> sets M"
+  shows "pred M (\<lambda>x. finite (S x))"
+  unfolding finite_nat_set_iff_bounded by (simp add: Ball_def)
+
+lemma measurable_Least[measurable]:
+  assumes [measurable]: "(\<And>i::nat. (\<lambda>x. P i x) \<in> measurable M (count_space UNIV))"q
+  shows "(\<lambda>x. LEAST i. P i x) \<in> measurable M (count_space UNIV)"
+  unfolding measurable_def by (safe intro!: sets_Least) simp_all
+
+lemma measurable_count_space_insert[measurable (raw)]:
+  "s \<in> S \<Longrightarrow> A \<in> sets (count_space S) \<Longrightarrow> insert s A \<in> sets (count_space S)"
+  by simp
 
 hide_const (open) pred
 
