@@ -540,6 +540,18 @@ proof (rule measurable_sigma_sets)
   finally show "f -` A \<inter> space N \<in> sets N" .
 qed (auto simp: space)
 
+lemma measurable_PiM_single':
+  assumes f: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> measurable N (M i)"
+    and "(\<lambda>\<omega> i. f i \<omega>) \<in> space N \<rightarrow> (\<Pi>\<^isub>E i\<in>I. space (M i))"
+  shows "(\<lambda>\<omega> i. f i \<omega>) \<in> measurable N (Pi\<^isub>M I M)"
+proof (rule measurable_PiM_single)
+  fix A i assume A: "i \<in> I" "A \<in> sets (M i)"
+  then have "{\<omega> \<in> space N. f i \<omega> \<in> A} = f i -` A \<inter> space N"
+    by auto
+  then show "{\<omega> \<in> space N. f i \<omega> \<in> A} \<in> sets N"
+    using A f by (auto intro!: measurable_sets)
+qed fact
+
 lemma sets_PiM_I_finite[measurable]:
   assumes "finite I" and sets: "(\<And>i. i \<in> I \<Longrightarrow> E i \<in> sets (M i))"
   shows "(PIE j:I. E j) \<in> sets (PIM i:I. M i)"
@@ -562,11 +574,21 @@ lemma measurable_component_singleton'[measurable_app]:
   shows "(\<lambda>x. (f x) i) \<in> measurable N (M i)"
   using measurable_compose[OF f measurable_component_singleton, OF i] .
 
+lemma measurable_PiM_component_rev[measurable (raw)]:
+  "i \<in> I \<Longrightarrow> f \<in> measurable (M i) N \<Longrightarrow> (\<lambda>x. f (x i)) \<in> measurable (PiM I M) N"
+  by simp
+
 lemma measurable_nat_case[measurable (raw)]:
   assumes [measurable (raw)]: "i = 0 \<Longrightarrow> f \<in> measurable M N"
     "\<And>j. i = Suc j \<Longrightarrow> (\<lambda>x. g x j) \<in> measurable M N"
   shows "(\<lambda>x. nat_case (f x) (g x) i) \<in> measurable M N"
   by (cases i) simp_all
+
+lemma measurable_nat_case'[measurable (raw)]:
+  assumes fg[measurable]: "f \<in> measurable N M" "g \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
+  shows "(\<lambda>x. nat_case (f x) (g x)) \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
+  using fg[THEN measurable_space]
+  by (auto intro!: measurable_PiM_single' simp add: space_PiM Pi_iff split: nat.split)
 
 lemma measurable_add_dim[measurable]:
   "(\<lambda>(f, y). f(i := y)) \<in> measurable (Pi\<^isub>M I M \<Otimes>\<^isub>M M i) (Pi\<^isub>M (insert i I) M)"

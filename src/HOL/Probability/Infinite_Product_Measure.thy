@@ -449,23 +449,6 @@ qed
 
 subsection {* Sequence space *}
 
-lemma measurable_nat_case: "(\<lambda>(x, \<omega>). nat_case x \<omega>) \<in> measurable (M \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) (\<Pi>\<^isub>M i\<in>UNIV. M)"
-proof (rule measurable_PiM_single)
-  show "(\<lambda>(x, \<omega>). nat_case x \<omega>) \<in> space (M \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) \<rightarrow> (UNIV \<rightarrow>\<^isub>E space M)"
-    by (auto simp: space_pair_measure space_PiM Pi_iff split: nat.split)
-  fix i :: nat and A assume A: "A \<in> sets M"
-  then have *: "{\<omega> \<in> space (M \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case nat_case \<omega> i \<in> A} =
-    (case i of 0 \<Rightarrow> A \<times> space (\<Pi>\<^isub>M i\<in>UNIV. M) | Suc n \<Rightarrow> space M \<times> {\<omega>\<in>space (\<Pi>\<^isub>M i\<in>UNIV. M). \<omega> n \<in> A})"
-    by (auto simp: space_PiM space_pair_measure split: nat.split dest: sets_into_space)
-  show "{\<omega> \<in> space (M \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case nat_case \<omega> i \<in> A} \<in> sets (M \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M))"
-    unfolding * by (auto simp: A split: nat.split intro!: sets_Collect_single)
-qed
-
-lemma measurable_nat_case':
-  assumes f: "f \<in> measurable N M" and g: "g \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
-  shows "(\<lambda>x. nat_case (f x) (g x)) \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
-  using measurable_compose[OF measurable_Pair[OF f g] measurable_nat_case] by simp
-
 definition comb_seq :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> (nat \<Rightarrow> 'a)" where
   "comb_seq i \<omega> \<omega>' j = (if j < i then \<omega> j else \<omega>' (j - i))"
 
@@ -475,7 +458,8 @@ lemma split_comb_seq: "P (comb_seq i \<omega> \<omega>' j) \<longleftrightarrow>
 lemma split_comb_seq_asm: "P (comb_seq i \<omega> \<omega>' j) \<longleftrightarrow> \<not> ((j < i \<and> \<not> P (\<omega> j)) \<or> (\<exists>k. j = i + k \<and> \<not> P (\<omega>' k)))"
   by (auto simp: comb_seq_def)
 
-lemma measurable_comb_seq: "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> measurable ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) (\<Pi>\<^isub>M i\<in>UNIV. M)"
+lemma measurable_comb_seq:
+  "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> measurable ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) (\<Pi>\<^isub>M i\<in>UNIV. M)"
 proof (rule measurable_PiM_single)
   show "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) \<rightarrow> (UNIV \<rightarrow>\<^isub>E space M)"
     by (auto simp: space_pair_measure space_PiM Pi_iff split: split_comb_seq)
@@ -488,10 +472,32 @@ proof (rule measurable_PiM_single)
     unfolding * by (auto simp: A intro!: sets_Collect_single)
 qed
 
-lemma measurable_comb_seq':
+lemma measurable_comb_seq'[measurable (raw)]:
   assumes f: "f \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)" and g: "g \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
   shows "(\<lambda>x. comb_seq i (f x) (g x)) \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
   using measurable_compose[OF measurable_Pair[OF f g] measurable_comb_seq] by simp
+
+lemma comb_seq_0: "comb_seq 0 \<omega> \<omega>' = \<omega>'"
+  by (auto simp add: comb_seq_def)
+
+lemma comb_seq_Suc: "comb_seq (Suc n) \<omega> \<omega>' = comb_seq n \<omega> (nat_case (\<omega> n) \<omega>')"
+  by (auto simp add: comb_seq_def not_less less_Suc_eq le_imp_diff_is_add intro!: ext split: nat.split)
+
+lemma comb_seq_Suc_0[simp]: "comb_seq (Suc 0) \<omega> = nat_case (\<omega> 0)"
+  by (intro ext) (simp add: comb_seq_Suc comb_seq_0)
+
+lemma comb_seq_less: "i < n \<Longrightarrow> comb_seq n \<omega> \<omega>' i = \<omega> i"
+  by (auto split: split_comb_seq)
+
+lemma comb_seq_add: "comb_seq n \<omega> \<omega>' (i + n) = \<omega>' i"
+  by (auto split: nat.split split_comb_seq)
+
+lemma nat_case_comb_seq: "nat_case s' (comb_seq n \<omega> \<omega>') (i + n) = nat_case (nat_case s' \<omega> n) \<omega>' i"
+  by (auto split: nat.split split_comb_seq)
+
+lemma nat_case_comb_seq':
+  "nat_case s (comb_seq i \<omega> \<omega>') = comb_seq (Suc i) (nat_case s \<omega>) \<omega>'"
+  by (auto split: split_comb_seq nat.split)
 
 locale sequence_space = product_prob_space "\<lambda>i. M" "UNIV :: nat set" for M
 begin
@@ -578,7 +584,7 @@ proof (rule PiM_eq)
    by (auto simp: space_pair_measure space_PiM Pi_iff prod_emb_def all_conj_distrib
       split: nat.split nat.split_asm)
   then have "emeasure ?D ?X = emeasure (M \<Otimes>\<^isub>M S) (?E \<times> ?F)"
-    by (subst emeasure_distr[OF measurable_nat_case])
+    by (subst emeasure_distr)
        (auto intro!: sets_PiM_I simp: split_beta' J)
   also have "\<dots> = emeasure M ?E * emeasure S ?F"
     using J by (intro P.emeasure_pair_measure_Times) (auto intro!: sets_PiM_I finite_vimageI)
