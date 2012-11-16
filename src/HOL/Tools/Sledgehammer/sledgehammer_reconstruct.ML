@@ -814,8 +814,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       end
     val sum_up_time =
       Vector.foldl
-        ((fn (SOME t, (b, s)) => (b, t + s)
-           | (NONE, (_, s)) => (true, preplay_timeout + s)) o apfst Lazy.force)
+        ((fn (SOME t, (b, s)) => (b, Time.+ (t, s))
+           | (NONE, (_, s)) => (true, Time.+ (preplay_timeout, s))) o apfst Lazy.force)
         (false, seconds 0.0)
 
     (* Metis Preplaying *)
@@ -858,7 +858,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           let
             val s12 = merge s1 s2
             val timeout =
-              t1 + t2 |> Time.toReal |> curry Real.* merge_timeout_slack
+              Time.+ (t1, t2) |> Time.toReal |> curry Real.* merge_timeout_slack
                       |> Time.fromReal
           in
             case try_metis timeout s12 () of
