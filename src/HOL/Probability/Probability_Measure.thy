@@ -219,6 +219,17 @@ proof -
   with AE_in_set_eq_1 assms show ?thesis by simp
 qed
 
+lemma (in prob_space) AE_const[simp]: "(AE x in M. P) \<longleftrightarrow> P"
+  by (cases P) (auto simp: AE_False)
+
+lemma (in prob_space) AE_contr:
+  assumes ae: "AE \<omega> in M. P \<omega>" "AE \<omega> in M. \<not> P \<omega>"
+  shows False
+proof -
+  from ae have "AE \<omega> in M. False" by eventually_elim auto
+  then show False by auto
+qed
+
 lemma (in finite_measure) prob_space_increasing: "increasing M (measure M)"
   by (auto intro!: finite_measure_mono simp: increasing_def)
 
@@ -437,6 +448,23 @@ proof cases
     by (intro prob_eq_AE) auto
   then show ?thesis by simp
 qed (simp add: measure_notin_sets)
+
+lemma (in prob_space) prob_Collect_eq_0:
+  "{x \<in> space M. P x} \<in> sets M \<Longrightarrow> \<P>(x in M. P x) = 0 \<longleftrightarrow> (AE x in M. \<not> P x)"
+  using AE_iff_measurable[OF _ refl, of M "\<lambda>x. \<not> P x"] by (simp add: emeasure_eq_measure)
+
+lemma (in prob_space) prob_Collect_eq_1:
+  "{x \<in> space M. P x} \<in> sets M \<Longrightarrow> \<P>(x in M. P x) = 1 \<longleftrightarrow> (AE x in M. P x)"
+  using AE_in_set_eq_1[of "{x\<in>space M. P x}"] by simp
+
+lemma (in prob_space) prob_eq_0:
+  "A \<in> sets M \<Longrightarrow> prob A = 0 \<longleftrightarrow> (AE x in M. x \<notin> A)"
+  using AE_iff_measurable[OF _ refl, of M "\<lambda>x. x \<notin> A"]
+  by (auto simp add: emeasure_eq_measure Int_def[symmetric])
+
+lemma (in prob_space) prob_eq_1:
+  "A \<in> sets M \<Longrightarrow> prob A = 1 \<longleftrightarrow> (AE x in M. x \<in> A)"
+  using AE_in_set_eq_1[of A] by simp
 
 lemma (in prob_space) prob_sums:
   assumes P: "\<And>n. {x\<in>space M. P n x} \<in> events"
