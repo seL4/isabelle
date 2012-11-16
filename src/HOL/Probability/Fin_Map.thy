@@ -500,7 +500,7 @@ lemma finmap_topological_basis:
   "topological_basis (range (enum_basis_finmap))"
 proof (subst topological_basis_iff, safe)
   fix n::nat
-  show "open (enum_basis_finmap n::('a \<Rightarrow>\<^isub>F 'b) set)" using enumerable_basis
+  show "open (enum_basis_finmap n::('a \<Rightarrow>\<^isub>F 'b) set)" using enum_basis_basis
     by (auto intro!: open_Pi'I simp: topological_basis_def enum_basis_finmap_def Let_def)
 next
   fix O'::"('a \<Rightarrow>\<^isub>F 'b) set" and x
@@ -514,7 +514,7 @@ next
     fix i assume "i \<in> domain x"
     have "open (ball (x i) e')" "x i \<in> ball (x i) e'" using e
       by (auto simp add: e'_def intro!: divide_pos_pos)
-    from enumerable_basisE[OF this] guess b' .
+    from topological_basisE[OF enum_basis_basis this] guess b' .
     thus "\<exists>y. x i \<in> enum_basis y \<and>
             enum_basis y \<subseteq> ball (x i) e'" by auto
   qed

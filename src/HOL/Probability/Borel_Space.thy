@@ -456,20 +456,27 @@ next
   finally show "x \<in> sigma_sets UNIV (Collect open)" by simp
 qed simp_all
 
-lemma borel_eq_enum_basis:
-  "borel = sigma UNIV (range enum_basis)"
+lemma borel_eq_enumerated_basis:
+  fixes f::"nat\<Rightarrow>'a::topological_space set"
+  assumes "topological_basis (range f)"
+  shows "borel = sigma UNIV (range f)"
   unfolding borel_def
 proof (intro sigma_eqI sigma_sets_eqI, safe)
+  interpret enumerates_basis proof qed (rule assms)
   fix x::"'a set" assume "open x"
   from open_enumerable_basisE[OF this] guess N .
-  hence x: "x = (\<Union>n. if n \<in> N then enum_basis n else {})" by (auto split: split_if_asm)
-  also have "\<dots> \<in> sigma_sets UNIV (range enum_basis)" by (rule Union) auto
-  finally show "x \<in> sigma_sets UNIV (range enum_basis)" .
+  hence x: "x = (\<Union>n. if n \<in> N then f n else {})" by (auto split: split_if_asm)
+  also have "\<dots> \<in> sigma_sets UNIV (range f)" by (auto intro!: sigma_sets.Empty Union)
+  finally show "x \<in> sigma_sets UNIV (range f)" .
 next
   fix n
-  have "open (enum_basis n)" by (rule open_enum_basis) simp
-  thus "enum_basis n \<in> sigma_sets UNIV (Collect open)" by auto
+  have "open (f n)" by (rule topological_basis_open[OF assms]) simp
+  thus "f n \<in> sigma_sets UNIV (Collect open)" by auto
 qed simp_all
+
+lemma borel_eq_enum_basis:
+  "borel = sigma UNIV (range enum_basis)"
+  by (rule borel_eq_enumerated_basis[OF enum_basis_basis])
 
 lemma borel_measurable_halfspacesI:
   fixes f :: "'a \<Rightarrow> 'c\<Colon>ordered_euclidean_space"

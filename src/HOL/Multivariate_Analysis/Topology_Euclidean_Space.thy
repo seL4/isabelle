@@ -64,76 +64,51 @@ proof atomize_elim
   show  "\<exists>B'. B' \<in> B \<and> x \<in> B' \<and> B' \<subseteq> O'" using assms by (simp add: Bex_def)
 qed
 
+lemma topological_basis_open:
+  assumes "topological_basis B"
+  assumes "X \<in> B"
+  shows "open X"
+  using assms
+  by (simp add: topological_basis_def)
+
 end
 
 subsection {* Enumerable Basis *}
 
-class enumerable_basis = topological_space +
-  assumes ex_enum_basis: "\<exists>f::nat \<Rightarrow> 'a set. topological_basis (range f)"
+locale enumerates_basis =
+  fixes f::"nat \<Rightarrow> 'a::topological_space set"
+  assumes enumerable_basis: "topological_basis (range f)"
 begin
-
-definition enum_basis'::"nat \<Rightarrow> 'a set"
-  where "enum_basis' = Eps (topological_basis o range)"
-
-lemma enumerable_basis': "topological_basis (range enum_basis')"
-  using ex_enum_basis
-  unfolding enum_basis'_def o_def
-  by (rule someI_ex)
-
-lemmas enumerable_basisE' = topological_basisE[OF enumerable_basis']
-
-text {* Extend enumeration of basis, such that it is closed under (finite) Union *}
-
-definition enum_basis::"nat \<Rightarrow> 'a set"
-  where "enum_basis n = \<Union>(set (map enum_basis' (from_nat n)))"
-
-lemma
-  open_enum_basis:
-  assumes "B \<in> range enum_basis"
-  shows "open B"
-  using assms enumerable_basis'
-  by (force simp add: topological_basis_def enum_basis_def)
-
-lemma enumerable_basis: "topological_basis (range enum_basis)"
-proof (rule topological_basisI[OF open_enum_basis])
-  fix O' x assume "open O'" "x \<in> O'"
-  from topological_basisE[OF enumerable_basis' this] guess B' . note B' = this
-  moreover then obtain n where "B' = enum_basis' n" by auto
-  moreover hence "B' = enum_basis (to_nat [n])" by (auto simp: enum_basis_def)
-  ultimately show "\<exists>B'\<in>range enum_basis. x \<in> B' \<and> B' \<subseteq> O'" by blast
-qed
-
-lemmas enumerable_basisE = topological_basisE[OF enumerable_basis]
 
 lemma open_enumerable_basis_ex:
   assumes "open X"
-  shows "\<exists>N. X = (\<Union>n\<in>N. enum_basis n)"
+  shows "\<exists>N. X = (\<Union>n\<in>N. f n)"
 proof -
-  from enumerable_basis assms obtain B' where "B' \<subseteq> range enum_basis" "X = Union B'"
+  from enumerable_basis assms obtain B' where "B' \<subseteq> range f" "X = Union B'"
     unfolding topological_basis_def by blast
-  hence "Union B' = (\<Union>n\<in>{n. enum_basis n \<in> B'}. enum_basis n)" by auto
+  hence "Union B' = (\<Union>n\<in>{n. f n \<in> B'}. f n)" by auto
   with `X = Union B'` show ?thesis by blast
 qed
 
 lemma open_enumerable_basisE:
   assumes "open X"
-  obtains N where "X = (\<Union>n\<in>N. enum_basis n)"
+  obtains N where "X = (\<Union>n\<in>N. f n)"
   using assms open_enumerable_basis_ex by (atomize_elim) simp
 
 lemma countable_dense_set:
-  shows "\<exists>x::nat \<Rightarrow> _. \<forall>y. open y \<longrightarrow> y \<noteq> {} \<longrightarrow> (\<exists>n. x n \<in> y)"
+  shows "\<exists>x::nat \<Rightarrow> 'a. \<forall>y. open y \<longrightarrow> y \<noteq> {} \<longrightarrow> (\<exists>n. x n \<in> y)"
 proof -
-  def x \<equiv> "\<lambda>n. (SOME x::'a. x \<in> enum_basis n)"
-  have x: "\<And>n. enum_basis n \<noteq> ({}::'a set) \<Longrightarrow> x n \<in> enum_basis n" unfolding x_def
+  def x \<equiv> "\<lambda>n. (SOME x::'a. x \<in> f n)"
+  have x: "\<And>n. f n \<noteq> ({}::'a set) \<Longrightarrow> x n \<in> f n" unfolding x_def
     by (rule someI_ex) auto
   have "\<forall>y. open y \<longrightarrow> y \<noteq> {} \<longrightarrow> (\<exists>n. x n \<in> y)"
   proof (intro allI impI)
     fix y::"'a set" assume "open y" "y \<noteq> {}"
     from open_enumerable_basisE[OF `open y`] guess N . note N = this
-    obtain n where n: "n \<in> N" "enum_basis n \<noteq> ({}::'a set)"
+    obtain n where n: "n \<in> N" "f n \<noteq> ({}::'a set)"
     proof (atomize_elim, rule ccontr, clarsimp)
-      assume "\<forall>n. n \<in> N \<longrightarrow> enum_basis n = ({}::'a set)"
-      hence "(\<Union>n\<in>N. enum_basis n) = (\<Union>n\<in>N. {}::'a set)"
+      assume "\<forall>n. n \<in> N \<longrightarrow> f n = ({}::'a set)"
+      hence "(\<Union>n\<in>N. f n) = (\<Union>n\<in>N. {}::'a set)"
         by (intro UN_cong) auto
       hence "y = {}" unfolding N by simp
       with `y \<noteq> {}` show False by auto
@@ -145,11 +120,30 @@ proof -
 qed
 
 lemma countable_dense_setE:
-  obtains x :: "nat \<Rightarrow> _"
+  obtains x :: "nat \<Rightarrow> 'a"
   where "\<And>y. open y \<Longrightarrow> y \<noteq> {} \<Longrightarrow> \<exists>n. x n \<in> y"
   using countable_dense_set by blast
 
-text {* Construction of an Increasing Sequence Approximating Open Sets *}
+text {* Construction of an increasing sequence approximating open sets, therefore enumeration of
+  basis which is closed under union. *}
+
+definition enum_basis::"nat \<Rightarrow> 'a set"
+  where "enum_basis n = \<Union>(set (map f (from_nat n)))"
+
+lemma enum_basis_basis: "topological_basis (range enum_basis)"
+proof (rule topological_basisI)
+  fix O' and x::'a assume "open O'" "x \<in> O'"
+  from topological_basisE[OF enumerable_basis this] guess B' . note B' = this
+  moreover then obtain n where "B' = f n" by auto
+  moreover hence "B' = enum_basis (to_nat [n])" by (auto simp: enum_basis_def)
+  ultimately show "\<exists>B'\<in>range enum_basis. x \<in> B' \<and> B' \<subseteq> O'" by blast
+next
+  fix B' assume "B' \<in> range enum_basis"
+  with topological_basis_open[OF enumerable_basis]
+  show "open B'" by (auto simp add: enum_basis_def intro!: open_UN)
+qed
+
+lemmas open_enum_basis = topological_basis_open[OF enum_basis_basis]
 
 lemma empty_basisI[intro]: "{} \<in> range enum_basis"
 proof
@@ -170,7 +164,8 @@ lemma open_imp_Union_of_incseq:
   assumes "open X"
   shows "\<exists>S. incseq S \<and> (\<Union>j. S j) = X \<and> range S \<subseteq> range enum_basis"
 proof -
-  from open_enumerable_basis_ex[OF `open X`] obtain N where N: "X = (\<Union>n\<in>N. enum_basis n)" by auto
+  interpret E: enumerates_basis enum_basis proof qed (rule enum_basis_basis)
+  from E.open_enumerable_basis_ex[OF `open X`] obtain N where N: "X = (\<Union>n\<in>N. enum_basis n)" by auto
   hence X: "X = (\<Union>n. if n \<in> N then enum_basis n else {})" by (auto split: split_if_asm)
   def S \<equiv> "nat_rec (if 0 \<in> N then enum_basis 0 else {})
     (\<lambda>n S. if (Suc n) \<in> N then S \<union> enum_basis (Suc n) else S)"
@@ -203,6 +198,13 @@ lemma open_incseqE:
   using open_imp_Union_of_incseq assms by atomize_elim
 
 end
+
+class enumerable_basis = topological_space +
+  assumes ex_enum_basis: "\<exists>f::nat \<Rightarrow> 'a::topological_space set. topological_basis (range f)"
+
+sublocale enumerable_basis < enumerates_basis "Eps (topological_basis o range)"
+  unfolding o_def
+  proof qed (rule someI_ex[OF ex_enum_basis])
 
 subsection {* Polish spaces *}
 
