@@ -1278,7 +1278,7 @@ qed (simp add: emeasure_sigma borel_def PiF_def)
 subsection {* Isomorphism between Functions and Finite Maps *}
 
 lemma
-  measurable_compose:
+  measurable_finmap_compose:
   fixes f::"'a \<Rightarrow> 'b"
   assumes inj: "\<And>j. j \<in> J \<Longrightarrow> f' (f j) = j"
   assumes "finite J"
@@ -1326,7 +1326,7 @@ lemma
   shows "(\<lambda>m. compose (f ` J) m f') \<in> measurable (PiM J (\<lambda>_. M)) (PiM (f ` J) (\<lambda>_. M))"
 proof -
   have "(\<lambda>m. compose (f ` J) m f') \<in> measurable (Pi\<^isub>M (f' ` f ` J) (\<lambda>_. M)) (Pi\<^isub>M (f ` J) (\<lambda>_. M))"
-    using assms by (auto intro: measurable_compose)
+    using assms by (auto intro: measurable_finmap_compose)
   moreover
   from inj have "f' ` f ` J = J" by (metis (hide_lams, mono_tags) image_iff set_eqI)
   ultimately show ?thesis by simp
@@ -1426,7 +1426,7 @@ lemma mf_measurable:
 proof (rule measurable_comp, rule measurable_proj_PiM)
   show "(\<lambda>g. compose J g f) \<in>
     measurable (Pi\<^isub>M (f ` J) (\<lambda>x. M)) (Pi\<^isub>M J (\<lambda>_. M))"
-    by (rule measurable_compose, rule inv) auto
+    by (rule measurable_finmap_compose, rule inv) auto
 qed (auto simp add: space_PiM extensional_def assms)
 
 lemma fm_image_measurable:
