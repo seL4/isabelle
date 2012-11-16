@@ -1181,6 +1181,17 @@ lemma positive_integral_cmult_indicator:
   by (subst positive_integral_eq_simple_integral)
      (auto simp: simple_function_indicator simple_integral_indicator)
 
+lemma positive_integral_indicator':
+  assumes [measurable]: "A \<inter> space M \<in> sets M"
+  shows "(\<integral>\<^isup>+ x. indicator A x \<partial>M) = emeasure M (A \<inter> space M)"
+proof -
+  have "(\<integral>\<^isup>+ x. indicator A x \<partial>M) = (\<integral>\<^isup>+ x. indicator (A \<inter> space M) x \<partial>M)"
+    by (intro positive_integral_cong) (simp split: split_indicator)
+  also have "\<dots> = emeasure M (A \<inter> space M)"
+    by simp
+  finally show ?thesis .
+qed
+
 lemma positive_integral_add:
   assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x"
   and g: "g \<in> borel_measurable M" "AE x in M. 0 \<le> g x"
@@ -1430,6 +1441,32 @@ proof -
     done
 qed
 
+lemma positive_integral_nat_function:
+  fixes f :: "'a \<Rightarrow> nat"
+  assumes "f \<in> measurable M (count_space UNIV)"
+  shows "(\<integral>\<^isup>+x. ereal (of_nat (f x)) \<partial>M) = (\<Sum>t. emeasure M {x\<in>space M. t < f x})"
+proof -
+  def F \<equiv> "\<lambda>i. {x\<in>space M. i < f x}"
+  with assms have [measurable]: "\<And>i. F i \<in> sets M"
+    by auto
+
+  { fix x assume "x \<in> space M"
+    have "(\<lambda>i. if i < f x then 1 else 0) sums (of_nat (f x)::real)"
+      using sums_If_finite[of "\<lambda>i. i < f x" "\<lambda>_. 1::real"] by simp
+    then have "(\<lambda>i. ereal(if i < f x then 1 else 0)) sums (ereal(of_nat(f x)))"
+      unfolding sums_ereal .
+    moreover have "\<And>i. ereal (if i < f x then 1 else 0) = indicator (F i) x"
+      using `x \<in> space M` by (simp add: one_ereal_def F_def)
+    ultimately have "ereal(of_nat(f x)) = (\<Sum>i. indicator (F i) x)"
+      by (simp add: sums_iff) }
+  then have "(\<integral>\<^isup>+x. ereal (of_nat (f x)) \<partial>M) = (\<integral>\<^isup>+x. (\<Sum>i. indicator (F i) x) \<partial>M)"
+    by (simp cong: positive_integral_cong)
+  also have "\<dots> = (\<Sum>i. emeasure M (F i))"
+    by (simp add: positive_integral_suminf)
+  finally show ?thesis
+    by (simp add: F_def)
+qed
+
 section "Lebesgue Integral"
 
 definition integrable :: "'a measure \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> bool" where
@@ -1639,25 +1676,9 @@ lemma integral_zero[simp, intro]:
   unfolding integrable_def lebesgue_integral_def
   by auto
 
-lemma integral_cmult[simp, intro]:
-  assumes "integrable M f"
-  shows "integrable M (\<lambda>t. a * f t)" (is ?P)
-  and "(\<integral> t. a * f t \<partial>M) = a * integral\<^isup>L M f" (is ?I)
-proof -
-  have "integrable M (\<lambda>t. a * f t) \<and> (\<integral> t. a * f t \<partial>M) = a * integral\<^isup>L M f"
-  proof (cases rule: le_cases)
-    assume "0 \<le> a" show ?thesis
-      using integral_linear[OF assms integral_zero(1) `0 \<le> a`]
-      by simp
-  next
-    assume "a \<le> 0" hence "0 \<le> - a" by auto
-    have *: "\<And>t. - a * t + 0 = (-a) * t" by simp
-    show ?thesis using integral_linear[OF assms integral_zero(1) `0 \<le> - a`]
-        integral_minus(1)[of M "\<lambda>t. - a * f t"]
-      unfolding * integral_zero by simp
-  qed
-  thus ?P ?I by auto
-qed
+lemma lebesgue_integral_uminus:
+    "(\<integral>x. - f x \<partial>M) = - integral\<^isup>L M f"
+  unfolding lebesgue_integral_def by simp
 
 lemma lebesgue_integral_cmult_nonneg:
   assumes f: "f \<in> borel_measurable M" and "0 \<le> c"
@@ -1682,10 +1703,6 @@ proof -
     by (simp add: lebesgue_integral_def field_simps)
 qed
 
-lemma lebesgue_integral_uminus:
-  "(\<integral>x. - f x \<partial>M) = - integral\<^isup>L M f"
-    unfolding lebesgue_integral_def by simp
-
 lemma lebesgue_integral_cmult:
   assumes f: "f \<in> borel_measurable M"
   shows "(\<integral>x. c * f x \<partial>M) = c * integral\<^isup>L M f"
@@ -1698,10 +1715,33 @@ next
     by (simp add: lebesgue_integral_def)
 qed
 
+lemma lebesgue_integral_multc:
+  "f \<in> borel_measurable M \<Longrightarrow> (\<integral>x. f x * c \<partial>M) = integral\<^isup>L M f * c"
+  using lebesgue_integral_cmult[of f M c] by (simp add: ac_simps)
+
 lemma integral_multc:
+  "integrable M f \<Longrightarrow> (\<integral> x. f x * c \<partial>M) = integral\<^isup>L M f * c"
+  by (simp add: lebesgue_integral_multc)
+
+lemma integral_cmult[simp, intro]:
   assumes "integrable M f"
-  shows "(\<integral> x. f x * c \<partial>M) = integral\<^isup>L M f * c"
-  unfolding mult_commute[of _ c] integral_cmult[OF assms] ..
+  shows "integrable M (\<lambda>t. a * f t)" (is ?P)
+  and "(\<integral> t. a * f t \<partial>M) = a * integral\<^isup>L M f" (is ?I)
+proof -
+  have "integrable M (\<lambda>t. a * f t) \<and> (\<integral> t. a * f t \<partial>M) = a * integral\<^isup>L M f"
+  proof (cases rule: le_cases)
+    assume "0 \<le> a" show ?thesis
+      using integral_linear[OF assms integral_zero(1) `0 \<le> a`]
+      by simp
+  next
+    assume "a \<le> 0" hence "0 \<le> - a" by auto
+    have *: "\<And>t. - a * t + 0 = (-a) * t" by simp
+    show ?thesis using integral_linear[OF assms integral_zero(1) `0 \<le> - a`]
+        integral_minus(1)[of M "\<lambda>t. - a * f t"]
+      unfolding * integral_zero by simp
+  qed
+  thus ?P ?I by auto
+qed
 
 lemma integral_diff[simp, intro]:
   assumes f: "integrable M f" and g: "integrable M g"
@@ -1713,7 +1753,7 @@ lemma integral_diff[simp, intro]:
 
 lemma integral_indicator[simp, intro]:
   assumes "A \<in> sets M" and "(emeasure M) A \<noteq> \<infinity>"
-  shows "integral\<^isup>L M (indicator A) = real ((emeasure M) A)" (is ?int)
+  shows "integral\<^isup>L M (indicator A) = real (emeasure M A)" (is ?int)
   and "integrable M (indicator A)" (is ?able)
 proof -
   from `A \<in> sets M` have *:
@@ -1848,6 +1888,16 @@ proof -
       using assms integral_minus(2)[of M f, symmetric]
       by (auto intro!: integral_mono integrable_abs simp del: integral_minus)
   finally show ?thesis .
+qed
+
+lemma integrable_nonneg:
+  assumes f: "f \<in> borel_measurable M" "AE x in M. 0 \<le> f x" "(\<integral>\<^isup>+ x. f x \<partial>M) \<noteq> \<infinity>"
+  shows "integrable M f"
+  unfolding integrable_def
+proof (intro conjI f)
+  have "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) = 0"
+    using f by (subst positive_integral_0_iff_AE) auto
+  then show "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>M) \<noteq> \<infinity>" by simp
 qed
 
 lemma integral_positive:
@@ -1986,7 +2036,7 @@ lemma integral_real:
 
 lemma (in finite_measure) lebesgue_integral_const[simp]:
   shows "integrable M (\<lambda>x. a)"
-  and  "(\<integral>x. a \<partial>M) = a * (measure M) (space M)"
+  and  "(\<integral>x. a \<partial>M) = a * measure M (space M)"
 proof -
   { fix a :: real assume "0 \<le> a"
     then have "(\<integral>\<^isup>+ x. ereal a \<partial>M) = ereal a * (emeasure M) (space M)"
@@ -2007,6 +2057,10 @@ proof -
   show "(\<integral>x. a \<partial>M) = a * measure M (space M)"
     by (simp add: lebesgue_integral_def positive_integral_const_If emeasure_eq_measure)
 qed
+
+lemma (in finite_measure) integrable_const_bound:
+  assumes "AE x in M. \<bar>f x\<bar> \<le> B" and "f \<in> borel_measurable M" shows "integrable M f"
+  by (auto intro: integrable_bound[where f="\<lambda>x. B"] lebesgue_integral_const assms)
 
 lemma indicator_less[simp]:
   "indicator A x \<le> (indicator B x::ereal) \<longleftrightarrow> (x \<in> A \<longrightarrow> x \<in> B)"
