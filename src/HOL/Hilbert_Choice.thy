@@ -86,6 +86,17 @@ by (fast elim: someI)
 lemma bchoice: "\<forall>x\<in>S. \<exists>y. Q x y ==> \<exists>f. \<forall>x\<in>S. Q x (f x)"
 by (fast elim: someI)
 
+lemma choice_iff: "(\<forall>x. \<exists>y. Q x y) \<longleftrightarrow> (\<exists>f. \<forall>x. Q x (f x))"
+by (fast elim: someI)
+
+lemma choice_iff': "(\<forall>x. P x \<longrightarrow> (\<exists>y. Q x y)) \<longleftrightarrow> (\<exists>f. \<forall>x. P x \<longrightarrow> Q x (f x))"
+by (fast elim: someI)
+
+lemma bchoice_iff: "(\<forall>x\<in>S. \<exists>y. Q x y) \<longleftrightarrow> (\<exists>f. \<forall>x\<in>S. Q x (f x))"
+by (fast elim: someI)
+
+lemma bchoice_iff': "(\<forall>x\<in>S. P x \<longrightarrow> (\<exists>y. Q x y)) \<longleftrightarrow> (\<exists>f. \<forall>x\<in>S. P x \<longrightarrow> Q x (f x))"
+by (fast elim: someI)
 
 subsection {*Function Inverse*}
 

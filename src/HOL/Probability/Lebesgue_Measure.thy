@@ -9,9 +9,6 @@ theory Lebesgue_Measure
   imports Finite_Product_Measure
 begin
 
-lemma bchoice_iff: "(\<forall>x\<in>A. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x\<in>A. P x (f x))"
-  by metis
-
 lemma absolutely_integrable_on_indicator[simp]:
   fixes A :: "'a::ordered_euclidean_space set"
   shows "((indicator A :: _ \<Rightarrow> real) absolutely_integrable_on X) \<longleftrightarrow>

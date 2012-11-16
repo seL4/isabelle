@@ -3097,9 +3097,6 @@ next
   assume ?rhs thus ?lhs by (rule bolzano_weierstrass_imp_compact)
 qed
 
-lemma bchoice_iff: "(\<forall>a\<in>A. \<exists>b. P a b) \<longleftrightarrow> (\<exists>f. \<forall>a\<in>A. P a (f a))"
-  by metis
-
 lemma nat_approx_posE:
   fixes e::real
   assumes "0 < e"

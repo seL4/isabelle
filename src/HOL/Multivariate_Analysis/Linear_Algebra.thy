@@ -398,8 +398,6 @@ next
   then show "h = g" by (simp add: ext)
 qed
 
-lemma choice_iff: "(\<forall>x. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x. P x (f x))" by metis
-
 subsection {* Interlude: Some properties of real sets *}
 
 lemma seq_mono_lemma: assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n" and "\<forall>n \<ge> m. e n <= e m"
@@ -1376,8 +1374,6 @@ proof -
   qed
   finally show ?thesis .
 qed
-
-lemma choice_iff': "(\<forall>x<d. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x<d. P x (f x))" by metis
 
 lemma lambda_skolem': "(\<forall>i<DIM('a::euclidean_space). \<exists>x. P i x) \<longleftrightarrow>
    (\<exists>x::'a. \<forall>i<DIM('a). P i (x$$i))" (is "?lhs \<longleftrightarrow> ?rhs")
