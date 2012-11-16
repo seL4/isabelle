@@ -483,6 +483,13 @@ proof -
   show ?thesis unfolding content_def using assms by (auto simp: *)
 qed
 
+lemma content_singleton[simp]: "content {a} = 0"
+proof -
+  have "content {a .. a} = 0"
+    by (subst content_closed_interval) auto
+  then show ?thesis by simp
+qed
+
 lemma content_unit[intro]: "content{0..One::'a::ordered_euclidean_space} = 1"
 proof -
   have *: "\<forall>i<DIM('a). (0::'a)$$i \<le> (One::'a)$$i" by auto
@@ -1665,6 +1672,16 @@ lemma has_integral_cmul:
   unfolding o_def[THEN sym] apply(rule has_integral_linear,assumption)
   by(rule bounded_linear_scaleR_right)
 
+lemma has_integral_cmult_real:
+  fixes c :: real
+  assumes "c \<noteq> 0 \<Longrightarrow> (f has_integral x) A"
+  shows "((\<lambda>x. c * f x) has_integral c * x) A"
+proof cases
+  assume "c \<noteq> 0"
+  from has_integral_cmul[OF assms[OF this], of c] show ?thesis
+    unfolding real_scaleR_def .
+qed simp
+
 lemma has_integral_neg:
   shows "(f has_integral k) s \<Longrightarrow> ((\<lambda>x. -(f x)) has_integral (-k)) s"
   apply(drule_tac c="-1" in has_integral_cmul) by auto
@@ -1745,6 +1762,12 @@ lemma integrable_add:
 lemma integrable_cmul:
   shows "f integrable_on s \<Longrightarrow> (\<lambda>x. c *\<^sub>R f(x)) integrable_on s"
   unfolding integrable_on_def by(auto intro: has_integral_cmul)
+
+lemma integrable_on_cmult_iff:
+  fixes c :: real assumes "c \<noteq> 0"
+  shows "(\<lambda>x. c * f x) integrable_on s \<longleftrightarrow> f integrable_on s"
+  using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] `c \<noteq> 0`
+  by auto
 
 lemma integrable_neg:
   shows "f integrable_on s \<Longrightarrow> (\<lambda>x. -f(x)) integrable_on s"
@@ -2668,6 +2691,11 @@ lemma has_integral_const[intro]:
   apply(rule,rule gauge_trivial)apply(rule,rule,erule conjE)
   unfolding split_def apply(subst scaleR_left.setsum[THEN sym, unfolded o_def])
   defer apply(subst additive_content_tagged_division[unfolded split_def]) apply assumption by auto
+
+lemma integral_const[simp]:
+  fixes a b :: "'a::ordered_euclidean_space"
+  shows "integral {a .. b} (\<lambda>x. c) = content {a .. b} *\<^sub>R c"
+  by (rule integral_unique) (rule has_integral_const)
 
 subsection {* Bounds on the norm of Riemann sums and the integral itself. *}
 

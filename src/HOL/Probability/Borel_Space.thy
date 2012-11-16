@@ -1114,20 +1114,9 @@ lemma [measurable (raw)]:
     and borel_measurable_limsup: "(\<lambda>x. limsup (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding liminf_SUPR_INFI limsup_INFI_SUPR using assms by auto
 
-lemma sets_Collect_eventually_sequientially[measurable]:
+lemma sets_Collect_eventually_sequentially[measurable]:
   "(\<And>i. {x\<in>space M. P x i} \<in> sets M) \<Longrightarrow> {x\<in>space M. eventually (P x) sequentially} \<in> sets M"
   unfolding eventually_sequentially by simp
-
-lemma convergent_ereal:
-  fixes X :: "nat \<Rightarrow> ereal"
-  shows "convergent X \<longleftrightarrow> limsup X = liminf X"
-  using ereal_Liminf_eq_Limsup_iff[of sequentially]
-  by (auto simp: convergent_def)
-
-lemma convergent_ereal_limsup:
-  fixes X :: "nat \<Rightarrow> ereal"
-  shows "convergent X \<Longrightarrow> limsup X = lim X"
-  by (auto simp: convergent_def limI lim_imp_Limsup)
 
 lemma sets_Collect_ereal_convergent[measurable]: 
   fixes f :: "nat \<Rightarrow> 'a => ereal"

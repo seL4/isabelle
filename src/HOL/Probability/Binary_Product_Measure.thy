@@ -8,23 +8,11 @@ theory Binary_Product_Measure
 imports Lebesgue_Integration
 begin
 
-lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> ((A = {} \<or> B = {}) \<and> (C = {} \<or> D = {}))"
+lemma Pair_vimage_times[simp]: "Pair x -` (A \<times> B) = (if x \<in> A then B else {})"
   by auto
 
-lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
+lemma rev_Pair_vimage_times[simp]: "(\<lambda>x. (x, y)) -` (A \<times> B) = (if y \<in> B then A else {})"
   by auto
-
-lemma Pair_vimage_times[simp]: "\<And>A B x. Pair x -` (A \<times> B) = (if x \<in> A then B else {})"
-  by auto
-
-lemma rev_Pair_vimage_times[simp]: "\<And>A B y. (\<lambda>x. (x, y)) -` (A \<times> B) = (if y \<in> B then A else {})"
-  by auto
-
-lemma case_prod_distrib: "f (case x of (x, y) \<Rightarrow> g x y) = (case x of (x, y) \<Rightarrow> f (g x y))"
-  by (cases x) simp
-
-lemma split_beta': "(\<lambda>(x,y). f x y) = (\<lambda>x. f (fst x) (snd x))"
-  by (auto simp: fun_eq_iff)
 
 section "Binary products"
 
@@ -786,5 +774,40 @@ proof (rule measure_eqI)
                        T.emeasure_pair_measure_alt positive_integral_distr
              intro!: positive_integral_cong arg_cong[where f="emeasure N"])
 qed simp
+
+lemma pair_measure_eqI:
+  assumes "sigma_finite_measure M1" "sigma_finite_measure M2"
+  assumes sets: "sets (M1 \<Otimes>\<^isub>M M2) = sets M"
+  assumes emeasure: "\<And>A B. A \<in> sets M1 \<Longrightarrow> B \<in> sets M2 \<Longrightarrow> emeasure M1 A * emeasure M2 B = emeasure M (A \<times> B)"
+  shows "M1 \<Otimes>\<^isub>M M2 = M"
+proof -
+  interpret M1: sigma_finite_measure M1 by fact
+  interpret M2: sigma_finite_measure M2 by fact
+  interpret pair_sigma_finite M1 M2 by default
+  from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
+  let ?E = "{a \<times> b |a b. a \<in> sets M1 \<and> b \<in> sets M2}"
+  let ?P = "M1 \<Otimes>\<^isub>M M2"
+  show ?thesis
+  proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of M1 M2]])
+    show "?E \<subseteq> Pow (space ?P)"
+      using space_closed[of M1] space_closed[of M2] by (auto simp: space_pair_measure)
+    show "sets ?P = sigma_sets (space ?P) ?E"
+      by (simp add: sets_pair_measure space_pair_measure)
+    then show "sets M = sigma_sets (space ?P) ?E"
+      using sets[symmetric] by simp
+  next
+    show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
+      using F by (auto simp: space_pair_measure)
+  next
+    fix X assume "X \<in> ?E"
+    then obtain A B where X[simp]: "X = A \<times> B" and A: "A \<in> sets M1" and B: "B \<in> sets M2" by auto
+    then have "emeasure ?P X = emeasure M1 A * emeasure M2 B"
+       by (simp add: M2.emeasure_pair_measure_Times)
+    also have "\<dots> = emeasure M (A \<times> B)"
+      using A B emeasure by auto
+    finally show "emeasure ?P X = emeasure M X"
+      by simp
+  qed
+qed
 
 end

@@ -81,7 +81,10 @@ lemma funcset_mem: "[|f \<in> A -> B; x \<in> A|] ==> f x \<in> B"
   by (simp add: Pi_def)
 
 lemma funcset_image: "f \<in> A\<rightarrow>B ==> f ` A \<subseteq> B"
-by auto
+  by auto
+
+lemma image_subset_iff_funcset: "F ` A \<subseteq> B \<longleftrightarrow> F \<in> A \<rightarrow> B"
+  by auto
 
 lemma Pi_eq_empty[simp]: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
 apply (simp add: Pi_def, auto)

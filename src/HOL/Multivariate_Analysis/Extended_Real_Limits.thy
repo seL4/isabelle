@@ -423,6 +423,11 @@ lemma lim_imp_Limsup:
   using ereal_Lim_uminus[of f f0] lim_imp_Liminf[of net "(%x. -(f x))" "-f0"]
      ereal_Liminf_uminus[of net f] assms by simp
 
+lemma convergent_ereal_limsup:
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "convergent X \<Longrightarrow> limsup X = lim X"
+  by (auto simp: convergent_def limI lim_imp_Limsup)
+
 lemma Liminf_PInfty:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<not> trivial_limit net"
@@ -485,6 +490,12 @@ lemma ereal_Liminf_eq_Limsup_iff:
   assumes "\<not> trivial_limit net"
   shows "(f ---> f0) net \<longleftrightarrow> Liminf net f = f0 \<and> Limsup net f = f0"
   by (metis assms ereal_Liminf_eq_Limsup lim_imp_Liminf lim_imp_Limsup)
+
+lemma convergent_ereal:
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "convergent X \<longleftrightarrow> limsup X = liminf X"
+  using ereal_Liminf_eq_Limsup_iff[of sequentially]
+  by (auto simp: convergent_def)
 
 lemma limsup_INFI_SUPR:
   fixes f :: "nat \<Rightarrow> ereal"
@@ -1494,6 +1505,22 @@ proof cases
   assume "finite A"
   then show ?thesis using nonneg
     by induct (simp_all add: suminf_add_ereal setsum_nonneg)
+qed simp
+
+lemma suminf_ereal_eq_0:
+  fixes f :: "nat \<Rightarrow> ereal"
+  assumes nneg: "\<And>i. 0 \<le> f i"
+  shows "(\<Sum>i. f i) = 0 \<longleftrightarrow> (\<forall>i. f i = 0)"
+proof
+  assume "(\<Sum>i. f i) = 0"
+  { fix i assume "f i \<noteq> 0"
+    with nneg have "0 < f i" by (auto simp: less_le)
+    also have "f i = (\<Sum>j. if j = i then f i else 0)"
+      by (subst suminf_finite[where N="{i}"]) auto
+    also have "\<dots> \<le> (\<Sum>i. f i)"
+      using nneg by (auto intro!: suminf_le_pos)
+    finally have False using `(\<Sum>i. f i) = 0` by auto }
+  then show "\<forall>i. f i = 0" by auto
 qed simp
 
 end

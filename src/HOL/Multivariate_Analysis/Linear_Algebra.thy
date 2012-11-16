@@ -2891,6 +2891,10 @@ lemma euclidean_trans[trans]:
   by (fast intro: less_trans, fast intro: le_less_trans,
     fast intro: order_trans)
 
+lemma atLeastAtMost_singleton_euclidean[simp]:
+  fixes a :: "'a::ordered_euclidean_space" shows "{a .. a} = {a}"
+  by (force simp: eucl_le[where 'a='a] euclidean_eq[where 'a='a])
+
 lemma basis_real_range: "basis ` {..<1} = {1::real}" by auto
 
 instance real::ordered_euclidean_space

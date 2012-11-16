@@ -18,9 +18,6 @@ definition (in prob_space)
 definition (in prob_space)
   indep_events_def_alt: "indep_events A I \<longleftrightarrow> indep_sets (\<lambda>i. {A i}) I"
 
-lemma image_subset_iff_funcset: "F ` A \<subseteq> B \<longleftrightarrow> F \<in> A \<rightarrow> B"
-  by auto
-
 lemma (in prob_space) indep_events_def:
   "indep_events A I \<longleftrightarrow> (A`I \<subseteq> events) \<and>
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
@@ -827,31 +824,6 @@ proof (rule indep_setsD)
     using I by auto
 qed fact+
 
-lemma prod_algebra_cong:
-  assumes "I = J" and sets: "(\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets (N i))"
-  shows "prod_algebra I M = prod_algebra J N"
-proof -
-  have space: "\<And>i. i \<in> I \<Longrightarrow> space (M i) = space (N i)"
-    using sets_eq_imp_space_eq[OF sets] by auto
-  with sets show ?thesis unfolding `I = J`
-    by (intro antisym prod_algebra_mono) auto
-qed
-
-lemma space_in_prod_algebra:
-  "(\<Pi>\<^isub>E i\<in>I. space (M i)) \<in> prod_algebra I M"
-proof cases
-  assume "I = {}" then show ?thesis
-    by (auto simp add: prod_algebra_def image_iff prod_emb_def)
-next
-  assume "I \<noteq> {}"
-  then obtain i where "i \<in> I" by auto
-  then have "(\<Pi>\<^isub>E i\<in>I. space (M i)) = prod_emb I M {i} (\<Pi>\<^isub>E i\<in>{i}. space (M i))"
-    by (auto simp: prod_emb_def Pi_iff)
-  also have "\<dots> \<in> prod_algebra I M"
-    using `i \<in> I` by (intro prod_algebraI) auto
-  finally show ?thesis .
-qed
-
 lemma (in prob_space) indep_vars_iff_distr_eq_PiM:
   fixes I :: "'i set" and X :: "'i \<Rightarrow> 'a \<Rightarrow> 'b"
   assumes "I \<noteq> {}"
@@ -970,114 +942,6 @@ proof -
     using assms unfolding indep_var_def indep_vars_def by auto
   then show "random_variable S X" "random_variable T Y"
     unfolding UNIV_bool by auto
-qed
-
-lemma measurable_bool_case[simp, intro]:
-  "(\<lambda>(x, y). bool_case x y) \<in> measurable (M \<Otimes>\<^isub>M N) (Pi\<^isub>M UNIV (bool_case M N))"
-    (is "?f \<in> measurable ?B ?P")
-proof (rule measurable_PiM_single)
-  show "?f \<in> space ?B \<rightarrow> (\<Pi>\<^isub>E i\<in>UNIV. space (bool_case M N i))"
-    by (auto simp: space_pair_measure extensional_def split: bool.split)
-  fix i A assume "A \<in> sets (case i of True \<Rightarrow> M | False \<Rightarrow> N)"
-  moreover then have "{\<omega> \<in> space (M \<Otimes>\<^isub>M N). prod_case bool_case \<omega> i \<in> A}
-    = (case i of True \<Rightarrow> A \<times> space N | False \<Rightarrow> space M \<times> A)" 
-    by (auto simp: space_pair_measure split: bool.split dest!: sets_into_space)
-  ultimately show "{\<omega> \<in> space (M \<Otimes>\<^isub>M N). prod_case bool_case \<omega> i \<in> A} \<in> sets ?B"
-    by (auto split: bool.split)
-qed
-
-lemma borel_measurable_indicator':
-  "A \<in> sets N \<Longrightarrow> f \<in> measurable M N \<Longrightarrow> (\<lambda>x. indicator A (f x)) \<in> borel_measurable M"
-  using measurable_comp[OF _ borel_measurable_indicator, of f M N A] by (auto simp add: comp_def)
-
-lemma (in product_sigma_finite) distr_component:
-  "distr (M i) (Pi\<^isub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x) = Pi\<^isub>M {i} M" (is "?D = ?P")
-proof (intro measure_eqI[symmetric])
-  interpret I: finite_product_sigma_finite M "{i}" by default simp
-
-  have eq: "\<And>x. x \<in> extensional {i} \<Longrightarrow> (\<lambda>j\<in>{i}. x i) = x"
-    by (auto simp: extensional_def restrict_def)
-
-  fix A assume A: "A \<in> sets ?P"
-  then have "emeasure ?P A = (\<integral>\<^isup>+x. indicator A x \<partial>?P)" 
-    by simp
-  also have "\<dots> = (\<integral>\<^isup>+x. indicator ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i)) (x i) \<partial>PiM {i} M)" 
-    by (intro positive_integral_cong) (auto simp: space_PiM indicator_def simp: eq)
-  also have "\<dots> = emeasure ?D A"
-    using A by (simp add: product_positive_integral_singleton emeasure_distr)
-  finally show "emeasure (Pi\<^isub>M {i} M) A = emeasure ?D A" .
-qed simp
-
-lemma pair_measure_eqI:
-  assumes "sigma_finite_measure M1" "sigma_finite_measure M2"
-  assumes sets: "sets (M1 \<Otimes>\<^isub>M M2) = sets M"
-  assumes emeasure: "\<And>A B. A \<in> sets M1 \<Longrightarrow> B \<in> sets M2 \<Longrightarrow> emeasure M1 A * emeasure M2 B = emeasure M (A \<times> B)"
-  shows "M1 \<Otimes>\<^isub>M M2 = M"
-proof -
-  interpret M1: sigma_finite_measure M1 by fact
-  interpret M2: sigma_finite_measure M2 by fact
-  interpret pair_sigma_finite M1 M2 by default
-  from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
-  let ?E = "{a \<times> b |a b. a \<in> sets M1 \<and> b \<in> sets M2}"
-  let ?P = "M1 \<Otimes>\<^isub>M M2"
-  show ?thesis
-  proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of M1 M2]])
-    show "?E \<subseteq> Pow (space ?P)"
-      using space_closed[of M1] space_closed[of M2] by (auto simp: space_pair_measure)
-    show "sets ?P = sigma_sets (space ?P) ?E"
-      by (simp add: sets_pair_measure space_pair_measure)
-    then show "sets M = sigma_sets (space ?P) ?E"
-      using sets[symmetric] by simp
-  next
-    show "range F \<subseteq> ?E" "(\<Union>i. F i) = space ?P" "\<And>i. emeasure ?P (F i) \<noteq> \<infinity>"
-      using F by (auto simp: space_pair_measure)
-  next
-    fix X assume "X \<in> ?E"
-    then obtain A B where X[simp]: "X = A \<times> B" and A: "A \<in> sets M1" and B: "B \<in> sets M2" by auto
-    then have "emeasure ?P X = emeasure M1 A * emeasure M2 B"
-       by (simp add: M2.emeasure_pair_measure_Times)
-    also have "\<dots> = emeasure M (A \<times> B)"
-      using A B emeasure by auto
-    finally show "emeasure ?P X = emeasure M X"
-      by simp
-  qed
-qed
-
-lemma pair_measure_eq_distr_PiM:
-  fixes M1 :: "'a measure" and M2 :: "'a measure"
-  assumes "sigma_finite_measure M1" "sigma_finite_measure M2"
-  shows "(M1 \<Otimes>\<^isub>M M2) = distr (Pi\<^isub>M UNIV (bool_case M1 M2)) (M1 \<Otimes>\<^isub>M M2) (\<lambda>x. (x True, x False))"
-    (is "?P = ?D")
-proof (rule pair_measure_eqI[OF assms])
-  interpret B: product_sigma_finite "bool_case M1 M2"
-    unfolding product_sigma_finite_def using assms by (auto split: bool.split)
-  let ?B = "Pi\<^isub>M UNIV (bool_case M1 M2)"
-
-  have [simp]: "fst \<circ> (\<lambda>x. (x True, x False)) = (\<lambda>x. x True)" "snd \<circ> (\<lambda>x. (x True, x False)) = (\<lambda>x. x False)"
-    by auto
-  fix A B assume A: "A \<in> sets M1" and B: "B \<in> sets M2"
-  have "emeasure M1 A * emeasure M2 B = (\<Prod> i\<in>UNIV. emeasure (bool_case M1 M2 i) (bool_case A B i))"
-    by (simp add: UNIV_bool ac_simps)
-  also have "\<dots> = emeasure ?B (Pi\<^isub>E UNIV (bool_case A B))"
-    using A B by (subst B.emeasure_PiM) (auto split: bool.split)
-  also have "Pi\<^isub>E UNIV (bool_case A B) = (\<lambda>x. (x True, x False)) -` (A \<times> B) \<inter> space ?B"
-    using A[THEN sets_into_space] B[THEN sets_into_space]
-    by (auto simp: Pi_iff all_bool_eq space_PiM split: bool.split)
-  finally show "emeasure M1 A * emeasure M2 B = emeasure ?D (A \<times> B)"
-    using A B
-      measurable_component_singleton[of True UNIV "bool_case M1 M2"]
-      measurable_component_singleton[of False UNIV "bool_case M1 M2"]
-    by (subst emeasure_distr) (auto simp: measurable_pair_iff)
-qed simp
-
-lemma measurable_Pair:
-  assumes rvs: "X \<in> measurable M S" "Y \<in> measurable M T"
-  shows "(\<lambda>x. (X x, Y x)) \<in> measurable M (S \<Otimes>\<^isub>M T)"
-proof -
-  have [simp]: "fst \<circ> (\<lambda>x. (X x, Y x)) = (\<lambda>x. X x)" "snd \<circ> (\<lambda>x. (X x, Y x)) = (\<lambda>x. Y x)"
-    by auto
-  show " (\<lambda>x. (X x, Y x)) \<in> measurable M (S \<Otimes>\<^isub>M T)"
-    by (auto simp: measurable_pair_iff rvs)
 qed
 
 lemma (in prob_space) indep_var_distribution_eq:

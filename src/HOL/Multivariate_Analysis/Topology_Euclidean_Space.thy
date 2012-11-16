@@ -2044,6 +2044,10 @@ lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>
 unfolding bounded_any_center [where a=0]
 by (simp add: dist_norm)
 
+lemma bounded_realI: assumes "\<forall>x\<in>s. abs (x::real) \<le> B" shows "bounded s"
+  unfolding bounded_def dist_real_def apply(rule_tac x=0 in exI)
+  using assms by auto
+
 lemma bounded_empty[simp]: "bounded {}" by (simp add: bounded_def)
 lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
   by (metis bounded_def subset_eq)

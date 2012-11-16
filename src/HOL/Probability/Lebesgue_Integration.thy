@@ -9,16 +9,6 @@ theory Lebesgue_Integration
   imports Measure_Space Borel_Space
 begin
 
-lemma ereal_minus_eq_PInfty_iff:
-  fixes x y :: ereal shows "x - y = \<infinity> \<longleftrightarrow> y = -\<infinity> \<or> x = \<infinity>"
-  by (cases x y rule: ereal2_cases) simp_all
-
-lemma real_ereal_1[simp]: "real (1::ereal) = 1"
-  unfolding one_ereal_def by simp
-
-lemma ereal_indicator_pos[simp,intro]: "0 \<le> (indicator A x ::ereal)"
-  unfolding indicator_def by auto
-
 lemma tendsto_real_max:
   fixes x y :: real
   assumes "(X ---> x) net"
@@ -41,11 +31,6 @@ proof -
     by auto
   then show ?thesis using assms by (auto intro: measurable_sets)
 qed
-
-lemma incseq_Suc_iff: "incseq f \<longleftrightarrow> (\<forall>n. f n \<le> f (Suc n))"
-proof
-  assume "\<forall>n. f n \<le> f (Suc n)" then show "incseq f" by (auto intro!: incseq_SucI)
-qed (auto simp: incseq_def)
 
 section "Simple function"
 

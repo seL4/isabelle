@@ -124,7 +124,6 @@ proof safe
   fix x :: ereal show "x \<in> range uminus" by (intro image_eqI[of _ _ "-x"]) auto
 qed auto
 
-
 instantiation ereal :: abs
 begin
   function abs_ereal where
@@ -144,6 +143,9 @@ lemma abs_neq_infinity_cases[elim!]: "\<lbrakk> \<bar>x :: ereal\<bar> \<noteq> 
 
 lemma abs_ereal_uminus[simp]: "\<bar>- x\<bar> = \<bar>x::ereal\<bar>"
   by (cases x) auto
+
+lemma ereal_infinity_cases: "(a::ereal) \<noteq> \<infinity> \<Longrightarrow> a \<noteq> -\<infinity> \<Longrightarrow> \<bar>a\<bar> \<noteq> \<infinity>"
+  by auto
 
 subsubsection "Addition"
 
@@ -530,6 +532,9 @@ proof
 qed
 end
 
+lemma real_ereal_1[simp]: "real (1::ereal) = 1"
+  unfolding one_ereal_def by simp
+
 lemma real_of_ereal_le_1:
   fixes a :: ereal shows "a \<le> 1 \<Longrightarrow> real a \<le> 1"
   by (cases a) (auto simp: one_ereal_def)
@@ -658,6 +663,16 @@ lemma ereal_zero_less_0_iff:
   fixes a b :: ereal
   shows "0 < a * b \<longleftrightarrow> (0 < a \<and> 0 < b) \<or> (a < 0 \<and> b < 0)"
   by (cases rule: ereal2_cases[of a b]) (simp_all add: zero_less_mult_iff)
+
+lemma ereal_left_mult_cong:
+  fixes a b c :: ereal
+  shows "(c \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> c * a = c * b"
+  by (cases "c = 0") simp_all
+
+lemma ereal_right_mult_cong:
+  fixes a b c :: ereal
+  shows "(c \<noteq> 0 \<Longrightarrow> a = b) \<Longrightarrow> a * c = b * c"
+  by (cases "c = 0") simp_all
 
 lemma ereal_distrib:
   fixes a b c :: ereal
@@ -940,6 +955,10 @@ lemma ereal_between:
 using assms apply (cases x, cases e) apply auto
 using assms apply (cases x, cases e) apply auto
 done
+
+lemma ereal_minus_eq_PInfty_iff:
+  fixes x y :: ereal shows "x - y = \<infinity> \<longleftrightarrow> y = -\<infinity> \<or> x = \<infinity>"
+  by (cases x y rule: ereal2_cases) simp_all
 
 subsubsection {* Division *}
 

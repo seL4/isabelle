@@ -262,6 +262,47 @@ next
     using Pi_eq_empty_iff[of I F] Pi_eq_empty_iff[of I F'] by auto
 qed
 
+lemma funset_eq_UN_fun_upd_I:
+  assumes *: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f(a := d) \<in> F A"
+  and **: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f a \<in> G (f(a:=d))"
+  and ***: "\<And>f x. \<lbrakk> f \<in> F A ; x \<in> G f \<rbrakk> \<Longrightarrow> f(a:=x) \<in> F (insert a A)"
+  shows "F (insert a A) = (\<Union>f\<in>F A. fun_upd f a ` (G f))"
+proof safe
+  fix f assume f: "f \<in> F (insert a A)"
+  show "f \<in> (\<Union>f\<in>F A. fun_upd f a ` G f)"
+  proof (rule UN_I[of "f(a := d)"])
+    show "f(a := d) \<in> F A" using *[OF f] .
+    show "f \<in> fun_upd (f(a:=d)) a ` G (f(a:=d))"
+    proof (rule image_eqI[of _ _ "f a"])
+      show "f a \<in> G (f(a := d))" using **[OF f] .
+    qed simp
+  qed
+next
+  fix f x assume "f \<in> F A" "x \<in> G f"
+  from ***[OF this] show "f(a := x) \<in> F (insert a A)" .
+qed
+
+lemma extensional_funcset_insert_eq[simp]:
+  assumes "a \<notin> A"
+  shows "extensional (insert a A) \<inter> (insert a A \<rightarrow> B) = (\<Union>f \<in> extensional A \<inter> (A \<rightarrow> B). (\<lambda>b. f(a := b)) ` B)"
+  apply (rule funset_eq_UN_fun_upd_I)
+  using assms
+  by (auto intro!: inj_onI dest: inj_onD split: split_if_asm simp: extensional_def)
+
+lemma finite_extensional_funcset[simp, intro]:
+  assumes "finite A" "finite B"
+  shows "finite (extensional A \<inter> (A \<rightarrow> B))"
+  using assms by induct auto
+
+lemma finite_PiE[simp, intro]:
+  assumes fin: "finite A" "\<And>i. i \<in> A \<Longrightarrow> finite (B i)"
+  shows "finite (Pi\<^isub>E A B)"
+proof -
+  have *: "(Pi\<^isub>E A B) \<subseteq> extensional A \<inter> (A \<rightarrow> (\<Union>i\<in>A. B i))" by auto
+  show ?thesis
+    using fin by (intro finite_subset[OF *] finite_extensional_funcset) auto
+qed
+
 section "Finite product spaces"
 
 section "Products"
@@ -439,6 +480,31 @@ proof
     apply (intro exI[of _ J] exI[of _ G] conjI)
     apply auto
     done
+qed
+
+lemma prod_algebra_cong:
+  assumes "I = J" and sets: "(\<And>i. i \<in> I \<Longrightarrow> sets (M i) = sets (N i))"
+  shows "prod_algebra I M = prod_algebra J N"
+proof -
+  have space: "\<And>i. i \<in> I \<Longrightarrow> space (M i) = space (N i)"
+    using sets_eq_imp_space_eq[OF sets] by auto
+  with sets show ?thesis unfolding `I = J`
+    by (intro antisym prod_algebra_mono) auto
+qed
+
+lemma space_in_prod_algebra:
+  "(\<Pi>\<^isub>E i\<in>I. space (M i)) \<in> prod_algebra I M"
+proof cases
+  assume "I = {}" then show ?thesis
+    by (auto simp add: prod_algebra_def image_iff prod_emb_def)
+next
+  assume "I \<noteq> {}"
+  then obtain i where "i \<in> I" by auto
+  then have "(\<Pi>\<^isub>E i\<in>I. space (M i)) = prod_emb I M {i} (\<Pi>\<^isub>E i\<in>{i}. space (M i))"
+    by (auto simp: prod_emb_def Pi_iff)
+  also have "\<dots> \<in> prod_algebra I M"
+    using `i \<in> I` by (intro prod_algebraI) auto
+  finally show ?thesis .
 qed
 
 lemma space_PiM: "space (\<Pi>\<^isub>M i\<in>I. M i) = (\<Pi>\<^isub>E i\<in>I. space (M i))"
@@ -1007,6 +1073,23 @@ proof -
   show ?thesis
     unfolding lebesgue_integral_def *[THEN product_positive_integral_singleton] ..
 qed
+lemma (in product_sigma_finite) distr_component:
+  "distr (M i) (Pi\<^isub>M {i} M) (\<lambda>x. \<lambda>i\<in>{i}. x) = Pi\<^isub>M {i} M" (is "?D = ?P")
+proof (intro measure_eqI[symmetric])
+  interpret I: finite_product_sigma_finite M "{i}" by default simp
+
+  have eq: "\<And>x. x \<in> extensional {i} \<Longrightarrow> (\<lambda>j\<in>{i}. x i) = x"
+    by (auto simp: extensional_def restrict_def)
+
+  fix A assume A: "A \<in> sets ?P"
+  then have "emeasure ?P A = (\<integral>\<^isup>+x. indicator A x \<partial>?P)" 
+    by simp
+  also have "\<dots> = (\<integral>\<^isup>+x. indicator ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i)) (x i) \<partial>PiM {i} M)" 
+    by (intro positive_integral_cong) (auto simp: space_PiM indicator_def simp: eq)
+  also have "\<dots> = emeasure ?D A"
+    using A by (simp add: product_positive_integral_singleton emeasure_distr)
+  finally show "emeasure (Pi\<^isub>M {i} M) A = emeasure ?D A" .
+qed simp
 
 lemma (in product_sigma_finite) product_integral_fold:
   assumes IJ[simp]: "I \<inter> J = {}" and fin: "finite I" "finite J"
@@ -1249,5 +1332,32 @@ proof
     using `finite I`
     by (auto intro!: sigma_sets_subset sets_PiM_I_finite simp: E_generates P_def)
 qed
+
+lemma pair_measure_eq_distr_PiM:
+  fixes M1 :: "'a measure" and M2 :: "'a measure"
+  assumes "sigma_finite_measure M1" "sigma_finite_measure M2"
+  shows "(M1 \<Otimes>\<^isub>M M2) = distr (Pi\<^isub>M UNIV (bool_case M1 M2)) (M1 \<Otimes>\<^isub>M M2) (\<lambda>x. (x True, x False))"
+    (is "?P = ?D")
+proof (rule pair_measure_eqI[OF assms])
+  interpret B: product_sigma_finite "bool_case M1 M2"
+    unfolding product_sigma_finite_def using assms by (auto split: bool.split)
+  let ?B = "Pi\<^isub>M UNIV (bool_case M1 M2)"
+
+  have [simp]: "fst \<circ> (\<lambda>x. (x True, x False)) = (\<lambda>x. x True)" "snd \<circ> (\<lambda>x. (x True, x False)) = (\<lambda>x. x False)"
+    by auto
+  fix A B assume A: "A \<in> sets M1" and B: "B \<in> sets M2"
+  have "emeasure M1 A * emeasure M2 B = (\<Prod> i\<in>UNIV. emeasure (bool_case M1 M2 i) (bool_case A B i))"
+    by (simp add: UNIV_bool ac_simps)
+  also have "\<dots> = emeasure ?B (Pi\<^isub>E UNIV (bool_case A B))"
+    using A B by (subst B.emeasure_PiM) (auto split: bool.split)
+  also have "Pi\<^isub>E UNIV (bool_case A B) = (\<lambda>x. (x True, x False)) -` (A \<times> B) \<inter> space ?B"
+    using A[THEN sets_into_space] B[THEN sets_into_space]
+    by (auto simp: Pi_iff all_bool_eq space_PiM split: bool.split)
+  finally show "emeasure M1 A * emeasure M2 B = emeasure ?D (A \<times> B)"
+    using A B
+      measurable_component_singleton[of True UNIV "bool_case M1 M2"]
+      measurable_component_singleton[of False UNIV "bool_case M1 M2"]
+    by (subst emeasure_distr) (auto simp: measurable_pair_iff)
+qed simp
 
 end

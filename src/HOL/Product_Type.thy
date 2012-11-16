@@ -393,6 +393,9 @@ next
   from `PROP P (fst x, snd x)` show "PROP P x" by simp
 qed
 
+lemma case_prod_distrib: "f (case x of (x, y) \<Rightarrow> g x y) = (case x of (x, y) \<Rightarrow> f (g x y))"
+  by (cases x) simp
+
 text {*
   The rule @{thm [source] split_paired_all} does not work with the
   Simplifier because it also affects premises in congrence rules,
@@ -494,6 +497,10 @@ simproc_setup split_eta ("split f") = {* fn _ => fn ss => fn ct => eta_proc ss (
 
 lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)
+
+lemma split_beta': "(\<lambda>(x,y). f x y) = (\<lambda>x. f (fst x) (snd x))"
+  by (auto simp: fun_eq_iff)
+
 
 lemma split_split [no_atp]: "R(split c p) = (ALL x y. p = (x, y) --> R(c x y))"
   -- {* For use with @{text split} and the Simplifier. *}
@@ -1019,6 +1026,9 @@ by blast
 lemma Times_empty[simp]: "A \<times> B = {} \<longleftrightarrow> A = {} \<or> B = {}"
   by auto
 
+lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> ((A = {} \<or> B = {}) \<and> (C = {} \<or> D = {}))"
+  by auto
+
 lemma fst_image_times[simp]: "fst ` (A \<times> B) = (if B = {} then {} else A)"
   by force
 
@@ -1035,6 +1045,9 @@ lemma vimage_Times: "f -` (A \<times> B) = ((fst \<circ> f) -` A) \<inter> ((snd
   apply (case_tac "f x")
   apply auto
   done
+
+lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
+  by auto
 
 lemma swap_inj_on:
   "inj_on (\<lambda>(i, j). (j, i)) A"

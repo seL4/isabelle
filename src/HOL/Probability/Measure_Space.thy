@@ -18,6 +18,28 @@ lemma sums_def2:
   apply (subst LIMSEQ_Suc_iff[symmetric])
   unfolding atLeastLessThanSuc_atLeastAtMost atLeast0AtMost ..
 
+subsection "Relate extended reals and the indicator function"
+
+lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
+  by (auto simp: indicator_def one_ereal_def)
+
+lemma ereal_indicator_pos[simp,intro]: "0 \<le> (indicator A x ::ereal)"
+  unfolding indicator_def by auto
+
+lemma LIMSEQ_indicator_UN:
+  "(\<lambda>k. indicator (\<Union> i<k. A i) x) ----> (indicator (\<Union>i. A i) x :: real)"
+proof cases
+  assume "\<exists>i. x \<in> A i" then guess i .. note i = this
+  then have *: "\<And>n. (indicator (\<Union> i<n + Suc i. A i) x :: real) = 1"
+    "(indicator (\<Union> i. A i) x :: real) = 1" by (auto simp: indicator_def)
+  show ?thesis
+    apply (rule LIMSEQ_offset[of _ "Suc i"]) unfolding * by auto
+qed (auto simp: indicator_def)
+
+lemma indicator_add:
+  "A \<inter> B = {} \<Longrightarrow> (indicator A x::_::monoid_add) + indicator B x = indicator (A \<union> B) x"
+  unfolding indicator_def by auto
+
 lemma suminf_cmult_indicator:
   fixes f :: "nat \<Rightarrow> ereal"
   assumes "disjoint_family A" "x \<in> A i" "\<And>i. 0 \<le> f i"
@@ -111,7 +133,7 @@ lemma increasingD:
   "increasing M f \<Longrightarrow> x \<subseteq> y \<Longrightarrow> x\<in>M \<Longrightarrow> y\<in>M \<Longrightarrow> f x \<le> f y"
   by (auto simp add: increasing_def)
 
-lemma countably_additiveI:
+lemma countably_additiveI[case_names countably]:
   "(\<And>A. range A \<subseteq> M \<Longrightarrow> disjoint_family A \<Longrightarrow> (\<Union>i. A i) \<in> M \<Longrightarrow> (\<Sum>i. f (A i)) = f (\<Union>i. A i))
   \<Longrightarrow> countably_additive M f"
   by (simp add: countably_additive_def)
@@ -1114,6 +1136,9 @@ proof (rule emeasure_measure_of_sigma)
   show "sigma_algebra (space N) (sets N)" ..
 qed fact
 
+lemma distr_id[simp]: "distr N N (\<lambda>x. x) = N"
+  by (rule measure_eqI) (auto simp: emeasure_distr)
+
 lemma measure_distr:
   "f \<in> measurable M N \<Longrightarrow> S \<in> sets N \<Longrightarrow> measure (distr M N f) S = measure M (f -` S \<inter> space M)"
   by (simp add: emeasure_distr measure_def)
@@ -1388,6 +1413,107 @@ lemma (in finite_measure) finite_measure_eq_AE:
   assumes A: "A \<in> sets M" and B: "B \<in> sets M"
   shows "measure M A = measure M B"
   using assms emeasure_eq_AE[OF assms] by (simp add: emeasure_eq_measure)
+
+lemma (in finite_measure) measure_increasing: "increasing M (measure M)"
+  by (auto intro!: finite_measure_mono simp: increasing_def)
+
+lemma (in finite_measure) measure_zero_union:
+  assumes "s \<in> sets M" "t \<in> sets M" "measure M t = 0"
+  shows "measure M (s \<union> t) = measure M s"
+using assms
+proof -
+  have "measure M (s \<union> t) \<le> measure M s"
+    using finite_measure_subadditive[of s t] assms by auto
+  moreover have "measure M (s \<union> t) \<ge> measure M s"
+    using assms by (blast intro: finite_measure_mono)
+  ultimately show ?thesis by simp
+qed
+
+lemma (in finite_measure) measure_eq_compl:
+  assumes "s \<in> sets M" "t \<in> sets M"
+  assumes "measure M (space M - s) = measure M (space M - t)"
+  shows "measure M s = measure M t"
+  using assms finite_measure_compl by auto
+
+lemma (in finite_measure) measure_eq_bigunion_image:
+  assumes "range f \<subseteq> sets M" "range g \<subseteq> sets M"
+  assumes "disjoint_family f" "disjoint_family g"
+  assumes "\<And> n :: nat. measure M (f n) = measure M (g n)"
+  shows "measure M (\<Union> i. f i) = measure M (\<Union> i. g i)"
+using assms
+proof -
+  have a: "(\<lambda> i. measure M (f i)) sums (measure M (\<Union> i. f i))"
+    by (rule finite_measure_UNION[OF assms(1,3)])
+  have b: "(\<lambda> i. measure M (g i)) sums (measure M (\<Union> i. g i))"
+    by (rule finite_measure_UNION[OF assms(2,4)])
+  show ?thesis using sums_unique[OF b] sums_unique[OF a] assms by simp
+qed
+
+lemma (in finite_measure) measure_countably_zero:
+  assumes "range c \<subseteq> sets M"
+  assumes "\<And> i. measure M (c i) = 0"
+  shows "measure M (\<Union> i :: nat. c i) = 0"
+proof (rule antisym)
+  show "measure M (\<Union> i :: nat. c i) \<le> 0"
+    using finite_measure_subadditive_countably[OF assms(1)] by (simp add: assms(2))
+qed (simp add: measure_nonneg)
+
+lemma (in finite_measure) measure_space_inter:
+  assumes events:"s \<in> sets M" "t \<in> sets M"
+  assumes "measure M t = measure M (space M)"
+  shows "measure M (s \<inter> t) = measure M s"
+proof -
+  have "measure M ((space M - s) \<union> (space M - t)) = measure M (space M - s)"
+    using events assms finite_measure_compl[of "t"] by (auto intro!: measure_zero_union)
+  also have "(space M - s) \<union> (space M - t) = space M - (s \<inter> t)"
+    by blast
+  finally show "measure M (s \<inter> t) = measure M s"
+    using events by (auto intro!: measure_eq_compl[of "s \<inter> t" s])
+qed
+
+lemma (in finite_measure) measure_equiprobable_finite_unions:
+  assumes s: "finite s" "\<And>x. x \<in> s \<Longrightarrow> {x} \<in> sets M"
+  assumes "\<And> x y. \<lbrakk>x \<in> s; y \<in> s\<rbrakk> \<Longrightarrow> measure M {x} = measure M {y}"
+  shows "measure M s = real (card s) * measure M {SOME x. x \<in> s}"
+proof cases
+  assume "s \<noteq> {}"
+  then have "\<exists> x. x \<in> s" by blast
+  from someI_ex[OF this] assms
+  have prob_some: "\<And> x. x \<in> s \<Longrightarrow> measure M {x} = measure M {SOME y. y \<in> s}" by blast
+  have "measure M s = (\<Sum> x \<in> s. measure M {x})"
+    using finite_measure_eq_setsum_singleton[OF s] by simp
+  also have "\<dots> = (\<Sum> x \<in> s. measure M {SOME y. y \<in> s})" using prob_some by auto
+  also have "\<dots> = real (card s) * measure M {(SOME x. x \<in> s)}"
+    using setsum_constant assms by (simp add: real_eq_of_nat)
+  finally show ?thesis by simp
+qed simp
+
+lemma (in finite_measure) measure_real_sum_image_fn:
+  assumes "e \<in> sets M"
+  assumes "\<And> x. x \<in> s \<Longrightarrow> e \<inter> f x \<in> sets M"
+  assumes "finite s"
+  assumes disjoint: "\<And> x y. \<lbrakk>x \<in> s ; y \<in> s ; x \<noteq> y\<rbrakk> \<Longrightarrow> f x \<inter> f y = {}"
+  assumes upper: "space M \<subseteq> (\<Union> i \<in> s. f i)"
+  shows "measure M e = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
+proof -
+  have e: "e = (\<Union> i \<in> s. e \<inter> f i)"
+    using `e \<in> sets M` sets_into_space upper by blast
+  hence "measure M e = measure M (\<Union> i \<in> s. e \<inter> f i)" by simp
+  also have "\<dots> = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
+  proof (rule finite_measure_finite_Union)
+    show "finite s" by fact
+    show "(\<lambda>i. e \<inter> f i)`s \<subseteq> sets M" using assms(2) by auto
+    show "disjoint_family_on (\<lambda>i. e \<inter> f i) s"
+      using disjoint by (auto simp: disjoint_family_on_def)
+  qed
+  finally show ?thesis .
+qed
+
+lemma (in finite_measure) measure_exclude:
+  assumes "A \<in> sets M" "B \<in> sets M"
+  assumes "measure M A = measure M (space M)" "A \<inter> B = {}"
+  shows "measure M B = 0"
+  using measure_space_inter[of B A] assms by (auto simp: ac_simps)
 
 section {* Counting space *}
 

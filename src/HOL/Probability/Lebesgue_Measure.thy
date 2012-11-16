@@ -9,14 +9,32 @@ theory Lebesgue_Measure
   imports Finite_Product_Measure
 begin
 
-lemma borel_measurable_indicator':
-  "A \<in> sets borel \<Longrightarrow> f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. indicator A (f x)) \<in> borel_measurable M"
-  using measurable_comp[OF _ borel_measurable_indicator, of f M borel A] by (auto simp add: comp_def)
+lemma bchoice_iff: "(\<forall>x\<in>A. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x\<in>A. P x (f x))"
+  by metis
 
-lemma borel_measurable_sets:
-  assumes "f \<in> measurable borel M" "A \<in> sets M"
-  shows "f -` A \<in> sets borel"
-  using measurable_sets[OF assms] by simp
+lemma absolutely_integrable_on_indicator[simp]:
+  fixes A :: "'a::ordered_euclidean_space set"
+  shows "((indicator A :: _ \<Rightarrow> real) absolutely_integrable_on X) \<longleftrightarrow>
+    (indicator A :: _ \<Rightarrow> real) integrable_on X"
+  unfolding absolutely_integrable_on_def by simp
+
+lemma has_integral_indicator_UNIV:
+  fixes s A :: "'a::ordered_euclidean_space set" and x :: real
+  shows "((indicator (s \<inter> A) :: 'a\<Rightarrow>real) has_integral x) UNIV = ((indicator s :: _\<Rightarrow>real) has_integral x) A"
+proof -
+  have "(\<lambda>x. if x \<in> A then indicator s x else 0) = (indicator (s \<inter> A) :: _\<Rightarrow>real)"
+    by (auto simp: fun_eq_iff indicator_def)
+  then show ?thesis
+    unfolding has_integral_restrict_univ[where s=A, symmetric] by simp
+qed
+
+lemma
+  fixes s a :: "'a::ordered_euclidean_space set"
+  shows integral_indicator_UNIV:
+    "integral UNIV (indicator (s \<inter> A) :: 'a\<Rightarrow>real) = integral A (indicator s :: _\<Rightarrow>real)"
+  and integrable_indicator_UNIV:
+    "(indicator (s \<inter> A) :: 'a\<Rightarrow>real) integrable_on UNIV \<longleftrightarrow> (indicator s :: 'a\<Rightarrow>real) integrable_on A"
+  unfolding integral_def integrable_on_def has_integral_indicator_UNIV by auto
 
 subsection {* Standard Cubes *}
 
@@ -62,6 +80,23 @@ qed
 lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
   unfolding cube_def subset_eq apply safe unfolding mem_interval apply auto done
 
+lemma has_integral_interval_cube:
+  fixes a b :: "'a::ordered_euclidean_space"
+  shows "(indicator {a .. b} has_integral
+    content ({\<chi>\<chi> i. max (- real n) (a $$ i) .. \<chi>\<chi> i. min (real n) (b $$ i)} :: 'a set)) (cube n)"
+    (is "(?I has_integral content ?R) (cube n)")
+proof -
+  let "{?N .. ?P}" = ?R
+  have [simp]: "(\<lambda>x. if x \<in> cube n then ?I x else 0) = indicator ?R"
+    by (auto simp: indicator_def cube_def fun_eq_iff eucl_le[where 'a='a])
+  have "(?I has_integral content ?R) (cube n) \<longleftrightarrow> (indicator ?R has_integral content ?R) UNIV"
+    unfolding has_integral_restrict_univ[where s="cube n", symmetric] by simp
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1) has_integral content ?R) ?R"
+    unfolding indicator_def [abs_def] has_integral_restrict_univ ..
+  finally show ?thesis
+    using has_integral_const[of "1::real" "?N" "?P"] by simp
+qed
+
 subsection {* Lebesgue measure *}
 
 definition lebesgue :: "'a::ordered_euclidean_space measure" where
@@ -73,26 +108,6 @@ lemma space_lebesgue[simp]: "space lebesgue = UNIV"
 
 lemma lebesgueI: "(\<And>n. (indicator A :: _ \<Rightarrow> real) integrable_on cube n) \<Longrightarrow> A \<in> sets lebesgue"
   unfolding lebesgue_def by simp
-
-lemma absolutely_integrable_on_indicator[simp]:
-  fixes A :: "'a::ordered_euclidean_space set"
-  shows "((indicator A :: _ \<Rightarrow> real) absolutely_integrable_on X) \<longleftrightarrow>
-    (indicator A :: _ \<Rightarrow> real) integrable_on X"
-  unfolding absolutely_integrable_on_def by simp
-
-lemma LIMSEQ_indicator_UN:
-  "(\<lambda>k. indicator (\<Union> i<k. A i) x) ----> (indicator (\<Union>i. A i) x :: real)"
-proof cases
-  assume "\<exists>i. x \<in> A i" then guess i .. note i = this
-  then have *: "\<And>n. (indicator (\<Union> i<n + Suc i. A i) x :: real) = 1"
-    "(indicator (\<Union> i. A i) x :: real) = 1" by (auto simp: indicator_def)
-  show ?thesis
-    apply (rule LIMSEQ_offset[of _ "Suc i"]) unfolding * by auto
-qed (auto simp: indicator_def)
-
-lemma indicator_add:
-  "A \<inter> B = {} \<Longrightarrow> (indicator A x::_::monoid_add) + indicator B x = indicator (A \<union> B) x"
-  unfolding indicator_def by auto
 
 lemma sigma_algebra_lebesgue:
   defines "leb \<equiv> {A. \<forall>n. (indicator A :: 'a::ordered_euclidean_space \<Rightarrow> real) integrable_on cube n}"
@@ -198,23 +213,6 @@ next
   qed
 qed (auto, fact)
 
-lemma has_integral_interval_cube:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "(indicator {a .. b} has_integral
-    content ({\<chi>\<chi> i. max (- real n) (a $$ i) .. \<chi>\<chi> i. min (real n) (b $$ i)} :: 'a set)) (cube n)"
-    (is "(?I has_integral content ?R) (cube n)")
-proof -
-  let "{?N .. ?P}" = ?R
-  have [simp]: "(\<lambda>x. if x \<in> cube n then ?I x else 0) = indicator ?R"
-    by (auto simp: indicator_def cube_def fun_eq_iff eucl_le[where 'a='a])
-  have "(?I has_integral content ?R) (cube n) \<longleftrightarrow> (indicator ?R has_integral content ?R) UNIV"
-    unfolding has_integral_restrict_univ[where s="cube n", symmetric] by simp
-  also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1) has_integral content ?R) ?R"
-    unfolding indicator_def [abs_def] has_integral_restrict_univ ..
-  finally show ?thesis
-    using has_integral_const[of "1::real" "?N" "?P"] by simp
-qed
-
 lemma lebesgueI_borel[intro, simp]:
   fixes s::"'a::ordered_euclidean_space set"
   assumes "s \<in> sets borel" shows "s \<in> sets lebesgue"
@@ -260,24 +258,6 @@ proof (subst emeasure_lebesgue[OF A], intro SUP_eq_LIMSEQ)
   show "mono (\<lambda>n. integral (cube n) (indicator A::_=>real))"
     using cube_subset assms by (intro monoI integral_subset_le) (auto dest!: lebesgueD)
 qed
-
-lemma has_integral_indicator_UNIV:
-  fixes s A :: "'a::ordered_euclidean_space set" and x :: real
-  shows "((indicator (s \<inter> A) :: 'a\<Rightarrow>real) has_integral x) UNIV = ((indicator s :: _\<Rightarrow>real) has_integral x) A"
-proof -
-  have "(\<lambda>x. if x \<in> A then indicator s x else 0) = (indicator (s \<inter> A) :: _\<Rightarrow>real)"
-    by (auto simp: fun_eq_iff indicator_def)
-  then show ?thesis
-    unfolding has_integral_restrict_univ[where s=A, symmetric] by simp
-qed
-
-lemma
-  fixes s a :: "'a::ordered_euclidean_space set"
-  shows integral_indicator_UNIV:
-    "integral UNIV (indicator (s \<inter> A) :: 'a\<Rightarrow>real) = integral A (indicator s :: _\<Rightarrow>real)"
-  and integrable_indicator_UNIV:
-    "(indicator (s \<inter> A) :: 'a\<Rightarrow>real) integrable_on UNIV \<longleftrightarrow> (indicator s :: 'a\<Rightarrow>real) integrable_on A"
-  unfolding integral_def integrable_on_def has_integral_indicator_UNIV by auto
 
 lemma lmeasure_finite_has_integral:
   fixes s :: "'a::ordered_euclidean_space set"
@@ -429,11 +409,6 @@ next
   qed
 qed
 
-lemma integral_const[simp]:
-  fixes a b :: "'a::ordered_euclidean_space"
-  shows "integral {a .. b} (\<lambda>x. c) = content {a .. b} *\<^sub>R c"
-  by (rule integral_unique) (rule has_integral_const)
-
 lemma lmeasure_UNIV[intro]: "emeasure lebesgue (UNIV::'a::ordered_euclidean_space set) = \<infinity>"
 proof (simp add: emeasure_lebesgue, intro SUP_PInfty bexI)
   fix n :: nat
@@ -465,17 +440,6 @@ proof -
     unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def [abs_def])
   from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
     by (simp add: indicator_def [abs_def])
-qed
-
-lemma atLeastAtMost_singleton_euclidean[simp]:
-  fixes a :: "'a::ordered_euclidean_space" shows "{a .. a} = {a}"
-  by (force simp: eucl_le[where 'a='a] euclidean_eq[where 'a='a])
-
-lemma content_singleton[simp]: "content {a} = 0"
-proof -
-  have "content {a .. a} = 0"
-    by (subst content_closed_interval) auto
-  then show ?thesis by simp
 qed
 
 lemma lmeasure_singleton[simp]:
@@ -609,16 +573,6 @@ lemma lebesgue_integral_real_affine:
 
 subsection {* Lebesgue integrable implies Gauge integrable *}
 
-lemma has_integral_cmult_real:
-  fixes c :: real
-  assumes "c \<noteq> 0 \<Longrightarrow> (f has_integral x) A"
-  shows "((\<lambda>x. c * f x) has_integral c * x) A"
-proof cases
-  assume "c \<noteq> 0"
-  from has_integral_cmul[OF assms[OF this], of c] show ?thesis
-    unfolding real_scaleR_def .
-qed simp
-
 lemma simple_function_has_integral:
   fixes f::"'a::ordered_euclidean_space \<Rightarrow> ereal"
   assumes f:"simple_function lebesgue f"
@@ -657,10 +611,6 @@ proof (subst lebesgue_simple_function_indicator)
   finally show "((\<lambda>x. real (\<Sum>y\<in>range f. y * ?F y x)) has_integral real (\<Sum>x\<in>range f. x * ?M x)) UNIV" .
 qed fact
 
-lemma bounded_realI: assumes "\<forall>x\<in>s. abs (x::real) \<le> B" shows "bounded s"
-  unfolding bounded_def dist_real_def apply(rule_tac x=0 in exI)
-  using assms by auto
-
 lemma simple_function_has_integral':
   fixes f::"'a::ordered_euclidean_space \<Rightarrow> ereal"
   assumes f: "simple_function lebesgue f" "\<And>x. 0 \<le> f x"
@@ -694,9 +644,6 @@ proof -
     finally show "x = 0" unfolding inf using i subsetD[OF rng x] by (auto split: split_if_asm)
   qed
 qed
-
-lemma ereal_indicator: "ereal (indicator A x) = indicator A x"
-  by (auto simp: indicator_def one_ereal_def)
 
 lemma positive_integral_has_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> ereal"
@@ -843,12 +790,6 @@ proof -
     unfolding lebesgue_integral_eq_borel[OF borel] by simp
 qed
 
-lemma integrable_on_cmult_iff:
-  fixes c :: real assumes "c \<noteq> 0"
-  shows "(\<lambda>x. c * f x) integrable_on s \<longleftrightarrow> f integrable_on s"
-  using integrable_cmul[of "\<lambda>x. c * f x" s "1 / c"] integrable_cmul[of f s c] `c \<noteq> 0`
-  by auto
-
 lemma positive_integral_lebesgue_has_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
   assumes f_borel: "f \<in> borel_measurable lebesgue" and nonneg: "\<And>x. 0 \<le> f x"
@@ -982,9 +923,6 @@ interpretation lborel_product: product_sigma_finite "\<lambda>x. lborel::real me
 
 interpretation lborel_space: finite_product_sigma_finite "\<lambda>x. lborel::real measure" "{..<n}" for n :: nat
   by default auto
-
-lemma bchoice_iff: "(\<forall>x\<in>A. \<exists>y. P x y) \<longleftrightarrow> (\<exists>f. \<forall>x\<in>A. P x (f x))"
-  by metis
 
 lemma sets_product_borel:
   assumes I: "finite I"

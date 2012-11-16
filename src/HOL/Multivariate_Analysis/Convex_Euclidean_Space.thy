@@ -5914,4 +5914,71 @@ moreover
 } ultimately show ?thesis by blast
 qed
 
+
+lemma convex_le_Inf_differential:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "convex_on I f"
+  assumes "x \<in> interior I" "y \<in> I"
+  shows "f y \<ge> f x + Inf ((\<lambda>t. (f x - f t) / (x - t)) ` ({x<..} \<inter> I)) * (y - x)"
+    (is "_ \<ge> _ + Inf (?F x) * (y - x)")
+proof (cases rule: linorder_cases)
+  assume "x < y"
+  moreover
+  have "open (interior I)" by auto
+  from openE[OF this `x \<in> interior I`] guess e . note e = this
+  moreover def t \<equiv> "min (x + e / 2) ((x + y) / 2)"
+  ultimately have "x < t" "t < y" "t \<in> ball x e"
+    by (auto simp: dist_real_def field_simps split: split_min)
+  with `x \<in> interior I` e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
+
+  have "open (interior I)" by auto
+  from openE[OF this `x \<in> interior I`] guess e .
+  moreover def K \<equiv> "x - e / 2"
+  with `0 < e` have "K \<in> ball x e" "K < x" by (auto simp: dist_real_def)
+  ultimately have "K \<in> I" "K < x" "x \<in> I"
+    using interior_subset[of I] `x \<in> interior I` by auto
+
+  have "Inf (?F x) \<le> (f x - f y) / (x - y)"
+  proof (rule Inf_lower2)
+    show "(f x - f t) / (x - t) \<in> ?F x"
+      using `t \<in> I` `x < t` by auto
+    show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
+      using `convex_on I f` `x \<in> I` `y \<in> I` `x < t` `t < y` by (rule convex_on_diff)
+  next
+    fix y assume "y \<in> ?F x"
+    with order_trans[OF convex_on_diff[OF `convex_on I f` `K \<in> I` _ `K < x` _]]
+    show "(f K - f x) / (K - x) \<le> y" by auto
+  qed
+  then show ?thesis
+    using `x < y` by (simp add: field_simps)
+next
+  assume "y < x"
+  moreover
+  have "open (interior I)" by auto
+  from openE[OF this `x \<in> interior I`] guess e . note e = this
+  moreover def t \<equiv> "x + e / 2"
+  ultimately have "x < t" "t \<in> ball x e"
+    by (auto simp: dist_real_def field_simps)
+  with `x \<in> interior I` e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
+
+  have "(f x - f y) / (x - y) \<le> Inf (?F x)"
+  proof (rule Inf_greatest)
+    have "(f x - f y) / (x - y) = (f y - f x) / (y - x)"
+      using `y < x` by (auto simp: field_simps)
+    also
+    fix z  assume "z \<in> ?F x"
+    with order_trans[OF convex_on_diff[OF `convex_on I f` `y \<in> I` _ `y < x`]]
+    have "(f y - f x) / (y - x) \<le> z" by auto
+    finally show "(f x - f y) / (x - y) \<le> z" .
+  next
+    have "open (interior I)" by auto
+    from openE[OF this `x \<in> interior I`] guess e . note e = this
+    then have "x + e / 2 \<in> ball x e" by (auto simp: dist_real_def)
+    with e interior_subset[of I] have "x + e / 2 \<in> {x<..} \<inter> I" by auto
+    then show "?F x \<noteq> {}" by blast
+  qed
+  then show ?thesis
+    using `y < x` by (simp add: field_simps)
+qed simp
+
 end
