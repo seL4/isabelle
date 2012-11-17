@@ -906,11 +906,6 @@ fun default_tac ctxt rules facts =
 end;
 
 
-(* contradiction method *)
-
-val contradiction = Method.rule [Data.not_elim, Drule.rotate_prems 1 Data.not_elim];
-
-
 (* automatic methods *)
 
 val cla_modifiers =
@@ -936,7 +931,8 @@ val setup_methods =
   Method.setup @{binding rule}
     (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
     "apply some intro/elim rule (potentially classical)" #>
-  Method.setup @{binding contradiction} (Scan.succeed (K contradiction))
+  Method.setup @{binding contradiction}
+    (Scan.succeed (K (Method.rule [Data.not_elim, Drule.rotate_prems 1 Data.not_elim])))
     "proof by contradiction" #>
   Method.setup @{binding clarify} (cla_method' (CHANGED_PROP oo clarify_tac))
     "repeatedly apply safe steps" #>
