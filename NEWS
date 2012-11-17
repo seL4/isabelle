@@ -23,8 +23,8 @@ dependencies properly.
 * Discontinued obsolete method fastsimp / tactic fast_simp_tac, which
 is called fastforce / fast_force_tac already since Isabelle2011-1.
 
-* Updated and extended "isar-ref" manual, reduced remaining material
-in old "ref" manual.
+* Updated and extended "isar-ref" and "implementation" manual, reduced
+remaining material in old "ref" manual.
 
 * Improved support for auxiliary contexts indicate block structure for
 specifications: nesting of "context fixes ... context assumes ..."
