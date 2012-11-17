@@ -1753,7 +1753,7 @@ text {* These proof methods may help in situations when the
   It is deterministic, with at most one outcome.
 
   \item @{method clarify} performs a series of safe steps without
-  splitting subgoals; see also @{ML clarify_step_tac}.
+  splitting subgoals; see also @{method clarify_step}.
 
   \item @{method clarsimp} acts like @{method clarify}, but also does
   simplification.  Note that if the Simplifier context includes a
@@ -1766,13 +1766,13 @@ text {* These proof methods may help in situations when the
 subsection {* Single-step tactics *}
 
 text {*
-  \begin{mldecls}
-    @{index_ML safe_step_tac: "Proof.context -> int -> tactic"} \\
-    @{index_ML inst_step_tac: "Proof.context -> int -> tactic"} \\
-    @{index_ML step_tac: "Proof.context -> int -> tactic"} \\
-    @{index_ML slow_step_tac: "Proof.context -> int -> tactic"} \\
-    @{index_ML clarify_step_tac: "Proof.context -> int -> tactic"} \\
-  \end{mldecls}
+  \begin{matharray}{rcl}
+    @{method_def safe_step} & : & @{text method} \\
+    @{method_def inst_step} & : & @{text method} \\
+    @{method_def step} & : & @{text method} \\
+    @{method_def slow_step} & : & @{text method} \\
+    @{method_def clarify_step} & : &  @{text method} \\
+  \end{matharray}
 
   These are the primitive tactics behind the automated proof methods
   of the Classical Reasoner.  By calling them yourself, you can
@@ -1780,30 +1780,30 @@ text {*
 
   \begin{description}
 
-  \item @{ML safe_step_tac}~@{text "ctxt i"} performs a safe step on
-  subgoal @{text i}.  The safe wrapper tacticals are applied to a
-  tactic that may include proof by assumption or Modus Ponens (taking
-  care not to instantiate unknowns), or substitution.
+  \item @{method safe_step} performs a safe step on the first subgoal.
+  The safe wrapper tacticals are applied to a tactic that may include
+  proof by assumption or Modus Ponens (taking care not to instantiate
+  unknowns), or substitution.
 
-  \item @{ML inst_step_tac} is like @{ML safe_step_tac}, but allows
+  \item @{method inst_step} is like @{method safe_step}, but allows
   unknowns to be instantiated.
 
-  \item @{ML step_tac}~@{text "ctxt i"} is the basic step of the proof
-  procedure.  The unsafe wrapper tacticals are applied to a tactic
-  that tries @{ML safe_tac}, @{ML inst_step_tac}, or applies an unsafe
-  rule from the context.
+  \item @{method step} is the basic step of the proof procedure, it
+  operates on the first subgoal.  The unsafe wrapper tacticals are
+  applied to a tactic that tries @{method safe}, @{method inst_step},
+  or applies an unsafe rule from the context.
 
-  \item @{ML slow_step_tac} resembles @{ML step_tac}, but allows
-  backtracking between using safe rules with instantiation (@{ML
-  inst_step_tac}) and using unsafe rules.  The resulting search space
-  is larger.
+  \item @{method slow_step} resembles @{method step}, but allows
+  backtracking between using safe rules with instantiation (@{method
+  inst_step}) and using unsafe rules.  The resulting search space is
+  larger.
 
-  \item @{ML clarify_step_tac}~@{text "ctxt i"} performs a safe step
-  on subgoal @{text i}.  No splitting step is applied; for example,
-  the subgoal @{text "A \<and> B"} is left as a conjunction.  Proof by
-  assumption, Modus Ponens, etc., may be performed provided they do
-  not instantiate unknowns.  Assumptions of the form @{text "x = t"}
-  may be eliminated.  The safe wrapper tactical is applied.
+  \item @{method clarify_step} performs a safe step on the first
+  subgoal; no splitting step is applied.  For example, the subgoal
+  @{text "A \<and> B"} is left as a conjunction.  Proof by assumption,
+  Modus Ponens, etc., may be performed provided they do not
+  instantiate unknowns.  Assumptions of the form @{text "x = t"} may
+  be eliminated.  The safe wrapper tactical is applied.
 
   \end{description}
 *}
@@ -1839,10 +1839,10 @@ text {*
   The classical reasoning tools --- except @{method blast} --- allow
   to modify this basic proof strategy by applying two lists of
   arbitrary \emph{wrapper tacticals} to it.  The first wrapper list,
-  which is considered to contain safe wrappers only, affects @{ML
-  safe_step_tac} and all the tactics that call it.  The second one,
-  which may contain unsafe wrappers, affects the unsafe parts of @{ML
-  step_tac}, @{ML slow_step_tac}, and the tactics that call them.  A
+  which is considered to contain safe wrappers only, affects @{method
+  safe_step} and all the tactics that call it.  The second one, which
+  may contain unsafe wrappers, affects the unsafe parts of @{method
+  step}, @{method slow_step}, and the tactics that call them.  A
   wrapper transforms each step of the search, for example by
   attempting other tactics before or after the original step tactic.
   All members of a wrapper list are applied in turn to the respective

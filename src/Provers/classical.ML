@@ -948,7 +948,17 @@ val setup_methods =
       >> (fn n => fn ctxt => SIMPLE_METHOD' (deepen_tac ctxt n)))
     "classical prover (iterative deepening)" #>
   Method.setup @{binding safe} (cla_method (CHANGED_PROP o safe_tac))
-    "classical prover (apply safe rules)";
+    "classical prover (apply safe rules)" #>
+  Method.setup @{binding safe_step} (cla_method' safe_step_tac)
+    "single classical step (safe rules)" #>
+  Method.setup @{binding inst_step} (cla_method' inst_step_tac)
+    "single classical step (safe rules, allow instantiations)" #>
+  Method.setup @{binding step} (cla_method' step_tac)
+    "single classical step (safe and unsafe rules)" #>
+  Method.setup @{binding slow_step} (cla_method' slow_step_tac)
+    "single classical step (safe and unsafe rules, allow backtracking)" #>
+  Method.setup @{binding clarify_step} (cla_method' clarify_step_tac)
+    "single classical step (safe rules, without splitting)";
 
 
 
