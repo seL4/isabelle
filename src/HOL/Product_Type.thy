@@ -407,7 +407,6 @@ lemmas split_tupled_all = split_paired_all unit_all_eq2
 
 ML {*
   (* replace parameters of product type by individual component parameters *)
-  val safe_full_simp_tac = generic_simp_tac true (true, false, false);
   local (* filtering with exists_paired_all is an essential optimization *)
     fun exists_paired_all (Const ("all", _) $ Abs (_, T, t)) =
           can HOLogic.dest_prodT T orelse exists_paired_all t
@@ -423,7 +422,7 @@ ML {*
     val unsafe_split_all_tac = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then full_simp_tac ss i else no_tac);
     fun split_all th =
-   if exists_paired_all (Thm.prop_of th) then full_simplify ss th else th;
+      if exists_paired_all (Thm.prop_of th) then full_simplify ss th else th;
   end;
 *}
 

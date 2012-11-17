@@ -73,7 +73,7 @@ fun mk_number T 1 = HOLogic.numeral_const T $ HOLogic.one_const
 
 val mk_plus = HOLogic.mk_binop @{const_name Groups.plus};
 
-fun mk_minus t = 
+fun mk_minus t =
   let val T = Term.fastype_of t
   in Const (@{const_name Groups.uminus}, T --> T) $ t end;
 
@@ -112,11 +112,10 @@ fun prove_conv2 expand_tac norm_tac ss tu = (* FIXME avoid Drule.export_without_
 
 fun simp_all_tac rules =
   let val ss0 = HOL_ss addsimps rules
-      val safe_simp_tac = generic_simp_tac true (false, false, false)
   in fn ss => ALLGOALS (safe_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 fun simplify_meta_eq rules =
   let val ss0 = HOL_basic_ss addsimps rules |> Simplifier.add_eqcong @{thm eq_cong2}
-  in fn ss => simplify (Simplifier.inherit_context ss ss0) o mk_meta_eq end
+  in fn ss => simplify (Simplifier.inherit_context ss ss0) o mk_meta_eq end;
 
 end;

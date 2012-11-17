@@ -13,13 +13,16 @@ sig
   val global_simpset_of: theory -> simpset
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
-  val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
-  val safe_asm_full_simp_tac: simpset -> int -> tactic
   val simp_tac: simpset -> int -> tactic
   val asm_simp_tac: simpset -> int -> tactic
   val full_simp_tac: simpset -> int -> tactic
   val asm_lr_simp_tac: simpset -> int -> tactic
   val asm_full_simp_tac: simpset -> int -> tactic
+  val safe_simp_tac: simpset -> int -> tactic
+  val safe_asm_simp_tac: simpset -> int -> tactic
+  val safe_full_simp_tac: simpset -> int -> tactic
+  val safe_asm_lr_simp_tac: simpset -> int -> tactic
+  val safe_asm_full_simp_tac: simpset -> int -> tactic
   val simplify: simpset -> thm -> thm
   val asm_simplify: simpset -> thm -> thm
   val full_simplify: simpset -> thm -> thm
@@ -266,6 +269,12 @@ val asm_simp_tac = generic_simp_tac false (false, true, false);
 val full_simp_tac = generic_simp_tac false (true, false, false);
 val asm_lr_simp_tac = generic_simp_tac false (true, true, false);
 val asm_full_simp_tac = generic_simp_tac false (true, true, true);
+
+(*not totally safe: may instantiate unknowns that appear also in other subgoals*)
+val safe_simp_tac = generic_simp_tac true (false, false, false);
+val safe_asm_simp_tac = generic_simp_tac true (false, true, false);
+val safe_full_simp_tac = generic_simp_tac true (true, false, false);
+val safe_asm_lr_simp_tac = generic_simp_tac true (true, true, false);
 val safe_asm_full_simp_tac = generic_simp_tac true (true, true, true);
 
 

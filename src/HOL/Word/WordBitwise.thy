@@ -597,10 +597,10 @@ val expand_word_eq_sss = (HOL_basic_ss addsimps
     no_split_ss addsimps @{thms xor3_simps carry_simps if_bool_simps}
   ])
 
-val tac = let
+val tac =
+  let
     val (ss, sss) = expand_word_eq_sss;
-    val st = generic_simp_tac true (true, false, false);
-  in foldr1 (op THEN_ALL_NEW) ((CHANGED o st ss) :: map st sss) end;
+  in foldr1 (op THEN_ALL_NEW) ((CHANGED o safe_full_simp_tac ss) :: map safe_full_simp_tac sss) end;
 
 end
 

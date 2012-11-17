@@ -44,9 +44,6 @@ structure Blast = Data.Blast;
 
 (* simp as classical wrapper *)
 
-(*not totally safe: may instantiate unknowns that appear also in other subgoals*)
-val safe_asm_full_simp_tac = Simplifier.generic_simp_tac true (true, true, true);
-
 fun clasimp f name tac ctxt =
   Classical.map_claset (fn cs => f (cs, (name, CHANGED o tac (simpset_of ctxt)))) ctxt;
 
