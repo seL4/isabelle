@@ -49,7 +49,7 @@ fun clasimp f name tac ctxt =
 
 (*Add a simpset to the claset!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-val addSss = clasimp Classical.addSafter "safe_asm_full_simp_tac" safe_asm_full_simp_tac;
+val addSss = clasimp Classical.addSafter "safe_asm_full_simp_tac" Simplifier.safe_asm_full_simp_tac;
 val addss = clasimp Classical.addbefore "asm_full_simp_tac" Simplifier.asm_full_simp_tac;
 
 
@@ -112,7 +112,7 @@ end;
 (* tactics *)
 
 fun clarsimp_tac ctxt =
-  safe_asm_full_simp_tac (simpset_of ctxt) THEN_ALL_NEW
+  Simplifier.safe_asm_full_simp_tac (simpset_of ctxt) THEN_ALL_NEW
   Classical.clarify_tac (addSss ctxt);
 
 
