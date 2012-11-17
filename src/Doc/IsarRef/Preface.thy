@@ -51,7 +51,7 @@ text {*
   \chref{ch:isar-framework}) works reasonably well for any Isabelle
   object-logic that conforms to the natural deduction view of the
   Isabelle/Pure framework.  Specific language elements introduced by
-  Isabelle/HOL are described in \chref{ch:hol}.  Although the main
+  Isabelle/HOL are described in \partref{part:hol}.  Although the main
   language elements are already provided by the Isabelle/Pure
   framework, examples given in the generic parts will usually refer to
   Isabelle/HOL.

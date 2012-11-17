@@ -2,9 +2,7 @@ theory HOL_Specific
 imports Base Main "~~/src/HOL/Library/Old_Recdef"
 begin
 
-chapter {* Isabelle/HOL \label{ch:hol} *}
-
-section {* Higher-Order Logic *}
+chapter {* Higher-Order Logic *}
 
 text {* Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   version of Church's Simple Theory of Types.  HOL can be best
@@ -57,6 +55,8 @@ text {* Isabelle/HOL is based on Higher-Order Logic, a polymorphic
   @{attribute show_types} or even @{attribute show_sorts} to get more
   explicit information about the result of type-inference.  *}
 
+
+chapter {* Derived specification elements *}
 
 section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
 
@@ -1035,31 +1035,6 @@ subsubsection {* Examples *}
 
 text {* See @{file "~~/src/HOL/ex/Records.thy"}, for example. *}
 
-
-section {* Adhoc tuples *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
-  "}
-
-  \begin{description}
-
-  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
-  arguments in function applications to be represented canonically
-  according to their tuple type structure.
-
-  Note that this operation tends to invent funny names for new local
-  parameters introduced.
-
-  \end{description}
-*}
-
-
 section {* Typedef axiomatization \label{sec:hol-typedef} *}
 
 text {*
@@ -1204,6 +1179,7 @@ text {* This avoids re-doing basic definitions and proofs from the
   primitive @{command typedef} above. *}
 
 
+
 section {* Functorial structure of types *}
 
 text {*
@@ -1242,6 +1218,222 @@ text {*
   \<beta>\<^isub>1"}, @{text "\<beta>\<^isub>1 \<Rightarrow> \<alpha>\<^isub>1"}, \ldots,
   @{text "\<alpha>\<^isub>n \<Rightarrow> \<beta>\<^isub>n"}, @{text "\<beta>\<^isub>n \<Rightarrow>
   \<alpha>\<^isub>n"}.
+
+  \end{description}
+*}
+
+
+section {* Quotient types *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
+    @{command_def (HOL) "print_quotmapsQ3"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotientsQ3"} & : & @{text "context \<rightarrow>"}\\
+    @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
+    @{method_def (HOL) "lifting"} & : & @{text method} \\
+    @{method_def (HOL) "lifting_setup"} & : & @{text method} \\
+    @{method_def (HOL) "descending"} & : & @{text method} \\
+    @{method_def (HOL) "descending_setup"} & : & @{text method} \\
+    @{method_def (HOL) "partiality_descending"} & : & @{text method} \\
+    @{method_def (HOL) "partiality_descending_setup"} & : & @{text method} \\
+    @{method_def (HOL) "regularize"} & : & @{text method} \\
+    @{method_def (HOL) "injection"} & : & @{text method} \\
+    @{method_def (HOL) "cleaning"} & : & @{text method} \\
+    @{attribute_def (HOL) "quot_thm"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
+    @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
+  \end{matharray}
+
+  The quotient package defines a new quotient type given a raw type
+  and a partial equivalence relation.  It also includes automation for
+  transporting definitions and theorems.  It can automatically produce
+  definitions and theorems on the quotient type, given the
+  corresponding constants and facts on the raw type.
+
+  @{rail "
+    @@{command (HOL) quotient_type} (spec + @'and');
+
+    spec: @{syntax typespec} @{syntax mixfix}? '=' \\
+     @{syntax type} '/' ('partial' ':')? @{syntax term} \\
+     (@'morphisms' @{syntax name} @{syntax name})?;
+  "}
+
+  @{rail "
+    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\
+    @{syntax term} 'is' @{syntax term};
+
+    constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
+  "}
+
+  @{rail "
+    @@{method (HOL) lifting} @{syntax thmrefs}?
+    ;
+
+    @@{method (HOL) lifting_setup} @{syntax thmrefs}?
+    ;
+  "}
+
+  \begin{description}
+
+  \item @{command (HOL) "quotient_type"} defines quotient types. The
+  injection from a quotient type to a raw type is called @{text
+  rep_t}, its inverse @{text abs_t} unless explicit @{keyword (HOL)
+  "morphisms"} specification provides alternative names. @{command
+  (HOL) "quotient_type"} requires the user to prove that the relation
+  is an equivalence relation (predicate @{text equivp}), unless the
+  user specifies explicitely @{text partial} in which case the
+  obligation is @{text part_equivp}.  A quotient defined with @{text
+  partial} is weaker in the sense that less things can be proved
+  automatically.
+
+  \item @{command (HOL) "quotient_definition"} defines a constant on
+  the quotient type.
+
+  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map
+  functions.
+
+  \item @{command (HOL) "print_quotientsQ3"} prints quotients.
+
+  \item @{command (HOL) "print_quotconsts"} prints quotient constants.
+
+  \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
+    methods match the current goal with the given raw theorem to be
+    lifted producing three new subgoals: regularization, injection and
+    cleaning subgoals. @{method (HOL) "lifting"} tries to apply the
+    heuristics for automatically solving these three subgoals and
+    leaves only the subgoals unsolved by the heuristics to the user as
+    opposed to @{method (HOL) "lifting_setup"} which leaves the three
+    subgoals unsolved.
+
+  \item @{method (HOL) "descending"} and @{method (HOL)
+    "descending_setup"} try to guess a raw statement that would lift
+    to the current subgoal. Such statement is assumed as a new subgoal
+    and @{method (HOL) "descending"} continues in the same way as
+    @{method (HOL) "lifting"} does. @{method (HOL) "descending"} tries
+    to solve the arising regularization, injection and cleaning
+    subgoals with the analoguous method @{method (HOL)
+    "descending_setup"} which leaves the four unsolved subgoals.
+
+  \item @{method (HOL) "partiality_descending"} finds the regularized
+    theorem that would lift to the current subgoal, lifts it and
+    leaves as a subgoal. This method can be used with partial
+    equivalence quotients where the non regularized statements would
+    not be true. @{method (HOL) "partiality_descending_setup"} leaves
+    the injection and cleaning subgoals unchanged.
+
+  \item @{method (HOL) "regularize"} applies the regularization
+    heuristics to the current subgoal.
+
+  \item @{method (HOL) "injection"} applies the injection heuristics
+    to the current goal using the stored quotient respectfulness
+    theorems.
+
+  \item @{method (HOL) "cleaning"} applies the injection cleaning
+    heuristics to the current subgoal using the stored quotient
+    preservation theorems.
+
+  \item @{attribute (HOL) quot_lifted} attribute tries to
+    automatically transport the theorem to the quotient type.
+    The attribute uses all the defined quotients types and quotient
+    constants often producing undesired results or theorems that
+    cannot be lifted.
+
+  \item @{attribute (HOL) quot_respect} and @{attribute (HOL)
+    quot_preserve} attributes declare a theorem as a respectfulness
+    and preservation theorem respectively.  These are stored in the
+    local theory store and used by the @{method (HOL) "injection"}
+    and @{method (HOL) "cleaning"} methods respectively.
+
+  \item @{attribute (HOL) quot_thm} declares that a certain theorem
+    is a quotient extension theorem. Quotient extension theorems
+    allow for quotienting inside container types. Given a polymorphic
+    type that serves as a container, a map function defined for this
+    container using @{command (HOL) "enriched_type"} and a relation
+    map defined for for the container type, the quotient extension
+    theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow> Quotient3
+    (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
+    are stored in a database and are used all the steps of lifting
+    theorems.
+
+  \end{description}
+*}
+
+
+
+section {* Definition by specification \label{sec:hol-specification} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "ax_specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+  \end{matharray}
+
+  @{rail "
+  (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
+    '(' (decl +) ')' \\ (@{syntax thmdecl}? @{syntax prop} +)
+  ;
+  decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
+  "}
+
+  \begin{description}
+
+  \item @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
+  goal stating the existence of terms with the properties specified to
+  hold for the constants given in @{text decls}.  After finishing the
+  proof, the theory will be augmented with definitions for the given
+  constants, as well as with theorems stating the properties for these
+  constants.
+
+  \item @{command (HOL) "ax_specification"}~@{text "decls \<phi>"} sets up
+  a goal stating the existence of terms with the properties specified
+  to hold for the constants given in @{text decls}.  After finishing
+  the proof, the theory will be augmented with axioms expressing the
+  properties given in the first place.
+
+  \item @{text decl} declares a constant to be defined by the
+  specification given.  The definition for the constant @{text c} is
+  bound to the name @{text c_def} unless a theorem name is given in
+  the declaration.  Overloaded constants should be declared as such.
+
+  \end{description}
+
+  Whether to use @{command (HOL) "specification"} or @{command (HOL)
+  "ax_specification"} is to some extent a matter of style.  @{command
+  (HOL) "specification"} introduces no new axioms, and so by
+  construction cannot introduce inconsistencies, whereas @{command
+  (HOL) "ax_specification"} does introduce axioms, but only after the
+  user has explicitly proven it to be safe.  A practical issue must be
+  considered, though: After introducing two constants with the same
+  properties using @{command (HOL) "specification"}, one can prove
+  that the two constants are, in fact, equal.  If this might be a
+  problem, one should use @{command (HOL) "ax_specification"}.
+*}
+
+
+chapter {* Proof tools *}
+
+section {* Adhoc tuples *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
+  "}
+
+  \begin{description}
+
+  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
+  arguments in function applications to be represented canonically
+  according to their tuple type structure.
+
+  Note that this operation tends to invent funny names for new local
+  parameters introduced.
 
   \end{description}
 *}
@@ -1396,145 +1588,6 @@ text {*
     respectfulness theorem. For examples see @{file
     "~~/src/HOL/Library/Quotient_List.thy"} or other Quotient_*.thy
     files.
-
-  \end{description}
-*}
-
-
-section {* Quotient types *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "quotient_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "quotient_definition"} & : & @{text "local_theory \<rightarrow> proof(prove)"}\\
-    @{command_def (HOL) "print_quotmapsQ3"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotientsQ3"} & : & @{text "context \<rightarrow>"}\\
-    @{command_def (HOL) "print_quotconsts"} & : & @{text "context \<rightarrow>"}\\
-    @{method_def (HOL) "lifting"} & : & @{text method} \\
-    @{method_def (HOL) "lifting_setup"} & : & @{text method} \\
-    @{method_def (HOL) "descending"} & : & @{text method} \\
-    @{method_def (HOL) "descending_setup"} & : & @{text method} \\
-    @{method_def (HOL) "partiality_descending"} & : & @{text method} \\
-    @{method_def (HOL) "partiality_descending_setup"} & : & @{text method} \\
-    @{method_def (HOL) "regularize"} & : & @{text method} \\
-    @{method_def (HOL) "injection"} & : & @{text method} \\
-    @{method_def (HOL) "cleaning"} & : & @{text method} \\
-    @{attribute_def (HOL) "quot_thm"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_lifted"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_respect"} & : & @{text attribute} \\
-    @{attribute_def (HOL) "quot_preserve"} & : & @{text attribute} \\
-  \end{matharray}
-
-  The quotient package defines a new quotient type given a raw type
-  and a partial equivalence relation.  It also includes automation for
-  transporting definitions and theorems.  It can automatically produce
-  definitions and theorems on the quotient type, given the
-  corresponding constants and facts on the raw type.
-
-  @{rail "
-    @@{command (HOL) quotient_type} (spec + @'and');
-
-    spec: @{syntax typespec} @{syntax mixfix}? '=' \\
-     @{syntax type} '/' ('partial' ':')? @{syntax term} \\
-     (@'morphisms' @{syntax name} @{syntax name})?;
-  "}
-
-  @{rail "
-    @@{command (HOL) quotient_definition} constdecl? @{syntax thmdecl}? \\
-    @{syntax term} 'is' @{syntax term};
-
-    constdecl: @{syntax name} ('::' @{syntax type})? @{syntax mixfix}?
-  "}
-
-  @{rail "
-    @@{method (HOL) lifting} @{syntax thmrefs}?
-    ;
-
-    @@{method (HOL) lifting_setup} @{syntax thmrefs}?
-    ;
-  "}
-
-  \begin{description}
-
-  \item @{command (HOL) "quotient_type"} defines quotient types. The
-  injection from a quotient type to a raw type is called @{text
-  rep_t}, its inverse @{text abs_t} unless explicit @{keyword (HOL)
-  "morphisms"} specification provides alternative names. @{command
-  (HOL) "quotient_type"} requires the user to prove that the relation
-  is an equivalence relation (predicate @{text equivp}), unless the
-  user specifies explicitely @{text partial} in which case the
-  obligation is @{text part_equivp}.  A quotient defined with @{text
-  partial} is weaker in the sense that less things can be proved
-  automatically.
-
-  \item @{command (HOL) "quotient_definition"} defines a constant on
-  the quotient type.
-
-  \item @{command (HOL) "print_quotmapsQ3"} prints quotient map
-  functions.
-
-  \item @{command (HOL) "print_quotientsQ3"} prints quotients.
-
-  \item @{command (HOL) "print_quotconsts"} prints quotient constants.
-
-  \item @{method (HOL) "lifting"} and @{method (HOL) "lifting_setup"}
-    methods match the current goal with the given raw theorem to be
-    lifted producing three new subgoals: regularization, injection and
-    cleaning subgoals. @{method (HOL) "lifting"} tries to apply the
-    heuristics for automatically solving these three subgoals and
-    leaves only the subgoals unsolved by the heuristics to the user as
-    opposed to @{method (HOL) "lifting_setup"} which leaves the three
-    subgoals unsolved.
-
-  \item @{method (HOL) "descending"} and @{method (HOL)
-    "descending_setup"} try to guess a raw statement that would lift
-    to the current subgoal. Such statement is assumed as a new subgoal
-    and @{method (HOL) "descending"} continues in the same way as
-    @{method (HOL) "lifting"} does. @{method (HOL) "descending"} tries
-    to solve the arising regularization, injection and cleaning
-    subgoals with the analoguous method @{method (HOL)
-    "descending_setup"} which leaves the four unsolved subgoals.
-
-  \item @{method (HOL) "partiality_descending"} finds the regularized
-    theorem that would lift to the current subgoal, lifts it and
-    leaves as a subgoal. This method can be used with partial
-    equivalence quotients where the non regularized statements would
-    not be true. @{method (HOL) "partiality_descending_setup"} leaves
-    the injection and cleaning subgoals unchanged.
-
-  \item @{method (HOL) "regularize"} applies the regularization
-    heuristics to the current subgoal.
-
-  \item @{method (HOL) "injection"} applies the injection heuristics
-    to the current goal using the stored quotient respectfulness
-    theorems.
-
-  \item @{method (HOL) "cleaning"} applies the injection cleaning
-    heuristics to the current subgoal using the stored quotient
-    preservation theorems.
-
-  \item @{attribute (HOL) quot_lifted} attribute tries to
-    automatically transport the theorem to the quotient type.
-    The attribute uses all the defined quotients types and quotient
-    constants often producing undesired results or theorems that
-    cannot be lifted.
-
-  \item @{attribute (HOL) quot_respect} and @{attribute (HOL)
-    quot_preserve} attributes declare a theorem as a respectfulness
-    and preservation theorem respectively.  These are stored in the
-    local theory store and used by the @{method (HOL) "injection"}
-    and @{method (HOL) "cleaning"} methods respectively.
-
-  \item @{attribute (HOL) quot_thm} declares that a certain theorem
-    is a quotient extension theorem. Quotient extension theorems
-    allow for quotienting inside container types. Given a polymorphic
-    type that serves as a container, a map function defined for this
-    container using @{command (HOL) "enriched_type"} and a relation
-    map defined for for the container type, the quotient extension
-    theorem should be @{term "Quotient3 R Abs Rep \<Longrightarrow> Quotient3
-    (rel_map R) (map Abs) (map Rep)"}. Quotient extension theorems
-    are stored in a database and are used all the steps of lifting
-    theorems.
 
   \end{description}
 *}
@@ -2007,7 +2060,7 @@ text {*
 *}
 
 
-section {* Executable code *}
+chapter {* Executable code *}
 
 text {* For validation purposes, it is often useful to \emph{execute}
   specifications.  In principle, execution could be simulated by
@@ -2267,56 +2320,6 @@ text {* For validation purposes, it is often useful to \emph{execute}
     prove a corresponding elimination rule.
 
   \end{description}
-*}
-
-
-section {* Definition by specification \label{sec:hol-specification} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-    @{command_def (HOL) "ax_specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-  \end{matharray}
-
-  @{rail "
-  (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
-    '(' (decl +) ')' \\ (@{syntax thmdecl}? @{syntax prop} +)
-  ;
-  decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
-  "}
-
-  \begin{description}
-
-  \item @{command (HOL) "specification"}~@{text "decls \<phi>"} sets up a
-  goal stating the existence of terms with the properties specified to
-  hold for the constants given in @{text decls}.  After finishing the
-  proof, the theory will be augmented with definitions for the given
-  constants, as well as with theorems stating the properties for these
-  constants.
-
-  \item @{command (HOL) "ax_specification"}~@{text "decls \<phi>"} sets up
-  a goal stating the existence of terms with the properties specified
-  to hold for the constants given in @{text decls}.  After finishing
-  the proof, the theory will be augmented with axioms expressing the
-  properties given in the first place.
-
-  \item @{text decl} declares a constant to be defined by the
-  specification given.  The definition for the constant @{text c} is
-  bound to the name @{text c_def} unless a theorem name is given in
-  the declaration.  Overloaded constants should be declared as such.
-
-  \end{description}
-
-  Whether to use @{command (HOL) "specification"} or @{command (HOL)
-  "ax_specification"} is to some extent a matter of style.  @{command
-  (HOL) "specification"} introduces no new axioms, and so by
-  construction cannot introduce inconsistencies, whereas @{command
-  (HOL) "ax_specification"} does introduce axioms, but only after the
-  user has explicitly proven it to be safe.  A practical issue must be
-  considered, though: After introducing two constants with the same
-  properties using @{command (HOL) "specification"}, one can prove
-  that the two constants are, in fact, equal.  If this might be a
-  problem, one should use @{command (HOL) "ax_specification"}.
 *}
 
 end

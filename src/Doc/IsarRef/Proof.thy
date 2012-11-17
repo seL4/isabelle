@@ -687,7 +687,7 @@ text {*
   The following proof methods and attributes refer to basic logical
   operations of Isar.  Further methods and attributes are provided by
   several generic and object-logic specific tools and packages (see
-  \chref{ch:gen-tools} and \chref{ch:hol}).
+  \chref{ch:gen-tools} and \partref{part:hol}).
 
   \begin{matharray}{rcl}
     @{method_def "-"} & : & @{text method} \\
