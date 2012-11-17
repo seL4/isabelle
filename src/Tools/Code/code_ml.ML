@@ -833,7 +833,7 @@ val setup =
       check = { env_var = "ISABELLE_PROCESS",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
         make_command = fn _ =>
-          "\"$ISABELLE_PROCESS\" -r -q -e 'datatype ref = datatype Unsynchronized.ref; use \"ROOT.ML\" handle _ => Posix.Process.exit 0w1' Pure" } })
+          "\"$ISABELLE_PROCESS\" -r -q -e 'datatype ref = datatype Unsynchronized.ref; use \"ROOT.ML\" handle _ => exit 0' Pure" } })
   #> Code_Target.add_target
     (target_OCaml, { serializer = serializer_ocaml, literals = literals_ocaml,
       check = { env_var = "ISABELLE_OCAML",
