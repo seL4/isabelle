@@ -13,10 +13,6 @@ option document_variants : string = "document"
   -- "option alternative document variants (separated by colons)"
 option document_graph : bool = false
   -- "generate session graph image for document"
-option document_dump : string = ""
-  -- "dump generated document sources into given directory"
-option document_dump_mode : string = "all"
-  -- "specific document dump mode: all, tex, tex+sty"
 
 option show_question_marks : bool = true
   -- "show leading question mark of schematic variables"

@@ -11,7 +11,7 @@ sig
   val welcome: unit -> string
   val finish: unit -> unit
   val init: bool -> bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
-    string -> string -> string * Present.dump_mode -> string -> bool -> unit
+    string -> string -> bool * string -> string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
@@ -115,8 +115,6 @@ fun init build reset info info_path doc doc_graph doc_output doc_variants
 
 local
 
-fun doc_dump (cp, dump) = (dump, if cp then Present.Dump_all else Present.Dump_tex_sty);
-
 fun read_variants strs =
   rev (distinct (eq_fst (op =)) (rev (("document", "") :: map Present.read_variant strs)))
   |> filter_out (fn (_, s) => s = "-");
@@ -124,7 +122,7 @@ fun read_variants strs =
 in
 
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
-    name dump rpath level timing verbose max_threads trace_threads
+    name doc_dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
     let
@@ -133,7 +131,7 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
           "### Legacy feature: old \"isabelle usedir\" -- use \"isabelle build\" instead!\n";
       val _ =
         init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
-          (doc_dump dump) rpath verbose;
+          doc_dump rpath verbose;
       val res1 = (use |> with_timing item timing |> Exn.capture) root;
       val res2 = Exn.capture finish ();
     in ignore (Par_Exn.release_all [res1, res2]) end)

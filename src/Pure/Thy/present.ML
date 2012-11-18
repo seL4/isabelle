@@ -13,11 +13,9 @@ signature PRESENT =
 sig
   include BASIC_PRESENT
   val session_name: theory -> string
-  datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty
-  val dump_mode: string -> dump_mode
   val read_variant: string -> string * string
   val init: bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
-    string list -> string -> string * dump_mode -> Url.T option * bool -> bool ->
+    string list -> string -> bool * string -> Url.T option * bool -> bool ->
     theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val init_theory: string -> unit
@@ -190,18 +188,10 @@ fun add_html_source name txt = change_theory_info name (fn (tex_source, html_sou
 
 (* session_info *)
 
-datatype dump_mode = Dump_all | Dump_tex | Dump_tex_sty;
-
-fun dump_mode "all" = Dump_all
-  | dump_mode "tex" = Dump_tex
-  | dump_mode "tex+sty" = Dump_tex_sty
-  | dump_mode s =
-      error ("Illegal document dump mode: " ^ quote s ^ " (expected \"all\", \"tex\", \"tex+sty\")");
-
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, doc_output: Path.T option,
-    documents: (string * string) list, doc_dump: (string * dump_mode), remote_path: Url.T option,
+    documents: (string * string) list, doc_dump: (bool * string), remote_path: Url.T option,
     verbose: bool, readme: Path.T option};
 
 fun make_session_info
@@ -261,7 +251,7 @@ fun read_variant str =
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info info_path doc doc_graph document_output doc_variants path name
-    (doc_dump as (dump_prefix, _)) (remote_path, first_time) verbose thys =
+    (doc_dump as (_, dump_prefix)) (remote_path, first_time) verbose thys =
   if not build andalso not info andalso doc = "" andalso dump_prefix = "" then
     (browser_info := empty_browser_info; session_info := NONE)
   else
@@ -348,7 +338,7 @@ fun write_tex_index tex_index path =
 
 fun finish () =
   session_default () (fn {name, info, html_prefix, doc_format, doc_graph, doc_output,
-    documents, doc_dump = (dump_prefix, dump_mode), path, verbose, readme, ...} =>
+    documents, doc_dump = (dump_copy, dump_prefix), path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -383,14 +373,11 @@ fun finish () =
         else ())
       else ();
 
-    fun prepare_sources doc_dir doc_mode =
+    fun prepare_sources doc_copy doc_dir =
      (Isabelle_System.mkdirs doc_dir;
-      (case doc_mode of
-        Dump_all => Isabelle_System.copy_dir document_path doc_dir
-      | Dump_tex_sty =>
-          ignore (Isabelle_System.isabelle_tool "latex"
-            ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex"))))
-      | Dump_tex => ());
+      if doc_copy then Isabelle_System.copy_dir document_path doc_dir else ();
+      Isabelle_System.isabelle_tool "latex"
+        ("-o sty " ^ File.shell_path (Path.append doc_dir (Path.basic "root.tex")));
       (case opt_graphs of NONE => () | SOME (pdf, eps) =>
         (File.write (Path.append doc_dir graph_pdf_path) pdf;
           File.write (Path.append doc_dir graph_eps_path) eps));
@@ -402,7 +389,7 @@ fun finish () =
       else
         let
           val path = Path.explode dump_prefix;
-          val _ = prepare_sources path dump_mode;
+          val _ = prepare_sources dump_copy path;
         in
           if verbose then
             Output.physical_stderr ("Document sources at " ^ show_path path ^ "\n")
@@ -415,8 +402,8 @@ fun finish () =
           File.eq (document_path, doc_prefix) andalso
             error ("Overlap of document input and output directory " ^ Path.print doc_prefix);
         val dir = Path.append doc_prefix (Path.basic name);
-        val mode = if File.eq (document_path, dir) then Dump_tex_sty else Dump_all;
-        val _ = prepare_sources dir mode;
+        val copy = not (File.eq (document_path, dir));
+        val _ = prepare_sources copy dir;
         fun inform doc =
           if verbose orelse not backdrop then
             Output.physical_stderr ("Document at " ^ show_path doc ^ "\n")

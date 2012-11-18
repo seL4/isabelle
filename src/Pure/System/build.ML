@@ -15,8 +15,7 @@ struct
 local
 
 fun no_document options =
-  (case Options.string options "document" of "" => true | "false" => true | _ => false) andalso
-  (Options.string options "document_dump" = "");
+  (case Options.string options "document" of "" => true | "false" => true | _ => false);
 
 fun use_thys options =
   Thy_Info.use_thys
@@ -73,11 +72,6 @@ fun build args_file = Command_Line.tool (fn () =>
         | dups => error ("Duplicate document variants: " ^ commas_quote dups));
 
       val _ =
-        if Options.string options "document_dump" = "" then ()
-        else
-          Output.physical_stderr
-            "### Legacy feature: old option \"document_dump\" -- use \"document_output\" instead\n";
-      val _ =
         Session.init do_output false
           (Options.bool options "browser_info") browser_info
           (Options.string options "document")
@@ -85,9 +79,8 @@ fun build args_file = Command_Line.tool (fn () =>
           (Options.string options "document_output")
           document_variants
           parent_name name
-          (Options.string options "document_dump",
-            Present.dump_mode (Options.string options "document_dump_mode"))
-          "" verbose;
+          (false, "") ""
+          verbose;
 
       val res1 =
         theories |>
