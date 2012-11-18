@@ -146,7 +146,7 @@ object JEdit_Lib
 
   /* graphics range */
 
-  class Gfx_Range(val x: Int, val y: Int, val length: Int)
+  case class Gfx_Range(val x: Int, val y: Int, val length: Int)
 
   // NB: jEdit always normalizes \r\n and \r to \n
   // NB: last line lacks \n
@@ -165,7 +165,7 @@ object JEdit_Lib
       else (text_area.offsetToXY(stop), 0)
 
     if (p != null && q != null && p.x < q.x + r && p.y == q.y)
-      Some(new Gfx_Range(p.x, p.y, q.x + r - p.x))
+      Some(Gfx_Range(p.x, p.y, q.x + r - p.x))
     else None
   }
 
