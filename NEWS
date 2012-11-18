@@ -261,6 +261,9 @@ necessarily printing visible text.
 
 *** System ***
 
+* The default limit for maximum number of worker threads is now 8,
+instead of 4.
+
 * The ML system is configured as regular component, and no longer
 picked up from some surrounding directory.  Potential INCOMPATIBILITY
 for home-made configurations.

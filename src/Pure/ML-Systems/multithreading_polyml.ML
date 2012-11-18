@@ -34,7 +34,7 @@ val max_threads = ref 1;
 fun max_threads_value () =
   let val m = ! max_threads in
     if m > 0 then m
-    else Int.min (Int.max (Thread.numProcessors (), 1), 4)
+    else Int.min (Int.max (Thread.numProcessors (), 1), 8)
   end;
 
 fun enabled () = max_threads_value () > 1;
