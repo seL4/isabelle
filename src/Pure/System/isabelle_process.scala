@@ -393,11 +393,18 @@ class Isabelle_Process(
   def input_bytes(name: String, args: Array[Byte]*): Unit =
     command_input._2 ! Input_Chunks(Standard_System.string_bytes(name) :: args.toList)
 
-  def input(name: String, args: String*): Unit =
+  def input(name: String, args: String*)
   {
     receiver(new Input(name, args.toList))
     input_bytes(name, args.map(Standard_System.string_bytes): _*)
   }
 
-  def close_input(): Unit = { close(command_input); close(standard_input) }
+  def options(opts: Options): Unit =
+    input("Isabelle_Process.options", YXML.string_of_body(opts.encode))
+
+  def close_input()
+  {
+    close(command_input)
+    close(standard_input)
+  }
 }

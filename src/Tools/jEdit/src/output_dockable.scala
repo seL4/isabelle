@@ -101,7 +101,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val main_actor = actor {
     loop {
       react {
-        case Session.Global_Options =>
+        case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
         case changed: Session.Commands_Changed =>
           Swing_Thread.later { handle_update(do_update, Some(changed.commands)) }

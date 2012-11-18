@@ -105,7 +105,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   private val main_actor = actor {
     loop {
       react {
-        case Session.Global_Options =>  // FIXME
+        case _: Session.Global_Options =>  // FIXME
 
         case changed: Session.Commands_Changed =>
           Swing_Thread.later { handle_update(do_update, Some(changed.commands)) }

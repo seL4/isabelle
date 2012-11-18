@@ -296,7 +296,7 @@ class Plugin extends EBPlugin
           }
 
         case msg: PropertiesChanged =>
-          Isabelle.session.global_options.event(Session.Global_Options)
+          Isabelle.session.global_options.event(Session.Global_Options(Isabelle.options.value))
 
         case _ =>
       }

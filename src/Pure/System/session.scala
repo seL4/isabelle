@@ -22,7 +22,7 @@ object Session
   /* events */
 
   //{{{
-  case object Global_Options
+  case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(edits: List[Document.Edit_Text])
   case class Commands_Changed(
@@ -58,7 +58,7 @@ class Session(val thy_load: Thy_Load)
 
   /* pervasive event buses */
 
-  val global_options = new Event_Bus[Session.Global_Options.type]
+  val global_options = new Event_Bus[Session.Global_Options]
   val caret_focus = new Event_Bus[Session.Caret_Focus.type]
   val raw_edits = new Event_Bus[Session.Raw_Edits]
   val commands_changed = new Event_Bus[Session.Commands_Changed]
@@ -397,6 +397,9 @@ class Session(val thy_load: Thy_Load)
           receiver.cancel()
           reply(())
 
+        case Session.Global_Options(options) if prover.isDefined =>
+          prover.get.options(options)
+
         case Cancel_Execution if prover.isDefined =>
           prover.get.cancel_execution()
 
@@ -444,9 +447,18 @@ class Session(val thy_load: Thy_Load)
   /* actions */
 
   def start(args: List[String])
-  { session_actor ! Start(args) }
+  {
+    global_options += session_actor
+    session_actor ! Start(args)
+  }
 
-  def stop() { commands_changed_buffer !? Stop; change_parser !? Stop; session_actor !? Stop }
+  def stop()
+  {
+    global_options -= session_actor
+    commands_changed_buffer !? Stop
+    change_parser !? Stop
+    session_actor !? Stop
+  }
 
   def cancel_execution() { session_actor ! Cancel_Execution }
 

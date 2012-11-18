@@ -86,7 +86,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   private val main_actor = actor {
     loop {
       react {
-        case Session.Global_Options =>
+        case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
         case bad => System.err.println("Info_Dockable: ignoring bad message " + bad)
       }

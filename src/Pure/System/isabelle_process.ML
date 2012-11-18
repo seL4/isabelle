@@ -198,13 +198,8 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
     val _ = OS.Process.sleep (seconds 0.5);  (*yield to raw ML toplevel*)
     val _ = Output.physical_stderr Symbol.STX;
 
-    (* FIXME proper system options *)
     val _ = Printer.show_markup_default := true;
     val _ = quick_and_dirty := false;
-    val _ = Goal.parallel_proofs := 4;
-    val _ =
-      if Multithreading.max_threads_value () < 2
-      then Multithreading.max_threads := 2 else ();
     val _ = Context.set_thread_data NONE;
     val _ =
       Unsynchronized.change print_mode
@@ -216,6 +211,21 @@ fun init rendezvous = ignore (Simple_Thread.fork false (fn () =>
 
 fun init_fifos fifo1 fifo2 = init (fn () => System_Channel.fifo_rendezvous fifo1 fifo2);
 fun init_socket name = init (fn () => System_Channel.socket_rendezvous name);
+
+
+(* options *)
+
+val _ =
+  protocol_command "Isabelle_Process.options"
+    (fn [options_yxml] =>
+      let val options = Options.decode (YXML.parse_body options_yxml) in
+        Multithreading.trace := Options.int options "threads_trace";
+        Multithreading.max_threads := Options.int options "threads";
+        if Multithreading.max_threads_value () < 2
+        then Multithreading.max_threads := 2 else ();
+        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 4 else 0);
+        Goal.parallel_proofs_threshold := Options.int options "parallel_proofs_threshold"
+      end);
 
 end;
 
