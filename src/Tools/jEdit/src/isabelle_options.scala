@@ -44,7 +44,8 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
     Set("jedit_logic", "jedit_auto_start", "jedit_font_scale", "jedit_text_overview_limit",
       "jedit_tooltip_font_scale", "jedit_tooltip_margin", "threads", "threads_trace",
       "parallel_proofs", "parallel_proofs_threshold", "editor_load_delay",
-      "editor_input_delay", "editor_output_delay", "editor_update_delay", "editor_reparse_limit")
+      "editor_input_delay", "editor_output_delay", "editor_reparse_limit", "editor_tracing_limit",
+      "editor_update_delay")
 
   relevant_options.foreach(Isabelle.options.value.check_name _)
 

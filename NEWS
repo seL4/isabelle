@@ -60,9 +60,9 @@ files.  More scalable management of formal document content.
 
 * Smarter handling of tracing messages: output window informs about
 accumulated messages; prover transactions are limited to emit maximum
-amount of output, before being canceled (cf. tracing_limit option).
-This avoids swamping the front-end with potentially infinite message
-streams.
+amount of output, before being canceled (cf. system option
+"editor_tracing_limit").  This avoids swamping the front-end with
+potentially infinite message streams.
 
 * More plugin options and preferences, based on Isabelle/Scala.  The
 jEdit plugin option panel provides access to some Isabelle/Scala
