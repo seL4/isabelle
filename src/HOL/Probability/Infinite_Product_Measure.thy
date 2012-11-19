@@ -234,11 +234,9 @@ next
               using w'(1) J(3)[of "Suc k"]
               by (auto simp: space_PiM split: split_merge intro!: extensional_merge_sub) force+
             show ?thesis
-              apply (rule exI[of _ ?w])
               using w' J_mono[of k "Suc k"] wk unfolding *
-              apply (auto split: split_merge intro!: extensional_merge_sub ext simp: space_PiM)
-              apply (force simp: extensional_def)
-              done
+              by (intro exI[of _ ?w])
+                 (auto split: split_merge intro!: extensional_merge_sub ext simp: space_PiM PiE_iff)
           qed
           then have "?P k (w k) (w (Suc k))"
             unfolding w_def nat_rec_Suc unfolding w_def[symmetric]
@@ -295,8 +293,8 @@ next
         using w(1) by (auto simp add: Pi_iff extensional_def space_PiM)
 
       { fix n
-        have "restrict w' (J n) = w n" using w(1)
-          by (auto simp add: fun_eq_iff restrict_def Pi_iff extensional_def space_PiM)
+        have "restrict w' (J n) = w n" using w(1)[of n]
+          by (auto simp add: fun_eq_iff space_PiM)
         with w[of n] obtain x where "x \<in> A n" "restrict x (J n) = restrict w' (J n)" by auto
         then have "w' \<in> A n" unfolding A_eq using w' by (auto simp: prod_emb_def space_PiM) }
       then have "w' \<in> (\<Inter>i. A i)" by auto
@@ -391,7 +389,7 @@ lemma (in product_prob_space) measure_PiM_emb:
 lemma sets_Collect_single':
   "i \<in> I \<Longrightarrow> {x\<in>space (M i). P x} \<in> sets (M i) \<Longrightarrow> {x\<in>space (PiM I M). P (x i)} \<in> sets (PiM I M)"
   using sets_Collect_single[of i I "{x\<in>space (M i). P x}" M]
-  by (simp add: space_PiM Pi_iff cong: conj_cong)
+  by (simp add: space_PiM PiE_iff cong: conj_cong)
 
 lemma (in finite_product_prob_space) finite_measure_PiM_emb:
   "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> measure (PiM I M) (Pi\<^isub>E I A) = (\<Prod>i\<in>I. measure (M i) (A i))"
@@ -462,7 +460,7 @@ lemma measurable_comb_seq:
   "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> measurable ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) (\<Pi>\<^isub>M i\<in>UNIV. M)"
 proof (rule measurable_PiM_single)
   show "(\<lambda>(\<omega>, \<omega>'). comb_seq i \<omega> \<omega>') \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)) \<rightarrow> (UNIV \<rightarrow>\<^isub>E space M)"
-    by (auto simp: space_pair_measure space_PiM Pi_iff split: split_comb_seq)
+    by (auto simp: space_pair_measure space_PiM PiE_iff split: split_comb_seq)
   fix j :: nat and A assume A: "A \<in> sets M"
   then have *: "{\<omega> \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} =
     (if j < i then {\<omega> \<in> space (\<Pi>\<^isub>M i\<in>UNIV. M). \<omega> j \<in> A} \<times> space (\<Pi>\<^isub>M i\<in>UNIV. M)
@@ -550,7 +548,7 @@ proof (rule PiM_eq)
   with J have "?f -` ?X \<inter> space (S \<Otimes>\<^isub>M S) =
     (prod_emb ?I ?M (J \<inter> {..<i}) (PIE j:J \<inter> {..<i}. E j)) \<times>
     (prod_emb ?I ?M ((op + i) -` J) (PIE j:(op + i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
-   by (auto simp: space_pair_measure space_PiM prod_emb_def all_conj_distrib Pi_iff
+   by (auto simp: space_pair_measure space_PiM prod_emb_def all_conj_distrib PiE_iff
                split: split_comb_seq split_comb_seq_asm)
   then have "emeasure ?D ?X = emeasure (S \<Otimes>\<^isub>M S) (?E \<times> ?F)"
     by (subst emeasure_distr[OF measurable_comb_seq])
@@ -581,7 +579,7 @@ proof (rule PiM_eq)
     using J(3)[THEN sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
   with J have "?f -` ?X \<inter> space (M \<Otimes>\<^isub>M S) = (if 0 \<in> J then E 0 else space M) \<times>
     (prod_emb ?I ?M (Suc -` J) (PIE j:Suc -` J. E (Suc j)))" (is "_ = ?E \<times> ?F")
-   by (auto simp: space_pair_measure space_PiM Pi_iff prod_emb_def all_conj_distrib
+   by (auto simp: space_pair_measure space_PiM PiE_iff prod_emb_def all_conj_distrib
       split: nat.split nat.split_asm)
   then have "emeasure ?D ?X = emeasure (M \<Otimes>\<^isub>M S) (?E \<times> ?F)"
     by (subst emeasure_distr)

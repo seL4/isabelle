@@ -86,7 +86,7 @@ lemma funcset_image: "f \<in> A\<rightarrow>B ==> f ` A \<subseteq> B"
 lemma image_subset_iff_funcset: "F ` A \<subseteq> B \<longleftrightarrow> F \<in> A \<rightarrow> B"
   by auto
 
-lemma Pi_eq_empty[simp]: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B(x) = {})"
+lemma Pi_eq_empty[simp]: "((PI x: A. B x) = {}) = (\<exists>x\<in>A. B x = {})"
 apply (simp add: Pi_def, auto)
 txt{*Converse direction requires Axiom of Choice to exhibit a function
 picking an element from each non-empty @{term "B x"}*}
@@ -97,12 +97,31 @@ done
 lemma Pi_empty [simp]: "Pi {} B = UNIV"
 by (simp add: Pi_def)
 
+lemma Pi_Int: "Pi I E \<inter> Pi I F = (\<Pi> i\<in>I. E i \<inter> F i)"
+  by auto
+
+lemma Pi_UN:
+  fixes A :: "nat \<Rightarrow> 'i \<Rightarrow> 'a set"
+  assumes "finite I" and mono: "\<And>i n m. i \<in> I \<Longrightarrow> n \<le> m \<Longrightarrow> A n i \<subseteq> A m i"
+  shows "(\<Union>n. Pi I (A n)) = (\<Pi> i\<in>I. \<Union>n. A n i)"
+proof (intro set_eqI iffI)
+  fix f assume "f \<in> (\<Pi> i\<in>I. \<Union>n. A n i)"
+  then have "\<forall>i\<in>I. \<exists>n. f i \<in> A n i" by auto
+  from bchoice[OF this] obtain n where n: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> (A (n i) i)" by auto
+  obtain k where k: "\<And>i. i \<in> I \<Longrightarrow> n i \<le> k"
+    using `finite I` finite_nat_set_iff_bounded_le[of "n`I"] by auto
+  have "f \<in> Pi I (A k)"
+  proof (intro Pi_I)
+    fix i assume "i \<in> I"
+    from mono[OF this, of "n i" k] k[OF this] n[OF this]
+    show "f i \<in> A k i" by auto
+  qed
+  then show "f \<in> (\<Union>n. Pi I (A n))" by auto
+qed auto
+
 lemma Pi_UNIV [simp]: "A -> UNIV = UNIV"
 by (simp add: Pi_def)
-(*
-lemma funcset_id [simp]: "(%x. x): A -> A"
-  by (simp add: Pi_def)
-*)
+
 text{*Covariance of Pi-sets in their second argument*}
 lemma Pi_mono: "(!!x. x \<in> A ==> B x <= C x) ==> Pi A B <= Pi A C"
 by auto
@@ -124,6 +143,25 @@ proof (rule Pi_I)
   finally show "f z \<in> B z \<times> C z" .
 qed
 
+lemma Pi_split_domain[simp]: "x \<in> Pi (I \<union> J) X \<longleftrightarrow> x \<in> Pi I X \<and> x \<in> Pi J X"
+  by (auto simp: Pi_def)
+
+lemma Pi_split_insert_domain[simp]: "x \<in> Pi (insert i I) X \<longleftrightarrow> x \<in> Pi I X \<and> x i \<in> X i"
+  by (auto simp: Pi_def)
+
+lemma Pi_cancel_fupd_range[simp]: "i \<notin> I \<Longrightarrow> x \<in> Pi I (B(i := b)) \<longleftrightarrow> x \<in> Pi I B"
+  by (auto simp: Pi_def)
+
+lemma Pi_cancel_fupd[simp]: "i \<notin> I \<Longrightarrow> x(i := a) \<in> Pi I B \<longleftrightarrow> x \<in> Pi I B"
+  by (auto simp: Pi_def)
+
+lemma Pi_fupd_iff: "i \<in> I \<Longrightarrow> f \<in> Pi I (B(i := A)) \<longleftrightarrow> f \<in> Pi (I - {i}) B \<and> f i \<in> A"
+  apply auto
+  apply (drule_tac x=x in Pi_mem)
+  apply (simp_all split: split_if_asm)
+  apply (drule_tac x=i in Pi_mem)
+  apply (auto dest!: Pi_mem)
+  done
 
 subsection{*Composition With a Restricted Domain: @{term compose}*}
 
@@ -173,6 +211,19 @@ lemma compose_Id:
 lemma image_restrict_eq [simp]: "(restrict f A) ` A = f ` A"
   by (auto simp add: restrict_def)
 
+lemma restrict_restrict[simp]: "restrict (restrict f A) B = restrict f (A \<inter> B)"
+  unfolding restrict_def by (simp add: fun_eq_iff)
+
+lemma restrict_fupd[simp]: "i \<notin> I \<Longrightarrow> restrict (f (i := x)) I = restrict f I"
+  by (auto simp: restrict_def)
+
+lemma restrict_upd[simp]:
+  "i \<notin> I \<Longrightarrow> (restrict f I)(i := y) = restrict (f(i := y)) (insert i I)"
+  by (auto simp: fun_eq_iff)
+
+lemma restrict_Pi_cancel: "restrict x I \<in> Pi I A \<longleftrightarrow> x \<in> Pi I A"
+  by (auto simp: restrict_def Pi_def)
+
 
 subsection{*Bijections Between Sets*}
 
@@ -213,6 +264,9 @@ by (simp add: bij_betw_def)
 
 subsection{*Extensionality*}
 
+lemma extensional_empty[simp]: "extensional {} = {\<lambda>x. undefined}"
+  unfolding extensional_def by auto
+
 lemma extensional_arb: "[|f \<in> extensional A; x\<notin> A|] ==> f x = undefined"
 by (simp add: extensional_def)
 
@@ -230,6 +284,9 @@ by (force simp add: fun_eq_iff extensional_def)
 lemma extensional_restrict:  "f \<in> extensional A \<Longrightarrow> restrict f A = f"
 by(rule extensionalityI[OF restrict_extensional]) auto
 
+lemma extensional_subset: "f \<in> extensional A \<Longrightarrow> A \<subseteq> B \<Longrightarrow> f \<in> extensional B"
+  unfolding extensional_def by auto
+
 lemma inv_into_funcset: "f ` A = B ==> (\<lambda>x\<in>B. inv_into A f x) : B -> A"
 by (unfold inv_into_def) (fast intro: someI2)
 
@@ -246,6 +303,29 @@ apply (rule restrict_ext)
 apply (simp add: f_inv_into_f)
 done
 
+lemma extensional_insert[intro, simp]:
+  assumes "a \<in> extensional (insert i I)"
+  shows "a(i := b) \<in> extensional (insert i I)"
+  using assms unfolding extensional_def by auto
+
+lemma extensional_Int[simp]:
+  "extensional I \<inter> extensional I' = extensional (I \<inter> I')"
+  unfolding extensional_def by auto
+
+lemma extensional_UNIV[simp]: "extensional UNIV = UNIV"
+  by (auto simp: extensional_def)
+
+lemma restrict_extensional_sub[intro]: "A \<subseteq> B \<Longrightarrow> restrict f A \<in> extensional B"
+  unfolding restrict_def extensional_def by auto
+
+lemma extensional_insert_undefined[intro, simp]:
+  "a \<in> extensional (insert i I) \<Longrightarrow> a(i := undefined) \<in> extensional I"
+  unfolding extensional_def by auto
+
+lemma extensional_insert_cancel[intro, simp]:
+  "a \<in> extensional I \<Longrightarrow> a \<in> extensional (insert i I)"
+  unfolding extensional_def by auto
+
 
 subsection{*Cardinality*}
 
@@ -259,156 +339,207 @@ by (blast intro: card_inj order_antisym)
 
 subsection {* Extensional Function Spaces *} 
 
-definition extensional_funcset
-where "extensional_funcset S T = (S -> T) \<inter> (extensional S)"
+definition PiE :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> ('a \<Rightarrow> 'b) set" where
+  "PiE S T = Pi S T \<inter> extensional S"
 
-lemma extensional_empty[simp]: "extensional {} = {%x. undefined}"
-unfolding extensional_def by auto
+abbreviation "Pi\<^isub>E A B \<equiv> PiE A B"
 
-lemma extensional_funcset_empty_domain: "extensional_funcset {} T = {%x. undefined}"
-unfolding extensional_funcset_def by simp
+syntax "_PiE"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PIE _:_./ _)" 10)
 
-lemma extensional_funcset_empty_range:
-  assumes "S \<noteq> {}"
-  shows "extensional_funcset S {} = {}"
-using assms unfolding extensional_funcset_def by auto
+syntax (xsymbols) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^isub>E _\<in>_./ _)" 10)
 
-lemma extensional_funcset_arb:
-  assumes "f \<in> extensional_funcset S T" "x \<notin> S"
-  shows "f x = undefined"
-using assms
-unfolding extensional_funcset_def by auto (auto dest!: extensional_arb)
+syntax (HTML output) "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^isub>E _\<in>_./ _)" 10)
 
-lemma extensional_funcset_mem: "f \<in> extensional_funcset S T \<Longrightarrow> x \<in> S \<Longrightarrow> f x \<in> T"
-unfolding extensional_funcset_def by auto
+translations "PIE x:A. B" == "CONST Pi\<^isub>E A (%x. B)"
 
-lemma extensional_subset: "f : extensional A ==> A <= B ==> f : extensional B"
-unfolding extensional_def by auto
+abbreviation extensional_funcset :: "'a set \<Rightarrow> 'b set \<Rightarrow> ('a \<Rightarrow> 'b) set" (infixr "->\<^isub>E" 60) where
+  "A ->\<^isub>E B \<equiv> (\<Pi>\<^isub>E i\<in>A. B)"
 
-lemma extensional_funcset_extend_domainI: "\<lbrakk> y \<in> T; f \<in> extensional_funcset S T\<rbrakk> \<Longrightarrow> f(x := y) \<in> extensional_funcset (insert x S) T"
-unfolding extensional_funcset_def extensional_def by auto
+notation (xsymbols)
+  extensional_funcset  (infixr "\<rightarrow>\<^isub>E" 60)
 
-lemma extensional_funcset_restrict_domain:
-  "x \<notin> S \<Longrightarrow> f \<in> extensional_funcset (insert x S) T \<Longrightarrow> f(x := undefined) \<in> extensional_funcset S T"
-unfolding extensional_funcset_def extensional_def by auto
+lemma extensional_funcset_def: "extensional_funcset S T = (S -> T) \<inter> extensional S"
+  by (simp add: PiE_def)
 
-lemma extensional_funcset_extend_domain_eq:
+lemma PiE_empty_domain[simp]: "PiE {} T = {%x. undefined}"
+  unfolding PiE_def by simp
+
+lemma PiE_empty_range[simp]: "i \<in> I \<Longrightarrow> F i = {} \<Longrightarrow> (PIE i:I. F i) = {}"
+  unfolding PiE_def by auto
+
+lemma PiE_eq_empty_iff:
+  "Pi\<^isub>E I F = {} \<longleftrightarrow> (\<exists>i\<in>I. F i = {})"
+proof
+  assume "Pi\<^isub>E I F = {}"
+  show "\<exists>i\<in>I. F i = {}"
+  proof (rule ccontr)
+    assume "\<not> ?thesis"
+    then have "\<forall>i. \<exists>y. (i \<in> I \<longrightarrow> y \<in> F i) \<and> (i \<notin> I \<longrightarrow> y = undefined)" by auto
+    from choice[OF this] guess f ..
+    then have "f \<in> Pi\<^isub>E I F" by (auto simp: extensional_def PiE_def)
+    with `Pi\<^isub>E I F = {}` show False by auto
+  qed
+qed (auto simp: PiE_def)
+
+lemma PiE_arb: "f \<in> PiE S T \<Longrightarrow> x \<notin> S \<Longrightarrow> f x = undefined"
+  unfolding PiE_def by auto (auto dest!: extensional_arb)
+
+lemma PiE_mem: "f \<in> PiE S T \<Longrightarrow> x \<in> S \<Longrightarrow> f x \<in> T x"
+  unfolding PiE_def by auto
+
+lemma PiE_fun_upd: "y \<in> T x \<Longrightarrow> f \<in> PiE S T \<Longrightarrow> f(x := y) \<in> PiE (insert x S) T"
+  unfolding PiE_def extensional_def by auto
+
+lemma fun_upd_in_PiE: "x \<notin> S \<Longrightarrow> f \<in> PiE (insert x S) T \<Longrightarrow> f(x := undefined) \<in> PiE S T"
+  unfolding PiE_def extensional_def by auto
+
+lemma PiE_insert_eq:
   assumes "x \<notin> S"
-  shows
-    "extensional_funcset (insert x S) T = (\<lambda>(y, g). g(x := y)) ` {(y, g). y \<in> T \<and> g \<in> extensional_funcset S T}"
-  using assms
+  shows "PiE (insert x S) T = (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
 proof -
   {
-    fix f
-    assume "f : extensional_funcset (insert x S) T"
-    from this assms have "f : (%(y, g). g(x := y)) ` (T <*> extensional_funcset S T)"
-      unfolding image_iff
-      apply (rule_tac x="(f x, f(x := undefined))" in bexI)
-    apply (auto intro: extensional_funcset_extend_domainI extensional_funcset_restrict_domain extensional_funcset_mem) done 
+    fix f assume "f \<in> PiE (insert x S) T"
+    with assms have "f \<in> (\<lambda>(y, g). g(x := y)) ` (T x \<times> PiE S T)"
+      by (auto intro!: image_eqI[where x="(f x, f(x := undefined))"] intro: fun_upd_in_PiE PiE_mem)
   }
-  moreover
-  {
-    fix f
-    assume "f : (%(y, g). g(x := y)) ` (T <*> extensional_funcset S T)"
-    from this assms have "f : extensional_funcset (insert x S) T"
-      by (auto intro: extensional_funcset_extend_domainI)
-  }
-  ultimately show ?thesis by auto
+  then show ?thesis using assms by (auto intro: PiE_fun_upd)
 qed
 
-lemma extensional_funcset_fun_upd_restricts_rangeI:  "\<forall> y \<in> S. f x \<noteq> f y ==> f : extensional_funcset (insert x S) T ==> f(x := undefined) : extensional_funcset S (T - {f x})"
-unfolding extensional_funcset_def extensional_def
-apply auto
-apply (case_tac "x = xa")
-apply auto done
+lemma PiE_Int: "(Pi\<^isub>E I A) \<inter> (Pi\<^isub>E I B) = Pi\<^isub>E I (\<lambda>x. A x \<inter> B x)"
+  by (auto simp: PiE_def)
+
+lemma PiE_cong:
+  "(\<And>i. i\<in>I \<Longrightarrow> A i = B i) \<Longrightarrow> Pi\<^isub>E I A = Pi\<^isub>E I B"
+  unfolding PiE_def by (auto simp: Pi_cong)
+
+lemma PiE_E [elim]:
+  "f \<in> PiE A B \<Longrightarrow> (x \<in> A \<Longrightarrow> f x \<in> B x \<Longrightarrow> Q) \<Longrightarrow> (x \<notin> A \<Longrightarrow> f x = undefined \<Longrightarrow> Q) \<Longrightarrow> Q"
+by(auto simp: Pi_def PiE_def extensional_def)
+
+lemma PiE_I[intro!]: "(\<And>x. x \<in> A ==> f x \<in> B x) \<Longrightarrow> (\<And>x. x \<notin> A \<Longrightarrow> f x = undefined) \<Longrightarrow> f \<in> PiE A B"
+  by (simp add: PiE_def extensional_def)
+
+lemma PiE_mono: "(\<And>x. x \<in> A \<Longrightarrow> B x \<subseteq> C x) \<Longrightarrow> PiE A B \<subseteq> PiE A C"
+  by auto
+
+lemma PiE_iff: "f \<in> PiE I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i) \<and> f \<in> extensional I"
+  by (simp add: PiE_def Pi_iff)
+
+lemma PiE_restrict[simp]:  "f \<in> PiE A B \<Longrightarrow> restrict f A = f"
+  by (simp add: extensional_restrict PiE_def)
+
+lemma restrict_PiE[simp]: "restrict f I \<in> PiE I S \<longleftrightarrow> f \<in> Pi I S"
+  by (auto simp: PiE_iff)
+
+lemma PiE_eq_subset:
+  assumes ne: "\<And>i. i \<in> I \<Longrightarrow> F i \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> F' i \<noteq> {}"
+  assumes eq: "Pi\<^isub>E I F = Pi\<^isub>E I F'" and "i \<in> I"
+  shows "F i \<subseteq> F' i"
+proof
+  fix x assume "x \<in> F i"
+  with ne have "\<forall>j. \<exists>y. ((j \<in> I \<longrightarrow> y \<in> F j \<and> (i = j \<longrightarrow> x = y)) \<and> (j \<notin> I \<longrightarrow> y = undefined))" by auto
+  from choice[OF this] guess f .. note f = this
+  then have "f \<in> Pi\<^isub>E I F" by (auto simp: extensional_def PiE_def)
+  then have "f \<in> Pi\<^isub>E I F'" using assms by simp
+  then show "x \<in> F' i" using f `i \<in> I` by (auto simp: PiE_def)
+qed
+
+lemma PiE_eq_iff_not_empty:
+  assumes ne: "\<And>i. i \<in> I \<Longrightarrow> F i \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> F' i \<noteq> {}"
+  shows "Pi\<^isub>E I F = Pi\<^isub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i)"
+proof (intro iffI ballI)
+  fix i assume eq: "Pi\<^isub>E I F = Pi\<^isub>E I F'" and i: "i \<in> I"
+  show "F i = F' i"
+    using PiE_eq_subset[of I F F', OF ne eq i]
+    using PiE_eq_subset[of I F' F, OF ne(2,1) eq[symmetric] i]
+    by auto
+qed (auto simp: PiE_def)
+
+lemma PiE_eq_iff:
+  "Pi\<^isub>E I F = Pi\<^isub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i) \<or> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
+proof (intro iffI disjCI)
+  assume eq[simp]: "Pi\<^isub>E I F = Pi\<^isub>E I F'"
+  assume "\<not> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
+  then have "(\<forall>i\<in>I. F i \<noteq> {}) \<and> (\<forall>i\<in>I. F' i \<noteq> {})"
+    using PiE_eq_empty_iff[of I F] PiE_eq_empty_iff[of I F'] by auto
+  with PiE_eq_iff_not_empty[of I F F'] show "\<forall>i\<in>I. F i = F' i" by auto
+next
+  assume "(\<forall>i\<in>I. F i = F' i) \<or> (\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {})"
+  then show "Pi\<^isub>E I F = Pi\<^isub>E I F'"
+    using PiE_eq_empty_iff[of I F] PiE_eq_empty_iff[of I F'] by (auto simp: PiE_def)
+qed
+
+lemma extensional_funcset_fun_upd_restricts_rangeI: 
+  "\<forall>y \<in> S. f x \<noteq> f y \<Longrightarrow> f : (insert x S) \<rightarrow>\<^isub>E T ==> f(x := undefined) : S \<rightarrow>\<^isub>E (T - {f x})"
+  unfolding extensional_funcset_def extensional_def
+  apply auto
+  apply (case_tac "x = xa")
+  apply auto
+  done
 
 lemma extensional_funcset_fun_upd_extends_rangeI:
-  assumes "a \<in> T" "f : extensional_funcset S (T - {a})"
-  shows "f(x := a) : extensional_funcset (insert x S) T"
+  assumes "a \<in> T" "f \<in> S \<rightarrow>\<^isub>E (T - {a})"
+  shows "f(x := a) \<in> (insert x S) \<rightarrow>\<^isub>E  T"
   using assms unfolding extensional_funcset_def extensional_def by auto
 
 subsubsection {* Injective Extensional Function Spaces *}
 
 lemma extensional_funcset_fun_upd_inj_onI:
-  assumes "f \<in> extensional_funcset S (T - {a})" "inj_on f S"
+  assumes "f \<in> S \<rightarrow>\<^isub>E (T - {a})" "inj_on f S"
   shows "inj_on (f(x := a)) S"
   using assms unfolding extensional_funcset_def by (auto intro!: inj_on_fun_updI)
 
 lemma extensional_funcset_extend_domain_inj_on_eq:
   assumes "x \<notin> S"
-  shows"{f. f \<in> extensional_funcset (insert x S) T \<and> inj_on f (insert x S)} =
-    (%(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}"
+  shows"{f. f \<in> (insert x S) \<rightarrow>\<^isub>E T \<and> inj_on f (insert x S)} =
+    (%(y, g). g(x:=y)) ` {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^isub>E (T - {y}) \<and> inj_on g S}"
 proof -
   from assms show ?thesis
-    apply auto
-    apply (auto intro: extensional_funcset_fun_upd_inj_onI extensional_funcset_fun_upd_extends_rangeI)
+    apply (auto del: PiE_I PiE_E)
+    apply (auto intro: extensional_funcset_fun_upd_inj_onI extensional_funcset_fun_upd_extends_rangeI del: PiE_I PiE_E)
     apply (auto simp add: image_iff inj_on_def)
     apply (rule_tac x="xa x" in exI)
-    apply (auto intro: extensional_funcset_mem)
+    apply (auto intro: PiE_mem del: PiE_I PiE_E)
     apply (rule_tac x="xa(x := undefined)" in exI)
     apply (auto intro!: extensional_funcset_fun_upd_restricts_rangeI)
-    apply (auto dest!: extensional_funcset_mem split: split_if_asm)
+    apply (auto dest!: PiE_mem split: split_if_asm)
     done
 qed
 
 lemma extensional_funcset_extend_domain_inj_onI:
   assumes "x \<notin> S"
-  shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> extensional_funcset S (T - {y}) \<and> inj_on g S}"
+  shows "inj_on (\<lambda>(y, g). g(x := y)) {(y, g). y \<in> T \<and> g \<in> S \<rightarrow>\<^isub>E (T - {y}) \<and> inj_on g S}"
 proof -
   from assms show ?thesis
     apply (auto intro!: inj_onI)
     apply (metis fun_upd_same)
-    by (metis assms extensional_funcset_arb fun_upd_triv fun_upd_upd)
+    by (metis assms PiE_arb fun_upd_triv fun_upd_upd)
 qed
   
 
 subsubsection {* Cardinality *}
 
-lemma card_extensional_funcset:
-  assumes "finite S"
-  shows "card (extensional_funcset S T) = (card T) ^ (card S)"
-using assms
-proof (induct rule: finite_induct)
-  case empty
-  show ?case
-    by (auto simp add: extensional_funcset_empty_domain)
-next
-  case (insert x S)
-  {
-    fix g g' y y'
-    assume assms: "g \<in> extensional_funcset S T"
-      "g' \<in> extensional_funcset S T"
-      "y \<in> T" "y' \<in> T"
-      "g(x := y) = g'(x := y')"
-    from this have "y = y'"
-      by (metis fun_upd_same)
-    have "g = g'"
-      by (metis assms(1) assms(2) assms(5) extensional_funcset_arb fun_upd_triv fun_upd_upd insert(2))
-  from `y = y'` `g = g'` have "y = y' & g = g'" by simp
-  }
-  from this have "inj_on (\<lambda>(y, g). g (x := y)) (T \<times> extensional_funcset S T)"
-    by (auto intro: inj_onI)
-  from this insert.hyps show ?case
-    by (simp add: extensional_funcset_extend_domain_eq card_image card_cartesian_product)
+lemma finite_PiE: "finite S \<Longrightarrow> (\<And>i. i \<in> S \<Longrightarrow> finite (T i)) \<Longrightarrow> finite (PIE i : S. T i)"
+  by (induct S arbitrary: T rule: finite_induct) (simp_all add: PiE_insert_eq)
+
+lemma inj_combinator: "x \<notin> S \<Longrightarrow> inj_on (\<lambda>(y, g). g(x := y)) (T x \<times> Pi\<^isub>E S T)"
+proof (safe intro!: inj_onI ext)
+  fix f y g z assume "x \<notin> S" and fg: "f \<in> Pi\<^isub>E S T" "g \<in> Pi\<^isub>E S T"
+  assume "f(x := y) = g(x := z)"
+  then have *: "\<And>i. (f(x := y)) i = (g(x := z)) i"
+    unfolding fun_eq_iff by auto
+  from this[of x] show "y = z" by simp
+  fix i from *[of i] `x \<notin> S` fg show "f i = g i"
+    by (auto split: split_if_asm simp: PiE_def extensional_def)
 qed
 
-lemma finite_extensional_funcset:
-  assumes "finite S" "finite T"
-  shows "finite (extensional_funcset S T)"
-proof -
-  from card_extensional_funcset[OF assms(1), of T] assms(2)
-  have "(card (extensional_funcset S T) \<noteq> 0) \<or> (S \<noteq> {} \<and> T = {})"
-    by auto
-  from this show ?thesis
-  proof
-    assume "card (extensional_funcset S T) \<noteq> 0"
-    from this show ?thesis
-      by (auto intro: card_ge_0_finite)
-  next
-    assume "S \<noteq> {} \<and> T = {}"
-    from this show ?thesis
-      by (auto simp add: extensional_funcset_empty_range)
-  qed
+lemma card_PiE:
+  "finite S \<Longrightarrow> card (PIE i : S. T i) = (\<Prod> i\<in>S. card (T i))"
+proof (induct rule: finite_induct)
+  case empty then show ?case by auto
+next
+  case (insert x S) then show ?case
+    by (simp add: PiE_insert_eq inj_combinator card_image card_cartesian_product)
 qed
 
 end

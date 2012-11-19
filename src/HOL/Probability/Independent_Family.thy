@@ -867,7 +867,7 @@ proof -
       then have "emeasure ?D E = emeasure M (?X -` E \<inter> space M)"
         by (simp add: emeasure_distr X)
       also have "?X -` E \<inter> space M = (\<Inter>i\<in>J. X i -` Y i \<inter> space M)"
-        using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def Pi_iff split: split_if_asm)
+        using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
       also have "emeasure M (\<Inter>i\<in>J. X i -` Y i \<inter> space M) = (\<Prod> i\<in>J. emeasure M (X i -` Y i \<inter> space M))"
         using `indep_vars M' X I` J `I \<noteq> {}` using indep_varsD[of M' X I J]
         by (auto simp: emeasure_eq_measure setprod_ereal)
@@ -898,7 +898,7 @@ proof -
         Y: "\<And>j. j \<in> J \<Longrightarrow> Y' j = X j -` Y j \<inter> space M" "\<And>j. j \<in> J \<Longrightarrow> Y j \<in> sets (M' j)" by auto
       let ?E = "prod_emb I M' J (Pi\<^isub>E J Y)"
       from Y have "(\<Inter>j\<in>J. Y' j) = ?X -` ?E \<inter> space M"
-        using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def Pi_iff split: split_if_asm)
+        using J `I \<noteq> {}` measurable_space[OF rv] by (auto simp: prod_emb_def PiE_iff split: split_if_asm)
       then have "emeasure M (\<Inter>j\<in>J. Y' j) = emeasure M (?X -` ?E \<inter> space M)"
         by simp
       also have "\<dots> = emeasure ?D ?E"

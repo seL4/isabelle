@@ -1284,17 +1284,16 @@ lemma
   assumes "finite J"
   shows "(\<lambda>m. compose J m f) \<in> measurable (PiM (f ` J) (\<lambda>_. M)) (PiM J (\<lambda>_. M))"
 proof (rule measurable_PiM)
-  show "(\<lambda>m. compose J m f)
-    \<in> space (Pi\<^isub>M (f ` J) (\<lambda>_. M)) \<rightarrow>
-      (J \<rightarrow> space M) \<inter> extensional J"
+  show "(\<lambda>m. compose J m f) \<in> space (Pi\<^isub>M (f ` J) (\<lambda>_. M)) \<rightarrow> (J \<rightarrow>\<^isub>E space M)"
   proof safe
     fix x and i
     assume x: "x \<in> space (PiM (f ` J) (\<lambda>_. M))" "i \<in> J"
     with inj show  "compose J x f i \<in> space M"
       by (auto simp: space_PiM compose_def)
   next
-    fix x assume "x \<in> space (PiM (f ` J) (\<lambda>_. M))"
-    show "(compose J x f) \<in> extensional J" by (rule compose_extensional)
+    fix x i assume "i \<notin> J"
+    with compose_extensional[of J x f]
+    show "compose J x f i = undefined" by (auto simp: extensional_def)
   qed
 next
   fix S X
@@ -1303,7 +1302,7 @@ next
   have "(\<lambda>m. compose J m f) -` prod_emb J (\<lambda>_. M) S (Pi\<^isub>E S X) \<inter>
     space (Pi\<^isub>M (f ` J) (\<lambda>_. M)) = prod_emb (f ` J) (\<lambda>_. M) (f ` S) (Pi\<^isub>E (f ` S) (\<lambda>b. X (f' b)))"
     using assms inv S sets_into_space[OF P]
-    by (force simp: prod_emb_iff compose_def space_PiM extensional_def Pi_def intro: imageI)
+    by (force simp: prod_emb_iff compose_def space_PiM extensional_def Pi_def PiE_def intro: imageI)
   also have "\<dots> \<in> sets (Pi\<^isub>M (f ` J) (\<lambda>_. M))"
   proof
     from S show "f ` S \<subseteq> f `  J" by auto
@@ -1379,7 +1378,7 @@ lemma inj_on_fm:
   assumes "\<And>i. space (M i) = UNIV"
   shows "inj_on fm (space (Pi\<^isub>M J M))"
   using assms
-  apply (auto simp: fm_def space_PiM)
+  apply (auto simp: fm_def space_PiM PiE_def)
   apply (rule comp_inj_on)
   apply (rule inj_on_compose_f')
   apply (rule finmap_of_inj_on_extensional_finite)
@@ -1409,7 +1408,7 @@ proof -
     by (auto simp: mf_def extensional_def compose_def)
   moreover
   have "x \<in> extensional J" using assms sets_into_space
-    by (force simp: space_PiM)
+    by (force simp: space_PiM PiE_def)
   moreover
   { fix i assume "i \<in> J"
     hence "mf (fm x) i = x i"
@@ -1472,13 +1471,13 @@ lemma space_mapmeasure[simp]: "space (mapmeasure M N) = space (PiF (Collect fini
 
 lemma mapmeasure_PiF:
   assumes s1: "space M = space (Pi\<^isub>M J (\<lambda>_. N))"
-  assumes s2: "sets M = (Pi\<^isub>M J (\<lambda>_. N))"
+  assumes s2: "sets M = sets (Pi\<^isub>M J (\<lambda>_. N))"
   assumes "space N = UNIV"
   assumes "X \<in> sets (PiF (Collect finite) (\<lambda>_. N))"
   shows "emeasure (mapmeasure M (\<lambda>_. N)) X = emeasure M ((fm -` X \<inter> extensional J))"
   using assms
   by (auto simp: measurable_eqI[OF s1 refl s2 refl] mapmeasure_def emeasure_distr
-    fm_measurable space_PiM)
+    fm_measurable space_PiM PiE_def)
 
 lemma mapmeasure_PiM:
   fixes N::"'c measure"

@@ -11,46 +11,7 @@ begin
 lemma split_const: "(\<lambda>(i, j). c) = (\<lambda>_. c)"
   by auto
 
-abbreviation
-  "Pi\<^isub>E A B \<equiv> Pi A B \<inter> extensional A"
-
-syntax
-  "_PiE"  :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3PIE _:_./ _)" 10)
-
-syntax (xsymbols)
-  "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^isub>E _\<in>_./ _)"   10)
-
-syntax (HTML output)
-  "_PiE" :: "[pttrn, 'a set, 'b set] => ('a => 'b) set"  ("(3\<Pi>\<^isub>E _\<in>_./ _)"   10)
-
-translations
-  "PIE x:A. B" == "CONST Pi\<^isub>E A (%x. B)"
-
-abbreviation
-  funcset_extensional :: "['a set, 'b set] => ('a => 'b) set"
-    (infixr "->\<^isub>E" 60) where
-  "A ->\<^isub>E B \<equiv> Pi\<^isub>E A (%_. B)"
-
-notation (xsymbols)
-  funcset_extensional  (infixr "\<rightarrow>\<^isub>E" 60)
-
-lemma extensional_insert[intro, simp]:
-  assumes "a \<in> extensional (insert i I)"
-  shows "a(i := b) \<in> extensional (insert i I)"
-  using assms unfolding extensional_def by auto
-
-lemma extensional_Int[simp]:
-  "extensional I \<inter> extensional I' = extensional (I \<inter> I')"
-  unfolding extensional_def by auto
-
-lemma extensional_UNIV[simp]: "extensional UNIV = UNIV"
-  by (auto simp: extensional_def)
-
-lemma restrict_extensional_sub[intro]: "A \<subseteq> B \<Longrightarrow> restrict f A \<in> extensional B"
-  unfolding restrict_def extensional_def by auto
-
-lemma restrict_restrict[simp]: "restrict (restrict f A) B = restrict f (A \<inter> B)"
-  unfolding restrict_def by (simp add: fun_eq_iff)
+subsubsection {* Merge two extensional functions *}
 
 definition
   "merge I J = (\<lambda>(x, y) i. if i \<in> I then x i else if i \<in> J then y i else undefined)"
@@ -84,9 +45,6 @@ lemma Pi_cancel_merge[simp]:
 lemma extensional_merge[simp]: "merge I J (x, y) \<in> extensional (I \<union> J)"
   by (auto simp: extensional_def)
 
-lemma restrict_Pi_cancel: "restrict x I \<in> Pi I A \<longleftrightarrow> x \<in> Pi I A"
-  by (auto simp: restrict_def Pi_def)
-
 lemma restrict_merge[simp]:
   "I \<inter> J = {} \<Longrightarrow> restrict (merge I J (x, y)) I = restrict x I"
   "I \<inter> J = {} \<Longrightarrow> restrict (merge I J (x, y)) J = restrict y J"
@@ -97,8 +55,25 @@ lemma restrict_merge[simp]:
 lemma split_merge: "P (merge I J (x,y) i) \<longleftrightarrow> (i \<in> I \<longrightarrow> P (x i)) \<and> (i \<in> J - I \<longrightarrow> P (y i)) \<and> (i \<notin> I \<union> J \<longrightarrow> P undefined)"
   unfolding merge_def by auto
 
+lemma PiE_cancel_merge[simp]:
+  "I \<inter> J = {} \<Longrightarrow>
+    merge I J (x, y) \<in> PiE (I \<union> J) B \<longleftrightarrow> x \<in> Pi I B \<and> y \<in> Pi J B"
+  by (auto simp: PiE_def restrict_Pi_cancel)
+
+lemma merge_singleton[simp]: "i \<notin> I \<Longrightarrow> merge I {i} (x,y) = restrict (x(i := y i)) (insert i I)"
+  unfolding merge_def by (auto simp: fun_eq_iff)
+
 lemma extensional_merge_sub: "I \<union> J \<subseteq> K \<Longrightarrow> merge I J (x, y) \<in> extensional K"
   unfolding merge_def extensional_def by auto
+
+lemma merge_restrict[simp]:
+  "merge I J (restrict x I, y) = merge I J (x, y)"
+  "merge I J (x, restrict y J) = merge I J (x, y)"
+  unfolding merge_def by auto
+
+lemma merge_x_x_eq_restrict[simp]:
+  "merge I J (x, x) = restrict x (I \<union> J)"
+  unfolding merge_def by auto
 
 lemma injective_vimage_restrict:
   assumes J: "J \<subseteq> I"
@@ -113,195 +88,22 @@ proof  (intro set_eqI)
   proof cases
     assume x: "x \<in> (\<Pi>\<^isub>E i\<in>J. S i)"
     have "x \<in> A \<longleftrightarrow> merge J (I - J) (x,y) \<in> (\<lambda>x. restrict x J) -` A \<inter> (\<Pi>\<^isub>E i\<in>I. S i)"
-      using y x `J \<subseteq> I` by (auto simp add: Pi_iff extensional_restrict extensional_merge_sub split: split_merge)
+      using y x `J \<subseteq> I` PiE_cancel_merge[of "J" "I - J" x y S]
+      by (auto simp del: PiE_cancel_merge simp add: Un_absorb1)
     then show "x \<in> A \<longleftrightarrow> x \<in> B"
-      using y x `J \<subseteq> I` by (auto simp add: Pi_iff extensional_restrict extensional_merge_sub eq split: split_merge)
-  next
-    assume "x \<notin> (\<Pi>\<^isub>E i\<in>J. S i)" with sets show "x \<in> A \<longleftrightarrow> x \<in> B" by auto
-  qed
+      using y x `J \<subseteq> I` PiE_cancel_merge[of "J" "I - J" x y S]
+      by (auto simp del: PiE_cancel_merge simp add: Un_absorb1 eq)
+  qed (insert sets, auto)
 qed
-
-lemma extensional_insert_undefined[intro, simp]:
-  assumes "a \<in> extensional (insert i I)"
-  shows "a(i := undefined) \<in> extensional I"
-  using assms unfolding extensional_def by auto
-
-lemma extensional_insert_cancel[intro, simp]:
-  assumes "a \<in> extensional I"
-  shows "a \<in> extensional (insert i I)"
-  using assms unfolding extensional_def by auto
-
-lemma merge_singleton[simp]: "i \<notin> I \<Longrightarrow> merge I {i} (x,y) = restrict (x(i := y i)) (insert i I)"
-  unfolding merge_def by (auto simp: fun_eq_iff)
-
-lemma Pi_Int: "Pi I E \<inter> Pi I F = (\<Pi> i\<in>I. E i \<inter> F i)"
-  by auto
-
-lemma PiE_Int: "(Pi\<^isub>E I A) \<inter> (Pi\<^isub>E I B) = Pi\<^isub>E I (\<lambda>x. A x \<inter> B x)"
-  by auto
-
-lemma Pi_cancel_fupd_range[simp]: "i \<notin> I \<Longrightarrow> x \<in> Pi I (B(i := b)) \<longleftrightarrow> x \<in> Pi I B"
-  by (auto simp: Pi_def)
-
-lemma Pi_split_insert_domain[simp]: "x \<in> Pi (insert i I) X \<longleftrightarrow> x \<in> Pi I X \<and> x i \<in> X i"
-  by (auto simp: Pi_def)
-
-lemma Pi_split_domain[simp]: "x \<in> Pi (I \<union> J) X \<longleftrightarrow> x \<in> Pi I X \<and> x \<in> Pi J X"
-  by (auto simp: Pi_def)
-
-lemma Pi_cancel_fupd[simp]: "i \<notin> I \<Longrightarrow> x(i := a) \<in> Pi I B \<longleftrightarrow> x \<in> Pi I B"
-  by (auto simp: Pi_def)
 
 lemma restrict_vimage:
-  assumes "I \<inter> J = {}"
-  shows "(\<lambda>x. (restrict x I, restrict x J)) -` (Pi\<^isub>E I E \<times> Pi\<^isub>E J F) = Pi (I \<union> J) (merge I J (E, F))"
-  using assms by (auto simp: restrict_Pi_cancel)
+  "I \<inter> J = {} \<Longrightarrow>
+    (\<lambda>x. (restrict x I, restrict x J)) -` (Pi\<^isub>E I E \<times> Pi\<^isub>E J F) = Pi (I \<union> J) (merge I J (E, F))"
+  by (auto simp: restrict_Pi_cancel PiE_def)
 
 lemma merge_vimage:
-  assumes "I \<inter> J = {}"
-  shows "merge I J -` Pi\<^isub>E (I \<union> J) E = Pi I E \<times> Pi J E"
-  using assms by (auto simp: restrict_Pi_cancel)
-
-lemma restrict_fupd[simp]: "i \<notin> I \<Longrightarrow> restrict (f (i := x)) I = restrict f I"
-  by (auto simp: restrict_def)
-
-lemma merge_restrict[simp]:
-  "merge I J (restrict x I, y) = merge I J (x, y)"
-  "merge I J (x, restrict y J) = merge I J (x, y)"
-  unfolding merge_def by auto
-
-lemma merge_x_x_eq_restrict[simp]:
-  "merge I J (x, x) = restrict x (I \<union> J)"
-  unfolding merge_def by auto
-
-lemma Pi_fupd_iff: "i \<in> I \<Longrightarrow> f \<in> Pi I (B(i := A)) \<longleftrightarrow> f \<in> Pi (I - {i}) B \<and> f i \<in> A"
-  apply auto
-  apply (drule_tac x=x in Pi_mem)
-  apply (simp_all split: split_if_asm)
-  apply (drule_tac x=i in Pi_mem)
-  apply (auto dest!: Pi_mem)
-  done
-
-lemma Pi_UN:
-  fixes A :: "nat \<Rightarrow> 'i \<Rightarrow> 'a set"
-  assumes "finite I" and mono: "\<And>i n m. i \<in> I \<Longrightarrow> n \<le> m \<Longrightarrow> A n i \<subseteq> A m i"
-  shows "(\<Union>n. Pi I (A n)) = (\<Pi> i\<in>I. \<Union>n. A n i)"
-proof (intro set_eqI iffI)
-  fix f assume "f \<in> (\<Pi> i\<in>I. \<Union>n. A n i)"
-  then have "\<forall>i\<in>I. \<exists>n. f i \<in> A n i" by auto
-  from bchoice[OF this] obtain n where n: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> (A (n i) i)" by auto
-  obtain k where k: "\<And>i. i \<in> I \<Longrightarrow> n i \<le> k"
-    using `finite I` finite_nat_set_iff_bounded_le[of "n`I"] by auto
-  have "f \<in> Pi I (A k)"
-  proof (intro Pi_I)
-    fix i assume "i \<in> I"
-    from mono[OF this, of "n i" k] k[OF this] n[OF this]
-    show "f i \<in> A k i" by auto
-  qed
-  then show "f \<in> (\<Union>n. Pi I (A n))" by auto
-qed auto
-
-lemma PiE_cong:
-  assumes "\<And>i. i\<in>I \<Longrightarrow> A i = B i"
-  shows "Pi\<^isub>E I A = Pi\<^isub>E I B"
-  using assms by (auto intro!: Pi_cong)
-
-lemma restrict_upd[simp]:
-  "i \<notin> I \<Longrightarrow> (restrict f I)(i := y) = restrict (f(i := y)) (insert i I)"
-  by (auto simp: fun_eq_iff)
-
-lemma Pi_eq_subset:
-  assumes ne: "\<And>i. i \<in> I \<Longrightarrow> F i \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> F' i \<noteq> {}"
-  assumes eq: "Pi\<^isub>E I F = Pi\<^isub>E I F'" and "i \<in> I"
-  shows "F i \<subseteq> F' i"
-proof
-  fix x assume "x \<in> F i"
-  with ne have "\<forall>j. \<exists>y. ((j \<in> I \<longrightarrow> y \<in> F j \<and> (i = j \<longrightarrow> x = y)) \<and> (j \<notin> I \<longrightarrow> y = undefined))" by auto
-  from choice[OF this] guess f .. note f = this
-  then have "f \<in> Pi\<^isub>E I F" by (auto simp: extensional_def)
-  then have "f \<in> Pi\<^isub>E I F'" using assms by simp
-  then show "x \<in> F' i" using f `i \<in> I` by auto
-qed
-
-lemma Pi_eq_iff_not_empty:
-  assumes ne: "\<And>i. i \<in> I \<Longrightarrow> F i \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> F' i \<noteq> {}"
-  shows "Pi\<^isub>E I F = Pi\<^isub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i)"
-proof (intro iffI ballI)
-  fix i assume eq: "Pi\<^isub>E I F = Pi\<^isub>E I F'" and i: "i \<in> I"
-  show "F i = F' i"
-    using Pi_eq_subset[of I F F', OF ne eq i]
-    using Pi_eq_subset[of I F' F, OF ne(2,1) eq[symmetric] i]
-    by auto
-qed auto
-
-lemma Pi_eq_empty_iff:
-  "Pi\<^isub>E I F = {} \<longleftrightarrow> (\<exists>i\<in>I. F i = {})"
-proof
-  assume "Pi\<^isub>E I F = {}"
-  show "\<exists>i\<in>I. F i = {}"
-  proof (rule ccontr)
-    assume "\<not> ?thesis"
-    then have "\<forall>i. \<exists>y. (i \<in> I \<longrightarrow> y \<in> F i) \<and> (i \<notin> I \<longrightarrow> y = undefined)" by auto
-    from choice[OF this] guess f ..
-    then have "f \<in> Pi\<^isub>E I F" by (auto simp: extensional_def)
-    with `Pi\<^isub>E I F = {}` show False by auto
-  qed
-qed auto
-
-lemma Pi_eq_iff:
-  "Pi\<^isub>E I F = Pi\<^isub>E I F' \<longleftrightarrow> (\<forall>i\<in>I. F i = F' i) \<or> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
-proof (intro iffI disjCI)
-  assume eq[simp]: "Pi\<^isub>E I F = Pi\<^isub>E I F'"
-  assume "\<not> ((\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {}))"
-  then have "(\<forall>i\<in>I. F i \<noteq> {}) \<and> (\<forall>i\<in>I. F' i \<noteq> {})"
-    using Pi_eq_empty_iff[of I F] Pi_eq_empty_iff[of I F'] by auto
-  with Pi_eq_iff_not_empty[of I F F'] show "\<forall>i\<in>I. F i = F' i" by auto
-next
-  assume "(\<forall>i\<in>I. F i = F' i) \<or> (\<exists>i\<in>I. F i = {}) \<and> (\<exists>i\<in>I. F' i = {})"
-  then show "Pi\<^isub>E I F = Pi\<^isub>E I F'"
-    using Pi_eq_empty_iff[of I F] Pi_eq_empty_iff[of I F'] by auto
-qed
-
-lemma funset_eq_UN_fun_upd_I:
-  assumes *: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f(a := d) \<in> F A"
-  and **: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f a \<in> G (f(a:=d))"
-  and ***: "\<And>f x. \<lbrakk> f \<in> F A ; x \<in> G f \<rbrakk> \<Longrightarrow> f(a:=x) \<in> F (insert a A)"
-  shows "F (insert a A) = (\<Union>f\<in>F A. fun_upd f a ` (G f))"
-proof safe
-  fix f assume f: "f \<in> F (insert a A)"
-  show "f \<in> (\<Union>f\<in>F A. fun_upd f a ` G f)"
-  proof (rule UN_I[of "f(a := d)"])
-    show "f(a := d) \<in> F A" using *[OF f] .
-    show "f \<in> fun_upd (f(a:=d)) a ` G (f(a:=d))"
-    proof (rule image_eqI[of _ _ "f a"])
-      show "f a \<in> G (f(a := d))" using **[OF f] .
-    qed simp
-  qed
-next
-  fix f x assume "f \<in> F A" "x \<in> G f"
-  from ***[OF this] show "f(a := x) \<in> F (insert a A)" .
-qed
-
-lemma extensional_funcset_insert_eq[simp]:
-  assumes "a \<notin> A"
-  shows "extensional (insert a A) \<inter> (insert a A \<rightarrow> B) = (\<Union>f \<in> extensional A \<inter> (A \<rightarrow> B). (\<lambda>b. f(a := b)) ` B)"
-  apply (rule funset_eq_UN_fun_upd_I)
-  using assms
-  by (auto intro!: inj_onI dest: inj_onD split: split_if_asm simp: extensional_def)
-
-lemma finite_extensional_funcset[simp, intro]:
-  assumes "finite A" "finite B"
-  shows "finite (extensional A \<inter> (A \<rightarrow> B))"
-  using assms by induct auto
-
-lemma finite_PiE[simp, intro]:
-  assumes fin: "finite A" "\<And>i. i \<in> A \<Longrightarrow> finite (B i)"
-  shows "finite (Pi\<^isub>E A B)"
-proof -
-  have *: "(Pi\<^isub>E A B) \<subseteq> extensional A \<inter> (A \<rightarrow> (\<Union>i\<in>A. B i))" by auto
-  show ?thesis
-    using fin by (intro finite_subset[OF *] finite_extensional_funcset) auto
-qed
+  "I \<inter> J = {} \<Longrightarrow> merge I J -` Pi\<^isub>E (I \<union> J) E = Pi I E \<times> Pi J E"
+  by (auto simp: restrict_Pi_cancel PiE_def)
 
 section "Finite product spaces"
 
@@ -312,7 +114,7 @@ definition prod_emb where
 
 lemma prod_emb_iff: 
   "f \<in> prod_emb I M K X \<longleftrightarrow> f \<in> extensional I \<and> (restrict f K \<in> X) \<and> (\<forall>i\<in>I. f i \<in> space (M i))"
-  unfolding prod_emb_def by auto
+  unfolding prod_emb_def PiE_def by auto
 
 lemma
   shows prod_emb_empty[simp]: "prod_emb M L K {} = {}"
@@ -325,24 +127,25 @@ lemma
 
 lemma prod_emb_PiE: "J \<subseteq> I \<Longrightarrow> (\<And>i. i \<in> J \<Longrightarrow> E i \<subseteq> space (M i)) \<Longrightarrow>
     prod_emb I M J (\<Pi>\<^isub>E i\<in>J. E i) = (\<Pi>\<^isub>E i\<in>I. if i \<in> J then E i else space (M i))"
-  by (force simp: prod_emb_def Pi_iff split_if_mem2)
+  by (force simp: prod_emb_def PiE_iff split_if_mem2)
 
-lemma prod_emb_PiE_same_index[simp]: "(\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> space (M i)) \<Longrightarrow> prod_emb I M I (Pi\<^isub>E I E) = Pi\<^isub>E I E"
-  by (auto simp: prod_emb_def Pi_iff)
+lemma prod_emb_PiE_same_index[simp]:
+    "(\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> space (M i)) \<Longrightarrow> prod_emb I M I (Pi\<^isub>E I E) = Pi\<^isub>E I E"
+  by (auto simp: prod_emb_def PiE_iff)
 
 lemma prod_emb_trans[simp]:
   "J \<subseteq> K \<Longrightarrow> K \<subseteq> L \<Longrightarrow> prod_emb L M K (prod_emb K M J X) = prod_emb L M J X"
-  by (auto simp add: Int_absorb1 prod_emb_def)
+  by (auto simp add: Int_absorb1 prod_emb_def PiE_def)
 
 lemma prod_emb_Pi:
   assumes "X \<in> (\<Pi> j\<in>J. sets (M j))" "J \<subseteq> K"
   shows "prod_emb K M J (Pi\<^isub>E J X) = (\<Pi>\<^isub>E i\<in>K. if i \<in> J then X i else space (M i))"
   using assms space_closed
-  by (auto simp: prod_emb_def Pi_iff split: split_if_asm) blast+
+  by (auto simp: prod_emb_def PiE_iff split: split_if_asm) blast+
 
 lemma prod_emb_id:
   "B \<subseteq> (\<Pi>\<^isub>E i\<in>L. space (M i)) \<Longrightarrow> prod_emb L M L B = B"
-  by (auto simp: prod_emb_def Pi_iff subset_eq extensional_restrict)
+  by (auto simp: prod_emb_def subset_eq extensional_restrict)
 
 lemma prod_emb_mono:
   "F \<subseteq> G \<Longrightarrow> prod_emb A M B F \<subseteq> prod_emb A M B G"
@@ -392,9 +195,9 @@ proof (intro iffI set_eqI)
     by (intro CollectI exI[of _ "\<lambda>i. if i \<in> J then E i else space (M i)"]) simp
 next
   fix A assume "A \<in> ?R"
-  then obtain X where "A = (\<Pi>\<^isub>E i\<in>I. X i)" and X: "X \<in> (\<Pi> j\<in>I. sets (M j))" by auto
+  then obtain X where A: "A = (\<Pi>\<^isub>E i\<in>I. X i)" and X: "X \<in> (\<Pi> j\<in>I. sets (M j))" by auto
   then have A: "A = prod_emb I M I (\<Pi>\<^isub>E i\<in>I. X i)"
-    using sets_into_space by (force simp: prod_emb_def Pi_iff)
+    by (simp add: prod_emb_PiE_same_index[OF sets_into_space] Pi_iff)
   from X I show "A \<in> ?L" unfolding A
     by (auto simp: prod_algebra_def)
 qed
@@ -402,7 +205,7 @@ qed
 lemma prod_algebraI:
   "finite J \<Longrightarrow> (J \<noteq> {} \<or> I = {}) \<Longrightarrow> J \<subseteq> I \<Longrightarrow> (\<And>i. i \<in> J \<Longrightarrow> E i \<in> sets (M i))
     \<Longrightarrow> prod_emb I M J (PIE j:J. E j) \<in> prod_algebra I M"
-  by (auto simp: prod_algebra_def Pi_iff)
+  by (auto simp: prod_algebra_def)
 
 lemma prod_algebraI_finite:
   "finite I \<Longrightarrow> (\<forall>i\<in>I. E i \<in> sets (M i)) \<Longrightarrow> (Pi\<^isub>E I E) \<in> prod_algebra I M"
@@ -412,7 +215,7 @@ lemma Int_stable_PiE: "Int_stable {Pi\<^isub>E J E | E. \<forall>i\<in>I. E i \<
 proof (safe intro!: Int_stableI)
   fix E F assume "\<forall>i\<in>I. E i \<in> sets (M i)" "\<forall>i\<in>I. F i \<in> sets (M i)"
   then show "\<exists>G. Pi\<^isub>E J E \<inter> Pi\<^isub>E J F = Pi\<^isub>E J G \<and> (\<forall>i\<in>I. G i \<in> sets (M i))"
-    by (auto intro!: exI[of _ "\<lambda>i. E i \<inter> F i"])
+    by (auto intro!: exI[of _ "\<lambda>i. E i \<inter> F i"] simp: PiE_Int)
 qed
 
 lemma prod_algebraE:
@@ -501,7 +304,7 @@ next
   assume "I \<noteq> {}"
   then obtain i where "i \<in> I" by auto
   then have "(\<Pi>\<^isub>E i\<in>I. space (M i)) = prod_emb I M {i} (\<Pi>\<^isub>E i\<in>{i}. space (M i))"
-    by (auto simp: prod_emb_def Pi_iff)
+    by (auto simp: prod_emb_def)
   also have "\<dots> \<in> prod_algebra I M"
     using `i \<in> I` by (intro prod_algebraI) auto
   finally show ?thesis .
@@ -529,8 +332,7 @@ proof (rule sigma_sets_eqI)
   next
     assume "I \<noteq> {}"
     with X have "A = (\<Inter>j\<in>J. {f\<in>(\<Pi>\<^isub>E i\<in>I. space (M i)). f j \<in> X j})"
-      using sets_into_space[OF X(5)]
-      by (auto simp: prod_emb_PiE[OF _ sets_into_space] Pi_iff split: split_if_asm) blast
+      by (auto simp: prod_emb_def)
     also have "\<dots> \<in> sigma_sets ?\<Omega> ?R"
       using X `I \<noteq> {}` by (intro R.finite_INT sigma_sets.Basic) auto
     finally show "A \<in> sigma_sets ?\<Omega> ?R" .
@@ -540,11 +342,7 @@ next
   then obtain i B where A: "A = {f\<in>\<Pi>\<^isub>E i\<in>I. space (M i). f i \<in> B}" "i \<in> I" "B \<in> sets (M i)" 
     by auto
   then have "A = prod_emb I M {i} (\<Pi>\<^isub>E i\<in>{i}. B)"
-    using sets_into_space[OF A(3)]
-    apply (subst prod_emb_PiE)
-    apply (auto simp: Pi_iff split: split_if_asm)
-    apply blast
-    done
+     by (auto simp: prod_emb_def)
   also have "\<dots> \<in> sigma_sets ?\<Omega> (prod_algebra I M)"
     using A by (intro sigma_sets.Basic prod_algebraI) auto
   finally show "A \<in> sigma_sets ?\<Omega> (prod_algebra I M)" .
@@ -585,9 +383,8 @@ lemma measurable_PiM_Collect:
 proof (rule measurable_sigma_sets)
   fix A assume "A \<in> prod_algebra I M"
   from prod_algebraE[OF this] guess J X . note X = this
-  have "f -` A \<inter> space N = {\<omega> \<in> space N. \<forall>i\<in>J. f \<omega> i \<in> X i}"
-    using sets_into_space[OF X(5)] X(2-) space unfolding X(1)
-    by (subst prod_emb_PiE) (auto simp: Pi_iff split: split_if_asm)
+  then have "f -` A \<inter> space N = {\<omega> \<in> space N. \<forall>i\<in>J. f \<omega> i \<in> X i}"
+    using space by (auto simp: prod_emb_def del: PiE_I)
   also have "\<dots> \<in> sets N" using X(3,2,4,5) by (rule sets)
   finally show "f -` A \<inter> space N \<in> sets N" .
 qed
@@ -654,7 +451,7 @@ lemma measurable_nat_case'[measurable (raw)]:
   assumes fg[measurable]: "f \<in> measurable N M" "g \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
   shows "(\<lambda>x. nat_case (f x) (g x)) \<in> measurable N (\<Pi>\<^isub>M i\<in>UNIV. M)"
   using fg[THEN measurable_space]
-  by (auto intro!: measurable_PiM_single' simp add: space_PiM Pi_iff split: nat.split)
+  by (auto intro!: measurable_PiM_single' simp add: space_PiM PiE_iff split: nat.split)
 
 lemma measurable_add_dim[measurable]:
   "(\<lambda>(f, y). f(i := y)) \<in> measurable (Pi\<^isub>M I M \<Otimes>\<^isub>M M i) (Pi\<^isub>M (insert i I) M)"
@@ -668,7 +465,7 @@ proof (rule measurable_PiM_single)
     using A j
     by (auto intro!: measurable_sets[OF measurable_comp, OF _ measurable_component_singleton])
   finally show "{\<omega> \<in> space ?P. prod_case (\<lambda>f. fun_upd f i) \<omega> j \<in> A} \<in> sets ?P" .
-qed (auto simp: space_pair_measure space_PiM)
+qed (auto simp: space_pair_measure space_PiM PiE_def)
 
 lemma measurable_component_update:
   "x \<in> space (Pi\<^isub>M I M) \<Longrightarrow> i \<notin> I \<Longrightarrow> (\<lambda>v. x(i := v)) \<in> measurable (M i) (Pi\<^isub>M (insert i I) M)"
@@ -686,7 +483,7 @@ proof (rule measurable_PiM_single)
     using A
     by (auto intro!: measurable_sets[OF measurable_comp, OF _ measurable_component_singleton])
   finally show "{\<omega> \<in> space ?P. merge I J \<omega> i \<in> A} \<in> sets ?P" .
-qed (auto simp: space_pair_measure space_PiM Pi_iff merge_def extensional_def)
+qed (auto simp: space_pair_measure space_PiM PiE_iff merge_def extensional_def)
 
 lemma measurable_restrict[measurable (raw)]:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> measurable N (M i)"
@@ -697,7 +494,7 @@ proof (rule measurable_PiM_single)
     by auto
   then show "{\<omega> \<in> space N. (\<lambda>i\<in>I. X i \<omega>) i \<in> A} \<in> sets N"
     using A X by (auto intro!: measurable_sets)
-qed (insert X, auto dest: measurable_space)
+qed (insert X, auto simp add: PiE_def dest: measurable_space)
 
 lemma measurable_restrict_subset: "J \<subseteq> L \<Longrightarrow> (\<lambda>f. restrict f J) \<in> measurable (Pi\<^isub>M L M) (Pi\<^isub>M J M)"
   by (intro measurable_restrict measurable_component_singleton) auto
@@ -762,13 +559,12 @@ proof -
   next
     fix i k show "emeasure (M i) (F i k) \<noteq> \<infinity>" by fact
   next
-    fix A assume "A \<in> (\<Union>i. ?F i)" then show "A \<in> space (PiM I M)"
-      using `\<And>i. range (F i) \<subseteq> sets (M i)` sets_into_space
-      by auto blast
+    fix x assume "x \<in> (\<Union>i. ?F i)" with F(1) show "x \<in> space (PiM I M)"
+      by (auto simp: PiE_def dest!: sets_into_space)
   next
     fix f assume "f \<in> space (PiM I M)"
     with Pi_UN[OF finite_index, of "\<lambda>k i. F i k"] F
-    show "f \<in> (\<Union>i. ?F i)" by (auto simp: incseq_def)
+    show "f \<in> (\<Union>i. ?F i)" by (auto simp: incseq_def PiE_def)
   next
     fix i show "?F i \<subseteq> ?F (Suc i)"
       using `\<And>i. incseq (F i)`[THEN incseq_SucD] by auto
@@ -826,13 +622,13 @@ proof (induct I arbitrary: A rule: finite_induct)
       by (intro emeasure_distr measurable_add_dim sets_PiM_I) fact+
     also have "?h -` ?p \<inter> space (Pi\<^isub>M I M \<Otimes>\<^isub>M M i) = ?p' \<times> (if i \<in> J then E i else space (M i))"
       using J E[rule_format, THEN sets_into_space]
-      by (force simp: space_pair_measure space_PiM Pi_iff prod_emb_iff split: split_if_asm)
+      by (force simp: space_pair_measure space_PiM prod_emb_iff PiE_def Pi_iff split: split_if_asm)
     also have "emeasure (Pi\<^isub>M I M \<Otimes>\<^isub>M (M i)) (?p' \<times> (if i \<in> J then E i else space (M i))) =
       emeasure (Pi\<^isub>M I M) ?p' * emeasure (M i) (if i \<in> J then (E i) else space (M i))"
       using J E by (intro M.emeasure_pair_measure_Times sets_PiM_I) auto
     also have "?p' = (\<Pi>\<^isub>E j\<in>I. if j \<in> J-{i} then E j else space (M j))"
       using J E[rule_format, THEN sets_into_space]
-      by (auto simp: prod_emb_iff Pi_iff split: split_if_asm) blast+
+      by (auto simp: prod_emb_iff PiE_def Pi_iff split: split_if_asm) blast+
     also have "emeasure (Pi\<^isub>M I M) (\<Pi>\<^isub>E j\<in>I. if j \<in> J-{i} then E j else space (M j)) =
       (\<Prod> j\<in>I. if j \<in> J-{i} then emeasure (M j) (E j) else emeasure (M j) (space (M j)))"
       using E by (subst insert) (auto intro!: setprod_cong)
@@ -844,7 +640,7 @@ proof (induct I arbitrary: A rule: finite_induct)
     finally show "?\<mu> ?p = \<dots>" .
 
     show "prod_emb (insert i I) M J (Pi\<^isub>E J E) \<in> Pow (\<Pi>\<^isub>E i\<in>insert i I. space (M i))"
-      using J E[rule_format, THEN sets_into_space] by (auto simp: prod_emb_iff)
+      using J E[rule_format, THEN sets_into_space] by (auto simp: prod_emb_iff PiE_def)
   next
     show "positive (sets (Pi\<^isub>M (insert i I) M)) ?\<mu>" "countably_additive (sets (Pi\<^isub>M (insert i I) M)) ?\<mu>"
       using emeasure_positive[of ?P] emeasure_countably_additive[of ?P] by simp_all
@@ -961,7 +757,7 @@ proof -
       using A by (intro emeasure_distr measurable_merge) (auto simp: sets_PiM)
     also have "emeasure ?B ?X = (\<Prod>i\<in>I. emeasure (M i) (F i)) * (\<Prod>i\<in>J. emeasure (M i) (F i))"
       using `finite J` `finite I` F unfolding X
-      by (simp add: J.emeasure_pair_measure_Times I.measure_times J.measure_times Pi_iff)
+      by (simp add: J.emeasure_pair_measure_Times I.measure_times J.measure_times)
     also have "\<dots> = (\<Prod>i\<in>I \<union> J. emeasure (M i) (F i))"
       using `finite J` `finite I` `I \<inter> J = {}`  by (simp add: setprod_Un_one)
     also have "\<dots> = emeasure ?P (Pi\<^isub>E (I \<union> J) F)"
@@ -1034,7 +830,7 @@ proof -
     show "(\<integral>\<^isup>+ y. f (merge I {i} (x, y)) \<partial>Pi\<^isub>M {i} M) = (\<integral>\<^isup>+ y. f (x(i := y i)) \<partial>Pi\<^isub>M {i} M)"
       using x
       by (auto intro!: positive_integral_cong arg_cong[where f=f]
-               simp add: space_PiM extensional_def)
+               simp add: space_PiM extensional_def PiE_def)
   qed
 qed
 
@@ -1085,7 +881,7 @@ proof (intro measure_eqI[symmetric])
   then have "emeasure ?P A = (\<integral>\<^isup>+x. indicator A x \<partial>?P)" 
     by simp
   also have "\<dots> = (\<integral>\<^isup>+x. indicator ((\<lambda>x. \<lambda>i\<in>{i}. x) -` A \<inter> space (M i)) (x i) \<partial>PiM {i} M)" 
-    by (intro positive_integral_cong) (auto simp: space_PiM indicator_def simp: eq)
+    by (intro positive_integral_cong) (auto simp: space_PiM indicator_def PiE_def eq)
   also have "\<dots> = emeasure ?D A"
     using A by (simp add: product_positive_integral_singleton emeasure_distr)
   finally show "emeasure (Pi\<^isub>M {i} M) A = emeasure ?D A" .
@@ -1160,7 +956,7 @@ proof -
       using measurable_comp[OF measurable_component_update f_borel, OF x `i \<notin> I`]
       unfolding comp_def .
     from x I show "(\<integral> y. f (merge I {i} (x,y)) \<partial>Pi\<^isub>M {i} M) = (\<integral> xa. f (x(i := xa i)) \<partial>Pi\<^isub>M {i} M)"
-      by (auto intro!: integral_cong arg_cong[where f=f] simp: merge_def space_PiM extensional_def)
+      by (auto intro!: integral_cong arg_cong[where f=f] simp: merge_def space_PiM extensional_def PiE_def)
   qed
   finally show ?thesis .
 qed
@@ -1233,7 +1029,7 @@ lemma sigma_prod_algebra_sigma_eq_infinite:
 proof
   let ?P = "sigma (space (Pi\<^isub>M I M)) P"
   have P_closed: "P \<subseteq> Pow (space (Pi\<^isub>M I M))"
-    using E_closed by (auto simp: space_PiM P_def Pi_iff subset_eq)
+    using E_closed by (auto simp: space_PiM P_def subset_eq)
   then have space_P: "space ?P = (\<Pi>\<^isub>E i\<in>I. space (M i))"
     by (simp add: space_PiM)
   have "sets (PiM I M) =
@@ -1281,7 +1077,7 @@ proof
   then have T: "\<And>i. i \<in> I \<Longrightarrow> T i < card I" "\<And>i. i\<in>I \<Longrightarrow> the_inv_into I T (T i) = i"
     by (auto simp add: bij_betw_def set_eq_iff image_iff the_inv_into_f_f)
   have P_closed: "P \<subseteq> Pow (space (Pi\<^isub>M I M))"
-    using E_closed by (auto simp: space_PiM P_def Pi_iff subset_eq)
+    using E_closed by (auto simp: space_PiM P_def subset_eq)
   then have space_P: "space ?P = (\<Pi>\<^isub>E i\<in>I. space (M i))"
     by (simp add: space_PiM)
   have "sets (PiM I M) =
@@ -1293,18 +1089,17 @@ proof
     have "(\<lambda>x. x i) \<in> measurable ?P (sigma (space (M i)) (E i))"
     proof (subst measurable_iff_measure_of)
       show "E i \<subseteq> Pow (space (M i))" using `i \<in> I` by fact
-      from space_P `i \<in> I` show "(\<lambda>x. x i) \<in> space ?P \<rightarrow> space (M i)"
-        by (auto simp: Pi_iff)
+      from space_P `i \<in> I` show "(\<lambda>x. x i) \<in> space ?P \<rightarrow> space (M i)" by auto
       show "\<forall>A\<in>E i. (\<lambda>x. x i) -` A \<inter> space ?P \<in> sets ?P"
       proof
         fix A assume A: "A \<in> E i"
         then have "(\<lambda>x. x i) -` A \<inter> space ?P = (\<Pi>\<^isub>E j\<in>I. if i = j then A else space (M j))"
-          using E_closed `i \<in> I` by (auto simp: space_P Pi_iff subset_eq split: split_if_asm)
+          using E_closed `i \<in> I` by (auto simp: space_P subset_eq split: split_if_asm)
         also have "\<dots> = (\<Pi>\<^isub>E j\<in>I. \<Union>n. if i = j then A else S j n)"
           by (intro PiE_cong) (simp add: S_union)
         also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>\<^isub>E j\<in>I. if i = j then A else S j (xs ! T j))"
           using T
-          apply (auto simp: Pi_iff bchoice_iff)
+          apply (auto simp: PiE_iff bchoice_iff)
           apply (rule_tac x="map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]" in exI)
           apply (auto simp: bij_betw_def)
           done
@@ -1352,7 +1147,7 @@ proof (rule pair_measure_eqI[OF assms])
     using A B by (subst B.emeasure_PiM) (auto split: bool.split)
   also have "Pi\<^isub>E UNIV (bool_case A B) = (\<lambda>x. (x True, x False)) -` (A \<times> B) \<inter> space ?B"
     using A[THEN sets_into_space] B[THEN sets_into_space]
-    by (auto simp: Pi_iff all_bool_eq space_PiM split: bool.split)
+    by (auto simp: PiE_iff all_bool_eq space_PiM split: bool.split)
   finally show "emeasure M1 A * emeasure M2 B = emeasure ?D (A \<times> B)"
     using A B
       measurable_component_singleton[of True UNIV "bool_case M1 M2"]

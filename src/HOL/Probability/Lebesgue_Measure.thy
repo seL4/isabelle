@@ -935,7 +935,7 @@ proof (rule measurable_sigma_sets[OF sets_product_borel])
   fix A :: "(nat \<Rightarrow> real) set" assume "A \<in> {\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {..<x i} |x. True} "
   then obtain x where  "A = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {..<x i})" by auto
   then have "e2p -` A = {..< (\<chi>\<chi> i. x i) :: 'a}"
-    using DIM_positive by (auto simp add: Pi_iff set_eq_iff e2p_def
+    using DIM_positive by (auto simp add: set_eq_iff e2p_def
       euclidean_eq[where 'a='a] eucl_less[where 'a='a])
   then show "e2p -` A \<inter> space (borel::'a measure) \<in> sets borel" by simp
 qed (auto simp: e2p_def)
@@ -953,7 +953,7 @@ proof (safe intro!: borel_measurable_iff_halfspace_le[THEN iffD2])
   let ?A = "{w \<in> space ?P. (p2e w :: 'a) $$ i \<le> x}"
   assume "i < DIM('a)"
   then have "?A = (\<Pi>\<^isub>E j\<in>{..<DIM('a)}. if i = j then {.. x} else UNIV)"
-    using DIM_positive by (auto simp: space_PiM p2e_def split: split_if_asm)
+    using DIM_positive by (auto simp: space_PiM p2e_def PiE_def split: split_if_asm)
   then show "?A \<in> sets ?P"
     by auto
 qed
@@ -966,7 +966,7 @@ proof (rule lborel_eqI)
   let ?P = "(\<Pi>\<^isub>M i\<in>{..<DIM('a::ordered_euclidean_space)}. lborel)"
   fix a b :: 'a
   have *: "p2e -` {a .. b} \<inter> space ?P = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {a $$ i .. b $$ i})"
-    by (auto simp: Pi_iff eucl_le[where 'a='a] p2e_def space_PiM)
+    by (auto simp: eucl_le[where 'a='a] p2e_def space_PiM PiE_def Pi_iff)
   have "emeasure ?P (p2e -` {a..b} \<inter> space ?P) = content {a..b}"
   proof cases
     assume "{a..b} \<noteq> {}"

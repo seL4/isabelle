@@ -44,7 +44,7 @@ proof (rule measure_eqI_generator_eq)
   also have "\<dots> = emeasure (Pi\<^isub>M K M) (\<Pi>\<^isub>E i\<in>K. if i \<in> J then E i else space (M i))"
     using E by (simp add: K.measure_times)
   also have "(\<Pi>\<^isub>E i\<in>K. if i \<in> J then E i else space (M i)) = (\<lambda>f. restrict f J) -` Pi\<^isub>E J E \<inter> (\<Pi>\<^isub>E i\<in>K. space (M i))"
-    using `J \<subseteq> K` sets_into_space E by (force simp:  Pi_iff split: split_if_asm)
+    using `J \<subseteq> K` sets_into_space E by (force simp: Pi_iff PiE_def split: split_if_asm)
   finally show "emeasure (Pi\<^isub>M J M) X = emeasure ?D X"
     using X `J \<subseteq> K` apply (subst emeasure_distr)
     by (auto intro!: measurable_restrict_subset simp: space_PiM)
@@ -93,15 +93,10 @@ lemma emeasure_limP:
   shows "emeasure (limP J M P) (Pi\<^isub>E J A) = emeasure (P J) (Pi\<^isub>E J A)"
 proof -
   have "Pi\<^isub>E J (restrict A J) \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
-  proof safe
-    fix x j assume "x \<in> Pi J (restrict A J)" "j \<in> J"
-    hence "x j \<in> restrict A J j" by (auto simp: Pi_def)
-    also have "\<dots> \<subseteq> space (M j)" using sets_into_space A `j \<in> J` by auto
-    finally show "x j \<in> space (M j)" .
-  qed
+    using sets_into_space[OF A] by (auto simp: PiE_iff) blast
   hence "emeasure (limP J M P) (Pi\<^isub>E J A) =
     emeasure (limP J M P) (prod_emb J M J (Pi\<^isub>E J A))"
-    using assms(1-3) sets_into_space by (auto simp add: prod_emb_id Pi_def)
+    using assms(1-3) sets_into_space by (auto simp add: prod_emb_id PiE_def Pi_def)
   also have "\<dots> = emeasure (P J) (Pi\<^isub>E J A)"
   proof (rule emeasure_extend_measure_Pair[OF limP_def])
     show "positive (sets (limP J M P)) (P J)" unfolding positive_def by auto
@@ -169,7 +164,7 @@ proof (rule injective_vimage_restrict)
     from not_empty show "\<exists>x. x \<in> space (M i)" by (auto simp add: proj_space space_PiM)
   qed
   from bchoice[OF this]
-  show "(\<Pi>\<^isub>E i\<in>L. space (M i)) \<noteq> {}" by auto
+  show "(\<Pi>\<^isub>E i\<in>L. space (M i)) \<noteq> {}" by (auto simp: PiE_def)
   show "(\<lambda>x. restrict x J) -` X \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i)) = (\<lambda>x. restrict x J) -` Y \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i))"
     using `prod_emb L M J X = prod_emb L M J Y` by (simp add: prod_emb_def)
 qed fact
@@ -293,7 +288,7 @@ proof -
   have [simp]: "(K - J) \<inter> (K \<union> J) = K - J" by auto
   have [simp]: "(K - J) \<inter> K = K - J" by auto
   from y `K \<subseteq> I` `J \<subseteq> I` show ?thesis
-    by (simp split: split_merge add: prod_emb_def Pi_iff extensional_merge_sub set_eq_iff space_PiM)
+    by (simp split: split_merge add: prod_emb_def Pi_iff PiE_def extensional_merge_sub set_eq_iff space_PiM)
        auto
 qed
 

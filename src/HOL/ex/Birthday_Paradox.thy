@@ -14,21 +14,7 @@ lemma card_product_dependent:
   assumes "finite S"
   assumes "\<forall>x \<in> S. finite (T x)" 
   shows "card {(x, y). x \<in> S \<and> y \<in> T x} = (\<Sum>x \<in> S. card (T x))"
-proof -
-  note `finite S`
-  moreover
-  have "{(x, y). x \<in> S \<and> y \<in> T x} = (UN x : S. Pair x ` T x)" by auto
-  moreover
-  from `\<forall>x \<in> S. finite (T x)` have "ALL x:S. finite (Pair x ` T x)" by auto
-  moreover
-  have " ALL i:S. ALL j:S. i ~= j --> Pair i ` T i Int Pair j ` T j = {}" by auto
-  moreover  
-  ultimately have "card {(x, y). x \<in> S \<and> y \<in> T x} = (SUM i:S. card (Pair i ` T i))"
-    by (auto, subst card_UN_disjoint) auto
-  also have "... = (SUM x:S. card (T x))"
-    by (subst card_image) (auto intro: inj_onI)
-  finally show ?thesis by auto
-qed
+  using card_SigmaI[OF assms, symmetric] by (auto intro!: arg_cong[where f=card] simp add: Sigma_def)
 
 lemma card_extensional_funcset_inj_on:
   assumes "finite S" "finite T" "card S \<le> card T"
@@ -36,13 +22,13 @@ lemma card_extensional_funcset_inj_on:
 using assms
 proof (induct S arbitrary: T rule: finite_induct)
   case empty
-  from this show ?case by (simp add: Collect_conv_if extensional_funcset_empty_domain)
+  from this show ?case by (simp add: Collect_conv_if PiE_empty_domain)
 next
   case (insert x S)
   { fix x
     from `finite T` have "finite (T - {x})" by auto
     from `finite S` this have "finite (extensional_funcset S (T - {x}))"
-      by (rule finite_extensional_funcset)
+      by (rule finite_PiE)
     moreover
     have "{f : extensional_funcset S (T - {x}). inj_on f S} \<subseteq> (extensional_funcset S (T - {x}))" by auto    
     ultimately have "finite {f : extensional_funcset S (T - {x}). inj_on f S}"
@@ -75,10 +61,10 @@ lemma card_extensional_funcset_not_inj_on:
 proof -
   have subset: "{f : extensional_funcset S T. inj_on f S} <= extensional_funcset S T" by auto
   from finite_subset[OF subset] assms have finite: "finite {f : extensional_funcset S T. inj_on f S}"
-    by (auto intro!: finite_extensional_funcset)
+    by (auto intro!: finite_PiE)
   have "{f \<in> extensional_funcset S T. \<not> inj_on f S} = extensional_funcset S T - {f \<in> extensional_funcset S T. inj_on f S}" by auto 
   from assms this finite subset show ?thesis
-    by (simp add: card_Diff_subset card_extensional_funcset card_extensional_funcset_inj_on)
+    by (simp add: card_Diff_subset card_PiE card_extensional_funcset_inj_on setprod_constant)
 qed
 
 lemma setprod_upto_nat_unfold:
@@ -93,9 +79,9 @@ lemma birthday_paradox:
 proof -
   from `card S = 23` `card T = 365` have "finite S" "finite T" "card S <= card T" by (auto intro: card_ge_0_finite)
   from assms show ?thesis
-    using card_extensional_funcset[OF `finite S`, of T]
+    using card_PiE[OF `finite S`, of "\<lambda>i. T"] `finite S`
       card_extensional_funcset_not_inj_on[OF `finite S` `finite T` `card S <= card T`]
-    by (simp add: fact_div_fact setprod_upto_nat_unfold)
+    by (simp add: fact_div_fact setprod_upto_nat_unfold setprod_constant)
 qed
 
 end

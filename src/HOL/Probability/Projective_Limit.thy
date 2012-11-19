@@ -428,7 +428,7 @@ proof -
           also have "\<dots> = P (J i) (B i) - P' i (K' i)"
             unfolding K_def P'_def
             by (auto simp: mapmeasure_PiF proj_space proj_sets borel_eq_PiF_borel[symmetric]
-              compact_imp_closed[OF `compact (K' _)`] space_PiM)
+              compact_imp_closed[OF `compact (K' _)`] space_PiM PiE_def)
           also have "\<dots> \<le> ereal (2 powr - real i) * ?a" using K'(1)[of i] .
           finally show "\<mu>G (Z i - Z' i) \<le> (2 powr - real i) * ?a" .
         qed
@@ -580,7 +580,7 @@ proof -
         ultimately have "restrict (\<lambda>i. z (Utn i)) (?J \<inter> J n) \<in> K n"
           unfolding K_def by (auto simp: proj_space space_PiM)
         hence "restrict (\<lambda>i. z (Utn i)) ?J \<in> Z' n" unfolding Z'_def
-          using J by (auto simp: prod_emb_def extensional_def)
+          using J by (auto simp: prod_emb_def PiE_def extensional_def)
         also have "\<dots> \<subseteq> Z n" using Z' by simp
         finally have "restrict (\<lambda>i. z (Utn i)) ?J \<in> Z n" .
       } note in_Z = this
@@ -602,7 +602,7 @@ proof -
       using assms by (auto simp: f_def)
   next
     fix J and X::"'i \<Rightarrow> 'a set"
-    show "prod_emb I (\<lambda>_. borel) J (Pi\<^isub>E J X) \<in> Pow ((I \<rightarrow> space borel) \<inter> extensional I)"
+    show "prod_emb I (\<lambda>_. borel) J (Pi\<^isub>E J X) \<in> Pow (I \<rightarrow>\<^isub>E space borel)"
       by (auto simp: prod_emb_def)
     assume JX: "(J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> J \<rightarrow> sets borel"
     hence "emb I J (Pi\<^isub>E J X) \<in> generator" using assms
@@ -645,11 +645,11 @@ proof
     interpret prob_space "P {i}" using proj_prob_space by simp
     have R: "(space (lim\<^isub>B I P)) = (emb I {i} (Pi\<^isub>E {i} (\<lambda>_. space borel)))"
       by (auto simp: prod_emb_def space_PiM)
-    moreover have "extensional {i} = space (P {i})" by (simp add: proj_space space_PiM)
+    moreover have "extensional {i} = space (P {i})" by (simp add: proj_space space_PiM PiE_def)
     ultimately show ?thesis using `i \<in> I`
       apply (subst R)
       apply (subst emeasure_limB_emb_not_empty)
-      apply (auto simp: limP_finite emeasure_space_1)
+      apply (auto simp: limP_finite emeasure_space_1 PiE_def)
       done
   qed
 qed
