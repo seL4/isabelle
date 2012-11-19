@@ -157,8 +157,7 @@ proof
   thus "\<exists>r'. subseq r' \<and> (\<exists>l. (\<lambda>i. ((f \<circ> (s \<circ> r')) i)\<^isub>F n) ----> l)" by (auto simp: o_def)
 qed
 
-lemma (in finmap_seqs_into_compact)
-  diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^isub>F n) ----> l"
+lemma (in finmap_seqs_into_compact) diagonal_tendsto: "\<exists>l. (\<lambda>i. (f (diagseq i))\<^isub>F n) ----> l"
 proof -
   have "\<And>i n0. (f o seqseq i) i = f (diagseq i)" unfolding diagseq_def by simp
   from reducer_reduces obtain l where l: "(\<lambda>i. ((f \<circ> seqseq (Suc n)) i)\<^isub>F n) ----> l"
@@ -191,8 +190,7 @@ begin
 
 abbreviation "lim\<^isub>B \<equiv> (\<lambda>J P. limP J (\<lambda>_. borel) P)"
 
-lemma
-  emeasure_limB_emb_not_empty:
+lemma emeasure_limB_emb_not_empty:
   assumes "I \<noteq> {}"
   assumes X: "J \<noteq> {}" "J \<subseteq> I" "finite J" "\<forall>i\<in>J. B i \<in> sets borel"
   shows "emeasure (lim\<^isub>B I P) (emb I J (Pi\<^isub>E J B)) = emeasure (lim\<^isub>B J P) (Pi\<^isub>E J B)"
@@ -691,8 +689,7 @@ locale polish_product_prob_space =
 sublocale polish_product_prob_space \<subseteq> P: polish_projective I "\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)"
 proof qed
 
-lemma (in polish_product_prob_space)
-  limP_eq_PiM:
+lemma (in polish_product_prob_space) limP_eq_PiM:
   "I \<noteq> {} \<Longrightarrow> lim\<^isub>P I (\<lambda>_. borel) (\<lambda>J. PiM J (\<lambda>_. borel::('a) measure)) =
     PiM I (\<lambda>_. borel)"
   by (rule PiM_eq) (auto simp: emeasure_PiM emeasure_limB_emb)

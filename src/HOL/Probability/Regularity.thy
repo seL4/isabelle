@@ -210,11 +210,9 @@ proof -
     ultimately
     show "?thesis e " by (auto simp: sU)
   qed
-  have closed_in_D: "\<And>A. closed A \<Longrightarrow> ?inner A \<and> ?outer A"
-  proof
-    fix A::"'a set" assume "closed A" hence "A \<in> sets borel" by (simp add: compact_imp_closed)
+  { fix A::"'a set" assume "closed A" hence "A \<in> sets borel" by (simp add: compact_imp_closed)
     hence [simp]: "A \<in> sets M" by (simp add: sb)
-    show "?inner A"
+    have "?inner A"
     proof (rule approx_inner)
       fix e::real assume "e > 0"
       from approx_space[OF this] obtain K where
@@ -237,7 +235,7 @@ proof -
       ultimately show "\<exists>K \<subseteq> A. compact K \<and> emeasure M A \<le> emeasure M K + ereal e"
         by blast
     qed simp
-    show "?outer A"
+    have "?outer A"
     proof cases
       assume "A \<noteq> {}"
       let ?G = "\<lambda>d. {x. infdist x A < d}"
@@ -288,25 +286,25 @@ proof -
         by (rule INF_greatest) (auto intro!: emeasure_mono simp: sb)
       ultimately show ?thesis by simp
     qed (auto intro!: ereal_INFI)
-  qed
-  let ?D = "{B \<in> sets M. ?inner B \<and> ?outer B}"
-  interpret dynkin: dynkin_system "space M" ?D
-  proof (rule dynkin_systemI)
-    have "{U::'a set. space M \<subseteq> U \<and> open U} = {space M}" by (auto simp add: sU)
-    hence "?outer (space M)" by (simp add: min_def INF_def)
-    moreover
-    have "?inner (space M)"
-    proof (rule ereal_approx_SUP)
-      fix e::real assume "0 < e"
-      thus "\<exists>K\<in>{K. K \<subseteq> space M \<and> compact K}. emeasure M (space M) \<le> emeasure M K + ereal e"
-        by (rule approx_space)
-    qed (auto intro: emeasure_mono simp: sU sb intro!: exI[where x="{}"])
-    ultimately show "space M \<in> ?D" by (simp add: sU sb)
+    note `?inner A` `?outer A` }
+  note closed_in_D = this
+  from `B \<in> sets borel`
+  have "Int_stable (Collect closed)" "Collect closed \<subseteq> Pow UNIV" "B \<in> sigma_sets UNIV (Collect closed)" 
+    by (auto simp: Int_stable_def borel_eq_closed)
+  then show "?inner B" "?outer B"
+  proof (induct B rule: sigma_sets_induct_disjoint)
+    case empty
+    { case 1 show ?case by (intro ereal_SUPI[symmetric]) auto }
+    { case 2 show ?case by (intro ereal_INFI[symmetric]) (auto elim!: meta_allE[of _ "{}"]) }
   next
-    fix B assume "B \<in> ?D" thus "B \<subseteq> space M" by (simp add: sU)
-    from `B \<in> ?D` have [simp]: "B \<in> sets M" and "?inner B" "?outer B" by auto
-    hence inner: "emeasure M B = (SUP K:{K. K \<subseteq> B \<and> compact K}. emeasure M K)"
-      and outer: "emeasure M B = (INF U:{U. B \<subseteq> U \<and> open U}. emeasure M U)" by auto
+    case (basic B)
+    { case 1 from basic closed_in_D show ?case by auto }
+    { case 2 from basic closed_in_D show ?case by auto }
+  next
+    case (compl B)
+    note inner = compl(2) and outer = compl(3)
+    from compl have [simp]: "B \<in> sets M" by (auto simp: sb borel_eq_closed)
+    case 2
     have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
     also have "\<dots> = (INF K:{K. K \<subseteq> B \<and> compact K}. M (space M) -  M K)"
       unfolding inner by (subst INFI_ereal_cminus) force+
@@ -315,7 +313,7 @@ proof -
     also have "\<dots> \<ge> (INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U))"
       by (rule INF_superset_mono) (auto simp add: compact_imp_closed)
     also have "(INF U:{U. U \<subseteq> B \<and> closed U}. M (space M - U)) =
-      (INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
+        (INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U)"
       by (subst INF_image[of "\<lambda>u. space M - u", symmetric])
          (rule INF_cong, auto simp add: sU intro!: INF_cong)
     finally have
@@ -323,41 +321,39 @@ proof -
     moreover have
       "(INF U:{U. space M - B \<subseteq> U \<and> open U}. emeasure M U) \<ge> emeasure M (space M - B)"
       by (auto simp: sb sU intro!: INF_greatest emeasure_mono)
-    ultimately have "?outer (space M - B)" by simp
-    moreover
-    {
-      have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
-      also have "\<dots> = (SUP U: {U. B \<subseteq> U \<and> open U}. M (space M) -  M U)"
-        unfolding outer by (subst SUPR_ereal_cminus) auto
-      also have "\<dots> = (SUP U:{U. B \<subseteq> U \<and> open U}. M (space M - U))"
-        by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
-      also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
-        by (subst SUP_image[of "\<lambda>u. space M - u", symmetric])
-           (rule SUP_cong, auto simp: sU)
-      also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
-      proof (safe intro!: antisym SUP_least)
-        fix K assume "closed K" "K \<subseteq> space M - B"
-        from closed_in_D[OF `closed K`]
-        have K_inner: "emeasure M K = (SUP K:{Ka. Ka \<subseteq> K \<and> compact Ka}. emeasure M K)" by simp
-        show "emeasure M K \<le> (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
-          unfolding K_inner using `K \<subseteq> space M - B`
-          by (auto intro!: SUP_upper SUP_least)
-      qed (fastforce intro!: SUP_least SUP_upper simp: compact_imp_closed)
-      finally have "?inner (space M - B)" .
-    } hence "?inner (space M - B)" .
-    ultimately show "space M - B \<in> ?D" by auto
+    ultimately show ?case by (auto intro!: antisym simp: sets_eq_imp_space_eq[OF sb])
+
+    case 1
+    have "M (space M - B) = M (space M) - emeasure M B" by (auto simp: emeasure_compl)
+    also have "\<dots> = (SUP U: {U. B \<subseteq> U \<and> open U}. M (space M) -  M U)"
+      unfolding outer by (subst SUPR_ereal_cminus) auto
+    also have "\<dots> = (SUP U:{U. B \<subseteq> U \<and> open U}. M (space M - U))"
+      by (rule SUP_cong) (auto simp add: emeasure_compl sb compact_imp_closed)
+    also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> closed K}. emeasure M K)"
+      by (subst SUP_image[of "\<lambda>u. space M - u", symmetric])
+         (rule SUP_cong, auto simp: sU)
+    also have "\<dots> = (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
+    proof (safe intro!: antisym SUP_least)
+      fix K assume "closed K" "K \<subseteq> space M - B"
+      from closed_in_D[OF `closed K`]
+      have K_inner: "emeasure M K = (SUP K:{Ka. Ka \<subseteq> K \<and> compact Ka}. emeasure M K)" by simp
+      show "emeasure M K \<le> (SUP K:{K. K \<subseteq> space M - B \<and> compact K}. emeasure M K)"
+        unfolding K_inner using `K \<subseteq> space M - B`
+        by (auto intro!: SUP_upper SUP_least)
+    qed (fastforce intro!: SUP_least SUP_upper simp: compact_imp_closed)
+    finally show ?case by (auto intro!: antisym simp: sets_eq_imp_space_eq[OF sb])
   next
-    fix D :: "nat \<Rightarrow> _"
-    assume "range D \<subseteq> ?D" hence "range D \<subseteq> sets M" by auto
-    moreover assume "disjoint_family D"
-    ultimately have M[symmetric]: "(\<Sum>i. M (D i)) = M (\<Union>i. D i)" by (rule suminf_emeasure)
+    case (union D)
+    then have "range D \<subseteq> sets M" by (auto simp: sb borel_eq_closed)
+    with union have M[symmetric]: "(\<Sum>i. M (D i)) = M (\<Union>i. D i)" by (intro suminf_emeasure)
     also have "(\<lambda>n. \<Sum>i\<in>{0..<n}. M (D i)) ----> (\<Sum>i. M (D i))"
       by (intro summable_sumr_LIMSEQ_suminf summable_ereal_pos emeasure_nonneg)
     finally have measure_LIMSEQ: "(\<lambda>n. \<Sum>i = 0..<n. measure M (D i)) ----> measure M (\<Union>i. D i)"
       by (simp add: emeasure_eq_measure)
     have "(\<Union>i. D i) \<in> sets M" using `range D \<subseteq> sets M` by auto
-    moreover
-    hence "?inner (\<Union>i. D i)"
+    
+    case 1
+    show ?case
     proof (rule approx_inner)
       fix e::real assume "e > 0"
       with measure_LIMSEQ
@@ -379,7 +375,7 @@ proof -
         fix i
         from `0 < e` have "0 < e/(2*Suc n0)" by (auto intro: divide_pos_pos)
         have "emeasure M (D i) = (SUP K:{K. K \<subseteq> (D i) \<and> compact K}. emeasure M K)"
-          using `range D \<subseteq> ?D` by blast
+          using union by blast
         from SUP_approx_ereal[OF `0 < e/(2*Suc n0)` this]
         show "\<exists>K. K \<subseteq> D i \<and> compact K \<and> emeasure M (D i) \<le> emeasure M K + e/(2*Suc n0)"
           by (auto simp: emeasure_eq_measure)
@@ -410,8 +406,9 @@ proof -
       ultimately
       have "?K\<subseteq>(\<Union>i. D i) \<and> compact ?K \<and> emeasure M (\<Union>i. D i) \<le> emeasure M ?K + ereal e" by simp
       thus "\<exists>K\<subseteq>\<Union>i. D i. compact K \<and> emeasure M (\<Union>i. D i) \<le> emeasure M K + ereal e" ..
-    qed
-    moreover have "?outer (\<Union>i. D i)"
+    qed fact
+    case 2
+    show ?case
     proof (rule approx_outer[OF `(\<Union>i. D i) \<in> sets M`])
       fix e::real assume "e > 0"
       have "\<forall>i::nat. \<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"
@@ -419,7 +416,7 @@ proof -
         fix i::nat
         from `0 < e` have "0 < e/(2 powr Suc i)" by (auto intro: divide_pos_pos)
         have "emeasure M (D i) = (INF U:{U. (D i) \<subseteq> U \<and> open U}. emeasure M U)"
-          using `range D \<subseteq> ?D` by blast
+          using union by blast
         from INF_approx_ereal[OF `0 < e/(2 powr Suc i)` this]
         show "\<exists>U. D i \<subseteq> U \<and> open U \<and> e/(2 powr Suc i) > emeasure M U - emeasure M (D i)"
           by (auto simp: emeasure_eq_measure)
@@ -455,20 +452,7 @@ proof -
       have "(\<Union>i. D i) \<subseteq> ?U \<and> open ?U \<and> emeasure M ?U \<le> emeasure M (\<Union>i. D i) + ereal e" by simp
       thus "\<exists>B. (\<Union>i. D i) \<subseteq> B \<and> open B \<and> emeasure M B \<le> emeasure M (\<Union>i. D i) + ereal e" ..
     qed
-    ultimately show "(\<Union>i. D i) \<in> ?D" by safe
   qed
-  have "sets borel = sigma_sets (space M) (Collect closed)" by (simp add: borel_eq_closed sU)
-  also have "\<dots> = dynkin (space M) (Collect closed)"
-  proof (rule sigma_eq_dynkin)
-    show "Collect closed \<subseteq> Pow (space M)" using Sigma_Algebra.sets_into_space by (auto simp: sU)
-    show "Int_stable (Collect closed)" by (auto simp: Int_stable_def)
-  qed
-  also have "\<dots> \<subseteq> ?D" using closed_in_D
-    by (intro dynkin.dynkin_subset) (auto simp add: compact_imp_closed sb)
-  finally have "sets borel \<subseteq> ?D" .
-  moreover have "?D \<subseteq> sets borel" by (auto simp: sb)
-  ultimately have "sets borel = ?D" by simp
-  with assms show "?inner B" and "?outer B" by auto
 qed
 
 end
