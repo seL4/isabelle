@@ -78,7 +78,7 @@ val beginN = "begin";
 
 val header_lexicons =
   pairself (Scan.make_lexicon o map Symbol.explode)
-   (["%", "(", ")", ",", "::", ";", "and", beginN, importsN, keywordsN, usesN],
+   (["%", "(", ")", ",", "::", ";", "==", "and", beginN, importsN, keywordsN, usesN],
     [headerN, theoryN]);
 
 
@@ -91,13 +91,20 @@ val theory_name = Parse.group (fn () => "theory name") (Parse.position Parse.nam
 
 val opt_files =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.list1 Parse.name) --| Parse.$$$ ")") [];
+
 val keyword_spec =
   Parse.group (fn () => "outer syntax keyword specification")
     (Parse.name -- opt_files -- Parse.tags);
 
+val keyword_compl =
+  Parse.group (fn () => "outer syntax keyword completion") Parse.name;
+
 val keyword_decl =
-  Scan.repeat1 Parse.string -- Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_spec) >>
-  (fn (names, spec) => map (rpair spec) names);
+  Scan.repeat1 Parse.string --
+  Scan.option (Parse.$$$ "::" |-- Parse.!!! keyword_spec) --
+  Scan.option (Parse.$$$ "==" |-- Parse.!!! keyword_compl)
+  >> (fn ((names, spec), _) => map (rpair spec) names);
+
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 
 val file =

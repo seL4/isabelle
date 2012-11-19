@@ -52,8 +52,10 @@ theory Pure
   and "theorem" "lemma" "corollary" :: thy_goal
   and "schematic_theorem" "schematic_lemma" "schematic_corollary" :: thy_schematic_goal
   and "notepad" :: thy_decl
-  and "have" "hence" :: prf_goal % "proof"
-  and "show" "thus" :: prf_asm_goal % "proof"
+  and "have" :: prf_goal % "proof"
+  and "hence" :: prf_goal % "proof" == "then have"
+  and "show" :: prf_asm_goal % "proof"
+  and "thus" :: prf_asm_goal % "proof" == "then show"
   and "then" "from" "with" :: prf_chain % "proof"
   and "note" "using" "unfolding" :: prf_decl % "proof"
   and "fix" "assume" "presume" "def" :: prf_asm % "proof"
@@ -66,7 +68,8 @@ theory Pure
   and "qed" :: qed_block % "proof"
   and "by" ".." "." "done" "sorry" :: "qed" % "proof"
   and "oops" :: qed_global % "proof"
-  and "defer" "prefer" "apply" "apply_end" :: prf_script % "proof"
+  and "defer" "prefer" "apply" :: prf_script % "proof"
+  and "apply_end" :: prf_script % "proof" == ""
   and "proof" :: prf_block % "proof"
   and "also" "moreover" :: prf_decl % "proof"
   and "finally" "ultimately" :: prf_chain % "proof"

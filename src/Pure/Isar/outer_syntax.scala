@@ -61,22 +61,29 @@ final class Outer_Syntax private(
   def thy_load_commands: List[(String, List[String])] =
     (for ((name, (Keyword.THY_LOAD, files)) <- keywords.iterator) yield (name, files)).toList
 
-  def + (name: String, kind: (String, List[String]), replace: String): Outer_Syntax =
+  def + (name: String, kind: (String, List[String]), replace: Option[String]): Outer_Syntax =
     new Outer_Syntax(
       keywords + (name -> kind),
       lexicon + name,
-      if (Keyword.control(kind._1)) completion else completion + (name, replace))
+      if (Keyword.control(kind._1) || replace == Some("")) completion
+      else completion + (name, replace getOrElse name))
 
-  def + (name: String, kind: (String, List[String])): Outer_Syntax = this + (name, kind, name)
-  def + (name: String, kind: String): Outer_Syntax = this + (name, (kind, Nil), name)
-  def + (name: String): Outer_Syntax = this + (name, Keyword.MINOR)
+  def + (name: String, kind: (String, List[String])): Outer_Syntax = this + (name, kind, Some(name))
+  def + (name: String, kind: String): Outer_Syntax = this + (name, (kind, Nil), Some(name))
+  def + (name: String, replace: Option[String]): Outer_Syntax =
+    this + (name, (Keyword.MINOR, Nil), replace)
+  def + (name: String): Outer_Syntax = this + (name, None)
 
   def add_keywords(keywords: Thy_Header.Keywords): Outer_Syntax =
     (this /: keywords) {
-      case (syntax, ((name, Some((kind, _))))) =>
-        syntax + (Symbol.decode(name), kind) + (Symbol.encode(name), kind)
-      case (syntax, ((name, None))) =>
-        syntax + Symbol.decode(name) + Symbol.encode(name)
+      case (syntax, ((name, Some((kind, _)), replace))) =>
+        syntax +
+          (Symbol.decode(name), kind, replace) +
+          (Symbol.encode(name), kind, replace)
+      case (syntax, ((name, None, replace))) =>
+        syntax +
+          (Symbol.decode(name), replace) +
+          (Symbol.encode(name), replace)
     }
 
   def is_command(name: String): Boolean =

@@ -26,7 +26,8 @@ object Thy_Header extends Parse.Parser
   val BEGIN = "begin"
 
   private val lexicon =
-    Scan.Lexicon("%", "(", ")", ",", "::", ";", AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY, USES)
+    Scan.Lexicon("%", "(", ")", ",", "::", ";", "==",
+      AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY, USES)
 
 
   /* theory file name */
@@ -55,8 +56,10 @@ object Thy_Header extends Parse.Parser
       { case x ~ y ~ z => ((x, y), z) }
 
     val keyword_decl =
-      rep1(string) ~ opt(keyword("::") ~! keyword_spec ^^ { case _ ~ x => x }) ^^
-      { case xs ~ y => xs.map((_, y)) }
+      rep1(string) ~
+      opt(keyword("::") ~! keyword_spec ^^ { case _ ~ x => x }) ~
+      opt(keyword("==") ~! name ^^ { case _ ~ x => x }) ^^
+      { case xs ~ y ~ z => xs.map((_, y, z)) }
     val keyword_decls =
       keyword_decl ~ rep(keyword(AND) ~! keyword_decl ^^ { case _ ~ x => x }) ^^
       { case xs ~ yss => (xs :: yss).flatten }
@@ -109,12 +112,13 @@ object Thy_Header extends Parse.Parser
 
   /* keywords */
 
-  type Keywords = List[(String, Option[((String, List[String]), List[String])])]
+  type Keywords = List[(String, Option[((String, List[String]), List[String])], Option[String])]
 }
 
 
 sealed case class Thy_Header(
-  name: String, imports: List[String],
+  name: String,
+  imports: List[String],
   keywords: Thy_Header.Keywords,
   uses: List[(String, Boolean)])
 {

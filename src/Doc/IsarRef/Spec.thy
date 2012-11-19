@@ -55,7 +55,10 @@ text {*
     ;
     imports: @'imports' (@{syntax name} +)
     ;
-    keywords: @'keywords' ((@{syntax string} +) ('::' @{syntax name} @{syntax tags})? + @'and')
+    keywords: @'keywords' (keyword_decls + @'and')
+    ;
+    keyword_decls: (@{syntax string} +)
+      ('::' @{syntax name} @{syntax tags})? ('==' @{syntax name})?
   "}
 
   \begin{description}
@@ -81,6 +84,9 @@ text {*
   "\"datatype\""} @{text ":: thy_decl"} for theory-level declarations
   with and without proof, respectively.  Additional @{syntax tags}
   provide defaults for document preparation (\secref{sec:tags}).
+
+  It is possible to specify an alternative completion via @{text "==
+  text"}, while the default is the corresponding keyword name.
   
   \item @{command (global) "end"} concludes the current theory
   definition.  Note that some other commands, e.g.\ local theory
