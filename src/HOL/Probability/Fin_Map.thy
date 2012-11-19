@@ -80,8 +80,7 @@ lemma finmap_of_eq_iff[simp]:
   using assms
   apply (auto simp: finmap_eq_iff restrict_def) by metis
 
-lemma
-  finmap_of_inj_on_extensional_finite:
+lemma finmap_of_inj_on_extensional_finite:
   assumes "finite K"
   assumes "S \<subseteq> extensional K"
   shows "inj_on (finmap_of K) S"
@@ -125,14 +124,6 @@ syntax (HTML output)
 translations
   "PI' x:A. B" == "CONST Pi' A (%x. B)"
 
-abbreviation
-  finmapset :: "['a set, 'b set] => ('a \<Rightarrow>\<^isub>F 'b) set"
-    (infixr "~>" 60) where
-  "A ~> B \<equiv> Pi' A (%_. B)"
-
-notation (xsymbols)
-  finmapset  (infixr "\<leadsto>" 60)
-
 subsubsection{*Basic Properties of @{term Pi'}*}
 
 lemma Pi'_I[intro!]: "domain f = A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B x) \<Longrightarrow> f \<in> Pi' A B"
@@ -140,9 +131,6 @@ lemma Pi'_I[intro!]: "domain f = A \<Longrightarrow> (\<And>x. x \<in> A \<Longr
 
 lemma Pi'_I'[simp]: "domain f = A \<Longrightarrow> (\<And>x. x \<in> A \<longrightarrow> f x \<in> B x) \<Longrightarrow> f \<in> Pi' A B"
   by (simp add:Pi'_def)
-
-lemma finmapsetI: "domain f = A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> f x \<in> B) \<Longrightarrow> f \<in> A \<leadsto> B"
-  by (simp add: Pi_def)
 
 lemma Pi'_mem: "f\<in> Pi' A B \<Longrightarrow> x \<in> A \<Longrightarrow> f x \<in> B x"
   by (simp add: Pi'_def)
@@ -157,12 +145,6 @@ lemma Pi'E [elim]:
 lemma in_Pi'_cong:
   "domain f = domain g \<Longrightarrow> (\<And> w. w \<in> A \<Longrightarrow> f w = g w) \<Longrightarrow> f \<in> Pi' A B \<longleftrightarrow> g \<in> Pi' A B"
   by (auto simp: Pi'_def)
-
-lemma funcset_mem: "[|f \<in> A \<leadsto> B; x \<in> A|] ==> f x \<in> B"
-  by (simp add: Pi'_def)
-
-lemma funcset_image: "f \<in> A \<leadsto> B ==> f ` A \<subseteq> B"
-by auto
 
 lemma Pi'_eq_empty[simp]:
   assumes "finite A" shows "(Pi' A B) = {} \<longleftrightarrow> (\<exists>x\<in>A. B x = {})"
@@ -554,8 +536,7 @@ lemma range_enum_basis_finmap_imp_open:
   shows "open x"
   using finmap_topological_basis assms by (auto simp: topological_basis_def)
 
-lemma
-  open_imp_ex_UNION_of_enum:
+lemma open_imp_ex_UNION_of_enum:
   fixes X::"('a \<Rightarrow>\<^isub>F 'b) set"
   assumes "open X" assumes "X \<noteq> {}"
   shows "\<exists>A::nat\<Rightarrow>'a set. \<exists>B::nat\<Rightarrow>('a \<Rightarrow> 'b set) . X = UNION UNIV (\<lambda>i. Pi' (A i) (B i)) \<and>
@@ -588,8 +569,7 @@ proof -
   qed
 qed
 
-lemma
-  open_imp_ex_UNION:
+lemma open_imp_ex_UNION:
   fixes X::"('a \<Rightarrow>\<^isub>F 'b) set"
   assumes "open X" assumes "X \<noteq> {}"
   shows "\<exists>A::nat\<Rightarrow>'a set. \<exists>B::nat\<Rightarrow>('a \<Rightarrow> 'b set) . X = UNION UNIV (\<lambda>i. Pi' (A i) (B i)) \<and>
@@ -601,20 +581,18 @@ lemma
   apply (auto simp: open_enum_basis)
   done
 
-lemma
-  open_basisE:
+lemma open_basisE:
   assumes "open X" assumes "X \<noteq> {}"
   obtains A::"nat\<Rightarrow>'a set" and B::"nat\<Rightarrow>('a \<Rightarrow> 'b set)" where
   "X = UNION UNIV (\<lambda>i. Pi' (A i) (B i))" "\<And>n i. i\<in>A n \<Longrightarrow> open ((B n) i)" "\<And>n. finite (A n)"
-using open_imp_ex_UNION[OF assms] by auto
+  using open_imp_ex_UNION[OF assms] by auto
 
-lemma
-  open_basis_of_enumE:
+lemma open_basis_of_enumE:
   assumes "open X" assumes "X \<noteq> {}"
   obtains A::"nat\<Rightarrow>'a set" and B::"nat\<Rightarrow>('a \<Rightarrow> 'b set)" where
   "X = UNION UNIV (\<lambda>i. Pi' (A i) (B i))" "\<And>n i. i\<in>A n \<Longrightarrow> (B n) i \<in> range enum_basis"
   "\<And>n. finite (A n)"
-using open_imp_ex_UNION_of_enum[OF assms] by auto
+  using open_imp_ex_UNION_of_enum[OF assms] by auto
 
 instance proof qed (blast intro: finmap_topological_basis)
 
@@ -623,9 +601,7 @@ end
 subsection {* Product Measurable Space of Finite Maps *}
 
 definition "PiF I M \<equiv>
-  sigma
-    (\<Union>J \<in> I. (\<Pi>' j\<in>J. space (M j)))
-    {(\<Pi>' j\<in>J. X j) |X J. J \<in> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}"
+  sigma (\<Union>J \<in> I. (\<Pi>' j\<in>J. space (M j))) {(\<Pi>' j\<in>J. X j) |X J. J \<in> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}"
 
 abbreviation
   "Pi\<^isub>F I M \<equiv> PiF I M"
@@ -691,8 +667,7 @@ lemma singleton_subspace_set_in_sets:
   using assms
   by (auto intro: in_sets_PiFI intro!: singleton_space_subset_in_sets)
 
-lemma
-  finite_measurable_singletonI:
+lemma finite_measurable_singletonI:
   assumes "finite I"
   assumes "\<And>J. J \<in> I \<Longrightarrow> finite J"
   assumes MN: "\<And>J. J \<in> I \<Longrightarrow> A \<in> measurable (PiF {J} M) N"
@@ -717,8 +692,7 @@ next
     by (auto simp: space_PiF measurable_space Pi'_def)
 qed
 
-lemma
-  countable_finite_comprehension:
+lemma countable_finite_comprehension:
   fixes f :: "'a::countable set \<Rightarrow> _"
   assumes "\<And>s. P s \<Longrightarrow> finite s"
   assumes "\<And>s. P s \<Longrightarrow> f s \<in> sets M"
@@ -764,8 +738,7 @@ lemma subspace_set_in_sets:
   using assms
   by (auto intro: in_sets_PiFI intro!: space_subset_in_sets)
 
-lemma
-  countable_measurable_PiFI:
+lemma countable_measurable_PiFI:
   fixes I::"'a::countable set set"
   assumes MN: "\<And>J. J \<in> I \<Longrightarrow> finite J \<Longrightarrow> A \<in> measurable (PiF {J} M) N"
   shows "A \<in> measurable (PiF I M) N"
@@ -809,18 +782,15 @@ lemma measurable_PiF:
   apply (insert S, auto)
   done
 
-lemma
-  restrict_sets_measurable:
+lemma restrict_sets_measurable:
   assumes A: "A \<in> sets (PiF I M)" and "J \<subseteq> I"
   shows "A \<inter> {m. domain m \<in> J} \<in> sets (PiF J M)"
   using A[unfolded sets_PiF]
-  apply (induct A)
-  unfolding sets_PiF[symmetric] unfolding space_PiF[symmetric]
-proof -
-  fix a assume "a \<in> {Pi' J X |X J. J \<in> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))}"
+proof (induct A)
+  case (Basic a)
   then obtain K S where S: "a = Pi' K S" "K \<in> I" "(\<forall>i\<in>K. S i \<in> sets (M i))"
     by auto
-  show "a \<inter> {m. domain m \<in> J} \<in> sets (PiF J M)"
+  show ?case
   proof cases
     assume "K \<in> J"
     hence "a \<inter> {m. domain m \<in> J} \<in> {Pi' K X |X K. K \<in> J \<and> X \<in> (\<Pi> j\<in>K. sets (M j))}" using S
@@ -834,21 +804,18 @@ proof -
     finally show ?thesis .
   qed
 next
-  show "{} \<inter> {m. domain m \<in> J} \<in> sets (PiF J M)" by simp
-next
-  fix a :: "nat \<Rightarrow> _"
-  assume a: "(\<And>i. a i \<inter> {m. domain m \<in> J} \<in> sets (PiF J M))"
+  case (Union a)
   have "UNION UNIV a \<inter> {m. domain m \<in> J} = (\<Union>i. (a i \<inter> {m. domain m \<in> J}))"
     by simp
-  also have "\<dots> \<in> sets (PiF J M)" using a by (intro countable_nat_UN) auto
-  finally show "UNION UNIV a \<inter> {m. domain m \<in> J} \<in> sets (PiF J M)" .
+  also have "\<dots> \<in> sets (PiF J M)" using Union by (intro countable_nat_UN) auto
+  finally show ?case .
 next
-  fix a assume a: "a \<inter> {m. domain m \<in> J} \<in> sets (PiF J M)"
+  case (Compl a)
   have "(space (PiF I M) - a) \<inter> {m. domain m \<in> J} = (space (PiF J M) - (a \<inter> {m. domain m \<in> J}))"
     using `J \<subseteq> I` by (auto simp: space_PiF Pi'_def)
-  also have "\<dots> \<in> sets (PiF J M)" using a by auto
-  finally show "(space (PiF I M) - a) \<inter> {m. domain m \<in> J} \<in> sets (PiF J M)" .
-qed
+  also have "\<dots> \<in> sets (PiF J M)" using Compl by auto
+  finally show ?case by (simp add: space_PiF)
+qed simp
 
 lemma measurable_finmap_of:
   assumes f: "\<And>i. (\<exists>x \<in> space N. i \<in> J x) \<Longrightarrow> (\<lambda>x. f x i) \<in> measurable N (M i)"
@@ -892,7 +859,7 @@ lemma measurable_PiM_finmap_of:
   done
 
 lemma proj_measurable_singleton:
-  assumes "A \<in> sets (M i)" "finite I"
+  assumes "A \<in> sets (M i)"
   shows "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space (PiF {I} M) \<in> sets (PiF {I} M)"
 proof cases
   assume "i \<in> I"
@@ -910,11 +877,10 @@ next
 qed
 
 lemma measurable_proj_singleton:
-  fixes I
-  assumes "finite I" "i \<in> I"
+  assumes "i \<in> I"
   shows "(\<lambda>x. (x)\<^isub>F i) \<in> measurable (PiF {I} M) (M i)"
-proof (unfold measurable_def, intro CollectI conjI ballI proj_measurable_singleton assms)
-qed (insert `i \<in> I`, auto simp: space_PiF)
+  by (unfold measurable_def, intro CollectI conjI ballI proj_measurable_singleton assms)
+     (insert `i \<in> I`, auto simp: space_PiF)
 
 lemma measurable_proj_countable:
   fixes I::"'a::countable set set"
@@ -942,13 +908,11 @@ lemma measurable_restrict_proj:
   using assms
   by (intro measurable_finmap_of measurable_component_singleton) auto
 
-lemma
-  measurable_proj_PiM:
+lemma measurable_proj_PiM:
   fixes J K ::"'a::countable set" and I::"'a set set"
   assumes "finite J" "J \<in> I"
   assumes "x \<in> space (PiM J M)"
-  shows "proj \<in>
-    measurable (PiF {J} M) (PiM J M)"
+  shows "proj \<in> measurable (PiF {J} M) (PiM J M)"
 proof (rule measurable_PiM_single)
   show "proj \<in> space (PiF {J} M) \<rightarrow> (\<Pi>\<^isub>E i \<in> J. space (M i))"
     using assms by (auto simp add: space_PiM space_PiF extensional_def sets_PiF Pi'_def)
@@ -1187,7 +1151,7 @@ proof -
   qed
 qed
 
-lemma finmap_UNIV[simp]: "(\<Union>J\<in>Collect finite. J \<leadsto> UNIV) = UNIV" by auto
+lemma finmap_UNIV[simp]: "(\<Union>J\<in>Collect finite. PI' j : J. UNIV) = UNIV" by auto
 
 lemma borel_eq_PiF_borel:
   shows "(borel :: ('i::countable \<Rightarrow>\<^isub>F 'a::polish_space) measure) =
@@ -1277,59 +1241,14 @@ qed (simp add: emeasure_sigma borel_def PiF_def)
 
 subsection {* Isomorphism between Functions and Finite Maps *}
 
-lemma
-  measurable_finmap_compose:
-  fixes f::"'a \<Rightarrow> 'b"
-  assumes inj: "\<And>j. j \<in> J \<Longrightarrow> f' (f j) = j"
-  assumes "finite J"
+lemma measurable_finmap_compose:
   shows "(\<lambda>m. compose J m f) \<in> measurable (PiM (f ` J) (\<lambda>_. M)) (PiM J (\<lambda>_. M))"
-proof (rule measurable_PiM)
-  show "(\<lambda>m. compose J m f) \<in> space (Pi\<^isub>M (f ` J) (\<lambda>_. M)) \<rightarrow> (J \<rightarrow>\<^isub>E space M)"
-  proof safe
-    fix x and i
-    assume x: "x \<in> space (PiM (f ` J) (\<lambda>_. M))" "i \<in> J"
-    with inj show  "compose J x f i \<in> space M"
-      by (auto simp: space_PiM compose_def)
-  next
-    fix x i assume "i \<notin> J"
-    with compose_extensional[of J x f]
-    show "compose J x f i = undefined" by (auto simp: extensional_def)
-  qed
-next
-  fix S X
-  have inv: "\<And>j. j \<in> f ` J \<Longrightarrow> f (f' j) = j" using assms by auto
-  assume S: "S \<noteq> {} \<or> J = {}" "finite S" "S \<subseteq> J" and P: "\<And>i. i \<in> S \<Longrightarrow> X i \<in> sets M"
-  have "(\<lambda>m. compose J m f) -` prod_emb J (\<lambda>_. M) S (Pi\<^isub>E S X) \<inter>
-    space (Pi\<^isub>M (f ` J) (\<lambda>_. M)) = prod_emb (f ` J) (\<lambda>_. M) (f ` S) (Pi\<^isub>E (f ` S) (\<lambda>b. X (f' b)))"
-    using assms inv S sets_into_space[OF P]
-    by (force simp: prod_emb_iff compose_def space_PiM extensional_def Pi_def PiE_def intro: imageI)
-  also have "\<dots> \<in> sets (Pi\<^isub>M (f ` J) (\<lambda>_. M))"
-  proof
-    from S show "f ` S \<subseteq> f `  J" by auto
-    show "(\<Pi>\<^isub>E b\<in>f ` S. X (f' b)) \<in> sets (Pi\<^isub>M (f ` S) (\<lambda>_. M))"
-    proof (rule sets_PiM_I_finite)
-      show "finite (f ` S)" using S by simp
-      fix i assume "i \<in> f ` S" hence "f' i \<in> S" using S assms by auto
-      thus "X (f' i) \<in> sets M" by (rule P)
-    qed
-  qed
-  finally show "(\<lambda>m. compose J m f) -` prod_emb J (\<lambda>_. M) S (Pi\<^isub>E S X) \<inter>
-    space (Pi\<^isub>M (f ` J) (\<lambda>_. M)) \<in> sets (Pi\<^isub>M (f ` J) (\<lambda>_. M))" .
-qed
+  unfolding compose_def by measurable
 
-lemma
-  measurable_compose_inv:
-  fixes f::"'a \<Rightarrow> 'b"
+lemma measurable_compose_inv:
   assumes inj: "\<And>j. j \<in> J \<Longrightarrow> f' (f j) = j"
-  assumes "finite J"
   shows "(\<lambda>m. compose (f ` J) m f') \<in> measurable (PiM J (\<lambda>_. M)) (PiM (f ` J) (\<lambda>_. M))"
-proof -
-  have "(\<lambda>m. compose (f ` J) m f') \<in> measurable (Pi\<^isub>M (f' ` f ` J) (\<lambda>_. M)) (Pi\<^isub>M (f ` J) (\<lambda>_. M))"
-    using assms by (auto intro: measurable_finmap_compose)
-  moreover
-  from inj have "f' ` f ` J = J" by (metis (hide_lams, mono_tags) image_iff set_eqI)
-  ultimately show ?thesis by simp
-qed
+  unfolding compose_def by (rule measurable_restrict) (auto simp: inj)
 
 locale function_to_finmap =
   fixes J::"'a set" and f :: "'a \<Rightarrow> 'b::countable" and f'
@@ -1390,16 +1309,6 @@ text {* to measure functions *}
 
 definition "mf = (\<lambda>g. compose J g f) o proj"
 
-lemma
-  assumes "x \<in> space (Pi\<^isub>M J (\<lambda>_. M))" "finite J"
-  shows "proj (finmap_of J x) = x"
-  using assms by (auto simp: space_PiM extensional_def)
-
-lemma
-  assumes "x \<in> space (Pi\<^isub>F {J} (\<lambda>_. M))"
-  shows "finmap_of J (proj x) = x"
-  using assms by (auto simp: space_PiF Pi'_def finmap_eq_iff)
-
 lemma mf_fm:
   assumes "x \<in> space (Pi\<^isub>M J (\<lambda>_. M))"
   shows "mf (fm x) = x"
@@ -1423,9 +1332,8 @@ lemma mf_measurable:
   shows "mf \<in> measurable (PiF {f ` J} (\<lambda>_. M)) (PiM J (\<lambda>_. M))"
   unfolding mf_def
 proof (rule measurable_comp, rule measurable_proj_PiM)
-  show "(\<lambda>g. compose J g f) \<in>
-    measurable (Pi\<^isub>M (f ` J) (\<lambda>x. M)) (Pi\<^isub>M J (\<lambda>_. M))"
-    by (rule measurable_finmap_compose, rule inv) auto
+  show "(\<lambda>g. compose J g f) \<in> measurable (Pi\<^isub>M (f ` J) (\<lambda>x. M)) (Pi\<^isub>M J (\<lambda>_. M))"
+    by (rule measurable_finmap_compose)
 qed (auto simp add: space_PiM extensional_def assms)
 
 lemma fm_image_measurable:

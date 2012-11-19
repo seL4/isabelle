@@ -626,7 +626,6 @@ hide_const (open) Pi'
 hide_const (open) Abs_finmap
 hide_const (open) Rep_finmap
 hide_const (open) finmap_of
-hide_const (open) finmapset
 hide_const (open) proj
 hide_const (open) domain
 hide_const (open) enum_basis_finmap

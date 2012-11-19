@@ -124,13 +124,9 @@ lemma limP_finite:
   shows "limP J M P = P J" (is "?P = _")
 proof (rule measure_eqI_generator_eq)
   let ?J = "{Pi\<^isub>E J E | E. \<forall>i\<in>J. E i \<in> sets (M i)}"
-  let ?F = "\<lambda>i. \<Pi>\<^isub>E k\<in>J. space (M k)"
   let ?\<Omega> = "(\<Pi>\<^isub>E k\<in>J. space (M k))"
-  show "Int_stable ?J"
-    by (rule Int_stable_PiE)
   interpret prob_space "P J" using proj_prob_space `finite J` by simp
-  show "emeasure ?P (?F _) \<noteq> \<infinity>" using assms `finite J` by (auto simp: emeasure_limP)
-  show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)
+  show "emeasure ?P (\<Pi>\<^isub>E k\<in>J. space (M k)) \<noteq> \<infinity>" using assms `finite J` by (auto simp: emeasure_limP)
   show "sets (limP J M P) = sigma_sets ?\<Omega> ?J" "sets (P J) = sigma_sets ?\<Omega> ?J"
     using `finite J` proj_sets by (simp_all add: sets_PiM prod_algebra_eq_finite Pi_iff)
   fix X assume "X \<in> ?J"
@@ -142,7 +138,7 @@ proof (rule measure_eqI_generator_eq)
   show "emeasure (limP J M P) X = emeasure (P J) X"
     unfolding X using E
     by (intro emeasure_limP assms) simp
-qed (insert `finite J`, auto intro!: prod_algebraI_finite)
+qed (auto simp: Pi_iff dest: sets_into_space intro: Int_stable_PiE)
 
 lemma emeasure_fun_emb[simp]:
   assumes L: "J \<noteq> {}" "J \<subseteq> L" "finite L" "L \<subseteq> I" and X: "X \<in> sets (PiM J M)"
@@ -150,9 +146,12 @@ lemma emeasure_fun_emb[simp]:
   using assms
   by (subst limP_finite) (auto simp: limP_finite finite_subset projective)
 
+abbreviation
+  "emb L K X \<equiv> prod_emb L M K X"
+
 lemma prod_emb_injective:
-  assumes "J \<noteq> {}" "J \<subseteq> L" "finite J" and sets: "X \<in> sets (Pi\<^isub>M J M)" "Y \<in> sets (Pi\<^isub>M J M)"
-  assumes "prod_emb L M J X = prod_emb L M J Y"
+  assumes "J \<subseteq> L" and sets: "X \<in> sets (Pi\<^isub>M J M)" "Y \<in> sets (Pi\<^isub>M J M)"
+  assumes "emb L J X = emb L J Y"
   shows "X = Y"
 proof (rule injective_vimage_restrict)
   show "X \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))" "Y \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
@@ -168,9 +167,6 @@ proof (rule injective_vimage_restrict)
   show "(\<lambda>x. restrict x J) -` X \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i)) = (\<lambda>x. restrict x J) -` Y \<inter> (\<Pi>\<^isub>E i\<in>L. space (M i))"
     using `prod_emb L M J X = prod_emb L M J Y` by (simp add: prod_emb_def)
 qed fact
-
-abbreviation
-  "emb L K X \<equiv> prod_emb L M K X"
 
 definition generator :: "('i \<Rightarrow> 'a) set set" where
   "generator = (\<Union>J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emb I J ` sets (Pi\<^isub>M J M))"
@@ -265,11 +261,7 @@ qed
 lemma generatorE:
   assumes A: "A \<in> generator"
   obtains J X where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A" "\<mu>G A = emeasure (limP J M P) X"
-proof -
-  from generator_Ex[OF A] obtain X J where "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)" "emb I J X = A"
-    "\<mu>G A = emeasure (limP J M P) X" by auto
-  then show thesis by (intro that) auto
-qed
+  using generator_Ex[OF A] by atomize_elim auto
 
 lemma merge_sets:
   "J \<inter> K = {} \<Longrightarrow> A \<in> sets (Pi\<^isub>M (J \<union> K) M) \<Longrightarrow> x \<in> space (Pi\<^isub>M J M) \<Longrightarrow> (\<lambda>y. merge J K (x,y)) -` A \<inter> space (Pi\<^isub>M K M) \<in> sets (Pi\<^isub>M K M)"
