@@ -231,6 +231,7 @@ class Plugin extends EBPlugin
               }
 
             case Session.Ready =>
+              Isabelle.session.global_options.event(Session.Global_Options(Isabelle.options.value))
               JEdit_Lib.jedit_buffers.foreach(Isabelle.init_model)
               Swing_Thread.later { delay_load.invoke() }
 
