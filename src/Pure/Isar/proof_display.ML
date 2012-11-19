@@ -46,10 +46,8 @@ fun default_context thy0 =
   | NONE => Syntax.init_pretty_global thy0);
 
 fun pp_thm th =
-  let
-    val ctxt = default_context (Thm.theory_of_thm th);
-    val flags = {quote = true, show_hyps = false, show_status = true};
-  in Display.pretty_thm_raw ctxt flags th end;
+  let val ctxt = default_context (Thm.theory_of_thm th);
+  in Display.pretty_thm_raw ctxt {quote = true, show_hyps = false} th end;
 
 fun pp_typ thy T = Pretty.quote (Syntax.pretty_typ (default_context thy) T);
 fun pp_term thy t = Pretty.quote (Syntax.pretty_term (default_context thy) t);
@@ -85,7 +83,7 @@ val print_theory = Pretty.writeln o pretty_full_theory false;
 
 fun pretty_rule ctxt s thm =
   Pretty.block [Pretty.str (s ^ " attempt to solve goal by exported rule:"),
-    Pretty.fbrk, Display.pretty_thm_aux ctxt false thm];
+    Pretty.fbrk, Display.pretty_thm ctxt thm];
 
 val string_of_rule = Pretty.string_of ooo pretty_rule;
 
@@ -138,7 +136,7 @@ fun pretty_fact_name (kind, "") = Pretty.command kind
 
 fun pretty_facts ctxt =
   flat o (separate [Pretty.fbrk, Pretty.keyword "and", Pretty.str " "]) o
-    map (single o Proof_Context.pretty_fact_aux ctxt false);
+    map (single o Proof_Context.pretty_fact ctxt);
 
 in
 
@@ -151,7 +149,7 @@ fun print_results markup do_print ctxt ((kind, name), facts) =
     (Pretty.writeln o Pretty.mark markup)
       (case facts of
         [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
-          Proof_Context.pretty_fact_aux ctxt false fact])
+          Proof_Context.pretty_fact ctxt fact])
       | _ => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
           Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
 

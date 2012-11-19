@@ -99,7 +99,7 @@ sig
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proofs: thm list -> unit
-  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
+  val peek_status: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val future: thm future -> cterm -> thm
   val derivation_name: thm -> string
   val name_derivation: string -> thm -> thm
@@ -536,12 +536,12 @@ val join_proofs = ignore o proof_bodies_of;
 
 (* derivation status *)
 
-fun status_of (Thm (Deriv {promises, body}, _)) =
+fun peek_status (Thm (Deriv {promises, body}, _)) =
   let
     val ps = map (Future.peek o snd) promises;
     val bodies = body ::
       map_filter (fn SOME (Exn.Res th) => SOME (raw_body_of th) | _ => NONE) ps;
-    val {oracle, unfinished, failed} = Proofterm.status_of bodies;
+    val {oracle, unfinished, failed} = Proofterm.peek_status bodies;
   in
    {oracle = oracle,
     unfinished = unfinished orelse exists is_none ps,

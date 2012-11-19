@@ -670,9 +670,9 @@ text {*
   pretending to solve the pending claim without further ado.  This
   only works in interactive development, or if the @{ML
   quick_and_dirty} flag is enabled (in ML).  Facts emerging from fake
-  proofs are not the real thing.  Internally, each theorem container
-  is tainted by an oracle invocation, which is indicated as ``@{text
-  "[!]"}'' in the printed result.
+  proofs are not the real thing.  Internally, the derivation object is
+  tainted by an oracle invocation, which may be inspected via the
+  theorem status \cite{isabelle-implementation}.
   
   The most important application of @{command "sorry"} is to support
   experimentation and top-down proof development.

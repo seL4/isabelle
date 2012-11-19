@@ -6,6 +6,14 @@ New in this Isabelle version
 
 *** General ***
 
+* Theorem status about oracles and unfinished/failed future proofs is
+no longer printed by default, since it is incompatible with
+incremental / parallel checking of the persistent document model.  ML
+function Thm.peek_status may be used to inspect a snapshot of the
+ongoing evaluation process.  Note that in batch mode --- notably
+isabelle build --- the system ensures that future proofs of all
+accessible theorems in the theory context are finished (as before).
+
 * Configuration option show_markup controls direct inlining of markup
 into the printed representation of formal entities --- notably type
 and sort constraints.  This enables Prover IDE users to retrieve that

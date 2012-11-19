@@ -963,7 +963,7 @@ fun close incomplete thy =
           val (proved, unproved) = partition_vcs vcs;
           val _ = Thm.join_proofs (maps (#2 o snd) proved);
           val (proved', proved'') = List.partition (fn (_, (_, thms, _, _)) =>
-            exists (#oracle o Thm.status_of) thms) proved
+            exists (#oracle o Thm.peek_status) thms) proved
         in
           (if null unproved then ()
            else (if incomplete then warning else error)

@@ -42,7 +42,7 @@ sig
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
   val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val join_bodies: proof_body list -> unit
-  val status_of: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
+  val peek_status: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
   val thm_ord: pthm * pthm -> order
@@ -208,7 +208,7 @@ fun fold_body_thms f =
 
 fun join_bodies bodies = fold_body_thms (fn _ => fn () => ()) bodies ();
 
-fun status_of bodies =
+fun peek_status bodies =
   let
     fun status (PBody {oracles, thms, ...}) x =
       let

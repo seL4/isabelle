@@ -52,7 +52,6 @@ sig
   val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
   val markup_fact: Proof.context -> string -> Markup.T
-  val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
   val read_class: Proof.context -> xstring -> class
   val read_typ: Proof.context -> string -> typ
@@ -343,14 +342,11 @@ fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 fun pretty_fact_name ctxt a =
   Pretty.block [Pretty.mark_str (markup_fact ctxt a, extern_fact ctxt a), Pretty.str ":"];
 
-fun pretty_fact_aux ctxt flag ("", ths) =
-      Display.pretty_thms_aux ctxt flag ths
-  | pretty_fact_aux ctxt flag (a, [th]) = Pretty.block
-      [pretty_fact_name ctxt a, Pretty.brk 1, Display.pretty_thm_aux ctxt flag th]
-  | pretty_fact_aux ctxt flag (a, ths) = Pretty.block
-      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (Display.pretty_thm_aux ctxt flag) ths));
-
-fun pretty_fact ctxt = pretty_fact_aux ctxt true;
+fun pretty_fact ctxt ("", ths) = Display.pretty_thms ctxt ths
+  | pretty_fact ctxt (a, [th]) = Pretty.block
+      [pretty_fact_name ctxt a, Pretty.brk 1, Display.pretty_thm ctxt th]
+  | pretty_fact ctxt (a, ths) = Pretty.block
+      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (Display.pretty_thm ctxt) ths));
 
 
 
