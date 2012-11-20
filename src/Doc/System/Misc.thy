@@ -180,31 +180,27 @@ text {* By default, the main Isabelle binaries (@{executable
   @{setting PATH}.  Other schemes of installation are supported by the
   @{tool_def install} tool:
 \begin{ttbox}
-Usage: isabelle install [OPTIONS]
+Usage: isabelle install [OPTIONS] BINDIR
 
   Options are:
-    -d DISTDIR   use DISTDIR as Isabelle distribution
+    -d DISTDIR   refer to DISTDIR as Isabelle distribution
                  (default ISABELLE_HOME)
-    -p DIR       install standalone binaries in DIR
 
-  Install Isabelle executables with absolute references to the current
+  Install Isabelle executables with absolute references to the
   distribution directory.
 \end{ttbox}
 
   The @{verbatim "-d"} option overrides the current Isabelle
   distribution directory as determined by @{setting ISABELLE_HOME}.
 
-  The @{verbatim "-p"} option installs executable wrapper scripts for
-  @{executable "isabelle-process"}, @{executable isabelle}, containing
-  proper absolute references to the Isabelle distribution directory.
-  A typical @{verbatim DIR} specification would be some directory
-  expected to be in the shell's @{setting PATH}, such as @{verbatim
-  "$HOME/bin"}.
+  The @{text BINDIR} argument tells where executable wrapper scripts
+  for @{executable "isabelle-process"} and @{executable isabelle}
+  should be placed, which is typically a directory in the shell's
+  @{setting PATH}, such as @{verbatim "$HOME/bin"}.
 
-  It is possible to make symbolic links of the main Isabelle
-  executables, but making separate copies outside the Isabelle
-  distribution directory will not work.
-*}
+  \medskip It is also possible to make symbolic links of the main
+  Isabelle executables manually, but making separate copies outside
+  the Isabelle distribution directory will not work!  *}
 
 
 section {* Creating instances of the Isabelle logo *}

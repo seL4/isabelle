@@ -308,6 +308,9 @@ with "isabelle build", similar to former "isabelle mkdir" for
 that are not bundled, or referenced from a bare-bones repository
 version of Isabelle.
 
+* The "isabelle install" tool has now a simpler command-line.  Minor
+INCOMPATIBILITY.
+
 * Discontinued support for Poly/ML 5.2.1, which was the last version
 without exception positions and advanced ML compiler/toplevel
 configuration.
