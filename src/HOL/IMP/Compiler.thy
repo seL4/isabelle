@@ -79,7 +79,7 @@ declare refl[intro] step[intro]
 
 lemmas exec_induct = exec.induct[split_format(complete)]
 
-code_pred exec by force
+code_pred exec by fastforce
 
 values
   "{(i,map t [''x'',''y''],stk) | i t stk.
@@ -232,8 +232,11 @@ next
   let ?cc = "ccomp c"
   let ?cb = "bcomp b False (isize ?cc + 1)"
   let ?cw = "ccomp(WHILE b DO c)"
-  have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cb + isize ?cc,s2,stk)"
-    using WhileTrue.IH(1) WhileTrue.hyps(1) by fastforce
+  have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cb,s1,stk)"
+    using `bval b s1` by fastforce
+  moreover
+  have "?cw \<turnstile> (isize ?cb,s1,stk) \<rightarrow>* (isize ?cb + isize ?cc,s2,stk)"
+    using WhileTrue.IH(1) by fastforce
   moreover
   have "?cw \<turnstile> (isize ?cb + isize ?cc,s2,stk) \<rightarrow>* (0,s2,stk)"
     by fastforce
