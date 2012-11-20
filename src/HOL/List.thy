@@ -4718,6 +4718,12 @@ by auto
 lemma lists_UNIV [simp]: "lists UNIV = UNIV"
 by auto
 
+lemma lists_image: "lists (f`A) = map f ` lists A"
+proof -
+  { fix xs have "\<forall>x\<in>set xs. x \<in> f ` A \<Longrightarrow> xs \<in> map f ` lists A"
+      by (induct xs) (auto simp del: map.simps simp add: map.simps[symmetric] intro!: imageI) }
+  then show ?thesis by auto
+qed
 
 subsubsection {* Inductive definition for membership *}
 

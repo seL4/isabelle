@@ -1,0 +1,188 @@
+(*  Title:      HOL/Library/Countable_Set.thy
+    Author:     Johannes Hölzl
+    Author:     Andrei Popescu
+*)
+
+header {* Countable sets *}
+
+theory Countable_Set
+  imports "~~/src/HOL/Library/Countable" "~~/src/HOL/Library/Infinite_Set"
+begin
+
+subsection {* Predicate for countable sets *}
+
+definition countable :: "'a set \<Rightarrow> bool" where
+  "countable S \<longleftrightarrow> (\<exists>f::'a \<Rightarrow> nat. inj_on f S)"
+
+lemma countableE:
+  assumes S: "countable S" obtains f :: "'a \<Rightarrow> nat" where "inj_on f S"
+  using S by (auto simp: countable_def)
+
+lemma countableI: "inj_on (f::'a \<Rightarrow> nat) S \<Longrightarrow> countable S"
+  by (auto simp: countable_def)
+
+lemma countableI': "inj_on (f::'a \<Rightarrow> 'b::countable) S \<Longrightarrow> countable S"
+  using comp_inj_on[of f S to_nat] by (auto intro: countableI)
+
+lemma countableE_bij:
+  assumes S: "countable S" obtains f :: "nat \<Rightarrow> 'a" and C :: "nat set" where "bij_betw f C S"
+  using S by (blast elim: countableE dest: inj_on_imp_bij_betw bij_betw_inv)
+
+lemma countableI_bij: "bij_betw f (C::nat set) S \<Longrightarrow> countable S"
+  by (blast intro: countableI bij_betw_inv_into bij_betw_imp_inj_on)
+
+lemma countable_finite: "finite S \<Longrightarrow> countable S"
+  by (blast dest: finite_imp_inj_to_nat_seg countableI)
+
+lemma countableI_bij1: "bij_betw f A B \<Longrightarrow> countable A \<Longrightarrow> countable B"
+  by (blast elim: countableE_bij intro: bij_betw_trans countableI_bij)
+
+lemma countableI_bij2: "bij_betw f B A \<Longrightarrow> countable A \<Longrightarrow> countable B"
+  by (blast elim: countableE_bij intro: bij_betw_trans bij_betw_inv_into countableI_bij)
+
+lemma countable_iff_bij[simp]: "bij_betw f A B \<Longrightarrow> countable A \<longleftrightarrow> countable B"
+  by (blast intro: countableI_bij1 countableI_bij2)
+
+lemma countable_subset: "A \<subseteq> B \<Longrightarrow> countable B \<Longrightarrow> countable A"
+  by (auto simp: countable_def intro: subset_inj_on)
+
+lemma countableI_type[intro, simp]: "countable (A:: 'a :: countable set)"
+  using countableI[of to_nat A] by auto
+
+subsection {* Enumerate a countable set *}
+
+lemma countableE_infinite:
+  assumes "countable S" "infinite S"
+  obtains e :: "'a \<Rightarrow> nat" where "bij_betw e S UNIV"
+proof -
+  from `countable S`[THEN countableE] guess f .
+  then have "bij_betw f S (f`S)"
+    unfolding bij_betw_def by simp
+  moreover
+  from `inj_on f S` `infinite S` have inf_fS: "infinite (f`S)"
+    by (auto dest: finite_imageD)
+  then have "bij_betw (the_inv_into UNIV (enumerate (f`S))) (f`S) UNIV"
+    by (intro bij_betw_the_inv_into bij_enumerate)
+  ultimately have "bij_betw (the_inv_into UNIV (enumerate (f`S)) \<circ> f) S UNIV"
+    by (rule bij_betw_trans)
+  then show thesis ..
+qed
+
+lemma countable_enum_cases:
+  assumes "countable S"
+  obtains (finite) f :: "'a \<Rightarrow> nat" where "finite S" "bij_betw f S {..<card S}"
+        | (infinite) f :: "'a \<Rightarrow> nat" where "infinite S" "bij_betw f S UNIV"
+  using ex_bij_betw_finite_nat[of S] countableE_infinite `countable S`
+  by (cases "finite S") (auto simp add: atLeast0LessThan)
+
+definition to_nat_on :: "'a set \<Rightarrow> 'a \<Rightarrow> nat" where
+  "to_nat_on S = (SOME f. if finite S then bij_betw f S {..< card S} else bij_betw f S UNIV)"
+
+definition from_nat_into :: "'a set \<Rightarrow> nat \<Rightarrow> 'a" where
+  "from_nat_into S = inv_into S (to_nat_on S)"
+
+lemma to_nat_on_finite: "finite S \<Longrightarrow> bij_betw (to_nat_on S) S {..< card S}"
+  using ex_bij_betw_finite_nat unfolding to_nat_on_def
+  by (intro someI2_ex[where Q="\<lambda>f. bij_betw f S {..<card S}"]) (auto simp add: atLeast0LessThan)
+
+lemma to_nat_on_infinite: "countable S \<Longrightarrow> infinite S \<Longrightarrow> bij_betw (to_nat_on S) S UNIV"
+  using countableE_infinite unfolding to_nat_on_def
+  by (intro someI2_ex[where Q="\<lambda>f. bij_betw f S UNIV"]) auto
+
+lemma from_nat_into_finite: "finite S \<Longrightarrow> bij_betw (from_nat_into S) {..< card S} S"
+  by (auto simp add: from_nat_into_def intro: bij_betw_inv_into to_nat_on_finite)
+
+lemma from_nat_into_infinite: "countable S \<Longrightarrow> infinite S \<Longrightarrow> bij_betw (from_nat_into S) UNIV S"
+  by (auto simp add: from_nat_into_def intro: bij_betw_inv_into to_nat_on_infinite)
+
+lemma inj_on_to_nat_on[intro]: "countable A \<Longrightarrow> inj_on (to_nat_on A) A"
+  using to_nat_on_infinite[of A] to_nat_on_finite[of A]
+  by (cases "finite A") (auto simp: bij_betw_def)
+
+lemma to_nat_on_inj[simp]:
+  "countable A \<Longrightarrow> a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> to_nat_on A a = to_nat_on A b \<longleftrightarrow> a = b"
+  using inj_on_to_nat_on[of A] by (auto dest: inj_onD)
+
+lemma from_nat_into_to_nat_on: "countable A \<Longrightarrow> a \<in> A \<Longrightarrow> from_nat_into A (to_nat_on A a) = a"
+  by (auto simp: from_nat_into_def intro!: inv_into_f_f)
+
+lemma subset_range_from_nat_into: "countable A \<Longrightarrow> A \<subseteq> range (from_nat_into A)"
+  by (auto intro: from_nat_into_to_nat_on[symmetric])
+
+subsection {* Closure properties of countability *}
+
+lemma countable_SIGMA[intro, simp]:
+  "countable I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (A i)) \<Longrightarrow> countable (SIGMA i : I. A i)"
+  by (intro countableI'[of "\<lambda>(i, a). (to_nat_on I i, to_nat_on (A i) a)"]) (auto simp: inj_on_def)
+
+lemma countable_image[intro, simp]: assumes A: "countable A" shows "countable (f`A)"
+proof -
+  from A guess g by (rule countableE)
+  moreover have "inj_on (inv_into A f) (f`A)" "inv_into A f ` f ` A \<subseteq> A"
+    by (auto intro: inj_on_inv_into inv_into_into)
+  ultimately show ?thesis
+    by (blast dest: comp_inj_on subset_inj_on intro: countableI)
+qed
+
+lemma countable_UN[intro, simp]:
+  fixes I :: "'i set" and A :: "'i => 'a set"
+  assumes I: "countable I"
+  assumes A: "\<And>i. i \<in> I \<Longrightarrow> countable (A i)"
+  shows "countable (\<Union>i\<in>I. A i)"
+proof -
+  have "(\<Union>i\<in>I. A i) = snd ` (SIGMA i : I. A i)" by (auto simp: image_iff)
+  then show ?thesis by (simp add: assms)
+qed
+
+lemma countable_Un[intro]: "countable A \<Longrightarrow> countable B \<Longrightarrow> countable (A \<union> B)"
+  by (rule countable_UN[of "{True, False}" "\<lambda>True \<Rightarrow> A | False \<Rightarrow> B", simplified])
+     (simp split: bool.split)
+
+lemma countable_Un_iff[simp]: "countable (A \<union> B) \<longleftrightarrow> countable A \<and> countable B"
+  by (metis countable_Un countable_subset inf_sup_ord(3,4))
+
+lemma countable_Plus[intro, simp]:
+  "countable A \<Longrightarrow> countable B \<Longrightarrow> countable (A <+> B)"
+  by (simp add: Plus_def)
+
+lemma countable_empty[intro, simp]: "countable {}"
+  by (blast intro: countable_finite)
+
+lemma countable_insert[intro, simp]: "countable A \<Longrightarrow> countable (insert a A)"
+  using countable_Un[of "{a}" A] by (auto simp: countable_finite)
+
+lemma countable_Int1[intro, simp]: "countable A \<Longrightarrow> countable (A \<inter> B)"
+  by (force intro: countable_subset)
+
+lemma countable_Int2[intro, simp]: "countable B \<Longrightarrow> countable (A \<inter> B)"
+  by (blast intro: countable_subset)
+
+lemma countable_INT[intro, simp]: "i \<in> I \<Longrightarrow> countable (A i) \<Longrightarrow> countable (\<Inter>i\<in>I. A i)"
+  by (blast intro: countable_subset)
+
+lemma countable_Diff[intro, simp]: "countable A \<Longrightarrow> countable (A - B)"
+  by (blast intro: countable_subset)
+
+lemma countable_vimage: "B \<subseteq> range f \<Longrightarrow> countable (f -` B) \<Longrightarrow> countable B"
+  by (metis Int_absorb2 assms countable_image image_vimage_eq)
+
+lemma surj_countable_vimage: "surj f \<Longrightarrow> countable (f -` B) \<Longrightarrow> countable B"
+  by (metis countable_vimage top_greatest)
+
+lemma countable_lists[intro, simp]:
+  assumes A: "countable A" shows "countable (lists A)"
+proof -
+  have "countable (lists (range (from_nat_into A)))"
+    by (auto simp: lists_image)
+  with A show ?thesis
+    by (auto dest: subset_range_from_nat_into countable_subset lists_mono)
+qed
+
+subsection {* Misc lemmas *}
+
+lemma countable_all:
+  assumes S: "countable S"
+  shows "(\<forall>s\<in>S. P s) \<longleftrightarrow> (\<forall>n::nat. from_nat_into S n \<in> S \<longrightarrow> P (from_nat_into S n))"
+  using S[THEN subset_range_from_nat_into] by auto
+
+end

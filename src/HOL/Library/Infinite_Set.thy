@@ -568,6 +568,77 @@ lemma enumerate_mono: "m<n \<Longrightarrow> infinite S \<Longrightarrow> enumer
   done
 
 
+lemma le_enumerate:
+  assumes S: "infinite S"
+  shows "n \<le> enumerate S n"
+  using S 
+proof (induct n)
+  case (Suc n)
+  then have "n \<le> enumerate S n" by simp
+  also note enumerate_mono[of n "Suc n", OF _ `infinite S`]
+  finally show ?case by simp
+qed simp
+
+lemma enumerate_Suc'':
+  fixes S :: "'a::wellorder set"
+  shows "infinite S  \<Longrightarrow> enumerate S (Suc n) = (LEAST s. s \<in> S \<and> enumerate S n < s)"
+proof (induct n arbitrary: S)
+  case 0
+  then have "\<forall>s\<in>S. enumerate S 0 \<le> s"
+    by (auto simp: enumerate.simps intro: Least_le)
+  then show ?case
+    unfolding enumerate_Suc' enumerate_0[of "S - {enumerate S 0}"]
+    by (intro arg_cong[where f=Least] ext) auto
+next
+  case (Suc n S)
+  show ?case
+    using enumerate_mono[OF zero_less_Suc `infinite S`, of n] `infinite S`
+    apply (subst (1 2) enumerate_Suc')
+    apply (subst Suc)
+    apply (insert `infinite S`, simp)
+    by (intro arg_cong[where f=Least] ext)
+       (auto simp: enumerate_Suc'[symmetric])
+qed
+
+lemma enumerate_Ex:
+  assumes S: "infinite (S::nat set)"
+  shows "s \<in> S \<Longrightarrow> \<exists>n. enumerate S n = s"
+proof (induct s rule: less_induct)
+  case (less s)
+  show ?case
+  proof cases
+    let ?y = "Max {s'\<in>S. s' < s}"
+    assume "\<exists>y\<in>S. y < s"
+    then have y: "\<And>x. ?y < x \<longleftrightarrow> (\<forall>s'\<in>S. s' < s \<longrightarrow> s' < x)" by (subst Max_less_iff) auto
+    then have y_in: "?y \<in> {s'\<in>S. s' < s}" by (intro Max_in) auto
+    with less.hyps[of ?y] obtain n where "enumerate S n = ?y" by auto
+    with S have "enumerate S (Suc n) = s"
+      by (auto simp: y less enumerate_Suc'' intro!: Least_equality)
+    then show ?case by auto
+  next
+    assume *: "\<not> (\<exists>y\<in>S. y < s)"
+    then have "\<forall>t\<in>S. s \<le> t" by auto
+    with `s \<in> S` show ?thesis
+      by (auto intro!: exI[of _ 0] Least_equality simp: enumerate_0)
+  qed
+qed
+
+lemma bij_enumerate:
+  fixes S :: "nat set"
+  assumes S: "infinite S"
+  shows "bij_betw (enumerate S) UNIV S"
+proof -
+  have "\<And>n m. n \<noteq> m \<Longrightarrow> enumerate S n \<noteq> enumerate S m"
+    using enumerate_mono[OF _ `infinite S`] by (auto simp: neq_iff)
+  then have "inj (enumerate S)"
+    by (auto simp: inj_on_def)
+  moreover have "\<forall>s\<in>S. \<exists>i. enumerate S i = s"
+    using enumerate_Ex[OF S] by auto
+  moreover note `infinite S`
+  ultimately show ?thesis
+    unfolding bij_betw_def by (auto intro: enumerate_in_set)
+qed
+
 subsection "Miscellaneous"
 
 text {*
