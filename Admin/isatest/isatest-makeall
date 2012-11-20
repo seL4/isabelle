@@ -47,7 +47,7 @@ function fail()
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
 # build args and nice setup for different target platforms
-BUILD_ARGS="-v"
+BUILD_ARGS="-v -o timeout=3600"
 NICE="nice"
 case $HOSTNAME in
     macbroy2 | macbroy6 | macbroy30)
