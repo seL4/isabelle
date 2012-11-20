@@ -208,8 +208,8 @@ object Symbol
   {
     /* read symbols */
 
-    private val empty = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
-    private val key = new Regex("""(?xs) (.+): """)
+    private val No_Decl = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
+    private val Key = new Regex("""(?xs) (.+): """)
 
     private def read_decl(decl: String): (Symbol, Map[String, String]) =
     {
@@ -220,7 +220,7 @@ object Symbol
         props match {
           case Nil => Map()
           case _ :: Nil => err()
-          case key(x) :: y :: rest => read_props(rest) + (x -> y)
+          case Key(x) :: y :: rest => read_props(rest) + (x -> y)
           case _ => err()
         }
       }
@@ -231,9 +231,14 @@ object Symbol
     }
 
     private val symbols: List[(Symbol, Map[String, String])] =
-      Map((
-        for (decl <- split_lines(symbols_spec) if !empty.pattern.matcher(decl).matches)
-          yield read_decl(decl)): _*).toList
+      (((List.empty[(Symbol, Map[String, String])], Set.empty[Symbol]) /:
+          split_lines(symbols_spec).reverse)
+        { case (res, No_Decl()) => res
+          case ((list, known), decl) =>
+            val (sym, props) = read_decl(decl)
+            if (known(sym)) (list, known)
+            else ((sym, props) :: list, known + sym)
+        })._1
 
 
     /* misc properties */
@@ -243,6 +248,11 @@ object Symbol
       val name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
+
+    val groups: List[(String, List[Symbol])] =
+      symbols.map({ case (sym, props) => (sym, props.get("group") getOrElse "other") })
+        .groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
+        .sortBy(_._1)
 
     val abbrevs: Map[Symbol, String] =
       Map((
@@ -365,6 +375,7 @@ object Symbol
   /* tables */
 
   def names: Map[Symbol, String] = symbols.names
+  def groups: List[(String, List[Symbol])] = symbols.groups
   def abbrevs: Map[Symbol, String] = symbols.abbrevs
 
   def decode(text: String): String = symbols.decode(text)
@@ -389,8 +400,6 @@ object Symbol
 
   private def raw_symbolic(sym: Symbol): Boolean =
     sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
-
-
 
 
   /* control symbols */

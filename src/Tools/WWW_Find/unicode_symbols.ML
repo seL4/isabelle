@@ -22,7 +22,7 @@ local (* Lexer *)
 open Basic_Symbol_Pos
 
 val keywords =
-  Scan.make_lexicon (map Symbol.explode ["code", "font", "abbrev", ":"]);
+  Scan.make_lexicon (map Symbol.explode ["code", "group", "font", "abbrev", ":"]);
 
 datatype token_kind =
   Symbol | AsciiSymbol | Keyword | Name | Code | Space | Comment | EOF;
@@ -128,13 +128,15 @@ val symbol = Scan.one is_symbol >> (fn t => (str_of_token t, pos_of_token t));
 val name = Scan.one is_name >> str_of_token;
 
 val unicode = $$$ "code" -- $$$ ":" |-- hex_code;
+val group = Scan.option ($$$ "group" -- $$$ ":" |-- name);
 val font = Scan.option ($$$ "font" -- $$$ ":" |-- name);
 val abbr = Scan.option ($$$ "abbrev" -- $$$ ":"
                         |-- (ascii_sym || $$$ ":" || name));
 
 in
 
-val line = (symbol -- unicode -- font -- abbr) >> (fn (((a, b), c), d) => (a, b, d));
+val line = (symbol -- unicode -- group -- font -- abbr)
+  >> (fn ((((a, b), _), _), c) => (a, b, c));
 
 end;
 
