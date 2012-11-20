@@ -1,17 +1,17 @@
 (*  Title:      Tools/WWW_Find/unicode_symbols.ML
     Author:     Timothy Bourke, NICTA
 
-Parse the ISABELLE_HOME/etc/symbols file.
+Ad-hoc parsing of ~~/etc/symbols.
 *)
 
 signature UNICODE_SYMBOLS =
 sig
-val symbol_to_unicode : string -> int option
-val abbrev_to_unicode : string -> int option
-val unicode_to_symbol : int -> string option
-val unicode_to_abbrev : int -> string option
-val utf8_to_symbols   : string -> string
-val utf8              : int list -> string
+  val symbol_to_unicode : string -> int option
+  val abbrev_to_unicode : string -> int option
+  val unicode_to_symbol : int -> string option
+  val unicode_to_abbrev : int -> string option
+  val utf8_to_symbols : string -> string
+  val utf8 : int list -> string
 end;
 
 structure UnicodeSymbols : UNICODE_SYMBOLS =
@@ -134,7 +134,7 @@ val abbr = Scan.option ($$$ "abbrev" -- $$$ ":"
 
 in
 
-val line = (symbol -- unicode --| font -- abbr) >> Parse.triple1;
+val line = (symbol -- unicode -- font -- abbr) >> (fn (((a, b), c), d) => (a, b, d));
 
 end;
 
