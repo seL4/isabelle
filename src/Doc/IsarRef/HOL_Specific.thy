@@ -1739,6 +1739,90 @@ text {*
 *}
 
 
+section {* Algebraic reasoning via Gr\"obner bases *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "algebra"} & : & @{text method} \\
+    @{attribute_def (HOL) algebra} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    @@{method (HOL) algebra}
+      ('add' ':' @{syntax thmrefs})?
+      ('del' ':' @{syntax thmrefs})?
+    ;
+    @@{attribute (HOL) algebra} (() | 'add' | 'del')
+  "}
+
+  \begin{description}
+
+  \item @{method (HOL) algebra} performs algebraic reasoning via
+  Gr\"obner bases, see also \cite{Chaieb-Wenzel:2007} and
+  \cite[\S3.2]{Chaieb-thesis}. The method handles deals with two main
+  classes of problems:
+
+  \begin{enumerate}
+
+  \item Universal problems over multivariate polynomials in a
+  (semi)-ring/field/idom; the capabilities of the method are augmented
+  according to properties of these structures. For this problem class
+  the method is only complete for algebraically closed fields, since
+  the underlying method is based on Hilbert's Nullstellensatz, where
+  the equivalence only holds for algebraically closed fields.
+
+  The problems can contain equations @{text "p = 0"} or inequations
+  @{text "q \<noteq> 0"} anywhere within a universal problem statement.
+
+  \item All-exists problems of the following restricted (but useful)
+  form:
+
+  @{text [display] "\<forall>x\<^sub>1 \<dots> x\<^sub>n.
+    e\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) = 0 \<and> \<dots> \<and> e\<^sub>m(x\<^sub>1, \<dots>, x\<^sub>n) = 0 \<longrightarrow>
+    (\<exists>y\<^sub>1 \<dots> y\<^sub>k.
+      p\<^sub>1\<^sub>1(x\<^sub>1, \<dots> ,x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>1\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0 \<and>
+      \<dots> \<and>
+      p\<^sub>t\<^sub>1(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>1 + \<dots> + p\<^sub>t\<^sub>k(x\<^sub>1, \<dots>, x\<^sub>n) * y\<^sub>k = 0)"}
+
+  Here @{text "e\<^sub>1, \<dots>, e\<^sub>n"} and the @{text "p\<^sub>i\<^sub>j"} are multivariate
+  polynomials only in the variables mentioned as arguments.
+
+  \end{enumerate}
+
+  The proof method is preceded by a simplification step, which may be
+  modified by using the form @{text "(algebra add: ths\<^sub>1 del: ths\<^sub>2)"}.
+  This acts like declarations for the Simplifier
+  (\secref{sec:simplifier}) on a private simpset for this tool.
+
+  \item @{attribute algebra} (as attribute) manages the default
+  collection of pre-simplification rules of the above proof method.
+
+  \end{description}
+*}
+
+
+subsubsection {* Example *}
+
+text {* The subsequent example is from geometry: collinearity is
+  invariant by rotation.  *}
+
+type_synonym point = "int \<times> int"
+
+fun collinear :: "point \<Rightarrow> point \<Rightarrow> point \<Rightarrow> bool" where
+  "collinear (Ax, Ay) (Bx, By) (Cx, Cy) \<longleftrightarrow>
+    (Ax - Bx) * (By - Cy) = (Ay - By) * (Bx - Cx)"
+
+lemma collinear_inv_rotation:
+  assumes "collinear (Ax, Ay) (Bx, By) (Cx, Cy)" and "c\<twosuperior> + s\<twosuperior> = 1"
+  shows "collinear (Ax * c - Ay * s, Ay * c + Ax * s)
+    (Bx * c - By * s, By * c + Bx * s) (Cx * c - Cy * s, Cy * c + Cx * s)"
+  using assms by (algebra add: collinear.simps)
+
+text {*
+ See also @{"file" "~~/src/HOL/ex/Groebner_Examples.thy"}.
+*}
+
+
 section {* Coherent Logic *}
 
 text {*
