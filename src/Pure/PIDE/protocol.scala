@@ -141,7 +141,7 @@ object Protocol
 
   /* specific messages */
 
- def is_tracing(msg: XML.Tree): Boolean =
+  def is_tracing(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => true
       case XML.Elem(Markup(Isabelle_Markup.TRACING_MESSAGE, _), _) => true
@@ -186,6 +186,7 @@ object Protocol
       val range = command.decode(raw_range).restrict(command.range)
       body.foldLeft(if (range.is_singularity) set else set + range)(positions)
     }
+
     def positions(set: Set[Text.Range], tree: XML.Tree): Set[Text.Range] =
       tree match {
         case XML.Wrapped_Elem(Markup(name, Position.Id_Range(id, range)), _, body)
@@ -200,6 +201,7 @@ object Protocol
 
         case _ => set
       }
+
     val set = positions(Set.empty, message)
     if (set.isEmpty && !is_state(message))
       set ++ Position.Range.unapply(message.markup.properties).map(command.decode(_))
