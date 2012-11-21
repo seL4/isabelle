@@ -49,6 +49,7 @@ session "HOL-Library" in Library = HOL +
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
     Code_Target_Numeral
+    IArray
     Refute
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
@@ -484,6 +485,7 @@ session "HOL-ex" in ex = HOL +
     FinFunPred
     Set_Comprehension_Pointfree_Tests
     Parallel_Example
+    IArray_Examples
   theories SVC_Oracle
   theories [condition = SVC_HOME]
     svc_test

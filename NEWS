@@ -212,6 +212,8 @@ another parameter avoids unnecessary closures in generated code.
 from sorted associative lists. Merging two trees with rbt_union may
 return a structurally different tree than before. MINOR INCOMPATIBILITY.
 
+* Library/IArray.thy: immutable arrays with code generation.
+
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
