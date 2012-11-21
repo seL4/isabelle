@@ -47,7 +47,7 @@ function fail()
 [ -d $DISTPREFIX ] || fail "$DISTPREFIX is not a directory."
 
 # build args and nice setup for different target platforms
-BUILD_ARGS="-v -o timeout=3600"
+BUILD_ARGS="-v"
 NICE="nice"
 case $HOSTNAME in
     macbroy2 | macbroy6 | macbroy30)
@@ -84,6 +84,15 @@ log "starting [$@]"
 for SETTINGS in $@; do
 
     [ -r $SETTINGS ] || fail "Cannot read $SETTINGS."
+
+    case "$SETTINGS" in
+      *sml*)
+        BUILD_ARGS="-o timeout=36000 $BUILD_ARGS"
+        ;;
+      *)
+        BUILD_ARGS="-o timeout=3600 $BUILD_ARGS"
+        ;;
+    esac
 
     # logfile setup
 
