@@ -37,6 +37,11 @@
 			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.symbols-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-symbols");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.input-sub">
 	  <CODE>
 	    isabelle.jedit.Isabelle.input_sub(textArea);

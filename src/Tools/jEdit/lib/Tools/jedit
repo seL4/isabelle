@@ -35,6 +35,7 @@ declare -a SOURCES=(
   "src/scala_console.scala"
   "src/sendback.scala"
   "src/session_dockable.scala"
+  "src/symbols_dockable.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"
   "src/token_markup.scala"
