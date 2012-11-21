@@ -39,11 +39,11 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   val group_tabs = new TabbedPane {
     pages ++= (for ((group, symbols) <- Symbol.groups) yield
       {
-        new TabbedPane.Page(if (group == "") "Other" else group,
+        new TabbedPane.Page(group,
           new FlowPanel { contents ++= symbols map (new Symbol_Component(_)) },
-          ("" /: (symbols take 10 map Symbol.decode))(_ + _ + " "))
-      }).toList.sortWith(_.title.toUpperCase <= _.title.toUpperCase)
-    pages += new TabbedPane.Page("Search", new BorderPanel {
+          (symbols take 10 map Symbol.decode).mkString(" "))
+      }).toList.sortWith(_.title <= _.title)
+    pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
       val results_panel = new FlowPanel
       add(search, BorderPanel.Position.North)
@@ -65,6 +65,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         }
       }
     }, "Search Symbols")
+    pages map (p => p.title = (space_explode('_', p.title) map Library.capitalize).mkString(" ") )
   }
   set_content(group_tabs)
 }
