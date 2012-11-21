@@ -198,6 +198,14 @@ non-free datatypes.
 * HOL/Cardinals: Theories of ordinals and cardinals
 (supersedes the AFP entry "Ordinals_and_Cardinals").
 
+* HOL/Probability:
+  - Add simproc "measurable" to automatically prove measurability
+
+  - Add induction rules for sigma sets with disjoint union (sigma_sets_induct_disjoint)
+    and for Borel-measurable functions (borel_measurable_induct).
+
+  - The Daniell-Kolmogorov theorem (the existence the limit of a projective family)
+
 * Library/Countable_Set.thy: Theory of countable sets.
 
 * Library/Debug.thy and Library/Parallel.thy: debugging and parallel
