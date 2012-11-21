@@ -16,7 +16,7 @@ imports
   BNF_GFP
   "~~/src/HOL/Quotient_Examples/FSet"
   "~~/src/HOL/Library/Multiset"
-  Countable_Set
+  Countable_Type
 begin
 
 lemma option_rec_conv_option_case: "option_rec = option_case"
@@ -478,7 +478,7 @@ unfolding fset_rel_def set_rel_def by auto
 lemma card_of_countable_sets_range:
 fixes A :: "'a set"
 shows "|{X. X \<subseteq> A \<and> countable X \<and> X \<noteq> {}}| \<le>o |{f::nat \<Rightarrow> 'a. range f \<subseteq> A}|"
-apply(rule card_of_ordLeqI[of fromNat]) using inj_on_fromNat
+apply(rule card_of_ordLeqI[of from_nat_into]) using inj_on_from_nat_into
 unfolding inj_on_def by auto
 
 lemma card_of_countable_sets_Func:
@@ -592,7 +592,7 @@ next
 next
   show "cinfinite natLeq" by (rule natLeq_cinfinite)
 next
-  fix C show "|rcset C| \<le>o natLeq" using rcset unfolding countable_def .
+  fix C show "|rcset C| \<le>o natLeq" using rcset unfolding countable_card_le_natLeq .
 next
   fix A :: "'a set"
   have "|{Z. rcset Z \<subseteq> A}| \<le>o |acset ` {X. X \<subseteq> A \<and> countable X}|"
