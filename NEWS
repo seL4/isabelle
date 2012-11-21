@@ -201,6 +201,23 @@ non-free datatypes.
 * Library/Debug.thy and Library/Parallel.thy: debugging and parallel
 execution for code generated towards Isabelle/ML.
 
+* Library/FuncSet.thy: Extended support for Pi and extensional and introduce the
+extensional dependent function space "PiE". Replaces extensional_funcset by an
+abbreviation, rename a couple of lemmas from extensional_funcset to PiE:
+
+      extensional_empty ~> PiE_empty
+      extensional_funcset_empty_domain ~> PiE_empty_domain
+      extensional_funcset_empty_range ~> PiE_empty_range
+      extensional_funcset_arb ~> PiE_arb
+      extensional_funcset_mem > PiE_mem
+      extensional_funcset_extend_domainI ~> PiE_fun_upd
+      extensional_funcset_restrict_domain ~> fun_upd_in_PiE
+      extensional_funcset_extend_domain_eq ~> PiE_insert_eq
+      card_extensional_funcset ~> card_PiE
+      finite_extensional_funcset ~> finite_PiE
+
+  INCOMPATIBUILITY.
+
 * Library/FinFun.thy: theory of almost everywhere constant functions
 (supersedes the AFP entry "Code Generation for Functions as Data").
 
