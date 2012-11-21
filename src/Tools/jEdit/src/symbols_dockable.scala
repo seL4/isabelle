@@ -40,8 +40,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
     pages ++= (for ((group, symbols) <- Symbol.groups) yield
       {
         new TabbedPane.Page(group,
-          new FlowPanel { contents ++= symbols map (new Symbol_Component(_)) },
-          (symbols take 10 map Symbol.decode).mkString(" "))
+          new FlowPanel { contents ++= symbols map (new Symbol_Component(_)) })
       }).toList.sortWith(_.title <= _.title)
     pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
