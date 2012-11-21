@@ -204,8 +204,8 @@
 \<rbrace>               code: 0x002984  group: punctuation  abbrev: .}
 \<guillemotleft>        code: 0x0000ab  group: punctuation  abbrev: <<
 \<guillemotright>       code: 0x0000bb  group: punctuation  abbrev: >>
-\<bottom>               code: 0x0022a5  group: arrow
-\<top>                  code: 0x0022a4  group: arrow
+\<bottom>               code: 0x0022a5  group: operator
+\<top>                  code: 0x0022a4  group: operator
 \<and>                  code: 0x002227  group: operator  abbrev: /\
 \<And>                  code: 0x0022c0  group: operator  abbrev: !!
 \<or>                   code: 0x002228  group: operator  abbrev: \/
