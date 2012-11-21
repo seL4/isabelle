@@ -30,7 +30,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   {
     val dec = Symbol.decode(symbol)
     font =
-      new Font(Isabelle.font_family(), Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
+      new Font(Isabelle.font_family(),
+        Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
     action = Action(dec) { view.getTextArea.setSelectedText(dec); view.getTextArea.requestFocus }
     tooltip = symbol + " - " + get_name(dec)
   }
