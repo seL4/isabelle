@@ -198,6 +198,8 @@ non-free datatypes.
 * HOL/Cardinals: Theories of ordinals and cardinals
 (supersedes the AFP entry "Ordinals_and_Cardinals").
 
+* Library/Countable_Set.thy: Theory of countable sets.
+
 * Library/Debug.thy and Library/Parallel.thy: debugging and parallel
 execution for code generated towards Isabelle/ML.
 
