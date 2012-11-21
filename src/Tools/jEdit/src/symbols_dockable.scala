@@ -33,7 +33,9 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       new Font(Symbol.fonts.getOrElse(symbol, Isabelle.font_family()),
         Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
     action = Action(dec) { view.getTextArea.setSelectedText(dec); view.getTextArea.requestFocus }
-    tooltip = symbol + " - " + get_name(dec)
+    tooltip = symbol +
+      (if (Symbol.abbrevs.isDefinedAt(symbol)) " abbrev: " + Symbol.abbrevs(symbol) else "") +
+      " - " + get_name(dec)
   }
 
   val group_tabs: TabbedPane = new TabbedPane {
