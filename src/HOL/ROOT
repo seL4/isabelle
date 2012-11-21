@@ -793,7 +793,7 @@ session "HOL-Mutabelle" in Mutabelle = HOL +
   theories MutabelleExtra
 
 session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
-  options [timeout = 3600, document = false]
+  options [timeout = 5400, document = false]
   theories
     Quickcheck_Examples
   (* FIXME
