@@ -1,7 +1,8 @@
 /*  Title:      Tools/jEdit/src/pretty_text_area.scala
     Author:     Makarius
 
-GUI component for pretty-printed with markup, rendered like jEdit text area.
+GUI component for pretty-printed text with markup, rendered like jEdit
+text area.
 */
 
 package isabelle.jedit
