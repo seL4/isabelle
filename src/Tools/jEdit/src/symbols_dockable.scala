@@ -17,11 +17,11 @@ import scala.swing.{Action, Button, FlowPanel, TabbedPane, TextField, BorderPane
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-
   private val max_results = 50
 
-  val searchspace = for (val (group, symbols) <- Symbol.groups; val sym <- symbols)
-    yield (sym, (sym.toLowerCase + get_name(Symbol.decode(sym)).toLowerCase))
+  val searchspace =
+    for ((group, symbols) <- Symbol.groups; sym <- symbols)
+      yield (sym, (sym.toLowerCase + get_name(Symbol.decode(sym)).toLowerCase))
 
   def get_name(c: String): String =
     if (c.length >= 1) Character.getName(c.codePointAt(0)) else "??"
@@ -36,7 +36,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   }
 
   val group_tabs = new TabbedPane {
-    pages ++= (for (val (group, symbols) <- Symbol.groups) yield
+    pages ++= (for ((group, symbols) <- Symbol.groups) yield
       {
         new TabbedPane.Page(if (group == "") "Other" else group,
           new FlowPanel { contents ++= symbols map (new Symbol_Component(_)) },
