@@ -40,6 +40,9 @@ sig
   val marks_str: Markup.T list * string -> T
   val command: string -> T
   val keyword: string -> T
+  val text: string -> T list
+  val paragraph: T list -> T
+  val para: string -> T
   val markup_chunks: Markup.T -> T list -> T
   val chunks: T list -> T
   val chunks2: T list -> T
@@ -155,6 +158,10 @@ fun marks_str (ms, s) = fold_rev mark ms (str s);
 
 fun command name = mark_str (Isabelle_Markup.keyword1, name);
 fun keyword name = mark_str (Isabelle_Markup.keyword2, name);
+
+val text = breaks o map str o Symbol.explode_words;
+val paragraph = markup Isabelle_Markup.paragraph;
+val para = paragraph o text;
 
 fun markup_chunks m prts = markup m (fbreaks prts);
 val chunks = markup_chunks Markup.empty;

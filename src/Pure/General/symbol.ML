@@ -56,6 +56,8 @@ sig
   val scan_id: string list -> string * string list
   val source: (string, 'a) Source.source -> (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
+  val split_words: symbol list -> string list
+  val explode_words: string -> string list
   val esc: symbol -> string
   val escape: string -> string
   val strip_blanks: string -> string
@@ -170,7 +172,7 @@ fun encode_raw "" = ""
         val raw0 = enclose "\\<^raw:" ">";
         val raw1 = raw0 o implode;
         val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
-    
+
         fun encode cs = enc (take_prefix raw_chr cs)
         and enc ([], []) = []
           | enc (cs, []) = [raw1 cs]
@@ -399,13 +401,13 @@ fun is_ident [] = false
 
 (* scanning through symbols *)
 
-fun scanner msg scan chs =
+fun scanner msg scan syms =
   let
-    fun message (cs, NONE) = (fn () => msg ^ ": " ^ quote (beginning 10 cs))
-      | message (cs, SOME msg') = (fn () => msg ^ ", " ^ msg' () ^ ": " ^ quote (beginning 10 cs));
-    val fin_scan = Scan.error (Scan.finite stopper (!! message scan));
+    fun message (ss, NONE) = (fn () => msg ^ ": " ^ quote (beginning 10 ss))
+      | message (ss, SOME msg') = (fn () => msg ^ ", " ^ msg' () ^ ": " ^ quote (beginning 10 ss));
+    val finite_scan = Scan.error (Scan.finite stopper (!! message scan));
   in
-    (case fin_scan chs of
+    (case finite_scan syms of
       (result, []) => result
     | (_, rest) => error (message (rest, NONE) ()))
   end;
@@ -468,6 +470,17 @@ fun sym_explode str =
   end;
 
 end;
+
+
+(* space-separated words *)
+
+val scan_word =
+  Scan.many1 is_ascii_blank >> K NONE ||
+  Scan.many1 (fn s => not (is_ascii_blank s) andalso not_eof s) >> (SOME o implode);
+
+val split_words = scanner "Bad text" (Scan.repeat scan_word >> map_filter I);
+
+val explode_words = split_words o sym_explode;
 
 
 (* escape *)
