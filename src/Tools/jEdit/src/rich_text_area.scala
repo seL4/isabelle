@@ -136,7 +136,7 @@ class Rich_Text_Area(
   private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.highlight _)
   private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
   private val sendback_area =
-    new Active_Area[Document.Exec_ID]((r: Isabelle_Rendering) => r.sendback _)
+    new Active_Area[Option[Document.Exec_ID]]((r: Isabelle_Rendering) => r.sendback _)
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (sendback_area, false))

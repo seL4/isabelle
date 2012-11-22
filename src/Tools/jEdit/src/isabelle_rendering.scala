@@ -245,11 +245,11 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   }
 
 
-  def sendback(range: Text.Range): Option[Text.Info[Document.Exec_ID]] =
+  def sendback(range: Text.Range): Option[Text.Info[Option[Document.Exec_ID]]] =
     snapshot.select_markup(range, Some(Set(Isabelle_Markup.SENDBACK)),
         {
-          case Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, Position.Id(id)), _)) =>
-            Text.Info(snapshot.convert(info_range), id)
+          case Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, props), _)) =>
+            Text.Info(snapshot.convert(info_range), Position.Id.unapply(props))
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
 

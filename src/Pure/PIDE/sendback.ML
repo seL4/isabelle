@@ -9,6 +9,7 @@ signature SENDBACK =
 sig
   val make_markup: unit -> Markup.T
   val markup: string -> string
+  val markup_implicit: string -> string
 end;
 
 structure Sendback: SENDBACK =
@@ -23,6 +24,8 @@ fun make_markup () =
   in Markup.properties props Isabelle_Markup.sendback end;
 
 fun markup s = Markup.markup (make_markup ()) s;
+
+val markup_implicit = Markup.markup Isabelle_Markup.sendback;
 
 end;
 

@@ -14,7 +14,7 @@ import org.gjt.sp.jedit.View
 
 object Sendback
 {
-  def activate(view: View, text: String, exec_id: Document.Exec_ID)
+  def activate(view: View, text: String, id: Option[Document.Exec_ID])
   {
     Swing_Thread.require()
 
@@ -25,19 +25,28 @@ object Sendback
           val buffer = model.buffer
           val snapshot = model.snapshot()
 
-          snapshot.state.execs.get(exec_id).map(_.command) match {
-            case Some(command) if !snapshot.is_outdated =>
-              snapshot.node.command_start(command) match {
-                case Some(start) =>
-                  try {
-                    buffer.beginCompoundEdit()
-                    buffer.remove(start, command.proper_range.length)
-                    buffer.insert(start, text)
-                  }
-                  finally { buffer.endCompoundEdit() }
-                case None =>
-              }
-            case _ =>
+          if (!snapshot.is_outdated) {
+            id match {
+              case None =>
+                doc_view.text_area.setSelectedText(text)
+              case Some(exec_id) =>
+                snapshot.state.execs.get(exec_id).map(_.command) match {
+                  case Some(command) =>
+                    snapshot.node.command_start(command) match {
+                      case Some(start) =>
+                        try {
+                          buffer.beginCompoundEdit()
+                          buffer.remove(start, command.proper_range.length)
+                          buffer.insert(start, text)
+                        }
+                        finally {
+                          buffer.endCompoundEdit()
+                        }
+                      case None =>
+                    }
+                  case None =>
+                }
+            }
           }
         }
       case None =>
