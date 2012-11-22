@@ -115,6 +115,7 @@ class Pretty_Tooltip(
     val w = (font_metrics.charWidth(Pretty.spc) * (margin + 2)) min (screen.width / 2)
     val h = (font_metrics.getHeight * (lines + 2)) min (screen.height / 2)
     pretty_text_area.setPreferredSize(new Dimension(w, h))
+    window.pack
   }
 
   {
@@ -128,7 +129,6 @@ class Pretty_Tooltip(
   }
 
   window.setVisible(true)
-  window.pack
   pretty_text_area.refresh()
 }
 
