@@ -11,91 +11,8 @@ theory Projective_Limit
     Regularity
     Projective_Family
     Infinite_Product_Measure
+    "~~/src/HOL/Library/Countable_Set"
 begin
-
-subsection {* Enumeration of Countable Union of Finite Sets *}
-
-locale finite_set_sequence =
-  fixes Js::"nat \<Rightarrow> 'a set"
-  assumes finite_seq[simp]: "finite (Js n)"
-begin
-
-text {* Enumerate finite set *}
-
-definition "enum_finite_max J = (SOME n. \<exists> f. J = f ` {i. i < n} \<and> inj_on f {i. i < n})"
-
-definition enum_finite where
-  "enum_finite J =
-    (SOME f. J = f ` {i::nat. i < enum_finite_max J} \<and> inj_on f {i. i < enum_finite_max J})"
-
-lemma enum_finite_max:
-  assumes "finite J"
-  shows "\<exists>f::nat\<Rightarrow>_. J = f ` {i. i < enum_finite_max J} \<and> inj_on f {i. i < enum_finite_max J}"
-    unfolding enum_finite_max_def
-    by (rule someI_ex) (rule finite_imp_nat_seg_image_inj_on[OF `finite J`])
-
-lemma enum_finite:
-  assumes "finite J"
-  shows "J = enum_finite J ` {i::nat. i < enum_finite_max J} \<and>
-    inj_on (enum_finite J) {i::nat. i < enum_finite_max J}"
-  unfolding enum_finite_def
-  by (rule someI_ex[of "\<lambda>f. J = f ` {i::nat. i < enum_finite_max J} \<and>
-    inj_on f {i. i < enum_finite_max J}"]) (rule enum_finite_max[OF `finite J`])
-
-lemma in_set_enum_exist:
-  assumes "finite A"
-  assumes "y \<in> A"
-  shows "\<exists>i. y = enum_finite A i"
-  using assms enum_finite by auto
-
-definition set_of_Un where "set_of_Un j = (LEAST n. j \<in> Js n)"
-
-definition index_in_set where "index_in_set J j = (SOME n. j = enum_finite J n)"
-
-definition Un_to_nat where
-  "Un_to_nat j = to_nat (set_of_Un j, index_in_set (Js (set_of_Un j)) j)"
-
-lemma inj_on_Un_to_nat:
-  shows "inj_on Un_to_nat (\<Union>n::nat. Js n)"
-proof (rule inj_onI)
-  fix x y
-  assume "x \<in> (\<Union>n. Js n)" "y \<in> (\<Union>n. Js n)"
-  then obtain ix iy where ix: "x \<in> Js ix" and iy: "y \<in> Js iy" by blast
-  assume "Un_to_nat x = Un_to_nat y"
-  hence "set_of_Un x = set_of_Un y"
-    "index_in_set (Js (set_of_Un y)) y = index_in_set (Js (set_of_Un x)) x"
-    by (auto simp: Un_to_nat_def)
-  moreover
-  {
-    fix x assume "x \<in> Js (set_of_Un x)"
-    have "x = enum_finite (Js (set_of_Un x)) (index_in_set (Js (set_of_Un x)) x)"
-      unfolding index_in_set_def
-      apply (rule someI_ex)
-      using `x \<in> Js (set_of_Un x)` finite_seq
-      apply (auto intro!: in_set_enum_exist)
-      done
-  } note H = this
-  moreover
-  have "y \<in> Js (set_of_Un y)" unfolding set_of_Un_def using iy by (rule LeastI)
-  note H[OF this]
-  moreover
-  have "x \<in> Js (set_of_Un x)" unfolding set_of_Un_def using ix by (rule LeastI)
-  note H[OF this]
-  ultimately show "x = y" by simp
-qed
-
-lemma inj_Un[simp]:
-  shows "inj_on (Un_to_nat) (Js n)"
-  by (intro subset_inj_on[OF inj_on_Un_to_nat]) (auto simp: assms)
-
-lemma Un_to_nat_injectiveD:
-  assumes "Un_to_nat x = Un_to_nat y"
-  assumes "x \<in> Js i" "y \<in> Js j"
-  shows "x = y"
-  using assms
-  by (intro inj_onD[OF inj_on_Un_to_nat]) auto
-
-end
 
 subsection {* Sequences of Finite Maps in Compact Sets *}
 
@@ -246,10 +163,13 @@ proof -
       have "\<And>n. \<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>" unfolding Z_eq using J J_mono
         by (subst \<mu>G_eq) (auto simp: limP_finite proj_sets \<mu>G_eq)
 
-      interpret finite_set_sequence J by unfold_locales simp
-      def Utn \<equiv> Un_to_nat
-      interpret function_to_finmap "J n" Utn "inv_into (J n) Utn" for n
-        by unfold_locales (auto simp: Utn_def)
+      have countable_UN_J: "countable (\<Union>n. J n)" by (simp add: countable_finite)
+      def Utn \<equiv> "to_nat_on (\<Union>n. J n)"
+      interpret function_to_finmap "J n" Utn "from_nat_into (\<Union>n. J n)" for n
+        by unfold_locales (auto simp: Utn_def intro: from_nat_into_to_nat_on[OF countable_UN_J])
+      have inj_on_Utn: "inj_on Utn (\<Union>n. J n)"
+        unfolding Utn_def using countable_UN_J by (rule inj_on_to_nat_on)
+      hence inj_on_Utn_J: "\<And>n. inj_on Utn (J n)" by (rule subset_inj_on) auto
       def P' \<equiv> "\<lambda>n. mapmeasure n (P (J n)) (\<lambda>_. borel)"
       let ?SUP = "\<lambda>n. SUP K : {K. K \<subseteq> fm n ` (B n) \<and> compact K}. emeasure (P' n) K"
       {
@@ -526,8 +446,7 @@ proof -
               moreover
               hence "t \<in> domain (fm i x)" using J_mono[OF `i \<ge> n`] by auto
               ultimately have "(fm i x)\<^isub>F t = (fm n x)\<^isub>F t"
-                using j by (auto simp: proj_fm dest!:
-                  Un_to_nat_injectiveD[simplified Utn_def[symmetric]])
+                using j by (auto simp: proj_fm dest!: inj_onD[OF inj_on_Utn])
             } note index_shift = this
             have I: "\<And>i. i \<ge> n \<Longrightarrow> Suc (diagseq i) \<ge> n"
               apply (rule le_SucI)
@@ -570,7 +489,15 @@ proof -
         have "finmap_of (Utn ` J n) z \<in> K' n"
           unfolding closed_sequential_limits by blast
         also have "finmap_of (Utn ` J n) z  = fm n (\<lambda>i. z (Utn i))"
-          by (auto simp: finmap_eq_iff fm_def compose_def f_inv_into_f)
+          unfolding finmap_eq_iff
+        proof clarsimp
+          fix i assume "i \<in> J n"
+          moreover hence "from_nat_into (\<Union>n. J n) (Utn i) = i"
+            unfolding Utn_def
+            by (subst from_nat_into_to_nat_on[OF countable_UN_J]) auto
+          ultimately show "z (Utn i) = (fm n (\<lambda>i. z (Utn i)))\<^isub>F (Utn i)"
+            by (simp add: finmap_eq_iff fm_def compose_def)
+        qed
         finally have "fm n (\<lambda>i. z (Utn i)) \<in> K' n" .
         moreover
         let ?J = "\<Union>n. J n"
