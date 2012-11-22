@@ -72,38 +72,40 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
   {
     Swing_Thread.require()
 
-    val font = new Font(current_font_family, Font.PLAIN, current_font_size)
-    getPainter.setFont(font)
-    getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
-    getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
+    if (getWidth > 0) {
+      val font = new Font(current_font_family, Font.PLAIN, current_font_size)
+      getPainter.setFont(font)
+      getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
+      getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
-    val font_metrics = getPainter.getFontMetrics(font)
-    val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
+      val font_metrics = getPainter.getFontMetrics(font)
+      val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
 
-    val base_snapshot = current_base_snapshot
-    val formatted_body = Pretty.formatted(current_body, margin, Pretty.font_metric(font_metrics))
+      val base_snapshot = current_base_snapshot
+      val formatted_body = Pretty.formatted(current_body, margin, Pretty.font_metric(font_metrics))
 
-    future_rendering.map(_.cancel(true))
-    future_rendering = Some(default_thread_pool.submit(() =>
-      {
-        val (text, rendering) = Pretty_Text_Area.text_rendering(base_snapshot, formatted_body)
-        Simple_Thread.interrupted_exception()
+      future_rendering.map(_.cancel(true))
+      future_rendering = Some(default_thread_pool.submit(() =>
+        {
+          val (text, rendering) = Pretty_Text_Area.text_rendering(base_snapshot, formatted_body)
+          Simple_Thread.interrupted_exception()
 
-        Swing_Thread.later {
-          current_rendering = rendering
+          Swing_Thread.later {
+            current_rendering = rendering
 
-          try {
-            getBuffer.beginCompoundEdit
-            getBuffer.setReadOnly(false)
-            setText(text)
-            setCaretPosition(0)
-            getBuffer.setReadOnly(true)
+            try {
+              getBuffer.beginCompoundEdit
+              getBuffer.setReadOnly(false)
+              setText(text)
+              setCaretPosition(0)
+              getBuffer.setReadOnly(true)
+            }
+            finally {
+              getBuffer.endCompoundEdit
+            }
           }
-          finally {
-            getBuffer.endCompoundEdit
-          }
-        }
-      }))
+        }))
+    }
   }
 
   def resize(font_family: String, font_size: Int)
