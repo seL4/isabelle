@@ -25,7 +25,7 @@ fun make_markup () =
 
 fun markup s = Markup.markup (make_markup ()) s;
 
-val markup_implicit = Markup.markup Isabelle_Markup.sendback;
+fun markup_implicit s = Markup.markup Isabelle_Markup.sendback s;
 
 end;
 
