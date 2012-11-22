@@ -72,12 +72,12 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
   {
     Swing_Thread.require()
 
-    if (getWidth > 0) {
-      val font = new Font(current_font_family, Font.PLAIN, current_font_size)
-      getPainter.setFont(font)
-      getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
-      getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
+    val font = new Font(current_font_family, Font.PLAIN, current_font_size)
+    getPainter.setFont(font)
+    getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
+    getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
+    if (getWidth > 0) {
       val font_metrics = getPainter.getFontMetrics(font)
       val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
 
