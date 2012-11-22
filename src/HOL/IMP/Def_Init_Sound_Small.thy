@@ -1,6 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Def_Ass_Sound_Small imports Def_Ass Def_Ass_Small
+theory Def_Init_Sound_Small
+imports Def_Init Def_Init_Small
 begin
 
 subsection "Soundness wrt Small Steps"

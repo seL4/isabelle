@@ -1,6 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Def_Ass_Small imports Star Com Def_Ass_Exp
+theory Def_Init_Small
+imports Star Com Def_Init_Exp
 begin
 
 subsection "Initialization-Sensitive Small Step Semantics"

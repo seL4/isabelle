@@ -1,8 +1,8 @@
 (* Author: Tobias Nipkow *)
 
-theory Def_Ass_Sound_Big imports Def_Ass Def_Ass_Big
+theory Def_Init_Sound_Big
+imports Def_Init Def_Init_Big
 begin
-
 
 subsection "Soundness wrt Big Steps"
 

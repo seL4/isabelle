@@ -1,6 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Def_Ass_Exp imports Vars
+theory Def_Init_Exp
+imports Vars
 begin
 
 subsection "Initialization-Sensitive Expressions Evaluation"

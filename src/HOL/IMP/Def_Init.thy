@@ -1,7 +1,8 @@
-theory Def_Ass imports Vars Com
+theory Def_Init
+imports Vars Com
 begin
 
-subsection "Definite Assignment Analysis"
+subsection "Definite Initialization Analysis"
 
 inductive D :: "vname set \<Rightarrow> com \<Rightarrow> vname set \<Rightarrow> bool" where
 Skip: "D A SKIP A" |

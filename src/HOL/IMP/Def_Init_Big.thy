@@ -1,6 +1,7 @@
 (* Author: Tobias Nipkow *)
 
-theory Def_Ass_Big imports Com Def_Ass_Exp
+theory Def_Init_Big
+imports Com Def_Init_Exp
 begin
 
 subsection "Initialization-Sensitive Big Step Semantics"
