@@ -246,23 +246,11 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
 
 
   def sendback(range: Text.Range): Option[Text.Info[Document.Exec_ID]] =
-  {
-    val results =
-      snapshot.cumulate_markup[(Option[Document.Exec_ID], Option[Text.Range])](range,
-        (None, None), Some(messages_include + Isabelle_Markup.SENDBACK),
-          {
-            case ((_, info), Text.Info(_, XML.Elem(Markup(name, Position.Id(id)), _)))
-            if messages_include(name) => (Some(id), info)
-
-            case ((id, _), Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, _), _))) =>
-              (id, Some(snapshot.convert(info_range)))
-          })
-
-    (for (Text.Info(_, (Some(id), Some(r))) <- results) yield Text.Info(r, id)) match {
-      case res #:: _ => Some(res)
-      case _ => None
-    }
-  }
+    snapshot.select_markup(range, Some(Set(Isabelle_Markup.SENDBACK)),
+        {
+          case Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, Position.Id(id)), _)) =>
+            Text.Info(snapshot.convert(info_range), id)
+        }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
 
   def tooltip_message(range: Text.Range): XML.Body =

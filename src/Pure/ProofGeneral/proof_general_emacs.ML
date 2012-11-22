@@ -8,7 +8,6 @@ See also http://proofgeneral.inf.ed.ac.uk
 signature PROOF_GENERAL =
 sig
   val test_markupN: string
-  val sendback: string -> Pretty.T list -> unit
   val init: bool -> unit
   structure ThyLoad: sig val add_path: string -> unit end
 end;
@@ -112,9 +111,6 @@ fun tell_file_loaded path =
 
 fun tell_file_retracted path =
   emacs_notify ("Proof General, you can unlock the file " ^ quote (File.platform_path path));
-
-fun sendback heading prts =
-  Pretty.writeln (Pretty.big_list heading [Pretty.markup Isabelle_Markup.sendback prts]);
 
 
 (* theory loader actions *)

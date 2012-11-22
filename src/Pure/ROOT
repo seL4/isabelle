@@ -147,6 +147,7 @@ session Pure =
     "PIDE/isabelle_markup.ML"
     "PIDE/markup.ML"
     "PIDE/protocol.ML"
+    "PIDE/sendback.ML"
     "PIDE/xml.ML"
     "PIDE/yxml.ML"
     "Proof/extraction.ML"

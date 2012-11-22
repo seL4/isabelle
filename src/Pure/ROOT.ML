@@ -64,6 +64,7 @@ if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
 
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
+use "PIDE/sendback.ML";
 
 use "General/graph.ML";
 
