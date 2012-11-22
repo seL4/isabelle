@@ -46,7 +46,10 @@ val mp_conj = @{thm mp_conj};
 val simp_attrs = @{attributes [simp]};
 val code_simp_attrs = Code.add_default_eqn_attrib :: simp_attrs;
 
-fun split_list4 xs = (map #1 xs, map #2 xs, map #3 xs, map #4 xs);
+fun split_list4 [] = ([], [], [], [])
+  | split_list4 ((x1, x2, x3, x4) :: xs) =
+    let val (xs1, xs2, xs3, xs4) = split_list4 xs;
+    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
@@ -463,7 +466,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
         fun wrap lthy =
           let
-            fun exhaust_tac {context = ctxt, ...} =
+            fun exhaust_tac {context = ctxt, prems = _} =
               let
                 val ctor_iff_dtor_thm =
                   let
