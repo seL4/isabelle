@@ -126,6 +126,11 @@ object Isabelle_Markup
   val DOCUMENT_ANTIQUOTATION_OPTION = "document_antiquotation_option"
 
 
+  /* text structure */
+
+  val PARAGRAPH = "paragraph"
+
+
   /* ML syntax */
 
   val ML_KEYWORD = "ML_keyword"

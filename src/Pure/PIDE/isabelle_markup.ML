@@ -67,6 +67,7 @@ sig
   val ML_antiquotationN: string
   val document_antiquotationN: string
   val document_antiquotation_optionN: string
+  val paragraphN: string val paragraph: Markup.T
   val keywordN: string val keyword: Markup.T
   val operatorN: string val operator: Markup.T
   val commandN: string val command: Markup.T
@@ -237,6 +238,11 @@ val (antiqN, antiq) = markup_elem "antiq";
 val ML_antiquotationN = "ML_antiquotation";
 val document_antiquotationN = "document_antiquotation";
 val document_antiquotation_optionN = "document_antiquotation_option";
+
+
+(* text structure *)
+
+val (paragraphN, paragraph) = markup_elem "paragraph";
 
 
 (* outer syntax *)
