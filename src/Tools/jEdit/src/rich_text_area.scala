@@ -179,7 +179,7 @@ class Rich_Text_Area(
                 val rendering = get_rendering()
                 for ((area, require_control) <- active_areas)
                 {
-                  if (control == require_control)
+                  if (control == require_control && !rendering.snapshot.is_outdated)
                     area.update_rendering(rendering, range)
                   else area.reset
                 }
