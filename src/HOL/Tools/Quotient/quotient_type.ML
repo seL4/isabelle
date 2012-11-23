@@ -101,8 +101,8 @@ fun define_cr_rel equiv_thm abs_fun lthy =
       | _ => error "unsupported equivalence theorem"
       )
     val def_term = Abs ("x", rty, Abs ("y", qty, Abs_body));
-    val qty_name = (fst o dest_Type) qty
-    val cr_rel_name = Binding.prefix_name "cr_" (Binding.qualified_name qty_name)  
+    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
+    val cr_rel_name = Binding.prefix_name "cr_" qty_name
     val (fixed_def_term, lthy') = yield_singleton (Variable.importT_terms) def_term lthy
     val ((_, (_ , def_thm)), lthy'') =
       Local_Theory.define ((cr_rel_name, NoSyn), ((Thm.def_binding cr_rel_name, []), fixed_def_term)) lthy'
@@ -115,8 +115,8 @@ fun setup_lifting_package gen_code quot3_thm equiv_thm lthy =
     val (_ $ _ $ abs_fun $ _) = (HOLogic.dest_Trueprop o prop_of) quot3_thm
     val (T_def, lthy') = define_cr_rel equiv_thm abs_fun lthy
     val (rty, qty) = (dest_funT o fastype_of) abs_fun
-    val qty_name = (fst o dest_Type) qty
-    val quotient_thm_name = Binding.prefix_name "Quotient_" (Binding.qualified_name qty_name) 
+    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
+    val quotient_thm_name = Binding.prefix_name "Quotient_" qty_name
     val (reflp_thm, quot_thm) = (case (HOLogic.dest_Trueprop o prop_of) equiv_thm of
       Const (@{const_name equivp}, _) $ _ =>
         (SOME (equiv_thm RS @{thm equivp_reflp2}),
