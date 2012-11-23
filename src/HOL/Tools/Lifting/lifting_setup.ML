@@ -27,8 +27,8 @@ fun define_cr_rel rep_fun lthy =
     val (qty, rty) = (dest_funT o fastype_of) rep_fun
     val rep_fun_graph = (HOLogic.eq_const rty) $ Bound 1 $ (rep_fun $ Bound 0)
     val def_term = Abs ("x", rty, Abs ("y", qty, rep_fun_graph));
-    val qty_name = (fst o dest_Type) qty
-    val cr_rel_name = Binding.prefix_name "cr_" (Binding.qualified_name qty_name)  
+    val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
+    val cr_rel_name = Binding.prefix_name "cr_" qty_name
     val (fixed_def_term, lthy') = yield_singleton (Variable.importT_terms) def_term lthy
     val ((_, (_ , def_thm)), lthy'') =
       Local_Theory.define ((cr_rel_name, NoSyn), ((Thm.def_binding cr_rel_name, []), fixed_def_term)) lthy'
