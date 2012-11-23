@@ -43,12 +43,9 @@ fun define_code_constr gen_code quot_thm lthy =
   in
     if gen_code andalso is_Const abs_background then
       let
-        val (const_name, typ) = dest_Const abs_background
-        val fake_term = Logic.mk_type typ
-        val (fixed_fake_term, lthy') = yield_singleton(Variable.importT_terms) fake_term lthy
-        val fixed_type = Logic.dest_type fixed_fake_term
+        val (fixed_abs_background, lthy') = yield_singleton(Variable.importT_terms) abs_background lthy
       in  
-         Local_Theory.background_theory(Code.add_datatype [(const_name, fixed_type)]) lthy'
+         Local_Theory.background_theory(Code.add_datatype [dest_Const fixed_abs_background]) lthy'
       end
     else
       lthy
