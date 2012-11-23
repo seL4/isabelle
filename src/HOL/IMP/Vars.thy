@@ -31,7 +31,7 @@ instance ..
 
 end
 
-value "vars(Plus (V ''x'') (V ''y''))"
+value "vars (Plus (V ''x'') (V ''y''))"
 
 instantiation bexp :: vars
 begin
@@ -46,7 +46,7 @@ instance ..
 
 end
 
-value "show  (vars(Less (Plus (V ''z'') (V ''y'')) (V ''x'')))"
+value "vars (Less (Plus (V ''z'') (V ''y'')) (V ''x''))"
 
 abbreviation
   eq_on :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a set \<Rightarrow> bool"
