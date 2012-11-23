@@ -125,13 +125,6 @@ by (induction b) auto
 lemma cfinite[simp]: "finite(vars(c::com))"
 by (induction c) auto
 
-text{* Some code generation magic: executing @{const lfp} *}
-
-(* FIXME mv into Library *)
-lemma lfp_while:
-  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
-  shows "lfp f = while (\<lambda>A. f A \<noteq> A) f {}"
-unfolding while_def using assms by (rule lfp_the_while_option) blast
 
 text{* Make @{const L} executable by replacing @{const lfp} with the @{const
 while} combinator from theory @{theory While_Combinator}. The @{const while}
@@ -161,10 +154,11 @@ lemma L_While_set: "L (WHILE b DO c) (set xs) =
    in while (\<lambda>A. f A \<noteq> A) f {})"
 by(simp add: L_While del: L.simps(5))
 
-text{* Replace the equation for L WHILE by the executable @{thm[source] L_While_set}: *}
+text{* Replace the equation for @{text "L (WHILE \<dots>)"} by the executable @{thm[source] L_While_set}: *}
 lemmas [code] = L.simps(1-4) L_While_set
 text{* Sorry, this syntax is odd. *}
 
+text{* A test: *}
 lemma "(let b = Less (N 0) (V ''y''); c = ''y'' ::= V ''x''; ''x'' ::= V ''z''
   in L (WHILE b DO c) {''y''}) = {''x'', ''y'', ''z''}"
 by eval

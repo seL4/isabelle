@@ -169,4 +169,9 @@ proof-
   show ?thesis by auto
 qed
 
+lemma lfp_while:
+  assumes "mono f" and "!!X. X \<subseteq> C \<Longrightarrow> f X \<subseteq> C" and "finite C"
+  shows "lfp f = while (\<lambda>A. f A \<noteq> A) f {}"
+unfolding while_def using assms by (rule lfp_the_while_option) blast
+
 end
