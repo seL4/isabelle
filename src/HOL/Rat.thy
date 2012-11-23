@@ -396,6 +396,14 @@ lemma Fract_of_int_quotient: "Fract k l = of_int k / of_int l"
 lemma Fract_add_one: "n \<noteq> 0 ==> Fract (m + n) n = Fract m n + 1"
   by (simp add: rat_number_expand)
 
+lemma quotient_of_div:
+  assumes r: "quotient_of r = (n,d)"
+  shows "r = of_int n / of_int d"
+proof -
+  from theI'[OF quotient_of_unique[of r], unfolded r[unfolded quotient_of_def]]
+  have "r = Fract n d" by simp
+  thus ?thesis using Fract_of_int_quotient by simp
+qed
 
 subsubsection {* The ordered field of rational numbers *}
 
