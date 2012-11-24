@@ -21,10 +21,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   val searchspace =
     for ((group, symbols) <- Symbol.groups; sym <- symbols)
-      yield (sym, (sym.toLowerCase + get_name(Symbol.decode(sym)).toLowerCase))
-
-  def get_name(c: String): String =
-    if (c.length >= 1) Character.getName(c.codePointAt(0)) else "??"
+      yield (sym, sym.toLowerCase)
 
   private class Symbol_Component(val symbol: String) extends Button
   {
@@ -33,9 +30,9 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       new Font(Symbol.fonts.getOrElse(symbol, Isabelle.font_family()),
         Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
     action = Action(dec) { view.getTextArea.setSelectedText(dec); view.getTextArea.requestFocus }
-    tooltip = symbol +
-      (if (Symbol.abbrevs.isDefinedAt(symbol)) " abbrev: " + Symbol.abbrevs(symbol) else "") +
-      " - " + get_name(dec)
+    tooltip =
+      symbol +
+        (if (Symbol.abbrevs.isDefinedAt(symbol)) " abbrev: " + Symbol.abbrevs(symbol) else "")
   }
 
   val group_tabs: TabbedPane = new TabbedPane {
