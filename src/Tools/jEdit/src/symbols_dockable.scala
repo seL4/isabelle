@@ -17,8 +17,6 @@ import scala.swing.{Action, Button, FlowPanel, TabbedPane, TextField, BorderPane
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  private val max_results = 50
-
   val searchspace =
     for ((group, symbols) <- Symbol.groups; sym <- symbols)
       yield (sym, sym.toLowerCase)
@@ -70,6 +68,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       listenTo(search)
       val delay_search =
         Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("editor_input_delay"))) {
+          val max_results = Isabelle.options.int("jedit_symbols_search_limit") max 0
           results_panel.contents.clear
           val results =
             (searchspace filter (search.text.toLowerCase.split("\\s+") forall _._2.contains)
