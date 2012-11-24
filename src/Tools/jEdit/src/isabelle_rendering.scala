@@ -488,10 +488,12 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
   def text_color(range: Text.Range, color: Color)
       : Stream[Text.Info[Color]] =
   {
-    snapshot.cumulate_markup(range, color, Some(text_color_elements),
-      {
-        case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
-        if text_colors.isDefinedAt(m) => text_colors(m)
-      })
+    if (color == Token_Markup.hidden_color) Stream(Text.Info(range, color))
+    else
+      snapshot.cumulate_markup(range, color, Some(text_color_elements),
+        {
+          case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
+          if text_colors.isDefinedAt(m) => text_colors(m)
+        })
   }
 }

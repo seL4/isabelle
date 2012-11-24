@@ -122,7 +122,7 @@ object Token_Markup
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
     font_style(style, _.deriveFont(Font.BOLD))
 
-  private def hidden_color: Color = new Color(255, 255, 255, 0)
+  val hidden_color: Color = new Color(255, 255, 255, 0)
 
   class Style_Extender extends SyntaxUtilities.StyleExtender
   {
