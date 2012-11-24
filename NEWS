@@ -350,6 +350,9 @@ INCOMPATIBILITY: provide PROOFGENERAL_HOME and PROOFGENERAL_OPTIONS
 settings manually, or use a Proof General version that has been
 bundled as Isabelle component.
 
+* Settings variable ISABELLE_PLATFORM_FAMILY refers to the general
+platform family: "linux", "macos", "windows".
+
 
 New in Isabelle2012 (May 2012)
 ------------------------------

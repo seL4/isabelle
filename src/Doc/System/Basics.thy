@@ -172,7 +172,14 @@ text {*
   @{setting ISABELLE_HOME} to some extend. In particular, site-wide
   defaults may be overridden by a private @{verbatim
   "$ISABELLE_HOME_USER/etc/settings"}.
-  
+
+  \item[@{setting_def ISABELLE_PLATFORM_FAMILY}@{text "\<^sup>*"}] is
+  automatically set to the general platform family: @{verbatim linux},
+  @{verbatim macos}, @{verbatim windows}.  Note that
+  platform-dependent tools usually need to refer to the more specific
+  identification according to @{setting ISABELLE_PLATFORM}, @{setting
+  ISABELLE_PLATFORM32}, @{setting ISABELLE_PLATFORM64}.
+
   \item[@{setting_def ISABELLE_PLATFORM}@{text "\<^sup>*"}] is automatically
   set to a symbolic identifier for the underlying hardware and
   operating system.  The Isabelle platform identification always

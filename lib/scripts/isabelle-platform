@@ -4,11 +4,13 @@
 #
 # NOTE: The ML system or JVM may have their own idea about the platform!
 
+ISABELLE_PLATFORM_FAMILY=""
 ISABELLE_PLATFORM32=""
 ISABELLE_PLATFORM64=""
 
 case $(uname -s) in
   Linux)
+    ISABELLE_PLATFORM_FAMILY="linux"
     case $(uname -m) in
       i?86)
         ISABELLE_PLATFORM32=x86-linux
@@ -20,6 +22,7 @@ case $(uname -s) in
     esac
     ;;
   Darwin)
+    ISABELLE_PLATFORM_FAMILY="macos"
     case $(uname -m) in
       i?86)
         ISABELLE_PLATFORM32=x86-darwin
@@ -34,6 +37,7 @@ case $(uname -s) in
     esac
     ;;
   CYGWIN_NT*)
+    ISABELLE_PLATFORM_FAMILY="windows"
     case $(uname -m) in
       i?86 | x86_64)
         ISABELLE_PLATFORM32=x86-cygwin
@@ -41,6 +45,7 @@ case $(uname -s) in
     esac
     ;;
   *BSD)
+    ISABELLE_PLATFORM_FAMILY="linux"
     case $(uname -m) in
       i?86 | x86_64)
         ISABELLE_PLATFORM32=x86-linux  #cf. BSD Linux Binary Compatibility
