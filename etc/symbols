@@ -350,13 +350,13 @@
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
 \<some>                 code: 0x0003f5
-\<^sub>                 code: 0x0021e9  group: control  abbrev: =_
-\<^sup>                 code: 0x0021e7  group: control  abbrev: =^
-\<^isub>                code: 0x0021e3  group: control  abbrev: -_
-\<^isup>                code: 0x0021e1  group: control  abbrev: -^
-\<^bold>                code: 0x002759  group: control  abbrev: -.
-\<^bsub>                code: 0x0021d8  group: control_block  abbrev: =_(
-\<^esub>                code: 0x0021d9  group: control_block  abbrev: =_)
-\<^bsup>                code: 0x0021d7  group: control_block  abbrev: =^(
-\<^esup>                code: 0x0021d6  group: control_block  abbrev: =^)
+\<^sub>                 code: 0x0021e9  group: control  font: IsabelleText  abbrev: =_
+\<^sup>                 code: 0x0021e7  group: control  font: IsabelleText  abbrev: =^
+\<^isub>                code: 0x0021e3  group: control  font: IsabelleText  abbrev: -_
+\<^isup>                code: 0x0021e1  group: control  font: IsabelleText  abbrev: -^
+\<^bold>                code: 0x002759  group: control  font: IsabelleText  abbrev: -.
+\<^bsub>                code: 0x0021d8  group: control_block  font: IsabelleText  abbrev: =_(
+\<^esub>                code: 0x0021d9  group: control_block  font: IsabelleText  abbrev: =_)
+\<^bsup>                code: 0x0021d7  group: control_block  font: IsabelleText  abbrev: =^(
+\<^esup>                code: 0x0021d6  group: control_block  font: IsabelleText  abbrev: =^)
 
