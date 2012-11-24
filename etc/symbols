@@ -308,7 +308,7 @@
 \<diamondsuit>          code: 0x002662
 \<heartsuit>            code: 0x002661
 \<spadesuit>            code: 0x002660
-\<aleph>                code: 0x002135  group: letter
+\<aleph>                code: 0x002135
 \<emptyset>             code: 0x002205
 \<nabla>                code: 0x002207
 \<partial>              code: 0x002202
@@ -341,7 +341,7 @@
 \<amalg>                code: 0x002a3f  group: operator
 \<mho>                  code: 0x002127  group: operator
 \<lozenge>              code: 0x0025ca
-\<wp>                   code: 0x002118  group: letter
+\<wp>                   code: 0x002118
 \<wrong>                code: 0x002240  group: relation
 \<struct>               code: 0x0022c4
 \<acute>                code: 0x0000b4
