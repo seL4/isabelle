@@ -77,6 +77,10 @@ jEdit plugin option panel provides access to some Isabelle/Scala
 options, including tuning parameters for editor reactivity and color
 schemes.
 
+* Improved editing support for control styles: subscript, superscript,
+bold, reset of style -- operating on single symbols or text
+selections.  Cf. keyboard short-cuts C+e DOWN/UP/RIGHT/LEFT.
+
 * Uniform Java 7 platform on Linux, Mac OS X, Windows: recent updates
 from Oracle provide better multi-platform experience.  This version is
 now bundled exclusively with Isabelle.

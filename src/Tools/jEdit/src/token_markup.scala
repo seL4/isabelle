@@ -17,6 +17,7 @@ import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.{jEdit, Mode}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler,
   ParserRuleSet, ModeProvider, XModeHandler, SyntaxStyle}
+import org.gjt.sp.jedit.textarea.{TextArea, Selection}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 
 import javax.swing.text.Segment
@@ -24,6 +25,55 @@ import javax.swing.text.Segment
 
 object Token_Markup
 {
+  /* editing support for control symbols */
+
+  private val is_ctrl_style =
+    Set(Symbol.sub_decoded, Symbol.sup_decoded,
+      Symbol.isub_decoded, Symbol.isup_decoded, Symbol.bold_decoded)
+
+  def update_ctrl_style(ctrl: String, text: String): String =
+  {
+    val result = new StringBuilder
+    for (sym <- Symbol.iterator(text) if !is_ctrl_style(sym)) {
+      if (Symbol.is_controllable(sym)) result ++= ctrl
+      result ++= sym
+    }
+    result.toString
+  }
+
+  def edit_ctrl_style(text_area: TextArea, ctrl: String)
+  {
+    Swing_Thread.assert()
+
+    val buffer = text_area.getBuffer
+
+    text_area.getSelection.toList match {
+      case Nil if ctrl == "" =>
+        try {
+          buffer.beginCompoundEdit()
+          val caret = text_area.getCaretPosition
+          if (caret > 0 && is_ctrl_style(buffer.getText(caret - 1, 1)))
+            text_area.backspace()
+        }
+        finally {
+          buffer.endCompoundEdit()
+        }
+      case Nil if ctrl != "" =>
+        text_area.setSelectedText(ctrl)
+      case sels =>
+        try {
+          buffer.beginCompoundEdit()
+          sels.foreach(sel =>
+            text_area.setSelectedText(sel,
+              update_ctrl_style(ctrl, text_area.getSelectedText(sel))))
+        }
+        finally {
+          buffer.endCompoundEdit()
+        }
+    }
+  }
+
+
   /* font operations */
 
   private def font_metrics(font: Font): LineMetrics =

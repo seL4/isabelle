@@ -42,49 +42,54 @@
 			wm.addDockableWindow("isabelle-symbols");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="isabelle.input-sub">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_sub(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.input-sup">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_sup(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.input-isub">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_isub(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.input-isup">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_isup(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.input-bsub">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_bsub(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.input-bsup">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_bsup(textArea);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.input-bold">
-	  <CODE>
-	    isabelle.jedit.Isabelle.input_bold(textArea);
-	  </CODE>
-	</ACTION>
 	<ACTION NAME="isabelle.check-buffer">
 	  <CODE>
-	    isabelle.jedit.Isabelle.check_buffer(buffer);
+	    isabelle.jedit.Isabelle_Actions.check_buffer(buffer);
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.cancel-execution">
 	  <CODE>
-	    isabelle.jedit.Isabelle.cancel_execution();
+	    isabelle.jedit.Isabelle_Actions.cancel_execution();
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.control-sub">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.control_sub(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.control-sup">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.control_sup(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.control-isub">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.control_isub(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.control-isup">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.control_isup(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.control-bold">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.control_bold(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.control-reset">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.control_reset(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-bsub">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.input_bsub(textArea);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.input-bsup">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.input_bsup(textArea);
 	  </CODE>
 	</ACTION>
 </ACTIONS>
