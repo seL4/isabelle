@@ -27,45 +27,45 @@ object Token_Markup
 {
   /* editing support for control symbols */
 
-  private val is_ctrl_style =
+  val is_control_style =
     Set(Symbol.sub_decoded, Symbol.sup_decoded,
       Symbol.isub_decoded, Symbol.isup_decoded, Symbol.bold_decoded)
 
-  def update_ctrl_style(ctrl: String, text: String): String =
+  def update_control_style(control: String, text: String): String =
   {
     val result = new StringBuilder
-    for (sym <- Symbol.iterator(text) if !is_ctrl_style(sym)) {
-      if (Symbol.is_controllable(sym)) result ++= ctrl
+    for (sym <- Symbol.iterator(text) if !is_control_style(sym)) {
+      if (Symbol.is_controllable(sym)) result ++= control
       result ++= sym
     }
     result.toString
   }
 
-  def edit_ctrl_style(text_area: TextArea, ctrl: String)
+  def edit_control_style(text_area: TextArea, control: String)
   {
     Swing_Thread.assert()
 
     val buffer = text_area.getBuffer
 
     text_area.getSelection.toList match {
-      case Nil if ctrl == "" =>
+      case Nil if control == "" =>
         try {
           buffer.beginCompoundEdit()
           val caret = text_area.getCaretPosition
-          if (caret > 0 && is_ctrl_style(buffer.getText(caret - 1, 1)))
+          if (caret > 0 && is_control_style(buffer.getText(caret - 1, 1)))
             text_area.backspace()
         }
         finally {
           buffer.endCompoundEdit()
         }
-      case Nil if ctrl != "" =>
-        text_area.setSelectedText(ctrl)
+      case Nil if control != "" =>
+        text_area.setSelectedText(control)
       case sels =>
         try {
           buffer.beginCompoundEdit()
           sels.foreach(sel =>
             text_area.setSelectedText(sel,
-              update_ctrl_style(ctrl, text_area.getSelectedText(sel))))
+              update_control_style(control, text_area.getSelectedText(sel))))
         }
         finally {
           buffer.endCompoundEdit()
@@ -165,7 +165,7 @@ object Token_Markup
   def extended_styles(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
     // FIXME Symbol.bsub_decoded etc.
-    def ctrl_style(sym: String): Option[Byte => Byte] =
+    def control_style(sym: String): Option[Byte => Byte] =
       if (sym == Symbol.sub_decoded || sym == Symbol.isub_decoded) Some(subscript(_))
       else if (sym == Symbol.sup_decoded || sym == Symbol.isup_decoded) Some(superscript(_))
       else if (sym == Symbol.bold_decoded) Some(bold(_))
@@ -177,15 +177,15 @@ object Token_Markup
       for (i <- start until stop) result += (i -> style)
     }
     var offset = 0
-    var ctrl = ""
+    var control = ""
     for (sym <- Symbol.iterator(text)) {
-      if (ctrl_style(sym).isDefined) ctrl = sym
-      else if (ctrl != "") {
+      if (control_style(sym).isDefined) control = sym
+      else if (control != "") {
         if (Symbol.is_controllable(sym) && sym != "\"" && !Symbol.fonts.isDefinedAt(sym)) {
-          mark(offset - ctrl.length, offset, _ => hidden)
-          mark(offset, offset + sym.length, ctrl_style(ctrl).get)
+          mark(offset - control.length, offset, _ => hidden)
+          mark(offset, offset + sym.length, control_style(control).get)
         }
-        ctrl = ""
+        control = ""
       }
       Symbol.lookup_font(sym) match {
         case Some(idx) => mark(offset, offset + sym.length, user_font(idx, _))

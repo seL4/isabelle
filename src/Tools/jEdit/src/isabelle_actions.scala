@@ -25,28 +25,28 @@ object Isabelle_Actions
     }
   }
 
-
   def cancel_execution() { Isabelle.session.cancel_execution() }
+
 
   /* control styles */
 
   def control_sub(text_area: JEditTextArea)
-  { Token_Markup.edit_ctrl_style(text_area, Symbol.sub_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.sub_decoded) }
 
   def control_sup(text_area: JEditTextArea)
-  { Token_Markup.edit_ctrl_style(text_area, Symbol.sup_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.sup_decoded) }
 
   def control_isub(text_area: JEditTextArea)
-  { Token_Markup.edit_ctrl_style(text_area, Symbol.isub_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.isub_decoded) }
 
   def control_isup(text_area: JEditTextArea)
-  { Token_Markup.edit_ctrl_style(text_area, Symbol.isup_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.isup_decoded) }
 
   def control_bold(text_area: JEditTextArea)
-  { Token_Markup.edit_ctrl_style(text_area, Symbol.bold_decoded) }
+  { Token_Markup.edit_control_style(text_area, Symbol.bold_decoded) }
 
   def control_reset(text_area: JEditTextArea)
-  { Token_Markup.edit_ctrl_style(text_area, "") }
+  { Token_Markup.edit_control_style(text_area, "") }
 
 
   /* block styles */

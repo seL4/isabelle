@@ -25,22 +25,42 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private class Symbol_Component(val symbol: String) extends Button
   {
-    val dec = Symbol.decode(symbol)
+    private val decoded = Symbol.decode(symbol)
     font =
       new Font(Symbol.fonts.getOrElse(symbol, Isabelle.font_family()),
         Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
-    action = Action(dec) { view.getTextArea.setSelectedText(dec); view.getTextArea.requestFocus }
+    action =
+      Action(decoded) {
+        val text_area = view.getTextArea
+        if (Token_Markup.is_control_style(decoded))
+          Token_Markup.edit_control_style(text_area, decoded)
+        else text_area.setSelectedText(decoded)
+        text_area.requestFocus
+      }
     tooltip =
       JEdit_Lib.wrap_tooltip(
         symbol +
           (if (Symbol.abbrevs.isDefinedAt(symbol)) "\nabbrev: " + Symbol.abbrevs(symbol) else ""))
   }
 
+  private class Reset_Component extends Button
+  {
+    action = Action("Reset") {
+      val text_area = view.getTextArea
+      Token_Markup.edit_control_style(text_area, "")
+      text_area.requestFocus
+    }
+    tooltip = "Reset control symbols within text"
+  }
+
   val group_tabs: TabbedPane = new TabbedPane {
     pages ++= (for ((group, symbols) <- Symbol.groups) yield
       {
         new TabbedPane.Page(group,
-          new FlowPanel { contents ++= symbols map (new Symbol_Component(_)) })
+          new FlowPanel {
+            contents ++= symbols.map(new Symbol_Component(_))
+            if (group == "control") contents += new Reset_Component
+          })
       }).toList.sortWith(_.title <= _.title)
     pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
