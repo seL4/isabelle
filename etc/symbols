@@ -1,15 +1,15 @@
 # Default interpretation of some Isabelle symbols
 
-\<zero>                 code: 0x01d7ec
-\<one>                  code: 0x01d7ed
-\<two>                  code: 0x01d7ee
-\<three>                code: 0x01d7ef
-\<four>                 code: 0x01d7f0
-\<five>                 code: 0x01d7f1
-\<six>                  code: 0x01d7f2
-\<seven>                code: 0x01d7f3
-\<eight>                code: 0x01d7f4
-\<nine>                 code: 0x01d7f5
+\<zero>                 code: 0x01d7ec  group: digit
+\<one>                  code: 0x01d7ed  group: digit
+\<two>                  code: 0x01d7ee  group: digit
+\<three>                code: 0x01d7ef  group: digit
+\<four>                 code: 0x01d7f0  group: digit
+\<five>                 code: 0x01d7f1  group: digit
+\<six>                  code: 0x01d7f2  group: digit
+\<seven>                code: 0x01d7f3  group: digit
+\<eight>                code: 0x01d7f4  group: digit
+\<nine>                 code: 0x01d7f5  group: digit
 \<A>                    code: 0x01d49c  group: letter
 \<B>                    code: 0x00212c  group: letter
 \<C>                    code: 0x01d49e  group: letter
@@ -204,18 +204,18 @@
 \<rbrace>               code: 0x002984  group: punctuation  abbrev: .}
 \<guillemotleft>        code: 0x0000ab  group: punctuation  abbrev: <<
 \<guillemotright>       code: 0x0000bb  group: punctuation  abbrev: >>
-\<bottom>               code: 0x0022a5  group: operator
-\<top>                  code: 0x0022a4  group: operator
-\<and>                  code: 0x002227  group: operator  abbrev: /\
-\<And>                  code: 0x0022c0  group: operator  abbrev: !!
-\<or>                   code: 0x002228  group: operator  abbrev: \/
-\<Or>                   code: 0x0022c1  group: operator  abbrev: ??
-\<forall>               code: 0x002200  abbrev: !
-\<exists>               code: 0x002203  abbrev: ?
-\<nexists>              code: 0x002204  abbrev: ~?
-\<not>                  code: 0x0000ac  abbrev: ~
-\<box>                  code: 0x0025a1
-\<diamond>              code: 0x0025c7
+\<bottom>               code: 0x0022a5  group: logic
+\<top>                  code: 0x0022a4  group: logic
+\<and>                  code: 0x002227  group: logic  abbrev: /\
+\<And>                  code: 0x0022c0  group: logic  abbrev: !!
+\<or>                   code: 0x002228  group: logic  abbrev: \/
+\<Or>                   code: 0x0022c1  group: logic  abbrev: ??
+\<forall>               code: 0x002200  group: logic  abbrev: !
+\<exists>               code: 0x002203  group: logic  abbrev: ?
+\<nexists>              code: 0x002204  group: logic  abbrev: ~?
+\<not>                  code: 0x0000ac  group: logic  abbrev: ~
+\<box>                  code: 0x0025a1  group: logic
+\<diamond>              code: 0x0025c7  group: logic
 \<turnstile>            code: 0x0022a2  group: relation  abbrev: |-
 \<Turnstile>            code: 0x0022a8  group: relation  abbrev: |=
 \<tturnstile>           code: 0x0022a9  group: relation  abbrev: ||-
@@ -296,8 +296,8 @@
 \<Odot>                 code: 0x002a00  group: operator  abbrev: .O
 \<ominus>               code: 0x002296  group: operator  abbrev: -o
 \<oslash>               code: 0x002298  group: operator  abbrev: /o
-\<dots>                 code: 0x002026  abbrev: ...
-\<cdots>                code: 0x0022ef
+\<dots>                 code: 0x002026  group: punctuation abbrev: ...
+\<cdots>                code: 0x0022ef  group: punctuation
 \<Sum>                  code: 0x002211  group: operator  abbrev: SUM
 \<Prod>                 code: 0x00220f  group: operator  abbrev: PROD
 \<Coprod>               code: 0x002210  group: operator
@@ -320,12 +320,12 @@
 \<registered>           code: 0x0000ae
 \<hyphen>               code: 0x0000ad  group: punctuation
 \<inverse>              code: 0x0000af  group: punctuation
-\<onesuperior>          code: 0x0000b9
-\<onequarter>           code: 0x0000bc
-\<twosuperior>          code: 0x0000b2
-\<onehalf>              code: 0x0000bd
-\<threesuperior>        code: 0x0000b3
-\<threequarters>        code: 0x0000be
+\<onesuperior>          code: 0x0000b9  group: digit
+\<onequarter>           code: 0x0000bc  group: digit
+\<twosuperior>          code: 0x0000b2  group: digit
+\<onehalf>              code: 0x0000bd  group: digit
+\<threesuperior>        code: 0x0000b3  group: digit
+\<threequarters>        code: 0x0000be  group: digit
 \<ordfeminine>          code: 0x0000aa
 \<ordmasculine>         code: 0x0000ba
 \<section>              code: 0x0000a7
@@ -354,9 +354,9 @@
 \<^sup>                 code: 0x0021e7  group: control  abbrev: =^
 \<^isub>                code: 0x0021e3  group: control  abbrev: -_
 \<^isup>                code: 0x0021e1  group: control  abbrev: -^
-\<^bsub>                code: 0x0021d8  group: control  abbrev: =_(
-\<^esub>                code: 0x0021d9  group: control  abbrev: =_)
-\<^bsup>                code: 0x0021d7  group: control  abbrev: =^(
-\<^esup>                code: 0x0021d6  group: control  abbrev: =^)
 \<^bold>                code: 0x002759  group: control  abbrev: -.
+\<^bsub>                code: 0x0021d8  group: control_block  abbrev: =_(
+\<^esub>                code: 0x0021d9  group: control_block  abbrev: =_)
+\<^bsup>                code: 0x0021d7  group: control_block  abbrev: =^(
+\<^esup>                code: 0x0021d6  group: control_block  abbrev: =^)
 

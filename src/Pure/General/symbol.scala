@@ -250,7 +250,7 @@ object Symbol
     }
 
     val groups: List[(String, List[Symbol])] =
-      symbols.map({ case (sym, props) => (sym, props.get("group") getOrElse "other") })
+      symbols.map({ case (sym, props) => (sym, props.get("group") getOrElse "unsorted") })
         .groupBy(_._2).toList.map({ case (group, list) => (group, list.map(_._1)) })
         .sortBy(_._1)
 
