@@ -56,14 +56,14 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   }
 
   val group_tabs: TabbedPane = new TabbedPane {
-    pages ++= (for ((group, symbols) <- Symbol.groups) yield
-      {
+    pages ++=
+      Symbol.groups map { case (group, symbols) =>
         new TabbedPane.Page(group,
           new FlowPanel {
             contents ++= symbols.map(new Symbol_Component(_))
             if (group == "control") contents += new Reset_Component
           }, null)
-      }).toList.sortWith(_.title <= _.title)
+      }
     pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
       val results_panel = new FlowPanel
