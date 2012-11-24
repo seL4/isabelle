@@ -77,6 +77,9 @@ jEdit plugin option panel provides access to some Isabelle/Scala
 options, including tuning parameters for editor reactivity and color
 schemes.
 
+* Dockable window "Symbols" provides some editing support for Isabelle
+symbols.
+
 * Improved editing support for control styles: subscript, superscript,
 bold, reset of style -- operating on single symbols or text
 selections.  Cf. keyboard short-cuts C+e DOWN/UP/RIGHT/LEFT.
