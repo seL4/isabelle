@@ -31,8 +31,9 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
         Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
     action = Action(dec) { view.getTextArea.setSelectedText(dec); view.getTextArea.requestFocus }
     tooltip =
-      symbol +
-        (if (Symbol.abbrevs.isDefinedAt(symbol)) " abbrev: " + Symbol.abbrevs(symbol) else "")
+      JEdit_Lib.wrap_tooltip(
+        symbol +
+          (if (Symbol.abbrevs.isDefinedAt(symbol)) "\nabbrev: " + Symbol.abbrevs(symbol) else ""))
   }
 
   val group_tabs: TabbedPane = new TabbedPane {
