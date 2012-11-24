@@ -98,6 +98,12 @@ object JEdit_Lib
     finally { buffer.readUnlock() }
   }
 
+  def buffer_edit[A](buffer: JEditBuffer)(body: => A): A =
+  {
+    try { buffer.beginCompoundEdit(); body }
+    finally { buffer.endCompoundEdit() }
+  }
+
 
   /* point range */
 

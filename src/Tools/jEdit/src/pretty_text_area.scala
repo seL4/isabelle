@@ -92,16 +92,11 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
 
           Swing_Thread.later {
             current_rendering = rendering
-
-            try {
-              getBuffer.beginCompoundEdit
+            JEdit_Lib.buffer_edit(getBuffer) {
               getBuffer.setReadOnly(false)
               setText(text)
               setCaretPosition(0)
               getBuffer.setReadOnly(true)
-            }
-            finally {
-              getBuffer.endCompoundEdit
             }
           }
         }))

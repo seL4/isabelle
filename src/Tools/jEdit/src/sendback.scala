@@ -34,13 +34,9 @@ object Sendback
                   case Some(command) =>
                     snapshot.node.command_start(command) match {
                       case Some(start) =>
-                        try {
-                          buffer.beginCompoundEdit()
+                        JEdit_Lib.buffer_edit(buffer) {
                           buffer.remove(start, command.proper_range.length)
                           buffer.insert(start, text)
-                        }
-                        finally {
-                          buffer.endCompoundEdit()
                         }
                       case None =>
                     }
