@@ -24,9 +24,13 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private class Symbol_Component(val symbol: String) extends Button
   {
     private val decoded = Symbol.decode(symbol)
+    private val font_size = Isabelle.font_size("jedit_font_scale").round
+
     font =
-      new Font(Symbol.fonts.getOrElse(symbol, Isabelle.font_family()),
-        Font.PLAIN, Isabelle.font_size("jedit_font_scale").round)
+      Symbol.fonts.get(symbol) match {
+        case None => Isabelle_System.get_font(size = font_size)
+        case Some(font_family) => Isabelle_System.get_font(family = font_family, size = font_size)
+      }
     action =
       Action(decoded) {
         val text_area = view.getTextArea
