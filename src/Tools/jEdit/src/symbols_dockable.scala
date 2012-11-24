@@ -60,7 +60,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           new FlowPanel {
             contents ++= symbols.map(new Symbol_Component(_))
             if (group == "control") contents += new Reset_Component
-          })
+          }, null)
       }).toList.sortWith(_.title <= _.title)
     pages += new TabbedPane.Page("search", new BorderPanel {
       val search = new TextField(10)
