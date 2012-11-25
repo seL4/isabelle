@@ -133,7 +133,7 @@ fun theory_markup def name id pos =
   if id = 0 then Markup.empty
   else
     Markup.properties (Position.entity_properties_of def id pos)
-      (Isabelle_Markup.entity Isabelle_Markup.theoryN name);
+      (Markup.entity Markup.theoryN name);
 
 fun init_markup (name, pos) thy =
   let

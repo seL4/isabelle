@@ -88,7 +88,7 @@ type entry =
   id: serial};
 
 fun entry_markup def kind (name, {pos, id, ...}: entry) =
-  Markup.properties (Position.entity_properties_of def id pos) (Isabelle_Markup.entity kind name);
+  Markup.properties (Position.entity_properties_of def id pos) (Markup.entity kind name);
 
 fun print_entry_ref kind (name, entry) =
   quote (Markup.markup (entry_markup false kind (name, entry)) name);
@@ -133,7 +133,7 @@ fun entry_ord space = int_ord o pairself (#id o the_entry space);
 
 fun markup (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
-    NONE => Isabelle_Markup.intensify
+    NONE => Markup.intensify
   | SOME (_, entry) => entry_markup false kind (name, entry));
 
 fun is_concealed space name = #concealed (the_entry space name);

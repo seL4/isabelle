@@ -54,7 +54,7 @@ val _ = Markup.add_mode htmlN (span o fst);
 (* symbol output *)
 
 local
-  val hidden = span Isabelle_Markup.hiddenN |-> enclose;
+  val hidden = span Markup.hiddenN |-> enclose;
 
   (* FIXME proper unicode -- produced on Scala side *)
   val html_syms = Symtab.make

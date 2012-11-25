@@ -60,7 +60,7 @@ fun new_command comment markup int_only parse pos =
 
 fun command_markup def (name, Command {pos, id, ...}) =
   Markup.properties (Position.entity_properties_of def id pos)
-    (Isabelle_Markup.entity Isabelle_Markup.commandN name);
+    (Markup.entity Markup.commandN name);
 
 
 (* parse command *)

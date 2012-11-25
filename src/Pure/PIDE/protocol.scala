@@ -66,17 +66,17 @@ object Protocol
   }
 
   val command_status_markup: Set[String] =
-    Set(Isabelle_Markup.ACCEPTED, Isabelle_Markup.FORKED, Isabelle_Markup.JOINED,
-      Isabelle_Markup.RUNNING, Isabelle_Markup.FINISHED, Isabelle_Markup.FAILED)
+    Set(Markup.ACCEPTED, Markup.FORKED, Markup.JOINED, Markup.RUNNING,
+      Markup.FINISHED, Markup.FAILED)
 
   def command_status(status: Status, markup: Markup): Status =
     markup match {
-      case Markup(Isabelle_Markup.ACCEPTED, _) => status.copy(accepted = true)
-      case Markup(Isabelle_Markup.FORKED, _) => status.copy(touched = true, forks = status.forks + 1)
-      case Markup(Isabelle_Markup.JOINED, _) => status.copy(forks = status.forks - 1)
-      case Markup(Isabelle_Markup.RUNNING, _) => status.copy(touched = true, runs = status.runs + 1)
-      case Markup(Isabelle_Markup.FINISHED, _) => status.copy(runs = status.runs - 1)
-      case Markup(Isabelle_Markup.FAILED, _) => status.copy(failed = true)
+      case Markup(Markup.ACCEPTED, _) => status.copy(accepted = true)
+      case Markup(Markup.FORKED, _) => status.copy(touched = true, forks = status.forks + 1)
+      case Markup(Markup.JOINED, _) => status.copy(forks = status.forks - 1)
+      case Markup(Markup.RUNNING, _) => status.copy(touched = true, runs = status.runs + 1)
+      case Markup(Markup.FINISHED, _) => status.copy(runs = status.runs - 1)
+      case Markup(Markup.FAILED, _) => status.copy(failed = true)
       case _ => status
     }
 
@@ -120,8 +120,8 @@ object Protocol
 
   def clean_message(body: XML.Body): XML.Body =
     body filter {
-      case XML.Elem(Markup(Isabelle_Markup.REPORT, _), _) => false
-      case XML.Elem(Markup(Isabelle_Markup.NO_REPORT, _), _) => false
+      case XML.Elem(Markup(Markup.REPORT, _), _) => false
+      case XML.Elem(Markup(Markup.NO_REPORT, _), _) => false
       case _ => true
     } map {
       case XML.Wrapped_Elem(markup, body, ts) => XML.Wrapped_Elem(markup, body, clean_message(ts))
@@ -131,8 +131,8 @@ object Protocol
 
   def message_reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
-      case XML.Elem(Markup(Isabelle_Markup.REPORT, ps), ts) =>
-        List(XML.Elem(Markup(Isabelle_Markup.REPORT, props ::: ps), ts))
+      case XML.Elem(Markup(Markup.REPORT, ps), ts) =>
+        List(XML.Elem(Markup(Markup.REPORT, props ::: ps), ts))
       case XML.Wrapped_Elem(_, _, ts) => message_reports(props, ts)
       case XML.Elem(_, ts) => message_reports(props, ts)
       case XML.Text(_) => Nil
@@ -143,40 +143,38 @@ object Protocol
 
   def is_tracing(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Isabelle_Markup.TRACING, _), _) => true
-      case XML.Elem(Markup(Isabelle_Markup.TRACING_MESSAGE, _), _) => true
+      case XML.Elem(Markup(Markup.TRACING, _), _) => true
+      case XML.Elem(Markup(Markup.TRACING_MESSAGE, _), _) => true
       case _ => false
     }
 
   def is_warning(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Isabelle_Markup.WARNING, _), _) => true
-      case XML.Elem(Markup(Isabelle_Markup.WARNING_MESSAGE, _), _) => true
+      case XML.Elem(Markup(Markup.WARNING, _), _) => true
+      case XML.Elem(Markup(Markup.WARNING_MESSAGE, _), _) => true
       case _ => false
     }
 
   def is_error(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Isabelle_Markup.ERROR, _), _) => true
-      case XML.Elem(Markup(Isabelle_Markup.ERROR_MESSAGE, _), _) => true
+      case XML.Elem(Markup(Markup.ERROR, _), _) => true
+      case XML.Elem(Markup(Markup.ERROR_MESSAGE, _), _) => true
       case _ => false
     }
 
   def is_state(msg: XML.Tree): Boolean =
     msg match {
-      case XML.Elem(Markup(Isabelle_Markup.WRITELN, _),
-        List(XML.Elem(Markup(Isabelle_Markup.STATE, _), _))) => true
-      case XML.Elem(Markup(Isabelle_Markup.WRITELN_MESSAGE, _),
-        List(XML.Elem(Markup(Isabelle_Markup.STATE, _), _))) => true
+      case XML.Elem(Markup(Markup.WRITELN, _),
+        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
+      case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _),
+        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
       case _ => false
     }
 
 
   /* reported positions */
 
-  private val include_pos =
-    Set(Isabelle_Markup.BINDING, Isabelle_Markup.ENTITY, Isabelle_Markup.REPORT,
-      Isabelle_Markup.POSITION)
+  private val include_pos = Set(Markup.BINDING, Markup.ENTITY, Markup.REPORT, Markup.POSITION)
 
   def message_positions(command: Command, message: XML.Elem): Set[Text.Range] =
   {

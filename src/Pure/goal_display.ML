@@ -116,8 +116,7 @@ fun pretty_goals ctxt0 state =
       | pretty_list name prt lst = [Pretty.big_list name (map prt lst)];
 
     fun pretty_subgoal (n, A) =
-      Pretty.markup Isabelle_Markup.subgoal
-        [Pretty.str (" " ^ string_of_int n ^ ". "), prt_term A];
+      Pretty.markup Markup.subgoal [Pretty.str (" " ^ string_of_int n ^ ". "), prt_term A];
     fun pretty_subgoals As = map pretty_subgoal (1 upto length As ~~ As);
 
     val pretty_ffpairs = pretty_list "flex-flex pairs:" (pretty_flexpair ctxt);

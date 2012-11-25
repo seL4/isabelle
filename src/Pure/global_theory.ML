@@ -82,7 +82,7 @@ fun get_fact context thy xthmref =
     | SOME (static, ths) =>
         (Context_Position.report_generic context pos (Name_Space.markup (Facts.space_of facts) name);
          if static then ()
-         else Context_Position.report_generic context pos (Isabelle_Markup.dynamic_fact name);
+         else Context_Position.report_generic context pos (Markup.dynamic_fact name);
          Facts.select xthmref (map (Thm.transfer thy) ths)))
   end;
 

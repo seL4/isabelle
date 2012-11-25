@@ -34,11 +34,11 @@ object Pretty
   object Block
   {
     def apply(i: Int, body: XML.Body): XML.Tree =
-      XML.Elem(Markup(Isabelle_Markup.BLOCK, Isabelle_Markup.Indent(i)), body)
+      XML.Elem(Markup(Markup.BLOCK, Markup.Indent(i)), body)
 
     def unapply(tree: XML.Tree): Option[(Int, XML.Body)] =
       tree match {
-        case XML.Elem(Markup(Isabelle_Markup.BLOCK, Isabelle_Markup.Indent(i)), body) =>
+        case XML.Elem(Markup(Markup.BLOCK, Markup.Indent(i)), body) =>
           Some((i, body))
         case _ => None
       }
@@ -47,19 +47,19 @@ object Pretty
   object Break
   {
     def apply(w: Int): XML.Tree =
-      XML.Elem(Markup(Isabelle_Markup.BREAK, Isabelle_Markup.Width(w)),
+      XML.Elem(Markup(Markup.BREAK, Markup.Width(w)),
         List(XML.Text(spaces(w))))
 
     def unapply(tree: XML.Tree): Option[Int] =
       tree match {
-        case XML.Elem(Markup(Isabelle_Markup.BREAK, Isabelle_Markup.Width(w)), _) => Some(w)
+        case XML.Elem(Markup(Markup.BREAK, Markup.Width(w)), _) => Some(w)
         case _ => None
       }
   }
 
   val FBreak = XML.Text("\n")
 
-  val Separator = List(XML.elem(Isabelle_Markup.SEPARATOR, List(XML.Text(space))), FBreak)
+  val Separator = List(XML.elem(Markup.SEPARATOR, List(XML.Text(space))), FBreak)
   def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten
 
 

@@ -51,7 +51,7 @@ object HTML
     XML.Elem(Markup(SPAN, List((STYLE, "font-family: " + font))), List(XML.Text(txt)))
 
   def hidden(txt: String): XML.Elem =
-    span(Isabelle_Markup.HIDDEN, List(XML.Text(txt)))
+    span(Markup.HIDDEN, List(XML.Text(txt)))
 
   def sub(txt: String): XML.Elem = XML.elem("sub", List(XML.Text(txt)))
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))

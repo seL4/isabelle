@@ -190,19 +190,17 @@ val is_terminal = member (op =) terminals;
 (* markup *)
 
 fun literal_markup s =
-  if is_ascii_identifier s
-  then Isabelle_Markup.literal
-  else Isabelle_Markup.delimiter;
+  if is_ascii_identifier s then Markup.literal else Markup.delimiter;
 
 val token_kind_markup =
- fn VarSy   => Isabelle_Markup.var
-  | TFreeSy => Isabelle_Markup.tfree
-  | TVarSy  => Isabelle_Markup.tvar
-  | NumSy   => Isabelle_Markup.numeral
-  | FloatSy => Isabelle_Markup.numeral
-  | XNumSy  => Isabelle_Markup.numeral
-  | StrSy   => Isabelle_Markup.inner_string
-  | Comment => Isabelle_Markup.inner_comment
+ fn VarSy   => Markup.var
+  | TFreeSy => Markup.tfree
+  | TVarSy  => Markup.tvar
+  | NumSy   => Markup.numeral
+  | FloatSy => Markup.numeral
+  | XNumSy  => Markup.numeral
+  | StrSy   => Markup.inner_string
+  | Comment => Markup.inner_comment
   | _       => Markup.empty;
 
 fun report_of_token (Token (kind, s, (pos, _))) =
@@ -211,7 +209,7 @@ fun report_of_token (Token (kind, s, (pos, _))) =
 
 fun reported_token_range ctxt tok =
   if is_proper tok
-  then Context_Position.reported_text ctxt (pos_of_token tok) Isabelle_Markup.token_range ""
+  then Context_Position.reported_text ctxt (pos_of_token tok) Markup.token_range ""
   else "";
 
 

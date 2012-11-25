@@ -14,17 +14,17 @@ object Position
 {
   type T = Properties.T
 
-  val Line = new Properties.Int(Isabelle_Markup.LINE)
-  val Offset = new Properties.Int(Isabelle_Markup.OFFSET)
-  val End_Offset = new Properties.Int(Isabelle_Markup.END_OFFSET)
-  val File = new Properties.String(Isabelle_Markup.FILE)
-  val Id = new Properties.Long(Isabelle_Markup.ID)
+  val Line = new Properties.Int(Markup.LINE)
+  val Offset = new Properties.Int(Markup.OFFSET)
+  val End_Offset = new Properties.Int(Markup.END_OFFSET)
+  val File = new Properties.String(Markup.FILE)
+  val Id = new Properties.Long(Markup.ID)
 
-  val Def_Line = new Properties.Int(Isabelle_Markup.DEF_LINE)
-  val Def_Offset = new Properties.Int(Isabelle_Markup.DEF_OFFSET)
-  val Def_End_Offset = new Properties.Int(Isabelle_Markup.DEF_END_OFFSET)
-  val Def_File = new Properties.String(Isabelle_Markup.DEF_FILE)
-  val Def_Id = new Properties.Long(Isabelle_Markup.DEF_ID)
+  val Def_Line = new Properties.Int(Markup.DEF_LINE)
+  val Def_Offset = new Properties.Int(Markup.DEF_OFFSET)
+  val Def_End_Offset = new Properties.Int(Markup.DEF_END_OFFSET)
+  val Def_File = new Properties.String(Markup.DEF_FILE)
+  val Def_Id = new Properties.Long(Markup.DEF_ID)
 
   object Line_File
   {
@@ -84,7 +84,7 @@ object Position
       }
   }
 
-  def purge(props: T): T = props.filterNot(p => Isabelle_Markup.POSITION_PROPERTIES(p._1))
+  def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
 
 
   /* here: inlined formal markup */

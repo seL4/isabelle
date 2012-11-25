@@ -144,7 +144,6 @@ session Pure =
     "ML/ml_thms.ML"
     "PIDE/command.ML"
     "PIDE/document.ML"
-    "PIDE/isabelle_markup.ML"
     "PIDE/markup.ML"
     "PIDE/protocol.ML"
     "PIDE/sendback.ML"

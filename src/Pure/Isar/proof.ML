@@ -536,7 +536,7 @@ fun simple_goal state =
 
 fun status_markup state =
   (case try goal state of
-    SOME {goal, ...} => Isabelle_Markup.proof_state (Thm.nprems_of goal)
+    SOME {goal, ...} => Markup.proof_state (Thm.nprems_of goal)
   | NONE => Markup.empty);
 
 fun method_error kind pos state =
@@ -1031,7 +1031,7 @@ local
 
 fun skipped_proof state =
   Context_Position.if_visible (context_of state) Output.report
-    (Markup.markup Isabelle_Markup.bad "Skipped proof");
+    (Markup.markup Markup.bad "Skipped proof");
 
 in
 
@@ -1051,7 +1051,7 @@ end;
 local
 
 fun gen_have prep_att prepp before_qed after_qed stmt int =
-  local_goal (Proof_Display.print_results Isabelle_Markup.state int)
+  local_goal (Proof_Display.print_results Markup.state int)
     prep_att prepp "have" before_qed after_qed stmt;
 
 fun gen_show prep_att prepp before_qed after_qed stmt int state =
@@ -1065,12 +1065,11 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 
     fun print_results ctxt res =
       if ! testing then ()
-      else Proof_Display.print_results Isabelle_Markup.state int ctxt res;
+      else Proof_Display.print_results Markup.state int ctxt res;
     fun print_rule ctxt th =
       if ! testing then rule := SOME th
       else if int then
-        writeln
-          (Markup.markup Isabelle_Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
+        writeln (Markup.markup Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
       else ();
     val test_proof =
       try (local_skip_proof true)

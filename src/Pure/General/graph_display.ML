@@ -58,7 +58,7 @@ fun write_graph_graphview path graph =
 fun display_graph graph =
   if print_mode_active graphview_reportN then
     (Output.report
-      (YXML.string_of (XML.Elem ((Isabelle_Markup.graphviewN, []), encode_graphview graph)));
+      (YXML.string_of (XML.Elem ((Markup.graphviewN, []), encode_graphview graph)));
       writeln "(see graphview)")
   else
     let

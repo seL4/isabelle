@@ -38,29 +38,29 @@ fun parse_tokens lexs pos =
 local
 
 val token_kind_markup =
- fn Token.Command       => (Isabelle_Markup.command, "")
-  | Token.Keyword       => (Isabelle_Markup.keyword, "")
+ fn Token.Command       => (Markup.command, "")
+  | Token.Keyword       => (Markup.keyword, "")
   | Token.Ident         => (Markup.empty, "")
   | Token.LongIdent     => (Markup.empty, "")
   | Token.SymIdent      => (Markup.empty, "")
-  | Token.Var           => (Isabelle_Markup.var, "")
-  | Token.TypeIdent     => (Isabelle_Markup.tfree, "")
-  | Token.TypeVar       => (Isabelle_Markup.tvar, "")
+  | Token.Var           => (Markup.var, "")
+  | Token.TypeIdent     => (Markup.tfree, "")
+  | Token.TypeVar       => (Markup.tvar, "")
   | Token.Nat           => (Markup.empty, "")
   | Token.Float         => (Markup.empty, "")
-  | Token.String        => (Isabelle_Markup.string, "")
-  | Token.AltString     => (Isabelle_Markup.altstring, "")
-  | Token.Verbatim      => (Isabelle_Markup.verbatim, "")
+  | Token.String        => (Markup.string, "")
+  | Token.AltString     => (Markup.altstring, "")
+  | Token.Verbatim      => (Markup.verbatim, "")
   | Token.Space         => (Markup.empty, "")
-  | Token.Comment       => (Isabelle_Markup.comment, "")
+  | Token.Comment       => (Markup.comment, "")
   | Token.InternalValue => (Markup.empty, "")
-  | Token.Error msg     => (Isabelle_Markup.bad, msg)
-  | Token.Sync          => (Isabelle_Markup.control, "")
-  | Token.EOF           => (Isabelle_Markup.control, "");
+  | Token.Error msg     => (Markup.bad, msg)
+  | Token.Sync          => (Markup.control, "")
+  | Token.EOF           => (Markup.control, "");
 
 fun token_markup tok =
   if Token.keyword_with (not o Lexicon.is_ascii_identifier) tok
-  then (Isabelle_Markup.operator, "")
+  then (Markup.operator, "")
   else
     let
       val kind = Token.kind_of tok;
@@ -77,7 +77,7 @@ fun reports_of_token tok =
       Symbol_Pos.explode (Token.source_position_of tok)
       |> map_filter (fn (sym, pos) =>
           if Symbol.is_malformed sym
-          then SOME ((pos, Isabelle_Markup.bad), "Malformed symbolic character") else NONE);
+          then SOME ((pos, Markup.bad), "Malformed symbolic character") else NONE);
     val is_malformed = Token.is_error tok orelse not (null malformed_symbols);
     val (markup, txt) = token_markup tok;
     val reports = ((Token.position_of tok, markup), txt) :: malformed_symbols;

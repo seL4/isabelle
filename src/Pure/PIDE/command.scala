@@ -34,7 +34,7 @@ object Command
 
     def + (alt_id: Document.ID, message: XML.Elem): Command.State =
       message match {
-        case XML.Elem(Markup(Isabelle_Markup.STATUS, _), msgs) =>
+        case XML.Elem(Markup(Markup.STATUS, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
@@ -43,7 +43,7 @@ object Command
               case _ => System.err.println("Ignored status message: " + msg); state
             })
 
-        case XML.Elem(Markup(Isabelle_Markup.REPORT, _), msgs) =>
+        case XML.Elem(Markup(Markup.REPORT, _), msgs) =>
           (this /: msgs)((state, msg) =>
             msg match {
               case XML.Elem(Markup(name, atts @ Position.Id_Range(id, raw_range)), args)
@@ -54,7 +54,7 @@ object Command
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
                 state.add_markup(info)
               case XML.Elem(Markup(name, atts), args)
-              if !atts.exists({ case (a, _) => Isabelle_Markup.POSITION_PROPERTIES(a) }) =>
+              if !atts.exists({ case (a, _) => Markup.POSITION_PROPERTIES(a) }) =>
                 val range = command.proper_range
                 val props = Position.purge(atts)
                 val info: Text.Markup = Text.Info(range, XML.Elem(Markup(name, props), args))
@@ -65,9 +65,9 @@ object Command
             })
         case XML.Elem(Markup(name, atts), body) =>
           atts match {
-            case Isabelle_Markup.Serial(i) =>
+            case Markup.Serial(i) =>
               val props = Position.purge(atts)
-              val message1 = XML.Elem(Markup(Isabelle_Markup.message(name), props), body)
+              val message1 = XML.Elem(Markup(Markup.message(name), props), body)
               val message2 = XML.Elem(Markup(name, props), body)
 
               val st0 = copy(results = results + (i -> message1))

@@ -68,7 +68,7 @@ fun read_files cmd dir (path, pos) =
   let
     fun make_file file =
       let
-        val _ = Position.report pos (Isabelle_Markup.path (Path.implode file));
+        val _ = Position.report pos (Markup.path (Path.implode file));
         val full_path = check_file dir file;
       in {src_path = file, text = File.read full_path, pos = Path.position full_path} end;
     val paths =
@@ -285,7 +285,7 @@ val _ =
         val _ =
           if File.exists path then ()
           else error ("Bad file: " ^ Path.print (Path.expand path) ^ Position.here pos);
-        val _ = Position.report pos (Isabelle_Markup.path name);
+        val _ = Position.report pos (Markup.path name);
       in Thy_Output.verb_text name end)));
 
 

@@ -314,7 +314,7 @@ class Session(val thy_load: Thy_Load)
             case _: Document.State.Fail => bad_output(output)
           }
 
-        case Isabelle_Markup.Assign_Execs if output.is_protocol =>
+        case Markup.Assign_Execs if output.is_protocol =>
           XML.content(output.body) match {
             case Protocol.Assign(id, assign) =>
               try {
@@ -331,7 +331,7 @@ class Session(val thy_load: Thy_Load)
             prune_next = System.currentTimeMillis() + prune_delay.ms
           }
 
-        case Isabelle_Markup.Removed_Versions if output.is_protocol =>
+        case Markup.Removed_Versions if output.is_protocol =>
           XML.content(output.body) match {
             case Protocol.Removed(removed) =>
               try {
@@ -341,7 +341,7 @@ class Session(val thy_load: Thy_Load)
             case _ => bad_output(output)
           }
 
-        case Isabelle_Markup.Invoke_Scala(name, id) if output.is_protocol =>
+        case Markup.Invoke_Scala(name, id) if output.is_protocol =>
           futures += (id ->
             default_thread_pool.submit(() =>
               {
@@ -350,7 +350,7 @@ class Session(val thy_load: Thy_Load)
                 this_actor ! Finished_Scala(id, tag, result)
               }))
 
-        case Isabelle_Markup.Cancel_Scala(id) if output.is_protocol =>
+        case Markup.Cancel_Scala(id) if output.is_protocol =>
           futures.get(id) match {
             case Some(future) =>
               future.cancel(true)
@@ -361,7 +361,7 @@ class Session(val thy_load: Thy_Load)
         case _ if output.is_init =>
             phase = Session.Ready
 
-        case Isabelle_Markup.Return_Code(rc) if output.is_exit =>
+        case Markup.Return_Code(rc) if output.is_exit =>
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
 

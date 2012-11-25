@@ -39,24 +39,24 @@ and render_tree t =
       | XML.Elem ((name, props), ts) =>
           let
             val (bg1, en1) =
-              if name <> Isabelle_Markup.promptN andalso print_mode_active test_markupN
+              if name <> Markup.promptN andalso print_mode_active test_markupN
               then XML.output_markup (name, props)
               else Markup.no_output;
             val (bg2, en2) =
               if null ts then Markup.no_output
-              else if name = Isabelle_Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
-              else if name = Isabelle_Markup.sendbackN then (special "W", special "X")
-              else if name = Isabelle_Markup.intensifyN then (special "0", special "1")
-              else if name = Isabelle_Markup.tfreeN then (special "C", special "A")
-              else if name = Isabelle_Markup.tvarN then (special "D", special "A")
-              else if name = Isabelle_Markup.freeN then (special "E", special "A")
-              else if name = Isabelle_Markup.boundN then (special "F", special "A")
-              else if name = Isabelle_Markup.varN then (special "G", special "A")
-              else if name = Isabelle_Markup.skolemN then (special "H", special "A")
+              else if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
+              else if name = Markup.sendbackN then (special "W", special "X")
+              else if name = Markup.intensifyN then (special "0", special "1")
+              else if name = Markup.tfreeN then (special "C", special "A")
+              else if name = Markup.tvarN then (special "D", special "A")
+              else if name = Markup.freeN then (special "E", special "A")
+              else if name = Markup.boundN then (special "F", special "A")
+              else if name = Markup.varN then (special "G", special "A")
+              else if name = Markup.skolemN then (special "H", special "A")
               else
-                (case Isabelle_Markup.get_entity_kind (name, props) of
+                (case Markup.get_entity_kind (name, props) of
                   SOME kind =>
-                    if kind = Isabelle_Markup.classN then (special "B", special "A")
+                    if kind = Markup.classN then (special "B", special "A")
                     else Markup.no_output
                 | NONE => Markup.no_output);
           in

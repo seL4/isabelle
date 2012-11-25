@@ -272,7 +272,7 @@ fun define_command (id: command_id) name text =
               (#1 (Outer_Syntax.get_syntax ())) (Position.id id_string) text) ());
       val _ =
         Position.setmp_thread_data (Position.id_only id_string)
-          (fn () => Output.status (Markup.markup_only Isabelle_Markup.accepted)) ();
+          (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
       val commands' =
         Inttab.update_new (id, (name, span)) commands
           handle Inttab.DUP dup => err_dup "command" dup;

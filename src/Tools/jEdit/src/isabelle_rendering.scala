@@ -34,10 +34,10 @@ object Rendering
   private val error_pri = 5
 
   private val message_pri = Map(
-    Isabelle_Markup.WRITELN -> writeln_pri, Isabelle_Markup.WRITELN_MESSAGE -> writeln_pri,
-    Isabelle_Markup.TRACING -> tracing_pri, Isabelle_Markup.TRACING_MESSAGE -> tracing_pri,
-    Isabelle_Markup.WARNING -> warning_pri, Isabelle_Markup.WARNING_MESSAGE -> warning_pri,
-    Isabelle_Markup.ERROR -> error_pri, Isabelle_Markup.ERROR_MESSAGE -> error_pri)
+    Markup.WRITELN -> writeln_pri, Markup.WRITELN_MESSAGE -> writeln_pri,
+    Markup.TRACING -> tracing_pri, Markup.TRACING_MESSAGE -> tracing_pri,
+    Markup.WARNING -> warning_pri, Markup.WARNING_MESSAGE -> warning_pri,
+    Markup.ERROR -> error_pri, Markup.ERROR_MESSAGE -> error_pri)
 
 
   /* icons */
@@ -156,10 +156,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       val results =
         snapshot.cumulate_markup[(Protocol.Status, Int)](
           range, (Protocol.Status.init, 0),
-          Some(Protocol.command_status_markup + Isabelle_Markup.WARNING + Isabelle_Markup.ERROR),
+          Some(Protocol.command_status_markup + Markup.WARNING + Markup.ERROR),
           {
             case ((status, pri), Text.Info(_, XML.Elem(markup, _))) =>
-              if (markup.name == Isabelle_Markup.WARNING || markup.name == Isabelle_Markup.ERROR)
+              if (markup.name == Markup.WARNING || markup.name == Markup.ERROR)
                 (status, pri max Rendering.message_pri(markup.name))
               else (Protocol.command_status(status, markup), pri)
           })
@@ -183,11 +183,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   /* markup selectors */
 
   private val highlight_include =
-    Set(Isabelle_Markup.SORT, Isabelle_Markup.TYP, Isabelle_Markup.TERM, Isabelle_Markup.PROP,
-      Isabelle_Markup.ML_TYPING, Isabelle_Markup.TOKEN_RANGE, Isabelle_Markup.ENTITY,
-      Isabelle_Markup.PATH, Isabelle_Markup.SORTING, Isabelle_Markup.TYPING, Isabelle_Markup.FREE,
-      Isabelle_Markup.SKOLEM, Isabelle_Markup.BOUND, Isabelle_Markup.VAR, Isabelle_Markup.TFREE,
-      Isabelle_Markup.TVAR, Isabelle_Markup.ML_SOURCE, Isabelle_Markup.DOCUMENT_SOURCE)
+    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
+      Markup.ENTITY, Markup.PATH, Markup.SORTING, Markup.TYPING, Markup.FREE, Markup.SKOLEM,
+      Markup.BOUND, Markup.VAR, Markup.TFREE, Markup.TVAR, Markup.ML_SOURCE, Markup.DOCUMENT_SOURCE)
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
@@ -199,21 +197,21 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val hyperlink_include = Set(Isabelle_Markup.ENTITY, Isabelle_Markup.PATH)
+  private val hyperlink_include = Set(Markup.ENTITY, Markup.PATH)
 
   def hyperlink(range: Text.Range): Option[Text.Info[Hyperlink]] =
   {
     snapshot.cumulate_markup[List[Text.Info[Hyperlink]]](range, Nil, Some(hyperlink_include),
         {
-          case (links, Text.Info(info_range, XML.Elem(Isabelle_Markup.Path(name), _)))
+          case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
             Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, 0, 0)) :: links
 
-          case (links, Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.ENTITY, props), _)))
+          case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
           if !props.exists(
-            { case (Markup.KIND, Isabelle_Markup.ML_OPEN) => true
-              case (Markup.KIND, Isabelle_Markup.ML_STRUCT) => true
+            { case (Markup.KIND, Markup.ML_OPEN) => true
+              case (Markup.KIND, Markup.ML_STRUCT) => true
               case _ => false }) =>
 
             props match {
@@ -244,9 +242,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   def sendback(range: Text.Range): Option[Text.Info[Option[Document.Exec_ID]]] =
-    snapshot.select_markup(range, Some(Set(Isabelle_Markup.SENDBACK)),
+    snapshot.select_markup(range, Some(Set(Markup.SENDBACK)),
         {
-          case Text.Info(info_range, XML.Elem(Markup(Isabelle_Markup.SENDBACK, props), _)) =>
+          case Text.Info(info_range, XML.Elem(Markup(Markup.SENDBACK, props), _)) =>
             Text.Info(snapshot.convert(info_range), Position.Id.unapply(props))
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
@@ -255,16 +253,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     val msgs =
       snapshot.cumulate_markup[SortedMap[Long, XML.Tree]](range, SortedMap.empty,
-        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR,
-          Isabelle_Markup.BAD)),
+        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)),
         {
-          case (msgs, Text.Info(_,
-            XML.Elem(Markup(name, props @ Isabelle_Markup.Serial(serial)), body)))
-          if name == Isabelle_Markup.WRITELN ||
-              name == Isabelle_Markup.WARNING ||
-              name == Isabelle_Markup.ERROR =>
-            msgs + (serial -> XML.Elem(Markup(Isabelle_Markup.message(name), props), body))
-          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Isabelle_Markup.BAD, _), body)))
+          case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
+          if name == Markup.WRITELN ||
+              name == Markup.WARNING ||
+              name == Markup.ERROR =>
+            msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body))
+          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
           if !body.isEmpty => msgs + (Document.new_id() -> msg)
         }).toList.flatMap(_.info)
     Pretty.separate(msgs.iterator.map(_._2).toList)
@@ -273,23 +269,23 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val tooltips: Map[String, String] =
     Map(
-      Isabelle_Markup.SORT -> "sort",
-      Isabelle_Markup.TYP -> "type",
-      Isabelle_Markup.TERM -> "term",
-      Isabelle_Markup.PROP -> "proposition",
-      Isabelle_Markup.TOKEN_RANGE -> "inner syntax token",
-      Isabelle_Markup.FREE -> "free variable",
-      Isabelle_Markup.SKOLEM -> "skolem variable",
-      Isabelle_Markup.BOUND -> "bound variable",
-      Isabelle_Markup.VAR -> "schematic variable",
-      Isabelle_Markup.TFREE -> "free type variable",
-      Isabelle_Markup.TVAR -> "schematic type variable",
-      Isabelle_Markup.ML_SOURCE -> "ML source",
-      Isabelle_Markup.DOCUMENT_SOURCE -> "document source")
+      Markup.SORT -> "sort",
+      Markup.TYP -> "type",
+      Markup.TERM -> "term",
+      Markup.PROP -> "proposition",
+      Markup.TOKEN_RANGE -> "inner syntax token",
+      Markup.FREE -> "free variable",
+      Markup.SKOLEM -> "skolem variable",
+      Markup.BOUND -> "bound variable",
+      Markup.VAR -> "schematic variable",
+      Markup.TFREE -> "free type variable",
+      Markup.TVAR -> "schematic type variable",
+      Markup.ML_SOURCE -> "ML source",
+      Markup.DOCUMENT_SOURCE -> "document source")
 
   private val tooltip_elements =
-    Set(Isabelle_Markup.ENTITY, Isabelle_Markup.SORTING, Isabelle_Markup.TYPING,
-      Isabelle_Markup.ML_TYPING, Isabelle_Markup.PATH) ++ tooltips.keys
+    Set(Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.ML_TYPING, Markup.PATH) ++
+      tooltips.keys
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
@@ -303,17 +299,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       snapshot.cumulate_markup[Text.Info[(List[(Boolean, XML.Tree)])]](
         range, Text.Info(range, Nil), Some(tooltip_elements),
         {
-          case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Entity(kind, name), _))) =>
+          case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
             val kind1 = space_explode('_', kind).mkString(" ")
             add(prev, r, (true, XML.Text(kind1 + " " + quote(name))))
-          case (prev, Text.Info(r, XML.Elem(Isabelle_Markup.Path(name), _)))
+          case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
             add(prev, r, (true, XML.Text("file " + quote(jedit_file))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
-          if name == Isabelle_Markup.SORTING || name == Isabelle_Markup.TYPING =>
+          if name == Markup.SORTING || name == Markup.TYPING =>
             add(prev, r, (true, pretty_typing("::", body)))
-          case (prev, Text.Info(r, XML.Elem(Markup(Isabelle_Markup.ML_TYPING, _), body))) =>
+          case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             add(prev, r, (false, pretty_typing("ML:", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _)))
           if tooltips.isDefinedAt(name) => add(prev, r, (true, XML.Text(tooltips(name))))
@@ -328,16 +324,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def gutter_message(range: Text.Range): Option[Icon] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+      snapshot.cumulate_markup[Int](range, 0, Some(Set(Markup.WARNING, Markup.ERROR)),
         {
-          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body))) =>
+          case (pri, Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), body))) =>
             body match {
-              case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) =>
+              case List(XML.Elem(Markup(Markup.LEGACY, _), _)) =>
                 pri max Rendering.legacy_pri
               case _ => pri max Rendering.warning_pri
             }
-          case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _))) =>
+          case (pri, Text.Info(_, XML.Elem(Markup(Markup.ERROR, _), _))) =>
             pri max Rendering.error_pri
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
@@ -354,12 +349,12 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     val results =
       snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Isabelle_Markup.WRITELN, Isabelle_Markup.WARNING, Isabelle_Markup.ERROR)),
+        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)),
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
-          if name == Isabelle_Markup.WRITELN ||
-            name == Isabelle_Markup.WARNING ||
-            name == Isabelle_Markup.ERROR => pri max Rendering.message_pri(name)
+          if name == Markup.WRITELN ||
+            name == Markup.WARNING ||
+            name == Markup.ERROR => pri max Rendering.message_pri(name)
         })
     for {
       Text.Info(r, pri) <- results
@@ -369,8 +364,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   private val messages_include =
-    Set(Isabelle_Markup.WRITELN_MESSAGE, Isabelle_Markup.TRACING_MESSAGE,
-      Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
+    Set(Markup.WRITELN_MESSAGE, Markup.TRACING_MESSAGE, Markup.WARNING_MESSAGE, Markup.ERROR_MESSAGE)
 
   private val message_colors = Map(
     Rendering.writeln_pri -> writeln_message_color,
@@ -384,17 +378,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       snapshot.cumulate_markup[Int](range, 0, Some(messages_include),
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
-          if name == Isabelle_Markup.WRITELN_MESSAGE ||
-            name == Isabelle_Markup.TRACING_MESSAGE ||
-            name == Isabelle_Markup.WARNING_MESSAGE ||
-            name == Isabelle_Markup.ERROR_MESSAGE => pri max Rendering.message_pri(name)
+          if name == Markup.WRITELN_MESSAGE ||
+            name == Markup.TRACING_MESSAGE ||
+            name == Markup.WARNING_MESSAGE ||
+            name == Markup.ERROR_MESSAGE => pri max Rendering.message_pri(name)
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
     val is_separator = pri > 0 &&
-      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Isabelle_Markup.SEPARATOR)),
+      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Markup.SEPARATOR)),
         {
-          case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.SEPARATOR, _), _))) => true
+          case (_, Text.Info(_, XML.Elem(Markup(Markup.SEPARATOR, _), _))) => true
         }).exists(_.info)
 
     message_colors.get(pri).map((_, is_separator))
@@ -402,10 +396,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   private val background1_include =
-    Protocol.command_status_markup + Isabelle_Markup.WRITELN_MESSAGE +
-      Isabelle_Markup.TRACING_MESSAGE + Isabelle_Markup.WARNING_MESSAGE +
-      Isabelle_Markup.ERROR_MESSAGE + Isabelle_Markup.BAD + Isabelle_Markup.INTENSIFY +
-      Isabelle_Markup.SENDBACK
+    Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
+      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY +
+      Markup.SENDBACK
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -419,11 +412,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
               case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
                 (Some(Protocol.command_status(status, markup)), color)
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.BAD, _), _))) =>
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
                 (None, Some(bad_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.INTENSIFY, _), _))) =>
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.SENDBACK, _), _))) =>
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.SENDBACK, _), _))) =>
                 (None, Some(sendback_color))
             })
         color <-
@@ -439,47 +432,45 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
 
   def background2(range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.TOKEN_RANGE)),
+    snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)),
       {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.TOKEN_RANGE, _), _)) => light_color
+        case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
       })
 
 
   def foreground(range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range,
-      Some(Set(Isabelle_Markup.STRING, Isabelle_Markup.ALTSTRING, Isabelle_Markup.VERBATIM)),
+    snapshot.select_markup(range, Some(Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM)),
       {
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.STRING, _), _)) => quoted_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ALTSTRING, _), _)) => quoted_color
-        case Text.Info(_, XML.Elem(Markup(Isabelle_Markup.VERBATIM, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Markup.STRING, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Markup.ALTSTRING, _), _)) => quoted_color
+        case Text.Info(_, XML.Elem(Markup(Markup.VERBATIM, _), _)) => quoted_color
       })
 
 
   private val text_colors: Map[String, Color] = Map(
-      Isabelle_Markup.KEYWORD1 -> keyword1_color,
-      Isabelle_Markup.KEYWORD2 -> keyword2_color,
-      Isabelle_Markup.STRING -> Color.BLACK,
-      Isabelle_Markup.ALTSTRING -> Color.BLACK,
-      Isabelle_Markup.VERBATIM -> Color.BLACK,
-      Isabelle_Markup.LITERAL -> keyword1_color,
-      Isabelle_Markup.DELIMITER -> Color.BLACK,
-      Isabelle_Markup.TFREE -> tfree_color,
-      Isabelle_Markup.TVAR -> tvar_color,
-      Isabelle_Markup.FREE -> free_color,
-      Isabelle_Markup.SKOLEM -> skolem_color,
-      Isabelle_Markup.BOUND -> bound_color,
-      Isabelle_Markup.VAR -> var_color,
-      Isabelle_Markup.INNER_STRING -> inner_quoted_color,
-      Isabelle_Markup.INNER_COMMENT -> inner_comment_color,
-      Isabelle_Markup.DYNAMIC_FACT -> dynamic_color,
-      Isabelle_Markup.ML_KEYWORD -> keyword1_color,
-      Isabelle_Markup.ML_DELIMITER -> Color.BLACK,
-      Isabelle_Markup.ML_NUMERAL -> inner_numeral_color,
-      Isabelle_Markup.ML_CHAR -> inner_quoted_color,
-      Isabelle_Markup.ML_STRING -> inner_quoted_color,
-      Isabelle_Markup.ML_COMMENT -> inner_comment_color,
-      Isabelle_Markup.ANTIQ -> antiquotation_color)
+      Markup.KEYWORD1 -> keyword1_color,
+      Markup.KEYWORD2 -> keyword2_color,
+      Markup.STRING -> Color.BLACK,
+      Markup.ALTSTRING -> Color.BLACK,
+      Markup.VERBATIM -> Color.BLACK,
+      Markup.LITERAL -> keyword1_color,
+      Markup.DELIMITER -> Color.BLACK,
+      Markup.TFREE -> tfree_color,
+      Markup.TVAR -> tvar_color,
+      Markup.FREE -> free_color,
+      Markup.SKOLEM -> skolem_color,
+      Markup.BOUND -> bound_color,
+      Markup.VAR -> var_color,
+      Markup.INNER_STRING -> inner_quoted_color,
+      Markup.INNER_COMMENT -> inner_comment_color,
+      Markup.DYNAMIC_FACT -> dynamic_color,
+      Markup.ML_KEYWORD -> keyword1_color,
+      Markup.ML_DELIMITER -> Color.BLACK,
+      Markup.ML_NUMERAL -> inner_numeral_color,
+      Markup.ML_CHAR -> inner_quoted_color,
+      Markup.ML_STRING -> inner_quoted_color,
+      Markup.ML_COMMENT -> inner_comment_color,
+      Markup.ANTIQ -> antiquotation_color)
 
   private val text_color_elements = Set.empty[String] ++ text_colors.keys
 

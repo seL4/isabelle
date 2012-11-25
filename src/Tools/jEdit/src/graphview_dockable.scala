@@ -81,9 +81,9 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
     val new_graph =
       if (!restriction.isDefined || restriction.get.contains(new_state.command)) {
         new_state.markup.cumulate[Option[XML.Body]](
-          new_state.command.range, None, Some(Set(Isabelle_Markup.GRAPHVIEW)),
+          new_state.command.range, None, Some(Set(Markup.GRAPHVIEW)),
         {
-          case (_, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.GRAPHVIEW, _), graph))) =>
+          case (_, Text.Info(_, XML.Elem(Markup(Markup.GRAPHVIEW, _), graph))) =>
             Some(graph)
         }).filter(_.info.isDefined) match {
           case Text.Info(_, Some(graph)) #:: _ => graph

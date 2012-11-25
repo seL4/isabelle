@@ -19,13 +19,13 @@ fun make_markup () =
   let
     val props =
       (case Position.get_id (Position.thread_data ()) of
-        SOME id => [(Isabelle_Markup.idN, id)]
+        SOME id => [(Markup.idN, id)]
       | NONE => []);
-  in Markup.properties props Isabelle_Markup.sendback end;
+  in Markup.properties props Markup.sendback end;
 
 fun markup s = Markup.markup (make_markup ()) s;
 
-fun markup_implicit s = Markup.markup Isabelle_Markup.sendback s;
+fun markup_implicit s = Markup.markup Markup.sendback s;
 
 end;
 

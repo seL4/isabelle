@@ -99,7 +99,7 @@ fun standard_message mbox opt_serial name body =
   if body = "" then ()
   else
     message false mbox name
-      ((case opt_serial of SOME i => cons (Isabelle_Markup.serialN, string_of_int i) | _ => I)
+      ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox channel =
@@ -124,22 +124,20 @@ fun init_channels channel =
     val mbox = Mailbox.create () : (string list * bool) Mailbox.T;
     val _ = Simple_Thread.fork false (message_output mbox channel);
   in
-    Output.Private_Hooks.status_fn := standard_message mbox NONE Isabelle_Markup.statusN;
-    Output.Private_Hooks.report_fn := standard_message mbox NONE Isabelle_Markup.reportN;
+    Output.Private_Hooks.status_fn := standard_message mbox NONE Markup.statusN;
+    Output.Private_Hooks.report_fn := standard_message mbox NONE Markup.reportN;
     Output.Private_Hooks.writeln_fn :=
-      (fn s => standard_message mbox (SOME (serial ())) Isabelle_Markup.writelnN s);
+      (fn s => standard_message mbox (SOME (serial ())) Markup.writelnN s);
     Output.Private_Hooks.tracing_fn :=
-      (fn s =>
-        (update_tracing_limits s;
-          standard_message mbox (SOME (serial ())) Isabelle_Markup.tracingN s));
+      (fn s => (update_tracing_limits s; standard_message mbox (SOME (serial ())) Markup.tracingN s));
     Output.Private_Hooks.warning_fn :=
-      (fn s => standard_message mbox (SOME (serial ())) Isabelle_Markup.warningN s);
+      (fn s => standard_message mbox (SOME (serial ())) Markup.warningN s);
     Output.Private_Hooks.error_fn :=
-      (fn (i, s) => standard_message mbox (SOME i) Isabelle_Markup.errorN s);
-    Output.Private_Hooks.protocol_message_fn := message true mbox Isabelle_Markup.protocolN;
+      (fn (i, s) => standard_message mbox (SOME i) Markup.errorN s);
+    Output.Private_Hooks.protocol_message_fn := message true mbox Markup.protocolN;
     Output.Private_Hooks.urgent_message_fn := ! Output.Private_Hooks.writeln_fn;
     Output.Private_Hooks.prompt_fn := ignore;
-    message true mbox Isabelle_Markup.initN [] (Session.welcome ())
+    message true mbox Markup.initN [] (Session.welcome ())
   end;
 
 end;

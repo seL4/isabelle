@@ -71,7 +71,7 @@ fun !!! text scan =
 
     fun err (syms, msg) = fn () =>
       text () ^ get_pos syms ^
-      Markup.markup Isabelle_Markup.no_report (" at " ^ Symbol.beginning 10 (map symbol syms)) ^
+      Markup.markup Markup.no_report (" at " ^ Symbol.beginning 10 (map symbol syms)) ^
       (case msg of NONE => "" | SOME m => "\n" ^ m ());
   in Scan.!! err scan end;
 

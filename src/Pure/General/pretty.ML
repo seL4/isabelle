@@ -156,11 +156,11 @@ fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
 
-fun command name = mark_str (Isabelle_Markup.keyword1, name);
-fun keyword name = mark_str (Isabelle_Markup.keyword2, name);
+fun command name = mark_str (Markup.keyword1, name);
+fun keyword name = mark_str (Markup.keyword2, name);
 
 val text = breaks o map str o Symbol.explode_words;
-val paragraph = markup Isabelle_Markup.paragraph;
+val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
 
 fun markup_chunks m prts = markup m (fbreaks prts);
@@ -304,11 +304,11 @@ fun symbolic prt =
     fun out (Block ((bg, en), [], _, _)) = Buffer.add bg #> Buffer.add en
       | out (Block ((bg, en), prts, indent, _)) =
           Buffer.add bg #>
-          Buffer.markup (Isabelle_Markup.block indent) (fold out prts) #>
+          Buffer.markup (Markup.block indent) (fold out prts) #>
           Buffer.add en
       | out (String (s, _)) = Buffer.add s
       | out (Break (false, wd)) =
-          Buffer.markup (Isabelle_Markup.break wd) (Buffer.add (output_spaces wd))
+          Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
       | out (Break (true, _)) = Buffer.add (Output.output "\n");
   in out prt Buffer.empty end;
 

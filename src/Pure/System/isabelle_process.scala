@@ -25,10 +25,9 @@ object Isabelle_Process
   class Input(name: String, args: List[String]) extends Message
   {
     override def toString: String =
-      XML.Elem(Markup(Isabelle_Markup.PROVER_COMMAND, List((Markup.NAME, name))),
+      XML.Elem(Markup(Markup.PROVER_COMMAND, List((Markup.NAME, name))),
         args.map(s =>
-          List(XML.Text("\n"),
-            XML.elem(Isabelle_Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
+          List(XML.Text("\n"), XML.elem(Markup.PROVER_ARG, YXML.parse_body(s)))).flatten).toString
   }
 
   class Output(val message: XML.Elem) extends Message
@@ -37,14 +36,14 @@ object Isabelle_Process
     def properties: Properties.T = message.markup.properties
     def body: XML.Body = message.body
 
-    def is_init = kind == Isabelle_Markup.INIT
-    def is_exit = kind == Isabelle_Markup.EXIT
-    def is_stdout = kind == Isabelle_Markup.STDOUT
-    def is_stderr = kind == Isabelle_Markup.STDERR
-    def is_system = kind == Isabelle_Markup.SYSTEM
-    def is_status = kind == Isabelle_Markup.STATUS
-    def is_report = kind == Isabelle_Markup.REPORT
-    def is_protocol = kind == Isabelle_Markup.PROTOCOL
+    def is_init = kind == Markup.INIT
+    def is_exit = kind == Markup.EXIT
+    def is_stdout = kind == Markup.STDOUT
+    def is_stderr = kind == Markup.STDERR
+    def is_system = kind == Markup.SYSTEM
+    def is_status = kind == Markup.STATUS
+    def is_report = kind == Markup.REPORT
+    def is_protocol = kind == Markup.PROTOCOL
     def is_syslog = is_init || is_exit || is_system || is_stderr
 
     override def toString: String =
@@ -85,15 +84,15 @@ class Isabelle_Process(
 
   private def system_output(text: String)
   {
-    receiver(new Output(XML.Elem(Markup(Isabelle_Markup.SYSTEM, Nil), List(XML.Text(text)))))
+    receiver(new Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
 
   private val xml_cache = new XML.Cache()
 
   private def output_message(kind: String, props: Properties.T, body: XML.Body)
   {
-    if (kind == Isabelle_Markup.INIT) system_channel.accepted()
-    if (kind == Isabelle_Markup.PROTOCOL)
+    if (kind == Markup.INIT) system_channel.accepted()
+    if (kind == Markup.PROTOCOL)
       receiver(new Output(XML.Elem(Markup(kind, props), body)))
     else {
       val main = XML.Elem(Markup(kind, props), Protocol.clean_message(body))
@@ -105,7 +104,7 @@ class Isabelle_Process(
 
   private def exit_message(rc: Int)
   {
-    output_message(Isabelle_Markup.EXIT, Isabelle_Markup.Return_Code(rc),
+    output_message(Markup.EXIT, Markup.Return_Code(rc),
       List(XML.Text("Return code: " + rc.toString)))
   }
 
@@ -247,8 +246,8 @@ class Isabelle_Process(
   private def physical_output_actor(err: Boolean): (Thread, Actor) =
   {
     val (name, reader, markup) =
-      if (err) ("standard_error", process.stderr, Isabelle_Markup.STDERR)
-      else ("standard_output", process.stdout, Isabelle_Markup.STDOUT)
+      if (err) ("standard_error", process.stderr, Markup.STDERR)
+      else ("standard_output", process.stdout, Markup.STDOUT)
 
     Simple_Thread.actor(name) {
       try {
@@ -364,7 +363,7 @@ class Isabelle_Process(
             header match {
               case List(XML.Elem(Markup(name, props), Nil)) =>
                 val kind = name.intern
-                val body = read_chunk(kind != Isabelle_Markup.PROTOCOL)
+                val body = read_chunk(kind != Markup.PROTOCOL)
                 output_message(kind, props, body)
               case _ =>
                 read_chunk(false)

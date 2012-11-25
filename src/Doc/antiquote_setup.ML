@@ -210,7 +210,7 @@ val entity_setup =
   entity_antiqs no_check "isatt" "executable" #>
   entity_antiqs (K check_tool) "isatool" "tool" #>
   entity_antiqs (thy_check ML_Context.intern_antiq ML_Context.defined_antiq)
-    "" Isabelle_Markup.ML_antiquotationN;
+    "" Markup.ML_antiquotationN;
 
 end;
 

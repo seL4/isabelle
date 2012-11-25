@@ -75,7 +75,7 @@ fun check_cmts tr cmts st =
           handle exn => ML_Compiler.exn_messages exn)) ();
 
 fun timing tr t =
-  if Timing.is_relevant t then Toplevel.status tr (Isabelle_Markup.timing t) else ();
+  if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
 
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
@@ -99,20 +99,20 @@ fun run_command (tr, cmts) (st, malformed) =
       val is_proof = Keyword.is_proof (Toplevel.name_of tr);
 
       val _ = Multithreading.interrupted ();
-      val _ = Toplevel.status tr Isabelle_Markup.running;
+      val _ = Toplevel.status tr Markup.running;
       val start = Timing.start ();
       val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts tr cmts st');
       val errs = errs1 @ errs2;
       val _ = timing tr (Timing.result start);
-      val _ = Toplevel.status tr Isabelle_Markup.finished;
+      val _ = Toplevel.status tr Markup.finished;
       val _ = List.app (Toplevel.error_msg tr) errs;
     in
       (case result of
         NONE =>
           let
             val _ = if null errs then Exn.interrupt () else ();
-            val _ = Toplevel.status tr Isabelle_Markup.failed;
+            val _ = Toplevel.status tr Markup.failed;
           in ((st, malformed'), no_print) end
       | SOME st' =>
           let

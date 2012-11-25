@@ -53,7 +53,7 @@ val _ =
 
         val (assignment, state') = Document.update old_id new_id edits state;
         val _ =
-          Output.protocol_message Isabelle_Markup.assign_execs
+          Output.protocol_message Markup.assign_execs
             ((new_id, assignment) |>
               let open XML.Encode
               in pair int (list (pair int (option int))) end
@@ -72,7 +72,7 @@ val _ =
           YXML.parse_body versions_yxml |>
             let open XML.Decode in list int end;
         val state1 = Document.remove_versions versions state;
-        val _ = Output.protocol_message Isabelle_Markup.removed_versions versions_yxml;
+        val _ = Output.protocol_message Markup.removed_versions versions_yxml;
       in state1 end));
 
 val _ =

@@ -129,7 +129,7 @@ fun register_forked id future =
     in (m, groups', tab') end);
 
 fun status task markups =
-  let val props = Markup.properties [(Isabelle_Markup.taskN, Task_Queue.str_of_task task)]
+  let val props = Markup.properties [(Markup.taskN, Task_Queue.str_of_task task)]
   in Output.status (implode (map (Markup.markup_only o props) markups)) end;
 
 in
@@ -148,21 +148,21 @@ fun fork_name name e =
           (fn () =>
             let
               val task = the (Future.worker_task ());
-              val _ = status task [Isabelle_Markup.running];
+              val _ = status task [Markup.running];
               val result = Exn.capture (Future.interruptible_task e) ();
-              val _ = status task [Isabelle_Markup.finished, Isabelle_Markup.joined];
+              val _ = status task [Markup.finished, Markup.joined];
               val _ =
                 (case result of
                   Exn.Res _ => ()
                 | Exn.Exn exn =>
                     if id = 0 orelse Exn.is_interrupt exn then ()
                     else
-                      (status task [Isabelle_Markup.failed];
-                       Output.report (Markup.markup_only Isabelle_Markup.bad);
+                      (status task [Markup.failed];
+                       Output.report (Markup.markup_only Markup.bad);
                        Output.error_msg (ML_Compiler.exn_message exn)));
               val _ = count_forked ~1;
             in Exn.release result end);
-      val _ = status (Future.task_of future) [Isabelle_Markup.forked];
+      val _ = status (Future.task_of future) [Markup.forked];
       val _ = register_forked id future;
     in future end) ();
 
