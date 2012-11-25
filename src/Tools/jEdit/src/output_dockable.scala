@@ -47,8 +47,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    pretty_text_area.resize(PIDE.font_family(),
-      (PIDE.font_size("jedit_font_scale") * zoom_factor / 100).round)
+    pretty_text_area.resize(Rendering.font_family(),
+      (Rendering.font_size("jedit_font_scale") * zoom_factor / 100).round)
   }
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]])

@@ -14,7 +14,7 @@ import java.awt.Color
 import javax.swing.Icon
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
-import org.gjt.sp.jedit.GUIUtilities
+import org.gjt.sp.jedit.{jEdit, GUIUtilities}
 
 import scala.collection.immutable.SortedMap
 
@@ -56,6 +56,14 @@ object Rendering
 
   val tooltip_close_icon = load_icon("16x16/actions/document-close.png")
   val tooltip_detach_icon = load_icon("16x16/actions/window-new.png")
+
+
+  /* jEdit font */
+
+  def font_family(): String = jEdit.getProperty("view.font")
+
+  def font_size(scale: String): Float =
+    (jEdit.getIntegerProperty("view.fontsize", 16) * PIDE.options.real(scale)).toFloat
 
 
   /* token markup -- text styles */

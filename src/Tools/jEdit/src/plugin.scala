@@ -47,14 +47,6 @@ object PIDE
   }
 
 
-  /* font */
-
-  def font_family(): String = jEdit.getProperty("view.font")
-
-  def font_size(scale: String): Float =
-    (jEdit.getIntegerProperty("view.fontsize", 16) * options.real(scale)).toFloat
-
-
   /* document model and view */
 
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)

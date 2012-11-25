@@ -68,8 +68,8 @@ class Pretty_Tooltip(
 
   val pretty_text_area = new Pretty_Text_Area(view)
   pretty_text_area.getPainter.setBackground(rendering.tooltip_color)
-  pretty_text_area.resize(PIDE.font_family(),
-    PIDE.font_size("jedit_tooltip_font_scale").round)
+  pretty_text_area.resize(Rendering.font_family(),
+    Rendering.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, body)
 
   pretty_text_area.registerKeyboardAction(action_listener, "close_all",

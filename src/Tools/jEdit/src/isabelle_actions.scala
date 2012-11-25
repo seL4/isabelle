@@ -19,9 +19,8 @@ object Isabelle_Actions
 
   def change_font_size(view: View, change: Int => Int)
   {
-    val FONT_SIZE = "view.fontsize"
-    val size = change(jEdit.getIntegerProperty(FONT_SIZE, 12)) max 5
-    jEdit.setIntegerProperty(FONT_SIZE, size)
+    val size = change(jEdit.getIntegerProperty("view.fontsize", 16)) max 5
+    jEdit.setIntegerProperty("view.fontsize", size)
     jEdit.propertiesChanged()
     jEdit.saveSettings()
     view.getStatus.setMessageAndClear("Text font size: " + size)
