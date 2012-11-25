@@ -15,7 +15,6 @@ import javax.swing.Icon
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 import org.gjt.sp.jedit.GUIUtilities
-import org.gjt.sp.util.Log
 
 import scala.collection.immutable.SortedMap
 
@@ -46,9 +45,8 @@ object Rendering
   private def load_icon(name: String): Icon =
   {
     val icon = GUIUtilities.loadIcon(name)
-    if (icon.getIconWidth < 0 || icon.getIconHeight < 0)
-      Log.log(Log.ERROR, icon, "Bad icon: " + name)
-    icon
+    if (icon.getIconWidth < 0 || icon.getIconHeight < 0) error("Bad icon: " + name)
+    else icon
   }
 
   private val gutter_icons = Map(
