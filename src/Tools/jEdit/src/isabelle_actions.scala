@@ -35,13 +35,13 @@ object Isabelle_Actions
 
   def check_buffer(buffer: Buffer)
   {
-    Isabelle.document_model(buffer) match {
+    PIDE.document_model(buffer) match {
       case None =>
       case Some(model) => model.full_perspective()
     }
   }
 
-  def cancel_execution() { Isabelle.session.cancel_execution() }
+  def cancel_execution() { PIDE.session.cancel_execution() }
 
 
   /* control styles */

@@ -205,7 +205,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
-            val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
             Text.Info(snapshot.convert(info_range), Hyperlink(jedit_file, 0, 0)) :: links
 
           case (links, Text.Info(info_range, XML.Elem(Markup(Markup.ENTITY, props), _)))
@@ -304,7 +304,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             add(prev, r, (true, XML.Text(kind1 + " " + quote(name))))
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
-            val jedit_file = Isabelle.thy_load.append(snapshot.node_name.dir, Path.explode(name))
+            val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
             add(prev, r, (true, XML.Text("file " + quote(jedit_file))))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), body)))
           if name == Markup.SORTING || name == Markup.TYPING =>

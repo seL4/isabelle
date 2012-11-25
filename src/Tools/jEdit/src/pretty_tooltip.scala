@@ -68,8 +68,8 @@ class Pretty_Tooltip(
 
   val pretty_text_area = new Pretty_Text_Area(view)
   pretty_text_area.getPainter.setBackground(rendering.tooltip_color)
-  pretty_text_area.resize(Isabelle.font_family(),
-    Isabelle.font_size("jedit_tooltip_font_scale").round)
+  pretty_text_area.resize(PIDE.font_family(),
+    PIDE.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, body)
 
   pretty_text_area.registerKeyboardAction(action_listener, "close_all",
@@ -106,7 +106,7 @@ class Pretty_Tooltip(
 
   {
     val font_metrics = pretty_text_area.getPainter.getFontMetrics
-    val margin = Isabelle.options.int("jedit_tooltip_margin")  // FIXME via rendering?!
+    val margin = PIDE.options.int("jedit_tooltip_margin")  // FIXME via rendering?!
     val lines =
       XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(font_metrics)))(0)(
         (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)

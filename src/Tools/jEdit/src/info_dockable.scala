@@ -76,8 +76,8 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   {
     Swing_Thread.require()
 
-    pretty_text_area.resize(Isabelle.font_family(),
-      (Isabelle.font_size("jedit_font_scale") * zoom_factor / 100).round)
+    pretty_text_area.resize(PIDE.font_family(),
+      (PIDE.font_size("jedit_font_scale") * zoom_factor / 100).round)
   }
 
 
@@ -98,7 +98,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     Swing_Thread.require()
 
     JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
-    Isabelle.session.global_options += main_actor
+    PIDE.session.global_options += main_actor
     handle_resize()
   }
 
@@ -107,7 +107,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     Swing_Thread.require()
 
     JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
-    Isabelle.session.global_options -= main_actor
+    PIDE.session.global_options -= main_actor
     delay_resize.revoke()
   }
 
@@ -116,7 +116,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
 
   private val delay_resize =
     Swing_Thread.delay_first(
-      Time.seconds(Isabelle.options.real("editor_update_delay"))) { handle_resize() }
+      Time.seconds(PIDE.options.real("editor_update_delay"))) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

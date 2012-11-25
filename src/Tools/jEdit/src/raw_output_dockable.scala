@@ -37,6 +37,6 @@ class Raw_Output_Dockable(view: View, position: String) extends Dockable(view, p
     }
   }
 
-  override def init() { Isabelle.session.raw_output_messages += main_actor }
-  override def exit() { Isabelle.session.raw_output_messages -= main_actor }
+  override def init() { PIDE.session.raw_output_messages += main_actor }
+  override def exit() { PIDE.session.raw_output_messages -= main_actor }
 }

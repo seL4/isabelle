@@ -24,7 +24,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
   private class Symbol_Component(val symbol: String) extends Button
   {
     private val decoded = Symbol.decode(symbol)
-    private val font_size = Isabelle.font_size("jedit_font_scale").round
+    private val font_size = PIDE.font_size("jedit_font_scale").round
 
     font =
       Symbol.fonts.get(symbol) match {
@@ -71,8 +71,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       add(results_panel, BorderPanel.Position.Center)
       listenTo(search)
       val delay_search =
-        Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("editor_input_delay"))) {
-          val max_results = Isabelle.options.int("jedit_symbols_search_limit") max 0
+        Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_input_delay"))) {
+          val max_results = PIDE.options.int("jedit_symbols_search_limit") max 0
           results_panel.contents.clear
           val results =
             (searchspace filter (search.text.toLowerCase.split("\\s+") forall _._2.contains)

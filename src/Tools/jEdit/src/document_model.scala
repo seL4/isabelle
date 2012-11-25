@@ -68,7 +68,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     Swing_Thread.require()
     JEdit_Lib.buffer_lock(buffer) {
       Exn.capture {
-        Isabelle.thy_load.check_thy_text(name, buffer.getSegment(0, buffer.getLength))
+        PIDE.thy_load.check_thy_text(name, buffer.getSegment(0, buffer.getLength))
       } match {
         case Exn.Res(header) => header
         case Exn.Exn(exn) => Document.Node.bad_header(Exn.message(exn))
@@ -86,7 +86,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     Swing_Thread.require()
     Text.Perspective(
       for {
-        doc_view <- Isabelle.document_views(buffer)
+        doc_view <- PIDE.document_views(buffer)
         range <- doc_view.perspective().ranges
       } yield range)
   }
@@ -115,8 +115,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     }
 
     private val delay_flush =
-      Swing_Thread.delay_last(
-        Time.seconds(Isabelle.options.real("editor_input_delay"))) { flush() }
+      Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_input_delay"))) { flush() }
 
     def +=(edit: Text.Edit)
     {

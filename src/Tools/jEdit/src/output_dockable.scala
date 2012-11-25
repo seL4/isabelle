@@ -47,8 +47,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    pretty_text_area.resize(Isabelle.font_family(),
-      (Isabelle.font_size("jedit_font_scale") * zoom_factor / 100).round)
+    pretty_text_area.resize(PIDE.font_family(),
+      (PIDE.font_size("jedit_font_scale") * zoom_factor / 100).round)
   }
 
   private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
@@ -116,9 +116,9 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    Isabelle.session.global_options += main_actor
-    Isabelle.session.commands_changed += main_actor
-    Isabelle.session.caret_focus += main_actor
+    PIDE.session.global_options += main_actor
+    PIDE.session.commands_changed += main_actor
+    PIDE.session.caret_focus += main_actor
     handle_update(true, None)
   }
 
@@ -126,9 +126,9 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   {
     Swing_Thread.require()
 
-    Isabelle.session.global_options -= main_actor
-    Isabelle.session.commands_changed -= main_actor
-    Isabelle.session.caret_focus -= main_actor
+    PIDE.session.global_options -= main_actor
+    PIDE.session.commands_changed -= main_actor
+    PIDE.session.caret_focus -= main_actor
     delay_resize.revoke()
   }
 
@@ -137,7 +137,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val delay_resize =
     Swing_Thread.delay_first(
-      Time.seconds(Isabelle.options.real("editor_update_delay"))) { handle_resize() }
+      Time.seconds(PIDE.options.real("editor_update_delay"))) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

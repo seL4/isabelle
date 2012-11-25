@@ -45,7 +45,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
       new isabelle.graphview.Main_Panel(isabelle.graphview.Model.decode_graph(graph)) {
         override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
         {
-          val rendering = Rendering(snapshot, Isabelle.options.value)
+          val rendering = Rendering(snapshot, PIDE.options.value)
           new Pretty_Tooltip(view, parent, rendering, x, y, body)
           null
         }
@@ -123,9 +123,9 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   {
     Swing_Thread.require()
 
-    Isabelle.session.global_options += main_actor
-    Isabelle.session.commands_changed += main_actor
-    Isabelle.session.caret_focus += main_actor
+    PIDE.session.global_options += main_actor
+    PIDE.session.commands_changed += main_actor
+    PIDE.session.caret_focus += main_actor
     handle_update(do_update, None)
   }
 
@@ -133,8 +133,8 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   {
     Swing_Thread.require()
 
-    Isabelle.session.global_options -= main_actor
-    Isabelle.session.commands_changed -= main_actor
-    Isabelle.session.caret_focus -= main_actor
+    PIDE.session.global_options -= main_actor
+    PIDE.session.commands_changed -= main_actor
+    PIDE.session.caret_focus -= main_actor
   }
 }

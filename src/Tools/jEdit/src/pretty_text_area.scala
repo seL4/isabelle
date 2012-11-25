@@ -25,7 +25,7 @@ object Pretty_Text_Area
     (String, Rendering) =
   {
     val (text, state) = Pretty_Text_Area.document_state(base_snapshot, formatted_body)
-    val rendering = Rendering(state.snapshot(), Isabelle.options.value)
+    val rendering = Rendering(state.snapshot(), PIDE.options.value)
     (text, rendering)
   }
 

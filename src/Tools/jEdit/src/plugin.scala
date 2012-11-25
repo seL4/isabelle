@@ -24,7 +24,7 @@ import org.gjt.sp.util.SyntaxUtilities
 import scala.actors.Actor._
 
 
-object Isabelle
+object PIDE
 {
   /* plugin instance */
 
@@ -149,7 +149,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(Time.seconds(Isabelle.options.real("editor_load_delay")))
+    Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_load_delay")))
     {
       val view = jEdit.getActiveView()
 
@@ -159,13 +159,13 @@ class Plugin extends EBPlugin
           buffers.exists(buffer => JEdit_Lib.buffer_name(buffer) == name)
 
         val thys =
-          for (buffer <- buffers; model <- Isabelle.document_model(buffer))
+          for (buffer <- buffers; model <- PIDE.document_model(buffer))
             yield model.name
 
-        val thy_info = new Thy_Info(Isabelle.thy_load)
+        val thy_info = new Thy_Info(PIDE.thy_load)
         // FIXME avoid I/O in Swing thread!?!
         val files = thy_info.dependencies(true, thys).deps.map(_._1.node).
-          filter(file => !loaded_buffer(file) && Isabelle.thy_load.check_file(view, file))
+          filter(file => !loaded_buffer(file) && PIDE.thy_load.check_file(view, file))
 
         if (!files.isEmpty) {
           val files_list = new ListView(files.sorted)
@@ -199,16 +199,16 @@ class Plugin extends EBPlugin
             case Session.Failed =>
               Swing_Thread.later {
                 Library.error_dialog(jEdit.getActiveView, "Prover process failure",
-                    "Isabelle Syslog", Library.scrollable_text(Isabelle.session.current_syslog()))
+                    "Isabelle Syslog", Library.scrollable_text(PIDE.session.current_syslog()))
               }
 
             case Session.Ready =>
-              Isabelle.session.global_options.event(Session.Global_Options(Isabelle.options.value))
-              JEdit_Lib.jedit_buffers.foreach(Isabelle.init_model)
+              PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
+              JEdit_Lib.jedit_buffers.foreach(PIDE.init_model)
               Swing_Thread.later { delay_load.invoke() }
 
             case Session.Shutdown =>
-              JEdit_Lib.jedit_buffers.foreach(Isabelle.exit_model)
+              JEdit_Lib.jedit_buffers.foreach(PIDE.exit_model)
               Swing_Thread.later { delay_load.revoke() }
 
             case _ =>
@@ -225,28 +225,28 @@ class Plugin extends EBPlugin
   {
     Swing_Thread.assert()
 
-    if (Isabelle.startup_failure.isDefined && !Isabelle.startup_notified) {
+    if (PIDE.startup_failure.isDefined && !PIDE.startup_notified) {
       message match {
         case msg: EditorStarted =>
           Library.error_dialog(null, "Isabelle plugin startup failure",
-            Library.scrollable_text(Exn.message(Isabelle.startup_failure.get)),
+            Library.scrollable_text(Exn.message(PIDE.startup_failure.get)),
             "Prover IDE inactive!")
-          Isabelle.startup_notified = true
+          PIDE.startup_notified = true
         case _ =>
       }
     }
 
-    if (Isabelle.startup_failure.isEmpty) {
+    if (PIDE.startup_failure.isEmpty) {
       message match {
         case msg: EditorStarted =>
-          if (Isabelle.options.bool("jedit_auto_start"))
-            Isabelle.session.start(Isabelle_Logic.session_args())
+          if (PIDE.options.bool("jedit_auto_start"))
+            PIDE.session.start(Isabelle_Logic.session_args())
 
         case msg: BufferUpdate
         if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
-          if (Isabelle.session.is_ready) {
+          if (PIDE.session.is_ready) {
             val buffer = msg.getBuffer
-            if (buffer != null && !buffer.isLoading) Isabelle.init_model(buffer)
+            if (buffer != null && !buffer.isLoading) PIDE.init_model(buffer)
             Swing_Thread.later { delay_load.invoke() }
           }
 
@@ -262,14 +262,14 @@ class Plugin extends EBPlugin
           if (buffer != null && text_area != null) {
             if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
                 msg.getWhat == EditPaneUpdate.CREATED) {
-              if (Isabelle.session.is_ready)
-                Isabelle.init_view(buffer, text_area)
+              if (PIDE.session.is_ready)
+                PIDE.init_view(buffer, text_area)
             }
-            else Isabelle.exit_view(buffer, text_area)
+            else PIDE.exit_view(buffer, text_area)
           }
 
         case msg: PropertiesChanged =>
-          Isabelle.session.global_options.event(Session.Global_Options(Isabelle.options.value))
+          PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
 
         case _ =>
       }
@@ -279,12 +279,12 @@ class Plugin extends EBPlugin
   override def start()
   {
     try {
-      Isabelle.plugin = this
+      PIDE.plugin = this
       Isabelle_System.init()
       Isabelle_System.install_fonts()
 
       val init_options = Options.init()
-      Swing_Thread.now { Isabelle.options.update(init_options)  }
+      Swing_Thread.now { PIDE.options.update(init_options)  }
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
@@ -293,28 +293,28 @@ class Plugin extends EBPlugin
       val content = Isabelle_Logic.session_content(false)
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
 
-      Isabelle.session = new Session(thy_load) {
-        override def output_delay = Time.seconds(Isabelle.options.real("editor_output_delay"))
-        override def reparse_limit = Isabelle.options.int("editor_reparse_limit")
+      PIDE.session = new Session(thy_load) {
+        override def output_delay = Time.seconds(PIDE.options.real("editor_output_delay"))
+        override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }
 
-      Isabelle.session.phase_changed += session_manager
-      Isabelle.startup_failure = None
+      PIDE.session.phase_changed += session_manager
+      PIDE.startup_failure = None
     }
     catch {
       case exn: Throwable =>
-        Isabelle.startup_failure = Some(exn)
-        Isabelle.startup_notified = false
+        PIDE.startup_failure = Some(exn)
+        PIDE.startup_notified = false
     }
   }
 
   override def stop()
   {
-    if (Isabelle.startup_failure.isEmpty)
-      Isabelle.options.value.save_prefs()
+    if (PIDE.startup_failure.isEmpty)
+      PIDE.options.value.save_prefs()
 
-    Isabelle.session.phase_changed -= session_manager
-    JEdit_Lib.jedit_buffers.foreach(Isabelle.exit_model)
-    Isabelle.session.stop()
+    PIDE.session.phase_changed -= session_manager
+    JEdit_Lib.jedit_buffers.foreach(PIDE.exit_model)
+    PIDE.session.stop()
   }
 }

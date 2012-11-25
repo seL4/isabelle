@@ -41,7 +41,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
-  private val session_phase = new Label(Isabelle.session.phase.toString)
+  private val session_phase = new Label(PIDE.session.phase.toString)
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
   session_phase.tooltip = "Prover status"
 
@@ -89,10 +89,10 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
           var end = size.width - insets.right
           for {
             (n, color) <- List(
-              (st.unprocessed, Isabelle.options.color_value("unprocessed1_color")),
-              (st.running, Isabelle.options.color_value("running_color")),
-              (st.warned, Isabelle.options.color_value("warning_color")),
-              (st.failed, Isabelle.options.color_value("error_color"))) }
+              (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
+              (st.running, PIDE.options.color_value("running_color")),
+              (st.warned, PIDE.options.color_value("warning_color")),
+              (st.failed, PIDE.options.color_value("error_color"))) }
           {
             gfx.setColor(color)
             val v = (n * w / st.total) max (if (n > 0) 2 else 0)
@@ -121,7 +121,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
     Swing_Thread.now {
-      val snapshot = Isabelle.session.snapshot()
+      val snapshot = PIDE.session.snapshot()
 
       val iterator =
         restriction match {
@@ -130,7 +130,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
         }
       val nodes_status1 =
         (nodes_status /: iterator)({ case (status, (name, node)) =>
-            if (Isabelle.thy_load.loaded_theories(name.theory)) status
+            if (PIDE.thy_load.loaded_theories(name.theory)) status
             else status + (name -> Protocol.node_status(snapshot.state, snapshot.version, node)) })
 
       if (nodes_status != nodes_status1) {
@@ -161,15 +161,15 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
 
   override def init()
   {
-    Isabelle.session.phase_changed += main_actor; handle_phase(Isabelle.session.phase)
-    Isabelle.session.global_options += main_actor
-    Isabelle.session.commands_changed += main_actor; handle_update()
+    PIDE.session.phase_changed += main_actor; handle_phase(PIDE.session.phase)
+    PIDE.session.global_options += main_actor
+    PIDE.session.commands_changed += main_actor; handle_update()
   }
 
   override def exit()
   {
-    Isabelle.session.phase_changed -= main_actor
-    Isabelle.session.global_options -= main_actor
-    Isabelle.session.commands_changed -= main_actor
+    PIDE.session.phase_changed -= main_actor
+    PIDE.session.global_options -= main_actor
+    PIDE.session.commands_changed -= main_actor
   }
 }

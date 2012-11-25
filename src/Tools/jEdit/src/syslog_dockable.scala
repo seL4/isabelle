@@ -24,7 +24,7 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
   private def update_syslog()
   {
     Swing_Thread.later {
-      val text = Isabelle.session.current_syslog()
+      val text = PIDE.session.current_syslog()
       if (text != syslog.text) syslog.text = text
     }
   }
@@ -47,12 +47,12 @@ class Syslog_Dockable(view: View, position: String) extends Dockable(view, posit
 
   override def init()
   {
-    Isabelle.session.syslog_messages += main_actor
+    PIDE.session.syslog_messages += main_actor
     update_syslog()
   }
 
   override def exit()
   {
-    Isabelle.session.syslog_messages -= main_actor
+    PIDE.session.syslog_messages -= main_actor
   }
 }

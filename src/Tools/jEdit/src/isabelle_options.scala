@@ -47,10 +47,10 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
       "editor_load_delay", "editor_input_delay", "editor_output_delay", "editor_reparse_limit",
       "editor_tracing_limit", "editor_update_delay")
 
-  relevant_options.foreach(Isabelle.options.value.check_name _)
+  relevant_options.foreach(PIDE.options.value.check_name _)
 
   protected val components =
-    Isabelle.options.make_components(List(Isabelle_Logic.logic_selector(false)), relevant_options)
+    PIDE.options.make_components(List(Isabelle_Logic.logic_selector(false)), relevant_options)
 }
 
 
@@ -59,12 +59,12 @@ class Isabelle_Options2 extends Isabelle_Options("isabelle-rendering")
   // FIXME avoid hard-wired stuff
   private val predefined =
     (for {
-      (name, opt) <- Isabelle.options.value.options.toList
+      (name, opt) <- PIDE.options.value.options.toList
       if (name.endsWith("_color") && opt.section == "Rendering of Document Content")
-    } yield Isabelle.options.make_color_component(opt))
+    } yield PIDE.options.make_color_component(opt))
 
   assert(!predefined.isEmpty)
 
-  protected val components = Isabelle.options.make_components(predefined, _ => false)
+  protected val components = PIDE.options.make_components(predefined, _ => false)
 }
 

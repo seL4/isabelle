@@ -42,13 +42,13 @@ object Isabelle_Logic
       val title = "Logic"
       def load: Unit =
       {
-        val logic = Isabelle.options.string(opt_name)
+        val logic = PIDE.options.string(opt_name)
         entries.find(_.name == logic) match {
           case Some(entry) => selection.item = entry
           case None =>
         }
       }
-      def save: Unit = Isabelle.options.string(opt_name) = selection.item.name
+      def save: Unit = PIDE.options.string(opt_name) = selection.item.name
     }
 
     component.load()
@@ -56,7 +56,7 @@ object Isabelle_Logic
       component.listenTo(component.selection)
       component.reactions += { case SelectionChanged(_) => component.save() }
     }
-    component.tooltip = Isabelle.options.value.check_name(opt_name).print_default
+    component.tooltip = PIDE.options.value.check_name(opt_name).print_default
     component
   }
 
@@ -64,7 +64,7 @@ object Isabelle_Logic
   {
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic =
-      Isabelle.options.string(opt_name) match {
+      PIDE.options.string(opt_name) match {
         case "" => default_logic()
         case logic => logic
       }

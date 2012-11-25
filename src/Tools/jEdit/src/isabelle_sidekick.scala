@@ -177,7 +177,7 @@ class Isabelle_Sidekick_Structure(
 
 
 class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
-  "isabelle", Isabelle.get_recent_syntax, JEdit_Lib.buffer_node_name)
+  "isabelle", PIDE.get_recent_syntax, JEdit_Lib.buffer_node_name)
 
 
 class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
@@ -188,8 +188,7 @@ class Isabelle_Sidekick_Root extends Isabelle_Sidekick_Structure(
   "isabelle-root", Some(Build.root_syntax), JEdit_Lib.buffer_node_dummy)
 
 
-class Isabelle_Sidekick_Raw
-  extends Isabelle_Sidekick("isabelle-raw", Isabelle.get_recent_syntax)
+class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_recent_syntax)
 {
   override def parser(buffer: Buffer, syntax: Outer_Syntax, data: SideKickParsedData): Boolean =
   {
