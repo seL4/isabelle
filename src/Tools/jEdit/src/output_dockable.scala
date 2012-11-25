@@ -136,8 +136,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* resize */
 
   private val delay_resize =
-    Swing_Thread.delay_first(
-      Time.seconds(PIDE.options.real("editor_update_delay"))) { handle_resize() }
+    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
 
   addComponentListener(new ComponentAdapter {
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }

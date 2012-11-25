@@ -141,7 +141,7 @@ class Plugin extends EBPlugin
   /* theory files */
 
   private lazy val delay_load =
-    Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_load_delay")))
+    Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
     {
       val view = jEdit.getActiveView()
 
@@ -286,7 +286,7 @@ class Plugin extends EBPlugin
       val thy_load = new JEdit_Thy_Load(content.loaded_theories, content.syntax)
 
       PIDE.session = new Session(thy_load) {
-        override def output_delay = Time.seconds(PIDE.options.real("editor_output_delay"))
+        override def output_delay = PIDE.options.seconds("editor_output_delay")
         override def reparse_limit = PIDE.options.int("editor_reparse_limit")
       }
 

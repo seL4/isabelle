@@ -147,7 +147,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   /* caret handling */
 
   private val delay_caret_update =
-    Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_input_delay"))) {
+    Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
       session.caret_focus.event(Session.Caret_Focus)
     }
 
@@ -161,7 +161,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private object overview extends Text_Overview(this)
   {
     val delay_repaint =
-      Swing_Thread.delay_first(Time.seconds(PIDE.options.real("editor_update_delay"))) { repaint() }
+      Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { repaint() }
   }
 
 
@@ -172,7 +172,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       react {
         case _: Session.Raw_Edits =>
           Swing_Thread.later {
-            overview.delay_repaint.postpone(Time.seconds(PIDE.options.real("editor_input_delay")))
+            overview.delay_repaint.postpone(PIDE.options.seconds("editor_input_delay"))
           }
 
         case changed: Session.Commands_Changed =>

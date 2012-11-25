@@ -115,7 +115,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     }
 
     private val delay_flush =
-      Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_input_delay"))) { flush() }
+      Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) { flush() }
 
     def +=(edit: Text.Edit)
     {

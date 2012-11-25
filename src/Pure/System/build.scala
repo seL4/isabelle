@@ -472,7 +472,7 @@ object Build
     def is_finished: Boolean = result.is_finished
 
     @volatile private var timeout = false
-    private val time = Time.seconds(info.options.real("timeout"))
+    private val time = info.options.seconds("timeout")
     private val timer: Option[Timer] =
       if (time.seconds > 0.0) {
         val t = new Timer("build", true)

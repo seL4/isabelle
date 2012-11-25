@@ -71,7 +71,7 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
       add(results_panel, BorderPanel.Position.Center)
       listenTo(search)
       val delay_search =
-        Swing_Thread.delay_last(Time.seconds(PIDE.options.real("editor_input_delay"))) {
+        Swing_Thread.delay_last(PIDE.options.seconds("editor_input_delay")) {
           val max_results = PIDE.options.int("jedit_symbols_search_limit") max 0
           results_panel.contents.clear
           val results =
