@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/plugin.scala
+/*  Title:      Tools/jEdit/src/isabelle.scala
     Author:     Makarius
 
-Convenience actions for Isabelle/jEdit.
+Convenience operations for Isabelle/jEdit.
 */
 
 package isabelle.jedit
@@ -11,10 +11,40 @@ import isabelle._
 
 import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.textarea.JEditTextArea
+import org.gjt.sp.jedit.gui.DockableWindowManager
 
 
-object Isabelle_Actions
+object Isabelle
 {
+  /* dockable windows */
+
+  private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
+
+  def docked_session(view: View): Option[Session_Dockable] =
+    wm(view).getDockableWindow("isabelle-session") match {
+      case dockable: Session_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def docked_output(view: View): Option[Output_Dockable] =
+    wm(view).getDockableWindow("isabelle-output") match {
+      case dockable: Output_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def docked_raw_output(view: View): Option[Raw_Output_Dockable] =
+    wm(view).getDockableWindow("isabelle-raw-output") match {
+      case dockable: Raw_Output_Dockable => Some(dockable)
+      case _ => None
+    }
+
+  def docked_protocol(view: View): Option[Protocol_Dockable] =
+    wm(view).getDockableWindow("isabelle-protocol") match {
+      case dockable: Protocol_Dockable => Some(dockable)
+      case _ => None
+    }
+
+
   /* font size */
 
   def change_font_size(view: View, change: Int => Int)
