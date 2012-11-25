@@ -27,6 +27,10 @@ options.isabelle-rendering.label=Rendering
 options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 
 #actions
+isabelle.increase-font-size.label=Increase font size
+isabelle.increase-font-size.shortcut=C+PLUS
+isabelle.decrease-font-size.label=Decrease font size
+isabelle.decrease-font-size.shortcut=C+MINUS
 isabelle.check-buffer.label=Commence full proof checking of current buffer
 isabelle.check-buffer.shortcut=C+e SPACE
 isabelle.cancel-execution.label=Cancel current proof checking process

@@ -82,7 +82,11 @@ symbols.
 
 * Improved editing support for control styles: subscript, superscript,
 bold, reset of style -- operating on single symbols or text
-selections.  Cf. keyboard short-cuts C+e DOWN/UP/RIGHT/LEFT.
+selections.  Cf. keyboard shortcuts C+e DOWN/UP/RIGHT/LEFT.
+
+* Actions isabelle.increase-font-size and isabelle.decrease-font-size
+adjust the main text area font size, and its derivatives for output,
+tooltips etc.  Cf. keyboard shortcuts C-PLUS and C-MINUS.
 
 * Uniform Java 7 platform on Linux, Mac OS X, Windows: recent updates
 from Oracle provide better multi-platform experience.  This version is

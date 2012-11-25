@@ -42,6 +42,16 @@
 			wm.addDockableWindow("isabelle-symbols");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.increase-font-size">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.increase_font_size(view);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.decrease-font-size">
+	  <CODE>
+	    isabelle.jedit.Isabelle_Actions.decrease_font_size(view);
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.check-buffer">
 	  <CODE>
 	    isabelle.jedit.Isabelle_Actions.check_buffer(buffer);

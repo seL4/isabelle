@@ -9,12 +9,28 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.Buffer
+import org.gjt.sp.jedit.{jEdit, View, Buffer}
 import org.gjt.sp.jedit.textarea.JEditTextArea
 
 
 object Isabelle_Actions
 {
+  /* font size */
+
+  def change_font_size(view: View, change: Int => Int)
+  {
+    val FONT_SIZE = "view.fontsize"
+    val size = change(jEdit.getIntegerProperty(FONT_SIZE, 12)) max 5
+    jEdit.setIntegerProperty(FONT_SIZE, size)
+    jEdit.propertiesChanged()
+    jEdit.saveSettings()
+    view.getStatus.setMessageAndClear("Text font size: " + size)
+  }
+
+  def increase_font_size(view: View): Unit = change_font_size(view, i => i + ((i / 10) max 1))
+  def decrease_font_size(view: View): Unit = change_font_size(view, i => i - ((i / 10) max 1))
+
+
   /* full checking */
 
   def check_buffer(buffer: Buffer)
