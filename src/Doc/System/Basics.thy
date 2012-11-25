@@ -268,13 +268,13 @@ text {*
   directories with documentation files.
   
   \item[@{setting_def ISABELLE_DOC_FORMAT}] specifies the preferred
-  document format, typically @{verbatim dvi} or @{verbatim pdf}.
-  
-  \item[@{setting_def DVI_VIEWER}] specifies the command to be used
-  for displaying @{verbatim dvi} files.
-  
-  \item[@{setting_def PDF_VIEWER}] specifies the command to be used
-  for displaying @{verbatim pdf} files.
+  document format, typically @{verbatim pdf} or @{verbatim dvi}.
+
+  \item[@{setting_def PDF_VIEWER}] specifies the command-line to be
+  used for displaying @{verbatim pdf} files.
+
+  \item[@{setting_def DVI_VIEWER}] specifies the command-line to be
+  used for displaying @{verbatim dvi} files.
   
   \item[@{setting_def PRINT_COMMAND}] specifies the standard printer
   spool command, which is expected to accept @{verbatim ps} files.

@@ -98,25 +98,25 @@ ISABELLE_DOCS="$ISABELLE_HOME/doc"
 # Preferred document format
 ISABELLE_DOC_FORMAT=pdf
 
-# The dvi file viewer
+# PDF file viewer (command-line to eval)
+case "$ISABELLE_PLATFORM_FAMILY" in
+  linux)
+    PDF_VIEWER="xdg-open"
+    ;;
+  macos)
+    PDF_VIEWER="open -W -n"
+    ;;
+  windows)
+    PDF_VIEWER="cygstart"
+    ;;
+esac
+
+# DVI file viewer (command-line to eval)
 DVI_VIEWER=xdvi
 #DVI_VIEWER="xdvi -geometry 498x704 -expert -s 5"
 #DVI_VIEWER="xdvi -geometry 711x1005 -expert -s 7"
 #DVI_VIEWER="xdvi -geometry 500x704 -expert -s 10"
 #DVI_VIEWER="xdvi -geometry 555x782 -expert -s 9"
-
-# The pdf file viewer
-case "$ISABELLE_PLATFORM" in
-  *-linux)
-    PDF_VIEWER="xdg-open"
-    ;;
-  *-darwin)
-    PDF_VIEWER="open -W -n"
-    ;;
-  *-cygwin)
-    PDF_VIEWER="cygstart"
-    ;;
-esac
 
 
 # Printer spool command for PS files
