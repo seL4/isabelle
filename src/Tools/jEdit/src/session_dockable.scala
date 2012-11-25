@@ -51,12 +51,12 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
   }
 
   private val cancel = new Button("Cancel") {
-    reactions += { case ButtonClicked(_) => Isabelle.cancel_execution() }
+    reactions += { case ButtonClicked(_) => PIDE.cancel_execution() }
   }
   cancel.tooltip = jEdit.getProperty("isabelle.cancel-execution.label")
 
   private val check = new Button("Check") {
-    reactions += { case ButtonClicked(_) => Isabelle.check_buffer(view.getBuffer) }
+    reactions += { case ButtonClicked(_) => PIDE.check_buffer(view.getBuffer) }
   }
   check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
 

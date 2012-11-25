@@ -103,6 +103,19 @@ object PIDE
       Document_View.exit(text_area)
     }
   }
+
+
+  /* full checking */
+
+  def check_buffer(buffer: Buffer)
+  {
+    PIDE.document_model(buffer) match {
+      case None =>
+      case Some(model) => model.full_perspective()
+    }
+  }
+
+  def cancel_execution() { PIDE.session.cancel_execution() }
 }
 
 

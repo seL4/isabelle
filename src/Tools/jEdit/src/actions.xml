@@ -42,6 +42,16 @@
 			wm.addDockableWindow("isabelle-symbols");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.check-buffer">
+	  <CODE>
+	    isabelle.jedit.PIDE.check_buffer(buffer);
+	  </CODE>
+	</ACTION>
+	<ACTION NAME="isabelle.cancel-execution">
+	  <CODE>
+	    isabelle.jedit.PIDE.cancel_execution();
+	  </CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.increase-font-size">
 	  <CODE>
 	    isabelle.jedit.Isabelle.increase_font_size(view);
@@ -50,16 +60,6 @@
 	<ACTION NAME="isabelle.decrease-font-size">
 	  <CODE>
 	    isabelle.jedit.Isabelle.decrease_font_size(view);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.check-buffer">
-	  <CODE>
-	    isabelle.jedit.Isabelle.check_buffer(buffer);
-	  </CODE>
-	</ACTION>
-	<ACTION NAME="isabelle.cancel-execution">
-	  <CODE>
-	    isabelle.jedit.Isabelle.cancel_execution();
 	  </CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.control-sub">

@@ -60,19 +60,6 @@ object Isabelle
   def decrease_font_size(view: View): Unit = change_font_size(view, i => i - ((i / 10) max 1))
 
 
-  /* full checking */
-
-  def check_buffer(buffer: Buffer)
-  {
-    PIDE.document_model(buffer) match {
-      case None =>
-      case Some(model) => model.full_perspective()
-    }
-  }
-
-  def cancel_execution() { PIDE.session.cancel_execution() }
-
-
   /* control styles */
 
   def control_sub(text_area: JEditTextArea)
