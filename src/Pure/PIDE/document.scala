@@ -51,14 +51,6 @@ object Document
     object Name
     {
       val empty = Name("", "", "")
-      def apply(raw_path: Path): Name =
-      {
-        val path = raw_path.expand
-        val node = path.implode
-        val dir = path.dir.implode
-        val theory = Thy_Header.thy_name(node) getOrElse error("Bad theory file name: " + path)
-        Name(node, dir, theory)
-      }
 
       object Ordering extends scala.math.Ordering[Name]
       {

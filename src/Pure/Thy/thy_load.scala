@@ -14,11 +14,25 @@ import java.io.{File => JFile}
 
 object Thy_Load
 {
+  /* paths */
+
   def thy_path(path: Path): Path = path.ext("thy")
 
   def is_ok(str: String): Boolean =
     try { thy_path(Path.explode(str)); true }
     catch { case ERROR(_) => false }
+
+
+  /* node names */
+
+  def external_node(raw_path: Path): Document.Node.Name =
+  {
+    val path = raw_path.expand
+    val node = path.implode
+    val dir = path.dir.implode
+    val theory = Thy_Header.thy_name(node) getOrElse error("Bad theory file name: " + path)
+    Document.Node.Name(node, dir, theory)
+  }
 }
 
 
