@@ -522,7 +522,7 @@ object Build
   private def read_stamps(path: Path): Option[(String, String, String)] =
     if (path.is_file) {
       val stream = new GZIPInputStream (new BufferedInputStream(new FileInputStream(path.file)))
-      val reader = new BufferedReader(new InputStreamReader(stream, Standard_System.charset))
+      val reader = new BufferedReader(new InputStreamReader(stream, UTF8.charset))
       val (s, h1, h2) =
         try { (reader.readLine, reader.readLine, reader.readLine) }
         finally { reader.close }

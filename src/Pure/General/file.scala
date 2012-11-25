@@ -53,8 +53,7 @@ object File
     buf
   }
 
-  def read(file: JFile): String =
-    new String(read_bytes(file), Standard_System.charset)
+  def read(file: JFile): String = new String(read_bytes(file), UTF8.charset)
 
   def read(path: Path): String = read(path.file)
 
@@ -68,7 +67,7 @@ object File
   }
 
   def read(stream: InputStream): String =
-    read(new BufferedReader(new InputStreamReader(stream, Standard_System.charset)))
+    read(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))
 
 
   /* try_read */
@@ -90,7 +89,7 @@ object File
   {
     val stream1 = new FileOutputStream(file)
     val stream2 = if (gzip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
-    val writer = new BufferedWriter(new OutputStreamWriter(stream2, Standard_System.charset))
+    val writer = new BufferedWriter(new OutputStreamWriter(stream2, UTF8.charset))
     try { writer.append(text) }
     finally { writer.close }
   }

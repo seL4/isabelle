@@ -168,13 +168,13 @@ object Isabelle_System
     // channels
 
     val stdin: BufferedWriter =
-      new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, Standard_System.charset))
+      new BufferedWriter(new OutputStreamWriter(proc.getOutputStream, UTF8.charset))
 
     val stdout: BufferedReader =
-      new BufferedReader(new InputStreamReader(proc.getInputStream, Standard_System.charset))
+      new BufferedReader(new InputStreamReader(proc.getInputStream, UTF8.charset))
 
     val stderr: BufferedReader =
-      new BufferedReader(new InputStreamReader(proc.getErrorStream, Standard_System.charset))
+      new BufferedReader(new InputStreamReader(proc.getErrorStream, UTF8.charset))
 
 
     // signals

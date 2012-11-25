@@ -64,7 +64,7 @@ class Scala_Console extends Shell("Scala")
     val buf = new StringBuilder
     override def flush()
     {
-      val str = Standard_System.decode_permissive_utf8(buf.toString)
+      val str = UTF8.decode_permissive(buf.toString)
       buf.clear
       if (global_out == null) System.out.print(str)
       else Swing_Thread.now { global_out.writeAttrs(null, str) }

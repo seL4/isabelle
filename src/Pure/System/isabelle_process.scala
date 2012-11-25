@@ -292,9 +292,8 @@ class Isabelle_Process(
           //{{{
           receive {
             case Input_Chunks(chunks) =>
-              stream.write(Standard_System.string_bytes(
-                  chunks.map(_.length).mkString("", ",", "\n")));
-              chunks.foreach(stream.write(_));
+              stream.write(UTF8.string_bytes(chunks.map(_.length).mkString("", ",", "\n")))
+              chunks.foreach(stream.write(_))
               stream.flush
             case Close =>
               stream.close
@@ -350,8 +349,8 @@ class Isabelle_Process(
         if (i != n) throw new Protocol_Error("bad message chunk content")
 
         if (do_decode)
-          YXML.parse_body_failsafe(Standard_System.decode_chars(decode, buf, 0, n))
-        else List(XML.Text(Standard_System.decode_chars(s => s, buf, 0, n).toString))
+          YXML.parse_body_failsafe(UTF8.decode_chars(decode, buf, 0, n))
+        else List(XML.Text(UTF8.decode_chars(s => s, buf, 0, n).toString))
         //}}}
       }
 
@@ -390,12 +389,12 @@ class Isabelle_Process(
   def input_raw(text: String): Unit = standard_input._2 ! Input_Text(text)
 
   def input_bytes(name: String, args: Array[Byte]*): Unit =
-    command_input._2 ! Input_Chunks(Standard_System.string_bytes(name) :: args.toList)
+    command_input._2 ! Input_Chunks(UTF8.string_bytes(name) :: args.toList)
 
   def input(name: String, args: String*)
   {
     receiver(new Input(name, args.toList))
-    input_bytes(name, args.map(Standard_System.string_bytes): _*)
+    input_bytes(name, args.map(UTF8.string_bytes): _*)
   }
 
   def options(opts: Options): Unit =
