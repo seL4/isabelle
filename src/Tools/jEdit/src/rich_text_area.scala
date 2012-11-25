@@ -26,7 +26,7 @@ import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, TextArea}
 class Rich_Text_Area(
   view: View,
   text_area: TextArea,
-  get_rendering: () => Isabelle_Rendering,
+  get_rendering: () => Rendering,
   hovering: Boolean)
 {
   private val buffer = text_area.getBuffer
@@ -65,7 +65,7 @@ class Rich_Text_Area(
 
   /* common painter state */
 
-  @volatile private var painter_rendering: Isabelle_Rendering = null
+  @volatile private var painter_rendering: Rendering = null
   @volatile private var painter_clip: Shape = null
 
   private val set_state = new TextAreaExtension
@@ -90,7 +90,7 @@ class Rich_Text_Area(
     }
   }
 
-  def robust_rendering(body: Isabelle_Rendering => Unit)
+  def robust_rendering(body: Rendering => Unit)
   {
     robust_body(()) { body(painter_rendering) }
   }
@@ -98,8 +98,7 @@ class Rich_Text_Area(
 
   /* active areas within the text */
 
-  private class Active_Area[A](
-    rendering: Isabelle_Rendering => Text.Range => Option[Text.Info[A]])
+  private class Active_Area[A](rendering: Rendering => Text.Range => Option[Text.Info[A]])
   {
     private var the_text_info: Option[(String, Text.Info[A])] = None
 
@@ -123,7 +122,7 @@ class Rich_Text_Area(
       }
     }
 
-    def update_rendering(r: Isabelle_Rendering, range: Text.Range)
+    def update_rendering(r: Rendering, range: Text.Range)
     { update(rendering(r)(range)) }
 
     def reset { update(None) }
@@ -133,10 +132,9 @@ class Rich_Text_Area(
 
   private var control: Boolean = false
 
-  private val highlight_area = new Active_Area[Color]((r: Isabelle_Rendering) => r.highlight _)
-  private val hyperlink_area = new Active_Area[Hyperlink]((r: Isabelle_Rendering) => r.hyperlink _)
-  private val sendback_area =
-    new Active_Area[Option[Document.Exec_ID]]((r: Isabelle_Rendering) => r.sendback _)
+  private val highlight_area = new Active_Area[Color]((r: Rendering) => r.highlight _)
+  private val hyperlink_area = new Active_Area[Hyperlink]((r: Rendering) => r.hyperlink _)
+  private val sendback_area = new Active_Area[Option[Document.Exec_ID]]((r: Rendering) => r.sendback _)
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (sendback_area, false))
@@ -294,7 +292,7 @@ class Rich_Text_Area(
 
   /* text */
 
-  private def paint_chunk_list(rendering: Isabelle_Rendering,
+  private def paint_chunk_list(rendering: Rendering,
     gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds

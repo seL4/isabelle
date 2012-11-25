@@ -222,8 +222,7 @@ object Token_Markup
         val (styled_tokens, context1) =
           if (line_ctxt.isDefined && syntax.isDefined) {
             val (tokens, ctxt1) = syntax.get.scan_context(line, line_ctxt.get)
-            val styled_tokens =
-              tokens.map(tok => (Isabelle_Rendering.token_markup(syntax.get, tok), tok))
+            val styled_tokens = tokens.map(tok => (Rendering.token_markup(syntax.get, tok), tok))
             (styled_tokens, new Line_Context(Some(ctxt1)))
           }
           else {

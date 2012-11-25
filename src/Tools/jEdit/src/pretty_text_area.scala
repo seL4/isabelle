@@ -22,10 +22,10 @@ import org.gjt.sp.util.SyntaxUtilities
 object Pretty_Text_Area
 {
   private def text_rendering(base_snapshot: Document.Snapshot, formatted_body: XML.Body):
-    (String, Isabelle_Rendering) =
+    (String, Rendering) =
   {
     val (text, state) = Pretty_Text_Area.document_state(base_snapshot, formatted_body)
-    val rendering = Isabelle_Rendering(state.snapshot(), Isabelle.options.value)
+    val rendering = Rendering(state.snapshot(), Isabelle.options.value)
     (text, rendering)
   }
 
@@ -62,7 +62,7 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
   private var current_font_size: Int = 12
   private var current_body: XML.Body = Nil
   private var current_base_snapshot = Document.State.init.snapshot()
-  private var current_rendering: Isabelle_Rendering =
+  private var current_rendering: Rendering =
     Pretty_Text_Area.text_rendering(current_base_snapshot, Nil)._2
   private var future_rendering: Option[java.util.concurrent.Future[Unit]] = None
 

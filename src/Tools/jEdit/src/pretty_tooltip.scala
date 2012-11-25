@@ -24,7 +24,7 @@ import org.gjt.sp.jedit.textarea.TextArea
 class Pretty_Tooltip(
   view: View,
   parent: JComponent,
-  rendering: Isabelle_Rendering,
+  rendering: Rendering,
   mouse_x: Int, mouse_y: Int, body: XML.Body)
   extends JWindow(JEdit_Lib.parent_window(parent) getOrElse view)
 {
@@ -81,14 +81,14 @@ class Pretty_Tooltip(
   /* controls */
 
   private val close = new Label {
-    icon = Isabelle_Rendering.tooltip_close_icon
+    icon = Rendering.tooltip_close_icon
     tooltip = "Close tooltip window"
     listenTo(mouse.clicks)
     reactions += { case _: MouseClicked => window.dispose() }
   }
 
   private val detach = new Label {
-    icon = Isabelle_Rendering.tooltip_detach_icon
+    icon = Rendering.tooltip_detach_icon
     tooltip = "Detach tooltip window"
     listenTo(mouse.clicks)
     reactions += {

@@ -1,7 +1,8 @@
 /*  Title:      Tools/jEdit/src/isabelle_rendering.scala
     Author:     Makarius
 
-Isabelle specific physical rendering and markup selection.
+Isabelle-specific implementation of quasi-abstract rendering and
+markup interpretation.
 */
 
 package isabelle.jedit
@@ -11,7 +12,6 @@ import isabelle._
 
 import java.awt.Color
 import javax.swing.Icon
-import java.io.{File => JFile}
 
 import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 import org.gjt.sp.jedit.GUIUtilities
@@ -20,10 +20,10 @@ import org.gjt.sp.util.Log
 import scala.collection.immutable.SortedMap
 
 
-object Isabelle_Rendering
+object Rendering
 {
-  def apply(snapshot: Document.Snapshot, options: Options): Isabelle_Rendering =
-    new Isabelle_Rendering(snapshot, options)
+  def apply(snapshot: Document.Snapshot, options: Options): Rendering =
+    new Rendering(snapshot, options)
 
 
   /* message priorities */
@@ -103,7 +103,7 @@ object Isabelle_Rendering
 }
 
 
-class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: Options)
+class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 {
   /* colors */
 
@@ -162,7 +162,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           {
             case ((status, pri), Text.Info(_, XML.Elem(markup, _))) =>
               if (markup.name == Isabelle_Markup.WARNING || markup.name == Isabelle_Markup.ERROR)
-                (status, pri max Isabelle_Rendering.message_pri(markup.name))
+                (status, pri max Rendering.message_pri(markup.name))
               else (Protocol.command_status(status, markup), pri)
           })
       if (results.isEmpty) None
@@ -171,8 +171,8 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           ((Protocol.Status.init, 0) /: results) {
             case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
 
-        if (pri == Isabelle_Rendering.warning_pri) Some(warning_color)
-        else if (pri == Isabelle_Rendering.error_pri) Some(error_color)
+        if (pri == Rendering.warning_pri) Some(warning_color)
+        else if (pri == Rendering.error_pri) Some(error_color)
         else if (status.is_unprocessed) Some(unprocessed_color)
         else if (status.is_running) Some(running_color)
         else if (status.is_failed) Some(error_color)
@@ -336,21 +336,21 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.WARNING, _), body))) =>
             body match {
               case List(XML.Elem(Markup(Isabelle_Markup.LEGACY, _), _)) =>
-                pri max Isabelle_Rendering.legacy_pri
-              case _ => pri max Isabelle_Rendering.warning_pri
+                pri max Rendering.legacy_pri
+              case _ => pri max Rendering.warning_pri
             }
           case (pri, Text.Info(_, XML.Elem(Markup(Isabelle_Markup.ERROR, _), _))) =>
-            pri max Isabelle_Rendering.error_pri
+            pri max Rendering.error_pri
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
-    Isabelle_Rendering.gutter_icons.get(pri)
+    Rendering.gutter_icons.get(pri)
   }
 
 
   private val squiggly_colors = Map(
-    Isabelle_Rendering.writeln_pri -> writeln_color,
-    Isabelle_Rendering.warning_pri -> warning_color,
-    Isabelle_Rendering.error_pri -> error_color)
+    Rendering.writeln_pri -> writeln_color,
+    Rendering.warning_pri -> warning_color,
+    Rendering.error_pri -> error_color)
 
   def squiggly_underline(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -361,7 +361,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Isabelle_Markup.WRITELN ||
             name == Isabelle_Markup.WARNING ||
-            name == Isabelle_Markup.ERROR => pri max Isabelle_Rendering.message_pri(name)
+            name == Isabelle_Markup.ERROR => pri max Rendering.message_pri(name)
         })
     for {
       Text.Info(r, pri) <- results
@@ -375,10 +375,10 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
       Isabelle_Markup.WARNING_MESSAGE, Isabelle_Markup.ERROR_MESSAGE)
 
   private val message_colors = Map(
-    Isabelle_Rendering.writeln_pri -> writeln_message_color,
-    Isabelle_Rendering.tracing_pri -> tracing_message_color,
-    Isabelle_Rendering.warning_pri -> warning_message_color,
-    Isabelle_Rendering.error_pri -> error_message_color)
+    Rendering.writeln_pri -> writeln_message_color,
+    Rendering.tracing_pri -> tracing_message_color,
+    Rendering.warning_pri -> warning_message_color,
+    Rendering.error_pri -> error_message_color)
 
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
@@ -389,7 +389,7 @@ class Isabelle_Rendering private(val snapshot: Document.Snapshot, val options: O
           if name == Isabelle_Markup.WRITELN_MESSAGE ||
             name == Isabelle_Markup.TRACING_MESSAGE ||
             name == Isabelle_Markup.WARNING_MESSAGE ||
-            name == Isabelle_Markup.ERROR_MESSAGE => pri max Isabelle_Rendering.message_pri(name)
+            name == Isabelle_Markup.ERROR_MESSAGE => pri max Rendering.message_pri(name)
         })
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 

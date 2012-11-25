@@ -45,7 +45,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
       new isabelle.graphview.Main_Panel(isabelle.graphview.Model.decode_graph(graph)) {
         override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
         {
-          val rendering = Isabelle_Rendering(snapshot, Isabelle.options.value)
+          val rendering = Rendering(snapshot, Isabelle.options.value)
           new Pretty_Tooltip(view, parent, rendering, x, y, body)
           null
         }
