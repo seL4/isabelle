@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/isabelle_rendering.scala
+/*  Title:      Tools/jEdit/src/rendering.scala
     Author:     Makarius
 
 Isabelle-specific implementation of quasi-abstract rendering and
