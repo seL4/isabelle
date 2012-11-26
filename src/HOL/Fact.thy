@@ -306,4 +306,13 @@ by (auto simp add: positive_imp_inverse_positive)
 lemma inv_of_nat_fact_ge_zero [simp]: "(0::'a::linordered_field) \<le> inverse (of_nat (fact n))"
 by (auto intro: order_less_imp_le)
 
+lemma fact_eq_rev_setprod_nat: "fact (k::nat) = (\<Prod>i<k. k - i)"
+  unfolding fact_altdef_nat
+proof (rule strong_setprod_reindex_cong)
+  { fix i assume "Suc 0 \<le> i" "i \<le> k" then have "\<exists>j\<in>{..<k}. i = k - j"
+      by (intro bexI[of _ "k - i"]) simp_all }
+  then show "{1..k} = (\<lambda>i. k - i) ` {..<k}"
+    by (auto simp: image_iff)
+qed (auto intro: inj_onI)
+
 end

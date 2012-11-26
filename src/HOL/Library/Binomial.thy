@@ -537,4 +537,42 @@ proof-
   then show ?thesis using kn by simp
 qed
 
+(* Contributed by Manuel Eberl *)
+(* Alternative definition of the binomial coefficient as \<Prod>i<k. (n - i) / (k - i) *)
+lemma binomial_altdef_of_nat:
+  fixes n k :: nat and x :: "'a :: {field_char_0, field_inverse_zero}"
+  assumes "k \<le> n" shows "of_nat (n choose k) = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
+proof cases
+  assume "0 < k"
+  then have "(of_nat (n choose k) :: 'a) = (\<Prod>i<k. of_nat n - of_nat i) / of_nat (fact k)"
+    unfolding binomial_gbinomial gbinomial_def
+    by (auto simp: gr0_conv_Suc lessThan_Suc_atMost atLeast0AtMost)
+  also have "\<dots> = (\<Prod>i<k. of_nat (n - i) / of_nat (k - i) :: 'a)"
+    using `k \<le> n` unfolding fact_eq_rev_setprod_nat of_nat_setprod
+    by (auto simp add: setprod_dividef intro!: setprod_cong of_nat_diff[symmetric])
+  finally show ?thesis .
+qed simp
+
+lemma binomial_ge_n_over_k_pow_k:
+  fixes k n :: nat and x :: "'a :: linordered_field_inverse_zero"
+  assumes "0 < k" and "k \<le> n" shows "(of_nat n / of_nat k :: 'a) ^ k \<le> of_nat (n choose k)"
+proof -
+  have "(of_nat n / of_nat k :: 'a) ^ k = (\<Prod>i<k. of_nat n / of_nat k :: 'a)"
+    by (simp add: setprod_constant)
+  also have "\<dots> \<le> of_nat (n choose k)"
+    unfolding binomial_altdef_of_nat[OF `k\<le>n`]
+  proof (safe intro!: setprod_mono)
+    fix i::nat  assume  "i < k"
+    from assms have "n * i \<ge> i * k" by simp
+    hence "n * k - n * i \<le> n * k - i * k" by arith
+    hence "n * (k - i) \<le> (n - i) * k"
+      by (simp add: diff_mult_distrib2 nat_mult_commute)
+    hence "of_nat n * of_nat (k - i) \<le> of_nat (n - i) * (of_nat k :: 'a)"
+      unfolding of_nat_mult[symmetric] of_nat_le_iff .
+    with assms show "of_nat n / of_nat k \<le> of_nat (n - i) / (of_nat (k - i) :: 'a)"
+      using `i < k` by (simp add: field_simps)
+  qed (simp add: zero_le_divide_iff)
+  finally show ?thesis .
+qed
+
 end
