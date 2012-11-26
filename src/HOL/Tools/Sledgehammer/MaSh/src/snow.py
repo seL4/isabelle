@@ -1,3 +1,9 @@
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/snow.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# Wrapper for SNoW.
+
 '''
 THIS FILE IS NOT UP TO DATE!
 NEEDS SOME FIXING BEFORE IT WILL WORK WITH THE MAIN ALGORITHM

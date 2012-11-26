@@ -1,3 +1,9 @@
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/predefined.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# A classifier that uses the Meng-Paulson predictions.
+
 '''
 Created on Jul 11, 2012
 

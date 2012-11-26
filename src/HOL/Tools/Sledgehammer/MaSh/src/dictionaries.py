@@ -1,3 +1,9 @@
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/dictionaries.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# Persistent dictionaries: accessibility, dependencies, and features.
+
 '''
 Created on Jul 12, 2012
 

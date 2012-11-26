@@ -9,6 +9,10 @@ Contributions to this Isabelle version
 * 2012: Makarius Wenzel, Université Paris-Sud / LRI
   Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
 
+* Fall 2012: Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+  Jasmin Blanchette, TUM
+  Implemented Machine Learning for Sledgehammer (MaSh).
+
 * Fall 2012: Steffen Smolka, TUM
   Various improvements to Sledgehammer's Isar proof generator, including
   a smart type annotation algorithm and proof shrinking.

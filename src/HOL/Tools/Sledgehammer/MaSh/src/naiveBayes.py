@@ -1,3 +1,9 @@
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/naiveBayes.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# An updatable naive Bayes classifier.
+
 '''
 Created on Jul 11, 2012
 
@@ -10,7 +16,7 @@ from math import log
 
 class NBClassifier(object):
     '''
-    An updateable naive Bayes classifier.
+    An updatable naive Bayes classifier.
     '''
 
     def __init__(self):

@@ -1,3 +1,9 @@
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/stats.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# Statistics collector.
+
 '''
 Created on Jul 9, 2012
 

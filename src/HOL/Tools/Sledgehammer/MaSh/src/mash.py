@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/mash.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# Entry point for MaSh (Machine Learning for Sledgehammer).
+
 '''
 MaSh - Machine Learning for Sledgehammer
 

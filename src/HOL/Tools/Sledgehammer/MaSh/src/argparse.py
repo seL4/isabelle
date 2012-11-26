@@ -1,3 +1,7 @@
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/argparse.py
+#
+# Argument parser. See copyright notice below.
+
 # -*- coding: utf-8 -*-
 
 # Copyright © 2006-2009 Steven J. Bethard <steven.bethard@gmail.com>.

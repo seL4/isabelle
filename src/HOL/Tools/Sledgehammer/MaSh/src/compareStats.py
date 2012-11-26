@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/compareStats.py
+#     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+#     Copyright   2012
+#
+# Tool that compares MaSh statistics and displays a comparison.
+
 '''
 Created on Jul 13, 2012
 
