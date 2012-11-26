@@ -505,13 +505,13 @@ structure Var_Set_Tab = Table(
   type key = indexname list
   val ord = list_ord Term_Ord.fast_indexname_ord)
 
-(* (1) Generalize Types *)
+(* (1) Generalize types *)
 fun generalize_types ctxt t =
   t |> map_types (fn _ => dummyT)
     |> Syntax.check_term
          (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
 
-(* (2) Typing-spot Table *)
+(* (2) Typing-spot table *)
 local
 fun key_of_atype (TVar (z, _)) =
     Ord_List.insert Term_Ord.fast_indexname_ord z
@@ -535,7 +535,7 @@ val typing_spot_table =
   post_fold_term_type update_tab (Var_Set_Tab.empty, 0) #> fst
 end
 
-(* (3) Reverse-Greedy *)
+(* (3) Reverse-greedy *)
 fun reverse_greedy typing_spot_tab =
   let
     fun update_count z =
@@ -555,9 +555,10 @@ fun reverse_greedy typing_spot_tab =
       |>> sort_distinct (rev_order o cost_ord o pairself snd)
   in fold drop_superfluous typing_spots ([], tvar_count_tab) |> fst end
 
-(* (4) Introduce Annotations *)
-fun introduce_annotations thy spots t t' =
+(* (4) Introduce annotations *)
+fun introduce_annotations ctxt spots t t' =
   let
+    val thy = Proof_Context.theory_of ctxt
     val get_types = post_fold_term_type (K cons) []
     fun match_types tp =
       fold (Sign.typ_match thy) (op ~~ (pairself get_types tp)) Vartab.empty
@@ -572,6 +573,7 @@ fun introduce_annotations thy spots t t' =
       let
         val unica =
           Vartab.fold (add_all_tfree_namesT o snd o snd) env []
+          |> filter_out (Variable.is_declared ctxt)
           |> unica fast_string_ord
         val erase_unica = map_atyps
           (fn T as TFree (s, _) =>
@@ -611,13 +613,12 @@ fun introduce_annotations thy spots t t' =
 (* (5) Annotate *)
 fun annotate_types ctxt t =
   let
-    val thy = Proof_Context.theory_of ctxt
     val t' = generalize_types ctxt t
     val typing_spots =
       t' |> typing_spot_table
          |> reverse_greedy
          |> sort int_ord
-  in introduce_annotations thy typing_spots t t' end
+  in introduce_annotations ctxt typing_spots t t' end
 
 val indent_size = 2
 val no_label = ("", ~1)
@@ -817,7 +818,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
            | (NONE, (_, s)) => (true, Time.+ (preplay_timeout, s))) o apfst Lazy.force)
         (false, seconds 0.0)
 
-    (* Metis Preplaying *)
+    (* Metis preplaying *)
     fun try_metis timeout (Prove (_, _, t, By_Metis fact_names)) =
       if not preplay then (fn () => SOME (seconds 0.0)) else
         let
