@@ -48,13 +48,7 @@ object Token_Markup
     val buffer = text_area.getBuffer
 
     text_area.getSelection.toList match {
-      case Nil if control == "" =>
-        JEdit_Lib.buffer_edit(buffer) {
-          val caret = text_area.getCaretPosition
-          if (caret > 0 && is_control_style(buffer.getText(caret - 1, 1)))
-            text_area.backspace()
-        }
-      case Nil if control != "" =>
+      case Nil =>
         text_area.setSelectedText(control)
       case sels =>
         JEdit_Lib.buffer_edit(buffer) {
