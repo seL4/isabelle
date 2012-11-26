@@ -414,15 +414,15 @@ and it cannot learn.
 \item[\labelitemi]
 An experimental, memoryful alternative to MePo is \emph{MaSh}
 (\underline{Ma}chine Learner for \underline{S}ledge\underline{h}ammer). It
-relies on an external tool called \texttt{mash} that applies machine learning to
+relies on an external Python tool that applies machine learning to
 the problem of finding relevant facts.
 
 \item[\labelitemi] The \emph{Mesh} filter combines MePo and MaSh.
 \end{enum}
 
-The default is either MePo or Mesh, depending on whether \texttt{mash} is
-installed and what class of provers the target prover belongs to
-(\S\ref{relevance-filter}).
+The default is either MePo or Mesh, depending on whether the environment
+variable \texttt{MASH} is set and what class of provers the target prover
+belongs to (\S\ref{relevance-filter}).
 
 The number of facts included in a problem varies from prover to prover, since
 some provers get overwhelmed more easily than others. You can show the number of
@@ -1055,16 +1055,15 @@ Specifies the relevance filter to use. The following filters are available:
 The traditional memoryless MePo relevance filter.
 
 \item[\labelitemi] \textbf{\textit{mash}:}
-The memoryful MaSh machine learner. MaSh relies on the external program
-\texttt{mash}, which can be obtained from the author at \authoremail. To install
-it, set the environment variable \texttt{MASH\_HOME} to the directory that
-contains the \texttt{mash} executable.
-Persistent data is stored in the \texttt{\$ISABELLE\_HOME\_USER/mash} directory.
+The memoryful MaSh machine learner. MaSh relies on the external Python program
+\texttt{mash.py}, which is part of Isabelle. To enable MaSh, set the environment
+variable \texttt{MASH} to \texttt{yes}. Persistent data is stored in the
+directory \texttt{\$ISABELLE\_HOME\_USER/mash}.
 
 \item[\labelitemi] \textbf{\textit{mesh}:} A combination of MePo and MaSh.
 
-\item[\labelitemi] \textbf{\textit{smart}:} Use Mesh if \texttt{mash} is
-installed and the target prover is an ATP; otherwise, use MePo.
+\item[\labelitemi] \textbf{\textit{smart}:} Use Mesh if MaSh is
+enabled and the target prover is an ATP; otherwise, use MePo.
 \end{enum}
 
 \opdefault{max\_facts}{smart\_int}{smart}
@@ -1084,7 +1083,7 @@ are relevant and 1 only theorems that refer to previously seen constants.
 \optrue{learn}{dont\_learn}
 Specifies whether MaSh should be run automatically by Sledgehammer to learn the
 available theories (and hence provide more accurate results). Learning only
-takes place if \texttt{mash} is installed.
+takes place if MaSh is enabled.
 
 \opdefault{max\_new\_mono\_instances}{int}{smart}
 Specifies the maximum number of monomorphic instances to generate beyond
