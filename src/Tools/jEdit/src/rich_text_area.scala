@@ -138,7 +138,7 @@ class Rich_Text_Area(
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (sendback_area, false))
-  private def active_reset(): Unit = active_areas.foreach(_._1.reset)
+  def active_reset(): Unit = active_areas.foreach(_._1.reset)
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) { robust_body(()) { active_reset() } }
