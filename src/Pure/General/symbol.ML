@@ -54,13 +54,13 @@ sig
   val is_letdig: symbol -> bool
   val is_ident: symbol list -> bool
   val beginning: int -> symbol list -> string
-  val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
   val source: (string, 'a) Source.source -> (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
-  val split_words: symbol list -> string list
-  val explode_words: string -> string list
   val esc: symbol -> string
   val escape: string -> string
+  val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
+  val split_words: symbol list -> string list
+  val explode_words: string -> string list
   val strip_blanks: string -> string
   val bump_init: string -> string
   val bump_string: string -> string
@@ -399,26 +399,9 @@ val is_block_ctrl = member (op =) ["\\<^bsub>", "\\<^esub>", "\\<^bsup>", "\\<^e
 fun is_quasi_letter s = let val k = kind s in k = Letter orelse k = Quasi end;
 fun is_letdig s = let val k = kind s in k = Letter orelse k = Digit orelse k = Quasi end;
 
-fun is_ident [] = false
-  | is_ident (c :: cs) = is_letter c andalso forall is_letdig cs;
-
 
 
 (** symbol input **)
-
-(* scanning through symbols *)
-
-fun scanner msg scan syms =
-  let
-    fun message (ss, NONE) = (fn () => msg ^ ": " ^ quote (beginning 10 ss))
-      | message (ss, SOME msg') = (fn () => msg ^ ", " ^ msg' () ^ ": " ^ quote (beginning 10 ss));
-    val finite_scan = Scan.error (Scan.finite stopper (!! message scan));
-  in
-    (case finite_scan syms of
-      (result, []) => result
-    | (_, rest) => error (message (rest, NONE) ()))
-  end;
-
 
 (* source *)
 
@@ -477,6 +460,33 @@ fun sym_explode str =
 end;
 
 
+(* escape *)
+
+val esc = fn s =>
+  if is_char s then s
+  else if is_utf8 s then translate_string (fn c => "\\" ^ string_of_int (ord c)) s
+  else "\\" ^ s;
+
+val escape = implode o map esc o sym_explode;
+
+
+
+(** scanning through symbols **)
+
+(* scanner *)
+
+fun scanner msg scan syms =
+  let
+    fun message (ss, NONE) = (fn () => msg ^ ": " ^ quote (beginning 10 ss))
+      | message (ss, SOME msg') = (fn () => msg ^ ", " ^ msg' () ^ ": " ^ quote (beginning 10 ss));
+    val finite_scan = Scan.error (Scan.finite stopper (!! message scan));
+  in
+    (case finite_scan syms of
+      (result, []) => result
+    | (_, rest) => error (message (rest, NONE) ()))
+  end;
+
+
 (* space-separated words *)
 
 val scan_word =
@@ -488,16 +498,6 @@ val split_words = scanner "Bad text" (Scan.repeat scan_word >> map_filter I);
 val explode_words = split_words o sym_explode;
 
 
-(* escape *)
-
-val esc = fn s =>
-  if is_char s then s
-  else if is_utf8 s then translate_string (fn c => "\\" ^ string_of_int (ord c)) s
-  else "\\" ^ s;
-
-val escape = implode o map esc o sym_explode;
-
-
 (* blanks *)
 
 fun strip_blanks s =
@@ -505,6 +505,12 @@ fun strip_blanks s =
   |> take_prefix is_blank |> #2
   |> take_suffix is_blank |> #1
   |> implode;
+
+
+(* identifiers *)
+
+fun is_ident [] = false
+  | is_ident (c :: cs) = is_letter c andalso forall is_letdig cs;
 
 
 (* bump string -- treat as base 26 or base 1 numbers *)
