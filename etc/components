@@ -7,5 +7,6 @@ src/HOL/Mutabelle
 src/HOL/Library/Sum_of_Squares
 src/HOL/Tools/ATP
 src/HOL/Tools/Predicate_Compile
+src/HOL/Tools/Sledgehammer/MaSh
 src/HOL/Tools/SMT
 src/HOL/TPTP
