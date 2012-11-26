@@ -13,7 +13,6 @@ sig
     val var: indexname -> term
   end
   val is_identifier: string -> bool
-  val is_ascii_identifier: string -> bool
   val is_xid: string -> bool
   val is_tid: string -> bool
   val scan_id: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
@@ -94,10 +93,6 @@ end;
 (** is_identifier etc. **)
 
 val is_identifier = Symbol.is_ident o Symbol.explode;
-
-fun is_ascii_identifier s =
-  let val cs = Symbol.explode s
-  in forall Symbol.is_ascii cs andalso Symbol.is_ident cs end;
 
 fun is_xid s =
   (case Symbol.explode s of
@@ -190,7 +185,7 @@ val is_terminal = member (op =) terminals;
 (* markup *)
 
 fun literal_markup s =
-  if is_ascii_identifier s then Markup.literal else Markup.delimiter;
+  if Symbol.is_ascii_identifier s then Markup.literal else Markup.delimiter;
 
 val token_kind_markup =
  fn VarSy   => Markup.var

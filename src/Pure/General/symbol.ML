@@ -35,6 +35,7 @@ sig
   val is_ascii_upper: symbol -> bool
   val to_ascii_lower: symbol -> symbol
   val to_ascii_upper: symbol -> symbol
+  val is_ascii_identifier: string -> bool
   val scan_ascii_id: string list -> string * string list
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
@@ -160,6 +161,10 @@ fun is_ascii_upper s = is_char s andalso (ord "A" <= ord s andalso ord s <= ord 
 
 fun to_ascii_lower s = if is_ascii_upper s then chr (ord s + ord "a" - ord "A") else s;
 fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + ord "A" - ord "a") else s;
+
+fun is_ascii_identifier s =
+  size s > 0 andalso is_ascii_letter (String.substring (s, 0, 1)) andalso
+  forall_string is_ascii_letdig s;
 
 val scan_ascii_id = Scan.one is_ascii_letter ^^ (Scan.many is_ascii_letdig >> implode);
 

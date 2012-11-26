@@ -26,7 +26,7 @@ object Symbol
     is_ascii_letter(c) || is_ascii_digit(c) || is_ascii_quasi(c)
 
   def is_ascii_identifier(s: String): Boolean =
-    s.length > 0 && is_ascii_letter(s(0)) && s.substring(1).forall(is_ascii_letdig)
+    s.length > 0 && is_ascii_letter(s(0)) && s.forall(is_ascii_letdig)
 
 
   /* symbol matching */
