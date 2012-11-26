@@ -172,7 +172,7 @@ class Rich_Text_Area(
         if ((control || hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
             JEdit_Lib.pixel_range(text_area, e.getX(), e.getY()) match {
-              case None =>
+              case None => active_reset()
               case Some(range) =>
                 val rendering = get_rendering()
                 for ((area, require_control) <- active_areas)
