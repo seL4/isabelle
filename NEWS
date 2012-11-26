@@ -41,6 +41,9 @@ and "class ... context ...".
 * More informative error messages for Isar proof commands involving
 lazy enumerations (method applications etc.).
 
+* Refined 'help' command to retrieve outer syntax commands according
+to name patterns (with clickable results).
+
 
 *** Prover IDE -- Isabelle/Scala/jEdit ***
 

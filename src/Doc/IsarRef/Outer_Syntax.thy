@@ -64,6 +64,39 @@ text {*
 *}
 
 
+section {* Commands *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def "print_commands"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def "help"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+  \end{matharray}
+
+  @{rail "
+    @@{command help} (@{syntax name} * )
+  "}
+
+  \begin{description}
+
+  \item @{command "print_commands"} prints all outer syntax keywords
+  and commands.
+
+  \item @{command "help"}~@{text "pats"} retrieves outer syntax
+  commands according to the specified name patterns.
+
+  \end{description}
+*}
+
+
+subsubsection {* Examples *}
+
+text {* Some common diagnostic commands are retrieved like this
+  (according to usual naming conventions): *}
+
+help "print"
+help "find"
+
+
 section {* Lexical matters \label{sec:outer-lex} *}
 
 text {* The outer lexical syntax consists of three main categories of

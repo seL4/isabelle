@@ -28,6 +28,7 @@ sig
     (bool -> local_theory -> Proof.state) parser -> unit
   val local_theory_to_proof: command_spec -> string ->
     (local_theory -> Proof.state) parser -> unit
+  val help_outer_syntax: string list -> unit
   val print_outer_syntax: unit -> unit
   val scan: Position.T -> string -> Token.T list
   val parse: Position.T -> string -> Toplevel.transition list
@@ -61,6 +62,12 @@ fun new_command comment markup int_only parse pos =
 fun command_markup def (name, Command {pos, id, ...}) =
   Markup.properties (Position.entity_properties_of def id pos)
     (Markup.entity Markup.commandN name);
+
+fun pretty_command (cmd as (name, Command {comment, ...})) =
+  Pretty.block
+    (Pretty.marks_str
+      ([Sendback.make_markup {implicit = true}, command_markup false cmd], name) ::
+      Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
 
 
 (* parse command *)
@@ -114,8 +121,7 @@ fun map_commands f (Outer_Syntax {commands, ...}) =
   in make_outer_syntax commands' markups' end;
 
 fun dest_commands (Outer_Syntax {commands, ...}) =
-  commands |> Symtab.dest |> sort_wrt #1
-  |> map (fn (name, Command {comment, int_only, ...}) => (name, comment, int_only));
+  commands |> Symtab.dest |> sort_wrt #1;
 
 fun lookup_commands (Outer_Syntax {commands, ...}) = Symtab.lookup commands;
 
@@ -196,17 +202,22 @@ val local_theory_to_proof = local_theory_command true Toplevel.local_theory_to_p
 
 (* inspect syntax *)
 
+fun help_outer_syntax pats =
+  dest_commands (#2 (get_syntax ()))
+  |> filter (fn (name, _) => forall (fn pat => match_string pat name) pats)
+  |> map pretty_command
+  |> Pretty.chunks |> Pretty.writeln;
+
 fun print_outer_syntax () =
   let
     val ((keywords, _), outer_syntax) =
       CRITICAL (fn () => (Keyword.dest (), #2 (get_syntax ())));
-    fun pretty_cmd (name, comment, _) =
-      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    val (int_cmds, cmds) = List.partition #3 (dest_commands outer_syntax);
+    val (int_cmds, cmds) =
+      List.partition (fn (_, Command {int_only, ...}) => int_only) (dest_commands outer_syntax);
   in
     [Pretty.strs ("syntax keywords:" :: map quote keywords),
-      Pretty.big_list "commands:" (map pretty_cmd cmds),
-      Pretty.big_list "interactive-only commands:" (map pretty_cmd int_cmds)]
+      Pretty.big_list "commands:" (map pretty_command cmds),
+      Pretty.big_list "interactive-only commands:" (map pretty_command int_cmds)]
     |> Pretty.chunks |> Pretty.writeln
   end;
 

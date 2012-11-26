@@ -764,8 +764,10 @@ val _ =
       (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Pretty.margin_default := n)));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "help"} "print outer syntax commands"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Outer_Syntax.print_outer_syntax));
+  Outer_Syntax.improper_command @{command_spec "help"}
+    "retrieve outer syntax commands according to name patterns"
+    (Scan.repeat Parse.name >> (fn pats =>
+      Toplevel.no_timing o Toplevel.imperative (fn () => Outer_Syntax.help_outer_syntax pats)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_commands"} "print outer syntax commands"
