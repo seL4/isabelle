@@ -98,27 +98,26 @@ text {* The correspondence relation @{text "cr_fset"} can only relate
   @{text "list"} and @{text "fset"} types with the same element type.
   To relate nested types like @{text "'a list list"} and
   @{text "'a fset fset"}, we define a parameterized version of the
-  correspondence relation, @{text "cr_fset'"}. *}
+  correspondence relation, @{text "pcr_fset"}. *}
 
-definition cr_fset' :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b fset \<Rightarrow> bool"
-  where "cr_fset' R = list_all2 R OO cr_fset"
+thm pcr_fset_def
 
-lemma right_unique_cr_fset' [transfer_rule]:
-  "right_unique A \<Longrightarrow> right_unique (cr_fset' A)"
-  unfolding cr_fset'_def
+lemma right_unique_pcr_fset [transfer_rule]:
+  "right_unique A \<Longrightarrow> right_unique (pcr_fset A)"
+  unfolding pcr_fset_def
   by (intro right_unique_OO right_unique_list_all2 fset.right_unique)
 
-lemma right_total_cr_fset' [transfer_rule]:
-  "right_total A \<Longrightarrow> right_total (cr_fset' A)"
-  unfolding cr_fset'_def
+lemma right_total_pcr_fset [transfer_rule]:
+  "right_total A \<Longrightarrow> right_total (pcr_fset A)"
+  unfolding pcr_fset_def
   by (intro right_total_OO right_total_list_all2 fset.right_total)
 
-lemma bi_total_cr_fset' [transfer_rule]:
-  "bi_total A \<Longrightarrow> bi_total (cr_fset' A)"
-  unfolding cr_fset'_def
+lemma bi_total_pcr_fset [transfer_rule]:
+  "bi_total A \<Longrightarrow> bi_total (pcr_fset A)"
+  unfolding pcr_fset_def
   by (intro bi_total_OO bi_total_list_all2 fset.bi_total)
 
-text {* Transfer rules for @{text "cr_fset'"} can be derived from the
+text {* Transfer rules for @{text "pcr_fset"} can be derived from the
   existing transfer rules for @{text "cr_fset"} together with the
   transfer rules for the polymorphic raw constants. *}
 
@@ -126,16 +125,16 @@ text {* Note that the proofs below all have a similar structure and
   could potentially be automated. *}
 
 lemma fnil_transfer [transfer_rule]:
-  "(cr_fset' A) [] fnil"
-  unfolding cr_fset'_def
+  "(pcr_fset A) [] fnil"
+  unfolding pcr_fset_def
   apply (rule relcomppI)
   apply (rule Nil_transfer)
   apply (rule fnil.transfer)
   done
 
 lemma fcons_transfer [transfer_rule]:
-  "(A ===> cr_fset' A ===> cr_fset' A) Cons fcons"
-  unfolding cr_fset'_def
+  "(A ===> pcr_fset A ===> pcr_fset A) Cons fcons"
+  unfolding pcr_fset_def
   apply (intro fun_relI)
   apply (elim relcomppE)
   apply (rule relcomppI)
@@ -144,8 +143,8 @@ lemma fcons_transfer [transfer_rule]:
   done
 
 lemma fappend_transfer [transfer_rule]:
-  "(cr_fset' A ===> cr_fset' A ===> cr_fset' A) append fappend"
-  unfolding cr_fset'_def
+  "(pcr_fset A ===> pcr_fset A ===> pcr_fset A) append fappend"
+  unfolding pcr_fset_def
   apply (intro fun_relI)
   apply (elim relcomppE)
   apply (rule relcomppI)
@@ -154,8 +153,8 @@ lemma fappend_transfer [transfer_rule]:
   done
 
 lemma fmap_transfer [transfer_rule]:
-  "((A ===> B) ===> cr_fset' A ===> cr_fset' B) map fmap"
-  unfolding cr_fset'_def
+  "((A ===> B) ===> pcr_fset A ===> pcr_fset B) map fmap"
+  unfolding pcr_fset_def
   apply (intro fun_relI)
   apply (elim relcomppE)
   apply (rule relcomppI)
@@ -164,8 +163,8 @@ lemma fmap_transfer [transfer_rule]:
   done
 
 lemma ffilter_transfer [transfer_rule]:
-  "((A ===> op =) ===> cr_fset' A ===> cr_fset' A) filter ffilter"
-  unfolding cr_fset'_def
+  "((A ===> op =) ===> pcr_fset A ===> pcr_fset A) filter ffilter"
+  unfolding pcr_fset_def
   apply (intro fun_relI)
   apply (elim relcomppE)
   apply (rule relcomppI)
@@ -174,8 +173,8 @@ lemma ffilter_transfer [transfer_rule]:
   done
 
 lemma fset_transfer [transfer_rule]:
-  "(cr_fset' A ===> set_rel A) set fset"
-  unfolding cr_fset'_def
+  "(pcr_fset A ===> set_rel A) set fset"
+  unfolding pcr_fset_def
   apply (intro fun_relI)
   apply (elim relcomppE)
   apply (drule fset.transfer [THEN fun_relD, unfolded relator_eq])
@@ -184,8 +183,8 @@ lemma fset_transfer [transfer_rule]:
   done
 
 lemma fconcat_transfer [transfer_rule]:
-  "(cr_fset' (cr_fset' A) ===> cr_fset' A) concat fconcat"
-  unfolding cr_fset'_def
+  "(pcr_fset (pcr_fset A) ===> pcr_fset A) concat fconcat"
+  unfolding pcr_fset_def
   unfolding list_all2_OO
   apply (intro fun_relI)
   apply (elim relcomppE)
@@ -202,8 +201,8 @@ lemma list_eq_transfer [transfer_rule]:
 
 lemma fset_eq_transfer [transfer_rule]:
   assumes "bi_unique A"
-  shows "(cr_fset' A ===> cr_fset' A ===> op =) list_eq (op =)"
-  unfolding cr_fset'_def
+  shows "(pcr_fset A ===> pcr_fset A ===> op =) list_eq (op =)"
+  unfolding pcr_fset_def
   apply (intro fun_relI)
   apply (elim relcomppE)
   apply (rule trans)

@@ -22,19 +22,61 @@ infix 0 MRSL
 
 exception SETUP_LIFTING_INFR of string
 
-fun define_cr_rel rep_fun lthy =
+fun define_crel rep_fun lthy =
   let
     val (qty, rty) = (dest_funT o fastype_of) rep_fun
     val rep_fun_graph = (HOLogic.eq_const rty) $ Bound 1 $ (rep_fun $ Bound 0)
     val def_term = Abs ("x", rty, Abs ("y", qty, rep_fun_graph));
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
-    val cr_rel_name = Binding.prefix_name "cr_" qty_name
+    val crel_name = Binding.prefix_name "cr_" qty_name
     val (fixed_def_term, lthy') = yield_singleton (Variable.importT_terms) def_term lthy
     val ((_, (_ , def_thm)), lthy'') =
-      Local_Theory.define ((cr_rel_name, NoSyn), ((Thm.def_binding cr_rel_name, []), fixed_def_term)) lthy'
+      Local_Theory.define ((crel_name, NoSyn), ((Thm.def_binding crel_name, []), fixed_def_term)) lthy'
   in
     (def_thm, lthy'')
   end
+
+fun print_define_pcrel_warning msg = 
+  let
+    val warning_msg = cat_lines 
+      ["Generation of a parametrized correspondence relation failed.",
+      (Pretty.string_of (Pretty.block
+         [Pretty.str "Reason:", Pretty.brk 2, msg]))]
+  in
+    warning warning_msg
+  end
+
+fun define_pcrel crel lthy =
+  let
+    val pcrel = Morphism.term (Local_Theory.target_morphism lthy) crel
+    val [crel_poly] = Variable.polymorphic lthy [pcrel]
+    val rty_raw = (domain_type o fastype_of) crel_poly
+    val (quot_thm, assms) = Lifting_Term.prove_param_quot_thm lthy rty_raw
+    val args = map (fn (_, q_thm) => quot_thm_crel q_thm) assms
+    val parametrized_relator = quot_thm_crel quot_thm
+    val [rty, rty'] = (binder_types o fastype_of) parametrized_relator
+    val thy = Proof_Context.theory_of lthy
+    val tyenv_match = Sign.typ_match thy (rty_raw, rty') Vartab.empty
+    val crel_subst = Envir.subst_term (tyenv_match,Vartab.empty) crel_poly
+    val lthy = Variable.declare_names parametrized_relator lthy
+    val (crel_typed, lthy) = yield_singleton Variable.importT_terms crel_subst lthy
+    val qty = (domain_type o range_type o fastype_of) crel_typed
+    val relcomp_op = Const (@{const_name "relcompp"}, 
+          (rty --> rty' --> HOLogic.boolT) --> 
+          (rty' --> qty --> HOLogic.boolT) --> 
+          rty --> qty --> HOLogic.boolT)
+    val relator_type = foldr1 (op -->) ((map type_of args) @ [rty, qty, HOLogic.boolT])
+    val qty_name = (fst o dest_Type) qty
+    val pcrel_name = Binding.prefix_name "pcr_" ((Binding.name o Long_Name.base_name) qty_name)
+    val lhs = Library.foldl (op $) ((Free (Binding.name_of pcrel_name, relator_type)), args)
+    val rhs = relcomp_op $ parametrized_relator $ crel_typed
+    val definition_term = Logic.mk_equals (lhs, rhs)
+    val ((_, (_, def_thm)), lthy) = Specification.definition ((SOME (pcrel_name, SOME relator_type, NoSyn)), 
+      ((Binding.empty, []), definition_term)) lthy
+  in
+    (SOME def_thm, lthy)
+  end
+  handle Lifting_Term.PARAM_QUOT_THM (_, msg) => (print_define_pcrel_warning msg; (NONE, lthy))
 
 fun define_code_constr gen_code quot_thm lthy =
   let
@@ -95,10 +137,11 @@ fun setup_lifting_infr gen_code quot_thm maybe_reflp_thm lthy =
   let
     val _ = quot_thm_sanity_check lthy quot_thm
     val (_, qtyp) = quot_thm_rty_qty quot_thm
-    val qty_full_name = (fst o dest_Type) qtyp
-    val quotients = { quot_thm = quot_thm }
+    val (pcrel_def, lthy) = define_pcrel (quot_thm_crel quot_thm) lthy
+    val quotients = { quot_thm = quot_thm, pcrel_def = pcrel_def }
+    val qty_full_name = (fst o dest_Type) qtyp  
     fun quot_info phi = Lifting_Info.transform_quotients phi quotients
-    val lthy' = case maybe_reflp_thm of
+    val lthy = case maybe_reflp_thm of
       SOME reflp_thm => lthy
         |> (snd oo Local_Theory.note) ((Binding.empty, [Lifting_Info.add_reflexivity_rule_attrib]),
               [reflp_thm])
@@ -108,7 +151,7 @@ fun setup_lifting_infr gen_code quot_thm maybe_reflp_thm lthy =
       | NONE => lthy
         |> define_abs_type gen_code quot_thm
   in
-    lthy'
+    lthy
       |> Local_Theory.declaration {syntax = false, pervasive = true}
         (fn phi => Lifting_Info.update_quotients qty_full_name (quot_info phi))
   end
@@ -130,7 +173,7 @@ fun setup_by_quotient gen_code quot_thm maybe_reflp_thm lthy =
     val induct_attr = Attrib.internal (K (Induct.induct_type (fst (dest_Type qty))))
     val qty_name = (Binding.name o Long_Name.base_name o fst o dest_Type) qty
     fun qualify suffix = Binding.qualified true suffix qty_name
-    val lthy' = case maybe_reflp_thm of
+    val lthy = case maybe_reflp_thm of
       SOME reflp_thm => lthy
         |> (snd oo Local_Theory.note) ((qualify "bi_total", [transfer_attr]), 
           [[quot_thm, reflp_thm] MRSL @{thm Quotient_bi_total}])
@@ -150,7 +193,7 @@ fun setup_by_quotient gen_code quot_thm maybe_reflp_thm lthy =
         |> (snd oo Local_Theory.note) ((qualify "abs_induct", [induct_attr]),
           [quot_thm RS @{thm Quotient_abs_induct}])
   in
-    lthy'
+    lthy
       |> (snd oo Local_Theory.note) ((qualify "right_unique", [transfer_attr]), 
         [quot_thm RS @{thm Quotient_right_unique}])
       |> (snd oo Local_Theory.note) ((qualify "right_total", [transfer_attr]), 
@@ -172,7 +215,7 @@ fun setup_by_typedef_thm gen_code typedef_thm lthy =
   let
     val transfer_attr = Attrib.internal (K Transfer.transfer_add)
     val (_ $ rep_fun $ _ $ typedef_set) = (HOLogic.dest_Trueprop o prop_of) typedef_thm
-    val (T_def, lthy') = define_cr_rel rep_fun lthy
+    val (T_def, lthy') = define_crel rep_fun lthy
 
     val quot_thm = case typedef_set of
       Const ("Orderings.top_class.top", _) => 

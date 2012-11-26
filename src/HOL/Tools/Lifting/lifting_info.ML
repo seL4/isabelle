@@ -11,7 +11,7 @@ sig
   val lookup_quotmaps_global: theory -> string -> quotmaps option
   val print_quotmaps: Proof.context -> unit
 
-  type quotients = {quot_thm: thm}
+  type quotients = {quot_thm: thm, pcrel_def: thm option}
   val transform_quotients: morphism -> quotients -> quotients
   val lookup_quotients: Proof.context -> string -> quotients option
   val lookup_quotients_global: theory -> string -> quotients option
@@ -118,7 +118,7 @@ fun print_quotmaps ctxt =
   end
 
 (* info about quotient types *)
-type quotients = {quot_thm: thm}
+type quotients = {quot_thm: thm, pcrel_def: thm option}
 
 structure Quotients = Generic_Data
 (
@@ -128,8 +128,8 @@ structure Quotients = Generic_Data
   fun merge data = Symtab.merge (K true) data
 )
 
-fun transform_quotients phi {quot_thm} =
-  {quot_thm = Morphism.thm phi quot_thm}
+fun transform_quotients phi {quot_thm, pcrel_def} =
+  {quot_thm = Morphism.thm phi quot_thm, pcrel_def = Option.map (Morphism.thm phi) pcrel_def}
 
 val lookup_quotients = Symtab.lookup o Quotients.get o Context.Proof
 val lookup_quotients_global = Symtab.lookup o Quotients.get o Context.Theory
@@ -144,8 +144,8 @@ fun delete_quotients quot_thm ctxt =
     val maybe_stored_quot_thm = Symtab.lookup symtab qty_full_name
   in
     case maybe_stored_quot_thm of
-      SOME {quot_thm = stored_quot_thm} => 
-        if Thm.eq_thm_prop (stored_quot_thm, quot_thm) then
+      SOME data => 
+        if Thm.eq_thm_prop (#quot_thm data, quot_thm) then
           Quotients.map (Symtab.delete qty_full_name) ctxt
         else
           ctxt
@@ -157,12 +157,14 @@ fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
 
 fun print_quotients ctxt =
   let
-    fun prt_quot (qty_name, {quot_thm}) =
+    fun prt_quot (qty_name, {quot_thm, pcrel_def}) =
       Pretty.block (separate (Pretty.brk 2)
        [Pretty.str "type:", 
         Pretty.str qty_name,
         Pretty.str "quot. thm:",
-        Syntax.pretty_term ctxt (prop_of quot_thm)])
+        Syntax.pretty_term ctxt (prop_of quot_thm),
+        Pretty.str "pcrel_def thm:",
+        option_fold (Pretty.str "-") ((Syntax.pretty_term ctxt) o prop_of) pcrel_def])
   in
     map prt_quot (Symtab.dest (Quotients.get (Context.Proof ctxt)))
     |> Pretty.big_list "quotients:"

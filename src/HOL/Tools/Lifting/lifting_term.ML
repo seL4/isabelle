@@ -7,6 +7,7 @@ Proves Quotient theorem.
 signature LIFTING_TERM =
 sig
   exception QUOT_THM of typ * typ * Pretty.T
+  exception PARAM_QUOT_THM of typ * Pretty.T
   exception CHECK_RTY of typ * typ
 
   val prove_quot_thm: Proof.context -> typ * typ -> thm
@@ -14,17 +15,19 @@ sig
   val abs_fun: Proof.context -> typ * typ -> term
 
   val equiv_relation: Proof.context -> typ * typ -> term
+
+  val prove_param_quot_thm: Proof.context -> typ -> thm * (typ * thm) list
 end
 
 structure Lifting_Term: LIFTING_TERM =
 struct
-
 open Lifting_Util
 
 infix 0 MRSL
 
 exception QUOT_THM_INTERNAL of Pretty.T
 exception QUOT_THM of typ * typ * Pretty.T
+exception PARAM_QUOT_THM of typ * Pretty.T
 exception CHECK_RTY of typ * typ
 
 fun match ctxt err ty_pat ty =
@@ -234,5 +237,52 @@ fun abs_fun ctxt (rty, qty) =
 
 fun equiv_relation ctxt (rty, qty) =
   quot_thm_rel (prove_quot_thm ctxt (rty, qty))
+
+fun get_fresh_Q_t ctxt =
+  let
+    val Q_t = Syntax.read_term ctxt "Trueprop (Quotient R Abs Rep T)"
+    val ctxt = Variable.declare_names Q_t ctxt
+    val frees_Q_t = Term.add_free_names Q_t []
+    val (_, ctxt) = Variable.variant_fixes frees_Q_t ctxt
+  in
+    (Q_t, ctxt)
+  end
+
+fun prove_param_quot_thm ctxt ty = 
+  let 
+    fun generate (ty as Type (s, tys)) (table_ctxt as (table, ctxt)) =
+      if null tys 
+      then 
+        let 
+          val thy = Proof_Context.theory_of ctxt
+          val instantiated_id_quot_thm = instantiate' [SOME (ctyp_of thy ty)] [] @{thm identity_quotient}
+        in
+          (instantiated_id_quot_thm, (table, ctxt)) 
+        end
+      else
+        let
+          val (args, table_ctxt) = fold_map generate tys table_ctxt
+        in
+          (args MRSL (get_rel_quot_thm ctxt s), table_ctxt)
+        end 
+      | generate (ty as (TVar _)) (table, ctxt) =
+        if AList.defined (op=) table ty 
+        then (the (AList.lookup (op=) table ty), (table, ctxt))
+        else 
+          let
+            val thy = Proof_Context.theory_of ctxt
+            val (Q_t, ctxt') = get_fresh_Q_t ctxt
+            val Q_thm = Thm.assume (cterm_of thy Q_t)
+            val table' = (ty, Q_thm)::table
+          in
+            (Q_thm, (table', ctxt'))
+          end
+      | generate _ _ = error "generate_param_quot_thm: TFree"
+
+    val (param_quot_thm, (table, _)) = generate ty ([], ctxt)
+  in
+    (param_quot_thm, rev table)
+  end
+  handle QUOT_THM_INTERNAL pretty_msg => raise PARAM_QUOT_THM (ty, pretty_msg)
 
 end;
