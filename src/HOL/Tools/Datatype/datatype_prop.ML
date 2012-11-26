@@ -46,7 +46,7 @@ fun make_tnames Ts =
     fun type_name (TFree (name, _)) = unprefix "'" name
       | type_name (Type (name, _)) =
           let val name' = Long_Name.base_name name
-          in if Lexicon.is_identifier name' then name' else "x" end;
+          in if Symbol_Pos.is_identifier name' then name' else "x" end;
   in indexify_names (map type_name Ts) end;
 
 

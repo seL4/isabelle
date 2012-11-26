@@ -166,7 +166,7 @@ fun process_spec axiomatic cos alt_props thy =
             let
                 val T = type_of c
                 val cname = Long_Name.base_name (fst (dest_Const c))
-                val vname = if Lexicon.is_identifier cname
+                val vname = if Symbol_Pos.is_identifier cname
                             then cname
                             else "x"
             in

@@ -224,7 +224,7 @@ fun using_labels [] = ""
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
 
 fun command_call name [] =
-    name |> not (Lexicon.is_identifier name) ? enclose "(" ")"
+    name |> not (Symbol_Pos.is_identifier name) ? enclose "(" ")"
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
 
 fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =

@@ -136,7 +136,7 @@ val print = Pretty.str_of o pretty;
 fun bad binding = "Bad name binding: " ^ print binding ^ Position.here (pos_of binding);
 
 fun check binding =
-  if Symbol.is_ident (Symbol.explode (name_of binding)) then ()
+  if Symbol_Pos.is_identifier (name_of binding) then ()
   else legacy_feature (bad binding);
 
 end;

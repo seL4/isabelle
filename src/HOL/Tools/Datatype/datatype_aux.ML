@@ -232,7 +232,7 @@ fun name_of_typ (Type (s, Ts)) =
       let val s' = Long_Name.base_name s in
         space_implode "_"
           (filter_out (equal "") (map name_of_typ Ts) @
-            [if Lexicon.is_identifier s' then s' else "x"])
+            [if Symbol_Pos.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
 

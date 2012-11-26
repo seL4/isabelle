@@ -974,7 +974,7 @@ fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
       val x = Variable.check_name b;
-      val _ = Lexicon.is_identifier (no_skolem internal x) orelse
+      val _ = Symbol_Pos.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ Binding.print b);
 
       fun cond_tvars T =

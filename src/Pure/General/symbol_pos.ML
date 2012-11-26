@@ -37,6 +37,9 @@ sig
   val range: T list -> Position.range
   val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
+  val scan_ident: T list -> T list * T list
+  val is_ident: T list -> bool
+  val is_identifier: string -> bool
 end;
 
 structure Symbol_Pos: SYMBOL_POS =
@@ -207,6 +210,18 @@ fun explode (str, pos) =
       fold (fn s => fn (res, p) => ((s, p) :: res, Position.advance s p))
         (Symbol.explode str) ([], Position.reset_range pos);
   in fold (fn (s, p) => if s = Symbol.DEL then I else cons (s, p)) res [] end;
+
+
+(* identifiers *)
+
+val scan_ident =
+  Scan.one (Symbol.is_letter o symbol) ::: Scan.many (Symbol.is_letdig o symbol);
+
+fun is_ident [] = false
+  | is_ident (s :: ss) = Symbol.is_letter (symbol s) andalso forall (Symbol.is_letdig o symbol) ss;
+
+fun is_identifier s =
+  Symbol.is_ascii_identifier s orelse is_ident (explode (s, Position.none));
 
 end;
 

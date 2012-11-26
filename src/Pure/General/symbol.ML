@@ -53,7 +53,6 @@ sig
   val is_block_ctrl: symbol -> bool
   val is_quasi_letter: symbol -> bool
   val is_letdig: symbol -> bool
-  val is_ident: symbol list -> bool
   val beginning: int -> symbol list -> string
   val source: (string, 'a) Source.source -> (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
@@ -510,12 +509,6 @@ fun strip_blanks s =
   |> take_prefix is_blank |> #2
   |> take_suffix is_blank |> #1
   |> implode;
-
-
-(* identifiers *)
-
-fun is_ident [] = false
-  | is_ident (c :: cs) = is_letter c andalso forall is_letdig cs;
 
 
 (* bump string -- treat as base 26 or base 1 numbers *)

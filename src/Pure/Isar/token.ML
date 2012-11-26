@@ -311,7 +311,7 @@ fun is_symid str =
 fun ident_or_symbolic "begin" = false
   | ident_or_symbolic ":" = true
   | ident_or_symbolic "::" = true
-  | ident_or_symbolic s = Lexicon.is_identifier s orelse is_symid s;
+  | ident_or_symbolic s = Symbol_Pos.is_identifier s orelse is_symid s;
 
 
 (* scan verbatim text *)

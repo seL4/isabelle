@@ -61,7 +61,7 @@ val no_fact_override = {add = [], del = [], only = false}
 
 fun needs_quoting reserved s =
   Symtab.defined reserved s orelse
-  exists (not o Lexicon.is_identifier) (Long_Name.explode s)
+  exists (not o Symbol_Pos.is_identifier) (Long_Name.explode s)
 
 fun make_name reserved multi j name =
   (name |> needs_quoting reserved name ? quote) ^

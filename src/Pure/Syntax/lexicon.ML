@@ -12,9 +12,6 @@ sig
     val free: string -> term
     val var: indexname -> term
   end
-  val is_identifier: string -> bool
-  val is_xid: string -> bool
-  val is_tid: string -> bool
   val scan_id: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_longid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_tid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
@@ -25,6 +22,7 @@ sig
   val scan_bin: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_var: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_tvar: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val is_tid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
     NumSy | FloatSy | XNumSy | StrSy | Space | Comment | EOF
@@ -90,32 +88,13 @@ end;
 
 
 
-(** is_identifier etc. **)
-
-val is_identifier = Symbol.is_ident o Symbol.explode;
-
-fun is_xid s =
-  (case Symbol.explode s of
-    "_" :: cs => Symbol.is_ident cs
-  | cs => Symbol.is_ident cs);
-
-fun is_tid s =
-  (case Symbol.explode s of
-    "'" :: cs => Symbol.is_ident cs
-  | _ => false);
-
-
-
 (** basic scanners **)
 
 open Basic_Symbol_Pos;
 
 fun !!! msg = Symbol_Pos.!!! (fn () => "Inner lexical error: " ^ msg);
 
-val scan_id =
-  Scan.one (Symbol.is_letter o Symbol_Pos.symbol) :::
-  Scan.many (Symbol.is_letdig o Symbol_Pos.symbol);
-
+val scan_id = Symbol_Pos.scan_ident;
 val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
 val scan_tid = $$$ "'" @@@ scan_id;
 
@@ -129,6 +108,11 @@ val scan_bin = $$$ "0" @@@ $$$ "b" @@@ Scan.many1 (fn (s, _) => s = "0" orelse s
 val scan_id_nat = scan_id @@@ Scan.optional ($$$ "." @@@ scan_nat) [];
 val scan_var = $$$ "?" @@@ scan_id_nat;
 val scan_tvar = $$$ "?" @@@ $$$ "'" @@@ scan_id_nat;
+
+fun is_tid s =
+  (case try (unprefix "'") s of
+    SOME s' => Symbol_Pos.is_identifier s'
+  | NONE => false);
 
 
 
@@ -315,7 +299,8 @@ val scan_vname =
           if Symbol.is_digit c then chop_idx cs (c :: ds)
           else idxname (c :: cs) ds;
 
-    val scan = (scan_id >> map Symbol_Pos.symbol) --
+    val scan =
+      (scan_id >> map Symbol_Pos.symbol) --
       Scan.optional ($$$ "." |-- scan_nat >> (nat 0 o map Symbol_Pos.symbol)) ~1;
   in
     scan >>
