@@ -116,17 +116,17 @@ fun xml_of_criterion (Name name) = XML.Elem (("Name", [("val", name)]), [])
   | xml_of_criterion Elim = XML.Elem (("Elim", []) , [])
   | xml_of_criterion Dest = XML.Elem (("Dest", []) , [])
   | xml_of_criterion Solves = XML.Elem (("Solves", []) , [])
-  | xml_of_criterion (Simp pat) = XML.Elem (("Simp", []) , [XML_Syntax.xml_of_term pat])
-  | xml_of_criterion (Pattern pat) = XML.Elem (("Pattern", []) , [XML_Syntax.xml_of_term pat]);
+  | xml_of_criterion (Simp pat) = XML.Elem (("Simp", []), [Legacy_XML_Syntax.xml_of_term pat])
+  | xml_of_criterion (Pattern pat) = XML.Elem (("Pattern", []), [Legacy_XML_Syntax.xml_of_term pat]);
 
 fun criterion_of_xml (XML.Elem (("Name", [("val", name)]), [])) = Name name
   | criterion_of_xml (XML.Elem (("Intro", []) , [])) = Intro
   | criterion_of_xml (XML.Elem (("Elim", []) , [])) = Elim
   | criterion_of_xml (XML.Elem (("Dest", []) , [])) = Dest
   | criterion_of_xml (XML.Elem (("Solves", []) , [])) = Solves
-  | criterion_of_xml (XML.Elem (("Simp", []) , [tree])) = Simp (XML_Syntax.term_of_xml tree)
-  | criterion_of_xml (XML.Elem (("Pattern", []) , [tree])) = Pattern (XML_Syntax.term_of_xml tree)
-  | criterion_of_xml tree = raise XML_Syntax.XML ("criterion_of_xml: bad tree", tree);
+  | criterion_of_xml (XML.Elem (("Simp", []), [tree])) = Simp (Legacy_XML_Syntax.term_of_xml tree)
+  | criterion_of_xml (XML.Elem (("Pattern", []), [tree])) = Pattern (Legacy_XML_Syntax.term_of_xml tree)
+  | criterion_of_xml tree = raise Legacy_XML_Syntax.XML ("criterion_of_xml: bad tree", tree);
 
 fun xml_of_query {goal = NONE, limit, rem_dups, criteria} =
       let
@@ -149,7 +149,7 @@ fun query_of_xml (XML.Elem (("Query", properties), body)) =
       in
         {goal = NONE, limit = limit, rem_dups = rem_dups, criteria = criteria}
       end
-  | query_of_xml tree = raise XML_Syntax.XML ("query_of_xml: bad tree", tree);
+  | query_of_xml tree = raise Legacy_XML_Syntax.XML ("query_of_xml: bad tree", tree);
 
 
 
@@ -167,7 +167,7 @@ fun fact_ref_markup (Facts.Named ((name, pos), SOME [Facts.Single i])) =
 
 fun xml_of_theorem (Internal _) = raise Fail "xml_of_theorem: Internal"
   | xml_of_theorem (External (fact_ref, prop)) =
-      XML.Elem (fact_ref_markup fact_ref ("External", []), [XML_Syntax.xml_of_term prop]);
+      XML.Elem (fact_ref_markup fact_ref ("External", []), [Legacy_XML_Syntax.xml_of_term prop]);
 
 fun theorem_of_xml (XML.Elem (("External", properties), [tree])) =
       let
@@ -177,9 +177,9 @@ fun theorem_of_xml (XML.Elem (("External", properties), [tree])) =
           Option.map (single o Facts.Single o Markup.parse_int)
             (Properties.get properties "index");
       in
-        External (Facts.Named ((name, pos), intvs_opt), XML_Syntax.term_of_xml tree)
+        External (Facts.Named ((name, pos), intvs_opt), Legacy_XML_Syntax.term_of_xml tree)
       end
-  | theorem_of_xml tree = raise XML_Syntax.XML ("theorem_of_xml: bad tree", tree);
+  | theorem_of_xml tree = raise Legacy_XML_Syntax.XML ("theorem_of_xml: bad tree", tree);
 
 fun xml_of_result (opt_found, theorems) =
   let
@@ -192,7 +192,7 @@ fun xml_of_result (opt_found, theorems) =
 fun result_of_xml (XML.Elem (("Result", properties), body)) =
       (Properties.get properties "found" |> Option.map Markup.parse_int,
        XML.Decode.list (theorem_of_xml o the_single) body)
-  | result_of_xml tree = raise XML_Syntax.XML ("result_of_xml: bad tree", tree);
+  | result_of_xml tree = raise Legacy_XML_Syntax.XML ("result_of_xml: bad tree", tree);
 
 fun prop_of (Internal (_, thm)) = Thm.full_prop_of thm
   | prop_of (External (_, prop)) = prop;

@@ -1,11 +1,13 @@
-(*  Title:      Pure/Tools/xml_syntax.ML
+(*  Title:      Pure/Tools/legacy_xml_syntax.ML
     Author:     Stefan Berghofer, TU Muenchen
 
 Input and output of types, terms, and proofs in XML format.
 See isabelle.xsd for a description of the syntax.
+
+Legacy module, see Pure/term_xml.ML etc.
 *)
 
-signature XML_SYNTAX =
+signature LEGACY_XML_SYNTAX =
 sig
   val xml_of_type: typ -> XML.tree
   val xml_of_term: term -> XML.tree
@@ -17,7 +19,7 @@ sig
   val proof_of_xml: XML.tree -> Proofterm.proof
 end;
 
-structure XML_Syntax : XML_SYNTAX =
+structure Legacy_XML_Syntax : LEGACY_XML_SYNTAX =
 struct
 
 (**** XML output ****)
