@@ -370,8 +370,7 @@ local
     ("\\<Psi>", Letter),
     ("\\<Omega>", Letter),
     ("\\<^isub>", Letter),
-    ("\\<^isup>", Letter),
-    ("\\<spacespace>", Blank)];
+    ("\\<^isup>", Letter)];
 in
   fun kind s =
     if is_ascii_letter s then Letter
@@ -536,7 +535,6 @@ fun sym_len s =
   if not (is_printable s) then (0: int)
   else if String.isPrefix "\\<long" s then 2
   else if String.isPrefix "\\<Long" s then 2
-  else if s = "\\<spacespace>" then 2
   else 1;
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;

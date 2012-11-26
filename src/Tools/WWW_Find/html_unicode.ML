@@ -25,8 +25,7 @@ fun print_mode f x = Print_Mode.with_modes [htmlunicodeN, Symbol.xsymbolsN] f x;
 
 local
   val sym_width_lookup = Symtab.make
-   [("\<spacespace>", 2),
-    ("\<Longleftarrow>", 2),
+   [("\<Longleftarrow>", 2),
     ("\<longleftarrow>", 2),
     ("\<Longrightarrow>", 2),
     ("\<longrightarrow>", 2),

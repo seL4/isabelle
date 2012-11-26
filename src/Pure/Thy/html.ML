@@ -61,7 +61,6 @@ local
    [("", (0, "")),
     ("\n", (0, "<br/>")),
     ("'", (1, "&#39;")),
-    ("\\<spacespace>", (2, "&nbsp;&nbsp;")),
     ("\\<exclamdown>", (1, "&iexcl;")),
     ("\\<cent>", (1, "&cent;")),
     ("\\<pounds>", (1, "&pound;")),
