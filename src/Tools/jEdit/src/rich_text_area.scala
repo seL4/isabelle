@@ -134,7 +134,7 @@ class Rich_Text_Area(
 
   private val highlight_area = new Active_Area[Color]((r: Rendering) => r.highlight _)
   private val hyperlink_area = new Active_Area[Hyperlink]((r: Rendering) => r.hyperlink _)
-  private val sendback_area = new Active_Area[Option[Document.Exec_ID]]((r: Rendering) => r.sendback _)
+  private val sendback_area = new Active_Area[Properties.T]((r: Rendering) => r.sendback _)
 
   private val active_areas =
     List((highlight_area, true), (hyperlink_area, true), (sendback_area, false))
@@ -157,7 +157,7 @@ class Rich_Text_Area(
           case None =>
         }
         sendback_area.text_info match {
-          case Some((text, Text.Info(_, id))) => Sendback.activate(view, text, id)
+          case Some((text, Text.Info(_, props))) => Sendback.activate(view, text, props)
           case None =>
         }
       }

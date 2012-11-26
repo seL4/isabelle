@@ -249,11 +249,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  def sendback(range: Text.Range): Option[Text.Info[Option[Document.Exec_ID]]] =
+  def sendback(range: Text.Range): Option[Text.Info[Properties.T]] =
     snapshot.select_markup(range, Some(Set(Markup.SENDBACK)),
         {
           case Text.Info(info_range, XML.Elem(Markup(Markup.SENDBACK, props), _)) =>
-            Text.Info(snapshot.convert(info_range), Position.Id.unapply(props))
+            Text.Info(snapshot.convert(info_range), props)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
 

@@ -66,8 +66,8 @@ fun command_markup def (name, Command {pos, id, ...}) =
 fun pretty_command (cmd as (name, Command {comment, ...})) =
   Pretty.block
     (Pretty.marks_str
-      ([Sendback.make_markup {implicit = true}, command_markup false cmd], name) ::
-      Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
+      ([Sendback.make_markup {implicit = true, properties = [Markup.padding_line]},
+        command_markup false cmd], name) :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
 
 
 (* parse command *)

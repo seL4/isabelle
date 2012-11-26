@@ -96,6 +96,8 @@ sig
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
+  val paddingN: string
+  val padding_line: string * string
   val sendbackN: string val sendback: T
   val intensifyN: string val intensify: T
   val taskN: string
@@ -333,7 +335,11 @@ val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
+
+val paddingN = "padding";
+val padding_line = (paddingN, lineN);
 val (sendbackN, sendback) = markup_elem "sendback";
+
 val (intensifyN, intensify) = markup_elem "intensify";
 
 

@@ -211,7 +211,11 @@ object Markup
 
   val STATE = "state"
   val SUBGOAL = "subgoal"
+
+  val PADDING = "padding"
+  val PADDING_LINE = (PADDING, LINE)
   val SENDBACK = "sendback"
+
   val INTENSIFY = "intensify"
 
 
