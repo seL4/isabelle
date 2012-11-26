@@ -675,7 +675,7 @@ val parse_wrap_options =
     >> (pairself (exists I) o split_list)) (false, false);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wraps an existing datatype"
+  Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wrap an existing datatype"
     ((parse_wrap_options -- (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) --
       Parse.term -- Scan.optional (parse_bindings -- Scan.optional (parse_bindingss --
         Scan.optional parse_bound_termss []) ([], [])) ([], ([], [])))

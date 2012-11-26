@@ -1157,7 +1157,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "inductive_cases"}
-    "create simplified instances of elimination rules (improper)"
+    "create simplified instances of elimination rules"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_cases));
 
 val _ =

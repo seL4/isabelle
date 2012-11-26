@@ -302,7 +302,7 @@ val vc_opts =
 
 val _ =
   Outer_Syntax.command @{command_spec "boogie_vc"}
-    "enter into proof mode for a specific verification condition"
+    "enter into proof mode for a specific Boogie verification condition"
     (vc_name -- vc_opts >> (fn args =>
       (Toplevel.print o Toplevel.theory_to_proof (boogie_vc args))))
 
@@ -334,7 +334,7 @@ fun status_cmd f = Toplevel.no_timing o Toplevel.keep (fn state =>
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "boogie_status"}
-    "show the name and state of all loaded verification conditions"
+    "show the name and state of all loaded Boogie verification conditions"
     (status_test >> status_cmd ||
      status_vc >> status_cmd ||
      Scan.succeed (status_cmd boogie_status))

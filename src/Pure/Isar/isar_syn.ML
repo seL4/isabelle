@@ -134,11 +134,11 @@ val opt_mode =
   Scan.optional (@{keyword "("} |-- Parse.!!! (mode_spec --| @{keyword ")"})) Syntax.mode_default;
 
 val _ =
-  Outer_Syntax.command @{command_spec "syntax"} "declare syntactic constants"
+  Outer_Syntax.command @{command_spec "syntax"} "add raw syntax clauses"
     (opt_mode -- Scan.repeat1 Parse.const_decl >> (Toplevel.theory o uncurry Sign.add_modesyntax));
 
 val _ =
-  Outer_Syntax.command @{command_spec "no_syntax"} "delete syntax declarations"
+  Outer_Syntax.command @{command_spec "no_syntax"} "delete raw syntax clauses"
     (opt_mode -- Scan.repeat1 Parse.const_decl >> (Toplevel.theory o uncurry Sign.del_modesyntax));
 
 
@@ -159,11 +159,11 @@ val trans_line =
     >> (fn (left, (arr, right)) => arr (left, right));
 
 val _ =
-  Outer_Syntax.command @{command_spec "translations"} "declare syntax translation rules"
+  Outer_Syntax.command @{command_spec "translations"} "add syntax translation rules"
     (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations));
 
 val _ =
-  Outer_Syntax.command @{command_spec "no_translations"} "remove syntax translation rules"
+  Outer_Syntax.command @{command_spec "no_translations"} "delete syntax translation rules"
     (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.no_translations));
 
 
@@ -538,7 +538,7 @@ val _ =
     (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.have));
 
 val _ =
-  Outer_Syntax.command @{command_spec "hence"} "abbreviates \"then have\""
+  Outer_Syntax.command @{command_spec "hence"} "old-style alias of \"then have\""
     (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.hence));
 
 val _ =
@@ -547,7 +547,7 @@ val _ =
     (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.show));
 
 val _ =
-  Outer_Syntax.command @{command_spec "thus"} "abbreviates \"then show\""
+  Outer_Syntax.command @{command_spec "thus"} "old-style alias of  \"then show\""
     (Parse_Spec.statement >> ((Toplevel.print oo Toplevel.proof') o Isar_Cmd.thus));
 
 
@@ -595,7 +595,7 @@ val _ =
     (Parse_Spec.statement >> (Toplevel.print oo (Toplevel.proof o Proof.presume_cmd)));
 
 val _ =
-  Outer_Syntax.command @{command_spec "def"} "local definition"
+  Outer_Syntax.command @{command_spec "def"} "local definition (non-polymorphic)"
     (Parse.and_list1
       (Parse_Spec.opt_thm_name ":" --
         ((Parse.binding -- Parse.opt_mixfix) --
@@ -649,7 +649,7 @@ val _ =
 (* end proof *)
 
 val _ =
-  Outer_Syntax.command @{command_spec "qed"} "conclude (sub-)proof"
+  Outer_Syntax.command @{command_spec "qed"} "conclude proof"
     (Scan.option Method.parse >> Isar_Cmd.qed);
 
 val _ =
@@ -692,11 +692,11 @@ val _ =
     (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_results)));
 
 val _ =
-  Outer_Syntax.command @{command_spec "apply_end"} "terminal refinement (unstructured)"
+  Outer_Syntax.command @{command_spec "apply_end"} "terminal refinement step (unstructured)"
     (Method.parse >> (Toplevel.print oo (Toplevel.proofs o Proof.apply_end_results)));
 
 val _ =
-  Outer_Syntax.command @{command_spec "proof"} "backward proof"
+  Outer_Syntax.command @{command_spec "proof"} "backward proof step"
     (Scan.option Method.parse >> (fn m => Toplevel.print o
       Toplevel.actual_proof (Proof_Node.applys (Proof.proof_results m)) o
       Toplevel.skip_proof (fn i => i + 1)));
@@ -741,7 +741,7 @@ val props_text =
       (Position.of_properties (Position.default_properties pos props), str));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "Isabelle.command"} "nested Isabelle command"
+  Outer_Syntax.improper_command @{command_spec "Isabelle.command"} "evaluate nested Isabelle command"
     (props_text :|-- (fn (pos, str) =>
       (case Outer_Syntax.parse pos str of
         [tr] => Scan.succeed (K tr)
@@ -851,8 +851,7 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_methods));
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_antiquotations"}
-    "print antiquotations (global)"
+  Outer_Syntax.improper_command @{command_spec "print_antiquotations"} "print antiquotations"
     (Scan.succeed (Toplevel.no_timing o Isar_Cmd.print_antiquotations));
 
 val _ =
@@ -986,7 +985,7 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "commit"}
-    "commit current session to ML database"
+    "commit current session to ML session image"
     (Parse.opt_unit >> K (Toplevel.no_timing o Toplevel.imperative Secure.commit));
 
 val _ =

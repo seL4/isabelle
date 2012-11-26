@@ -104,13 +104,13 @@ val _ = Context.>> (Context.map_theory
 val type_map = (Parse.name --| Parse.$$$ ":" -- Parse.xname) >>
   (fn (ty_name1, ty_name2) => add_typ_map ty_name1 ty_name2)
 val _ = Outer_Syntax.command @{command_spec "import_type_map"}
-  "Map external type name to existing Isabelle/HOL type name"
+  "map external type name to existing Isabelle/HOL type name"
   (type_map >> Toplevel.theory)
 
 val const_map = (Parse.name --| Parse.$$$ ":" -- Parse.xname) >>
   (fn (cname1, cname2) => add_const_map cname1 cname2)
 val _ = Outer_Syntax.command @{command_spec "import_const_map"}
-  "Map external const name to existing Isabelle/HOL const name"
+  "map external const name to existing Isabelle/HOL const name"
   (const_map >> Toplevel.theory)
 
 (* Initial type and constant maps, for types and constants that are not

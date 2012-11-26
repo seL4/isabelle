@@ -625,7 +625,7 @@ val query_parser = Scan.repeat (((Scan.option Parse.minus >> is_none) -- criteri
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "find_theorems"}
-    "print theorems meeting specified criteria"
+    "find theorems meeting specified criteria"
     (options -- query_parser
       >> (fn ((opt_lim, rem_dups), spec) =>
         Toplevel.no_timing o
