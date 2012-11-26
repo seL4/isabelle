@@ -240,7 +240,7 @@ abbreviation, rename a couple of lemmas from extensional_funcset to PiE:
       card_extensional_funcset ~> card_PiE
       finite_extensional_funcset ~> finite_PiE
 
-  INCOMPATIBUILITY.
+  INCOMPATIBILITY.
 
 * Library/FinFun.thy: theory of almost everywhere constant functions
 (supersedes the AFP entry "Code Generation for Functions as Data").
