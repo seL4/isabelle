@@ -105,6 +105,13 @@ object JEdit_Lib
   }
 
 
+  /* get text */
+
+  def try_get_text(buffer: JEditBuffer, range: Text.Range): Option[String] =
+    try { Some(buffer.getText(range.start, range.length)) }
+    catch { case _: ArrayIndexOutOfBoundsException => None }
+
+
   /* point range */
 
   def point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =

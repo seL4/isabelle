@@ -8,7 +8,6 @@ section {* Inspecting the context *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def "print_commands"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "print_theory"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_methods"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_attributes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -45,9 +44,6 @@ text {*
   of rules declared for simplifications.
 
   \begin{description}
-  
-  \item @{command "print_commands"} prints Isabelle's outer theory
-  syntax, including keywords and command.
   
   \item @{command "print_theory"} prints the main logical content of
   the theory context; the ``@{text "!"}'' option indicates extra

@@ -283,7 +283,7 @@ use "System/isar.ML";
 
 use "Tools/named_thms.ML";
 
-use "Tools/xml_syntax.ML";
+use "Tools/legacy_xml_syntax.ML";
 
 
 (* configuration for Proof General *)
