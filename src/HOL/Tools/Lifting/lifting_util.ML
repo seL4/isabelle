@@ -14,6 +14,7 @@ sig
   val quot_thm_rel: thm -> term
   val quot_thm_abs: thm -> term
   val quot_thm_rep: thm -> term
+  val quot_thm_crel: thm -> term
   val quot_thm_rty_qty: thm -> typ * typ
 end;
 
@@ -53,6 +54,10 @@ fun quot_thm_abs quot_thm =
 fun quot_thm_rep quot_thm =
   case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
     (_, _, rep, _) => rep
+
+fun quot_thm_crel quot_thm =
+  case (dest_Quotient o HOLogic.dest_Trueprop o prop_of) quot_thm of
+    (_, _, _, crel) => crel
 
 fun quot_thm_rty_qty quot_thm =
   let
