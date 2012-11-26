@@ -30,10 +30,12 @@ sig
   val is_ascii_quasi: symbol -> bool
   val is_ascii_blank: symbol -> bool
   val is_ascii_control: symbol -> bool
+  val is_ascii_letdig: symbol -> bool
   val is_ascii_lower: symbol -> bool
   val is_ascii_upper: symbol -> bool
   val to_ascii_lower: symbol -> symbol
   val to_ascii_upper: symbol -> symbol
+  val scan_ascii_id: string list -> string * string list
   val is_raw: symbol -> bool
   val decode_raw: symbol -> string
   val encode_raw: string -> string
@@ -53,7 +55,6 @@ sig
   val is_ident: symbol list -> bool
   val beginning: int -> symbol list -> string
   val scanner: string -> (string list -> 'a * string list) -> symbol list -> 'a
-  val scan_id: string list -> string * string list
   val source: (string, 'a) Source.source -> (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
   val split_words: symbol list -> string list
@@ -152,11 +153,15 @@ val is_ascii_blank =
 
 fun is_ascii_control s = is_char s andalso ord s < 32 andalso not (is_ascii_blank s);
 
+fun is_ascii_letdig s = is_ascii_letter s orelse is_ascii_digit s orelse is_ascii_quasi s;
+
 fun is_ascii_lower s = is_char s andalso (ord "a" <= ord s andalso ord s <= ord "z");
 fun is_ascii_upper s = is_char s andalso (ord "A" <= ord s andalso ord s <= ord "Z");
 
 fun to_ascii_lower s = if is_ascii_upper s then chr (ord s + ord "a" - ord "A") else s;
 fun to_ascii_upper s = if is_ascii_lower s then chr (ord s + ord "A" - ord "a") else s;
+
+val scan_ascii_id = Scan.one is_ascii_letter ^^ (Scan.many is_ascii_letdig >> implode);
 
 
 (* encode_raw *)
@@ -414,8 +419,6 @@ fun scanner msg scan syms =
     | (_, rest) => error (message (rest, NONE) ()))
   end;
 
-val scan_id = Scan.one is_letter ^^ (Scan.many is_letdig >> implode);
-
 
 (* source *)
 
@@ -443,7 +446,7 @@ val scan_total =
   Scan.one is_utf8 ::: Scan.many is_utf8_trailer >> implode_pseudo_utf8 ||
   scan_encoded_newline ||
   ($$ "\\" ^^ $$ "<" ^^
-    (($$ "^" ^^ Scan.optional (scan_raw || scan_id) "" || Scan.optional scan_id "") ^^
+    (($$ "^" ^^ Scan.optional (scan_raw || scan_ascii_id) "" || Scan.optional scan_ascii_id "") ^^
       Scan.optional ($$ ">") "")) ||
   Scan.one not_eof;
 

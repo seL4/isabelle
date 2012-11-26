@@ -390,7 +390,7 @@ fun role_of_tptp_string "axiom" = Axiom
 fun parse_tstp_line problem =
   ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
     || Scan.this_string tptp_tff || Scan.this_string tptp_thf) -- $$ "(")
-    |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
+    |-- scan_general_id --| $$ "," -- Symbol.scan_ascii_id --| $$ ","
     -- (parse_formula || skip_term >> K dummy_phi) -- parse_tstp_extra_arguments
     --| $$ ")" --| $$ "."
    >> (fn (((num, role), phi), deps) =>
@@ -469,7 +469,7 @@ val parse_spass_debug =
            derived from formulae <ident>* *)
 fun parse_spass_line x =
   (parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
-     -- Symbol.scan_id -- parse_spass_annotations --| $$ "]"
+     -- Symbol.scan_ascii_id -- parse_spass_annotations --| $$ "]"
      -- parse_horn_clause --| $$ "."
      -- Scan.option (Scan.this_string "derived from formulae "
                      |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
