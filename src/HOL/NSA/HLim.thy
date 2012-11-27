@@ -133,7 +133,7 @@ by (drule NSLIM_mult, auto)
 lemma NSLIM_self: "(%x. x) -- a --NS> a"
 by (simp add: NSLIM_def)
 
-subsubsection {* Equivalence of @{term LIM} and @{term NSLIM} *}
+subsubsection {* Equivalence of @{term filter_lim} and @{term NSLIM} *}
 
 lemma LIM_NSLIM:
   assumes f: "f -- a --> L" shows "f -- a --NS> L"
