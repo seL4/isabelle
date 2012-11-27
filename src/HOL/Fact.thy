@@ -315,4 +315,13 @@ proof (rule strong_setprod_reindex_cong)
     by (auto simp: image_iff)
 qed (auto intro: inj_onI)
 
+lemma fact_div_fact_le_pow:
+  assumes "r \<le> n" shows "fact n div fact (n - r) \<le> n ^ r"
+proof -
+  have "\<And>r. r \<le> n \<Longrightarrow> \<Prod>{n - r..n} = (n - r) * \<Prod>{Suc (n - r)..n}"
+    by (subst setprod_insert[symmetric]) (auto simp: atLeastAtMost_insertL)
+  with assms show ?thesis
+    by (induct r rule: nat.induct) (auto simp add: fact_div_fact Suc_diff_Suc mult_le_mono)
+qed
+
 end

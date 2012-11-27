@@ -575,4 +575,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma binomial_le_pow:
+  assumes "r \<le> n" shows "n choose r \<le> n ^ r"
+proof -
+  have "n choose r \<le> fact n div fact (n - r)"
+    using `r \<le> n` by (subst binomial_fact_lemma[symmetric]) auto
+  with fact_div_fact_le_pow[OF assms] show ?thesis by auto
+qed
+
+lemma binomial_altdef_nat: "(k::nat) \<le> n \<Longrightarrow>
+    n choose k = fact n div (fact k * fact (n - k))"
+ by (subst binomial_fact_lemma[symmetric]) auto
+
 end
