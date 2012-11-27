@@ -37,8 +37,8 @@ sig
   val range: T list -> Position.range
   val implode_range: Position.T -> Position.T -> T list -> text * Position.range
   val explode: text * Position.T -> T list
+  val scan_new_ident: T list -> T list * T list
   val scan_ident: T list -> T list * T list
-  val is_ident: T list -> bool
   val is_identifier: string -> bool
 end;
 
@@ -213,6 +213,40 @@ fun explode (str, pos) =
 
 
 (* identifiers *)
+
+local
+
+val latin = Symbol.is_ascii_letter;
+val digit = Symbol.is_ascii_digit;
+fun underscore s = s = "_";
+fun prime s = s = "'";
+fun script s = s = "\\<^sub>" orelse s = "\\<^isub>" orelse s = "\\<^isup>";
+fun special_letter s = Symbol.is_letter_symbol s andalso not (script s);
+
+val scan_plain = Scan.one ((latin orf digit orf prime) o symbol) >> single;
+val scan_digit = Scan.one (digit o symbol) >> single;
+val scan_prime = Scan.one (prime o symbol) >> single;
+
+val scan_script =
+  Scan.one (script o symbol) -- Scan.one ((latin orf digit orf special_letter) o symbol)
+  >> (fn (x, y) => [x, y]);
+
+val scan_ident_part1 =
+  Scan.one (latin o symbol) ::: (Scan.repeat (scan_plain || scan_script) >> flat) ||
+  Scan.one (special_letter o symbol) :::
+    (Scan.repeat (scan_digit || scan_prime || scan_script) >> flat);
+
+val scan_ident_part2 =
+  Scan.repeat1 (scan_plain || scan_script) >> flat ||
+  scan_ident_part1;
+
+in
+
+val scan_new_ident =
+  scan_ident_part1 @@@
+    (Scan.repeat (Scan.many1 (underscore o symbol) @@@ scan_ident_part2) >> flat);
+
+end;
 
 val scan_ident =
   Scan.one (Symbol.is_letter o symbol) ::: Scan.many (Symbol.is_letdig o symbol);

@@ -293,6 +293,7 @@ val scan_vname =
 
     fun idxname cs ds = (implode (rev cs), nat 0 ds);
     fun chop_idx [] ds = idxname [] ds
+      | chop_idx (cs as (_ :: "\\<^sub>" :: _)) ds = idxname cs ds
       | chop_idx (cs as (_ :: "\\<^isub>" :: _)) ds = idxname cs ds
       | chop_idx (cs as (_ :: "\\<^isup>" :: _)) ds = idxname cs ds
       | chop_idx (c :: cs) ds =

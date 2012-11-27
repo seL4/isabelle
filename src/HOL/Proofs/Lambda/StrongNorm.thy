@@ -102,7 +102,7 @@ proof (induct U)
     assume uIT: "IT u"
     assume uT: "e \<turnstile> u : T"
     {
-      case (Var rs n e_ T'_ u_ i_)
+      case (Var rs n e1 T'1 u1 i1)
       assume nT: "e\<langle>i:T\<rangle> \<turnstile> Var n \<degree>\<degree> rs : T'"
       let ?ty = "\<lambda>t. \<exists>T'. e\<langle>i:T\<rangle> \<turnstile> t : T'"
       let ?R = "\<lambda>t. \<forall>e T' u i.
@@ -210,13 +210,13 @@ proof (induct U)
         with False show ?thesis by (auto simp add: subst_Var)
       qed
     next
-      case (Lambda r e_ T'_ u_ i_)
+      case (Lambda r e1 T'1 u1 i1)
       assume "e\<langle>i:T\<rangle> \<turnstile> Abs r : T'"
         and "\<And>e T' u i. PROP ?Q r e T' u i T"
       with uIT uT show "IT (Abs r[u/i])"
         by fastforce
     next
-      case (Beta r a as e_ T'_ u_ i_)
+      case (Beta r a as e1 T'1 u1 i1)
       assume T: "e\<langle>i:T\<rangle> \<turnstile> Abs r \<degree> a \<degree>\<degree> as : T'"
       assume SI1: "\<And>e T' u i. PROP ?Q (r[a/0] \<degree>\<degree> as) e T' u i T"
       assume SI2: "\<And>e T' u i. PROP ?Q a e T' u i T"

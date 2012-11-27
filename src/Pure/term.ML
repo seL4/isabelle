@@ -981,7 +981,8 @@ fun string_of_vname (x, i) =
     val idx = string_of_int i;
     val dot =
       (case rev (Symbol.explode x) of
-        _ :: "\\<^isub>" :: _ => false
+        _ :: "\\<^sub>" :: _ => false
+      | _ :: "\\<^isub>" :: _ => false
       | _ :: "\\<^isup>" :: _ => false
       | c :: _ => Symbol.is_digit c
       | _ => true);
