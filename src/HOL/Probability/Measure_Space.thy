@@ -449,11 +449,11 @@ lemma emeasure_countably_additive: "countably_additive (sets M) (emeasure M)"
 
 lemma suminf_emeasure:
   "range A \<subseteq> sets M \<Longrightarrow> disjoint_family A \<Longrightarrow> (\<Sum>i. emeasure M (A i)) = emeasure M (\<Union>i. A i)"
-  using countable_UN[of A UNIV M] emeasure_countably_additive[of M]
+  using sets.countable_UN[of A UNIV M] emeasure_countably_additive[of M]
   by (simp add: countably_additive_def)
 
 lemma emeasure_additive: "additive (sets M) (emeasure M)"
-  by (metis countably_additive_additive emeasure_positive emeasure_countably_additive)
+  by (metis sets.countably_additive_additive emeasure_positive emeasure_countably_additive)
 
 lemma plus_emeasure:
   "a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<inter> b = {} \<Longrightarrow> emeasure M a + emeasure M b = emeasure M (a \<union> b)"
@@ -462,16 +462,16 @@ lemma plus_emeasure:
 lemma setsum_emeasure:
   "F`I \<subseteq> sets M \<Longrightarrow> disjoint_family_on F I \<Longrightarrow> finite I \<Longrightarrow>
     (\<Sum>i\<in>I. emeasure M (F i)) = emeasure M (\<Union>i\<in>I. F i)"
-  by (metis additive_sum emeasure_positive emeasure_additive)
+  by (metis sets.additive_sum emeasure_positive emeasure_additive)
 
 lemma emeasure_mono:
   "a \<subseteq> b \<Longrightarrow> b \<in> sets M \<Longrightarrow> emeasure M a \<le> emeasure M b"
-  by (metis additive_increasing emeasure_additive emeasure_nonneg emeasure_notin_sets
+  by (metis sets.additive_increasing emeasure_additive emeasure_nonneg emeasure_notin_sets
             emeasure_positive increasingD)
 
 lemma emeasure_space:
   "emeasure M A \<le> emeasure M (space M)"
-  by (metis emeasure_mono emeasure_nonneg emeasure_notin_sets sets_into_space top)
+  by (metis emeasure_mono emeasure_nonneg emeasure_notin_sets sets.sets_into_space sets.top)
 
 lemma emeasure_compl:
   assumes s: "s \<in> sets M" and fin: "emeasure M s \<noteq> \<infinity>"
@@ -479,7 +479,7 @@ lemma emeasure_compl:
 proof -
   from s have "0 \<le> emeasure M s" by auto
   have "emeasure M (space M) = emeasure M (s \<union> (space M - s))" using s
-    by (metis Un_Diff_cancel Un_absorb1 s sets_into_space)
+    by (metis Un_Diff_cancel Un_absorb1 s sets.sets_into_space)
   also have "... = emeasure M s + emeasure M (space M - s)"
     by (rule plus_emeasure[symmetric]) (auto simp add: s)
   finally have "emeasure M (space M) = emeasure M s + emeasure M (space M - s)" .
@@ -506,7 +506,8 @@ qed
 lemma Lim_emeasure_incseq:
   "range A \<subseteq> sets M \<Longrightarrow> incseq A \<Longrightarrow> (\<lambda>i. (emeasure M (A i))) ----> emeasure M (\<Union>i. A i)"
   using emeasure_countably_additive
-  by (auto simp add: countably_additive_iff_continuous_from_below emeasure_positive emeasure_additive)
+  by (auto simp add: sets.countably_additive_iff_continuous_from_below emeasure_positive
+    emeasure_additive)
 
 lemma incseq_emeasure:
   assumes "range B \<subseteq> sets M" "incseq B"
@@ -595,10 +596,10 @@ proof -
   have "emeasure M (\<Union>i. f i) = emeasure M (\<Union>i. disjointed f i)"
     unfolding UN_disjointed_eq ..
   also have "\<dots> = (\<Sum>i. emeasure M (disjointed f i))"
-    using range_disjointed_sets[OF assms] suminf_emeasure[of "disjointed f"]
+    using sets.range_disjointed_sets[OF assms] suminf_emeasure[of "disjointed f"]
     by (simp add:  disjoint_family_disjointed comp_def)
   also have "\<dots> \<le> (\<Sum>i. emeasure M (f i))"
-    using range_disjointed_sets[OF assms] assms
+    using sets.range_disjointed_sets[OF assms] assms
     by (auto intro!: suminf_le_pos emeasure_mono disjointed_subset)
   finally show ?thesis .
 qed
@@ -676,7 +677,8 @@ proof -
   let ?\<mu>  = "emeasure M" and ?\<nu> = "emeasure N"
   interpret S: sigma_algebra \<Omega> "sigma_sets \<Omega> E" by (rule sigma_algebra_sigma_sets) fact
   have "space M = \<Omega>"
-    using top[of M] space_closed[of M] S.top S.space_closed `sets M = sigma_sets \<Omega> E` by blast
+    using sets.top[of M] sets.space_closed[of M] S.top S.space_closed `sets M = sigma_sets \<Omega> E`
+    by blast
 
   { fix F D assume "F \<in> E" and "?\<mu> F \<noteq> \<infinity>"
     then have [intro]: "F \<in> sigma_sets \<Omega> E" by auto
@@ -724,9 +726,9 @@ proof -
     fix F assume "F \<in> sets M"
     let ?D = "disjointed (\<lambda>i. F \<inter> A i)"
     from `space M = \<Omega>` have F_eq: "F = (\<Union>i. ?D i)"
-      using `F \<in> sets M`[THEN sets_into_space] A(2)[symmetric] by (auto simp: UN_disjointed_eq)
+      using `F \<in> sets M`[THEN sets.sets_into_space] A(2)[symmetric] by (auto simp: UN_disjointed_eq)
     have [simp, intro]: "\<And>i. ?D i \<in> sets M"
-      using range_disjointed_sets[of "\<lambda>i. F \<inter> A i" M] `F \<in> sets M`
+      using sets.range_disjointed_sets[of "\<lambda>i. F \<inter> A i" M] `F \<in> sets M`
       by (auto simp: subset_eq)
     have "disjoint_family ?D"
       by (auto simp: disjoint_family_disjointed)
@@ -770,7 +772,7 @@ lemma null_setsI[intro]: "emeasure M A = 0 \<Longrightarrow> A \<in> sets M \<Lo
 interpretation null_sets: ring_of_sets "space M" "null_sets M" for M
 proof (rule ring_of_setsI)
   show "null_sets M \<subseteq> Pow (space M)"
-    using sets_into_space by auto
+    using sets.sets_into_space by auto
   show "{} \<in> null_sets M"
     by auto
   fix A B assume sets: "A \<in> null_sets M" "B \<in> null_sets M"
@@ -904,7 +906,7 @@ qed
 
 lemma AE_iff_null_sets:
   "N \<in> sets M \<Longrightarrow> N \<in> null_sets M \<longleftrightarrow> (AE x in M. x \<notin> N)"
-  using Int_absorb1[OF sets_into_space, of N M]
+  using Int_absorb1[OF sets.sets_into_space, of N M]
   by (subst AE_iff_null) (auto simp: Int_def[symmetric])
 
 lemma AE_not_in:
@@ -1033,7 +1035,7 @@ proof cases
   have "emeasure M A = emeasure M (A - N)"
     using N A by (subst emeasure_Diff_null_set) auto
   also have "emeasure M (A - N) \<le> emeasure M (B - N)"
-    using N A B sets_into_space by (auto intro!: emeasure_mono)
+    using N A B sets.sets_into_space by (auto intro!: emeasure_mono)
   also have "emeasure M (B - N) = emeasure M B"
     using N B by (subst emeasure_Diff_null_set) auto
   finally show ?thesis .
@@ -1062,7 +1064,7 @@ proof atomize_elim
     space: "(\<Union>i. A i) = space M" and
     measure: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
     using sigma_finite by auto
-  note range' = range_disjointed_sets[OF range] range
+  note range' = sets.range_disjointed_sets[OF range] range
   { fix i
     have "emeasure M (disjointed A i) \<le> emeasure M (A i)"
       using range' disjointed_subset[of A i] by (auto intro!: emeasure_mono)
@@ -1400,7 +1402,7 @@ lemma (in finite_measure) finite_Lim_measure_decseq:
 lemma (in finite_measure) finite_measure_compl:
   assumes S: "S \<in> sets M"
   shows "measure M (space M - S) = measure M (space M) - measure M S"
-  using measure_Diff[OF _ top S sets_into_space] S by simp
+  using measure_Diff[OF _ sets.top S sets.sets_into_space] S by simp
 
 lemma (in finite_measure) finite_measure_mono_AE:
   assumes imp: "AE x in M. x \<in> A \<longrightarrow> x \<in> B" and B: "B \<in> sets M"
@@ -1497,7 +1499,7 @@ lemma (in finite_measure) measure_real_sum_image_fn:
   shows "measure M e = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
 proof -
   have e: "e = (\<Union> i \<in> s. e \<inter> f i)"
-    using `e \<in> sets M` sets_into_space upper by blast
+    using `e \<in> sets M` sets.sets_into_space upper by blast
   hence "measure M e = measure M (\<Union> i \<in> s. e \<inter> f i)" by simp
   also have "\<dots> = (\<Sum> x \<in> s. measure M (e \<inter> f x))"
   proof (rule finite_measure_finite_Union)

@@ -22,7 +22,7 @@ definition pair_measure (infixr "\<Otimes>\<^isub>M" 80) where
       (\<lambda>X. \<integral>\<^isup>+x. (\<integral>\<^isup>+y. indicator X (x,y) \<partial>B) \<partial>A)"
 
 lemma pair_measure_closed: "{a \<times> b | a b. a \<in> sets A \<and> b \<in> sets B} \<subseteq> Pow (space A \<times> space B)"
-  using space_closed[of A] space_closed[of B] by auto
+  using sets.space_closed[of A] sets.space_closed[of B] by auto
 
 lemma space_pair_measure:
   "space (A \<Otimes>\<^isub>M B) = space A \<times> space B"
@@ -47,7 +47,7 @@ lemma measurable_pair_measureI:
   assumes 2: "\<And>A B. A \<in> sets M1 \<Longrightarrow> B \<in> sets M2 \<Longrightarrow> f -` (A \<times> B) \<inter> space M \<in> sets M"
   shows "f \<in> measurable M (M1 \<Otimes>\<^isub>M M2)"
   unfolding pair_measure_def using 1 2
-  by (intro measurable_measure_of) (auto dest: sets_into_space)
+  by (intro measurable_measure_of) (auto dest: sets.sets_into_space)
 
 lemma measurable_split_replace[measurable (raw)]:
   "(\<lambda>x. f x (fst (g x)) (snd (g x))) \<in> measurable M N \<Longrightarrow> (\<lambda>x. split (f x) (g x)) \<in> measurable M N"
@@ -63,7 +63,7 @@ proof (rule measurable_pair_measureI)
   have "(\<lambda>x. (f x, g x)) -` (A \<times> B) \<inter> space M = (f -` A \<inter> space M) \<inter> (g -` B \<inter> space M)"
     by auto
   also have "\<dots> \<in> sets M"
-    by (rule Int) (auto intro!: measurable_sets * f g)
+    by (rule sets.Int) (auto intro!: measurable_sets * f g)
   finally show "(\<lambda>x. (f x, g x)) -` (A \<times> B) \<inter> space M \<in> sets M" .
 qed
 
@@ -79,10 +79,12 @@ lemma measurable_pair:
   using measurable_Pair[OF assms] by simp
 
 lemma measurable_fst[intro!, simp, measurable]: "fst \<in> measurable (M1 \<Otimes>\<^isub>M M2) M1"
-  by (auto simp: fst_vimage_eq_Times space_pair_measure sets_into_space times_Int_times measurable_def)
+  by (auto simp: fst_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
+    measurable_def)
 
 lemma measurable_snd[intro!, simp, measurable]: "snd \<in> measurable (M1 \<Otimes>\<^isub>M M2) M2"
-  by (auto simp: snd_vimage_eq_Times space_pair_measure sets_into_space times_Int_times measurable_def)
+  by (auto simp: snd_vimage_eq_Times space_pair_measure sets.sets_into_space times_Int_times
+    measurable_def)
 
 lemma 
   assumes f[measurable]: "f \<in> measurable M (N \<Otimes>\<^isub>M P)" 
@@ -122,7 +124,7 @@ lemma sets_Pair1[measurable (raw)]:
   assumes A: "A \<in> sets (M1 \<Otimes>\<^isub>M M2)" shows "Pair x -` A \<in> sets M2"
 proof -
   have "Pair x -` A = (if x \<in> space M1 then Pair x -` A \<inter> space M2 else {})"
-    using A[THEN sets_into_space] by (auto simp: space_pair_measure)
+    using A[THEN sets.sets_into_space] by (auto simp: space_pair_measure)
   also have "\<dots> \<in> sets M2"
     using A by (auto simp add: measurable_Pair1' intro!: measurable_sets split: split_if_asm)
   finally show ?thesis .
@@ -134,7 +136,7 @@ lemma measurable_Pair2': "y \<in> space M2 \<Longrightarrow> (\<lambda>x. (x, y)
 lemma sets_Pair2: assumes A: "A \<in> sets (M1 \<Otimes>\<^isub>M M2)" shows "(\<lambda>x. (x, y)) -` A \<in> sets M1"
 proof -
   have "(\<lambda>x. (x, y)) -` A = (if y \<in> space M2 then (\<lambda>x. (x, y)) -` A \<inter> space M1 else {})"
-    using A[THEN sets_into_space] by (auto simp: space_pair_measure)
+    using A[THEN sets.sets_into_space] by (auto simp: space_pair_measure)
   also have "\<dots> \<in> sets M1"
     using A by (auto simp add: measurable_Pair2' intro!: measurable_sets split: split_if_asm)
   finally show ?thesis .
@@ -167,11 +169,11 @@ lemma (in finite_measure) finite_measure_cut_measurable:
   unfolding sets_pair_measure
 proof (induct rule: sigma_sets_induct_disjoint)
   case (compl A)
-  with sets_into_space have "\<And>x. emeasure M (Pair x -` ((space N \<times> space M) - A)) =
+  with sets.sets_into_space have "\<And>x. emeasure M (Pair x -` ((space N \<times> space M) - A)) =
       (if x \<in> space N then emeasure M (space M) - ?s A x else 0)"
     unfolding sets_pair_measure[symmetric]
     by (auto intro!: emeasure_compl simp: vimage_Diff sets_Pair1)
-  with compl top show ?case
+  with compl sets.top show ?case
     by (auto intro!: measurable_If simp: space_pair_measure)
 next
   case (union F)
@@ -189,7 +191,7 @@ proof -
   let ?C = "\<lambda>x i. F i \<inter> Pair x -` Q"
   { fix i
     have [simp]: "space N \<times> F i \<inter> space N \<times> space M = space N \<times> F i"
-      using F sets_into_space by auto
+      using F sets.sets_into_space by auto
     let ?R = "density M (indicator (F i))"
     have "finite_measure ?R"
       using F by (intro finite_measureI) (auto simp: emeasure_restricted subset_eq)
@@ -199,7 +201,7 @@ proof -
         = emeasure M (F i \<inter> Pair x -` (space N \<times> space ?R \<inter> Q))"
       using Q F_sets by (intro emeasure_restricted) (auto intro: sets_Pair1)
     moreover have "\<And>x. F i \<inter> Pair x -` (space N \<times> space ?R \<inter> Q) = ?C x i"
-      using sets_into_space[OF Q] by (auto simp: space_pair_measure)
+      using sets.sets_into_space[OF Q] by (auto simp: space_pair_measure)
     ultimately have "(\<lambda>x. emeasure M (?C x i)) \<in> borel_measurable N"
       by simp }
   moreover
@@ -213,7 +215,7 @@ proof -
         by (rule disjoint_family_on_bisimulation[OF `disjoint_family F`]) auto
     qed
     also have "(\<Union>i. ?C x i) = Pair x -` Q"
-      using F sets_into_space[OF `Q \<in> sets (N \<Otimes>\<^isub>M M)`]
+      using F sets.sets_into_space[OF `Q \<in> sets (N \<Otimes>\<^isub>M M)`]
       by (auto simp: space_pair_measure)
     finally have "emeasure M (Pair x -` Q) = (\<Sum>i. emeasure M (?C x i))"
       by simp }
@@ -255,7 +257,7 @@ proof (rule emeasure_measure_of[OF pair_measure_def])
                intro!: positive_integral_cong positive_integral_indicator[symmetric])
   qed
   show "{a \<times> b |a b. a \<in> sets N \<and> b \<in> sets M} \<subseteq> Pow (space N \<times> space M)"
-    using space_closed[of N] space_closed[of M] by auto
+    using sets.space_closed[of N] sets.space_closed[of M] by auto
 qed fact
 
 lemma (in sigma_finite_measure) emeasure_pair_measure_alt:
@@ -296,7 +298,7 @@ proof -
     using Q measurable_pair_swap' by (auto intro: measurable_sets)
   note M1.measurable_emeasure_Pair[OF this]
   moreover have "\<And>y. Pair y -` ((\<lambda>(x, y). (y, x)) -` Q \<inter> space (M2 \<Otimes>\<^isub>M M1)) = (\<lambda>x. (x, y)) -` Q"
-    using Q[THEN sets_into_space] by (auto simp: space_pair_measure)
+    using Q[THEN sets.sets_into_space] by (auto simp: space_pair_measure)
   ultimately show ?thesis by simp
 qed
 
@@ -374,7 +376,7 @@ proof -
   show ?thesis
   proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of M1 M2]])
     show "?E \<subseteq> Pow (space ?P)"
-      using space_closed[of M1] space_closed[of M2] by (auto simp: space_pair_measure)
+      using sets.space_closed[of M1] sets.space_closed[of M2] by (auto simp: space_pair_measure)
     show "sets ?P = sigma_sets (space ?P) ?E"
       by (simp add: sets_pair_measure space_pair_measure)
     then show "sets ?D = sigma_sets (space ?P) ?E"
@@ -386,7 +388,7 @@ proof -
     fix X assume "X \<in> ?E"
     then obtain A B where X[simp]: "X = A \<times> B" and A: "A \<in> sets M1" and B: "B \<in> sets M2" by auto
     have "(\<lambda>(y, x). (x, y)) -` X \<inter> space (M2 \<Otimes>\<^isub>M M1) = B \<times> A"
-      using sets_into_space[OF A] sets_into_space[OF B] by (auto simp: space_pair_measure)
+      using sets.sets_into_space[OF A] sets.sets_into_space[OF B] by (auto simp: space_pair_measure)
     with A B show "emeasure (M1 \<Otimes>\<^isub>M M2) X = emeasure ?D X"
       by (simp add: M2.emeasure_pair_measure_Times M1.emeasure_pair_measure_Times emeasure_distr
                     measurable_pair_swap' ac_simps)
@@ -399,7 +401,7 @@ lemma (in pair_sigma_finite) emeasure_pair_measure_alt2:
     (is "_ = ?\<nu> A")
 proof -
   have [simp]: "\<And>y. (Pair y -` ((\<lambda>(x, y). (y, x)) -` A \<inter> space (M2 \<Otimes>\<^isub>M M1))) = (\<lambda>x. (x, y)) -` A"
-    using sets_into_space[OF A] by (auto simp: space_pair_measure)
+    using sets.sets_into_space[OF A] by (auto simp: space_pair_measure)
   show ?thesis using A
     by (subst distr_pair_swap)
        (simp_all del: vimage_Int add: measurable_sets[OF measurable_pair_swap']
@@ -438,7 +440,7 @@ lemma (in pair_sigma_finite) AE_pair_measure:
   shows "AE x in M1 \<Otimes>\<^isub>M M2. P x"
 proof (subst AE_iff_measurable[OF _ refl])
   show "{x\<in>space (M1 \<Otimes>\<^isub>M M2). \<not> P x} \<in> sets (M1 \<Otimes>\<^isub>M M2)"
-    by (rule sets_Collect) fact
+    by (rule sets.sets_Collect) fact
   then have "emeasure (M1 \<Otimes>\<^isub>M M2) {x \<in> space (M1 \<Otimes>\<^isub>M M2). \<not> P x} =
       (\<integral>\<^isup>+ x. \<integral>\<^isup>+ y. indicator {x \<in> space (M1 \<Otimes>\<^isub>M M2). \<not> P x} (x, y) \<partial>M2 \<partial>M1)"
     by (simp add: M2.emeasure_pair_measure)
@@ -790,7 +792,7 @@ proof -
   show ?thesis
   proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of M1 M2]])
     show "?E \<subseteq> Pow (space ?P)"
-      using space_closed[of M1] space_closed[of M2] by (auto simp: space_pair_measure)
+      using sets.space_closed[of M1] sets.space_closed[of M2] by (auto simp: space_pair_measure)
     show "sets ?P = sigma_sets (space ?P) ?E"
       by (simp add: sets_pair_measure space_pair_measure)
     then show "sets M = sigma_sets (space ?P) ?E"

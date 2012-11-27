@@ -189,13 +189,13 @@ proof -
       fix B assume "B \<in> sets M" "B \<subseteq> space M - A n"
       from B[OF this] show "-e < ?d B" .
     next
-      show "space M - A n \<in> sets M" by (rule compl_sets) fact
+      show "space M - A n \<in> sets M" by (rule sets.compl_sets) fact
     next
       show "?d (space M) \<le> ?d (space M - A n)"
       proof (induct n)
         fix n assume "?d (space M) \<le> ?d (space M - A n)"
         also have "\<dots> \<le> ?d (space M - A (Suc n))"
-          using A_in_sets sets_into_space dA_mono[of n] finite_measure_compl M'.finite_measure_compl
+          using A_in_sets sets.sets_into_space dA_mono[of n] finite_measure_compl M'.finite_measure_compl
           by (simp del: A_simps add: sets_eq sets_eq_imp_space_eq[OF sets_eq])
         finally show "?d (space M) \<le> ?d (space M - A (Suc n))" .
       qed simp
@@ -241,7 +241,7 @@ proof -
       by (auto simp: finite_measure_restricted N.finite_measure_restricted sets_eq)
     from finite_measure.Radon_Nikodym_aux_epsilon[OF this] guess X .. note X = this
     with S have "?P (S \<inter> X) S n"
-      by (simp add: measure_restricted sets_eq Int) (metis inf_absorb2)
+      by (simp add: measure_restricted sets_eq sets.Int) (metis inf_absorb2)
     hence "\<exists>A. ?P A S n" .. }
   note Ex_P = this
   def A \<equiv> "nat_rec (space M) (\<lambda>n A. SOME B. ?P B A n)"
@@ -309,7 +309,7 @@ proof -
       hence sets: "?A \<inter> A \<in> sets M" "(space M - ?A) \<inter> A \<in> sets M" using `?A \<in> sets M` by auto
       hence sets': "?A \<inter> A \<in> sets N" "(space M - ?A) \<inter> A \<in> sets N" by (auto simp: sets_eq)
       have union: "((?A \<inter> A) \<union> ((space M - ?A) \<inter> A)) = A"
-        using sets_into_space[OF `A \<in> sets M`] by auto
+        using sets.sets_into_space[OF `A \<in> sets M`] by auto
       have "\<And>x. x \<in> space M \<Longrightarrow> max (g x) (f x) * indicator A x =
         g x * indicator (?A \<inter> A) x + f x * indicator ((space M - ?A) \<inter> A) x"
         by (auto simp: indicator_def max_def)
@@ -351,7 +351,7 @@ proof -
   have y_le: "?y \<le> N (space M)" unfolding G_def
   proof (safe intro!: SUP_least)
     fix g assume "\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> N A"
-    from this[THEN bspec, OF top] show "integral\<^isup>P M g \<le> N (space M)"
+    from this[THEN bspec, OF sets.top] show "integral\<^isup>P M g \<le> N (space M)"
       by (simp cong: positive_integral_cong)
   qed
   from SUPR_countable_SUPR[OF `G \<noteq> {}`, of "integral\<^isup>P M"] guess ys .. note ys = this
@@ -507,7 +507,7 @@ proof -
     with int_f_finite have "?y + 0 < integral\<^isup>P M f + b * emeasure M A0" unfolding int_f_eq_y
       using `f \<in> G`
       by (intro ereal_add_strict_mono) (auto intro!: SUP_upper2 positive_integral_positive)
-    also have "\<dots> = integral\<^isup>P M ?f0" using f0_eq[OF top] `A0 \<in> sets M` sets_into_space
+    also have "\<dots> = integral\<^isup>P M ?f0" using f0_eq[OF sets.top] `A0 \<in> sets M` sets.sets_into_space
       by (simp cong: positive_integral_cong)
     finally have "?y < integral\<^isup>P M ?f0" by simp
     moreover from `?f0 \<in> G` have "integral\<^isup>P M ?f0 \<le> ?y" by (auto intro!: SUP_upper)
@@ -536,7 +536,7 @@ proof -
   let ?a = "SUP Q:?Q. emeasure M Q"
   have "{} \<in> ?Q" by auto
   then have Q_not_empty: "?Q \<noteq> {}" by blast
-  have "?a \<le> emeasure M (space M)" using sets_into_space
+  have "?a \<le> emeasure M (space M)" using sets.sets_into_space
     by (auto intro!: SUP_least emeasure_mono)
   then have "?a \<noteq> \<infinity>" using finite_emeasure_space
     by auto
@@ -601,7 +601,7 @@ proof -
         next
           assume "emeasure M A \<noteq> 0" with * have "N A \<noteq> \<infinity>" using emeasure_nonneg[of M A] by auto
           with A have "emeasure M ?O_0 + emeasure M A = emeasure M (?O_0 \<union> A)"
-            using Q' by (auto intro!: plus_emeasure countable_UN)
+            using Q' by (auto intro!: plus_emeasure sets.countable_UN)
           also have "\<dots> = (SUP i. emeasure M (?O i \<union> A))"
           proof (rule SUP_emeasure_incseq[of "\<lambda>i. ?O i \<union> A", symmetric, simplified])
             show "range (\<lambda>i. ?O i \<union> A) \<subseteq> sets M"
@@ -712,7 +712,7 @@ proof -
       also have "\<dots> = (\<integral>\<^isup>+x. (\<Sum>i. f i x * indicator (Q i \<inter> A) x) \<partial>M) + \<infinity> * emeasure M (Q0 \<inter> A)"
         using borel Qi Q0(1) `A \<in> sets M`
         by (subst positive_integral_add) (auto simp del: ereal_infty_mult
-            simp add: positive_integral_cmult_indicator Int intro!: suminf_0_le)
+            simp add: positive_integral_cmult_indicator sets.Int intro!: suminf_0_le)
       also have "\<dots> = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)"
         by (subst integral_eq[OF `A \<in> sets M`], subst positive_integral_suminf) auto
       finally have "(\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M) = (\<Sum>i. N (Q i \<inter> A)) + \<infinity> * emeasure M (Q0 \<inter> A)" .
@@ -727,7 +727,7 @@ proof -
       moreover have "Q0 \<inter> A \<in> sets M" "((\<Union>i. Q i) \<inter> A) \<in> sets M"
         using Q_sets `A \<in> sets M` Q0(1) by auto
       moreover have "((\<Union>i. Q i) \<inter> A) \<union> (Q0 \<inter> A) = A" "((\<Union>i. Q i) \<inter> A) \<inter> (Q0 \<inter> A) = {}"
-        using `A \<in> sets M` sets_into_space Q0 by auto
+        using `A \<in> sets M` sets.sets_into_space Q0 by auto
       ultimately have "N A = (\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M)"
         using plus_emeasure[of "(\<Union>i. Q i) \<inter> A" N "Q0 \<inter> A"] by (simp add: sets_eq)
       with `A \<in> sets M` borel Q Q0(1) show "emeasure (density M ?f) A = N A"
@@ -755,7 +755,7 @@ proof -
     fix A assume "A \<in> null_sets ?MT"
     with borel have "A \<in> sets M" "AE x in M. x \<in> A \<longrightarrow> h x \<le> 0"
       by (auto simp add: null_sets_density_iff)
-    with pos sets_into_space have "AE x in M. x \<notin> A"
+    with pos sets.sets_into_space have "AE x in M. x \<notin> A"
       by (elim eventually_elim1) (auto simp: not_le[symmetric])
     then have "A \<in> null_sets M"
       using `A \<in> sets M` by (simp add: AE_iff_null_sets)
@@ -784,7 +784,7 @@ next
   assume "density M f = density M g"
   with borel have eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
     by (simp add: emeasure_density[symmetric])
-  from this[THEN bspec, OF top] fin
+  from this[THEN bspec, OF sets.top] fin
   have g_fin: "integral\<^isup>P M g \<noteq> \<infinity>" by (simp cong: positive_integral_cong)
   { fix f g assume borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
       and pos: "AE x in M. 0 \<le> f x" "AE x in M. 0 \<le> g x"
@@ -898,7 +898,7 @@ proof -
   let ?f'M = "density M f'"
   { fix A assume "A \<in> sets M"
     then have "{x \<in> space M. h x * indicator A x \<noteq> 0} = A"
-      using pos(1) sets_into_space by (force simp: indicator_def)
+      using pos(1) sets.sets_into_space by (force simp: indicator_def)
     then have "(\<integral>\<^isup>+x. h x * indicator A x \<partial>M) = 0 \<longleftrightarrow> A \<in> null_sets M"
       using h_borel `A \<in> sets M` h_nn by (subst positive_integral_0_iff) auto }
   note h_null_sets = this
@@ -994,7 +994,7 @@ next
   def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<infinity>} | Suc n \<Rightarrow> {.. ereal(of_nat (Suc n))}) \<inter> space M"
   { fix i j have "A i \<inter> Q j \<in> sets M"
     unfolding A_def using f Q
-    apply (rule_tac Int)
+    apply (rule_tac sets.Int)
     by (cases i) (auto intro: measurable_sets[OF f(1)]) }
   note A_in_sets = this
   let ?A = "\<lambda>n. case prod_decode n of (i,j) \<Rightarrow> A i \<inter> Q j"
@@ -1133,12 +1133,12 @@ proof (rule RN_deriv_unique)
   note sets_eq_imp_space_eq[OF N, simp]
   have measurable_N[simp]: "\<And>M'. measurable N M' = measurable M M'" by (auto simp: measurable_def)
   { fix A assume "A \<in> sets M"
-    with inv T T' sets_into_space[OF this]
+    with inv T T' sets.sets_into_space[OF this]
     have "T -` T' -` A \<inter> T -` space M' \<inter> space M = A"
       by (auto simp: measurable_def) }
   note eq = this[simp]
   { fix A assume "A \<in> sets M"
-    with inv T T' sets_into_space[OF this]
+    with inv T T' sets.sets_into_space[OF this]
     have "(T' \<circ> T) -` A \<inter> space M = A"
       by (auto simp: measurable_def) }
   note eq2 = this[simp]
@@ -1168,7 +1168,7 @@ proof (rule RN_deriv_unique)
 
   have "N = distr N M (T' \<circ> T)"
     by (subst measure_of_of_measure[of N, symmetric])
-       (auto simp add: distr_def sigma_sets_eq intro!: measure_of_eq space_closed)
+       (auto simp add: distr_def sets.sigma_sets_eq intro!: measure_of_eq sets.space_closed)
   also have "\<dots> = distr (distr N M' T) M T'"
     using T T' by (simp add: distr_distr)
   also have "\<dots> = distr (density (distr M M' T) (RN_deriv (distr M M' T) (distr N M' T))) M T'"

@@ -53,7 +53,7 @@ qed
 
 lemma borel_singleton[measurable]:
   "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets (borel :: 'a::t1_space measure)"
-  unfolding insert_def by (rule Un) auto
+  unfolding insert_def by (rule sets.Un) auto
 
 lemma borel_comp[measurable]: "A \<in> sets borel \<Longrightarrow> - A \<in> sets borel"
   unfolding Compl_eq_Diff_UNIV by simp
@@ -180,7 +180,7 @@ subsection "Borel space equals sigma algebras over intervals"
 
 lemma borel_sigma_sets_subset:
   "A \<subseteq> sets borel \<Longrightarrow> sigma_sets UNIV A \<subseteq> sets borel"
-  using sigma_sets_subset[of A borel] by simp
+  using sets.sigma_sets_subset[of A borel] by simp
 
 lemma borel_eq_sigmaI1:
   fixes F :: "'i \<Rightarrow> 'a::topological_space set" and X :: "'a::topological_space set set"
@@ -276,7 +276,8 @@ proof (rule borel_eq_sigmaI3[OF borel_def])
     by blast
   show "S \<in> ?SIGMA"
     unfolding *
-    by (safe intro!: countable_UN Int countable_INT) (auto intro!: halfspace_gt_in_halfspace)
+    by (safe intro!: sets.countable_UN sets.Int sets.countable_INT)
+      (auto intro!: halfspace_gt_in_halfspace)
 qed auto
 
 lemma borel_eq_halfspace_le:
@@ -299,7 +300,7 @@ proof (rule borel_eq_sigmaI2[OF borel_eq_halfspace_less])
     finally show "x$$i < a" .
   qed
   show "{x. x$$i < a} \<in> ?SIGMA" unfolding *
-    by (safe intro!: countable_UN) auto
+    by (safe intro!: sets.countable_UN) auto
 qed auto
 
 lemma borel_eq_halfspace_ge:
@@ -308,7 +309,7 @@ lemma borel_eq_halfspace_ge:
 proof (rule borel_eq_sigmaI2[OF borel_eq_halfspace_less])
   fix a i have *: "{x::'a. x$$i < a} = space ?SIGMA - {x::'a. a \<le> x$$i}" by auto
   show "{x. x$$i < a} \<in> ?SIGMA" unfolding *
-      by (safe intro!: compl_sets) auto
+      by (safe intro!: sets.compl_sets) auto
 qed auto
 
 lemma borel_eq_halfspace_greater:
@@ -317,7 +318,7 @@ lemma borel_eq_halfspace_greater:
 proof (rule borel_eq_sigmaI2[OF borel_eq_halfspace_le])
   fix a i have *: "{x::'a. x$$i \<le> a} = space ?SIGMA - {x::'a. a < x$$i}" by auto
   show "{x. x$$i \<le> a} \<in> ?SIGMA" unfolding *
-    by (safe intro!: compl_sets) auto
+    by (safe intro!: sets.compl_sets) auto
 qed auto
 
 lemma borel_eq_atMost:
@@ -337,7 +338,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
         by (auto intro!: exI[of _ k])
     qed
     show "{x. x$$i \<le> a} \<in> ?SIGMA" unfolding *
-      by (safe intro!: countable_UN) auto
+      by (safe intro!: sets.countable_UN) auto
   qed (auto intro: sigma_sets_top sigma_sets.Empty)
 qed auto
 
@@ -363,7 +364,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_le])
     qed
     finally show "{x. x$$i \<le> a} \<in> ?SIGMA"
       apply (simp only:)
-      apply (safe intro!: countable_UN Diff)
+      apply (safe intro!: sets.countable_UN sets.Diff)
       apply (auto intro: sigma_sets_top)
       done
   qed (auto intro: sigma_sets_top sigma_sets.Empty)
@@ -391,7 +392,7 @@ proof (rule borel_eq_sigmaI4[OF borel_eq_halfspace_ge])
     qed
     finally show "{x. a \<le> x$$i} \<in> ?SIGMA"
       apply (simp only:)
-      apply (safe intro!: countable_UN Diff)
+      apply (safe intro!: sets.countable_UN sets.Diff)
       apply (auto intro: sigma_sets_top)
       done
   qed (auto intro: sigma_sets_top sigma_sets.Empty)
@@ -415,7 +416,7 @@ proof (rule borel_eq_sigmaI5[OF borel_eq_atMost])
       by (auto intro!: exI[of _ k])
   qed
   show "{..a} \<in> ?SIGMA" unfolding *
-    by (safe intro!: countable_UN)
+    by (safe intro!: sets.countable_UN)
        (auto intro!: sigma_sets_top)
 qed auto
 
@@ -427,7 +428,7 @@ proof (rule borel_eq_sigmaI1[OF borel_def])
   then have "open M" by simp
   show "M \<in> ?SIGMA"
     apply (subst open_UNION[OF `open M`])
-    apply (safe intro!: countable_UN)
+    apply (safe intro!: sets.countable_UN)
     apply auto
     done
 qed auto

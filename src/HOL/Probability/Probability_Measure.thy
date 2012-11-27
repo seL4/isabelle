@@ -66,7 +66,7 @@ lemma (in prob_space) AE_in_set_eq_1:
 proof
   assume ae: "AE x in M. x \<in> A"
   have "{x \<in> space M. x \<in> A} = A" "{x \<in> space M. x \<notin> A} = space M - A"
-    using `A \<in> events`[THEN sets_into_space] by auto
+    using `A \<in> events`[THEN sets.sets_into_space] by auto
   with AE_E2[OF ae] `A \<in> events` have "1 - emeasure M A = 0"
     by (simp add: emeasure_compl emeasure_space_1)
   then show "prob A = 1"
@@ -273,7 +273,7 @@ lemma (in prob_space) cond_prob_eq_AE:
   assumes Q: "AE x in M. Q x \<longleftrightarrow> Q' x" "{x\<in>space M. Q x} \<in> events" "{x\<in>space M. Q' x} \<in> events"
   shows "cond_prob M P Q = cond_prob M P' Q'"
   using P Q
-  by (auto simp: cond_prob_def intro!: arg_cong2[where f="op /"] prob_eq_AE sets_Collect_conj)
+  by (auto simp: cond_prob_def intro!: arg_cong2[where f="op /"] prob_eq_AE sets.sets_Collect_conj)
 
 
 lemma (in prob_space) joint_distribution_Times_le_fst:
@@ -476,7 +476,7 @@ proof safe
   show "distr M ?P (\<lambda>x. (X x, Y x)) = density ?P f" (is "?L = ?R")
   proof (rule measure_eqI_generator_eq[OF Int_stable_pair_measure_generator[of S T]])
     show "?E \<subseteq> Pow (space ?P)"
-      using space_closed[of S] space_closed[of T] by (auto simp: space_pair_measure)
+      using sets.space_closed[of S] sets.space_closed[of T] by (auto simp: space_pair_measure)
     show "sets ?L = sigma_sets (space ?P) ?E"
       by (simp add: sets_pair_measure space_pair_measure)
     then show "sets ?R = sigma_sets (space ?P) ?E"
@@ -529,7 +529,7 @@ proof -
       using Pxy by auto
     { fix A assume A: "A \<in> sets (T \<Otimes>\<^isub>M S)"
       let ?B = "(\<lambda>(x, y). (y, x)) -` A \<inter> space (S \<Otimes>\<^isub>M T)"
-      from sets_into_space[OF A]
+      from sets.sets_into_space[OF A]
       have "emeasure M ((\<lambda>x. (Y x, X x)) -` A \<inter> space M) =
         emeasure M ((\<lambda>x. (X x, Y x)) -` ?B \<inter> space M)"
         by (auto intro!: arg_cong2[where f=emeasure] simp: space_pair_measure)
@@ -849,7 +849,7 @@ lemma prob_space_uniform_measure:
 proof
   show "emeasure (uniform_measure M A) (space (uniform_measure M A)) = 1"
     using emeasure_uniform_measure[OF emeasure_neq_0_sets[OF A(1)], of "space M"]
-    using sets_into_space[OF emeasure_neq_0_sets[OF A(1)]] A
+    using sets.sets_into_space[OF emeasure_neq_0_sets[OF A(1)]] A
     by (simp add: Int_absorb2 emeasure_nonneg)
 qed
 

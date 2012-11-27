@@ -243,11 +243,8 @@ proof -
         assume "x \<in> K n" hence fm_in: "fm n x \<in> fm n ` B n"
           using K' by (force simp: K_def)
         show "x \<in> B n"
-          apply (rule inj_on_image_mem_iff[OF inj_on_fm _ fm_in])
-          using `x \<in> K n` K_sets J[of n] sets_into_space
-          apply (auto simp: proj_space)
-          using J[of n] sets_into_space apply auto
-          done
+          using `x \<in> K n` K_sets sets.sets_into_space J[of n]
+          by (intro inj_on_image_mem_iff[OF inj_on_fm _ fm_in, of "\<lambda>_. borel"]) auto
       qed
       def Z' \<equiv> "\<lambda>n. emb I (J n) (K n)"
       have Z': "\<And>n. Z' n \<subseteq> Z n"
@@ -263,7 +260,7 @@ proof -
         proof safe
           fix y assume "y \<in> B n"
           moreover
-          hence "y \<in> space (Pi\<^isub>M (J n) (\<lambda>_. borel))" using J sets_into_space[of "B n" "P (J n)"]
+          hence "y \<in> space (Pi\<^isub>M (J n) (\<lambda>_. borel))" using J sets.sets_into_space[of "B n" "P (J n)"]
             by (auto simp add: proj_space proj_sets)
           assume "fm n x = fm n y"
           note inj_onD[OF inj_on_fm[OF space_borel],
@@ -314,7 +311,7 @@ proof -
         moreover have "\<mu>G (Z n - Y n) = limP (J n) (\<lambda>_. borel) P
           (B n - (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i)))"
           unfolding Z_eq Y_emb prod_emb_Diff[symmetric] using J J_mono K_sets `n \<ge> 1`
-          by (subst \<mu>G_eq) (auto intro!: Diff)
+          by (subst \<mu>G_eq) (auto intro!: sets.Diff)
         ultimately
         have "\<mu>G (Z n) - \<mu>G (Y n) = \<mu>G (Z n - Y n)"
           using J J_mono K_sets `n \<ge> 1`
@@ -406,7 +403,7 @@ proof -
         thus "K' (Suc n) \<noteq> {}" by auto
         fix k
         assume "k \<in> K' (Suc n)"
-        with K'[of "Suc n"] sets_into_space have "k \<in> fm (Suc n) ` B (Suc n)" by auto
+        with K'[of "Suc n"] sets.sets_into_space have "k \<in> fm (Suc n) ` B (Suc n)" by auto
         then obtain b where "k = fm (Suc n) b" by auto
         thus "domain k = domain (fm (Suc n) (y (Suc n)))"
           by (simp_all add: fm_def)

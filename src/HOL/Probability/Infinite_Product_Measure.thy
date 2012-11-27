@@ -311,7 +311,7 @@ next
   next
     fix J X assume J: "(J \<noteq> {} \<or> I = {}) \<and> finite J \<and> J \<subseteq> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))"
     then show "emb I J (Pi\<^isub>E J X) \<in> Pow (\<Pi>\<^isub>E i\<in>I. space (M i))"
-      by (auto simp: Pi_iff prod_emb_def dest: sets_into_space)
+      by (auto simp: Pi_iff prod_emb_def dest: sets.sets_into_space)
     have "emb I J (Pi\<^isub>E J X) \<in> generator"
       using J `I \<noteq> {}` by (intro generatorI') (auto simp: Pi_iff)
     then have "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))"
@@ -393,7 +393,7 @@ lemma sets_Collect_single':
 
 lemma (in finite_product_prob_space) finite_measure_PiM_emb:
   "(\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)) \<Longrightarrow> measure (PiM I M) (Pi\<^isub>E I A) = (\<Prod>i\<in>I. measure (M i) (A i))"
-  using measure_PiM_emb[of I A] finite_index prod_emb_PiE_same_index[OF sets_into_space, of I A M]
+  using measure_PiM_emb[of I A] finite_index prod_emb_PiE_same_index[OF sets.sets_into_space, of I A M]
   by auto
 
 lemma (in product_prob_space) PiM_component:
@@ -465,7 +465,7 @@ proof (rule measurable_PiM_single)
   then have *: "{\<omega> \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} =
     (if j < i then {\<omega> \<in> space (\<Pi>\<^isub>M i\<in>UNIV. M). \<omega> j \<in> A} \<times> space (\<Pi>\<^isub>M i\<in>UNIV. M)
               else space (\<Pi>\<^isub>M i\<in>UNIV. M) \<times> {\<omega> \<in> space (\<Pi>\<^isub>M i\<in>UNIV. M). \<omega> (j - i) \<in> A})"
-    by (auto simp: space_PiM space_pair_measure comb_seq_def dest: sets_into_space)
+    by (auto simp: space_PiM space_pair_measure comb_seq_def dest: sets.sets_into_space)
   show "{\<omega> \<in> space ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M)). prod_case (comb_seq i) \<omega> j \<in> A} \<in> sets ((\<Pi>\<^isub>M i\<in>UNIV. M) \<Otimes>\<^isub>M (\<Pi>\<^isub>M i\<in>UNIV. M))"
     unfolding * by (auto simp: A intro!: sets_Collect_single)
 qed
@@ -507,7 +507,7 @@ lemma infprod_in_sets[intro]:
   shows "Pi UNIV E \<in> sets S"
 proof -
   have "Pi UNIV E = (\<Inter>i. emb UNIV {..i} (\<Pi>\<^isub>E j\<in>{..i}. E j))"
-    using E E[THEN sets_into_space]
+    using E E[THEN sets.sets_into_space]
     by (auto simp: prod_emb_def Pi_iff extensional_def) blast
   with E show ?thesis by auto
 qed
@@ -520,7 +520,7 @@ proof -
   have "\<And>n. (\<Prod>i\<le>n. measure M (E i)) = measure S (?E n)"
     using E by (simp add: measure_PiM_emb)
   moreover have "Pi UNIV E = (\<Inter>n. ?E n)"
-    using E E[THEN sets_into_space]
+    using E E[THEN sets.sets_into_space]
     by (auto simp: prod_emb_def extensional_def Pi_iff) blast
   moreover have "range ?E \<subseteq> sets S"
     using E by auto
@@ -544,7 +544,7 @@ proof (rule PiM_eq)
   fix J E assume J: "finite J" "J \<subseteq> ?I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets M"
   let ?X = "prod_emb ?I ?M J (\<Pi>\<^isub>E j\<in>J. E j)"
   have "\<And>j x. j \<in> J \<Longrightarrow> x \<in> E j \<Longrightarrow> x \<in> space M"
-    using J(3)[THEN sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
+    using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
   with J have "?f -` ?X \<inter> space (S \<Otimes>\<^isub>M S) =
     (prod_emb ?I ?M (J \<inter> {..<i}) (PIE j:J \<inter> {..<i}. E j)) \<times>
     (prod_emb ?I ?M ((op + i) -` J) (PIE j:(op + i) -` J. E (i + j)))" (is "_ = ?E \<times> ?F")
@@ -576,7 +576,7 @@ proof (rule PiM_eq)
   fix J E assume J: "finite J" "J \<subseteq> ?I" "\<And>j. j \<in> J \<Longrightarrow> E j \<in> sets M"
   let ?X = "prod_emb ?I ?M J (PIE j:J. E j)"
   have "\<And>j x. j \<in> J \<Longrightarrow> x \<in> E j \<Longrightarrow> x \<in> space M"
-    using J(3)[THEN sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
+    using J(3)[THEN sets.sets_into_space] by (auto simp: space_PiM Pi_iff subset_eq)
   with J have "?f -` ?X \<inter> space (M \<Otimes>\<^isub>M S) = (if 0 \<in> J then E 0 else space M) \<times>
     (prod_emb ?I ?M (Suc -` J) (PIE j:Suc -` J. E (Suc j)))" (is "_ = ?E \<times> ?F")
    by (auto simp: space_pair_measure space_PiM PiE_iff prod_emb_def all_conj_distrib

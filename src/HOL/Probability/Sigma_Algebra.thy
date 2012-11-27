@@ -1026,7 +1026,7 @@ declare [[coercion emeasure]]
 lemma measure_space: "measure_space (space M) (sets M) (emeasure M)"
   by (cases M) (auto simp: space_def sets_def emeasure_def Abs_measure_inverse)
 
-interpretation sigma_algebra "space M" "sets M" for M :: "'a measure"
+interpretation sets!: sigma_algebra "space M" "sets M" for M :: "'a measure"
   using measure_space[of M] by (auto simp: measure_space_def)
 
 definition measure_of :: "'a set \<Rightarrow> 'a set set \<Rightarrow> ('a set \<Rightarrow> ereal) \<Rightarrow> 'a measure" where
@@ -1146,7 +1146,7 @@ lemma measure_cases[cases type: measure]:
 
 lemma sets_eq_imp_space_eq:
   "sets M = sets M' \<Longrightarrow> space M = space M'"
-  using top[of M] top[of M'] space_closed[of M] space_closed[of M']
+  using sets.top[of M] sets.top[of M'] sets.space_closed[of M] sets.space_closed[of M']
   by blast
 
 lemma emeasure_notin_sets: "A \<notin> sets M \<Longrightarrow> emeasure M A = 0"
@@ -1225,7 +1225,7 @@ lemma measurable_sigma_sets:
   shows "f \<in> measurable M N"
 proof -
   interpret A: sigma_algebra \<Omega> "sigma_sets \<Omega> A" using B(2) by (rule sigma_algebra_sigma_sets)
-  from B top[of N] A.top space_closed[of N] A.space_closed have \<Omega>: "\<Omega> = space N" by force
+  from B sets.top[of N] A.top sets.space_closed[of N] A.space_closed have \<Omega>: "\<Omega> = space N" by force
   
   { fix X assume "X \<in> sigma_sets \<Omega> A"
     then have "f -` X \<inter> space M \<in> sets M \<and> X \<subseteq> \<Omega>"
@@ -1237,7 +1237,7 @@ proof -
         have [simp]: "f -` \<Omega> \<inter> space M = space M"
           by (auto simp add: funcset_mem [OF f])
         then show ?case
-          by (auto simp add: vimage_Diff Diff_Int_distrib2 compl_sets Compl)
+          by (auto simp add: vimage_Diff Diff_Int_distrib2 sets.compl_sets Compl)
       next
         case (Union a)
         then show ?case
@@ -1316,7 +1316,7 @@ next
     using measure unfolding measurable_def by (auto split: split_if_asm)
   show "(\<lambda>x. if P x then f x else g x) -` A \<inter> space M \<in> sets M"
     using `A \<in> sets M'` measure P unfolding * measurable_def
-    by (auto intro!: Un)
+    by (auto intro!: sets.Un)
 qed
 
 lemma measurable_If_set:
@@ -1348,7 +1348,7 @@ proof -
         by (simp add: set_eq_iff, safe)
            (insert i, auto dest: Least_le intro: LeastI intro!: Least_equality)
       with meas show ?thesis
-        by (auto intro!: Int)
+        by (auto intro!: sets.Int)
     next
       assume i: "(LEAST j. False) \<noteq> i"
       then have "(\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M =
@@ -1363,7 +1363,7 @@ proof -
         by auto
     qed }
   then have "(\<Union>i\<in>A. (\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M) \<in> sets M"
-    by (intro countable_UN) auto
+    by (intro sets.countable_UN) auto
   moreover have "(\<Union>i\<in>A. (\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M) =
     (\<lambda>x. LEAST j. P j x) -` A \<inter> space M" by auto
   ultimately show ?thesis by auto
@@ -1417,7 +1417,7 @@ proof -
       by (auto dest: finite_subset)
     moreover assume "\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M"
     ultimately have "f -` X \<inter> space M \<in> sets M"
-      using `X \<subseteq> A` by (auto intro!: finite_UN simp del: UN_simps) }
+      using `X \<subseteq> A` by (auto intro!: sets.finite_UN simp del: UN_simps) }
   then show ?thesis
     unfolding measurable_def by auto
 qed
@@ -1434,7 +1434,7 @@ next
   have "(\<lambda>x. f (g x) x) -` A \<inter> space M = (\<Union>i. (g -` {i} \<inter> space M) \<inter> (f i -` A \<inter> space M))"
     by auto
   also have "\<dots> \<in> sets M" using f[THEN measurable_sets, OF A] g[THEN measurable_sets]
-    by (auto intro!: countable_UN measurable_sets)
+    by (auto intro!: sets.countable_UN measurable_sets)
   finally show "(\<lambda>x. f (g x) x) -` A \<inter> space M \<in> sets M" .
 qed
 
@@ -1466,7 +1466,7 @@ next
     then have "P -` X \<inter> space M = {x\<in>space M. ((X = {True} \<longrightarrow> P x) \<and> (X = {False} \<longrightarrow> \<not> P x) \<and> X \<noteq> {})}"
       unfolding UNIV_bool Pow_insert Pow_empty by auto
     then have "P -` X \<inter> space M \<in> sets M"
-      by (auto intro!: sets_Collect_neg sets_Collect_imp sets_Collect_conj sets_Collect_const P) }
+      by (auto intro!: sets.sets_Collect_neg sets.sets_Collect_imp sets.sets_Collect_conj sets.sets_Collect_const P) }
   then show "pred M P"
     by (auto simp: measurable_def)
 qed
@@ -1714,13 +1714,13 @@ declare
   measurable_compose_rev[measurable_dest]
   pred_sets1[measurable_dest]
   pred_sets2[measurable_dest]
-  sets_into_space[measurable_dest]
+  sets.sets_into_space[measurable_dest]
 
 declare
-  top[measurable]
-  empty_sets[measurable (raw)]
-  Un[measurable (raw)]
-  Diff[measurable (raw)]
+  sets.top[measurable]
+  sets.empty_sets[measurable (raw)]
+  sets.Un[measurable (raw)]
+  sets.Diff[measurable (raw)]
 
 declare
   measurable_count_space[measurable (raw)]
@@ -1777,7 +1777,7 @@ lemma pred_intros_countable[measurable (raw)]:
   shows 
     "(\<And>i. pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i. P x i)"
     "(\<And>i. pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i. P x i)"
-  by (auto intro!: sets_Collect_countable_All sets_Collect_countable_Ex simp: pred_def)
+  by (auto intro!: sets.sets_Collect_countable_All sets.sets_Collect_countable_Ex simp: pred_def)
 
 lemma pred_intros_countable_bounded[measurable (raw)]:
   fixes X :: "'i :: countable set"
@@ -1793,7 +1793,7 @@ lemma pred_intros_finite[measurable (raw)]:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. x \<in> N x i)) \<Longrightarrow> pred M (\<lambda>x. x \<in> (\<Union>i\<in>I. N x i))"
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<forall>i\<in>I. P x i)"
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> pred M (\<lambda>x. P x i)) \<Longrightarrow> pred M (\<lambda>x. \<exists>i\<in>I. P x i)"
-  by (auto intro!: sets_Collect_finite_Ex sets_Collect_finite_All simp: iff_conv_conj_imp pred_def)
+  by (auto intro!: sets.sets_Collect_finite_Ex sets.sets_Collect_finite_All simp: iff_conv_conj_imp pred_def)
 
 lemma countable_Un_Int[measurable (raw)]:
   "(\<And>i :: 'i :: countable. i \<in> I \<Longrightarrow> N i \<in> sets M) \<Longrightarrow> (\<Union>i\<in>I. N i) \<in> sets M"
@@ -1854,7 +1854,7 @@ lemma pred_const_less[measurable (raw generic)]:
   by (auto simp: Int_def conj_commute eq_commute pred_def)
 
 declare
-  Int[measurable (raw)]
+  sets.Int[measurable (raw)]
 
 lemma pred_in_If[measurable (raw)]:
   "(P \<Longrightarrow> pred M (\<lambda>x. x \<in> A x)) \<Longrightarrow> (\<not> P \<Longrightarrow> pred M (\<lambda>x. x \<in> B x)) \<Longrightarrow>

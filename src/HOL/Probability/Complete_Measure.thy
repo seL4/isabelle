@@ -22,7 +22,7 @@ definition completion :: "'a measure \<Rightarrow> 'a measure" where
 
 lemma completion_into_space:
   "{ S \<union> N |S N N'. S \<in> sets M \<and> N' \<in> null_sets M \<and> N \<subseteq> N' } \<subseteq> Pow (space M)"
-  using sets_into_space by auto
+  using sets.sets_into_space by auto
 
 lemma space_completion[simp]: "space (completion M) = space M"
   unfolding completion_def using space_measure_of[OF completion_into_space] by simp
@@ -43,7 +43,7 @@ lemma sigma_algebra_completion:
   unfolding sigma_algebra_iff2
 proof (intro conjI ballI allI impI)
   show "?A \<subseteq> Pow (space M)"
-    using sets_into_space by auto
+    using sets.sets_into_space by auto
 next
   show "{} \<in> ?A" by auto
 next
@@ -238,7 +238,7 @@ proof -
       (if x \<in> ?N then ?F undefined \<union> ?N
        else if f x = undefined then ?F (f x) \<union> ?N
        else ?F (f x) - ?N)"
-      using N(2) sets_into_space by (auto split: split_if_asm simp: null_sets_def)
+      using N(2) sets.sets_into_space by (auto split: split_if_asm simp: null_sets_def)
     moreover { fix y have "?F y \<union> ?N \<in> sets M"
       proof cases
         assume y: "y \<in> f`space M"

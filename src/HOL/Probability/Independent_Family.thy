@@ -186,11 +186,11 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             using G by auto
           have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) =
               prob ((\<Inter>j\<in>J. A j) - (\<Inter>i\<in>insert j J. (A(j := X)) i))"
-            using A_sets sets_into_space[of _ M] X `J \<noteq> {}`
+            using A_sets sets.sets_into_space[of _ M] X `J \<noteq> {}`
             by (auto intro!: arg_cong[where f=prob] split: split_if_asm)
           also have "\<dots> = prob (\<Inter>j\<in>J. A j) - prob (\<Inter>i\<in>insert j J. (A(j := X)) i)"
-            using J `J \<noteq> {}` `j \<notin> J` A_sets X sets_into_space
-            by (auto intro!: finite_measure_Diff finite_INT split: split_if_asm)
+            using J `J \<noteq> {}` `j \<notin> J` A_sets X sets.sets_into_space
+            by (auto intro!: finite_measure_Diff sets.finite_INT split: split_if_asm)
           finally have "prob ((\<Inter>j\<in>J. A j) \<inter> (space M - X)) =
               prob (\<Inter>j\<in>J. A j) - prob (\<Inter>i\<in>insert j J. (A(j := X)) i)" .
           moreover {
@@ -224,7 +224,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
             show "disjoint_family (\<lambda>k. \<Inter>i\<in>insert j J. (A(j := F k)) i)"
               using disj by (rule disjoint_family_on_bisimulation) auto
             show "range (\<lambda>k. \<Inter>i\<in>insert j J. (A(j := F k)) i) \<subseteq> events"
-              using A_sets F `finite J` `J \<noteq> {}` `j \<notin> J` by (auto intro!: Int)
+              using A_sets F `finite J` `J \<noteq> {}` `j \<notin> J` by (auto intro!: sets.Int)
           qed
           moreover { fix k
             from J A `j \<in> K` have "prob (\<Inter>i\<in>insert j J. (A(j := F k)) i) = prob (F k) * (\<Prod>i\<in>J. prob (A i))"
@@ -243,7 +243,7 @@ proof (subst indep_sets_finite_index_sets, intro allI impI ballI)
           show "prob ((\<Inter>j\<in>J. A j) \<inter> (\<Union>k. F k)) = prob (\<Union>k. F k) * (\<Prod>j\<in>J. prob (A j))"
             by (auto dest!: sums_unique)
         qed (insert F, auto)
-      qed (insert sets_into_space, auto)
+      qed (insert sets.sets_into_space, auto)
       then have mono: "dynkin (space M) (G j) \<subseteq> {E \<in> events. indep_sets (G(j := {E})) K}"
       proof (rule dynkin_system.dynkin_subset, safe)
         fix X assume "X \<in> G j"
@@ -291,7 +291,7 @@ proof -
   proof (rule indep_sets_mono_sets, subst sigma_eq_dynkin, simp_all add: stable)
     fix i assume "i \<in> I"
     with indep have "F i \<subseteq> events" by (auto simp: indep_sets_def)
-    with sets_into_space show "F i \<subseteq> Pow (space M)" by auto
+    with sets.sets_into_space show "F i \<subseteq> Pow (space M)" by auto
   qed
 qed
 
@@ -394,7 +394,7 @@ proof -
     let ?S = "sigma_sets (space M) (\<Union>i\<in>I j. E i)"
     assume "j \<in> J"
     from E[OF this] interpret S: sigma_algebra "space M" ?S
-      using sets_into_space[of _ M] by (intro sigma_algebra_sigma_sets) auto
+      using sets.sets_into_space[of _ M] by (intro sigma_algebra_sigma_sets) auto
 
     have "sigma_sets (space M) (\<Union>i\<in>I j. E i) = sigma_sets (space M) (?E j)"
     proof (rule sigma_sets_eqI)
@@ -416,7 +416,7 @@ proof -
   proof (rule indep_sets_sigma)
     show "indep_sets ?E J"
     proof (intro indep_setsI)
-      fix j assume "j \<in> J" with E show "?E j \<subseteq> events" by (force  intro!: finite_INT)
+      fix j assume "j \<in> J" with E show "?E j \<subseteq> events" by (force  intro!: sets.finite_INT)
     next
       fix K A assume K: "K \<noteq> {}" "K \<subseteq> J" "finite K"
         and "\<forall>j\<in>K. A j \<in> ?E j"
@@ -533,7 +533,7 @@ proof -
   interpret D: dynkin_system "space M" ?D
   proof (rule dynkin_systemI)
     fix D assume "D \<in> ?D" then show "D \<subseteq> space M"
-      using sets_into_space by auto
+      using sets.sets_into_space by auto
   next
     show "space M \<in> ?D"
       using prob_space `X \<subseteq> space M` by (simp add: Int_absorb2)
@@ -546,7 +546,7 @@ proof -
     also have "\<dots> = prob X * prob (space M) - prob X * prob A"
       using A prob_space by auto
     also have "\<dots> = prob X * prob (space M - A)"
-      using X_in A sets_into_space
+      using X_in A sets.sets_into_space
       by (subst finite_measure_Diff) (auto simp: field_simps)
     finally show "space M - A \<in> ?D"
       using A `X \<subseteq> space M` by auto
@@ -611,14 +611,14 @@ proof -
   proof (rule sigma_eq_dynkin)
     { fix B n assume "B \<in> sigma_sets (space M) (\<Union>m\<in>{..n}. A m)"
       then have "B \<subseteq> space M"
-        by induct (insert A sets_into_space[of _ M], auto) }
+        by induct (insert A sets.sets_into_space[of _ M], auto) }
     then show "?A \<subseteq> Pow (space M)" by auto
     show "Int_stable ?A"
     proof (rule Int_stableI)
       fix a assume "a \<in> ?A" then guess n .. note a = this
       fix b assume "b \<in> ?A" then guess m .. note b = this
       interpret Amn: sigma_algebra "space M" "sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
-        using A sets_into_space[of _ M] by (intro sigma_algebra_sigma_sets) auto
+        using A sets.sets_into_space[of _ M] by (intro sigma_algebra_sigma_sets) auto
       have "sigma_sets (space M) (\<Union>i\<in>{..n}. A i) \<subseteq> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
         by (intro sigma_sets_subseteq UN_mono) auto
       with a have "a \<in> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)" by auto
@@ -644,7 +644,7 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
   have F1: "range F \<subseteq> events"
     using F2 by (simp add: indep_events_def subset_eq)
   { fix i show "sigma_algebra (space M) (sigma_sets (space M) {F i})"
-      using sigma_algebra_sigma_sets[of "{F i}" "space M"] F1 sets_into_space
+      using sigma_algebra_sigma_sets[of "{F i}" "space M"] F1 sets.sets_into_space
       by auto }
   show "indep_sets (\<lambda>i. sigma_sets (space M) {F i}) UNIV"
   proof (rule indep_sets_sigma)
@@ -659,12 +659,12 @@ proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
   proof
     fix j
     interpret S: sigma_algebra "space M" "sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
-      using order_trans[OF F1 space_closed]
+      using order_trans[OF F1 sets.space_closed]
       by (intro sigma_algebra_sigma_sets) (simp add: sigma_sets_singleton subset_eq)
     have "(\<Inter>n. ?Q n) = (\<Inter>n\<in>{j..}. ?Q n)"
       by (intro decseq_SucI INT_decseq_offset UN_mono) auto
     also have "\<dots> \<in> sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
-      using order_trans[OF F1 space_closed]
+      using order_trans[OF F1 sets.space_closed]
       by (safe intro!: S.countable_INT S.countable_UN)
          (auto simp: sigma_sets_singleton intro!: sigma_sets.Basic bexI)
     finally show "(\<Inter>n. ?Q n) \<in> sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
@@ -688,7 +688,7 @@ next
     assume A: "\<forall>j\<in>J. A j \<in> F j"
     let ?A = "\<lambda>j. if j \<in> J then A j else space M"
     have "prob (\<Inter>j\<in>I. ?A j) = prob (\<Inter>j\<in>J. A j)"
-      using subset_trans[OF F(1) space_closed] J A
+      using subset_trans[OF F(1) sets.space_closed] J A
       by (auto intro!: arg_cong[where f=prob] split: split_if_asm) blast
     also
     from A F have "(\<lambda>j. if j \<in> J then A j else space M) \<in> Pi I F" (is "?A \<in> _")
@@ -882,7 +882,7 @@ proof -
     show "indep_vars M' X I" unfolding indep_vars_def
     proof (intro conjI indep_setsI ballI rv)
       fix i show "sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)} \<subseteq> events"
-        by (auto intro!: sigma_sets_subset measurable_sets rv)
+        by (auto intro!: sets.sigma_sets_subset measurable_sets rv)
     next
       fix J Y' assume J: "J \<noteq> {}" "J \<subseteq> I" "finite J"
       assume Y': "\<forall>j\<in>J. Y' j \<in> sigma_sets (space M) {X j -` A \<inter> space M |A. A \<in> sets (M' j)}"
@@ -892,7 +892,7 @@ proof -
         from Y'[rule_format, OF this] rv[of j]
         show "\<exists>Y. Y' j = X j -` Y \<inter> space M \<and> Y \<in> sets (M' j)"
           by (subst (asm) sigma_sets_vimage_commute[symmetric, of _ _ "space (M' j)"])
-             (auto dest: measurable_space simp: sigma_sets_eq)
+             (auto dest: measurable_space simp: sets.sigma_sets_eq)
       qed
       from bchoice[OF this] obtain Y where
         Y: "\<And>j. j \<in> J \<Longrightarrow> Y' j = X j -` Y j \<inter> space M" "\<And>j. j \<in> J \<Longrightarrow> Y j \<in> sets (M' j)" by auto

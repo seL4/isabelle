@@ -25,7 +25,7 @@ proof (rule measure_eqI_generator_eq)
   show "range ?F \<subseteq> ?J" "(\<Union>i. ?F i) = ?\<Omega>"
     using `finite J` by (auto intro!: prod_algebraI_finite)
   { fix i show "emeasure ?P (?F i) \<noteq> \<infinity>" by simp }
-  show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets_into_space)
+  show "?J \<subseteq> Pow ?\<Omega>" by (auto simp: Pi_iff dest: sets.sets_into_space)
   show "sets (\<Pi>\<^isub>M i\<in>J. M i) = sigma_sets ?\<Omega> ?J" "sets ?D = sigma_sets ?\<Omega> ?J"
     using `finite J` by (simp_all add: sets_PiM prod_algebra_eq_finite Pi_iff)
 
@@ -44,7 +44,7 @@ proof (rule measure_eqI_generator_eq)
   also have "\<dots> = emeasure (Pi\<^isub>M K M) (\<Pi>\<^isub>E i\<in>K. if i \<in> J then E i else space (M i))"
     using E by (simp add: K.measure_times)
   also have "(\<Pi>\<^isub>E i\<in>K. if i \<in> J then E i else space (M i)) = (\<lambda>f. restrict f J) -` Pi\<^isub>E J E \<inter> (\<Pi>\<^isub>E i\<in>K. space (M i))"
-    using `J \<subseteq> K` sets_into_space E by (force simp: Pi_iff PiE_def split: split_if_asm)
+    using `J \<subseteq> K` sets.sets_into_space E by (force simp: Pi_iff PiE_def split: split_if_asm)
   finally show "emeasure (Pi\<^isub>M J M) X = emeasure ?D X"
     using X `J \<subseteq> K` apply (subst emeasure_distr)
     by (auto intro!: measurable_restrict_subset simp: space_PiM)
@@ -93,10 +93,10 @@ lemma emeasure_limP:
   shows "emeasure (limP J M P) (Pi\<^isub>E J A) = emeasure (P J) (Pi\<^isub>E J A)"
 proof -
   have "Pi\<^isub>E J (restrict A J) \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
-    using sets_into_space[OF A] by (auto simp: PiE_iff) blast
+    using sets.sets_into_space[OF A] by (auto simp: PiE_iff) blast
   hence "emeasure (limP J M P) (Pi\<^isub>E J A) =
     emeasure (limP J M P) (prod_emb J M J (Pi\<^isub>E J A))"
-    using assms(1-3) sets_into_space by (auto simp add: prod_emb_id PiE_def Pi_def)
+    using assms(1-3) sets.sets_into_space by (auto simp add: prod_emb_id PiE_def Pi_def)
   also have "\<dots> = emeasure (P J) (Pi\<^isub>E J A)"
   proof (rule emeasure_extend_measure_Pair[OF limP_def])
     show "positive (sets (limP J M P)) (P J)" unfolding positive_def by auto
@@ -133,12 +133,12 @@ proof (rule measure_eqI_generator_eq)
   then obtain E where X: "X = Pi\<^isub>E J E" and E: "\<forall>i\<in>J. E i \<in> sets (M i)" by auto
   with `finite J` have "X \<in> sets (limP J M P)" by simp
   have emb_self: "prod_emb J M J (Pi\<^isub>E J E) = Pi\<^isub>E J E"
-    using E sets_into_space
+    using E sets.sets_into_space
     by (auto intro!: prod_emb_PiE_same_index)
   show "emeasure (limP J M P) X = emeasure (P J) X"
     unfolding X using E
     by (intro emeasure_limP assms) simp
-qed (auto simp: Pi_iff dest: sets_into_space intro: Int_stable_PiE)
+qed (auto simp: Pi_iff dest: sets.sets_into_space intro: Int_stable_PiE)
 
 lemma emeasure_fun_emb[simp]:
   assumes L: "J \<noteq> {}" "J \<subseteq> L" "finite L" "L \<subseteq> I" and X: "X \<in> sets (PiM J M)"
@@ -155,7 +155,7 @@ lemma prod_emb_injective:
   shows "X = Y"
 proof (rule injective_vimage_restrict)
   show "X \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))" "Y \<subseteq> (\<Pi>\<^isub>E i\<in>J. space (M i))"
-    using sets[THEN sets_into_space] by (auto simp: space_PiM)
+    using sets[THEN sets.sets_into_space] by (auto simp: space_PiM)
   have "\<forall>i\<in>L. \<exists>x. x \<in> space (M i)"
   proof
     fix i assume "i \<in> L"
@@ -219,7 +219,7 @@ next
       fix A assume "A \<in> prod_algebra I M" with `I \<noteq> {}` show "A \<in> generator"
         by (auto intro!: generatorI' sets_PiM_I_finite elim!: prod_algebraE)
     qed
-  qed (auto simp: generator_def space_PiM[symmetric] intro!: sigma_sets_subset)
+  qed (auto simp: generator_def space_PiM[symmetric] intro!: sets.sigma_sets_subset)
 qed
 
 lemma generatorI:
@@ -317,14 +317,14 @@ proof -
     have JK_disj: "emb (J \<union> K) J X \<inter> emb (J \<union> K) K Y = {}"
       apply (rule prod_emb_injective[of "J \<union> K" I])
       apply (insert `A \<inter> B = {}` JK J K)
-      apply (simp_all add: Int prod_emb_Int)
+      apply (simp_all add: sets.Int prod_emb_Int)
       done
     have AB: "A = emb I (J \<union> K) (emb (J \<union> K) J X)" "B = emb I (J \<union> K) (emb (J \<union> K) K Y)"
       using J K by simp_all
     then have "\<mu>G (A \<union> B) = \<mu>G (emb I (J \<union> K) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y))"
       by simp
     also have "\<dots> = emeasure (limP (J \<union> K) M P) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
-      using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq Un del: prod_emb_Un)
+      using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq sets.Un del: prod_emb_Un)
     also have "\<dots> = \<mu>G A + \<mu>G B"
       using J K JK_disj by (simp add: plus_emeasure[symmetric])
     finally show "\<mu>G (A \<union> B) = \<mu>G A + \<mu>G B" .

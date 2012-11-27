@@ -217,7 +217,7 @@ proof -
   have "s \<in> sigma_sets (space lebesgue) (range (\<lambda>(a, b). {a .. (b :: 'a\<Colon>ordered_euclidean_space)}))"
     using assms by (simp add: borel_eq_atLeastAtMost)
   also have "\<dots> \<subseteq> sets lebesgue"
-  proof (safe intro!: sigma_sets_subset lebesgueI)
+  proof (safe intro!: sets.sigma_sets_subset lebesgueI)
     fix n :: nat and a b :: 'a
     let ?N = "\<chi>\<chi> i. max (- real n) (a $$ i)"
     let ?P = "\<chi>\<chi> i. min (real n) (b $$ i)"
@@ -491,7 +491,7 @@ lemma
   and sets_lborel[simp]: "sets lborel = sets borel"
   and measurable_lborel1[simp]: "measurable lborel = measurable borel"
   and measurable_lborel2[simp]: "measurable A lborel = measurable A borel"
-  using sigma_sets_eq[of borel]
+  using sets.sigma_sets_eq[of borel]
   by (auto simp add: lborel_def measurable_def[abs_def])
 
 lemma emeasure_lborel[simp]: "A \<in> sets borel \<Longrightarrow> emeasure lborel A = emeasure lebesgue A"

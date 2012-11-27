@@ -117,7 +117,7 @@ proof (rule borel_measurableI)
     using assms unfolding simple_function_def
     using finite_subset[of "f ` (f -` S \<inter> space M)" "f ` space M"] by auto
   hence "?U \<in> sets M"
-    apply (rule finite_UN)
+    apply (rule sets.finite_UN)
     using assms unfolding simple_function_def by auto
   thus "f -` S \<inter> space M \<in> sets M" unfolding * .
 qed
@@ -152,7 +152,7 @@ next
     (\<Union>x\<in>?G. f -` {x} \<inter> space M)" by auto
   show "(g \<circ> f) -` {(g \<circ> f) x} \<inter> space M \<in> sets M"
     using assms unfolding simple_function_def *
-    by (rule_tac finite_UN) auto
+    by (rule_tac sets.finite_UN) auto
 qed
 
 lemma simple_function_indicator[intro, simp]:
@@ -447,7 +447,7 @@ proof -
     then have *: "?IF -` {?IF x} \<inter> space M = (if x \<in> A
       then ((F (f x) \<inter> (A \<inter> space M)) \<union> (G (f x) - (G (f x) \<inter> (A \<inter> space M))))
       else ((F (g x) \<inter> (A \<inter> space M)) \<union> (G (g x) - (G (g x) \<inter> (A \<inter> space M)))))"
-      using sets_into_space[OF A] by (auto split: split_if_asm simp: G_def F_def)
+      using sets.sets_into_space[OF A] by (auto split: split_if_asm simp: G_def F_def)
     have [intro]: "\<And>x. F x \<in> sets M" "\<And>x. G x \<in> sets M"
       unfolding F_def G_def using sf[THEN simple_functionD(2)] by auto
     show "?IF -` {?IF x} \<inter> space M \<in> sets M" unfolding * using A by auto
@@ -637,7 +637,7 @@ proof -
         using mono by (auto elim!: AE_E)
       have "?S x \<subseteq> N" using N `x \<in> space M` False by auto
       moreover have "?S x \<in> sets M" using assms
-        by (rule_tac Int) (auto intro!: simple_functionD)
+        by (rule_tac sets.Int) (auto intro!: simple_functionD)
       ultimately have "(emeasure M) (?S x) \<le> (emeasure M) N"
         using `N \<in> sets M` by (auto intro!: emeasure_mono)
       moreover have "0 \<le> (emeasure M) (?S x)"
@@ -683,13 +683,13 @@ proof cases
   ultimately show ?thesis by (simp add: simple_integral_def)
 next
   assume "A \<noteq> space M"
-  then obtain x where x: "x \<in> space M" "x \<notin> A" using sets_into_space[OF assms(1)] by auto
+  then obtain x where x: "x \<in> space M" "x \<notin> A" using sets.sets_into_space[OF assms(1)] by auto
   have I: "(\<lambda>x. f x * indicator A x) ` space M = f ` A \<union> {0}" (is "?I ` _ = _")
   proof safe
     fix y assume "?I y \<notin> f ` A" hence "y \<notin> A" by auto thus "?I y = 0" by auto
   next
     fix y assume "y \<in> A" thus "f y \<in> ?I ` space M"
-      using sets_into_space[OF assms(1)] by (auto intro!: image_eqI[of _ _ y])
+      using sets.sets_into_space[OF assms(1)] by (auto intro!: image_eqI[of _ _ y])
   next
     show "0 \<in> ?I ` space M" using x by (auto intro!: image_eqI[of _ _ x])
   qed
@@ -700,7 +700,7 @@ next
     show "finite (f ` space M \<union> {0})"
       using assms(2) unfolding simple_function_def by auto
     show "f ` A \<union> {0} \<subseteq> f`space M \<union> {0}"
-      using sets_into_space[OF assms(1)] by auto
+      using sets.sets_into_space[OF assms(1)] by auto
     have "\<And>x. f x \<notin> f ` A \<Longrightarrow> f -` {f x} \<inter> space M \<inter> A = {}"
       by (auto simp: image_iff)
     thus "\<forall>i\<in>f ` space M \<union> {0} - (f ` A \<union> {0}).
@@ -721,13 +721,13 @@ lemma simple_integral_indicator_only[simp]:
   assumes "A \<in> sets M"
   shows "integral\<^isup>S M (indicator A) = emeasure M A"
 proof cases
-  assume "space M = {}" hence "A = {}" using sets_into_space[OF assms] by auto
+  assume "space M = {}" hence "A = {}" using sets.sets_into_space[OF assms] by auto
   thus ?thesis unfolding simple_integral_def using `space M = {}` by auto
 next
   assume "space M \<noteq> {}" hence "(\<lambda>x. 1) ` space M = {1::ereal}" by auto
   thus ?thesis
     using simple_integral_indicator[OF assms simple_function_const[of _ 1]]
-    using sets_into_space[OF assms]
+    using sets.sets_into_space[OF assms]
     by (auto intro!: arg_cong[where f="(emeasure M)"])
 qed
 
@@ -916,7 +916,7 @@ proof (rule ereal_le_mult_one_interval)
     qed }
   note B_mono = this
 
-  note B_u = Int[OF u(1)[THEN simple_functionD(2)] B]
+  note B_u = sets.Int[OF u(1)[THEN simple_functionD(2)] B]
 
   let ?B' = "\<lambda>i n. (u -` {i} \<inter> space M) \<inter> ?B n"
   have measure_conv: "\<And>i. (emeasure M) (u -` {i} \<inter> space M) = (SUP n. (emeasure M) (?B' i n))"
@@ -1351,7 +1351,7 @@ proof -
     also have "\<dots> = (emeasure M) (\<Union>n. ?M n \<inter> ?A)"
     proof (safe intro!: SUP_emeasure_incseq)
       fix n show "?M n \<inter> ?A \<in> sets M"
-        using u by (auto intro!: Int)
+        using u by (auto intro!: sets.Int)
     next
       show "incseq (\<lambda>n. {x \<in> space M. 1 \<le> real n * u x} \<inter> {x \<in> space M. u x \<noteq> 0})"
       proof (safe intro!: incseq_SucI)
@@ -1401,8 +1401,8 @@ qed
 
 lemma AE_iff_positive_integral: 
   "{x\<in>space M. P x} \<in> sets M \<Longrightarrow> (AE x in M. P x) \<longleftrightarrow> integral\<^isup>P M (indicator {x. \<not> P x}) = 0"
-  by (subst positive_integral_0_iff_AE)
-     (auto simp: one_ereal_def zero_ereal_def sets_Collect_neg indicator_def[abs_def] measurable_If)
+  by (subst positive_integral_0_iff_AE) (auto simp: one_ereal_def zero_ereal_def
+    sets.sets_Collect_neg indicator_def[abs_def] measurable_If)
 
 lemma positive_integral_const_If:
   "(\<integral>\<^isup>+x. a \<partial>M) = (if 0 \<le> a then a * (emeasure M) (space M) else 0)"
@@ -2463,7 +2463,7 @@ lemma
 
 lemma density_cong: "f \<in> borel_measurable M \<Longrightarrow> f' \<in> borel_measurable M \<Longrightarrow>
   (AE x in M. f x = f' x) \<Longrightarrow> density M f = density M f'"
-  unfolding density_def by (auto intro!: measure_of_eq positive_integral_cong_AE space_closed)
+  unfolding density_def by (auto intro!: measure_of_eq positive_integral_cong_AE sets.space_closed)
 
 lemma density_max_0: "density M f = density M (\<lambda>x. max 0 (f x))"
 proof -
@@ -2549,7 +2549,7 @@ next
     by (auto simp: eventually_ae_filter)
   then have *: "{x \<in> space (density M f). \<not> P x} \<subseteq> N \<union> {x\<in>space M. \<not> 0 < f x}"
     "N \<union> {x\<in>space M. \<not> 0 < f x} \<in> sets M" and ae2: "AE x in M. x \<notin> N"
-    using f by (auto simp: subset_eq intro!: sets_Collect_neg AE_not_in)
+    using f by (auto simp: subset_eq intro!: sets.sets_Collect_neg AE_not_in)
   show "AE x in density M f. P x"
     using ae2
     unfolding eventually_ae_filter[of _ "density M f"] Bex_def null_sets_density_iff[OF f]
@@ -2618,7 +2618,7 @@ proof -
   also have "\<dots> = (\<integral>\<^isup>+x. indicator (S \<inter> X) x \<partial>M)"
     by (auto intro!: positive_integral_cong simp: indicator_def)
   also have "\<dots> = emeasure M (S \<inter> X)"
-    using S X by (simp add: Int)
+    using S X by (simp add: sets.Int)
   finally show ?thesis .
 qed
 
@@ -2651,7 +2651,7 @@ lemma distr_density_distr:
 proof (rule measure_eqI)
   fix A assume A: "A \<in> sets ?R"
   { fix x assume "x \<in> space M"
-    with sets_into_space[OF A]
+    with sets.sets_into_space[OF A]
     have "indicator (T' -` A \<inter> space M') (T x) = (indicator A x :: ereal)"
       using T inv by (auto simp: indicator_def measurable_space) }
   with A T T' f show "emeasure ?R A = emeasure ?L A"
@@ -2777,7 +2777,7 @@ proof -
              intro!: positive_integral_cong)
   also have "\<dots> = emeasure M (A \<inter> B) / emeasure M A"
     using A B
-    by (subst positive_integral_cmult_indicator) (simp_all add: Int emeasure_nonneg)
+    by (subst positive_integral_cmult_indicator) (simp_all add: sets.Int emeasure_nonneg)
   finally show ?thesis .
 qed
 

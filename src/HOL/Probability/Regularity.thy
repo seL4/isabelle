@@ -428,9 +428,9 @@ proof -
       have "M ?U - M (\<Union>i. D i) = M (?U - (\<Union>i. D i))" using U  `(\<Union>i. D i) \<in> sets M`
         by (subst emeasure_Diff) (auto simp: sb)
       also have "\<dots> \<le> M (\<Union>i. U i - D i)" using U  `range D \<subseteq> sets M`
-        by (intro emeasure_mono) (auto simp: sb intro!: countable_nat_UN Diff)
+        by (intro emeasure_mono) (auto simp: sb intro!: sets.countable_nat_UN sets.Diff)
       also have "\<dots> \<le> (\<Sum>i. M (U i - D i))" using U  `range D \<subseteq> sets M`
-        by (intro emeasure_subadditive_countably) (auto intro!: Diff simp: sb)
+        by (intro emeasure_subadditive_countably) (auto intro!: sets.Diff simp: sb)
       also have "\<dots> \<le> (\<Sum>i. ereal e/(2 powr Suc i))" using U `range D \<subseteq> sets M`
         by (intro suminf_le_pos, subst emeasure_Diff)
            (auto simp: emeasure_Diff emeasure_eq_measure sb measure_nonneg intro: less_imp_le)

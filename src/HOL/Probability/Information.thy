@@ -183,7 +183,7 @@ proof -
     proof
       assume eq_0: "emeasure M {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} = 0"
       then have disj: "AE x in M. D x = 1 \<or> D x = 0"
-        using D(1) by (auto intro!: AE_I[OF subset_refl] sets_Collect)
+        using D(1) by (auto intro!: AE_I[OF subset_refl] sets.sets_Collect)
 
       have "emeasure M {x\<in>space M. D x = 1} = (\<integral>\<^isup>+ x. indicator {x\<in>space M. D x = 1} x \<partial>M)"
         using D(1) by auto
@@ -198,7 +198,7 @@ proof -
       finally show False using `A \<in> sets M` `emeasure (density M D) A \<noteq> emeasure M A` by simp
     qed
     show "{x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<in> sets M"
-      using D(1) by (auto intro: sets_Collect_conj)
+      using D(1) by (auto intro: sets.sets_Collect_conj)
 
     show "AE t in M. t \<in> {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<longrightarrow>
       D t - indicator ?D_set t \<noteq> D t * (ln b * log b (D t))"
@@ -383,7 +383,7 @@ proof -
   interpret sigma_finite_measure T by fact
   { fix A assume "A \<in> sets S" "emeasure S A = 0"
     moreover then have "fst -` A \<inter> space (S \<Otimes>\<^isub>M T) = A \<times> space T"
-      by (auto simp: space_pair_measure dest!: sets_into_space)
+      by (auto simp: space_pair_measure dest!: sets.sets_into_space)
     ultimately have "emeasure (S \<Otimes>\<^isub>M T) (fst -` A \<inter> space (S \<Otimes>\<^isub>M T)) = 0"
       by (simp add: emeasure_pair_measure_Times) }
   then show ?thesis
@@ -400,7 +400,7 @@ proof -
   interpret sigma_finite_measure T by fact
   { fix A assume "A \<in> sets T" "emeasure T A = 0"
     moreover then have "snd -` A \<inter> space (S \<Otimes>\<^isub>M T) = space S \<times> A"
-      by (auto simp: space_pair_measure dest!: sets_into_space)
+      by (auto simp: space_pair_measure dest!: sets.sets_into_space)
     ultimately have "emeasure (S \<Otimes>\<^isub>M T) (snd -` A \<inter> space (S \<Otimes>\<^isub>M T)) = 0"
       by (simp add: emeasure_pair_measure_Times) }
   then show ?thesis
@@ -1571,7 +1571,7 @@ proof -
     unfolding AE_density[OF distributed_borel_measurable, OF Pxy]
     unfolding distributed_distr_eq_density[OF Py]
     apply (rule ST.AE_pair_measure)
-    apply (auto intro!: sets_Collect borel_measurable_eq measurable_compose[OF _ distributed_real_measurable[OF Py]]
+    apply (auto intro!: sets.sets_Collect borel_measurable_eq measurable_compose[OF _ distributed_real_measurable[OF Py]]
                         distributed_real_measurable[OF Pxy] distributed_real_AE[OF Py]
                         borel_measurable_real_of_ereal measurable_compose[OF _ borel_measurable_RN_deriv_density])
     using distributed_RN_deriv[OF Py]

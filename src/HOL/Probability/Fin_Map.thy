@@ -620,7 +620,7 @@ translations
 
 lemma PiF_gen_subset: "{(\<Pi>' j\<in>J. X j) |X J. J \<in> I \<and> X \<in> (\<Pi> j\<in>J. sets (M j))} \<subseteq>
     Pow (\<Union>J \<in> I. (\<Pi>' j\<in>J. space (M j)))"
-  by (auto simp: Pi'_def) (blast dest: sets_into_space)
+  by (auto simp: Pi'_def) (blast dest: sets.sets_into_space)
 
 lemma space_PiF: "space (PiF I M) = (\<Union>J \<in> I. (\<Pi>' j\<in>J. space (M j)))"
   unfolding PiF_def using PiF_gen_subset by (rule space_measure_of)
@@ -757,7 +757,7 @@ proof safe
       done
   qed
   also have "\<dots> \<in> sets (PiF I M)"
-    apply (intro Int countable_nat_UN subsetI, safe)
+    apply (intro sets.Int sets.countable_nat_UN subsetI, safe)
     apply (case_tac "set (from_nat i) \<in> I")
     apply simp_all
     apply (rule singleton_subspace_set_in_sets[OF measurable_sets[OF MN]])
@@ -807,7 +807,7 @@ next
   case (Union a)
   have "UNION UNIV a \<inter> {m. domain m \<in> J} = (\<Union>i. (a i \<inter> {m. domain m \<in> J}))"
     by simp
-  also have "\<dots> \<in> sets (PiF J M)" using Union by (intro countable_nat_UN) auto
+  also have "\<dots> \<in> sets (PiF J M)" using Union by (intro sets.countable_nat_UN) auto
   finally show ?case .
 next
   case (Compl a)
@@ -838,10 +838,10 @@ next
   show "(\<lambda>x. finmap_of (J x) (f x)) -` Pi' K S \<inter> space N \<in> sets N"
     unfolding eq r
     apply (simp del: INT_simps add: )
-    apply (intro conjI impI finite_INT JN Int[OF top])
+    apply (intro conjI impI sets.finite_INT JN sets.Int[OF sets.top])
     apply simp apply assumption
     apply (subst Int_assoc[symmetric])
-    apply (rule Int)
+    apply (rule sets.Int)
     apply (intro measurable_sets[OF f] *) apply force apply assumption
     apply (intro JN)
     done
@@ -865,7 +865,7 @@ proof cases
   assume "i \<in> I"
   hence "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space (PiF {I} M) =
     Pi' I (\<lambda>x. if x = i then A else space (M x))"
-    using sets_into_space[OF ] `A \<in> sets (M i)` assms
+    using sets.sets_into_space[OF ] `A \<in> sets (M i)` assms
     by (auto simp: space_PiF Pi'_def)
   thus ?thesis  using assms `A \<in> sets (M i)`
     by (intro in_sets_PiFI) auto
@@ -934,7 +934,7 @@ lemma sets_subspaceI:
   shows "A \<inter> B \<in> sets M" using assms
 proof -
   have "A \<inter> B = (A \<inter> space M) \<inter> B"
-    using assms sets_into_space by auto
+    using assms sets.sets_into_space by auto
   thus ?thesis using assms by auto
 qed
 
@@ -959,7 +959,7 @@ proof (rule sigma_sets_eqI)
   show "A \<in> sigma_sets ?\<Omega> ?R"
   proof -
     from `I \<noteq> {}` X have "A = (\<Inter>j\<in>I. {f\<in>space (PiF {I} M). f j \<in> X j})"
-      using sets_into_space
+      using sets.sets_into_space
       by (auto simp: space_PiF product_def) blast
     also have "\<dots> \<in> sigma_sets ?\<Omega> ?R"
       using X `I \<noteq> {}` assms by (intro R.finite_INT) (auto simp: space_PiF)
@@ -970,7 +970,7 @@ next
   then obtain i B where A: "A = {f\<in>\<Pi>' i\<in>I. space (M i). f i \<in> B}" "i \<in> I" "B \<in> sets (M i)"
     by auto
   then have "A = (\<Pi>' j \<in> I. if j = i then B else space (M j))"
-    using sets_into_space[OF A(3)]
+    using sets.sets_into_space[OF A(3)]
     apply (auto simp: Pi'_iff split: split_if_asm)
     apply blast
     done
@@ -1033,7 +1033,7 @@ proof
       sigma_sets (space ?P) {{f \<in> \<Pi>' i\<in>I. space (M i). f i \<in> A} |i A. i \<in> I \<and> A \<in> sets (M i)}"
     using sets_PiF_single[of I M] by (simp add: space_P)
   also have "\<dots> \<subseteq> sets (sigma (space (PiF {I} M)) P)"
-  proof (safe intro!: sigma_sets_subset)
+  proof (safe intro!: sets.sigma_sets_subset)
     fix i A assume "i \<in> I" and A: "A \<in> sets (M i)"
     have "(\<lambda>x. (x)\<^isub>F i) \<in> measurable ?P (sigma (space (M i)) (E i))"
     proof (subst measurable_iff_measure_of)
@@ -1051,7 +1051,7 @@ proof
           using S_mono
           by (subst Pi'_UN[symmetric, OF `finite I`]) (auto simp: incseq_def)
         also have "\<dots> \<in> sets ?P"
-        proof (safe intro!: countable_UN)
+        proof (safe intro!: sets.countable_UN)
           fix n show "(\<Pi>' j\<in>I. if i = j then A else S j n) \<in> sets ?P"
             using A S_in_E
             by (simp add: P_closed)
@@ -1072,7 +1072,7 @@ proof
     by (simp add: P_closed)
   show "sigma_sets (space (PiF {I} M)) P \<subseteq> sets (PiF {I} M)"
     using `finite I` `I \<noteq> {}`
-    by (auto intro!: sigma_sets_subset product_in_sets_PiFI simp: E_generates P_def)
+    by (auto intro!: sets.sigma_sets_subset product_in_sets_PiFI simp: E_generates P_def)
 qed
 
 lemma enumerable_sigma_fprod_algebra_sigma_eq:
@@ -1176,7 +1176,7 @@ proof (rule measure_eqI)
     show "sets (PiF (Collect finite) (\<lambda>_. borel)) \<subseteq> sets (borel::('i \<Rightarrow>\<^isub>F 'a) measure)"
     proof
       fix x assume x: "x \<in> sets (PiF (Collect finite::'i set set) (\<lambda>_. borel::'a measure))"
-      hence x_sp: "x \<subseteq> space (PiF (Collect finite) (\<lambda>_. borel))" by (rule sets_into_space)
+      hence x_sp: "x \<subseteq> space (PiF (Collect finite) (\<lambda>_. borel))" by (rule sets.sets_into_space)
       let ?x = "\<lambda>J. x \<inter> {x. domain x = J}"
       have "x = \<Union>{?x J |J. finite J}" by auto
       also have "\<dots> \<in> sets borel"
@@ -1316,7 +1316,7 @@ proof -
   have "mf (fm x) \<in> extensional J"
     by (auto simp: mf_def extensional_def compose_def)
   moreover
-  have "x \<in> extensional J" using assms sets_into_space
+  have "x \<in> extensional J" using assms sets.sets_into_space
     by (force simp: space_PiM PiE_def)
   moreover
   { fix i assume "i \<in> J"
@@ -1344,7 +1344,7 @@ proof -
   have "fm ` X = (mf) -` X \<inter> space (PiF {f ` J} (\<lambda>_. M))"
   proof safe
     fix x assume "x \<in> X"
-    with mf_fm[of x] sets_into_space[OF assms(2)] show "fm x \<in> mf -` X" by auto
+    with mf_fm[of x] sets.sets_into_space[OF assms(2)] show "fm x \<in> mf -` X" by auto
     show "fm x \<in> space (PiF {f ` J} (\<lambda>_. M))" by (simp add: space_PiF assms)
   next
     fix y x
@@ -1396,7 +1396,7 @@ lemma mapmeasure_PiM:
   shows "emeasure M X = emeasure (mapmeasure M (\<lambda>_. N)) (fm ` X)"
   unfolding mapmeasure_def
 proof (subst emeasure_distr, subst measurable_eqI[OF s1 refl s2 refl], rule fm_measurable)
-  have "X \<subseteq> space (Pi\<^isub>M J (\<lambda>_. N))" using assms by (simp add: sets_into_space)
+  have "X \<subseteq> space (Pi\<^isub>M J (\<lambda>_. N))" using assms by (simp add: sets.sets_into_space)
   from assms inj_on_fm[of "\<lambda>_. N"] set_mp[OF this] have "fm -` fm ` X \<inter> space (Pi\<^isub>M J (\<lambda>_. N)) = X"
     by (auto simp: vimage_image_eq inj_on_def)
   thus "emeasure M X = emeasure M (fm -` fm ` X \<inter> space M)" using s1
