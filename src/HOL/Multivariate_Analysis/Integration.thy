@@ -996,9 +996,9 @@ lemma partial_division_extend_interval: assumes "p division_of (\<Union>p)" "(\<
   thus ?thesis apply- apply(rule that[of q]) unfolding True by auto next
   case False note p = division_ofD[OF assms(1)]
   have *:"\<forall>k\<in>p. \<exists>q. q division_of {a..b} \<and> k\<in>q" proof case goal1
-    guess c using p(4)[OF goal1] .. then guess d .. note cd_ = this
-    have *:"{c..d} \<subseteq> {a..b}" "{c..d} \<noteq> {}" using p(2,3)[OF goal1, unfolded cd_] using assms(2) by auto
-    guess q apply(rule partial_division_extend_1[OF *]) . thus ?case unfolding cd_ by auto qed
+    guess c using p(4)[OF goal1] .. then guess d .. note "cd" = this
+    have *:"{c..d} \<subseteq> {a..b}" "{c..d} \<noteq> {}" using p(2,3)[OF goal1, unfolded "cd"] using assms(2) by auto
+    guess q apply(rule partial_division_extend_1[OF *]) . thus ?case unfolding "cd" by auto qed
   guess q using bchoice[OF *] .. note q = conjunctD2[OF this[rule_format]]
   have "\<And>x. x\<in>p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})" apply(rule,rule_tac p="q x" in division_of_subset) proof-
     fix x assume x:"x\<in>p" show "q x division_of \<Union>q x" apply-apply(rule division_ofI)

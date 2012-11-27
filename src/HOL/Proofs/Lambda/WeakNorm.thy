@@ -76,7 +76,7 @@ proof (induct U)
   proof induct
     fix e T' u i assume uNF: "NF u" and uT: "e \<turnstile> u : T"
     {
-      case (App ts x e_ T'_ u_ i_)
+      case (App ts x e1 T'1 u1 i1)
       assume "e\<langle>i:T\<rangle> \<turnstile> Var x \<degree>\<degree> ts : T'"
       then obtain Us
         where varT: "e\<langle>i:T\<rangle> \<turnstile> Var x : Us \<Rrightarrow> T'"
@@ -187,7 +187,7 @@ proof (induct U)
         qed
       qed
     next
-      case (Abs r e_ T'_ u_ i_)
+      case (Abs r e1 T'1 u1 i1)
       assume absT: "e\<langle>i:T\<rangle> \<turnstile> Abs r : T'"
       then obtain R S where "e\<langle>0:R\<rangle>\<langle>Suc i:T\<rangle>  \<turnstile> r : S" by (rule abs_typeE) simp
       moreover have "NF (lift u 0)" using `NF u` by (rule lift_NF)
