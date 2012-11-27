@@ -46,6 +46,7 @@ sig
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
+  val is_letter_symbol: symbol -> bool
   val is_letter: symbol -> bool
   val is_digit: symbol -> bool
   val is_quasi: symbol -> bool
@@ -236,8 +237,6 @@ fun decode s =
 
 (* standard symbol kinds *)
 
-datatype kind = Letter | Digit | Quasi | Blank | Other;
-
 local
   val letter_symbols =
     Symtab.make_set [
@@ -383,15 +382,21 @@ local
       "\\<^isup>"
     ];
 in
-  fun kind s =
-    if is_ascii_letter s then Letter
-    else if is_ascii_digit s then Digit
-    else if is_ascii_quasi s then Quasi
-    else if is_ascii_blank s then Blank
-    else if is_char s then Other
-    else if Symtab.defined letter_symbols s then Letter
-    else Other;
+
+val is_letter_symbol = Symtab.defined letter_symbols;
+
 end;
+
+datatype kind = Letter | Digit | Quasi | Blank | Other;
+
+fun kind s =
+  if is_ascii_letter s then Letter
+  else if is_ascii_digit s then Digit
+  else if is_ascii_quasi s then Quasi
+  else if is_ascii_blank s then Blank
+  else if is_char s then Other
+  else if is_letter_symbol s then Letter
+  else Other;
 
 fun is_letter s = kind s = Letter;
 fun is_digit s = kind s = Digit;
@@ -513,7 +518,8 @@ fun strip_blanks s =
 
 (* bump string -- treat as base 26 or base 1 numbers *)
 
-fun symbolic_end (_ :: "\\<^isub>" :: _) = true
+fun symbolic_end (_ :: "\\<^sub>" :: _) = true
+  | symbolic_end (_ :: "\\<^isub>" :: _) = true
   | symbolic_end (_ :: "\\<^isup>" :: _) = true
   | symbolic_end (s :: _) = is_symbolic s
   | symbolic_end [] = false;
