@@ -104,7 +104,7 @@ proof (rule ccontr, clarsimp)
 qed
 
 lemma
-  fixes M::"'a::{enumerable_basis, complete_space} measure"
+  fixes M::"'a::{countable_basis_space, complete_space} measure"
   assumes sb: "sets M = sets borel"
   assumes "emeasure M (space M) \<noteq> \<infinity>"
   assumes "B \<in> sets borel"
@@ -124,43 +124,48 @@ proof -
     (\<And>e. e > 0 \<Longrightarrow> \<exists>B. A \<subseteq> B \<and> open B \<and> emeasure M B \<le> emeasure M A + ereal e) \<Longrightarrow> ?outer A"
     by (rule ereal_approx_INF)
        (force intro!: emeasure_mono simp: emeasure_eq_measure sb)+
-  from countable_dense_setE guess x::"nat \<Rightarrow> 'a"  . note x = this
+  from countable_dense_setE guess X::"'a set"  . note X = this
   {
     fix r::real assume "r > 0" hence "\<And>y. open (ball y r)" "\<And>y. ball y r \<noteq> {}" by auto
-    with x[OF this]
-    have x: "space M = (\<Union>n. cball (x n) r)"
+    with X(2)[OF this]
+    have x: "space M = (\<Union>x\<in>X. cball x r)"
       by (auto simp add: sU) (metis dist_commute order_less_imp_le)
-    have "(\<lambda>k. emeasure M (\<Union>n\<in>{0..k}. cball (x n) r)) ----> M (\<Union>k. (\<Union>n\<in>{0..k}. cball (x n) r))"
+    let ?U = "\<Union>k. (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)"
+    have "(\<lambda>k. emeasure M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) ----> M ?U"
       by (rule Lim_emeasure_incseq)
         (auto intro!: borel_closed bexI simp: closed_cball incseq_def Us sb)
-    also have "(\<Union>k. (\<Union>n\<in>{0..k}. cball (x n) r)) = space M"
-      unfolding x by force
-    finally have "(\<lambda>k. M (\<Union>n\<in>{0..k}. cball (x n) r)) ----> M (space M)" .
+    also have "?U = space M"
+    proof safe
+      fix x from X(2)[OF open_ball[of x r]] `r > 0` obtain d where d: "d\<in>X" "d \<in> ball x r" by auto
+      show "x \<in> ?U"
+        using X(1) d by (auto intro!: exI[where x="to_nat_on X d"] simp: dist_commute Bex_def)
+    qed (simp add: sU)
+    finally have "(\<lambda>k. M (\<Union>n\<in>{0..k}. cball (from_nat_into X n) r)) ----> M (space M)" .
   } note M_space = this
   {
     fix e ::real and n :: nat assume "e > 0" "n > 0"
     hence "1/n > 0" "e * 2 powr - n > 0" by (auto intro: mult_pos_pos)
     from M_space[OF `1/n>0`]
-    have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (x i) (1/real n))) ----> measure M (space M)"
+    have "(\<lambda>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) ----> measure M (space M)"
       unfolding emeasure_eq_measure by simp
     from metric_LIMSEQ_D[OF this `0 < e * 2 powr -n`]
-    obtain k where "dist (measure M (\<Union>i\<in>{0..k}. cball (x i) (1/real n))) (measure M (space M)) <
+    obtain k where "dist (measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n))) (measure M (space M)) <
       e * 2 powr -n"
       by auto
-    hence "measure M (\<Union>i\<in>{0..k}. cball (x i) (1/real n)) \<ge>
+    hence "measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n)) \<ge>
       measure M (space M) - e * 2 powr -real n"
       by (auto simp: dist_real_def)
-    hence "\<exists>k. measure M (\<Union>i\<in>{0..k}. cball (x i) (1/real n)) \<ge>
+    hence "\<exists>k. measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n)) \<ge>
       measure M (space M) - e * 2 powr - real n" ..
   } note k=this
   hence "\<forall>e\<in>{0<..}. \<forall>(n::nat)\<in>{0<..}. \<exists>k.
-    measure M (\<Union>i\<in>{0..k}. cball (x i) (1/real n)) \<ge> measure M (space M) - e * 2 powr - real n"
+    measure M (\<Union>i\<in>{0..k}. cball (from_nat_into X i) (1/real n)) \<ge> measure M (space M) - e * 2 powr - real n"
     by blast
   then obtain k where k: "\<forall>e\<in>{0<..}. \<forall>n\<in>{0<..}. measure M (space M) - e * 2 powr - real (n::nat)
-    \<le> measure M (\<Union>i\<in>{0..k e n}. cball (x i) (1 / n))"
+    \<le> measure M (\<Union>i\<in>{0..k e n}. cball (from_nat_into X i) (1 / n))"
     apply atomize_elim unfolding bchoice_iff .
   hence k: "\<And>e n. e > 0 \<Longrightarrow> n > 0 \<Longrightarrow> measure M (space M) - e * 2 powr - n
-    \<le> measure M (\<Union>i\<in>{0..k e n}. cball (x i) (1 / n))"
+    \<le> measure M (\<Union>i\<in>{0..k e n}. cball (from_nat_into X i) (1 / n))"
     unfolding Ball_def by blast
   have approx_space:
     "\<And>e. e > 0 \<Longrightarrow>
@@ -168,7 +173,7 @@ proof -
       (is "\<And>e. _ \<Longrightarrow> ?thesis e")
   proof -
     fix e :: real assume "e > 0"
-    def B \<equiv> "\<lambda>n. \<Union>i\<in>{0..k e (Suc n)}. cball (x i) (1 / Suc n)"
+    def B \<equiv> "\<lambda>n. \<Union>i\<in>{0..k e (Suc n)}. cball (from_nat_into X i) (1 / Suc n)"
     have "\<And>n. closed (B n)" by (auto simp: B_def closed_cball)
     hence [simp]: "\<And>n. B n \<in> sets M" by (simp add: sb)
     from k[OF `e > 0` zero_less_Suc]
@@ -202,7 +207,7 @@ proof -
       show "complete K" using `closed K` by (simp add: complete_eq_closed)
       fix e'::real assume "0 < e'"
       from nat_approx_posE[OF this] guess n . note n = this
-      let ?k = "x ` {0..k e (Suc n)}"
+      let ?k = "from_nat_into X ` {0..k e (Suc n)}"
       have "finite ?k" by simp
       moreover have "K \<subseteq> \<Union>(\<lambda>x. ball x e') ` ?k" unfolding K_def B_def using n by force
       ultimately show "\<exists>k. finite k \<and> K \<subseteq> \<Union>(\<lambda>x. ball x e') ` k" by blast

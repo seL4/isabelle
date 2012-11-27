@@ -235,6 +235,12 @@ proof -
     by (auto dest: subset_range_from_nat_into countable_subset lists_mono)
 qed
 
+lemma Collect_finite_eq_lists: "Collect finite = set ` lists UNIV"
+  using finite_list by auto
+
+lemma countable_Collect_finite: "countable (Collect (finite::'a::countable set\<Rightarrow>bool))"
+  by (simp add: Collect_finite_eq_lists)
+
 subsection {* Misc lemmas *}
 
 lemma countable_all:

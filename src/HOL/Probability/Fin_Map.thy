@@ -450,40 +450,41 @@ subsection {* Polish Space of Finite Maps *}
 instantiation finmap :: (countable, polish_space) polish_space
 begin
 
-definition enum_basis_finmap :: "nat \<Rightarrow> ('a \<Rightarrow>\<^isub>F 'b) set" where
-  "enum_basis_finmap n =
-  (let m = from_nat n::('a \<Rightarrow>\<^isub>F nat) in Pi' (domain m) (enum_basis o (m)\<^isub>F))"
+definition basis_finmap::"('a \<Rightarrow>\<^isub>F 'b) set set"
+  where "basis_finmap = {Pi' I S|I S. finite I \<and> (\<forall>i \<in> I. S i \<in> union_closed_basis)}"
 
-lemma range_enum_basis_eq:
-  "range enum_basis_finmap = {Pi' I S|I S. finite I \<and> (\<forall>i \<in> I. S i \<in> range enum_basis)}"
-proof (auto simp: enum_basis_finmap_def[abs_def])
-  fix S::"('a \<Rightarrow> 'b set)" and I
-  assume "\<forall>i\<in>I. S i \<in> range enum_basis"
-  hence "\<forall>i\<in>I. \<exists>n. S i = enum_basis n" by auto
-  then obtain n where n: "\<forall>i\<in>I. S i = enum_basis (n i)"
-    unfolding bchoice_iff by blast
-  assume [simp]: "finite I"
-  have "\<exists>fm. domain fm = I \<and> (\<forall>i\<in>I. n i = (fm i))"
-    by (rule finmap_choice) auto
-  then obtain m where "Pi' I S = Pi' (domain m) (enum_basis o m)"
-    using n by (auto simp: Pi'_def)
-  hence "Pi' I S = (let m = from_nat (to_nat m) in Pi' (domain m) (enum_basis \<circ> m))"
-    by simp
-  thus "Pi' I S \<in> range (\<lambda>n. let m = from_nat n in Pi' (domain m) (enum_basis \<circ> m))"
-    by blast
-qed (metis finite_domain o_apply rangeI)
+lemma in_basis_finmapI:
+  assumes "finite I" assumes "\<And>i. i \<in> I \<Longrightarrow> S i \<in> union_closed_basis"
+  shows "Pi' I S \<in> basis_finmap"
+  using assms unfolding basis_finmap_def by auto
 
-lemma in_enum_basis_finmapI:
-  assumes "finite I" assumes "\<And>i. i \<in> I \<Longrightarrow> S i \<in> range enum_basis"
-  shows "Pi' I S \<in> range enum_basis_finmap"
-  using assms unfolding range_enum_basis_eq by auto
+lemma in_basis_finmapE:
+  assumes "x \<in> basis_finmap"
+  obtains I S where "x = Pi' I S" "finite I" "\<And>i. i \<in> I \<Longrightarrow> S i \<in> union_closed_basis"
+  using assms unfolding basis_finmap_def by auto
+
+lemma basis_finmap_eq:
+  "basis_finmap = (\<lambda>f. Pi' (domain f) (\<lambda>i. from_nat_into union_closed_basis ((f)\<^isub>F i))) `
+    (UNIV::('a \<Rightarrow>\<^isub>F nat) set)" (is "_ = ?f ` _")
+  unfolding basis_finmap_def
+proof safe
+  fix I::"'a set" and S::"'a \<Rightarrow> 'b set"
+  assume "finite I" "\<forall>i\<in>I. S i \<in> union_closed_basis"
+  hence "Pi' I S = ?f (finmap_of I (\<lambda>x. to_nat_on union_closed_basis (S x)))"
+    by (force simp: Pi'_def countable_union_closed_basis)
+  thus "Pi' I S \<in> range ?f" by simp
+qed (metis (mono_tags) empty_basisI equals0D finite_domain from_nat_into)
+
+lemma countable_basis_finmap: "countable basis_finmap"
+  unfolding basis_finmap_eq by simp
 
 lemma finmap_topological_basis:
-  "topological_basis (range (enum_basis_finmap))"
+  "topological_basis basis_finmap"
 proof (subst topological_basis_iff, safe)
-  fix n::nat
-  show "open (enum_basis_finmap n::('a \<Rightarrow>\<^isub>F 'b) set)" using enum_basis_basis
-    by (auto intro!: open_Pi'I simp: topological_basis_def enum_basis_finmap_def Let_def)
+  fix B' assume "B' \<in> basis_finmap"
+  thus "open B'"
+    by (auto intro!: open_Pi'I topological_basis_open[OF basis_union_closed_basis]
+      simp: topological_basis_def basis_finmap_def Let_def)
 next
   fix O'::"('a \<Rightarrow>\<^isub>F 'b) set" and x
   assume "open O'" "x \<in> O'"
@@ -491,19 +492,18 @@ next
   def e' \<equiv> "e / (card (domain x) + 1)"
 
   have "\<exists>B.
-    (\<forall>i\<in>domain x. x i \<in> enum_basis (B i) \<and> enum_basis (B i) \<subseteq> ball (x i) e')"
+    (\<forall>i\<in>domain x. x i \<in> B i \<and> B i \<subseteq> ball (x i) e' \<and> B i \<in> union_closed_basis)"
   proof (rule bchoice, safe)
     fix i assume "i \<in> domain x"
     have "open (ball (x i) e')" "x i \<in> ball (x i) e'" using e
       by (auto simp add: e'_def intro!: divide_pos_pos)
-    from topological_basisE[OF enum_basis_basis this] guess b' .
-    thus "\<exists>y. x i \<in> enum_basis y \<and>
-            enum_basis y \<subseteq> ball (x i) e'" by auto
+    from topological_basisE[OF basis_union_closed_basis this] guess b' .
+    thus "\<exists>y. x i \<in> y \<and> y \<subseteq> ball (x i) e' \<and> y \<in> union_closed_basis" by auto
   qed
   then guess B .. note B = this
-  def B' \<equiv> "Pi' (domain x) (\<lambda>i. enum_basis (B i)::'b set)"
-  hence "B' \<in> range enum_basis_finmap" unfolding B'_def
-    by (intro in_enum_basis_finmapI) auto
+  def B' \<equiv> "Pi' (domain x) (\<lambda>i. (B i)::'b set)"
+  hence "B' \<in> basis_finmap" unfolding B'_def using B
+    by (intro in_basis_finmapI) auto
   moreover have "x \<in> B'" unfolding B'_def using B by auto
   moreover have "B' \<subseteq> O'"
   proof
@@ -516,7 +516,7 @@ next
       also have "\<dots> \<le> (\<Sum>i \<in> domain x. e')"
       proof (rule setsum_mono)
         fix i assume "i \<in> domain x"
-        with `y \<in> B'` B have "y i \<in> enum_basis (B i)"
+        with `y \<in> B'` B have "y i \<in> B i"
           by (simp add: Pi'_def B'_def)
         hence "y i \<in> ball (x i) e'" using B `domain y = domain x` `i \<in> domain x`
           by force
@@ -528,73 +528,15 @@ next
     qed
   qed
   ultimately
-  show "\<exists>B'\<in>range enum_basis_finmap. x \<in> B' \<and> B' \<subseteq> O'" by blast
+  show "\<exists>B'\<in>basis_finmap. x \<in> B' \<and> B' \<subseteq> O'" by blast
 qed
 
 lemma range_enum_basis_finmap_imp_open:
-  assumes "x \<in> range enum_basis_finmap"
+  assumes "x \<in> basis_finmap"
   shows "open x"
   using finmap_topological_basis assms by (auto simp: topological_basis_def)
 
-lemma open_imp_ex_UNION_of_enum:
-  fixes X::"('a \<Rightarrow>\<^isub>F 'b) set"
-  assumes "open X" assumes "X \<noteq> {}"
-  shows "\<exists>A::nat\<Rightarrow>'a set. \<exists>B::nat\<Rightarrow>('a \<Rightarrow> 'b set) . X = UNION UNIV (\<lambda>i. Pi' (A i) (B i)) \<and>
-    (\<forall>n. \<forall>i\<in>A n. (B n) i \<in> range enum_basis) \<and> (\<forall>n. finite (A n))"
-proof -
-  from `open X` obtain B' where B': "B'\<subseteq>range enum_basis_finmap" "\<Union>B' = X"
-    using finmap_topological_basis by (force simp add: topological_basis_def)
-  then obtain B where B: "B' = enum_basis_finmap ` B" by (auto simp: subset_image_iff)
-  show ?thesis
-  proof cases
-    assume "B = {}" with B have "B' = {}" by simp hence False using B' assms by simp
-    thus ?thesis by simp
-  next
-    assume "B \<noteq> {}" then obtain b where b: "b \<in> B" by auto
-    def NA \<equiv> "\<lambda>n::nat. if n \<in> B
-      then domain ((from_nat::_\<Rightarrow>'a \<Rightarrow>\<^isub>F nat) n)
-      else domain ((from_nat::_\<Rightarrow>'a\<Rightarrow>\<^isub>F nat) b)"
-    def NB \<equiv> "\<lambda>n::nat. if n \<in> B
-      then (\<lambda>i. (enum_basis::nat\<Rightarrow>'b set) (((from_nat::_\<Rightarrow>'a \<Rightarrow>\<^isub>F nat) n) i))
-      else (\<lambda>i. (enum_basis::nat\<Rightarrow>'b set) (((from_nat::_\<Rightarrow>'a \<Rightarrow>\<^isub>F nat) b) i))"
-    have "X = UNION UNIV (\<lambda>i. Pi' (NA i) (NB i))" unfolding B'(2)[symmetric] using b
-      unfolding B
-      by safe
-         (auto simp add: NA_def NB_def enum_basis_finmap_def Let_def o_def split: split_if_asm)
-    moreover
-    have "(\<forall>n. \<forall>i\<in>NA n. (NB n) i \<in> range enum_basis)"
-      using enumerable_basis by (auto simp: topological_basis_def NA_def NB_def)
-    moreover have "(\<forall>n. finite (NA n))" by (simp add: NA_def)
-    ultimately show ?thesis by auto
-  qed
-qed
-
-lemma open_imp_ex_UNION:
-  fixes X::"('a \<Rightarrow>\<^isub>F 'b) set"
-  assumes "open X" assumes "X \<noteq> {}"
-  shows "\<exists>A::nat\<Rightarrow>'a set. \<exists>B::nat\<Rightarrow>('a \<Rightarrow> 'b set) . X = UNION UNIV (\<lambda>i. Pi' (A i) (B i)) \<and>
-    (\<forall>n. \<forall>i\<in>A n. open ((B n) i)) \<and> (\<forall>n. finite (A n))"
-  using open_imp_ex_UNION_of_enum[OF assms]
-  apply auto
-  apply (rule_tac x = A in exI)
-  apply (rule_tac x = B in exI)
-  apply (auto simp: open_enum_basis)
-  done
-
-lemma open_basisE:
-  assumes "open X" assumes "X \<noteq> {}"
-  obtains A::"nat\<Rightarrow>'a set" and B::"nat\<Rightarrow>('a \<Rightarrow> 'b set)" where
-  "X = UNION UNIV (\<lambda>i. Pi' (A i) (B i))" "\<And>n i. i\<in>A n \<Longrightarrow> open ((B n) i)" "\<And>n. finite (A n)"
-  using open_imp_ex_UNION[OF assms] by auto
-
-lemma open_basis_of_enumE:
-  assumes "open X" assumes "X \<noteq> {}"
-  obtains A::"nat\<Rightarrow>'a set" and B::"nat\<Rightarrow>('a \<Rightarrow> 'b set)" where
-  "X = UNION UNIV (\<lambda>i. Pi' (A i) (B i))" "\<And>n i. i\<in>A n \<Longrightarrow> (B n) i \<in> range enum_basis"
-  "\<And>n. finite (A n)"
-  using open_imp_ex_UNION_of_enum[OF assms] by auto
-
-instance proof qed (blast intro: finmap_topological_basis)
+instance proof qed (blast intro: finmap_topological_basis countable_basis_finmap)
 
 end
 
@@ -746,16 +688,12 @@ lemma countable_measurable_PiFI:
 proof safe
   fix y assume "y \<in> sets N"
   have "A -` y = (\<Union>{A -` y \<inter> {x. domain x = J}|J. finite J})" by auto
-  hence "A -` y \<inter> space (PiF I M) = (\<Union>n. A -` y \<inter> space (PiF ({set (from_nat n)}\<inter>I) M))"
-    apply (auto simp: space_PiF Pi'_def)
-  proof -
-    case goal1
+  { fix x::"'a \<Rightarrow>\<^isub>F 'b"
     from finite_list[of "domain x"] obtain xs where "set xs = domain x" by auto
-    thus ?case
-      apply (intro exI[where x="to_nat xs"])
-      apply auto
-      done
-  qed
+    hence "\<exists>n. domain x = set (from_nat n)"
+      by (intro exI[where x="to_nat xs"]) auto }
+  hence "A -` y \<inter> space (PiF I M) = (\<Union>n. A -` y \<inter> space (PiF ({set (from_nat n)}\<inter>I) M))"
+    by (auto simp: space_PiF Pi'_def)
   also have "\<dots> \<in> sets (PiF I M)"
     apply (intro sets.Int sets.countable_nat_UN subsetI, safe)
     apply (case_tac "set (from_nat i) \<in> I")
@@ -928,16 +866,6 @@ next
   qed simp
 qed
 
-lemma sets_subspaceI:
-  assumes "A \<inter> space M \<in> sets M"
-  assumes "B \<in> sets M"
-  shows "A \<inter> B \<in> sets M" using assms
-proof -
-  have "A \<inter> B = (A \<inter> space M) \<inter> B"
-    using assms sets.sets_into_space by auto
-  thus ?thesis using assms by auto
-qed
-
 lemma space_PiF_singleton_eq_product:
   assumes "finite I"
   shows "space (PiF {I} M) = (\<Pi>' i\<in>I. space (M i))"
@@ -1075,49 +1003,49 @@ proof
     by (auto intro!: sets.sigma_sets_subset product_in_sets_PiFI simp: E_generates P_def)
 qed
 
-lemma enumerable_sigma_fprod_algebra_sigma_eq:
+lemma sets_PiF_eq_sigma_union_closed_basis_single:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
   shows "sets (PiF {I} (\<lambda>_. borel)) = sigma_sets (space (PiF {I} (\<lambda>_. borel)))
-    {Pi' I F |F. (\<forall>i\<in>I. F i \<in> range enum_basis)}"
+    {Pi' I F |F. (\<forall>i\<in>I. F i \<in> union_closed_basis)}"
 proof -
   from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
   show ?thesis
   proof (rule sigma_fprod_algebra_sigma_eq)
     show "finite I" by simp
     show "I \<noteq> {}" by fact
-    show "incseq S" "(\<Union>j. S j) = space borel" "range S \<subseteq> range enum_basis"
+    show "incseq S" "(\<Union>j. S j) = space borel" "range S \<subseteq> union_closed_basis"
       using S by simp_all
-    show "range enum_basis \<subseteq> Pow (space borel)" by simp
-    show "sets borel = sigma_sets (space borel) (range enum_basis)"
-      by (simp add: borel_eq_enum_basis)
+    show "union_closed_basis \<subseteq> Pow (space borel)" by simp
+    show "sets borel = sigma_sets (space borel) union_closed_basis"
+      by (simp add: borel_eq_union_closed_basis)
   qed
 qed
 
-text {* adapted from @{thm enumerable_sigma_fprod_algebra_sigma_eq} *}
+text {* adapted from @{thm sets_PiF_eq_sigma_union_closed_basis_single} *}
 
-lemma enumerable_sigma_prod_algebra_sigma_eq:
+lemma sets_PiM_eq_sigma_union_closed_basis:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
   shows "sets (PiM I (\<lambda>_. borel)) = sigma_sets (space (PiM I (\<lambda>_. borel)))
-    {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> range enum_basis}"
+    {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> union_closed_basis}"
 proof -
   from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
   show ?thesis
   proof (rule sigma_prod_algebra_sigma_eq)
     show "finite I" by simp note[[show_types]]
-    fix i show "(\<Union>j. S j) = space borel" "range S \<subseteq> range enum_basis"
+    fix i show "(\<Union>j. S j) = space borel" "range S \<subseteq> union_closed_basis"
       using S by simp_all
-    show "range enum_basis \<subseteq> Pow (space borel)" by simp
-    show "sets borel = sigma_sets (space borel) (range enum_basis)"
-      by (simp add: borel_eq_enum_basis)
+    show "union_closed_basis \<subseteq> Pow (space borel)" by simp
+    show "sets borel = sigma_sets (space borel) union_closed_basis"
+      by (simp add: borel_eq_union_closed_basis)
   qed
 qed
 
 lemma product_open_generates_sets_PiF_single:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
-  shows "sets (PiF {I} (\<lambda>_. borel::'b::enumerable_basis measure)) =
+  shows "sets (PiF {I} (\<lambda>_. borel::'b::countable_basis_space measure)) =
     sigma_sets (space (PiF {I} (\<lambda>_. borel))) {Pi' I F |F. (\<forall>i\<in>I. F i \<in> Collect open)}"
 proof -
   from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
@@ -1126,7 +1054,7 @@ proof -
     show "finite I" by simp
     show "I \<noteq> {}" by fact
     show "incseq S" "(\<Union>j. S j) = space borel" "range S \<subseteq> Collect open"
-      using S by (auto simp: open_enum_basis)
+      using S by (auto simp: open_union_closed_basis)
     show "Collect open \<subseteq> Pow (space borel)" by simp
     show "sets borel = sigma_sets (space borel) (Collect open)"
       by (simp add: borel_def)
@@ -1136,7 +1064,7 @@ qed
 lemma product_open_generates_sets_PiM:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
-  shows "sets (PiM I (\<lambda>_. borel::'b::enumerable_basis measure)) =
+  shows "sets (PiM I (\<lambda>_. borel::'b::countable_basis_space measure)) =
     sigma_sets (space (PiM I (\<lambda>_. borel))) {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> Collect open}"
 proof -
   from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
@@ -1144,7 +1072,7 @@ proof -
   proof (rule sigma_prod_algebra_sigma_eq)
     show "finite I" by simp note[[show_types]]
     fix i show "(\<Union>j. S j) = space borel" "range S \<subseteq> Collect open"
-      using S by (auto simp: open_enum_basis)
+      using S by (auto simp: open_union_closed_basis)
     show "Collect open \<subseteq> Pow (space borel)" by simp
     show "sets borel = sigma_sets (space borel) (Collect open)"
       by (simp add: borel_def)
@@ -1155,88 +1083,62 @@ lemma finmap_UNIV[simp]: "(\<Union>J\<in>Collect finite. PI' j : J. UNIV) = UNIV
 
 lemma borel_eq_PiF_borel:
   shows "(borel :: ('i::countable \<Rightarrow>\<^isub>F 'a::polish_space) measure) =
-  PiF (Collect finite) (\<lambda>_. borel :: 'a measure)"
-proof (rule measure_eqI)
-  have C: "Collect finite \<noteq> {}" by auto
-  show "sets (borel::('i \<Rightarrow>\<^isub>F 'a) measure) = sets (PiF (Collect finite) (\<lambda>_. borel))"
-  proof
-    show "sets (borel::('i \<Rightarrow>\<^isub>F 'a) measure) \<subseteq> sets (PiF (Collect finite) (\<lambda>_. borel))"
-      apply (simp add: borel_def sets_PiF)
-    proof (rule sigma_sets_mono, safe, cases)
-      fix X::"('i \<Rightarrow>\<^isub>F 'a) set" assume "open X" "X \<noteq> {}"
-      from open_basisE[OF this] guess NA NB . note N = this
-      hence "X = (\<Union>i. Pi' (NA i) (NB i))" by simp
-      also have "\<dots> \<in>
-        sigma_sets UNIV {Pi' J S |S J. finite J \<and> S \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
-        using N by (intro Union sigma_sets.Basic) blast
-      finally show "X \<in> sigma_sets UNIV
-        {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}" .
-    qed (auto simp: Empty)
+    PiF (Collect finite) (\<lambda>_. borel :: 'a measure)"
+  unfolding borel_def PiF_def
+proof (rule measure_eqI, clarsimp, rule sigma_sets_eqI)
+  fix a::"('i \<Rightarrow>\<^isub>F 'a) set" assume "a \<in> Collect open" hence "open a" by simp
+  then obtain B' where B': "B'\<subseteq>basis_finmap" "a = \<Union>B'"
+    using finmap_topological_basis by (force simp add: topological_basis_def)
+  have "a \<in> sigma UNIV {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
+    unfolding `a = \<Union>B'`
+  proof (rule sets.countable_Union)
+    from B' countable_basis_finmap show "countable B'" by (metis countable_subset)
   next
-    show "sets (PiF (Collect finite) (\<lambda>_. borel)) \<subseteq> sets (borel::('i \<Rightarrow>\<^isub>F 'a) measure)"
+    show "B' \<subseteq> sets (sigma UNIV
+      {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)})" (is "_ \<subseteq> sets ?s")
     proof
-      fix x assume x: "x \<in> sets (PiF (Collect finite::'i set set) (\<lambda>_. borel::'a measure))"
-      hence x_sp: "x \<subseteq> space (PiF (Collect finite) (\<lambda>_. borel))" by (rule sets.sets_into_space)
-      let ?x = "\<lambda>J. x \<inter> {x. domain x = J}"
-      have "x = \<Union>{?x J |J. finite J}" by auto
-      also have "\<dots> \<in> sets borel"
-      proof (rule countable_finite_comprehension, assumption)
-        fix J::"'i set" assume "finite J"
-        { assume ef: "J = {}"
-          { assume e: "?x J = {}"
-            hence "?x J \<in> sets borel" by simp
-          } moreover {
-            assume "?x J \<noteq> {}"
-            then obtain f where "f \<in> x" "domain f = {}" using ef by auto
-            hence "?x J = {f}" using `J = {}`
-              by (auto simp: finmap_eq_iff)
-            also have "{f} \<in> sets borel" by simp
-            finally have "?x J \<in> sets borel" .
-          } ultimately have "?x J \<in> sets borel" by blast
-        } moreover {
-          assume "J \<noteq> ({}::'i set)"
-          from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'a set" . note S = this
-          have "(?x J) = x \<inter> {m. domain m \<in> {J}}" by auto
-          also have "\<dots> \<in> sets (PiF {J} (\<lambda>_. borel))"
-            using x by (rule restrict_sets_measurable) (auto simp: `finite J`)
-          also have "\<dots> = sigma_sets (space (PiF {J} (\<lambda>_. borel)))
-            {Pi' (J) F |F. (\<forall>j\<in>J. F j \<in> range enum_basis)}"
-            (is "_ = sigma_sets _ ?P")
-            by (rule enumerable_sigma_fprod_algebra_sigma_eq[OF `J \<noteq> {}` `finite J`])
-          also have "\<dots> \<subseteq> sets borel"
-          proof
-            fix x
-            assume "x \<in> sigma_sets (space (PiF {J} (\<lambda>_. borel))) ?P"
-            thus "x \<in> sets borel"
-            proof (rule sigma_sets.induct, safe)
-              fix F::"'i \<Rightarrow> 'a set"
-              assume "\<forall>j\<in>J. F j \<in> range enum_basis"
-              hence "Pi' J F \<in> range enum_basis_finmap"
-                unfolding range_enum_basis_eq
-                by (auto simp: `finite J` intro!: exI[where x=J] exI[where x=F])
-              hence "open (Pi' (J) F)" by (rule range_enum_basis_finmap_imp_open)
-              thus "Pi' (J) F \<in> sets borel" by simp
-            next
-              fix a::"('i \<Rightarrow>\<^isub>F 'a) set"
-              have "space (PiF {J::'i set} (\<lambda>_. borel::'a measure)) =
-                Pi' (J) (\<lambda>_. UNIV)"
-                by (auto simp: space_PiF product_def)
-              moreover have "open (Pi' (J::'i set) (\<lambda>_. UNIV::'a set))"
-                by (intro open_Pi'I) auto
-              ultimately
-              have "space (PiF {J::'i set} (\<lambda>_. borel::'a measure)) \<in> sets borel"
-                by simp
-              moreover
-              assume "a \<in> sets borel"
-              ultimately show "space (PiF {J} (\<lambda>_. borel)) - a \<in> sets borel" ..
-            qed auto
-          qed
-          finally have "(?x J) \<in> sets borel" .
-        } ultimately show "(?x J) \<in> sets borel" by blast
-      qed
-      finally show "x \<in> sets (borel)" .
+      fix x assume "x \<in> B'" with B' have "x \<in> basis_finmap" by auto
+      then obtain J X where "x = Pi' J X" "finite J" "X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)"
+        by (auto simp: basis_finmap_def open_union_closed_basis)
+      thus "x \<in> sets ?s" by auto
     qed
   qed
+  thus "a \<in> sigma_sets UNIV {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
+    by simp
+next
+  fix b::"('i \<Rightarrow>\<^isub>F 'a) set"
+  assume "b \<in> {Pi' J X |X J. finite J \<and> X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)}"
+  hence b': "b \<in> sets (Pi\<^isub>F (Collect finite) (\<lambda>_. borel))" by (auto simp: sets_PiF borel_def)
+  let ?b = "\<lambda>J. b \<inter> {x. domain x = J}"
+  have "b = \<Union>((\<lambda>J. ?b J) ` Collect finite)" by auto
+  also have "\<dots> \<in> sets borel"
+  proof (rule sets.countable_Union, safe)
+    fix J::"'i set" assume "finite J"
+    { assume ef: "J = {}"
+      have "?b J \<in> sets borel"
+      proof cases
+        assume "?b J \<noteq> {}"
+        then obtain f where "f \<in> b" "domain f = {}" using ef by auto
+        hence "?b J = {f}" using `J = {}`
+          by (auto simp: finmap_eq_iff)
+        also have "{f} \<in> sets borel" by simp
+        finally show ?thesis .
+      qed simp
+    } moreover {
+      assume "J \<noteq> ({}::'i set)"
+      have "(?b J) = b \<inter> {m. domain m \<in> {J}}" by auto
+      also have "\<dots> \<in> sets (PiF {J} (\<lambda>_. borel))"
+        using b' by (rule restrict_sets_measurable) (auto simp: `finite J`)
+      also have "\<dots> = sigma_sets (space (PiF {J} (\<lambda>_. borel)))
+        {Pi' (J) F |F. (\<forall>j\<in>J. F j \<in> Collect open)}"
+        (is "_ = sigma_sets _ ?P")
+       by (rule product_open_generates_sets_PiF_single[OF `J \<noteq> {}` `finite J`])
+      also have "\<dots> \<subseteq> sigma_sets UNIV (Collect open)"
+        by (intro sigma_sets_mono'') (auto intro!: open_Pi'I simp: space_PiF)
+      finally have "(?b J) \<in> sets borel" by (simp add: borel_def)
+    } ultimately show "(?b J) \<in> sets borel" by blast
+  qed (simp add: countable_Collect_finite)
+  finally show "b \<in> sigma_sets UNIV (Collect open)" by (simp add: borel_def)
 qed (simp add: emeasure_sigma borel_def PiF_def)
 
 subsection {* Isomorphism between Functions and Finite Maps *}

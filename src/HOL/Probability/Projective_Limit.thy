@@ -550,7 +550,7 @@ hide_const (open) Rep_finmap
 hide_const (open) finmap_of
 hide_const (open) proj
 hide_const (open) domain
-hide_const (open) enum_basis_finmap
+hide_const (open) basis_finmap
 
 sublocale polish_projective \<subseteq> P!: prob_space "(lim\<^isub>B I P)"
 proof

@@ -10,7 +10,7 @@ header {* Sigma Algebras *}
 theory Sigma_Algebra
 imports
   Complex_Main
-  "~~/src/HOL/Library/Countable"
+  "~~/src/HOL/Library/Countable_Set"
   "~~/src/HOL/Library/FuncSet"
   "~~/src/HOL/Library/Indicator_Function"
   "~~/src/HOL/Library/Extended_Real"
@@ -297,6 +297,17 @@ proof -
     by (auto simp: image_compose intro!: imageI)
   show ?thesis unfolding * ** ..
 qed
+
+lemma (in sigma_algebra) countable_Union [intro]:
+  assumes "countable X" "X \<subseteq> M" shows "Union X \<in> M"
+proof cases
+  assume "X \<noteq> {}"
+  hence "\<Union>X = (\<Union>n. from_nat_into X n)"
+    using assms by (auto intro: from_nat_into) (metis from_nat_into_surj)
+  also have "\<dots> \<in> M" using assms
+    by (auto intro!: countable_nat_UN) (metis `X \<noteq> {}` from_nat_into set_mp)
+  finally show ?thesis .
+qed simp
 
 lemma (in sigma_algebra) countable_UN[intro]:
   fixes A :: "'i::countable \<Rightarrow> 'a set"
@@ -1099,6 +1110,30 @@ lemma (in sigma_algebra) space_measure_of_eq[simp]:
 lemma measure_of_subset:
   "M \<subseteq> Pow \<Omega> \<Longrightarrow> M' \<subseteq> M \<Longrightarrow> sets (measure_of \<Omega> M' \<mu>) \<subseteq> sets (measure_of \<Omega> M \<mu>')"
   by (auto intro!: sigma_sets_subseteq)
+
+lemma sigma_sets_mono'':
+  assumes "A \<in> sigma_sets C D"
+  assumes "B \<subseteq> D"
+  assumes "D \<subseteq> Pow C"
+  shows "sigma_sets A B \<subseteq> sigma_sets C D"
+proof
+  fix x assume "x \<in> sigma_sets A B"
+  thus "x \<in> sigma_sets C D"
+  proof induct
+    case (Basic a) with assms have "a \<in> D" by auto
+    thus ?case ..
+  next
+    case Empty show ?case by (rule sigma_sets.Empty)
+  next
+    from assms have "A \<in> sets (sigma C D)" by (subst sets_measure_of[OF `D \<subseteq> Pow C`])
+    moreover case (Compl a) hence "a \<in> sets (sigma C D)" by (subst sets_measure_of[OF `D \<subseteq> Pow C`])
+    ultimately have "A - a \<in> sets (sigma C D)" ..
+    thus ?case by (subst (asm) sets_measure_of[OF `D \<subseteq> Pow C`])
+  next
+    case (Union a)
+    thus ?case by (intro sigma_sets.Union)
+  qed
+qed
 
 lemma in_measure_of[intro, simp]: "M \<subseteq> Pow \<Omega> \<Longrightarrow> A \<in> M \<Longrightarrow> A \<in> sets (measure_of \<Omega> M \<mu>)"
   by auto

@@ -48,15 +48,17 @@ proof
   thus "\<exists>f::'a discrete \<Rightarrow> nat. inj f" by blast
 qed
 
-instance discrete :: (countable) enumerable_basis
+instance discrete :: (countable) countable_basis_space
 proof
-  have "topological_basis (range (\<lambda>n::nat. {from_nat n::'a discrete}))"
+  let ?B = "(range (\<lambda>n::nat. {from_nat n::'a discrete}))"
+  have "topological_basis ?B"
   proof (intro topological_basisI)
     fix x::"'a discrete" and O' assume "open O'" "x \<in> O'"
     thus "\<exists>B'\<in>range (\<lambda>n. {from_nat n}). x \<in> B' \<and> B' \<subseteq> O'"
       by (auto intro: exI[where x="to_nat x"])
   qed (simp add: open_discrete_def)
-  thus "\<exists>f::nat\<Rightarrow>'a discrete set. topological_basis (range f)" by blast
+  moreover have "countable ?B" by simp
+  ultimately show "\<exists>B::'a discrete set set. countable B \<and> topological_basis B" by blast
 qed
 
 instance discrete :: (countable) polish_space ..

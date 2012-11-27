@@ -178,7 +178,7 @@ translations
 
 lemma prod_algebra_sets_into_space:
   "prod_algebra I M \<subseteq> Pow (\<Pi>\<^isub>E i\<in>I. space (M i))"
-  using assms by (auto simp: prod_emb_def prod_algebra_def)
+  by (auto simp: prod_emb_def prod_algebra_def)
 
 lemma prod_algebra_eq_finite:
   assumes I: "finite I"
