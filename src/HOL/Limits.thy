@@ -280,22 +280,69 @@ lemma filtermap_mono: "F \<le> F' \<Longrightarrow> filtermap f F \<le> filterma
 lemma filtermap_bot [simp]: "filtermap f bot = bot"
   by (simp add: filter_eq_iff eventually_filtermap)
 
+subsection {* Order filters *}
 
-subsection {* Sequentially *}
+definition at_top :: "('a::order) filter"
+  where "at_top = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
 
-definition sequentially :: "nat filter"
-  where "sequentially = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
-
-lemma eventually_sequentially:
-  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
-unfolding sequentially_def
+lemma eventually_at_top_linorder:
+  fixes P :: "'a::linorder \<Rightarrow> bool" shows "eventually P at_top \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
+  unfolding at_top_def
 proof (rule eventually_Abs_filter, rule is_filter.intro)
-  fix P Q :: "nat \<Rightarrow> bool"
+  fix P Q :: "'a \<Rightarrow> bool"
   assume "\<exists>i. \<forall>n\<ge>i. P n" and "\<exists>j. \<forall>n\<ge>j. Q n"
   then obtain i j where "\<forall>n\<ge>i. P n" and "\<forall>n\<ge>j. Q n" by auto
   then have "\<forall>n\<ge>max i j. P n \<and> Q n" by simp
   then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
 qed auto
+
+lemma eventually_at_top_dense:
+  fixes P :: "'a::dense_linorder \<Rightarrow> bool" shows "eventually P at_top \<longleftrightarrow> (\<exists>N. \<forall>n>N. P n)"
+  unfolding eventually_at_top_linorder
+proof safe
+  fix N assume "\<forall>n\<ge>N. P n" then show "\<exists>N. \<forall>n>N. P n" by (auto intro!: exI[of _ N])
+next
+  fix N assume "\<forall>n>N. P n" 
+  moreover from gt_ex[of N] guess y ..
+  ultimately show "\<exists>N. \<forall>n\<ge>N. P n" by (auto intro!: exI[of _ y])
+qed
+
+definition at_bot :: "('a::order) filter"
+  where "at_bot = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<le>k. P n)"
+
+lemma eventually_at_bot_linorder:
+  fixes P :: "'a::linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n\<le>N. P n)"
+  unfolding at_bot_def
+proof (rule eventually_Abs_filter, rule is_filter.intro)
+  fix P Q :: "'a \<Rightarrow> bool"
+  assume "\<exists>i. \<forall>n\<le>i. P n" and "\<exists>j. \<forall>n\<le>j. Q n"
+  then obtain i j where "\<forall>n\<le>i. P n" and "\<forall>n\<le>j. Q n" by auto
+  then have "\<forall>n\<le>min i j. P n \<and> Q n" by simp
+  then show "\<exists>k. \<forall>n\<le>k. P n \<and> Q n" ..
+qed auto
+
+lemma eventually_at_bot_dense:
+  fixes P :: "'a::dense_linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n<N. P n)"
+  unfolding eventually_at_bot_linorder
+proof safe
+  fix N assume "\<forall>n\<le>N. P n" then show "\<exists>N. \<forall>n<N. P n" by (auto intro!: exI[of _ N])
+next
+  fix N assume "\<forall>n<N. P n" 
+  moreover from lt_ex[of N] guess y ..
+  ultimately show "\<exists>N. \<forall>n\<le>N. P n" by (auto intro!: exI[of _ y])
+qed
+
+subsection {* Sequentially *}
+
+abbreviation sequentially :: "nat filter"
+  where "sequentially == at_top"
+
+lemma sequentially_def: "sequentially = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
+  unfolding at_top_def by simp
+
+lemma eventually_sequentially:
+  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
+  by (rule eventually_at_top_linorder)
 
 lemma sequentially_bot [simp, intro]: "sequentially \<noteq> bot"
   unfolding filter_eq_iff eventually_sequentially by auto
@@ -339,6 +386,9 @@ lemma within_UNIV [simp]: "F within UNIV = F"
 
 lemma within_empty [simp]: "F within {} = bot"
   unfolding filter_eq_iff eventually_within by simp
+
+lemma within_le: "F within S \<le> F"
+  unfolding le_filter_def eventually_within by (auto elim: eventually_elim1)
 
 lemma eventually_nhds:
   "eventually P (nhds a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
@@ -564,12 +614,24 @@ lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 
 subsection {* Limits *}
 
-definition (in topological_space)
-  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
-  "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
+definition filter_lim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter \<Rightarrow> bool" where
+  "filter_lim f F2 F1 \<longleftrightarrow> filtermap f F1 \<le> F2"
 
-definition real_tendsto_inf :: "('a \<Rightarrow> real) \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  "real_tendsto_inf f F \<equiv> \<forall>x. eventually (\<lambda>y. x < f y) F"
+syntax
+  "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(3LIM (_)/ (_)./ (_) :> (_))" [1000, 10, 0, 10] 10)
+
+translations
+  "LIM x F1. f :> F2"   == "CONST filter_lim (%x. f) F2 F1"
+
+lemma filter_limE: "(LIM x F1. f x :> F2) \<Longrightarrow> eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1"
+  by (auto simp: filter_lim_def eventually_filtermap le_filter_def)
+
+lemma filter_limI: "(\<And>P. eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1) \<Longrightarrow> (LIM x F1. f x :> F2)"
+  by (auto simp: filter_lim_def eventually_filtermap le_filter_def)
+
+abbreviation (in topological_space)
+  tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
+  "(f ---> l) F \<equiv> filter_lim f (nhds l) F"
 
 ML {*
 structure Tendsto_Intros = Named_Thms
@@ -580,6 +642,15 @@ structure Tendsto_Intros = Named_Thms
 *}
 
 setup Tendsto_Intros.setup
+
+lemma tendsto_def: "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
+  unfolding filter_lim_def
+proof safe
+  fix S assume "open S" "l \<in> S" "filtermap f F \<le> nhds l"
+  then show "eventually (\<lambda>x. f x \<in> S) F"
+    unfolding eventually_nhds eventually_filtermap le_filter_def
+    by (auto elim!: allE[of _ "\<lambda>x. x \<in> S"] eventually_rev_mp)
+qed (auto elim!: eventually_rev_mp simp: eventually_nhds eventually_filtermap le_filter_def)
 
 lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def le_filter_def by fast
@@ -705,15 +776,6 @@ proof (rule tendstoI)
   with le show "eventually (\<lambda>x. dist (g x) b < e) F"
     using le_less_trans by (rule eventually_elim2)
 qed
-
-lemma real_tendsto_inf_real: "real_tendsto_inf real sequentially"
-proof (unfold real_tendsto_inf_def, rule allI)
-  fix x show "eventually (\<lambda>y. x < real y) sequentially"
-    by (rule eventually_sequentiallyI[of "natceiling (x + 1)"])
-        (simp add: natceiling_le_eq)
-qed
-
-
 
 subsubsection {* Distance and norms *}
 
@@ -1010,5 +1072,26 @@ lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) F"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
+
+subsection {* Limits to @{const at_top} and @{const at_bot} *}
+
+lemma filter_lim_at_top:
+  fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
+  shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z < f x) F)"
+  by (safe elim!: filter_limE intro!: filter_limI)
+     (auto simp: eventually_at_top_dense elim!: eventually_elim1)
+
+lemma filter_lim_at_bot: 
+  fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
+  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x < Z) F)"
+  by (safe elim!: filter_limE intro!: filter_limI)
+     (auto simp: eventually_at_bot_dense elim!: eventually_elim1)
+
+lemma filter_lim_real_sequentially: "LIM x sequentially. real x :> at_top"
+  unfolding filter_lim_at_top
+  apply (intro allI)
+  apply (rule_tac c="natceiling (Z + 1)" in eventually_sequentiallyI)
+  apply (auto simp: natceiling_le_eq)
+  done
 
 end

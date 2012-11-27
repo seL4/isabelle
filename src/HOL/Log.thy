@@ -359,12 +359,12 @@ proof (rule tendstoI)
 qed
 
 lemma tendsto_neg_powr:
-  assumes "s < 0" and "real_tendsto_inf f F"
+  assumes "s < 0" and "LIM x F. f x :> at_top"
   shows "((\<lambda>x. f x powr s) ---> 0) F"
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   def Z \<equiv> "e powr (1 / s)"
-  from assms have "eventually (\<lambda>x. Z < f x) F" by (simp add: real_tendsto_inf_def)
+  from assms have "eventually (\<lambda>x. Z < f x) F" by (simp add: filter_lim_at_top)
   moreover
   from assms have "\<And>x. Z < x \<Longrightarrow> x powr s < Z powr s"
     by (auto simp: Z_def intro!: powr_less_mono2_neg)
