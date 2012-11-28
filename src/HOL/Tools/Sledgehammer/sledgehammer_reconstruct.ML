@@ -204,8 +204,6 @@ fun used_facts_in_unsound_atp_proof _ _ [] = NONE
 
 (** one-liner reconstructor proofs **)
 
-fun string_for_label (s, num) = s ^ string_of_int num
-
 fun show_time NONE = ""
   | show_time (SOME ext_time) = " (" ^ string_from_ext_time ext_time ^ ")"
 
