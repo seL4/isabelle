@@ -33,7 +33,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
         if (index >= 0) jEdit.openFile(view, listData(index).node)
     }
   }
-  status.peer.setLayoutOrientation(JList.VERTICAL_WRAP)
+  status.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)
+  status.peer.setVisibleRowCount(0)
   status.selection.intervalMode = ListView.IntervalMode.Single
 
   set_content(new ScrollPane(status))
