@@ -293,7 +293,7 @@ fun raw_label_for_name (num, ss) =
   | _ => (raw_prefix ^ ascii_of num, 0)
 
 fun label_of_clause [name] = raw_label_for_name name
-  | label_of_clause c = (space_implode "___" (map fst c), 0)
+  | label_of_clause c = (space_implode "___" (map (fst o raw_label_for_name) c), 0)
 
 fun add_fact_from_dependencies fact_names (names as [(_, ss)]) =
     if is_fact fact_names ss then
@@ -709,7 +709,6 @@ fun isar_proof_text ctxt isar_proofs
           |> redirect_graph axioms tainted
           |> map (do_inf true)
           |> append assms
-          (*|> relabel_proof (* FIXME: Is there a better way? *) *)
           |> (if not preplay andalso isar_shrink <= 1.0
               then pair (true, seconds 0.0) #> swap
               else shrink_proof debug ctxt type_enc lam_trans preplay
