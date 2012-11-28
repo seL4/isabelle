@@ -99,7 +99,7 @@ fun standard_message mbox opt_serial name body =
   if body = "" then ()
   else
     message false mbox name
-      ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
+      ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox channel =

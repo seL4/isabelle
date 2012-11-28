@@ -131,14 +131,14 @@ fun of_properties props =
     fun get name =
       (case Properties.get props name of
         NONE => 0
-      | SOME s => the_default 0 (Int.fromString s));
+      | SOME s => Markup.parse_int s);
   in
     make {line = get Markup.lineN, offset = get Markup.offsetN,
       end_offset = get Markup.end_offsetN, props = props}
   end;
 
 
-fun value k i = if valid i then [(k, string_of_int i)] else [];
+fun value k i = if valid i then [(k, Markup.print_int i)] else [];
 
 fun properties_of (Pos ((i, j, k), props)) =
   value Markup.lineN i @ value Markup.offsetN j @ value Markup.end_offsetN k @ props;
@@ -146,8 +146,8 @@ fun properties_of (Pos ((i, j, k), props)) =
 val def_properties_of = properties_of #> (map (fn (x, y) => ("def_" ^ x, y)));
 
 fun entity_properties_of def id pos =
-  if def then (Markup.defN, string_of_int id) :: properties_of pos
-  else (Markup.refN, string_of_int id) :: def_properties_of pos;
+  if def then (Markup.defN, Markup.print_int id) :: properties_of pos
+  else (Markup.refN, Markup.print_int id) :: def_properties_of pos;
 
 fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props
@@ -186,8 +186,8 @@ fun here pos =
     val props = properties_of pos;
     val s =
       (case (line_of pos, file_of pos) of
-        (SOME i, NONE) => "(line " ^ string_of_int i ^ ")"
-      | (SOME i, SOME name) => "(line " ^ string_of_int i ^ " of " ^ quote name ^ ")"
+        (SOME i, NONE) => "(line " ^ Markup.print_int i ^ ")"
+      | (SOME i, SOME name) => "(line " ^ Markup.print_int i ^ " of " ^ quote name ^ ")"
       | (NONE, SOME name) => "(file " ^ quote name ^ ")"
       | _ => "");
   in
