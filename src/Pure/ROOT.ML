@@ -70,6 +70,10 @@ use "General/graph.ML";
 
 (* concurrency within the ML runtime *)
 
+if ML_System.name = "polyml-5.5.0"
+then use "ML/ml_statistics_polyml-5.5.0.ML"
+else use "ML/ml_statistics_dummy.ML";
+
 use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()
 else use "Concurrent/single_assignment_sequential.ML";
