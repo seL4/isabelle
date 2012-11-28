@@ -103,7 +103,7 @@ let
             fact_names
             |>> map string_for_label 
             |> op @
-            |> map (the_single o thms_of_name ctxt) (* FIXME: maps (the o thms_of_name ctxt) *)
+            |> maps (thms_of_name ctxt) (* FIXME: maps (the o thms_of_name ctxt) *)
           val goal =
             Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
           fun tac {context = ctxt, prems = _} =

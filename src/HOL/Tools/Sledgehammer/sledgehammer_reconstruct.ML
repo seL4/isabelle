@@ -709,7 +709,7 @@ fun isar_proof_text ctxt isar_proofs
           |> redirect_graph axioms tainted
           |> map (do_inf true)
           |> append assms
-          |> relabel_proof (* FIXME: Is there a better way? *)
+          (*|> relabel_proof (* FIXME: Is there a better way? *) *)
           |> (if not preplay andalso isar_shrink <= 1.0
               then pair (true, seconds 0.0) #> swap
               else shrink_proof debug ctxt type_enc lam_trans preplay
