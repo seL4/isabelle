@@ -118,6 +118,7 @@ let
         |>> map string_for_label 
         |> op @
         |> maps (thms_of_name ctxt)
+
     fun try_metis timeout (succedent, Prove (_, _, t, byline)) =
       if not preplay then (fn () => SOME (seconds 0.0)) else
       (case byline of
@@ -133,19 +134,21 @@ let
           end
       | Case_Split (cases, fact_names) =>
           let
-            val facts = resolve_fact_names fact_names
-            val premises =
-              (case the succedent of
-                Prove (_, _, t, _) => t
-              | Assume (_, t) => t
-              | _ => error "Internal error: unexpected succedent of case split")
-                ::  map ((fn Assume (_, a) => Logic.mk_implies(a, t)
-                        | _ => error "Internal error: malformed case split") 
-                        o hd) 
+            val facts = 
+              resolve_fact_names fact_names
+                @ (case the succedent of
+                    Prove (_, _, t, _) => 
+                      Skip_Proof.make_thm (Proof_Context.theory_of ctxt) t
+                  | Assume (_, t) =>
+                      Skip_Proof.make_thm (Proof_Context.theory_of ctxt) t
+                  | _ => error "Internal error: unexpected succedent of case split")
+                ::  map (Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+                          o (fn Assume (_, a) => Logic.mk_implies(a, t)
+                            | _ => error "Internal error: malformed case split") 
+                          o hd) 
                       cases
             val goal =
-              Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] []
-                (Logic.list_implies(premises, t))
+              Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
             fun tac {context = ctxt, prems = _} =
               Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
           in
@@ -159,7 +162,7 @@ let
     val metis_time =
       v_map_index
         (Lazy.lazy o handle_metis_fail o try_metis preplay_timeout 
-          o apfst (fn i => get i proof_vect) o apsnd the)
+          o apfst (fn i => try (the o get (i-1)) proof_vect) o apsnd the)
         proof_vect
     fun sum_up_time lazy_time_vector =
       Vector.foldl
