@@ -716,10 +716,10 @@ fun isar_proof_text ctxt isar_proofs
         | _ =>
           let 
             val preplay_msg = if preplay_fail
-              then "(!) proof may fail - preplaying was unsuccessful"
+              then "may fail"
               else string_from_ext_time ext_time
             val shrank_without_preplay_msg =
-              "(!) proof may fail - shrank proof, but did not preplay"
+              "may fail - shrank proof, but did not preplay"
             in
               "\n\nStructured proof"
                 ^ (if verbose then
