@@ -6,12 +6,28 @@ Basic data structures for representing and basic methods
 for dealing with Isar proof texts.
 *)
 
-signature SLEDGEHAMMER_Proof =
+signature SLEDGEHAMMER_PROOF =
 sig
-	(* FIXME: TODO *)
+	type label = string * int
+  type facts = label list * string list
+
+  datatype isar_qualifier = Show | Then | Ultimately
+
+  datatype isar_step =
+    Fix of (string * typ) list |
+    Let of term * term |
+    Assume of label * term |
+    Prove of isar_qualifier list * label * term * byline
+  and byline =
+    By_Metis of facts |
+    Case_Split of isar_step list list * facts
+
+  val string_for_label : label -> string
+  val metis_steps_top_level : isar_step list -> int
+  val metis_steps_recursive : isar_step list -> int
 end
 
-structure Sledgehammer_Proof (* : SLEDGEHAMMER_Proof *) = 
+structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF = 
 struct
 
 type label = string * int
