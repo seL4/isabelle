@@ -32,6 +32,7 @@ structure Label_Table = Table(
 fun get i v = Vector.sub (v, i)
 fun replace x i v = Vector.update (v, i, x)
 fun update f i v = replace (get i v |> f) i v
+fun v_map_index f v = Vector.foldr (op::) nil v |> map_index f |> Vector.fromList
 fun v_fold_index f v s =
   Vector.foldl (fn (x, (i, s)) => (i+1, f (i, x) s)) (0, s) v |> snd
 
@@ -112,30 +113,52 @@ let
       |> Inttab.make_list
 
     (* Metis Preplaying *)
-    fun try_metis timeout (Prove (_, _, t, By_Metis fact_names)) =
+    fun resolve_fact_names names =
+      names
+        |>> map string_for_label 
+        |> op @
+        |> maps (thms_of_name ctxt)
+    fun try_metis timeout (succedent, Prove (_, _, t, byline)) =
       if not preplay then (fn () => SOME (seconds 0.0)) else
-        let
-          val facts =
-            fact_names
-            |>> map string_for_label 
-            |> op @
-            |> maps (thms_of_name ctxt)
-          val goal =
-            Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
-          fun tac {context = ctxt, prems = _} =
-            Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
-        in
-          take_time timeout (fn () => goal tac)
-        end
-      (* FIXME: Add case_split preplaying *)
+      (case byline of
+        By_Metis fact_names =>
+          let
+            val facts = resolve_fact_names fact_names
+            val goal =
+              Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
+            fun tac {context = ctxt, prems = _} =
+              Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
+          in
+            take_time timeout (fn () => goal tac)
+          end
+      | Case_Split (cases, fact_names) =>
+          let
+            val facts = resolve_fact_names fact_names
+            val premises =
+              (case the succedent of
+                Prove (_, _, t, _) => t
+              | Assume (_, t) => t)
+                ::  map ((fn Assume (_, a) => Logic.mk_implies(a, t)
+                        | _ => error "Internal error: malformed case split") 
+                        o hd) 
+                      cases
+            val goal =
+              Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] []
+                (Logic.list_implies(premises, t))
+            fun tac {context = ctxt, prems = _} =
+              Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
+          in
+            take_time timeout (fn () => goal tac)
+          end)
       | try_metis _ _  = (fn () => SOME (seconds 0.0) )
 
     val try_metis_quietly = the_default NONE oo try oo try_metis
 
     (* cache metis preplay times in lazy time vector *)
     val metis_time =
-      Vector.map 
-        (Lazy.lazy o handle_metis_fail o try_metis preplay_timeout o the)
+      v_map_index 
+        (Lazy.lazy o handle_metis_fail o try_metis preplay_timeout 
+          o apfst (fn i => try (get i proof_vect) ) o apsnd the)
         proof_vect
     fun sum_up_time lazy_time_vector =
       Vector.foldl
