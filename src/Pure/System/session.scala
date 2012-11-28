@@ -358,6 +358,9 @@ class Session(val thy_load: Thy_Load)
             case None =>
           }
 
+        case Markup.ML_Statistics(stats) if output.is_protocol =>
+          java.lang.System.err.println(stats.toString)  // FIXME
+
         case _ if output.is_init =>
             phase = Session.Ready
 

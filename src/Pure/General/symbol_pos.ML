@@ -220,7 +220,7 @@ val latin = Symbol.is_ascii_letter;
 val digit = Symbol.is_ascii_digit;
 fun underscore s = s = "_";
 fun prime s = s = "'";
-fun script s = s = "\\<^sub>" orelse s = "\\<^isub>" orelse s = "\\<^isup>";
+fun script s = s = "\\<^sub>" orelse s = "\\<^isub>";
 fun special_letter s = Symbol.is_letter_symbol s andalso not (script s);
 
 val scan_plain = Scan.one ((latin orf digit orf prime) o symbol) >> single;
@@ -228,7 +228,7 @@ val scan_digit = Scan.one (digit o symbol) >> single;
 val scan_prime = Scan.one (prime o symbol) >> single;
 
 val scan_script =
-  Scan.one (script o symbol) -- Scan.one ((latin orf digit orf special_letter) o symbol)
+  Scan.one (script o symbol) -- Scan.one ((latin orf digit orf prime orf special_letter) o symbol)
   >> (fn (x, y) => [x, y]);
 
 val scan_ident_part1 =

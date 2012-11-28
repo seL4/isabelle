@@ -271,6 +271,13 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 (* scheduler *)
 
+fun ML_statistics () =
+  if ! ML_Statistics.enabled then
+    (case ML_Statistics.get () of
+      [] => ()
+    | stats => Output.protocol_message (Markup.ML_statistics @ stats) "")
+  else ();
+
 val status_ticks = Unsynchronized.ref 0;
 
 val last_round = Unsynchronized.ref Time.zeroTime;
@@ -289,6 +296,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
       if tick then Unsynchronized.change status_ticks (fn i => (i + 1) mod 10) else ();
     val _ =
       if tick andalso ! status_ticks = 0 then
+       (ML_statistics ();
         Multithreading.tracing 1 (fn () =>
           let
             val {ready, pending, running, passive} = Task_Queue.status (! queue);
@@ -304,7 +312,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
               string_of_int total ^ " workers, " ^
               string_of_int active ^ " active, " ^
               string_of_int waiting ^ " waiting "
-          end)
+          end))
       else ();
 
     val _ =
@@ -392,7 +400,7 @@ fun scheduler_loop () =
     Multithreading.with_attributes
       (Multithreading.sync_interrupts Multithreading.public_interrupts)
       (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
-  do (); last_round := Time.zeroTime);
+  do (); last_round := Time.zeroTime; ML_statistics ());
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);

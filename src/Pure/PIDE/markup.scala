@@ -307,6 +307,15 @@ object Markup
         case _ => None
       }
   }
+
+  object ML_Statistics
+  {
+    def unapply(props: Properties.T): Option[Properties.T] =
+      props match {
+        case (FUNCTION, "ML_statistics") :: stats => Some(stats)
+        case _ => None
+      }
+  }
 }
 
 

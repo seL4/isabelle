@@ -3091,22 +3091,22 @@ fun
  findn :: "(name\<times>coname\<times>trm) list\<Rightarrow>name\<Rightarrow>(coname\<times>trm) option"
 where
   "findn [] x = None"
-| "findn ((y,c,P)#\<theta>n) x = (if y=x then Some (c,P) else findn \<theta>n x)"
+| "findn ((y,c,P)#\<theta>_n) x = (if y=x then Some (c,P) else findn \<theta>_n x)"
 
 lemma findn_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>findn \<theta>n x) = findn (pi1\<bullet>\<theta>n) (pi1\<bullet>x)" 
-  and   "(pi2\<bullet>findn \<theta>n x) = findn (pi2\<bullet>\<theta>n) (pi2\<bullet>x)"
-apply(induct \<theta>n)
+  shows "(pi1\<bullet>findn \<theta>_n x) = findn (pi1\<bullet>\<theta>_n) (pi1\<bullet>x)" 
+  and   "(pi2\<bullet>findn \<theta>_n x) = findn (pi2\<bullet>\<theta>_n) (pi2\<bullet>x)"
+apply(induct \<theta>_n)
 apply(auto simp add: perm_bij) 
 done
 
 lemma findn_fresh:
-  assumes a: "x\<sharp>\<theta>n"
-  shows "findn \<theta>n x = None"
+  assumes a: "x\<sharp>\<theta>_n"
+  shows "findn \<theta>_n x = None"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_list_cons fresh_atm fresh_prod)
 done
 
@@ -3114,38 +3114,38 @@ fun
  findc :: "(coname\<times>name\<times>trm) list\<Rightarrow>coname\<Rightarrow>(name\<times>trm) option"
 where
   "findc [] x = None"
-| "findc ((c,y,P)#\<theta>c) a = (if a=c then Some (y,P) else findc \<theta>c a)"
+| "findc ((c,y,P)#\<theta>_c) a = (if a=c then Some (y,P) else findc \<theta>_c a)"
 
 lemma findc_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>findc \<theta>c a) = findc (pi1\<bullet>\<theta>c) (pi1\<bullet>a)" 
-  and   "(pi2\<bullet>findc \<theta>c a) = findc (pi2\<bullet>\<theta>c) (pi2\<bullet>a)"
-apply(induct \<theta>c)
+  shows "(pi1\<bullet>findc \<theta>_c a) = findc (pi1\<bullet>\<theta>_c) (pi1\<bullet>a)" 
+  and   "(pi2\<bullet>findc \<theta>_c a) = findc (pi2\<bullet>\<theta>_c) (pi2\<bullet>a)"
+apply(induct \<theta>_c)
 apply(auto simp add: perm_bij) 
 done
 
 lemma findc_fresh:
-  assumes a: "a\<sharp>\<theta>c"
-  shows "findc \<theta>c a = None"
+  assumes a: "a\<sharp>\<theta>_c"
+  shows "findc \<theta>_c a = None"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_list_cons fresh_atm fresh_prod)
 done
 
 abbreviation 
  nmaps :: "(name\<times>coname\<times>trm) list \<Rightarrow> name \<Rightarrow> (coname\<times>trm) option \<Rightarrow> bool" ("_ nmaps _ to _" [55,55,55] 55) 
 where
- "\<theta>n nmaps x to P \<equiv> (findn \<theta>n x) = P"
+ "\<theta>_n nmaps x to P \<equiv> (findn \<theta>_n x) = P"
 
 abbreviation 
  cmaps :: "(coname\<times>name\<times>trm) list \<Rightarrow> coname \<Rightarrow> (name\<times>trm) option \<Rightarrow> bool" ("_ cmaps _ to _" [55,55,55] 55) 
 where
- "\<theta>c cmaps a to P \<equiv> (findc \<theta>c a) = P"
+ "\<theta>_c cmaps a to P \<equiv> (findc \<theta>_c a) = P"
 
 lemma nmaps_fresh:
-  shows "\<theta>n nmaps x to Some (c,P) \<Longrightarrow> a\<sharp>\<theta>n \<Longrightarrow> a\<sharp>(c,P)"
-apply(induct \<theta>n)
+  shows "\<theta>_n nmaps x to Some (c,P) \<Longrightarrow> a\<sharp>\<theta>_n \<Longrightarrow> a\<sharp>(c,P)"
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
 apply(case_tac "aa=x")
 apply(auto)
@@ -3154,8 +3154,8 @@ apply(auto)
 done
 
 lemma cmaps_fresh:
-  shows "\<theta>c cmaps a to Some (y,P) \<Longrightarrow> x\<sharp>\<theta>c \<Longrightarrow> x\<sharp>(y,P)"
-apply(induct \<theta>c)
+  shows "\<theta>_c cmaps a to Some (y,P) \<Longrightarrow> x\<sharp>\<theta>_c \<Longrightarrow> x\<sharp>(y,P)"
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
 apply(case_tac "a=aa")
 apply(auto)
@@ -3164,14 +3164,14 @@ apply(auto)
 done
 
 lemma nmaps_false:
-  shows "\<theta>n nmaps x to Some (c,P) \<Longrightarrow> x\<sharp>\<theta>n \<Longrightarrow> False"
-apply(induct \<theta>n)
+  shows "\<theta>_n nmaps x to Some (c,P) \<Longrightarrow> x\<sharp>\<theta>_n \<Longrightarrow> False"
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
 done
 
 lemma cmaps_false:
-  shows "\<theta>c cmaps c to Some (x,P) \<Longrightarrow> c\<sharp>\<theta>c \<Longrightarrow> False"
-apply(induct \<theta>c)
+  shows "\<theta>_c cmaps c to Some (x,P) \<Longrightarrow> c\<sharp>\<theta>_c \<Longrightarrow> False"
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
 done
 
@@ -3179,25 +3179,25 @@ fun
  lookupa :: "name\<Rightarrow>coname\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm"
 where
   "lookupa x a [] = Ax x a"
-| "lookupa x a ((c,y,P)#\<theta>c) = (if a=c then Cut <a>.Ax x a (y).P else lookupa x a \<theta>c)"
+| "lookupa x a ((c,y,P)#\<theta>_c) = (if a=c then Cut <a>.Ax x a (y).P else lookupa x a \<theta>_c)"
 
 lemma lookupa_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(lookupa x a \<theta>c)) = lookupa (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>c)"
-  and   "(pi2\<bullet>(lookupa x a \<theta>c)) = lookupa (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>c)"
+  shows "(pi1\<bullet>(lookupa x a \<theta>_c)) = lookupa (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>_c)"
+  and   "(pi2\<bullet>(lookupa x a \<theta>_c)) = lookupa (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>_c)"
 apply -
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: eqvts)
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: eqvts)
 done
 
 lemma lookupa_fire:
-  assumes a: "\<theta>c cmaps a to Some (y,P)"
-  shows "(lookupa x a \<theta>c) = Cut <a>.Ax x a (y).P"
+  assumes a: "\<theta>_c cmaps a to Some (y,P)"
+  shows "(lookupa x a \<theta>_c) = Cut <a>.Ax x a (y).P"
 using a
-apply(induct \<theta>c arbitrary: x a y P)
+apply(induct \<theta>_c arbitrary: x a y P)
 apply(auto)
 done
 
@@ -3205,35 +3205,35 @@ fun
  lookupb :: "name\<Rightarrow>coname\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>coname\<Rightarrow>trm\<Rightarrow>trm"
 where
   "lookupb x a [] c P = Cut <c>.P (x).Ax x a"
-| "lookupb x a ((d,y,N)#\<theta>c) c P = (if a=d then Cut <c>.P (y).N  else lookupb x a \<theta>c c P)"
+| "lookupb x a ((d,y,N)#\<theta>_c) c P = (if a=d then Cut <c>.P (y).N  else lookupb x a \<theta>_c c P)"
 
 lemma lookupb_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(lookupb x a \<theta>c c P)) = lookupb (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>c) (pi1\<bullet>c) (pi1\<bullet>P)"
-  and   "(pi2\<bullet>(lookupb x a \<theta>c c P)) = lookupb (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>c) (pi2\<bullet>c) (pi2\<bullet>P)"
+  shows "(pi1\<bullet>(lookupb x a \<theta>_c c P)) = lookupb (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>_c) (pi1\<bullet>c) (pi1\<bullet>P)"
+  and   "(pi2\<bullet>(lookupb x a \<theta>_c c P)) = lookupb (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>_c) (pi2\<bullet>c) (pi2\<bullet>P)"
 apply -
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: eqvts)
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: eqvts)
 done
 
 fun 
   lookup :: "name\<Rightarrow>coname\<Rightarrow>(name\<times>coname\<times>trm) list\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm"
 where
-  "lookup x a [] \<theta>c = lookupa x a \<theta>c"
-| "lookup x a ((y,c,P)#\<theta>n) \<theta>c = (if x=y then (lookupb x a \<theta>c c P) else lookup x a \<theta>n \<theta>c)"
+  "lookup x a [] \<theta>_c = lookupa x a \<theta>_c"
+| "lookup x a ((y,c,P)#\<theta>_n) \<theta>_c = (if x=y then (lookupb x a \<theta>_c c P) else lookup x a \<theta>_n \<theta>_c)"
 
 lemma lookup_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(lookup x a \<theta>n \<theta>c)) = lookup (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>n) (pi1\<bullet>\<theta>c)"
-  and   "(pi2\<bullet>(lookup x a \<theta>n \<theta>c)) = lookup (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>n) (pi2\<bullet>\<theta>c)"
+  shows "(pi1\<bullet>(lookup x a \<theta>_n \<theta>_c)) = lookup (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>_n) (pi1\<bullet>\<theta>_c)"
+  and   "(pi2\<bullet>(lookup x a \<theta>_n \<theta>_c)) = lookup (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>_n) (pi2\<bullet>\<theta>_c)"
 apply -
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: eqvts)
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: eqvts)
 done
 
@@ -3241,17 +3241,17 @@ fun
   lookupc :: "name\<Rightarrow>coname\<Rightarrow>(name\<times>coname\<times>trm) list\<Rightarrow>trm"
 where
   "lookupc x a [] = Ax x a"
-| "lookupc x a ((y,c,P)#\<theta>n) = (if x=y then P[c\<turnstile>c>a] else lookupc x a \<theta>n)"
+| "lookupc x a ((y,c,P)#\<theta>_n) = (if x=y then P[c\<turnstile>c>a] else lookupc x a \<theta>_n)"
 
 lemma lookupc_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(lookupc x a \<theta>n)) = lookupc (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>n)"
-  and   "(pi2\<bullet>(lookupc x a \<theta>n)) = lookupc (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>n)"
+  shows "(pi1\<bullet>(lookupc x a \<theta>_n)) = lookupc (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>_n)"
+  and   "(pi2\<bullet>(lookupc x a \<theta>_n)) = lookupc (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>_n)"
 apply -
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: eqvts)
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: eqvts)
 done
 
@@ -3259,47 +3259,47 @@ fun
   lookupd :: "name\<Rightarrow>coname\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm"
 where
   "lookupd x a [] = Ax x a"
-| "lookupd x a ((c,y,P)#\<theta>c) = (if a=c then P[y\<turnstile>n>x] else lookupd x a \<theta>c)"
+| "lookupd x a ((c,y,P)#\<theta>_c) = (if a=c then P[y\<turnstile>n>x] else lookupd x a \<theta>_c)"
 
 lemma lookupd_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(lookupd x a \<theta>n)) = lookupd (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>n)"
-  and   "(pi2\<bullet>(lookupd x a \<theta>n)) = lookupd (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>n)"
+  shows "(pi1\<bullet>(lookupd x a \<theta>_n)) = lookupd (pi1\<bullet>x) (pi1\<bullet>a) (pi1\<bullet>\<theta>_n)"
+  and   "(pi2\<bullet>(lookupd x a \<theta>_n)) = lookupd (pi2\<bullet>x) (pi2\<bullet>a) (pi2\<bullet>\<theta>_n)"
 apply -
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: eqvts)
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: eqvts)
 done
 
 lemma lookupa_fresh:
-  assumes a: "a\<sharp>\<theta>c"
-  shows "lookupa y a \<theta>c = Ax y a"
+  assumes a: "a\<sharp>\<theta>_c"
+  shows "lookupa y a \<theta>_c = Ax y a"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
 lemma lookupa_csubst:
-  assumes a: "a\<sharp>\<theta>c"
-  shows "Cut <a>.Ax y a (x).P = (lookupa y a \<theta>c){a:=(x).P}"
+  assumes a: "a\<sharp>\<theta>_c"
+  shows "Cut <a>.Ax y a (x).P = (lookupa y a \<theta>_c){a:=(x).P}"
 using a by (simp add: lookupa_fresh)
 
 lemma lookupa_freshness:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(\<theta>c,c) \<Longrightarrow> a\<sharp>lookupa y c \<theta>c"
-  and   "x\<sharp>(\<theta>c,y) \<Longrightarrow> x\<sharp>lookupa y c \<theta>c"
-apply(induct \<theta>c)
+  shows "a\<sharp>(\<theta>_c,c) \<Longrightarrow> a\<sharp>lookupa y c \<theta>_c"
+  and   "x\<sharp>(\<theta>_c,y) \<Longrightarrow> x\<sharp>lookupa y c \<theta>_c"
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_prod fresh_list_cons abs_fresh fresh_atm)
 done
 
 lemma lookupa_unicity:
-  assumes a: "lookupa x a \<theta>c= Ax y b" "b\<sharp>\<theta>c" "y\<sharp>\<theta>c"
+  assumes a: "lookupa x a \<theta>_c= Ax y b" "b\<sharp>\<theta>_c" "y\<sharp>\<theta>_c"
   shows "x=y \<and> a=b"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: trm.inject fresh_list_cons fresh_prod fresh_atm)
 apply(case_tac "a=aa")
 apply(auto)
@@ -3308,10 +3308,10 @@ apply(auto)
 done
 
 lemma lookupb_csubst:
-  assumes a: "a\<sharp>(\<theta>c,c,N)"
-  shows "Cut <c>.N (x).P = (lookupb y a \<theta>c c N){a:=(x).P}"
+  assumes a: "a\<sharp>(\<theta>_c,c,N)"
+  shows "Cut <c>.N (x).P = (lookupb y a \<theta>_c c N){a:=(x).P}"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_list_cons fresh_atm fresh_prod)
 apply(rule sym)
 apply(generate_fresh "name")
@@ -3337,17 +3337,17 @@ done
 lemma lookupb_freshness:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(\<theta>c,c,b,P) \<Longrightarrow> a\<sharp>lookupb y c \<theta>c b P"
-  and   "x\<sharp>(\<theta>c,y,P) \<Longrightarrow> x\<sharp>lookupb y c \<theta>c b P"
-apply(induct \<theta>c)
+  shows "a\<sharp>(\<theta>_c,c,b,P) \<Longrightarrow> a\<sharp>lookupb y c \<theta>_c b P"
+  and   "x\<sharp>(\<theta>_c,y,P) \<Longrightarrow> x\<sharp>lookupb y c \<theta>_c b P"
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_prod fresh_list_cons abs_fresh fresh_atm)
 done
 
 lemma lookupb_unicity:
-  assumes a: "lookupb x a \<theta>c c P = Ax y b" "b\<sharp>(\<theta>c,c,P)" "y\<sharp>\<theta>c"
+  assumes a: "lookupb x a \<theta>_c c P = Ax y b" "b\<sharp>(\<theta>_c,c,P)" "y\<sharp>\<theta>_c"
   shows "x=y \<and> a=b"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
 apply(case_tac "a=aa")
 apply(auto)
@@ -3356,10 +3356,10 @@ apply(auto)
 done
 
 lemma lookupb_lookupa:
-  assumes a: "x\<sharp>\<theta>c"
-  shows "lookupb x c \<theta>c a P = (lookupa x c \<theta>c){x:=<a>.P}"
+  assumes a: "x\<sharp>\<theta>_c"
+  shows "lookupb x c \<theta>_c a P = (lookupa x c \<theta>_c){x:=<a>.P}"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_list_cons fresh_prod)
 apply(generate_fresh "coname")
 apply(generate_fresh "name")
@@ -3383,10 +3383,10 @@ apply(simp add: alpha calc_atm fresh_atm fresh_prod)
 done
 
 lemma lookup_csubst:
-  assumes a: "a\<sharp>(\<theta>n,\<theta>c)"
-  shows "lookup y c \<theta>n ((a,x,P)#\<theta>c) = (lookup y c \<theta>n \<theta>c){a:=(x).P}"
+  assumes a: "a\<sharp>(\<theta>_n,\<theta>_c)"
+  shows "lookup y c \<theta>_n ((a,x,P)#\<theta>_c) = (lookup y c \<theta>_n \<theta>_c){a:=(x).P}"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_prod fresh_list_cons)
 apply(simp add: lookupa_csubst)
 apply(simp add: lookupa_freshness forget fresh_atm fresh_prod)
@@ -3396,18 +3396,18 @@ apply(auto simp add: lookupb_freshness forget fresh_atm fresh_prod)
 done
 
 lemma lookup_fresh:
-  assumes a: "x\<sharp>(\<theta>n,\<theta>c)"
-  shows "lookup x c \<theta>n \<theta>c = lookupa x c \<theta>c"
+  assumes a: "x\<sharp>(\<theta>_n,\<theta>_c)"
+  shows "lookup x c \<theta>_n \<theta>_c = lookupa x c \<theta>_c"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
 lemma lookup_unicity:
-  assumes a: "lookup x a \<theta>n \<theta>c= Ax y b" "b\<sharp>(\<theta>c,\<theta>n)" "y\<sharp>(\<theta>c,\<theta>n)"
+  assumes a: "lookup x a \<theta>_n \<theta>_c= Ax y b" "b\<sharp>(\<theta>_c,\<theta>_n)" "y\<sharp>(\<theta>_c,\<theta>_n)"
   shows "x=y \<and> a=b"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: trm.inject fresh_list_cons fresh_prod fresh_atm)
 apply(drule lookupa_unicity)
 apply(simp)+
@@ -3430,9 +3430,9 @@ done
 lemma lookup_freshness:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(c,\<theta>c,\<theta>n) \<Longrightarrow> a\<sharp>lookup y c \<theta>n \<theta>c"
-  and   "x\<sharp>(y,\<theta>c,\<theta>n) \<Longrightarrow> x\<sharp>lookup y c \<theta>n \<theta>c"   
-apply(induct \<theta>n)
+  shows "a\<sharp>(c,\<theta>_c,\<theta>_n) \<Longrightarrow> a\<sharp>lookup y c \<theta>_n \<theta>_c"
+  and   "x\<sharp>(y,\<theta>_c,\<theta>_n) \<Longrightarrow> x\<sharp>lookup y c \<theta>_n \<theta>_c"   
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_prod fresh_list_cons abs_fresh fresh_atm)
 apply(simp add: fresh_atm fresh_prod lookupa_freshness)
 apply(simp add: fresh_atm fresh_prod lookupa_freshness)
@@ -3443,9 +3443,9 @@ done
 lemma lookupc_freshness:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(\<theta>c,c) \<Longrightarrow> a\<sharp>lookupc y c \<theta>c"
-  and   "x\<sharp>(\<theta>c,y) \<Longrightarrow> x\<sharp>lookupc y c \<theta>c"
-apply(induct \<theta>c)
+  shows "a\<sharp>(\<theta>_c,c) \<Longrightarrow> a\<sharp>lookupc y c \<theta>_c"
+  and   "x\<sharp>(\<theta>_c,y) \<Longrightarrow> x\<sharp>lookupc y c \<theta>_c"
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_prod fresh_list_cons abs_fresh fresh_atm)
 apply(rule rename_fresh)
 apply(simp add: fresh_atm)
@@ -3454,26 +3454,26 @@ apply(simp add: fresh_atm)
 done
 
 lemma lookupc_fresh:
-  assumes a: "y\<sharp>\<theta>n"
-  shows "lookupc y a \<theta>n = Ax y a"
+  assumes a: "y\<sharp>\<theta>_n"
+  shows "lookupc y a \<theta>_n = Ax y a"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done
 
 lemma lookupc_nmaps:
-  assumes a: "\<theta>n nmaps x to Some (c,P)"
-  shows "lookupc x a \<theta>n = P[c\<turnstile>c>a]"
+  assumes a: "\<theta>_n nmaps x to Some (c,P)"
+  shows "lookupc x a \<theta>_n = P[c\<turnstile>c>a]"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto)
 done 
 
 lemma lookupc_unicity:
-  assumes a: "lookupc y a \<theta>n = Ax x b" "x\<sharp>\<theta>n"
+  assumes a: "lookupc y a \<theta>_n = Ax x b" "x\<sharp>\<theta>_n"
   shows "y=x"
 using a
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: trm.inject fresh_list_cons fresh_prod)
 apply(case_tac "y=aa")
 apply(auto)
@@ -3484,18 +3484,18 @@ apply(simp)
 done
 
 lemma lookupd_fresh:
-  assumes a: "a\<sharp>\<theta>c"
-  shows "lookupd y a \<theta>c = Ax y a"
+  assumes a: "a\<sharp>\<theta>_c"
+  shows "lookupd y a \<theta>_c = Ax y a"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_prod fresh_list_cons fresh_atm)
 done 
 
 lemma lookupd_unicity:
-  assumes a: "lookupd y a \<theta>c = Ax y b" "b\<sharp>\<theta>c"
+  assumes a: "lookupd y a \<theta>_c = Ax y b" "b\<sharp>\<theta>_c"
   shows "a=b"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto simp add: trm.inject fresh_list_cons fresh_prod)
 apply(case_tac "a=aa")
 apply(auto)
@@ -3508,9 +3508,9 @@ done
 lemma lookupd_freshness:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(\<theta>c,c) \<Longrightarrow> a\<sharp>lookupd y c \<theta>c"
-  and   "x\<sharp>(\<theta>c,y) \<Longrightarrow> x\<sharp>lookupd y c \<theta>c"
-apply(induct \<theta>c)
+  shows "a\<sharp>(\<theta>_c,c) \<Longrightarrow> a\<sharp>lookupd y c \<theta>_c"
+  and   "x\<sharp>(\<theta>_c,y) \<Longrightarrow> x\<sharp>lookupd y c \<theta>_c"
+apply(induct \<theta>_c)
 apply(auto simp add: fresh_prod fresh_list_cons abs_fresh fresh_atm)
 apply(rule rename_fresh)
 apply(simp add: fresh_atm)
@@ -3519,49 +3519,49 @@ apply(simp add: fresh_atm)
 done
 
 lemma lookupd_cmaps:
-  assumes a: "\<theta>c cmaps a to Some (x,P)"
-  shows "lookupd y a \<theta>c = P[x\<turnstile>n>y]"
+  assumes a: "\<theta>_c cmaps a to Some (x,P)"
+  shows "lookupd y a \<theta>_c = P[x\<turnstile>n>y]"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto)
 done 
 
-nominal_primrec (freshness_context: "\<theta>n::(name\<times>coname\<times>trm)")
+nominal_primrec (freshness_context: "\<theta>_n::(name\<times>coname\<times>trm)")
   stn :: "trm\<Rightarrow>(name\<times>coname\<times>trm) list\<Rightarrow>trm" 
 where
-  "stn (Ax x a) \<theta>n = lookupc x a \<theta>n"
-| "\<lbrakk>a\<sharp>(N,\<theta>n);x\<sharp>(M,\<theta>n)\<rbrakk> \<Longrightarrow> stn (Cut <a>.M (x).N) \<theta>n = (Cut <a>.M (x).N)" 
-| "x\<sharp>\<theta>n \<Longrightarrow> stn (NotR (x).M a) \<theta>n = (NotR (x).M a)"
-| "a\<sharp>\<theta>n \<Longrightarrow>stn (NotL <a>.M x) \<theta>n = (NotL <a>.M x)"
-| "\<lbrakk>a\<sharp>(N,d,b,\<theta>n);b\<sharp>(M,d,a,\<theta>n)\<rbrakk> \<Longrightarrow> stn (AndR <a>.M <b>.N d) \<theta>n = (AndR <a>.M <b>.N d)"
-| "x\<sharp>(z,\<theta>n) \<Longrightarrow> stn (AndL1 (x).M z) \<theta>n = (AndL1 (x).M z)"
-| "x\<sharp>(z,\<theta>n) \<Longrightarrow> stn (AndL2 (x).M z) \<theta>n = (AndL2 (x).M z)"
-| "a\<sharp>(b,\<theta>n) \<Longrightarrow> stn (OrR1 <a>.M b) \<theta>n = (OrR1 <a>.M b)"
-| "a\<sharp>(b,\<theta>n) \<Longrightarrow> stn (OrR2 <a>.M b) \<theta>n = (OrR2 <a>.M b)"
-| "\<lbrakk>x\<sharp>(N,z,u,\<theta>n);u\<sharp>(M,z,x,\<theta>n)\<rbrakk> \<Longrightarrow> stn (OrL (x).M (u).N z) \<theta>n = (OrL (x).M (u).N z)"
-| "\<lbrakk>a\<sharp>(b,\<theta>n);x\<sharp>\<theta>n\<rbrakk> \<Longrightarrow> stn (ImpR (x).<a>.M b) \<theta>n = (ImpR (x).<a>.M b)"
-| "\<lbrakk>a\<sharp>(N,\<theta>n);x\<sharp>(M,z,\<theta>n)\<rbrakk> \<Longrightarrow> stn (ImpL <a>.M (x).N z) \<theta>n = (ImpL <a>.M (x).N z)"
+  "stn (Ax x a) \<theta>_n = lookupc x a \<theta>_n"
+| "\<lbrakk>a\<sharp>(N,\<theta>_n);x\<sharp>(M,\<theta>_n)\<rbrakk> \<Longrightarrow> stn (Cut <a>.M (x).N) \<theta>_n = (Cut <a>.M (x).N)" 
+| "x\<sharp>\<theta>_n \<Longrightarrow> stn (NotR (x).M a) \<theta>_n = (NotR (x).M a)"
+| "a\<sharp>\<theta>_n \<Longrightarrow>stn (NotL <a>.M x) \<theta>_n = (NotL <a>.M x)"
+| "\<lbrakk>a\<sharp>(N,d,b,\<theta>_n);b\<sharp>(M,d,a,\<theta>_n)\<rbrakk> \<Longrightarrow> stn (AndR <a>.M <b>.N d) \<theta>_n = (AndR <a>.M <b>.N d)"
+| "x\<sharp>(z,\<theta>_n) \<Longrightarrow> stn (AndL1 (x).M z) \<theta>_n = (AndL1 (x).M z)"
+| "x\<sharp>(z,\<theta>_n) \<Longrightarrow> stn (AndL2 (x).M z) \<theta>_n = (AndL2 (x).M z)"
+| "a\<sharp>(b,\<theta>_n) \<Longrightarrow> stn (OrR1 <a>.M b) \<theta>_n = (OrR1 <a>.M b)"
+| "a\<sharp>(b,\<theta>_n) \<Longrightarrow> stn (OrR2 <a>.M b) \<theta>_n = (OrR2 <a>.M b)"
+| "\<lbrakk>x\<sharp>(N,z,u,\<theta>_n);u\<sharp>(M,z,x,\<theta>_n)\<rbrakk> \<Longrightarrow> stn (OrL (x).M (u).N z) \<theta>_n = (OrL (x).M (u).N z)"
+| "\<lbrakk>a\<sharp>(b,\<theta>_n);x\<sharp>\<theta>_n\<rbrakk> \<Longrightarrow> stn (ImpR (x).<a>.M b) \<theta>_n = (ImpR (x).<a>.M b)"
+| "\<lbrakk>a\<sharp>(N,\<theta>_n);x\<sharp>(M,z,\<theta>_n)\<rbrakk> \<Longrightarrow> stn (ImpL <a>.M (x).N z) \<theta>_n = (ImpL <a>.M (x).N z)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh abs_supp fin_supp)+
 apply(fresh_guess)+
 done
 
-nominal_primrec (freshness_context: "\<theta>c::(coname\<times>name\<times>trm)")
+nominal_primrec (freshness_context: "\<theta>_c::(coname\<times>name\<times>trm)")
   stc :: "trm\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm" 
 where
-  "stc (Ax x a) \<theta>c = lookupd x a \<theta>c"
-| "\<lbrakk>a\<sharp>(N,\<theta>c);x\<sharp>(M,\<theta>c)\<rbrakk> \<Longrightarrow> stc (Cut <a>.M (x).N) \<theta>c = (Cut <a>.M (x).N)" 
-| "x\<sharp>\<theta>c \<Longrightarrow> stc (NotR (x).M a) \<theta>c = (NotR (x).M a)"
-| "a\<sharp>\<theta>c \<Longrightarrow> stc (NotL <a>.M x) \<theta>c = (NotL <a>.M x)"
-| "\<lbrakk>a\<sharp>(N,d,b,\<theta>c);b\<sharp>(M,d,a,\<theta>c)\<rbrakk> \<Longrightarrow> stc (AndR <a>.M <b>.N d) \<theta>c = (AndR <a>.M <b>.N d)"
-| "x\<sharp>(z,\<theta>c) \<Longrightarrow> stc (AndL1 (x).M z) \<theta>c = (AndL1 (x).M z)"
-| "x\<sharp>(z,\<theta>c) \<Longrightarrow> stc (AndL2 (x).M z) \<theta>c = (AndL2 (x).M z)"
-| "a\<sharp>(b,\<theta>c) \<Longrightarrow> stc (OrR1 <a>.M b) \<theta>c = (OrR1 <a>.M b)"
-| "a\<sharp>(b,\<theta>c) \<Longrightarrow> stc (OrR2 <a>.M b) \<theta>c = (OrR2 <a>.M b)"
-| "\<lbrakk>x\<sharp>(N,z,u,\<theta>c);u\<sharp>(M,z,x,\<theta>c)\<rbrakk> \<Longrightarrow> stc (OrL (x).M (u).N z) \<theta>c = (OrL (x).M (u).N z)"
-| "\<lbrakk>a\<sharp>(b,\<theta>c);x\<sharp>\<theta>c\<rbrakk> \<Longrightarrow> stc (ImpR (x).<a>.M b) \<theta>c = (ImpR (x).<a>.M b)"
-| "\<lbrakk>a\<sharp>(N,\<theta>c);x\<sharp>(M,z,\<theta>c)\<rbrakk> \<Longrightarrow> stc (ImpL <a>.M (x).N z) \<theta>c = (ImpL <a>.M (x).N z)"
+  "stc (Ax x a) \<theta>_c = lookupd x a \<theta>_c"
+| "\<lbrakk>a\<sharp>(N,\<theta>_c);x\<sharp>(M,\<theta>_c)\<rbrakk> \<Longrightarrow> stc (Cut <a>.M (x).N) \<theta>_c = (Cut <a>.M (x).N)" 
+| "x\<sharp>\<theta>_c \<Longrightarrow> stc (NotR (x).M a) \<theta>_c = (NotR (x).M a)"
+| "a\<sharp>\<theta>_c \<Longrightarrow> stc (NotL <a>.M x) \<theta>_c = (NotL <a>.M x)"
+| "\<lbrakk>a\<sharp>(N,d,b,\<theta>_c);b\<sharp>(M,d,a,\<theta>_c)\<rbrakk> \<Longrightarrow> stc (AndR <a>.M <b>.N d) \<theta>_c = (AndR <a>.M <b>.N d)"
+| "x\<sharp>(z,\<theta>_c) \<Longrightarrow> stc (AndL1 (x).M z) \<theta>_c = (AndL1 (x).M z)"
+| "x\<sharp>(z,\<theta>_c) \<Longrightarrow> stc (AndL2 (x).M z) \<theta>_c = (AndL2 (x).M z)"
+| "a\<sharp>(b,\<theta>_c) \<Longrightarrow> stc (OrR1 <a>.M b) \<theta>_c = (OrR1 <a>.M b)"
+| "a\<sharp>(b,\<theta>_c) \<Longrightarrow> stc (OrR2 <a>.M b) \<theta>_c = (OrR2 <a>.M b)"
+| "\<lbrakk>x\<sharp>(N,z,u,\<theta>_c);u\<sharp>(M,z,x,\<theta>_c)\<rbrakk> \<Longrightarrow> stc (OrL (x).M (u).N z) \<theta>_c = (OrL (x).M (u).N z)"
+| "\<lbrakk>a\<sharp>(b,\<theta>_c);x\<sharp>\<theta>_c\<rbrakk> \<Longrightarrow> stc (ImpR (x).<a>.M b) \<theta>_c = (ImpR (x).<a>.M b)"
+| "\<lbrakk>a\<sharp>(N,\<theta>_c);x\<sharp>(M,z,\<theta>_c)\<rbrakk> \<Longrightarrow> stc (ImpL <a>.M (x).N z) \<theta>_c = (ImpL <a>.M (x).N z)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh abs_supp fin_supp)+
@@ -3571,33 +3571,33 @@ done
 lemma stn_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(stn M \<theta>n)) = stn (pi1\<bullet>M) (pi1\<bullet>\<theta>n)"
-  and   "(pi2\<bullet>(stn M \<theta>n)) = stn (pi2\<bullet>M) (pi2\<bullet>\<theta>n)"
+  shows "(pi1\<bullet>(stn M \<theta>_n)) = stn (pi1\<bullet>M) (pi1\<bullet>\<theta>_n)"
+  and   "(pi2\<bullet>(stn M \<theta>_n)) = stn (pi2\<bullet>M) (pi2\<bullet>\<theta>_n)"
 apply -
-apply(nominal_induct M avoiding: \<theta>n rule: trm.strong_induct)
+apply(nominal_induct M avoiding: \<theta>_n rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
-apply(nominal_induct M avoiding: \<theta>n rule: trm.strong_induct)
+apply(nominal_induct M avoiding: \<theta>_n rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
 done
 
 lemma stc_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "(pi1\<bullet>(stc M \<theta>c)) = stc (pi1\<bullet>M) (pi1\<bullet>\<theta>c)"
-  and   "(pi2\<bullet>(stc M \<theta>c)) = stc (pi2\<bullet>M) (pi2\<bullet>\<theta>c)"
+  shows "(pi1\<bullet>(stc M \<theta>_c)) = stc (pi1\<bullet>M) (pi1\<bullet>\<theta>_c)"
+  and   "(pi2\<bullet>(stc M \<theta>_c)) = stc (pi2\<bullet>M) (pi2\<bullet>\<theta>_c)"
 apply -
-apply(nominal_induct M avoiding: \<theta>c rule: trm.strong_induct)
+apply(nominal_induct M avoiding: \<theta>_c rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
-apply(nominal_induct M avoiding: \<theta>c rule: trm.strong_induct)
+apply(nominal_induct M avoiding: \<theta>_c rule: trm.strong_induct)
 apply(auto simp add: eqvts fresh_bij fresh_prod eq_bij fresh_atm)
 done
 
 lemma stn_fresh:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(\<theta>n,M) \<Longrightarrow> a\<sharp>stn M \<theta>n"
-  and   "x\<sharp>(\<theta>n,M) \<Longrightarrow> x\<sharp>stn M \<theta>n"
-apply(nominal_induct M avoiding: \<theta>n a x rule: trm.strong_induct)
+  shows "a\<sharp>(\<theta>_n,M) \<Longrightarrow> a\<sharp>stn M \<theta>_n"
+  and   "x\<sharp>(\<theta>_n,M) \<Longrightarrow> x\<sharp>stn M \<theta>_n"
+apply(nominal_induct M avoiding: \<theta>_n a x rule: trm.strong_induct)
 apply(auto simp add: abs_fresh fresh_prod fresh_atm)
 apply(rule lookupc_freshness)
 apply(simp add: fresh_atm)
@@ -3608,9 +3608,9 @@ done
 lemma stc_fresh:
   fixes a::"coname"
   and   x::"name"
-  shows "a\<sharp>(\<theta>c,M) \<Longrightarrow> a\<sharp>stc M \<theta>c"
-  and   "x\<sharp>(\<theta>c,M) \<Longrightarrow> x\<sharp>stc M \<theta>c"
-apply(nominal_induct M avoiding: \<theta>c a x rule: trm.strong_induct)
+  shows "a\<sharp>(\<theta>_c,M) \<Longrightarrow> a\<sharp>stc M \<theta>_c"
+  and   "x\<sharp>(\<theta>_c,M) \<Longrightarrow> x\<sharp>stc M \<theta>_c"
+apply(nominal_induct M avoiding: \<theta>_c a x rule: trm.strong_induct)
 apply(auto simp add: abs_fresh fresh_prod fresh_atm)
 apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
@@ -3652,58 +3652,58 @@ apply(auto)
 apply(perm_simp)
 done
 
-nominal_primrec (freshness_context: "(\<theta>n::(name\<times>coname\<times>trm) list,\<theta>c::(coname\<times>name\<times>trm) list)")
+nominal_primrec (freshness_context: "(\<theta>_n::(name\<times>coname\<times>trm) list,\<theta>_c::(coname\<times>name\<times>trm) list)")
   psubst :: "(name\<times>coname\<times>trm) list\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm\<Rightarrow>trm" ("_,_<_>" [100,100,100] 100) 
 where
-  "\<theta>n,\<theta>c<Ax x a> = lookup x a \<theta>n \<theta>c" 
-| "\<lbrakk>a\<sharp>(N,\<theta>n,\<theta>c);x\<sharp>(M,\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> \<theta>n,\<theta>c<Cut <a>.M (x).N> = 
-   Cut <a>.(if \<exists>x. M=Ax x a then stn M \<theta>n else \<theta>n,\<theta>c<M>) 
-       (x).(if \<exists>a. N=Ax x a then stc N \<theta>c else \<theta>n,\<theta>c<N>)" 
-| "x\<sharp>(\<theta>n,\<theta>c) \<Longrightarrow> \<theta>n,\<theta>c<NotR (x).M a> = 
-  (case (findc \<theta>c a) of 
-       Some (u,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.NotR (x).(\<theta>n,\<theta>c<M>) a' (u).P) 
-     | None \<Rightarrow> NotR (x).(\<theta>n,\<theta>c<M>) a)"
-| "a\<sharp>(\<theta>n,\<theta>c) \<Longrightarrow> \<theta>n,\<theta>c<NotL <a>.M x> = 
-  (case (findn \<theta>n x) of 
-       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>x'. Cut <c>.P (x').(NotL <a>.(\<theta>n,\<theta>c<M>) x')) 
-     | None \<Rightarrow> NotL <a>.(\<theta>n,\<theta>c<M>) x)"
-| "\<lbrakk>a\<sharp>(N,c,\<theta>n,\<theta>c);b\<sharp>(M,c,\<theta>n,\<theta>c);b\<noteq>a\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<AndR <a>.M <b>.N c>) = 
-  (case (findc \<theta>c c) of 
-       Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.(AndR <a>.(\<theta>n,\<theta>c<M>) <b>.(\<theta>n,\<theta>c<N>) a') (x).P)
-     | None \<Rightarrow> AndR <a>.(\<theta>n,\<theta>c<M>) <b>.(\<theta>n,\<theta>c<N>) c)"
-| "x\<sharp>(z,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<AndL1 (x).M z>) = 
-  (case (findn \<theta>n z) of 
-       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL1 (x).(\<theta>n,\<theta>c<M>) z') 
-     | None \<Rightarrow> AndL1 (x).(\<theta>n,\<theta>c<M>) z)"
-| "x\<sharp>(z,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<AndL2 (x).M z>) = 
-  (case (findn \<theta>n z) of 
-       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL2 (x).(\<theta>n,\<theta>c<M>) z') 
-     | None \<Rightarrow> AndL2 (x).(\<theta>n,\<theta>c<M>) z)"
-| "\<lbrakk>x\<sharp>(N,z,\<theta>n,\<theta>c);u\<sharp>(M,z,\<theta>n,\<theta>c);x\<noteq>u\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<OrL (x).M (u).N z>) =
-  (case (findn \<theta>n z) of  
-       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').OrL (x).(\<theta>n,\<theta>c<M>) (u).(\<theta>n,\<theta>c<N>) z') 
-     | None \<Rightarrow> OrL (x).(\<theta>n,\<theta>c<M>) (u).(\<theta>n,\<theta>c<N>) z)"
-| "a\<sharp>(b,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<OrR1 <a>.M b>) = 
-  (case (findc \<theta>c b) of
-       Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <a>.(\<theta>n,\<theta>c<M>) a' (x).P) 
-     | None \<Rightarrow> OrR1 <a>.(\<theta>n,\<theta>c<M>) b)"
-| "a\<sharp>(b,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<OrR2 <a>.M b>) = 
-  (case (findc \<theta>c b) of
-       Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <a>.(\<theta>n,\<theta>c<M>) a' (x).P) 
-     | None \<Rightarrow> OrR2 <a>.(\<theta>n,\<theta>c<M>) b)"
-| "\<lbrakk>a\<sharp>(b,\<theta>n,\<theta>c); x\<sharp>(\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<ImpR (x).<a>.M b>) = 
-  (case (findc \<theta>c b) of
-       Some (z,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.ImpR (x).<a>.(\<theta>n,\<theta>c<M>) a' (z).P)
-     | None \<Rightarrow> ImpR (x).<a>.(\<theta>n,\<theta>c<M>) b)"
-| "\<lbrakk>a\<sharp>(N,\<theta>n,\<theta>c); x\<sharp>(z,M,\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<ImpL <a>.M (x).N z>) = 
-  (case (findn \<theta>n z) of
-       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').ImpL <a>.(\<theta>n,\<theta>c<M>) (x).(\<theta>n,\<theta>c<N>) z') 
-     | None \<Rightarrow> ImpL <a>.(\<theta>n,\<theta>c<M>) (x).(\<theta>n,\<theta>c<N>) z)"
+  "\<theta>_n,\<theta>_c<Ax x a> = lookup x a \<theta>_n \<theta>_c" 
+| "\<lbrakk>a\<sharp>(N,\<theta>_n,\<theta>_c);x\<sharp>(M,\<theta>_n,\<theta>_c)\<rbrakk> \<Longrightarrow> \<theta>_n,\<theta>_c<Cut <a>.M (x).N> = 
+   Cut <a>.(if \<exists>x. M=Ax x a then stn M \<theta>_n else \<theta>_n,\<theta>_c<M>) 
+       (x).(if \<exists>a. N=Ax x a then stc N \<theta>_c else \<theta>_n,\<theta>_c<N>)" 
+| "x\<sharp>(\<theta>_n,\<theta>_c) \<Longrightarrow> \<theta>_n,\<theta>_c<NotR (x).M a> = 
+  (case (findc \<theta>_c a) of 
+       Some (u,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.NotR (x).(\<theta>_n,\<theta>_c<M>) a' (u).P) 
+     | None \<Rightarrow> NotR (x).(\<theta>_n,\<theta>_c<M>) a)"
+| "a\<sharp>(\<theta>_n,\<theta>_c) \<Longrightarrow> \<theta>_n,\<theta>_c<NotL <a>.M x> = 
+  (case (findn \<theta>_n x) of 
+       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>x'. Cut <c>.P (x').(NotL <a>.(\<theta>_n,\<theta>_c<M>) x')) 
+     | None \<Rightarrow> NotL <a>.(\<theta>_n,\<theta>_c<M>) x)"
+| "\<lbrakk>a\<sharp>(N,c,\<theta>_n,\<theta>_c);b\<sharp>(M,c,\<theta>_n,\<theta>_c);b\<noteq>a\<rbrakk> \<Longrightarrow> (\<theta>_n,\<theta>_c<AndR <a>.M <b>.N c>) = 
+  (case (findc \<theta>_c c) of 
+       Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.(AndR <a>.(\<theta>_n,\<theta>_c<M>) <b>.(\<theta>_n,\<theta>_c<N>) a') (x).P)
+     | None \<Rightarrow> AndR <a>.(\<theta>_n,\<theta>_c<M>) <b>.(\<theta>_n,\<theta>_c<N>) c)"
+| "x\<sharp>(z,\<theta>_n,\<theta>_c) \<Longrightarrow> (\<theta>_n,\<theta>_c<AndL1 (x).M z>) = 
+  (case (findn \<theta>_n z) of 
+       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL1 (x).(\<theta>_n,\<theta>_c<M>) z') 
+     | None \<Rightarrow> AndL1 (x).(\<theta>_n,\<theta>_c<M>) z)"
+| "x\<sharp>(z,\<theta>_n,\<theta>_c) \<Longrightarrow> (\<theta>_n,\<theta>_c<AndL2 (x).M z>) = 
+  (case (findn \<theta>_n z) of 
+       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL2 (x).(\<theta>_n,\<theta>_c<M>) z') 
+     | None \<Rightarrow> AndL2 (x).(\<theta>_n,\<theta>_c<M>) z)"
+| "\<lbrakk>x\<sharp>(N,z,\<theta>_n,\<theta>_c);u\<sharp>(M,z,\<theta>_n,\<theta>_c);x\<noteq>u\<rbrakk> \<Longrightarrow> (\<theta>_n,\<theta>_c<OrL (x).M (u).N z>) =
+  (case (findn \<theta>_n z) of  
+       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').OrL (x).(\<theta>_n,\<theta>_c<M>) (u).(\<theta>_n,\<theta>_c<N>) z') 
+     | None \<Rightarrow> OrL (x).(\<theta>_n,\<theta>_c<M>) (u).(\<theta>_n,\<theta>_c<N>) z)"
+| "a\<sharp>(b,\<theta>_n,\<theta>_c) \<Longrightarrow> (\<theta>_n,\<theta>_c<OrR1 <a>.M b>) = 
+  (case (findc \<theta>_c b) of
+       Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <a>.(\<theta>_n,\<theta>_c<M>) a' (x).P) 
+     | None \<Rightarrow> OrR1 <a>.(\<theta>_n,\<theta>_c<M>) b)"
+| "a\<sharp>(b,\<theta>_n,\<theta>_c) \<Longrightarrow> (\<theta>_n,\<theta>_c<OrR2 <a>.M b>) = 
+  (case (findc \<theta>_c b) of
+       Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <a>.(\<theta>_n,\<theta>_c<M>) a' (x).P) 
+     | None \<Rightarrow> OrR2 <a>.(\<theta>_n,\<theta>_c<M>) b)"
+| "\<lbrakk>a\<sharp>(b,\<theta>_n,\<theta>_c); x\<sharp>(\<theta>_n,\<theta>_c)\<rbrakk> \<Longrightarrow> (\<theta>_n,\<theta>_c<ImpR (x).<a>.M b>) = 
+  (case (findc \<theta>_c b) of
+       Some (z,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.ImpR (x).<a>.(\<theta>_n,\<theta>_c<M>) a' (z).P)
+     | None \<Rightarrow> ImpR (x).<a>.(\<theta>_n,\<theta>_c<M>) b)"
+| "\<lbrakk>a\<sharp>(N,\<theta>_n,\<theta>_c); x\<sharp>(z,M,\<theta>_n,\<theta>_c)\<rbrakk> \<Longrightarrow> (\<theta>_n,\<theta>_c<ImpL <a>.M (x).N z>) = 
+  (case (findn \<theta>_n z) of
+       Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').ImpL <a>.(\<theta>_n,\<theta>_c<M>) (x).(\<theta>_n,\<theta>_c<N>) z') 
+     | None \<Rightarrow> ImpL <a>.(\<theta>_n,\<theta>_c<M>) (x).(\<theta>_n,\<theta>_c<N>) z)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh stc_fresh)
 apply(simp add: abs_fresh stn_fresh)
-apply(case_tac "findc \<theta>c x3")
+apply(case_tac "findc \<theta>_c x3")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3711,7 +3711,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findn \<theta>n x3")
+apply(case_tac "findn \<theta>_n x3")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3719,7 +3719,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule nmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findc \<theta>c x5")
+apply(case_tac "findc \<theta>_c x5")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3727,7 +3727,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findc \<theta>c x5")
+apply(case_tac "findc \<theta>_c x5")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3735,7 +3735,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule_tac x="x3" in cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findn \<theta>n x3")
+apply(case_tac "findn \<theta>_n x3")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3743,7 +3743,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule nmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findn \<theta>n x3")
+apply(case_tac "findn \<theta>_n x3")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3751,7 +3751,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule nmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findc \<theta>c x3")
+apply(case_tac "findc \<theta>_c x3")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3759,7 +3759,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findc \<theta>c x3")
+apply(case_tac "findc \<theta>_c x3")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3767,7 +3767,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findn \<theta>n x5")
+apply(case_tac "findn \<theta>_n x5")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3775,7 +3775,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule nmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findn \<theta>n x5")
+apply(case_tac "findn \<theta>_n x5")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3783,7 +3783,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule_tac a="x3" in nmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findc \<theta>c x4")
+apply(case_tac "findc \<theta>_c x4")
 apply(simp add: abs_fresh abs_supp fin_supp)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3791,7 +3791,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm abs_supp fin_supp)
-apply(case_tac "findc \<theta>c x4")
+apply(case_tac "findc \<theta>_c x4")
 apply(simp add: abs_fresh abs_supp fin_supp)
 apply(auto)[1]
 apply(generate_fresh "coname")
@@ -3799,7 +3799,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule_tac x="x2" in cmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm abs_supp fin_supp)
-apply(case_tac "findn \<theta>n x5")
+apply(case_tac "findn \<theta>_n x5")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3807,7 +3807,7 @@ apply(fresh_fun_simp (no_asm))
 apply(drule nmaps_fresh)
 apply(auto simp add: fresh_prod)[1]
 apply(simp add: abs_fresh fresh_prod fresh_atm)
-apply(case_tac "findn \<theta>n x5")
+apply(case_tac "findn \<theta>_n x5")
 apply(simp add: abs_fresh)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -3826,17 +3826,17 @@ apply(auto)
 done
 
 lemma find_maps:
-  shows "\<theta>c cmaps a to (findc \<theta>c a)"
-  and   "\<theta>n nmaps x to (findn \<theta>n x)"
+  shows "\<theta>_c cmaps a to (findc \<theta>_c a)"
+  and   "\<theta>_n nmaps x to (findn \<theta>_n x)"
 apply(auto)
 done
 
 lemma psubst_eqvt[eqvt]:
   fixes pi1::"name prm"
   and   pi2::"coname prm"
-  shows "pi1\<bullet>(\<theta>n,\<theta>c<M>) = (pi1\<bullet>\<theta>n),(pi1\<bullet>\<theta>c)<(pi1\<bullet>M)>"
-  and   "pi2\<bullet>(\<theta>n,\<theta>c<M>) = (pi2\<bullet>\<theta>n),(pi2\<bullet>\<theta>c)<(pi2\<bullet>M)>"
-apply(nominal_induct M avoiding: \<theta>n \<theta>c rule: trm.strong_induct)
+  shows "pi1\<bullet>(\<theta>_n,\<theta>_c<M>) = (pi1\<bullet>\<theta>_n),(pi1\<bullet>\<theta>_c)<(pi1\<bullet>M)>"
+  and   "pi2\<bullet>(\<theta>_n,\<theta>_c<M>) = (pi2\<bullet>\<theta>_n),(pi2\<bullet>\<theta>_c)<(pi2\<bullet>M)>"
+apply(nominal_induct M avoiding: \<theta>_n \<theta>_c rule: trm.strong_induct)
 apply(auto simp add: eq_bij fresh_bij eqvts perm_pi_simp)
 apply(rule case_cong)
 apply(rule find_maps)
@@ -3921,69 +3921,69 @@ apply(perm_simp add: eqvts)
 done
 
 lemma ax_psubst:
-  assumes a: "\<theta>n,\<theta>c<M> = Ax x a"
-  and     b: "a\<sharp>(\<theta>n,\<theta>c)" "x\<sharp>(\<theta>n,\<theta>c)"
+  assumes a: "\<theta>_n,\<theta>_c<M> = Ax x a"
+  and     b: "a\<sharp>(\<theta>_n,\<theta>_c)" "x\<sharp>(\<theta>_n,\<theta>_c)"
   shows "M = Ax x a"
 using a b
-apply(nominal_induct M avoiding: \<theta>n \<theta>c rule: trm.strong_induct)
+apply(nominal_induct M avoiding: \<theta>_n \<theta>_c rule: trm.strong_induct)
 apply(auto)
 apply(drule lookup_unicity)
 apply(simp)+
-apply(case_tac "findc \<theta>c coname")
+apply(case_tac "findc \<theta>_c coname")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findn \<theta>n name")
+apply(case_tac "findn \<theta>_n name")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findc \<theta>c coname3")
+apply(case_tac "findc \<theta>_c coname3")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findn \<theta>n name3")
+apply(case_tac "findn \<theta>_n name3")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -4113,10 +4113,10 @@ done
 
 lemma psubst_fresh_name:
   fixes x::"name"
-  assumes a: "x\<sharp>\<theta>n" "x\<sharp>\<theta>c" "x\<sharp>M"
-  shows "x\<sharp>\<theta>n,\<theta>c<M>"
+  assumes a: "x\<sharp>\<theta>_n" "x\<sharp>\<theta>_c" "x\<sharp>M"
+  shows "x\<sharp>\<theta>_n,\<theta>_c<M>"
 using a
-apply(nominal_induct M avoiding: x \<theta>n \<theta>c rule: trm.strong_induct)
+apply(nominal_induct M avoiding: x \<theta>_n \<theta>_c rule: trm.strong_induct)
 apply(simp add: lookup_freshness)
 apply(auto simp add: abs_fresh)[1]
 apply(simp add: lookupc_freshness)
@@ -4126,70 +4126,70 @@ apply(simp add: lookupd_freshness)
 apply(simp add: lookupd_freshness)
 apply(simp add: lookupc_freshness)
 apply(simp)
-apply(case_tac "findc \<theta>c coname")
+apply(case_tac "findc \<theta>_c coname")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name")
+apply(case_tac "findn \<theta>_n name")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname3")
+apply(case_tac "findc \<theta>_c coname3")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name3")
+apply(case_tac "findn \<theta>_n name3")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(auto simp add: abs_fresh abs_supp fin_supp)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh abs_supp fin_supp fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -4199,10 +4199,10 @@ done
 
 lemma psubst_fresh_coname:
   fixes a::"coname"
-  assumes a: "a\<sharp>\<theta>n" "a\<sharp>\<theta>c" "a\<sharp>M"
-  shows "a\<sharp>\<theta>n,\<theta>c<M>"
+  assumes a: "a\<sharp>\<theta>_n" "a\<sharp>\<theta>_c" "a\<sharp>M"
+  shows "a\<sharp>\<theta>_n,\<theta>_c<M>"
 using a
-apply(nominal_induct M avoiding: a \<theta>n \<theta>c rule: trm.strong_induct)
+apply(nominal_induct M avoiding: a \<theta>_n \<theta>_c rule: trm.strong_induct)
 apply(simp add: lookup_freshness)
 apply(auto simp add: abs_fresh)[1]
 apply(simp add: lookupd_freshness)
@@ -4212,70 +4212,70 @@ apply(simp add: lookupd_freshness)
 apply(simp add: lookupc_freshness)
 apply(simp add: lookupd_freshness)
 apply(simp)
-apply(case_tac "findc \<theta>c coname")
+apply(case_tac "findc \<theta>_c coname")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name")
+apply(case_tac "findn \<theta>_n name")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname3")
+apply(case_tac "findc \<theta>_c coname3")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name3")
+apply(case_tac "findn \<theta>_n name3")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(auto simp add: abs_fresh abs_supp fin_supp)[1]
 apply(auto)[1]
 apply(generate_fresh "coname")
 apply(fresh_fun_simp)
 apply(simp add: abs_fresh abs_supp fin_supp fresh_prod fresh_atm cmaps_fresh)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(auto simp add: abs_fresh)[1]
 apply(auto)[1]
 apply(generate_fresh "name")
@@ -4284,10 +4284,10 @@ apply(simp add: abs_fresh fresh_prod fresh_atm nmaps_fresh)
 done
 
 lemma psubst_csubst:
-  assumes a: "a\<sharp>(\<theta>n,\<theta>c)"
-  shows "\<theta>n,((a,x,P)#\<theta>c)<M> = ((\<theta>n,\<theta>c<M>){a:=(x).P})"
+  assumes a: "a\<sharp>(\<theta>_n,\<theta>_c)"
+  shows "\<theta>_n,((a,x,P)#\<theta>_c)<M> = ((\<theta>_n,\<theta>_c<M>){a:=(x).P})"
 using a
-apply(nominal_induct M avoiding: a x \<theta>n \<theta>c P rule: trm.strong_induct)
+apply(nominal_induct M avoiding: a x \<theta>_n \<theta>_c P rule: trm.strong_induct)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp add: lookup_csubst)
 apply(simp add: fresh_list_cons fresh_prod)
@@ -4298,7 +4298,7 @@ apply(rule better_Cut_substc)
 apply(simp)
 apply(simp add: abs_fresh fresh_atm)
 apply(simp add: lookupd_fresh)
-apply(subgoal_tac "a\<sharp>lookupc xa coname \<theta>n")
+apply(subgoal_tac "a\<sharp>lookupc xa coname \<theta>_n")
 apply(simp add: forget)
 apply(simp add: trm.inject)
 apply(rule sym)
@@ -4315,8 +4315,8 @@ apply(rule conjI)
 apply(rule impI)
 apply(simp add: lookupd_unicity)
 apply(rule impI)
-apply(subgoal_tac "a\<sharp>lookupc xa coname \<theta>n")
-apply(subgoal_tac "a\<sharp>lookupd name aa \<theta>c")
+apply(subgoal_tac "a\<sharp>lookupc xa coname \<theta>_n")
+apply(subgoal_tac "a\<sharp>lookupd name aa \<theta>_c")
 apply(simp add: forget)
 apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
@@ -4335,7 +4335,7 @@ apply(simp)
 apply(simp)
 apply(blast)
 apply(rule impI)
-apply(subgoal_tac "a\<sharp>lookupc xa coname \<theta>n")
+apply(subgoal_tac "a\<sharp>lookupc xa coname \<theta>_n")
 apply(simp add: forget)
 apply(rule lookupc_freshness)
 apply(simp add: fresh_atm)
@@ -4362,7 +4362,7 @@ apply(rule conjI)
 apply(rule impI)
 apply(simp add: lookupd_unicity)
 apply(rule impI)
-apply(subgoal_tac "a\<sharp>lookupd name aa \<theta>c")
+apply(subgoal_tac "a\<sharp>lookupd name aa \<theta>_c")
 apply(simp add: forget)
 apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
@@ -4379,7 +4379,7 @@ apply(simp)
 apply(blast)
 (* NotR *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname")
+apply(case_tac "findc \<theta>_c coname")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4398,7 +4398,7 @@ apply(simp add: cmaps_fresh)
 apply(auto simp add: fresh_prod fresh_atm)[1]
 (* NotL *)
 apply(simp)
-apply(case_tac "findn \<theta>n name")
+apply(case_tac "findn \<theta>_n name")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4417,7 +4417,7 @@ apply(simp)
 apply(simp)
 (* AndR *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname3")
+apply(case_tac "findc \<theta>_c coname3")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4436,7 +4436,7 @@ apply(simp add: cmaps_fresh)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* AndL1 *)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4455,7 +4455,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* AndL2 *)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4474,7 +4474,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* OrR1 *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4493,7 +4493,7 @@ apply(simp add: cmaps_fresh)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* OrR2 *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4512,7 +4512,7 @@ apply(simp add: cmaps_fresh)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* OrL *)
 apply(simp)
-apply(case_tac "findn \<theta>n name3")
+apply(case_tac "findn \<theta>_n name3")
 apply(simp)
 apply(auto simp add: fresh_list_cons psubst_fresh_name fresh_atm fresh_prod)[1]
 apply(simp)
@@ -4531,7 +4531,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_name fresh_prod fresh_atm)[1]
 (* ImpR *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4550,7 +4550,7 @@ apply(simp add: cmaps_fresh)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* ImpL *)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto simp add: fresh_list_cons psubst_fresh_coname psubst_fresh_name fresh_atm fresh_prod)[1]
 apply(simp)
@@ -4571,10 +4571,10 @@ apply(auto simp add: psubst_fresh_coname psubst_fresh_name fresh_prod fresh_atm)
 done
 
 lemma psubst_nsubst:
-  assumes a: "x\<sharp>(\<theta>n,\<theta>c)"
-  shows "((x,a,P)#\<theta>n),\<theta>c<M> = ((\<theta>n,\<theta>c<M>){x:=<a>.P})"
+  assumes a: "x\<sharp>(\<theta>_n,\<theta>_c)"
+  shows "((x,a,P)#\<theta>_n),\<theta>_c<M> = ((\<theta>_n,\<theta>_c<M>){x:=<a>.P})"
 using a
-apply(nominal_induct M avoiding: a x \<theta>n \<theta>c P rule: trm.strong_induct)
+apply(nominal_induct M avoiding: a x \<theta>_n \<theta>_c P rule: trm.strong_induct)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp add: lookup_fresh)
 apply(rule lookupb_lookupa)
@@ -4591,7 +4591,7 @@ apply(rule better_Cut_substn)
 apply(simp add: abs_fresh)
 apply(simp add: abs_fresh fresh_atm)
 apply(simp add: lookupd_fresh)
-apply(subgoal_tac "x\<sharp>lookupd name aa \<theta>c")
+apply(subgoal_tac "x\<sharp>lookupd name aa \<theta>_c")
 apply(simp add: forget)
 apply(simp add: trm.inject)
 apply(rule sym)
@@ -4608,8 +4608,8 @@ apply(rule conjI)
 apply(rule impI)
 apply(simp add: lookupc_unicity)
 apply(rule impI)
-apply(subgoal_tac "x\<sharp>lookupc xa coname \<theta>n")
-apply(subgoal_tac "x\<sharp>lookupd name aa \<theta>c")
+apply(subgoal_tac "x\<sharp>lookupc xa coname \<theta>_n")
+apply(subgoal_tac "x\<sharp>lookupd name aa \<theta>_c")
 apply(simp add: forget)
 apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
@@ -4638,7 +4638,7 @@ apply(rule conjI)
 apply(rule impI)
 apply(simp add: lookupc_unicity)
 apply(rule impI)
-apply(subgoal_tac "x\<sharp>lookupc xa coname \<theta>n")
+apply(subgoal_tac "x\<sharp>lookupc xa coname \<theta>_n")
 apply(simp add: forget)
 apply(rule lookupc_freshness)
 apply(simp add: fresh_prod fresh_atm)
@@ -4656,7 +4656,7 @@ apply(simp)
 apply(simp)
 apply(blast)
 apply(rule impI)
-apply(subgoal_tac "x\<sharp>lookupd name aa \<theta>c")
+apply(subgoal_tac "x\<sharp>lookupd name aa \<theta>_c")
 apply(simp add: forget)
 apply(rule lookupd_freshness)
 apply(simp add: fresh_atm)
@@ -4673,7 +4673,7 @@ apply(simp)
 apply(blast)
 (* NotR *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname")
+apply(case_tac "findc \<theta>_c coname")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4690,7 +4690,7 @@ apply(simp)
 apply(simp)
 (* NotL *)
 apply(simp)
-apply(case_tac "findn \<theta>n name")
+apply(case_tac "findn \<theta>_n name")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4709,7 +4709,7 @@ apply(simp add: nmaps_fresh)
 apply(simp add: fresh_prod fresh_atm)
 (* AndR *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname3")
+apply(case_tac "findc \<theta>_c coname3")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4726,7 +4726,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* AndL1 *)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4745,7 +4745,7 @@ apply(simp add: nmaps_fresh)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* AndL2 *)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto simp add: fresh_list_cons fresh_prod)[1]
 apply(simp)
@@ -4764,7 +4764,7 @@ apply(simp add: nmaps_fresh)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* OrR1 *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4781,7 +4781,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* OrR2 *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4798,7 +4798,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* OrL *)
 apply(simp)
-apply(case_tac "findn \<theta>n name3")
+apply(case_tac "findn \<theta>_n name3")
 apply(simp)
 apply(auto simp add: fresh_list_cons psubst_fresh_name fresh_atm fresh_prod)[1]
 apply(simp)
@@ -4817,7 +4817,7 @@ apply(simp add: nmaps_fresh)
 apply(auto simp add:  psubst_fresh_name fresh_prod fresh_atm)[1]
 (* ImpR *)
 apply(simp)
-apply(case_tac "findc \<theta>c coname2")
+apply(case_tac "findc \<theta>_c coname2")
 apply(simp)
 apply(auto simp add: psubst_fresh_coname fresh_list_cons fresh_prod fresh_atm)[1]
 apply(simp)
@@ -4834,7 +4834,7 @@ apply(simp)
 apply(auto simp add:  psubst_fresh_coname fresh_prod fresh_atm)[1]
 (* ImpL *)
 apply(simp)
-apply(case_tac "findn \<theta>n name2")
+apply(case_tac "findn \<theta>_n name2")
 apply(simp)
 apply(auto simp add: fresh_list_cons psubst_fresh_coname psubst_fresh_name fresh_atm fresh_prod)[1]
 apply(simp)
@@ -4856,35 +4856,35 @@ done
 definition 
   ncloses :: "(name\<times>coname\<times>trm) list\<Rightarrow>(name\<times>ty) list \<Rightarrow> bool" ("_ ncloses _" [55,55] 55) 
 where
-  "\<theta>n ncloses \<Gamma> \<equiv> \<forall>x B. ((x,B) \<in> set \<Gamma> \<longrightarrow> (\<exists>c P. \<theta>n nmaps x to Some (c,P) \<and> <c>:P \<in> (\<parallel><B>\<parallel>)))"
+  "\<theta>_n ncloses \<Gamma> \<equiv> \<forall>x B. ((x,B) \<in> set \<Gamma> \<longrightarrow> (\<exists>c P. \<theta>_n nmaps x to Some (c,P) \<and> <c>:P \<in> (\<parallel><B>\<parallel>)))"
   
 definition 
   ccloses :: "(coname\<times>name\<times>trm) list\<Rightarrow>(coname\<times>ty) list \<Rightarrow> bool" ("_ ccloses _" [55,55] 55) 
 where
-  "\<theta>c ccloses \<Delta> \<equiv> \<forall>a B. ((a,B) \<in> set \<Delta> \<longrightarrow> (\<exists>x P. \<theta>c cmaps a to Some (x,P) \<and> (x):P \<in> (\<parallel>(B)\<parallel>)))"
+  "\<theta>_c ccloses \<Delta> \<equiv> \<forall>a B. ((a,B) \<in> set \<Delta> \<longrightarrow> (\<exists>x P. \<theta>_c cmaps a to Some (x,P) \<and> (x):P \<in> (\<parallel>(B)\<parallel>)))"
 
 lemma ncloses_elim:
   assumes a: "(x,B) \<in> set \<Gamma>"
-  and     b: "\<theta>n ncloses \<Gamma>"
-  shows "\<exists>c P. \<theta>n nmaps x to Some (c,P) \<and> <c>:P \<in> (\<parallel><B>\<parallel>)"
+  and     b: "\<theta>_n ncloses \<Gamma>"
+  shows "\<exists>c P. \<theta>_n nmaps x to Some (c,P) \<and> <c>:P \<in> (\<parallel><B>\<parallel>)"
 using a b by (auto simp add: ncloses_def)
 
 lemma ccloses_elim:
   assumes a: "(a,B) \<in> set \<Delta>"
-  and     b: "\<theta>c ccloses \<Delta>"
-  shows "\<exists>x P. \<theta>c cmaps a to Some (x,P) \<and> (x):P \<in> (\<parallel>(B)\<parallel>)"
+  and     b: "\<theta>_c ccloses \<Delta>"
+  shows "\<exists>x P. \<theta>_c cmaps a to Some (x,P) \<and> (x):P \<in> (\<parallel>(B)\<parallel>)"
 using a b by (auto simp add: ccloses_def)
 
 lemma ncloses_subset:
-  assumes a: "\<theta>n ncloses \<Gamma>"
+  assumes a: "\<theta>_n ncloses \<Gamma>"
   and     b: "set \<Gamma>' \<subseteq> set \<Gamma>"
-  shows "\<theta>n ncloses \<Gamma>'"
+  shows "\<theta>_n ncloses \<Gamma>'"
 using a b by (auto  simp add: ncloses_def)
 
 lemma ccloses_subset:
-  assumes a: "\<theta>c ccloses \<Delta>"
+  assumes a: "\<theta>_c ccloses \<Delta>"
   and     b: "set \<Delta>' \<subseteq> set \<Delta>"
-  shows "\<theta>c ccloses \<Delta>'"
+  shows "\<theta>_c ccloses \<Delta>'"
 using a b by (auto  simp add: ccloses_def)
 
 lemma validc_fresh:
@@ -4908,8 +4908,8 @@ apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
 done
 
 lemma ccloses_extend:
-  assumes a: "\<theta>c ccloses \<Delta>" "a\<sharp>\<Delta>" "a\<sharp>\<theta>c" "(x):P\<in>\<parallel>(B)\<parallel>"
-  shows "(a,x,P)#\<theta>c ccloses (a,B)#\<Delta>"
+  assumes a: "\<theta>_c ccloses \<Delta>" "a\<sharp>\<Delta>" "a\<sharp>\<theta>_c" "(x):P\<in>\<parallel>(B)\<parallel>"
+  shows "(a,x,P)#\<theta>_c ccloses (a,B)#\<Delta>"
 using a
 apply(simp add: ccloses_def)
 apply(drule validc_fresh)
@@ -4917,8 +4917,8 @@ apply(auto)
 done
 
 lemma ncloses_extend:
-  assumes a: "\<theta>n ncloses \<Gamma>" "x\<sharp>\<Gamma>" "x\<sharp>\<theta>n" "<a>:P\<in>\<parallel><B>\<parallel>"
-  shows "(x,a,P)#\<theta>n ncloses (x,B)#\<Gamma>"
+  assumes a: "\<theta>_n ncloses \<Gamma>" "x\<sharp>\<Gamma>" "x\<sharp>\<theta>_n" "<a>:P\<in>\<parallel><B>\<parallel>"
+  shows "(x,a,P)#\<theta>_n ncloses (x,B)#\<Gamma>"
 using a
 apply(simp add: ncloses_def)
 apply(drule validn_fresh)
@@ -5082,39 +5082,39 @@ apply(auto  dest!: validn_elim context_fresh)
 done
 
 lemma psubst_Ax_aux: 
-  assumes a: "\<theta>c cmaps a to Some (y,N)"
-  shows "lookupb x a \<theta>c c P = Cut <c>.P (y).N"
+  assumes a: "\<theta>_c cmaps a to Some (y,N)"
+  shows "lookupb x a \<theta>_c c P = Cut <c>.P (y).N"
 using a
-apply(induct \<theta>c)
+apply(induct \<theta>_c)
 apply(auto)
 done
 
 lemma psubst_Ax:
-  assumes a: "\<theta>n nmaps x to Some (c,P)"
-  and     b: "\<theta>c cmaps a to Some (y,N)"
-  shows "\<theta>n,\<theta>c<Ax x a> = Cut <c>.P (y).N"
+  assumes a: "\<theta>_n nmaps x to Some (c,P)"
+  and     b: "\<theta>_c cmaps a to Some (y,N)"
+  shows "\<theta>_n,\<theta>_c<Ax x a> = Cut <c>.P (y).N"
 using a b
-apply(induct \<theta>n)
+apply(induct \<theta>_n)
 apply(auto simp add: psubst_Ax_aux)
 done
 
 lemma psubst_Cut:
   assumes a: "\<forall>x. M\<noteq>Ax x c"
   and     b: "\<forall>a. N\<noteq>Ax x a"
-  and     c: "c\<sharp>(\<theta>n,\<theta>c,N)" "x\<sharp>(\<theta>n,\<theta>c,M)"
-  shows "\<theta>n,\<theta>c<Cut <c>.M (x).N> = Cut <c>.(\<theta>n,\<theta>c<M>) (x).(\<theta>n,\<theta>c<N>)"
+  and     c: "c\<sharp>(\<theta>_n,\<theta>_c,N)" "x\<sharp>(\<theta>_n,\<theta>_c,M)"
+  shows "\<theta>_n,\<theta>_c<Cut <c>.M (x).N> = Cut <c>.(\<theta>_n,\<theta>_c<M>) (x).(\<theta>_n,\<theta>_c<N>)"
 using a b c
 apply(simp)
 done
 
 lemma all_CAND: 
   assumes a: "\<Gamma> \<turnstile> M \<turnstile> \<Delta>"
-  and     b: "\<theta>n ncloses \<Gamma>"
-  and     c: "\<theta>c ccloses \<Delta>"
-  shows "SNa (\<theta>n,\<theta>c<M>)"
+  and     b: "\<theta>_n ncloses \<Gamma>"
+  and     c: "\<theta>_c ccloses \<Delta>"
+  shows "SNa (\<theta>_n,\<theta>_c<M>)"
 using a b c
-proof(nominal_induct avoiding: \<theta>n \<theta>c rule: typing.strong_induct)
-  case (TAx \<Gamma> \<Delta> x B a \<theta>n \<theta>c)
+proof(nominal_induct avoiding: \<theta>_n \<theta>_c rule: typing.strong_induct)
+  case (TAx \<Gamma> \<Delta> x B a \<theta>_n \<theta>_c)
   then show ?case
     apply -
     apply(drule ncloses_elim)
@@ -5123,13 +5123,13 @@ proof(nominal_induct avoiding: \<theta>n \<theta>c rule: typing.strong_induct)
     apply(assumption)
     apply(erule exE)+
     apply(erule conjE)+
-    apply(rule_tac s="Cut <c>.P (xa).Pa" and t="\<theta>n,\<theta>c<Ax x a>" in subst)
+    apply(rule_tac s="Cut <c>.P (xa).Pa" and t="\<theta>_n,\<theta>_c<Ax x a>" in subst)
     apply(rule sym)
     apply(simp only: psubst_Ax)
     apply(simp add: CUT_SNa)
     done
 next
-  case (TNotR x \<Gamma> B M \<Delta> \<Delta>' a \<theta>n \<theta>c) 
+  case (TNotR x \<Gamma> B M \<Delta> \<Delta>' a \<theta>_n \<theta>_c) 
   then show ?case 
     apply(simp)
     apply(subgoal_tac "(a,NOT B) \<in> set \<Delta>'")
@@ -5145,7 +5145,7 @@ next
     apply(rule disjI2)
     apply(rule_tac x="c" in exI)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule conjI)
     apply(rule fic.intros)
@@ -5157,13 +5157,13 @@ next
     apply(unfold BINDINGn_def)
     apply(simp)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule allI)+
     apply(rule impI)
     apply(simp add: psubst_nsubst[symmetric])
-    apply(drule_tac x="(x,aa,Pa)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,aa,Pa)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(assumption)
@@ -5179,7 +5179,7 @@ next
     apply(blast)
     done
 next
-  case (TNotL a \<Delta> \<Gamma> M B \<Gamma>' x \<theta>n \<theta>c)
+  case (TNotL a \<Delta> \<Gamma> M B \<Gamma>' x \<theta>_n \<theta>_c)
   then show ?case
     apply(simp)
     apply(subgoal_tac "(x,NOT B) \<in> set \<Gamma>'")
@@ -5197,7 +5197,7 @@ next
     apply(rule disjI2)
     apply(rule_tac x="a" in exI)
     apply(rule_tac x="ca" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule conjI)
     apply(rule fin.intros)
@@ -5209,13 +5209,13 @@ next
     apply(unfold BINDINGc_def)
     apply(simp (no_asm))
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp (no_asm))
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_csubst[symmetric])
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_subset)
     apply(assumption)
@@ -5230,7 +5230,7 @@ next
     apply(blast)
     done
 next
-  case (TAndL1 x \<Gamma> y B1 M \<Delta> \<Gamma>' B2 \<theta>n \<theta>c)
+  case (TAndL1 x \<Gamma> y B1 M \<Delta> \<Gamma>' B2 \<theta>_n \<theta>_c)
   then show ?case     
     apply(simp)
     apply(subgoal_tac "(y,B1 AND B2) \<in> set \<Gamma>'")
@@ -5249,7 +5249,7 @@ next
     apply(rule disjI1)
     apply(rule_tac x="x" in exI)
     apply(rule_tac x="ca" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule conjI)
     apply(rule fin.intros)
@@ -5262,13 +5262,13 @@ next
     apply(unfold BINDINGn_def)
     apply(simp (no_asm))
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp (no_asm))
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_nsubst[symmetric])
-    apply(drule_tac x="(x,a,Pa)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,a,Pa)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(rule ncloses_subset)
@@ -5283,7 +5283,7 @@ next
     apply(blast)
     done
 next
-  case (TAndL2 x \<Gamma> y B2 M \<Delta> \<Gamma>' B1 \<theta>n \<theta>c)
+  case (TAndL2 x \<Gamma> y B2 M \<Delta> \<Gamma>' B1 \<theta>_n \<theta>_c)
   then show ?case 
     apply(simp)
     apply(subgoal_tac "(y,B1 AND B2) \<in> set \<Gamma>'")
@@ -5302,7 +5302,7 @@ next
     apply(rule disjI2)
     apply(rule_tac x="x" in exI)
     apply(rule_tac x="ca" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule conjI)
     apply(rule fin.intros)
@@ -5315,13 +5315,13 @@ next
     apply(unfold BINDINGn_def)
     apply(simp (no_asm))
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp (no_asm))
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_nsubst[symmetric])
-    apply(drule_tac x="(x,a,Pa)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,a,Pa)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(rule ncloses_subset)
@@ -5336,7 +5336,7 @@ next
     apply(blast)
     done
 next
-  case (TAndR a \<Delta> N c b M \<Gamma> B C \<Delta>' \<theta>n \<theta>c)
+  case (TAndR a \<Delta> N c b M \<Gamma> B C \<Delta>' \<theta>_n \<theta>_c)
   then show ?case 
     apply(simp)
     apply(subgoal_tac "(c,B AND C) \<in> set \<Delta>'")
@@ -5353,8 +5353,8 @@ next
     apply(rule_tac x="ca" in exI)
     apply(rule_tac x="a" in exI)
     apply(rule_tac x="b" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp)
     apply(rule conjI)
     apply(rule fic.intros)
@@ -5373,13 +5373,13 @@ next
     apply(unfold BINDINGc_def)
     apply(simp)
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule allI)+
     apply(rule impI)
     apply(simp add: psubst_csubst[symmetric])
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(assumption)
     apply(drule meta_mp)
@@ -5395,14 +5395,14 @@ next
     apply(unfold BINDINGc_def)
     apply(simp)
     apply(rule_tac x="b" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp)
     apply(rule allI)+
     apply(rule impI)
     apply(simp add: psubst_csubst[symmetric])
     apply(rotate_tac 14)
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(b,xa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(b,xa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(assumption)
     apply(drule meta_mp)
@@ -5418,7 +5418,7 @@ next
     apply(blast)
     done
 next
-  case (TOrL x \<Gamma> N z y M B \<Delta> C \<Gamma>' \<theta>n \<theta>c)
+  case (TOrL x \<Gamma> N z y M B \<Delta> C \<Gamma>' \<theta>_n \<theta>_c)
   then show ?case 
     apply(simp)
     apply(subgoal_tac "(z,B OR C) \<in> set \<Gamma>'")
@@ -5437,8 +5437,8 @@ next
     apply(rule_tac x="x" in exI)
     apply(rule_tac x="y" in exI)
     apply(rule_tac x="ca" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule conjI)
     apply(rule fin.intros)
@@ -5457,13 +5457,13 @@ next
     apply(unfold BINDINGn_def)
     apply(simp del: NEGc.simps)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_nsubst[symmetric])
-    apply(drule_tac x="(x,a,Pa)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,a,Pa)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(rule ncloses_subset)
@@ -5479,14 +5479,14 @@ next
     apply(unfold BINDINGn_def)
     apply(simp del: NEGc.simps)
     apply(rule_tac x="y" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_nsubst[symmetric])
     apply(rotate_tac 14)
-    apply(drule_tac x="(y,a,Pa)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(y,a,Pa)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(rule ncloses_subset)
@@ -5501,7 +5501,7 @@ next
     apply(blast)
     done
 next
-  case (TOrR1 a \<Delta> b \<Gamma> M B1 \<Delta>' B2 \<theta>n \<theta>c)
+  case (TOrR1 a \<Delta> b \<Gamma> M B1 \<Delta>' B2 \<theta>_n \<theta>_c)
   then show ?case
     apply(simp)
     apply(subgoal_tac "(b,B1 OR B2) \<in> set \<Delta>'")
@@ -5518,7 +5518,7 @@ next
     apply(rule disjI1)
     apply(rule_tac x="a" in exI)
     apply(rule_tac x="c" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule conjI)
     apply(rule fic.intros)
@@ -5531,13 +5531,13 @@ next
     apply(unfold BINDINGc_def)
     apply(simp (no_asm))
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp (no_asm))
     apply(rule allI)+
     apply(rule impI)    
     apply(simp del: NEGc.simps add: psubst_csubst[symmetric])
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(assumption)
     apply(drule meta_mp)
@@ -5553,7 +5553,7 @@ next
     apply(blast)
     done
 next
-  case (TOrR2 a \<Delta> b \<Gamma> M B2 \<Delta>' B1 \<theta>n \<theta>c)
+  case (TOrR2 a \<Delta> b \<Gamma> M B2 \<Delta>' B1 \<theta>_n \<theta>_c)
   then show ?case 
     apply(simp)
     apply(subgoal_tac "(b,B1 OR B2) \<in> set \<Delta>'")
@@ -5570,7 +5570,7 @@ next
     apply(rule disjI2)
     apply(rule_tac x="a" in exI)
     apply(rule_tac x="c" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule conjI)
     apply(rule fic.intros)
@@ -5583,13 +5583,13 @@ next
     apply(unfold BINDINGc_def)
     apply(simp (no_asm))
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp (no_asm))
     apply(rule allI)+
     apply(rule impI)    
     apply(simp del: NEGc.simps add: psubst_csubst[symmetric])
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(assumption)
     apply(drule meta_mp)
@@ -5605,7 +5605,7 @@ next
     apply(blast)
     done
 next
-  case (TImpL a \<Delta> N x \<Gamma> M y B C \<Gamma>' \<theta>n \<theta>c)
+  case (TImpL a \<Delta> N x \<Gamma> M y B C \<Gamma>' \<theta>_n \<theta>_c)
   then show ?case
     apply(simp)
     apply(subgoal_tac "(y,B IMP C) \<in> set \<Gamma>'")
@@ -5624,8 +5624,8 @@ next
     apply(rule_tac x="x" in exI)
     apply(rule_tac x="a" in exI)
     apply(rule_tac x="ca" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule conjI)
     apply(rule fin.intros)
@@ -5643,13 +5643,13 @@ next
     apply(unfold BINDINGc_def)
     apply(simp del: NEGc.simps)
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_csubst[symmetric])
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_subset)
     apply(assumption)
@@ -5665,14 +5665,14 @@ next
     apply(unfold BINDINGn_def)
     apply(simp del: NEGc.simps)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp del: NEGc.simps)
     apply(rule allI)+
     apply(rule impI)
     apply(simp del: NEGc.simps add: psubst_nsubst[symmetric])
     apply(rotate_tac 12)
-    apply(drule_tac x="(x,aa,Pa)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,aa,Pa)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(rule ncloses_subset)
@@ -5687,7 +5687,7 @@ next
     apply(blast)
     done
 next
-  case (TImpR a \<Delta> b x \<Gamma> B M C \<Delta>' \<theta>n \<theta>c)
+  case (TImpR a \<Delta> b x \<Gamma> B M C \<Delta>' \<theta>_n \<theta>_c)
   then show ?case
     apply(simp)
     apply(subgoal_tac "(b,B IMP C) \<in> set \<Delta>'")
@@ -5704,7 +5704,7 @@ next
     apply(rule_tac x="x" in exI)
     apply(rule_tac x="a" in exI)
     apply(rule_tac x="c" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule conjI)
     apply(rule fic.intros)
@@ -5721,16 +5721,16 @@ next
     apply(unfold BINDINGn_def)
     apply(simp)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,((a,z,Pa)#\<theta>c)<M>" in exI)
+    apply(rule_tac x="\<theta>_n,((a,z,Pa)#\<theta>_c)<M>" in exI)
     apply(simp)
     apply(rule allI)+
     apply(rule impI)
-    apply(rule_tac t="\<theta>n,((a,z,Pa)#\<theta>c)<M>{x:=<aa>.Pb}" and 
-                   s="((x,aa,Pb)#\<theta>n),((a,z,Pa)#\<theta>c)<M>" in subst)
+    apply(rule_tac t="\<theta>_n,((a,z,Pa)#\<theta>_c)<M>{x:=<aa>.Pb}" and 
+                   s="((x,aa,Pb)#\<theta>_n),((a,z,Pa)#\<theta>_c)<M>" in subst)
     apply(rule psubst_nsubst)
     apply(simp add: fresh_prod fresh_atm fresh_list_cons)
-    apply(drule_tac x="(x,aa,Pb)#\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,z,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,aa,Pb)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,z,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(assumption)
@@ -5753,16 +5753,16 @@ next
     apply(unfold BINDINGc_def)
     apply(simp)
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="((x,ca,Q)#\<theta>n),\<theta>c<M>" in exI)
+    apply(rule_tac x="((x,ca,Q)#\<theta>_n),\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule allI)+
     apply(rule impI)
-    apply(rule_tac t="((x,ca,Q)#\<theta>n),\<theta>c<M>{a:=(xaa).Pa}" and 
-                   s="((x,ca,Q)#\<theta>n),((a,xaa,Pa)#\<theta>c)<M>" in subst)
+    apply(rule_tac t="((x,ca,Q)#\<theta>_n),\<theta>_c<M>{a:=(xaa).Pa}" and 
+                   s="((x,ca,Q)#\<theta>_n),((a,xaa,Pa)#\<theta>_c)<M>" in subst)
     apply(rule psubst_csubst)
     apply(simp add: fresh_prod fresh_atm fresh_list_cons)
-    apply(drule_tac x="(x,ca,Q)#\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xaa,Pa)#\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,ca,Q)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xaa,Pa)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(assumption)
@@ -5782,7 +5782,7 @@ next
     apply(blast)
     done
 next
-  case (TCut a \<Delta> N x \<Gamma> M B \<theta>n \<theta>c)
+  case (TCut a \<Delta> N x \<Gamma> M B \<theta>_n \<theta>_c)
   then show ?case 
     apply -
     apply(case_tac "\<forall>y. M\<noteq>Ax y a")
@@ -5793,14 +5793,14 @@ next
     apply(unfold BINDINGc_def)
     apply(simp)
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule allI)
     apply(rule allI)
     apply(rule impI)
     apply(simp add: psubst_csubst[symmetric]) (*?*)
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,P)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,P)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(assumption)
     apply(drule meta_mp)
@@ -5814,15 +5814,15 @@ next
     apply(unfold BINDINGn_def)
     apply(simp)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp)
     apply(rule allI)
     apply(rule allI)
     apply(rule impI)
     apply(simp add: psubst_nsubst[symmetric]) (*?*)
     apply(rotate_tac 11)
-    apply(drule_tac x="(x,aa,P)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,aa,P)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(assumption)
@@ -5844,12 +5844,12 @@ next
     apply(unfold BINDINGc_def)
     apply(simp)
     apply(rule_tac x="a" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<M>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<M>" in exI)
     apply(simp)
     apply(rule allI)+
     apply(rule impI)
-    apply(drule_tac x="\<theta>n" in meta_spec)
-    apply(drule_tac x="(a,xa,P)#\<theta>c" in meta_spec)
+    apply(drule_tac x="\<theta>_n" in meta_spec)
+    apply(drule_tac x="(a,xa,P)#\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(assumption)
     apply(drule meta_mp)
@@ -5935,15 +5935,15 @@ next
     apply(unfold BINDINGn_def)
     apply(simp)
     apply(rule_tac x="x" in exI)
-    apply(rule_tac x="\<theta>n,\<theta>c<N>" in exI)
+    apply(rule_tac x="\<theta>_n,\<theta>_c<N>" in exI)
     apply(simp)
     apply(rule allI)
     apply(rule allI)
     apply(rule impI)
     apply(simp add: psubst_nsubst[symmetric]) (*?*)
     apply(rotate_tac 10)
-    apply(drule_tac x="(x,aa,P)#\<theta>n" in meta_spec)
-    apply(drule_tac x="\<theta>c" in meta_spec)
+    apply(drule_tac x="(x,aa,P)#\<theta>_n" in meta_spec)
+    apply(drule_tac x="\<theta>_c" in meta_spec)
     apply(drule meta_mp)
     apply(rule ncloses_extend)
     apply(assumption)
@@ -6038,7 +6038,7 @@ done
 
 lemma lookup1:
   assumes a: "x\<sharp>(idn \<Gamma> b)"
-  shows "lookup x a (idn \<Gamma> b) \<theta>c = lookupa x a \<theta>c"
+  shows "lookup x a (idn \<Gamma> b) \<theta>_c = lookupa x a \<theta>_c"
 using a
 apply(induct \<Gamma>)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm)
@@ -6046,7 +6046,7 @@ done
 
 lemma lookup2:
   assumes a: "\<not>(x\<sharp>(idn \<Gamma> b))"
-  shows "lookup x a (idn \<Gamma> b) \<theta>c = lookupb x a \<theta>c b (Ax x b)"
+  shows "lookup x a (idn \<Gamma> b) \<theta>_c = lookupb x a \<theta>_c b (Ax x b)"
 using a
 apply(induct \<Gamma>)
 apply(auto simp add: fresh_list_cons fresh_prod fresh_atm fresh_list_nil)

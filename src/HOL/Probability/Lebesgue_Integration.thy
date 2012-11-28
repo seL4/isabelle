@@ -788,7 +788,7 @@ proof (safe intro!: antisym SUP_least)
   fix g assume g: "simple_function M g" "g \<le> max 0 \<circ> f"
   let ?G = "{x \<in> space M. \<not> g x \<noteq> \<infinity>}"
   note gM = g(1)[THEN borel_measurable_simple_function]
-  have \<mu>G_pos: "0 \<le> (emeasure M) ?G" using gM by auto
+  have \<mu>_G_pos: "0 \<le> (emeasure M) ?G" using gM by auto
   let ?g = "\<lambda>y x. if g x = \<infinity> then y else max 0 (g x)"
   from g gM have g_in_A: "\<And>y. 0 \<le> y \<Longrightarrow> y \<noteq> \<infinity> \<Longrightarrow> ?g y \<in> ?A"
     apply (safe intro!: simple_function_max simple_function_If)
@@ -804,15 +804,15 @@ proof (safe intro!: antisym SUP_least)
       by (intro SUP_upper2[OF g0] simple_integral_mono_AE)
          (auto simp: max_def intro!: simple_function_If)
   next
-    assume \<mu>G: "(emeasure M) ?G \<noteq> 0"
+    assume \<mu>_G: "(emeasure M) ?G \<noteq> 0"
     have "SUPR ?A (integral\<^isup>S M) = \<infinity>"
     proof (intro SUP_PInfty)
       fix n :: nat
       let ?y = "ereal (real n) / (if (emeasure M) ?G = \<infinity> then 1 else (emeasure M) ?G)"
-      have "0 \<le> ?y" "?y \<noteq> \<infinity>" using \<mu>G \<mu>G_pos by (auto simp: ereal_divide_eq)
+      have "0 \<le> ?y" "?y \<noteq> \<infinity>" using \<mu>_G \<mu>_G_pos by (auto simp: ereal_divide_eq)
       then have "?g ?y \<in> ?A" by (rule g_in_A)
       have "real n \<le> ?y * (emeasure M) ?G"
-        using \<mu>G \<mu>G_pos by (cases "(emeasure M) ?G") (auto simp: field_simps)
+        using \<mu>_G \<mu>_G_pos by (cases "(emeasure M) ?G") (auto simp: field_simps)
       also have "\<dots> = (\<integral>\<^isup>Sx. ?y * indicator ?G x \<partial>M)"
         using `0 \<le> ?y` `?g ?y \<in> ?A` gM
         by (subst simple_integral_cmult_indicator) auto

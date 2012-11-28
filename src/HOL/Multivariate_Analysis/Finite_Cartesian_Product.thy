@@ -527,16 +527,16 @@ lemma pi'_inj[intro]: "inj \<pi>'"
 lemma pi'_range[intro]: "\<And>i::'n. \<pi>' i < CARD('n::finite)"
   using bij_betw_pi' unfolding bij_betw_def by auto
 
-lemma \<pi>\<pi>'[simp]: "\<And>i::'n::finite. \<pi> (\<pi>' i) = i"
+lemma pi_pi'[simp]: "\<And>i::'n::finite. \<pi> (\<pi>' i) = i"
   using bij_betw_pi by (auto intro!: f_inv_into_f simp: \<pi>'_def bij_betw_def)
 
-lemma \<pi>'\<pi>[simp]: "\<And>i. i\<in>{..<CARD('n::finite)} \<Longrightarrow> \<pi>' (\<pi> i::'n) = i"
+lemma pi'_pi[simp]: "\<And>i. i\<in>{..<CARD('n::finite)} \<Longrightarrow> \<pi>' (\<pi> i::'n) = i"
   using bij_betw_pi by (auto intro!: inv_into_f_eq simp: \<pi>'_def bij_betw_def)
 
-lemma \<pi>\<pi>'_alt[simp]: "\<And>i. i<CARD('n::finite) \<Longrightarrow> \<pi>' (\<pi> i::'n) = i"
+lemma pi_pi'_alt[simp]: "\<And>i. i<CARD('n::finite) \<Longrightarrow> \<pi>' (\<pi> i::'n) = i"
   by auto
 
-lemma \<pi>_inj_on: "inj_on (\<pi>::nat\<Rightarrow>'n::finite) {..<CARD('n)}"
+lemma pi_inj_on: "inj_on (\<pi>::nat\<Rightarrow>'n::finite) {..<CARD('n)}"
   using bij_betw_pi[where 'n='n] by (simp add: bij_betw_def)
 
 instantiation vec :: (euclidean_space, finite) euclidean_space

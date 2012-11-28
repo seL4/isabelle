@@ -23,7 +23,7 @@ definition domain where "domain P = fst (Rep_finmap P)"
 lemma finite_domain[simp, intro]: "finite (domain P)"
   by (cases P) (auto simp: domain_def Abs_finmap_inverse)
 
-definition proj ("_\<^isub>F" [1000] 1000) where "proj P i = snd (Rep_finmap P) i"
+definition proj ("'((_)')\<^isub>F" [0] 1000) where "proj P i = snd (Rep_finmap P) i"
 
 declare [[coercion proj]]
 

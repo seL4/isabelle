@@ -53,6 +53,8 @@ option parallel_proofs : int = 2
   -- "level of parallel proof checking: 0, 1, 2"
 option parallel_proofs_threshold : int = 100
   -- "threshold for sub-proof parallelization"
+option ML_statistics : bool = false
+  -- "ML runtime statistics of parallel execution environment"
 
 
 section "Detail of Proof Recording"

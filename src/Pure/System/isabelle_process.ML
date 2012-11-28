@@ -99,7 +99,7 @@ fun standard_message mbox opt_serial name body =
   if body = "" then ()
   else
     message false mbox name
-      ((case opt_serial of SOME i => cons (Markup.serialN, string_of_int i) | _ => I)
+      ((case opt_serial of SOME i => cons (Markup.serialN, Markup.print_int i) | _ => I)
         (Position.properties_of (Position.thread_data ()))) body;
 
 fun message_output mbox channel =
@@ -217,6 +217,7 @@ val _ =
   protocol_command "Isabelle_Process.options"
     (fn [options_yxml] =>
       let val options = Options.decode (YXML.parse_body options_yxml) in
+        ML_Statistics.enabled := Options.bool options "ML_statistics";
         Multithreading.trace := Options.int options "threads_trace";
         Multithreading.max_threads := Options.int options "threads";
         if Multithreading.max_threads_value () < 2

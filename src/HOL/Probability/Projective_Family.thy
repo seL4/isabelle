@@ -226,14 +226,14 @@ lemma generatorI:
   "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> A = emb I J X \<Longrightarrow> A \<in> generator"
   unfolding generator_def by auto
 
-definition
+definition mu_G ("\<mu>G") where
   "\<mu>G A =
     (THE x. \<forall>J. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> J \<subseteq> I \<longrightarrow> (\<forall>X\<in>sets (Pi\<^isub>M J M). A = emb I J X \<longrightarrow> x = emeasure (limP J M P) X))"
 
-lemma \<mu>G_spec:
+lemma mu_G_spec:
   assumes J: "J \<noteq> {}" "finite J" "J \<subseteq> I" "A = emb I J X" "X \<in> sets (Pi\<^isub>M J M)"
   shows "\<mu>G A = emeasure (limP J M P) X"
-  unfolding \<mu>G_def
+  unfolding mu_G_def
 proof (intro the_equality allI impI ballI)
   fix K Y assume K: "K \<noteq> {}" "finite K" "K \<subseteq> I" "A = emb I K Y" "Y \<in> sets (Pi\<^isub>M K M)"
   have "emeasure (limP K M P) Y = emeasure (limP (K \<union> J) M P) (emb (K \<union> J) K Y)"
@@ -245,9 +245,9 @@ proof (intro the_equality allI impI ballI)
   finally show "emeasure (limP J M P) X = emeasure (limP K M P) Y" ..
 qed (insert J, force)
 
-lemma \<mu>G_eq:
+lemma mu_G_eq:
   "J \<noteq> {} \<Longrightarrow> finite J \<Longrightarrow> J \<subseteq> I \<Longrightarrow> X \<in> sets (Pi\<^isub>M J M) \<Longrightarrow> \<mu>G (emb I J X) = emeasure (limP J M P) X"
-  by (intro \<mu>G_spec) auto
+  by (intro mu_G_spec) auto
 
 lemma generator_Ex:
   assumes *: "A \<in> generator"
@@ -255,7 +255,7 @@ lemma generator_Ex:
 proof -
   from * obtain J X where J: "J \<noteq> {}" "finite J" "J \<subseteq> I" "A = emb I J X" "X \<in> sets (Pi\<^isub>M J M)"
     unfolding generator_def by auto
-  with \<mu>G_spec[OF this] show ?thesis by auto
+  with mu_G_spec[OF this] show ?thesis by auto
 qed
 
 lemma generatorE:
@@ -284,7 +284,7 @@ proof -
        auto
 qed
 
-lemma positive_\<mu>G:
+lemma positive_mu_G:
   assumes "I \<noteq> {}"
   shows "positive generator \<mu>G"
 proof -
@@ -302,7 +302,7 @@ proof -
   qed
 qed
 
-lemma additive_\<mu>G:
+lemma additive_mu_G:
   assumes "I \<noteq> {}"
   shows "additive generator \<mu>G"
 proof -
@@ -324,7 +324,7 @@ proof -
     then have "\<mu>G (A \<union> B) = \<mu>G (emb I (J \<union> K) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y))"
       by simp
     also have "\<dots> = emeasure (limP (J \<union> K) M P) (emb (J \<union> K) J X \<union> emb (J \<union> K) K Y)"
-      using JK J(1, 4) K(1, 4) by (simp add: \<mu>G_eq sets.Un del: prod_emb_Un)
+      using JK J(1, 4) K(1, 4) by (simp add: mu_G_eq sets.Un del: prod_emb_Un)
     also have "\<dots> = \<mu>G A + \<mu>G B"
       using J K JK_disj by (simp add: plus_emeasure[symmetric])
     finally show "\<mu>G (A \<union> B) = \<mu>G A + \<mu>G B" .

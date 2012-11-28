@@ -387,7 +387,7 @@ lemma sigma_algebra_single_set:
 subsection {* Binary Unions *}
 
 definition binary :: "'a \<Rightarrow> 'a \<Rightarrow> nat \<Rightarrow> 'a"
-  where "binary a b =  (\<lambda>\<^isup>x. b)(0 := a)"
+  where "binary a b =  (\<lambda>x. b)(0 := a)"
 
 lemma range_binary_eq: "range(binary a b) = {a,b}"
   by (auto simp add: binary_def)
@@ -2117,7 +2117,7 @@ qed
 subsection {* A Two-Element Series *}
 
 definition binaryset :: "'a set \<Rightarrow> 'a set \<Rightarrow> nat \<Rightarrow> 'a set "
-  where "binaryset A B = (\<lambda>\<^isup>x. {})(0 := A, Suc 0 := B)"
+  where "binaryset A B = (\<lambda>x. {})(0 := A, Suc 0 := B)"
 
 lemma range_binaryset_eq: "range(binaryset A B) = {A,B,{}}"
   apply (simp add: binaryset_def)

@@ -115,10 +115,13 @@ proof -
   let ?\<Omega> = "\<Pi>\<^isub>E i\<in>I. space borel"
   let ?G = generator
   interpret G!: algebra ?\<Omega> generator by (intro  algebra_generator) fact
-  note \<mu>G_mono =
-    G.additive_increasing[OF positive_\<mu>G[OF `I \<noteq> {}`] additive_\<mu>G[OF `I \<noteq> {}`], THEN increasingD]
+  note mu_G_mono =
+    G.additive_increasing[OF positive_mu_G[OF `I \<noteq> {}`] additive_mu_G[OF `I \<noteq> {}`],
+      THEN increasingD]
+  write mu_G  ("\<mu>G")
+
   have "\<exists>\<mu>. (\<forall>s\<in>?G. \<mu> s = \<mu>G s) \<and> measure_space ?\<Omega> (sigma_sets ?\<Omega> ?G) \<mu>"
-  proof (rule G.caratheodory_empty_continuous[OF positive_\<mu>G additive_\<mu>G,
+  proof (rule G.caratheodory_empty_continuous[OF positive_mu_G additive_mu_G,
       OF `I \<noteq> {}`, OF `I \<noteq> {}`])
     fix A assume "A \<in> ?G"
     with generatorE guess J X . note JX = this
@@ -127,13 +130,13 @@ proof -
   next
     fix Z assume Z: "range Z \<subseteq> ?G" "decseq Z" "(\<Inter>i. Z i) = {}"
     then have "decseq (\<lambda>i. \<mu>G (Z i))"
-      by (auto intro!: \<mu>G_mono simp: decseq_def)
+      by (auto intro!: mu_G_mono simp: decseq_def)
     moreover
     have "(INF i. \<mu>G (Z i)) = 0"
     proof (rule ccontr)
       assume "(INF i. \<mu>G (Z i)) \<noteq> 0" (is "?a \<noteq> 0")
       moreover have "0 \<le> ?a"
-        using Z positive_\<mu>G[OF `I \<noteq> {}`] by (auto intro!: INF_greatest simp: positive_def)
+        using Z positive_mu_G[OF `I \<noteq> {}`] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
       hence "?a \<noteq> -\<infinity>" by auto
       have "\<forall>n. \<exists>J B. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> B \<in> sets (Pi\<^isub>M J (\<lambda>_. borel)) \<and>
@@ -158,10 +161,10 @@ proof -
         unfolding J_def B_def by (subst prod_emb_trans) (insert Z, auto)
       interpret prob_space "P (J i)" for i using proj_prob_space by simp
       have "?a \<le> \<mu>G (Z 0)" by (auto intro: INF_lower)
-      also have "\<dots> < \<infinity>" using J by (auto simp: Z_eq \<mu>G_eq limP_finite proj_sets)
+      also have "\<dots> < \<infinity>" using J by (auto simp: Z_eq mu_G_eq limP_finite proj_sets)
       finally have "?a \<noteq> \<infinity>" by simp
       have "\<And>n. \<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>" unfolding Z_eq using J J_mono
-        by (subst \<mu>G_eq) (auto simp: limP_finite proj_sets \<mu>G_eq)
+        by (subst mu_G_eq) (auto simp: limP_finite proj_sets mu_G_eq)
 
       have countable_UN_J: "countable (\<Union>n. J n)" by (simp add: countable_finite)
       def Utn \<equiv> "to_nat_on (\<Union>n. J n)"
@@ -295,7 +298,7 @@ proof -
             (\<Inter> i\<in>{1..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))" .
         hence "Y n \<in> ?G" using J J_mono K_sets `n \<ge> 1` by (intro generatorI[OF _ _ _ _ Y_emb]) auto
         hence "\<bar>\<mu>G (Y n)\<bar> \<noteq> \<infinity>" unfolding Y_emb using J J_mono K_sets `n \<ge> 1`
-          by (subst \<mu>G_eq) (auto simp: limP_finite proj_sets \<mu>G_eq)
+          by (subst mu_G_eq) (auto simp: limP_finite proj_sets mu_G_eq)
         interpret finite_measure "(limP (J n) (\<lambda>_. borel) P)"
         proof
           have "emeasure (limP (J n) (\<lambda>_. borel) P) (J n \<rightarrow>\<^isub>E space borel) \<noteq> \<infinity>"
@@ -304,14 +307,14 @@ proof -
              by (simp add: space_PiM)
         qed
         have "\<mu>G (Z n) = limP (J n) (\<lambda>_. borel) P (B n)"
-          unfolding Z_eq using J by (auto simp: \<mu>G_eq)
+          unfolding Z_eq using J by (auto simp: mu_G_eq)
         moreover have "\<mu>G (Y n) =
           limP (J n) (\<lambda>_. borel) P (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i))"
-          unfolding Y_emb using J J_mono K_sets `n \<ge> 1` by (subst \<mu>G_eq) auto
+          unfolding Y_emb using J J_mono K_sets `n \<ge> 1` by (subst mu_G_eq) auto
         moreover have "\<mu>G (Z n - Y n) = limP (J n) (\<lambda>_. borel) P
           (B n - (\<Inter>i\<in>{Suc 0..n}. prod_emb (J n) (\<lambda>_. borel) (J i) (K i)))"
           unfolding Z_eq Y_emb prod_emb_Diff[symmetric] using J J_mono K_sets `n \<ge> 1`
-          by (subst \<mu>G_eq) (auto intro!: sets.Diff)
+          by (subst mu_G_eq) (auto intro!: sets.Diff)
         ultimately
         have "\<mu>G (Z n) - \<mu>G (Y n) = \<mu>G (Z n - Y n)"
           using J J_mono K_sets `n \<ge> 1`
@@ -324,17 +327,17 @@ proof -
         have "Z n - Y n \<in> ?G" "(\<Union> i\<in>{1..n}. (Z i - Z' i)) \<in> ?G"
           using `Z' _ \<in> ?G` `Z _ \<in> ?G` `Y _ \<in> ?G` by auto
         hence "\<mu>G (Z n - Y n) \<le> \<mu>G (\<Union> i\<in>{1..n}. (Z i - Z' i))"
-          using subs G.additive_increasing[OF positive_\<mu>G[OF `I \<noteq> {}`] additive_\<mu>G[OF `I \<noteq> {}`]]
+          using subs G.additive_increasing[OF positive_mu_G[OF `I \<noteq> {}`] additive_mu_G[OF `I \<noteq> {}`]]
           unfolding increasing_def by auto
         also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. \<mu>G (Z i - Z' i))" using `Z _ \<in> ?G` `Z' _ \<in> ?G`
-          by (intro G.subadditive[OF positive_\<mu>G additive_\<mu>G, OF `I \<noteq> {}` `I \<noteq> {}`]) auto
+          by (intro G.subadditive[OF positive_mu_G additive_mu_G, OF `I \<noteq> {}` `I \<noteq> {}`]) auto
         also have "\<dots> \<le> (\<Sum> i\<in>{1..n}. 2 powr -real i * ?a)"
         proof (rule setsum_mono)
           fix i assume "i \<in> {1..n}" hence "i \<le> n" by simp
           have "\<mu>G (Z i - Z' i) = \<mu>G (prod_emb I (\<lambda>_. borel) (J i) (B i - K i))"
             unfolding Z'_def Z_eq by simp
           also have "\<dots> = P (J i) (B i - K i)"
-            apply (subst \<mu>G_eq) using J K_sets apply auto
+            apply (subst mu_G_eq) using J K_sets apply auto
             apply (subst limP_finite) apply auto
             done
           also have "\<dots> = P (J i) (B i) - P (J i) (K i)"
@@ -374,7 +377,7 @@ proof -
           apply (rule ereal_less_add[OF _ R]) using `\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>` by auto
         finally have "\<mu>G (Y n) > 0"
           using `\<bar>\<mu>G (Z n)\<bar> \<noteq> \<infinity>` by (auto simp: ac_simps zero_ereal_def[symmetric])
-        thus "Y n \<noteq> {}" using positive_\<mu>G `I \<noteq> {}` by (auto simp add: positive_def)
+        thus "Y n \<noteq> {}" using positive_mu_G `I \<noteq> {}` by (auto simp add: positive_def)
       qed
       hence "\<forall>n\<in>{1..}. \<exists>y. y \<in> Y n" by auto
       then obtain y where y: "\<And>n. n \<ge> 1 \<Longrightarrow> y n \<in> Y n" unfolding bchoice_iff by force
@@ -532,7 +535,7 @@ proof -
     hence "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))" using \<mu> by simp
     also have "\<dots> = emeasure (P J) (Pi\<^isub>E J X)"
       using JX assms proj_sets
-      by (subst \<mu>G_eq) (auto simp: \<mu>G_eq limP_finite intro: sets_PiM_I_finite)
+      by (subst mu_G_eq) (auto simp: mu_G_eq limP_finite intro: sets_PiM_I_finite)
     finally show "\<mu> (emb I J (Pi\<^isub>E J X)) = emeasure (P J) (Pi\<^isub>E J X)" .
   next
     show "emeasure (P J) (Pi\<^isub>E J B) = emeasure (limP J (\<lambda>_. borel) P) (Pi\<^isub>E J B)"
