@@ -737,7 +737,7 @@ fun isar_proof_text ctxt isar_proofs
                      " (" ^ shrank_without_preplay_msg ^ ")"
                    else
                      "") 
-                ^ ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_text
+                ^ ":\n" ^ Markup.markup Markup.sendback isar_text
             end
       end
     val isar_proof =

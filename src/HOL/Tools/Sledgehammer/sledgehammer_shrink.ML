@@ -137,7 +137,8 @@ let
             val premises =
               (case the succedent of
                 Prove (_, _, t, _) => t
-              | Assume (_, t) => t)
+              | Assume (_, t) => t
+              | _ => error "Internal error: unexpected succedent of case split")
                 ::  map ((fn Assume (_, a) => Logic.mk_implies(a, t)
                         | _ => error "Internal error: malformed case split") 
                         o hd) 
@@ -156,9 +157,9 @@ let
 
     (* cache metis preplay times in lazy time vector *)
     val metis_time =
-      v_map_index 
+      v_map_index
         (Lazy.lazy o handle_metis_fail o try_metis preplay_timeout 
-          o apfst (fn i => try (get i proof_vect) ) o apsnd the)
+          o apfst (fn i => get i proof_vect) o apsnd the)
         proof_vect
     fun sum_up_time lazy_time_vector =
       Vector.foldl
@@ -187,7 +188,7 @@ let
             val s12 = merge s1 s2
             val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
           in
-            case try_metis_quietly timeout s12 () of
+            case try_metis_quietly timeout (NONE, s12) () of
               NONE => (NONE, metis_time)
             | some_t12 =>
               (SOME s12, metis_time
