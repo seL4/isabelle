@@ -702,7 +702,7 @@ fun isar_proof_text ctxt isar_proofs
           |>> kill_useless_labels_in_proof
           |>> relabel_proof
           |>> not (null params) ? cons (Fix params)
-        val num_steps = metis_steps_recursive isar_proof
+        val num_steps = metis_steps_total isar_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
                            isar_proof

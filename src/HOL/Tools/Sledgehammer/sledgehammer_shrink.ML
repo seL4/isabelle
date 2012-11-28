@@ -13,7 +13,7 @@ sig
     -> isar_step list -> isar_step list * (bool * Time.time)
 end
 
-structure Sledgehammer_Shrink (* : SLEDGEHAMMER_SHRINK *) =
+structure Sledgehammer_Shrink : SLEDGEHAMMER_SHRINK =
 struct
 
 open Sledgehammer_Util
@@ -38,11 +38,11 @@ fun take_time timeout tac arg =
      Timing.result timing |> #cpu |> SOME)
     handle _ => NONE
   end
-fun sum_up_time timeout =
+fun sum_up_time timeout lazy_time_vector =
   Vector.foldl
     ((fn (SOME t, (b, ts)) => (b, t+ts)
        | (NONE, (_, ts)) => (true, ts+timeout)) o apfst Lazy.force)
-    no_time
+    no_time lazy_time_vector
 
 (* clean vector interface *)
 fun get i v = Vector.sub (v, i)
@@ -63,7 +63,7 @@ fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                  isar_shrink proof =
 let
-  fun shrink_top_level top_level ctxt proof =
+  fun shrink_top_level on_top_level ctxt proof =
   let
     (* proof vector *)
     val proof_vect = proof |> map SOME |> Vector.fromList
@@ -81,9 +81,9 @@ let
 
     (* proof references *)
     fun refs (Prove (_, _, _, By_Metis (lfs, _))) =
-        maps (the_list o Label_Table.lookup label_index_table) lfs
+        map_filter (Label_Table.lookup label_index_table) lfs
       | refs (Prove (_, _, _, Case_Split (cases, (lfs, _)))) =
-        maps (the_list o Label_Table.lookup label_index_table) lfs 
+        map_filter (Label_Table.lookup label_index_table) lfs
           @ maps (maps refs) cases
       | refs _ = []
     val refed_by_vect =
@@ -119,9 +119,10 @@ let
         in
           take_time timeout (fn () => goal tac)
         end
+      (* FIXME: Add case_split preplaying *)
       | try_metis _ _ = (fn () => SOME (seconds 0.0) )
 
-    (* Lazy metis time vector, cache *)
+    (* Lazy metis time vector = cache *)
     val metis_time =
       Vector.map (Lazy.lazy o try_metis preplay_timeout o the) proof_vect
 
@@ -129,9 +130,9 @@ let
     fun merge (Prove (_, label1, _, By_Metis (lfs1, gfs1)))
               (Prove (qs2, label2 , t, By_Metis (lfs2, gfs2))) =
       let
-        val ls = remove (op =) label1 lfs2 |> union (op =) lfs1
-        val ss = union (op =) gfs1 gfs2
-      in Prove (qs2, label2, t, By_Metis (ls, ss)) end
+        val lfs = remove (op =) label1 lfs2 |> union (op =) lfs1
+        val gfs = union (op =) gfs1 gfs2
+      in Prove (qs2, label2, t, By_Metis (lfs, gfs)) end
     fun try_merge metis_time (s1, i) (s2, j) =
       (case get i metis_time |> Lazy.force of
         NONE => (NONE, metis_time)
@@ -155,7 +156,7 @@ let
     fun merge_steps metis_time proof_vect refed_by cand_tab n' n_metis' =
       if Inttab.is_empty cand_tab 
         orelse n_metis' <= target_n_metis 
-        orelse (top_level andalso n'<3)
+        orelse (on_top_level andalso n'<3)
       then
         (Vector.foldr
            (fn (NONE, proof) => proof | (SOME s, proof) => s :: proof)
@@ -189,7 +190,7 @@ let
     merge_steps metis_time proof_vect refed_by_vect cand_tab n n_metis
   end
   
-  fun shrink_proof' top_level ctxt proof = 
+  fun shrink_proof' on_top_level ctxt proof = 
     let
       (* Enrich context with top-level facts *)
       val thy = Proof_Context.theory_of ctxt
@@ -205,23 +206,23 @@ let
       (* Shrink case_splits and top-levl *)
       val ((proof, top_level_time), lower_level_time) = 
         proof |> shrink_case_splits rich_ctxt
-              |>> shrink_top_level top_level rich_ctxt
+              |>> shrink_top_level on_top_level rich_ctxt
     in
       (proof, ext_time_add lower_level_time top_level_time)
     end
 
   and shrink_case_splits ctxt proof =
     let
-      fun shrink_and_collect_time shrink candidates =
+      fun shrink_each_and_collect_time shrink candidates =
             let fun f_m cand time = shrink cand ||> ext_time_add time
             in fold_map f_m candidates no_time end
-      val shrink_case_split = shrink_and_collect_time (shrink_proof' false ctxt)
+      val shrink_case_split = shrink_each_and_collect_time (shrink_proof' false ctxt)
       fun shrink (Prove (qs, lbl, t, Case_Split (cases, facts))) =
           let val (cases, time) = shrink_case_split cases
           in (Prove (qs, lbl, t, Case_Split (cases, facts)), time) end
         | shrink step = (step, no_time)
     in 
-      shrink_and_collect_time shrink proof
+      shrink_each_and_collect_time shrink proof
     end
 in
   shrink_proof' true ctxt proof

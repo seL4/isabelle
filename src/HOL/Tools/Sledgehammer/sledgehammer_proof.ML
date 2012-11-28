@@ -24,7 +24,7 @@ sig
 
   val string_for_label : label -> string
   val metis_steps_top_level : isar_step list -> int
-  val metis_steps_recursive : isar_step list -> int
+  val metis_steps_total : isar_step list -> int
 end
 
 structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF = 
@@ -48,10 +48,10 @@ fun string_for_label (s, num) = s ^ string_of_int num
 
 val inc = curry op+
 fun metis_steps_top_level proof = fold (fn Prove _ => inc 1 | _ => I) proof 0
-fun metis_steps_recursive proof = 
+fun metis_steps_total proof = 
   fold (fn Prove (_,_,_, By_Metis _) => inc 1
          | Prove (_,_,_, Case_Split (cases, _)) => 
-           inc (fold (inc o metis_steps_recursive) cases 1)
+           inc (fold (inc o metis_steps_total) cases 1)
          | _ => I) proof 0
 
 end
