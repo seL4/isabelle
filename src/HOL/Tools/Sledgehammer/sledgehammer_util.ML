@@ -18,6 +18,7 @@ sig
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : unit Symtab.table option -> thm -> string list
+  val thms_of_name : Proof.context -> string -> thm list
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
 end;
 
@@ -101,6 +102,19 @@ fun thms_in_proof all_names th =
     val names =
       [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
   in names end
+
+fun thms_of_name ctxt name =
+  let
+    val lex = Keyword.get_lexicons
+    val get = maps (Proof_Context.get_fact ctxt o fst)
+  in
+    Source.of_string name
+    |> Symbol.source
+    |> Token.source {do_recover = SOME false} lex Position.start
+    |> Token.source_proper
+    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
+    |> Source.exhaust
+  end
 
 fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)

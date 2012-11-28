@@ -53,19 +53,6 @@ fun run_prover override_params fact_override i n ctxt goal =
       handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
-fun thms_of_name ctxt name =
-  let
-    val lex = Keyword.get_lexicons
-    val get = maps (Proof_Context.get_fact ctxt o fst)
-  in
-    Source.of_string name
-    |> Symbol.source
-    |> Token.source {do_recover=SOME false} lex Position.start
-    |> Token.source_proper
-    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
-    |> Source.exhaust
-  end
-
 fun sledgehammer_with_metis_tac ctxt override_params fact_override i th =
   let val override_params = override_params @ [("preplay_timeout", "0")] in
     case run_prover override_params fact_override i i ctxt th of

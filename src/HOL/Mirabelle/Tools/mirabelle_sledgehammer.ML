@@ -531,7 +531,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
       SH_OK (time_isa, time_prover, names) =>
         let
           fun get_thms (name, stature) =
-            try (Sledgehammer_Reconstruct.thms_of_name (Proof.context_of st))
+            try (Sledgehammer_Util.thms_of_name (Proof.context_of st))
               name
             |> Option.map (pair (name, stature))
         in

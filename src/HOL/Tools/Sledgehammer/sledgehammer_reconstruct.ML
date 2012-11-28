@@ -28,7 +28,6 @@ sig
 
   val smtN : string
   val string_for_reconstructor : reconstructor -> string
-  val thms_of_name : Proof.context -> string -> thm list
   val lam_trans_from_atp_proof : string proof -> string -> string
   val is_typed_helper_used_in_atp_proof : string proof -> bool
   val used_facts_in_atp_proof :
@@ -81,19 +80,6 @@ val smtN = "smt"
 fun string_for_reconstructor (Metis (type_enc, lam_trans)) =
     metis_call type_enc lam_trans
   | string_for_reconstructor SMT = smtN
-
-fun thms_of_name ctxt name =
-  let
-    val lex = Keyword.get_lexicons
-    val get = maps (Proof_Context.get_fact ctxt o fst)
-  in
-    Source.of_string name
-    |> Symbol.source
-    |> Token.source {do_recover = SOME false} lex Position.start
-    |> Token.source_proper
-    |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
-    |> Source.exhaust
-  end
 
 
 (** fact extraction from ATP proofs **)
