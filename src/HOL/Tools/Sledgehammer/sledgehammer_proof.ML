@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_recontruct.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_proof.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
@@ -6,12 +6,12 @@ Basic data structures for representing and basic methods
 for dealing with Isar proof texts.
 *)
 
-signature SLEDGEHAMMER_ISAR =
+signature SLEDGEHAMMER_Proof =
 sig
-	val annotate_types : Proof.context -> term -> term
+	(* FIXME: TODO *)
 end
 
-structure Sledgehammer_Isar_Reconstruct (* : SLEDGEHAMMER_Isar *) = 
+structure Sledgehammer_Proof (* : SLEDGEHAMMER_Proof *) = 
 struct
 
 type label = string * int

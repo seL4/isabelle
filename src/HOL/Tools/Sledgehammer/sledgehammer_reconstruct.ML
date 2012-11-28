@@ -53,7 +53,7 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Sledgehammer_Util
-open Sledgehammer_Isar_Reconstruct
+open Sledgehammer_Proof
 open Sledgehammer_Annotate
 open Sledgehammer_Shrink
 

@@ -7,7 +7,7 @@ Shrinking of isar proofs reconstructed from ATP proofs.
 
 signature SLEDGEHAMMER_SHRINK =
 sig
-  type isar_step = Sledgehammer_Isar_Reconstruct.isar_step
+  type isar_step = Sledgehammer_Proof.isar_step
 	val shrink_proof : 
     bool -> Proof.context -> string -> string -> bool -> Time.time -> real
     -> isar_step list -> isar_step list * (bool * Time.time)
@@ -16,7 +16,7 @@ end
 structure Sledgehammer_Shrink (* : SLEDGEHAMMER_SHRINK *) =
 struct
 
-open Sledgehammer_Isar_Reconstruct
+open Sledgehammer_Proof
 
 (* Parameters *)
 val merge_timeout_slack = 1.2
