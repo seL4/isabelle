@@ -28,7 +28,6 @@ fun post_fold_term_type f s t =
 
 (* Data structures, orders *)
 val cost_ord = prod_ord int_ord (prod_ord int_ord int_ord)
-
 structure Var_Set_Tab = Table(
   type key = indexname list
   val ord = list_ord Term_Ord.fast_indexname_ord)
