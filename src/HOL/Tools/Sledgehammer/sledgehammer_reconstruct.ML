@@ -688,13 +688,13 @@ fun isar_proof_text ctxt isar_proofs
         and do_case outer (c, infs) =
           Assume (label_of_clause c, prop_of_clause c) ::
           map (do_inf outer) infs
-        val (isar_proof, ext_time) =
+        val (isar_proof, (preplay_fail, ext_time)) =
           ref_graph
           |> redirect_graph axioms tainted
           |> map (do_inf true)
           |> append assms
           |> (if not preplay andalso isar_shrink <= 1.0
-              then pair (true, seconds 0.0) #> swap
+              then pair (false, (true, seconds 0.0)) #> swap
               else shrink_proof debug ctxt type_enc lam_trans preplay
                 preplay_timeout (if isar_proofs then isar_shrink else 1000.0))
        (* |>> reorder_proof_to_minimize_jumps (* ? *) *)
@@ -714,15 +714,23 @@ fun isar_proof_text ctxt isar_proofs
           else
             ""
         | _ =>
-          "\n\nStructured proof" ^
-          (if verbose then
-             " (" ^ string_of_int num_steps ^ " metis step" ^ plural_s num_steps ^
-             (if preplay then ", " ^ string_from_ext_time ext_time
-              else "") ^ ")"
-           else if preplay then
-             " (" ^ string_from_ext_time ext_time ^ ")"
-           else
-             "") ^ ":\n" ^ Sendback.markup isar_text
+          let 
+            val preplay_msg = if preplay_fail
+              then "(!) proof may fail - preplaying was unsuccessful"
+              else string_from_ext_time ext_time
+            in
+              "\n\nStructured proof"
+                ^ (if verbose then
+                    " (" ^ string_of_int num_steps 
+                         ^ " metis step" ^ plural_s num_steps
+                          |> preplay ? suffix (", " ^ preplay_msg)
+                          |> suffix ")"
+                   else if preplay then
+                     " (" ^ preplay_msg ^ ")"
+                   else
+                     "") 
+                ^ ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_text
+            end
       end
     val isar_proof =
       if debug then
