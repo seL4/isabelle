@@ -29,8 +29,7 @@ structure Label_Table = Table(
   val ord = label_ord)
 
 (* Timing *)
-type ext_time = bool * Time.time
-fun ext_time_add (b1, t1) (b2, t2) : ext_time = (b1 orelse b2, t1+t2)
+fun ext_time_add (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
 val no_time = (false, seconds 0.0)
 fun take_time timeout tac arg =
   let val timing = Timing.start () in
@@ -40,8 +39,8 @@ fun take_time timeout tac arg =
   end
 fun sum_up_time timeout lazy_time_vector =
   Vector.foldl
-    ((fn (SOME t, (b, ts)) => (b, t+ts)
-       | (NONE, (_, ts)) => (true, ts+timeout)) o apfst Lazy.force)
+    ((fn (SOME t, (b, ts)) => (b, Time.+(t, ts))
+       | (NONE, (_, ts)) => (true, Time.+(ts, timeout))) o apfst Lazy.force)
     no_time lazy_time_vector
 
 (* clean vector interface *)
@@ -142,7 +141,7 @@ let
         | SOME t2 =>
           let
             val s12 = merge s1 s2
-            val timeout = time_mult merge_timeout_slack (t1 + t2)
+            val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
           in
             case try_metis timeout s12 () of
               NONE => (NONE, metis_time)
