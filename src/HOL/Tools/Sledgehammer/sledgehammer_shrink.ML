@@ -59,8 +59,9 @@ let
   let
     (* proof vector *)
     val proof_vect = proof |> map SOME |> Vector.fromList
-    val n = metis_steps_top_level proof
-    val n_target = Real.fromInt n / isar_shrink |> Real.round
+    val n = Vector.length proof_vect
+    val n_metis = metis_steps_top_level proof
+    val target_n_metis = Real.fromInt n_metis / isar_shrink |> Real.round
 
     (* table for mapping from (top-level-)label to proof position *)
     fun update_table (i, Assume (label, _)) = 
@@ -78,7 +79,7 @@ let
           @ maps (maps refs) cases
       | refs _ = []
     val refed_by_vect =
-      Vector.tabulate (Vector.length proof_vect, (fn _ => []))
+      Vector.tabulate (n, (fn _ => []))
       |> fold_index (fn (i, step) => fold (update (cons i)) (refs step)) proof
       |> Vector.map rev (* after rev, indices are sorted in ascending order *)
 
@@ -117,15 +118,12 @@ let
       Vector.map (Lazy.lazy o try_metis preplay_timeout o the) proof_vect
 
     (* Merging *)
-    fun merge (Prove (qs1, label1, _, By_Metis (lfs1, gfs1)))
+    fun merge (Prove (_, label1, _, By_Metis (lfs1, gfs1)))
               (Prove (qs2, label2 , t, By_Metis (lfs2, gfs2))) =
       let
-        val qs = inter (op =) qs1 qs2 (* FIXME: Is this correct? *)
-          |> member (op =) (union (op =) qs1 qs2) Ultimately ? cons Ultimately
-          |> member (op =) qs2 Show ? cons Show
         val ls = remove (op =) label1 lfs2 |> union (op =) lfs1
         val ss = union (op =) gfs1 gfs2
-      in Prove (qs, label2, t, By_Metis (ls, ss)) end
+      in Prove (qs2, label2, t, By_Metis (ls, ss)) end
     fun try_merge metis_time (s1, i) (s2, j) =
       (case get i metis_time |> Lazy.force of
         NONE => (NONE, metis_time)
@@ -148,10 +146,10 @@ let
 
           end))
 
-    fun merge_steps metis_time proof_vect refed_by cand_tab n' =
+    fun merge_steps metis_time proof_vect refed_by cand_tab n' n_metis' =
       if Inttab.is_empty cand_tab 
-        orelse n' <= n_target 
-        orelse (top_level andalso Vector.length proof_vect<3)
+        orelse n_metis' <= target_n_metis 
+        orelse (top_level andalso n'<3)
       then
         (Vector.foldr
            (fn (NONE, proof) => proof | (SOME s, proof) => s :: proof)
@@ -166,7 +164,7 @@ let
         in
           case try_merge metis_time (s1, i) (s2, j) of
             (NONE, metis_time) =>
-            merge_steps metis_time proof_vect refed_by cand_tab n'
+            merge_steps metis_time proof_vect refed_by cand_tab n' n_metis'
           | (s, metis_time) => 
           let
             val refs = refs s1
@@ -178,11 +176,11 @@ let
             val cand_tab = add_list cand_tab new_candidates
             val proof_vect = proof_vect |> replace NONE i |> replace s j
           in
-            merge_steps metis_time proof_vect refed_by cand_tab (n' - 1)
+            merge_steps metis_time proof_vect refed_by cand_tab (n' - 1) (n_metis' - 1)
           end
         end
   in
-    merge_steps metis_time proof_vect refed_by_vect cand_tab n
+    merge_steps metis_time proof_vect refed_by_vect cand_tab n n_metis
   end
   
   fun shrink_proof' top_level ctxt proof = 

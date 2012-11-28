@@ -9,7 +9,7 @@ struct
 type label = string * int
 type facts = label list * string list
 
-datatype isar_qualifier = Show | Then | Moreover | Ultimately
+datatype isar_qualifier = Show | Then | Ultimately
 
 datatype isar_step =
   Fix of (string * typ) list |
@@ -42,5 +42,6 @@ fun metis_steps_recursive proof =
          | Prove (_,_,_, Case_Split (cases, _)) => 
            inc (fold (inc o metis_steps_recursive) cases 1)
          | _ => I) proof 0
+
 
 end

@@ -478,7 +478,6 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         (Syntax.string_of_typ ctxt) T))
     fun do_label l = if l = no_label then "" else string_for_label l ^ ": "
     fun do_have qs =
-      (if member (op =) qs Moreover then "moreover " else "") ^
       (if member (op =) qs Ultimately then "ultimately " else "") ^
       (if member (op =) qs Then then
          if member (op =) qs Show then "thus" else "hence"
