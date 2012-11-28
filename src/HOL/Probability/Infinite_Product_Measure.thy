@@ -19,8 +19,10 @@ next
   assume "\<not> finite I"
   then have I_not_empty: "I \<noteq> {}" by auto
   interpret G!: algebra ?\<Omega> generator by (rule algebra_generator) fact
-  note \<mu>G_mono =
-    G.additive_increasing[OF positive_\<mu>G[OF I_not_empty] additive_\<mu>G[OF I_not_empty], THEN increasingD]
+  note mu_G_mono =
+    G.additive_increasing[OF positive_mu_G[OF I_not_empty] additive_mu_G[OF I_not_empty],
+      THEN increasingD]
+  write mu_G  ("\<mu>G")
 
   { fix Z J assume J: "J \<noteq> {}" "finite J" "J \<subseteq> I" and Z: "Z \<in> ?G"
 
@@ -42,7 +44,7 @@ next
       have ***: "((\<lambda>x. merge J (I - J) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)) \<in> ?G"
         using J K by (intro generatorI) auto
       have "\<mu>G ((\<lambda>x. merge J (I - J) (y, x)) -` emb I K X \<inter> space (Pi\<^isub>M I M)) = emeasure (Pi\<^isub>M (K - J) M) (?M y)"
-        unfolding * using K J by (subst \<mu>G_eq[OF _ _ _ **]) auto
+        unfolding * using K J by (subst mu_G_eq[OF _ _ _ **]) auto
       note * ** *** this }
     note merge_in_G = this
 
@@ -61,7 +63,7 @@ next
       fix x assume x: "x \<in> space (Pi\<^isub>M J M)"
       with K merge_in_G(2)[OF this]
       show "emeasure (Pi\<^isub>M (K - J) M) (?M x) = \<mu>G (?MZ x)"
-        unfolding `Z = emb I K X` merge_in_G(1)[OF x] by (subst \<mu>G_eq) auto
+        unfolding `Z = emb I K X` merge_in_G(1)[OF x] by (subst mu_G_eq) auto
     qed
     finally have fold: "\<mu>G Z = (\<integral>\<^isup>+x. \<mu>G (?MZ x) \<partial>Pi\<^isub>M J M)" .
 
@@ -74,12 +76,12 @@ next
     let ?q = "\<lambda>y. \<mu>G ((\<lambda>x. merge J (I - J) (y,x)) -` Z \<inter> space (Pi\<^isub>M I M))"
     have "?q \<in> borel_measurable (Pi\<^isub>M J M)"
       unfolding `Z = emb I K X` using J K merge_in_G(3)
-      by (simp add: merge_in_G  \<mu>G_eq emeasure_fold_measurable cong: measurable_cong)
+      by (simp add: merge_in_G  mu_G_eq emeasure_fold_measurable cong: measurable_cong)
     note this fold le_1 merge_in_G(3) }
   note fold = this
 
   have "\<exists>\<mu>. (\<forall>s\<in>?G. \<mu> s = \<mu>G s) \<and> measure_space ?\<Omega> (sigma_sets ?\<Omega> ?G) \<mu>"
-  proof (rule G.caratheodory_empty_continuous[OF positive_\<mu>G additive_\<mu>G])
+  proof (rule G.caratheodory_empty_continuous[OF positive_mu_G additive_mu_G])
     fix A assume "A \<in> ?G"
     with generatorE guess J X . note JX = this
     interpret JK: finite_product_prob_space M J by default fact+ 
@@ -87,13 +89,13 @@ next
   next
     fix A assume A: "range A \<subseteq> ?G" "decseq A" "(\<Inter>i. A i) = {}"
     then have "decseq (\<lambda>i. \<mu>G (A i))"
-      by (auto intro!: \<mu>G_mono simp: decseq_def)
+      by (auto intro!: mu_G_mono simp: decseq_def)
     moreover
     have "(INF i. \<mu>G (A i)) = 0"
     proof (rule ccontr)
       assume "(INF i. \<mu>G (A i)) \<noteq> 0" (is "?a \<noteq> 0")
       moreover have "0 \<le> ?a"
-        using A positive_\<mu>G[OF I_not_empty] by (auto intro!: INF_greatest simp: positive_def)
+        using A positive_mu_G[OF I_not_empty] by (auto intro!: INF_greatest simp: positive_def)
       ultimately have "0 < ?a" by auto
 
       have "\<forall>n. \<exists>J X. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I \<and> X \<in> sets (Pi\<^isub>M J M) \<and> A n = emb I J X \<and> \<mu>G (A n) = emeasure (limP J M (\<lambda>J. (Pi\<^isub>M J M))) X"
@@ -114,7 +116,7 @@ next
       interpret J: finite_product_prob_space M "J i" for i by default fact+
 
       have a_le_1: "?a \<le> 1"
-        using \<mu>G_spec[of "J 0" "A 0" "X 0"] J A_eq
+        using mu_G_spec[of "J 0" "A 0" "X 0"] J A_eq
         by (auto intro!: INF_lower2[of 0] J.measure_le_1)
 
       let ?M = "\<lambda>K Z y. (\<lambda>x. merge K (I - K) (y, x)) -` Z \<inter> space (Pi\<^isub>M I M)"
@@ -166,7 +168,7 @@ next
             fix x assume x: "x \<in> space (Pi\<^isub>M J' M)"
             assume "?a / 2^(k+1) \<le> ?q n x"
             also have "?q n x \<le> ?q m x"
-            proof (rule \<mu>G_mono)
+            proof (rule mu_G_mono)
               from fold(4)[OF J', OF Z_sets x]
               show "?M J' (Z n) x \<in> ?G" "?M J' (Z m) x \<in> ?G" by auto
               show "?M J' (Z n) x \<subseteq> ?M J' (Z m) x"
@@ -248,7 +250,7 @@ next
         moreover
         from w have "?a / 2 ^ (k + 1) \<le> ?q k k (w k)" by auto
         then have "?M (J k) (A k) (w k) \<noteq> {}"
-          using positive_\<mu>G[OF I_not_empty, unfolded positive_def] `0 < ?a` `?a \<le> 1`
+          using positive_mu_G[OF I_not_empty, unfolded positive_def] `0 < ?a` `?a \<le> 1`
           by (cases ?a) (auto simp: divide_le_0_iff power_le_zero_eq)
         then obtain x where "x \<in> ?M (J k) (A k) (w k)" by auto
         then have "merge (J k) (I - J k) (w k, x) \<in> A k" by auto
@@ -317,7 +319,7 @@ next
     then have "\<mu> (emb I J (Pi\<^isub>E J X)) = \<mu>G (emb I J (Pi\<^isub>E J X))"
       using \<mu> by simp
     also have "\<dots> = (\<Prod> j\<in>J. if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"
-      using J  `I \<noteq> {}` by (subst \<mu>G_spec[OF _ _ _ refl]) (auto simp: emeasure_PiM Pi_iff)
+      using J  `I \<noteq> {}` by (subst mu_G_spec[OF _ _ _ refl]) (auto simp: emeasure_PiM Pi_iff)
     also have "\<dots> = (\<Prod>j\<in>J \<union> {i \<in> I. emeasure (M i) (space (M i)) \<noteq> 1}.
       if j \<in> J then emeasure (M j) (X j) else emeasure (M j) (space (M j)))"
       using J `I \<noteq> {}` by (intro setprod_mono_one_right) (auto simp: M.emeasure_space_1)

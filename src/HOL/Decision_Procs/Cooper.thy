@@ -1004,7 +1004,7 @@ consts
   plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
   minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
   \<delta> :: "fm \<Rightarrow> int" (* Compute lcm {d| N\<^isup>? Dvd c*x+t \<in> p}*)
-  d\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* checks if a given l divides all the ds above*)
+  d_\<delta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* checks if a given l divides all the ds above*)
 
 recdef minusinf "measure size"
   "minusinf (And p q) = And (minusinf p) (minusinf q)" 
@@ -1038,18 +1038,18 @@ recdef \<delta> "measure size"
   "\<delta> (NDvd i (CN 0 c e)) = i"
   "\<delta> p = 1"
 
-recdef d\<delta> "measure size"
-  "d\<delta> (And p q) = (\<lambda> d. d\<delta> p d \<and> d\<delta> q d)" 
-  "d\<delta> (Or p q) = (\<lambda> d. d\<delta> p d \<and> d\<delta> q d)" 
-  "d\<delta> (Dvd i (CN 0 c e)) = (\<lambda> d. i dvd d)"
-  "d\<delta> (NDvd i (CN 0 c e)) = (\<lambda> d. i dvd d)"
-  "d\<delta> p = (\<lambda> d. True)"
+recdef d_\<delta> "measure size"
+  "d_\<delta> (And p q) = (\<lambda> d. d_\<delta> p d \<and> d_\<delta> q d)" 
+  "d_\<delta> (Or p q) = (\<lambda> d. d_\<delta> p d \<and> d_\<delta> q d)" 
+  "d_\<delta> (Dvd i (CN 0 c e)) = (\<lambda> d. i dvd d)"
+  "d_\<delta> (NDvd i (CN 0 c e)) = (\<lambda> d. i dvd d)"
+  "d_\<delta> p = (\<lambda> d. True)"
 
 lemma delta_mono: 
   assumes lin: "iszlfm p"
   and d: "d dvd d'"
-  and ad: "d\<delta> p d"
-  shows "d\<delta> p d'"
+  and ad: "d_\<delta> p d"
+  shows "d_\<delta> p d'"
   using lin ad d
 proof(induct p rule: iszlfm.induct)
   case (9 i c e)  thus ?case using d
@@ -1060,61 +1060,61 @@ next
 qed simp_all
 
 lemma \<delta> : assumes lin:"iszlfm p"
-  shows "d\<delta> p (\<delta> p) \<and> \<delta> p >0"
+  shows "d_\<delta> p (\<delta> p) \<and> \<delta> p >0"
 using lin
 proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
   from 1 lcm_pos_int have dp: "?d >0" by simp
   have d1: "\<delta> p dvd \<delta> (And p q)" using 1 by simp
-  hence th: "d\<delta> p ?d" using delta_mono 1(2,3) by(simp only: iszlfm.simps)
+  hence th: "d_\<delta> p ?d" using delta_mono 1(2,3) by(simp only: iszlfm.simps)
   have "\<delta> q dvd \<delta> (And p q)" using 1 by simp
-  hence th': "d\<delta> q ?d" using delta_mono 1 by(simp only: iszlfm.simps)
+  hence th': "d_\<delta> q ?d" using delta_mono 1 by(simp only: iszlfm.simps)
   from th th' dp show ?case by simp
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
   from 2 lcm_pos_int have dp: "?d >0" by simp
   have "\<delta> p dvd \<delta> (And p q)" using 2 by simp
-  hence th: "d\<delta> p ?d" using delta_mono 2 by(simp only: iszlfm.simps)
+  hence th: "d_\<delta> p ?d" using delta_mono 2 by(simp only: iszlfm.simps)
   have "\<delta> q dvd \<delta> (And p q)" using 2 by simp
-  hence th': "d\<delta> q ?d" using delta_mono 2 by(simp only: iszlfm.simps)
+  hence th': "d_\<delta> q ?d" using delta_mono 2 by(simp only: iszlfm.simps)
   from th th' dp show ?case by simp
 qed simp_all
 
 
 consts 
-  a\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm" (* adjusts the coeffitients of a formula *)
-  d\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* tests if all coeffs c of c divide a given l*)
+  a_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> fm" (* adjusts the coeffitients of a formula *)
+  d_\<beta> :: "fm \<Rightarrow> int \<Rightarrow> bool" (* tests if all coeffs c of c divide a given l*)
   \<zeta>  :: "fm \<Rightarrow> int" (* computes the lcm of all coefficients of x*)
   \<beta> :: "fm \<Rightarrow> num list"
   \<alpha> :: "fm \<Rightarrow> num list"
 
-recdef a\<beta> "measure size"
-  "a\<beta> (And p q) = (\<lambda> k. And (a\<beta> p k) (a\<beta> q k))" 
-  "a\<beta> (Or p q) = (\<lambda> k. Or (a\<beta> p k) (a\<beta> q k))" 
-  "a\<beta> (Eq  (CN 0 c e)) = (\<lambda> k. Eq (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (NEq (CN 0 c e)) = (\<lambda> k. NEq (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (Lt  (CN 0 c e)) = (\<lambda> k. Lt (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (Le  (CN 0 c e)) = (\<lambda> k. Le (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (Gt  (CN 0 c e)) = (\<lambda> k. Gt (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (Ge  (CN 0 c e)) = (\<lambda> k. Ge (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (Dvd i (CN 0 c e)) =(\<lambda> k. Dvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> (NDvd i (CN 0 c e))=(\<lambda> k. NDvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
-  "a\<beta> p = (\<lambda> k. p)"
+recdef a_\<beta> "measure size"
+  "a_\<beta> (And p q) = (\<lambda> k. And (a_\<beta> p k) (a_\<beta> q k))" 
+  "a_\<beta> (Or p q) = (\<lambda> k. Or (a_\<beta> p k) (a_\<beta> q k))" 
+  "a_\<beta> (Eq  (CN 0 c e)) = (\<lambda> k. Eq (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (NEq (CN 0 c e)) = (\<lambda> k. NEq (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (Lt  (CN 0 c e)) = (\<lambda> k. Lt (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (Le  (CN 0 c e)) = (\<lambda> k. Le (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (Gt  (CN 0 c e)) = (\<lambda> k. Gt (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (Ge  (CN 0 c e)) = (\<lambda> k. Ge (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (Dvd i (CN 0 c e)) =(\<lambda> k. Dvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> (NDvd i (CN 0 c e))=(\<lambda> k. NDvd ((k div c)*i) (CN 0 1 (Mul (k div c) e)))"
+  "a_\<beta> p = (\<lambda> k. p)"
 
-recdef d\<beta> "measure size"
-  "d\<beta> (And p q) = (\<lambda> k. (d\<beta> p k) \<and> (d\<beta> q k))" 
-  "d\<beta> (Or p q) = (\<lambda> k. (d\<beta> p k) \<and> (d\<beta> q k))" 
-  "d\<beta> (Eq  (CN 0 c e)) = (\<lambda> k. c dvd k)"
-  "d\<beta> (NEq (CN 0 c e)) = (\<lambda> k. c dvd k)"
-  "d\<beta> (Lt  (CN 0 c e)) = (\<lambda> k. c dvd k)"
-  "d\<beta> (Le  (CN 0 c e)) = (\<lambda> k. c dvd k)"
-  "d\<beta> (Gt  (CN 0 c e)) = (\<lambda> k. c dvd k)"
-  "d\<beta> (Ge  (CN 0 c e)) = (\<lambda> k. c dvd k)"
-  "d\<beta> (Dvd i (CN 0 c e)) =(\<lambda> k. c dvd k)"
-  "d\<beta> (NDvd i (CN 0 c e))=(\<lambda> k. c dvd k)"
-  "d\<beta> p = (\<lambda> k. True)"
+recdef d_\<beta> "measure size"
+  "d_\<beta> (And p q) = (\<lambda> k. (d_\<beta> p k) \<and> (d_\<beta> q k))" 
+  "d_\<beta> (Or p q) = (\<lambda> k. (d_\<beta> p k) \<and> (d_\<beta> q k))" 
+  "d_\<beta> (Eq  (CN 0 c e)) = (\<lambda> k. c dvd k)"
+  "d_\<beta> (NEq (CN 0 c e)) = (\<lambda> k. c dvd k)"
+  "d_\<beta> (Lt  (CN 0 c e)) = (\<lambda> k. c dvd k)"
+  "d_\<beta> (Le  (CN 0 c e)) = (\<lambda> k. c dvd k)"
+  "d_\<beta> (Gt  (CN 0 c e)) = (\<lambda> k. c dvd k)"
+  "d_\<beta> (Ge  (CN 0 c e)) = (\<lambda> k. c dvd k)"
+  "d_\<beta> (Dvd i (CN 0 c e)) =(\<lambda> k. c dvd k)"
+  "d_\<beta> (NDvd i (CN 0 c e))=(\<lambda> k. c dvd k)"
+  "d_\<beta> p = (\<lambda> k. True)"
 
 recdef \<zeta> "measure size"
   "\<zeta> (And p q) = lcm (\<zeta> p) (\<zeta> q)" 
@@ -1169,7 +1169,7 @@ lemma dvd1_eq1: "x >0 \<Longrightarrow> (x::int) dvd 1 = (x = 1)"
 
 lemma minusinf_inf:
   assumes linp: "iszlfm p"
-  and u: "d\<beta> p 1"
+  and u: "d_\<beta> p 1"
   shows "\<exists> (z::int). \<forall> x < z. Ifm bbs (x#bs) (minusinf p) = Ifm bbs (x#bs) p"
   (is "?P p" is "\<exists> (z::int). \<forall> x < z. ?I x (?M p) = ?I x p")
 using linp u
@@ -1242,7 +1242,7 @@ next
 qed auto
 
 lemma minusinf_repeats:
-  assumes d: "d\<delta> p d" and linp: "iszlfm p"
+  assumes d: "d_\<delta> p d" and linp: "iszlfm p"
   shows "Ifm bbs ((x - k*d)#bs) (minusinf p) = Ifm bbs (x #bs) (minusinf p)"
 using linp d
 proof(induct p rule: iszlfm.induct) 
@@ -1301,7 +1301,7 @@ next
     qed
 qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="x - k*d" and b'="x"])
 
-lemma mirror\<alpha>\<beta>:
+lemma mirror_\<alpha>_\<beta>:
   assumes lp: "iszlfm p"
   shows "(Inum (i#bs)) ` set (\<alpha> p) = (Inum (i#bs)) ` set (\<beta> (mirror p))"
 using lp
@@ -1337,8 +1337,8 @@ next
   finally show ?case by simp
 qed (auto simp add: numbound0_I[where bs="bs" and b="x" and b'="- x"] gr0_conv_Suc)
 
-lemma mirror_l: "iszlfm p \<and> d\<beta> p 1 
-  \<Longrightarrow> iszlfm (mirror p) \<and> d\<beta> (mirror p) 1"
+lemma mirror_l: "iszlfm p \<and> d_\<beta> p 1 
+  \<Longrightarrow> iszlfm (mirror p) \<and> d_\<beta> (mirror p) 1"
   by (induct p rule: mirror.induct) auto
 
 lemma mirror_\<delta>: "iszlfm p \<Longrightarrow> \<delta> (mirror p) = \<delta> p"
@@ -1348,11 +1348,11 @@ lemma \<beta>_numbound0: assumes lp: "iszlfm p"
   shows "\<forall> b\<in> set (\<beta> p). numbound0 b"
   using lp by (induct p rule: \<beta>.induct) auto
 
-lemma d\<beta>_mono: 
+lemma d_\<beta>_mono: 
   assumes linp: "iszlfm p"
-  and dr: "d\<beta> p l"
+  and dr: "d_\<beta> p l"
   and d: "l dvd l'"
-  shows "d\<beta> p l'"
+  shows "d_\<beta> p l'"
 using dr linp dvd_trans[of _ "l" "l'", simplified d]
   by (induct p rule: iszlfm.induct) simp_all
 
@@ -1363,26 +1363,26 @@ using lp
 
 lemma \<zeta>: 
   assumes linp: "iszlfm p"
-  shows "\<zeta> p > 0 \<and> d\<beta> p (\<zeta> p)"
+  shows "\<zeta> p > 0 \<and> d_\<beta> p (\<zeta> p)"
 using linp
 proof(induct p rule: iszlfm.induct)
   case (1 p q)
   from 1 have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from 1 have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
-  from 1 d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
-    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+  from 1 d_\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    d_\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
 next
   case (2 p q)
   from 2 have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
   from 2 have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
-  from 2 d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
-    d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+  from 2 d_\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+    d_\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
 qed (auto simp add: lcm_pos_int)
 
-lemma a\<beta>: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l > 0"
-  shows "iszlfm (a\<beta> p l) \<and> d\<beta> (a\<beta> p l) 1 \<and> (Ifm bbs (l*x #bs) (a\<beta> p l) = Ifm bbs (x#bs) p)"
+lemma a_\<beta>: assumes linp: "iszlfm p" and d: "d_\<beta> p l" and lp: "l > 0"
+  shows "iszlfm (a_\<beta> p l) \<and> d_\<beta> (a_\<beta> p l) 1 \<and> (Ifm bbs (l*x #bs) (a_\<beta> p l) = Ifm bbs (x#bs) p)"
 using linp d
 proof (induct p rule: iszlfm.induct)
   case (5 c e) hence cp: "c>0" and be: "numbound0 e" and d': "c dvd l" by simp+
@@ -1530,20 +1530,20 @@ next
   finally show ?case using numbound0_I[OF be,where b="(l * x)" and b'="x" and bs="bs"] be  mult_strict_mono[OF ldcp jp ldcp ] by (simp add: dvd_def)
 qed (auto simp add: gr0_conv_Suc numbound0_I[where bs="bs" and b="(l * x)" and b'="x"])
 
-lemma a\<beta>_ex: assumes linp: "iszlfm p" and d: "d\<beta> p l" and lp: "l>0"
-  shows "(\<exists> x. l dvd x \<and> Ifm bbs (x #bs) (a\<beta> p l)) = (\<exists> (x::int). Ifm bbs (x#bs) p)"
+lemma a_\<beta>_ex: assumes linp: "iszlfm p" and d: "d_\<beta> p l" and lp: "l>0"
+  shows "(\<exists> x. l dvd x \<and> Ifm bbs (x #bs) (a_\<beta> p l)) = (\<exists> (x::int). Ifm bbs (x#bs) p)"
   (is "(\<exists> x. l dvd x \<and> ?P x) = (\<exists> x. ?P' x)")
 proof-
   have "(\<exists> x. l dvd x \<and> ?P x) = (\<exists> (x::int). ?P (l*x))"
     using unity_coeff_ex[where l="l" and P="?P", simplified] by simp
-  also have "\<dots> = (\<exists> (x::int). ?P' x)" using a\<beta>[OF linp d lp] by simp
+  also have "\<dots> = (\<exists> (x::int). ?P' x)" using a_\<beta>[OF linp d lp] by simp
   finally show ?thesis  . 
 qed
 
 lemma \<beta>:
   assumes lp: "iszlfm p"
-  and u: "d\<beta> p 1"
-  and d: "d\<delta> p d"
+  and u: "d_\<beta> p 1"
+  and d: "d_\<delta> p d"
   and dp: "d > 0"
   and nob: "\<not>(\<exists>(j::int) \<in> {1 .. d}. \<exists> b\<in> (Inum (a#bs)) ` set(\<beta> p). x = b + j)"
   and p: "Ifm bbs (x#bs) p" (is "?P x")
@@ -1637,8 +1637,8 @@ qed (auto simp add: numbound0_I[where bs="bs" and b="(x - d)" and b'="x"] gr0_co
 
 lemma \<beta>':   
   assumes lp: "iszlfm p"
-  and u: "d\<beta> p 1"
-  and d: "d\<delta> p d"
+  and u: "d_\<beta> p 1"
+  and d: "d_\<delta> p d"
   and dp: "d > 0"
   shows "\<forall> x. \<not>(\<exists>(j::int) \<in> {1 .. d}. \<exists> b\<in> set(\<beta> p). Ifm bbs ((Inum (a#bs) b + j) #bs) p) \<longrightarrow> Ifm bbs (x#bs) p \<longrightarrow> Ifm bbs ((x - d)#bs) p" (is "\<forall> x. ?b \<longrightarrow> ?P x \<longrightarrow> ?P (x - d)")
 proof(clarify)
@@ -1672,8 +1672,8 @@ done
 
 theorem cp_thm:
   assumes lp: "iszlfm p"
-  and u: "d\<beta> p 1"
-  and d: "d\<delta> p d"
+  and u: "d_\<beta> p 1"
+  and d: "d_\<delta> p d"
   and dp: "d > 0"
   shows "(\<exists> (x::int). Ifm bbs (x #bs) p) = (\<exists> j\<in> {1.. d}. Ifm bbs (j #bs) (minusinf p) \<or> (\<exists> b \<in> set (\<beta> p). Ifm bbs ((Inum (i#bs) b + j) #bs) p))"
   (is "(\<exists> (x::int). ?P (x)) = (\<exists> j\<in> ?D. ?M j \<or> (\<exists> b\<in> ?B. ?P (?I b + j)))")
@@ -1706,27 +1706,27 @@ qed
 
 lemma cp_thm': 
   assumes lp: "iszlfm p"
-  and up: "d\<beta> p 1" and dd: "d\<delta> p d" and dp: "d > 0"
+  and up: "d_\<beta> p 1" and dd: "d_\<delta> p d" and dp: "d > 0"
   shows "(\<exists> x. Ifm bbs (x#bs) p) = ((\<exists> j\<in> {1 .. d}. Ifm bbs (j#bs) (minusinf p)) \<or> (\<exists> j\<in> {1.. d}. \<exists> b\<in> (Inum (i#bs)) ` set (\<beta> p). Ifm bbs ((b+j)#bs) p))"
   using cp_thm[OF lp up dd dp,where i="i"] by auto
 
 definition unit :: "fm \<Rightarrow> fm \<times> num list \<times> int" where
-  "unit p \<equiv> (let p' = zlfm p ; l = \<zeta> p' ; q = And (Dvd l (CN 0 1 (C 0))) (a\<beta> p' l); d = \<delta> q;
+  "unit p \<equiv> (let p' = zlfm p ; l = \<zeta> p' ; q = And (Dvd l (CN 0 1 (C 0))) (a_\<beta> p' l); d = \<delta> q;
              B = remdups (map simpnum (\<beta> q)) ; a = remdups (map simpnum (\<alpha> q))
              in if length B \<le> length a then (q,B,d) else (mirror q, a,d))"
 
 lemma unit: assumes qf: "qfree p"
-  shows "\<And> q B d. unit p = (q,B,d) \<Longrightarrow> ((\<exists> x. Ifm bbs (x#bs) p) = (\<exists> x. Ifm bbs (x#bs) q)) \<and> (Inum (i#bs)) ` set B = (Inum (i#bs)) ` set (\<beta> q) \<and> d\<beta> q 1 \<and> d\<delta> q d \<and> d >0 \<and> iszlfm q \<and> (\<forall> b\<in> set B. numbound0 b)"
+  shows "\<And> q B d. unit p = (q,B,d) \<Longrightarrow> ((\<exists> x. Ifm bbs (x#bs) p) = (\<exists> x. Ifm bbs (x#bs) q)) \<and> (Inum (i#bs)) ` set B = (Inum (i#bs)) ` set (\<beta> q) \<and> d_\<beta> q 1 \<and> d_\<delta> q d \<and> d >0 \<and> iszlfm q \<and> (\<forall> b\<in> set B. numbound0 b)"
 proof-
   fix q B d 
   assume qBd: "unit p = (q,B,d)"
   let ?thes = "((\<exists> x. Ifm bbs (x#bs) p) = (\<exists> x. Ifm bbs (x#bs) q)) \<and>
     Inum (i#bs) ` set B = Inum (i#bs) ` set (\<beta> q) \<and>
-    d\<beta> q 1 \<and> d\<delta> q d \<and> 0 < d \<and> iszlfm q \<and> (\<forall> b\<in> set B. numbound0 b)"
+    d_\<beta> q 1 \<and> d_\<delta> q d \<and> 0 < d \<and> iszlfm q \<and> (\<forall> b\<in> set B. numbound0 b)"
   let ?I = "\<lambda> x p. Ifm bbs (x#bs) p"
   let ?p' = "zlfm p"
   let ?l = "\<zeta> ?p'"
-  let ?q = "And (Dvd ?l (CN 0 1 (C 0))) (a\<beta> ?p' ?l)"
+  let ?q = "And (Dvd ?l (CN 0 1 (C 0))) (a_\<beta> ?p' ?l)"
   let ?d = "\<delta> ?q"
   let ?B = "set (\<beta> ?q)"
   let ?B'= "remdups (map simpnum (\<beta> ?q))"
@@ -1736,11 +1736,11 @@ proof-
   have pp': "\<forall> i. ?I i ?p' = ?I i p" by auto
   from conjunct2[OF zlfm_I[OF qf, where bs="bs" and i="i"]]
   have lp': "iszlfm ?p'" . 
-  from lp' \<zeta>[where p="?p'"] have lp: "?l >0" and dl: "d\<beta> ?p' ?l" by auto
-  from a\<beta>_ex[where p="?p'" and l="?l" and bs="bs", OF lp' dl lp] pp'
+  from lp' \<zeta>[where p="?p'"] have lp: "?l >0" and dl: "d_\<beta> ?p' ?l" by auto
+  from a_\<beta>_ex[where p="?p'" and l="?l" and bs="bs", OF lp' dl lp] pp'
   have pq_ex:"(\<exists> (x::int). ?I x p) = (\<exists> x. ?I x ?q)" by simp 
-  from lp' lp a\<beta>[OF lp' dl lp] have lq:"iszlfm ?q" and uq: "d\<beta> ?q 1"  by auto
-  from \<delta>[OF lq] have dp:"?d >0" and dd: "d\<delta> ?q ?d" by blast+
+  from lp' lp a_\<beta>[OF lp' dl lp] have lq:"iszlfm ?q" and uq: "d_\<beta> ?q 1"  by auto
+  from \<delta>[OF lq] have dp:"?d >0" and dd: "d_\<delta> ?q ?d" by blast+
   let ?N = "\<lambda> t. Inum (i#bs) t"
   have "?N ` set ?B' = ((?N o simpnum) ` ?B)" by auto 
   also have "\<dots> = ?N ` ?B" using simpnum_ci[where bs="i#bs"] by auto
@@ -1762,13 +1762,13 @@ proof-
   {assume "\<not> (length ?B' \<le> length ?A')"
     hence q:"q=mirror ?q" and "B = ?A'" and d:"d = ?d"
       using qBd by (auto simp add: Let_def unit_def)
-    with AA' mirror\<alpha>\<beta>[OF lq] A_nb have b:"?N ` (set B) = ?N ` set (\<beta> q)" 
+    with AA' mirror_\<alpha>_\<beta>[OF lq] A_nb have b:"?N ` (set B) = ?N ` set (\<beta> q)" 
       and bn: "\<forall>b\<in> set B. numbound0 b" by simp+
     from mirror_ex[OF lq] pq_ex q 
     have pqm_eq:"(\<exists> (x::int). ?I x p) = (\<exists> (x::int). ?I x q)" by simp
     from lq uq q mirror_l[where p="?q"]
-    have lq': "iszlfm q" and uq: "d\<beta> q 1" by auto
-    from \<delta>[OF lq'] mirror_\<delta>[OF lq] q d have dq:"d\<delta> q d " by auto
+    have lq': "iszlfm q" and uq: "d_\<beta> q 1" by auto
+    from \<delta>[OF lq'] mirror_\<delta>[OF lq] q d have dq:"d_\<delta> q d " by auto
     from pqm_eq b bn uq lq' dp dq q dp d have ?thes by simp
   }
   ultimately show ?thes by blast
@@ -1803,7 +1803,7 @@ proof-
   have qbf:"unit p = (?q,?B,?d)" by simp
   from unit[OF qf qbf] have pq_ex: "(\<exists>(x::int). ?I x p) = (\<exists> (x::int). ?I x ?q)" and 
     B:"?N ` set ?B = ?N ` set (\<beta> ?q)" and 
-    uq:"d\<beta> ?q 1" and dd: "d\<delta> ?q ?d" and dp: "?d > 0" and 
+    uq:"d_\<beta> ?q 1" and dd: "d_\<delta> ?q ?d" and dp: "?d > 0" and 
     lq: "iszlfm ?q" and 
     Bn: "\<forall> b\<in> set ?B. numbound0 b" by auto
   from zlin_qfree[OF lq] have qfq: "qfree ?q" .

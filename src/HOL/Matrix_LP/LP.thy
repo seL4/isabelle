@@ -19,12 +19,12 @@ lemma linprog_dual_estimate:
   assumes
   "A * x \<le> (b::'a::lattice_ring)"
   "0 \<le> y"
-  "abs (A - A') \<le> \<delta>A"
+  "abs (A - A') \<le> \<delta>_A"
   "b \<le> b'"
-  "abs (c - c') \<le> \<delta>c"
+  "abs (c - c') \<le> \<delta>_c"
   "abs x \<le> r"
   shows
-  "c * x \<le> y * b' + (y * \<delta>A + abs (y * A' - c') + \<delta>c) * r"
+  "c * x \<le> y * b' + (y * \<delta>_A + abs (y * A' - c') + \<delta>_c) * r"
 proof -
   from assms have 1: "y * b <= y * b'" by (simp add: mult_left_mono)
   from assms have 2: "y * (A * x) <= y * b" by (simp add: mult_left_mono) 
@@ -43,20 +43,20 @@ proof -
   have 10: "c'-c = -(c-c')" by (simp add: algebra_simps)
   have 11: "abs (c'-c) = abs (c-c')" 
     by (subst 10, subst abs_minus_cancel, simp)
-  have 12: "(abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + \<delta>c) * abs x"
+  have 12: "(abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + \<delta>_c) * abs x"
     by (simp add: 11 assms mult_right_mono)
-  have 13: "(abs y * abs (A-A') + abs (y*A'-c') + \<delta>c) * abs x <= (abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * abs x"
+  have 13: "(abs y * abs (A-A') + abs (y*A'-c') + \<delta>_c) * abs x <= (abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * abs x"
     by (simp add: assms mult_right_mono mult_left_mono)  
-  have r: "(abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * abs x <=  (abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * r"
+  have r: "(abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * abs x <=  (abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * r"
     apply (rule mult_left_mono)
     apply (simp add: assms)
     apply (rule_tac add_mono[of "0::'a" _ "0", simplified])+
-    apply (rule mult_left_mono[of "0" "\<delta>A", simplified])
+    apply (rule mult_left_mono[of "0" "\<delta>_A", simplified])
     apply (simp_all)
     apply (rule order_trans[where y="abs (A-A')"], simp_all add: assms)
     apply (rule order_trans[where y="abs (c-c')"], simp_all add: assms)
     done    
-  from 6 7 8 9 12 13 r have 14:" abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <=(abs y * \<delta>A + abs (y*A'-c') + \<delta>c) * r"     
+  from 6 7 8 9 12 13 r have 14:" abs((y * (A - A') + (y * A' - c') + (c'-c)) * x) <=(abs y * \<delta>_A + abs (y*A'-c') + \<delta>_c) * r"     
     by (simp)
   show ?thesis
     apply (rule le_add_right_mono[of _ _ "abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"])

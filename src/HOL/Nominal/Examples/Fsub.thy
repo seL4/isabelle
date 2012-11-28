@@ -1501,7 +1501,7 @@ next
   have h:"(D @ TVarB X Q # \<Gamma>)\<turnstile>S<:T" by fact
   then have ST: "(D[X \<mapsto> P]\<^sub>e @ \<Gamma>) \<turnstile> S[X \<mapsto> P]\<^sub>\<tau> <: T[X \<mapsto> P]\<^sub>\<tau>" using SA_trans_TVar by auto
   from h have G_ok: "\<turnstile> (D @ TVarB X Q # \<Gamma>) ok" by (rule subtype_implies_ok)
-  from G_ok and SA_trans_TVar have X\<Gamma>_ok: "\<turnstile> (TVarB X Q # \<Gamma>) ok"
+  from G_ok and SA_trans_TVar have X_\<Gamma>_ok: "\<turnstile> (TVarB X Q # \<Gamma>) ok"
     by (auto intro: validE_append)
   show "(D[X \<mapsto> P]\<^sub>e @ \<Gamma>) \<turnstile> Tvar Y[X \<mapsto> P]\<^sub>\<tau><:T[X \<mapsto> P]\<^sub>\<tau>"
   proof (cases "X = Y")
@@ -1509,7 +1509,7 @@ next
     from eq and SA_trans_TVar have "TVarB Y Q \<in> set (D @ TVarB X Q # \<Gamma>)" by simp
     with G_ok have QS: "Q = S" using `TVarB Y S \<in> set (D @ TVarB X Q # \<Gamma>)`
       by (rule uniqueness_of_ctxt)
-    from X\<Gamma>_ok have "X \<sharp> ty_dom \<Gamma>" and "Q closed_in \<Gamma>" by auto
+    from X_\<Gamma>_ok have "X \<sharp> ty_dom \<Gamma>" and "Q closed_in \<Gamma>" by auto
     then have XQ: "X \<sharp> Q" by (rule closed_in_fresh)
     note `\<Gamma>\<turnstile>P<:Q`
     moreover from ST have "\<turnstile> (D[X \<mapsto> P]\<^sub>e @ \<Gamma>) ok" by (rule subtype_implies_ok)
@@ -1534,7 +1534,7 @@ next
       with neq and ST show ?thesis by auto
     next
       assume Y: "TVarB Y S \<in> set \<Gamma>"
-      from X\<Gamma>_ok have "X \<sharp> ty_dom \<Gamma>" and "\<turnstile> \<Gamma> ok" by auto
+      from X_\<Gamma>_ok have "X \<sharp> ty_dom \<Gamma>" and "\<turnstile> \<Gamma> ok" by auto
       then have "X \<sharp> \<Gamma>" by (simp add: valid_ty_dom_fresh)
       with Y have "X \<sharp> S"
         by (induct \<Gamma>) (auto simp add: fresh_list_nil fresh_list_cons)

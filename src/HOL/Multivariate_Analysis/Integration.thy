@@ -867,11 +867,11 @@ proof- def n \<equiv> "DIM('a)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfold
   guess \<pi> using ex_bij_betw_nat_finite_1[OF finite_lessThan[of "DIM('a)"]] .. note \<pi>=this
   def \<pi>' \<equiv> "inv_into {1..n} \<pi>"
   have \<pi>':"bij_betw \<pi>' {..<DIM('a)} {1..n}" using bij_betw_inv_into[OF \<pi>] unfolding \<pi>'_def n_def by auto
-  hence \<pi>'i:"\<And>i. i<DIM('a) \<Longrightarrow> \<pi>' i \<in> {1..n}" unfolding bij_betw_def by auto 
-  have \<pi>i:"\<And>i. i\<in>{1..n} \<Longrightarrow> \<pi> i <DIM('a)" using \<pi> unfolding bij_betw_def n_def by auto 
-  have \<pi>\<pi>'[simp]:"\<And>i. i<DIM('a) \<Longrightarrow> \<pi> (\<pi>' i) = i" unfolding \<pi>'_def
+  hence \<pi>'_i:"\<And>i. i<DIM('a) \<Longrightarrow> \<pi>' i \<in> {1..n}" unfolding bij_betw_def by auto 
+  have \<pi>_i:"\<And>i. i\<in>{1..n} \<Longrightarrow> \<pi> i <DIM('a)" using \<pi> unfolding bij_betw_def n_def by auto 
+  have \<pi>_\<pi>'[simp]:"\<And>i. i<DIM('a) \<Longrightarrow> \<pi> (\<pi>' i) = i" unfolding \<pi>'_def
     apply(rule f_inv_into_f) unfolding n_def using \<pi> unfolding bij_betw_def by auto
-  have \<pi>'\<pi>[simp]:"\<And>i. i\<in>{1..n} \<Longrightarrow> \<pi>' (\<pi> i) = i" unfolding \<pi>'_def apply(rule inv_into_f_eq)
+  have \<pi>'_\<pi>[simp]:"\<And>i. i\<in>{1..n} \<Longrightarrow> \<pi>' (\<pi> i) = i" unfolding \<pi>'_def apply(rule inv_into_f_eq)
     using \<pi> unfolding n_def bij_betw_def by auto
   have "{c..d} \<noteq> {}" using assms by auto
   let ?p1 = "\<lambda>l. {(\<chi>\<chi> i. if \<pi>' i < l then c$$i else a$$i)::'a .. (\<chi>\<chi> i. if \<pi>' i < l then d$$i else if \<pi>' i = l then c$$\<pi> l else b$$i)}"
@@ -943,47 +943,47 @@ proof- def n \<equiv> "DIM('a)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfold
       assume "l \<le> l'" fix x
       have "x \<notin> interior k \<inter> interior k'" 
       proof(rule,cases "l' = n+1") assume x:"x \<in> interior k \<inter> interior k'"
-        case True hence "\<And>i. i<DIM('a) \<Longrightarrow> \<pi>' i < l'" using \<pi>'i using l' by(auto simp add:less_Suc_eq_le)
+        case True hence "\<And>i. i<DIM('a) \<Longrightarrow> \<pi>' i < l'" using \<pi>'_i using l' by(auto simp add:less_Suc_eq_le)
         hence *:"\<And> P Q. (\<chi>\<chi> i. if \<pi>' i < l' then P i else Q i) = ((\<chi>\<chi> i. P i)::'a)" apply-apply(subst euclidean_eq) by auto
         hence k':"k' = {c..d}" using l'(1) unfolding * by auto
         have ln:"l < n + 1" 
         proof(rule ccontr) case goal1 hence l2:"l = n+1" using l by auto
-          hence "\<And>i. i<DIM('a) \<Longrightarrow> \<pi>' i < l" using \<pi>'i by(auto simp add:less_Suc_eq_le)
+          hence "\<And>i. i<DIM('a) \<Longrightarrow> \<pi>' i < l" using \<pi>'_i by(auto simp add:less_Suc_eq_le)
           hence *:"\<And> P Q. (\<chi>\<chi> i. if \<pi>' i < l then P i else Q i) = ((\<chi>\<chi> i. P i)::'a)" apply-apply(subst euclidean_eq) by auto
-          hence "k = {c..d}" using l(1) \<pi>'i unfolding * by(auto)
+          hence "k = {c..d}" using l(1) \<pi>'_i unfolding * by(auto)
           thus False using `k\<noteq>k'` k' by auto
-        qed have **:"\<pi>' (\<pi> l) = l" using \<pi>'\<pi>[of l] using l ln by auto
+        qed have **:"\<pi>' (\<pi> l) = l" using \<pi>'_\<pi>[of l] using l ln by auto
         have "x $$ \<pi> l < c $$ \<pi> l \<or> d $$ \<pi> l < x $$ \<pi> l" using l(1) apply-
         proof(erule disjE)
           assume as:"k = ?p1 l" note * = conjunct1[OF x[unfolded as Int_iff interior_closed_interval mem_interval],rule_format]
-          show ?thesis using *[of "\<pi> l"] using ln l(2) using \<pi>i[of l] by(auto simp add:** not_less)
+          show ?thesis using *[of "\<pi> l"] using ln l(2) using \<pi>_i[of l] by(auto simp add:** not_less)
         next assume as:"k = ?p2 l" note * = conjunct1[OF x[unfolded as Int_iff interior_closed_interval mem_interval],rule_format]
-          show ?thesis using *[of "\<pi> l"] using ln l(2) using \<pi>i[of l] unfolding ** by auto
+          show ?thesis using *[of "\<pi> l"] using ln l(2) using \<pi>_i[of l] unfolding ** by auto
         qed thus False using x unfolding k' unfolding Int_iff interior_closed_interval mem_interval
           by(auto elim!:allE[where x="\<pi> l"])
       next case False hence "l < n + 1" using l'(2) using `l\<le>l'` by auto
         hence ln:"l \<in> {1..n}" "l' \<in> {1..n}" using l l' False by auto
-        note \<pi>l = \<pi>'\<pi>[OF ln(1)] \<pi>'\<pi>[OF ln(2)]
+        note \<pi>_l = \<pi>'_\<pi>[OF ln(1)] \<pi>'_\<pi>[OF ln(2)]
         assume x:"x \<in> interior k \<inter> interior k'"
         show False using l(1) l'(1) apply-
         proof(erule_tac[!] disjE)+
           assume as:"k = ?p1 l" "k' = ?p1 l'"
           note * = conjunctD2[OF x[unfolded as Int_iff interior_closed_interval mem_interval],rule_format]
           have "l \<noteq> l'" using k'(2)[unfolded as] by auto
-          thus False using *[of "\<pi> l'"] *[of "\<pi> l"] ln using \<pi>i[OF ln(1)] \<pi>i[OF ln(2)] apply(cases "l<l'")
-            by(auto simp add:euclidean_lambda_beta' \<pi>l \<pi>i n_def)
+          thus False using *[of "\<pi> l'"] *[of "\<pi> l"] ln using \<pi>_i[OF ln(1)] \<pi>_i[OF ln(2)] apply(cases "l<l'")
+            by(auto simp add:euclidean_lambda_beta' \<pi>_l \<pi>_i n_def)
         next assume as:"k = ?p2 l" "k' = ?p2 l'"
           note * = conjunctD2[OF x[unfolded as Int_iff interior_closed_interval mem_interval],rule_format]
           have "l \<noteq> l'" apply(rule) using k'(2)[unfolded as] by auto
-          thus False using *[of "\<pi> l"] *[of "\<pi> l'"]  `l \<le> l'` ln by(auto simp add:euclidean_lambda_beta' \<pi>l \<pi>i n_def)
+          thus False using *[of "\<pi> l"] *[of "\<pi> l'"]  `l \<le> l'` ln by(auto simp add:euclidean_lambda_beta' \<pi>_l \<pi>_i n_def)
         next assume as:"k = ?p1 l" "k' = ?p2 l'"
           note * = conjunctD2[OF x[unfolded as Int_iff interior_closed_interval mem_interval],rule_format]
           show False using abcd[of "\<pi> l'"] using *[of "\<pi> l"] *[of "\<pi> l'"]  `l \<le> l'` ln apply(cases "l=l'")
-            by(auto simp add:euclidean_lambda_beta' \<pi>l \<pi>i n_def)
+            by(auto simp add:euclidean_lambda_beta' \<pi>_l \<pi>_i n_def)
         next assume as:"k = ?p2 l" "k' = ?p1 l'"
           note * = conjunctD2[OF x[unfolded as Int_iff interior_closed_interval mem_interval],rule_format]
           show False using *[of "\<pi> l"] *[of "\<pi> l'"] ln `l \<le> l'` apply(cases "l=l'") using abcd[of "\<pi> l'"] 
-            by(auto simp add:euclidean_lambda_beta' \<pi>l \<pi>i n_def)
+            by(auto simp add:euclidean_lambda_beta' \<pi>_l \<pi>_i n_def)
         qed qed } 
     from this[OF k l k' l'] this[OF k'(1) l' k _ l] have "\<And>x. x \<notin> interior k \<inter> interior k'"
       apply - apply(cases "l' \<le> l") using k'(2) by auto            
