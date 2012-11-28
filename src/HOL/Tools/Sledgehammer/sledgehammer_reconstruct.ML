@@ -718,15 +718,23 @@ fun isar_proof_text ctxt isar_proofs
             val preplay_msg = if preplay_fail
               then "(!) proof may fail - preplaying was unsuccessful"
               else string_from_ext_time ext_time
+            val shrank_without_preplay_msg =
+              "(!) proof may fail - shrank proof, but did not preplay"
             in
               "\n\nStructured proof"
                 ^ (if verbose then
                     " (" ^ string_of_int num_steps 
                          ^ " metis step" ^ plural_s num_steps
-                          |> preplay ? suffix (", " ^ preplay_msg)
-                          |> suffix ")"
+                         |> (if preplay then 
+                               suffix (", " ^ preplay_msg)
+                             else if isar_shrink > 1.0 then
+                               suffix (", " ^ shrank_without_preplay_msg)
+                             else I)
+                         |> suffix ")"
                    else if preplay then
                      " (" ^ preplay_msg ^ ")"
+                   else if isar_shrink > 1.0 then
+                     " (" ^ shrank_without_preplay_msg ^ ")"
                    else
                      "") 
                 ^ ":\n" ^ Markup.markup Isabelle_Markup.sendback isar_text
