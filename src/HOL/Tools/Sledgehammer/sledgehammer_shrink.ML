@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
-Shrinking of isar proofs reconstructed from ATP proofs.
+Shrinking and preplaying of reconstructed isar proofs.
 *)
 
 signature SLEDGEHAMMER_SHRINK =
@@ -16,6 +16,7 @@ end
 structure Sledgehammer_Shrink (* : SLEDGEHAMMER_SHRINK *) =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Proof
 
 (* Parameters *)
@@ -140,9 +141,7 @@ let
         | SOME t2 =>
           let
             val s12 = merge s1 s2
-            val timeout =
-              Time.+ (t1, t2) |> Time.toReal |> curry Real.* merge_timeout_slack
-                      |> Time.fromReal
+            val timeout = time_mult merge_timeout_slack (t1 + t2)
           in
             case try_metis timeout s12 () of
               NONE => (NONE, metis_time)
