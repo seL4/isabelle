@@ -799,11 +799,11 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
     (* Enrich context with local facts *)
     val thy = Proof_Context.theory_of ctxt
-    fun enrich_ctxt' (Prove (_, label, t, _)) ctxt =
+    fun enrich_ctxt (Prove (_, label, t, _)) ctxt =
         Proof_Context.put_thms false
             (string_for_label label, SOME [Skip_Proof.make_thm thy t]) ctxt
-      | enrich_ctxt' _ ctxt = ctxt
-    val rich_ctxt = fold enrich_ctxt' proof ctxt
+      | enrich_ctxt _ ctxt = ctxt
+    val rich_ctxt = fold enrich_ctxt proof ctxt
 
     (* Timing *)
     fun take_time timeout tac arg =
