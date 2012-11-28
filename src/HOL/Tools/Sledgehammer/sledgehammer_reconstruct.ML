@@ -702,7 +702,6 @@ fun isar_proof_text ctxt isar_proofs
           |>> kill_useless_labels_in_proof
           |>> relabel_proof
           |>> not (null params) ? cons (Fix params)
-        val num_steps = metis_steps_total isar_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
                            isar_proof
@@ -715,30 +714,22 @@ fun isar_proof_text ctxt isar_proofs
             ""
         | _ =>
           let 
-            val preplay_msg = if preplay_fail
-              then "may fail"
-              else string_from_ext_time ext_time
-            val shrank_without_preplay_msg =
-              "may fail - shrank proof, but did not preplay"
-            in
-              "\n\nStructured proof"
-                ^ (if verbose then
-                    " (" ^ string_of_int num_steps 
-                         ^ " metis step" ^ plural_s num_steps
-                         |> (if preplay then 
-                               suffix (", " ^ preplay_msg)
-                             else if isar_shrink > 1.0 then
-                               suffix (", " ^ shrank_without_preplay_msg)
-                             else I)
-                         |> suffix ")"
-                   else if preplay then
-                     " (" ^ preplay_msg ^ ")"
-                   else if isar_shrink > 1.0 then
-                     " (" ^ shrank_without_preplay_msg ^ ")"
-                   else
-                     "") 
-                ^ ":\n" ^ Markup.markup Markup.sendback isar_text
-            end
+            val msg = 
+              (if preplay then 
+                [if preplay_fail 
+                 then "may fail" 
+                 else string_from_ext_time ext_time]
+               else [])
+              @ 
+               (if verbose then
+                  [let val num_steps = metis_steps_total isar_proof
+                   in string_of_int num_steps ^ plural_s num_steps end]
+                else [])
+          in
+            "\n\nStructured proof "
+              ^ (commas msg |> not (null msg) ? enclose "(" ")")
+              ^ ":\n" ^ Markup.markup Markup.sendback isar_text
+          end
       end
     val isar_proof =
       if debug then
