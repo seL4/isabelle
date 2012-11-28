@@ -1,9 +1,17 @@
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_isar_recontruct.ML
+    Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Steffen Juilf Smolka, TU Muenchen
+
+Basic data structures for representing and basic methods
+for dealing with Isar proof texts.
+*)
+
 signature SLEDGEHAMMER_ISAR =
 sig
 	val annotate_types : Proof.context -> term -> term
 end
 
-structure Sledgehammer_Isar_Reconstruct (* : SLEDGEHAMMER_Isar *) =
+structure Sledgehammer_Isar_Reconstruct (* : SLEDGEHAMMER_Isar *) = 
 struct
 
 type label = string * int
@@ -42,6 +50,5 @@ fun metis_steps_recursive proof =
          | Prove (_,_,_, Case_Split (cases, _)) => 
            inc (fold (inc o metis_steps_recursive) cases 1)
          | _ => I) proof 0
-
 
 end

@@ -1,3 +1,10 @@
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_shrink.ML
+    Author:     Jasmin Blanchette, TU Muenchen
+    Author:     Steffen Juilf Smolka, TU Muenchen
+
+Shrinking of isar proofs reconstructed from ATP proofs.
+*)
+
 signature SLEDGEHAMMER_SHRINK =
 sig
   type isar_step = Sledgehammer_Isar_Reconstruct.isar_step
