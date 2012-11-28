@@ -142,10 +142,10 @@ let
                   | Assume (_, t) =>
                       Skip_Proof.make_thm (Proof_Context.theory_of ctxt) t
                   | _ => error "Internal error: unexpected succedent of case split")
-                ::  map (Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-                          o (fn Assume (_, a) => Logic.mk_implies(a, t)
-                            | _ => error "Internal error: malformed case split") 
-                          o hd) 
+                ::  map 
+                      (hd #> (fn Assume (_, a) => Logic.mk_implies(a, t)
+                               | _ => error "Internal error: malformed case split") 
+                          #> Skip_Proof.make_thm (Proof_Context.theory_of ctxt)) 
                       cases
             val goal =
               Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
