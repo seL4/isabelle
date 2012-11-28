@@ -773,7 +773,9 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
     val n_target = Real.fromInt n / isar_shrink |> Real.round
 
     (* table for mapping from label to proof position *)
-    fun update_table (i, Prove (_, label, _, _)) =
+    fun update_table (i, Assume (label, _)) = 
+        Label_Table.update_new (label, i)
+      | update_table (i, Prove (_, label, _, _)) =
         Label_Table.update_new (label, i)
       | update_table _ = I
     val label_index_table = fold_index update_table proof Label_Table.empty
@@ -789,17 +791,22 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
     (* candidates for elimination, use table as priority queue (greedy
        algorithm) *)
-    fun cost (Prove (_, _ , t, _)) = Term.size_of_term t
-      | cost _ = 0
-    val cand_tab =
-      v_fold_index
-        (fn (i, [_]) => cons (get i proof_vect |> the |> cost, i)
-        | _ => I) refed_by_vect []
+    fun add_if_cand proof_vect (i, [j]) =
+        (case (the (get i proof_vect), the (get j proof_vect)) of
+          (Prove (_, _, t, By_Metis _), Prove (_, _, _, By_Metis _)) =>
+            cons (Term.size_of_term t, i)
+        | _ => I)
+      | add_if_cand _ _ = I
+    val cand_tab = 
+      v_fold_index (add_if_cand proof_vect) refed_by_vect []
       |> Inttab.make_list
 
     (* Enrich context with local facts *)
     val thy = Proof_Context.theory_of ctxt
-    fun enrich_ctxt (Prove (_, label, t, _)) ctxt =
+    fun enrich_ctxt (Assume (label, t)) ctxt = 
+        Proof_Context.put_thms false
+            (string_for_label label, SOME [Skip_Proof.make_thm thy t]) ctxt
+      | enrich_ctxt (Prove (_, label, t, _)) ctxt =
         Proof_Context.put_thms false
             (string_for_label label, SOME [Skip_Proof.make_thm thy t]) ctxt
       | enrich_ctxt _ ctxt = ctxt
@@ -824,7 +831,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         let
           val facts =
             fact_names
-            |>> map string_for_label |> op @
+            |>> map string_for_label 
+            |> op @
             |> map (the_single o thms_of_name rich_ctxt)
           val goal =
             Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
@@ -833,6 +841,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         in
           take_time timeout (fn () => goal tac)
         end
+      (*| try_metis timeout (Prove (_, _, t, Case_Split _)) = *) (*FIXME: Yet to be implemented *)
+      | try_metis _ _ = (fn () => SOME (seconds 0.0) )
 
     (* Lazy metis time vector, cache *)
     val metis_time =
@@ -872,10 +882,10 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
     fun merge_steps metis_time proof_vect refed_by cand_tab n' =
       if is_empty cand_tab orelse n' <= n_target orelse n'<3 then
-        (sum_up_time metis_time,
-         Vector.foldr
+        (Vector.foldr
            (fn (NONE, proof) => proof | (SOME s, proof) => s :: proof)
-           [] proof_vect)
+           [] proof_vect,
+         sum_up_time metis_time)
       else
         let
           val (i, cand_tab) = pop_max cand_tab
@@ -891,8 +901,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
             val refed_by = refed_by |> fold
               (update (Ord_List.remove int_ord i #> Ord_List.insert int_ord j)) refs
             val new_candidates =
-              fold (fn (i, [_]) => cons (cost (get i proof_vect |> the), i)
-                     | _ => I)
+              fold (add_if_cand proof_vect)
                 (map (fn i => (i, get i refed_by)) refs) []
             val cand_tab = add_list cand_tab new_candidates
             val proof_vect = proof_vect |> replace NONE i |> replace s j
@@ -1023,18 +1032,21 @@ fun isar_proof_text ctxt isar_proofs
         and do_case outer (c, infs) =
           Assume (label_of_clause c, prop_of_clause c) ::
           map (do_inf outer) infs
-        val (ext_time, isar_proof) =
+        val (isar_proof, ext_time) =
           ref_graph
           |> redirect_graph axioms tainted
           |> map (do_inf true)
           |> append assms
-          |> shrink_proof debug ctxt type_enc lam_trans preplay
-                 preplay_timeout (if isar_proofs then isar_shrink else 1000.0)
-       (* ||> reorder_proof_to_minimize_jumps (* ? *) *)
-          ||> chain_direct_proof
-          ||> kill_useless_labels_in_proof
-          ||> relabel_proof
-          ||> not (null params) ? cons (Fix params)
+          |> relabel_proof (* FIXME: Is there a better way? *)
+          |> (if not preplay andalso isar_shrink <= 1.0
+              then pair (true, seconds 0.0) #> swap
+              else shrink_proof debug ctxt type_enc lam_trans preplay
+                preplay_timeout (if isar_proofs then isar_shrink else 1000.0))
+       (* |>> reorder_proof_to_minimize_jumps (* ? *) *)
+          |>> chain_direct_proof
+          |>> kill_useless_labels_in_proof
+          |>> relabel_proof
+          |>> not (null params) ? cons (Fix params)
         val num_steps = length isar_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
