@@ -16,7 +16,7 @@ datatype poly = C Num| Bound nat| Add poly poly|Sub poly poly
   | Mul poly poly| Neg poly| Pw poly nat| CN poly nat poly
 
 abbreviation poly_0 :: "poly" ("0\<^sub>p") where "0\<^sub>p \<equiv> C (0\<^sub>N)"
-abbreviation poly_p :: "int \<Rightarrow> poly" ("_\<^sub>p") where "i\<^sub>p \<equiv> C (i\<^sub>N)"
+abbreviation poly_p :: "int \<Rightarrow> poly" ("'((_)')\<^sub>p") where "(i)\<^sub>p \<equiv> C (i)\<^sub>N"
 
 subsection{* Boundedness, substitution and all that *}
 primrec polysize:: "poly \<Rightarrow> nat" where
@@ -153,7 +153,7 @@ declare let_cong[fundef_cong]
 
 fun polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
 where
-  "polypow 0 = (\<lambda>p. 1\<^sub>p)"
+  "polypow 0 = (\<lambda>p. (1)\<^sub>p)"
 | "polypow n = (\<lambda>p. let q = polypow (n div 2) p ; d = polymul q q in 
                     if even n then d else polymul p d)"
 
@@ -162,7 +162,7 @@ abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly" (infixl "^\
 
 function polynate :: "poly \<Rightarrow> poly"
 where
-  "polynate (Bound n) = CN 0\<^sub>p n 1\<^sub>p"
+  "polynate (Bound n) = CN 0\<^sub>p n (1)\<^sub>p"
 | "polynate (Add p q) = (polynate p +\<^sub>p polynate q)"
 | "polynate (Sub p q) = (polynate p -\<^sub>p polynate q)"
 | "polynate (Mul p q) = (polynate p *\<^sub>p polynate q)"
@@ -689,7 +689,7 @@ lemma shift1_isnpolyh: "isnpolyh p n0 \<Longrightarrow> p\<noteq> 0\<^sub>p \<Lo
   using isnpolyh_mono[where n="n0" and n'="0" and p="p"] by (simp add: shift1_def)
 
 lemma funpow_shift1_1: 
-  "(Ipoly bs (funpow n shift1 p) :: 'a :: {field_char_0, field_inverse_zero}) = Ipoly bs (funpow n shift1 1\<^sub>p *\<^sub>p p)"
+  "(Ipoly bs (funpow n shift1 p) :: 'a :: {field_char_0, field_inverse_zero}) = Ipoly bs (funpow n shift1 (1)\<^sub>p *\<^sub>p p)"
   by (simp add: funpow_shift1)
 
 lemma poly_cmul[simp]: "Ipoly bs (poly_cmul c p) = Ipoly bs (Mul (C c) p)"
@@ -994,7 +994,7 @@ lemma polyadd_commute:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inver
   using isnpolyh_unique[OF polyadd_normh[OF np nq] polyadd_normh[OF nq np]] by simp
 
 lemma zero_normh: "isnpolyh 0\<^sub>p n" by simp
-lemma one_normh: "isnpolyh 1\<^sub>p n" by simp
+lemma one_normh: "isnpolyh (1)\<^sub>p n" by simp
 lemma polyadd_0[simp]: 
   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   and np: "isnpolyh p n0" shows "p +\<^sub>p 0\<^sub>p = p" and "0\<^sub>p +\<^sub>p p = p"
@@ -1003,7 +1003,7 @@ lemma polyadd_0[simp]:
 
 lemma polymul_1[simp]: 
     assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
-  and np: "isnpolyh p n0" shows "p *\<^sub>p 1\<^sub>p = p" and "1\<^sub>p *\<^sub>p p = p"
+  and np: "isnpolyh p n0" shows "p *\<^sub>p (1)\<^sub>p = p" and "(1)\<^sub>p *\<^sub>p p = p"
   using isnpolyh_unique[OF polymul_normh[OF np one_normh] np] 
     isnpolyh_unique[OF polymul_normh[OF one_normh np] np] by simp_all
 lemma polymul_0[simp]: 
@@ -1262,14 +1262,14 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
     \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
   let ?b = "head s"
   let ?p' = "funpow (degree s - n) shift1 p"
-  let ?xdn = "funpow (degree s - n) shift1 1\<^sub>p"
+  let ?xdn = "funpow (degree s - n) shift1 (1)\<^sub>p"
   let ?akk' = "a ^\<^sub>p (k' - k)"
   note ns = `isnpolyh s n1`
   from np have np0: "isnpolyh p 0" 
     using isnpolyh_mono[where n="n0" and n'="0" and p="p"]  by simp
   have np': "isnpolyh ?p' 0" using funpow_shift1_isnpoly[OF np0[simplified isnpoly_def[symmetric]] pnz, where n="degree s - n"] isnpoly_def by simp
   have headp': "head ?p' = head p" using funpow_shift1_head[OF np pnz] by simp
-  from funpow_shift1_isnpoly[where p="1\<^sub>p"] have nxdn: "isnpolyh ?xdn 0" by (simp add: isnpoly_def)
+  from funpow_shift1_isnpoly[where p="(1)\<^sub>p"] have nxdn: "isnpolyh ?xdn 0" by (simp add: isnpoly_def)
   from polypow_normh [OF head_isnpolyh[OF np0], where k="k' - k"] ap 
   have nakk':"isnpolyh ?akk' 0" by blast
   {assume sz: "s = 0\<^sub>p"
@@ -1312,19 +1312,19 @@ proof(induct "degree s" arbitrary: s k k' r n1 rule: less_induct)
               Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs ?p' + Ipoly bs p * Ipoly bs q + Ipoly bs r" 
               by (simp add: field_simps)
             hence " \<forall>(bs:: 'a::{field_char_0, field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-              Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 1\<^sub>p *\<^sub>p p) 
+              Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 (1)\<^sub>p *\<^sub>p p) 
               + Ipoly bs p * Ipoly bs q + Ipoly bs r"
               by (auto simp only: funpow_shift1_1) 
             hence "\<forall>(bs:: 'a::{field_char_0, field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-              Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 1\<^sub>p) 
+              Ipoly bs p * (Ipoly bs (a^\<^sub>p (k' - k)) * Ipoly bs (funpow (degree s - n) shift1 (1)\<^sub>p) 
               + Ipoly bs q) + Ipoly bs r" by (simp add: field_simps)
             hence "\<forall>(bs:: 'a::{field_char_0, field_inverse_zero} list). Ipoly bs (a ^\<^sub>p (k' - k) *\<^sub>p s) = 
-              Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
+              Ipoly bs (p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 (1)\<^sub>p) +\<^sub>p q) +\<^sub>p r)" by simp
             with isnpolyh_unique[OF nakks' nqr']
             have "a ^\<^sub>p (k' - k) *\<^sub>p s = 
-              p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q) +\<^sub>p r" by blast
+              p *\<^sub>p ((a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 (1)\<^sub>p) +\<^sub>p q) +\<^sub>p r" by blast
             hence ?qths using nq'
-              apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 1\<^sub>p) +\<^sub>p q" in exI)
+              apply (rule_tac x="(a^\<^sub>p (k' - k)) *\<^sub>p (funpow (degree s - n) shift1 (1)\<^sub>p) +\<^sub>p q" in exI)
               apply (rule_tac x="0" in exI) by simp
             with kk' nr dr have "k \<le> k' \<and> (degree r = 0 \<or> degree r < degree p) \<and> (\<exists>nr. isnpolyh r nr) \<and> ?qths"
               by blast } hence ?ths by blast }
