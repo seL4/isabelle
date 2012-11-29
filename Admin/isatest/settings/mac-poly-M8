@@ -27,3 +27,5 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME_USER/browser_info"
 
 ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=8 parallel_proofs=2"
 
+ISABELLE_FULL_TEST=true
+
