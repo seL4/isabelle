@@ -22,6 +22,12 @@ Quick start in 20min
 
     ./isabelle/bin/isabelle jedit
 
+4. For later update replace "hg clone ..." above by:
+
+    cd isabelle
+
+    hg pull -u
+
 
 Introduction
 ------------
@@ -189,10 +195,17 @@ general discipline wrt. the public Isabelle push area:
   * Start publishing again by pull or fetch, which normally produces
     local merges.
 
-  * Test the merged result as usual and push back in real time.
+  * Test the merged result, e.g. like this:
+
+      isabelle build -a
+
+  * Push back in real time.
 
 Piling private changes and public merges longer than 0.5-2 hours is
 apt to produce some mess when pushing eventually!
+
+The pull-test-push cycle should not be repeated too fast, to avoid
+delaying others from doing the same concurrently.
 
 
 Content discipline
