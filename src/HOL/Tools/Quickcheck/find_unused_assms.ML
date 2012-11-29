@@ -47,33 +47,37 @@ fun find_unused_assms ctxt thy_name =
     val ctxt' = ctxt
        |> Config.put Quickcheck.abort_potential true
        |> Config.put Quickcheck.quiet true
-    val all_thms = filter (fn (s, _) => length (Long_Name.explode s) = 2)  (* FIXME !? *)
-      (thms_of (Proof_Context.theory_of ctxt) thy_name)
+    val all_thms =
+      filter (fn (s, _) => length (Long_Name.explode s) = 2)  (* FIXME !? *)
+        (thms_of (Proof_Context.theory_of ctxt) thy_name)
     fun check_single conjecture =
-      case try (Quickcheck.test_terms ctxt' (true, true) []) [(conjecture, [])] of
-         SOME (SOME _) => false
-       | SOME NONE => true
-       | NONE => false
+      (case try (Quickcheck.test_terms ctxt' (true, true) []) [(conjecture, [])] of
+        SOME (SOME _) => false
+      | SOME NONE => true
+      | NONE => false)
     fun build X Ss =
-      fold (fn S => fold
-        (fn x => if member (op =) S x then I
-          else insert (eq_set (op =)) (insert (op =) x S)) X) Ss []
+      fold
+        (fn S => fold
+          (fn x =>
+            if member (op =) S x then I
+            else insert (eq_set (op =)) (insert (op =) x S)) X) Ss []
     fun check (s, th) =
       (case Logic.strip_horn (prop_of (Thm.unvarify_global th)) of
-        ([], _) => cons (s, NONE)
+        ([], _) => (s, NONE)
       | (ts, t) =>
-        let
-          fun mk_conjecture is = (Logic.list_implies (drop_indexes is ts, t))
-          val singles = filter (check_single o mk_conjecture o single) (map_index fst ts)
-          val multiples = do_while (not o null)
-            (fn I => filter (check_single o mk_conjecture) (build singles I))
-            (map single singles) [(map single singles)]
-          val maximals = flat (find_max_subsets multiples)
-        in
-          cons (s, SOME maximals)
-        end)
+          let
+            fun mk_conjecture is = Logic.list_implies (drop_indexes is ts, t)
+            val singles = filter (check_single o mk_conjecture o single) (0 upto (length ts - 1))
+            val multiples =
+              do_while (not o null)
+                (fn I => filter (check_single o mk_conjecture) (build singles I))
+                (map single singles) [(map single singles)]
+            val maximals = flat (find_max_subsets multiples)
+          in
+            (s, SOME maximals)
+          end)
   in
-    fold check all_thms []
+    rev (map check all_thms)
   end
 
 
@@ -86,7 +90,7 @@ fun pretty_indexes is =
       (map (fn i => Pretty.str (string_of_int (i + 1))) (sort int_ord is))
      @ [Pretty.brk 1])
 
-fun pretty_thm (s, SOME set_of_indexes) =
+fun pretty_thm (s, set_of_indexes) =
   Pretty.block (Pretty.str s :: Pretty.str ":" :: Pretty.brk 1 ::
     Pretty.str "unnecessary assumption(s) " ::
     separate (Pretty.str ", or ") (map pretty_indexes set_of_indexes))
@@ -100,7 +104,7 @@ fun print_unused_assms ctxt opt_thy_name =
     val total = length results
     val with_assumptions = length (filter (is_some o snd) results)
     val with_superfluous_assumptions =
-      filter_out (fn (_, r) => r = SOME []) (filter (is_some o snd) results)
+      map_filter (fn (_, NONE) => NONE | (_, SOME []) => NONE | (s, SOME r) => SOME (s, r)) results
 
     val msg = "Found " ^ string_of_int (length with_superfluous_assumptions)
       ^ " theorem(s) with (potentially) superfluous assumptions"
@@ -108,7 +112,8 @@ fun print_unused_assms ctxt opt_thy_name =
       ^ " in the theory " ^ quote thy_name
       ^ " with a total of " ^ string_of_int total ^ " theorem(s)"
   in
-    [Pretty.str (msg ^ ":"), Pretty.str ""] @ map pretty_thm with_superfluous_assumptions @
+    [Pretty.str (msg ^ ":"), Pretty.str ""] @
+    map pretty_thm with_superfluous_assumptions @
     [Pretty.str "", Pretty.str end_msg]
   end |> Pretty.chunks |> Pretty.writeln
 
