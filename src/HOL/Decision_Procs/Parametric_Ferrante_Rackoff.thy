@@ -297,7 +297,7 @@ lemma tmsub_allpolys_npoly[simp]:
 
 fun simptm:: "tm \<Rightarrow> tm" where
   "simptm (CP j) = CP (polynate j)"
-| "simptm (Bound n) = CNP n 1\<^sub>p (CP 0\<^sub>p)"
+| "simptm (Bound n) = CNP n (1)\<^sub>p (CP 0\<^sub>p)"
 | "simptm (Neg t) = tmneg (simptm t)"
 | "simptm (Add t s) = tmadd (simptm t,simptm s)"
 | "simptm (Sub t s) = tmsub (simptm t) (simptm s)"
@@ -333,7 +333,7 @@ lemma simptm_allpolys_npoly[simp]:
 declare let_cong[fundef_cong del]
 
 fun split0 :: "tm \<Rightarrow> (poly \<times> tm)" where
-  "split0 (Bound 0) = (1\<^sub>p, CP 0\<^sub>p)"
+  "split0 (Bound 0) = ((1)\<^sub>p, CP 0\<^sub>p)"
 | "split0 (CNP 0 c t) = (let (c',t') = split0 t in (c +\<^sub>p c',t'))"
 | "split0 (Neg t) = (let (c,t') = split0 t in (~\<^sub>p c,Neg t'))"
 | "split0 (CNP n c t) = (let (c',t') = split0 t in (c',CNP n c t'))"
@@ -1892,17 +1892,17 @@ qed
 section{* First implementation : Naive by encoding all case splits locally *}
 definition "msubsteq c t d s a r = 
   evaldjf (split conj) 
-  [(let cd = c *\<^sub>p d in (NEq (CP cd), Eq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (Eq (CP c)) (NEq (CP d)) , Eq (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (NEq (CP c)) (Eq (CP d)) , Eq (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
+  [(let cd = c *\<^sub>p d in (NEq (CP cd), Eq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (Eq (CP c)) (NEq (CP d)) , Eq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (NEq (CP c)) (Eq (CP d)) , Eq (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , Eq r)]"
 
 lemma msubsteq_nb: assumes lp: "islin (Eq (CNP 0 a r))" and t: "tmbound0 t" and s: "tmbound0 s"
   shows "bound0 (msubsteq c t d s a r)"
 proof-
-  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (NEq (CP cd), Eq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (Eq (CP c)) (NEq (CP d)) , Eq (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (NEq (CP c)) (Eq (CP d)) , Eq (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
+  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (NEq (CP cd), Eq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (Eq (CP c)) (NEq (CP d)) , Eq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (NEq (CP c)) (Eq (CP d)) , Eq (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , Eq r)]. bound0 (split conj x)"
     using lp by (simp add: Let_def t s )
   from evaldjf_bound0[OF th] show ?thesis by (simp add: msubsteq_def)
@@ -1974,17 +1974,17 @@ qed
 
 definition "msubstneq c t d s a r = 
   evaldjf (split conj) 
-  [(let cd = c *\<^sub>p d in (NEq (CP cd), NEq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (Eq (CP c)) (NEq (CP d)) , NEq (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (NEq (CP c)) (Eq (CP d)) , NEq (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
+  [(let cd = c *\<^sub>p d in (NEq (CP cd), NEq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (Eq (CP c)) (NEq (CP d)) , NEq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (NEq (CP c)) (Eq (CP d)) , NEq (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , NEq r)]"
 
 lemma msubstneq_nb: assumes lp: "islin (NEq (CNP 0 a r))" and t: "tmbound0 t" and s: "tmbound0 s"
   shows "bound0 (msubstneq c t d s a r)"
 proof-
-  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (NEq (CP cd), NEq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))), 
-    (conj (Eq (CP c)) (NEq (CP d)) , NEq (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-    (conj (NEq (CP c)) (Eq (CP d)) , NEq (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
+  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (NEq (CP cd), NEq (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))), 
+    (conj (Eq (CP c)) (NEq (CP d)) , NEq (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+    (conj (NEq (CP c)) (Eq (CP d)) , NEq (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
     (conj (Eq (CP c)) (Eq (CP d)) , NEq r)]. bound0 (split conj x)"
     using lp by (simp add: Let_def t s )
   from evaldjf_bound0[OF th] show ?thesis by (simp add: msubstneq_def)
@@ -2055,23 +2055,23 @@ qed
 
 definition "msubstlt c t d s a r = 
   evaldjf (split conj) 
-  [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Lt (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-  (let cd = c *\<^sub>p d in (lt (CP cd), Lt (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Lt (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP c)) (Eq (CP d)) , Lt (Sub (Mul a t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Lt (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (lt (CP d)) (Eq (CP c)) , Lt (Sub (Mul a s) (Mul (2\<^sub>p *\<^sub>p d) r))),
+  [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Lt (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+  (let cd = c *\<^sub>p d in (lt (CP cd), Lt (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Lt (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP c)) (Eq (CP d)) , Lt (Sub (Mul a t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Lt (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (lt (CP d)) (Eq (CP c)) , Lt (Sub (Mul a s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , Lt r)]"
 
 lemma msubstlt_nb: assumes lp: "islin (Lt (CNP 0 a r))" and t: "tmbound0 t" and s: "tmbound0 s"
   shows "bound0 (msubstlt c t d s a r)"
 proof-
-  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Lt (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-  (let cd = c *\<^sub>p d in (lt (CP cd), Lt (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Lt (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP c)) (Eq (CP d)) , Lt (Sub (Mul a t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Lt (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (lt (CP d)) (Eq (CP c)) , Lt (Sub (Mul a s) (Mul (2\<^sub>p *\<^sub>p d) r))),
+  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Lt (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+  (let cd = c *\<^sub>p d in (lt (CP cd), Lt (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Lt (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP c)) (Eq (CP d)) , Lt (Sub (Mul a t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Lt (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (lt (CP d)) (Eq (CP c)) , Lt (Sub (Mul a s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , Lt r)]. bound0 (split conj x)"
     using lp by (simp add: Let_def t s lt_nb )
   from evaldjf_bound0[OF th] show ?thesis by (simp add: msubstlt_def)
@@ -2202,23 +2202,23 @@ qed
 
 definition "msubstle c t d s a r = 
   evaldjf (split conj) 
-  [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Le (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-  (let cd = c *\<^sub>p d in (lt (CP cd), Le (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Le (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP c)) (Eq (CP d)) , Le (Sub (Mul a t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Le (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (lt (CP d)) (Eq (CP c)) , Le (Sub (Mul a s) (Mul (2\<^sub>p *\<^sub>p d) r))),
+  [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Le (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+  (let cd = c *\<^sub>p d in (lt (CP cd), Le (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Le (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP c)) (Eq (CP d)) , Le (Sub (Mul a t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Le (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (lt (CP d)) (Eq (CP c)) , Le (Sub (Mul a s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , Le r)]"
 
 lemma msubstle_nb: assumes lp: "islin (Le (CNP 0 a r))" and t: "tmbound0 t" and s: "tmbound0 s"
   shows "bound0 (msubstle c t d s a r)"
 proof-
-  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Le (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-  (let cd = c *\<^sub>p d in (lt (CP cd), Le (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul (2\<^sub>p *\<^sub>p cd) r)))),
-   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Le (Add (Mul (~\<^sub>p a) t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP c)) (Eq (CP d)) , Le (Sub (Mul a t) (Mul (2\<^sub>p *\<^sub>p c) r))),
-   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Le (Add (Mul (~\<^sub>p a) s) (Mul (2\<^sub>p *\<^sub>p d) r))),
-   (conj (lt (CP d)) (Eq (CP c)) , Le (Sub (Mul a s) (Mul (2\<^sub>p *\<^sub>p d) r))),
+  have th: "\<forall>x\<in> set [(let cd = c *\<^sub>p d in (lt (CP (~\<^sub>p cd)), Le (Add (Mul (~\<^sub>p a) (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+  (let cd = c *\<^sub>p d in (lt (CP cd), Le (Sub (Mul a (Add (Mul d t) (Mul c s))) (Mul ((2)\<^sub>p *\<^sub>p cd) r)))),
+   (conj (lt (CP (~\<^sub>p c))) (Eq (CP d)) , Le (Add (Mul (~\<^sub>p a) t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP c)) (Eq (CP d)) , Le (Sub (Mul a t) (Mul ((2)\<^sub>p *\<^sub>p c) r))),
+   (conj (lt (CP (~\<^sub>p d))) (Eq (CP c)) , Le (Add (Mul (~\<^sub>p a) s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
+   (conj (lt (CP d)) (Eq (CP c)) , Le (Sub (Mul a s) (Mul ((2)\<^sub>p *\<^sub>p d) r))),
    (conj (Eq (CP c)) (Eq (CP d)) , Le r)]. bound0 (split conj x)"
     using lp by (simp add: Let_def t s lt_nb )
   from evaldjf_bound0[OF th] show ?thesis by (simp add: msubstle_def)

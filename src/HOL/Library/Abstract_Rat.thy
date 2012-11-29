@@ -13,8 +13,8 @@ type_synonym Num = "int \<times> int"
 abbreviation Num0_syn :: Num  ("0\<^sub>N")
   where "0\<^sub>N \<equiv> (0, 0)"
 
-abbreviation Numi_syn :: "int \<Rightarrow> Num"  ("_\<^sub>N")
-  where "i\<^sub>N \<equiv> (i, 1)"
+abbreviation Numi_syn :: "int \<Rightarrow> Num"  ("'((_)')\<^sub>N")
+  where "(i)\<^sub>N \<equiv> (i, 1)"
 
 definition isnormNum :: "Num \<Rightarrow> bool" where
   "isnormNum = (\<lambda>(a,b). (if a = 0 then b = 0 else b > 0 \<and> gcd a b = 1))"
@@ -125,7 +125,7 @@ lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
     (cases "fst x = 0", auto simp add: gcd_commute_int)
 
 lemma isnormNum_int[simp]:
-  "isnormNum 0\<^sub>N" "isnormNum ((1::int)\<^sub>N)" "i \<noteq> 0 \<Longrightarrow> isnormNum (i\<^sub>N)"
+  "isnormNum 0\<^sub>N" "isnormNum ((1::int)\<^sub>N)" "i \<noteq> 0 \<Longrightarrow> isnormNum (i)\<^sub>N"
   by (simp_all add: isnormNum_def)
 
 
@@ -151,7 +151,7 @@ definition Nle :: "Num \<Rightarrow> Num \<Rightarrow> bool"  (infix "\<le>\<^su
 
 definition "INum = (\<lambda>(a,b). of_int a / of_int b)"
 
-lemma INum_int [simp]: "INum (i\<^sub>N) = ((of_int i) ::'a::field)" "INum 0\<^sub>N = (0::'a::field)"
+lemma INum_int [simp]: "INum (i)\<^sub>N = ((of_int i) ::'a::field)" "INum 0\<^sub>N = (0::'a::field)"
   by (simp_all add: INum_def)
 
 lemma isnormNum_unique[simp]:
@@ -512,8 +512,8 @@ lemma Nneg_Nneg[simp]: "~\<^sub>N (~\<^sub>N c) = c"
   by (simp add: Nneg_def split_def)
 
 lemma Nmul1[simp]:
-    "isnormNum c \<Longrightarrow> 1\<^sub>N *\<^sub>N c = c"
-    "isnormNum c \<Longrightarrow> c *\<^sub>N (1\<^sub>N) = c"
+    "isnormNum c \<Longrightarrow> (1)\<^sub>N *\<^sub>N c = c"
+    "isnormNum c \<Longrightarrow> c *\<^sub>N (1)\<^sub>N = c"
   apply (simp_all add: Nmul_def Let_def split_def isnormNum_def)
   apply (cases "fst c = 0", simp_all, cases c, simp_all)+
   done
