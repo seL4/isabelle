@@ -51,6 +51,7 @@ sig
   val task_of: 'a future -> task
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
+  val ML_statistics: bool Unsynchronized.ref
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
@@ -169,11 +170,41 @@ val max_workers = Unsynchronized.ref 0;
 val max_active = Unsynchronized.ref 0;
 val worker_trend = Unsynchronized.ref 0;
 
+val status_ticks = Unsynchronized.ref 0;
+val last_round = Unsynchronized.ref Time.zeroTime;
+val next_round = seconds 0.05;
+
 datatype worker_state = Working | Waiting | Sleeping;
 val workers = Unsynchronized.ref ([]: (Thread.thread * worker_state Unsynchronized.ref) list);
 
 fun count_workers state = (*requires SYNCHRONIZED*)
   fold (fn (_, state_ref) => fn i => if ! state_ref = state then i + 1 else i) (! workers) 0;
+
+
+
+(* status *)
+
+val ML_statistics = Unsynchronized.ref false;
+
+fun report_status () = (*requires SYNCHRONIZED*)
+  if ! ML_statistics then
+    let
+      val {ready, pending, running, passive} = Task_Queue.status (! queue);
+      val total = length (! workers);
+      val active = count_workers Working;
+      val waiting = count_workers Waiting;
+      val stats =
+       [("now", signed_string_of_real (Time.toReal (Time.now ()))),
+        ("tasks_ready", Markup.print_int ready),
+        ("tasks_pending", Markup.print_int pending),
+        ("tasks_running", Markup.print_int running),
+        ("tasks_passive", Markup.print_int passive),
+        ("workers_total", Markup.print_int total),
+        ("workers_active", Markup.print_int active),
+        ("workers_waiting", Markup.print_int waiting)] @
+        ML_Statistics.get ();
+    in Output.protocol_message (Markup.ML_statistics @ stats) "" end
+  else ();
 
 
 (* cancellation primitives *)
@@ -271,18 +302,6 @@ fun worker_start name = (*requires SYNCHRONIZED*)
 
 (* scheduler *)
 
-fun ML_statistics () =
-  if ! ML_Statistics.enabled then
-    (case ML_Statistics.get () of
-      [] => ()
-    | stats => Output.protocol_message (Markup.ML_statistics @ stats) "")
-  else ();
-
-val status_ticks = Unsynchronized.ref 0;
-
-val last_round = Unsynchronized.ref Time.zeroTime;
-val next_round = seconds 0.05;
-
 fun scheduler_next () = (*requires SYNCHRONIZED*)
   let
     val now = Time.now ();
@@ -290,30 +309,12 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ = if tick then last_round := now else ();
 
 
-    (* queue and worker status *)
+    (* runtime status *)
 
     val _ =
       if tick then Unsynchronized.change status_ticks (fn i => (i + 1) mod 10) else ();
     val _ =
-      if tick andalso ! status_ticks = 0 then
-       (ML_statistics ();
-        Multithreading.tracing 1 (fn () =>
-          let
-            val {ready, pending, running, passive} = Task_Queue.status (! queue);
-            val total = length (! workers);
-            val active = count_workers Working;
-            val waiting = count_workers Waiting;
-          in
-            "SCHEDULE " ^ Time.toString now ^ ": " ^
-              string_of_int ready ^ " ready, " ^
-              string_of_int pending ^ " pending, " ^
-              string_of_int running ^ " running, " ^
-              string_of_int passive ^ " passive; " ^
-              string_of_int total ^ " workers, " ^
-              string_of_int active ^ " active, " ^
-              string_of_int waiting ^ " waiting "
-          end))
-      else ();
+      if tick andalso ! status_ticks = 0 then report_status () else ();
 
     val _ =
       if forall (Thread.isActive o #1) (! workers) then ()
@@ -400,7 +401,7 @@ fun scheduler_loop () =
     Multithreading.with_attributes
       (Multithreading.sync_interrupts Multithreading.public_interrupts)
       (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
-  do (); last_round := Time.zeroTime; ML_statistics ());
+  do (); last_round := Time.zeroTime; report_status ());
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
@@ -663,11 +664,6 @@ fun shutdown () =
      while scheduler_active () do
       (wait scheduler_event; broadcast_work ()))
   else ();
-
-
-(* queue status *)
-
-fun queue_status () = Task_Queue.status (! queue);
 
 
 (*final declarations of this structure!*)
