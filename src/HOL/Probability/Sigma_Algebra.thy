@@ -1545,11 +1545,12 @@ structure Data = Generic_Data
     dest_thms = Thm.full_rules,
     app_thms = Thm.full_rules};
   val extend = I;
-  fun merge (t1, t2) = {
-    concrete_thms = Item_Net.merge (#concrete_thms t1, #concrete_thms t2),
-    generic_thms = Item_Net.merge (#generic_thms t1, #generic_thms t2),
-    dest_thms = Item_Net.merge (#dest_thms t1, #dest_thms t2),
-    app_thms = Item_Net.merge (#app_thms t1, #app_thms t2) };
+  fun merge ({concrete_thms = ct1, generic_thms = gt1, dest_thms = dt1, app_thms = at1 },
+      {concrete_thms = ct2, generic_thms = gt2, dest_thms = dt2, app_thms = at2 }) = {
+    concrete_thms = Item_Net.merge (ct1, ct2),
+    generic_thms = Item_Net.merge (gt1, gt2),
+    dest_thms = Item_Net.merge (dt1, dt2),
+    app_thms = Item_Net.merge (at1, at2) };
 );
 
 val debug =
@@ -1731,7 +1732,7 @@ val method : (Proof.context -> Method.method) context_parser =
 fun simproc ss redex = let
     val ctxt = Simplifier.the_context ss;
     val t = HOLogic.mk_Trueprop (term_of redex);
-    fun tac {context = ctxt, ...} =
+    fun tac {context = ctxt, prems = _ } =
       SOLVE (measurable_tac' ctxt ss (Simplifier.prems_of ss));
   in try (fn () => Goal.prove ctxt [] [] t tac RS @{thm Eq_TrueI}) () end;
 
