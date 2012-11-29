@@ -16,7 +16,9 @@ sig
 
   val equiv_relation: Proof.context -> typ * typ -> term
 
-  val prove_param_quot_thm: Proof.context -> typ -> thm * (typ * thm) list
+  val prove_param_quot_thm: Proof.context -> typ -> thm * (typ * thm) list * Proof.context
+
+  val generate_parametrized_relator: Proof.context -> typ -> term * term list
 end
 
 structure Lifting_Term: LIFTING_TERM =
@@ -238,14 +240,33 @@ fun abs_fun ctxt (rty, qty) =
 fun equiv_relation ctxt (rty, qty) =
   quot_thm_rel (prove_quot_thm ctxt (rty, qty))
 
-fun get_fresh_Q_t ctxt =
+val get_fresh_Q_t =
   let
-    val Q_t = Syntax.read_term ctxt "Trueprop (Quotient R Abs Rep T)"
-    val ctxt = Variable.declare_names Q_t ctxt
+    val Q_t = @{term "Trueprop (Quotient R Abs Rep T)"}
     val frees_Q_t = Term.add_free_names Q_t []
-    val (_, ctxt) = Variable.variant_fixes frees_Q_t ctxt
+    val tfrees_Q_t = rev (Term.add_tfree_names Q_t [])
   in
-    (Q_t, ctxt)
+    fn ctxt =>
+    let
+      fun rename_free_var tab (Free (name, typ)) = Free (the_default name (AList.lookup op= tab name),typ)
+        | rename_free_var _ t = t
+      
+      fun rename_free_vars tab = map_aterms (rename_free_var tab)
+      
+      fun rename_free_tvars tab =
+        map_types (map_type_tfree (fn (name, sort) => TFree (the_default name (AList.lookup op= tab name), sort)))
+      
+      val (new_frees_Q_t, ctxt) = Variable.variant_fixes frees_Q_t ctxt
+      val tab_frees = frees_Q_t ~~ new_frees_Q_t
+      
+      val (new_tfrees_Q_t, ctxt) = Variable.invent_types (replicate (length tfrees_Q_t) []) ctxt
+      val tab_tfrees = tfrees_Q_t ~~ (fst o split_list) new_tfrees_Q_t
+
+      val renamed_Q_t = rename_free_vars tab_frees Q_t
+      val renamed_Q_t = rename_free_tvars tab_tfrees renamed_Q_t
+    in
+      (renamed_Q_t, ctxt)
+    end
   end
 
 fun prove_param_quot_thm ctxt ty = 
@@ -265,7 +286,7 @@ fun prove_param_quot_thm ctxt ty =
         in
           (args MRSL (get_rel_quot_thm ctxt s), table_ctxt)
         end 
-      | generate (ty as (TVar _)) (table, ctxt) =
+      | generate (ty as (TFree _)) (table, ctxt) =
         if AList.defined (op=) table ty 
         then (the (AList.lookup (op=) table ty), (table, ctxt))
         else 
@@ -277,12 +298,23 @@ fun prove_param_quot_thm ctxt ty =
           in
             (Q_thm, (table', ctxt'))
           end
-      | generate _ _ = error "generate_param_quot_thm: TFree"
+      | generate _ _ = error "generate_param_quot_thm: TVar"
 
-    val (param_quot_thm, (table, _)) = generate ty ([], ctxt)
+    val (param_quot_thm, (table, ctxt)) = generate ty ([], ctxt)
   in
-    (param_quot_thm, rev table)
+    (param_quot_thm, rev table, ctxt)
   end
   handle QUOT_THM_INTERNAL pretty_msg => raise PARAM_QUOT_THM (ty, pretty_msg)
+
+fun generate_parametrized_relator ctxt ty =
+  let
+    val orig_ctxt = ctxt
+    val (quot_thm, table, ctxt) = prove_param_quot_thm ctxt ty
+    val parametrized_relator = quot_thm_crel quot_thm
+    val args = map (fn (_, q_thm) => quot_thm_crel q_thm) table
+    val exported_terms = Variable.exportT_terms ctxt orig_ctxt (parametrized_relator :: args)
+  in
+    (hd exported_terms, tl exported_terms)
+  end
 
 end;

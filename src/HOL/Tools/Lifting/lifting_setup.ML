@@ -48,28 +48,28 @@ fun print_define_pcrel_warning msg =
 
 fun define_pcrel crel lthy =
   let
-    val pcrel = Morphism.term (Local_Theory.target_morphism lthy) crel
-    val [crel_poly] = Variable.polymorphic lthy [pcrel]
-    val rty_raw = (domain_type o fastype_of) crel_poly
-    val (quot_thm, assms) = Lifting_Term.prove_param_quot_thm lthy rty_raw
-    val args = map (fn (_, q_thm) => quot_thm_crel q_thm) assms
-    val parametrized_relator = quot_thm_crel quot_thm
-    val [rty, rty'] = (binder_types o fastype_of) parametrized_relator
+    val (fixed_crel, lthy) = yield_singleton Variable.importT_terms crel lthy
+    val [rty', qty] = (binder_types o fastype_of) fixed_crel
+    val (param_rel, args) = Lifting_Term.generate_parametrized_relator lthy rty'
+    val rty_raw = (domain_type o range_type o fastype_of) param_rel
     val thy = Proof_Context.theory_of lthy
     val tyenv_match = Sign.typ_match thy (rty_raw, rty') Vartab.empty
-    val crel_subst = Envir.subst_term (tyenv_match,Vartab.empty) crel_poly
-    val lthy = Variable.declare_names parametrized_relator lthy
-    val (crel_typed, lthy) = yield_singleton Variable.importT_terms crel_subst lthy
-    val qty = (domain_type o range_type o fastype_of) crel_typed
+    val param_rel_subst = Envir.subst_term (tyenv_match,Vartab.empty) param_rel
+    val args_subst = map (Envir.subst_term (tyenv_match,Vartab.empty)) args
+    val lthy = Variable.declare_names fixed_crel lthy
+    val (instT, lthy) = Variable.importT_inst (param_rel_subst :: args_subst) lthy
+    val args_fixed = (map (Term_Subst.instantiate (instT, []))) args_subst
+    val param_rel_fixed = Term_Subst.instantiate (instT, []) param_rel_subst
+    val rty = (domain_type o fastype_of) param_rel_fixed
     val relcomp_op = Const (@{const_name "relcompp"}, 
           (rty --> rty' --> HOLogic.boolT) --> 
           (rty' --> qty --> HOLogic.boolT) --> 
           rty --> qty --> HOLogic.boolT)
-    val relator_type = foldr1 (op -->) ((map type_of args) @ [rty, qty, HOLogic.boolT])
+    val relator_type = foldr1 (op -->) ((map type_of args_fixed) @ [rty, qty, HOLogic.boolT])
     val qty_name = (fst o dest_Type) qty
     val pcrel_name = Binding.prefix_name "pcr_" ((Binding.name o Long_Name.base_name) qty_name)
-    val lhs = Library.foldl (op $) ((Free (Binding.name_of pcrel_name, relator_type)), args)
-    val rhs = relcomp_op $ parametrized_relator $ crel_typed
+    val lhs = Library.foldl (op $) ((Free (Binding.name_of pcrel_name, relator_type)), args_fixed)
+    val rhs = relcomp_op $ param_rel_fixed $ fixed_crel;
     val definition_term = Logic.mk_equals (lhs, rhs)
     val ((_, (_, def_thm)), lthy) = Specification.definition ((SOME (pcrel_name, SOME relator_type, NoSyn)), 
       ((Binding.empty, []), definition_term)) lthy
