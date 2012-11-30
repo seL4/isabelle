@@ -28,15 +28,6 @@ int main(int argc, char *argv[])
   char *script = argv[2];
 
 
-  /* report pid */
-
-  FILE *pid_file;
-  pid_file = fopen(pid_name, "w");
-  if (pid_file == NULL) fail("Cannot open pid file");
-  fprintf(pid_file, "%d", getpid());
-  fclose(pid_file);
-
-
   /* setsid */
 
   if (setsid() == -1) {
@@ -45,6 +36,15 @@ int main(int argc, char *argv[])
     else if (pid != 0) exit(0);
     else if (setsid() == -1) fail("Cannot set session id (after fork)");
   }
+
+
+  /* report pid */
+
+  FILE *pid_file;
+  pid_file = fopen(pid_name, "w");
+  if (pid_file == NULL) fail("Cannot open pid file");
+  fprintf(pid_file, "%d", getpid());
+  fclose(pid_file);
 
 
   /* exec */
