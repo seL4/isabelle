@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "Definite Assignment Analysis"
+header "Definite Initialization Analysis"
 
 theory Vars imports BExp
 begin
