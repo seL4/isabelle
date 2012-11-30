@@ -57,12 +57,12 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
   private val cancel = new Button("Cancel") {
     reactions += { case ButtonClicked(_) => PIDE.cancel_execution() }
   }
-  cancel.tooltip = jEdit.getProperty("isabelle.cancel-execution.label")
+  cancel.tooltip = "Cancel current checking process"
 
   private val check = new Button("Check") {
     reactions += { case ButtonClicked(_) => PIDE.check_buffer(view.getBuffer) }
   }
-  check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
+  check.tooltip = "Commence full checking of current buffer"
 
   private val logic = Isabelle_Logic.logic_selector(true)
 
