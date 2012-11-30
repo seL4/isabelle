@@ -220,10 +220,12 @@ fun print_inductives ctxt =
     val {infos, monos, ...} = rep_data ctxt;
     val space = Consts.space_of (Proof_Context.consts_of ctxt);
   in
-    [Pretty.strs ("(co)inductives:" :: map #1 (Name_Space.extern_table ctxt (space, infos))),
+    [Pretty.block
+      (Pretty.breaks
+        (Pretty.str "(co)inductives:" ::
+          map (Pretty.mark_str o #1) (Name_Space.extern_table ctxt (space, infos)))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
-    |> Pretty.chunks |> Pretty.writeln
-  end;
+  end |> Pretty.chunks |> Pretty.writeln;
 
 
 (* inductive info *)

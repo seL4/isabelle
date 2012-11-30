@@ -608,8 +608,11 @@ val _ = Context.>> (Context.map_theory
 (*** diagnostic commands and interfaces ***)
 
 fun print_locales thy =
-  Pretty.strs ("locales:" ::
-    map #1 (Name_Space.extern_table (Proof_Context.init_global thy) (Locales.get thy)))
+  Pretty.block
+    (Pretty.breaks
+      (Pretty.str "locales:" ::
+        map (Pretty.mark_str o #1)
+          (Name_Space.extern_table (Proof_Context.init_global thy) (Locales.get thy))))
   |> Pretty.writeln;
 
 fun pretty_locale thy show_facts name =

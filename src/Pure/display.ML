@@ -117,7 +117,7 @@ fun pretty_full_theory verbose thy =
     val prt_typ_no_tvars = prt_typ o Logic.unvarifyT_global;
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify_global;
-    fun prt_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
+    fun prt_const (c, ty) = [Pretty.mark_str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
     val prt_const' = Defs.pretty_const ctxt;
 
     fun pretty_classrel (c, []) = prt_cls c
@@ -145,7 +145,8 @@ fun pretty_full_theory verbose thy =
     fun pretty_abbrev (c, (ty, t)) = Pretty.block
       (prt_const (c, ty) @ [Pretty.str " ==", Pretty.brk 1, prt_term_no_vars t]);
 
-    fun pretty_axm (a, t) = Pretty.block [Pretty.str (a ^ ":"), Pretty.brk 1, prt_term_no_vars t];
+    fun pretty_axm (a, t) =
+      Pretty.block [Pretty.mark_str a, Pretty.str ":", Pretty.brk 1, prt_term_no_vars t];
 
     fun pretty_finals reds = Pretty.block
       (Pretty.str "final:" :: Pretty.brk 1 :: Pretty.commas (map (prt_const' o fst) reds));
@@ -202,7 +203,8 @@ fun pretty_full_theory verbose thy =
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
       Pretty.big_list "axioms:" (map pretty_axm axms),
-      Pretty.strs ("oracles:" :: Thm.extern_oracles ctxt),
+      Pretty.block
+        (Pretty.breaks (Pretty.str "oracles:" :: map Pretty.mark_str (Thm.extern_oracles ctxt))),
       Pretty.big_list "definitions:"
         [pretty_finals reds0,
          Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),
