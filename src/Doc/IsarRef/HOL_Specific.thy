@@ -66,6 +66,7 @@ text {*
     @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "print_inductives"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def (HOL) mono} & : & @{text attribute} \\
   \end{matharray}
 
@@ -134,6 +135,9 @@ text {*
   "coinductive_set"} are wrappers for to the previous commands for
   native HOL predicates.  This allows to define (co)inductive sets,
   where multiple arguments are simulated via tuples.
+
+  \item @{command "print_inductives"} prints (co)inductive definitions and
+  monotonicity rules.
 
   \item @{attribute (HOL) mono} declares monotonicity rules in the
   context.  These rule are involved in the automated monotonicity
