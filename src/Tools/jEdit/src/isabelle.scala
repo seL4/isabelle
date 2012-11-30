@@ -20,9 +20,9 @@ object Isabelle
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
 
-  def docked_session(view: View): Option[Session_Dockable] =
-    wm(view).getDockableWindow("isabelle-session") match {
-      case dockable: Session_Dockable => Some(dockable)
+  def docked_theories(view: View): Option[Theories_Dockable] =
+    wm(view).getDockableWindow("isabelle-theories") match {
+      case dockable: Theories_Dockable => Some(dockable)
       case _ => None
     }
 

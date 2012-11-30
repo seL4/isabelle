@@ -9,7 +9,6 @@ package isabelle
 
 import java.lang.System
 import java.util.regex.Pattern
-import java.util.Locale
 import java.net.URL
 import java.io.{File => JFile}
 
@@ -94,7 +93,7 @@ class Standard_System
       val rest =
         posix_path match {
           case Cygdrive(drive, rest) =>
-            result_path ++= (drive.toUpperCase(Locale.ENGLISH) + ":" + JFile.separator)
+            result_path ++= (Library.uppercase(drive) + ":" + JFile.separator)
             rest
           case Named_Root(root, rest) =>
             result_path ++= JFile.separator
@@ -129,7 +128,7 @@ class Standard_System
       jvm_path.replace('/', '\\') match {
         case Platform_Root(rest) => "/" + rest.replace('\\', '/')
         case Drive(letter, rest) =>
-          "/cygdrive/" + letter.toLowerCase(Locale.ENGLISH) +
+          "/cygdrive/" + Library.lowercase(letter) +
             (if (rest == "") "" else "/" + rest.replace('\\', '/'))
         case path => path.replace('\\', '/')
       }

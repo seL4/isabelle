@@ -7,7 +7,6 @@ Stand-alone options with external string representation.
 package isabelle
 
 
-import java.util.Locale
 import java.util.Calendar
 
 
@@ -22,7 +21,7 @@ object Options
 
   sealed abstract class Type
   {
-    def print: String = toString.toLowerCase(Locale.ENGLISH)
+    def print: String = Library.lowercase(toString)
   }
   case object Bool extends Type
   case object Int extends Type

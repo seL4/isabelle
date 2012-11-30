@@ -47,8 +47,8 @@ isabelle.control-reset.shortcut=C+e LEFT
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.session-panel isabelle.output-panel isabelle.graphview-panel isabelle.raw-output-panel isabelle.protocol-panel isabelle.readme-panel isabelle.symbols-panel isabelle.syslog-panel
-isabelle.session-panel.label=Prover Session panel
+plugin.isabelle.jedit.Plugin.menu=isabelle.theories-panel isabelle.output-panel isabelle.graphview-panel isabelle.raw-output-panel isabelle.protocol-panel isabelle.readme-panel isabelle.symbols-panel isabelle.syslog-panel
+isabelle.theories-panel.label=Theories panel
 isabelle.output-panel.label=Output panel
 isabelle.graphview-panel.label=Graphview panel
 isabelle.raw-output-panel.label=Raw Output panel
@@ -58,7 +58,7 @@ isabelle.symbols-panel.label=Symbols panel
 isabelle.syslog-panel.label=Syslog panel
 
 #dockables
-isabelle-session.title=Prover Session
+isabelle-theories.title=Theories
 isabelle-output.title=Output
 isabelle-info.title=Info
 isabelle-graphview.title=Graphview

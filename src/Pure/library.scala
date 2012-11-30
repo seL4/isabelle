@@ -85,9 +85,12 @@ object Library
     if (str.endsWith("\n")) str.substring(0, str.length - 1)
     else str
 
+  def lowercase(str: String): String = str.toLowerCase(Locale.ENGLISH)
+  def uppercase(str: String): String = str.toUpperCase(Locale.ENGLISH)
+
   def capitalize(str: String): String =
     if (str.length == 0) str
-    else str.substring(0, 1).toUpperCase(Locale.ENGLISH) + str.substring(1)
+    else uppercase(str.substring(0, 1)) + str.substring(1)
 
 
   /* quote */

@@ -2,9 +2,9 @@
 <!DOCTYPE ACTIONS SYSTEM "actions.dtd">
 
 <ACTIONS>
-	<ACTION NAME="isabelle.session-panel">
+	<ACTION NAME="isabelle.theories-panel">
 		<CODE>
-			wm.addDockableWindow("isabelle-session");
+			wm.addDockableWindow("isabelle-theories");
 		</CODE>
 	</ACTION>
 	<ACTION NAME="isabelle.syslog-panel">
