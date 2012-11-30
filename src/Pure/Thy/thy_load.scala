@@ -47,7 +47,10 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
   {
     val path = Path.explode(name.node)
     if (!path.is_file) error("No such file: " + path.toString)
-    f(File.read(path))
+
+    val text = File.read(path)
+    Symbol.decode_strict(text)
+    f(text)
   }
 
 

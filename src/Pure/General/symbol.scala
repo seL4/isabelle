@@ -380,6 +380,18 @@ object Symbol
   def decode(text: String): String = symbols.decode(text)
   def encode(text: String): String = symbols.encode(text)
 
+  def decode_strict(text: String): String =
+  {
+    val decoded = decode(text)
+    if (encode(decoded) == text) decoded
+    else {
+      val bad = new mutable.ListBuffer[Symbol]
+      for (s <- iterator(text) if encode(decode(s)) != s && !bad.contains(s))
+        bad += s
+      error("Bad Unicode symbols in text: " + commas_quote(bad))
+    }
+  }
+
   def fonts: Map[Symbol, String] = symbols.fonts
   def font_names: List[String] = symbols.font_names
   def font_index: Map[String, Int] = symbols.font_index
