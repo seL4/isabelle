@@ -251,11 +251,11 @@ end;
 val scan_ident =
   Scan.one (Symbol.is_letter o symbol) ::: Scan.many (Symbol.is_letdig o symbol);
 
-fun is_ident [] = false
-  | is_ident (s :: ss) = Symbol.is_letter (symbol s) andalso forall (Symbol.is_letdig o symbol) ss;
-
 fun is_identifier s =
-  Symbol.is_ascii_identifier s orelse is_ident (explode (s, Position.none));
+  Symbol.is_ascii_identifier s orelse
+    (case try (Scan.finite stopper scan_ident) (explode (s, Position.none)) of
+      SOME (_, []) => true
+    | _ => false);
 
 end;
 

@@ -147,7 +147,7 @@ sig
   val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val extern_oracles: Proof.context -> xstring list
+  val extern_oracles: Proof.context -> (Markup.T * xstring) list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 

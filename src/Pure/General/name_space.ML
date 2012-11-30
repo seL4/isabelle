@@ -63,7 +63,7 @@ sig
   val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
     'a table * 'a table -> 'a table
   val dest_table: Proof.context -> 'a table -> (string * 'a) list
-  val extern_table: Proof.context -> 'a table -> (xstring * 'a) list
+  val extern_table: Proof.context -> 'a table -> ((Markup.T * xstring) * 'a) list
 end;
 
 structure Name_Space: NAME_SPACE =
@@ -450,8 +450,10 @@ fun ext_table ctxt (space, tab) =
   Symtab.fold (fn (name, x) => cons ((name, extern ctxt space name), x)) tab []
   |> Library.sort_wrt (#2 o #1);
 
-fun dest_table ctxt tab = map (apfst #1) (ext_table ctxt tab);
-fun extern_table ctxt tab = map (apfst #2) (ext_table ctxt tab);
+fun dest_table ctxt table = map (apfst #1) (ext_table ctxt table);
+
+fun extern_table ctxt (space, tab) =
+  map (fn ((name, xname), x) => ((markup space name, xname), x)) (ext_table ctxt (space, tab));
 
 end;
 

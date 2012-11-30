@@ -220,10 +220,12 @@ fun print_inductives ctxt =
     val {infos, monos, ...} = rep_data ctxt;
     val space = Consts.space_of (Proof_Context.consts_of ctxt);
   in
-    [Pretty.strs ("(co)inductives:" :: map #1 (Name_Space.extern_table ctxt (space, infos))),
+    [Pretty.block
+      (Pretty.breaks
+        (Pretty.str "(co)inductives:" ::
+          map (Pretty.mark_str o #1) (Name_Space.extern_table ctxt (space, infos)))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
-    |> Pretty.chunks |> Pretty.writeln
-  end;
+  end |> Pretty.chunks |> Pretty.writeln;
 
 
 (* inductive info *)
@@ -1164,5 +1166,12 @@ val _ =
   Outer_Syntax.local_theory @{command_spec "inductive_simps"}
     "create simplification rules for inductive predicates"
     (Parse.and_list1 Parse_Spec.specs >> (snd oo inductive_simps));
+
+val _ =
+  Outer_Syntax.improper_command @{command_spec "print_inductives"}
+    "print (co)inductive definitions and monotonicity rules"
+    (Scan.succeed
+      (Toplevel.no_timing o Toplevel.unknown_context o
+        Toplevel.keep (print_inductives o Toplevel.context_of)));
 
 end;

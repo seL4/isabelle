@@ -10,16 +10,18 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.Font
-import org.gjt.sp.jedit.View
 
 import scala.swing.event.ValueChanged
 import scala.swing.{Action, Button, FlowPanel, TabbedPane, TextField, BorderPanel, Label}
+
+import org.gjt.sp.jedit.View
+
 
 class Symbols_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   val searchspace =
     for ((group, symbols) <- Symbol.groups; sym <- symbols)
-      yield (sym, sym.toLowerCase)
+      yield (sym, Library.lowercase(sym))
 
   private class Symbol_Component(val symbol: String) extends Button
   {
@@ -75,7 +77,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
           val max_results = PIDE.options.int("jedit_symbols_search_limit") max 0
           results_panel.contents.clear
           val results =
-            (searchspace filter (search.text.toLowerCase.split("\\s+") forall _._2.contains)
+            (searchspace filter
+              (Library.lowercase(search.text).split("\\s+") forall _._2.contains)
               take (max_results + 1)).toList
           for ((sym, _) <- results)
             results_panel.contents += new Symbol_Component(sym)

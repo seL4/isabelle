@@ -1,7 +1,7 @@
-/*  Title:      Tools/jEdit/src/session_dockable.scala
+/*  Title:      Tools/jEdit/src/theories_dockable.scala
     Author:     Makarius
 
-Dockable window for prover session management.
+Dockable window for theories managed by prover.
 */
 
 package isabelle.jedit
@@ -21,7 +21,7 @@ import javax.swing.border.{BevelBorder, SoftBevelBorder}
 import org.gjt.sp.jedit.{View, jEdit}
 
 
-class Session_Dockable(view: View, position: String) extends Dockable(view, position)
+class Theories_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   /* status */
 
@@ -42,24 +42,27 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
 
   /* controls */
 
-  private val session_phase = new Label(PIDE.session.phase.toString)
+  def phase_text(phase: Session.Phase): String =
+    "Prover: " + Library.lowercase(phase.toString)
+
+  private val session_phase = new Label(phase_text(PIDE.session.phase))
   session_phase.border = new SoftBevelBorder(BevelBorder.LOWERED)
-  session_phase.tooltip = "Prover status"
+  session_phase.tooltip = "Status of prover session"
 
   private def handle_phase(phase: Session.Phase)
   {
-    Swing_Thread.later { session_phase.text = " " + phase.toString + " " }
+    Swing_Thread.later { session_phase.text = " " + phase_text(phase) + " " }
   }
 
   private val cancel = new Button("Cancel") {
     reactions += { case ButtonClicked(_) => PIDE.cancel_execution() }
   }
-  cancel.tooltip = jEdit.getProperty("isabelle.cancel-execution.label")
+  cancel.tooltip = "Cancel current checking process"
 
   private val check = new Button("Check") {
     reactions += { case ButtonClicked(_) => PIDE.check_buffer(view.getBuffer) }
   }
-  check.tooltip = jEdit.getProperty("isabelle.check-buffer.label")
+  check.tooltip = "Commence full checking of current buffer"
 
   private val logic = Isabelle_Logic.logic_selector(true)
 
@@ -155,7 +158,7 @@ class Session_Dockable(view: View, position: String) extends Dockable(view, posi
 
         case changed: Session.Commands_Changed => handle_update(Some(changed.nodes))
 
-        case bad => System.err.println("Session_Dockable: ignoring bad message " + bad)
+        case bad => System.err.println("Theories_Dockable: ignoring bad message " + bad)
       }
     }
   }

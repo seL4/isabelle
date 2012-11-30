@@ -11,12 +11,12 @@ function fail()
 
 ## parameters
 
-ARCHIVE_LINUX32="jdk-7u6-linux-i586.tar.gz"
-ARCHIVE_LINUX64="jdk-7u6-linux-x64.tar.gz"
-ARCHIVE_DARWIN="jdk1.7.0_06.jdk.tar.gz"
-ARCHIVE_WINDOWS="jdk1.7.0_06.tar.gz"
+ARCHIVE_LINUX32="jdk-7u9-linux-i586.tar.gz"
+ARCHIVE_LINUX64="jdk-7u9-linux-x64.tar.gz"
+ARCHIVE_DARWIN="jdk1.7.0_09.jdk.tar.gz"
+ARCHIVE_WINDOWS="jdk1.7.0_09.tar.gz"
 
-VERSION="7u6"
+VERSION="7u9"
 
 
 ## variations on version
@@ -47,13 +47,16 @@ mkdir "$DIR" || fail "Cannot create fresh directory: \"$DIR\""
 # README
 
 cat >> "$DIR/README" << EOF
-This is JDK $FULL_VERSION for Linux, Mac OS X, Windows.
+This is JDK $FULL_VERSION as required for Isabelle.
 
 See http://www.oracle.com/technetwork/java/javase/downloads/index.html
 for the original downloads, which are covered by the Oracle Binary
 Code License Agreement for Java SE.
 
-Note that Java 1.7 requires 64bit hardware on Mac OS X.
+Linux, Mac OS X, Windows work uniformly, depending on certain
+platform-specific subdirectories.
+
+Note that Java 1.7 on Mac OS X requires 64bit hardware!
 EOF
 
 
@@ -76,7 +79,12 @@ case "\${ISABELLE_PLATFORM64:-\$ISABELLE_PLATFORM32}" in
 esac
 
 if [ -n "\$ISABELLE_JDK_HOME" ]; then
-  ISABELLE_JAVA_EXT="\${ISABELLE_JDK_HOME}/jre/lib/ext"
+  if [ -d "\$ISABELLE_JDK_HOME" ]; then
+    ISABELLE_JAVA_EXT="\${ISABELLE_JDK_HOME}/jre/lib/ext"
+  else
+    echo "### Missing Java 1.7 platform directory: \"\$ISABELLE_JDK_HOME\"" >&2
+    unset ISABELLE_JDK_HOME
+  fi
 fi
 EOF
 
@@ -93,6 +101,8 @@ tar -C "$DIR/x86-cygwin" -xf "$ARCHIVE_WINDOWS"
 chgrp -R isabelle "$DIR"
 chmod -R a+r "$DIR"
 chmod -R a+X "$DIR"
+
+find "$DIR/x86_64-darwin" -name "._*" -exec rm -f {} ";"
 
 (
   cd "$DIR/x86-linux/jdk${FULL_VERSION}"

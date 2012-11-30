@@ -9,7 +9,6 @@ package isabelle
 
 import java.lang.System
 import java.util.regex.Pattern
-import java.util.Locale
 import java.io.{InputStream, OutputStream, File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter, IOException, FileInputStream, BufferedInputStream}
 import java.awt.{GraphicsEnvironment, Font}

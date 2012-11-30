@@ -91,9 +91,10 @@ fun print_attributes thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val attribs = Attributes.get thy;
-    fun prt_attr (name, (_, "")) = Pretty.str name
+    fun prt_attr (name, (_, "")) = Pretty.mark_str name
       | prt_attr (name, (_, comment)) =
-          Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
+          Pretty.block
+            (Pretty.mark_str name :: Pretty.str ":" :: Pretty.brk 2 :: Pretty.text comment);
   in
     [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table ctxt attribs))]
     |> Pretty.chunks |> Pretty.writeln
@@ -440,8 +441,8 @@ fun print_configs ctxt =
     val thy = Proof_Context.theory_of ctxt;
     fun prt (name, config) =
       let val value = Config.get ctxt config in
-        Pretty.block [Pretty.str (name ^ ": " ^ Config.print_type value ^ " ="), Pretty.brk 1,
-          Pretty.str (Config.print_value value)]
+        Pretty.block [Pretty.mark_str name, Pretty.str (": " ^ Config.print_type value ^ " ="),
+          Pretty.brk 1, Pretty.str (Config.print_value value)]
       end;
     val configs = Name_Space.extern_table ctxt (#1 (Attributes.get thy), Configs.get thy);
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
