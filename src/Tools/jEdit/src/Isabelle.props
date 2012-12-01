@@ -14,10 +14,10 @@ plugin.isabelle.jedit.Plugin.usePluginHome=false
 
 #dependencies
 plugin.isabelle.jedit.Plugin.depend.0=jdk 1.7
-plugin.isabelle.jedit.Plugin.depend.1=jedit 04.05.02.00
-plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 4.5
-plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 1.9
-plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.3
+plugin.isabelle.jedit.Plugin.depend.1=jedit 05.00.00.00
+plugin.isabelle.jedit.Plugin.depend.2=plugin console.ConsolePlugin 5.0
+plugin.isabelle.jedit.Plugin.depend.3=plugin errorlist.ErrorListPlugin 2.0
+plugin.isabelle.jedit.Plugin.depend.4=plugin sidekick.SideKickPlugin 1.4
 
 #options
 plugin.isabelle.jedit.Plugin.option-group=isabelle-general isabelle-rendering

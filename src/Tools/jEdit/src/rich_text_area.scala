@@ -27,6 +27,7 @@ class Rich_Text_Area(
   view: View,
   text_area: TextArea,
   get_rendering: () => Rendering,
+  caret_visible: Boolean,
   hovering: Boolean)
 {
   private val buffer = text_area.getBuffer
@@ -304,7 +305,7 @@ class Rich_Text_Area(
     while (chunk != null) {
       val chunk_offset = line_start + chunk.offset
       if (x + w + chunk.width > clip_rect.x &&
-          x + w < clip_rect.x + clip_rect.width && chunk.accessable)
+          x + w < clip_rect.x + clip_rect.width && chunk.length > 0)
       {
         val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk.length)
         val chunk_str = if (chunk.str == null) " " * chunk.length else chunk.str
@@ -316,7 +317,7 @@ class Rich_Text_Area(
           else chunk_font.getStringBounds(s, font_context).getWidth.toFloat
 
         val caret_range =
-          if (text_area.isCaretVisible)
+          if (caret_visible && text_area.isCaretVisible)
             JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
           else Text.Range(-1)
 
@@ -479,7 +480,7 @@ class Rich_Text_Area(
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
       robust_rendering { _ =>
-        if (text_area.isCaretVisible) {
+        if (caret_visible && text_area.isCaretVisible) {
           val caret = text_area.getCaretPosition
           if (start <= caret && caret == end - 1) {
             val painter = text_area.getPainter

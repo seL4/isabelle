@@ -46,6 +46,7 @@ declare -a RESOURCES=(
   "src/actions.xml"
   "src/dockables.xml"
   "src/Isabelle.props"
+  "src/jEdit.props"
   "src/services.xml"
 )
 

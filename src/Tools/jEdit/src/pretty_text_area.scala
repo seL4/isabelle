@@ -66,7 +66,9 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
     Pretty_Text_Area.text_rendering(current_base_snapshot, Nil)._2
   private var future_rendering: Option[java.util.concurrent.Future[Unit]] = None
 
-  private val rich_text_area = new Rich_Text_Area(view, text_area, () => current_rendering, true)
+  private val rich_text_area =
+    new Rich_Text_Area(view, text_area, () => current_rendering,
+      caret_visible = false, hovering = true)
 
   def refresh()
   {
@@ -143,8 +145,6 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
 
 
   /* init */
-
-  override def isCaretVisible: Boolean = false
 
   getPainter.setStructureHighlightEnabled(false)
   getPainter.setLineHighlightEnabled(false)
