@@ -101,12 +101,12 @@ val learn_atpN = "learn_atp"
 val relearn_isarN = "relearn_isar"
 val relearn_atpN = "relearn_atp"
 
-fun mash_home () = getenv "ISABELLE_SLEDGEHAMMER_MASH"
+fun mash_script () = Path.explode "$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py"
 fun mash_model_dir () =
-  getenv "ISABELLE_HOME_USER" ^ "/mash"
-  |> tap (Isabelle_System.mkdir o Path.explode)
+  Path.explode "$ISABELLE_HOME_USER/mash"
+  |> tap Isabelle_System.mkdir
 val mash_state_dir = mash_model_dir
-fun mash_state_file () = mash_state_dir () ^ "/state"
+fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
 
 (*** Isabelle helpers ***)
@@ -446,8 +446,9 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
       " --numberOfPredictions " ^ string_of_int max_suggs ^
       (if save then " --saveModel" else "")
     val command =
-      mash_home () ^ "/src/mash.py --quiet --outputDir " ^ mash_model_dir () ^
-      " --log " ^ log_file ^ " " ^ core ^ " >& " ^ err_file
+      Path.implode (mash_script ()) ^ " --quiet --outputDir " ^
+      Path.implode (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
+      " >& " ^ err_file
       |> tap (fn _ => trace_msg ctxt (fn () =>
              case try File.read (Path.explode err_file) of
                NONE => "Done"
@@ -478,7 +479,7 @@ fun str_of_query (parents, feats) =
   "? " ^ escape_metas parents ^ "; " ^ escape_metas feats ^ "\n"
 
 fun mash_CLEAR ctxt =
-  let val path = mash_model_dir () |> Path.explode in
+  let val path = mash_model_dir () in
     trace_msg ctxt (K "MaSh CLEAR");
     File.fold_dir (fn file => fn _ =>
                       try File.rm (Path.append path (Path.basic file)))
@@ -552,7 +553,7 @@ val version = "*** MaSh 0.0 ***"
 
 fun load _ (state as (true, _)) = state
   | load ctxt _ =
-    let val path = mash_state_file () |> Path.explode in
+    let val path = mash_state_file () in
       (true,
        case try File.read_lines path of
          SOME (version' :: node_lines) =>
@@ -591,7 +592,8 @@ fun save _ (state as {dirty = SOME [], ...}) = state
           (NONE, fold (append_entry o Graph.get_entry fact_G) names [])
         | NONE => (SOME (version ^ "\n"), Graph.fold append_entry fact_G [])
     in
-      write_file banner (entries, str_of_entry) (mash_state_file ());
+      write_file banner (entries, str_of_entry)
+                 (Path.implode (mash_state_file ()));
       trace_msg ctxt (fn () =>
           "Saved fact graph (" ^ graph_info fact_G ^
           (case dirty of
