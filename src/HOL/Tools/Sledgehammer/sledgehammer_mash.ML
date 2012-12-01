@@ -29,6 +29,16 @@ sig
   val unescape_meta : string -> string
   val unescape_metas : string -> string list
   val extract_query : string -> string * (string * real) list
+  val mash_CLEAR : Proof.context -> unit
+  val mash_ADD :
+    Proof.context -> bool
+    -> (string * string list * string list * string list) list -> unit
+  val mash_REPROVE :
+    Proof.context -> bool -> (string * string list) list -> unit
+  val mash_QUERY :
+    Proof.context -> bool -> int -> string list * string list
+    -> (string * real) list
+  val mash_unlearn : Proof.context -> unit
   val nickname_of : thm -> string
   val suggested_facts :
     (string * 'a) list -> ('b * thm) list -> (('b * thm) * 'a) list
@@ -45,18 +55,6 @@ sig
   val atp_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
     -> thm -> bool * string list option
-  val mash_CLEAR : Proof.context -> unit
-  val mash_ADD :
-    Proof.context -> bool
-    -> (string * string list * string list * string list) list -> unit
-  val mash_REPROVE :
-    Proof.context -> bool -> (string * string list) list -> unit
-  val mash_QUERY :
-    Proof.context -> bool -> int -> string list * string list
-    -> (string * real) list
-  val mash_unlearn : Proof.context -> unit
-  val is_mash_enabled : unit -> bool
-  val mash_can_suggest_facts : Proof.context -> bool
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
     -> fact list -> (fact * real) list * fact list
@@ -65,6 +63,8 @@ sig
     -> unit
   val mash_learn :
     Proof.context -> params -> fact_override -> thm list -> bool -> unit
+  val is_mash_enabled : unit -> bool
+  val mash_can_suggest_facts : Proof.context -> bool
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -109,7 +109,52 @@ val mash_state_dir = mash_model_dir
 fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
 
-(*** Isabelle helpers ***)
+(*** Low-level communication with MaSh ***)
+
+fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
+
+fun write_file banner (xs, f) file =
+  let val path = Path.explode file in
+    case banner of SOME s => File.write path s | NONE => ();
+    xs |> chunk_list 500
+       |> List.app (File.append path o space_implode "" o map f)
+  end
+
+fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
+  let
+    val (temp_dir, serial) =
+      if overlord then (getenv "ISABELLE_HOME_USER", "")
+      else (getenv "ISABELLE_TMP", serial_string ())
+    val log_file = if overlord then temp_dir ^ "/mash_log" else "/dev/null"
+    val err_file = temp_dir ^ "/mash_err" ^ serial
+    val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
+    val cmd_file = temp_dir ^ "/mash_commands" ^ serial
+    val core =
+      "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
+      " --numberOfPredictions " ^ string_of_int max_suggs ^
+      (if save then " --saveModel" else "")
+    val command =
+      Path.implode (mash_script ()) ^ " --quiet --outputDir " ^
+      Path.implode (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
+      " >& " ^ err_file
+      |> tap (fn _ => trace_msg ctxt (fn () =>
+             case try File.read (Path.explode err_file) of
+               NONE => "Done"
+             | SOME "" => "Done"
+             | SOME s => "Error: " ^ elide_string 1000 s))
+    fun run_on () =
+      (Isabelle_System.bash command;
+       read_suggs (fn () =>
+           try File.read_lines (Path.explode sugg_file) |> these))
+    fun clean_up () =
+      if overlord then ()
+      else List.app wipe_out_file [err_file, sugg_file, cmd_file]
+  in
+    write_file (SOME "") ([], K "") sugg_file;
+    write_file (SOME "") write_cmds cmd_file;
+    trace_msg ctxt (fn () => "Running " ^ command);
+    with_cleanup clean_up run_on ()
+  end
 
 fun meta_char c =
   if Char.isAlphaNum c orelse c = #"_" orelse c = #"." orelse c = #"(" orelse
@@ -133,25 +178,15 @@ val unescape_meta = String.explode #> unmeta_chars []
 val unescape_metas =
   space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
 
-datatype proof_kind = Isar_Proof | ATP_Proof | Isar_Proof_wegen_ATP_Flop
+fun str_of_add (name, parents, feats, deps) =
+  "! " ^ escape_meta name ^ ": " ^ escape_metas parents ^ "; " ^
+  escape_metas feats ^ "; " ^ escape_metas deps ^ "\n"
 
-fun str_of_proof_kind Isar_Proof = "i"
-  | str_of_proof_kind ATP_Proof = "a"
-  | str_of_proof_kind Isar_Proof_wegen_ATP_Flop = "x"
+fun str_of_reprove (name, deps) =
+  "p " ^ escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
 
-fun proof_kind_of_str "i" = Isar_Proof
-  | proof_kind_of_str "a" = ATP_Proof
-  | proof_kind_of_str "x" = Isar_Proof_wegen_ATP_Flop
-
-fun extract_node line =
-  case space_explode ":" line of
-    [head, parents] =>
-    (case space_explode " " head of
-       [kind, name] =>
-       SOME (unescape_meta name, unescape_metas parents,
-             try proof_kind_of_str kind |> the_default Isar_Proof)
-     | _ => NONE)
-  | _ => NONE
+fun str_of_query (parents, feats) =
+  "? " ^ escape_metas parents ^ "; " ^ escape_metas feats ^ "\n"
 
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
@@ -165,6 +200,175 @@ fun extract_query line =
     (unescape_meta goal,
      map_filter extract_suggestion (space_explode " " suggs))
   | _ => ("", [])
+
+fun mash_CLEAR ctxt =
+  let val path = mash_model_dir () in
+    trace_msg ctxt (K "MaSh CLEAR");
+    File.fold_dir (fn file => fn _ =>
+                      try File.rm (Path.append path (Path.basic file)))
+                  path NONE;
+    ()
+  end
+
+fun mash_ADD _ _ [] = ()
+  | mash_ADD ctxt overlord adds =
+    (trace_msg ctxt (fn () => "MaSh ADD " ^
+         elide_string 1000 (space_implode " " (map #1 adds)));
+     run_mash_tool ctxt overlord true 0 (adds, str_of_add) (K ()))
+
+fun mash_REPROVE _ _ [] = ()
+  | mash_REPROVE ctxt overlord reps =
+    (trace_msg ctxt (fn () => "MaSh REPROVE " ^
+         elide_string 1000 (space_implode " " (map #1 reps)));
+     run_mash_tool ctxt overlord true 0 (reps, str_of_reprove) (K ()))
+
+fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
+  (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
+   run_mash_tool ctxt overlord false max_suggs
+       ([query], str_of_query)
+       (fn suggs =>
+           case suggs () of
+             [] => []
+           | suggs => snd (extract_query (List.last suggs)))
+   handle List.Empty => [])
+
+
+(*** Middle-level communication with MaSh ***)
+
+datatype proof_kind = Isar_Proof | ATP_Proof | Isar_Proof_wegen_ATP_Flop
+
+fun str_of_proof_kind Isar_Proof = "i"
+  | str_of_proof_kind ATP_Proof = "a"
+  | str_of_proof_kind Isar_Proof_wegen_ATP_Flop = "x"
+
+fun proof_kind_of_str "i" = Isar_Proof
+  | proof_kind_of_str "a" = ATP_Proof
+  | proof_kind_of_str "x" = Isar_Proof_wegen_ATP_Flop
+
+(* FIXME: Here a "Graph.update_node" function would be useful *)
+fun update_fact_graph_node (name, kind) =
+  Graph.default_node (name, Isar_Proof)
+  #> kind <> Isar_Proof ? Graph.map_node name (K kind)
+
+fun try_graph ctxt when def f =
+  f ()
+  handle Graph.CYCLES (cycle :: _) =>
+         (trace_msg ctxt (fn () =>
+              "Cycle involving " ^ commas cycle ^ " when " ^ when); def)
+       | Graph.DUP name =>
+         (trace_msg ctxt (fn () =>
+              "Duplicate fact " ^ quote name ^ " when " ^ when); def)
+       | Graph.UNDEF name =>
+         (trace_msg ctxt (fn () =>
+              "Unknown fact " ^ quote name ^ " when " ^ when); def)
+       | exn =>
+         if Exn.is_interrupt exn then
+           reraise exn
+         else
+           (trace_msg ctxt (fn () =>
+                "Internal error when " ^ when ^ ":\n" ^
+                ML_Compiler.exn_message exn); def)
+
+fun graph_info G =
+  string_of_int (length (Graph.keys G)) ^ " node(s), " ^
+  string_of_int (fold (Integer.add o length o snd) (Graph.dest G) 0) ^
+  " edge(s), " ^
+  string_of_int (length (Graph.minimals G)) ^ " minimal, " ^
+  string_of_int (length (Graph.maximals G)) ^ " maximal"
+
+type mash_state = {fact_G : unit Graph.T, dirty : string list option}
+
+val empty_state = {fact_G = Graph.empty, dirty = SOME []}
+
+local
+
+val version = "*** MaSh 0.0 ***"
+
+fun extract_node line =
+  case space_explode ":" line of
+    [head, parents] =>
+    (case space_explode " " head of
+       [kind, name] =>
+       SOME (unescape_meta name, unescape_metas parents,
+             try proof_kind_of_str kind |> the_default Isar_Proof)
+     | _ => NONE)
+  | _ => NONE
+
+fun load _ (state as (true, _)) = state
+  | load ctxt _ =
+    let val path = mash_state_file () in
+      (true,
+       case try File.read_lines path of
+         SOME (version' :: node_lines) =>
+         let
+           fun add_edge_to name parent =
+             Graph.default_node (parent, Isar_Proof)
+             #> Graph.add_edge (parent, name)
+           fun add_node line =
+             case extract_node line of
+               NONE => I (* shouldn't happen *)
+             | SOME (name, parents, kind) =>
+               update_fact_graph_node (name, kind)
+               #> fold (add_edge_to name) parents
+           val fact_G =
+             try_graph ctxt "loading state" Graph.empty (fn () =>
+                 Graph.empty |> version' = version ? fold add_node node_lines)
+         in
+           trace_msg ctxt (fn () =>
+               "Loaded fact graph (" ^ graph_info fact_G ^ ")");
+           {fact_G = fact_G, dirty = SOME []}
+         end
+       | _ => empty_state)
+    end
+
+fun save _ (state as {dirty = SOME [], ...}) = state
+  | save ctxt {fact_G, dirty} =
+    let
+      fun str_of_entry (name, parents, kind) =
+        str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
+        escape_metas parents ^ "\n"
+      fun append_entry (name, (kind, (parents, _))) =
+        cons (name, Graph.Keys.dest parents, kind)
+      val (banner, entries) =
+        case dirty of
+          SOME names =>
+          (NONE, fold (append_entry o Graph.get_entry fact_G) names [])
+        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry fact_G [])
+    in
+      write_file banner (entries, str_of_entry)
+                 (Path.implode (mash_state_file ()));
+      trace_msg ctxt (fn () =>
+          "Saved fact graph (" ^ graph_info fact_G ^
+          (case dirty of
+             SOME dirty =>
+             "; " ^ string_of_int (length dirty) ^ " dirty fact(s)"
+           | _ => "") ^  ")");
+      {fact_G = fact_G, dirty = SOME []}
+    end
+
+val global_state =
+  Synchronized.var "Sledgehammer_MaSh.global_state" (false, empty_state)
+
+in
+
+fun mash_map ctxt f =
+  Synchronized.change global_state (load ctxt ##> (f #> save ctxt))
+
+fun mash_peek ctxt f =
+  Synchronized.change_result global_state (load ctxt #> `snd #>> f)
+
+fun mash_get ctxt =
+  Synchronized.change_result global_state (load ctxt #> `snd)
+
+fun mash_unlearn ctxt =
+  Synchronized.change global_state (fn _ =>
+      (mash_CLEAR ctxt; (* also removes the state file *)
+       (true, empty_state)))
+
+end
+
+
+(*** Isabelle helpers ***)
 
 fun parent_of_local_thm th =
   let
@@ -421,211 +625,7 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
     end
 
 
-(*** Low-level communication with MaSh ***)
-
-fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
-
-fun write_file banner (xs, f) file =
-  let val path = Path.explode file in
-    case banner of SOME s => File.write path s | NONE => ();
-    xs |> chunk_list 500
-       |> List.app (File.append path o space_implode "" o map f)
-  end
-
-fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
-  let
-    val (temp_dir, serial) =
-      if overlord then (getenv "ISABELLE_HOME_USER", "")
-      else (getenv "ISABELLE_TMP", serial_string ())
-    val log_file = if overlord then temp_dir ^ "/mash_log" else "/dev/null"
-    val err_file = temp_dir ^ "/mash_err" ^ serial
-    val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
-    val cmd_file = temp_dir ^ "/mash_commands" ^ serial
-    val core =
-      "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
-      " --numberOfPredictions " ^ string_of_int max_suggs ^
-      (if save then " --saveModel" else "")
-    val command =
-      Path.implode (mash_script ()) ^ " --quiet --outputDir " ^
-      Path.implode (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
-      " >& " ^ err_file
-      |> tap (fn _ => trace_msg ctxt (fn () =>
-             case try File.read (Path.explode err_file) of
-               NONE => "Done"
-             | SOME "" => "Done"
-             | SOME s => "Error: " ^ elide_string 1000 s))
-    fun run_on () =
-      (Isabelle_System.bash command;
-       read_suggs (fn () =>
-           try File.read_lines (Path.explode sugg_file) |> these))
-    fun clean_up () =
-      if overlord then ()
-      else List.app wipe_out_file [err_file, sugg_file, cmd_file]
-  in
-    write_file (SOME "") ([], K "") sugg_file;
-    write_file (SOME "") write_cmds cmd_file;
-    trace_msg ctxt (fn () => "Running " ^ command);
-    with_cleanup clean_up run_on ()
-  end
-
-fun str_of_add (name, parents, feats, deps) =
-  "! " ^ escape_meta name ^ ": " ^ escape_metas parents ^ "; " ^
-  escape_metas feats ^ "; " ^ escape_metas deps ^ "\n"
-
-fun str_of_reprove (name, deps) =
-  "p " ^ escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
-
-fun str_of_query (parents, feats) =
-  "? " ^ escape_metas parents ^ "; " ^ escape_metas feats ^ "\n"
-
-fun mash_CLEAR ctxt =
-  let val path = mash_model_dir () in
-    trace_msg ctxt (K "MaSh CLEAR");
-    File.fold_dir (fn file => fn _ =>
-                      try File.rm (Path.append path (Path.basic file)))
-                  path NONE;
-    ()
-  end
-
-fun mash_ADD _ _ [] = ()
-  | mash_ADD ctxt overlord adds =
-    (trace_msg ctxt (fn () => "MaSh ADD " ^
-         elide_string 1000 (space_implode " " (map #1 adds)));
-     run_mash_tool ctxt overlord true 0 (adds, str_of_add) (K ()))
-
-fun mash_REPROVE _ _ [] = ()
-  | mash_REPROVE ctxt overlord reps =
-    (trace_msg ctxt (fn () => "MaSh REPROVE " ^
-         elide_string 1000 (space_implode " " (map #1 reps)));
-     run_mash_tool ctxt overlord true 0 (reps, str_of_reprove) (K ()))
-
-fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
-  (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
-   run_mash_tool ctxt overlord false max_suggs
-       ([query], str_of_query)
-       (fn suggs =>
-           case suggs () of
-             [] => []
-           | suggs => snd (extract_query (List.last suggs)))
-   handle List.Empty => [])
-
-
 (*** High-level communication with MaSh ***)
-
-(* FIXME: Here a "Graph.update_node" function would be useful *)
-fun update_fact_graph_node (name, kind) =
-  Graph.default_node (name, Isar_Proof)
-  #> kind <> Isar_Proof ? Graph.map_node name (K kind)
-
-fun try_graph ctxt when def f =
-  f ()
-  handle Graph.CYCLES (cycle :: _) =>
-         (trace_msg ctxt (fn () =>
-              "Cycle involving " ^ commas cycle ^ " when " ^ when); def)
-       | Graph.DUP name =>
-         (trace_msg ctxt (fn () =>
-              "Duplicate fact " ^ quote name ^ " when " ^ when); def)
-       | Graph.UNDEF name =>
-         (trace_msg ctxt (fn () =>
-              "Unknown fact " ^ quote name ^ " when " ^ when); def)
-       | exn =>
-         if Exn.is_interrupt exn then
-           reraise exn
-         else
-           (trace_msg ctxt (fn () =>
-                "Internal error when " ^ when ^ ":\n" ^
-                ML_Compiler.exn_message exn); def)
-
-fun graph_info G =
-  string_of_int (length (Graph.keys G)) ^ " node(s), " ^
-  string_of_int (fold (Integer.add o length o snd) (Graph.dest G) 0) ^
-  " edge(s), " ^
-  string_of_int (length (Graph.minimals G)) ^ " minimal, " ^
-  string_of_int (length (Graph.maximals G)) ^ " maximal"
-
-type mash_state = {fact_G : unit Graph.T, dirty : string list option}
-
-val empty_state = {fact_G = Graph.empty, dirty = SOME []}
-
-local
-
-val version = "*** MaSh 0.0 ***"
-
-fun load _ (state as (true, _)) = state
-  | load ctxt _ =
-    let val path = mash_state_file () in
-      (true,
-       case try File.read_lines path of
-         SOME (version' :: node_lines) =>
-         let
-           fun add_edge_to name parent =
-             Graph.default_node (parent, Isar_Proof)
-             #> Graph.add_edge (parent, name)
-           fun add_node line =
-             case extract_node line of
-               NONE => I (* shouldn't happen *)
-             | SOME (name, parents, kind) =>
-               update_fact_graph_node (name, kind)
-               #> fold (add_edge_to name) parents
-           val fact_G =
-             try_graph ctxt "loading state" Graph.empty (fn () =>
-                 Graph.empty |> version' = version ? fold add_node node_lines)
-         in
-           trace_msg ctxt (fn () =>
-               "Loaded fact graph (" ^ graph_info fact_G ^ ")");
-           {fact_G = fact_G, dirty = SOME []}
-         end
-       | _ => empty_state)
-    end
-
-fun save _ (state as {dirty = SOME [], ...}) = state
-  | save ctxt {fact_G, dirty} =
-    let
-      fun str_of_entry (name, parents, kind) =
-        str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
-        escape_metas parents ^ "\n"
-      fun append_entry (name, (kind, (parents, _))) =
-        cons (name, Graph.Keys.dest parents, kind)
-      val (banner, entries) =
-        case dirty of
-          SOME names =>
-          (NONE, fold (append_entry o Graph.get_entry fact_G) names [])
-        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry fact_G [])
-    in
-      write_file banner (entries, str_of_entry)
-                 (Path.implode (mash_state_file ()));
-      trace_msg ctxt (fn () =>
-          "Saved fact graph (" ^ graph_info fact_G ^
-          (case dirty of
-             SOME dirty =>
-             "; " ^ string_of_int (length dirty) ^ " dirty fact(s)"
-           | _ => "") ^  ")");
-      {fact_G = fact_G, dirty = SOME []}
-    end
-
-val global_state =
-  Synchronized.var "Sledgehammer_MaSh.global_state" (false, empty_state)
-
-in
-
-fun mash_map ctxt f =
-  Synchronized.change global_state (load ctxt ##> (f #> save ctxt))
-
-fun mash_peek ctxt f =
-  Synchronized.change_result global_state (load ctxt #> `snd #>> f)
-
-fun mash_get ctxt =
-  Synchronized.change_result global_state (load ctxt #> `snd)
-
-fun mash_unlearn ctxt =
-  Synchronized.change global_state (fn _ =>
-      (mash_CLEAR ctxt; (* also removes the state file *)
-       (true, empty_state)))
-
-end
-
-fun is_mash_enabled () = (getenv "MASH" = "yes")
-fun mash_can_suggest_facts ctxt = not (Graph.is_empty (#fact_G (mash_get ctxt)))
 
 fun num_keys keys = Graph.Keys.fold (K (Integer.add 1)) keys 0
 
@@ -944,6 +944,9 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
         |> Output.urgent_message;
         learn 0 false))
   end
+
+fun is_mash_enabled () = (getenv "MASH" = "yes")
+fun mash_can_suggest_facts ctxt = not (Graph.is_empty (#fact_G (mash_get ctxt)))
 
 (* The threshold should be large enough so that MaSh doesn't kick in for Auto
    Sledgehammer and Try. *)
