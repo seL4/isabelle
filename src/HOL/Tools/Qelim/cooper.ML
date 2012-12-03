@@ -312,11 +312,14 @@ fun linearize_conv ctxt vs ct = case term_of ct of
      then Conv.fconv_rule (Conv.arg_conv (Simplifier.rewrite presburger_ss)) th
      else
      let
-      val dth =
-      ((if dest_number (term_of d') < 0 then
-          Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (lint_conv ctxt vs)))
-                           (Thm.transitive th (inst' [d',t'] dvd_uminus))
-        else th) handle TERM _ => th)
+       val dth =
+         case perhaps_number (term_of d') of
+           SOME d => if d < 0 then
+             (Conv.fconv_rule (Conv.arg_conv (Conv.arg1_conv (lint_conv ctxt vs)))
+                              (Thm.transitive th (inst' [d',t'] dvd_uminus))
+              handle TERM _ => th)
+            else th
+         | NONE => raise COOPER "linearize_conv: not linear"
       val d'' = Thm.rhs_of dth |> Thm.dest_arg1
      in
       case tt' of
