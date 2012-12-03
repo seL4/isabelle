@@ -1618,23 +1618,14 @@ proof (rule filterlim_cong)
     by (auto simp: eventually_within at_def elim: eventually_elim1)
 qed simp_all
 
-lemma at_eq_sup_left_right: "at (x::real) = sup (at_left x) (at_right x)"
-  by (auto simp: eventually_within at_def filter_eq_iff eventually_sup 
-           elim: eventually_elim2 eventually_elim1)
+lemma DERIV_shift:
+  "(DERIV f (x + z) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (x + z)) x :> y)"
+  by (simp add: DERIV_iff field_simps)
 
-lemma filtermap_sup: "filtermap f (sup F1 F2) = sup (filtermap f F1) (filtermap f F2)"
-  by (auto simp: filter_eq_iff eventually_filtermap eventually_sup)
-
-lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambda>x. f (g x)) F1 F2"
-  unfolding filterlim_def filtermap_filtermap ..
-
-lemma filterlim_sup:
-  "filterlim f F F1 \<Longrightarrow> filterlim f F F2 \<Longrightarrow> filterlim f F (sup F1 F2)"
-  unfolding filterlim_def filtermap_sup by auto
-
-lemma filterlim_split_at_real:
-  "filterlim f F (at_left x) \<Longrightarrow> filterlim f F (at_right x) \<Longrightarrow> filterlim f F (at (x::real))"
-  by (subst at_eq_sup_left_right) (rule filterlim_sup)
+lemma DERIV_mirror:
+  "(DERIV f (- x) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (- x::real) :: real) x :> - y)"
+  by (simp add: deriv_def filterlim_at_split filterlim_at_left_to_right
+                tendsto_minus_cancel_left field_simps conj_commute)
 
 lemma lhopital_right_0:
   fixes f0 g0 :: "real \<Rightarrow> real"
@@ -1733,6 +1724,39 @@ proof -
   finally show ?thesis .
 qed
 
+lemma lhopital_right:
+  "((f::real \<Rightarrow> real) ---> 0) (at_right x) \<Longrightarrow> (g ---> 0) (at_right x) \<Longrightarrow>
+    eventually (\<lambda>x. g x \<noteq> 0) (at_right x) \<Longrightarrow>
+    eventually (\<lambda>x. g' x \<noteq> 0) (at_right x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV f x :> f' x) (at_right x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV g x :> g' x) (at_right x) \<Longrightarrow>
+    ((\<lambda> x. (f' x / g' x)) ---> y) (at_right x) \<Longrightarrow>
+  ((\<lambda> x. f x / g x) ---> y) (at_right x)"
+  unfolding eventually_at_right_to_0[of _ x] filterlim_at_right_to_0[of _ _ x] DERIV_shift
+  by (rule lhopital_right_0)
+
+lemma lhopital_left:
+  "((f::real \<Rightarrow> real) ---> 0) (at_left x) \<Longrightarrow> (g ---> 0) (at_left x) \<Longrightarrow>
+    eventually (\<lambda>x. g x \<noteq> 0) (at_left x) \<Longrightarrow>
+    eventually (\<lambda>x. g' x \<noteq> 0) (at_left x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV f x :> f' x) (at_left x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV g x :> g' x) (at_left x) \<Longrightarrow>
+    ((\<lambda> x. (f' x / g' x)) ---> y) (at_left x) \<Longrightarrow>
+  ((\<lambda> x. f x / g x) ---> y) (at_left x)"
+  unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
+  by (rule lhopital_right[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
+
+lemma lhopital:
+  "((f::real \<Rightarrow> real) ---> 0) (at x) \<Longrightarrow> (g ---> 0) (at x) \<Longrightarrow>
+    eventually (\<lambda>x. g x \<noteq> 0) (at x) \<Longrightarrow>
+    eventually (\<lambda>x. g' x \<noteq> 0) (at x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV f x :> f' x) (at x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV g x :> g' x) (at x) \<Longrightarrow>
+    ((\<lambda> x. (f' x / g' x)) ---> y) (at x) \<Longrightarrow>
+  ((\<lambda> x. f x / g x) ---> y) (at x)"
+  unfolding eventually_at_split filterlim_at_split
+  by (auto intro!: lhopital_right[of f x g g' f'] lhopital_left[of f x g g' f'])
+
 lemma lhopital_right_0_at_top:
   fixes f g :: "real \<Rightarrow> real"
   assumes g_0: "LIM x at_right 0. g x :> at_top"
@@ -1810,5 +1834,35 @@ proof safe
       by (simp add: dist_real_def)
   qed
 qed
+
+lemma lhopital_right_at_top:
+  "LIM x at_right x. (g::real \<Rightarrow> real) x :> at_top \<Longrightarrow>
+    eventually (\<lambda>x. g' x \<noteq> 0) (at_right x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV f x :> f' x) (at_right x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV g x :> g' x) (at_right x) \<Longrightarrow>
+    ((\<lambda> x. (f' x / g' x)) ---> y) (at_right x) \<Longrightarrow>
+    ((\<lambda> x. f x / g x) ---> y) (at_right x)"
+  unfolding eventually_at_right_to_0[of _ x] filterlim_at_right_to_0[of _ _ x] DERIV_shift
+  by (rule lhopital_right_0_at_top)
+
+lemma lhopital_left_at_top:
+  "LIM x at_left x. (g::real \<Rightarrow> real) x :> at_top \<Longrightarrow>
+    eventually (\<lambda>x. g' x \<noteq> 0) (at_left x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV f x :> f' x) (at_left x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV g x :> g' x) (at_left x) \<Longrightarrow>
+    ((\<lambda> x. (f' x / g' x)) ---> y) (at_left x) \<Longrightarrow>
+    ((\<lambda> x. f x / g x) ---> y) (at_left x)"
+  unfolding eventually_at_left_to_right filterlim_at_left_to_right DERIV_mirror
+  by (rule lhopital_right_at_top[where f'="\<lambda>x. - f' (- x)"]) (auto simp: DERIV_mirror)
+
+lemma lhopital_at_top:
+  "LIM x at x. (g::real \<Rightarrow> real) x :> at_top \<Longrightarrow>
+    eventually (\<lambda>x. g' x \<noteq> 0) (at x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV f x :> f' x) (at x) \<Longrightarrow>
+    eventually (\<lambda>x. DERIV g x :> g' x) (at x) \<Longrightarrow>
+    ((\<lambda> x. (f' x / g' x)) ---> y) (at x) \<Longrightarrow>
+    ((\<lambda> x. f x / g x) ---> y) (at x)"
+  unfolding eventually_at_split filterlim_at_split
+  by (auto intro!: lhopital_right_at_top[of g x g' f f'] lhopital_left_at_top[of g x g' f f'])
 
 end

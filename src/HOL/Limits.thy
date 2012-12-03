@@ -280,6 +280,9 @@ lemma filtermap_mono: "F \<le> F' \<Longrightarrow> filtermap f F \<le> filterma
 lemma filtermap_bot [simp]: "filtermap f bot = bot"
   by (simp add: filter_eq_iff eventually_filtermap)
 
+lemma filtermap_sup: "filtermap f (sup F1 F2) = sup (filtermap f F1) (filtermap f F2)"
+  by (auto simp: filter_eq_iff eventually_filtermap eventually_sup)
+
 subsection {* Order filters *}
 
 definition at_top :: "('a::order) filter"
@@ -703,6 +706,13 @@ proof safe
     by (auto simp: le_filter_def eventually_filtermap eventually_within elim!: allE[of _ "\<lambda>x. x \<in> S"])
 qed (auto intro: within_le order_trans simp: le_within_iff eventually_filtermap)
 
+lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambda>x. f (g x)) F1 F2"
+  unfolding filterlim_def filtermap_filtermap ..
+
+lemma filterlim_sup:
+  "filterlim f F F1 \<Longrightarrow> filterlim f F F2 \<Longrightarrow> filterlim f F (sup F1 F2)"
+  unfolding filterlim_def filtermap_sup by auto
+
 abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
   "(f ---> l) F \<equiv> filterlim f (nhds l) F"
@@ -914,6 +924,11 @@ lemma tendsto_minus_cancel:
   fixes a :: "'a::real_normed_vector"
   shows "((\<lambda>x. - f x) ---> - a) F \<Longrightarrow> (f ---> a) F"
   by (drule tendsto_minus, simp)
+
+lemma tendsto_minus_cancel_left:
+    "(f ---> - (y::_::real_normed_vector)) F \<longleftrightarrow> ((\<lambda>x. - f x) ---> y) F"
+  using tendsto_minus_cancel[of f "- y" F]  tendsto_minus[of f "- y" F]
+  by auto
 
 lemma tendsto_diff [tendsto_intros]:
   fixes a b :: "'a::real_normed_vector"
@@ -1366,6 +1381,80 @@ proof safe
   ultimately show "eventually (\<lambda>x. Z < f x + g x) F"
     by eventually_elim simp
 qed
+
+subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
+
+text {*
+
+This lemmas are useful for conversion between @{term "at x"} to @{term "at_left x"} and
+@{term "at_right x"} and also @{term "at_right 0"}.
+
+*}
+
+lemma at_eq_sup_left_right: "at (x::real) = sup (at_left x) (at_right x)"
+  by (auto simp: eventually_within at_def filter_eq_iff eventually_sup 
+           elim: eventually_elim2 eventually_elim1)
+
+lemma filterlim_split_at_real:
+  "filterlim f F (at_left x) \<Longrightarrow> filterlim f F (at_right x) \<Longrightarrow> filterlim f F (at (x::real))"
+  by (subst at_eq_sup_left_right) (rule filterlim_sup)
+
+lemma filtermap_nhds_shift: "filtermap (\<lambda>x. x - d) (nhds a) = nhds (a - d::real)"
+  unfolding filter_eq_iff eventually_filtermap eventually_nhds_metric
+  by (intro allI ex_cong) (auto simp: dist_real_def field_simps)
+
+lemma filtermap_nhds_minus: "filtermap (\<lambda>x. - x) (nhds a) = nhds (- a::real)"
+  unfolding filter_eq_iff eventually_filtermap eventually_nhds_metric
+  apply (intro allI ex_cong)
+  apply (auto simp: dist_real_def field_simps)
+  apply (erule_tac x="-x" in allE)
+  apply simp
+  done
+
+lemma filtermap_at_shift: "filtermap (\<lambda>x. x - d) (at a) = at (a - d::real)"
+  unfolding at_def filtermap_nhds_shift[symmetric]
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
+
+lemma filtermap_at_right_shift: "filtermap (\<lambda>x. x - d) (at_right a) = at_right (a - d::real)"
+  unfolding filtermap_at_shift[symmetric]
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
+
+lemma at_right_to_0: "at_right (a::real) = filtermap (\<lambda>x. x + a) (at_right 0)"
+  using filtermap_at_right_shift[of "-a" 0] by simp
+
+lemma filterlim_at_right_to_0:
+  "filterlim f F (at_right (a::real)) \<longleftrightarrow> filterlim (\<lambda>x. f (x + a)) F (at_right 0)"
+  unfolding filterlim_def filtermap_filtermap at_right_to_0[of a] ..
+
+lemma eventually_at_right_to_0:
+  "eventually P (at_right (a::real)) \<longleftrightarrow> eventually (\<lambda>x. P (x + a)) (at_right 0)"
+  unfolding at_right_to_0[of a] by (simp add: eventually_filtermap)
+
+lemma filtermap_at_minus: "filtermap (\<lambda>x. - x) (at a) = at (- a::real)"
+  unfolding at_def filtermap_nhds_minus[symmetric]
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
+
+lemma at_left_minus: "at_left (a::real) = filtermap (\<lambda>x. - x) (at_right (- a))"
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within filtermap_at_minus[symmetric])
+
+lemma at_right_minus: "at_right (a::real) = filtermap (\<lambda>x. - x) (at_left (- a))"
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within filtermap_at_minus[symmetric])
+
+lemma filterlim_at_left_to_right:
+  "filterlim f F (at_left (a::real)) \<longleftrightarrow> filterlim (\<lambda>x. f (- x)) F (at_right (-a))"
+  unfolding filterlim_def filtermap_filtermap at_left_minus[of a] ..
+
+lemma eventually_at_left_to_right:
+  "eventually P (at_left (a::real)) \<longleftrightarrow> eventually (\<lambda>x. P (- x)) (at_right (-a))"
+  unfolding at_left_minus[of a] by (simp add: eventually_filtermap)
+
+lemma filterlim_at_split:
+  "filterlim f F (at (x::real)) \<longleftrightarrow> filterlim f F (at_left x) \<and> filterlim f F (at_right x)"
+  by (subst at_eq_sup_left_right) (simp add: filterlim_def filtermap_sup)
+
+lemma eventually_at_split:
+  "eventually P (at (x::real)) \<longleftrightarrow> eventually P (at_left x) \<and> eventually P (at_right x)"
+  by (subst at_eq_sup_left_right) (simp add: eventually_sup)
 
 end
 
