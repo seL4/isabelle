@@ -101,7 +101,6 @@ val learn_atpN = "learn_atp"
 val relearn_isarN = "relearn_isar"
 val relearn_atpN = "relearn_atp"
 
-fun mash_script () = Path.explode "$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py"
 fun mash_model_dir () =
   Path.explode "$ISABELLE_HOME_USER/mash"
   |> tap Isabelle_System.mkdir
@@ -113,12 +112,10 @@ fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
 fun wipe_out_file file = (try (File.rm o Path.explode) file; ())
 
-fun write_file banner (xs, f) file =
-  let val path = Path.explode file in
-    case banner of SOME s => File.write path s | NONE => ();
-    xs |> chunk_list 500
-       |> List.app (File.append path o space_implode "" o map f)
-  end
+fun write_file banner (xs, f) path =
+  (case banner of SOME s => File.write path s | NONE => ();
+   xs |> chunk_list 500
+      |> List.app (File.append path o space_implode "" o map f))
   handle IO.Io _ => ()
 
 fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
@@ -129,14 +126,16 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val log_file = if overlord then temp_dir ^ "/mash_log" else "/dev/null"
     val err_file = temp_dir ^ "/mash_err" ^ serial
     val sugg_file = temp_dir ^ "/mash_suggs" ^ serial
+    val sugg_path = Path.explode sugg_file
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
+    val cmd_path = Path.explode cmd_file
     val core =
       "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
       " --numberOfPredictions " ^ string_of_int max_suggs ^
       (if save then " --saveModel" else "")
     val command =
-      Path.implode (mash_script ()) ^ " --quiet --outputDir " ^
-      Path.implode (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
+      "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet --outputDir " ^
+      File.shell_path (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
       " >& " ^ err_file
       |> tap (fn _ => trace_msg ctxt (fn () =>
              case try File.read (Path.explode err_file) of
@@ -145,14 +144,13 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
              | SOME s => "Error: " ^ elide_string 1000 s))
     fun run_on () =
       (Isabelle_System.bash command;
-       read_suggs (fn () =>
-           try File.read_lines (Path.explode sugg_file) |> these))
+       read_suggs (fn () => try File.read_lines sugg_path |> these))
     fun clean_up () =
       if overlord then ()
       else List.app wipe_out_file [err_file, sugg_file, cmd_file]
   in
-    write_file (SOME "") ([], K "") sugg_file;
-    write_file (SOME "") write_cmds cmd_file;
+    write_file (SOME "") ([], K "") sugg_path;
+    write_file (SOME "") write_cmds cmd_path;
     trace_msg ctxt (fn () => "Running " ^ command);
     with_cleanup clean_up run_on ()
   end
@@ -336,8 +334,7 @@ fun save _ (state as {dirty = SOME [], ...}) = state
           (NONE, fold (append_entry o Graph.get_entry fact_G) names [])
         | NONE => (SOME (version ^ "\n"), Graph.fold append_entry fact_G [])
     in
-      write_file banner (entries, str_of_entry)
-                 (Path.implode (mash_state_file ()));
+      write_file banner (entries, str_of_entry) (mash_state_file ());
       trace_msg ctxt (fn () =>
           "Saved fact graph (" ^ graph_info fact_G ^
           (case dirty of
