@@ -437,10 +437,11 @@ val satallax = (satallaxN, fn () => satallax_config)
 (* SPASS *)
 
 val spass_H1SOS = "-Heuristic=1 -SOS"
+val spass_H2 = "-Heuristic=2"
 val spass_H2LR0LT0 = "-Heuristic=2 -LR=0 -LT=0"
-val spass_H2SOS = "-Heuristic=2 -SOS"
 val spass_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
 val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
+val spass_H2SOS = "-Heuristic=2 -SOS"
 
 (* FIXME: Make "SPASS_NEW_HOME" legacy. *)
 val spass_config : atp_config =
@@ -469,7 +470,7 @@ val spass_config : atp_config =
       (0.1000, ((1000, DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
       (0.1000, ((150, DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
       (0.1000, ((300, DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
-      (0.1000, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), ""))],
+      (0.1000, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
