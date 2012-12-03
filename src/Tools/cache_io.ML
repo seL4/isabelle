@@ -16,7 +16,7 @@ sig
 
   (*cache*)
   type cache
-  val make: Path.T -> cache
+  val unsynchronized_init: Path.T -> cache
   val cache_path_of: cache -> Path.T
   val lookup: cache -> string -> result option * string
   val run_and_cache: cache -> string -> (Path.T -> Path.T -> string) -> string -> result
@@ -57,7 +57,7 @@ with
 
 fun cache_path_of (Cache {path, ...}) = path
 
-fun make cache_path =
+fun unsynchronized_init cache_path =
   let
     val table =
       if File.exists cache_path then
@@ -84,23 +84,22 @@ fun make cache_path =
       else (1, Symtab.empty)
   in Cache {path = cache_path, table = Synchronized.var "Cache_IO" table} end
 
-fun load_cached_result cache_path (p, len1, len2) =
-  let
-    fun load line (i, xsp) =
-      if i < p then (i+1, xsp)
-      else if i < p + len1 then (i+1, apfst (cons line) xsp)
-      else if i < p + len2 then (i+1, apsnd (cons line) xsp)
-      else (i, xsp)
-    val (out, err) =
-      pairself rev (snd (File.fold_lines load cache_path (1, ([], []))))
-  in {output = err, redirected_output = out, return_code = 0} end
-
 fun lookup (Cache {path = cache_path, table}) str =
   let val key = SHA1.rep (SHA1.digest str)
   in
-    (case Symtab.lookup (snd (Synchronized.value table)) key of
-      NONE => (NONE, key)
-    | SOME pos => (SOME (load_cached_result cache_path pos), key))
+    Synchronized.change_result table (fn tab =>
+      (case Symtab.lookup (snd tab) key of
+        NONE => ((NONE, key), tab)
+      | SOME (p, len1, len2) =>
+          let
+            fun load line (i, xsp) =
+              if i < p then (i+1, xsp)
+              else if i < p + len1 then (i+1, apfst (cons line) xsp)
+              else if i < p + len2 then (i+1, apsnd (cons line) xsp)
+              else (i, xsp)
+            val (out, err) =
+              pairself rev (snd (File.fold_lines load cache_path (1, ([], []))))
+          in ((SOME {output = err, redirected_output = out, return_code = 0}, key), tab) end))
   end
 
 fun run_and_cache (Cache {path = cache_path, table}) key make_cmd str =
