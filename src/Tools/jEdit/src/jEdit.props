@@ -214,6 +214,7 @@ sidekick.complete-instant.toggle=false
 sidekick.complete-popup.accept-characters=\\n\\t
 sidekick.complete-popup.insert-characters=
 sidekick.splitter.location=721
+systrayicon=false
 tip.show=false
 twoStageSave=false
 vfs.browser.dock-position=floating

@@ -256,6 +256,8 @@ solver.  An empty string disables caching certificates.
 The filename should be given as an explicit path.  It is good
 practice to use the name of the current theory (with ending
 @{text ".certs"} instead of @{text ".thy"}) as the certificates file.
+Certificate files should be used at most once in a certain theory context,
+to avoid race conditions with other concurrent accesses.
 *}
 
 declare [[ smt_certificates = "" ]]

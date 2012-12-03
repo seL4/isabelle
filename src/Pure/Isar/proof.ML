@@ -1059,7 +1059,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val testing = Unsynchronized.ref false;
     val rule = Unsynchronized.ref (NONE: thm option);
     fun fail_msg ctxt =
-      "Local statement will fail to refine any pending goal" ::
+      "Local statement fails to refine any pending goal" ::
       (case ! rule of NONE => [] | SOME th => [Proof_Display.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
@@ -1072,7 +1072,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
         writeln (Markup.markup Markup.state (Proof_Display.string_of_rule ctxt "Successful" th))
       else ();
     val test_proof =
-      try (local_skip_proof true)
+      local_skip_proof true
       |> Unsynchronized.setmp testing true
       |> Exn.interruptible_capture;
 
@@ -1085,8 +1085,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
     |> int ? (fn goal_state =>
       (case test_proof (map_context (Context_Position.set_visible false) goal_state) of
-        Exn.Res (SOME _) => goal_state
-      | Exn.Res NONE => error (fail_msg (context_of goal_state))
+        Exn.Res _ => goal_state
       | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
   end;
 
