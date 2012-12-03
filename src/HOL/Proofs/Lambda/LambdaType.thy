@@ -1,11 +1,11 @@
-(*  Title:      HOL/Proofs/Lambda/Type.thy
+(*  Title:      HOL/Proofs/Lambda/LambdaType.thy
     Author:     Stefan Berghofer
     Copyright   2000 TU Muenchen
 *)
 
 header {* Simply-typed lambda terms *}
 
-theory Type imports ListApplication begin
+theory LambdaType imports ListApplication begin
 
 
 subsection {* Environments *}
