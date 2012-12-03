@@ -1627,35 +1627,18 @@ proof -
     and g: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV g x :> (g' x)"
     unfolding eventually_within eventually_at by (auto simp: dist_real_def)
 
-  { fix x assume x: "0 \<le> x" "x < a"
-    from `0 \<le> x` have "isCont f x"
-      unfolding le_less
-    proof
-      assume "0 = x" with `isCont f 0` show "isCont f x" by simp
-    next
-      assume "0 < x" with f x show ?thesis by (auto intro!: DERIV_isCont)
-    qed }
-  note isCont_f = this
-
-  { fix x assume x: "0 \<le> x" "x < a"
-    from `0 \<le> x` have "isCont g x"
-      unfolding le_less
-    proof
-      assume "0 = x" with `isCont g 0` show "isCont g x" by simp
-    next
-      assume "0 < x" with g x show ?thesis by (auto intro!: DERIV_isCont)
-    qed }
-  note isCont_g = this
-
   have "\<exists>\<zeta>. \<forall>x\<in>{0 <..< a}. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)"
   proof (rule bchoice, rule)
     fix x assume "x \<in> {0 <..< a}"
     then have x[arith]: "0 < x" "x < a" by auto
     with g'_neq_0 g_neq_0 `g 0 = 0` have g': "\<And>x. 0 < x \<Longrightarrow> x < a  \<Longrightarrow> 0 \<noteq> g' x" "g 0 \<noteq> g x"
       by auto
-
-    have "\<exists>c. 0 < c \<and> c < x \<and> (f x - f 0) * g' c = (g x - g 0) * f' c"
-      using isCont_f isCont_g f g `x < a` by (intro GMVT') auto
+    have "\<And>x. 0 \<le> x \<Longrightarrow> x < a \<Longrightarrow> isCont f x"
+      using `isCont f 0` f by (auto intro: DERIV_isCont simp: le_less)
+    moreover have "\<And>x. 0 \<le> x \<Longrightarrow> x < a \<Longrightarrow> isCont g x"
+      using `isCont g 0` g by (auto intro: DERIV_isCont simp: le_less)
+    ultimately have "\<exists>c. 0 < c \<and> c < x \<and> (f x - f 0) * g' c = (g x - g 0) * f' c"
+      using f g `x < a` by (intro GMVT') auto
     then guess c ..
     moreover
     with g'(1)[of c] g'(2) have "(f x - f 0)  / (g x - g 0) = f' c / g' c"
@@ -1679,10 +1662,8 @@ proof -
   from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) ---> x) (at_right 0)"
     by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
   ultimately show "((\<lambda>t. f t / g t) ---> x) (at_right 0)"
-    apply (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
-    apply (erule_tac eventually_elim1)
-    apply simp_all
-    done
+    by (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
+       (auto elim: eventually_elim1)
 qed
 
 lemma lhopital_right_0_at_top:
@@ -1709,18 +1690,13 @@ proof safe
     unfolding eventually_within_le by (auto simp: dist_real_def)
 
   from Df have
-    "eventually (\<lambda>t. t < a) (at_right 0)"
-    "eventually (\<lambda>t::real. 0 < t) (at_right 0)"
+    "eventually (\<lambda>t. t < a) (at_right 0)" "eventually (\<lambda>t::real. 0 < t) (at_right 0)"
     unfolding eventually_within eventually_at by (auto intro!: exI[of _ a] simp: dist_real_def)
-  moreover
-
-  have "eventually (\<lambda>t. 0 < g t) (at_right 0)"
-    using g_0[unfolded filterlim_at_top, rule_format, of "1"] by eventually_elim auto
 
   moreover
+  have "eventually (\<lambda>t. 0 < g t) (at_right 0)" "eventually (\<lambda>t. g a < g t) (at_right 0)"
+    using g_0 by (auto elim: eventually_elim1 simp: filterlim_at_top)
 
-  have "eventually (\<lambda>t. g a < g t) (at_right 0)"
-    using g_0[unfolded filterlim_at_top, rule_format, of "g a + 1"] by eventually_elim auto
   moreover
   have inv_g: "((\<lambda>x. inverse (g x)) ---> 0) (at_right 0)"
     using tendsto_inverse_0 filterlim_mono[OF g_0 at_top_le_at_infinity order_refl]
