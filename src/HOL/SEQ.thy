@@ -171,6 +171,9 @@ next
   thus ?case by arith
 qed
 
+lemma filterlim_subseq: "subseq f \<Longrightarrow> filterlim f sequentially sequentially"
+  unfolding filterlim_iff eventually_sequentially by (metis le_trans seq_suble)
+
 lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r \<circ> s)"
   unfolding subseq_def by simp
 
@@ -357,36 +360,23 @@ lemma LIMSEQ_unique:
 
 lemma increasing_LIMSEQ:
   fixes f :: "nat \<Rightarrow> real"
-  assumes inc: "!!n. f n \<le> f (Suc n)"
-      and bdd: "!!n. f n \<le> l"
-      and en: "!!e. 0 < e \<Longrightarrow> \<exists>n. l \<le> f n + e"
+  assumes inc: "\<And>n. f n \<le> f (Suc n)"
+      and bdd: "\<And>n. f n \<le> l"
+      and en: "\<And>e. 0 < e \<Longrightarrow> \<exists>n. l \<le> f n + e"
   shows "f ----> l"
-proof (auto simp add: LIMSEQ_def)
-  fix e :: real
-  assume e: "0 < e"
-  then obtain N where "l \<le> f N + e/2"
-    by (metis half_gt_zero e en that)
-  hence N: "l < f N + e" using e
-    by simp
-  { fix k
-    have [simp]: "!!n. \<bar>f n - l\<bar> = l - f n"
-      by (simp add: bdd) 
-    have "\<bar>f (N+k) - l\<bar> < e"
-    proof (induct k)
-      case 0 show ?case using N
-        by simp   
-    next
-      case (Suc k) thus ?case using N inc [of "N+k"]
-        by simp
-    qed 
-  } note 1 = this
-  { fix n
-    have "N \<le> n \<Longrightarrow> \<bar>f n - l\<bar> < e" using 1 [of "n-N"]
-      by simp 
-  } note [intro] = this
-  show " \<exists>no. \<forall>n\<ge>no. dist (f n) l < e"
-    by (auto simp add: dist_real_def) 
-  qed
+  unfolding LIMSEQ_def
+proof safe
+  fix r :: real assume "0 < r"
+  with bdd en[of "r / 2"] obtain n where n: "dist (f n) l \<le> r / 2"
+    by (auto simp add: field_simps dist_real_def)
+  { fix N assume "n \<le> N"
+    then have "dist (f N) l \<le> dist (f n) l"
+      using incseq_SucI[of f] inc bdd by (auto dest!: incseqD simp: dist_real_def)
+    then have "dist (f N) l < r"
+      using `0 < r` n by simp }
+  with `0 < r` show "\<exists>no. \<forall>n\<ge>no. dist (f n) l < r"
+    by (auto simp add: LIMSEQ_def field_simps intro!: exI[of _ n])
+qed
 
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"
@@ -414,24 +404,16 @@ text{*An unbounded sequence's inverse tends to 0*}
 
 lemma LIMSEQ_inverse_zero:
   "\<forall>r::real. \<exists>N. \<forall>n\<ge>N. r < X n \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> 0"
-apply (rule LIMSEQ_I)
-apply (drule_tac x="inverse r" in spec, safe)
-apply (rule_tac x="N" in exI, safe)
-apply (drule_tac x="n" in spec, safe)
-apply (frule positive_imp_inverse_positive)
-apply (frule (1) less_imp_inverse_less)
-apply (subgoal_tac "0 < X n", simp)
-apply (erule (1) order_less_trans)
-done
+  apply (rule filterlim_compose[OF tendsto_inverse_0])
+  apply (simp add: filterlim_at_infinity[OF order_refl] eventually_sequentially)
+  apply (metis abs_le_D1 linorder_le_cases linorder_not_le)
+  done
 
 text{*The sequence @{term "1/n"} tends to 0 as @{term n} tends to infinity*}
 
 lemma LIMSEQ_inverse_real_of_nat: "(%n. inverse(real(Suc n))) ----> 0"
-apply (rule LIMSEQ_inverse_zero, safe)
-apply (cut_tac x = r in reals_Archimedean2)
-apply (safe, rule_tac x = n in exI)
-apply (auto simp add: real_of_nat_Suc)
-done
+  by (metis filterlim_compose tendsto_inverse_0 filterlim_mono order_refl filterlim_Suc
+            filterlim_compose[OF filterlim_real_sequentially] at_top_le_at_infinity)
 
 text{*The sequence @{term "r + 1/n"} tends to @{term r} as @{term n} tends to
 infinity is now easily proved*}
@@ -442,41 +424,25 @@ lemma LIMSEQ_inverse_real_of_nat_add:
 
 lemma LIMSEQ_inverse_real_of_nat_add_minus:
      "(%n. r + -inverse(real(Suc n))) ----> r"
-  using tendsto_add [OF tendsto_const
-    tendsto_minus [OF LIMSEQ_inverse_real_of_nat]] by auto
+  using tendsto_add [OF tendsto_const tendsto_minus [OF LIMSEQ_inverse_real_of_nat]]
+  by auto
 
 lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
      "(%n. r*( 1 + -inverse(real(Suc n)))) ----> r"
-  using tendsto_mult [OF tendsto_const
-    LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
+  using tendsto_mult [OF tendsto_const LIMSEQ_inverse_real_of_nat_add_minus [of 1]]
   by auto
 
 lemma LIMSEQ_le_const:
   "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. a \<le> X n\<rbrakk> \<Longrightarrow> a \<le> x"
-apply (rule ccontr, simp only: linorder_not_le)
-apply (drule_tac r="a - x" in LIMSEQ_D, simp)
-apply clarsimp
-apply (drule_tac x="max N no" in spec, drule mp, rule le_maxI1)
-apply (drule_tac x="max N no" in spec, drule mp, rule le_maxI2)
-apply simp
-done
-
-lemma LIMSEQ_le_const2:
-  "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
-apply (subgoal_tac "- a \<le> - x", simp)
-apply (rule LIMSEQ_le_const)
-apply (erule tendsto_minus)
-apply simp
-done
+  using tendsto_le_const[of sequentially X x a] by (simp add: eventually_sequentially)
 
 lemma LIMSEQ_le:
   "\<lbrakk>X ----> x; Y ----> y; \<exists>N. \<forall>n\<ge>N. X n \<le> Y n\<rbrakk> \<Longrightarrow> x \<le> (y::real)"
-apply (subgoal_tac "0 \<le> y - x", simp)
-apply (rule LIMSEQ_le_const)
-apply (erule (1) tendsto_diff)
-apply (simp add: le_diff_eq)
-done
+  using tendsto_le[of sequentially Y y X x] by (simp add: eventually_sequentially)
 
+lemma LIMSEQ_le_const2:
+  "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
+  by (rule LIMSEQ_le[of X x "\<lambda>n. a"]) (auto simp: tendsto_const)
 
 subsection {* Convergence *}
 
@@ -531,88 +497,17 @@ apply (auto dest: tendsto_minus)
 apply (drule tendsto_minus, auto)
 done
 
-lemma lim_le:
-  fixes x :: real
-  assumes f: "convergent f" and fn_le: "!!n. f n \<le> x"
-  shows "lim f \<le> x"
-proof (rule classical)
-  assume "\<not> lim f \<le> x"
-  hence 0: "0 < lim f - x" by arith
-  have 1: "f----> lim f"
-    by (metis convergent_LIMSEQ_iff f) 
-  thus ?thesis
-    proof (simp add: LIMSEQ_iff)
-      assume "\<forall>r>0. \<exists>no. \<forall>n\<ge>no. \<bar>f n - lim f\<bar> < r"
-      hence "\<exists>no. \<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
-        by (metis 0)
-      from this obtain no where "\<forall>n\<ge>no. \<bar>f n - lim f\<bar> < lim f - x"
-        by blast
-      thus "lim f \<le> x"
-        by (metis 1 LIMSEQ_le_const2 fn_le)
-    qed
-qed
+lemma lim_le: "convergent f \<Longrightarrow> (\<And>n. f n \<le> (x::real)) \<Longrightarrow> lim f \<le> x"
+  using LIMSEQ_le_const2[of f "lim f" x] by (simp add: convergent_LIMSEQ_iff)
 
 lemma monoseq_le:
-  fixes a :: "nat \<Rightarrow> real"
-  assumes "monoseq a" and "a ----> x"
-  shows "((\<forall> n. a n \<le> x) \<and> (\<forall>m. \<forall>n\<ge>m. a m \<le> a n)) \<or> 
-         ((\<forall> n. x \<le> a n) \<and> (\<forall>m. \<forall>n\<ge>m. a n \<le> a m))"
-proof -
-  { fix x n fix a :: "nat \<Rightarrow> real"
-    assume "a ----> x" and "\<forall> m. \<forall> n \<ge> m. a m \<le> a n"
-    hence monotone: "\<And> m n. m \<le> n \<Longrightarrow> a m \<le> a n" by auto
-    have "a n \<le> x"
-    proof (rule ccontr)
-      assume "\<not> a n \<le> x" hence "x < a n" by auto
-      hence "0 < a n - x" by auto
-      from `a ----> x`[THEN LIMSEQ_D, OF this]
-      obtain no where "\<And>n'. no \<le> n' \<Longrightarrow> norm (a n' - x) < a n - x" by blast
-      hence "norm (a (max no n) - x) < a n - x" by auto
-      moreover
-      { fix n' have "n \<le> n' \<Longrightarrow> x < a n'" using monotone[where m=n and n=n'] and `x < a n` by auto }
-      hence "x < a (max no n)" by auto
-      ultimately
-      have "a (max no n) < a n" by auto
-      with monotone[where m=n and n="max no n"]
-      show False by (auto simp:max_def split:split_if_asm)
-    qed
-  } note top_down = this
-  { fix x n m fix a :: "nat \<Rightarrow> real"
-    assume "a ----> x" and "monoseq a" and "a m < x"
-    have "a n \<le> x \<and> (\<forall> m. \<forall> n \<ge> m. a m \<le> a n)"
-    proof (cases "\<forall> m. \<forall> n \<ge> m. a m \<le> a n")
-      case True with top_down and `a ----> x` show ?thesis by auto
-    next
-      case False with `monoseq a`[unfolded monoseq_def] have "\<forall> m. \<forall> n \<ge> m. - a m \<le> - a n" by auto
-      hence "- a m \<le> - x" using top_down[OF tendsto_minus[OF `a ----> x`]] by blast
-      hence False using `a m < x` by auto
-      thus ?thesis ..
-    qed
-  } note when_decided = this
-
-  show ?thesis
-  proof (cases "\<exists> m. a m \<noteq> x")
-    case True then obtain m where "a m \<noteq> x" by auto
-    show ?thesis
-    proof (cases "a m < x")
-      case True with when_decided[OF `a ----> x` `monoseq a`, where m2=m]
-      show ?thesis by blast
-    next
-      case False hence "- a m < - x" using `a m \<noteq> x` by auto
-      with when_decided[OF tendsto_minus[OF `a ----> x`] monoseq_minus[OF `monoseq a`], where m2=m]
-      show ?thesis by auto
-    qed
-  qed auto
-qed
+  "monoseq a \<Longrightarrow> a ----> (x::real) \<Longrightarrow>
+    ((\<forall> n. a n \<le> x) \<and> (\<forall>m. \<forall>n\<ge>m. a m \<le> a n)) \<or> ((\<forall> n. x \<le> a n) \<and> (\<forall>m. \<forall>n\<ge>m. a n \<le> a m))"
+  by (metis LIMSEQ_le_const LIMSEQ_le_const2 decseq_def incseq_def monoseq_iff)
 
 lemma LIMSEQ_subseq_LIMSEQ:
   "\<lbrakk> X ----> L; subseq f \<rbrakk> \<Longrightarrow> (X o f) ----> L"
-apply (rule topological_tendstoI)
-apply (drule (2) topological_tendstoD)
-apply (simp only: eventually_sequentially)
-apply (clarify, rule_tac x=N in exI, clarsimp)
-apply (blast intro: seq_suble le_trans dest!: spec) 
-done
+  unfolding comp_def by (rule filterlim_compose[of X, OF _ filterlim_subseq])
 
 lemma convergent_subseq_convergent:
   "\<lbrakk>convergent X; subseq f\<rbrakk> \<Longrightarrow> convergent (X o f)"
@@ -630,27 +525,16 @@ lemma BseqI: "[| 0 < K; \<forall>n. norm (X n) \<le> K |] ==> Bseq X"
 by (auto simp add: Bseq_def)
 
 lemma lemma_NBseq_def:
-     "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) =
-      (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
-proof auto
+  "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
+proof safe
   fix K :: real
   from reals_Archimedean2 obtain n :: nat where "K < real n" ..
   then have "K \<le> real (Suc n)" by auto
-  assume "\<forall>m. norm (X m) \<le> K"
-  have "\<forall>m. norm (X m) \<le> real (Suc n)"
-  proof
-    fix m :: 'a
-    from `\<forall>m. norm (X m) \<le> K` have "norm (X m) \<le> K" ..
-    with `K \<le> real (Suc n)` show "norm (X m) \<le> real (Suc n)" by auto
-  qed
+  moreover assume "\<forall>m. norm (X m) \<le> K"
+  ultimately have "\<forall>m. norm (X m) \<le> real (Suc n)"
+    by (blast intro: order_trans)
   then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
-next
-  fix N :: nat
-  have "real (Suc N) > 0" by (simp add: real_of_nat_Suc)
-  moreover assume "\<forall>n. norm (X n) \<le> real (Suc N)"
-  ultimately show "\<exists>K>0. \<forall>n. norm (X n) \<le> K" by blast
-qed
-
+qed (force simp add: real_of_nat_Suc)
 
 text{* alternative definition for Bseq *}
 lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
@@ -671,6 +555,39 @@ done
 (* yet another definition for Bseq *)
 lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
 by (simp add: Bseq_def lemma_NBseq_def2)
+
+subsubsection{*A Few More Equivalence Theorems for Boundedness*}
+
+text{*alternative formulation for boundedness*}
+lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. norm (X(n) + -x) \<le> k)"
+apply (unfold Bseq_def, safe)
+apply (rule_tac [2] x = "k + norm x" in exI)
+apply (rule_tac x = K in exI, simp)
+apply (rule exI [where x = 0], auto)
+apply (erule order_less_le_trans, simp)
+apply (drule_tac x=n in spec, fold diff_minus)
+apply (drule order_trans [OF norm_triangle_ineq2])
+apply simp
+done
+
+text{*alternative formulation for boundedness*}
+lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. norm(X(n) + -X(N)) \<le> k)"
+apply safe
+apply (simp add: Bseq_def, safe)
+apply (rule_tac x = "K + norm (X N)" in exI)
+apply auto
+apply (erule order_less_le_trans, simp)
+apply (rule_tac x = N in exI, safe)
+apply (drule_tac x = n in spec)
+apply (rule order_trans [OF norm_triangle_ineq], simp)
+apply (auto simp add: Bseq_iff2)
+done
+
+lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> (K::real)) ==> Bseq f"
+apply (simp add: Bseq_def)
+apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
+apply (drule_tac x = n in spec, arith)
+done
 
 subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
 
@@ -725,115 +642,43 @@ qed
 text{*A standard proof of the theorem for monotone increasing sequence*}
 
 lemma Bseq_mono_convergent:
-     "[| Bseq X; \<forall>m. \<forall>n \<ge> m. X m \<le> X n |] ==> convergent (X::nat=>real)"
-proof -
-  assume "Bseq X"
-  then obtain u where u: "isLub UNIV {x. \<exists>n. X n = x} u"
-    using Bseq_isLub by fast
-  assume "\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n"
-  with u have "X ----> u"
-    by (rule isLub_mono_imp_LIMSEQ)
-  thus "convergent X"
-    by (rule convergentI)
-qed
+   "Bseq X \<Longrightarrow> \<forall>m. \<forall>n \<ge> m. X m \<le> X n \<Longrightarrow> convergent (X::nat=>real)"
+  by (metis Bseq_isLub isLub_mono_imp_LIMSEQ convergentI)
 
 lemma Bseq_minus_iff: "Bseq (%n. -(X n)) = Bseq X"
-by (simp add: Bseq_def)
+  by (simp add: Bseq_def)
 
 text{*Main monotonicity theorem*}
-lemma Bseq_monoseq_convergent: "[| Bseq X; monoseq X |] ==> convergent (X::nat\<Rightarrow>real)"
-apply (simp add: monoseq_def, safe)
-apply (rule_tac [2] convergent_minus_iff [THEN ssubst])
-apply (drule_tac [2] Bseq_minus_iff [THEN ssubst])
-apply (auto intro!: Bseq_mono_convergent)
-done
+
+lemma Bseq_monoseq_convergent: "Bseq X \<Longrightarrow> monoseq X \<Longrightarrow> convergent (X::nat\<Rightarrow>real)"
+  by (metis monoseq_iff incseq_def decseq_eq_incseq convergent_minus_iff Bseq_minus_iff
+            Bseq_mono_convergent)
 
 subsubsection{*Increasing and Decreasing Series*}
 
-lemma incseq_le:
-  fixes X :: "nat \<Rightarrow> real"
-  assumes inc: "incseq X" and lim: "X ----> L" shows "X n \<le> L"
-  using monoseq_le [OF incseq_imp_monoseq [OF inc] lim]
-proof
-  assume "(\<forall>n. X n \<le> L) \<and> (\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n)"
-  thus ?thesis by simp
-next
-  assume "(\<forall>n. L \<le> X n) \<and> (\<forall>m n. m \<le> n \<longrightarrow> X n \<le> X m)"
-  hence const: "(!!m n. m \<le> n \<Longrightarrow> X n = X m)" using inc
-    by (auto simp add: incseq_def intro: order_antisym)
-  have X: "!!n. X n = X 0"
-    by (blast intro: const [of 0]) 
-  have "X = (\<lambda>n. X 0)"
-    by (blast intro: X)
-  hence "L = X 0" using tendsto_const [of "X 0" sequentially]
-    by (auto intro: LIMSEQ_unique lim)
-  thus ?thesis
-    by (blast intro: eq_refl X)
-qed
+lemma incseq_le: "incseq X \<Longrightarrow> X ----> L \<Longrightarrow> X n \<le> (L::real)"
+  by (metis incseq_def LIMSEQ_le_const)
 
-lemma decseq_le:
-  fixes X :: "nat \<Rightarrow> real" assumes dec: "decseq X" and lim: "X ----> L" shows "L \<le> X n"
-proof -
-  have inc: "incseq (\<lambda>n. - X n)" using dec
-    by (simp add: decseq_eq_incseq)
-  have "- X n \<le> - L" 
-    by (blast intro: incseq_le [OF inc] tendsto_minus lim) 
-  thus ?thesis
-    by simp
-qed
-
-subsubsection{*A Few More Equivalence Theorems for Boundedness*}
-
-text{*alternative formulation for boundedness*}
-lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. norm (X(n) + -x) \<le> k)"
-apply (unfold Bseq_def, safe)
-apply (rule_tac [2] x = "k + norm x" in exI)
-apply (rule_tac x = K in exI, simp)
-apply (rule exI [where x = 0], auto)
-apply (erule order_less_le_trans, simp)
-apply (drule_tac x=n in spec, fold diff_minus)
-apply (drule order_trans [OF norm_triangle_ineq2])
-apply simp
-done
-
-text{*alternative formulation for boundedness*}
-lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. norm(X(n) + -X(N)) \<le> k)"
-apply safe
-apply (simp add: Bseq_def, safe)
-apply (rule_tac x = "K + norm (X N)" in exI)
-apply auto
-apply (erule order_less_le_trans, simp)
-apply (rule_tac x = N in exI, safe)
-apply (drule_tac x = n in spec)
-apply (rule order_trans [OF norm_triangle_ineq], simp)
-apply (auto simp add: Bseq_iff2)
-done
-
-lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> (K::real)) ==> Bseq f"
-apply (simp add: Bseq_def)
-apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
-apply (drule_tac x = n in spec, arith)
-done
-
+lemma decseq_le: "decseq X \<Longrightarrow> X ----> L \<Longrightarrow> (L::real) \<le> X n"
+  by (metis decseq_def LIMSEQ_le_const2)
 
 subsection {* Cauchy Sequences *}
 
 lemma metric_CauchyI:
   "(\<And>e. 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e) \<Longrightarrow> Cauchy X"
-by (simp add: Cauchy_def)
+  by (simp add: Cauchy_def)
 
 lemma metric_CauchyD:
-  "\<lbrakk>Cauchy X; 0 < e\<rbrakk> \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e"
-by (simp add: Cauchy_def)
+  "Cauchy X \<Longrightarrow> 0 < e \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e"
+  by (simp add: Cauchy_def)
 
 lemma Cauchy_iff:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "Cauchy X \<longleftrightarrow> (\<forall>e>0. \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e)"
-unfolding Cauchy_def dist_norm ..
+  unfolding Cauchy_def dist_norm ..
 
 lemma Cauchy_iff2:
-     "Cauchy X =
-      (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
+  "Cauchy X = (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
 apply (simp add: Cauchy_iff, auto)
 apply (drule reals_Archimedean, safe)
 apply (drule_tac x = n in spec, auto)
@@ -934,24 +779,17 @@ text {*
 lemma isUb_UNIV_I: "(\<And>y. y \<in> S \<Longrightarrow> y \<le> u) \<Longrightarrow> isUb UNIV S u"
 by (simp add: isUbI setleI)
 
-locale real_Cauchy =
+lemma real_Cauchy_convergent:
   fixes X :: "nat \<Rightarrow> real"
   assumes X: "Cauchy X"
-  fixes S :: "real set"
-  defines S_def: "S \<equiv> {x::real. \<exists>N. \<forall>n\<ge>N. x < X n}"
+  shows "convergent X"
+proof -
+  def S \<equiv> "{x::real. \<exists>N. \<forall>n\<ge>N. x < X n}"
+  then have mem_S: "\<And>N x. \<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S" by auto
 
-lemma real_CauchyI:
-  assumes "Cauchy X"
-  shows "real_Cauchy X"
-  proof qed (fact assms)
-
-lemma (in real_Cauchy) mem_S: "\<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S"
-by (unfold S_def, auto)
-
-lemma (in real_Cauchy) bound_isUb:
-  assumes N: "\<forall>n\<ge>N. X n < x"
-  shows "isUb UNIV S x"
-proof (rule isUb_UNIV_I)
+  { fix N x assume N: "\<forall>n\<ge>N. X n < x"
+  have "isUb UNIV S x"
+  proof (rule isUb_UNIV_I)
   fix y::real assume "y \<in> S"
   hence "\<exists>M. \<forall>n\<ge>M. y < X n"
     by (simp add: S_def)
@@ -960,10 +798,11 @@ proof (rule isUb_UNIV_I)
   also have "\<dots> < x" using N by simp
   finally show "y \<le> x"
     by (rule order_less_imp_le)
-qed
+  qed }
+  note bound_isUb = this 
 
-lemma (in real_Cauchy) isLub_ex: "\<exists>u. isLub UNIV S u"
-proof (rule reals_complete)
+  have "\<exists>u. isLub UNIV S u"
+  proof (rule reals_complete)
   obtain N where "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (X m - X n) < 1"
     using CauchyD [OF X zero_less_one] by auto
   hence N: "\<forall>n\<ge>N. norm (X n - X N) < 1" by simp
@@ -980,12 +819,10 @@ proof (rule reals_complete)
     thus "isUb UNIV S (X N + 1)"
       by (rule bound_isUb)
   qed
-qed
-
-lemma (in real_Cauchy) isLub_imp_LIMSEQ:
-  assumes x: "isLub UNIV S x"
-  shows "X ----> x"
-proof (rule LIMSEQ_I)
+  qed
+  then obtain x where x: "isLub UNIV S x" ..
+  have "X ----> x"
+  proof (rule LIMSEQ_I)
   fix r::real assume "0 < r"
   hence r: "0 < r/2" by simp
   obtain N where "\<forall>n\<ge>N. \<forall>m\<ge>N. norm (X n - X m) < r/2"
@@ -1009,26 +846,12 @@ proof (rule LIMSEQ_I)
     thus "norm (X n - x) < r" using 1 2
       by (simp add: abs_diff_less_iff)
   qed
+  qed
+  then show ?thesis unfolding convergent_def by auto
 qed
-
-lemma (in real_Cauchy) LIMSEQ_ex: "\<exists>x. X ----> x"
-proof -
-  obtain x where "isLub UNIV S x"
-    using isLub_ex by fast
-  hence "X ----> x"
-    by (rule isLub_imp_LIMSEQ)
-  thus ?thesis ..
-qed
-
-lemma real_Cauchy_convergent:
-  fixes X :: "nat \<Rightarrow> real"
-  shows "Cauchy X \<Longrightarrow> convergent X"
-unfolding convergent_def
-by (rule real_Cauchy.LIMSEQ_ex)
- (rule real_CauchyI)
 
 instance real :: banach
-by intro_classes (rule real_Cauchy_convergent)
+  by intro_classes (rule real_Cauchy_convergent)
 
 
 subsection {* Power Sequences *}
@@ -1053,53 +876,12 @@ lemma convergent_realpow:
   "[| 0 \<le> (x::real); x \<le> 1 |] ==> convergent (%n. x ^ n)"
 by (blast intro!: Bseq_monoseq_convergent Bseq_realpow monoseq_realpow)
 
-lemma LIMSEQ_inverse_realpow_zero_lemma:
-  fixes x :: real
-  assumes x: "0 \<le> x"
-  shows "real n * x + 1 \<le> (x + 1) ^ n"
-apply (induct n)
-apply simp
-apply simp
-apply (rule order_trans)
-prefer 2
-apply (erule mult_left_mono)
-apply (rule add_increasing [OF x], simp)
-apply (simp add: real_of_nat_Suc)
-apply (simp add: ring_distribs)
-apply (simp add: mult_nonneg_nonneg x)
-done
-
-lemma LIMSEQ_inverse_realpow_zero:
-  "1 < (x::real) \<Longrightarrow> (\<lambda>n. inverse (x ^ n)) ----> 0"
-proof (rule LIMSEQ_inverse_zero [rule_format])
-  fix y :: real
-  assume x: "1 < x"
-  hence "0 < x - 1" by simp
-  hence "\<forall>y. \<exists>N::nat. y < real N * (x - 1)"
-    by (rule reals_Archimedean3)
-  hence "\<exists>N::nat. y < real N * (x - 1)" ..
-  then obtain N::nat where "y < real N * (x - 1)" ..
-  also have "\<dots> \<le> real N * (x - 1) + 1" by simp
-  also have "\<dots> \<le> (x - 1 + 1) ^ N"
-    by (rule LIMSEQ_inverse_realpow_zero_lemma, cut_tac x, simp)
-  also have "\<dots> = x ^ N" by simp
-  finally have "y < x ^ N" .
-  hence "\<forall>n\<ge>N. y < x ^ n"
-    apply clarify
-    apply (erule order_less_le_trans)
-    apply (erule power_increasing)
-    apply (rule order_less_imp_le [OF x])
-    done
-  thus "\<exists>N. \<forall>n\<ge>N. y < x ^ n" ..
-qed
+lemma LIMSEQ_inverse_realpow_zero: "1 < (x::real) \<Longrightarrow> (\<lambda>n. inverse (x ^ n)) ----> 0"
+  by (rule filterlim_compose[OF tendsto_inverse_0 filterlim_realpow_sequentially_gt1]) simp
 
 lemma LIMSEQ_realpow_zero:
   "\<lbrakk>0 \<le> (x::real); x < 1\<rbrakk> \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
-proof (cases)
-  assume "x = 0"
-  hence "(\<lambda>n. x ^ Suc n) ----> 0" by (simp add: tendsto_const)
-  thus ?thesis by (rule LIMSEQ_imp_Suc)
-next
+proof cases
   assume "0 \<le> x" and "x \<noteq> 0"
   hence x0: "0 < x" by simp
   assume x1: "x < 1"
@@ -1108,7 +890,7 @@ next
   hence "(\<lambda>n. inverse (inverse x ^ n)) ----> 0"
     by (rule LIMSEQ_inverse_realpow_zero)
   thus ?thesis by (simp add: power_inverse)
-qed
+qed (rule LIMSEQ_imp_Suc, simp add: tendsto_const)
 
 lemma LIMSEQ_power_zero:
   fixes x :: "'a::{real_normed_algebra_1}"
@@ -1118,22 +900,15 @@ apply (simp only: tendsto_Zfun_iff, erule Zfun_le)
 apply (simp add: power_abs norm_power_ineq)
 done
 
-lemma LIMSEQ_divide_realpow_zero:
-  "1 < (x::real) ==> (%n. a / (x ^ n)) ----> 0"
-using tendsto_mult [OF tendsto_const [of a]
-  LIMSEQ_realpow_zero [of "inverse x"]]
-apply (auto simp add: divide_inverse power_inverse)
-apply (simp add: inverse_eq_divide pos_divide_less_eq)
-done
+lemma LIMSEQ_divide_realpow_zero: "1 < x \<Longrightarrow> (\<lambda>n. a / (x ^ n) :: real) ----> 0"
+  by (rule tendsto_divide_0 [OF tendsto_const filterlim_realpow_sequentially_gt1]) simp
 
 text{*Limit of @{term "c^n"} for @{term"\<bar>c\<bar> < 1"}*}
 
-lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < (1::real) ==> (%n. \<bar>c\<bar> ^ n) ----> 0"
-by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])
+lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. \<bar>c\<bar> ^ n :: real) ----> 0"
+  by (rule LIMSEQ_realpow_zero [OF abs_ge_zero])
 
-lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < (1::real) ==> (%n. c ^ n) ----> 0"
-apply (rule tendsto_rabs_zero_cancel)
-apply (auto intro: LIMSEQ_rabs_realpow_zero simp add: power_abs)
-done
+lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. c ^ n :: real) ----> 0"
+  by (rule LIMSEQ_power_zero) simp
 
 end

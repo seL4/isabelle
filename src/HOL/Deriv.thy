@@ -76,7 +76,7 @@ qed
 lemma DERIV_mult_lemma:
   fixes a b c d :: "'a::real_field"
   shows "(a * b - c * d) / h = a * ((b - d) / h) + ((a - c) / h) * d"
-by (simp add: diff_minus add_divide_distrib [symmetric] ring_distribs)
+  by (simp add: field_simps diff_divide_distrib)
 
 lemma DERIV_mult':
   assumes f: "DERIV f x :> D"
@@ -97,15 +97,12 @@ proof (unfold deriv_def)
 qed
 
 lemma DERIV_mult:
-     "[| DERIV f x :> Da; DERIV g x :> Db |]
-      ==> DERIV (%x. f x * g x) x :> (Da * g(x)) + (Db * f(x))"
-by (drule (1) DERIV_mult', simp only: mult_commute add_commute)
+    "DERIV f x :> Da \<Longrightarrow> DERIV g x :> Db \<Longrightarrow> DERIV (\<lambda>x. f x * g x) x :> Da * g x + Db * f x"
+  by (drule (1) DERIV_mult', simp only: mult_commute add_commute)
 
 lemma DERIV_unique:
-      "[| DERIV f x :> D; DERIV f x :> E |] ==> D = E"
-apply (simp add: deriv_def)
-apply (blast intro: LIM_unique)
-done
+    "DERIV f x :> D \<Longrightarrow> DERIV f x :> E \<Longrightarrow> D = E"
+  unfolding deriv_def by (rule LIM_unique) 
 
 text{*Differentiation of finite sum*}
 

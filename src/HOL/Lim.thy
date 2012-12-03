@@ -323,36 +323,6 @@ lemmas isCont_intros =
   isCont_diff isCont_mult isCont_inverse isCont_divide isCont_scaleR
   isCont_of_real isCont_power isCont_sgn isCont_setsum
 
-lemma LIM_less_bound: fixes f :: "real \<Rightarrow> real" assumes "b < x"
-  and all_le: "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and isCont: "isCont f x"
-  shows "0 \<le> f x"
-proof (rule ccontr)
-  assume "\<not> 0 \<le> f x" hence "f x < 0" by auto
-  hence "0 < - f x / 2" by auto
-  from isCont[unfolded isCont_def, THEN LIM_D, OF this]
-  obtain s where "s > 0" and s_D: "\<And>x'. \<lbrakk> x' \<noteq> x ; \<bar> x' - x \<bar> < s \<rbrakk> \<Longrightarrow> \<bar> f x' - f x \<bar> < - f x / 2" by auto
-
-  let ?x = "x - min (s / 2) ((x - b) / 2)"
-  have "?x < x" and "\<bar> ?x - x \<bar> < s"
-    using `b < x` and `0 < s` by auto
-  have "b < ?x"
-  proof (cases "s < x - b")
-    case True thus ?thesis using `0 < s` by auto
-  next
-    case False hence "s / 2 \<ge> (x - b) / 2" by auto
-    hence "?x = (x + b) / 2" by (simp add: field_simps min_max.inf_absorb2)
-    thus ?thesis using `b < x` by auto
-  qed
-  hence "0 \<le> f ?x" using all_le `?x < x` by auto
-  moreover have "\<bar>f ?x - f x\<bar> < - f x / 2"
-    using s_D[OF _ `\<bar> ?x - x \<bar> < s`] `?x < x` by auto
-  hence "f ?x - f x < - f x / 2" by auto
-  hence "f ?x < f x / 2" by auto
-  hence "f ?x < 0" using `f x < 0` by auto
-  thus False using `0 \<le> f ?x` by auto
-qed
-
-
 subsection {* Uniform Continuity *}
 
 lemma isUCont_isCont: "isUCont f ==> isCont f x"
@@ -441,5 +411,16 @@ lemma LIMSEQ_SEQ_conv:
   "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::'a::metric_space) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
    (X -- a --> (L::'b::topological_space))"
   using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
+
+lemma LIM_less_bound: 
+  fixes f :: "real \<Rightarrow> real"
+  assumes ev: "b < x" "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and "isCont f x"
+  shows "0 \<le> f x"
+proof (rule tendsto_le_const)
+  show "(f ---> f x) (at_left x)"
+    using `isCont f x` by (simp add: filterlim_at_split isCont_def)
+  show "eventually (\<lambda>x. 0 \<le> f x) (at_left x)"
+    using ev by (auto simp: eventually_within_less dist_real_def intro!: exI[of _ "x - b"])
+qed simp
 
 end

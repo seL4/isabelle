@@ -463,6 +463,22 @@ lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
 lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)
 
+lemma trivial_limit_at_left_real [simp]: (* maybe generalize type *)
+  "\<not> trivial_limit (at_left (x::real))"
+  unfolding trivial_limit_def eventually_within_le
+  apply clarsimp
+  apply (rule_tac x="x - d/2" in bexI)
+  apply (auto simp: dist_real_def)
+  done
+
+lemma trivial_limit_at_right_real [simp]: (* maybe generalize type *)
+  "\<not> trivial_limit (at_right (x::real))"
+  unfolding trivial_limit_def eventually_within_le
+  apply clarsimp
+  apply (rule_tac x="x + d/2" in bexI)
+  apply (auto simp: dist_real_def)
+  done
+
 lemma eventually_at_infinity:
   "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> P x)"
 unfolding at_infinity_def
@@ -712,6 +728,9 @@ lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambd
 lemma filterlim_sup:
   "filterlim f F F1 \<Longrightarrow> filterlim f F F2 \<Longrightarrow> filterlim f F (sup F1 F2)"
   unfolding filterlim_def filtermap_sup by auto
+
+lemma filterlim_Suc: "filterlim Suc sequentially sequentially"
+  by (simp add: filterlim_iff eventually_sequentially) (metis le_Suc_eq)
 
 abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
@@ -1026,6 +1045,30 @@ next
   assume "\<not> finite S" thus ?thesis
     by (simp add: tendsto_const)
 qed
+
+lemma tendsto_le_const:
+  fixes f :: "_ \<Rightarrow> real" 
+  assumes F: "\<not> trivial_limit F"
+  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>x. a \<le> f x) F"
+  shows "a \<le> x"
+proof (rule ccontr)
+  assume "\<not> a \<le> x"
+  with x have "eventually (\<lambda>x. f x < a) F"
+    by (auto simp add: tendsto_def elim!: allE[of _ "{..< a}"])
+  with a have "eventually (\<lambda>x. False) F"
+    by eventually_elim auto
+  with F show False
+    by (simp add: eventually_False)
+qed
+
+lemma tendsto_le:
+  fixes f g :: "_ \<Rightarrow> real" 
+  assumes F: "\<not> trivial_limit F"
+  assumes x: "(f ---> x) F" and y: "(g ---> y) F"
+  assumes ev: "eventually (\<lambda>x. g x \<le> f x) F"
+  shows "y \<le> x"
+  using tendsto_le_const[OF F tendsto_diff[OF x y], of 0] ev
+  by (simp add: sign_simps)
 
 subsubsection {* Inverse and division *}
 
@@ -1381,6 +1424,44 @@ proof safe
   ultimately show "eventually (\<lambda>x. Z < f x + g x) F"
     by eventually_elim simp
 qed
+
+lemma tendsto_divide_0:
+  fixes f :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
+  assumes f: "(f ---> c) F"
+  assumes g: "LIM x F. g x :> at_infinity"
+  shows "((\<lambda>x. f x / g x) ---> 0) F"
+  using tendsto_mult[OF f filterlim_compose[OF tendsto_inverse_0 g]] by (simp add: divide_inverse)
+
+lemma linear_plus_1_le_power:
+  fixes x :: real
+  assumes x: "0 \<le> x"
+  shows "real n * x + 1 \<le> (x + 1) ^ n"
+proof (induct n)
+  case (Suc n)
+  have "real (Suc n) * x + 1 \<le> (x + 1) * (real n * x + 1)"
+    by (simp add: field_simps real_of_nat_Suc mult_nonneg_nonneg x)
+  also have "\<dots> \<le> (x + 1)^Suc n"
+    using Suc x by (simp add: mult_left_mono)
+  finally show ?case .
+qed simp
+
+lemma filterlim_realpow_sequentially_gt1:
+  fixes x :: "'a :: real_normed_div_algebra"
+  assumes x[arith]: "1 < norm x"
+  shows "LIM n sequentially. x ^ n :> at_infinity"
+proof (intro filterlim_at_infinity[THEN iffD2] allI impI)
+  fix y :: real assume "0 < y"
+  have "0 < norm x - 1" by simp
+  then obtain N::nat where "y < real N * (norm x - 1)" by (blast dest: reals_Archimedean3)
+  also have "\<dots> \<le> real N * (norm x - 1) + 1" by simp
+  also have "\<dots> \<le> (norm x - 1 + 1) ^ N" by (rule linear_plus_1_le_power) simp
+  also have "\<dots> = norm x ^ N" by simp
+  finally have "\<forall>n\<ge>N. y \<le> norm x ^ n"
+    by (metis order_less_le_trans power_increasing order_less_imp_le x)
+  then show "eventually (\<lambda>n. y \<le> norm (x ^ n)) sequentially"
+    unfolding eventually_sequentially
+    by (auto simp: norm_power)
+qed simp
 
 subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
 

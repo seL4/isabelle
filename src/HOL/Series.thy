@@ -650,6 +650,7 @@ done
 lemma rabs_ratiotest_lemma: "[| c \<le> 0; abs x \<le> c * abs y |] ==> x = (0::real)"
 by (erule norm_ratiotest_lemma, simp)
 
+(* TODO: MOVE *)
 lemma le_Suc_ex: "(k::nat) \<le> l ==> (\<exists>n. l = k + n)"
 apply (drule le_imp_less_or_eq)
 apply (auto dest: less_imp_Suc_add)
