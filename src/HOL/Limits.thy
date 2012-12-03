@@ -445,6 +445,14 @@ lemma eventually_at:
   shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding at_def eventually_within eventually_nhds_metric by auto
 
+lemma eventually_within_less: (* COPY FROM Topo/eventually_within *)
+  "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
+  unfolding eventually_within eventually_at dist_nz by auto
+
+lemma eventually_within_le: (* COPY FROM Topo/eventually_within_le *)
+  "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)"
+  unfolding eventually_within_less by auto (metis dense order_le_less_trans)
+
 lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
   by (safe, case_tac "S = {a}", simp, fast, fast)
@@ -675,13 +683,17 @@ lemma filterlim_iff:
   "(LIM x F1. f x :> F2) \<longleftrightarrow> (\<forall>P. eventually P F2 \<longrightarrow> eventually (\<lambda>x. P (f x)) F1)"
   unfolding filterlim_def le_filter_def eventually_filtermap ..
 
-lemma filterlim_compose: 
+lemma filterlim_compose:
   "filterlim g F3 F2 \<Longrightarrow> filterlim f F2 F1 \<Longrightarrow> filterlim (\<lambda>x. g (f x)) F3 F1"
   unfolding filterlim_def filtermap_filtermap[symmetric] by (metis filtermap_mono order_trans)
 
-lemma filterlim_mono: 
+lemma filterlim_mono:
   "filterlim f F2 F1 \<Longrightarrow> F2 \<le> F2' \<Longrightarrow> F1' \<le> F1 \<Longrightarrow> filterlim f F2' F1'"
   unfolding filterlim_def by (metis filtermap_mono order_trans)
+
+lemma filterlim_cong:
+  "F1 = F1' \<Longrightarrow> F2 = F2' \<Longrightarrow> eventually (\<lambda>x. f x = g x) F2 \<Longrightarrow> filterlim f F1 F2 = filterlim g F1' F2'"
+  by (auto simp: filterlim_def le_filter_def eventually_filtermap elim: eventually_elim2)
 
 lemma filterlim_within:
   "(LIM x F1. f x :> F2 within S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F1 \<and> (LIM x F1. f x :> F2))"

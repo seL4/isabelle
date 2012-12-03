@@ -1589,4 +1589,183 @@ apply simp
 apply (drule (1) LIM_fun_gt_zero, force)
 done
 
+lemma GMVT':
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "a < b"
+  assumes isCont_f: "\<And>z. a \<le> z \<Longrightarrow> z \<le> b \<Longrightarrow> isCont f z"
+  assumes isCont_g: "\<And>z. a \<le> z \<Longrightarrow> z \<le> b \<Longrightarrow> isCont g z"
+  assumes DERIV_g: "\<And>z. a < z \<Longrightarrow> z < b \<Longrightarrow> DERIV g z :> (g' z)"
+  assumes DERIV_f: "\<And>z. a < z \<Longrightarrow> z < b \<Longrightarrow> DERIV f z :> (f' z)"
+  shows "\<exists>c. a < c \<and> c < b \<and> (f b - f a) * g' c = (g b - g a) * f' c"
+proof -
+  have "\<exists>g'c f'c c. DERIV g c :> g'c \<and> DERIV f c :> f'c \<and>
+    a < c \<and> c < b \<and> (f b - f a) * g'c = (g b - g a) * f'c"
+    using assms by (intro GMVT) (force simp: differentiable_def)+
+  then obtain c where "a < c" "c < b" "(f b - f a) * g' c = (g b - g a) * f' c"
+    using DERIV_f DERIV_g by (force dest: DERIV_unique)
+  then show ?thesis
+    by auto
+qed
+
+lemma lhopital_right_0:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes f_0: "isCont f 0" "f 0 = 0"
+  assumes g_0: "isCont g 0" "g 0 = 0"
+  assumes ev:
+    "eventually (\<lambda>x. g x \<noteq> 0) (at_right 0)"
+    "eventually (\<lambda>x. g' x \<noteq> 0) (at_right 0)"
+    "eventually (\<lambda>x. DERIV f x :> f' x) (at_right 0)"
+    "eventually (\<lambda>x. DERIV g x :> g' x) (at_right 0)"
+  assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) (at_right 0)"
+  shows "((\<lambda> x. f x / g x) ---> x) (at_right 0)"
+proof -
+  from eventually_conj[OF eventually_conj[OF ev(1) ev(2)] eventually_conj[OF ev(3) ev(4)]]
+  obtain a where [arith]: "0 < a"
+    and g_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g x \<noteq> 0"
+    and g'_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g' x \<noteq> 0"
+    and f: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV f x :> (f' x)"
+    and g: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV g x :> (g' x)"
+    unfolding eventually_within eventually_at by (auto simp: dist_real_def)
+
+  { fix x assume x: "0 \<le> x" "x < a"
+    from `0 \<le> x` have "isCont f x"
+      unfolding le_less
+    proof
+      assume "0 = x" with `isCont f 0` show "isCont f x" by simp
+    next
+      assume "0 < x" with f x show ?thesis by (auto intro!: DERIV_isCont)
+    qed }
+  note isCont_f = this
+
+  { fix x assume x: "0 \<le> x" "x < a"
+    from `0 \<le> x` have "isCont g x"
+      unfolding le_less
+    proof
+      assume "0 = x" with `isCont g 0` show "isCont g x" by simp
+    next
+      assume "0 < x" with g x show ?thesis by (auto intro!: DERIV_isCont)
+    qed }
+  note isCont_g = this
+
+  have "\<exists>\<zeta>. \<forall>x\<in>{0 <..< a}. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)"
+  proof (rule bchoice, rule)
+    fix x assume "x \<in> {0 <..< a}"
+    then have x[arith]: "0 < x" "x < a" by auto
+    with g'_neq_0 g_neq_0 `g 0 = 0` have g': "\<And>x. 0 < x \<Longrightarrow> x < a  \<Longrightarrow> 0 \<noteq> g' x" "g 0 \<noteq> g x"
+      by auto
+
+    have "\<exists>c. 0 < c \<and> c < x \<and> (f x - f 0) * g' c = (g x - g 0) * f' c"
+      using isCont_f isCont_g f g `x < a` by (intro GMVT') auto
+    then guess c ..
+    moreover
+    with g'(1)[of c] g'(2) have "(f x - f 0)  / (g x - g 0) = f' c / g' c"
+      by (simp add: field_simps)
+    ultimately show "\<exists>y. 0 < y \<and> y < x \<and> f x / g x = f' y / g' y"
+      using `f 0 = 0` `g 0 = 0` by (auto intro!: exI[of _ c])
+  qed
+  then guess \<zeta> ..
+  then have \<zeta>: "eventually (\<lambda>x. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)) (at_right 0)"
+    unfolding eventually_within eventually_at by (intro exI[of _ a]) (auto simp: dist_real_def)
+  moreover
+  from \<zeta> have "eventually (\<lambda>x. norm (\<zeta> x) \<le> x) (at_right 0)"
+    by eventually_elim auto
+  then have "((\<lambda>x. norm (\<zeta> x)) ---> 0) (at_right 0)"
+    by (rule_tac real_tendsto_sandwich[where f="\<lambda>x. 0" and h="\<lambda>x. x"])
+       (auto intro: tendsto_const tendsto_ident_at_within)
+  then have "(\<zeta> ---> 0) (at_right 0)"
+    by (rule tendsto_norm_zero_cancel)
+  with \<zeta> have "filterlim \<zeta> (at_right 0) (at_right 0)"
+    by (auto elim!: eventually_elim1 simp: filterlim_within filterlim_at)
+  from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) ---> x) (at_right 0)"
+    by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
+  ultimately show "((\<lambda>t. f t / g t) ---> x) (at_right 0)"
+    apply (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
+    apply (erule_tac eventually_elim1)
+    apply simp_all
+    done
+qed
+
+lemma lhopital_right_0_at_top:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes g_0: "LIM x at_right 0. g x :> at_top"
+  assumes ev:
+    "eventually (\<lambda>x. g' x \<noteq> 0) (at_right 0)"
+    "eventually (\<lambda>x. DERIV f x :> f' x) (at_right 0)"
+    "eventually (\<lambda>x. DERIV g x :> g' x) (at_right 0)"
+  assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) (at_right 0)"
+  shows "((\<lambda> x. f x / g x) ---> x) (at_right 0)"
+  unfolding tendsto_iff
+proof safe
+  fix e :: real assume "0 < e"
+
+  with lim[unfolded tendsto_iff, rule_format, of "e / 4"]
+  have "eventually (\<lambda>t. dist (f' t / g' t) x < e / 4) (at_right 0)" by simp
+  from eventually_conj[OF eventually_conj[OF ev(1) ev(2)] eventually_conj[OF ev(3) this]]
+  obtain a where [arith]: "0 < a"
+    and g'_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g' x \<noteq> 0"
+    and f0: "\<And>x. 0 < x \<Longrightarrow> x \<le> a \<Longrightarrow> DERIV f x :> (f' x)"
+    and g0: "\<And>x. 0 < x \<Longrightarrow> x \<le> a \<Longrightarrow> DERIV g x :> (g' x)"
+    and Df: "\<And>t. 0 < t \<Longrightarrow> t < a \<Longrightarrow> dist (f' t / g' t) x < e / 4"
+    unfolding eventually_within_le by (auto simp: dist_real_def)
+
+  from Df have
+    "eventually (\<lambda>t. t < a) (at_right 0)"
+    "eventually (\<lambda>t::real. 0 < t) (at_right 0)"
+    unfolding eventually_within eventually_at by (auto intro!: exI[of _ a] simp: dist_real_def)
+  moreover
+
+  have "eventually (\<lambda>t. 0 < g t) (at_right 0)"
+    using g_0[unfolded filterlim_at_top, rule_format, of "1"] by eventually_elim auto
+
+  moreover
+
+  have "eventually (\<lambda>t. g a < g t) (at_right 0)"
+    using g_0[unfolded filterlim_at_top, rule_format, of "g a + 1"] by eventually_elim auto
+  moreover
+  have inv_g: "((\<lambda>x. inverse (g x)) ---> 0) (at_right 0)"
+    using tendsto_inverse_0 filterlim_mono[OF g_0 at_top_le_at_infinity order_refl]
+    by (rule filterlim_compose)
+  then have "((\<lambda>x. norm (1 - g a * inverse (g x))) ---> norm (1 - g a * 0)) (at_right 0)"
+    by (intro tendsto_intros)
+  then have "((\<lambda>x. norm (1 - g a / g x)) ---> 1) (at_right 0)"
+    by (simp add: inverse_eq_divide)
+  from this[unfolded tendsto_iff, rule_format, of 1]
+  have "eventually (\<lambda>x. norm (1 - g a / g x) < 2) (at_right 0)"
+    by (auto elim!: eventually_elim1 simp: dist_real_def)
+
+  moreover
+  from inv_g have "((\<lambda>t. norm ((f a - x * g a) * inverse (g t))) ---> norm ((f a - x * g a) * 0)) (at_right 0)"
+    by (intro tendsto_intros)
+  then have "((\<lambda>t. norm (f a - x * g a) / norm (g t)) ---> 0) (at_right 0)"
+    by (simp add: inverse_eq_divide)
+  from this[unfolded tendsto_iff, rule_format, of "e / 2"] `0 < e`
+  have "eventually (\<lambda>t. norm (f a - x * g a) / norm (g t) < e / 2) (at_right 0)"
+    by (auto simp: dist_real_def)
+
+  ultimately show "eventually (\<lambda>t. dist (f t / g t) x < e) (at_right 0)"
+  proof eventually_elim
+    fix t assume t[arith]: "0 < t" "t < a" "g a < g t" "0 < g t"
+    assume ineq: "norm (1 - g a / g t) < 2" "norm (f a - x * g a) / norm (g t) < e / 2"
+
+    have "\<exists>y. t < y \<and> y < a \<and> (g a - g t) * f' y = (f a - f t) * g' y"
+      using f0 g0 t(1,2) by (intro GMVT') (force intro!: DERIV_isCont)+
+    then guess y ..
+    from this
+    have [arith]: "t < y" "y < a" and D_eq: "(f t - f a) / (g t - g a) = f' y / g' y"
+      using `g a < g t` g'_neq_0[of y] by (auto simp add: field_simps)
+
+    have *: "f t / g t - x = ((f t - f a) / (g t - g a) - x) * (1 - g a / g t) + (f a - x * g a) / g t"
+      by (simp add: field_simps)
+    have "norm (f t / g t - x) \<le>
+        norm (((f t - f a) / (g t - g a) - x) * (1 - g a / g t)) + norm ((f a - x * g a) / g t)"
+      unfolding * by (rule norm_triangle_ineq)
+    also have "\<dots> = dist (f' y / g' y) x * norm (1 - g a / g t) + norm (f a - x * g a) / norm (g t)"
+      by (simp add: abs_mult D_eq dist_real_def)
+    also have "\<dots> < (e / 4) * 2 + e / 2"
+      using ineq Df[of y] `0 < e` by (intro add_le_less_mono mult_mono) auto
+    finally show "dist (f t / g t) x < e"
+      by (simp add: dist_real_def)
+  qed
+qed
+
 end
