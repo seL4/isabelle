@@ -285,8 +285,7 @@ subsection {* Order filters *}
 definition at_top :: "('a::order) filter"
   where "at_top = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<ge>k. P n)"
 
-lemma eventually_at_top_linorder:
-  fixes P :: "'a::linorder \<Rightarrow> bool" shows "eventually P at_top \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
+lemma eventually_at_top_linorder: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::linorder. \<forall>n\<ge>N. P n)"
   unfolding at_top_def
 proof (rule eventually_Abs_filter, rule is_filter.intro)
   fix P Q :: "'a \<Rightarrow> bool"
@@ -296,13 +295,12 @@ proof (rule eventually_Abs_filter, rule is_filter.intro)
   then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
 qed auto
 
-lemma eventually_at_top_dense:
-  fixes P :: "'a::dense_linorder \<Rightarrow> bool" shows "eventually P at_top \<longleftrightarrow> (\<exists>N. \<forall>n>N. P n)"
+lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::dense_linorder. \<forall>n>N. P n)"
   unfolding eventually_at_top_linorder
 proof safe
   fix N assume "\<forall>n\<ge>N. P n" then show "\<exists>N. \<forall>n>N. P n" by (auto intro!: exI[of _ N])
 next
-  fix N assume "\<forall>n>N. P n" 
+  fix N assume "\<forall>n>N. P n"
   moreover from gt_ex[of N] guess y ..
   ultimately show "\<exists>N. \<forall>n\<ge>N. P n" by (auto intro!: exI[of _ y])
 qed
@@ -375,6 +373,9 @@ definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
 definition (in topological_space) at :: "'a \<Rightarrow> 'a filter"
   where "at a = nhds a within - {a}"
 
+definition at_infinity :: "'a::real_normed_vector filter" where
+  "at_infinity = Abs_filter (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
+
 lemma eventually_within:
   "eventually P (F within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) F"
   unfolding within_def
@@ -401,7 +402,7 @@ lemma eventually_nhds:
 unfolding nhds_def
 proof (rule eventually_Abs_filter, rule is_filter.intro)
   have "open UNIV \<and> a \<in> UNIV \<and> (\<forall>x\<in>UNIV. True)" by simp
-  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. True)" by - rule
+  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. True)" ..
 next
   fix P Q
   assume "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x)"
@@ -411,7 +412,7 @@ next
     "open T \<and> a \<in> T \<and> (\<forall>x\<in>T. Q x)" by auto
   hence "open (S \<inter> T) \<and> a \<in> S \<inter> T \<and> (\<forall>x\<in>(S \<inter> T). P x \<and> Q x)"
     by (simp add: open_Int)
-  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x \<and> Q x)" by - rule
+  thus "\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x \<and> Q x)" ..
 qed auto
 
 lemma eventually_nhds_metric:
@@ -445,6 +446,17 @@ lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
 lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)
 
+lemma eventually_at_infinity:
+  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
+unfolding at_infinity_def
+proof (rule eventually_Abs_filter, rule is_filter.intro)
+  fix P Q :: "'a \<Rightarrow> bool"
+  assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<exists>s. \<forall>x. s \<le> norm x \<longrightarrow> Q x"
+  then obtain r s where
+    "\<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<forall>x. s \<le> norm x \<longrightarrow> Q x" by auto
+  then have "\<forall>x. max r s \<le> norm x \<longrightarrow> P x \<and> Q x" by simp
+  then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x \<and> Q x" ..
+qed auto
 
 subsection {* Boundedness *}
 
@@ -1164,4 +1176,85 @@ lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
 lemma filterlim_uminus_at_bot: "LIM x F. f x :> at_top \<Longrightarrow> LIM x F. - (f x) :: real :> at_bot"
   by (rule filterlim_compose[OF filterlim_uminus_at_bot_at_top])
 
+text {*
+
+We only show rules for multiplication and addition when the functions are either against a real
+value or against infinity. Further rules are easy to derive by using @{thm filterlim_uminus_at_top}.
+
+*}
+
+lemma filterlim_tendsto_pos_mult_at_top: 
+  assumes f: "(f ---> c) F" and c: "0 < c"
+  assumes g: "LIM x F. g x :> at_top"
+  shows "LIM x F. (f x * g x :: real) :> at_top"
+  unfolding filterlim_at_top_gt[where c=0]
+proof safe
+  fix Z :: real assume "0 < Z"
+  from f `0 < c` have "eventually (\<lambda>x. c / 2 < f x) F"
+    by (auto dest!: tendstoD[where e="c / 2"] elim!: eventually_elim1
+             simp: dist_real_def abs_real_def split: split_if_asm)
+  moreover from g have "eventually (\<lambda>x. (Z / c * 2) < g x) F"
+    unfolding filterlim_at_top by auto
+  ultimately show "eventually (\<lambda>x. Z < f x * g x) F"
+  proof eventually_elim
+    fix x assume "c / 2 < f x" "Z / c * 2 < g x"
+    with `0 < Z` `0 < c` have "c / 2 * (Z / c * 2) < f x * g x"
+      by (intro mult_strict_mono) (auto simp: zero_le_divide_iff)
+    with `0 < c` show "Z < f x * g x"
+       by simp
+  qed
+qed
+
+lemma filterlim_at_top_mult_at_top: 
+  assumes f: "LIM x F. f x :> at_top"
+  assumes g: "LIM x F. g x :> at_top"
+  shows "LIM x F. (f x * g x :: real) :> at_top"
+  unfolding filterlim_at_top_gt[where c=0]
+proof safe
+  fix Z :: real assume "0 < Z"
+  from f have "eventually (\<lambda>x. 1 < f x) F"
+    unfolding filterlim_at_top by auto
+  moreover from g have "eventually (\<lambda>x. Z < g x) F"
+    unfolding filterlim_at_top by auto
+  ultimately show "eventually (\<lambda>x. Z < f x * g x) F"
+  proof eventually_elim
+    fix x assume "1 < f x" "Z < g x"
+    with `0 < Z` have "1 * Z < f x * g x"
+      by (intro mult_strict_mono) (auto simp: zero_le_divide_iff)
+    then show "Z < f x * g x"
+       by simp
+  qed
+qed
+
+lemma filterlim_tendsto_add_at_top: 
+  assumes f: "(f ---> c) F"
+  assumes g: "LIM x F. g x :> at_top"
+  shows "LIM x F. (f x + g x :: real) :> at_top"
+  unfolding filterlim_at_top_gt[where c=0]
+proof safe
+  fix Z :: real assume "0 < Z"
+  from f have "eventually (\<lambda>x. c - 1 < f x) F"
+    by (auto dest!: tendstoD[where e=1] elim!: eventually_elim1 simp: dist_real_def)
+  moreover from g have "eventually (\<lambda>x. Z - (c - 1) < g x) F"
+    unfolding filterlim_at_top by auto
+  ultimately show "eventually (\<lambda>x. Z < f x + g x) F"
+    by eventually_elim simp
+qed
+
+lemma filterlim_at_top_add_at_top: 
+  assumes f: "LIM x F. f x :> at_top"
+  assumes g: "LIM x F. g x :> at_top"
+  shows "LIM x F. (f x + g x :: real) :> at_top"
+  unfolding filterlim_at_top_gt[where c=0]
+proof safe
+  fix Z :: real assume "0 < Z"
+  from f have "eventually (\<lambda>x. 0 < f x) F"
+    unfolding filterlim_at_top by auto
+  moreover from g have "eventually (\<lambda>x. Z < g x) F"
+    unfolding filterlim_at_top by auto
+  ultimately show "eventually (\<lambda>x. Z < f x + g x) F"
+    by eventually_elim simp
+qed
+
 end
+

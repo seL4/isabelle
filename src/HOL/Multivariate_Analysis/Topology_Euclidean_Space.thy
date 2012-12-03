@@ -1102,27 +1102,9 @@ lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> op
 subsection {* Filters and the ``eventually true'' quantifier *}
 
 definition
-  at_infinity :: "'a::real_normed_vector filter" where
-  "at_infinity = Abs_filter (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
-
-definition
   indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a filter"
     (infixr "indirection" 70) where
   "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
-
-text{* Prove That They are all filters. *}
-
-lemma eventually_at_infinity:
-  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
-unfolding at_infinity_def
-proof (rule eventually_Abs_filter, rule is_filter.intro)
-  fix P Q :: "'a \<Rightarrow> bool"
-  assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<exists>s. \<forall>x. s \<le> norm x \<longrightarrow> Q x"
-  then obtain r s where
-    "\<forall>x. r \<le> norm x \<longrightarrow> P x" and "\<forall>x. s \<le> norm x \<longrightarrow> Q x" by auto
-  then have "\<forall>x. max r s \<le> norm x \<longrightarrow> P x \<and> Q x" by simp
-  then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x \<and> Q x" ..
-qed auto
 
 text {* Identify Trivial limits, where we can't approach arbitrarily closely. *}
 
