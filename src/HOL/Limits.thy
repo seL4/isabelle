@@ -614,24 +614,24 @@ lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 
 subsection {* Limits *}
 
-definition filter_lim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  "filter_lim f F2 F1 \<longleftrightarrow> filtermap f F1 \<le> F2"
+definition filterlim :: "('a \<Rightarrow> 'b) \<Rightarrow> 'b filter \<Rightarrow> 'a filter \<Rightarrow> bool" where
+  "filterlim f F2 F1 \<longleftrightarrow> filtermap f F1 \<le> F2"
 
 syntax
   "_LIM" :: "pttrns \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> bool" ("(3LIM (_)/ (_)./ (_) :> (_))" [1000, 10, 0, 10] 10)
 
 translations
-  "LIM x F1. f :> F2"   == "CONST filter_lim (%x. f) F2 F1"
+  "LIM x F1. f :> F2"   == "CONST filterlim (%x. f) F2 F1"
 
-lemma filter_limE: "(LIM x F1. f x :> F2) \<Longrightarrow> eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1"
-  by (auto simp: filter_lim_def eventually_filtermap le_filter_def)
+lemma filterlimE: "(LIM x F1. f x :> F2) \<Longrightarrow> eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1"
+  by (auto simp: filterlim_def eventually_filtermap le_filter_def)
 
-lemma filter_limI: "(\<And>P. eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1) \<Longrightarrow> (LIM x F1. f x :> F2)"
-  by (auto simp: filter_lim_def eventually_filtermap le_filter_def)
+lemma filterlimI: "(\<And>P. eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1) \<Longrightarrow> (LIM x F1. f x :> F2)"
+  by (auto simp: filterlim_def eventually_filtermap le_filter_def)
 
 abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
-  "(f ---> l) F \<equiv> filter_lim f (nhds l) F"
+  "(f ---> l) F \<equiv> filterlim f (nhds l) F"
 
 ML {*
 structure Tendsto_Intros = Named_Thms
@@ -644,7 +644,7 @@ structure Tendsto_Intros = Named_Thms
 setup Tendsto_Intros.setup
 
 lemma tendsto_def: "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
-  unfolding filter_lim_def
+  unfolding filterlim_def
 proof safe
   fix S assume "open S" "l \<in> S" "filtermap f F \<le> nhds l"
   then show "eventually (\<lambda>x. f x \<in> S) F"
@@ -1075,20 +1075,20 @@ lemma tendsto_sgn [tendsto_intros]:
 
 subsection {* Limits to @{const at_top} and @{const at_bot} *}
 
-lemma filter_lim_at_top:
+lemma filterlim_at_top:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z < f x) F)"
-  by (safe elim!: filter_limE intro!: filter_limI)
+  by (safe elim!: filterlimE intro!: filterlimI)
      (auto simp: eventually_at_top_dense elim!: eventually_elim1)
 
-lemma filter_lim_at_bot: 
+lemma filterlim_at_bot: 
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x < Z) F)"
-  by (safe elim!: filter_limE intro!: filter_limI)
+  by (safe elim!: filterlimE intro!: filterlimI)
      (auto simp: eventually_at_bot_dense elim!: eventually_elim1)
 
-lemma filter_lim_real_sequentially: "LIM x sequentially. real x :> at_top"
-  unfolding filter_lim_at_top
+lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
+  unfolding filterlim_at_top
   apply (intro allI)
   apply (rule_tac c="natceiling (Z + 1)" in eventually_sequentiallyI)
   apply (auto simp: natceiling_le_eq)
