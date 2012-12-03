@@ -881,7 +881,6 @@ lemma tendsto_exp [tendsto_intros]:
   "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
   by (rule isCont_tendsto_compose [OF isCont_exp])
 
-
 subsubsection {* Properties of the Exponential Function *}
 
 lemma powser_zero:
@@ -1210,6 +1209,157 @@ proof -
     thus "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> 0" by auto
   qed (auto simp add: assms)
   thus ?thesis by auto
+qed
+
+lemma exp_first_two_terms: "exp x = 1 + x + (\<Sum> n. inverse(fact (n+2)) * (x ^ (n+2)))"
+proof -
+  have "exp x = suminf (%n. inverse(fact n) * (x ^ n))"
+    by (simp add: exp_def)
+  also from summable_exp have "... = (\<Sum> n::nat = 0 ..< 2. inverse(fact n) * (x ^ n)) +
+      (\<Sum> n. inverse(fact(n+2)) * (x ^ (n+2)))" (is "_ = ?a + _")
+    by (rule suminf_split_initial_segment)
+  also have "?a = 1 + x"
+    by (simp add: numeral_2_eq_2)
+  finally show ?thesis .
+qed
+
+lemma exp_bound: "0 <= (x::real) ==> x <= 1 ==> exp x <= 1 + x + x^2"
+proof -
+  assume a: "0 <= x"
+  assume b: "x <= 1"
+  { fix n :: nat
+    have "2 * 2 ^ n \<le> fact (n + 2)"
+      by (induct n, simp, simp)
+    hence "real ((2::nat) * 2 ^ n) \<le> real (fact (n + 2))"
+      by (simp only: real_of_nat_le_iff)
+    hence "2 * 2 ^ n \<le> real (fact (n + 2))"
+      by simp
+    hence "inverse (fact (n + 2)) \<le> inverse (2 * 2 ^ n)"
+      by (rule le_imp_inverse_le) simp
+    hence "inverse (fact (n + 2)) \<le> 1/2 * (1/2)^n"
+      by (simp add: inverse_mult_distrib power_inverse)
+    hence "inverse (fact (n + 2)) * (x^n * x\<twosuperior>) \<le> 1/2 * (1/2)^n * (1 * x\<twosuperior>)"
+      by (rule mult_mono)
+        (rule mult_mono, simp_all add: power_le_one a b mult_nonneg_nonneg)
+    hence "inverse (fact (n + 2)) * x ^ (n + 2) \<le> (x\<twosuperior>/2) * ((1/2)^n)"
+      unfolding power_add by (simp add: mult_ac del: fact_Suc) }
+  note aux1 = this
+  have "(\<lambda>n. x\<twosuperior> / 2 * (1 / 2) ^ n) sums (x\<twosuperior> / 2 * (1 / (1 - 1 / 2)))"
+    by (intro sums_mult geometric_sums, simp)
+  hence aux2: "(\<lambda>n. (x::real) ^ 2 / 2 * (1 / 2) ^ n) sums x^2"
+    by simp
+  have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <= x^2"
+  proof -
+    have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <=
+        suminf (%n. (x^2/2) * ((1/2)^n))"
+      apply (rule summable_le)
+      apply (rule allI, rule aux1)
+      apply (rule summable_exp [THEN summable_ignore_initial_segment])
+      by (rule sums_summable, rule aux2)
+    also have "... = x^2"
+      by (rule sums_unique [THEN sym], rule aux2)
+    finally show ?thesis .
+  qed
+  thus ?thesis unfolding exp_first_two_terms by auto
+qed
+
+lemma ln_one_minus_pos_upper_bound: "0 <= x ==> x < 1 ==> ln (1 - x) <= - x"
+proof -
+  assume a: "0 <= (x::real)" and b: "x < 1"
+  have "(1 - x) * (1 + x + x^2) = (1 - x^3)"
+    by (simp add: algebra_simps power2_eq_square power3_eq_cube)
+  also have "... <= 1"
+    by (auto simp add: a)
+  finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
+  moreover have c: "0 < 1 + x + x\<twosuperior>"
+    by (simp add: add_pos_nonneg a)
+  ultimately have "1 - x <= 1 / (1 + x + x^2)"
+    by (elim mult_imp_le_div_pos)
+  also have "... <= 1 / exp x"
+    apply (rule divide_left_mono)
+    apply (rule exp_bound, rule a)
+    apply (rule b [THEN less_imp_le])
+    apply simp
+    apply (rule mult_pos_pos)
+    apply (rule c)
+    apply simp
+    done
+  also have "... = exp (-x)"
+    by (auto simp add: exp_minus divide_inverse)
+  finally have "1 - x <= exp (- x)" .
+  also have "1 - x = exp (ln (1 - x))"
+  proof -
+    have "0 < 1 - x"
+      by (insert b, auto)
+    thus ?thesis
+      by (auto simp only: exp_ln_iff [THEN sym])
+  qed
+  finally have "exp (ln (1 - x)) <= exp (- x)" .
+  thus ?thesis by (auto simp only: exp_le_cancel_iff)
+qed
+
+lemma exp_ge_add_one_self [simp]: "1 + (x::real) <= exp x"
+  apply (case_tac "0 <= x")
+  apply (erule exp_ge_add_one_self_aux)
+  apply (case_tac "x <= -1")
+  apply (subgoal_tac "1 + x <= 0")
+  apply (erule order_trans)
+  apply simp
+  apply simp
+  apply (subgoal_tac "1 + x = exp(ln (1 + x))")
+  apply (erule ssubst)
+  apply (subst exp_le_cancel_iff)
+  apply (subgoal_tac "ln (1 - (- x)) <= - (- x)")
+  apply simp
+  apply (rule ln_one_minus_pos_upper_bound)
+  apply auto
+done
+
+lemma exp_at_bot: "(exp ---> (0::real)) at_bot"
+  unfolding tendsto_Zfun_iff
+proof (rule ZfunI, simp add: eventually_at_bot_dense)
+  fix r :: real assume "0 < r"
+  { fix x assume "x < ln r"
+    then have "exp x < exp (ln r)"
+      by simp
+    with `0 < r` have "exp x < r"
+      by simp }
+  then show "\<exists>k. \<forall>n<k. exp n < r" by auto
+qed
+
+lemma exp_at_top: "LIM x at_top. exp x :: real :> at_top"
+proof -
+  { fix r n :: real assume "r < n"
+    also have "n < 1 + n" by simp
+    also have "1 + n \<le> exp n" by (rule exp_ge_add_one_self)
+    finally have "r < exp n" . }
+  then show ?thesis
+    by (auto simp: eventually_at_top_dense filterlim_at_top)
+qed
+
+lemma ln_at_0: "LIM x at_right 0. ln x :> at_bot"
+  unfolding filterlim_at_bot
+proof safe
+  fix r :: real
+  { fix x :: real assume "0 < x" "x < exp r"
+    then have "ln x < ln (exp r)"
+      by (subst ln_less_cancel_iff) auto
+    then have "ln x < r" by simp }
+  then show "eventually (\<lambda>x. ln x < r) (at_right 0)"
+    by (auto simp add: dist_real_def eventually_within eventually_at intro!: exI[of _ "exp r"])
+qed
+
+lemma ln_at_top: "LIM x at_top. ln x :> at_top"
+  unfolding filterlim_at_top
+proof safe
+  fix r :: real
+  { fix x assume "exp r < x"
+    with exp_gt_zero[of r] have "ln (exp r) < ln x"
+      by (subst ln_less_cancel_iff) (auto simp del: exp_gt_zero)
+    then have "r < ln x"
+      by simp }
+  then show "eventually (\<lambda>x. r < ln x) at_top"
+    by (auto simp add: eventually_at_top_dense)
 qed
 
 subsection {* Sine and Cosine *}

@@ -373,6 +373,12 @@ definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
 definition (in topological_space) at :: "'a \<Rightarrow> 'a filter"
   where "at a = nhds a within - {a}"
 
+abbreviation at_right :: "'a\<Colon>{topological_space, order} \<Rightarrow> 'a filter" where
+  "at_right x \<equiv> at x within {x <..}"
+
+abbreviation at_left :: "'a\<Colon>{topological_space, order} \<Rightarrow> 'a filter" where
+  "at_left x \<equiv> at x within {..< x}"
+
 definition at_infinity :: "'a::real_normed_vector filter" where
   "at_infinity = Abs_filter (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
 
