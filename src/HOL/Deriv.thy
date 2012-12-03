@@ -1607,25 +1607,89 @@ proof -
     by auto
 qed
 
+lemma DERIV_cong_ev: "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
+    DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
+  unfolding DERIV_iff2
+proof (rule filterlim_cong)
+  assume "eventually (\<lambda>x. f x = g x) (nhds x)"
+  moreover then have "f x = g x" by (auto simp: eventually_nhds)
+  moreover assume "x = y" "u = v"
+  ultimately show "eventually (\<lambda>xa. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)) (at x)"
+    by (auto simp: eventually_within at_def elim: eventually_elim1)
+qed simp_all
+
+lemma at_eq_sup_left_right: "at (x::real) = sup (at_left x) (at_right x)"
+  by (auto simp: eventually_within at_def filter_eq_iff eventually_sup 
+           elim: eventually_elim2 eventually_elim1)
+
+lemma filtermap_sup: "filtermap f (sup F1 F2) = sup (filtermap f F1) (filtermap f F2)"
+  by (auto simp: filter_eq_iff eventually_filtermap eventually_sup)
+
+lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambda>x. f (g x)) F1 F2"
+  unfolding filterlim_def filtermap_filtermap ..
+
+lemma filterlim_sup:
+  "filterlim f F F1 \<Longrightarrow> filterlim f F F2 \<Longrightarrow> filterlim f F (sup F1 F2)"
+  unfolding filterlim_def filtermap_sup by auto
+
+lemma filterlim_split_at_real:
+  "filterlim f F (at_left x) \<Longrightarrow> filterlim f F (at_right x) \<Longrightarrow> filterlim f F (at (x::real))"
+  by (subst at_eq_sup_left_right) (rule filterlim_sup)
+
 lemma lhopital_right_0:
-  fixes f g :: "real \<Rightarrow> real"
-  assumes f_0: "isCont f 0" "f 0 = 0"
-  assumes g_0: "isCont g 0" "g 0 = 0"
+  fixes f0 g0 :: "real \<Rightarrow> real"
+  assumes f_0: "(f0 ---> 0) (at_right 0)"
+  assumes g_0: "(g0 ---> 0) (at_right 0)"
   assumes ev:
-    "eventually (\<lambda>x. g x \<noteq> 0) (at_right 0)"
+    "eventually (\<lambda>x. g0 x \<noteq> 0) (at_right 0)"
     "eventually (\<lambda>x. g' x \<noteq> 0) (at_right 0)"
-    "eventually (\<lambda>x. DERIV f x :> f' x) (at_right 0)"
-    "eventually (\<lambda>x. DERIV g x :> g' x) (at_right 0)"
+    "eventually (\<lambda>x. DERIV f0 x :> f' x) (at_right 0)"
+    "eventually (\<lambda>x. DERIV g0 x :> g' x) (at_right 0)"
   assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) (at_right 0)"
-  shows "((\<lambda> x. f x / g x) ---> x) (at_right 0)"
+  shows "((\<lambda> x. f0 x / g0 x) ---> x) (at_right 0)"
 proof -
-  from eventually_conj[OF eventually_conj[OF ev(1) ev(2)] eventually_conj[OF ev(3) ev(4)]]
-  obtain a where [arith]: "0 < a"
-    and g_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g x \<noteq> 0"
+  def f \<equiv> "\<lambda>x. if x \<le> 0 then 0 else f0 x"
+  then have "f 0 = 0" by simp
+
+  def g \<equiv> "\<lambda>x. if x \<le> 0 then 0 else g0 x"
+  then have "g 0 = 0" by simp
+
+  have "eventually (\<lambda>x. g0 x \<noteq> 0 \<and> g' x \<noteq> 0 \<and>
+      DERIV f0 x :> (f' x) \<and> DERIV g0 x :> (g' x)) (at_right 0)"
+    using ev by eventually_elim auto
+  then obtain a where [arith]: "0 < a"
+    and g0_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g0 x \<noteq> 0"
     and g'_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g' x \<noteq> 0"
-    and f: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV f x :> (f' x)"
-    and g: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV g x :> (g' x)"
+    and f0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV f0 x :> (f' x)"
+    and g0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV g0 x :> (g' x)"
     unfolding eventually_within eventually_at by (auto simp: dist_real_def)
+
+  have g_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g x \<noteq> 0"
+    using g0_neq_0 by (simp add: g_def)
+
+  { fix x assume x: "0 < x" "x < a" then have "DERIV f x :> (f' x)"
+      by (intro DERIV_cong_ev[THEN iffD1, OF _ _ _ f0[OF x]])
+         (auto simp: f_def eventually_nhds_metric dist_real_def intro!: exI[of _ x]) }
+  note f = this
+
+  { fix x assume x: "0 < x" "x < a" then have "DERIV g x :> (g' x)"
+      by (intro DERIV_cong_ev[THEN iffD1, OF _ _ _ g0[OF x]])
+         (auto simp: g_def eventually_nhds_metric dist_real_def intro!: exI[of _ x]) }
+  note g = this
+
+  have "isCont f 0"
+    using tendsto_const[of "0::real" "at 0"] f_0
+    unfolding isCont_def f_def
+    by (intro filterlim_split_at_real)
+       (auto elim: eventually_elim1
+             simp add: filterlim_def le_filter_def eventually_within eventually_filtermap)
+    
+  have "isCont g 0"
+    using tendsto_const[of "0::real" "at 0"] g_0
+    unfolding isCont_def g_def
+    by (intro filterlim_split_at_real)
+       (auto elim: eventually_elim1
+             simp add: filterlim_def le_filter_def eventually_within eventually_filtermap)
 
   have "\<exists>\<zeta>. \<forall>x\<in>{0 <..< a}. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)"
   proof (rule bchoice, rule)
@@ -1661,9 +1725,12 @@ proof -
     by (auto elim!: eventually_elim1 simp: filterlim_within filterlim_at)
   from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) ---> x) (at_right 0)"
     by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
-  ultimately show "((\<lambda>t. f t / g t) ---> x) (at_right 0)"
+  ultimately have "((\<lambda>t. f t / g t) ---> x) (at_right 0)" (is ?P)
     by (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
        (auto elim: eventually_elim1)
+  also have "?P \<longleftrightarrow> ?thesis"
+    by (rule filterlim_cong) (auto simp: f_def g_def eventually_within)
+  finally show ?thesis .
 qed
 
 lemma lhopital_right_0_at_top:
