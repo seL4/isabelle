@@ -119,6 +119,7 @@ fun write_file banner (xs, f) file =
     xs |> chunk_list 500
        |> List.app (File.append path o space_implode "" o map f)
   end
+  handle IO.Io _ => ()
 
 fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
   let
@@ -204,9 +205,9 @@ fun extract_query line =
 fun mash_CLEAR ctxt =
   let val path = mash_model_dir () in
     trace_msg ctxt (K "MaSh CLEAR");
-    File.fold_dir (fn file => fn _ =>
-                      try File.rm (Path.append path (Path.basic file)))
-                  path NONE;
+    try (File.fold_dir (fn file => fn _ =>
+                           try File.rm (Path.append path (Path.basic file)))
+                       path) NONE;
     ()
   end
 
