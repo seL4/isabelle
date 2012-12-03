@@ -447,7 +447,7 @@ lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
   by (simp add: at_eq_bot_iff not_open_singleton)
 
 lemma eventually_at_infinity:
-  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
+  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> P x)"
 unfolding at_infinity_def
 proof (rule eventually_Abs_filter, rule is_filter.intro)
   fix P Q :: "'a \<Rightarrow> bool"
@@ -457,6 +457,30 @@ proof (rule eventually_Abs_filter, rule is_filter.intro)
   then have "\<forall>x. max r s \<le> norm x \<longrightarrow> P x \<and> Q x" by simp
   then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x \<and> Q x" ..
 qed auto
+
+lemma at_infinity_eq_at_top_bot:
+  "(at_infinity \<Colon> real filter) = sup at_top at_bot"
+  unfolding sup_filter_def at_infinity_def eventually_at_top_linorder eventually_at_bot_linorder
+proof (intro arg_cong[where f=Abs_filter] ext iffI)
+  fix P :: "real \<Rightarrow> bool" assume "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
+  then guess r ..
+  then have "(\<forall>x\<ge>r. P x) \<and> (\<forall>x\<le>-r. P x)" by auto
+  then show "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)" by auto
+next
+  fix P :: "real \<Rightarrow> bool" assume "(\<exists>r. \<forall>x\<ge>r. P x) \<and> (\<exists>r. \<forall>x\<le>r. P x)"
+  then obtain p q where "\<forall>x\<ge>p. P x" "\<forall>x\<le>q. P x" by auto
+  then show "\<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x"
+    by (intro exI[of _ "max p (-q)"])
+       (auto simp: abs_real_def)
+qed
+
+lemma at_top_le_at_infinity:
+  "at_top \<le> (at_infinity :: real filter)"
+  unfolding at_infinity_eq_at_top_bot by simp
+
+lemma at_bot_le_at_infinity:
+  "at_bot \<le> (at_infinity :: real filter)"
+  unfolding at_infinity_eq_at_top_bot by simp
 
 subsection {* Boundedness *}
 
@@ -641,11 +665,9 @@ syntax
 translations
   "LIM x F1. f :> F2"   == "CONST filterlim (%x. f) F2 F1"
 
-lemma filterlimE: "(LIM x F1. f x :> F2) \<Longrightarrow> eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1"
-  by (auto simp: filterlim_def eventually_filtermap le_filter_def)
-
-lemma filterlimI: "(\<And>P. eventually P F2 \<Longrightarrow> eventually (\<lambda>x. P (f x)) F1) \<Longrightarrow> (LIM x F1. f x :> F2)"
-  by (auto simp: filterlim_def eventually_filtermap le_filter_def)
+lemma filterlim_iff:
+  "(LIM x F1. f x :> F2) \<longleftrightarrow> (\<forall>P. eventually P F2 \<longrightarrow> eventually (\<lambda>x. P (f x)) F1)"
+  unfolding filterlim_def le_filter_def eventually_filtermap ..
 
 lemma filterlim_compose: 
   "filterlim g F3 F2 \<Longrightarrow> filterlim f F2 F1 \<Longrightarrow> filterlim (\<lambda>x. g (f x)) F3 F1"
@@ -654,6 +676,14 @@ lemma filterlim_compose:
 lemma filterlim_mono: 
   "filterlim f F2 F1 \<Longrightarrow> F2 \<le> F2' \<Longrightarrow> F1' \<le> F1 \<Longrightarrow> filterlim f F2' F1'"
   unfolding filterlim_def by (metis filtermap_mono order_trans)
+
+lemma filterlim_within:
+  "(LIM x F1. f x :> F2 within S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F1 \<and> (LIM x F1. f x :> F2))"
+  unfolding filterlim_def
+proof safe
+  assume "filtermap f F1 \<le> F2 within S" then show "eventually (\<lambda>x. f x \<in> S) F1"
+    by (auto simp: le_filter_def eventually_filtermap eventually_within elim!: allE[of _ "\<lambda>x. x \<in> S"])
+qed (auto intro: within_le order_trans simp: le_within_iff eventually_filtermap)
 
 abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
@@ -677,6 +707,10 @@ proof safe
     unfolding eventually_nhds eventually_filtermap le_filter_def
     by (auto elim!: allE[of _ "\<lambda>x. x \<in> S"] eventually_rev_mp)
 qed (auto elim!: eventually_rev_mp simp: eventually_nhds eventually_filtermap le_filter_def)
+
+lemma filterlim_at:
+  "(LIM x F. f x :> at b) \<longleftrightarrow> (eventually (\<lambda>x. f x \<noteq> b) F \<and> (f ---> b) F)"
+  by (simp add: at_def filterlim_within)
 
 lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def le_filter_def by fast
@@ -770,15 +804,8 @@ lemma tendsto_compose:
   unfolding tendsto_at_iff_tendsto_nhds by (rule filterlim_compose[of g])
 
 lemma tendsto_compose_eventually:
-  assumes g: "(g ---> m) (at l)"
-  assumes f: "(f ---> l) F"
-  assumes inj: "eventually (\<lambda>x. f x \<noteq> l) F"
-  shows "((\<lambda>x. g (f x)) ---> m) F"
-proof -
-  from f inj have "LIM x F. f x :> at l"
-    unfolding filterlim_def at_def by (simp add: le_within_iff eventually_filtermap)
-  from filterlim_compose[OF g this] show ?thesis .
-qed
+  "(g ---> m) (at l) \<Longrightarrow> (f ---> l) F \<Longrightarrow> eventually (\<lambda>x. f x \<noteq> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> m) F"
+  by (rule filterlim_compose[of g _ "at l"]) (auto simp add: filterlim_at)
 
 lemma metric_tendsto_imp_tendsto:
   assumes f: "(f ---> a) F"
@@ -1092,8 +1119,7 @@ subsection {* Limits to @{const at_top} and @{const at_bot} *}
 lemma filterlim_at_top:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z < f x) F)"
-  by (safe elim!: filterlimE intro!: filterlimI)
-     (auto simp: eventually_at_top_dense elim!: eventually_elim1)
+  by (auto simp: filterlim_iff eventually_at_top_dense elim!: eventually_elim1)
 
 lemma filterlim_at_top_gt:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)" and c :: "'b"
@@ -1109,8 +1135,7 @@ qed simp
 lemma filterlim_at_bot: 
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
   shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x < Z) F)"
-  by (safe elim!: filterlimE intro!: filterlimI)
-     (auto simp: eventually_at_bot_dense elim!: eventually_elim1)
+  by (auto simp: filterlim_iff eventually_at_bot_dense elim!: eventually_elim1)
 
 lemma filterlim_at_bot_lt:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)" and c :: "'b"
@@ -1122,6 +1147,25 @@ proof safe
   with *[THEN spec, of x] show "eventually (\<lambda>x. Z > f x) F"
     by (auto elim!: eventually_elim1)
 qed simp
+
+lemma filterlim_at_infinity:
+  fixes f :: "_ \<Rightarrow> 'a\<Colon>real_normed_vector"
+  assumes "0 \<le> c"
+  shows "(LIM x F. f x :> at_infinity) \<longleftrightarrow> (\<forall>r>c. eventually (\<lambda>x. r \<le> norm (f x)) F)"
+  unfolding filterlim_iff eventually_at_infinity
+proof safe
+  fix P :: "'a \<Rightarrow> bool" and b
+  assume *: "\<forall>r>c. eventually (\<lambda>x. r \<le> norm (f x)) F"
+    and P: "\<forall>x. b \<le> norm x \<longrightarrow> P x"
+  have "max b (c + 1) > c" by auto
+  with * have "eventually (\<lambda>x. max b (c + 1) \<le> norm (f x)) F"
+    by auto
+  then show "eventually (\<lambda>x. P (f x)) F"
+  proof eventually_elim
+    fix x assume "max b (c + 1) \<le> norm (f x)"
+    with P show "P (f x)" by auto
+  qed
+qed force
 
 lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
   unfolding filterlim_at_top
@@ -1175,6 +1219,55 @@ lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
 
 lemma filterlim_uminus_at_bot: "LIM x F. f x :> at_top \<Longrightarrow> LIM x F. - (f x) :: real :> at_bot"
   by (rule filterlim_compose[OF filterlim_uminus_at_bot_at_top])
+
+lemma tendsto_inverse_0:
+  fixes x :: "_ \<Rightarrow> 'a\<Colon>real_normed_div_algebra"
+  shows "(inverse ---> (0::'a)) at_infinity"
+  unfolding tendsto_Zfun_iff diff_0_right Zfun_def eventually_at_infinity
+proof safe
+  fix r :: real assume "0 < r"
+  show "\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> norm (inverse x :: 'a) < r"
+  proof (intro exI[of _ "inverse (r / 2)"] allI impI)
+    fix x :: 'a
+    from `0 < r` have "0 < inverse (r / 2)" by simp
+    also assume *: "inverse (r / 2) \<le> norm x"
+    finally show "norm (inverse x) < r"
+      using * `0 < r` by (subst nonzero_norm_inverse) (simp_all add: inverse_eq_divide field_simps)
+  qed
+qed
+
+lemma filterlim_inverse_at_infinity:
+  fixes x :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
+  shows "filterlim inverse at_infinity (at (0::'a))"
+  unfolding filterlim_at_infinity[OF order_refl]
+proof safe
+  fix r :: real assume "0 < r"
+  then show "eventually (\<lambda>x::'a. r \<le> norm (inverse x)) (at 0)"
+    unfolding eventually_at norm_inverse
+    by (intro exI[of _ "inverse r"])
+       (auto simp: norm_conv_dist[symmetric] field_simps inverse_eq_divide)
+qed
+
+lemma filterlim_inverse_at_iff:
+  fixes g :: "'a \<Rightarrow> 'b\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
+  shows "(LIM x F. inverse (g x) :> at 0) \<longleftrightarrow> (LIM x F. g x :> at_infinity)"
+  unfolding filterlim_def filtermap_filtermap[symmetric]
+proof
+  assume "filtermap g F \<le> at_infinity"
+  then have "filtermap inverse (filtermap g F) \<le> filtermap inverse at_infinity"
+    by (rule filtermap_mono)
+  also have "\<dots> \<le> at 0"
+    using tendsto_inverse_0
+    by (auto intro!: le_withinI exI[of _ 1]
+             simp: eventually_filtermap eventually_at_infinity filterlim_def at_def)
+  finally show "filtermap inverse (filtermap g F) \<le> at 0" .
+next
+  assume "filtermap inverse (filtermap g F) \<le> at 0"
+  then have "filtermap inverse (filtermap inverse (filtermap g F)) \<le> filtermap inverse (at 0)"
+    by (rule filtermap_mono)
+  with filterlim_inverse_at_infinity show "filtermap g F \<le> at_infinity"
+    by (auto intro: order_trans simp: filterlim_def filtermap_filtermap)
+qed
 
 text {*
 
