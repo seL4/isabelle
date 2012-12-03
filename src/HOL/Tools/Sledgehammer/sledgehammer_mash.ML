@@ -491,18 +491,18 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
     fun mk_app s args =
       if member (op <>) args "" then s ^ "(" ^ space_implode "," args ^ ")"
       else s
-    fun patternify ~1 _ = ""
-      | patternify depth t =
+    fun patternify_term ~1 _ = ""
+      | patternify_term depth t =
         case strip_comb t of
           (Const (x as (s, _)), args) =>
           if is_bad_const x args then ""
-          else mk_app (const_name_of s) (map (patternify (depth - 1)) args)
+          else mk_app (const_name_of s) (map (patternify_term (depth - 1)) args)
         | _ => ""
-    fun add_pattern depth t =
-      case patternify depth t of "" => I | s => insert (op =) s
+    fun add_term_pattern depth t =
+      case patternify_term depth t of "" => I | s => insert (op =) s
     fun add_term_patterns ~1 _ = I
       | add_term_patterns depth t =
-        add_pattern depth t #> add_term_patterns (depth - 1) t
+        add_term_pattern depth t #> add_term_patterns (depth - 1) t
     val add_term = add_term_patterns term_max_depth
     fun add_patterns t =
       let val (head, args) = strip_comb t in
