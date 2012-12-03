@@ -29,6 +29,7 @@ val preplay_timeoutK = "preplay_timeout" (*=TIME: timeout for finding reconstruc
 val sh_minimizeK = "sh_minimize" (*: instruct sledgehammer to run its minimizer*)
 
 val check_trivialK = "check_trivial" (*: check if goals are "trivial" (false by default)*)
+val fact_filterK = "fact_filter" (*=STRING: fact filter*)
 val type_encK = "type_enc" (*=STRING: type encoding scheme*)
 val lam_transK = "lam_trans" (*=STRING: lambda translation scheme*)
 val strictK = "strict" (*=BOOL: run in strict mode*)
@@ -52,6 +53,7 @@ val separator = "-----"
 val preplay_timeout_default = "4"
 val lam_trans_default = "smart"
 val uncurried_aliases_default = "smart"
+val fact_filter_default = "smart"
 val type_enc_default = "smart"
 val strict_default = "false"
 val max_facts_default = "smart"
@@ -399,10 +401,10 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
-        uncurried_aliases e_selection_heuristic term_order force_sos
-        hard_timeout timeout preplay_timeout sh_minimizeLST
-        max_new_mono_instancesLST max_mono_itersLST dir pos st =
+fun run_sh prover_name prover fact_filter type_enc strict max_facts slice
+      lam_trans uncurried_aliases e_selection_heuristic term_order force_sos
+      hard_timeout timeout preplay_timeout sh_minimizeLST
+      max_new_mono_instancesLST max_mono_itersLST dir pos st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -427,6 +429,7 @@ fun run_sh prover_name prover type_enc strict max_facts slice lam_trans
     val params as {max_facts, slice, ...} =
       Sledgehammer_Isar.default_params ctxt
          ([("verbose", "true"),
+           ("fact_filter", fact_filter),
            ("type_enc", type_enc),
            ("strict", strict),
            ("lam_trans", lam_trans |> the_default lam_trans_default),
@@ -495,6 +498,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
+    val fact_filter = AList.lookup (op =) args fact_filterK |> the_default fact_filter_default
     val type_enc = AList.lookup (op =) args type_encK |> the_default type_enc_default
     val strict = AList.lookup (op =) args strictK |> the_default strict_default
     val max_facts =
@@ -522,8 +526,8 @@ fun run_sledgehammer trivial args reconstructor named_thms id
     val max_mono_itersLST = available_parameter args max_mono_itersK max_mono_itersK
     val hard_timeout = SOME (4 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_enc strict max_facts slice lam_trans
-        uncurried_aliases e_selection_heuristic term_order force_sos
+      run_sh prover_name prover fact_filter type_enc strict max_facts slice
+        lam_trans uncurried_aliases e_selection_heuristic term_order force_sos
         hard_timeout timeout preplay_timeout sh_minimizeLST
         max_new_mono_instancesLST max_mono_itersLST dir pos st
   in
