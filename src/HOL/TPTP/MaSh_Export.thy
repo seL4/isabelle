@@ -5,17 +5,7 @@
 header {* MaSh Exporter *}
 
 theory MaSh_Export
-imports
-  Main
-(*
-  "~/afp/thys/Jinja/J/TypeSafe"
-  "~/afp/thys/ArrowImpossibilityGS/Thys/Arrow_Order"
-  "~/afp/thys/FFT/FFT"
-  "~~/src/HOL/Auth/NS_Shared"
-  "~~/src/HOL/IMPP/Hoare"
-  "~~/src/HOL/Library/Fundamental_Theorem_Algebra"
-  "~~/src/HOL/Proofs/Lambda/StrongNorm"
-*)
+imports Main
 begin
 
 ML_file "mash_export.ML"
@@ -30,7 +20,7 @@ open MaSh_Export
 
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
-val thys = [@{theory Main}] (* [@{theory Fundamental_Theorem_Algebra}] *)
+val thys = [@{theory List}]
 val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
 val dir = space_implode "__" (map Context.theory_name thys)
@@ -38,7 +28,10 @@ val prefix = "/tmp/" ^ dir ^ "/"
 *}
 
 ML {*
-Isabelle_System.mkdir (Path.explode prefix)
+if do_it then
+  Isabelle_System.mkdir (Path.explode prefix)
+else
+  ()
 *}
 
 ML {*
