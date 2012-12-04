@@ -364,7 +364,8 @@ lemma tendsto_neg_powr:
 proof (rule tendstoI)
   fix e :: real assume "0 < e"
   def Z \<equiv> "e powr (1 / s)"
-  from assms have "eventually (\<lambda>x. Z < f x) F" by (simp add: filterlim_at_top)
+  from assms have "eventually (\<lambda>x. Z < f x) F"
+    by (simp add: filterlim_at_top_dense)
   moreover
   from assms have "\<And>x. Z < x \<Longrightarrow> x powr s < Z powr s"
     by (auto simp: Z_def intro!: powr_less_mono2_neg)

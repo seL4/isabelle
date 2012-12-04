@@ -298,6 +298,10 @@ proof (rule eventually_Abs_filter, rule is_filter.intro)
   then show "\<exists>k. \<forall>n\<ge>k. P n \<and> Q n" ..
 qed auto
 
+lemma eventually_ge_at_top:
+  "eventually (\<lambda>x. (c::_::linorder) \<le> x) at_top"
+  unfolding eventually_at_top_linorder by auto
+
 lemma eventually_at_top_dense: "eventually P at_top \<longleftrightarrow> (\<exists>N::'a::dense_linorder. \<forall>n>N. P n)"
   unfolding eventually_at_top_linorder
 proof safe
@@ -307,6 +311,10 @@ next
   moreover from gt_ex[of N] guess y ..
   ultimately show "\<exists>N. \<forall>n\<ge>N. P n" by (auto intro!: exI[of _ y])
 qed
+
+lemma eventually_gt_at_top:
+  "eventually (\<lambda>x. (c::_::dense_linorder) < x) at_top"
+  unfolding eventually_at_top_dense by auto
 
 definition at_bot :: "('a::order) filter"
   where "at_bot = Abs_filter (\<lambda>P. \<exists>k. \<forall>n\<le>k. P n)"
@@ -322,6 +330,10 @@ proof (rule eventually_Abs_filter, rule is_filter.intro)
   then show "\<exists>k. \<forall>n\<le>k. P n \<and> Q n" ..
 qed auto
 
+lemma eventually_le_at_bot:
+  "eventually (\<lambda>x. x \<le> (c::_::linorder)) at_bot"
+  unfolding eventually_at_bot_linorder by auto
+
 lemma eventually_at_bot_dense:
   fixes P :: "'a::dense_linorder \<Rightarrow> bool" shows "eventually P at_bot \<longleftrightarrow> (\<exists>N. \<forall>n<N. P n)"
   unfolding eventually_at_bot_linorder
@@ -332,6 +344,10 @@ next
   moreover from lt_ex[of N] guess y ..
   ultimately show "\<exists>N. \<forall>n\<le>N. P n" by (auto intro!: exI[of _ y])
 qed
+
+lemma eventually_gt_at_bot:
+  "eventually (\<lambda>x. x < (c::_::dense_linorder)) at_bot"
+  unfolding eventually_at_bot_dense by auto
 
 subsection {* Sequentially *}
 
@@ -1193,36 +1209,115 @@ lemma tendsto_sgn [tendsto_intros]:
 subsection {* Limits to @{const at_top} and @{const at_bot} *}
 
 lemma filterlim_at_top:
+  fixes f :: "'a \<Rightarrow> ('b::linorder)"
+  shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z \<le> f x) F)"
+  by (auto simp: filterlim_iff eventually_at_top_linorder elim!: eventually_elim1)
+
+lemma filterlim_at_top_dense:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
   shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. Z < f x) F)"
-  by (auto simp: filterlim_iff eventually_at_top_dense elim!: eventually_elim1)
+  by (metis eventually_elim1[of _ F] eventually_gt_at_top order_less_imp_le
+            filterlim_at_top[of f F] filterlim_iff[of f at_top F])
+
+lemma filterlim_at_top_ge:
+  fixes f :: "'a \<Rightarrow> ('b::linorder)" and c :: "'b"
+  shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z\<ge>c. eventually (\<lambda>x. Z \<le> f x) F)"
+  unfolding filterlim_at_top
+proof safe
+  fix Z assume *: "\<forall>Z\<ge>c. eventually (\<lambda>x. Z \<le> f x) F"
+  with *[THEN spec, of "max Z c"] show "eventually (\<lambda>x. Z \<le> f x) F"
+    by (auto elim!: eventually_elim1)
+qed simp
+
+lemma filterlim_at_top_at_top:
+  fixes f :: "'a::linorder \<Rightarrow> 'b::linorder"
+  assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+  assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
+  assumes Q: "eventually Q at_top"
+  assumes P: "eventually P at_top"
+  shows "filterlim f at_top at_top"
+proof -
+  from P obtain x where x: "\<And>y. x \<le> y \<Longrightarrow> P y"
+    unfolding eventually_at_top_linorder by auto
+  show ?thesis
+  proof (intro filterlim_at_top_ge[THEN iffD2] allI impI)
+    fix z assume "x \<le> z"
+    with x have "P z" by auto
+    have "eventually (\<lambda>x. g z \<le> x) at_top"
+      by (rule eventually_ge_at_top)
+    with Q show "eventually (\<lambda>x. z \<le> f x) at_top"
+      by eventually_elim (metis mono bij `P z`)
+  qed
+qed
 
 lemma filterlim_at_top_gt:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)" and c :: "'b"
-  shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z>c. eventually (\<lambda>x. Z < f x) F)"
-  unfolding filterlim_at_top
-proof safe
-  fix Z assume *: "\<forall>Z>c. eventually (\<lambda>x. Z < f x) F"
-  from gt_ex[of "max Z c"] guess x ..
-  with *[THEN spec, of x] show "eventually (\<lambda>x. Z < f x) F"
-    by (auto elim!: eventually_elim1)
-qed simp
+  shows "(LIM x F. f x :> at_top) \<longleftrightarrow> (\<forall>Z>c. eventually (\<lambda>x. Z \<le> f x) F)"
+  by (metis filterlim_at_top order_less_le_trans gt_ex filterlim_at_top_ge)
 
 lemma filterlim_at_bot: 
-  fixes f :: "'a \<Rightarrow> ('b::dense_linorder)"
-  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x < Z) F)"
-  by (auto simp: filterlim_iff eventually_at_bot_dense elim!: eventually_elim1)
+  fixes f :: "'a \<Rightarrow> ('b::linorder)"
+  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z. eventually (\<lambda>x. f x \<le> Z) F)"
+  by (auto simp: filterlim_iff eventually_at_bot_linorder elim!: eventually_elim1)
+
+lemma filterlim_at_bot_le:
+  fixes f :: "'a \<Rightarrow> ('b::linorder)" and c :: "'b"
+  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z\<le>c. eventually (\<lambda>x. Z \<ge> f x) F)"
+  unfolding filterlim_at_bot
+proof safe
+  fix Z assume *: "\<forall>Z\<le>c. eventually (\<lambda>x. Z \<ge> f x) F"
+  with *[THEN spec, of "min Z c"] show "eventually (\<lambda>x. Z \<ge> f x) F"
+    by (auto elim!: eventually_elim1)
+qed simp
 
 lemma filterlim_at_bot_lt:
   fixes f :: "'a \<Rightarrow> ('b::dense_linorder)" and c :: "'b"
-  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z<c. eventually (\<lambda>x. Z > f x) F)"
-  unfolding filterlim_at_bot
-proof safe
-  fix Z assume *: "\<forall>Z<c. eventually (\<lambda>x. Z > f x) F"
-  from lt_ex[of "min Z c"] guess x ..
-  with *[THEN spec, of x] show "eventually (\<lambda>x. Z > f x) F"
-    by (auto elim!: eventually_elim1)
-qed simp
+  shows "(LIM x F. f x :> at_bot) \<longleftrightarrow> (\<forall>Z<c. eventually (\<lambda>x. Z \<ge> f x) F)"
+  by (metis filterlim_at_bot filterlim_at_bot_le lt_ex order_le_less_trans)
+
+lemma filterlim_at_bot_at_right:
+  fixes f :: "real \<Rightarrow> 'b::linorder"
+  assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+  assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
+  assumes Q: "eventually Q (at_right a)" and bound: "\<And>b. Q b \<Longrightarrow> a < b"
+  assumes P: "eventually P at_bot"
+  shows "filterlim f at_bot (at_right a)"
+proof -
+  from P obtain x where x: "\<And>y. y \<le> x \<Longrightarrow> P y"
+    unfolding eventually_at_bot_linorder by auto
+  show ?thesis
+  proof (intro filterlim_at_bot_le[THEN iffD2] allI impI)
+    fix z assume "z \<le> x"
+    with x have "P z" by auto
+    have "eventually (\<lambda>x. x \<le> g z) (at_right a)"
+      using bound[OF bij(2)[OF `P z`]]
+      by (auto simp add: eventually_within_less dist_real_def intro!:  exI[of _ "g z - a"])
+    with Q show "eventually (\<lambda>x. f x \<le> z) (at_right a)"
+      by eventually_elim (metis bij `P z` mono)
+  qed
+qed
+
+lemma filterlim_at_top_at_left:
+  fixes f :: "real \<Rightarrow> 'b::linorder"
+  assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
+  assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
+  assumes Q: "eventually Q (at_left a)" and bound: "\<And>b. Q b \<Longrightarrow> b < a"
+  assumes P: "eventually P at_top"
+  shows "filterlim f at_top (at_left a)"
+proof -
+  from P obtain x where x: "\<And>y. x \<le> y \<Longrightarrow> P y"
+    unfolding eventually_at_top_linorder by auto
+  show ?thesis
+  proof (intro filterlim_at_top_ge[THEN iffD2] allI impI)
+    fix z assume "x \<le> z"
+    with x have "P z" by auto
+    have "eventually (\<lambda>x. g z \<le> x) (at_left a)"
+      using bound[OF bij(2)[OF `P z`]]
+      by (auto simp add: eventually_within_less dist_real_def intro!:  exI[of _ "a - g z"])
+    with Q show "eventually (\<lambda>x. z \<le> f x) (at_left a)"
+      by eventually_elim (metis bij `P z` mono)
+  qed
+qed
 
 lemma filterlim_at_infinity:
   fixes f :: "_ \<Rightarrow> 'a\<Colon>real_normed_vector"
@@ -1257,7 +1352,7 @@ proof safe
   fix Z :: real assume [arith]: "0 < Z"
   then have "eventually (\<lambda>x. x < inverse Z) (nhds 0)"
     by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
-  then show "eventually (\<lambda>x. x \<in> {0<..} \<longrightarrow> Z < inverse x) (nhds 0)"
+  then show "eventually (\<lambda>x. x \<in> {0<..} \<longrightarrow> Z \<le> inverse x) (nhds 0)"
     by (auto elim!: eventually_elim1 simp: inverse_eq_divide field_simps)
 qed
 
@@ -1273,7 +1368,7 @@ proof safe
   fix Z :: real assume [arith]: "Z < 0"
   have "eventually (\<lambda>x. inverse Z < x) (nhds 0)"
     by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
-  then show "eventually (\<lambda>x. x \<in> {..< 0} \<longrightarrow> inverse x < Z) (nhds 0)"
+  then show "eventually (\<lambda>x. x \<in> {..< 0} \<longrightarrow> inverse x \<le> Z) (nhds 0)"
     by (auto elim!: eventually_elim1 simp: inverse_eq_divide field_simps)
 qed
 
@@ -1282,19 +1377,34 @@ lemma filterlim_inverse_at_bot:
   by (intro filterlim_compose[OF filterlim_inverse_at_bot_neg])
      (simp add: filterlim_def eventually_filtermap le_within_iff)
 
+lemma at_top_mirror: "at_top = filtermap uminus (at_bot :: real filter)"
+  unfolding filter_eq_iff eventually_filtermap eventually_at_top_linorder eventually_at_bot_linorder
+  by (metis le_minus_iff minus_minus)
+
+lemma at_bot_mirror: "at_bot = filtermap uminus (at_top :: real filter)"
+  unfolding at_top_mirror filtermap_filtermap by (simp add: filtermap_ident)
+
+lemma filterlim_at_top_mirror: "(LIM x at_top. f x :> F) \<longleftrightarrow> (LIM x at_bot. f (-x::real) :> F)"
+  unfolding filterlim_def at_top_mirror filtermap_filtermap ..
+
+lemma filterlim_at_bot_mirror: "(LIM x at_bot. f x :> F) \<longleftrightarrow> (LIM x at_top. f (-x::real) :> F)"
+  unfolding filterlim_def at_bot_mirror filtermap_filtermap ..
+
 lemma filterlim_uminus_at_top_at_bot: "LIM x at_bot. - x :: real :> at_top"
   unfolding filterlim_at_top eventually_at_bot_dense
-  by (blast intro: less_minus_iff[THEN iffD1])
-
-lemma filterlim_uminus_at_top: "LIM x F. f x :> at_bot \<Longrightarrow> LIM x F. - (f x) :: real :> at_top"
-  by (rule filterlim_compose[OF filterlim_uminus_at_top_at_bot])
+  by (metis leI minus_less_iff order_less_asym)
 
 lemma filterlim_uminus_at_bot_at_top: "LIM x at_top. - x :: real :> at_bot"
   unfolding filterlim_at_bot eventually_at_top_dense
-  by (blast intro: minus_less_iff[THEN iffD1])
+  by (metis leI less_minus_iff order_less_asym)
 
-lemma filterlim_uminus_at_bot: "LIM x F. f x :> at_top \<Longrightarrow> LIM x F. - (f x) :: real :> at_bot"
-  by (rule filterlim_compose[OF filterlim_uminus_at_bot_at_top])
+lemma filterlim_uminus_at_top: "(LIM x F. f x :> at_top) \<longleftrightarrow> (LIM x F. - (f x) :: real :> at_bot)"
+  using filterlim_compose[OF filterlim_uminus_at_bot_at_top, of f F]
+  using filterlim_compose[OF filterlim_uminus_at_top_at_bot, of "\<lambda>x. - f x" F]
+  by auto
+
+lemma filterlim_uminus_at_bot: "(LIM x F. f x :> at_bot) \<longleftrightarrow> (LIM x F. - (f x) :: real :> at_top)"
+  unfolding filterlim_uminus_at_top by simp
 
 lemma tendsto_inverse_0:
   fixes x :: "_ \<Rightarrow> 'a\<Colon>real_normed_div_algebra"
@@ -1362,14 +1472,14 @@ proof safe
   from f `0 < c` have "eventually (\<lambda>x. c / 2 < f x) F"
     by (auto dest!: tendstoD[where e="c / 2"] elim!: eventually_elim1
              simp: dist_real_def abs_real_def split: split_if_asm)
-  moreover from g have "eventually (\<lambda>x. (Z / c * 2) < g x) F"
+  moreover from g have "eventually (\<lambda>x. (Z / c * 2) \<le> g x) F"
     unfolding filterlim_at_top by auto
-  ultimately show "eventually (\<lambda>x. Z < f x * g x) F"
+  ultimately show "eventually (\<lambda>x. Z \<le> f x * g x) F"
   proof eventually_elim
-    fix x assume "c / 2 < f x" "Z / c * 2 < g x"
-    with `0 < Z` `0 < c` have "c / 2 * (Z / c * 2) < f x * g x"
-      by (intro mult_strict_mono) (auto simp: zero_le_divide_iff)
-    with `0 < c` show "Z < f x * g x"
+    fix x assume "c / 2 < f x" "Z / c * 2 \<le> g x"
+    with `0 < Z` `0 < c` have "c / 2 * (Z / c * 2) \<le> f x * g x"
+      by (intro mult_mono) (auto simp: zero_le_divide_iff)
+    with `0 < c` show "Z \<le> f x * g x"
        by simp
   qed
 qed
@@ -1381,16 +1491,16 @@ lemma filterlim_at_top_mult_at_top:
   unfolding filterlim_at_top_gt[where c=0]
 proof safe
   fix Z :: real assume "0 < Z"
-  from f have "eventually (\<lambda>x. 1 < f x) F"
+  from f have "eventually (\<lambda>x. 1 \<le> f x) F"
     unfolding filterlim_at_top by auto
-  moreover from g have "eventually (\<lambda>x. Z < g x) F"
+  moreover from g have "eventually (\<lambda>x. Z \<le> g x) F"
     unfolding filterlim_at_top by auto
-  ultimately show "eventually (\<lambda>x. Z < f x * g x) F"
+  ultimately show "eventually (\<lambda>x. Z \<le> f x * g x) F"
   proof eventually_elim
-    fix x assume "1 < f x" "Z < g x"
-    with `0 < Z` have "1 * Z < f x * g x"
-      by (intro mult_strict_mono) (auto simp: zero_le_divide_iff)
-    then show "Z < f x * g x"
+    fix x assume "1 \<le> f x" "Z \<le> g x"
+    with `0 < Z` have "1 * Z \<le> f x * g x"
+      by (intro mult_mono) (auto simp: zero_le_divide_iff)
+    then show "Z \<le> f x * g x"
        by simp
   qed
 qed
@@ -1404,9 +1514,9 @@ proof safe
   fix Z :: real assume "0 < Z"
   from f have "eventually (\<lambda>x. c - 1 < f x) F"
     by (auto dest!: tendstoD[where e=1] elim!: eventually_elim1 simp: dist_real_def)
-  moreover from g have "eventually (\<lambda>x. Z - (c - 1) < g x) F"
+  moreover from g have "eventually (\<lambda>x. Z - (c - 1) \<le> g x) F"
     unfolding filterlim_at_top by auto
-  ultimately show "eventually (\<lambda>x. Z < f x + g x) F"
+  ultimately show "eventually (\<lambda>x. Z \<le> f x + g x) F"
     by eventually_elim simp
 qed
 
@@ -1417,11 +1527,11 @@ lemma filterlim_at_top_add_at_top:
   unfolding filterlim_at_top_gt[where c=0]
 proof safe
   fix Z :: real assume "0 < Z"
-  from f have "eventually (\<lambda>x. 0 < f x) F"
+  from f have "eventually (\<lambda>x. 0 \<le> f x) F"
     unfolding filterlim_at_top by auto
-  moreover from g have "eventually (\<lambda>x. Z < g x) F"
+  moreover from g have "eventually (\<lambda>x. Z \<le> g x) F"
     unfolding filterlim_at_top by auto
-  ultimately show "eventually (\<lambda>x. Z < f x + g x) F"
+  ultimately show "eventually (\<lambda>x. Z \<le> f x + g x) F"
     by eventually_elim simp
 qed
 

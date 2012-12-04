@@ -1328,39 +1328,16 @@ proof (rule ZfunI, simp add: eventually_at_bot_dense)
 qed
 
 lemma exp_at_top: "LIM x at_top. exp x :: real :> at_top"
-proof -
-  { fix r n :: real assume "r < n"
-    also have "n < 1 + n" by simp
-    also have "1 + n \<le> exp n" by (rule exp_ge_add_one_self)
-    finally have "r < exp n" . }
-  then show ?thesis
-    by (auto simp: eventually_at_top_dense filterlim_at_top)
-qed
+  by (rule filterlim_at_top_at_top[where Q="\<lambda>x. True" and P="\<lambda>x. 0 < x" and g="ln"])
+     (auto intro: eventually_gt_at_top)
 
 lemma ln_at_0: "LIM x at_right 0. ln x :> at_bot"
-  unfolding filterlim_at_bot
-proof safe
-  fix r :: real
-  { fix x :: real assume "0 < x" "x < exp r"
-    then have "ln x < ln (exp r)"
-      by (subst ln_less_cancel_iff) auto
-    then have "ln x < r" by simp }
-  then show "eventually (\<lambda>x. ln x < r) (at_right 0)"
-    by (auto simp add: dist_real_def eventually_within eventually_at intro!: exI[of _ "exp r"])
-qed
+  by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])
+     (auto simp: eventually_within)
 
 lemma ln_at_top: "LIM x at_top. ln x :> at_top"
-  unfolding filterlim_at_top
-proof safe
-  fix r :: real
-  { fix x assume "exp r < x"
-    with exp_gt_zero[of r] have "ln (exp r) < ln x"
-      by (subst ln_less_cancel_iff) (auto simp del: exp_gt_zero)
-    then have "r < ln x"
-      by simp }
-  then show "eventually (\<lambda>x. r < ln x) at_top"
-    by (auto simp add: eventually_at_top_dense)
-qed
+  by (rule filterlim_at_top_at_top[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])
+     (auto intro: eventually_gt_at_top)
 
 subsection {* Sine and Cosine *}
 
@@ -2480,6 +2457,39 @@ declare
   DERIV_arcsin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
   DERIV_arccos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
   DERIV_arctan[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+
+lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
+  by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
+     (auto simp: le_less eventually_within_less dist_real_def simp del: less_divide_eq_numeral1
+           intro!: tan_monotone exI[of _ "pi/2"])
+
+lemma filterlim_tan_at_left: "filterlim tan at_top (at_left (pi/2))"
+  by (rule filterlim_at_top_at_left[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
+     (auto simp: le_less eventually_within_less dist_real_def simp del: less_divide_eq_numeral1
+           intro!: tan_monotone exI[of _ "pi/2"])
+
+lemma tendsto_arctan_at_top: "(arctan ---> (pi/2)) at_top"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  def y \<equiv> "pi/2 - min (pi/2) e"
+  then have y: "0 \<le> y" "y < pi/2" "pi/2 \<le> e + y"
+    using `0 < e` by auto
+
+  show "eventually (\<lambda>x. dist (arctan x) (pi / 2) < e) at_top"
+  proof (intro eventually_at_top_dense[THEN iffD2] exI allI impI)
+    fix x assume "tan y < x"
+    then have "arctan (tan y) < arctan x"
+      by (simp add: arctan_less_iff)
+    with y have "y < arctan x"
+      by (subst (asm) arctan_tan) simp_all
+    with arctan_ubound[of x, arith] y `0 < e`
+    show "dist (arctan x) (pi / 2) < e"
+      by (simp add: dist_real_def)
+  qed
+qed
+
+lemma tendsto_arctan_at_bot: "(arctan ---> - (pi/2)) at_bot"
+  unfolding filterlim_at_bot_mirror arctan_minus by (intro tendsto_minus tendsto_arctan_at_top)
 
 subsection {* More Theorems about Sin and Cos *}
 

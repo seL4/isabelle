@@ -1783,7 +1783,7 @@ proof safe
 
   moreover
   have "eventually (\<lambda>t. 0 < g t) (at_right 0)" "eventually (\<lambda>t. g a < g t) (at_right 0)"
-    using g_0 by (auto elim: eventually_elim1 simp: filterlim_at_top)
+    using g_0 by (auto elim: eventually_elim1 simp: filterlim_at_top_dense)
 
   moreover
   have inv_g: "((\<lambda>x. inverse (g x)) ---> 0) (at_right 0)"
