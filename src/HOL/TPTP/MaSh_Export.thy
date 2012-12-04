@@ -30,10 +30,11 @@ open MaSh_Export
 
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
-val thy = @{theory List}
+val thys = [@{theory Main}] (* [@{theory Fundamental_Theorem_Algebra}] *)
 val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
-val prefix = "/tmp/" ^ Context.theory_name thy ^ "/"
+val dir = space_implode "__" (map Context.theory_name thys)
+val prefix = "/tmp/" ^ dir ^ "/"
 *}
 
 ML {*
@@ -42,42 +43,42 @@ Isabelle_System.mkdir (Path.explode prefix)
 
 ML {*
 if do_it then
-  generate_accessibility @{context} thy false (prefix ^ "mash_accessibility")
+  generate_accessibility @{context} thys false (prefix ^ "mash_accessibility")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_features @{context} prover thy false (prefix ^ "mash_features")
+  generate_features @{context} prover thys false (prefix ^ "mash_features")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_isar_dependencies @{context} thy false (prefix ^ "mash_dependencies")
+  generate_isar_dependencies @{context} thys false (prefix ^ "mash_dependencies")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_commands @{context} params thy (prefix ^ "mash_commands")
+  generate_commands @{context} params thys (prefix ^ "mash_commands")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params thy 1024 (prefix ^ "mash_mepo_suggestions")
+  generate_mepo_suggestions @{context} params thys 1024 (prefix ^ "mash_mepo_suggestions")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_atp_dependencies @{context} params thy false (prefix ^ "mash_atp_dependencies")
+  generate_atp_dependencies @{context} params thys false (prefix ^ "mash_atp_dependencies")
 else
   ()
 *}

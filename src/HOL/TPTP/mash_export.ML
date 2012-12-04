@@ -9,16 +9,18 @@ signature MASH_EXPORT =
 sig
   type params = Sledgehammer_Provers.params
 
-  val generate_accessibility : Proof.context -> theory -> bool -> string -> unit
+  val generate_accessibility :
+    Proof.context -> theory list -> bool -> string -> unit
   val generate_features :
-    Proof.context -> string -> theory -> bool -> string -> unit
+    Proof.context -> string -> theory list -> bool -> string -> unit
   val generate_isar_dependencies :
-    Proof.context -> theory -> bool -> string -> unit
+    Proof.context -> theory list -> bool -> string -> unit
   val generate_atp_dependencies :
-    Proof.context -> params -> theory -> bool -> string -> unit
-  val generate_commands : Proof.context -> params -> theory -> string -> unit
+    Proof.context -> params -> theory list -> bool -> string -> unit
+  val generate_commands :
+    Proof.context -> params -> theory list -> string -> unit
   val generate_mepo_suggestions :
-    Proof.context -> params -> theory -> int -> string -> unit
+    Proof.context -> params -> theory list -> int -> string -> unit
 end;
 
 structure MaSh_Export : MASH_EXPORT =
@@ -34,30 +36,32 @@ fun thy_map_from_facts ths =
       |> AList.coalesce (op =)
       |> map (apsnd (map nickname_of))
 
-fun has_thy thy th =
+fun has_thm_thy th thy =
   Context.theory_name thy = Context.theory_name (theory_of_thm th)
 
-fun all_facts ctxt thy =
+fun has_thys thys th = exists (has_thm_thy th) thys
+
+fun all_facts ctxt =
   let val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt in
-    nearly_all_facts (Proof_Context.init_global thy) false no_fact_override
-                     Symtab.empty css [] [] @{prop True}
+    nearly_all_facts ctxt false no_fact_override Symtab.empty css [] []
+                     @{prop True}
   end
 
-fun parent_facts thy thy_map =
+fun add_thy_parent_facts thy_map thy =
   let
     fun add_last thy =
       case AList.lookup (op =) thy_map (Context.theory_name thy) of
         SOME (last_fact :: _) => insert (op =) last_fact
       | _ => add_parent thy
     and add_parent thy = fold add_last (Theory.parents_of thy)
-  in add_parent thy [] end
+  in add_parent thy end
 
 val thy_name_of_fact = hd o Long_Name.explode
-fun thy_of_fact thy = Context.this_theory thy o thy_name_of_fact
+fun thy_of_fact thy = Context.get_theory thy o thy_name_of_fact
 
 val all_names = map (rpair () o nickname_of) #> Symtab.make
 
-fun generate_accessibility ctxt thy include_thy file_name =
+fun generate_accessibility ctxt thys include_thys file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -67,23 +71,23 @@ fun generate_accessibility ctxt thy include_thy file_name =
         val _ = File.append path s
       in [fact] end
     val thy_map =
-      all_facts ctxt thy
-      |> not include_thy ? filter_out (has_thy thy o snd)
+      all_facts ctxt
+      |> not include_thys ? filter_out (has_thys thys o snd)
       |> thy_map_from_facts
     fun do_thy facts =
       let
-        val thy = thy_of_fact thy (hd facts)
-        val parents = parent_facts thy thy_map
+        val thy = thy_of_fact (Proof_Context.theory_of ctxt) (hd facts)
+        val parents = add_thy_parent_facts thy_map thy []
       in fold_rev do_fact facts parents; () end
   in fold_rev (fn (_, facts) => fn () => do_thy facts) thy_map () end
 
-fun generate_features ctxt prover thy include_thy file_name =
+fun generate_features ctxt prover thys include_thys file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts =
-      all_facts ctxt thy
-      |> not include_thy ? filter_out (has_thy thy o snd)
+      all_facts ctxt
+      |> not include_thys ? filter_out (has_thys thys o snd)
     fun do_fact ((_, stature), th) =
       let
         val name = nickname_of th
@@ -93,13 +97,13 @@ fun generate_features ctxt prover thy include_thy file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun generate_isar_dependencies ctxt thy include_thy file_name =
+fun generate_isar_dependencies ctxt thys include_thys file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val ths =
-      all_facts ctxt thy
-      |> not include_thy ? filter_out (has_thy thy o snd)
+      all_facts ctxt
+      |> not include_thys ? filter_out (has_thys thys o snd)
       |> map snd
     val all_names = all_names ths
     fun do_thm th =
@@ -110,15 +114,15 @@ fun generate_isar_dependencies ctxt thy include_thy file_name =
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
+fun generate_atp_dependencies ctxt (params as {provers, ...}) thys include_thys
                               file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
     val facts =
-      all_facts ctxt thy
-      |> not include_thy ? filter_out (has_thy thy o snd)
+      all_facts ctxt
+      |> not include_thys ? filter_out (has_thys thys o snd)
     val ths = facts |> map snd
     val all_names = all_names ths
     fun do_thm th =
@@ -131,20 +135,21 @@ fun generate_atp_dependencies ctxt (params as {provers, ...}) thy include_thy
       in File.append path s end
   in List.app do_thm ths end
 
-fun generate_commands ctxt (params as {provers, ...}) thy file_name =
+fun generate_commands ctxt (params as {provers, ...}) thys file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
-    val facts = all_facts ctxt thy
+    val facts = all_facts ctxt
     val (new_facts, old_facts) =
-      facts |> List.partition (has_thy thy o snd)
+      facts |> List.partition (has_thys thys o snd)
             |>> sort (thm_ord o pairself snd)
     val all_names = all_names (map snd facts)
     fun do_fact ((_, stature), th) prevs =
       let
         val name = nickname_of th
-        val feats = features_of ctxt prover thy stature [prop_of th]
+        val feats =
+          features_of ctxt prover (theory_of_thm th) stature [prop_of th]
         val deps =
           atp_dependencies_of ctxt params prover 0 facts all_names th
           |> snd |> these
@@ -158,23 +163,23 @@ fun generate_commands ctxt (params as {provers, ...}) thy file_name =
         val _ = File.append path (query ^ update)
       in [name] end
     val thy_map = old_facts |> thy_map_from_facts
-    val parents = parent_facts thy thy_map
+    val parents = fold (add_thy_parent_facts thy_map) thys []
   in fold do_fact new_facts parents; () end
 
-fun generate_mepo_suggestions ctxt (params as {provers, ...}) thy max_relevant
+fun generate_mepo_suggestions ctxt (params as {provers, ...}) thys max_relevant
                               file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val prover = hd provers
-    val facts = all_facts ctxt thy
+    val facts = all_facts ctxt
     val (new_facts, old_facts) =
-      facts |> List.partition (has_thy thy o snd)
+      facts |> List.partition (has_thys thys o snd)
             |>> sort (thm_ord o pairself snd)
     fun do_fact (fact as (_, th)) old_facts =
       let
         val name = nickname_of th
-        val goal = goal_of_thm thy th
+        val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val kind = Thm.legacy_get_kind th
         val _ =
