@@ -28,15 +28,16 @@ sig
   val escape_metas : string list -> string
   val unescape_meta : string -> string
   val unescape_metas : string -> string list
+  val encode_features : (string * real) list -> string
   val extract_query : string -> string * (string * real) list
   val mash_CLEAR : Proof.context -> unit
   val mash_ADD :
     Proof.context -> bool
-    -> (string * string list * string list * string list) list -> unit
+    -> (string * string list * (string * real) list * string list) list -> unit
   val mash_REPROVE :
     Proof.context -> bool -> (string * string list) list -> unit
   val mash_QUERY :
-    Proof.context -> bool -> int -> string list * string list
+    Proof.context -> bool -> int -> string list * (string * real) list
     -> (string * real) list
   val mash_unlearn : Proof.context -> unit
   val nickname_of : thm -> string
@@ -50,7 +51,8 @@ sig
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
   val features_of :
-    Proof.context -> string -> theory -> stature -> term list -> string list
+    Proof.context -> string -> theory -> stature -> term list
+    -> (string * real) list
   val isar_dependencies_of : unit Symtab.table -> thm -> string list option
   val atp_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
@@ -176,15 +178,30 @@ val unescape_meta = String.explode #> unmeta_chars []
 val unescape_metas =
   space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
 
+val supports_weights = false
+
+fun encode_feature (name, weight) =
+  let val s = escape_meta name in
+    if Real.== (weight, 1.0) then
+      s
+    else if supports_weights then
+      s ^ "=" ^ Real.toString weight
+    else
+      map (prefix (s ^ ".") o string_of_int) (1 upto Real.ceil weight)
+      |> space_implode " "
+  end
+
+val encode_features = map encode_feature #> space_implode " "
+
 fun str_of_add (name, parents, feats, deps) =
   "! " ^ escape_meta name ^ ": " ^ escape_metas parents ^ "; " ^
-  escape_metas feats ^ "; " ^ escape_metas deps ^ "\n"
+  encode_features feats ^ "; " ^ escape_metas deps ^ "\n"
 
 fun str_of_reprove (name, deps) =
   "p " ^ escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
 
 fun str_of_query (parents, feats) =
-  "? " ^ escape_metas parents ^ "; " ^ escape_metas feats ^ "\n"
+  "? " ^ escape_metas parents ^ "; " ^ encode_features feats ^ "\n"
 
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
@@ -221,7 +238,7 @@ fun mash_REPROVE _ _ [] = ()
      run_mash_tool ctxt overlord true 0 (reps, str_of_reprove) (K ()))
 
 fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
-  (trace_msg ctxt (fn () => "MaSh QUERY " ^ space_implode " " feats);
+  (trace_msg ctxt (fn () => "MaSh QUERY " ^ encode_features feats);
    run_mash_tool ctxt overlord false max_suggs
        ([query], str_of_query)
        (fn suggs =>
@@ -428,10 +445,14 @@ fun mesh_facts max_facts [(sels, unks)] =
             |> map snd |> take max_facts
     end
 
-val thy_feature_name_of = prefix "y"
-val const_name_of = prefix "c"
-val type_name_of = prefix "t"
-val class_name_of = prefix "s"
+fun thy_feature_of s = ("y" ^ s, 1.0 (* FUDGE *))
+fun term_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
+fun type_feature_of s = ("t" ^ s, 1.0 (* FUDGE *))
+fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
+fun status_feature_of status = (string_of_status status, 1.0 (* FUDGE *))
+val local_feature = ("local", 20.0 (* FUDGE *))
+val lams_feature = ("lams", 1.0 (* FUDGE *))
+val skos_feature = ("skos", 1.0 (* FUDGE *))
 
 fun theory_ord p =
   if Theory.eq_thy p then
@@ -480,24 +501,26 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
       member (op =) logical_consts s orelse
       fst (is_built_in_const_for_prover ctxt prover x args)
     fun add_classes @{sort type} = I
-      | add_classes S = union (op =) (map class_name_of S)
+      | add_classes S = union (op = o pairself fst) (map class_feature_of S)
     fun do_add_type (Type (s, Ts)) =
-        (not (member (op =) bad_types s) ? insert (op =) (type_name_of s))
+        (not (member (op =) bad_types s)
+         ? insert (op = o pairself fst) (type_feature_of s))
         #> fold do_add_type Ts
       | do_add_type (TFree (_, S)) = add_classes S
       | do_add_type (TVar (_, S)) = add_classes S
     fun add_type T = type_max_depth >= 0 ? do_add_type T
     fun patternify_term _ ~1 _ = []
       | patternify_term args _ (Const (x as (s, _))) =
-        if is_bad_const x args then [] else [const_name_of s]
+        if is_bad_const x args then [] else [s]
       | patternify_term _ 0 _ = []
       | patternify_term args depth (t $ u) =
         let
           val ps = patternify_term (u :: args) depth t
           val qs = "" :: patternify_term [] (depth - 1) u
-        in map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs end
+        in map_product (fn p => fn "" => p | q => "(" ^ q ^ ")") ps qs end
       | patternify_term _ _ _ = []
-    val add_term_pattern = union (op =) oo patternify_term []
+    val add_term_pattern =
+      union (op = o pairself fst) o map term_feature_of oo patternify_term []
     fun add_term_patterns ~1 _ = I
       | add_term_patterns depth t =
         add_term_pattern depth t #> add_term_patterns (depth - 1) t
@@ -521,18 +544,13 @@ val type_max_depth = 2
 
 (* TODO: Generate type classes for types? *)
 fun features_of ctxt prover thy (scope, status) ts =
-  thy_feature_name_of (Context.theory_name thy) ::
+  thy_feature_of (Context.theory_name thy) ::
   interesting_terms_types_and_classes ctxt prover term_max_depth type_max_depth
                                       ts
-(* Temporarily disabled: These frequent features can easily dominate the others.
-  |> exists (not o is_lambda_free) ts ? cons "lams"
-  |> exists (exists_Const is_exists) ts ? cons "skos"
-*)
-  |> scope <> Global
-     (* temporary hack: give a heavier weight to locality *)
-     ? append ["local0", "local1", "local2", "local3", "local4",
-               "local5", "local6", "local7", "local8", "local9"]
-  |> (case string_of_status status of "" => I | s => cons s)
+  |> status <> General ? cons (status_feature_of status)
+  |> scope <> Global ? cons local_feature
+  |> exists (not o is_lambda_free) ts ? cons lams_feature
+  |> exists (exists_Const is_exists) ts ? cons skos_feature
 
 (* Too many dependencies is a sign that a crazy decision procedure is at work.
    There isn't much to learn from such proofs. *)

@@ -93,7 +93,7 @@ fun generate_features ctxt prover thys include_thys file_name =
         val name = nickname_of th
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-        val s = escape_meta name ^ ": " ^ escape_metas feats ^ "\n"
+        val s = escape_meta name ^ ": " ^ encode_features feats ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -156,7 +156,7 @@ fun generate_commands ctxt (params as {provers, ...}) thys file_name =
         val kind = Thm.legacy_get_kind th
         val core =
           escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
-          escape_metas feats
+          encode_features feats
         val query =
           if kind = "" orelse null deps then "" else "? " ^ core ^ "\n"
         val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
