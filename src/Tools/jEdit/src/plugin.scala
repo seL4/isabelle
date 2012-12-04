@@ -58,32 +58,44 @@ object PIDE
       if doc_view.isDefined
     } yield doc_view.get
 
-  def exit_model(buffer: Buffer)
+  def exit_models(buffers: List[Buffer])
   {
-    JEdit_Lib.swing_buffer_lock(buffer) {
-      JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
-      Document_Model.exit(buffer)
-    }
+    Swing_Thread.now {
+      buffers.foreach(buffer =>
+        JEdit_Lib.buffer_lock(buffer) {
+          JEdit_Lib.jedit_text_areas(buffer).foreach(Document_View.exit)
+          Document_Model.exit(buffer)
+        })
+      }
   }
 
-  def init_model(buffer: Buffer)
+  def init_models(buffers: List[Buffer])
   {
-    JEdit_Lib.swing_buffer_lock(buffer) {
-      val opt_model =
-        JEdit_Lib.buffer_node_name(buffer) match {
-          case Some(node_name) =>
-            document_model(buffer) match {
-              case Some(model) if model.name == node_name => Some(model)
-              case _ => Some(Document_Model.init(session, buffer, node_name))
+    Swing_Thread.now {
+      val init_edits =
+        (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
+          JEdit_Lib.buffer_lock(buffer) {
+            val (model_edits, opt_model) =
+              JEdit_Lib.buffer_node_name(buffer) match {
+                case Some(node_name) =>
+                  document_model(buffer) match {
+                    case Some(model) if model.name == node_name => (Nil, Some(model))
+                    case _ =>
+                      val model = Document_Model.init(session, buffer, node_name)
+                      (model.init_edits(), Some(model))
+                  }
+                case None => (Nil, None)
+              }
+            if (opt_model.isDefined) {
+              for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
+                if (document_view(text_area).map(_.model) != opt_model)
+                  Document_View.init(opt_model.get, text_area)
+              }
             }
-          case None => None
+            model_edits ::: edits
+          }
         }
-      if (opt_model.isDefined) {
-        for (text_area <- JEdit_Lib.jedit_text_areas(buffer)) {
-          if (document_view(text_area).map(_.model) != opt_model)
-            Document_View.init(opt_model.get, text_area)
-        }
-      }
+      PIDE.session.edit(init_edits)
     }
   }
 
@@ -122,6 +134,12 @@ object PIDE
 class Plugin extends EBPlugin
 {
   /* theory files */
+
+  private lazy val delay_init =
+    Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
+    {
+      PIDE.init_models(JEdit_Lib.jedit_buffers().toList)
+    }
 
   private lazy val delay_load =
     Swing_Thread.delay_last(PIDE.options.seconds("editor_load_delay"))
@@ -179,11 +197,11 @@ class Plugin extends EBPlugin
 
             case Session.Ready =>
               PIDE.session.global_options.event(Session.Global_Options(PIDE.options.value))
-              JEdit_Lib.jedit_buffers.foreach(PIDE.init_model)
+              PIDE.init_models(JEdit_Lib.jedit_buffers().toList)
               Swing_Thread.later { delay_load.invoke() }
 
             case Session.Shutdown =>
-              JEdit_Lib.jedit_buffers.foreach(PIDE.exit_model)
+              PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
               Swing_Thread.later { delay_load.revoke() }
 
             case _ =>
@@ -221,7 +239,7 @@ class Plugin extends EBPlugin
         if msg.getWhat == BufferUpdate.LOADED || msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
           if (PIDE.session.is_ready) {
             val buffer = msg.getBuffer
-            if (buffer != null && !buffer.isLoading) PIDE.init_model(buffer)
+            if (buffer != null && !buffer.isLoading) delay_init.invoke()
             Swing_Thread.later { delay_load.invoke() }
           }
 
@@ -289,7 +307,7 @@ class Plugin extends EBPlugin
       PIDE.options.value.save_prefs()
 
     PIDE.session.phase_changed -= session_manager
-    JEdit_Lib.jedit_buffers.foreach(PIDE.exit_model)
+    PIDE.exit_models(JEdit_Lib.jedit_buffers().toList)
     PIDE.session.stop()
   }
 }

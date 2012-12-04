@@ -81,7 +81,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   def buffer_range(): Text.Range = Text.Range(0, (buffer.getLength - 1) max 0)
 
-  def perspective(): Text.Perspective =
+  def node_perspective(): Text.Perspective =
   {
     Swing_Thread.require()
     Text.Perspective(
@@ -92,7 +92,23 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   }
 
 
-  /* pending text edits */
+  /* initial edits */
+
+  def init_edits(): List[Document.Edit_Text] =
+  {
+    Swing_Thread.require()
+    val header = node_header()
+    val text = JEdit_Lib.buffer_text(buffer)
+    val perspective = node_perspective()
+
+    List(session.header_edit(name, header),
+      name -> Document.Node.Clear(),
+      name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
+      name -> Document.Node.Perspective(perspective))
+  }
+
+
+  /* pending edits */
 
   private object pending_edits  // owned by Swing thread
   {
@@ -106,7 +122,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
       Swing_Thread.require()
 
       val edits = snapshot()
-      val new_perspective = perspective()
+      val new_perspective = node_perspective()
       if (!edits.isEmpty || last_perspective != new_perspective) {
         pending.clear
         last_perspective = new_perspective
@@ -132,7 +148,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     def init()
     {
       flush()
-      session.init_node(name, node_header(), perspective(), JEdit_Lib.buffer_text(buffer))
+      session.edit(init_edits())
     }
 
     def exit()
@@ -194,7 +210,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   private def activate()
   {
     buffer.addBufferListener(buffer_listener)
-    pending_edits.init()
+    pending_edits.flush()
     Token_Markup.refresh_buffer(buffer)
   }
 

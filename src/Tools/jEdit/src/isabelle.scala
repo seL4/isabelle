@@ -60,6 +60,27 @@ object Isabelle
   def decrease_font_size(view: View): Unit = change_font_size(view, i => i - ((i / 10) max 1))
 
 
+  /* structured insert */
+
+  def insert_line_padding(text_area: JEditTextArea, text: String)
+  {
+    val buffer = text_area.getBuffer
+    JEdit_Lib.buffer_edit(buffer) {
+      val text1 =
+        if (text_area.getSelectionCount == 0) {
+          def pad(range: Text.Range): String =
+            if (JEdit_Lib.try_get_text(buffer, range) == Some("\n")) "" else "\n"
+
+          val caret = JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
+          val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)
+          pad(before_caret) + text + pad(caret)
+        }
+        else text
+      text_area.setSelectedText(text1)
+    }
+  }
+
+
   /* control styles */
 
   def control_sub(text_area: JEditTextArea)

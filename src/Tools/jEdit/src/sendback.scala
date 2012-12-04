@@ -42,21 +42,9 @@ object Sendback
                   case None =>
                 }
               case _ =>
-                JEdit_Lib.buffer_edit(buffer) {
-                  val text1 =
-                    if (props.exists(_ == Markup.PADDING_LINE) &&
-                        text_area.getSelectionCount == 0)
-                    {
-                      def pad(range: Text.Range): String =
-                        if (JEdit_Lib.try_get_text(buffer, range) == Some("\n")) "" else "\n"
-
-                      val caret = JEdit_Lib.point_range(buffer, text_area.getCaretPosition)
-                      val before_caret = JEdit_Lib.point_range(buffer, caret.start - 1)
-                      pad(before_caret) + text + pad(caret)
-                    }
-                    else text
-                  text_area.setSelectedText(text1)
-                }
+                if (props.exists(_ == Markup.PADDING_LINE))
+                  Isabelle.insert_line_padding(text_area, text)
+                else text_area.setSelectedText(text)
             }
           }
         }
