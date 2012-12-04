@@ -413,6 +413,12 @@ lemma within_UNIV [simp]: "F within UNIV = F"
 lemma within_empty [simp]: "F within {} = bot"
   unfolding filter_eq_iff eventually_within by simp
 
+lemma within_within_eq: "(F within S) within T = F within (S \<inter> T)"
+  by (auto simp: filter_eq_iff eventually_within elim: eventually_elim1)
+
+lemma at_within_eq: "at x within T = nhds x within (T - {x})"
+  unfolding at_def within_within_eq by (simp add: ac_simps Diff_eq)
+
 lemma within_le: "F within S \<le> F"
   unfolding le_filter_def eventually_within by (auto elim: eventually_elim1)
 
@@ -1345,37 +1351,79 @@ lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
   apply (auto simp: natceiling_le_eq)
   done
 
-lemma filterlim_inverse_at_top_pos:
-  "LIM x (nhds 0 within {0::real <..}). inverse x :> at_top"
-  unfolding filterlim_at_top_gt[where c=0] eventually_within
-proof safe
-  fix Z :: real assume [arith]: "0 < Z"
-  then have "eventually (\<lambda>x. x < inverse Z) (nhds 0)"
-    by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
-  then show "eventually (\<lambda>x. x \<in> {0<..} \<longrightarrow> Z \<le> inverse x) (nhds 0)"
-    by (auto elim!: eventually_elim1 simp: inverse_eq_divide field_simps)
-qed
+subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
 
-lemma filterlim_inverse_at_top:
-  "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> LIM x F. inverse (f x) :> at_top"
-  by (intro filterlim_compose[OF filterlim_inverse_at_top_pos])
-     (simp add: filterlim_def eventually_filtermap le_within_iff)
+text {*
 
-lemma filterlim_inverse_at_bot_neg:
-  "LIM x (nhds 0 within {..< 0::real}). inverse x :> at_bot"
-  unfolding filterlim_at_bot_lt[where c=0] eventually_within
-proof safe
-  fix Z :: real assume [arith]: "Z < 0"
-  have "eventually (\<lambda>x. inverse Z < x) (nhds 0)"
-    by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
-  then show "eventually (\<lambda>x. x \<in> {..< 0} \<longrightarrow> inverse x \<le> Z) (nhds 0)"
-    by (auto elim!: eventually_elim1 simp: inverse_eq_divide field_simps)
-qed
+This lemmas are useful for conversion between @{term "at x"} to @{term "at_left x"} and
+@{term "at_right x"} and also @{term "at_right 0"}.
 
-lemma filterlim_inverse_at_bot:
-  "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. f x < 0) F \<Longrightarrow> LIM x F. inverse (f x) :> at_bot"
-  by (intro filterlim_compose[OF filterlim_inverse_at_bot_neg])
-     (simp add: filterlim_def eventually_filtermap le_within_iff)
+*}
+
+lemma at_eq_sup_left_right: "at (x::real) = sup (at_left x) (at_right x)"
+  by (auto simp: eventually_within at_def filter_eq_iff eventually_sup 
+           elim: eventually_elim2 eventually_elim1)
+
+lemma filterlim_split_at_real:
+  "filterlim f F (at_left x) \<Longrightarrow> filterlim f F (at_right x) \<Longrightarrow> filterlim f F (at (x::real))"
+  by (subst at_eq_sup_left_right) (rule filterlim_sup)
+
+lemma filtermap_nhds_shift: "filtermap (\<lambda>x. x - d) (nhds a) = nhds (a - d::real)"
+  unfolding filter_eq_iff eventually_filtermap eventually_nhds_metric
+  by (intro allI ex_cong) (auto simp: dist_real_def field_simps)
+
+lemma filtermap_nhds_minus: "filtermap (\<lambda>x. - x) (nhds a) = nhds (- a::real)"
+  unfolding filter_eq_iff eventually_filtermap eventually_nhds_metric
+  apply (intro allI ex_cong)
+  apply (auto simp: dist_real_def field_simps)
+  apply (erule_tac x="-x" in allE)
+  apply simp
+  done
+
+lemma filtermap_at_shift: "filtermap (\<lambda>x. x - d) (at a) = at (a - d::real)"
+  unfolding at_def filtermap_nhds_shift[symmetric]
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
+
+lemma filtermap_at_right_shift: "filtermap (\<lambda>x. x - d) (at_right a) = at_right (a - d::real)"
+  unfolding filtermap_at_shift[symmetric]
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
+
+lemma at_right_to_0: "at_right (a::real) = filtermap (\<lambda>x. x + a) (at_right 0)"
+  using filtermap_at_right_shift[of "-a" 0] by simp
+
+lemma filterlim_at_right_to_0:
+  "filterlim f F (at_right (a::real)) \<longleftrightarrow> filterlim (\<lambda>x. f (x + a)) F (at_right 0)"
+  unfolding filterlim_def filtermap_filtermap at_right_to_0[of a] ..
+
+lemma eventually_at_right_to_0:
+  "eventually P (at_right (a::real)) \<longleftrightarrow> eventually (\<lambda>x. P (x + a)) (at_right 0)"
+  unfolding at_right_to_0[of a] by (simp add: eventually_filtermap)
+
+lemma filtermap_at_minus: "filtermap (\<lambda>x. - x) (at a) = at (- a::real)"
+  unfolding at_def filtermap_nhds_minus[symmetric]
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
+
+lemma at_left_minus: "at_left (a::real) = filtermap (\<lambda>x. - x) (at_right (- a))"
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within filtermap_at_minus[symmetric])
+
+lemma at_right_minus: "at_right (a::real) = filtermap (\<lambda>x. - x) (at_left (- a))"
+  by (simp add: filter_eq_iff eventually_filtermap eventually_within filtermap_at_minus[symmetric])
+
+lemma filterlim_at_left_to_right:
+  "filterlim f F (at_left (a::real)) \<longleftrightarrow> filterlim (\<lambda>x. f (- x)) F (at_right (-a))"
+  unfolding filterlim_def filtermap_filtermap at_left_minus[of a] ..
+
+lemma eventually_at_left_to_right:
+  "eventually P (at_left (a::real)) \<longleftrightarrow> eventually (\<lambda>x. P (- x)) (at_right (-a))"
+  unfolding at_left_minus[of a] by (simp add: eventually_filtermap)
+
+lemma filterlim_at_split:
+  "filterlim f F (at (x::real)) \<longleftrightarrow> filterlim f F (at_left x) \<and> filterlim f F (at_right x)"
+  by (subst at_eq_sup_left_right) (simp add: filterlim_def filtermap_sup)
+
+lemma eventually_at_split:
+  "eventually P (at (x::real)) \<longleftrightarrow> eventually P (at_left x) \<and> eventually P (at_right x)"
+  by (subst at_eq_sup_left_right) (simp add: eventually_sup)
 
 lemma at_top_mirror: "at_top = filtermap uminus (at_bot :: real filter)"
   unfolding filter_eq_iff eventually_filtermap eventually_at_top_linorder eventually_at_bot_linorder
@@ -1406,6 +1454,30 @@ lemma filterlim_uminus_at_top: "(LIM x F. f x :> at_top) \<longleftrightarrow> (
 lemma filterlim_uminus_at_bot: "(LIM x F. f x :> at_bot) \<longleftrightarrow> (LIM x F. - (f x) :: real :> at_top)"
   unfolding filterlim_uminus_at_top by simp
 
+lemma filterlim_inverse_at_top_right: "LIM x at_right (0::real). inverse x :> at_top"
+  unfolding filterlim_at_top_gt[where c=0] eventually_within at_def
+proof safe
+  fix Z :: real assume [arith]: "0 < Z"
+  then have "eventually (\<lambda>x. x < inverse Z) (nhds 0)"
+    by (auto simp add: eventually_nhds_metric dist_real_def intro!: exI[of _ "\<bar>inverse Z\<bar>"])
+  then show "eventually (\<lambda>x. x \<in> - {0} \<longrightarrow> x \<in> {0<..} \<longrightarrow> Z \<le> inverse x) (nhds 0)"
+    by (auto elim!: eventually_elim1 simp: inverse_eq_divide field_simps)
+qed
+
+lemma filterlim_inverse_at_top:
+  "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. 0 < f x) F \<Longrightarrow> LIM x F. inverse (f x) :> at_top"
+  by (intro filterlim_compose[OF filterlim_inverse_at_top_right])
+     (simp add: filterlim_def eventually_filtermap le_within_iff at_def eventually_elim1)
+
+lemma filterlim_inverse_at_bot_neg:
+  "LIM x (at_left (0::real)). inverse x :> at_bot"
+  by (simp add: filterlim_inverse_at_top_right filterlim_uminus_at_bot filterlim_at_left_to_right)
+
+lemma filterlim_inverse_at_bot:
+  "(f ---> (0 :: real)) F \<Longrightarrow> eventually (\<lambda>x. f x < 0) F \<Longrightarrow> LIM x F. inverse (f x) :> at_bot"
+  unfolding filterlim_uminus_at_bot inverse_minus_eq[symmetric]
+  by (rule filterlim_inverse_at_top) (simp_all add: tendsto_minus_cancel_left[symmetric])
+
 lemma tendsto_inverse_0:
   fixes x :: "_ \<Rightarrow> 'a\<Colon>real_normed_div_algebra"
   shows "(inverse ---> (0::'a)) at_infinity"
@@ -1421,6 +1493,39 @@ proof safe
       using * `0 < r` by (subst nonzero_norm_inverse) (simp_all add: inverse_eq_divide field_simps)
   qed
 qed
+
+lemma at_right_to_top: "(at_right (0::real)) = filtermap inverse at_top"
+proof (rule antisym)
+  have "(inverse ---> (0::real)) at_top"
+    by (metis tendsto_inverse_0 filterlim_mono at_top_le_at_infinity order_refl)
+  then show "filtermap inverse at_top \<le> at_right (0::real)"
+    unfolding at_within_eq
+    by (intro le_withinI) (simp_all add: eventually_filtermap eventually_gt_at_top filterlim_def)
+next
+  have "filtermap inverse (filtermap inverse (at_right (0::real))) \<le> filtermap inverse at_top"
+    using filterlim_inverse_at_top_right unfolding filterlim_def by (rule filtermap_mono)
+  then show "at_right (0::real) \<le> filtermap inverse at_top"
+    by (simp add: filtermap_ident filtermap_filtermap)
+qed
+
+lemma eventually_at_right_to_top:
+  "eventually P (at_right (0::real)) \<longleftrightarrow> eventually (\<lambda>x. P (inverse x)) at_top"
+  unfolding at_right_to_top eventually_filtermap ..
+
+lemma filterlim_at_right_to_top:
+  "filterlim f F (at_right (0::real)) \<longleftrightarrow> (LIM x at_top. f (inverse x) :> F)"
+  unfolding filterlim_def at_right_to_top filtermap_filtermap ..
+
+lemma at_top_to_right: "at_top = filtermap inverse (at_right (0::real))"
+  unfolding at_right_to_top filtermap_filtermap inverse_inverse_eq filtermap_ident ..
+
+lemma eventually_at_top_to_right:
+  "eventually P at_top \<longleftrightarrow> eventually (\<lambda>x. P (inverse x)) (at_right (0::real))"
+  unfolding at_top_to_right eventually_filtermap ..
+
+lemma filterlim_at_top_to_right:
+  "filterlim f F at_top \<longleftrightarrow> (LIM x (at_right (0::real)). f (inverse x) :> F)"
+  unfolding filterlim_def at_top_to_right filtermap_filtermap ..
 
 lemma filterlim_inverse_at_infinity:
   fixes x :: "_ \<Rightarrow> 'a\<Colon>{real_normed_div_algebra, division_ring_inverse_zero}"
@@ -1520,6 +1625,14 @@ proof safe
     by eventually_elim simp
 qed
 
+lemma LIM_at_top_divide:
+  fixes f g :: "'a \<Rightarrow> real"
+  assumes f: "(f ---> a) F" "0 < a"
+  assumes g: "(g ---> 0) F" "eventually (\<lambda>x. 0 < g x) F"
+  shows "LIM x F. f x / g x :> at_top"
+  unfolding divide_inverse
+  by (rule filterlim_tendsto_pos_mult_at_top[OF f]) (rule filterlim_inverse_at_top[OF g])
+
 lemma filterlim_at_top_add_at_top: 
   assumes f: "LIM x F. f x :> at_top"
   assumes g: "LIM x F. g x :> at_top"
@@ -1572,80 +1685,6 @@ proof (intro filterlim_at_infinity[THEN iffD2] allI impI)
     unfolding eventually_sequentially
     by (auto simp: norm_power)
 qed simp
-
-subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
-
-text {*
-
-This lemmas are useful for conversion between @{term "at x"} to @{term "at_left x"} and
-@{term "at_right x"} and also @{term "at_right 0"}.
-
-*}
-
-lemma at_eq_sup_left_right: "at (x::real) = sup (at_left x) (at_right x)"
-  by (auto simp: eventually_within at_def filter_eq_iff eventually_sup 
-           elim: eventually_elim2 eventually_elim1)
-
-lemma filterlim_split_at_real:
-  "filterlim f F (at_left x) \<Longrightarrow> filterlim f F (at_right x) \<Longrightarrow> filterlim f F (at (x::real))"
-  by (subst at_eq_sup_left_right) (rule filterlim_sup)
-
-lemma filtermap_nhds_shift: "filtermap (\<lambda>x. x - d) (nhds a) = nhds (a - d::real)"
-  unfolding filter_eq_iff eventually_filtermap eventually_nhds_metric
-  by (intro allI ex_cong) (auto simp: dist_real_def field_simps)
-
-lemma filtermap_nhds_minus: "filtermap (\<lambda>x. - x) (nhds a) = nhds (- a::real)"
-  unfolding filter_eq_iff eventually_filtermap eventually_nhds_metric
-  apply (intro allI ex_cong)
-  apply (auto simp: dist_real_def field_simps)
-  apply (erule_tac x="-x" in allE)
-  apply simp
-  done
-
-lemma filtermap_at_shift: "filtermap (\<lambda>x. x - d) (at a) = at (a - d::real)"
-  unfolding at_def filtermap_nhds_shift[symmetric]
-  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
-
-lemma filtermap_at_right_shift: "filtermap (\<lambda>x. x - d) (at_right a) = at_right (a - d::real)"
-  unfolding filtermap_at_shift[symmetric]
-  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
-
-lemma at_right_to_0: "at_right (a::real) = filtermap (\<lambda>x. x + a) (at_right 0)"
-  using filtermap_at_right_shift[of "-a" 0] by simp
-
-lemma filterlim_at_right_to_0:
-  "filterlim f F (at_right (a::real)) \<longleftrightarrow> filterlim (\<lambda>x. f (x + a)) F (at_right 0)"
-  unfolding filterlim_def filtermap_filtermap at_right_to_0[of a] ..
-
-lemma eventually_at_right_to_0:
-  "eventually P (at_right (a::real)) \<longleftrightarrow> eventually (\<lambda>x. P (x + a)) (at_right 0)"
-  unfolding at_right_to_0[of a] by (simp add: eventually_filtermap)
-
-lemma filtermap_at_minus: "filtermap (\<lambda>x. - x) (at a) = at (- a::real)"
-  unfolding at_def filtermap_nhds_minus[symmetric]
-  by (simp add: filter_eq_iff eventually_filtermap eventually_within)
-
-lemma at_left_minus: "at_left (a::real) = filtermap (\<lambda>x. - x) (at_right (- a))"
-  by (simp add: filter_eq_iff eventually_filtermap eventually_within filtermap_at_minus[symmetric])
-
-lemma at_right_minus: "at_right (a::real) = filtermap (\<lambda>x. - x) (at_left (- a))"
-  by (simp add: filter_eq_iff eventually_filtermap eventually_within filtermap_at_minus[symmetric])
-
-lemma filterlim_at_left_to_right:
-  "filterlim f F (at_left (a::real)) \<longleftrightarrow> filterlim (\<lambda>x. f (- x)) F (at_right (-a))"
-  unfolding filterlim_def filtermap_filtermap at_left_minus[of a] ..
-
-lemma eventually_at_left_to_right:
-  "eventually P (at_left (a::real)) \<longleftrightarrow> eventually (\<lambda>x. P (- x)) (at_right (-a))"
-  unfolding at_left_minus[of a] by (simp add: eventually_filtermap)
-
-lemma filterlim_at_split:
-  "filterlim f F (at (x::real)) \<longleftrightarrow> filterlim f F (at_left x) \<and> filterlim f F (at_right x)"
-  by (subst at_eq_sup_left_right) (simp add: filterlim_def filtermap_sup)
-
-lemma eventually_at_split:
-  "eventually P (at (x::real)) \<longleftrightarrow> eventually P (at_left x) \<and> eventually P (at_right x)"
-  by (subst at_eq_sup_left_right) (simp add: eventually_sup)
 
 end
 

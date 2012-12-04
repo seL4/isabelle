@@ -1862,4 +1862,52 @@ lemma lhopital_at_top:
   unfolding eventually_at_split filterlim_at_split
   by (auto intro!: lhopital_right_at_top[of g x g' f f'] lhopital_left_at_top[of g x g' f f'])
 
+lemma lhospital_at_top_at_top:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes g_0: "LIM x at_top. g x :> at_top"
+  assumes g': "eventually (\<lambda>x. g' x \<noteq> 0) at_top"
+  assumes Df: "eventually (\<lambda>x. DERIV f x :> f' x) at_top"
+  assumes Dg: "eventually (\<lambda>x. DERIV g x :> g' x) at_top"
+  assumes lim: "((\<lambda> x. (f' x / g' x)) ---> x) at_top"
+  shows "((\<lambda> x. f x / g x) ---> x) at_top"
+  unfolding filterlim_at_top_to_right
+proof (rule lhopital_right_0_at_top)
+  let ?F = "\<lambda>x. f (inverse x)"
+  let ?G = "\<lambda>x. g (inverse x)"
+  let ?R = "at_right (0::real)"
+  let ?D = "\<lambda>f' x. f' (inverse x) * - (inverse x ^ Suc (Suc 0))"
+
+  show "LIM x ?R. ?G x :> at_top"
+    using g_0 unfolding filterlim_at_top_to_right .
+
+  show "eventually (\<lambda>x. DERIV ?G x  :> ?D g' x) ?R"
+    unfolding eventually_at_right_to_top
+    using Dg eventually_ge_at_top[where c="1::real"]
+    apply eventually_elim
+    apply (rule DERIV_cong)
+    apply (rule DERIV_chain'[where f=inverse])
+    apply (auto intro!:  DERIV_inverse)
+    done
+
+  show "eventually (\<lambda>x. DERIV ?F x  :> ?D f' x) ?R"
+    unfolding eventually_at_right_to_top
+    using Df eventually_ge_at_top[where c="1::real"]
+    apply eventually_elim
+    apply (rule DERIV_cong)
+    apply (rule DERIV_chain'[where f=inverse])
+    apply (auto intro!:  DERIV_inverse)
+    done
+
+  show "eventually (\<lambda>x. ?D g' x \<noteq> 0) ?R"
+    unfolding eventually_at_right_to_top
+    using g' eventually_ge_at_top[where c="1::real"]
+    by eventually_elim auto
+    
+  show "((\<lambda>x. ?D f' x / ?D g' x) ---> x) ?R"
+    unfolding filterlim_at_right_to_top
+    apply (intro filterlim_cong[THEN iffD2, OF refl refl _ lim])
+    using eventually_ge_at_top[where c="1::real"]
+    by eventually_elim simp
+qed
+
 end

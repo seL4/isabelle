@@ -1339,6 +1339,28 @@ lemma ln_at_top: "LIM x at_top. ln x :> at_top"
   by (rule filterlim_at_top_at_top[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])
      (auto intro: eventually_gt_at_top)
 
+lemma tendsto_power_div_exp_0: "((\<lambda>x. x ^ k / exp x) ---> (0::real)) at_top"
+proof (induct k)
+  show "((\<lambda>x. x ^ 0 / exp x) ---> (0::real)) at_top"
+    by (simp add: inverse_eq_divide[symmetric])
+       (metis filterlim_compose[OF tendsto_inverse_0] exp_at_top filterlim_mono
+              at_top_le_at_infinity order_refl)
+next
+  case (Suc k)
+  show ?case
+  proof (rule lhospital_at_top_at_top)
+    show "eventually (\<lambda>x. DERIV (\<lambda>x. x ^ Suc k) x :> (real (Suc k) * x^k)) at_top"
+      by eventually_elim (intro DERIV_intros, simp, simp)
+    show "eventually (\<lambda>x. DERIV exp x :> exp x) at_top"
+      by eventually_elim (auto intro!: DERIV_intros)
+    show "eventually (\<lambda>x. exp x \<noteq> 0) at_top"
+      by auto
+    from tendsto_mult[OF tendsto_const Suc, of "real (Suc k)"]
+    show "((\<lambda>x. real (Suc k) * x ^ k / exp x) ---> 0) at_top"
+      by simp
+  qed (rule exp_at_top)
+qed
+
 subsection {* Sine and Cosine *}
 
 definition sin_coeff :: "nat \<Rightarrow> real" where
