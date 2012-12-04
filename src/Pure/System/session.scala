@@ -468,15 +468,6 @@ class Session(val thy_load: Thy_Load)
   def edit(edits: List[Document.Edit_Text])
   { session_actor !? Session.Raw_Edits(edits) }
 
-  def init_node(name: Document.Node.Name,
-    header: Document.Node.Header, perspective: Text.Perspective, text: String)
-  {
-    edit(List(header_edit(name, header),
-      name -> Document.Node.Clear(),
-      name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
-      name -> Document.Node.Perspective(perspective)))
-  }
-
   def edit_node(name: Document.Node.Name,
     header: Document.Node.Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
   {
