@@ -911,4 +911,33 @@ lemma LIMSEQ_rabs_realpow_zero: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n
 lemma LIMSEQ_rabs_realpow_zero2: "\<bar>c\<bar> < 1 \<Longrightarrow> (\<lambda>n. c ^ n :: real) ----> 0"
   by (rule LIMSEQ_power_zero) simp
 
+lemma tendsto_at_topI_sequentially:
+  fixes f :: "real \<Rightarrow> real"
+  assumes mono: "mono f"
+  assumes limseq: "(\<lambda>n. f (real n)) ----> y"
+  shows "(f ---> y) at_top"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  with limseq obtain N :: nat where N: "\<And>n. N \<le> n \<Longrightarrow> \<bar>f (real n) - y\<bar> < e"
+    by (auto simp: LIMSEQ_def dist_real_def)
+  { fix x :: real
+    from ex_le_of_nat[of x] guess n ..
+    note monoD[OF mono this]
+    also have "f (real_of_nat n) \<le> y"
+      by (rule LIMSEQ_le_const[OF limseq])
+         (auto intro: exI[of _ n] monoD[OF mono] simp: real_eq_of_nat[symmetric])
+    finally have "f x \<le> y" . }
+  note le = this
+  have "eventually (\<lambda>x. real N \<le> x) at_top"
+    by (rule eventually_ge_at_top)
+  then show "eventually (\<lambda>x. dist (f x) y < e) at_top"
+  proof eventually_elim
+    fix x assume N': "real N \<le> x"
+    with N[of N] le have "y - f (real N) < e" by auto
+    moreover note monoD[OF mono N']
+    ultimately show "dist (f x) y < e"
+      using le[of x] by (auto simp: dist_real_def field_simps)
+  qed
+qed
+
 end

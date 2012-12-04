@@ -2274,6 +2274,87 @@ proof -
     using int(2) by simp
 qed
 
+lemma integrable_mult_indicator:
+  "A \<in> sets M \<Longrightarrow> integrable M f \<Longrightarrow> integrable M (\<lambda>x. f x * indicator A x)"
+  by (rule integrable_bound[where f="\<lambda>x. \<bar>f x\<bar>"])
+     (auto intro: integrable_abs split: split_indicator)
+
+lemma tendsto_integral_at_top:
+  fixes M :: "real measure"
+  assumes M: "sets M = sets borel" and f[measurable]: "integrable M f"
+  shows "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
+proof -
+  have M_measure[simp]: "borel_measurable M = borel_measurable borel"
+    using M by (simp add: sets_eq_imp_space_eq measurable_def)
+  { fix f assume f: "integrable M f" "\<And>x. 0 \<le> f x"
+    then have [measurable]: "f \<in> borel_measurable borel"
+      by (simp add: integrable_def)
+    have "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> \<integral> x. f x \<partial>M) at_top"
+    proof (rule tendsto_at_topI_sequentially)
+      have "\<And>j. AE x in M. \<bar>f x * indicator {.. j} x\<bar> \<le> f x"
+        using f(2) by (intro AE_I2) (auto split: split_indicator)
+      have int: "\<And>n. integrable M (\<lambda>x. f x * indicator {.. n} x)"
+        by (rule integrable_mult_indicator) (auto simp: M f)
+      show "(\<lambda>n. \<integral> x. f x * indicator {..real n} x \<partial>M) ----> integral\<^isup>L M f"
+      proof (rule integral_dominated_convergence)
+        { fix x have "eventually (\<lambda>n. f x * indicator {..real n} x = f x) sequentially"
+            by (rule eventually_sequentiallyI[of "natceiling x"])
+               (auto split: split_indicator simp: natceiling_le_eq) }
+        from filterlim_cong[OF refl refl this]
+        show "AE x in M. (\<lambda>n. f x * indicator {..real n} x) ----> f x"
+          by (simp add: tendsto_const)
+      qed (fact+, simp)
+      show "mono (\<lambda>y. \<integral> x. f x * indicator {..y} x \<partial>M)"
+        by (intro monoI integral_mono int) (auto split: split_indicator intro: f)
+    qed }
+  note nonneg = this
+  let ?P = "\<lambda>y. \<integral> x. max 0 (f x) * indicator {..y} x \<partial>M"
+  let ?N = "\<lambda>y. \<integral> x. max 0 (- f x) * indicator {..y} x \<partial>M"
+  let ?p = "integral\<^isup>L M (\<lambda>x. max 0 (f x))"
+  let ?n = "integral\<^isup>L M (\<lambda>x. max 0 (- f x))"
+  have "(?P ---> ?p) at_top" "(?N ---> ?n) at_top"
+    by (auto intro!: nonneg integrable_max f)
+  note tendsto_diff[OF this]
+  also have "(\<lambda>y. ?P y - ?N y) = (\<lambda>y. \<integral> x. f x * indicator {..y} x \<partial>M)"
+    by (subst integral_diff(2)[symmetric])
+       (auto intro!: integrable_mult_indicator integrable_max f integral_cong ext
+             simp: M split: split_max)
+  also have "?p - ?n = integral\<^isup>L M f"
+    by (subst integral_diff(2)[symmetric])
+       (auto intro!: integrable_max f integral_cong ext simp: M split: split_max)
+  finally show ?thesis .
+qed
+
+lemma integral_monotone_convergence_at_top:
+  fixes M :: "real measure"
+  assumes M: "sets M = sets borel"
+  assumes nonneg: "AE x in M. 0 \<le> f x"
+  assumes borel: "f \<in> borel_measurable borel"
+  assumes int: "\<And>y. integrable M (\<lambda>x. f x * indicator {.. y} x)"
+  assumes conv: "((\<lambda>y. \<integral> x. f x * indicator {.. y} x \<partial>M) ---> x) at_top"
+  shows "integrable M f" "integral\<^isup>L M f = x"
+proof -
+  from nonneg have "AE x in M. mono (\<lambda>n::nat. f x * indicator {..real n} x)"
+    by (auto split: split_indicator intro!: monoI)
+  { fix x have "eventually (\<lambda>n. f x * indicator {..real n} x = f x) sequentially"
+      by (rule eventually_sequentiallyI[of "natceiling x"])
+         (auto split: split_indicator simp: natceiling_le_eq) }
+  from filterlim_cong[OF refl refl this]
+  have "AE x in M. (\<lambda>i. f x * indicator {..real i} x) ----> f x"
+    by (simp add: tendsto_const)
+  have "(\<lambda>i. \<integral> x. f x * indicator {..real i} x \<partial>M) ----> x"
+    using conv filterlim_real_sequentially by (rule filterlim_compose)
+  have M_measure[simp]: "borel_measurable M = borel_measurable borel"
+    using M by (simp add: sets_eq_imp_space_eq measurable_def)
+  have "f \<in> borel_measurable M"
+    using borel by simp
+  show "integrable M f"
+    by (rule integral_monotone_convergence) fact+
+  show "integral\<^isup>L M f = x"
+    by (rule integral_monotone_convergence) fact+
+qed
+
+
 section "Lebesgue integration on countable spaces"
 
 lemma integral_on_countable:
