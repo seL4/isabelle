@@ -297,7 +297,9 @@ val empty_state = {fact_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh 0.1 ***"
+val version = "*** MaSh version 20121204a ***"
+
+exception Too_New of unit
 
 fun extract_node line =
   case space_explode ":" line of
@@ -326,8 +328,12 @@ fun load _ (state as (true, _)) = state
                update_fact_graph_node (name, kind)
                #> fold (add_edge_to name) parents
            val fact_G =
-             try_graph ctxt "loading state" Graph.empty (fn () =>
-                 Graph.empty |> version' = version ? fold add_node node_lines)
+             case string_ord (version', version) of
+               EQUAL =>
+               try_graph ctxt "loading state" Graph.empty (fn () =>
+                   fold add_node node_lines Graph.empty)
+             | LESS => Graph.empty (* can't parse old file *)
+             | GREATER => raise Too_New ()
          in
            trace_msg ctxt (fn () =>
                "Loaded fact graph (" ^ graph_info fact_G ^ ")");
@@ -367,12 +373,14 @@ in
 
 fun mash_map ctxt f =
   Synchronized.change global_state (load ctxt ##> (f #> save ctxt))
+  handle Too_New () => ()
 
 fun mash_peek ctxt f =
-  Synchronized.change_result global_state (load ctxt #> `snd #>> f)
+  Synchronized.change_result global_state
+      (perhaps (try (load ctxt)) #> `snd #>> f)
 
 fun mash_get ctxt =
-  Synchronized.change_result global_state (load ctxt #> `snd)
+  Synchronized.change_result global_state (perhaps (try (load ctxt)) #> `snd)
 
 fun mash_unlearn ctxt =
   Synchronized.change global_state (fn _ =>
