@@ -8,10 +8,6 @@ imports
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
-declare [[smt_certificates = "Integration.certs"]]
-declare [[smt_read_only_certificates = true]]
-declare [[smt_oracle = false]]
-
 (*declare not_less[simp] not_le[simp]*)
 
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
@@ -2770,16 +2766,21 @@ proof- fix a b assume ab:"(a,b) \<in> p" note assm = tagged_division_ofD(2-4)[OF
 lemma has_integral_component_le: fixes f g::"'a::ordered_euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes "(f has_integral i) s" "(g has_integral j) s"  "\<forall>x\<in>s. (f x)$$k \<le> (g x)$$k"
   shows "i$$k \<le> j$$k"
-proof- have lem:"\<And>a b i (j::'b). \<And>g f::'a \<Rightarrow> 'b. (f has_integral i) ({a..b}) \<Longrightarrow> 
+proof -
+  have lem:"\<And>a b i (j::'b). \<And>g f::'a \<Rightarrow> 'b. (f has_integral i) ({a..b}) \<Longrightarrow> 
     (g has_integral j) ({a..b}) \<Longrightarrow> \<forall>x\<in>{a..b}. (f x)$$k \<le> (g x)$$k \<Longrightarrow> i$$k \<le> j$$k"
-  proof(rule ccontr) case goal1 hence *:"0 < (i$$k - j$$k) / 3" by auto
+  proof (rule ccontr)
+    case goal1
+    then have *: "0 < (i$$k - j$$k) / 3" by auto
     guess d1 using goal1(1)[unfolded has_integral,rule_format,OF *] apply-by(erule exE conjE)+ note d1=this[rule_format]
     guess d2 using goal1(2)[unfolded has_integral,rule_format,OF *] apply-by(erule exE conjE)+ note d2=this[rule_format]
     guess p using fine_division_exists[OF gauge_inter[OF d1(1) d2(1)], of a b] unfolding fine_inter .
     note p = this(1) conjunctD2[OF this(2)]  note le_less_trans[OF component_le_norm, of _ _ k] term g
     note this[OF d1(2)[OF conjI[OF p(1,2)]]] this[OF d2(2)[OF conjI[OF p(1,3)]]]
-    thus False unfolding euclidean_simps using rsum_component_le[OF p(1) goal1(3)] apply simp
-      using [[z3_with_extensions]] by smt
+    thus False
+      unfolding euclidean_simps
+      using rsum_component_le[OF p(1) goal1(3)]
+      by (simp add: abs_real_def split: split_if_asm)
   qed let ?P = "\<exists>a b. s = {a..b}"
   { presume "\<not> ?P \<Longrightarrow> ?thesis" thus ?thesis proof(cases ?P)
       case True then guess a b apply-by(erule exE)+ note s=this
@@ -2793,7 +2794,8 @@ proof- have lem:"\<And>a b i (j::'b). \<And>g f::'a \<Rightarrow> 'b. (f has_int
   note ab = conjunctD2[OF this[unfolded Un_subset_iff]]
   guess w1 using B(2)[OF ab(1)] .. note w1=conjunctD2[OF this]
   guess w2 using B(4)[OF ab(2)] .. note w2=conjunctD2[OF this]
-  have *:"\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False" using [[z3_with_extensions]] by smt
+  have *:"\<And>w1 w2 j i::real .\<bar>w1 - i\<bar> < (i - j) / 3 \<Longrightarrow> \<bar>w2 - j\<bar> < (i - j) / 3 \<Longrightarrow> w1 \<le> w2 \<Longrightarrow> False"
+    by (simp add: abs_real_def split: split_if_asm)
   note le_less_trans[OF component_le_norm[of _ k]] note this[OF w1(2)] this[OF w2(2)] moreover
   have "w1$$k \<le> w2$$k" apply(rule lem[OF w1(1) w2(1)]) using assms by auto ultimately
   show False unfolding euclidean_simps by(rule *) qed
@@ -3022,7 +3024,8 @@ proof-
       also have "... < e" apply(subst setsum_over_tagged_division_lemma[OF p[THEN conjunct1]])
       proof- case goal1 have "content ({u..v} \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}) \<le> content {u..v}"
           unfolding interval_doublesplit[OF k] apply(rule content_subset) unfolding interval_doublesplit[THEN sym,OF k] by auto
-        thus ?case unfolding goal1 unfolding interval_doublesplit[OF k] using content_pos_le by smt
+        thus ?case unfolding goal1 unfolding interval_doublesplit[OF k]
+          by (blast intro: antisym)
       next have *:"setsum content {l \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d} |l. l \<in> snd ` p \<and> l \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d} \<noteq> {}} \<ge> 0"
           apply(rule setsum_nonneg,rule) unfolding mem_Collect_eq image_iff apply(erule exE bexE conjE)+ unfolding split_paired_all 
         proof- fix x l a b assume as:"x = l \<inter> {x. \<bar>x $$ k - c\<bar> \<le> d}" "(a, b) \<in> p" "l = snd (a, b)"
@@ -3516,7 +3519,7 @@ proof(induct "card s" arbitrary:s rule:nat_less_induct)
   proof safe fix x and e::real assume as:"x\<in>k" "e>0"
     from k(2)[unfolded k content_eq_0] guess i .. 
     hence i:"c$$i = d$$i" "i<DIM('a)" using s(3)[OF k(1),unfolded k] unfolding interval_ne_empty by auto
-    hence xi:"x$$i = d$$i" using as unfolding k mem_interval by smt
+    hence xi:"x$$i = d$$i" using as unfolding k mem_interval by (metis antisym)
     def y \<equiv> "(\<chi>\<chi> j. if j = i then if c$$i \<le> (a$$i + b$$i) / 2 then c$$i +
       min e (b$$i - c$$i) / 2 else c$$i - min e (c$$i - a$$i) / 2 else x$$j)::'a"
     show "\<exists>x'\<in>\<Union>(s - {k}). x' \<noteq> x \<and> dist x' x < e" apply(rule_tac x=y in bexI) 
@@ -3524,7 +3527,8 @@ proof(induct "card s" arbitrary:s rule:nat_less_induct)
       hence "d \<in> {a..b}" using s(2)[OF k(1)] unfolding k by auto note di = this[unfolded mem_interval,THEN spec[where x=i]]
       hence xyi:"y$$i \<noteq> x$$i" unfolding y_def unfolding i xi euclidean_lambda_beta'[OF i(2)] if_P[OF refl]
         apply(cases) apply(subst if_P,assumption) unfolding if_not_P not_le using as(2)
-        using assms(2)[unfolded content_eq_0] using i(2) using [[z3_with_extensions]] by smt+
+        using assms(2)[unfolded content_eq_0] using i(2)
+        by (auto simp add: not_le min_def)
       thus "y \<noteq> x" unfolding euclidean_eq[where 'a='a] using i by auto
       have *:"{..<DIM('a)} = insert i ({..<DIM('a)} - {i})" using i by auto
       have "norm (y - x) < e + setsum (\<lambda>i. 0) {..<DIM('a)}" apply(rule le_less_trans[OF norm_le_l1])
@@ -4710,7 +4714,8 @@ proof- have "\<And>a b. (\<lambda>x. if x \<in> s then f x else 0) integrable_on
     proof- fix a b c d::"'n::ordered_euclidean_space" assume as:"ball 0 (max B1 B2) \<subseteq> {a..b}" "ball 0 (max B1 B2) \<subseteq> {c..d}"
       have **:"ball 0 B1 \<subseteq> ball (0::'n::ordered_euclidean_space) (max B1 B2)" "ball 0 B2 \<subseteq> ball (0::'n::ordered_euclidean_space) (max B1 B2)" by auto
       have *:"\<And>ga gc ha hc fa fc::real. abs(ga - i) < e / 3 \<and> abs(gc - i) < e / 3 \<and> abs(ha - j) < e / 3 \<and>
-        abs(hc - j) < e / 3 \<and> abs(i - j) < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc\<Longrightarrow> abs(fa - fc) < e" using [[z3_with_extensions]] by smt
+        abs(hc - j) < e / 3 \<and> abs(i - j) < e / 3 \<and> ga \<le> fa \<and> fa \<le> ha \<and> gc \<le> fc \<and> fc \<le> hc\<Longrightarrow> abs(fa - fc) < e"
+        by (simp add: abs_real_def split: split_if_asm)
       show "norm (integral {a..b} (\<lambda>x. if x \<in> s then f x else 0) - integral {c..d} (\<lambda>x. if x \<in> s then f x else 0)) < e"
         unfolding real_norm_def apply(rule *, safe) unfolding real_norm_def[THEN sym]
         apply(rule B1(2),rule order_trans,rule **,rule as(1)) 
@@ -6056,8 +6061,5 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
           show "f n x \<le> Sup {f j x |j. n \<le> j}" apply(rule Sup_upper[where z="h x"]) defer
             using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
         qed qed(insert n,auto) qed qed qed
-
-declare [[smt_certificates = ""]]
-declare [[smt_read_only_certificates = false]]
 
 end

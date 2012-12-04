@@ -577,7 +577,6 @@ session "HOL-Multivariate_Analysis" in Multivariate_Analysis = HOL +
     Multivariate_Analysis
     Determinants
   files
-    "Integration.certs"
     "document/root.tex"
 
 session "HOL-Probability" in "Probability" = "HOL-Multivariate_Analysis" +
