@@ -527,8 +527,11 @@ fun features_of ctxt prover thy (scope, status) ts =
 (* Temporarily disabled: These frequent features can easily dominate the others.
   |> exists (not o is_lambda_free) ts ? cons "lams"
   |> exists (exists_Const is_exists) ts ? cons "skos"
-  |> scope <> Global ? cons "local"
 *)
+  |> scope <> Global
+     (* temporary hack: give a heavier weight to locality *)
+     ? append ["local0", "local1", "local2", "local3", "local4",
+               "local5", "local6", "local7", "local8", "local9"]
   |> (case string_of_status status of "" => I | s => cons s)
 
 (* Too many dependencies is a sign that a crazy decision procedure is at work.
