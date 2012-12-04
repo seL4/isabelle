@@ -9,8 +9,7 @@ signature MASH_EVAL =
 sig
   type params = Sledgehammer_Provers.params
 
-  val evaluate_mash_suggestions :
-    Proof.context -> params -> theory -> string -> unit
+  val evaluate_mash_suggestions : Proof.context -> params -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -28,7 +27,7 @@ val max_facts_slack = 2
 
 val all_names = map (rpair () o nickname_of) #> Symtab.make
 
-fun evaluate_mash_suggestions ctxt params thy file_name =
+fun evaluate_mash_suggestions ctxt params file_name =
   let
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
@@ -37,8 +36,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
     val path = file_name |> Path.explode
     val lines = path |> File.read_lines
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
-    val facts =
-      all_facts (Proof_Context.init_global thy) false Symtab.empty [] [] css
+    val facts = all_facts ctxt false Symtab.empty [] [] css
     val all_names = all_names (facts |> map snd)
     val mepo_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
@@ -72,7 +70,7 @@ fun evaluate_mash_suggestions ctxt params thy file_name =
           case find_first (fn (_, th) => nickname_of th = name) facts of
             SOME (_, th) => th
           | NONE => error ("No fact called \"" ^ name ^ "\".")
-        val goal = goal_of_thm thy th
+        val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isar_dependencies_of all_names th |> these
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)

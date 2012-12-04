@@ -11,8 +11,8 @@ begin
 ML_file "mash_eval.ML"
 
 sledgehammer_params
-  [provers = e, max_relevant = 40, strict, dont_slice, type_enc = poly_guards??,
-   lam_trans = combs_and_lifting, timeout = 5, dont_preplay, minimize]
+  [provers = spass, max_relevant = 40, strict, dont_slice, type_enc = mono_native,
+   lam_trans = combs_and_lifting, timeout = 15, dont_preplay, minimize]
 
 declare [[sledgehammer_instantiate_inducts]]
 
@@ -22,13 +22,12 @@ open MaSh_Eval
 
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
-val thy = @{theory Nat}
 val params = Sledgehammer_Isar.default_params @{context} []
 *}
 
 ML {*
 if do_it then
-  evaluate_mash_suggestions @{context} params thy "/tmp/mash_suggestions"
+  evaluate_mash_suggestions @{context} params "/tmp/mash_suggestions"
 else
   ()
 *}
