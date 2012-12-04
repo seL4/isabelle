@@ -524,9 +524,11 @@ fun features_of ctxt prover thy (scope, status) ts =
   thy_feature_name_of (Context.theory_name thy) ::
   interesting_terms_types_and_classes ctxt prover term_max_depth type_max_depth
                                       ts
-  |> forall is_lambda_free ts ? cons "no_lams"
-  |> forall (not o exists_Const is_exists) ts ? cons "no_skos"
+(* Temporarily disabled: These frequent features can easily dominate the others.
+  |> exists (not o is_lambda_free) ts ? cons "lams"
+  |> exists (exists_Const is_exists) ts ? cons "skos"
   |> scope <> Global ? cons "local"
+*)
   |> (case string_of_status status of "" => I | s => cons s)
 
 (* Too many dependencies is a sign that a crazy decision procedure is at work.
