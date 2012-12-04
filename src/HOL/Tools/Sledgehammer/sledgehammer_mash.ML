@@ -102,8 +102,7 @@ val relearn_isarN = "relearn_isar"
 val relearn_atpN = "relearn_atp"
 
 fun mash_model_dir () =
-  Path.explode "$ISABELLE_HOME_USER/mash"
-  |> tap Isabelle_System.mkdir
+  Path.explode "$ISABELLE_HOME_USER/mash" |> tap Isabelle_System.mkdir
 val mash_state_dir = mash_model_dir
 fun mash_state_file () = Path.append (mash_state_dir ()) (Path.explode "state")
 
@@ -496,7 +495,7 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
         let
           val ps = patternify_term (u :: args) depth t
           val qs = "" :: patternify_term [] (depth - 1) u
-        in map_product (fn p => fn q => p ^ "(" ^ q ^ ")") ps qs end
+        in map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs end
       | patternify_term _ _ _ = []
     val add_term_pattern = union (op =) oo patternify_term []
     fun add_term_patterns ~1 _ = I
@@ -670,6 +669,9 @@ fun interleave 0 _ _ = []
   | interleave 1 (x :: _) _ = [x]
   | interleave n (x :: xs) (y :: ys) = x :: y :: interleave (n - 2) xs ys
 
+(* factor that controls whether unknown global facts should be included *)
+val include_unk_global_factor = 15
+
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
@@ -698,9 +700,13 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
     val (unk_global, unk_local) =
       unchained |> filter_out (is_fact_in_graph fact_G)
                 |> List.partition (fn ((_, (scope, _)), _) => scope = Global)
+    val (small_unk_global, big_unk_global) =
+      ([], unk_global)
+      |> include_unk_global_factor * length unk_global <= max_facts ? swap
   in
-    (interleave max_facts (chained @ unk_local) sels |> weight_mepo_facts,
-     unk_global)
+    (interleave max_facts (chained @ unk_local @ small_unk_global) sels
+     |> weight_mepo_facts (* use MePo weights for now *),
+     big_unk_global)
   end
 
 fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
@@ -931,21 +937,21 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
       mash_learn_facts ctxt params prover auto_level atp infinite_timeout facts
       |> Output.urgent_message
   in
-    (if atp then
-       ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
-        plural_s num_facts ^ " for ATP proofs (" ^ quote prover ^ " timeout: " ^
-        string_from_time timeout ^ ").\n\nCollecting Isar proofs first..."
-        |> Output.urgent_message;
-        learn 1 false;
-        "Now collecting ATP proofs. This may take several hours. You can \
-        \safely stop the learning process at any point."
-        |> Output.urgent_message;
-        learn 0 true)
-     else
-       ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
-        plural_s num_facts ^ " for Isar proofs..."
-        |> Output.urgent_message;
-        learn 0 false))
+    if atp then
+      ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
+       plural_s num_facts ^ " for ATP proofs (" ^ quote prover ^ " timeout: " ^
+       string_from_time timeout ^ ").\n\nCollecting Isar proofs first..."
+       |> Output.urgent_message;
+       learn 1 false;
+       "Now collecting ATP proofs. This may take several hours. You can \
+       \safely stop the learning process at any point."
+       |> Output.urgent_message;
+       learn 0 true)
+    else
+      ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
+       plural_s num_facts ^ " for Isar proofs..."
+       |> Output.urgent_message;
+       learn 0 false)
   end
 
 fun is_mash_enabled () = (getenv "MASH" = "yes")
