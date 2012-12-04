@@ -7,14 +7,14 @@ inductive sec_type :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnsti
 Skip:
   "l \<turnstile> SKIP"  |
 Assign:
-  "\<lbrakk> sec x \<ge> sec_aexp a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile> x ::= a"  |
+  "\<lbrakk> sec x \<ge> sec a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile> x ::= a"  |
 Seq:
   "l \<turnstile> c\<^isub>1 \<Longrightarrow> l \<turnstile> c\<^isub>2 \<Longrightarrow> l \<turnstile> c\<^isub>1;c\<^isub>2"  |
 If:
-  "\<lbrakk> max (sec_bexp b) l \<turnstile> c\<^isub>1;  max (sec_bexp b) l \<turnstile> c\<^isub>2 \<rbrakk>
+  "\<lbrakk> max (sec b) l \<turnstile> c\<^isub>1;  max (sec b) l \<turnstile> c\<^isub>2 \<rbrakk>
    \<Longrightarrow> l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2"  |
 While:
-  "sec_bexp b = 0 \<Longrightarrow> 0 \<turnstile> c \<Longrightarrow> 0 \<turnstile> WHILE b DO c"
+  "sec b = 0 \<Longrightarrow> 0 \<turnstile> c \<Longrightarrow> 0 \<turnstile> WHILE b DO c"
 
 code_pred (expected_modes: i => i => bool) sec_type .
 
@@ -40,12 +40,12 @@ next
   case Seq thus ?case by auto
 next
   case (IfTrue b s c1)
-  hence "max (sec_bexp b) l \<turnstile> c1" by auto
+  hence "max (sec b) l \<turnstile> c1" by auto
   hence "l \<turnstile> c1" by (metis le_maxI2 anti_mono)
   thus ?case using IfTrue.IH by metis
 next
   case (IfFalse b s c2)
-  hence "max (sec_bexp b) l \<turnstile> c2" by auto
+  hence "max (sec b) l \<turnstile> c2" by auto
   hence "l \<turnstile> c2" by (metis le_maxI2 anti_mono)
   thus ?case using IfFalse.IH by metis
 next
@@ -71,13 +71,13 @@ proof(induction arbitrary: t rule: big_step_induct)
   case Skip thus ?case by auto
 next
   case (Assign x a s)
-  have "sec x >= sec_aexp a" using `0 \<turnstile> x ::= a` by auto
+  have "sec x >= sec a" using `0 \<turnstile> x ::= a` by auto
   have "(x ::= a,t) \<Rightarrow> t(x := aval a t)" by auto
   moreover
   have "s(x := aval a s) = t(x := aval a t) (\<le> l)"
   proof auto
     assume "sec x \<le> l"
-    with `sec x \<ge> sec_aexp a` have "sec_aexp a \<le> l" by arith
+    with `sec x \<ge> sec a` have "sec a \<le> l" by arith
     thus "aval a s = aval a t"
       by (rule aval_eq_if_eq_le[OF `s = t (\<le> l)`])
   next
@@ -89,68 +89,68 @@ next
   case Seq thus ?case by blast
 next
   case (IfTrue b s c1 s' c2)
-  have "sec_bexp b \<turnstile> c1" "sec_bexp b \<turnstile> c2" using IfTrue.prems by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using IfTrue.prems by auto
   obtain t' where t': "(c1, t) \<Rightarrow> t'" "s' = t' (\<le> l)"
-    using IfTrue(3)[OF anti_mono[OF `sec_bexp b \<turnstile> c1`] IfTrue.prems(2)] by blast
+    using IfTrue(3)[OF anti_mono[OF `sec b \<turnstile> c1`] IfTrue.prems(2)] by blast
   show ?case
   proof cases
-    assume "sec_bexp b \<le> l"
-    hence "s = t (\<le> sec_bexp b)" using `s = t (\<le> l)` by auto
+    assume "sec b \<le> l"
+    hence "s = t (\<le> sec b)" using `s = t (\<le> l)` by auto
     hence "bval b t" using `bval b s` by(simp add: bval_eq_if_eq_le)
     thus ?thesis by (metis t' big_step.IfTrue)
   next
-    assume "\<not> sec_bexp b \<le> l"
-    hence 0: "sec_bexp b \<noteq> 0" by arith
-    have 1: "sec_bexp b \<turnstile> IF b THEN c1 ELSE c2"
-      by(rule sec_type.intros)(simp_all add: `sec_bexp b \<turnstile> c1` `sec_bexp b \<turnstile> c2`)
-    from confinement[OF big_step.IfTrue[OF IfTrue(1,2)] 1] `\<not> sec_bexp b \<le> l`
+    assume "\<not> sec b \<le> l"
+    hence 0: "sec b \<noteq> 0" by arith
+    have 1: "sec b \<turnstile> IF b THEN c1 ELSE c2"
+      by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c1` `sec b \<turnstile> c2`)
+    from confinement[OF big_step.IfTrue[OF IfTrue(1,2)] 1] `\<not> sec b \<le> l`
     have "s = s' (\<le> l)" by auto
     moreover
     from termi_if_non0[OF 1 0, of t] obtain t' where
       "(IF b THEN c1 ELSE c2,t) \<Rightarrow> t'" ..
     moreover
-    from confinement[OF this 1] `\<not> sec_bexp b \<le> l`
+    from confinement[OF this 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     ultimately
     show ?case using `s = t (\<le> l)` by auto
   qed
 next
   case (IfFalse b s c2 s' c1)
-  have "sec_bexp b \<turnstile> c1" "sec_bexp b \<turnstile> c2" using IfFalse.prems by auto
+  have "sec b \<turnstile> c1" "sec b \<turnstile> c2" using IfFalse.prems by auto
   obtain t' where t': "(c2, t) \<Rightarrow> t'" "s' = t' (\<le> l)"
-    using IfFalse(3)[OF anti_mono[OF `sec_bexp b \<turnstile> c2`] IfFalse.prems(2)] by blast
+    using IfFalse(3)[OF anti_mono[OF `sec b \<turnstile> c2`] IfFalse.prems(2)] by blast
   show ?case
   proof cases
-    assume "sec_bexp b \<le> l"
-    hence "s = t (\<le> sec_bexp b)" using `s = t (\<le> l)` by auto
+    assume "sec b \<le> l"
+    hence "s = t (\<le> sec b)" using `s = t (\<le> l)` by auto
     hence "\<not> bval b t" using `\<not> bval b s` by(simp add: bval_eq_if_eq_le)
     thus ?thesis by (metis t' big_step.IfFalse)
   next
-    assume "\<not> sec_bexp b \<le> l"
-    hence 0: "sec_bexp b \<noteq> 0" by arith
-    have 1: "sec_bexp b \<turnstile> IF b THEN c1 ELSE c2"
-      by(rule sec_type.intros)(simp_all add: `sec_bexp b \<turnstile> c1` `sec_bexp b \<turnstile> c2`)
-    from confinement[OF big_step.IfFalse[OF IfFalse(1,2)] 1] `\<not> sec_bexp b \<le> l`
+    assume "\<not> sec b \<le> l"
+    hence 0: "sec b \<noteq> 0" by arith
+    have 1: "sec b \<turnstile> IF b THEN c1 ELSE c2"
+      by(rule sec_type.intros)(simp_all add: `sec b \<turnstile> c1` `sec b \<turnstile> c2`)
+    from confinement[OF big_step.IfFalse[OF IfFalse(1,2)] 1] `\<not> sec b \<le> l`
     have "s = s' (\<le> l)" by auto
     moreover
     from termi_if_non0[OF 1 0, of t] obtain t' where
       "(IF b THEN c1 ELSE c2,t) \<Rightarrow> t'" ..
     moreover
-    from confinement[OF this 1] `\<not> sec_bexp b \<le> l`
+    from confinement[OF this 1] `\<not> sec b \<le> l`
     have "t = t' (\<le> l)" by auto
     ultimately
     show ?case using `s = t (\<le> l)` by auto
   qed
 next
   case (WhileFalse b s c)
-  hence [simp]: "sec_bexp b = 0" by auto
-  have "s = t (\<le> sec_bexp b)" using `s = t (\<le> l)` by auto
+  hence [simp]: "sec b = 0" by auto
+  have "s = t (\<le> sec b)" using `s = t (\<le> l)` by auto
   hence "\<not> bval b t" using `\<not> bval b s` by (metis bval_eq_if_eq_le le_refl)
   with WhileFalse.prems(2) show ?case by auto
 next
   case (WhileTrue b s c s'' s')
   let ?w = "WHILE b DO c"
-  from `0 \<turnstile> ?w` have [simp]: "sec_bexp b = 0" by auto
+  from `0 \<turnstile> ?w` have [simp]: "sec b = 0" by auto
   have "0 \<turnstile> c" using WhileTrue.prems(1) by auto
   from WhileTrue.IH(1)[OF this WhileTrue.prems(2)]
   obtain t'' where "(c,t) \<Rightarrow> t''" and "s'' = t'' (\<le>l)" by blast
@@ -174,13 +174,13 @@ inductive sec_type' :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnst
 Skip':
   "l \<turnstile>' SKIP"  |
 Assign':
-  "\<lbrakk> sec x \<ge> sec_aexp a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile>' x ::= a"  |
+  "\<lbrakk> sec x \<ge> sec a;  sec x \<ge> l \<rbrakk> \<Longrightarrow> l \<turnstile>' x ::= a"  |
 Seq':
   "l \<turnstile>' c\<^isub>1 \<Longrightarrow> l \<turnstile>' c\<^isub>2 \<Longrightarrow> l \<turnstile>' c\<^isub>1;c\<^isub>2"  |
 If':
-  "\<lbrakk> sec_bexp b \<le> l;  l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^isub>1 ELSE c\<^isub>2"  |
+  "\<lbrakk> sec b \<le> l;  l \<turnstile>' c\<^isub>1;  l \<turnstile>' c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile>' IF b THEN c\<^isub>1 ELSE c\<^isub>2"  |
 While':
-  "\<lbrakk> sec_bexp b = 0;  0 \<turnstile>' c \<rbrakk> \<Longrightarrow> 0 \<turnstile>' WHILE b DO c"  |
+  "\<lbrakk> sec b = 0;  0 \<turnstile>' c \<rbrakk> \<Longrightarrow> 0 \<turnstile>' WHILE b DO c"  |
 anti_mono':
   "\<lbrakk> l \<turnstile>' c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile>' c"
 
