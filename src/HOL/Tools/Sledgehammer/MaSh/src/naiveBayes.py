@@ -16,7 +16,7 @@ from math import log
 
 class NBClassifier(object):
     '''
-    An updatable naive Bayes classifier.
+    An updateable naive Bayes classifier.
     '''
 
     def __init__(self):
@@ -35,7 +35,9 @@ class NBClassifier(object):
             self.counts[d] = [dPosCount,dFeatureCounts]
         
         for key in dicts.dependenciesDict.keys():
-            keyDeps = dicts.dependenciesDict[key]
+            # Add p proves p
+            keyDeps = [key]+dicts.dependenciesDict[key]
+            
             for dep in keyDeps:
                 self.counts[dep][0] += 1
                 depFeatures = dicts.featureDict[key]
@@ -103,10 +105,11 @@ class NBClassifier(object):
                 else:
                     resultA -= 15
             predictions.append(resultA)
-        expPredictions = array([exp(x) for x in predictions])
+        #expPredictions = array([exp(x) for x in predictions])
         predictions = array(predictions)
         perm = (-predictions).argsort()        
-        return array(accessibles)[perm],expPredictions[perm] 
+        #return array(accessibles)[perm],expPredictions[perm] 
+        return array(accessibles)[perm],predictions[perm]
     
     def save(self,fileName):
         OStream = open(fileName, 'wb')
