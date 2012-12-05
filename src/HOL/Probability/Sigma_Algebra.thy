@@ -1702,12 +1702,14 @@ fun measurable_tac' ctxt ss facts = let
         handle TERM t => debug_tac ctxt (fn () => "TERM " ^ fst t ^ Pretty.str_of (Pretty.list "[" "]" (map (Syntax.pretty_term ctxt) (snd t)))) no_tac
         handle Type.TUNIFY => debug_tac ctxt (fn () => "TUNIFY") no_tac) 1)
 
-    val depth_measurable_tac = REPEAT
-      (COND (is_cond_formula 1)
-        (debug_tac ctxt (K "simp") (SOLVED' (asm_full_simp_tac ss) 1))
-        ((debug_tac ctxt (K "single") (resolve_tac imported_thms 1)) APPEND
+    fun REPEAT_cnt f n st = ((f n THEN REPEAT_cnt f (n + 1)) ORELSE all_tac) st
+
+    val depth_measurable_tac = REPEAT_cnt (fn n =>
+       (COND (is_cond_formula 1)
+        (debug_tac ctxt (K ("simp " ^ string_of_int n)) (SOLVED' (asm_full_simp_tac ss) 1))
+        ((debug_tac ctxt (K ("single " ^ string_of_int n)) (resolve_tac imported_thms 1)) APPEND
           (split_app_tac ctxt 1) APPEND
-          (splitter 1)))
+          (splitter 1)))) 0
 
   in debug_tac ctxt (debug_facts "start") depth_measurable_tac end;
 
