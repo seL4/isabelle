@@ -941,8 +941,8 @@ proof (rule measurable_sigma_sets[OF sets_product_borel])
 qed (auto simp: e2p_def)
 
 (* FIXME: conversion in measurable prover *)
-lemma lborelD_Collect[measurable]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp
-lemma lborelD[measurable]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
+lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets borel \<Longrightarrow> {x\<in>space lborel. P x} \<in> sets lborel" by simp
+lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
 
 lemma measurable_p2e[measurable]:
   "p2e \<in> measurable (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. (lborel :: real measure))
