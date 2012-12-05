@@ -513,7 +513,7 @@ lemma sets_in_Pi_aux:
 lemma sets_in_Pi[measurable (raw)]:
   "finite I \<Longrightarrow> f \<in> measurable N (PiM I M) \<Longrightarrow>
   (\<And>j. j \<in> I \<Longrightarrow> {x\<in>space (M j). x \<in> F j} \<in> sets (M j)) \<Longrightarrow>
-  Sigma_Algebra.pred N (\<lambda>x. f x \<in> Pi I F)"
+  Measurable.pred N (\<lambda>x. f x \<in> Pi I F)"
   unfolding pred_def
   by (rule measurable_sets_Collect[of f N "PiM I M", OF _ sets_in_Pi_aux]) auto
 
@@ -526,7 +526,7 @@ proof -
 qed
 
 lemma sets_in_extensional[measurable (raw)]:
-  "f \<in> measurable N (PiM I M) \<Longrightarrow> Sigma_Algebra.pred N (\<lambda>x. f x \<in> extensional I)"
+  "f \<in> measurable N (PiM I M) \<Longrightarrow> Measurable.pred N (\<lambda>x. f x \<in> extensional I)"
   unfolding pred_def
   by (rule measurable_sets_Collect[of f N "PiM I M", OF _ sets_in_extensional_aux]) auto
 

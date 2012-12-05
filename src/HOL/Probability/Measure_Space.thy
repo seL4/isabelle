@@ -8,7 +8,7 @@ header {* Measure spaces and their properties *}
 
 theory Measure_Space
 imports
-  Sigma_Algebra
+  Measurable
   "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits"
 begin
 

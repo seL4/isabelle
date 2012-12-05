@@ -6,7 +6,9 @@
 header {*Borel spaces*}
 
 theory Borel_Space
-  imports Sigma_Algebra "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
+imports
+  Measurable
+  "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
 section "Generic Borel spaces"
@@ -33,7 +35,7 @@ lemma space_borel[simp]: "space borel = UNIV"
 lemma space_in_borel[measurable]: "UNIV \<in> sets borel"
   unfolding borel_def by auto
 
-lemma pred_Collect_borel[measurable (raw)]: "Sigma_Algebra.pred borel P \<Longrightarrow> {x. P x} \<in> sets borel"
+lemma pred_Collect_borel[measurable (raw)]: "Measurable.pred borel P \<Longrightarrow> {x. P x} \<in> sets borel"
   unfolding borel_def pred_def by auto
 
 lemma borel_open[measurable (raw generic)]:
