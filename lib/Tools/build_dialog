@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# DESCRIPTION: build Isabelle session images via GUI dialog
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] SESSION"
+  echo
+  echo "  Options are:"
+  echo "    -d DIR       include session directory"
+  echo
+  echo "  Build Isabelle session images via GUI dialog."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+declare -a INCLUDE_DIRS=()
+
+while getopts "d:" OPT
+do
+  case "$OPT" in
+    d)
+      INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 1 ] && usage
+
+SESSION="$1"; shift
+
+
+## main
+
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+
+"$ISABELLE_TOOL" java isabelle.Build_Dialog "${INCLUDE_DIRS[@]}" $'\n' "$SESSION"
+
