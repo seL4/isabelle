@@ -95,6 +95,9 @@ notation (xsymbols)
   conj  (infixr "\<and>" 35) and
   disj  (infixr "\<or>" 30) and
   implies  (infixr "\<longrightarrow>" 25) and
+  not_equal  (infixl "\<noteq>" 50)
+
+notation (xsymbols output)
   not_equal  (infix "\<noteq>" 50)
 
 notation (HTML output)
