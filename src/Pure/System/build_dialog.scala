@@ -98,13 +98,16 @@ object Build_Dialog extends SwingApplication
               system_mode = system_mode, sessions = List(session)))
         }
         catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
-      Swing_Thread.now {
-        if (rc != 0) {
+      if (rc == 0) {
+        progress.echo("OK\n")
+        Thread.sleep(1000)
+      }
+      else
+        Swing_Thread.now {
           Library.error_dialog(this.peer, "Isabelle build failure",
             Library.scrollable_text(out + "Return code: " + rc + "\n"))
         }
-        sys.exit(rc)
-      }
+      sys.exit(rc)
     })
   }
 }
