@@ -27,7 +27,7 @@ object Isabelle_Logic
     override def toString = description
   }
 
-  private val opt_name = "jedit_logic"
+  private val option_name = "jedit_logic"
 
   def logic_selector(autosave: Boolean): Option_Component =
   {
@@ -38,17 +38,17 @@ object Isabelle_Logic
         Isabelle_System.find_logics().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
-      name = opt_name
+      name = option_name
       val title = "Logic"
       def load: Unit =
       {
-        val logic = PIDE.options.string(opt_name)
+        val logic = PIDE.options.string(option_name)
         entries.find(_.name == logic) match {
           case Some(entry) => selection.item = entry
           case None =>
         }
       }
-      def save: Unit = PIDE.options.string(opt_name) = selection.item.name
+      def save: Unit = PIDE.options.string(option_name) = selection.item.name
     }
 
     component.load()
@@ -56,7 +56,7 @@ object Isabelle_Logic
       component.listenTo(component.selection)
       component.reactions += { case SelectionChanged(_) => component.save() }
     }
-    component.tooltip = PIDE.options.value.check_name(opt_name).print_default
+    component.tooltip = PIDE.options.value.check_name(option_name).print_default
     component
   }
 
@@ -64,7 +64,7 @@ object Isabelle_Logic
   {
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic =
-      PIDE.options.string(opt_name) match {
+      PIDE.options.string(option_name) match {
         case "" => default_logic()
         case logic => logic
       }
@@ -74,7 +74,7 @@ object Isabelle_Logic
   def session_content(inlined_files: Boolean): Build.Session_Content =
   {
     val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
-    val name = Path.explode(session_args().last).base.implode  // FIXME more robust
+    val name = session_args().last
     Build.session_content(inlined_files, dirs, name).check_errors
   }
 }
