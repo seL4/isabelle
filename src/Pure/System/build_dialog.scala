@@ -88,7 +88,7 @@ object Build_Dialog extends SwingApplication
 
     /* main build */
 
-    progress.echo("Build started ...")
+    progress.echo("Build started for Isabelle/" + session + " ...")
 
     default_thread_pool.submit(() => {
       val (out, rc) =
