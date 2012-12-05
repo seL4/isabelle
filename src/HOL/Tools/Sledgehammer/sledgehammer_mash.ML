@@ -473,7 +473,12 @@ fun theory_ord p =
     EQUAL => string_ord (pairself Context.theory_name p)
   | order => order
 
-val thm_ord = theory_ord o pairself theory_of_thm
+fun thm_ord thp =
+  case theory_ord (pairself theory_of_thm thp) of
+    EQUAL =>
+    (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
+    string_ord (pairself nickname_of (swap thp))
+  | ord => ord
 
 val freezeT = Type.legacy_freeze_type
 
