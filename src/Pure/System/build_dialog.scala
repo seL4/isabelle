@@ -43,9 +43,6 @@ object Build_Dialog extends SwingApplication
     include_dirs: List[Path],
     session: String): MainFrame = new MainFrame
   {
-    title = "Isabelle build"
-
-
     /* GUI state */
 
     private var is_stopped = false
@@ -88,6 +85,7 @@ object Build_Dialog extends SwingApplication
 
     /* main build */
 
+    title = "Isabelle build (" + Isabelle_System.getenv("ML_IDENTIFIER") + ")"
     progress.echo("Build started for Isabelle/" + session + " ...")
 
     default_thread_pool.submit(() => {
