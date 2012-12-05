@@ -65,20 +65,26 @@ object Build_Dialog extends SwingApplication
     }
 
 
-    /* actions */
+    /* action button */
 
-    val cancel = new Button("Cancel") {
-      reactions += { case ButtonClicked(_) => is_stopped = true }
+    var button_action: () => Unit = (() => is_stopped = true)
+    val button = new Button("Cancel") {
+      reactions += { case ButtonClicked(_) => button_action() }
+    }
+    def button_exit(rc: Int)
+    {
+      button.text = if (rc == 0) "OK" else "Exit"
+      button_action = (() => sys.exit(rc))
     }
 
-    val actions = new FlowPanel(FlowPanel.Alignment.Center)(cancel)
+    val action_panel = new FlowPanel(FlowPanel.Alignment.Center)(button)
 
 
     /* layout panel */
 
     val layout_panel = new BorderPanel
     layout_panel.layout(new ScrollPane(text)) = BorderPanel.Position.Center
-    layout_panel.layout(actions) = BorderPanel.Position.South
+    layout_panel.layout(action_panel) = BorderPanel.Position.South
 
     contents = layout_panel
 
@@ -96,16 +102,10 @@ object Build_Dialog extends SwingApplication
               system_mode = system_mode, sessions = List(session)))
         }
         catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
-      if (rc == 0) {
-        progress.echo("OK\n")
-        Thread.sleep(1000)
+      Swing_Thread.now {
+        progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
+        button_exit(rc)
       }
-      else
-        Swing_Thread.now {
-          Library.error_dialog(this.peer, "Isabelle build failure",
-            Library.scrollable_text(out + "Return code: " + rc + "\n"))
-        }
-      sys.exit(rc)
     })
   }
 }
