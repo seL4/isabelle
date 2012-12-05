@@ -8,6 +8,9 @@ package isabelle
 
 
 import java.awt.{GraphicsEnvironment, Point, Font}
+import java.awt.event.{KeyEvent, ActionEvent}
+import javax.swing.{JButton, AbstractAction, JComponent, KeyStroke}
+
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
   BorderPanel, MainFrame, TextArea, SwingApplication}
 import scala.swing.event.ButtonClicked
@@ -75,6 +78,14 @@ object Build_Dialog extends SwingApplication
     val button = new Button("Cancel") {
       reactions += { case ButtonClicked(_) => button_action() }
     }
+
+    button.peer.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+      KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "ENTER")
+    button.peer.getActionMap.put("ENTER",
+      new AbstractAction {
+        override def actionPerformed(e: ActionEvent) { button.peer.doClick }
+      })
+
     def button_exit(rc: Int)
     {
       button.text = if (rc == 0) "OK" else "Exit"
