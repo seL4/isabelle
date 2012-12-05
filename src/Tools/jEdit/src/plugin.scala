@@ -1,7 +1,7 @@
 /*  Title:      Tools/jEdit/src/plugin.scala
     Author:     Makarius
 
-Main Isabelle/jEdit plugin setup.
+Main plumbing for PIDE infrastructure as jEdit plugin.
 */
 
 package isabelle.jedit
@@ -15,7 +15,7 @@ import scala.swing.{ListView, ScrollPane}
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
+import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 
 import org.gjt.sp.util.SyntaxUtilities
@@ -122,8 +122,8 @@ object PIDE
   def check_buffer(buffer: Buffer)
   {
     PIDE.document_model(buffer) match {
-      case None =>
       case Some(model) => model.full_perspective()
+      case None =>
     }
   }
 
