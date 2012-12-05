@@ -7,6 +7,7 @@ Dialog for session build process.
 package isabelle
 
 
+import java.awt.{GraphicsEnvironment, Point}
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
   BorderPanel, MainFrame, TextArea, SwingApplication}
 import scala.swing.event.ButtonClicked
@@ -23,8 +24,10 @@ object Build_Dialog extends SwingApplication
         case
           Properties.Value.Boolean(system_mode) ::
           session :: include_dirs =>
+            val center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
             val top = build_dialog(system_mode, include_dirs.map(Path.explode), session)
             top.pack()
+            top.location = new Point(center.x - top.size.width / 2, center.y - top.size.height / 2)
             top.visible = true
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
