@@ -1,5 +1,6 @@
 /*  Title:      Pure/System/build.scala
     Author:     Makarius
+    Options:    :folding=explicit:collapseFolds=1:
 
 Build and manage Isabelle sessions.
 */
@@ -20,13 +21,12 @@ object Build
 {
   /** progress context **/
 
-  abstract class Progress {
-    def echo(msg: String): Unit
+  class Progress {
+    def echo(msg: String) {}
+    def stopped: Boolean = false
   }
 
-  object Ignore_Progress extends Progress {
-    override def echo(msg: String) { }
-  }
+  object Ignore_Progress extends Progress
 
   object Console_Progress extends Progress {
     override def echo(msg: String) { java.lang.System.out.println(msg) }
@@ -610,10 +610,14 @@ object Build
       results: Map[String, Result]): Map[String, Result] =
     {
       if (pending.is_empty) results
+      else if (progress.stopped) {
+        for ((_, (_, job)) <- running) job.terminate
+        sleep(); loop(pending, running, results)
+      }
       else
         running.find({ case (_, (_, job)) => job.is_finished }) match {
           case Some((name, (parent_heap, job))) =>
-            // finish job
+            //{{{ finish job
 
             val (out, err, rc) = job.join
             progress.echo(Library.trim_line(err))
@@ -645,9 +649,9 @@ object Build
                 no_heap
               }
             loop(pending - name, running - name, results + (name -> Result(false, heap, rc)))
-
+            //}}}
           case None if (running.size < (max_jobs max 1)) =>
-            // check/start next job
+            //{{{ check/start next job
             pending.dequeue(running.isDefinedAt(_)) match {
               case Some((name, info)) =>
                 val parent_result =
@@ -691,6 +695,7 @@ object Build
                 }
               case None => sleep(); loop(pending, running, results)
             }
+            ///}}}
           case None => sleep(); loop(pending, running, results)
         }
     }
