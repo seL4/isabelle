@@ -18,6 +18,22 @@ import scala.annotation.tailrec
 
 object Build
 {
+  /** progress context **/
+
+  abstract class Progress {
+    def echo(msg: String): Unit
+  }
+
+  object Ignore_Progress extends Progress {
+    override def echo(msg: String) { }
+  }
+
+  object Console_Progress extends Progress {
+    override def echo(msg: String) { java.lang.System.out.println(msg) }
+  }
+
+
+
   /** session information **/
 
   // external version
@@ -263,10 +279,6 @@ object Build
 
   /** build **/
 
-  private def echo(msg: String) { java.lang.System.out.println(msg) }
-  private def sleep(): Unit = Thread.sleep(500)
-
-
   /* queue */
 
   object Queue
@@ -334,8 +346,8 @@ object Build
     def sources(name: String): List[SHA1.Digest] = deps(name).sources.map(_._2)
   }
 
-  def dependencies(inlined_files: Boolean, verbose: Boolean, list_files: Boolean,
-      tree: Session_Tree): Deps =
+  def dependencies(progress: Build.Progress, inlined_files: Boolean,
+      verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
           val (preloaded, parent_syntax, parent_errors) =
@@ -352,7 +364,7 @@ object Build
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
-            echo("Session " + name + groups)
+            progress.echo("Session " + name + groups)
           }
 
           val thy_deps =
@@ -371,7 +383,7 @@ object Build
             }).flatten ::: info.files.map(file => info.dir + file)).map(_.expand)
 
           if (list_files)
-            echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
+            progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
 
           val sources =
             try { all_files.map(p => (p, SHA1.digest(p.file))) }
@@ -390,7 +402,7 @@ object Build
     val options = Options.init
     val (_, tree) =
       find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, List(session))
-    dependencies(inlined_files, false, false, tree)(session)
+    dependencies(Build.Ignore_Progress, inlined_files, false, false, tree)(session)
   }
 
   def outer_syntax(session: String): Outer_Syntax =
@@ -537,6 +549,7 @@ object Build
   /* build */
 
   def build(
+    progress: Build.Progress,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
@@ -556,7 +569,7 @@ object Build
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions, session_groups, sessions)
 
-    val deps = dependencies(true, verbose, list_files, selected_tree)
+    val deps = dependencies(progress, true, verbose, list_files, selected_tree)
     val queue = Queue(selected_tree)
 
     def make_stamp(name: String): String =
@@ -581,13 +594,15 @@ object Build
       for (name <- full_tree.graph.all_succs(selected)) {
         val files =
           List(Path.basic(name), log(name), log_gz(name)).map(output_dir + _).filter(_.is_file)
-        if (!files.isEmpty) echo("Cleaning " + name + " ...")
-        if (!files.forall(p => p.file.delete)) echo(name + " FAILED to delete")
+        if (!files.isEmpty) progress.echo("Cleaning " + name + " ...")
+        if (!files.forall(p => p.file.delete)) progress.echo(name + " FAILED to delete")
       }
     }
 
     // scheduler loop
     case class Result(current: Boolean, heap: String, rc: Int)
+
+    def sleep(): Unit = Thread.sleep(500)
 
     @tailrec def loop(
       pending: Queue,
@@ -601,7 +616,7 @@ object Build
             // finish job
 
             val (out, err, rc) = job.join
-            echo(Library.trim_line(err))
+            progress.echo(Library.trim_line(err))
 
             val heap =
               if (rc == 0) {
@@ -619,12 +634,12 @@ object Build
                 (output_dir + log_gz(name)).file.delete
 
                 File.write(output_dir + log(name), out)
-                echo(name + " FAILED")
+                progress.echo(name + " FAILED")
                 if (rc != 130) {
-                  echo("(see also " + (output_dir + log(name)).file.toString + ")")
+                  progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
                   val lines = split_lines(out)
                   val tail = lines.drop(lines.length - 20 max 0)
-                  echo("\n" + cat_lines(tail))
+                  progress.echo("\n" + cat_lines(tail))
                 }
 
                 no_heap
@@ -662,16 +677,16 @@ object Build
                 if (all_current)
                   loop(pending - name, running, results + (name -> Result(true, heap, 0)))
                 else if (no_build) {
-                  if (verbose) echo("Skipping " + name + " ...")
+                  if (verbose) progress.echo("Skipping " + name + " ...")
                   loop(pending - name, running, results + (name -> Result(false, heap, 1)))
                 }
                 else if (parent_result.rc == 0) {
-                  echo((if (do_output) "Building " else "Running ") + name + " ...")
+                  progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job = new Job(name, info, output, do_output, verbose, browser_info)
                   loop(pending, running + (name -> (parent_result.heap, job)), results)
                 }
                 else {
-                  echo(name + " CANCELLED")
+                  progress.echo(name + " CANCELLED")
                   loop(pending - name, running, results + (name -> Result(false, heap, 1)))
                 }
               case None => sleep(); loop(pending, running, results)
@@ -682,7 +697,7 @@ object Build
 
     val results =
       if (deps.is_empty) {
-        echo("### Nothing to build")
+        progress.echo("### Nothing to build")
         Map.empty
       }
       else loop(queue, Map.empty, Map.empty)
@@ -692,7 +707,7 @@ object Build
       val unfinished =
         (for ((name, res) <- results.iterator if res.rc != 0) yield name).toList
           .sorted(scala.math.Ordering.String)  // FIXME scala-2.10.0-RC1
-      echo("Unfinished session(s): " + commas(unfinished))
+      progress.echo("Unfinished session(s): " + commas(unfinished))
     }
     rc
   }
@@ -718,8 +733,9 @@ object Build
             val dirs =
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
-            build(requirements, all_sessions, build_heap, clean_build, dirs, session_groups,
-              max_jobs, list_files, no_build, build_options, system_mode, verbose, sessions)
+            build(Build.Console_Progress, requirements, all_sessions, build_heap, clean_build,
+              dirs, session_groups, max_jobs, list_files, no_build, build_options, system_mode,
+              verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
