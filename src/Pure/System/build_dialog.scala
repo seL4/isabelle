@@ -21,11 +21,9 @@ object Build_Dialog extends SwingApplication
     try {
       args.toList match {
         case
-          Properties.Value.Boolean(clean_build) ::
           Properties.Value.Boolean(system_mode) ::
           session :: include_dirs =>
-            val top =
-              build_dialog(clean_build, system_mode, include_dirs.map(Path.explode), session)
+            val top = build_dialog(system_mode, include_dirs.map(Path.explode), session)
             top.pack()
             top.visible = true
         case _ => error("Bad arguments:\n" + cat_lines(args))
@@ -41,7 +39,6 @@ object Build_Dialog extends SwingApplication
 
 
   def build_dialog(
-    clean_build: Boolean,
     system_mode: Boolean,
     include_dirs: List[Path],
     session: String): MainFrame = new MainFrame
@@ -98,7 +95,7 @@ object Build_Dialog extends SwingApplication
         try {
           ("",
             Build.build(progress, build_heap = true,
-              clean_build = clean_build, system_mode = system_mode, sessions = List(session)))
+              system_mode = system_mode, sessions = List(session)))
         }
         catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
       Swing_Thread.now {
