@@ -465,14 +465,6 @@ class Session(val thy_load: Thy_Load)
 
   def cancel_execution() { session_actor ! Cancel_Execution }
 
-  def edit(edits: List[Document.Edit_Text])
+  def update(edits: List[Document.Edit_Text])
   { session_actor !? Session.Raw_Edits(edits) }
-
-  def edit_node(name: Document.Node.Name,
-    header: Document.Node.Header, perspective: Text.Perspective, text_edits: List[Text.Edit])
-  {
-    edit(List(header_edit(name, header),
-      name -> Document.Node.Edits(text_edits),
-      name -> Document.Node.Perspective(perspective)))
-  }
 }

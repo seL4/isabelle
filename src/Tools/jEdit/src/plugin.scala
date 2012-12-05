@@ -95,7 +95,7 @@ object PIDE
             model_edits ::: edits
           }
         }
-      PIDE.session.edit(init_edits)
+      PIDE.session.update(init_edits)
     }
   }
 
