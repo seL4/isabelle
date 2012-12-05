@@ -57,9 +57,10 @@ sig
   val atp_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
     -> thm -> bool * string list option
+  val weight_mash_facts : ('a * thm) list -> (('a * thm) * real) list
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
-    -> fact list -> (fact * real) list * fact list
+    -> fact list -> fact list * fact list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -473,11 +474,11 @@ fun theory_ord p =
     EQUAL => string_ord (pairself Context.theory_name p)
   | order => order
 
-fun thm_ord thp =
-  case theory_ord (pairself theory_of_thm thp) of
+fun thm_ord p =
+  case theory_ord (pairself theory_of_thm p) of
     EQUAL =>
     (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
-    string_ord (pairself nickname_of (swap thp))
+    string_ord (pairself nickname_of (swap p))
   | ord => ord
 
 val freezeT = Type.legacy_freeze_type
@@ -708,6 +709,8 @@ fun interleave 0 _ _ = []
 (* factor that controls whether unknown global facts should be included *)
 val include_unk_global_factor = 15
 
+val weight_mash_facts = weight_mepo_facts (* use MePo weights for now *)
+
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
@@ -740,8 +743,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
       ([], unk_global)
       |> include_unk_global_factor * length unk_global <= max_facts ? swap
   in
-    (interleave max_facts (chained @ unk_local @ small_unk_global) sels
-     |> weight_mepo_facts (* use MePo weights for now *),
+    (interleave max_facts (chained @ unk_local @ small_unk_global) sels,
      big_unk_global)
   end
 
@@ -1034,11 +1036,12 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
          (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
         |> take max_facts
       fun mepo () =
-        facts |> mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts
-                                      concl_t
-              |> weight_mepo_facts
+        mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
+                             facts
+        |> weight_mepo_facts
       fun mash () =
         mash_suggested_facts ctxt params prover max_facts hyp_ts concl_t facts
+        |>> weight_mash_facts
       val mess =
         [] |> (if fact_filter <> mashN then cons (mepo (), []) else I)
            |> (if fact_filter <> mepoN then cons (mash ()) else I)
