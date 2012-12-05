@@ -7,7 +7,7 @@ Dialog for session build process.
 package isabelle
 
 
-import java.awt.{GraphicsEnvironment, Point}
+import java.awt.{GraphicsEnvironment, Point, Font}
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
   BorderPanel, MainFrame, TextArea, SwingApplication}
 import scala.swing.event.ButtonClicked
@@ -55,6 +55,7 @@ object Build_Dialog extends SwingApplication
     /* text */
 
     val text = new TextArea {
+      font = new Font("SansSerif", Font.PLAIN, 14)
       editable = false
       columns = 40
       rows = 10
