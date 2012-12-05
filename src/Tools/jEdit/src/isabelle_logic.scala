@@ -35,7 +35,7 @@ object Isabelle_Logic
 
     val entries =
       new Logic_Entry("", "default (" + default_logic() + ")") ::
-        Isabelle_System.find_logics().map(name => new Logic_Entry(name, name))
+        Isabelle_Logic.session_list().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
       name = option_name
@@ -56,7 +56,7 @@ object Isabelle_Logic
       component.listenTo(component.selection)
       component.reactions += { case SelectionChanged(_) => component.save() }
     }
-    component.tooltip = PIDE.options.value.check_name(option_name).print_default
+    component.tooltip = "Logic session name (change requires restart)"
     component
   }
 
@@ -71,9 +71,17 @@ object Isabelle_Logic
     modes ::: List(logic)
   }
 
+  def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
+
+  def session_list(): List[String] =
+  {
+    val dirs = session_dirs().map((false, _))
+    Build.find_sessions(PIDE.options.value, dirs).topological_order.map(_._1).sorted
+  }
+
   def session_content(inlined_files: Boolean): Build.Session_Content =
   {
-    val dirs = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))
+    val dirs = session_dirs()
     val name = session_args().last
     Build.session_content(inlined_files, dirs, name).check_errors
   }
