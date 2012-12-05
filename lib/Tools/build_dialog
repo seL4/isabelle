@@ -15,9 +15,11 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] SESSION"
   echo
   echo "  Options are:"
+  echo "    -c           clean build"
   echo "    -d DIR       include session directory"
+  echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo
-  echo "  Build Isabelle session images via GUI dialog."
+  echo "  Build Isabelle session image via GUI dialog."
   echo
   exit 1
 }
@@ -31,13 +33,21 @@ function fail()
 
 ## process command line
 
+CLEAN_BUILD=false
 declare -a INCLUDE_DIRS=()
+SYSTEM_MODE=false
 
-while getopts "d:" OPT
+while getopts "cd:s" OPT
 do
   case "$OPT" in
+    c)
+      CLEAN_BUILD="true"
+      ;;
     d)
       INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
+      ;;
+    s)
+      SYSTEM_MODE="true"
       ;;
     \?)
       usage
@@ -59,5 +69,6 @@ SESSION="$1"; shift
 
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-"$ISABELLE_TOOL" java isabelle.Build_Dialog "${INCLUDE_DIRS[@]}" $'\n' "$SESSION"
+"$ISABELLE_TOOL" java isabelle.Build_Dialog \
+  "$CLEAN_BUILD" "$SYSTEM_MODE" "$SESSION" "${INCLUDE_DIRS[@]}"
 
