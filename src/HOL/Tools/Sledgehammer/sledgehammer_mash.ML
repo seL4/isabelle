@@ -516,11 +516,18 @@ val logical_consts =
 fun interesting_terms_types_and_classes ctxt prover term_max_depth
                                         type_max_depth ts =
   let
+    val thy = Proof_Context.theory_of ctxt
+    val classes = Sign.classes_of thy
     fun is_bad_const (x as (s, _)) args =
       member (op =) logical_consts s orelse
       fst (is_built_in_const_for_prover ctxt prover x args)
     fun add_classes @{sort type} = I
-      | add_classes S = union (op = o pairself fst) (map class_feature_of S)
+      | add_classes S =
+        fold (`(Sorts.super_classes classes)
+              #> swap #> op ::
+              #> subtract (op =) @{sort type}
+              #> map class_feature_of
+              #> union (op = o pairself fst)) S
     fun do_add_type (Type (s, Ts)) =
         (not (member (op =) bad_types s)
          ? insert (op = o pairself fst) (type_feature_of s))
