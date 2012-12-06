@@ -460,7 +460,8 @@ fun mesh_facts max_facts [(_, (sels, unks))] =
     end
 
 fun thy_feature_of s = ("y" ^ s, 1.0 (* FUDGE *))
-fun term_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
+fun const_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
+fun free_feature_of s = ("f" ^ s, 2.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 1.0 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
 fun status_feature_of status = (string_of_status status, 1.0 (* FUDGE *))
@@ -513,10 +514,11 @@ val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 val logical_consts =
   [@{const_name prop}, @{const_name Pure.conjunction}] @ atp_logical_consts
 
-fun interesting_terms_types_and_classes ctxt prover term_max_depth
+fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
                                         type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
+    val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
     fun is_bad_const (x as (s, _)) args =
       member (op =) logical_consts s orelse
@@ -538,6 +540,11 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
     fun patternify_term _ ~1 _ = []
       | patternify_term args _ (Const (x as (s, _))) =
         if is_bad_const x args then [] else [s]
+      | patternify_term _ depth (Free (s, _)) =
+        if depth = term_max_depth andalso member (op =) fixes s then
+          [thy_name ^ Long_Name.separator ^ s]
+        else
+          []
       | patternify_term _ 0 _ = []
       | patternify_term args depth (t $ u) =
         let
@@ -545,17 +552,18 @@ fun interesting_terms_types_and_classes ctxt prover term_max_depth
           val qs = "" :: patternify_term [] (depth - 1) u
         in map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs end
       | patternify_term _ _ _ = []
-    val add_term_pattern =
-      union (op = o pairself fst) o map term_feature_of oo patternify_term []
-    fun add_term_patterns ~1 _ = I
-      | add_term_patterns depth t =
-        add_term_pattern depth t #> add_term_patterns (depth - 1) t
-    val add_term = add_term_patterns term_max_depth
+    fun add_term_pattern feature_of =
+      union (op = o pairself fst) o map feature_of oo patternify_term []
+    fun add_term_patterns _ ~1 _ = I
+      | add_term_patterns feature_of depth t =
+        add_term_pattern feature_of depth t
+        #> add_term_patterns feature_of (depth - 1) t
+    fun add_term feature_of = add_term_patterns feature_of term_max_depth
     fun add_patterns t =
       let val (head, args) = strip_comb t in
         (case head of
-           Const (_, T) => add_term t #> add_type T
-         | Free (_, T) => add_type T
+           Const (_, T) => add_term const_feature_of t #> add_type T
+         | Free (_, T) => add_term free_feature_of t #> add_type T
          | Var (_, T) => add_type T
          | Abs (_, T, body) => add_type T #> add_patterns body
          | _ => I)
@@ -570,13 +578,15 @@ val type_max_depth = 2
 
 (* TODO: Generate type classes for types? *)
 fun features_of ctxt prover thy (scope, status) ts =
-  thy_feature_of (Context.theory_name thy) ::
-  interesting_terms_types_and_classes ctxt prover term_max_depth type_max_depth
-                                      ts
-  |> status <> General ? cons (status_feature_of status)
-  |> scope <> Global ? cons local_feature
-  |> exists (not o is_lambda_free) ts ? cons lams_feature
-  |> exists (exists_Const is_exists) ts ? cons skos_feature
+  let val thy_name = Context.theory_name thy in
+    thy_feature_of thy_name ::
+    interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
+        type_max_depth ts
+    |> status <> General ? cons (status_feature_of status)
+    |> scope <> Global ? cons local_feature
+    |> exists (not o is_lambda_free) ts ? cons lams_feature
+    |> exists (exists_Const is_exists) ts ? cons skos_feature
+  end
 
 (* Too many dependencies is a sign that a crazy decision procedure is at work.
    There isn't much to learn from such proofs. *)
