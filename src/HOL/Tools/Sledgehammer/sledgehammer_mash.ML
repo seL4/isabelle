@@ -199,7 +199,8 @@ fun str_of_query (parents, feats) =
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
     [name, weight] =>
-    SOME (unescape_meta name, Real.fromString weight |> the_default 0.0)
+    SOME (unescape_meta name, Real.fromString weight |> the_default 1.0)
+  | [name] => SOME (unescape_meta name, 1.0)
   | _ => NONE
 
 fun extract_query line =
