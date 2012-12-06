@@ -15,7 +15,7 @@ body { font-family: IsabelleText; font-size: 14pt; }
 <center><h2><img alt="PIDE" src="PIDE.png" width="230" align="middle"/></h2></center>
 
 <p>
-  <b>PIDE</b> is a novel framework for sophisticated Prover IDEs,
+  <b>PIDE</b> is a framework for sophisticated Prover IDEs,
   based on Isabelle/Scala technology that is integrated with Isabelle.
   It is built around a concept of
   <em>asynchronous document processing</em>, which is supported
@@ -23,7 +23,7 @@ body { font-family: IsabelleText; font-size: 14pt; }
 </p>
 
 <p>
-  <b>Isabelle/jEdit</b> is an example application within the PIDE
+  <b>Isabelle/jEdit</b> is the main example application within the PIDE
   framework &mdash; it illustrates many of the ideas in a realistic
   manner, ready to be used right now in Isabelle applications.
 </p>
@@ -160,9 +160,6 @@ stateless environment of formal document content.</li>
 <h2>Limitations and workarounds</h2>
 
 <ul>
-  <li>No way to start/stop prover or switch to a different logic.<br/>
-  <em>Workaround:</em> Change options and restart editor.</li>
-
   <li>Odd behavior of some diagnostic commands, notably those starting
   external processes asynchronously (e.g. <tt>thy_deps</tt>).<br/>
   <em>Workaround:</em> Avoid such commands.</li>
@@ -179,8 +176,6 @@ stateless environment of formal document content.</li>
   <li>No support for non-local markup, e.g. commands reporting on
   previous commands (proof end on proof head), or markup produced by
   loading external files.</li>
-
-  <li>Lack of a few conveniences known from Proof General.</li>
 </ul>
 
 
