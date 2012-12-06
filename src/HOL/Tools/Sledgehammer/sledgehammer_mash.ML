@@ -459,12 +459,12 @@ fun mesh_facts max_facts [(_, (sels, unks))] =
             |> map snd |> take max_facts
     end
 
-fun thy_feature_of s = ("y" ^ s, 1.0 (* FUDGE *))
+fun thy_feature_of s = ("y" ^ s, 0.5 (* FUDGE *))
 fun const_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
 fun free_feature_of s = ("f" ^ s, 2.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 1.0 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
-fun status_feature_of status = (string_of_status status, 1.0 (* FUDGE *))
+fun status_feature_of status = (string_of_status status, 0.5 (* FUDGE *))
 val local_feature = ("local", 2.0 (* FUDGE *))
 val lams_feature = ("lams", 0.5 (* FUDGE *))
 val skos_feature = ("skos", 0.5 (* FUDGE *))
