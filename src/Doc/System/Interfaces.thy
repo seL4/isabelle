@@ -20,6 +20,8 @@ text {* The @{tool_def jedit} tool invokes a version of
     -j OPTION    add jEdit runtime option (default JEDIT_OPTIONS)
     -l NAME      logic image name (default ISABELLE_LOGIC)
     -m MODE      add print mode for output
+    -n           no build dialog for session image on startup
+    -s           system build mode for session image
 
 Start jEdit with Isabelle plugin setup and opens theory FILES
 (default Scratch.thy).
@@ -29,6 +31,11 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
   image to be used for proof processing.  Additional session root
   directories may be included via option @{verbatim "-d"} to augment
   that name space (see also \secref{sec:tool-build}).
+
+  By default, the specified image is checked and built on demand, see
+  also @{tool build_dialog}.  The @{verbatim "-s"} determines where to
+  store the result session image (see also \secref{sec:tool-build}).
+  The @{verbatim "-n"} option bypasses the session build dialog.
 
   The @{verbatim "-m"} option specifies additional print modes.
 
@@ -43,7 +50,8 @@ Start jEdit with Isabelle plugin setup and opens theory FILES
   jedit_build}
   component.\footnote{\url{http://isabelle.in.tum.de/components}} Note
   that official Isabelle releases already include a version of
-  Isabelle/jEdit that is built properly.  *}
+  Isabelle/jEdit that is built properly.
+*}
 
 
 section {* Proof General / Emacs *}

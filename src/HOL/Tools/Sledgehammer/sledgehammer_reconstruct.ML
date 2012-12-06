@@ -728,7 +728,7 @@ fun isar_proof_text ctxt isar_proofs
           in
             "\n\nStructured proof "
               ^ (commas msg |> not (null msg) ? enclose "(" ")")
-              ^ ":\n" ^ Markup.markup Markup.sendback isar_text
+              ^ ":\n" ^ Sendback.markup isar_text
           end
       end
     val isar_proof =

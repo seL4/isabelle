@@ -14,22 +14,38 @@ import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
 import scala.swing.event.ButtonClicked
 
 
-object Build_Dialog extends SwingApplication
+object Build_Dialog
 {
-  def startup(args: Array[String]) =
+  def main(args: Array[String]) =
   {
-    Platform.init_laf()
-
     try {
       args.toList match {
         case
+          logic_option ::
           Properties.Value.Boolean(system_mode) ::
-          session :: include_dirs =>
-            val center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
-            val top = build_dialog(system_mode, include_dirs.map(Path.explode), session)
-            top.pack()
-            top.location = new Point(center.x - top.size.width / 2, center.y - top.size.height / 2)
-            top.visible = true
+          logic ::
+          include_dirs =>
+            val more_dirs = include_dirs.map(s => ((false, Path.explode(s))))
+
+            val options = Options.init()
+            val session =
+              Isabelle_System.default_logic(logic,
+                if (logic_option != "") options.string(logic_option) else "")
+
+            if (Build.build(Build.Ignore_Progress, options, no_build = true,
+                more_dirs = more_dirs, sessions = List(session)) == 0) sys.exit(0)
+            else
+              Swing_Thread.later {
+                Platform.init_laf()
+
+                val top = build_dialog(options, system_mode, more_dirs, session)
+                top.pack()
+
+                val point = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
+                top.location = new Point(point.x - top.size.width / 2, point.y - top.size.height / 2)
+
+                top.visible = true
+              }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
@@ -43,8 +59,9 @@ object Build_Dialog extends SwingApplication
 
 
   def build_dialog(
+    options: Options,
     system_mode: Boolean,
-    include_dirs: List[Path],
+    more_dirs: List[(Boolean, Path)],
     session: String): MainFrame = new MainFrame
   {
     /* GUI state */
@@ -104,7 +121,7 @@ object Build_Dialog extends SwingApplication
       val (out, rc) =
         try {
           ("",
-            Build.build(progress, build_heap = true,
+            Build.build(progress, options, build_heap = true, more_dirs = more_dirs,
               system_mode = system_mode, sessions = List(session)))
         }
         catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }

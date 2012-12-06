@@ -29,12 +29,10 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by Swing thread */
 
   private var zoom_factor = 100
-  private var show_tracing = false
   private var do_update = true
   private var current_snapshot = Document.State.init.snapshot()
   private var current_state = Command.empty.init_state
   private var current_output: List[XML.Tree] = Nil
-  private var current_tracing = 0
 
 
   /* pretty text area */
@@ -71,28 +69,17 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         case None => (current_snapshot, current_state)
       }
 
-    val (new_output, new_tracing) =
+    val new_output =
       if (!restriction.isDefined || restriction.get.contains(new_state.command))
-      {
-        val new_output =
-          new_state.results.iterator.map(_._2)
-            .filter(msg => !Protocol.is_tracing(msg) || show_tracing).toList
-        val new_tracing =
-          new_state.results.iterator.map(_._2).filter(Protocol.is_tracing(_)).length
-        (new_output, new_tracing)
-      }
-      else (current_output, current_tracing)
+        new_state.results.iterator.map(_._2).toList
+      else current_output
 
     if (new_output != current_output)
       pretty_text_area.update(new_snapshot, Pretty.separate(new_output))
 
-    if (new_tracing != current_tracing)
-      tracing.text = tracing_text(new_tracing)
-
     current_snapshot = new_snapshot
     current_state = new_state
     current_output = new_output
-    current_tracing = new_tracing
   }
 
 
@@ -148,14 +135,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
-  private def tracing_text(n: Int): String = "Tracing (" + n.toString + ")"
-  private val tracing = new CheckBox(tracing_text(current_tracing)) {
-    reactions += {
-      case ButtonClicked(_) => show_tracing = this.selected; handle_update(do_update, None) }
-  }
-  tracing.selected = show_tracing
-  tracing.tooltip = "Indicate output of tracing messages"
-
   private val auto_update = new CheckBox("Auto update") {
     reactions += {
       case ButtonClicked(_) => do_update = this.selected; handle_update(do_update, None) }
@@ -176,7 +155,6 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   }
   detach.tooltip = "Detach window with static copy of current output"
 
-  private val controls =
-    new FlowPanel(FlowPanel.Alignment.Right)(zoom, tracing, auto_update, update, detach)
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom, auto_update, update, detach)
   add(controls.peer, BorderLayout.NORTH)
 }

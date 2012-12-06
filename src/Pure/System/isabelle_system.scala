@@ -273,7 +273,7 @@ object Isabelle_System
     Path.split(getenv_strict("ISABELLE_COMPONENTS"))
 
 
-  /* find logics */
+  /* logic images */
 
   def find_logics_dirs(): List[Path] =
   {
@@ -286,6 +286,14 @@ object Isabelle_System
       dir <- find_logics_dirs()
       files = dir.file.listFiles() if files != null
       file <- files.toList if file.isFile } yield file.getName).sorted
+
+  def default_logic(args: String*): String =
+  {
+    args.find(_ != "") match {
+      case Some(logic) => logic
+      case None => Isabelle_System.getenv_strict("ISABELLE_LOGIC")
+    }
+  }
 
 
   /* fonts */

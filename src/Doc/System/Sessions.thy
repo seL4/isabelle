@@ -334,4 +334,29 @@ isabelle build -D '$AFP' -R -v -n
 \end{ttbox}
 *}
 
+
+section {* Build dialog *}
+
+text {* The @{tool_def build_dialog} provides a simple GUI wrapper to
+  the tool Isabelle @{tool build} tool.  This enables user interfaces
+  like Isabelle/jEdit \secref{sec:tool-jedit} to provide read-made
+  logic image on startup.  Its command-line usage is:
+\begin{ttbox}
+Usage: isabelle build_dialog [OPTIONS] LOGIC
+
+  Options are:
+    -L OPTION    default logic via system option
+    -d DIR       include session directory
+    -s           system build mode: produce output in ISABELLE_HOME
+
+  Build Isabelle session image LOGIC via GUI dialog.
+\end{ttbox}
+
+  \medskip Option @{verbatim "-L"} specifies a system option name as
+  fall-back, if the specified @{text "LOGIC"} name is empty.
+
+  \medskip Options @{verbatim "-d"} and @{verbatim "-s"} have the same
+  meaning as for the command-line @{tool build} tool itself.
+*}
+
 end

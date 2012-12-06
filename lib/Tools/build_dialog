@@ -12,14 +12,14 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] SESSION"
+  echo "Usage: isabelle $PRG [OPTIONS] LOGIC"
   echo
   echo "  Options are:"
-  echo "    -C           check for existing image"
+  echo "    -L OPTION    default logic via system option"
   echo "    -d DIR       include session directory"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo
-  echo "  Build Isabelle session image via GUI dialog."
+  echo "  Build Isabelle session image LOGIC via GUI dialog."
   echo
   exit 1
 }
@@ -33,15 +33,15 @@ function fail()
 
 ## process command line
 
-CHECK_EXISTING=false
+LOGIC_OPTION=""
 declare -a INCLUDE_DIRS=()
 SYSTEM_MODE=false
 
-while getopts "Cd:s" OPT
+while getopts "L:d:s" OPT
 do
   case "$OPT" in
-    C)
-      CHECK_EXISTING="true"
+    L)
+      LOGIC_OPTION="$OPTARG"
       ;;
     d)
       INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
@@ -62,30 +62,13 @@ shift $(($OPTIND - 1))
 
 [ "$#" -ne 1 ] && usage
 
-SESSION="$1"; shift
+LOGIC="$1"; shift
 
 
-## existing image
+## main
 
-EXISTING=false
-if [ "$CHECK_EXISTING" = true ]; then
-  declare -a ISABELLE_PATHS=()
-  splitarray ":" "$ISABELLE_PATH"; ISABELLE_PATHS=("${SPLITARRAY[@]}")
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-  for DIR in "${ISABELLE_PATHS[@]}"
-  do
-    FILE="$DIR/$ML_IDENTIFIER/$SESSION"
-    [ -f "$FILE" ] && EXISTING=true
-  done
-fi
-
-
-## build
-
-if [ "$EXISTING" = false ]; then
-  [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
-
-  "$ISABELLE_TOOL" java isabelle.Build_Dialog \
-    "$SYSTEM_MODE" "$SESSION" "${INCLUDE_DIRS[@]}"
-fi
+"$ISABELLE_TOOL" java isabelle.Build_Dialog \
+  "$LOGIC_OPTION" "$SYSTEM_MODE" "$LOGIC" "${INCLUDE_DIRS[@]}"
 
