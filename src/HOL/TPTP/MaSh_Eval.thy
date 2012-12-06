@@ -11,7 +11,7 @@ begin
 ML_file "mash_eval.ML"
 
 sledgehammer_params
-  [provers = spass, max_relevant = 40, strict, dont_slice, type_enc = mono_native,
+  [provers = spass, max_relevant = 32, strict, dont_slice, type_enc = mono_native,
    lam_trans = combs_and_lifting, timeout = 15, dont_preplay, minimize]
 
 declare [[sledgehammer_instantiate_inducts]]

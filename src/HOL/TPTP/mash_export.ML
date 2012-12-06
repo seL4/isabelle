@@ -189,7 +189,7 @@ fun generate_mepo_suggestions ctxt (params as {provers, ...}) thys max_relevant
                 old_facts
                 |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
                        max_relevant NONE hyp_ts concl_t
-                |> map (fn ((name, _), _) => name ())
+                |> map (nickname_of o snd)
               val s = escape_meta name ^ ": " ^ escape_metas suggs ^ "\n"
             in File.append path s end
           else
