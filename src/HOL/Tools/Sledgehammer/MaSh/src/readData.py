@@ -15,12 +15,12 @@ Created on July 9, 2012
 import sys,logging
 
 def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeatureId,inputFile):
-    logger = logging.getLogger('create_feature_dict')    
+    logger = logging.getLogger('create_feature_dict')
     featureDict = {}
-    IS = open(inputFile,'r') 
+    IS = open(inputFile,'r')
     for line in IS:
         line = line.split(':')
-        name = line[0]        
+        name = line[0]
         # Name Id
         if nameIdDict.has_key(name):
             logger.warning('%s appears twice in the feature file. Aborting.',name)
@@ -29,33 +29,41 @@ def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeature
             nameIdDict[name] = maxNameId
             idNameDict[maxNameId] = name
             nameId = maxNameId
-            maxNameId += 1            
+            maxNameId += 1
         # Feature Ids
-        featureNames = [f.strip() for f in line[1].split()]             
+        featureNames = [f.strip() for f in line[1].split()]
+        features = []
         for fn in featureNames:
-            if not featureIdDict.has_key(fn):
-                featureIdDict[fn] = maxFeatureId
-                maxFeatureId += 1
-        featureIds = [featureIdDict[fn] for fn in featureNames]
+            tmp = fn.split('=')
+            if len(tmp) == 2:
+                if not featureIdDict.has_key(tmp[0]):
+                    featureIdDict[tmp[0]] = maxFeatureId
+                    maxFeatureId += 1
+                features.append((featureIdDict[tmp[0]],float(tmp[1])))
+            else:
+                if not featureIdDict.has_key(fn):
+                    featureIdDict[fn] = maxFeatureId
+                    maxFeatureId += 1
+                features.append((featureIdDict[fn],1.0))
         # Store results
-        featureDict[nameId] = featureIds
+        featureDict[nameId] = features
     IS.close()
     return featureDict,maxNameId,maxFeatureId
-     
+
 def create_dependencies_dict(nameIdDict,inputFile):
     logger = logging.getLogger('create_dependencies_dict')
     dependenciesDict = {}
     IS = open(inputFile,'r')
     for line in IS:
         line = line.split(':')
-        name = line[0]        
+        name = line[0]
         # Name Id
         if not nameIdDict.has_key(name):
             logger.warning('%s is missing in nameIdDict. Aborting.',name)
             sys.exit(-1)
 
         nameId = nameIdDict[name]
-        dependenciesIds = [nameIdDict[f.strip()] for f in line[1].split()]             
+        dependenciesIds = [nameIdDict[f.strip()] for f in line[1].split()]
         # Store results, add p proves p
         dependenciesDict[nameId] = [nameId] + dependenciesIds
     IS.close()
@@ -67,19 +75,17 @@ def create_accessible_dict(nameIdDict,idNameDict,maxNameId,inputFile):
     IS = open(inputFile,'r')
     for line in IS:
         line = line.split(':')
-        name = line[0]     
+        name = line[0]
         # Name Id
         if not nameIdDict.has_key(name):
             logger.warning('%s is missing in nameIdDict. Adding it as theory.',name)
             nameIdDict[name] = maxNameId
             idNameDict[maxNameId] = name
             nameId = maxNameId
-            maxNameId += 1  
+            maxNameId += 1
         else:
             nameId = nameIdDict[name]
         accessibleStrings = line[1].split()
         accessibleDict[nameId] = [nameIdDict[a.strip()] for a in accessibleStrings]
     IS.close()
     return accessibleDict,maxNameId
-        
-    

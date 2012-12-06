@@ -32,18 +32,38 @@ class Statistics(object):
         self.recallData = [0]*cutOff
         self.recall100Data = [0]*cutOff
         self.aucData = []
-        
-    def update(self,predictions,dependencies):
+        self.premiseOccurenceCounter = {}
+        self.firstDepAppearance = {}
+        self.depAppearances = []
+
+    def update(self,predictions,dependencies,statementCounter):
         """
         Evaluates AUC, dependencies, recall100 and number of available premises of a prediction.
         """
-
         available = len(predictions)
         predictions = predictions[:self.cutOff]
         dependencies = set(dependencies)
+        # No Stats for if no dependencies
+        if len(dependencies) == 0:
+            self.logger.debug('No Dependencies for statement %s' % statementCounter )
+            self.badPreds = []
+            return
+        if len(predictions) < self.cutOff:
+            for i in range(len(predictions),self.cutOff):
+                self.recall100Data[i] += 1
+                self.recallData[i] += 1
+        for d in dependencies:
+            if self.premiseOccurenceCounter.has_key(d):
+                self.premiseOccurenceCounter[d] += 1
+            else:
+                self.premiseOccurenceCounter[d] = 1
+            if self.firstDepAppearance.has_key(d):
+                self.depAppearances.append(statementCounter-self.firstDepAppearance[d])
+            else:
+                self.firstDepAppearance[d] = statementCounter
         depNr = len(dependencies)
-        aucSum = 0.    
-        posResults = 0.        
+        aucSum = 0.
+        posResults = 0.
         positives, negatives = 0, 0
         recall100 = 0.0
         badPreds = []
@@ -56,7 +76,7 @@ class Statistics(object):
                 depsFound.append(pId)
                 if index > 200:
                     badPreds.append(pId)
-            else:            
+            else:
                 aucSum += posResults
                 negatives+=1
             # Update Recall and Recall100 stats
@@ -66,7 +86,7 @@ class Statistics(object):
                 self.recallData[index] += 1
             else:
                 self.recallData[index] += float(positives)/depNr
-    
+
         if not depNr == positives:
             depsFound = set(depsFound)
             missing = []
@@ -78,28 +98,29 @@ class Statistics(object):
                     positives+=1
             self.logger.debug('Dependencies missing for %s in accessibles! Estimating Statistics.',\
                               string.join([str(dep) for dep in missing],','))
-    
+
         if positives == 0 or negatives == 0:
             auc = 1.0
-        else:            
+        else:
             auc = aucSum/(negatives*positives)
-        
+
         self.aucData.append(auc)
         self.avgAUC += auc
         self.avgRecall100 += recall100
         self.problems += 1
         self.badPreds = badPreds
-        self.avgAvailable += available 
+        self.avgAvailable += available
         self.avgDepNr += depNr
-        self.logger.info('AUC: %s \t Needed: %s \t Recall100: %s \t Available: %s \t cutOff:%s',\
-                          round(100*auc,2),depNr,recall100,available,self.cutOff)        
-        
+        self.logger.info('Statement: %s: AUC: %s \t Needed: %s \t Recall100: %s \t Available: %s \t cutOff:%s',\
+                          statementCounter,round(100*auc,2),depNr,recall100,available,self.cutOff)
+
     def printAvg(self):
         self.logger.info('Average results:')
         self.logger.info('avgAUC: %s \t avgDepNr: %s \t avgRecall100: %s \t cutOff:%s', \
-                         round(100*self.avgAUC/self.problems,2),round(self.avgDepNr/self.problems,2),self.avgRecall100/self.problems,self.cutOff)
+                         round(100*self.avgAUC/self.problems,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),self.cutOff)
 
-        try:
+        #try:
+        if True:
             from matplotlib.pyplot import plot,figure,show,xlabel,ylabel,axis,hist
             avgRecall = [float(x)/self.problems for x in self.recallData]
             figure('Recall')
@@ -116,15 +137,30 @@ class Statistics(object):
             hist(self.aucData,bins=100)
             ylabel('Problems')
             xlabel('AUC')
+            maxCount = max(self.premiseOccurenceCounter.values())
+            minCount = min(self.premiseOccurenceCounter.values())
+            figure('Dependency Occurances')
+            hist(self.premiseOccurenceCounter.values(),bins=range(minCount,maxCount+2),align = 'left')
+            #ylabel('Occurences')
+            xlabel('Number of Times a Dependency Occurs')
+            figure('Dependency Appearance in Problems after Introduction.')
+            hist(self.depAppearances,bins=50)
+            figure('Dependency Appearance in Problems after Introduction in Percent.')
+            xAxis = range(max(self.depAppearances)+1)
+            yAxis = [0] * (max(self.depAppearances)+1)
+            for val in self.depAppearances:
+                yAxis[val] += 1
+            yAxis = [float(x)/len(self.firstDepAppearance.keys()) for x in yAxis]
+            plot(xAxis,yAxis)
             show()
-        except:
-            self.logger.warning('Matplotlib module missing. Skipping graphs.')
-    
-    def save(self,fileName):       
+        #except:
+        #    self.logger.warning('Matplotlib module missing. Skipping graphs.')
+
+    def save(self,fileName):
         oStream = open(fileName, 'wb')
-        dump((self.avgAUC,self.avgRecall100,self.avgAvailable,self.avgDepNr,self.problems,self.cutOff,self.recallData,self.recall100Data,self.aucData),oStream)
+        dump((self.avgAUC,self.avgRecall100,self.avgAvailable,self.avgDepNr,self.problems,self.cutOff,self.recallData,self.recall100Data,self.aucData,self.premiseOccurenceCounter),oStream)
         oStream.close()
     def load(self,fileName):
-        iStream = open(fileName, 'rb')        
-        self.avgAUC,self.avgRecall100,self.avgAvailable,self.avgDepNr,self.problems,self.cutOff,self.recallData,self.recall100Data,self.aucData = load(iStream)
+        iStream = open(fileName, 'rb')
+        self.avgAUC,self.avgRecall100,self.avgAvailable,self.avgDepNr,self.problems,self.cutOff,self.recallData,self.recall100Data,self.aucData,self.premiseOccurenceCounter = load(iStream)
         iStream.close()

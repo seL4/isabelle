@@ -34,7 +34,7 @@ Then create predictions:\n./mash.py -i ../data/Nat/mash_commands -p ../tmp/test.
 Author: Daniel Kuehlwein, July 2012',formatter_class=RawDescriptionHelpFormatter)
 parser.add_argument('-i','--inputFile',help='File containing all problems to be solved.')
 parser.add_argument('-o','--outputDir', default='../tmp/',help='Directory where all created files are stored. Default=../tmp/.')
-parser.add_argument('-p','--predictions',default='../tmp/%s.predictions' % datetime.datetime.now(), 
+parser.add_argument('-p','--predictions',default='../tmp/%s.predictions' % datetime.datetime.now(),
                     help='File where the predictions stored. Default=../tmp/dateTime.predictions.')
 parser.add_argument('--numberOfPredictions',default=200,help="Number of premises to write in the output. Default=200.",type=int)
 
@@ -56,11 +56,11 @@ parser.add_argument('--cutOff',default=500,help="Option for statistics. Only con
 parser.add_argument('-l','--log', default='../tmp/%s.log' % datetime.datetime.now(), help='Log file name. Default=../tmp/dateTime.log')
 parser.add_argument('-q','--quiet',default=False,action='store_true',help="If enabled, only print warnings. Default=False.")
 
-def main(argv = sys.argv[1:]):        
+def main(argv = sys.argv[1:]):
     # Initializing command-line arguments
     args = parser.parse_args(argv)
 
-    # Set up logging 
+    # Set up logging
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%d-%m %H:%M:%S',
@@ -81,8 +81,8 @@ def main(argv = sys.argv[1:]):
     logger.info('Using the following settings: %s',args)
     # Pick algorithm
     if args.nb:
-        logger.info('Using Naive Bayes for learning.')        
-        model = NBClassifier() 
+        logger.info('Using Naive Bayes for learning.')
+        model = NBClassifier()
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     elif args.snow:
         logger.info('Using naive bayes (SNoW) for learning.')
@@ -90,37 +90,37 @@ def main(argv = sys.argv[1:]):
         modelFile = os.path.join(args.outputDir,'SNoW.pickle')
     elif args.predef:
         logger.info('Using predefined predictions.')
-        predictionFile = os.path.join(args.inputDir,'mash_meng_paulson_suggestions') 
+        predictionFile = os.path.join(args.inputDir,'mash_meng_paulson_suggestions')
         model = Predefined(predictionFile)
-        modelFile = os.path.join(args.outputDir,'isabelle.pickle')        
+        modelFile = os.path.join(args.outputDir,'isabelle.pickle')
     else:
-        logger.info('No algorithm specified. Using Naive Bayes.')        
-        model = NBClassifier() 
-        modelFile = os.path.join(args.outputDir,'NB.pickle')    
-    dictsFile = os.path.join(args.outputDir,'dicts.pickle')    
-    
+        logger.info('No algorithm specified. Using Naive Bayes.')
+        model = NBClassifier()
+        modelFile = os.path.join(args.outputDir,'NB.pickle')
+    dictsFile = os.path.join(args.outputDir,'dicts.pickle')
+
     # Initializing model
-    if args.init:        
+    if args.init:
         logger.info('Initializing Model.')
         startTime = time()
-        
-        # Load all data        
+
+        # Load all data
         dicts = Dictionaries()
         dicts.init_all(args.inputDir,depFileName=args.depFile)
-        
+
         # Create Model
         trainData = dicts.featureDict.keys()
         if args.predef:
             dicts = model.initializeModel(trainData,dicts)
         else:
             model.initializeModel(trainData,dicts)
-        
+
         model.save(modelFile)
         dicts.save(dictsFile)
 
         logger.info('All Done. %s seconds needed.',round(time()-startTime,2))
         return 0
-    # Create predictions and/or update model       
+    # Create predictions and/or update model
     else:
         lineCounter = 0
         dicts = Dictionaries()
@@ -129,15 +129,15 @@ def main(argv = sys.argv[1:]):
             dicts.load(dictsFile)
         if os.path.isfile(modelFile):
             model.load(modelFile)
-        
+
         # IO Streams
         OS = open(args.predictions,'a')
         IS = open(args.inputFile,'r')
-        
+
         # Statistics
         if args.statistics:
             stats = Statistics(args.cutOff)
-        
+
         predictions = None
         #Reading Input File
         for line in IS:
@@ -151,11 +151,11 @@ def main(argv = sys.argv[1:]):
                         if args.predef:
                             predictions = model.predict[problemId]
                         else:
-                            predictions,_predictionsValues = model.predict(dicts.featureDict[problemId],dicts.expand_accessibles(acc))        
+                            predictions,_predictionsValues = model.predict(dicts.featureDict[problemId],dicts.expand_accessibles(acc))
                         stats.update(predictions,dicts.dependenciesDict[problemId])
                         if not stats.badPreds == []:
                             bp = string.join([str(dicts.idNameDict[x]) for x in stats.badPreds], ',')
-                            logger.debug('Bad predictions: %s',bp)    
+                            logger.debug('Bad predictions: %s',bp)
                     # Update Dependencies, p proves p
                     dicts.dependenciesDict[problemId] = [problemId]+dicts.dependenciesDict[problemId]
                     model.update(problemId,dicts.featureDict[problemId],dicts.dependenciesDict[problemId])
@@ -171,15 +171,15 @@ def main(argv = sys.argv[1:]):
                         continue
                     name,features,accessibles = dicts.parse_problem(line)
                     # Create predictions
-                    logger.info('Starting computation for problem on line %s',lineCounter)                
-                    predictions,predictionValues = model.predict(features,accessibles)        
+                    logger.info('Starting computation for problem on line %s',lineCounter)
+                    predictions,predictionValues = model.predict(features,accessibles)
                     assert len(predictions) == len(predictionValues)
                     logger.info('Done. %s seconds needed.',round(time()-startTime,2))
-                    
-                    # Output        
+
+                    # Output
                     predictionNames = [str(dicts.idNameDict[p]) for p in predictions[:args.numberOfPredictions]]
-                    predictionValues = [str(x) for x in predictionValues[:args.numberOfPredictions]]                    
-                    predictionsStringList = ['%s=%s' % (predictionNames[i],predictionValues[i]) for i in range(len(predictionNames))]                
+                    predictionValues = [str(x) for x in predictionValues[:args.numberOfPredictions]]
+                    predictionsStringList = ['%s=%s' % (predictionNames[i],predictionValues[i]) for i in range(len(predictionNames))]
                     predictionsString = string.join(predictionsStringList,' ')
                     outString = '%s: %s' % (name,predictionsString)
                     OS.write('%s\n' % outString)
@@ -192,14 +192,14 @@ def main(argv = sys.argv[1:]):
                 logger.warning('An error occurred on line %s .',line)
                 lineCounter += 1
                 continue
-            """    
+            """
         OS.close()
         IS.close()
-        
+
         # Statistics
         if args.statistics:
             stats.printAvg()
-        
+
         # Save
         if args.saveModel:
             model.save(modelFile)
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     # Nat
     #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Nat/','--predef']
     #args = ['-i', '../data/Nat/mash_commands','-p','../tmp/testIsabelle.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/natATPMP.stats']
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Nat/']    
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Nat/']
     #args = ['-i', '../data/Nat/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/natATPNB.stats','--cutOff','500']
     # BUG
     #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/List/','--isabelle']
@@ -223,6 +223,5 @@ if __name__ == '__main__':
     #args = ['-i', '../bug/adds/mash_commands','-p','../tmp/testNB.pred','-l','testNB.log','--nb','-o','../tmp/']
     #startTime = time()
     #sys.exit(main(args))
-    #print 'New ' + str(round(time()-startTime,2))    
+    #print 'New ' + str(round(time()-startTime,2))
     sys.exit(main())
-    

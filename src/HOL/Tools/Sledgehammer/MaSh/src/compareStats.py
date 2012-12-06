@@ -21,12 +21,12 @@ Loads different statistics and displays a comparison. Requires the matplotlib mo
 -------- Example Usage ---------------\n\
 ./compareStats.py --statFiles ../tmp/natISANB.stats ../tmp/natATPNB.stats -b 30\n\n\
 Author: Daniel Kuehlwein, July 2012',formatter_class=RawDescriptionHelpFormatter)
-parser.add_argument('--statFiles', default=None, nargs='+', 
+parser.add_argument('--statFiles', default=None, nargs='+',
                     help='The names of the saved statistic files.')
 parser.add_argument('-b','--bins',default=50,help="Number of bins for the AUC histogram. Default=50.",type=int)
 
 def main(argv = sys.argv[1:]):
-    args = parser.parse_args(argv)  
+    args = parser.parse_args(argv)
     if args.statFiles == None:
         print 'Filenames missing.'
         sys.exit(-1)
@@ -56,11 +56,10 @@ def main(argv = sys.argv[1:]):
     legend(loc='upper left')
     ylabel('Problems')
     xlabel('AUC')
-        
+
     show()
 
 if __name__ == '__main__':
     #args = ['--statFiles','../tmp/natISANB.stats','../tmp/natATPNB.stats','-b','30']
     #sys.exit(main(args))
     sys.exit(main())
-    

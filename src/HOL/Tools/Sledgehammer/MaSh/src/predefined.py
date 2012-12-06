@@ -23,11 +23,11 @@ class Predefined(object):
         Constructor
         '''
         self.predictionFile = mpPredictionFile
-    
+
     def initializeModel(self,_trainData,dicts):
         """
         Load predictions.
-        """        
+        """
         self.predictions = {}
         IS = open(self.predictionFile,'r')
         for line in IS:
@@ -39,28 +39,27 @@ class Predefined(object):
             self.predictions[predId] = preds
         IS.close()
         return dicts
-    
+
     def update(self,dataPoint,features,dependencies):
         """
         Updates the Model.
         """
         # No Update needed since we assume that we got all predictions
         pass
-            
-    
+
+
     def predict(self,problemId):
         """
         Return the saved predictions.
         """
-        return self.predictions[problemId] 
-    
+        return self.predictions[problemId]
+
     def save(self,fileName):
         OStream = open(fileName, 'wb')
-        dump((self.predictionFile,self.predictions),OStream)        
-        OStream.close()
-        
-    def load(self,fileName):
-        OStream = open(fileName, 'rb')
-        self.predictionFile,self.predictions = load(OStream)      
+        dump((self.predictionFile,self.predictions),OStream)
         OStream.close()
 
+    def load(self,fileName):
+        OStream = open(fileName, 'rb')
+        self.predictionFile,self.predictions = load(OStream)
+        OStream.close()

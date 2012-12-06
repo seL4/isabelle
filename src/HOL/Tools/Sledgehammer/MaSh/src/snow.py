@@ -27,13 +27,13 @@ class SNoW(object):
         '''
         self.logger = logging.getLogger('SNoW')
         self.SNoWTrainFile = '../tmp/snow.train'
-        self.SNoWTestFile = '../snow.test'  
-        self.SNoWNetFile = '../tmp/snow.net' 
-    
+        self.SNoWTestFile = '../snow.test'
+        self.SNoWNetFile = '../tmp/snow.net'
+
     def initializeModel(self,trainData,dicts):
         """
         Build basic model from training data.
-        """     
+        """
         # Prepare input files
         self.logger.debug('Creating IO Files')
         OS = open(self.SNoWTrainFile,'w')
@@ -44,60 +44,60 @@ class SNoW(object):
             dependencies = dicts.dependenciesDict[nameId]
             dependencies = map(str,dependencies)
             dependenciesString = string.join(dependencies,',')
-            snowString = string.join([featureString,dependenciesString],',')+':\n' 
+            snowString = string.join([featureString,dependenciesString],',')+':\n'
             OS.write(snowString)
         OS.close()
 
         # Build Model
         self.logger.debug('Building Model START.')
-        snowTrainCommand = '../bin/snow -train -M+ -I %s -F %s -g- -B :0-%s' % (self.SNoWTrainFile,self.SNoWNetFile,dicts.maxNameId-1)    
+        snowTrainCommand = '../bin/snow -train -M+ -I %s -F %s -g- -B :0-%s' % (self.SNoWTrainFile,self.SNoWNetFile,dicts.maxNameId-1)
         args = shlex.split(snowTrainCommand)
-        p = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)    
+        p = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         p.wait()
-        self.logger.debug('Building Model END.')   
+        self.logger.debug('Building Model END.')
 
-    
+
     def update(self,dataPoint,features,dependencies,dicts):
         """
         Updates the Model.
         THIS IS NOT WORKING ATM< BUT WE DONT CARE
-        """        
-        self.logger.debug('Updating Model START') 
-        trainData = dicts.featureDict.keys()       
+        """
+        self.logger.debug('Updating Model START')
+        trainData = dicts.featureDict.keys()
         self.initializeModel(trainData,dicts)
         self.logger.debug('Updating Model END')
-            
-    
+
+
     def predict(self,features,accessibles,dicts):
         logger = logging.getLogger('predict_SNoW')
-         
+
         OS = open(self.SNoWTestFile,'w')
         features = map(str,features)
         featureString = string.join(features, ',')
         snowString = featureString+':'
         OS.write(snowString)
-        OS.close() 
-        
+        OS.close()
+
         snowTestCommand = '../bin/snow -test -I %s -F %s -o allboth' % (self.SNoWTestFile,self.SNoWNetFile)
         args = shlex.split(snowTestCommand)
-        p = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)    
+        p = subprocess.Popen(args,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         (lines, _stderrdata) = p.communicate()
         logger.debug('SNoW finished.')
-        lines = lines.split('\n')    
+        lines = lines.split('\n')
         assert lines[9].startswith('Example ')
         assert lines[-4] == ''
-        predictionsCon = []    
+        predictionsCon = []
         for line in lines[10:-4]:
             premiseId = int(line.split()[0][:-1])
             predictionsCon.append(premiseId)
         return predictionsCon
-    
+
     def save(self,fileName):
         OStream = open(fileName, 'wb')
-        dump(self.counts,OStream)        
+        dump(self.counts,OStream)
         OStream.close()
-        
+
     def load(self,fileName):
         OStream = open(fileName, 'rb')
-        self.counts = load(OStream)      
+        self.counts = load(OStream)
         OStream.close()
