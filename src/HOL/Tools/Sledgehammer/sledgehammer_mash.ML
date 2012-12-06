@@ -462,8 +462,8 @@ fun mesh_facts max_facts [(_, (sels, unks))] =
 fun thy_feature_of s = ("y" ^ s, 0.5 (* FUDGE *))
 fun const_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
 fun free_feature_of s = ("f" ^ s, 2.0 (* FUDGE *))
-fun type_feature_of s = ("t" ^ s, 1.0 (* FUDGE *))
-fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
+fun type_feature_of s = ("t" ^ s, 0.5 (* FUDGE *))
+fun class_feature_of s = ("s" ^ s, 0.25 (* FUDGE *))
 fun status_feature_of status = (string_of_status status, 0.5 (* FUDGE *))
 val local_feature = ("local", 2.0 (* FUDGE *))
 val lams_feature = ("lams", 0.5 (* FUDGE *))
@@ -573,8 +573,8 @@ fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
-val term_max_depth = 2
-val type_max_depth = 2
+val term_max_depth = 1
+val type_max_depth = 1
 
 (* TODO: Generate type classes for types? *)
 fun features_of ctxt prover thy (scope, status) ts =
