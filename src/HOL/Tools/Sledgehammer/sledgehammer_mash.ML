@@ -180,18 +180,9 @@ val unescape_meta = String.explode #> unmeta_chars []
 val unescape_metas =
   space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
 
-val supports_weights = false
-
 fun encode_feature (name, weight) =
-  let val s = escape_meta name in
-    if Real.== (weight, 1.0) then
-      s
-    else if supports_weights then
-      s ^ "=" ^ Real.toString weight
-    else
-      map (prefix (s ^ ".") o string_of_int) (1 upto Real.ceil weight)
-      |> space_implode " "
-  end
+  escape_meta name ^
+  (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
