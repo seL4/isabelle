@@ -399,7 +399,7 @@ object Build
 
   def session_content(inlined_files: Boolean, dirs: List[Path], session: String): Session_Content =
   {
-    val options = Options.init
+    val options = Options.init()
     val (_, tree) =
       find_sessions(options, dirs.map((false, _))).selection(false, false, Nil, List(session))
     dependencies(Build.Ignore_Progress, inlined_files, false, false, tree)(session)
@@ -550,6 +550,7 @@ object Build
 
   def build(
     progress: Build.Progress,
+    options: Options,
     requirements: Boolean = false,
     all_sessions: Boolean = false,
     build_heap: Boolean = false,
@@ -559,12 +560,10 @@ object Build
     max_jobs: Int = 1,
     list_files: Boolean = false,
     no_build: Boolean = false,
-    build_options: List[String] = Nil,
     system_mode: Boolean = false,
     verbose: Boolean = false,
     sessions: List[String] = Nil): Int =
   {
-    val options = (Options.init() /: build_options)(_ + _)
     val full_tree = find_sessions(options, more_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions, session_groups, sessions)
@@ -735,11 +734,12 @@ object Build
           Properties.Value.Boolean(system_mode) ::
           Properties.Value.Boolean(verbose) ::
           Command_Line.Chunks(select_dirs, include_dirs, session_groups, build_options, sessions) =>
+            val options = (Options.init() /: build_options)(_ + _)
             val dirs =
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
-            build(Build.Console_Progress, requirements, all_sessions, build_heap, clean_build,
-              dirs, session_groups, max_jobs, list_files, no_build, build_options, system_mode,
+            build(Build.Console_Progress, options, requirements, all_sessions, build_heap,
+              clean_build, dirs, session_groups, max_jobs, list_files, no_build, system_mode,
               verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }

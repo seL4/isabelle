@@ -12,7 +12,7 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] SESSION"
+  echo "Usage: isabelle $PRG [OPTIONS] LOGIC"
   echo
   echo "  Options are:"
   echo "    -C           check for existing image"
@@ -20,7 +20,7 @@ function usage()
   echo "    -d DIR       include session directory"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo
-  echo "  Build Isabelle session image via GUI dialog."
+  echo "  Build Isabelle session image LOGIC via GUI dialog."
   echo
   exit 1
 }
@@ -67,7 +67,7 @@ shift $(($OPTIND - 1))
 
 [ "$#" -ne 1 ] && usage
 
-SESSION="$1"; shift
+LOGIC="$1"; shift
 
 
 ## main
@@ -75,5 +75,5 @@ SESSION="$1"; shift
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 "$ISABELLE_TOOL" java isabelle.Build_Dialog \
-  "$CHECK_EXISTING" "$LOGIC_OPTION" "$SYSTEM_MODE" "$SESSION" "${INCLUDE_DIRS[@]}"
+  "$CHECK_EXISTING" "$LOGIC_OPTION" "$SYSTEM_MODE" "$LOGIC" "${INCLUDE_DIRS[@]}"
 
