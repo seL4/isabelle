@@ -23,8 +23,6 @@ val MaShN = "MaSh"
 val MeshN = "Mesh"
 val IsarN = "Isar"
 
-val max_facts_slack = 2
-
 val all_names = map (rpair () o nickname_of) #> Symtab.make
 
 fun evaluate_mash_suggestions ctxt params file_name =
@@ -32,7 +30,7 @@ fun evaluate_mash_suggestions ctxt params file_name =
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
     val prover = hd provers
-    val slack_max_facts = max_facts_slack * the max_facts
+    val slack_max_facts = generous_max_facts (the max_facts)
     val path = file_name |> Path.explode
     val lines = path |> File.read_lines
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
@@ -78,10 +76,12 @@ fun evaluate_mash_suggestions ctxt params file_name =
           Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
               slack_max_facts NONE hyp_ts concl_t facts
           |> Sledgehammer_MePo.weight_mepo_facts
-        val mash_facts = suggested_facts suggs facts
+        val mash_facts =
+          find_mash_suggestions slack_max_facts suggs facts [] []
+          |> weight_mash_facts
         val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, []))]
         val mesh_facts = mesh_facts slack_max_facts mess
-        val isar_facts = suggested_facts (map (rpair 1.0) isar_deps) facts
+        val isar_facts = find_suggested_facts (map (rpair 1.0) isar_deps) facts
         fun prove ok heading get facts =
           let
             val facts =

@@ -41,7 +41,7 @@ sig
     -> (string * real) list
   val mash_unlearn : Proof.context -> unit
   val nickname_of : thm -> string
-  val suggested_facts :
+  val find_suggested_facts :
     (string * 'a) list -> ('b * thm) list -> (('b * thm) * 'a) list
   val mesh_facts :
     int -> (real * ((('a * thm) * real) list * ('a * thm) list)) list
@@ -59,6 +59,9 @@ sig
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
     -> thm -> bool * string list option
   val weight_mash_facts : ('a * thm) list -> (('a * thm) * real) list
+  val find_mash_suggestions :
+    int -> (Symtab.key * 'a) list -> ('b * thm) list -> ('b * thm) list
+    -> ('b * thm) list -> ('b * thm) list
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term -> fact list
     -> fact list
@@ -69,6 +72,7 @@ sig
     Proof.context -> params -> fact_override -> thm list -> bool -> unit
   val is_mash_enabled : unit -> bool
   val mash_can_suggest_facts : Proof.context -> bool
+  val generous_max_facts : int -> int
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -410,7 +414,7 @@ fun nickname_of th =
   else
     backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th
 
-fun suggested_facts suggs facts =
+fun find_suggested_facts suggs facts =
   let
     fun add_fact (fact as (_, th)) = Symtab.default (nickname_of th, fact)
     val tab = Symtab.empty |> fold add_fact facts
@@ -732,6 +736,20 @@ fun weight_of_proximity_fact rank =
 fun weight_proximity_facts facts =
   facts ~~ map weight_of_proximity_fact (0 upto length facts - 1)
 
+fun find_mash_suggestions max_facts suggs facts chained unknown =
+  let
+    val raw_mash =
+      facts |> find_suggested_facts suggs
+            (* The weights currently returned by "mash.py" are too spaced out to
+               make any sense. *)
+            |> map fst
+    val proximity = facts |> sort (thm_ord o pairself snd o swap)
+    val mess =
+      [(0.8000 (* FUDGE *), (map (rpair 1.0) chained, [])),
+       (0.1333 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
+       (0.0667 (* FUDGE *), (weight_proximity_facts proximity, []))]
+  in mesh_facts max_facts mess end
+
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
@@ -749,18 +767,8 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
               (fact_G, mash_QUERY ctxt overlord max_facts (parents, feats))
             end)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
-    val raw_mash =
-      facts |> suggested_facts suggs
-            (* The weights currently returned by "mash.py" are too spaced out to
-               make any sense. *)
-            |> map fst
-    val proximity = facts |> sort (thm_ord o pairself snd o swap)
     val unknown = facts |> filter_out (is_fact_in_graph fact_G)
-    val mess =
-      [(0.8000 (* FUDGE *), (map (rpair 1.0) chained, [])),
-       (0.1333 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
-       (0.0667 (* FUDGE *), (weight_proximity_facts proximity, []))]
-  in mesh_facts max_facts mess end
+  in find_mash_suggestions max_facts suggs facts chained unknown end
 
 fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
   let
