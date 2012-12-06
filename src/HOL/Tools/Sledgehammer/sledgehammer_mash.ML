@@ -754,13 +754,12 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
             (* The weights currently returned by "mash.py" are too spaced out to
                make any sense. *)
             |> map fst
-    val proximity =
-      chained @ (facts |> subtract (Thm.eq_thm_prop o pairself snd) chained
-                       |> sort (thm_ord o pairself snd o swap))
+    val proximity = facts |> sort (thm_ord o pairself snd o swap)
     val unknown = facts |> filter_out (is_fact_in_graph fact_G)
     val mess =
-      [(0.667 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
-       (0.333 (* FUDGE *), (weight_proximity_facts proximity, []))]
+      [(0.8000 (* FUDGE *), (map (rpair 1.0) chained, [])),
+       (0.1333 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
+       (0.0667 (* FUDGE *), (weight_proximity_facts proximity, []))]
   in mesh_facts max_facts mess end
 
 fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
