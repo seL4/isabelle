@@ -290,7 +290,7 @@ val empty_state = {fact_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20121205a ***"
+val version = "*** MaSh version 20121205b ***"
 
 exception Too_New of unit
 
@@ -464,7 +464,7 @@ fun term_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 1.0 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
 fun status_feature_of status = (string_of_status status, 1.0 (* FUDGE *))
-val local_feature = ("local", 1.0 (* FUDGE *))
+val local_feature = ("local", 2.0 (* FUDGE *))
 val lams_feature = ("lams", 1.0 (* FUDGE *))
 val skos_feature = ("skos", 1.0 (* FUDGE *))
 
