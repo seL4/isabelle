@@ -91,6 +91,11 @@ selections.  Cf. keyboard shortcuts C+e DOWN/UP/RIGHT/LEFT.
 adjust the main text area font size, and its derivatives for output,
 tooltips etc.  Cf. keyboard shortcuts C-PLUS and C-MINUS.
 
+* Implicit check and build dialog of the specified logic session
+image.  For example, HOL, HOLCF, HOL-Nominal can be produced on
+demand, without bundling big platform-dependent heap images in the
+Isabelle distribution.
+
 * Uniform Java 7 platform on Linux, Mac OS X, Windows: recent updates
 from Oracle provide better multi-platform experience.  This version is
 now bundled exclusively with Isabelle.
