@@ -148,7 +148,6 @@ RC="$?"
 
 if [ "$NO_BUILD" = false -a "$VERBOSE" = true ]; then
   echo -n "Finished at "; date
-
 fi
 
 . "$ISABELLE_HOME/lib/scripts/timestop.bash"

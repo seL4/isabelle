@@ -68,8 +68,9 @@ function usage()
   echo "    -f           fresh build"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
-  echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
+  echo "    -l NAME      logic session name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
   echo "    -m MODE      add print mode for output"
+  echo "    -s           system build mode for session image"
   echo
   echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
   echo "(default \"$USER_HOME/Scratch.thy\")."
@@ -93,6 +94,8 @@ function failed()
 
 # options
 
+declare -a BUILD_DIALOG_OPTIONS=()
+
 BUILD_ONLY=false
 BUILD_JARS="jars"
 JEDIT_SESSION_DIRS=""
@@ -102,7 +105,7 @@ JEDIT_PRINT_MODE=""
 function getoptions()
 {
   OPTIND=1
-  while getopts "J:bd:fj:l:m:" OPT
+  while getopts "J:bd:fj:l:m:s" OPT
   do
     case "$OPT" in
       J)
@@ -117,6 +120,8 @@ function getoptions()
         else
           JEDIT_SESSION_DIRS="$JEDIT_SESSION_DIRS:$OPTARG"
         fi
+        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-d"
+        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="$OPTARG"
         ;;
       f)
         BUILD_JARS="jars_fresh"
@@ -133,6 +138,9 @@ function getoptions()
         else
           JEDIT_PRINT_MODE="$JEDIT_PRINT_MODE,$OPTARG"
         fi
+        ;;
+      s)
+        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-s"
         ;;
       \?)
         usage
@@ -303,17 +311,16 @@ EOF
 fi
 
 
-# run
+# build logic
+
+"$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -C "$JEDIT_LOGIC"
+RC="$?"
+[ "$RC" = 0 ] || exit "$RC"
+
+
+# main
 
 [ "$BUILD_ONLY" = true ] || {
-  case "$JEDIT_LOGIC" in
-    /*)
-      ;;
-    */*)
-      JEDIT_LOGIC="$(pwd -P)/$JEDIT_LOGIC"
-      ;;
-  esac
-
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE
 
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \

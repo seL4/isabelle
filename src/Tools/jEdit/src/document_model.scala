@@ -79,8 +79,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
 
   /* perspective */
 
-  def buffer_range(): Text.Range = Text.Range(0, (buffer.getLength - 1) max 0)
-
   def node_perspective(): Text.Perspective =
   {
     Swing_Thread.require()
@@ -92,7 +90,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   }
 
 
-  /* initial edits */
+  /* edits */
 
   def init_edits(): List[Document.Edit_Text] =
   {
@@ -104,6 +102,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     List(session.header_edit(name, header),
       name -> Document.Node.Clear(),
       name -> Document.Node.Edits(List(Text.Edit.insert(0, text))),
+      name -> Document.Node.Perspective(perspective))
+  }
+
+  def node_edits(perspective: Text.Perspective, text_edits: List[Text.Edit])
+    : List[Document.Edit_Text] =
+  {
+    Swing_Thread.require()
+    val header = node_header()
+
+    List(session.header_edit(name, header),
+      name -> Document.Node.Edits(text_edits),
       name -> Document.Node.Perspective(perspective))
   }
 
@@ -126,7 +135,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
       if (!edits.isEmpty || last_perspective != new_perspective) {
         pending.clear
         last_perspective = new_perspective
-        session.edit_node(name, node_header(), new_perspective, edits)
+        session.update(node_edits(new_perspective, edits))
       }
     }
 
@@ -148,7 +157,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
     def init()
     {
       flush()
-      session.edit(init_edits())
+      session.update(init_edits())
     }
 
     def exit()
@@ -167,7 +176,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val name: Documen
   def full_perspective()
   {
     pending_edits.flush()
-    session.edit_node(name, node_header(), Text.Perspective(List(buffer_range())), Nil)
+    session.update(node_edits(Text.Perspective(List(JEdit_Lib.buffer_range(buffer))), Nil))
   }
 
 

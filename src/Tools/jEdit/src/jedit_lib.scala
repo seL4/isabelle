@@ -112,6 +112,12 @@ object JEdit_Lib
     catch { case _: ArrayIndexOutOfBoundsException => None }
 
 
+  /* buffer range */
+
+  def buffer_range(buffer: JEditBuffer): Text.Range =
+    Text.Range(0, (buffer.getLength - 1) max 0)
+
+
   /* point range */
 
   def point_range(buffer: JEditBuffer, offset: Text.Offset): Text.Range =
