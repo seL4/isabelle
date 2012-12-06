@@ -70,6 +70,7 @@ function usage()
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
   echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
+  echo "    -n           no build dialog for session image on startup"
   echo "    -s           system build mode for session image"
   echo
   echo "Start jEdit with Isabelle plugin setup and opens theory FILES"
@@ -101,11 +102,12 @@ BUILD_JARS="jars"
 JEDIT_SESSION_DIRS=""
 JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
+NO_BUILD="false"
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "J:bd:fj:l:m:s" OPT
+  while getopts "J:bd:fj:l:m:ns" OPT
   do
     case "$OPT" in
       J)
@@ -138,6 +140,9 @@ function getoptions()
         else
           JEDIT_PRINT_MODE="$JEDIT_PRINT_MODE,$OPTARG"
         fi
+        ;;
+      n)
+        NO_BUILD="true"
         ;;
       s)
         BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-s"
@@ -313,9 +318,11 @@ fi
 
 # build logic
 
-"$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -C -L jedit_logic "$JEDIT_LOGIC"
-RC="$?"
-[ "$RC" = 0 ] || exit "$RC"
+if [ "$NO_BUILD" = false ]; then
+  "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -L jedit_logic "$JEDIT_LOGIC"
+  RC="$?"
+  [ "$RC" = 0 ] || exit "$RC"
+fi
 
 
 # main

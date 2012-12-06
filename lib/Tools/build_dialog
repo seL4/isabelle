@@ -15,7 +15,6 @@ function usage()
   echo "Usage: isabelle $PRG [OPTIONS] LOGIC"
   echo
   echo "  Options are:"
-  echo "    -C           check for existing image"
   echo "    -L OPTION    default logic via system option"
   echo "    -d DIR       include session directory"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
@@ -34,17 +33,13 @@ function fail()
 
 ## process command line
 
-CHECK_EXISTING=false
 LOGIC_OPTION=""
 declare -a INCLUDE_DIRS=()
 SYSTEM_MODE=false
 
-while getopts "CL:d:s" OPT
+while getopts "L:d:s" OPT
 do
   case "$OPT" in
-    C)
-      CHECK_EXISTING="true"
-      ;;
     L)
       LOGIC_OPTION="$OPTARG"
       ;;
@@ -75,5 +70,5 @@ LOGIC="$1"; shift
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 "$ISABELLE_TOOL" java isabelle.Build_Dialog \
-  "$CHECK_EXISTING" "$LOGIC_OPTION" "$SYSTEM_MODE" "$LOGIC" "${INCLUDE_DIRS[@]}"
+  "$LOGIC_OPTION" "$SYSTEM_MODE" "$LOGIC" "${INCLUDE_DIRS[@]}"
 
