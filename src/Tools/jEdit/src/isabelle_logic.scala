@@ -15,26 +15,24 @@ import scala.swing.event.SelectionChanged
 
 object Isabelle_Logic
 {
-  private def default_logic(): String =
-  {
-    val logic = Isabelle_System.getenv("JEDIT_LOGIC")
-    if (logic != "") logic
-    else Isabelle_System.getenv_strict("ISABELLE_LOGIC")
-  }
+  private val option_name = "jedit_logic"
+
+  private def jedit_logic(): String =
+    Isabelle_System.default_logic(
+      Isabelle_System.getenv("JEDIT_LOGIC"),
+      PIDE.options.string(option_name))
 
   private class Logic_Entry(val name: String, val description: String)
   {
     override def toString = description
   }
 
-  private val option_name = "jedit_logic"
-
   def logic_selector(autosave: Boolean): Option_Component =
   {
     Swing_Thread.require()
 
     val entries =
-      new Logic_Entry("", "default (" + default_logic() + ")") ::
+      new Logic_Entry("", "default (" + jedit_logic() + ")") ::
         Isabelle_Logic.session_list().map(name => new Logic_Entry(name, name))
 
     val component = new ComboBox(entries) with Option_Component {
@@ -63,12 +61,7 @@ object Isabelle_Logic
   def session_args(): List[String] =
   {
     val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
-    val logic =
-      PIDE.options.string(option_name) match {
-        case "" => default_logic()
-        case logic => logic
-      }
-    modes ::: List(logic)
+    modes ::: List(jedit_logic())
   }
 
   def session_dirs(): List[Path] = Path.split(Isabelle_System.getenv("JEDIT_SESSION_DIRS"))

@@ -16,6 +16,7 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -C           check for existing image"
+  echo "    -L OPTION    default logic via system option"
   echo "    -d DIR       include session directory"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo
@@ -34,14 +35,18 @@ function fail()
 ## process command line
 
 CHECK_EXISTING=false
+LOGIC_OPTION=""
 declare -a INCLUDE_DIRS=()
 SYSTEM_MODE=false
 
-while getopts "Cd:s" OPT
+while getopts "CL:d:s" OPT
 do
   case "$OPT" in
     C)
       CHECK_EXISTING="true"
+      ;;
+    L)
+      LOGIC_OPTION="$OPTARG"
       ;;
     d)
       INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
@@ -65,27 +70,10 @@ shift $(($OPTIND - 1))
 SESSION="$1"; shift
 
 
-## existing image
+## main
 
-EXISTING=false
-if [ "$CHECK_EXISTING" = true ]; then
-  declare -a ISABELLE_PATHS=()
-  splitarray ":" "$ISABELLE_PATH"; ISABELLE_PATHS=("${SPLITARRAY[@]}")
+[ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
-  for DIR in "${ISABELLE_PATHS[@]}"
-  do
-    FILE="$DIR/$ML_IDENTIFIER/$SESSION"
-    [ -f "$FILE" ] && EXISTING=true
-  done
-fi
-
-
-## build
-
-if [ "$EXISTING" = false ]; then
-  [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
-
-  "$ISABELLE_TOOL" java isabelle.Build_Dialog \
-    "$SYSTEM_MODE" "$SESSION" "${INCLUDE_DIRS[@]}"
-fi
+"$ISABELLE_TOOL" java isabelle.Build_Dialog \
+  "$CHECK_EXISTING" "$LOGIC_OPTION" "$SYSTEM_MODE" "$SESSION" "${INCLUDE_DIRS[@]}"
 

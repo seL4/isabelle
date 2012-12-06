@@ -16,6 +16,7 @@ import scala.swing.event.ButtonClicked
 
 object Build_Dialog extends SwingApplication
 {
+  // FIXME avoid startup via GUI thread!?
   def startup(args: Array[String]) =
   {
     Platform.init_laf()
@@ -23,13 +24,28 @@ object Build_Dialog extends SwingApplication
     try {
       args.toList match {
         case
+          Properties.Value.Boolean(check_existing) ::
+          logic_option ::
           Properties.Value.Boolean(system_mode) ::
-          session :: include_dirs =>
-            val center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
-            val top = build_dialog(system_mode, include_dirs.map(Path.explode), session)
-            top.pack()
-            top.location = new Point(center.x - top.size.width / 2, center.y - top.size.height / 2)
-            top.visible = true
+          session_arg ::
+          include_dirs =>
+            val session =
+              Isabelle_System.default_logic(session_arg,
+                if (logic_option != "") Options.init().string(logic_option) else "")
+
+            val no_dialog =  // FIXME full up-to-date test!?
+              check_existing &&
+                Isabelle_System.find_logics_dirs().exists(dir =>
+                  (dir + Path.basic(session)).is_file)
+
+            if (no_dialog) sys.exit(0)
+            else {
+              val center = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint()
+              val top = build_dialog(system_mode, include_dirs.map(Path.explode), session)
+              top.pack()
+              top.location = new Point(center.x - top.size.width / 2, center.y - top.size.height / 2)
+              top.visible = true
+            }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }

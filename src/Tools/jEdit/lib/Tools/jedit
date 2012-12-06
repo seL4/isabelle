@@ -68,7 +68,7 @@ function usage()
   echo "    -f           fresh build"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
-  echo "    -l NAME      logic session name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
+  echo "    -l NAME      logic session name"
   echo "    -m MODE      add print mode for output"
   echo "    -s           system build mode for session image"
   echo
@@ -99,7 +99,7 @@ declare -a BUILD_DIALOG_OPTIONS=()
 BUILD_ONLY=false
 BUILD_JARS="jars"
 JEDIT_SESSION_DIRS=""
-JEDIT_LOGIC="$ISABELLE_LOGIC"
+JEDIT_LOGIC=""
 JEDIT_PRINT_MODE=""
 
 function getoptions()
@@ -313,7 +313,7 @@ fi
 
 # build logic
 
-"$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -C "$JEDIT_LOGIC"
+"$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -C -L jedit_logic "$JEDIT_LOGIC"
 RC="$?"
 [ "$RC" = 0 ] || exit "$RC"
 
