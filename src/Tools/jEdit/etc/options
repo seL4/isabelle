@@ -3,9 +3,6 @@
 option jedit_logic : string = ""
   -- "default logic session"
 
-option jedit_auto_start : bool = true
-  -- "auto-start prover session on editor startup"
-
 option jedit_font_scale : real = 1.0
   -- "scale factor of add-on panels wrt. main text area"
 
