@@ -726,7 +726,7 @@ val weight_mash_facts = weight_raw_mash_facts
 
 (* FUDGE *)
 fun weight_of_proximity_fact rank =
-  Math.pow (1.3, 15.5 - 0.05 * Real.fromInt rank) + 15.0
+  Math.pow (1.3, 15.5 - 0.2 * Real.fromInt rank) + 15.0
 
 fun weight_proximity_facts facts =
   facts ~~ map weight_of_proximity_fact (0 upto length facts - 1)
