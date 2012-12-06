@@ -590,7 +590,7 @@ fun features_of ctxt prover thy (scope, status) ts =
 
 (* Too many dependencies is a sign that a crazy decision procedure is at work.
    There isn't much to learn from such proofs. *)
-val max_dependencies = 100
+val max_dependencies = 10
 val atp_dependency_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
@@ -747,8 +747,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
             in
               (fact_G, mash_QUERY ctxt overlord max_facts (parents, feats))
             end)
-    val (chained, unchained) =
-      List.partition (fn ((_, (scope, _)), _) => scope = Chained) facts
+    val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val raw_mash =
       facts |> suggested_facts suggs
             (* The weights currently returned by "mash.py" are too spaced out to
