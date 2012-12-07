@@ -843,6 +843,81 @@ proof -
     done
 qed
 
+lemma distributedI_real:
+  fixes f :: "'a \<Rightarrow> real"
+  assumes gen: "sets M1 = sigma_sets (space M1) E" and "Int_stable E"
+    and A: "range A \<subseteq> E" "(\<Union>i::nat. A i) = space M1" "\<And>i. emeasure (distr M M1 X) (A i) \<noteq> \<infinity>"
+    and X: "X \<in> measurable M M1"
+    and f: "f \<in> borel_measurable M1" "AE x in M1. 0 \<le> f x"
+    and eq: "\<And>A. A \<in> E \<Longrightarrow> emeasure M (X -` A \<inter> space M) = (\<integral>\<^isup>+ x. f x * indicator A x \<partial>M1)"
+  shows "distributed M M1 X f"
+  unfolding distributed_def
+proof (intro conjI)
+  show "distr M M1 X = density M1 f"
+  proof (rule measure_eqI_generator_eq[where A=A])
+    { fix A assume A: "A \<in> E"
+      then have "A \<in> sigma_sets (space M1) E" by auto
+      then have "A \<in> sets M1"
+        using gen by simp
+      with f A eq[of A] X show "emeasure (distr M M1 X) A = emeasure (density M1 f) A"
+        by (simp add: emeasure_distr emeasure_density borel_measurable_ereal
+                      times_ereal.simps[symmetric] ereal_indicator
+                 del: times_ereal.simps) }
+    note eq_E = this
+    show "Int_stable E" by fact
+    { fix e assume "e \<in> E"
+      then have "e \<in> sigma_sets (space M1) E" by auto
+      then have "e \<in> sets M1" unfolding gen .
+      then have "e \<subseteq> space M1" by (rule sets.sets_into_space) }
+    then show "E \<subseteq> Pow (space M1)" by auto
+    show "sets (distr M M1 X) = sigma_sets (space M1) E"
+      "sets (density M1 (\<lambda>x. ereal (f x))) = sigma_sets (space M1) E"
+      unfolding gen[symmetric] by auto
+  qed fact+
+qed (insert X f, auto)
+
+lemma distributedI_borel_atMost:
+  fixes f :: "real \<Rightarrow> real"
+  assumes [measurable]: "X \<in> borel_measurable M"
+    and [measurable]: "f \<in> borel_measurable borel" and f[simp]: "AE x in lborel. 0 \<le> f x"
+    and g_eq: "\<And>a. (\<integral>\<^isup>+x. f x * indicator {..a} x \<partial>lborel)  = ereal (g a)"
+    and M_eq: "\<And>a. emeasure M {x\<in>space M. X x \<le> a} = ereal (g a)"
+  shows "distributed M lborel X f"
+proof (rule distributedI_real)
+  show "sets lborel = sigma_sets (space lborel) (range atMost)"
+    by (simp add: borel_eq_atMost)
+  show "Int_stable (range atMost :: real set set)"
+    by (auto simp: Int_stable_def)
+  have vimage_eq: "\<And>a. (X -` {..a} \<inter> space M) = {x\<in>space M. X x \<le> a}" by auto
+  def A \<equiv> "\<lambda>i::nat. {.. real i}"
+  then show "range A \<subseteq> range atMost" "(\<Union>i. A i) = space lborel"
+    "\<And>i. emeasure (distr M lborel X) (A i) \<noteq> \<infinity>"
+    by (auto simp: real_arch_simple emeasure_distr vimage_eq M_eq)
+
+  fix A :: "real set" assume "A \<in> range atMost"
+  then obtain a where A: "A = {..a}" by auto
+  show "emeasure M (X -` A \<inter> space M) = (\<integral>\<^isup>+x. f x * indicator A x \<partial>lborel)"
+    unfolding vimage_eq A M_eq g_eq ..
+qed auto
+
+lemma (in prob_space) uniform_distributed_params:
+  assumes X: "distributed M MX X (\<lambda>x. indicator A x / measure MX A)"
+  shows "A \<in> sets MX" "measure MX A \<noteq> 0"
+proof -
+  interpret X: prob_space "distr M MX X"
+    using distributed_measurable[OF X] by (rule prob_space_distr)
+
+  show "measure MX A \<noteq> 0"
+  proof
+    assume "measure MX A = 0"
+    with X.emeasure_space_1 X.prob_space distributed_distr_eq_density[OF X]
+    show False
+      by (simp add: emeasure_density zero_ereal_def[symmetric])
+  qed
+  with measure_notin_sets[of A MX] show "A \<in> sets MX"
+    by blast
+qed
+
 lemma prob_space_uniform_measure:
   assumes A: "emeasure M A \<noteq> 0" "emeasure M A \<noteq> \<infinity>"
   shows "prob_space (uniform_measure M A)"

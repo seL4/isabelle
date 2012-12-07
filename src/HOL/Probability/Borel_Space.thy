@@ -816,6 +816,10 @@ lemma borel_measurable_log[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. log (g x) (f x)) \<in> borel_measurable M"
   unfolding log_def by auto
 
+lemma borel_measurable_exp[measurable]: "exp \<in> borel_measurable borel"
+  by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI
+            continuous_isCont[THEN iffD1] isCont_exp)
+
 lemma measurable_count_space_eq2_countable:
   fixes f :: "'a => 'c::countable"
   shows "f \<in> measurable M (count_space A) \<longleftrightarrow> (f \<in> space M \<rightarrow> A \<and> (\<forall>a\<in>A. f -` {a} \<inter> space M \<in> sets M))"

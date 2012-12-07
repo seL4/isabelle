@@ -732,6 +732,9 @@ lemma filterlim_mono:
   "filterlim f F2 F1 \<Longrightarrow> F2 \<le> F2' \<Longrightarrow> F1' \<le> F1 \<Longrightarrow> filterlim f F2' F1'"
   unfolding filterlim_def by (metis filtermap_mono order_trans)
 
+lemma filterlim_ident: "LIM x F. x :> F"
+  by (simp add: filterlim_def filtermap_ident)
+
 lemma filterlim_cong:
   "F1 = F1' \<Longrightarrow> F2 = F2' \<Longrightarrow> eventually (\<lambda>x. f x = g x) F2 \<Longrightarrow> filterlim f F1 F2 = filterlim g F1' F2'"
   by (auto simp: filterlim_def le_filter_def eventually_filtermap elim: eventually_elim2)
@@ -1560,6 +1563,10 @@ next
     by (auto intro: order_trans simp: filterlim_def filtermap_filtermap)
 qed
 
+lemma tendsto_inverse_0_at_top:
+  "LIM x F. f x :> at_top \<Longrightarrow> ((\<lambda>x. inverse (f x) :: real) ---> 0) F"
+ by (metis at_top_le_at_infinity filterlim_at filterlim_inverse_at_iff filterlim_mono order_refl)
+
 text {*
 
 We only show rules for multiplication and addition when the functions are either against a real
@@ -1609,6 +1616,12 @@ proof safe
        by simp
   qed
 qed
+
+lemma filterlim_tendsto_pos_mult_at_bot:
+  assumes "(f ---> c) F" "0 < (c::real)" "filterlim g at_bot F"
+  shows "LIM x F. f x * g x :> at_bot"
+  using filterlim_tendsto_pos_mult_at_top[OF assms(1,2), of "\<lambda>x. - g x"] assms(3)
+  unfolding filterlim_uminus_at_bot by simp
 
 lemma filterlim_tendsto_add_at_top: 
   assumes f: "(f ---> c) F"

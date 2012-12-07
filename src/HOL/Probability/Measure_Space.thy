@@ -443,6 +443,12 @@ lemma emeasure_nonneg[intro!]: "0 \<le> emeasure M A"
 
 lemma emeasure_not_MInf[simp]: "emeasure M A \<noteq> - \<infinity>"
   using emeasure_nonneg[of M A] by auto
+
+lemma emeasure_le_0_iff: "emeasure M A \<le> 0 \<longleftrightarrow> emeasure M A = 0"
+  using emeasure_nonneg[of M A] by auto
+
+lemma emeasure_less_0_iff: "emeasure M A < 0 \<longleftrightarrow> False"
+  using emeasure_nonneg[of M A] by auto
   
 lemma emeasure_countably_additive: "countably_additive (sets M) (emeasure M)"
   by (cases M) (auto simp: sets_def emeasure_def Abs_measure_inverse measure_space_def)

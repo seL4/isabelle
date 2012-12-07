@@ -932,24 +932,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in prob_space) uniform_distributed_params:
-  assumes X: "distributed M MX X (\<lambda>x. indicator A x / measure MX A)"
-  shows "A \<in> sets MX" "measure MX A \<noteq> 0"
-proof -
-  interpret X: prob_space "distr M MX X"
-    using distributed_measurable[OF X] by (rule prob_space_distr)
-
-  show "measure MX A \<noteq> 0"
-  proof
-    assume "measure MX A = 0"
-    with X.emeasure_space_1 X.prob_space distributed_distr_eq_density[OF X]
-    show False
-      by (simp add: emeasure_density zero_ereal_def[symmetric])
-  qed
-  with measure_notin_sets[of A MX] show "A \<in> sets MX"
-    by blast
-qed
-
 lemma (in information_space) entropy_uniform:
   assumes X: "distributed M MX X (\<lambda>x. indicator A x / measure MX A)" (is "distributed _ _ _ ?f")
   shows "entropy b MX X = log b (measure MX A)"
