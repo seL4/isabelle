@@ -1020,4 +1020,159 @@ lemma borel_fubini:
   shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>((\<Pi>\<^isub>M i\<in>{..<DIM('a)}. lborel))"
   using f by (simp add: borel_fubini_positiv_integral lebesgue_integral_def)
 
+lemma integrable_on_borel_integrable:
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
+  assumes f_borel: "f \<in> borel_measurable borel" and nonneg: "\<And>x. 0 \<le> f x"
+  assumes f: "f integrable_on UNIV" 
+  shows "integrable lborel f"
+proof -
+  have "(\<integral>\<^isup>+ x. ereal (f x) \<partial>lborel) \<noteq> \<infinity>" 
+    using has_integral_iff_positive_integral_lborel[OF f_borel nonneg] f
+    by (auto simp: integrable_on_def)
+  moreover have "(\<integral>\<^isup>+ x. ereal (- f x) \<partial>lborel) = 0"
+    using f_borel nonneg by (subst positive_integral_0_iff_AE) auto
+  ultimately show ?thesis
+    using f_borel by (auto simp: integrable_def)
+qed
+
+subsection {* Fundamental Theorem of Calculus for the Lebesgue integral *}
+
+lemma borel_integrable_atLeastAtMost:
+  fixes a b :: real
+  assumes f: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
+  shows "integrable lborel (\<lambda>x. f x * indicator {a .. b} x)" (is "integrable _ ?f")
+proof cases
+  assume "a \<le> b"
+
+  from isCont_Lb_Ub[OF `a \<le> b`, of f] f
+  obtain M L where
+    bounds: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> f x \<le> M" "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> L \<le> f x"
+    by metis
+
+  show ?thesis
+  proof (rule integrable_bound)
+    show "integrable lborel (\<lambda>x. max \<bar>M\<bar> \<bar>L\<bar> * indicator {a..b} x)"
+      by (rule integral_cmul_indicator) simp_all
+    show "AE x in lborel. \<bar>?f x\<bar> \<le> max \<bar>M\<bar> \<bar>L\<bar> * indicator {a..b} x"
+    proof (rule AE_I2)
+      fix x show "\<bar>?f x\<bar> \<le> max \<bar>M\<bar> \<bar>L\<bar> * indicator {a..b} x"
+        using bounds[of x] by (auto split: split_indicator)
+    qed
+
+    let ?g = "\<lambda>x. if x = a then f a else if x = b then f b else if x \<in> {a <..< b} then f x else 0"
+    from f have "continuous_on {a <..< b} f"
+      by (subst continuous_on_eq_continuous_at) (auto simp add: continuous_isCont)
+    then have "?g \<in> borel_measurable borel"
+      using borel_measurable_continuous_on_open[of "{a <..< b }" f "\<lambda>x. x" borel 0]
+      by (auto intro!: measurable_If[where P="\<lambda>x. x = a"] measurable_If[where P="\<lambda>x. x = b"])
+    also have "?g = ?f"
+      using `a \<le> b` by (auto intro!: ext split: split_indicator)
+    finally show "?f \<in> borel_measurable lborel"
+      by simp
+  qed
+qed simp
+
+lemma integral_FTC_atLeastAtMost:
+  fixes a b :: real
+  assumes "a \<le> b"
+    and F: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> DERIV F x :> f x"
+    and f: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> isCont f x"
+  shows "integral\<^isup>L lborel (\<lambda>x. f x * indicator {a .. b} x) = F b - F a"
+proof -
+  let ?f = "\<lambda>x. f x * indicator {a .. b} x"
+  have "(?f has_integral (\<integral>x. ?f x \<partial>lborel)) UNIV"
+    using borel_integrable_atLeastAtMost[OF f]
+    by (rule borel_integral_has_integral)
+  moreover
+  have "(f has_integral F b - F a) {a .. b}"
+    by (intro fundamental_theorem_of_calculus has_vector_derivative_withinI_DERIV ballI assms) auto
+  then have "(?f has_integral F b - F a) {a .. b}"
+    by (subst has_integral_eq_eq[where g=f]) auto
+  then have "(?f has_integral F b - F a) UNIV"
+    by (intro has_integral_on_superset[where t=UNIV and s="{a..b}"]) auto
+  ultimately show "integral\<^isup>L lborel ?f = F b - F a"
+    by (rule has_integral_unique)
+qed
+
+text {*
+
+For the positive integral we replace continuity with Borel-measurability. 
+
+*}
+
+lemma positive_integral_FTC_atLeastAtMost:
+  assumes f_borel: "f \<in> borel_measurable borel"
+  assumes f: "\<And>x. x \<in> {a..b} \<Longrightarrow> DERIV F x :> f x" "\<And>x. x \<in> {a..b} \<Longrightarrow> 0 \<le> f x" and "a \<le> b"
+  shows "(\<integral>\<^isup>+x. f x * indicator {a .. b} x \<partial>lborel) = F b - F a"
+proof -
+  have i: "(f has_integral F b - F a) {a..b}"
+    by (intro fundamental_theorem_of_calculus ballI has_vector_derivative_withinI_DERIV assms)
+  have i: "((\<lambda>x. f x * indicator {a..b} x) has_integral F b - F a) {a..b}"
+    by (rule has_integral_eq[OF _ i]) auto
+  have i: "((\<lambda>x. f x * indicator {a..b} x) has_integral F b - F a) UNIV"
+    by (rule has_integral_on_superset[OF _ _ i]) auto
+  then have "(\<integral>\<^isup>+x. ereal (f x * indicator {a .. b} x) \<partial>lborel) = F b - F a"
+    using f f_borel
+    by (subst has_integral_iff_positive_integral_lborel[symmetric]) (auto split: split_indicator)
+  also have "(\<integral>\<^isup>+x. ereal (f x * indicator {a .. b} x) \<partial>lborel) = (\<integral>\<^isup>+x. ereal (f x) * indicator {a .. b} x \<partial>lborel)"
+    by (auto intro!: positive_integral_cong simp: indicator_def)
+  finally show ?thesis by simp
+qed
+
+lemma positive_integral_FTC_atLeast:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f_borel: "f \<in> borel_measurable borel"
+  assumes f: "\<And>x. a \<le> x \<Longrightarrow> DERIV F x :> f x" 
+  assumes nonneg: "\<And>x. a \<le> x \<Longrightarrow> 0 \<le> f x"
+  assumes lim: "(F ---> T) at_top"
+  shows "(\<integral>\<^isup>+x. ereal (f x) * indicator {a ..} x \<partial>lborel) = T - F a"
+proof -
+  let ?f = "\<lambda>(i::nat) (x::real). ereal (f x) * indicator {a..a + real i} x"
+  let ?fR = "\<lambda>x. ereal (f x) * indicator {a ..} x"
+  have "\<And>x. (SUP i::nat. ?f i x) = ?fR x"
+  proof (rule SUP_Lim_ereal)
+    show "\<And>x. incseq (\<lambda>i. ?f i x)"
+      using nonneg by (auto simp: incseq_def le_fun_def split: split_indicator)
+
+    fix x
+    from reals_Archimedean2[of "x - a"] guess n ..
+    then have "eventually (\<lambda>n. ?f n x = ?fR x) sequentially"
+      by (auto intro!: eventually_sequentiallyI[where c=n] split: split_indicator)
+    then show "(\<lambda>n. ?f n x) ----> ?fR x"
+      by (rule Lim_eventually)
+  qed
+  then have "integral\<^isup>P lborel ?fR = (\<integral>\<^isup>+ x. (SUP i::nat. ?f i x) \<partial>lborel)"
+    by simp
+  also have "\<dots> = (SUP i::nat. (\<integral>\<^isup>+ x. ?f i x \<partial>lborel))"
+  proof (rule positive_integral_monotone_convergence_SUP)
+    show "incseq ?f"
+      using nonneg by (auto simp: incseq_def le_fun_def split: split_indicator)
+    show "\<And>i. (?f i) \<in> borel_measurable lborel"
+      using f_borel by auto
+    show "\<And>i x. 0 \<le> ?f i x"
+      using nonneg by (auto split: split_indicator)
+  qed
+  also have "\<dots> = (SUP i::nat. F (a + real i) - F a)"
+    by (subst positive_integral_FTC_atLeastAtMost[OF f_borel f nonneg]) auto
+  also have "\<dots> = T - F a"
+  proof (rule SUP_Lim_ereal)
+    show "incseq (\<lambda>n. ereal (F (a + real n) - F a))"
+    proof (simp add: incseq_def, safe)
+      fix m n :: nat assume "m \<le> n"
+      with f nonneg show "F (a + real m) \<le> F (a + real n)"
+        by (intro DERIV_nonneg_imp_nondecreasing[where f=F])
+           (simp, metis add_increasing2 order_refl order_trans real_of_nat_ge_zero)
+    qed 
+    have "(\<lambda>x. F (a + real x)) ----> T"
+      apply (rule filterlim_compose[OF lim filterlim_tendsto_add_at_top])
+      apply (rule LIMSEQ_const_iff[THEN iffD2, OF refl])
+      apply (rule filterlim_real_sequentially)
+      done
+    then show "(\<lambda>n. ereal (F (a + real n) - F a)) ----> ereal (T - F a)"
+      unfolding lim_ereal
+      by (intro tendsto_diff) auto
+  qed
+  finally show ?thesis .
+qed
+
 end

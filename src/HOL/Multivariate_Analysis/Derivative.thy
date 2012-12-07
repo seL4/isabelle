@@ -1698,6 +1698,13 @@ next
     by auto
 qed
 
+lemma has_vector_derivative_withinI_DERIV:
+  assumes f: "DERIV f x :> y" shows "(f has_vector_derivative y) (at x within s)"
+  unfolding has_vector_derivative_def real_scaleR_def
+  apply (rule has_derivative_at_within)
+  using DERIV_conv_has_derivative[THEN iffD1, OF f]
+  apply (subst mult_commute) .
+
 lemma vector_derivative_unique_at:
   assumes "(f has_vector_derivative f') (at x)"
   assumes "(f has_vector_derivative f'') (at x)"
