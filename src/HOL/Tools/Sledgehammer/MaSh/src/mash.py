@@ -29,8 +29,8 @@ from predefined import Predefined
 parser = ArgumentParser(description='MaSh - Machine Learning for Sledgehammer.  \n\n\
 MaSh allows to use different machine learning algorithms to predict relevant facts for Sledgehammer.\n\n\
 --------------- Example Usage ---------------\n\
-First initialize:\n./mash.py -l test.log -o ../tmp/ --init --inputDir ../data/Nat/ \n\
-Then create predictions:\n./mash.py -i ../data/Nat/mash_commands -p ../tmp/test.pred -l test.log -o ../tmp/ --statistics\n\
+First initialize:\n./mash.py -l test.log -o ../tmp/ --init --inputDir ../data/Jinja/ \n\
+Then create predictions:\n./mash.py -i ../data/Jinja/mash_commands -p ../data/Jinja/mash_suggestions -l test.log -o ../tmp/ --statistics\n\
 \n\n\
 Author: Daniel Kuehlwein, July 2012',formatter_class=RawDescriptionHelpFormatter)
 parser.add_argument('-i','--inputFile',help='File containing all problems to be solved.')
@@ -40,7 +40,7 @@ parser.add_argument('-p','--predictions',default='../tmp/%s.predictions' % datet
 parser.add_argument('--numberOfPredictions',default=200,help="Number of premises to write in the output. Default=200.",type=int)
 
 parser.add_argument('--init',default=False,action='store_true',help="Initialize Mash. Requires --inputDir to be defined. Default=False.")
-parser.add_argument('--inputDir',default='../data/Nat/',\
+parser.add_argument('--inputDir',default='../data/Jinja/',\
                     help='Directory containing all the input data. MaSh expects the following files: mash_features,mash_dependencies,mash_accessibility')
 parser.add_argument('--depFile', default='mash_dependencies',
                     help='Name of the file with the premise dependencies. The file must be in inputDir. Default = mash_dependencies')
@@ -217,11 +217,11 @@ def main(argv = sys.argv[1:]):
 
 if __name__ == '__main__':
     # Example:
-    # Nat
-    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Nat/','--predef']
-    #args = ['-i', '../data/Nat/mash_commands','-p','../tmp/testIsabelle.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/natATPMP.stats']
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Nat/']
-    #args = ['-i', '../data/Nat/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/natATPNB.stats','--cutOff','500']
+    # Jinja
+    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--predef']
+    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testIsabelle.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/natATPMP.stats']
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/']
+    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/natATPNB.stats','--cutOff','500']
     # List
     #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/List/','--isabelle']
     #args = ['-i', '../data/List/mash_commands','-p','../tmp/testIsabelle.pred','-l','testIsabelle.log','--isabelle','-o','../tmp/','--statistics']

@@ -14,6 +14,8 @@ sledgehammer_params
   [provers = spass, max_relevant = 32, strict, dont_slice, type_enc = mono_native,
    lam_trans = combs_and_lifting, timeout = 2, dont_preplay, minimize]
 
+declare [[sledgehammer_instantiate_inducts]]
+
 ML {*
 open MaSh_Export
 *}

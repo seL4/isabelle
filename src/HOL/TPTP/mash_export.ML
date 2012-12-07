@@ -28,7 +28,6 @@ end;
 structure MaSh_Export : MASH_EXPORT =
 struct
 
-open Sledgehammer_Fact
 open Sledgehammer_MePo
 open Sledgehammer_MaSh
 
@@ -45,8 +44,7 @@ fun has_thys thys th = exists (has_thm_thy th) thys
 
 fun all_facts ctxt =
   let val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt in
-    nearly_all_facts ctxt false no_fact_override Symtab.empty css [] []
-                     @{prop True}
+    Sledgehammer_Fact.all_facts ctxt false Symtab.empty [] [] css
   end
 
 fun add_thy_parent_facts thy_map thy =

@@ -593,9 +593,9 @@ fun features_of ctxt prover thy (scope, status) ts =
     |> exists (exists_Const is_exists) ts ? cons skos_feature
   end
 
-(* Too many dependencies is a sign that a crazy decision procedure is at work.
-   There isn't much to learn from such proofs. *)
-val max_dependencies = 10
+(* Too many dependencies is a sign that a decision procedure is at work. There
+   isn't much to learn from such proofs. *)
+val max_dependencies = 20
 val atp_dependency_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
