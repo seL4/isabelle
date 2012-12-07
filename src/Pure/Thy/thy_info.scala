@@ -87,15 +87,18 @@ class Thy_Info(thy_load: Thy_Load)
             val syntax0 = syntax.add_keywords(header0.keywords)
 
             if (thy_load.body_files_test(syntax0, string)) {
-              default_thread_pool.submit(() =>
-                Exn.capture {
+              /* FIXME
+                  unstable in scala-2.9.2 on multicore hardware -- spurious NPE
+                  OK in scala-2.10.0.RC3 */
+              // default_thread_pool.submit(() =>
+                Library.future_value(Exn.capture {
                   try {
                     val files = thy_load.body_files(syntax0, string)
                     header0.copy(uses = header0.uses ::: files.map((_, false)))
                   }
                   catch { case ERROR(msg) => err(msg) }
-                }
-              )
+                })
+              //)
             }
             else Library.future_value(Exn.Res(header0))
           }
