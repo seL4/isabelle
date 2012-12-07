@@ -351,6 +351,9 @@ by auto
 lemma Int_greaterThanLessThan[simp]: "{a<..<b} Int {c<..<d} = {max a c <..< min b d}"
 by auto
 
+lemma Int_atMost[simp]: "{..a} \<inter> {..b} = {.. min a b}"
+  by (auto simp: min_def)
+
 end
 
 
