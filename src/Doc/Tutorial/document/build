@@ -7,7 +7,6 @@ VARIANT="$2"
 
 "$ISABELLE_TOOL" logo HOL
 
-cp "$ISABELLE_HOME/src/Doc/proof.sty" .
 cp "$ISABELLE_HOME/src/Doc/ttbox.sty" .
 cp "$ISABELLE_HOME/src/Doc/manual.bib" .
 

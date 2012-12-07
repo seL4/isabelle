@@ -10,7 +10,6 @@ VARIANT="$2"
 cp "$ISABELLE_HOME/src/Doc/iman.sty" .
 cp "$ISABELLE_HOME/src/Doc/extra.sty" .
 cp "$ISABELLE_HOME/src/Doc/isar.sty" .
-cp "$ISABELLE_HOME/src/Doc/proof.sty" .
 cp "$ISABELLE_HOME/src/Doc/manual.bib" .
 
 "$ISABELLE_HOME/src/Doc/prepare_document" "$FORMAT"
