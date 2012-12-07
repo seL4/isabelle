@@ -42,7 +42,8 @@ fun evaluate_mash_suggestions ctxt params file_name =
     val isar_ok = Unsynchronized.ref 0
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
-    fun str_of_res label facts ({outcome, run_time, used_facts, ...}: Sledgehammer_Provers.prover_result) =
+    fun str_of_res label facts ({outcome, run_time, used_facts, ...}
+                                : Sledgehammer_Provers.prover_result) =
       let val facts = facts |> map (fn ((name, _), _) => name ()) in
         "  " ^ label ^ ": " ^
         (if is_none outcome then
@@ -93,10 +94,12 @@ fun evaluate_mash_suggestions ctxt params file_name =
               run_prover_for_mash ctxt params prover facts goal
             val _ = if is_none outcome then ok := !ok + 1 else ()
           in str_of_res heading facts res end
-        val mepo_s = prove mepo_ok MePoN fst mepo_facts
-        val mash_s = prove mash_ok MaShN fst mash_facts
-        val mesh_s = prove mesh_ok MeshN I mesh_facts
-        val isar_s = prove isar_ok IsarN fst isar_facts
+        val [mepo_s, mash_s, mesh_s, isar_s] =
+          [fn () => prove mepo_ok MePoN fst mepo_facts,
+           fn () => prove mash_ok MaShN fst mash_facts,
+           fn () => prove mesh_ok MeshN I mesh_facts,
+           fn () => prove isar_ok IsarN fst isar_facts]
+          |> Par_List.map (fn f => f ())
       in
         ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
          isar_s]
