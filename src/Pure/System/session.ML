@@ -79,6 +79,7 @@ fun finish () =
   Keyword.status ();
   Outer_Syntax.check_syntax ();
   Options.reset_default ();
+  Future.shutdown ();
   session_finished := true);
 
 
