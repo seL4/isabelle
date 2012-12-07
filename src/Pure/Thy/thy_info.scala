@@ -84,16 +84,20 @@ class Thy_Info(thy_load: Thy_Load)
         val future_header: JFuture[Exn.Result[Document.Node.Header]] =
           if (files) {
             val string = thy_load.with_thy_text(name, _.toString)
-            default_thread_pool.submit(() =>
-              Exn.capture {
-                try {
-                  val syntax0 = syntax.add_keywords(header0.keywords)
-                  val files = thy_load.theory_body_files(syntax0, string)
-                  header0.copy(uses = header0.uses ::: files.map((_, false)))
+            val syntax0 = syntax.add_keywords(header0.keywords)
+
+            if (thy_load.body_files_test(syntax0, string)) {
+              default_thread_pool.submit(() =>
+                Exn.capture {
+                  try {
+                    val files = thy_load.body_files(syntax0, string)
+                    header0.copy(uses = header0.uses ::: files.map((_, false)))
+                  }
+                  catch { case ERROR(msg) => err(msg) }
                 }
-                catch { case ERROR(msg) => err(msg) }
-              }
-            )
+              )
+            }
+            else Library.future_value(Exn.Res(header0))
           }
           else Library.future_value(Exn.Res(header0))
 

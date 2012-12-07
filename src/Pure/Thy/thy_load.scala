@@ -80,27 +80,27 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
     clean_tokens.reverse.find(_.is_name).map(_.content)
   }
 
-  def theory_body_files(syntax: Outer_Syntax, text: String): List[String] =
+  def body_files_test(syntax: Outer_Syntax, text: String): Boolean =
+    syntax.thy_load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })
+
+  def body_files(syntax: Outer_Syntax, text: String): List[String] =
   {
     val thy_load_commands = syntax.thy_load_commands
-    if (thy_load_commands.exists({ case (cmd, _) => text.containsSlice(cmd) })) {
-      val spans = Thy_Syntax.parse_spans(syntax.scan(text))
-      spans.iterator.map({
-        case toks @ (tok :: _) if tok.is_command =>
-          thy_load_commands.find({ case (cmd, _) => cmd == tok.content }) match {
-            case Some((_, exts)) =>
-              find_file(toks) match {
-                case Some(file) =>
-                  if (exts.isEmpty) List(file)
-                  else exts.map(ext => file + "." + ext)
-                case None => Nil
-              }
-            case None => Nil
-          }
-        case _ => Nil
-      }).flatten.toList
-    }
-    else Nil
+    val spans = Thy_Syntax.parse_spans(syntax.scan(text))
+    spans.iterator.map({
+      case toks @ (tok :: _) if tok.is_command =>
+        thy_load_commands.find({ case (cmd, _) => cmd == tok.content }) match {
+          case Some((_, exts)) =>
+            find_file(toks) match {
+              case Some(file) =>
+                if (exts.isEmpty) List(file)
+                else exts.map(ext => file + "." + ext)
+              case None => Nil
+            }
+          case None => Nil
+        }
+      case _ => Nil
+    }).flatten.toList
   }
 
   def check_thy_text(name: Document.Node.Name, text: CharSequence): Document.Node.Header =
