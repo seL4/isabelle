@@ -112,32 +112,34 @@ final class Outer_Syntax private(
   /* tokenize */
 
   def scan(input: Reader[Char]): List[Token] =
-  {
-    import lexicon._
+    Exn.recover  // FIXME !?
+    {
+      import lexicon._
 
-    parseAll(rep(token(is_command)), input) match {
-      case Success(tokens, _) => tokens
-      case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
+      parseAll(rep(token(is_command)), input) match {
+        case Success(tokens, _) => tokens
+        case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
+      }
     }
-  }
 
   def scan(input: CharSequence): List[Token] =
     scan(new CharSequenceReader(input))
 
   def scan_context(input: CharSequence, context: Scan.Context): (List[Token], Scan.Context) =
-  {
-    import lexicon._
+    Exn.recover  // FIXME !?
+    {
+      import lexicon._
 
-    var in: Reader[Char] = new CharSequenceReader(input)
-    val toks = new mutable.ListBuffer[Token]
-    var ctxt = context
-    while (!in.atEnd) {
-      parse(token_context(is_command, ctxt), in) match {
-        case Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
-        case NoSuccess(_, rest) =>
-          error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
+      var in: Reader[Char] = new CharSequenceReader(input)
+      val toks = new mutable.ListBuffer[Token]
+      var ctxt = context
+      while (!in.atEnd) {
+        parse(token_context(is_command, ctxt), in) match {
+          case Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
+          case NoSuccess(_, rest) =>
+            error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
+        }
       }
+      (toks.toList, ctxt)
     }
-    (toks.toList, ctxt)
-  }
 }
