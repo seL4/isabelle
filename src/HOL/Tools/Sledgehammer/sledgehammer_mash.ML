@@ -61,10 +61,10 @@ sig
   val weight_mash_facts : ('a * thm) list -> (('a * thm) * real) list
   val find_mash_suggestions :
     int -> (Symtab.key * 'a) list -> ('b * thm) list -> ('b * thm) list
-    -> ('b * thm) list -> ('b * thm) list
+    -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term -> fact list
-    -> fact list
+    -> fact list * fact list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -733,19 +733,26 @@ fun weight_of_proximity_fact rank =
 fun weight_proximity_facts facts =
   facts ~~ map weight_of_proximity_fact (0 upto length facts - 1)
 
-fun find_mash_suggestions max_facts suggs facts chained unknown =
+val max_proximity_facts = 100
+
+fun find_mash_suggestions max_facts suggs facts chained raw_unknown =
   let
     val raw_mash =
       facts |> find_suggested_facts suggs
             (* The weights currently returned by "mash.py" are too spaced out to
                make any sense. *)
             |> map fst
-    val proximity = facts |> sort (thm_ord o pairself snd o swap)
+    val proximity =
+      facts |> sort (thm_ord o pairself snd o swap)
+            |> take max_proximity_facts
     val mess =
       [(0.80 (* FUDGE *), (map (rpair 1.0) chained, [])),
-       (0.16 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
+       (0.16 (* FUDGE *), (weight_raw_mash_facts raw_mash, raw_unknown)),
        (0.04 (* FUDGE *), (weight_proximity_facts proximity, []))]
-  in mesh_facts max_facts mess end
+    val unknown =
+      raw_unknown
+      |> fold (subtract (Thm.eq_thm_prop o pairself snd)) [chained, proximity]
+  in (mesh_facts max_facts mess, unknown) end
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
@@ -1066,10 +1073,10 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
       fun mash () =
         mash_suggested_facts ctxt params prover (generous_max_facts max_facts)
             hyp_ts concl_t facts
-        |> weight_mash_facts
+        |>> weight_mash_facts
       val mess =
         [] |> (if fact_filter <> mashN then cons (0.5, (mepo (), [])) else I)
-           |> (if fact_filter <> mepoN then cons (0.5, (mash (), [])) else I)
+           |> (if fact_filter <> mepoN then cons (0.5, (mash ())) else I)
     in
       mesh_facts max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths

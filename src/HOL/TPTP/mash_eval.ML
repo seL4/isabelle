@@ -81,10 +81,10 @@ fun evaluate_mash_suggestions ctxt params sugg_file_name out_file_name =
           Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
               slack_max_facts NONE hyp_ts concl_t facts
           |> Sledgehammer_MePo.weight_mepo_facts
-        val mash_facts =
+        val (mash_facts, mash_unks) =
           find_mash_suggestions slack_max_facts suggs facts [] []
-          |> weight_mash_facts
-        val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, []))]
+          |>> weight_mash_facts
+        val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, mash_unks))]
         val mesh_facts = mesh_facts slack_max_facts mess
         val isar_facts = find_suggested_facts (map (rpair 1.0) isar_deps) facts
         fun prove ok heading get facts =
