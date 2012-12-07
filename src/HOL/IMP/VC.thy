@@ -1,8 +1,8 @@
-header "Verification Conditions"
+(* Author: Tobias Nipkow *)
 
 theory VC imports Hoare begin
 
-subsection "VCG via Weakest Preconditions"
+subsection "Verification Conditions"
 
 text{* Annotated commands: commands where loops are annotated with
 invariants. *}
@@ -46,7 +46,7 @@ fun strip :: "acom \<Rightarrow> com" where
 "strip (Aif b c\<^isub>1 c\<^isub>2) = (IF b THEN strip c\<^isub>1 ELSE strip c\<^isub>2)" |
 "strip (Awhile I b c) = (WHILE b DO strip c)"
 
-subsection "Soundness"
+text {* Soundness: *}
 
 lemma vc_sound: "\<forall>s. vc c Q s \<Longrightarrow> \<turnstile> {pre c Q} strip c {Q}"
 proof(induction c arbitrary: Q)
@@ -68,7 +68,7 @@ corollary vc_sound':
 by (metis strengthen_pre vc_sound)
 
 
-subsection "Completeness"
+text{* Completeness: *}
 
 lemma pre_mono:
   "\<forall>s. P s \<longrightarrow> P' s \<Longrightarrow> pre c P s \<Longrightarrow> pre c P' s"
@@ -122,7 +122,7 @@ next
 qed
 
 
-subsection "An Optimization"
+text{* An Optimization: *}
 
 fun vcpre :: "acom \<Rightarrow> assn \<Rightarrow> assn \<times> assn" where
 "vcpre ASKIP Q = (\<lambda>s. True, Q)" |

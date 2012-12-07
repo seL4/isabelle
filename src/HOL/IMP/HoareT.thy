@@ -1,6 +1,8 @@
-header{* Hoare Logic for Total Correctness *}
+(* Author: Tobias Nipkow *)
 
 theory HoareT imports Hoare_Sound_Complete begin
+
+subsection "Hoare Logic for Total Correctness"
 
 text{* Note that this definition of total validity @{text"\<Turnstile>\<^sub>t"} only
 works if execution is deterministic (which it is in our case). *}
