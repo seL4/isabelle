@@ -7,6 +7,9 @@ Theory and file dependencies.
 package isabelle
 
 
+import java.util.concurrent.{Future => JFuture}
+
+
 class Thy_Info(thy_load: Thy_Load)
 {
   /* messages */
@@ -24,7 +27,13 @@ class Thy_Info(thy_load: Thy_Load)
 
   /* dependencies */
 
-  type Dep = (Document.Node.Name, Document.Node.Header)
+  sealed case class Dep(
+    name: Document.Node.Name,
+    header0: Document.Node.Header,
+    future_header: JFuture[Exn.Result[Document.Node.Header]])
+  {
+    def join_header: Document.Node.Header = Exn.release(future_header.get)
+  }
 
   object Dependencies
   {
@@ -37,7 +46,7 @@ class Thy_Info(thy_load: Thy_Load)
     val seen: Set[Document.Node.Name])
   {
     def :: (dep: Dep): Dependencies =
-      new Dependencies(dep :: rev_deps, dep._2.keywords ::: keywords, seen)
+      new Dependencies(dep :: rev_deps, dep.header0.keywords ::: keywords, seen)
 
     def + (name: Document.Node.Name): Dependencies =
       new Dependencies(rev_deps, keywords, seen = seen + name)
@@ -45,7 +54,7 @@ class Thy_Info(thy_load: Thy_Load)
     def deps: List[Dep] = rev_deps.reverse
 
     def loaded_theories: Set[String] =
-      (thy_load.loaded_theories /: rev_deps) { case (loaded, (name, _)) => loaded + name.theory }
+      (thy_load.loaded_theories /: rev_deps) { case (loaded, dep) => loaded + dep.name.theory }
 
     def make_syntax: Outer_Syntax = thy_load.base_syntax.add_keywords(keywords)
   }
@@ -60,24 +69,41 @@ class Thy_Info(thy_load: Thy_Load)
     if (required.seen(name)) required
     else if (thy_load.loaded_theories(name.theory)) required + name
     else {
+      def err(msg: String): Nothing =
+        cat_error(msg, "The error(s) above occurred while examining theory " +
+          quote(name.theory) + required_by(initiators))
+
       try {
         if (initiators.contains(name)) error(cycle_msg(initiators))
         val syntax = required.make_syntax
-        val header =
-          try {
-            if (files) thy_load.check_thy_files(syntax, name)
-            else thy_load.check_thy(name)
+
+        val header0 =
+          try { thy_load.check_thy(name) }
+          catch { case ERROR(msg) => err(msg) }
+
+        val future_header: JFuture[Exn.Result[Document.Node.Header]] =
+          if (files) {
+            val string = thy_load.with_thy_text(name, _.toString)
+            default_thread_pool.submit(() =>
+              Exn.capture {
+                try {
+                  val syntax0 = syntax.add_keywords(header0.keywords)
+                  val files = thy_load.theory_body_files(syntax0, string)
+                  header0.copy(uses = header0.uses ::: files.map((_, false)))
+                }
+                catch { case ERROR(msg) => err(msg) }
+              }
+            )
           }
-          catch {
-            case ERROR(msg) =>
-              cat_error(msg, "The error(s) above occurred while examining theory " +
-                quote(name.theory) + required_by(initiators))
-          }
-        (name, header) :: require_thys(files, name :: initiators, required + name, header.imports)
+          else Library.future_value(Exn.Res(header0))
+
+        Dep(name, header0, future_header) ::
+          require_thys(files, name :: initiators, required + name, header0.imports)
       }
       catch {
         case e: Throwable =>
-          (name, Document.Node.bad_header(Exn.message(e))) :: (required + name)
+          val bad_header = Document.Node.bad_header(Exn.message(e))
+          Dep(name, bad_header, Library.future_value(Exn.Res(bad_header))) :: (required + name)
       }
     }
   }

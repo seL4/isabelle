@@ -376,9 +376,10 @@ object Build
           val syntax = thy_deps.make_syntax
 
           val all_files =
-            (thy_deps.deps.map({ case (n, h) =>
-              val thy = Path.explode(n.node)
-              val uses = h.uses.map(p => Path.explode(n.dir) + Path.explode(p._1))
+            (thy_deps.deps.map({ case dep =>
+              val thy = Path.explode(dep.name.node)
+              val uses = dep.join_header.uses.map(p =>
+                Path.explode(dep.name.dir) + Path.explode(p._1))
               thy :: uses
             }).flatten ::: info.files.map(file => info.dir + file)).map(_.expand)
 
@@ -392,7 +393,7 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " +
                   quote(name) + Position.here(info.pos))
             }
-          val errors = parent_errors ::: thy_deps.deps.map(d => d._2.errors).flatten
+          val errors = parent_errors ::: thy_deps.deps.map(dep => dep.join_header.errors).flatten
 
           deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
       }))
