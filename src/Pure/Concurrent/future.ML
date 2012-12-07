@@ -385,7 +385,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
     val _ = if Task_Queue.all_passive (! queue) then do_shutdown := true else ();
     val continue = not (! do_shutdown andalso null (! workers));
-    val _ = if continue then () else scheduler := NONE;
+    val _ = if continue then () else (report_status (); scheduler := NONE);
 
     val _ = broadcast scheduler_event;
   in continue end
@@ -401,7 +401,7 @@ fun scheduler_loop () =
     Multithreading.with_attributes
       (Multithreading.sync_interrupts Multithreading.public_interrupts)
       (fn _ => SYNCHRONIZED "scheduler" (fn () => scheduler_next ()))
-  do (); last_round := Time.zeroTime; report_status ());
+  do (); last_round := Time.zeroTime);
 
 fun scheduler_active () = (*requires SYNCHRONIZED*)
   (case ! scheduler of NONE => false | SOME thread => Thread.isActive thread);
