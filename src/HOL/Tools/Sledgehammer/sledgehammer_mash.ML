@@ -451,7 +451,7 @@ fun mesh_facts max_facts [(_, (sels, unks))] =
         in
           case find_index (curry fact_eq fact o fst) sels of
             ~1 => (case find_index (curry fact_eq fact) unks of
-                     ~1 => score_at sel_len
+                     ~1 => score_at (sel_len - 1)
                    | _ => NONE)
           | rank => score_at rank
         end
