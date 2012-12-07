@@ -420,4 +420,8 @@ declare transfer_morphism_int_nat [transfer add
   return: transfer_int_nat_sum_prod transfer_int_nat_sum_prod2
   cong: setsum_cong setprod_cong]
 
+
+(*belongs to Divides.thy, but slows down dependency discovery*)
+ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
+
 end
