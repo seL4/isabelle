@@ -9,8 +9,6 @@ theory Divides
 imports Nat_Transfer
 begin
 
-ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
-
 subsection {* Syntactic division operations *}
 
 class div = dvd +

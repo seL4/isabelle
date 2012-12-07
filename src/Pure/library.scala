@@ -10,6 +10,7 @@ package isabelle
 
 import java.lang.System
 import java.util.Locale
+import java.util.concurrent.{Future => JFuture, TimeUnit}
 import java.awt.Component
 import javax.swing.JOptionPane
 
@@ -186,6 +187,18 @@ object Library
     listenTo(selection)
     selection.index = 3
     prototypeDisplayValue = Some("00000%")
+  }
+
+
+  /* Java futures */
+
+  def future_value[A](x: A) = new JFuture[A]
+  {
+    def cancel(may_interrupt: Boolean): Boolean = false
+    def isCancelled(): Boolean = false
+    def isDone(): Boolean = true
+    def get(): A = x
+    def get(timeout: Long, time_unit: TimeUnit): A = x
   }
 }
 

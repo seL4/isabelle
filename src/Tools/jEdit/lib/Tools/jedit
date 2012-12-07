@@ -316,21 +316,18 @@ EOF
 fi
 
 
-# build logic
-
-if [ "$NO_BUILD" = false ]; then
-  "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -L jedit_logic "$JEDIT_LOGIC"
-  RC="$?"
-  [ "$RC" = 0 ] || exit "$RC"
-fi
-
-
 # main
 
-[ "$BUILD_ONLY" = true ] || {
+if [ "$BUILD_ONLY" = false ]; then
+  if [ "$NO_BUILD" = false ]; then
+    "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -L jedit_logic "$JEDIT_LOGIC"
+    RC="$?"
+    [ "$RC" = 0 ] || exit "$RC"
+  fi
+
   export JEDIT_SESSION_DIRS JEDIT_LOGIC JEDIT_PRINT_MODE
 
   exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
     -jar "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" \
     "-settings=$(jvmpath "$JEDIT_SETTINGS")" "${ARGS[@]}"
-}
+fi
