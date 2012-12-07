@@ -465,8 +465,8 @@ fun mesh_facts max_facts [(_, (sels, unks))] =
     end
 
 fun thy_feature_of s = ("y" ^ s, 0.5 (* FUDGE *))
-fun const_feature_of s = ("c" ^ s, 1.0 (* FUDGE *))
-fun free_feature_of s = ("f" ^ s, 2.0 (* FUDGE *))
+fun const_feature_of s = ("c" ^ s, 4.0 (* FUDGE *))
+fun free_feature_of s = ("f" ^ s, 5.0 (* FUDGE *))
 fun type_feature_of s = ("t" ^ s, 0.5 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 0.25 (* FUDGE *))
 fun status_feature_of status = (string_of_status status, 0.5 (* FUDGE *))
@@ -722,9 +722,6 @@ fun maximal_in_graph fact_G facts =
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
 
-(* factor that controls whether unknown global facts should be included *)
-val include_unk_global_factor = 15
-
 (* use MePo weights for now *)
 val weight_raw_mash_facts = weight_mepo_facts
 val weight_mash_facts = weight_raw_mash_facts
@@ -745,9 +742,9 @@ fun find_mash_suggestions max_facts suggs facts chained unknown =
             |> map fst
     val proximity = facts |> sort (thm_ord o pairself snd o swap)
     val mess =
-      [(0.8000 (* FUDGE *), (map (rpair 1.0) chained, [])),
-       (0.1333 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
-       (0.0667 (* FUDGE *), (weight_proximity_facts proximity, []))]
+      [(0.80 (* FUDGE *), (map (rpair 1.0) chained, [])),
+       (0.16 (* FUDGE *), (weight_raw_mash_facts raw_mash, unknown)),
+       (0.04 (* FUDGE *), (weight_proximity_facts proximity, []))]
   in mesh_facts max_facts mess end
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
