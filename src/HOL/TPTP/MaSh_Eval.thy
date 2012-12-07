@@ -28,6 +28,7 @@ val params = Sledgehammer_Isar.default_params @{context} []
 ML {*
 if do_it then
   evaluate_mash_suggestions @{context} params "/tmp/mash_suggestions"
+      "/tmp/mash_eval.out"
 else
   ()
 *}
