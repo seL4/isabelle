@@ -103,7 +103,7 @@ fun evaluate_mash_suggestions ctxt params sugg_file_name out_file_name =
            fn () => prove mash_ok MaShN fst mash_facts,
            fn () => prove mesh_ok MeshN I mesh_facts,
            fn () => prove isar_ok IsarN fst isar_facts]
-          |> Par_List.map (fn f => f ())
+          |> map (fn f => f ())
       in
         ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
          isar_s]
