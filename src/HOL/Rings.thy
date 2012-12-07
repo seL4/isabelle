@@ -95,7 +95,7 @@ text {* Abstract divisibility *}
 class dvd = times
 begin
 
-definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "dvd" 50) where
+definition dvd :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "dvd" 50) where
   "b dvd a \<longleftrightarrow> (\<exists>k. a = b * k)"
 
 lemma dvdI [intro?]: "a = b * k \<Longrightarrow> b dvd a"

@@ -919,7 +919,7 @@ lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
 
 subsubsection {* Image of a set under a relation *}
 
-definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b set" (infixl "``" 90)
+definition Image :: "('a \<times> 'b) set \<Rightarrow> 'a set \<Rightarrow> 'b set" (infixr "``" 90)
 where
   "r `` s = {y. \<exists>x\<in>s. (x, y) \<in> r}"
 
