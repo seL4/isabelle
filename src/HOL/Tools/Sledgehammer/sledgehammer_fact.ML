@@ -30,7 +30,7 @@ sig
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
   val all_facts :
-    Proof.context -> bool -> unit Symtab.table -> thm list -> thm list
+    Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list
     -> status Termtab.table -> fact list
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> unit Symtab.table
@@ -145,7 +145,7 @@ fun is_package_def a =
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 fun multi_base_blacklist ctxt ho_atp =
   ["defs", "select_defs", "update_defs", "split", "splits", "split_asm",
-   "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
+   "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
    "weak_case_cong", "nibble_pair_of_char_simps", "nibble.simps",
    "nibble.distinct"]
   |> not (ho_atp orelse (Config.get ctxt instantiate_inducts)) ?
@@ -370,7 +370,7 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 fun maybe_filter_no_atps ctxt =
   not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
 
-fun all_facts ctxt ho_atp reserved add_ths chained css =
+fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -387,14 +387,15 @@ fun all_facts ctxt ho_atp reserved add_ths chained css =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
-        if name0 <> "" andalso
+        if not really_all andalso
+           name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             not (can (Proof_Context.get_thms ctxt) name0) orelse
             (not (Config.get ctxt ignore_no_atp) andalso
              is_package_def name0) orelse
             exists (fn s => String.isSuffix s name0)
-                   (multi_base_blacklist ctxt ho_atp)) then
+                    (multi_base_blacklist ctxt ho_atp)) then
           I
         else
           let
@@ -453,7 +454,7 @@ fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
                o fact_from_ref ctxt reserved chained css) add
        else
          let val (add, del) = pairself (Attrib.eval_thms ctxt) (add, del) in
-           all_facts ctxt ho_atp reserved add chained css
+           all_facts ctxt false ho_atp reserved add chained css
            |> filter_out (member Thm.eq_thm_prop del o snd)
            |> maybe_filter_no_atps ctxt
            |> uniquify
