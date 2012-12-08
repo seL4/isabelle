@@ -37,6 +37,11 @@
 			wm.addDockableWindow("isabelle-protocol");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.monitor-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-monitor");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.symbols-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-symbols");
