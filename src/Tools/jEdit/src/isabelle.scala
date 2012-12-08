@@ -44,6 +44,12 @@ object Isabelle
       case _ => None
     }
 
+  def docked_monitor(view: View): Option[Monitor_Dockable] =
+    wm(view).getDockableWindow("isabelle-monitor") match {
+      case dockable: Monitor_Dockable => Some(dockable)
+      case _ => None
+    }
+
 
   /* font size */
 

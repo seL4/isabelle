@@ -22,6 +22,7 @@ object Session
   /* events */
 
   //{{{
+  case class Statistics(stats: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(edits: List[Document.Edit_Text])
@@ -58,6 +59,7 @@ class Session(val thy_load: Thy_Load)
 
   /* pervasive event buses */
 
+  val statistics = new Event_Bus[Session.Statistics]
   val global_options = new Event_Bus[Session.Global_Options]
   val caret_focus = new Event_Bus[Session.Caret_Focus.type]
   val raw_edits = new Event_Bus[Session.Raw_Edits]
@@ -359,10 +361,10 @@ class Session(val thy_load: Thy_Load)
           }
 
         case Markup.ML_Statistics(stats) if output.is_protocol =>
-          java.lang.System.err.println(stats.toString)  // FIXME
+          statistics.event(Session.Statistics(stats))
 
         case _ if output.is_init =>
-            phase = Session.Ready
+          phase = Session.Ready
 
         case Markup.Return_Code(rc) if output.is_exit =>
           if (rc == 0) phase = Session.Inactive
