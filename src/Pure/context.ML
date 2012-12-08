@@ -312,17 +312,17 @@ fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
 
 (* consistent ancestors *)
 
+fun eq_thy_consistent (thy1, thy2) =
+  eq_thy (thy1, thy2) orelse
+    (theory_name thy1 = theory_name thy2 andalso
+      raise THEORY ("Duplicate theory name", [thy1, thy2]));
+
 fun extend_ancestors thy thys =
-  if member eq_thy thys thy then
+  if member eq_thy_consistent thys thy then
     raise THEORY ("Duplicate theory node", thy :: thys)
   else thy :: thys;
 
-fun extend_ancestors_of thy = extend_ancestors thy (ancestors_of thy);
-
-val merge_ancestors = merge (fn (thy1, thy2) =>
-  eq_thy (thy1, thy2) orelse
-    theory_name thy1 = theory_name thy2 andalso
-      raise THEORY ("Inconsistent theory versions", [thy1, thy2]));
+val merge_ancestors = merge eq_thy_consistent;
 
 
 (* trivial merge *)
@@ -361,7 +361,7 @@ fun change_thy draft' f thy =
       if draft then (self, data, ancestry)    (*destructive change!*)
       else if #stage history > 0
       then (NONE, data, ancestry)
-      else (NONE, extend_data data, make_ancestry [thy] (extend_ancestors_of thy));
+      else (NONE, extend_data data, make_ancestry [thy] (extend_ancestors thy (ancestors_of thy)));
     val ids' = insert_id draft id ids;
     val data'' = f data';
     val thy' = SYNCHRONIZED (fn () =>
