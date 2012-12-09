@@ -37,12 +37,14 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
   private val graphview = new JPanel
 
   // FIXME mutable GUI content
-  private def set_graphview(snapshot: Document.Snapshot, graph: XML.Body)
+  private def set_graphview(snapshot: Document.Snapshot, graph_xml: XML.Body)
   {
+    val graph = isabelle.graphview.Model.decode_graph(graph_xml).transitive_reduction_acyclic
+
     graphview.removeAll()
     graphview.setLayout(new BorderLayout)
     val panel =
-      new isabelle.graphview.Main_Panel(isabelle.graphview.Model.decode_graph(graph)) {
+      new isabelle.graphview.Main_Panel(graph) {
         override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
         {
           val rendering = Rendering(snapshot, PIDE.options.value)

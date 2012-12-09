@@ -133,7 +133,7 @@ object Mutators {
     (g, s, d) => !(s == source && d == dest)
   )
 
-  case class Edge_Transitive()
+  case class Edge_Transitive()  // FIXME slow! / obsolete?!
     extends Edge_Filter(
 
     "Hide transitive edges",
