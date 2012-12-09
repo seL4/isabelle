@@ -222,6 +222,34 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   }
 
 
+  /* transitive closure and reduction */
+
+  def transitive_closure: Graph[Key, A] =
+  {
+    var graph = this
+    for {
+      (_, (_, (preds, succs))) <- this.entries
+      x <- preds
+      y <- succs
+    } graph = graph.add_edge(x, y)
+    graph
+  }
+
+  def transitive_reduction_acyclic: Graph[Key, A] =
+  {
+    val trans = this.transitive_closure
+    assert(!trans.entries.exists({ case (x, (_, (_, succs))) => succs.contains(x) }))
+
+    var graph = this
+    for {
+      (x, (_, (_, succs))) <- this.entries
+      y <- succs
+      if trans.imm_preds(y).exists(z => trans.is_edge(x, z))
+    } graph = graph.del_edge(x, y)
+    graph
+  }
+
+
   /* maintain acyclic graphs */
 
   def add_edge_acyclic(x: Key, y: Key): Graph[Key, A] =
