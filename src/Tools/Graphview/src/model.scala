@@ -64,7 +64,6 @@ class Model(private val graph: Model.Graph) {
       Node_Expression(".*", false, false, false),
       Node_List(Nil, false, false, false),
       Edge_Endpoints("", ""),
-      Edge_Transitive(),
       Add_Node_Expression(""),
       Add_Transitive_Closure(true, true)
     ))

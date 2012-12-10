@@ -133,17 +133,6 @@ object Mutators {
     (g, s, d) => !(s == source && d == dest)
   )
 
-  case class Edge_Transitive()  // FIXME slow! / obsolete?!
-    extends Edge_Filter(
-
-    "Hide transitive edges",
-    "Hides all transitive edges.",
-    (g, s, d) => {
-      !g.imm_succs(s).filter(_ != d)  // FIXME iterator
-      .exists(p => !(g.irreducible_paths(p, d).isEmpty))
-    }
-  )
-
   private def add_node_group(from: Model.Graph, to: Model.Graph,
     keys: List[String]) = {
     

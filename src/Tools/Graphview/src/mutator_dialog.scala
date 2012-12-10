@@ -286,8 +286,6 @@ class Mutator_Dialog(
             inputs(0)._2.getString,
             inputs(1)._2.getString
           )
-        case Edge_Transitive() =>
-          Edge_Transitive()
         case Add_Node_Expression(r) =>
           Add_Node_Expression(
             regexOrElse(inputs(0)._2.getString, r)

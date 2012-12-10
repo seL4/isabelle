@@ -130,10 +130,6 @@ object Popups {
           def apply = panel.visualizer.model.Mutators(Nil)
         }).peer
     )
-    popup.add(new MenuItem(new Action("Remove transitive edges") {
-          def apply = add_mutator(Mutators.create(Edge_Transitive()))
-        }).peer
-    )
     popup.add(new JPopupMenu.Separator)
 
     if (under_mouse.isDefined) {
