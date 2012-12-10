@@ -115,10 +115,11 @@ class Graph_Panel(
     
     private var _scale = 1.0
     def scale = _scale
-    def scale_= (s: Double) = {
-                  _scale = math.max(math.min(s, 10), 0.01)
-                  paint_panel.set_preferred_size()
-                }
+    def scale_= (s: Double) =
+    {
+      _scale = (s min 10) max 0.01
+      paint_panel.set_preferred_size()
+    }
                 
     def apply() = {
       val (minX, minY, _, _) = visualizer.Coordinates.bounds()
@@ -136,7 +137,7 @@ class Graph_Panel(
 
         val (dx, dy) = (maxX - minX + padding._1, maxY - minY + padding._2)
         val (sx, sy) = (1.0 * size.width / dx, 1.0 * size.height / dy)
-        scale = math.min(sx, sy)
+        scale = sx min sy
       }
     }
     

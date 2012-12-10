@@ -132,9 +132,7 @@ object Layout_Pendulum
       child.map(k => {
           val ps = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
           val weight = 
-            (0.0 /: ps) {
-              (w, p) => w + math.max(0, parent.indexOf(p))
-            } / math.max(ps.size, 1)
+            (0.0 /: ps) { (w, p) => w + (0 max parent.indexOf(p)) } / (ps.size max 1)
           (k, weight)
       }).sortBy(_._2).map(_._1)
     
@@ -232,11 +230,11 @@ object Layout_Pendulum
               else if (i == level.length - 1 && d >= 0) d
               else if (d < 0) {
                 val prev = level(i-1)
-                math.max( -(r.distance(coords, prev) - x_distance), d )
+                (-(r.distance(coords, prev) - x_distance)) max d
               }
               else {
                 val next = level(i+1)
-                math.min( r.distance(coords, next) - x_distance, d )
+                (r.distance(coords, next) - x_distance) min d
               }
             }
             
@@ -264,14 +262,14 @@ object Layout_Pendulum
     def right(coords: Coordinates): Double =
       nodes.map(coords(_)._1).max
     def distance(coords: Coordinates, to: Region): Double =
-      math.min(math.abs(left(coords) - to.left(coords)),
-               math.abs(right(coords) - to.right(coords)))
+      math.abs(left(coords) - to.left(coords)) min
+      math.abs(right(coords) - to.right(coords))
     
     def deflection(coords: Coordinates, use_preds: Boolean) = 
       nodes.map(k => (coords(k)._1,
                       if (use_preds) graph.imm_preds(k).toList  // FIXME iterator
                       else graph.imm_succs(k).toList))
-      .map({case (x, as) => as.map(coords(_)._1 - x).sum / math.max(as.length, 1)})
+      .map({ case (x, as) => as.map(coords(_)._1 - x).sum / (as.length max 1) })
       .sum / nodes.length
     
     def move(coords: Coordinates, by: Double): Coordinates = 

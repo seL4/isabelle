@@ -94,8 +94,10 @@ object Shapes
       peer: (String, String), head: Boolean, dummies: Boolean)
     {
       val ((fx, fy), (tx, ty)) = (visualizer.Coordinates(peer._1), visualizer.Coordinates(peer._2))
-      val ds = {
-        val (min, max) = (math.min(fy, ty), math.max(fy, ty))
+      val ds =
+      {
+        val min = fy min ty
+        val max = fy max ty
         visualizer.Coordinates(peer).filter({ case (_, y) => y > min && y < max })
       }
       val path = new GeneralPath(Path2D.WIND_EVEN_ODD, ds.length + 2)
@@ -132,9 +134,10 @@ object Shapes
     {
       val ((fx, fy), (tx, ty)) =
         (visualizer.Coordinates(peer._1), visualizer.Coordinates(peer._2))
-      val ds = {
-        val (min, max) = (math.min(fy, ty), math.max(fy, ty))
-
+      val ds =
+      {
+        val min = fy min ty
+        val max = fy max ty
         visualizer.Coordinates(peer).filter({case (_, y) => y > min && y < max})
       }
 
