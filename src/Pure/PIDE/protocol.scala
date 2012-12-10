@@ -118,10 +118,12 @@ object Protocol
 
   /* result messages */
 
+  private val clean = Set(Markup.REPORT, Markup.NO_REPORT)
+
   def clean_message(body: XML.Body): XML.Body =
     body filter {
-      case XML.Elem(Markup(Markup.REPORT, _), _) => false
-      case XML.Elem(Markup(Markup.NO_REPORT, _), _) => false
+      case XML.Wrapped_Elem(Markup(name, _), _, _) => !clean(name)
+      case XML.Elem(Markup(name, _), _) => !clean(name)
       case _ => true
     } map {
       case XML.Wrapped_Elem(markup, body, ts) => XML.Wrapped_Elem(markup, body, clean_message(ts))
@@ -131,6 +133,8 @@ object Protocol
 
   def message_reports(props: Properties.T, body: XML.Body): List[XML.Elem] =
     body flatMap {
+      case XML.Wrapped_Elem(Markup(Markup.REPORT, ps), body, ts) =>
+        List(XML.Wrapped_Elem(Markup(Markup.REPORT, props ::: ps), body, ts))
       case XML.Elem(Markup(Markup.REPORT, ps), ts) =>
         List(XML.Elem(Markup(Markup.REPORT, props ::: ps), ts))
       case XML.Wrapped_Elem(_, _, ts) => message_reports(props, ts)

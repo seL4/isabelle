@@ -57,9 +57,11 @@ fun write_graph_graphview path graph =
 
 fun display_graph graph =
   if print_mode_active graphview_reportN then
-    (Output.report
-      (YXML.string_of (XML.Elem ((Markup.graphviewN, []), encode_graphview graph)));
-      writeln "(see graphview)")
+    let
+      val markup = Active.make_markup Markup.graphviewN {implicit = false, properties = []};
+      val ((bg1, bg2), en) = YXML.output_markup_elem markup;
+      val graph_yxml = YXML.string_of_body (encode_graphview graph);
+    in writeln ("See " ^ bg1 ^ graph_yxml ^ bg2 ^ "graphview" ^ en) end
   else
     let
       val browser =

@@ -8,6 +8,7 @@
 ## sources
 
 declare -a SOURCES=(
+  "src/active.scala"
   "src/dockable.scala"
   "src/document_model.scala"
   "src/document_view.scala"
@@ -35,7 +36,6 @@ declare -a SOURCES=(
   "src/rendering.scala"
   "src/rich_text_area.scala"
   "src/scala_console.scala"
-  "src/sendback.scala"
   "src/symbols_dockable.scala"
   "src/syslog_dockable.scala"
   "src/text_overview.scala"

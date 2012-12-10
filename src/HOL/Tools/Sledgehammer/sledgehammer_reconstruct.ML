@@ -220,14 +220,14 @@ fun reconstructor_command reconstr i n used_chaineds num_chained (ls, ss) =
   command_call (string_for_reconstructor reconstr) ss
 
 fun try_command_line banner time command =
-  banner ^ ": " ^ Sendback.markup command ^ show_time time ^ "."
+  banner ^ ": " ^ Active.sendback_markup command ^ show_time time ^ "."
 
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
       "" => ""
     | command =>
-      "\nTo minimize: " ^ Sendback.markup command ^ "."
+      "\nTo minimize: " ^ Active.sendback_markup command ^ "."
 
 fun split_used_facts facts =
   facts |> List.partition (fn (_, (sc, _)) => sc = Chained)
@@ -728,7 +728,7 @@ fun isar_proof_text ctxt isar_proofs
           in
             "\n\nStructured proof "
               ^ (commas msg |> not (null msg) ? enclose "(" ")")
-              ^ ":\n" ^ Sendback.markup isar_text
+              ^ ":\n" ^ Active.sendback_markup isar_text
           end
       end
     val isar_proof =

@@ -212,9 +212,14 @@ object Markup
   val STATE = "state"
   val SUBGOAL = "subgoal"
 
+
+  /* active areas */
+
+  val SENDBACK = "sendback"
+  val GRAPHVIEW = "graphview"
+
   val PADDING = "padding"
   val PADDING_LINE = (PADDING, LINE)
-  val SENDBACK = "sendback"
 
   val INTENSIFY = "intensify"
 
@@ -279,8 +284,6 @@ object Markup
   val NO_REPORT = "no_report"
 
   val BAD = "bad"
-
-  val GRAPHVIEW = "graphview"
 
 
   /* protocol message functions */
