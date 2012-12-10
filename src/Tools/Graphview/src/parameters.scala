@@ -42,6 +42,5 @@ object Parameters
     val No_Axioms = Color.LIGHT_GRAY
   }
   
-  var long_names = false
   var arrow_heads = false
 }

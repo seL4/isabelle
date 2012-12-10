@@ -150,9 +150,7 @@ class Visualizer(val model: Model)
 
   object Caption
   {
-    def apply(key: String) =
-      if (Parameters.long_names) key
-      else model.complete.get_node(key).name
+    def apply(key: String) = model.complete.get_node(key).name
   }
 
   val font = new Font(Parameters.font_family, Font.BOLD, Parameters.font_size)

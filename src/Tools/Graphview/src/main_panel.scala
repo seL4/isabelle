@@ -68,14 +68,6 @@ class Main_Panel(graph: Model.Graph)
         graph_panel.repaint()
       }
     }
-    contents += Swing.RigidBox(new Dimension(10, 0))    
-    contents += new CheckBox(){
-      selected = Parameters.long_names
-      action = Action("Long Names"){
-        Parameters.long_names = selected
-        graph_panel.repaint()
-      }
-    }    
     contents += Swing.RigidBox(new Dimension(10, 0))
     contents += new Button{
       action = Action("Save as PNG"){
