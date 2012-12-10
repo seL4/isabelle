@@ -135,8 +135,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val quoted_color = color_value("quoted_color")
   val highlight_color = color_value("highlight_color")
   val hyperlink_color = color_value("hyperlink_color")
-  val sendback_color = color_value("sendback_color")
-  val sendback_active_color = color_value("sendback_active_color")
+  val active_color = color_value("active_color")
+  val active_hover_color = color_value("active_hover_color")
   val keyword1_color = color_value("keyword1_color")
   val keyword2_color = color_value("keyword2_color")
 
@@ -249,11 +249,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  def sendback(range: Text.Range): Option[Text.Info[Properties.T]] =
-    snapshot.select_markup(range, Some(Set(Markup.SENDBACK)),
+  private val active_include = Set(Markup.SENDBACK, Markup.GRAPHVIEW)
+
+  def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
+    snapshot.select_markup(range, Some(active_include),
         {
-          case Text.Info(info_range, XML.Elem(Markup(Markup.SENDBACK, props), _)) =>
-            Text.Info(snapshot.convert(info_range), props)
+          case Text.Info(info_range, elem @ XML.Elem(markup, _))
+          if active_include(markup.name) => Text.Info(snapshot.convert(info_range), elem)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
 
@@ -405,8 +407,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val background1_include =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
-      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY +
-      Markup.SENDBACK
+      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
+      active_include
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -424,8 +426,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.SENDBACK, _), _))) =>
-                (None, Some(sendback_color))
+              case (_, Text.Info(_, XML.Elem(Markup(name, _), _))) if active_include(name) =>
+                (None, Some(active_color))
             })
         color <-
           (result match {

@@ -36,7 +36,8 @@ object Info_Dockable
     implicit_info = info
   }
 
-  private def reset_implicit(): Unit = set_implicit(Document.State.init.snapshot(), Nil)
+  private def reset_implicit(): Unit =
+    set_implicit(Document.State.init.snapshot(), Nil)
 
   def apply(view: View, snapshot: Document.Snapshot, info: XML.Body)
   {
@@ -81,6 +82,22 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   }
 
 
+  /* resize */
+
+  private val delay_resize =
+    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
+
+  addComponentListener(new ComponentAdapter {
+    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
+  })
+
+  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
+  zoom.tooltip = "Zoom factor for basic font size"
+
+  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom)
+  add(controls.peer, BorderLayout.NORTH)
+
+
   /* main actor */
 
   private val main_actor = actor {
@@ -110,23 +127,4 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     PIDE.session.global_options -= main_actor
     delay_resize.revoke()
   }
-
-
-  /* resize */
-
-  private val delay_resize =
-    Swing_Thread.delay_first(PIDE.options.seconds("editor_update_delay")) { handle_resize() }
-
-  addComponentListener(new ComponentAdapter {
-    override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
-  })
-
-
-  /* controls */
-
-  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
-  zoom.tooltip = "Zoom factor for basic font size"
-
-  private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom)
-  add(controls.peer, BorderLayout.NORTH)
 }

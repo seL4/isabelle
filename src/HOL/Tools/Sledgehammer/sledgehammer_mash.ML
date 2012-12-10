@@ -829,7 +829,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           (true, "")
         end)
 
-fun sendback sub = Sendback.markup (sledgehammerN ^ " " ^ sub)
+fun sendback sub = Active.sendback_markup (sledgehammerN ^ " " ^ sub)
 
 val commit_timeout = seconds 30.0
 

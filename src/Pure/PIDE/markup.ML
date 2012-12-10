@@ -98,7 +98,8 @@ sig
   val subgoalN: string val subgoal: T
   val paddingN: string
   val padding_line: string * string
-  val sendbackN: string val sendback: T
+  val sendbackN: string
+  val graphviewN: string
   val intensifyN: string val intensify: T
   val taskN: string
   val acceptedN: string val accepted: T
@@ -120,7 +121,6 @@ sig
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
-  val graphviewN: string
   val functionN: string
   val assign_execs: Properties.T
   val removed_versions: Properties.T
@@ -337,9 +337,14 @@ val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 
+
+(* active areads *)
+
+val sendbackN = "sendback";
+val graphviewN = "graphview";
+
 val paddingN = "padding";
 val padding_line = (paddingN, lineN);
-val (sendbackN, sendback) = markup_elem "sendback";
 
 val (intensifyN, intensify) = markup_elem "intensify";
 
@@ -375,8 +380,6 @@ val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
 val (badN, bad) = markup_elem "bad";
-
-val graphviewN = "graphview";
 
 
 (* protocol message functions *)

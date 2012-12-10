@@ -135,10 +135,10 @@ class Rich_Text_Area(
 
   private val highlight_area = new Active_Area[Color]((r: Rendering) => r.highlight _)
   private val hyperlink_area = new Active_Area[Hyperlink]((r: Rendering) => r.hyperlink _)
-  private val sendback_area = new Active_Area[Properties.T]((r: Rendering) => r.sendback _)
+  private val active_area = new Active_Area[XML.Elem]((r: Rendering) => r.active _)
 
   private val active_areas =
-    List((highlight_area, true), (hyperlink_area, true), (sendback_area, false))
+    List((highlight_area, true), (hyperlink_area, true), (active_area, false))
   def active_reset(): Unit = active_areas.foreach(_._1.reset)
 
   private val focus_listener = new FocusAdapter {
@@ -157,8 +157,8 @@ class Rich_Text_Area(
           case Some(Text.Info(_, link)) => link.follow(view)
           case None =>
         }
-        sendback_area.text_info match {
-          case Some((text, Text.Info(_, props))) => Sendback.activate(view, text, props)
+        active_area.text_info match {
+          case Some((text, Text.Info(_, markup))) => Active.action(view, text, markup)
           case None =>
         }
       }
@@ -252,13 +252,13 @@ class Rich_Text_Area(
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 
-            // sendback range -- potentially from other snapshot
+            // active area -- potentially from other snapshot
             for {
-              info <- sendback_area.info
+              info <- active_area.info
               Text.Info(range, _) <- info.try_restrict(line_range)
               r <- JEdit_Lib.gfx_range(text_area, range)
             } {
-              gfx.setColor(rendering.sendback_active_color)
+              gfx.setColor(rendering.active_hover_color)
               gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
             }
 
