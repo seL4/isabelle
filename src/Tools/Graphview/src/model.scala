@@ -88,12 +88,12 @@ class Model(private val graph: Model.Graph) {
         }
       }
     
-  private var _colors = Map[String, Color]()
+  private var _colors = Map.empty[String, Color]
   def colors = _colors
   
   private def build_colors() {
     _colors = 
-      (Map[String, Color]() /: Colors()) ({
+      (Map.empty[String, Color] /: Colors()) ({
           case (colors, (enabled, color, mutator)) => {
               (colors /: mutator.mutate(graph, graph).keys) ({
                   case (colors, k) => colors + (k -> color)

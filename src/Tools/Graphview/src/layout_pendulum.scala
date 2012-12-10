@@ -28,12 +28,12 @@ object Layout_Pendulum
   def apply(graph: Model.Graph): Layout =
   {
     if (graph.is_empty)
-      (Map[Key, Point](), Map[(Key, Key), List[Point]]())
+      (Map.empty[Key, Point], Map.empty[(Key, Key), List[Point]])
     else {
       val initial_levels = level_map(graph)
 
       val (dummy_graph, dummies, dummy_levels) =
-        ((graph, Map[(Key, Key), List[Key]](), initial_levels) /: graph.keys) {
+        ((graph, Map.empty[(Key, Key), List[Key]], initial_levels) /: graph.keys) {
           case ((graph, dummies, levels), from) =>
             ((graph, dummies, levels) /: graph.imm_succs(from)) {
               case ((graph, dummies, levels), to) =>
@@ -58,7 +58,7 @@ object Layout_Pendulum
         )
 
       val dummy_coords =
-        (Map[(Key, Key), List[Point]]() /: dummies.keys) {
+        (Map.empty[(Key, Key), List[Point]] /: dummies.keys) {
           case (map, key) => map + (key -> dummies(key).map(coords(_)))
         }
 
@@ -87,7 +87,7 @@ object Layout_Pendulum
   }
 
   def level_map(graph: Model.Graph): Map[Key, Int] = 
-    (Map[Key, Int]() /: graph.topological_order) {
+    (Map.empty[Key, Int] /: graph.topological_order) {
       (levels, key) => {
         val lev = 1 + (-1 /: graph.imm_preds(key)) { case (m, key) => m max levels(key) }
         levels + (key -> lev)
@@ -163,7 +163,7 @@ object Layout_Pendulum
   }
   
   def initial_coordinates(levels: Levels): Coordinates =
-    (Map[Key, Point]() /: levels.zipWithIndex){
+    (Map.empty[Key, Point] /: levels.zipWithIndex){
       case (coords, (level, yi)) =>
         (coords /: level.zipWithIndex) {
           case (coords, (node, xi)) => 
@@ -180,7 +180,7 @@ object Layout_Pendulum
                   top_down: Boolean): (Regions, Coordinates, Boolean) =
     { 
       val (nextr, nextc, moved) = 
-      ((List[List[Region]](), coords, false) /:
+      ((List.empty[List[Region]], coords, false) /:
        (if (top_down) regions else regions.reverse)) {
         case ((tops, coords, prev_moved), bot) => {
             val nextb = collapse(coords, bot, top_down)

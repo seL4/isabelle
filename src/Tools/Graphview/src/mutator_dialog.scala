@@ -164,7 +164,7 @@ class Mutator_Dialog(
     private val (_enabled, _color, _mutator) = initials
     
     private val inputs: List[(String, Mutator_Input_Value)] = get_Inputs()
-    var focusList = List[java.awt.Component]()
+    var focusList = List.empty[java.awt.Component]
     private val enabledBox = new iCheckBox("Enabled", _enabled)
 
     border = new EmptyBorder(5, 5, 5, 5)

@@ -46,7 +46,7 @@ class Visualizer(val model: Model)
         case None =>
         case Some(ds) =>
           dummies += (e ->
-            (ds.zipWithIndex :\ List[(Double, Double)]()) {
+            (ds.zipWithIndex :\ List.empty[(Double, Double)]) {
               case ((t, i), n) => if (index == i) to :: n else t :: n
             }
           )
@@ -68,7 +68,7 @@ class Visualizer(val model: Model)
 
     def layout()
     {
-      val (l, d) = Layout_Pendulum(model.current)
+      val (l, d) = Layout_Pendulum(model.current)  // FIXME avoid computation on Swing thread
       nodes = l
       dummies = d
     }
