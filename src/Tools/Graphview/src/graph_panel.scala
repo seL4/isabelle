@@ -110,7 +110,8 @@ class Graph_Panel(
   apply_layout()
   fit_to_window()
   
-  protected object Transform {
+  private object Transform
+  {
     val padding = (4000, 2000)
     
     private var _scale = 1.0

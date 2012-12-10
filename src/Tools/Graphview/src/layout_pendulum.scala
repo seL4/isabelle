@@ -19,12 +19,12 @@ object Layout_Pendulum
   type Levels = List[Level]
   type Layout = (Coordinates, Map[(Key, Key), List[Point]])
   type Dummies = (Model.Graph, List[Key], Map[Key, Int])
-  
+
   val x_distance = 350
   val y_distance = 350
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
-  
+
   def apply(graph: Model.Graph): Layout =
   {
     if (graph.is_empty)
@@ -38,24 +38,16 @@ object Layout_Pendulum
             ((graph, dummies, levels) /: graph.imm_succs(from)) {
               case ((graph, dummies, levels), to) =>
                 if (levels(to) - levels(from) <= 1) (graph, dummies, levels)
-                else
-                  add_dummies(graph, from, to, levels) match {
-                    case (next, ds, ls) => (next, dummies + ((from, to) -> ds), ls)
-                  }
+                else {
+                  val (next, ds, ls) = add_dummies(graph, from, to, levels)
+                  (next, dummies + ((from, to) -> ds), ls)
+                }
             }
         }
-      
-      val levels =
-        minimize_crossings(
-          dummy_graph,
-          level_list(dummy_levels)
-        )
 
-      val coords =
-        pendulum(dummy_graph,
-                levels,
-                initial_coordinates(levels)
-        )
+      val levels = minimize_crossings(dummy_graph, level_list(dummy_levels))
+
+      val coords = pendulum(dummy_graph, levels, initial_coordinates(levels))
 
       val dummy_coords =
         (Map.empty[(Key, Key), List[Point]] /: dummies.keys) {
@@ -86,14 +78,14 @@ object Layout_Pendulum
     (graph2, ds, ls)
   }
 
-  def level_map(graph: Model.Graph): Map[Key, Int] = 
+  def level_map(graph: Model.Graph): Map[Key, Int] =
     (Map.empty[Key, Int] /: graph.topological_order) {
       (levels, key) => {
         val lev = 1 + (-1 /: graph.imm_preds(key)) { case (m, key) => m max levels(key) }
         levels + (key -> lev)
       }
     }
-  
+
   def level_list(map: Map[Key, Int]): Levels =
   {
     val max_lev = (-1 /: map) { case (m, (_, l)) => m max l }
@@ -125,29 +117,29 @@ object Layout_Pendulum
 
     levels.iterator.sliding(2).map(ls => in_level(ls.toList)).sum
   }
-  
+
   def minimize_crossings(graph: Model.Graph, levels: Levels): Levels =
   {
-    def resort_level(parent: Level, child: Level, top_down: Boolean): Level = 
+    def resort_level(parent: Level, child: Level, top_down: Boolean): Level =
       child.map(k => {
           val ps = if (top_down) graph.imm_preds(k) else graph.imm_succs(k)
-          val weight = 
+          val weight =
             (0.0 /: ps) { (w, p) => w + (0 max parent.indexOf(p)) } / (ps.size max 1)
           (k, weight)
       }).sortBy(_._2).map(_._1)
-    
+
     def resort(levels: Levels, top_down: Boolean) = top_down match {
       case true =>
         (List[Level](levels.head) /: levels.tail) {
           (tops, bot) => resort_level(tops.head, bot, top_down) :: tops
         }.reverse
-        
-      case false => 
+
+      case false =>
         (List[Level](levels.reverse.head) /: levels.reverse.tail) {
           (bots, top) => resort_level(bots.head, top, top_down) :: bots
         }
       }
-    
+
     ((levels, count_crossings(graph, levels), true) /: (1 to minimize_crossings_iterations)) {
       case ((old_levels, old_crossings, top_down), _) => {
           val new_levels = resort(old_levels, top_down)
@@ -159,25 +151,24 @@ object Layout_Pendulum
       }
     }._1
   }
-  
+
   def initial_coordinates(levels: Levels): Coordinates =
     (Map.empty[Key, Point] /: levels.zipWithIndex){
       case (coords, (level, yi)) =>
         (coords /: level.zipWithIndex) {
-          case (coords, (node, xi)) => 
+          case (coords, (node, xi)) =>
             coords + (node -> (xi * x_distance, yi * y_distance))
         }
     }
-  
-  def pendulum(graph: Model.Graph,
-               levels: Levels, coords: Map[Key, Point]): Coordinates =
+
+  def pendulum(graph: Model.Graph, levels: Levels, coords: Map[Key, Point]): Coordinates =
   {
     type Regions = List[List[Region]]
-    
-    def iteration(regions: Regions, coords: Coordinates,
-                  top_down: Boolean): (Regions, Coordinates, Boolean) =
-    { 
-      val (nextr, nextc, moved) = 
+
+    def iteration(regions: Regions, coords: Coordinates, top_down: Boolean)
+      : (Regions, Coordinates, Boolean) =
+    {
+      val (nextr, nextc, moved) =
       ((List.empty[List[Region]], coords, false) /:
        (if (top_down) regions else regions.reverse)) {
         case ((tops, coords, prev_moved), bot) => {
@@ -186,12 +177,12 @@ object Layout_Pendulum
             (nextb :: tops, nextc, prev_moved || this_moved)
         }
       }
-    
+
       (nextr.reverse, nextc, moved)
     }
-    
-    def collapse(coords: Coordinates, level: List[Region],
-                 top_down: Boolean): List[Region] = 
+
+    def collapse(coords: Coordinates, level: List[Region], top_down: Boolean): List[Region] =
+    {
       if (level.size <= 1) level
       else {
         var next = level
@@ -203,24 +194,24 @@ object Layout_Pendulum
             val d1 = r1.deflection(coords, top_down)
             val d2 = r2.deflection(coords, top_down)
 
-            if (
-                // Do regions touch?
+            if (// Do regions touch?
                 r1.distance(coords, r2) <= x_distance &&
                 // Do they influence each other?
-                (d1 <= 0 && d2 < d1 || d2 > 0 && d1 > d2 || d1 > 0 && d2 < 0)
-                )
+                (d1 <= 0 && d2 < d1 || d2 > 0 && d1 > d2 || d1 > 0 && d2 < 0))
             {
               regions_changed = true
               r1.nodes = r1.nodes ::: r2.nodes
               next = next.filter(next.indexOf(_) != i)
-            }            
+            }
           }
         }
         next
       }
-    
-    def deflect(coords: Coordinates, level: List[Region],
-                top_down: Boolean): (Coordinates, Boolean) =
+    }
+
+    def deflect(coords: Coordinates, level: List[Region], top_down: Boolean)
+        : (Coordinates, Boolean) =
+    {
       ((coords, false) /: (0 until level.length)) {
         case ((coords, moved), i) => {
             val r = level(i)
@@ -237,13 +228,14 @@ object Layout_Pendulum
                 (r.distance(coords, next) - x_distance) min d
               }
             }
-            
+
             (r.move(coords, offset), moved || (d != 0))
         }
       }
-    
+    }
+
     val regions = levels.map(level => level.map(new Region(graph, _)))
-    
+
     ((regions, coords, true, true) /: (1 to pendulum_iterations)) {
       case ((regions, coords, top_down, moved), _) =>
         if (moved) {
@@ -253,31 +245,30 @@ object Layout_Pendulum
         else (regions, coords, !top_down, moved)
     }._2
   }
-  
-  protected class Region(val graph: Model.Graph, node: Key) {
+
+  private class Region(val graph: Model.Graph, node: Key)
+  {
     var nodes: List[Key] = List(node)
-       
-    def left(coords: Coordinates): Double =
-      nodes.map(coords(_)._1).min
-    def right(coords: Coordinates): Double =
-      nodes.map(coords(_)._1).max
+
+    def left(coords: Coordinates): Double = nodes.map(coords(_)._1).min
+    def right(coords: Coordinates): Double = nodes.map(coords(_)._1).max
+
     def distance(coords: Coordinates, to: Region): Double =
       math.abs(left(coords) - to.left(coords)) min
       math.abs(right(coords) - to.right(coords))
-    
-    def deflection(coords: Coordinates, use_preds: Boolean) = 
+
+    def deflection(coords: Coordinates, use_preds: Boolean) =
       nodes.map(k => (coords(k)._1,
                       if (use_preds) graph.imm_preds(k).toList  // FIXME iterator
                       else graph.imm_succs(k).toList))
       .map({ case (x, as) => as.map(coords(_)._1 - x).sum / (as.length max 1) })
       .sum / nodes.length
-    
-    def move(coords: Coordinates, by: Double): Coordinates = 
+
+    def move(coords: Coordinates, by: Double): Coordinates =
       (coords /: nodes) {
-        (cs, node) => {
+        case (cs, node) =>
           val (x, y) = cs(node)
           cs + (node -> (x + by, y))
-        }
       }
   }
 }
