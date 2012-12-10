@@ -224,16 +224,15 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
 
   /* transitive closure and reduction */
 
-  def transitive_closure: Graph[Key, A] =
+  private def transitive_step(z: Key): Graph[Key, A] =
   {
+    val (preds, succs) = get_entry(z)._2
     var graph = this
-    for {
-      (_, (_, (preds, succs))) <- this.entries
-      x <- preds
-      y <- succs
-    } graph = graph.add_edge(x, y)
+    for (x <- preds; y <- succs) graph = graph.add_edge(x, y)
     graph
   }
+
+  def transitive_closure: Graph[Key, A] = (this /: keys)(_.transitive_step(_))
 
   def transitive_reduction_acyclic: Graph[Key, A] =
   {
