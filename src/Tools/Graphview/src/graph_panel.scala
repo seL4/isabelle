@@ -41,7 +41,7 @@ class Graph_Panel(
   peer.setWheelScrollingEnabled(false)
   focusable = true
   requestFocus()
-  
+
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
@@ -64,8 +64,8 @@ class Graph_Panel(
     Transform.fit_to_window()
     refresh()
   }
-  
-  def apply_layout() = visualizer.Coordinates.layout()  
+
+  def apply_layout() = visualizer.Coordinates.update_layout()
 
   private class Paint_Panel extends Panel {
     def set_preferred_size() {
@@ -75,20 +75,20 @@ class Graph_Panel(
 
         preferredSize = new Dimension((math.abs(maxX - minX + px) * s).toInt,
                                       (math.abs(maxY - minY + py) * s).toInt)
-        
+
         revalidate()
-      }  
-    
+      }
+
     override def paint(g: Graphics2D) {
       super.paintComponent(g)
       g.transform(Transform())
-      
+
       visualizer.Drawer.paint_all_visible(g, true)
     }
   }
   private val paint_panel = new Paint_Panel
   contents = paint_panel
-  
+
   listenTo(keys)
   listenTo(mouse.moves)
   listenTo(mouse.clicks)
@@ -106,14 +106,14 @@ class Graph_Panel(
 
   visualizer.model.Colors.events += { case _ => repaint() }
   visualizer.model.Mutators.events += { case _ => repaint() }
-  
+
   apply_layout()
   fit_to_window()
-  
+
   private object Transform
   {
     val padding = (4000, 2000)
-    
+
     private var _scale = 1.0
     def scale = _scale
     def scale_= (s: Double) =
@@ -121,15 +121,15 @@ class Graph_Panel(
       _scale = (s min 10) max 0.01
       paint_panel.set_preferred_size()
     }
-                
+
     def apply() = {
       val (minX, minY, _, _) = visualizer.Coordinates.bounds()
-      
+
       val at = AffineTransform.getScaleInstance(scale, scale)
       at.translate(-minX + padding._1 / 2, -minY + padding._2 / 2)
       at
     }
-    
+
     def fit_to_window() {
       if (visualizer.model.visible_nodes().isEmpty)
         scale = 1
@@ -141,57 +141,43 @@ class Graph_Panel(
         scale = sx min sy
       }
     }
-    
+
     def pane_to_graph_coordinates(at: Point2D): Point2D = {
       val s = Transform.scale
       val p = Transform().inverseTransform(peer.getViewport.getViewPosition, null)
-      
+
       p.setLocation(p.getX + at.getX / s, p.getY + at.getY / s)
       p
     }
   }
-  
+
   object Interaction {
     object Keyboard {
       import scala.swing.event.Key._
-      
+
       val react: PartialFunction[Event, Unit] = {
         case KeyTyped(_, c, m, _) => typed(c, m)
-      }      
-      
-      def typed(c: Char, m: Modifiers) = (c, m) match {
-        case ('+', _) => {
-          Transform.scale *= 5.0/4
-        }
-
-        case ('-', _) => {
-          Transform.scale *= 4.0/5
-        }
-
-        case ('0', _) => {
-          Transform.fit_to_window()
-        }
-        
-        case('1', _) => {
-            visualizer.Coordinates.layout()
-        }
-
-        case('2', _) => {
-            Transform.fit_to_window()
-        }          
-          
-        case _ =>
       }
+
+      def typed(c: Char, m: Modifiers) =
+        (c, m) match {
+          case ('+', _) => Transform.scale *= 5.0/4
+          case ('-', _) => Transform.scale *= 4.0/5
+          case ('0', _) => Transform.fit_to_window()
+          case ('1', _) => visualizer.Coordinates.update_layout()
+          case ('2', _) => Transform.fit_to_window()
+          case _ =>
+        }
     }
-    
+
     object Mouse {
       import scala.swing.event.Key.Modifier._
       type Modifiers = Int
       type Dummy = ((String, String), Int)
-      
+
       private var draginfo: (Point, Iterable[String], Iterable[Dummy]) = null
 
-      val react: PartialFunction[Event, Unit] = {   
+      val react: PartialFunction[Event, Unit] = {
         case MousePressed(_, p, _, _, _) => pressed(p)
         case MouseDragged(_, to, _) => {
             drag(draginfo, to)
@@ -201,18 +187,18 @@ class Graph_Panel(
         case MouseWheelMoved(_, p, _, r) => wheel(r, p)
         case e@MouseClicked(_, p, m, n, _) => click(p, m, n, e)
       }
-      
+
       def dummy(at: Point2D): Option[Dummy] =
         visualizer.model.visible_edges().map({
             i => visualizer.Coordinates(i).zipWithIndex.map((i, _))
           }).flatten.find({
-            case (_, ((x, y), _)) => 
+            case (_, ((x, y), _)) =>
               visualizer.Drawer.shape(gfx_aux, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
           }
-      
+
       def pressed(at: Point) {
         val c = Transform.pane_to_graph_coordinates(at)
         val l = node(c) match {
@@ -225,19 +211,19 @@ class Graph_Panel(
               case Some(d) => List(d)
               case None => Nil
           }
-          
+
           case _ => Nil
         }
-        
+
         draginfo = (at, l, d)
       }
-      
+
       def click(at: Point, m: Modifiers, clicks: Int, e: MouseEvent) {
         import javax.swing.SwingUtilities
-        
+
         val c = Transform.pane_to_graph_coordinates(at)
         val p = node(c)
-        
+
         def left_click() {
           (p, m) match {
             case (Some(l), Control) => visualizer.Selection.add(l)
@@ -248,25 +234,25 @@ class Graph_Panel(
 
             case (Some(l), _) => visualizer.Selection.set(List(l))
             case (None, _) => visualizer.Selection.clear
-          }          
+          }
         }
-        
+
         def right_click() {
           val menu = Popups(panel, p, visualizer.Selection())
           menu.show(panel.peer, at.x, at.y)
         }
-        
+
         if (clicks < 2) {
           if (SwingUtilities.isRightMouseButton(e.peer)) right_click()
           else left_click()
         }
-      }   
+      }
 
       def drag(draginfo: (Point, Iterable[String], Iterable[Dummy]), to: Point) {
         val (from, p, d) = draginfo
 
         val s = Transform.scale
-        val (dx, dy) = (to.x - from.x, to.y - from.y)        
+        val (dx, dy) = (to.x - from.x, to.y - from.y)
         (p, d) match {
           case (Nil, Nil) => {
             val r = panel.peer.getViewport.getViewRect
@@ -274,10 +260,10 @@ class Graph_Panel(
 
             paint_panel.peer.scrollRectToVisible(r)
           }
-            
+
           case (Nil, ds) =>
             ds.foreach(d => visualizer.Coordinates.translate(d, (dx / s, dy / s)))
-                     
+
           case (ls, _) =>
             ls.foreach(l => visualizer.Coordinates.translate(l, (dx / s, dy / s)))
         }

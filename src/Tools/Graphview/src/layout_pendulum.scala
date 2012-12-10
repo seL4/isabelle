@@ -17,8 +17,10 @@ object Layout_Pendulum
   type Coordinates = Map[Key, Point]
   type Level = List[Key]
   type Levels = List[Level]
-  type Layout = (Coordinates, Map[(Key, Key), List[Point]])
   type Dummies = (Model.Graph, List[Key], Map[Key, Int])
+
+  case class Layout(nodes: Coordinates, dummies: Map[(Key, Key), List[Point]])
+  val empty_layout = Layout(Map.empty, Map.empty)
 
   val x_distance = 350
   val y_distance = 350
@@ -27,8 +29,7 @@ object Layout_Pendulum
 
   def apply(graph: Model.Graph): Layout =
   {
-    if (graph.is_empty)
-      (Map.empty[Key, Point], Map.empty[(Key, Key), List[Point]])
+    if (graph.is_empty) empty_layout
     else {
       val initial_levels = level_map(graph)
 
@@ -54,7 +55,7 @@ object Layout_Pendulum
           case (map, key) => map + (key -> dummies(key).map(coords(_)))
         }
 
-      (coords, dummy_coords)
+      Layout(coords, dummy_coords)
     }
   }
 

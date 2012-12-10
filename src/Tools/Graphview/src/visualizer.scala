@@ -19,37 +19,36 @@ class Visualizer(val model: Model)
 {
   object Coordinates
   {
-    private var nodes = Map.empty[String, (Double, Double)]
-    private var dummies = Map.empty[(String, String), List[(Double, Double)]]
+    private var layout = Layout_Pendulum.empty_layout
 
     def apply(k: String): (Double, Double) =
-      nodes.get(k) match {
+      layout.nodes.get(k) match {
         case Some(c) => c
         case None => (0, 0)
       }
 
     def apply(e: (String, String)): List[(Double, Double)] =
-      dummies.get(e) match {
+      layout.dummies.get(e) match {
         case Some(ds) => ds
         case None => Nil
       }
 
     def reposition(k: String, to: (Double, Double))
     {
-      nodes += (k -> to)
+      layout = layout.copy(nodes = layout.nodes + (k -> to))
     }
 
     def reposition(d: ((String, String), Int), to: (Double, Double))
     {
       val (e, index) = d
-      dummies.get(e) match {
+      layout.dummies.get(e) match {
         case None =>
         case Some(ds) =>
-          dummies += (e ->
-            (ds.zipWithIndex :\ List.empty[(Double, Double)]) {
-              case ((t, i), n) => if (index == i) to :: n else t :: n
-            }
-          )
+          layout = layout.copy(dummies =
+            layout.dummies + (e ->
+              (ds.zipWithIndex :\ List.empty[(Double, Double)]) {
+                case ((t, i), n) => if (index == i) to :: n else t :: n
+              }))
       }
     }
 
@@ -66,11 +65,9 @@ class Visualizer(val model: Model)
       reposition(d, (x + dx, y + dy))
     }
 
-    def layout()
+    def update_layout()
     {
-      val (l, d) = Layout_Pendulum(model.current)  // FIXME avoid computation on Swing thread
-      nodes = l
-      dummies = d
+      layout = Layout_Pendulum(model.current)  // FIXME avoid computation on Swing thread
     }
 
     def bounds(): (Double, Double, Double, Double) =
