@@ -47,6 +47,7 @@ isabelle.syslog-panel.label=Syslog panel
 isabelle.theories-panel.label=Theories panel
 
 #dockables
+isabelle-graphview.title=Graphview
 isabelle-info.title=Info
 isabelle-monitor.title=Monitor
 isabelle-output.title=Output
