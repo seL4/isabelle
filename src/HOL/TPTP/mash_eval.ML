@@ -10,7 +10,7 @@ sig
   type params = Sledgehammer_Provers.params
 
   val evaluate_mash_suggestions :
-    Proof.context -> params -> string -> string -> unit
+    Proof.context -> params -> string option -> string -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -26,11 +26,12 @@ val IsarN = "Isar"
 
 val all_names = map (rpair () o nickname_of) #> Symtab.make
 
-fun evaluate_mash_suggestions ctxt params sugg_file_name out_file_name =
+fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
+                              report_file_name =
   let
-    val out_path = out_file_name |> Path.explode
-    val _ = File.write out_path ""
-    fun print s = (tracing s; File.append out_path (s ^ "\n"))
+    val report_path = report_file_name |> Path.explode
+    val _ = File.write report_path ""
+    fun print s = (tracing s; File.append report_path (s ^ "\n"))
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
       Sledgehammer_Isar.default_params ctxt []
     val prover = hd provers
@@ -87,6 +88,15 @@ fun evaluate_mash_suggestions ctxt params sugg_file_name out_file_name =
         val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, mash_unks))]
         val mesh_facts = mesh_facts slack_max_facts mess
         val isar_facts = find_suggested_facts (map (rpair 1.0) isar_deps) facts
+        (* adapted from "mirabelle_sledgehammer.ML" *)
+        fun set_file_name heading (SOME dir) =
+            Config.put Sledgehammer_Provers.dest_dir dir
+            #> Config.put Sledgehammer_Provers.problem_prefix
+              ("goal_" ^ string_of_int j ^ "_" ^ heading ^ "__")
+            #> Config.put SMT_Config.debug_files
+              (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
+              ^ serial_string ())
+          | set_file_name _ NONE = I
         fun prove ok heading get facts =
           let
             val facts =
@@ -94,6 +104,7 @@ fun evaluate_mash_suggestions ctxt params sugg_file_name out_file_name =
                     |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts
                                                                    concl_t
                     |> take (the max_facts)
+            val ctxt = ctxt |> set_file_name heading prob_dir_name
             val res as {outcome, ...} =
               run_prover_for_mash ctxt params prover facts goal
             val _ = if is_none outcome then ok := !ok + 1 else ()

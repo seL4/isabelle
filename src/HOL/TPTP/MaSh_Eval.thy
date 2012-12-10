@@ -23,12 +23,20 @@ open MaSh_Eval
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
 val params = Sledgehammer_Isar.default_params @{context} []
+val prob_dir = "/tmp/mash_problems"
 *}
 
 ML {*
 if do_it then
-  evaluate_mash_suggestions @{context} params "/tmp/mash_suggestions"
-      "/tmp/mash_eval.out"
+  Isabelle_System.mkdir (Path.explode prob_dir)
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  evaluate_mash_suggestions @{context} params (SOME prob_dir)
+      "/tmp/mash_suggestions" "/tmp/mash_eval.out"
 else
   ()
 *}
