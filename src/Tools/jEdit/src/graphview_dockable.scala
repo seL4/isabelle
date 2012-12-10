@@ -1,8 +1,7 @@
 /*  Title:      Tools/jEdit/src/graphview_dockable.scala
-    Author:     Markus Kaiser, TU Muenchen
     Author:     Makarius
 
-Dockable window for graphview.
+Stateless dockable window for graphview.
 */
 
 package isabelle.jedit
@@ -10,133 +9,79 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.BorderLayout
-import javax.swing.{JPanel, JComponent}
-
-import scala.actors.Actor._
+import javax.swing.JComponent
+import java.awt.event.{WindowFocusListener, WindowEvent}
 
 import org.gjt.sp.jedit.View
+
+import scala.swing.TextArea
+
+
+object Graphview_Dockable
+{
+  /* implicit arguments -- owned by Swing thread */
+
+  private var implicit_snapshot = Document.State.init.snapshot()
+
+  private val no_graph: Exn.Result[graphview.Model.Graph] = Exn.Exn(ERROR("No graph"))
+  private var implicit_graph = no_graph
+
+  private def set_implicit(snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
+  {
+    Swing_Thread.require()
+
+    implicit_snapshot = snapshot
+    implicit_graph = graph
+  }
+
+  private def reset_implicit(): Unit =
+    set_implicit(Document.State.init.snapshot(), no_graph)
+
+  def apply(view: View, snapshot: Document.Snapshot, graph: Exn.Result[graphview.Model.Graph])
+  {
+    set_implicit(snapshot, graph)
+    view.getDockableWindowManager.floatDockableWindow("isabelle-graphview")
+  }
+}
 
 
 class Graphview_Dockable(view: View, position: String) extends Dockable(view, position)
 {
   Swing_Thread.require()
 
+  private val snapshot = Graphview_Dockable.implicit_snapshot
+  private val graph = Graphview_Dockable.implicit_graph
 
-  /* component state -- owned by Swing thread */
-
-  private val do_update = true  // FIXME
-
-  private var current_snapshot = Document.State.init.snapshot()
-  private var current_state = Command.empty.init_state
-  private var current_graph: XML.Body = Nil
-
-
-  /* GUI components */
-
-  private val graphview = new JPanel
-
-  // FIXME mutable GUI content
-  private def set_graphview(snapshot: Document.Snapshot, graph_xml: XML.Body)
-  {
-    val graph = isabelle.graphview.Model.decode_graph(graph_xml).transitive_reduction_acyclic
-
-    graphview.removeAll()
-    graphview.setLayout(new BorderLayout)
-    val panel =
-      new isabelle.graphview.Main_Panel(graph) {
-        override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
-        {
-          val rendering = Rendering(snapshot, PIDE.options.value)
-          new Pretty_Tooltip(view, parent, rendering, x, y, body)
-          null
-        }
-      }
-    graphview.add(panel.peer, BorderLayout.CENTER)
-    graphview.revalidate()
-  }
-
-  set_graphview(current_snapshot, current_graph)
-  set_content(graphview)
-
-
-  private def handle_update(follow: Boolean, restriction: Option[Set[Command]])
-  {
-    Swing_Thread.require()
-
-    val (new_snapshot, new_state) =
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val snapshot = doc_view.model.snapshot()
-          if (follow && !snapshot.is_outdated) {
-            snapshot.node.command_at(doc_view.text_area.getCaretPosition).map(_._1) match {
-              case Some(cmd) =>
-                (snapshot, snapshot.state.command_state(snapshot.version, cmd))
-              case None =>
-                (Document.State.init.snapshot(), Command.empty.init_state)
-            }
-          }
-          else (current_snapshot, current_state)
-        case None => (current_snapshot, current_state)
-      }
-
-    val new_graph =
-      if (!restriction.isDefined || restriction.get.contains(new_state.command)) {
-        new_state.markup.cumulate[Option[XML.Body]](
-          new_state.command.range, None, Some(Set(Markup.GRAPHVIEW)),
-        {
-          case (_, Text.Info(_, XML.Elem(Markup(Markup.GRAPHVIEW, _), graph))) =>
-            Some(graph)
-        }).filter(_.info.isDefined) match {
-          case Text.Info(_, Some(graph)) #:: _ => graph
-          case _ => Nil
-        }
-      }
-      else current_graph
-
-    if (new_graph != current_graph) set_graphview(new_snapshot, new_graph)
-
-    current_snapshot = new_snapshot
-    current_state = new_state
-    current_graph = new_graph
-  }
-
-
-  /* main actor */
-
-  private val main_actor = actor {
-    loop {
-      react {
-        case _: Session.Global_Options =>  // FIXME
-
-        case changed: Session.Commands_Changed =>
-          Swing_Thread.later { handle_update(do_update, Some(changed.commands)) }
-
-        case Session.Caret_Focus =>
-          Swing_Thread.later { handle_update(do_update, None) }
-
-        case bad =>
-          java.lang.System.err.println("Graphview_Dockable: ignoring bad message " + bad)
-      }
+  private val window_focus_listener =
+    new WindowFocusListener {
+      def windowGainedFocus(e: WindowEvent) { Graphview_Dockable.set_implicit(snapshot, graph) }
+      def windowLostFocus(e: WindowEvent) { Graphview_Dockable.reset_implicit() }
     }
-  }
+
+  val graphview =
+    graph match {
+      case Exn.Res(proper_graph) =>
+        new isabelle.graphview.Main_Panel(proper_graph) {
+          override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
+          {
+            val rendering = Rendering(snapshot, PIDE.options.value)
+            new Pretty_Tooltip(view, parent, rendering, x, y, body)
+            null
+          }
+        }
+      case Exn.Exn(exn) => new TextArea(Exn.message(exn))
+    }
+  set_content(graphview)
 
   override def init()
   {
     Swing_Thread.require()
-
-    PIDE.session.global_options += main_actor
-    PIDE.session.commands_changed += main_actor
-    PIDE.session.caret_focus += main_actor
-    handle_update(do_update, None)
+    JEdit_Lib.parent_window(this).map(_.addWindowFocusListener(window_focus_listener))
   }
 
   override def exit()
   {
     Swing_Thread.require()
-
-    PIDE.session.global_options -= main_actor
-    PIDE.session.commands_changed -= main_actor
-    PIDE.session.caret_focus -= main_actor
+    JEdit_Lib.parent_window(this).map(_.removeWindowFocusListener(window_focus_listener))
   }
 }

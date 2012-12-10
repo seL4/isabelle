@@ -29,7 +29,6 @@ options.isabelle-rendering.code=new isabelle.jedit.Isabelle_Options2();
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
 plugin.isabelle.jedit.Plugin.menu= \
-  isabelle.graphview-panel \
   isabelle.monitor-panel \
   isabelle.output-panel \
   isabelle.protocol-panel \
@@ -38,7 +37,6 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle.symbols-panel \
   isabelle.syslog-panel \
   isabelle.theories-panel
-isabelle.graphview-panel.label=Graphview panel
 isabelle.monitor-panel.label=Monitor panel
 isabelle.output-panel.label=Output panel
 isabelle.protocol-panel.label=Protocol panel
@@ -49,7 +47,6 @@ isabelle.syslog-panel.label=Syslog panel
 isabelle.theories-panel.label=Theories panel
 
 #dockables
-isabelle-graphview.title=Graphview
 isabelle-info.title=Info
 isabelle-monitor.title=Monitor
 isabelle-output.title=Output

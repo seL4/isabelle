@@ -26,31 +26,45 @@ object Active
           val buffer = model.buffer
           val snapshot = model.snapshot()
 
+          def try_replace_command(exec_id: Document.ID, s: String)
+          {
+            snapshot.state.execs.get(exec_id).map(_.command) match {
+              case Some(command) =>
+                snapshot.node.command_start(command) match {
+                  case Some(start) =>
+                    JEdit_Lib.buffer_edit(buffer) {
+                      buffer.remove(start, command.proper_range.length)
+                      buffer.insert(start, s)
+                    }
+                  case None =>
+                }
+              case None =>
+            }
+          }
+
           if (!snapshot.is_outdated) {
             elem match {
               case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
                 props match {
                   case Position.Id(exec_id) =>
-                    snapshot.state.execs.get(exec_id).map(_.command) match {
-                      case Some(command) =>
-                        snapshot.node.command_start(command) match {
-                          case Some(start) =>
-                            JEdit_Lib.buffer_edit(buffer) {
-                              buffer.remove(start, command.proper_range.length)
-                              buffer.insert(start, text)
-                            }
-                          case None =>
-                        }
-                      case None =>
-                    }
+                    try_replace_command(exec_id, text)
                   case _ =>
                     if (props.exists(_ == Markup.PADDING_LINE))
                       Isabelle.insert_line_padding(text_area, text)
                     else text_area.setSelectedText(text)
                 }
 
-              case XML.Elem(Markup(Markup.GRAPHVIEW, props), body) =>
-                java.lang.System.err.println("graphview " + props)  // FIXME
+              case XML.Elem(Markup(Markup.GRAPHVIEW, Position.Id(exec_id)), body) =>
+                try_replace_command(exec_id, "")
+                default_thread_pool.submit(() =>
+                  {
+                    val graph =
+                      Exn.capture {
+                        isabelle.graphview.Model.decode_graph(body)
+                          .transitive_reduction_acyclic
+                      }
+                    Swing_Thread.later { Graphview_Dockable(view, snapshot, graph) }
+                  })
 
               case _ =>
             }
