@@ -193,7 +193,7 @@ object Shapes
       def intersecting_line(path: GeneralPath, shape: Shape): Option[(Point, Point)] =
       {
         val i = path.getPathIterator(null, 1.0)
-        var seg = Array[Double](0,0,0,0,0,0)
+        val seg = Array[Double](0,0,0,0,0,0)
         var p1 = (0.0, 0.0)
         var p2 = (0.0, 0.0)
         while (!i.isDone()) {

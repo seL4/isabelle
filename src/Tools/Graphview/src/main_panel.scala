@@ -26,45 +26,39 @@ import javax.swing.JComponent
 class Main_Panel(graph: Model.Graph)
   extends BorderPanel
 {
-  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
-    "<html><pre style=\"font-family: " + Parameters.font_family +
-      "; font-size: " + Parameters.tooltip_font_size + "px; \">" +
-      HTML.encode(Pretty.string_of(body)) + "</pre></html>"
-
   focusable = true
   requestFocus()
-  
+
   val model = new Model(graph)
   val visualizer = new Visualizer(model)
+
+  def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
+    "<html><pre style=\"font-family: " + visualizer.parameters.font_family +
+      "; font-size: " + visualizer.parameters.tooltip_font_size + "px; \">" +
+      HTML.encode(Pretty.string_of(body)) + "</pre></html>"
+
   val graph_panel = new Graph_Panel(visualizer, make_tooltip)
-  
+
   listenTo(keys)
   reactions += graph_panel.reactions
 
-  val mutator_dialog = new Mutator_Dialog(
-    model.Mutators,
-    "Filters",
-    "Hide",
-    false
-  )
+  val mutator_dialog =
+    new Mutator_Dialog(visualizer.parameters, model.Mutators, "Filters", "Hide", false)
 
-  val color_dialog = new Mutator_Dialog(
-    model.Colors,
-    "Colorations"
-  )
+  val color_dialog = new Mutator_Dialog(visualizer.parameters, model.Colors, "Colorations")
 
   private val chooser = new FileChooser()
   chooser.fileSelectionMode = FileChooser.SelectionMode.FilesOnly
   chooser.title = "Graph export"
-  
+
   val options_panel = new BoxPanel(Orientation.Horizontal) {
     border = new EmptyBorder(0, 0, 10, 0)
 
     contents += Swing.HGlue
     contents += new CheckBox(){
-      selected = Parameters.arrow_heads
+      selected = visualizer.parameters.arrow_heads
       action = Action("Arrow Heads"){
-        Parameters.arrow_heads = selected
+        visualizer.parameters.arrow_heads = selected
         graph_panel.repaint()
       }
     }
@@ -72,26 +66,23 @@ class Main_Panel(graph: Model.Graph)
     contents += new Button{
       action = Action("Save as PNG"){
         chooser.showSaveDialog(this) match {
-          case FileChooser.Result.Approve => {
-              export(chooser.selectedFile)
-          }
-          
+          case FileChooser.Result.Approve => export(chooser.selectedFile)
           case _ =>
         }
       }
-    } 
+    }
     contents += Swing.RigidBox(new Dimension(10, 0))
     contents += new Button{
       action = Action("Apply Layout"){
         graph_panel.apply_layout()
       }
-    }      
+    }
     contents += Swing.RigidBox(new Dimension(10, 0))
     contents += new Button{
       action = Action("Fit to Window"){
         graph_panel.fit_to_window()
       }
-    }    
+    }
     contents += Swing.RigidBox(new Dimension(10, 0))
     contents += new Button{
       action = Action("Colorations"){
@@ -108,7 +99,7 @@ class Main_Panel(graph: Model.Graph)
 
   add(graph_panel, BorderPanel.Position.Center)
   add(options_panel, BorderPanel.Position.North)
-  
+
   private def export(file: File) {
     val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds
     val img = new BufferedImage((math.abs(maxX - minX) + 400).toInt,
@@ -120,8 +111,8 @@ class Main_Panel(graph: Model.Graph)
 
     g.translate(- minX + 200, - minY + 100)
     visualizer.Drawer.paint_all_visible(g, false)
-    g.dispose()    
-    
+    g.dispose()
+
     try { ImageIO.write(img, "png", file) }
     catch { case ex: Exception => ex.printStackTrace }  // FIXME !?
   }

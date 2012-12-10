@@ -19,7 +19,9 @@ import scala.swing.event.ValueChanged
 
 
 class Mutator_Dialog(
-    container: Mutator_Container, caption: String,
+    parameters: Parameters,
+    container: Mutator_Container,
+    caption: String,
     reverse_caption: String = "Inverse",
     show_color_chooser: Boolean = true)
   extends Dialog
@@ -108,7 +110,7 @@ class Mutator_Dialog(
   private val addButton: Button = new Button{
     action = Action("Add") {
       addPanel(
-        new Mutator_Panel((true, Parameters.Colors.next,
+        new Mutator_Panel((true, parameters.Colors.next,
                            mutatorBox.selection.item))
       )
     }
@@ -159,7 +161,7 @@ class Mutator_Dialog(
   }
 
   private class Mutator_Panel(initials: Mutator_Markup)
-  extends BoxPanel(Orientation.Horizontal)
+    extends BoxPanel(Orientation.Horizontal)
   {
     private val (_enabled, _color, _mutator) = initials
     
@@ -370,7 +372,7 @@ class Mutator_Dialog(
   }
 
   private object focusTraversal
-  extends FocusTraversalPolicy
+    extends FocusTraversalPolicy
   {
     private var items = Vector[java.awt.Component]()
 

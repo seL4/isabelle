@@ -13,20 +13,23 @@ import javax.swing.JPopupMenu
 import scala.swing.{Action, Menu, MenuItem, Separator}
 
 
-object Popups {
-  def apply(panel: Graph_Panel, under_mouse: Option[String],
-            selected: List[String]): JPopupMenu =
+object Popups
+{
+  def apply(panel: Graph_Panel, under_mouse: Option[String], selected: List[String])
+    : JPopupMenu =
   {
+    val parameters = panel.visualizer.parameters
+
     val add_mutator = panel.visualizer.model.Mutators.add _
     val curr = panel.visualizer.model.current
-    
+
     def filter_context(ls: List[String], reverse: Boolean,
                        caption: String, edges: Boolean) =
       new Menu(caption) {
         contents += new MenuItem(new Action("This") {
             def apply =
               add_mutator(
-                Mutators.create(
+                Mutators.create(parameters,
                   Node_List(ls, reverse, false, false)
                 )
               )
@@ -35,7 +38,7 @@ object Popups {
         contents += new MenuItem(new Action("Family") {
             def apply =
               add_mutator(
-                Mutators.create(
+                Mutators.create(parameters,
                   Node_List(ls, reverse, true, true)
                 )
               )
@@ -44,7 +47,7 @@ object Popups {
         contents += new MenuItem(new Action("Parents") {
             def apply =
               add_mutator(
-                Mutators.create(
+                Mutators.create(parameters,
                   Node_List(ls, reverse, false, true)
                 )
               )
@@ -53,7 +56,7 @@ object Popups {
         contents += new MenuItem(new Action("Children") {
             def apply =
               add_mutator(
-                Mutators.create(
+                Mutators.create(parameters,
                   Node_List(ls, reverse, true, false)
                 )
               )
@@ -86,7 +89,7 @@ object Popups {
                       contents += new MenuItem(new Action(to) {
                         def apply =
                           add_mutator(
-                            Mutators.create(Edge_Endpoints(from, to))
+                            Mutators.create(parameters, Edge_Endpoints(from, to))
                           )
                       })
                     })
@@ -94,7 +97,7 @@ object Popups {
                 })
               }
               if (outs.nonEmpty && ins.nonEmpty) {
-                contents += new Separator()       
+                contents += new Separator()
               }
               if (ins.nonEmpty) {
                 contents += new MenuItem("To...") {
@@ -112,13 +115,13 @@ object Popups {
                       contents += new MenuItem(new Action(from) {
                         def apply =
                           add_mutator(
-                            Mutators.create(Edge_Endpoints(from, to))
+                            Mutators.create(parameters, Edge_Endpoints(from, to))
                           )
                       })
                     })
                   }
                 })
-              }              
+              }
             }
           }
         }
@@ -140,8 +143,8 @@ object Popups {
 
       popup.add(filter_context(List(v), true, "Hide", true).peer)
       popup.add(filter_context(List(v), false, "Show only", false).peer)
-      
-      popup.add(new JPopupMenu.Separator)      
+
+      popup.add(new JPopupMenu.Separator)
     }
     if (!selected.isEmpty) {
       val text = {
@@ -166,7 +169,7 @@ object Popups {
         def apply = panel.fit_to_window()
       }).peer
     )
-    
+
     popup
   }
 }

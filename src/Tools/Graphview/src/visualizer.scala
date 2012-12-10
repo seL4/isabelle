@@ -17,6 +17,10 @@ import javax.swing.JComponent
 
 class Visualizer(val model: Model)
 {
+  visualizer =>
+
+  val parameters = new Parameters
+
   object Coordinates
   {
     private var layout = Layout_Pendulum.empty_layout
@@ -82,7 +86,6 @@ class Visualizer(val model: Model)
       }
   }
 
-  private val visualizer = this
   object Drawer
   {
     def apply(g: Graphics2D, n: Option[String])
@@ -105,7 +108,7 @@ class Visualizer(val model: Model)
       g.setRenderingHints(rendering_hints)
 
       model.visible_edges().foreach(e => {
-          apply(g, e, Parameters.arrow_heads, dummies)
+          apply(g, e, parameters.arrow_heads, dummies)
         })
 
       model.visible_nodes().foreach(l => {
@@ -153,7 +156,7 @@ class Visualizer(val model: Model)
     def apply(key: String) = model.complete.get_node(key).name
   }
 
-  val font = new Font(Parameters.font_family, Font.BOLD, Parameters.font_size)
+  val font = new Font(parameters.font_family, Font.BOLD, parameters.font_size)
 
   val rendering_hints =
     new RenderingHints(
