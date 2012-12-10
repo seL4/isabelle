@@ -72,7 +72,7 @@ files.  More scalable management of formal document content.
 * Smarter handling of tracing messages: output window informs about
 accumulated messages; prover transactions are limited to emit maximum
 amount of output, before being canceled (cf. system option
-"editor_tracing_limit").  This avoids swamping the front-end with
+"editor_tracing_limit_MB").  This avoids swamping the front-end with
 potentially infinite message streams.
 
 * More plugin options and preferences, based on Isabelle/Scala.  The

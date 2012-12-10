@@ -224,7 +224,8 @@ val _ =
         then Multithreading.max_threads := 2 else ();
         Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 4 else 0);
         Goal.parallel_proofs_threshold := Options.int options "parallel_proofs_threshold";
-        tracing_limit := Options.int options "editor_tracing_limit"
+        tracing_limit :=
+          Real.round (Options.real options "editor_tracing_limit_MB" * 1024.0 * 1024.0)
       end);
 
 end;

@@ -470,7 +470,8 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
               pprint_nt (fn () => Pretty.blk (0,
                   pstrs "Hint: To check that the induction hypothesis is \
                         \general enough, try this command: " @
-                  [Pretty.mark (Sendback.make_markup {implicit = false, properties = []})
+                  [Pretty.mark
+                    (Active.make_markup Markup.sendbackN {implicit = false, properties = []})
                     (Pretty.blk (0,
                        pstrs ("nitpick [non_std, show_all]")))] @ pstrs "."))
             else

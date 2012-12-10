@@ -237,7 +237,8 @@ final class Graph[Key, A] private(rep: SortedMap[Key, (A, (SortedSet[Key], Sorte
   def transitive_reduction_acyclic: Graph[Key, A] =
   {
     val trans = this.transitive_closure
-    assert(!trans.entries.exists({ case (x, (_, (_, succs))) => succs.contains(x) }))
+    if (trans.entries.exists({ case (x, (_, (_, succs))) => succs.contains(x) }))
+      error("Cyclic graph")
 
     var graph = this
     for {
