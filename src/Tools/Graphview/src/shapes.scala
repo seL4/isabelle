@@ -21,7 +21,7 @@ object Shapes {
     private val stroke =
       new BasicStroke(3, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
-    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) = {
+    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Rectangle2D.Double = {
       val caption = visualizer.Caption(peer.get)
       val bounds = g.getFontMetrics.getStringBounds(caption, g)
       val (x, y) = visualizer.Coordinates(peer.get)
@@ -59,13 +59,14 @@ object Shapes {
     private val shape = new Rectangle2D.Double(-8, -8, 16, 16)
     private val identity = new AffineTransform()
 
-    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) = shape
+    def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Shape = shape
 
-    def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]) =
+    def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Unit =
       paint_transformed(g, visualizer, peer, identity)
     
     def paint_transformed(g: Graphics2D, visualizer: Visualizer,
-                          peer: Option[String], at: AffineTransform) = {
+                          peer: Option[String], at: AffineTransform)
+    {
       val (border, background, foreground) = visualizer.Color(peer)
       g.setStroke(stroke)
       g.setColor(border)
@@ -83,7 +84,8 @@ object Shapes {
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
 
     def paint(g: Graphics2D, visualizer: Visualizer,
-              peer: (String, String), head: Boolean, dummies: Boolean) {
+              peer: (String, String), head: Boolean, dummies: Boolean)
+    {
       val ((fx, fy), (tx, ty)) =
         (visualizer.Coordinates(peer._1), visualizer.Coordinates(peer._2))
       val ds = {
@@ -120,7 +122,8 @@ object Shapes {
     private val slack = 0.1
 
     def paint(g: Graphics2D, visualizer: Visualizer,
-              peer: (String, String), head: Boolean, dummies: Boolean) {
+              peer: (String, String), head: Boolean, dummies: Boolean)
+    {
       val ((fx, fy), (tx, ty)) =
         (visualizer.Coordinates(peer._1), visualizer.Coordinates(peer._2))
       val ds = {
@@ -230,7 +233,8 @@ object Shapes {
       }
     }
     
-    def paint(g: Graphics2D, path: GeneralPath, shape: Shape) {
+    def paint(g: Graphics2D, path: GeneralPath, shape: Shape)
+    {
       position(path, shape) match {
         case None =>
         case Some(at) => {

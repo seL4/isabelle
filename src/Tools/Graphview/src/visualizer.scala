@@ -6,8 +6,11 @@ Graph visualization interface.
 
 package isabelle.graphview
 
+
 import isabelle._
 
+
+import java.awt.{Font => JFont, Color => JColor, Shape}
 import java.awt.{RenderingHints, Graphics2D}
 import javax.swing.JComponent
 
@@ -76,9 +79,9 @@ class Visualizer(val model: Model) {
   }
   
   private val visualizer = this
-  object Drawer {
+  object Drawer
+  {
     import Shapes._
-    import java.awt.Shape
     
     def apply(g: Graphics2D, n: Option[String]) = n match {
       case None => 
@@ -89,8 +92,10 @@ class Visualizer(val model: Model) {
       Cardinal_Spline_Edge.paint(g, visualizer, e, head, dummies)
     }
     
-    def paint_all_visible(g: Graphics2D, dummies: Boolean) = {
+    def paint_all_visible(g: Graphics2D, dummies: Boolean)
+    {
       g.setFont(Font())
+
       g.setRenderingHints(rendering_hints)
 
       model.visible_edges().foreach(e => {
@@ -119,34 +124,32 @@ class Visualizer(val model: Model) {
     def clear() { selected = Nil }
   }
   
-  object Color {
-    import java.awt.{Color => awtColor}
-    
-    def apply(l: Option[String]): (awtColor, awtColor, awtColor) = l match {
-      case None => (awtColor.GRAY, awtColor.WHITE, awtColor.BLACK)
+  object Color
+  {
+    def apply(l: Option[String]): (JColor, JColor, JColor) = l match {
+      case None => (JColor.GRAY, JColor.WHITE, JColor.BLACK)
       case Some(c) => {
           if (Selection(c))
-            (awtColor.BLUE, awtColor.GREEN, awtColor.BLACK)
+            (JColor.BLUE, JColor.GREEN, JColor.BLACK)
           else
-            (awtColor.BLACK,
-             model.colors.getOrElse(c, awtColor.WHITE), awtColor.BLACK)
+            (JColor.BLACK,
+             model.colors.getOrElse(c, JColor.WHITE), JColor.BLACK)
       }
     }
       
-    def apply(e: (String, String)): awtColor = awtColor.BLACK
+    def apply(e: (String, String)): JColor = JColor.BLACK
   }  
+
+  object Font
+  {
+    def apply(): JFont =
+      new JFont(Parameters.font_family, JFont.BOLD, Parameters.font_size)
+  }
   
   object Caption {    
     def apply(key: String) =
       if (Parameters.long_names) key
       else model.complete.get_node(key).name
-  }
-  
-  object Font {
-    import java.awt.{Font => awtFont}
-    
-    def apply() = new awtFont(Parameters.font_family,
-                              awtFont.BOLD, Parameters.font_size)
   }
 
   val rendering_hints =
