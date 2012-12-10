@@ -55,7 +55,6 @@ object Active
                 }
 
               case XML.Elem(Markup(Markup.GRAPHVIEW, Position.Id(exec_id)), body) =>
-                try_replace_command(exec_id, "")
                 default_thread_pool.submit(() =>
                   {
                     val graph =
