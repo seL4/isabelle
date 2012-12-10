@@ -1,18 +1,21 @@
 Important notes on Mercurial repository access for Isabelle
 ===========================================================
 
-Quick start in 20min
+Quick start in 25min
 --------------------
 
-1. Ensure that "hg" (Mercurial) is installed; see also
-   http://www.selenic.com/mercurial
+1a. Windows: ensure that Cygwin with Mercurial and Perl is installed;
+   see also http://www.cygwin.com/
+
+1b. Mac OS X and Linux: ensure that Mercurial (hg) is installed; see
+   also http://www.selenic.com/mercurial
 
 2. Create file $HOME/.isabelle/etc/settings and insert the following
    line near its beginning:
 
     init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
 
-3. Execute shell commands as follows:
+3. Execute bash shell commands as follows:
 
     hg clone http://isabelle.in.tum.de/repos/isabelle
 
