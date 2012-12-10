@@ -17,6 +17,10 @@ sledgehammer_params
 declare [[sledgehammer_instantiate_inducts]]
 
 ML {*
+! Multithreading.max_threads
+*}
+
+ML {*
 open MaSh_Eval
 *}
 
