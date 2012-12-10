@@ -47,7 +47,7 @@ class Graph_Panel(
 
   private val gfx_aux =
     new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
-  gfx_aux.setFont(visualizer.Font())
+  gfx_aux.setFont(visualizer.font)
   gfx_aux.setRenderingHints(visualizer.rendering_hints)
 
   def node(at: Point2D): Option[String] =
