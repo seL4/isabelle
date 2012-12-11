@@ -60,6 +60,12 @@ class Graph_Panel(
     refresh()
   }
 
+  def rescale(s: Double)
+  {
+    Transform.scale = s
+    refresh()
+  }
+
   def apply_layout() = visualizer.Coordinates.update_layout()
 
   private class Paint_Panel extends Panel {
