@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/DefaultFontMetrics.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=2:
 
   Default font metrics which is used when no graphics context
   is available (batch mode).

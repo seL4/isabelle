@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/NormalVertex.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class represents an ordinary vertex. It contains methods for
   drawing and PostScript output.

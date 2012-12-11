@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/Vertex.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class contains attributes and methods common to all kinds of
   vertices (e.g. coordinates, successors, predecessors).

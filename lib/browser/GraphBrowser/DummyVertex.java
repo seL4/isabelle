@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/DummyVertex.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class represents a dummy vertex, which is used to simplify the
   layout algorithm.

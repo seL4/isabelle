@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/Spline.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class is used for drawing spline curves (which are not yet
   supported by the Java AWT).

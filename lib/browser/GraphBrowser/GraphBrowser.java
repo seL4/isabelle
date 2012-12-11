@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/GraphBrowser.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This is the graph browser's main class. It contains the "main(...)"
   method, which is used for the stand-alone version, as well as

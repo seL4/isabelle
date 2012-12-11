@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/GraphView.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class defines the window in which the graph is displayed. It
   contains methods for handling events such as collapsing / uncollapsing

@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/Graph.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class contains the core of the layout algorithm and methods for
   drawing and PostScript output.

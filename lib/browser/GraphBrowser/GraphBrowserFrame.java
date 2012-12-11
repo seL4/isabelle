@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/GraphBrowserFrame.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=2:
 
   This class is the frame for the stand-alone application. It contains
   methods for handling menubar events.

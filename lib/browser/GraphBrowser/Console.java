@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/Console.java
   Author:     Gerwin Klein, TU Muenchen
+  Options:    :tabSize=2:
 
   This is the graph browser's main class when run as a console application.
   It duplicates some logic from GraphBrowser and GraphView.

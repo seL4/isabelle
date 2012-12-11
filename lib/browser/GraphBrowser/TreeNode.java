@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/TreeNode.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class contains methods for storing and manipulating directory
   trees (e.g. collapsing / uncollapsing directory branches).

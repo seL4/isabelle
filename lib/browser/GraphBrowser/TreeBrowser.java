@@ -1,6 +1,7 @@
 /***************************************************************************
   Title:      GraphBrowser/TreeBrowser.java
   Author:     Stefan Berghofer, TU Muenchen
+  Options:    :tabSize=4:
 
   This class defines the browser window which is used to display directory
   trees. It contains methods for handling events.
