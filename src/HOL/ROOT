@@ -804,8 +804,8 @@ session "HOL-Quickcheck_Examples" in Quickcheck_Examples = HOL +
     Quickcheck_Narrowing_Examples
 
 session "HOL-Quickcheck_Benchmark" in Quickcheck_Benchmark = HOL +
-  theories [condition = ISABELLE_FULL_TEST, timeout = 5400, quick_and_dirty]
-    Find_Unused_Assms_Examples
+  theories [condition = ISABELLE_FULL_TEST, quick_and_dirty]
+    (* Find_Unused_Assms_Examples FIXME *)
     Needham_Schroeder_No_Attacker_Example
     Needham_Schroeder_Guided_Attacker_Example
     Needham_Schroeder_Unguided_Attacker_Example
