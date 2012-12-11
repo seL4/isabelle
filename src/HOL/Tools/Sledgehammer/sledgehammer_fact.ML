@@ -25,6 +25,7 @@ sig
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
+  val normalize_eq : term -> term
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
@@ -309,9 +310,20 @@ fun clasimpset_rule_table_of ctxt =
                   |> add Inductive [] I spec_intros
   end
 
+fun normalize_eq (t as @{const Trueprop}
+        $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2)) =
+    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t
+    else HOLogic.mk_Trueprop (t0 $ t2 $ t1)
+  | normalize_eq (t as @{const Trueprop} $ (@{const Not}
+        $ ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2))) =
+    if Term_Ord.fast_term_ord (t1, t2) <> GREATER then t
+    else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
+  | normalize_eq t = t
+
 fun uniquify xs =
   Termtab.fold (cons o snd)
-               (fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty) []
+      (fold (Termtab.default o `(normalize_eq o prop_of o snd)) xs
+            Termtab.empty) []
 
 fun struct_induct_rule_on th =
   case Logic.strip_horn (prop_of th) of
@@ -395,7 +407,7 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
             (not (Config.get ctxt ignore_no_atp) andalso
              is_package_def name0) orelse
             exists (fn s => String.isSuffix s name0)
-                    (multi_base_blacklist ctxt ho_atp)) then
+                   (multi_base_blacklist ctxt ho_atp)) then
           I
         else
           let
