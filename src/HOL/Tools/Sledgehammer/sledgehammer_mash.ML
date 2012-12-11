@@ -20,9 +20,9 @@ sig
   val meshN : string
   val unlearnN : string
   val learn_isarN : string
-  val learn_atpN : string
+  val learn_proverN : string
   val relearn_isarN : string
-  val relearn_atpN : string
+  val relearn_proverN : string
   val fact_filters : string list
   val escape_meta : string -> string
   val escape_metas : string list -> string
@@ -55,7 +55,7 @@ sig
     Proof.context -> string -> theory -> stature -> term list
     -> (string * real) list
   val isar_dependencies_of : unit Symtab.table -> thm -> string list option
-  val atp_dependencies_of :
+  val prover_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
     -> thm -> bool * string list option
   val weight_mash_facts : ('a * thm) list -> (('a * thm) * real) list
@@ -105,9 +105,9 @@ val fact_filters = [meshN, mepoN, mashN]
 
 val unlearnN = "unlearn"
 val learn_isarN = "learn_isar"
-val learn_atpN = "learn_atp"
+val learn_proverN = "learn_prover"
 val relearn_isarN = "relearn_isar"
-val relearn_atpN = "relearn_atp"
+val relearn_proverN = "relearn_prover"
 
 fun mash_model_dir () =
   Path.explode "$ISABELLE_HOME_USER/mash" |> tap Isabelle_System.mkdir
@@ -248,15 +248,16 @@ fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
 
 (*** Middle-level communication with MaSh ***)
 
-datatype proof_kind = Isar_Proof | ATP_Proof | Isar_Proof_wegen_ATP_Flop
+datatype proof_kind =
+  Isar_Proof | Automatic_Proof | Isar_Proof_wegen_Prover_Flop
 
 fun str_of_proof_kind Isar_Proof = "i"
-  | str_of_proof_kind ATP_Proof = "a"
-  | str_of_proof_kind Isar_Proof_wegen_ATP_Flop = "x"
+  | str_of_proof_kind Automatic_Proof = "a"
+  | str_of_proof_kind Isar_Proof_wegen_Prover_Flop = "x"
 
 fun proof_kind_of_str "i" = Isar_Proof
-  | proof_kind_of_str "a" = ATP_Proof
-  | proof_kind_of_str "x" = Isar_Proof_wegen_ATP_Flop
+  | proof_kind_of_str "a" = Automatic_Proof
+  | proof_kind_of_str "x" = Isar_Proof_wegen_Prover_Flop
 
 (* FIXME: Here a "Graph.update_node" function would be useful *)
 fun update_fact_graph_node (name, kind) =
@@ -596,7 +597,8 @@ fun features_of ctxt prover thy (scope, status) ts =
 (* Too many dependencies is a sign that a decision procedure is at work. There
    isn't much to learn from such proofs. *)
 val max_dependencies = 20
-val atp_dependency_default_max_facts = 50
+
+val prover_dependency_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_deps = [@{thm CollectI} |> nickname_of]
@@ -634,8 +636,8 @@ fun trim_dependencies th deps =
 fun isar_dependencies_of all_names th =
   th |> thms_in_proof (SOME all_names) |> trim_dependencies th
 
-fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
-                        auto_level facts all_names th =
+fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
+                           auto_level facts all_names th =
   case isar_dependencies_of all_names th of
     SOME [] => (false, SOME [])
   | isar_deps =>
@@ -653,11 +655,12 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
           SOME ((name, status), th) => accum @ [((name, status), th)]
         | NONE => accum (* shouldn't happen *)
       val facts =
-        facts |> mepo_suggested_facts ctxt params prover
-                     (max_facts |> the_default atp_dependency_default_max_facts)
-                     NONE hyp_ts concl_t
-              |> fold (add_isar_dep facts) (these isar_deps)
-              |> map fix_name
+        facts
+        |> mepo_suggested_facts ctxt params prover
+               (max_facts |> the_default prover_dependency_default_max_facts)
+               NONE hyp_ts concl_t
+        |> fold (add_isar_dep facts) (these isar_deps)
+        |> map fix_name
     in
       if verbose andalso auto_level = 0 then
         let val num_facts = length facts in
@@ -680,7 +683,7 @@ fun atp_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
            ();
          case used_facts |> map fst |> trim_dependencies th of
            NONE => (false, isar_deps)
-         | atp_deps => (true, atp_deps))
+         | prover_deps => (true, prover_deps))
       | _ => (false, isar_deps)
     end
 
@@ -789,12 +792,12 @@ fun reprove_wrt_fact_graph ctxt (name, deps) (reps, graph) =
     fun maybe_rep_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
-    val graph = graph |> update_fact_graph_node (name, ATP_Proof)
+    val graph = graph |> update_fact_graph_node (name, Automatic_Proof)
     val (deps, _) = ([], graph) |> fold maybe_rep_from deps
   in ((name, deps) :: reps, graph) end
 
 fun flop_wrt_fact_graph name =
-  update_fact_graph_node (name, Isar_Proof_wegen_ATP_Flop)
+  update_fact_graph_node (name, Isar_Proof_wegen_Prover_Flop)
 
 val learn_timeout_slack = 2.0
 
@@ -835,7 +838,7 @@ val commit_timeout = seconds 30.0
 
 (* The timeout is understood in a very slack fashion. *)
 fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
-                     auto_level atp learn_timeout facts =
+                     auto_level run_prover learn_timeout facts =
   let
     val timer = Timer.startRealTimer ()
     fun next_commit_time () =
@@ -845,11 +848,13 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       facts |> List.partition (is_fact_in_graph fact_G)
             ||> sort (thm_ord o pairself snd)
   in
-    if null new_facts andalso (not atp orelse null old_facts) then
+    if null new_facts andalso (not run_prover orelse null old_facts) then
       if auto_level < 2 then
-        "No new " ^ (if atp then "ATP" else "Isar") ^ " proofs to learn." ^
-        (if auto_level = 0 andalso not atp then
-           "\n\nHint: Try " ^ sendback learn_atpN ^ " to learn from ATP proofs."
+        "No new " ^ (if run_prover then "automatic" else "Isar") ^
+        " proofs to learn." ^
+        (if auto_level = 0 andalso not run_prover then
+           "\n\nHint: Try " ^ sendback learn_proverN ^
+           " to learn from automatic provers."
          else
            "")
       else
@@ -862,8 +867,9 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         fun deps_of status th =
           if status = Non_Rec_Def orelse status = Rec_Def then
             SOME []
-          else if atp then
-            atp_dependencies_of ctxt params prover auto_level facts all_names th
+          else if run_prover then
+            prover_dependencies_of ctxt params prover auto_level facts all_names
+                                   th
             |> (fn (false, _) => NONE | (true, deps) => deps)
           else
             isar_dependencies_of all_names th
@@ -894,7 +900,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
            if not last andalso auto_level = 0 then
              let val num_proofs = length adds + length reps in
                "Learned " ^ string_of_int num_proofs ^ " " ^
-               (if atp then "ATP" else "Isar") ^ " proof" ^
+               (if run_prover then "automatic" else "Isar") ^ " proof" ^
                plural_s num_proofs ^ " in the last " ^
                string_from_time commit_timeout ^ "."
                |> Output.urgent_message
@@ -950,7 +956,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
             in ((reps, flops), (n, next_commit, timed_out)) end
         val n =
-          if not atp orelse null old_facts then
+          if not run_prover orelse null old_facts then
             n
           else
             let
@@ -962,8 +968,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                 random_range 0 max_isar
                 + (case kind_of_proof th of
                      Isar_Proof => 0
-                   | ATP_Proof => 2 * max_isar
-                   | Isar_Proof_wegen_ATP_Flop => max_isar)
+                   | Automatic_Proof => 2 * max_isar
+                   | Isar_Proof_wegen_Prover_Flop => max_isar)
                 - 500 * (th |> isar_dependencies_of all_names
                             |> Option.map length
                             |> the_default max_dependencies)
@@ -978,7 +984,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       in
         if verbose orelse auto_level < 2 then
           "Learned " ^ string_of_int n ^ " nontrivial " ^
-          (if atp then "ATP" else "Isar") ^ " proof" ^ plural_s n ^
+          (if run_prover then "automatic" else "Isar") ^ " proof" ^ plural_s n ^
           (if verbose then
              " in " ^ string_from_time (Timer.checkRealTimer timer)
            else
@@ -989,7 +995,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
   end
 
 fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
-               atp =
+               run_prover =
   let
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val ctxt = ctxt |> Config.put instantiate_inducts false
@@ -998,17 +1004,19 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
                        @{prop True}
     val num_facts = length facts
     val prover = hd provers
-    fun learn auto_level atp =
-      mash_learn_facts ctxt params prover auto_level atp infinite_timeout facts
+    fun learn auto_level run_prover =
+      mash_learn_facts ctxt params prover auto_level run_prover infinite_timeout
+                       facts
       |> Output.urgent_message
   in
-    if atp then
+    if run_prover then
       ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
-       plural_s num_facts ^ " for ATP proofs (" ^ quote prover ^ " timeout: " ^
-       string_from_time timeout ^ ").\n\nCollecting Isar proofs first..."
+       plural_s num_facts ^ " for automatic proofs (" ^ quote prover ^
+       " timeout: " ^ string_from_time timeout ^
+       ").\n\nCollecting Isar proofs first..."
        |> Output.urgent_message;
        learn 1 false;
-       "Now collecting ATP proofs. This may take several hours. You can \
+       "Now collecting automatic proofs. This may take several hours. You can \
        \safely stop the learning process at any point."
        |> Output.urgent_message;
        learn 0 true)

@@ -15,11 +15,11 @@ sig
     Proof.context -> string -> theory list -> bool -> string -> unit
   val generate_isar_dependencies :
     Proof.context -> theory list -> bool -> string -> unit
-  val generate_atp_dependencies :
+  val generate_prover_dependencies :
     Proof.context -> params -> theory list -> bool -> string -> unit
   val generate_isar_commands :
     Proof.context -> string -> theory list -> string -> unit
-  val generate_atp_commands :
+  val generate_prover_commands :
     Proof.context -> params -> theory list -> string -> unit
   val generate_mepo_suggestions :
     Proof.context -> params -> theory list -> int -> string -> unit
@@ -97,15 +97,15 @@ fun generate_features ctxt prover thys include_thys file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun isar_or_atp_dependencies_of ctxt params_opt facts all_names th =
+fun isar_or_prover_dependencies_of ctxt params_opt facts all_names th =
   (case params_opt of
      SOME (params as {provers = prover :: _, ...}) =>
-     atp_dependencies_of ctxt params prover 0 facts all_names th |> snd
+     prover_dependencies_of ctxt params prover 0 facts all_names th |> snd
    | NONE => isar_dependencies_of all_names th)
   |> these
 
-fun generate_isar_or_atp_dependencies ctxt params_opt thys include_thys
-                                      file_name =
+fun generate_isar_or_prover_dependencies ctxt params_opt thys include_thys
+                                         file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -118,18 +118,18 @@ fun generate_isar_or_atp_dependencies ctxt params_opt thys include_thys
       let
         val name = nickname_of th
         val deps =
-          isar_or_atp_dependencies_of ctxt params_opt facts all_names th
+          isar_or_prover_dependencies_of ctxt params_opt facts all_names th
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_thm ths end
 
 fun generate_isar_dependencies ctxt =
-  generate_isar_or_atp_dependencies ctxt NONE
+  generate_isar_or_prover_dependencies ctxt NONE
 
-fun generate_atp_dependencies ctxt params =
-  generate_isar_or_atp_dependencies ctxt (SOME params)
+fun generate_prover_dependencies ctxt params =
+  generate_isar_or_prover_dependencies ctxt (SOME params)
 
-fun generate_isar_or_atp_commands ctxt prover params_opt thys file_name =
+fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
   let
     val path = file_name |> Path.explode
     val _ = File.write path ""
@@ -144,7 +144,7 @@ fun generate_isar_or_atp_commands ctxt prover params_opt thys file_name =
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
         val deps =
-          isar_or_atp_dependencies_of ctxt params_opt facts all_names th
+          isar_or_prover_dependencies_of ctxt params_opt facts all_names th
         val kind = Thm.legacy_get_kind th
         val core =
           escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
@@ -159,10 +159,10 @@ fun generate_isar_or_atp_commands ctxt prover params_opt thys file_name =
   in fold do_fact new_facts parents; () end
 
 fun generate_isar_commands ctxt prover =
-  generate_isar_or_atp_commands ctxt prover NONE
+  generate_isar_or_prover_commands ctxt prover NONE
 
-fun generate_atp_commands ctxt (params as {provers = prover :: _, ...}) =
-  generate_isar_or_atp_commands ctxt prover (SOME params)
+fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
+  generate_isar_or_prover_commands ctxt prover (SOME params)
 
 fun generate_mepo_suggestions ctxt (params as {provers, ...}) thys max_relevant
                               file_name =

@@ -367,7 +367,7 @@ fun minimize_command override_params i more_override_params prover_name
     (if i = 1 then "" else " " ^ string_of_int i)
   end
 
-val default_learn_atp_timeout = 0.5
+val default_learn_prover_timeout = 0.5
 
 fun hammer_away override_params subcommand opt_i fact_override state =
   let
@@ -404,21 +404,22 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       running_provers ()
     else if subcommand = unlearnN then
       mash_unlearn ctxt
-    else if subcommand = learn_isarN orelse subcommand = learn_atpN orelse
-            subcommand = relearn_isarN orelse subcommand = relearn_atpN then
-      (if subcommand = relearn_isarN orelse subcommand = relearn_atpN then
+    else if subcommand = learn_isarN orelse subcommand = learn_proverN orelse
+            subcommand = relearn_isarN orelse subcommand = relearn_proverN then
+      (if subcommand = relearn_isarN orelse subcommand = relearn_proverN then
          mash_unlearn ctxt
        else
          ();
-       mash_learn ctxt (get_params Normal ctxt
-                           ([("timeout",
-                              [string_of_real default_learn_atp_timeout]),
-                             ("slice", ["false"])] @
-                            override_params @
-                            [("minimize", ["true"]),
-                             ("preplay_timeout", ["0"])]))
-                  fact_override (#facts (Proof.goal state))
-                  (subcommand = learn_atpN orelse subcommand = relearn_atpN))
+       mash_learn ctxt
+           (get_params Normal ctxt
+                ([("timeout",
+                   [string_of_real default_learn_prover_timeout]),
+                  ("slice", ["false"])] @
+                 override_params @
+                 [("minimize", ["true"]),
+                  ("preplay_timeout", ["0"])]))
+           fact_override (#facts (Proof.goal state))
+           (subcommand = learn_proverN orelse subcommand = relearn_proverN))
     else if subcommand = running_learnersN then
       running_learners ()
     else if subcommand = refresh_tptpN then

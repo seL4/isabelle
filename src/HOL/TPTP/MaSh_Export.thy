@@ -52,7 +52,8 @@ else
 
 ML {*
 if do_it then
-  generate_isar_dependencies @{context} thys false (prefix ^ "mash_dependencies")
+  generate_isar_dependencies @{context} thys false
+      (prefix ^ "mash_dependencies")
 else
   ()
 *}
@@ -66,21 +67,24 @@ else
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params thys 1024 (prefix ^ "mash_mepo_suggestions")
+  generate_mepo_suggestions @{context} params thys 1024
+      (prefix ^ "mash_mepo_suggestions")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_atp_dependencies @{context} params thys false (prefix ^ "mash_atp_dependencies")
+  generate_prover_dependencies @{context} params thys false
+      (prefix ^ "mash_prover_dependencies")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_atp_commands @{context} params thys (prefix ^ "mash_atp_commands")
+  generate_prover_commands @{context} params thys
+      (prefix ^ "mash_prover_commands")
 else
   ()
 *}
