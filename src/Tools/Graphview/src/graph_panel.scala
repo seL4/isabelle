@@ -45,14 +45,9 @@ class Graph_Panel(
   horizontalScrollBarPolicy = ScrollPane.BarPolicy.Always
   verticalScrollBarPolicy = ScrollPane.BarPolicy.Always
 
-  private val gfx_aux =
-    new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics
-  gfx_aux.setFont(visualizer.font)
-  gfx_aux.setRenderingHints(visualizer.rendering_hints)
-
   def node(at: Point2D): Option[String] =
     visualizer.model.visible_nodes()
-      .find(name => visualizer.Drawer.shape(gfx_aux, Some(name)).contains(at))
+      .find(name => visualizer.Drawer.shape(visualizer.gfx, Some(name)).contains(at))
 
   def refresh()
   {
@@ -193,7 +188,7 @@ class Graph_Panel(
             i => visualizer.Coordinates(i).zipWithIndex.map((i, _))
           }).flatten.find({
             case (_, ((x, y), _)) =>
-              visualizer.Drawer.shape(gfx_aux, None).contains(at.getX() - x, at.getY() - y)
+              visualizer.Drawer.shape(visualizer.gfx, None).contains(at.getX() - x, at.getY() - y)
           }) match {
             case None => None
             case Some((name, (_, index))) => Some((name, index))
