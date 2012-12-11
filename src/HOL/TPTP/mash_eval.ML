@@ -90,12 +90,12 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
         val isar_facts = find_suggested_facts (map (rpair 1.0) isar_deps) facts
         (* adapted from "mirabelle_sledgehammer.ML" *)
         fun set_file_name heading (SOME dir) =
-            Config.put Sledgehammer_Provers.dest_dir dir
-            #> Config.put Sledgehammer_Provers.problem_prefix
-              ("goal_" ^ string_of_int j ^ "_" ^ heading ^ "__")
-            #> Config.put SMT_Config.debug_files
-              (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
-              ^ serial_string ())
+            let val prob_prefix = "goal_" ^ string_of_int j ^ "_" ^ heading in
+              Config.put Sledgehammer_Provers.dest_dir dir
+              #> Config.put Sledgehammer_Provers.problem_prefix
+                            (prob_prefix ^ "__")
+              #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
+            end
           | set_file_name _ NONE = I
         fun prove ok heading get facts =
           let
