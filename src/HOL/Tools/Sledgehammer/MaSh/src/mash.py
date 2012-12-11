@@ -21,7 +21,8 @@ from time import time
 from stats import Statistics
 from dictionaries import Dictionaries
 #from fullNaiveBayes import NBClassifier
-from naiveBayes import NBClassifier
+from sparseNaiveBayes import sparseNBClassifier
+#from naiveBayes import sparseNBClassifier
 from snow import SNoW
 from predefined import Predefined
 
@@ -83,7 +84,7 @@ def main(argv = sys.argv[1:]):
     # Pick algorithm
     if args.nb:
         logger.info('Using sparse Naive Bayes for learning.')
-        model = NBClassifier()
+        model = sparseNBClassifier()
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     elif args.snow:
         logger.info('Using naive bayes (SNoW) for learning.')
@@ -97,7 +98,7 @@ def main(argv = sys.argv[1:]):
         modelFile = os.path.join(args.outputDir,'mepo.pickle')        
     else:
         logger.info('No algorithm specified. Using sparse Naive Bayes.')
-        model = NBClassifier()
+        model = sparseNBClassifier()
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     dictsFile = os.path.join(args.outputDir,'dicts.pickle')
 

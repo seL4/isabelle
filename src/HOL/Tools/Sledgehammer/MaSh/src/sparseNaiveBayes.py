@@ -1,4 +1,4 @@
-#     Title:      HOL/Tools/Sledgehammer/MaSh/src/naiveBayes.py
+#     Title:      HOL/Tools/Sledgehammer/MaSh/src/sparseNaiveBayes.py
 #     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
 #     Copyright   2012
 #
@@ -14,7 +14,7 @@ from cPickle import dump,load
 from numpy import array,exp
 from math import log
 
-class NBClassifier(object):
+class sparseNBClassifier(object):
     '''
     An updateable naive Bayes classifier.
     '''
@@ -126,13 +126,13 @@ if __name__ == '__main__':
     featureDict = {0:[0,1,2],1:[3,2,1]}
     dependenciesDict = {0:[0],1:[0,1]}
     libDicts = (featureDict,dependenciesDict,{})
-    c = NBClassifier()
+    c = sparseNBClassifier()
     c.initializeModel([0,1],libDicts)
     c.update(2,[14,1,3],[0,2])
     print c.counts
     print c.predict([0,14],[0,1,2])
     c.storeModel('x')
-    d = NBClassifier()
+    d = sparseNBClassifier()
     d.loadModel('x')
     print c.counts
     print d.counts
