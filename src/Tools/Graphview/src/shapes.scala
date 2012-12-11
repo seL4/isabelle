@@ -239,17 +239,16 @@ object Shapes
     {
       position(path, shape) match {
         case None =>
-        case Some(at) => {
+        case Some(at) =>
           val arrow = new GeneralPath(Path2D.WIND_EVEN_ODD, 3)
           arrow.moveTo(0, 0)
-          arrow.lineTo(-20, 8)
-          arrow.lineTo(-13, 0)
-          arrow.lineTo(-20, -8)
+          arrow.lineTo(-10, 4)
+          arrow.lineTo(-6, 0)
+          arrow.lineTo(-10, -4)
           arrow.lineTo(0, 0)
           arrow.transform(at)
 
           g.fill(arrow)
-        }
       }
     }
   }
