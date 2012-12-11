@@ -16,7 +16,6 @@ declare -a SOURCES=(
   "src/mutator_dialog.scala"
   "src/mutator_event.scala"
   "src/mutator.scala"
-  "src/parameters.scala"
   "src/popups.scala"
   "src/shapes.scala"
   "src/visualizer.scala"

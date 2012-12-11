@@ -18,10 +18,10 @@ object Popups
   def apply(panel: Graph_Panel, under_mouse: Option[String], selected: List[String])
     : JPopupMenu =
   {
-    val parameters = panel.visualizer.parameters
+    val visualizer = panel.visualizer
 
-    val add_mutator = panel.visualizer.model.Mutators.add _
-    val curr = panel.visualizer.model.current
+    val add_mutator = visualizer.model.Mutators.add _
+    val curr = visualizer.model.current
 
     def filter_context(ls: List[String], reverse: Boolean,
                        caption: String, edges: Boolean) =
@@ -29,7 +29,7 @@ object Popups
         contents += new MenuItem(new Action("This") {
             def apply =
               add_mutator(
-                Mutators.create(parameters,
+                Mutators.create(visualizer,
                   Node_List(ls, reverse, false, false)
                 )
               )
@@ -38,7 +38,7 @@ object Popups
         contents += new MenuItem(new Action("Family") {
             def apply =
               add_mutator(
-                Mutators.create(parameters,
+                Mutators.create(visualizer,
                   Node_List(ls, reverse, true, true)
                 )
               )
@@ -47,7 +47,7 @@ object Popups
         contents += new MenuItem(new Action("Parents") {
             def apply =
               add_mutator(
-                Mutators.create(parameters,
+                Mutators.create(visualizer,
                   Node_List(ls, reverse, false, true)
                 )
               )
@@ -56,7 +56,7 @@ object Popups
         contents += new MenuItem(new Action("Children") {
             def apply =
               add_mutator(
-                Mutators.create(parameters,
+                Mutators.create(visualizer,
                   Node_List(ls, reverse, true, false)
                 )
               )
@@ -89,7 +89,7 @@ object Popups
                       contents += new MenuItem(new Action(to) {
                         def apply =
                           add_mutator(
-                            Mutators.create(parameters, Edge_Endpoints(from, to))
+                            Mutators.create(visualizer, Edge_Endpoints(from, to))
                           )
                       })
                     })
@@ -115,7 +115,7 @@ object Popups
                       contents += new MenuItem(new Action(from) {
                         def apply =
                           add_mutator(
-                            Mutators.create(parameters, Edge_Endpoints(from, to))
+                            Mutators.create(visualizer, Edge_Endpoints(from, to))
                           )
                       })
                     })
@@ -130,14 +130,14 @@ object Popups
     val popup = new JPopupMenu()
 
     popup.add(new MenuItem(new Action("Remove all filters") {
-          def apply = panel.visualizer.model.Mutators(Nil)
+          def apply = visualizer.model.Mutators(Nil)
         }).peer
     )
     popup.add(new JPopupMenu.Separator)
 
     if (under_mouse.isDefined) {
       val v = under_mouse.get
-      popup.add(new MenuItem("Mouseover: %s".format(panel.visualizer.Caption(v))) {
+      popup.add(new MenuItem("Mouseover: %s".format(visualizer.Caption(v))) {
         enabled = false
       }.peer)
 
@@ -151,7 +151,7 @@ object Popups
         if (selected.length > 1) {
           "Multiple"
         } else {
-          panel.visualizer.Caption(selected.head)
+          visualizer.Caption(selected.head)
         }
       }
 

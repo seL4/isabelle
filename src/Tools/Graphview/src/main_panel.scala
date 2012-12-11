@@ -33,8 +33,8 @@ class Main_Panel(graph: Model.Graph)
   val visualizer = new Visualizer(model)
 
   def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
-    "<html><pre style=\"font-family: " + visualizer.parameters.font_family +
-      "; font-size: " + visualizer.parameters.tooltip_font_size + "px; \">" +
+    "<html><pre style=\"font-family: " + visualizer.font_family +
+      "; font-size: " + visualizer.tooltip_font_size + "px; \">" +
       HTML.encode(Pretty.string_of(body)) + "</pre></html>"
 
   val graph_panel = new Graph_Panel(visualizer, make_tooltip)
@@ -42,10 +42,9 @@ class Main_Panel(graph: Model.Graph)
   listenTo(keys)
   reactions += graph_panel.reactions
 
-  val mutator_dialog =
-    new Mutator_Dialog(visualizer.parameters, model.Mutators, "Filters", "Hide", false)
+  val mutator_dialog = new Mutator_Dialog(visualizer, model.Mutators, "Filters", "Hide", false)
 
-  val color_dialog = new Mutator_Dialog(visualizer.parameters, model.Colors, "Colorations")
+  val color_dialog = new Mutator_Dialog(visualizer, model.Colors, "Colorations")
 
   private val chooser = new FileChooser()
   chooser.fileSelectionMode = FileChooser.SelectionMode.FilesOnly
@@ -56,9 +55,9 @@ class Main_Panel(graph: Model.Graph)
 
     contents += Swing.HGlue
     contents += new CheckBox(){
-      selected = visualizer.parameters.arrow_heads
+      selected = visualizer.arrow_heads
       action = Action("Arrow Heads"){
-        visualizer.parameters.arrow_heads = selected
+        visualizer.arrow_heads = selected
         graph_panel.repaint()
       }
     }

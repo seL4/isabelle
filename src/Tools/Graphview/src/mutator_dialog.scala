@@ -19,7 +19,7 @@ import scala.swing.event.ValueChanged
 
 
 class Mutator_Dialog(
-    parameters: Parameters,
+    visualizer: Visualizer,
     container: Mutator_Container,
     caption: String,
     reverse_caption: String = "Inverse",
@@ -110,7 +110,7 @@ class Mutator_Dialog(
   private val addButton: Button = new Button{
     action = Action("Add") {
       addPanel(
-        new Mutator_Panel((true, parameters.Colors.next,
+        new Mutator_Panel((true, visualizer.Colors.next,
                            mutatorBox.selection.item))
       )
     }

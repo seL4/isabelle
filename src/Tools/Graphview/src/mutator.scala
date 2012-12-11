@@ -34,8 +34,8 @@ object Mutators {
   val Enabled = true
   val Disabled = false
   
-  def create(parameters: Parameters, m: Mutator): Mutator_Markup =
-    (Mutators.Enabled, parameters.Colors.next, m)
+  def create(visualizer: Visualizer, m: Mutator): Mutator_Markup =
+    (Mutators.Enabled, visualizer.Colors.next, m)
 
   class Graph_Filter(val name: String, val description: String,
     pred: Model.Graph => Model.Graph)

@@ -1,7 +1,7 @@
 /*  Title:      Tools/Graphview/src/visualizer.scala
     Author:     Markus Kaiser, TU Muenchen
 
-Graph visualization interface.
+Graph visualization parameters and interface state.
 */
 
 package isabelle.graphview
@@ -18,7 +18,50 @@ class Visualizer(val model: Model)
 {
   visualizer =>
 
-  val parameters = new Parameters
+  /* font rendering information */
+
+  val font_family: String = "IsabelleText"
+  val font_size: Int = 14
+
+  val font = new Font(visualizer.font_family, Font.BOLD, visualizer.font_size)
+  val font_metrics: FontMetrics = Toolkit.getDefaultToolkit.getFontMetrics(font)
+
+  val rendering_hints =
+    new RenderingHints(
+      RenderingHints.KEY_ANTIALIASING,
+      RenderingHints.VALUE_ANTIALIAS_ON)
+
+  val tooltip_font_size: Int = 10
+
+
+  /* rendering parameters */
+
+  val gap_x = 20
+  val pad_x = 8
+  val pad_y = 5
+
+  var arrow_heads = false
+
+  object Colors
+  {
+    private val filter_colors = List(
+      new JColor(0xD9, 0xF2, 0xE2), // blue
+      new JColor(0xFF, 0xE7, 0xD8), // orange
+      new JColor(0xFF, 0xFF, 0xE5), // yellow
+      new JColor(0xDE, 0xCE, 0xFF), // lilac
+      new JColor(0xCC, 0xEB, 0xFF), // turquoise
+      new JColor(0xFF, 0xE5, 0xE5), // red
+      new JColor(0xE5, 0xE5, 0xD9)  // green
+    )
+
+    private var curr : Int = -1
+    def next(): JColor =
+    {
+      curr = (curr + 1) % filter_colors.length
+      filter_colors(curr)
+    }
+  }
+
 
   object Coordinates
   {
@@ -76,10 +119,9 @@ class Visualizer(val model: Model)
           val max_width =
             model.current.entries.map({ case (_, (info, _)) =>
               font_metrics.stringWidth(info.name).toDouble }).max
-          val box_distance = max_width + parameters.pad_x + parameters.gap_x
+          val box_distance = max_width + visualizer.pad_x + visualizer.gap_x
           def box_height(n: Int): Double =
-            ((font_metrics.getAscent + font_metrics.getDescent + parameters.pad_y) * (5 max n))
-              .toDouble
+            ((font_metrics.getAscent + font_metrics.getDescent + pad_y) * (5 max n)).toDouble
           Layout_Pendulum(model.current, box_distance, box_height)
         }
     }
@@ -118,7 +160,7 @@ class Visualizer(val model: Model)
       g.setRenderingHints(rendering_hints)
 
       model.visible_edges().foreach(e => {
-          apply(g, e, parameters.arrow_heads, dummies)
+          apply(g, e, arrow_heads, dummies)
         })
 
       model.visible_nodes().foreach(l => {
@@ -165,15 +207,4 @@ class Visualizer(val model: Model)
   {
     def apply(key: String) = model.complete.get_node(key).name
   }
-
-
-  /* font rendering information */
-
-  val font = new Font(parameters.font_family, Font.BOLD, parameters.font_size)
-  val font_metrics: FontMetrics = Toolkit.getDefaultToolkit.getFontMetrics(font)
-
-  val rendering_hints =
-    new RenderingHints(
-      RenderingHints.KEY_ANTIALIASING,
-      RenderingHints.VALUE_ANTIALIAS_ON)
 }
