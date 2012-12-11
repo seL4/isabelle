@@ -65,7 +65,7 @@ class Graph_Panel(
   private class Paint_Panel extends Panel {
     def set_preferred_size() {
         val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
-        val s = Transform.scale
+        val s = Transform.scale_discrete
         val (px, py) = Transform.padding
 
         preferredSize = new Dimension((math.abs(maxX - minX + px) * s).toInt,
@@ -110,17 +110,19 @@ class Graph_Panel(
     val padding = (100, 40)
 
     private var _scale: Double = 1.0
-    def scale = _scale
-    def scale_= (s: Double) =
+    def scale: Double = _scale
+    def scale_=(s: Double)
     {
       _scale = (s min 10) max 0.1
       paint_panel.set_preferred_size()
     }
+    def scale_discrete: Double =
+      (_scale * visualizer.font_size).round.toDouble / visualizer.font_size
 
     def apply() = {
       val (minX, minY, _, _) = visualizer.Coordinates.bounds()
 
-      val at = AffineTransform.getScaleInstance(scale, scale)
+      val at = AffineTransform.getScaleInstance(scale_discrete, scale_discrete)
       at.translate(-minX + padding._1 / 2, -minY + padding._2 / 2)
       at
     }
@@ -138,7 +140,7 @@ class Graph_Panel(
     }
 
     def pane_to_graph_coordinates(at: Point2D): Point2D = {
-      val s = Transform.scale
+      val s = Transform.scale_discrete
       val p = Transform().inverseTransform(peer.getViewport.getViewPosition, null)
 
       p.setLocation(p.getX + at.getX / s, p.getY + at.getY / s)
@@ -246,7 +248,7 @@ class Graph_Panel(
       def drag(draginfo: (Point, Iterable[String], Iterable[Dummy]), to: Point) {
         val (from, p, d) = draginfo
 
-        val s = Transform.scale
+        val s = Transform.scale_discrete
         val (dx, dy) = (to.x - from.x, to.y - from.y)
         (p, d) match {
           case (Nil, Nil) => {
