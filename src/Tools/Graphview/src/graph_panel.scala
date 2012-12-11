@@ -112,13 +112,13 @@ class Graph_Panel(
 
   private object Transform
   {
-    val padding = (4000, 2000)
+    val padding = (100, 40)
 
-    private var _scale = 1.0
+    private var _scale: Double = 1.0
     def scale = _scale
     def scale_= (s: Double) =
     {
-      _scale = (s min 10) max 0.01
+      _scale = (s min 10) max 0.1
       paint_panel.set_preferred_size()
     }
 

@@ -26,16 +26,11 @@ object Shapes
 
     def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Rectangle2D.Double =
     {
-      val caption = visualizer.Caption(peer.get)
-      val bounds = g.getFontMetrics.getStringBounds(caption, g)
       val (x, y) = visualizer.Coordinates(peer.get)
-
-      new Rectangle2D.Double(
-        x -(bounds.getWidth / 2 + 25),
-        y -(bounds.getHeight / 2 + 5),
-        bounds.getWidth + 50,
-        bounds.getHeight + 10
-      )
+      val bounds = g.getFontMetrics.getStringBounds(visualizer.Caption(peer.get), g)
+      val w = bounds.getWidth + visualizer.parameters.pad_x
+      val h = bounds.getHeight + visualizer.parameters.pad_y
+      new Rectangle2D.Double(x - (w / 2), y - (h / 2), w, h)
     }
 
     def paint(g: Graphics2D, visualizer: Visualizer, peer: Option[String])
@@ -61,7 +56,7 @@ object Shapes
   {
     private val stroke =
       new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
-    private val shape = new Rectangle2D.Double(-8, -8, 16, 16)
+    private val shape = new Rectangle2D.Double(-5, -5, 10, 10)
     private val identity = new AffineTransform()
 
     def shape(g: Graphics2D, visualizer: Visualizer, peer: Option[String]): Shape = shape

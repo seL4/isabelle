@@ -22,12 +22,10 @@ object Layout_Pendulum
   case class Layout(nodes: Coordinates, dummies: Map[(Key, Key), List[Point]])
   val empty_layout = Layout(Map.empty, Map.empty)
 
-  val x_distance = 350
-  val y_distance = 350
   val pendulum_iterations = 10
   val minimize_crossings_iterations = 40
 
-  def apply(graph: Model.Graph): Layout =
+  def apply(graph: Model.Graph, box_distance: Double, box_height: Int => Double): Layout =
   {
     if (graph.is_empty) empty_layout
     else {
@@ -48,7 +46,17 @@ object Layout_Pendulum
 
       val levels = minimize_crossings(dummy_graph, level_list(dummy_levels))
 
-      val coords = pendulum(dummy_graph, levels, initial_coordinates(levels))
+      val initial_coordinates: Coordinates =
+        (((Map.empty[Key, Point], 0.0) /: levels) {
+          case ((coords1, y), level) =>
+            ((((coords1, 0.0) /: level) {
+              case ((coords2, x), key) =>
+                val s = if (graph.defined(key)) graph.get_node(key).name else "X"
+                (coords2 + (key -> (x, y)), x + box_distance)
+            })._1, y + box_height(level.length))
+        })._1
+
+      val coords = pendulum(dummy_graph, box_distance, levels, initial_coordinates)
 
       val dummy_coords =
         (Map.empty[(Key, Key), List[Point]] /: dummies.keys) {
@@ -153,16 +161,8 @@ object Layout_Pendulum
     }._1
   }
 
-  def initial_coordinates(levels: Levels): Coordinates =
-    (Map.empty[Key, Point] /: levels.zipWithIndex){
-      case (coords, (level, yi)) =>
-        (coords /: level.zipWithIndex) {
-          case (coords, (node, xi)) =>
-            coords + (node -> (xi * x_distance, yi * y_distance))
-        }
-    }
-
-  def pendulum(graph: Model.Graph, levels: Levels, coords: Map[Key, Point]): Coordinates =
+  def pendulum(graph: Model.Graph, box_distance: Double,
+    levels: Levels, coords: Map[Key, Point]): Coordinates =
   {
     type Regions = List[List[Region]]
 
@@ -196,7 +196,7 @@ object Layout_Pendulum
             val d2 = r2.deflection(coords, top_down)
 
             if (// Do regions touch?
-                r1.distance(coords, r2) <= x_distance &&
+                r1.distance(coords, r2) <= box_distance &&
                 // Do they influence each other?
                 (d1 <= 0 && d2 < d1 || d2 > 0 && d1 > d2 || d1 > 0 && d2 < 0))
             {
@@ -222,11 +222,11 @@ object Layout_Pendulum
               else if (i == level.length - 1 && d >= 0) d
               else if (d < 0) {
                 val prev = level(i-1)
-                (-(r.distance(coords, prev) - x_distance)) max d
+                (-(r.distance(coords, prev) - box_distance)) max d
               }
               else {
                 val next = level(i+1)
-                (r.distance(coords, next) - x_distance) min d
+                (r.distance(coords, next) - box_distance) min d
               }
             }
 

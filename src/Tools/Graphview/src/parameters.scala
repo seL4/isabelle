@@ -14,7 +14,11 @@ import java.awt.Color
 class Parameters
 {
   val font_family: String = "IsabelleText"
-  val font_size: Int = 16
+  val font_size: Int = 14
+  val gap_x = 20
+  val pad_x = 8
+  val pad_y = 5
+
   val tooltip_font_size: Int = 10
 
   var arrow_heads = false

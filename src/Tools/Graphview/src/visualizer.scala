@@ -10,8 +10,7 @@ package isabelle.graphview
 import isabelle._
 
 
-import java.awt.{Font, Color => JColor, Shape}
-import java.awt.{RenderingHints, Graphics2D}
+import java.awt.{Font, FontMetrics, Color => JColor, Shape, RenderingHints, Graphics2D, Toolkit}
 import javax.swing.JComponent
 
 
@@ -71,7 +70,18 @@ class Visualizer(val model: Model)
 
     def update_layout()
     {
-      layout = Layout_Pendulum(model.current)  // FIXME avoid computation on Swing thread
+      layout =
+        if (model.current.is_empty) Layout_Pendulum.empty_layout
+        else {
+          val max_width =
+            model.current.entries.map({ case (_, (info, _)) =>
+              font_metrics.stringWidth(info.name).toDouble }).max
+          val box_distance = max_width + parameters.pad_x + parameters.gap_x
+          def box_height(n: Int): Double =
+            ((font_metrics.getAscent + font_metrics.getDescent + parameters.pad_y) * (5 max n))
+              .toDouble
+          Layout_Pendulum(model.current, box_distance, box_height)
+        }
     }
 
     def bounds(): (Double, Double, Double, Double) =
@@ -156,7 +166,11 @@ class Visualizer(val model: Model)
     def apply(key: String) = model.complete.get_node(key).name
   }
 
+
+  /* font rendering information */
+
   val font = new Font(parameters.font_family, Font.BOLD, parameters.font_size)
+  val font_metrics: FontMetrics = Toolkit.getDefaultToolkit.getFontMetrics(font)
 
   val rendering_hints =
     new RenderingHints(
