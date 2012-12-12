@@ -624,11 +624,11 @@ fun repair_monomorph_context max_iters best_max_iters max_new_instances
          (max_new_instances |> the_default best_max_new_instances)
   #> Config.put Monomorph.keep_partial_instances false
 
-fun suffix_for_mode Auto_Try = "_auto_try"
+fun suffix_for_mode Auto_Try = "_try"
   | suffix_for_mode Try = "_try"
   | suffix_for_mode Normal = ""
-  | suffix_for_mode MaSh = "_mash"
-  | suffix_for_mode Auto_Minimize = "_auto_min"
+  | suffix_for_mode MaSh = ""
+  | suffix_for_mode Auto_Minimize = "_min"
   | suffix_for_mode Minimize = "_min"
 
 (* Give the ATPs some slack before interrupting them the hard way. "z3_tptp" on
