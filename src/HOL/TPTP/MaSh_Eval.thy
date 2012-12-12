@@ -27,7 +27,9 @@ open MaSh_Eval
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
 val params = Sledgehammer_Isar.default_params @{context} []
-val prob_dir = "/tmp/mash_problems"
+val dir = "List"
+val prefix = "/tmp/" ^ dir ^ "/"
+val prob_dir = prefix ^ "mash_problems"
 *}
 
 ML {*
@@ -40,7 +42,7 @@ else
 ML {*
 if do_it then
   evaluate_mash_suggestions @{context} params (SOME prob_dir)
-      "/tmp/mash_suggestions" "/tmp/mash_eval.out"
+      (prefix ^ "mash_suggestions") (prefix ^ "/tmp/mash_eval.out")
 else
   ()
 *}

@@ -25,7 +25,7 @@ val do_it = false (* switch to "true" to generate the files *)
 val thys = [@{theory List}]
 val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
-val dir = space_implode "__" (map Context.theory_name thys)
+val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
 *}
 
