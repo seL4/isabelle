@@ -25,7 +25,8 @@ sig
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
-  val normalize_eq : term -> term
+  val build_all_names :
+    (thm -> string) -> ('a * thm) list -> string Symtab.table
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
@@ -320,9 +321,25 @@ fun normalize_eq (t as @{const Trueprop}
     else HOLogic.mk_Trueprop (HOLogic.mk_not (t0 $ t2 $ t1))
   | normalize_eq t = t
 
-fun uniquify xs =
+val normalize_eq_etc = normalize_eq o Term_Subst.zero_var_indexes
+
+fun if_thm_before th th' =
+  if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
+
+fun build_all_names name_of facts =
+  Termtab.fold
+      (fn (_, aliases as main :: _) =>
+          fold (fn alias =>
+                   Symtab.update (name_of alias,
+                                  name_of (if_thm_before main alias))) aliases)
+      (fold_rev (fn (_, thm) =>
+                    Termtab.cons_list (normalize_eq_etc (prop_of thm), thm))
+            facts Termtab.empty)
+      Symtab.empty
+
+fun uniquify facts =
   Termtab.fold (cons o snd)
-      (fold (Termtab.default o `(normalize_eq o prop_of o snd)) xs
+      (fold (Termtab.default o `(normalize_eq_etc o prop_of o snd)) facts
             Termtab.empty) []
 
 fun struct_induct_rule_on th =
@@ -411,36 +428,37 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
           I
         else
           let
-            val multi = length ths > 1
+            val n = length ths
+            val multi = n > 1
             fun check_thms a =
               case try (Proof_Context.get_thms ctxt) a of
                 NONE => false
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
           in
-            pair 1
-            #> fold (fn th => fn (j, (multis, unis)) =>
-                        (j + 1,
-                         if not (member Thm.eq_thm_prop add_ths th) andalso
-                            is_theorem_bad_for_atps ho_atp th then
-                           (multis, unis)
-                         else
-                           let
-                             val new =
-                               (((fn () =>
-                                     if name0 = "" then
-                                       backquote_thm ctxt th
-                                     else
-                                       [Facts.extern ctxt facts name0,
-                                        Name_Space.extern ctxt full_space name0]
-                                       |> find_first check_thms
-                                       |> the_default name0
-                                       |> make_name reserved multi j),
-                                  stature_of_thm global assms chained css name0
-                                                 th), th)
-                           in
-                             if multi then (new :: multis, unis)
-                             else (multis, new :: unis)
-                           end)) ths
+            pair n
+            #> fold_rev (fn th => fn (j, (multis, unis)) =>
+                   (j - 1,
+                    if not (member Thm.eq_thm_prop add_ths th) andalso
+                       is_theorem_bad_for_atps ho_atp th then
+                      (multis, unis)
+                    else
+                      let
+                        val new =
+                          (((fn () =>
+                                if name0 = "" then
+                                  backquote_thm ctxt th
+                                else
+                                  [Facts.extern ctxt facts name0,
+                                   Name_Space.extern ctxt full_space name0]
+                                  |> find_first check_thms
+                                  |> the_default name0
+                                  |> make_name reserved multi j),
+                             stature_of_thm global assms chained css name0 th),
+                           th)
+                      in
+                        if multi then (new :: multis, unis)
+                        else (multis, new :: unis)
+                      end)) ths
             #> snd
           end)
   in

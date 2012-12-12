@@ -24,8 +24,6 @@ val MaShN = "MaSh"
 val MeShN = "MeSh"
 val IsarN = "Isar"
 
-val all_names = map (rpair () o nickname_of) #> Symtab.make
-
 fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
                               report_file_name =
   let
@@ -40,7 +38,7 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
     val lines = sugg_path |> File.read_lines
     val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
-    val all_names = all_names (facts |> map snd)
+    val all_names = build_all_names nickname_of facts
     val mepo_ok = Unsynchronized.ref 0
     val mash_ok = Unsynchronized.ref 0
     val mesh_ok = Unsynchronized.ref 0

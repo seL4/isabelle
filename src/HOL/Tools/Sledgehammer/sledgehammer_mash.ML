@@ -54,9 +54,9 @@ sig
   val features_of :
     Proof.context -> string -> theory -> stature -> term list
     -> (string * real) list
-  val isar_dependencies_of : unit Symtab.table -> thm -> string list option
+  val isar_dependencies_of : string Symtab.table -> thm -> string list option
   val prover_dependencies_of :
-    Proof.context -> params -> string -> int -> fact list -> unit Symtab.table
+    Proof.context -> params -> string -> int -> fact list -> string Symtab.table
     -> thm -> bool * string list option
   val weight_mash_facts : ('a * thm) list -> (('a * thm) * real) list
   val find_mash_suggestions :
@@ -296,7 +296,7 @@ val empty_state = {fact_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20121205c ***"
+val version = "*** MaSh version 20121212a ***"
 
 exception Too_New of unit
 
@@ -836,7 +836,7 @@ fun sendback sub = Active.sendback_markup (sledgehammerN ^ " " ^ sub)
 
 val commit_timeout = seconds 30.0
 
-(* The timeout is understood in a very slack fashion. *)
+(* The timeout is understood in a very relaxed fashion. *)
 fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                      auto_level run_prover learn_timeout facts =
   let
@@ -844,9 +844,9 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {fact_G, ...} = mash_get ctxt
+    val facts = facts |> sort (thm_ord o pairself snd)
     val (old_facts, new_facts) =
       facts |> List.partition (is_fact_in_graph fact_G)
-            ||> sort (thm_ord o pairself snd)
   in
     if null new_facts andalso (not run_prover orelse null old_facts) then
       if auto_level < 2 then
@@ -861,9 +861,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         ""
     else
       let
-        val all_names =
-          Symtab.empty
-          |> fold Symtab.update (facts |> map (rpair () o nickname_of o snd))
+        val all_names = build_all_names nickname_of facts
         fun deps_of status th =
           if status = Non_Rec_Def orelse status = Rec_Def then
             SOME []

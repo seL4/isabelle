@@ -17,7 +17,7 @@ sig
   val parse_time_option : string -> string -> Time.time option
   val subgoal_count : Proof.state -> int
   val reserved_isar_keyword_table : unit -> unit Symtab.table
-  val thms_in_proof : unit Symtab.table option -> thm -> string list
+  val thms_in_proof : string Symtab.table option -> thm -> string list
   val thms_of_name : Proof.context -> string -> thm list
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
 end;
@@ -97,7 +97,10 @@ fun thms_in_proof all_names th =
   let
     val collect =
       case all_names of
-        SOME names => (fn s => Symtab.defined names s ? insert (op =) s)
+        SOME names =>
+        (fn s => case Symtab.lookup names s of
+                   SOME s' => insert (op =) s'
+                 | NONE => I)
       | NONE => insert (op =)
     val names =
       [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
