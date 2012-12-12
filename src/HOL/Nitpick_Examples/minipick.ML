@@ -438,6 +438,7 @@ fun solve_any_kodkod_problem thy problems =
       JavaNotFound => "unknown"
     | JavaTooOld => "unknown"
     | KodkodiNotInstalled => "unknown"
+    | KodkodiTooOld => "unknown"
     | Normal ([], _, _) => "none"
     | Normal _ => "genuine"
     | TimedOut _ => "unknown"

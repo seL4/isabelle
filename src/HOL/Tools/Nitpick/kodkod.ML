@@ -158,6 +158,7 @@ sig
     JavaNotFound |
     JavaTooOld |
     KodkodiNotInstalled |
+    KodkodiTooOld |
     Normal of (int * raw_bound list) list * int list * string |
     TimedOut of int list |
     Error of string * int list
@@ -305,6 +306,7 @@ datatype outcome =
   JavaNotFound |
   JavaTooOld |
   KodkodiNotInstalled |
+  KodkodiTooOld |
   Normal of (int * raw_bound list) list * int list * string |
   TimedOut of int list |
   Error of string * int list
@@ -316,12 +318,12 @@ type 'a fold_expr_funcs =
    rel_expr_func: rel_expr -> 'a -> 'a,
    int_expr_func: int_expr -> 'a -> 'a}
 
-fun is_new_kodkodi_version () =
+fun is_kodkodi_too_old () =
   case getenv "KODKODI_VERSION" of
-    "" => false
+    "" => true
   | s => dict_ord int_ord (s |> space_explode "."
                              |> map (the_default 0 o Int.fromString),
-                           [1, 2, 13]) = GREATER
+                           [1, 2, 14]) = LESS
 
 (** Auxiliary functions on Kodkod problems **)
 
@@ -525,10 +527,7 @@ fun rel_reg_name j = "$e" ^ base_name j
 fun int_reg_name j = "$i" ^ base_name j
 
 fun tuple_name x = n_ary_name x "A" "P" "T"
-fun rel_name new_kodkodi (n, j) =
-  n_ary_name (n, if new_kodkodi then j
-                 else if j >= 0 then 2 * j
-                 else 2 * ~j - 1) "s" "r" "m"
+fun rel_name x = n_ary_name x "s" "r" "m"
 fun var_name x = n_ary_name x "S" "R" "M"
 fun tuple_reg_name x = n_ary_name x "$A" "$P" "$T"
 fun tuple_set_reg_name x = n_ary_name x "$a" "$p" "$t"
@@ -540,8 +539,7 @@ fun inline_comment "" = ""
 fun block_comment "" = ""
   | block_comment comment = prefix_lines "// " comment ^ "\n"
 
-fun commented_rel_name new_kodkodi (x, s) =
-  rel_name new_kodkodi x ^ inline_comment s
+fun commented_rel_name (x, s) = rel_name x ^ inline_comment s
 
 fun string_for_tuple (Tuple js) = "[" ^ commas (map atom_name js) ^ "]"
   | string_for_tuple (TupleIndex x) = tuple_name x
@@ -592,8 +590,8 @@ fun string_for_tuple_assign (AssignTuple (x, t)) =
   | string_for_tuple_assign (AssignTupleSet (x, ts)) =
     tuple_set_reg_name x ^ " := " ^ string_for_tuple_set ts ^ "\n"
 
-fun string_for_bound new_kodkodi (zs, tss) =
-  "bounds " ^ commas (map (commented_rel_name new_kodkodi) zs) ^ ": " ^
+fun string_for_bound (zs, tss) =
+  "bounds " ^ commas (map commented_rel_name zs) ^ ": " ^
   (if length tss = 1 then "" else "[") ^ commas (map string_for_tuple_set tss) ^
   (if length tss = 1 then "" else "]") ^ "\n"
 
@@ -696,8 +694,6 @@ and precedence_i (Sum _) = prec_All
 
 fun write_problem_file out problems =
   let
-    val new_kodkodi = is_new_kodkodi_version ()
-    val rel_name = rel_name new_kodkodi
     fun out_outmost_f (And (f1, f2)) =
         (out_outmost_f f1; out "\n   && "; out_outmost_f f2)
       | out_outmost_f f = out_f f prec_And
@@ -850,7 +846,7 @@ fun write_problem_file out problems =
                             settings) ^
               "univ: " ^ atom_seq_name (univ_card, 0) ^ "\n" ^
               implode (map string_for_tuple_assign tuple_assigns) ^
-              implode (map (string_for_bound new_kodkodi) bounds) ^
+              implode (map string_for_bound bounds) ^
               (if int_bounds = [] then
                  ""
                else
@@ -883,31 +879,28 @@ fun strip_blanks [] = []
 val scan_nat =
   Scan.repeat1 (Scan.one Symbol.is_ascii_digit)
   >> (the o Int.fromString o space_implode "")
-fun scan_rel_name new_kodkodi =
+val scan_rel_name =
   ($$ "s" |-- scan_nat >> pair 1
    || $$ "r" |-- scan_nat >> pair 2
    || ($$ "m" |-- scan_nat --| $$ "_") -- scan_nat) -- Scan.option ($$ "'")
   >> (fn ((n, j), SOME _) => (n, ~j - 1)
-       | ((n, j), NONE) => (n, if new_kodkodi then j
-                               else if j mod 2 = 0 then j div 2
-                               else ~(j + 1) div 2))
+       | ((n, j), NONE) => (n, j))
 val scan_atom = $$ "A" |-- scan_nat
 fun parse_non_empty_list scan = scan ::: Scan.repeat ($$ "," |-- scan)
 fun parse_list scan = parse_non_empty_list scan || Scan.succeed []
 val parse_tuple = $$ "[" |-- parse_list scan_atom --| $$ "]"
 val parse_tuple_set = $$ "[" |-- parse_list parse_tuple --| $$ "]"
-fun parse_assignment new_kodkodi =
-  (scan_rel_name new_kodkodi --| $$ "=") -- parse_tuple_set
-fun parse_instance new_kodkodi =
+val parse_assignment = (scan_rel_name --| $$ "=") -- parse_tuple_set
+val parse_instance =
   Scan.this_string "relations:"
-  |-- $$ "{" |-- parse_list (parse_assignment new_kodkodi) --| $$ "}"
+  |-- $$ "{" |-- parse_list parse_assignment --| $$ "}"
 
-fun extract_instance new_kodkodi =
+val extract_instance =
   fst o Scan.finite Symbol.stopper
             (Scan.error (!! (fn _ =>
                                 raise SYNTAX ("Kodkod.extract_instance",
                                               "ill-formed Kodkodi output"))
-                            (parse_instance new_kodkodi)))
+                            parse_instance))
   o strip_blanks o raw_explode
 
 val problem_marker = "*** PROBLEM "
@@ -918,15 +911,15 @@ fun read_section_body marker =
   Substring.string o fst o Substring.position "\n\n"
   o Substring.triml (size marker)
 
-fun read_next_instance new_kodkodi s =
+fun read_next_instance s =
   let val s = Substring.position instance_marker s |> snd in
     if Substring.isEmpty s then
       raise SYNTAX ("Kodkod.read_next_instance", "expected \"INSTANCE\" marker")
     else
-      read_section_body instance_marker s |> extract_instance new_kodkodi
+      read_section_body instance_marker s |> extract_instance
   end
 
-fun read_next_outcomes new_kodkodi j (s, ps, js) =
+fun read_next_outcomes j (s, ps, js) =
   let val (s1, s2) = Substring.position outcome_marker s in
     if Substring.isEmpty s2 orelse
        not (Substring.isEmpty (Substring.position problem_marker s1
@@ -938,17 +931,16 @@ fun read_next_outcomes new_kodkodi j (s, ps, js) =
         val s = Substring.triml (size outcome_marker) s2
       in
         if String.isSuffix "UNSATISFIABLE" outcome then
-          read_next_outcomes new_kodkodi j (s, ps, j :: js)
+          read_next_outcomes j (s, ps, j :: js)
         else if String.isSuffix "SATISFIABLE" outcome then
-          read_next_outcomes new_kodkodi j
-                           (s, (j, read_next_instance new_kodkodi s2) :: ps, js)
+          read_next_outcomes j (s, (j, read_next_instance s2) :: ps, js)
         else
           raise SYNTAX ("Kodkod.read_next_outcomes",
                         "unknown outcome " ^ quote outcome)
       end
   end
 
-fun read_next_problems new_kodkodi (s, ps, js) =
+fun read_next_problems (s, ps, js) =
   let val s = Substring.position problem_marker s |> snd in
     if Substring.isEmpty s then
       (ps, js)
@@ -958,17 +950,14 @@ fun read_next_problems new_kodkodi (s, ps, js) =
         val j_plus_1 = s |> Substring.takel (not_equal #" ") |> Substring.string
                          |> Int.fromString |> the
         val j = j_plus_1 - 1
-      in
-        read_next_problems new_kodkodi
-                           (read_next_outcomes new_kodkodi j (s, ps, js))
-      end
+      in read_next_problems (read_next_outcomes j (s, ps, js)) end
   end
   handle Option.Option => raise SYNTAX ("Kodkod.read_next_problems",
                                         "expected number after \"PROBLEM\"")
 
-fun read_output_file new_kodkodi path =
+fun read_output_file path =
   (false,
-   read_next_problems new_kodkodi (Substring.full (File.read path), [], [])
+   read_next_problems (Substring.full (File.read path), [], [])
    |>> rev ||> rev)
   handle IO.Io _ => (true, ([], [])) | OS.SysErr _ => (true, ([], []))
 
@@ -999,7 +988,6 @@ fun milliseconds_until_deadline deadline =
 fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                                problems =
   let
-    val new_kodkodi = is_new_kodkodi_version ()
     val j = find_index (curry (op =) True o #formula) problems
     val indexed_problems = if j >= 0 then
                              [(j, nth problems j)]
@@ -1048,7 +1036,7 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                       " > " ^ File.shell_path out_path ^
                       " 2> " ^ File.shell_path err_path)
               val (io_error, (ps, nontriv_js)) =
-                read_output_file new_kodkodi out_path
+                read_output_file out_path
                 ||> apfst (map (apfst reindex)) ||> apsnd (map reindex)
               val js = triv_js @ nontriv_js
               val first_error =
@@ -1073,6 +1061,8 @@ fun uncached_solve_any_problem overlord deadline max_threads max_solutions
                   JavaTooOld
                 else if has_error "NoClassDefFoundError" then
                   KodkodiNotInstalled
+                else if is_kodkodi_too_old () then
+                  KodkodiTooOld
                 else if first_error <> "" then
                   Error (first_error, js)
                 else if io_error then

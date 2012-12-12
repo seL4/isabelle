@@ -191,7 +191,12 @@ fun kodkodi_not_installed_message () =
   \\"kodkodi-x.y.z\" directory's full path to " ^
   Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
   " on a line of its own."
-
+fun kodkodi_too_old_message () =
+  "The installed Kodkodi version is too old. To install a newer version, \
+  \download the package from \"http://www21.in.tum.de/~blanchet/#software\" \
+  \and add the \"kodkodi-x.y.z\" directory's full path to " ^
+  Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
+  " on a line of its own."
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
 
@@ -816,6 +821,9 @@ fun pick_them_nits_in_term deadline state (params : params) mode i n step
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
             (print_nt kodkodi_not_installed_message;
+             (found_really_genuine, max_potential, max_genuine, donno + 1))
+          | KK.KodkodiTooOld =>
+            (print_nt kodkodi_too_old_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
