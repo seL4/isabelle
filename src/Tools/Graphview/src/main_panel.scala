@@ -71,7 +71,7 @@ class Main_Panel(graph: Model.Graph)
       }
     }
     contents += Swing.RigidBox(new Dimension(10, 0))
-    contents += new Library.Zoom_Box(percent => graph_panel.rescale(0.01 * percent))
+    contents += graph_panel.zoom_box
 
     contents += Swing.RigidBox(new Dimension(10, 0))
     contents += new Button{

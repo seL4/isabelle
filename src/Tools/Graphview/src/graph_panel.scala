@@ -51,8 +51,10 @@ class Graph_Panel(
 
   def refresh()
   {
-    paint_panel.set_preferred_size()
-    paint_panel.repaint()
+    if (paint_panel != null) {
+      paint_panel.set_preferred_size()
+      paint_panel.repaint()
+    }
   }
 
   def fit_to_window() = {
@@ -60,9 +62,13 @@ class Graph_Panel(
     refresh()
   }
 
+  val zoom_box: Library.Zoom_Box =
+    new Library.Zoom_Box(percent => rescale(0.01 * percent))
+
   def rescale(s: Double)
   {
     Transform.scale = s
+    if (zoom_box != null) zoom_box.set_item((Transform.scale_discrete * 100).round.toInt)
     refresh()
   }
 
@@ -109,7 +115,7 @@ class Graph_Panel(
   visualizer.model.Mutators.events += { case _ => repaint() }
 
   apply_layout()
-  fit_to_window()
+  rescale(1.0)
 
   private object Transform
   {
@@ -120,7 +126,6 @@ class Graph_Panel(
     def scale_=(s: Double)
     {
       _scale = (s min 10) max 0.1
-      paint_panel.set_preferred_size()
     }
     def scale_discrete: Double =
       (_scale * visualizer.font_size).round.toDouble / visualizer.font_size
@@ -135,13 +140,13 @@ class Graph_Panel(
 
     def fit_to_window() {
       if (visualizer.model.visible_nodes().isEmpty)
-        scale = 1
+        rescale(1.0)
       else {
         val (minX, minY, maxX, maxY) = visualizer.Coordinates.bounds()
 
         val (dx, dy) = (maxX - minX + padding._1, maxY - minY + padding._2)
         val (sx, sy) = (1.0 * size.width / dx, 1.0 * size.height / dy)
-        scale = sx min sy
+        rescale(sx min sy)
       }
     }
 
@@ -164,8 +169,8 @@ class Graph_Panel(
 
       def typed(c: Char, m: Modifiers) =
         (c, m) match {
-          case ('+', _) => Transform.scale *= 5.0/4
-          case ('-', _) => Transform.scale *= 4.0/5
+          case ('+', _) => rescale(Transform.scale * 5.0/4)
+          case ('-', _) => rescale(Transform.scale * 4.0/5)
           case ('0', _) => Transform.fit_to_window()
           case ('1', _) => visualizer.Coordinates.update_layout()
           case ('2', _) => Transform.fit_to_window()
@@ -275,7 +280,7 @@ class Graph_Panel(
       def wheel(rotation: Int, at: Point) {
         val at2 = Transform.pane_to_graph_coordinates(at)
         // > 0 -> up
-        Transform.scale *= (if (rotation > 0) 4.0/5 else 5.0/4)
+        rescale(Transform.scale * (if (rotation > 0) 4.0/5 else 5.0/4))
 
         // move mouseposition to center
         Transform().transform(at2, at2)
