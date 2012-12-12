@@ -178,7 +178,15 @@ object Library
           if (10 <= i && i <= 1000) i else 100
         case _ => 100
       }
+
     def print(i: Int): String = i.toString + "%"
+
+    def set_item(i: Int) {
+      peer.getEditor match {
+        case null =>
+        case editor => editor.setItem(print(i))
+      }
+    }
 
     makeEditable()(c => new ComboBox.BuiltInEditor(c)(text => print(parse(text)), x => x))
     reactions += {
