@@ -96,11 +96,11 @@ sig
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
+  val graphviewN: string
+  val sendbackN: string
   val paddingN: string
   val padding_line: string * string
-  val sendbackN: string
   val dialogN: string val dialog: string -> string -> T
-  val graphviewN: string
   val intensifyN: string val intensify: T
   val taskN: string
   val acceptedN: string val accepted: T
@@ -341,15 +341,14 @@ val (subgoalN, subgoal) = markup_elem "subgoal";
 
 (* active areas *)
 
+val graphviewN = "graphview";
+
 val sendbackN = "sendback";
+val paddingN = "padding";
+val padding_line = (paddingN, lineN);
 
 val dialogN = "dialog";
 fun dialog name result = (dialogN, [(nameN, name), ("result", result)]);
-
-val graphviewN = "graphview";
-
-val paddingN = "padding";
-val padding_line = (paddingN, lineN);
 
 val (intensifyN, intensify) = markup_elem "intensify";
 

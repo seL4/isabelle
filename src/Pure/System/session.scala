@@ -426,7 +426,7 @@ class Session(val thy_load: Thy_Load)
           val dialog_result =
             XML.Elem(Markup(Markup.DIALOG_RESULT, Markup.Name(name) ::: Markup.Result(result)), Nil)
           handle_output(new Isabelle_Process.Output(
-            XML.Elem(Markup(Markup.REPORT, Position.Id(id)), List(dialog_result))))
+            XML.Elem(Markup(Markup.STATUS, Position.Id(id)), List(dialog_result))))
 
         case Messages(msgs) =>
           msgs foreach {

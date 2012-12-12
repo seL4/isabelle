@@ -215,16 +215,24 @@ object Markup
 
   /* active areas */
 
+  val GRAPHVIEW = "graphview"
+
   val SENDBACK = "sendback"
+  val PADDING = "padding"
+  val PADDING_LINE = (PADDING, LINE)
 
   val DIALOG = "dialog"
   val DIALOG_RESULT = "dialog_result"
   val Result = new Properties.String("result")
 
-  val GRAPHVIEW = "graphview"
-
-  val PADDING = "padding"
-  val PADDING_LINE = (PADDING, LINE)
+  object Dialog_Args
+  {
+    def unapply(props: Properties.T): Option[(String, String)] =
+      (props, props) match {
+        case (Markup.Name(name), Markup.Result(result)) => Some((name, result))
+        case _ => None
+      }
+  }
 
   val INTENSIFY = "intensify"
 

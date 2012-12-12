@@ -250,8 +250,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val active_include =
-    Set(Markup.SENDBACK, Markup.DIALOG, Markup.DIALOG_RESULT, Markup.GRAPHVIEW)
+  private val active_include = Set(Markup.SENDBACK, Markup.DIALOG, Markup.GRAPHVIEW)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
     snapshot.select_markup(range, Some(active_include),
@@ -409,8 +408,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   private val background1_include =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
-      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
-      active_include
+      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY +
+      Markup.DIALOG_RESULT ++ active_include
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -418,28 +417,35 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else
       for {
         Text.Info(r, result) <-
-          snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
-            range, (Some(Protocol.Status.init), None), Some(background1_include),
+          snapshot.cumulate_markup[(Map[String, String], Option[Protocol.Status], Option[Color])](
+            range, (Map.empty, Some(Protocol.Status.init), None), Some(background1_include),
             {
-              case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
+              case (((dialogs, Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
-                (Some(Protocol.command_status(status, markup)), color)
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
-                (None, Some(bad_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
-                (None, Some(intensify_color))
-              case (_, Text.Info(_, XML.Elem(Markup(Markup.DIALOG_RESULT, _), _))) =>
-                (None, Some(active_result_color))
-              case (_, Text.Info(_, XML.Elem(Markup(name, _), _))) if active_include(name) =>
-                (None, Some(active_color))
+                (dialogs, Some(Protocol.command_status(status, markup)), color)
+              case ((dialogs, _, _), Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
+                (dialogs, None, Some(bad_color))
+              case ((dialogs, _, _), Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
+                (dialogs, None, Some(intensify_color))
+              case ((dialogs, status, color), Text.Info(_,
+                XML.Elem(Markup(Markup.DIALOG_RESULT, Markup.Dialog_Args(name, result)), _))) =>
+                (dialogs + (name -> result), status, color)
+              case ((dialogs, _, _), Text.Info(_,
+                XML.Elem(Markup(Markup.DIALOG, Markup.Dialog_Args(name, result)), _))) =>
+                  if (dialogs.get(name) == Some(result))
+                    (dialogs, None, Some(active_result_color))
+                  else (dialogs, None, Some(active_color))
+              case ((dialogs, _, _), Text.Info(_, XML.Elem(Markup(name, _), _)))
+              if active_include(name) =>
+                (dialogs, None, Some(active_color))
             })
         color <-
           (result match {
-            case (Some(status), opt_color) =>
+            case (_, Some(status), opt_color) =>
               if (status.is_unprocessed) Some(unprocessed1_color)
               else if (status.is_running) Some(running1_color)
               else opt_color
-            case (_, opt_color) => opt_color
+            case (_, _, opt_color) => opt_color
           })
       } yield Text.Info(r, color)
   }
