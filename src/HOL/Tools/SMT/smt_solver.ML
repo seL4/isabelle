@@ -33,7 +33,7 @@ sig
   (*filter*)
   type 'a smt_filter_data =
     ('a * thm) list * ((int * thm) list * Proof.context)
-  val smt_filter_preprocess: Proof.state ->
+  val smt_filter_preprocess: Proof.context -> thm list -> thm ->
     ('a * (int option * thm)) list -> int -> 'a smt_filter_data
   val smt_filter_apply: Time.time -> 'a smt_filter_data ->
     {outcome: SMT_Failure.failure option, used_facts: ('a * thm) list}
@@ -272,15 +272,14 @@ fun mk_result outcome xrules = { outcome = outcome, used_facts = xrules }
 
 type 'a smt_filter_data = ('a * thm) list * ((int * thm) list * Proof.context)
 
-fun smt_filter_preprocess st xwthms i =
+fun smt_filter_preprocess ctxt facts goal xwthms i =
   let
     val ctxt =
-      Proof.context_of st
+      ctxt
       |> Config.put SMT_Config.oracle false
       |> Config.put SMT_Config.drop_bad_facts true
       |> Config.put SMT_Config.filter_only_facts true
 
-    val {facts, goal, ...} = Proof.goal st
     val ({context=ctxt', prems, concl, ...}, _) = Subgoal.focus ctxt i goal
     fun negate ct = Thm.dest_comb ct ||> Thm.apply cnot |-> Thm.apply
     val cprop =

@@ -957,7 +957,7 @@ val smt_slice_min_secs =
 fun smt_filter_loop ctxt name
                     ({debug, verbose, overlord, max_mono_iters,
                       max_new_mono_instances, timeout, slice, ...} : params)
-                    state i =
+                    state goal i =
   let
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
     val repair_context =
@@ -1001,8 +1001,9 @@ fun smt_filter_loop ctxt name
         val birth = Timer.checkRealTimer timer
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
+        val state_facts = these (try (#facts o Proof.goal) state)
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter_preprocess state facts i
+          SMT_Solver.smt_filter_preprocess ctxt state_facts goal facts i
           |> SMT_Solver.smt_filter_apply slice_timeout
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
@@ -1051,14 +1052,14 @@ fun smt_filter_loop ctxt name
 
 fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         minimize_command
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val num_facts = length facts
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact ctxt num_facts)
     val {outcome, used_facts = used_pairs, run_time} =
-      smt_filter_loop ctxt name params state subgoal facts
+      smt_filter_loop ctxt name params state goal subgoal facts
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
     val (preplay, message, message_tail) =
