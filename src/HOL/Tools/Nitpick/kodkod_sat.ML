@@ -18,7 +18,9 @@ struct
 open Kodkod
 
 datatype sink = ToStdout | ToFile
-datatype availability = Java | JNI
+datatype availability =
+  Java |
+  JNI of int list
 datatype mode = Batch | Incremental
 
 datatype sat_solver_info =
@@ -31,12 +33,12 @@ val berkmin_exec = getenv "BERKMIN_EXE"
 
 (* (string * sat_solver_info) list *)
 val static_list =
-  [("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
-                           "UNSAT")),
-   ("MiniSat_JNI", Internal (JNI, Incremental, ["MiniSat"])),
+  [("Lingeling_JNI", Internal (JNI [1, 5], Batch, ["Lingeling"])),
    ("CryptoMiniSat", External ("CRYPTOMINISAT_HOME", "cryptominisat", [])),
-   ("CryptoMiniSat_JNI", Internal (JNI, Batch, ["CryptoMiniSat"])),
-   ("Lingeling_JNI", Internal (JNI, Batch, ["Lingeling"])),
+   ("CryptoMiniSat_JNI", Internal (JNI [1, 5], Batch, ["CryptoMiniSat"])),
+   ("MiniSat", ExternalV2 (ToFile, "MINISAT_HOME", "minisat", [], "SAT", "",
+                           "UNSAT")),
+   ("MiniSat_JNI", Internal (JNI [], Incremental, ["MiniSat"])),
    ("zChaff", ExternalV2 (ToStdout, "ZCHAFF_HOME", "zchaff", [],
                           "Instance Satisfiable", "",
                           "Instance Unsatisfiable")),
@@ -74,8 +76,10 @@ fun dynamic_entry_for_external name dev home exec args markers =
                    end)
 fun dynamic_entry_for_info incremental (name, Internal (Java, mode, ss)) =
     if incremental andalso mode = Batch then NONE else SOME (name, K ss)
-  | dynamic_entry_for_info incremental (name, Internal (JNI, mode, ss)) =
-    if incremental andalso mode = Batch then
+  | dynamic_entry_for_info incremental
+        (name, Internal (JNI from_version, mode, ss)) =
+    if (incremental andalso mode = Batch) orelse
+       dict_ord int_ord (kodkodi_version (), from_version) = LESS then
       NONE
     else
       let

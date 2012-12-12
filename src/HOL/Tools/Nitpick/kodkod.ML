@@ -125,6 +125,8 @@ sig
      rel_expr_func: rel_expr -> 'a -> 'a,
      int_expr_func: int_expr -> 'a -> 'a}
 
+  val kodkodi_version : unit -> int list
+
   val fold_formula : 'a fold_expr_funcs -> formula -> 'a -> 'a
   val fold_rel_expr : 'a fold_expr_funcs -> rel_expr -> 'a -> 'a
   val fold_int_expr : 'a fold_expr_funcs -> int_expr -> 'a -> 'a
@@ -318,12 +320,13 @@ type 'a fold_expr_funcs =
    rel_expr_func: rel_expr -> 'a -> 'a,
    int_expr_func: int_expr -> 'a -> 'a}
 
+fun kodkodi_version () =
+  getenv "KODKODI_VERSION"
+  |> space_explode "."
+  |> map (the_default 0 o Int.fromString)
+
 fun is_kodkodi_too_old () =
-  case getenv "KODKODI_VERSION" of
-    "" => true
-  | s => dict_ord int_ord (s |> space_explode "."
-                             |> map (the_default 0 o Int.fromString),
-                           [1, 2, 14]) = LESS
+  dict_ord int_ord (kodkodi_version (), [1, 2, 14]) = LESS
 
 (** Auxiliary functions on Kodkod problems **)
 

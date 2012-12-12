@@ -169,10 +169,10 @@ startup. Its value can be retrieved by executing \texttt{isabelle}
 \texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
 file with the absolute path to Kodkodi. For example, if the
 \texttt{components} file does not exist yet and you extracted Kodkodi to
-\texttt{/usr/local/kodkodi-1.5.1}, create it with the single line
+\texttt{/usr/local/kodkodi-1.5.2}, create it with the single line
 
 \prew
-\texttt{/usr/local/kodkodi-1.5.1}
+\texttt{/usr/local/kodkodi-1.5.2}
 \postw
 
 (including an invisible newline character) in it.
@@ -204,7 +204,7 @@ This was done by adding the line
 
 after the \textbf{begin} keyword. The JNI version of MiniSat is bundled with
 Kodkodi and is precompiled for Linux, Mac~OS~X, and Windows (Cygwin). Other SAT
-solvers can also be installed, as explained in \S\ref{optimizations}. If you
+solvers can also be used, as explained in \S\ref{optimizations}. If you
 have already configured SAT solvers in Isabelle (e.g., for Refute), these will
 also be available to Nitpick.
 
@@ -2347,6 +2347,11 @@ The supported solvers are listed below:
 
 \begin{enum}
 
+\item[\labelitemi] \textbf{\textit{Lingeling\_JNI}:}
+Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
+version of Lingeling is bundled with Kodkodi and is precompiled for Linux and
+Mac~OS~X. It is also available from the Kodkod web site \cite{kodkod-2009}.
+
 \item[\labelitemi] \textbf{\textit{CryptoMiniSat}:} CryptoMiniSat is the winner of
 the 2010 SAT Race. To use CryptoMiniSat, set the environment variable
 \texttt{CRYPTO\-MINISAT\_}\discretionary{}{}{}\texttt{HOME} to the directory that contains the \texttt{crypto\-minisat}
@@ -2362,11 +2367,6 @@ Nitpick has been tested with version 2.51.
 Interface) version of CryptoMiniSat is bundled with Kodkodi and is precompiled
 for Linux and Mac~OS~X. It is also available from the Kodkod web site
 \cite{kodkod-2009}.
-
-\item[\labelitemi] \textbf{\textit{Lingeling\_JNI}:}
-Lingeling is an efficient solver written in C. The JNI (Java Native Interface)
-version of Lingeling is bundled with Kodkodi and is precompiled for Linux and
-Mac~OS~X. It is also available from the Kodkod web site \cite{kodkod-2009}.
 
 \item[\labelitemi] \textbf{\textit{MiniSat}:} MiniSat is an efficient solver
 written in \cpp{}. To use MiniSat, set the environment variable
