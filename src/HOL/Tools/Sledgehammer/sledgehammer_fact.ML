@@ -42,6 +42,7 @@ end;
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
 struct
 
+open ATP_Util
 open ATP_Problem_Generate
 open Metis_Tactic
 open Sledgehammer_Util
@@ -216,16 +217,19 @@ fun is_likely_tautology_or_too_meta th =
     fun is_boring_bool t =
       not (exists_subterm is_interesting_subterm t) orelse
       exists_type (exists_subtype (curry (op =) @{typ prop})) t
-    fun is_boring_prop (@{const Trueprop} $ t) = is_boring_bool t
-      | is_boring_prop (@{const "==>"} $ t $ u) =
-        is_boring_prop t andalso is_boring_prop u
-      | is_boring_prop (Const (@{const_name all}, _) $ (Abs (_, _, t)) $ u) =
-        is_boring_prop t andalso is_boring_prop u
-      | is_boring_prop (Const (@{const_name "=="}, _) $ t $ u) =
+    fun is_boring_prop _ (@{const Trueprop} $ t) = is_boring_bool t
+      | is_boring_prop Ts (@{const "==>"} $ t $ u) =
+        is_boring_prop Ts t andalso is_boring_prop Ts u
+      | is_boring_prop Ts (Const (@{const_name all}, _) $ (Abs (_, T, t)) $ u) =
+        is_boring_prop (T :: Ts) t andalso is_boring_prop (T :: Ts) u
+      | is_boring_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
+        is_boring_prop Ts (t $ eta_expand Ts u 1)
+      | is_boring_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
         is_boring_bool t andalso is_boring_bool u
-      | is_boring_prop _ = true
+      | is_boring_prop _ _ = true
   in
-    is_boring_prop (prop_of th) andalso not (Thm.eq_thm_prop (@{thm ext}, th))
+    is_boring_prop [] (prop_of th) andalso
+    not (Thm.eq_thm_prop (@{thm ext}, th))
   end
 
 fun is_theorem_bad_for_atps ho_atp th =
