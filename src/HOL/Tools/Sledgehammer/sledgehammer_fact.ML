@@ -183,7 +183,7 @@ fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
   | apply_depth (Abs (_, _, t)) = apply_depth t
   | apply_depth _ = 0
 
-fun is_formula_too_complex ho_atp t =
+fun is_too_complex ho_atp t =
   apply_depth t > max_apply_depth orelse
   (not ho_atp andalso formula_has_too_many_lambdas [] t)
 
@@ -236,7 +236,7 @@ fun is_likely_tautology_or_too_meta th =
 
 fun is_bad_for_atps ho_atp th =
   let val t = prop_of th in
-    is_formula_too_complex ho_atp t orelse
+    is_too_complex ho_atp t orelse
     exists_type type_has_top_sort t orelse exists_technical_const t orelse
     exists_low_level_class_const t orelse is_that_fact th
   end
@@ -425,12 +425,12 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
-        if not really_all andalso
-           name0 <> "" andalso
+        if name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             not (can (Proof_Context.get_thms ctxt) name0) orelse
-            is_blacklisted_or_something ctxt ho_atp name0) then
+            (not really_all andalso
+             is_blacklisted_or_something ctxt ho_atp name0)) then
           I
         else
           let
@@ -446,8 +446,7 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
                        is_likely_tautology_or_too_meta th orelse
-                       (not really_all andalso
-                        is_bad_for_atps ho_atp th) then
+                       (not really_all andalso is_bad_for_atps ho_atp th) then
                       (multis, unis)
                     else
                       let
