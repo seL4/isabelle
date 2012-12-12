@@ -24,6 +24,9 @@ sig
     Proof.context -> unit Symtab.table -> thm list -> status Termtab.table
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
+  val is_bad_for_atps : bool -> thm -> bool
+  val is_concealed_or_backlisted_or_something :
+    Proof.context -> bool -> Facts.T -> string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val build_all_names :
     (thm -> string) -> ('a * thm) list -> string Symtab.table
@@ -232,12 +235,18 @@ fun is_likely_tautology_or_too_meta th =
     not (Thm.eq_thm_prop (@{thm ext}, th))
   end
 
-fun is_theorem_bad_for_atps ho_atp th =
+fun is_bad_for_atps ho_atp th =
   let val t = prop_of th in
     is_formula_too_complex ho_atp t orelse
     exists_type type_has_top_sort t orelse exists_technical_const t orelse
     exists_low_level_class_const t orelse is_that_fact th
   end
+
+fun is_concealed_or_backlisted_or_something ctxt ho_atp facts name =
+  Facts.is_concealed facts name orelse
+  not (can (Proof_Context.get_thms ctxt) name) orelse
+  (not (Config.get ctxt ignore_no_atp) andalso is_package_def name) orelse
+  exists (fn s => String.isSuffix s name) (multi_base_blacklist ctxt ho_atp)
 
 fun hackish_string_for_term ctxt =
   with_vanilla_print_mode (Syntax.string_of_term ctxt) #> simplify_spaces
@@ -422,12 +431,7 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
         if not really_all andalso
            name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
-           (Facts.is_concealed facts name0 orelse
-            not (can (Proof_Context.get_thms ctxt) name0) orelse
-            (not (Config.get ctxt ignore_no_atp) andalso
-             is_package_def name0) orelse
-            exists (fn s => String.isSuffix s name0)
-                   (multi_base_blacklist ctxt ho_atp)) then
+           is_concealed_or_backlisted_or_something ctxt ho_atp facts name0 then
           I
         else
           let
@@ -444,7 +448,7 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
                     if not (member Thm.eq_thm_prop add_ths th) andalso
                        is_likely_tautology_or_too_meta th orelse
                        (not really_all andalso
-                        is_theorem_bad_for_atps ho_atp th) then
+                        is_bad_for_atps ho_atp th) then
                       (multis, unis)
                     else
                       let
