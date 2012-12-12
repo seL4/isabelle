@@ -1217,10 +1217,10 @@ lemma reduced_labelling_unique: fixes x::"nat \<Rightarrow> nat"
   shows "reduced label n x = r" apply(rule le_antisym) apply(rule_tac[!] ccontr) unfolding not_le
   using reduced_labelling[of label n x] using assms by auto
 
-lemma reduced_labelling_0: assumes "j\<in>{1..n}" "label x j = 0" shows "reduced label n x \<noteq> j - 1"
+lemma reduced_labelling_zero: assumes "j\<in>{1..n}" "label x j = 0" shows "reduced label n x \<noteq> j - 1"
   using reduced_labelling[of label n x] using assms by fastforce 
 
-lemma reduced_labelling_1: assumes "j\<in>{1..n}" "label x j \<noteq> 0" shows "reduced label n x < j"
+lemma reduced_labelling_nonzero: assumes "j\<in>{1..n}" "label x j \<noteq> 0" shows "reduced label n x < j"
   using assms and reduced_labelling[of label n x] apply(erule_tac x=j in allE) by auto
 
 lemma reduced_labelling_Suc:
@@ -1235,13 +1235,13 @@ lemma complete_face_top:
   ((reduced lab (n + 1)) ` f = {0..n}) \<and> (\<forall>x\<in>f. x (n + 1) = p)" (is "?l = ?r") proof
   assume ?l (is "?as \<and> (?a \<or> ?b)") thus ?r apply-apply(rule,erule conjE,assumption) proof(cases ?a)
     case True then guess j .. note j=this {fix x assume x:"x\<in>f"
-      have "reduced lab (n+1) x \<noteq> j - 1" using j apply-apply(rule reduced_labelling_0) defer apply(rule assms(1)[rule_format]) using x by auto }
+      have "reduced lab (n+1) x \<noteq> j - 1" using j apply-apply(rule reduced_labelling_zero) defer apply(rule assms(1)[rule_format]) using x by auto }
     moreover have "j - 1 \<in> {0..n}" using j by auto
     then guess y unfolding `?l`[THEN conjunct1,THEN sym] and image_iff .. note y = this
     ultimately have False by auto thus "\<forall>x\<in>f. x (n + 1) = p" by auto next
 
     case False hence ?b using `?l` by blast then guess j .. note j=this {fix x assume x:"x\<in>f"
-      have "reduced lab (n+1) x < j" using j apply-apply(rule reduced_labelling_1) using assms(2)[rule_format,of x j] and x by auto } note * = this
+      have "reduced lab (n+1) x < j" using j apply-apply(rule reduced_labelling_nonzero) using assms(2)[rule_format,of x j] and x by auto } note * = this
     have "j = n + 1" proof(rule ccontr) case goal1 hence "j < n + 1" using j by auto moreover
       have "n \<in> {0..n}" by auto then guess y unfolding `?l`[THEN conjunct1,THEN sym] image_iff ..
       ultimately show False using *[of y] by auto qed
@@ -1261,7 +1261,7 @@ lemma kuhn_induction:
     have *:"\<forall>x\<in>f. \<forall>j\<in>{1..n + 1}. x j = 0 \<longrightarrow> lab x j = 0" "\<forall>x\<in>f. \<forall>j\<in>{1..n + 1}. x j = p \<longrightarrow> lab x j = 1"
       using assms(2-3) using as(1)[unfolded ksimplex_def] by auto
     have allp:"\<forall>x\<in>f. x (n + 1) = p" using assms(2) using as(1)[unfolded ksimplex_def] by auto
-    { fix x assume "x\<in>f" hence "reduced lab (n + 1) x < n + 1" apply-apply(rule reduced_labelling_1)
+    { fix x assume "x\<in>f" hence "reduced lab (n + 1) x < n + 1" apply-apply(rule reduced_labelling_nonzero)
         defer using assms(3) using as(1)[unfolded ksimplex_def] by auto
       hence "reduced lab (n + 1) x = reduced lab n x" apply-apply(rule reduced_labelling_Suc) using reduced_labelling(1) by auto }
     hence "reduced lab (n + 1) ` f = {0..n}" unfolding as(2)[THEN sym] apply- apply(rule set_eqI) unfolding image_iff by auto
@@ -1278,14 +1278,14 @@ lemma kuhn_induction:
         using reduced_labelling(1) by auto }
     thus part1:"reduced lab n ` f = {0..n}" unfolding sa(4)[THEN sym] apply-apply(rule set_eqI) unfolding image_iff by auto
     have *:"\<forall>x\<in>f. x (n + 1) = p" proof(cases "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = 0")
-      case True then guess j .. hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab (n + 1) x \<noteq> j - 1" apply-apply(rule reduced_labelling_0) apply assumption
+      case True then guess j .. hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab (n + 1) x \<noteq> j - 1" apply-apply(rule reduced_labelling_zero) apply assumption
         apply(rule assms(2)[rule_format]) using sa(1)[unfolded ksimplex_def] unfolding sa by auto moreover
       have "j - 1 \<in> {0..n}" using `j\<in>{1..n+1}` by auto
       ultimately have False unfolding sa(4)[THEN sym] unfolding image_iff by fastforce thus ?thesis by auto next
       case False hence "\<exists>j\<in>{1..n + 1}. \<forall>x\<in>f. x j = p" using sa(5) by fastforce then guess j .. note j=this
       thus ?thesis proof(cases "j = n+1")
         case False hence *:"j\<in>{1..n}" using j by auto
-        hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab n x < j" apply(rule reduced_labelling_1) proof- fix x assume "x\<in>f"
+        hence "\<And>x. x\<in>f \<Longrightarrow> reduced lab n x < j" apply(rule reduced_labelling_nonzero) proof- fix x assume "x\<in>f"
           hence "lab x j = 1" apply-apply(rule assms(3)[rule_format,OF j(1)]) 
             using sa(1)[unfolded ksimplex_def] using j unfolding sa by auto thus "lab x j \<noteq> 0" by auto qed
         moreover have "j\<in>{0..n}" using * by auto
@@ -1306,7 +1306,7 @@ lemma ksimplex_0: "ksimplex p 0 s \<longleftrightarrow> s = {(\<lambda>x. p)}" (
   have "a = (\<lambda>x. p)" using ksimplexD(5)[OF l, rule_format, OF a(1)] by(rule,auto) thus ?r using a by auto next
   assume r:?r show ?l unfolding r ksimplex_eq by auto qed
 
-lemma reduce_labelling_0[simp]: "reduced lab 0 x = 0" apply(rule reduced_labelling_unique) by auto
+lemma reduce_labelling_zero[simp]: "reduced lab 0 x = 0" apply(rule reduced_labelling_unique) by auto
 
 lemma kuhn_combinatorial:
   assumes "0 < p" "\<forall>x j. (\<forall>j. x(j) \<le> p) \<and> 1 \<le> j \<and> j \<le> n \<and> (x j = 0) \<longrightarrow> (lab x j = 0)"
