@@ -106,16 +106,16 @@ val smart_sat_solver_name = fst o hd o dynamic_list
 
 fun sat_solver_spec name =
   let
-    val dyn_list = dynamic_list false
+    val dyns = dynamic_list false
     fun enum_solvers solvers =
       commas (distinct (op =) (map (quote o fst) solvers))
   in
-    (name, the (AList.lookup (op =) dyn_list name) ())
+    (name, the (AList.lookup (op =) dyns name) ())
     handle Option.Option =>
            error (if AList.defined (op =) static_list name then
                     "The SAT solver " ^ quote name ^ " is not configured. The \
                     \following solvers are configured:\n" ^
-                    enum_solvers dyn_list ^ "."
+                    enum_solvers dyns ^ "."
                   else
                     "Unknown SAT solver " ^ quote name ^ ". The following \
                     \solvers are supported:\n" ^ enum_solvers static_list ^ ".")
