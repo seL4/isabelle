@@ -220,8 +220,8 @@ fun is_likely_tautology_or_too_meta th =
     fun is_boring_prop _ (@{const Trueprop} $ t) = is_boring_bool t
       | is_boring_prop Ts (@{const "==>"} $ t $ u) =
         is_boring_prop Ts t andalso is_boring_prop Ts u
-      | is_boring_prop Ts (Const (@{const_name all}, _) $ (Abs (_, T, t)) $ u) =
-        is_boring_prop (T :: Ts) t andalso is_boring_prop (T :: Ts) u
+      | is_boring_prop Ts (Const (@{const_name all}, _) $ Abs (_, T, t)) =
+        is_boring_prop (T :: Ts) t
       | is_boring_prop Ts ((t as Const (@{const_name all}, _)) $ u) =
         is_boring_prop Ts (t $ eta_expand Ts u 1)
       | is_boring_prop _ (Const (@{const_name "=="}, _) $ t $ u) =
