@@ -154,7 +154,7 @@ fun multi_base_blacklist ctxt ho_atp =
         append ["induct", "inducts"]
   |> map (prefix Long_Name.separator)
 
-val max_lambda_nesting = 3 (*only applies if not ho_atp*)
+val max_lambda_nesting = 5 (*only applies if not ho_atp*)
 
 fun term_has_too_many_lambdas max (t1 $ t2) =
     exists (term_has_too_many_lambdas max) [t1, t2]
@@ -174,7 +174,7 @@ fun formula_has_too_many_lambdas Ts (Abs (_, T, t)) =
 
 (* The max apply depth of any "metis" call in "Metis_Examples" (on 2007-10-31)
    was 11. *)
-val max_apply_depth = 15
+val max_apply_depth = 18
 
 fun apply_depth (f $ t) = Int.max (apply_depth f, apply_depth t + 1)
   | apply_depth (Abs (_, _, t)) = apply_depth t
@@ -229,7 +229,6 @@ fun is_likely_tautology_or_too_meta th =
   end
 
 fun is_theorem_bad_for_atps ho_atp th =
-  is_likely_tautology_or_too_meta th orelse
   let val t = prop_of th in
     is_formula_too_complex ho_atp t orelse
     exists_type type_has_top_sort t orelse exists_technical_const t orelse
@@ -439,7 +438,9 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
             #> fold_rev (fn th => fn (j, (multis, unis)) =>
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
-                       is_theorem_bad_for_atps ho_atp th then
+                       is_likely_tautology_or_too_meta th orelse
+                       (not really_all andalso
+                        is_theorem_bad_for_atps ho_atp th) then
                       (multis, unis)
                     else
                       let
