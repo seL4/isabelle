@@ -129,6 +129,7 @@ fun generate_prover_dependencies ctxt params =
 
 fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
   let
+    val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = all_facts ctxt
@@ -146,7 +147,12 @@ fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
           escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
           encode_features feats
         val query =
-          if kind = "" orelse null deps then "" else "? " ^ core ^ "\n"
+          if kind = "" orelse null deps orelse
+             is_blacklisted_or_something ctxt ho_atp name orelse
+             Sledgehammer_Fact.is_bad_for_atps ho_atp th then
+            ""
+          else
+            "? " ^ core ^ "\n"
         val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end

@@ -25,8 +25,7 @@ sig
     -> Facts.ref * Attrib.src list -> ((string * stature) * thm) list
   val backquote_thm : Proof.context -> thm -> string
   val is_bad_for_atps : bool -> thm -> bool
-  val is_concealed_or_backlisted_or_something :
-    Proof.context -> bool -> Facts.T -> string -> bool
+  val is_blacklisted_or_something : Proof.context -> bool -> string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
   val build_all_names :
     (thm -> string) -> ('a * thm) list -> string Symtab.table
@@ -242,9 +241,7 @@ fun is_bad_for_atps ho_atp th =
     exists_low_level_class_const t orelse is_that_fact th
   end
 
-fun is_concealed_or_backlisted_or_something ctxt ho_atp facts name =
-  Facts.is_concealed facts name orelse
-  not (can (Proof_Context.get_thms ctxt) name) orelse
+fun is_blacklisted_or_something ctxt ho_atp name =
   (not (Config.get ctxt ignore_no_atp) andalso is_package_def name) orelse
   exists (fn s => String.isSuffix s name) (multi_base_blacklist ctxt ho_atp)
 
@@ -431,7 +428,9 @@ fun all_facts ctxt really_all ho_atp reserved add_ths chained css =
         if not really_all andalso
            name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
-           is_concealed_or_backlisted_or_something ctxt ho_atp facts name0 then
+           (Facts.is_concealed facts name0 orelse
+            not (can (Proof_Context.get_thms ctxt) name0) orelse
+            is_blacklisted_or_something ctxt ho_atp name0) then
           I
         else
           let
