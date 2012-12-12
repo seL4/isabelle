@@ -269,6 +269,14 @@ trait Protocol extends Isabelle_Process
   }
 
 
+  /* dialog via document content */
+
+  def dialog_result(name: String, result: String)
+  {
+    input("Document.dialog_result", name, result)
+  }
+
+
   /* method invocation service */
 
   def invoke_scala(id: String, tag: Invoke_Scala.Tag.Value, res: String)

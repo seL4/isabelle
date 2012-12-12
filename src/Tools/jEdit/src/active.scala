@@ -54,6 +54,13 @@ object Active
                     else text_area.setSelectedText(text)
                 }
 
+              case XML.Elem(Markup(Markup.DIALOG, props), _) =>
+                (props, props, props) match {
+                  case (Position.Id(id), Markup.Name(name), Markup.Result(result)) =>
+                    model.session.dialog_result(id, name, result)
+                  case _ =>
+                }
+
               case XML.Elem(Markup(Markup.GRAPHVIEW, Position.Id(exec_id)), body) =>
                 default_thread_pool.submit(() =>
                   {

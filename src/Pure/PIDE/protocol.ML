@@ -76,6 +76,12 @@ val _ =
       in state1 end));
 
 val _ =
+  Isabelle_Process.protocol_command "Document.dialog_result"
+    (fn [name, result] =>
+      Active.dialog_result name result
+        handle exn => if Exn.is_interrupt exn then () else reraise exn);
+
+val _ =
   Isabelle_Process.protocol_command "Document.invoke_scala"
     (fn [id, tag, res] =>
       Invoke_Scala.fulfill_method id tag res

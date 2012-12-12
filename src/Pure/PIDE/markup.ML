@@ -99,6 +99,7 @@ sig
   val paddingN: string
   val padding_line: string * string
   val sendbackN: string
+  val dialogN: string val dialog: string -> string -> T
   val graphviewN: string
   val intensifyN: string val intensify: T
   val taskN: string
@@ -338,9 +339,13 @@ val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 
 
-(* active areads *)
+(* active areas *)
 
 val sendbackN = "sendback";
+
+val dialogN = "dialog";
+fun dialog name result = (dialogN, [(nameN, name), ("result", result)]);
+
 val graphviewN = "graphview";
 
 val paddingN = "padding";

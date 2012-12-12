@@ -216,6 +216,11 @@ object Markup
   /* active areas */
 
   val SENDBACK = "sendback"
+
+  val DIALOG = "dialog"
+  val DIALOG_RESULT = "dialog_result"
+  val Result = new Properties.String("result")
+
   val GRAPHVIEW = "graphview"
 
   val PADDING = "padding"

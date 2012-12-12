@@ -137,6 +137,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val hyperlink_color = color_value("hyperlink_color")
   val active_color = color_value("active_color")
   val active_hover_color = color_value("active_hover_color")
+  val active_result_color = color_value("active_result_color")
   val keyword1_color = color_value("keyword1_color")
   val keyword2_color = color_value("keyword2_color")
 
@@ -249,7 +250,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val active_include = Set(Markup.SENDBACK, Markup.GRAPHVIEW)
+  private val active_include =
+    Set(Markup.SENDBACK, Markup.DIALOG, Markup.DIALOG_RESULT, Markup.GRAPHVIEW)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
     snapshot.select_markup(range, Some(active_include),
@@ -426,6 +428,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.DIALOG_RESULT, _), _))) =>
+                (None, Some(active_result_color))
               case (_, Text.Info(_, XML.Elem(Markup(name, _), _))) if active_include(name) =>
                 (None, Some(active_color))
             })

@@ -63,7 +63,6 @@ if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
 
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
-use "PIDE/active.ML";
 
 use "General/graph.ML";
 
@@ -252,6 +251,7 @@ use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";
+use "PIDE/active.ML";
 use "PIDE/command.ML";
 use "Isar/outer_syntax.ML";
 use "General/graph_display.ML";

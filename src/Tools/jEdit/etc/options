@@ -43,6 +43,7 @@ option highlight_color : string = "50505032"
 option hyperlink_color : string = "000000FF"
 option active_color : string = "DCDCDCFF"
 option active_hover_color : string = "9DC75DFF"
+option active_result_color : string = "666633FF"
 option keyword1_color : string = "006699FF"
 option keyword2_color : string = "009966FF"
 
