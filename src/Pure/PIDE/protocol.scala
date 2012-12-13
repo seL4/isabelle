@@ -145,10 +145,28 @@ object Protocol
 
   /* specific messages */
 
+  def is_inlined(msg: XML.Tree): Boolean =
+    !(is_result(msg) || is_tracing(msg) || is_state(msg))
+
+  def is_result(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.RESULT, _), _) => true
+      case _ => false
+    }
+
   def is_tracing(msg: XML.Tree): Boolean =
     msg match {
       case XML.Elem(Markup(Markup.TRACING, _), _) => true
       case XML.Elem(Markup(Markup.TRACING_MESSAGE, _), _) => true
+      case _ => false
+    }
+
+  def is_state(msg: XML.Tree): Boolean =
+    msg match {
+      case XML.Elem(Markup(Markup.WRITELN, _),
+        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
+      case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _),
+        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
       case _ => false
     }
 
@@ -166,14 +184,41 @@ object Protocol
       case _ => false
     }
 
-  def is_state(msg: XML.Tree): Boolean =
-    msg match {
-      case XML.Elem(Markup(Markup.WRITELN, _),
-        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
-      case XML.Elem(Markup(Markup.WRITELN_MESSAGE, _),
-        List(XML.Elem(Markup(Markup.STATE, _), _))) => true
-      case _ => false
-    }
+
+  /* dialogs */
+
+  object Dialog_Args
+  {
+    def unapply(props: Properties.T): Option[(Document.ID, Long, String)] =
+      (props, props, props) match {
+        case (Position.Id(id), Markup.Serial(serial), Markup.Result(result)) =>
+          Some((id, serial, result))
+        case _ => None
+      }
+  }
+
+  object Dialog
+  {
+    def unapply(tree: XML.Tree): Option[(Document.ID, Long, String)] =
+      tree match {
+        case XML.Elem(Markup(Markup.DIALOG, Dialog_Args(id, serial, result)), _) =>
+          Some((id, serial, result))
+        case _ => None
+      }
+  }
+
+  object Dialog_Result
+  {
+    def apply(serial: Long, result: String): XML.Elem =
+      XML.Elem(Markup(Markup.RESULT, Markup.Serial(serial)), List(XML.Text(result)))
+
+    def unapply(tree: XML.Tree): Option[(Long, String)] =
+      tree match {
+        case XML.Elem(Markup(Markup.RESULT, Markup.Serial(serial)), List(XML.Text(result))) =>
+          Some((serial, result))
+        case _ => None
+      }
+  }
 
 
   /* reported positions */
@@ -205,7 +250,7 @@ object Protocol
       }
 
     val set = positions(Set.empty, message)
-    if (set.isEmpty && !is_state(message))
+    if (set.isEmpty)
       set ++ Position.Range.unapply(message.markup.properties).map(command.decode(_))
     else set
   }
@@ -271,9 +316,9 @@ trait Protocol extends Isabelle_Process
 
   /* dialog via document content */
 
-  def dialog_result(name: String, result: String)
+  def dialog_result(serial: Long, result: String)
   {
-    input("Document.dialog_result", name, result)
+    input("Document.dialog_result", Properties.Value.Long(serial), result)
   }
 
 

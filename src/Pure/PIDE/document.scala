@@ -280,9 +280,9 @@ object Document
     def revert(range: Text.Range): Text.Range
     def eq_markup(other: Snapshot): Boolean
     def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
-      result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]]
+      result: Command.State => PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]]
     def select_markup[A](range: Text.Range, elements: Option[Set[String]],
-      result: PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
+      result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]]
   }
 
   type Assign = List[(Document.Command_ID, Option[Document.Exec_ID])]  // exec state assignment
@@ -506,29 +506,34 @@ object Document
             })
 
         def cumulate_markup[A](range: Text.Range, info: A, elements: Option[Set[String]],
-          result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
+          result: Command.State => PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
         {
           val former_range = revert(range)
           for {
             (command, command_start) <- node.command_range(former_range).toStream
-            Text.Info(r0, a) <- state.command_state(version, command).markup.
+            st = state.command_state(version, command)
+            res = result(st)
+            Text.Info(r0, a) <- st.markup.
               cumulate[A]((former_range - command_start).restrict(command.range), info, elements,
                 {
                   case (a, Text.Info(r0, b))
-                  if result.isDefinedAt((a, Text.Info(convert(r0 + command_start), b))) =>
-                    result((a, Text.Info(convert(r0 + command_start), b)))
+                  if res.isDefinedAt((a, Text.Info(convert(r0 + command_start), b))) =>
+                    res((a, Text.Info(convert(r0 + command_start), b)))
                 })
           } yield Text.Info(convert(r0 + command_start), a)
         }
 
         def select_markup[A](range: Text.Range, elements: Option[Set[String]],
-          result: PartialFunction[Text.Markup, A]): Stream[Text.Info[A]] =
+          result: Command.State => PartialFunction[Text.Markup, A]): Stream[Text.Info[A]] =
         {
-          val result1 =
+          def result1(st: Command.State) =
+          {
+            val res = result(st)
             new PartialFunction[(Option[A], Text.Markup), Option[A]] {
-              def isDefinedAt(arg: (Option[A], Text.Markup)): Boolean = result.isDefinedAt(arg._2)
-              def apply(arg: (Option[A], Text.Markup)): Option[A] = Some(result(arg._2))
+              def isDefinedAt(arg: (Option[A], Text.Markup)): Boolean = res.isDefinedAt(arg._2)
+              def apply(arg: (Option[A], Text.Markup)): Option[A] = Some(res(arg._2))
             }
+          }
           for (Text.Info(r, Some(x)) <- cumulate_markup(range, None, elements, result1))
             yield Text.Info(r, x)
         }

@@ -165,7 +165,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       val results =
         snapshot.cumulate_markup[(Protocol.Status, Int)](
           range, (Protocol.Status.init, 0),
-          Some(Protocol.command_status_markup + Markup.WARNING + Markup.ERROR),
+          Some(Protocol.command_status_markup + Markup.WARNING + Markup.ERROR), _ =>
           {
             case ((status, pri), Text.Info(_, XML.Elem(markup, _))) =>
               if (markup.name == Markup.WARNING || markup.name == Markup.ERROR)
@@ -198,7 +198,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def highlight(range: Text.Range): Option[Text.Info[Color]] =
   {
-    snapshot.select_markup(range, Some(highlight_include),
+    snapshot.select_markup(range, Some(highlight_include), _ =>
         {
           case Text.Info(info_range, XML.Elem(Markup(name, _), _)) if highlight_include(name) =>
             Text.Info(snapshot.convert(info_range), highlight_color)
@@ -210,7 +210,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def hyperlink(range: Text.Range): Option[Text.Info[Hyperlink]] =
   {
-    snapshot.cumulate_markup[List[Text.Info[Hyperlink]]](range, Nil, Some(hyperlink_include),
+    snapshot.cumulate_markup[List[Text.Info[Hyperlink]]](range, Nil, Some(hyperlink_include), _ =>
         {
           case (links, Text.Info(info_range, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
@@ -250,11 +250,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val active_include = Set(Markup.SENDBACK, Markup.DIALOG, Markup.GRAPHVIEW)
+  private val active_include = Set(Markup.GRAPHVIEW, Markup.SENDBACK, Markup.DIALOG)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
-    snapshot.select_markup(range, Some(active_include),
-        {
+    snapshot.select_markup(range, Some(active_include), command_state =>
+        {  // FIXME inactive dialog
           case Text.Info(info_range, elem @ XML.Elem(markup, _))
           if active_include(markup.name) => Text.Info(snapshot.convert(info_range), elem)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
@@ -264,7 +264,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     val msgs =
       snapshot.cumulate_markup[SortedMap[Long, XML.Tree]](range, SortedMap.empty,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)),
+        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
         {
           case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
           if name == Markup.WRITELN ||
@@ -308,7 +308,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
     val tips =
       snapshot.cumulate_markup[Text.Info[(List[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, Nil), Some(tooltip_elements),
+        range, Text.Info(range, Nil), Some(tooltip_elements), _ =>
         {
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
             val kind1 = space_explode('_', kind).mkString(" ")
@@ -335,7 +335,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def gutter_message(range: Text.Range): Option[Icon] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(Set(Markup.WARNING, Markup.ERROR)),
+      snapshot.cumulate_markup[Int](range, 0, Some(Set(Markup.WARNING, Markup.ERROR)), _ =>
         {
           case (pri, Text.Info(_, XML.Elem(Markup(Markup.WARNING, _), body))) =>
             body match {
@@ -360,7 +360,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     val results =
       snapshot.cumulate_markup[Int](range, 0,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)),
+        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR)), _ =>
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN ||
@@ -386,7 +386,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   def line_background(range: Text.Range): Option[(Color, Boolean)] =
   {
     val results =
-      snapshot.cumulate_markup[Int](range, 0, Some(messages_include),
+      snapshot.cumulate_markup[Int](range, 0, Some(messages_include), _ =>
         {
           case (pri, Text.Info(_, XML.Elem(Markup(name, _), _)))
           if name == Markup.WRITELN_MESSAGE ||
@@ -397,7 +397,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val pri = (0 /: results) { case (p1, Text.Info(_, p2)) => p1 max p2 }
 
     val is_separator = pri > 0 &&
-      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Markup.SEPARATOR)),
+      snapshot.cumulate_markup[Boolean](range, false, Some(Set(Markup.SEPARATOR)), _ =>
         {
           case (_, Text.Info(_, XML.Elem(Markup(Markup.SEPARATOR, _), _))) => true
         }).exists(_.info)
@@ -406,10 +406,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
+  def output_messages(st: Command.State): List[XML.Tree] =
+  {
+    st.results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
+  }
+
+
   private val background1_include =
     Protocol.command_status_markup + Markup.WRITELN_MESSAGE + Markup.TRACING_MESSAGE +
-      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY +
-      Markup.DIALOG_RESULT ++ active_include
+      Markup.WARNING_MESSAGE + Markup.ERROR_MESSAGE + Markup.BAD + Markup.INTENSIFY ++
+      active_include
 
   def background1(range: Text.Range): Stream[Text.Info[Color]] =
   {
@@ -417,49 +423,47 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     else
       for {
         Text.Info(r, result) <-
-          snapshot.cumulate_markup[(Map[String, String], Option[Protocol.Status], Option[Color])](
-            range, (Map.empty, Some(Protocol.Status.init), None), Some(background1_include),
+          snapshot.cumulate_markup[(Option[Protocol.Status], Option[Color])](
+            range, (Some(Protocol.Status.init), None), Some(background1_include), command_state =>
             {
-              case (((dialogs, Some(status), color), Text.Info(_, XML.Elem(markup, _))))
+              case (((Some(status), color), Text.Info(_, XML.Elem(markup, _))))
               if (Protocol.command_status_markup(markup.name)) =>
-                (dialogs, Some(Protocol.command_status(status, markup)), color)
-              case ((dialogs, _, _), Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
-                (dialogs, None, Some(bad_color))
-              case ((dialogs, _, _), Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
-                (dialogs, None, Some(intensify_color))
-              case ((dialogs, status, color), Text.Info(_,
-                XML.Elem(Markup(Markup.DIALOG_RESULT, Markup.Dialog_Args(name, result)), _))) =>
-                (dialogs + (name -> result), status, color)
-              case ((dialogs, _, _), Text.Info(_,
-                XML.Elem(Markup(Markup.DIALOG, Markup.Dialog_Args(name, result)), _))) =>
-                  if (dialogs.get(name) == Some(result))
-                    (dialogs, None, Some(active_result_color))
-                  else (dialogs, None, Some(active_color))
-              case ((dialogs, _, _), Text.Info(_, XML.Elem(Markup(name, _), _)))
-              if active_include(name) =>
-                (dialogs, None, Some(active_color))
+                (Some(Protocol.command_status(status, markup)), color)
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _))) =>
+                (None, Some(bad_color))
+              case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
+                (None, Some(intensify_color))
+              case (_, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
+                command_state.results.get(serial) match {
+                  case Some(Protocol.Dialog_Result(_, res)) if res == result =>
+                    (None, Some(active_result_color))
+                  case _ =>
+                    (None, Some(active_color))
+                }
+              case (_, Text.Info(_, XML.Elem(markup, _))) if active_include(markup.name) =>
+                (None, Some(active_color))
             })
         color <-
           (result match {
-            case (_, Some(status), opt_color) =>
+            case (Some(status), opt_color) =>
               if (status.is_unprocessed) Some(unprocessed1_color)
               else if (status.is_running) Some(running1_color)
               else opt_color
-            case (_, _, opt_color) => opt_color
+            case (_, opt_color) => opt_color
           })
       } yield Text.Info(r, color)
   }
 
 
   def background2(range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)),
+    snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)), _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
       })
 
 
   def foreground(range: Text.Range): Stream[Text.Info[Color]] =
-    snapshot.select_markup(range, Some(Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM)),
+    snapshot.select_markup(range, Some(Set(Markup.STRING, Markup.ALTSTRING, Markup.VERBATIM)), _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.STRING, _), _)) => quoted_color
         case Text.Info(_, XML.Elem(Markup(Markup.ALTSTRING, _), _)) => quoted_color
@@ -499,7 +503,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   {
     if (color == Token_Markup.hidden_color) Stream(Text.Info(range, color))
     else
-      snapshot.cumulate_markup(range, color, Some(text_color_elements),
+      snapshot.cumulate_markup(range, color, Some(text_color_elements), _ =>
         {
           case (_, Text.Info(_, XML.Elem(Markup(m, _), _)))
           if text_colors.isDefinedAt(m) => text_colors(m)

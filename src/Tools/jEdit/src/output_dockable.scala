@@ -71,12 +71,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
     val new_output =
       if (!restriction.isDefined || restriction.get.contains(new_state.command)) {
-        // FIXME avoid intrusion of Protocol
-        // FIXME proper cumulation order!?
-        val status = new_state.status.filterNot(m => Protocol.command_status_markup(m.name))
-
-        val results = new_state.results.iterator.map(_._2).toList
-        results.map(tree => (tree /: status) { case (t, m) => XML.Elem(m, List(t)) })
+        val rendering = Rendering(new_snapshot, PIDE.options.value)
+        rendering.output_messages(new_state)
       }
       else current_output
 

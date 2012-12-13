@@ -98,6 +98,8 @@ else use "Concurrent/par_list_sequential.ML";
 use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";
 
+use "PIDE/active.ML";
+
 
 (* fundamental structures *)
 
@@ -251,7 +253,6 @@ use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
 use "Thy/thy_syntax.ML";
-use "PIDE/active.ML";
 use "PIDE/command.ML";
 use "Isar/outer_syntax.ML";
 use "General/graph_display.ML";

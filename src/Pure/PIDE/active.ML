@@ -12,7 +12,7 @@ sig
   val sendback_markup_implicit: string -> string
   val sendback_markup: string -> string
   val dialog: unit -> (string -> Markup.T) * string future
-  val dialog_result: string -> string -> unit
+  val dialog_result: serial -> string -> unit
 end;
 
 structure Active: ACTIVE =
@@ -42,22 +42,20 @@ val sendback_markup = markup Markup.sendbackN;
 
 (* dialog via document content *)
 
-val new_name = string_of_int o Synchronized.counter ();
-
-val dialogs = Synchronized.var "Active.dialogs" (Symtab.empty: string future Symtab.table);
+val dialogs = Synchronized.var "Active.dialogs" (Inttab.empty: string future Inttab.table);
 
 fun dialog () =
   let
-    val name = new_name ();
-    fun abort () = Synchronized.change dialogs (Symtab.delete_safe name);
+    val i = serial ();
+    fun abort () = Synchronized.change dialogs (Inttab.delete_safe i);
     val promise = Future.promise abort : string future;
-    val _ = Synchronized.change dialogs (Symtab.update_new (name, promise));
-    fun mk_markup result = Markup.properties (explicit_id ()) (Markup.dialog name result);
+    val _ = Synchronized.change dialogs (Inttab.update_new (i, promise));
+    fun mk_markup result = Markup.properties (explicit_id ()) (Markup.dialog i result);
   in (mk_markup, promise) end;
 
-fun dialog_result name result =
+fun dialog_result i result =
   Synchronized.change_result dialogs
-    (fn tab => (Symtab.lookup tab name, Symtab.delete_safe name tab))
+    (fn tab => (Inttab.lookup tab i, Inttab.delete_safe i tab))
   |> (fn NONE => () | SOME promise => Future.fulfill promise result);
 
 end;

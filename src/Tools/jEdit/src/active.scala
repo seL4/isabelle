@@ -44,23 +44,6 @@ object Active
 
           if (!snapshot.is_outdated) {
             elem match {
-              case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
-                props match {
-                  case Position.Id(exec_id) =>
-                    try_replace_command(exec_id, text)
-                  case _ =>
-                    if (props.exists(_ == Markup.PADDING_LINE))
-                      Isabelle.insert_line_padding(text_area, text)
-                    else text_area.setSelectedText(text)
-                }
-
-              case XML.Elem(Markup(Markup.DIALOG, props), _) =>
-                (props, props, props) match {
-                  case (Position.Id(id), Markup.Name(name), Markup.Result(result)) =>
-                    model.session.dialog_result(id, name, result)
-                  case _ =>
-                }
-
               case XML.Elem(Markup(Markup.GRAPHVIEW, Position.Id(exec_id)), body) =>
                 default_thread_pool.submit(() =>
                   {
@@ -72,7 +55,24 @@ object Active
                     Swing_Thread.later { Graphview_Dockable(view, snapshot, graph) }
                   })
 
+              case XML.Elem(Markup(Markup.SENDBACK, props), _) =>
+                props match {
+                  case Position.Id(exec_id) =>
+                    try_replace_command(exec_id, text)
+                  case _ =>
+                    if (props.exists(_ == Markup.PADDING_LINE))
+                      Isabelle.insert_line_padding(text_area, text)
+                    else text_area.setSelectedText(text)
+                }
+
               case _ =>
+                // FIXME pattern match problem in scala-2.9.2 (!??)
+                elem match {
+                  case Protocol.Dialog(id, serial, result) =>
+                    model.session.dialog_result(id, serial, result)
+
+                  case _ =>
+                }
             }
           }
         }

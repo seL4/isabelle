@@ -213,30 +213,6 @@ object Markup
   val SUBGOAL = "subgoal"
 
 
-  /* active areas */
-
-  val GRAPHVIEW = "graphview"
-
-  val SENDBACK = "sendback"
-  val PADDING = "padding"
-  val PADDING_LINE = (PADDING, LINE)
-
-  val DIALOG = "dialog"
-  val DIALOG_RESULT = "dialog_result"
-  val Result = new Properties.String("result")
-
-  object Dialog_Args
-  {
-    def unapply(props: Properties.T): Option[(String, String)] =
-      (props, props) match {
-        case (Markup.Name(name), Markup.Result(result)) => Some((name, result))
-        case _ => None
-      }
-  }
-
-  val INTENSIFY = "intensify"
-
-
   /* command status */
 
   val TASK = "task"
@@ -270,6 +246,7 @@ object Markup
   val INIT = "init"
   val STATUS = "status"
   val REPORT = "report"
+  val RESULT = "result"
   val WRITELN = "writeln"
   val TRACING = "tracing"
   val WARNING = "warning"
@@ -297,6 +274,20 @@ object Markup
   val NO_REPORT = "no_report"
 
   val BAD = "bad"
+
+  val INTENSIFY = "intensify"
+
+
+  /* active areas */
+
+  val GRAPHVIEW = "graphview"
+
+  val SENDBACK = "sendback"
+  val PADDING = "padding"
+  val PADDING_LINE = (PADDING, LINE)
+
+  val DIALOG = "dialog"
+  val Result = new Properties.String("result")
 
 
   /* protocol message functions */

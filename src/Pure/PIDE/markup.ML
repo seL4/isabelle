@@ -96,12 +96,6 @@ sig
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
-  val graphviewN: string
-  val sendbackN: string
-  val paddingN: string
-  val padding_line: string * string
-  val dialogN: string val dialog: string -> string -> T
-  val intensifyN: string val intensify: T
   val taskN: string
   val acceptedN: string val accepted: T
   val forkedN: string val forked: T
@@ -122,6 +116,12 @@ sig
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
+  val intensifyN: string val intensify: T
+  val graphviewN: string
+  val sendbackN: string
+  val paddingN: string
+  val padding_line: string * string
+  val dialogN: string val dialog: serial -> string -> T
   val functionN: string
   val assign_execs: Properties.T
   val removed_versions: Properties.T
@@ -339,20 +339,6 @@ val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 
 
-(* active areas *)
-
-val graphviewN = "graphview";
-
-val sendbackN = "sendback";
-val paddingN = "padding";
-val padding_line = (paddingN, lineN);
-
-val dialogN = "dialog";
-fun dialog name result = (dialogN, [(nameN, name), ("result", result)]);
-
-val (intensifyN, intensify) = markup_elem "intensify";
-
-
 (* command status *)
 
 val taskN = "task";
@@ -384,6 +370,20 @@ val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
 val (badN, bad) = markup_elem "bad";
+
+val (intensifyN, intensify) = markup_elem "intensify";
+
+
+(* active areas *)
+
+val graphviewN = "graphview";
+
+val sendbackN = "sendback";
+val paddingN = "padding";
+val padding_line = (paddingN, lineN);
+
+val dialogN = "dialog";
+fun dialog i result = (dialogN, [(serialN, print_int i), ("result", result)]);
 
 
 (* protocol message functions *)

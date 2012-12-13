@@ -73,10 +73,10 @@ object Command
 
               val st0 = copy(results = results + (i -> message1))
               val st1 =
-                if (Protocol.is_tracing(message)) st0
-                else
+                if (Protocol.is_inlined(message))
                   (st0 /: Protocol.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, message2)))
+                else st0
 
               st1
             case _ => System.err.println("Ignored message without serial number: " + message); this
