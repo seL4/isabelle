@@ -132,8 +132,7 @@ fun generate_prover_dependencies ctxt params =
 
 fun is_bad_query ctxt ho_atp th isar_deps =
   Thm.legacy_get_kind th = "" orelse null isar_deps orelse
-  is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th) orelse
-  Sledgehammer_Fact.is_bad_for_atps ho_atp th
+  is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
 fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
   let
@@ -179,7 +178,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val all_names = build_all_names nickname_of facts
-    fun do_fact (fact as (_, th), old_facts) =
+    fun do_fact ((_, th), old_facts) =
       let
         val name = nickname_of th
         val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
