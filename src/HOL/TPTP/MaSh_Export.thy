@@ -11,10 +11,14 @@ begin
 ML_file "mash_export.ML"
 
 sledgehammer_params
-  [provers = spass, max_relevant = 32, strict, dont_slice, type_enc = mono_native,
+  [provers = spass, max_facts = 32, strict, dont_slice, type_enc = mono_native,
    lam_trans = combs_and_lifting, timeout = 2, dont_preplay, minimize]
 
 declare [[sledgehammer_instantiate_inducts]]
+
+ML {*
+!Multithreading.max_threads
+*}
 
 ML {*
 open MaSh_Export

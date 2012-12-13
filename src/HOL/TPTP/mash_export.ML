@@ -112,7 +112,6 @@ fun generate_isar_or_prover_dependencies ctxt params_opt thys include_thys
                                          file_name =
   let
     val path = file_name |> Path.explode
-    val _ = File.write path ""
     val facts =
       all_facts ctxt |> not include_thys ? filter_out (has_thys thys o snd)
     val all_names = build_all_names nickname_of facts
@@ -121,9 +120,9 @@ fun generate_isar_or_prover_dependencies ctxt params_opt thys include_thys
         val name = nickname_of th
         val deps =
           isar_or_prover_dependencies_of ctxt params_opt facts all_names th NONE
-        val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
-      in File.append path s end
-  in List.app do_fact facts end
+      in escape_meta name ^ ": " ^ escape_metas deps ^ "\n" end
+    val lines = Par_List.map do_fact facts
+  in File.write_list path lines end
 
 fun generate_isar_dependencies ctxt =
   generate_isar_or_prover_dependencies ctxt NONE
@@ -140,13 +139,11 @@ fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
-    val _ = File.write path ""
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val all_names = build_all_names nickname_of facts
-    fun do_fact ((_, stature), th) prevs =
+    fun do_fact ((name, ((_, stature), th)), prevs) =
       let
-        val name = nickname_of th
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
         val isar_deps = isar_dependencies_of all_names th
@@ -160,11 +157,13 @@ fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
           if is_bad_query ctxt ho_atp th (these isar_deps) then ""
           else "? " ^ core ^ "\n"
         val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
-        val _ = File.append path (query ^ update)
-      in [name] end
+      in query ^ update end
     val thy_map = old_facts |> thy_map_from_facts
     val parents = fold (add_thy_parent_facts thy_map) thys []
-  in fold do_fact new_facts parents; () end
+    val new_facts = new_facts |> map (`(nickname_of o snd))
+    val prevss = fst (split_last (parents :: map (single o fst) new_facts))
+    val lines = Par_List.map do_fact (new_facts ~~ prevss)
+  in File.write_list path lines end
 
 fun generate_isar_commands ctxt prover =
   generate_isar_or_prover_commands ctxt prover NONE
@@ -177,29 +176,30 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
-    val _ = File.write path ""
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val all_names = build_all_names nickname_of facts
-    fun do_fact (fact as (_, th)) old_facts =
+    fun do_fact (fact as (_, th), old_facts) =
       let
         val name = nickname_of th
         val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isar_dependencies_of all_names th
-        val _ =
-          if is_bad_query ctxt ho_atp th (these isar_deps) then
-            ()
-          else
-            let
-              val suggs =
-                old_facts
-                |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
-                       max_facts NONE hyp_ts concl_t
-                |> map (nickname_of o snd)
-              val s = escape_meta name ^ ": " ^ escape_metas suggs ^ "\n"
-            in File.append path s end
-      in fact :: old_facts end
-  in fold do_fact new_facts old_facts; () end
+      in
+        if is_bad_query ctxt ho_atp th (these isar_deps) then
+          ""
+        else
+          let
+            val suggs =
+              old_facts
+              |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
+                     max_facts NONE hyp_ts concl_t
+              |> map (nickname_of o snd)
+          in escape_meta name ^ ": " ^ escape_metas suggs ^ "\n" end
+      end
+    fun accum x (yss as ys :: _) = (x :: ys) :: yss
+    val old_factss = tl (fold accum new_facts [old_facts])
+    val lines = Par_List.map do_fact (new_facts ~~ rev old_factss)
+  in File.write_list path lines end
 
 end;
