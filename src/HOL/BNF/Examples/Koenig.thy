@@ -9,10 +9,8 @@ Koenig's lemma.
 header {* Koenig's lemma *}
 
 theory Koenig
-imports TreeFI
+imports TreeFI Stream
 begin
-
-codata 'a stream = Stream (shd: 'a) (stl: "'a stream")
 
 (* selectors for streams *)
 lemma shd_def': "shd as = fst (stream_dtor as)"
