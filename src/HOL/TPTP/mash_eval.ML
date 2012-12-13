@@ -97,11 +97,13 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
           | set_file_name _ NONE = I
         fun prove ok heading get facts =
           let
+            fun nickify ((_, stature), th) = ((K (nickname_of th), stature), th)
             val facts =
-              facts |> map get
-                    |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts
-                                                                   concl_t
-                    |> take (the max_facts)
+              facts
+              |> map get
+              |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
+              |> take (the max_facts)
+              |> map nickify
             val ctxt = ctxt |> set_file_name heading prob_dir_name
             val res as {outcome, ...} =
               run_prover_for_mash ctxt params prover facts goal
