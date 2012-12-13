@@ -3,30 +3,30 @@
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012
 
-Infinite streams.
+Koenig's lemma.
 *)
 
-header {* Infinite Streams *}
+header {* Koenig's lemma *}
 
-theory Stream
+theory Koenig
 imports TreeFI
 begin
 
-codata 'a stream = Stream (hdd: 'a) (tll: "'a stream")
+codata 'a stream = Stream (shd: 'a) (stl: "'a stream")
 
 (* selectors for streams *)
-lemma hdd_def': "hdd as = fst (stream_dtor as)"
-unfolding hdd_def stream_case_def fst_def by (rule refl)
+lemma shd_def': "shd as = fst (stream_dtor as)"
+unfolding shd_def stream_case_def fst_def by (rule refl)
 
-lemma tll_def': "tll as = snd (stream_dtor as)"
-unfolding tll_def stream_case_def snd_def by (rule refl)
+lemma stl_def': "stl as = snd (stream_dtor as)"
+unfolding stl_def stream_case_def snd_def by (rule refl)
 
-lemma unfold_pair_fun_hdd[simp]: "hdd (stream_dtor_unfold (f \<odot> g) t) = f t"
-unfolding hdd_def' pair_fun_def stream.dtor_unfold by simp
+lemma unfold_pair_fun_shd[simp]: "shd (stream_dtor_unfold (f \<odot> g) t) = f t"
+unfolding shd_def' pair_fun_def stream.dtor_unfold by simp
 
-lemma unfold_pair_fun_tll[simp]: "tll (stream_dtor_unfold (f \<odot> g) t) =
+lemma unfold_pair_fun_stl[simp]: "stl (stream_dtor_unfold (f \<odot> g) t) =
  stream_dtor_unfold (f \<odot> g) (g t)"
-unfolding tll_def' pair_fun_def stream.dtor_unfold by simp
+unfolding stl_def' pair_fun_def stream.dtor_unfold by simp
 
 (* infinite trees: *)
 coinductive infiniteTr where
@@ -52,40 +52,40 @@ definition "konigPath \<equiv> stream_dtor_unfold
   (lab \<odot> (\<lambda>tr. SOME tr'. tr' \<in> listF_set (sub tr) \<and> infiniteTr tr'))"
 
 lemma konigPath_simps[simp]:
-"hdd (konigPath t) = lab t"
-"tll (konigPath t) = konigPath (SOME tr. tr \<in> listF_set (sub t) \<and> infiniteTr tr)"
+"shd (konigPath t) = lab t"
+"stl (konigPath t) = konigPath (SOME tr. tr \<in> listF_set (sub t) \<and> infiniteTr tr)"
 unfolding konigPath_def by simp+
 
 (* proper paths in trees: *)
 coinductive properPath where
-"\<lbrakk>hdd as = lab tr; tr' \<in> listF_set (sub tr); properPath (tll as) tr'\<rbrakk> \<Longrightarrow>
+"\<lbrakk>shd as = lab tr; tr' \<in> listF_set (sub tr); properPath (stl as) tr'\<rbrakk> \<Longrightarrow>
  properPath as tr"
 
-lemma properPath_strong_coind[consumes 1, case_names hdd_lab sub]:
+lemma properPath_strong_coind[consumes 1, case_names shd_lab sub]:
 assumes *: "phi as tr" and
-**: "\<And> as tr. phi as tr \<Longrightarrow> hdd as = lab tr" and
+**: "\<And> as tr. phi as tr \<Longrightarrow> shd as = lab tr" and
 ***: "\<And> as tr.
          phi as tr \<Longrightarrow>
-         \<exists> tr' \<in> listF_set (sub tr). phi (tll as) tr' \<or> properPath (tll as) tr'"
+         \<exists> tr' \<in> listF_set (sub tr). phi (stl as) tr' \<or> properPath (stl as) tr'"
 shows "properPath as tr"
 using assms by (elim properPath.coinduct) blast
 
-lemma properPath_coind[consumes 1, case_names hdd_lab sub, induct pred: properPath]:
+lemma properPath_coind[consumes 1, case_names shd_lab sub, induct pred: properPath]:
 assumes *: "phi as tr" and
-**: "\<And> as tr. phi as tr \<Longrightarrow> hdd as = lab tr" and
+**: "\<And> as tr. phi as tr \<Longrightarrow> shd as = lab tr" and
 ***: "\<And> as tr.
          phi as tr \<Longrightarrow>
-         \<exists> tr' \<in> listF_set (sub tr). phi (tll as) tr'"
+         \<exists> tr' \<in> listF_set (sub tr). phi (stl as) tr'"
 shows "properPath as tr"
 using properPath_strong_coind[of phi, OF * **] *** by blast
 
-lemma properPath_hdd_lab:
-"properPath as tr \<Longrightarrow> hdd as = lab tr"
+lemma properPath_shd_lab:
+"properPath as tr \<Longrightarrow> shd as = lab tr"
 by (erule properPath.cases) blast
 
 lemma properPath_sub:
 "properPath as tr \<Longrightarrow>
- \<exists> tr' \<in> listF_set (sub tr). phi (tll as) tr' \<or> properPath (tll as) tr'"
+ \<exists> tr' \<in> listF_set (sub tr). phi (stl as) tr' \<or> properPath (stl as) tr'"
 by (erule properPath.cases) blast
 
 (* prove the following by coinduction *)
@@ -102,9 +102,9 @@ proof-
      hence "\<exists>t' \<in> listF_set (sub t). infiniteTr t'" by simp
      hence "\<exists>t'. t' \<in> listF_set (sub t) \<and> infiniteTr t'" by blast
      hence "?t \<in> listF_set (sub t) \<and> infiniteTr ?t" by (elim someI_ex)
-     moreover have "tll (konigPath t) = konigPath ?t" by simp
+     moreover have "stl (konigPath t) = konigPath ?t" by simp
      ultimately show "\<exists>t' \<in> listF_set (sub t).
-             infiniteTr t' \<and> tll (konigPath t) = konigPath t'" by blast
+             infiniteTr t' \<and> stl (konigPath t) = konigPath t'" by blast
    qed simp
   }
   thus ?thesis using assms by blast
@@ -112,13 +112,13 @@ qed
 
 (* some more stream theorems *)
 
-lemma stream_map[simp]: "stream_map f = stream_dtor_unfold (f o hdd \<odot> tll)"
-unfolding stream_map_def pair_fun_def hdd_def'[abs_def] tll_def'[abs_def]
+lemma stream_map[simp]: "stream_map f = stream_dtor_unfold (f o shd \<odot> stl)"
+unfolding stream_map_def pair_fun_def shd_def'[abs_def] stl_def'[abs_def]
   map_pair_def o_def prod_case_beta by simp
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
   [simp]: "plus xs ys =
-    stream_dtor_unfold ((%(xs, ys). hdd xs + hdd ys) \<odot> (%(xs, ys). (tll xs, tll ys))) (xs, ys)"
+    stream_dtor_unfold ((%(xs, ys). shd xs + shd ys) \<odot> (%(xs, ys). (stl xs, stl ys))) (xs, ys)"
 
 definition scalar :: "nat \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<cdot>" 68) where
   [simp]: "scalar n = stream_map (\<lambda>x. n * x)"

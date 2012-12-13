@@ -633,7 +633,7 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
     TreeFsetI
     "Derivation_Trees/Gram_Lang"
     "Derivation_Trees/Parallel"
-    Stream
+    Koenig
   theories [condition = ISABELLE_FULL_TEST]
     Misc_Codata
     Misc_Data
