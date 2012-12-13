@@ -264,6 +264,14 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
 
+  def command_results(range: Text.Range): Command.Results =
+  {
+    val results =
+      snapshot.select_markup[Command.Results](range, None, command_state =>
+        { case _ => command_state.results }).map(_.info)
+    (Command.empty_results /: results)(_ ++ _)
+  }
+
   def tooltip_message(range: Text.Range): XML.Body =
   {
     val msgs =
