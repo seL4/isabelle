@@ -51,7 +51,7 @@ sig
     Type_Decl of string * 'a * int |
     Sym_Decl of string * 'a * 'a ho_type |
     Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
-    Formula of string * formula_role
+    Formula of (string * string) * formula_role
                * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
                * (string, string ho_type) ho_term option
                * (string, string ho_type) ho_term list
@@ -190,7 +190,7 @@ datatype 'a problem_line =
   Type_Decl of string * 'a * int |
   Sym_Decl of string * 'a * 'a ho_type |
   Class_Memb of string * ('a * 'a list) list * 'a ho_type * 'a |
-  Formula of string * formula_role
+  Formula of (string * string) * formula_role
              * ('a, 'a ho_type, ('a, 'a ho_type) ho_term, 'a) formula
              * (string, string ho_type) ho_term option
              * (string, string ho_type) ho_term list
@@ -479,15 +479,18 @@ val atype_of_types = AType (tptp_type_of_types, [])
 
 fun nary_type_decl_type n = funpow n (curry AFun atype_of_types) atype_of_types
 
+fun tptp_maybe_alt "" = ""
+  | tptp_maybe_alt s = " % " ^ s
+
 fun tptp_string_for_line format (Type_Decl (ident, ty, ary)) =
     tptp_string_for_line format (Sym_Decl (ident, ty, nary_type_decl_type ary))
   | tptp_string_for_line format (Sym_Decl (ident, sym, ty)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^
     " : " ^ string_for_type format ty ^ ").\n"
-  | tptp_string_for_line format (Formula (ident, kind, phi, source, _)) =
+  | tptp_string_for_line format (Formula ((ident, alt), kind, phi, source, _)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", " ^
-    tptp_string_for_role kind ^ ",\n    (" ^
-    tptp_string_for_formula format phi ^ ")" ^
+    tptp_string_for_role kind ^ "," ^ tptp_maybe_alt alt ^
+    "\n    (" ^ tptp_string_for_formula format phi ^ ")" ^
     (case source of
        SOME tm => ", " ^ tptp_string_for_term format tm
      | NONE => "") ^ ").\n"
@@ -582,7 +585,7 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
        else "[" ^ commas (map str_for_bound_tvar xs) ^ "], ") ^
       str_for_typ ty ^ ", " ^ cl ^ ")."
     fun subclass_of sub super = "subclass(" ^ sub ^ ", " ^ super ^ ")."
-    fun formula pred (Formula (ident, kind, phi, _, info)) =
+    fun formula pred (Formula ((ident, _), kind, phi, _, info)) =
         if pred kind then
           let val rank = extract_isabelle_rank info in
             "formula(" ^ dfg_string_for_formula poly gen_simp info phi ^
@@ -725,13 +728,13 @@ fun clausify_formula pos (phi as AAtom _) = [phi |> not pos ? mk_anot]
     clausify_formula true (AConn (AImplies, rev phis))
   | clausify_formula _ _ = raise CLAUSIFY ()
 
-fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
+fun clausify_formula_line (Formula ((ident, alt), kind, phi, source, info)) =
     let
       val (n, phis) = phi |> try (clausify_formula true) |> these |> `length
     in
       map2 (fn phi => fn j =>
-               Formula (ident ^ replicate_string (j - 1) "x", kind, phi, source,
-                        info))
+               Formula ((ident ^ replicate_string (j - 1) "x", alt), kind, phi,
+                        source, info))
            phis (1 upto n)
     end
   | clausify_formula_line _ = []

@@ -161,7 +161,7 @@ fun metis_literal_from_atp type_enc (AConn (ANot, [phi])) =
 fun metis_literals_from_atp type_enc (AConn (AOr, phis)) =
     maps (metis_literals_from_atp type_enc) phis
   | metis_literals_from_atp type_enc phi = [metis_literal_from_atp type_enc phi]
-fun metis_axiom_from_atp type_enc clauses (Formula (ident, _, phi, _, _)) =
+fun metis_axiom_from_atp type_enc clauses (Formula ((ident, _), _, phi, _, _)) =
     let
       fun some isa =
         SOME (phi |> metis_literals_from_atp type_enc

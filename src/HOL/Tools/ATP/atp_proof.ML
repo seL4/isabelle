@@ -364,7 +364,7 @@ fun is_same_formula comm subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2))
   | is_same_formula _ subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
   | is_same_formula _ _ _ _ = false
 
-fun matching_formula_line_identifier phi (Formula (ident, _, phi', _, _)) =
+fun matching_formula_line_identifier phi (Formula ((ident, _), _, phi', _, _)) =
     if is_same_formula true [] phi phi' then SOME (ident, phi') else NONE
   | matching_formula_line_identifier _ _ = NONE
 

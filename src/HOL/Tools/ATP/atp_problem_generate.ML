@@ -2128,8 +2128,8 @@ fun string_of_status General = ""
    the remote provers might care. *)
 fun line_for_fact ctxt prefix encode freshen pos mono type_enc rank
         (j, {name, stature = (_, status), role, iformula, atomic_types}) =
-  Formula (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
-           encode name,
+  Formula ((prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
+            encode name, name),
            role,
            iformula
            |> formula_from_iformula ctxt mono type_enc
@@ -2139,7 +2139,7 @@ fun line_for_fact ctxt prefix encode freshen pos mono type_enc rank
            NONE, isabelle_info (string_of_status status) (rank j))
 
 fun lines_for_subclass type_enc sub super =
-  Formula (subclass_prefix ^ ascii_of sub ^ "___" ^ ascii_of super, Axiom,
+  Formula ((subclass_prefix ^ ascii_of sub ^ "___" ^ ascii_of super, ""), Axiom,
            AConn (AImplies,
                   [sub, super] |> map (fn s => class_atom type_enc (s, tvar_a)))
            |> bound_tvars type_enc false [tvar_a],
@@ -2160,7 +2160,7 @@ fun line_for_tcon_clause type_enc (name, prems, (cl, T)) =
                     prems,
                 native_ho_type_from_typ type_enc false 0 T, `make_class cl)
   else
-    Formula (tcon_clause_prefix ^ name, Axiom,
+    Formula ((tcon_clause_prefix ^ name, ""), Axiom,
              mk_ahorn (maps (class_atoms type_enc) prems)
                       (class_atom type_enc (cl, T))
              |> bound_tvars type_enc true (snd (dest_Type T)),
@@ -2168,7 +2168,7 @@ fun line_for_tcon_clause type_enc (name, prems, (cl, T)) =
 
 fun line_for_conjecture ctxt mono type_enc
                         ({name, role, iformula, atomic_types, ...} : ifact) =
-  Formula (conjecture_prefix ^ name, role,
+  Formula ((conjecture_prefix ^ name, ""), role,
            iformula
            |> formula_from_iformula ctxt mono type_enc
                   should_guard_var_in_formula (SOME false)
@@ -2186,7 +2186,7 @@ fun lines_for_free_types type_enc (facts : ifact list) =
                       native_ho_type_from_typ type_enc false 0 T,
                       `make_class cl)
         else
-          Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
+          Formula ((tfree_clause_prefix ^ string_of_int j, ""), Hypothesis,
                    class_atom type_enc (cl, T), NONE, [])
       val membs =
         fold (union (op =)) (map #atomic_types facts) []
@@ -2347,8 +2347,7 @@ fun monotonic_types_for_facts ctxt mono type_enc facts =
   end
 
 fun line_for_guards_mono_type ctxt mono type_enc T =
-  Formula (guards_sym_formula_prefix ^
-           ascii_of (mangled_type type_enc T),
+  Formula ((guards_sym_formula_prefix ^ ascii_of (mangled_type type_enc T), ""),
            Axiom,
            IConst (`make_bound_var "X", T, [])
            |> type_guard_iterm type_enc T
@@ -2361,8 +2360,7 @@ fun line_for_guards_mono_type ctxt mono type_enc T =
 
 fun line_for_tags_mono_type ctxt mono type_enc T =
   let val x_var = ATerm ((`make_bound_var "X", []), []) in
-    Formula (tags_sym_formula_prefix ^
-             ascii_of (mangled_type type_enc T),
+    Formula ((tags_sym_formula_prefix ^ ascii_of (mangled_type type_enc T), ""),
              Axiom,
              eq_formula type_enc (atomic_types_of T) [] false
                   (tag_with_type ctxt mono type_enc NONE T x_var) x_var,
@@ -2419,8 +2417,9 @@ fun line_for_guards_sym_decl ctxt mono type_enc n s j
         end
       | _ => replicate ary NONE
   in
-    Formula (guards_sym_formula_prefix ^ s ^
-             (if n > 1 then "_" ^ string_of_int j else ""), role,
+    Formula ((guards_sym_formula_prefix ^ s ^
+              (if n > 1 then "_" ^ string_of_int j else ""), ""),
+             role,
              IConst ((s, s'), T, T_args)
              |> fold (curry (IApp o swap)) bounds
              |> type_guard_iterm type_enc res_T
@@ -2449,8 +2448,8 @@ fun lines_for_tags_sym_decl ctxt mono type_enc n s
     val eq = maybe_negate oo eq_formula type_enc (atomic_types_of T) [] pred_sym
     val tag_with = tag_with_type ctxt mono type_enc NONE
     fun formula c =
-      [Formula (ident, role, eq (tag_with res_T c) c, NONE, isabelle_info
-                non_rec_defN helper_rank)]
+      [Formula ((ident, ""), role, eq (tag_with res_T c) c, NONE,
+                isabelle_info non_rec_defN helper_rank)]
   in
     if pred_sym orelse not (should_encode_type ctxt mono level res_T) then
       []
@@ -2549,8 +2548,9 @@ fun do_uncurried_alias_lines_for_sym ctxt constrs mono type_enc sym_tab0 sym_tab
                      (ho_term_of tm1) (ho_term_of tm2)
       in
         ([tm1, tm2],
-         [Formula (uncurried_alias_eq_prefix ^ s2, role, eq |> maybe_negate,
-                   NONE, isabelle_info non_rec_defN helper_rank)])
+         [Formula ((uncurried_alias_eq_prefix ^ s2, ""), role,
+                   eq |> maybe_negate, NONE,
+                   isabelle_info non_rec_defN helper_rank)])
         |> (if ary - 1 = base_ary orelse Symtab.defined sym_tab s1 then I
             else pair_append (do_alias (ary - 1)))
       end

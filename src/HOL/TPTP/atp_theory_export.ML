@@ -34,8 +34,8 @@ fun inference_term [] = NONE
 fun inference infers ident =
   these (AList.lookup (op =) infers ident) |> inference_term
 fun add_inferences_to_problem_line infers
-                                   (Formula (ident, Axiom, phi, NONE, tms)) =
-    Formula (ident, Lemma, phi, inference infers ident, tms)
+        (Formula ((ident, alt), Axiom, phi, NONE, tms)) =
+    Formula ((ident, alt), Lemma, phi, inference infers ident, tms)
   | add_inferences_to_problem_line _ line = line
 fun add_inferences_to_problem infers =
   map (apsnd (map (add_inferences_to_problem_line infers)))
@@ -44,7 +44,7 @@ fun ident_of_problem_line (Class_Decl (ident, _, _)) = ident
   | ident_of_problem_line (Type_Decl (ident, _, _)) = ident
   | ident_of_problem_line (Sym_Decl (ident, _, _)) = ident
   | ident_of_problem_line (Class_Memb (ident, _, _, _)) = ident
-  | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
+  | ident_of_problem_line (Formula ((ident, _), _, _, _, _)) = ident
 
 fun atp_for_format (THF (Polymorphic, _, _, _)) = dummy_thfN
   | atp_for_format (THF (Monomorphic, _, _, _)) = satallaxN
@@ -83,11 +83,12 @@ val tautology_prefixes =
   [@{theory HOL}, @{theory Meson}, @{theory ATP}, @{theory Metis}]
   |> map (fact_name_of o Context.theory_name)
 
-fun is_problem_line_tautology ctxt format (Formula (ident, _, phi, _, _)) =
+fun is_problem_line_tautology ctxt format
+                              (Formula ((ident, alt), _, phi, _, _)) =
     exists (fn prefix => String.isPrefix prefix ident)
            tautology_prefixes andalso
     is_none (run_some_atp ctxt format
-                 [(factsN, [Formula (ident, Conjecture, phi, NONE, [])])])
+        [(factsN, [Formula ((ident, alt), Conjecture, phi, NONE, [])])])
   | is_problem_line_tautology _ _ _ = false
 
 fun order_facts ord = sort (ord o pairself ident_of_problem_line)
