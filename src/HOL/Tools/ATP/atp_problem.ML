@@ -479,8 +479,8 @@ val atype_of_types = AType (tptp_type_of_types, [])
 
 fun nary_type_decl_type n = funpow n (curry AFun atype_of_types) atype_of_types
 
-fun tptp_maybe_alt "" = ""
-  | tptp_maybe_alt s = " % " ^ s
+fun maybe_alt "" = ""
+  | maybe_alt s = " % " ^ s
 
 fun tptp_string_for_line format (Type_Decl (ident, ty, ary)) =
     tptp_string_for_line format (Sym_Decl (ident, ty, nary_type_decl_type ary))
@@ -489,7 +489,7 @@ fun tptp_string_for_line format (Type_Decl (ident, ty, ary)) =
     " : " ^ string_for_type format ty ^ ").\n"
   | tptp_string_for_line format (Formula ((ident, alt), kind, phi, source, _)) =
     tptp_string_for_format format ^ "(" ^ ident ^ ", " ^
-    tptp_string_for_role kind ^ "," ^ tptp_maybe_alt alt ^
+    tptp_string_for_role kind ^ "," ^ maybe_alt alt ^
     "\n    (" ^ tptp_string_for_formula format phi ^ ")" ^
     (case source of
        SOME tm => ", " ^ tptp_string_for_term format tm
@@ -585,13 +585,14 @@ fun dfg_lines poly {is_lpo, gen_weights, gen_prec, gen_simp} ord_info problem =
        else "[" ^ commas (map str_for_bound_tvar xs) ^ "], ") ^
       str_for_typ ty ^ ", " ^ cl ^ ")."
     fun subclass_of sub super = "subclass(" ^ sub ^ ", " ^ super ^ ")."
-    fun formula pred (Formula ((ident, _), kind, phi, _, info)) =
+    fun formula pred (Formula ((ident, alt), kind, phi, _, info)) =
         if pred kind then
           let val rank = extract_isabelle_rank info in
             "formula(" ^ dfg_string_for_formula poly gen_simp info phi ^
             ", " ^ ident ^
             (if rank = default_rank then "" else ", " ^ string_of_int rank) ^
-            ")." |> SOME
+            ")." ^ maybe_alt alt
+            |> SOME
           end
         else
           NONE
