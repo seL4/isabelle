@@ -12,8 +12,6 @@ theory TreeFI
 imports ListF
 begin
 
-hide_const (open) Sublist.sub
-
 codata 'a treeFI = Tree (lab: 'a) (sub: "'a treeFI listF")
 
 lemma pre_treeFI_listF_set[simp]: "pre_treeFI_set2 (i, xs) = listF_set xs"
