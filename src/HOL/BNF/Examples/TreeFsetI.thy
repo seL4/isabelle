@@ -12,7 +12,6 @@ theory TreeFsetI
 imports "../BNF"
 begin
 
-hide_const (open) Sublist.sub
 hide_fact (open) Quotient_Product.prod_rel_def
 
 codata 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")
