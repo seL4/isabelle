@@ -204,13 +204,14 @@ class Rich_Text_Area(
           JEdit_Lib.pixel_range(text_area, x, y) match {
             case None =>
             case Some(range) =>
+              // FIXME cumulate results!?
               val tip =
                 if (control) rendering.tooltip(range)
                 else rendering.tooltip_message(range)
               if (!tip.isEmpty) {
                 val painter = text_area.getPainter
                 val y1 = y + painter.getFontMetrics.getHeight / 2
-                new Pretty_Tooltip(view, painter, rendering, x, y1, tip)
+                new Pretty_Tooltip(view, painter, rendering, x, y1, Command.empty_results, tip)
               }
           }
         }

@@ -77,7 +77,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       else current_output
 
     if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, Pretty.separate(new_output))
+      pretty_text_area.update(new_snapshot, new_state.results, Pretty.separate(new_output))
 
     current_snapshot = new_snapshot
     current_state = new_state
@@ -152,7 +152,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val detach = new Button("Detach") {
     reactions += {
       case ButtonClicked(_) =>
-        Info_Dockable(view, current_snapshot, Pretty.separate(current_output))
+        Info_Dockable(view, current_snapshot,
+          current_state.results, Pretty.separate(current_output))
     }
   }
   detach.tooltip = "Detach window with static copy of current output"

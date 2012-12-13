@@ -264,8 +264,7 @@ object Markup
 
   val message: String => String =
     Map(WRITELN -> WRITELN_MESSAGE, TRACING -> TRACING_MESSAGE,
-        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE)
-      .withDefault((name: String) => name + "_message")
+        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE).withDefault((s: String) => s)
 
   val Return_Code = new Properties.Int("return_code")
 

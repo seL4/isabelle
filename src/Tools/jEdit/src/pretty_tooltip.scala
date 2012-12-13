@@ -25,7 +25,9 @@ class Pretty_Tooltip(
   view: View,
   parent: JComponent,
   rendering: Rendering,
-  mouse_x: Int, mouse_y: Int, body: XML.Body)
+  mouse_x: Int, mouse_y: Int,
+  results: Command.Results,
+  body: XML.Body)
   extends JWindow(JEdit_Lib.parent_window(parent) getOrElse view)
 {
   window =>
@@ -70,7 +72,7 @@ class Pretty_Tooltip(
   pretty_text_area.getPainter.setBackground(rendering.tooltip_color)
   pretty_text_area.resize(Rendering.font_family(),
     Rendering.font_size("jedit_tooltip_font_scale").round)
-  pretty_text_area.update(rendering.snapshot, body)
+  pretty_text_area.update(rendering.snapshot, results, body)
 
   pretty_text_area.registerKeyboardAction(action_listener, "close_all",
     KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
@@ -92,7 +94,9 @@ class Pretty_Tooltip(
     tooltip = "Detach tooltip window"
     listenTo(mouse.clicks)
     reactions += {
-      case _: MouseClicked => Info_Dockable(view, rendering.snapshot, body); window.dispose()
+      case _: MouseClicked =>
+        Info_Dockable(view, rendering.snapshot, results, body)
+        window.dispose()
     }
   }
 

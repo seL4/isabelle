@@ -422,7 +422,7 @@ class Session(val thy_load: Thy_Load)
 
         case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
           prover.get.dialog_result(serial, result)
-          handle_output(new Isabelle_Process.Output(Protocol.Dialog_Result(serial, result)))
+          handle_output(new Isabelle_Process.Output(Protocol.Dialog_Result(id, serial, result)))
 
         case Messages(msgs) =>
           msgs foreach {

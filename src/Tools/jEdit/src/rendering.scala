@@ -254,16 +254,20 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
     snapshot.select_markup(range, Some(active_include), command_state =>
-        {  // FIXME inactive dialog
-          case Text.Info(info_range, elem @ XML.Elem(markup, _))
-          if active_include(markup.name) => Text.Info(snapshot.convert(info_range), elem)
+        {
+          case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
+          if !command_state.results.isDefinedAt(serial) =>
+            Text.Info(snapshot.convert(info_range), elem)
+          case Text.Info(info_range, elem @ XML.Elem(Markup(name, _), _))
+          if name == Markup.GRAPHVIEW || name == Markup.SENDBACK =>
+            Text.Info(snapshot.convert(info_range), elem)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 
 
   def tooltip_message(range: Text.Range): XML.Body =
   {
     val msgs =
-      snapshot.cumulate_markup[SortedMap[Long, XML.Tree]](range, SortedMap.empty,
+      snapshot.cumulate_markup[Command.Results](range, Command.empty_results,
         Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
         {
           case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
@@ -433,12 +437,17 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
                 (None, Some(bad_color))
               case (_, Text.Info(_, XML.Elem(Markup(Markup.INTENSIFY, _), _))) =>
                 (None, Some(intensify_color))
-              case (_, Text.Info(_, Protocol.Dialog(_, serial, result))) =>
-                command_state.results.get(serial) match {
-                  case Some(Protocol.Dialog_Result(_, res)) if res == result =>
-                    (None, Some(active_result_color))
-                  case _ =>
-                    (None, Some(active_color))
+              case (acc, Text.Info(_, elem @ XML.Elem(Markup(Markup.DIALOG, _), _))) =>
+                // FIXME pattern match problem in scala-2.9.2 (!??)
+                elem match {
+                  case Protocol.Dialog(_, serial, result) =>
+                    command_state.results.get(serial) match {
+                      case Some(Protocol.Dialog_Result(res)) if res == result =>
+                        (None, Some(active_result_color))
+                      case _ =>
+                        (None, Some(active_color))
+                    }
+                  case _ => acc
                 }
               case (_, Text.Info(_, XML.Elem(markup, _))) if active_include(markup.name) =>
                 (None, Some(active_color))

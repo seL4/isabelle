@@ -209,13 +209,15 @@ object Protocol
 
   object Dialog_Result
   {
-    def apply(serial: Long, result: String): XML.Elem =
-      XML.Elem(Markup(Markup.RESULT, Markup.Serial(serial)), List(XML.Text(result)))
+    def apply(id: Document.ID, serial: Long, result: String): XML.Elem =
+    {
+      val props = Position.Id(id) ::: Markup.Serial(serial)
+      XML.Elem(Markup(Markup.RESULT, props), List(XML.Text(result)))
+    }
 
-    def unapply(tree: XML.Tree): Option[(Long, String)] =
+    def unapply(tree: XML.Tree): Option[String] =
       tree match {
-        case XML.Elem(Markup(Markup.RESULT, Markup.Serial(serial)), List(XML.Text(result))) =>
-          Some((serial, result))
+        case XML.Elem(Markup(Markup.RESULT, _), List(XML.Text(result))) => Some(result)
         case _ => None
       }
   }

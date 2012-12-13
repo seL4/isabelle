@@ -26,22 +26,24 @@ object Info_Dockable
   /* implicit arguments -- owned by Swing thread */
 
   private var implicit_snapshot = Document.State.init.snapshot()
+  private var implicit_results = Command.empty_results
   private var implicit_info: XML.Body = Nil
 
-  private def set_implicit(snapshot: Document.Snapshot, info: XML.Body)
+  private def set_implicit(snapshot: Document.Snapshot, results: Command.Results, info: XML.Body)
   {
     Swing_Thread.require()
 
     implicit_snapshot = snapshot
+    implicit_results = results
     implicit_info = info
   }
 
   private def reset_implicit(): Unit =
-    set_implicit(Document.State.init.snapshot(), Nil)
+    set_implicit(Document.State.init.snapshot(), Command.empty_results, Nil)
 
-  def apply(view: View, snapshot: Document.Snapshot, info: XML.Body)
+  def apply(view: View, snapshot: Document.Snapshot, results: Command.Results, info: XML.Body)
   {
-    set_implicit(snapshot, info)
+    set_implicit(snapshot, results, info)
     view.getDockableWindowManager.floatDockableWindow("isabelle-info")
   }
 }
@@ -57,11 +59,12 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   private var zoom_factor = 100
 
   private val snapshot = Info_Dockable.implicit_snapshot
+  private val results = Info_Dockable.implicit_results
   private val info = Info_Dockable.implicit_info
 
   private val window_focus_listener =
     new WindowFocusListener {
-      def windowGainedFocus(e: WindowEvent) { Info_Dockable.set_implicit(snapshot, info) }
+      def windowGainedFocus(e: WindowEvent) { Info_Dockable.set_implicit(snapshot, results, info) }
       def windowLostFocus(e: WindowEvent) { Info_Dockable.reset_implicit() }
     }
 
@@ -71,7 +74,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
   private val pretty_text_area = new Pretty_Text_Area(view)
   set_content(pretty_text_area)
 
-  pretty_text_area.update(snapshot, info)
+  pretty_text_area.update(snapshot, results, info)
 
   private def handle_resize()
   {

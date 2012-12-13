@@ -21,18 +21,18 @@ import org.gjt.sp.util.SyntaxUtilities
 
 object Pretty_Text_Area
 {
-  private def text_rendering(base_snapshot: Document.Snapshot, formatted_body: XML.Body):
-    (String, Rendering) =
+  private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
+    formatted_body: XML.Body): (String, Rendering) =
   {
-    val (text, state) = Pretty_Text_Area.document_state(base_snapshot, formatted_body)
+    val (text, state) = Pretty_Text_Area.document_state(base_snapshot, base_results, formatted_body)
     val rendering = Rendering(state.snapshot(), PIDE.options.value)
     (text, rendering)
   }
 
-  private def document_state(base_snapshot: Document.Snapshot, formatted_body: XML.Body)
-    : (String, Document.State) =
+  private def document_state(base_snapshot: Document.Snapshot, base_results: Command.Results,
+    formatted_body: XML.Body): (String, Document.State) =
   {
-    val command = Command.rich_text(Document.new_id(), formatted_body)
+    val command = Command.rich_text(Document.new_id(), base_results, formatted_body)
     val node_name = command.node_name
     val edits: List[Document.Edit_Text] =
       List(node_name -> Document.Node.Edits(List(Text.Edit.insert(0, command.source))))
@@ -62,8 +62,9 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
   private var current_font_size: Int = 12
   private var current_body: XML.Body = Nil
   private var current_base_snapshot = Document.State.init.snapshot()
+  private var current_base_results = Command.empty_results
   private var current_rendering: Rendering =
-    Pretty_Text_Area.text_rendering(current_base_snapshot, Nil)._2
+    Pretty_Text_Area.text_rendering(current_base_snapshot, current_base_results, Nil)._2
   private var future_rendering: Option[java.util.concurrent.Future[Unit]] = None
 
   private val rich_text_area =
@@ -84,12 +85,14 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
       val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
 
       val base_snapshot = current_base_snapshot
+      val base_results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin, Pretty.font_metric(font_metrics))
 
       future_rendering.map(_.cancel(true))
       future_rendering = Some(default_thread_pool.submit(() =>
         {
-          val (text, rendering) = Pretty_Text_Area.text_rendering(base_snapshot, formatted_body)
+          val (text, rendering) =
+            Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body)
           Simple_Thread.interrupted_exception()
 
           Swing_Thread.later {
@@ -115,12 +118,13 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
     refresh()
   }
 
-  def update(base_snapshot: Document.Snapshot, body: XML.Body)
+  def update(base_snapshot: Document.Snapshot, base_results: Command.Results, body: XML.Body)
   {
     Swing_Thread.require()
     require(!base_snapshot.is_outdated)
 
     current_base_snapshot = base_snapshot
+    current_base_results = base_results
     current_body = body
     refresh()
   }
