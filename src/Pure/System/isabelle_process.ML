@@ -126,6 +126,8 @@ fun init_channels channel =
   in
     Output.Private_Hooks.status_fn := standard_message mbox NONE Markup.statusN;
     Output.Private_Hooks.report_fn := standard_message mbox NONE Markup.reportN;
+    Output.Private_Hooks.result_fn :=
+      (fn (i, s) => standard_message mbox (SOME i) Markup.resultN s);
     Output.Private_Hooks.writeln_fn :=
       (fn s => standard_message mbox (SOME (serial ())) Markup.writelnN s);
     Output.Private_Hooks.tracing_fn :=

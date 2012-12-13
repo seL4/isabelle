@@ -286,7 +286,7 @@ object Markup
   val PADDING_LINE = (PADDING, LINE)
 
   val DIALOG = "dialog"
-  val Result = new Properties.String("result")
+  val Result = new Properties.String(RESULT)
 
 
   /* protocol message functions */

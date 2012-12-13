@@ -106,6 +106,7 @@ sig
   val serialN: string
   val initN: string
   val statusN: string
+  val resultN: string
   val writelnN: string
   val tracingN: string
   val warningN: string
@@ -357,6 +358,7 @@ val serialN = "serial";
 
 val initN = "init";
 val statusN = "status";
+val resultN = "result";
 val writelnN = "writeln";
 val tracingN = "tracing";
 val warningN = "warning";
@@ -383,7 +385,7 @@ val paddingN = "padding";
 val padding_line = (paddingN, lineN);
 
 val dialogN = "dialog";
-fun dialog i result = (dialogN, [(serialN, print_int i), ("result", result)]);
+fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);
 
 
 (* protocol message functions *)
