@@ -97,11 +97,15 @@ fun generate_features ctxt prover thys include_thys file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun isar_or_prover_dependencies_of ctxt params_opt facts all_names th =
+fun isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+                                   isar_deps_opt =
   (case params_opt of
      SOME (params as {provers = prover :: _, ...}) =>
      prover_dependencies_of ctxt params prover 0 facts all_names th |> snd
-   | NONE => isar_dependencies_of all_names th)
+   | NONE =>
+     case isar_deps_opt of
+       SOME deps => deps
+     | NONE => isar_dependencies_of all_names th)
   |> these
 
 fun generate_isar_or_prover_dependencies ctxt params_opt thys include_thys
@@ -116,7 +120,7 @@ fun generate_isar_or_prover_dependencies ctxt params_opt thys include_thys
       let
         val name = nickname_of th
         val deps =
-          isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+          isar_or_prover_dependencies_of ctxt params_opt facts all_names th NONE
         val s = escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
@@ -126,6 +130,11 @@ fun generate_isar_dependencies ctxt =
 
 fun generate_prover_dependencies ctxt params =
   generate_isar_or_prover_dependencies ctxt (SOME params)
+
+fun is_bad_query ctxt ho_atp th isar_deps =
+  Thm.legacy_get_kind th = "" orelse null isar_deps orelse
+  is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th) orelse
+  Sledgehammer_Fact.is_bad_for_atps ho_atp th
 
 fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
   let
@@ -140,19 +149,16 @@ fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
         val name = nickname_of th
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
+        val isar_deps = isar_dependencies_of all_names th
         val deps =
           isar_or_prover_dependencies_of ctxt params_opt facts all_names th
-        val kind = Thm.legacy_get_kind th
+                                         (SOME isar_deps)
         val core =
           escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
           encode_features feats
         val query =
-          if kind = "" orelse null deps orelse
-             is_blacklisted_or_something ctxt ho_atp name orelse
-             Sledgehammer_Fact.is_bad_for_atps ho_atp th then
-            ""
-          else
-            "? " ^ core ^ "\n"
+          if is_bad_query ctxt ho_atp th (these isar_deps) then ""
+          else "? " ^ core ^ "\n"
         val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
         val _ = File.append path (query ^ update)
       in [name] end
@@ -166,32 +172,33 @@ fun generate_isar_commands ctxt prover =
 fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)
 
-fun generate_mepo_suggestions ctxt (params as {provers, ...}) thys max_relevant
-                              file_name =
+fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
+                              max_facts file_name =
   let
+    val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val prover = hd provers
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
+    val all_names = build_all_names nickname_of facts
     fun do_fact (fact as (_, th)) old_facts =
       let
         val name = nickname_of th
         val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-        val kind = Thm.legacy_get_kind th
+        val isar_deps = isar_dependencies_of all_names th
         val _ =
-          if kind <> "" then
+          if is_bad_query ctxt ho_atp th (these isar_deps) then
+            ()
+          else
             let
               val suggs =
                 old_facts
                 |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
-                       max_relevant NONE hyp_ts concl_t
+                       max_facts NONE hyp_ts concl_t
                 |> map (nickname_of o snd)
               val s = escape_meta name ^ ": " ^ escape_metas suggs ^ "\n"
             in File.append path s end
-          else
-            ()
       in fact :: old_facts end
   in fold do_fact new_facts old_facts; () end
 
