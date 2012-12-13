@@ -12,6 +12,7 @@ sig
   val sendback_markup_implicit: string -> string
   val sendback_markup: string -> string
   val dialog: unit -> (string -> Markup.T) * string future
+  val dialog_text: unit -> (string -> string) * string future
   val dialog_result: serial -> string -> unit
 end;
 
@@ -52,6 +53,10 @@ fun dialog () =
     val _ = Synchronized.change dialogs (Inttab.update_new (i, promise));
     fun result_markup result = Markup.properties (explicit_id ()) (Markup.dialog i result);
   in (result_markup, promise) end;
+
+fun dialog_text () =
+  let val (markup, promise) = dialog ()
+  in (fn s => Markup.markup (markup s) s, promise) end;
 
 fun dialog_result i result =
   Synchronized.change_result dialogs

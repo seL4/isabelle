@@ -45,7 +45,6 @@ sig
   val report: string -> unit
   val result: serial * string -> unit
   val protocol_message: Properties.T -> string -> unit
-  exception TRACING_LIMIT of int
 end;
 
 structure Output: OUTPUT =
@@ -115,8 +114,6 @@ fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
 fun result (i, s) = ! Private_Hooks.result_fn (i, output s);
 fun protocol_message props s = ! Private_Hooks.protocol_message_fn props (output s);
-
-exception TRACING_LIMIT of int;
 
 end;
 

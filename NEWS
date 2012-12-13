@@ -69,10 +69,9 @@ that frequently occur in user interaction.
 * More efficient painting and improved reactivity when editing large
 files.  More scalable management of formal document content.
 
-* Smarter handling of tracing messages: output window informs about
-accumulated messages; prover transactions are limited to emit maximum
-amount of output, before being canceled (cf. system option
-"editor_tracing_limit_MB").  This avoids swamping the front-end with
+* Smarter handling of tracing messages: prover process pauses after
+certain number of messages per command transaction, with some user
+dialog to stop or continue.  This avoids swamping the front-end with
 potentially infinite message streams.
 
 * More plugin options and preferences, based on Isabelle/Scala.  The
