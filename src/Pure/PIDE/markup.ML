@@ -95,7 +95,7 @@ sig
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
-  val subgoalN: string val subgoal: T
+  val subgoalN: string val subgoal: string -> T
   val taskN: string
   val acceptedN: string val accepted: T
   val forkedN: string val forked: T
@@ -337,7 +337,7 @@ val subgoalsN = "subgoals";
 val (proof_stateN, proof_state) = markup_int "proof_state" subgoalsN;
 
 val (stateN, state) = markup_elem "state";
-val (subgoalN, subgoal) = markup_elem "subgoal";
+val (subgoalN, subgoal) = markup_string "subgoal" nameN;
 
 
 (* command status *)
