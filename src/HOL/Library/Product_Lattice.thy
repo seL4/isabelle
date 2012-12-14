@@ -195,4 +195,44 @@ lemma SUP_Pair: "(SUP x:A. (f x, g x)) = (SUP x:A. f x, SUP x:A. g x)"
 lemma INF_Pair: "(INF x:A. (f x, g x)) = (INF x:A. f x, INF x:A. g x)"
   by (simp add: INF_def Inf_prod_def image_image)
 
+
+text {* Alternative formulations for set infima and suprema over the product
+of two complete lattices: *}
+
+lemma Inf_prod_alt_def: "Inf A = (Inf (fst ` A), Inf (snd ` A))"
+by (auto simp: Inf_prod_def INF_def)
+
+lemma Sup_prod_alt_def: "Sup A = (Sup (fst ` A), Sup (snd ` A))"
+by (auto simp: Sup_prod_def SUP_def)
+
+lemma INFI_prod_alt_def: "INFI A f = (INFI A (fst o f), INFI A (snd o f))"
+by (auto simp: INF_def Inf_prod_def image_compose)
+
+lemma SUPR_prod_alt_def: "SUPR A f = (SUPR A (fst o f), SUPR A (snd o f))"
+by (auto simp: SUP_def Sup_prod_def image_compose)
+
+lemma INF_prod_alt_def:
+  "(INF x:A. f x) = (INF x:A. fst (f x), INF x:A. snd (f x))"
+by (metis fst_INF snd_INF surjective_pairing)
+
+lemma SUP_prod_alt_def:
+  "(SUP x:A. f x) = (SUP x:A. fst (f x), SUP x:A. snd (f x))"
+by (metis fst_SUP snd_SUP surjective_pairing)
+
+
+subsection {* Complete distributive lattices *}
+
+(* Contribution: Allesandro Coglio *)
+
+instance prod ::
+  (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
+proof
+  case goal1 thus ?case
+    by (auto simp: sup_prod_def Inf_prod_def INF_prod_alt_def sup_Inf sup_INF)
+next
+  case goal2 thus ?case
+    by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP)
+qed
+
+
 end
