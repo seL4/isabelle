@@ -23,52 +23,42 @@ translations
 
 subsection {* Basic list processing functions *}
 
-primrec
-  hd :: "'a list \<Rightarrow> 'a" where
-  "hd (x # xs) = x"
+primrec hd :: "'a list \<Rightarrow> 'a" where
+"hd (x # xs) = x"
 
-primrec
-  tl :: "'a list \<Rightarrow> 'a list" where
-    "tl [] = []"
-  | "tl (x # xs) = xs"
+primrec tl :: "'a list \<Rightarrow> 'a list" where
+"tl [] = []" |
+"tl (x # xs) = xs"
 
-primrec
-  last :: "'a list \<Rightarrow> 'a" where
-  "last (x # xs) = (if xs = [] then x else last xs)"
+primrec last :: "'a list \<Rightarrow> 'a" where
+"last (x # xs) = (if xs = [] then x else last xs)"
 
-primrec
-  butlast :: "'a list \<Rightarrow> 'a list" where
-    "butlast []= []"
-  | "butlast (x # xs) = (if xs = [] then [] else x # butlast xs)"
+primrec butlast :: "'a list \<Rightarrow> 'a list" where
+"butlast []= []" |
+"butlast (x # xs) = (if xs = [] then [] else x # butlast xs)"
 
-primrec
-  set :: "'a list \<Rightarrow> 'a set" where
-    "set [] = {}"
-  | "set (x # xs) = insert x (set xs)"
+primrec set :: "'a list \<Rightarrow> 'a set" where
+"set [] = {}" |
+"set (x # xs) = insert x (set xs)"
 
-definition
-  coset :: "'a list \<Rightarrow> 'a set" where
-  [simp]: "coset xs = - set xs"
+definition coset :: "'a list \<Rightarrow> 'a set" where
+[simp]: "coset xs = - set xs"
 
-primrec
-  map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
-    "map f [] = []"
-  | "map f (x # xs) = f x # map f xs"
+primrec map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
+"map f [] = []" |
+"map f (x # xs) = f x # map f xs"
 
-primrec
-  append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
-    append_Nil:"[] @ ys = ys"
-  | append_Cons: "(x#xs) @ ys = x # xs @ ys"
+primrec append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" (infixr "@" 65) where
+append_Nil: "[] @ ys = ys" |
+append_Cons: "(x#xs) @ ys = x # xs @ ys"
 
-primrec
-  rev :: "'a list \<Rightarrow> 'a list" where
-    "rev [] = []"
-  | "rev (x # xs) = rev xs @ [x]"
+primrec rev :: "'a list \<Rightarrow> 'a list" where
+"rev [] = []" |
+"rev (x # xs) = rev xs @ [x]"
 
-primrec
-  filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "filter P [] = []"
-  | "filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
+primrec filter:: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"filter P [] = []" |
+"filter P (x # xs) = (if P x then x # filter P xs else filter P xs)"
 
 syntax
   -- {* Special syntax for filter *}
@@ -82,54 +72,46 @@ syntax (xsymbols)
 syntax (HTML output)
   "_filter" :: "[pttrn, 'a list, bool] => 'a list"("(1[_\<leftarrow>_ ./ _])")
 
-primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
-where
-  fold_Nil:  "fold f [] = id"
-| fold_Cons: "fold f (x # xs) = fold f xs \<circ> f x" -- {* natural argument order *}
+primrec fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
+fold_Nil:  "fold f [] = id" |
+fold_Cons: "fold f (x # xs) = fold f xs \<circ> f x"
 
-primrec foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b"
-where
-  foldr_Nil:  "foldr f [] = id"
-| foldr_Cons: "foldr f (x # xs) = f x \<circ> foldr f xs" -- {* natural argument order *}
+primrec foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b \<Rightarrow> 'b" where
+foldr_Nil:  "foldr f [] = id" |
+foldr_Cons: "foldr f (x # xs) = f x \<circ> foldr f xs"
 
-primrec foldl :: "('b \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b"
-where
-  foldl_Nil:  "foldl f a [] = a"
-| foldl_Cons: "foldl f a (x # xs) = foldl f (f a x) xs"
+primrec foldl :: "('b \<Rightarrow> 'a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a list \<Rightarrow> 'b" where
+foldl_Nil:  "foldl f a [] = a" |
+foldl_Cons: "foldl f a (x # xs) = foldl f (f a x) xs"
 
-primrec
-  concat:: "'a list list \<Rightarrow> 'a list" where
-    "concat [] = []"
-  | "concat (x # xs) = x @ concat xs"
+primrec concat:: "'a list list \<Rightarrow> 'a list" where
+"concat [] = []" |
+"concat (x # xs) = x @ concat xs"
 
-definition (in monoid_add)
-  listsum :: "'a list \<Rightarrow> 'a" where
-  "listsum xs = foldr plus xs 0"
+definition (in monoid_add) listsum :: "'a list \<Rightarrow> 'a" where
+"listsum xs = foldr plus xs 0"
 
-primrec
-  drop:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    drop_Nil: "drop n [] = []"
-  | drop_Cons: "drop n (x # xs) = (case n of 0 \<Rightarrow> x # xs | Suc m \<Rightarrow> drop m xs)"
+primrec drop:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+drop_Nil: "drop n [] = []" |
+drop_Cons: "drop n (x # xs) = (case n of 0 \<Rightarrow> x # xs | Suc m \<Rightarrow> drop m xs)"
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
 
-primrec
-  take:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    take_Nil:"take n [] = []"
-  | take_Cons: "take n (x # xs) = (case n of 0 \<Rightarrow> [] | Suc m \<Rightarrow> x # take m xs)"
+primrec take:: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+take_Nil:"take n [] = []" |
+take_Cons: "take n (x # xs) = (case n of 0 \<Rightarrow> [] | Suc m \<Rightarrow> x # take m xs)"
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
 
-primrec
-  nth :: "'a list => nat => 'a" (infixl "!" 100) where
-  nth_Cons: "(x # xs) ! n = (case n of 0 \<Rightarrow> x | Suc k \<Rightarrow> xs ! k)"
+primrec nth :: "'a list => nat => 'a" (infixl "!" 100) where
+nth_Cons: "(x # xs) ! n = (case n of 0 \<Rightarrow> x | Suc k \<Rightarrow> xs ! k)"
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
 
-primrec
-  list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
-    "list_update [] i v = []"
-  | "list_update (x # xs) i v = (case i of 0 \<Rightarrow> v # xs | Suc j \<Rightarrow> x # list_update xs j v)"
+primrec list_update :: "'a list \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+"list_update [] i v = []" |
+"list_update (x # xs) i v =
+  (case i of 0 \<Rightarrow> v # xs | Suc j \<Rightarrow> x # list_update xs j v)"
 
 nonterminal lupdbinds and lupdbind
 
@@ -143,107 +125,91 @@ translations
   "_LUpdate xs (_lupdbinds b bs)" == "_LUpdate (_LUpdate xs b) bs"
   "xs[i:=x]" == "CONST list_update xs i x"
 
-primrec
-  takeWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "takeWhile P [] = []"
-  | "takeWhile P (x # xs) = (if P x then x # takeWhile P xs else [])"
+primrec takeWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"takeWhile P [] = []" |
+"takeWhile P (x # xs) = (if P x then x # takeWhile P xs else [])"
 
-primrec
-  dropWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "dropWhile P [] = []"
-  | "dropWhile P (x # xs) = (if P x then dropWhile P xs else x # xs)"
+primrec dropWhile :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"dropWhile P [] = []" |
+"dropWhile P (x # xs) = (if P x then dropWhile P xs else x # xs)"
 
-primrec
-  zip :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
-    "zip xs [] = []"
-  | zip_Cons: "zip xs (y # ys) = (case xs of [] => [] | z # zs => (z, y) # zip zs ys)"
+primrec zip :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
+"zip xs [] = []" |
+zip_Cons: "zip xs (y # ys) =
+  (case xs of [] => [] | z # zs => (z, y) # zip zs ys)"
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "xs = []"} and @{text "xs = z # zs"} *}
 
-primrec
-  product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
-    "product [] _ = []"
-  | "product (x#xs) ys = map (Pair x) ys @ product xs ys"
+primrec product :: "'a list \<Rightarrow> 'b list \<Rightarrow> ('a \<times> 'b) list" where
+"product [] _ = []" |
+"product (x#xs) ys = map (Pair x) ys @ product xs ys"
 
 hide_const (open) product
 
-primrec 
-  upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" ("(1[_..</_'])") where
-    upt_0: "[i..<0] = []"
-  | upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
+primrec upt :: "nat \<Rightarrow> nat \<Rightarrow> nat list" ("(1[_..</_'])") where
+upt_0: "[i..<0] = []" |
+upt_Suc: "[i..<(Suc j)] = (if i <= j then [i..<j] @ [j] else [])"
 
-definition
-  insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "insert x xs = (if x \<in> set xs then xs else x # xs)"
+definition insert :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"insert x xs = (if x \<in> set xs then xs else x # xs)"
 
 hide_const (open) insert
 hide_fact (open) insert_def
 
 primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a option" where
-  "find _ [] = None"
-| "find P (x#xs) = (if P x then Some x else find P xs)"
+"find _ [] = None" |
+"find P (x#xs) = (if P x then Some x else find P xs)"
 
 hide_const (open) find
 
-primrec
-  remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "remove1 x [] = []"
-  | "remove1 x (y # xs) = (if x = y then xs else y # remove1 x xs)"
+primrec remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"remove1 x [] = []" |
+"remove1 x (y # xs) = (if x = y then xs else y # remove1 x xs)"
 
-primrec
-  removeAll :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-    "removeAll x [] = []"
-  | "removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
+primrec removeAll :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"removeAll x [] = []" |
+"removeAll x (y # xs) = (if x = y then removeAll x xs else y # removeAll x xs)"
 
-primrec
-  distinct :: "'a list \<Rightarrow> bool" where
-    "distinct [] \<longleftrightarrow> True"
-  | "distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
+primrec distinct :: "'a list \<Rightarrow> bool" where
+"distinct [] \<longleftrightarrow> True" |
+"distinct (x # xs) \<longleftrightarrow> x \<notin> set xs \<and> distinct xs"
 
-primrec
-  remdups :: "'a list \<Rightarrow> 'a list" where
-    "remdups [] = []"
-  | "remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
+primrec remdups :: "'a list \<Rightarrow> 'a list" where
+"remdups [] = []" |
+"remdups (x # xs) = (if x \<in> set xs then remdups xs else x # remdups xs)"
 
-primrec
-  replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
-    replicate_0: "replicate 0 x = []"
-  | replicate_Suc: "replicate (Suc n) x = x # replicate n x"
+primrec replicate :: "nat \<Rightarrow> 'a \<Rightarrow> 'a list" where
+replicate_0: "replicate 0 x = []" |
+replicate_Suc: "replicate (Suc n) x = x # replicate n x"
 
 text {*
   Function @{text size} is overloaded for all datatypes. Users may
   refer to the list version as @{text length}. *}
 
-abbreviation
-  length :: "'a list \<Rightarrow> nat" where
-  "length \<equiv> size"
+abbreviation length :: "'a list \<Rightarrow> nat" where
+"length \<equiv> size"
 
 primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
-  "rotate1 [] = []" |
-  "rotate1 (x # xs) = xs @ [x]"
+"rotate1 [] = []" |
+"rotate1 (x # xs) = xs @ [x]"
 
-definition
-  rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "rotate n = rotate1 ^^ n"
+definition rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+"rotate n = rotate1 ^^ n"
 
-definition
-  list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
-  "list_all2 P xs ys =
-    (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
+definition list_all2 :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> bool" where
+"list_all2 P xs ys =
+  (length xs = length ys \<and> (\<forall>(x, y) \<in> set (zip xs ys). P x y))"
 
-definition
-  sublist :: "'a list => nat set => 'a list" where
-  "sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
+definition sublist :: "'a list => nat set => 'a list" where
+"sublist xs A = map fst (filter (\<lambda>p. snd p \<in> A) (zip xs [0..<size xs]))"
 
-primrec
-  sublists :: "'a list \<Rightarrow> 'a list list" where
-  "sublists [] = [[]]"
-| "sublists (x#xs) = (let xss = sublists xs in map (Cons x) xss @ xss)"
+primrec sublists :: "'a list \<Rightarrow> 'a list list" where
+"sublists [] = [[]]" |
+"sublists (x#xs) = (let xss = sublists xs in map (Cons x) xss @ xss)"
 
-primrec
-  n_lists :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list list" where
-  "n_lists 0 xs = [[]]"
-| "n_lists (Suc n) xs = concat (map (\<lambda>ys. map (\<lambda>y. y # ys) xs) (n_lists n xs))"
+primrec n_lists :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list list" where
+"n_lists 0 xs = [[]]" |
+"n_lists (Suc n) xs = concat (map (\<lambda>ys. map (\<lambda>y. y # ys) xs) (n_lists n xs))"
 
 hide_const (open) n_lists
 
@@ -335,14 +301,16 @@ lemma [code]:
   by simp_all
 
 primrec insort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-  "insort_key f x [] = [x]" |
-  "insort_key f x (y#ys) = (if f x \<le> f y then (x#y#ys) else y#(insort_key f x ys))"
+"insort_key f x [] = [x]" |
+"insort_key f x (y#ys) =
+  (if f x \<le> f y then (x#y#ys) else y#(insort_key f x ys))"
 
 definition sort_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-  "sort_key f xs = foldr (insort_key f) xs []"
+"sort_key f xs = foldr (insort_key f) xs []"
 
 definition insort_insert_key :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b \<Rightarrow> 'b list \<Rightarrow> 'b list" where
-  "insort_insert_key f x xs = (if f x \<in> f ` set xs then xs else insort_key f x xs)"
+"insort_insert_key f x xs =
+  (if f x \<in> f ` set xs then xs else insort_key f x xs)"
 
 abbreviation "sort \<equiv> sort_key (\<lambda>x. x)"
 abbreviation "insort \<equiv> insort_key (\<lambda>x. x)"
@@ -1517,10 +1485,10 @@ by (induct ys) simp_all
 subsubsection {* List partitioning *}
 
 primrec partition :: "('a \<Rightarrow> bool) \<Rightarrow>'a list \<Rightarrow> 'a list \<times> 'a list" where
-  "partition P [] = ([], [])"
-  | "partition P (x # xs) = 
-      (let (yes, no) = partition P xs
-      in if P x then (x # yes, no) else (yes, x # no))"
+"partition P [] = ([], [])" |
+"partition P (x # xs) = 
+  (let (yes, no) = partition P xs
+   in if P x then (x # yes, no) else (yes, x # no))"
 
 lemma partition_filter1:
     "fst (partition P xs) = filter P xs"
@@ -4823,7 +4791,7 @@ context linorder
 begin
 
 definition sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
-  "sorted_list_of_set = Finite_Set.fold insort []"
+"sorted_list_of_set = Finite_Set.fold insort []"
 
 lemma sorted_list_of_set_empty [simp]:
   "sorted_list_of_set {} = []"
@@ -4967,9 +4935,8 @@ subsubsection {* Lists as Cartesian products *}
 text{*@{text"set_Cons A Xs"}: the set of lists with head drawn from
 @{term A} and tail drawn from @{term Xs}.*}
 
-definition
-  set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" where
-  "set_Cons A XS = {z. \<exists>x xs. z = x # xs \<and> x \<in> A \<and> xs \<in> XS}"
+definition set_Cons :: "'a set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" where
+"set_Cons A XS = {z. \<exists>x xs. z = x # xs \<and> x \<in> A \<and> xs \<in> XS}"
 
 lemma set_Cons_sing_Nil [simp]: "set_Cons A {[]} = (%x. [x])`A"
 by (auto simp add: set_Cons_def)
@@ -4977,10 +4944,9 @@ by (auto simp add: set_Cons_def)
 text{*Yields the set of lists, all of the same length as the argument and
 with elements drawn from the corresponding element of the argument.*}
 
-primrec
-  listset :: "'a set list \<Rightarrow> 'a list set" where
-     "listset [] = {[]}"
-  |  "listset (A # As) = set_Cons A (listset As)"
+primrec listset :: "'a set list \<Rightarrow> 'a list set" where
+"listset [] = {[]}" |
+"listset (A # As) = set_Cons A (listset As)"
 
 
 subsection {* Relations on Lists *}
@@ -4992,17 +4958,16 @@ text{*These orderings preserve well-foundedness: shorter lists
         
 primrec -- {*The lexicographic ordering for lists of the specified length*}
   lexn :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a list \<times> 'a list) set" where
-    "lexn r 0 = {}"
-  | "lexn r (Suc n) = (map_pair (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
-      {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
+"lexn r 0 = {}" |
+"lexn r (Suc n) =
+  (map_pair (%(x, xs). x#xs) (%(x, xs). x#xs) ` (r <*lex*> lexn r n)) Int
+  {(xs, ys). length xs = Suc n \<and> length ys = Suc n}"
 
-definition
-  lex :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
-  "lex r = (\<Union>n. lexn r n)" -- {*Holds only between lists of the same length*}
+definition lex :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
+"lex r = (\<Union>n. lexn r n)" -- {*Holds only between lists of the same length*}
 
-definition
-  lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set" where
-  "lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
+definition lenlex :: "('a \<times> 'a) set => ('a list \<times> 'a list) set" where
+"lenlex r = inv_image (less_than <*lex*> lex r) (\<lambda>xs. (length xs, xs))"
         -- {*Compares lists by their length and then lexicographically*}
 
 lemma wf_lexn: "wf r ==> wf (lexn r n)"
@@ -5074,9 +5039,8 @@ text {* Classical lexicographic ordering on lists, ie. "a" < "ab" < "b".
     This ordering does \emph{not} preserve well-foundedness.
      Author: N. Voelker, March 2005. *} 
 
-definition
-  lexord :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
-  "lexord r = {(x,y ). \<exists> a v. y = x @ a # v \<or>
+definition lexord :: "('a \<times> 'a) set \<Rightarrow> ('a list \<times> 'a list) set" where
+"lexord r = {(x,y). \<exists> a v. y = x @ a # v \<or>
             (\<exists> u a b v w. (a,b) \<in> r \<and> x = u @ (a # v) \<and> y = u @ (b # w))}"
 
 lemma lexord_Nil_left[simp]:  "([],y) \<in> lexord r = (\<exists> a x. y = a # x)"
@@ -5187,8 +5151,7 @@ subsubsection {* Lexicographic combination of measure functions *}
 
 text {* These are useful for termination proofs *}
 
-definition
-  "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
+definition "measures fs = inv_image (lex less_than) (%a. map (%f. f a) fs)"
 
 lemma wf_measures[simp]: "wf (measures fs)"
 unfolding measures_def
@@ -5521,7 +5484,7 @@ by (induct xs) force+
 subsection {* Monad operation *}
 
 definition bind :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b list) \<Rightarrow> 'b list" where
-  "bind xs f = concat (map f xs)"
+"bind xs f = concat (map f xs)"
 
 hide_const (open) bind
 
@@ -5533,20 +5496,14 @@ lemma bind_simps [simp]:
 
 subsection {* Transfer *}
 
-definition
-  embed_list :: "nat list \<Rightarrow> int list"
-where
-  "embed_list l = map int l"
+definition embed_list :: "nat list \<Rightarrow> int list" where
+"embed_list l = map int l"
 
-definition
-  nat_list :: "int list \<Rightarrow> bool"
-where
-  "nat_list l = nat_set (set l)"
+definition nat_list :: "int list \<Rightarrow> bool" where
+"nat_list l = nat_set (set l)"
 
-definition
-  return_list :: "int list \<Rightarrow> nat list"
-where
-  "return_list l = map nat l"
+definition return_list :: "int list \<Rightarrow> nat list" where
+"return_list l = map nat l"
 
 lemma transfer_nat_int_list_return_embed: "nat_list l \<longrightarrow>
     embed_list (return_list l) = l"
@@ -5575,7 +5532,7 @@ subsection {* Code generation *}
 subsubsection {* Counterparts for set-related operations *}
 
 definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
-  [code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
+[code_abbrev]: "member xs x \<longleftrightarrow> x \<in> set xs"
 
 text {*
   Use @{text member} only for generating executable code.  Otherwise use
@@ -5592,13 +5549,13 @@ lemma in_set_member (* FIXME delete candidate *):
   by (simp add: member_def)
 
 definition list_all :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
+list_all_iff [code_abbrev]: "list_all P xs \<longleftrightarrow> Ball (set xs) P"
 
 definition list_ex :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
+list_ex_iff [code_abbrev]: "list_ex P xs \<longleftrightarrow> Bex (set xs) P"
 
 definition list_ex1 :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> bool" where
-  list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
+list_ex1_iff [code_abbrev]: "list_ex1 P xs \<longleftrightarrow> (\<exists>! x. x \<in> set xs \<and> P x)"
 
 text {*
   Usually you should prefer @{text "\<forall>x\<in>set xs"}, @{text "\<exists>x\<in>set xs"}
@@ -5661,9 +5618,8 @@ lemma list_ex_cong [fundef_cong]:
   "xs = ys \<Longrightarrow> (\<And>x. x \<in> set ys \<Longrightarrow> f x = g x) \<Longrightarrow> list_ex f xs = list_ex g ys"
 by (simp add: list_ex_iff)
 
-definition can_select :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool"
-where
-  [code_abbrev]: "can_select P A = (\<exists>!x\<in>A. P x)"
+definition can_select :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> bool" where
+[code_abbrev]: "can_select P A = (\<exists>!x\<in>A. P x)"
 
 lemma can_select_set_list_ex1 [code]:
   "can_select P (set A) = list_ex1 P A"
