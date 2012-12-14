@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics, Toolkit}
+import java.awt.{Color, Font, FontMetrics, Toolkit}
 import java.awt.event.{ActionListener, ActionEvent, KeyEvent}
 import javax.swing.{KeyStroke, JComponent}
 
@@ -52,7 +52,9 @@ object Pretty_Text_Area
   }
 }
 
-class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
+class Pretty_Text_Area(
+  view: View,
+  background: Option[Color] = None) extends JEditEmbeddedTextArea
 {
   text_area =>
 
@@ -81,8 +83,23 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
     getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
     if (getWidth > 0) {
+      getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
+      getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
+      background.map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
+      getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
+      getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
+      getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
+      getGutter.setBorder(0,
+        jEdit.getColorProperty("view.gutter.focusBorderColor"),
+        jEdit.getColorProperty("view.gutter.noFocusBorderColor"),
+        getPainter.getBackground)
+      getGutter.setFoldPainter(getFoldPainter)
+
+      getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
+
       val font_metrics = getPainter.getFontMetrics(font)
-      val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
+      val margin =
+        ((getWidth - getGutter.getWidth) / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
