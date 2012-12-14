@@ -202,6 +202,17 @@ INCOMPATIBILITY.  Related changes are:
 
     INCOMPATIBILITY.
 
+* Further generalized the definition of limits:
+
+  - Introduced the predicate filterlim (LIM x F. f x :> G) which expresses that
+    when the input values x converge to F then the output f x converges to G.
+
+  - Added filters for convergence to positive (at_top) and negative infinity (at_bot).
+    Moved infinity in the norm (at_infinity) from Multivariate_Analysis to Complex_Main.
+
+  - Removed real_tendsto_inf, it is superseded by "LIM x F. f x :> at_top".
+    INCOMPATIBILITY
+
 * HOL/Rings: renamed lemmas
 
 left_distrib ~> distrib_right
