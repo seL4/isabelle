@@ -18,6 +18,7 @@ object Build_Dialog
 {
   def main(args: Array[String]) =
   {
+    Platform.init_laf()
     try {
       args.toList match {
         case
@@ -36,8 +37,6 @@ object Build_Dialog
                 more_dirs = more_dirs, sessions = List(session)) == 0) sys.exit(0)
             else
               Swing_Thread.later {
-                Platform.init_laf()
-
                 val top = build_dialog(options, system_mode, more_dirs, session)
                 top.pack()
 
