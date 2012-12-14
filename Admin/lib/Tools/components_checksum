@@ -2,21 +2,25 @@
 #
 # Author: Alexander Krauss
 #
-# Computes and validates checksums for the Isabelle component repository
+# DESCRIPTION: compute and validate checksums for component repository
 
-THIS="$(cd $(dirname "$0"); pwd)"
+
+## diagnostics
+
+PRG="$(basename "$0")"
 
 function usage()
 {
   echo
-  echo "Usage: $0 [OPTIONS] [DIR]"
+  echo "Usage: $PRG [OPTIONS] [DIR]"
   echo
   echo "  Options are:"
   echo "    -u           update the recorded checksums in the repository"
   echo "    -c           compare the actual checksums with the recorded ones"
   echo
-  echo "  Compute the checksums of components in DIR (default '/home/isabelle/components')"
-  echo "  and synchronize them with the Isabelle repository."
+  echo "  Compute the checksums of component .tar.gz archives in DIR"
+  echo "  (default \"/home/isabelle/components\") and synchronize them"
+  echo "  with the Isabelle repository."
   echo
   exit 1
 }
@@ -52,6 +56,7 @@ shift $(($OPTIND - 1))
 
 [ -n "$UPDATE" ] || [ -n "$CHECK" ] || usage
 
+
 # args
 
 [ "$#" -ge 1 ] && { COMPONENTS_DIR="$1"; shift; }
@@ -60,11 +65,17 @@ shift $(($OPTIND - 1))
 
 ## compute checksums
 
-CHECKSUM_FILE="$THIS/components.sha1"
-CHECKSUM_TMP="$THIS/components.sha1.tmp"
+CHECKSUM_DIR="$ISABELLE_HOME/Admin/components"
+CHECKSUM_FILE="$CHECKSUM_DIR/components.sha1"
+CHECKSUM_TMP="$CHECKSUM_DIR/components.sha1.tmp"
 
-cd "$COMPONENTS_DIR"
-sha1sum *.tar.gz > "$CHECKSUM_TMP"
+(
+  cd "$COMPONENTS_DIR"
+  sha1sum *.tar.gz > "$CHECKSUM_TMP"
+)
 
 [ -n "$UPDATE" ] && mv "$CHECKSUM_TMP" "$CHECKSUM_FILE"
-[ -n "$CHECK" ] && (diff "$CHECKSUM_FILE" "$CHECKSUM_TMP" || fail "Integrity error")
+[ -n "$CHECK" ] && {
+  diff "$CHECKSUM_FILE" "$CHECKSUM_TMP" || fail "Integrity error"
+}
+
