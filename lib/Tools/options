@@ -16,9 +16,10 @@ function usage()
   echo
   echo "  Options are:"
   echo "    -b           include \$ISABELLE_BUILD_OPTIONS"
-  echo "    -x FILE      export to FILE in YXML format"
+  echo "    -l           list options"
+  echo "    -x FILE      export options to FILE in YXML format"
   echo
-  echo "  Print Isabelle system options, augmented by MORE_OPTIONS given as"
+  echo "  Report Isabelle system options, augmented by MORE_OPTIONS given as"
   echo "  arguments NAME=VAL or NAME."
   echo
   exit 1
@@ -34,13 +35,17 @@ function fail()
 ## process command line
 
 eval "declare -a BUILD_OPTIONS=()"
+LIST_OPTIONS="false"
 EXPORT_FILE=""
 
-while getopts "bx:" OPT
+while getopts "blx:" OPT
 do
   case "$OPT" in
     b)
       BUILD_OPTIONS=($ISABELLE_BUILD_OPTIONS)
+      ;;
+    l)
+      LIST_OPTIONS="true"
       ;;
     x)
       EXPORT_FILE="$OPTARG"
@@ -52,6 +57,8 @@ do
 done
 
 shift $(($OPTIND - 1))
+
+[ "$LIST_OPTIONS" = "false" -a -z "$EXPORT_FILE" ] && usage
 
 
 ## main

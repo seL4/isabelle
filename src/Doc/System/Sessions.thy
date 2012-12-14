@@ -150,9 +150,10 @@ Usage: isabelle options [OPTIONS] [MORE_OPTIONS ...]
 
   Options are:
     -b           include $ISABELLE_BUILD_OPTIONS
+    -l           list options
     -x FILE      export to FILE in YXML format
 
-  Print Isabelle system options, augmented by MORE_OPTIONS given as
+  Report Isabelle system options, augmented by MORE_OPTIONS given as
   arguments NAME=VAL or NAME.
 \end{ttbox}
 
