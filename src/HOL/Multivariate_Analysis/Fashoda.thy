@@ -7,6 +7,14 @@ theory Fashoda
 imports Brouwer_Fixpoint Path_Connected Cartesian_Euclidean_Space
 begin
 
+(* move *)
+
+lemma cart_eq_inner_axis: "a $ i = a \<bullet> axis i 1"
+  by (simp add: inner_axis)
+
+lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
+  by (auto simp add: Basis_vec_def axis_eq_axis)
+
 subsection {*Fashoda meet theorem. *}
 
 lemma infnorm_2: "infnorm (x::real^2) = max (abs(x$1)) (abs(x$2))"
@@ -30,7 +38,7 @@ lemma fashoda_unit: fixes f g::"real \<Rightarrow> real^2"
   have lem1:"\<forall>z::real^2. infnorm(negatex z) = infnorm z"
     unfolding negatex_def infnorm_2 vector_2 by auto
   have lem2:"\<forall>z. z\<noteq>0 \<longrightarrow> infnorm(sqprojection z) = 1" unfolding sqprojection_def
-    unfolding infnorm_mul[unfolded smult_conv_scaleR] unfolding abs_inverse real_abs_infnorm
+    unfolding infnorm_mul[unfolded scalar_mult_eq_scaleR] unfolding abs_inverse real_abs_infnorm
     apply(subst infnorm_eq_0[THEN sym]) by auto
   let ?F = "(\<lambda>w::real^2. (f \<circ> (\<lambda>x. x$1)) w - (g \<circ> (\<lambda>x. x$2)) w)"
   have *:"\<And>i. (\<lambda>x::real^2. x $ i) ` {- 1..1} = {- 1..1::real}"
@@ -133,12 +141,6 @@ lemma fashoda_unit_path: fixes f ::"real \<Rightarrow> real^2" and g ::"real \<R
     apply(rule_tac x="iscale s" in bexI) prefer 3 apply(rule_tac x="iscale t" in bexI)
     using isc[unfolded subset_eq, rule_format] by auto qed
 
-(* move *)
-lemma interval_bij_bij_cart: fixes x::"real^'n" assumes "\<forall>i. a$i < b$i \<and> u$i < v$i" 
-  shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
-  unfolding interval_bij_cart split_conv vec_eq_iff vec_lambda_beta
-  apply(rule,insert assms,erule_tac x=i in allE) by auto
-
 lemma fashoda: fixes b::"real^2"
   assumes "path f" "path g" "path_image f \<subseteq> {a..b}" "path_image g \<subseteq> {a..b}"
   "(pathstart f)$1 = a$1" "(pathfinish f)$1 = b$1"
@@ -184,8 +186,10 @@ next assume as:"a $ 1 < b $ 1 \<and> a $ 2 < b $ 2"
       "(interval_bij (a, b) (- 1, 1) \<circ> f) 1 $ 1 = 1"
       "(interval_bij (a, b) (- 1, 1) \<circ> g) 0 $ 2 = -1"
       "(interval_bij (a, b) (- 1, 1) \<circ> g) 1 $ 2 = 1"
-      unfolding interval_bij_cart vector_component_simps o_def split_conv
-      unfolding assms[unfolded pathstart_def pathfinish_def] using as by auto qed note z=this
+      using assms as 
+      by (simp_all add: axis_in_Basis cart_eq_inner_axis pathstart_def pathfinish_def interval_bij_def)
+         (simp_all add: inner_axis)
+  qed note z=this
   from z(1) guess zf unfolding image_iff .. note zf=this
   from z(2) guess zg unfolding image_iff .. note zg=this
   have *:"\<forall>i. (- 1) $ i < (1::real^2) $ i \<and> a $ i < b $ i" unfolding forall_2 using as by auto
@@ -201,7 +205,7 @@ lemma segment_vertical: fixes a::"real^2" assumes "a$1 = b$1"
 proof- 
   let ?L = "\<exists>u. (x $ 1 = (1 - u) * a $ 1 + u * b $ 1 \<and> x $ 2 = (1 - u) * a $ 2 + u * b $ 2) \<and> 0 \<le> u \<and> u \<le> 1"
   { presume "?L \<Longrightarrow> ?R" "?R \<Longrightarrow> ?L" thus ?thesis unfolding closed_segment_def mem_Collect_eq
-      unfolding vec_eq_iff forall_2 smult_conv_scaleR[THEN sym] vector_component_simps by blast }
+      unfolding vec_eq_iff forall_2 scalar_mult_eq_scaleR[THEN sym] vector_component_simps by blast }
   { assume ?L then guess u apply-apply(erule exE)apply(erule conjE)+ . note u=this
     { fix b a assume "b + u * a > a + u * b"
       hence "(1 - u) * b > (1 - u) * a" by(auto simp add:field_simps)
@@ -225,7 +229,7 @@ lemma segment_horizontal: fixes a::"real^2" assumes "a$2 = b$2"
 proof- 
   let ?L = "\<exists>u. (x $ 1 = (1 - u) * a $ 1 + u * b $ 1 \<and> x $ 2 = (1 - u) * a $ 2 + u * b $ 2) \<and> 0 \<le> u \<and> u \<le> 1"
   { presume "?L \<Longrightarrow> ?R" "?R \<Longrightarrow> ?L" thus ?thesis unfolding closed_segment_def mem_Collect_eq
-      unfolding vec_eq_iff forall_2 smult_conv_scaleR[THEN sym] vector_component_simps by blast }
+      unfolding vec_eq_iff forall_2 scalar_mult_eq_scaleR[THEN sym] vector_component_simps by blast }
   { assume ?L then guess u apply-apply(erule exE)apply(erule conjE)+ . note u=this
     { fix b a assume "b + u * a > a + u * b"
       hence "(1 - u) * b > (1 - u) * a" by(auto simp add:field_simps)

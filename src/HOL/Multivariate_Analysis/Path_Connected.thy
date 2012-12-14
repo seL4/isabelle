@@ -819,35 +819,40 @@ lemma path_connected_punctured_universe:
   assumes "2 \<le> DIM('a::euclidean_space)"
   shows "path_connected((UNIV::'a::euclidean_space set) - {a})"
 proof -
-  let ?A = "{x::'a. \<exists>i\<in>{..<DIM('a)}. x $$ i < a $$ i}"
-  let ?B = "{x::'a. \<exists>i\<in>{..<DIM('a)}. a $$ i < x $$ i}"
+  let ?A = "{x::'a. \<exists>i\<in>Basis. x \<bullet> i < a \<bullet> i}"
+  let ?B = "{x::'a. \<exists>i\<in>Basis. a \<bullet> i < x \<bullet> i}"
 
   have A: "path_connected ?A"
     unfolding Collect_bex_eq
   proof (rule path_connected_UNION)
-    fix i
-    assume "i \<in> {..<DIM('a)}"
-    then show "(\<chi>\<chi> i. a $$ i - 1) \<in> {x::'a. x $$ i < a $$ i}" by simp
-    show "path_connected {x. x $$ i < a $$ i}" unfolding euclidean_component_def
-      by (rule convex_imp_path_connected [OF convex_halfspace_lt])
+    fix i :: 'a
+    assume "i \<in> Basis"
+    then show "(\<Sum>i\<in>Basis. (a \<bullet> i - 1)*\<^sub>R i) \<in> {x::'a. x \<bullet> i < a \<bullet> i}" by simp
+    show "path_connected {x. x \<bullet> i < a \<bullet> i}"
+      using convex_imp_path_connected [OF convex_halfspace_lt, of i "a \<bullet> i"]
+      by (simp add: inner_commute)
   qed
   have B: "path_connected ?B" unfolding Collect_bex_eq
   proof (rule path_connected_UNION)
-    fix i
-    assume "i \<in> {..<DIM('a)}"
-    then show "(\<chi>\<chi> i. a $$ i + 1) \<in> {x::'a. a $$ i < x $$ i}" by simp
-    show "path_connected {x. a $$ i < x $$ i}" unfolding euclidean_component_def
-      by (rule convex_imp_path_connected [OF convex_halfspace_gt])
+    fix i :: 'a
+    assume "i \<in> Basis"
+    then show "(\<Sum>i\<in>Basis. (a \<bullet> i + 1) *\<^sub>R i) \<in> {x::'a. a \<bullet> i < x \<bullet> i}" by simp
+    show "path_connected {x. a \<bullet> i < x \<bullet> i}"
+      using convex_imp_path_connected [OF convex_halfspace_gt, of "a \<bullet> i" i]
+      by (simp add: inner_commute)
   qed
-  from assms have "1 < DIM('a)" by auto
-  then have "a + basis 0 - basis 1 \<in> ?A \<inter> ?B" by auto
+  obtain S :: "'a set" where "S \<subseteq> Basis" "card S = Suc (Suc 0)"
+    using ex_card[OF assms] by auto
+  then obtain b0 b1 :: 'a where "b0 \<in> Basis" "b1 \<in> Basis" "b0 \<noteq> b1"
+    unfolding card_Suc_eq by auto
+  then have "a + b0 - b1 \<in> ?A \<inter> ?B" by (auto simp: inner_simps inner_Basis)
   then have "?A \<inter> ?B \<noteq> {}" by fast
   with A B have "path_connected (?A \<union> ?B)"
     by (rule path_connected_Un)
-  also have "?A \<union> ?B = {x. \<exists>i\<in>{..<DIM('a)}. x $$ i \<noteq> a $$ i}"
+  also have "?A \<union> ?B = {x. \<exists>i\<in>Basis. x \<bullet> i \<noteq> a \<bullet> i}"
     unfolding neq_iff bex_disj_distrib Collect_disj_eq ..
   also have "\<dots> = {x. x \<noteq> a}"
-    unfolding Bex_def euclidean_eq [where 'a='a] by simp
+    unfolding euclidean_eq_iff [where 'a='a] by (simp add: Bex_def)
   also have "\<dots> = UNIV - {a}" by auto
   finally show ?thesis .
 qed

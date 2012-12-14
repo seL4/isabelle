@@ -36,7 +36,7 @@ lemma
 subsection {* Standard Cubes *}
 
 definition cube :: "nat \<Rightarrow> 'a::ordered_euclidean_space set" where
-  "cube n \<equiv> {\<chi>\<chi> i. - real n .. \<chi>\<chi> i. real n}"
+  "cube n \<equiv> {\<Sum>i\<in>Basis. - n *\<^sub>R i .. \<Sum>i\<in>Basis. n *\<^sub>R i}"
 
 lemma borel_cube[intro]: "cube n \<in> sets borel"
   unfolding cube_def by auto
@@ -45,53 +45,44 @@ lemma cube_closed[intro]: "closed (cube n)"
   unfolding cube_def by auto
 
 lemma cube_subset[intro]: "n \<le> N \<Longrightarrow> cube n \<subseteq> cube N"
-  by (fastforce simp: eucl_le[where 'a='a] cube_def)
+  by (fastforce simp: eucl_le[where 'a='a] cube_def setsum_negf)
 
-lemma cube_subset_iff:
-  "cube n \<subseteq> cube N \<longleftrightarrow> n \<le> N"
-proof
-  assume subset: "cube n \<subseteq> (cube N::'a set)"
-  then have "((\<chi>\<chi> i. real n)::'a) \<in> cube N"
-    using DIM_positive[where 'a='a]
-    by (fastforce simp: cube_def eucl_le[where 'a='a])
-  then show "n \<le> N"
-    by (fastforce simp: cube_def eucl_le[where 'a='a])
-next
-  assume "n \<le> N" then show "cube n \<subseteq> (cube N::'a set)" by (rule cube_subset)
-qed
+lemma cube_subset_iff: "cube n \<subseteq> cube N \<longleftrightarrow> n \<le> N"
+  unfolding cube_def subset_interval by (simp add: setsum_negf ex_in_conv)
 
-lemma ball_subset_cube:"ball (0::'a::ordered_euclidean_space) (real n) \<subseteq> cube n"
-  unfolding cube_def subset_eq mem_interval apply safe unfolding euclidean_lambda_beta'
-proof- fix x::'a and i assume as:"x\<in>ball 0 (real n)" "i<DIM('a)"
-  thus "- real n \<le> x $$ i" "real n \<ge> x $$ i"
-    using component_le_norm[of x i] by(auto simp: dist_norm)
+lemma ball_subset_cube: "ball (0::'a::ordered_euclidean_space) (real n) \<subseteq> cube n"
+  apply (simp add: cube_def subset_eq mem_interval setsum_negf eucl_le[where 'a='a])
+proof safe
+  fix x i :: 'a assume x: "x \<in> ball 0 (real n)" and i: "i \<in> Basis" 
+  thus "- real n \<le> x \<bullet> i" "real n \<ge> x \<bullet> i"
+    using Basis_le_norm[OF i, of x] by(auto simp: dist_norm)
 qed
 
 lemma mem_big_cube: obtains n where "x \<in> cube n"
-proof- from reals_Archimedean2[of "norm x"] guess n ..
-  thus ?thesis apply-apply(rule that[where n=n])
-    apply(rule ball_subset_cube[unfolded subset_eq,rule_format])
-    by (auto simp add:dist_norm)
+proof -
+  from reals_Archimedean2[of "norm x"] guess n ..
+  with ball_subset_cube[unfolded subset_eq, of n]
+  show ?thesis
+    by (intro that[where n=n]) (auto simp add: dist_norm)
 qed
 
 lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
-  unfolding cube_def subset_eq apply safe unfolding mem_interval apply auto done
+  unfolding cube_def subset_interval by (simp add: setsum_negf)
 
 lemma has_integral_interval_cube:
   fixes a b :: "'a::ordered_euclidean_space"
-  shows "(indicator {a .. b} has_integral
-    content ({\<chi>\<chi> i. max (- real n) (a $$ i) .. \<chi>\<chi> i. min (real n) (b $$ i)} :: 'a set)) (cube n)"
+  shows "(indicator {a .. b} has_integral content ({a .. b} \<inter> cube n)) (cube n)"
     (is "(?I has_integral content ?R) (cube n)")
 proof -
-  let "{?N .. ?P}" = ?R
   have [simp]: "(\<lambda>x. if x \<in> cube n then ?I x else 0) = indicator ?R"
     by (auto simp: indicator_def cube_def fun_eq_iff eucl_le[where 'a='a])
   have "(?I has_integral content ?R) (cube n) \<longleftrightarrow> (indicator ?R has_integral content ?R) UNIV"
     unfolding has_integral_restrict_univ[where s="cube n", symmetric] by simp
-  also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1) has_integral content ?R) ?R"
-    unfolding indicator_def [abs_def] has_integral_restrict_univ ..
-  finally show ?thesis
-    using has_integral_const[of "1::real" "?N" "?P"] by simp
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1::real) has_integral content ?R *\<^sub>R 1) ?R"
+    unfolding indicator_def [abs_def] has_integral_restrict_univ real_scaleR_def mult_1_right ..
+  also have "((\<lambda>x. 1) has_integral content ?R *\<^sub>R 1) ?R"
+    unfolding cube_def inter_interval by (rule has_integral_const)
+  finally show ?thesis .
 qed
 
 subsection {* Lebesgue measure *}
@@ -219,11 +210,8 @@ proof -
   also have "\<dots> \<subseteq> sets lebesgue"
   proof (safe intro!: sets.sigma_sets_subset lebesgueI)
     fix n :: nat and a b :: 'a
-    let ?N = "\<chi>\<chi> i. max (- real n) (a $$ i)"
-    let ?P = "\<chi>\<chi> i. min (real n) (b $$ i)"
     show "(indicator {a..b} :: 'a\<Rightarrow>real) integrable_on cube n"
-      unfolding integrable_on_def
-      using has_integral_interval_cube[of a b] by auto
+      unfolding integrable_on_def using has_integral_interval_cube[of a b] by auto
   qed
   finally show ?thesis .
 qed
@@ -418,12 +406,13 @@ proof (simp add: emeasure_lebesgue, intro SUP_PInfty bexI)
       case (Suc n')
       have "real n \<le> (2 * real n)^1" by auto
       also have "(2 * real n)^1 \<le> (2 * real n) ^ DIM('a)"
-        using Suc DIM_positive[where 'a='a] by (intro power_increasing) (auto simp: real_of_nat_Suc)
+        using Suc DIM_positive[where 'a='a] 
+        by (intro power_increasing) (auto simp: real_of_nat_Suc simp del: DIM_positive)
       finally show ?thesis .
     qed }
   ultimately show "ereal (real n) \<le> ereal (integral (cube n) (indicator UNIV::'a\<Rightarrow>real))"
     using integral_const DIM_positive[where 'a='a]
-    by (auto simp: cube_def content_closed_interval_cases setprod_constant)
+    by (auto simp: cube_def content_closed_interval_cases setprod_constant setsum_negf)
 qed simp
 
 lemma lmeasure_complete: "A \<subseteq> B \<Longrightarrow> B \<in> null_sets lebesgue \<Longrightarrow> A \<in> null_sets lebesgue"
@@ -901,24 +890,24 @@ lemma has_integral_iff_positive_integral_lborel:
 
 subsection {* Equivalence between product spaces and euclidean spaces *}
 
-definition e2p :: "'a::ordered_euclidean_space \<Rightarrow> (nat \<Rightarrow> real)" where
-  "e2p x = (\<lambda>i\<in>{..<DIM('a)}. x$$i)"
+definition e2p :: "'a::ordered_euclidean_space \<Rightarrow> ('a \<Rightarrow> real)" where
+  "e2p x = (\<lambda>i\<in>Basis. x \<bullet> i)"
 
-definition p2e :: "(nat \<Rightarrow> real) \<Rightarrow> 'a::ordered_euclidean_space" where
-  "p2e x = (\<chi>\<chi> i. x i)"
+definition p2e :: "('a \<Rightarrow> real) \<Rightarrow> 'a::ordered_euclidean_space" where
+  "p2e x = (\<Sum>i\<in>Basis. x i *\<^sub>R i)"
 
 lemma e2p_p2e[simp]:
-  "x \<in> extensional {..<DIM('a)} \<Longrightarrow> e2p (p2e x::'a::ordered_euclidean_space) = x"
+  "x \<in> extensional Basis \<Longrightarrow> e2p (p2e x::'a::ordered_euclidean_space) = x"
   by (auto simp: fun_eq_iff extensional_def p2e_def e2p_def)
 
 lemma p2e_e2p[simp]:
   "p2e (e2p x) = (x::'a::ordered_euclidean_space)"
-  by (auto simp: euclidean_eq[where 'a='a] p2e_def e2p_def)
+  by (auto simp: euclidean_eq_iff[where 'a='a] p2e_def e2p_def)
 
 interpretation lborel_product: product_sigma_finite "\<lambda>x. lborel::real measure"
   by default
 
-interpretation lborel_space: finite_product_sigma_finite "\<lambda>x. lborel::real measure" "{..<n}" for n :: nat
+interpretation lborel_space: finite_product_sigma_finite "\<lambda>x. lborel::real measure" "Basis"
   by default auto
 
 lemma sets_product_borel:
@@ -930,13 +919,13 @@ proof (subst sigma_prod_algebra_sigma_eq[where S="\<lambda>_ i::nat. {..<real i}
 qed (auto simp: borel_eq_lessThan reals_Archimedean2)
 
 lemma measurable_e2p[measurable]:
-  "e2p \<in> measurable (borel::'a::ordered_euclidean_space measure) (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. (lborel :: real measure))"
+  "e2p \<in> measurable (borel::'a::ordered_euclidean_space measure) (\<Pi>\<^isub>M (i::'a)\<in>Basis. (lborel :: real measure))"
 proof (rule measurable_sigma_sets[OF sets_product_borel])
-  fix A :: "(nat \<Rightarrow> real) set" assume "A \<in> {\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {..<x i} |x. True} "
-  then obtain x where  "A = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {..<x i})" by auto
-  then have "e2p -` A = {..< (\<chi>\<chi> i. x i) :: 'a}"
+  fix A :: "('a \<Rightarrow> real) set" assume "A \<in> {\<Pi>\<^isub>E (i::'a)\<in>Basis. {..<x i} |x. True} "
+  then obtain x where  "A = (\<Pi>\<^isub>E (i::'a)\<in>Basis. {..<x i})" by auto
+  then have "e2p -` A = {..< (\<Sum>i\<in>Basis. x i *\<^sub>R i) :: 'a}"
     using DIM_positive by (auto simp add: set_eq_iff e2p_def
-      euclidean_eq[where 'a='a] eucl_less[where 'a='a])
+      euclidean_eq_iff[where 'a='a] eucl_less[where 'a='a])
   then show "e2p -` A \<inter> space (borel::'a measure) \<in> sets borel" by simp
 qed (auto simp: e2p_def)
 
@@ -945,34 +934,34 @@ lemma lborelD_Collect[measurable (raw)]: "{x\<in>space borel. P x} \<in> sets bo
 lemma lborelD[measurable (raw)]: "A \<in> sets borel \<Longrightarrow> A \<in> sets lborel" by simp
 
 lemma measurable_p2e[measurable]:
-  "p2e \<in> measurable (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. (lborel :: real measure))
+  "p2e \<in> measurable (\<Pi>\<^isub>M (i::'a)\<in>Basis. (lborel :: real measure))
     (borel :: 'a::ordered_euclidean_space measure)"
   (is "p2e \<in> measurable ?P _")
 proof (safe intro!: borel_measurable_iff_halfspace_le[THEN iffD2])
-  fix x i
-  let ?A = "{w \<in> space ?P. (p2e w :: 'a) $$ i \<le> x}"
-  assume "i < DIM('a)"
-  then have "?A = (\<Pi>\<^isub>E j\<in>{..<DIM('a)}. if i = j then {.. x} else UNIV)"
+  fix x and i :: 'a
+  let ?A = "{w \<in> space ?P. (p2e w :: 'a) \<bullet> i \<le> x}"
+  assume "i \<in> Basis"
+  then have "?A = (\<Pi>\<^isub>E j\<in>Basis. if i = j then {.. x} else UNIV)"
     using DIM_positive by (auto simp: space_PiM p2e_def PiE_def split: split_if_asm)
   then show "?A \<in> sets ?P"
     by auto
 qed
 
 lemma lborel_eq_lborel_space:
-  "(lborel :: 'a measure) = distr (\<Pi>\<^isub>M i\<in>{..<DIM('a::ordered_euclidean_space)}. lborel) borel p2e"
+  "(lborel :: 'a measure) = distr (\<Pi>\<^isub>M (i::'a::ordered_euclidean_space)\<in>Basis. lborel) borel p2e"
   (is "?B = ?D")
 proof (rule lborel_eqI)
   show "sets ?D = sets borel" by simp
-  let ?P = "(\<Pi>\<^isub>M i\<in>{..<DIM('a::ordered_euclidean_space)}. lborel)"
+  let ?P = "(\<Pi>\<^isub>M (i::'a)\<in>Basis. lborel)"
   fix a b :: 'a
-  have *: "p2e -` {a .. b} \<inter> space ?P = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {a $$ i .. b $$ i})"
+  have *: "p2e -` {a .. b} \<inter> space ?P = (\<Pi>\<^isub>E i\<in>Basis. {a \<bullet> i .. b \<bullet> i})"
     by (auto simp: eucl_le[where 'a='a] p2e_def space_PiM PiE_def Pi_iff)
   have "emeasure ?P (p2e -` {a..b} \<inter> space ?P) = content {a..b}"
   proof cases
     assume "{a..b} \<noteq> {}"
     then have "a \<le> b"
       by (simp add: interval_ne_empty eucl_le[where 'a='a])
-    then have "emeasure lborel {a..b} = (\<Prod>x<DIM('a). emeasure lborel {a $$ x .. b $$ x})"
+    then have "emeasure lborel {a..b} = (\<Prod>x\<in>Basis. emeasure lborel {a \<bullet> x .. b \<bullet> x})"
       by (auto simp: content_closed_interval eucl_le[where 'a='a]
                intro!: setprod_ereal[symmetric])
     also have "\<dots> = emeasure ?P (p2e -` {a..b} \<inter> space ?P)"
@@ -986,13 +975,12 @@ qed
 lemma borel_fubini_positiv_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> ereal"
   assumes f: "f \<in> borel_measurable borel"
-  shows "integral\<^isup>P lborel f = \<integral>\<^isup>+x. f (p2e x) \<partial>(\<Pi>\<^isub>M i\<in>{..<DIM('a)}. lborel)"
+  shows "integral\<^isup>P lborel f = \<integral>\<^isup>+x. f (p2e x) \<partial>(\<Pi>\<^isub>M (i::'a)\<in>Basis. lborel)"
   by (subst lborel_eq_lborel_space) (simp add: positive_integral_distr measurable_p2e f)
 
 lemma borel_fubini_integrable:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
-  shows "integrable lborel f \<longleftrightarrow>
-    integrable (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. lborel) (\<lambda>x. f (p2e x))"
+  shows "integrable lborel f \<longleftrightarrow> integrable (\<Pi>\<^isub>M (i::'a)\<in>Basis. lborel) (\<lambda>x. f (p2e x))"
     (is "_ \<longleftrightarrow> integrable ?B ?f")
 proof
   assume "integrable lborel f"
@@ -1017,7 +1005,7 @@ qed
 lemma borel_fubini:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable borel"
-  shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>((\<Pi>\<^isub>M i\<in>{..<DIM('a)}. lborel))"
+  shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>((\<Pi>\<^isub>M (i::'a)\<in>Basis. lborel))"
   using f by (simp add: borel_fubini_positiv_integral lebesgue_integral_def)
 
 lemma integrable_on_borel_integrable:
@@ -1066,7 +1054,7 @@ proof cases
       using borel_measurable_continuous_on_open[of "{a <..< b }" f "\<lambda>x. x" borel 0]
       by (auto intro!: measurable_If[where P="\<lambda>x. x = a"] measurable_If[where P="\<lambda>x. x = b"])
     also have "?g = ?f"
-      using `a \<le> b` by (auto intro!: ext split: split_indicator)
+      using `a \<le> b` by (intro ext) (auto split: split_indicator)
     finally show "?f \<in> borel_measurable lborel"
       by simp
   qed

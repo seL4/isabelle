@@ -13,8 +13,16 @@ imports
   "~~/src/HOL/Library/Countable_Set"
   Linear_Algebra
   "~~/src/HOL/Library/Glbs"
+  "~~/src/HOL/Library/FuncSet"
   Norm_Arith
 begin
+
+lemma countable_PiE: 
+  "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
+  by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
+
+lemma countable_rat: "countable \<rat>"
+  unfolding Rats_def by auto
 
 subsection {* Topological Basis *}
 
@@ -593,86 +601,74 @@ lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
 
 lemma ball_empty[intro]: "e \<le> 0 ==> ball x e = {}" by simp
 
+lemma euclidean_dist_l2:
+  fixes x y :: "'a :: euclidean_space"
+  shows "dist x y = setL2 (\<lambda>i. dist (x \<bullet> i) (y \<bullet> i)) Basis"
+  unfolding dist_norm norm_eq_sqrt_inner setL2_def
+  by (subst euclidean_inner) (simp add: power2_eq_square inner_diff_left)
+
+definition "box a b = {x. \<forall>i\<in>Basis. a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i}"
+
 lemma rational_boxes:
-  fixes x :: "'a\<Colon>ordered_euclidean_space"
+  fixes x :: "'a\<Colon>euclidean_space"
   assumes "0 < e"
-  shows "\<exists>a b. (\<forall>i. a $$ i \<in> \<rat>) \<and> (\<forall>i. b $$ i \<in> \<rat>) \<and> x \<in> {a <..< b} \<and> {a <..< b} \<subseteq> ball x e"
+  shows "\<exists>a b. (\<forall>i\<in>Basis. a \<bullet> i \<in> \<rat> \<and> b \<bullet> i \<in> \<rat> ) \<and> x \<in> box a b \<and> box a b \<subseteq> ball x e"
 proof -
   def e' \<equiv> "e / (2 * sqrt (real (DIM ('a))))"
-  then have e: "0 < e'" using assms by (auto intro!: divide_pos_pos)
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x $$ i \<and> x $$ i - y < e'" (is "\<forall>i. ?th i")
+  then have e: "0 < e'" using assms by (auto intro!: divide_pos_pos simp: DIM_positive)
+  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> y < x \<bullet> i \<and> x \<bullet> i - y < e'" (is "\<forall>i. ?th i")
   proof
-    fix i from Rats_dense_in_real[of "x $$ i - e'" "x $$ i"] e
-    show "?th i" by auto
+    fix i from Rats_dense_in_real[of "x \<bullet> i - e'" "x \<bullet> i"] e show "?th i" by auto
   qed
   from choice[OF this] guess a .. note a = this
-  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x $$ i < y \<and> y - x $$ i < e'" (is "\<forall>i. ?th i")
+  have "\<forall>i. \<exists>y. y \<in> \<rat> \<and> x \<bullet> i < y \<and> y - x \<bullet> i < e'" (is "\<forall>i. ?th i")
   proof
-    fix i from Rats_dense_in_real[of "x $$ i" "x $$ i + e'"] e
-    show "?th i" by auto
+    fix i from Rats_dense_in_real[of "x \<bullet> i" "x \<bullet> i + e'"] e show "?th i" by auto
   qed
   from choice[OF this] guess b .. note b = this
-  { fix y :: 'a assume *: "Chi a < y" "y < Chi b"
-    have "dist x y = sqrt (\<Sum>i<DIM('a). (dist (x $$ i) (y $$ i))\<twosuperior>)"
+  let ?a = "\<Sum>i\<in>Basis. a i *\<^sub>R i" and ?b = "\<Sum>i\<in>Basis. b i *\<^sub>R i"
+  show ?thesis
+  proof (rule exI[of _ ?a], rule exI[of _ ?b], safe)
+    fix y :: 'a assume *: "y \<in> box ?a ?b"
+    have "dist x y = sqrt (\<Sum>i\<in>Basis. (dist (x \<bullet> i) (y \<bullet> i))\<twosuperior>)"
       unfolding setL2_def[symmetric] by (rule euclidean_dist_l2)
-    also have "\<dots> < sqrt (\<Sum>i<DIM('a). e^2 / real (DIM('a)))"
+    also have "\<dots> < sqrt (\<Sum>(i::'a)\<in>Basis. e^2 / real (DIM('a)))"
     proof (rule real_sqrt_less_mono, rule setsum_strict_mono)
-      fix i assume i: "i \<in> {..<DIM('a)}"
-      have "a i < y$$i \<and> y$$i < b i" using * i eucl_less[where 'a='a] by auto
-      moreover have "a i < x$$i" "x$$i - a i < e'" using a by auto
-      moreover have "x$$i < b i" "b i - x$$i < e'" using b by auto
-      ultimately have "\<bar>x$$i - y$$i\<bar> < 2 * e'" by auto
-      then have "dist (x $$ i) (y $$ i) < e/sqrt (real (DIM('a)))"
+      fix i :: "'a" assume i: "i \<in> Basis"
+      have "a i < y\<bullet>i \<and> y\<bullet>i < b i" using * i by (auto simp: box_def)
+      moreover have "a i < x\<bullet>i" "x\<bullet>i - a i < e'" using a by auto
+      moreover have "x\<bullet>i < b i" "b i - x\<bullet>i < e'" using b by auto
+      ultimately have "\<bar>x\<bullet>i - y\<bullet>i\<bar> < 2 * e'" by auto
+      then have "dist (x \<bullet> i) (y \<bullet> i) < e/sqrt (real (DIM('a)))"
         unfolding e'_def by (auto simp: dist_real_def)
-      then have "(dist (x $$ i) (y $$ i))\<twosuperior> < (e/sqrt (real (DIM('a))))\<twosuperior>"
+      then have "(dist (x \<bullet> i) (y \<bullet> i))\<twosuperior> < (e/sqrt (real (DIM('a))))\<twosuperior>"
         by (rule power_strict_mono) auto
-      then show "(dist (x $$ i) (y $$ i))\<twosuperior> < e\<twosuperior> / real DIM('a)"
+      then show "(dist (x \<bullet> i) (y \<bullet> i))\<twosuperior> < e\<twosuperior> / real DIM('a)"
         by (simp add: power_divide)
     qed auto
-    also have "\<dots> = e" using `0 < e` by (simp add: real_eq_of_nat DIM_positive)
-    finally have "dist x y < e" . }
-  with a b show ?thesis
-    apply (rule_tac exI[of _ "Chi a"])
-    apply (rule_tac exI[of _ "Chi b"])
-    using eucl_less[where 'a='a] by auto
+    also have "\<dots> = e" using `0 < e` by (simp add: real_eq_of_nat)
+    finally show "y \<in> ball x e" by (auto simp: ball_def)
+  qed (insert a b, auto simp: box_def)
 qed
-
-lemma ex_rat_list:
-  fixes x :: "'a\<Colon>ordered_euclidean_space"
-  assumes "\<And> i. x $$ i \<in> \<rat>"
-  shows "\<exists> r. length r = DIM('a) \<and> (\<forall> i < DIM('a). of_rat (r ! i) = x $$ i)"
-proof -
-  have "\<forall>i. \<exists>r. x $$ i = of_rat r" using assms unfolding Rats_def by blast
-  from choice[OF this] guess r ..
-  then show ?thesis by (auto intro!: exI[of _ "map r [0 ..< DIM('a)]"])
-qed
-
-lemma open_UNION:
-  fixes M :: "'a\<Colon>ordered_euclidean_space set"
-  assumes "open M"
-  shows "M = UNION {(a, b) | a b. {Chi (of_rat \<circ> op ! a) <..< Chi (of_rat \<circ> op ! b)} \<subseteq> M}
-                   (\<lambda> (a, b). {Chi (of_rat \<circ> op ! a) <..< Chi (of_rat \<circ> op ! b)})"
-    (is "M = UNION ?idx ?box")
+ 
+lemma open_UNION_box:
+  fixes M :: "'a\<Colon>euclidean_space set"
+  assumes "open M" 
+  defines "a' \<equiv> \<lambda>f :: 'a \<Rightarrow> real \<times> real. (\<Sum>(i::'a)\<in>Basis. fst (f i) *\<^sub>R i)"
+  defines "b' \<equiv> \<lambda>f :: 'a \<Rightarrow> real \<times> real. (\<Sum>(i::'a)\<in>Basis. snd (f i) *\<^sub>R i)"
+  defines "I \<equiv> {f\<in>Basis \<rightarrow>\<^isub>E \<rat> \<times> \<rat>. box (a' f) (b' f) \<subseteq> M}"
+  shows "M = (\<Union>f\<in>I. box (a' f) (b' f))"
 proof safe
   fix x assume "x \<in> M"
   obtain e where e: "e > 0" "ball x e \<subseteq> M"
-    using openE[OF assms `x \<in> M`] by auto
-  then obtain a b where ab: "x \<in> {a <..< b}" "\<And>i. a $$ i \<in> \<rat>" "\<And>i. b $$ i \<in> \<rat>" "{a <..< b} \<subseteq> ball x e"
-    using rational_boxes[OF e(1)] by blast
-  then obtain p q where pq: "length p = DIM ('a)"
-                            "length q = DIM ('a)"
-                            "\<forall> i < DIM ('a). of_rat (p ! i) = a $$ i \<and> of_rat (q ! i) = b $$ i"
-    using ex_rat_list[OF ab(2)] ex_rat_list[OF ab(3)] by blast
-  hence p: "Chi (of_rat \<circ> op ! p) = a"
-    using euclidean_eq[of "Chi (of_rat \<circ> op ! p)" a]
-    unfolding o_def by auto
-  from pq have q: "Chi (of_rat \<circ> op ! q) = b"
-    using euclidean_eq[of "Chi (of_rat \<circ> op ! q)" b]
-    unfolding o_def by auto
-  have "x \<in> ?box (p, q)"
-    using p q ab by auto
-  thus "x \<in> UNION ?idx ?box" using ab e p q exI[of _ p] exI[of _ q] by auto
-qed auto
+    using openE[OF `open M` `x \<in> M`] by auto
+  moreover then obtain a b where ab: "x \<in> box a b"
+    "\<forall>i \<in> Basis. a \<bullet> i \<in> \<rat>" "\<forall>i\<in>Basis. b \<bullet> i \<in> \<rat>" "box a b \<subseteq> ball x e"
+    using rational_boxes[OF e(1)] by metis
+  ultimately show "x \<in> (\<Union>f\<in>I. box (a' f) (b' f))"
+     by (intro UN_I[of "\<lambda>i\<in>Basis. (a \<bullet> i, b \<bullet> i)"])
+        (auto simp: euclidean_representation I_def a'_def b'_def)
+qed (auto simp: I_def)
 
 subsection{* Connectedness *}
 
@@ -1156,14 +1152,10 @@ lemma eventually_at: (* FIXME: this replaces Limits.eventually_at *)
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding eventually_at dist_nz by auto
 
-lemma eventually_within: "eventually P (at a within S) \<longleftrightarrow>
+lemma eventually_within: (* FIXME: this replaces Limits.eventually_within *)
+  "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding eventually_within eventually_at dist_nz by auto
-
-lemma eventually_within_le: "eventually P (at a within S) \<longleftrightarrow>
-        (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)" (is "?lhs = ?rhs")
-unfolding eventually_within
-by auto (metis dense order_le_less_trans)
+  by (rule eventually_within_less)
 
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
   unfolding trivial_limit_def
@@ -1721,7 +1713,7 @@ next
     assume "\<not> (\<exists>y\<in>A. dist y x < e)"
     hence "infdist x A \<ge> e" using `a \<in> A`
       unfolding infdist_def
-      by (force intro: Inf_greatest simp: dist_commute)
+      by (force simp: dist_commute)
     with x `0 < e` show False by auto
   qed
 qed
@@ -2374,55 +2366,40 @@ proof
     by auto
 qed
 
-lemma bounded_component: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $$ i) ` s)"
-  apply (erule bounded_linear_image)
-  apply (rule bounded_linear_euclidean_component)
-  done
-
 lemma compact_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
   assumes "bounded s" and "\<forall>n. f n \<in> s"
-  shows "\<forall>d. \<exists>l::'a. \<exists> r. subseq r \<and>
-        (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $$ i) (l $$ i) < e) sequentially)"
-proof
-  fix d'::"nat set" def d \<equiv> "d' \<inter> {..<DIM('a)}"
-  have "finite d" "d\<subseteq>{..<DIM('a)}" unfolding d_def by auto
-  hence "\<exists>l::'a. \<exists>r. subseq r \<and>
-      (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $$ i) (l $$ i) < e) sequentially)"
+  shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r. subseq r \<and>
+        (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
+proof safe
+  fix d :: "'a set" assume d: "d \<subseteq> Basis" 
+  with finite_Basis have "finite d" by (blast intro: finite_subset)
+  from this d show "\<exists>l::'a. \<exists>r. subseq r \<and>
+      (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
   proof(induct d) case empty thus ?case unfolding subseq_def by auto
-  next case (insert k d) have k[intro]:"k<DIM('a)" using insert by auto
-    have s': "bounded ((\<lambda>x. x $$ k) ` s)" using `bounded s` by (rule bounded_component)
+  next case (insert k d) have k[intro]:"k\<in>Basis" using insert by auto
+    have s': "bounded ((\<lambda>x. x \<bullet> k) ` s)" using `bounded s`
+      by (auto intro!: bounded_linear_image bounded_linear_inner_left)
     obtain l1::"'a" and r1 where r1:"subseq r1" and
-      lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $$ i) (l1 $$ i) < e) sequentially"
+      lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) \<bullet> i) (l1 \<bullet> i) < e) sequentially"
       using insert(3) using insert(4) by auto
-    have f': "\<forall>n. f (r1 n) $$ k \<in> (\<lambda>x. x $$ k) ` s" using `\<forall>n. f n \<in> s` by simp
-    obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) $$ k) ---> l2) sequentially"
+    have f': "\<forall>n. f (r1 n) \<bullet> k \<in> (\<lambda>x. x \<bullet> k) ` s" using `\<forall>n. f n \<in> s` by simp
+    obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) \<bullet> k) ---> l2) sequentially"
       using bounded_imp_convergent_subsequence[OF s' f'] unfolding o_def by auto
     def r \<equiv> "r1 \<circ> r2" have r:"subseq r"
       using r1 and r2 unfolding r_def o_def subseq_def by auto
     moreover
-    def l \<equiv> "(\<chi>\<chi> i. if i = k then l2 else l1$$i)::'a"
+    def l \<equiv> "(\<Sum>i\<in>Basis. (if i = k then l2 else l1\<bullet>i) *\<^sub>R i)::'a"
     { fix e::real assume "e>0"
-      from lr1 `e>0` have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $$ i) (l1 $$ i) < e) sequentially" by blast
-      from lr2 `e>0` have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) $$ k) l2 < e) sequentially" by (rule tendstoD)
-      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) $$ i) (l1 $$ i) < e) sequentially"
+      from lr1 `e>0` have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) \<bullet> i) (l1 \<bullet> i) < e) sequentially" by blast
+      from lr2 `e>0` have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) \<bullet> k) l2 < e) sequentially" by (rule tendstoD)
+      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) \<bullet> i) (l1 \<bullet> i) < e) sequentially"
         by (rule eventually_subseq)
-      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) $$ i) (l $$ i) < e) sequentially"
-        using N1' N2 apply(rule eventually_elim2) unfolding l_def r_def o_def
-        using insert.prems by auto
+      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
+        using N1' N2 
+        by eventually_elim (insert insert.prems, auto simp: l_def r_def o_def)
     }
     ultimately show ?case by auto
-  qed
-  thus "\<exists>l::'a. \<exists>r. subseq r \<and>
-      (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d'. dist (f (r n) $$ i) (l $$ i) < e) sequentially)"
-    apply safe apply(rule_tac x=l in exI,rule_tac x=r in exI) apply safe
-    apply(erule_tac x=e in allE) unfolding d_def eventually_sequentially apply safe 
-    apply(rule_tac x=N in exI) apply safe apply(erule_tac x=n in allE,safe)
-    apply(erule_tac x=i in ballE) 
-  proof- fix i and r::"nat=>nat" and n::nat and e::real and l::'a
-    assume "i\<in>d'" "i \<notin> d' \<inter> {..<DIM('a)}" and e:"e>0"
-    hence *:"i\<ge>DIM('a)" by auto
-    thus "dist (f (r n) $$ i) (l $$ i) < e" using e by auto
   qed
 qed
 
@@ -2431,22 +2408,20 @@ proof
   fix s :: "'a set" and f :: "nat \<Rightarrow> 'a"
   assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
   then obtain l::'a and r where r: "subseq r"
-    and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>UNIV. dist (f (r n) $$ i) (l $$ i) < e) sequentially"
+    and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
     using compact_lemma [OF s f] by blast
-  let ?d = "{..<DIM('a)}"
   { fix e::real assume "e>0"
-    hence "0 < e / (real_of_nat (card ?d))"
-      using DIM_positive using divide_pos_pos[of e, of "real_of_nat (card ?d)"] by auto
-    with l have "eventually (\<lambda>n. \<forall>i. dist (f (r n) $$ i) (l $$ i) < e / (real_of_nat (card ?d))) sequentially"
+    hence "0 < e / real_of_nat DIM('a)" by (auto intro!: divide_pos_pos DIM_positive)
+    with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
       by simp
     moreover
-    { fix n assume n: "\<forall>i. dist (f (r n) $$ i) (l $$ i) < e / (real_of_nat (card ?d))"
-      have "dist (f (r n)) l \<le> (\<Sum>i\<in>?d. dist (f (r n) $$ i) (l $$ i))"
+    { fix n assume n: "\<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))"
+      have "dist (f (r n)) l \<le> (\<Sum>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i))"
         apply(subst euclidean_dist_l2) using zero_le_dist by (rule setL2_le_setsum)
-      also have "\<dots> < (\<Sum>i\<in>?d. e / (real_of_nat (card ?d)))"
+      also have "\<dots> < (\<Sum>i\<in>(Basis::'a set). e / (real_of_nat DIM('a)))"
         apply(rule setsum_strict_mono) using n by auto
-      finally have "dist (f (r n)) l < e" unfolding setsum_constant
-        using DIM_positive[where 'a='a] by auto
+      finally have "dist (f (r n)) l < e" 
+        by auto
     }
     ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
       by (rule eventually_elim1)
@@ -3885,10 +3860,6 @@ lemma continuous_inner:
   shows "continuous F (\<lambda>x. inner (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_inner)
 
-lemma continuous_euclidean_component:
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. f x $$ i)"
-  unfolding continuous_def by (rule tendsto_euclidean_component)
-
 lemma continuous_inverse:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous F f" and "f (netlimit F) \<noteq> 0"
@@ -3909,10 +3880,8 @@ lemma continuous_at_inverse:
 
 lemmas continuous_intros = continuous_at_id continuous_within_id
   continuous_const continuous_dist continuous_norm continuous_infnorm
-  continuous_add continuous_minus continuous_diff
-  continuous_scaleR continuous_mult
-  continuous_inner continuous_euclidean_component
-  continuous_at_inverse continuous_at_within_inverse
+  continuous_add continuous_minus continuous_diff continuous_scaleR continuous_mult
+  continuous_inner continuous_at_inverse continuous_at_within_inverse
 
 subsubsection {* Structural rules for setwise continuity *}
 
@@ -3975,11 +3944,6 @@ lemma continuous_on_inner:
   shows "continuous_on s (\<lambda>x. inner (f x) (g x))"
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
-
-lemma continuous_on_euclidean_component:
-  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. f x $$ i)"
-  using bounded_linear_euclidean_component
-  by (rule bounded_linear.continuous_on)
 
 lemma continuous_on_inverse:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
@@ -4110,7 +4074,7 @@ lemmas continuous_on_intros = continuous_on_id continuous_on_const
   continuous_on_compose continuous_on_norm continuous_on_infnorm
   continuous_on_add continuous_on_minus continuous_on_diff
   continuous_on_scaleR continuous_on_mult continuous_on_inverse
-  continuous_on_inner continuous_on_euclidean_component
+  continuous_on_inner
   uniformly_continuous_on_id uniformly_continuous_on_const
   uniformly_continuous_on_dist uniformly_continuous_on_norm
   uniformly_continuous_on_compose uniformly_continuous_on_add
@@ -5070,65 +5034,64 @@ qed
 subsection {* Intervals *}
   
 lemma interval: fixes a :: "'a::ordered_euclidean_space" shows
-  "{a <..< b} = {x::'a. \<forall>i<DIM('a). a$$i < x$$i \<and> x$$i < b$$i}" and
-  "{a .. b} = {x::'a. \<forall>i<DIM('a). a$$i \<le> x$$i \<and> x$$i \<le> b$$i}"
+  "{a <..< b} = {x::'a. \<forall>i\<in>Basis. a\<bullet>i < x\<bullet>i \<and> x\<bullet>i < b\<bullet>i}" and
+  "{a .. b} = {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i}"
   by(auto simp add:set_eq_iff eucl_le[where 'a='a] eucl_less[where 'a='a])
 
 lemma mem_interval: fixes a :: "'a::ordered_euclidean_space" shows
-  "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < x$$i \<and> x$$i < b$$i)"
-  "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i \<le> x$$i \<and> x$$i \<le> b$$i)"
+  "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < x\<bullet>i \<and> x\<bullet>i < b\<bullet>i)"
+  "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i)"
   using interval[of a b] by(auto simp add: set_eq_iff eucl_le[where 'a='a] eucl_less[where 'a='a])
 
 lemma interval_eq_empty: fixes a :: "'a::ordered_euclidean_space" shows
- "({a <..< b} = {} \<longleftrightarrow> (\<exists>i<DIM('a). b$$i \<le> a$$i))" (is ?th1) and
- "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i<DIM('a). b$$i < a$$i))" (is ?th2)
+ "({a <..< b} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i \<le> a\<bullet>i))" (is ?th1) and
+ "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. b\<bullet>i < a\<bullet>i))" (is ?th2)
 proof-
-  { fix i x assume i:"i<DIM('a)" and as:"b$$i \<le> a$$i" and x:"x\<in>{a <..< b}"
-    hence "a $$ i < x $$ i \<and> x $$ i < b $$ i" unfolding mem_interval by auto
-    hence "a$$i < b$$i" by auto
+  { fix i x assume i:"i\<in>Basis" and as:"b\<bullet>i \<le> a\<bullet>i" and x:"x\<in>{a <..< b}"
+    hence "a \<bullet> i < x \<bullet> i \<and> x \<bullet> i < b \<bullet> i" unfolding mem_interval by auto
+    hence "a\<bullet>i < b\<bullet>i" by auto
     hence False using as by auto  }
   moreover
-  { assume as:"\<forall>i<DIM('a). \<not> (b$$i \<le> a$$i)"
+  { assume as:"\<forall>i\<in>Basis. \<not> (b\<bullet>i \<le> a\<bullet>i)"
     let ?x = "(1/2) *\<^sub>R (a + b)"
-    { fix i assume i:"i<DIM('a)" 
-      have "a$$i < b$$i" using as[THEN spec[where x=i]] using i by auto
-      hence "a$$i < ((1/2) *\<^sub>R (a+b)) $$ i" "((1/2) *\<^sub>R (a+b)) $$ i < b$$i"
-        unfolding euclidean_simps by auto }
+    { fix i :: 'a assume i:"i\<in>Basis" 
+      have "a\<bullet>i < b\<bullet>i" using as[THEN bspec[where x=i]] i by auto
+      hence "a\<bullet>i < ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i < b\<bullet>i"
+        by (auto simp: inner_add_left) }
     hence "{a <..< b} \<noteq> {}" using mem_interval(1)[of "?x" a b] by auto  }
   ultimately show ?th1 by blast
 
-  { fix i x assume i:"i<DIM('a)" and as:"b$$i < a$$i" and x:"x\<in>{a .. b}"
-    hence "a $$ i \<le> x $$ i \<and> x $$ i \<le> b $$ i" unfolding mem_interval by auto
-    hence "a$$i \<le> b$$i" by auto
+  { fix i x assume i:"i\<in>Basis" and as:"b\<bullet>i < a\<bullet>i" and x:"x\<in>{a .. b}"
+    hence "a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i" unfolding mem_interval by auto
+    hence "a\<bullet>i \<le> b\<bullet>i" by auto
     hence False using as by auto  }
   moreover
-  { assume as:"\<forall>i<DIM('a). \<not> (b$$i < a$$i)"
+  { assume as:"\<forall>i\<in>Basis. \<not> (b\<bullet>i < a\<bullet>i)"
     let ?x = "(1/2) *\<^sub>R (a + b)"
-    { fix i assume i:"i<DIM('a)"
-      have "a$$i \<le> b$$i" using as[THEN spec[where x=i]] by auto
-      hence "a$$i \<le> ((1/2) *\<^sub>R (a+b)) $$ i" "((1/2) *\<^sub>R (a+b)) $$ i \<le> b$$i"
-        unfolding euclidean_simps by auto }
+    { fix i :: 'a assume i:"i\<in>Basis"
+      have "a\<bullet>i \<le> b\<bullet>i" using as[THEN bspec[where x=i]] i by auto
+      hence "a\<bullet>i \<le> ((1/2) *\<^sub>R (a+b)) \<bullet> i" "((1/2) *\<^sub>R (a+b)) \<bullet> i \<le> b\<bullet>i"
+        by (auto simp: inner_add_left) }
     hence "{a .. b} \<noteq> {}" using mem_interval(2)[of "?x" a b] by auto  }
   ultimately show ?th2 by blast
 qed
 
 lemma interval_ne_empty: fixes a :: "'a::ordered_euclidean_space" shows
-  "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i \<le> b$$i)" and
-  "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i<DIM('a). a$$i < b$$i)"
+  "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i)" and
+  "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i)"
   unfolding interval_eq_empty[of a b] by fastforce+
 
 lemma interval_sing:
   fixes a :: "'a::ordered_euclidean_space"
   shows "{a .. a} = {a}" and "{a<..<a} = {}"
   unfolding set_eq_iff mem_interval eq_iff [symmetric]
-  by (auto simp add: euclidean_eq[where 'a='a] eq_commute
-    eucl_less[where 'a='a] eucl_le[where 'a='a])
+  by (auto intro: euclidean_eqI simp: ex_in_conv)
 
 lemma subset_interval_imp: fixes a :: "'a::ordered_euclidean_space" shows
- "(\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}" and
- "(\<forall>i<DIM('a). a$$i < c$$i \<and> d$$i < b$$i) \<Longrightarrow> {c .. d} \<subseteq> {a<..<b}" and
- "(\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i) \<Longrightarrow> {c<..<d} \<subseteq> {a .. b}" and
- "(\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i) \<Longrightarrow> {c<..<d} \<subseteq> {a<..<b}"
+ "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}" and
+ "(\<forall>i\<in>Basis. a\<bullet>i < c\<bullet>i \<and> d\<bullet>i < b\<bullet>i) \<Longrightarrow> {c .. d} \<subseteq> {a<..<b}" and
+ "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> {c<..<d} \<subseteq> {a .. b}" and
+ "(\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i) \<Longrightarrow> {c<..<d} \<subseteq> {a<..<b}"
   unfolding subset_eq[unfolded Ball_def] unfolding mem_interval
   by (best intro: order_trans less_le_trans le_less_trans less_imp_le)+
 
@@ -5139,94 +5102,96 @@ lemma interval_open_subset_closed:
   by (fast intro: less_imp_le)
 
 lemma subset_interval: fixes a :: "'a::ordered_euclidean_space" shows
- "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i<DIM('a). c$$i \<le> d$$i) --> (\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i)" (is ?th1) and
- "{c .. d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i<DIM('a). c$$i \<le> d$$i) --> (\<forall>i<DIM('a). a$$i < c$$i \<and> d$$i < b$$i)" (is ?th2) and
- "{c<..<d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i<DIM('a). c$$i < d$$i) --> (\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i)" (is ?th3) and
- "{c<..<d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i<DIM('a). c$$i < d$$i) --> (\<forall>i<DIM('a). a$$i \<le> c$$i \<and> d$$i \<le> b$$i)" (is ?th4)
+ "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i \<le> d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th1) and
+ "{c .. d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i \<le> d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i < c\<bullet>i \<and> d\<bullet>i < b\<bullet>i)" (is ?th2) and
+ "{c<..<d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th3) and
+ "{c<..<d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i) --> (\<forall>i\<in>Basis. a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i)" (is ?th4)
 proof-
   show ?th1 unfolding subset_eq and Ball_def and mem_interval by (auto intro: order_trans)
   show ?th2 unfolding subset_eq and Ball_def and mem_interval by (auto intro: le_less_trans less_le_trans order_trans less_imp_le)
-  { assume as: "{c<..<d} \<subseteq> {a .. b}" "\<forall>i<DIM('a). c$$i < d$$i"
+  { assume as: "{c<..<d} \<subseteq> {a .. b}" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
     hence "{c<..<d} \<noteq> {}" unfolding interval_eq_empty by auto
-    fix i assume i:"i<DIM('a)"
+    fix i :: 'a assume i:"i\<in>Basis"
     (** TODO combine the following two parts as done in the HOL_light version. **)
-    { let ?x = "(\<chi>\<chi> j. (if j=i then ((min (a$$j) (d$$j))+c$$j)/2 else (c$$j+d$$j)/2))::'a"
-      assume as2: "a$$i > c$$i"
-      { fix j assume j:"j<DIM('a)"
-        hence "c $$ j < ?x $$ j \<and> ?x $$ j < d $$ j"
-          apply(cases "j=i") using as(2)[THEN spec[where x=j]] i
+    { let ?x = "(\<Sum>j\<in>Basis. (if j=i then ((min (a\<bullet>j) (d\<bullet>j))+c\<bullet>j)/2 else (c\<bullet>j+d\<bullet>j)/2) *\<^sub>R j)::'a"
+      assume as2: "a\<bullet>i > c\<bullet>i"
+      { fix j :: 'a assume j:"j\<in>Basis"
+        hence "c \<bullet> j < ?x \<bullet> j \<and> ?x \<bullet> j < d \<bullet> j"
+          apply(cases "j=i") using as(2)[THEN bspec[where x=j]] i
           by (auto simp add: as2)  }
       hence "?x\<in>{c<..<d}" using i unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
-        unfolding mem_interval apply auto apply(rule_tac x=i in exI)
-        using as(2)[THEN spec[where x=i]] and as2 i
+        unfolding mem_interval apply auto apply(rule_tac x=i in bexI)
+        using as(2)[THEN bspec[where x=i]] and as2 i
         by auto
       ultimately have False using as by auto  }
-    hence "a$$i \<le> c$$i" by(rule ccontr)auto
+    hence "a\<bullet>i \<le> c\<bullet>i" by(rule ccontr)auto
     moreover
-    { let ?x = "(\<chi>\<chi> j. (if j=i then ((max (b$$j) (c$$j))+d$$j)/2 else (c$$j+d$$j)/2))::'a"
-      assume as2: "b$$i < d$$i"
-      { fix j assume "j<DIM('a)"
-        hence "d $$ j > ?x $$ j \<and> ?x $$ j > c $$ j" 
-          apply(cases "j=i") using as(2)[THEN spec[where x=j]]
-          by (auto simp add: as2)  }
+    { let ?x = "(\<Sum>j\<in>Basis. (if j=i then ((max (b\<bullet>j) (c\<bullet>j))+d\<bullet>j)/2 else (c\<bullet>j+d\<bullet>j)/2) *\<^sub>R j)::'a"
+      assume as2: "b\<bullet>i < d\<bullet>i"
+      { fix j :: 'a assume "j\<in>Basis"
+        hence "d \<bullet> j > ?x \<bullet> j \<and> ?x \<bullet> j > c \<bullet> j" 
+          apply(cases "j=i") using as(2)[THEN bspec[where x=j]]
+          by (auto simp add: as2) }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
-        unfolding mem_interval apply auto apply(rule_tac x=i in exI)
-        using as(2)[THEN spec[where x=i]] and as2 using i
+        unfolding mem_interval apply auto apply(rule_tac x=i in bexI)
+        using as(2)[THEN bspec[where x=i]] and as2 using i
         by auto
       ultimately have False using as by auto  }
-    hence "b$$i \<ge> d$$i" by(rule ccontr)auto
+    hence "b\<bullet>i \<ge> d\<bullet>i" by(rule ccontr)auto
     ultimately
-    have "a$$i \<le> c$$i \<and> d$$i \<le> b$$i" by auto
+    have "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i" by auto
   } note part1 = this
-  show ?th3 unfolding subset_eq and Ball_def and mem_interval 
-    apply(rule,rule,rule,rule) apply(rule part1) unfolding subset_eq and Ball_def and mem_interval
-    prefer 4 apply auto by(erule_tac x=i in allE,erule_tac x=i in allE,fastforce)+ 
-  { assume as:"{c<..<d} \<subseteq> {a<..<b}" "\<forall>i<DIM('a). c$$i < d$$i"
-    fix i assume i:"i<DIM('a)"
+  show ?th3
+    unfolding subset_eq and Ball_def and mem_interval 
+    apply(rule,rule,rule,rule) 
+    apply(rule part1)
+    unfolding subset_eq and Ball_def and mem_interval
+    prefer 4
+    apply auto 
+    by(erule_tac x=xa in allE,erule_tac x=xa in allE,fastforce)+ 
+  { assume as:"{c<..<d} \<subseteq> {a<..<b}" "\<forall>i\<in>Basis. c\<bullet>i < d\<bullet>i"
+    fix i :: 'a assume i:"i\<in>Basis"
     from as(1) have "{c<..<d} \<subseteq> {a..b}" using interval_open_subset_closed[of a b] by auto
-    hence "a$$i \<le> c$$i \<and> d$$i \<le> b$$i" using part1 and as(2) using i by auto  } note * = this
+    hence "a\<bullet>i \<le> c\<bullet>i \<and> d\<bullet>i \<le> b\<bullet>i" using part1 and as(2) using i by auto  } note * = this
   show ?th4 unfolding subset_eq and Ball_def and mem_interval 
     apply(rule,rule,rule,rule) apply(rule *) unfolding subset_eq and Ball_def and mem_interval prefer 4
-    apply auto by(erule_tac x=i in allE, simp)+ 
-qed
-
-lemma disjoint_interval: fixes a::"'a::ordered_euclidean_space" shows
-  "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i<DIM('a). (b$$i < a$$i \<or> d$$i < c$$i \<or> b$$i < c$$i \<or> d$$i < a$$i))" (is ?th1) and
-  "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i<DIM('a). (b$$i < a$$i \<or> d$$i \<le> c$$i \<or> b$$i \<le> c$$i \<or> d$$i \<le> a$$i))" (is ?th2) and
-  "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i<DIM('a). (b$$i \<le> a$$i \<or> d$$i < c$$i \<or> b$$i \<le> c$$i \<or> d$$i \<le> a$$i))" (is ?th3) and
-  "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i<DIM('a). (b$$i \<le> a$$i \<or> d$$i \<le> c$$i \<or> b$$i \<le> c$$i \<or> d$$i \<le> a$$i))" (is ?th4)
-proof-
-  let ?z = "(\<chi>\<chi> i. ((max (a$$i) (c$$i)) + (min (b$$i) (d$$i))) / 2)::'a"
-  note * = set_eq_iff Int_iff empty_iff mem_interval all_conj_distrib[THEN sym] eq_False
-  show ?th1 unfolding * apply safe apply(erule_tac x="?z" in allE)
-    unfolding not_all apply(erule exE,rule_tac x=x in exI) apply(erule_tac[2-] x=i in allE) by auto
-  show ?th2 unfolding * apply safe apply(erule_tac x="?z" in allE)
-    unfolding not_all apply(erule exE,rule_tac x=x in exI) apply(erule_tac[2-] x=i in allE) by auto
-  show ?th3 unfolding * apply safe apply(erule_tac x="?z" in allE)
-    unfolding not_all apply(erule exE,rule_tac x=x in exI) apply(erule_tac[2-] x=i in allE) by auto
-  show ?th4 unfolding * apply safe apply(erule_tac x="?z" in allE)
-    unfolding not_all apply(erule exE,rule_tac x=x in exI) apply(erule_tac[2-] x=i in allE) by auto
+    apply auto by(erule_tac x=xa in allE, simp)+ 
 qed
 
 lemma inter_interval: fixes a :: "'a::ordered_euclidean_space" shows
- "{a .. b} \<inter> {c .. d} =  {(\<chi>\<chi> i. max (a$$i) (c$$i)) .. (\<chi>\<chi> i. min (b$$i) (d$$i))}"
-  unfolding set_eq_iff and Int_iff and mem_interval
-  by auto
+ "{a .. b} \<inter> {c .. d} =  {(\<Sum>i\<in>Basis. max (a\<bullet>i) (c\<bullet>i) *\<^sub>R i) .. (\<Sum>i\<in>Basis. min (b\<bullet>i) (d\<bullet>i) *\<^sub>R i)}"
+  unfolding set_eq_iff and Int_iff and mem_interval by auto
+
+lemma disjoint_interval: fixes a::"'a::ordered_euclidean_space" shows
+  "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i < a\<bullet>i \<or> d\<bullet>i < c\<bullet>i \<or> b\<bullet>i < c\<bullet>i \<or> d\<bullet>i < a\<bullet>i))" (is ?th1) and
+  "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i < a\<bullet>i \<or> d\<bullet>i \<le> c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th2) and
+  "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i \<le> a\<bullet>i \<or> d\<bullet>i < c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th3) and
+  "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i\<in>Basis. (b\<bullet>i \<le> a\<bullet>i \<or> d\<bullet>i \<le> c\<bullet>i \<or> b\<bullet>i \<le> c\<bullet>i \<or> d\<bullet>i \<le> a\<bullet>i))" (is ?th4)
+proof-
+  let ?z = "(\<Sum>i\<in>Basis. (((max (a\<bullet>i) (c\<bullet>i)) + (min (b\<bullet>i) (d\<bullet>i))) / 2) *\<^sub>R i)::'a"
+  have **: "\<And>P Q. (\<And>i :: 'a. i \<in> Basis \<Longrightarrow> Q ?z i \<Longrightarrow> P i) \<Longrightarrow>
+      (\<And>i x :: 'a. i \<in> Basis \<Longrightarrow> P i \<Longrightarrow> Q x i) \<Longrightarrow> (\<forall>x. \<exists>i\<in>Basis. Q x i) \<longleftrightarrow> (\<exists>i\<in>Basis. P i)" 
+    by blast
+  note * = set_eq_iff Int_iff empty_iff mem_interval ball_conj_distrib[symmetric] eq_False ball_simps(10)
+  show ?th1 unfolding * by (intro **) auto
+  show ?th2 unfolding * by (intro **) auto
+  show ?th3 unfolding * by (intro **) auto
+  show ?th4 unfolding * by (intro **) auto
+qed
 
 (* Moved interval_open_subset_closed a bit upwards *)
 
 lemma open_interval[intro]:
   fixes a b :: "'a::ordered_euclidean_space" shows "open {a<..<b}"
 proof-
-  have "open (\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i<..<b$$i})"
+  have "open (\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i<..<b\<bullet>i})"
     by (intro open_INT finite_lessThan ballI continuous_open_vimage allI
-      linear_continuous_at bounded_linear_euclidean_component
-      open_real_greaterThanLessThan)
-  also have "(\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i<..<b$$i}) = {a<..<b}"
+      linear_continuous_at open_real_greaterThanLessThan finite_Basis bounded_linear_inner_left)
+  also have "(\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i<..<b\<bullet>i}) = {a<..<b}"
     by (auto simp add: eucl_less [where 'a='a])
   finally show "open {a<..<b}" .
 qed
@@ -5234,11 +5199,10 @@ qed
 lemma closed_interval[intro]:
   fixes a b :: "'a::ordered_euclidean_space" shows "closed {a .. b}"
 proof-
-  have "closed (\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i .. b$$i})"
+  have "closed (\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i .. b\<bullet>i})"
     by (intro closed_INT ballI continuous_closed_vimage allI
-      linear_continuous_at bounded_linear_euclidean_component
-      closed_real_atLeastAtMost)
-  also have "(\<Inter>i<DIM('a). (\<lambda>x. x$$i) -` {a$$i .. b$$i}) = {a .. b}"
+      linear_continuous_at closed_real_atLeastAtMost finite_Basis bounded_linear_inner_left)
+  also have "(\<Inter>i\<in>Basis. (\<lambda>x. x\<bullet>i) -` {a\<bullet>i .. b\<bullet>i}) = {a .. b}"
     by (auto simp add: eucl_le [where 'a='a])
   finally show "closed {a .. b}" .
 qed
@@ -5253,29 +5217,29 @@ next
   { fix x assume "x \<in> interior {a..b}"
     then obtain s where s:"open s" "x \<in> s" "s \<subseteq> {a..b}" ..
     then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a..b}" unfolding open_dist and subset_eq by auto
-    { fix i assume i:"i<DIM('a)"
-      have "dist (x - (e / 2) *\<^sub>R basis i) x < e"
-           "dist (x + (e / 2) *\<^sub>R basis i) x < e"
+    { fix i :: 'a assume i:"i\<in>Basis"
+      have "dist (x - (e / 2) *\<^sub>R i) x < e"
+           "dist (x + (e / 2) *\<^sub>R i) x < e"
         unfolding dist_norm apply auto
-        unfolding norm_minus_cancel using norm_basis and `e>0` by auto
-      hence "a $$ i \<le> (x - (e / 2) *\<^sub>R basis i) $$ i"
-                     "(x + (e / 2) *\<^sub>R basis i) $$ i \<le> b $$ i"
-        using e[THEN spec[where x="x - (e/2) *\<^sub>R basis i"]]
-        and   e[THEN spec[where x="x + (e/2) *\<^sub>R basis i"]]
+        unfolding norm_minus_cancel using norm_Basis[OF i] `e>0` by auto
+      hence "a \<bullet> i \<le> (x - (e / 2) *\<^sub>R i) \<bullet> i"
+                     "(x + (e / 2) *\<^sub>R i) \<bullet> i \<le> b \<bullet> i"
+        using e[THEN spec[where x="x - (e/2) *\<^sub>R i"]]
+        and   e[THEN spec[where x="x + (e/2) *\<^sub>R i"]]
         unfolding mem_interval using i by blast+
-      hence "a $$ i < x $$ i" and "x $$ i < b $$ i" unfolding euclidean_simps
-        unfolding basis_component using `e>0` i by auto  }
+      hence "a \<bullet> i < x \<bullet> i" and "x \<bullet> i < b \<bullet> i"
+        using `e>0` i by (auto simp: inner_diff_left inner_Basis inner_add_left) }
     hence "x \<in> {a<..<b}" unfolding mem_interval by auto  }
   thus "?L \<subseteq> ?R" ..
 qed
 
 lemma bounded_closed_interval: fixes a :: "'a::ordered_euclidean_space" shows "bounded {a .. b}"
 proof-
-  let ?b = "\<Sum>i<DIM('a). \<bar>a$$i\<bar> + \<bar>b$$i\<bar>"
-  { fix x::"'a" assume x:"\<forall>i<DIM('a). a $$ i \<le> x $$ i \<and> x $$ i \<le> b $$ i"
-    { fix i assume "i<DIM('a)"
-      hence "\<bar>x$$i\<bar> \<le> \<bar>a$$i\<bar> + \<bar>b$$i\<bar>" using x[THEN spec[where x=i]] by auto  }
-    hence "(\<Sum>i<DIM('a). \<bar>x $$ i\<bar>) \<le> ?b" apply-apply(rule setsum_mono) by auto
+  let ?b = "\<Sum>i\<in>Basis. \<bar>a\<bullet>i\<bar> + \<bar>b\<bullet>i\<bar>"
+  { fix x::"'a" assume x:"\<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i \<and> x \<bullet> i \<le> b \<bullet> i"
+    { fix i :: 'a assume "i\<in>Basis"
+      hence "\<bar>x\<bullet>i\<bar> \<le> \<bar>a\<bullet>i\<bar> + \<bar>b\<bullet>i\<bar>" using x[THEN bspec[where x=i]] by auto  }
+    hence "(\<Sum>i\<in>Basis. \<bar>x \<bullet> i\<bar>) \<le> ?b" apply-apply(rule setsum_mono) by auto
     hence "norm x \<le> ?b" using norm_le_l1[of x] by auto  }
   thus ?thesis unfolding interval and bounded_iff by auto
 qed
@@ -5298,10 +5262,9 @@ lemma compact_interval: fixes a :: "'a::ordered_euclidean_space" shows "compact 
 lemma open_interval_midpoint: fixes a :: "'a::ordered_euclidean_space"
   assumes "{a<..<b} \<noteq> {}" shows "((1/2) *\<^sub>R (a + b)) \<in> {a<..<b}"
 proof-
-  { fix i assume "i<DIM('a)"
-    hence "a $$ i < ((1 / 2) *\<^sub>R (a + b)) $$ i \<and> ((1 / 2) *\<^sub>R (a + b)) $$ i < b $$ i"
-      using assms[unfolded interval_ne_empty, THEN spec[where x=i]]
-      unfolding euclidean_simps by auto  }
+  { fix i :: 'a assume "i\<in>Basis"
+    hence "a \<bullet> i < ((1 / 2) *\<^sub>R (a + b)) \<bullet> i \<and> ((1 / 2) *\<^sub>R (a + b)) \<bullet> i < b \<bullet> i"
+      using assms[unfolded interval_ne_empty, THEN bspec[where x=i]] by (auto simp: inner_add_left)  }
   thus ?thesis unfolding mem_interval by auto
 qed
 
@@ -5309,23 +5272,23 @@ lemma open_closed_interval_convex: fixes x :: "'a::ordered_euclidean_space"
   assumes x:"x \<in> {a<..<b}" and y:"y \<in> {a .. b}" and e:"0 < e" "e \<le> 1"
   shows "(e *\<^sub>R x + (1 - e) *\<^sub>R y) \<in> {a<..<b}"
 proof-
-  { fix i assume i:"i<DIM('a)"
-    have "a $$ i = e * a$$i + (1 - e) * a$$i" unfolding left_diff_distrib by simp
-    also have "\<dots> < e * x $$ i + (1 - e) * y $$ i" apply(rule add_less_le_mono)
+  { fix i :: 'a assume i:"i\<in>Basis"
+    have "a \<bullet> i = e * (a \<bullet> i) + (1 - e) * (a \<bullet> i)" unfolding left_diff_distrib by simp
+    also have "\<dots> < e * (x \<bullet> i) + (1 - e) * (y \<bullet> i)" apply(rule add_less_le_mono)
       using e unfolding mult_less_cancel_left and mult_le_cancel_left apply simp_all
       using x unfolding mem_interval using i apply simp
       using y unfolding mem_interval using i apply simp
       done
-    finally have "a $$ i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) $$ i" unfolding euclidean_simps by auto
+    finally have "a \<bullet> i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i" unfolding inner_simps by auto
     moreover {
-    have "b $$ i = e * b$$i + (1 - e) * b$$i" unfolding left_diff_distrib by simp
-    also have "\<dots> > e * x $$ i + (1 - e) * y $$ i" apply(rule add_less_le_mono)
+    have "b \<bullet> i = e * (b\<bullet>i) + (1 - e) * (b\<bullet>i)" unfolding left_diff_distrib by simp
+    also have "\<dots> > e * (x \<bullet> i) + (1 - e) * (y \<bullet> i)" apply(rule add_less_le_mono)
       using e unfolding mult_less_cancel_left and mult_le_cancel_left apply simp_all
       using x unfolding mem_interval using i apply simp
       using y unfolding mem_interval using i apply simp
       done
-    finally have "(e *\<^sub>R x + (1 - e) *\<^sub>R y) $$ i < b $$ i" unfolding euclidean_simps by auto
-    } ultimately have "a $$ i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) $$ i \<and> (e *\<^sub>R x + (1 - e) *\<^sub>R y) $$ i < b $$ i" by auto }
+    finally have "(e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i < b \<bullet> i" unfolding inner_simps by auto
+    } ultimately have "a \<bullet> i < (e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i \<and> (e *\<^sub>R x + (1 - e) *\<^sub>R y) \<bullet> i < b \<bullet> i" by auto }
   thus ?thesis unfolding mem_interval by auto
 qed
 
@@ -5365,11 +5328,11 @@ lemma bounded_subset_open_interval_symmetric: fixes s::"('a::ordered_euclidean_s
   assumes "bounded s"  shows "\<exists>a. s \<subseteq> {-a<..<a}"
 proof-
   obtain b where "b>0" and b:"\<forall>x\<in>s. norm x \<le> b" using assms[unfolded bounded_pos] by auto
-  def a \<equiv> "(\<chi>\<chi> i. b+1)::'a"
+  def a \<equiv> "(\<Sum>i\<in>Basis. (b + 1) *\<^sub>R i)::'a"
   { fix x assume "x\<in>s"
-    fix i assume i:"i<DIM('a)"
-    hence "(-a)$$i < x$$i" and "x$$i < a$$i" using b[THEN bspec[where x=x], OF `x\<in>s`]
-      and component_le_norm[of x i] unfolding euclidean_simps and a_def by auto  }
+    fix i :: 'a assume i:"i\<in>Basis"
+    hence "(-a)\<bullet>i < x\<bullet>i" and "x\<bullet>i < a\<bullet>i" using b[THEN bspec[where x=x], OF `x\<in>s`]
+      and Basis_le_norm[OF i, of x] unfolding inner_simps and a_def by auto }
   thus ?thesis by(auto intro: exI[where x=a] simp add: eucl_less[where 'a='a])
 qed
 
@@ -5413,59 +5376,61 @@ lemma inter_interval_mixed_eq_empty: fixes a :: "'a::ordered_euclidean_space"
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
 lemma closed_interval_left: fixes b::"'a::euclidean_space"
-  shows "closed {x::'a. \<forall>i<DIM('a). x$$i \<le> b$$i}"
+  shows "closed {x::'a. \<forall>i\<in>Basis. x\<bullet>i \<le> b\<bullet>i}"
 proof-
-  { fix i assume i:"i<DIM('a)"
-    fix x::"'a" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i<DIM('a). x $$ i \<le> b $$ i}. x' \<noteq> x \<and> dist x' x < e"
-    { assume "x$$i > b$$i"
-      then obtain y where "y $$ i \<le> b $$ i"  "y \<noteq> x"  "dist y x < x$$i - b$$i"
-        using x[THEN spec[where x="x$$i - b$$i"]] using i by auto
-      hence False using component_le_norm[of "y - x" i] unfolding dist_norm euclidean_simps using i 
-        by auto   }
-    hence "x$$i \<le> b$$i" by(rule ccontr)auto  }
+  { fix i :: 'a assume i:"i\<in>Basis"
+    fix x::"'a" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i\<in>Basis. x \<bullet> i \<le> b \<bullet> i}. x' \<noteq> x \<and> dist x' x < e"
+    { assume "x\<bullet>i > b\<bullet>i"
+      then obtain y where "y \<bullet> i \<le> b \<bullet> i"  "y \<noteq> x"  "dist y x < x\<bullet>i - b\<bullet>i"
+        using x[THEN spec[where x="x\<bullet>i - b\<bullet>i"]] using i by auto
+      hence False using Basis_le_norm[OF i, of "y - x"] unfolding dist_norm inner_simps using i 
+        by auto }
+    hence "x\<bullet>i \<le> b\<bullet>i" by(rule ccontr)auto  }
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
 
 lemma closed_interval_right: fixes a::"'a::euclidean_space"
-  shows "closed {x::'a. \<forall>i<DIM('a). a$$i \<le> x$$i}"
+  shows "closed {x::'a. \<forall>i\<in>Basis. a\<bullet>i \<le> x\<bullet>i}"
 proof-
-  { fix i assume i:"i<DIM('a)"
-    fix x::"'a" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i<DIM('a). a $$ i \<le> x $$ i}. x' \<noteq> x \<and> dist x' x < e"
-    { assume "a$$i > x$$i"
-      then obtain y where "a $$ i \<le> y $$ i"  "y \<noteq> x"  "dist y x < a$$i - x$$i"
-        using x[THEN spec[where x="a$$i - x$$i"]] i by auto
-      hence False using component_le_norm[of "y - x" i] unfolding dist_norm and euclidean_simps by auto   }
-    hence "a$$i \<le> x$$i" by(rule ccontr)auto  }
+  { fix i :: 'a assume i:"i\<in>Basis"
+    fix x::"'a" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i\<in>Basis. a \<bullet> i \<le> x \<bullet> i}. x' \<noteq> x \<and> dist x' x < e"
+    { assume "a\<bullet>i > x\<bullet>i"
+      then obtain y where "a \<bullet> i \<le> y \<bullet> i"  "y \<noteq> x"  "dist y x < a\<bullet>i - x\<bullet>i"
+        using x[THEN spec[where x="a\<bullet>i - x\<bullet>i"]] i by auto
+      hence False using Basis_le_norm[OF i, of "y - x"] unfolding dist_norm inner_simps by auto }
+    hence "a\<bullet>i \<le> x\<bullet>i" by(rule ccontr)auto  }
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
 
-instance ordered_euclidean_space \<subseteq> countable_basis_space
+lemma open_box: "open (box a b)"
+proof -
+  have "open (\<Inter>i\<in>Basis. (op \<bullet> i) -` {a \<bullet> i <..< b \<bullet> i})"
+    by (auto intro!: continuous_open_vimage continuous_inner continuous_at_id continuous_const)
+  also have "(\<Inter>i\<in>Basis. (op \<bullet> i) -` {a \<bullet> i <..< b \<bullet> i}) = box a b"
+    by (auto simp add: box_def inner_commute)
+  finally show ?thesis .
+qed
+
+instance euclidean_space \<subseteq> countable_basis_space
 proof
-  def to_cube \<equiv> "\<lambda>(a, b). {Chi (real_of_rat \<circ> op ! a)<..<Chi (real_of_rat \<circ> op ! b)}::'a set"
-  def B \<equiv> "(\<lambda>n. (to_cube (from_nat n)::'a set)) ` UNIV"
-  have "countable B" unfolding B_def by simp
+  def a \<equiv> "\<lambda>f :: 'a \<Rightarrow> (real \<times> real). \<Sum>i\<in>Basis. fst (f i) *\<^sub>R i"
+  then have a: "\<And>f. (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i) = a f" by simp
+  def b \<equiv> "\<lambda>f :: 'a \<Rightarrow> (real \<times> real). \<Sum>i\<in>Basis. snd (f i) *\<^sub>R i"
+  then have b: "\<And>f. (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i) = b f" by simp
+  def B \<equiv> "(\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^isub>E (\<rat> \<times> \<rat>))"
+
+  have "countable B" unfolding B_def 
+    by (intro countable_image countable_PiE finite_Basis countable_SIGMA countable_rat)
   moreover
-  have "Ball B open" unfolding B_def
+  have "Ball B open" by (simp add: B_def open_box)
+  moreover have "(\<forall>A. open A \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = A))"
   proof safe
-    fix n show "open (to_cube (from_nat n))"
-      by (cases "from_nat n::rat list \<times> rat list")
-         (simp add: open_interval to_cube_def)
-  qed
-  moreover have "(\<forall>x. open x \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = x))"
-  proof safe
-    fix x::"'a set" assume "open x"
-    def lists \<equiv> "{(a, b) |a b. to_cube (a, b) \<subseteq> x}"
-    from open_UNION[OF `open x`]
-    have "\<Union>(to_cube ` lists) = x" unfolding lists_def to_cube_def
-     by simp
-    moreover have "to_cube ` lists \<subseteq> B"
-    proof
-      fix x assume "x \<in> to_cube ` lists"
-      then obtain l where "l \<in> lists" "x = to_cube l" by auto
-      thus "x \<in> B" by (auto simp add: B_def intro!: image_eqI[where x="to_nat l"])
-    qed
-    ultimately
-    show "\<exists>B'\<subseteq>B. \<Union>B' = x" by blast
+    fix A::"'a set" assume "open A"
+    show "\<exists>B'\<subseteq>B. \<Union>B' = A"
+      apply (rule exI[of _ "{b\<in>B. b \<subseteq> A}"])
+      apply (subst (3) open_UNION_box[OF `open A`])
+      apply (auto simp add: a b B_def)
+      done
   qed
   ultimately
   show "\<exists>B::'a set set. countable B \<and> topological_basis B" unfolding topological_basis_def by blast
@@ -5476,7 +5441,7 @@ instance ordered_euclidean_space \<subseteq> polish_space ..
 text {* Intervals in general, including infinite and mixtures of open and closed. *}
 
 definition "is_interval (s::('a::euclidean_space) set) \<longleftrightarrow>
-  (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i<DIM('a). ((a$$i \<le> x$$i \<and> x$$i \<le> b$$i) \<or> (b$$i \<le> x$$i \<and> x$$i \<le> a$$i))) \<longrightarrow> x \<in> s)"
+  (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i\<in>Basis. ((a\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> b\<bullet>i) \<or> (b\<bullet>i \<le> x\<bullet>i \<and> x\<bullet>i \<le> a\<bullet>i))) \<longrightarrow> x \<in> s)"
 
 lemma is_interval_interval: "is_interval {a .. b::'a::ordered_euclidean_space}" (is ?th1)
   "is_interval {a<..<b}" (is ?th2) proof -
@@ -5560,9 +5525,6 @@ qed
 lemma continuous_at_inner: "continuous (at x) (inner a)"
   unfolding continuous_at by (intro tendsto_intros)
 
-lemma continuous_at_euclidean_component[intro!, simp]: "continuous (at x) (\<lambda>x. x $$ i)"
-  unfolding euclidean_component_def by (rule continuous_at_inner)
-
 lemma closed_halfspace_le: "closed {x. inner a x \<le> b}"
   by (simp add: closed_Collect_le)
 
@@ -5573,11 +5535,11 @@ lemma closed_hyperplane: "closed {x. inner a x = b}"
   by (simp add: closed_Collect_eq)
 
 lemma closed_halfspace_component_le:
-  shows "closed {x::'a::euclidean_space. x$$i \<le> a}"
+  shows "closed {x::'a::euclidean_space. x\<bullet>i \<le> a}"
   by (simp add: closed_Collect_le)
 
 lemma closed_halfspace_component_ge:
-  shows "closed {x::'a::euclidean_space. x$$i \<ge> a}"
+  shows "closed {x::'a::euclidean_space. x\<bullet>i \<ge> a}"
   by (simp add: closed_Collect_le)
 
 text {* Openness of halfspaces. *}
@@ -5589,33 +5551,33 @@ lemma open_halfspace_gt: "open {x. inner a x > b}"
   by (simp add: open_Collect_less)
 
 lemma open_halfspace_component_lt:
-  shows "open {x::'a::euclidean_space. x$$i < a}"
+  shows "open {x::'a::euclidean_space. x\<bullet>i < a}"
   by (simp add: open_Collect_less)
 
 lemma open_halfspace_component_gt:
-  shows "open {x::'a::euclidean_space. x$$i > a}"
+  shows "open {x::'a::euclidean_space. x\<bullet>i > a}"
   by (simp add: open_Collect_less)
 
 text{* Instantiation for intervals on @{text ordered_euclidean_space} *}
 
 lemma eucl_lessThan_eq_halfspaces:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{..<a} = (\<Inter>i<DIM('a). {x. x $$ i < a $$ i})"
+  shows "{..<a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i < a \<bullet> i})"
  by (auto simp: eucl_less[where 'a='a])
 
 lemma eucl_greaterThan_eq_halfspaces:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a<..} = (\<Inter>i<DIM('a). {x. a $$ i < x $$ i})"
+  shows "{a<..} = (\<Inter>i\<in>Basis. {x. a \<bullet> i < x \<bullet> i})"
  by (auto simp: eucl_less[where 'a='a])
 
 lemma eucl_atMost_eq_halfspaces:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{.. a} = (\<Inter>i<DIM('a). {x. x $$ i \<le> a $$ i})"
+  shows "{.. a} = (\<Inter>i\<in>Basis. {x. x \<bullet> i \<le> a \<bullet> i})"
  by (auto simp: eucl_le[where 'a='a])
 
 lemma eucl_atLeast_eq_halfspaces:
   fixes a :: "'a\<Colon>ordered_euclidean_space"
-  shows "{a ..} = (\<Inter>i<DIM('a). {x. a $$ i \<le> x $$ i})"
+  shows "{a ..} = (\<Inter>i\<in>Basis. {x. a \<bullet> i \<le> x \<bullet> i})"
  by (auto simp: eucl_le[where 'a='a])
 
 lemma open_eucl_lessThan[simp, intro]:
@@ -5640,35 +5602,24 @@ lemma closed_eucl_atLeast[simp, intro]:
   unfolding eucl_atLeast_eq_halfspaces
   by (simp add: closed_INT closed_Collect_le)
 
-lemma open_vimage_euclidean_component: "open S \<Longrightarrow> open ((\<lambda>x. x $$ i) -` S)"
-  by (auto intro!: continuous_open_vimage)
-
 text {* This gives a simple derivation of limit component bounds. *}
 
 lemma Lim_component_le: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
-  assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$$i \<le> b) net"
-  shows "l$$i \<le> b"
-proof-
-  { fix x have "x \<in> {x::'b. inner (basis i) x \<le> b} \<longleftrightarrow> x$$i \<le> b"
-      unfolding euclidean_component_def by auto  } note * = this
-  show ?thesis using Lim_in_closed_set[of "{x. inner (basis i) x \<le> b}" f net l] unfolding *
-    using closed_halfspace_le[of "(basis i)::'b" b] and assms(1,2,3) by auto
-qed
+  assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)\<bullet>i \<le> b) net"
+  shows "l\<bullet>i \<le> b"
+  by (rule tendsto_le[OF assms(2) tendsto_const tendsto_inner[OF assms(1) tendsto_const] assms(3)])
 
 lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
-  assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$$i) net"
-  shows "b \<le> l$$i"
-proof-
-  { fix x have "x \<in> {x::'b. inner (basis i) x \<ge> b} \<longleftrightarrow> x$$i \<ge> b"
-      unfolding euclidean_component_def by auto  } note * = this
-  show ?thesis using Lim_in_closed_set[of "{x. inner (basis i) x \<ge> b}" f net l] unfolding *
-    using closed_halfspace_ge[of b "(basis i)"] and assms(1,2,3) by auto
-qed
+  assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)\<bullet>i) net"
+  shows "b \<le> l\<bullet>i"
+  by (rule tendsto_le[OF assms(2) tendsto_inner[OF assms(1) tendsto_const] tendsto_const assms(3)])
 
 lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
-  assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$$i = b) net"
-  shows "l$$i = b"
-  using ev[unfolded order_eq_iff eventually_conj_iff] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
+  assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)\<bullet>i = b) net"
+  shows "l\<bullet>i = b"
+  using ev[unfolded order_eq_iff eventually_conj_iff]
+  using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
+
 text{* Limits relative to a union.                                               *}
 
 lemma eventually_within_Un:
@@ -5726,9 +5677,8 @@ proof(rule ccontr)
 qed
 
 lemma connected_ivt_component: fixes x::"'a::euclidean_space" shows
- "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$$k \<le> a \<Longrightarrow> a \<le> y$$k \<Longrightarrow> (\<exists>z\<in>s.  z$$k = a)"
-  using connected_ivt_hyperplane[of s x y "(basis k)::'a" a]
-  unfolding euclidean_component_def by auto
+ "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x\<bullet>k \<le> a \<Longrightarrow> a \<le> y\<bullet>k \<Longrightarrow> (\<exists>z\<in>s.  z\<bullet>k = a)"
+  using connected_ivt_hyperplane[of s x y "k::'a" a] by (auto simp: inner_commute)
 
 
 subsection {* Homeomorphisms *}
@@ -5998,95 +5948,91 @@ qed
 subsection {* Some properties of a canonical subspace *}
 
 lemma subspace_substandard:
-  "subspace {x::'a::euclidean_space. (\<forall>i<DIM('a). P i \<longrightarrow> x$$i = 0)}"
-  unfolding subspace_def by auto
+  "subspace {x::'a::euclidean_space. (\<forall>i\<in>Basis. P i \<longrightarrow> x\<bullet>i = 0)}"
+  unfolding subspace_def by (auto simp: inner_add_left)
 
 lemma closed_substandard:
- "closed {x::'a::euclidean_space. \<forall>i<DIM('a). P i --> x$$i = 0}" (is "closed ?A")
+ "closed {x::'a::euclidean_space. \<forall>i\<in>Basis. P i --> x\<bullet>i = 0}" (is "closed ?A")
 proof-
-  let ?D = "{i. P i} \<inter> {..<DIM('a)}"
-  have "closed (\<Inter>i\<in>?D. {x::'a. x$$i = 0})"
+  let ?D = "{i\<in>Basis. P i}"
+  have "closed (\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0})"
     by (simp add: closed_INT closed_Collect_eq)
-  also have "(\<Inter>i\<in>?D. {x::'a. x$$i = 0}) = ?A"
+  also have "(\<Inter>i\<in>?D. {x::'a. x\<bullet>i = 0}) = ?A"
     by auto
   finally show "closed ?A" .
 qed
 
-lemma dim_substandard: assumes "d\<subseteq>{..<DIM('a::euclidean_space)}"
-  shows "dim {x::'a::euclidean_space. \<forall>i<DIM('a). i \<notin> d \<longrightarrow> x$$i = 0} = card d" (is "dim ?A = _")
+lemma dim_substandard: assumes d: "d \<subseteq> Basis"
+  shows "dim {x::'a::euclidean_space. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0} = card d" (is "dim ?A = _")
 proof-
-  let ?D = "{..<DIM('a)}"
-  let ?B = "(basis::nat => 'a) ` d"
-  let ?bas = "basis::nat \<Rightarrow> 'a"
-  have "?B \<subseteq> ?A" by auto
+  let ?D = "Basis :: 'a set"
+  have "d \<subseteq> ?A" using d by (auto simp: inner_Basis)
   moreover
-  { fix x::"'a" assume "x\<in>?A"
-    hence "finite d" "x\<in>?A" using assms by(auto intro:finite_subset)
-    hence "x\<in> span ?B"
+  { fix x::"'a" assume "x \<in> ?A"
+    hence "finite d" "x \<in> ?A" using assms by(auto intro: finite_subset[OF _ finite_Basis])
+    from this d have "x \<in> span d"
     proof(induct d arbitrary: x)
-      case empty hence "x=0" apply(subst euclidean_eq) by auto
+      case empty hence "x=0" apply(rule_tac euclidean_eqI) by auto
       thus ?case using subspace_0[OF subspace_span[of "{}"]] by auto
     next
       case (insert k F)
-      hence *:"\<forall>i<DIM('a). i \<notin> insert k F \<longrightarrow> x $$ i = 0" by auto
+      hence *:"\<forall>i\<in>Basis. i \<notin> insert k F \<longrightarrow> x \<bullet> i = 0" by auto
       have **:"F \<subseteq> insert k F" by auto
-      def y \<equiv> "x - x$$k *\<^sub>R basis k"
-      have y:"x = y + (x$$k) *\<^sub>R basis k" unfolding y_def by auto
-      { fix i assume i':"i \<notin> F"
-        hence "y $$ i = 0" unfolding y_def 
-          using *[THEN spec[where x=i]] by auto }
-      hence "y \<in> span (basis ` F)" using insert(3) by auto
-      hence "y \<in> span (basis ` (insert k F))"
-        using span_mono[of "?bas ` F" "?bas ` (insert k F)"]
-        using image_mono[OF **, of basis] using assms by auto
+      def y \<equiv> "x - (x\<bullet>k) *\<^sub>R k"
+      have y:"x = y + (x\<bullet>k) *\<^sub>R k" unfolding y_def by auto
+      { fix i assume i': "i \<notin> F" "i \<in> Basis"
+        hence "y \<bullet> i = 0" unfolding y_def 
+          using *[THEN bspec[where x=i]] insert by (auto simp: inner_simps inner_Basis) }
+      hence "y \<in> span F" using insert by auto
+      hence "y \<in> span (insert k F)"
+        using span_mono[of F "insert k F"] using assms by auto
       moreover
-      have "basis k \<in> span (?bas ` (insert k F))" by(rule span_superset, auto)
-      hence "x$$k *\<^sub>R basis k \<in> span (?bas ` (insert k F))"
+      have "k \<in> span (insert k F)" by(rule span_superset, auto)
+      hence "(x\<bullet>k) *\<^sub>R k \<in> span (insert k F)"
         using span_mul by auto
       ultimately
-      have "y + x$$k *\<^sub>R basis k \<in> span (?bas ` (insert k F))"
+      have "y + (x\<bullet>k) *\<^sub>R k \<in> span (insert k F)"
         using span_add by auto
       thus ?case using y by auto
     qed
   }
-  hence "?A \<subseteq> span ?B" by auto
+  hence "?A \<subseteq> span d" by auto
   moreover
-  { fix x assume "x \<in> ?B"
-    hence "x\<in>{(basis i)::'a |i. i \<in> ?D}" using assms by auto  }
-  hence "independent ?B" using independent_mono[OF independent_basis, of ?B] and assms by auto
+  { fix x assume "x \<in> d" hence "x \<in> ?D" using assms by auto  }
+  hence "independent d" using independent_mono[OF independent_Basis, of d] and assms by auto
   moreover
   have "d \<subseteq> ?D" unfolding subset_eq using assms by auto
-  hence *:"inj_on (basis::nat\<Rightarrow>'a) d" using subset_inj_on[OF basis_inj, of "d"] by auto
-  have "card ?B = card d" unfolding card_image[OF *] by auto
-  ultimately show ?thesis using dim_unique[of "basis ` d" ?A] by auto
+  ultimately show ?thesis using dim_unique[of d ?A] by auto
 qed
 
 text{* Hence closure and completeness of all subspaces.                          *}
 
-lemma closed_subspace_lemma: "n \<le> card (UNIV::'n::finite set) \<Longrightarrow> \<exists>A::'n set. card A = n"
-apply (induct n)
-apply (rule_tac x="{}" in exI, simp)
-apply clarsimp
-apply (subgoal_tac "\<exists>x. x \<notin> A")
-apply (erule exE)
-apply (rule_tac x="insert x A" in exI, simp)
-apply (subgoal_tac "A \<noteq> UNIV", auto)
-done
+lemma ex_card: assumes "n \<le> card A" shows "\<exists>S\<subseteq>A. card S = n"
+proof cases
+  assume "finite A"
+  from ex_bij_betw_nat_finite[OF this] guess f ..
+  moreover with `n \<le> card A` have "{..< n} \<subseteq> {..< card A}" "inj_on f {..< n}"
+    by (auto simp: bij_betw_def intro: subset_inj_on)
+  ultimately have "f ` {..< n} \<subseteq> A" "card (f ` {..< n}) = n"
+    by (auto simp: bij_betw_def card_image)
+  then show ?thesis by blast
+next
+  assume "\<not> finite A" with `n \<le> card A` show ?thesis by force
+qed
 
 lemma closed_subspace: fixes s::"('a::euclidean_space) set"
   assumes "subspace s" shows "closed s"
 proof-
-  have *:"dim s \<le> DIM('a)" using dim_subset_UNIV by auto
-  def d \<equiv> "{..<dim s}" have t:"card d = dim s" unfolding d_def by auto
-  let ?t = "{x::'a. \<forall>i<DIM('a). i \<notin> d \<longrightarrow> x$$i = 0}"
-  have "\<exists>f. linear f \<and> f ` {x::'a. \<forall>i<DIM('a). i \<notin> d \<longrightarrow> x $$ i = 0} = s \<and>
-      inj_on f {x::'a. \<forall>i<DIM('a). i \<notin> d \<longrightarrow> x $$ i = 0}"
-    apply(rule subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"]])
-    using dim_substandard[of d,where 'a='a] and t unfolding d_def using * assms by auto
-  then guess f apply-by(erule exE conjE)+ note f = this
+  have "dim s \<le> card (Basis :: 'a set)" using dim_subset_UNIV by auto
+  with ex_card[OF this] obtain d :: "'a set" where t: "card d = dim s" and d: "d \<subseteq> Basis" by auto
+  let ?t = "{x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x\<bullet>i = 0}"
+  have "\<exists>f. linear f \<and> f ` {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0} = s \<and>
+      inj_on f {x::'a. \<forall>i\<in>Basis. i \<notin> d \<longrightarrow> x \<bullet> i = 0}"
+    using dim_substandard[of d] t d assms
+    by (intro subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"]]) (auto simp: inner_Basis)
+  then guess f by (elim exE conjE) note f = this
   interpret f: bounded_linear f using f unfolding linear_conv_bounded_linear by auto
-  have "\<forall>x\<in>?t. f x = 0 \<longrightarrow> x = 0" using f.zero using f(3)[unfolded inj_on_def]
-    by(erule_tac x=0 in ballE) auto
+  { fix x have "x\<in>?t \<Longrightarrow> f x = 0 \<Longrightarrow> x = 0" using f.zero d f(3)[THEN inj_onD, of x 0] by auto }
   moreover have "closed ?t" using closed_substandard .
   moreover have "subspace ?t" using subspace_substandard .
   ultimately show ?thesis using closed_injective_image_subspace[of ?t f]
@@ -6144,7 +6090,7 @@ lemma image_affinity_interval: fixes m::real
 proof(cases "m=0")  
   { fix x assume "x \<le> c" "c \<le> x"
     hence "x=c" unfolding eucl_le[where 'a='a] apply-
-      apply(subst euclidean_eq) by (auto intro: order_antisym) }
+      apply(subst euclidean_eq_iff) by (auto intro: order_antisym) }
   moreover case True
   moreover have "c \<in> {m *\<^sub>R a + c..m *\<^sub>R b + c}" unfolding True by(auto simp add: eucl_le[where 'a='a])
   ultimately show ?thesis by auto
@@ -6152,23 +6098,23 @@ next
   case False
   { fix y assume "a \<le> y" "y \<le> b" "m > 0"
     hence "m *\<^sub>R a + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R b + c"
-      unfolding eucl_le[where 'a='a] by auto
+      unfolding eucl_le[where 'a='a] by (auto simp: inner_simps)
   } moreover
   { fix y assume "a \<le> y" "y \<le> b" "m < 0"
     hence "m *\<^sub>R b + c \<le> m *\<^sub>R y + c"  "m *\<^sub>R y + c \<le> m *\<^sub>R a + c"
-      unfolding eucl_le[where 'a='a] by(auto simp add: mult_left_mono_neg)
+      unfolding eucl_le[where 'a='a] by(auto simp add: mult_left_mono_neg inner_simps)
   } moreover
   { fix y assume "m > 0"  "m *\<^sub>R a + c \<le> y"  "y \<le> m *\<^sub>R b + c"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      by(auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff)
+      by(auto simp add: pos_le_divide_eq pos_divide_le_eq mult_commute diff_le_iff inner_simps)
   } moreover
   { fix y assume "m *\<^sub>R b + c \<le> y" "y \<le> m *\<^sub>R a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *\<^sub>R x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval eucl_le[where 'a='a]
       apply (intro exI[where x="(1 / m) *\<^sub>R (y - c)"])
-      by(auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff)
+      by(auto simp add: neg_le_divide_eq neg_divide_le_eq mult_commute diff_le_iff inner_simps)
   }
   ultimately show ?thesis using False by auto
 qed

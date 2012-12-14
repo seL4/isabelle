@@ -398,6 +398,53 @@ next
   then show "h = g" by (simp add: ext)
 qed
 
+text {* TODO: The following lemmas about adjoints should hold for any
+Hilbert space (i.e. complete inner product space).
+(see \url{http://en.wikipedia.org/wiki/Hermitian_adjoint})
+*}
+
+lemma adjoint_works:
+  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "x \<bullet> adjoint f y = f x \<bullet> y"
+proof -
+  have "\<forall>y. \<exists>w. \<forall>x. f x \<bullet> y = x \<bullet> w"
+  proof (intro allI exI)
+    fix y :: "'m" and x
+    let ?w = "(\<Sum>i\<in>Basis. (f i \<bullet> y) *\<^sub>R i) :: 'n"
+    have "f x \<bullet> y = f (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R i) \<bullet> y"
+      by (simp add: euclidean_representation)
+    also have "\<dots> = (\<Sum>i\<in>Basis. (x \<bullet> i) *\<^sub>R f i) \<bullet> y"
+      unfolding linear_setsum[OF lf finite_Basis]
+      by (simp add: linear_cmul[OF lf])
+    finally show "f x \<bullet> y = x \<bullet> ?w"
+        by (simp add: inner_setsum_left inner_setsum_right mult_commute)
+  qed
+  then show ?thesis
+    unfolding adjoint_def choice_iff
+    by (intro someI2_ex[where Q="\<lambda>f'. x \<bullet> f' y = f x \<bullet> y"]) auto
+qed
+
+lemma adjoint_clauses:
+  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "x \<bullet> adjoint f y = f x \<bullet> y"
+    and "adjoint f y \<bullet> x = y \<bullet> f x"
+  by (simp_all add: adjoint_works[OF lf] inner_commute)
+
+lemma adjoint_linear:
+  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "linear (adjoint f)"
+  by (simp add: lf linear_def euclidean_eq_iff[where 'a='n] euclidean_eq_iff[where 'a='m]
+    adjoint_clauses[OF lf] inner_simps)
+
+lemma adjoint_adjoint:
+  fixes f:: "'n::euclidean_space \<Rightarrow> 'm::euclidean_space"
+  assumes lf: "linear f"
+  shows "adjoint (adjoint f) = f"
+  by (rule adjoint_unique, simp add: adjoint_clauses [OF lf])
+
 subsection {* Interlude: Some properties of real sets *}
 
 lemma seq_mono_lemma: assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n" and "\<forall>n \<ge> m. e n <= e m"
@@ -1261,77 +1308,37 @@ qed
 
 subsection{* Euclidean Spaces as Typeclass*}
 
-lemma independent_eq_inj_on:
-  fixes D :: nat
-    and f :: "nat \<Rightarrow> 'c::real_vector"
-  assumes "inj_on f {..<D}"
-  shows "independent (f ` {..<D}) \<longleftrightarrow> (\<forall>a u. a < D \<longrightarrow> (\<Sum>i\<in>{..<D}-{a}. u (f i) *\<^sub>R f i) \<noteq> f a)"
-proof -
-  from assms have eq: "\<And>i. i < D \<Longrightarrow> f ` {..<D} - {f i} = f`({..<D} - {i})"
-    and inj: "\<And>i. inj_on f ({..<D} - {i})"
-    by (auto simp: inj_on_def)
-  have *: "\<And>i. finite (f ` {..<D} - {i})" by simp
-  show ?thesis unfolding dependent_def span_finite[OF *]
-    by (auto simp: eq setsum_reindex[OF inj])
-qed
-
-lemma independent_basis: "independent (basis ` {..<DIM('a)} :: 'a::euclidean_space set)"
-  unfolding independent_eq_inj_on [OF basis_inj]
+lemma independent_Basis: "independent Basis"
+  unfolding dependent_def
+  apply (subst span_finite)
+  apply simp
   apply clarify
-  apply (drule_tac f="inner (basis a)" in arg_cong)
-  apply (simp add: inner_setsum_right dot_basis)
+  apply (drule_tac f="inner a" in arg_cong)
+  apply (simp add: inner_Basis inner_setsum_right eq_commute)
   done
 
-lemma (in euclidean_space) range_basis: "range basis = insert 0 (basis ` {..<DIM('a)})"
-proof -
-  have *: "UNIV = {..<DIM('a)} \<union> {DIM('a)..}" by auto
-  show ?thesis unfolding * image_Un basis_finite by auto
-qed
-
-lemma (in euclidean_space) range_basis_finite[intro]: "finite (range basis)"
-  unfolding range_basis by auto
-
-lemma span_basis: "span (range basis) = (UNIV :: 'a::euclidean_space set)"
-proof -
-  { fix x :: 'a
-    have "(\<Sum>i<DIM('a). (x $$ i) *\<^sub>R basis i) \<in> span (range basis :: 'a set)"
-      by (simp add: span_setsum span_mul span_superset)
-    then have "x \<in> span (range basis)"
-      by (simp only: euclidean_representation [symmetric])
-  } then show ?thesis by auto
-qed
-
-lemma basis_representation:
-  "\<exists>u. x = (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R (v\<Colon>'a\<Colon>euclidean_space))"
-proof -
-  have "x\<in>UNIV" by auto from this[unfolded span_basis[THEN sym]]
-  have "\<exists>u. (\<Sum>v\<in>basis ` {..<DIM('a)}. u v *\<^sub>R v) = x"
-    unfolding range_basis span_insert_0 apply(subst (asm) span_finite) by auto
-  then show ?thesis by fastforce
-qed
-
-lemma span_basis'[simp]:"span ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = UNIV"
-  apply(subst span_basis[symmetric])
-  unfolding range_basis
-  apply auto
+lemma span_Basis[simp]: "span Basis = (UNIV :: 'a::euclidean_space set)"
+  apply (subst span_finite)
+  apply simp
+  apply (safe intro!: UNIV_I)
+  apply (rule_tac x="inner x" in exI)
+  apply (simp add: euclidean_representation)
   done
 
-lemma card_basis[simp]:"card ((basis::nat=>'a) ` {..<DIM('a::euclidean_space)}) = DIM('a)"
-  apply (subst card_image)
-  using basis_inj apply auto
-  done
+lemma in_span_Basis: "x \<in> span Basis"
+  unfolding span_Basis ..
 
-lemma in_span_basis: "(x::'a::euclidean_space) \<in> span (basis ` {..<DIM('a)})"
-  unfolding span_basis' ..
+lemma Basis_le_norm: "b \<in> Basis \<Longrightarrow> \<bar>x \<bullet> b\<bar> \<le> norm x"
+  by (rule order_trans [OF Cauchy_Schwarz_ineq2]) simp
 
-lemma norm_bound_component_le: "norm (x::'a::euclidean_space) \<le> e \<Longrightarrow> \<bar>x$$i\<bar> <= e"
-  by (metis component_le_norm order_trans)
+lemma norm_bound_Basis_le: "b \<in> Basis \<Longrightarrow> norm x \<le> e \<Longrightarrow> \<bar>x \<bullet> b\<bar> \<le> e"
+  by (metis Basis_le_norm order_trans)
 
-lemma norm_bound_component_lt: "norm (x::'a::euclidean_space) < e \<Longrightarrow> \<bar>x$$i\<bar> < e"
-  by (metis component_le_norm basic_trans_rules(21))
+lemma norm_bound_Basis_lt: "b \<in> Basis \<Longrightarrow> norm x < e \<Longrightarrow> \<bar>x \<bullet> b\<bar> < e"
+  by (metis Basis_le_norm basic_trans_rules(21))
 
-lemma norm_le_l1: "norm (x::'a::euclidean_space) \<le> (\<Sum>i<DIM('a). \<bar>x $$ i\<bar>)"
-  apply (subst euclidean_representation[of x])
+lemma norm_le_l1: "norm x \<le> (\<Sum>b\<in>Basis. \<bar>x \<bullet> b\<bar>)"
+  apply (subst euclidean_representation[of x, symmetric])
   apply (rule order_trans[OF norm_setsum])
   apply (auto intro!: setsum_mono)
   done
@@ -1339,60 +1346,28 @@ lemma norm_le_l1: "norm (x::'a::euclidean_space) \<le> (\<Sum>i<DIM('a). \<bar>x
 lemma setsum_norm_allsubsets_bound:
   fixes f:: "'a \<Rightarrow> 'n::euclidean_space"
   assumes fP: "finite P" and fPs: "\<And>Q. Q \<subseteq> P \<Longrightarrow> norm (setsum f Q) \<le> e"
-  shows "setsum (\<lambda>x. norm (f x)) P \<le> 2 * real DIM('n) *  e"
+  shows "(\<Sum>x\<in>P. norm (f x)) \<le> 2 * real DIM('n) * e"
 proof -
-  let ?d = "real DIM('n)"
-  let ?nf = "\<lambda>x. norm (f x)"
-  let ?U = "{..<DIM('n)}"
-  have th0: "setsum (\<lambda>x. setsum (\<lambda>i. \<bar>f x $$ i\<bar>) ?U) P = setsum (\<lambda>i. setsum (\<lambda>x. \<bar>f x $$ i\<bar>) P) ?U"
-    by (rule setsum_commute)
-  have th1: "2 * ?d * e = of_nat (card ?U) * (2 * e)" by (simp add: real_of_nat_def)
-  have "setsum ?nf P \<le> setsum (\<lambda>x. setsum (\<lambda>i. \<bar>f x $$ i\<bar>) ?U) P"
+  have "(\<Sum>x\<in>P. norm (f x)) \<le> (\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>)"
     by (rule setsum_mono) (rule norm_le_l1)
-  also have "\<dots> \<le> 2 * ?d * e"
-    unfolding th0 th1
+  also have "(\<Sum>x\<in>P. \<Sum>b\<in>Basis. \<bar>f x \<bullet> b\<bar>) = (\<Sum>b\<in>Basis. \<Sum>x\<in>P. \<bar>f x \<bullet> b\<bar>)"
+    by (rule setsum_commute)
+  also have "\<dots> \<le> of_nat (card (Basis :: 'n set)) * (2 * e)"
   proof (rule setsum_bounded)
-    fix i assume i: "i \<in> ?U"
-    let ?Pp = "{x. x\<in> P \<and> f x $$ i \<ge> 0}"
-    let ?Pn = "{x. x \<in> P \<and> f x $$ i < 0}"
-    have thp: "P = ?Pp \<union> ?Pn" by auto
-    have thp0: "?Pp \<inter> ?Pn ={}" by auto
-    have PpP: "?Pp \<subseteq> P" and PnP: "?Pn \<subseteq> P" by blast+
-    have Ppe:"setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pp \<le> e"
-      using component_le_norm[of "setsum (\<lambda>x. f x) ?Pp" i]  fPs[OF PpP]
-      by(auto intro: abs_le_D1)
-    have Pne: "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pn \<le> e"
-      using component_le_norm[of "setsum (\<lambda>x. - f x) ?Pn" i]  fPs[OF PnP]
-      by(auto simp add: setsum_negf intro: abs_le_D1)
-    have "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) P = setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pp + setsum (\<lambda>x. \<bar>f x $$ i\<bar>) ?Pn"
-      apply (subst thp)
-      apply (rule setsum_Un_zero)
-      using fP thp0 apply auto
-      done
-    also have "\<dots> \<le> 2*e" using Pne Ppe by arith
-    finally show "setsum (\<lambda>x. \<bar>f x $$ i\<bar>) P \<le> 2*e" .
+    fix i :: 'n assume i: "i \<in> Basis"
+    have "norm (\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le> 
+      norm ((\<Sum>x\<in>P \<inter> - {x. f x \<bullet> i < 0}. f x) \<bullet> i) + norm ((\<Sum>x\<in>P \<inter> {x. f x \<bullet> i < 0}. f x) \<bullet> i)"
+      by (simp add: abs_real_def setsum_cases[OF fP] setsum_negf uminus_add_conv_diff
+                    norm_triangle_ineq4 inner_setsum_left
+          del: real_norm_def)
+    also have "\<dots> \<le> e + e" unfolding real_norm_def
+      by (intro add_mono norm_bound_Basis_le i fPs) auto
+    finally show "(\<Sum>x\<in>P. \<bar>f x \<bullet> i\<bar>) \<le> 2*e" by simp
   qed
+  also have "\<dots> = 2 * real DIM('n) * e"
+    by (simp add: real_of_nat_def)
   finally show ?thesis .
 qed
-
-lemma lambda_skolem': "(\<forall>i<DIM('a::euclidean_space). \<exists>x. P i x) \<longleftrightarrow>
-   (\<exists>x::'a. \<forall>i<DIM('a). P i (x$$i))" (is "?lhs \<longleftrightarrow> ?rhs")
-proof -
-  let ?S = "{..<DIM('a)}"
-  { assume H: "?rhs"
-    then have ?lhs by auto }
-  moreover
-  { assume H: "?lhs"
-    then obtain f where f:"\<forall>i<DIM('a). P i (f i)" unfolding choice_iff' by metis
-    let ?x = "(\<chi>\<chi> i. (f i)) :: 'a"
-    { fix i assume i:"i<DIM('a)"
-      with f have "P i (f i)" by metis
-      then have "P i (?x$$i)" using i by auto }
-    then have "\<forall>i<DIM('a). P i (?x$$i)" by metis
-    then have ?rhs by metis }
-  ultimately show ?thesis by metis
-qed
-
 
 subsection {* Linearity and Bilinearity continued *}
 
@@ -1401,29 +1376,25 @@ lemma linear_bounded:
   assumes lf: "linear f"
   shows "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
 proof -
-  let ?S = "{..<DIM('a)}"
-  let ?B = "setsum (\<lambda>i. norm(f(basis i))) ?S"
-  have fS: "finite ?S" by simp
+  let ?B = "\<Sum>b\<in>Basis. norm (f b)"
   { fix x:: "'a"
-    let ?g = "(\<lambda> i. (x$$i) *\<^sub>R (basis i) :: 'a)"
-    have "norm (f x) = norm (f (setsum (\<lambda>i. (x$$i) *\<^sub>R (basis i)) ?S))"
-      apply (subst euclidean_representation[of x])
-      apply rule
-      done
-    also have "\<dots> = norm (setsum (\<lambda> i. (x$$i) *\<^sub>R f (basis i)) ?S)"
-      using linear_setsum[OF lf fS, of ?g, unfolded o_def] linear_cmul[OF lf] by auto
-    finally have th0: "norm (f x) = norm (setsum (\<lambda>i. (x$$i) *\<^sub>R f (basis i))?S)" .
-    { fix i assume i: "i \<in> ?S"
-      from component_le_norm[of x i]
-      have "norm ((x$$i) *\<^sub>R f (basis i :: 'a)) \<le> norm (f (basis i)) * norm x"
+    let ?g = "\<lambda>b. (x \<bullet> b) *\<^sub>R f b"
+    have "norm (f x) = norm (f (\<Sum>b\<in>Basis. (x \<bullet> b) *\<^sub>R b))"
+      unfolding euclidean_representation ..
+    also have "\<dots> = norm (setsum ?g Basis)"
+      using linear_setsum[OF lf finite_Basis, of "\<lambda>b. (x \<bullet> b) *\<^sub>R b", unfolded o_def] linear_cmul[OF lf] by auto
+    finally have th0: "norm (f x) = norm (setsum ?g Basis)" .
+    { fix i :: 'a assume i: "i \<in> Basis"
+      from Basis_le_norm[OF i, of x]
+      have "norm (?g i) \<le> norm (f i) * norm x"
         unfolding norm_scaleR
-        apply (simp only: mult_commute)
+        apply (subst mult_commute)
         apply (rule mult_mono)
         apply (auto simp add: field_simps)
         done }
-    then have th: "\<forall>i\<in> ?S. norm ((x$$i) *\<^sub>R f (basis i :: 'a)) \<le> norm (f (basis i)) * norm x"
+    then have th: "\<forall>b\<in>Basis. norm (?g b) \<le> norm (f b) * norm x"
       by metis
-    from setsum_norm_le[of _ "\<lambda>i. (x$$i) *\<^sub>R (f (basis i))", OF th]
+    from setsum_norm_le[of _ ?g, OF th]
     have "norm (f x) \<le> ?B * norm x" unfolding th0 setsum_left_distrib by metis}
   then show ?thesis by blast
 qed
@@ -1438,12 +1409,15 @@ proof -
   let ?K = "\<bar>B\<bar> + 1"
   have Kp: "?K > 0" by arith
   { assume C: "B < 0"
-    have "((\<chi>\<chi> i. 1)::'a) \<noteq> 0" unfolding euclidean_eq[where 'a='a]
-      by(auto intro!:exI[where x=0])
-    then have "norm ((\<chi>\<chi> i. 1)::'a) > 0" by auto
-    with C have "B * norm ((\<chi>\<chi> i. 1)::'a) < 0"
+    def One \<equiv> "\<Sum>Basis ::'a"
+    then have "One \<noteq> 0"
+      unfolding euclidean_eq_iff[where 'a='a]
+      by (simp add: inner_setsum_left inner_Basis setsum_cases)
+    then have "norm One > 0" by auto
+    with C have "B * norm One < 0"
       by (simp add: mult_less_0_iff)
-    with B[rule_format, of "(\<chi>\<chi> i. 1)::'a"] norm_ge_zero[of "f ((\<chi>\<chi> i. 1)::'a)"] have False by simp
+    with B[rule_format, of One] norm_ge_zero[of "f One"]
+    have False by simp
   }
   then have Bp: "B \<ge> 0" by (metis not_leE)
   { fix x::"'a"
@@ -1492,33 +1466,27 @@ lemma bilinear_bounded:
   fixes h:: "'m::euclidean_space \<Rightarrow> 'n::euclidean_space \<Rightarrow> 'k::real_normed_vector"
   assumes bh: "bilinear h"
   shows "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
-proof -
-  let ?M = "{..<DIM('m)}"
-  let ?N = "{..<DIM('n)}"
-  let ?B = "setsum (\<lambda>(i,j). norm (h (basis i) (basis j))) (?M \<times> ?N)"
-  have fM: "finite ?M" and fN: "finite ?N" by simp_all
-  { fix x:: "'m" and  y :: "'n"
-    have "norm (h x y) = norm (h (setsum (\<lambda>i. (x$$i) *\<^sub>R basis i) ?M) (setsum (\<lambda>i. (y$$i) *\<^sub>R basis i) ?N))" 
-      apply(subst euclidean_representation[where 'a='m])
-      apply(subst euclidean_representation[where 'a='n])
-      apply rule
-      done
-    also have "\<dots> = norm (setsum (\<lambda> (i,j). h ((x$$i) *\<^sub>R basis i) ((y$$j) *\<^sub>R basis j)) (?M \<times> ?N))"  
-      unfolding bilinear_setsum[OF bh fM fN] ..
-    finally have th: "norm (h x y) = \<dots>" .
-    have "norm (h x y) \<le> ?B * norm x * norm y"
-      apply (simp add: setsum_left_distrib th)
+proof (clarify intro!: exI[of _ "\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)"])
+  fix x:: "'m" and  y :: "'n"
+  have "norm (h x y) = norm (h (setsum (\<lambda>i. (x \<bullet> i) *\<^sub>R i) Basis) (setsum (\<lambda>i. (y \<bullet> i) *\<^sub>R i) Basis))" 
+    apply(subst euclidean_representation[where 'a='m])
+    apply(subst euclidean_representation[where 'a='n])
+    apply rule
+    done
+  also have "\<dots> = norm (setsum (\<lambda> (i,j). h ((x \<bullet> i) *\<^sub>R i) ((y \<bullet> j) *\<^sub>R j)) (Basis \<times> Basis))"  
+    unfolding bilinear_setsum[OF bh finite_Basis finite_Basis] ..
+  finally have th: "norm (h x y) = \<dots>" .
+  show "norm (h x y) \<le> (\<Sum>i\<in>Basis. \<Sum>j\<in>Basis. norm (h i j)) * norm x * norm y"
+      apply (auto simp add: setsum_left_distrib th setsum_cartesian_product)
       apply (rule setsum_norm_le)
-      using fN fM
       apply simp
       apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh]
         field_simps simp del: scaleR_scaleR)
       apply (rule mult_mono)
-      apply (auto simp add: zero_le_mult_iff component_le_norm)
+      apply (auto simp add: zero_le_mult_iff Basis_le_norm)
       apply (rule mult_mono)
-      apply (auto simp add: zero_le_mult_iff component_le_norm)
-      done }
-  then show ?thesis by metis
+      apply (auto simp add: zero_le_mult_iff Basis_le_norm)
+      done
 qed
 
 lemma bilinear_bounded_pos:
@@ -1582,8 +1550,8 @@ subsection {* We continue. *}
 
 lemma independent_bound:
   fixes S:: "('a::euclidean_space) set"
-  shows "independent S \<Longrightarrow> finite S \<and> card S <= DIM('a::euclidean_space)"
-  using independent_span_bound[of "(basis::nat=>'a) ` {..<DIM('a)}" S] by auto
+  shows "independent S \<Longrightarrow> finite S \<and> card S \<le> DIM('a::euclidean_space)"
+  using independent_span_bound[OF finite_Basis, of S] by auto
 
 lemma dependent_biggerset:
   "(finite (S::('a::euclidean_space) set) ==> card S > DIM('a)) ==> dependent S"
@@ -1666,9 +1634,8 @@ lemma dim_unique: "(B::('a::euclidean_space) set) \<subseteq> V \<Longrightarrow
 text {* More lemmas about dimension. *}
 
 lemma dim_UNIV: "dim (UNIV :: ('a::euclidean_space) set) = DIM('a)"
-  apply (rule dim_unique[of "(basis::nat=>'a) ` {..<DIM('a)}"])
-  using independent_basis apply auto
-  done
+  using independent_Basis
+  by (intro dim_unique[of Basis]) auto
 
 lemma dim_subset:
   "(S:: ('a::euclidean_space) set) \<subseteq> T \<Longrightarrow> dim S \<le> dim T"
@@ -2256,20 +2223,9 @@ qed
 lemma linear_eq_stdbasis:
   assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> _)"
     and lg: "linear g"
-    and fg: "\<forall>i<DIM('a::euclidean_space). f (basis i) = g(basis i)"
+    and fg: "\<forall>b\<in>Basis. f b = g b"
   shows "f = g"
-proof -
-  let ?U = "{..<DIM('a)}"
-  let ?I = "(basis::nat=>'a) ` {..<DIM('a)}"
-  { fix x assume x: "x \<in> (UNIV :: 'a set)"
-    from equalityD2[OF span_basis'[where 'a='a]]
-    have IU: " (UNIV :: 'a set) \<subseteq> span ?I" by blast
-    have "f x = g x"
-      apply (rule linear_eq[OF lf lg IU,rule_format])
-      using fg x apply auto
-      done
-  } then show ?thesis by auto
-qed
+  using linear_eq[OF lf lg, of _ Basis] fg by auto
 
 text {* Similar results for bilinear functions. *}
 
@@ -2303,14 +2259,9 @@ lemma bilinear_eq_stdbasis:
   fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space \<Rightarrow> _"
   assumes bf: "bilinear f"
     and bg: "bilinear g"
-    and fg: "\<forall>i<DIM('a). \<forall>j<DIM('b). f (basis i) (basis j) = g (basis i) (basis j)"
+    and fg: "\<forall>i\<in>Basis. \<forall>j\<in>Basis. f i j = g i j"
   shows "f = g"
-proof -
-  from fg have th: "\<forall>x \<in> (basis ` {..<DIM('a)}). \<forall>y\<in> (basis ` {..<DIM('b)}). f x y = g x y"
-    by blast
-  from bilinear_eq[OF bf bg equalityD2[OF span_basis'] equalityD2[OF span_basis'] th]
-  show ?thesis by blast
-qed
+  using bilinear_eq[OF bf bg equalityD2[OF span_Basis] equalityD2[OF span_Basis] fg] by blast
 
 text {* Detailed theorems about left and right invertibility in general case. *}
 
@@ -2319,10 +2270,10 @@ lemma linear_injective_left_inverse:
   assumes lf: "linear f" and fi: "inj f"
   shows "\<exists>g. linear g \<and> g o f = id"
 proof -
-  from linear_independent_extend[OF independent_injective_image, OF independent_basis, OF lf fi]
+  from linear_independent_extend[OF independent_injective_image, OF independent_Basis, OF lf fi]
   obtain h:: "'b => 'a" where
-    h: "linear h" "\<forall>x \<in> f ` basis ` {..<DIM('a)}. h x = inv f x" by blast
-  from h(2) have th: "\<forall>i<DIM('a). (h \<circ> f) (basis i) = id (basis i)"
+    h: "linear h" "\<forall>x \<in> f ` Basis. h x = inv f x" by blast
+  from h(2) have th: "\<forall>i\<in>Basis. (h \<circ> f) i = id i"
     using inv_o_cancel[OF fi, unfolded fun_eq_iff id_def o_def]
     by auto
 
@@ -2336,12 +2287,12 @@ lemma linear_surjective_right_inverse:
   assumes lf: "linear f" and sf: "surj f"
   shows "\<exists>g. linear g \<and> f o g = id"
 proof -
-  from linear_independent_extend[OF independent_basis[where 'a='b],of "inv f"]
+  from linear_independent_extend[OF independent_Basis[where 'a='b],of "inv f"]
   obtain h:: "'b \<Rightarrow> 'a" where
-    h: "linear h" "\<forall> x\<in> basis ` {..<DIM('b)}. h x = inv f x" by blast
+    h: "linear h" "\<forall>x\<in>Basis. h x = inv f x" by blast
   from h(2)
-  have th: "\<forall>i<DIM('b). (f o h) (basis i) = id (basis i)"
-    using sf by(auto simp add: surj_iff_all)
+  have th: "\<forall>i\<in>Basis. (f o h) i = id i"
+    using sf by (auto simp add: surj_iff_all)
   from linear_eq_stdbasis[OF linear_compose[OF h(1) lf] linear_id th]
   have "f o h = id" .
   then show ?thesis using h(1) by blast
@@ -2538,18 +2489,18 @@ qed
 
 subsection {* Infinity norm *}
 
-definition "infnorm (x::'a::euclidean_space) = Sup {abs(x$$i) |i. i<DIM('a)}"
+definition "infnorm (x::'a::euclidean_space) = Sup { abs (x \<bullet> b) |b. b \<in> Basis}"
 
 lemma numseg_dimindex_nonempty: "\<exists>i. i \<in> (UNIV :: 'n set)"
   by auto
 
 lemma infnorm_set_image:
-  "{abs((x::'a::euclidean_space)$$i) |i. i<DIM('a)} =
-  (\<lambda>i. abs(x$$i)) ` {..<DIM('a)}" by blast
+  "{ abs ((x::'a::euclidean_space) \<bullet> i) |i. i \<in> Basis} = (\<lambda>i. abs(x \<bullet> i)) ` Basis"
+  by blast
 
 lemma infnorm_set_lemma:
-  shows "finite {abs((x::'a::euclidean_space)$$i) |i. i<DIM('a)}"
-  and "{abs(x$$i) |i. i<DIM('a::euclidean_space)} \<noteq> {}"
+  shows "finite {abs((x::'a::euclidean_space) \<bullet> i) |i. i \<in> Basis}"
+  and "{abs(x \<bullet> i) |i. i \<in> Basis} \<noteq> {}"
   unfolding infnorm_set_image
   by auto
 
@@ -2557,25 +2508,26 @@ lemma infnorm_pos_le: "0 \<le> infnorm (x::'a::euclidean_space)"
   unfolding infnorm_def
   unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
   unfolding infnorm_set_image
-  by auto
+  by (auto simp: ex_in_conv)
 
 lemma infnorm_triangle: "infnorm ((x::'a::euclidean_space) + y) \<le> infnorm x + infnorm y"
 proof -
   have th: "\<And>x y (z::real). x - y <= z \<longleftrightarrow> x - z <= y" by arith
   have th1: "\<And>S f. f ` S = { f i| i. i \<in> S}" by blast
   have th2: "\<And>x (y::real). abs(x + y) - abs(x) <= abs(y)" by arith
-  have *:"\<And>i. i \<in> {..<DIM('a)} \<longleftrightarrow> i <DIM('a)" by auto
   show ?thesis
-  unfolding infnorm_def unfolding  Sup_finite_le_iff[ OF infnorm_set_lemma[where 'a='a]]
-  apply (subst diff_le_eq[symmetric])
-  unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
-  unfolding infnorm_set_image bex_simps
-  apply (subst th)
-  unfolding th1 *
-  unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma[where 'a='a]]
-  unfolding infnorm_set_image ball_simps bex_simps
-  unfolding euclidean_simps apply (metis th2)
-  done
+    unfolding infnorm_def 
+    unfolding Sup_finite_le_iff[ OF infnorm_set_lemma[where 'a='a]]
+    apply (subst diff_le_eq[symmetric])
+    unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
+    unfolding infnorm_set_image bex_simps
+    apply (subst th)
+    unfolding th1
+    unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma[where 'a='a]]
+    unfolding infnorm_set_image ball_simps bex_simps
+    apply (simp add: inner_add_left)
+    apply (metis th2)
+    done
 qed
 
 lemma infnorm_eq_0: "infnorm x = 0 \<longleftrightarrow> (x::_::euclidean_space) = 0"
@@ -2584,7 +2536,7 @@ proof -
     unfolding infnorm_def
     unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image ball_simps
-    apply (subst (1) euclidean_eq)
+    apply (subst (1) euclidean_eq_iff)
     apply auto
     done
   then show ?thesis using infnorm_pos_le[of x] by simp
@@ -2620,29 +2572,22 @@ qed
 lemma real_abs_infnorm: " \<bar>infnorm x\<bar> = infnorm x"
   using infnorm_pos_le[of x] by arith
 
-lemma component_le_infnorm: "\<bar>x$$i\<bar> \<le> infnorm (x::'a::euclidean_space)"
-proof (cases "i<DIM('a)")
-  case False
-  then show ?thesis using infnorm_pos_le by auto
-next
-  case True
-  let ?U = "{..<DIM('a)}"
-  let ?S = "{\<bar>x$$i\<bar> |i. i<DIM('a)}"
-  have fS: "finite ?S" unfolding image_Collect[symmetric]
-    apply (rule finite_imageI) apply simp done
-  have S0: "?S \<noteq> {}" by blast
-  have th1: "\<And>S f. f ` S = { f i| i. i \<in> S}" by blast
-  show ?thesis unfolding infnorm_def  
-    apply(subst Sup_finite_ge_iff) using Sup_finite_in[OF fS S0]
-    using infnorm_set_image using True apply auto
-    done
+lemma Basis_le_infnorm:
+  assumes b: "b \<in> Basis" shows "\<bar>x \<bullet> b\<bar> \<le> infnorm (x::'a::euclidean_space)"
+  unfolding infnorm_def
+proof (subst Sup_finite_ge_iff)
+  let ?S = "{\<bar>x \<bullet> i\<bar> |i. i \<in> Basis}"
+  show "finite ?S" by (rule infnorm_set_lemma)
+  show "?S \<noteq> {}" by auto
+  show "Bex ?S (op \<le> \<bar>x \<bullet> b\<bar>)"
+     using b by (auto intro!: exI[of _ b])
 qed
 
 lemma infnorm_mul_lemma: "infnorm(a *\<^sub>R x) <= \<bar>a\<bar> * infnorm x"
   apply (subst infnorm_def)
   unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
-  unfolding infnorm_set_image ball_simps euclidean_component_scaleR abs_mult
-  using component_le_infnorm[of x]
+  unfolding infnorm_set_image ball_simps inner_scaleR abs_mult
+  using Basis_le_infnorm[of _ x]
   apply (auto intro: mult_mono)
   done
 
@@ -2671,9 +2616,13 @@ text {* Prove that it differs only up to a bound from Euclidean norm. *}
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
   unfolding infnorm_def Sup_finite_le_iff[OF infnorm_set_lemma]
   unfolding infnorm_set_image  ball_simps
-  by (metis component_le_norm)
+  by (metis Basis_le_norm)
 
-lemma norm_le_infnorm: "norm(x) <= sqrt(real DIM('a)) * infnorm(x::'a::euclidean_space)"
+lemma euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
+  by (subst (1 2) euclidean_representation[symmetric, where 'a='a])
+     (simp add: inner_setsum_left inner_setsum_right setsum_cases inner_Basis ac_simps if_distrib)
+
+lemma norm_le_infnorm: "norm(x) <= sqrt DIM('a) * infnorm(x::'a::euclidean_space)"
 proof -
   let ?d = "DIM('a)"
   have "real ?d \<ge> 0" by simp
@@ -2683,13 +2632,14 @@ proof -
     by (simp add: zero_le_mult_iff infnorm_pos_le)
   have th1: "x \<bullet> x \<le> (sqrt (real ?d) * infnorm x)^2"
     unfolding power_mult_distrib d2
-    unfolding real_of_nat_def apply(subst euclidean_inner)
+    unfolding real_of_nat_def
+    apply(subst euclidean_inner)
     apply (subst power2_abs[symmetric])
     apply (rule order_trans[OF setsum_bounded[where K="\<bar>infnorm x\<bar>\<twosuperior>"]])
     apply (auto simp add: power2_eq_square[symmetric])
     apply (subst power2_abs[symmetric])
     apply (rule power_mono)
-    unfolding infnorm_def  Sup_finite_ge_iff[OF infnorm_set_lemma]
+    unfolding infnorm_def Sup_finite_ge_iff[OF infnorm_set_lemma]
     unfolding infnorm_set_image bex_simps
     apply (rule_tac x=i in bexI)
     apply auto
@@ -2872,8 +2822,8 @@ lemma norm_cauchy_schwarz_equal: "abs(x \<bullet> y) = norm x * norm y \<longlef
 subsection {* An ordering on euclidean spaces that will allow us to talk about intervals *}
 
 class ordered_euclidean_space = ord + euclidean_space +
-  assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i < DIM('a). x $$ i \<le> y $$ i)"
-    and eucl_less: "x < y \<longleftrightarrow> (\<forall>i < DIM('a). x $$ i < y $$ i)"
+  assumes eucl_le: "x \<le> y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
+    and eucl_less: "x < y \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i < y \<bullet> i)"
 
 lemma eucl_less_not_refl[simp, intro!]: "\<not> x < (x::'a::ordered_euclidean_space)"
   unfolding eucl_less[where 'a='a] by auto
@@ -2889,35 +2839,16 @@ lemma euclidean_trans[trans]:
 
 lemma atLeastAtMost_singleton_euclidean[simp]:
   fixes a :: "'a::ordered_euclidean_space" shows "{a .. a} = {a}"
-  by (force simp: eucl_le[where 'a='a] euclidean_eq[where 'a='a])
+  by (force simp: eucl_le[where 'a='a] euclidean_eq_iff[where 'a='a])
 
-lemma basis_real_range: "basis ` {..<1} = {1::real}" by auto
-
-instance real::ordered_euclidean_space
-  by default (auto simp add: euclidean_component_def)
-
-lemma Eucl_real_simps[simp]:
-  "(x::real) $$ 0 = x"
-  "(\<chi>\<chi> i. f i) = ((f 0)::real)"
-  "\<And>i. i > 0 \<Longrightarrow> x $$ i = 0"
-  defer apply(subst euclidean_eq) apply safe
-  unfolding euclidean_lambda_beta'
-  unfolding euclidean_component_def apply auto
-  done
-
-lemma complex_basis[simp]:
-  shows "basis 0 = (1::complex)" and "basis 1 = ii" and "basis (Suc 0) = ii"
-  unfolding basis_complex_def by auto
-
-lemma DIM_prod[simp]: "DIM('a \<times> 'b) = DIM('b::euclidean_space) + DIM('a::euclidean_space)"
-  (* FIXME: why this orientation? Why not "DIM('a) + DIM('b)" ? *)
-  unfolding dimension_prod_def by (rule add_commute)
+instance real :: ordered_euclidean_space
+  by default (auto simp add: Basis_real_def)
 
 instantiation prod :: (ordered_euclidean_space, ordered_euclidean_space) ordered_euclidean_space
 begin
 
-definition "x \<le> (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i<DIM('a\<times>'b). x $$ i \<le> y $$ i)"
-definition "x < (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i<DIM('a\<times>'b). x $$ i < y $$ i)"
+definition "x \<le> (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i \<le> y \<bullet> i)"
+definition "x < (y::('a\<times>'b)) \<longleftrightarrow> (\<forall>i\<in>Basis. x \<bullet> i < y \<bullet> i)"
 
 instance
   by default (auto simp: less_prod_def less_eq_prod_def)

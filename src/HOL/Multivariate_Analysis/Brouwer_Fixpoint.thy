@@ -22,6 +22,18 @@ theory Brouwer_Fixpoint
   imports Convex_Euclidean_Space
 begin
 
+(** move this **)
+lemma divide_nonneg_nonneg:assumes "a \<ge> 0" "b \<ge> 0" shows "0 \<le> a / (b::real)"
+  apply(cases "b=0") defer apply(rule divide_nonneg_pos) using assms by auto
+
+lemma continuous_setsum:
+  fixes f :: "'i \<Rightarrow> 'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  assumes f: "\<And>i. i \<in> I \<Longrightarrow> continuous F (f i)" shows "continuous F (\<lambda>x. \<Sum>i\<in>I. f i x)"
+proof cases
+  assume "finite I" from this f show ?thesis
+    by (induct I) (auto intro!: continuous_intros)
+qed (auto intro!: continuous_intros)
+
 lemma brouwer_compactness_lemma:
   assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::_::euclidean_space)))"
   obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)"
@@ -39,39 +51,39 @@ next
 qed
 
 lemma kuhn_labelling_lemma:
-  fixes type::"'a::euclidean_space"
-  assumes "(\<forall>x::'a. P x \<longrightarrow> P (f x))"
-    and "\<forall>x. P x \<longrightarrow> (\<forall>i<DIM('a). Q i \<longrightarrow> 0 \<le> x$$i \<and> x$$i \<le> 1)"
-  shows "\<exists>l. (\<forall>x.\<forall> i<DIM('a). l x i \<le> (1::nat)) \<and>
-             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 0) \<longrightarrow> (l x i = 0)) \<and>
-             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (x$$i = 1) \<longrightarrow> (l x i = 1)) \<and>
-             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 0) \<longrightarrow> x$$i \<le> f(x)$$i) \<and>
-             (\<forall>x.\<forall> i<DIM('a). P x \<and> Q i \<and> (l x i = 1) \<longrightarrow> f(x)$$i \<le> x$$i)"
+  fixes P Q :: "'a::euclidean_space \<Rightarrow> bool"
+  assumes "(\<forall>x. P x \<longrightarrow> P (f x))"
+    and "\<forall>x. P x \<longrightarrow> (\<forall>i\<in>Basis. Q i \<longrightarrow> 0 \<le> x\<bullet>i \<and> x\<bullet>i \<le> 1)"
+  shows "\<exists>l. (\<forall>x.\<forall>i\<in>Basis. l x i \<le> (1::nat)) \<and>
+             (\<forall>x.\<forall>i\<in>Basis. P x \<and> Q i \<and> (x\<bullet>i = 0) \<longrightarrow> (l x i = 0)) \<and>
+             (\<forall>x.\<forall>i\<in>Basis. P x \<and> Q i \<and> (x\<bullet>i = 1) \<longrightarrow> (l x i = 1)) \<and>
+             (\<forall>x.\<forall>i\<in>Basis. P x \<and> Q i \<and> (l x i = 0) \<longrightarrow> x\<bullet>i \<le> f(x)\<bullet>i) \<and>
+             (\<forall>x.\<forall>i\<in>Basis. P x \<and> Q i \<and> (l x i = 1) \<longrightarrow> f(x)\<bullet>i \<le> x\<bullet>i)"
 proof -
   have and_forall_thm:"\<And>P Q. (\<forall>x. P x) \<and> (\<forall>x. Q x) \<longleftrightarrow> (\<forall>x. P x \<and> Q x)"
     by auto
   have *: "\<forall>x y::real. 0 \<le> x \<and> x \<le> 1 \<and> 0 \<le> y \<and> y \<le> 1 \<longrightarrow> (x \<noteq> 1 \<and> x \<le> y \<or> x \<noteq> 0 \<and> y \<le> x)"
     by auto
   show ?thesis
-    unfolding and_forall_thm
+    unfolding and_forall_thm Ball_def
     apply(subst choice_iff[THEN sym])+
     apply rule
     apply rule
   proof -
-    case goal1
-    let ?R = "\<lambda>y. (P x \<and> Q xa \<and> x $$ xa = 0 \<longrightarrow> y = (0::nat)) \<and>
-        (P x \<and> Q xa \<and> x $$ xa = 1 \<longrightarrow> y = 1) \<and>
-        (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x $$ xa \<le> f x $$ xa) \<and>
-        (P x \<and> Q xa \<and> y = 1 \<longrightarrow> f x $$ xa \<le> x $$ xa)"
+    case (goal1 x)
+    let ?R = "\<lambda>y. (P x \<and> Q xa \<and> x \<bullet> xa = 0 \<longrightarrow> y = (0::nat)) \<and>
+        (P x \<and> Q xa \<and> x \<bullet> xa = 1 \<longrightarrow> y = 1) \<and>
+        (P x \<and> Q xa \<and> y = 0 \<longrightarrow> x \<bullet> xa \<le> f x \<bullet> xa) \<and>
+        (P x \<and> Q xa \<and> y = 1 \<longrightarrow> f x \<bullet> xa \<le> x \<bullet> xa)"
     {
-      assume "P x" "Q xa" "xa<DIM('a)"
-      then have "0 \<le> f x $$ xa \<and> f x $$ xa \<le> 1"
+      assume "P x" "Q xa" "xa\<in>Basis"
+      then have "0 \<le> f x \<bullet> xa \<and> f x \<bullet> xa \<le> 1"
         using assms(2)[rule_format,of "f x" xa]
         apply (drule_tac assms(1)[rule_format])
         apply auto
         done
     }
-    then have "xa<DIM('a) \<Longrightarrow> ?R 0 \<or> ?R 1" by auto
+    then have "xa\<in>Basis \<Longrightarrow> ?R 0 \<or> ?R 1" by auto
     then show ?case by auto
   qed
 qed
@@ -1363,50 +1375,56 @@ lemma kuhn_labelling_lemma':
         apply(drule_tac assms(1)[rule_format]) by auto }
     hence "?R 0 \<or> ?R 1" by auto thus ?case by auto qed qed 
 
-lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::ordered_euclidean_space"
-  assumes "continuous_on {0..\<chi>\<chi> i. 1} f" "f ` {0..\<chi>\<chi> i. 1} \<subseteq> {0..\<chi>\<chi> i. 1}"
-  shows "\<exists>x\<in>{0..\<chi>\<chi> i. 1}. f x = x" apply(rule ccontr) proof-
-  def n \<equiv> "DIM('a)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfolding n_def by(auto simp add:Suc_le_eq)
-  assume "\<not> (\<exists>x\<in>{0..\<chi>\<chi> i. 1}. f x = x)" hence *:"\<not> (\<exists>x\<in>{0..\<chi>\<chi> i. 1}. f x - x = 0)" by auto
+lemma brouwer_cube:
+  fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::ordered_euclidean_space"
+  assumes "continuous_on {0..(\<Sum>Basis)} f" "f ` {0..(\<Sum>Basis)} \<subseteq> {0..(\<Sum>Basis)}"
+  shows "\<exists>x\<in>{0..(\<Sum>Basis)}. f x = x"
+  proof (rule ccontr)
+  def n \<equiv> "DIM('a)" have n:"1 \<le> n" "0 < n" "n \<noteq> 0" unfolding n_def by(auto simp add: Suc_le_eq DIM_positive)
+  assume "\<not> (\<exists>x\<in>{0..\<Sum>Basis}. f x = x)" hence *:"\<not> (\<exists>x\<in>{0..\<Sum>Basis}. f x - x = 0)" by auto
   guess d apply(rule brouwer_compactness_lemma[OF compact_interval _ *]) 
     apply(rule continuous_on_intros assms)+ . note d=this[rule_format]
-  have *:"\<forall>x. x \<in> {0..\<chi>\<chi> i. 1} \<longrightarrow> f x \<in> {0..\<chi>\<chi> i. 1}"  "\<forall>x. x \<in> {0..(\<chi>\<chi> i. 1)::'a} \<longrightarrow>
-    (\<forall>i<DIM('a). True \<longrightarrow> 0 \<le> x $$ i \<and> x $$ i \<le> 1)"
+  have *:"\<forall>x. x \<in> {0..\<Sum>Basis} \<longrightarrow> f x \<in> {0..\<Sum>Basis}"  "\<forall>x. x \<in> {0..(\<Sum>Basis)::'a} \<longrightarrow>
+    (\<forall>i\<in>Basis. True \<longrightarrow> 0 \<le> x \<bullet> i \<and> x \<bullet> i \<le> 1)"
     using assms(2)[unfolded image_subset_iff Ball_def] unfolding mem_interval by auto
   guess label using kuhn_labelling_lemma[OF *] apply-apply(erule exE,(erule conjE)+) . note label = this[rule_format]
-  have lem1:"\<forall>x\<in>{0..\<chi>\<chi> i. 1}.\<forall>y\<in>{0..\<chi>\<chi> i. 1}.\<forall>i<DIM('a). label x i \<noteq> label y i
-            \<longrightarrow> abs(f x $$ i - x $$ i) \<le> norm(f y - f x) + norm(y - x)" proof safe
-    fix x y::'a assume xy:"x\<in>{0..\<chi>\<chi> i. 1}" "y\<in>{0..\<chi>\<chi> i. 1}" fix i assume i:"label x i \<noteq> label y i" "i<DIM('a)"
+  have lem1:"\<forall>x\<in>{0..\<Sum>Basis}.\<forall>y\<in>{0..\<Sum>Basis}.\<forall>i\<in>Basis. label x i \<noteq> label y i
+            \<longrightarrow> abs(f x \<bullet> i - x \<bullet> i) \<le> norm(f y - f x) + norm(y - x)" proof safe
+    fix x y::'a assume xy:"x\<in>{0..\<Sum>Basis}" "y\<in>{0..\<Sum>Basis}"
+    fix i assume i:"label x i \<noteq> label y i" "i\<in>Basis"
     have *:"\<And>x y fx fy::real. (x \<le> fx \<and> fy \<le> y \<or> fx \<le> x \<and> y \<le> fy)
              \<Longrightarrow> abs(fx - x) \<le> abs(fy - fx) + abs(y - x)" by auto
-    have "\<bar>(f x - x) $$ i\<bar> \<le> abs((f y - f x)$$i) + abs((y - x)$$i)" unfolding euclidean_simps
+    have "\<bar>(f x - x) \<bullet> i\<bar> \<le> abs((f y - f x)\<bullet>i) + abs((y - x)\<bullet>i)"
+      unfolding inner_simps
       apply(rule *) apply(cases "label x i = 0") apply(rule disjI1,rule) prefer 3 proof(rule disjI2,rule)
       assume lx:"label x i = 0" hence ly:"label y i = 1" using i label(1)[of i y] by auto
-      show "x $$ i \<le> f x $$ i" apply(rule label(4)[rule_format]) using xy lx i(2) by auto
-      show "f y $$ i \<le> y $$ i" apply(rule label(5)[rule_format]) using xy ly i(2) by auto next
+      show "x \<bullet> i \<le> f x \<bullet> i" apply(rule label(4)[rule_format]) using xy lx i(2) by auto
+      show "f y \<bullet> i \<le> y \<bullet> i" apply(rule label(5)[rule_format]) using xy ly i(2) by auto next
       assume "label x i \<noteq> 0" hence l:"label x i = 1" "label y i = 0"
         using i label(1)[of i x] label(1)[of i y] by auto
-      show "f x $$ i \<le> x $$ i" apply(rule label(5)[rule_format]) using xy l i(2) by auto
-      show "y $$ i \<le> f y $$ i" apply(rule label(4)[rule_format]) using xy l i(2) by auto qed 
-    also have "\<dots> \<le> norm (f y - f x) + norm (y - x)" apply(rule add_mono) by(rule component_le_norm)+
-    finally show "\<bar>f x $$ i - x $$ i\<bar> \<le> norm (f y - f x) + norm (y - x)" unfolding euclidean_simps . qed
-  have "\<exists>e>0. \<forall>x\<in>{0..\<chi>\<chi> i. 1}. \<forall>y\<in>{0..\<chi>\<chi> i. 1}. \<forall>z\<in>{0..\<chi>\<chi> i. 1}. \<forall>i<DIM('a).
-    norm(x - z) < e \<and> norm(y - z) < e \<and> label x i \<noteq> label y i \<longrightarrow> abs((f(z) - z)$$i) < d / (real n)" proof-
-    have d':"d / real n / 8 > 0" apply(rule divide_pos_pos)+ using d(1) unfolding n_def by auto
-    have *:"uniformly_continuous_on {0..\<chi>\<chi> i. 1} f" by(rule compact_uniformly_continuous[OF assms(1) compact_interval])
+      show "f x \<bullet> i \<le> x \<bullet> i" apply(rule label(5)[rule_format]) using xy l i(2) by auto
+      show "y \<bullet> i \<le> f y \<bullet> i" apply(rule label(4)[rule_format]) using xy l i(2) by auto qed 
+    also have "\<dots> \<le> norm (f y - f x) + norm (y - x)" apply(rule add_mono) by(rule Basis_le_norm[OF i(2)])+
+    finally show "\<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y - f x) + norm (y - x)" unfolding inner_simps .
+  qed
+  have "\<exists>e>0. \<forall>x\<in>{0..\<Sum>Basis}. \<forall>y\<in>{0..\<Sum>Basis}. \<forall>z\<in>{0..\<Sum>Basis}. \<forall>i\<in>Basis.
+    norm(x - z) < e \<and> norm(y - z) < e \<and> label x i \<noteq> label y i \<longrightarrow> abs((f(z) - z)\<bullet>i) < d / (real n)" proof-
+    have d':"d / real n / 8 > 0" apply(rule divide_pos_pos)+ using d(1) unfolding n_def by (auto simp:  DIM_positive)
+    have *:"uniformly_continuous_on {0..\<Sum>Basis} f" by(rule compact_uniformly_continuous[OF assms(1) compact_interval])
     guess e using *[unfolded uniformly_continuous_on_def,rule_format,OF d'] apply-apply(erule exE,(erule conjE)+) .
     note e=this[rule_format,unfolded dist_norm]
     show ?thesis apply(rule_tac x="min (e/2) (d/real n/8)" in exI)
-    proof safe show "0 < min (e / 2) (d / real n / 8)" using d' e by auto
-      fix x y z i assume as:"x \<in> {0..\<chi>\<chi> i. 1}" "y \<in> {0..\<chi>\<chi> i. 1}" "z \<in> {0..\<chi>\<chi> i. 1}"
+    proof safe
+      show "0 < min (e / 2) (d / real n / 8)" using d' e by auto
+      fix x y z i assume as:"x \<in> {0..\<Sum>Basis}" "y \<in> {0..\<Sum>Basis}" "z \<in> {0..\<Sum>Basis}"
         "norm (x - z) < min (e / 2) (d / real n / 8)"
-        "norm (y - z) < min (e / 2) (d / real n / 8)" "label x i \<noteq> label y i" and i:"i<DIM('a)"
+        "norm (y - z) < min (e / 2) (d / real n / 8)" "label x i \<noteq> label y i" and i:"i\<in>Basis"
       have *:"\<And>z fz x fx n1 n2 n3 n4 d4 d::real. abs(fx - x) \<le> n1 + n2 \<Longrightarrow> abs(fx - fz) \<le> n3 \<Longrightarrow> abs(x - z) \<le> n4 \<Longrightarrow>
         n1 < d4 \<Longrightarrow> n2 < 2 * d4 \<Longrightarrow> n3 < d4 \<Longrightarrow> n4 < d4 \<Longrightarrow> (8 * d4 = d) \<Longrightarrow> abs(fz - z) < d" by auto
-      show "\<bar>(f z - z) $$ i\<bar> < d / real n" unfolding euclidean_simps proof(rule *)
-        show "\<bar>f x $$ i - x $$ i\<bar> \<le> norm (f y -f x) + norm (y - x)" apply(rule lem1[rule_format]) using as i  by auto
-        show "\<bar>f x $$ i - f z $$ i\<bar> \<le> norm (f x - f z)" "\<bar>x $$ i - z $$ i\<bar> \<le> norm (x - z)"
-          unfolding euclidean_component_diff[THEN sym] by(rule component_le_norm)+
+      show "\<bar>(f z - z) \<bullet> i\<bar> < d / real n" unfolding inner_simps proof(rule *)
+        show "\<bar>f x \<bullet> i - x \<bullet> i\<bar> \<le> norm (f y -f x) + norm (y - x)" apply(rule lem1[rule_format]) using as i  by auto
+        show "\<bar>f x \<bullet> i - f z \<bullet> i\<bar> \<le> norm (f x - f z)" "\<bar>x \<bullet> i - z \<bullet> i\<bar> \<le> norm (x - z)"
+          unfolding inner_diff_left[THEN sym] by(rule Basis_le_norm[OF i])+
         have tria:"norm (y - x) \<le> norm (y - z) + norm (x - z)" using dist_triangle[of y x z,unfolded dist_norm]
           unfolding norm_minus_commute by auto
         also have "\<dots> < e / 2 + e / 2" apply(rule add_strict_mono) using as(4,5) by auto
@@ -1418,95 +1436,99 @@ lemma brouwer_cube: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::orde
   guess p using real_arch_simple[of "1 + real n / e"] .. note p=this
   have "1 + real n / e > 0" apply(rule add_pos_pos) defer apply(rule divide_pos_pos) using e(1) n by auto
   hence "p > 0" using p by auto
-  def b \<equiv> "\<lambda>i. i - 1::nat" have b:"bij_betw b {1..n} {..<DIM('a)}"
-    unfolding bij_betw_def inj_on_def b_def n_def apply rule defer
-    apply safe defer unfolding image_iff apply(rule_tac x="Suc x" in bexI) by auto
+
+  obtain b :: "nat \<Rightarrow> 'a" where b: "bij_betw b {1..n} Basis"
+    by atomize_elim (auto simp: n_def intro!: finite_same_card_bij)
   def b' \<equiv> "inv_into {1..n} b"
-  have b':"bij_betw b' {..<DIM('a)} {1..n}" using bij_betw_inv_into[OF b] unfolding b'_def n_def by auto
-  have bb'[simp]:"\<And>i. i<DIM('a) \<Longrightarrow> b (b' i) = i" unfolding b'_def apply(rule f_inv_into_f) using b  
-    unfolding bij_betw_def by auto
-  have b'b[simp]:"\<And>i. i\<in>{1..n} \<Longrightarrow> b' (b i) = i" unfolding b'_def apply(rule inv_into_f_eq)
-    using b unfolding n_def bij_betw_def by auto
+  then have b': "bij_betw b' Basis {1..n}"
+    using bij_betw_inv_into[OF b] by auto
+  then have b'_Basis: "\<And>i. i \<in> Basis \<Longrightarrow> b' i \<in> {Suc 0 .. n}"
+    unfolding bij_betw_def by (auto simp: set_eq_iff)
+  have bb'[simp]:"\<And>i. i \<in> Basis \<Longrightarrow> b (b' i) = i"
+    unfolding b'_def using b by (auto simp: f_inv_into_f bij_betw_def)
+  have b'b[simp]:"\<And>i. i \<in> {1..n} \<Longrightarrow> b' (b i) = i"
+    unfolding b'_def using b by (auto simp: inv_into_f_eq bij_betw_def)
   have *:"\<And>x::nat. x=0 \<or> x=1 \<longleftrightarrow> x\<le>1" by auto
-  have b'':"\<And>j. j\<in>{1..n} \<Longrightarrow> b j <DIM('a)" using b unfolding bij_betw_def by auto
+  have b'':"\<And>j. j\<in>{Suc 0..n} \<Longrightarrow> b j \<in>Basis" using b unfolding bij_betw_def by auto
   have q1:"0 < p" "0 < n"  "\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow>
-    (\<forall>i\<in>{1..n}. (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0 \<or> (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1)"
+    (\<forall>i\<in>{1..n}. (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0 \<or>
+                (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1)"
     unfolding * using `p>0` `n>0` using label(1)[OF b'']  by auto
-  have q2:"\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = 0 \<longrightarrow> (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0)"
-    "\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = p \<longrightarrow> (label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1)"
-    apply(rule,rule,rule,rule) defer proof(rule,rule,rule,rule) fix x i 
-    assume as:"\<forall>i\<in>{1..n}. x i \<le> p" "i \<in> {1..n}"
-    { assume "x i = p \<or> x i = 0" 
-      have "(\<chi>\<chi> i. real (x (b' i)) / real p) \<in> {0::'a..\<chi>\<chi> i. 1}" unfolding mem_interval 
-        apply safe unfolding euclidean_lambda_beta euclidean_component_zero
-      proof (simp_all only: if_P) fix j assume j':"j<DIM('a)"
-        hence j:"b' j \<in> {1..n}" using b' unfolding n_def bij_betw_def by auto
-        show "0 \<le> real (x (b' j)) / real p"
-          apply(rule divide_nonneg_pos) using `p>0` using as(1)[rule_format,OF j] by auto
-        show "real (x (b' j)) / real p \<le> 1" unfolding divide_le_eq_1
-          using as(1)[rule_format,OF j] by auto qed } note cube=this
-    { assume "x i = p" thus "(label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 1" unfolding o_def
-        apply- apply(rule label(3)) apply(rule b'') using cube using as `p>0`
-      proof safe assume i:"i\<in>{1..n}"
-        show "((\<chi>\<chi> ia. real (x (b' ia)) / real (x i))::'a) $$ b i = 1"
-          unfolding euclidean_lambda_beta apply(subst if_P) apply(rule b''[OF i]) unfolding b'b[OF i] 
-          unfolding  `x i = p` using q1(1) by auto
-      qed auto }
-    { assume "x i = 0" thus "(label (\<chi>\<chi> i. real (x (b' i)) / real p) \<circ> b) i = 0" unfolding o_def
-        apply-apply(rule label(2)[OF b'']) using cube using as `p>0`
-      proof safe assume i:"i\<in>{1..n}"
-        show "((\<chi>\<chi> ia. real (x (b' ia)) / real p)::'a) $$ b i = 0"
-          unfolding euclidean_lambda_beta apply (subst if_P) apply(rule b''[OF i]) unfolding b'b[OF i] 
-          unfolding `x i = 0` using q1(1) by auto 
-      qed auto }
+  have q2:"\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = 0 \<longrightarrow> 
+      (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0)"
+    "\<forall>x. (\<forall>i\<in>{1..n}. x i \<le> p) \<longrightarrow> (\<forall>i\<in>{1..n}. x i = p \<longrightarrow>
+      (label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1)"
+    apply(rule,rule,rule,rule)
+    defer
+  proof(rule,rule,rule,rule)
+    fix x i assume as:"\<forall>i\<in>{1..n}. x i \<le> p" "i \<in> {1..n}"
+    { assume "x i = p \<or> x i = 0"
+      have "(\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<in> {0::'a..\<Sum>Basis}"
+        unfolding mem_interval using as b'_Basis
+        by (auto simp add: inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1) }
+    note cube=this
+    { assume "x i = p" thus "(label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 1"
+        unfolding o_def using cube as `p>0`
+        by (intro label(3)) (auto simp add: b'') }
+    { assume "x i = 0" thus "(label (\<Sum>i\<in>Basis. (real (x (b' i)) / real p) *\<^sub>R i) \<circ> b) i = 0"
+        unfolding o_def using cube as `p>0`
+        by (intro label(2)) (auto simp add: b'') }
   qed
   guess q apply(rule kuhn_lemma[OF q1 q2]) . note q=this
-  def z \<equiv> "(\<chi>\<chi> i. real (q (b' i)) / real p)::'a"
-  have "\<exists>i<DIM('a). d / real n \<le> abs((f z - z)$$i)" proof(rule ccontr)
-    have "\<forall>i<DIM('a). q (b' i) \<in> {0..<p}" using q(1) b'[unfolded bij_betw_def] by auto 
-    hence "\<forall>i<DIM('a). q (b' i) \<in> {0..p}" apply-apply(rule,erule_tac x=i in allE) by auto
-    hence "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta
-      unfolding euclidean_component_zero apply (simp_all only: if_P)
-      apply(rule divide_nonneg_pos) using `p>0` unfolding divide_le_eq_1 by auto
-    hence d_fz_z:"d \<le> norm (f z - z)" apply(drule_tac d) .
-    case goal1 hence as:"\<forall>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar> < d / real n" using `n>0` by(auto simp add:not_le)
-    have "norm (f z - z) \<le> (\<Sum>i<DIM('a). \<bar>f z $$ i - z $$ i\<bar>)" unfolding euclidean_component_diff[THEN sym] by(rule norm_le_l1)
-    also have "\<dots> < (\<Sum>i<DIM('a). d / real n)" apply(rule setsum_strict_mono) using as by auto
-    also have "\<dots> = d" unfolding real_eq_of_nat n_def using n using DIM_positive[where 'a='a] by auto
+  def z \<equiv> "(\<Sum>i\<in>Basis. (real (q (b' i)) / real p) *\<^sub>R i)::'a"
+  have "\<exists>i\<in>Basis. d / real n \<le> abs((f z - z)\<bullet>i)"
+  proof(rule ccontr)
+    have "\<forall>i\<in>Basis. q (b' i) \<in> {0..p}"
+      using q(1) b' by (auto intro: less_imp_le simp: bij_betw_def)
+    hence "z\<in>{0..\<Sum>Basis}"
+      unfolding z_def mem_interval using b'_Basis
+      by (auto simp add: inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1)
+    hence d_fz_z:"d \<le> norm (f z - z)" by (rule d)
+    case goal1
+    hence as:"\<forall>i\<in>Basis. \<bar>f z \<bullet> i - z \<bullet> i\<bar> < d / real n"
+      using `n>0` by(auto simp add: not_le inner_simps)
+    have "norm (f z - z) \<le> (\<Sum>i\<in>Basis. \<bar>f z \<bullet> i - z \<bullet> i\<bar>)"
+      unfolding inner_diff_left[symmetric] by(rule norm_le_l1)
+    also have "\<dots> < (\<Sum>(i::'a)\<in>Basis. d / real n)" apply(rule setsum_strict_mono) using as by auto
+    also have "\<dots> = d" using DIM_positive[where 'a='a] by (auto simp: real_eq_of_nat n_def)
     finally show False using d_fz_z by auto qed then guess i .. note i=this
   have *:"b' i \<in> {1..n}" using i using b'[unfolded bij_betw_def] by auto
   guess r using q(2)[rule_format,OF *] .. then guess s apply-apply(erule exE,(erule conjE)+) . note rs=this[rule_format]
-  have b'_im:"\<And>i. i<DIM('a) \<Longrightarrow>  b' i \<in> {1..n}" using b' unfolding bij_betw_def by auto
-  def r' \<equiv> "(\<chi>\<chi> i. real (r (b' i)) / real p)::'a"
-  have "\<And>i. i<DIM('a) \<Longrightarrow> r (b' i) \<le> p" apply(rule order_trans) apply(rule rs(1)[OF b'_im,THEN conjunct2])
+  have b'_im:"\<And>i. i\<in>Basis \<Longrightarrow>  b' i \<in> {1..n}" using b' unfolding bij_betw_def by auto
+  def r' \<equiv> "(\<Sum>i\<in>Basis. (real (r (b' i)) / real p) *\<^sub>R i)::'a"
+  have "\<And>i. i\<in>Basis \<Longrightarrow> r (b' i) \<le> p" apply(rule order_trans) apply(rule rs(1)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im] by(auto simp add: Suc_le_eq)
-  hence "r' \<in> {0..\<chi>\<chi> i. 1}"  unfolding r'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component_zero
-    apply (simp only: if_P)
-    apply(rule divide_nonneg_pos) using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
-  def s' \<equiv> "(\<chi>\<chi> i. real (s (b' i)) / real p)::'a"
-  have "\<And>i. i<DIM('a) \<Longrightarrow> s (b' i) \<le> p" apply(rule order_trans) apply(rule rs(2)[OF b'_im,THEN conjunct2])
+  hence "r' \<in> {0..\<Sum>Basis}"
+    unfolding r'_def mem_interval using b'_Basis
+    by (auto simp add: inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1)
+  def s' \<equiv> "(\<Sum>i\<in>Basis. (real (s (b' i)) / real p) *\<^sub>R i)::'a"
+  have "\<And>i. i\<in>Basis \<Longrightarrow> s (b' i) \<le> p" apply(rule order_trans) apply(rule rs(2)[OF b'_im,THEN conjunct2])
     using q(1)[rule_format,OF b'_im] by(auto simp add: Suc_le_eq)
-  hence "s' \<in> {0..\<chi>\<chi> i.1}" unfolding s'_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component_zero
-    apply (simp_all only: if_P) apply(rule divide_nonneg_pos) using rs(1)[OF b'_im] q(1)[rule_format,OF b'_im] `p>0` by auto
-  have "z\<in>{0..\<chi>\<chi> i.1}" unfolding z_def mem_interval apply safe unfolding euclidean_lambda_beta euclidean_component_zero
-    apply (simp_all only: if_P) apply(rule divide_nonneg_pos) using q(1)[rule_format,OF b'_im] `p>0` by(auto intro:less_imp_le)
+  hence "s' \<in> {0..\<Sum>Basis}"
+    unfolding s'_def mem_interval using b'_Basis
+    by (auto simp add: inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1)
+  have "z\<in>{0..\<Sum>Basis}"
+    unfolding z_def mem_interval using b'_Basis q(1)[rule_format,OF b'_im] `p>0`
+    by (auto simp add: inner_simps bij_betw_def zero_le_divide_iff divide_le_eq_1 less_imp_le)
   have *:"\<And>x. 1 + real x = real (Suc x)" by auto
-  { have "(\<Sum>i<DIM('a). \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>i<DIM('a). 1)" 
+  { have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)" 
       apply(rule setsum_mono) using rs(1)[OF b'_im] by(auto simp add:* field_simps)
-    also have "\<dots> < e * real p" using p `e>0` `p>0` unfolding n_def real_of_nat_def
-      by(auto simp add:field_simps)
-    finally have "(\<Sum>i<DIM('a). \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" . } moreover
-  { have "(\<Sum>i<DIM('a). \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>i<DIM('a). 1)" 
+    also have "\<dots> < e * real p" using p `e>0` `p>0`
+      by(auto simp add: field_simps n_def real_of_nat_def)
+    finally have "(\<Sum>i\<in>Basis. \<bar>real (r (b' i)) - real (q (b' i))\<bar>) < e * real p" . } moreover
+  { have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) \<le> (\<Sum>(i::'a)\<in>Basis. 1)" 
       apply(rule setsum_mono) using rs(2)[OF b'_im] by(auto simp add:* field_simps)
-    also have "\<dots> < e * real p" using p `e>0` `p>0` unfolding n_def real_of_nat_def
-      by(auto simp add:field_simps)
-    finally have "(\<Sum>i<DIM('a). \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" . } ultimately
-  have "norm (r' - z) < e" "norm (s' - z) < e" unfolding r'_def s'_def z_def apply-
-    apply(rule_tac[!] le_less_trans[OF norm_le_l1]) using `p>0`
-    by(auto simp add:field_simps setsum_divide_distrib[THEN sym])
-  hence "\<bar>(f z - z) $$ i\<bar> < d / real n" apply-apply(rule e(2)[OF `r'\<in>{0..\<chi>\<chi> i.1}` `s'\<in>{0..\<chi>\<chi> i.1}` `z\<in>{0..\<chi>\<chi> i.1}`])
-    using rs(3) unfolding r'_def[symmetric] s'_def[symmetric] o_def bb' using i by auto
-  thus False using i by auto qed
+    also have "\<dots> < e * real p" using p `e>0` `p>0`
+      by(auto simp add: field_simps n_def real_of_nat_def)
+    finally have "(\<Sum>i\<in>Basis. \<bar>real (s (b' i)) - real (q (b' i))\<bar>) < e * real p" . } ultimately
+  have "norm (r' - z) < e" "norm (s' - z) < e" unfolding r'_def s'_def z_def using `p>0`
+    by (rule_tac[!] le_less_trans[OF norm_le_l1])
+       (auto simp add: field_simps setsum_divide_distrib[symmetric] inner_diff_left)
+  hence "\<bar>(f z - z) \<bullet> i\<bar> < d / real n"
+    using rs(3) i unfolding r'_def[symmetric] s'_def[symmetric] o_def bb'
+    by (intro e(2)[OF `r'\<in>{0..\<Sum>Basis}` `s'\<in>{0..\<Sum>Basis}` `z\<in>{0..\<Sum>Basis}`]) auto
+  thus False using i by auto
+qed
 
 subsection {* Retractions. *}
 
@@ -1551,12 +1573,14 @@ lemma retract_fixpoint_property: fixes f::"'a::euclidean_space => 'b::euclidean_
 
 subsection {*So the Brouwer theorem for any set with nonempty interior. *}
 
-lemma brouwer_weak: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::ordered_euclidean_space"
+lemma brouwer_weak:
+  fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'a::ordered_euclidean_space"
   assumes "compact s" "convex s" "interior s \<noteq> {}" "continuous_on s f" "f ` s \<subseteq> s"
   obtains x where "x \<in> s" "f x = x" proof-
-  have *:"interior {0::'a..\<chi>\<chi> i.1} \<noteq> {}" unfolding interior_closed_interval interval_eq_empty by auto
-  have *:"{0::'a..\<chi>\<chi> i.1} homeomorphic s" using homeomorphic_convex_compact[OF convex_interval(1) compact_interval * assms(2,1,3)] .
-  have "\<forall>f. continuous_on {0::'a..\<chi>\<chi> i.1} f \<and> f ` {0::'a..\<chi>\<chi> i.1} \<subseteq> {0::'a..\<chi>\<chi> i.1} \<longrightarrow> (\<exists>x\<in>{0::'a..\<chi>\<chi> i.1}. f x = x)"
+  have *:"interior {0::'a..\<Sum>Basis} \<noteq> {}" unfolding interior_closed_interval interval_eq_empty by auto
+  have *:"{0::'a..\<Sum>Basis} homeomorphic s" using homeomorphic_convex_compact[OF convex_interval(1) compact_interval * assms(2,1,3)] .
+  have "\<forall>f. continuous_on {0::'a..\<Sum>Basis} f \<and> f ` {0::'a..\<Sum>Basis} \<subseteq> {0::'a..\<Sum>Basis} \<longrightarrow> 
+    (\<exists>x\<in>{0::'a..\<Sum>Basis}. f x = x)"
     using brouwer_cube by auto
   thus ?thesis unfolding homeomorphic_fixpoint_property[OF *] apply(erule_tac x=f in allE)
     apply(erule impE) defer apply(erule bexE) apply(rule_tac x=y in that) using assms by auto qed
@@ -1609,49 +1633,45 @@ lemma no_retraction_cball: assumes "0 < e" fixes type::"'a::ordered_euclidean_sp
 
 subsection {*Bijections between intervals. *}
 
-definition "interval_bij = (\<lambda> (a::'a,b::'a) (u::'a,v::'a) (x::'a::ordered_euclidean_space).
-    (\<chi>\<chi> i. u$$i + (x$$i - a$$i) / (b$$i - a$$i) * (v$$i - u$$i))::'a)"
+definition interval_bij :: "'a \<times> 'a \<Rightarrow> 'a \<times> 'a \<Rightarrow> 'a \<Rightarrow> 'a::ordered_euclidean_space" where
+  "interval_bij \<equiv> \<lambda>(a, b) (u, v) x. (\<Sum>i\<in>Basis. (u\<bullet>i + (x\<bullet>i - a\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (v\<bullet>i - u\<bullet>i)) *\<^sub>R i)"
 
 lemma interval_bij_affine:
- "interval_bij (a,b) (u,v) = (\<lambda>x. (\<chi>\<chi> i. (v$$i - u$$i) / (b$$i - a$$i) * x$$i) +
-            (\<chi>\<chi> i. u$$i - (v$$i - u$$i) / (b$$i - a$$i) * a$$i))"
-  apply rule apply(subst euclidean_eq,safe) unfolding euclidean_simps interval_bij_def euclidean_lambda_beta
-  by(auto simp add: field_simps add_divide_distrib[THEN sym])
+  "interval_bij (a,b) (u,v) = (\<lambda>x. (\<Sum>i\<in>Basis. ((v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (x\<bullet>i)) *\<^sub>R i) +
+    (\<Sum>i\<in>Basis. (u\<bullet>i - (v\<bullet>i - u\<bullet>i) / (b\<bullet>i - a\<bullet>i) * (a\<bullet>i)) *\<^sub>R i))"
+  by (auto simp: setsum_addf[symmetric] scaleR_add_left[symmetric] interval_bij_def fun_eq_iff
+                 field_simps inner_simps add_divide_distrib[symmetric] intro!: setsum_cong)
 
 lemma continuous_interval_bij:
   "continuous (at x) (interval_bij (a,b::'a::ordered_euclidean_space) (u,v::'a))" 
-  unfolding interval_bij_affine apply(rule continuous_intros)
-    apply(rule linear_continuous_at) unfolding linear_conv_bounded_linear[THEN sym]
-    unfolding linear_def euclidean_eq[where 'a='a] apply safe unfolding euclidean_lambda_beta prefer 3
-    apply(rule continuous_intros) by(auto simp add:field_simps add_divide_distrib[THEN sym])
+  by (auto simp add: divide_inverse interval_bij_def intro!: continuous_setsum continuous_intros)
 
 lemma continuous_on_interval_bij: "continuous_on s (interval_bij (a,b) (u,v))"
   apply(rule continuous_at_imp_continuous_on) by(rule, rule continuous_interval_bij)
 
-(** move this **)
-lemma divide_nonneg_nonneg:assumes "a \<ge> 0" "b \<ge> 0" shows "0 \<le> a / (b::real)"
-  apply(cases "b=0") defer apply(rule divide_nonneg_pos) using assms by auto
-
-lemma in_interval_interval_bij: assumes "x \<in> {a..b}" "{u..v} \<noteq> {}"
-  shows "interval_bij (a,b) (u,v) x \<in> {u..v::'a::ordered_euclidean_space}" 
-  unfolding interval_bij_def split_conv mem_interval apply safe unfolding euclidean_lambda_beta
-proof (simp_all only: if_P)
-  fix i assume i:"i<DIM('a)" have "{a..b} \<noteq> {}" using assms by auto
-  hence *:"a$$i \<le> b$$i" "u$$i \<le> v$$i" using assms(2) unfolding interval_eq_empty not_ex apply-
-    apply(erule_tac[!] x=i in allE)+ by auto
-  have x:"a$$i\<le>x$$i" "x$$i\<le>b$$i" using assms(1)[unfolded mem_interval] using i by auto
-  have "0 \<le> (x $$ i - a $$ i) / (b $$ i - a $$ i) * (v $$ i - u $$ i)"
-    apply(rule mult_nonneg_nonneg) apply(rule divide_nonneg_nonneg)
-    using * x by(auto simp add:field_simps)
-  thus "u $$ i \<le> u $$ i + (x $$ i - a $$ i) / (b $$ i - a $$ i) * (v $$ i - u $$ i)" using * by auto
-  have "((x $$ i - a $$ i) / (b $$ i - a $$ i)) * (v $$ i - u $$ i) \<le> 1 * (v $$ i - u $$ i)"
+lemma in_interval_interval_bij:
+  fixes a b u v x :: "'a::ordered_euclidean_space"
+  assumes "x \<in> {a..b}" "{u..v} \<noteq> {}" shows "interval_bij (a,b) (u,v) x \<in> {u..v}"
+  apply (simp only: interval_bij_def split_conv mem_interval inner_setsum_left_Basis cong: ball_cong)
+proof safe
+  fix i :: 'a assume i:"i\<in>Basis"
+  have "{a..b} \<noteq> {}" using assms by auto
+  with i have *: "a\<bullet>i \<le> b\<bullet>i" "u\<bullet>i \<le> v\<bullet>i"
+    using assms(2) by (auto simp add: interval_eq_empty not_less)
+  have x: "a\<bullet>i\<le>x\<bullet>i" "x\<bullet>i\<le>b\<bullet>i"
+    using assms(1)[unfolded mem_interval] using i by auto
+  have "0 \<le> (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
+    using * x by (auto intro!: mult_nonneg_nonneg divide_nonneg_nonneg)
+  thus "u \<bullet> i \<le> u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i)"
+    using * by auto
+  have "((x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i)) * (v \<bullet> i - u \<bullet> i) \<le> 1 * (v \<bullet> i - u \<bullet> i)"
     apply(rule mult_right_mono) unfolding divide_le_eq_1 using * x by auto
-  thus "u $$ i + (x $$ i - a $$ i) / (b $$ i - a $$ i) * (v $$ i - u $$ i) \<le> v $$ i" using * by auto
+  thus "u \<bullet> i + (x \<bullet> i - a \<bullet> i) / (b \<bullet> i - a \<bullet> i) * (v \<bullet> i - u \<bullet> i) \<le> v \<bullet> i" using * by auto
 qed
 
-lemma interval_bij_bij: fixes x::"'a::ordered_euclidean_space" assumes "\<forall>i. a$$i < b$$i \<and> u$$i < v$$i" 
-  shows "interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
-  unfolding interval_bij_def split_conv euclidean_eq[where 'a='a]
-  apply(rule,insert assms,erule_tac x=i in allE) by auto
+lemma interval_bij_bij: 
+  "\<forall>(i::'a::ordered_euclidean_space)\<in>Basis. a\<bullet>i < b\<bullet>i \<and> u\<bullet>i < v\<bullet>i \<Longrightarrow>
+    interval_bij (a,b) (u,v) (interval_bij (u,v) (a,b) x) = x"
+  by (auto simp: interval_bij_def euclidean_eq_iff[where 'a='a])
 
 end

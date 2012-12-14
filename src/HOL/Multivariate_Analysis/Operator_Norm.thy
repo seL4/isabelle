@@ -22,8 +22,11 @@ proof-
 
   moreover
   {assume H: ?lhs
-    have bp: "b \<ge> 0" apply-apply(rule order_trans [OF norm_ge_zero])
-      apply(rule H[rule_format, of "basis 0::'a"]) by auto 
+    have bp: "b \<ge> 0"
+      apply -
+      apply(rule order_trans [OF norm_ge_zero])
+      apply(rule H[rule_format, of "SOME x::'a. x \<in> Basis"])
+      by (auto intro: SOME_Basis norm_Basis)
     {fix x :: "'a"
       {assume "x = 0"
         then have "norm (f x) \<le> b * norm x" by (simp add: linear_0[OF lf] bp)}
@@ -50,8 +53,8 @@ lemma onorm:
 proof-
   {
     let ?S = "{norm (f x) |x. norm x = 1}"
-    have "norm (f (basis 0)) \<in> ?S" unfolding mem_Collect_eq
-      apply(rule_tac x="basis 0" in exI) by auto
+    have "norm (f (SOME i. i \<in> Basis)) \<in> ?S"
+      by (auto intro!: exI[of _ "SOME i. i \<in> Basis"] norm_Basis SOME_Basis)
     hence Se: "?S \<noteq> {}" by auto
     from linear_bounded[OF lf] have b: "\<exists> b. ?S *<= b"
       unfolding norm_bound_generalize[OF lf, symmetric] by (auto simp add: setle_def)
@@ -70,8 +73,8 @@ proof-
 qed
 
 lemma onorm_pos_le: assumes lf: "linear (f::'n::euclidean_space \<Rightarrow> 'm::euclidean_space)" shows "0 <= onorm f"
-  using order_trans[OF norm_ge_zero onorm(1)[OF lf, of "basis 0"]] 
-  using DIM_positive[where 'a='n] by auto
+  using order_trans[OF norm_ge_zero onorm(1)[OF lf, of "SOME i. i \<in> Basis"]] 
+  by (simp add: SOME_Basis)
 
 lemma onorm_eq_0: assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> 'b::euclidean_space)"
   shows "onorm f = 0 \<longleftrightarrow> (\<forall>x. f x = 0)"
@@ -87,7 +90,7 @@ lemma onorm_const: "onorm(\<lambda>x::'a::euclidean_space. (y::'b::euclidean_spa
 proof-
   let ?f = "\<lambda>x::'a. (y::'b)"
   have th: "{norm (?f x)| x. norm x = 1} = {norm y}"
-    apply safe apply(rule_tac x="basis 0" in exI) by auto
+    by (auto simp: SOME_Basis intro!: exI[of _ "SOME i. i \<in> Basis"])
   show ?thesis
     unfolding onorm_def th
     apply (rule Sup_unique) by (simp_all  add: setle_def)

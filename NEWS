@@ -227,6 +227,36 @@ non-free datatypes.
 * HOL/Cardinals: Theories of ordinals and cardinals
 (supersedes the AFP entry "Ordinals_and_Cardinals").
 
+* HOL/Multivariate_Analysis:
+  Replaced "basis :: 'a::euclidean_space => nat => real" and
+  "\<Chi>\<Chi> :: (nat => real) => 'a::euclidean_space" on euclidean spaces by
+  using the inner product "_ \<bullet> _" with vectors from the Basis set.
+  "\<Chi>\<Chi> i. f i" is replaced by "SUM i : Basis. f i *r i".
+
+  With this change the following constants are also chanegd or removed:
+
+    DIM('a) :: nat   ~>   card (Basis :: 'a set)   (is an abbreviation)
+    a $$ i    ~>    inner a i  (where i : Basis)
+    cart_base i     removed
+    \<pi>, \<pi>'   removed
+
+  Theorems about these constants where removed.
+
+  Renamed lemmas:
+
+    component_le_norm   ~>   Basis_le_norm
+    euclidean_eq   ~>   euclidean_eq_iff
+    differential_zero_maxmin_component   ~>   differential_zero_maxmin_cart
+    euclidean_simps   ~>   inner_simps
+    independent_basis   ~>   independent_Basis
+    span_basis   ~>   span_Basis
+    in_span_basis   ~>   in_span_Basis
+    norm_bound_component_le   ~>   norm_boound_Basis_le
+    norm_bound_component_lt   ~>   norm_boound_Basis_lt
+    component_le_infnorm   ~>   Basis_le_infnorm
+
+  INCOMPATIBILITY.
+
 * HOL/Probability:
   - Add simproc "measurable" to automatically prove measurability
 

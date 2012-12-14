@@ -452,7 +452,7 @@ proof-
 
   ultimately show ?thesis
     apply -
-    apply (rule span_induct_alt[of ?P ?S, OF P0, folded smult_conv_scaleR])
+    apply (rule span_induct_alt[of ?P ?S, OF P0, folded scalar_mult_eq_scaleR])
     apply blast
     apply (rule x)
     done
@@ -746,7 +746,7 @@ proof-
       apply (rule span_setsum)
       apply simp
       apply (rule ballI)
-      apply (rule span_mul [where 'a="real^'n", folded smult_conv_scaleR])+
+      apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
       apply (rule span_superset)
       apply auto
       done
@@ -782,7 +782,7 @@ proof-
     apply (rule det_row_span)
     apply (rule span_setsum[OF fUk])
     apply (rule ballI)
-    apply (rule span_mul [where 'a="real^'n", folded smult_conv_scaleR])+
+    apply (rule span_mul [where 'a="real^'n", folded scalar_mult_eq_scaleR])+
     apply (rule span_superset)
     apply auto
     done
@@ -879,9 +879,10 @@ proof-
       have th0: "\<And>b (x::'a::comm_ring_1). (if b then 1 else 0)*x = (if b then x else 0)"
         "\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
         by simp_all
-      from fd[rule_format, of "cart_basis i" "cart_basis j", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
+      from fd[rule_format, of "axis i 1" "axis j 1", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul]
       have "?A$i$j = ?m1 $ i $ j"
-        by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def cart_basis_def th0 setsum_delta[OF fU] mat_def)}
+        by (simp add: inner_vec_def matrix_matrix_mult_def columnvector_def rowvector_def
+            th0 setsum_delta[OF fU] mat_def axis_def) }
     hence "orthogonal_matrix ?mf" unfolding orthogonal_matrix by vector
     with lf have ?rhs by blast}
   moreover
@@ -931,7 +932,9 @@ proof-
       unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
-  show ?thesis unfolding linear_def vector_eq[where 'a="real^'n"] smult_conv_scaleR by (simp add: inner_add fc field_simps)
+  show ?thesis
+    unfolding linear_def vector_eq[where 'a="real^'n"] scalar_mult_eq_scaleR 
+    by (simp add: inner_add fc field_simps)
 qed
 
 lemma isometry_linear:
@@ -981,7 +984,7 @@ proof-
       apply (subst H(4))
       using H(5-9)
       apply (simp add: norm_eq norm_eq_1)
-      apply (simp add: inner_diff smult_conv_scaleR) unfolding *
+      apply (simp add: inner_diff scalar_mult_eq_scaleR) unfolding *
       by (simp add: field_simps) }
   note th0 = this
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *\<^sub>R f (inverse (norm x) *\<^sub>R x)"

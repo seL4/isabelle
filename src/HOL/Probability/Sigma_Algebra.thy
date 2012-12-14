@@ -322,6 +322,20 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma (in sigma_algebra) countable_UN':
+  fixes A :: "'i \<Rightarrow> 'a set"
+  assumes X: "countable X"
+  assumes A: "A`X \<subseteq> M"
+  shows  "(\<Union>x\<in>X. A x) \<in> M"
+proof -
+  have "(\<Union>x\<in>X. A x) = (\<Union>i\<in>to_nat_on X ` X. A (from_nat_into X i))"
+    using X by auto
+  also have "\<dots> \<in> M"
+    using A X
+    by (intro countable_UN) auto
+  finally show ?thesis .
+qed
+
 lemma (in sigma_algebra) countable_INT [intro]:
   fixes A :: "'i::countable \<Rightarrow> 'a set"
   assumes A: "A`X \<subseteq> M" "X \<noteq> {}"
@@ -333,6 +347,20 @@ proof -
   have "(\<Inter>i\<in>X. A i) = \<Omega> - (\<Union>i\<in>X. \<Omega> - A i)" using space_closed A
     by blast
   ultimately show ?thesis by metis
+qed
+
+lemma (in sigma_algebra) countable_INT':
+  fixes A :: "'i \<Rightarrow> 'a set"
+  assumes X: "countable X" "X \<noteq> {}"
+  assumes A: "A`X \<subseteq> M"
+  shows  "(\<Inter>x\<in>X. A x) \<in> M"
+proof -
+  have "(\<Inter>x\<in>X. A x) = (\<Inter>i\<in>to_nat_on X ` X. A (from_nat_into X i))"
+    using X by auto
+  also have "\<dots> \<in> M"
+    using A X
+    by (intro countable_INT) auto
+  finally show ?thesis .
 qed
 
 lemma ring_of_sets_Pow: "ring_of_sets sp (Pow sp)"
@@ -363,6 +391,16 @@ lemma (in sigma_algebra) sets_Collect_countable_Ex:
 proof -
   have "{x\<in>\<Omega>. \<exists>i::'i::countable. P i x} = (\<Union>i. {x\<in>\<Omega>. P i x})" by auto
   with assms show ?thesis by auto
+qed
+
+lemma (in sigma_algebra) sets_Collect_countable_Ex':
+  assumes "\<And>i. {x\<in>\<Omega>. P i x} \<in> M"
+  assumes "countable I"
+  shows "{x\<in>\<Omega>. \<exists>i\<in>I. P i x} \<in> M"
+proof -
+  have "{x\<in>\<Omega>. \<exists>i\<in>I. P i x} = (\<Union>i\<in>I. {x\<in>\<Omega>. P i x})" by auto
+  with assms show ?thesis 
+    by (auto intro!: countable_UN')
 qed
 
 lemmas (in sigma_algebra) sets_Collect =

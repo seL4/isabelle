@@ -1,5 +1,5 @@
 theory Multivariate_Analysis
-imports Fashoda Extended_Real_Limits
+imports Fashoda Extended_Real_Limits Determinants
 begin
 
 end
