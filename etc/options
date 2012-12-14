@@ -96,5 +96,5 @@ option editor_update_delay : real = 0.5
 option editor_reparse_limit : int = 10000
   -- "maximum amount of reparsed text outside perspective"
 
-option editor_tracing_limit_MB : real = 2.5
-  -- "maximum tracing volume for each command transaction"
+option editor_tracing_messages : int = 100
+  -- "initial number of tracing messages for each command transaction"

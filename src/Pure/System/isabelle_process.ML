@@ -17,8 +17,8 @@ signature ISABELLE_PROCESS =
 sig
   val is_active: unit -> bool
   val protocol_command: string -> (string list -> unit) -> unit
-  val tracing_limit: int Unsynchronized.ref;
-  val reset_tracing_limits: unit -> unit
+  val tracing_messages: int Unsynchronized.ref;
+  val reset_tracing: unit -> unit
   val crashes: exn list Synchronized.var
   val init_fifos: string -> string -> unit
   val init_socket: string -> unit
@@ -63,24 +63,43 @@ fun run_command name args =
 end;
 
 
-(* tracing limit *)
+(* restricted tracing messages *)
 
-val tracing_limit = Unsynchronized.ref 1000000;
+val tracing_messages = Unsynchronized.ref 100;
 
-val tracing_limits = Synchronized.var "tracing_limits" (Inttab.empty: int Inttab.table);
+val command_tracing_messages =
+  Synchronized.var "command_tracing_messages" (Inttab.empty: int Inttab.table);
 
-fun reset_tracing_limits () = Synchronized.change tracing_limits (K Inttab.empty);
+fun reset_tracing () =
+  Synchronized.change command_tracing_messages (K Inttab.empty);
 
-fun update_tracing_limits msg =
+fun update_tracing () =
   (case Position.get_id (Position.thread_data ()) of
     NONE => ()
   | SOME id =>
-      Synchronized.change tracing_limits (fn tab =>
-        let
-          val i = Markup.parse_int id;
-          val n = the_default 0 (Inttab.lookup tab i) + size msg;
-          val _ = if n > ! tracing_limit then raise Output.TRACING_LIMIT n else ();
-        in Inttab.update (i, n) tab end));
+      let
+        val i = Markup.parse_int id;
+        val (n, ok) =
+          Synchronized.change_result command_tracing_messages (fn tab =>
+            let
+              val n = the_default 0 (Inttab.lookup tab i) + 1;
+              val ok = n <= ! tracing_messages;
+            in ((n, ok), Inttab.update (i, n) tab) end);
+      in
+        if ok then ()
+        else
+          let
+            val (text, promise) = Active.dialog_text ();
+            val _ =
+              writeln ("Tracing paused.  " ^ text "Stop" ^ ", or continue with next " ^
+                text "10" ^ ", " ^ text "100" ^ ", " ^ text "1000" ^ " messages?")
+            val m = Markup.parse_int (Future.join promise)
+              handle Fail _ => error "Stopped";
+          in
+            Synchronized.change command_tracing_messages
+              (Inttab.map_default (i, 0) (fn k => k - m))
+          end
+      end);
 
 
 (* message channels *)
@@ -126,10 +145,12 @@ fun init_channels channel =
   in
     Output.Private_Hooks.status_fn := standard_message mbox NONE Markup.statusN;
     Output.Private_Hooks.report_fn := standard_message mbox NONE Markup.reportN;
+    Output.Private_Hooks.result_fn :=
+      (fn (i, s) => standard_message mbox (SOME i) Markup.resultN s);
     Output.Private_Hooks.writeln_fn :=
       (fn s => standard_message mbox (SOME (serial ())) Markup.writelnN s);
     Output.Private_Hooks.tracing_fn :=
-      (fn s => (update_tracing_limits s; standard_message mbox (SOME (serial ())) Markup.tracingN s));
+      (fn s => (update_tracing (); standard_message mbox (SOME (serial ())) Markup.tracingN s));
     Output.Private_Hooks.warning_fn :=
       (fn s => standard_message mbox (SOME (serial ())) Markup.warningN s);
     Output.Private_Hooks.error_fn :=
@@ -224,8 +245,7 @@ val _ =
         then Multithreading.max_threads := 2 else ();
         Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 4 else 0);
         Goal.parallel_proofs_threshold := Options.int options "parallel_proofs_threshold";
-        tracing_limit :=
-          Real.round (Options.real options "editor_tracing_limit_MB" * 1024.0 * 1024.0)
+        tracing_messages := Options.int options "editor_tracing_messages"
       end);
 
 end;

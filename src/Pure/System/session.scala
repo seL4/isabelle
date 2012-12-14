@@ -26,6 +26,7 @@ object Session
   case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(edits: List[Document.Edit_Text])
+  case class Dialog_Result(id: Document.ID, serial: Long, result: String)
   case class Commands_Changed(
     assignment: Boolean, nodes: Set[Document.Node.Name], commands: Set[Command])
 
@@ -419,6 +420,10 @@ class Session(val thy_load: Thy_Load)
 
           reply(())
 
+        case Session.Dialog_Result(id, serial, result) if prover.isDefined =>
+          prover.get.dialog_result(serial, result)
+          handle_output(new Isabelle_Process.Output(Protocol.Dialog_Result(id, serial, result)))
+
         case Messages(msgs) =>
           msgs foreach {
             case input: Isabelle_Process.Input =>
@@ -469,4 +474,7 @@ class Session(val thy_load: Thy_Load)
 
   def update(edits: List[Document.Edit_Text])
   { session_actor !? Session.Raw_Edits(edits) }
+
+  def dialog_result(id: Document.ID, serial: Long, result: String)
+  { session_actor ! Session.Dialog_Result(id, serial, result) }
 }

@@ -60,7 +60,7 @@ val _ =
               |> YXML.string_of_body);
 
         val _ = List.app Future.cancel_group (Goal.reset_futures ());
-        val _ = Isabelle_Process.reset_tracing_limits ();
+        val _ = Isabelle_Process.reset_tracing ();
         val _ = Document.start_execution state';
       in state' end));
 
@@ -74,6 +74,12 @@ val _ =
         val state1 = Document.remove_versions versions state;
         val _ = Output.protocol_message Markup.removed_versions versions_yxml;
       in state1 end));
+
+val _ =
+  Isabelle_Process.protocol_command "Document.dialog_result"
+    (fn [serial, result] =>
+      Active.dialog_result (Markup.parse_int serial) result
+        handle exn => if Exn.is_interrupt exn then () else reraise exn);
 
 val _ =
   Isabelle_Process.protocol_command "Document.invoke_scala"

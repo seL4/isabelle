@@ -34,6 +34,7 @@ sig
     val prompt_fn: (output -> unit) Unsynchronized.ref
     val status_fn: (output -> unit) Unsynchronized.ref
     val report_fn: (output -> unit) Unsynchronized.ref
+    val result_fn: (serial * output -> unit) Unsynchronized.ref
     val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref
   end
   val urgent_message: string -> unit
@@ -42,8 +43,8 @@ sig
   val prompt: string -> unit
   val status: string -> unit
   val report: string -> unit
+  val result: serial * string -> unit
   val protocol_message: Properties.T -> string -> unit
-  exception TRACING_LIMIT of int
 end;
 
 structure Output: OUTPUT =
@@ -97,6 +98,7 @@ struct
   val prompt_fn = Unsynchronized.ref physical_stdout;
   val status_fn = Unsynchronized.ref (fn _: output => ());
   val report_fn = Unsynchronized.ref (fn _: output => ());
+  val result_fn = Unsynchronized.ref (fn _: serial * output => ());
   val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =
     Unsynchronized.ref (fn _ => fn _ => raise Fail "Output.protocol_message undefined in TTY mode");
 end;
@@ -110,9 +112,8 @@ fun error_msg s = error_msg' (serial (), s);
 fun prompt s = ! Private_Hooks.prompt_fn (output s);
 fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
+fun result (i, s) = ! Private_Hooks.result_fn (i, output s);
 fun protocol_message props s = ! Private_Hooks.protocol_message_fn props (output s);
-
-exception TRACING_LIMIT of int;
 
 end;
 

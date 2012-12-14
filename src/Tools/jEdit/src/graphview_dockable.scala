@@ -65,7 +65,7 @@ class Graphview_Dockable(view: View, position: String) extends Dockable(view, po
           override def make_tooltip(parent: JComponent, x: Int, y: Int, body: XML.Body): String =
           {
             val rendering = Rendering(snapshot, PIDE.options.value)
-            new Pretty_Tooltip(view, parent, rendering, x, y, body)
+            new Pretty_Tooltip(view, parent, rendering, x, y, Command.Results.empty, body)
             null
           }
         }

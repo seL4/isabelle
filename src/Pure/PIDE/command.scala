@@ -17,11 +17,38 @@ object Command
 {
   /** accumulated results from prover **/
 
+  /* results */
+
+  object Results
+  {
+    val empty = new Results(SortedMap.empty)
+    def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
+  }
+
+  final class Results private(rep: SortedMap[Long, XML.Tree])
+  {
+    def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
+    def get(serial: Long): Option[XML.Tree] = rep.get(serial)
+    def entries: Iterator[(Long, XML.Tree)] = rep.iterator
+
+    def + (entry: (Long, XML.Tree)): Results =
+      if (defined(entry._1)) this
+      else new Results(rep + entry)
+
+    def ++ (other: Results): Results =
+      if (this eq other) this
+      else if (rep.isEmpty) other
+      else (this /: other.entries)(_ + _)
+  }
+
+
+  /* state */
+
   sealed case class State(
-    val command: Command,
-    val status: List[Markup] = Nil,
-    val results: SortedMap[Long, XML.Tree] = SortedMap.empty,
-    val markup: Markup_Tree = Markup_Tree.empty)
+    command: Command,
+    status: List[Markup] = Nil,
+    results: Results = Results.empty,
+    markup: Markup_Tree = Markup_Tree.empty)
   {
     def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
       markup.to_XML(command.range, command.source, filter)
@@ -38,7 +65,8 @@ object Command
           (this /: msgs)((state, msg) =>
             msg match {
               case elem @ XML.Elem(markup, Nil) =>
-                state.add_status(markup).add_markup(Text.Info(command.proper_range, elem))
+                state.add_status(markup)
+                  .add_markup(Text.Info(command.proper_range, elem))  // FIXME cumulation order!?
 
               case _ => System.err.println("Ignored status message: " + msg); state
             })
@@ -72,10 +100,10 @@ object Command
 
               val st0 = copy(results = results + (i -> message1))
               val st1 =
-                if (Protocol.is_tracing(message)) st0
-                else
+                if (Protocol.is_inlined(message))
                   (st0 /: Protocol.message_positions(command, message))(
                     (st, range) => st.add_markup(Text.Info(range, message2)))
+                else st0
 
               st1
             case _ => System.err.println("Ignored message without serial number: " + message); this
@@ -88,8 +116,8 @@ object Command
 
   type Span = List[Token]
 
-  def apply(id: Document.Command_ID, node_name: Document.Node.Name,
-    span: Span, markup: Markup_Tree): Command =
+  def apply(id: Document.Command_ID, node_name: Document.Node.Name, span: Span,
+    results: Results = Results.empty, markup: Markup_Tree = Markup_Tree.empty): Command =
   {
     val source: String =
       span match {
@@ -106,21 +134,23 @@ object Command
       i += n
     }
 
-    new Command(id, node_name, span1.toList, source, markup)
+    new Command(id, node_name, span1.toList, source, results, markup)
   }
 
-  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil, Markup_Tree.empty)
+  val empty = Command(Document.no_id, Document.Node.Name.empty, Nil)
 
-  def unparsed(id: Document.Command_ID, source: String, markup: Markup_Tree): Command =
-    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), markup)
+  def unparsed(id: Document.Command_ID, source: String, results: Results, markup: Markup_Tree)
+      : Command =
+    Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), results, markup)
 
-  def unparsed(source: String): Command = unparsed(Document.no_id, source, Markup_Tree.empty)
+  def unparsed(source: String): Command =
+    unparsed(Document.no_id, source, Results.empty, Markup_Tree.empty)
 
-  def rich_text(id: Document.Command_ID, body: XML.Body): Command =
+  def rich_text(id: Document.Command_ID, results: Results, body: XML.Body): Command =
   {
     val text = XML.content(body)
     val markup = Markup_Tree.from_XML(body)
-    unparsed(id, text, markup)
+    unparsed(id, text, results, markup)
   }
 
 
@@ -151,6 +181,7 @@ final class Command private(
     val node_name: Document.Node.Name,
     val span: Command.Span,
     val source: String,
+    val init_results: Command.Results,
     val init_markup: Markup_Tree)
 {
   /* classification */
@@ -187,5 +218,6 @@ final class Command private(
 
   /* accumulated results */
 
-  val init_state: Command.State = Command.State(this, markup = init_markup)
+  val init_state: Command.State =
+    Command.State(this, results = init_results, markup = init_markup)
 }

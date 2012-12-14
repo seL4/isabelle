@@ -213,17 +213,6 @@ object Markup
   val SUBGOAL = "subgoal"
 
 
-  /* active areas */
-
-  val SENDBACK = "sendback"
-  val GRAPHVIEW = "graphview"
-
-  val PADDING = "padding"
-  val PADDING_LINE = (PADDING, LINE)
-
-  val INTENSIFY = "intensify"
-
-
   /* command status */
 
   val TASK = "task"
@@ -257,6 +246,7 @@ object Markup
   val INIT = "init"
   val STATUS = "status"
   val REPORT = "report"
+  val RESULT = "result"
   val WRITELN = "writeln"
   val TRACING = "tracing"
   val WARNING = "warning"
@@ -274,8 +264,7 @@ object Markup
 
   val message: String => String =
     Map(WRITELN -> WRITELN_MESSAGE, TRACING -> TRACING_MESSAGE,
-        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE)
-      .withDefault((name: String) => name + "_message")
+        WARNING -> WARNING_MESSAGE, ERROR -> ERROR_MESSAGE).withDefault((s: String) => s)
 
   val Return_Code = new Properties.Int("return_code")
 
@@ -284,6 +273,20 @@ object Markup
   val NO_REPORT = "no_report"
 
   val BAD = "bad"
+
+  val INTENSIFY = "intensify"
+
+
+  /* active areas */
+
+  val GRAPHVIEW = "graphview"
+
+  val SENDBACK = "sendback"
+  val PADDING = "padding"
+  val PADDING_LINE = (PADDING, LINE)
+
+  val DIALOG = "dialog"
+  val Result = new Properties.String(RESULT)
 
 
   /* protocol message functions */

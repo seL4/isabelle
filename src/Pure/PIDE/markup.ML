@@ -96,11 +96,6 @@ sig
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
   val subgoalN: string val subgoal: T
-  val paddingN: string
-  val padding_line: string * string
-  val sendbackN: string
-  val graphviewN: string
-  val intensifyN: string val intensify: T
   val taskN: string
   val acceptedN: string val accepted: T
   val forkedN: string val forked: T
@@ -111,6 +106,7 @@ sig
   val serialN: string
   val initN: string
   val statusN: string
+  val resultN: string
   val writelnN: string
   val tracingN: string
   val warningN: string
@@ -121,6 +117,12 @@ sig
   val reportN: string val report: T
   val no_reportN: string val no_report: T
   val badN: string val bad: T
+  val intensifyN: string val intensify: T
+  val graphviewN: string
+  val sendbackN: string
+  val paddingN: string
+  val padding_line: string * string
+  val dialogN: string val dialog: serial -> string -> T
   val functionN: string
   val assign_execs: Properties.T
   val removed_versions: Properties.T
@@ -338,17 +340,6 @@ val (stateN, state) = markup_elem "state";
 val (subgoalN, subgoal) = markup_elem "subgoal";
 
 
-(* active areads *)
-
-val sendbackN = "sendback";
-val graphviewN = "graphview";
-
-val paddingN = "padding";
-val padding_line = (paddingN, lineN);
-
-val (intensifyN, intensify) = markup_elem "intensify";
-
-
 (* command status *)
 
 val taskN = "task";
@@ -367,6 +358,7 @@ val serialN = "serial";
 
 val initN = "init";
 val statusN = "status";
+val resultN = "result";
 val writelnN = "writeln";
 val tracingN = "tracing";
 val warningN = "warning";
@@ -380,6 +372,20 @@ val (reportN, report) = markup_elem "report";
 val (no_reportN, no_report) = markup_elem "no_report";
 
 val (badN, bad) = markup_elem "bad";
+
+val (intensifyN, intensify) = markup_elem "intensify";
+
+
+(* active areas *)
+
+val graphviewN = "graphview";
+
+val sendbackN = "sendback";
+val paddingN = "padding";
+val padding_line = (paddingN, lineN);
+
+val dialogN = "dialog";
+fun dialog i result = (dialogN, [(serialN, print_int i), (resultN, result)]);
 
 
 (* protocol message functions *)

@@ -70,12 +70,14 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
       }
 
     val new_output =
-      if (!restriction.isDefined || restriction.get.contains(new_state.command))
-        new_state.results.iterator.map(_._2).toList
+      if (!restriction.isDefined || restriction.get.contains(new_state.command)) {
+        val rendering = Rendering(new_snapshot, PIDE.options.value)
+        rendering.output_messages(new_state)
+      }
       else current_output
 
     if (new_output != current_output)
-      pretty_text_area.update(new_snapshot, Pretty.separate(new_output))
+      pretty_text_area.update(new_snapshot, new_state.results, Pretty.separate(new_output))
 
     current_snapshot = new_snapshot
     current_state = new_state
@@ -150,7 +152,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   private val detach = new Button("Detach") {
     reactions += {
       case ButtonClicked(_) =>
-        Info_Dockable(view, current_snapshot, Pretty.separate(current_output))
+        Info_Dockable(view, current_snapshot,
+          current_state.results, Pretty.separate(current_output))
     }
   }
   detach.tooltip = "Detach window with static copy of current output"

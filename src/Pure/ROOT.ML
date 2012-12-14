@@ -63,7 +63,6 @@ if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();
 
 use "PIDE/xml.ML";
 use "PIDE/yxml.ML";
-use "PIDE/active.ML";
 
 use "General/graph.ML";
 
@@ -98,6 +97,8 @@ else use "Concurrent/par_list_sequential.ML";
 
 use "Concurrent/mailbox.ML";
 use "Concurrent/cache.ML";
+
+use "PIDE/active.ML";
 
 
 (* fundamental structures *)
