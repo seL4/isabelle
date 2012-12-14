@@ -25,13 +25,20 @@ object Command
     def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
   }
 
-  final class Results private(private val rep: SortedMap[Long, XML.Tree])
+  final class Results private(rep: SortedMap[Long, XML.Tree])
   {
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
     def get(serial: Long): Option[XML.Tree] = rep.get(serial)
     def entries: Iterator[(Long, XML.Tree)] = rep.iterator
-    def + (entry: (Long, XML.Tree)): Results = new Results(rep + entry)
-    def ++ (other: Results): Results = new Results(rep ++ other.rep)
+
+    def + (entry: (Long, XML.Tree)): Results =
+      if (defined(entry._1)) this
+      else new Results(rep + entry)
+
+    def ++ (other: Results): Results =
+      if (this eq other) this
+      else if (rep.isEmpty) other
+      else (this /: other.entries)(_ + _)
   }
 
 
