@@ -7,7 +7,7 @@ Quick reference
   $ install /home/isabelle/components/screwdriver-3.14.tar.gz
   $ install /home/isabelle/contrib/screwdriver-3.14/
   $ edit Admin/components/main: screwdriver-3.14
-  $ run Admin/component_repository/checksum -u
+  $ run Admin/components/checksum -u
   $ hg diff
   $ hg commit
 
@@ -44,11 +44,11 @@ Visibility on the HTTP server depends on local Unix file permission:
 nonfree components should omit "read" mode for the Unix group/other;
 regular components should be world-readable.
 
-The file Admin/component_repository/contains SHA1 identifiers within
-the Isabelle repository, for integrity checking of the archives that
-are exposed to the public file-system.  The script
-Admin/component_repository/checksum helps to update these hash-keys
-wrt. the information within the Isabelle repository.
+The file Admin/components/components.sha1 contains SHA1 identifiers
+within the Isabelle repository, for integrity checking of the archives
+that are exposed to the public file-system.  The script
+Admin/components/checksum helps to update these hash-keys wrt. the
+information within the Isabelle repository.
 
 
 Unpacked copy
