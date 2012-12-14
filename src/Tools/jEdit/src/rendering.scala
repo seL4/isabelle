@@ -256,7 +256,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     snapshot.select_markup(range, Some(active_include), command_state =>
         {
           case Text.Info(info_range, elem @ Protocol.Dialog(_, serial, _))
-          if !command_state.results.isDefinedAt(serial) =>
+          if !command_state.results.defined(serial) =>
             Text.Info(snapshot.convert(info_range), elem)
           case Text.Info(info_range, elem @ XML.Elem(Markup(name, _), _))
           if name == Markup.GRAPHVIEW || name == Markup.SENDBACK =>
@@ -269,24 +269,25 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     val results =
       snapshot.select_markup[Command.Results](range, None, command_state =>
         { case _ => command_state.results }).map(_.info)
-    (Command.empty_results /: results)(_ ++ _)
+    (Command.Results.empty /: results)(_ ++ _)
   }
 
   def tooltip_message(range: Text.Range): XML.Body =
   {
     val msgs =
-      snapshot.cumulate_markup[Command.Results](range, Command.empty_results,
-        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
-        {
-          case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
-          if name == Markup.WRITELN ||
-              name == Markup.WARNING ||
-              name == Markup.ERROR =>
-            msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body))
-          case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
-          if !body.isEmpty => msgs + (Document.new_id() -> msg)
-        }).toList.flatMap(_.info)
-    Pretty.separate(msgs.iterator.map(_._2).toList)
+      Command.Results.merge(
+        snapshot.cumulate_markup[Command.Results](range, Command.Results.empty,
+          Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
+          {
+            case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
+            if name == Markup.WRITELN ||
+                name == Markup.WARNING ||
+                name == Markup.ERROR =>
+              msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body))
+            case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
+            if !body.isEmpty => msgs + (Document.new_id() -> msg)
+          }).map(_.info))
+    Pretty.separate(msgs.entries.map(_._2).toList)
   }
 
 
@@ -420,7 +421,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   def output_messages(st: Command.State): List[XML.Tree] =
   {
-    st.results.iterator.map(_._2).filterNot(Protocol.is_result(_)).toList
+    st.results.entries.map(_._2).filterNot(Protocol.is_result(_)).toList
   }
 
 

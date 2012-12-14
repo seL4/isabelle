@@ -17,13 +17,30 @@ object Command
 {
   /** accumulated results from prover **/
 
-  type Results = SortedMap[Long, XML.Tree]
-  val empty_results: Results = SortedMap.empty
+  /* results */
+
+  object Results
+  {
+    val empty = new Results(SortedMap.empty)
+    def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
+  }
+
+  final class Results private(private val rep: SortedMap[Long, XML.Tree])
+  {
+    def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
+    def get(serial: Long): Option[XML.Tree] = rep.get(serial)
+    def entries: Iterator[(Long, XML.Tree)] = rep.iterator
+    def + (entry: (Long, XML.Tree)): Results = new Results(rep + entry)
+    def ++ (other: Results): Results = new Results(rep ++ other.rep)
+  }
+
+
+  /* state */
 
   sealed case class State(
     command: Command,
     status: List[Markup] = Nil,
-    results: Results = empty_results,
+    results: Results = Results.empty,
     markup: Markup_Tree = Markup_Tree.empty)
   {
     def markup_to_XML(filter: XML.Elem => Boolean): XML.Body =
@@ -93,7 +110,7 @@ object Command
   type Span = List[Token]
 
   def apply(id: Document.Command_ID, node_name: Document.Node.Name, span: Span,
-    results: Results = empty_results, markup: Markup_Tree = Markup_Tree.empty): Command =
+    results: Results = Results.empty, markup: Markup_Tree = Markup_Tree.empty): Command =
   {
     val source: String =
       span match {
@@ -120,7 +137,7 @@ object Command
     Command(id, Document.Node.Name.empty, List(Token(Token.Kind.UNPARSED, source)), results, markup)
 
   def unparsed(source: String): Command =
-    unparsed(Document.no_id, source, empty_results, Markup_Tree.empty)
+    unparsed(Document.no_id, source, Results.empty, Markup_Tree.empty)
 
   def rich_text(id: Document.Command_ID, results: Results, body: XML.Body): Command =
   {

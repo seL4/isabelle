@@ -106,7 +106,7 @@ object Protocol
         val status = command_status(st.status)
         if (status.is_running) running += 1
         else if (status.is_finished) {
-          if (st.results.exists(p => is_warning(p._2))) warned += 1
+          if (st.results.entries.exists(p => is_warning(p._2))) warned += 1
           else finished += 1
         }
         else if (status.is_failed) failed += 1
