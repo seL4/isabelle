@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/If.ML
+(*  Title:      Doc/ZF/If.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 

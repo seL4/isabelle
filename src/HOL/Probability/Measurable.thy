@@ -1,4 +1,4 @@
-(*  Title:      HOL/Probability/measurable.ML
+(*  Title:      HOL/Probability/Measurable.thy
     Author:     Johannes Hölzl <hoelzl@in.tum.de>
 *)
 theory Measurable

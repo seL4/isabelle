@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/refute.ML
+(*  Title:      HOL/Library/refute.ML
     Author:     Tjark Weber, TU Muenchen
 
 Finite model generation for HOL formulas, using a SAT solver.

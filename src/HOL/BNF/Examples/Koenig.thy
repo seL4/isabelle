@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Examples/Stream.thy
+(*  Title:      HOL/BNF/Examples/Koenig.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
     Copyright   2012

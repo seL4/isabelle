@@ -1,4 +1,4 @@
-(*  Title:      HOL/Refute.thy
+(*  Title:      HOL/Library/Refute.thy
     Author:     Tjark Weber
     Copyright   2003-2007
 
