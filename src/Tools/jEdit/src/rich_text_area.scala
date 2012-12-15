@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Window, Color, Point}
+import java.awt.{Graphics2D, Shape, Window, Color, Point, Toolkit}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
@@ -168,7 +168,7 @@ class Rich_Text_Area(
   private val mouse_motion_listener = new MouseMotionAdapter {
     override def mouseMoved(e: MouseEvent) {
       robust_body(()) {
-        control = if (OperatingSystem.isMacOS()) e.isMetaDown else e.isControlDown
+        control = (e.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0
 
         if ((control || hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
