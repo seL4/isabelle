@@ -10,12 +10,13 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Font, FontMetrics, Toolkit}
+import java.awt.{Color, Font, FontMetrics, Toolkit}
 import java.awt.event.{ActionListener, ActionEvent, KeyEvent}
 import javax.swing.{KeyStroke, JComponent}
 
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
+import org.gjt.sp.jedit.syntax.SyntaxStyle
 import org.gjt.sp.util.SyntaxUtilities
 
 
@@ -52,7 +53,9 @@ object Pretty_Text_Area
   }
 }
 
-class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
+class Pretty_Text_Area(
+  view: View,
+  background: Option[Color] = None) extends JEditEmbeddedTextArea
 {
   text_area =>
 
@@ -80,9 +83,33 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
     getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
     getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
+    val fold_line_style = new Array[SyntaxStyle](4)
+    for (i <- 0 to 3) {
+      fold_line_style(i) =
+        SyntaxUtilities.parseStyle(
+          jEdit.getProperty("view.style.foldLine." + i),
+          current_font_family, current_font_size, true)
+    }
+    getPainter.setFoldLineStyle(fold_line_style)
+
     if (getWidth > 0) {
+      getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
+      getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
+      background.map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
+      getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
+      getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
+      getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
+      getGutter.setBorder(0,
+        jEdit.getColorProperty("view.gutter.focusBorderColor"),
+        jEdit.getColorProperty("view.gutter.noFocusBorderColor"),
+        getPainter.getBackground)
+      getGutter.setFoldPainter(getFoldPainter)
+
+      getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
+
       val font_metrics = getPainter.getFontMetrics(font)
-      val margin = (getWidth / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
+      val margin =
+        ((getWidth - getGutter.getWidth) / (font_metrics.charWidth(Pretty.spc) max 1) - 2) max 20
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
@@ -100,6 +127,7 @@ class Pretty_Text_Area(view: View) extends JEditEmbeddedTextArea
             JEdit_Lib.buffer_edit(getBuffer) {
               rich_text_area.active_reset()
               getBuffer.setReadOnly(false)
+              getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
               setText(text)
               setCaretPosition(0)
               getBuffer.setReadOnly(true)

@@ -163,9 +163,11 @@ val text = breaks o map str o Symbol.explode_words;
 val paragraph = markup Markup.paragraph;
 val para = paragraph o text;
 
-fun markup_chunks m prts = markup m (fbreaks prts);
+fun markup_chunks m prts = markup m (fbreaks (map (mark Markup.text_fold) prts));
 val chunks = markup_chunks Markup.empty;
-fun chunks2 prts = blk (0, flat (Library.separate [fbrk, fbrk] (map single prts)));
+
+fun chunks2 prts =
+  blk (0, flat (Library.separate [fbrk, fbrk] (map (single o mark Markup.text_fold) prts)));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
 

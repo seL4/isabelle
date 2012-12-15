@@ -145,6 +145,7 @@ object Markup
   /* text structure */
 
   val PARAGRAPH = "paragraph"
+  val TEXT_FOLD = "text_fold"
 
 
   /* ML syntax */
@@ -210,6 +211,7 @@ object Markup
   val PROOF_STATE = "proof_state"
 
   val STATE = "state"
+  val GOAL = "goal"
   val SUBGOAL = "subgoal"
 
 

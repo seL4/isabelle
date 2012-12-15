@@ -39,6 +39,8 @@ object Command
       if (this eq other) this
       else if (rep.isEmpty) other
       else (this /: other.entries)(_ + _)
+
+    override def toString: String = entries.mkString("Results(", ", ", ")")
   }
 
 
