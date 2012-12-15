@@ -746,7 +746,8 @@ fun run_atp mode name
                 |> seconds |> SOME
               | NONE => NONE
             val generous_slice_timeout =
-              Option.map (curry Time.+ atp_timeout_slack) slice_timeout
+              if mode = MaSh then NONE
+              else Option.map (curry Time.+ atp_timeout_slack) slice_timeout
             val _ =
               if debug then
                 quote name ^ " slice #" ^ string_of_int (slice + 1) ^
