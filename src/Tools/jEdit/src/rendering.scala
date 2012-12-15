@@ -158,16 +158,18 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   val overview_limit = options.int("jedit_text_overview_limit")
 
+  private val overview_include = Protocol.command_status_markup + Markup.WARNING + Markup.ERROR
+
   def overview_color(range: Text.Range): Option[Color] =
   {
     if (snapshot.is_outdated) None
     else {
       val results =
         snapshot.cumulate_markup[(Protocol.Status, Int)](
-          range, (Protocol.Status.init, 0),
-          Some(Protocol.command_status_markup + Markup.WARNING + Markup.ERROR), _ =>
+          range, (Protocol.Status.init, 0), Some(overview_include), _ =>
           {
-            case ((status, pri), Text.Info(_, XML.Elem(markup, _))) =>
+            case ((status, pri), Text.Info(_, XML.Elem(markup, _)))
+            if overview_include(markup.name) =>
               if (markup.name == Markup.WARNING || markup.name == Markup.ERROR)
                 (status, pri max Rendering.message_pri(markup.name))
               else (Protocol.command_status(status, markup), pri)
