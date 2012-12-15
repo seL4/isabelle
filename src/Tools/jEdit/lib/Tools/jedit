@@ -97,7 +97,7 @@ function failed()
 
 # options
 
-declare -a BUILD_DIALOG_OPTIONS=()
+declare -a BUILD_DIALOG_OPTIONS=(-L jedit_logic)
 
 BUILD_ONLY=false
 BUILD_JARS="jars"
@@ -134,6 +134,8 @@ function getoptions()
         ARGS["${#ARGS[@]}"]="$OPTARG"
         ;;
       l)
+        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="-l"
+        BUILD_DIALOG_OPTIONS["${#BUILD_DIALOG_OPTIONS[@]}"]="$OPTARG"
         JEDIT_LOGIC="$OPTARG"
         ;;
       m)
@@ -328,7 +330,7 @@ fi
 
 if [ "$BUILD_ONLY" = false ]; then
   if [ "$NO_BUILD" = false ]; then
-    "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}" -L jedit_logic "$JEDIT_LOGIC"
+    "$ISABELLE_TOOL" build_dialog "${BUILD_DIALOG_OPTIONS[@]}"
     RC="$?"
     [ "$RC" = 0 ] || exit "$RC"
   fi

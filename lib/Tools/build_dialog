@@ -12,14 +12,15 @@ PRG="$(basename "$0")"
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG [OPTIONS] LOGIC"
+  echo "Usage: isabelle $PRG [OPTIONS]"
   echo
   echo "  Options are:"
   echo "    -L OPTION    default logic via system option"
   echo "    -d DIR       include session directory"
+  echo "    -l NAME      logic session name"
   echo "    -s           system build mode: produce output in ISABELLE_HOME"
   echo
-  echo "  Build Isabelle session image LOGIC via GUI dialog."
+  echo "  Build Isabelle logic session image via GUI dialog (default: $ISABELLE_LOGIC)."
   echo
   exit 1
 }
@@ -35,9 +36,10 @@ function fail()
 
 LOGIC_OPTION=""
 declare -a INCLUDE_DIRS=()
+LOGIC=""
 SYSTEM_MODE=false
 
-while getopts "L:d:s" OPT
+while getopts "L:d:l:s" OPT
 do
   case "$OPT" in
     L)
@@ -45,6 +47,9 @@ do
       ;;
     d)
       INCLUDE_DIRS["${#INCLUDE_DIRS[@]}"]="$OPTARG"
+      ;;
+    l)
+      LOGIC="$OPTARG"
       ;;
     s)
       SYSTEM_MODE="true"
@@ -60,9 +65,7 @@ shift $(($OPTIND - 1))
 
 # args
 
-[ "$#" -ne 1 ] && usage
-
-LOGIC="$1"; shift
+[ "$#" -ne 0 ] && usage
 
 
 ## main
@@ -70,5 +73,5 @@ LOGIC="$1"; shift
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 "$ISABELLE_TOOL" java isabelle.Build_Dialog \
-  "$LOGIC_OPTION" "$SYSTEM_MODE" "$LOGIC" "${INCLUDE_DIRS[@]}"
+  "$LOGIC_OPTION" "$LOGIC" "$SYSTEM_MODE" "${INCLUDE_DIRS[@]}"
 

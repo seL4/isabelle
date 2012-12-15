@@ -23,8 +23,8 @@ object Build_Dialog
       args.toList match {
         case
           logic_option ::
-          Properties.Value.Boolean(system_mode) ::
           logic ::
+          Properties.Value.Boolean(system_mode) ::
           include_dirs =>
             val more_dirs = include_dirs.map(s => ((false, Path.explode(s))))
 
