@@ -18,6 +18,8 @@ import scala.annotation.tailrec
 
 object Markup_Tree
 {
+  /* construct trees */
+
   val empty: Markup_Tree = new Markup_Tree(Branches.empty)
 
   def merge_disjoint(trees: List[Markup_Tree]): Markup_Tree =
@@ -35,24 +37,49 @@ object Markup_Tree
           })
     }
 
+
+  /* tree building blocks */
+
+  object Elements
+  {
+    val empty = new Elements(Set.empty)
+    def merge(es: Iterable[Elements]): Elements = (empty /: es.iterator)(_ ++ _)
+  }
+
+  final class Elements private(private val rep: Set[String])
+  {
+    def contains(name: String): Boolean = rep.contains(name)
+
+    def + (name: String): Elements =
+      if (contains(name)) this
+      else new Elements(rep + name)
+
+    def + (elem: XML.Elem): Elements = this + elem.markup.name
+    def ++ (elems: Iterable[XML.Elem]): Elements = (this /: elems.iterator)(_ + _)
+
+    def ++ (other: Elements): Elements =
+      if (this eq other) this
+      else if (rep.isEmpty) other
+      else (this /: other.rep)(_ + _)
+  }
+
   object Entry
   {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
-      Entry(markup.range, List(markup.info), Set(markup.info.markup.name), subtree)
+      Entry(markup.range, List(markup.info), Elements.empty + markup.info, subtree)
 
     def apply(range: Text.Range, rev_markups: List[XML.Elem], subtree: Markup_Tree): Entry =
-      Entry(range, rev_markups, Set.empty ++ rev_markups.iterator.map(_.markup.name), subtree)
+      Entry(range, rev_markups, Elements.empty ++ rev_markups, subtree)
   }
 
   sealed case class Entry(
     range: Text.Range,
     rev_markup: List[XML.Elem],
-    elements: Set[String],
+    elements: Elements,
     subtree: Markup_Tree)
   {
     def + (info: XML.Elem): Entry =
-      if (elements(info.markup.name)) copy(rev_markup = info :: rev_markup)
-      else copy(rev_markup = info :: rev_markup, elements = elements + info.markup.name)
+      copy(rev_markup = info :: rev_markup, elements = elements + info)
 
     def markup: List[XML.Elem] = rev_markup.reverse
   }
@@ -184,10 +211,17 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
   def cumulate[A](root_range: Text.Range, root_info: A, result_elements: Option[Set[String]],
     result: PartialFunction[(A, Text.Markup), A]): Stream[Text.Info[A]] =
   {
+    val notable: Elements => Boolean =
+      result_elements match {
+        case Some(res) => (elements: Elements) => res.exists(elements.contains)
+        case None => (elements: Elements) => true
+      }
+
     def results(x: A, entry: Entry): Option[A] =
-      if (result_elements match { case Some(es) => es.exists(entry.elements) case None => true }) {
+      if (notable(entry.elements)) {
         val (y, changed) =
-          ((x, false) /: entry.rev_markup)((res, info) =>  // FIXME proper order!?
+          // FIXME proper cumulation order (including status markup) (!?)
+          ((x, false) /: entry.rev_markup)((res, info) =>
             {
               val (y, changed) = res
               val arg = (y, Text.Info(entry.range, info))
