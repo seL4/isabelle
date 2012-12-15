@@ -16,11 +16,12 @@ sig
   val generate_isar_dependencies :
     Proof.context -> theory list -> bool -> string -> unit
   val generate_prover_dependencies :
-    Proof.context -> params -> theory list -> bool -> string -> unit
+    Proof.context -> params -> int * int option -> theory list -> bool -> string
+    -> unit
   val generate_isar_commands :
     Proof.context -> string -> theory list -> string -> unit
   val generate_prover_commands :
-    Proof.context -> params -> theory list -> string -> unit
+    Proof.context -> params -> int * int option -> theory list -> string -> unit
   val generate_mepo_suggestions :
     Proof.context -> params -> theory list -> int -> string -> unit
 end;
@@ -31,6 +32,9 @@ struct
 open Sledgehammer_Fact
 open Sledgehammer_MePo
 open Sledgehammer_MaSh
+
+fun in_range (from, to) j =
+  j >= from andalso (to = NONE orelse j <= the to)
 
 fun thy_map_from_facts ths =
   ths |> rev
@@ -108,24 +112,28 @@ fun isar_or_prover_dependencies_of ctxt params_opt facts all_names th
      | NONE => isar_dependencies_of all_names th)
   |> these
 
-fun generate_isar_or_prover_dependencies ctxt params_opt thys include_thys
+fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
                                          file_name =
   let
     val path = file_name |> Path.explode
     val facts =
       all_facts ctxt |> not include_thys ? filter_out (has_thys thys o snd)
     val all_names = build_all_names nickname_of facts
-    fun do_fact (_, th) =
-      let
-        val name = nickname_of th
-        val deps =
-          isar_or_prover_dependencies_of ctxt params_opt facts all_names th NONE
-      in escape_meta name ^ ": " ^ escape_metas deps ^ "\n" end
-    val lines = Par_List.map do_fact facts
+    fun do_fact (j, (_, th)) =
+      if in_range range j then
+        let
+          val name = nickname_of th
+          val deps =
+            isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+                                           NONE
+        in escape_meta name ^ ": " ^ escape_metas deps ^ "\n" end
+      else
+        ""
+    val lines = Par_List.map do_fact (tag_list 1 facts)
   in File.write_list path lines end
 
 fun generate_isar_dependencies ctxt =
-  generate_isar_or_prover_dependencies ctxt NONE
+  generate_isar_or_prover_dependencies ctxt NONE (1, NONE)
 
 fun generate_prover_dependencies ctxt params =
   generate_isar_or_prover_dependencies ctxt (SOME params)
@@ -134,38 +142,42 @@ fun is_bad_query ctxt ho_atp th isar_deps =
   Thm.legacy_get_kind th = "" orelse null isar_deps orelse
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
-fun generate_isar_or_prover_commands ctxt prover params_opt thys file_name =
+fun generate_isar_or_prover_commands ctxt prover params_opt range thys
+                                     file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val all_names = build_all_names nickname_of facts
-    fun do_fact ((name, ((_, stature), th)), prevs) =
-      let
-        val feats =
-          features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-        val isar_deps = isar_dependencies_of all_names th
-        val deps =
-          isar_or_prover_dependencies_of ctxt params_opt facts all_names th
-                                         (SOME isar_deps)
-        val core =
-          escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
-          encode_features feats
-        val query =
-          if is_bad_query ctxt ho_atp th (these isar_deps) then ""
-          else "? " ^ core ^ "\n"
-        val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
-      in query ^ update end
+    fun do_fact (j, ((name, ((_, stature), th)), prevs)) =
+      if in_range range j then
+        let
+          val feats =
+            features_of ctxt prover (theory_of_thm th) stature [prop_of th]
+          val isar_deps = isar_dependencies_of all_names th
+          val deps =
+            isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+                                           (SOME isar_deps)
+          val core =
+            escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
+            encode_features feats
+          val query =
+            if is_bad_query ctxt ho_atp th (these isar_deps) then ""
+            else "? " ^ core ^ "\n"
+          val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
+        in query ^ update end
+      else
+        ""
     val thy_map = old_facts |> thy_map_from_facts
     val parents = fold (add_thy_parent_facts thy_map) thys []
     val new_facts = new_facts |> map (`(nickname_of o snd))
     val prevss = fst (split_last (parents :: map (single o fst) new_facts))
-    val lines = Par_List.map do_fact (new_facts ~~ prevss)
+    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ prevss))
   in File.write_list path lines end
 
 fun generate_isar_commands ctxt prover =
-  generate_isar_or_prover_commands ctxt prover NONE
+  generate_isar_or_prover_commands ctxt prover NONE (1, NONE)
 
 fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)

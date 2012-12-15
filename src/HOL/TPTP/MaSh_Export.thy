@@ -79,7 +79,7 @@ else
 
 ML {*
 if do_it then
-  generate_prover_dependencies @{context} params thys false
+  generate_prover_dependencies @{context} params (1, NONE) thys false
       (prefix ^ "mash_prover_dependencies")
 else
   ()
@@ -87,7 +87,7 @@ else
 
 ML {*
 if do_it then
-  generate_prover_commands @{context} params thys
+  generate_prover_commands @{context} params (1, NONE) thys
       (prefix ^ "mash_prover_commands")
 else
   ()

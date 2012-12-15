@@ -10,7 +10,8 @@ sig
   type params = Sledgehammer_Provers.params
 
   val evaluate_mash_suggestions :
-    Proof.context -> params -> string option -> string -> string -> unit
+    Proof.context -> params -> int * int option -> string option -> string
+    -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -28,7 +29,10 @@ val MaShN = "MaSh"
 val MeShN = "MeSh"
 val IsarN = "Isar"
 
-fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
+fun in_range (from, to) j =
+  j >= from andalso (to = NONE orelse j <= the to)
+
+fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
                               report_file_name =
   let
     val report_path = report_file_name |> Path.explode
@@ -70,63 +74,68 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
                   |> space_implode " "))
       end
     fun solve_goal (j, line) =
-      let
-        val (name, suggs) = extract_query line
-        val th =
-          case find_first (fn (_, th) => nickname_of th = name) facts of
-            SOME (_, th) => th
-          | NONE => error ("No fact called \"" ^ name ^ "\".")
-        val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
-        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-        val isar_deps = isar_dependencies_of all_names th |> these
-        val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-        val mepo_facts =
-          mepo_suggested_facts ctxt params prover slack_max_facts NONE hyp_ts
-              concl_t facts
-          |> weight_mepo_facts
-        val (mash_facts, mash_unks) =
-          find_mash_suggestions slack_max_facts suggs facts [] []
-          |>> weight_mash_facts
-        val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, mash_unks))]
-        val mesh_facts = mesh_facts slack_max_facts mess
-        val isar_facts = find_suggested_facts (map (rpair 1.0) isar_deps) facts
-        (* adapted from "mirabelle_sledgehammer.ML" *)
-        fun set_file_name heading (SOME dir) =
+      if in_range range j then
+        let
+          val (name, suggs) = extract_query line
+          val th =
+            case find_first (fn (_, th) => nickname_of th = name) facts of
+              SOME (_, th) => th
+            | NONE => error ("No fact called \"" ^ name ^ "\".")
+          val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
+          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
+          val isar_deps = isar_dependencies_of all_names th |> these
+          val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+          val mepo_facts =
+            mepo_suggested_facts ctxt params prover slack_max_facts NONE hyp_ts
+                concl_t facts
+            |> weight_mepo_facts
+          val (mash_facts, mash_unks) =
+            find_mash_suggestions slack_max_facts suggs facts [] []
+            |>> weight_mash_facts
+          val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, mash_unks))]
+          val mesh_facts = mesh_facts slack_max_facts mess
+          val isar_facts =
+            find_suggested_facts (map (rpair 1.0) isar_deps) facts
+          (* adapted from "mirabelle_sledgehammer.ML" *)
+          fun set_file_name heading (SOME dir) =
+              let
+                val prob_prefix =
+                  "goal_" ^ string_of_int j ^ "__" ^ escape_meta name ^ "__" ^
+                  heading
+              in
+                Config.put dest_dir dir
+                #> Config.put problem_prefix (prob_prefix ^ "__")
+                #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
+              end
+            | set_file_name _ NONE = I
+          fun prove ok heading get facts =
             let
-              val prob_prefix =
-                "goal_" ^ string_of_int j ^ "__" ^ escape_meta name ^ "__" ^
-                heading
-            in
-              Config.put dest_dir dir
-              #> Config.put problem_prefix (prob_prefix ^ "__")
-              #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
-            end
-          | set_file_name _ NONE = I
-        fun prove ok heading get facts =
-          let
-            fun nickify ((_, stature), th) = ((K (nickname_of th), stature), th)
-            val facts =
-              facts
-              |> map get
-              |> maybe_instantiate_inducts ctxt hyp_ts concl_t
-              |> take (the max_facts)
-              |> map nickify
-            val ctxt = ctxt |> set_file_name heading prob_dir_name
-            val res as {outcome, ...} =
-              run_prover_for_mash ctxt params prover facts goal
-            val _ = if is_none outcome then ok := !ok + 1 else ()
-          in str_of_res heading facts res end
-        val [mepo_s, mash_s, mesh_s, isar_s] =
-          [fn () => prove mepo_ok MePoN fst mepo_facts,
-           fn () => prove mash_ok MaShN fst mash_facts,
-           fn () => prove mesh_ok MeShN I mesh_facts,
-           fn () => prove isar_ok IsarN fst isar_facts]
-          |> (* Par_List. *) map (fn f => f ())
-      in
-        ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
-         isar_s]
-        |> cat_lines |> print
-      end
+              fun nickify ((_, stature), th) =
+                ((K (nickname_of th), stature), th)
+              val facts =
+                facts
+                |> map get
+                |> maybe_instantiate_inducts ctxt hyp_ts concl_t
+                |> take (the max_facts)
+                |> map nickify
+              val ctxt = ctxt |> set_file_name heading prob_dir_name
+              val res as {outcome, ...} =
+                run_prover_for_mash ctxt params prover facts goal
+              val _ = if is_none outcome then ok := !ok + 1 else ()
+            in str_of_res heading facts res end
+          val [mepo_s, mash_s, mesh_s, isar_s] =
+            [fn () => prove mepo_ok MePoN fst mepo_facts,
+             fn () => prove mash_ok MaShN fst mash_facts,
+             fn () => prove mesh_ok MeShN I mesh_facts,
+             fn () => prove isar_ok IsarN fst isar_facts]
+            |> (* Par_List. *) map (fn f => f ())
+        in
+          ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
+           isar_s]
+          |> cat_lines |> print
+        end
+      else
+        ()
     fun total_of heading ok n =
       "  " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
