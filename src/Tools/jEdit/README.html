@@ -157,16 +157,16 @@ stateless environment of formal document content.</li>
 </ul>
 
 
-<h2>Limitations and workarounds</h2>
+<h2>Limitations and known problems</h2>
 
 <ul>
-  <li>Odd behavior of some diagnostic commands, notably those starting
-  external processes asynchronously (e.g. <tt>thy_deps</tt>).<br/>
-  <em>Workaround:</em> Avoid such commands.</li>
-
   <li>Lack of dependency managed for auxiliary files that contribute
   to a theory (e.g. <tt>ML_file</tt>).<br/>
   <em>Workaround:</em> Re-load files manually within the prover.</li>
+
+  <li>Odd behavior of some diagnostic commands with global
+  side-effects, like writing a physical
+  file.<br/>  <em>Workaround:</em> Avoid such commands.</li>
 
   <li>No way to delete document nodes from the overall collection of
   theories.<br/>
@@ -176,21 +176,14 @@ stateless environment of formal document content.</li>
   <li>No support for non-local markup, e.g. commands reporting on
   previous commands (proof end on proof head), or markup produced by
   loading external files.</li>
-</ul>
 
+  <li>The native MacOSX plugin for jEdit tends to be disruptive. It
+  might or might not improve the user experience, and is off by
+  default.</li>
 
-<h2>Known problems with Mac OS X</h2>
-
-<ul>
-
-<li>The MacOSX plugin for jEdit disrupts tends to be disruptive. It
-might or might not improve the user experience, and is off by
-default.</li>
-
-<li>Java 7 (by Oracle) is officially supported starting with Lion (or
-later), but not Snow Leopard. It happens to work on the latter as
-well, but there might be some instabilities.</li>
-
+  <li>Java 7 on MacOSX is officially supported on Lion and Mountain
+  Lion, but not Snow Leopard. It usually works on the latter, but
+  there might be some instabilities.</li>
 </ul>
 
 
