@@ -43,7 +43,6 @@ object Markup_Tree
   object Elements
   {
     val empty = new Elements(Set.empty)
-    def merge(es: Iterable[Elements]): Elements = (empty /: es.iterator)(_ ++ _)
   }
 
   final class Elements private(private val rep: Set[String])
@@ -66,22 +65,28 @@ object Markup_Tree
   object Entry
   {
     def apply(markup: Text.Markup, subtree: Markup_Tree): Entry =
-      Entry(markup.range, List(markup.info), Elements.empty + markup.info, subtree)
+      Entry(markup.range, List(markup.info), Elements.empty + markup.info,
+        subtree, subtree.make_elements)
 
     def apply(range: Text.Range, rev_markups: List[XML.Elem], subtree: Markup_Tree): Entry =
-      Entry(range, rev_markups, Elements.empty ++ rev_markups, subtree)
+      Entry(range, rev_markups, Elements.empty ++ rev_markups,
+        subtree, subtree.make_elements)
   }
 
   sealed case class Entry(
     range: Text.Range,
     rev_markup: List[XML.Elem],
     elements: Elements,
-    subtree: Markup_Tree)
+    subtree: Markup_Tree,
+    subtree_elements: Elements)
   {
-    def + (info: XML.Elem): Entry =
-      copy(rev_markup = info :: rev_markup, elements = elements + info)
-
     def markup: List[XML.Elem] = rev_markup.reverse
+
+    def + (markup: Text.Markup): Entry =
+      copy(rev_markup = markup.info :: rev_markup, elements = elements + markup.info)
+
+    def \ (markup: Text.Markup): Entry =
+      copy(subtree = subtree + markup, subtree_elements = subtree_elements + markup.info)
   }
 
   object Branches
@@ -148,6 +153,10 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
     }
   }
 
+  def make_elements: Elements =
+    (Elements.empty /: branches)(
+      { case (elements, (_, entry)) => elements ++ entry.subtree_elements ++ entry.elements })
+
   def + (new_markup: Text.Markup): Markup_Tree =
   {
     val new_range = new_markup.range
@@ -156,9 +165,9 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
       case None => new Markup_Tree(branches, Entry(new_markup, empty))
       case Some(entry) =>
         if (entry.range == new_range)
-          new Markup_Tree(branches, entry + new_markup.info)
+          new Markup_Tree(branches, entry + new_markup)
         else if (entry.range.contains(new_range))
-          new Markup_Tree(branches, entry.copy(subtree = entry.subtree + new_markup))
+          new Markup_Tree(branches, entry \ new_markup)
         else if (new_range.contains(branches.head._1) && new_range.contains(branches.last._1))
           new Markup_Tree(Branches.empty, Entry(new_markup, this))
         else {
@@ -218,19 +227,18 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
       }
 
     def results(x: A, entry: Entry): Option[A] =
-      if (notable(entry.elements)) {
-        val (y, changed) =
-          // FIXME proper cumulation order (including status markup) (!?)
-          ((x, false) /: entry.rev_markup)((res, info) =>
-            {
-              val (y, changed) = res
-              val arg = (y, Text.Info(entry.range, info))
-              if (result.isDefinedAt(arg)) (result(arg), true)
-              else res
-            })
-        if (changed) Some(y) else None
-      }
-      else None
+    {
+      val (y, changed) =
+        // FIXME proper cumulation order (including status markup) (!?)
+        ((x, false) /: entry.rev_markup)((res, info) =>
+          {
+            val (y, changed) = res
+            val arg = (y, Text.Info(entry.range, info))
+            if (result.isDefinedAt(arg)) (result(arg), true)
+            else res
+          })
+      if (changed) Some(y) else None
+    }
 
     def stream(
       last: Text.Offset,
@@ -239,10 +247,13 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
       stack match {
         case (parent, (range, entry) #:: more) :: rest =>
           val subrange = range.restrict(root_range)
-          val subtree = entry.subtree.overlapping(subrange).toStream
+          val subtree =
+            if (notable(entry.subtree_elements))
+              entry.subtree.overlapping(subrange).toStream
+            else Stream.empty
           val start = subrange.start
 
-          results(parent.info, entry) match {
+          (if (notable(entry.elements)) results(parent.info, entry) else None) match {
             case Some(res) =>
               val next = Text.Info(subrange, res)
               val nexts = stream(start, (next, subtree) :: (parent, more) :: rest)
