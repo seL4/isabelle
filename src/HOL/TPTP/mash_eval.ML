@@ -90,7 +90,8 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
         fun set_file_name heading (SOME dir) =
             let
               val prob_prefix =
-                "goal_" ^ string_of_int j ^ "__" ^ name ^ "__" ^ heading
+                "goal_" ^ string_of_int j ^ "__" ^ escape_meta name ^ "__" ^
+                heading
             in
               Config.put Sledgehammer_Provers.dest_dir dir
               #> Config.put Sledgehammer_Provers.problem_prefix
