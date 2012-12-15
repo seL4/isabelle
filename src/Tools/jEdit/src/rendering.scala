@@ -527,4 +527,16 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if text_colors.isDefinedAt(m) => text_colors(m)
         })
   }
+
+
+  /* nested text structure -- folds */
+
+  private val fold_depth_include = Set(Markup.SUBGOAL)
+
+  def fold_depth(range: Text.Range): Stream[Text.Info[Int]] =
+    snapshot.cumulate_markup[Int](range, 0, Some(fold_depth_include), _ =>
+      {
+        case (depth, Text.Info(_, XML.Elem(Markup(name, _), _)))
+        if fold_depth_include(name) => depth + 1
+      })
 }
