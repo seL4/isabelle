@@ -130,7 +130,7 @@ fun pretty_goals ctxt0 state =
     val (As, B) = Logic.strip_horn prop;
     val ngoals = length As;
   in
-    (if show_main_goal then [prt_term B] else []) @
+    (if show_main_goal then [Pretty.mark Markup.goal (prt_term B)] else []) @
      (if ngoals = 0 then [Pretty.str "No subgoals!"]
       else if ngoals > goals_limit then
         pretty_subgoals (take goals_limit As) @

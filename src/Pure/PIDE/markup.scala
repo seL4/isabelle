@@ -210,6 +210,7 @@ object Markup
   val PROOF_STATE = "proof_state"
 
   val STATE = "state"
+  val GOAL = "goal"
   val SUBGOAL = "subgoal"
 
 

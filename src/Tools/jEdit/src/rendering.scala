@@ -531,7 +531,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
 
   /* nested text structure -- folds */
 
-  private val fold_depth_include = Set(Markup.SUBGOAL)
+  private val fold_depth_include = Set(Markup.GOAL, Markup.SUBGOAL)
 
   def fold_depth(range: Text.Range): Stream[Text.Info[Int]] =
     snapshot.cumulate_markup[Int](range, 0, Some(fold_depth_include), _ =>
