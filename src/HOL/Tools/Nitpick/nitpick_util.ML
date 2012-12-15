@@ -283,9 +283,7 @@ fun get_class_def thy class =
 val monomorphic_term = ATP_Util.monomorphic_term
 val specialize_type = ATP_Util.specialize_type
 val eta_expand = ATP_Util.eta_expand
-
-fun time_limit NONE = I
-  | time_limit (SOME delay) = TimeLimit.timeLimit delay
+val time_limit = Sledgehammer_Util.time_limit
 
 fun DETERM_TIMEOUT delay tac st =
   Seq.of_list (the_list (time_limit delay (fn () => SINGLE tac st) ()))

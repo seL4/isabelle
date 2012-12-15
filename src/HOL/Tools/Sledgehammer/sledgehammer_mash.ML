@@ -818,7 +818,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
   if is_smt_prover ctxt prover then
     ()
   else
-    launch_thread timeout (fn () =>
+    launch_thread (timeout |> the_default one_day) (fn () =>
         let
           val thy = Proof_Context.theory_of ctxt
           val name = freshish_name ()
@@ -920,7 +920,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                   (commit false adds [] []; ([], next_commit_time ()))
                 else
                   (adds, next_commit)
-              val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
+              val timed_out =
+                case learn_timeout of
+                  SOME timeout => Time.> (Timer.checkRealTimer timer, timeout)
+                | NONE => false
             in (adds, ([name], n, next_commit, timed_out)) end
         val n =
           if null new_facts then
@@ -951,7 +954,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                   (commit false [] reps flops; ([], [], next_commit_time ()))
                 else
                   (reps, flops, next_commit)
-              val timed_out = Time.> (Timer.checkRealTimer timer, learn_timeout)
+              val timed_out =
+                case learn_timeout of
+                  SOME timeout => Time.> (Timer.checkRealTimer timer, timeout)
+                | NONE => false
             in ((reps, flops), (n, next_commit, timed_out)) end
         val n =
           if not run_prover orelse null old_facts then
@@ -1003,15 +1009,15 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
     val num_facts = length facts
     val prover = hd provers
     fun learn auto_level run_prover =
-      mash_learn_facts ctxt params prover auto_level run_prover infinite_timeout
-                       facts
+      mash_learn_facts ctxt params prover auto_level run_prover NONE facts
       |> Output.urgent_message
   in
     if run_prover then
       ("MaShing through " ^ string_of_int num_facts ^ " fact" ^
        plural_s num_facts ^ " for automatic proofs (" ^ quote prover ^
-       " timeout: " ^ string_from_time timeout ^
-       ").\n\nCollecting Isar proofs first..."
+       (case timeout of
+          SOME timeout => " timeout: " ^ string_from_time timeout
+        | NONE => "") ^ ").\n\nCollecting Isar proofs first..."
        |> Output.urgent_message;
        learn 1 false;
        "Now collecting automatic proofs. This may take several hours. You can \
@@ -1048,9 +1054,12 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
     let
       fun maybe_learn () =
         if learn andalso not (Async_Manager.has_running_threads MaShN) andalso
-           Time.toSeconds timeout >= min_secs_for_learning then
-          let val timeout = time_mult learn_timeout_slack timeout in
-            launch_thread timeout
+           (timeout = NONE orelse
+            Time.toSeconds (the timeout) >= min_secs_for_learning) then
+          let
+            val timeout = Option.map (time_mult learn_timeout_slack) timeout
+          in
+            launch_thread (timeout |> the_default one_day)
                 (fn () => (true, mash_learn_facts ctxt params prover 2 false
                                                   timeout facts))
           end

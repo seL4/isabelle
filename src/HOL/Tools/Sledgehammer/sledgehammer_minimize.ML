@@ -61,8 +61,12 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val _ =
       print silent (fn () =>
           "Testing " ^ n_facts (map fst facts) ^
-          (if verbose then " (timeout: " ^ string_from_time timeout ^ ")"
-           else "") ^ "...")
+          (if verbose then
+             case timeout of
+               SOME timeout => " (timeout: " ^ string_from_time timeout ^ ")"
+             | _ => ""
+           else
+             "") ^ "...")
     val {goal, ...} = Proof.goal state
     val facts =
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
@@ -101,10 +105,11 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
    part of the timeout. *)
 val slack_msecs = 200
 
-fun new_timeout timeout run_time =
-  Int.min (Time.toMilliseconds timeout,
-           Time.toMilliseconds run_time + slack_msecs)
-  |> Time.fromMilliseconds
+fun new_timeout NONE _ = NONE
+  | new_timeout (SOME timeout) run_time =
+    Int.min (Time.toMilliseconds timeout,
+             Time.toMilliseconds run_time + slack_msecs)
+    |> Time.fromMilliseconds |> SOME
 
 (* The linear algorithm usually outperforms the binary algorithm when over 60%
    of the facts are actually needed. The binary algorithm is much more
@@ -222,11 +227,12 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
      | {outcome = SOME TimedOut, preplay, ...} =>
        (NONE,
         (preplay,
-         fn _ => "Timeout: You can increase the time limit using the \
-                 \\"timeout\" option (e.g., \"timeout = " ^
-                 string_of_int (10 + Time.toMilliseconds timeout div 1000) ^
-                 "\").",
-         ""))
+         fn _ =>
+            "Timeout: You can increase the time limit using the \"timeout\" \
+            \option (e.g., \"timeout = " ^
+            string_of_int (10 + Time.toMilliseconds
+                (timeout |> the_default (seconds 60.0)) div 1000) ^
+            "\").", ""))
      | {preplay, message, ...} =>
        (NONE, (preplay, prefix "Prover error: " o message, "")))
     handle ERROR msg =>

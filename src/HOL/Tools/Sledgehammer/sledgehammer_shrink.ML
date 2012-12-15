@@ -9,8 +9,8 @@ signature SLEDGEHAMMER_SHRINK =
 sig
   type isar_step = Sledgehammer_Proof.isar_step
 	val shrink_proof : 
-    bool -> Proof.context -> string -> string -> bool -> Time.time -> real
-    -> isar_step list -> isar_step list * (bool * (bool * Time.time))
+    bool -> Proof.context -> string -> string -> bool -> Time.time option
+    -> real -> isar_step list -> isar_step list * (bool * (bool * Time.time))
 end
 
 structure Sledgehammer_Shrink : SLEDGEHAMMER_SHRINK =
@@ -46,7 +46,7 @@ fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
 (* Timing *)
 fun ext_time_add (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
-val no_time = (false, seconds 0.0)
+val no_time = (false, Time.zeroTime)
 fun take_time timeout tac arg =
   let val timing = Timing.start () in
     (TimeLimit.timeLimit timeout tac arg;
@@ -59,15 +59,18 @@ fun take_time timeout tac arg =
 fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                  isar_shrink proof =
 let
+  (* 60 seconds seems like a good interpreation of "no timeout" *)
+  val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
+
   (* handle metis preplay fail *)
   local
     open Unsynchronized
     val metis_fail = ref false
   in
     fun handle_metis_fail try_metis () =
-      try_metis () handle _ => (metis_fail := true ; SOME (seconds 0.0))
+      try_metis () handle _ => (metis_fail := true; SOME Time.zeroTime)
     fun get_time lazy_time = 
-      if !metis_fail then SOME (seconds 0.0) else Lazy.force lazy_time
+      if !metis_fail then SOME Time.zeroTime else Lazy.force lazy_time
     val metis_fail = fn () => !metis_fail
   end
   
@@ -120,7 +123,7 @@ let
         |> maps (thms_of_name ctxt)
 
     fun try_metis timeout (succedent, Prove (_, _, t, byline)) =
-      if not preplay then (fn () => SOME (seconds 0.0)) else
+      if not preplay then (fn () => SOME Time.zeroTime) else
       (case byline of
         By_Metis fact_names =>
           let
@@ -154,7 +157,7 @@ let
           in
             take_time timeout (fn () => goal tac)
           end)
-      | try_metis _ _  = (fn () => SOME (seconds 0.0) )
+      | try_metis _ _  = (fn () => SOME Time.zeroTime)
 
     val try_metis_quietly = the_default NONE oo try oo try_metis
 
@@ -195,7 +198,7 @@ let
               NONE => (NONE, metis_time)
             | some_t12 =>
               (SOME s12, metis_time
-                         |> replace (seconds 0.0 |> SOME |> Lazy.value) i
+                         |> replace (Time.zeroTime |> SOME |> Lazy.value) i
                          |> replace (Lazy.value some_t12) j)
 
           end))

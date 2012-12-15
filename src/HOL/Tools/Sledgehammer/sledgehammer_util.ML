@@ -19,6 +19,9 @@ sig
   val reserved_isar_keyword_table : unit -> unit Symtab.table
   val thms_in_proof : string Symtab.table option -> thm -> string list
   val thms_of_name : Proof.context -> string -> thm list
+  val one_day : Time.time
+  val one_year : Time.time
+  val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val with_vanilla_print_mode : ('a -> 'b) -> 'a -> 'b
 end;
 
@@ -118,6 +121,12 @@ fun thms_of_name ctxt name =
     |> Source.source Token.stopper (Parse_Spec.xthms1 >> get) NONE
     |> Source.exhaust
   end
+
+val one_day = seconds (24.0 * 60.0 * 60.0)
+val one_year = seconds (365.0 * 24.0 * 60.0 * 60.0)
+
+fun time_limit NONE = I
+  | time_limit (SOME delay) = TimeLimit.timeLimit delay
 
 fun with_vanilla_print_mode f x =
   Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)

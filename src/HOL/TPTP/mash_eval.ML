@@ -16,8 +16,12 @@ end;
 structure MaSh_Eval : MASH_EVAL =
 struct
 
+open Sledgehammer_Util
 open Sledgehammer_Fact
+open Sledgehammer_MePo
 open Sledgehammer_MaSh
+open Sledgehammer_Provers
+open Sledgehammer_Isar
 
 val MePoN = "MePo"
 val MaShN = "MaSh"
@@ -31,12 +35,12 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
     val _ = File.write report_path ""
     fun print s = (tracing s; File.append report_path (s ^ "\n"))
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
-      Sledgehammer_Isar.default_params ctxt []
+      default_params ctxt []
     val prover = hd provers
     val slack_max_facts = generous_max_facts (the max_facts)
     val sugg_path = sugg_file_name |> Path.explode
     val lines = sugg_path |> File.read_lines
-    val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
+    val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
     val all_names = build_all_names nickname_of facts
     val mepo_ok = Unsynchronized.ref 0
@@ -46,7 +50,7 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
     fun str_of_res label facts ({outcome, run_time, used_facts, ...}
-                                : Sledgehammer_Provers.prover_result) =
+                                : prover_result) =
       let val facts = facts |> map (fn ((name, _), _) => name ()) in
         "  " ^ label ^ ": " ^
         (if is_none outcome then
@@ -77,9 +81,9 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
         val isar_deps = isar_dependencies_of all_names th |> these
         val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
         val mepo_facts =
-          Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
-              slack_max_facts NONE hyp_ts concl_t facts
-          |> Sledgehammer_MePo.weight_mepo_facts
+          mepo_suggested_facts ctxt params prover slack_max_facts NONE hyp_ts
+              concl_t facts
+          |> weight_mepo_facts
         val (mash_facts, mash_unks) =
           find_mash_suggestions slack_max_facts suggs facts [] []
           |>> weight_mash_facts
@@ -93,9 +97,8 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
                 "goal_" ^ string_of_int j ^ "__" ^ escape_meta name ^ "__" ^
                 heading
             in
-              Config.put Sledgehammer_Provers.dest_dir dir
-              #> Config.put Sledgehammer_Provers.problem_prefix
-                            (prob_prefix ^ "__")
+              Config.put dest_dir dir
+              #> Config.put problem_prefix (prob_prefix ^ "__")
               #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
             end
           | set_file_name _ NONE = I
@@ -105,7 +108,7 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
             val facts =
               facts
               |> map get
-              |> Sledgehammer_Fact.maybe_instantiate_inducts ctxt hyp_ts concl_t
+              |> maybe_instantiate_inducts ctxt hyp_ts concl_t
               |> take (the max_facts)
               |> map nickify
             val ctxt = ctxt |> set_file_name heading prob_dir_name
@@ -128,11 +131,12 @@ fun evaluate_mash_suggestions ctxt params prob_dir_name sugg_file_name
       "  " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
                (100.0 * Real.fromInt (!ok) / Real.fromInt n) ^ "%)"
-    val inst_inducts = Config.get ctxt Sledgehammer_Fact.instantiate_inducts
+    val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
       [prover, string_of_int (the max_facts) ^ " facts",
        "slice" |> not slice ? prefix "dont_", the_default "smart" type_enc,
-       the_default "smart" lam_trans, ATP_Util.string_from_time timeout,
+       the_default "smart" lam_trans,
+       ATP_Util.string_from_time (timeout |> the_default one_year),
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
     val n = length lines
   in

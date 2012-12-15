@@ -23,7 +23,7 @@ sig
   type one_line_params =
     play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
-    bool * bool * Time.time * real * string Symtab.table
+    bool * bool * Time.time option * real * string Symtab.table
     * (string * stature) list vector * int Symtab.table * string proof * thm
 
   val smtN : string
@@ -592,7 +592,7 @@ val chain_direct_proof =
   in chain_proof NONE end
 
 type isar_params =
-  bool * bool * Time.time * real * string Symtab.table
+  bool * bool * Time.time option * real * string Symtab.table
   * (string * stature) list vector * int Symtab.table * string proof * thm
 
 fun isar_proof_text ctxt isar_proofs
@@ -607,7 +607,7 @@ fun isar_proof_text ctxt isar_proofs
       if is_typed_helper_used_in_atp_proof atp_proof then full_typesN
       else partial_typesN
     val lam_trans = lam_trans_from_atp_proof atp_proof metis_default_lam_trans
-    val preplay = preplay_timeout <> seconds 0.0
+    val preplay = preplay_timeout <> SOME Time.zeroTime
 
     fun isar_proof_of () =
       let
@@ -693,10 +693,12 @@ fun isar_proof_text ctxt isar_proofs
           |> redirect_graph axioms tainted
           |> map (do_inf true)
           |> append assms
-          |> (if not preplay andalso isar_shrink <= 1.0
-              then pair (false, (true, seconds 0.0)) #> swap
-              else shrink_proof debug ctxt type_enc lam_trans preplay
-                preplay_timeout (if isar_proofs then isar_shrink else 1000.0))
+          |> (if not preplay andalso isar_shrink <= 1.0 then
+                pair (false, (true, seconds 0.0)) #> swap
+              else
+                shrink_proof debug ctxt type_enc lam_trans preplay
+                    preplay_timeout
+                    (if isar_proofs then isar_shrink else 1000.0))
        (* |>> reorder_proof_to_minimize_jumps (* ? *) *)
           |>> chain_direct_proof
           |>> kill_useless_labels_in_proof

@@ -249,8 +249,6 @@ fun default_raw_params ctxt =
                          end)]
   end
 
-val the_timeout = the_default infinite_timeout
-
 fun extract_params mode default_params override_params =
   let
     val raw_params = rev override_params @ rev default_params
@@ -320,11 +318,10 @@ fun extract_params mode default_params override_params =
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =
       if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
-    val timeout =
-      (if mode = Auto_Try then NONE else lookup_time "timeout") |> the_timeout
+    val timeout = if mode = Auto_Try then NONE else lookup_time "timeout"
     val preplay_timeout =
-      if mode = Auto_Try then Time.zeroTime
-      else lookup_time "preplay_timeout" |> the_timeout
+      if mode = Auto_Try then SOME Time.zeroTime
+      else lookup_time "preplay_timeout"
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
