@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Toolkit, Color, Point, BorderLayout, Window, Dimension}
+import java.awt.{Color, Point, BorderLayout, Window, Dimension}
 import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, WindowAdapter}
 import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, KeyStroke}
 import javax.swing.border.LineBorder
@@ -107,27 +107,27 @@ class Pretty_Tooltip(
 
   /* window geometry */
 
+  val screen_point = new Point(mouse_x, mouse_y)
+  SwingUtilities.convertPointToScreen(screen_point, parent)
+  val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
+
   {
     val font_metrics = pretty_text_area.getPainter.getFontMetrics
-    val margin = PIDE.options.int("jedit_tooltip_margin")  // FIXME via rendering?!
+    val margin = rendering.tooltip_margin
     val lines =
       XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(font_metrics)))(0)(
         (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
-    val screen = Toolkit.getDefaultToolkit.getScreenSize
-    val w = (font_metrics.charWidth(Pretty.spc) * (margin + 2)) min (screen.width / 2)
-    val h = (font_metrics.getHeight * (lines + 2)) min (screen.height / 2)
+    val bounds = rendering.tooltip_bounds
+    val w =
+      (font_metrics.charWidth(Pretty.spc) * (margin + 2)) min (screen_bounds.width * bounds).toInt
+    val h =
+      (font_metrics.getHeight * (lines + 2)) min (screen_bounds.height * bounds).toInt
     pretty_text_area.setPreferredSize(new Dimension(w, h))
     window.pack
-  }
 
-  {
-    val point = new Point(mouse_x, mouse_y)
-    SwingUtilities.convertPointToScreen(point, parent)
-
-    val screen = Toolkit.getDefaultToolkit.getScreenSize
-    val x = point.x min (screen.width - window.getWidth)
-    val y = point.y min (screen.height - window.getHeight)
+    val x = screen_point.x min (screen_bounds.x + screen_bounds.width - window.getWidth)
+    val y = screen_point.y min (screen_bounds.y + screen_bounds.height - window.getHeight)
     window.setLocation(x, y)
   }
 

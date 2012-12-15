@@ -346,6 +346,9 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     Library.separate(Pretty.FBreak, all_tips.toList)
   }
 
+  val tooltip_margin: Int = options.int("jedit_tooltip_margin")
+  val tooltip_bounds: Double = (options.real("jedit_tooltip_bounds") max 0.2) min 0.8
+
 
   def gutter_message(range: Text.Range): Option[Icon] =
   {

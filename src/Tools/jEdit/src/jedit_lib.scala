@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Component, Container, Frame, Window}
+import java.awt.{Component, Container, Frame, Window, GraphicsEnvironment, Point, Rectangle}
 
 import scala.annotation.tailrec
 
@@ -20,6 +20,19 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 
 object JEdit_Lib
 {
+  /* bounds within multi-screen environment */
+
+  def screen_bounds(screen_point: Point): Rectangle =
+  {
+    val ge = GraphicsEnvironment.getLocalGraphicsEnvironment
+    (for {
+      device <- ge.getScreenDevices.iterator
+      config <- device.getConfigurations.iterator
+      bounds = config.getBounds
+    } yield bounds).find(_.contains(screen_point)) getOrElse ge.getMaximumWindowBounds
+  }
+
+
   /* GUI components */
 
   def get_parent(component: Component): Option[Container] =
