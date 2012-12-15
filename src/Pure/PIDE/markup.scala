@@ -145,6 +145,7 @@ object Markup
   /* text structure */
 
   val PARAGRAPH = "paragraph"
+  val TEXT_FOLD = "text_fold"
 
 
   /* ML syntax */

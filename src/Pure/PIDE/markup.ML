@@ -77,6 +77,7 @@ sig
   val document_antiquotationN: string
   val document_antiquotation_optionN: string
   val paragraphN: string val paragraph: T
+  val text_foldN: string val text_fold: T
   val keywordN: string val keyword: T
   val operatorN: string val operator: T
   val commandN: string val command: T
@@ -298,6 +299,7 @@ val document_antiquotation_optionN = "document_antiquotation_option";
 (* text structure *)
 
 val (paragraphN, paragraph) = markup_elem "paragraph";
+val (text_foldN, text_fold) = markup_elem "text_fold";
 
 
 (* outer syntax *)
