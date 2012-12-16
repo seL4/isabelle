@@ -9,8 +9,8 @@ Version information
 
 Installation
 
-   Isabelle works on the three main platform families: Linux, Mac OS
-   X, and Windows (via Cygwin).
+   Isabelle works on the three main platform families: Linux, Windows,
+   and Mac OS X.
 
    Completely integrated bundles including the full Isabelle sources,
    documentation, add-on tools and precompiled logic images for
@@ -21,25 +21,28 @@ Installation
 
 User interfaces
 
-   Isabelle/jEdit is an emerging Prover IDE based on advanced
-   technology of Isabelle/Scala.  It provides a metaphor of continuous
-   proof checking of a versioned collection of theory sources, with
+   Isabelle/jEdit is an advanced Prover IDE based on jEdit and
+   Isabelle/Scala.  It provides a metaphor of continuous proof
+   checking of a versioned collection of theory sources, with
    instantaneous feedback in real-time and rich semantic markup
    associated with the formal text.
 
    The classic Isabelle user interface is Proof General by David
    Aspinall and others.  It is a generic Emacs interface for proof
    assistants, including Isabelle.  Its main feature is script
-   management, providing a metaphor of stepwise proof script editing
-   and partial locking of the buffer.
+   management, with stepwise proof scripting and partial locking of
+   the editor buffer.
 
 Other sources of information
 
   The Isabelle Page
 
-   The Isabelle home page may be accessed both from Cambridge and Munich:
+   The Isabelle home page may be accessed from Cambridge, Munich, and
+   Sydney:
+
      * http://www.cl.cam.ac.uk/research/hvg/Isabelle/
      * http://isabelle.in.tum.de
+     * http://mirror.cse.unsw.edu.au/pub/isabelle/index.html
 
   Mailing list
 
