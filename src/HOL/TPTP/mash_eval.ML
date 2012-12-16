@@ -111,7 +111,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
           fun prove ok heading get facts =
             let
               fun nickify ((_, stature), th) =
-                ((K (nickname_of th), stature), th)
+                ((K (escape_meta (nickname_of th)), stature), th)
               val facts =
                 facts
                 |> map (get #> nickify)
