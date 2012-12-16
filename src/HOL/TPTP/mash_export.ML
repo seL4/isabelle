@@ -123,6 +123,7 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
       if in_range range j then
         let
           val name = nickname_of th
+          val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val deps =
             isar_or_prover_dependencies_of ctxt params_opt facts all_names th
                                            NONE
@@ -153,6 +154,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
     fun do_fact (j, ((name, ((_, stature), th)), prevs)) =
       if in_range range j then
         let
+          val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val feats =
             features_of ctxt prover (theory_of_thm th) stature [prop_of th]
           val isar_deps = isar_dependencies_of all_names th
