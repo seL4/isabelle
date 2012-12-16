@@ -60,6 +60,10 @@ lemma Collect_code [code]:
   "Collect P = set (filter P enum)"
   by (simp add: enum_UNIV)
 
+lemma vimage_code [code]:
+  "f -` B = set (filter (%x. f x : B) enum_class.enum)"
+  unfolding vimage_def Collect_code ..
+
 definition card_UNIV :: "'a itself \<Rightarrow> nat"
 where
   [code del]: "card_UNIV TYPE('a) = card (UNIV :: 'a set)"
