@@ -370,23 +370,22 @@ val global_state =
 
 in
 
-fun mash_map ctxt f =
+fun map_state ctxt f =
   Synchronized.change global_state (load ctxt ##> (f #> save ctxt))
   handle Too_New () => ()
 
-fun mash_peek ctxt f =
+fun peek_state ctxt f =
   Synchronized.change_result global_state
       (perhaps (try (load ctxt)) #> `snd #>> f)
 
-fun mash_get ctxt =
-  Synchronized.change_result global_state (perhaps (try (load ctxt)) #> `snd)
-
-fun mash_unlearn ctxt =
+fun clear_state ctxt =
   Synchronized.change global_state (fn _ =>
       (mash_CLEAR ctxt; (* also removes the state file *)
        (true, empty_state)))
 
 end
+
+val mash_unlearn = clear_state
 
 
 (*** Isabelle helpers ***)
@@ -762,7 +761,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
   let
     val thy = Proof_Context.theory_of ctxt
     val (fact_G, suggs) =
-      mash_peek ctxt (fn {fact_G, ...} =>
+      peek_state ctxt (fn {fact_G, ...} =>
           if Graph.is_empty fact_G then
             (fact_G, [])
           else
@@ -825,7 +824,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val feats = features_of ctxt prover thy (Local, General) [t]
           val deps = used_ths |> map nickname_of
         in
-          mash_peek ctxt (fn {fact_G, ...} =>
+          peek_state ctxt (fn {fact_G, ...} =>
               let val parents = maximal_in_graph fact_G facts in
                 mash_ADD ctxt overlord [(name, parents, feats, deps)]
               end);
@@ -843,7 +842,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     val timer = Timer.startRealTimer ()
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
-    val {fact_G, ...} = mash_get ctxt
+    val {fact_G, ...} = peek_state ctxt I
     val facts = facts |> sort (thm_ord o pairself snd)
     val (old_facts, new_facts) =
       facts |> List.partition (is_fact_in_graph fact_G)
@@ -894,7 +893,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
              Output.urgent_message "Committing..."
            else
              ();
-           mash_map ctxt (do_commit (rev adds) reps flops);
+           map_state ctxt (do_commit (rev adds) reps flops);
            if not last andalso auto_level = 0 then
              let val num_proofs = length adds + length reps in
                "Learned " ^ string_of_int num_proofs ^ " " ^
@@ -1032,7 +1031,8 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
   end
 
 fun is_mash_enabled () = (getenv "MASH" = "yes")
-fun mash_can_suggest_facts ctxt = not (Graph.is_empty (#fact_G (mash_get ctxt)))
+fun mash_can_suggest_facts ctxt =
+  not (Graph.is_empty (#fact_G (peek_state ctxt I)))
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons. *)
