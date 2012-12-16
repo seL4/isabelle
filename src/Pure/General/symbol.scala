@@ -202,7 +202,7 @@ object Symbol
   /** symbol interpretation **/
 
   private lazy val symbols =
-    new Interpretation(File.try_read(Path.split(Isabelle_System.getenv_strict("ISABELLE_SYMBOLS"))))
+    new Interpretation(File.try_read(Path.split(Isabelle_System.getenv("ISABELLE_SYMBOLS"))))
 
   private class Interpretation(symbols_spec: String)
   {
