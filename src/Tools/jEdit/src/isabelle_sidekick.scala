@@ -177,15 +177,15 @@ class Isabelle_Sidekick_Structure(
 
 
 class Isabelle_Sidekick_Default extends Isabelle_Sidekick_Structure(
-  "isabelle", PIDE.get_recent_syntax, JEdit_Lib.buffer_node_name)
+  "isabelle", PIDE.get_recent_syntax, PIDE.thy_load.buffer_node_name)
 
 
 class Isabelle_Sidekick_Options extends Isabelle_Sidekick_Structure(
-  "isabelle-options", Some(Options.options_syntax), JEdit_Lib.buffer_node_dummy)
+  "isabelle-options", Some(Options.options_syntax), PIDE.thy_load.buffer_node_dummy)
 
 
 class Isabelle_Sidekick_Root extends Isabelle_Sidekick_Structure(
-  "isabelle-root", Some(Build.root_syntax), JEdit_Lib.buffer_node_dummy)
+  "isabelle-root", Some(Build.root_syntax), PIDE.thy_load.buffer_node_dummy)
 
 
 class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_recent_syntax)

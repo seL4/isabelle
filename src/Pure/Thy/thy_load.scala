@@ -23,9 +23,9 @@ object Thy_Load
     catch { case ERROR(_) => false }
 
 
-  /* node names */
+  /* document node names */
 
-  def external_node(raw_path: Path): Document.Node.Name =
+  def path_node_name(raw_path: Path): Document.Node.Name =
   {
     val path = raw_path.expand
     val node = path.implode
@@ -122,5 +122,12 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
 
   def check_thy(name: Document.Node.Name): Document.Node.Header =
     with_thy_text(name, check_thy_text(name, _))
+
+
+  /* theory text edits */
+
+  def text_edits(reparse_limit: Int, previous: Document.Version, edits: List[Document.Edit_Text])
+      : (List[Document.Edit_Command], Document.Version) =
+    Thy_Syntax.text_edits(base_syntax, reparse_limit, previous, edits)
 }
 
