@@ -77,15 +77,6 @@ object JEdit_Lib
 
   def buffer_name(buffer: Buffer): String = buffer.getSymlinkPath
 
-  def buffer_node_dummy(buffer: Buffer): Option[Document.Node.Name] =
-    Some(Document.Node.Name(buffer_name(buffer), buffer.getDirectory, buffer.getName))
-
-  def buffer_node_name(buffer: Buffer): Option[Document.Node.Name] =
-  {
-    val name = buffer_name(buffer)
-    Thy_Header.thy_name(name).map(theory => Document.Node.Name(name, buffer.getDirectory, theory))
-  }
-
 
   /* main jEdit components */
 

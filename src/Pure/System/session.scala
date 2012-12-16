@@ -110,8 +110,8 @@ class Session(val thy_load: Thy_Load)
         case Text_Edits(previous, text_edits, version_result) =>
           val prev = previous.get_finished
           val (doc_edits, version) =
-            Timing.timeit("Thy_Syntax.text_edits", timing) {
-              Thy_Syntax.text_edits(thy_load.base_syntax, reparse_limit, prev, text_edits)
+            Timing.timeit("Thy_Load.text_edits", timing) {
+              thy_load.text_edits(reparse_limit, prev, text_edits)
             }
           version_result.fulfill(version)
           sender ! Change(doc_edits, prev, version)

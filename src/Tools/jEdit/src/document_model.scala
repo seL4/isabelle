@@ -23,7 +23,7 @@ object Document_Model
 {
   /* document model of buffer */
 
-  private val key = "isabelle.document_model"
+  private val key = "PIDE.document_model"
 
   def apply(buffer: Buffer): Option[Document_Model] =
   {

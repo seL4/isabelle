@@ -76,7 +76,7 @@ object PIDE
         (List.empty[Document.Edit_Text] /: buffers) { case (edits, buffer) =>
           JEdit_Lib.buffer_lock(buffer) {
             val (model_edits, opt_model) =
-              JEdit_Lib.buffer_node_name(buffer) match {
+              thy_load.buffer_node_name(buffer) match {
                 case Some(node_name) =>
                   document_model(buffer) match {
                     case Some(model) if model.name == node_name => (Nil, Some(model))
@@ -95,7 +95,7 @@ object PIDE
             model_edits ::: edits
           }
         }
-      PIDE.session.update(init_edits)
+      session.update(init_edits)
     }
   }
 
@@ -121,7 +121,7 @@ object PIDE
 
   def check_buffer(buffer: Buffer)
   {
-    PIDE.document_model(buffer) match {
+    document_model(buffer) match {
       case Some(model) => model.full_perspective()
       case None =>
     }

@@ -370,7 +370,7 @@ object Build
           val thy_deps =
             thy_info.dependencies(inlined_files,
               info.theories.map(_._2).flatten.
-                map(thy => Thy_Load.external_node(info.dir + Thy_Load.thy_path(thy))))
+                map(thy => Thy_Load.path_node_name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = thy_deps.loaded_theories
           val syntax = thy_deps.make_syntax

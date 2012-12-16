@@ -14,12 +14,26 @@ import javax.swing.text.Segment
 
 import org.gjt.sp.jedit.io.{VFS, FileVFS, VFSFile, VFSManager}
 import org.gjt.sp.jedit.MiscUtilities
-import org.gjt.sp.jedit.View
+import org.gjt.sp.jedit.{View, Buffer}
 
 
 class JEdit_Thy_Load(loaded_theories: Set[String] = Set.empty, base_syntax: Outer_Syntax)
   extends Thy_Load(loaded_theories, base_syntax)
 {
+  /* document node names */
+
+  def buffer_node_dummy(buffer: Buffer): Option[Document.Node.Name] =
+    Some(Document.Node.Name(JEdit_Lib.buffer_name(buffer), buffer.getDirectory, buffer.getName))
+
+  def buffer_node_name(buffer: Buffer): Option[Document.Node.Name] =
+  {
+    val name = JEdit_Lib.buffer_name(buffer)
+    Thy_Header.thy_name(name).map(theory => Document.Node.Name(name, buffer.getDirectory, theory))
+  }
+
+
+  /* file-system operations */
+
   override def append(dir: String, source_path: Path): String =
   {
     val path = source_path.expand
