@@ -47,10 +47,10 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
     val all_names = build_all_names nickname_of facts
-    val mepo_ok = Unsynchronized.ref 0
-    val mash_ok = Unsynchronized.ref 0
-    val mesh_ok = Unsynchronized.ref 0
-    val isar_ok = Unsynchronized.ref 0
+    val mepo_ok = Synchronized.var "mepo_ok" 0
+    val mash_ok = Synchronized.var "mash_ok" 0
+    val mesh_ok = Synchronized.var "mesh_ok" 0
+    val isar_ok = Synchronized.var "isar_ok" 0
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
     fun str_of_res label facts ({outcome, run_time, used_facts, ...}
@@ -120,7 +120,9 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
               val ctxt = ctxt |> set_file_name heading prob_dir_name
               val res as {outcome, ...} =
                 run_prover_for_mash ctxt params prover facts goal
-              val _ = if is_none outcome then ok := !ok + 1 else ()
+              val _ =
+                if is_none outcome then Synchronized.change ok (Integer.add 1)
+                else ()
             in str_of_res heading facts res end
           val [mepo_s, mash_s, mesh_s, isar_s] =
             [fn () => prove mepo_ok MePoN fst mepo_facts,
@@ -131,14 +133,17 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
         in
           ["Goal " ^ string_of_int j ^ ": " ^ name, mepo_s, mash_s, mesh_s,
            isar_s]
-          |> cat_lines |> print
+          |> cat_lines |> print;
+          1
         end
       else
-        ()
+        0
     fun total_of heading ok n =
-      "  " ^ heading ^ ": " ^ string_of_int (!ok) ^ " (" ^
-      Real.fmt (StringCvt.FIX (SOME 1))
-               (100.0 * Real.fromInt (!ok) / Real.fromInt n) ^ "%)"
+      let val ok_val = Synchronized.value ok in
+        "  " ^ heading ^ ": " ^ string_of_int ok_val ^ " (" ^
+        Real.fmt (StringCvt.FIX (SOME 1))
+                 (100.0 * Real.fromInt ok_val / Real.fromInt n) ^ "%)"
+      end
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
       [prover, string_of_int (the max_facts) ^ " facts",
@@ -146,11 +151,10 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
        the_default "smart" lam_trans,
        ATP_Util.string_from_time (timeout |> the_default one_year),
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
-    val n = length lines
+    val _ = print " * * *";
+    val _ = print ("Options: " ^ commas options);
+    val n = Integer.sum (Par_List.map solve_goal (tag_list 1 lines))
   in
-    print " * * *";
-    print ("Options: " ^ commas options);
-    Par_List.map solve_goal (tag_list 1 lines);
     ["Successes (of " ^ string_of_int n ^ " goals)",
      total_of MePoN mepo_ok n,
      total_of MaShN mash_ok n,
