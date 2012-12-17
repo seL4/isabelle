@@ -358,6 +358,8 @@ fun struct_induct_rule_on th =
       NONE
   | _ => NONE
 
+val instantiate_induct_timeout = seconds 0.01
+
 fun instantiate_induct_rule ctxt concl_prop p_name ((name, stature), th) ind_x =
   let
     fun varify_noninducts (t as Free (s, T)) =
@@ -381,7 +383,8 @@ fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, th)) =
     SOME (p_name, ind_T) =>
     let val thy = Proof_Context.theory_of ctxt in
       stmt_xs |> filter (fn (_, T) => type_match thy (T, ind_T))
-              |> map_filter (try (instantiate_induct_rule ctxt stmt p_name ax))
+              |> map_filter (try (TimeLimit.timeLimit instantiate_induct_timeout
+                     (instantiate_induct_rule ctxt stmt p_name ax)))
     end
   | NONE => [ax]
 
