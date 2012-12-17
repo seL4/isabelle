@@ -13,7 +13,9 @@ Notes on central Isabelle repository
     fncache
 
 * See http://mercurial.selenic.com/wiki/MultipleCommitters for old-fashioned
-  CVS-like multiple committers configuration, "The filesystem method":
+  CVS-like multiple committers configuration, "The filesystem method".
+
+  A fresh multi-user clone is initialized like this:
 
     hg --config format.dotencode=0 init isabelle-clone
     cd isabelle-clone
@@ -24,4 +26,27 @@ Notes on central Isabelle repository
 
   Now isabelle-clone is ready for push of repository data (without making
   a working directory).
+
+* Addressing technical issues: according to
+  http://mercurial.selenic.com/wiki/PublishingRepositories our shared disk
+  configuration (after regular ssh login) is characterized as follows:
+
+    Advantages: can use existing setup
+
+    Disadvantages: generally restricted to intranets, not generally
+    recommended due to general issues with network filesystem reliability
+
+  Due to NFS instabilities of unknown origin at TUM, drop-outs have
+  happened before. The following measures of last resort can be applied:
+
+    (a) "hg verify" to find offending changesets
+        "hg strip REV" to remove parts of the public history by vivisection
+
+    (b) fresh clone from known-good source as explained above
+
+  Note that any such non-monotonic changes on the central push area work
+  under the assumption of sequential single-user mode!!
+
+  See also http://mercurial.selenic.com/wiki/RepositoryCorruption for
+  further background information.
 
