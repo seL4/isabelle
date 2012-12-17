@@ -69,7 +69,10 @@ object Isabelle_Logic
   def session_list(): List[String] =
   {
     val dirs = session_dirs().map((false, _))
-    Build.find_sessions(PIDE.options.value, dirs).topological_order.map(_._1).sorted
+    val session_tree = Build.find_sessions(PIDE.options.value, dirs)
+    val (main_sessions, other_sessions) =
+      session_tree.topological_order.partition(p => p._2.groups.contains("main"))
+    main_sessions.map(_._1).sorted ::: other_sessions.map(_._1).sorted
   }
 
   def session_content(inlined_files: Boolean): Build.Session_Content =
