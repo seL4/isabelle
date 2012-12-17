@@ -10,26 +10,30 @@ Quick start in 25min
 1b. Mac OS X and Linux: ensure that Mercurial (hg) is installed; see
    also http://www.selenic.com/mercurial
 
-2. Create file $USER_HOME/.isabelle/etc/settings and insert the following
+2. Create file $HOME/.isabelle/etc/settings and insert the following
    line near its beginning:
 
-    init_components "$USER_HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
+    init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
 
 3. Execute bash shell commands as follows:
 
     hg clone http://isabelle.in.tum.de/repos/isabelle
 
-    ./isabelle/bin/isabelle components -a
+    cd isabelle
 
-    ./isabelle/bin/isabelle build -b HOL
+    ./bin/isabelle components -a
 
-    ./isabelle/bin/isabelle jedit
+    ./bin/isabelle jedit -l HOL
 
-4. For later update replace "hg clone ..." above by:
+4. To stay up-to-date later on, pull changes like this:
 
     cd isabelle
 
     hg pull -u
+
+    ./bin/isabelle components -a
+
+    ./bin/isabelle jedit -l HOL
 
 
 Introduction
@@ -303,7 +307,12 @@ components change accordingly.
 
 The Isabelle build process is managed as follows:
 
-  * regular "isabelle build" to build session images, e.g. HOL;
+  * regular "isabelle build" to build session images, for example:
+
+      isabelle build -b HOL
 
   * administrative "isabelle build_doc" to populate the doc/
-    directory, such that "isabelle doc" will find the results.
+    directory, such that "isabelle doc" will find the results, for example:
+
+      isabelle build_doc IsarRef
+
