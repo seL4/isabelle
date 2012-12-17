@@ -26,10 +26,10 @@ setup {*
 text{*
 
 \begin{abstract}
-This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. The sophisticated class structure is only hinted at. For details see \url{http://isabelle.in.tum.de/library/HOL/}.
+This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. For infix operators and their precedences see the final section. The sophisticated class structure is only hinted at. For details see \url{http://isabelle.in.tum.de/library/HOL/}.
 \end{abstract}
 
-\section{HOL}
+\section*{HOL}
 
 The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"}, @{prop"P & Q"}, @{prop "P | Q"}, @{prop "P --> Q"}, @{prop"ALL x. P"}, @{prop"EX x. P"}, @{prop"EX! x. P"}, @{term"THE x. P"}.
 \smallskip
@@ -49,7 +49,7 @@ The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"},
 \end{supertabular}
 
 
-\section{Orderings}
+\section*{Orderings}
 
 A collection of classes defining basic orderings:
 preorder, partial order, linear order, dense linear order and wellorder.
@@ -79,7 +79,7 @@ preorder, partial order, linear order, dense linear order and wellorder.
 \end{supertabular}
 
 
-\section{Lattices}
+\section*{Lattices}
 
 Classes semilattice, lattice, distributive lattice and complete lattice (the
 latter in theory @{theory Set}).
@@ -108,10 +108,7 @@ Library}.
 \end{supertabular}
 
 
-\section{Set}
-
-%Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
-%\bigskip
+\section*{Set}
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{const Set.empty} & @{term_type_only "Set.empty" "'a set"}\\
@@ -151,7 +148,7 @@ Library}.
 \end{supertabular}
 
 
-\section{Fun}
+\section*{Fun}
 
 \begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{const "Fun.id"} & @{typeof Fun.id}\\
@@ -172,7 +169,7 @@ Library}.
 \end{tabular}
 
 
-\section{Hilbert\_Choice}
+\section*{Hilbert\_Choice}
 
 Hilbert's selection ($\varepsilon$) operator: @{term"SOME x. P"}.
 \smallskip
@@ -187,7 +184,7 @@ Hilbert's selection ($\varepsilon$) operator: @{term"SOME x. P"}.
 @{term inv} & @{term[source]"inv_into UNIV"}
 \end{tabular}
 
-\section{Fixed Points}
+\section*{Fixed Points}
 
 Theory: @{theory Inductive}.
 
@@ -200,7 +197,7 @@ Least and greatest fixed points in a complete lattice @{typ 'a}:
 
 Note that in particular sets (@{typ"'a \<Rightarrow> bool"}) are complete lattices.
 
-\section{Sum\_Type}
+\section*{Sum\_Type}
 
 Type constructor @{text"+"}.
 
@@ -211,7 +208,7 @@ Type constructor @{text"+"}.
 \end{tabular}
 
 
-\section{Product\_Type}
+\section*{Product\_Type}
 
 Types @{typ unit} and @{text"\<times>"}.
 
@@ -239,7 +236,7 @@ Pattern matching with pairs and tuples extends to all binders,
 e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 
 
-\section{Relation}
+\section*{Relation}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Relation.converse} & @{term_type_only Relation.converse "('a * 'b)set \<Rightarrow> ('b*'a)set"}\\
@@ -271,7 +268,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 \noindent
 Type synonym \ @{typ"'a rel"} @{text"="} @{expanded_typ "'a rel"}
 
-\section{Equiv\_Relations}
+\section*{Equiv\_Relations}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const Equiv_Relations.equiv} & @{term_type_only Equiv_Relations.equiv "'a set \<Rightarrow> ('a*'a)set\<Rightarrow>bool"}\\
@@ -289,7 +286,7 @@ Type synonym \ @{typ"'a rel"} @{text"="} @{expanded_typ "'a rel"}
 \end{tabular}
 
 
-\section{Transitive\_Closure}
+\section*{Transitive\_Closure}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Transitive_Closure.rtrancl} & @{term_type_only Transitive_Closure.rtrancl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
@@ -308,7 +305,7 @@ Type synonym \ @{typ"'a rel"} @{text"="} @{expanded_typ "'a rel"}
 \end{tabular}
 
 
-\section{Algebra}
+\section*{Algebra}
 
 Theories @{theory Groups}, @{theory Rings}, @{theory Fields} and @{theory
 Divides} define a large collection of classes describing common algebraic
@@ -338,7 +335,7 @@ overloaded operators:
 \end{tabular}
 
 
-\section{Nat}
+\section*{Nat}
 
 @{datatype nat}
 \bigskip
@@ -365,7 +362,7 @@ overloaded operators:
   @{term_type_only "op ^^ :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"}
 \end{tabular}
 
-\section{Int}
+\section*{Int}
 
 Type @{typ int}
 \bigskip
@@ -402,7 +399,7 @@ Type @{typ int}
 \end{tabular}
 
 
-\section{Finite\_Set}
+\section*{Finite\_Set}
 
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
@@ -425,7 +422,7 @@ Type @{typ int}
 \end{supertabular}
 
 
-\section{Wellfounded}
+\section*{Wellfounded}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const Wellfounded.wf} & @{term_type_only Wellfounded.wf "('a*'a)set\<Rightarrow>bool"}\\
@@ -438,7 +435,7 @@ Type @{typ int}
 \end{supertabular}
 
 
-\section{SetInterval}
+\section*{Set\_Interval} % @{theory Set_Interval}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const lessThan} & @{term_type_only lessThan "'a::ord \<Rightarrow> 'a set"}\\
@@ -473,14 +470,14 @@ Type @{typ int}
 \end{supertabular}
 
 
-\section{Power}
+\section*{Power}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Power.power} & @{typeof Power.power}
 \end{tabular}
 
 
-\section{Option}
+\section*{Option}
 
 @{datatype option}
 \bigskip
@@ -492,7 +489,7 @@ Type @{typ int}
 @{const Option.bind} & @{term_type_only Option.bind "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option"}
 \end{tabular}
 
-\section{List}
+\section*{List}
 
 @{datatype list}
 \bigskip
@@ -563,7 +560,7 @@ List comprehension: @{text"[e. q\<^isub>1, \<dots>, q\<^isub>n]"} where each
 qualifier @{text q\<^isub>i} is either a generator \mbox{@{text"pat \<leftarrow> e"}} or a
 guard, i.e.\ boolean expression.
 
-\section{Map}
+\section*{Map}
 
 Maps model partial functions and are often used as finite tables. However,
 the domain of a map may be infinite.
@@ -590,6 +587,35 @@ the domain of a map may be infinite.
 @{term"map_upds m xs ys"} & @{term[source]"map_upds m xs ys"}\\
 \end{tabular}
 
+\section*{Infix operators in Main} % @{theory Main}
+
+\begin{center}
+\begin{tabular}{lll}
+Operator & precedence & associativity \\
+@{text"="}, @{text"\<noteq>"} & 50 & left\\
+@{text"\<le>"}, @{text"<"}, @{text"\<ge>"}, @{text">"} & 50 \\
+@{text"\<and>"} & 35 & right \\
+@{text"\<or>"} & 30 & right \\
+@{text"\<longrightarrow>"}, @{text"\<longleftrightarrow>"} & 25 & right\\
+@{text"\<subseteq>"}, @{text"\<subset>"}, @{text"\<supseteq>"}, @{text"\<supset>"} & 50 \\
+@{text"\<in>"}, @{text"\<notin>"} & 50 \\
+@{text"\<inter>"} & 70 & left \\
+@{text"\<union>"} & 65 & left \\
+@{text"\<circ>"} & 55 & left\\
+@{text"`"} & 90 & right\\
+@{text"O"} & 75 & right\\
+@{text"``"} & 90 & right\\
+@{text"+"}, @{text"-"} & 65 & left \\
+@{text"*"}, @{text"/"} & 70 & left \\
+@{text"div"}, @{text"mod"} & 70 & left\\
+@{text"^"} & 80 & right\\
+@{text"^^"} & 80 & right\\
+@{text"dvd"} & 50 \\
+@{text"#"}, @{text"@"} & 65 & right\\
+@{text"!"} & 100 & left\\
+@{text"++"} & 100 & left\\
+\end{tabular}
+\end{center}
 *}
 (*<*)
 end
