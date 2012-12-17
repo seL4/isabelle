@@ -37,7 +37,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
   let
     val report_path = report_file_name |> Path.explode
     val _ = File.write report_path ""
-    fun print s = (tracing s; File.append report_path (s ^ "\n"))
+    fun print s = File.append report_path (s ^ "\n")
     val {provers, max_facts, slice, type_enc, lam_trans, timeout, ...} =
       default_params ctxt []
     val prover = hd provers
