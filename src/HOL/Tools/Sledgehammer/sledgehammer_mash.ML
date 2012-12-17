@@ -519,7 +519,9 @@ val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]
 val logical_consts =
   [@{const_name prop}, @{const_name Pure.conjunction}] @ atp_logical_consts
 
-fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
+val max_pattern_breadth = 10
+
+fun interesting_terms_types_and_classes ctxt prover thy_name term_max_depth
                                         type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -552,8 +554,10 @@ fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
           []
       | patternify_term args depth (t $ u) =
         let
-          val ps = patternify_term (u :: args) depth t
-          val qs = "" :: patternify_term [] (depth - 1) u
+          val ps =
+            take max_pattern_breadth (patternify_term (u :: args) depth t)
+          val qs =
+            take max_pattern_breadth ("" :: patternify_term [] (depth - 1) u)
         in map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs end
       | patternify_term _ _ _ = []
     fun add_term_pattern feature_of =
@@ -584,7 +588,7 @@ val type_max_depth = 2
 fun features_of ctxt prover thy (scope, status) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
+    interesting_terms_types_and_classes ctxt prover thy_name term_max_depth
         type_max_depth ts
     |> status <> General ? cons (status_feature_of status)
     |> scope <> Global ? cons local_feature
