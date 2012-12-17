@@ -18,26 +18,26 @@ where
 
 notation
   member  ("op :") and
-  member  ("(_/ : _)" [50, 51] 50)
+  member  ("(_/ : _)" [51, 51] 50)
 
 abbreviation not_member where
   "not_member x A \<equiv> ~ (x : A)" -- "non-membership"
 
 notation
   not_member  ("op ~:") and
-  not_member  ("(_/ ~: _)" [50, 51] 50)
+  not_member  ("(_/ ~: _)" [51, 51] 50)
 
 notation (xsymbols)
   member      ("op \<in>") and
-  member      ("(_/ \<in> _)" [50, 51] 50) and
+  member      ("(_/ \<in> _)" [51, 51] 50) and
   not_member  ("op \<notin>") and
-  not_member  ("(_/ \<notin> _)" [50, 51] 50)
+  not_member  ("(_/ \<notin> _)" [51, 51] 50)
 
 notation (HTML output)
   member      ("op \<in>") and
-  member      ("(_/ \<in> _)" [50, 51] 50) and
+  member      ("(_/ \<in> _)" [51, 51] 50) and
   not_member  ("op \<notin>") and
-  not_member  ("(_/ \<notin> _)" [50, 51] 50)
+  not_member  ("(_/ \<notin> _)" [51, 51] 50)
 
 
 text {* Set comprehensions *}
@@ -156,21 +156,21 @@ abbreviation
 
 notation (output)
   subset  ("op <") and
-  subset  ("(_/ < _)" [50, 51] 50) and
+  subset  ("(_/ < _)" [51, 51] 50) and
   subset_eq  ("op <=") and
-  subset_eq  ("(_/ <= _)" [50, 51] 50)
+  subset_eq  ("(_/ <= _)" [51, 51] 50)
 
 notation (xsymbols)
   subset  ("op \<subset>") and
-  subset  ("(_/ \<subset> _)" [50, 51] 50) and
+  subset  ("(_/ \<subset> _)" [51, 51] 50) and
   subset_eq  ("op \<subseteq>") and
-  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
+  subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50)
 
 notation (HTML output)
   subset  ("op \<subset>") and
-  subset  ("(_/ \<subset> _)" [50, 51] 50) and
+  subset  ("(_/ \<subset> _)" [51, 51] 50) and
   subset_eq  ("op \<subseteq>") and
-  subset_eq  ("(_/ \<subseteq> _)" [50, 51] 50)
+  subset_eq  ("(_/ \<subseteq> _)" [51, 51] 50)
 
 abbreviation (input)
   supset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -182,9 +182,9 @@ abbreviation (input)
 
 notation (xsymbols)
   supset  ("op \<supset>") and
-  supset  ("(_/ \<supset> _)" [50, 51] 50) and
+  supset  ("(_/ \<supset> _)" [51, 51] 50) and
   supset_eq  ("op \<supseteq>") and
-  supset_eq  ("(_/ \<supseteq> _)" [50, 51] 50)
+  supset_eq  ("(_/ \<supseteq> _)" [51, 51] 50)
 
 definition Ball :: "'a set \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
   "Ball A P \<longleftrightarrow> (\<forall>x. x \<in> A \<longrightarrow> P x)"   -- "bounded universal quantifiers"
