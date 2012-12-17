@@ -222,7 +222,7 @@ by (metis fst_SUP snd_SUP surjective_pairing)
 
 subsection {* Complete distributive lattices *}
 
-(* Contribution: Allesandro Coglio *)
+(* Contribution: Alessandro Coglio *)
 
 instance prod ::
   (complete_distrib_lattice, complete_distrib_lattice) complete_distrib_lattice
