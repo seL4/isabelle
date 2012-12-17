@@ -97,7 +97,8 @@ fun generate_features ctxt prover thys include_thys file_name =
         val name = nickname_of th
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-        val s = escape_meta name ^ ": " ^ encode_features feats ^ "\n"
+        val s =
+          escape_meta name ^ ": " ^ encode_features (sort_wrt fst feats) ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -163,7 +164,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
                                            (SOME isar_deps)
           val core =
             escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
-            encode_features feats
+            encode_features (sort_wrt fst feats)
           val query =
             if is_bad_query ctxt ho_atp th (these isar_deps) then ""
             else "? " ^ core ^ "\n"
