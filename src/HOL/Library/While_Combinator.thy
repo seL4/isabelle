@@ -77,6 +77,74 @@ proof -
   thus "P t" by (auto simp: t)
 qed
 
+lemma funpow_commute: 
+  "\<lbrakk>\<forall>k' < k. f (c ((c^^k') s)) = c' (f ((c^^k') s))\<rbrakk> \<Longrightarrow> f ((c^^k) s) = (c'^^k) (f s)"
+by (induct k arbitrary: s) auto
+
+lemma while_option_commute:
+  assumes "\<And>s. b s = b' (f s)" "\<And>s. \<lbrakk>b s\<rbrakk> \<Longrightarrow> f (c s) = c' (f s)" 
+  shows "Option.map f (while_option b c s) = while_option b' c' (f s)"
+unfolding while_option_def
+proof (rule trans[OF if_distrib if_cong], safe, unfold option.inject)
+  fix k assume "\<not> b ((c ^^ k) s)"
+  thus "\<exists>k. \<not> b' ((c' ^^ k) (f s))"
+  proof (induction k arbitrary: s)
+    case 0 thus ?case by (auto simp: assms(1) intro: exI[of _ 0])
+  next
+    case (Suc k)
+    hence "\<not> b ((c^^k) (c s))" by (auto simp: funpow_swap1)
+    then guess k by (rule exE[OF Suc.IH[of "c s"]])
+    with assms show ?case by (cases "b s") (auto simp: funpow_swap1 intro: exI[of _ "Suc k"] exI[of _ "0"])
+  qed
+next
+  fix k assume "\<not> b' ((c' ^^ k) (f s))"
+  thus "\<exists>k. \<not> b ((c ^^ k) s)"
+  proof (induction k arbitrary: s)
+    case 0 thus ?case by (auto simp: assms(1) intro: exI[of _ 0])
+  next
+    case (Suc k)
+    hence *: "\<not> b' ((c'^^k) (c' (f s)))" by (auto simp: funpow_swap1)
+    show ?case
+    proof (cases "b s")
+      case True
+      with assms(2) * have "\<not> b' ((c'^^k) (f (c s)))" by simp 
+      then guess k by (rule exE[OF Suc.IH[of "c s"]])
+      thus ?thesis by (auto simp: funpow_swap1 intro: exI[of _ "Suc k"])
+    qed (auto intro: exI[of _ "0"])
+  qed
+next
+  fix k assume k: "\<not> b' ((c' ^^ k) (f s))"
+  have *: "(LEAST k. \<not> b' ((c' ^^ k) (f s))) = (LEAST k. \<not> b ((c ^^ k) s))" (is "?k' = ?k")
+  proof (cases ?k')
+    case 0
+    have "\<not> b' ((c'^^0) (f s))" unfolding 0[symmetric] by (rule LeastI[of _ k]) (rule k)
+    hence "\<not> b s" unfolding assms(1) by simp
+    hence "?k = 0" by (intro Least_equality) auto
+    with 0 show ?thesis by auto
+  next
+    case (Suc k')
+    have "\<not> b' ((c'^^Suc k') (f s))" unfolding Suc[symmetric] by (rule LeastI) (rule k)
+    moreover
+    { fix k assume "k \<le> k'"
+      hence "k < ?k'" unfolding Suc by simp
+      hence "b' ((c' ^^ k) (f s))" by (rule iffD1[OF not_not, OF not_less_Least])
+    } note b' = this
+    { fix k assume "k \<le> k'"
+      hence "f ((c ^^ k) s) = (c'^^k) (f s)" by (induct k) (auto simp: b' assms)
+      with `k \<le> k'` have "b ((c^^k) s)"
+      proof (induct k)
+        case (Suc k) thus ?case unfolding assms(1) by (simp only: b')
+      qed (simp add: b'[of 0, simplified] assms(1))
+    } note b = this
+    hence k': "f ((c^^k') s) = (c'^^k') (f s)" by (induct k') (auto simp: assms(2))
+    ultimately show ?thesis unfolding Suc using b
+    by (intro sym[OF Least_equality])
+       (auto simp add: assms(1) assms(2)[OF b] k' not_less_eq_eq[symmetric])
+  qed
+  have "f ((c ^^ ?k) s) = (c' ^^ ?k') (f s)" unfolding *
+    by (auto intro: funpow_commute assms(2) dest: not_less_Least)
+  thus "\<exists>z. (c ^^ ?k) s = z \<and> f z = (c' ^^ ?k') (f s)" by blast
+qed
 
 subsection {* Total version *}
 
