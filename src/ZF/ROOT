@@ -1,4 +1,4 @@
-session ZF = Pure +
+session ZF (main) = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge

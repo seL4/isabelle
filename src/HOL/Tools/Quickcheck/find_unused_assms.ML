@@ -77,7 +77,7 @@ fun find_unused_assms ctxt thy_name =
             (s, SOME maximals)
           end)
   in
-    rev (map check all_thms)
+    rev (Par_List.map check all_thms)
   end
 
 
@@ -86,14 +86,14 @@ fun find_unused_assms ctxt thy_name =
 local
 
 fun pretty_indexes is =
-  Pretty.block (separate (Pretty.str " and ")
-      (map (fn i => Pretty.str (string_of_int (i + 1))) (sort int_ord is))
-     @ [Pretty.brk 1])
+  Pretty.block
+    (flat (separate [Pretty.str " and", Pretty.brk 1]
+      (map (fn i => [Pretty.str (string_of_int (i + 1))]) (sort int_ord is))))
 
 fun pretty_thm (s, set_of_indexes) =
   Pretty.block (Pretty.str s :: Pretty.str ":" :: Pretty.brk 1 ::
     Pretty.str "unnecessary assumption(s) " ::
-    separate (Pretty.str ", or ") (map pretty_indexes set_of_indexes))
+    separate (Pretty.str " or ") (map pretty_indexes set_of_indexes))
 
 in
 
@@ -106,11 +106,12 @@ fun print_unused_assms ctxt opt_thy_name =
     val with_superfluous_assumptions =
       map_filter (fn (_, NONE) => NONE | (_, SOME []) => NONE | (s, SOME r) => SOME (s, r)) results
 
-    val msg = "Found " ^ string_of_int (length with_superfluous_assumptions)
-      ^ " theorem(s) with (potentially) superfluous assumptions"
-    val end_msg = "Checked " ^ string_of_int with_assumptions ^ " theorem(s) with assumptions"
-      ^ " in the theory " ^ quote thy_name
-      ^ " with a total of " ^ string_of_int total ^ " theorem(s)"
+    val msg =
+      "Found " ^ string_of_int (length with_superfluous_assumptions) ^
+      " theorems with (potentially) superfluous assumptions"
+    val end_msg =
+      "Checked " ^ string_of_int with_assumptions ^ " theorems with assumptions (" ^
+      string_of_int total ^ " total) in the theory " ^ quote thy_name
   in
     [Pretty.str (msg ^ ":"), Pretty.str ""] @
     map pretty_thm with_superfluous_assumptions @
@@ -121,7 +122,7 @@ end
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "find_unused_assms"}
-    "find theorems with superfluous assumptions"
+    "find theorems with (potentially) superfluous assumptions"
     (Scan.option Parse.name
       >> (fn opt_thy_name =>
         Toplevel.no_timing o Toplevel.keep (fn state =>
