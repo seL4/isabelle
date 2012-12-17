@@ -542,7 +542,7 @@ fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
       | do_add_type (TFree (_, S)) = add_classes S
       | do_add_type (TVar (_, S)) = add_classes S
     fun add_type T = type_max_depth >= 0 ? do_add_type T
-    fun patternify_term _ ~1 _ = []
+    fun patternify_term _ 0 _ = []
       | patternify_term args _ (Const (x as (s, _))) =
         if is_bad_const x args then [] else [s]
       | patternify_term _ depth (Free (s, _)) =
@@ -550,7 +550,6 @@ fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
           [thy_name ^ Long_Name.separator ^ s]
         else
           []
-      | patternify_term _ 0 _ = []
       | patternify_term args depth (t $ u) =
         let
           val ps = patternify_term (u :: args) depth t
@@ -559,7 +558,7 @@ fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
       | patternify_term _ _ _ = []
     fun add_term_pattern feature_of =
       union (op = o pairself fst) o map feature_of oo patternify_term []
-    fun add_term_patterns _ ~1 _ = I
+    fun add_term_patterns _ 0 _ = I
       | add_term_patterns feature_of depth t =
         add_term_pattern feature_of depth t
         #> add_term_patterns feature_of (depth - 1) t
@@ -578,8 +577,8 @@ fun interesting_terms_types_and_classes ctxt thy_name prover term_max_depth
 
 fun is_exists (s, _) = (s = @{const_name Ex} orelse s = @{const_name Ex1})
 
-val term_max_depth = 1
-val type_max_depth = 1
+val term_max_depth = 2
+val type_max_depth = 2
 
 (* TODO: Generate type classes for types? *)
 fun features_of ctxt prover thy (scope, status) ts =
