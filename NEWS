@@ -102,6 +102,10 @@ now bundled exclusively with Isabelle.
 
 *** Pure ***
 
+* Dropped legacy antiquotations "term_style" and "thm_style", since
+styles may be given as arguments to "term" and "thm" already.  Dropped
+legacy styles "prem1" .. "prem19".  INCOMPATIBILITY.
+
 * Code generation for Haskell: restrict unqualified imports from
 Haskell Prelude to a small set of fundamental operations.
 

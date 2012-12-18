@@ -595,11 +595,7 @@ val _ =
     basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
     basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
     basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
-    basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory #>
-    basic_entities_style (Binding.name "thm_style")
-      (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style #>
-    basic_entity (Binding.name "term_style")
-      (Term_Style.parse_bare -- Args.term) pretty_term_style));
+    basic_entity (Binding.name "theory") (Scan.lift (Parse.position Args.name)) pretty_theory));
 
 end;
 
