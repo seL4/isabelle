@@ -496,13 +496,13 @@ fun parse_satallax_line x =
 fun parse_line problem =
   parse_tstp_line problem || parse_spass_line || parse_z3_tptp_line
   || parse_satallax_line
-fun parse_proof problem tstp =
-  tstp |> strip_spaces_except_between_idents
-       |> raw_explode
-       |> Scan.finite Symbol.stopper
-              (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-                              (Scan.repeat1 (parse_line problem))))
-       |> fst
+fun parse_proof problem =
+  strip_spaces_except_between_idents
+  #> raw_explode
+  #> Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+         (Scan.finite Symbol.stopper
+                         (Scan.repeat1 (parse_line problem))))
+  #> fst
 
 fun atp_proof_from_tstplike_proof _ "" = []
   | atp_proof_from_tstplike_proof problem tstp =
