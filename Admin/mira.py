@@ -17,11 +17,11 @@ from mira import repositories
 
 # build and evaluation tools
 
-def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
+def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps,
   usedir_options='', more_settings=''):
 
     # prepare components
-    loc_contrib = path.expanduser(loc_contrib)
+    loc_contrib = "/home/isabelle/contrib"
     if not path.exists(loc_contrib):
         raise IOError('Bad file: %s' % loc_contrib)
     subprocess.check_call(['ln', '-s', loc_contrib, '%s/contrib' % loc_isabelle])
@@ -122,7 +122,7 @@ def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
 ISABELLE_GHC="/usr/bin/ghc"
 '''
 
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, None,
+    prepare_isabelle_repository(isabelle_home, None,
       usedir_options="", more_settings=more_settings)
     os.chdir(isabelle_home)
 
@@ -186,7 +186,7 @@ def invoke_mutabelle(theory, env, case, paths, dep_paths, playground):
     more_settings = '''
 ISABELLE_GHC="/usr/bin/ghc"
 '''
-    prepare_isabelle_repository(loc_isabelle, env.settings.contrib, dep_isabelle,
+    prepare_isabelle_repository(loc_isabelle, dep_isabelle,
       more_settings = more_settings)
     os.chdir(loc_isabelle)
     
@@ -260,7 +260,7 @@ def judgement_day(base_path, theory, opts, env, case, paths, dep_paths, playgrou
     dep_path = dep_paths[0]
 
     os.chdir(path.join(playground, '..', base_path)) # Mirabelle requires specific cwd
-    prepare_isabelle_repository(isa, env.settings.contrib, dep_path)
+    prepare_isabelle_repository(isa, dep_path)
 
     output = {}
     success_rates = {}
