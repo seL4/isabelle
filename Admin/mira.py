@@ -164,9 +164,9 @@ def ZF(*args):
 
 
 settings64='''
-ML_PLATFORM=x86_64-linux
-ML_HOME="/home/polyml/polyml-5.4.1/x86_64-linux"
-ML_SYSTEM="polyml-5.4.1"
+# enforce 64 bit, overriding smart detection
+ML_PLATFORM="$ISABELLE_PLATFORM64"
+ML_HOME="$(dirname $ML_HOME)/$ML_PLATFORM"
 '''
 
 @configuration(repos = [Isabelle], deps = [])
