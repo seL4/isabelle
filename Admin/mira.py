@@ -23,9 +23,6 @@ def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps,
     # patch settings
     extra_settings = '''
 ISABELLE_HOME_USER="$ISABELLE_HOME/home_user"
-ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
-ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
-ISABELLE_PATH="$ISABELLE_OUTPUT"
 
 Z3_NON_COMMERCIAL="yes"
 
