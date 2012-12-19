@@ -364,7 +364,7 @@ fun minimize_command override_params i more_override_params prover_name
     (if i = 1 then "" else " " ^ string_of_int i)
   end
 
-val default_learn_prover_timeout = 0.5
+val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params subcommand opt_i fact_override state =
   let
