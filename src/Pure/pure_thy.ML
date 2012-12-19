@@ -177,7 +177,7 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts_i
-   [(Binding.name "==", typ "'a => 'a => prop", Infixr ("==", 2)),
+   [(Binding.name "==", typ "'a => 'a => prop", Infix ("==", 2)),
     (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
     (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
     (Binding.name "prop", typ "prop => prop", NoSyn),
