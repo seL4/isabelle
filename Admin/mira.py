@@ -87,6 +87,9 @@ def extract_isabelle_run_summary(logdata):
 def extract_image_size(isabelle_home):
     
     isabelle_output = isabelle_getenv(isabelle_home, 'ISABELLE_OUTPUT')
+    if not path.exists(isabelle_output):
+        return {}
+
     return dict((p, path.getsize(path.join(isabelle_output, p))) for p in os.listdir(isabelle_output) if p != "log")
 
 def extract_report_data(isabelle_home, logdata):
