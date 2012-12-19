@@ -17,6 +17,9 @@ from mira import repositories
 
 # build and evaluation tools
 
+DEFAULT_TIMEOUT = 2 * 60 * 60
+SMLNJ_TIMEOUT = 72 * 60 * 60
+
 def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps, more_settings=''):
 
     # patch settings
@@ -91,8 +94,9 @@ def extract_report_data(isabelle_home, logdata):
 
 def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
 
-    more_settings=kwargs.get('more_settings', '')
-    keep_results=kwargs.get('keep_results', True)
+    more_settings = kwargs.get('more_settings', '')
+    keep_results = kwargs.get('keep_results', True)
+    timeout = kwargs.get('timeout', DEFAULT_TIMEOUT)
 
     isabelle_home = paths[0]
 
@@ -118,8 +122,10 @@ ISABELLE_GHC="/usr/bin/ghc"
     prepare_isabelle_repository(isabelle_home, None, more_settings=more_settings)
     os.chdir(isabelle_home)
 
+    args = (['-o', 'timeout=%s' % timeout] if timeout is not None else []) + cmdargs
+
     # invoke build tool
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *cmdargs)
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *args)
 
     # collect report
     return (return_code == 0, extract_isabelle_run_summary(log),
@@ -326,11 +332,11 @@ ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 @configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def SML_HOL(*args):
     """HOL image built with SML/NJ"""
-    return isabelle_build(*(args + ("-b", "HOL")), more_settings=smlnj_settings)
+    return isabelle_build(*(args + ("-b", "HOL")), more_settings=smlnj_settings, timeout=SMLNJ_TIMEOUT)
 
 @configuration(repos = [Isabelle], deps = [])
 def SML_makeall(*args):
     """SML/NJ build of all possible sessions"""
-    return isabelle_build(*(args + ("-j", "3", "-a")), more_settings=smlnj_settings)
+    return isabelle_build(*(args + ("-j", "3", "-a")), more_settings=smlnj_settings, timeout=SMLNJ_TIMEOUT)
 
 
