@@ -590,30 +590,38 @@ the domain of a map may be infinite.
 \section*{Infix operators in Main} % @{theory Main}
 
 \begin{center}
-\begin{tabular}{lll}
-Operator & precedence & associativity \\
-@{text"="}, @{text"\<noteq>"} & 50 & left\\
-@{text"\<le>"}, @{text"<"}, @{text"\<ge>"}, @{text">"} & 50 \\
-@{text"\<and>"} & 35 & right \\
-@{text"\<or>"} & 30 & right \\
-@{text"\<longrightarrow>"}, @{text"\<longleftrightarrow>"} & 25 & right\\
-@{text"\<subseteq>"}, @{text"\<subset>"}, @{text"\<supseteq>"}, @{text"\<supset>"} & 50 \\
-@{text"\<in>"}, @{text"\<notin>"} & 50 \\
-@{text"\<inter>"} & 70 & left \\
-@{text"\<union>"} & 65 & left \\
-@{text"\<circ>"} & 55 & left\\
-@{text"`"} & 90 & right\\
-@{text"O"} & 75 & right\\
-@{text"``"} & 90 & right\\
-@{text"+"}, @{text"-"} & 65 & left \\
-@{text"*"}, @{text"/"} & 70 & left \\
-@{text"div"}, @{text"mod"} & 70 & left\\
-@{text"^"} & 80 & right\\
-@{text"^^"} & 80 & right\\
-@{text"dvd"} & 50 \\
-@{text"#"}, @{text"@"} & 65 & right\\
-@{text"!"} & 100 & left\\
-@{text"++"} & 100 & left\\
+\begin{tabular}{llll}
+ & Operator & precedence & associativity \\
+\hline
+Meta-logic & @{text"\<Longrightarrow>"} & 1 & right \\
+& @{text"\<equiv>"} & 2 \\
+\hline
+Logic & @{text"\<and>"} & 35 & right \\
+&@{text"\<or>"} & 30 & right \\
+&@{text"\<longrightarrow>"}, @{text"\<longleftrightarrow>"} & 25 & right\\
+&@{text"="}, @{text"\<noteq>"} & 50 & left\\
+\hline
+Orderings & @{text"\<le>"}, @{text"<"}, @{text"\<ge>"}, @{text">"} & 50 \\
+\hline
+Sets & @{text"\<subseteq>"}, @{text"\<subset>"}, @{text"\<supseteq>"}, @{text"\<supset>"} & 50 \\
+&@{text"\<in>"}, @{text"\<notin>"} & 50 \\
+&@{text"\<inter>"} & 70 & left \\
+&@{text"\<union>"} & 65 & left \\
+\hline
+Functions and Relations & @{text"\<circ>"} & 55 & left\\
+&@{text"`"} & 90 & right\\
+&@{text"O"} & 75 & right\\
+&@{text"``"} & 90 & right\\
+\hline
+Numbers & @{text"+"}, @{text"-"} & 65 & left \\
+&@{text"*"}, @{text"/"} & 70 & left \\
+&@{text"div"}, @{text"mod"} & 70 & left\\
+&@{text"^"} & 80 & right\\
+&@{text"^^"} & 80 & right\\
+&@{text"dvd"} & 50 \\
+\hline
+Lists & @{text"#"}, @{text"@"} & 65 & right\\
+&@{text"!"} & 100 & left
 \end{tabular}
 \end{center}
 *}
