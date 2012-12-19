@@ -17,8 +17,7 @@ from mira import repositories
 
 # build and evaluation tools
 
-def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps,
-  usedir_options='', more_settings=''):
+def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps, more_settings=''):
 
     # patch settings
     extra_settings = '''
@@ -116,8 +115,7 @@ def isabelle_build(env, case, paths, dep_paths, playground, *cmdargs, **kwargs):
 ISABELLE_GHC="/usr/bin/ghc"
 '''
 
-    prepare_isabelle_repository(isabelle_home, None,
-      usedir_options="", more_settings=more_settings)
+    prepare_isabelle_repository(isabelle_home, None, more_settings=more_settings)
     os.chdir(isabelle_home)
 
     # invoke build tool
@@ -180,8 +178,7 @@ def invoke_mutabelle(theory, env, case, paths, dep_paths, playground):
     more_settings = '''
 ISABELLE_GHC="/usr/bin/ghc"
 '''
-    prepare_isabelle_repository(loc_isabelle, dep_isabelle,
-      more_settings = more_settings)
+    prepare_isabelle_repository(loc_isabelle, dep_isabelle, more_settings = more_settings)
     os.chdir(loc_isabelle)
     
     (return_code, log) = env.run_process('bin/isabelle',
