@@ -20,12 +20,6 @@ from mira import repositories
 def prepare_isabelle_repository(loc_isabelle, loc_dependency_heaps,
   usedir_options='', more_settings=''):
 
-    # prepare components
-    loc_contrib = "/home/isabelle/contrib"
-    if not path.exists(loc_contrib):
-        raise IOError('Bad file: %s' % loc_contrib)
-    subprocess.check_call(['ln', '-s', loc_contrib, '%s/contrib' % loc_isabelle])
-
     # patch settings
     extra_settings = '''
 ISABELLE_HOME_USER="$ISABELLE_HOME/home_user"
@@ -35,9 +29,9 @@ ISABELLE_PATH="$ISABELLE_OUTPUT"
 
 Z3_NON_COMMERCIAL="yes"
 
-init_components "$COMPONENT/contrib" "$ISABELLE_HOME/Admin/components/main"
-init_components "$COMPONENT/contrib" "$ISABELLE_HOME/Admin/components/optional"
-init_components "$COMPONENT/contrib" "$ISABELLE_HOME/Admin/components/nonfree"
+init_components "/home/isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
+init_components "/home/isabelle/contrib" "$ISABELLE_HOME/Admin/components/optional"
+init_components "/home/isabelle/contrib" "$ISABELLE_HOME/Admin/components/nonfree"
 
 ''' + more_settings
 
