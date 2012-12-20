@@ -122,7 +122,7 @@ ISABELLE_GHC="/usr/bin/ghc"
     prepare_isabelle_repository(isabelle_home, None, more_settings=more_settings)
     os.chdir(isabelle_home)
 
-    args = (['-o', 'timeout=%s' % timeout] if timeout is not None else []) + cmdargs
+    args = (['-o', 'timeout=%s' % timeout] if timeout is not None else []) + list(cmdargs)
 
     # invoke build tool
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'build', '-s', '-v', *args)
