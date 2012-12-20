@@ -58,7 +58,7 @@ sig
   val prover_dependencies_of :
     Proof.context -> params -> string -> int -> fact list -> string Symtab.table
     -> thm -> bool * string list option
-  val weight_mash_facts : ('a * thm) list -> (('a * thm) * real) list
+  val weight_mash_facts : 'a list -> ('a * real) list
   val find_mash_suggestions :
     int -> (Symtab.key * 'a) list -> ('b * thm) list -> ('b * thm) list
     -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
@@ -727,7 +727,6 @@ fun maximal_in_graph fact_G facts =
 fun is_fact_in_graph fact_G (_, th) =
   can (Graph.get_node fact_G) (nickname_of th)
 
-(* use MePo weights for now *)
 val weight_raw_mash_facts = weight_mepo_facts
 val weight_mash_facts = weight_raw_mash_facts
 
