@@ -146,7 +146,7 @@ next
 qed
 
 lemma imp_conjunction:
-  "(PROP A ==> PROP B &&& PROP C) == (PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
+  "(PROP A ==> PROP B &&& PROP C) == ((PROP A ==> PROP B) &&& (PROP A ==> PROP C))"
 proof
   assume conj: "PROP A ==> PROP B &&& PROP C"
   show "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
