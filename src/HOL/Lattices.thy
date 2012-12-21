@@ -20,9 +20,11 @@ locale semilattice = abel_semigroup +
   assumes idem [simp]: "f a a = a"
 begin
 
-lemma left_idem [simp]:
-  "f a (f a b) = f a b"
-  by (simp add: assoc [symmetric])
+lemma left_idem [simp]: "f a (f a b) = f a b"
+by (simp add: assoc [symmetric])
+
+lemma right_idem [simp]: "f (f a b) b = f a b"
+by (simp add: assoc)
 
 end
 
@@ -184,8 +186,11 @@ lemma inf_left_commute: "x \<sqinter> (y \<sqinter> z) = y \<sqinter> (x \<sqint
 lemma inf_idem: "x \<sqinter> x = x"
   by (fact inf.idem) (* already simp *)
 
-lemma inf_left_idem [simp]: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
-  by (fact inf.left_idem)
+lemma inf_left_idem: "x \<sqinter> (x \<sqinter> y) = x \<sqinter> y"
+  by (fact inf.left_idem) (* already simp *)
+
+lemma inf_right_idem: "(x \<sqinter> y) \<sqinter> y = x \<sqinter> y"
+  by (fact inf.right_idem) (* already simp *)
 
 lemma inf_absorb1: "x \<sqsubseteq> y \<Longrightarrow> x \<sqinter> y = x"
   by (rule antisym) auto
