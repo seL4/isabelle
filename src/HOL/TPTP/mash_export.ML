@@ -36,12 +36,6 @@ open Sledgehammer_MaSh
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
 
-fun thy_map_from_facts ths =
-  ths |> rev
-      |> map (snd #> `(theory_of_thm #> Context.theory_name))
-      |> AList.coalesce (op =)
-      |> map (apsnd (map nickname_of))
-
 fun has_thm_thy th thy =
   Context.theory_name thy = Context.theory_name (theory_of_thm th)
 
@@ -53,18 +47,6 @@ fun all_facts ctxt =
     |> sort (thm_ord o pairself snd)
   end
 
-fun add_thy_parent_facts thy_map thy =
-  let
-    fun add_last thy =
-      case AList.lookup (op =) thy_map (Context.theory_name thy) of
-        SOME (last_fact :: _) => insert (op =) last_fact
-      | _ => add_parent thy
-    and add_parent thy = fold add_last (Theory.parents_of thy)
-  in add_parent thy end
-
-val thy_name_of_fact = hd o Long_Name.explode
-fun thy_of_fact thy = Context.get_theory thy o thy_name_of_fact
-
 fun generate_accessibility ctxt thys include_thys file_name =
   let
     val path = file_name |> Path.explode
@@ -74,16 +56,11 @@ fun generate_accessibility ctxt thys include_thys file_name =
         val s = escape_meta fact ^ ": " ^ escape_metas prevs ^ "\n"
         val _ = File.append path s
       in [fact] end
-    val thy_map =
+    val facts =
       all_facts ctxt
       |> not include_thys ? filter_out (has_thys thys o snd)
-      |> thy_map_from_facts
-    fun do_thy facts =
-      let
-        val thy = thy_of_fact (Proof_Context.theory_of ctxt) (hd facts)
-        val parents = add_thy_parent_facts thy_map thy []
-      in fold_rev do_fact facts parents; () end
-  in fold_rev (fn (_, facts) => fn () => do_thy facts) thy_map () end
+      |> map (snd #> nickname_of)
+  in fold do_fact facts []; () end
 
 fun generate_features ctxt prover thys include_thys file_name =
   let
@@ -172,8 +149,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
         in query ^ update end
       else
         ""
-    val thy_map = old_facts |> thy_map_from_facts
-    val parents = fold (add_thy_parent_facts thy_map) thys []
+    val parents = map (nickname_of o snd) (the_list (try List.last old_facts))
     val new_facts = new_facts |> map (`(nickname_of o snd))
     val prevss = fst (split_last (parents :: map (single o fst) new_facts))
     val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ prevss))
