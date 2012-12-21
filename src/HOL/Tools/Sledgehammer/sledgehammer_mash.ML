@@ -260,7 +260,7 @@ fun proof_kind_of_str "i" = Isar_Proof
   | proof_kind_of_str "x" = Isar_Proof_wegen_Prover_Flop
 
 (* FIXME: Here a "Graph.update_node" function would be useful *)
-fun update_fact_graph_node (name, kind) =
+fun update_access_graph_node (name, kind) =
   Graph.default_node (name, Isar_Proof)
   #> kind <> Isar_Proof ? Graph.map_node name (K kind)
 
@@ -290,9 +290,9 @@ fun graph_info G =
   string_of_int (length (Graph.minimals G)) ^ " minimal, " ^
   string_of_int (length (Graph.maximals G)) ^ " maximal"
 
-type mash_state = {fact_G : unit Graph.T, dirty : string list option}
+type mash_state = {access_G : unit Graph.T, dirty : string list option}
 
-val empty_state = {fact_G = Graph.empty, dirty = SOME []}
+val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
@@ -324,9 +324,9 @@ fun load _ (state as (true, _)) = state
              case extract_node line of
                NONE => I (* shouldn't happen *)
              | SOME (name, parents, kind) =>
-               update_fact_graph_node (name, kind)
+               update_access_graph_node (name, kind)
                #> fold (add_edge_to name) parents
-           val fact_G =
+           val access_G =
              case string_ord (version', version) of
                EQUAL =>
                try_graph ctxt "loading state" Graph.empty (fn () =>
@@ -335,14 +335,14 @@ fun load _ (state as (true, _)) = state
              | GREATER => raise Too_New ()
          in
            trace_msg ctxt (fn () =>
-               "Loaded fact graph (" ^ graph_info fact_G ^ ")");
-           {fact_G = fact_G, dirty = SOME []}
+               "Loaded fact graph (" ^ graph_info access_G ^ ")");
+           {access_G = access_G, dirty = SOME []}
          end
        | _ => empty_state)
     end
 
 fun save _ (state as {dirty = SOME [], ...}) = state
-  | save ctxt {fact_G, dirty} =
+  | save ctxt {access_G, dirty} =
     let
       fun str_of_entry (name, parents, kind) =
         str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
@@ -352,17 +352,17 @@ fun save _ (state as {dirty = SOME [], ...}) = state
       val (banner, entries) =
         case dirty of
           SOME names =>
-          (NONE, fold (append_entry o Graph.get_entry fact_G) names [])
-        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry fact_G [])
+          (NONE, fold (append_entry o Graph.get_entry access_G) names [])
+        | NONE => (SOME (version ^ "\n"), Graph.fold append_entry access_G [])
     in
       write_file banner (entries, str_of_entry) (mash_state_file ());
       trace_msg ctxt (fn () =>
-          "Saved fact graph (" ^ graph_info fact_G ^
+          "Saved fact graph (" ^ graph_info access_G ^
           (case dirty of
              SOME dirty =>
              "; " ^ string_of_int (length dirty) ^ " dirty fact(s)"
            | _ => "") ^  ")");
-      {fact_G = fact_G, dirty = SOME []}
+      {access_G = access_G, dirty = SOME []}
     end
 
 val global_state =
@@ -694,7 +694,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
 
 fun num_keys keys = Graph.Keys.fold (K (Integer.add 1)) keys 0
 
-fun maximal_in_graph fact_G facts =
+fun maximal_in_graph access_G facts =
   let
     val facts = [] |> fold (cons o nickname_of o snd) facts
     val tab = Symtab.empty |> fold (fn name => Symtab.default (name, ())) facts
@@ -703,11 +703,11 @@ fun maximal_in_graph fact_G facts =
     fun find_maxes _ (maxs, []) = map snd maxs
       | find_maxes seen (maxs, new :: news) =
         find_maxes
-            (seen |> num_keys (Graph.imm_succs fact_G new) > 1
+            (seen |> num_keys (Graph.imm_succs access_G new) > 1
                      ? Symtab.default (new, ()))
             (if Symtab.defined tab new then
                let
-                 val newp = Graph.all_preds fact_G [new]
+                 val newp = Graph.all_preds access_G [new]
                  fun is_ancestor x yp = member (op =) yp x
                  val maxs =
                    maxs |> filter (fn (_, max) => not (is_ancestor max newp))
@@ -721,11 +721,11 @@ fun maximal_in_graph fact_G facts =
                end
              else
                (maxs, Graph.Keys.fold (insert_new seen)
-                                      (Graph.imm_preds fact_G new) news))
-  in find_maxes Symtab.empty ([], Graph.maximals fact_G) end
+                                      (Graph.imm_preds access_G new) news))
+  in find_maxes Symtab.empty ([], Graph.maximals access_G) end
 
-fun is_fact_in_graph fact_G (_, th) =
-  can (Graph.get_node fact_G) (nickname_of th)
+fun is_fact_in_graph access_G (_, th) =
+  can (Graph.get_node access_G) (nickname_of th)
 
 val weight_raw_mash_facts = weight_mepo_facts
 val weight_mash_facts = weight_raw_mash_facts
@@ -762,23 +762,23 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val (fact_G, suggs) =
-      peek_state ctxt (fn {fact_G, ...} =>
-          if Graph.is_empty fact_G then
-            (fact_G, [])
+    val (access_G, suggs) =
+      peek_state ctxt (fn {access_G, ...} =>
+          if Graph.is_empty access_G then
+            (access_G, [])
           else
             let
-              val parents = maximal_in_graph fact_G facts
+              val parents = maximal_in_graph access_G facts
               val feats =
                 features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
             in
-              (fact_G, mash_QUERY ctxt overlord max_facts (parents, feats))
+              (access_G, mash_QUERY ctxt overlord max_facts (parents, feats))
             end)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
-    val unknown = facts |> filter_out (is_fact_in_graph fact_G)
+    val unknown = facts |> filter_out (is_fact_in_graph access_G)
   in find_mash_suggestions max_facts suggs facts chained unknown end
 
-fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
+fun add_wrt_access_graph ctxt (name, parents, feats, deps) (adds, graph) =
   let
     fun maybe_add_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
@@ -788,17 +788,17 @@ fun add_wrt_fact_graph ctxt (name, parents, feats, deps) (adds, graph) =
     val (deps, _) = ([], graph) |> fold maybe_add_from deps
   in ((name, parents, feats, deps) :: adds, graph) end
 
-fun reprove_wrt_fact_graph ctxt (name, deps) (reps, graph) =
+fun reprove_wrt_access_graph ctxt (name, deps) (reps, graph) =
   let
     fun maybe_rep_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
-    val graph = graph |> update_fact_graph_node (name, Automatic_Proof)
+    val graph = graph |> update_access_graph_node (name, Automatic_Proof)
     val (deps, _) = ([], graph) |> fold maybe_rep_from deps
   in ((name, deps) :: reps, graph) end
 
-fun flop_wrt_fact_graph name =
-  update_fact_graph_node (name, Isar_Proof_wegen_Prover_Flop)
+fun flop_wrt_access_graph name =
+  update_access_graph_node (name, Isar_Proof_wegen_Prover_Flop)
 
 val learn_timeout_slack = 2.0
 
@@ -826,8 +826,8 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val feats = features_of ctxt prover thy (Local, General) [t]
           val deps = used_ths |> map nickname_of
         in
-          peek_state ctxt (fn {fact_G, ...} =>
-              let val parents = maximal_in_graph fact_G facts in
+          peek_state ctxt (fn {access_G, ...} =>
+              let val parents = maximal_in_graph access_G facts in
                 mash_ADD ctxt overlord [(name, parents, feats, deps)]
               end);
           (true, "")
@@ -844,10 +844,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     val timer = Timer.startRealTimer ()
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
-    val {fact_G, ...} = peek_state ctxt I
+    val {access_G, ...} = peek_state ctxt I
     val facts = facts |> sort (thm_ord o pairself snd)
     val (old_facts, new_facts) =
-      facts |> List.partition (is_fact_in_graph fact_G)
+      facts |> List.partition (is_fact_in_graph access_G)
   in
     if null new_facts andalso (not run_prover orelse null old_facts) then
       if auto_level < 2 then
@@ -873,14 +873,14 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           else
             isar_dependencies_of all_names th
         fun do_commit [] [] [] state = state
-          | do_commit adds reps flops {fact_G, dirty} =
+          | do_commit adds reps flops {access_G, dirty} =
             let
-              val was_empty = Graph.is_empty fact_G
-              val (adds, fact_G) =
-                ([], fact_G) |> fold (add_wrt_fact_graph ctxt) adds
-              val (reps, fact_G) =
-                ([], fact_G) |> fold (reprove_wrt_fact_graph ctxt) reps
-              val fact_G = fact_G |> fold flop_wrt_fact_graph flops
+              val was_empty = Graph.is_empty access_G
+              val (adds, access_G) =
+                ([], access_G) |> fold (add_wrt_access_graph ctxt) adds
+              val (reps, access_G) =
+                ([], access_G) |> fold (reprove_wrt_access_graph ctxt) reps
+              val access_G = access_G |> fold flop_wrt_access_graph flops
               val dirty =
                 case (was_empty, dirty, reps) of
                   (false, SOME names, []) => SOME (map #1 adds @ names)
@@ -888,7 +888,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             in
               mash_ADD ctxt overlord (rev adds);
               mash_REPROVE ctxt overlord reps;
-              {fact_G = fact_G, dirty = dirty}
+              {access_G = access_G, dirty = dirty}
             end
         fun commit last adds reps flops =
           (if debug andalso auto_level = 0 then
@@ -936,7 +936,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val ancestors =
                 old_facts
                 |> filter (fn (_, th) => thm_ord (th, last_th) <> GREATER)
-              val parents = maximal_in_graph fact_G ancestors
+              val parents = maximal_in_graph access_G ancestors
               val (adds, (_, n, _, _)) =
                 ([], (parents, 0, next_commit_time (), false))
                 |> fold learn_new_fact new_facts
@@ -967,7 +967,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             let
               val max_isar = 1000 * max_dependencies
               fun kind_of_proof th =
-                try (Graph.get_node fact_G) (nickname_of th)
+                try (Graph.get_node access_G) (nickname_of th)
                 |> the_default Isar_Proof
               fun priority_of (_, th) =
                 random_range 0 max_isar
@@ -1034,7 +1034,7 @@ fun mash_learn ctxt (params as {provers, timeout, ...}) fact_override chained
 
 fun is_mash_enabled () = (getenv "MASH" = "yes")
 fun mash_can_suggest_facts ctxt =
-  not (Graph.is_empty (#fact_G (peek_state ctxt I)))
+  not (Graph.is_empty (#access_G (peek_state ctxt I)))
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons. *)
