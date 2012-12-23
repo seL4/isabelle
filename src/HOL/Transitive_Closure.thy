@@ -79,6 +79,8 @@ by(simp add:antisym_def)
 lemma trans_reflclI[simp]: "trans r \<Longrightarrow> trans(r^=)"
 unfolding trans_def by blast
 
+lemma reflclp_idemp [simp]: "(P^==)^==  =  P^=="
+by blast
 
 subsection {* Reflexive-transitive closure *}
 
@@ -206,14 +208,14 @@ lemma rtranclp_subset: "R \<le> S ==> S \<le> R^** ==> S^** = R^**"
 lemmas rtrancl_subset = rtranclp_subset [to_set]
 
 lemma rtranclp_sup_rtranclp: "(sup (R^**) (S^**))^** = (sup R S)^**"
-  by (blast intro!: rtranclp_subset intro: rtranclp_mono [THEN predicate2D])
+by (blast intro!: rtranclp_subset intro: rtranclp_mono [THEN predicate2D])
 
 lemmas rtrancl_Un_rtrancl = rtranclp_sup_rtranclp [to_set]
 
-lemma rtranclp_reflcl [simp]: "(R^==)^** = R^**"
-  by (blast intro!: rtranclp_subset)
+lemma rtranclp_reflclp [simp]: "(R^==)^** = R^**"
+by (blast intro!: rtranclp_subset)
 
-lemmas rtrancl_reflcl [simp] = rtranclp_reflcl [to_set]
+lemmas rtrancl_reflcl [simp] = rtranclp_reflclp [to_set]
 
 lemma rtrancl_r_diff_Id: "(r - Id)^* = r^*"
   apply (rule sym)
@@ -560,13 +562,13 @@ lemma trancl_subset_Sigma: "r \<subseteq> A \<times> A ==> r^+ \<subseteq> A \<t
    apply (blast dest!: trancl_into_rtrancl trancl_subset_Sigma_aux)+
   done
 
-lemma reflcl_tranclp [simp]: "(r^++)^== = r^**"
+lemma reflclp_tranclp [simp]: "(r^++)^== = r^**"
   apply (safe intro!: order_antisym)
    apply (erule tranclp_into_rtranclp)
   apply (blast elim: rtranclp.cases dest: rtranclp_into_tranclp1)
   done
 
-lemmas reflcl_trancl [simp] = reflcl_tranclp [to_set]
+lemmas reflcl_trancl [simp] = reflclp_tranclp [to_set]
 
 lemma trancl_reflcl [simp]: "(r^=)^+ = r^*"
   apply safe
@@ -587,7 +589,7 @@ lemma rtrancl_empty [simp]: "{}^* = Id"
   by (rule subst [OF reflcl_trancl]) simp
 
 lemma rtranclpD: "R^** a b ==> a = b \<or> a \<noteq> b \<and> R^++ a b"
-  by (force simp add: reflcl_tranclp [symmetric] simp del: reflcl_tranclp)
+by (force simp add: reflclp_tranclp [symmetric] simp del: reflclp_tranclp)
 
 lemmas rtranclD = rtranclpD [to_set]
 

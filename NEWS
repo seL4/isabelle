@@ -217,6 +217,10 @@ INCOMPATIBILITY.  Related changes are:
   - Removed real_tendsto_inf, it is superseded by "LIM x F. f x :> at_top".
     INCOMPATIBILITY
 
+* HOL/Transitive_Closure: renamed lemmas
+  reflcl_tranclp -> reflclp_tranclp
+  rtranclp_reflcl -> rtranclp_reflclp
+
 * HOL/Rings: renamed lemmas
 
 left_distrib ~> distrib_right
