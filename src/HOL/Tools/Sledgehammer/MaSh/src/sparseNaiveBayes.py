@@ -2,7 +2,7 @@
 #     Author:     Daniel Kuehlwein, ICIS, Radboud University Nijmegen
 #     Copyright   2012
 #
-# An updatable naive Bayes classifier.
+# An updatable sparse naive Bayes classifier.
 
 '''
 Created on Jul 11, 2012
@@ -37,7 +37,6 @@ class sparseNBClassifier(object):
         for key in dicts.dependenciesDict.keys():
             # Add p proves p
             keyDeps = [key]+dicts.dependenciesDict[key]
-
             for dep in keyDeps:
                 self.counts[dep][0] += 1
                 depFeatures = dicts.featureDict[key]
@@ -89,6 +88,8 @@ class sparseNBClassifier(object):
         For each accessible, predicts the probability of it being useful given the features.
         Returns a ranking of the accessibles.
         """
+        posWeight = 20.0
+        defVal = 15
         predictions = []
         for a in accessibles:
             posA = self.counts[a][0]
@@ -96,14 +97,16 @@ class sparseNBClassifier(object):
             fWeightsA = self.counts[a][1]
             resultA = log(posA)
             for f,w in features:
+                # DEBUG
+                #w = 1
                 if f in fA:
                     if fWeightsA[f] == 0:
-                        resultA -= w*15
+                        resultA -= w*defVal
                     else:
                         assert fWeightsA[f] <= posA
-                        resultA += w*log(float(fWeightsA[f])/posA)
+                        resultA += w*log(float(posWeight*fWeightsA[f])/posA)
                 else:
-                    resultA -= w*15
+                    resultA -= w*defVal
             predictions.append(resultA)
         #expPredictions = array([exp(x) for x in predictions])
         predictions = array(predictions)

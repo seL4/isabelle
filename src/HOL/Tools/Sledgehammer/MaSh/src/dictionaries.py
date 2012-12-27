@@ -35,7 +35,7 @@ class Dictionaries(object):
         self.changed = True
 
     """
-    Init functions. Side Effect: nameIdDict, idNameDict, featureIdDict get filled!
+    Init functions. Side Effect: nameIdDict, idNameDict, featureIdDict, articleDict get filled!
     """
     def init_featureDict(self,featureFile):
         self.featureDict,self.maxNameId,self.maxFeatureId = create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,\
@@ -175,12 +175,8 @@ class Dictionaries(object):
                 self.expandedAccessibles[accId] = self.expand_accessibles(accIdAcc)
                 self.changed = True
         accessibles = self.expand_accessibles(unExpAcc)
-#        # Feature Ids
-#        featureNames = [f.strip() for f in line[1].split()]
-#        for fn in featureNames:
-#            self.add_feature(fn)
-#        features = [self.featureIdDict[fn] for fn in featureNames]
         features = self.get_features(line)
+
         return name,features,accessibles
 
     def save(self,fileName):

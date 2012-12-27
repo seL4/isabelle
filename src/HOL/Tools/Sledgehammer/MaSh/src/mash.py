@@ -19,10 +19,11 @@ import logging,datetime,string,os,sys
 from argparse import ArgumentParser,RawDescriptionHelpFormatter
 from time import time
 from stats import Statistics
+from theoryStats import TheoryStatistics
+from theoryModels import TheoryModels
 from dictionaries import Dictionaries
 #from fullNaiveBayes import NBClassifier
 from sparseNaiveBayes import sparseNBClassifier
-#from naiveBayes import sparseNBClassifier
 from snow import SNoW
 from predefined import Predefined
 
@@ -41,11 +42,13 @@ parser.add_argument('-p','--predictions',default='../tmp/%s.predictions' % datet
 parser.add_argument('--numberOfPredictions',default=200,help="Number of premises to write in the output. Default=200.",type=int)
 
 parser.add_argument('--init',default=False,action='store_true',help="Initialize Mash. Requires --inputDir to be defined. Default=False.")
-parser.add_argument('--inputDir',default='../data/Jinja/',\
+parser.add_argument('--inputDir',default='../data/20121212/Jinja/',\
                     help='Directory containing all the input data. MaSh expects the following files: mash_features,mash_dependencies,mash_accessibility')
 parser.add_argument('--depFile', default='mash_dependencies',
                     help='Name of the file with the premise dependencies. The file must be in inputDir. Default = mash_dependencies')
 parser.add_argument('--saveModel',default=False,action='store_true',help="Stores the learned Model at the end of a prediction run. Default=False.")
+parser.add_argument('--learnTheories',default=False,action='store_true',help="Uses a two-lvl prediction mode. First the theories, then the premises. Default=False.")
+
 
 parser.add_argument('--nb',default=False,action='store_true',help="Use Naive Bayes for learning. This is the default learning method.")
 parser.add_argument('--snow',default=False,action='store_true',help="Use SNoW's naive bayes instead of Naive Bayes for learning.")
@@ -101,6 +104,7 @@ def main(argv = sys.argv[1:]):
         model = sparseNBClassifier()
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     dictsFile = os.path.join(args.outputDir,'dicts.pickle')
+    theoryFile = os.path.join(args.outputDir,'theory.pickle')
 
     # Initializing model
     if args.init:
@@ -110,14 +114,17 @@ def main(argv = sys.argv[1:]):
         # Load all data
         dicts = Dictionaries()
         dicts.init_all(args.inputDir,depFileName=args.depFile)
-
+        
         # Create Model
         trainData = dicts.featureDict.keys()
-        if args.predef:
-            model.initializeModel(trainData,dicts)
-        else:
-            model.initializeModel(trainData,dicts)
+        model.initializeModel(trainData,dicts)
 
+        if args.learnTheories:
+            depFile = os.path.join(args.inputDir,args.depFile)
+            theoryModels = TheoryModels()
+            theoryModels.init(depFile,dicts)
+            theoryModels.save(theoryFile)
+            
         model.save(modelFile)
         dicts.save(dictsFile)
 
@@ -129,11 +136,14 @@ def main(argv = sys.argv[1:]):
         statementCounter = 1
         computeStats = False
         dicts = Dictionaries()
+        theoryModels = TheoryModels()
         # Load Files
         if os.path.isfile(dictsFile):
             dicts.load(dictsFile)
         if os.path.isfile(modelFile):
             model.load(modelFile)
+        if os.path.isfile(theoryFile) and args.learnTheories:
+            theoryModels.load(theoryFile)
 
         # IO Streams
         OS = open(args.predictions,'w')
@@ -142,32 +152,37 @@ def main(argv = sys.argv[1:]):
         # Statistics
         if args.statistics:
             stats = Statistics(args.cutOff)
+            if args.learnTheories:
+                theoryStats = TheoryStatistics()
 
         predictions = None
+        predictedTheories = None
         #Reading Input File
         for line in IS:
 #           try:
             if True:
                 if line.startswith('!'):
-                    problemId = dicts.parse_fact(line)                    
+                    problemId = dicts.parse_fact(line)                        
                     # Statistics
                     if args.statistics and computeStats:
                         computeStats = False
-                        acc = dicts.accessibleDict[problemId]
+                        # Assume '!' comes after '?'
                         if args.predef:
                             predictions = model.predict(problemId)
-                        else:
-                            if args.snow:
-                                predictions,_predictionsValues = model.predict(dicts.featureDict[problemId],dicts.expand_accessibles(acc),dicts)
-                            else:
-                                predictions,_predictionsValues = model.predict(dicts.featureDict[problemId],dicts.expand_accessibles(acc))                        
+                        if args.learnTheories:
+                            tmp = [dicts.idNameDict[x] for x in dicts.dependenciesDict[problemId]]
+                            usedTheories = set([x.split('.')[0] for x in tmp]) 
+                            theoryStats.update((dicts.idNameDict[problemId]).split('.')[0],predictedTheories,usedTheories)                        
                         stats.update(predictions,dicts.dependenciesDict[problemId],statementCounter)
                         if not stats.badPreds == []:
                             bp = string.join([str(dicts.idNameDict[x]) for x in stats.badPreds], ',')
                             logger.debug('Bad predictions: %s',bp)
+
                     statementCounter += 1
                     # Update Dependencies, p proves p
                     dicts.dependenciesDict[problemId] = [problemId]+dicts.dependenciesDict[problemId]
+                    if args.learnTheories:
+                        theoryModels.update(problemId,dicts)
                     if args.snow:
                         model.update(problemId,dicts.featureDict[problemId],dicts.dependenciesDict[problemId],dicts)
                     else:
@@ -177,15 +192,19 @@ def main(argv = sys.argv[1:]):
                     problemId,newDependencies = dicts.parse_overwrite(line)
                     newDependencies = [problemId]+newDependencies
                     model.overwrite(problemId,newDependencies,dicts)
+                    if args.learnTheories:
+                        theoryModels.overwrite(problemId,newDependencies,dicts)
                     dicts.dependenciesDict[problemId] = newDependencies
-                elif line.startswith('?'):                    
+                elif line.startswith('?'):               
                     startTime = time()
                     computeStats = True
                     if args.predef:
                         continue
-                    name,features,accessibles = dicts.parse_problem(line)
+                    name,features,accessibles = dicts.parse_problem(line)    
                     # Create predictions
                     logger.info('Starting computation for problem on line %s',lineCounter)
+                    if args.learnTheories:
+                        predictedTheories,accessibles = theoryModels.predict(features,accessibles,dicts)
                     if args.snow:
                         predictions,predictionValues = model.predict(features,accessibles,dicts)
                     else:
@@ -214,13 +233,20 @@ def main(argv = sys.argv[1:]):
 
         # Statistics
         if args.statistics:
+            if args.learnTheories:
+                theoryStats.printAvg()
             stats.printAvg()
 
         # Save
         if args.saveModel:
             model.save(modelFile)
+            if args.learnTheories:
+                theoryModels.save(theoryFile)
         dicts.save(dictsFile)
         if not args.saveStats == None:
+            if args.learnTheories:
+                theoryStatsFile = os.path.join(args.outputDir,'theoryStats')
+                theoryStats.save(theoryStatsFile)
             statsFile = os.path.join(args.outputDir,args.saveStats)
             stats.save(statsFile)
     return 0
@@ -228,28 +254,37 @@ def main(argv = sys.argv[1:]):
 if __name__ == '__main__':
     # Example:
     # Jinja
-    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--predef']
-    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testIsabelle.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/natATPMP.stats']
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/']
-    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/natATPNB.stats','--cutOff','500']
-    # List
-    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/List/','--isabelle']
-    #args = ['-i', '../data/List/mash_commands','-p','../tmp/testIsabelle.pred','-l','testIsabelle.log','--isabelle','-o','../tmp/','--statistics']
-    # Huffmann
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Huffman/','--depFile','mash_atp_dependencies']
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Huffman/']
-    #args = ['-i', '../data/Huffman/mash_commands','-p','../tmp/testNB.pred','-l','testNB.log','--nb','-o','../tmp/','--statistics']
-    # Jinja
-    # ISAR
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/']    
-    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500']
-    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--predef']
-    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/JinjaMePo.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaMePo.stats']
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--depFile','mash_atp_dependencies','--snow']    
+    # ISAR Theories
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121221/Jinja/','--learnTheories']    
+    #args = ['-i', '../data/20121221/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--learnTheories']
+    # ISAR NB
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121221/Jinja/']    
+    #args = ['-i', '../data/20121221/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500']
+    # ISAR MePo
+    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121212/Jinja/','--predef']
+    #args = ['-i', '../data/20121212/Jinja/mash_commands','-p','../tmp/JinjaMePo.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaMePo.stats']
+    # ISAR NB ATP
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121212/Jinja/','--depFile','mash_atp_dependencies']    
     #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--depFile','mash_atp_dependencies']
+    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--predef','--depFile','mash_atp_dependencies']
+    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/JinjaMePo.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaMePo.stats','--depFile','mash_atp_dependencies']
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--depFile','mash_atp_dependencies','--snow']    
+    #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--snow','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--depFile','mash_atp_dependencies']
+    # ISAR Snow
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121212/Jinja/','--snow']    
+    #args = ['-i', '../data/20121212/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--snow','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500']
+ 
 
-    # ATP
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--depFile','mash_atp_dependencies']    
+
+    # Probability
+    # ISAR NB
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121213/Probability/']    
+    #args = ['-i', '../data/20121213/Probability/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/ProbIsarNB.stats','--cutOff','500']
+    # ISAR MePo
+    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121213/Probability/','--predef']
+    #args = ['-i', '../data/20121213/Probability/mash_commands','-p','../tmp/JinjaMePo.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaMePo.stats']
+    # ISAR NB ATP
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121212/Jinja/','--depFile','mash_atp_dependencies']    
     #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--depFile','mash_atp_dependencies']
     #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/Jinja/','--predef','--depFile','mash_atp_dependencies']
     #args = ['-i', '../data/Jinja/mash_commands','-p','../tmp/JinjaMePo.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaMePo.stats','--depFile','mash_atp_dependencies']

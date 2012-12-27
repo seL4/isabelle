@@ -37,8 +37,7 @@ class Predefined(object):
             line = line[1].split()
             preds = [dicts.get_name_id(x.strip())for x in line]
             self.predictions[predId] = preds
-        IS.close()
-        return dicts
+        IS.close()        
 
     def update(self,dataPoint,features,dependencies):
         """
