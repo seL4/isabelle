@@ -70,12 +70,12 @@ class singleNBClassifier(object):
             self.counts[f] = [posCount,negCount]
 
             
-    def overwrite(self,features,label):
+    def overwrite(self,features,labelOld,labelNew):
         """
         Deletes the old dependencies of problemId and replaces them with the new ones. Updates the model accordingly.
         """
-        self.delete(features,label)
-        self.update(features,label)
+        self.delete(features,labelOld)
+        self.update(features,labelNew)
     
     def predict_sparse(self,features):
         """

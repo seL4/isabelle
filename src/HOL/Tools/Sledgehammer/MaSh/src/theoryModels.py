@@ -26,7 +26,7 @@ class TheoryModels(object):
         '''
         self.theoryModels = {}
         self.theoryDict = {}
-        self.accessibleTheories = []
+        self.accessibleTheories = set([])
         self.currentTheory = None
   
     def init(self,depFile,dicts):      
@@ -46,7 +46,7 @@ class TheoryModels(object):
             if not self.theoryDict.has_key(theory):
                 assert not theory == self.currentTheory
                 if not self.currentTheory == None:
-                    self.accessibleTheories.append(self.currentTheory)
+                    self.accessibleTheories.add(self.currentTheory)
                 self.currentTheory = theory
                 self.theoryDict[theory] = set([nameId])
                 theoryModel = singleNBClassifier()
@@ -75,7 +75,17 @@ class TheoryModels(object):
         IS.close()
     
     def overwrite(self,problemId,newDependencies,dicts):
-        pass
+        features = dicts.featureDict[problemId]
+        unExpAccessibles = dicts.accessibleDict[problemId]
+        accessibles = dicts.expand_accessibles(unExpAccessibles)
+        accTheories = []
+        for x in accessibles:
+            xArt = (dicts.idNameDict[x]).split('.')[0]
+            accTheories.append(xArt)    
+        oldTheories = set([x.split('.')[0] for x in dicts.dependenciesDict[problemId]])
+        newTheories = set([x.split('.')[0] for x in newDependencies])    
+        for a in self.accTheories:                
+            self.theoryModels[a].overwrite(features,a in oldTheories,a in newTheories) 
     
     def delete(self):
         pass
@@ -89,12 +99,13 @@ class TheoryModels(object):
         currentTheory = (dicts.idNameDict[problemId]).split('.')[0]       
         # Create new theory model, if there is a new theory 
         if not self.theoryDict.has_key(currentTheory):
-            assert not currentTheory == self.currentTheory
+            assert not currentTheory == self.currentTheory            
             if not currentTheory == None:
                 self.theoryDict[currentTheory] = []
                 self.currentTheory = currentTheory
                 theoryModel = singleNBClassifier()
-                self.theoryModels[currentTheory] = theoryModel          
+                self.theoryModels[currentTheory] = theoryModel
+                self.accessibleTheories.add(self.currentTheory)          
         if not len(usedTheories) == 0:
             for a in self.accessibleTheories:                
                 self.theoryModels[a].update(features,a in usedTheories)   
