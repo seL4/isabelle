@@ -145,7 +145,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
     val _ = print " * * *";
     val _ = print ("Options: " ^ commas options);
     val oks = Par_List.map solve_goal (tag_list 1 lines)
-    val n = length (hd oks)
+    val n = length oks
     val [mepo_ok, mash_ok, mesh_ok, isar_ok] =
       map Integer.sum (map_transpose I oks)
   in
