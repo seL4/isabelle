@@ -40,7 +40,7 @@ sig
     Proof.context -> bool -> int -> string list * (string * real) list
     -> (string * real) list
   val mash_unlearn : Proof.context -> unit
-  val nickname_of : thm -> string
+  val nickname_of_thm : thm -> string
   val find_suggested_facts :
     (string * 'a) list -> ('b * thm) list -> (('b * thm) * 'a) list
   val mesh_facts :
@@ -403,7 +403,7 @@ fun parent_of_local_thm th =
 
 val local_prefix = "local" ^ Long_Name.separator
 
-fun nickname_of th =
+fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* FIXME: There must be a better way to detect local facts. *)
@@ -417,7 +417,7 @@ fun nickname_of th =
 
 fun find_suggested_facts suggs facts =
   let
-    fun add_fact (fact as (_, th)) = Symtab.default (nickname_of th, fact)
+    fun add_fact (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
     val tab = Symtab.empty |> fold add_fact facts
     fun find_sugg (name, weight) =
       Symtab.lookup tab name |> Option.map (rpair weight)
@@ -489,8 +489,12 @@ fun theory_ord p =
 fun thm_ord p =
   case theory_ord (pairself theory_of_thm p) of
     EQUAL =>
-    (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
-    string_ord (pairself nickname_of (swap p))
+    let val q = pairself nickname_of_thm p in
+      (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
+      case bool_ord (pairself (String.isSuffix "_def") (swap q)) of
+        EQUAL => string_ord q
+      | ord => ord
+    end
   | ord => ord
 
 val freezeT = Type.legacy_freeze_type
@@ -604,7 +608,7 @@ val max_dependencies = 20
 val prover_dependency_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
-val typedef_deps = [@{thm CollectI} |> nickname_of]
+val typedef_deps = [@{thm CollectI} |> nickname_of_thm]
 
 (* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
 val typedef_ths =
@@ -614,12 +618,12 @@ val typedef_ths =
          type_definition.Abs_cases type_definition.Rep_induct
          type_definition.Abs_induct type_definition.Rep_range
          type_definition.Abs_image}
-  |> map nickname_of
+  |> map nickname_of_thm
 
 fun is_size_def [dep] th =
     (case first_field ".recs" dep of
        SOME (pref, _) =>
-       (case first_field ".size" (nickname_of th) of
+       (case first_field ".size" (nickname_of_thm th) of
           SOME (pref', _) => pref = pref'
         | NONE => false)
      | NONE => false)
@@ -649,8 +653,9 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val goal = goal_of_thm thy th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
       val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-      fun fix_name ((_, stature), th) = ((fn () => nickname_of th, stature), th)
-      fun is_dep dep (_, th) = nickname_of th = dep
+      fun nickify ((_, stature), th) =
+        ((fn () => nickname_of_thm th, stature), th)
+      fun is_dep dep (_, th) = nickname_of_thm th = dep
       fun add_isar_dep facts dep accum =
         if exists (is_dep dep) accum then
           accum
@@ -663,11 +668,11 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                (max_facts |> the_default prover_dependency_default_max_facts)
                NONE hyp_ts concl_t
         |> fold (add_isar_dep facts) (these isar_deps)
-        |> map fix_name
+        |> map nickify
     in
       if verbose andalso auto_level = 0 then
         let val num_facts = length facts in
-          "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of th) ^
+          "MaSh: " ^ quote prover ^ " on " ^ quote (nickname_of_thm th) ^
           " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
           "."
           |> Output.urgent_message
@@ -697,7 +702,7 @@ fun num_keys keys = Graph.Keys.fold (K (Integer.add 1)) keys 0
 
 fun maximal_in_graph access_G facts =
   let
-    val facts = [] |> fold (cons o nickname_of o snd) facts
+    val facts = [] |> fold (cons o nickname_of_thm o snd) facts
     val tab = Symtab.empty |> fold (fn name => Symtab.default (name, ())) facts
     fun insert_new seen name =
       not (Symtab.defined seen name) ? insert (op =) name
@@ -726,7 +731,7 @@ fun maximal_in_graph access_G facts =
   in find_maxes Symtab.empty ([], Graph.maximals access_G) end
 
 fun is_fact_in_graph access_G (_, th) =
-  can (Graph.get_node access_G) (nickname_of th)
+  can (Graph.get_node access_G) (nickname_of_thm th)
 
 val weight_raw_mash_facts = weight_mepo_facts
 val weight_mash_facts = weight_raw_mash_facts
@@ -825,7 +830,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
           val thy = Proof_Context.theory_of ctxt
           val name = freshish_name ()
           val feats = features_of ctxt prover thy (Local, General) [t]
-          val deps = used_ths |> map nickname_of
+          val deps = used_ths |> map nickname_of_thm
         in
           peek_state ctxt (fn {access_G, ...} =>
               let val parents = maximal_in_graph access_G facts in
@@ -863,7 +868,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         ""
     else
       let
-        val all_names = build_all_names nickname_of facts
+        val all_names = build_all_names nickname_of_thm facts
         fun deps_of status th =
           if status = Non_Rec_Def orelse status = Rec_Def then
             SOME []
@@ -911,7 +916,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           | learn_new_fact ((_, stature as (_, status)), th)
                            (adds, (parents, n, next_commit, _)) =
             let
-              val name = nickname_of th
+              val name = nickname_of_thm th
               val feats =
                 features_of ctxt prover (theory_of_thm th) stature [prop_of th]
               val deps = deps_of status th |> these
@@ -946,7 +951,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           | relearn_old_fact ((_, (_, status)), th)
                              ((reps, flops), (n, next_commit, _)) =
             let
-              val name = nickname_of th
+              val name = nickname_of_thm th
               val (n, reps, flops) =
                 case deps_of status th of
                   SOME deps => (n + 1, (name, deps) :: reps, flops)
@@ -968,7 +973,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             let
               val max_isar = 1000 * max_dependencies
               fun kind_of_proof th =
-                try (Graph.get_node access_G) (nickname_of th)
+                try (Graph.get_node access_G) (nickname_of_thm th)
                 |> the_default Isar_Proof
               fun priority_of (_, th) =
                 random_range 0 max_isar

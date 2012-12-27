@@ -59,7 +59,7 @@ fun generate_accessibility ctxt thys include_thys file_name =
     val facts =
       all_facts ctxt
       |> not include_thys ? filter_out (has_thys thys o snd)
-      |> map (snd #> nickname_of)
+      |> map (snd #> nickname_of_thm)
   in fold do_fact facts []; () end
 
 fun generate_features ctxt prover thys include_thys file_name =
@@ -71,7 +71,7 @@ fun generate_features ctxt prover thys include_thys file_name =
       |> not include_thys ? filter_out (has_thys thys o snd)
     fun do_fact ((_, stature), th) =
       let
-        val name = nickname_of th
+        val name = nickname_of_thm th
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
         val s =
@@ -96,11 +96,11 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
     val path = file_name |> Path.explode
     val facts =
       all_facts ctxt |> not include_thys ? filter_out (has_thys thys o snd)
-    val all_names = build_all_names nickname_of facts
+    val all_names = build_all_names nickname_of_thm facts
     fun do_fact (j, (_, th)) =
       if in_range range j then
         let
-          val name = nickname_of th
+          val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val deps =
             isar_or_prover_dependencies_of ctxt params_opt facts all_names th
@@ -128,7 +128,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val all_names = build_all_names nickname_of facts
+    val all_names = build_all_names nickname_of_thm facts
     fun do_fact (j, ((name, ((_, stature), th)), prevs)) =
       if in_range range j then
         let
@@ -149,8 +149,9 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
         in query ^ update end
       else
         ""
-    val parents = map (nickname_of o snd) (the_list (try List.last old_facts))
-    val new_facts = new_facts |> map (`(nickname_of o snd))
+    val parents =
+      map (nickname_of_thm o snd) (the_list (try List.last old_facts))
+    val new_facts = new_facts |> map (`(nickname_of_thm o snd))
     val prevss = fst (split_last (parents :: map (single o fst) new_facts))
     val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ prevss))
   in File.write_list path lines end
@@ -168,10 +169,10 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val all_names = build_all_names nickname_of facts
+    val all_names = build_all_names nickname_of_thm facts
     fun do_fact ((_, th), old_facts) =
       let
-        val name = nickname_of th
+        val name = nickname_of_thm th
         val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isar_dependencies_of all_names th
@@ -184,7 +185,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
               old_facts
               |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
                      max_facts NONE hyp_ts concl_t
-              |> map (nickname_of o snd)
+              |> map (nickname_of_thm o snd)
           in escape_meta name ^ ": " ^ escape_metas suggs ^ "\n" end
       end
     fun accum x (yss as ys :: _) = (x :: ys) :: yss

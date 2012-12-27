@@ -46,7 +46,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
     val lines = sugg_path |> File.read_lines
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
-    val all_names = build_all_names nickname_of facts
+    val all_names = build_all_names nickname_of_thm facts
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
     fun str_of_res label facts ({outcome, run_time, used_facts, ...}
@@ -74,7 +74,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
         let
           val (name, suggs) = extract_query line
           val th =
-            case find_first (fn (_, th) => nickname_of th = name) facts of
+            case find_first (fn (_, th) => nickname_of_thm th = name) facts of
               SOME (_, th) => th
             | NONE => error ("No fact called \"" ^ name ^ "\".")
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
@@ -107,7 +107,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
           fun prove heading get facts =
             let
               fun nickify ((_, stature), th) =
-                ((K (escape_meta (nickname_of th)), stature), th)
+                ((K (escape_meta (nickname_of_thm th)), stature), th)
               val facts =
                 facts
                 |> map (get #> nickify)
