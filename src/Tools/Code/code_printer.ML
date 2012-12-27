@@ -261,8 +261,7 @@ fun brackify fxy_ctxt =
   gen_brackify (fixity BR fxy_ctxt) o Pretty.breaks;
 
 fun brackify_infix infx fxy_ctxt (l, m, r) =
-  (if fixity (INFX infx) fxy_ctxt then enclose "(" ")" else Pretty.block)
-    ([l, str " ", m, Pretty.brk 1, r]);
+  gen_brackify (fixity (INFX infx) fxy_ctxt) [l, str " ", m, Pretty.brk 1, r];
 
 fun brackify_block fxy_ctxt p1 ps p2 =
   let val p = Pretty.block_enclose (p1, p2) ps
@@ -273,11 +272,10 @@ fun brackify_block fxy_ctxt p1 ps p2 =
 
 fun gen_applify strict opn cls f fxy_ctxt p [] =
       if strict
-      then (if fixity BR fxy_ctxt then enclose "(" ")" else Pretty.block) [p, str "()"]
+      then gen_brackify (fixity BR fxy_ctxt) [p, str "()"]
       else p
   | gen_applify strict opn cls f fxy_ctxt p ps =
-      (if fixity BR fxy_ctxt then enclose "(" ")" else Pretty.block)
-        (p @@ enum "," opn cls (map f ps));
+      gen_brackify (fixity BR fxy_ctxt) (p @@ enum "," opn cls (map f ps));
 
 fun applify opn = gen_applify false opn;
 
