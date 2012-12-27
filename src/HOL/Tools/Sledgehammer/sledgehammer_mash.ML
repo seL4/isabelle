@@ -139,6 +139,7 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val core =
       "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
       " --numberOfPredictions " ^ string_of_int max_suggs ^
+      " --learnTheories" ^
       (if save then " --saveModel" else "")
     val command =
       "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet --outputDir " ^
@@ -296,7 +297,7 @@ val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20121217a ***"
+val version = "*** MaSh version 20121227a ***"
 
 exception Too_New of unit
 
