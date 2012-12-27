@@ -84,7 +84,7 @@ sig
   val empty_funs: program -> string list
   val map_terms_bottom_up: (iterm -> iterm) -> iterm -> iterm
   val map_terms_stmt: (iterm -> iterm) -> stmt -> stmt
-  val is_cons: program -> string -> bool
+  val is_constr: program -> string -> bool
   val is_case: stmt -> bool
   val labelled_name: theory -> program -> string -> string
   val group_stmts: theory -> program
@@ -464,7 +464,7 @@ fun map_terms_stmt f NoStmt = NoStmt
           inst_params = map_classparam_instances_as_term f inst_params,
           superinst_params = map_classparam_instances_as_term f superinst_params };
 
-fun is_cons program name = case Graph.get_node program name
+fun is_constr program name = case Graph.get_node program name
  of Datatypecons _ => true
   | _ => false;
 

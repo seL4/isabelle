@@ -51,7 +51,7 @@ fun tuplify _ _ [] = NONE
 
 (** SML serializer **)
 
-fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
+fun print_sml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     fun print_tyco_expr (tyco, []) = (str o deresolve) tyco
       | print_tyco_expr (tyco, [ty]) =
@@ -110,7 +110,7 @@ fun print_sml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
                 else print_app is_pseudo_fun some_thm vars fxy app
             | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
     and print_app_expr is_pseudo_fun some_thm vars (app as ({ name = c, dicts = dss, dom = dom, ... }, ts)) =
-      if is_cons c then
+      if is_constr c then
         let val k = length dom in
           if k < 2 orelse length ts = k
           then (str o deresolve) c
@@ -355,7 +355,7 @@ val literals_sml = Literals {
 
 (** OCaml serializer **)
 
-fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
+fun print_ocaml_stmt tyco_syntax const_syntax reserved is_constr deresolve =
   let
     fun print_tyco_expr (tyco, []) = (str o deresolve) tyco
       | print_tyco_expr (tyco, [ty]) =
@@ -410,7 +410,7 @@ fun print_ocaml_stmt tyco_syntax const_syntax reserved is_cons deresolve =
                 else print_app is_pseudo_fun some_thm vars fxy app
             | NONE => print_case is_pseudo_fun some_thm vars fxy case_expr)
     and print_app_expr is_pseudo_fun some_thm vars (app as ({ name = c, dicts = dss, dom = dom, ... }, ts)) =
-      if is_cons c then
+      if is_constr c then
         let val k = length dom in
           if length ts = k
           then (str o deresolve) c
@@ -794,7 +794,7 @@ fun serialize_ml print_ml_module print_ml_stmt with_signatures
     (* print statements *)
     fun print_stmt prefix_fragments (_, stmt) = print_ml_stmt
       tyco_syntax const_syntax (make_vars reserved_syms)
-      (Code_Thingol.is_cons program) (deresolver prefix_fragments) stmt
+      (Code_Thingol.is_constr program) (deresolver prefix_fragments) stmt
       |> apfst SOME;
 
     (* print modules *)
