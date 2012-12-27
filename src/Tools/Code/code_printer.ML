@@ -272,7 +272,7 @@ fun brackify_block fxy_ctxt p1 ps p2 =
 
 fun applify opn cls f fxy_ctxt p [] = p
   | applify opn cls f fxy_ctxt p ps =
-      (if (fixity BR fxy_ctxt) then enclose "(" ")" else Pretty.block)
+      (if fixity BR fxy_ctxt then enclose "(" ")" else Pretty.block)
         (p @@ enum "," opn cls (map f ps));
 
 fun tuplify _ _ [] = NONE
