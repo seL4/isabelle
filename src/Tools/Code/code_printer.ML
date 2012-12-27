@@ -67,6 +67,7 @@ sig
   val brackify: fixity -> Pretty.T list -> Pretty.T
   val brackify_infix: int * lrx -> fixity -> Pretty.T * Pretty.T * Pretty.T -> Pretty.T
   val brackify_block: fixity -> Pretty.T -> Pretty.T list -> Pretty.T -> Pretty.T
+  val gen_applify: bool -> string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val applify: string -> string -> ('a -> Pretty.T) -> fixity -> Pretty.T -> 'a list -> Pretty.T
   val tuplify: (fixity -> 'a -> Pretty.T) -> fixity -> 'a list -> Pretty.T option
 
@@ -270,10 +271,15 @@ fun brackify_block fxy_ctxt p1 ps p2 =
     else p
   end;
 
-fun applify opn cls f fxy_ctxt p [] = p
-  | applify opn cls f fxy_ctxt p ps =
+fun gen_applify strict opn cls f fxy_ctxt p [] =
+      if strict
+      then (if fixity BR fxy_ctxt then enclose "(" ")" else Pretty.block) [p, str "()"]
+      else p
+  | gen_applify strict opn cls f fxy_ctxt p ps =
       (if fixity BR fxy_ctxt then enclose "(" ")" else Pretty.block)
         (p @@ enum "," opn cls (map f ps));
+
+fun applify opn = gen_applify false opn;
 
 fun tuplify _ _ [] = NONE
   | tuplify print fxy [x] = SOME (print fxy x)

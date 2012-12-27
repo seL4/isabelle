@@ -25,7 +25,7 @@ infixr 5 @|;
 (** Scala serializer **)
 
 fun print_scala_stmt tyco_syntax const_syntax reserved
-    args_num is_singleton_constr (deresolve, deresolve_full) =
+    args_num is_constr (deresolve, deresolve_full) =
   let
     fun lookup_tyvar tyvars = lookup_var tyvars o first_upper;
     fun intro_tyvars vs = intro_vars (map (first_upper o fst) vs);
@@ -75,10 +75,9 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
         (app as ({ name = c, typargs, dom, ... }, ts)) =
       let
         val k = length ts;
-        val typargs' = if is_pat orelse
-          (is_none (const_syntax c) andalso is_singleton_constr c) then [] else typargs;
+        val typargs' = if is_pat then [] else typargs;
         val (l, print') = case const_syntax c
-         of NONE => (args_num c, fn fxy => fn ts => applify "(" ")"
+         of NONE => (args_num c, fn fxy => fn ts => gen_applify (is_constr c ) "(" ")"
               (print_term tyvars is_pat some_thm vars NOBR) fxy
                 (applify "[" "]" (print_typ tyvars NOBR)
                   NOBR ((str o deresolve) c) typargs') ts)
@@ -206,22 +205,17 @@ fun print_scala_stmt tyco_syntax const_syntax reserved
       | print_stmt (name, Code_Thingol.Datatype (_, (vs, cos))) =
           let
             val tyvars = intro_tyvars (map (rpair []) vs) reserved;
-            fun print_co ((co, _), []) =
-                  concat [str "final", str "case", str "object", (str o deresolve) co,
-                    str "extends", applify "[" "]" I NOBR ((str o deresolve) name)
-                      (replicate (length vs) (str "Nothing"))]
-              | print_co ((co, vs_args), tys) =
-                  concat [applify "(" ")"
-                    (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg)) NOBR
-                    (applify "[" "]" (str o lookup_tyvar tyvars) NOBR ((concat o map str)
-                      ["final", "case", "class", deresolve co]) vs_args)
-                    (Name.invent_names (snd reserved) "a" tys),
-                    str "extends",
-                    applify "[" "]" (str o lookup_tyvar tyvars) NOBR
-                      ((str o deresolve) name) vs
-                  ];
+            fun print_co ((co, vs_args), tys) =
+              concat [Pretty.block ((applify "[" "]" (str o lookup_tyvar tyvars) NOBR
+                ((concat o map str) ["final", "case", "class", deresolve co]) vs_args)
+                @@ enum "," "(" ")" (map (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg))
+                  (Name.invent_names (snd reserved) "a" tys))),
+                str "extends",
+                applify "[" "]" (str o lookup_tyvar tyvars) NOBR
+                  ((str o deresolve) name) vs
+              ];
           in
-            Pretty.chunks (applify "[" "]" (str o prefix "+" o lookup_tyvar tyvars)
+            Pretty.chunks (applify "[" "]" (str o lookup_tyvar tyvars)
               NOBR ((concat o map str) ["abstract", "sealed", "class", deresolve name]) vs
                 :: map print_co cos)
           end
@@ -359,12 +353,9 @@ fun serialize_scala { labelled_name, reserved_syms, includes,
       | Code_Thingol.Classparam (_, class) =>
           (length o fst o Code_Thingol.unfold_fun o the o AList.lookup (op =)
             (classparams_of_class class)) c;
-    fun is_singleton_constr c = case Graph.get_node program c
-     of Code_Thingol.Datatypecons (_, tyco) => null (lookup_constr tyco c)
-      | _ => false;
     fun print_stmt prefix_fragments = print_scala_stmt
       tyco_syntax const_syntax (make_vars reserved_syms) args_num
-      is_singleton_constr (deresolver prefix_fragments, deresolver []);
+      (Code_Thingol.is_constr program) (deresolver prefix_fragments, deresolver []);
 
     (* print modules *)
     fun print_implicit prefix_fragments implicit =
