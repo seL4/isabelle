@@ -30,11 +30,11 @@ sig
   val unescape_metas : string -> string list
   val encode_features : (string * real) list -> string
   val extract_query : string -> string * (string * real) list
-  val mash_CLEAR : Proof.context -> unit
-  val mash_ADD :
+  val mash_UNLEARN : Proof.context -> unit
+  val mash_LEARN :
     Proof.context -> bool
     -> (string * string list * (string * real) list * string list) list -> unit
-  val mash_REPROVE :
+  val mash_RELEARN :
     Proof.context -> bool -> (string * string list) list -> unit
   val mash_QUERY :
     Proof.context -> bool -> int -> string list * (string * real) list
@@ -191,11 +191,11 @@ fun encode_feature (name, weight) =
 
 val encode_features = map encode_feature #> space_implode " "
 
-fun str_of_add (name, parents, feats, deps) =
+fun str_of_learn (name, parents, feats, deps) =
   "! " ^ escape_meta name ^ ": " ^ escape_metas parents ^ "; " ^
   encode_features feats ^ "; " ^ escape_metas deps ^ "\n"
 
-fun str_of_reprove (name, deps) =
+fun str_of_relearn (name, deps) =
   "p " ^ escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
 
 fun str_of_query (parents, feats) =
@@ -215,26 +215,26 @@ fun extract_query line =
      map_filter extract_suggestion (space_explode " " suggs))
   | _ => ("", [])
 
-fun mash_CLEAR ctxt =
+fun mash_UNLEARN ctxt =
   let val path = mash_model_dir () in
-    trace_msg ctxt (K "MaSh CLEAR");
+    trace_msg ctxt (K "MaSh UNLEARN");
     try (File.fold_dir (fn file => fn _ =>
                            try File.rm (Path.append path (Path.basic file)))
                        path) NONE;
     ()
   end
 
-fun mash_ADD _ _ [] = ()
-  | mash_ADD ctxt overlord adds =
-    (trace_msg ctxt (fn () => "MaSh ADD " ^
-         elide_string 1000 (space_implode " " (map #1 adds)));
-     run_mash_tool ctxt overlord true 0 (adds, str_of_add) (K ()))
+fun mash_LEARN _ _ [] = ()
+  | mash_LEARN ctxt overlord learns =
+    (trace_msg ctxt (fn () => "MaSh LEARN " ^
+         elide_string 1000 (space_implode " " (map #1 learns)));
+     run_mash_tool ctxt overlord true 0 (learns, str_of_learn) (K ()))
 
-fun mash_REPROVE _ _ [] = ()
-  | mash_REPROVE ctxt overlord reps =
-    (trace_msg ctxt (fn () => "MaSh REPROVE " ^
-         elide_string 1000 (space_implode " " (map #1 reps)));
-     run_mash_tool ctxt overlord true 0 (reps, str_of_reprove) (K ()))
+fun mash_RELEARN _ _ [] = ()
+  | mash_RELEARN ctxt overlord relearns =
+    (trace_msg ctxt (fn () => "MaSh RELEARN " ^
+         elide_string 1000 (space_implode " " (map #1 relearns)));
+     run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
 
 fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
   (trace_msg ctxt (fn () => "MaSh QUERY " ^ encode_features feats);
@@ -381,7 +381,7 @@ fun peek_state ctxt f =
 
 fun clear_state ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_CLEAR ctxt; (* also removes the state file *)
+      (mash_UNLEARN ctxt; (* also removes the state file *)
        (true, empty_state)))
 
 end
@@ -784,24 +784,24 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
     val unknown = facts |> filter_out (is_fact_in_graph access_G)
   in find_mash_suggestions max_facts suggs facts chained unknown end
 
-fun add_wrt_access_graph ctxt (name, parents, feats, deps) (adds, graph) =
+fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (learns, graph) =
   let
-    fun maybe_add_from from (accum as (parents, graph)) =
+    fun maybe_learn_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
     val graph = graph |> Graph.default_node (name, Isar_Proof)
-    val (parents, graph) = ([], graph) |> fold maybe_add_from parents
-    val (deps, _) = ([], graph) |> fold maybe_add_from deps
-  in ((name, parents, feats, deps) :: adds, graph) end
+    val (parents, graph) = ([], graph) |> fold maybe_learn_from parents
+    val (deps, _) = ([], graph) |> fold maybe_learn_from deps
+  in ((name, parents, feats, deps) :: learns, graph) end
 
-fun reprove_wrt_access_graph ctxt (name, deps) (reps, graph) =
+fun relearn_wrt_access_graph ctxt (name, deps) (relearns, graph) =
   let
-    fun maybe_rep_from from (accum as (parents, graph)) =
+    fun maybe_relearn_from from (accum as (parents, graph)) =
       try_graph ctxt "updating graph" accum (fn () =>
           (from :: parents, Graph.add_edge_acyclic (from, name) graph))
     val graph = graph |> update_access_graph_node (name, Automatic_Proof)
-    val (deps, _) = ([], graph) |> fold maybe_rep_from deps
-  in ((name, deps) :: reps, graph) end
+    val (deps, _) = ([], graph) |> fold maybe_relearn_from deps
+  in ((name, deps) :: relearns, graph) end
 
 fun flop_wrt_access_graph name =
   update_access_graph_node (name, Isar_Proof_wegen_Prover_Flop)
@@ -834,7 +834,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
         in
           peek_state ctxt (fn {access_G, ...} =>
               let val parents = maximal_in_graph access_G facts in
-                mash_ADD ctxt overlord [(name, parents, feats, deps)]
+                mash_LEARN ctxt overlord [(name, parents, feats, deps)]
               end);
           (true, "")
         end)
@@ -879,31 +879,31 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           else
             isar_dependencies_of all_names th
         fun do_commit [] [] [] state = state
-          | do_commit adds reps flops {access_G, dirty} =
+          | do_commit learns relearns flops {access_G, dirty} =
             let
               val was_empty = Graph.is_empty access_G
-              val (adds, access_G) =
-                ([], access_G) |> fold (add_wrt_access_graph ctxt) adds
-              val (reps, access_G) =
-                ([], access_G) |> fold (reprove_wrt_access_graph ctxt) reps
+              val (learns, access_G) =
+                ([], access_G) |> fold (learn_wrt_access_graph ctxt) learns
+              val (relearns, access_G) =
+                ([], access_G) |> fold (relearn_wrt_access_graph ctxt) relearns
               val access_G = access_G |> fold flop_wrt_access_graph flops
               val dirty =
-                case (was_empty, dirty, reps) of
-                  (false, SOME names, []) => SOME (map #1 adds @ names)
+                case (was_empty, dirty, relearns) of
+                  (false, SOME names, []) => SOME (map #1 learns @ names)
                 | _ => NONE
             in
-              mash_ADD ctxt overlord (rev adds);
-              mash_REPROVE ctxt overlord reps;
+              mash_LEARN ctxt overlord (rev learns);
+              mash_RELEARN ctxt overlord relearns;
               {access_G = access_G, dirty = dirty}
             end
-        fun commit last adds reps flops =
+        fun commit last learns relearns flops =
           (if debug andalso auto_level = 0 then
              Output.urgent_message "Committing..."
            else
              ();
-           map_state ctxt (do_commit (rev adds) reps flops);
+           map_state ctxt (do_commit (rev learns) relearns flops);
            if not last andalso auto_level = 0 then
-             let val num_proofs = length adds + length reps in
+             let val num_proofs = length learns + length relearns in
                "Learned " ^ string_of_int num_proofs ^ " " ^
                (if run_prover then "automatic" else "Isar") ^ " proof" ^
                plural_s num_proofs ^ " in the last " ^
@@ -914,24 +914,24 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
              ())
         fun learn_new_fact _ (accum as (_, (_, _, _, true))) = accum
           | learn_new_fact ((_, stature as (_, status)), th)
-                           (adds, (parents, n, next_commit, _)) =
+                           (learns, (parents, n, next_commit, _)) =
             let
               val name = nickname_of_thm th
               val feats =
                 features_of ctxt prover (theory_of_thm th) stature [prop_of th]
               val deps = deps_of status th |> these
               val n = n |> not (null deps) ? Integer.add 1
-              val adds = (name, parents, feats, deps) :: adds
-              val (adds, next_commit) =
+              val learns = (name, parents, feats, deps) :: learns
+              val (learns, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
-                  (commit false adds [] []; ([], next_commit_time ()))
+                  (commit false learns [] []; ([], next_commit_time ()))
                 else
-                  (adds, next_commit)
+                  (learns, next_commit)
               val timed_out =
                 case learn_timeout of
                   SOME timeout => Time.> (Timer.checkRealTimer timer, timeout)
                 | NONE => false
-            in (adds, ([name], n, next_commit, timed_out)) end
+            in (learns, ([name], n, next_commit, timed_out)) end
         val n =
           if null new_facts then
             0
@@ -943,29 +943,30 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                 old_facts
                 |> filter (fn (_, th) => thm_ord (th, last_th) <> GREATER)
               val parents = maximal_in_graph access_G ancestors
-              val (adds, (_, n, _, _)) =
+              val (learns, (_, n, _, _)) =
                 ([], (parents, 0, next_commit_time (), false))
                 |> fold learn_new_fact new_facts
-            in commit true adds [] []; n end
+            in commit true learns [] []; n end
         fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
           | relearn_old_fact ((_, (_, status)), th)
-                             ((reps, flops), (n, next_commit, _)) =
+                             ((relearns, flops), (n, next_commit, _)) =
             let
               val name = nickname_of_thm th
-              val (n, reps, flops) =
+              val (n, relearns, flops) =
                 case deps_of status th of
-                  SOME deps => (n + 1, (name, deps) :: reps, flops)
-                | NONE => (n, reps, name :: flops)
-              val (reps, flops, next_commit) =
+                  SOME deps => (n + 1, (name, deps) :: relearns, flops)
+                | NONE => (n, relearns, name :: flops)
+              val (relearns, flops, next_commit) =
                 if Time.> (Timer.checkRealTimer timer, next_commit) then
-                  (commit false [] reps flops; ([], [], next_commit_time ()))
+                  (commit false [] relearns flops;
+                   ([], [], next_commit_time ()))
                 else
-                  (reps, flops, next_commit)
+                  (relearns, flops, next_commit)
               val timed_out =
                 case learn_timeout of
                   SOME timeout => Time.> (Timer.checkRealTimer timer, timeout)
                 | NONE => false
-            in ((reps, flops), (n, next_commit, timed_out)) end
+            in ((relearns, flops), (n, next_commit, timed_out)) end
         val n =
           if not run_prover orelse null old_facts then
             n
@@ -988,10 +989,10 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                 old_facts |> map (`priority_of)
                           |> sort (int_ord o pairself fst)
                           |> map snd
-              val ((reps, flops), (n, _, _)) =
+              val ((relearns, flops), (n, _, _)) =
                 (([], []), (n, next_commit_time (), false))
                 |> fold relearn_old_fact old_facts
-            in commit true [] reps flops; n end
+            in commit true [] relearns flops; n end
       in
         if verbose orelse auto_level < 2 then
           "Learned " ^ string_of_int n ^ " nontrivial " ^
