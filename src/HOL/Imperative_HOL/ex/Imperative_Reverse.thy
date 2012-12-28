@@ -112,7 +112,7 @@ lemma rev2_rev:
 
 definition "example = (Array.make 10 id \<guillemotright>= (\<lambda>a. rev a 0 9))"
 
-export_code example checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala? Scala_imp?
+export_code example checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 
 end
 

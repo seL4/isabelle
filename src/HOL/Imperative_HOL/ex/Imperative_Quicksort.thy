@@ -659,6 +659,6 @@ code_reserved SML upto
 
 ML {* @{code qsort} (Array.fromList [42, 2, 3, 5, 0, 1705, 8, 3, 15]) () *}
 
-export_code qsort checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala? Scala_imp?
+export_code qsort checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 
 end
