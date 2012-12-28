@@ -72,7 +72,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
     fun solve_goal (j, line) =
       if in_range range j then
         let
-          val (name, suggs) = extract_query line
+          val (name, suggs) = extract_suggestions line
           val th =
             case find_first (fn (_, th) => nickname_of_thm th = name) facts of
               SOME (_, th) => th

@@ -29,7 +29,7 @@ sig
   val unescape_meta : string -> string
   val unescape_metas : string -> string list
   val encode_features : (string * real) list -> string
-  val extract_query : string -> string * (string * real) list
+  val extract_suggestions : string -> string * (string * real) list
 
   structure MaSh:
   sig
@@ -39,7 +39,7 @@ sig
       -> (string * string list * (string * real) list * string list) list -> unit
     val relearn :
       Proof.context -> bool -> (string * string list) list -> unit
-    val query :
+    val suggest :
       Proof.context -> bool -> int -> string list * (string * real) list
       -> (string * real) list
   end
@@ -213,7 +213,7 @@ fun extract_suggestion sugg =
   | [name] => SOME (unescape_meta name, 1.0)
   | _ => NONE
 
-fun extract_query line =
+fun extract_suggestions line =
   case space_explode ":" line of
     [goal, suggs] =>
     (unescape_meta goal,
@@ -244,14 +244,14 @@ fun relearn _ _ [] = ()
          elide_string 1000 (space_implode " " (map #1 relearns)));
      run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
 
-fun query ctxt overlord max_suggs (query as (_, feats)) =
-  (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
+fun suggest ctxt overlord max_suggs (query as (_, feats)) =
+  (trace_msg ctxt (fn () => "MaSh suggest " ^ encode_features feats);
    run_mash_tool ctxt overlord false max_suggs
        ([query], str_of_query)
        (fn suggs =>
            case suggs () of
              [] => []
-           | suggs => snd (extract_query (List.last suggs)))
+           | suggs => snd (extract_suggestions (List.last suggs)))
    handle List.Empty => [])
 
 end;
@@ -788,7 +788,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
               val feats =
                 features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
             in
-              (access_G, MaSh.query ctxt overlord max_facts (parents, feats))
+              (access_G, MaSh.suggest ctxt overlord max_facts (parents, feats))
             end)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val unknown = facts |> filter_out (is_fact_in_graph access_G)
