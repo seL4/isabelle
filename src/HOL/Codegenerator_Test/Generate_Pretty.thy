@@ -20,6 +20,6 @@ text {*
   by a corresponding @{text export_code} command.
 *}
 
-export_code _ checking SML OCaml? Haskell? Scala?
+export_code _ checking SML OCaml? Haskell? Scala
 
 end
