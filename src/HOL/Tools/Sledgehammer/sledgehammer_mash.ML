@@ -30,15 +30,20 @@ sig
   val unescape_metas : string -> string list
   val encode_features : (string * real) list -> string
   val extract_query : string -> string * (string * real) list
-  val mash_UNLEARN : Proof.context -> unit
-  val mash_LEARN :
-    Proof.context -> bool
-    -> (string * string list * (string * real) list * string list) list -> unit
-  val mash_RELEARN :
-    Proof.context -> bool -> (string * string list) list -> unit
-  val mash_QUERY :
-    Proof.context -> bool -> int -> string list * (string * real) list
-    -> (string * real) list
+
+  structure MaSh:
+  sig
+    val unlearn : Proof.context -> unit
+    val learn :
+      Proof.context -> bool
+      -> (string * string list * (string * real) list * string list) list -> unit
+    val relearn :
+      Proof.context -> bool -> (string * string list) list -> unit
+    val query :
+      Proof.context -> bool -> int -> string list * (string * real) list
+      -> (string * real) list
+  end
+
   val mash_unlearn : Proof.context -> unit
   val nickname_of_thm : thm -> string
   val find_suggested_facts :
@@ -215,29 +220,32 @@ fun extract_query line =
      map_filter extract_suggestion (space_explode " " suggs))
   | _ => ("", [])
 
-fun mash_UNLEARN ctxt =
+structure MaSh =
+struct
+
+fun unlearn ctxt =
   let val path = mash_model_dir () in
-    trace_msg ctxt (K "MaSh UNLEARN");
+    trace_msg ctxt (K "MaSh unlearn");
     try (File.fold_dir (fn file => fn _ =>
                            try File.rm (Path.append path (Path.basic file)))
                        path) NONE;
     ()
   end
 
-fun mash_LEARN _ _ [] = ()
-  | mash_LEARN ctxt overlord learns =
-    (trace_msg ctxt (fn () => "MaSh LEARN " ^
+fun learn _ _ [] = ()
+  | learn ctxt overlord learns =
+    (trace_msg ctxt (fn () => "MaSh learn " ^
          elide_string 1000 (space_implode " " (map #1 learns)));
      run_mash_tool ctxt overlord true 0 (learns, str_of_learn) (K ()))
 
-fun mash_RELEARN _ _ [] = ()
-  | mash_RELEARN ctxt overlord relearns =
-    (trace_msg ctxt (fn () => "MaSh RELEARN " ^
+fun relearn _ _ [] = ()
+  | relearn ctxt overlord relearns =
+    (trace_msg ctxt (fn () => "MaSh relearn " ^
          elide_string 1000 (space_implode " " (map #1 relearns)));
      run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
 
-fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
-  (trace_msg ctxt (fn () => "MaSh QUERY " ^ encode_features feats);
+fun query ctxt overlord max_suggs (query as (_, feats)) =
+  (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
    run_mash_tool ctxt overlord false max_suggs
        ([query], str_of_query)
        (fn suggs =>
@@ -245,6 +253,8 @@ fun mash_QUERY ctxt overlord max_suggs (query as (_, feats)) =
              [] => []
            | suggs => snd (extract_query (List.last suggs)))
    handle List.Empty => [])
+
+end;
 
 
 (*** Middle-level communication with MaSh ***)
@@ -381,7 +391,7 @@ fun peek_state ctxt f =
 
 fun clear_state ctxt =
   Synchronized.change global_state (fn _ =>
-      (mash_UNLEARN ctxt; (* also removes the state file *)
+      (MaSh.unlearn ctxt; (* also removes the state file *)
        (true, empty_state)))
 
 end
@@ -778,7 +788,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
               val feats =
                 features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
             in
-              (access_G, mash_QUERY ctxt overlord max_facts (parents, feats))
+              (access_G, MaSh.query ctxt overlord max_facts (parents, feats))
             end)
     val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val unknown = facts |> filter_out (is_fact_in_graph access_G)
@@ -834,7 +844,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
         in
           peek_state ctxt (fn {access_G, ...} =>
               let val parents = maximal_in_graph access_G facts in
-                mash_LEARN ctxt overlord [(name, parents, feats, deps)]
+                MaSh.learn ctxt overlord [(name, parents, feats, deps)]
               end);
           (true, "")
         end)
@@ -892,8 +902,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                   (false, SOME names, []) => SOME (map #1 learns @ names)
                 | _ => NONE
             in
-              mash_LEARN ctxt overlord (rev learns);
-              mash_RELEARN ctxt overlord relearns;
+              MaSh.learn ctxt overlord (rev learns);
+              MaSh.relearn ctxt overlord relearns;
               {access_G = access_G, dirty = dirty}
             end
         fun commit last learns relearns flops =
