@@ -272,7 +272,7 @@ fun brackify_block fxy_ctxt p1 ps p2 =
 
 fun gen_applify strict opn cls f fxy_ctxt p [] =
       if strict
-      then gen_brackify (fixity BR fxy_ctxt) [p, str "()"]
+      then gen_brackify (fixity BR fxy_ctxt) [p, str (opn ^ cls)]
       else p
   | gen_applify strict opn cls f fxy_ctxt p ps =
       gen_brackify (fixity BR fxy_ctxt) (p @@ enum "," opn cls (map f ps));
