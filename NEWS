@@ -308,6 +308,8 @@ return a structurally different tree than before. MINOR INCOMPATIBILITY.
 
 * Library/IArray.thy: immutable arrays with code generation.
 
+* Library/Finite_Lattice.thy: theory of finite lattices
+
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
