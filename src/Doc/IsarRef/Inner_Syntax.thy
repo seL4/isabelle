@@ -353,7 +353,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   Isabelle types and terms.  Locally fixed parameters in toplevel
   theorem statements, locale and class specifications also admit
   mixfix annotations in a fairly uniform manner.  A mixfix annotation
-  describes describes the concrete syntax, the translation to abstract
+  describes the concrete syntax, the translation to abstract
   syntax, and the pretty printing.  Special case annotations provide a
   simple means of specifying infix operators and binders.
 
