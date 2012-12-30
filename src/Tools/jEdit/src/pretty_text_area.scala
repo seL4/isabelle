@@ -17,7 +17,7 @@ import javax.swing.{KeyStroke, JComponent}
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
 import org.gjt.sp.jedit.syntax.SyntaxStyle
-import org.gjt.sp.util.SyntaxUtilities
+import org.gjt.sp.util.{SyntaxUtilities, Log}
 
 
 object Pretty_Text_Area
@@ -119,7 +119,8 @@ class Pretty_Text_Area(
       future_rendering = Some(default_thread_pool.submit(() =>
         {
           val (text, rendering) =
-            Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body)
+            try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
+            catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
           Simple_Thread.interrupted_exception()
 
           Swing_Thread.later {
