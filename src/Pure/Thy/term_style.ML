@@ -65,9 +65,8 @@ fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
     | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl))
   end);
 
-val style_prem = Args.name >> (fn raw_i => fn ctxt => fn t =>
+val style_prem = Parse.nat >> (fn i => fn ctxt => fn t =>
   let
-    val i = (the o Int.fromString) raw_i;
     val prems = Logic.strip_imp_prems t;
   in
     if i <= length prems then nth prems (i - 1)
