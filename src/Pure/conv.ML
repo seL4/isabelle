@@ -154,8 +154,8 @@ fun implies_concl_conv cv ct =
   | _ => raise CTERM ("implies_concl_conv", [ct]));
 
 
-(* single rewrite step
-   beta-normalizes the rhs and takes care that lhs aconv ct *)
+(* single rewrite step, cf. REWR_CONV in HOL *)
+
 fun rewr_conv rule ct =
   let
     val rule1 = Thm.incr_indexes (#maxidx (Thm.rep_cterm ct) + 1) rule;
@@ -163,13 +163,13 @@ fun rewr_conv rule ct =
     val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1;
     val rule3 =
       Thm.instantiate (Thm.match (lhs, ct)) rule2
-      handle Pattern.MATCH => raise CTERM ("rewr_conv", [lhs, ct])
+        handle Pattern.MATCH => raise CTERM ("rewr_conv", [lhs, ct]);
     val rule4 =
-      if term_of(Thm.lhs_of rule3) aconv term_of ct then rule3
+      if Thm.lhs_of rule3 aconvc ct then rule3
       else
         let val ceq = Thm.dest_fun2 (Thm.cprop_of rule3)
-        in rule3 COMP Thm.trivial (Thm.mk_binop ceq ct (Thm.rhs_of rule3)) end
-  in Thm.transitive rule4 (Thm.beta_conversion true (Thm.rhs_of rule4)) end
+        in rule3 COMP Thm.trivial (Thm.mk_binop ceq ct (Thm.rhs_of rule3)) end;
+  in Thm.transitive rule4 (Thm.beta_conversion true (Thm.rhs_of rule4)) end;
 
 fun rewrs_conv rules = first_conv (map rewr_conv rules);
 
