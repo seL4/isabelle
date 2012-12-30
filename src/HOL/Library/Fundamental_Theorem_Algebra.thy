@@ -1088,7 +1088,7 @@ lemma pmult_Cons_Cons: "(pCons (a::complex) (pCons b p) * q = (smult a q) + (pCo
 
 lemma elim_neg_conv: "- z \<equiv> (-1) * (z::complex)" by simp
 lemma eqT_intr: "PROP P \<Longrightarrow> (True \<Longrightarrow> PROP P )" "PROP P \<Longrightarrow> True" by blast+
-lemma negate_negate_rule: "Trueprop P \<equiv> \<not> P \<equiv> False" by (atomize (full), auto)
+lemma negate_negate_rule: "Trueprop P \<equiv> (\<not> P \<equiv> False)" by (atomize (full), auto)
 
 lemma complex_entire: "(z::complex) \<noteq> 0 \<and> w \<noteq> 0 \<equiv> z*w \<noteq> 0" by simp
 lemma resolve_eq_ne: "(P \<equiv> True) \<equiv> (\<not>P \<equiv> False)" "(P \<equiv> False) \<equiv> (\<not>P \<equiv> True)"

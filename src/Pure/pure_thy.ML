@@ -166,7 +166,7 @@ val _ = Context.>> (Context.map_theory
     ("_idtyp",            typ "id_position => type => idt", Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),
-    (const "==",          typ "'a => 'a => prop",       Infixr ("\\<equiv>", 2)),
+    (const "==",          typ "'a => 'a => prop",       Infix ("\\<equiv>", 2)),
     (const "all_binder",  typ "idts => prop => prop",   Mixfix ("(3\\<And>_./ _)", [0, 0], 0)),
     (const "==>",         typ "prop => prop => prop",   Infixr ("\\<Longrightarrow>", 1)),
     ("_DDDOT",            typ "aprop",                  Delimfix "\\<dots>"),
