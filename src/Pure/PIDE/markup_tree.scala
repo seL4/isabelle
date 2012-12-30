@@ -118,9 +118,12 @@ object Markup_Tree
 
         case (elems, body) =>
           val (end_offset, subtrees) = ((offset, Nil: List[Markup_Tree]) /: body)(make_trees)
-          val range = Text.Range(offset, end_offset)
-          val entry = Entry(range, elems, merge_disjoint(subtrees))
-          (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
+          if (offset == end_offset) acc
+          else {
+            val range = Text.Range(offset, end_offset)
+            val entry = Entry(range, elems, merge_disjoint(subtrees))
+            (end_offset, new Markup_Tree(Branches.empty, entry) :: markup_trees)
+          }
       }
     }
 
