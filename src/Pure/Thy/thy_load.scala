@@ -117,7 +117,7 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
       val uses = header.uses
       Document.Node.Header(imports, header.keywords, uses)
     }
-    catch { case e: Throwable => Document.Node.bad_header(Exn.message(e)) }
+    catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
   }
 
   def check_thy(name: Document.Node.Name): Document.Node.Header =

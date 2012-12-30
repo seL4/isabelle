@@ -45,7 +45,7 @@ class Rich_Text_Area(
         default
       }
     }
-    catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
+    catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); default }
   }
 
 
