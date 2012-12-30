@@ -47,7 +47,7 @@ fun parse_single ctxt = Parse.position (Parse.xname -- Args.parse)
        (Scan.lift (the_style (Proof_Context.theory_of ctxt) name))
          (Args.src x) ctxt |>> (fn f => f ctxt)));
 
-val parse = Args.context :|-- (fn ctxt => Scan.lift 
+val parse = Args.context :|-- (fn ctxt => Scan.lift
   (Args.parens (parse_single ctxt ::: Scan.repeat (Args.$$$ "," |-- parse_single ctxt))
       >> fold I
   || Scan.succeed I));
@@ -60,8 +60,9 @@ fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
     val concl =
       Object_Logic.drop_judgment (Proof_Context.theory_of ctxt) (Logic.strip_imp_concl t)
   in
-    case concl of (_ $ l $ r) => proj (l, r)
-    | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl)
+    (case concl of
+      (_ $ l $ r) => proj (l, r)
+    | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl))
   end);
 
 val style_prem = Args.name >> (fn raw_i => fn ctxt => fn t =>
@@ -70,8 +71,9 @@ val style_prem = Args.name >> (fn raw_i => fn ctxt => fn t =>
     val prems = Logic.strip_imp_prems t;
   in
     if i <= length prems then nth prems (i - 1)
-    else error ("Not enough premises for prem " ^ string_of_int i ^
-      " in propositon: " ^ Syntax.string_of_term ctxt t)
+    else
+      error ("Not enough premises for prem " ^ string_of_int i ^
+        " in propositon: " ^ Syntax.string_of_term ctxt t)
   end);
 
 fun isub_symbols (d :: s :: ss) =

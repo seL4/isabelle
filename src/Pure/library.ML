@@ -668,9 +668,9 @@ fun read_radix_int radix cs =
     val limit = zero + radix;
     fun scan (num, []) = (num, [])
       | scan (num, c :: cs) =
-        if zero <= ord c andalso ord c < limit then
-          scan (radix * num + (ord c - zero), cs)
-        else (num, c :: cs);
+          if zero <= ord c andalso ord c < limit then
+            scan (radix * num + (ord c - zero), cs)
+          else (num, c :: cs);
   in scan (0, cs) end;
 
 val read_int = read_radix_int 10;
