@@ -11,7 +11,7 @@ import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Window, Dimension}
 import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, WindowAdapter}
-import javax.swing.{SwingUtilities, JWindow, JPanel, JComponent, KeyStroke}
+import javax.swing.{SwingUtilities, JDialog, JPanel, JComponent, KeyStroke}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
@@ -28,12 +28,16 @@ class Pretty_Tooltip(
   mouse_x: Int, mouse_y: Int,
   results: Command.Results,
   body: XML.Body)
-  extends JWindow(JEdit_Lib.parent_window(parent) getOrElse view)
+  extends JDialog(JEdit_Lib.parent_window(parent) getOrElse view)
 {
   window =>
 
   Swing_Thread.require()
 
+
+  window.setUndecorated(true)
+  window.setFocusableWindowState(true)
+  window.setAutoRequestFocus(true)
 
   window.addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) {
