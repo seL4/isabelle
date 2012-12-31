@@ -73,7 +73,7 @@ object Isabelle_System
                 else Nil
               val cmdline =
                 shell_prefix ::: List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
-              val (output, rc) = Standard_System.raw_exec(null, env, true, cmdline: _*)
+              val (output, rc) = process_output(raw_execute(null, env, true, cmdline: _*))
               if (rc != 0) error(output)
 
               val entries =
@@ -140,6 +140,40 @@ object Isabelle_System
 
   /** external processes **/
 
+  /* raw execute for bootstrapping */
+
+  private def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
+    : Process =
+  {
+    val cmdline = new java.util.LinkedList[String]
+    for (s <- args) cmdline.add(s)
+
+    val proc = new ProcessBuilder(cmdline)
+    if (cwd != null) proc.directory(cwd)
+    if (env != null) {
+      proc.environment.clear
+      for ((x, y) <- env) proc.environment.put(x, y)
+    }
+    proc.redirectErrorStream(redirect)
+    proc.start
+  }
+
+  private def process_output(proc: Process): (String, Int) =
+  {
+    proc.getOutputStream.close
+    val output = File.read(proc.getInputStream)
+    val rc =
+      try { proc.waitFor }
+      finally {
+        proc.getInputStream.close
+        proc.getErrorStream.close
+        proc.destroy
+        Thread.interrupted
+      }
+    (output, rc)
+  }
+
+
   /* plain execute */
 
   def execute_env(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
@@ -148,7 +182,7 @@ object Isabelle_System
       if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\env.exe") ++ args
       else args
     val env1 = if (env == null) settings else settings ++ env
-    Standard_System.raw_execute(cwd, env1, redirect, cmdline: _*)
+    raw_execute(cwd, env1, redirect, cmdline: _*)
   }
 
   def execute(redirect: Boolean, args: String*): Process =
@@ -258,7 +292,7 @@ object Isabelle_System
     } match {
       case Some(dir) =>
         val file = standard_path(dir + Path.basic(name))
-        Standard_System.process_output(execute(true, (List(file) ++ args): _*))
+        process_output(execute(true, (List(file) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }

@@ -16,42 +16,6 @@ import scala.util.matching.Regex
 
 object Standard_System
 {
-  /* shell processes */
-
-  def raw_execute(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
-  {
-    val cmdline = new java.util.LinkedList[String]
-    for (s <- args) cmdline.add(s)
-
-    val proc = new ProcessBuilder(cmdline)
-    if (cwd != null) proc.directory(cwd)
-    if (env != null) {
-      proc.environment.clear
-      for ((x, y) <- env) proc.environment.put(x, y)
-    }
-    proc.redirectErrorStream(redirect)
-    proc.start
-  }
-
-  def process_output(proc: Process): (String, Int) =
-  {
-    proc.getOutputStream.close
-    val output = File.read(proc.getInputStream)
-    val rc =
-      try { proc.waitFor }
-      finally {
-        proc.getInputStream.close
-        proc.getErrorStream.close
-        proc.destroy
-        Thread.interrupted
-      }
-    (output, rc)
-  }
-
-  def raw_exec(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*)
-    : (String, Int) = process_output(raw_execute(cwd, env, redirect, args: _*))
-
-
   /* cygwin_root */
 
   def cygwin_root(): String =
