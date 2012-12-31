@@ -21,20 +21,41 @@ import scala.collection.mutable
 
 object Isabelle_System
 {
-  /** implicit state **/
+  /** bootstrap information **/
 
-  private case class State(standard_system: Standard_System, settings: Map[String, String])
-
-  @volatile private var _state: Option[State] = None
-
-  private def check_state(): State =
+  def jdk_home(): String =
   {
-    if (_state.isEmpty) init()  // unsynchronized check
-    _state.get
+    val java_home = System.getProperty("java.home")
+    val home = new JFile(java_home)
+    val parent = home.getParent
+    if (home.getName == "jre" && parent != null &&
+        (new JFile(new JFile(parent, "bin"), "javac")).exists) parent
+    else java_home
   }
 
-  def standard_system: Standard_System = check_state().standard_system
-  def settings: Map[String, String] = check_state().settings
+  def cygwin_root(): String =
+  {
+    require(Platform.is_windows)
+
+    val cygwin_root1 = System.getenv("CYGWIN_ROOT")
+    val cygwin_root2 = System.getProperty("cygwin.root")
+
+    if (cygwin_root1 != null && cygwin_root1 != "") cygwin_root1
+    else if (cygwin_root2 != null && cygwin_root2 != "") cygwin_root2
+    else error("Cannot determine Cygwin root directory")
+  }
+
+
+
+  /** implicit settings environment **/
+
+  @volatile private var _settings: Option[Map[String, String]] = None
+
+  def settings(): Map[String, String] =
+  {
+    if (_settings.isEmpty) init()  // unsynchronized check
+    _settings.get
+  }
 
   /*
     isabelle_home precedence:
@@ -42,14 +63,13 @@ object Isabelle_System
       (2) ISABELLE_HOME process environment variable (e.g. inherited from running isabelle tool)
       (3) isabelle.home system property (e.g. via JVM application boot process)
   */
-  def init(this_isabelle_home: String = null) = synchronized {
-    if (_state.isEmpty) {
+  def init(this_isabelle_home: String = null): Unit = synchronized {
+    if (_settings.isEmpty) {
       import scala.collection.JavaConversions._
 
-      val standard_system = new Standard_System
       val settings =
       {
-        val env0 = sys.env + ("ISABELLE_JDK_HOME" -> standard_system.this_jdk_home())
+        val env0 = sys.env + ("ISABELLE_JDK_HOME" -> posix_path(jdk_home()))
 
         val user_home = System.getProperty("user.home")
         val env =
@@ -69,7 +89,7 @@ object Isabelle_System
 
           File.with_tmp_file("settings") { dump =>
               val shell_prefix =
-                if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\bash", "-l")
+                if (Platform.is_windows) List(cygwin_root() + "\\bin\\bash", "-l")
                 else Nil
               val cmdline =
                 shell_prefix ::: List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
@@ -85,7 +105,7 @@ object Isabelle_System
               entries + ("PATH" -> entries("PATH_JVM")) - "PATH_JVM"
             }
           }
-      _state = Some(State(standard_system, settings))
+      _settings = Some(settings)
     }
   }
 
@@ -103,11 +123,64 @@ object Isabelle_System
 
   /** file-system operations **/
 
-  /* path specifications */
+  /* jvm_path */
+
+  private val Cygdrive = new Regex("/cygdrive/([a-zA-Z])($|/.*)")
+  private val Named_Root = new Regex("//+([^/]*)(.*)")
+
+  def jvm_path(posix_path: String): String =
+    if (Platform.is_windows) {
+      val result_path = new StringBuilder
+      val rest =
+        posix_path match {
+          case Cygdrive(drive, rest) =>
+            result_path ++= (Library.uppercase(drive) + ":" + JFile.separator)
+            rest
+          case Named_Root(root, rest) =>
+            result_path ++= JFile.separator
+            result_path ++= JFile.separator
+            result_path ++= root
+            rest
+          case path if path.startsWith("/") =>
+            result_path ++= cygwin_root()
+            path
+          case path => path
+        }
+      for (p <- space_explode('/', rest) if p != "") {
+        val len = result_path.length
+        if (len > 0 && result_path(len - 1) != JFile.separatorChar)
+          result_path += JFile.separatorChar
+        result_path ++= p
+      }
+      result_path.toString
+    }
+    else posix_path
+
+
+  /* posix_path */
+
+  def posix_path(jvm_path: String): String =
+    if (Platform.is_windows) {
+      val Platform_Root = new Regex("(?i)" +
+        Pattern.quote(cygwin_root()) + """(?:\\+|\z)(.*)""")
+      val Drive = new Regex("""([a-zA-Z]):\\*(.*)""")
+
+      jvm_path.replace('/', '\\') match {
+        case Platform_Root(rest) => "/" + rest.replace('\\', '/')
+        case Drive(letter, rest) =>
+          "/cygdrive/" + Library.lowercase(letter) +
+            (if (rest == "") "" else "/" + rest.replace('\\', '/'))
+        case path => path.replace('\\', '/')
+      }
+    }
+    else jvm_path
+
+
+  /* misc path specifications */
 
   def standard_path(path: Path): String = path.expand.implode
 
-  def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
+  def platform_path(path: Path): String = jvm_path(standard_path(path))
   def platform_file(path: Path): JFile = new JFile(platform_path(path))
 
   def platform_file_url(raw_path: Path): String =
@@ -119,8 +192,6 @@ object Isabelle_System
     else if (s.startsWith("\\\\")) "file:" + s.replace('\\', '/')
     else "file:///" + s.replace('\\', '/')
   }
-
-  def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
 
 
   /* source files of Isabelle/ML bootstrap */
@@ -179,7 +250,7 @@ object Isabelle_System
   def execute_env(cwd: JFile, env: Map[String, String], redirect: Boolean, args: String*): Process =
   {
     val cmdline =
-      if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\env.exe") ++ args
+      if (Platform.is_windows) List(cygwin_root() + "\\bin\\env.exe") ++ args
       else args
     val env1 = if (env == null) settings else settings ++ env
     raw_execute(cwd, env1, redirect, cmdline: _*)
