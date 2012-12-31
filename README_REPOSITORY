@@ -310,5 +310,5 @@ The Isabelle build process is managed as follows:
   * administrative "isabelle build_doc" to populate the doc/
     directory, such that "isabelle doc" will find the results, for example:
 
-      isabelle build_doc IsarRef
+      isabelle build_doc -p IsarRef
 
