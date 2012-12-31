@@ -9,13 +9,13 @@ Contributions to this Isabelle version
 * 2012: Makarius Wenzel, Université Paris-Sud / LRI
   Improvements of Isabelle/Scala and Isabelle/jEdit Prover IDE.
 
-* Fall 2012: Daniel Kuehlwein, ICIS, Radboud University Nijmegen
+* Fall 2012: Daniel Kühlwein, ICIS, Radboud University Nijmegen
   Jasmin Blanchette, TUM
   Implemented Machine Learning for Sledgehammer (MaSh).
 
 * Fall 2012: Steffen Smolka, TUM
-  Various improvements to Sledgehammer's Isar proof generator, including
-  a smart type annotation algorithm and proof shrinking.
+  Various improvements to Sledgehammer's Isar proof generator,
+  including a smart type annotation algorithm and proof shrinking.
 
 * December 2012: Alessandro Coglio, Kestrel
   Contributions to HOL's Lattice library
@@ -53,6 +53,10 @@ Contributions to this Isabelle version
 
 * May 2012: Andreas Lochbihler, KIT
   Theory of almost everywhere constant functions.
+
+* 2010-2012: Markus Kaiser and Lukas Bulwahn, TUM
+  Graphview in Scala/Swing.
+
 
 Contributions to Isabelle2012
 -----------------------------
