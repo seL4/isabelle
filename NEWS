@@ -102,17 +102,12 @@ now bundled exclusively with Isabelle.
 
 *** Pure ***
 
-* Dropped legacy antiquotations "term_style" and "thm_style", since
-styles may be given as arguments to "term" and "thm" already.  Dropped
-legacy styles "prem1" .. "prem19".  INCOMPATIBILITY.
-
 * Code generation for Haskell: restrict unqualified imports from
 Haskell Prelude to a small set of fundamental operations.
 
-* Command "export_code": relative file names are interpreted
-relatively to master directory of current theory rather than
-the rather arbitrary current working directory.
-INCOMPATIBILITY.
+* Command 'export_code': relative file names are interpreted
+relatively to master directory of current theory rather than the
+rather arbitrary current working directory.  INCOMPATIBILITY.
 
 * Discontinued obsolete attribute "COMP".  Potential INCOMPATIBILITY,
 use regular rule composition via "OF" / "THEN", or explicit proof
@@ -129,11 +124,34 @@ given given sort.  Example (in HOL):
 
 *** HOL ***
 
-* Removed constant "chars".  Prefer "Enum.enum" on type "char"
-directly.  INCOMPATIBILITY.
+* Sledgehammer:
 
-* Moved operation product, sublists and n_lists from Enum.thy
-to List.thy.  INCOMPATIBILITY.
+  - Added MaSh relevance filter based on machine-learning; see the
+    Sledgehammer manual for details.
+  - Polished Isar proofs generated with "isar_proofs" option.
+  - Rationalized type encodings ("type_enc" option).
+  - Renamed "kill_provers" subcommand to "kill".
+  - Renamed options:
+      isar_proof ~> isar_proofs
+      isar_shrink_factor ~> isar_shrink
+      max_relevant ~> max_facts
+      relevance_thresholds ~> fact_thresholds
+
+* Quickcheck: added an optimisation for equality premises.  It is
+switched on by default, and can be switched off by setting the
+configuration quickcheck_optimise_equality to false.
+
+* Simproc "finite_Collect" rewrites set comprehensions into pointfree
+expressions.
+
+* Preprocessing of the code generator rewrites set comprehensions into
+pointfree expressions.
+
+* The SMT solver Z3 has now by default a restricted set of directly
+supported features. For the full set of features (div/mod, nonlinear
+arithmetic, datatypes/records) with potential proof reconstruction
+failures, enable the configuration option "z3_with_extensions".  Minor
+INCOMPATIBILITY.
 
 * Simplified 'typedef' specifications: historical options for implicit
 set definition and alternative name have been discontinued.  The
@@ -141,51 +159,84 @@ former behavior of "typedef (open) t = A" is now the default, but
 written just "typedef t = A".  INCOMPATIBILITY, need to adapt theories
 accordingly.
 
-* Theory "Library/Multiset":
+* Removed constant "chars"; prefer "Enum.enum" on type "char"
+directly.  INCOMPATIBILITY.
 
-  - Renamed constants
-      fold_mset ~> Multiset.fold  -- for coherence with other fold combinators
-
-  - Renamed facts
-      fold_mset_commute ~> fold_mset_comm  -- for coherence with fold_comm
-
-INCOMPATIBILITY.
+* Moved operation product, sublists and n_lists from theory Enum to
+List.  INCOMPATIBILITY.
 
 * Theorem UN_o generalized to SUP_comp.  INCOMPATIBILITY.
 
 * Class "comm_monoid_diff" formalises properties of bounded
 subtraction, with natural numbers and multisets as typical instances.
 
-* Theory "Library/Option_ord" provides instantiation of option type
-to lattice type classes.
+* Added combinator "Option.these" with type "'a option set => 'a set".
 
-* New combinator "Option.these" with type "'a option set => 'a set".
+* Theory "Transitive_Closure": renamed lemmas
 
-* Renamed theory Library/List_Prefix to Library/Sublist.
-INCOMPATIBILITY.  Related changes are:
+  reflcl_tranclp -> reflclp_tranclp
+  rtranclp_reflcl -> rtranclp_reflclp
 
-  - Renamed constants:
+INCOMPATIBILITY.
+
+* Theory "Rings": renamed lemmas (in class semiring)
+
+  left_distrib ~> distrib_right
+  right_distrib ~> distrib_left
+
+INCOMPATIBILITY.
+
+* Generalized the definition of limits:
+
+  - Introduced the predicate filterlim (LIM x F. f x :> G) which
+    expresses that when the input values x converge to F then the
+    output f x converges to G.
+
+  - Added filters for convergence to positive (at_top) and negative
+    infinity (at_bot).
+
+  - Moved infinity in the norm (at_infinity) from
+    Multivariate_Analysis to Complex_Main.
+
+  - Removed real_tendsto_inf, it is superseded by "LIM x F. f x :>
+    at_top".
+
+INCOMPATIBILITY.
+
+* Theory "Library/Option_ord" provides instantiation of option type to
+lattice type classes.
+
+* Theory "Library/Multiset": renamed
+
+    constant fold_mset ~> Multiset.fold
+    fact fold_mset_commute ~> fold_mset_comm
+
+INCOMPATIBILITY.
+
+* Renamed theory Library/List_Prefix to Library/Sublist, with related
+changes as follows.
+
+  - Renamed constants (and related lemmas)
 
       prefix ~> prefixeq
       strict_prefix ~> prefix
 
-    Renamed lemmas accordingly, INCOMPATIBILITY.
+  - Replaced constant "postfix" by "suffixeq" with swapped argument
+    order (i.e., "postfix xs ys" is now "suffixeq ys xs") and dropped
+    old infix syntax "xs >>= ys"; use "suffixeq ys xs" instead.
+    Renamed lemmas accordingly.
 
-  - Replaced constant "postfix" by "suffixeq" with swapped argument order
-    (i.e., "postfix xs ys" is now "suffixeq ys xs") and dropped old infix
-    syntax "xs >>= ys"; use "suffixeq ys xs" instead.  Renamed lemmas
-    accordingly.  INCOMPATIBILITY.
+  - Added constant "list_hembeq" for homeomorphic embedding on
+    lists. Added abbreviation "sublisteq" for special case
+    "list_hembeq (op =)".
 
-  - New constant "list_hembeq" for homeomorphic embedding on lists. New
-    abbreviation "sublisteq" for special case "list_hembeq (op =)".
+  - Theory Library/Sublist no longer provides "order" and "bot" type
+    class instances for the prefix order (merely corresponding locale
+    interpretations). The type class instances are now in theory
+    Library/Prefix_Order.
 
-  - Library/Sublist does no longer provide "order" and "bot" type class
-    instances for the prefix order (merely corresponding locale
-    interpretations). The type class instances are to be found in
-    Library/Prefix_Order. INCOMPATIBILITY.
-
-  - The sublist relation from Library/Sublist_Order is now based on
-    "Sublist.sublisteq". Replaced lemmas:
+  - The sublist relation of theory Library/Sublist_Order is now based
+    on "Sublist.sublisteq".  Renamed lemmas accordingly:
 
       le_list_append_le_same_iff ~> Sublist.sublisteq_append_le_same_iff
       le_list_append_mono ~> Sublist.list_hembeq_append_mono
@@ -204,148 +255,110 @@ INCOMPATIBILITY.  Related changes are:
       less_eq_list.induct ~> less_eq_list_induct
       not_le_list_length ~> Sublist.not_sublisteq_length
 
-    INCOMPATIBILITY.
+INCOMPATIBILITY.
 
-* Further generalized the definition of limits:
 
-  - Introduced the predicate filterlim (LIM x F. f x :> G) which expresses that
-    when the input values x converge to F then the output f x converges to G.
+* New theory Library/Countable_Set.
 
-  - Added filters for convergence to positive (at_top) and negative infinity (at_bot).
-    Moved infinity in the norm (at_infinity) from Multivariate_Analysis to Complex_Main.
+* Theory Library/Debug and Library/Parallel provide debugging and
+parallel execution for code generated towards Isabelle/ML.
 
-  - Removed real_tendsto_inf, it is superseded by "LIM x F. f x :> at_top".
-    INCOMPATIBILITY
+* Theory Library/FuncSet: Extended support for Pi and extensional and
+introduce the extensional dependent function space "PiE". Replaced
+extensional_funcset by an abbreviation, and renamed lemmas from
+extensional_funcset to PiE as follows:
 
-* HOL/Transitive_Closure: renamed lemmas
-  reflcl_tranclp -> reflclp_tranclp
-  rtranclp_reflcl -> rtranclp_reflclp
+  extensional_empty  ~>  PiE_empty
+  extensional_funcset_empty_domain  ~>  PiE_empty_domain
+  extensional_funcset_empty_range  ~>  PiE_empty_range
+  extensional_funcset_arb  ~>  PiE_arb
+  extensional_funcset_mem  ~>  PiE_mem
+  extensional_funcset_extend_domainI  ~>  PiE_fun_upd
+  extensional_funcset_restrict_domain  ~>  fun_upd_in_PiE
+  extensional_funcset_extend_domain_eq  ~>  PiE_insert_eq
+  card_extensional_funcset  ~>  card_PiE
+  finite_extensional_funcset  ~>  finite_PiE
 
-* HOL/Rings: renamed lemmas
+INCOMPATIBILITY.
 
-left_distrib ~> distrib_right
-right_distrib ~> distrib_left
+* Theory Library/FinFun: theory of almost everywhere constant
+functions (supersedes the AFP entry "Code Generation for Functions as
+Data").
 
-in class semiring.  INCOMPATIBILITY.
+* Theory Library/Phantom: generic phantom type to make a type
+parameter appear in a constant's type.  This alternative to adding
+TYPE('a) as another parameter avoids unnecessary closures in generated
+code.
 
-* HOL/BNF: New (co)datatype package based on bounded natural
-functors with support for mixed, nested recursion and interesting
-non-free datatypes.
+* Theory Library/RBT_Impl: efficient construction of red-black trees
+from sorted associative lists. Merging two trees with rbt_union may
+return a structurally different tree than before.  Potential
+INCOMPATIBILITY.
 
-* HOL/Cardinals: Theories of ordinals and cardinals
-(supersedes the AFP entry "Ordinals_and_Cardinals").
+* Theory Library/IArray: immutable arrays with code generation.
 
-* HOL/Multivariate_Analysis:
-  Replaced "basis :: 'a::euclidean_space => nat => real" and
-  "\<Chi>\<Chi> :: (nat => real) => 'a::euclidean_space" on euclidean spaces by
-  using the inner product "_ \<bullet> _" with vectors from the Basis set.
-  "\<Chi>\<Chi> i. f i" is replaced by "SUM i : Basis. f i *r i".
+* Theory Library/Finite_Lattice: theory of finite lattices.
 
-  With this change the following constants are also chanegd or removed:
+* HOL/Multivariate_Analysis: replaced
 
-    DIM('a) :: nat   ~>   card (Basis :: 'a set)   (is an abbreviation)
-    a $$ i    ~>    inner a i  (where i : Basis)
-    cart_base i     removed
-    \<pi>, \<pi>'   removed
+  "basis :: 'a::euclidean_space => nat => real"
+  "\<Chi>\<Chi> :: (nat => real) => 'a::euclidean_space"
+
+on euclidean spaces by using the inner product "_ \<bullet> _" with
+vectors from the Basis set: "\<Chi>\<Chi> i. f i" is superseded by
+"SUM i : Basis. f i * r i".
+
+  With this change the following constants are also changed or removed:
+
+    DIM('a) :: nat  ~>  card (Basis :: 'a set)   (is an abbreviation)
+    a $$ i  ~>  inner a i  (where i : Basis)
+    cart_base i  removed
+    \<pi>, \<pi>'  removed
 
   Theorems about these constants where removed.
 
   Renamed lemmas:
 
-    component_le_norm   ~>   Basis_le_norm
-    euclidean_eq   ~>   euclidean_eq_iff
-    differential_zero_maxmin_component   ~>   differential_zero_maxmin_cart
-    euclidean_simps   ~>   inner_simps
-    independent_basis   ~>   independent_Basis
-    span_basis   ~>   span_Basis
-    in_span_basis   ~>   in_span_Basis
-    norm_bound_component_le   ~>   norm_boound_Basis_le
-    norm_bound_component_lt   ~>   norm_boound_Basis_lt
-    component_le_infnorm   ~>   Basis_le_infnorm
+    component_le_norm  ~>  Basis_le_norm
+    euclidean_eq  ~>  euclidean_eq_iff
+    differential_zero_maxmin_component  ~>  differential_zero_maxmin_cart
+    euclidean_simps  ~>  inner_simps
+    independent_basis  ~>  independent_Basis
+    span_basis  ~>  span_Basis
+    in_span_basis  ~>  in_span_Basis
+    norm_bound_component_le  ~>  norm_boound_Basis_le
+    norm_bound_component_lt  ~>  norm_boound_Basis_lt
+    component_le_infnorm  ~>  Basis_le_infnorm
 
-  INCOMPATIBILITY.
+INCOMPATIBILITY.
 
 * HOL/Probability:
-  - Add simproc "measurable" to automatically prove measurability
 
-  - Add induction rules for sigma sets with disjoint union (sigma_sets_induct_disjoint)
-    and for Borel-measurable functions (borel_measurable_induct).
+  - Added simproc "measurable" to automatically prove measurability.
 
-  - The Daniell-Kolmogorov theorem (the existence the limit of a projective family)
+  - Added induction rules for sigma sets with disjoint union
+    (sigma_sets_induct_disjoint) and for Borel-measurable functions
+    (borel_measurable_induct).
 
-* Library/Countable_Set.thy: Theory of countable sets.
+  - Added the Daniell-Kolmogorov theorem (the existence the limit of a
+    projective family).
 
-* Library/Debug.thy and Library/Parallel.thy: debugging and parallel
-execution for code generated towards Isabelle/ML.
+* HOL/Cardinals: Theories of ordinals and cardinals (supersedes the
+AFP entry "Ordinals_and_Cardinals").
 
-* Library/FuncSet.thy: Extended support for Pi and extensional and introduce the
-extensional dependent function space "PiE". Replaces extensional_funcset by an
-abbreviation, rename a couple of lemmas from extensional_funcset to PiE:
-
-      extensional_empty ~> PiE_empty
-      extensional_funcset_empty_domain ~> PiE_empty_domain
-      extensional_funcset_empty_range ~> PiE_empty_range
-      extensional_funcset_arb ~> PiE_arb
-      extensional_funcset_mem > PiE_mem
-      extensional_funcset_extend_domainI ~> PiE_fun_upd
-      extensional_funcset_restrict_domain ~> fun_upd_in_PiE
-      extensional_funcset_extend_domain_eq ~> PiE_insert_eq
-      card_extensional_funcset ~> card_PiE
-      finite_extensional_funcset ~> finite_PiE
-
-  INCOMPATIBILITY.
-
-* Library/FinFun.thy: theory of almost everywhere constant functions
-(supersedes the AFP entry "Code Generation for Functions as Data").
-
-* Library/Phantom.thy: generic phantom type to make a type parameter
-appear in a constant's type. This alternative to adding TYPE('a) as
-another parameter avoids unnecessary closures in generated code.
-
-* Library/RBT_Impl.thy: efficient construction of red-black trees 
-from sorted associative lists. Merging two trees with rbt_union may
-return a structurally different tree than before. MINOR INCOMPATIBILITY.
-
-* Library/IArray.thy: immutable arrays with code generation.
-
-* Library/Finite_Lattice.thy: theory of finite lattices
-
-* Simproc "finite_Collect" rewrites set comprehensions into pointfree
-expressions.
-
-* Preprocessing of the code generator rewrites set comprehensions into
-pointfree expressions.
-
-* Quickcheck:
-
-  - added an optimisation for equality premises.
-    It is switched on by default, and can be switched off by setting
-    the configuration quickcheck_optimise_equality to false.
-
-* The SMT solver Z3 has now by default a restricted set of directly
-supported features. For the full set of features (div/mod, nonlinear
-arithmetic, datatypes/records) with potential proof reconstruction
-failures, enable the configuration option "z3_with_extensions".
-Minor INCOMPATIBILITY.
-
-* Sledgehammer:
-
-  - Added MaSh relevance filter based on machine-learning; see the
-    Sledgehammer manual for details.
-  - Polished Isar proofs generated with "isar_proofs" option.
-  - Rationalized type encodings ("type_enc" option).
-  - Renamed "kill_provers" subcommand to "kill".
-  - Renamed options:
-      isar_proof ~> isar_proofs
-      isar_shrink_factor ~> isar_shrink
-      max_relevant ~> max_facts
-      relevance_thresholds ~> fact_thresholds
+* HOL/BNF: New (co)datatype package based on bounded natural functors
+with support for mixed, nested recursion and interesting non-free
+datatypes.
 
 
 *** Document preparation ***
 
-* Default for \<euro> is now based on eurosym package, instead of
-slightly exotic babel/greek.
+* Dropped legacy antiquotations "term_style" and "thm_style", since
+styles may be given as arguments to "term" and "thm" already.
+Discontinued legacy styles "prem1" .. "prem19".
+
+* Default LaTeX rendering for \<euro> is now based on eurosym package,
+instead of slightly exotic babel/greek.
 
 * Document variant NAME may use different LaTeX entry point
 document/root_NAME.tex if that file exists, instead of the common
@@ -357,6 +370,10 @@ document/IsaMakefile.  Minor INCOMPATIBILITY.
 
 *** ML ***
 
+* The default limit for maximum number of worker threads is now 8,
+instead of 4, in correspondence to capabilities of contemporary
+hardware and Poly/ML runtime system.
+
 * Type Seq.results and related operations support embedded error
 messages within lazy enumerations, and thus allow to provide
 informative errors in the absence of any usable results.
@@ -367,16 +384,6 @@ necessarily printing visible text.
 
 
 *** System ***
-
-* The default limit for maximum number of worker threads is now 8,
-instead of 4.
-
-* The ML system is configured as regular component, and no longer
-picked up from some surrounding directory.  Potential INCOMPATIBILITY
-for home-made configurations.
-
-* The "isabelle logo" tool produces EPS and PDF format simultaneously.
-Minor INCOMPATIBILITY in command-line options.
 
 * Advanced support for Isabelle sessions and build management, see
 "system" manual for the chapter of that name, especially the "isabelle
@@ -403,12 +410,22 @@ required for "isabelle build", for example.
 with "isabelle build", similar to former "isabelle mkdir" for
 "isabelle usedir".
 
+* The "isabelle logo" tool produces EPS and PDF format simultaneously.
+Minor INCOMPATIBILITY in command-line options.
+
+* The "isabelle install" tool has now a simpler command-line.  Minor
+INCOMPATIBILITY.
+
 * The "isabelle components" tool helps to resolve add-on components
 that are not bundled, or referenced from a bare-bones repository
 version of Isabelle.
 
-* The "isabelle install" tool has now a simpler command-line.  Minor
-INCOMPATIBILITY.
+* Settings variable ISABELLE_PLATFORM_FAMILY refers to the general
+platform family: "linux", "macos", "windows".
+
+* The ML system is configured as regular component, and no longer
+picked up from some surrounding directory.  Potential INCOMPATIBILITY
+for home-made settings.
 
 * Discontinued support for Poly/ML 5.2.1, which was the last version
 without exception positions and advanced ML compiler/toplevel
@@ -420,8 +437,6 @@ INCOMPATIBILITY: provide PROOFGENERAL_HOME and PROOFGENERAL_OPTIONS
 settings manually, or use a Proof General version that has been
 bundled as Isabelle component.
 
-* Settings variable ISABELLE_PLATFORM_FAMILY refers to the general
-platform family: "linux", "macos", "windows".
 
 
 New in Isabelle2012 (May 2012)
