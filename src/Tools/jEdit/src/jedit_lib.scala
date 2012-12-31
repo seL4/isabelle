@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Component, Container, Frame, Window, GraphicsEnvironment, Point, Rectangle}
+import java.awt.{Component, Container, Window, GraphicsEnvironment, Point, Rectangle}
 
 import scala.annotation.tailrec
 
@@ -55,9 +55,6 @@ object JEdit_Lib
 
   def parent_window(component: Component): Option[Window] =
     ancestors(component).find(_.isInstanceOf[Window]).map(_.asInstanceOf[Window])
-
-  def parent_frame(component: Component): Option[Frame] =
-    ancestors(component).find(_.isInstanceOf[Frame]).map(_.asInstanceOf[Frame])
 
 
   /* basic tooltips, with multi-line support */
