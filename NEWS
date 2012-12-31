@@ -4854,7 +4854,7 @@ termination prover sets up the goal "is_measure ?f" of the appropriate
 type and generates all solutions by prolog-style backwards proof using
 the declared rules.
 
-This setup also deals with rules like
+This setup also deals with rules like 
 
   "is_measure f ==> is_measure (list_size f)"
 
@@ -5626,7 +5626,7 @@ variables (index 0).  Potential INCOMPATIBILITY.
 rewrites now. That is, trace_simp_depth_limit is set to 1 by
 default. Thus there is less danger of being flooded by the trace. The
 trace indicates where parts have been suppressed.
-
+  
 * Provers/classical: removed obsolete classical version of elim_format
 attribute; classical elim/dest rules are now treated uniformly when
 manipulating the claset.
@@ -5665,7 +5665,7 @@ resolution prover (see also http://gilith.com/software/metis/).
 Examples are in the directory MetisExamples.  WARNING: the
 Isabelle/HOL-Metis integration does not yet work properly with
 multi-threading.
-
+  
 * Command 'sledgehammer' invokes external automatic theorem provers as
 background processes.  It generates calls to the "metis" method if
 successful. These can be pasted into the proof.  Users do not have to
@@ -6031,7 +6031,7 @@ package. The old recdef "package" is still available as before, but
 users are encouraged to use the new package.
 
 * Method "lexicographic_order" automatically synthesizes termination
-relations as lexicographic combinations of size measures.
+relations as lexicographic combinations of size measures. 
 
 * Case-expressions allow arbitrary constructor-patterns (including
 "_") and take their order into account, like in functional
@@ -6115,7 +6115,7 @@ field rather than the new value: r(|A := x|) is translated to A_update
 (K x) r The K-combinator that is internally used is called K_record.
 INCOMPATIBILITY: Usage of the plain update functions has to be
 adapted.
-
+ 
 * Class "semiring_0" now contains annihilation axioms x * 0 = 0 and 0
 * x = 0, which are required for a semiring.  Richer structures do not
 inherit from semiring_0 anymore, because this property is a theorem
@@ -7011,19 +7011,19 @@ The following theorems have been eliminated or modified
   mult_neg_le        now named mult_nonpos_nonpos
 
 * The following lemmas in Ring_and_Field have been added to the simplifier:
-
+     
      zero_le_square
-     not_square_less_zero
+     not_square_less_zero 
 
   The following lemmas have been deleted from Real/RealPow:
-
+  
      realpow_zero_zero
      realpow_two
      realpow_less
      zero_le_power
      realpow_two_le
      abs_realpow_two
-     realpow_two_abs
+     realpow_two_abs     
 
 * Theory Parity: added rules for simplifying exponents.
 
