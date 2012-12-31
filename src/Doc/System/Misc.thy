@@ -18,6 +18,7 @@ text {*
 Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 
   Options are:
+    -I           init user settings
     -R URL       component repository
                  (default $ISABELLE_COMPONENT_REPOSITORY)
     -a           all missing components
@@ -49,7 +50,14 @@ Usage: isabelle components [OPTIONS] [COMPONENTS ...]
 
   Option @{verbatim "-l"} lists the current state of available and
   missing components with their location (full name) within the
-  file-system.  *}
+  file-system.
+
+  Option @{verbatim "-I"} initializes the user settings file to
+  subscribe to the standard components specified in the Isabelle
+  repository clone --- this does not make any sense for regular
+  Isabelle releases.  If the file already exists, it needs to be
+  edited manually according to the printed explanation.
+*}
 
 
 section {* Displaying documents *}
