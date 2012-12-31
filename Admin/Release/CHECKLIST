@@ -1,6 +1,10 @@
 Checklist for official releases
 ===============================
 
+- check latest polyml, smlnj, jdk, scala, jedit;
+
+- check Admin/components;
+
 - test polyml-5.4.1, polyml-5.4.0, polyml-5.3.0, smlnj;
 
 - test Proof General 4.1, 3.7.1.1;
@@ -13,11 +17,9 @@ Checklist for official releases
 
 - check file positions within logic images (hyperlinks etc.);
 
-- Admin/update-keywords;
+- isabelle update_keywords;
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
-
-- check Admin/components;
 
 - check funny base directory, e.g. "Test 中国";
 
@@ -29,7 +31,7 @@ Checklist for official releases
     doc/Contents
 
 - maintain Logics:
-    etc/components
+    ROOTS
     lib/html/library_index_content.template
 
 - test separate compilation of Isabelle/Scala PIDE sources:
