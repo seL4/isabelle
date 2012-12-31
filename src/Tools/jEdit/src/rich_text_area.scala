@@ -10,7 +10,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics2D, Shape, Window, Color, Point, Toolkit}
+import java.awt.{Graphics2D, Shape, Color, Point, Toolkit}
 import java.awt.event.{MouseMotionAdapter, MouseAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import java.awt.font.TextAttribute
