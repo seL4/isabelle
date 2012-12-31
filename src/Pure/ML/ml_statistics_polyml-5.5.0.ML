@@ -32,7 +32,11 @@ fun get () =
       timeGCUser,
       timeNonGCSystem,
       timeNonGCUser,
-      userCounters = _} = PolyML.Statistics.getLocalStats ()
+      userCounters} = PolyML.Statistics.getLocalStats ();
+    val user_counters =
+      Vector.foldri
+        (fn (i, j, res) => ("user_counter" ^ Markup.print_int (i + 1), Markup.print_int j) :: res)
+        [] userCounters;
   in
     [("full_GCs", Markup.print_int gcFullGCs),
      ("partial_GCs", Markup.print_int gcPartialGCs),
@@ -50,7 +54,8 @@ fun get () =
      ("time_GC_system", signed_string_of_real (Time.toReal timeGCSystem)),
      ("time_GC_user", signed_string_of_real (Time.toReal timeGCUser)),
      ("time_non_GC_system", signed_string_of_real (Time.toReal timeNonGCSystem)),
-     ("time_non_GC_user", signed_string_of_real (Time.toReal timeNonGCUser))]
+     ("time_non_GC_user", signed_string_of_real (Time.toReal timeNonGCUser))] @
+    user_counters
   end;
 
 end;
