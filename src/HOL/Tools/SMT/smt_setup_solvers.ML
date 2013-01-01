@@ -148,7 +148,7 @@ local
     ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
       "MODEL=true",
       "SOFT_TIMEOUT=" ^
-        string_of_int (Real.ceil (Config.get ctxt SMT_Config.timeout)),
+        string_of_int (Real.ceil (1000.0 * Config.get ctxt SMT_Config.timeout)),
       "-smt"]
     |> not (Config.get ctxt SMT_Config.oracle) ?
          append ["DISPLAY_PROOF=true", "PROOF_MODE=2"]
