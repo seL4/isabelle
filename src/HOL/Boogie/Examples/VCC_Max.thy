@@ -33,7 +33,7 @@ static byte maximum(byte arr[], ulong len)
     invariant(forall(ulong i; i < p ==> arr[i] <= max))
     invariant(witness < len && arr[witness] == max)
   {
-    if (arr[p] > max) 
+    if (arr[p] > max)
     {
       max = arr[p];
       speconly(witness = p;)
@@ -46,10 +46,10 @@ static byte maximum(byte arr[], ulong len)
 
 boogie_open (quiet) "VCC_Max.b2i"
 
-declare [[smt_certificates = "VCC_Max.certs"]]
-declare [[smt_read_only_certificates = true]]
 declare [[smt_oracle = false]]
 declare [[z3_with_extensions = true]]
+declare [[smt_certificates = "VCC_Max.certs"]]
+declare [[smt_read_only_certificates = true]]
 
 boogie_status
 

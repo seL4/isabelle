@@ -44,7 +44,7 @@ implementation Dijkstra()
 
   havoc Visited;
   assume (forall x: Vertex :: !Visited[x]);
-            
+
   while ((exists x: Vertex :: !Visited[x] && SP[x] < Infinity))
     invariant (SP[Source] == 0);
     invariant (forall x: Vertex :: SP[x] >= 0);
@@ -81,13 +81,13 @@ implementation Dijkstra()
 
 boogie_open "Boogie_Dijkstra.b2i"
 
+declare [[smt_oracle = false]]
 declare [[smt_certificates = "Boogie_Dijkstra.certs"]]
 declare [[smt_read_only_certificates = true]]
-declare [[smt_oracle = false]]
 
 boogie_vc Dijkstra
   by boogie
 
-boogie_end 
+boogie_end
 
 end

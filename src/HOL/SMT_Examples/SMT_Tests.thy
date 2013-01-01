@@ -109,13 +109,17 @@ lemma
   "\<forall>x. P x \<longrightarrow> (\<forall>y. P x \<or> P y)"
   "(\<forall>x. P x \<and> Q x) \<longleftrightarrow> (\<forall>x. P x) \<and> (\<forall>x. Q x)"
   "(\<forall>x. P x) \<or> R \<longleftrightarrow> (\<forall>x. P x \<or> R)"
-  "(\<forall>x. P x) \<and> R \<longleftrightarrow> (\<forall>x. P x \<and> R)"
   "(\<forall>x y z. S x z) \<longleftrightarrow> (\<forall>x z. S x z)"
   "(\<forall>x y. S x y \<longrightarrow> S y x) \<longrightarrow> (\<forall>x. S x y) \<longrightarrow> S y x"
   "(\<forall>x. P x \<longrightarrow> P (f x)) \<and> P d \<longrightarrow> P (f(f(f(d))))"
   "(\<forall>x y. s x y = s y x) \<longrightarrow> a = a \<and> s a b = s b a"
   "(\<forall>s. q s \<longrightarrow> r s) \<and> \<not>r s \<and> (\<forall>s. \<not>r s \<and> \<not>q s \<longrightarrow> p t \<or> q t) \<longrightarrow> p t \<or> r t"
   by smt+
+
+lemma
+  "(\<forall>x. P x) \<and> R \<longleftrightarrow> (\<forall>x. P x \<and> R)"
+  using [[smt_oracle]] by smt
+  (* BUG: Z3 proof parser (line 34): unknown function symbol: "S2!val!0" *)
 
 lemma
   "\<exists>x. x = x"
@@ -133,7 +137,8 @@ lemma
   "\<exists>x. P x \<longrightarrow> P a \<and> P b"
   "\<exists>x. (\<exists>y. P y) \<longrightarrow> P x"
   "(\<exists>x. Q \<longrightarrow> P x) \<longleftrightarrow> (Q \<longrightarrow> (\<exists>x. P x))"
-by smt+
+  using [[smt_oracle]] by smt+
+  (* BUG: Z3 proof parser (line 34): unknown function symbol: "S2!val!0" *)
 
 lemma
   "(\<not>(\<exists>x. P x)) \<longleftrightarrow> (\<forall>x. \<not> P x)"
