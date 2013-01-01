@@ -47,6 +47,15 @@ object Token_Markup
 
     val buffer = text_area.getBuffer
 
+    text_area.getSelection.foreach(sel => {
+      val before = JEdit_Lib.point_range(buffer, sel.getStart - 1)
+      JEdit_Lib.try_get_text(buffer, before) match {
+        case Some(s) if is_control_style(s) =>
+          text_area.extendSelection(before.start, before.stop)
+        case _ =>
+      }
+    })
+
     text_area.getSelection.toList match {
       case Nil =>
         text_area.setSelectedText(control)
