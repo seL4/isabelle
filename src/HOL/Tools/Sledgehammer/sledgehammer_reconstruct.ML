@@ -714,7 +714,7 @@ fun isar_proof_text ctxt isar_proofs
         case isar_text of
           "" =>
           if isar_proofs then
-            "\nNo structured proof available (proof too short)."
+            "\nNo structured proof available (proof too simple)."
           else
             ""
         | _ =>
