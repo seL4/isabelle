@@ -669,7 +669,7 @@ fun isar_proof_text ctxt isar_proofs
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
         val axioms = axioms_of_ref_graph ref_graph conjs
         val tainted = tainted_atoms_of_ref_graph ref_graph conjs
-        val is_skolem = can (try (apfst (apfst Name.dest_skolem)))
+        val is_skolem = can (apfst (apfst Name.dest_skolem))
         val props =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
