@@ -204,7 +204,7 @@ fun report_status () = (*requires SYNCHRONIZED*)
         ("workers_waiting", Markup.print_int waiting)] @
         ML_Statistics.get ();
     in
-      Output.protocol_message (Markup.ML_statistics @ stats) ""
+      Output.protocol_message (Markup.ML_statistics :: stats) ""
         handle Fail msg => warning msg
     end
   else ();
