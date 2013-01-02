@@ -77,8 +77,13 @@ fun metis_call type_enc lam_trans =
                   |> lam_trans <> metis_default_lam_trans ? cons lam_trans
   in metisN ^ (if null opts then "" else " (" ^ commas opts ^ ")") end
 
-fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
-fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda v t
+fun term_name' (Var ((s, _), _)) = perhaps (try Name.dest_skolem) s
+  | term_name' t = ""
+
+fun lambda' v = Term.lambda_name (term_name' v, v)
+
+fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda' v t
+fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda' v t
 
 fun make_tfree ctxt w =
   let val ww = "'" ^ w in
@@ -248,7 +253,9 @@ fun term_from_atp ctxt textual sym_tab =
                 case unprefix_and_unascii schematic_var_prefix s of
                   SOME s => Var ((s, var_index), T)
                 | NONE =>
-                  Var ((s |> textual ? repair_variable_name Char.toLower,
+                  Var ((s |> textual
+                          ? (repair_variable_name Char.toLower
+                             #> Char.isLower (String.sub (s, 0)) ? Name.skolem),
                         var_index), T)
           in list_comb (t, ts) end
   in do_term [] end

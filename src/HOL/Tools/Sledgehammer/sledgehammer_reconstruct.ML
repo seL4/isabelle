@@ -644,6 +644,7 @@ fun isar_proof_text ctxt isar_proofs
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
         val axioms = axioms_of_ref_graph ref_graph conjs
         val tainted = tainted_atoms_of_ref_graph ref_graph conjs
+        val is_skolem = can (try (apfst (apfst Name.dest_skolem)))
         val props =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
@@ -653,9 +654,11 @@ fun isar_proof_text ctxt isar_proofs
                           t |> role <> Conjecture ? s_not
                             |> fold exists_of (map Var (Term.add_vars t []))
                         else
-                          t))
+                          t |> fold exists_of (map Var (filter is_skolem
+                                 (Term.add_vars t [])))))
                   atp_proof
-        (* The assumptions and conjecture are props; the rest are bools. *)
+        (* The assumptions and conjecture are "prop"s; the other formulas are
+           "bool"s. *)
         fun prop_of_clause [name as (s, ss)] =
             (case resolve_conjecture ss of
                [j] => if j = length hyp_ts then concl_t else nth hyp_ts j
@@ -715,18 +718,19 @@ fun isar_proof_text ctxt isar_proofs
           else
             ""
         | _ =>
-          let 
-            val msg = 
-              (if preplay then 
-                [if preplay_fail 
-                 then "may fail" 
+          let
+            val msg =
+              (if preplay then
+                [if preplay_fail then "may fail"
                  else string_from_ext_time ext_time]
-               else [])
-              @ 
-               (if verbose then
-                  [let val num_steps = metis_steps_total isar_proof
-                   in string_of_int num_steps ^ plural_s num_steps end]
-                else [])
+               else
+                 []) @
+              (if verbose then
+                 let val num_steps = metis_steps_total isar_proof in
+                   [string_of_int num_steps ^ " step" ^ plural_s num_steps]
+                 end
+               else
+                 [])
           in
             "\n\nStructured proof "
               ^ (commas msg |> not (null msg) ? enclose "(" ")")
