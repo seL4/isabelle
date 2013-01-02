@@ -276,7 +276,6 @@ use "Proof/extraction.ML";
 
 use "System/session.ML";
 use "System/command_line.ML";
-use "System/build.ML";
 use "System/system_channel.ML";
 use "System/isabelle_process.ML";
 use "System/invoke_scala.ML";
@@ -286,8 +285,8 @@ use "System/isar.ML";
 
 (* miscellaneous tools and packages for Pure Isabelle *)
 
+use "Tools/build.ML";
 use "Tools/named_thms.ML";
-
 use "Tools/legacy_xml_syntax.ML";
 
 

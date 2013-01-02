@@ -1,4 +1,4 @@
-(*  Title:      Pure/System/build.ML
+(*  Title:      Pure/Tools/build.ML
     Author:     Makarius
 
 Build Isabelle sessions.

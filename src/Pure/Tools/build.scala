@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/build.scala
+/*  Title:      Pure/Tools/build.scala
     Author:     Makarius
     Options:    :folding=explicit:collapseFolds=1:
 
