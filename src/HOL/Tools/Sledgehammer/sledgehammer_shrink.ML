@@ -125,38 +125,29 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       (* TODO: add "Obtain" case *)
       fun try_metis timeout (succedent, Prove (_, _, t, byline)) =
         if not preplay then K (SOME Time.zeroTime) else
-        (case byline of
-          By_Metis fact_names =>
-            let
-              val facts = resolve_fact_names fact_names
-              val goal =
-                Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
-              fun tac {context = ctxt, prems = _} =
-                Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
-            in
-              take_time timeout (fn () => goal tac)
-            end
-        | Case_Split (cases, fact_names) =>
-            let
-              val make_thm = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-              val facts =
-                resolve_fact_names fact_names
-                  @ (case the succedent of
-                      Assume (_, t) => make_thm t
-                    | Obtain (_, _, _, t, _) => make_thm t
-                    | Prove (_, _, t, _) => make_thm t
-                    | _ => error "Internal error: unexpected succedent of case split")
-                  :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
-                                  | _ => error "Internal error: malformed case split")
-                             #> Skip_Proof.make_thm (Proof_Context.theory_of ctxt))
-                         cases
-              val goal =
-                Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
-              fun tac {context = ctxt, prems = _} =
-                Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
-            in
-              take_time timeout (fn () => goal tac)
-            end)
+        let
+          val make_thm = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+          val facts =
+            (case byline of
+              By_Metis fact_names => resolve_fact_names fact_names
+            | Case_Split (cases, fact_names) =>
+              resolve_fact_names fact_names
+                @ (case the succedent of
+                    Assume (_, t) => make_thm t
+                  | Obtain (_, _, _, t, _) => make_thm t
+                  | Prove (_, _, t, _) => make_thm t
+                  | _ => error "Internal error: unexpected succedent of case split")
+                :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
+                                | _ => error "Internal error: malformed case split")
+                           #> make_thm)
+                     cases)
+          val goal =
+            Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
+          fun tac {context = ctxt, prems = _} =
+            Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
+        in
+          take_time timeout (fn () => goal tac)
+        end
         | try_metis _ _  = K (SOME Time.zeroTime)
 
       val try_metis_quietly = the_default NONE oo try oo try_metis
