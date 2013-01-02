@@ -702,12 +702,11 @@ fun isar_proof_text ctxt isar_proofs
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
-        fun do_have outer qs (gamma, c) =
-          Prove (maybe_show outer c qs, label_of_clause c, prop_of_clause c,
-                 By_Metis (fold (add_fact_from_dependencies fact_names) gamma
-                                ([], [])))
-        fun do_inf outer (Have z) = do_have outer [] z
-          | do_inf outer (Cases cases) =
+        fun isar_step_of_direct_inf outer (Have (gamma, c)) =
+            Prove (maybe_show outer c [], label_of_clause c, prop_of_clause c,
+                   By_Metis (fold (add_fact_from_dependencies fact_names) gamma
+                                  ([], [])))
+          | isar_step_of_direct_inf outer (Cases cases) =
             let val c = succedent_of_cases cases in
               Prove (maybe_show outer c [Ultimately], label_of_clause c,
                      prop_of_clause c,
@@ -715,11 +714,11 @@ fun isar_proof_text ctxt isar_proofs
             end
         and do_case outer (c, infs) =
           Assume (label_of_clause c, prop_of_clause c) ::
-          map (do_inf outer) infs
+          map (isar_step_of_direct_inf outer) infs
         val (isar_proof, (preplay_fail, ext_time)) =
           ref_graph
           |> redirect_graph axioms tainted
-          |> map (do_inf true)
+          |> map (isar_step_of_direct_inf true)
           |> append assms
           |> (if not preplay andalso isar_shrink <= 1.0 then
                 pair (false, (true, seconds 0.0)) #> swap
