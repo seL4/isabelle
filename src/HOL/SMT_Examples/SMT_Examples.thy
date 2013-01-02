@@ -8,7 +8,6 @@ theory SMT_Examples
 imports Complex_Main
 begin
 
-declare [[smt_oracle = false]]
 declare [[smt_certificates = "SMT_Examples.certs"]]
 declare [[smt_read_only_certificates = true]]
 

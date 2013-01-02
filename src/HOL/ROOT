@@ -671,12 +671,12 @@ session "HOL-Mirabelle-ex" in "Mirabelle/ex" = "HOL-Mirabelle" +
 session "HOL-Word-SMT_Examples" in SMT_Examples = "HOL-Word" +
   options [document = false, quick_and_dirty]
   theories
-    SMT_Tests
     SMT_Examples
     SMT_Word_Examples
+  theories [condition = ISABELLE_FULL_TEST]
+    SMT_Tests
   files
     "SMT_Examples.certs"
-    "SMT_Tests.certs"
     "SMT_Word_Examples.certs"
 
 session "HOL-Boogie" in "Boogie" = "HOL-Word" +

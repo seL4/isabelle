@@ -8,15 +8,7 @@ theory SMT_Tests
 imports Complex_Main
 begin
 
-declare [[smt_oracle = false]]
-declare [[smt_certificates = "SMT_Tests.certs"]]
-declare [[smt_read_only_certificates = true]]
-
-
-
 smt_status
-
-
 
 text {* Most examples are taken from various Isabelle theories and from HOL4. *}
 
