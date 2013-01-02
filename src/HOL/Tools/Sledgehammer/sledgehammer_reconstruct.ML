@@ -150,13 +150,13 @@ fun ext_name ctxt =
   else
     isa_ext
 
-val leo2_ext = "extcnf_equal_neg"
-val leo2_unfold_def = "unfold_def"
+val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
+val leo2_unfold_def_rule = "unfold_def"
 
 fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, _, rule, deps)) =
-    (if rule = leo2_ext then
+    (if rule = leo2_extcnf_equal_neg_rule then
        insert (op =) (ext_name ctxt, (Global, General))
-     else if rule = leo2_unfold_def then
+     else if rule = leo2_unfold_def_rule then
        (* LEO 1.3.3 does not record definitions properly, leading to missing
          dependencies in the TSTP proof. Remove the next line once this is
          fixed. *)
@@ -389,19 +389,18 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
       Inference_Step (name, role, t, rule, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line _ (Inference_Step (name, role, t, rule, deps)) lines =
+  | add_line _ (line as Inference_Step (name, role, t, rule, deps)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
-      Inference_Step (name, role, t, rule, deps) :: lines
+      line :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
     else case take_prefix (not o is_same_inference t) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types? *)
-       (_, []) => Inference_Step (name, role, t, rule, deps) :: lines
-     | (pre, Inference_Step (name', role, t', rule, _) :: post) =>
-       Inference_Step (name, role, t', rule, deps) ::
-       pre @ map (replace_dependencies_in_line (name', [name])) post
-     | _ => raise Fail "unexpected inference"
+      (_, []) => line :: lines
+    | (pre, Inference_Step (name', _, _, _, _) :: post) =>
+      line :: pre @ map (replace_dependencies_in_line (name', [name])) post
+    | _ => raise Fail "unexpected inference"
 
 val waldmeister_conjecture_num = "1.0.0.0"
 
@@ -431,6 +430,9 @@ and delete_dependency name lines =
 fun is_bad_free frees (Free x) = not (member (op =) frees x)
   | is_bad_free _ _ = false
 
+val e_skolemize_rule = "skolemize"
+val vampire_skolemisation_rule = "skolemisation"
+
 fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
   | add_desired_line fact_names frees
@@ -438,6 +440,8 @@ fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
     (j + 1,
      if is_fact fact_names ss orelse
         is_conjecture ss orelse
+        rule = vampire_skolemisation_rule orelse
+        rule = e_skolemize_rule orelse
         (* the last line must be kept *)
         j = 0 orelse
         (not (is_only_type_information t) andalso
