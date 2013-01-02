@@ -8,6 +8,7 @@ package isabelle
 
 
 import scala.collection.immutable.{SortedSet, SortedMap}
+import scala.swing.{Frame, Component}
 
 import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
 import org.jfree.chart.{JFreeChart, ChartPanel, ChartFactory}
@@ -126,5 +127,13 @@ final class ML_Statistics private(val stats: List[Properties.T])
 
   def chart_panel(title: String, selected_fields: Iterable[String]): ChartPanel =
     new ChartPanel(chart(title, selected_fields))
+
+  def standard_frames: Unit =
+    for ((title, selected_fields) <- ML_Statistics.standard_fields) {
+      val c = chart(title, selected_fields)
+      Swing_Thread.later {
+        new Frame { contents = Component.wrap(new ChartPanel(c)); visible = true }
+      }
+    }
 }
 
