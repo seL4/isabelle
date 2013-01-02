@@ -41,7 +41,6 @@ sig
   val direct_graph : direct_sequent list -> direct_graph
   val redirect_graph : atom list -> atom list -> ref_graph -> direct_proof
   val succedent_of_cases : (clause * direct_inference list) list -> clause
-  val chain_direct_proof : direct_proof -> direct_proof
   val string_of_direct_proof : direct_proof -> string
 end;
 
@@ -185,19 +184,6 @@ fun redirect_graph axioms tainted ref_graph =
                  c subseqss
         in s_cases cases @ redirect (succedent_of_cases cases) proved seqs end
   in redirect [] axioms seqs end
-
-val chain_direct_proof =
-  let
-    fun chain_inf cl0 (seq as Have (cs, c)) =
-          seq
-      | chain_inf _ (Cases cases) = Cases (map chain_case cases)
-    and chain_case (c, is) = (c, chain_proof (SOME c) is)
-    and chain_proof _ [] = []
-      | chain_proof (SOME prev) (i :: is) =
-        chain_inf prev i :: chain_proof (SOME (succedent_of_inference i)) is
-      | chain_proof _ (i :: is) =
-        i :: chain_proof (SOME (succedent_of_inference i)) is
-  in chain_proof NONE end
 
 fun indent 0 = ""
   | indent n = "  " ^ indent (n - 1)
