@@ -240,6 +240,10 @@ fun term_from_atp ctxt textual sym_tab =
           end
         | NONE => (* a free or schematic variable *)
           let
+            (* This assumes that distinct names are mapped to distinct names by
+               "Variable.variant_frees". This does not hold in general but
+               should hold for ATP-generated Skolem function names, since these
+               end with a digit and "variant_frees" appends letters. *)
             fun fresh_up s =
               [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
             val term_ts = map (do_term [] NONE) us
