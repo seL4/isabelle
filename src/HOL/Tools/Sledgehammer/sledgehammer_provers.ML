@@ -77,7 +77,7 @@ sig
     {outcome : failure option,
      used_facts : (string * stature) list,
      run_time : Time.time,
-     preplay : unit -> play,
+     preplay : play Lazy.lazy,
      message : play -> string,
      message_tail : string}
 
@@ -370,7 +370,7 @@ type prover_result =
   {outcome : failure option,
    used_facts : (string * stature) list,
    run_time : Time.time,
-   preplay : unit -> play,
+   preplay : play Lazy.lazy,
    message : play -> string,
    message_tail : string}
 
@@ -884,15 +884,15 @@ fun run_atp mode name
                                     else metis_default_lam_trans))
         in
           (used_facts,
-           fn () =>
-              let
-                val used_pairs =
-                  facts |> map untranslated_fact
-                        |> filter_used_facts false used_facts
-              in
-                play_one_line_proof mode debug verbose preplay_timeout
-                    used_pairs state subgoal (hd reconstrs) reconstrs
-              end,
+           Lazy.lazy (fn () =>
+             let
+               val used_pairs =
+                 facts |> map untranslated_fact
+                       |> filter_used_facts false used_facts
+             in
+               play_one_line_proof mode debug verbose preplay_timeout
+                   used_pairs state subgoal (hd reconstrs) reconstrs
+             end),
            fn preplay =>
               let
                 val _ =
@@ -923,7 +923,7 @@ fun run_atp mode name
               ""))
         end
       | SOME failure =>
-        ([], K (Failed_to_Play plain_metis),
+        ([], Lazy.value (Failed_to_Play plain_metis),
          fn _ => string_for_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, run_time = run_time,
@@ -1086,13 +1086,11 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
     val (preplay, message, message_tail) =
       case outcome of
         NONE =>
-        (fn () =>
-            play_one_line_proof mode debug verbose preplay_timeout used_pairs
-                state subgoal SMT
-                (bunch_of_reconstructors false
-                     (fn desperate =>
-                         if desperate then liftingN
-                         else metis_default_lam_trans)),
+        (Lazy.lazy (fn () =>
+           play_one_line_proof mode debug verbose preplay_timeout used_pairs
+               state subgoal SMT
+               (bunch_of_reconstructors false (fn desperate =>
+                  if desperate then liftingN else metis_default_lam_trans))),
          fn preplay =>
             let
               val one_line_params =
@@ -1106,7 +1104,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
          else
            "")
       | SOME failure =>
-        (K (Failed_to_Play plain_metis), fn _ => string_for_failure failure, "")
+        (Lazy.value (Failed_to_Play plain_metis),
+         fn _ => string_for_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, run_time = run_time,
      preplay = preplay, message = message, message_tail = message_tail}
@@ -1133,7 +1132,7 @@ fun run_reconstructor mode name
                              [reconstr] of
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts, run_time = time,
-       preplay = K play,
+       preplay = Lazy.value play,
        message =
          fn play =>
             let
@@ -1150,8 +1149,8 @@ fun run_reconstructor mode name
         val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
       in
         {outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
-         preplay = K play, message = fn _ => string_for_failure failure,
-         message_tail = ""}
+         preplay = Lazy.value play,
+         message = fn _ => string_for_failure failure, message_tail = ""}
       end
   end
 

@@ -102,7 +102,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
       |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
-              else someN, fn () => message (preplay ()) ^ message_tail))
+              else someN, fn () => message (Lazy.force preplay) ^ message_tail))
     fun go () =
       let
         val (outcome_code, message) =

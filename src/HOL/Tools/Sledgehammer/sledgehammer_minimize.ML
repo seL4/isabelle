@@ -20,7 +20,7 @@ sig
     (string -> thm list -> unit) -> string -> params -> bool -> int -> int
     -> Proof.state -> ((string * stature) * thm list) list
     -> ((string * stature) * thm list) list option
-       * ((unit -> play) * (play -> string) * string)
+       * (play Lazy.lazy * (play -> string) * string)
   val get_minimizing_isar_prover :
     Proof.context -> mode -> (string -> thm list -> unit) -> string -> prover
   val run_minimize :
@@ -236,7 +236,8 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
      | {preplay, message, ...} =>
        (NONE, (preplay, prefix "Prover error: " o message, "")))
     handle ERROR msg =>
-           (NONE, (K (Failed_to_Play plain_metis), fn _ => "Error: " ^ msg, ""))
+           (NONE, (Lazy.value (Failed_to_Play plain_metis),
+            fn _ => "Error: " ^ msg, ""))
   end
 
 fun adjust_reconstructor_params override_params
@@ -290,19 +291,17 @@ fun maybe_minimize ctxt mode do_learn name
               if isar_proofs then
                 ((prover_fast_enough (), (name, params)), preplay)
               else
-                let val preplay = preplay () in
-                  (case preplay of
-                     Played (reconstr, timeout) =>
-                     if can_min_fast_enough timeout then
-                       (true, extract_reconstructor params reconstr
-                              ||> (fn override_params =>
-                                      adjust_reconstructor_params
-                                          override_params params))
-                     else
-                       (prover_fast_enough (), (name, params))
-                   | _ => (prover_fast_enough (), (name, params)),
-                   K preplay)
-                end
+                (case Lazy.force preplay of
+                   Played (reconstr, timeout) =>
+                   if can_min_fast_enough timeout then
+                     (true, extract_reconstructor params reconstr
+                            ||> (fn override_params =>
+                                    adjust_reconstructor_params
+                                        override_params params))
+                   else
+                     (prover_fast_enough (), (name, params))
+                 | _ => (prover_fast_enough (), (name, params)),
+                 preplay)
             end
         else
           ((false, (name, params)), preplay)
@@ -352,7 +351,7 @@ fun run_minimize (params as {provers, ...}) do_learn i refs state =
              (kill_provers ();
               minimize_facts do_learn prover params false i n state facts
               |> (fn (_, (preplay, message, message_tail)) =>
-                     message (preplay ()) ^ message_tail
+                     message (Lazy.force preplay) ^ message_tail
                      |> Output.urgent_message))
   end
 

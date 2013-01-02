@@ -457,8 +457,8 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
-        preplay =
-          K (Sledgehammer_Reconstruct.Failed_to_Play Sledgehammer_Provers.plain_metis),
+        preplay = Lazy.value (Sledgehammer_Reconstruct.Failed_to_Play
+          Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
     val ({outcome, used_facts, run_time, preplay, message, message_tail}
          : Sledgehammer_Provers.prover_result,
@@ -487,7 +487,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time |> Time.toMilliseconds
-    val msg = message (preplay ()) ^ message_tail
+    val msg = message (Lazy.force preplay) ^ message_tail
   in
     case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
@@ -601,7 +601,7 @@ fun run_minimize args reconstructor named_thms id
     val _ = log separator
     val (used_facts, (preplay, message, message_tail)) =
       minimize st (these (!named_thms))
-    val msg = message (preplay ()) ^ message_tail
+    val msg = message (Lazy.force preplay) ^ message_tail
   in
     case used_facts of
       SOME named_thms' =>
