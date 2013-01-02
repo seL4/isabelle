@@ -939,7 +939,8 @@ val remote_smt_failures =
 val z3_failures =
   [(101, OutOfResources),
    (103, MalformedInput),
-   (110, MalformedInput)]
+   (110, MalformedInput),
+   (112, TimedOut)]
 val unix_failures =
   [(138, Crashed),
    (139, Crashed)]
