@@ -9,6 +9,10 @@ package isabelle
 
 import scala.collection.immutable.{SortedSet, SortedMap}
 
+import org.jfree.data.xy.{XYSeries, XYSeriesCollection}
+import org.jfree.chart.{JFreeChart, ChartPanel, ChartFactory}
+import org.jfree.chart.plot.PlotOrientation
+
 
 object ML_Statistics
 {
@@ -59,7 +63,7 @@ final class ML_Statistics private(val stats: List[Properties.T])
   val time_start = ML_Statistics.Now.unapply(stats.head).get
   val duration = ML_Statistics.Now.unapply(stats.last).get - time_start
 
-  val names: Set[String] =
+  val fields: Set[String] =
     SortedSet.empty[String] ++
       (for (props <- stats.iterator; (x, _) <- props.iterator if x != ML_Statistics.Now.name)
         yield x)
@@ -74,5 +78,27 @@ final class ML_Statistics private(val stats: List[Properties.T])
             yield (x, java.lang.Double.parseDouble(y)))
       ML_Statistics.Entry(time, data)
     })
+
+
+  /* charts */
+
+  def chart(title: String, selected_fields: String*): JFreeChart =
+  {
+    val data = new XYSeriesCollection
+
+    for {
+      field <- selected_fields
+      series = new XYSeries(field)
+    } {
+      content.foreach(entry => series.add(entry.time, entry.data(field)))
+      data.addSeries(series)
+    }
+
+    ChartFactory.createXYLineChart(title, "time", "value", data,
+      PlotOrientation.VERTICAL, true, true, true)
+  }
+
+  def chart_panel(title: String, selected_fields: String*): ChartPanel =
+    new ChartPanel(chart(title, selected_fields: _*))
 }
 
