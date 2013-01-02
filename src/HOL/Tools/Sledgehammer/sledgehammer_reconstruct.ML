@@ -433,6 +433,9 @@ fun is_bad_free frees (Free x) = not (member (op =) frees x)
 val e_skolemize_rule = "skolemize"
 val vampire_skolemisation_rule = "skolemisation"
 
+val is_skolemize_rule =
+  member (op =) [e_skolemize_rule, vampire_skolemisation_rule]
+
 fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
     (j, line :: map (replace_dependencies_in_line (name, [])) lines)
   | add_desired_line fact_names frees
@@ -440,8 +443,7 @@ fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
     (j + 1,
      if is_fact fact_names ss orelse
         is_conjecture ss orelse
-        rule = vampire_skolemisation_rule orelse
-        rule = e_skolemize_rule orelse
+        is_skolemize_rule rule orelse
         (* the last line must be kept *)
         j = 0 orelse
         (not (is_only_type_information t) andalso
@@ -473,7 +475,7 @@ fun string_for_proof ctxt type_enc lam_trans i n =
          if member (op =) qs Show then "show" else "have")
     fun do_obtain qs xs =
       (if member (op =) qs Then then "then " else "") ^ "obtain " ^
-      (space_implode " " (map fst xs))
+      (space_implode " " (map fst xs)) ^ " where"
     val do_term =
       annotate_types ctxt
       #> with_vanilla_print_mode (Syntax.string_of_term ctxt)
@@ -673,28 +675,32 @@ fun isar_proof_text ctxt isar_proofs
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
         val axioms = axioms_of_ref_graph ref_graph conjs
         val tainted = tainted_atoms_of_ref_graph ref_graph conjs
-        val is_skolem = can (apfst (apfst Name.dest_skolem))
-        val props =
+        val steps =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
-                    | Inference_Step (name as (s, ss), role, t, _, _) =>
-                      Symtab.update_new (s,
-                        if member (op = o apsnd fst) tainted s then
-                          t |> role <> Conjecture ? s_not
-                            |> fold exists_of (map Var (Term.add_vars t []))
-                        else
-                          t |> fold exists_of (map Var (filter is_skolem
-                                 (Term.add_vars t [])))))
+                    | Inference_Step (name as (s, ss), role, t, rule, _) =>
+                      Symtab.update_new (s, (rule,
+                        t |> (if member (op = o apsnd fst) tainted s then
+                                (role <> Conjecture ? s_not)
+                                #> fold exists_of (map Var (Term.add_vars t []))
+                              else
+                                I))))
                   atp_proof
+        fun is_clause_skolemize_rule [(s, _)] =
+            Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) =
+            SOME true
+          | is_clause_skolemize_rule _ = false
         (* The assumptions and conjecture are "prop"s; the other formulas are
            "bool"s. *)
         fun prop_of_clause [name as (s, ss)] =
             (case resolve_conjecture ss of
                [j] => if j = length hyp_ts then concl_t else nth hyp_ts j
-             | _ => the_default @{term False} (Symtab.lookup props s)
-                    |> HOLogic.mk_Trueprop |> close_form)
+             | _ => the_default ("", @{term False}) (Symtab.lookup steps s)
+                    |> snd |> HOLogic.mk_Trueprop |> close_form)
           | prop_of_clause names =
-            let val lits = map_filter (Symtab.lookup props o fst) names in
+            let
+              val lits = map snd (map_filter (Symtab.lookup steps o fst) names)
+            in
               case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
                 HOLogic.mk_imp
@@ -707,9 +713,22 @@ fun isar_proof_text ctxt isar_proofs
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
         fun isar_step_of_direct_inf outer (Have (gamma, c)) =
-            Prove (maybe_show outer c [], label_of_clause c, prop_of_clause c,
-                   By_Metis (fold (add_fact_from_dependencies fact_names) gamma
-                                  ([], [])))
+            let
+              val l = label_of_clause c
+              val t = prop_of_clause c
+              val by =
+                By_Metis (fold (add_fact_from_dependencies fact_names) gamma
+                               ([], []))
+            in
+              if is_clause_skolemize_rule c then
+                let
+                  val xs =
+                    Term.add_frees t []
+                    |> filter_out (Variable.is_declared ctxt o fst)
+                in Obtain ([], xs, l, t, by) end
+              else
+                Prove (maybe_show outer c [], l, t, by)
+            end
           | isar_step_of_direct_inf outer (Cases cases) =
             let val c = succedent_of_cases cases in
               Prove (maybe_show outer c [Ultimately], label_of_clause c,
