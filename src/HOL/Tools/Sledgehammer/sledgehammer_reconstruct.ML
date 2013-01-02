@@ -467,13 +467,16 @@ fun string_for_proof ctxt type_enc lam_trans i n =
          if member (op =) qs Show then "thus" else "hence"
        else
          if member (op =) qs Show then "show" else "have")
+    fun do_obtain qs xs =
+      (if member (op =) qs Then then "then " else "") ^ "obtain " ^
+      (space_implode " " (map fst xs))
     val do_term =
       annotate_types ctxt
       #> with_vanilla_print_mode (Syntax.string_of_term ctxt)
       #> simplify_spaces
       #> maybe_quote
     val reconstr = Metis (type_enc, lam_trans)
-    fun do_facts ind (ls, ss) =
+    fun do_metis ind (ls, ss) =
       "\n" ^ do_indent (ind + 1) ^
       reconstructor_command reconstr 1 1 [] 0
           (ls |> sort_distinct (prod_ord string_ord int_ord),
@@ -484,14 +487,17 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         do_indent ind ^ "let " ^ do_term t1 ^ " = " ^ do_term t2 ^ "\n"
       | do_step ind (Assume (l, t)) =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
+      | do_step ind (Obtain (qs, xs, l, t, By_Metis facts)) =
+        do_indent ind ^ do_obtain qs xs ^ " " ^
+        do_label l ^ do_term t ^ do_metis ind facts ^ "\n"
       | do_step ind (Prove (qs, l, t, By_Metis facts)) =
         do_indent ind ^ do_have qs ^ " " ^
-        do_label l ^ do_term t ^ do_facts ind facts ^ "\n"
+        do_label l ^ do_term t ^ do_metis ind facts ^ "\n"
       | do_step ind (Prove (qs, l, t, Case_Split (proofs, facts))) =
         implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
                      proofs) ^
         do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
-        do_facts ind facts ^ "\n"
+        do_metis ind facts ^ "\n"
     and do_steps prefix suffix ind steps =
       let val s = implode (map (do_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
@@ -509,7 +515,8 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-fun used_labels_of_step (Prove (_, _, _, by)) =
+fun used_labels_of_step (Obtain (_, _, _, _, By_Metis (ls, _))) = ls
+  | used_labels_of_step (Prove (_, _, _, by)) =
     (case by of
        By_Metis (ls, _) => ls
      | Case_Split (proofs, (ls, _)) =>
@@ -522,6 +529,7 @@ fun kill_useless_labels_in_proof proof =
     val used_ls = used_labels_of proof
     fun do_label l = if member (op =) used_ls l then l else no_label
     fun do_step (Assume (l, t)) = Assume (do_label l, t)
+      | do_step (Obtain (qs, xs, l, t, by)) = Obtain (qs, xs, do_label l, t, by)
       | do_step (Prove (qs, l, t, by)) =
         Prove (qs, do_label l, t,
                case by of
@@ -535,60 +543,77 @@ fun prefix_for_depth n = replicate_string (n + 1)
 
 val relabel_proof =
   let
-    fun aux _ _ _ [] = []
-      | aux subst depth (next_assum, next_have) (Assume (l, t) :: proof) =
+    fun fresh_label depth (old as (l, subst, next_have)) =
+      if l = no_label then
+        old
+      else
+        let val l' = (prefix_for_depth depth have_prefix, next_have) in
+          (l', (l, l') :: subst, next_have + 1)
+        end
+    fun do_facts subst =
+      apfst (maps (the_list o AList.lookup (op =) subst))
+    fun do_byline subst depth by =
+      case by of
+        By_Metis facts => By_Metis (do_facts subst facts)
+      | Case_Split (proofs, facts) =>
+        Case_Split (map (do_proof subst (depth + 1) (1, 1)) proofs,
+                    do_facts subst facts)
+    and do_proof _ _ _ [] = []
+      | do_proof subst depth (next_assum, next_have) (Assume (l, t) :: proof) =
         if l = no_label then
-          Assume (l, t) :: aux subst depth (next_assum, next_have) proof
+          Assume (l, t) :: do_proof subst depth (next_assum, next_have) proof
         else
           let val l' = (prefix_for_depth depth assume_prefix, next_assum) in
             Assume (l', t) ::
-            aux ((l, l') :: subst) depth (next_assum + 1, next_have) proof
+            do_proof ((l, l') :: subst) depth (next_assum + 1, next_have) proof
           end
-      | aux subst depth (next_assum, next_have)
+      | do_proof subst depth (next_assum, next_have)
+            (Obtain (qs, xs, l, t, by) :: proof) =
+        let
+          val (l, subst, next_have) = (l, subst, next_have) |> fresh_label depth
+          val by = by |> do_byline subst depth
+        in
+          Obtain (qs, xs, l, t, by) ::
+          do_proof subst depth (next_assum, next_have) proof
+        end
+      | do_proof subst depth (next_assum, next_have)
             (Prove (qs, l, t, by) :: proof) =
         let
-          val (l', subst, next_have) =
-            if l = no_label then
-              (l, subst, next_have)
-            else
-              let val l' = (prefix_for_depth depth have_prefix, next_have) in
-                (l', (l, l') :: subst, next_have + 1)
-              end
-          val relabel_facts =
-            apfst (maps (the_list o AList.lookup (op =) subst))
-          val by =
-            case by of
-              By_Metis facts => By_Metis (relabel_facts facts)
-            | Case_Split (proofs, facts) =>
-              Case_Split (map (aux subst (depth + 1) (1, 1)) proofs,
-                          relabel_facts facts)
+          val (l, subst, next_have) = (l, subst, next_have) |> fresh_label depth
+          val by = by |> do_byline subst depth
         in
-          Prove (qs, l', t, by) :: aux subst depth (next_assum, next_have) proof
+          Prove (qs, l, t, by) ::
+          do_proof subst depth (next_assum, next_have) proof
         end
-      | aux subst depth nextp (step :: proof) =
-        step :: aux subst depth nextp proof
-  in aux [] 0 (1, 1) end
+      | do_proof subst depth nextp (step :: proof) =
+        step :: do_proof subst depth nextp proof
+  in do_proof [] 0 (1, 1) end
 
 val chain_direct_proof =
   let
-    fun succedent_of_step (Prove (_, label, _, _)) = SOME label
-      | succedent_of_step (Assume (label, _)) = SOME label
-      | succedent_of_step _ = NONE
-    fun chain_inf (SOME label0)
-                  (step as Prove (qs, label, t, By_Metis (lfs, gfs))) =
-        if member (op =) lfs label0 then
-          Prove (Then :: qs, label, t,
-                 By_Metis (filter_out (curry (op =) label0) lfs, gfs))
+    fun label_of (Assume (l, _)) = SOME l
+      | label_of (Obtain (_, _, l, _, _)) = SOME l
+      | label_of (Prove (_, l, _, _)) = SOME l
+      | label_of _ = NONE
+    fun chain_step (SOME l0)
+                   (step as Obtain (qs, xs, l, t, By_Metis (lfs, gfs))) =
+        if member (op =) lfs l0 then
+          Obtain (Then :: qs, xs, l, t, By_Metis (lfs |> remove (op =) l0, gfs))
         else
           step
-      | chain_inf _ (Prove (qs, label, t, Case_Split (proofs, facts))) =
-        Prove (qs, label, t, Case_Split ((map (chain_proof NONE) proofs), facts))
-      | chain_inf _ step = step
+      | chain_step (SOME l0)
+                   (step as Prove (qs, l, t, By_Metis (lfs, gfs))) =
+        if member (op =) lfs l0 then
+          Prove (Then :: qs, l, t, By_Metis (lfs |> remove (op =) l0, gfs))
+        else
+          step
+      | chain_step _ (Prove (qs, l, t, Case_Split (proofs, facts))) =
+        Prove (qs, l, t, Case_Split ((map (chain_proof NONE) proofs), facts))
+      | chain_step _ step = step
     and chain_proof _ [] = []
       | chain_proof (prev as SOME _) (i :: is) =
-        chain_inf prev i :: chain_proof (succedent_of_step i) is
-      | chain_proof _ (i :: is) =
-        i :: chain_proof (succedent_of_step i) is
+        chain_step prev i :: chain_proof (label_of i) is
+      | chain_proof _ (i :: is) = i :: chain_proof (label_of i) is
   in chain_proof NONE end
 
 type isar_params =

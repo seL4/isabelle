@@ -17,6 +17,8 @@ sig
     Fix of (string * typ) list |
     Let of term * term |
     Assume of label * term |
+    Obtain of
+      isar_qualifier list * (string * typ) list * label * term * byline |
     Prove of isar_qualifier list * label * term * byline
   and byline =
     By_Metis of facts |
@@ -27,7 +29,7 @@ sig
   val metis_steps_total : isar_step list -> int
 end
 
-structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF = 
+structure Sledgehammer_Proof : SLEDGEHAMMER_PROOF =
 struct
 
 type label = string * int
@@ -39,6 +41,7 @@ datatype isar_step =
   Fix of (string * typ) list |
   Let of term * term |
   Assume of label * term |
+  Obtain of isar_qualifier list * (string * typ) list * label * term * byline |
   Prove of isar_qualifier list * label * term * byline
 and byline =
   By_Metis of facts |
@@ -46,12 +49,14 @@ and byline =
 
 fun string_for_label (s, num) = s ^ string_of_int num
 
-val inc = curry op+
-fun metis_steps_top_level proof = fold (fn Prove _ => inc 1 | _ => I) proof 0
-fun metis_steps_total proof = 
-  fold (fn Prove (_,_,_, By_Metis _) => inc 1
-         | Prove (_,_,_, Case_Split (cases, _)) => 
-           inc (fold (inc o metis_steps_total) cases 1)
+fun metis_steps_top_level proof =
+  fold (fn Obtain _ => Integer.add 1 | Prove _ => Integer.add 1 | _ => I)
+       proof 0
+fun metis_steps_total proof =
+  fold (fn Obtain _ => Integer.add 1
+         | Prove (_, _, _, By_Metis _) => Integer.add 1
+         | Prove (_, _, _, Case_Split (cases, _)) =>
+           Integer.add (fold (Integer.add o metis_steps_total) cases 1)
          | _ => I) proof 0
 
 end
