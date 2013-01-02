@@ -747,8 +747,8 @@ fun isar_proof_text ctxt isar_proofs
                 rpair (false, (true, seconds 0.0))
               else
                 shrink_proof debug ctxt type_enc lam_trans preplay
-                    preplay_timeout
-                    (if isar_proofs then isar_shrink else 1000.0))
+                  preplay_timeout
+                  (if isar_proofs then isar_shrink else 1000.0))
        (* |>> reorder_proof_to_minimize_jumps (* ? *) *)
           |>> chain_direct_proof
           |>> kill_useless_labels_in_proof
