@@ -744,7 +744,7 @@ fun isar_proof_text ctxt isar_proofs
           |> map (isar_step_of_direct_inf true)
           |> append assms
           |> (if not preplay andalso isar_shrink <= 1.0 then
-                pair (false, (true, seconds 0.0)) #> swap
+                rpair (false, (true, seconds 0.0))
               else
                 shrink_proof debug ctxt type_enc lam_trans preplay
                     preplay_timeout
