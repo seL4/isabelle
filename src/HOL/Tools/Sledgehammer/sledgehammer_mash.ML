@@ -525,8 +525,8 @@ fun run_prover_for_mash ctxt params prover facts goal =
        facts = facts |> map (apfst (apfst (fn name => name ())))
                      |> map Untranslated_Fact}
   in
-    get_minimizing_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
-                          problem
+    get_minimizing_isar_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
+                               problem
   end
 
 val bad_types = [@{type_name prop}, @{type_name bool}, @{type_name fun}]

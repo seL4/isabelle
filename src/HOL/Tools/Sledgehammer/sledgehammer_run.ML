@@ -95,7 +95,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
       |> Output.urgent_message
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt mode learn name params minimize_command
+      |> get_minimizing_isar_prover ctxt mode learn name params minimize_command
       |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, ...} =>
                            print_used_facts used_facts
                          | _ => ())

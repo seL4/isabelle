@@ -21,7 +21,7 @@ sig
     -> Proof.state -> ((string * stature) * thm list) list
     -> ((string * stature) * thm list) list option
        * ((unit -> play) * (play -> string) * string)
-  val get_minimizing_prover :
+  val get_minimizing_isar_prover :
     Proof.context -> mode -> (string -> thm list -> unit) -> string -> prover
   val run_minimize :
     params -> (string -> thm list -> unit) -> int
@@ -325,10 +325,14 @@ fun maybe_minimize ctxt mode do_learn name
       | NONE => result
     end
 
-fun get_minimizing_prover ctxt mode do_learn name params minimize_command
-                          problem =
+(* TODO: implement *)
+fun maybe_regenerate_isar_proof result = result
+
+fun get_minimizing_isar_prover ctxt mode do_learn name params minimize_command
+                               problem =
   get_prover ctxt mode name params minimize_command problem
   |> maybe_minimize ctxt mode do_learn name params problem
+  |> maybe_regenerate_isar_proof
 
 fun run_minimize (params as {provers, ...}) do_learn i refs state =
   let
