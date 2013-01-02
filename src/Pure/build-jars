@@ -30,6 +30,7 @@ declare -a SOURCES=(
   Isar/outer_syntax.scala
   Isar/parse.scala
   Isar/token.scala
+  ML/ml_statistics.scala
   PIDE/command.scala
   PIDE/document.scala
   PIDE/markup.scala
@@ -38,8 +39,6 @@ declare -a SOURCES=(
   PIDE/text.scala
   PIDE/xml.scala
   PIDE/yxml.scala
-  System/build.scala
-  System/build_dialog.scala
   System/color_value.scala
   System/command_line.scala
   System/event_bus.scala
@@ -50,7 +49,6 @@ declare -a SOURCES=(
   System/isabelle_process.scala
   System/isabelle_system.scala
   System/jfx_thread.scala
-  System/main.scala
   System/options.scala
   System/platform.scala
   System/session.scala
@@ -63,6 +61,9 @@ declare -a SOURCES=(
   Thy/thy_info.scala
   Thy/thy_load.scala
   Thy/thy_syntax.scala
+  Tools/build.scala
+  Tools/build_dialog.scala
+  Tools/main.scala
   library.scala
   package.scala
   term.scala
@@ -125,6 +126,15 @@ shift $(($OPTIND - 1))
 [ "$#" -ne 0 ] && usage
 
 
+## dependencies
+
+declare -a JFREECHART_JARS=()
+for NAME in $JFREECHART_JAR_NAMES
+do
+  JFREECHART_JARS["${#JFREECHART_JARS[@]}"]="$JFREECHART_HOME/lib/$NAME"
+done
+
+
 ## build
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
@@ -181,18 +191,23 @@ then
 
   JFXRT="$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar"
 
-  if [ "$TEST_PIDE" = true ]; then
-    isabelle_scala scalac $SCALAC_OPTIONS \
-        -classpath "$(jvmpath "$JFXRT:classes")" "${PIDE_SOURCES[@]}" || \
-      fail "Failed to compile PIDE sources"
-    isabelle_scala scalac $SCALAC_OPTIONS \
-        -classpath "$(jvmpath "$JFXRT:classes")" "${PURE_SOURCES[@]}" || \
-      fail "Failed to compile Pure sources"
-  else
-    isabelle_scala scalac $SCALAC_OPTIONS \
-        -classpath "$(jvmpath "$JFXRT:classes")" "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
-      fail "Failed to compile sources"
-  fi
+  (
+    for X in "$JFXRT" "${JFREECHART_JARS[@]}" classes
+    do
+      CLASSPATH="$CLASSPATH:$X"
+    done
+    CLASSPATH="$(jvmpath "$CLASSPATH")"
+
+    if [ "$TEST_PIDE" = true ]; then
+      isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" || \
+        fail "Failed to compile PIDE sources"
+      isabelle_scala scalac $SCALAC_OPTIONS "${PURE_SOURCES[@]}" || \
+        fail "Failed to compile Pure sources"
+    else
+      isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
+        fail "Failed to compile sources"
+    fi
+  )
 
   mkdir -p "$TARGET_DIR/ext" || fail "Failed to create directory $TARGET_DIR/ext"
 

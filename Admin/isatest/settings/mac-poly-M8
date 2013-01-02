@@ -29,3 +29,5 @@ ISABELLE_BUILD_OPTIONS="browser_info=false document=false threads=8 parallel_pro
 
 ISABELLE_FULL_TEST=true
 
+Z3_NON_COMMERCIAL="yes"
+

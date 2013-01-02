@@ -8,8 +8,9 @@ package isabelle
 
 
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
-  InputStream, FileInputStream, BufferedReader, InputStreamReader, File => JFile}
-import java.util.zip.GZIPOutputStream
+  InputStream, FileInputStream, BufferedInputStream, BufferedReader, InputStreamReader,
+  File => JFile}
+import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import scala.collection.mutable
 
@@ -54,10 +55,10 @@ object File
   }
 
   def read(file: JFile): String = new String(read_bytes(file), UTF8.charset)
-
   def read(path: Path): String = read(path.file)
 
-  def read(reader: BufferedReader): String =
+
+  def read_stream(reader: BufferedReader): String =
   {
     val output = new StringBuilder(100)
     var c = -1
@@ -66,8 +67,12 @@ object File
     output.toString
   }
 
-  def read(stream: InputStream): String =
-    read(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))
+  def read_stream(stream: InputStream): String =
+   read_stream(new BufferedReader(new InputStreamReader(stream, UTF8.charset)))
+
+  def read_gzip(file: JFile): String =
+    read_stream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))
+  def read_gzip(path: Path): String = read_gzip(path.file)
 
 
   /* try_read */

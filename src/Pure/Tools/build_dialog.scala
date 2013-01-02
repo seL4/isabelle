@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/build_dialog.scala
+/*  Title:      Pure/Tools/build_dialog.scala
     Author:     Makarius
 
 Dialog for session build process.

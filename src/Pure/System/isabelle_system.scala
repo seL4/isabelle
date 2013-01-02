@@ -232,7 +232,7 @@ object Isabelle_System
   private def process_output(proc: Process): (String, Int) =
   {
     proc.getOutputStream.close
-    val output = File.read(proc.getInputStream)
+    val output = File.read_stream(proc.getInputStream)
     val rc =
       try { proc.waitFor }
       finally {
@@ -336,8 +336,8 @@ object Isabelle_System
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file.getPath))
 
       proc.stdin.close
-      val (_, stdout) = Simple_Thread.future("bash_stdout") { File.read(proc.stdout) }
-      val (_, stderr) = Simple_Thread.future("bash_stderr") { File.read(proc.stderr) }
+      val (_, stdout) = Simple_Thread.future("bash_stdout") { File.read_stream(proc.stdout) }
+      val (_, stderr) = Simple_Thread.future("bash_stderr") { File.read_stream(proc.stderr) }
 
       val rc =
         try { proc.join }

@@ -2,8 +2,6 @@
     Author:     Makarius
 
 JVM method invocation service via Isabelle/Scala.
-
-TODO: proper cancellation!
 *)
 
 signature INVOKE_SCALA =

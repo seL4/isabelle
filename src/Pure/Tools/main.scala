@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/main.scala
+/*  Title:      Pure/Tools/main.scala
     Author:     Makarius
 
 Default Isabelle application wrapper.

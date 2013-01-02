@@ -1,4 +1,4 @@
-(*  Title:      Pure/System/build.ML
+(*  Title:      Pure/Tools/build.ML
     Author:     Makarius
 
 Build Isabelle sessions.
@@ -11,6 +11,22 @@ end;
 
 structure Build: BUILD =
 struct
+
+(* protocol messages *)
+
+fun ML_statistics (function :: stats) "" =
+      if function = Markup.ML_statistics then SOME stats
+      else NONE
+  | ML_statistics _ _ = NONE;
+
+fun protocol_message props output =
+  (case ML_statistics props output of
+    SOME stats =>
+      writeln ("\f" ^ #2 Markup.ML_statistics ^ " = " ^ ML_Syntax.print_properties stats)
+  | NONE => raise Fail "Undefined Output.protocol_message");
+
+
+(* build *)
 
 local
 
@@ -87,6 +103,7 @@ fun build args_file = Command_Line.tool (fn () =>
         theories |>
           (List.app use_theories
             |> Session.with_timing name verbose
+            |> Unsynchronized.setmp Output.Private_Hooks.protocol_message_fn protocol_message
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
             |> Exn.capture);
       val res2 = Exn.capture Session.finish ();

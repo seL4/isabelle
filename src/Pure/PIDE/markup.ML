@@ -130,7 +130,7 @@ sig
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
-  val ML_statistics: Properties.T
+  val ML_statistics: string * string
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -402,7 +402,7 @@ val removed_versions = [(functionN, "removed_versions")];
 fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id)];
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
 
-val ML_statistics = [(functionN, "ML_statistics")];
+val ML_statistics = (functionN, "ML_statistics");
 
 
 
