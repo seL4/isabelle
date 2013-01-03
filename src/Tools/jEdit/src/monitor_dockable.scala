@@ -12,59 +12,38 @@ import isabelle._
 import scala.actors.Actor._
 import scala.swing.{TextArea, ScrollPane, Component}
 
-import org.jfree.chart.{ChartFactory, ChartPanel}
-import org.jfree.data.time.{Millisecond, TimeSeries, TimeSeriesCollection}
+import org.jfree.chart.ChartPanel
+import org.jfree.data.xy.XYSeriesCollection
 
 import org.gjt.sp.jedit.View
 
 
 class Monitor_Dockable(view: View, position: String) extends Dockable(view, position)
 {
-  /* properties */  // FIXME avoid hardwired stuff
+  /* chart data -- owned by Swing thread */
 
-  private val Now = new Properties.Double("now")
-  private val Size_Heap = new Properties.Double("size_heap")
+  private val chart = ML_Statistics.empty.chart(null, Nil)
+  private val data = chart.getXYPlot.getDataset.asInstanceOf[XYSeriesCollection]
+  private var rev_stats: List[Properties.T] = Nil
 
-  private val series = new TimeSeries("ML heap size", classOf[Millisecond])
+  private val delay_update =
+    Swing_Thread.delay_first(PIDE.options.seconds("editor_chart_delay")) {
+      ML_Statistics(rev_stats.reverse)
+        .update_data(data, ML_Statistics.workers_fields._2) // FIXME selectable fields
+    }
 
-
-  /* chart */
-
-  private val chart_panel =
-  {
-    val data = new TimeSeriesCollection(series)
-    val chart = ChartFactory.createTimeSeriesChart(null, "Time", "Value", data, true, true, false)
-    val plot = chart.getXYPlot()
-
-    val x_axis = plot.getDomainAxis()
-    x_axis.setAutoRange(true)
-    x_axis.setFixedAutoRange(60000.0)
-
-    val y_axis = plot.getRangeAxis()
-    y_axis.setAutoRange(true)
-
-    new ChartPanel(chart)
-  }
-  set_content(chart_panel)
+  set_content(new ChartPanel(chart))
 
 
   /* main actor */
 
   private val main_actor = actor {
-    var t0: Option[Double] = None
     loop {
       react {
-        case Session.Statistics(stats) =>
-          java.lang.System.err.println(stats)
-          stats match {
-            case Now(t1) =>
-              if (t0.isEmpty) t0 = Some(t1)
-              val t = t1 - t0.get
-              stats match {
-                case Size_Heap(x) => series.add(new Millisecond(), x)  // FIXME proper time point
-                case _ =>
-              }
-            case _ =>
+        case Session.Statistics(props) =>
+          Swing_Thread.later {
+            rev_stats ::= props
+            delay_update.invoke()
           }
         case bad => java.lang.System.err.println("Monitor_Dockable: ignoring bad message " + bad)
       }

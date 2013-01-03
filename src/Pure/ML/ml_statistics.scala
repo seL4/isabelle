@@ -24,6 +24,8 @@ object ML_Statistics
   def apply(stats: List[Properties.T]): ML_Statistics = new ML_Statistics(stats)
   def apply(log: Path): ML_Statistics = apply(read_log(log))
 
+  val empty = apply(Nil)
+
 
   /* standard fields */
 
@@ -84,11 +86,12 @@ object ML_Statistics
 final class ML_Statistics private(val stats: List[Properties.T])
 {
   val Now = new Properties.Double("now")
+  def now(props: Properties.T): Double = Now.unapply(props).get
 
-  require(!stats.isEmpty && stats.forall(props => Now.unapply(props).isDefined))
+  require(stats.forall(props => Now.unapply(props).isDefined))
 
-  val time_start = Now.unapply(stats.head).get
-  val duration = Now.unapply(stats.last).get - time_start
+  val time_start = if (stats.isEmpty) 0.0 else now(stats.head)
+  val duration = if (stats.isEmpty) 0.0 else now(stats.last) - time_start
 
   val fields: Set[String] =
     SortedSet.empty[String] ++
@@ -97,7 +100,7 @@ final class ML_Statistics private(val stats: List[Properties.T])
 
   val content: List[ML_Statistics.Entry] =
     stats.map(props => {
-      val time = Now.unapply(props).get - time_start
+      val time = now(props) - time_start
       require(time >= 0.0)
       val data =
         SortedMap.empty[String, Double] ++
@@ -109,10 +112,9 @@ final class ML_Statistics private(val stats: List[Properties.T])
 
   /* charts */
 
-  def chart(title: String, selected_fields: Iterable[String]): JFreeChart =
+  def update_data(data: XYSeriesCollection, selected_fields: Iterable[String])
   {
-    val data = new XYSeriesCollection
-
+    data.removeAllSeries
     for {
       field <- selected_fields.iterator
       series = new XYSeries(field)
@@ -120,20 +122,23 @@ final class ML_Statistics private(val stats: List[Properties.T])
       content.foreach(entry => series.add(entry.time, entry.data(field)))
       data.addSeries(series)
     }
+  }
+
+  def chart(title: String, selected_fields: Iterable[String]): JFreeChart =
+  {
+    val data = new XYSeriesCollection
+    update_data(data, selected_fields)
 
     ChartFactory.createXYLineChart(title, "time", "value", data,
       PlotOrientation.VERTICAL, true, true, true)
   }
 
-  def chart_panel(title: String, selected_fields: Iterable[String]): ChartPanel =
-    new ChartPanel(chart(title, selected_fields))
+  def chart(arg: (String, Iterable[String])): JFreeChart = chart(arg._1, arg._2)
 
   def standard_frames: Unit =
-    for ((title, selected_fields) <- ML_Statistics.standard_fields) {
-      val c = chart(title, selected_fields)
+    ML_Statistics.standard_fields.map(chart(_)).foreach(c =>
       Swing_Thread.later {
         new Frame { contents = Component.wrap(new ChartPanel(c)); visible = true }
-      }
-    }
+      })
 }
 
