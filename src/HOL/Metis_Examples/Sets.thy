@@ -11,7 +11,7 @@ theory Sets
 imports Main
 begin
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
                (S(x,y) | ~S(y,z) | Q(Z,Z))  &

@@ -12,7 +12,7 @@ theory Type_Encodings
 imports Main
 begin
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 sledgehammer_params [prover = spass, blocking, fact_filter = mepo, timeout = 30,
                      preplay_timeout = 0, dont_minimize]

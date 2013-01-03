@@ -300,20 +300,20 @@ val cheat_choice =
   |> Skip_Proof.make_thm @{theory}
 
 (* Converts an Isabelle theorem into NNF. *)
-fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
+fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val th =
       th |> transform_elim_theorem
          |> zero_var_indexes
-         |> new_skolemizer ? forall_intr_vars
+         |> new_skolem ? forall_intr_vars
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
     val th = th |> Conv.fconv_rule Object_Logic.atomize
                 |> cong_extensionalize_thm thy
                 |> abs_extensionalize_thm ctxt
                 |> make_nnf ctxt
   in
-    if new_skolemizer then
+    if new_skolem then
       let
         fun skolemize choice_ths =
           skolemize_with_choice_theorems ctxt choice_ths
@@ -364,14 +364,14 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
   end
 
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
-fun cnf_axiom ctxt0 new_skolemizer combinators ax_no th =
+fun cnf_axiom ctxt0 new_skolem combinators ax_no th =
   let
     val thy = Proof_Context.theory_of ctxt0
     val choice_ths = choice_theorems thy
     val (opt, (nnf_th, ctxt)) =
-      nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
+      nnf_axiom choice_ths new_skolem ax_no th ctxt0
     fun clausify th =
-      make_cnf (if new_skolemizer orelse null choice_ths then []
+      make_cnf (if new_skolem orelse null choice_ths then []
                 else map (old_skolem_theorem_from_def thy) (old_skolem_defs th))
                th ctxt ctxt
     val (cnf_ths, ctxt) = clausify nnf_th
