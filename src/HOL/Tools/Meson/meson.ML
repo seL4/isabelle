@@ -167,21 +167,36 @@ fun tryres (th, rls) =
           (rename_bound_vars_RS th rl handle THM _ => tryall rls)
   in  tryall rls  end;
 
+(* Special version of "rtac" that works around an explosion in the unifier.
+   If the goal has the form "?P c", the danger is that unifying "?P" with a
+   formula of the form "... c ... c ... c ..." will lead to a huge unification
+   problem, due to the (spurious) choices between projection and imitation. The
+   workaround is to instantiate "?P := (%c. ... c ... c ... c ...)" manually. *)
+fun quant_rtac th i st =
+  case (concl_of st, prop_of th) of
+    (@{const Trueprop} $ (Var _ $ (c as Free _)), @{const Trueprop} $ _) =>
+    let
+      val cc = cterm_of (theory_of_thm th) c
+      val ct = Thm.dest_arg (cprop_of th)
+    in rtac th i (Drule.instantiate' [] [SOME (Thm.lambda cc ct)] st) end
+  | _ => rtac th i st
+
 (*Permits forward proof from rules that discharge assumptions. The supplied proof state st,
   e.g. from conj_forward, should have the form
     "[| P' ==> ?P; Q' ==> ?Q |] ==> ?P & ?Q"
   and the effect should be to instantiate ?P and ?Q with normalized versions of P' and Q'.*)
 fun forward_res ctxt nf st =
-  let fun forward_tacf [prem] = rtac (nf prem) 1
-        | forward_tacf prems =
-            error (cat_lines
-              ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
-                Display.string_of_thm ctxt st ::
-                "Premises:" :: map (Display.string_of_thm ctxt) prems))
+  let
+    fun tacf [prem] = quant_rtac (nf prem) 1
+      | tacf prems =
+        error (cat_lines
+          ("Bad proof state in forward_res, please inform lcp@cl.cam.ac.uk:" ::
+            Display.string_of_thm ctxt st ::
+            "Premises:" :: map (Display.string_of_thm ctxt) prems))
   in
-    case Seq.pull (ALLGOALS (Misc_Legacy.METAHYPS forward_tacf) st)
-    of SOME(th,_) => th
-     | NONE => raise THM("forward_res", 0, [st])
+    case Seq.pull (ALLGOALS (Misc_Legacy.METAHYPS tacf) st) of
+      SOME (th, _) => th
+    | NONE => raise THM ("forward_res", 0, [st])
   end;
 
 (*Are any of the logical connectives in "bs" present in the term?*)
@@ -635,7 +650,6 @@ fun abs_extensionalize_conv ctxt ct =
 
 val abs_extensionalize_thm = Conv.fconv_rule o abs_extensionalize_conv
 
-(* "RS" can fail if "unify_search_bound" is too small. *)
 fun try_skolemize_etc ctxt th =
   let
     val thy = Proof_Context.theory_of ctxt
