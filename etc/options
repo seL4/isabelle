@@ -98,3 +98,6 @@ option editor_reparse_limit : int = 10000
 
 option editor_tracing_messages : int = 100
   -- "initial number of tracing messages for each command transaction"
+
+option editor_chart_delay : real = 3.0
+  -- "delay for chart repainting"
