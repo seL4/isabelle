@@ -158,6 +158,8 @@ fun num_type_args thy s =
 
 fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
 
+val vampire_skolem_prefix = "sK"
+
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
 fun term_from_atp ctxt textual sym_tab =
@@ -246,7 +248,11 @@ fun term_from_atp ctxt textual sym_tab =
                end with a digit and "variant_frees" appends letters. *)
             fun fresh_up s =
               [(s, ())] |> Variable.variant_frees ctxt [] |> hd |> fst
-            val term_ts = map (do_term [] NONE) us
+            val term_ts =
+              map (do_term [] NONE) us
+              (* Vampire (2.6) passes arguments to Skolem functions in reverse
+                 order *)
+              |> String.isPrefix vampire_skolem_prefix s ? rev
             val ts = term_ts @ extra_ts
             val T =
               case opt_T of
