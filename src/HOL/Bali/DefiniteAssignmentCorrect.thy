@@ -1467,7 +1467,7 @@ proof -
       also
       from ass_ok
       have "\<dots> \<subseteq> dom (locals (store (assign f v s2)))"
-        by (rule dom_locals_assign_mono)
+        by (rule dom_locals_assign_mono [where f = f])
       finally show ?thesis by simp
     next
       case False
