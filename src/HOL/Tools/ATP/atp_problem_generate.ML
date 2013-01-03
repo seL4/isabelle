@@ -1027,7 +1027,7 @@ fun close_universally add_term_vars phi =
       | add_formula_vars bounds (AConn (_, phis)) =
         fold (add_formula_vars bounds) phis
       | add_formula_vars bounds (AAtom tm) = add_term_vars bounds tm
-  in mk_aquant AForall (add_formula_vars [] phi []) phi end
+  in mk_aquant AForall (rev (add_formula_vars [] phi [])) phi end
 
 fun add_term_vars bounds (ATerm ((name as (s, _), _), tms)) =
     (if is_tptp_variable s andalso
@@ -1039,6 +1039,7 @@ fun add_term_vars bounds (ATerm ((name as (s, _), _), tms)) =
     #> fold (add_term_vars bounds) tms
   | add_term_vars bounds (AAbs (((name, _), tm), args)) =
     add_term_vars (name :: bounds) tm #> fold (add_term_vars bounds) args
+
 fun close_formula_universally phi = close_universally add_term_vars phi
 
 fun add_iterm_vars bounds (IApp (tm1, tm2)) =
@@ -1277,7 +1278,7 @@ fun presimp_prop ctxt type_enc t =
   handle TERM _ => @{const True}
 
 (* Satallax prefers "=" to "<=>" (for definitions) and Metis (CNF) requires "="
-   for obscure technical reasons. *)
+   for technical reasons. *)
 fun should_use_iff_for_eq CNF _ = false
   | should_use_iff_for_eq (THF _) format = not (is_type_enc_higher_order format)
   | should_use_iff_for_eq _ _ = true
