@@ -218,13 +218,10 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
                   | _ => (trace_msg ctxt (fn () => "Metis: No result"); [])
             end
         | Metis_Resolution.Satisfiable _ =>
-            (trace_msg ctxt (fn () => "Metis: No first-order proof with the lemmas supplied");
-             if null fallback_type_encs then
-               ()
-             else
-               raise METIS ("FOL_SOLVE",
-                            "No first-order proof with the lemmas supplied");
-             [])
+            (trace_msg ctxt (fn () =>
+               "Metis: No first-order proof with the lemmas supplied");
+             raise METIS ("FOL_SOLVE",
+                          "No first-order proof with the lemmas supplied"))
   end
   handle METIS (loc, msg) =>
          case fallback_type_encs of
