@@ -168,8 +168,8 @@ fun tryres (th, rls) =
   in  tryall rls  end;
 
 (* Special version of "rtac" that works around an explosion in the unifier.
-   If the goal has the form "?P c", the danger is that unifying "?P" with a
-   formula of the form "... c ... c ... c ..." will lead to a huge unification
+   If the goal has the form "?P c", the danger is that resolving it against a
+   property of the form "... c ... c ... c ..." will lead to a huge unification
    problem, due to the (spurious) choices between projection and imitation. The
    workaround is to instantiate "?P := (%c. ... c ... c ... c ...)" manually. *)
 fun quant_rtac th i st =
