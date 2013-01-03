@@ -131,7 +131,7 @@ fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
 fun repair_var_name s =
   let
     fun subscript_name s n = s ^ nat_subscript n
-    val s = String.map Char.toLower s
+    val s = s |> String.map Char.toLower
   in
     case space_explode "_" s of
       [_] => (case take_suffix Char.isDigit (String.explode s) of
