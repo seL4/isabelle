@@ -89,6 +89,10 @@ fun build args_file = Command_Line.tool (fn () =>
         | dups => error ("Duplicate document variants: " ^ commas_quote dups));
 
       val _ =
+        (case Session.path () of
+          [] => ()
+        | path => writeln ("\fSession.parent_path = " ^ space_implode "/" path));
+      val _ =
         Session.init do_output false
           (Options.bool options "browser_info") browser_info
           (Options.string options "document")

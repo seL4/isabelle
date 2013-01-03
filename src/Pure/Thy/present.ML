@@ -213,7 +213,7 @@ fun session_default x f = (case ! session_info of NONE => x | SOME info => f inf
 
 (** document preparation **)
 
-(* maintain index *)
+(* maintain session index *)
 
 val session_entries =
   HTML.session_entries o

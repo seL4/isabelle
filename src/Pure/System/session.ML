@@ -8,6 +8,7 @@ signature SESSION =
 sig
   val id: unit -> string list
   val name: unit -> string
+  val path: unit -> string list
   val welcome: unit -> string
   val finish: unit -> unit
   val init: bool -> bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
