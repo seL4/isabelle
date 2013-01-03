@@ -412,7 +412,7 @@ object Build
 
   /* jobs */
 
-  private class Job(name: String, info: Session_Info, output: Path, do_output: Boolean,
+  private class Job(name: String, val info: Session_Info, output: Path, do_output: Boolean,
     verbose: Boolean, browser_info: Path)
   {
     // global browser info dir
@@ -515,6 +515,8 @@ object Build
   private def log(name: String): Path = LOG + Path.basic(name)
   private def log_gz(name: String): Path = log(name).ext("gz")
 
+  private val SESSION_PARENT_PATH = "\fSession.parent_path = "
+
   private def sources_stamp(digests: List[SHA1.Digest]): String =
     digests.map(_.toString).sorted.mkString("sources: ", " ", "")
 
@@ -600,7 +602,7 @@ object Build
     }
 
     // scheduler loop
-    case class Result(current: Boolean, heap: String, rc: Int)
+    case class Result(current: Boolean, parent_path: Option[String], heap: String, rc: Int)
 
     def sleep(): Unit = Thread.sleep(500)
 
@@ -620,9 +622,10 @@ object Build
             //{{{ finish job
 
             val (out, err, rc) = job.join
+            val out_lines = split_lines(out)
             progress.echo(Library.trim_line(err))
 
-            val heap =
+            val (parent_path, heap) =
               if (rc == 0) {
                 (output_dir + log(name)).file.delete
 
@@ -631,7 +634,13 @@ object Build
                 File.write_gzip(output_dir + log_gz(name),
                   sources + "\n" + parent_heap + "\n" + heap + "\n" + out)
 
-                heap
+                val parent_path =
+                  if (job.info.options.bool("browser_info"))
+                    out_lines.find(_.startsWith(SESSION_PARENT_PATH)).map(line =>
+                      line.substring(SESSION_PARENT_PATH.length))
+                  else None
+
+                (parent_path, heap)
               }
               else {
                 (output_dir + Path.basic(name)).file.delete
@@ -641,14 +650,14 @@ object Build
                 progress.echo(name + " FAILED")
                 if (rc != 130) {
                   progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                  val lines = split_lines(out)
-                  val tail = lines.drop(lines.length - 20 max 0)
+                  val tail = out_lines.drop(out_lines.length - 20 max 0)
                   progress.echo("\n" + cat_lines(tail))
                 }
 
-                no_heap
+                (None, no_heap)
               }
-            loop(pending - name, running - name, results + (name -> Result(false, heap, rc)))
+            loop(pending - name, running - name,
+              results + (name -> Result(false, parent_path, heap, rc)))
             //}}}
           case None if (running.size < (max_jobs max 1)) =>
             //{{{ check/start next job
@@ -656,7 +665,7 @@ object Build
               case Some((name, info)) =>
                 val parent_result =
                   info.parent match {
-                    case None => Result(true, no_heap, 0)
+                    case None => Result(true, None, no_heap, 0)
                     case Some(parent) => results(parent)
                   }
                 val output = output_dir + Path.basic(name)
@@ -679,10 +688,10 @@ object Build
                 val all_current = current && parent_result.current
 
                 if (all_current)
-                  loop(pending - name, running, results + (name -> Result(true, heap, 0)))
+                  loop(pending - name, running, results + (name -> Result(true, None, heap, 0)))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
-                  loop(pending - name, running, results + (name -> Result(false, heap, 1)))
+                  loop(pending - name, running, results + (name -> Result(false, None, heap, 1)))
                 }
                 else if (parent_result.rc == 0) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
@@ -691,7 +700,7 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, heap, 1)))
+                  loop(pending - name, running, results + (name -> Result(false, None, heap, 1)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -703,9 +712,16 @@ object Build
     val results =
       if (deps.is_empty) {
         progress.echo("### Nothing to build")
-        Map.empty
+        Map.empty[String, Result]
       }
       else loop(queue, Map.empty, Map.empty)
+
+    val session_entries =
+      (for ((name, res) <- results.iterator if res.parent_path.isDefined)
+        yield (res.parent_path.get, name)).toList.groupBy(_._1).map(
+          { case (p, es) => (p, es.map(_._2).sorted) })
+    for ((p, names) <- session_entries)
+      Present.update_index(browser_info + Path.explode(p), names)
 
     val rc = (0 /: results)({ case (rc1, (_, res)) => rc1 max res.rc })
     if (rc != 0 && (verbose || !no_build)) {
