@@ -89,13 +89,13 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         | update_table (i, Prove (_, l, _, _)) = Label_Table.update_new (l, i)
         | update_table _ = I
       val label_index_table = fold_index update_table proof Label_Table.empty
-      val filter_refs = map_filter (Label_Table.lookup label_index_table)
+      val lookup_indices = map_filter (Label_Table.lookup label_index_table)
 
       (* proof references *)
-      fun refs (Obtain (_, _, _, _, By_Metis (lfs, _))) = filter_refs lfs
-        | refs (Prove (_, _, _, By_Metis (lfs, _))) = filter_refs lfs
+      fun refs (Obtain (_, _, _, _, By_Metis (lfs, _))) = lookup_indices lfs
+        | refs (Prove (_, _, _, By_Metis (lfs, _))) = lookup_indices lfs
         | refs (Prove (_, _, _, Case_Split (cases, (lfs, _)))) =
-          filter_refs lfs @ maps (maps refs) cases
+          lookup_indices lfs @ maps (maps refs) cases
         | refs _ = []
       val refed_by_vect =
         Vector.tabulate (n, (fn _ => []))
