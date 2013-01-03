@@ -10,10 +10,6 @@ theory Clausification
 imports Complex_Main
 begin
 
-(* FIXME: shouldn't need this *)
-declare [[unify_search_bound = 100]]
-declare [[unify_trace_bound = 100]]
-
 
 text {* Definitional CNF for facts *}
 
@@ -139,7 +135,7 @@ by (metis (full_types))
 lemma
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
    (\<exists>ys x zs. xs = ys @ x # zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
-by (metis split_list_last_prop [where P = P] in_set_conv_decomp)
+by (metis split_list_last_prop[where P = P] in_set_conv_decomp)
 
 lemma ex_tl: "EX ys. tl ys = xs"
 using tl.simps(2) by fast
