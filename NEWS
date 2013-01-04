@@ -96,6 +96,10 @@ selections.  Cf. keyboard shortcuts C+e DOWN/UP/RIGHT/LEFT.
 adjust the main text area font size, and its derivatives for output,
 tooltips etc.  Cf. keyboard shortcuts C-PLUS and C-MINUS.
 
+* More reactive completion popup by default: use \t (TAB) instead of
+\n (NEWLINE) to minimize intrusion into regular flow of editing.  See
+also "Plugin Options / SideKick / General / Code Completion Options".
+
 * Implicit check and build dialog of the specified logic session
 image.  For example, HOL, HOLCF, HOL-Nominal can be produced on
 demand, without bundling big platform-dependent heap images in the
