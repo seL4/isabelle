@@ -37,7 +37,7 @@ val runN = "run"
 val minN = "min"
 val messagesN = "messages"
 val supported_proversN = "supported_provers"
-val killN = "kill"
+val kill_allN = "kill_all"
 val running_proversN = "running_provers"
 val running_learnersN = "running_learners"
 val refresh_tptpN = "refresh_tptp"
@@ -395,7 +395,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
       messages opt_i
     else if subcommand = supported_proversN then
       supported_provers ctxt
-    else if subcommand = killN then
+    else if subcommand = kill_allN then
       (kill_provers (); kill_learners ())
     else if subcommand = running_proversN then
       running_provers ()
