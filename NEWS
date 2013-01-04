@@ -123,6 +123,9 @@ given given sort.  Example (in HOL):
 
   typ "_ * _ * bool * unit" :: finite
 
+* Command 'locale_deps' visualizes all locales and their relations as
+a Hasse diagram.
+
 
 *** HOL ***
 

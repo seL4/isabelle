@@ -459,6 +459,7 @@ text {*
     @{command_def "locale"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "print_locale"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_locales"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "locale_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{method_def intro_locales} & : & @{text method} \\
     @{method_def unfold_locales} & : & @{text method} \\
   \end{matharray}
@@ -571,6 +572,10 @@ text {*
 
   \item @{command "print_locales"} prints the names of all locales
   of the current theory.
+
+  \item @{command "locale_deps"} visualizes all locales and their
+  relations as a Hasse diagram. This includes locales defined as type
+  classes (\secref{sec:class}).
 
   \item @{method intro_locales} and @{method unfold_locales}
   repeatedly expand all introduction rules of locale predicates of the
