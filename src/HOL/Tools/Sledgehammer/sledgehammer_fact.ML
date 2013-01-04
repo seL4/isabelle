@@ -331,15 +331,13 @@ fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
 
 fun build_all_names name_of facts =
-  Termtab.fold
-      (fn (_, aliases as main :: _) =>
-          fold (fn alias =>
-                   Symtab.update (name_of alias,
-                                  name_of (if_thm_before main alias))) aliases)
-      (fold_rev (fn (_, thm) =>
-                    Termtab.cons_list (normalize_eq_etc (prop_of thm), thm))
-            facts Termtab.empty)
-      Symtab.empty
+  let
+    fun cons_thm (_, th) = Termtab.cons_list (normalize_eq_etc (prop_of th), th)
+    fun add_alias canon alias =
+      Symtab.update (name_of alias, name_of (if_thm_before canon alias))
+    fun add_aliases (_, aliases as canon :: _) = fold (add_alias canon) aliases
+    val tab = fold_rev cons_thm facts Termtab.empty
+  in Termtab.fold add_aliases tab Symtab.empty end
 
 fun uniquify facts =
   Termtab.fold (cons o snd)
