@@ -61,6 +61,10 @@ which can lead to stacks of tooltips as the semantic document content
 is explored.  ESCAPE closes the whole stack, individual windows may be
 closed separately, or detached to become independent jEdit dockables.
 
+* Improved support for commands that produce graph output: the text
+message contains a clickable area to open a new instance of the graph
+browser on demand.
+
 * More robust incremental parsing of outer syntax (partial comments,
 malformed symbols).  Changing the balance of open/close quotes and
 comment delimiters works more conveniently with unfinished situations
