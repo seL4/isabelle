@@ -1055,7 +1055,7 @@ fun mash_can_suggest_facts ctxt =
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons. *)
-fun generous_max_facts max_facts = max_facts + Int.min (50, max_facts)
+fun generous_max_facts max_facts = max_facts + Int.min (50, max_facts div 2)
 
 (* The threshold should be large enough so that MaSh doesn't kick in for Auto
    Sledgehammer and Try. *)
