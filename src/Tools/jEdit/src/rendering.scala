@@ -252,7 +252,8 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   }
 
 
-  private val active_include = Set(Markup.GRAPHVIEW, Markup.SENDBACK, Markup.DIALOG)
+  private val active_include =
+    Set(Markup.BROWSER, Markup.GRAPHVIEW, Markup.SENDBACK, Markup.DIALOG)
 
   def active(range: Text.Range): Option[Text.Info[XML.Elem]] =
     snapshot.select_markup(range, Some(active_include), command_state =>
@@ -261,7 +262,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           if !command_state.results.defined(serial) =>
             Text.Info(snapshot.convert(info_range), elem)
           case Text.Info(info_range, elem @ XML.Elem(Markup(name, _), _))
-          if name == Markup.GRAPHVIEW || name == Markup.SENDBACK =>
+          if name == Markup.BROWSER || name == Markup.GRAPHVIEW || name == Markup.SENDBACK =>
             Text.Info(snapshot.convert(info_range), elem)
         }) match { case Text.Info(_, info) #:: _ => Some(info) case _ => None }
 

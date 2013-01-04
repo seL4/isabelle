@@ -120,6 +120,7 @@ sig
   val no_reportN: string val no_report: T
   val badN: string val bad: T
   val intensifyN: string val intensify: T
+  val browserN: string
   val graphviewN: string
   val sendbackN: string
   val paddingN: string
@@ -382,6 +383,7 @@ val (intensifyN, intensify) = markup_elem "intensify";
 
 (* active areas *)
 
+val browserN = "browser"
 val graphviewN = "graphview";
 
 val sendbackN = "sendback";

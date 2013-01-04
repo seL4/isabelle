@@ -175,6 +175,8 @@ object Isabelle_System
     }
     else jvm_path
 
+  def posix_path(file: JFile): String = posix_path(file.getPath)
+
 
   /* misc path specifications */
 
@@ -333,7 +335,7 @@ object Isabelle_System
   {
     File.with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
-      val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file.getPath))
+      val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
 
       proc.stdin.close
       val (_, stdout) = Simple_Thread.future("bash_stdout") { File.read_stream(proc.stdout) }

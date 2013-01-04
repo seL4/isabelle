@@ -446,7 +446,7 @@ object Build
     private val env =
       Map("INPUT" -> parent, "TARGET" -> name, "OUTPUT" -> Isabelle_System.standard_path(output),
         (if (is_pure(name)) "ISABELLE_PROCESS_OPTIONS" else "ARGS_FILE") ->
-          Isabelle_System.posix_path(args_file.getPath))
+          Isabelle_System.posix_path(args_file))
 
     private val script =
       if (is_pure(name)) {

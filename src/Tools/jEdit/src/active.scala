@@ -43,8 +43,20 @@ object Active
           }
 
           if (!snapshot.is_outdated) {
+            // FIXME avoid hard-wired stuff
+
             elem match {
-              case XML.Elem(Markup(Markup.GRAPHVIEW, Position.Id(exec_id)), body) =>
+              case XML.Elem(Markup(Markup.BROWSER, _), body) =>
+                default_thread_pool.submit(() =>
+                  {
+                    val graph_file = File.tmp_file("graph")
+                    File.write(graph_file, XML.content(body))
+                    Isabelle_System.bash_env(null,
+                      Map("GRAPH_FILE" -> Isabelle_System.posix_path(graph_file)),
+                      "\"$ISABELLE_TOOL\" browser -c \"$GRAPH_FILE\" &")
+                  })
+
+              case XML.Elem(Markup(Markup.GRAPHVIEW, _), body) =>
                 default_thread_pool.submit(() =>
                   {
                     val graph =

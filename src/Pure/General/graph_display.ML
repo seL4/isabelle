@@ -13,7 +13,7 @@ sig
   val write_graph_browser: Path.T -> graph -> unit
   val browserN: string
   val graphviewN: string
-  val graphview_reportN: string
+  val active_graphN: string
   val display_graph: graph -> unit
 end;
 
@@ -33,12 +33,22 @@ type graph = node list;
 
 val browserN = "browser";
 val graphviewN = "graphview";
-val graphview_reportN = "graphview_report";
+val active_graphN = "active_graph";
 
-fun write_graph_browser path (graph: graph) =
-  File.write path (cat_lines (map (fn {name, ID, dir, unfold, path, parents, ...} =>
+fun is_browser () =
+  (case find_first (fn m => m = browserN orelse m = graphviewN) (print_mode_value ()) of
+    SOME m => m = browserN
+  | NONE => true);
+
+
+(* encode graph *)
+
+fun encode_browser (graph: graph) =
+  cat_lines (map (fn {name, ID, dir, unfold, path, parents, ...} =>
     "\"" ^ name ^ "\" \"" ^ ID ^ "\" \"" ^ dir ^ (if unfold then "\" + \"" else "\" \"") ^
-    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") graph));
+    path ^ "\" > " ^ space_implode " " (map quote parents) ^ " ;") graph);
+
+fun write_graph_browser path graph = File.write path (encode_browser graph);
 
 
 val encode_content = YXML.parse_body o Pretty.symbolic_string_of o Pretty.chunks;
@@ -56,20 +66,18 @@ fun write_graph_graphview path graph =
 (* display graph *)
 
 fun display_graph graph =
-  if print_mode_active graphview_reportN then
+  if print_mode_active active_graphN then
     let
-      val markup = Active.make_markup Markup.graphviewN {implicit = false, properties = []};
-      val ((bg1, bg2), en) = YXML.output_markup_elem markup;
-      val graph_yxml = YXML.string_of_body (encode_graphview graph);
-    in writeln ("See " ^ bg1 ^ graph_yxml ^ bg2 ^ "graphview" ^ en) end
+      val (markup, body) =
+        if is_browser () then (Markup.browserN, encode_browser graph)
+        else (Markup.graphviewN, YXML.string_of_body (encode_graphview graph));
+      val ((bg1, bg2), en) =
+        YXML.output_markup_elem (Active.make_markup markup {implicit = false, properties = []});
+    in writeln ("See " ^ bg1 ^ body ^ bg2 ^ "graph" ^ en) end
   else
     let
-      val browser =
-        (case find_first (fn m => m = browserN orelse m = graphviewN) (print_mode_value ()) of
-          SOME m => m = browserN
-        | NONE => true);
       val (write, tool) =
-        if browser then (write_graph_browser, "browser")
+        if is_browser () then (write_graph_browser, "browser")
         else (write_graph_graphview, "graphview");
 
       val _ = writeln "Displaying graph ...";

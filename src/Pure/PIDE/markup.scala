@@ -281,6 +281,7 @@ object Markup
 
   /* active areas */
 
+  val BROWSER = "browser"
   val GRAPHVIEW = "graphview"
 
   val SENDBACK = "sendback"
