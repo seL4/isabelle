@@ -307,7 +307,7 @@ val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20121227a ***"
+val version = "*** MaSh version 20130104a ***"
 
 exception Too_New of unit
 
@@ -401,29 +401,25 @@ val mash_unlearn = clear_state
 
 (*** Isabelle helpers ***)
 
-fun parent_of_local_thm th =
-  let
-    val thy = th |> Thm.theory_of_thm
-    val facts = thy |> Global_Theory.facts_of
-    val space = facts |> Facts.space_of
-    fun id_of s = #id (Name_Space.the_entry space s)
-    fun max_id (s', _) (s, id) =
-      let val id' = id_of s' in if id > id' then (s, id) else (s', id') end
-  in ("", ~1) |> Facts.fold_static max_id facts |> fst end
-
 val local_prefix = "local" ^ Long_Name.separator
+
+fun elided_backquote_thm threshold th =
+  elide_string threshold
+    (backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th)
 
 fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
-      (* FIXME: There must be a better way to detect local facts. *)
+      (* There must be a better way to detect local facts. *)
       case try (unprefix local_prefix) hint of
         SOME suf =>
-        parent_of_local_thm th ^ Long_Name.separator ^ Long_Name.separator ^ suf
+        Context.theory_name (Thm.theory_of_thm th) ^ Long_Name.separator ^
+        Long_Name.separator ^ suf ^ Long_Name.separator ^
+        elided_backquote_thm 50 th
       | NONE => hint
     end
   else
-    backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th
+    elided_backquote_thm 200 th
 
 fun find_suggested_facts suggs facts =
   let
@@ -486,10 +482,8 @@ val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
 fun theory_ord p =
-  if Theory.eq_thy p then
-    EQUAL
-  else if Theory.subthy p then
-    LESS
+  if Theory.subthy p then
+    if Theory.eq_thy p then EQUAL else LESS
   else if Theory.subthy (swap p) then
     GREATER
   else case int_ord (pairself (length o Theory.ancestors_of) p) of
