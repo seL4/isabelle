@@ -86,32 +86,36 @@ fun reserved_isar_keyword_table () =
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are
    not doing the same? *)
-fun fold_body_thms thm_name f =
+fun fold_body_thms thm_name name_map =
   let
+    val thm_name' = name_map thm_name
     fun app n (PBody {thms, ...}) =
       thms |> fold (fn (_, (name, _, body)) => fn accum =>
           let
-            (* The second disjunct caters for the uncommon case where the proved
-               theorem occurs in its own proof (e.g.,
-               "Transitive_Closure.trancl_into_trancl"). *)
-            val no_name = (name = "" orelse (n = 1 andalso name = thm_name))
+            val name' = name_map name
+            val collect = union (op =) o the_list
+            (* The "name = thm_name" case caters for the uncommon case where the
+               proved theorem occurs in its own proof (e.g.,
+               "Transitive_Closure.trancl_into_trancl"). The "name' = thm_name'"
+               case is to unfold low-level class facts ("Xxx.yyy.zzz") in the
+               proof of high-level class facts ("XXX.yyy_class.zzz"). *)
+            val no_name =
+              (name = "" orelse
+               (n = 1 andalso (name = thm_name orelse name' = thm_name')))
             val accum =
-              accum |> (if n = 1 andalso not no_name then f name else I)
+              accum |> (if n = 1 andalso not no_name then collect name' else I)
             val n = n + (if no_name then 0 else 1)
           in accum |> (if n <= 1 then app n (Future.join body) else I) end)
   in fold (app 0) end
 
 fun thms_in_proof all_names th =
   let
-    val collect =
+    val name_map =
       case all_names of
-        SOME names =>
-        (fn s => case Symtab.lookup names s of
-                   SOME s' => insert (op =) s'
-                 | NONE => I)
-      | NONE => insert (op =)
+        SOME names => Symtab.lookup names
+      | NONE => SOME
     val names =
-      [] |> fold_body_thms (Thm.get_name_hint th) collect [Thm.proof_body_of th]
+      [] |> fold_body_thms (Thm.get_name_hint th) name_map [Thm.proof_body_of th]
   in names end
 
 fun thms_of_name ctxt name =

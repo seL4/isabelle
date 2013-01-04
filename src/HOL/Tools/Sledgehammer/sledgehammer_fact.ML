@@ -330,12 +330,22 @@ val normalize_eq_etc = normalize_eq o Term_Subst.zero_var_indexes
 fun if_thm_before th th' =
   if Theory.subthy (pairself Thm.theory_of_thm (th, th')) then th else th'
 
+(* Hack: Conflate the facts about a class as seen from the outside with the
+   corresponding low-level facts, so that MaSh can learn from the low-level
+   proofs. *)
+fun un_class_ify s =
+  case first_field "_class" s of
+    SOME (pref, suf) => [s, pref ^ suf]
+  | NONE => [s]
+
 fun build_all_names name_of facts =
   let
     fun cons_thm (_, th) = Termtab.cons_list (normalize_eq_etc (prop_of th), th)
     fun add_alias canon alias =
-      Symtab.update (name_of alias, name_of (if_thm_before canon alias))
-    fun add_aliases (_, aliases as canon :: _) = fold (add_alias canon) aliases
+      fold (fn s => Symtab.update (s, name_of (if_thm_before canon alias)))
+           (un_class_ify (Thm.get_name_hint canon))
+    fun add_aliases (_, aliases as canon :: _) =
+      fold (add_alias canon) aliases
     val tab = fold_rev cons_thm facts Termtab.empty
   in Termtab.fold add_aliases tab Symtab.empty end
 
