@@ -139,7 +139,7 @@ a Hasse diagram.
     Sledgehammer manual for details.
   - Polished Isar proofs generated with "isar_proofs" option.
   - Rationalized type encodings ("type_enc" option).
-  - Renamed "kill_provers" subcommand to "kill".
+  - Renamed "kill_provers" subcommand to "kill_all".
   - Renamed options:
       isar_proof ~> isar_proofs
       isar_shrink_factor ~> isar_shrink
