@@ -13,26 +13,31 @@ diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/OperatingSystem.java 5.0.0/jEdit-patched/o
  			{
  				os = VMS;
 diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/Debug.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/Debug.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/Debug.java	2012-11-17 16:42:29.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/Debug.java	2012-12-01 21:55:48.000000000 +0100
-@@ -109,6 +109,7 @@
- 	 * used to handle a modifier key press in conjunction with an alphabet
- 	 * key. <b>On by default on MacOS.</b>
- 	 */
-+	public static boolean ALTERNATIVE_DISPATCHER0 = false;
- 	public static boolean ALTERNATIVE_DISPATCHER = OperatingSystem.isMacOS();
+--- 5.0.0/jEdit/org/gjt/sp/jedit/Debug.java     2012-11-17 16:42:29.000000000 +0100
++++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/Debug.java     2013-01-04 20:00:25.698332853 +0100
+@@ -109,7 +109,7 @@
+         * used to handle a modifier key press in conjunction with an alphabet
+         * key. <b>On by default on MacOS.</b>
+         */
+-       public static boolean ALTERNATIVE_DISPATCHER = OperatingSystem.isMacOS();
++       public static boolean ALTERNATIVE_DISPATCHER = false;
  
- 	/**
-diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/gui/KeyEventTranslator.java 5.0.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventTranslator.java
---- 5.0.0/jEdit/org/gjt/sp/jedit/gui/KeyEventTranslator.java	2012-11-17 16:41:58.000000000 +0100
-+++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventTranslator.java	2012-12-01 21:56:04.000000000 +0100
-@@ -79,7 +79,7 @@
- 				|| (keyCode >= KeyEvent.VK_A
- 				&& keyCode <= KeyEvent.VK_Z))
- 			{
--				if(Debug.ALTERNATIVE_DISPATCHER)
-+				if(Debug.ALTERNATIVE_DISPATCHER0)
- 					return null;
- 				else
- 				{
+        /**
+         * If true, A+ shortcuts are disabled. If you use this, you should also
+diff -ru 5.0.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java 5.0.0/jEdit-patched/org/gjt/sp/jed
+it/gui/KeyEventWorkaround.java
+--- 5.0.0/jEdit/org/gjt/sp/jedit/gui/KeyEventWorkaround.java    2012-11-17 16:41:58.000000000 +0100
++++ 5.0.0/jEdit-patched/org/gjt/sp/jedit/gui/KeyEventWorkaround.java    2013-01-04 20:04:43.02632209
+2 +0100
+@@ -297,8 +297,8 @@
+ 
+                        if(!Debug.ALTERNATIVE_DISPATCHER)
+                        {
+-                               if(((modifiers & InputEvent.CTRL_MASK) != 0
+-                                       ^ (modifiers & InputEvent.ALT_MASK) != 0)
++                               if((modifiers & InputEvent.CTRL_MASK) != 0 && (modifiers & InputEvent.ALT_MASK) == 0
++                                       || (modifiers & InputEvent.CTRL_MASK) == 0 && (modifiers & InputEvent.ALT_MASK) != 0 && !Debug.ALT_KEY_PRESSED_DISABLED
+                                        || (modifiers & InputEvent.META_MASK) != 0)
+                                {
+                                        return null;
 
