@@ -26,8 +26,9 @@ sig
   val backquote_thm : Proof.context -> thm -> string
   val is_blacklisted_or_something : Proof.context -> bool -> string -> bool
   val clasimpset_rule_table_of : Proof.context -> status Termtab.table
-  val build_all_names :
-    (thm -> string) -> ('a * thm) list -> string Symtab.table
+  val build_name_tables :
+    (thm -> string) -> ('a * thm) list
+    -> string Symtab.table * string Symtab.table
   val maybe_instantiate_inducts :
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
@@ -338,16 +339,19 @@ fun un_class_ify s =
     SOME (pref, suf) => [s, pref ^ suf]
   | NONE => [s]
 
-fun build_all_names name_of facts =
+fun build_name_tables name_of facts =
   let
     fun cons_thm (_, th) = Termtab.cons_list (normalize_eq_etc (prop_of th), th)
-    fun add_alias canon alias =
-      fold (fn s => Symtab.update (s, name_of (if_thm_before canon alias)))
-           (un_class_ify (Thm.get_name_hint canon))
-    fun add_aliases (_, aliases as canon :: _) =
-      fold (add_alias canon) aliases
-    val tab = fold_rev cons_thm facts Termtab.empty
-  in Termtab.fold add_aliases tab Symtab.empty end
+    fun add_plain canon alias =
+      Symtab.update (Thm.get_name_hint canon,
+                     name_of (if_thm_before canon alias))
+    fun add_plains (_, aliases as canon :: _) = fold (add_plain canon) aliases
+    fun add_inclass (name, target) =
+      fold (fn s => Symtab.update (s, target)) (un_class_ify name)
+    val prop_tab = fold_rev cons_thm facts Termtab.empty
+    val plain_name_tab = Termtab.fold add_plains prop_tab Symtab.empty
+    val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
+  in (plain_name_tab, inclass_name_tab) end
 
 fun uniquify facts =
   Termtab.fold (cons o snd)

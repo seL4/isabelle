@@ -79,15 +79,15 @@ fun generate_features ctxt prover thys include_thys file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+fun isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
                                    isar_deps_opt =
   (case params_opt of
      SOME (params as {provers = prover :: _, ...}) =>
-     prover_dependencies_of ctxt params prover 0 facts all_names th |> snd
+     prover_dependencies_of ctxt params prover 0 facts name_tabs th |> snd
    | NONE =>
      case isar_deps_opt of
        SOME deps => deps
-     | NONE => isar_dependencies_of all_names th)
+     | NONE => isar_dependencies_of name_tabs th)
   |> these
 
 fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
@@ -96,14 +96,14 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
     val path = file_name |> Path.explode
     val facts =
       all_facts ctxt |> not include_thys ? filter_out (has_thys thys o snd)
-    val all_names = build_all_names nickname_of_thm facts
+    val name_tabs = build_name_tables nickname_of_thm facts
     fun do_fact (j, (_, th)) =
       if in_range range j then
         let
           val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val deps =
-            isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+            isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
                                            NONE
         in escape_meta name ^ ": " ^ escape_metas deps ^ "\n" end
       else
@@ -128,16 +128,16 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val all_names = build_all_names nickname_of_thm facts
+    val name_tabs = build_name_tables nickname_of_thm facts
     fun do_fact (j, ((name, ((_, stature), th)), prevs)) =
       if in_range range j then
         let
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
           val feats =
             features_of ctxt prover (theory_of_thm th) stature [prop_of th]
-          val isar_deps = isar_dependencies_of all_names th
+          val isar_deps = isar_dependencies_of name_tabs th
           val deps =
-            isar_or_prover_dependencies_of ctxt params_opt facts all_names th
+            isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
                                            (SOME isar_deps)
           val core =
             escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
@@ -169,13 +169,13 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
-    val all_names = build_all_names nickname_of_thm facts
+    val name_tabs = build_name_tables nickname_of_thm facts
     fun do_fact ((_, th), old_facts) =
       let
         val name = nickname_of_thm th
         val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-        val isar_deps = isar_dependencies_of all_names th
+        val isar_deps = isar_dependencies_of name_tabs th
       in
         if is_bad_query ctxt ho_atp th (these isar_deps) then
           ""

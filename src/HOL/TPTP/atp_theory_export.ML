@@ -137,12 +137,12 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
-    val all_names = Sledgehammer_Fact.build_all_names Thm.get_name_hint facts
+    val name_tabs = Sledgehammer_Fact.build_name_tables Thm.get_name_hint facts
     val infers =
       facts
       |> map (fn (_, th) =>
                  (fact_name_of (Thm.get_name_hint th),
-                  th |> Sledgehammer_Util.thms_in_proof (SOME all_names)
+                  th |> Sledgehammer_Util.thms_in_proof (SOME name_tabs)
                      |> map fact_name_of))
     val all_atp_problem_names =
       atp_problem |> maps (map ident_of_problem_line o snd)

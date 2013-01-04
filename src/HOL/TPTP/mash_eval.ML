@@ -46,7 +46,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
     val lines = sugg_path |> File.read_lines
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
-    val all_names = build_all_names nickname_of_thm facts
+    val name_tabs = build_name_tables nickname_of_thm facts
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_string (j, s) = s ^ "@" ^ string_of_int j
     fun str_of_res label facts ({outcome, run_time, used_facts, ...}
@@ -79,7 +79,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
             | NONE => error ("No fact called \"" ^ name ^ "\".")
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-          val isar_deps = isar_dependencies_of all_names th |> these
+          val isar_deps = isar_dependencies_of name_tabs th |> these
           val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
           val mepo_facts =
             mepo_suggested_facts ctxt params prover slack_max_facts NONE hyp_ts

@@ -59,10 +59,12 @@ sig
   val features_of :
     Proof.context -> string -> theory -> stature -> term list
     -> (string * real) list
-  val isar_dependencies_of : string Symtab.table -> thm -> string list option
+  val isar_dependencies_of :
+    string Symtab.table * string Symtab.table -> thm -> string list option
   val prover_dependencies_of :
-    Proof.context -> params -> string -> int -> fact list -> string Symtab.table
-    -> thm -> bool * string list option
+    Proof.context -> params -> string -> int -> fact list
+    -> string Symtab.table * string Symtab.table -> thm
+    -> bool * string list option
   val weight_mash_facts : 'a list -> ('a * real) list
   val find_mash_suggestions :
     int -> (Symtab.key * 'a) list -> ('b * thm) list -> ('b * thm) list
@@ -643,12 +645,12 @@ fun trim_dependencies th deps =
           else
             deps)
 
-fun isar_dependencies_of all_names th =
-  th |> thms_in_proof (SOME all_names) |> trim_dependencies th
+fun isar_dependencies_of name_tabs th =
+  th |> thms_in_proof (SOME name_tabs) |> trim_dependencies th
 
 fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
-                           auto_level facts all_names th =
-  case isar_dependencies_of all_names th of
+                           auto_level facts name_tabs th =
+  case isar_dependencies_of name_tabs th of
     SOME [] => (false, SOME [])
   | isar_deps =>
     let
@@ -871,16 +873,16 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         ""
     else
       let
-        val all_names = build_all_names nickname_of_thm facts
+        val name_tabs = build_name_tables nickname_of_thm facts
         fun deps_of status th =
           if status = Non_Rec_Def orelse status = Rec_Def then
             SOME []
           else if run_prover then
-            prover_dependencies_of ctxt params prover auto_level facts all_names
+            prover_dependencies_of ctxt params prover auto_level facts name_tabs
                                    th
             |> (fn (false, _) => NONE | (true, deps) => deps)
           else
-            isar_dependencies_of all_names th
+            isar_dependencies_of name_tabs th
         fun do_commit [] [] [] state = state
           | do_commit learns relearns flops {access_G, dirty} =
             let
@@ -985,7 +987,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
                      Isar_Proof => 0
                    | Automatic_Proof => 2 * max_isar
                    | Isar_Proof_wegen_Prover_Flop => max_isar)
-                - 500 * (th |> isar_dependencies_of all_names
+                - 500 * (th |> isar_dependencies_of name_tabs
                             |> Option.map length
                             |> the_default max_dependencies)
               val old_facts =
