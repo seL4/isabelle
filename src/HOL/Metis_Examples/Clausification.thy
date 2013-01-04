@@ -10,10 +10,6 @@ theory Clausification
 imports Complex_Main
 begin
 
-(* FIXME: shouldn't need this *)
-declare [[unify_search_bound = 100]]
-declare [[unify_trace_bound = 100]]
-
 
 text {* Definitional CNF for facts *}
 
@@ -22,7 +18,7 @@ declare [[meson_max_clauses = 10]]
 axiomatization q :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 qax: "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
 
-declare [[metis_new_skolemizer = false]]
+declare [[metis_new_skolem = false]]
 
 lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
 by (metis qax)
@@ -36,7 +32,7 @@ by (metis qax)
 lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
 by (metis (full_types) qax)
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
 by (metis qax)
@@ -58,7 +54,7 @@ rax: "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
       (r 2 0 \<and> r 2 1 \<and> r 2 2 \<and> r 2 3) \<or>
       (r 3 0 \<and> r 3 1 \<and> r 3 2 \<and> r 3 3)"
 
-declare [[metis_new_skolemizer = false]]
+declare [[metis_new_skolem = false]]
 
 lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
 by (metis rax)
@@ -66,7 +62,7 @@ by (metis rax)
 lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
 by (metis (full_types) rax)
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
 by (metis rax)
@@ -92,7 +88,7 @@ text {* Definitional CNF for goal *}
 axiomatization p :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 pax: "\<exists>b. \<forall>a. (p b a \<and> p 0 0 \<and> p 1 a) \<or> (p 0 1 \<and> p 1 0 \<and> p a b)"
 
-declare [[metis_new_skolemizer = false]]
+declare [[metis_new_skolem = false]]
 
 lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x) \<and> (p 1 a \<or> x) \<and>
                    (p 0 1 \<or> \<not> x) \<and> (p 1 0 \<or> \<not> x) \<and> (p a b \<or> \<not> x)"
@@ -102,7 +98,7 @@ lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x
                    (p 0 1 \<or> \<not> x) \<and> (p 1 0 \<or> \<not> x) \<and> (p a b \<or> \<not> x)"
 by (metis (full_types) pax)
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x) \<and> (p 1 a \<or> x) \<and>
                    (p 0 1 \<or> \<not> x) \<and> (p 1 0 \<or> \<not> x) \<and> (p a b \<or> \<not> x)"
@@ -115,7 +111,7 @@ by (metis (full_types) pax)
 
 text {* New Skolemizer *}
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 lemma
   fixes x :: real
@@ -139,7 +135,7 @@ by (metis (full_types))
 lemma
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
    (\<exists>ys x zs. xs = ys @ x # zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
-by (metis split_list_last_prop [where P = P] in_set_conv_decomp)
+by (metis split_list_last_prop[where P = P] in_set_conv_decomp)
 
 lemma ex_tl: "EX ys. tl ys = xs"
 using tl.simps(2) by fast

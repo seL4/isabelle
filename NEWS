@@ -82,6 +82,8 @@ schemes.
 * Dockable window "Symbols" provides some editing support for Isabelle
 symbols.
 
+* Dockable window "Monitor" shows ML runtime statistics.
+
 * Improved editing support for control styles: subscript, superscript,
 bold, reset of style -- operating on single symbols or text
 selections.  Cf. keyboard shortcuts C+e DOWN/UP/RIGHT/LEFT.
@@ -426,6 +428,8 @@ platform family: "linux", "macos", "windows".
 * The ML system is configured as regular component, and no longer
 picked up from some surrounding directory.  Potential INCOMPATIBILITY
 for home-made settings.
+
+* Improved ML runtime statistics (heap, threads, future tasks etc.).
 
 * Discontinued support for Poly/ML 5.2.1, which was the last version
 without exception positions and advanced ML compiler/toplevel

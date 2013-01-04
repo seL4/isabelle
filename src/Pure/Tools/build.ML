@@ -43,7 +43,7 @@ fun use_thys options =
         (Options.int options "parallel_proofs_threshold")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
-    |> Unsynchronized.setmp Future.ML_statistics (Options.bool options "ML_statistics")
+    |> Unsynchronized.setmp Future.ML_statistics true
     |> no_document options ? Present.no_document
     |> Unsynchronized.setmp quick_and_dirty (Options.bool options "quick_and_dirty")
     |> Unsynchronized.setmp Toplevel.skip_proofs (Options.bool options "skip_proofs")
@@ -88,6 +88,10 @@ fun build args_file = Command_Line.tool (fn () =>
           [] => ()
         | dups => error ("Duplicate document variants: " ^ commas_quote dups));
 
+      val _ =
+        (case Session.path () of
+          [] => ()
+        | path => writeln ("\fSession.parent_path = " ^ space_implode "/" path));
       val _ =
         Session.init do_output false
           (Options.bool options "browser_info") browser_info

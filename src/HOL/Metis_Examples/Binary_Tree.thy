@@ -11,7 +11,7 @@ theory Binary_Tree
 imports Main
 begin
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 datatype 'a bt =
     Lf

@@ -13,7 +13,7 @@ import javax.swing.JOptionPane
 
 import scala.swing.{ListView, ScrollPane}
 
-import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View}
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, View, Debug}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.ModeProvider
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
@@ -271,6 +271,8 @@ class Plugin extends EBPlugin
   override def start()
   {
     try {
+      Debug.DISABLE_SEARCH_DIALOG_POOL = true
+
       PIDE.plugin = this
       Isabelle_System.init()
       Isabelle_System.install_fonts()

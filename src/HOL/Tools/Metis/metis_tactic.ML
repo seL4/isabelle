@@ -11,7 +11,7 @@ signature METIS_TACTIC =
 sig
   val trace : bool Config.T
   val verbose : bool Config.T
-  val new_skolemizer : bool Config.T
+  val new_skolem : bool Config.T
   val advisory_simp : bool Config.T
   val type_has_top_sort : typ -> bool
   val metis_tac :
@@ -29,8 +29,8 @@ open ATP_Proof_Reconstruct
 open Metis_Generate
 open Metis_Reconstruct
 
-val new_skolemizer =
-  Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
+val new_skolem =
+  Attrib.setup_config_bool @{binding metis_new_skolem} (K false)
 val advisory_simp =
   Attrib.setup_config_bool @{binding metis_advisory_simp} (K true)
 
@@ -137,8 +137,8 @@ fun kbo_advisory_simp_ordering ord_info =
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
-      val new_skolemizer =
-        Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
+      val new_skolem =
+        Config.get ctxt new_skolem orelse null (Meson.choice_theorems thy)
       val do_lams =
         (lam_trans = liftingN orelse lam_trans = lam_liftingN)
         ? introduce_lam_wrappers ctxt
@@ -146,7 +146,7 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
         map2 (fn j => fn th =>
                 (Thm.get_name_hint th,
                  th |> Drule.eta_contraction_rule
-                    |> Meson_Clausify.cnf_axiom ctxt new_skolemizer
+                    |> Meson_Clausify.cnf_axiom ctxt new_skolem
                                                 (lam_trans = combsN) j
                     ||> map do_lams))
              (0 upto length ths0 - 1) ths0

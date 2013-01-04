@@ -482,8 +482,8 @@ fun string_for_proof ctxt type_enc lam_trans i n =
       #> simplify_spaces
       #> maybe_quote
     val reconstr = Metis (type_enc, lam_trans)
-    fun do_metis ind (ls, ss) =
-      "\n" ^ do_indent (ind + 1) ^
+    fun do_metis ind options (ls, ss) =
+      "\n" ^ do_indent (ind + 1) ^ options ^
       reconstructor_command reconstr 1 1 [] 0
           (ls |> sort_distinct (prod_ord string_ord int_ord),
            ss |> sort_distinct string_ord)
@@ -495,15 +495,19 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
       | do_step ind (Obtain (qs, xs, l, t, By_Metis facts)) =
         do_indent ind ^ do_obtain qs xs ^ " " ^
-        do_label l ^ do_term t ^ do_metis ind facts ^ "\n"
+        do_label l ^ do_term t ^
+        (* The new skolemizer puts the arguments in the same order as the ATPs
+           (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
+           Vampire). *)
+        do_metis ind "using [[metis_new_skolem]] " facts ^ "\n"
       | do_step ind (Prove (qs, l, t, By_Metis facts)) =
         do_indent ind ^ do_have qs ^ " " ^
-        do_label l ^ do_term t ^ do_metis ind facts ^ "\n"
+        do_label l ^ do_term t ^ do_metis ind "" facts ^ "\n"
       | do_step ind (Prove (qs, l, t, Case_Split (proofs, facts))) =
         implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
                      proofs) ^
         do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
-        do_metis ind facts ^ "\n"
+        do_metis ind "" facts ^ "\n"
     and do_steps prefix suffix ind steps =
       let val s = implode (map (do_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^

@@ -11,7 +11,7 @@ theory Message
 imports Main
 begin
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 lemma strange_Un_eq [simp]: "A \<union> (B \<union> A) = B \<union> A"
 by (metis Un_commute Un_left_absorb)

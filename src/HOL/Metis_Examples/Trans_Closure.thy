@@ -11,7 +11,7 @@ theory Trans_Closure
 imports Main
 begin
 
-declare [[metis_new_skolemizer]]
+declare [[metis_new_skolem]]
 
 type_synonym addr = nat
 

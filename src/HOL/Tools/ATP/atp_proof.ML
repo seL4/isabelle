@@ -522,23 +522,22 @@ fun clean_up_dependencies _ [] = []
 
 fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
 
-fun map_term_names_in_term f (ATerm ((s, tys), ts)) =
-  ATerm ((f s, tys), map (map_term_names_in_term f) ts)
-fun map_term_names_in_formula f (AQuant (q, xs, phi)) =
-    AQuant (q, xs, map_term_names_in_formula f phi)
-  | map_term_names_in_formula f (AConn (c, phis)) =
-    AConn (c, map (map_term_names_in_formula f) phis)
-  | map_term_names_in_formula f (AAtom t) = AAtom (map_term_names_in_term f t)
-fun map_term_names_in_step f (Definition_Step (name, phi1, phi2)) =
-    Definition_Step (name, map_term_names_in_formula f phi1,
-                     map_term_names_in_formula f phi2)
-  | map_term_names_in_step f (Inference_Step (name, role, phi, rule, deps)) =
-    Inference_Step (name, role, map_term_names_in_formula f phi, rule, deps)
-fun map_term_names_in_atp_proof f = map (map_term_names_in_step f)
+fun map_term_names_in_atp_proof f =
+  let
+    fun do_term (ATerm ((s, tys), ts)) = ATerm ((f s, tys), map do_term ts)
+    fun do_formula (AQuant (q, xs, phi)) =
+        AQuant (q, map (apfst f) xs, do_formula phi)
+      | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
+      | do_formula (AAtom t) = AAtom (do_term t)
+    fun do_step (Definition_Step (name, phi1, phi2)) =
+        Definition_Step (name, do_formula phi1, do_formula phi2)
+      | do_step (Inference_Step (name, role, phi, rule, deps)) =
+        Inference_Step (name, role, do_formula phi, rule, deps)
+  in map do_step end
 
 fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s
+
 fun nasty_atp_proof pool =
-  if Symtab.is_empty pool then I
-  else map_term_names_in_atp_proof (nasty_name pool)
+  not (Symtab.is_empty pool) ? map_term_names_in_atp_proof (nasty_name pool)
 
 end;

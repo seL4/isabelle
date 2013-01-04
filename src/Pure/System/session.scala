@@ -22,7 +22,7 @@ object Session
   /* events */
 
   //{{{
-  case class Statistics(stats: Properties.T)
+  case class Statistics(props: Properties.T)
   case class Global_Options(options: Options)
   case object Caret_Focus
   case class Raw_Edits(edits: List[Document.Edit_Text])
@@ -361,8 +361,8 @@ class Session(val thy_load: Thy_Load)
             case None =>
           }
 
-        case Markup.ML_Statistics(stats) if output.is_protocol =>
-          statistics.event(Session.Statistics(stats))
+        case Markup.ML_Statistics(props) if output.is_protocol =>
+          statistics.event(Session.Statistics(props))
 
         case _ if output.is_init =>
           phase = Session.Ready
