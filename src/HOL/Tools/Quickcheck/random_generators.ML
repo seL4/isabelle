@@ -451,6 +451,7 @@ fun compile_generator_expr ctxt ts =
 
 fun size_matters_for _ Ts = not (forall
   (fn Type (tyco, []) => is_some (try (unprefix "Enum.finite") tyco) | _ => false) Ts)
+    (*FIXME eliminate dynamic name reference*)
 
 val test_goals =
   Quickcheck_Common.generator_test_goal_terms ("random", (size_matters_for, compile_generator_expr));
