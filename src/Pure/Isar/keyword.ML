@@ -207,9 +207,9 @@ fun status () =
   let
     val Keywords {lexicons = (minor, _), commands} = get_keywords ();
     val _ = sort_strings (Scan.dest_lexicon minor) |> List.app (fn name =>
-      writeln ("Outer syntax keyword " ^ quote name));
+      writeln ("\fOuter syntax keyword " ^ quote name));
     val _ = sort_wrt #1 (Symtab.dest commands) |> List.app (fn (name, kind) =>
-      writeln ("Outer syntax keyword " ^ quote name ^ " :: " ^ kind_of kind));
+      writeln ("\fOuter syntax keyword " ^ quote name ^ " :: " ^ kind_of kind));
   in () end;
 
 

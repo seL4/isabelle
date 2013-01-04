@@ -87,13 +87,13 @@ my @emacs_kinds = (
 
 sub collect_keywords {
   while(<STDIN>) {
-    if (m/^Outer syntax keyword "([^"]*)" :: (\S*)/) {
+    if (m/^\fOuter syntax keyword "([^"]*)" :: (\S*)/) {
       my $name = $1;
       my $kind = $2;
       if (defined $convert_kinds{$kind}) { $kind = $convert_kinds{$kind} }
       &set_keyword($name, $kind);
     }
-    elsif (m/^Outer syntax keyword "([^"]*)"/) {
+    elsif (m/^\fOuter syntax keyword "([^"]*)"/) {
       my $name = $1;
       &set_keyword($name, "minor");
     }
