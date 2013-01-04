@@ -20,8 +20,7 @@ import javax.swing.{Icon, DefaultListCellRenderer, ListCellRenderer, JList}
 
 import org.gjt.sp.jedit.{Buffer, EditPane, TextUtilities, View}
 import errorlist.DefaultErrorSource
-import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion,
-  SideKickCompletionPopup, IAsset}
+import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion, IAsset}
 
 
 object Isabelle_Sidekick

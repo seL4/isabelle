@@ -10,8 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Window, Dimension}
-import java.awt.event.{ActionListener, ActionEvent, KeyEvent, WindowEvent, WindowAdapter}
-import javax.swing.{SwingUtilities, JDialog, JPanel, JComponent, KeyStroke}
+import java.awt.event.{WindowEvent, WindowAdapter}
+import javax.swing.{SwingUtilities, JDialog, JPanel, JComponent}
 import javax.swing.border.LineBorder
 
 import scala.swing.{FlowPanel, Label}
@@ -37,7 +37,6 @@ class Pretty_Tooltip(
 
   window.setUndecorated(true)
   window.setFocusableWindowState(true)
-  window.setAutoRequestFocus(true)
 
   window.addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) {
@@ -47,24 +46,8 @@ class Pretty_Tooltip(
     }
   })
 
-  private val action_listener = new ActionListener {
-    def actionPerformed(e: ActionEvent) {
-      e.getActionCommand match {
-        case "close_all" =>
-          Window.getWindows foreach {
-            case c: Pretty_Tooltip => c.dispose
-            case _ =>
-          }
-        case _ =>
-      }
-    }
-  }
-
   window.setContentPane(new JPanel(new BorderLayout) {
     setBackground(rendering.tooltip_color)
-    registerKeyboardAction(action_listener, "close_all",
-      KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
-
     override def getFocusTraversalKeysEnabled(): Boolean = false
   })
   window.getRootPane.setBorder(new LineBorder(Color.BLACK))
@@ -76,9 +59,6 @@ class Pretty_Tooltip(
   pretty_text_area.resize(Rendering.font_family(),
     Rendering.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, results, body)
-
-  pretty_text_area.registerKeyboardAction(action_listener, "close_all",
-    KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_FOCUSED)
 
   window.add(pretty_text_area)
 
@@ -136,6 +116,7 @@ class Pretty_Tooltip(
   }
 
   window.setVisible(true)
+  pretty_text_area.requestFocus
   pretty_text_area.refresh()
 }
 

@@ -10,9 +10,8 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Color, Font, FontMetrics, Toolkit}
-import java.awt.event.{ActionListener, ActionEvent, KeyEvent}
-import javax.swing.{KeyStroke, JComponent}
+import java.awt.{Color, Font, FontMetrics, Toolkit, Window}
+import java.awt.event.{KeyEvent, KeyAdapter}
 
 import org.gjt.sp.jedit.{jEdit, View, Registers}
 import org.gjt.sp.jedit.textarea.{AntiAlias, JEditEmbeddedTextArea}
@@ -159,22 +158,24 @@ class Pretty_Text_Area(
   }
 
 
-  /* keyboard actions */
+  /* key handling */
 
-  private val action_listener = new ActionListener {
-    def actionPerformed(e: ActionEvent) {
-      e.getActionCommand match {
-        case "copy" => Registers.copy(text_area, '$')
+  addKeyListener(new KeyAdapter {
+    override def keyPressed(evt: KeyEvent)
+    {
+      evt.getKeyCode match {
+        case KeyEvent.VK_C
+        if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
+          Registers.copy(text_area, '$')
+        case KeyEvent.VK_ESCAPE =>
+          Window.getWindows foreach {
+            case c: Pretty_Tooltip => c.dispose
+            case _ =>
+          }
         case _ =>
       }
     }
-  }
-
-  registerKeyboardAction(action_listener, "copy",
-    KeyStroke.getKeyStroke(KeyEvent.VK_COPY, 0), JComponent.WHEN_FOCUSED)
-  registerKeyboardAction(action_listener, "copy",
-    KeyStroke.getKeyStroke(KeyEvent.VK_C,
-      Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), JComponent.WHEN_FOCUSED)
+  })
 
 
   /* init */

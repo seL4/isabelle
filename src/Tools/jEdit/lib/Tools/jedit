@@ -203,6 +203,7 @@ JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedi
 JEDIT_JARS=(
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/Console.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/ErrorList.jar"
+  "$ISABELLE_JEDIT_BUILD_HOME/contrib/Highlight.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/SideKick.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/cobra.jar"
   "$ISABELLE_JEDIT_BUILD_HOME/contrib/js.jar"
