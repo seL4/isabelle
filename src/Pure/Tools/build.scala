@@ -650,7 +650,8 @@ object Build
                 progress.echo(name + " FAILED")
                 if (rc != 130) {
                   progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                  val tail = out_lines.drop(out_lines.length - 20 max 0)
+                  val lines = out_lines.filterNot(_.startsWith("\f"))
+                  val tail = lines.drop(lines.length - 20 max 0)
                   progress.echo("\n" + cat_lines(tail))
                 }
 
