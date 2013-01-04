@@ -413,9 +413,8 @@ fun nickname_of_thm th =
       (* There must be a better way to detect local facts. *)
       case try (unprefix local_prefix) hint of
         SOME suf =>
-        Context.theory_name (Thm.theory_of_thm th) ^ Long_Name.separator ^
-        Long_Name.separator ^ suf ^ Long_Name.separator ^
-        elided_backquote_thm 50 th
+        Context.theory_name (Thm.theory_of_thm th) ^ Long_Name.separator ^ suf ^
+        Long_Name.separator ^ elided_backquote_thm 50 th
       | NONE => hint
     end
   else
