@@ -461,7 +461,13 @@ fun open_target f = transaction (fn _ =>
 val close_target = transaction (fn _ =>
   (fn Theory (Context.Proof lthy, _) =>
         (case try Local_Theory.close_target lthy of
-          SOME lthy' => Theory (Context.Proof lthy', SOME lthy)
+          SOME ctxt' =>
+            let
+              val gthy' =
+                if can Local_Theory.assert ctxt'
+                then Context.Proof ctxt'
+                else Context.Theory (Proof_Context.theory_of ctxt');
+            in Theory (gthy', SOME lthy) end
         | NONE => raise UNDEF)
     | _ => raise UNDEF));
 

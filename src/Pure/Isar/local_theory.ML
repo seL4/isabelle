@@ -14,7 +14,8 @@ sig
   val restore: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
-  val open_target: Name_Space.naming -> operations -> local_theory -> local_theory
+  val open_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
+    local_theory -> local_theory
   val close_target: local_theory -> local_theory
   val map_contexts: (int -> Proof.context -> Proof.context) -> local_theory -> local_theory
   val naming_of: local_theory -> Name_Space.naming
@@ -83,10 +84,11 @@ type operations =
 type lthy =
  {naming: Name_Space.naming,
   operations: operations,
+  after_close: local_theory -> local_theory,
   target: Proof.context};
 
-fun make_lthy (naming, operations, target) : lthy =
-  {naming = naming, operations = operations, target = target};
+fun make_lthy (naming, operations, after_close, target) : lthy =
+  {naming = naming, operations = operations, after_close = after_close, target = target};
 
 
 (* context data *)
@@ -103,16 +105,17 @@ fun assert lthy =
 val get_last_lthy = List.last o Data.get o assert;
 val get_first_lthy = hd o Data.get o assert;
 
-fun map_first_lthy f = assert #>
-  Data.map (fn {naming, operations, target} :: parents =>
-    make_lthy (f (naming, operations, target)) :: parents);
+fun map_first_lthy f =
+  assert #>
+  Data.map (fn {naming, operations, after_close, target} :: parents =>
+    make_lthy (f (naming, operations, after_close, target)) :: parents);
 
 fun restore lthy = #target (get_first_lthy lthy) |> Data.put (Data.get lthy);
 
 
 (* nested structure *)
 
-val level = length o Data.get;
+val level = length o Data.get;  (*1: main target at bottom, >= 2: nested context*)
 
 fun assert_bottom b lthy =
   let
@@ -124,16 +127,20 @@ fun assert_bottom b lthy =
     else lthy
   end;
 
-fun open_target naming operations target = assert target
-  |> Data.map (cons (make_lthy (naming, operations, target)));
+fun open_target naming operations after_close target =
+  assert target
+  |> Data.map (cons (make_lthy (naming, operations, after_close, target)));
 
 fun close_target lthy =
-  assert_bottom false lthy |> Data.map tl |> restore;
+  let
+    val _ = assert_bottom false lthy;
+    val {after_close, ...} :: rest = Data.get lthy;
+  in lthy |> Data.put rest |> restore |> after_close end;
 
 fun map_contexts f lthy =
   let val n = level lthy in
-    lthy |> (Data.map o map_index) (fn (i, {naming, operations, target}) =>
-      make_lthy (naming, operations,
+    lthy |> (Data.map o map_index) (fn (i, {naming, operations, after_close, target}) =>
+      make_lthy (naming, operations, after_close,
         target
         |> Context_Position.set_visible false
         |> f (n - i - 1)
@@ -148,7 +155,8 @@ val naming_of = #naming o get_first_lthy;
 val full_name = Name_Space.full_name o naming_of;
 
 fun map_naming f =
-  map_first_lthy (fn (naming, operations, target) => (f naming, operations, target));
+  map_first_lthy (fn (naming, operations, after_close, target) =>
+    (f naming, operations, after_close, target));
 
 val conceal = map_naming Name_Space.conceal;
 val new_group = map_naming Name_Space.new_group;
@@ -279,7 +287,7 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 
 fun init naming operations target =
   target |> Data.map
-    (fn [] => [make_lthy (naming, operations, target)]
+    (fn [] => [make_lthy (naming, operations, I, target)]
       | _ => error "Local theory already initialized")
   |> checkpoint;
 

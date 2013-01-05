@@ -93,20 +93,15 @@ fun gen_includes prep args ctxt =
 
 fun gen_context prep_bundle prep_decl raw_incls raw_elems gthy =
   let
-    val lthy = Context.cases Named_Target.theory_init Local_Theory.assert gthy;
-    fun augment ctxt =
-      let
-        val ((_, _, _, ctxt'), _) = ctxt
-          |> Context_Position.restore_visible lthy
-          |> gen_includes prep_bundle raw_incls
-          |> prep_decl ([], []) I raw_elems;
-      in ctxt' |> Context_Position.restore_visible ctxt end;
+    val (after_close, lthy) =
+      gthy |> Context.cases (pair Local_Theory.exit o Named_Target.theory_init)
+        (pair I o Local_Theory.assert);
+    val ((_, _, _, lthy'), _) = lthy
+      |> gen_includes prep_bundle raw_incls
+      |> prep_decl ([], []) I raw_elems;
   in
-    (case gthy of
-      Context.Theory _ => Local_Theory.target augment lthy |> Local_Theory.restore
-    | Context.Proof _ =>
-        augment lthy |>
-        Local_Theory.open_target (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy))
+    lthy' |> Local_Theory.open_target
+      (Local_Theory.naming_of lthy) (Local_Theory.operations_of lthy) after_close
   end;
 
 in
