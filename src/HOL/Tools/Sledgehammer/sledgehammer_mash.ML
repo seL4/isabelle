@@ -152,13 +152,13 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
       "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet --outputDir " ^
       File.shell_path (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
       " >& " ^ err_file
-      |> tap (fn _ => trace_msg ctxt (fn () =>
-             case try File.read (Path.explode err_file) of
-               NONE => "Done"
-             | SOME "" => "Done"
-             | SOME s => "Error: " ^ elide_string 1000 s))
     fun run_on () =
-      (Isabelle_System.bash command;
+      (Isabelle_System.bash command
+       |> tap (fn _ => trace_msg ctxt (fn () =>
+              case try File.read (Path.explode err_file) of
+                NONE => "Done"
+              | SOME "" => "Done"
+              | SOME s => "Error: " ^ elide_string 1000 s));
        read_suggs (fn () => try File.read_lines sugg_path |> these))
     fun clean_up () =
       if overlord then ()
