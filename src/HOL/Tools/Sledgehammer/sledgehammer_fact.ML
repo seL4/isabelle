@@ -141,10 +141,11 @@ fun fact_from_ref ctxt reserved chained css (xthm as (xref, args)) =
 
 (* Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages. *)
-fun is_package_def a =
-  let val names = Long_Name.explode a in
-    (length names > 2 andalso not (hd names = "local") andalso
-     String.isSuffix "_def" a) orelse String.isSuffix "_defs" a
+fun is_package_def s =
+  let val ss = Long_Name.explode s in
+    length ss > 2 andalso not (hd ss = "local") andalso
+    exists (fn suf => String.isSuffix suf s)
+           ["_case_def", "_rec_def", "_size_def", "_size_overloaded_def"]
   end
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
@@ -189,10 +190,10 @@ fun is_too_complex ho_atp t =
 
 (* FIXME: Ad hoc list *)
 val technical_prefixes =
-  ["ATP", "Code_Evaluation", "DSequence", "Enum", "Lazy_Sequence", "Meson",
-   "Metis", "Nitpick", "New_DSequence", "New_Random_Sequence", "Quickcheck",
-   "Quickcheck_Exhaustive", "Quickcheck_Narrowing", "Random_Sequence",
-   "Sledgehammer", "SMT"]
+  ["ATP", "Code_Evaluation", "Datatype", "DSequence", "Enum", "Lazy_Sequence",
+   "Meson", "Metis", "Nitpick", "New_DSequence", "New_Random_Sequence",
+   "Quickcheck", "Quickcheck_Exhaustive", "Quickcheck_Narrowing",
+   "Random_Sequence", "Sledgehammer", "SMT"]
   |> map (suffix Long_Name.separator)
 
 fun has_technical_prefix s =
