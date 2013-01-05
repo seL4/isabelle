@@ -35,7 +35,7 @@ fun get () =
       userCounters} = PolyML.Statistics.getLocalStats ();
     val user_counters =
       Vector.foldri
-        (fn (i, j, res) => ("user_counter" ^ Markup.print_int (i + 1), Markup.print_int j) :: res)
+        (fn (i, j, res) => ("user_counter" ^ Markup.print_int i, Markup.print_int j) :: res)
         [] userCounters;
   in
     [("full_GCs", Markup.print_int gcFullGCs),
