@@ -16,7 +16,6 @@ sig
   val translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
-  val add_axioms: (Attrib.binding * string) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} ->
     Symbol_Pos.text * Position.T -> local_theory -> local_theory
@@ -42,32 +41,13 @@ sig
   val diag_goal: Proof.context -> {context: Proof.context, facts: thm list, goal: thm}
   val display_drafts: string list -> Toplevel.transition -> Toplevel.transition
   val print_drafts: string list -> Toplevel.transition -> Toplevel.transition
-  val print_context: Toplevel.transition -> Toplevel.transition
-  val print_theory: bool -> Toplevel.transition -> Toplevel.transition
-  val print_syntax: Toplevel.transition -> Toplevel.transition
-  val print_abbrevs: Toplevel.transition -> Toplevel.transition
-  val print_facts: Toplevel.transition -> Toplevel.transition
-  val print_configs: Toplevel.transition -> Toplevel.transition
   val print_theorems: bool -> Toplevel.transition -> Toplevel.transition
-  val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: bool * (xstring * Position.T) -> Toplevel.transition -> Toplevel.transition
-  val print_registrations: xstring * Position.T -> Toplevel.transition -> Toplevel.transition
-  val print_dependencies: bool * Expression.expression -> Toplevel.transition
-    -> Toplevel.transition
-  val print_attributes: Toplevel.transition -> Toplevel.transition
-  val print_simpset: Toplevel.transition -> Toplevel.transition
-  val print_rules: Toplevel.transition -> Toplevel.transition
-  val print_trans_rules: Toplevel.transition -> Toplevel.transition
-  val print_methods: Toplevel.transition -> Toplevel.transition
-  val print_antiquotations: Toplevel.transition -> Toplevel.transition
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val locale_deps: Toplevel.transition -> Toplevel.transition
   val class_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
-  val print_binds: Toplevel.transition -> Toplevel.transition
-  val print_cases: Toplevel.transition -> Toplevel.transition
   val print_stmts: string list * (Facts.ref * Attrib.src list) list
     -> Toplevel.transition -> Toplevel.transition
   val print_thms: string list * (Facts.ref * Attrib.src list) list
@@ -187,9 +167,7 @@ fun oracle (name, pos) (body_txt, body_pos) =
   in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos ants)) end;
 
 
-(* old-style axioms *)
-
-val add_axioms = fold (snd oo Specification.axiom_cmd);
+(* old-style defs *)
 
 fun add_defs ((unchecked, overloaded), args) thy =
   thy |>
@@ -328,24 +306,7 @@ fun print_drafts names = Toplevel.imperative (fn () =>
   in Isabelle_System.isabelle_tool "print" ("-c " ^ outfile); () end);
 
 
-(* print parts of theory and proof context *)
-
-val print_context = Toplevel.keep Toplevel.print_state_context;
-
-fun print_theory verbose = Toplevel.unknown_theory o
-  Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory verbose o Toplevel.theory_of);
-
-val print_syntax = Toplevel.unknown_context o
-  Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of);
-
-val print_abbrevs = Toplevel.unknown_context o
-  Toplevel.keep (Proof_Context.print_abbrevs o Toplevel.context_of);
-
-val print_facts = Toplevel.unknown_context o
-  Toplevel.keep (Proof_Context.print_lthms o Toplevel.context_of);
-
-val print_configs = Toplevel.unknown_context o
-  Toplevel.keep (Attrib.print_configs o Toplevel.context_of);
+(* print theorems *)
 
 val print_theorems_proof =
   Toplevel.keep (Proof_Context.print_lthms o Proof.context_of o Toplevel.proof_of);
@@ -359,39 +320,8 @@ fun print_theorems_theory verbose = Toplevel.keep (fn state =>
 fun print_theorems verbose =
   Toplevel.unknown_context o print_theorems_theory verbose o print_theorems_proof;
 
-val print_locales = Toplevel.unknown_theory o
-  Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
 
-fun print_locale (verbose, name) = Toplevel.unknown_theory o
-  Toplevel.keep (fn state => Locale.print_locale (Toplevel.theory_of state) verbose name);
-
-fun print_registrations name = Toplevel.unknown_context o
-  Toplevel.keep (fn state =>
-    Locale.print_registrations (Toplevel.context_of state) name);
-
-fun print_dependencies (clean, expression) = Toplevel.unknown_context o
-  Toplevel.keep (fn state =>
-    Expression.print_dependencies (Toplevel.context_of state) clean expression);
-
-val print_attributes = Toplevel.unknown_theory o
-  Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
-
-val print_simpset = Toplevel.unknown_context o
-  Toplevel.keep (fn state =>
-    let val ctxt = Toplevel.context_of state
-    in Pretty.writeln (Simplifier.pretty_ss ctxt (simpset_of ctxt)) end);
-
-val print_rules = Toplevel.unknown_context o
-  Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of);
-
-val print_trans_rules = Toplevel.unknown_context o
-  Toplevel.keep (Calculation.print_rules o Toplevel.context_of);
-
-val print_methods = Toplevel.unknown_theory o
-  Toplevel.keep (Method.print_methods o Toplevel.theory_of);
-
-val print_antiquotations =
-  Toplevel.keep (Thy_Output.print_antiquotations o Toplevel.context_of);
+(* display dependencies *)
 
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
@@ -452,15 +382,6 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
       | SOME (xs, SOME ys) => (map get_theory xs, map get_theory ys))
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
-
-
-(* print proof context contents *)
-
-val print_binds = Toplevel.unknown_context o
-  Toplevel.keep (Proof_Context.print_binds o Toplevel.context_of);
-
-val print_cases = Toplevel.unknown_context o
-  Toplevel.keep (Proof_Context.print_cases o Toplevel.context_of);
 
 
 (* print theorems, terms, types etc. *)
