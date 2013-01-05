@@ -69,6 +69,8 @@ object Build_Dialog
     private var is_stopped = false
     private var return_code = 0
 
+    override def closeOperation { sys.exit(return_code) }
+
 
     /* text */
 
@@ -127,6 +129,7 @@ object Build_Dialog
         catch { case exn: Throwable => (Exn.message(exn) + "\n", 2) }
       Swing_Thread.now {
         progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
+        return_code = rc
         button_exit(rc)
       }
     })
