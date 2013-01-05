@@ -119,7 +119,7 @@ val negated_alias_params =
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
-   "isar_proofs", "isar_shrink", "timeout", "preplay_timeout"]
+   "learn", "isar_proofs", "isar_shrink", "timeout", "preplay_timeout"]
 
 val property_dependent_params = ["provers", "timeout"]
 
