@@ -345,6 +345,11 @@ fun is_raw_param_relevant_for_minimize (name, _) =
   member (op =) params_for_minimize name
 fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
+fun nice_string_for_raw_param (p as (key, ["false"])) =
+    (case AList.find (op =) negated_alias_params key of
+       [neg] => neg
+     | _ => string_for_raw_param p)
+  | nice_string_for_raw_param p = string_for_raw_param p
 
 fun minimize_command override_params i more_override_params prover_name
                      fact_names =
@@ -354,7 +359,7 @@ fun minimize_command override_params i more_override_params prover_name
        |> filter_out (AList.defined (op =) more_override_params o fst)) @
       more_override_params
       |> filter is_raw_param_relevant_for_minimize
-      |> map string_for_raw_param
+      |> map nice_string_for_raw_param
       |> (if prover_name = default_minimize_prover then I else cons prover_name)
       |> space_implode ", "
   in
