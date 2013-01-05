@@ -68,7 +68,7 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                   {state, goal, subgoal, subgoal_count, facts} name =
   let
     val ctxt = Proof.context_of state
-    val hard_timeout = time_mult 2.0 (timeout |> the_default one_day)
+    val hard_timeout = time_mult 3.0 (timeout |> the_default one_day)
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, hard_timeout)
     val max_facts =
