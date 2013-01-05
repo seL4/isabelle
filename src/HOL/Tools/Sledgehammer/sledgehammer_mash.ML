@@ -866,7 +866,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
         " proofs to learn." ^
         (if auto_level = 0 andalso not run_prover then
            "\n\nHint: Try " ^ sendback learn_proverN ^
-           " to learn from automatic provers."
+           " to learn from an automatic prover."
          else
            "")
       else
