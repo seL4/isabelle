@@ -256,13 +256,17 @@ fun set_defsort S =
 (* notation *)
 
 fun type_notation add mode raw_args lthy =
-  let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args in
+  let
+    val args = map (apfst (Logic.type_map (Assumption.export_term lthy (target_of lthy)))) raw_args;
+  in
     declaration {syntax = true, pervasive = false}
       (Proof_Context.generic_type_notation add mode args) lthy
   end;
 
 fun notation add mode raw_args lthy =
-  let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args in
+  let
+    val args = map (apfst (Assumption.export_term lthy (target_of lthy))) raw_args
+  in
     declaration {syntax = true, pervasive = false}
       (Proof_Context.generic_notation add mode args) lthy
   end;
