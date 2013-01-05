@@ -54,7 +54,8 @@ object Pretty_Text_Area
 
 class Pretty_Text_Area(
   view: View,
-  background: Option[Color] = None) extends JEditEmbeddedTextArea
+  background: Option[Color] = None,
+  propagate_keys: Boolean = false) extends JEditEmbeddedTextArea
 {
   text_area =>
 
@@ -167,13 +168,23 @@ class Pretty_Text_Area(
         case KeyEvent.VK_C
         if (evt.getModifiers & Toolkit.getDefaultToolkit.getMenuShortcutKeyMask) != 0 =>
           Registers.copy(text_area, '$')
+          evt.consume
         case KeyEvent.VK_ESCAPE =>
           Window.getWindows foreach {
             case c: Pretty_Tooltip => c.dispose
             case _ =>
           }
+          evt.consume
         case _ =>
       }
+      if (propagate_keys && !evt.isConsumed)
+        view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
+    }
+
+    override def keyTyped(evt: KeyEvent)
+    {
+      if (propagate_keys && !evt.isConsumed)
+        view.getInputHandler.processKeyEvent(evt, View.ACTION_BAR, false)
     }
   })
 

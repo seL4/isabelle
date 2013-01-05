@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Color, Point, BorderLayout, Window, Dimension}
-import java.awt.event.{WindowEvent, WindowAdapter}
+import java.awt.event.{WindowEvent, WindowAdapter, KeyEvent, KeyAdapter, KeyListener}
 import javax.swing.{SwingUtilities, JDialog, JPanel, JComponent}
 import javax.swing.border.LineBorder
 
@@ -55,7 +55,7 @@ class Pretty_Tooltip(
 
   /* pretty text area */
 
-  val pretty_text_area = new Pretty_Text_Area(view, Some(rendering.tooltip_color))
+  val pretty_text_area = new Pretty_Text_Area(view, Some(rendering.tooltip_color), true)
   pretty_text_area.resize(Rendering.font_family(),
     Rendering.font_size("jedit_tooltip_font_scale").round)
   pretty_text_area.update(rendering.snapshot, results, body)
