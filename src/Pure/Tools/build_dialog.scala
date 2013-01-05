@@ -67,7 +67,7 @@ object Build_Dialog
     /* GUI state */
 
     private var is_stopped = false
-    private var return_code = 0
+    private var return_code = 2
 
     override def closeOperation { sys.exit(return_code) }
 
