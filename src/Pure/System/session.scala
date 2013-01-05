@@ -473,7 +473,7 @@ class Session(val thy_load: Thy_Load)
   def cancel_execution() { session_actor ! Cancel_Execution }
 
   def update(edits: List[Document.Edit_Text])
-  { session_actor !? Session.Raw_Edits(edits) }
+  { if (!edits.isEmpty) session_actor !? Session.Raw_Edits(edits) }
 
   def dialog_result(id: Document.ID, serial: Long, result: String)
   { session_actor ! Session.Dialog_Result(id, serial, result) }
