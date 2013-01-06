@@ -453,13 +453,13 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
           in
             pair n
-            #> fold_rev (fn th => fn (j, (multis, unis)) =>
+            #> fold_rev (fn th => fn (j, accum) =>
                    (j - 1,
                     if not (member Thm.eq_thm_prop add_ths th) andalso
                        (is_likely_tautology_too_meta_or_too_technical th orelse
                         (not generous andalso
                          is_too_complex ho_atp (prop_of th))) then
-                      (multis, unis)
+                      accum
                     else
                       let
                         val new =
@@ -469,23 +469,24 @@ fun all_facts ctxt generous ho_atp reserved add_ths chained css =
                                 else
                                   [Facts.extern ctxt facts name0,
                                    Name_Space.extern ctxt full_space name0]
+                                  |> distinct (op =)
                                   |> find_first check_thms
                                   |> the_default name0
                                   |> make_name reserved multi j),
                              stature_of_thm global assms chained css name0 th),
                            th)
                       in
-                        if multi then (new :: multis, unis)
-                        else (multis, new :: unis)
+                        accum |> (if multi then apsnd else apfst) (cons new)
                       end)) ths
             #> snd
           end)
   in
-    (* The single-name theorems go after the multiple-name ones, so that single
-       names are preferred when both are available. *)
-    ([], []) |> add_facts false fold local_facts (unnamed_locals @ named_locals)
-             |> add_facts true Facts.fold_static global_facts global_facts
-             |> op @
+    (* The single-theorem names go before the multiple-theorem ones (e.g.,
+       "xxx" vs. "xxx(3)"), so that single names are preferred when both are
+       available. *)
+    `I [] |> add_facts false fold local_facts (unnamed_locals @ named_locals)
+          |> add_facts true Facts.fold_static global_facts global_facts
+          |> op @
   end
 
 fun nearly_all_facts ctxt ho_atp {add, del, only} reserved css chained hyp_ts
