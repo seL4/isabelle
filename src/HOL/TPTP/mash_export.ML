@@ -81,14 +81,13 @@ fun generate_features ctxt prover thys include_thys file_name =
 
 fun isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
                                    isar_deps_opt =
-  (case params_opt of
-     SOME (params as {provers = prover :: _, ...}) =>
-     prover_dependencies_of ctxt params prover 0 facts name_tabs th |> snd
-   | NONE =>
-     case isar_deps_opt of
-       SOME deps => deps
-     | NONE => isar_dependencies_of name_tabs th)
-  |> these
+  case params_opt of
+    SOME (params as {provers = prover :: _, ...}) =>
+    prover_dependencies_of ctxt params prover 0 facts name_tabs th |> snd
+  | NONE =>
+    case isar_deps_opt of
+      SOME deps => deps
+    | NONE => isar_dependencies_of name_tabs th
 
 fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
                                          file_name =
@@ -143,9 +142,11 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
             escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
             encode_features (sort_wrt fst feats)
           val query =
-            if is_bad_query ctxt ho_atp th (these isar_deps) then ""
+            if is_bad_query ctxt ho_atp th isar_deps then ""
             else "? " ^ core ^ "\n"
-          val update = "! " ^ core ^ "; " ^ escape_metas deps ^ "\n"
+          val update =
+            "! " ^ core ^ "; " ^
+            escape_metas (these (trim_dependencies th deps)) ^ "\n"
         in query ^ update end
       else
         ""
@@ -177,7 +178,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isar_dependencies_of name_tabs th
       in
-        if is_bad_query ctxt ho_atp th (these isar_deps) then
+        if is_bad_query ctxt ho_atp th isar_deps then
           ""
         else
           let

@@ -79,7 +79,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
             | NONE => error ("No fact called \"" ^ name ^ "\".")
           val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-          val isar_deps = isar_dependencies_of name_tabs th |> these
+          val isar_deps = isar_dependencies_of name_tabs th
           val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
           val mepo_facts =
             mepo_suggested_facts ctxt params prover slack_max_facts NONE hyp_ts
