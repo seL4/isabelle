@@ -614,7 +614,10 @@ val max_dependencies = 20
 val prover_dependency_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
-val typedef_deps = [@{thm CollectI} |> nickname_of_thm]
+val typedef_dep = nickname_of_thm @{thm CollectI}
+(* Mysterious parts of the class machinery create lots of proofs that refer
+   exclusively to "someI_e" (and to some internal constructions). *)
+val class_some_dep = nickname_of_thm @{thm someI_ex}
 
 (* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
 val typedef_ths =
@@ -636,17 +639,18 @@ fun is_size_def [dep] th =
   | is_size_def _ _ = false
 
 fun trim_dependencies th deps =
-  if length deps > max_dependencies then
-    NONE
-  else
-    SOME (if deps = typedef_deps orelse
-             exists (member (op =) typedef_ths) deps orelse
-             is_size_def deps th then
-            []
-          else
-            deps)
+  if length deps > max_dependencies then NONE else SOME deps
 
-val isar_dependencies_of = thms_in_proof o SOME
+fun isar_dependencies_of name_tabs th =
+  let
+    val deps = thms_in_proof (SOME name_tabs) th
+  in
+    if deps = [typedef_dep] orelse deps = [class_some_dep] orelse
+       exists (member (op =) typedef_ths) deps orelse is_size_def deps th then
+      []
+    else
+      deps
+  end
 
 fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
                            auto_level facts name_tabs th =
