@@ -301,7 +301,10 @@ use "ProofGeneral/pgip.ML";
 
 use "ProofGeneral/pgip_isabelle.ML";
 
-use "ProofGeneral/preferences.ML";
+(use
+  |> Unsynchronized.setmp Proofterm.proofs 0
+  |> Unsynchronized.setmp Multithreading.max_threads 0)
+  "ProofGeneral/preferences.ML";
 
 use "ProofGeneral/pgip_parser.ML";
 
