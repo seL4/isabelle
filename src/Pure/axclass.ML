@@ -113,7 +113,7 @@ structure Data = Theory_Data_PP
           fold_rev (fn p => if member (op =) params1 p then I else add_param ctxt p)
             params2 params1;
 
-      (*transitive closure of classrels and arity completion is done in Theory.at_begin hook*)
+      (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
       val proven_classrels' = Symreltab.join (K #1) (proven_classrels1, proven_classrels2);
       val proven_arities' =
         Symtab.join (K (Library.merge (eq_fst op =))) (proven_arities1, proven_arities2);
