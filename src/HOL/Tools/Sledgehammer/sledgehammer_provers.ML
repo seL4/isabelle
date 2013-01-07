@@ -968,23 +968,25 @@ val smt_slice_time_frac =
 val smt_slice_min_secs =
   Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 5)
 
-fun smt_filter_loop ctxt name
+fun smt_filter_loop name
                     ({debug, verbose, overlord, max_mono_iters,
                       max_new_mono_instances, timeout, slice, ...} : params)
                     state goal i =
   let
+    fun repair_context ctxt =
+      ctxt |> select_smt_solver name
+           |> Config.put SMT_Config.verbose debug
+           |> (if overlord then
+                 Config.put SMT_Config.debug_files
+                            (overlord_file_location_for_prover name
+                             |> (fn (path, name) => path ^ "/" ^ name))
+               else
+                 I)
+           |> Config.put SMT_Config.infer_triggers
+                         (Config.get ctxt smt_triggers)
+    val ctxt = Proof.context_of state |> repair_context
+    val state = state |> Proof.map_context (K ctxt)
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
-    val repair_context =
-      select_smt_solver name
-      #> Config.put SMT_Config.verbose debug
-      #> (if overlord then
-            Config.put SMT_Config.debug_files
-                       (overlord_file_location_for_prover name
-                        |> (fn (path, name) => path ^ "/" ^ name))
-          else
-            I)
-      #> Config.put SMT_Config.infer_triggers (Config.get ctxt smt_triggers)
-    val state = state |> Proof.map_context repair_context
     fun do_slice timeout slice outcome0 time_so_far facts =
       let
         val timer = Timer.startRealTimer ()
@@ -1080,7 +1082,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact ctxt num_facts)
     val {outcome, used_facts = used_pairs, run_time} =
-      smt_filter_loop ctxt name params state goal subgoal facts
+      smt_filter_loop name params state goal subgoal facts
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
     val (preplay, message, message_tail) =
