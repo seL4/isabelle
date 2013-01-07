@@ -1401,12 +1401,16 @@ fun fulfill_norm_proof thy ps body0 =
 
 fun fulfill_proof_future _ [] postproc body = Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
-      (singleton o Future.forks)
-        {name = "Proofterm.fulfill_proof_future", group = NONE,
-          deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
-          interrupts = true}
-        (fn () =>
-          postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
+      if Context.is_draft thy then
+        Future.value
+          (postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)))
+      else
+        (singleton o Future.forks)
+          {name = "Proofterm.fulfill_proof_future", group = NONE,
+            deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0,
+            interrupts = true}
+          (fn () =>
+            postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
 
 
 (***** abstraction over sort constraints *****)
@@ -1458,6 +1462,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
     val body0 =
       if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
+      else if Context.is_draft thy then Future.value (make_body0 (full_proof0 ()))
       else
         (singleton o Future.cond_forks)
           {name = "Proofterm.prepare_thm_proof", group = NONE,
