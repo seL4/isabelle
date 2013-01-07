@@ -169,8 +169,7 @@ object Thy_Syntax
 
   /* edit individual command source */
 
-  @tailrec private def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command])
-      : Linear_Set[Command] =
+  @tailrec def edit_text(eds: List[Text.Edit], commands: Linear_Set[Command]): Linear_Set[Command] =
   {
     eds match {
       case e :: es =>
@@ -293,7 +292,7 @@ object Thy_Syntax
 
   /* main */
 
-  private def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
+  def diff_commands(old_cmds: Linear_Set[Command], new_cmds: Linear_Set[Command])
     : List[(Option[Command], Option[Command])] =
   {
     val removed = old_cmds.iterator.filter(!new_cmds.contains(_)).toList
