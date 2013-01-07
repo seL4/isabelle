@@ -2127,10 +2127,10 @@ fun string_of_status General = ""
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun line_for_fact ctxt prefix encode freshen pos mono type_enc rank
+fun line_for_fact ctxt prefix encode alt freshen pos mono type_enc rank
         (j, {name, stature = (_, status), role, iformula, atomic_types}) =
   Formula ((prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
-            encode name, name),
+            encode name, alt name),
            role,
            iformula
            |> formula_from_iformula ctxt mono type_enc
@@ -2728,14 +2728,14 @@ fun prepare_atp_problem ctxt format prem_role type_enc mode lam_trans
       |> lines_for_sym_decl_table ctxt mono type_enc mono_Ts
     val num_facts = length facts
     val fact_lines =
-      map (line_for_fact ctxt fact_prefix ascii_of (not exporter)
+      map (line_for_fact ctxt fact_prefix ascii_of I (not exporter)
                (not exporter) mono type_enc (rank_of_fact_num num_facts))
           (0 upto num_facts - 1 ~~ facts)
     val subclass_lines = maps (lines_for_subclass_pair type_enc) subclass_pairs
     val tcon_lines = map (line_for_tcon_clause type_enc) tcon_clauses
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (line_for_fact ctxt helper_prefix I false true mono type_enc
+      |> map (line_for_fact ctxt helper_prefix I (K "") false true mono type_enc
                             (K default_rank))
     val free_type_lines = lines_for_free_types type_enc (facts @ conjs)
     val conj_lines = map (line_for_conjecture ctxt mono type_enc) conjs
