@@ -137,10 +137,12 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
                (100.0 * Real.fromInt ok / Real.fromInt n) ^ "%)"
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
-      [prover, string_of_int (the max_facts) ^ " facts",
-       "slice" |> not slice ? prefix "dont_", the_default "smart" type_enc,
-       the_default "smart" lam_trans,
-       ATP_Util.string_from_time (timeout |> the_default one_year),
+      ["prover = " ^ prover,
+       "max_facts = " ^ string_of_int (the max_facts),
+       "slice" |> not slice ? prefix "dont_",
+       "type_enc = " ^ the_default "smart" type_enc,
+       "lam_trans = " ^ the_default "smart" lam_trans,
+       "timeout = " ^ ATP_Util.string_from_time (the_default one_year timeout),
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
     val _ = print " * * *";
     val _ = print ("Options: " ^ commas options);
