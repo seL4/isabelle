@@ -107,9 +107,8 @@ structure Data = Theory_Data_PP
             params2 params1;
 
       (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
-      val proven_classrels' = Symreltab.join (K #1) (proven_classrels1, proven_classrels2);
-      val proven_arities' =
-        Symtab.join (K (Library.merge (eq_fst op =))) (proven_arities1, proven_arities2);
+      val proven_classrels' = Symreltab.merge (K true) (proven_classrels1, proven_classrels2);
+      val proven_arities' = Symtab.merge_list (eq_fst op =) (proven_arities1, proven_arities2);
 
       val inst_params' =
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),

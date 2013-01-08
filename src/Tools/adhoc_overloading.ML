@@ -53,7 +53,7 @@ structure Overload_Data = Theory_Data
   fun merge
     ({internalize = int1, externalize = ext1},
       {internalize = int2, externalize = ext2}) : T =
-    {internalize = Symtab.join (K (Library.merge (op =))) (int1, int2),
+    {internalize = Symtab.merge_list (op =) (int1, int2),
       externalize = Symtab.join merge_ext (ext1, ext2)};
 );
 

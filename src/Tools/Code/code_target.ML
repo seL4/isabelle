@@ -110,7 +110,7 @@ fun map_symbol_syntax_data f (Symbol_Syntax_Data { class, instance, tyco, const 
 fun merge_symbol_syntax_data
   (Symbol_Syntax_Data { class = class1, instance = instance1, tyco = tyco1, const = const1 },
     Symbol_Syntax_Data { class = class2, instance = instance2, tyco = tyco2, const = const2 }) =
-  make_symbol_syntax_data (
+  make_symbol_syntax_data ( (* FIXME proper merge order!? prefer fst!? *)
     (Symtab.join (K snd) (class1, class2),
        Symreltab.join (K snd) (instance1, instance2)),
     (Symtab.join (K snd) (tyco1, tyco2),
@@ -158,7 +158,9 @@ fun merge_target strict target (Target { serial = serial1, description = descrip
       module_alias = module_alias2, symbol_syntax = symbol_syntax2 }) =
   if serial1 = serial2 orelse not strict then
     make_target ((serial1, description),
-      ((merge (op =) (reserved1, reserved2), Symtab.join (K snd) (includes1, includes2)),
+      ((merge (op =) (reserved1, reserved2),
+         (* FIXME proper merge order!? prefer fst!? *)
+         Symtab.join (K snd) (includes1, includes2)),
         (Symtab.join (K snd) (module_alias1, module_alias2),
           merge_symbol_syntax_data (symbol_syntax1, symbol_syntax2))
     ))
