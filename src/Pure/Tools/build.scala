@@ -509,13 +509,26 @@ object Build
   }
 
 
-  /* log files and corresponding heaps */
+  /* log files */
 
   private val LOG = Path.explode("log")
   private def log(name: String): Path = LOG + Path.basic(name)
   private def log_gz(name: String): Path = log(name).ext("gz")
 
   private val SESSION_PARENT_PATH = "\fSession.parent_path = "
+
+  sealed case class Log_Info(stats: List[Properties.T], timing: Properties.T)
+
+  def parse_log(text: String): Log_Info =
+  {
+    val lines = split_lines(text)
+    val stats = Properties.parse_lines("\fML_statistics = ", lines)
+    val timing = Properties.find_parse_line("\fTiming = ", lines) getOrElse Nil
+    Log_Info(stats, timing)
+  }
+
+
+  /* sources and heaps */
 
   private def sources_stamp(digests: List[SHA1.Digest]): String =
     digests.map(_.toString).sorted.mkString("sources: ", " ", "")

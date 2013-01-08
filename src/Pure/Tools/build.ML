@@ -21,8 +21,7 @@ fun ML_statistics (function :: stats) "" =
 
 fun protocol_message props output =
   (case ML_statistics props output of
-    SOME stats =>
-      writeln ("\f" ^ #2 Markup.ML_statistics ^ " = " ^ ML_Syntax.print_properties stats)
+    SOME stats => writeln ("\fML_statistics = " ^ ML_Syntax.print_properties stats)
   | NONE => raise Fail "Undefined Output.protocol_message");
 
 

@@ -21,6 +21,7 @@ sig
   val result: start -> timing
   val timing: ('a -> 'b) -> 'a -> timing * 'b
   val is_relevant: timing -> bool
+  val properties: timing -> Properties.T
   val message: timing -> string
 end
 
@@ -64,6 +65,17 @@ fun timing f x =
     val start = start ();
     val y = f x;
   in (result start, y) end;
+
+
+(* properties *)
+
+fun property name time =
+  [(name, Time.toString time)] handle Time.Time => [];
+
+fun properties {elapsed, cpu, gc} =
+  property "time_elapsed" elapsed @
+  property "time_cpu" cpu @
+  property "time_GC" gc;
 
 
 (* timing messages *)

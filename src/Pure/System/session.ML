@@ -86,19 +86,25 @@ fun finish () =
 
 (* use_dir *)
 
-fun with_timing _ false f x = f x
-  | with_timing item true f x =
-      let
-        val start = Timing.start ();
-        val y = f x;
-        val timing = Timing.result start;
-        val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
-          |> Real.fmt (StringCvt.FIX (SOME 2));
-        val _ =
-          Output.physical_stderr ("Timing " ^ item ^ " (" ^
-            string_of_int (Multithreading.max_threads_value ()) ^ " threads, " ^
-            Timing.message timing ^ ", factor " ^ factor ^ ")\n");
-      in y end;
+fun with_timing name verbose f x =
+  let
+    val start = Timing.start ();
+    val y = f x;
+    val timing = Timing.result start;
+
+    val threads = string_of_int (Multithreading.max_threads_value ());
+    val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
+      |> Real.fmt (StringCvt.FIX (SOME 2));
+
+    val _ =
+      writeln ("\fTiming = " ^ ML_Syntax.print_properties
+        ([("threads", threads)] @ Timing.properties timing @ [("factor", factor)]));
+    val _ =
+      if verbose then
+        Output.physical_stderr ("Timing " ^ name ^ " (" ^
+          threads ^ " threads, " ^ Timing.message timing ^ ", factor " ^ factor ^ ")\n")
+      else ();
+  in y end;
 
 fun get_rpath rpath =
   (if rpath = "" then () else
