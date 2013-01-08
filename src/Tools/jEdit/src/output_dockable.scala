@@ -93,7 +93,8 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         case _: Session.Global_Options =>
           Swing_Thread.later { handle_resize() }
         case changed: Session.Commands_Changed =>
-          Swing_Thread.later { handle_update(do_update, Some(changed.commands)) }
+          val restriction = if (changed.assignment) None else Some(changed.commands)
+          Swing_Thread.later { handle_update(do_update, restriction) }
         case Session.Caret_Focus =>
           Swing_Thread.later { handle_update(do_update, None) }
         case bad => System.err.println("Output_Dockable: ignoring bad message " + bad)
