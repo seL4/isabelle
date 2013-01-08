@@ -443,7 +443,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
 
   in
     ctxt'' |>
-    Proof.theorem NONE (fn thss => fn ctxt =>
+    Proof.theorem NONE (fn thss => fn ctxt =>  (* FIXME ctxt/ctxt' should be called lthy/lthy' *)
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
@@ -454,28 +454,27 @@ fun prove_strong_ind s alt_name avoids ctxt =
         val thsss = Inductive.partition_rules' raw_induct (intrs ~~ thss');
         val strong_raw_induct =
           mk_ind_proof ctxt thss' |> Inductive.rulify;
+        val strong_induct_atts =
+          map (Attrib.internal o K)
+            [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of strong_raw_induct))];
         val strong_induct =
-          if length names > 1 then
-            (strong_raw_induct, [ind_case_names, Rule_Cases.consumes 0])
-          else (strong_raw_induct RSN (2, rev_mp),
-            [ind_case_names, Rule_Cases.consumes 1]);
+          if length names > 1 then strong_raw_induct
+          else strong_raw_induct RSN (2, rev_mp);
         val (induct_name, inducts_name) =
           case alt_name of
             NONE => (rec_qualified (Binding.name "strong_induct"),
                      rec_qualified (Binding.name "strong_inducts"))
           | SOME s => (Binding.name s, Binding.name (s ^ "s"));
         val ((_, [strong_induct']), ctxt') = ctxt |> Local_Theory.note
-          ((induct_name,
-            map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct]);
+          ((induct_name, strong_induct_atts), [strong_induct]);
         val strong_inducts =
           Project_Rule.projects ctxt' (1 upto length names) strong_induct'
       in
         ctxt' |>
-        Local_Theory.note
-          ((inducts_name,
+        Local_Theory.notes [((inducts_name, []),
+          strong_inducts |> map (fn th => ([th],
             [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (Rule_Cases.consumes 1))]),
-           strong_inducts) |> snd
+             Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th)))])))] |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)
   end;

@@ -540,7 +540,7 @@ fun prove_strong_ind s avoids ctxt =
 
   in
     ctxt'' |>
-    Proof.theorem NONE (fn thss => fn ctxt =>
+    Proof.theorem NONE (fn thss => fn ctxt => (* FIXME ctxt/ctxt' should be called lthy/lthy' *)
       let
         val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
@@ -553,27 +553,27 @@ fun prove_strong_ind s avoids ctxt =
           mk_ind_proof ctxt thss' |> Inductive.rulify;
         val strong_cases = map (mk_cases_proof ##> Inductive.rulify)
           (thsss ~~ elims ~~ cases_prems ~~ cases_prems');
+        val strong_induct_atts =
+          map (Attrib.internal o K)
+            [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of strong_raw_induct))];
         val strong_induct =
-          if length names > 1 then
-            (strong_raw_induct, [ind_case_names, Rule_Cases.consumes 0])
-          else (strong_raw_induct RSN (2, rev_mp),
-            [ind_case_names, Rule_Cases.consumes 1]);
+          if length names > 1 then strong_raw_induct
+          else strong_raw_induct RSN (2, rev_mp);
         val ((_, [strong_induct']), ctxt') = ctxt |> Local_Theory.note
-          ((rec_qualified (Binding.name "strong_induct"),
-            map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct]);
+          ((rec_qualified (Binding.name "strong_induct"), strong_induct_atts), [strong_induct]);
         val strong_inducts =
           Project_Rule.projects ctxt (1 upto length names) strong_induct';
       in
         ctxt' |>
-        Local_Theory.note
-          ((rec_qualified (Binding.name "strong_inducts"),
-            [Attrib.internal (K ind_case_names),
-             Attrib.internal (K (Rule_Cases.consumes 1))]),
-           strong_inducts) |> snd |>
+        Local_Theory.notes
+          [((rec_qualified (Binding.name "strong_inducts"), []),
+            strong_inducts |> map (fn th => ([th],
+              [Attrib.internal (K ind_case_names),
+               Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th)))])))] |> snd |>
         Local_Theory.notes (map (fn ((name, elim), (_, cases)) =>
             ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
               [Attrib.internal (K (Rule_Cases.case_names (map snd cases))),
-               Attrib.internal (K (Rule_Cases.consumes 1))]), [([elim], [])]))
+               Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of elim)))]), [([elim], [])]))
           (strong_cases ~~ induct_cases')) |> snd
       end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)
