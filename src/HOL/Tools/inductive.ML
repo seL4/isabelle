@@ -860,12 +860,17 @@ fun declare_rules rec_binding coind no_ind cnames
     val ind_case_names = Rule_Cases.case_names intr_names;
     val induct =
       if coind then
-        (raw_induct, [Rule_Cases.case_names [rec_name],
+        (raw_induct,
+         [Rule_Cases.case_names [rec_name],
           Rule_Cases.case_conclusion (rec_name, intr_names),
-          Rule_Cases.consumes 1, Induct.coinduct_pred (hd cnames)])
+          Rule_Cases.consumes (1 - Thm.nprems_of raw_induct),
+          Induct.coinduct_pred (hd cnames)])
       else if no_ind orelse length cnames > 1 then
-        (raw_induct, [ind_case_names, Rule_Cases.consumes 0])
-      else (raw_induct RSN (2, rev_mp), [ind_case_names, Rule_Cases.consumes 1]);
+        (raw_induct,
+          [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))])
+      else
+        (raw_induct RSN (2, rev_mp),
+          [ind_case_names, Rule_Cases.consumes (~ (Thm.nprems_of raw_induct))]);
 
     val (intrs', lthy1) =
       lthy |>
@@ -883,7 +888,7 @@ fun declare_rules rec_binding coind no_ind cnames
         Local_Theory.note
           ((Binding.qualify true (Long_Name.base_name name) (Binding.name "cases"),
             [Attrib.internal (K (Rule_Cases.case_names cases)),
-             Attrib.internal (K (Rule_Cases.consumes 1)),
+             Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of elim))),
              Attrib.internal (K (Rule_Cases.constraints k)),
              Attrib.internal (K (Induct.cases_pred name)),
              Attrib.internal (K (Context_Rules.elim_query NONE))]), [elim]) #>
@@ -906,7 +911,7 @@ fun declare_rules rec_binding coind no_ind cnames
           Local_Theory.notes [((rec_qualified true (Binding.name "inducts"), []),
             inducts |> map (fn (name, th) => ([th],
               [Attrib.internal (K ind_case_names),
-               Attrib.internal (K (Rule_Cases.consumes 1)),
+               Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
                Attrib.internal (K (Induct.induct_pred name))])))] |>> snd o hd
         end;
   in (intrs', elims', eqs', induct', inducts, lthy4) end;

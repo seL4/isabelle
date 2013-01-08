@@ -107,9 +107,8 @@ structure Data = Theory_Data_PP
             params2 params1;
 
       (*see Theory.at_begin hook for transitive closure of classrels and arity completion*)
-      val proven_classrels' = Symreltab.join (K #1) (proven_classrels1, proven_classrels2);
-      val proven_arities' =
-        Symtab.join (K (Library.merge (eq_fst op =))) (proven_arities1, proven_arities2);
+      val proven_classrels' = Symreltab.merge (K true) (proven_classrels1, proven_classrels2);
+      val proven_arities' = Symtab.merge_list (eq_fst op =) (proven_arities1, proven_arities2);
 
       val inst_params' =
         (Symtab.join (K (Symtab.merge (K true))) (#1 inst_params1, #1 inst_params2),
@@ -188,11 +187,7 @@ fun complete_classrels thy =
   let
     fun complete (c, (_, (all_preds, all_succs))) (finished1, thy1) =
       let
-        val proven = is_classrel thy1;
-        val preds = Graph.Keys.fold (fn c1 => proven (c1, c) ? cons c1) all_preds [];
-        val succs = Graph.Keys.fold (fn c2 => proven (c, c2) ? cons c2) all_succs [];
-
-        fun complete c1 c2 (finished2, thy2) =
+        fun compl c1 c2 (finished2, thy2) =
           if is_classrel thy2 (c1, c2) then (finished2, thy2)
           else
             (false,
@@ -201,12 +196,17 @@ fun complete_classrels thy =
                 (the_classrel thy2 (c1, c) RS the_classrel thy2 (c, c2))
                 |> Drule.instantiate' [SOME (ctyp_of thy2 (TVar ((Name.aT, 0), [])))] []
                 |> Thm.close_derivation));
-      in fold_product complete preds succs (finished1, thy1) end;
 
-    val (finished', thy') =
-      Graph.fold complete (Sorts.classes_of (Sign.classes_of thy)) (true, thy);
+        val proven = is_classrel thy1;
+        val preds = Graph.Keys.fold (fn c1 => proven (c1, c) ? cons c1) all_preds [];
+        val succs = Graph.Keys.fold (fn c2 => proven (c, c2) ? cons c2) all_succs [];
+      in
+        fold_product compl preds succs (finished1, thy1)
+      end;
   in
-    if finished' then NONE else SOME thy'
+    (case Graph.fold complete (Sorts.classes_of (Sign.classes_of thy)) (true, thy) of
+      (true, _) => NONE
+    | (_, thy') => SOME thy')
   end;
 
 
@@ -257,7 +257,8 @@ fun complete_arities thy =
   let
     val arities = proven_arities_of thy;
     val (finished, arities') =
-      Symtab.fold (fn (t, ars) => fold (insert_arity_completions thy t) ars) arities (true, arities);
+      Symtab.fold (fn (t, ars) => fold (insert_arity_completions thy t) ars)
+        arities (true, arities);
   in
     if finished then NONE
     else SOME (map_proven_arities (K arities') thy)
@@ -388,8 +389,9 @@ fun add_classrel raw_th thy =
     fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
     val rel = Logic.dest_classrel prop handle TERM _ => err ();
     val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
-    val (th', thy') = Global_Theory.store_thm
-      (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th) thy;
+    val (th', thy') =
+      Global_Theory.store_thm
+        (Binding.name (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th) thy;
     val th'' = th'
       |> Thm.unconstrainT
       |> Drule.instantiate' [SOME (ctyp_of thy' (TVar ((Name.aT, 0), [])))] [];
@@ -408,8 +410,9 @@ fun add_arity raw_th thy =
     fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
     val arity as (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
 
-    val (th', thy') = Global_Theory.store_thm
-      (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy;
+    val (th', thy') =
+      Global_Theory.store_thm
+        (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy;
 
     val args = Name.invent_names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);

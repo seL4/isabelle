@@ -1197,7 +1197,7 @@ text {*
     ;
     @@{attribute params} ((@{syntax name} * ) + @'and')
     ;
-    @@{attribute consumes} @{syntax nat}?
+    @@{attribute consumes} @{syntax int}?
   "}
 
   \begin{description}
@@ -1245,7 +1245,15 @@ text {*
   \secref{sec:hol-inductive}).  Rules without any @{attribute
   consumes} declaration given are treated as if @{attribute
   consumes}~@{text 0} had been specified.
-  
+
+  A negative @{text n} is interpreted relatively to the total number
+  if premises of the rule in the target context.  Thus its absolute
+  value specifies the remaining number of premises, after subtracting
+  the prefix of major premises as indicated above. This form of
+  declaration has the technical advantage of being stable under more
+  morphisms, notably those that export the result from a nested
+  @{command_ref context} with additional assumptions.
+
   Note that explicit @{attribute consumes} declarations are only
   rarely needed; this is already taken care of automatically by the
   higher-level @{attribute cases}, @{attribute induct}, and

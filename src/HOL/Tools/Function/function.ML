@@ -105,14 +105,15 @@ fun prepare_function do_print prep default_constraint fixspec eqns config lthy =
 
         val addsmps = add_simps fnames post sort_cont
 
-        val (((psimps', pinducts'), (_, [termination'])), lthy) =
+        val (((psimps', [pinducts']), (_, [termination'])), lthy) =
           lthy
           |> addsmps (conceal_partial o Binding.qualify false "partial")
                "psimps" conceal_partial psimp_attribs psimps
-          ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
+          ||>> Local_Theory.notes [((conceal_partial (qualify "pinduct"), []),
+                simple_pinducts |> map (fn th => ([th],
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
-                  Attrib.internal (K (Rule_Cases.consumes 1)),
-                  Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
+                  Attrib.internal (K (Rule_Cases.consumes (1 - Thm.nprems_of th))),
+                  Attrib.internal (K (Induct.induct_pred ""))])))]
           ||>> Local_Theory.note ((Binding.conceal (qualify "termination"), []), [termination])
           ||> (snd o Local_Theory.note ((qualify "cases",
                  [Attrib.internal (K (Rule_Cases.case_names cnames))]), [cases]))

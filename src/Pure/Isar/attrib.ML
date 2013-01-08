@@ -391,7 +391,7 @@ val _ = Context.>> (Context.map_theory
     "rename bound variables in abstractions" #>
   setup (Binding.name "unfolded") unfolded "unfolded definitions" #>
   setup (Binding.name "folded") folded "folded definitions" #>
-  setup (Binding.name "consumes") (Scan.lift (Scan.optional Parse.nat 1) >> Rule_Cases.consumes)
+  setup (Binding.name "consumes") (Scan.lift (Scan.optional Parse.int 1) >> Rule_Cases.consumes)
     "number of consumed facts" #>
   setup (Binding.name "constraints") (Scan.lift Parse.nat >> Rule_Cases.constraints)
     "number of equality constraints" #>

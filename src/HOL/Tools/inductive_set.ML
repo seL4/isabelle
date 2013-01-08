@@ -156,7 +156,7 @@ fun eta_contract_thm p =
 (* where s and p are parameters                            *)
 (***********************************************************)
 
-structure PredSetConvData = Generic_Data
+structure Data = Generic_Data
 (
   type T =
     {(* rules for converting predicates to sets *)
@@ -269,13 +269,15 @@ fun mk_to_pred_eq p fs optfs' T thm =
 
 (**** declare rules for converting predicates to sets ****)
 
-fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
-  case prop_of thm of
+exception Malformed of string;
+
+fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities}) =
+  (case prop_of thm of
     Const (@{const_name Trueprop}, _) $ (Const (@{const_name HOL.eq}, Type (_, [T, _])) $ lhs $ rhs) =>
       (case body_type T of
          @{typ bool} =>
            let
-             val thy = Context.theory_of ctxt;
+             val thy = Context.theory_of context;
              fun factors_of t fs = case strip_abs_body t of
                  Const (@{const_name Set.member}, _) $ u $ S =>
                    if is_Free S orelse is_Var S then
@@ -289,7 +291,7 @@ fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities
                  Abs _ => (case strip_abs_body rhs of
                      Const (@{const_name Set.member}, _) $ u $ S =>
                        (strip_comb S, SOME (HOLogic.flat_tuple_paths u))
-                   | _ => error "member symbol on right-hand side expected")
+                   | _ => raise Malformed "member symbol on right-hand side expected")
                | _ => (strip_comb rhs, NONE))
            in
              case (name_type_of h, name_type_of h') of
@@ -308,13 +310,16 @@ fun add ctxt thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arities
                       (T', (map (AList.lookup op = fs) ts', fs'))) set_arities,
                     pred_arities = Symtab.insert_list op = (s,
                       (T, (pfs, fs'))) pred_arities}
-             | _ => error "set / predicate constant expected"
+             | _ => raise Malformed "set / predicate constant expected"
            end
-       | _ => error "equation between predicates expected")
-  | _ => error "equation expected";
+       | _ => raise Malformed "equation between predicates expected")
+  | _ => raise Malformed "equation expected")
+  handle Malformed msg =>
+    (warning ("Ignoring malformed set / predicate conversion rule: " ^ msg ^
+      "\n" ^ Display.string_of_thm (Context.proof_of context) thm); tab);
 
 val pred_set_conv_att = Thm.declaration_attribute
-  (fn thm => fn ctxt => PredSetConvData.map (add ctxt thm) ctxt);
+  (fn thm => fn ctxt => Data.map (add ctxt thm) ctxt);
 
 
 (**** convert theorem in set notation to predicate notation ****)
@@ -340,7 +345,7 @@ fun to_pred thms ctxt thm =
   let
     val thy = Context.theory_of ctxt;
     val {to_pred_simps, set_arities, pred_arities, ...} =
-      fold (add ctxt) thms (PredSetConvData.get ctxt);
+      fold (add ctxt) thms (Data.get ctxt);
     val fs = filter (is_Var o fst)
       (infer_arities thy set_arities (NONE, prop_of thm) []);
     (* instantiate each set parameter with {(x, y). p x y} *)
@@ -363,7 +368,7 @@ fun to_set thms ctxt thm =
   let
     val thy = Context.theory_of ctxt;
     val {to_set_simps, pred_arities, ...} =
-      fold (add ctxt) thms (PredSetConvData.get ctxt);
+      fold (add ctxt) thms (Data.get ctxt);
     val fs = filter (is_Var o fst)
       (infer_arities thy pred_arities (NONE, prop_of thm) []);
     (* instantiate each predicate parameter with %x y. (x, y) : s *)
@@ -397,7 +402,7 @@ val to_set_att = Thm.rule_attribute o to_set;
 fun codegen_preproc thy =
   let
     val {to_pred_simps, set_arities, pred_arities, ...} =
-      PredSetConvData.get (Context.Theory thy);
+      Data.get (Context.Theory thy);
     fun preproc thm =
       if exists_Const (fn (s, _) => case Symtab.lookup set_arities s of
           NONE => false
@@ -422,7 +427,7 @@ fun add_ind_set_def
   let
     val thy = Proof_Context.theory_of lthy;
     val {set_arities, pred_arities, to_pred_simps, ...} =
-      PredSetConvData.get (Context.Proof lthy);
+      Data.get (Context.Proof lthy);
     fun infer (Abs (_, _, t)) = infer t
       | infer (Const (@{const_name Set.member}, _) $ t $ u) =
           infer_arities thy set_arities (SOME (HOLogic.flat_tuple_paths t), u)

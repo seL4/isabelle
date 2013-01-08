@@ -318,7 +318,7 @@ fun merge
     Consts {decls = decls2, constraints = constraints2, rev_abbrevs = rev_abbrevs2}) =
   let
     val decls' = Name_Space.merge_tables (decls1, decls2);
-    val constraints' = Symtab.join (K fst) (constraints1, constraints2);
+    val constraints' = Symtab.merge (K true) (constraints1, constraints2);
     val rev_abbrevs' = Symtab.join (K Item_Net.merge) (rev_abbrevs1, rev_abbrevs2);
   in make_consts (decls', constraints', rev_abbrevs') end;
 
