@@ -44,6 +44,9 @@ Checklist for official releases
     x86_64-linux without 32bit C/C++ libraries
     Mac OS X Leopard
 
+- check "Handler catches all exceptions", using
+  PolyML.Compiler.reportExhaustiveHandlers := true;
+
 
 Packaging
 =========
