@@ -7,6 +7,7 @@ buffer.maxLineLen=100
 buffer.noTabs=true
 buffer.sidekick.keystroke-parse=false
 buffer.tabSize=2
+console.dock-position=floating
 console.encoding=UTF-8
 console.font=IsabelleText
 console.fontsize=14
