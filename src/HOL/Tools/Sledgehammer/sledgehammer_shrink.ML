@@ -105,11 +105,12 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
       (* candidates for elimination, use table as priority queue (greedy
          algorithm) *)
-      (* TODO: consider adding "Obtain" cases *)
       fun add_if_cand proof_vect (i, [j]) =
           (case (the (get i proof_vect), the (get j proof_vect)) of
             (Prove (_, _, t, By_Metis _), Prove (_, _, _, By_Metis _)) =>
-            cons (Term.size_of_term t, i)
+              cons (Term.size_of_term t, i)
+          | (Prove (_, _, t, By_Metis _), Obtain (_, _, _, _, By_Metis _)) =>
+              cons (Term.size_of_term t, i)
           | _ => I)
         | add_if_cand _ _ = I
       val cand_tab =
@@ -147,7 +148,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
                   val thesis = Term.Free ("thesis", HOLogic.boolT)
                   val prop =
-                    HOLogic.mk_imp (HOLogic.dest_Trueprop t, thesis) 
+                    HOLogic.mk_imp (HOLogic.dest_Trueprop t, thesis)
                     |> fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) xs
                     |> rpair thesis
                     |> HOLogic.mk_imp
@@ -200,12 +201,17 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
       (* Merging *)
       (* TODO: consider adding "Obtain" cases *)
-      fun merge (Prove (_, label1, _, By_Metis (lfs1, gfs1)))
-                (Prove (qs2, label2, t, By_Metis (lfs2, gfs2))) =
+      fun merge (Prove (_, label1, _, By_Metis (lfs1, gfs1))) step2 =
           let
+            val (step_constructor, lfs2, gfs2) =
+              (case step2 of
+                (Prove (qs2, label2, t, By_Metis (lfs2, gfs2))) =>
+                  (fn by => Prove (qs2, label2, t, by), lfs2, gfs2)
+              | (Obtain(qs2, xs, label2, t, By_Metis (lfs2, gfs2))) =>
+                  (fn by => Obtain (qs2, xs, label2, t, by), lfs2, gfs2) )
             val lfs = remove (op =) label1 lfs2 |> union (op =) lfs1
             val gfs = union (op =) gfs1 gfs2
-          in Prove (qs2, label2, t, By_Metis (lfs, gfs)) end
+          in step_constructor (By_Metis (lfs, gfs)) end
         | merge _ _ = error "Internal error: Unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
