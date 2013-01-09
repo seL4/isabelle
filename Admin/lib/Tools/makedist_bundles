@@ -46,7 +46,7 @@ do
 echo
 echo "*** $PLATFORM_FAMILY ***"
 
-TMP="/var/tmp/isabelle-makebundle$$"
+TMP="/var/tmp/isabelle-makedist$$"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
 
 ISABELLE_TARGET="$TMP/$ISABELLE_NAME"
