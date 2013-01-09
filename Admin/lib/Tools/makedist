@@ -32,7 +32,7 @@ function usage()
   echo "  VERSION identifies the snapshot, using usual Mercurial terminology;"
   echo "  the default is RELEASE if given, otherwise \"tip\"."
   echo
-  echo "  Auxiliary components are that of the running Isabelle version!"
+  echo "  Add-on components are that of the running Isabelle version!"
   echo
   exit 1
 }
@@ -178,7 +178,7 @@ else
 fi
 
 cp -a src/Doc src/Doc.orig
-./bin/isabelle env ./bin/isabelle build_doc -a || fail "Failed to build documentation"
+./bin/isabelle env ./bin/isabelle build_doc $JOBS -a || fail "Failed to build documentation"
 rm -rf src/Doc
 mv src/Doc.orig src/Doc
 
