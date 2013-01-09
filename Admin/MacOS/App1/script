@@ -9,7 +9,13 @@ THIS_APP="$(cd "$THIS/../.."; pwd)"
 SUPER_APP="$(cd "$THIS/../../.."; pwd)"
 
 
-# sane environment defaults
+# global defaults
+
+ISABELLE_TOOL="$THIS/Isabelle/bin/isabelle"
+PROOFGENERAL_EMACS="$THIS/Aquamacs.app/Contents/MacOS/Aquamacs"
+
+
+# environment
 
 cd "$HOME"
 if [ -x /usr/libexec/path_helper ]; then
@@ -17,46 +23,6 @@ if [ -x /usr/libexec/path_helper ]; then
 fi
 
 [ -z "$LANG" ] && export LANG=en_US.UTF-8
-
-
-# settings support
-
-function choosefrom ()
-{
-  local RESULT=""
-  local FILE=""
-
-  for FILE in "$@"
-  do
-    [ -z "$RESULT" -a -e "$FILE" ] && RESULT="$FILE"
-  done
-
-  [ -z "$RESULT" ] && RESULT="$FILE"
-  echo "$RESULT"
-}
-
-
-# Isabelle
-
-ISABELLE_TOOL="$(choosefrom \
-  "$THIS/Isabelle/bin/isabelle" \
-  "$SUPER_APP/Isabelle/bin/isabelle" \
-  "$HOME/bin/isabelle" \
-  isabelle)"
-
-
-# Proof General / Emacs
-
-PROOFGENERAL_EMACS="$(choosefrom \
-  "$THIS/Aquamacs.app/Contents/MacOS/Aquamacs" \
-  "$SUPER_APP/Aquamacs.app/Contents/MacOS/Aquamacs" \
-  /Applications/Aquamacs.app/Contents/MacOS/Aquamacs \
-  "")"
-
-declare -a EMACS_OPTIONS=()
-if [ -n "$PROOFGENERAL_EMACS" ]; then
-  EMACS_OPTIONS=(-p "$PROOFGENERAL_EMACS")
-fi
 
 
 # run interface with error feedback
@@ -68,12 +34,12 @@ then
   CHOICE=($("$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" dropdown \
     --title Isabelle \
     --text "Which Isabelle interface?" \
-    --items "Emacs / Proof General" "Isabelle/jEdit PIDE" \
+    --items "Isabelle/jEdit PIDE" "Emacs / Proof General" \
     --button2 "OK, do not ask again" --button1 "OK"))
   if [ "${CHOICE[1]}" = 0 ]; then
-    ISABELLE_INTERFACE_CHOICE=emacs
-  else
     ISABELLE_INTERFACE_CHOICE=jedit
+  else
+    ISABELLE_INTERFACE_CHOICE=emacs
   fi
   if [ "${CHOICE[0]}" = 2 ]; then
     ISABELLE_HOME_USER="$("$ISABELLE_TOOL" getenv -b ISABELLE_HOME_USER)"
@@ -91,7 +57,7 @@ fi
 OUTPUT="/tmp/isabelle$$.out"
 
 if [ "$ISABELLE_INTERFACE_CHOICE" = emacs ]; then
-  ( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
+  ( "$ISABELLE_TOOL" emacs -p "$PROOFGENERAL_EMACS" "$@" ) > "$OUTPUT" 2>&1
   RC=$?
 else
   ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
