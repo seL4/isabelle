@@ -126,7 +126,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           |> maps (thms_of_name ctxt)
 
       (* TODO: add "Obtain" case *)
-      exception ZeroTime
+      exception ZEROTIME
       fun try_metis timeout (succedent, step) =
         (if not preplay then K (SOME Time.zeroTime) else
           let
@@ -158,7 +158,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                 in
                   (prop, byline, true)
                 end
-              | _ => raise ZeroTime)
+              | _ => raise ZEROTIME)
             val make_thm = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
             val facts =
               (case byline of
@@ -183,7 +183,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           in
             take_time timeout (fn () => goal tac)
           end)
-          handle ZeroTime => K (SOME Time.zeroTime)
+          handle ZEROTIME => K (SOME Time.zeroTime)
 
       val try_metis_quietly = the_default NONE oo try oo try_metis
 
