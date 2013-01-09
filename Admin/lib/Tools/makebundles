@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+#
+# DESCRIPTION: re-package Isabelle distribution with add-on components
+
+## diagnostics
+
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG ARCHIVE"
+  echo
+  echo "  Re-package Isabelle source distribution with add-on components"
+  echo "  and post-hoc patches for platform families linux, macos, windows."
+  echo
+  echo "  Add-on components are that of the running Isabelle version!"
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## arguments
+
+[ "$#" -ne 1 ] && usage
+
+ARCHIVE="$1"; shift
+
+[ -f "$ARCHIVE" ] || fail "Bad source archive: $ARCHIVE"
+
+ARCHIVE_DIR="$(cd $(dirname "$ARCHIVE"); echo "$PWD")"
+ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
+
+
+## main
+
+for PLATFORM_FAMILY in linux macos windows
+do
+
+echo
+echo "*** $PLATFORM_FAMILY ***"
+
+TMP="/var/tmp/isabelle-makebundle$$"
+mkdir "$TMP" || fail "Cannot create directory $TMP"
+
+ISABELLE_TARGET="$TMP/$ISABELLE_NAME"
+
+tar -C "$TMP" -x -z -f "$ARCHIVE"
+
+
+# bundled components
+
+mkdir -p "$ARCHIVE_DIR/contrib"
+
+echo "#bundled components" >> "$ISABELLE_TARGET/etc/components"
+
+for CATALOG in main bundled "$PLATFORM_FAMILY"
+do
+  CATALOG_FILE="$ISABELLE_HOME/Admin/components/$CATALOG"
+  if [ -f "$CATALOG_FILE" ]
+  then
+    echo "catalog ${CATALOG}"
+    {
+      while { unset REPLY; read -r; test "$?" = 0 -o -n "$REPLY"; }
+      do
+        case "$REPLY" in
+          \#* | "") ;;
+          *)
+            COMPONENT="$REPLY"
+            case "$COMPONENT" in
+              jedit_build*) ;;
+              *)
+                echo "  component $COMPONENT"
+                CONTRIB="$ARCHIVE_DIR/contrib/${COMPONENT}.tar.gz"
+                if [ ! -f "$CONTRIB" ]; then
+                  REMOTE="$ISABELLE_COMPONENT_REPOSITORY/${COMPONENT}.tar.gz"
+                  echo "  download $REMOTE"
+                  perl -MLWP::Simple -e "getprint '$REMOTE';" > "$CONTRIB"
+                  perl -e "exit((stat('${CONTRIB}'))[7] == 0 ? 0 : 1);" && exit 2
+                fi
+
+                tar -C "$ISABELLE_TARGET/contrib" -x -z -f "$CONTRIB"
+                echo "contrib/$COMPONENT" >> "$ISABELLE_TARGET/etc/components"
+                ;;
+            esac
+            ;;
+        esac
+      done
+    } < "$CATALOG_FILE"
+  fi
+done
+
+
+# platform patches
+
+case "$PLATFORM_FAMILY" in
+  linux)
+    (
+      cd "$ISABELLE_TARGET"
+      for DIR in contrib/jdk*/*-darwin contrib/jdk*/*-cygwin
+      do
+        echo "removing $DIR"
+        rm -rf "$DIR"
+      done
+    )
+    ;;
+  macos)
+    (
+      cd "$ISABELLE_TARGET"
+      for DIR in contrib/jdk*/*-linux contrib/jdk*/*-cygwin
+      do
+        echo "removing $DIR"
+        rm -rf "$DIR"
+      done
+    )
+    perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
+      -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
+      -e "s,delete.shortcut2=.*,delete.shortcut2=A+d,g;" \
+      "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
+    ;;
+  windows)
+    (
+      cd "$ISABELLE_TARGET"
+      for DIR in \
+        $(find contrib -name x86-linux -o -name x86_64-linux -o -name x86-darwin -o -name x86_64-darwin | sort)
+      do
+        echo "removing $DIR"
+        rm -rf "$DIR"
+      done
+    )
+
+    perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
+      "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
+
+# FIXME include cygwin.tar.gz etc.
+#
+#    TAR="$ARCHIVE_DIR/contrib/windows/Isabelle.tar"
+#    [ -e "$TAR" ] || fail "Missing $TAR"
+#    rm -f "$ISABELLE_TARGET/Isabelle"
+#    tar -C "$ISABELLE_TARGET" -xv -f "$TAR"
+
+    for NAME in ANNOUNCE README NEWS COPYRIGHT CONTRIBUTORS contrib/README
+    do
+      FILE="$ISABELLE_TARGET/$NAME"
+      {
+        echo '<?xml version="1.0" encoding="utf-8" ?>'
+        echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+        echo '<html xmlns="http://www.w3.org/1999/xhtml">'
+        echo '<head>'
+        echo '<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>'
+        echo "<title>${NAME}</title>"
+        echo '</head>'
+        echo '<body>'
+        echo '<pre>'
+        perl -w -p -e "s/&/&amp;/g; s/</&lt;/g; s/>/&gt;/g; s/'/&apos;/g; s/\"/&quot;/g;" "$FILE"
+        echo '</pre>'
+        echo '</body>'
+      } > "${FILE}.html"
+    done
+    ;;
+  *)
+    ;;
+esac
+
+BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM_FAMILY}.tar.gz"
+
+echo "packaging $(basename "$BUNDLE_ARCHIVE")"
+tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME"
+
+
+# clean up
+rm -rf "$TMP"
+
+done
+
