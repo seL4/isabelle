@@ -97,43 +97,22 @@ do
 done
 
 
-# platform patches
+# platform-specific patches
 
 case "$PLATFORM_FAMILY" in
   linux)
-    (
-      cd "$ISABELLE_TARGET"
-      for DIR in contrib/jdk*/*-darwin contrib/jdk*/*-cygwin
-      do
-        echo "removing $DIR"
-        rm -rf "$DIR"
-      done
-    )
+    OTHER_PLATFORMS='-name "x86*-darwin" -o -name "x86*-cygwin" -o -name "x86*-windows"'
     ;;
   macos)
-    (
-      cd "$ISABELLE_TARGET"
-      for DIR in contrib/jdk*/*-linux contrib/jdk*/*-cygwin
-      do
-        echo "removing $DIR"
-        rm -rf "$DIR"
-      done
-    )
+    OTHER_PLATFORMS='-name "x86*-linux" -o -name "x86*-cygwin" -o -name "x86*-windows"'
+
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.apple.laf.AquaLookAndFeel,g;" \
       -e "s,delete-line.shortcut=.*,delete-line.shortcut=C+d,g;" \
       -e "s,delete.shortcut2=.*,delete.shortcut2=A+d,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
     ;;
   windows)
-    (
-      cd "$ISABELLE_TARGET"
-      for DIR in \
-        $(find contrib -name x86-linux -o -name x86_64-linux -o -name x86-darwin -o -name x86_64-darwin | sort)
-      do
-        echo "removing $DIR"
-        rm -rf "$DIR"
-      done
-    )
+    OTHER_PLATFORMS='-name "x86*-linux" -o -name "x86*-darwin"'
 
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
@@ -168,7 +147,22 @@ case "$PLATFORM_FAMILY" in
     ;;
 esac
 
-BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM_FAMILY}.tar.gz"
+
+# purge other platforms
+
+(
+  cd "$ISABELLE_TARGET"
+  for DIR in $(eval find contrib $OTHER_PLATFORMS | sort)
+  do
+    echo "removing $DIR"
+    rm -rf "$DIR"
+  done
+)
+
+
+# archive
+
+BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_${PLATFORM_FAMILY}.tar.gz"
 
 echo "packaging $(basename "$BUNDLE_ARCHIVE")"
 tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME"
