@@ -53,9 +53,7 @@ Packaging
 
 - hg up -r DISTNAME && isabelle makedist -r DISTNAME;
 
-- makebin (multiplatform);
-
-- makebundle (multiplatform);
+- isabelle makedist_bundles;
 
 - Mac OS X: hdiutil create -srcfolder DIR DMG;
 
@@ -66,8 +64,6 @@ Packaging
 
 Final release stage
 ===================
-
-- makedist: REPOS_NAME="isabelle-release"
 
 - various .hg/hgrc files:
   default = /home/isabelle-repository/repos/isabelle-release
