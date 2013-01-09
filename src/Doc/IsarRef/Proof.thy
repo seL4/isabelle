@@ -1247,7 +1247,7 @@ text {*
   consumes}~@{text 0} had been specified.
 
   A negative @{text n} is interpreted relatively to the total number
-  if premises of the rule in the target context.  Thus its absolute
+  of premises of the rule in the target context.  Thus its absolute
   value specifies the remaining number of premises, after subtracting
   the prefix of major premises as indicated above. This form of
   declaration has the technical advantage of being stable under more

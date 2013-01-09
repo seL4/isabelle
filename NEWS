@@ -39,7 +39,7 @@ specifications: nesting of "context fixes ... context assumes ..."
 and "class ... context ...".
 
 * Attribute "consumes" allows a negative value as well, which is
-interpreted relatively to the total number if premises of the rule in
+interpreted relatively to the total number of premises of the rule in
 the target context.  This form of declaration is stable when exported
 from a nested 'context' with additional assumptions.  It is the
 preferred form for definitional packages, notably cases/rules produced
