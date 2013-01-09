@@ -92,6 +92,7 @@ sig
   val elapsedN: string
   val cpuN: string
   val gcN: string
+  val timing_properties: Timing.timing -> Properties.T
   val timingN: string val timing: Timing.timing -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
@@ -323,16 +324,17 @@ val (keyword2N, keyword2) = markup_elem "keyword2";
 
 (* timing *)
 
-val timingN = "timing";
 val elapsedN = "elapsed";
 val cpuN = "cpu";
 val gcN = "gc";
 
-fun timing {elapsed, cpu, gc} =
-  (timingN,
-   [(elapsedN, Time.toString elapsed),
-    (cpuN, Time.toString cpu),
-    (gcN, Time.toString gc)]);
+fun timing_properties {elapsed, cpu, gc} =
+ [(elapsedN, Time.toString elapsed),
+  (cpuN, Time.toString cpu),
+  (gcN, Time.toString gc)];
+
+val timingN = "timing";
+fun timing t = (timingN, timing_properties t);
 
 
 (* toplevel *)

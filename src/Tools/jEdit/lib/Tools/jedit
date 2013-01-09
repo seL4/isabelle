@@ -185,6 +185,7 @@ fi
 ## dependencies
 
 if [ -e "$ISABELLE_HOME/Admin/build" ]; then
+  "$ISABELLE_TOOL" browser -b || exit $?
   if [ "$BUILD_JARS" = jars_fresh ]; then
     "$ISABELLE_TOOL" graphview -b -f || exit $?
   else
