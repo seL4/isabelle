@@ -69,7 +69,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
     in
       fun handle_metis_fail try_metis () =
         try_metis () handle exp =>
-          (if debug then raise exp else metis_fail := true; SOME Time.zeroTime)
+          (if Exn.is_interrupt exp orelse debug then reraise exp 
+           else metis_fail := true; SOME Time.zeroTime)
       fun get_time lazy_time =
         if !metis_fail then SOME Time.zeroTime else Lazy.force lazy_time
       val metis_fail = fn () => !metis_fail
@@ -208,11 +209,12 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                 (Prove (qs2, label2, t, By_Metis (lfs2, gfs2))) =>
                   (fn by => Prove (qs2, label2, t, by), lfs2, gfs2)
               | (Obtain(qs2, xs, label2, t, By_Metis (lfs2, gfs2))) =>
-                  (fn by => Obtain (qs2, xs, label2, t, by), lfs2, gfs2) )
+                  (fn by => Obtain (qs2, xs, label2, t, by), lfs2, gfs2)
+              | _ => error "Internal error: unmergeable Isar steps" )
             val lfs = remove (op =) label1 lfs2 |> union (op =) lfs1
             val gfs = union (op =) gfs1 gfs2
           in step_constructor (By_Metis (lfs, gfs)) end
-        | merge _ _ = error "Internal error: Unmergeable Isar steps"
+        | merge _ _ = error "Internal error: unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
         (case get i metis_time |> Lazy.force of
