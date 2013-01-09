@@ -181,25 +181,30 @@ object Markup
 
   /* timing */
 
+  val Elapsed = new Properties.Double("elapsed")
+  val CPU = new Properties.Double("cpu")
+  val GC = new Properties.Double("gc")
+
+  object Timing_Properties
+  {
+    def apply(timing: isabelle.Timing): Properties.T =
+      Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
+    def unapply(props: Properties.T): Option[isabelle.Timing] =
+      (props, props, props) match {
+        case (Elapsed(elapsed), CPU(cpu), GC(gc)) =>
+          Some(new isabelle.Timing(Time.seconds(elapsed), Time.seconds(cpu), Time.seconds(gc)))
+        case _ => None
+      }
+  }
+
   val TIMING = "timing"
-  val ELAPSED = "elapsed"
-  val CPU = "cpu"
-  val GC = "gc"
 
   object Timing
   {
-    def apply(timing: isabelle.Timing): Markup =
-      Markup(TIMING, List(
-        (ELAPSED, Properties.Value.Double(timing.elapsed.seconds)),
-        (CPU, Properties.Value.Double(timing.cpu.seconds)),
-        (GC, Properties.Value.Double(timing.gc.seconds))))
+    def apply(timing: isabelle.Timing): Markup = Markup(TIMING, Timing_Properties(timing))
     def unapply(markup: Markup): Option[isabelle.Timing] =
       markup match {
-        case Markup(TIMING, List(
-          (ELAPSED, Properties.Value.Double(elapsed)),
-          (CPU, Properties.Value.Double(cpu)),
-          (GC, Properties.Value.Double(gc)))) =>
-            Some(new isabelle.Timing(Time.seconds(elapsed), Time.seconds(cpu), Time.seconds(gc)))
+        case Markup(TIMING, Timing_Properties(timing)) => Some(timing)
         case _ => None
       }
   }

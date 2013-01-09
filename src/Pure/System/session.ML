@@ -98,7 +98,7 @@ fun with_timing name verbose f x =
 
     val _ =
       writeln ("\fTiming = " ^ ML_Syntax.print_properties
-        ([("threads", threads)] @ Timing.properties timing @ [("factor", factor)]));
+        ([("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)]));
     val _ =
       if verbose then
         Output.physical_stderr ("Timing " ^ name ^ " (" ^
