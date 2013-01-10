@@ -66,4 +66,5 @@ ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
 
 rm "$TARGET/Cygwin.bat"
 
-cp "$ISABELLE_HOME/Admin/Windows/Cygwin/init.bat" "$TARGET/isabelle/."
+cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/." "$TARGET/isabelle/."
+
