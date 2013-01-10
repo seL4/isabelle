@@ -1752,9 +1752,17 @@ lemma ereal_of_enat_le_iff[simp]:
   "ereal_of_enat m \<le> ereal_of_enat n \<longleftrightarrow> m \<le> n"
 by (cases m n rule: enat2_cases) auto
 
+lemma ereal_of_enat_less_iff[simp]:
+  "ereal_of_enat m < ereal_of_enat n \<longleftrightarrow> m < n"
+by (cases m n rule: enat2_cases) auto
+
 lemma numeral_le_ereal_of_enat_iff[simp]:
   shows "numeral m \<le> ereal_of_enat n \<longleftrightarrow> numeral m \<le> n"
 by (cases n) (auto dest: natceiling_le intro: natceiling_le_eq[THEN iffD1])
+
+lemma numeral_less_ereal_of_enat_iff[simp]:
+  shows "numeral m < ereal_of_enat n \<longleftrightarrow> numeral m < n"
+by (cases n) (auto simp: real_of_nat_less_iff[symmetric])
 
 lemma ereal_of_enat_ge_zero_cancel_iff[simp]:
   "0 \<le> ereal_of_enat n \<longleftrightarrow> 0 \<le> n"
@@ -1767,6 +1775,11 @@ by (cases n) (auto simp: enat_0[symmetric])
 lemma ereal_of_enat_zero[simp]:
   "ereal_of_enat 0 = 0"
 by (auto simp: enat_0[symmetric])
+
+lemma ereal_of_enat_inf[simp]:
+  "ereal_of_enat n = \<infinity> \<longleftrightarrow> n = \<infinity>"
+  by (cases n) auto
+
 
 lemma ereal_of_enat_add:
   "ereal_of_enat (m + n) = ereal_of_enat m + ereal_of_enat n"
