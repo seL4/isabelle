@@ -68,3 +68,7 @@ rm "$TARGET/Cygwin.bat"
 
 cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/." "$TARGET/isabelle/."
 
+
+# archive
+
+tar cvzf "${TARGET}.tar.gz" "$TARGET"
