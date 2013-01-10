@@ -60,7 +60,7 @@ if [ "$ISABELLE_INTERFACE_CHOICE" = emacs ]; then
   ( "$ISABELLE_TOOL" emacs -p "$PROOFGENERAL_EMACS" "$@" ) > "$OUTPUT" 2>&1
   RC=$?
 else
-  ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
+  ( "$ISABELLE_TOOL" jedit -s "$@" ) > "$OUTPUT" 2>&1
   RC=$?
 fi
 
