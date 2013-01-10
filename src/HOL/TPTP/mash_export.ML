@@ -24,6 +24,7 @@ sig
     Proof.context -> params -> int * int option -> theory list -> string -> unit
   val generate_mepo_suggestions :
     Proof.context -> params -> theory list -> int -> string -> unit
+  val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
 
 structure MaSh_Export : MASH_EXPORT =
@@ -164,16 +165,17 @@ fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)
 
 fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
-                              max_facts file_name =
+                              max_suggs file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
     val facts = all_facts ctxt
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val name_tabs = build_name_tables nickname_of_thm facts
-    fun do_fact ((_, th), old_facts) =
+    fun do_fact (j, ((_, th), old_facts)) =
       let
         val name = nickname_of_thm th
+        val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
         val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
         val isar_deps = isar_dependencies_of name_tabs th
@@ -185,13 +187,38 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
             val suggs =
               old_facts
               |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
-                     max_facts NONE hyp_ts concl_t
+                     max_suggs NONE hyp_ts concl_t
               |> map (nickname_of_thm o snd)
           in escape_meta name ^ ": " ^ escape_metas suggs ^ "\n" end
       end
     fun accum x (yss as ys :: _) = (x :: ys) :: yss
     val old_factss = tl (fold accum new_facts [old_facts])
-    val lines = Par_List.map do_fact (new_facts ~~ rev old_factss)
+    val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ rev old_factss))
   in File.write_list path lines end
+
+fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name
+                              mesh_file_name =
+  let
+    val mesh_path = Path.explode mesh_file_name
+    val _ = File.write mesh_path ""
+    fun do_fact (mash_line, mepo_line) =
+      let
+        val (mash_name, mash_suggs) =
+          extract_suggestions mash_line
+          ||> (map fst #> weight_mash_facts)
+        val (mepo_name, mepo_suggs) =
+          extract_suggestions mepo_line
+          ||> (map fst #> weight_mash_facts)
+        val _ =
+          if mash_name = mepo_name then () else error "Input files out of sync."
+        val mess =
+          [(mepo_weight, (mepo_suggs, [])),
+           (mash_weight, (mash_suggs, []))]
+        val mesh_suggs = mesh_facts (op =) max_suggs mess
+        val mesh_line = mash_name ^ ": " ^ space_implode " " mesh_suggs ^ "\n"
+      in File.append mesh_path mesh_line end
+    val mash_lines = Path.explode mash_file_name |> File.read_lines
+    val mepo_lines = Path.explode mepo_file_name |> File.read_lines
+  in List.app do_fact (mash_lines ~~ mepo_lines) end
 
 end;
