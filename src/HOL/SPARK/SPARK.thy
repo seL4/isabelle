@@ -275,4 +275,11 @@ next
   qed
 qed
 
+
+text {* Minimum and maximum *}
+
+spark_proof_functions
+  integer__min = "min :: int \<Rightarrow> int \<Rightarrow> int"
+  integer__max = "max :: int \<Rightarrow> int \<Rightarrow> int"
+
 end
