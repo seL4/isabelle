@@ -3,6 +3,8 @@
 cd "%~dp0"
 cd "..\.."
 
-echo Initializing ...
-"contrib\cygwin-1.7.9\bin\ash" /bin/rebaseall
-"contrib\cygwin-1.7.9\bin\bash" -c "PATH=/bin; chmod -wx $(find heaps -type f); mkpasswd -l >/etc/passwd; mkgroup -l >/etc/group"
+set CYGWIN=nodosfilewarning
+
+echo Initializing Cygwin ...
+"cygwin\bin\ash" /bin/rebaseall -p
+"cygwin\bin\bash" -c "PATH=/bin; bash -c 'source /etc/postinstall/base-files-mketc.sh.done'; mkpasswd -l >/etc/passwd; mkgroup -l >/etc/group"
