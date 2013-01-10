@@ -4,5 +4,5 @@
 #
 # Default Isabelle application wrapper.
 
-exec "$(dirname "$0")"/bin/isabelle jedit "$@"
+exec "$(dirname "$0")"/bin/isabelle jedit -s "$@"
 
