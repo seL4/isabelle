@@ -125,8 +125,8 @@ proof -
   { fix x :: "'n::euclidean_space"
     def y == "(e/norm x) *\<^sub>R x"
     then have "y : cball 0 e" using cball_def dist_norm[of 0 y] assms by auto
-    moreover have "x = (norm x/e) *\<^sub>R y" using y_def assms by simp
-    moreover hence "x = (norm x/e) *\<^sub>R y" by auto
+    moreover have *: "x = (norm x/e) *\<^sub>R y" using y_def assms by simp
+    moreover from * have "x = (norm x/e) *\<^sub>R y" by auto
     ultimately have "x : span (cball 0 e)"
       using span_mul[of y "cball 0 e" "norm x/e"] span_inc[of "cball 0 e"] by auto
   } then have "span (cball 0 e) = (UNIV :: ('n::euclidean_space) set)" by auto
@@ -297,7 +297,7 @@ lemma setsum_delta_notmem:
     and "setsum (\<lambda>y. if (x = y) then P x else Q y) s = setsum Q s"
     and "setsum (\<lambda>y. if (y = x) then P y else Q y) s = setsum Q s"
     and "setsum (\<lambda>y. if (x = y) then P y else Q y) s = setsum Q s"
-  apply(rule_tac [!] setsum_cong2)
+  apply (rule_tac [!] setsum_cong2)
   using assms apply auto
   done
 
@@ -659,12 +659,12 @@ proof -
 qed
 
 lemma mem_affine:
-  assumes "affine S" "x : S" "y : S" "u+v=1"
+  assumes "affine S" "x : S" "y : S" "u + v = 1"
   shows "(u *\<^sub>R x + v *\<^sub>R y) : S"
   using assms affine_def[of S] by auto
 
 lemma mem_affine_3:
-  assumes "affine S" "x : S" "y : S" "z : S" "u+v+w=1"
+  assumes "affine S" "x : S" "y : S" "z : S" "u + v + w = 1"
   shows "(u *\<^sub>R x + v *\<^sub>R y + w *\<^sub>R z) : S"
 proof -
   have "(u *\<^sub>R x + v *\<^sub>R y + w *\<^sub>R z) : affine hull {x, y, z}"
@@ -689,7 +689,9 @@ lemma affine_hull_insert_subset_span:
   "affine hull (insert a s) \<subseteq> {a + v| v . v \<in> span {x - a | x . x \<in> s}}"
   unfolding subset_eq Ball_def
   unfolding affine_hull_explicit span_explicit mem_Collect_eq
-  apply (rule, rule) apply (erule exE)+ apply (erule conjE)+
+  apply (rule, rule)
+  apply (erule exE)+
+  apply (erule conjE)+
 proof -
   fix x t u
   assume as: "finite t" "t \<noteq> {}" "t \<subseteq> insert a s" "setsum u t = 1" "(\<Sum>v\<in>t. u v *\<^sub>R v) = x"
@@ -1163,90 +1165,109 @@ lemma connected_real_lemma:
   shows "\<exists>x \<ge> a. x <= b \<and> f x \<notin> e1 \<and> f x \<notin> e2" (is "\<exists> x. ?P x")
 proof -
   let ?S = "{c. \<forall>x \<ge> a. x <= c \<longrightarrow> f x \<in> e1}"
-  have Se: " \<exists>x. x \<in> ?S" apply (rule exI[where x=a]) by (auto simp add: fa)
+  have Se: " \<exists>x. x \<in> ?S"
+    apply (rule exI[where x=a])
+    apply (auto simp add: fa)
+    done
   have Sub: "\<exists>y. isUb UNIV ?S y"
     apply (rule exI[where x= b])
-    using ab fb e12 by (auto simp add: isUb_def setle_def)
+    using ab fb e12 apply (auto simp add: isUb_def setle_def)
+    done
   from reals_complete[OF Se Sub] obtain l where
     l: "isLub UNIV ?S l"by blast
   have alb: "a \<le> l" "l \<le> b" using l ab fa fb e12
     apply (auto simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-    by (metis linorder_linear)
+    apply (metis linorder_linear)
+    done
   have ale1: "\<forall>z \<ge> a. z < l \<longrightarrow> f z \<in> e1" using l
     apply (auto simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-    by (metis linorder_linear not_le)
-    have th1: "\<And>z x e d :: real. z <= x + e \<Longrightarrow> e < d ==> z < x \<or> abs(z - x) < d" by arith
-    have th2: "\<And>e x:: real. 0 < e ==> ~(x + e <= x)" by arith
-    have "\<And>d::real. 0 < d \<Longrightarrow> 0 < d/2 \<and> d/2 < d" by simp
-    then have th3: "\<And>d::real. d > 0 \<Longrightarrow> \<exists>e > 0. e < d" by blast
-    {assume le2: "f l \<in> e2"
-      from le2 fa fb e12 alb have la: "l \<noteq> a" by metis
-      hence lap: "l - a > 0" using alb by arith
-      from e2[rule_format, OF le2] obtain e where
-        e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e2" by metis
-      from dst[OF alb e(1)] obtain d where
-        d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
-      let ?d' = "min (d/2) ((l - a)/2)"
-      have "?d' < d \<and> 0 < ?d' \<and> ?d' < l - a" using lap d(1)
-        by (simp add: min_max.less_infI2)
-      then have "\<exists>d'. d' < d \<and> d' >0 \<and> l - d' > a" by auto
-      then obtain d' where d': "d' > 0" "d' < d" "l - d' > a" by metis
-      from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e2" by metis
-      from th0[rule_format, of "l - d'"] d' have "f (l - d') \<in> e2" by auto
-      moreover
-      have "f (l - d') \<in> e1" using ale1[rule_format, of "l -d'"] d' by auto
-      ultimately have False using e12 alb d' by auto}
+    apply (metis linorder_linear not_le)
+    done
+  have th1: "\<And>z x e d :: real. z <= x + e \<Longrightarrow> e < d ==> z < x \<or> abs(z - x) < d" by arith
+  have th2: "\<And>e x:: real. 0 < e ==> ~(x + e <= x)" by arith
+  have "\<And>d::real. 0 < d \<Longrightarrow> 0 < d/2 \<and> d/2 < d" by simp
+  then have th3: "\<And>d::real. d > 0 \<Longrightarrow> \<exists>e > 0. e < d" by blast
+  { assume le2: "f l \<in> e2"
+    from le2 fa fb e12 alb have la: "l \<noteq> a" by metis
+    then have lap: "l - a > 0" using alb by arith
+    from e2[rule_format, OF le2] obtain e where
+      e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e2" by metis
+    from dst[OF alb e(1)] obtain d where
+      d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
+    let ?d' = "min (d/2) ((l - a)/2)"
+    have "?d' < d \<and> 0 < ?d' \<and> ?d' < l - a" using lap d(1)
+      by (simp add: min_max.less_infI2)
+    then have "\<exists>d'. d' < d \<and> d' >0 \<and> l - d' > a" by auto
+    then obtain d' where d': "d' > 0" "d' < d" "l - d' > a" by metis
+    from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e2" by metis
+    from th0[rule_format, of "l - d'"] d' have "f (l - d') \<in> e2" by auto
     moreover
-    {assume le1: "f l \<in> e1"
+    have "f (l - d') \<in> e1" using ale1[rule_format, of "l -d'"] d' by auto
+    ultimately have False using e12 alb d' by auto }
+  moreover
+  { assume le1: "f l \<in> e1"
     from le1 fa fb e12 alb have lb: "l \<noteq> b" by metis
-      hence blp: "b - l > 0" using alb by arith
-      from e1[rule_format, OF le1] obtain e where
-        e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e1" by metis
-      from dst[OF alb e(1)] obtain d where
-        d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
-      have "\<And>d::real. 0 < d \<Longrightarrow> d/2 < d \<and> 0 < d/2" by simp
-      then have "\<exists>d'. d' < d \<and> d' >0" using d(1) by blast
-      then obtain d' where d': "d' > 0" "d' < d" by metis
-      from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e1" by auto
-      hence "\<forall>y. l \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" using d' by auto
-      with ale1 have "\<forall>y. a \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" by auto
-      with l d' have False
-        by (auto simp add: isLub_def isUb_def setle_def setge_def leastP_def) }
-    ultimately show ?thesis using alb by metis
+    then have blp: "b - l > 0" using alb by arith
+    from e1[rule_format, OF le1] obtain e where
+      e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e1" by metis
+    from dst[OF alb e(1)] obtain d where
+      d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
+    have "\<And>d::real. 0 < d \<Longrightarrow> d/2 < d \<and> 0 < d/2" by simp
+    then have "\<exists>d'. d' < d \<and> d' >0" using d(1) by blast
+    then obtain d' where d': "d' > 0" "d' < d" by metis
+    from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e1" by auto
+    then have "\<forall>y. l \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" using d' by auto
+    with ale1 have "\<forall>y. a \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" by auto
+    with l d' have False
+      by (auto simp add: isLub_def isUb_def setle_def setge_def leastP_def) }
+  ultimately show ?thesis using alb by metis
 qed
 
 lemma convex_connected:
   fixes s :: "'a::real_normed_vector set"
   assumes "convex s" shows "connected s"
-proof-
-  { fix e1 e2 assume as:"open e1" "open e2" "e1 \<inter> e2 \<inter> s = {}" "s \<subseteq> e1 \<union> e2"
+proof -
+  { fix e1 e2
+    assume as:"open e1" "open e2" "e1 \<inter> e2 \<inter> s = {}" "s \<subseteq> e1 \<union> e2"
     assume "e1 \<inter> s \<noteq> {}" "e2 \<inter> s \<noteq> {}"
     then obtain x1 x2 where x1:"x1\<in>e1" "x1\<in>s" and x2:"x2\<in>e2" "x2\<in>s" by auto
-    hence n:"norm (x1 - x2) > 0" unfolding zero_less_norm_iff using as(3) by auto
+    then have n: "norm (x1 - x2) > 0" unfolding zero_less_norm_iff using as(3) by auto
 
     { fix x e::real assume as:"0 \<le> x" "x \<le> 1" "0 < e"
-      { fix y have *:"(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2) = (y - x) *\<^sub>R x1 - (y - x) *\<^sub>R x2"
+      { fix y
+        have *: "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2) = (y - x) *\<^sub>R x1 - (y - x) *\<^sub>R x2"
           by (simp add: algebra_simps)
         assume "\<bar>y - x\<bar> < e / norm (x1 - x2)"
         hence "norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
           unfolding * and scaleR_right_diff_distrib[symmetric]
-          unfolding less_divide_eq using n by auto  }
-      hence "\<exists>d>0. \<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
-        apply(rule_tac x="e / norm (x1 - x2)" in exI) using as
-        apply auto unfolding zero_less_divide_iff using n by simp  }  note * = this
+          unfolding less_divide_eq using n by auto
+      }
+      then have "\<exists>d>0. \<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
+        apply (rule_tac x="e / norm (x1 - x2)" in exI)
+        using as
+        apply auto
+        unfolding zero_less_divide_iff
+        using n apply simp
+        done
+    } note * = this
 
     have "\<exists>x\<ge>0. x \<le> 1 \<and> (1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e1 \<and> (1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e2"
-      apply(rule connected_real_lemma) apply (simp add: `x1\<in>e1` `x2\<in>e2` dist_commute)+
-      using * apply(simp add: dist_norm)
+      apply (rule connected_real_lemma)
+      apply (simp add: `x1\<in>e1` `x2\<in>e2` dist_commute)+
+      using * apply (simp add: dist_norm)
       using as(1,2)[unfolded open_dist] apply simp
       using as(1,2)[unfolded open_dist] apply simp
       using assms[unfolded convex_alt, THEN bspec[where x=x1], THEN bspec[where x=x2]] using x1 x2
-      using as(3) by auto
-    then obtain x where "x\<ge>0" "x\<le>1" "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e1"  "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e2" by auto
-    hence False using as(4)
+      using as(3) apply auto
+      done
+    then obtain x where "x\<ge>0" "x\<le>1" "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e1"  "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e2"
+      by auto
+    then have False
+      using as(4)
       using assms[unfolded convex_alt, THEN bspec[where x=x1], THEN bspec[where x=x2]]
-      using x1(2) x2(2) by auto  }
-  thus ?thesis unfolding connected_def by auto
+      using x1(2) x2(2) by auto
+    }
+  then show ?thesis unfolding connected_def by auto
 qed
 
 text {* One rather trivial consequence. *}
@@ -1276,37 +1297,53 @@ proof(rule ccontr)
   hence xy:"0 < dist x y" by (auto simp add: dist_nz[symmetric])
 
   then obtain u where "0 < u" "u \<le> 1" and u:"u < e / dist x y"
-    using real_lbound_gt_zero[of 1 "e / dist x y"] using xy `e>0` and divide_pos_pos[of e "dist x y"] by auto
+    using real_lbound_gt_zero[of 1 "e / dist x y"]
+    using xy `e>0` and divide_pos_pos[of e "dist x y"] by auto
   hence "f ((1-u) *\<^sub>R x + u *\<^sub>R y) \<le> (1-u) * f x + u * f y" using `x\<in>s` `y\<in>s`
-    using assms(2)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x="1-u"]] by auto
+    using assms(2)[unfolded convex_on_def, THEN bspec[where x=x], THEN bspec[where x=y], THEN spec[where x="1-u"]]
+    by auto
   moreover
-  have *:"x - ((1 - u) *\<^sub>R x + u *\<^sub>R y) = u *\<^sub>R (x - y)" by (simp add: algebra_simps)
-  have "(1 - u) *\<^sub>R x + u *\<^sub>R y \<in> ball x e" unfolding mem_ball dist_norm unfolding * and norm_scaleR and abs_of_pos[OF `0<u`] unfolding dist_norm[symmetric]
+  have *: "x - ((1 - u) *\<^sub>R x + u *\<^sub>R y) = u *\<^sub>R (x - y)"
+    by (simp add: algebra_simps)
+  have "(1 - u) *\<^sub>R x + u *\<^sub>R y \<in> ball x e"
+    unfolding mem_ball dist_norm unfolding * and norm_scaleR and abs_of_pos[OF `0<u`]
+    unfolding dist_norm[symmetric]
     using u unfolding pos_less_divide_eq[OF xy] by auto
-  hence "f x \<le> f ((1 - u) *\<^sub>R x + u *\<^sub>R y)" using assms(4) by auto
-  ultimately show False using mult_strict_left_mono[OF y `u>0`] unfolding left_diff_distrib by auto
+  then have "f x \<le> f ((1 - u) *\<^sub>R x + u *\<^sub>R y)" using assms(4) by auto
+  ultimately show False
+    using mult_strict_left_mono[OF y `u>0`] unfolding left_diff_distrib by auto
 qed
 
 lemma convex_ball:
   fixes x :: "'a::real_normed_vector"
   shows "convex (ball x e)"
-proof(auto simp add: convex_def)
-  fix y z assume yz:"dist x y < e" "dist x z < e"
-  fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
-  have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z" using uv yz
-    using convex_distance[of "ball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]] by auto
-  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) < e" using convex_bound_lt[OF yz uv] by auto
+proof (auto simp add: convex_def)
+  fix y z
+  assume yz: "dist x y < e" "dist x z < e"
+  fix u v :: real
+  assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
+  have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z"
+    using uv yz
+    using convex_distance[of "ball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]]
+    by auto
+  then show "dist x (u *\<^sub>R y + v *\<^sub>R z) < e"
+    using convex_bound_lt[OF yz uv] by auto
 qed
 
 lemma convex_cball:
   fixes x :: "'a::real_normed_vector"
   shows "convex(cball x e)"
-proof(auto simp add: convex_def Ball_def)
-  fix y z assume yz:"dist x y \<le> e" "dist x z \<le> e"
-  fix u v ::real assume uv:" 0 \<le> u" "0 \<le> v" "u + v = 1"
-  have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z" using uv yz
-    using convex_distance[of "cball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]] by auto
-  thus "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e" using convex_bound_le[OF yz uv] by auto
+proof (auto simp add: convex_def Ball_def)
+  fix y z
+  assume yz: "dist x y \<le> e" "dist x z \<le> e"
+  fix u v :: real
+  assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
+  have "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> u * dist x y + v * dist x z"
+    using uv yz
+    using convex_distance[of "cball x e" x, unfolded convex_on_def, THEN bspec[where x=y], THEN bspec[where x=z]]
+    by auto
+  then show "dist x (u *\<^sub>R y + v *\<^sub>R z) \<le> e"
+    using convex_bound_le[OF yz uv] by auto
 qed
 
 lemma connected_ball:
@@ -1319,6 +1356,7 @@ lemma connected_cball:
   shows "connected(cball x e)"
   using convex_connected convex_cball by auto
 
+
 subsection {* Convex hull *}
 
 lemma convex_convex_hull: "convex(convex hull s)"
@@ -1326,102 +1364,182 @@ lemma convex_convex_hull: "convex(convex hull s)"
   by auto
 
 lemma convex_hull_eq: "convex hull s = s \<longleftrightarrow> convex s"
-by (metis convex_convex_hull hull_same)
+  by (metis convex_convex_hull hull_same)
 
 lemma bounded_convex_hull:
   fixes s :: "'a::real_normed_vector set"
   assumes "bounded s" shows "bounded(convex hull s)"
-proof- from assms obtain B where B:"\<forall>x\<in>s. norm x \<le> B" unfolding bounded_iff by auto
-  show ?thesis apply(rule bounded_subset[OF bounded_cball, of _ 0 B])
+proof -
+  from assms obtain B where B: "\<forall>x\<in>s. norm x \<le> B"
+    unfolding bounded_iff by auto
+  show ?thesis
+    apply (rule bounded_subset[OF bounded_cball, of _ 0 B])
     unfolding subset_hull[of convex, OF convex_cball]
-    unfolding subset_eq mem_cball dist_norm using B by auto qed
+    unfolding subset_eq mem_cball dist_norm using B apply auto
+    done
+qed
 
 lemma finite_imp_bounded_convex_hull:
   fixes s :: "'a::real_normed_vector set"
   shows "finite s \<Longrightarrow> bounded(convex hull s)"
   using bounded_convex_hull finite_imp_bounded by auto
 
+
 subsubsection {* Convex hull is "preserved" by a linear function *}
 
 lemma convex_hull_linear_image:
   assumes "bounded_linear f"
   shows "f ` (convex hull s) = convex hull (f ` s)"
-  apply rule unfolding subset_eq ball_simps apply(rule_tac[!] hull_induct, rule hull_inc) prefer 3
-  apply(erule imageE)apply(rule_tac x=xa in image_eqI) apply assumption
-  apply(rule hull_subset[unfolded subset_eq, rule_format]) apply assumption
-proof-
+  apply rule
+  unfolding subset_eq ball_simps
+  apply (rule_tac[!] hull_induct, rule hull_inc)
+  prefer 3
+  apply (erule imageE)
+  apply (rule_tac x=xa in image_eqI)
+  apply assumption
+  apply (rule hull_subset[unfolded subset_eq, rule_format])
+  apply assumption
+proof -
   interpret f: bounded_linear f by fact
   show "convex {x. f x \<in> convex hull f ` s}"
-  unfolding convex_def by(auto simp add: f.scaleR f.add convex_convex_hull[unfolded convex_def, rule_format]) next
+    unfolding convex_def
+    by (auto simp add: f.scaleR f.add convex_convex_hull[unfolded convex_def, rule_format])
+next
   interpret f: bounded_linear f by fact
-  show "convex {x. x \<in> f ` (convex hull s)}" using  convex_convex_hull[unfolded convex_def, of s]
+  show "convex {x. x \<in> f ` (convex hull s)}"
+    using  convex_convex_hull[unfolded convex_def, of s]
     unfolding convex_def by (auto simp add: f.scaleR [symmetric] f.add [symmetric])
 qed auto
 
 lemma in_convex_hull_linear_image:
   assumes "bounded_linear f" "x \<in> convex hull s"
   shows "(f x) \<in> convex hull (f ` s)"
-using convex_hull_linear_image[OF assms(1)] assms(2) by auto
+  using convex_hull_linear_image[OF assms(1)] assms(2) by auto
+
 
 subsubsection {* Stepping theorems for convex hulls of finite sets *}
 
 lemma convex_hull_empty[simp]: "convex hull {} = {}"
-  apply(rule hull_unique) by auto
+  by (rule hull_unique) auto
 
 lemma convex_hull_singleton[simp]: "convex hull {a} = {a}"
-  apply(rule hull_unique) by auto
+  by (rule hull_unique) auto
 
 lemma convex_hull_insert:
   fixes s :: "'a::real_vector set"
   assumes "s \<noteq> {}"
-  shows "convex hull (insert a s) = {x. \<exists>u\<ge>0. \<exists>v\<ge>0. \<exists>b. (u + v = 1) \<and>
-                                    b \<in> (convex hull s) \<and> (x = u *\<^sub>R a + v *\<^sub>R b)}" (is "?xyz = ?hull")
- apply(rule,rule hull_minimal,rule) unfolding insert_iff prefer 3 apply rule proof-
- fix x assume x:"x = a \<or> x \<in> s"
- thus "x\<in>?hull" apply rule unfolding mem_Collect_eq apply(rule_tac x=1 in exI) defer
-   apply(rule_tac x=0 in exI) using assms hull_subset[of s convex] by auto
+  shows "convex hull (insert a s) =
+    {x. \<exists>u\<ge>0. \<exists>v\<ge>0. \<exists>b. (u + v = 1) \<and> b \<in> (convex hull s) \<and> (x = u *\<^sub>R a + v *\<^sub>R b)}"
+  (is "?xyz = ?hull")
+  apply (rule, rule hull_minimal, rule)
+  unfolding insert_iff
+  prefer 3
+  apply rule
+proof -
+  fix x
+  assume x: "x = a \<or> x \<in> s"
+  then show "x \<in> ?hull"
+    apply rule
+    unfolding mem_Collect_eq
+    apply (rule_tac x=1 in exI)
+    defer
+    apply (rule_tac x=0 in exI)
+    using assms hull_subset[of s convex]
+    apply auto
+    done
 next
-  fix x assume "x\<in>?hull"
-  then obtain u v b where obt:"u\<ge>0" "v\<ge>0" "u + v = 1" "b \<in> convex hull s" "x = u *\<^sub>R a + v *\<^sub>R b" by auto
-  have "a\<in>convex hull insert a s" "b\<in>convex hull insert a s"
-    using hull_mono[of s "insert a s" convex] hull_mono[of "{a}" "insert a s" convex] and obt(4) by auto
-  thus "x\<in> convex hull insert a s" unfolding obt(5) using convex_convex_hull[of "insert a s", unfolded convex_def]
-    apply(erule_tac x=a in ballE) apply(erule_tac x=b in ballE) apply(erule_tac x=u in allE) using obt by auto
+  fix x
+  assume "x \<in> ?hull"
+  then obtain u v b where obt: "u\<ge>0" "v\<ge>0" "u + v = 1" "b \<in> convex hull s" "x = u *\<^sub>R a + v *\<^sub>R b"
+    by auto
+  have "a \<in> convex hull insert a s" "b\<in>convex hull insert a s"
+    using hull_mono[of s "insert a s" convex] hull_mono[of "{a}" "insert a s" convex] and obt(4)
+    by auto
+  then show "x \<in> convex hull insert a s"
+    unfolding obt(5)
+    using convex_convex_hull[of "insert a s", unfolded convex_def]
+    apply (erule_tac x = a in ballE)
+    apply (erule_tac x = b in ballE)
+    apply (erule_tac x = u in allE)
+    using obt apply auto
+    done
 next
-  show "convex ?hull" unfolding convex_def apply(rule,rule,rule,rule,rule,rule,rule) proof-
-    fix x y u v assume as:"(0::real) \<le> u" "0 \<le> v" "u + v = 1" "x\<in>?hull" "y\<in>?hull"
-    from as(4) obtain u1 v1 b1 where obt1:"u1\<ge>0" "v1\<ge>0" "u1 + v1 = 1" "b1 \<in> convex hull s" "x = u1 *\<^sub>R a + v1 *\<^sub>R b1" by auto
-    from as(5) obtain u2 v2 b2 where obt2:"u2\<ge>0" "v2\<ge>0" "u2 + v2 = 1" "b2 \<in> convex hull s" "y = u2 *\<^sub>R a + v2 *\<^sub>R b2" by auto
-    have *:"\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x" by (auto simp add: algebra_simps)
-    have "\<exists>b \<in> convex hull s. u *\<^sub>R x + v *\<^sub>R y = (u * u1) *\<^sub>R a + (v * u2) *\<^sub>R a + (b - (u * u1) *\<^sub>R b - (v * u2) *\<^sub>R b)"
-    proof(cases "u * v1 + v * v2 = 0")
-      have *:"\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x" by (auto simp add: algebra_simps)
-      case True hence **:"u * v1 = 0" "v * v2 = 0"
+  show "convex ?hull"
+    unfolding convex_def
+    apply (rule, rule, rule, rule, rule, rule, rule)
+  proof -
+    fix x y u v
+    assume as: "(0::real) \<le> u" "0 \<le> v" "u + v = 1" "x\<in>?hull" "y\<in>?hull"
+    from as(4) obtain u1 v1 b1
+      where obt1: "u1\<ge>0" "v1\<ge>0" "u1 + v1 = 1" "b1 \<in> convex hull s" "x = u1 *\<^sub>R a + v1 *\<^sub>R b1" by auto
+    from as(5) obtain u2 v2 b2
+      where obt2: "u2\<ge>0" "v2\<ge>0" "u2 + v2 = 1" "b2 \<in> convex hull s" "y = u2 *\<^sub>R a + v2 *\<^sub>R b2" by auto
+    have *: "\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x"
+      by (auto simp add: algebra_simps)
+    have **: "\<exists>b \<in> convex hull s. u *\<^sub>R x + v *\<^sub>R y =
+      (u * u1) *\<^sub>R a + (v * u2) *\<^sub>R a + (b - (u * u1) *\<^sub>R b - (v * u2) *\<^sub>R b)"
+    proof (cases "u * v1 + v * v2 = 0")
+      case True
+      have *: "\<And>(x::'a) s1 s2. x - s1 *\<^sub>R x - s2 *\<^sub>R x = ((1::real) - (s1 + s2)) *\<^sub>R x"
+        by (auto simp add: algebra_simps)
+      from True have ***: "u * v1 = 0" "v * v2 = 0"
         using mult_nonneg_nonneg[OF `u\<ge>0` `v1\<ge>0`] mult_nonneg_nonneg[OF `v\<ge>0` `v2\<ge>0`] by arith+
-      hence "u * u1 + v * u2 = 1" using as(3) obt1(3) obt2(3) by auto
-      thus ?thesis unfolding obt1(5) obt2(5) * using assms hull_subset[of s convex] by(auto simp add: ** scaleR_right_distrib)
+      then have "u * u1 + v * u2 = 1"
+        using as(3) obt1(3) obt2(3) by auto
+      then show ?thesis
+        unfolding obt1(5) obt2(5) *
+        using assms hull_subset[of s convex]
+        by (auto simp add: *** scaleR_right_distrib)
     next
-      have "1 - (u * u1 + v * u2) = (u + v) - (u * u1 + v * u2)" using as(3) obt1(3) obt2(3) by (auto simp add: field_simps)
-      also have "\<dots> = u * (v1 + u1 - u1) + v * (v2 + u2 - u2)" using as(3) obt1(3) obt2(3) by (auto simp add: field_simps)
-      also have "\<dots> = u * v1 + v * v2" by simp finally have **:"1 - (u * u1 + v * u2) = u * v1 + v * v2" by auto
-      case False have "0 \<le> u * v1 + v * v2" "0 \<le> u * v1" "0 \<le> u * v1 + v * v2" "0 \<le> v * v2" apply -
-        apply(rule add_nonneg_nonneg) prefer 4 apply(rule add_nonneg_nonneg) apply(rule_tac [!] mult_nonneg_nonneg)
-        using as(1,2) obt1(1,2) obt2(1,2) by auto
-      thus ?thesis unfolding obt1(5) obt2(5) unfolding * and ** using False
-        apply(rule_tac x="((u * v1) / (u * v1 + v * v2)) *\<^sub>R b1 + ((v * v2) / (u * v1 + v * v2)) *\<^sub>R b2" in bexI) defer
-        apply(rule convex_convex_hull[of s, unfolded convex_def, rule_format]) using obt1(4) obt2(4)
+      case False
+      have "1 - (u * u1 + v * u2) = (u + v) - (u * u1 + v * u2)"
+        using as(3) obt1(3) obt2(3) by (auto simp add: field_simps)
+      also have "\<dots> = u * (v1 + u1 - u1) + v * (v2 + u2 - u2)"
+        using as(3) obt1(3) obt2(3) by (auto simp add: field_simps)
+      also have "\<dots> = u * v1 + v * v2"
+        by simp
+      finally have **:"1 - (u * u1 + v * u2) = u * v1 + v * v2" by auto
+      have "0 \<le> u * v1 + v * v2" "0 \<le> u * v1" "0 \<le> u * v1 + v * v2" "0 \<le> v * v2"
+        apply (rule add_nonneg_nonneg)
+        prefer 4
+        apply (rule add_nonneg_nonneg)
+        apply (rule_tac [!] mult_nonneg_nonneg)
+        using as(1,2) obt1(1,2) obt2(1,2) apply auto
+        done
+      then show ?thesis
+        unfolding obt1(5) obt2(5)
+        unfolding * and **
+        using False
+        apply (rule_tac x = "((u * v1) / (u * v1 + v * v2)) *\<^sub>R b1 + ((v * v2) / (u * v1 + v * v2)) *\<^sub>R b2" in bexI)
+        defer
+        apply (rule convex_convex_hull[of s, unfolded convex_def, rule_format])
+        using obt1(4) obt2(4)
         unfolding add_divide_distrib[symmetric] and zero_le_divide_iff
-        by (auto simp add: scaleR_left_distrib scaleR_right_distrib)
-    qed note * = this
-    have u1:"u1 \<le> 1" unfolding obt1(3)[symmetric] and not_le using obt1(2) by auto
-    have u2:"u2 \<le> 1" unfolding obt2(3)[symmetric] and not_le using obt2(2) by auto
-    have "u1 * u + u2 * v \<le> (max u1 u2) * u + (max u1 u2) * v" apply(rule add_mono)
-      apply(rule_tac [!] mult_right_mono) using as(1,2) obt1(1,2) obt2(1,2) by auto
-    also have "\<dots> \<le> 1" unfolding distrib_left[symmetric] and as(3) using u1 u2 by auto
-    finally
-    show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull" unfolding mem_Collect_eq apply(rule_tac x="u * u1 + v * u2" in exI)
-      apply(rule conjI) defer apply(rule_tac x="1 - u * u1 - v * u2" in exI) unfolding Bex_def
-      using as(1,2) obt1(1,2) obt2(1,2) * by(auto intro!: mult_nonneg_nonneg add_nonneg_nonneg simp add: algebra_simps)
+        apply (auto simp add: scaleR_left_distrib scaleR_right_distrib)
+        done
+    qed
+    have u1: "u1 \<le> 1"
+      unfolding obt1(3)[symmetric] and not_le using obt1(2) by auto
+    have u2: "u2 \<le> 1"
+      unfolding obt2(3)[symmetric] and not_le using obt2(2) by auto
+    have "u1 * u + u2 * v \<le> (max u1 u2) * u + (max u1 u2) * v"
+      apply (rule add_mono)
+      apply (rule_tac [!] mult_right_mono)
+      using as(1,2) obt1(1,2) obt2(1,2)
+      apply auto
+      done
+    also have "\<dots> \<le> 1"
+      unfolding distrib_left[symmetric] and as(3) using u1 u2 by auto
+    finally show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull"
+      unfolding mem_Collect_eq
+      apply (rule_tac x="u * u1 + v * u2" in exI)
+      apply (rule conjI)
+      defer
+      apply (rule_tac x="1 - u * u1 - v * u2" in exI)
+      unfolding Bex_def
+      using as(1,2) obt1(1,2) obt2(1,2) **
+      apply (auto intro!: mult_nonneg_nonneg add_nonneg_nonneg simp add: algebra_simps)
+      done
   qed
 qed
 
@@ -1430,162 +1548,307 @@ subsubsection {* Explicit expression for convex hull *}
 
 lemma convex_hull_indexed:
   fixes s :: "'a::real_vector set"
-  shows "convex hull s = {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> s) \<and>
-                            (setsum u {1..k} = 1) \<and>
-                            (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} = y)}" (is "?xyz = ?hull")
-  apply(rule hull_unique) apply(rule) defer
-  apply(subst convex_def) apply(rule,rule,rule,rule,rule,rule,rule)
-proof-
-  fix x assume "x\<in>s"
-  thus "x \<in> ?hull" unfolding mem_Collect_eq apply(rule_tac x=1 in exI, rule_tac x="\<lambda>x. 1" in exI) by auto
+  shows "convex hull s =
+    {y. \<exists>k u x. (\<forall>i\<in>{1::nat .. k}. 0 \<le> u i \<and> x i \<in> s) \<and>
+        (setsum u {1..k} = 1) \<and>
+        (setsum (\<lambda>i. u i *\<^sub>R x i) {1..k} = y)}" (is "?xyz = ?hull")
+  apply (rule hull_unique)
+  apply rule
+  defer
+  apply (subst convex_def)
+  apply (rule, rule, rule, rule, rule, rule, rule)
+proof -
+  fix x
+  assume "x\<in>s"
+  then show "x \<in> ?hull"
+    unfolding mem_Collect_eq
+    apply (rule_tac x=1 in exI, rule_tac x="\<lambda>x. 1" in exI)
+    apply auto
+    done
 next
-  fix t assume as:"s \<subseteq> t" "convex t"
-  show "?hull \<subseteq> t" apply(rule) unfolding mem_Collect_eq apply(erule exE | erule conjE)+ proof-
-    fix x k u y assume assm:"\<forall>i\<in>{1::nat..k}. 0 \<le> u i \<and> y i \<in> s" "setsum u {1..k} = 1" "(\<Sum>i = 1..k. u i *\<^sub>R y i) = x"
-    show "x\<in>t" unfolding assm(3)[symmetric] apply(rule as(2)[unfolded convex, rule_format])
-      using assm(1,2) as(1) by auto qed
+  fix t
+  assume as: "s \<subseteq> t" "convex t"
+  show "?hull \<subseteq> t"
+    apply rule
+    unfolding mem_Collect_eq
+    apply (erule exE | erule conjE)+
+  proof -
+    fix x k u y
+    assume assm:
+      "\<forall>i\<in>{1::nat..k}. 0 \<le> u i \<and> y i \<in> s"
+      "setsum u {1..k} = 1" "(\<Sum>i = 1..k. u i *\<^sub>R y i) = x"
+    show "x\<in>t"
+      unfolding assm(3) [symmetric]
+      apply (rule as(2)[unfolded convex, rule_format])
+      using assm(1,2) as(1) apply auto
+      done
+  qed
 next
-  fix x y u v assume uv:"0\<le>u" "0\<le>v" "u+v=(1::real)" and xy:"x\<in>?hull" "y\<in>?hull"
-  from xy obtain k1 u1 x1 where x:"\<forall>i\<in>{1::nat..k1}. 0\<le>u1 i \<and> x1 i \<in> s" "setsum u1 {Suc 0..k1} = 1" "(\<Sum>i = Suc 0..k1. u1 i *\<^sub>R x1 i) = x" by auto
-  from xy obtain k2 u2 x2 where y:"\<forall>i\<in>{1::nat..k2}. 0\<le>u2 i \<and> x2 i \<in> s" "setsum u2 {Suc 0..k2} = 1" "(\<Sum>i = Suc 0..k2. u2 i *\<^sub>R x2 i) = y" by auto
-  have *:"\<And>P (x1::'a) x2 s1 s2 i.(if P i then s1 else s2) *\<^sub>R (if P i then x1 else x2) = (if P i then s1 *\<^sub>R x1 else s2 *\<^sub>R x2)"
+  fix x y u v
+  assume uv: "0\<le>u" "0\<le>v" "u + v = (1::real)" and xy: "x\<in>?hull" "y\<in>?hull"
+  from xy obtain k1 u1 x1 where
+      x: "\<forall>i\<in>{1::nat..k1}. 0\<le>u1 i \<and> x1 i \<in> s" "setsum u1 {Suc 0..k1} = 1" "(\<Sum>i = Suc 0..k1. u1 i *\<^sub>R x1 i) = x"
+    by auto
+  from xy obtain k2 u2 x2 where
+      y: "\<forall>i\<in>{1::nat..k2}. 0\<le>u2 i \<and> x2 i \<in> s" "setsum u2 {Suc 0..k2} = 1" "(\<Sum>i = Suc 0..k2. u2 i *\<^sub>R x2 i) = y"
+    by auto
+  have *: "\<And>P (x1::'a) x2 s1 s2 i.
+    (if P i then s1 else s2) *\<^sub>R (if P i then x1 else x2) = (if P i then s1 *\<^sub>R x1 else s2 *\<^sub>R x2)"
     "{1..k1 + k2} \<inter> {1..k1} = {1..k1}" "{1..k1 + k2} \<inter> - {1..k1} = (\<lambda>i. i + k1) ` {1..k2}"
-    prefer 3 apply(rule,rule) unfolding image_iff apply(rule_tac x="x - k1" in bexI) by(auto simp add: not_le)
-  have inj:"inj_on (\<lambda>i. i + k1) {1..k2}" unfolding inj_on_def by auto
-  show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull" apply(rule)
-    apply(rule_tac x="k1 + k2" in exI, rule_tac x="\<lambda>i. if i \<in> {1..k1} then u * u1 i else v * u2 (i - k1)" in exI)
-    apply(rule_tac x="\<lambda>i. if i \<in> {1..k1} then x1 i else x2 (i - k1)" in exI) apply(rule,rule) defer apply(rule)
-    unfolding * and setsum_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and setsum_reindex[OF inj] and o_def Collect_mem_eq
-    unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] setsum_right_distrib[symmetric] proof-
-    fix i assume i:"i \<in> {1..k1+k2}"
-    show "0 \<le> (if i \<in> {1..k1} then u * u1 i else v * u2 (i - k1)) \<and> (if i \<in> {1..k1} then x1 i else x2 (i - k1)) \<in> s"
-    proof(cases "i\<in>{1..k1}")
-      case True thus ?thesis using mult_nonneg_nonneg[of u "u1 i"] and uv(1) x(1)[THEN bspec[where x=i]] by auto
-    next def j \<equiv> "i - k1"
-      case False with i have "j \<in> {1..k2}" unfolding j_def by auto
-      thus ?thesis unfolding j_def[symmetric] using False
-        using mult_nonneg_nonneg[of v "u2 j"] and uv(2) y(1)[THEN bspec[where x=j]] by auto qed
-  qed(auto simp add: not_le x(2,3) y(2,3) uv(3))
+    prefer 3
+    apply (rule, rule)
+    unfolding image_iff
+    apply (rule_tac x = "x - k1" in bexI)
+    apply (auto simp add: not_le)
+    done
+  have inj: "inj_on (\<lambda>i. i + k1) {1..k2}"
+    unfolding inj_on_def by auto
+  show "u *\<^sub>R x + v *\<^sub>R y \<in> ?hull"
+    apply rule
+    apply (rule_tac x="k1 + k2" in exI)
+    apply (rule_tac x="\<lambda>i. if i \<in> {1..k1} then u * u1 i else v * u2 (i - k1)" in exI)
+    apply (rule_tac x="\<lambda>i. if i \<in> {1..k1} then x1 i else x2 (i - k1)" in exI)
+    apply (rule, rule)
+    defer
+    apply rule
+    unfolding * and setsum_cases[OF finite_atLeastAtMost[of 1 "k1 + k2"]] and
+      setsum_reindex[OF inj] and o_def Collect_mem_eq
+    unfolding scaleR_scaleR[symmetric] scaleR_right.setsum [symmetric] setsum_right_distrib[symmetric]
+  proof -
+    fix i
+    assume i: "i \<in> {1..k1+k2}"
+    show "0 \<le> (if i \<in> {1..k1} then u * u1 i else v * u2 (i - k1)) \<and>
+      (if i \<in> {1..k1} then x1 i else x2 (i - k1)) \<in> s"
+    proof (cases "i\<in>{1..k1}")
+      case True
+      then show ?thesis
+        using mult_nonneg_nonneg[of u "u1 i"] and uv(1) x(1)[THEN bspec[where x=i]] by auto
+    next
+      case False
+      def j \<equiv> "i - k1"
+      from i False have "j \<in> {1..k2}" unfolding j_def by auto
+      then show ?thesis
+        unfolding j_def[symmetric]
+        using False
+        using mult_nonneg_nonneg[of v "u2 j"] and uv(2) y(1)[THEN bspec[where x=j]]
+        apply auto
+        done
+    qed
+  qed (auto simp add: not_le x(2,3) y(2,3) uv(3))
 qed
 
 lemma convex_hull_finite:
   fixes s :: "'a::real_vector set"
   assumes "finite s"
   shows "convex hull s = {y. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and>
-         setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}" (is "?HULL = ?set")
-proof(rule hull_unique, auto simp add: convex_def[of ?set])
-  fix x assume "x\<in>s" thus " \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = x"
-    apply(rule_tac x="\<lambda>y. if x=y then 1 else 0" in exI) apply auto
-    unfolding setsum_delta'[OF assms] and setsum_delta''[OF assms] by auto
+    setsum u s = 1 \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y}" (is "?HULL = ?set")
+proof (rule hull_unique, auto simp add: convex_def[of ?set])
+  fix x
+  assume "x \<in> s"
+  then show "\<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>x\<in>s. u x *\<^sub>R x) = x"
+    apply (rule_tac x="\<lambda>y. if x=y then 1 else 0" in exI)
+    apply auto
+    unfolding setsum_delta'[OF assms] and setsum_delta''[OF assms]
+    apply auto
+    done
 next
-  fix u v ::real assume uv:"0 \<le> u" "0 \<le> v" "u + v = 1"
-  fix ux assume ux:"\<forall>x\<in>s. 0 \<le> ux x" "setsum ux s = (1::real)"
-  fix uy assume uy:"\<forall>x\<in>s. 0 \<le> uy x" "setsum uy s = (1::real)"
-  { fix x assume "x\<in>s"
-    hence "0 \<le> u * ux x + v * uy x" using ux(1)[THEN bspec[where x=x]] uy(1)[THEN bspec[where x=x]] and uv(1,2)
-      by (auto, metis add_nonneg_nonneg mult_nonneg_nonneg uv(1) uv(2))  }
-  moreover have "(\<Sum>x\<in>s. u * ux x + v * uy x) = 1"
+  fix u v :: real
+  assume uv: "0 \<le> u" "0 \<le> v" "u + v = 1"
+  fix ux assume ux: "\<forall>x\<in>s. 0 \<le> ux x" "setsum ux s = (1::real)"
+  fix uy assume uy: "\<forall>x\<in>s. 0 \<le> uy x" "setsum uy s = (1::real)"
+  { fix x
+    assume "x\<in>s"
+    then have "0 \<le> u * ux x + v * uy x"
+      using ux(1)[THEN bspec[where x=x]] uy(1)[THEN bspec[where x=x]] and uv(1,2)
+      apply auto
+      apply (metis add_nonneg_nonneg mult_nonneg_nonneg uv(1) uv(2))
+      done
+  }
+  moreover
+  have "(\<Sum>x\<in>s. u * ux x + v * uy x) = 1"
     unfolding setsum_addf and setsum_right_distrib[symmetric] and ux(2) uy(2) using uv(3) by auto
-  moreover have "(\<Sum>x\<in>s. (u * ux x + v * uy x) *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
-    unfolding scaleR_left_distrib and setsum_addf and scaleR_scaleR[symmetric] and scaleR_right.setsum [symmetric] by auto
-  ultimately show "\<exists>uc. (\<forall>x\<in>s. 0 \<le> uc x) \<and> setsum uc s = 1 \<and> (\<Sum>x\<in>s. uc x *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
-    apply(rule_tac x="\<lambda>x. u * ux x + v * uy x" in exI) by auto
+  moreover
+  have "(\<Sum>x\<in>s. (u * ux x + v * uy x) *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
+    unfolding scaleR_left_distrib and setsum_addf and scaleR_scaleR[symmetric] and scaleR_right.setsum [symmetric]
+    by auto
+  ultimately
+  show "\<exists>uc. (\<forall>x\<in>s. 0 \<le> uc x) \<and> setsum uc s = 1 \<and>
+      (\<Sum>x\<in>s. uc x *\<^sub>R x) = u *\<^sub>R (\<Sum>x\<in>s. ux x *\<^sub>R x) + v *\<^sub>R (\<Sum>x\<in>s. uy x *\<^sub>R x)"
+    apply (rule_tac x="\<lambda>x. u * ux x + v * uy x" in exI)
+    apply auto
+    done
 next
-  fix t assume t:"s \<subseteq> t" "convex t"
-  fix u assume u:"\<forall>x\<in>s. 0 \<le> u x" "setsum u s = (1::real)"
-  thus "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> t" using t(2)[unfolded convex_explicit, THEN spec[where x=s], THEN spec[where x=u]]
+  fix t
+  assume t: "s \<subseteq> t" "convex t"
+  fix u
+  assume u: "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = (1::real)"
+  then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> t"
+    using t(2)[unfolded convex_explicit, THEN spec[where x=s], THEN spec[where x=u]]
     using assms and t(1) by auto
 qed
+
 
 subsubsection {* Another formulation from Lars Schewe *}
 
 lemma setsum_constant_scaleR:
   fixes y :: "'a::real_vector"
   shows "(\<Sum>x\<in>A. y) = of_nat (card A) *\<^sub>R y"
-apply (cases "finite A")
-apply (induct set: finite)
-apply (simp_all add: algebra_simps)
-done
+  apply (cases "finite A")
+  apply (induct set: finite)
+  apply (simp_all add: algebra_simps)
+  done
 
 lemma convex_hull_explicit:
   fixes p :: "'a::real_vector set"
   shows "convex hull p = {y. \<exists>s u. finite s \<and> s \<subseteq> p \<and>
-             (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}" (is "?lhs = ?rhs")
-proof-
+    (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> setsum (\<lambda>v. u v *\<^sub>R v) s = y}" (is "?lhs = ?rhs")
+proof -
   { fix x assume "x\<in>?lhs"
-    then obtain k u y where obt:"\<forall>i\<in>{1::nat..k}. 0 \<le> u i \<and> y i \<in> p" "setsum u {1..k} = 1" "(\<Sum>i = 1..k. u i *\<^sub>R y i) = x"
+    then obtain k u y where
+        obt: "\<forall>i\<in>{1::nat..k}. 0 \<le> u i \<and> y i \<in> p" "setsum u {1..k} = 1" "(\<Sum>i = 1..k. u i *\<^sub>R y i) = x"
       unfolding convex_hull_indexed by auto
 
-    have fin:"finite {1..k}" by auto
-    have fin':"\<And>v. finite {i \<in> {1..k}. y i = v}" by auto
-    { fix j assume "j\<in>{1..k}"
-      hence "y j \<in> p" "0 \<le> setsum u {i. Suc 0 \<le> i \<and> i \<le> k \<and> y i = y j}"
-        using obt(1)[THEN bspec[where x=j]] and obt(2) apply simp
-        apply(rule setsum_nonneg) using obt(1) by auto }
+    have fin: "finite {1..k}" by auto
+    have fin': "\<And>v. finite {i \<in> {1..k}. y i = v}" by auto
+    { fix j
+      assume "j\<in>{1..k}"
+      then have "y j \<in> p" "0 \<le> setsum u {i. Suc 0 \<le> i \<and> i \<le> k \<and> y i = y j}"
+        using obt(1)[THEN bspec[where x=j]] and obt(2)
+        apply simp
+        apply (rule setsum_nonneg)
+        using obt(1)
+        apply auto
+        done
+    }
     moreover
     have "(\<Sum>v\<in>y ` {1..k}. setsum u {i \<in> {1..k}. y i = v}) = 1"
       unfolding setsum_image_gen[OF fin, symmetric] using obt(2) by auto
     moreover have "(\<Sum>v\<in>y ` {1..k}. setsum u {i \<in> {1..k}. y i = v} *\<^sub>R v) = x"
       using setsum_image_gen[OF fin, of "\<lambda>i. u i *\<^sub>R y i" y, symmetric]
       unfolding scaleR_left.setsum using obt(3) by auto
-    ultimately have "\<exists>s u. finite s \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
-      apply(rule_tac x="y ` {1..k}" in exI)
-      apply(rule_tac x="\<lambda>v. setsum u {i\<in>{1..k}. y i = v}" in exI) by auto
-    hence "x\<in>?rhs" by auto  }
+    ultimately
+    have "\<exists>s u. finite s \<and> s \<subseteq> p \<and> (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *\<^sub>R v) = x"
+      apply (rule_tac x="y ` {1..k}" in exI)
+      apply (rule_tac x="\<lambda>v. setsum u {i\<in>{1..k}. y i = v}" in exI)
+      apply auto
+      done
+    then have "x\<in>?rhs" by auto
+  }
   moreover
   { fix y assume "y\<in>?rhs"
-    then obtain s u where obt:"finite s" "s \<subseteq> p" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = y" by auto
+    then obtain s u where
+      obt: "finite s" "s \<subseteq> p" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = 1" "(\<Sum>v\<in>s. u v *\<^sub>R v) = y" by auto
 
-    obtain f where f:"inj_on f {1..card s}" "f ` {1..card s} = s" using ex_bij_betw_nat_finite_1[OF obt(1)] unfolding bij_betw_def by auto
+    obtain f where f: "inj_on f {1..card s}" "f ` {1..card s} = s"
+      using ex_bij_betw_nat_finite_1[OF obt(1)] unfolding bij_betw_def by auto
 
-    { fix i::nat assume "i\<in>{1..card s}"
-      hence "f i \<in> s"  apply(subst f(2)[symmetric]) by auto
-      hence "0 \<le> u (f i)" "f i \<in> p" using obt(2,3) by auto  }
+    { fix i :: nat
+      assume "i\<in>{1..card s}"
+      then have "f i \<in> s"
+        apply (subst f(2)[symmetric])
+        apply auto
+        done
+      then have "0 \<le> u (f i)" "f i \<in> p" using obt(2,3) by auto
+    }
     moreover have *:"finite {1..card s}" by auto
-    { fix y assume "y\<in>s"
-      then obtain i where "i\<in>{1..card s}" "f i = y" using f using image_iff[of y f "{1..card s}"] by auto
-      hence "{x. Suc 0 \<le> x \<and> x \<le> card s \<and> f x = y} = {i}" apply auto using f(1)[unfolded inj_on_def] apply(erule_tac x=x in ballE) by auto
-      hence "card {x. Suc 0 \<le> x \<and> x \<le> card s \<and> f x = y} = 1" by auto
-      hence "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x)) = u y"
-            "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x) = u y *\<^sub>R y"
-        by (auto simp add: setsum_constant_scaleR)   }
-
-    hence "(\<Sum>x = 1..card s. u (f x)) = 1" "(\<Sum>i = 1..card s. u (f i) *\<^sub>R f i) = y"
+    { fix y
+      assume "y\<in>s"
+      then obtain i where "i\<in>{1..card s}" "f i = y" using f using image_iff[of y f "{1..card s}"]
+        by auto
+      then have "{x. Suc 0 \<le> x \<and> x \<le> card s \<and> f x = y} = {i}"
+        apply auto
+        using f(1)[unfolded inj_on_def]
+        apply(erule_tac x=x in ballE)
+        apply auto
+        done
+      then have "card {x. Suc 0 \<le> x \<and> x \<le> card s \<and> f x = y} = 1" by auto
+      then have "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x)) = u y"
+          "(\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x) = u y *\<^sub>R y"
+        by (auto simp add: setsum_constant_scaleR)
+    }
+    then have "(\<Sum>x = 1..card s. u (f x)) = 1" "(\<Sum>i = 1..card s. u (f i) *\<^sub>R f i) = y"
       unfolding setsum_image_gen[OF *(1), of "\<lambda>x. u (f x) *\<^sub>R f x" f] and setsum_image_gen[OF *(1), of "\<lambda>x. u (f x)" f]
       unfolding f using setsum_cong2[of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x) *\<^sub>R f x)" "\<lambda>v. u v *\<^sub>R v"]
-      using setsum_cong2 [of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x))" u] unfolding obt(4,5) by auto
-
-    ultimately have "\<exists>k u x. (\<forall>i\<in>{1..k}. 0 \<le> u i \<and> x i \<in> p) \<and> setsum u {1..k} = 1 \<and> (\<Sum>i::nat = 1..k. u i *\<^sub>R x i) = y"
-      apply(rule_tac x="card s" in exI) apply(rule_tac x="u \<circ> f" in exI) apply(rule_tac x=f in exI) by fastforce
-    hence "y \<in> ?lhs" unfolding convex_hull_indexed by auto  }
+      using setsum_cong2 [of s "\<lambda>y. (\<Sum>x\<in>{x \<in> {1..card s}. f x = y}. u (f x))" u]
+      unfolding obt(4,5) by auto
+    ultimately
+    have "\<exists>k u x. (\<forall>i\<in>{1..k}. 0 \<le> u i \<and> x i \<in> p) \<and> setsum u {1..k} = 1 \<and>
+        (\<Sum>i::nat = 1..k. u i *\<^sub>R x i) = y"
+      apply (rule_tac x="card s" in exI)
+      apply (rule_tac x="u \<circ> f" in exI)
+      apply (rule_tac x=f in exI)
+      apply fastforce
+      done
+    then have "y \<in> ?lhs" unfolding convex_hull_indexed by auto
+  }
   ultimately show ?thesis unfolding set_eq_iff by blast
 qed
+
 
 subsubsection {* A stepping theorem for that expansion *}
 
 lemma convex_hull_finite_step:
-  fixes s :: "'a::real_vector set" assumes "finite s"
+  fixes s :: "'a::real_vector set"
+  assumes "finite s"
   shows "(\<exists>u. (\<forall>x\<in>insert a s. 0 \<le> u x) \<and> setsum u (insert a s) = w \<and> setsum (\<lambda>x. u x *\<^sub>R x) (insert a s) = y)
      \<longleftrightarrow> (\<exists>v\<ge>0. \<exists>u. (\<forall>x\<in>s. 0 \<le> u x) \<and> setsum u s = w - v \<and> setsum (\<lambda>x. u x *\<^sub>R x) s = y - v *\<^sub>R a)" (is "?lhs = ?rhs")
-proof(rule, case_tac[!] "a\<in>s")
-  assume "a\<in>s" hence *:"insert a s = s" by auto
-  assume ?lhs thus ?rhs unfolding * apply(rule_tac x=0 in exI) by auto
+proof (rule, case_tac[!] "a\<in>s")
+  assume "a\<in>s"
+  then have *:" insert a s = s" by auto
+  assume ?lhs
+  then show ?rhs
+    unfolding *
+    apply (rule_tac x=0 in exI)
+    apply auto
+    done
 next
-  assume ?lhs then obtain u where u:"\<forall>x\<in>insert a s. 0 \<le> u x" "setsum u (insert a s) = w" "(\<Sum>x\<in>insert a s. u x *\<^sub>R x) = y" by auto
-  assume "a\<notin>s" thus ?rhs apply(rule_tac x="u a" in exI) using u(1)[THEN bspec[where x=a]] apply simp
-    apply(rule_tac x=u in exI) using u[unfolded setsum_clauses(2)[OF assms]] and `a\<notin>s` by auto
+  assume ?lhs
+  then obtain u where u: "\<forall>x\<in>insert a s. 0 \<le> u x" "setsum u (insert a s) = w" "(\<Sum>x\<in>insert a s. u x *\<^sub>R x) = y"
+    by auto
+  assume "a \<notin> s"
+  then show ?rhs
+    apply (rule_tac x="u a" in exI)
+    using u(1)[THEN bspec[where x=a]]
+    apply simp
+    apply (rule_tac x=u in exI)
+    using u[unfolded setsum_clauses(2)[OF assms]] and `a\<notin>s`
+    apply auto
+    done
 next
-  assume "a\<in>s" hence *:"insert a s = s" by auto
-  have fin:"finite (insert a s)" using assms by auto
-  assume ?rhs then obtain v u where uv:"v\<ge>0" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = w - v" "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a" by auto
-  show ?lhs apply(rule_tac x="\<lambda>x. (if a = x then v else 0) + u x" in exI) unfolding scaleR_left_distrib and setsum_addf and setsum_delta''[OF fin] and setsum_delta'[OF fin]
-    unfolding setsum_clauses(2)[OF assms] using uv and uv(2)[THEN bspec[where x=a]] and `a\<in>s` by auto
+  assume "a \<in> s"
+  then have *: "insert a s = s" by auto
+  have fin: "finite (insert a s)" using assms by auto
+  assume ?rhs
+  then obtain v u where uv: "v\<ge>0" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = w - v" "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a"
+    by auto
+  show ?lhs
+    apply (rule_tac x = "\<lambda>x. (if a = x then v else 0) + u x" in exI)
+    unfolding scaleR_left_distrib and setsum_addf and setsum_delta''[OF fin] and setsum_delta'[OF fin]
+    unfolding setsum_clauses(2)[OF assms]
+    using uv and uv(2)[THEN bspec[where x=a]] and `a\<in>s`
+    apply auto
+    done
 next
-  assume ?rhs then obtain v u where uv:"v\<ge>0" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = w - v" "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a" by auto
-  moreover assume "a\<notin>s" moreover have "(\<Sum>x\<in>s. if a = x then v else u x) = setsum u s" "(\<Sum>x\<in>s. (if a = x then v else u x) *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x)"
-    apply(rule_tac setsum_cong2) defer apply(rule_tac setsum_cong2) using `a\<notin>s` by auto
-  ultimately show ?lhs apply(rule_tac x="\<lambda>x. if a = x then v else u x" in exI)  unfolding setsum_clauses(2)[OF assms] by auto
+  assume ?rhs
+  then obtain v u where uv: "v\<ge>0" "\<forall>x\<in>s. 0 \<le> u x" "setsum u s = w - v" "(\<Sum>x\<in>s. u x *\<^sub>R x) = y - v *\<^sub>R a"
+    by auto
+  moreover
+  assume "a \<notin> s"
+  moreover
+  have "(\<Sum>x\<in>s. if a = x then v else u x) = setsum u s" "(\<Sum>x\<in>s. (if a = x then v else u x) *\<^sub>R x) = (\<Sum>x\<in>s. u x *\<^sub>R x)"
+    apply (rule_tac setsum_cong2)
+    defer
+    apply (rule_tac setsum_cong2)
+    using `a \<notin> s`
+    apply auto
+    done
+  ultimately show ?lhs
+    apply (rule_tac x="\<lambda>x. if a = x then v else u x" in exI)
+    unfolding setsum_clauses(2)[OF assms]
+    apply auto
+    done
 qed
+
 
 subsubsection {* Hence some special cases *}
 
