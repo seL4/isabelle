@@ -60,7 +60,7 @@ mkdir -p "$ARCHIVE_DIR/contrib"
 
 echo "#bundled components" >> "$ISABELLE_TARGET/etc/components"
 
-for CATALOG in main bundled "$PLATFORM_FAMILY"
+for CATALOG in main "$PLATFORM_FAMILY" bundled "bundled-$PLATFORM_FAMILY"
 do
   CATALOG_FILE="$ISABELLE_HOME/Admin/components/$CATALOG"
   if [ -f "$CATALOG_FILE" ]
@@ -117,7 +117,7 @@ case "$PLATFORM_FAMILY" in
     perl -pi -e "s,lookAndFeel=.*,lookAndFeel=com.sun.java.swing.plaf.windows.WindowsLookAndFeel,g;" \
       "$TMP/$ISABELLE_NAME/src/Tools/jEdit/dist/properties/jEdit.props"
 
-    # FIXME cygwin.tar.gz
+    mv "$ISABELLE_TARGET/contrib/cygwin" "$ISABELLE_TARGET"
 
     cp "$ISABELLE_HOME/Admin/Windows/launch4j/Isabelle.exe" "$ISABELLE_TARGET/Isabelle2013.exe"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
