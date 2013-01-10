@@ -344,12 +344,12 @@ fun build_name_tables name_of facts =
   let
     fun cons_thm (_, th) = Termtab.cons_list (normalize_eq_etc (prop_of th), th)
     fun add_plain canon alias =
-      Symtab.update (Thm.get_name_hint canon,
+      Symtab.update (Thm.get_name_hint alias,
                      name_of (if_thm_before canon alias))
     fun add_plains (_, aliases as canon :: _) = fold (add_plain canon) aliases
     fun add_inclass (name, target) =
       fold (fn s => Symtab.update (s, target)) (un_class_ify name)
-    val prop_tab = fold_rev cons_thm facts Termtab.empty
+    val prop_tab = fold cons_thm facts Termtab.empty
     val plain_name_tab = Termtab.fold add_plains prop_tab Symtab.empty
     val inclass_name_tab = Symtab.fold add_inclass plain_name_tab Symtab.empty
   in (plain_name_tab, inclass_name_tab) end
