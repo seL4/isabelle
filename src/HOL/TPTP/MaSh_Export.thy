@@ -71,7 +71,7 @@ else
 *}
 
 ML {*
-if true orelse do_it then
+if do_it then
   generate_mepo_suggestions @{context} params thys max_suggestions
       (prefix ^ "mepo_suggestions")
 else
