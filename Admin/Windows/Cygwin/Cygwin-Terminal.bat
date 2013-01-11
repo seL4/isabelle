@@ -6,4 +6,4 @@ set CHERE_INVOKING=true
 
 echo This is the GNU Bash interpreter of Cygwin.
 echo Use command "isabelle" to invoke Isabelle tools.
-"%CD%\cygwin\bin\bash" --login -i
+"%CD%\contrib\cygwin\bin\bash" --login -i

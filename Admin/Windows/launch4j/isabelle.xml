@@ -24,7 +24,7 @@
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
-    <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\cygwin&quot;</opt>
+    <opt>-Disabelle.home=&quot;%EXEDIR%&quot; -Dcygwin.root=&quot;%EXEDIR%\\contrib\\cygwin&quot;</opt>
   </jre>
   <splash>
     <file>isabelle.bmp</file>

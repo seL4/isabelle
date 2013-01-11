@@ -101,7 +101,8 @@ selections.  Cf. keyboard shortcuts C+e DOWN/UP/RIGHT/LEFT.
 
 * Actions isabelle.increase-font-size and isabelle.decrease-font-size
 adjust the main text area font size, and its derivatives for output,
-tooltips etc.  Cf. keyboard shortcuts C-PLUS and C-MINUS.
+tooltips etc.  Cf. keyboard shortcuts C-PLUS and C-MINUS, which often
+need to be adapted to local keyboard layouts.
 
 * More reactive completion popup by default: use \t (TAB) instead of
 \n (NEWLINE) to minimize intrusion into regular flow of editing.  See

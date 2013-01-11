@@ -2,6 +2,11 @@
 #
 # DESCRIPTION: produce pre-canned Cygwin distribution for Isabelle
 
+## global parameters
+
+CYGWIN_MIRROR="http://isabelle.in.tum.de/cygwin_2013"
+
+
 ## diagnostics
 
 PRG=$(basename "$0")
@@ -38,7 +43,7 @@ TARGET="$PWD/cygwin"
 [ ! -e "$TARGET" ] || fail "Target already exists: \"$TARGET\""
 mkdir -p "$TARGET/isabelle" || fail "Failed to create target directory: \"$TARGET\""
 
-perl -MLWP::Simple -e "getprint 'http://cygwin.com/setup.exe';" > "$TARGET/isabelle/cygwin.exe"
+perl -MLWP::Simple -e "getprint '$CYGWIN_MIRROR/setup.exe';" > "$TARGET/isabelle/cygwin.exe"
 chmod +x "$TARGET/isabelle/cygwin.exe"
 
 "$TARGET/isabelle/cygwin.exe" -h </dev/null >/dev/null || exit 2
@@ -47,7 +52,8 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
 # install
 
 "$TARGET/isabelle/cygwin.exe" \
-  --local-package-dir "$(cygpath -w "$TMP/cygwin")" \
+  --site "$CYGWIN_MIRROR" --no-verify \
+  --local-package-dir 'C:\tmp' \
   --root "$(cygpath -w "$TARGET")" \
   --packages libgmp3,perl,python,rlwrap \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
@@ -71,4 +77,5 @@ cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/." "$TARGET/isabelle/."
 
 # archive
 
-tar cvzf "${TARGET}.tar.gz" "$TARGET"
+DATE=$(date +%Y%m%d)
+tar -C "$TARGET/.." -cz -f "cygwin-${DATE}.tar.gz" cygwin
