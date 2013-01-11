@@ -87,15 +87,13 @@ class TheoryModels(object):
         for a in self.accTheories:                
             self.theoryModels[a].overwrite(features,a in oldTheories,a in newTheories) 
     
-    def delete(self):
-        pass
+    def delete(self,problemId,features,dependencies,dicts):
+        tmp = [dicts.idNameDict[x] for x in dependencies]
+        usedTheories = set([x.split('.')[0] for x in tmp])   
+        for a in self.accessibleTheories:        
+            self.theoryModels[a].delete(features,a in usedTheories)  
     
-    def update(self,problemId,dicts):        
-        features = dicts.featureDict[problemId]
-        
-        # Find the actually used theories
-        tmp = [dicts.idNameDict[x] for x in dicts.dependenciesDict[problemId]]
-        usedTheories = set([x.split('.')[0] for x in tmp]) 
+    def update(self,problemId,features,dependencies,dicts): 
         currentTheory = (dicts.idNameDict[problemId]).split('.')[0]       
         # Create new theory model, if there is a new theory 
         if not self.theoryDict.has_key(currentTheory):
@@ -105,9 +103,15 @@ class TheoryModels(object):
                 self.currentTheory = currentTheory
                 theoryModel = singleNBClassifier()
                 self.theoryModels[currentTheory] = theoryModel
-                self.accessibleTheories.add(self.currentTheory)          
-        if not len(usedTheories) == 0:
-            for a in self.accessibleTheories:                
+                self.accessibleTheories.add(self.currentTheory) 
+        self.update_with_acc(problemId,features,dependencies,dicts,self.accessibleTheories)  
+    
+    def update_with_acc(self,problemId,features,dependencies,dicts,accessibleTheories):        
+        # Find the actually used theories
+        tmp = [dicts.idNameDict[x] for x in dependencies]
+        usedTheories = set([x.split('.')[0] for x in tmp]) 
+        if not len(usedTheories) == 0: 
+            for a in accessibleTheories:                
                 self.theoryModels[a].update(features,a in usedTheories)   
     
     def predict(self,features,accessibles,dicts):

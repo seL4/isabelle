@@ -61,7 +61,7 @@ class singleNBClassifier(object):
             self.pos -= 1
         else:
             self.neg -= 1
-        for f in features:
+        for f,_w in features:
             posCount,negCount = self.counts[f]
             if label:
                 posCount -= 1
@@ -79,7 +79,7 @@ class singleNBClassifier(object):
     
     def predict_sparse(self,features):
         """
-        Returns 1 if the probability is greater than 50%.
+        Returns 1 if the probability of + being the correct label is greater than the probability that - is the correct label.
         """
         if self.neg == 0:
             return 1

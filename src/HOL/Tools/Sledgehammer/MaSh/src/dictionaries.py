@@ -31,6 +31,7 @@ class Dictionaries(object):
         self.featureDict = {}
         self.dependenciesDict = {}
         self.accessibleDict = {}
+        self.featureCountDict = {}
         self.expandedAccessibles = {}
         self.changed = True
 
@@ -38,8 +39,8 @@ class Dictionaries(object):
     Init functions. Side Effect: nameIdDict, idNameDict, featureIdDict, articleDict get filled!
     """
     def init_featureDict(self,featureFile):
-        self.featureDict,self.maxNameId,self.maxFeatureId = create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,\
-                                                                                self.maxFeatureId,featureFile)
+        self.featureDict,self.maxNameId,self.maxFeatureId, self.featureCountDict = create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,\
+                                                                                                       self.maxFeatureId,self.featureCountDict,featureFile)
     def init_dependenciesDict(self,depFile):
         self.dependenciesDict = create_dependencies_dict(self.nameIdDict,depFile)
     def init_accessibleDict(self,accFile):
@@ -73,9 +74,12 @@ class Dictionaries(object):
     def add_feature(self,featureName):
         if not self.featureIdDict.has_key(featureName):
             self.featureIdDict[featureName] = self.maxFeatureId
+            self.featureCountDict[self.maxFeatureId] = 0
             self.maxFeatureId += 1
             self.changed = True
-        return self.featureIdDict[featureName]
+        fId = self.featureIdDict[featureName]
+        self.featureCountDict[fId] += 1
+        return fId
 
     def get_features(self,line):
         # Feature Ids
@@ -83,12 +87,12 @@ class Dictionaries(object):
         features = []
         for fn in featureNames:
             tmp = fn.split('=')
+            weight = 1.0
             if len(tmp) == 2:
-                fId = self.add_feature(tmp[0])
-                features.append((fId,float(tmp[1])))
-            else:
-                fId = self.add_feature(fn)
-                features.append((fId,1.0))
+                fn = tmp[0]
+                weight = float(tmp[1])
+            fId = self.add_feature(tmp[0])
+            features.append((fId,weight))
         return features
 
     def expand_accessibles(self,acc):
@@ -150,7 +154,7 @@ class Dictionaries(object):
 
     def parse_problem(self,line):
         """
-        Parses a problem and returns the features and the accessibles.
+        Parses a problem and returns the features, the accessibles, and any hints.
         """
         assert line.startswith('? ')
         line = line[2:]
@@ -176,19 +180,24 @@ class Dictionaries(object):
                 self.changed = True
         accessibles = self.expand_accessibles(unExpAcc)
         features = self.get_features(line)
+        # Get hints:
+        if len(line) == 3:
+            hints = [self.nameIdDict[d.strip()] for d in line[2].split()]
+        else:
+            hints = []
 
-        return name,features,accessibles
+        return name,features,accessibles,hints
 
     def save(self,fileName):
         if self.changed:
             dictsStream = open(fileName, 'wb')
             dump((self.accessibleDict,self.dependenciesDict,self.expandedAccessibles,self.featureDict,\
-                self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict),dictsStream)
+                self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict),dictsStream)
             self.changed = False
             dictsStream.close()
     def load(self,fileName):
         dictsStream = open(fileName, 'rb')
         self.accessibleDict,self.dependenciesDict,self.expandedAccessibles,self.featureDict,\
-              self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict = load(dictsStream)
+              self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict = load(dictsStream)
         self.changed = False
         dictsStream.close()

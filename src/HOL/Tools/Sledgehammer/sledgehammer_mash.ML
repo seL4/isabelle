@@ -313,7 +313,7 @@ val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20130104a ***"
+val version = "*** MaSh version 20130111a ***"
 
 exception Too_New of unit
 

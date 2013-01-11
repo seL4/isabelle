@@ -19,11 +19,15 @@ class sparseNBClassifier(object):
     An updateable naive Bayes classifier.
     '''
 
-    def __init__(self):
+    def __init__(self,useSinePrior = False):
         '''
         Constructor
         '''
         self.counts = {}
+        self.sinePrior = useSinePrior
+        self.defaultPriorWeight = 20
+        self.posWeight = 20 
+        self.defVal = 15
 
     def initializeModel(self,trainData,dicts):
         """
@@ -32,6 +36,10 @@ class sparseNBClassifier(object):
         for d in trainData:
             dPosCount = 0
             dFeatureCounts = {}
+            # DEBUG: give p |- p a higher weight
+            dPosCount = self.defaultPriorWeight
+            for f,_w in dicts.featureDict[d]:
+                dFeatureCounts[f] = self.defaultPriorWeight
             self.counts[d] = [dPosCount,dFeatureCounts]
 
         for key in dicts.dependenciesDict.keys():
@@ -53,8 +61,12 @@ class sparseNBClassifier(object):
         """
         if not self.counts.has_key(dataPoint):
             dPosCount = 0
-            dFeatureCounts = {}
-            self.counts[dataPoint] = [dPosCount,dFeatureCounts]
+            dFeatureCounts = {}            
+            # DEBUG: give p |- p a higher weight
+            dPosCount = self.defaultPriorWeight
+            for f,_w in features:
+                dFeatureCounts[f] = self.defaultPriorWeight
+            self.counts[dataPoint] = [dPosCount,dFeatureCounts]            
         for dep in dependencies:
             self.counts[dep][0] += 1
             for f,_w in features:
@@ -69,7 +81,7 @@ class sparseNBClassifier(object):
         """
         for dep in dependencies:
             self.counts[dep][0] -= 1
-            for f in features:
+            for f,_w in features:
                 self.counts[dep][1][f] -= 1
 
 
@@ -83,13 +95,11 @@ class sparseNBClassifier(object):
         self.delete(problemId,features,oldDeps)
         self.update(problemId,features,newDependencies)
 
-    def predict(self,features,accessibles):
+    def predict(self,features,accessibles,dicts):
         """
         For each accessible, predicts the probability of it being useful given the features.
         Returns a ranking of the accessibles.
         """
-        posWeight = 20.0
-        defVal = 15
         predictions = []
         for a in accessibles:
             posA = self.counts[a][0]
@@ -101,12 +111,12 @@ class sparseNBClassifier(object):
                 #w = 1
                 if f in fA:
                     if fWeightsA[f] == 0:
-                        resultA -= w*defVal
+                        resultA -= w*self.defVal
                     else:
                         assert fWeightsA[f] <= posA
-                        resultA += w*log(float(posWeight*fWeightsA[f])/posA)
+                        resultA += w*log(float(self.posWeight*fWeightsA[f])/posA)
                 else:
-                    resultA -= w*defVal
+                    resultA -= w*self.defVal
             predictions.append(resultA)
         #expPredictions = array([exp(x) for x in predictions])
         predictions = array(predictions)

@@ -48,6 +48,8 @@ parser.add_argument('--depFile', default='mash_dependencies',
                     help='Name of the file with the premise dependencies. The file must be in inputDir. Default = mash_dependencies')
 parser.add_argument('--saveModel',default=False,action='store_true',help="Stores the learned Model at the end of a prediction run. Default=False.")
 parser.add_argument('--learnTheories',default=False,action='store_true',help="Uses a two-lvl prediction mode. First the theories, then the premises. Default=False.")
+#DEBUG: Change sineprioir default to false
+parser.add_argument('--sinePrior',default=True,action='store_true',help="Uses a SInE like prior for premise lvl predictions. Default=False.")
 
 
 parser.add_argument('--nb',default=False,action='store_true',help="Use Naive Bayes for learning. This is the default learning method.")
@@ -87,7 +89,7 @@ def main(argv = sys.argv[1:]):
     # Pick algorithm
     if args.nb:
         logger.info('Using sparse Naive Bayes for learning.')
-        model = sparseNBClassifier()
+        model = sparseNBClassifier(args.sinePrior)
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     elif args.snow:
         logger.info('Using naive bayes (SNoW) for learning.')
@@ -101,7 +103,7 @@ def main(argv = sys.argv[1:]):
         modelFile = os.path.join(args.outputDir,'mepo.pickle')        
     else:
         logger.info('No algorithm specified. Using sparse Naive Bayes.')
-        model = sparseNBClassifier()
+        model = sparseNBClassifier(args.sinePrior)
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     dictsFile = os.path.join(args.outputDir,'dicts.pickle')
     theoryFile = os.path.join(args.outputDir,'theory.pickle')
@@ -182,7 +184,7 @@ def main(argv = sys.argv[1:]):
                     # Update Dependencies, p proves p
                     dicts.dependenciesDict[problemId] = [problemId]+dicts.dependenciesDict[problemId]
                     if args.learnTheories:
-                        theoryModels.update(problemId,dicts)
+                        theoryModels.update(problemId,dicts.featureDict[problemId],dicts.dependenciesDict[problemId],dicts)
                     if args.snow:
                         model.update(problemId,dicts.featureDict[problemId],dicts.dependenciesDict[problemId],dicts)
                     else:
@@ -200,16 +202,34 @@ def main(argv = sys.argv[1:]):
                     computeStats = True
                     if args.predef:
                         continue
-                    name,features,accessibles = dicts.parse_problem(line)    
+                    name,features,accessibles,hints = dicts.parse_problem(line)    
                     # Create predictions
                     logger.info('Starting computation for problem on line %s',lineCounter)
+                    # Update Models with hints
+                    if not hints == []:
+                        if args.learnTheories:
+                            accessibleTheories = set([(dicts.idNameDict[x]).split('.')[0] for x in accessibles])
+                            theoryModels.update_with_acc('hints',features,hints,dicts,accessibleTheories)
+                        if args.snow:
+                            pass
+                        else:
+                            model.update('hints',features,hints)
+                    
+                    # Predict premises
                     if args.learnTheories:
                         predictedTheories,accessibles = theoryModels.predict(features,accessibles,dicts)
-                    if args.snow:
-                        predictions,predictionValues = model.predict(features,accessibles,dicts)
-                    else:
-                        predictions,predictionValues = model.predict(features,accessibles)
+                    predictions,predictionValues = model.predict(features,accessibles,dicts)
                     assert len(predictions) == len(predictionValues)
+                    
+                    # Delete hints
+                    if not hints == []:
+                        if args.learnTheories:
+                            theoryModels.delete('hints',features,hints,dicts)
+                        if args.snow:
+                            pass
+                        else:
+                            model.delete('hints',features,hints)
+
                     logger.info('Done. %s seconds needed.',round(time()-startTime,2))
                     # Output        
                     predictionNames = [str(dicts.idNameDict[p]) for p in predictions[:args.numberOfPredictions]]
@@ -253,10 +273,19 @@ def main(argv = sys.argv[1:]):
 
 if __name__ == '__main__':
     # Example:
+    # Auth
+    # ISAR Theories
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121227b/Auth/','--learnTheories']    
+    #args = ['-i', '../data/20121227b/Auth/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--learnTheories']
+    # ISAR MePo 
+    #args = ['-l','testIsabelle.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121227b/Auth/','--predef']
+    #args = ['-i', '../data/20121227b/Auth/mash_commands','-p','../tmp/JinjaMePo.pred','-l','testIsabelle.log','--predef','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaMePo.stats']
+
+    
     # Jinja
     # ISAR Theories
-    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121221/Jinja/','--learnTheories']    
-    #args = ['-i', '../data/20121221/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--learnTheories']
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121227b/Jinja/','--learnTheories']    
+    #args = ['-i', '../data/20121227b/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--learnTheories']
     # ISAR NB
     #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121221/Jinja/']    
     #args = ['-i', '../data/20121221/Jinja/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500']
@@ -277,6 +306,9 @@ if __name__ == '__main__':
 
 
     # Probability
+    # ISAR Theories
+    #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121213/Probability/','--learnTheories']    
+    #args = ['-i', '../data/20121213/Probability/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/JinjaIsarNB.stats','--cutOff','500','--learnTheories']
     # ISAR NB
     #args = ['-l','testNB.log','-o','../tmp/','--statistics','--init','--inputDir','../data/20121213/Probability/']    
     #args = ['-i', '../data/20121213/Probability/mash_commands','-p','../tmp/testNB.pred','-l','../tmp/testNB.log','--nb','-o','../tmp/','--statistics','--saveStats','../tmp/ProbIsarNB.stats','--cutOff','500']

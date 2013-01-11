@@ -14,7 +14,7 @@ Created on July 9, 2012
 
 import sys,logging
 
-def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeatureId,inputFile):
+def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeatureId,featureCountDict,inputFile):
     logger = logging.getLogger('create_feature_dict')
     featureDict = {}
     IS = open(inputFile,'r')
@@ -32,23 +32,24 @@ def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeature
             maxNameId += 1
         # Feature Ids
         featureNames = [f.strip() for f in line[1].split()]
-        features = []
+        features = []        
         for fn in featureNames:
+            weight = 1.0
             tmp = fn.split('=')
             if len(tmp) == 2:
-                if not featureIdDict.has_key(tmp[0]):
-                    featureIdDict[tmp[0]] = maxFeatureId
-                    maxFeatureId += 1
-                features.append((featureIdDict[tmp[0]],float(tmp[1])))
-            else:
-                if not featureIdDict.has_key(fn):
-                    featureIdDict[fn] = maxFeatureId
-                    maxFeatureId += 1
-                features.append((featureIdDict[fn],1.0))
+                fn = tmp[0]
+                weight = float(tmp[1])
+            if not featureIdDict.has_key(fn):
+                featureIdDict[fn] = maxFeatureId
+                featureCountDict[maxFeatureId] = 0
+                maxFeatureId += 1
+            fId = featureIdDict[fn]
+            features.append((fId,weight))
+            featureCountDict[fId] += 1
         # Store results
         featureDict[nameId] = features
     IS.close()
-    return featureDict,maxNameId,maxFeatureId
+    return featureDict,maxNameId,maxFeatureId,featureCountDict
 
 def create_dependencies_dict(nameIdDict,inputFile):
     logger = logging.getLogger('create_dependencies_dict')
