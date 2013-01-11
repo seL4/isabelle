@@ -8,24 +8,6 @@ session HOL (main) = Pure +
     "document/root.bib"
     "document/root.tex"
 
-session "HOL-Base" = Pure +
-  description {* Raw HOL base, with minimal tools *}
-  options [document = false]
-  theories HOL
-
-session "HOL-Plain" = Pure +
-  description {* HOL side-entry after bootstrap of many tools and packages *}
-  options [document = false]
-  theories Plain
-
-session "HOL-Main" = Pure +
-  description {* HOL side-entry for Main only, without Complex_Main *}
-  options [document = false]
-  theories Main
-  files
-    "Tools/Quickcheck/Narrowing_Engine.hs"
-    "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
-
 session "HOL-Proofs" = Pure +
   description {* HOL-Main with explicit proof terms *}
   options [document = false, proofs = 2, parallel_proofs = 0]
