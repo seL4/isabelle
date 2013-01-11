@@ -5,5 +5,5 @@ BeginPrompt="Unpack Isabelle2013?"
 ExtractPathText="Target directory"
 ExtractTitle="Unpacking Isabelle2013 ..."
 Shortcut="Du,{%%T\Isabelle2013\Isabelle2013.exe},{},{},{},{},{%%T\Isabelle2013}"
-RunProgram="\"%%T\Isabelle2013\cygwin\init.bat\""
+RunProgram="\"%%T\Isabelle2013\contrib\cygwin\init.bat\""
 ;!@InstallEnd@!
