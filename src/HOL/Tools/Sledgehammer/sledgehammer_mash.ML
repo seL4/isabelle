@@ -622,6 +622,11 @@ val typedef_dep = nickname_of_thm @{thm CollectI}
    exclusively to "someI_e" (and to some internal constructions). *)
 val class_some_dep = nickname_of_thm @{thm someI_ex}
 
+val fundef_ths =
+  @{thms fundef_ex1_existence fundef_ex1_uniqueness fundef_ex1_iff
+         fundef_default_value}
+  |> map nickname_of_thm
+
 (* "Rep_xxx_inject", "Abs_xxx_inverse", etc., are derived using these facts. *)
 val typedef_ths =
   @{thms type_definition.Abs_inverse type_definition.Rep_inverse
@@ -648,8 +653,11 @@ fun isar_dependencies_of name_tabs th =
   let
     val deps = thms_in_proof (SOME name_tabs) th
   in
-    if deps = [typedef_dep] orelse deps = [class_some_dep] orelse
-       exists (member (op =) typedef_ths) deps orelse is_size_def deps th then
+    if deps = [typedef_dep] orelse
+       deps = [class_some_dep] orelse
+       exists (member (op =) fundef_ths) deps orelse
+       exists (member (op =) typedef_ths) deps orelse
+       is_size_def deps th then
       []
     else
       deps
