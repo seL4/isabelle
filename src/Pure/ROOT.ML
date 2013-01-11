@@ -57,6 +57,7 @@ use "General/url.ML";
 use "General/file.ML";
 use "General/long_name.ML";
 use "General/binding.ML";
+use "General/socket_io.ML";
 
 use "General/sha1.ML";
 if ML_System.is_polyml then use "General/sha1_polyml.ML" else ();

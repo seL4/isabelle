@@ -29,6 +29,7 @@ val do_it = false (* switch to "true" to generate the files *)
 val thys = [@{theory List}]
 val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
+val max_suggestions = 1024
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
 *}
@@ -71,8 +72,16 @@ else
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params thys 1024
-      (prefix ^ "mash_mepo_suggestions")
+  generate_mepo_suggestions @{context} params thys max_suggestions
+      (prefix ^ "mepo_suggestions")
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  generate_mesh_suggestions max_suggestions (prefix ^ "mash_suggestions")
+      (prefix ^ "mepo_suggestions") (prefix ^ "mesh_suggestions")
 else
   ()
 *}

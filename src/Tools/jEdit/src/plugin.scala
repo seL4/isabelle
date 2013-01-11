@@ -189,9 +189,9 @@ class Plugin extends EBPlugin
       react {
         case phase: Session.Phase =>
           phase match {
-            case Session.Failed =>
+            case Session.Inactive | Session.Failed =>
               Swing_Thread.later {
-                Library.error_dialog(jEdit.getActiveView, "Prover process failure",
+                Library.error_dialog(jEdit.getActiveView, "Prover process terminated",
                     "Isabelle Syslog", Library.scrollable_text(PIDE.session.current_syslog()))
               }
 

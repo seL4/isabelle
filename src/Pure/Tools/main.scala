@@ -17,7 +17,7 @@ object Main
       try {
         Platform.init_laf()
         Isabelle_System.init()
-        Isabelle_System.isabelle_tool("jedit", args: _*)
+        Isabelle_System.isabelle_tool("jedit", ("-s" :: args.toList): _*)
       }
       catch { case exn: Throwable => (Exn.message(exn), 2) }
 

@@ -1,0 +1,14 @@
+#!/bin/dash
+
+PATH=/bin
+
+FILE_LIST="$(mktemp)"
+
+for DIR in "$@"
+do
+  find "$DIR" -name "*.dll" >> "$FILE_LIST"
+done
+
+dash /bin/rebaseall -T "$FILE_LIST"
+
+rm -f "$FILE_LIST"

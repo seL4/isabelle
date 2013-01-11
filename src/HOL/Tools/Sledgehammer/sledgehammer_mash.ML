@@ -49,8 +49,8 @@ sig
   val find_suggested_facts :
     (string * 'a) list -> ('b * thm) list -> (('b * thm) * 'a) list
   val mesh_facts :
-    int -> (real * ((('a * thm) * real) list * ('a * thm) list)) list
-    -> ('a * thm) list
+    ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
+    -> 'a list
   val theory_ord : theory * theory -> order
   val thm_ord : thm * thm -> order
   val goal_of_thm : theory -> thm -> thm
@@ -81,6 +81,8 @@ sig
   val is_mash_enabled : unit -> bool
   val mash_can_suggest_facts : Proof.context -> bool
   val generous_max_facts : int -> int
+  val mepo_weight : real
+  val mash_weight : real
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
     -> term -> fact list -> fact list
@@ -444,13 +446,13 @@ fun normalize_scores _ [] = []
       map (apsnd (curry Real.* (1.0 / avg))) xs
     end
 
-fun mesh_facts max_facts [(_, (sels, unks))] =
+fun mesh_facts _ max_facts [(_, (sels, unks))] =
     map fst (take max_facts sels) @ take (max_facts - length sels) unks
-  | mesh_facts max_facts mess =
+  | mesh_facts eq max_facts mess =
     let
       val mess =
         mess |> map (apsnd (apfst (normalize_scores max_facts #> `length)))
-      val fact_eq = Thm.eq_thm o pairself snd
+      val fact_eq = eq
       fun score_in fact (global_weight, ((sel_len, sels), unks)) =
         let
           fun score_at j =
@@ -769,7 +771,7 @@ fun find_mash_suggestions max_facts suggs facts chained raw_unknown =
     val unknown =
       raw_unknown
       |> fold (subtract (Thm.eq_thm_prop o pairself snd)) [chained, proximity]
-  in (mesh_facts max_facts mess, unknown) end
+  in (mesh_facts (Thm.eq_thm o pairself snd) max_facts mess, unknown) end
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
@@ -1054,6 +1056,9 @@ fun mash_can_suggest_facts ctxt =
    later for various reasons. *)
 fun generous_max_facts max_facts = max_facts + Int.min (50, max_facts div 2)
 
+val mepo_weight = 0.5
+val mash_weight = 0.5
+
 (* The threshold should be large enough so that MaSh doesn't kick in for Auto
    Sledgehammer and Try. *)
 val min_secs_for_learning = 15
@@ -1106,10 +1111,12 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
             hyp_ts concl_t facts
         |>> weight_mash_facts
       val mess =
-        [] |> (if fact_filter <> mashN then cons (0.5, (mepo (), [])) else I)
-           |> (if fact_filter <> mepoN then cons (0.5, (mash ())) else I)
+        [] |> (if fact_filter <> mashN then cons (mepo_weight, (mepo (), []))
+               else I)
+           |> (if fact_filter <> mepoN then cons (mash_weight, (mash ()))
+               else I)
     in
-      mesh_facts max_facts mess
+      mesh_facts (Thm.eq_thm o pairself snd) max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths
     end
 

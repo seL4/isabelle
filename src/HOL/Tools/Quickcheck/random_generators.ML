@@ -449,9 +449,11 @@ fun compile_generator_expr ctxt ts =
       end
   end;
 
-fun size_matters_for _ Ts = not (forall
-  (fn Type (tyco, []) => is_some (try (unprefix "Enum.finite") tyco) | _ => false) Ts)
-    (*FIXME eliminate dynamic name reference*)
+val size_types = [@{type_name Enum.finite_1}, @{type_name Enum.finite_2},
+  @{type_name Enum.finite_3}, @{type_name Enum.finite_4}, @{type_name Enum.finite_5}];
+
+fun size_matters_for _ Ts =
+  not (forall (fn Type (tyco, []) => member (op =) size_types tyco | _ => false) Ts);
 
 val test_goals =
   Quickcheck_Common.generator_test_goal_terms ("random", (size_matters_for, compile_generator_expr));

@@ -257,13 +257,6 @@ end;
 
 (* Sockets *)
 
-structure Socket =
-struct
-  open Socket;
-  fun recvVec (a, b) = Socket.recvVec (a, dest_int b);
-  fun sendVec a = mk_int (Socket.sendVec a);
-end;
-
 structure INetSock =
 struct
   open INetSock;

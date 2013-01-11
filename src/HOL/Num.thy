@@ -245,6 +245,12 @@ primrec numeral :: "num \<Rightarrow> 'a" where
   numeral_Bit0: "numeral (Bit0 n) = numeral n + numeral n" |
   numeral_Bit1: "numeral (Bit1 n) = numeral n + numeral n + 1"
 
+lemma numeral_code [code]:
+  "numeral One = 1"
+  "numeral (Bit0 n) = (let m = numeral n in m + m)"
+  "numeral (Bit1 n) = (let m = numeral n in m + m + 1)"
+  by (simp_all add: Let_def)
+  
 lemma one_plus_numeral_commute: "1 + numeral x = numeral x + 1"
   apply (induct x)
   apply simp
@@ -1103,3 +1109,4 @@ code_modulename Haskell
   Num Arith
 
 end
+

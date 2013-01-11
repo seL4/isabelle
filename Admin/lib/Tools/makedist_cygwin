@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# DESCRIPTION: produce pre-canned Cygwin distribution for Isabelle
+
+## diagnostics
+
+PRG=$(basename "$0")
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG"
+  echo
+  echo "  Produce pre-canned Cygwin distribution for Isabelle."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## arguments
+
+[ "$#" -ne 0 ] && usage
+
+
+## main
+
+TARGET="$PWD/cygwin"
+
+
+# download
+
+[ ! -e "$TARGET" ] || fail "Target already exists: \"$TARGET\""
+mkdir -p "$TARGET/isabelle" || fail "Failed to create target directory: \"$TARGET\""
+
+perl -MLWP::Simple -e "getprint 'http://cygwin.com/setup.exe';" > "$TARGET/isabelle/cygwin.exe"
+chmod +x "$TARGET/isabelle/cygwin.exe"
+
+"$TARGET/isabelle/cygwin.exe" -h </dev/null >/dev/null || exit 2
+
+
+# install
+
+"$TARGET/isabelle/cygwin.exe" \
+  --local-package-dir "$(cygpath -w "$TMP/cygwin")" \
+  --root "$(cygpath -w "$TARGET")" \
+  --packages libgmp3,perl,python,rlwrap \
+  --no-shortcuts --no-startmenu --no-desktop --quiet-mode
+
+[ "$?" = 0 -a -e "$TARGET/etc" ] || exit 2
+
+
+# patches
+
+for NAME in hosts protocols services networks
+do
+  rm "$TARGET/etc/$NAME"
+done
+
+ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
+
+rm "$TARGET/Cygwin.bat"
+
+cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/." "$TARGET/isabelle/."
+
+
+# archive
+
+tar cvzf "${TARGET}.tar.gz" "$TARGET"

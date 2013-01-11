@@ -42,8 +42,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
       default_params ctxt []
     val prover = hd provers
     val slack_max_facts = generous_max_facts (the max_facts)
-    val sugg_path = sugg_file_name |> Path.explode
-    val lines = sugg_path |> File.read_lines
+    val lines = Path.explode sugg_file_name |> File.read_lines
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
     val name_tabs = build_name_tables nickname_of_thm facts
@@ -88,8 +87,11 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
           val (mash_facts, mash_unks) =
             find_mash_suggestions slack_max_facts suggs facts [] []
             |>> weight_mash_facts
-          val mess = [(0.5, (mepo_facts, [])), (0.5, (mash_facts, mash_unks))]
-          val mesh_facts = mesh_facts slack_max_facts mess
+          val mess =
+            [(mepo_weight, (mepo_facts, [])),
+             (mash_weight, (mash_facts, mash_unks))]
+          val mesh_facts =
+            mesh_facts (Thm.eq_thm o pairself snd) slack_max_facts mess
           val isar_facts =
             find_suggested_facts (map (rpair 1.0) isar_deps) facts
           (* adapted from "mirabelle_sledgehammer.ML" *)
