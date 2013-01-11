@@ -91,7 +91,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
             [(mepo_weight, (mepo_facts, [])),
              (mash_weight, (mash_facts, mash_unks))]
           val mesh_facts =
-            mesh_facts (Thm.eq_thm o pairself snd) slack_max_facts mess
+            mesh_facts (Thm.eq_thm_prop o pairself snd) slack_max_facts mess
           val isar_facts =
             find_suggested_facts (map (rpair 1.0) isar_deps) facts
           (* adapted from "mirabelle_sledgehammer.ML" *)

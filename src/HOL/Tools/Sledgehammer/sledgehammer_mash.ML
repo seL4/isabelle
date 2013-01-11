@@ -771,7 +771,7 @@ fun find_mash_suggestions max_facts suggs facts chained raw_unknown =
     val unknown =
       raw_unknown
       |> fold (subtract (Thm.eq_thm_prop o pairself snd)) [chained, proximity]
-  in (mesh_facts (Thm.eq_thm o pairself snd) max_facts mess, unknown) end
+  in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
 
 fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
@@ -1116,7 +1116,7 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
            |> (if fact_filter <> mepoN then cons (mash_weight, (mash ()))
                else I)
     in
-      mesh_facts (Thm.eq_thm o pairself snd) max_facts mess
+      mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
       |> not (null add_ths) ? prepend_facts add_ths
     end
 
