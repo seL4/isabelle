@@ -53,7 +53,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
 
 "$TARGET/isabelle/cygwin.exe" \
   --site "$CYGWIN_MIRROR" --no-verify \
-  --local-package-dir 'C:\tmp' \
+  --local-package-dir 'C:\temp' \
   --root "$(cygpath -w "$TARGET")" \
   --packages libgmp3,make,perl,python,rlwrap,vim \
   --no-shortcuts --no-startmenu --no-desktop --quiet-mode
