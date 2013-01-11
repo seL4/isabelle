@@ -203,19 +203,18 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name
     val _ = File.write mesh_path ""
     fun do_fact (mash_line, mepo_line) =
       let
-        val (mash_name, mash_suggs) =
+        val (name, mash_suggs) =
           extract_suggestions mash_line
           ||> (map fst #> weight_mash_facts)
-        val (mepo_name, mepo_suggs) =
+        val (name', mepo_suggs) =
           extract_suggestions mepo_line
           ||> (map fst #> weight_mash_facts)
-        val _ =
-          if mash_name = mepo_name then () else error "Input files out of sync."
+        val _ = if name = name' then () else error "Input files out of sync."
         val mess =
           [(mepo_weight, (mepo_suggs, [])),
            (mash_weight, (mash_suggs, []))]
         val mesh_suggs = mesh_facts (op =) max_suggs mess
-        val mesh_line = mash_name ^ ": " ^ space_implode " " mesh_suggs ^ "\n"
+        val mesh_line = encode_str name ^ ": " ^ encode_strs mesh_suggs ^ "\n"
       in File.append mesh_path mesh_line end
     val mash_lines = Path.explode mash_file_name |> File.read_lines
     val mepo_lines = Path.explode mepo_file_name |> File.read_lines
