@@ -54,7 +54,7 @@ fun generate_accessibility ctxt thys include_thys file_name =
     val _ = File.write path ""
     fun do_fact fact prevs =
       let
-        val s = escape_meta fact ^ ": " ^ escape_metas prevs ^ "\n"
+        val s = encode_str fact ^ ": " ^ encode_strs prevs ^ "\n"
         val _ = File.append path s
       in [fact] end
     val facts =
@@ -76,7 +76,7 @@ fun generate_features ctxt prover thys include_thys file_name =
         val feats =
           features_of ctxt prover (theory_of_thm th) stature [prop_of th]
         val s =
-          escape_meta name ^ ": " ^ encode_features (sort_wrt fst feats) ^ "\n"
+          encode_str name ^ ": " ^ encode_features (sort_wrt fst feats) ^ "\n"
       in File.append path s end
   in List.app do_fact facts end
 
@@ -105,7 +105,7 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
           val deps =
             isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
                                            NONE
-        in escape_meta name ^ ": " ^ escape_metas deps ^ "\n" end
+        in encode_str name ^ ": " ^ encode_strs deps ^ "\n" end
       else
         ""
     val lines = Par_List.map do_fact (tag_list 1 facts)
@@ -140,14 +140,14 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
             isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
                                            (SOME isar_deps)
           val core =
-            escape_meta name ^ ": " ^ escape_metas prevs ^ "; " ^
+            encode_str name ^ ": " ^ encode_strs prevs ^ "; " ^
             encode_features (sort_wrt fst feats)
           val query =
             if is_bad_query ctxt ho_atp th isar_deps then ""
             else "? " ^ core ^ "\n"
           val update =
             "! " ^ core ^ "; " ^
-            escape_metas (these (trim_dependencies th deps)) ^ "\n"
+            encode_strs (these (trim_dependencies th deps)) ^ "\n"
         in query ^ update end
       else
         ""
@@ -189,7 +189,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
               |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
                      max_suggs NONE hyp_ts concl_t
               |> map (nickname_of_thm o snd)
-          in escape_meta name ^ ": " ^ escape_metas suggs ^ "\n" end
+          in encode_str name ^ ": " ^ encode_strs suggs ^ "\n" end
       end
     fun accum x (yss as ys :: _) = (x :: ys) :: yss
     val old_factss = tl (fold accum new_facts [old_facts])

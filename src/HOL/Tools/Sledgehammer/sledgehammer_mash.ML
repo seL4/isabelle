@@ -24,10 +24,10 @@ sig
   val relearn_isarN : string
   val relearn_proverN : string
   val fact_filters : string list
-  val escape_meta : string -> string
-  val escape_metas : string list -> string
-  val unescape_meta : string -> string
-  val unescape_metas : string -> string list
+  val encode_str : string -> string
+  val encode_strs : string list -> string
+  val unencode_str : string -> string
+  val unencode_strs : string -> string list
   val encode_features : (string * real) list -> string
   val extract_suggestions : string -> string * (string * real) list
 
@@ -40,7 +40,8 @@ sig
     val relearn :
       Proof.context -> bool -> (string * string list) list -> unit
     val suggest :
-      Proof.context -> bool -> int -> string list * (string * real) list
+      Proof.context -> bool -> int
+      -> string list * (string * real) list * string list
       -> (string * real) list
   end
 
@@ -189,40 +190,40 @@ fun unmeta_chars accum [] = String.implode (rev accum)
   | unmeta_chars _ (#"%" :: _) = "" (* error *)
   | unmeta_chars accum (c :: cs) = unmeta_chars (c :: accum) cs
 
-val escape_meta = String.translate meta_char
-val escape_metas = map escape_meta #> space_implode " "
-val unescape_meta = String.explode #> unmeta_chars []
-val unescape_metas =
-  space_explode " " #> filter_out (curry (op =) "") #> map unescape_meta
+val encode_str = String.translate meta_char
+val encode_strs = map encode_str #> space_implode " "
+val unencode_str = String.explode #> unmeta_chars []
+val unencode_strs =
+  space_explode " " #> filter_out (curry (op =) "") #> map unencode_str
 
 fun encode_feature (name, weight) =
-  escape_meta name ^
+  encode_str name ^
   (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
 fun str_of_learn (name, parents, feats, deps) =
-  "! " ^ escape_meta name ^ ": " ^ escape_metas parents ^ "; " ^
-  encode_features feats ^ "; " ^ escape_metas deps ^ "\n"
+  "! " ^ encode_str name ^ ": " ^ encode_strs parents ^ "; " ^
+  encode_features feats ^ "; " ^ encode_strs deps ^ "\n"
 
 fun str_of_relearn (name, deps) =
-  "p " ^ escape_meta name ^ ": " ^ escape_metas deps ^ "\n"
+  "p " ^ encode_str name ^ ": " ^ encode_strs deps ^ "\n"
 
-fun str_of_query (parents, feats) =
-  "? " ^ escape_metas parents ^ "; " ^ encode_features feats ^ "\n"
+fun str_of_query (parents, feats, hints) =
+  "? " ^ encode_strs parents ^ "; " ^ encode_features feats ^
+  (if null hints then "" else "; " ^ encode_strs hints) ^ "\n"
 
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
     [name, weight] =>
-    SOME (unescape_meta name, Real.fromString weight |> the_default 1.0)
-  | [name] => SOME (unescape_meta name, 1.0)
+    SOME (unencode_str name, Real.fromString weight |> the_default 1.0)
+  | [name] => SOME (unencode_str name, 1.0)
   | _ => NONE
 
 fun extract_suggestions line =
   case space_explode ":" line of
     [goal, suggs] =>
-    (unescape_meta goal,
-     map_filter extract_suggestion (space_explode " " suggs))
+    (unencode_str goal, map_filter extract_suggestion (space_explode " " suggs))
   | _ => ("", [])
 
 structure MaSh =
@@ -249,9 +250,9 @@ fun relearn _ _ [] = ()
          elide_string 1000 (space_implode " " (map #1 relearns)));
      run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
 
-fun suggest ctxt overlord max_suggs (query as (_, feats)) =
+fun suggest ctxt overlord max_suggs (query as (_, feats, hints)) =
   (trace_msg ctxt (fn () => "MaSh suggest " ^ encode_features feats);
-   run_mash_tool ctxt overlord false max_suggs
+   run_mash_tool ctxt overlord (not (null hints)) max_suggs
        ([query], str_of_query)
        (fn suggs =>
            case suggs () of
@@ -321,7 +322,7 @@ fun extract_node line =
     [head, parents] =>
     (case space_explode " " head of
        [kind, name] =>
-       SOME (unescape_meta name, unescape_metas parents,
+       SOME (unencode_str name, unencode_strs parents,
              try proof_kind_of_str kind |> the_default Isar_Proof)
      | _ => NONE)
   | _ => NONE
@@ -361,8 +362,8 @@ fun save _ (state as {dirty = SOME [], ...}) = state
   | save ctxt {access_G, dirty} =
     let
       fun str_of_entry (name, parents, kind) =
-        str_of_proof_kind kind ^ " " ^ escape_meta name ^ ": " ^
-        escape_metas parents ^ "\n"
+        str_of_proof_kind kind ^ " " ^ encode_str name ^ ": " ^
+        encode_strs parents ^ "\n"
       fun append_entry (name, (kind, (parents, _))) =
         cons (name, Graph.Keys.dest parents, kind)
       val (banner, entries) =
@@ -777,6 +778,7 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
                          concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
+    val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val (access_G, suggs) =
       peek_state ctxt (fn {access_G, ...} =>
           if Graph.is_empty access_G then
@@ -786,10 +788,11 @@ fun mash_suggested_facts ctxt ({overlord, ...} : params) prover max_facts hyp_ts
               val parents = maximal_in_graph access_G facts
               val feats =
                 features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
+              val hints = map (nickname_of_thm o snd) chained
             in
-              (access_G, MaSh.suggest ctxt overlord max_facts (parents, feats))
+              (access_G,
+               MaSh.suggest ctxt overlord max_facts (parents, feats, hints))
             end)
-    val chained = facts |> filter (fn ((_, (scope, _)), _) => scope = Chained)
     val unknown = facts |> filter_out (is_fact_in_graph access_G)
   in find_mash_suggestions max_facts suggs facts chained unknown end
 

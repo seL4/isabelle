@@ -98,7 +98,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
           fun set_file_name heading (SOME dir) =
               let
                 val prob_prefix =
-                  "goal_" ^ string_of_int j ^ "__" ^ escape_meta name ^ "__" ^
+                  "goal_" ^ string_of_int j ^ "__" ^ encode_str name ^ "__" ^
                   heading
               in
                 Config.put dest_dir dir
@@ -109,7 +109,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
           fun prove heading get facts =
             let
               fun nickify ((_, stature), th) =
-                ((K (escape_meta (nickname_of_thm th)), stature), th)
+                ((K (encode_str (nickname_of_thm th)), stature), th)
               val facts =
                 facts
                 |> map (get #> nickify)
