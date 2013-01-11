@@ -373,7 +373,7 @@ val default_learn_prover_timeout = 2.0
 
 fun hammer_away override_params subcommand opt_i fact_override state =
   let
-    (* this is necessary to avoid errors in jedit *)
+    (* necessary to avoid problems in jedit *)
     val state = state |> Proof.map_context (Config.put show_markup false)
     val ctxt = Proof.context_of state
     val override_params = override_params |> map (normalize_raw_param ctxt)
