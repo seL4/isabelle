@@ -186,17 +186,8 @@ fun java_not_found_message () =
 fun java_too_old_message () =
   "The Java version is too old. " ^ isabelle_wrong_message
 fun kodkodi_not_installed_message () =
-  "Nitpick requires the external Java program Kodkodi. To install it, download \
-  \the package from \"http://www21.in.tum.de/~blanchet/#software\" and add the \
-  \\"kodkodi-x.y.z\" directory's full path to " ^
-  Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
-  " on a line of its own."
-fun kodkodi_too_old_message () =
-  "The installed Kodkodi version is too old. To install a newer version, \
-  \download the package from \"http://www21.in.tum.de/~blanchet/#software\" \
-  \and add the \"kodkodi-x.y.z\" directory's full path to " ^
-  Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
-  " on a line of its own."
+  "Nitpick requires the external Java program Kodkodi."
+fun kodkodi_too_old_message () = "The installed Kodkodi version is too old."
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2
 
