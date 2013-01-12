@@ -81,10 +81,16 @@ object Build_Dialog
       rows = 20
     }
 
+    val scroll_text = new ScrollPane(text)
+
     val progress = new Build.Progress
     {
       override def echo(msg: String): Unit =
-        Swing_Thread.later { text.append(msg + "\n") }
+        Swing_Thread.later {
+          text.append(msg + "\n")
+          val vertical = scroll_text.peer.getVerticalScrollBar
+          vertical.setValue(vertical.getMaximum)
+        }
       override def theory(session: String, theory: String): Unit =
         echo(session + ": theory " + theory)
       override def stopped: Boolean =
@@ -126,7 +132,7 @@ object Build_Dialog
     /* layout panel */
 
     val layout_panel = new BorderPanel
-    layout_panel.layout(new ScrollPane(text)) = BorderPanel.Position.Center
+    layout_panel.layout(scroll_text) = BorderPanel.Position.Center
     layout_panel.layout(action_panel) = BorderPanel.Position.South
 
     contents = layout_panel
