@@ -11,7 +11,7 @@ package isabelle
 import java.lang.System
 import java.util.Locale
 import java.util.concurrent.{Future => JFuture, TimeUnit}
-import java.awt.Component
+import java.awt.{Component, Toolkit}
 import javax.swing.JOptionPane
 
 import scala.swing.{ComboBox, TextArea, ScrollPane}
@@ -198,6 +198,12 @@ object Library
     selection.index = 3
     prototypeDisplayValue = Some("00000%")
   }
+
+
+  /* screen resolution */
+
+  def resolution_scale(): Double = Toolkit.getDefaultToolkit.getScreenResolution.toDouble / 72
+  def resolution_scale(i: Int): Int = (i.toDouble * resolution_scale()).round.toInt
 
 
   /* Java futures */

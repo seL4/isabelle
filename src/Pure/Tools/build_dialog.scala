@@ -75,10 +75,10 @@ object Build_Dialog
     /* text */
 
     val text = new TextArea {
-      font = new Font("SansSerif", Font.PLAIN, 14)
+      font = new Font("SansSerif", Font.PLAIN, Library.resolution_scale(10))
       editable = false
-      columns = 40
-      rows = 10
+      columns = 50
+      rows = 20
     }
 
     val progress = new Build.Progress
