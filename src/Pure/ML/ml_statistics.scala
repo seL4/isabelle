@@ -109,6 +109,7 @@ final class ML_Statistics private(val stats: List[Properties.T])
       Swing_Thread.later {
         new Frame {
           iconImage = Isabelle_System.get_icon().getImage
+          title = "ML statistics"
           contents = Component.wrap(new ChartPanel(c))
           visible = true
         }
