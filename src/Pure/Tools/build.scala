@@ -21,16 +21,20 @@ object Build
 {
   /** progress context **/
 
-  class Progress {
-    def theory(name: String) {}
+  class Progress
+  {
     def echo(msg: String) {}
+    def theory(session: String, theory: String) {}
     def stopped: Boolean = false
   }
 
   object Ignore_Progress extends Progress
 
-  object Console_Progress extends Progress {
+  class Console_Progress(verbose: Boolean) extends Progress
+  {
     override def echo(msg: String) { java.lang.System.out.println(msg) }
+    override def theory(session: String, theory: String): Unit =
+      if (verbose) echo(session + ": theory " + theory)
   }
 
 
@@ -485,7 +489,7 @@ object Build
         Isabelle_System.bash_env(info.dir.file, env, script,
           out_progress = (line: String) =>
             if (line.startsWith(LOADING_THEORY))
-              progress.theory(line.substring(LOADING_THEORY.length)))
+              progress.theory(name, line.substring(LOADING_THEORY.length)))
       }
 
     def terminate: Unit = thread.interrupt
@@ -775,9 +779,9 @@ object Build
             val dirs =
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
-            build(Build.Console_Progress, options, requirements, all_sessions, build_heap,
-              clean_build, dirs, session_groups, max_jobs, list_files, no_build, system_mode,
-              verbose, sessions)
+            build(new Build.Console_Progress(verbose), options, requirements, all_sessions,
+              build_heap, clean_build, dirs, session_groups, max_jobs, list_files, no_build,
+              system_mode, verbose, sessions)
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
