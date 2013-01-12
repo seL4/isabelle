@@ -130,7 +130,8 @@ fun if_z3_non_commercial f =
         "applications.")
   | Z3_Non_Commercial_Unknown =>
       error ("The SMT solver Z3 is not activated. To activate it, set\n" ^
-        "the environment variable " ^ quote flagN ^ " to " ^ quote "yes" ^ "." ^
+        "the environment variable " ^ quote flagN ^ " to " ^ quote "yes" ^ ",\n" ^
+        "and restart the Isabelle system." ^
         (if getenv "Z3_COMPONENT" = "" then ""
          else "\nSee also " ^ Path.print (Path.expand (Path.explode "$Z3_COMPONENT/etc/settings")))))
 
