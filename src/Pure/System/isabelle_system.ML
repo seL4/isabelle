@@ -14,7 +14,6 @@ sig
   val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
   val with_tmp_fifo: (Path.T -> 'a) -> 'a
-  val bash_output_fifo: string -> (Path.T -> 'a) -> 'a
   val bash_output: string -> string * int
   val bash: string -> int
 end;
@@ -98,16 +97,6 @@ fun with_tmp_fifo f =
       (case bash_output ("mkfifo -m 600 " ^ File.shell_path path) of
         (_, 0) => f path
       | (out, _) => error (trim_line out)));
-
-(* FIXME blocks on Cygwin 1.7.x *)
-(* See also http://cygwin.com/ml/cygwin/2010-08/msg00459.html *)
-fun bash_output_fifo script f =
-  with_tmp_fifo (fn fifo =>
-    uninterruptible (fn restore_attributes => fn () =>
-      (case Bash.process (script ^ " > " ^ File.shell_path fifo ^ " &") of
-        {rc = 0, terminate, ...} =>
-          (restore_attributes f fifo handle exn => (terminate (); reraise exn))
-      | {out, ...} => error (trim_line out))) ());
 
 end;
 
