@@ -14,7 +14,7 @@ Created on July 9, 2012
 
 import sys,logging
 
-def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeatureId,featureCountDict,inputFile):
+def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeatureId,featureCountDict,triggerFeatures,inputFile):
     logger = logging.getLogger('create_feature_dict')
     featureDict = {}
     IS = open(inputFile,'r')
@@ -32,7 +32,8 @@ def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeature
             maxNameId += 1
         # Feature Ids
         featureNames = [f.strip() for f in line[1].split()]
-        features = []        
+        features = []     
+        minFeatureCount = 0   
         for fn in featureNames:
             weight = 1.0
             tmp = fn.split('=')
@@ -46,10 +47,12 @@ def create_feature_dict(nameIdDict,idNameDict,maxNameId,featureIdDict,maxFeature
             fId = featureIdDict[fn]
             features.append((fId,weight))
             featureCountDict[fId] += 1
+            minFeatureCount = min(triggerFeatures,featureCountDict[fId])
         # Store results
         featureDict[nameId] = features
+        triggerFeatures[nameId] = [f for f,_w in features if featureCountDict[f] == minFeatureCount]
     IS.close()
-    return featureDict,maxNameId,maxFeatureId,featureCountDict
+    return featureDict,maxNameId,maxFeatureId,featureCountDict,triggerFeatures
 
 def create_dependencies_dict(nameIdDict,inputFile):
     logger = logging.getLogger('create_dependencies_dict')

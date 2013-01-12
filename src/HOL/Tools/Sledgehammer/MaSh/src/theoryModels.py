@@ -20,11 +20,15 @@ class TheoryModels(object):
     '''
 
 
-    def __init__(self):
+    def __init__(self,defValPos = -7.5,defValNeg = -15.0,posWeight = 10.0):
         '''
         Constructor
         '''
         self.theoryModels = {}
+        # Model Params
+        self.defValPos = defValPos       
+        self.defValNeg = defValNeg
+        self.posWeight = posWeight
         self.theoryDict = {}
         self.accessibleTheories = set([])
         self.currentTheory = None
@@ -49,7 +53,7 @@ class TheoryModels(object):
                     self.accessibleTheories.add(self.currentTheory)
                 self.currentTheory = theory
                 self.theoryDict[theory] = set([nameId])
-                theoryModel = singleNBClassifier()
+                theoryModel = singleNBClassifier(self.defValPos,self.defValNeg,self.posWeight)
                 self.theoryModels[theory] = theoryModel 
             else:
                 self.theoryDict[theory] = self.theoryDict[theory].union([nameId])               
@@ -94,6 +98,7 @@ class TheoryModels(object):
             self.theoryModels[a].delete(features,a in usedTheories)  
     
     def update(self,problemId,features,dependencies,dicts): 
+        # TODO: Implicit assumption that self.accessibleTheories contains all accessible theories!
         currentTheory = (dicts.idNameDict[problemId]).split('.')[0]       
         # Create new theory model, if there is a new theory 
         if not self.theoryDict.has_key(currentTheory):
@@ -101,7 +106,7 @@ class TheoryModels(object):
             if not currentTheory == None:
                 self.theoryDict[currentTheory] = []
                 self.currentTheory = currentTheory
-                theoryModel = singleNBClassifier()
+                theoryModel = singleNBClassifier(self.defValPos,self.defValNeg,self.posWeight)
                 self.theoryModels[currentTheory] = theoryModel
                 self.accessibleTheories.add(self.currentTheory) 
         self.update_with_acc(problemId,features,dependencies,dicts,self.accessibleTheories)  
@@ -118,12 +123,7 @@ class TheoryModels(object):
         """
         Predicts the relevant theories. Returns the predicted theories and a list of all accessible premises in these theories.
         """         
-        # TODO: This can be made a lot faster!    
-        self.accessibleTheories = []
-        for x in accessibles:
-            xArt = (dicts.idNameDict[x]).split('.')[0]
-            self.accessibleTheories.append(xArt)
-        self.accessibleTheories = set(self.accessibleTheories)
+        self.accessibleTheories = set([(dicts.idNameDict[x]).split('.')[0] for x in accessibles])
         
         # Predict Theories
         predictedTheories = [self.currentTheory]
@@ -143,9 +143,9 @@ class TheoryModels(object):
         
     def save(self,fileName):
         outStream = open(fileName, 'wb')
-        dump((self.currentTheory,self.accessibleTheories,self.theoryModels,self.theoryDict),outStream)
+        dump((self.currentTheory,self.accessibleTheories,self.theoryModels,self.theoryDict,self.defValPos,self.defValNeg,self.posWeight),outStream)
         outStream.close()
     def load(self,fileName):
         inStream = open(fileName, 'rb')
-        self.currentTheory,self.accessibleTheories,self.theoryModels,self.theoryDict = load(inStream)
+        self.currentTheory,self.accessibleTheories,self.theoryModels,self.theoryDict,self.defValPos,self.defValNeg,self.posWeight = load(inStream)
         inStream.close()

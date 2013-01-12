@@ -19,13 +19,16 @@ class singleNBClassifier(object):
     An updateable naive Bayes classifier.
     '''
 
-    def __init__(self):
+    def __init__(self,defValPos = -7.5,defValNeg = -15.0,posWeight = 10.0):
         '''
         Constructor
         '''
         self.neg = 0.0
         self.pos = 0.0
         self.counts = {} # Counts is the tuple poscounts,negcounts
+        self.defValPos = defValPos       
+        self.defValNeg = defValNeg
+        self.posWeight = posWeight        
     
     def update(self,features,label):
         """
@@ -85,10 +88,6 @@ class singleNBClassifier(object):
             return 1
         elif self.pos ==0:
             return 0
-        defValPos = -7.5       
-        defValNeg = -15.0
-        posWeight = 10.0
-        
         logneg = log(self.neg)
         logpos = log(self.pos)
         prob = logpos - logneg
@@ -97,13 +96,13 @@ class singleNBClassifier(object):
             if self.counts.has_key(f):
                 posCount,negCount = self.counts[f]
                 if posCount > 0:
-                    prob += (log(posWeight * posCount) - logpos)
+                    prob += (log(self.posWeight * posCount) - logpos)
                 else:
-                    prob += defValPos
+                    prob += self.defValPos
                 if negCount > 0:
                     prob -= (log(negCount) - logneg)
                 else:
-                    prob -= defValNeg 
+                    prob -= self.defValNeg 
         if prob >= 0 : 
             return 1
         else:

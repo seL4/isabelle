@@ -47,12 +47,21 @@ parser.add_argument('--inputDir',default='../data/20121212/Jinja/',\
 parser.add_argument('--depFile', default='mash_dependencies',
                     help='Name of the file with the premise dependencies. The file must be in inputDir. Default = mash_dependencies')
 parser.add_argument('--saveModel',default=False,action='store_true',help="Stores the learned Model at the end of a prediction run. Default=False.")
-parser.add_argument('--learnTheories',default=False,action='store_true',help="Uses a two-lvl prediction mode. First the theories, then the premises. Default=False.")
-#DEBUG: Change sineprioir default to false
-parser.add_argument('--sinePrior',default=True,action='store_true',help="Uses a SInE like prior for premise lvl predictions. Default=False.")
 
+parser.add_argument('--learnTheories',default=False,action='store_true',help="Uses a two-lvl prediction mode. First the theories, then the premises. Default=False.")
+# Theory Parameters
+parser.add_argument('--theoryDefValPos',default=-7.5,help="Default value for positive unknown features. Default=-7.5.",type=float)
+parser.add_argument('--theoryDefValNeg',default=-15.0,help="Default value for negative unknown features. Default=-15.0.",type=float)
+parser.add_argument('--theoryPosWeight',default=10.0,help="Weight value for positive features. Default=10.0.",type=float)
 
 parser.add_argument('--nb',default=False,action='store_true',help="Use Naive Bayes for learning. This is the default learning method.")
+# NB Parameters
+parser.add_argument('--NBDefaultPriorWeight',default=20.0,help="Initializes classifiers with value * p |- p. Default=20.0.",type=float)
+parser.add_argument('--NBDefVal',default=-15.0,help="Default value for unknown features. Default=-15.0.",type=float)
+parser.add_argument('--NBPosWeight',default=10.0,help="Weight value for positive features. Default=10.0.",type=float)
+parser.add_argument('--NBSinePrior',default=False,action='store_true',help="Uses a SInE like prior for premise lvl predictions. Default=False.")
+parser.add_argument('--NBSineWeight',default=100.0,help="How much the SInE prior is weighted. Default=100.0.",type=float)
+
 parser.add_argument('--snow',default=False,action='store_true',help="Use SNoW's naive bayes instead of Naive Bayes for learning.")
 parser.add_argument('--predef',default=False,action='store_true',\
                     help="Use predefined predictions. Used only for comparison with the actual learning. Expects mash_mepo_suggestions in inputDir.")
@@ -89,7 +98,7 @@ def main(argv = sys.argv[1:]):
     # Pick algorithm
     if args.nb:
         logger.info('Using sparse Naive Bayes for learning.')
-        model = sparseNBClassifier(args.sinePrior)
+        model = sparseNBClassifier(args.NBDefaultPriorWeight,args.NBPosWeight,args.NBDefVal,args.NBSinePrior,args.NBSineWeight)
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     elif args.snow:
         logger.info('Using naive bayes (SNoW) for learning.')
@@ -103,7 +112,7 @@ def main(argv = sys.argv[1:]):
         modelFile = os.path.join(args.outputDir,'mepo.pickle')        
     else:
         logger.info('No algorithm specified. Using sparse Naive Bayes.')
-        model = sparseNBClassifier(args.sinePrior)
+        model = sparseNBClassifier(args.NBDefaultPriorWeight,args.NBPosWeight,args.NBDefVal,args.NBSinePrior,args.NBSineWeight)
         modelFile = os.path.join(args.outputDir,'NB.pickle')
     dictsFile = os.path.join(args.outputDir,'dicts.pickle')
     theoryFile = os.path.join(args.outputDir,'theory.pickle')
@@ -123,7 +132,7 @@ def main(argv = sys.argv[1:]):
 
         if args.learnTheories:
             depFile = os.path.join(args.inputDir,args.depFile)
-            theoryModels = TheoryModels()
+            theoryModels = TheoryModels(args.theoryDefValPos,args.theoryDefValNeg,args.theoryPosWeight)
             theoryModels.init(depFile,dicts)
             theoryModels.save(theoryFile)
             
@@ -138,7 +147,7 @@ def main(argv = sys.argv[1:]):
         statementCounter = 1
         computeStats = False
         dicts = Dictionaries()
-        theoryModels = TheoryModels()
+        theoryModels = TheoryModels(args.theoryDefValPos,args.theoryDefValNeg,args.theoryPosWeight)
         # Load Files
         if os.path.isfile(dictsFile):
             dicts.load(dictsFile)

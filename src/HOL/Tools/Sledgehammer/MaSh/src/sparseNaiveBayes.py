@@ -11,7 +11,7 @@ Created on Jul 11, 2012
 '''
 
 from cPickle import dump,load
-from numpy import array,exp
+from numpy import array
 from math import log
 
 class sparseNBClassifier(object):
@@ -19,28 +19,28 @@ class sparseNBClassifier(object):
     An updateable naive Bayes classifier.
     '''
 
-    def __init__(self,useSinePrior = False):
+    def __init__(self,defaultPriorWeight = 20.0,posWeight = 20.0,defVal = -15.0,useSinePrior = False,sineWeight = 100.0):
         '''
         Constructor
         '''
         self.counts = {}
         self.sinePrior = useSinePrior
-        self.defaultPriorWeight = 20
-        self.posWeight = 20 
-        self.defVal = 15
+        self.sineWeight = sineWeight
+        self.defaultPriorWeight = defaultPriorWeight
+        self.posWeight = posWeight
+        self.defVal = defVal
 
     def initializeModel(self,trainData,dicts):
         """
         Build basic model from training data.
         """
-        for d in trainData:
-            dPosCount = 0
+        for d in trainData:            
             dFeatureCounts = {}
-            # DEBUG: give p |- p a higher weight
-            dPosCount = self.defaultPriorWeight
-            for f,_w in dicts.featureDict[d]:
-                dFeatureCounts[f] = self.defaultPriorWeight
-            self.counts[d] = [dPosCount,dFeatureCounts]
+            # Give p |- p a higher weight
+            if not self.defaultPriorWeight == 0:            
+                for f,_w in dicts.featureDict[d]:
+                    dFeatureCounts[f] = self.defaultPriorWeight
+            self.counts[d] = [self.defaultPriorWeight,dFeatureCounts]
 
         for key in dicts.dependenciesDict.keys():
             # Add p proves p
@@ -60,13 +60,12 @@ class sparseNBClassifier(object):
         Updates the Model.
         """
         if not self.counts.has_key(dataPoint):
-            dPosCount = 0
             dFeatureCounts = {}            
-            # DEBUG: give p |- p a higher weight
-            dPosCount = self.defaultPriorWeight
-            for f,_w in features:
-                dFeatureCounts[f] = self.defaultPriorWeight
-            self.counts[dataPoint] = [dPosCount,dFeatureCounts]            
+            # Give p |- p a higher weight
+            if not self.defaultPriorWeight == 0:               
+                for f,_w in features:
+                    dFeatureCounts[f] = self.defaultPriorWeight
+            self.counts[dataPoint] = [self.defaultPriorWeight,dFeatureCounts]            
         for dep in dependencies:
             self.counts[dep][0] += 1
             for f,_w in features:
@@ -101,37 +100,43 @@ class sparseNBClassifier(object):
         Returns a ranking of the accessibles.
         """
         predictions = []
+        fSet = set([f for f,_w in features])
         for a in accessibles:
             posA = self.counts[a][0]
             fA = set(self.counts[a][1].keys())
             fWeightsA = self.counts[a][1]
-            resultA = log(posA)
+            prior = posA
+            if self.sinePrior:
+                triggerFeatures = dicts.triggerFeatures[a]
+                triggeredFeatures = fSet.intersection(triggerFeatures)
+                for f in triggeredFeatures:
+                    posW = dicts.featureCountDict[f]
+                    prior += self.sineWeight /  posW 
+            resultA = log(prior)
             for f,w in features:
                 # DEBUG
                 #w = 1
                 if f in fA:
                     if fWeightsA[f] == 0:
-                        resultA -= w*self.defVal
+                        resultA += w*self.defVal
                     else:
                         assert fWeightsA[f] <= posA
                         resultA += w*log(float(self.posWeight*fWeightsA[f])/posA)
                 else:
-                    resultA -= w*self.defVal
+                    resultA += w*self.defVal
             predictions.append(resultA)
-        #expPredictions = array([exp(x) for x in predictions])
         predictions = array(predictions)
         perm = (-predictions).argsort()
-        #return array(accessibles)[perm],expPredictions[perm]
         return array(accessibles)[perm],predictions[perm]
 
     def save(self,fileName):
         OStream = open(fileName, 'wb')
-        dump(self.counts,OStream)
+        dump((self.counts,self.defaultPriorWeight,self.posWeight,self.defVal,self.sinePrior,self.sineWeight),OStream)
         OStream.close()
 
     def load(self,fileName):
         OStream = open(fileName, 'rb')
-        self.counts = load(OStream)
+        self.counts,self.defaultPriorWeight,self.posWeight,self.defVal,self.sinePrior,self.sineWeight = load(OStream)
         OStream.close()
 
 

@@ -31,16 +31,18 @@ class Dictionaries(object):
         self.featureDict = {}
         self.dependenciesDict = {}
         self.accessibleDict = {}
-        self.featureCountDict = {}
         self.expandedAccessibles = {}
+        # For SInE-like prior
+        self.featureCountDict = {}
+        self.triggerFeatures = {}
         self.changed = True
 
     """
     Init functions. Side Effect: nameIdDict, idNameDict, featureIdDict, articleDict get filled!
     """
     def init_featureDict(self,featureFile):
-        self.featureDict,self.maxNameId,self.maxFeatureId, self.featureCountDict = create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,\
-                                                                                                       self.maxFeatureId,self.featureCountDict,featureFile)
+        self.featureDict,self.maxNameId,self.maxFeatureId, self.featureCountDict,self.triggerFeatures = create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,\
+                                                                                                       self.maxFeatureId,self.featureCountDict,self.triggerFeatures,featureFile)
     def init_dependenciesDict(self,depFile):
         self.dependenciesDict = create_dependencies_dict(self.nameIdDict,depFile)
     def init_accessibleDict(self,accFile):
@@ -131,8 +133,11 @@ class Dictionaries(object):
         # Accessible Ids
         unExpAcc = [self.nameIdDict[a.strip()] for a in line[0].split()]
         self.accessibleDict[nameId] = unExpAcc
-        self.featureDict[nameId] = self.get_features(line)
-        self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]
+        features = self.get_features(line)
+        self.featureDict[nameId] = features
+        minVal = min([self.featureCountDict[f] for f,_w in features])
+        self.triggerFeatures[nameId] = [f for f,_w in features if self.featureCountDict[f] == minVal]
+        self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]        
         self.changed = True
         return nameId
 
@@ -192,12 +197,12 @@ class Dictionaries(object):
         if self.changed:
             dictsStream = open(fileName, 'wb')
             dump((self.accessibleDict,self.dependenciesDict,self.expandedAccessibles,self.featureDict,\
-                self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict),dictsStream)
+                self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict,self.triggerFeatures),dictsStream)
             self.changed = False
             dictsStream.close()
     def load(self,fileName):
         dictsStream = open(fileName, 'rb')
         self.accessibleDict,self.dependenciesDict,self.expandedAccessibles,self.featureDict,\
-              self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict = load(dictsStream)
+              self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict,self.triggerFeatures = load(dictsStream)
         self.changed = False
         dictsStream.close()
