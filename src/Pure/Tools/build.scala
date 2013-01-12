@@ -488,8 +488,10 @@ object Build
       Simple_Thread.future("build") {
         Isabelle_System.bash_env(info.dir.file, env, script,
           out_progress = (line: String) =>
-            if (line.startsWith(LOADING_THEORY))
-              progress.theory(name, line.substring(LOADING_THEORY.length)))
+            Library.try_unprefix("\floading_theory = ", line) match {
+              case Some(theory) => progress.theory(name, theory)
+              case None =>
+            })
       }
 
     def terminate: Unit = thread.interrupt
@@ -526,7 +528,6 @@ object Build
   private def log_gz(name: String): Path = log(name).ext("gz")
 
   private val SESSION_PARENT_PATH = "\fSession.parent_path = "
-  private val LOADING_THEORY = "\floading_theory = "
 
   sealed case class Log_Info(stats: List[Properties.T], timing: Properties.T)
 

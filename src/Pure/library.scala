@@ -82,12 +82,18 @@ object Library
     else ""
   }
 
+
+  /* strings */
+
   def lowercase(str: String): String = str.toLowerCase(Locale.ENGLISH)
   def uppercase(str: String): String = str.toUpperCase(Locale.ENGLISH)
 
   def capitalize(str: String): String =
     if (str.length == 0) str
     else uppercase(str.substring(0, 1)) + str.substring(1)
+
+  def try_unprefix(prfx: String, s: String): Option[String] =
+    if (s.startsWith(prfx)) Some(s.substring(prfx.length)) else None
 
 
   /* quote */

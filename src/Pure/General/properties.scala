@@ -126,8 +126,7 @@ object Properties
   }
 
   def parse_lines(prefix: java.lang.String, lines: List[java.lang.String]): List[T] =
-    for (line <- lines if line.startsWith(prefix))
-      yield parse(line.substring(prefix.length))
+    for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse(s)
 
   def find_parse_line(prefix: java.lang.String, lines: List[java.lang.String]): Option[T] =
     lines.find(_.startsWith(prefix)).map(line => parse(line.substring(prefix.length)))
