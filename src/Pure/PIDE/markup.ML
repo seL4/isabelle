@@ -125,14 +125,14 @@ sig
   val graphviewN: string
   val sendbackN: string
   val paddingN: string
-  val padding_line: string * string
+  val padding_line: Properties.entry
   val dialogN: string val dialog: serial -> string -> T
   val functionN: string
   val assign_execs: Properties.T
   val removed_versions: Properties.T
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
-  val ML_statistics: string * string
+  val ML_statistics: Properties.entry
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
