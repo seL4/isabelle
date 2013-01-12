@@ -16,7 +16,7 @@ session "HOL-Proofs" = Pure +
     "Tools/Quickcheck/Narrowing_Engine.hs"
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
-session "HOL-Library" in Library = HOL +
+session "HOL-Library" (main) in Library = HOL +
   description {* Classical Higher-order Logic -- batteries included *}
   theories
     Library
@@ -178,7 +178,7 @@ session "HOL-Nitpick_Examples" in Nitpick_Examples = HOL +
   options [document = false]
   theories [quick_and_dirty] Nitpick_Examples
 
-session "HOL-Algebra" in Algebra = HOL +
+session "HOL-Algebra" (main) in Algebra = HOL +
   description {*
     Author: Clemens Ballarin, started 24 September 1999
 
@@ -553,7 +553,7 @@ session "HOL-TPTP" in TPTP = HOL +
   theories [proofs = 0]  (* FIXME !? *)
     ATP_Problem_Import
 
-session "HOL-Multivariate_Analysis" in Multivariate_Analysis = HOL +
+session "HOL-Multivariate_Analysis" (main) in Multivariate_Analysis = HOL +
   options [document_graph]
   theories
     Multivariate_Analysis
@@ -620,7 +620,7 @@ session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
     Misc_Codata
     Misc_Data
 
-session "HOL-Word" in Word = HOL +
+session "HOL-Word" (main) in Word = HOL +
   options [document_graph]
   theories Word
   files "document/root.bib" "document/root.tex"
@@ -680,7 +680,7 @@ session "HOL-Boogie-Examples" in "Boogie/Examples" = "HOL-Boogie" +
     "VCC_Max.b2i"
     "VCC_Max.certs"
 
-session "HOL-SPARK" in "SPARK" = "HOL-Word" +
+session "HOL-SPARK" (main) in "SPARK" = "HOL-Word" +
   options [document = false]
   theories SPARK
 

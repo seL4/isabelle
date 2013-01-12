@@ -160,17 +160,6 @@ object JEdit_Lib
   }
 
 
-  /* char width */
-
-  def char_width(text_area: TextArea): Int =
-  {
-    val painter = text_area.getPainter
-    val font = painter.getFont
-    val font_context = painter.getFontRenderContext
-    font.getStringBounds(" ", font_context).getWidth.round.toInt
-  }
-
-
   /* graphics range */
 
   case class Gfx_Range(val x: Int, val y: Int, val length: Int)
@@ -179,6 +168,8 @@ object JEdit_Lib
   // NB: last line lacks \n
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
   {
+    val char_width = Pretty.char_width_int(text_area.getPainter.getFontMetrics)
+
     val buffer = text_area.getBuffer
 
     val p = text_area.offsetToXY(range.start)
@@ -186,9 +177,9 @@ object JEdit_Lib
     val end = buffer.getLength
     val stop = range.stop
     val (q, r) =
-      if (stop >= end) (text_area.offsetToXY(end), char_width(text_area) * (stop - end))
+      if (stop >= end) (text_area.offsetToXY(end), char_width * (stop - end))
       else if (stop > 0 && buffer.getText(stop - 1, 1) == "\n")
-        (text_area.offsetToXY(stop - 1), char_width(text_area))
+        (text_area.offsetToXY(stop - 1), char_width)
       else (text_area.offsetToXY(stop), 0)
 
     if (p != null && q != null && p.x < q.x + r && p.y == q.y)

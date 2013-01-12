@@ -11,7 +11,7 @@ package isabelle
 import java.lang.System
 import java.util.Locale
 import java.util.concurrent.{Future => JFuture, TimeUnit}
-import java.awt.Component
+import java.awt.{Component, Toolkit}
 import javax.swing.JOptionPane
 
 import scala.swing.{ComboBox, TextArea, ScrollPane}
@@ -82,9 +82,8 @@ object Library
     else ""
   }
 
-  def trim_line(str: String): String =
-    if (str.endsWith("\n")) str.substring(0, str.length - 1)
-    else str
+
+  /* strings */
 
   def lowercase(str: String): String = str.toLowerCase(Locale.ENGLISH)
   def uppercase(str: String): String = str.toUpperCase(Locale.ENGLISH)
@@ -92,6 +91,9 @@ object Library
   def capitalize(str: String): String =
     if (str.length == 0) str
     else uppercase(str.substring(0, 1)) + str.substring(1)
+
+  def try_unprefix(prfx: String, s: String): Option[String] =
+    if (s.startsWith(prfx)) Some(s.substring(prfx.length)) else None
 
 
   /* quote */
@@ -196,6 +198,12 @@ object Library
     selection.index = 3
     prototypeDisplayValue = Some("00000%")
   }
+
+
+  /* screen resolution */
+
+  def resolution_scale(): Double = Toolkit.getDefaultToolkit.getScreenResolution.toDouble / 72
+  def resolution_scale(i: Int): Int = (i.toDouble * resolution_scale()).round.toInt
 
 
   /* Java futures */

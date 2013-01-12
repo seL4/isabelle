@@ -6,17 +6,19 @@ Property lists.
 
 signature PROPERTIES =
 sig
-  type T = (string * string) list
+  type entry = string * string
+  type T = entry list
   val defined: T -> string -> bool
   val get: T -> string -> string option
-  val put: string * string -> T -> T
+  val put: entry -> T -> T
   val remove: string -> T -> T
 end;
 
 structure Properties: PROPERTIES =
 struct
 
-type T = (string * string) list;
+type entry = string * string;
+type T = entry list;
 
 fun defined (props: T) name = AList.defined (op =) props name;
 fun get (props: T) name = AList.lookup (op =) props name;

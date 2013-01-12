@@ -224,6 +224,7 @@ fun load_thy initiators update_time deps text (name, pos) uses keywords parents 
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
+    val _ = Output.protocol_message (Markup.loading_theory name) "" handle Fail _ => ();
 
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;

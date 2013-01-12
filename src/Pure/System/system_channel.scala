@@ -45,8 +45,8 @@ private class Fifo_Channel extends System_Channel
       "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$" + i + "\"\n" +
       "echo -n \"$FIFO\"\n" +
       "mkfifo -m 600 \"$FIFO\"\n"
-    val (out, err, rc) = Isabelle_System.bash(script)
-    if (rc == 0) out else error(err.trim)
+    val result = Isabelle_System.bash(script)
+    if (result.rc == 0) result.out else error(result.err)
   }
 
   private def rm_fifo(fifo: String): Boolean = (new JFile(fifo)).delete

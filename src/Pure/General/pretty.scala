@@ -14,7 +14,6 @@ object Pretty
 {
   /* spaces */
 
-  val spc = ' '
   val space = " "
 
   private val static_spaces = space * 4000
@@ -84,10 +83,13 @@ object Pretty
   private val margin_default = 76
   private def metric_default(s: String) = s.length.toDouble
 
+  def char_width(metrics: FontMetrics): Double = metrics.stringWidth("mix").toDouble / 3
+  def char_width_int(metrics: FontMetrics): Int = char_width(metrics).round.toInt
+
   def font_metric(metrics: FontMetrics): String => Double =
     if (metrics == null) ((s: String) => s.length.toDouble)
     else {
-      val unit = metrics.charWidth(spc).toDouble
+      val unit = char_width(metrics)
       ((s: String) => if (s == "\n") 1.0 else metrics.stringWidth(s) / unit)
     }
 
