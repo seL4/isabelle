@@ -535,15 +535,11 @@ val logical_consts =
 
 val max_pattern_breadth = 10
 
-fun interesting_terms_types_and_classes ctxt prover thy_name term_max_depth
-                                        type_max_depth ts =
+fun term_features_of ctxt prover thy_name term_max_depth type_max_depth ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fixes = map snd (Variable.dest_fixes ctxt)
     val classes = Sign.classes_of thy
-    fun is_bad_const (x as (s, _)) args =
-      member (op =) logical_consts s orelse
-      fst (is_built_in_const_for_prover ctxt prover x args)
     fun add_classes @{sort type} = I
       | add_classes S =
         fold (`(Sorts.super_classes classes)
@@ -558,24 +554,38 @@ fun interesting_terms_types_and_classes ctxt prover thy_name term_max_depth
       | do_add_type (TFree (_, S)) = add_classes S
       | do_add_type (TVar (_, S)) = add_classes S
     fun add_type T = type_max_depth >= 0 ? do_add_type T
-    fun patternify_term _ 0 _ = []
+    fun patternify_term _ 0 _ = ([], [])
       | patternify_term args _ (Const (x as (s, _))) =
-        if is_bad_const x args then [] else [s]
-      | patternify_term _ depth (Free (s, _)) =
-        if depth = term_max_depth andalso member (op =) fixes s then
-          [thy_name ^ Long_Name.separator ^ s]
-        else
-          []
+        (if member (op =) logical_consts s then (true, args)
+         else is_built_in_const_for_prover ctxt prover x args)
+        |>> (fn true => [] | false => [s])
+      | patternify_term args depth (Free (s, _)) =
+        (if depth = term_max_depth andalso member (op =) fixes s then
+           [thy_name ^ Long_Name.separator ^ s]
+         else
+           [], args)
       | patternify_term args depth (t $ u) =
         let
-          val ps =
-            take max_pattern_breadth (patternify_term (u :: args) depth t)
-          val qs =
-            take max_pattern_breadth ("" :: patternify_term [] (depth - 1) u)
-        in map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs end
-      | patternify_term _ _ _ = []
+          val (ps, u_args) =
+            patternify_term (u :: args) depth t
+            |>> take max_pattern_breadth
+          val (qs, args) =
+            case u_args of
+              [] => ([], [])
+            | arg :: args' =>
+              if arg = u then
+                (patternify_term [] (depth - 1) u
+                 |> fst |> cons "" |> take max_pattern_breadth,
+                 args')
+              else
+                ([], args')
+        in
+          (map_product (fn p => fn "" => p | q => p ^ "(" ^ q ^ ")") ps qs,
+           args)
+        end
+      | patternify_term _ _ _ = ([], [])
     fun add_term_pattern feature_of =
-      union (op = o pairself fst) o map feature_of oo patternify_term []
+      union (op = o pairself fst) o map feature_of o fst oo patternify_term []
     fun add_term_patterns _ 0 _ = I
       | add_term_patterns feature_of depth t =
         add_term_pattern feature_of depth t
@@ -602,8 +612,7 @@ val type_max_depth = 2
 fun features_of ctxt prover thy (scope, status) ts =
   let val thy_name = Context.theory_name thy in
     thy_feature_of thy_name ::
-    interesting_terms_types_and_classes ctxt prover thy_name term_max_depth
-        type_max_depth ts
+    term_features_of ctxt prover thy_name term_max_depth type_max_depth ts
     |> status <> General ? cons (status_feature_of status)
     |> scope <> Global ? cons local_feature
     |> exists (not o is_lambda_free) ts ? cons lams_feature
