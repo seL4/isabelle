@@ -37,6 +37,8 @@ object Graphview extends SwingApplication
       catch { case exn: Throwable => println(Exn.message(exn)); sys.exit(1) }
 
     val top = new MainFrame {
+      iconImage = Isabelle_System.get_icon().getImage
+
       title = "Graphview"
       minimumSize = new Dimension(640, 480)
       preferredSize = new Dimension(800, 600)

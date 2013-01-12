@@ -107,7 +107,11 @@ final class ML_Statistics private(val stats: List[Properties.T])
   def standard_frames: Unit =
     ML_Statistics.standard_fields.map(chart(_)).foreach(c =>
       Swing_Thread.later {
-        new Frame { contents = Component.wrap(new ChartPanel(c)); visible = true }
+        new Frame {
+          iconImage = Isabelle_System.get_icon().getImage
+          contents = Component.wrap(new ChartPanel(c))
+          visible = true
+        }
       })
 }
 

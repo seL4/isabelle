@@ -23,6 +23,8 @@ object GUI_Setup extends SwingApplication
   }
 
   def top = new MainFrame {
+    iconImage = Isabelle_System.get_icon().getImage
+
     title = "Isabelle setup"
 
     // components

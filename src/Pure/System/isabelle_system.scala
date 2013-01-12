@@ -13,6 +13,7 @@ import java.io.{InputStream, OutputStream, File => JFile, BufferedReader, InputS
   BufferedWriter, OutputStreamWriter, IOException, FileInputStream, BufferedInputStream}
 import java.awt.{GraphicsEnvironment, Font}
 import java.awt.font.TextAttribute
+import javax.swing.ImageIcon
 
 import scala.io.Source
 import scala.util.matching.Regex
@@ -433,4 +434,10 @@ object Isabelle_System
       finally { stream.close }
     }
   }
+
+
+  /* icon */
+
+  def get_icon(): ImageIcon =
+    new ImageIcon(platform_path(Path.explode("~~/lib/logo/isabelle.gif")))
 }
