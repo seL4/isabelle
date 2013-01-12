@@ -83,6 +83,7 @@ object Build_Dialog
 
     val progress = new Build.Progress
     {
+      override def theory(name: String): Unit = echo("  theory " + name)
       override def echo(msg: String): Unit = Swing_Thread.now { text.append(msg + "\n") }
       override def stopped: Boolean =
         Swing_Thread.now { val b = is_stopped; is_stopped = false; b  }

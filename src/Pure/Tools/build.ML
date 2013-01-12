@@ -22,7 +22,10 @@ fun ML_statistics (function :: stats) "" =
 fun protocol_message props output =
   (case ML_statistics props output of
     SOME stats => writeln ("\fML_statistics = " ^ ML_Syntax.print_properties stats)
-  | NONE => raise Fail "Undefined Output.protocol_message");
+  | NONE =>
+      (case Markup.dest_loading_theory props of
+        SOME name => writeln ("\floading_theory = " ^ name)
+      | NONE => raise Fail "Undefined Output.protocol_message"));
 
 
 (* build *)

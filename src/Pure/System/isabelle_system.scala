@@ -16,7 +16,6 @@ import java.awt.font.TextAttribute
 
 import scala.io.Source
 import scala.util.matching.Regex
-import scala.collection.mutable
 
 
 object Isabelle_System
@@ -331,24 +330,35 @@ object Isabelle_System
 
   /* bash */
 
-  def bash_env(cwd: JFile, env: Map[String, String], script: String): (String, String, Int) =
+  final case class Bash_Result(out_lines: List[String], err_lines: List[String], rc: Int)
+  {
+    def out: String = cat_lines(out_lines)
+    def err: String = cat_lines(err_lines)
+    def add_err(s: String): Bash_Result = copy(err_lines = err_lines ::: List(s))
+  }
+
+  def bash_env(cwd: JFile, env: Map[String, String], script: String,
+    out_progress: String => Unit = (_: String) => (),
+    err_progress: String => Unit = (_: String) => ()): Bash_Result =
   {
     File.with_tmp_file("isabelle_script") { script_file =>
       File.write(script_file, script)
       val proc = new Managed_Process(cwd, env, false, "bash", posix_path(script_file))
 
       proc.stdin.close
-      val (_, stdout) = Simple_Thread.future("bash_stdout") { File.read_stream(proc.stdout) }
-      val (_, stderr) = Simple_Thread.future("bash_stderr") { File.read_stream(proc.stderr) }
+      val (_, stdout) =
+        Simple_Thread.future("bash_stdout") { File.read_lines(proc.stdout, out_progress) }
+      val (_, stderr) =
+        Simple_Thread.future("bash_stderr") { File.read_lines(proc.stderr, err_progress) }
 
       val rc =
         try { proc.join }
         catch { case e: InterruptedException => Thread.interrupted; proc.terminate; 130 }
-      (stdout.join, stderr.join, rc)
+      Bash_Result(stdout.join, stderr.join, rc)
     }
   }
 
-  def bash(script: String): (String, String, Int) = bash_env(null, null, script)
+  def bash(script: String): Bash_Result = bash_env(null, null, script)
 
 
   /* system tools */

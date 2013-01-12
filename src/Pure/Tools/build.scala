@@ -22,6 +22,7 @@ object Build
   /** progress context **/
 
   class Progress {
+    def theory(name: String) {}
     def echo(msg: String) {}
     def stopped: Boolean = false
   }
@@ -412,7 +413,8 @@ object Build
 
   /* jobs */
 
-  private class Job(name: String, val info: Session_Info, output: Path, do_output: Boolean,
+  private class Job(progress: Build.Progress,
+    name: String, val info: Session_Info, output: Path, do_output: Boolean,
     verbose: Boolean, browser_info: Path)
   {
     // global browser info dir
@@ -479,7 +481,12 @@ object Build
       }
 
     private val (thread, result) =
-      Simple_Thread.future("build") { Isabelle_System.bash_env(info.dir.file, env, script) }
+      Simple_Thread.future("build") {
+        Isabelle_System.bash_env(info.dir.file, env, script,
+          out_progress = (line: String) =>
+            if (line.startsWith(LOADING_THEORY))
+              progress.theory(line.substring(LOADING_THEORY.length)))
+      }
 
     def terminate: Unit = thread.interrupt
     def is_finished: Boolean = result.is_finished
@@ -494,17 +501,16 @@ object Build
       }
       else None
 
-    def join: (String, String, Int) = {
-      val (out, err, rc) = result.join
+    def join: Isabelle_System.Bash_Result =
+    {
+      val res = result.join
+
       args_file.delete
       timer.map(_.cancel())
 
-      val err1 =
-        if (rc == 130)
-          (if (err.isEmpty || err.endsWith("\n")) err else err + "\n") +
-          (if (timeout) "*** Timeout\n" else "*** Interrupt\n")
-        else err
-      (out, err1, rc)
+      if (res.rc == 130)
+        res.add_err(if (timeout) "*** Timeout" else "*** Interrupt")
+      else res
     }
   }
 
@@ -516,6 +522,7 @@ object Build
   private def log_gz(name: String): Path = log(name).ext("gz")
 
   private val SESSION_PARENT_PATH = "\fSession.parent_path = "
+  private val LOADING_THEORY = "\floading_theory = "
 
   sealed case class Log_Info(stats: List[Properties.T], timing: Properties.T)
 
@@ -634,22 +641,21 @@ object Build
           case Some((name, (parent_heap, job))) =>
             //{{{ finish job
 
-            val (out, err, rc) = job.join
-            val out_lines = split_lines(out)
-            progress.echo(Library.trim_line(err))
+            val res = job.join
+            progress.echo(res.err)
 
             val (parent_path, heap) =
-              if (rc == 0) {
+              if (res.rc == 0) {
                 (output_dir + log(name)).file.delete
 
                 val sources = make_stamp(name)
                 val heap = heap_stamp(job.output_path)
                 File.write_gzip(output_dir + log_gz(name),
-                  sources + "\n" + parent_heap + "\n" + heap + "\n" + out)
+                  sources + "\n" + parent_heap + "\n" + heap + "\n" + res.out)
 
                 val parent_path =
                   if (job.info.options.bool("browser_info"))
-                    out_lines.find(_.startsWith(SESSION_PARENT_PATH)).map(line =>
+                    res.out_lines.find(_.startsWith(SESSION_PARENT_PATH)).map(line =>
                       line.substring(SESSION_PARENT_PATH.length))
                   else None
 
@@ -659,11 +665,11 @@ object Build
                 (output_dir + Path.basic(name)).file.delete
                 (output_dir + log_gz(name)).file.delete
 
-                File.write(output_dir + log(name), out)
+                File.write(output_dir + log(name), res.out)
                 progress.echo(name + " FAILED")
-                if (rc != 130) {
+                if (res.rc != 130) {
                   progress.echo("(see also " + (output_dir + log(name)).file.toString + ")")
-                  val lines = out_lines.filterNot(_.startsWith("\f"))
+                  val lines = res.out_lines.filterNot(_.startsWith("\f"))
                   val tail = lines.drop(lines.length - 20 max 0)
                   progress.echo("\n" + cat_lines(tail))
                 }
@@ -671,7 +677,7 @@ object Build
                 (None, no_heap)
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, parent_path, heap, rc)))
+              results + (name -> Result(false, parent_path, heap, res.rc)))
             //}}}
           case None if (running.size < (max_jobs max 1)) =>
             //{{{ check/start next job
@@ -709,7 +715,7 @@ object Build
                 }
                 else if (parent_result.rc == 0) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
-                  val job = new Job(name, info, output, do_output, verbose, browser_info)
+                  val job = new Job(progress, name, info, output, do_output, verbose, browser_info)
                   loop(pending, running + (name -> (parent_result.heap, job)), results)
                 }
                 else {

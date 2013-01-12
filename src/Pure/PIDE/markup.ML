@@ -133,6 +133,8 @@ sig
   val invoke_scala: string -> string -> Properties.T
   val cancel_scala: string -> Properties.T
   val ML_statistics: Properties.entry
+  val loading_theory: string -> Properties.T
+  val dest_loading_theory: Properties.T -> string option
   val no_output: Output.output * Output.output
   val default_output: T -> Output.output * Output.output
   val add_mode: string -> (T -> Output.output * Output.output) -> unit
@@ -407,6 +409,11 @@ fun invoke_scala name id = [(functionN, "invoke_scala"), (nameN, name), (idN, id
 fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
 
 val ML_statistics = (functionN, "ML_statistics");
+
+fun loading_theory name = [("function", "loading_theory"), ("name", name)];
+
+fun dest_loading_theory [("function", "loading_theory"), ("name", name)] = SOME name
+  | dest_loading_theory _ = NONE;
 
 
 

@@ -82,10 +82,6 @@ object Library
     else ""
   }
 
-  def trim_line(str: String): String =
-    if (str.endsWith("\n")) str.substring(0, str.length - 1)
-    else str
-
   def lowercase(str: String): String = str.toLowerCase(Locale.ENGLISH)
   def uppercase(str: String): String = str.toUpperCase(Locale.ENGLISH)
 

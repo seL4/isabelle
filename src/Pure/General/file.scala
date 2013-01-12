@@ -75,6 +75,21 @@ object File
   def read_gzip(path: Path): String = read_gzip(path.file)
 
 
+  /* read lines */
+
+  def read_lines(reader: BufferedReader, progress: String => Unit): List[String] =
+  {
+    val result = new mutable.ListBuffer[String]
+    var line: String = null
+    while ({ line = reader.readLine; line != null }) {
+      progress(line)
+      result += line
+    }
+    reader.close
+    result.toList
+  }
+
+
   /* try_read */
 
   def try_read(paths: Seq[Path]): String =
