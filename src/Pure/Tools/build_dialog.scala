@@ -92,20 +92,35 @@ object Build_Dialog
     }
 
 
-    /* action button */
+    /* action panel */
+
+    var do_auto_close = true
+    def check_auto_close(): Unit = if (do_auto_close && return_code == 0) sys.exit(return_code)
+
+    val auto_close = new CheckBox("Auto close") {
+      reactions += {
+        case ButtonClicked(_) => do_auto_close = this.selected
+        check_auto_close()
+      }
+    }
+    auto_close.selected = do_auto_close
+    auto_close.tooltip = "Automatically close dialog when finished"
+
 
     var button_action: () => Unit = (() => is_stopped = true)
     val button = new Button("Cancel") {
       reactions += { case ButtonClicked(_) => button_action() }
     }
-    def button_exit(rc: Int)
+    def button_exit()
     {
-      button.text = if (rc == 0) "OK" else "Exit"
-      button_action = (() => sys.exit(rc))
+      check_auto_close()
+      button.text = if (return_code == 0) "OK" else "Exit"
+      button_action = (() => sys.exit(return_code))
       button.peer.getRootPane.setDefaultButton(button.peer)
     }
 
-    val action_panel = new FlowPanel(FlowPanel.Alignment.Center)(button)
+
+    val action_panel = new FlowPanel(FlowPanel.Alignment.Center)(button, auto_close)
 
 
     /* layout panel */
@@ -133,7 +148,7 @@ object Build_Dialog
       Swing_Thread.now {
         progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
         return_code = rc
-        button_exit(rc)
+        button_exit()
       }
     })
   }
