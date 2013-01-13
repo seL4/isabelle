@@ -477,12 +477,20 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
+          |> map (apfst (apfst (fn name => name ())))
+          |> tap (fn facts =>
+                     (if null facts then
+                        "Found no relevant facts."
+                      else
+                        "Including " ^ string_of_int (length facts) ^
+                        " relevant fact(s):\n" ^
+                        (facts |> map (fst o fst) |> space_implode " ") ^ ".")
+                     |> Output.urgent_message)
         val prover = get_prover ctxt prover_name params goal facts
         val problem =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,
-           facts = facts |> map (apfst (apfst (fn name => name ())))
-                         |> map Sledgehammer_Provers.Untranslated_Fact}
+           facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
       in prover params (K (K (K ""))) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
