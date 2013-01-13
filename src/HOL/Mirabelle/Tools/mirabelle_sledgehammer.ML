@@ -479,6 +479,7 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
           |> map (apfst (apfst (fn name => name ())))
           |> tap (fn facts =>
+                     "Line " ^ str0 (Position.line_of pos) ^ ": " ^
                      (if null facts then
                         "Found no relevant facts."
                       else
