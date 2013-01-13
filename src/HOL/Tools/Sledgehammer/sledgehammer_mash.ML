@@ -355,7 +355,8 @@ fun load _ (state as (true, _)) = state
                EQUAL =>
                try_graph ctxt "loading state" Graph.empty (fn () =>
                    fold add_node node_lines Graph.empty)
-             | LESS => Graph.empty (* can't parse old file *)
+             | LESS =>
+               (MaSh.unlearn ctxt; Graph.empty) (* can't parse old file *)
              | GREATER => raise Too_New ()
          in
            trace_msg ctxt (fn () =>
