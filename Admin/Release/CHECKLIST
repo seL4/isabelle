@@ -53,15 +53,15 @@ Checklist for official releases
 Packaging
 =========
 
-- hg up -r DISTNAME && isabelle makedist -r DISTNAME;
+- hg up -r DISTNAME && isabelle makedist -r DISTNAME
 
-- isabelle makedist_bundles;
+- isabelle makedist_bundles
 
-- Mac OS X: hdiutil create -srcfolder DIR DMG;
+- ./makedist_library DISTNAME_linux.tar.gz
+
+- Mac OS X: hdiutil create -srcfolder DIR DMG
 
 - Windows: cat 7zsd_All.sfx sfx.txt Isabelle.7z > Isabelle.exe
-
-- makebin -l on fast machine, based on renamed bundle with deleted heaps;
 
 
 Final release stage
