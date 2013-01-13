@@ -71,7 +71,7 @@ abstype node = Node of
   perspective: perspective,  (*visible commands, last*)
   entries: (exec_id * exec) option Entries.T * bool,  (*command entries with excecutions, stable*)
   result: exec option}  (*result of last execution*)
-and version = Version of node Graph.T  (*development graph wrt. static imports*)
+and version = Version of node String_Graph.T  (*development graph wrt. static imports*)
 with
 
 fun make_node (header, perspective, entries, result) =
@@ -134,9 +134,10 @@ fun get_result (Node {result, ...}) = result;
 fun set_result result =
   map_node (fn (header, perspective, entries, _) => (header, perspective, entries, result));
 
-fun get_node nodes name = Graph.get_node nodes name handle Graph.UNDEF _ => empty_node;
-fun default_node name = Graph.default_node (name, empty_node);
-fun update_node name f = default_node name #> Graph.map_node name f;
+fun get_node nodes name = String_Graph.get_node nodes name
+  handle String_Graph.UNDEF _ => empty_node;
+fun default_node name = String_Graph.default_node (name, empty_node);
+fun update_node name f = default_node name #> String_Graph.map_node name f;
 
 
 (* node edits and associated executions *)
@@ -182,7 +183,7 @@ val edit_node = map_entries o fold
 
 (* version operations *)
 
-val empty_version = Version Graph.empty;
+val empty_version = Version String_Graph.empty;
 
 fun nodes_of (Version nodes) = nodes;
 val node_of = get_node o nodes_of;
@@ -204,12 +205,12 @@ fun edit_nodes (name, node_edit) (Version nodes) =
             |> default_node name
             |> fold default_node imports;
           val nodes2 = nodes1
-            |> Graph.Keys.fold
-                (fn dep => Graph.del_edge (dep, name)) (Graph.imm_preds nodes1 name);
+            |> String_Graph.Keys.fold
+                (fn dep => String_Graph.del_edge (dep, name)) (String_Graph.imm_preds nodes1 name);
           val (nodes3, errors2) =
-            (Graph.add_deps_acyclic (name, imports) nodes2, errors1)
-              handle Graph.CYCLES cs => (nodes2, errors1 @ map cycle_msg cs);
-        in Graph.map_node name (set_header (master, header, errors2)) nodes3 end
+            (String_Graph.add_deps_acyclic (name, imports) nodes2, errors1)
+              handle String_Graph.CYCLES cs => (nodes2, errors1 @ map cycle_msg cs);
+        in String_Graph.map_node name (set_header (master, header, errors2)) nodes3 end
     | Perspective perspective => update_node name (set_perspective perspective) nodes);
 
 fun put_node (name, node) (Version nodes) =
@@ -294,7 +295,7 @@ fun remove_versions ids state = state |> map_state (fn (versions, _, execution) 
     val commands' =
       (versions', Inttab.empty) |->
         Inttab.fold (fn (_, version) => nodes_of version |>
-          Graph.fold (fn (_, (node, _)) => node |>
+          String_Graph.fold (fn (_, (node, _)) => node |>
             iterate_entries (fn ((_, id), _) =>
               SOME o Inttab.insert (K true) (id, the_command state id))));
   in (versions', commands', execution) end);
@@ -339,7 +340,7 @@ fun start_execution state =
         {name = "execution", group = SOME group, deps = [], pri = ~2, interrupts = true}
         (fn () =>
          (OS.Process.sleep (seconds 0.02);
-          nodes_of (the_version state version_id) |> Graph.schedule
+          nodes_of (the_version state version_id) |> String_Graph.schedule
             (fn deps => fn (name, node) =>
               if not (visible_node node) andalso finished_theory node then
                 Future.value ()
@@ -366,13 +367,13 @@ local
 fun make_required nodes =
   let
     val all_visible =
-      Graph.fold (fn (a, (node, _)) => visible_node node ? cons a) nodes []
-      |> Graph.all_preds nodes
+      String_Graph.fold (fn (a, (node, _)) => visible_node node ? cons a) nodes []
+      |> String_Graph.all_preds nodes
       |> map (rpair ()) |> Symtab.make;
 
     val required =
       Symtab.fold (fn (a, ()) =>
-        exists (Symtab.defined all_visible) (Graph.immediate_succs nodes a) ?
+        exists (Symtab.defined all_visible) (String_Graph.immediate_succs nodes a) ?
           Symtab.update (a, ())) all_visible Symtab.empty;
   in Symtab.defined required end;
 
@@ -476,7 +477,7 @@ fun update (old_id: version_id) (new_id: version_id) edits state =
 
     val _ = timeit "Document.terminate_execution" (fn () => terminate_execution state);
     val updated = timeit "Document.update" (fn () =>
-      nodes |> Graph.schedule
+      nodes |> String_Graph.schedule
         (fn deps => fn (name, node) =>
           (singleton o Future.forks)
             {name = "Document.update", group = NONE,

@@ -196,7 +196,7 @@ chmod -R u+w "$DISTNAME"
 chmod -R g=o "$DISTNAME"
 
 echo "$DISTBASE/$DISTNAME.tar.gz"
-tar -czf "$DISTNAME.tar.gz" "$DISTNAME"
+env COPYFILE_DISABLE=true tar -c -z -f "$DISTNAME.tar.gz" "$DISTNAME"
 
 
 # cleanup dist

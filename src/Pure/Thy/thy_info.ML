@@ -55,11 +55,11 @@ fun cycle_msg names = loader_msg ("cyclic dependency of " ^ show_path names) [];
 
 (* derived graph operations *)
 
-fun add_deps name parents G = Graph.add_deps_acyclic (name, parents) G
-  handle Graph.CYCLES namess => error (cat_lines (map cycle_msg namess));
+fun add_deps name parents G = String_Graph.add_deps_acyclic (name, parents) G
+  handle String_Graph.CYCLES namess => error (cat_lines (map cycle_msg namess));
 
 fun new_entry name parents entry =
-  Graph.new_node (name, entry) #> add_deps name parents;
+  String_Graph.new_node (name, entry) #> add_deps name parents;
 
 
 (* thy database *)
@@ -74,7 +74,8 @@ fun master_dir (d: deps option) = the_default Path.current (Option.map (Path.dir
 fun base_name s = Path.implode (Path.base (Path.explode s));
 
 local
-  val database = Unsynchronized.ref (Graph.empty: (deps option * theory option) Graph.T);
+  val database =
+    Unsynchronized.ref (String_Graph.empty: (deps option * theory option) String_Graph.T);
 in
   fun get_thys () = ! database;
   fun change_thys f = NAMED_CRITICAL "Thy_Info" (fn () => Unsynchronized.change database f);
@@ -85,13 +86,13 @@ end;
 
 fun thy_graph f x = f (get_thys ()) x;
 
-fun get_names () = Graph.topological_order (get_thys ());
+fun get_names () = String_Graph.topological_order (get_thys ());
 
 
 (* access thy *)
 
 fun lookup_thy name =
-  SOME (thy_graph Graph.get_node name) handle Graph.UNDEF _ => NONE;
+  SOME (thy_graph String_Graph.get_node name) handle String_Graph.UNDEF _ => NONE;
 
 val known_thy = is_some o lookup_thy;
 
@@ -139,10 +140,10 @@ fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   if is_finished name then error (loader_msg "attempt to change finished theory" [name])
   else
     let
-      val succs = thy_graph Graph.all_succs [name];
+      val succs = thy_graph String_Graph.all_succs [name];
       val _ = Output.urgent_message (loader_msg "removing" succs);
       val _ = List.app (perform Remove) succs;
-      val _ = change_thys (fold Graph.del_node succs);
+      val _ = change_thys (fold String_Graph.del_node succs);
     in () end);
 
 fun kill_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
@@ -179,13 +180,13 @@ fun finish_thy ((thy, present, commit): result) =
   (Thm.join_theory_proofs thy; Future.join present; commit (); thy);
 
 val schedule_seq =
-  Graph.schedule (fn deps => fn (_, task) =>
+  String_Graph.schedule (fn deps => fn (_, task) =>
     (case task of
       Task (parents, body) => finish_thy (body (task_parents deps parents))
     | Finished thy => thy)) #> ignore;
 
 val schedule_futures = uninterruptible (fn _ =>
-  Graph.schedule (fn deps => fn (name, task) =>
+  String_Graph.schedule (fn deps => fn (name, task) =>
     (case task of
       Task (parents, body) =>
         (singleton o Future.forks)
@@ -265,7 +266,7 @@ and require_thy initiators dir (str, require_pos) tasks =
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
   in
-    (case try (Graph.get_node tasks) name of
+    (case try (String_Graph.get_node tasks) name of
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
@@ -305,7 +306,7 @@ end;
 (* use_thy *)
 
 fun use_thys_wrt dir arg =
-  schedule_tasks (snd (require_thys [] dir arg Graph.empty));
+  schedule_tasks (snd (require_thys [] dir arg String_Graph.empty));
 
 val use_thys = use_thys_wrt Path.current;
 val use_thy = use_thys o single;
@@ -340,6 +341,6 @@ fun register_thy theory =
 
 (* finish all theories *)
 
-fun finish () = change_thys (Graph.map (fn _ => fn (_, entry) => (NONE, entry)));
+fun finish () = change_thys (String_Graph.map (fn _ => fn (_, entry) => (NONE, entry)));
 
 end;
