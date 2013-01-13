@@ -118,7 +118,8 @@ fun generate_prover_dependencies ctxt params =
   generate_isar_or_prover_dependencies ctxt (SOME params)
 
 fun is_bad_query ctxt ho_atp th isar_deps =
-  Thm.legacy_get_kind th = "" orelse null isar_deps orelse
+  Thm.legacy_get_kind th = "" orelse
+  null (these (trim_dependencies th isar_deps)) orelse
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
 fun generate_isar_or_prover_commands ctxt prover params_opt range thys
