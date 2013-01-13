@@ -65,7 +65,7 @@ session "HOL-Induct" in Induct = HOL +
   files "document/root.tex"
 
 session "HOL-IMP" in IMP = HOL +
-  options [document_graph]
+  options [document_graph, document_variants=document]
   theories [document = false]
     "~~/src/HOL/ex/Interpretation_with_Defs"
     "~~/src/HOL/Library/While_Combinator"
