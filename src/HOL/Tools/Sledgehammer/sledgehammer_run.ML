@@ -244,7 +244,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                        (if null facts then
                           "Found no relevant facts."
                         else
-                          "Including (up to) " ^ string_of_int (length facts) ^
+                          "Including " ^ string_of_int (length facts) ^
                           " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
                           (facts |> map (fst o fst) |> space_implode " ") ^ ".")
                        |> print
