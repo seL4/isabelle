@@ -91,6 +91,8 @@ EOF
 
 # content
 
+export COPYFILE_DISABLE=true
+
 mkdir "$DIR/x86-linux" "$DIR/x86_64-linux" "$DIR/x86_64-darwin" "$DIR/x86-cygwin"
 
 tar -C "$DIR/x86-linux" -xf "$ARCHIVE_LINUX32"

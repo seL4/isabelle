@@ -40,6 +40,8 @@ ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
 
 ## main
 
+export COPYFILE_DISABLE=true
+
 for PLATFORM_FAMILY in linux macos windows
 do
 
