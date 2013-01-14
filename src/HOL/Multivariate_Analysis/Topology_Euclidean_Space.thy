@@ -239,6 +239,82 @@ lemma open_incseqE:
 
 end
 
+class first_countable_topology = topological_space +
+  assumes first_countable_basis:
+    "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
+
+lemma (in first_countable_topology) countable_basis_at_decseq:
+  obtains A :: "nat \<Rightarrow> 'a set" where
+    "\<And>i. open (A i)" "\<And>i. x \<in> (A i)"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
+proof atomize_elim
+  from first_countable_basis[of x] obtain A
+    where "countable A"
+    and nhds: "\<And>a. a \<in> A \<Longrightarrow> open a" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a"
+    and incl: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"  by auto
+  then have "A \<noteq> {}" by auto
+  with `countable A` have r: "A = range (from_nat_into A)" by auto
+  def F \<equiv> "\<lambda>n. \<Inter>i\<le>n. from_nat_into A i"
+  show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and>
+      (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially)"
+  proof (safe intro!: exI[of _ F])
+    fix i
+    show "open (F i)" using nhds(1) r by (auto simp: F_def intro!: open_INT)
+    show "x \<in> F i" using nhds(2) r by (auto simp: F_def)
+  next
+    fix S assume "open S" "x \<in> S"
+    from incl[OF this] obtain i where "F i \<subseteq> S"
+      by (subst (asm) r) (auto simp: F_def)
+    moreover have "\<And>j. i \<le> j \<Longrightarrow> F j \<subseteq> F i"
+      by (auto simp: F_def)
+    ultimately show "eventually (\<lambda>i. F i \<subseteq> S) sequentially"
+      by (auto simp: eventually_sequentially)
+  qed
+qed
+
+lemma (in first_countable_topology) first_countable_basisE:
+  obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
+  using first_countable_basis[of x]
+  by atomize_elim auto
+
+instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
+proof
+  fix x :: "'a \<times> 'b"
+  from first_countable_basisE[of "fst x"] guess A :: "'a set set" . note A = this
+  from first_countable_basisE[of "snd x"] guess B :: "'b set set" . note B = this
+  show "\<exists>A::('a\<times>'b) set set. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
+  proof (intro exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
+    fix a b assume x: "a \<in> A" "b \<in> B"
+    with A(2, 3)[of a] B(2, 3)[of b] show "x \<in> a \<times> b" "open (a \<times> b)"
+      unfolding mem_Times_iff by (auto intro: open_Times)
+  next
+    fix S assume "open S" "x \<in> S"
+    from open_prod_elim[OF this] guess a' b' .
+    moreover with A(4)[of a'] B(4)[of b']
+    obtain a b where "a \<in> A" "a \<subseteq> a'" "b \<in> B" "b \<subseteq> b'" by auto
+    ultimately show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
+      by (auto intro!: bexI[of _ "a \<times> b"] bexI[of _ a] bexI[of _ b])
+  qed (simp add: A B)
+qed
+
+instance metric_space \<subseteq> first_countable_topology
+proof
+  fix x :: 'a
+  show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
+  proof (intro exI, safe)
+    fix S assume "open S" "x \<in> S"
+    then obtain r where "0 < r" "{y. dist x y < r} \<subseteq> S"
+      by (auto simp: open_dist dist_commute subset_eq)
+    moreover from reals_Archimedean[OF `0 < r`] guess n ..
+    moreover
+    then have "{y. dist x y < inverse (Suc n)} \<subseteq> {y. dist x y < r}"
+      by (auto simp: inverse_eq_divide)
+    ultimately show "\<exists>a\<in>range (\<lambda>n. {y. dist x y < inverse (Suc n)}). a \<subseteq> S"
+      by auto
+  qed (auto intro: open_ball)
+qed
+
 class second_countable_topology = topological_space +
   assumes ex_countable_basis:
     "\<exists>B::'a::topological_space set set. countable B \<and> topological_basis B"
@@ -255,6 +331,18 @@ proof
     using ex_countable_basis by auto
   ultimately show "\<exists>B::('a \<times> 'b) set set. countable B \<and> topological_basis B"
     by (auto intro!: exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"] topological_basis_prod)
+qed
+
+instance second_countable_topology \<subseteq> first_countable_topology
+proof
+  fix x :: 'a
+  def B \<equiv> "SOME B::'a set set. countable B \<and> topological_basis B"
+  then have B: "countable B" "topological_basis B"
+    using countable_basis is_basis
+    by (auto simp: countable_basis is_basis)
+  then show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
+    by (intro exI[of _ "{b\<in>B. x \<in> b}"])
+       (fastforce simp: topological_space_class.topological_basis_def)
 qed
 
 subsection {* Polish spaces *}
@@ -1350,33 +1438,38 @@ qed
 text{* Another limit point characterization. *}
 
 lemma islimpt_sequential:
-  fixes x :: "'a::metric_space"
-  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S -{x}) \<and> (f ---> x) sequentially)"
+  fixes x :: "'a::first_countable_topology"
+  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S - {x}) \<and> (f ---> x) sequentially)"
     (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  then obtain f where f:"\<forall>y. y>0 \<longrightarrow> f y \<in> S \<and> f y \<noteq> x \<and> dist (f y) x < y"
-    unfolding islimpt_approachable
-    using choice[of "\<lambda>e y. e>0 \<longrightarrow> y\<in>S \<and> y\<noteq>x \<and> dist y x < e"] by auto
-  let ?I = "\<lambda>n. inverse (real (Suc n))"
-  have "\<forall>n. f (?I n) \<in> S - {x}" using f by simp
-  moreover have "(\<lambda>n. f (?I n)) ----> x"
-  proof (rule metric_tendsto_imp_tendsto)
-    show "?I ----> 0"
-      by (rule LIMSEQ_inverse_real_of_nat)
-    show "eventually (\<lambda>n. dist (f (?I n)) x \<le> dist (?I n) 0) sequentially"
-      by (simp add: norm_conv_dist [symmetric] less_imp_le f)
+  from countable_basis_at_decseq[of x] guess A . note A = this
+  def f \<equiv> "\<lambda>n. SOME y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
+  { fix n
+    from `?lhs` have "\<exists>y. y \<in> S \<and> y \<in> A n \<and> x \<noteq> y"
+      unfolding islimpt_def using A(1,2)[of n] by auto
+    then have "f n \<in> S \<and> f n \<in> A n \<and> x \<noteq> f n"
+      unfolding f_def by (rule someI_ex)
+    then have "f n \<in> S" "f n \<in> A n" "x \<noteq> f n" by auto }
+  then have "\<forall>n. f n \<in> S - {x}" by auto
+  moreover have "(\<lambda>n. f n) ----> x"
+  proof (rule topological_tendstoI)
+    fix S assume "open S" "x \<in> S"
+    from A(3)[OF this] `\<And>n. f n \<in> A n`
+    show "eventually (\<lambda>x. f x \<in> S) sequentially" by (auto elim!: eventually_elim1)
   qed
   ultimately show ?rhs by fast
 next
   assume ?rhs
-  then obtain f::"nat\<Rightarrow>'a"  where f:"(\<forall>n. f n \<in> S - {x})" "(\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f n) x < e)" unfolding LIMSEQ_def by auto
-  { fix e::real assume "e>0"
-    then obtain N where "dist (f N) x < e" using f(2) by auto
-    moreover have "f N\<in>S" "f N \<noteq> x" using f(1) by auto
-    ultimately have "\<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e" by auto
-  }
-  thus ?lhs unfolding islimpt_approachable by auto
+  then obtain f :: "nat \<Rightarrow> 'a" where f: "\<And>n. f n \<in> S - {x}" and lim: "f ----> x" by auto
+  show ?lhs
+    unfolding islimpt_def
+  proof safe
+    fix T assume "open T" "x \<in> T"
+    from lim[THEN topological_tendstoD, OF this] f
+    show "\<exists>y\<in>S. y \<in> T \<and> y \<noteq> x"
+      unfolding eventually_sequentially by auto
+  qed
 qed
 
 lemma Lim_inv: (* TODO: delete *)
@@ -1626,7 +1719,7 @@ lemma Lim_cong_at(*[cong add]*):
 text{* Useful lemmas on closure and set of possible sequential limits.*}
 
 lemma closure_sequential:
-  fixes l :: "'a::metric_space"
+  fixes l :: "'a::first_countable_topology"
   shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially)" (is "?lhs = ?rhs")
 proof
   assume "?lhs" moreover
@@ -1643,7 +1736,7 @@ next
 qed
 
 lemma closed_sequential_limits:
-  fixes S :: "'a::metric_space set"
+  fixes S :: "'a::first_countable_topology set"
   shows "closed S \<longleftrightarrow> (\<forall>x l. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially \<longrightarrow> l \<in> S)"
   unfolding closed_limpt
   using closure_sequential [where 'a='a] closure_closed [where 'a='a] closed_limpt [where 'a='a] islimpt_sequential [where 'a='a] mem_delete [where 'a='a]
@@ -2778,74 +2871,37 @@ qed
 subsubsection {* Complete the chain of compactness variants *}
 
 lemma islimpt_range_imp_convergent_subsequence:
-  fixes f :: "nat \<Rightarrow> 'a::metric_space"
-  assumes "l islimpt (range f)"
+  fixes l :: "'a :: {t1_space, first_countable_topology}"
+  assumes l: "l islimpt (range f)"
   shows "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-proof (intro exI conjI)
-  have *: "\<And>e. 0 < e \<Longrightarrow> \<exists>n. 0 < dist (f n) l \<and> dist (f n) l < e"
-    using assms unfolding islimpt_def
-    by (drule_tac x="ball l e" in spec)
-       (auto simp add: zero_less_dist_iff dist_commute)
+proof -
+  from first_countable_topology_class.countable_basis_at_decseq[of l] guess A . note A = this
 
-  def t \<equiv> "\<lambda>e. LEAST n. 0 < dist (f n) l \<and> dist (f n) l < e"
-  have f_t_neq: "\<And>e. 0 < e \<Longrightarrow> 0 < dist (f (t e)) l"
-    unfolding t_def by (rule LeastI2_ex [OF * conjunct1])
-  have f_t_closer: "\<And>e. 0 < e \<Longrightarrow> dist (f (t e)) l < e"
-    unfolding t_def by (rule LeastI2_ex [OF * conjunct2])
-  have t_le: "\<And>n e. 0 < dist (f n) l \<Longrightarrow> dist (f n) l < e \<Longrightarrow> t e \<le> n"
-    unfolding t_def by (simp add: Least_le)
-  have less_tD: "\<And>n e. n < t e \<Longrightarrow> 0 < dist (f n) l \<Longrightarrow> e \<le> dist (f n) l"
-    unfolding t_def by (drule not_less_Least) simp
-  have t_antimono: "\<And>e e'. 0 < e \<Longrightarrow> e \<le> e' \<Longrightarrow> t e' \<le> t e"
-    apply (rule t_le)
-    apply (erule f_t_neq)
-    apply (erule (1) less_le_trans [OF f_t_closer])
-    done
-  have t_dist_f_neq: "\<And>n. 0 < dist (f n) l \<Longrightarrow> t (dist (f n) l) \<noteq> n"
-    by (drule f_t_closer) auto
-  have t_less: "\<And>e. 0 < e \<Longrightarrow> t e < t (dist (f (t e)) l)"
-    apply (subst less_le)
-    apply (rule conjI)
-    apply (rule t_antimono)
-    apply (erule f_t_neq)
-    apply (erule f_t_closer [THEN less_imp_le])
-    apply (rule t_dist_f_neq [symmetric])
-    apply (erule f_t_neq)
-    done
-  have dist_f_t_less':
-    "\<And>e e'. 0 < e \<Longrightarrow> 0 < e' \<Longrightarrow> t e \<le> t e' \<Longrightarrow> dist (f (t e')) l < e"
-    apply (simp add: le_less)
-    apply (erule disjE)
-    apply (rule less_trans)
-    apply (erule f_t_closer)
-    apply (rule le_less_trans)
-    apply (erule less_tD)
-    apply (erule f_t_neq)
-    apply (erule f_t_closer)
-    apply (erule subst)
-    apply (erule f_t_closer)
-    done
-
-  def r \<equiv> "nat_rec (t 1) (\<lambda>_ x. t (dist (f x) l))"
-  have r_simps: "r 0 = t 1" "\<And>n. r (Suc n) = t (dist (f (r n)) l)"
-    unfolding r_def by simp_all
-  have f_r_neq: "\<And>n. 0 < dist (f (r n)) l"
-    by (induct_tac n) (simp_all add: r_simps f_t_neq)
-
-  show "subseq r"
-    unfolding subseq_Suc_iff
-    apply (rule allI)
-    apply (case_tac n)
-    apply (simp_all add: r_simps)
-    apply (rule t_less, rule zero_less_one)
-    apply (rule t_less, rule f_r_neq)
-    done
-  show "((f \<circ> r) ---> l) sequentially"
-    unfolding LIMSEQ_def o_def
-    apply (clarify, rename_tac e, rule_tac x="t e" in exI, clarify)
-    apply (drule le_trans, rule seq_suble [OF `subseq r`])
-    apply (case_tac n, simp_all add: r_simps dist_f_t_less' f_r_neq)
-    done
+  def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> f j \<in> A (Suc n)"
+  { fix n i
+    have "\<exists>a. i < a \<and> f a \<in> A (Suc n)"
+      by (rule l[THEN islimptE, of "A (Suc n) - (f ` {.. i} - {l})"])
+         (auto simp: not_le[symmetric] finite_imp_closed A(1,2))
+    then have "i < s n i" "f (s n i) \<in> A (Suc n)"
+      unfolding s_def by (auto intro: someI2_ex) }
+  note s = this
+  def r \<equiv> "nat_rec (s 0 0) s"
+  have "subseq r"
+    by (auto simp: r_def s subseq_Suc_iff)
+  moreover
+  have "(\<lambda>n. f (r n)) ----> l"
+  proof (rule topological_tendstoI)
+    fix S assume "open S" "l \<in> S"
+    with A(3) have "eventually (\<lambda>i. A i \<subseteq> S) sequentially" by auto
+    moreover
+    { fix i assume "Suc 0 \<le> i" then have "f (r i) \<in> A i"
+        by (cases i) (simp_all add: r_def s) }
+    then have "eventually (\<lambda>i. f (r i) \<in> A i) sequentially" by (auto simp: eventually_sequentially)
+    ultimately show "eventually (\<lambda>i. f (r i) \<in> S) sequentially"
+      by eventually_elim auto
+  qed
+  ultimately show "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+    by (auto simp: convergent_def comp_def)
 qed
 
 lemma finite_range_imp_infinite_repeats:
