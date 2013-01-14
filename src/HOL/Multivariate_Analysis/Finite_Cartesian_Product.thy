@@ -210,17 +210,6 @@ qed
 lemma isCont_vec_nth [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x $ i) a"
   unfolding isCont_def by (rule tendsto_vec_nth)
 
-lemma eventually_Ball_finite: (* TODO: move *)
-  assumes "finite A" and "\<forall>y\<in>A. eventually (\<lambda>x. P x y) net"
-  shows "eventually (\<lambda>x. \<forall>y\<in>A. P x y) net"
-using assms by (induct set: finite, simp, simp add: eventually_conj)
-
-lemma eventually_all_finite: (* TODO: move *)
-  fixes P :: "'a \<Rightarrow> 'b::finite \<Rightarrow> bool"
-  assumes "\<And>y. eventually (\<lambda>x. P x y) net"
-  shows "eventually (\<lambda>x. \<forall>y. P x y) net"
-using eventually_Ball_finite [of UNIV P] assms by simp
-
 lemma vec_tendstoI:
   assumes "\<And>i. ((\<lambda>x. f x $ i) ---> a $ i) net"
   shows "((\<lambda>x. f x) ---> a) net"

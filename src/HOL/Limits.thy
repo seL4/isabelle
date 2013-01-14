@@ -68,6 +68,17 @@ lemma eventually_conj:
   using assms unfolding eventually_def
   by (rule is_filter.conj [OF is_filter_Rep_filter])
 
+lemma eventually_Ball_finite:
+  assumes "finite A" and "\<forall>y\<in>A. eventually (\<lambda>x. P x y) net"
+  shows "eventually (\<lambda>x. \<forall>y\<in>A. P x y) net"
+using assms by (induct set: finite, simp, simp add: eventually_conj)
+
+lemma eventually_all_finite:
+  fixes P :: "'a \<Rightarrow> 'b::finite \<Rightarrow> bool"
+  assumes "\<And>y. eventually (\<lambda>x. P x y) net"
+  shows "eventually (\<lambda>x. \<forall>y. P x y) net"
+using eventually_Ball_finite [of UNIV P] assms by simp
+
 lemma eventually_mp:
   assumes "eventually (\<lambda>x. P x \<longrightarrow> Q x) F"
   assumes "eventually (\<lambda>x. P x) F"
