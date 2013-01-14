@@ -1045,7 +1045,7 @@ qed
 lemma product_open_generates_sets_PiF_single:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
-  shows "sets (PiF {I} (\<lambda>_. borel::'b::countable_basis_space measure)) =
+  shows "sets (PiF {I} (\<lambda>_. borel::'b::second_countable_topology measure)) =
     sigma_sets (space (PiF {I} (\<lambda>_. borel))) {Pi' I F |F. (\<forall>i\<in>I. F i \<in> Collect open)}"
 proof -
   from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
@@ -1064,7 +1064,7 @@ qed
 lemma product_open_generates_sets_PiM:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
-  shows "sets (PiM I (\<lambda>_. borel::'b::countable_basis_space measure)) =
+  shows "sets (PiM I (\<lambda>_. borel::'b::second_countable_topology measure)) =
     sigma_sets (space (PiM I (\<lambda>_. borel))) {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> Collect open}"
 proof -
   from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this

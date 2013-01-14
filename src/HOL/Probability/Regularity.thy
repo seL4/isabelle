@@ -104,7 +104,7 @@ proof (rule ccontr, clarsimp)
 qed
 
 lemma
-  fixes M::"'a::{countable_basis_space, complete_space} measure"
+  fixes M::"'a::{second_countable_topology, complete_space} measure"
   assumes sb: "sets M = sets borel"
   assumes "emeasure M (space M) \<noteq> \<infinity>"
   assumes "B \<in> sets borel"

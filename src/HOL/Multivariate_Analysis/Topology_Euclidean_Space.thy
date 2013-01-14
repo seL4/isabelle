@@ -220,11 +220,11 @@ lemma open_incseqE:
 
 end
 
-class countable_basis_space = topological_space +
+class second_countable_topology = topological_space +
   assumes ex_countable_basis:
     "\<exists>B::'a::topological_space set set. countable B \<and> topological_basis B"
 
-sublocale countable_basis_space < countable_basis "SOME B. countable B \<and> topological_basis B"
+sublocale second_countable_topology < countable_basis "SOME B. countable B \<and> topological_basis B"
   using someI_ex[OF ex_countable_basis] by unfold_locales safe
 
 subsection {* Polish spaces *}
@@ -232,7 +232,7 @@ subsection {* Polish spaces *}
 text {* Textbooks define Polish spaces as completely metrizable.
   We assume the topology to be complete for a given metric. *}
 
-class polish_space = complete_space + countable_basis_space
+class polish_space = complete_space + second_countable_topology
 
 subsection {* General notion of a topology as a value *}
 
@@ -5411,7 +5411,7 @@ proof -
   finally show ?thesis .
 qed
 
-instance euclidean_space \<subseteq> countable_basis_space
+instance euclidean_space \<subseteq> second_countable_topology
 proof
   def a \<equiv> "\<lambda>f :: 'a \<Rightarrow> (real \<times> real). \<Sum>i\<in>Basis. fst (f i) *\<^sub>R i"
   then have a: "\<And>f. (\<Sum>i\<in>Basis. fst (f i) *\<^sub>R i) = a f" by simp

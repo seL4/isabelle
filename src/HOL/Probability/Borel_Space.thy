@@ -172,7 +172,7 @@ proof (safe, simp_all del: ex_simps add: subset_image_iff ex_simps(1)[symmetric]
   qed auto
 qed (metis A B topological_basis_open open_Times)
 
-instance prod :: (countable_basis_space, countable_basis_space) countable_basis_space
+instance prod :: (second_countable_topology, second_countable_topology) second_countable_topology
 proof
   obtain A :: "'a set set" where "countable A" "topological_basis A"
     using ex_countable_basis by auto
@@ -184,7 +184,7 @@ proof
 qed
 
 lemma borel_measurable_Pair[measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> 'b::countable_basis_space" and g :: "'a \<Rightarrow> 'c::countable_basis_space"
+  fixes f :: "'a \<Rightarrow> 'b::second_countable_topology" and g :: "'a \<Rightarrow> 'c::second_countable_topology"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes g[measurable]: "g \<in> borel_measurable M"
   shows "(\<lambda>x. (f x, g x)) \<in> borel_measurable M"
@@ -257,7 +257,7 @@ proof -
 qed
 
 lemma borel_measurable_continuous_Pair:
-  fixes f :: "'a \<Rightarrow> 'b::countable_basis_space" and g :: "'a \<Rightarrow> 'c::countable_basis_space"
+  fixes f :: "'a \<Rightarrow> 'b::second_countable_topology" and g :: "'a \<Rightarrow> 'c::second_countable_topology"
   assumes [measurable]: "f \<in> borel_measurable M"
   assumes [measurable]: "g \<in> borel_measurable M"
   assumes H: "continuous_on UNIV (\<lambda>x. H (fst x) (snd x))"
@@ -271,7 +271,7 @@ qed
 section "Borel spaces on euclidean spaces"
 
 lemma borel_measurable_inner[measurable (raw)]:
-  fixes f g :: "'a \<Rightarrow> 'b::{countable_basis_space, real_inner}"
+  fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_inner}"
   assumes "f \<in> borel_measurable M"
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x \<bullet> g x) \<in> borel_measurable M"

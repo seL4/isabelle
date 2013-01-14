@@ -48,7 +48,7 @@ proof
   thus "\<exists>f::'a discrete \<Rightarrow> nat. inj f" by blast
 qed
 
-instance discrete :: (countable) countable_basis_space
+instance discrete :: (countable) second_countable_topology
 proof
   let ?B = "(range (\<lambda>n::nat. {from_nat n::'a discrete}))"
   have "topological_basis ?B"
