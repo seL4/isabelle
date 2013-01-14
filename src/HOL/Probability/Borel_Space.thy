@@ -153,36 +153,6 @@ lemma borel_eq_union_closed_basis:
   "borel = sigma UNIV union_closed_basis"
   by (rule borel_eq_countable_basis[OF countable_union_closed_basis basis_union_closed_basis])
 
-lemma topological_basis_prod:
-  assumes A: "topological_basis A" and B: "topological_basis B"
-  shows "topological_basis ((\<lambda>(a, b). a \<times> b) ` (A \<times> B))"
-  unfolding topological_basis_def
-proof (safe, simp_all del: ex_simps add: subset_image_iff ex_simps(1)[symmetric])
-  fix S :: "('a \<times> 'b) set" assume "open S"
-  then show "\<exists>X\<subseteq>A \<times> B. (\<Union>(a,b)\<in>X. a \<times> b) = S"
-  proof (safe intro!: exI[of _ "{x\<in>A \<times> B. fst x \<times> snd x \<subseteq> S}"])
-    fix x y assume "(x, y) \<in> S"
-    from open_prod_elim[OF `open S` this]
-    obtain a b where a: "open a""x \<in> a" and b: "open b" "y \<in> b" and "a \<times> b \<subseteq> S"
-      by (metis mem_Sigma_iff)
-    moreover from topological_basisE[OF A a] guess A0 .
-    moreover from topological_basisE[OF B b] guess B0 .
-    ultimately show "(x, y) \<in> (\<Union>(a, b)\<in>{X \<in> A \<times> B. fst X \<times> snd X \<subseteq> S}. a \<times> b)"
-      by (intro UN_I[of "(A0, B0)"]) auto
-  qed auto
-qed (metis A B topological_basis_open open_Times)
-
-instance prod :: (second_countable_topology, second_countable_topology) second_countable_topology
-proof
-  obtain A :: "'a set set" where "countable A" "topological_basis A"
-    using ex_countable_basis by auto
-  moreover
-  obtain B :: "'b set set" where "countable B" "topological_basis B"
-    using ex_countable_basis by auto
-  ultimately show "\<exists>B::('a \<times> 'b) set set. countable B \<and> topological_basis B"
-    by (auto intro!: exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"] topological_basis_prod)
-qed
-
 lemma borel_measurable_Pair[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> 'b::second_countable_topology" and g :: "'a \<Rightarrow> 'c::second_countable_topology"
   assumes f[measurable]: "f \<in> borel_measurable M"
