@@ -63,7 +63,7 @@ chmod +x "$TARGET/isabelle/cygwin.exe"
 
 # patches
 
-for NAME in hosts protocols services networks
+for NAME in hosts protocols services networks passwd group
 do
   rm "$TARGET/etc/$NAME"
 done
@@ -72,7 +72,10 @@ ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
 
 rm "$TARGET/Cygwin.bat"
 
-cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/." "$TARGET/isabelle/."
+for NAME in init.bat postinstall rebaseall
+do
+  cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/$NAME" "$TARGET/isabelle/."
+done
 
 
 # archive
