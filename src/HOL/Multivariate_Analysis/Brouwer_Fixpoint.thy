@@ -35,7 +35,8 @@ proof cases
 qed (auto intro!: continuous_intros)
 
 lemma brouwer_compactness_lemma:
-  assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = (0::_::euclidean_space)))"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::euclidean_space"
+  assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = 0))"
   obtains d where "0 < d" "\<forall>x\<in>s. d \<le> norm(f x)"
 proof (cases "s={}")
   case False

@@ -2344,26 +2344,638 @@ lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
   apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
   done
 
+subsection {* Compactness *}
 
-subsection {* Equivalent versions of compactness *}
+subsubsection{* Open-cover compactness *}
+
+definition compact :: "'a::topological_space set \<Rightarrow> bool" where
+  compact_eq_heine_borel: -- "This name is used for backwards compatibility"
+    "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
+
+subsubsection {* Bolzano-Weierstrass property *}
+
+lemma heine_borel_imp_bolzano_weierstrass:
+  assumes "compact s" "infinite t"  "t \<subseteq> s"
+  shows "\<exists>x \<in> s. x islimpt t"
+proof(rule ccontr)
+  assume "\<not> (\<exists>x \<in> s. x islimpt t)"
+  then obtain f where f:"\<forall>x\<in>s. x \<in> f x \<and> open (f x) \<and> (\<forall>y\<in>t. y \<in> f x \<longrightarrow> y = x)" unfolding islimpt_def
+    using bchoice[of s "\<lambda> x T. x \<in> T \<and> open T \<and> (\<forall>y\<in>t. y \<in> T \<longrightarrow> y = x)"] by auto
+  obtain g where g:"g\<subseteq>{t. \<exists>x. x \<in> s \<and> t = f x}" "finite g" "s \<subseteq> \<Union>g"
+    using assms(1)[unfolded compact_eq_heine_borel, THEN spec[where x="{t. \<exists>x. x\<in>s \<and> t = f x}"]] using f by auto
+  from g(1,3) have g':"\<forall>x\<in>g. \<exists>xa \<in> s. x = f xa" by auto
+  { fix x y assume "x\<in>t" "y\<in>t" "f x = f y"
+    hence "x \<in> f x"  "y \<in> f x \<longrightarrow> y = x" using f[THEN bspec[where x=x]] and `t\<subseteq>s` by auto
+    hence "x = y" using `f x = f y` and f[THEN bspec[where x=y]] and `y\<in>t` and `t\<subseteq>s` by auto  }
+  hence "inj_on f t" unfolding inj_on_def by simp
+  hence "infinite (f ` t)" using assms(2) using finite_imageD by auto
+  moreover
+  { fix x assume "x\<in>t" "f x \<notin> g"
+    from g(3) assms(3) `x\<in>t` obtain h where "h\<in>g" and "x\<in>h" by auto
+    then obtain y where "y\<in>s" "h = f y" using g'[THEN bspec[where x=h]] by auto
+    hence "y = x" using f[THEN bspec[where x=y]] and `x\<in>t` and `x\<in>h`[unfolded `h = f y`] by auto
+    hence False using `f x \<notin> g` `h\<in>g` unfolding `h = f y` by auto  }
+  hence "f ` t \<subseteq> g" by auto
+  ultimately show False using g(2) using finite_subset by auto
+qed
+
+lemma islimpt_range_imp_convergent_subsequence:
+  fixes l :: "'a :: {t1_space, first_countable_topology}"
+  assumes l: "l islimpt (range f)"
+  shows "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+proof -
+  from first_countable_topology_class.countable_basis_at_decseq[of l] guess A . note A = this
+
+  def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> f j \<in> A (Suc n)"
+  { fix n i
+    have "\<exists>a. i < a \<and> f a \<in> A (Suc n) - (f ` {.. i} - {l})" (is "\<exists>a. _ \<and> _ \<in> ?A")
+      apply (rule l[THEN islimptE, of "?A"])
+      using A(2) apply fastforce
+      using A(1)
+      apply (intro open_Diff finite_imp_closed)
+      apply auto
+      apply (rule_tac x=x in exI)
+      apply auto
+      done
+    then have "\<exists>a. i < a \<and> f a \<in> A (Suc n)" by blast
+    then have "i < s n i" "f (s n i) \<in> A (Suc n)"
+      unfolding s_def by (auto intro: someI2_ex) }
+  note s = this
+  def r \<equiv> "nat_rec (s 0 0) s"
+  have "subseq r"
+    by (auto simp: r_def s subseq_Suc_iff)
+  moreover
+  have "(\<lambda>n. f (r n)) ----> l"
+  proof (rule topological_tendstoI)
+    fix S assume "open S" "l \<in> S"
+    with A(3) have "eventually (\<lambda>i. A i \<subseteq> S) sequentially" by auto
+    moreover
+    { fix i assume "Suc 0 \<le> i" then have "f (r i) \<in> A i"
+        by (cases i) (simp_all add: r_def s) }
+    then have "eventually (\<lambda>i. f (r i) \<in> A i) sequentially" by (auto simp: eventually_sequentially)
+    ultimately show "eventually (\<lambda>i. f (r i) \<in> S) sequentially"
+      by eventually_elim auto
+  qed
+  ultimately show "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+    by (auto simp: convergent_def comp_def)
+qed
+
+lemma finite_range_imp_infinite_repeats:
+  fixes f :: "nat \<Rightarrow> 'a"
+  assumes "finite (range f)"
+  shows "\<exists>k. infinite {n. f n = k}"
+proof -
+  { fix A :: "'a set" assume "finite A"
+    hence "\<And>f. infinite {n. f n \<in> A} \<Longrightarrow> \<exists>k. infinite {n. f n = k}"
+    proof (induct)
+      case empty thus ?case by simp
+    next
+      case (insert x A)
+     show ?case
+      proof (cases "finite {n. f n = x}")
+        case True
+        with `infinite {n. f n \<in> insert x A}`
+        have "infinite {n. f n \<in> A}" by simp
+        thus "\<exists>k. infinite {n. f n = k}" by (rule insert)
+      next
+        case False thus "\<exists>k. infinite {n. f n = k}" ..
+      qed
+    qed
+  } note H = this
+  from assms show "\<exists>k. infinite {n. f n = k}"
+    by (rule H) simp
+qed
+
+lemma sequence_infinite_lemma:
+  fixes f :: "nat \<Rightarrow> 'a::t1_space"
+  assumes "\<forall>n. f n \<noteq> l" and "(f ---> l) sequentially"
+  shows "infinite (range f)"
+proof
+  assume "finite (range f)"
+  hence "closed (range f)" by (rule finite_imp_closed)
+  hence "open (- range f)" by (rule open_Compl)
+  from assms(1) have "l \<in> - range f" by auto
+  from assms(2) have "eventually (\<lambda>n. f n \<in> - range f) sequentially"
+    using `open (- range f)` `l \<in> - range f` by (rule topological_tendstoD)
+  thus False unfolding eventually_sequentially by auto
+qed
+
+lemma closure_insert:
+  fixes x :: "'a::t1_space"
+  shows "closure (insert x s) = insert x (closure s)"
+apply (rule closure_unique)
+apply (rule insert_mono [OF closure_subset])
+apply (rule closed_insert [OF closed_closure])
+apply (simp add: closure_minimal)
+done
+
+lemma islimpt_insert:
+  fixes x :: "'a::t1_space"
+  shows "x islimpt (insert a s) \<longleftrightarrow> x islimpt s"
+proof
+  assume *: "x islimpt (insert a s)"
+  show "x islimpt s"
+  proof (rule islimptI)
+    fix t assume t: "x \<in> t" "open t"
+    show "\<exists>y\<in>s. y \<in> t \<and> y \<noteq> x"
+    proof (cases "x = a")
+      case True
+      obtain y where "y \<in> insert a s" "y \<in> t" "y \<noteq> x"
+        using * t by (rule islimptE)
+      with `x = a` show ?thesis by auto
+    next
+      case False
+      with t have t': "x \<in> t - {a}" "open (t - {a})"
+        by (simp_all add: open_Diff)
+      obtain y where "y \<in> insert a s" "y \<in> t - {a}" "y \<noteq> x"
+        using * t' by (rule islimptE)
+      thus ?thesis by auto
+    qed
+  qed
+next
+  assume "x islimpt s" thus "x islimpt (insert a s)"
+    by (rule islimpt_subset) auto
+qed
+
+lemma islimpt_union_finite:
+  fixes x :: "'a::t1_space"
+  shows "finite s \<Longrightarrow> x islimpt (s \<union> t) \<longleftrightarrow> x islimpt t"
+by (induct set: finite, simp_all add: islimpt_insert)
+ 
+lemma sequence_unique_limpt:
+  fixes f :: "nat \<Rightarrow> 'a::t2_space"
+  assumes "(f ---> l) sequentially" and "l' islimpt (range f)"
+  shows "l' = l"
+proof (rule ccontr)
+  assume "l' \<noteq> l"
+  obtain s t where "open s" "open t" "l' \<in> s" "l \<in> t" "s \<inter> t = {}"
+    using hausdorff [OF `l' \<noteq> l`] by auto
+  have "eventually (\<lambda>n. f n \<in> t) sequentially"
+    using assms(1) `open t` `l \<in> t` by (rule topological_tendstoD)
+  then obtain N where "\<forall>n\<ge>N. f n \<in> t"
+    unfolding eventually_sequentially by auto
+
+  have "UNIV = {..<N} \<union> {N..}" by auto
+  hence "l' islimpt (f ` ({..<N} \<union> {N..}))" using assms(2) by simp
+  hence "l' islimpt (f ` {..<N} \<union> f ` {N..})" by (simp add: image_Un)
+  hence "l' islimpt (f ` {N..})" by (simp add: islimpt_union_finite)
+  then obtain y where "y \<in> f ` {N..}" "y \<in> s" "y \<noteq> l'"
+    using `l' \<in> s` `open s` by (rule islimptE)
+  then obtain n where "N \<le> n" "f n \<in> s" "f n \<noteq> l'" by auto
+  with `\<forall>n\<ge>N. f n \<in> t` have "f n \<in> s \<inter> t" by simp
+  with `s \<inter> t = {}` show False by simp
+qed
+
+lemma bolzano_weierstrass_imp_closed:
+  fixes s :: "'a::{first_countable_topology, t2_space} set"
+  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
+  shows "closed s"
+proof-
+  { fix x l assume as: "\<forall>n::nat. x n \<in> s" "(x ---> l) sequentially"
+    hence "l \<in> s"
+    proof(cases "\<forall>n. x n \<noteq> l")
+      case False thus "l\<in>s" using as(1) by auto
+    next
+      case True note cas = this
+      with as(2) have "infinite (range x)" using sequence_infinite_lemma[of x l] by auto
+      then obtain l' where "l'\<in>s" "l' islimpt (range x)" using assms[THEN spec[where x="range x"]] as(1) by auto
+      thus "l\<in>s" using sequence_unique_limpt[of x l l'] using as cas by auto
+    qed  }
+  thus ?thesis unfolding closed_sequential_limits by fast
+qed
+
+lemma compact_imp_closed:
+  fixes s :: "'a::{first_countable_topology, t2_space} set"
+  shows "compact s \<Longrightarrow> closed s"
+proof -
+  assume "compact s"
+  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
+    using heine_borel_imp_bolzano_weierstrass[of s] by auto
+  thus "closed s"
+    by (rule bolzano_weierstrass_imp_closed)
+qed
+
+text{* In particular, some common special cases. *}
+
+lemma compact_empty[simp]:
+ "compact {}"
+  unfolding compact_eq_heine_borel
+  by auto
+
+lemma compact_union [intro]:
+  assumes "compact s" "compact t" shows " compact (s \<union> t)"
+  unfolding compact_eq_heine_borel
+proof (intro allI impI)
+  fix f assume *: "Ball f open \<and> s \<union> t \<subseteq> \<Union>f"
+  from * `compact s` obtain s' where "s' \<subseteq> f \<and> finite s' \<and> s \<subseteq> \<Union>s'"
+    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f]) metis
+  moreover from * `compact t` obtain t' where "t' \<subseteq> f \<and> finite t' \<and> t \<subseteq> \<Union>t'"
+    unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f]) metis
+  ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<union> t \<subseteq> \<Union>f'"
+    by (auto intro!: exI[of _ "s' \<union> t'"])
+qed
+
+lemma compact_Union [intro]: "finite S \<Longrightarrow> (\<And>T. T \<in> S \<Longrightarrow> compact T) \<Longrightarrow> compact (\<Union>S)"
+  by (induct set: finite) auto
+
+lemma compact_UN [intro]:
+  "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
+  unfolding SUP_def by (rule compact_Union) auto
+
+lemma compact_inter_closed [intro]:
+  assumes "compact s" and "closed t"
+  shows "compact (s \<inter> t)"
+  unfolding compact_eq_heine_borel
+proof safe
+  fix C assume C: "\<forall>c\<in>C. open c" and cover: "s \<inter> t \<subseteq> \<Union>C"
+  from C `closed t` have "\<forall>c\<in>C \<union> {-t}. open c" by auto
+  moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
+  ultimately have "\<exists>D\<subseteq>C \<union> {-t}. finite D \<and> s \<subseteq> \<Union>D"
+    using `compact s` unfolding compact_eq_heine_borel by auto
+  then guess D ..
+  then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
+    by (intro exI[of _ "D - {-t}"]) auto
+qed
+
+lemma closed_inter_compact [intro]:
+  assumes "closed s" and "compact t"
+  shows "compact (s \<inter> t)"
+  using compact_inter_closed [of t s] assms
+  by (simp add: Int_commute)
+
+lemma compact_inter [intro]:
+  fixes s t :: "'a :: {t2_space, first_countable_topology} set"
+  assumes "compact s" and "compact t"
+  shows "compact (s \<inter> t)"
+  using assms by (intro compact_inter_closed compact_imp_closed)
+
+lemma compact_sing [simp]: "compact {a}"
+  unfolding compact_eq_heine_borel by auto
+
+lemma compact_insert [simp]:
+  assumes "compact s" shows "compact (insert x s)"
+proof -
+  have "compact ({x} \<union> s)"
+    using compact_sing assms by (rule compact_union)
+  thus ?thesis by simp
+qed
+
+lemma finite_imp_compact:
+  shows "finite s \<Longrightarrow> compact s"
+  by (induct set: finite) simp_all
+
+lemma open_delete:
+  fixes s :: "'a::t1_space set"
+  shows "open s \<Longrightarrow> open (s - {x})"
+  by (simp add: open_Diff)
+
+text{* Finite intersection property *}
+
+lemma inj_setminus: "inj_on uminus (A::'a set set)"
+  by (auto simp: inj_on_def)
+
+lemma compact_fip:
+  "compact U \<longleftrightarrow>
+    (\<forall>A. (\<forall>a\<in>A. closed a) \<longrightarrow> (\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}) \<longrightarrow> U \<inter> \<Inter>A \<noteq> {})"
+  (is "_ \<longleftrightarrow> ?R")
+proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
+  fix A assume "compact U" and A: "\<forall>a\<in>A. closed a" "U \<inter> \<Inter>A = {}"
+    and fi: "\<forall>B \<subseteq> A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}"
+  from A have "(\<forall>a\<in>uminus`A. open a) \<and> U \<subseteq> \<Union>uminus`A"
+    by auto
+  with `compact U` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<subseteq> \<Union>(uminus`B)"
+    unfolding compact_eq_heine_borel by (metis subset_image_iff)
+  with fi[THEN spec, of B] show False
+    by (auto dest: finite_imageD intro: inj_setminus)
+next
+  fix A assume ?R and cover: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
+  from cover have "U \<inter> \<Inter>(uminus`A) = {}" "\<forall>a\<in>uminus`A. closed a"
+    by auto
+  with `?R` obtain B where "B \<subseteq> A" "finite (uminus`B)" "U \<inter> \<Inter>uminus`B = {}"
+    by (metis subset_image_iff)
+  then show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
+    by  (auto intro!: exI[of _ B] inj_setminus dest: finite_imageD)
+qed
+
+lemma compact_imp_fip:
+  "compact s \<Longrightarrow> \<forall>t \<in> f. closed t \<Longrightarrow> \<forall>f'. finite f' \<and> f' \<subseteq> f \<longrightarrow> (s \<inter> (\<Inter> f') \<noteq> {}) \<Longrightarrow>
+    s \<inter> (\<Inter> f) \<noteq> {}"
+  unfolding compact_fip by auto
+
+text{*Compactness expressed with filters*}
+
+definition "filter_from_subbase B = Abs_filter (\<lambda>P. \<exists>X \<subseteq> B. finite X \<and> Inf X \<le> P)"
+
+lemma eventually_filter_from_subbase:
+  "eventually P (filter_from_subbase B) \<longleftrightarrow> (\<exists>X \<subseteq> B. finite X \<and> Inf X \<le> P)"
+    (is "_ \<longleftrightarrow> ?R P")
+  unfolding filter_from_subbase_def
+proof (rule eventually_Abs_filter is_filter.intro)+
+  show "?R (\<lambda>x. True)"
+    by (rule exI[of _ "{}"]) (simp add: le_fun_def)
+next
+  fix P Q assume "?R P" then guess X ..
+  moreover assume "?R Q" then guess Y ..
+  ultimately show "?R (\<lambda>x. P x \<and> Q x)"
+    by (intro exI[of _ "X \<union> Y"]) auto
+next
+  fix P Q
+  assume "?R P" then guess X ..
+  moreover assume "\<forall>x. P x \<longrightarrow> Q x"
+  ultimately show "?R Q"
+    by (intro exI[of _ X]) auto
+qed
+
+lemma eventually_filter_from_subbaseI: "P \<in> B \<Longrightarrow> eventually P (filter_from_subbase B)"
+  by (subst eventually_filter_from_subbase) (auto intro!: exI[of _ "{P}"])
+
+lemma filter_from_subbase_not_bot:
+  "\<forall>X \<subseteq> B. finite X \<longrightarrow> Inf X \<noteq> bot \<Longrightarrow> filter_from_subbase B \<noteq> bot"
+  unfolding trivial_limit_def eventually_filter_from_subbase by auto
+
+lemma closure_iff_nhds_not_empty:
+  "x \<in> closure X \<longleftrightarrow> (\<forall>A. \<forall>S\<subseteq>A. open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {})"
+proof safe
+  assume x: "x \<in> closure X"
+  fix S A assume "open S" "x \<in> S" "X \<inter> A = {}" "S \<subseteq> A"
+  then have "x \<notin> closure (-S)" 
+    by (auto simp: closure_complement subset_eq[symmetric] intro: interiorI)
+  with x have "x \<in> closure X - closure (-S)"
+    by auto
+  also have "\<dots> \<subseteq> closure (X \<inter> S)"
+    using `open S` open_inter_closure_subset[of S X] by (simp add: closed_Compl ac_simps)
+  finally have "X \<inter> S \<noteq> {}" by auto
+  then show False using `X \<inter> A = {}` `S \<subseteq> A` by auto
+next
+  assume "\<forall>A S. S \<subseteq> A \<longrightarrow> open S \<longrightarrow> x \<in> S \<longrightarrow> X \<inter> A \<noteq> {}"
+  from this[THEN spec, of "- X", THEN spec, of "- closure X"]
+  show "x \<in> closure X"
+    by (simp add: closure_subset open_Compl)
+qed
+
+lemma compact_filter:
+  "compact U \<longleftrightarrow> (\<forall>F. F \<noteq> bot \<longrightarrow> eventually (\<lambda>x. x \<in> U) F \<longrightarrow> (\<exists>x\<in>U. inf (nhds x) F \<noteq> bot))"
+proof (intro allI iffI impI compact_fip[THEN iffD2] notI)
+  fix F assume "compact U" and F: "F \<noteq> bot" "eventually (\<lambda>x. x \<in> U) F"
+  from F have "U \<noteq> {}"
+    by (auto simp: eventually_False)
+
+  def Z \<equiv> "closure ` {A. eventually (\<lambda>x. x \<in> A) F}"
+  then have "\<forall>z\<in>Z. closed z"
+    by auto
+  moreover 
+  have ev_Z: "\<And>z. z \<in> Z \<Longrightarrow> eventually (\<lambda>x. x \<in> z) F"
+    unfolding Z_def by (auto elim: eventually_elim1 intro: set_mp[OF closure_subset])
+  have "(\<forall>B \<subseteq> Z. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {})"
+  proof (intro allI impI)
+    fix B assume "finite B" "B \<subseteq> Z"
+    with `finite B` ev_Z have "eventually (\<lambda>x. \<forall>b\<in>B. x \<in> b) F"
+      by (auto intro!: eventually_Ball_finite)
+    with F(2) have "eventually (\<lambda>x. x \<in> U \<inter> (\<Inter>B)) F"
+      by eventually_elim auto
+    with F show "U \<inter> \<Inter>B \<noteq> {}"
+      by (intro notI) (simp add: eventually_False)
+  qed
+  ultimately have "U \<inter> \<Inter>Z \<noteq> {}"
+    using `compact U` unfolding compact_fip by blast
+  then obtain x where "x \<in> U" and x: "\<And>z. z \<in> Z \<Longrightarrow> x \<in> z" by auto
+
+  have "\<And>P. eventually P (inf (nhds x) F) \<Longrightarrow> P \<noteq> bot"
+    unfolding eventually_inf eventually_nhds
+  proof safe
+    fix P Q R S
+    assume "eventually R F" "open S" "x \<in> S"
+    with open_inter_closure_eq_empty[of S "{x. R x}"] x[of "closure {x. R x}"]
+    have "S \<inter> {x. R x} \<noteq> {}" by (auto simp: Z_def)
+    moreover assume "Ball S Q" "\<forall>x. Q x \<and> R x \<longrightarrow> bot x"
+    ultimately show False by (auto simp: set_eq_iff)
+  qed
+  with `x \<in> U` show "\<exists>x\<in>U. inf (nhds x) F \<noteq> bot"
+    by (metis eventually_bot)
+next
+  fix A assume A: "\<forall>a\<in>A. closed a" "\<forall>B\<subseteq>A. finite B \<longrightarrow> U \<inter> \<Inter>B \<noteq> {}" "U \<inter> \<Inter>A = {}"
+
+  def P' \<equiv> "(\<lambda>a (x::'a). x \<in> a)"
+  then have inj_P': "\<And>A. inj_on P' A"
+    by (auto intro!: inj_onI simp: fun_eq_iff)
+  def F \<equiv> "filter_from_subbase (P' ` insert U A)"
+  have "F \<noteq> bot"
+    unfolding F_def
+  proof (safe intro!: filter_from_subbase_not_bot)
+    fix X assume "X \<subseteq> P' ` insert U A" "finite X" "Inf X = bot"
+    then obtain B where "B \<subseteq> insert U A" "finite B" and B: "Inf (P' ` B) = bot"
+      unfolding subset_image_iff by (auto intro: inj_P' finite_imageD)
+    with A(2)[THEN spec, of "B - {U}"] have "U \<inter> \<Inter>(B - {U}) \<noteq> {}" by auto
+    with B show False by (auto simp: P'_def fun_eq_iff)
+  qed
+  moreover have "eventually (\<lambda>x. x \<in> U) F"
+    unfolding F_def by (rule eventually_filter_from_subbaseI) (auto simp: P'_def)
+  moreover assume "\<forall>F. F \<noteq> bot \<longrightarrow> eventually (\<lambda>x. x \<in> U) F \<longrightarrow> (\<exists>x\<in>U. inf (nhds x) F \<noteq> bot)"
+  ultimately obtain x where "x \<in> U" and x: "inf (nhds x) F \<noteq> bot"
+    by auto
+
+  { fix V assume "V \<in> A"
+    then have V: "eventually (\<lambda>x. x \<in> V) F"
+      by (auto simp add: F_def image_iff P'_def intro!: eventually_filter_from_subbaseI)
+    have "x \<in> closure V"
+      unfolding closure_iff_nhds_not_empty
+    proof (intro impI allI)
+      fix S A assume "open S" "x \<in> S" "S \<subseteq> A"
+      then have "eventually (\<lambda>x. x \<in> A) (nhds x)" by (auto simp: eventually_nhds)
+      with V have "eventually (\<lambda>x. x \<in> V \<inter> A) (inf (nhds x) F)"
+        by (auto simp: eventually_inf)
+      with x show "V \<inter> A \<noteq> {}"
+        by (auto simp del: Int_iff simp add: trivial_limit_def)
+    qed
+    then have "x \<in> V"
+      using `V \<in> A` A(1) by simp }
+  with `x\<in>U` have "x \<in> U \<inter> \<Inter>A" by auto
+  with `U \<inter> \<Inter>A = {}` show False by auto
+qed
+
+lemma countable_compact:
+  fixes U :: "'a :: second_countable_topology set"
+  shows "compact U \<longleftrightarrow>
+    (\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T))"
+proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
+  fix A assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
+  assume *: "\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T)"
+  def B \<equiv> "SOME B::'a set set. countable B \<and> topological_basis B"
+  then have B: "countable B" "topological_basis B"
+    by (auto simp: countable_basis is_basis)
+
+  moreover def C \<equiv> "{b\<in>B. \<exists>a\<in>A. b \<subseteq> a}"
+  ultimately have "countable C" "\<forall>a\<in>C. open a"
+    unfolding C_def by (auto simp: topological_basis_open)
+  moreover
+  have "\<Union>A \<subseteq> \<Union>C"
+  proof safe
+    fix x a assume "x \<in> a" "a \<in> A"
+    with topological_basisE[of B a x] B A
+    obtain b where "x \<in> b" "b \<in> B" "b \<subseteq> a" by metis
+    with `a \<in> A` show "x \<in> \<Union>C" unfolding C_def by auto
+  qed
+  then have "U \<subseteq> \<Union>C" using `U \<subseteq> \<Union>A` by auto
+  ultimately obtain T where "T\<subseteq>C" "finite T" "U \<subseteq> \<Union>T"
+    using * by metis
+  moreover then have "\<forall>t\<in>T. \<exists>a\<in>A. t \<subseteq> a"
+    by (auto simp: C_def)
+  then guess f unfolding bchoice_iff Bex_def ..
+  ultimately show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
+    unfolding C_def by (intro exI[of _ "f`T"]) fastforce
+qed (auto simp: compact_eq_heine_borel)
 
 subsubsection{* Sequential compactness *}
 
 definition
-  compact :: "'a::metric_space set \<Rightarrow> bool" where (* TODO: generalize *)
-  "compact S \<longleftrightarrow>
+  seq_compact :: "'a::topological_space set \<Rightarrow> bool" where
+  "seq_compact S \<longleftrightarrow>
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially))"
 
-lemma compactI:
-  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially"
-  shows "compact S"
-  unfolding compact_def using assms by fast
+lemma seq_compact_imp_compact:
+  fixes U :: "'a :: second_countable_topology set"
+  assumes "seq_compact U"
+  shows "compact U"
+  unfolding countable_compact
+proof safe
+  fix A assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A" "countable A"
+  have subseq: "\<And>X. range X \<subseteq> U \<Longrightarrow> \<exists>r x. x \<in> U \<and> subseq r \<and> (X \<circ> r) ----> x"
+    using `seq_compact U` by (fastforce simp: seq_compact_def subset_eq)
+  show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
+  proof cases
+    assume "finite A" with A show ?thesis by auto
+  next
+    assume "infinite A"
+    then have "A \<noteq> {}" by auto
+    show ?thesis
+    proof (rule ccontr)
+      assume "\<not> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T)"
+      then have "\<forall>T. \<exists>x. T \<subseteq> A \<and> finite T \<longrightarrow> (x \<in> U - \<Union>T)" by auto
+      then obtain X' where T: "\<And>T. T \<subseteq> A \<Longrightarrow> finite T \<Longrightarrow> X' T \<in> U - \<Union>T" by metis
+      def X \<equiv> "\<lambda>n. X' (from_nat_into A ` {.. n})"
+      have X: "\<And>n. X n \<in> U - (\<Union>i\<le>n. from_nat_into A i)"
+        using `A \<noteq> {}` unfolding X_def SUP_def by (intro T) (auto intro: from_nat_into)
+      then have "range X \<subseteq> U" by auto
+      with subseq[of X] obtain r x where "x \<in> U" and r: "subseq r" "(X \<circ> r) ----> x" by auto
+      from `x\<in>U` `U \<subseteq> \<Union>A` from_nat_into_surj[OF `countable A`]
+      obtain n where "x \<in> from_nat_into A n" by auto
+      with r(2) A(1) from_nat_into[OF `A \<noteq> {}`, of n]
+      have "eventually (\<lambda>i. X (r i) \<in> from_nat_into A n) sequentially"
+        unfolding tendsto_def by (auto simp: comp_def)
+      then obtain N where "\<And>i. N \<le> i \<Longrightarrow> X (r i) \<in> from_nat_into A n"
+        by (auto simp: eventually_sequentially)
+      moreover from X have "\<And>i. n \<le> r i \<Longrightarrow> X (r i) \<notin> from_nat_into A n"
+        by auto
+      moreover from `subseq r`[THEN seq_suble, of "max n N"] have "\<exists>i. n \<le> r i \<and> N \<le> i"
+        by (auto intro!: exI[of _ "max n N"])
+      ultimately show False
+        by auto
+    qed
+  qed
+qed
 
-lemma compactE:
-  assumes "compact S" "\<forall>n. f n \<in> S"
+lemma compact_imp_seq_compact:
+  fixes U :: "'a :: first_countable_topology set"
+  assumes "compact U" shows "seq_compact U"
+  unfolding seq_compact_def
+proof safe
+  fix X :: "nat \<Rightarrow> 'a" assume "\<forall>n. X n \<in> U"
+  then have "eventually (\<lambda>x. x \<in> U) (filtermap X sequentially)"
+    by (auto simp: eventually_filtermap)
+  moreover have "filtermap X sequentially \<noteq> bot"
+    by (simp add: trivial_limit_def eventually_filtermap)
+  ultimately obtain x where "x \<in> U" and x: "inf (nhds x) (filtermap X sequentially) \<noteq> bot" (is "?F \<noteq> _")
+    using `compact U` by (auto simp: compact_filter)
+
+  from countable_basis_at_decseq[of x] guess A . note A = this
+  def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> X j \<in> A (Suc n)"
+  { fix n i
+    have "\<exists>a. i < a \<and> X a \<in> A (Suc n)"
+    proof (rule ccontr)
+      assume "\<not> (\<exists>a>i. X a \<in> A (Suc n))"
+      then have "\<And>a. Suc i \<le> a \<Longrightarrow> X a \<notin> A (Suc n)" by auto
+      then have "eventually (\<lambda>x. x \<notin> A (Suc n)) (filtermap X sequentially)"
+        by (auto simp: eventually_filtermap eventually_sequentially)
+      moreover have "eventually (\<lambda>x. x \<in> A (Suc n)) (nhds x)"
+        using A(1,2)[of "Suc n"] by (auto simp: eventually_nhds)
+      ultimately have "eventually (\<lambda>x. False) ?F"
+        by (auto simp add: eventually_inf)
+      with x show False
+        by (simp add: eventually_False)
+    qed
+    then have "i < s n i" "X (s n i) \<in> A (Suc n)"
+      unfolding s_def by (auto intro: someI2_ex) }
+  note s = this
+  def r \<equiv> "nat_rec (s 0 0) s"
+  have "subseq r"
+    by (auto simp: r_def s subseq_Suc_iff)
+  moreover
+  have "(\<lambda>n. X (r n)) ----> x"
+  proof (rule topological_tendstoI)
+    fix S assume "open S" "x \<in> S"
+    with A(3) have "eventually (\<lambda>i. A i \<subseteq> S) sequentially" by auto
+    moreover
+    { fix i assume "Suc 0 \<le> i" then have "X (r i) \<in> A i"
+        by (cases i) (simp_all add: r_def s) }
+    then have "eventually (\<lambda>i. X (r i) \<in> A i) sequentially" by (auto simp: eventually_sequentially)
+    ultimately show "eventually (\<lambda>i. X (r i) \<in> S) sequentially"
+      by eventually_elim auto
+  qed
+  ultimately show "\<exists>x \<in> U. \<exists>r. subseq r \<and> (X \<circ> r) ----> x"
+    using `x \<in> U` by (auto simp: convergent_def comp_def)
+qed
+
+lemma seq_compact_eq_compact:
+  fixes U :: "'a :: second_countable_topology set"
+  shows "seq_compact U \<longleftrightarrow> compact U"
+  using compact_imp_seq_compact seq_compact_imp_compact by blast
+
+lemma seq_compactI:
+  assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially"
+  shows "seq_compact S"
+  unfolding seq_compact_def using assms by fast
+
+lemma seq_compactE:
+  assumes "seq_compact S" "\<forall>n. f n \<in> S"
   obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) ---> l) sequentially"
-  using assms unfolding compact_def by fast
+  using assms unfolding seq_compact_def by fast
+
+lemma bolzano_weierstrass_imp_seq_compact:
+  fixes s :: "'a::{t1_space, first_countable_topology} set"
+  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
+  shows "seq_compact s"
+proof -
+  { fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
+    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    proof (cases "finite (range f)")
+      case True
+      hence "\<exists>l. infinite {n. f n = l}"
+        by (rule finite_range_imp_infinite_repeats)
+      then obtain l where "infinite {n. f n = l}" ..
+      hence "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> {n. f n = l})"
+        by (rule infinite_enumerate)
+      then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = l" by auto
+      hence "subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        unfolding o_def by (simp add: fr tendsto_const)
+      hence "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        by - (rule exI)
+      from f have "\<forall>n. f (r n) \<in> s" by simp
+      hence "l \<in> s" by (simp add: fr)
+      thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        by (rule rev_bexI) fact
+    next
+      case False
+      with f assms have "\<exists>x\<in>s. x islimpt (range f)" by auto
+      then obtain l where "l \<in> s" "l islimpt (range f)" ..
+      have "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        using `l islimpt (range f)`
+        by (rule islimpt_range_imp_convergent_subsequence)
+      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" ..
+    qed
+  }
+  thus ?thesis unfolding seq_compact_def by auto
+qed
 
 text {*
   A metric space (or topological vector space) is said to have the
@@ -2375,10 +2987,10 @@ class heine_borel = metric_space +
     "bounded s \<Longrightarrow> \<forall>n. f n \<in> s
       \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
 
-lemma bounded_closed_imp_compact:
+lemma bounded_closed_imp_seq_compact:
   fixes s::"'a::heine_borel set"
-  assumes "bounded s" and "closed s" shows "compact s"
-proof (unfold compact_def, clarify)
+  assumes "bounded s" and "closed s" shows "seq_compact s"
+proof (unfold seq_compact_def, clarify)
   fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
   obtain l r where r: "subseq r" and l: "((f \<circ> r) ---> l) sequentially"
     using bounded_imp_convergent_subsequence [OF `bounded s` `\<forall>n. f n \<in> s`] by auto
@@ -2660,10 +3272,10 @@ proof-
     apply(erule_tac x=y in allE) apply(erule_tac x=y in ballE) by auto
 qed
 
-lemma compact_imp_complete: assumes "compact s" shows "complete s"
+lemma seq_compact_imp_complete: assumes "seq_compact s" shows "complete s"
 proof-
   { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
-    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "((f \<circ> r) ---> l) sequentially" using assms unfolding compact_def by blast
+    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "((f \<circ> r) ---> l) sequentially" using assms unfolding seq_compact_def by blast
 
     note lr' = subseq_bigger [OF lr(2)]
 
@@ -2685,10 +3297,10 @@ proof
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
   hence "bounded (range f)"
     by (rule cauchy_imp_bounded)
-  hence "compact (closure (range f))"
-    using bounded_closed_imp_compact [of "closure (range f)"] by auto
+  hence "seq_compact (closure (range f))"
+    using bounded_closed_imp_seq_compact [of "closure (range f)"] by auto
   hence "complete (closure (range f))"
-    by (rule compact_imp_complete)
+    by (rule seq_compact_imp_complete)
   moreover have "\<forall>n. f n \<in> closure (range f)"
     using closure_subset [of "range f"] by auto
   ultimately have "\<exists>l\<in>closure (range f). (f ---> l) sequentially"
@@ -2747,8 +3359,8 @@ fun helper_1::"('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rig
   "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
 declare helper_1.simps[simp del]
 
-lemma compact_imp_totally_bounded:
-  assumes "compact s"
+lemma seq_compact_imp_totally_bounded:
+  assumes "seq_compact s"
   shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))"
 proof(rule, rule, rule ccontr)
   fix e::real assume "e>0" and assm:"\<not> (\<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k)"
@@ -2765,7 +3377,7 @@ proof(rule, rule, rule ccontr)
       thus "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)" unfolding Q_def by auto
     qed }
   hence "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)" by blast+
-  then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded compact_def, THEN spec[where x=x]] by auto
+  then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded seq_compact_def, THEN spec[where x=x]] by auto
   from this(3) have "Cauchy (x \<circ> r)" using convergent_imp_cauchy by auto
   then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e" unfolding cauchy_def using `e>0` by auto
   show False
@@ -2779,7 +3391,7 @@ subsubsection{* Heine-Borel theorem *}
 text {* Following Burkill \& Burkill vol. 2. *}
 
 lemma heine_borel_lemma: fixes s::"'a::metric_space set"
-  assumes "compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
+  assumes "seq_compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
   shows "\<exists>e>0. \<forall>x \<in> s. \<exists>b \<in> t. ball x e \<subseteq> b"
 proof(rule ccontr)
   assume "\<not> (\<exists>e>0. \<forall>x\<in>s. \<exists>b\<in>t. ball x e \<subseteq> b)"
@@ -2792,7 +3404,7 @@ proof(rule ccontr)
     using choice[of "\<lambda>n::nat. \<lambda>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)"] by auto
 
   then obtain l r where l:"l\<in>s" and r:"subseq r" and lr:"((f \<circ> r) ---> l) sequentially"
-    using assms(1)[unfolded compact_def, THEN spec[where x=f]] by auto
+    using assms(1)[unfolded seq_compact_def, THEN spec[where x=f]] by auto
 
   obtain b where "l\<in>b" "b\<in>t" using assms(2) and l by auto
   then obtain e where "e>0" and e:"\<forall>z. dist z l < e \<longrightarrow> z\<in>b"
@@ -2818,16 +3430,19 @@ proof(rule ccontr)
   thus False using e and `y\<notin>b` by auto
 qed
 
-lemma compact_imp_heine_borel: "compact s ==> (\<forall>f. (\<forall>t \<in> f. open t) \<and> s \<subseteq> (\<Union> f)
-               \<longrightarrow> (\<exists>f'. f' \<subseteq> f \<and> finite f' \<and> s \<subseteq> (\<Union> f')))"
+lemma seq_compact_imp_heine_borel:
+  fixes s :: "'a :: metric_space set"
+  shows "seq_compact s \<Longrightarrow> compact s"
+  unfolding compact_eq_heine_borel
 proof clarify
-  fix f assume "compact s" " \<forall>t\<in>f. open t" "s \<subseteq> \<Union>f"
+  fix f assume "seq_compact s" " \<forall>t\<in>f. open t" "s \<subseteq> \<Union>f"
   then obtain e::real where "e>0" and "\<forall>x\<in>s. \<exists>b\<in>f. ball x e \<subseteq> b" using heine_borel_lemma[of s f] by auto
   hence "\<forall>x\<in>s. \<exists>b. b\<in>f \<and> ball x e \<subseteq> b" by auto
   hence "\<exists>bb. \<forall>x\<in>s. bb x \<in>f \<and> ball x e \<subseteq> bb x" using bchoice[of s "\<lambda>x b. b\<in>f \<and> ball x e \<subseteq> b"] by auto
   then obtain  bb where bb:"\<forall>x\<in>s. (bb x) \<in> f \<and> ball x e \<subseteq> (bb x)" by blast
 
-  from `compact s` have  "\<exists> k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" using compact_imp_totally_bounded[of s] `e>0` by auto
+  from `seq_compact s` have  "\<exists> k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k"
+    using seq_compact_imp_totally_bounded[of s] `e>0` by auto
   then obtain k where k:"finite k" "k \<subseteq> s" "s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" by auto
 
   have "finite (bb ` k)" using k(1) by auto
@@ -2840,131 +3455,7 @@ proof clarify
   ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f'" using bb k(2) by (rule_tac x="bb ` k" in exI) auto
 qed
 
-subsubsection {* Bolzano-Weierstrass property *}
-
-lemma heine_borel_imp_bolzano_weierstrass:
-  assumes "\<forall>f. (\<forall>t \<in> f. open t) \<and> s \<subseteq> (\<Union> f) --> (\<exists>f'. f' \<subseteq> f \<and> finite f' \<and> s \<subseteq> (\<Union> f'))"
-          "infinite t"  "t \<subseteq> s"
-  shows "\<exists>x \<in> s. x islimpt t"
-proof(rule ccontr)
-  assume "\<not> (\<exists>x \<in> s. x islimpt t)"
-  then obtain f where f:"\<forall>x\<in>s. x \<in> f x \<and> open (f x) \<and> (\<forall>y\<in>t. y \<in> f x \<longrightarrow> y = x)" unfolding islimpt_def
-    using bchoice[of s "\<lambda> x T. x \<in> T \<and> open T \<and> (\<forall>y\<in>t. y \<in> T \<longrightarrow> y = x)"] by auto
-  obtain g where g:"g\<subseteq>{t. \<exists>x. x \<in> s \<and> t = f x}" "finite g" "s \<subseteq> \<Union>g"
-    using assms(1)[THEN spec[where x="{t. \<exists>x. x\<in>s \<and> t = f x}"]] using f by auto
-  from g(1,3) have g':"\<forall>x\<in>g. \<exists>xa \<in> s. x = f xa" by auto
-  { fix x y assume "x\<in>t" "y\<in>t" "f x = f y"
-    hence "x \<in> f x"  "y \<in> f x \<longrightarrow> y = x" using f[THEN bspec[where x=x]] and `t\<subseteq>s` by auto
-    hence "x = y" using `f x = f y` and f[THEN bspec[where x=y]] and `y\<in>t` and `t\<subseteq>s` by auto  }
-  hence "inj_on f t" unfolding inj_on_def by simp
-  hence "infinite (f ` t)" using assms(2) using finite_imageD by auto
-  moreover
-  { fix x assume "x\<in>t" "f x \<notin> g"
-    from g(3) assms(3) `x\<in>t` obtain h where "h\<in>g" and "x\<in>h" by auto
-    then obtain y where "y\<in>s" "h = f y" using g'[THEN bspec[where x=h]] by auto
-    hence "y = x" using f[THEN bspec[where x=y]] and `x\<in>t` and `x\<in>h`[unfolded `h = f y`] by auto
-    hence False using `f x \<notin> g` `h\<in>g` unfolding `h = f y` by auto  }
-  hence "f ` t \<subseteq> g" by auto
-  ultimately show False using g(2) using finite_subset by auto
-qed
-
 subsubsection {* Complete the chain of compactness variants *}
-
-lemma islimpt_range_imp_convergent_subsequence:
-  fixes l :: "'a :: {t1_space, first_countable_topology}"
-  assumes l: "l islimpt (range f)"
-  shows "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-proof -
-  from first_countable_topology_class.countable_basis_at_decseq[of l] guess A . note A = this
-
-  def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> f j \<in> A (Suc n)"
-  { fix n i
-    have "\<exists>a. i < a \<and> f a \<in> A (Suc n)"
-      by (rule l[THEN islimptE, of "A (Suc n) - (f ` {.. i} - {l})"])
-         (auto simp: not_le[symmetric] finite_imp_closed A(1,2))
-    then have "i < s n i" "f (s n i) \<in> A (Suc n)"
-      unfolding s_def by (auto intro: someI2_ex) }
-  note s = this
-  def r \<equiv> "nat_rec (s 0 0) s"
-  have "subseq r"
-    by (auto simp: r_def s subseq_Suc_iff)
-  moreover
-  have "(\<lambda>n. f (r n)) ----> l"
-  proof (rule topological_tendstoI)
-    fix S assume "open S" "l \<in> S"
-    with A(3) have "eventually (\<lambda>i. A i \<subseteq> S) sequentially" by auto
-    moreover
-    { fix i assume "Suc 0 \<le> i" then have "f (r i) \<in> A i"
-        by (cases i) (simp_all add: r_def s) }
-    then have "eventually (\<lambda>i. f (r i) \<in> A i) sequentially" by (auto simp: eventually_sequentially)
-    ultimately show "eventually (\<lambda>i. f (r i) \<in> S) sequentially"
-      by eventually_elim auto
-  qed
-  ultimately show "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
-    by (auto simp: convergent_def comp_def)
-qed
-
-lemma finite_range_imp_infinite_repeats:
-  fixes f :: "nat \<Rightarrow> 'a"
-  assumes "finite (range f)"
-  shows "\<exists>k. infinite {n. f n = k}"
-proof -
-  { fix A :: "'a set" assume "finite A"
-    hence "\<And>f. infinite {n. f n \<in> A} \<Longrightarrow> \<exists>k. infinite {n. f n = k}"
-    proof (induct)
-      case empty thus ?case by simp
-    next
-      case (insert x A)
-     show ?case
-      proof (cases "finite {n. f n = x}")
-        case True
-        with `infinite {n. f n \<in> insert x A}`
-        have "infinite {n. f n \<in> A}" by simp
-        thus "\<exists>k. infinite {n. f n = k}" by (rule insert)
-      next
-        case False thus "\<exists>k. infinite {n. f n = k}" ..
-      qed
-    qed
-  } note H = this
-  from assms show "\<exists>k. infinite {n. f n = k}"
-    by (rule H) simp
-qed
-
-lemma bolzano_weierstrass_imp_compact:
-  fixes s :: "'a::metric_space set"
-  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
-  shows "compact s"
-proof -
-  { fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
-    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-    proof (cases "finite (range f)")
-      case True
-      hence "\<exists>l. infinite {n. f n = l}"
-        by (rule finite_range_imp_infinite_repeats)
-      then obtain l where "infinite {n. f n = l}" ..
-      hence "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> {n. f n = l})"
-        by (rule infinite_enumerate)
-      then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = l" by auto
-      hence "subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        unfolding o_def by (simp add: fr tendsto_const)
-      hence "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        by - (rule exI)
-      from f have "\<forall>n. f (r n) \<in> s" by simp
-      hence "l \<in> s" by (simp add: fr)
-      thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        by (rule rev_bexI) fact
-    next
-      case False
-      with f assms have "\<exists>x\<in>s. x islimpt (range f)" by auto
-      then obtain l where "l \<in> s" "l islimpt (range f)" ..
-      have "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        using `l islimpt (range f)`
-        by (rule islimpt_range_imp_convergent_subsequence)
-      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" ..
-    qed
-  }
-  thus ?thesis unfolding compact_def by auto
-qed
 
 primrec helper_2::"(real \<Rightarrow> 'a::metric_space) \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_2 beyond 0 = beyond 0" |
@@ -3030,127 +3521,26 @@ proof(rule ccontr)
   show False using y and z and dist_triangle_half_l[of "x y" l 1 "x z"] and **[of y z] by auto
 qed
 
-lemma sequence_infinite_lemma:
-  fixes f :: "nat \<Rightarrow> 'a::t1_space"
-  assumes "\<forall>n. f n \<noteq> l" and "(f ---> l) sequentially"
-  shows "infinite (range f)"
-proof
-  assume "finite (range f)"
-  hence "closed (range f)" by (rule finite_imp_closed)
-  hence "open (- range f)" by (rule open_Compl)
-  from assms(1) have "l \<in> - range f" by auto
-  from assms(2) have "eventually (\<lambda>n. f n \<in> - range f) sequentially"
-    using `open (- range f)` `l \<in> - range f` by (rule topological_tendstoD)
-  thus False unfolding eventually_sequentially by auto
-qed
-
-lemma closure_insert:
-  fixes x :: "'a::t1_space"
-  shows "closure (insert x s) = insert x (closure s)"
-apply (rule closure_unique)
-apply (rule insert_mono [OF closure_subset])
-apply (rule closed_insert [OF closed_closure])
-apply (simp add: closure_minimal)
-done
-
-lemma islimpt_insert:
-  fixes x :: "'a::t1_space"
-  shows "x islimpt (insert a s) \<longleftrightarrow> x islimpt s"
-proof
-  assume *: "x islimpt (insert a s)"
-  show "x islimpt s"
-  proof (rule islimptI)
-    fix t assume t: "x \<in> t" "open t"
-    show "\<exists>y\<in>s. y \<in> t \<and> y \<noteq> x"
-    proof (cases "x = a")
-      case True
-      obtain y where "y \<in> insert a s" "y \<in> t" "y \<noteq> x"
-        using * t by (rule islimptE)
-      with `x = a` show ?thesis by auto
-    next
-      case False
-      with t have t': "x \<in> t - {a}" "open (t - {a})"
-        by (simp_all add: open_Diff)
-      obtain y where "y \<in> insert a s" "y \<in> t - {a}" "y \<noteq> x"
-        using * t' by (rule islimptE)
-      thus ?thesis by auto
-    qed
-  qed
-next
-  assume "x islimpt s" thus "x islimpt (insert a s)"
-    by (rule islimpt_subset) auto
-qed
-
-lemma islimpt_union_finite:
-  fixes x :: "'a::t1_space"
-  shows "finite s \<Longrightarrow> x islimpt (s \<union> t) \<longleftrightarrow> x islimpt t"
-by (induct set: finite, simp_all add: islimpt_insert)
- 
-lemma sequence_unique_limpt:
-  fixes f :: "nat \<Rightarrow> 'a::t2_space"
-  assumes "(f ---> l) sequentially" and "l' islimpt (range f)"
-  shows "l' = l"
-proof (rule ccontr)
-  assume "l' \<noteq> l"
-  obtain s t where "open s" "open t" "l' \<in> s" "l \<in> t" "s \<inter> t = {}"
-    using hausdorff [OF `l' \<noteq> l`] by auto
-  have "eventually (\<lambda>n. f n \<in> t) sequentially"
-    using assms(1) `open t` `l \<in> t` by (rule topological_tendstoD)
-  then obtain N where "\<forall>n\<ge>N. f n \<in> t"
-    unfolding eventually_sequentially by auto
-
-  have "UNIV = {..<N} \<union> {N..}" by auto
-  hence "l' islimpt (f ` ({..<N} \<union> {N..}))" using assms(2) by simp
-  hence "l' islimpt (f ` {..<N} \<union> f ` {N..})" by (simp add: image_Un)
-  hence "l' islimpt (f ` {N..})" by (simp add: islimpt_union_finite)
-  then obtain y where "y \<in> f ` {N..}" "y \<in> s" "y \<noteq> l'"
-    using `l' \<in> s` `open s` by (rule islimptE)
-  then obtain n where "N \<le> n" "f n \<in> s" "f n \<noteq> l'" by auto
-  with `\<forall>n\<ge>N. f n \<in> t` have "f n \<in> s \<inter> t" by simp
-  with `s \<inter> t = {}` show False by simp
-qed
-
-lemma bolzano_weierstrass_imp_closed:
-  fixes s :: "'a::metric_space set" (* TODO: can this be generalized? *)
-  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
-  shows "closed s"
-proof-
-  { fix x l assume as: "\<forall>n::nat. x n \<in> s" "(x ---> l) sequentially"
-    hence "l \<in> s"
-    proof(cases "\<forall>n. x n \<noteq> l")
-      case False thus "l\<in>s" using as(1) by auto
-    next
-      case True note cas = this
-      with as(2) have "infinite (range x)" using sequence_infinite_lemma[of x l] by auto
-      then obtain l' where "l'\<in>s" "l' islimpt (range x)" using assms[THEN spec[where x="range x"]] as(1) by auto
-      thus "l\<in>s" using sequence_unique_limpt[of x l l'] using as cas by auto
-    qed  }
-  thus ?thesis unfolding closed_sequential_limits by fast
-qed
-
 text {* Hence express everything as an equivalence. *}
 
-lemma compact_eq_heine_borel:
-  fixes s :: "'a::metric_space set"
-  shows "compact s \<longleftrightarrow>
-           (\<forall>f. (\<forall>t \<in> f. open t) \<and> s \<subseteq> (\<Union> f)
-               --> (\<exists>f'. f' \<subseteq> f \<and> finite f' \<and> s \<subseteq> (\<Union> f')))" (is "?lhs = ?rhs")
-proof
-  assume ?lhs thus ?rhs by (rule compact_imp_heine_borel)
-next
-  assume ?rhs
-  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. x islimpt t)"
-    by (blast intro: heine_borel_imp_bolzano_weierstrass[of s])
-  thus ?lhs by (rule bolzano_weierstrass_imp_compact)
-qed
+lemma compact_eq_seq_compact_metric:
+  "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
+  using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
+
+lemma compact_def:
+  "compact (S :: 'a::metric_space set) \<longleftrightarrow>
+   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
+       (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially)) "
+  unfolding compact_eq_seq_compact_metric seq_compact_def by auto
 
 lemma compact_eq_bolzano_weierstrass:
   fixes s :: "'a::metric_space set"
   shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
 proof
-  assume ?lhs thus ?rhs unfolding compact_eq_heine_borel using heine_borel_imp_bolzano_weierstrass[of s] by auto
+  assume ?lhs thus ?rhs using heine_borel_imp_bolzano_weierstrass[of s] by auto
 next
-  assume ?rhs thus ?lhs by (rule bolzano_weierstrass_imp_compact)
+  assume ?rhs thus ?lhs
+    unfolding compact_eq_seq_compact_metric by (rule bolzano_weierstrass_imp_seq_compact)
 qed
 
 lemma nat_approx_posE:
@@ -3167,8 +3557,8 @@ proof atomize_elim
 qed
 
 lemma compact_eq_totally_bounded:
-  shows "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k)))"
-proof (safe intro!: compact_imp_complete)
+  "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k)))"
+proof (safe intro!: seq_compact_imp_complete[unfolded  compact_eq_seq_compact_metric[symmetric]])
   fix e::real
   def f \<equiv> "(\<lambda>x::'a. ball x e) ` UNIV"
   assume "0 < e" "compact s"
@@ -3305,123 +3695,23 @@ lemma compact_eq_bounded_closed:
   fixes s :: "'a::heine_borel set"
   shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
 proof
-  assume ?lhs thus ?rhs unfolding compact_eq_bolzano_weierstrass using bolzano_weierstrass_imp_bounded bolzano_weierstrass_imp_closed by auto
+  assume ?lhs thus ?rhs
+    unfolding compact_eq_bolzano_weierstrass using bolzano_weierstrass_imp_bounded bolzano_weierstrass_imp_closed by auto
 next
-  assume ?rhs thus ?lhs using bounded_closed_imp_compact by auto
+  assume ?rhs thus ?lhs
+    using bounded_closed_imp_seq_compact[of s] unfolding compact_eq_seq_compact_metric by auto
 qed
 
 lemma compact_imp_bounded:
   fixes s :: "'a::metric_space set"
-  shows "compact s ==> bounded s"
+  shows "compact s \<Longrightarrow> bounded s"
 proof -
   assume "compact s"
-  hence "\<forall>f. (\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f \<longrightarrow> (\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')"
-    by (rule compact_imp_heine_borel)
   hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
     using heine_borel_imp_bolzano_weierstrass[of s] by auto
   thus "bounded s"
     by (rule bolzano_weierstrass_imp_bounded)
 qed
-
-lemma compact_imp_closed:
-  fixes s :: "'a::metric_space set"
-  shows "compact s ==> closed s"
-proof -
-  assume "compact s"
-  hence "\<forall>f. (\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f \<longrightarrow> (\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')"
-    by (rule compact_imp_heine_borel)
-  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
-    using heine_borel_imp_bolzano_weierstrass[of s] by auto
-  thus "closed s"
-    by (rule bolzano_weierstrass_imp_closed)
-qed
-
-text{* In particular, some common special cases. *}
-
-lemma compact_empty[simp]:
- "compact {}"
-  unfolding compact_def
-  by simp
-
-lemma compact_union [intro]:
-  assumes "compact s" and "compact t"
-  shows "compact (s \<union> t)"
-proof (rule compactI)
-  fix f :: "nat \<Rightarrow> 'a"
-  assume "\<forall>n. f n \<in> s \<union> t"
-  hence "infinite {n. f n \<in> s \<union> t}" by simp
-  hence "infinite {n. f n \<in> s} \<or> infinite {n. f n \<in> t}" by simp
-  thus "\<exists>l\<in>s \<union> t. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-  proof
-    assume "infinite {n. f n \<in> s}"
-    from infinite_enumerate [OF this]
-    obtain q where "subseq q" "\<forall>n. (f \<circ> q) n \<in> s" by auto
-    obtain r l where "l \<in> s" "subseq r" "((f \<circ> q \<circ> r) ---> l) sequentially"
-      using `compact s` `\<forall>n. (f \<circ> q) n \<in> s` by (rule compactE)
-    hence "l \<in> s \<union> t" "subseq (q \<circ> r)" "((f \<circ> (q \<circ> r)) ---> l) sequentially"
-      using `subseq q` by (simp_all add: subseq_o o_assoc)
-    thus ?thesis by auto
-  next
-    assume "infinite {n. f n \<in> t}"
-    from infinite_enumerate [OF this]
-    obtain q where "subseq q" "\<forall>n. (f \<circ> q) n \<in> t" by auto
-    obtain r l where "l \<in> t" "subseq r" "((f \<circ> q \<circ> r) ---> l) sequentially"
-      using `compact t` `\<forall>n. (f \<circ> q) n \<in> t` by (rule compactE)
-    hence "l \<in> s \<union> t" "subseq (q \<circ> r)" "((f \<circ> (q \<circ> r)) ---> l) sequentially"
-      using `subseq q` by (simp_all add: subseq_o o_assoc)
-    thus ?thesis by auto
-  qed
-qed
-
-lemma compact_Union [intro]: "finite S \<Longrightarrow> (\<And>T. T \<in> S \<Longrightarrow> compact T) \<Longrightarrow> compact (\<Union>S)"
-  by (induct set: finite) auto
-
-lemma compact_UN [intro]:
-  "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
-  unfolding SUP_def by (rule compact_Union) auto
-
-lemma compact_inter_closed [intro]:
-  assumes "compact s" and "closed t"
-  shows "compact (s \<inter> t)"
-proof (rule compactI)
-  fix f :: "nat \<Rightarrow> 'a"
-  assume "\<forall>n. f n \<in> s \<inter> t"
-  hence "\<forall>n. f n \<in> s" and "\<forall>n. f n \<in> t" by simp_all
-  obtain l r where "l \<in> s" "subseq r" "((f \<circ> r) ---> l) sequentially"
-    using `compact s` `\<forall>n. f n \<in> s` by (rule compactE)
-  moreover
-  from `closed t` `\<forall>n. f n \<in> t` `((f \<circ> r) ---> l) sequentially` have "l \<in> t"
-    unfolding closed_sequential_limits o_def by fast
-  ultimately show "\<exists>l\<in>s \<inter> t. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-    by auto
-qed
-
-lemma closed_inter_compact [intro]:
-  assumes "closed s" and "compact t"
-  shows "compact (s \<inter> t)"
-  using compact_inter_closed [of t s] assms
-  by (simp add: Int_commute)
-
-lemma compact_inter [intro]:
-  assumes "compact s" and "compact t"
-  shows "compact (s \<inter> t)"
-  using assms by (intro compact_inter_closed compact_imp_closed)
-
-lemma compact_sing [simp]: "compact {a}"
-  unfolding compact_def o_def subseq_def
-  by (auto simp add: tendsto_const)
-
-lemma compact_insert [simp]:
-  assumes "compact s" shows "compact (insert x s)"
-proof -
-  have "compact ({x} \<union> s)"
-    using compact_sing assms by (rule compact_union)
-  thus ?thesis by simp
-qed
-
-lemma finite_imp_compact:
-  shows "finite s \<Longrightarrow> compact s"
-  by (induct set: finite) simp_all
 
 lemma compact_cball[simp]:
   fixes x :: "'a::heine_borel"
@@ -3448,28 +3738,6 @@ lemma frontier_subset_compact:
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
-lemma open_delete:
-  fixes s :: "'a::t1_space set"
-  shows "open s \<Longrightarrow> open (s - {x})"
-  by (simp add: open_Diff)
-
-text{* Finite intersection property. I could make it an equivalence in fact. *}
-
-lemma compact_imp_fip:
-  assumes "compact s"  "\<forall>t \<in> f. closed t"
-        "\<forall>f'. finite f' \<and> f' \<subseteq> f --> (s \<inter> (\<Inter> f') \<noteq> {})"
-  shows "s \<inter> (\<Inter> f) \<noteq> {}"
-proof
-  assume as:"s \<inter> (\<Inter> f) = {}"
-  hence "s \<subseteq> \<Union> uminus ` f" by auto
-  moreover have "Ball (uminus ` f) open" using open_Diff closed_Diff using assms(2) by auto
-  ultimately obtain f' where f':"f' \<subseteq> uminus ` f"  "finite f'"  "s \<subseteq> \<Union>f'" using assms(1)[unfolded compact_eq_heine_borel, THEN spec[where x="(\<lambda>t. - t) ` f"]] by auto
-  hence "finite (uminus ` f') \<and> uminus ` f' \<subseteq> f" by(auto simp add: Diff_Diff_Int)
-  hence "s \<inter> \<Inter>uminus ` f' \<noteq> {}" using assms(3)[THEN spec[where x="uminus ` f'"]] by auto
-  thus False using f'(3) unfolding subset_eq and Union_iff by blast
-qed
-
-
 subsection {* Bounded closed nest property (proof does not use Heine-Borel) *}
 
 lemma bounded_closed_nest:
@@ -3478,10 +3746,10 @@ lemma bounded_closed_nest:
   shows "\<exists>a::'a::heine_borel. \<forall>n::nat. a \<in> s(n)"
 proof-
   from assms(2) obtain x where x:"\<forall>n::nat. x n \<in> s n" using choice[of "\<lambda>n x. x\<in> s n"] by auto
-  from assms(4,1) have *:"compact (s 0)" using bounded_closed_imp_compact[of "s 0"] by auto
+  from assms(4,1) have *:"seq_compact (s 0)" using bounded_closed_imp_seq_compact[of "s 0"] by auto
 
   then obtain l r where lr:"l\<in>s 0" "subseq r" "((x \<circ> r) ---> l) sequentially"
-    unfolding compact_def apply(erule_tac x=x in allE)  using x using assms(3) by blast
+    unfolding seq_compact_def apply(erule_tac x=x in allE)  using x using assms(3) by blast
 
   { fix n::nat
     { fix e::real assume "e>0"
@@ -3492,7 +3760,7 @@ proof-
       hence "(x \<circ> r) (max N n) \<in> s n"
         using x apply(erule_tac x=n in allE)
         using x apply(erule_tac x="r (max N n)" in allE)
-        using assms(3) apply(erule_tac x=n in allE)apply( erule_tac x="r (max N n)" in allE) by auto
+        using assms(3) apply(erule_tac x=n in allE) apply(erule_tac x="r (max N n)" in allE) by auto
       ultimately have "\<exists>y\<in>s n. dist y l < e" by auto
     }
     hence "l \<in> s n" using closed_approachable[of "s n" l] assms(1) by blast
@@ -4531,6 +4799,7 @@ lemma bilinear_continuous_on_compose:
 text {* Preservation of compactness and connectedness under continuous function. *}
 
 lemma compact_continuous_image:
+  fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
   assumes "continuous_on s f"  "compact s"
   shows "compact(f ` s)"
 proof-
@@ -4538,7 +4807,8 @@ proof-
     then obtain y where y:"\<forall>n. y n \<in> s \<and> x n = f (y n)" unfolding image_iff Bex_def using choice[of "\<lambda>n xa. xa \<in> s \<and> x n = f xa"] by auto
     then obtain l r where "l\<in>s" and r:"subseq r" and lr:"((y \<circ> r) ---> l) sequentially" using assms(2)[unfolded compact_def, THEN spec[where x=y]] by auto
     { fix e::real assume "e>0"
-      then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' l < d \<longrightarrow> dist (f x') (f l) < e" using assms(1)[unfolded continuous_on_iff, THEN bspec[where x=l], OF `l\<in>s`] by auto
+      then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' l < d \<longrightarrow> dist (f x') (f l) < e"
+        using assms(1)[unfolded continuous_on_iff, THEN bspec[where x=l], OF `l\<in>s`] by auto
       then obtain N::nat where N:"\<forall>n\<ge>N. dist ((y \<circ> r) n) l < d" using lr[unfolded LIMSEQ_def, THEN spec[where x=d]] by auto
       { fix n::nat assume "n\<ge>N" hence "dist ((x \<circ> r) n) (f l) < e" using N[THEN spec[where x=n]] d[THEN bspec[where x="y (r n)"]] y[THEN spec[where x="r n"]] by auto  }
       hence "\<exists>N. \<forall>n\<ge>N. dist ((x \<circ> r) n) (f l) < e" by auto  }
@@ -4579,7 +4849,8 @@ proof-
     hence "s \<subseteq> \<Union>{ball x (d x (e / 2)) |x. x \<in> s}" unfolding subset_eq by auto
     moreover
     { fix b assume "b\<in>{ball x (d x (e / 2)) |x. x \<in> s}" hence "open b" by auto  }
-    ultimately obtain ea where "ea>0" and ea:"\<forall>x\<in>s. \<exists>b\<in>{ball x (d x (e / 2)) |x. x \<in> s}. ball x ea \<subseteq> b" using heine_borel_lemma[OF assms(2), of "{ball x (d x (e / 2)) | x. x\<in>s }"] by auto
+    ultimately obtain ea where "ea>0" and ea:"\<forall>x\<in>s. \<exists>b\<in>{ball x (d x (e / 2)) |x. x \<in> s}. ball x ea \<subseteq> b"
+      using heine_borel_lemma[OF assms(2)[unfolded compact_eq_seq_compact_metric], of "{ball x (d x (e / 2)) | x. x\<in>s }"] by auto
 
     { fix x y assume "x\<in>s" "y\<in>s" and as:"dist y x < ea"
       obtain z where "z\<in>s" and z:"ball x ea \<subseteq> ball z (d z (e / 2))" using ea[THEN bspec[where x=x]] and `x\<in>s` by auto
@@ -4806,8 +5077,8 @@ qed
 lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
 by (induct x) simp
 
-lemma compact_Times: "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
-unfolding compact_def
+lemma seq_compact_Times: "seq_compact s \<Longrightarrow> seq_compact t \<Longrightarrow> seq_compact (s \<times> t)"
+unfolding seq_compact_def
 apply clarify
 apply (drule_tac x="fst \<circ> f" in spec)
 apply (drule mp, simp add: mem_Times_iff)
@@ -4822,6 +5093,12 @@ apply (drule_tac r=r2 in lim_subseq [rotated], assumption)
 apply (drule (1) tendsto_Pair) back
 apply (simp add: o_def)
 done
+
+text {* Generalize to @{class topological_space} *}
+lemma compact_Times: 
+  fixes s :: "'a::metric_space set" and t :: "'b::metric_space set"
+  shows "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
+  unfolding compact_eq_seq_compact_metric by (rule seq_compact_Times)
 
 text{* Hence some useful properties follow quite easily. *}
 
@@ -5342,8 +5619,8 @@ lemma not_interval_univ: fixes a :: "'a::ordered_euclidean_space" shows
   using bounded_interval[of a b] by auto
 
 lemma compact_interval: fixes a :: "'a::ordered_euclidean_space" shows "compact {a .. b}"
-  using bounded_closed_imp_compact[of "{a..b}"] using bounded_interval[of a b]
-  by auto
+  using bounded_closed_imp_seq_compact[of "{a..b}"] using bounded_interval[of a b]
+  by (auto simp: compact_eq_seq_compact_metric)
 
 lemma open_interval_midpoint: fixes a :: "'a::ordered_euclidean_space"
   assumes "{a<..<b} \<noteq> {}" shows "((1/2) *\<^sub>R (a + b)) \<in> {a<..<b}"

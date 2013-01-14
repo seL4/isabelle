@@ -57,7 +57,7 @@ lemma connected_path_image[intro]: "path g \<Longrightarrow> connected(path_imag
   apply (rule convex_connected, rule convex_real_interval)
   done
 
-lemma compact_path_image[intro]: "path g \<Longrightarrow> compact(path_image g)"
+lemma compact_path_image[intro]: "path g \<Longrightarrow> compact(path_image g :: 'a::metric_space set)"
   unfolding path_def path_image_def
   by (erule compact_continuous_image, rule compact_interval)
 

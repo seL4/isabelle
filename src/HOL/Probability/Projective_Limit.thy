@@ -46,12 +46,13 @@ lemma compact_projset:
 end
 
 lemma compactE':
+  fixes S :: "'a :: metric_space set"
   assumes "compact S" "\<forall>n\<ge>m. f n \<in> S"
   obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) ---> l) sequentially"
 proof atomize_elim
   have "subseq (op + m)" by (simp add: subseq_def)
   have "\<forall>n. (f o (\<lambda>i. m + i)) n \<in> S" using assms by auto
-  from compactE[OF `compact S` this] guess l r .
+  from seq_compactE[OF `compact S`[unfolded compact_eq_seq_compact_metric] this] guess l r .
   hence "l \<in> S" "subseq ((\<lambda>i. m + i) o r) \<and> (f \<circ> ((\<lambda>i. m + i) o r)) ----> l"
     using subseq_o[OF `subseq (op + m)` `subseq r`] by (auto simp: o_def)
   thus "\<exists>l r. l \<in> S \<and> subseq r \<and> (f \<circ> r) ----> l" by blast
