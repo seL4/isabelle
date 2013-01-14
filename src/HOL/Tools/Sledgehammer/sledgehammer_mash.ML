@@ -320,7 +320,7 @@ val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20130112a ***"
+val version = "*** MaSh version 20130113a ***"
 
 exception Too_New of unit
 
@@ -483,10 +483,10 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
             |> map snd |> take max_facts
     end
 
-fun thy_feature_of s = ("y" ^ s, 2.0 (* FUDGE *))
-fun const_feature_of s = ("c" ^ s, 16.0 (* FUDGE *))
-fun free_feature_of s = ("f" ^ s, 20.0 (* FUDGE *))
-fun type_feature_of s = ("t" ^ s, 2.0 (* FUDGE *))
+fun thy_feature_of s = ("y" ^ s, 8.0 (* FUDGE *))
+fun const_feature_of s = ("c" ^ s, 32.0 (* FUDGE *))
+fun free_feature_of s = ("f" ^ s, 40.0 (* FUDGE *))
+fun type_feature_of s = ("t" ^ s, 4.0 (* FUDGE *))
 fun class_feature_of s = ("s" ^ s, 1.0 (* FUDGE *))
 fun status_feature_of status = (string_of_status status, 2.0 (* FUDGE *))
 val local_feature = ("local", 8.0 (* FUDGE *))
