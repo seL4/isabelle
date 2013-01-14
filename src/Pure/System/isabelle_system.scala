@@ -210,6 +210,15 @@ object Isabelle_System
   }
 
 
+  /* mkdirs */
+
+  def mkdirs(path: Path)
+  {
+    path.file.mkdirs
+    if (!path.is_dir) error("Cannot create directory: " + quote(platform_path(path)))
+  }
+
+
 
   /** external processes **/
 

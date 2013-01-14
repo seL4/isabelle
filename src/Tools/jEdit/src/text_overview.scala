@@ -91,9 +91,12 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
               case None => Text.Range(0)
               case Some(visible_range) =>
                 val len = rendering.overview_limit max visible_range.length
-                val start = ((visible_range.start + visible_range.stop - len) / 2) max 0
-                val stop = (start + len) min char_count
-                Text.Range(start, stop)
+                val start = (visible_range.start + visible_range.stop - len) / 2
+                val stop = start + len
+
+                if (start < 0) Text.Range(0, len min char_count)
+                else if (stop > char_count) Text.Range((char_count - len) max 0, char_count)
+                else Text.Range(start, stop)
             }
 
           if (!(line_count == last_line_count && char_count == last_char_count &&

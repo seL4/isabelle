@@ -4,7 +4,9 @@ PATH=/bin
 
 FILE_LIST="$(mktemp)"
 
-for DIR in "$@"
+CONTRIB="$(cygpath -u "$(cygpath -w /)\..")"
+
+for DIR in "$CONTRIB/polyml-5.5.0"
 do
   find "$DIR" -name "*.dll" >> "$FILE_LIST"
 done
