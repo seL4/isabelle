@@ -134,6 +134,8 @@ fun kbo_advisory_simp_ordering ord_info =
       | ord => ord
   in {weight = weight, precedence = precedence} end
 
+exception METIS_UNPROVABLE of unit
+
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
@@ -175,64 +177,68 @@ fun FOL_SOLVE (type_enc :: fallback_type_encs) lam_trans ctxt cls ths0 =
           kbo_advisory_simp_ordering (ord_info ())
         else
           Metis_KnuthBendixOrder.default
+    fun fall_back () =
+      (verbose_warning ctxt
+           ("Falling back on " ^
+            quote (metis_call (hd fallback_type_encs) lam_trans) ^ "...");
+       FOL_SOLVE fallback_type_encs lam_trans ctxt cls ths0)
   in
-      case filter (fn t => prop_of t aconv @{prop False}) cls of
-          false_th :: _ => [false_th RS @{thm FalseE}]
-        | [] =>
-      case Metis_Resolution.new (resolution_params ordering)
-                                {axioms = axioms |> map fst, conjecture = []}
-           |> Metis_Resolution.loop of
-          Metis_Resolution.Contradiction mth =>
-            let val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^
-                          Metis_Thm.toString mth)
-                val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
-                             (*add constraints arising from converting goal to clause form*)
-                val proof = Metis_Proof.proof mth
-                val result =
-                  axioms
-                  |> fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof
-                val used = proof |> map_filter (used_axioms axioms)
-                val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
-                val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
-                val names = th_cls_pairs |> map fst
-                val used_names =
-                  th_cls_pairs
-                  |> map_filter (fn (name, (_, cls)) =>
-                                    if have_common_thm used cls then SOME name
-                                    else NONE)
-                val unused_names = names |> subtract (op =) used_names
-            in
-                if not (null cls) andalso not (have_common_thm used cls) then
-                  verbose_warning ctxt "The assumptions are inconsistent"
-                else
-                  ();
-                if not (null unused_names) then
-                  "Unused theorems: " ^ commas_quote unused_names
-                  |> verbose_warning ctxt
-                else
-                  ();
-                case result of
-                    (_,ith)::_ =>
-                        (trace_msg ctxt (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
-                         [discharge_skolem_premises ctxt dischargers ith])
-                  | _ => (trace_msg ctxt (fn () => "Metis: No result"); [])
-            end
-        | Metis_Resolution.Satisfiable _ =>
-            (trace_msg ctxt (fn () =>
-               "Metis: No first-order proof with the lemmas supplied");
-             raise METIS ("FOL_SOLVE",
-                          "No first-order proof with the lemmas supplied"))
+    (case filter (fn t => prop_of t aconv @{prop False}) cls of
+         false_th :: _ => [false_th RS @{thm FalseE}]
+       | [] =>
+     case Metis_Resolution.new (resolution_params ordering)
+                               {axioms = axioms |> map fst, conjecture = []}
+          |> Metis_Resolution.loop of
+         Metis_Resolution.Contradiction mth =>
+           let val _ = trace_msg ctxt (fn () => "METIS RECONSTRUCTION START: " ^
+                         Metis_Thm.toString mth)
+               val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
+                            (*add constraints arising from converting goal to clause form*)
+               val proof = Metis_Proof.proof mth
+               val result =
+                 axioms
+                 |> fold (replay_one_inference ctxt' type_enc concealed sym_tab) proof
+               val used = proof |> map_filter (used_axioms axioms)
+               val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
+               val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
+               val names = th_cls_pairs |> map fst
+               val used_names =
+                 th_cls_pairs
+                 |> map_filter (fn (name, (_, cls)) =>
+                                   if have_common_thm used cls then SOME name
+                                   else NONE)
+               val unused_names = names |> subtract (op =) used_names
+           in
+               if not (null cls) andalso not (have_common_thm used cls) then
+                 verbose_warning ctxt "The assumptions are inconsistent"
+               else
+                 ();
+               if not (null unused_names) then
+                 "Unused theorems: " ^ commas_quote unused_names
+                 |> verbose_warning ctxt
+               else
+                 ();
+               case result of
+                   (_,ith)::_ =>
+                       (trace_msg ctxt (fn () => "Success: " ^ Display.string_of_thm ctxt ith);
+                        [discharge_skolem_premises ctxt dischargers ith])
+                 | _ => (trace_msg ctxt (fn () => "Metis: No result"); [])
+           end
+       | Metis_Resolution.Satisfiable _ =>
+           (trace_msg ctxt (fn () =>
+              "Metis: No first-order proof with the supplied lemmas");
+            raise METIS_UNPROVABLE ()))
+    handle METIS_UNPROVABLE () =>
+           (case fallback_type_encs of
+              [] => []
+            | _ => fall_back ())
+         | METIS_RECONSTRUCT (loc, msg) =>
+           (case fallback_type_encs of
+              [] =>
+              (verbose_warning ctxt
+                   ("Failed to replay Metis proof\n" ^ loc ^ ": " ^ msg); [])
+            | _ => fall_back ())
   end
-  handle METIS (loc, msg) =>
-         case fallback_type_encs of
-           [] => error ("Failed to replay Metis proof in Isabelle." ^
-                        (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
-                         else ""))
-         | first_fallback :: _ =>
-           (verbose_warning ctxt
-                ("Falling back on " ^
-                 quote (metis_call first_fallback lam_trans) ^ "...");
-            FOL_SOLVE fallback_type_encs lam_trans ctxt cls ths0)
 
 fun neg_clausify ctxt combinators =
   single

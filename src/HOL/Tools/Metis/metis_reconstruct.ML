@@ -11,7 +11,7 @@ signature METIS_RECONSTRUCT =
 sig
   type type_enc = ATP_Problem_Generate.type_enc
 
-  exception METIS of string * string
+  exception METIS_RECONSTRUCT of string * string
 
   val hol_clause_from_metis :
     Proof.context -> type_enc -> int Symtab.table
@@ -34,7 +34,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Generate
 
-exception METIS of string * string
+exception METIS_RECONSTRUCT of string * string
 
 fun atp_name_from_metis type_enc s =
   case find_first (fn (_, (f, _)) => f type_enc = s) metis_name_table of
@@ -166,8 +166,8 @@ fun inst_inference ctxt type_enc concealed sym_tab th_pairs fsubst th =
             Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
             Syntax.string_of_term ctxt (term_of y)))));
   in cterm_instantiate substs' i_th end
-  handle THM (msg, _, _) => raise METIS ("inst_inference", msg)
-       | ERROR msg => raise METIS ("inst_inference", msg)
+  handle THM (msg, _, _) => raise METIS_RECONSTRUCT ("inst_inference", msg)
+       | ERROR msg => raise METIS_RECONSTRUCT ("inst_inference", msg)
 
 (* INFERENCE RULE: RESOLVE *)
 
@@ -293,7 +293,8 @@ fun resolve_inference ctxt type_enc concealed sym_tab th_pairs atom th1 th2 =
            | j2 =>
              (trace_msg ctxt (fn () => "  index th2: " ^ string_of_int j2);
               resolve_inc_tyvars thy (select_literal j1 i_th1) j2 i_th2
-              handle TERM (s, _) => raise METIS ("resolve_inference", s)))
+              handle TERM (s, _) =>
+                     raise METIS_RECONSTRUCT ("resolve_inference", s)))
       end
   end
 
@@ -327,12 +328,12 @@ fun equality_inference ctxt type_enc concealed sym_tab (pos, atom) fp fr =
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
       fun path_finder_fail tm ps t =
-        raise METIS ("equality_inference (path_finder)",
-                     "path = " ^ space_implode " " (map string_of_int ps) ^
-                     " isa-term: " ^ Syntax.string_of_term ctxt tm ^
-                     (case t of
-                        SOME t => " fol-term: " ^ Metis_Term.toString t
-                      | NONE => ""))
+        raise METIS_RECONSTRUCT ("equality_inference (path_finder)",
+                  "path = " ^ space_implode " " (map string_of_int ps) ^
+                  " isa-term: " ^ Syntax.string_of_term ctxt tm ^
+                  (case t of
+                     SOME t => " fol-term: " ^ Metis_Term.toString t
+                   | NONE => ""))
       fun path_finder tm [] _ = (tm, Bound 0)
         | path_finder tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
           let
@@ -443,7 +444,7 @@ fun resynchronize ctxt fol_th th =
                   THEN ALLGOALS assume_tac
       in
         if length prems = length prems0 then
-          raise METIS ("resynchronize", "Out of sync")
+          raise METIS_RECONSTRUCT ("resynchronize", "Out of sync")
         else
           Goal.prove ctxt [] [] goal (K tac)
           |> resynchronize ctxt fol_th
