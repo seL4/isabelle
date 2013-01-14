@@ -75,6 +75,7 @@ do
           \#* | "") ;;
           *)
             COMPONENT="$REPLY"
+            COMPONENT_DIR="$ISABELLE_TARGET/contrib/$COMPONENT"
             case "$COMPONENT" in
               jedit_build*) ;;
               *)
@@ -88,7 +89,10 @@ do
                 fi
 
                 tar -C "$ISABELLE_TARGET/contrib" -x -z -f "$CONTRIB"
-                echo "contrib/$COMPONENT" >> "$ISABELLE_TARGET/etc/components"
+                if [ -f "$COMPONENT_DIR/etc/settings" -o -f "$COMPONENT_DIR/etc/components" ]
+                then
+                  echo "contrib/$COMPONENT" >> "$ISABELLE_TARGET/etc/components"
+                fi
                 ;;
             esac
             ;;
