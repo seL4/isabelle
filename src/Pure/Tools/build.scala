@@ -424,7 +424,7 @@ object Build
     // global browser info dir
     if (info.options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
     {
-      browser_info.file.mkdirs()
+      Isabelle_System.mkdirs(browser_info)
       File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
         browser_info + Path.explode("isabelle.gif"))
       File.write(browser_info + Path.explode("index.html"),
@@ -614,7 +614,7 @@ object Build
       }
 
     // prepare log dir
-    (output_dir + LOG).file.mkdirs()
+    Isabelle_System.mkdirs(output_dir + LOG)
 
     // optional cleanup
     if (clean_build) {
