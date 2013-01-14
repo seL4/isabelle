@@ -209,7 +209,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
             mash_learn_proof ctxt params prover (prop_of goal) all_facts
           val launch = launch_prover params mode minimize_command only learn
         in
-          if mode = Auto_Try orelse mode = Try then
+          if mode = Auto_Try then
             (unknownN, state)
             |> fold (fn prover => fn accum as (outcome_code, _) =>
                         if outcome_code = someN then accum
