@@ -22,7 +22,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
   private val buffer = doc_view.model.buffer
 
   private val WIDTH = 10
-  private val HEIGHT = 2
+  private val HEIGHT = 4
 
   private def lines(): Int = buffer.getLineCount max text_area.getVisibleLines
 

@@ -180,10 +180,10 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           ((Protocol.Status.init, 0) /: results) {
             case ((s1, p1), Text.Info(_, (s2, p2))) => (s1 + s2, p1 max p2) }
 
-        if (pri == Rendering.warning_pri) Some(warning_color)
+        if (status.is_running) Some(running_color)
+        else if (pri == Rendering.warning_pri) Some(warning_color)
         else if (pri == Rendering.error_pri) Some(error_color)
         else if (status.is_unprocessed) Some(unprocessed_color)
-        else if (status.is_running) Some(running_color)
         else if (status.is_failed) Some(error_color)
         else None
       }

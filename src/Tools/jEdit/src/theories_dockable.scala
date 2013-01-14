@@ -99,7 +99,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
               (st.failed, PIDE.options.color_value("error_color"))) }
           {
             gfx.setColor(color)
-            val v = (n * w / st.total) max (if (n > 0) 2 else 0)
+            val v = (n * w / st.total) max (if (n > 0) 4 else 0)
             gfx.fillRect(end - v, insets.top, v, h)
             end -= v
           }
