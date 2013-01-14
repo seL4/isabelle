@@ -72,11 +72,6 @@ ln -s cygperl5_14.dll "$TARGET/bin/cygperl5_14_2.dll"
 
 rm "$TARGET/Cygwin.bat"
 
-for NAME in init.bat postinstall rebaseall
-do
-  cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/$NAME" "$TARGET/isabelle/."
-done
-
 
 # archive
 

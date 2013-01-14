@@ -127,6 +127,15 @@ case "$PLATFORM_FAMILY" in
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
 
+    for NAME in init.bat postinstall rebaseall
+    do
+      cp -a "$ISABELLE_HOME/Admin/Windows/Cygwin/isabelle/$NAME" \
+        "$ISABELLE_TARGET/contrib/cygwin/isabelle/."
+    done
+
+    perl -pi -e "s,/bin/rebaseall.*,/isabelle/rebaseall,g;" \
+      "$ISABELLE_TARGET/contrib/cygwin/etc/postinstall/autorebase.bat.done"
+
     for NAME in ANNOUNCE README NEWS COPYRIGHT CONTRIBUTORS contrib/README
     do
       FILE="$ISABELLE_TARGET/$NAME"

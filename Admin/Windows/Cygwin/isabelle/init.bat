@@ -6,6 +6,6 @@ cd ".."
 set CYGWIN=nodosfilewarning
 
 echo Initializing Cygwin ...
-"bin\dash" /isabelle/rebaseall polyml-5.5.0
+"bin\dash" /isabelle/rebaseall
 "bin\bash" /isabelle/postinstall
 

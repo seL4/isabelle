@@ -6,9 +6,9 @@ FILE_LIST="$(mktemp)"
 
 CONTRIB="$(cygpath -u "$(cygpath -w /)\..")"
 
-for NAME in "$@"
+for DIR in "$CONTRIB/polyml-5.5.0"
 do
-  find "$CONTRIB/$NAME" -name "*.dll" >> "$FILE_LIST"
+  find "$DIR" -name "*.dll" >> "$FILE_LIST"
 done
 
 dash /bin/rebaseall -T "$FILE_LIST"
