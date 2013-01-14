@@ -162,6 +162,14 @@ a Hasse diagram.
 switched on by default, and can be switched off by setting the
 configuration quickcheck_optimise_equality to false.
 
+* Quotient: only one quotient can be defined by quotient_type
+INCOMPATIBILITY.
+
+* Lifting:
+  - generation of an abstraction function equation in lift_definition
+  - quot_del attribute
+  - renamed no_abs_code -> no_code (INCOMPATIBILITY.)
+
 * Simproc "finite_Collect" rewrites set comprehensions into pointfree
 expressions.
 
@@ -370,6 +378,19 @@ AFP entry "Ordinals_and_Cardinals").
 * HOL/BNF: New (co)datatype package based on bounded natural functors
 with support for mixed, nested recursion and interesting non-free
 datatypes.
+
+* HOL/Finite_Set and Relation: added new set and relation operations 
+expressed by Finite_Set.fold.
+
+* New theory HOL/Library/RBT_Set: implementation of sets by red-black
+trees for the code generator.
+
+* HOL/Library/RBT and HOL/Library/Mapping have been converted to
+Lifting/Transfer.
+possible INCOMPATIBILITY.
+
+* HOL/Set: renamed Set.project -> Set.filter
+INCOMPATIBILITY.
 
 
 *** Document preparation ***
