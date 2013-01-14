@@ -4,9 +4,11 @@ PATH=/bin
 
 FILE_LIST="$(mktemp)"
 
-for DIR in "$@"
+CONTRIB="$(cygpath -u "$(cygpath -w /)\..")"
+
+for NAME in "$@"
 do
-  find "$DIR" -name "*.dll" >> "$FILE_LIST"
+  find "$CONTRIB/$NAME" -name "*.dll" >> "$FILE_LIST"
 done
 
 dash /bin/rebaseall -T "$FILE_LIST"

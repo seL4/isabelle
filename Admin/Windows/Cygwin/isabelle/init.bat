@@ -1,11 +1,11 @@
 @echo off
 
 cd "%~dp0"
-cd "..\.."
+cd ".."
 
 set CYGWIN=nodosfilewarning
 
 echo Initializing Cygwin ...
-"contrib\cygwin\bin\dash" /isabelle/rebaseall contrib/polyml-5.5.0
-"contrib\cygwin\bin\bash" /isabelle/postinstall
+"bin\dash" /isabelle/rebaseall polyml-5.5.0
+"bin\bash" /isabelle/postinstall
 
