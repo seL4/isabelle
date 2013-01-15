@@ -242,9 +242,9 @@ fixes \<gamma> :: "'av::semilattice \<Rightarrow> val set"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'av"
 and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
-  assumes gamma_num': "n : \<gamma>(num' n)"
+  assumes gamma_num': "i : \<gamma>(num' i)"
   and gamma_plus':
- "n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma>(plus' a1 a2)"
+ "i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma>(plus' a1 a2)"
 
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
@@ -252,7 +252,7 @@ locale Abs_Int_Fun = Val_abs \<gamma> for \<gamma> :: "'av::semilattice \<Righta
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
-"aval' (N n) S = num' n" |
+"aval' (N i) S = num' i" |
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 

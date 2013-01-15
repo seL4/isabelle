@@ -44,7 +44,7 @@ context Gamma
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
-"aval' (N n) S = num' n" |
+"aval' (N i) S = num' i" |
 "aval' (V x) S = fun S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
