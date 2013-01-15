@@ -217,8 +217,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                     provers
           else
             provers
-            |> (if blocking then Par_List.map else map)
-                   (launch problem #> fst)
+            |> (if blocking then Par_List.map else map) (launch problem #> fst)
             |> max_outcome_code |> rpair state
         end
       fun get_facts label is_appropriate_prop provers =
