@@ -1148,7 +1148,7 @@ fun solve_glpk prog =
         result
     end
     handle (Load_cplexResult s) => raise (Execute ("Load_cplexResult: "^s^"\nExecute: "^answer))
-         | _ => raise (Execute answer)  (* FIXME avoid handle _ *)
+         | exn => if Exn.is_interrupt exn then reraise exn else raise (Execute answer)
     end
 
 fun solve_cplex prog =

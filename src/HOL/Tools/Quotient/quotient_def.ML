@@ -166,10 +166,10 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
         case lhs_eq of
           SOME (Const (@{const_name HOL.eq}, _) $ _ $ _) => SOME (@{thm refl} RS thm)
           | SOME _ => (case body_type (fastype_of lhs) of
-            Type (typ_name, _) => ( SOME
-              (#equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name)) 
-                RS @{thm Equiv_Relations.equivp_reflp} RS thm)
-              handle _ => NONE)
+            Type (typ_name, _) =>
+              try (fn () =>
+                #equiv_thm (the (Quotient_Info.lookup_quotients lthy typ_name)) 
+                  RS @{thm Equiv_Relations.equivp_reflp} RS thm) ()
             | _ => NONE
             )
           | _ => NONE

@@ -514,10 +514,12 @@ fun upt_conv ct = case term_of ct of
       |> mk_nat_clist;
     val prop = Thm.mk_binop @{cterm "op = :: nat list => _"} ct ns
                  |> Thm.apply @{cterm Trueprop};
-  in Goal.prove_internal [] prop 
-      (K (REPEAT_DETERM (resolve_tac @{thms upt_eq_list_intros} 1
-          ORELSE simp_tac word_ss 1))) |> mk_meta_eq |> SOME end
-    handle TERM _ => NONE
+  in
+    try (fn () =>
+      Goal.prove_internal [] prop 
+        (K (REPEAT_DETERM (resolve_tac @{thms upt_eq_list_intros} 1
+            ORELSE simp_tac word_ss 1))) |> mk_meta_eq) ()
+  end
   | _ => NONE;
 
 val expand_upt_simproc = Simplifier.make_simproc
