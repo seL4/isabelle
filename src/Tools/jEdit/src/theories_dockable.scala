@@ -86,22 +86,24 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     {
       nodes_status.get(node_name) match {
         case Some(st) if st.total > 0 =>
+          val colors = List(
+            (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
+            (st.running, PIDE.options.color_value("running_color")),
+            (st.warned, PIDE.options.color_value("warning_color")),
+            (st.failed, PIDE.options.color_value("error_color")))
+
           val size = peer.getSize()
           val insets = border.getBorderInsets(this.peer)
           val w = size.width - insets.left - insets.right
           val h = size.height - insets.top - insets.bottom
           var end = size.width - insets.right
-          for {
-            (n, color) <- List(
-              (st.unprocessed, PIDE.options.color_value("unprocessed1_color")),
-              (st.running, PIDE.options.color_value("running_color")),
-              (st.warned, PIDE.options.color_value("warning_color")),
-              (st.failed, PIDE.options.color_value("error_color"))) }
+
+          for { (n, color) <- colors }
           {
             gfx.setColor(color)
-            val v = (n * w / st.total) max (if (n > 0) 4 else 0)
+            val v = (n * (w - colors.length) / st.total) max (if (n > 0) 4 else 0)
             gfx.fillRect(end - v, insets.top, v, h)
-            end -= v
+            end = end - v - 1
           }
         case _ =>
       }

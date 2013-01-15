@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# makedist_library -- build Isabelle HTML library from platform bundle
+# build Isabelle HTML library from platform bundle
 
 ## diagnostics
 

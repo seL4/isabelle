@@ -68,8 +68,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       val metis_fail = ref false
     in
       fun handle_metis_fail try_metis () =
-        try_metis () handle exp =>
-          (if Exn.is_interrupt exp orelse debug then reraise exp 
+        try_metis () handle exn =>
+          (if Exn.is_interrupt exn orelse debug then reraise exn
            else metis_fail := true; SOME Time.zeroTime)
       fun get_time lazy_time =
         if !metis_fail then SOME Time.zeroTime else Lazy.force lazy_time
