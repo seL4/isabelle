@@ -2339,6 +2339,16 @@ definition compact :: "'a::topological_space set \<Rightarrow> bool" where
   compact_eq_heine_borel: -- "This name is used for backwards compatibility"
     "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
 
+lemma compactI:
+  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union> C \<Longrightarrow> \<exists>C'. C' \<subseteq> C \<and> finite C' \<and> s \<subseteq> \<Union> C'"
+  shows "compact s"
+  unfolding compact_eq_heine_borel using assms by metis
+
+lemma compactE:
+  assumes "compact s" and "\<forall>t\<in>C. open t" and "s \<subseteq> \<Union>C"
+  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> \<Union>C'"
+  using assms unfolding compact_eq_heine_borel by metis
+
 subsubsection {* Bolzano-Weierstrass property *}
 
 lemma heine_borel_imp_bolzano_weierstrass:
@@ -2537,14 +2547,32 @@ proof-
 qed
 
 lemma compact_imp_closed:
-  fixes s :: "'a::{first_countable_topology, t2_space} set"
-  shows "compact s \<Longrightarrow> closed s"
-proof -
-  assume "compact s"
-  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
-    using heine_borel_imp_bolzano_weierstrass[of s] by auto
-  thus "closed s"
-    by (rule bolzano_weierstrass_imp_closed)
+  fixes s :: "'a::t2_space set"
+  assumes "compact s" shows "closed s"
+unfolding closed_def
+proof (rule openI)
+  fix y assume "y \<in> - s"
+  let ?C = "\<Union>x\<in>s. {u. open u \<and> x \<in> u \<and> eventually (\<lambda>y. y \<notin> u) (nhds y)}"
+  note `compact s`
+  moreover have "\<forall>u\<in>?C. open u" by simp
+  moreover have "s \<subseteq> \<Union>?C"
+  proof
+    fix x assume "x \<in> s"
+    with `y \<in> - s` have "x \<noteq> y" by clarsimp
+    hence "\<exists>u v. open u \<and> open v \<and> x \<in> u \<and> y \<in> v \<and> u \<inter> v = {}"
+      by (rule hausdorff)
+    with `x \<in> s` show "x \<in> \<Union>?C"
+      unfolding eventually_nhds by auto
+  qed
+  ultimately obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
+    by (rule compactE)
+  from `D \<subseteq> ?C` have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
+  with `finite D` have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
+    by (simp add: eventually_Ball_finite)
+  with `s \<subseteq> \<Union>D` have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
+    by (auto elim!: eventually_mono [rotated])
+  thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
+    by (simp add: eventually_nhds subset_eq)
 qed
 
 text{* In particular, some common special cases. *}
@@ -2556,9 +2584,8 @@ lemma compact_empty[simp]:
 
 lemma compact_union [intro]:
   assumes "compact s" "compact t" shows " compact (s \<union> t)"
-  unfolding compact_eq_heine_borel
-proof (intro allI impI)
-  fix f assume *: "Ball f open \<and> s \<union> t \<subseteq> \<Union>f"
+proof (rule compactI)
+  fix f assume *: "Ball f open" "s \<union> t \<subseteq> \<Union>f"
   from * `compact s` obtain s' where "s' \<subseteq> f \<and> finite s' \<and> s \<subseteq> \<Union>s'"
     unfolding compact_eq_heine_borel by (auto elim!: allE[of _ f]) metis
   moreover from * `compact t` obtain t' where "t' \<subseteq> f \<and> finite t' \<and> t \<subseteq> \<Union>t'"
@@ -2577,8 +2604,7 @@ lemma compact_UN [intro]:
 lemma compact_inter_closed [intro]:
   assumes "compact s" and "closed t"
   shows "compact (s \<inter> t)"
-  unfolding compact_eq_heine_borel
-proof safe
+proof (rule compactI)
   fix C assume C: "\<forall>c\<in>C. open c" and cover: "s \<inter> t \<subseteq> \<Union>C"
   from C `closed t` have "\<forall>c\<in>C \<union> {-t}. open c" by auto
   moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
@@ -2596,7 +2622,7 @@ lemma closed_inter_compact [intro]:
   by (simp add: Int_commute)
 
 lemma compact_inter [intro]:
-  fixes s t :: "'a :: {t2_space, first_countable_topology} set"
+  fixes s t :: "'a :: t2_space set"
   assumes "compact s" and "compact t"
   shows "compact (s \<inter> t)"
   using assms by (intro compact_inter_closed compact_imp_closed)
@@ -4621,35 +4647,41 @@ qed
 text {* Making a continuous function avoid some value in a neighbourhood. *}
 
 lemma continuous_within_avoid:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
-  assumes "continuous (at x within s) f"  "x \<in> s"  "f x \<noteq> a"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
+  assumes "continuous (at x within s) f" and "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y \<in> s. dist x y < e --> f y \<noteq> a"
 proof-
-  obtain d where "d>0" and d:"\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < dist (f x) a"
-    using assms(1)[unfolded continuous_within Lim_within, THEN spec[where x="dist (f x) a"]] assms(3)[unfolded dist_nz] by auto
-  { fix y assume " y\<in>s"  "dist x y < d"
-    hence "f y \<noteq> a" using d[THEN bspec[where x=y]] assms(3)[unfolded dist_nz]
-      apply auto unfolding dist_nz[THEN sym] by (auto simp add: dist_commute) }
-  thus ?thesis using `d>0` by auto
+  obtain U where "open U" and "f x \<in> U" and "a \<notin> U"
+    using t1_space [OF `f x \<noteq> a`] by fast
+  have "(f ---> f x) (at x within s)"
+    using assms(1) by (simp add: continuous_within)
+  hence "eventually (\<lambda>y. f y \<in> U) (at x within s)"
+    using `open U` and `f x \<in> U`
+    unfolding tendsto_def by fast
+  hence "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
+    using `a \<notin> U` by (fast elim: eventually_mono [rotated])
+  thus ?thesis
+    unfolding Limits.eventually_within Limits.eventually_at
+    by (rule ex_forward, cut_tac `f x \<noteq> a`, auto simp: dist_commute)
 qed
 
 lemma continuous_at_avoid:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* FIXME: generalize *)
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
   assumes "continuous (at x) f" and "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
   using assms continuous_within_avoid[of x UNIV f a] by simp
 
 lemma continuous_on_avoid:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* TODO: generalize *)
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
   assumes "continuous_on s f"  "x \<in> s"  "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y \<in> s. dist x y < e \<longrightarrow> f y \<noteq> a"
-using assms(1)[unfolded continuous_on_eq_continuous_within, THEN bspec[where x=x], OF assms(2)]  continuous_within_avoid[of x s f a]  assms(2,3) by auto
+using assms(1)[unfolded continuous_on_eq_continuous_within, THEN bspec[where x=x], OF assms(2)]  continuous_within_avoid[of x s f a]  assms(3) by auto
 
 lemma continuous_on_open_avoid:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::metric_space" (* TODO: generalize *)
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::t1_space"
   assumes "continuous_on s f"  "open s"  "x \<in> s"  "f x \<noteq> a"
   shows "\<exists>e>0. \<forall>y. dist x y < e \<longrightarrow> f y \<noteq> a"
-using assms(1)[unfolded continuous_on_eq_continuous_at[OF assms(2)], THEN bspec[where x=x], OF assms(3)]  continuous_at_avoid[of x f a]  assms(3,4) by auto
+using assms(1)[unfolded continuous_on_eq_continuous_at[OF assms(2)], THEN bspec[where x=x], OF assms(3)]  continuous_at_avoid[of x f a]  assms(4) by auto
 
 text {* Proving a function is constant by proving open-ness of level set. *}
 
@@ -4790,23 +4822,83 @@ lemma bilinear_continuous_on_compose:
 
 text {* Preservation of compactness and connectedness under continuous function. *}
 
-lemma compact_continuous_image:
-  fixes f :: "'a :: metric_space \<Rightarrow> 'b :: metric_space"
-  assumes "continuous_on s f"  "compact s"
-  shows "compact(f ` s)"
-proof-
-  { fix x assume x:"\<forall>n::nat. x n \<in> f ` s"
-    then obtain y where y:"\<forall>n. y n \<in> s \<and> x n = f (y n)" unfolding image_iff Bex_def using choice[of "\<lambda>n xa. xa \<in> s \<and> x n = f xa"] by auto
-    then obtain l r where "l\<in>s" and r:"subseq r" and lr:"((y \<circ> r) ---> l) sequentially" using assms(2)[unfolded compact_def, THEN spec[where x=y]] by auto
-    { fix e::real assume "e>0"
-      then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' l < d \<longrightarrow> dist (f x') (f l) < e"
-        using assms(1)[unfolded continuous_on_iff, THEN bspec[where x=l], OF `l\<in>s`] by auto
-      then obtain N::nat where N:"\<forall>n\<ge>N. dist ((y \<circ> r) n) l < d" using lr[unfolded LIMSEQ_def, THEN spec[where x=d]] by auto
-      { fix n::nat assume "n\<ge>N" hence "dist ((x \<circ> r) n) (f l) < e" using N[THEN spec[where x=n]] d[THEN bspec[where x="y (r n)"]] y[THEN spec[where x="r n"]] by auto  }
-      hence "\<exists>N. \<forall>n\<ge>N. dist ((x \<circ> r) n) (f l) < e" by auto  }
-    hence "\<exists>l\<in>f ` s. \<exists>r. subseq r \<and> ((x \<circ> r) ---> l) sequentially" unfolding LIMSEQ_def using r lr `l\<in>s` by auto  }
-  thus ?thesis unfolding compact_def by auto
+lemma compact_eq_openin_cover:
+  "compact S \<longleftrightarrow>
+    (\<forall>C. (\<forall>c\<in>C. openin (subtopology euclidean S) c) \<and> S \<subseteq> \<Union>C \<longrightarrow>
+      (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
+proof safe
+  fix C
+  assume "compact S" and "\<forall>c\<in>C. openin (subtopology euclidean S) c" and "S \<subseteq> \<Union>C"
+  hence "\<forall>c\<in>{T. open T \<and> S \<inter> T \<in> C}. open c" and "S \<subseteq> \<Union>{T. open T \<and> S \<inter> T \<in> C}"
+    unfolding openin_open by force+
+  with `compact S` obtain D where "D \<subseteq> {T. open T \<and> S \<inter> T \<in> C}" and "finite D" and "S \<subseteq> \<Union>D"
+    by (rule compactE)
+  hence "image (\<lambda>T. S \<inter> T) D \<subseteq> C \<and> finite (image (\<lambda>T. S \<inter> T) D) \<and> S \<subseteq> \<Union>(image (\<lambda>T. S \<inter> T) D)"
+    by auto
+  thus "\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D" ..
+next
+  assume 1: "\<forall>C. (\<forall>c\<in>C. openin (subtopology euclidean S) c) \<and> S \<subseteq> \<Union>C \<longrightarrow>
+        (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D)"
+  show "compact S"
+  proof (rule compactI)
+    fix C
+    let ?C = "image (\<lambda>T. S \<inter> T) C"
+    assume "\<forall>t\<in>C. open t" and "S \<subseteq> \<Union>C"
+    hence "(\<forall>c\<in>?C. openin (subtopology euclidean S) c) \<and> S \<subseteq> \<Union>?C"
+      unfolding openin_open by auto
+    with 1 obtain D where "D \<subseteq> ?C" and "finite D" and "S \<subseteq> \<Union>D"
+      by metis
+    let ?D = "inv_into C (\<lambda>T. S \<inter> T) ` D"
+    have "?D \<subseteq> C \<and> finite ?D \<and> S \<subseteq> \<Union>?D"
+    proof (intro conjI)
+      from `D \<subseteq> ?C` show "?D \<subseteq> C"
+        by (fast intro: inv_into_into)
+      from `finite D` show "finite ?D"
+        by (rule finite_imageI)
+      from `S \<subseteq> \<Union>D` show "S \<subseteq> \<Union>?D"
+        apply (rule subset_trans)
+        apply clarsimp
+        apply (frule subsetD [OF `D \<subseteq> ?C`, THEN f_inv_into_f])
+        apply (erule rev_bexI, fast)
+        done
+    qed
+    thus "\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D" ..
+  qed
 qed
+
+lemma compact_continuous_image:
+  assumes "continuous_on s f" and "compact s"
+  shows "compact (f ` s)"
+using assms (* FIXME: long unstructured proof *)
+unfolding continuous_on_open
+unfolding compact_eq_openin_cover
+apply clarify
+apply (drule_tac x="image (\<lambda>t. {x \<in> s. f x \<in> t}) C" in spec)
+apply (drule mp)
+apply (rule conjI)
+apply simp
+apply clarsimp
+apply (drule subsetD)
+apply (erule imageI)
+apply fast
+apply (erule thin_rl)
+apply clarify
+apply (rule_tac x="image (inv_into C (\<lambda>t. {x \<in> s. f x \<in> t})) D" in exI)
+apply (intro conjI)
+apply clarify
+apply (rule inv_into_into)
+apply (erule (1) subsetD)
+apply (erule finite_imageI)
+apply (clarsimp, rename_tac x)
+apply (drule (1) subsetD, clarify)
+apply (drule (1) subsetD, clarify)
+apply (rule rev_bexI)
+apply assumption
+apply (subgoal_tac "{x \<in> s. f x \<in> t} \<in> (\<lambda>t. {x \<in> s. f x \<in> t}) ` C")
+apply (drule f_inv_into_f)
+apply fast
+apply (erule imageI)
+done
 
 lemma connected_continuous_image:
   assumes "continuous_on s f"  "connected s"
@@ -4862,25 +4954,33 @@ qed
 text{* Continuity of inverse function on compact domain. *}
 
 lemma continuous_on_inv:
-  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
-    (* TODO: can this be generalized more? *)
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
   assumes "continuous_on s f"  "compact s"  "\<forall>x \<in> s. g (f x) = x"
   shows "continuous_on (f ` s) g"
-proof-
-  have *:"g ` f ` s = s" using assms(3) by (auto simp add: image_iff)
-  { fix t assume t:"closedin (subtopology euclidean (g ` f ` s)) t"
-    then obtain T where T: "closed T" "t = s \<inter> T" unfolding closedin_closed unfolding * by auto
-    have "continuous_on (s \<inter> T) f" using continuous_on_subset[OF assms(1), of "s \<inter> t"]
-      unfolding T(2) and Int_left_absorb by auto
-    moreover have "compact (s \<inter> T)"
-      using assms(2) unfolding compact_eq_bounded_closed
-      using bounded_subset[of s "s \<inter> T"] and T(1) by auto
-    ultimately have "closed (f ` t)" using T(1) unfolding T(2)
-      using compact_continuous_image [of "s \<inter> T" f] unfolding compact_eq_bounded_closed by auto
-    moreover have "{x \<in> f ` s. g x \<in> t} = f ` s \<inter> f ` t" using assms(3) unfolding T(2) by auto
-    ultimately have "closedin (subtopology euclidean (f ` s)) {x \<in> f ` s. g x \<in> t}"
-      unfolding closedin_closed by auto  }
-  thus ?thesis unfolding continuous_on_closed by auto
+unfolding continuous_on_topological
+proof (clarsimp simp add: assms(3))
+  fix x :: 'a and B :: "'a set"
+  assume "x \<in> s" and "open B" and "x \<in> B"
+  have 1: "\<forall>x\<in>s. f x \<in> f ` (s - B) \<longleftrightarrow> x \<in> s - B"
+    using assms(3) by (auto, metis)
+  have "continuous_on (s - B) f"
+    using `continuous_on s f` Diff_subset
+    by (rule continuous_on_subset)
+  moreover have "compact (s - B)"
+    using `open B` and `compact s`
+    unfolding Diff_eq by (intro compact_inter_closed closed_Compl)
+  ultimately have "compact (f ` (s - B))"
+    by (rule compact_continuous_image)
+  hence "closed (f ` (s - B))"
+    by (rule compact_imp_closed)
+  hence "open (- f ` (s - B))"
+    by (rule open_Compl)
+  moreover have "f x \<in> - f ` (s - B)"
+    using `x \<in> s` and `x \<in> B` by (simp add: 1)
+  moreover have "\<forall>y\<in>s. f y \<in> - f ` (s - B) \<longrightarrow> y \<in> B"
+    by (simp add: 1)
+  ultimately show "\<exists>A. open A \<and> f x \<in> A \<and> (\<forall>y\<in>s. f y \<in> A \<longrightarrow> y \<in> B)"
+    by fast
 qed
 
 text {* A uniformly convergent limit of continuous functions is continuous. *}
@@ -6043,7 +6143,7 @@ definition "homeomorphism s t f g \<equiv>
      (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
 definition
-  homeomorphic :: "'a::metric_space set \<Rightarrow> 'b::metric_space set \<Rightarrow> bool"
+  homeomorphic :: "'a::topological_space set \<Rightarrow> 'b::topological_space set \<Rightarrow> bool"
     (infixr "homeomorphic" 60) where
   homeomorphic_def: "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
@@ -6095,8 +6195,7 @@ apply auto apply(rule_tac x="f x" in bexI) by auto
 text {* Relatively weak hypotheses if a set is compact. *}
 
 lemma homeomorphism_compact:
-  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
-    (* class constraint due to continuous_on_inv *)
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
   assumes "compact s" "continuous_on s f"  "f ` s = t"  "inj_on f s"
   shows "\<exists>g. homeomorphism s t f g"
 proof-
@@ -6123,8 +6222,7 @@ proof-
 qed
 
 lemma homeomorphic_compact:
-  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
-    (* class constraint due to continuous_on_inv *)
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
   shows "compact s \<Longrightarrow> continuous_on s f \<Longrightarrow> (f ` s = t) \<Longrightarrow> inj_on f s
           \<Longrightarrow> s homeomorphic t"
   unfolding homeomorphic_def by (metis homeomorphism_compact)
@@ -6166,12 +6264,11 @@ proof-
 qed
 
 lemma homeomorphic_balls:
-  fixes a b ::"'a::real_normed_vector" (* FIXME: generalize to metric_space *)
+  fixes a b ::"'a::real_normed_vector"
   assumes "0 < d"  "0 < e"
   shows "(ball a d) homeomorphic  (ball b e)" (is ?th)
         "(cball a d) homeomorphic (cball b e)" (is ?cth)
 proof-
-  have *:"\<bar>e / d\<bar> > 0" "\<bar>d / e\<bar> >0" using assms using divide_pos_pos by auto
   show ?th unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
@@ -6181,7 +6278,6 @@ proof-
     unfolding continuous_on
     by (intro ballI tendsto_intros, simp)+
 next
-  have *:"\<bar>e / d\<bar> > 0" "\<bar>d / e\<bar> >0" using assms using divide_pos_pos by auto
   show ?cth unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
