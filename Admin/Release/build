@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+#
+# Author: Makarius
+#
+# build full Isabelle distribution from repository
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+PRG="$(basename "$0")"
+
+
+## diagnostics
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS] DIR [VERSION]"
+  echo
+  echo "  Options are:"
+  echo "    -j INT       maximum number of parallel jobs (default 1)"
+  echo "    -r RELEASE   proper release with name"
+  echo
+  echo "  Make Isabelle distribution DIR, using the local repository clone."
+  echo
+  echo "  VERSION identifies the snapshot, using usual Mercurial terminology;"
+  echo "  the default is RELEASE if given, otherwise \"tip\"."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+function check_number()
+{
+  [ -n "$1" -a -z "$(echo "$1" | tr -d '[0-9]')" ] || fail "Bad number: \"$1\""
+}
+
+
+## process command line
+
+# options
+
+JOBS=""
+RELEASE=""
+
+while getopts "j:r:" OPT
+do
+  case "$OPT" in
+    j)
+      check_number "$OPTARG"
+      JOBS="-j $OPTARG"
+      ;;
+    r)
+      RELEASE="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+BASE_DIR=""
+[ "$#" -gt 0 ] && { BASE_DIR="$1"; shift; }
+[ -z "$BASE_DIR" ] && usage
+
+VERSION=""
+[ "$#" -gt 0 ] && { VERSION="$1"; shift; }
+[ -z "$VERSION" ] && VERSION="$RELEASE"
+[ -z "$VERSION" ] && VERSION="tip"
+
+[ "$#" -gt 0 ] && usage
+
+
+## Isabelle settings
+
+ISABELLE_TOOL="$THIS/../../bin/isabelle"
+ISABELLE_PLATFORM_FAMILY="$("$ISABELLE_TOOL" getenv -b ISABELLE_PLATFORM_FAMILY)"
+
+
+## main
+
+if [ -z "$RELEASE" ]; then
+  DISTNAME="Isabelle_$(env LC_ALL=C date "+%d-%b-%Y")"
+  "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS
+else
+  DISTNAME="$RELEASE"
+  "$ISABELLE_TOOL" makedist -d "$BASE_DIR" $JOBS -r "$RELEASE"
+fi
+[ "$?" = 0 ] || exit "$?"
+
+DISTBASE="$BASE_DIR/dist-${DISTNAME}"
+
+"$ISABELLE_TOOL" makedist_bundles "$DISTBASE/${DISTNAME}.tar.gz"
+[ "$?" = 0 ] || exit "$?"
+
+"$THIS/build_library" $JOBS "$DISTBASE/${DISTNAME}_${ISABELLE_PLATFORM_FAMILY}.tar.gz"
+

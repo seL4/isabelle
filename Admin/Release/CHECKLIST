@@ -53,11 +53,7 @@ Checklist for official releases
 Packaging
 =========
 
-- hg up -r DISTNAME && isabelle makedist -r DISTNAME
-
-- isabelle makedist_bundles
-
-- ./makedist_library DISTNAME_linux.tar.gz
+- hg up -r DISTNAME && Admin/Release/build -r DISTNAME /home/isabelle/dist
 
 - Mac OS X: hdiutil create -srcfolder DIR DMG
 

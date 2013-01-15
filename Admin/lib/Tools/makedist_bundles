@@ -177,7 +177,7 @@ esac
 BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_${PLATFORM_FAMILY}.tar.gz"
 
 echo "packaging $(basename "$BUNDLE_ARCHIVE")"
-tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME"
+tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME" || exit 2
 
 
 # clean up

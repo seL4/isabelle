@@ -197,6 +197,7 @@ chmod -R g=o "$DISTNAME"
 
 echo "$DISTBASE/$DISTNAME.tar.gz"
 env COPYFILE_DISABLE=true tar -c -z -f "$DISTNAME.tar.gz" "$DISTNAME"
+[ "$?" = 0 ] || exit "$?"
 
 
 # cleanup dist
@@ -213,4 +214,3 @@ rm -f Isabelle && ln -sf "$DISTNAME" Isabelle
 
 rm -rf "${DISTNAME}-old"
 
-echo "DONE"
