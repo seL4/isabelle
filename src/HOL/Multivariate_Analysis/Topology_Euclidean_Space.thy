@@ -917,21 +917,8 @@ next
   ultimately show ?case by blast
 qed
 
-lemma islimpt_finite:
-  fixes S :: "'a::metric_space set"
-  assumes fS: "finite S" shows "\<not> a islimpt S"
-  unfolding islimpt_approachable
-  using finite_set_avoid[OF fS, of a] by (metis dist_commute  not_le)
-
 lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<or> x islimpt T"
-  apply (rule iffI)
-  defer
-  apply (metis Un_upper1 Un_upper2 islimpt_subset)
-  unfolding islimpt_def
-  apply (rule ccontr, clarsimp, rename_tac A B)
-  apply (drule_tac x="A \<inter> B" in spec)
-  apply (auto simp add: open_Int)
-  done
+  by (simp add: islimpt_iff_eventually eventually_conj_iff)
 
 lemma discrete_imp_closed:
   fixes S :: "'a::metric_space set"
@@ -2497,11 +2484,16 @@ next
     by (rule islimpt_subset) auto
 qed
 
+lemma islimpt_finite:
+  fixes x :: "'a::t1_space"
+  shows "finite s \<Longrightarrow> \<not> x islimpt s"
+by (induct set: finite, simp_all add: islimpt_insert)
+
 lemma islimpt_union_finite:
   fixes x :: "'a::t1_space"
   shows "finite s \<Longrightarrow> x islimpt (s \<union> t) \<longleftrightarrow> x islimpt t"
-by (induct set: finite, simp_all add: islimpt_insert)
- 
+by (simp add: islimpt_Un islimpt_finite)
+
 lemma sequence_unique_limpt:
   fixes f :: "nat \<Rightarrow> 'a::t2_space"
   assumes "(f ---> l) sequentially" and "l' islimpt (range f)"
