@@ -63,8 +63,6 @@ lemma [code, code del]:
 lemma [code, code del]:
   "Bex = Bex" ..
 
-term can_select
-
 lemma [code, code del]:
   "can_select = can_select" ..
 
@@ -525,6 +523,8 @@ qed
 section {* Code equations *}
 
 code_datatype Set Coset
+
+declare set.simps[code]
 
 lemma empty_Set [code]:
   "Set.empty = Set RBT.empty"
