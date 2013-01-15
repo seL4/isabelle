@@ -365,8 +365,11 @@ fun replace_dependencies_in_line _ (line as Definition_Step _) = line
    clsarity). *)
 fun is_only_type_information t = t aconv @{term True}
 
+fun s_maybe_not role = role <> Conjecture ? s_not
+
 fun is_same_inference _ (Definition_Step _) = false
-  | is_same_inference t (Inference_Step (_, _, t', _, _)) = t aconv t'
+  | is_same_inference (role, t) (Inference_Step (_, role', t', _, _)) =
+    s_maybe_not role t aconv s_maybe_not role' t'
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
@@ -375,18 +378,14 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
              lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
-    if is_fact fact_names ss then
+    if is_conjecture ss then
+      Inference_Step (name, role, t, rule, []) :: lines
+    else if is_fact fact_names ss then
       (* Facts are not proof lines. *)
       if is_only_type_information t then
         map (replace_dependencies_in_line (name, [])) lines
-      (* Is there a repetition? If so, replace later line by earlier one. *)
-      else case take_prefix (not o is_same_inference t) lines of
-        (_, []) => lines (* no repetition of proof line *)
-      | (pre, Inference_Step (name', _, _, _, _) :: post) =>
-        pre @ map (replace_dependencies_in_line (name', [name])) post
-      | _ => raise Fail "unexpected inference"
-    else if is_conjecture ss then
-      Inference_Step (name, role, t, rule, []) :: lines
+      else
+        lines
     else
       map (replace_dependencies_in_line (name, [])) lines
   | add_line _ (line as Inference_Step (name, role, t, rule, deps)) lines =
@@ -394,7 +393,7 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
     if is_only_type_information t then
       line :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
-    else case take_prefix (not o is_same_inference t) lines of
+    else case take_prefix (not o is_same_inference (role, t)) lines of
       (* FIXME: Doesn't this code risk conflating proofs involving different
          types? *)
       (_, []) => line :: lines
@@ -406,8 +405,8 @@ val waldmeister_conjecture_num = "1.0.0.0"
 
 val repair_waldmeister_endgame =
   let
-    fun do_tail (Inference_Step (name, role, t, rule, deps)) =
-        Inference_Step (name, role, s_not t, rule, deps)
+    fun do_tail (Inference_Step (name, _, t, rule, deps)) =
+        Inference_Step (name, Negated_Conjecture, s_not t, rule, deps)
       | do_tail line = line
     fun do_body [] = []
       | do_body ((line as Inference_Step ((num, _), _, _, _, _)) :: lines) =
@@ -652,8 +651,8 @@ fun isar_proof_text ctxt isar_proofs
           |> nasty_atp_proof pool
           |> map_term_names_in_atp_proof repair_name
           |> decode_lines ctxt sym_tab
-          |> rpair [] |-> fold_rev (add_line fact_names)
           |> repair_waldmeister_endgame
+          |> rpair [] |-> fold_rev (add_line fact_names)
           |> rpair [] |-> fold_rev add_nontrivial_line
           |> rpair (0, [])
           |-> fold_rev (add_desired_line fact_names frees)
@@ -685,7 +684,7 @@ fun isar_proof_text ctxt isar_proofs
                     | Inference_Step (name as (s, ss), role, t, rule, _) =>
                       Symtab.update_new (s, (rule,
                         t |> (if member (op = o apsnd fst) tainted s then
-                                (role <> Conjecture ? s_not)
+                                s_maybe_not role
                                 #> fold exists_of (map Var (Term.add_vars t []))
                               else
                                 I))))
@@ -726,9 +725,9 @@ fun isar_proof_text ctxt isar_proofs
             in
               if is_clause_skolemize_rule c then
                 let
-                  val xs =
-                    Term.add_frees t []
-                    |> filter_out (Variable.is_declared ctxt o fst)
+                  val is_fixed =
+                    Variable.is_declared ctxt orf can Name.dest_skolem
+                  val xs = Term.add_frees t [] |> filter_out (is_fixed o fst)
                 in Obtain ([], xs, l, t, by) end
               else
                 Prove (maybe_show outer c [], l, t, by)
