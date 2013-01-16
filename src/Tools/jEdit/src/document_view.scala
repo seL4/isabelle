@@ -70,7 +70,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def get_rendering(): Rendering = Rendering(model.snapshot(), PIDE.options.value)
 
   val rich_text_area =
-    new Rich_Text_Area(text_area.getView, text_area, get_rendering _,
+    new Rich_Text_Area(text_area.getView, text_area, get_rendering _, () => (),
       caret_visible = true, hovering = false)
 
 

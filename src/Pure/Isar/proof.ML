@@ -827,7 +827,8 @@ fun end_proof bot (prev_pos, (opt_text, immed)) =
     val (finish_text, terminal_pos, finished_pos) =
       (case opt_text of
         NONE => (Method.finish_text (NONE, immed), Position.none, prev_pos)
-      | SOME (text, (pos, end_pos)) => (Method.finish_text (SOME text, immed), pos, end_pos));
+      | SOME (text, (pos, end_pos)) =>
+          (Method.finish_text (SOME text, immed), Position.set_range (pos, end_pos), end_pos));
   in
     Seq.APPEND (fn state =>
       state

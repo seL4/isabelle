@@ -244,7 +244,7 @@ text {*
 
 lemma (in normed_vectorspace_with_fn_norm) fn_norm_least [intro?]:
   assumes "continuous V f norm"
-  assumes ineq: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
+  assumes ineq: "\<And>x. x \<in> V \<Longrightarrow> \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
 proof -
   interpret continuous V f norm by fact
@@ -265,7 +265,7 @@ proof -
       proof (rule mult_right_mono)
         have "0 < \<parallel>x\<parallel>" using x x_neq ..
         then show "0 \<le> inverse \<parallel>x\<parallel>" by simp
-        from ineq and x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" ..
+        from x show "\<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" by (rule ineq)
       qed
       also have "\<dots> = c"
       proof -

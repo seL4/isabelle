@@ -107,6 +107,7 @@ sig
   val finishedN: string val finished: T
   val failedN: string val failed: T
   val serialN: string
+  val exec_idN: string
   val initN: string
   val statusN: string
   val resultN: string
@@ -364,6 +365,7 @@ val (failedN, failed) = markup_elem "failed";
 (* messages *)
 
 val serialN = "serial";
+val exec_idN = "exec_id";
 
 val initN = "init";
 val statusN = "status";
