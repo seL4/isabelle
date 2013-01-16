@@ -137,24 +137,17 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                 (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
                    (see ~~/src/Pure/Isar/obtain.ML) *)
                 let
-                  (*val thesis = Term.Free ("thesis", HOLogic.boolT)
-                    |> HOLogic.mk_Trueprop
+                  val thesis = Term.Free ("thesis", HOLogic.boolT)
+                  val thesis_prop = thesis |> HOLogic.mk_Trueprop
                   val frees = map Term.Free xs
 
                   (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
-                  val inner_prop = fold_rev Logic.all frees (Logic.mk_implies (t, thesis))
+                  val inner_prop =
+                    fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))
 
                   (* !!thesis. (!!x1..xn. t ==> thesis) ==> thesis *)
-                  val prop = Logic.all thesis (Logic.mk_implies (inner_prop, thesis))*)
-
-                  val thesis = Term.Free ("thesis", HOLogic.boolT)
                   val prop =
-                    HOLogic.mk_imp (HOLogic.dest_Trueprop t, thesis)
-                    |> fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) xs
-                    |> rpair thesis
-                    |> HOLogic.mk_imp
-                    |> (fn t => HOLogic.mk_all ("thesis", HOLogic.boolT, t))
-                    |> HOLogic.mk_Trueprop
+                    Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
                 in
                   (prop, byline, true)
                 end
