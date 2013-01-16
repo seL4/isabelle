@@ -65,7 +65,7 @@ fun run int tr st =
   (case Toplevel.transition int tr st of
     SOME (st', NONE) => ([], SOME st')
   | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
-  | NONE => ([(serial (), ML_Compiler.exn_message Runtime.TERMINATE)], NONE));
+  | NONE => (ML_Compiler.exn_messages Runtime.TERMINATE, NONE));
 
 fun check_cmts tr cmts st =
   Toplevel.setmp_thread_position tr

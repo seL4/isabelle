@@ -26,6 +26,7 @@ sig
   val id_only: string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
+  val parse_id: T -> int option
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
   val def_properties_of: T -> Properties.T
@@ -122,6 +123,8 @@ fun id_only id = Pos ((0, 0, 0), [(Markup.idN, id)]);
 
 fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Markup.idN, id) props);
+
+fun parse_id pos = Option.map Markup.parse_int (get_id pos);
 
 
 (* markup properties *)

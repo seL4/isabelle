@@ -74,17 +74,16 @@ fun reset_tracing () =
   Synchronized.change command_tracing_messages (K Inttab.empty);
 
 fun update_tracing () =
-  (case Position.get_id (Position.thread_data ()) of
+  (case Position.parse_id (Position.thread_data ()) of
     NONE => ()
   | SOME id =>
       let
-        val i = Markup.parse_int id;
         val (n, ok) =
           Synchronized.change_result command_tracing_messages (fn tab =>
             let
-              val n = the_default 0 (Inttab.lookup tab i) + 1;
+              val n = the_default 0 (Inttab.lookup tab id) + 1;
               val ok = n <= ! tracing_messages;
-            in ((n, ok), Inttab.update (i, n) tab) end);
+            in ((n, ok), Inttab.update (id, n) tab) end);
       in
         if ok then ()
         else
@@ -97,7 +96,7 @@ fun update_tracing () =
               handle Fail _ => error "Stopped";
           in
             Synchronized.change command_tracing_messages
-              (Inttab.map_default (i, 0) (fn k => k - m))
+              (Inttab.map_default (id, 0) (fn k => k - m))
           end
       end);
 

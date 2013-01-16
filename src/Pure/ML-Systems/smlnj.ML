@@ -7,8 +7,6 @@ use "ML-Systems/proper_int.ML";
 
 exception Interrupt;
 fun reraise exn = raise exn;
-fun set_exn_serial (_: int) (exn: exn) = exn;
-fun get_exn_serial (exn: exn) : int option = NONE;
 
 use "ML-Systems/overloading_smlnj.ML";
 use "General/exn.ML";

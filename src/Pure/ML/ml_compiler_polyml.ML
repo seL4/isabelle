@@ -11,12 +11,8 @@ struct
 
 fun position_of (loc: PolyML.location) =
   let
-    val {file = text, startLine = line, startPosition = offset,
-      endLine = _, endPosition = end_offset} = loc;
-    val props =
-      (case YXML.parse text of
-        XML.Elem ((e, atts), _) => if e = Markup.positionN then atts else []
-      | XML.Text s => Position.file_name s);
+    val {startLine = line, startPosition = offset, endPosition = end_offset, ...} = loc;
+    val props = Exn_Properties.of_location loc;
   in
     Position.make {line = line, offset = offset, end_offset = end_offset, props = props}
   end;
@@ -71,10 +67,7 @@ fun eval verbose pos toks =
 
     (* input *)
 
-    val location_props =
-      op ^
-        (YXML.output_markup (Markup.position |> Markup.properties
-          (filter (member (op =) [Markup.idN, Markup.fileN] o #1) (Position.properties_of pos))));
+    val location_props = op ^ (YXML.output_markup (":", #props (Position.dest pos)));
 
     val input_buffer =
       Unsynchronized.ref (toks |> map

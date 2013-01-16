@@ -47,6 +47,17 @@ fun if_context NONE _ _ = []
 
 fun exn_messages exn_position e =
   let
+    fun identify exn =
+      let val exn' = Par_Exn.identify [] exn
+      in (Par_Exn.the_serial exn', exn') end;
+
+    fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn
+      | flatten context (Exn.EXCEPTIONS exns) = maps (flatten context) exns
+      | flatten context exn =
+          (case Par_Exn.dest exn of
+            SOME exns => maps (flatten context) exns
+          | NONE => [(context, identify exn)]);
+
     fun raised exn name msgs =
       let val pos = Position.here (exn_position exn) in
         (case msgs of
@@ -54,13 +65,6 @@ fun exn_messages exn_position e =
         | [msg] => "exception " ^ name ^ " raised" ^ pos ^ ": " ^ msg
         | _ => cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") :: msgs))
       end;
-
-    fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn
-      | flatten context (Exn.EXCEPTIONS exns) = maps (flatten context) exns
-      | flatten context exn =
-          (case Par_Exn.dest exn of
-            SOME exns => maps (flatten context) exns
-          | NONE => [(context, Par_Exn.serial exn)]);
 
     fun exn_msgs (context, (i, exn)) =
       (case exn of

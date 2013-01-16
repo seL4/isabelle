@@ -137,10 +137,7 @@ in
 fun fork_name name e =
   uninterruptible (fn _ => fn () =>
     let
-      val id =
-        (case Position.get_id (Position.thread_data ()) of
-          NONE => 0
-        | SOME id => Markup.parse_int id);
+      val id = the_default 0 (Position.parse_id (Position.thread_data ()));
       val _ = count_forked 1;
       val future =
         (singleton o Future.forks)

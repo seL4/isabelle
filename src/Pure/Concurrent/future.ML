@@ -439,7 +439,7 @@ fun assign_result group result raw_res =
   let
     val res =
       (case raw_res of
-        Exn.Exn exn => Exn.Exn (Par_Exn.set_serial exn)
+        Exn.Exn exn => Exn.Exn (Par_Exn.identify [] exn)
       | _ => raw_res);
     val _ = Single_Assignment.assign result res
       handle exn as Fail _ =>

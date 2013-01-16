@@ -11,22 +11,6 @@ fun reraise exn =
     NONE => raise exn
   | SOME location => PolyML.raiseWithLocation (exn, location));
 
-fun set_exn_serial i exn = (*requires uninterruptible*)
-  let
-    val (file, startLine, endLine) =
-      (case PolyML.exceptionLocation exn of
-        NONE => ("", 0, 0)
-      | SOME {file, startLine, endLine, startPosition, ...} => (file, startLine, endLine));
-    val location =
-      {file = file, startLine = startLine, endLine = endLine,
-        startPosition = ~ i, endPosition = 0};
-  in PolyML.raiseWithLocation (exn, location) handle e => e end;
-
-fun get_exn_serial exn =
-  (case Option.map #startPosition (PolyML.exceptionLocation exn) of
-    NONE => NONE
-  | SOME i => if i >= 0 then NONE else SOME (~ i));
-
 exception Interrupt = SML90.Interrupt;
 
 use "General/exn.ML";
