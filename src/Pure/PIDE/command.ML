@@ -64,15 +64,15 @@ local
 fun run int tr st =
   (case Toplevel.transition int tr st of
     SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages exn, NONE)
-  | NONE => (ML_Compiler.exn_messages Runtime.TERMINATE, NONE));
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
+  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
 
 fun check_cmts tr cmts st =
   Toplevel.setmp_thread_position tr
     (fn () => cmts
       |> maps (fn cmt =>
         (Thy_Output.check_text (Token.source_position_of cmt) st; [])
-          handle exn => ML_Compiler.exn_messages exn)) ();
+          handle exn => ML_Compiler.exn_messages_ids exn)) ();
 
 fun timing tr t =
   if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
@@ -106,7 +106,7 @@ fun run_command (tr, cmts) (st, malformed) =
       val errs = errs1 @ errs2;
       val _ = timing tr (Timing.result start);
       val _ = Toplevel.status tr Markup.finished;
-      val _ = List.app (Toplevel.error_msg tr) errs;
+      val _ = List.app (Future.error_msg (Toplevel.pos_of tr)) errs;
     in
       (case result of
         NONE =>

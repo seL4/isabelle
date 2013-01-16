@@ -7,6 +7,7 @@ Runtime compilation -- generic version.
 signature ML_COMPILER =
 sig
   val exn_position: exn -> Position.T
+  val exn_messages_ids: exn -> ((serial * string) * string option) list
   val exn_messages: exn -> (serial * string) list
   val exn_message: exn -> string
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
@@ -16,6 +17,7 @@ structure ML_Compiler: ML_COMPILER =
 struct
 
 fun exn_position _ = Position.none;
+val exn_messages_ids = Runtime.exn_messages_ids exn_position;
 val exn_messages = Runtime.exn_messages exn_position;
 val exn_message = Runtime.exn_message exn_position;
 

@@ -55,6 +55,8 @@ sig
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
+  val error_msg: Position.T -> (serial * string) * string option -> unit
+  val identify_result: Position.T -> 'a Exn.result -> 'a Exn.result
   type params = {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
   val default_params: params
   val forks: params -> (unit -> 'a) list -> 'a future list
@@ -433,14 +435,24 @@ fun cancel_group group =
 fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 
 
-(* future jobs *)
+(* results *)
 
-fun assign_result group result raw_res =
+fun error_msg pos ((serial, msg), exec_id) =
+  if is_none exec_id orelse exec_id = Position.get_id pos
+  then Output.error_msg' (serial, msg) else warning msg;
+
+fun identify_result pos res =
+  (case res of
+    Exn.Exn exn =>
+      let val exec_id =
+        (case Position.get_id pos of
+          NONE => []
+        | SOME id => [(Markup.exec_idN, id)])
+      in Exn.Exn (Par_Exn.identify exec_id exn) end
+  | _ => res);
+
+fun assign_result group result res =
   let
-    val res =
-      (case raw_res of
-        Exn.Exn exn => Exn.Exn (Par_Exn.identify [] exn)
-      | _ => raw_res);
     val _ = Single_Assignment.assign result res
       handle exn as Fail _ =>
         (case Single_Assignment.peek result of
@@ -452,6 +464,9 @@ fun assign_result group result raw_res =
           (SYNCHRONIZED "cancel" (fn () => Task_Queue.cancel_group group exn); false)
       | Exn.Res _ => true);
   in ok end;
+
+
+(* future jobs *)
 
 fun future_job group interrupts (e: unit -> 'a) =
   let
@@ -467,7 +482,7 @@ fun future_job group interrupts (e: unit -> 'a) =
                  then Multithreading.private_interrupts else Multithreading.no_interrupts)
                 (fn _ => Position.setmp_thread_data pos e ())) ()
           else Exn.interrupt_exn;
-      in assign_result group result res end;
+      in assign_result group result (identify_result pos res) end;
   in (result, job) end;
 
 
@@ -563,7 +578,7 @@ fun value_result (res: 'a Exn.result) =
     val task = Task_Queue.dummy_task;
     val group = Task_Queue.group_of_task task;
     val result = Single_Assignment.var "value" : 'a result;
-    val _ = assign_result group result res;
+    val _ = assign_result group result (identify_result (Position.thread_data ()) res);
   in Future {promised = false, task = task, result = result} end;
 
 fun value x = value_result (Exn.Res x);
@@ -619,7 +634,9 @@ fun fulfill_result (Future {promised, task, result}) res =
   else
     let
       val group = Task_Queue.group_of_task task;
-      fun job ok = assign_result group result (if ok then res else Exn.interrupt_exn);
+      val pos = Position.thread_data ();
+      fun job ok =
+        assign_result group result (if ok then identify_result pos res else Exn.interrupt_exn);
       val _ =
         Multithreading.with_attributes Multithreading.no_interrupts (fn _ =>
           let

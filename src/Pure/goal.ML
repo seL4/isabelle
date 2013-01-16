@@ -137,8 +137,10 @@ in
 fun fork_name name e =
   uninterruptible (fn _ => fn () =>
     let
-      val id = the_default 0 (Position.parse_id (Position.thread_data ()));
+      val pos = Position.thread_data ();
+      val id = the_default 0 (Position.parse_id pos);
       val _ = count_forked 1;
+
       val future =
         (singleton o Future.forks)
           {name = name, group = NONE, deps = [], pri = ~1, interrupts = false}
@@ -146,7 +148,9 @@ fun fork_name name e =
             let
               val task = the (Future.worker_task ());
               val _ = status task [Markup.running];
-              val result = Exn.capture (Future.interruptible_task e) ();
+              val result =
+                Exn.capture (Future.interruptible_task e) ()
+                |> Future.identify_result pos;
               val _ = status task [Markup.finished, Markup.joined];
               val _ =
                 (case result of
@@ -156,7 +160,7 @@ fun fork_name name e =
                     else
                       (status task [Markup.failed];
                        Output.report (Markup.markup_only Markup.bad);
-                       Output.error_msg (ML_Compiler.exn_message exn)));
+                       List.app (Future.error_msg pos) (ML_Compiler.exn_messages_ids exn)));
               val _ = count_forked ~1;
             in Exn.release result end);
       val _ = status (Future.task_of future) [Markup.forked];

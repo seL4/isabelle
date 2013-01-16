@@ -22,6 +22,7 @@ fun exn_position exn =
     NONE => Position.none
   | SOME loc => position_of loc);
 
+val exn_messages_ids = Runtime.exn_messages_ids exn_position;
 val exn_messages = Runtime.exn_messages exn_position;
 val exn_message = Runtime.exn_message exn_position;
 
