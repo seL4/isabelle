@@ -5427,24 +5427,54 @@ next
 qed
 
 lemma separate_compact_closed:
-  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
-    (* TODO: does this generalize to heine_borel? *)
+  fixes s t :: "'a::heine_borel set"
   assumes "compact s" and "closed t" and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
-proof-
-  have "0 \<notin> {x - y |x y. x \<in> s \<and> y \<in> t}" using assms(3) by auto
-  then obtain d where "d>0" and d:"\<forall>x\<in>{x - y |x y. x \<in> s \<and> y \<in> t}. d \<le> dist 0 x"
-    using separate_point_closed[OF compact_closed_differences[OF assms(1,2)], of 0] by auto
-  { fix x y assume "x\<in>s" "y\<in>t"
-    hence "x - y \<in> {x - y |x y. x \<in> s \<and> y \<in> t}" by auto
-    hence "d \<le> dist (x - y) 0" using d[THEN bspec[where x="x - y"]] using dist_commute
-      by (auto  simp add: dist_commute)
-    hence "d \<le> dist x y" unfolding dist_norm by auto  }
-  thus ?thesis using `d>0` by auto
+proof - (* FIXME: long proof *)
+  let ?T = "\<Union>x\<in>s. { ball x (d / 2) | d. 0 < d \<and> (\<forall>y\<in>t. d \<le> dist x y) }"
+  note `compact s`
+  moreover have "\<forall>t\<in>?T. open t" by auto
+  moreover have "s \<subseteq> \<Union>?T"
+    apply auto
+    apply (rule rev_bexI, assumption)
+    apply (subgoal_tac "x \<notin> t")
+    apply (drule separate_point_closed [OF `closed t`])
+    apply clarify
+    apply (rule_tac x="ball x (d / 2)" in exI)
+    apply simp
+    apply fast
+    apply (cut_tac assms(3))
+    apply auto
+    done
+  ultimately obtain U where "U \<subseteq> ?T" and "finite U" and "s \<subseteq> \<Union>U"
+    by (rule compactE)
+  from `finite U` and `U \<subseteq> ?T` have "\<exists>d>0. \<forall>x\<in>\<Union>U. \<forall>y\<in>t. d \<le> dist x y"
+    apply (induct set: finite)
+    apply simp
+    apply (rule exI)
+    apply (rule zero_less_one)
+    apply clarsimp
+    apply (rename_tac y e)
+    apply (rule_tac x="min d (e / 2)" in exI)
+    apply simp
+    apply (subst ball_Un)
+    apply (rule conjI)
+    apply (intro ballI, rename_tac z)
+    apply (rule min_max.le_infI2)
+    apply (simp only: mem_ball)
+    apply (drule (1) bspec)
+    apply (cut_tac x=y and y=x and z=z in dist_triangle, arith)
+    apply simp
+    apply (intro ballI)
+    apply (rule min_max.le_infI1)
+    apply simp
+    done
+  with `s \<subseteq> \<Union>U` show ?thesis
+    by fast
 qed
 
 lemma separate_closed_compact:
-  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s t :: "'a::heine_borel set"
   assumes "closed s" and "compact t" and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
 proof-
