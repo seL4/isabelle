@@ -5868,165 +5868,378 @@ proof induct case (insert a k) let ?P = " (\<lambda>x. if fs x ` k = {} then fs 
       defer apply(rule insert(3)[OF False]) using insert(5) by auto
   qed qed auto
 
+
 subsection {* Dominated convergence. *}
 
-lemma dominated_convergence: fixes f::"nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
+lemma dominated_convergence:
+  fixes f :: "nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
   assumes "\<And>k. (f k) integrable_on s" "h integrable_on s"
-  "\<And>k. \<forall>x \<in> s. norm(f k x) \<le> (h x)"
-  "\<forall>x \<in> s. ((\<lambda>k. f k x) ---> g x) sequentially"
-  shows "g integrable_on s" "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
-proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<and>
+    "\<And>k. \<forall>x \<in> s. norm(f k x) \<le> (h x)"
+    "\<forall>x \<in> s. ((\<lambda>k. f k x) ---> g x) sequentially"
+  shows "g integrable_on s"
+    "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
+proof -
+  have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<and>
     ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}})) --->
     integral s (\<lambda>x. Inf {f j x |j. m \<le> j}))sequentially"
-  proof(rule monotone_convergence_decreasing,safe) fix m::nat
+  proof (rule monotone_convergence_decreasing, safe)
+    fix m :: nat
     show "bounded {integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}}) |k. True}"
-      unfolding bounded_iff apply(rule_tac x="integral s h" in exI)
-    proof safe fix k::nat
+      unfolding bounded_iff
+      apply (rule_tac x="integral s h" in exI)
+    proof safe
+      fix k :: nat
       show "norm (integral s (\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}})) \<le> integral s h"
-        apply(rule integral_norm_bound_integral) unfolding simple_image
-        apply(rule absolutely_integrable_onD) apply(rule absolutely_integrable_inf_real)
-        prefer 5 unfolding real_norm_def apply(rule) apply(rule Inf_abs_ge)
-        prefer 5 apply rule apply(rule_tac g=h in absolutely_integrable_integrable_bound_real)
-        using assms unfolding real_norm_def by auto
-    qed fix k::nat show "(\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}}) integrable_on s"
-      unfolding simple_image apply(rule absolutely_integrable_onD)
-      apply(rule absolutely_integrable_inf_real) prefer 3 
-      using absolutely_integrable_integrable_bound_real[OF assms(3,1,2)] by auto
-    fix x assume x:"x\<in>s" show "Inf {f j x |j. j \<in> {m..m + Suc k}}
-      \<le> Inf {f j x |j. j \<in> {m..m + k}}" apply(rule Inf_ge) unfolding setge_def
-      defer apply rule apply(subst Inf_finite_le_iff) prefer 3
-      apply(rule_tac x=xa in bexI) by auto
-    let ?S = "{f j x| j.  m \<le> j}" def i \<equiv> "Inf ?S"
+        apply (rule integral_norm_bound_integral)
+        unfolding simple_image
+        apply (rule absolutely_integrable_onD)
+        apply (rule absolutely_integrable_inf_real)
+        prefer 5
+        unfolding real_norm_def
+        apply rule
+        apply (rule Inf_abs_ge)
+        prefer 5
+        apply rule
+        apply (rule_tac g = h in absolutely_integrable_integrable_bound_real)
+        using assms
+        unfolding real_norm_def
+        apply auto
+        done
+    qed
+    fix k :: nat
+    show "(\<lambda>x. Inf {f j x |j. j \<in> {m..m + k}}) integrable_on s"
+      unfolding simple_image
+      apply (rule absolutely_integrable_onD)
+      apply (rule absolutely_integrable_inf_real)
+      prefer 3
+      using absolutely_integrable_integrable_bound_real[OF assms(3,1,2)]
+      apply auto
+      done
+    fix x
+    assume x: "x \<in> s"
+    show "Inf {f j x |j. j \<in> {m..m + Suc k}} \<le> Inf {f j x |j. j \<in> {m..m + k}}"
+      apply (rule Inf_ge)
+      unfolding setge_def
+      defer
+      apply rule
+      apply (subst Inf_finite_le_iff)
+      prefer 3
+      apply (rule_tac x=xa in bexI)
+      apply auto
+      done
+    let ?S = "{f j x| j.  m \<le> j}"
+    def i \<equiv> "Inf ?S"
     show "((\<lambda>k. Inf {f j x |j. j \<in> {m..m + k}}) ---> i) sequentially"
-    proof (rule LIMSEQ_I) case goal1 note r=this have i:"isGlb UNIV ?S i" unfolding i_def apply(rule Inf)
-        defer apply(rule_tac x="- h x - 1" in exI) unfolding setge_def
-      proof safe case goal1 thus ?case using assms(3)[rule_format,OF x, of j] by auto
+    proof (rule LIMSEQ_I)
+      case goal1
+      note r = this
+      have i: "isGlb UNIV ?S i"
+        unfolding i_def
+        apply (rule Inf)
+        defer
+        apply (rule_tac x="- h x - 1" in exI)
+        unfolding setge_def
+      proof safe
+        case goal1
+        thus ?case using assms(3)[rule_format,OF x, of j] by auto
       qed auto
 
       have "\<exists>y\<in>?S. \<not> y \<ge> i + r"
-      proof(rule ccontr) case goal1 hence "i \<ge> i + r" apply-
-          apply(rule isGlb_le_isLb[OF i]) apply(rule isLbI) unfolding setge_def by fastforce+
+      proof(rule ccontr)
+        case goal1
+        hence "i \<ge> i + r"
+          apply -
+          apply (rule isGlb_le_isLb[OF i])
+          apply (rule isLbI)
+          unfolding setge_def
+          apply fastforce+
+          done
         thus False using r by auto
-      qed then guess y .. note y=this[unfolded not_le]
+      qed
+      then guess y .. note y=this[unfolded not_le]
       from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
       
-      show ?case apply(rule_tac x=N in exI)
-      proof safe case goal1
+      show ?case
+        apply (rule_tac x=N in exI)
+      proof safe
+        case goal1
         have *:"\<And>y ix. y < i + r \<longrightarrow> i \<le> ix \<longrightarrow> ix \<le> y \<longrightarrow> abs(ix - i) < r" by arith
-        show ?case unfolding real_norm_def apply(rule *[rule_format,OF y(2)])
-          unfolding i_def apply(rule real_le_inf_subset) prefer 3
-          apply(rule,rule isGlbD1[OF i]) prefer 3 apply(subst Inf_finite_le_iff)
-          prefer 3 apply(rule_tac x=y in bexI) using N goal1 by auto
-      qed qed qed note dec1 = conjunctD2[OF this]
+        show ?case
+          unfolding real_norm_def
+            apply (rule *[rule_format,OF y(2)])
+            unfolding i_def
+            apply (rule real_le_inf_subset)
+            prefer 3
+            apply (rule,rule isGlbD1[OF i])
+            prefer 3
+            apply (subst Inf_finite_le_iff)
+            prefer 3
+            apply (rule_tac x=y in bexI)
+            using N goal1
+            apply auto
+            done
+      qed
+    qed
+  qed
+  note dec1 = conjunctD2[OF this]
 
   have "\<And>m. (\<lambda>x. Sup {f j x |j. m \<le> j}) integrable_on s \<and>
     ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}})) --->
     integral s (\<lambda>x. Sup {f j x |j. m \<le> j})) sequentially"
-  proof(rule monotone_convergence_increasing,safe) fix m::nat
+  proof (rule monotone_convergence_increasing,safe)
+    fix m :: nat
     show "bounded {integral s (\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}}) |k. True}"
-      unfolding bounded_iff apply(rule_tac x="integral s h" in exI)
-    proof safe fix k::nat
+      unfolding bounded_iff
+      apply (rule_tac x="integral s h" in exI)
+    proof safe
+      fix k :: nat
       show "norm (integral s (\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}})) \<le> integral s h"
-        apply(rule integral_norm_bound_integral) unfolding simple_image
-        apply(rule absolutely_integrable_onD) apply(rule absolutely_integrable_sup_real)
-        prefer 5 unfolding real_norm_def apply(rule) apply(rule Sup_abs_le)
-        prefer 5 apply rule apply(rule_tac g=h in absolutely_integrable_integrable_bound_real)
-        using assms unfolding real_norm_def by auto
-    qed fix k::nat show "(\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}}) integrable_on s"
-      unfolding simple_image apply(rule absolutely_integrable_onD)
-      apply(rule absolutely_integrable_sup_real) prefer 3 
-      using absolutely_integrable_integrable_bound_real[OF assms(3,1,2)] by auto
-    fix x assume x:"x\<in>s" show "Sup {f j x |j. j \<in> {m..m + Suc k}}
-      \<ge> Sup {f j x |j. j \<in> {m..m + k}}" apply(rule Sup_le) unfolding setle_def
-      defer apply rule apply(subst Sup_finite_ge_iff) prefer 3 apply(rule_tac x=y in bexI) by auto
-    let ?S = "{f j x| j.  m \<le> j}" def i \<equiv> "Sup ?S"
+        apply (rule integral_norm_bound_integral) unfolding simple_image
+        apply (rule absolutely_integrable_onD)
+        apply(rule absolutely_integrable_sup_real)
+        prefer 5 unfolding real_norm_def
+        apply rule
+        apply (rule Sup_abs_le)
+        prefer 5
+        apply rule
+        apply (rule_tac g=h in absolutely_integrable_integrable_bound_real)
+        using assms
+        unfolding real_norm_def
+        apply auto
+        done
+    qed
+    fix k :: nat
+    show "(\<lambda>x. Sup {f j x |j. j \<in> {m..m + k}}) integrable_on s"
+      unfolding simple_image
+      apply (rule absolutely_integrable_onD)
+      apply (rule absolutely_integrable_sup_real)
+      prefer 3
+      using absolutely_integrable_integrable_bound_real[OF assms(3,1,2)]
+      apply auto
+      done
+    fix x
+    assume x: "x\<in>s"
+    show "Sup {f j x |j. j \<in> {m..m + Suc k}} \<ge> Sup {f j x |j. j \<in> {m..m + k}}"
+      apply (rule Sup_le)
+      unfolding setle_def
+      defer
+      apply rule
+      apply (subst Sup_finite_ge_iff)
+      prefer 3
+      apply (rule_tac x=y in bexI)
+      apply auto
+      done
+    let ?S = "{f j x| j.  m \<le> j}"
+    def i \<equiv> "Sup ?S"
     show "((\<lambda>k. Sup {f j x |j. j \<in> {m..m + k}}) ---> i) sequentially"
-    proof (rule LIMSEQ_I) case goal1 note r=this have i:"isLub UNIV ?S i" unfolding i_def apply(rule Sup)
-        defer apply(rule_tac x="h x" in exI) unfolding setle_def
-      proof safe case goal1 thus ?case using assms(3)[rule_format,OF x, of j] by auto
+    proof (rule LIMSEQ_I)
+      case goal1 note r=this
+      have i: "isLub UNIV ?S i"
+        unfolding i_def
+        apply (rule Sup)
+        defer
+        apply (rule_tac x="h x" in exI)
+        unfolding setle_def
+      proof safe
+        case goal1
+        thus ?case using assms(3)[rule_format,OF x, of j] by auto
       qed auto
       
       have "\<exists>y\<in>?S. \<not> y \<le> i - r"
-      proof(rule ccontr) case goal1 hence "i \<le> i - r" apply-
-          apply(rule isLub_le_isUb[OF i]) apply(rule isUbI) unfolding setle_def by fastforce+
+      proof (rule ccontr)
+        case goal1
+        hence "i \<le> i - r"
+          apply -
+          apply (rule isLub_le_isUb[OF i])
+          apply (rule isUbI)
+          unfolding setle_def
+          apply fastforce+
+          done
         thus False using r by auto
-      qed then guess y .. note y=this[unfolded not_le]
+      qed
+      then guess y .. note y=this[unfolded not_le]
       from this(1)[unfolded mem_Collect_eq] guess N .. note N=conjunctD2[OF this]
       
-      show ?case apply(rule_tac x=N in exI)
-      proof safe case goal1
-        have *:"\<And>y ix. i - r < y \<longrightarrow> ix \<le> i \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - i) < r" by arith
-        show ?case unfolding real_norm_def apply(rule *[rule_format,OF y(2)])
-          unfolding i_def apply(rule real_ge_sup_subset) prefer 3
-          apply(rule,rule isLubD1[OF i]) prefer 3 apply(subst Sup_finite_ge_iff)
-          prefer 3 apply(rule_tac x=y in bexI) using N goal1 by auto
-      qed qed qed note inc1 = conjunctD2[OF this]
+      show ?case
+        apply (rule_tac x=N in exI)
+      proof safe
+        case goal1
+        have *: "\<And>y ix. i - r < y \<longrightarrow> ix \<le> i \<longrightarrow> y \<le> ix \<longrightarrow> abs(ix - i) < r"
+          by arith
+        show ?case
+          unfolding real_norm_def
+          apply (rule *[rule_format,OF y(2)])
+          unfolding i_def
+          apply (rule real_ge_sup_subset)
+          prefer 3
+          apply (rule, rule isLubD1[OF i])
+          prefer 3
+          apply (subst Sup_finite_ge_iff)
+          prefer 3
+          apply (rule_tac x = y in bexI)
+          using N goal1
+          apply auto
+          done
+      qed
+    qed
+  qed
+  note inc1 = conjunctD2[OF this]
 
-  have "g integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. k \<le> j})) ---> integral s g) sequentially"
-  apply(rule monotone_convergence_increasing,safe) apply fact 
-  proof- show "bounded {integral s (\<lambda>x. Inf {f j x |j. k \<le> j}) |k. True}"
+  have "g integrable_on s \<and>
+    ((\<lambda>k. integral s (\<lambda>x. Inf {f j x |j. k \<le> j})) ---> integral s g) sequentially"
+    apply (rule monotone_convergence_increasing,safe)
+    apply fact 
+  proof -
+    show "bounded {integral s (\<lambda>x. Inf {f j x |j. k \<le> j}) |k. True}"
       unfolding bounded_iff apply(rule_tac x="integral s h" in exI)
-    proof safe fix k::nat
+    proof safe
+      fix k :: nat
       show "norm (integral s (\<lambda>x. Inf {f j x |j. k \<le> j})) \<le> integral s h"
-        apply(rule integral_norm_bound_integral) apply fact+
-        unfolding real_norm_def apply(rule) apply(rule Inf_abs_ge) using assms(3) by auto
-    qed fix k::nat and x assume x:"x\<in>s"
+        apply (rule integral_norm_bound_integral)
+        apply fact+
+        unfolding real_norm_def
+        apply rule
+        apply (rule Inf_abs_ge)
+        using assms(3)
+        apply auto
+        done
+    qed
+    fix k :: nat and x
+    assume x: "x \<in> s"
 
-    have *:"\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
-    show "Inf {f j x |j. k \<le> j} \<le> Inf {f j x |j. Suc k \<le> j}" apply-
-      apply(rule real_le_inf_subset) prefer 3 unfolding setge_def
-      apply(rule_tac x="- h x" in exI) apply safe apply(rule *)
-      using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
+    have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
+    show "Inf {f j x |j. k \<le> j} \<le> Inf {f j x |j. Suc k \<le> j}"
+      apply -
+      apply (rule real_le_inf_subset)
+      prefer 3
+      unfolding setge_def
+      apply (rule_tac x="- h x" in exI)
+      apply safe
+      apply (rule *)
+      using assms(3)[rule_format,OF x]
+      unfolding real_norm_def abs_le_iff
+      apply auto
+      done
     show "((\<lambda>k. Inf {f j x |j. k \<le> j}) ---> g x) sequentially"
-    proof (rule LIMSEQ_I) case goal1 hence "0<r/2" by auto
-      from assms(4)[THEN bspec, THEN LIMSEQ_D, OF x this] guess N .. note N=this
-      show ?case apply(rule_tac x=N in exI,safe) unfolding real_norm_def
-        apply(rule le_less_trans[of _ "r/2"]) apply(rule Inf_asclose) apply safe
-        defer apply(rule less_imp_le) using N goal1 by auto
-    qed qed note inc2 = conjunctD2[OF this]
+    proof (rule LIMSEQ_I)
+      case goal1
+      hence "0<r/2" by auto
+      from assms(4)[THEN bspec, THEN LIMSEQ_D, OF x this] guess N .. note N = this
+      show ?case
+        apply (rule_tac x=N in exI,safe)
+        unfolding real_norm_def
+        apply (rule le_less_trans[of _ "r/2"])
+        apply (rule Inf_asclose)
+        apply safe
+        defer
+        apply (rule less_imp_le)
+        using N goal1
+        apply auto
+        done
+    qed
+  qed
+  note inc2 = conjunctD2[OF this]
 
-  have "g integrable_on s \<and> ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. k \<le> j})) ---> integral s g) sequentially"
-  apply(rule monotone_convergence_decreasing,safe) apply fact 
-  proof- show "bounded {integral s (\<lambda>x. Sup {f j x |j. k \<le> j}) |k. True}"
-      unfolding bounded_iff apply(rule_tac x="integral s h" in exI)
-    proof safe fix k::nat
+  have "g integrable_on s \<and>
+    ((\<lambda>k. integral s (\<lambda>x. Sup {f j x |j. k \<le> j})) ---> integral s g) sequentially"
+    apply (rule monotone_convergence_decreasing,safe)
+    apply fact
+  proof -
+    show "bounded {integral s (\<lambda>x. Sup {f j x |j. k \<le> j}) |k. True}"
+      unfolding bounded_iff
+      apply (rule_tac x="integral s h" in exI)
+    proof safe
+      fix k :: nat
       show "norm (integral s (\<lambda>x. Sup {f j x |j. k \<le> j})) \<le> integral s h"
-        apply(rule integral_norm_bound_integral) apply fact+
-        unfolding real_norm_def apply(rule) apply(rule Sup_abs_le) using assms(3) by auto
-    qed fix k::nat and x assume x:"x\<in>s"
+        apply (rule integral_norm_bound_integral)
+        apply fact+
+        unfolding real_norm_def
+        apply rule
+        apply (rule Sup_abs_le)
+        using assms(3)
+        apply auto
+        done
+    qed
+    fix k :: nat and x
+    assume x: "x \<in> s"
 
-    show "Sup {f j x |j. k \<le> j} \<ge> Sup {f j x |j. Suc k \<le> j}" apply-
-      apply(rule real_ge_sup_subset) prefer 3 unfolding setle_def
-      apply(rule_tac x="h x" in exI) apply safe
-      using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
+    show "Sup {f j x |j. k \<le> j} \<ge> Sup {f j x |j. Suc k \<le> j}"
+      apply -
+      apply (rule real_ge_sup_subset)
+      prefer 3
+      unfolding setle_def
+      apply (rule_tac x="h x" in exI)
+      apply safe
+      using assms(3)[rule_format,OF x]
+      unfolding real_norm_def abs_le_iff
+      apply auto
+      done
     show "((\<lambda>k. Sup {f j x |j. k \<le> j}) ---> g x) sequentially"
-    proof (rule LIMSEQ_I) case goal1 hence "0<r/2" by auto
+    proof (rule LIMSEQ_I)
+      case goal1
+      hence "0<r/2" by auto
       from assms(4)[THEN bspec, THEN LIMSEQ_D, OF x this] guess N .. note N=this
-      show ?case apply(rule_tac x=N in exI,safe) unfolding real_norm_def
-        apply(rule le_less_trans[of _ "r/2"]) apply(rule Sup_asclose) apply safe
-        defer apply(rule less_imp_le) using N goal1 by auto
-    qed qed note dec2 = conjunctD2[OF this]
+      show ?case
+        apply (rule_tac x=N in exI,safe)
+        unfolding real_norm_def
+        apply (rule le_less_trans[of _ "r/2"])
+        apply (rule Sup_asclose)
+        apply safe
+        defer
+        apply (rule less_imp_le)
+        using N goal1
+        apply auto
+        done
+    qed
+  qed
+  note dec2 = conjunctD2[OF this]
 
   show "g integrable_on s" by fact
   show "((\<lambda>k. integral s (f k)) ---> integral s g) sequentially"
-  proof (rule LIMSEQ_I) case goal1
+  proof (rule LIMSEQ_I)
+    case goal1
     from LIMSEQ_D [OF inc2(2) goal1] guess N1 .. note N1=this[unfolded real_norm_def]
     from LIMSEQ_D [OF dec2(2) goal1] guess N2 .. note N2=this[unfolded real_norm_def]
-    show ?case apply(rule_tac x="N1+N2" in exI,safe)
-    proof- fix n assume n:"n \<ge> N1 + N2"
-      have *:"\<And>i0 i i1 g. \<bar>i0 - g\<bar> < r \<longrightarrow> \<bar>i1 - g\<bar> < r \<longrightarrow> i0 \<le> i \<longrightarrow> i \<le> i1 \<longrightarrow> \<bar>i - g\<bar> < r" by arith
-      show "norm (integral s (f n) - integral s g) < r" unfolding real_norm_def
-        apply(rule *[rule_format,OF N1[rule_format] N2[rule_format], of n n])
-      proof- show "integral s (\<lambda>x. Inf {f j x |j. n \<le> j}) \<le> integral s (f n)"
-        proof(rule integral_le[OF dec1(1) assms(1)],safe) 
-          fix x assume x:"x \<in> s" have *:"\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
-          show "Inf {f j x |j. n \<le> j} \<le> f n x" apply(rule Inf_lower[where z="- h x"]) defer
-            apply(rule *) using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
-        qed show "integral s (f n) \<le> integral s (\<lambda>x. Sup {f j x |j. n \<le> j})"
-        proof(rule integral_le[OF assms(1) inc1(1)],safe) 
-          fix x assume x:"x \<in> s"
-          show "f n x \<le> Sup {f j x |j. n \<le> j}" apply(rule Sup_upper[where z="h x"]) defer
-            using assms(3)[rule_format,OF x] unfolding real_norm_def abs_le_iff by auto
-        qed qed(insert n,auto) qed qed qed
+    show ?case
+      apply (rule_tac x="N1+N2" in exI, safe)
+    proof -
+      fix n
+      assume n: "n \<ge> N1 + N2"
+      have *: "\<And>i0 i i1 g. \<bar>i0 - g\<bar> < r \<longrightarrow> \<bar>i1 - g\<bar> < r \<longrightarrow> i0 \<le> i \<longrightarrow> i \<le> i1 \<longrightarrow> \<bar>i - g\<bar> < r"
+        by arith
+      show "norm (integral s (f n) - integral s g) < r"
+        unfolding real_norm_def
+        apply (rule *[rule_format,OF N1[rule_format] N2[rule_format], of n n])
+      proof -
+        show "integral s (\<lambda>x. Inf {f j x |j. n \<le> j}) \<le> integral s (f n)"
+        proof (rule integral_le[OF dec1(1) assms(1)], safe)
+          fix x
+          assume x: "x \<in> s" 
+          have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
+          show "Inf {f j x |j. n \<le> j} \<le> f n x"
+            apply (rule Inf_lower[where z="- h x"])
+            defer
+            apply (rule *)
+            using assms(3)[rule_format,OF x]
+            unfolding real_norm_def abs_le_iff
+            apply auto
+            done
+        qed
+        show "integral s (f n) \<le> integral s (\<lambda>x. Sup {f j x |j. n \<le> j})"
+        proof (rule integral_le[OF assms(1) inc1(1)], safe)
+          fix x
+          assume x: "x \<in> s"
+          show "f n x \<le> Sup {f j x |j. n \<le> j}"
+            apply (rule Sup_upper[where z="h x"])
+            defer
+            using assms(3)[rule_format,OF x]
+            unfolding real_norm_def abs_le_iff
+            apply auto
+            done
+        qed
+      qed (insert n, auto)
+    qed
+  qed
+qed
 
 end
