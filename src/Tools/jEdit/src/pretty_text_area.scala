@@ -55,6 +55,7 @@ object Pretty_Text_Area
 class Pretty_Text_Area(
   view: View,
   background: Option[Color] = None,
+  close_action: () => Unit = () => (),
   propagate_keys: Boolean = false) extends JEditEmbeddedTextArea
 {
   text_area =>
@@ -71,7 +72,7 @@ class Pretty_Text_Area(
   private var future_rendering: Option[java.util.concurrent.Future[Unit]] = None
 
   private val rich_text_area =
-    new Rich_Text_Area(view, text_area, () => current_rendering,
+    new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
       caret_visible = false, hovering = true)
 
   def refresh()

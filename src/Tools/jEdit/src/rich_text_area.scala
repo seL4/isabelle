@@ -27,6 +27,7 @@ class Rich_Text_Area(
   view: View,
   text_area: TextArea,
   get_rendering: () => Rendering,
+  close_action: () => Unit,
   caret_visible: Boolean,
   hovering: Boolean)
 {
@@ -158,7 +159,9 @@ class Rich_Text_Area(
           case None =>
         }
         active_area.text_info match {
-          case Some((text, Text.Info(_, markup))) => Active.action(view, text, markup)
+          case Some((text, Text.Info(_, markup))) =>
+            Active.action(view, text, markup)
+            close_action()
           case None =>
         }
       }
