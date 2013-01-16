@@ -8,6 +8,7 @@ evaluations.  Interrupt counts as neutral element.
 signature PAR_EXN =
 sig
   val serial: exn -> serial * exn
+  val set_serial: exn -> exn
   val make: exn list -> exn
   val dest: exn -> exn list option
   val is_interrupted: 'a Exn.result list -> bool
@@ -29,6 +30,8 @@ fun serial exn =
         val exn' = uninterruptible (fn _ => set_exn_serial i) exn;
       in (i, exn') end);
 
+fun set_serial exn = #2 (serial exn);
+
 val the_serial = the o get_exn_serial;
 
 val exn_ord = rev_order o int_ord o pairself the_serial;
@@ -41,7 +44,7 @@ exception Par_Exn of exn list;
     no occurrences of Par_Exn or Exn.Interrupt*)
 
 fun par_exns (Par_Exn exns) = exns
-  | par_exns exn = if Exn.is_interrupt exn then [] else [#2 (serial exn)];
+  | par_exns exn = if Exn.is_interrupt exn then [] else [set_serial exn];
 
 fun make exns =
   (case Ord_List.unions exn_ord (map par_exns exns) of

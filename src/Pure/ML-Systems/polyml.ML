@@ -11,7 +11,7 @@ fun reraise exn =
     NONE => raise exn
   | SOME location => PolyML.raiseWithLocation (exn, location));
 
-fun set_exn_serial i exn =
+fun set_exn_serial i exn = (*requires uninterruptible*)
   let
     val (file, startLine, endLine) =
       (case PolyML.exceptionLocation exn of
