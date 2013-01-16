@@ -204,8 +204,6 @@ sig
   exception RANDOM
   val random: unit -> real
   val random_range: int -> int -> int
-  val one_of: 'a list -> 'a
-  val frequency: (int * 'a) list -> 'a
 
   (*misc*)
   val divide_and_conquer: ('a -> 'a list * ('b list -> 'b)) -> 'a -> 'b
@@ -1020,15 +1018,6 @@ end;
 fun random_range l h =
   if h < l orelse l < 0 then raise RANDOM
   else l + Real.floor (rmod (random ()) (real (h - l + 1)));
-
-fun one_of xs = nth xs (random_range 0 (length xs - 1));
-
-fun frequency xs =
-  let
-    val sum = foldl op + (0, map fst xs);
-    fun pick n ((k: int, x) :: xs) =
-      if n <= k then x else pick (n - k) xs
-  in pick (random_range 1 sum) xs end;
 
 
 
