@@ -72,7 +72,7 @@ else
 
 ML {*
 if do_it then
-  generate_mepo_suggestions @{context} params thys max_suggestions
+  generate_mepo_suggestions @{context} params (1, NONE) thys max_suggestions
       (prefix ^ "mepo_suggestions")
 else
   ()

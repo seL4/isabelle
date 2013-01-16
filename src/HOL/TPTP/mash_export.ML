@@ -23,7 +23,8 @@ sig
   val generate_prover_commands :
     Proof.context -> params -> int * int option -> theory list -> string -> unit
   val generate_mepo_suggestions :
-    Proof.context -> params -> theory list -> int -> string -> unit
+    Proof.context -> params -> int * int option -> theory list -> int -> string
+    -> unit
   val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
 
@@ -165,8 +166,8 @@ fun generate_isar_commands ctxt prover =
 fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)
 
-fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
-                              max_suggs file_name =
+fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
+                              range thys max_suggs file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
@@ -174,24 +175,27 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...}) thys
     val (new_facts, old_facts) = facts |> List.partition (has_thys thys o snd)
     val name_tabs = build_name_tables nickname_of_thm facts
     fun do_fact (j, ((_, th), old_facts)) =
-      let
-        val name = nickname_of_thm th
-        val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
-        val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
-        val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-        val isar_deps = isar_dependencies_of name_tabs th
-      in
-        if is_bad_query ctxt ho_atp th isar_deps then
-          ""
-        else
-          let
-            val suggs =
-              old_facts
-              |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
-                     max_suggs NONE hyp_ts concl_t
-              |> map (nickname_of_thm o snd)
-          in encode_str name ^ ": " ^ encode_strs suggs ^ "\n" end
-      end
+      if in_range range j then
+        let
+          val name = nickname_of_thm th
+          val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
+          val goal = goal_of_thm (Proof_Context.theory_of ctxt) th
+          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
+          val isar_deps = isar_dependencies_of name_tabs th
+        in
+          if is_bad_query ctxt ho_atp th isar_deps then
+            ""
+          else
+            let
+              val suggs =
+                old_facts
+                |> Sledgehammer_MePo.mepo_suggested_facts ctxt params prover
+                       max_suggs NONE hyp_ts concl_t
+                |> map (nickname_of_thm o snd)
+            in encode_str name ^ ": " ^ encode_strs suggs ^ "\n" end
+        end
+      else
+        ""
     fun accum x (yss as ys :: _) = (x :: ys) :: yss
     val old_factss = tl (fold accum new_facts [old_facts])
     val lines = Par_List.map do_fact (tag_list 1 (new_facts ~~ rev old_factss))
