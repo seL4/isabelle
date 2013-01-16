@@ -438,8 +438,9 @@ fun cancel x = cancel_group (Task_Queue.group_of_task (task_of x));
 (* results *)
 
 fun error_msg pos ((serial, msg), exec_id) =
-  if is_none exec_id orelse exec_id = Position.get_id pos
-  then Output.error_msg' (serial, msg) else warning msg;
+  Position.setmp_thread_data pos (fn () =>
+    if is_none exec_id orelse exec_id = Position.get_id pos
+    then Output.error_msg' (serial, msg) else warning msg) ();
 
 fun identify_result pos res =
   (case res of
