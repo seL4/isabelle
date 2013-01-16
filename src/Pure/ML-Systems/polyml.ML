@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
     Author:     Makarius
 
-Compatibility wrapper for Poly/ML 5.3.0 or later.
+Compatibility wrapper for Poly/ML.
 *)
 
 (* exceptions *)

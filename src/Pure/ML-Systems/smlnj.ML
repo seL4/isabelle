@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/smlnj.ML
 
-Compatibility file for Standard ML of New Jersey 110 or later.
+Compatibility file for Standard ML of New Jersey.
 *)
 
 use "ML-Systems/proper_int.ML";
