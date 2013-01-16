@@ -469,15 +469,13 @@ proof -
       \end{center}
     *}
 
-    have "\<forall>x \<in> E. \<bar>g x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
+    from g_cont _ ge_zero
+    show "\<parallel>g\<parallel>\<hyphen>E \<le> \<parallel>f\<parallel>\<hyphen>F"
     proof
       fix x assume "x \<in> E"
       with b show "\<bar>g x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>F * \<parallel>x\<parallel>"
         by (simp only: p_def)
     qed
-    from g_cont this ge_zero
-    show "\<parallel>g\<parallel>\<hyphen>E \<le> \<parallel>f\<parallel>\<hyphen>F"
-      by (rule fn_norm_least [of g, folded B_def fn_norm_def])
 
     txt {* The other direction is achieved by a similar argument. *}
 
@@ -485,9 +483,9 @@ proof -
     proof (rule normed_vectorspace_with_fn_norm.fn_norm_least
         [OF normed_vectorspace_with_fn_norm.intro,
          OF F_norm, folded B_def fn_norm_def])
-      show "\<forall>x \<in> F. \<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
-      proof
-        fix x assume x: "x \<in> F"
+      fix x assume x: "x \<in> F"
+      show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
+      proof -
         from a x have "g x = f x" ..
         then have "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
         also from g_cont
@@ -495,8 +493,9 @@ proof -
         proof (rule fn_norm_le_cong [OF _ linearformE, folded B_def fn_norm_def])
           from FE x show "x \<in> E" ..
         qed
-        finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
+        finally show ?thesis .
       qed
+    next
       show "0 \<le> \<parallel>g\<parallel>\<hyphen>E"
         using g_cont
         by (rule fn_norm_ge_zero [of g, folded B_def fn_norm_def])
