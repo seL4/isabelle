@@ -2152,7 +2152,9 @@ lemma bounded_realI: assumes "\<forall>x\<in>s. abs (x::real) \<le> B" shows "bo
   unfolding bounded_def dist_real_def apply(rule_tac x=0 in exI)
   using assms by auto
 
-lemma bounded_empty[simp]: "bounded {}" by (simp add: bounded_def)
+lemma bounded_empty [simp]: "bounded {}"
+  by (simp add: bounded_def)
+
 lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
   by (metis bounded_def subset_eq)
 
@@ -2188,17 +2190,6 @@ lemma bounded_cball[simp,intro]: "bounded (cball x e)"
 lemma bounded_ball[simp,intro]: "bounded(ball x e)"
   by (metis ball_subset_cball bounded_cball bounded_subset)
 
-lemma finite_imp_bounded[intro]:
-  fixes S :: "'a::metric_space set" assumes "finite S" shows "bounded S"
-proof-
-  { fix a and F :: "'a set" assume as:"bounded F"
-    then obtain x e where "\<forall>y\<in>F. dist x y \<le> e" unfolding bounded_def by auto
-    hence "\<forall>y\<in>(insert a F). dist x y \<le> max e (dist x a)" by auto
-    hence "bounded (insert a F)" unfolding bounded_def by (intro exI)
-  }
-  thus ?thesis using finite_induct[of S bounded]  using bounded_empty assms by auto
-qed
-
 lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S \<and> bounded T"
   apply (auto simp add: bounded_def)
   apply (rename_tac x y r s)
@@ -2214,6 +2205,16 @@ lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S 
 lemma bounded_Union[intro]: "finite F \<Longrightarrow> (\<forall>S\<in>F. bounded S) \<Longrightarrow> bounded(\<Union>F)"
   by (induct rule: finite_induct[of F], auto)
 
+lemma bounded_insert [simp]: "bounded (insert x S) \<longleftrightarrow> bounded S"
+proof -
+  have "\<forall>y\<in>{x}. dist x y \<le> 0" by simp
+  hence "bounded {x}" unfolding bounded_def by fast
+  thus ?thesis by (metis insert_is_Un bounded_Un)
+qed
+
+lemma finite_imp_bounded [intro]: "finite S \<Longrightarrow> bounded S"
+  by (induct set: finite, simp_all)
+
 lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x <= b)"
   apply (simp add: bounded_iff)
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x <= y \<longrightarrow> x <= 1 + abs y)")
@@ -2225,9 +2226,6 @@ lemma bounded_Int[intro]: "bounded S \<or> bounded T \<Longrightarrow> bounded (
 lemma bounded_diff[intro]: "bounded S ==> bounded (S - T)"
 apply (metis Diff_subset bounded_subset)
 done
-
-lemma bounded_insert[intro]:"bounded(insert x S) \<longleftrightarrow> bounded S"
-  by (metis Diff_cancel Un_empty_right Un_insert_right bounded_Un bounded_subset finite.emptyI finite_imp_bounded infinite_remove subset_insertI)
 
 lemma not_bounded_UNIV[simp, intro]:
   "\<not> bounded (UNIV :: 'a::{real_normed_vector, perfect_space} set)"
@@ -5063,14 +5061,14 @@ proof-
 qed
 
 lemma continuous_attains_sup:
-  fixes f :: "'a::metric_space \<Rightarrow> real"
+  fixes f :: "'a::topological_space \<Rightarrow> real"
   shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f
         ==> (\<exists>x \<in> s. \<forall>y \<in> s.  f y \<le> f x)"
   using compact_attains_sup[of "f ` s"]
   using compact_continuous_image[of s f] by auto
 
 lemma continuous_attains_inf:
-  fixes f :: "'a::metric_space \<Rightarrow> real"
+  fixes f :: "'a::topological_space \<Rightarrow> real"
   shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f
         \<Longrightarrow> (\<exists>x \<in> s. \<forall>y \<in> s. f x \<le> f y)"
   using compact_attains_inf[of "f ` s"]
