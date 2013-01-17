@@ -111,8 +111,9 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
           val isar_deps = isar_dependencies_of name_tabs th
           val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+          val find_suggs = find_suggested_facts facts
           fun get_facts [] compute = compute facts
-            | get_facts suggs _ = find_suggested_facts suggs facts
+            | get_facts suggs _ = find_suggs suggs
           val mepo_facts =
             get_facts mepo_suggs (fn _ =>
                 mepo_suggested_facts ctxt params prover slack_max_facts NONE
@@ -133,7 +134,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                            (mess_of mash_facts))
           val mesh_isar_facts = mesh_of mesh_isar_suggs mash_isar_facts
           val mesh_prover_facts = mesh_of mesh_prover_suggs mash_prover_facts
-          val isar_facts = find_suggested_facts isar_deps facts
+          val isar_facts = find_suggs isar_deps
           (* adapted from "mirabelle_sledgehammer.ML" *)
           fun set_file_name method (SOME dir) =
               let

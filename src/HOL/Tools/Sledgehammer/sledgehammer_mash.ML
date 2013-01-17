@@ -46,7 +46,7 @@ sig
 
   val mash_unlearn : Proof.context -> unit
   val nickname_of_thm : thm -> string
-  val find_suggested_facts : string list -> ('b * thm) list -> ('b * thm) list
+  val find_suggested_facts : ('b * thm) list -> string list -> ('b * thm) list
   val mesh_facts :
     ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
     -> 'a list
@@ -433,11 +433,11 @@ fun nickname_of_thm th =
   else
     elided_backquote_thm 200 th
 
-fun find_suggested_facts suggs facts =
+fun find_suggested_facts facts =
   let
     fun add_fact (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
     val tab = fold add_fact facts Symtab.empty
-  in map_filter (Symtab.lookup tab) suggs end
+  in map_filter (Symtab.lookup tab) end
 
 fun scaled_avg [] = 0
   | scaled_avg xs =
@@ -774,7 +774,7 @@ val max_proximity_facts = 100
 fun find_mash_suggestions _ [] _ _ raw_unknown = ([], raw_unknown)
   | find_mash_suggestions max_facts suggs facts chained raw_unknown =
     let
-      val raw_mash = find_suggested_facts suggs facts
+      val raw_mash = find_suggested_facts facts suggs
       val unknown_chained =
         inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
       val proximity =
