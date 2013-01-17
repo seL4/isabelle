@@ -19,12 +19,14 @@ sig
     Proof.context -> params -> int * int option -> theory list -> bool -> string
     -> unit
   val generate_isar_commands :
-    Proof.context -> string -> theory list -> string -> unit
-  val generate_prover_commands :
-    Proof.context -> params -> int * int option -> theory list -> string -> unit
-  val generate_mepo_suggestions :
-    Proof.context -> params -> int * int option -> theory list -> int -> string
+    Proof.context -> string -> (int * int option) * int -> theory list -> string
     -> unit
+  val generate_prover_commands :
+    Proof.context -> params -> (int * int option) * int -> theory list -> string
+    -> unit
+  val generate_mepo_suggestions :
+    Proof.context -> params -> (int * int option) * int -> theory list -> int
+    -> string -> unit
   val generate_mesh_suggestions : int -> string -> string -> string -> unit
 end;
 
@@ -118,12 +120,13 @@ fun generate_isar_dependencies ctxt =
 fun generate_prover_dependencies ctxt params =
   generate_isar_or_prover_dependencies ctxt (SOME params)
 
-fun is_bad_query ctxt ho_atp th isar_deps =
+fun is_bad_query ctxt ho_atp step j th isar_deps =
+  j mod step <> 0 orelse
   Thm.legacy_get_kind th = "" orelse
   null (these (trim_dependencies th isar_deps)) orelse
   is_blacklisted_or_something ctxt ho_atp (Thm.get_name_hint th)
 
-fun generate_isar_or_prover_commands ctxt prover params_opt range thys
+fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
                                      file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
@@ -145,7 +148,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
             encode_str name ^ ": " ^ encode_strs prevs ^ "; " ^
             encode_features (sort_wrt fst feats)
           val query =
-            if is_bad_query ctxt ho_atp th isar_deps then ""
+            if is_bad_query ctxt ho_atp step j th isar_deps then ""
             else "? " ^ core ^ "\n"
           val update =
             "! " ^ core ^ "; " ^
@@ -161,13 +164,13 @@ fun generate_isar_or_prover_commands ctxt prover params_opt range thys
   in File.write_list path lines end
 
 fun generate_isar_commands ctxt prover =
-  generate_isar_or_prover_commands ctxt prover NONE (1, NONE)
+  generate_isar_or_prover_commands ctxt prover NONE
 
 fun generate_prover_commands ctxt (params as {provers = prover :: _, ...}) =
   generate_isar_or_prover_commands ctxt prover (SOME params)
 
 fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
-                              range thys max_suggs file_name =
+                              (range, step) thys max_suggs file_name =
   let
     val ho_atp = Sledgehammer_Provers.is_ho_atp ctxt prover
     val path = file_name |> Path.explode
@@ -183,7 +186,7 @@ fun generate_mepo_suggestions ctxt (params as {provers = prover :: _, ...})
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
           val isar_deps = isar_dependencies_of name_tabs th
         in
-          if is_bad_query ctxt ho_atp th isar_deps then
+          if is_bad_query ctxt ho_atp step j th isar_deps then
             ""
           else
             let
