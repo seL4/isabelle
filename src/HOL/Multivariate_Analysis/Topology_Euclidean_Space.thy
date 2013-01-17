@@ -2992,6 +2992,122 @@ proof -
   thus ?thesis unfolding seq_compact_def by auto
 qed
 
+subsubsection{* Total boundedness *}
+
+lemma cauchy_def:
+  "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
+unfolding Cauchy_def by blast
+
+fun helper_1::"('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> 'a" where
+  "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
+declare helper_1.simps[simp del]
+
+lemma seq_compact_imp_totally_bounded:
+  assumes "seq_compact s"
+  shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))"
+proof(rule, rule, rule ccontr)
+  fix e::real assume "e>0" and assm:"\<not> (\<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k)"
+  def x \<equiv> "helper_1 s e"
+  { fix n
+    have "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)"
+    proof(induct_tac rule:nat_less_induct)
+      fix n  def Q \<equiv> "(\<lambda>y. y \<in> s \<and> (\<forall>m<n. \<not> dist (x m) y < e))"
+      assume as:"\<forall>m<n. x m \<in> s \<and> (\<forall>ma<m. \<not> dist (x ma) (x m) < e)"
+      have "\<not> s \<subseteq> (\<Union>x\<in>x ` {0..<n}. ball x e)" using assm apply simp apply(erule_tac x="x ` {0 ..< n}" in allE) using as by auto
+      then obtain z where z:"z\<in>s" "z \<notin> (\<Union>x\<in>x ` {0..<n}. ball x e)" unfolding subset_eq by auto
+      have "Q (x n)" unfolding x_def and helper_1.simps[of s e n]
+        apply(rule someI2[where a=z]) unfolding x_def[symmetric] and Q_def using z by auto
+      thus "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)" unfolding Q_def by auto
+    qed }
+  hence "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)" by blast+
+  then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded seq_compact_def, THEN spec[where x=x]] by auto
+  from this(3) have "Cauchy (x \<circ> r)" using LIMSEQ_imp_Cauchy by auto
+  then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e" unfolding cauchy_def using `e>0` by auto
+  show False
+    using N[THEN spec[where x=N], THEN spec[where x="N+1"]]
+    using r[unfolded subseq_def, THEN spec[where x=N], THEN spec[where x="N+1"]]
+    using x[THEN spec[where x="r (N+1)"], THEN spec[where x="r (N)"]] by auto
+qed
+
+subsubsection{* Heine-Borel theorem *}
+
+text {* Following Burkill \& Burkill vol. 2. *}
+
+lemma heine_borel_lemma: fixes s::"'a::metric_space set"
+  assumes "seq_compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
+  shows "\<exists>e>0. \<forall>x \<in> s. \<exists>b \<in> t. ball x e \<subseteq> b"
+proof(rule ccontr)
+  assume "\<not> (\<exists>e>0. \<forall>x\<in>s. \<exists>b\<in>t. ball x e \<subseteq> b)"
+  hence cont:"\<forall>e>0. \<exists>x\<in>s. \<forall>xa\<in>t. \<not> (ball x e \<subseteq> xa)" by auto
+  { fix n::nat
+    have "1 / real (n + 1) > 0" by auto
+    hence "\<exists>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> (ball x (inverse (real (n+1))) \<subseteq> xa))" using cont unfolding Bex_def by auto }
+  hence "\<forall>n::nat. \<exists>x. x \<in> s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)" by auto
+  then obtain f where f:"\<forall>n::nat. f n \<in> s \<and> (\<forall>xa\<in>t. \<not> ball (f n) (inverse (real (n + 1))) \<subseteq> xa)"
+    using choice[of "\<lambda>n::nat. \<lambda>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)"] by auto
+
+  then obtain l r where l:"l\<in>s" and r:"subseq r" and lr:"((f \<circ> r) ---> l) sequentially"
+    using assms(1)[unfolded seq_compact_def, THEN spec[where x=f]] by auto
+
+  obtain b where "l\<in>b" "b\<in>t" using assms(2) and l by auto
+  then obtain e where "e>0" and e:"\<forall>z. dist z l < e \<longrightarrow> z\<in>b"
+    using assms(3)[THEN bspec[where x=b]] unfolding open_dist by auto
+
+  then obtain N1 where N1:"\<forall>n\<ge>N1. dist ((f \<circ> r) n) l < e / 2"
+    using lr[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] by auto
+
+  obtain N2::nat where N2:"N2>0" "inverse (real N2) < e /2" using real_arch_inv[of "e/2"] and `e>0` by auto
+  have N2':"inverse (real (r (N1 + N2) +1 )) < e/2"
+    apply(rule order_less_trans) apply(rule less_imp_inverse_less) using N2
+    using seq_suble[OF r, of "N1 + N2"] by auto
+
+  def x \<equiv> "(f (r (N1 + N2)))"
+  have x:"\<not> ball x (inverse (real (r (N1 + N2) + 1))) \<subseteq> b" unfolding x_def
+    using f[THEN spec[where x="r (N1 + N2)"]] using `b\<in>t` by auto
+  have "\<exists>y\<in>ball x (inverse (real (r (N1 + N2) + 1))). y\<notin>b" apply(rule ccontr) using x by auto
+  then obtain y where y:"y \<in> ball x (inverse (real (r (N1 + N2) + 1)))" "y \<notin> b" by auto
+
+  have "dist x l < e/2" using N1 unfolding x_def o_def by auto
+  hence "dist y l < e" using y N2' using dist_triangle[of y l x]by (auto simp add:dist_commute)
+
+  thus False using e and `y\<notin>b` by auto
+qed
+
+lemma seq_compact_imp_heine_borel:
+  fixes s :: "'a :: metric_space set"
+  shows "seq_compact s \<Longrightarrow> compact s"
+  unfolding compact_eq_heine_borel
+proof clarify
+  fix f assume "seq_compact s" " \<forall>t\<in>f. open t" "s \<subseteq> \<Union>f"
+  then obtain e::real where "e>0" and "\<forall>x\<in>s. \<exists>b\<in>f. ball x e \<subseteq> b" using heine_borel_lemma[of s f] by auto
+  hence "\<forall>x\<in>s. \<exists>b. b\<in>f \<and> ball x e \<subseteq> b" by auto
+  hence "\<exists>bb. \<forall>x\<in>s. bb x \<in>f \<and> ball x e \<subseteq> bb x" using bchoice[of s "\<lambda>x b. b\<in>f \<and> ball x e \<subseteq> b"] by auto
+  then obtain  bb where bb:"\<forall>x\<in>s. (bb x) \<in> f \<and> ball x e \<subseteq> (bb x)" by blast
+
+  from `seq_compact s` have  "\<exists> k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k"
+    using seq_compact_imp_totally_bounded[of s] `e>0` by auto
+  then obtain k where k:"finite k" "k \<subseteq> s" "s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" by auto
+
+  have "finite (bb ` k)" using k(1) by auto
+  moreover
+  { fix x assume "x\<in>s"
+    hence "x\<in>\<Union>(\<lambda>x. ball x e) ` k" using k(3)  unfolding subset_eq by auto
+    hence "\<exists>X\<in>bb ` k. x \<in> X" using bb k(2) by blast
+    hence "x \<in> \<Union>(bb ` k)" using  Union_iff[of x "bb ` k"] by auto
+  }
+  ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f'" using bb k(2) by (rule_tac x="bb ` k" in exI) auto
+qed
+
+lemma compact_eq_seq_compact_metric:
+  "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
+  using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
+
+lemma compact_def:
+  "compact (S :: 'a::metric_space set) \<longleftrightarrow>
+   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
+       (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially)) "
+  unfolding compact_eq_seq_compact_metric seq_compact_def by auto
+
 text {*
   A metric space (or topological vector space) is said to have the
   Heine-Borel property if every closed and bounded subset is compact.
@@ -3214,10 +3330,6 @@ qed
 
 subsubsection{* Completeness *}
 
-lemma cauchy_def:
-  "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
-unfolding Cauchy_def by blast
-
 definition
   complete :: "'a::metric_space set \<Rightarrow> bool" where
   "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f
@@ -3344,108 +3456,6 @@ lemma convergent_imp_bounded:
   shows "(s ---> l) sequentially \<Longrightarrow> bounded (range s)"
   by (intro cauchy_imp_bounded LIMSEQ_imp_Cauchy)
 
-subsubsection{* Total boundedness *}
-
-fun helper_1::"('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> 'a" where
-  "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
-declare helper_1.simps[simp del]
-
-lemma seq_compact_imp_totally_bounded:
-  assumes "seq_compact s"
-  shows "\<forall>e>0. \<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))"
-proof(rule, rule, rule ccontr)
-  fix e::real assume "e>0" and assm:"\<not> (\<exists>k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k)"
-  def x \<equiv> "helper_1 s e"
-  { fix n
-    have "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)"
-    proof(induct_tac rule:nat_less_induct)
-      fix n  def Q \<equiv> "(\<lambda>y. y \<in> s \<and> (\<forall>m<n. \<not> dist (x m) y < e))"
-      assume as:"\<forall>m<n. x m \<in> s \<and> (\<forall>ma<m. \<not> dist (x ma) (x m) < e)"
-      have "\<not> s \<subseteq> (\<Union>x\<in>x ` {0..<n}. ball x e)" using assm apply simp apply(erule_tac x="x ` {0 ..< n}" in allE) using as by auto
-      then obtain z where z:"z\<in>s" "z \<notin> (\<Union>x\<in>x ` {0..<n}. ball x e)" unfolding subset_eq by auto
-      have "Q (x n)" unfolding x_def and helper_1.simps[of s e n]
-        apply(rule someI2[where a=z]) unfolding x_def[symmetric] and Q_def using z by auto
-      thus "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)" unfolding Q_def by auto
-    qed }
-  hence "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)" by blast+
-  then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded seq_compact_def, THEN spec[where x=x]] by auto
-  from this(3) have "Cauchy (x \<circ> r)" using LIMSEQ_imp_Cauchy by auto
-  then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e" unfolding cauchy_def using `e>0` by auto
-  show False
-    using N[THEN spec[where x=N], THEN spec[where x="N+1"]]
-    using r[unfolded subseq_def, THEN spec[where x=N], THEN spec[where x="N+1"]]
-    using x[THEN spec[where x="r (N+1)"], THEN spec[where x="r (N)"]] by auto
-qed
-
-subsubsection{* Heine-Borel theorem *}
-
-text {* Following Burkill \& Burkill vol. 2. *}
-
-lemma heine_borel_lemma: fixes s::"'a::metric_space set"
-  assumes "seq_compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
-  shows "\<exists>e>0. \<forall>x \<in> s. \<exists>b \<in> t. ball x e \<subseteq> b"
-proof(rule ccontr)
-  assume "\<not> (\<exists>e>0. \<forall>x\<in>s. \<exists>b\<in>t. ball x e \<subseteq> b)"
-  hence cont:"\<forall>e>0. \<exists>x\<in>s. \<forall>xa\<in>t. \<not> (ball x e \<subseteq> xa)" by auto
-  { fix n::nat
-    have "1 / real (n + 1) > 0" by auto
-    hence "\<exists>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> (ball x (inverse (real (n+1))) \<subseteq> xa))" using cont unfolding Bex_def by auto }
-  hence "\<forall>n::nat. \<exists>x. x \<in> s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)" by auto
-  then obtain f where f:"\<forall>n::nat. f n \<in> s \<and> (\<forall>xa\<in>t. \<not> ball (f n) (inverse (real (n + 1))) \<subseteq> xa)"
-    using choice[of "\<lambda>n::nat. \<lambda>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)"] by auto
-
-  then obtain l r where l:"l\<in>s" and r:"subseq r" and lr:"((f \<circ> r) ---> l) sequentially"
-    using assms(1)[unfolded seq_compact_def, THEN spec[where x=f]] by auto
-
-  obtain b where "l\<in>b" "b\<in>t" using assms(2) and l by auto
-  then obtain e where "e>0" and e:"\<forall>z. dist z l < e \<longrightarrow> z\<in>b"
-    using assms(3)[THEN bspec[where x=b]] unfolding open_dist by auto
-
-  then obtain N1 where N1:"\<forall>n\<ge>N1. dist ((f \<circ> r) n) l < e / 2"
-    using lr[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] by auto
-
-  obtain N2::nat where N2:"N2>0" "inverse (real N2) < e /2" using real_arch_inv[of "e/2"] and `e>0` by auto
-  have N2':"inverse (real (r (N1 + N2) +1 )) < e/2"
-    apply(rule order_less_trans) apply(rule less_imp_inverse_less) using N2
-    using seq_suble[OF r, of "N1 + N2"] by auto
-
-  def x \<equiv> "(f (r (N1 + N2)))"
-  have x:"\<not> ball x (inverse (real (r (N1 + N2) + 1))) \<subseteq> b" unfolding x_def
-    using f[THEN spec[where x="r (N1 + N2)"]] using `b\<in>t` by auto
-  have "\<exists>y\<in>ball x (inverse (real (r (N1 + N2) + 1))). y\<notin>b" apply(rule ccontr) using x by auto
-  then obtain y where y:"y \<in> ball x (inverse (real (r (N1 + N2) + 1)))" "y \<notin> b" by auto
-
-  have "dist x l < e/2" using N1 unfolding x_def o_def by auto
-  hence "dist y l < e" using y N2' using dist_triangle[of y l x]by (auto simp add:dist_commute)
-
-  thus False using e and `y\<notin>b` by auto
-qed
-
-lemma seq_compact_imp_heine_borel:
-  fixes s :: "'a :: metric_space set"
-  shows "seq_compact s \<Longrightarrow> compact s"
-  unfolding compact_eq_heine_borel
-proof clarify
-  fix f assume "seq_compact s" " \<forall>t\<in>f. open t" "s \<subseteq> \<Union>f"
-  then obtain e::real where "e>0" and "\<forall>x\<in>s. \<exists>b\<in>f. ball x e \<subseteq> b" using heine_borel_lemma[of s f] by auto
-  hence "\<forall>x\<in>s. \<exists>b. b\<in>f \<and> ball x e \<subseteq> b" by auto
-  hence "\<exists>bb. \<forall>x\<in>s. bb x \<in>f \<and> ball x e \<subseteq> bb x" using bchoice[of s "\<lambda>x b. b\<in>f \<and> ball x e \<subseteq> b"] by auto
-  then obtain  bb where bb:"\<forall>x\<in>s. (bb x) \<in> f \<and> ball x e \<subseteq> (bb x)" by blast
-
-  from `seq_compact s` have  "\<exists> k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k"
-    using seq_compact_imp_totally_bounded[of s] `e>0` by auto
-  then obtain k where k:"finite k" "k \<subseteq> s" "s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" by auto
-
-  have "finite (bb ` k)" using k(1) by auto
-  moreover
-  { fix x assume "x\<in>s"
-    hence "x\<in>\<Union>(\<lambda>x. ball x e) ` k" using k(3)  unfolding subset_eq by auto
-    hence "\<exists>X\<in>bb ` k. x \<in> X" using bb k(2) by blast
-    hence "x \<in> \<Union>(bb ` k)" using  Union_iff[of x "bb ` k"] by auto
-  }
-  ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f'" using bb k(2) by (rule_tac x="bb ` k" in exI) auto
-qed
-
 subsubsection {* Complete the chain of compactness variants *}
 
 primrec helper_2::"(real \<Rightarrow> 'a::metric_space) \<Rightarrow> nat \<Rightarrow> 'a" where
@@ -3513,16 +3523,6 @@ proof(rule ccontr)
 qed
 
 text {* Hence express everything as an equivalence. *}
-
-lemma compact_eq_seq_compact_metric:
-  "compact (s :: 'a::metric_space set) \<longleftrightarrow> seq_compact s"
-  using compact_imp_seq_compact seq_compact_imp_heine_borel by blast
-
-lemma compact_def:
-  "compact (S :: 'a::metric_space set) \<longleftrightarrow>
-   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
-       (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially)) "
-  unfolding compact_eq_seq_compact_metric seq_compact_def by auto
 
 lemma compact_eq_bolzano_weierstrass:
   fixes s :: "'a::metric_space set"
