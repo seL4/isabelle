@@ -171,8 +171,12 @@ next
   thus ?case by arith
 qed
 
+lemma eventually_subseq:
+  "subseq r \<Longrightarrow> eventually P sequentially \<Longrightarrow> eventually (\<lambda>n. P (r n)) sequentially"
+  unfolding eventually_sequentially by (metis seq_suble le_trans)
+
 lemma filterlim_subseq: "subseq f \<Longrightarrow> filterlim f sequentially sequentially"
-  unfolding filterlim_iff eventually_sequentially by (metis le_trans seq_suble)
+  unfolding filterlim_iff by (metis eventually_subseq)
 
 lemma subseq_o: "subseq r \<Longrightarrow> subseq s \<Longrightarrow> subseq (r \<circ> s)"
   unfolding subseq_def by simp

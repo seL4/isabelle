@@ -3016,26 +3016,10 @@ proof (unfold seq_compact_def, clarify)
     using `l \<in> s` r l by blast
 qed
 
-lemma subseq_bigger: assumes "subseq r" shows "n \<le> r n"
-proof(induct n)
-  show "0 \<le> r 0" by auto
-next
-  fix n assume "n \<le> r n"
-  moreover have "r n < r (Suc n)"
-    using assms [unfolded subseq_def] by auto
-  ultimately show "Suc n \<le> r (Suc n)" by auto
-qed
-
-lemma eventually_subseq:
-  assumes r: "subseq r"
-  shows "eventually P sequentially \<Longrightarrow> eventually (\<lambda>n. P (r n)) sequentially"
-unfolding eventually_sequentially
-by (metis subseq_bigger [OF r] le_trans)
-
 lemma lim_subseq:
   "subseq r \<Longrightarrow> (s ---> l) sequentially \<Longrightarrow> ((s o r) ---> l) sequentially"
 unfolding tendsto_def eventually_sequentially o_def
-by (metis subseq_bigger le_trans)
+by (metis seq_suble le_trans)
 
 lemma num_Axiom: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
   unfolding Ex1_def
@@ -3292,7 +3276,7 @@ proof-
   { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
     from as(1) obtain l r where lr: "l\<in>s" "subseq r" "((f \<circ> r) ---> l) sequentially" using assms unfolding seq_compact_def by blast
 
-    note lr' = subseq_bigger [OF lr(2)]
+    note lr' = seq_suble [OF lr(2)]
 
     { fix e::real assume "e>0"
       from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2" unfolding cauchy_def using `e>0` apply (erule_tac x="e/2" in allE) by auto
@@ -3431,7 +3415,7 @@ proof(rule ccontr)
   obtain N2::nat where N2:"N2>0" "inverse (real N2) < e /2" using real_arch_inv[of "e/2"] and `e>0` by auto
   have N2':"inverse (real (r (N1 + N2) +1 )) < e/2"
     apply(rule order_less_trans) apply(rule less_imp_inverse_less) using N2
-    using subseq_bigger[OF r, of "N1 + N2"] by auto
+    using seq_suble[OF r, of "N1 + N2"] by auto
 
   def x \<equiv> "(f (r (N1 + N2)))"
   have x:"\<not> ball x (inverse (real (r (N1 + N2) + 1))) \<subseteq> b" unfolding x_def
@@ -3771,7 +3755,7 @@ proof-
       with lr(3) obtain N where N:"\<forall>m\<ge>N. dist ((x \<circ> r) m) l < e" unfolding LIMSEQ_def by auto
       hence "dist ((x \<circ> r) (max N n)) l < e" by auto
       moreover
-      have "r (max N n) \<ge> n" using lr(2) using subseq_bigger[of r "max N n"] by auto
+      have "r (max N n) \<ge> n" using lr(2) using seq_suble[of r "max N n"] by auto
       hence "(x \<circ> r) (max N n) \<in> s n"
         using x apply(erule_tac x=n in allE)
         using x apply(erule_tac x="r (max N n)" in allE)
@@ -6784,7 +6768,7 @@ next
       moreover
       have "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) \<ge> dist a b - dist (f n x) (f n y)"
         using distf[of n "r (Na+Nb+n)", OF _ `x\<in>s` `y\<in>s`]
-        using subseq_bigger[OF r, of "Na+Nb+n"]
+        using seq_suble[OF r, of "Na+Nb+n"]
         using *[of "f (r (Na + Nb + n)) x" "f (r (Na + Nb + n)) y" "f n x" "f n y"] by auto
       ultimately have False by simp
     }
