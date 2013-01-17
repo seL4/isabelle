@@ -8,12 +8,12 @@ header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
 imports
-  SEQ
+  Complex_Main
   "~~/src/HOL/Library/Diagonal_Subsequence"
   "~~/src/HOL/Library/Countable_Set"
-  Linear_Algebra
   "~~/src/HOL/Library/Glbs"
   "~~/src/HOL/Library/FuncSet"
+  Linear_Algebra
   Norm_Arith
 begin
 
