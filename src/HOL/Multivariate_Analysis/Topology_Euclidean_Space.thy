@@ -3249,14 +3249,6 @@ proof-
     by blast
 qed
 
-lemma convergent_imp_cauchy:
- "(s ---> l) sequentially ==> Cauchy s"
-proof(simp only: cauchy_def, rule, rule)
-  fix e::real assume "e>0" "(s ---> l) sequentially"
-  then obtain N::nat where N:"\<forall>n\<ge>N. dist (s n) l < e/2" unfolding LIMSEQ_def by(erule_tac x="e/2" in allE) auto
-  thus "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < e"  using dist_triangle_half_l[of _ l e _] by (rule_tac x=N in exI) auto
-qed
-
 lemma cauchy_imp_bounded: assumes "Cauchy s" shows "bounded (range s)"
 proof-
   from assms obtain N::nat where "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < 1" unfolding cauchy_def apply(erule_tac x= 1 in allE) by auto
@@ -3323,7 +3315,7 @@ proof -
     then obtain f where f: "\<forall>n. f n \<in> s - {x}" "(f ---> x) sequentially"
       unfolding islimpt_sequential by auto
     then obtain l where l: "l\<in>s" "(f ---> l) sequentially"
-      using `complete s`[unfolded complete_def] using convergent_imp_cauchy[of f x] by auto
+      using `complete s`[unfolded complete_def] using LIMSEQ_imp_Cauchy[of f x] by auto
     hence "x \<in> s"  using tendsto_unique[of sequentially f l x] trivial_limit_sequentially f(2) by auto
   }
   thus "closed s" unfolding closed_limpt by auto
@@ -3350,7 +3342,7 @@ lemma convergent_eq_cauchy:
 lemma convergent_imp_bounded:
   fixes s :: "nat \<Rightarrow> 'a::metric_space"
   shows "(s ---> l) sequentially \<Longrightarrow> bounded (range s)"
-  by (intro cauchy_imp_bounded convergent_imp_cauchy)
+  by (intro cauchy_imp_bounded LIMSEQ_imp_Cauchy)
 
 subsubsection{* Total boundedness *}
 
@@ -3377,7 +3369,7 @@ proof(rule, rule, rule ccontr)
     qed }
   hence "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)" by blast+
   then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded seq_compact_def, THEN spec[where x=x]] by auto
-  from this(3) have "Cauchy (x \<circ> r)" using convergent_imp_cauchy by auto
+  from this(3) have "Cauchy (x \<circ> r)" using LIMSEQ_imp_Cauchy by auto
   then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e" unfolding cauchy_def using `e>0` by auto
   show False
     using N[THEN spec[where x=N], THEN spec[where x="N+1"]]

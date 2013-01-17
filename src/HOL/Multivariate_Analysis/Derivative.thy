@@ -1403,14 +1403,14 @@ proof-
   proof
     fix x assume "x\<in>s" show "Cauchy (\<lambda>n. f n x)"
     proof(cases "x=x0")
-      case True thus ?thesis using convergent_imp_cauchy[OF assms(5)] by auto
+      case True thus ?thesis using LIMSEQ_imp_Cauchy[OF assms(5)] by auto
     next
       case False show ?thesis unfolding Cauchy_def
       proof(rule,rule)
         fix e::real assume "e>0"
         hence *:"e/2>0" "e/2/norm(x-x0)>0"
           using False by (auto intro!: divide_pos_pos)
-        guess M using convergent_imp_cauchy[OF assms(5), unfolded Cauchy_def, rule_format,OF *(1)] .. note M=this
+        guess M using LIMSEQ_imp_Cauchy[OF assms(5), unfolded Cauchy_def, rule_format,OF *(1)] .. note M=this
         guess N using lem1[rule_format,OF *(2)] .. note N = this
         show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (f m x) (f n x) < e"
           apply(rule_tac x="max M N" in exI)
