@@ -42,7 +42,8 @@ else
 ML {*
 if do_it then
   evaluate_mash_suggestions @{context} params (1, NONE) (SOME prob_dir)
-      (prefix ^ "mash_suggestions") (prefix ^ "mash_eval")
+      (prefix ^ "mash_suggestions") (prefix ^ "mash_prover_suggestions")
+      (prefix ^ "mash_eval")
 else
   ()
 *}

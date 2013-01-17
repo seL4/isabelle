@@ -11,7 +11,7 @@ sig
 
   val evaluate_mash_suggestions :
     Proof.context -> params -> int * int option -> string option -> string
-    -> string -> unit
+    -> string -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -25,15 +25,17 @@ open Sledgehammer_Provers
 open Sledgehammer_Isar
 
 val MePoN = "MePo"
-val MaShN = "MaSh"
-val MeShN = "MeSh"
+val MaSh_IsarN = "MaSh-Isar"
+val MaSh_ProverN = "MaSh-Prover"
+val MeSh_IsarN = "MeSh-Isar"
+val MeSh_ProverN = "MeSh-Prover"
 val IsarN = "Isar"
 
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
 
-fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
-                              report_file_name =
+fun evaluate_mash_suggestions ctxt params range prob_dir_name
+        isar_sugg_file_name prover_sugg_file_name report_file_name =
   let
     val report_path = report_file_name |> Path.explode
     val _ = File.write report_path ""
@@ -42,21 +44,27 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
       default_params ctxt []
     val prover = hd provers
     val slack_max_facts = generous_max_facts (the max_facts)
-    val lines = Path.explode sugg_file_name |> File.read_lines
+    val mash_isar_lines = Path.explode isar_sugg_file_name |> File.read_lines
+    val mash_prover_lines =
+      case Path.explode prover_sugg_file_name |> try File.read_lines of
+        NONE => replicate (length mash_isar_lines) ""
+      | SOME lines => lines
+    val mash_lines = mash_isar_lines ~~ mash_prover_lines
     val css = clasimpset_rule_table_of ctxt
     val facts = all_facts ctxt true false Symtab.empty [] [] css
     val name_tabs = build_name_tables nickname_of_thm facts
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
-    fun index_string (j, s) = s ^ "@" ^ string_of_int j
-    fun str_of_res label facts ({outcome, run_time, used_facts, ...}
-                                : prover_result) =
+    fun index_str (j, s) = s ^ "@" ^ string_of_int j
+    val str_of_heading = enclose "  " ": "
+    fun str_of_result heading facts ({outcome, run_time, used_facts, ...}
+                                     : prover_result) =
       let val facts = facts |> map (fn ((name, _), _) => name ()) in
-        "  " ^ label ^ ": " ^
+        str_of_heading heading ^
         (if is_none outcome then
            "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
            (used_facts |> map (with_index facts o fst)
                        |> sort (int_ord o pairself fst)
-                       |> map index_string
+                       |> map index_str
                        |> space_implode " ") ^
            (if length facts < the max_facts then
               " (of " ^ string_of_int (length facts) ^ ")"
@@ -65,13 +73,14 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
          else
            "Failure: " ^
            (facts |> take (the max_facts) |> tag_list 1
-                  |> map index_string
+                  |> map index_str
                   |> space_implode " "))
       end
-    fun solve_goal (j, line) =
+    fun solve_goal (j, (mash_isar_line, mash_prover_line)) =
       if in_range range j then
         let
-          val (name, suggs) = extract_suggestions line
+          val (name, mash_isar_suggs) = extract_suggestions mash_isar_line
+          val (_, mash_prover_suggs) = extract_suggestions mash_prover_line
           val th =
             case find_first (fn (_, th) => nickname_of_thm th = name) facts of
               SOME (_, th) => th
@@ -84,14 +93,20 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
             mepo_suggested_facts ctxt params prover slack_max_facts NONE hyp_ts
                 concl_t facts
             |> weight_mepo_facts
-          val (mash_facts, mash_unks) =
+          fun mash_of suggs =
             find_mash_suggestions slack_max_facts suggs facts [] []
             |>> weight_mash_facts
-          val mess =
+          val (mash_isar_facts, mash_isar_unks) = mash_of mash_isar_suggs
+          val (mash_prover_facts, mash_prover_unks) = mash_of mash_prover_suggs
+          fun mess_of mash_facts mash_unks =
             [(mepo_weight, (mepo_facts, [])),
              (mash_weight, (mash_facts, mash_unks))]
-          val mesh_facts =
-            mesh_facts (Thm.eq_thm_prop o pairself snd) slack_max_facts mess
+          fun mesh_of [] _ = []
+            | mesh_of mash_facts mash_unks =
+              mesh_facts (Thm.eq_thm_prop o pairself snd) slack_max_facts
+                         (mess_of mash_facts mash_unks)
+          val mesh_isar_facts = mesh_of mash_isar_facts mash_isar_unks
+          val mesh_prover_facts = mesh_of mash_prover_facts mash_prover_unks
           val isar_facts =
             find_suggested_facts (map (rpair 1.0) isar_deps) facts
           (* adapted from "mirabelle_sledgehammer.ML" *)
@@ -107,23 +122,28 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
               end
             | set_file_name _ NONE = I
           fun prove heading get facts =
-            let
-              fun nickify ((_, stature), th) =
-                ((K (encode_str (nickname_of_thm th)), stature), th)
-              val facts =
-                facts
-                |> map (get #> nickify)
-                |> maybe_instantiate_inducts ctxt hyp_ts concl_t
-                |> take (the max_facts)
-              val ctxt = ctxt |> set_file_name heading prob_dir_name
-              val res as {outcome, ...} =
-                run_prover_for_mash ctxt params prover facts goal
-              val ok = if is_none outcome then 1 else 0
-            in (str_of_res heading facts res, ok) end
+            if null facts andalso heading <> IsarN then
+              (str_of_heading heading ^ "Skipped", 0)
+            else
+              let
+                fun nickify ((_, stature), th) =
+                  ((K (encode_str (nickname_of_thm th)), stature), th)
+                val facts =
+                  facts
+                  |> map (get #> nickify)
+                  |> maybe_instantiate_inducts ctxt hyp_ts concl_t
+                  |> take (the max_facts)
+                val ctxt = ctxt |> set_file_name heading prob_dir_name
+                val res as {outcome, ...} =
+                  run_prover_for_mash ctxt params prover facts goal
+                val ok = if is_none outcome then 1 else 0
+              in (str_of_result heading facts res, ok) end
           val ress =
             [fn () => prove MePoN fst mepo_facts,
-             fn () => prove MaShN fst mash_facts,
-             fn () => prove MeShN I mesh_facts,
+             fn () => prove MaSh_IsarN fst mash_isar_facts,
+             fn () => prove MaSh_ProverN fst mash_prover_facts,
+             fn () => prove MeSh_IsarN I mesh_isar_facts,
+             fn () => prove MeSh_ProverN I mesh_prover_facts,
              fn () => prove IsarN fst isar_facts]
             |> (* Par_List. *) map (fn f => f ())
         in
@@ -132,7 +152,7 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
           map snd ress
         end
       else
-        [0, 0, 0, 0]
+        [0, 0, 0, 0, 0, 0]
     fun total_of heading ok n =
       "  " ^ heading ^ ": " ^ string_of_int ok ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
@@ -148,15 +168,18 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name sugg_file_name
        "instantiate_inducts" |> not inst_inducts ? prefix "dont_"]
     val _ = print " * * *";
     val _ = print ("Options: " ^ commas options);
-    val oks = Par_List.map solve_goal (tag_list 1 lines)
+    val oks = Par_List.map solve_goal (tag_list 1 mash_lines)
     val n = length oks
-    val [mepo_ok, mash_ok, mesh_ok, isar_ok] =
+    val [mepo_ok, mash_isar_ok, mash_prover_ok, mesh_isar_ok, mesh_prover_ok,
+         isar_ok] =
       map Integer.sum (map_transpose I oks)
   in
     ["Successes (of " ^ string_of_int n ^ " goals)",
      total_of MePoN mepo_ok n,
-     total_of MaShN mash_ok n,
-     total_of MeShN mesh_ok n,
+     total_of MaSh_IsarN mash_isar_ok n,
+     total_of MaSh_ProverN mash_prover_ok n,
+     total_of MeSh_IsarN mesh_isar_ok n,
+     total_of MeSh_ProverN mesh_prover_ok n,
      total_of IsarN isar_ok n]
     |> cat_lines |> print
   end

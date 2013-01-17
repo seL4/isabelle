@@ -773,27 +773,28 @@ fun weight_proximity_facts facts =
 
 val max_proximity_facts = 100
 
-fun find_mash_suggestions max_facts suggs facts chained raw_unknown =
-  let
-    val raw_mash =
-      facts |> find_suggested_facts suggs
-            (* The weights currently returned by "mash.py" are too spaced out to
-               make any sense. *)
-            |> map fst
-    val unknown_chained =
-      inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
-    val proximity =
-      facts |> sort (thm_ord o pairself snd o swap)
-            |> take max_proximity_facts
-    val mess =
-      [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
-       (0.08 (* FUDGE *), (weight_raw_mash_facts raw_mash, raw_unknown)),
-       (0.02 (* FUDGE *), (weight_proximity_facts proximity, []))]
-    val unknown =
-      raw_unknown
-      |> fold (subtract (Thm.eq_thm_prop o pairself snd))
-              [unknown_chained, proximity]
-  in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
+fun find_mash_suggestions _ [] _ _ raw_unknown = ([], raw_unknown)
+  | find_mash_suggestions max_facts suggs facts chained raw_unknown =
+    let
+      val raw_mash =
+        facts |> find_suggested_facts suggs
+              (* The weights currently returned by "mash.py" are too spaced out
+                 to make any sense. *)
+              |> map fst
+      val unknown_chained =
+        inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
+      val proximity =
+        facts |> sort (thm_ord o pairself snd o swap)
+              |> take max_proximity_facts
+      val mess =
+        [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
+         (0.08 (* FUDGE *), (weight_raw_mash_facts raw_mash, raw_unknown)),
+         (0.02 (* FUDGE *), (weight_proximity_facts proximity, []))]
+      val unknown =
+        raw_unknown
+        |> fold (subtract (Thm.eq_thm_prop o pairself snd))
+                [unknown_chained, proximity]
+    in (mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess, unknown) end
 
 fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
                          hyp_ts concl_t facts =
