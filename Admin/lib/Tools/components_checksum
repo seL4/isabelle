@@ -71,11 +71,10 @@ CHECKSUM_TMP="$CHECKSUM_DIR/components.sha1.tmp"
 
 (
   cd "$COMPONENTS_DIR"
-  sha1sum *.tar.gz > "$CHECKSUM_TMP"
+  sha1sum *.tar.gz | sort -k2 > "$CHECKSUM_TMP"
 )
 
 [ -n "$UPDATE" ] && mv "$CHECKSUM_TMP" "$CHECKSUM_FILE"
 [ -n "$CHECK" ] && {
   diff "$CHECKSUM_FILE" "$CHECKSUM_TMP" || fail "Integrity error"
 }
-
