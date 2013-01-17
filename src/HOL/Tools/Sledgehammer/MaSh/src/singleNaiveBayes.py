@@ -44,9 +44,12 @@ class singleNBClassifier(object):
         
         for f,_w in features:
             if not self.counts.has_key(f):
-                fPosCount = 0.0
-                fNegCount = 0.0
-                self.counts[f] = [fPosCount,fNegCount]
+                if label:
+                    fPosCount = 0.0
+                    fNegCount = 0.0
+                    self.counts[f] = [fPosCount,fNegCount]
+                else:
+                    continue
             posCount,negCount = self.counts[f]
             if label:
                 posCount += 1
@@ -89,8 +92,9 @@ class singleNBClassifier(object):
         elif self.pos ==0:
             return 0
         logneg = log(self.neg)
+        lognegprior=log(float(self.neg)/5)
         logpos = log(self.pos)
-        prob = logpos - logneg
+        prob = logpos - lognegprior
         
         for f,_w in features:
             if self.counts.has_key(f):

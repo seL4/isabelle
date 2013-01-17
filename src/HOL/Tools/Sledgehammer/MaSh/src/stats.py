@@ -120,7 +120,8 @@ class Statistics(object):
                          round(100*self.avgAUC/self.problems,2),round(self.avgDepNr/self.problems,2),round(self.avgRecall100/self.problems,2),self.cutOff)
 
         #try:
-        if True:
+        #if True:
+        if False:
             from matplotlib.pyplot import plot,figure,show,xlabel,ylabel,axis,hist
             avgRecall = [float(x)/self.problems for x in self.recallData]
             figure('Recall')

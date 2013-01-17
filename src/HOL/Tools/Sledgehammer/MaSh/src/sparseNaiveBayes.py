@@ -19,13 +19,11 @@ class sparseNBClassifier(object):
     An updateable naive Bayes classifier.
     '''
 
-    def __init__(self,defaultPriorWeight = 20.0,posWeight = 20.0,defVal = -15.0,useSinePrior = False,sineWeight = 100.0):
+    def __init__(self,defaultPriorWeight = 20.0,posWeight = 20.0,defVal = -15.0):
         '''
         Constructor
         '''
         self.counts = {}
-        self.sinePrior = useSinePrior
-        self.sineWeight = sineWeight
         self.defaultPriorWeight = defaultPriorWeight
         self.posWeight = posWeight
         self.defVal = defVal
@@ -100,19 +98,11 @@ class sparseNBClassifier(object):
         Returns a ranking of the accessibles.
         """
         predictions = []
-        fSet = set([f for f,_w in features])
         for a in accessibles:
             posA = self.counts[a][0]
             fA = set(self.counts[a][1].keys())
             fWeightsA = self.counts[a][1]
-            prior = posA
-            if self.sinePrior:
-                triggerFeatures = dicts.triggerFeatures[a]
-                triggeredFeatures = fSet.intersection(triggerFeatures)
-                for f in triggeredFeatures:
-                    posW = dicts.featureCountDict[f]
-                    prior += self.sineWeight /  posW 
-            resultA = log(prior)
+            resultA = log(posA)
             for f,w in features:
                 # DEBUG
                 #w = 1
@@ -131,12 +121,12 @@ class sparseNBClassifier(object):
 
     def save(self,fileName):
         OStream = open(fileName, 'wb')
-        dump((self.counts,self.defaultPriorWeight,self.posWeight,self.defVal,self.sinePrior,self.sineWeight),OStream)
+        dump((self.counts,self.defaultPriorWeight,self.posWeight,self.defVal),OStream)
         OStream.close()
 
     def load(self,fileName):
         OStream = open(fileName, 'rb')
-        self.counts,self.defaultPriorWeight,self.posWeight,self.defVal,self.sinePrior,self.sineWeight = load(OStream)
+        self.counts,self.defaultPriorWeight,self.posWeight,self.defVal = load(OStream)
         OStream.close()
 
 

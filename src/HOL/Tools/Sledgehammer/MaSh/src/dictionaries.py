@@ -32,27 +32,33 @@ class Dictionaries(object):
         self.dependenciesDict = {}
         self.accessibleDict = {}
         self.expandedAccessibles = {}
-        # For SInE-like prior
-        self.featureCountDict = {}
-        self.triggerFeatures = {}
+        # For SInE features
+        self.useSine = False
+        self.featureCountDict = {} 
+        self.triggerFeaturesDict = {} 
+        self.featureTriggeredFormulasDict = {}
         self.changed = True
 
     """
-    Init functions. Side Effect: nameIdDict, idNameDict, featureIdDict, articleDict get filled!
+    Init functions. nameIdDict, idNameDict, featureIdDict, articleDict get filled!
     """
-    def init_featureDict(self,featureFile):
-        self.featureDict,self.maxNameId,self.maxFeatureId, self.featureCountDict,self.triggerFeatures = create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,\
-                                                                                                       self.maxFeatureId,self.featureCountDict,self.triggerFeatures,featureFile)
+    def init_featureDict(self,featureFile,sineFeatures):
+        self.featureDict,self.maxNameId,self.maxFeatureId,self.featureCountDict,self.triggerFeaturesDict,self.featureTriggeredFormulasDict =\
+         create_feature_dict(self.nameIdDict,self.idNameDict,self.maxNameId,self.featureIdDict,self.maxFeatureId,self.featureCountDict,\
+                             self.triggerFeaturesDict,self.featureTriggeredFormulasDict,sineFeatures,featureFile)
     def init_dependenciesDict(self,depFile):
         self.dependenciesDict = create_dependencies_dict(self.nameIdDict,depFile)
     def init_accessibleDict(self,accFile):
         self.accessibleDict,self.maxNameId = create_accessible_dict(self.nameIdDict,self.idNameDict,self.maxNameId,accFile)
 
-    def init_all(self,inputFolder,featureFileName = 'mash_features',depFileName='mash_dependencies',accFileName = 'mash_accessibility'):
-        featureFile = join(inputFolder,featureFileName)
-        depFile = join(inputFolder,depFileName)
-        accFile = join(inputFolder,accFileName)
-        self.init_featureDict(featureFile)
+    def init_all(self,args):
+        self.featureFileName = 'mash_features'
+        self.accFileName = 'mash_accessibility'
+        self.useSine = args.sineFeatures
+        featureFile = join(args.inputDir,self.featureFileName)
+        depFile = join(args.inputDir,args.depFile)
+        accFile = join(args.inputDir,self.accFileName)
+        self.init_featureDict(featureFile,self.useSine)
         self.init_accessibleDict(accFile)
         self.init_dependenciesDict(depFile)
         self.expandedAccessibles = {}
@@ -76,11 +82,13 @@ class Dictionaries(object):
     def add_feature(self,featureName):
         if not self.featureIdDict.has_key(featureName):
             self.featureIdDict[featureName] = self.maxFeatureId
-            self.featureCountDict[self.maxFeatureId] = 0
+            if self.useSine:
+                self.featureCountDict[self.maxFeatureId] = 0
             self.maxFeatureId += 1
             self.changed = True
         fId = self.featureIdDict[featureName]
-        self.featureCountDict[fId] += 1
+        if self.useSine:
+            self.featureCountDict[fId] += 1
         return fId
 
     def get_features(self,line):
@@ -128,15 +136,22 @@ class Dictionaries(object):
         line = line.split(':')
         name = line[0].strip()
         nameId = self.get_name_id(name)
-
         line = line[1].split(';')
         # Accessible Ids
         unExpAcc = [self.nameIdDict[a.strip()] for a in line[0].split()]
         self.accessibleDict[nameId] = unExpAcc
         features = self.get_features(line)
         self.featureDict[nameId] = features
-        minVal = min([self.featureCountDict[f] for f,_w in features])
-        self.triggerFeatures[nameId] = [f for f,_w in features if self.featureCountDict[f] == minVal]
+        if self.useSine:
+            # SInE Features
+            minFeatureCount = min([self.featureCountDict[f] for f,_w in features])
+            triggerFeatures = [f for f,_w in features if self.featureCountDict[f] == minFeatureCount]
+            self.triggerFeaturesDict[nameId] = triggerFeatures
+            for f in triggerFeatures:
+                if self.featureTriggeredFormulasDict.has_key(f): 
+                    self.featureTriggeredFormulasDict[f].append(nameId)
+                else:
+                    self.featureTriggeredFormulasDict[f] = [nameId]        
         self.dependenciesDict[nameId] = [self.nameIdDict[d.strip()] for d in line[2].split()]        
         self.changed = True
         return nameId
@@ -197,12 +212,14 @@ class Dictionaries(object):
         if self.changed:
             dictsStream = open(fileName, 'wb')
             dump((self.accessibleDict,self.dependenciesDict,self.expandedAccessibles,self.featureDict,\
-                self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict,self.triggerFeatures),dictsStream)
+                self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,\
+                self.featureCountDict,self.triggerFeaturesDict,self.featureTriggeredFormulasDict,self.useSine),dictsStream)
             self.changed = False
             dictsStream.close()
     def load(self,fileName):
         dictsStream = open(fileName, 'rb')
         self.accessibleDict,self.dependenciesDict,self.expandedAccessibles,self.featureDict,\
-              self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,self.featureCountDict,self.triggerFeatures = load(dictsStream)
+              self.featureIdDict,self.idNameDict,self.maxFeatureId,self.maxNameId,self.nameIdDict,\
+              self.featureCountDict,self.triggerFeaturesDict,self.featureTriggeredFormulasDict,self.useSine = load(dictsStream)
         self.changed = False
         dictsStream.close()

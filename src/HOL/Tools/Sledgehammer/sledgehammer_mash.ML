@@ -150,8 +150,7 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val core =
       "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
       " --numberOfPredictions " ^ string_of_int max_suggs ^
-      " --NBSinePrior" (* --learnTheories *) ^
-      (if save then " --saveModel" else "")
+      (* " --learnTheories" ^ *) (if save then " --saveModel" else "")
     val command =
       "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet --outputDir " ^
       File.shell_path (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^

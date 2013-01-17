@@ -29,28 +29,35 @@ class TheoryStatistics(object):
         self.recall100 = 0
         self.recall = 0.0
         self.predicted = 0.0
+        self.predictedPercent = 0.0
     
-    def update(self,currentTheory,predictedTheories,usedTheories):
+    def update(self,currentTheory,predictedTheories,usedTheories,nrAvailableTheories):
         self.count += 1
         allPredTheories = predictedTheories.union([currentTheory])
         if set(usedTheories).issubset(allPredTheories):
             self.recall100 += 1
         localPredicted = len(allPredTheories)
         self.predicted += localPredicted 
+        localPredictedPercent = float(localPredicted)/nrAvailableTheories
+        self.predictedPercent += localPredictedPercent 
         localPrec = float(len(set(usedTheories).intersection(allPredTheories))) / localPredicted
         self.precision += localPrec
-        localRecall = float(len(set(usedTheories).intersection(allPredTheories))) / len(set(usedTheories))
+        if len(set(usedTheories)) == 0:
+            localRecall = 1.0
+        else:
+            localRecall = float(len(set(usedTheories).intersection(allPredTheories))) / len(set(usedTheories))
         self.recall += localRecall
         self.logger.info('Theory prediction results:')
-        self.logger.info('Problem: %s \t Recall100: %s \t Precision: %s \t Recall: %s \t PredictedTeories: %s',\
-                         self.count,self.recall100,round(localPrec,2),round(localRecall,2),localPredicted)
+        self.logger.info('Problem: %s \t Recall100: %s \t Precision: %s \t Recall: %s \t PredictedTeoriesPercent: %s PredictedTeories: %s',\
+                         self.count,self.recall100,round(localPrec,2),round(localRecall,2),round(localPredictedPercent,2),localPredicted)
         
     def printAvg(self):
         self.logger.info('Average theory results:')
-        self.logger.info('avgPrecision: %s \t avgRecall100: %s \t avgRecall: %s \t avgPredicted:%s', \
+        self.logger.info('avgPrecision: %s \t avgRecall100: %s \t avgRecall: %s \t avgPredictedPercent: %s \t avgPredicted: %s', \
                          round(self.precision/self.count,2),\
                          round(float(self.recall100)/self.count,2),\
                          round(self.recall/self.count,2),\
+                         round(self.predictedPercent /self.count,2),\
                          round(self.predicted /self.count,2))
         
     def save(self,fileName):
