@@ -241,6 +241,16 @@ lemma Collect_finite_eq_lists: "Collect finite = set ` lists UNIV"
 lemma countable_Collect_finite: "countable (Collect (finite::'a::countable set\<Rightarrow>bool))"
   by (simp add: Collect_finite_eq_lists)
 
+lemma countable_rat: "countable \<rat>"
+  unfolding Rats_def by auto
+
+lemma Collect_finite_subset_eq_lists: "{A. finite A \<and> A \<subseteq> T} = set ` lists T"
+  using finite_list by (auto simp: lists_eq_set)
+
+lemma countable_Collect_finite_subset:
+  "countable T \<Longrightarrow> countable {A. finite A \<and> A \<subseteq> T}"
+  unfolding Collect_finite_subset_eq_lists by auto
+
 subsection {* Misc lemmas *}
 
 lemma countable_all:

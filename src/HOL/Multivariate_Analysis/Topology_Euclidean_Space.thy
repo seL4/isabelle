@@ -21,9 +21,6 @@ lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
 
-lemma countable_rat: "countable \<rat>"
-  unfolding Rats_def by auto
-
 subsection {* Topological Basis *}
 
 context topological_space
