@@ -2325,7 +2325,8 @@ qed
 lemma Inf_insert:
   fixes S :: "real set"
   shows "bounded S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))" 
-by auto (metis Int_absorb Inf_insert_nonempty bounded_has_Inf(1) disjoint_iff_not_equal) 
+by auto (metis Int_absorb Inf_insert_nonempty bounded_has_Inf(1) disjoint_iff_not_equal)
+
 lemma Inf_insert_finite:
   fixes S :: "real set"
   shows "finite S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))"
@@ -2348,6 +2349,12 @@ lemma compactE:
   assumes "compact s" and "\<forall>t\<in>C. open t" and "s \<subseteq> \<Union>C"
   obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> \<Union>C'"
   using assms unfolding compact_eq_heine_borel by metis
+
+lemma compactE_image:
+  assumes "compact s" and "\<forall>t\<in>C. open (f t)" and "s \<subseteq> (\<Union>c\<in>C. f c)"
+  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> (\<Union>c\<in>C'. f c)"
+  using assms unfolding ball_simps[symmetric] SUP_def
+  by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
 
 subsubsection {* Bolzano-Weierstrass property *}
 
@@ -2570,6 +2577,29 @@ proof (rule openI)
     by (auto elim!: eventually_mono [rotated])
   thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
     by (simp add: eventually_nhds subset_eq)
+qed
+
+lemma compact_imp_bounded:
+  assumes "compact U" shows "bounded U"
+proof -
+  have "compact U" "\<forall>x\<in>U. open (ball x 1)" "U \<subseteq> (\<Union>x\<in>U. ball x 1)" using assms by auto
+  then obtain D where D: "D \<subseteq> U" "finite D" "U \<subseteq> (\<Union>x\<in>D. ball x 1)"
+    by (elim compactE_image)
+  def d \<equiv> "SOME d. d \<in> D"
+  show "bounded U"
+    unfolding bounded_def
+  proof (intro exI, safe)
+    fix x assume "x \<in> U"
+    with D obtain d' where "d' \<in> D" "x \<in> ball d' 1" by auto
+    moreover have "dist d x \<le> dist d d' + dist d' x"
+      using dist_triangle[of d x d'] by (simp add: dist_commute)
+    moreover
+    from `x\<in>U` D have "d \<in> D"
+      unfolding d_def by (rule_tac someI_ex) auto
+    ultimately
+    show "dist d x \<le> Max ((\<lambda>d'. dist d d' + 1) ` D)"
+      using D by (subst Max_ge_iff) (auto intro!: bexI[of _ d'])
+  qed
 qed
 
 text{* In particular, some common special cases. *}
@@ -3105,8 +3135,6 @@ qed
 
 subsubsection{* Heine-Borel theorem *}
 
-text {* Following Burkill \& Burkill vol. 2. *}
-
 lemma seq_compact_imp_heine_borel:
   fixes s :: "'a :: metric_space set"
   assumes "seq_compact s" shows "compact s"
@@ -3150,6 +3178,22 @@ lemma compact_def:
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> (f o r) ----> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto
 
+subsubsection {* Complete the chain of compactness variants *}
+
+lemma compact_eq_bolzano_weierstrass:
+  fixes s :: "'a::metric_space set"
+  shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
+proof
+  assume ?lhs thus ?rhs using heine_borel_imp_bolzano_weierstrass[of s] by auto
+next
+  assume ?rhs thus ?lhs
+    unfolding compact_eq_seq_compact_metric by (rule bolzano_weierstrass_imp_seq_compact)
+qed
+
+lemma bolzano_weierstrass_imp_bounded:
+  "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> bounded s"
+  using compact_imp_bounded unfolding compact_eq_bolzano_weierstrass .
+
 text {*
   A metric space (or topological vector space) is said to have the
   Heine-Borel property if every closed and bounded subset is compact.
@@ -3172,6 +3216,17 @@ proof (unfold seq_compact_def, clarify)
     unfolding closed_sequential_limits by blast
   show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
     using `l \<in> s` r l by blast
+qed
+
+lemma compact_eq_bounded_closed:
+  fixes s :: "'a::heine_borel set"
+  shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
+proof
+  assume ?lhs thus ?rhs
+    using compact_imp_closed compact_imp_bounded by blast
+next
+  assume ?rhs thus ?lhs
+    using bounded_closed_imp_seq_compact[of s] unfolding compact_eq_seq_compact_metric by auto
 qed
 
 lemma lim_subseq:
@@ -3498,84 +3553,6 @@ lemma convergent_imp_bounded:
   shows "(s ---> l) sequentially \<Longrightarrow> bounded (range s)"
   by (intro cauchy_imp_bounded LIMSEQ_imp_Cauchy)
 
-subsubsection {* Complete the chain of compactness variants *}
-
-primrec helper_2::"(real \<Rightarrow> 'a::metric_space) \<Rightarrow> nat \<Rightarrow> 'a" where
-  "helper_2 beyond 0 = beyond 0" |
-  "helper_2 beyond (Suc n) = beyond (dist undefined (helper_2 beyond n) + 1 )"
-
-lemma bolzano_weierstrass_imp_bounded: fixes s::"'a::metric_space set"
-  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
-  shows "bounded s"
-proof(rule ccontr)
-  assume "\<not> bounded s"
-  then obtain beyond where "\<forall>a. beyond a \<in>s \<and> \<not> dist undefined (beyond a) \<le> a"
-    unfolding bounded_any_center [where a=undefined]
-    apply simp using choice[of "\<lambda>a x. x\<in>s \<and> \<not> dist undefined x \<le> a"] by auto
-  hence beyond:"\<And>a. beyond a \<in>s" "\<And>a. dist undefined (beyond a) > a"
-    unfolding linorder_not_le by auto
-  def x \<equiv> "helper_2 beyond"
-
-  { fix m n ::nat assume "m<n"
-    hence "dist undefined (x m) + 1 < dist undefined (x n)"
-    proof(induct n)
-      case 0 thus ?case by auto
-    next
-      case (Suc n)
-      have *:"dist undefined (x n) + 1 < dist undefined (x (Suc n))"
-        unfolding x_def and helper_2.simps
-        using beyond(2)[of "dist undefined (helper_2 beyond n) + 1"] by auto
-      thus ?case proof(cases "m < n")
-        case True thus ?thesis using Suc and * by auto
-      next
-        case False hence "m = n" using Suc(2) by auto
-        thus ?thesis using * by auto
-      qed
-    qed  } note * = this
-  { fix m n ::nat assume "m\<noteq>n"
-    have "1 < dist (x m) (x n)"
-    proof(cases "m<n")
-      case True
-      hence "1 < dist undefined (x n) - dist undefined (x m)" using *[of m n] by auto
-      thus ?thesis using dist_triangle [of undefined "x n" "x m"] by arith
-    next
-      case False hence "n<m" using `m\<noteq>n` by auto
-      hence "1 < dist undefined (x m) - dist undefined (x n)" using *[of n m] by auto
-      thus ?thesis using dist_triangle2 [of undefined "x m" "x n"] by arith
-    qed  } note ** = this
-  { fix a b assume "x a = x b" "a \<noteq> b"
-    hence False using **[of a b] by auto  }
-  hence "inj x" unfolding inj_on_def by auto
-  moreover
-  { fix n::nat
-    have "x n \<in> s"
-    proof(cases "n = 0")
-      case True thus ?thesis unfolding x_def using beyond by auto
-    next
-      case False then obtain z where "n = Suc z" using not0_implies_Suc by auto
-      thus ?thesis unfolding x_def using beyond by auto
-    qed  }
-  ultimately have "infinite (range x) \<and> range x \<subseteq> s" unfolding x_def using range_inj_infinite[of "helper_2 beyond"] using beyond(1) by auto
-
-  then obtain l where "l\<in>s" and l:"l islimpt range x" using assms[THEN spec[where x="range x"]] by auto
-  then obtain y where "x y \<noteq> l" and y:"dist (x y) l < 1/2" unfolding islimpt_approachable apply(erule_tac x="1/2" in allE) by auto
-  then obtain z where "x z \<noteq> l" and z:"dist (x z) l < dist (x y) l" using l[unfolded islimpt_approachable, THEN spec[where x="dist (x y) l"]]
-    unfolding dist_nz by auto
-  show False using y and z and dist_triangle_half_l[of "x y" l 1 "x z"] and **[of y z] by auto
-qed
-
-text {* Hence express everything as an equivalence. *}
-
-lemma compact_eq_bolzano_weierstrass:
-  fixes s :: "'a::metric_space set"
-  shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
-proof
-  assume ?lhs thus ?rhs using heine_borel_imp_bolzano_weierstrass[of s] by auto
-next
-  assume ?rhs thus ?lhs
-    unfolding compact_eq_seq_compact_metric by (rule bolzano_weierstrass_imp_seq_compact)
-qed
-
 lemma nat_approx_posE:
   fixes e::real
   assumes "0 < e"
@@ -3722,28 +3699,6 @@ next
       thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l" using subseq_diagseq by auto
     qed
   qed
-qed
-
-lemma compact_eq_bounded_closed:
-  fixes s :: "'a::heine_borel set"
-  shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
-proof
-  assume ?lhs thus ?rhs
-    unfolding compact_eq_bolzano_weierstrass using bolzano_weierstrass_imp_bounded bolzano_weierstrass_imp_closed by auto
-next
-  assume ?rhs thus ?lhs
-    using bounded_closed_imp_seq_compact[of s] unfolding compact_eq_seq_compact_metric by auto
-qed
-
-lemma compact_imp_bounded:
-  fixes s :: "'a::metric_space set"
-  shows "compact s \<Longrightarrow> bounded s"
-proof -
-  assume "compact s"
-  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
-    using heine_borel_imp_bolzano_weierstrass[of s] by auto
-  thus "bounded s"
-    by (rule bolzano_weierstrass_imp_bounded)
 qed
 
 lemma compact_cball[simp]:
@@ -4938,8 +4893,8 @@ lemma compact_uniformly_continuous:
 proof (cases, safe)
   fix e :: real assume "0 < e" "s \<noteq> {}"
   def [simp]: R \<equiv> "{(y, d). y \<in> s \<and> 0 < d \<and> ball y d \<inter> s \<subseteq> {x \<in> s. f x \<in> ball (f y) (e/2) } }"
-  let ?C = "(\<lambda>(y, d). ball y (d/2)) ` R"
-  have "(\<forall>r\<in>?C. open r) \<and> s \<subseteq> \<Union>?C"
+  let ?b = "(\<lambda>(y, d). ball y (d/2))"
+  have "(\<forall>r\<in>R. open (?b r))" "s \<subseteq> (\<Union>r\<in>R. ?b r)"
   proof safe
     fix y assume "y \<in> s"
     from continuous_open_in_preimage[OF f open_ball]
@@ -4947,11 +4902,11 @@ proof (cases, safe)
       unfolding openin_subtopology open_openin by metis
     then obtain d where "ball y d \<subseteq> T" "0 < d"
       using `0 < e` `y \<in> s` by (auto elim!: openE)
-    with T `y \<in> s` show "y \<in> \<Union>(\<lambda>(y, d). ball y (d/2)) ` R"
-      by (intro UnionI[where X="ball y (d/2)"]) auto
+    with T `y \<in> s` show "y \<in> (\<Union>r\<in>R. ?b r)"
+      by (intro UN_I[of "(y, d)"]) auto
   qed auto
-  then obtain D where D: "finite D" "D \<subseteq> R" "s \<subseteq> (\<Union>(y, d)\<in>D. ball y (d/2))"
-    by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s] s Union_image_eq)
+  with s obtain D where D: "finite D" "D \<subseteq> R" "s \<subseteq> (\<Union>(y, d)\<in>D. ball y (d/2))"
+    by (rule compactE_image)
   with `s \<noteq> {}` have [simp]: "\<And>x. x < Min (snd ` D) \<longleftrightarrow> (\<forall>(y, d)\<in>D. x < d)"
     by (subst Min_gr_iff) auto
   show "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
