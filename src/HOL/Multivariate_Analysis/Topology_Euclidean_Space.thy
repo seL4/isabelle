@@ -17,6 +17,9 @@ imports
   Norm_Arith
 begin
 
+lemma dist_double: "dist x y < d / 2 \<Longrightarrow> dist x z < d / 2 \<Longrightarrow> dist y z < d"
+  using dist_triangle[of y z x] by (simp add: dist_commute)
+
 (* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
 lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
   apply (frule isGlb_isLb)
@@ -2373,25 +2376,23 @@ proof(rule ccontr)
   ultimately show False using g(2) using finite_subset by auto
 qed
 
-lemma islimpt_range_imp_convergent_subsequence:
-  fixes l :: "'a :: {t1_space, first_countable_topology}"
-  assumes l: "l islimpt (range f)"
-  shows "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+lemma acc_point_range_imp_convergent_subsequence:
+  fixes l :: "'a :: first_countable_topology"
+  assumes l: "\<forall>U. l\<in>U \<longrightarrow> open U \<longrightarrow> infinite (U \<inter> range f)"
+  shows "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
 proof -
-  from first_countable_topology_class.countable_basis_at_decseq[of l] guess A . note A = this
+  from countable_basis_at_decseq[of l] guess A . note A = this
 
   def s \<equiv> "\<lambda>n i. SOME j. i < j \<and> f j \<in> A (Suc n)"
   { fix n i
-    have "\<exists>a. i < a \<and> f a \<in> A (Suc n) - (f ` {.. i} - {l})" (is "\<exists>a. _ \<and> _ \<in> ?A")
-      apply (rule l[THEN islimptE, of "?A"])
-      using A(2) apply fastforce
-      using A(1)
-      apply (intro open_Diff finite_imp_closed)
-      apply auto
-      apply (rule_tac x=x in exI)
-      apply auto
-      done
-    then have "\<exists>a. i < a \<and> f a \<in> A (Suc n)" by blast
+    have "infinite (A (Suc n) \<inter> range f - f`{.. i})"
+      using l A by auto
+    then have "\<exists>x. x \<in> A (Suc n) \<inter> range f - f`{.. i}"
+      unfolding ex_in_conv by (intro notI) simp
+    then have "\<exists>j. f j \<in> A (Suc n) \<and> j \<notin> {.. i}"
+      by auto
+    then have "\<exists>a. i < a \<and> f a \<in> A (Suc n)"
+      by (auto simp: not_le)
     then have "i < s n i" "f (s n i) \<in> A (Suc n)"
       unfolding s_def by (auto intro: someI2_ex) }
   note s = this
@@ -2474,6 +2475,31 @@ lemma islimpt_union_finite:
   fixes x :: "'a::t1_space"
   shows "finite s \<Longrightarrow> x islimpt (s \<union> t) \<longleftrightarrow> x islimpt t"
 by (simp add: islimpt_Un islimpt_finite)
+
+lemma islimpt_eq_acc_point:
+  fixes l :: "'a :: t1_space"
+  shows "l islimpt S \<longleftrightarrow> (\<forall>U. l\<in>U \<longrightarrow> open U \<longrightarrow> infinite (U \<inter> S))"
+proof (safe intro!: islimptI)
+  fix U assume "l islimpt S" "l \<in> U" "open U" "finite (U \<inter> S)"
+  then have "l islimpt S" "l \<in> (U - (U \<inter> S - {l}))" "open (U - (U \<inter> S - {l}))"
+    by (auto intro: finite_imp_closed)
+  then show False
+    by (rule islimptE) auto
+next
+  fix T assume *: "\<forall>U. l\<in>U \<longrightarrow> open U \<longrightarrow> infinite (U \<inter> S)" "l \<in> T" "open T"
+  then have "infinite (T \<inter> S - {l})" by auto
+  then have "\<exists>x. x \<in> (T \<inter> S - {l})"
+    unfolding ex_in_conv by (intro notI) simp
+  then show "\<exists>y\<in>S. y \<in> T \<and> y \<noteq> l"
+    by auto
+qed
+
+lemma islimpt_range_imp_convergent_subsequence:
+  fixes l :: "'a :: {t1_space, first_countable_topology}"
+  assumes l: "l islimpt (range f)"
+  shows "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+  using l unfolding islimpt_eq_acc_point
+  by (rule acc_point_range_imp_convergent_subsequence)
 
 lemma sequence_unique_limpt:
   fixes f :: "nat \<Rightarrow> 'a::t2_space"
@@ -2837,6 +2863,10 @@ proof (rule countably_compact_imp_compact)
   then show "\<exists>b\<in>SOME B. countable B \<and> topological_basis B. x \<in> b \<and> b \<inter> U \<subseteq> T" by auto
 qed (insert countable_basis topological_basis_open[OF is_basis], auto)
 
+lemma countably_compact_eq_compact:
+  "countably_compact U \<longleftrightarrow> compact (U :: 'a :: second_countable_topology set)"
+  using countably_compact_imp_compact_second_countable compact_imp_countably_compact by blast
+  
 subsubsection{* Sequential compactness *}
 
 definition
@@ -2937,12 +2967,6 @@ proof safe
     using `x \<in> U` by (auto simp: convergent_def comp_def)
 qed
 
-lemma seq_compact_eq_compact:
-  fixes U :: "'a :: second_countable_topology set"
-  shows "seq_compact U \<longleftrightarrow> compact U"
-  using compact_imp_seq_compact seq_compact_imp_countably_compact countably_compact_imp_compact_second_countable
-    by blast
-
 lemma seq_compactI:
   assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially"
   shows "seq_compact S"
@@ -2953,13 +2977,45 @@ lemma seq_compactE:
   obtains l r where "l \<in> S" "subseq r" "((f \<circ> r) ---> l) sequentially"
   using assms unfolding seq_compact_def by fast
 
-lemma bolzano_weierstrass_imp_seq_compact:
-  fixes s :: "'a::{t1_space, first_countable_topology} set"
-  assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
+lemma countably_compact_imp_acc_point:
+  assumes "countably_compact s" "countable t" "infinite t"  "t \<subseteq> s"
+  shows "\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t)"
+proof (rule ccontr)
+  def C \<equiv> "(\<lambda>F. interior (F \<union> (- t))) ` {F. finite F \<and> F \<subseteq> t }"  
+  note `countably_compact s`
+  moreover have "\<forall>t\<in>C. open t" 
+    by (auto simp: C_def)
+  moreover
+  assume "\<not> (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t))"
+  then have s: "\<And>x. x \<in> s \<Longrightarrow> \<exists>U. x\<in>U \<and> open U \<and> finite (U \<inter> t)" by metis
+  have "s \<subseteq> \<Union>C"
+    using `t \<subseteq> s`
+    unfolding C_def Union_image_eq
+    apply (safe dest!: s)
+    apply (rule_tac a="U \<inter> t" in UN_I)
+    apply (auto intro!: interiorI simp add: finite_subset)
+    done
+  moreover
+  from `countable t` have "countable C"
+    unfolding C_def by (auto intro: countable_Collect_finite_subset)
+  ultimately guess D by (rule countably_compactE)
+  then obtain E where E: "E \<subseteq> {F. finite F \<and> F \<subseteq> t }" "finite E" and
+    s: "s \<subseteq> (\<Union>F\<in>E. interior (F \<union> (- t)))"
+    by (metis (lifting) Union_image_eq finite_subset_image C_def)
+  from s `t \<subseteq> s` have "t \<subseteq> \<Union>E"
+    using interior_subset by blast
+  moreover have "finite (\<Union>E)"
+    using E by auto
+  ultimately show False using `infinite t` by (auto simp: finite_subset)
+qed
+
+lemma countable_acc_point_imp_seq_compact:
+  fixes s :: "'a::first_countable_topology set"
+  assumes "\<forall>t. infinite t \<and> countable t \<and> t \<subseteq> s --> (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t))"
   shows "seq_compact s"
 proof -
   { fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
-    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
     proof (cases "finite (range f)")
       case True
       obtain l where "infinite {n. f n = f l}"
@@ -2972,16 +3028,43 @@ proof -
         by auto
     next
       case False
-      with f assms have "\<exists>x\<in>s. x islimpt (range f)" by auto
-      then obtain l where "l \<in> s" "l islimpt (range f)" ..
-      have "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
-        using `l islimpt (range f)`
-        by (rule islimpt_range_imp_convergent_subsequence)
-      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l" ..
+      with f assms have "\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> range f)" by auto
+      then obtain l where "l \<in> s" "\<forall>U. l\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> range f)" ..
+      from this(2) have "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+        using acc_point_range_imp_convergent_subsequence[of l f] by auto
+      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" ..
     qed
   }
   thus ?thesis unfolding seq_compact_def by auto
 qed
+
+lemma seq_compact_eq_countably_compact:
+  fixes U :: "'a :: first_countable_topology set"
+  shows "seq_compact U \<longleftrightarrow> countably_compact U"
+  using
+    countable_acc_point_imp_seq_compact
+    countably_compact_imp_acc_point
+    seq_compact_imp_countably_compact
+  by metis
+
+lemma seq_compact_eq_acc_point:
+  fixes s :: "'a :: first_countable_topology set"
+  shows "seq_compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> countable t \<and> t \<subseteq> s --> (\<exists>x\<in>s. \<forall>U. x\<in>U \<and> open U \<longrightarrow> infinite (U \<inter> t)))"
+  using
+    countable_acc_point_imp_seq_compact[of s]
+    countably_compact_imp_acc_point[of s]
+    seq_compact_imp_countably_compact[of s]
+  by metis
+
+lemma seq_compact_eq_compact:
+  fixes U :: "'a :: second_countable_topology set"
+  shows "seq_compact U \<longleftrightarrow> compact U"
+  using seq_compact_eq_countably_compact countably_compact_eq_compact by blast
+
+lemma bolzano_weierstrass_imp_seq_compact:
+  fixes s :: "'a::{t1_space, first_countable_topology} set"
+  shows "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t) \<Longrightarrow> seq_compact s"
+  by (rule countable_acc_point_imp_seq_compact) (metis islimpt_eq_acc_point)
 
 subsubsection{* Total boundedness *}
 
@@ -3024,69 +3107,38 @@ subsubsection{* Heine-Borel theorem *}
 
 text {* Following Burkill \& Burkill vol. 2. *}
 
-lemma heine_borel_lemma: fixes s::"'a::metric_space set"
-  assumes "seq_compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
-  shows "\<exists>e>0. \<forall>x \<in> s. \<exists>b \<in> t. ball x e \<subseteq> b"
-proof(rule ccontr)
-  assume "\<not> (\<exists>e>0. \<forall>x\<in>s. \<exists>b\<in>t. ball x e \<subseteq> b)"
-  hence cont:"\<forall>e>0. \<exists>x\<in>s. \<forall>xa\<in>t. \<not> (ball x e \<subseteq> xa)" by auto
-  { fix n::nat
-    have "1 / real (n + 1) > 0" by auto
-    hence "\<exists>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> (ball x (inverse (real (n+1))) \<subseteq> xa))" using cont unfolding Bex_def by auto }
-  hence "\<forall>n::nat. \<exists>x. x \<in> s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)" by auto
-  then obtain f where f:"\<forall>n::nat. f n \<in> s \<and> (\<forall>xa\<in>t. \<not> ball (f n) (inverse (real (n + 1))) \<subseteq> xa)"
-    using choice[of "\<lambda>n::nat. \<lambda>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)"] by auto
-
-  then obtain l r where l:"l\<in>s" and r:"subseq r" and lr:"((f \<circ> r) ---> l) sequentially"
-    using assms(1)[unfolded seq_compact_def, THEN spec[where x=f]] by auto
-
-  obtain b where "l\<in>b" "b\<in>t" using assms(2) and l by auto
-  then obtain e where "e>0" and e:"\<forall>z. dist z l < e \<longrightarrow> z\<in>b"
-    using assms(3)[THEN bspec[where x=b]] unfolding open_dist by auto
-
-  then obtain N1 where N1:"\<forall>n\<ge>N1. dist ((f \<circ> r) n) l < e / 2"
-    using lr[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] by auto
-
-  obtain N2::nat where N2:"N2>0" "inverse (real N2) < e /2" using real_arch_inv[of "e/2"] and `e>0` by auto
-  have N2':"inverse (real (r (N1 + N2) +1 )) < e/2"
-    apply(rule order_less_trans) apply(rule less_imp_inverse_less) using N2
-    using seq_suble[OF r, of "N1 + N2"] by auto
-
-  def x \<equiv> "(f (r (N1 + N2)))"
-  have x:"\<not> ball x (inverse (real (r (N1 + N2) + 1))) \<subseteq> b" unfolding x_def
-    using f[THEN spec[where x="r (N1 + N2)"]] using `b\<in>t` by auto
-  have "\<exists>y\<in>ball x (inverse (real (r (N1 + N2) + 1))). y\<notin>b" apply(rule ccontr) using x by auto
-  then obtain y where y:"y \<in> ball x (inverse (real (r (N1 + N2) + 1)))" "y \<notin> b" by auto
-
-  have "dist x l < e/2" using N1 unfolding x_def o_def by auto
-  hence "dist y l < e" using y N2' using dist_triangle[of y l x]by (auto simp add:dist_commute)
-
-  thus False using e and `y\<notin>b` by auto
-qed
-
 lemma seq_compact_imp_heine_borel:
   fixes s :: "'a :: metric_space set"
-  shows "seq_compact s \<Longrightarrow> compact s"
-  unfolding compact_eq_heine_borel
-proof clarify
-  fix f assume "seq_compact s" " \<forall>t\<in>f. open t" "s \<subseteq> \<Union>f"
-  then obtain e::real where "e>0" and "\<forall>x\<in>s. \<exists>b\<in>f. ball x e \<subseteq> b" using heine_borel_lemma[of s f] by auto
-  hence "\<forall>x\<in>s. \<exists>b. b\<in>f \<and> ball x e \<subseteq> b" by auto
-  hence "\<exists>bb. \<forall>x\<in>s. bb x \<in>f \<and> ball x e \<subseteq> bb x" using bchoice[of s "\<lambda>x b. b\<in>f \<and> ball x e \<subseteq> b"] by auto
-  then obtain  bb where bb:"\<forall>x\<in>s. (bb x) \<in> f \<and> ball x e \<subseteq> (bb x)" by blast
-
-  from `seq_compact s` have  "\<exists> k. finite k \<and> k \<subseteq> s \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k"
-    using seq_compact_imp_totally_bounded[of s] `e>0` by auto
-  then obtain k where k:"finite k" "k \<subseteq> s" "s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" by auto
-
-  have "finite (bb ` k)" using k(1) by auto
-  moreover
-  { fix x assume "x\<in>s"
-    hence "x\<in>\<Union>(\<lambda>x. ball x e) ` k" using k(3)  unfolding subset_eq by auto
-    hence "\<exists>X\<in>bb ` k. x \<in> X" using bb k(2) by blast
-    hence "x \<in> \<Union>(bb ` k)" using  Union_iff[of x "bb ` k"] by auto
-  }
-  ultimately show "\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f'" using bb k(2) by (rule_tac x="bb ` k" in exI) auto
+  assumes "seq_compact s" shows "compact s"
+proof -
+  from seq_compact_imp_totally_bounded[OF `seq_compact s`]
+  guess f unfolding choice_iff' .. note f = this
+  def K \<equiv> "(\<lambda>(x, r). ball x r) ` ((\<Union>e \<in> \<rat> \<inter> {0 <..}. f e) \<times> \<rat>)"
+  have "countably_compact s"
+    using `seq_compact s` by (rule seq_compact_imp_countably_compact)
+  then show "compact s"
+  proof (rule countably_compact_imp_compact)
+    show "countable K"
+      unfolding K_def using f
+      by (auto intro: countable_finite countable_subset countable_rat
+               intro!: countable_image countable_SIGMA countable_UN)
+    show "\<forall>b\<in>K. open b" by (auto simp: K_def)
+  next
+    fix T x assume T: "open T" "x \<in> T" and x: "x \<in> s"
+    from openE[OF T] obtain e where "0 < e" "ball x e \<subseteq> T" by auto
+    then have "0 < e / 2" "ball x (e / 2) \<subseteq> T" by auto
+    from Rats_dense_in_real[OF `0 < e / 2`] obtain r where "r \<in> \<rat>" "0 < r" "r < e / 2" by auto
+    from f[rule_format, of r] `0 < r` `x \<in> s` obtain k where "k \<in> f r" "x \<in> ball k r"
+      unfolding Union_image_eq by auto
+    from `r \<in> \<rat>` `0 < r` `k \<in> f r` have "ball k r \<in> K" by (auto simp: K_def)
+    then show "\<exists>b\<in>K. x \<in> b \<and> b \<inter> s \<subseteq> T"
+    proof (rule bexI[rotated], safe)
+      fix y assume "y \<in> ball k r"
+      with `r < e / 2` `x \<in> ball k r` have "dist x y < e"
+        by (intro dist_double[where x = k and d=e]) (auto simp: dist_commute)
+      with `ball x e \<subseteq> T` show "y \<in> T" by auto
+    qed (rule `x \<in> ball k r`)
+  qed
 qed
 
 lemma compact_eq_seq_compact_metric:
@@ -3095,8 +3147,7 @@ lemma compact_eq_seq_compact_metric:
 
 lemma compact_def:
   "compact (S :: 'a::metric_space set) \<longleftrightarrow>
-   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
-       (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially)) "
+   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow> (\<exists>l\<in>S. \<exists>r. subseq r \<and> (f o r) ----> l))"
   unfolding compact_eq_seq_compact_metric seq_compact_def by auto
 
 text {*
@@ -4879,41 +4930,42 @@ proof-
 qed
 
 text {* Continuity implies uniform continuity on a compact domain. *}
-
+  
 lemma compact_uniformly_continuous:
-  assumes "continuous_on s f"  "compact s"
+  assumes f: "continuous_on s f" and s: "compact s"
   shows "uniformly_continuous_on s f"
-proof-
-    { fix x assume x:"x\<in>s"
-      hence "\<forall>xa. \<exists>y. 0 < xa \<longrightarrow> (y > 0 \<and> (\<forall>x'\<in>s. dist x' x < y \<longrightarrow> dist (f x') (f x) < xa))" using assms(1)[unfolded continuous_on_iff, THEN bspec[where x=x]] by auto
-      hence "\<exists>fa. \<forall>xa>0. \<forall>x'\<in>s. fa xa > 0 \<and> (dist x' x < fa xa \<longrightarrow> dist (f x') (f x) < xa)" using choice[of "\<lambda>e d. e>0 \<longrightarrow> d>0 \<and>(\<forall>x'\<in>s. (dist x' x < d \<longrightarrow> dist (f x') (f x) < e))"] by auto  }
-    then have "\<forall>x\<in>s. \<exists>y. \<forall>xa. 0 < xa \<longrightarrow> (\<forall>x'\<in>s. y xa > 0 \<and> (dist x' x < y xa \<longrightarrow> dist (f x') (f x) < xa))" by auto
-    then obtain d where d:"\<forall>e>0. \<forall>x\<in>s. \<forall>x'\<in>s. d x e > 0 \<and> (dist x' x < d x e \<longrightarrow> dist (f x') (f x) < e)"
-      using bchoice[of s "\<lambda>x fa. \<forall>xa>0. \<forall>x'\<in>s. fa xa > 0 \<and> (dist x' x < fa xa \<longrightarrow> dist (f x') (f x) < xa)"] by blast
-
-  { fix e::real assume "e>0"
-
-    { fix x assume "x\<in>s" hence "x \<in> ball x (d x (e / 2))" unfolding centre_in_ball using d[THEN spec[where x="e/2"]] using `e>0` by auto  }
-    hence "s \<subseteq> \<Union>{ball x (d x (e / 2)) |x. x \<in> s}" unfolding subset_eq by auto
-    moreover
-    { fix b assume "b\<in>{ball x (d x (e / 2)) |x. x \<in> s}" hence "open b" by auto  }
-    ultimately obtain ea where "ea>0" and ea:"\<forall>x\<in>s. \<exists>b\<in>{ball x (d x (e / 2)) |x. x \<in> s}. ball x ea \<subseteq> b"
-      using heine_borel_lemma[OF assms(2)[unfolded compact_eq_seq_compact_metric], of "{ball x (d x (e / 2)) | x. x\<in>s }"] by auto
-
-    { fix x y assume "x\<in>s" "y\<in>s" and as:"dist y x < ea"
-      obtain z where "z\<in>s" and z:"ball x ea \<subseteq> ball z (d z (e / 2))" using ea[THEN bspec[where x=x]] and `x\<in>s` by auto
-      hence "x\<in>ball z (d z (e / 2))" using `ea>0` unfolding subset_eq by auto
-      hence "dist (f z) (f x) < e / 2" using d[THEN spec[where x="e/2"]] and `e>0` and `x\<in>s` and `z\<in>s`
-        by (auto  simp add: dist_commute)
-      moreover have "y\<in>ball z (d z (e / 2))" using as and `ea>0` and z[unfolded subset_eq]
-        by (auto simp add: dist_commute)
-      hence "dist (f z) (f y) < e / 2" using d[THEN spec[where x="e/2"]] and `e>0` and `y\<in>s` and `z\<in>s`
-        by (auto  simp add: dist_commute)
-      ultimately have "dist (f y) (f x) < e" using dist_triangle_half_r[of "f z" "f x" e "f y"]
-        by (auto simp add: dist_commute)  }
-    then have "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e" using `ea>0` by auto  }
-  thus ?thesis unfolding uniformly_continuous_on_def by auto
-qed
+  unfolding uniformly_continuous_on_def
+proof (cases, safe)
+  fix e :: real assume "0 < e" "s \<noteq> {}"
+  def [simp]: R \<equiv> "{(y, d). y \<in> s \<and> 0 < d \<and> ball y d \<inter> s \<subseteq> {x \<in> s. f x \<in> ball (f y) (e/2) } }"
+  let ?C = "(\<lambda>(y, d). ball y (d/2)) ` R"
+  have "(\<forall>r\<in>?C. open r) \<and> s \<subseteq> \<Union>?C"
+  proof safe
+    fix y assume "y \<in> s"
+    from continuous_open_in_preimage[OF f open_ball]
+    obtain T where "open T" and T: "{x \<in> s. f x \<in> ball (f y) (e/2)} = T \<inter> s"
+      unfolding openin_subtopology open_openin by metis
+    then obtain d where "ball y d \<subseteq> T" "0 < d"
+      using `0 < e` `y \<in> s` by (auto elim!: openE)
+    with T `y \<in> s` show "y \<in> \<Union>(\<lambda>(y, d). ball y (d/2)) ` R"
+      by (intro UnionI[where X="ball y (d/2)"]) auto
+  qed auto
+  then obtain D where D: "finite D" "D \<subseteq> R" "s \<subseteq> (\<Union>(y, d)\<in>D. ball y (d/2))"
+    by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s] s Union_image_eq)
+  with `s \<noteq> {}` have [simp]: "\<And>x. x < Min (snd ` D) \<longleftrightarrow> (\<forall>(y, d)\<in>D. x < d)"
+    by (subst Min_gr_iff) auto
+  show "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e"
+  proof (rule, safe)
+    fix x x' assume in_s: "x' \<in> s" "x \<in> s"
+    with D obtain y d where x: "x \<in> ball y (d/2)" "(y, d) \<in> D"
+      by blast
+    moreover assume "dist x x' < Min (snd`D) / 2"
+    ultimately have "dist y x' < d"
+      by (intro dist_double[where x=x and d=d]) (auto simp: dist_commute)
+    with D x in_s show  "dist (f x) (f x') < e"
+      by (intro dist_double[where x="f y" and d=e]) (auto simp: dist_commute subset_eq)
+  qed (insert D, auto)
+qed auto
 
 text{* Continuity of inverse function on compact domain. *}
 
