@@ -89,7 +89,8 @@ proof (safe)
       case True
       show ?thesis
         apply (rule assms[OF Suc(1)[OF True]])
-        using `?r` apply auto
+        using `?r`
+        apply auto
         done
     next
       case False
@@ -241,7 +242,8 @@ proof (rule ccontr, unfold ex_in_conv[THEN sym])
           thus ?thesis
             apply (rule_tac x=i in bexI, rule_tac x=x in exI, rule_tac x="min d e" in exI)
             unfolding ab
-            using interval_open_subset_closed[of a b] and e apply fastforce+
+            using interval_open_subset_closed[of a b] and e
+            apply fastforce+
             done
         next
           case False
@@ -285,8 +287,10 @@ proof (rule ccontr, unfold ex_in_conv[THEN sym])
                 done
               also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2"
                 apply (rule add_strict_left_mono)
-                using as unfolding mem_ball dist_norm
-                using e apply (auto simp add: field_simps)
+                using as
+                unfolding mem_ball dist_norm
+                using e
+                apply (auto simp add: field_simps)
                 done
               finally show "y\<in>ball x e"
                 unfolding mem_ball dist_norm using e by (auto simp add:field_simps)
@@ -415,7 +419,8 @@ lemma content_closed_interval':
   assumes "{a..b}\<noteq>{}"
   shows "content {a..b} = (\<Prod>i\<in>Basis. b\<bullet>i - a\<bullet>i)"
   apply (rule content_closed_interval)
-  using assms unfolding interval_ne_empty
+  using assms
+  unfolding interval_ne_empty
   apply assumption
   done
 
@@ -533,10 +538,10 @@ next
     unfolding content_def
     unfolding interval_bounds[OF ab_ne] interval_bounds[OF cd_ne]
     unfolding if_not_P[OF False] if_not_P[OF `{c..d} \<noteq> {}`]
-    apply(rule setprod_mono,rule)
+    apply (rule setprod_mono, rule)
   proof
     fix i :: 'a
-    assume i:"i\<in>Basis"
+    assume i: "i\<in>Basis"
     show "0 \<le> b \<bullet> i - a \<bullet> i" using ab_ne[THEN bspec, OF i] i by auto
     show "b \<bullet> i - a \<bullet> i \<le> d \<bullet> i - c \<bullet> i"
       using assms[unfolded subset_eq mem_interval,rule_format,OF ab_ab(2),of i]
@@ -620,7 +625,10 @@ proof
     assume "s = {{a}}"
     moreover fix k assume "k\<in>s" 
     ultimately have"\<exists>x y. k = {x..y}"
-      apply (rule_tac x=a in exI)+ unfolding interval_sing by auto
+      apply (rule_tac x=a in exI)+
+      unfolding interval_sing
+      apply auto
+      done
   }
   ultimately show ?l unfolding division_of_def interval_sing by auto
 next
@@ -671,9 +679,9 @@ lemma division_of_content_0:
   assumes "content {a..b} = 0" "d division_of {a..b}"
   shows "\<forall>k\<in>d. content k = 0"
   unfolding forall_in_division[OF assms(2)]
-  apply(rule,rule,rule)
-  apply(drule division_ofD(2)[OF assms(2)])
-  apply(drule content_subset) unfolding assms(1)
+  apply (rule,rule,rule)
+  apply (drule division_ofD(2)[OF assms(2)])
+  apply (drule content_subset) unfolding assms(1)
 proof -
   case goal1
   thus ?case using content_pos_le[of a b] by auto
@@ -748,7 +756,9 @@ qed
 lemma elementary_inter:
   assumes "p1 division_of s" "p2 division_of (t::('a::ordered_euclidean_space) set)"
   shows "\<exists>p. p division_of (s \<inter> t)"
-  by (rule, rule division_inter[OF assms])
+  apply rule
+  apply (rule division_inter[OF assms])
+  done
 
 lemma elementary_inters:
   assumes "finite f" "f\<noteq>{}" "\<forall>s\<in>f. \<exists>p. p division_of (s::('a::ordered_euclidean_space) set)"
@@ -775,21 +785,41 @@ qed auto
 
 lemma division_disjoint_union:
   assumes "p1 division_of s1" "p2 division_of s2" "interior s1 \<inter> interior s2 = {}"
-  shows "(p1 \<union> p2) division_of (s1 \<union> s2)" proof(rule division_ofI) 
+  shows "(p1 \<union> p2) division_of (s1 \<union> s2)"
+proof (rule division_ofI)
   note d1 = division_ofD[OF assms(1)] and d2 = division_ofD[OF assms(2)]
   show "finite (p1 \<union> p2)" using d1(1) d2(1) by auto
   show "\<Union>(p1 \<union> p2) = s1 \<union> s2" using d1(6) d2(6) by auto
-  { fix k1 k2 assume as:"k1 \<in> p1 \<union> p2" "k2 \<in> p1 \<union> p2" "k1 \<noteq> k2" moreover let ?g="interior k1 \<inter> interior k2 = {}"
-  { assume as:"k1\<in>p1" "k2\<in>p2" have ?g using interior_mono[OF d1(2)[OF as(1)]] interior_mono[OF d2(2)[OF as(2)]]
-      using assms(3) by blast } moreover
-  { assume as:"k1\<in>p2" "k2\<in>p1" have ?g using interior_mono[OF d1(2)[OF as(2)]] interior_mono[OF d2(2)[OF as(1)]]
-      using assms(3) by blast} ultimately
-  show ?g using d1(5)[OF _ _ as(3)] and d2(5)[OF _ _ as(3)] by auto }
-  fix k assume k:"k \<in> p1 \<union> p2"  show "k \<subseteq> s1 \<union> s2" using k d1(2) d2(2) by auto
-  show "k \<noteq> {}" using k d1(3) d2(3) by auto show "\<exists>a b. k = {a..b}" using k d1(4) d2(4) by auto qed
+  {
+    fix k1 k2
+    assume as: "k1 \<in> p1 \<union> p2" "k2 \<in> p1 \<union> p2" "k1 \<noteq> k2"
+    moreover
+    let ?g="interior k1 \<inter> interior k2 = {}"
+    {
+      assume as: "k1\<in>p1" "k2\<in>p2"
+      have ?g
+        using interior_mono[OF d1(2)[OF as(1)]] interior_mono[OF d2(2)[OF as(2)]]
+        using assms(3) by blast
+    }
+    moreover
+    {
+      assume as: "k1\<in>p2" "k2\<in>p1"
+      have ?g
+        using interior_mono[OF d1(2)[OF as(2)]] interior_mono[OF d2(2)[OF as(1)]]
+        using assms(3) by blast
+    }
+    ultimately show ?g using d1(5)[OF _ _ as(3)] and d2(5)[OF _ _ as(3)] by auto
+  }
+  fix k
+  assume k: "k \<in> p1 \<union> p2"
+  show "k \<subseteq> s1 \<union> s2" using k d1(2) d2(2) by auto
+  show "k \<noteq> {}" using k d1(3) d2(3) by auto
+  show "\<exists>a b. k = {a..b}" using k d1(4) d2(4) by auto
+qed
 
 lemma partial_division_extend_1:
-  assumes incl: "{c..d} \<subseteq> {a..b::'a::ordered_euclidean_space}" and nonempty: "{c..d} \<noteq> {}"
+  assumes incl: "{c..d} \<subseteq> {a..b::'a::ordered_euclidean_space}"
+    and nonempty: "{c..d} \<noteq> {}"
   obtains p where "p division_of {a..b}" "{c..d} \<in> p"
 proof
   let ?B = "\<lambda>f::'a\<Rightarrow>'a \<times> 'a. {(\<Sum>i\<in>Basis. (fst (f i) \<bullet> i) *\<^sub>R i) .. (\<Sum>i\<in>Basis. (snd (f i) \<bullet> i) *\<^sub>R i)}"
@@ -800,52 +830,61 @@ proof
     by (auto simp add: interval_eq_empty eucl_le[where 'a='a]
              intro!: image_eqI[where x="\<lambda>(i::'a)\<in>Basis. (c, d)"])
 
-  {  fix i :: 'a assume "i \<in> Basis"
+  {
+    fix i :: 'a
+    assume "i \<in> Basis"
     with incl nonempty have "a \<bullet> i \<le> c \<bullet> i" "c \<bullet> i \<le> d \<bullet> i" "d \<bullet> i \<le> b \<bullet> i"
-      unfolding interval_eq_empty subset_interval by (auto simp: not_le) }
+      unfolding interval_eq_empty subset_interval by (auto simp: not_le)
+  }
   note ord = this
 
   show "p division_of {a..b}"
   proof (rule division_ofI)
-    show "finite p"
-      unfolding p_def by (auto intro!: finite_PiE)
-    { fix k assume "k \<in> p"
+    show "finite p" unfolding p_def by (auto intro!: finite_PiE)
+    {
+      fix k
+      assume "k \<in> p"
       then obtain f where f: "f \<in> Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)}" and k: "k = ?B f"
         by (auto simp: p_def)
       then show "\<exists>a b. k = {a..b}" by auto
       have "k \<subseteq> {a..b} \<and> k \<noteq> {}"
       proof (simp add: k interval_eq_empty subset_interval not_less, safe)
         fix i :: 'a assume i: "i \<in> Basis"
-        moreover with f have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
+        moreover
+        with f have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
           by (auto simp: PiE_iff)
         moreover note ord[of i]
-        ultimately show "a \<bullet> i \<le> fst (f i) \<bullet> i" "snd (f i) \<bullet> i \<le> b \<bullet> i" "fst (f i) \<bullet> i \<le> snd (f i) \<bullet> i"
+        ultimately
+        show "a \<bullet> i \<le> fst (f i) \<bullet> i" "snd (f i) \<bullet> i \<le> b \<bullet> i" "fst (f i) \<bullet> i \<le> snd (f i) \<bullet> i"
           by (auto simp: subset_iff eucl_le[where 'a='a])
       qed
       then show "k \<noteq> {}" "k \<subseteq> {a .. b}" by auto
-      { 
-      fix l assume "l \<in> p"
-      then obtain g where g: "g \<in> Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)}" and l: "l = ?B g"
-        by (auto simp: p_def)
-      assume "l \<noteq> k"
-      have "\<exists>i\<in>Basis. f i \<noteq> g i"
-      proof (rule ccontr)
-        assume "\<not> (\<exists>i\<in>Basis. f i \<noteq> g i)"
-        with f g have "f = g"
-          by (auto simp: PiE_iff extensional_def intro!: ext)
-        with `l \<noteq> k` show False
-          by (simp add: l k)
-      qed
-      then guess i ..
-      moreover then have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
-          "g i = (a, c) \<or> g i = (c, d) \<or> g i = (d, b)"
-        using f g by (auto simp: PiE_iff)
-      moreover note ord[of i]
-      ultimately show "interior l \<inter> interior k = {}"
-        by (auto simp add: l k interior_closed_interval disjoint_interval intro!: bexI[of _ i]) }
-      note `k \<subseteq> { a.. b}` }
+      {
+        fix l assume "l \<in> p"
+        then obtain g where g: "g \<in> Basis \<rightarrow>\<^isub>E {(a, c), (c, d), (d, b)}" and l: "l = ?B g"
+          by (auto simp: p_def)
+        assume "l \<noteq> k"
+        have "\<exists>i\<in>Basis. f i \<noteq> g i"
+        proof (rule ccontr)
+          assume "\<not> (\<exists>i\<in>Basis. f i \<noteq> g i)"
+          with f g have "f = g"
+            by (auto simp: PiE_iff extensional_def intro!: ext)
+          with `l \<noteq> k` show False
+            by (simp add: l k)
+        qed
+        then guess i .. note * = this
+        moreover from * have "f i = (a, c) \<or> f i = (c, d) \<or> f i = (d, b)"
+            "g i = (a, c) \<or> g i = (c, d) \<or> g i = (d, b)"
+          using f g by (auto simp: PiE_iff)
+        moreover note ord[of i]
+        ultimately show "interior l \<inter> interior k = {}"
+          by (auto simp add: l k interior_closed_interval disjoint_interval intro!: bexI[of _ i])
+      }
+      note `k \<subseteq> { a.. b}`
+    }
     moreover
-    { fix x assume x: "x \<in> {a .. b}"
+    {
+      fix x assume x: "x \<in> {a .. b}"
       have "\<forall>i\<in>Basis. \<exists>l. x \<bullet> i \<in> {fst l \<bullet> i .. snd l \<bullet> i} \<and> l \<in> {(a, c), (c, d), (d, b)}"
       proof
         fix i :: 'a assume "i \<in> Basis"
@@ -868,61 +907,164 @@ proof
   qed
 qed
 
-lemma partial_division_extend_interval: assumes "p division_of (\<Union>p)" "(\<Union>p) \<subseteq> {a..b}"
-  obtains q where "p \<subseteq> q" "q division_of {a..b::'a::ordered_euclidean_space}" proof(cases "p = {}")
-  case True guess q apply(rule elementary_interval[of a b]) .
-  thus ?thesis apply- apply(rule that[of q]) unfolding True by auto next
-  case False note p = division_ofD[OF assms(1)]
-  have *:"\<forall>k\<in>p. \<exists>q. q division_of {a..b} \<and> k\<in>q" proof case goal1
-    guess c using p(4)[OF goal1] .. then guess d .. note "cd" = this
-    have *:"{c..d} \<subseteq> {a..b}" "{c..d} \<noteq> {}" using p(2,3)[OF goal1, unfolded "cd"] using assms(2) by auto
-    guess q apply(rule partial_division_extend_1[OF *]) . thus ?case unfolding "cd" by auto qed
+lemma partial_division_extend_interval:
+  assumes "p division_of (\<Union>p)" "(\<Union>p) \<subseteq> {a..b}"
+  obtains q where "p \<subseteq> q" "q division_of {a..b::'a::ordered_euclidean_space}"
+proof (cases "p = {}")
+  case True
+  guess q apply (rule elementary_interval[of a b]) .
+  thus ?thesis
+    apply -
+    apply (rule that[of q])
+    unfolding True
+    apply auto
+    done
+next
+  case False
+  note p = division_ofD[OF assms(1)]
+  have *: "\<forall>k\<in>p. \<exists>q. q division_of {a..b} \<and> k\<in>q"
+  proof
+    case goal1
+    guess c using p(4)[OF goal1] ..
+    then guess d .. note "cd" = this
+    have *: "{c..d} \<subseteq> {a..b}" "{c..d} \<noteq> {}"
+      using p(2,3)[OF goal1, unfolded "cd"] using assms(2) by auto
+    guess q apply(rule partial_division_extend_1[OF *]) .
+    thus ?case unfolding "cd" by auto
+  qed
   guess q using bchoice[OF *] .. note q = conjunctD2[OF this[rule_format]]
-  have "\<And>x. x\<in>p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})" apply(rule,rule_tac p="q x" in division_of_subset) proof-
-    fix x assume x:"x\<in>p" show "q x division_of \<Union>q x" apply-apply(rule division_ofI)
-      using division_ofD[OF q(1)[OF x]] by auto show "q x - {x} \<subseteq> q x" by auto qed
-  hence "\<exists>d. d division_of \<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)" apply- apply(rule elementary_inters)
-    apply(rule finite_imageI[OF p(1)]) unfolding image_is_empty apply(rule False) by auto
+  have "\<And>x. x\<in>p \<Longrightarrow> \<exists>d. d division_of \<Union>(q x - {x})"
+    apply (rule, rule_tac p="q x" in division_of_subset)
+  proof -
+    fix x
+    assume x: "x\<in>p"
+    show "q x division_of \<Union>q x"
+      apply -
+      apply (rule division_ofI)
+      using division_ofD[OF q(1)[OF x]]
+      apply auto
+      done
+    show "q x - {x} \<subseteq> q x" by auto
+  qed
+  hence "\<exists>d. d division_of \<Inter> ((\<lambda>i. \<Union>(q i - {i})) ` p)"
+    apply -
+    apply (rule elementary_inters)
+    apply (rule finite_imageI[OF p(1)])
+    unfolding image_is_empty
+    apply (rule False)
+    apply auto
+    done
   then guess d .. note d = this
-  show ?thesis apply(rule that[of "d \<union> p"]) proof-
-    have *:"\<And>s f t. s \<noteq> {} \<Longrightarrow> (\<forall>i\<in>s. f i \<union> i = t) \<Longrightarrow> t = \<Inter> (f ` s) \<union> (\<Union>s)" by auto
-    have *:"{a..b} = \<Inter> (\<lambda>i. \<Union>(q i - {i})) ` p \<union> \<Union>p" apply(rule *[OF False]) proof fix i assume i:"i\<in>p"
-      show "\<Union>(q i - {i}) \<union> i = {a..b}" using division_ofD(6)[OF q(1)[OF i]] using q(2)[OF i] by auto qed
-    show "d \<union> p division_of {a..b}" unfolding * apply(rule division_disjoint_union[OF d assms(1)])
-      apply(rule inter_interior_unions_intervals) apply(rule p open_interior ballI)+ proof(assumption,rule)
-      fix k assume k:"k\<in>p" have *:"\<And>u t s. u \<subseteq> s \<Longrightarrow> s \<inter> t = {} \<Longrightarrow> u \<inter> t = {}" by auto
-      show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<inter> interior k = {}" apply(rule *[of _ "interior (\<Union>(q k - {k}))"])
-        defer apply(subst Int_commute) apply(rule inter_interior_unions_intervals) proof- note qk=division_ofD[OF q(1)[OF k]]
-        show "finite (q k - {k})" "open (interior k)"  "\<forall>t\<in>q k - {k}. \<exists>a b. t = {a..b}" using qk by auto
-        show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}" using qk(5) using q(2)[OF k] by auto
-        have *:"\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x" by auto show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<subseteq> interior (\<Union>(q k - {k}))"
-          apply(rule interior_mono *)+ using k by auto qed qed qed auto qed
+  show ?thesis
+    apply (rule that[of "d \<union> p"])
+  proof -
+    have *: "\<And>s f t. s \<noteq> {} \<Longrightarrow> (\<forall>i\<in>s. f i \<union> i = t) \<Longrightarrow> t = \<Inter> (f ` s) \<union> (\<Union>s)" by auto
+    have *: "{a..b} = \<Inter> (\<lambda>i. \<Union>(q i - {i})) ` p \<union> \<Union>p"
+      apply (rule *[OF False])
+    proof
+      fix i
+      assume i: "i\<in>p"
+      show "\<Union>(q i - {i}) \<union> i = {a..b}"
+        using division_ofD(6)[OF q(1)[OF i]] using q(2)[OF i] by auto
+    qed
+    show "d \<union> p division_of {a..b}"
+      unfolding *
+      apply (rule division_disjoint_union[OF d assms(1)])
+      apply (rule inter_interior_unions_intervals)
+      apply (rule p open_interior ballI)+
+    proof (assumption, rule)
+      fix k
+      assume k: "k\<in>p"
+      have *: "\<And>u t s. u \<subseteq> s \<Longrightarrow> s \<inter> t = {} \<Longrightarrow> u \<inter> t = {}" by auto
+      show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<inter> interior k = {}"
+        apply (rule *[of _ "interior (\<Union>(q k - {k}))"])
+        defer
+        apply (subst Int_commute)
+        apply (rule inter_interior_unions_intervals)
+      proof -
+        note qk=division_ofD[OF q(1)[OF k]]
+        show "finite (q k - {k})" "open (interior k)"
+          "\<forall>t\<in>q k - {k}. \<exists>a b. t = {a..b}" using qk by auto
+        show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}"
+          using qk(5) using q(2)[OF k] by auto
+        have *: "\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x" by auto
+        show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<subseteq> interior (\<Union>(q k - {k}))"
+          apply (rule interior_mono *)+
+          using k by auto
+      qed
+    qed
+  qed auto
+qed
 
 lemma elementary_bounded[dest]: "p division_of s \<Longrightarrow> bounded (s::('a::ordered_euclidean_space) set)"
   unfolding division_of_def by(metis bounded_Union bounded_interval) 
 
 lemma elementary_subset_interval: "p division_of s \<Longrightarrow> \<exists>a b. s \<subseteq> {a..b::'a::ordered_euclidean_space}"
-  by(meson elementary_bounded bounded_subset_closed_interval)
+  by (meson elementary_bounded bounded_subset_closed_interval)
 
-lemma division_union_intervals_exists: assumes "{a..b::'a::ordered_euclidean_space} \<noteq> {}"
-  obtains p where "(insert {a..b} p) division_of ({a..b} \<union> {c..d})" proof(cases "{c..d} = {}")
-  case True show ?thesis apply(rule that[of "{}"]) unfolding True using assms by auto next
-  case False note false=this show ?thesis proof(cases "{a..b} \<inter> {c..d} = {}")
-  have *:"\<And>a b. {a,b} = {a} \<union> {b}" by auto
-  case True show ?thesis apply(rule that[of "{{c..d}}"]) unfolding * apply(rule division_disjoint_union)
-    using false True assms using interior_subset by auto next
-  case False obtain u v where uv:"{a..b} \<inter> {c..d} = {u..v}" unfolding inter_interval by auto
-  have *:"{u..v} \<subseteq> {c..d}" using uv by auto
-  guess p apply(rule partial_division_extend_1[OF * False[unfolded uv]]) . note p=this division_ofD[OF this(1)]
-  have *:"{a..b} \<union> {c..d} = {a..b} \<union> \<Union>(p - {{u..v}})" "\<And>x s. insert x s = {x} \<union> s" using p(8) unfolding uv[THEN sym] by auto
-  show thesis apply(rule that[of "p - {{u..v}}"]) unfolding *(1) apply(subst *(2)) apply(rule division_disjoint_union)
-    apply(rule,rule assms) apply(rule division_of_subset[of p]) apply(rule division_of_union_self[OF p(1)]) defer
-    unfolding interior_inter[THEN sym] proof-
-    have *:"\<And>cd p uv ab. p \<subseteq> cd \<Longrightarrow> ab \<inter> cd = uv \<Longrightarrow> ab \<inter> p = uv \<inter> p" by auto
-    have "interior ({a..b} \<inter> \<Union>(p - {{u..v}})) = interior({u..v} \<inter> \<Union>(p - {{u..v}}))" 
-      apply(rule arg_cong[of _ _ interior]) apply(rule *[OF _ uv]) using p(8) by auto
-    also have "\<dots> = {}" unfolding interior_inter apply(rule inter_interior_unions_intervals) using p(6) p(7)[OF p(2)] p(3) by auto
-    finally show "interior ({a..b} \<inter> \<Union>(p - {{u..v}})) = {}" by assumption qed auto qed qed
+lemma division_union_intervals_exists:
+  assumes "{a..b::'a::ordered_euclidean_space} \<noteq> {}"
+  obtains p where "(insert {a..b} p) division_of ({a..b} \<union> {c..d})"
+proof (cases "{c..d} = {}")
+  case True
+  show ?thesis
+    apply (rule that[of "{}"])
+    unfolding True
+    using assms
+    apply auto
+    done
+next
+  case False
+  note false=this
+  show ?thesis
+  proof (cases "{a..b} \<inter> {c..d} = {}")
+    case True
+    have *:"\<And>a b. {a,b} = {a} \<union> {b}" by auto
+    show ?thesis
+      apply (rule that[of "{{c..d}}"])
+      unfolding *
+      apply (rule division_disjoint_union)
+      using false True assms
+      using interior_subset
+      apply auto
+      done
+  next
+    case False
+    obtain u v where uv: "{a..b} \<inter> {c..d} = {u..v}"
+      unfolding inter_interval by auto
+    have *: "{u..v} \<subseteq> {c..d}" using uv by auto
+    guess p apply (rule partial_division_extend_1[OF * False[unfolded uv]]) .
+    note p=this division_ofD[OF this(1)]
+    have *: "{a..b} \<union> {c..d} = {a..b} \<union> \<Union>(p - {{u..v}})" "\<And>x s. insert x s = {x} \<union> s"
+      using p(8) unfolding uv[THEN sym] by auto
+    show ?thesis
+      apply (rule that[of "p - {{u..v}}"])
+      unfolding *(1)
+      apply (subst *(2))
+      apply (rule division_disjoint_union)
+      apply (rule, rule assms)
+      apply (rule division_of_subset[of p])
+      apply (rule division_of_union_self[OF p(1)])
+      defer
+      unfolding interior_inter[THEN sym]
+    proof -
+      have *: "\<And>cd p uv ab. p \<subseteq> cd \<Longrightarrow> ab \<inter> cd = uv \<Longrightarrow> ab \<inter> p = uv \<inter> p" by auto
+      have "interior ({a..b} \<inter> \<Union>(p - {{u..v}})) = interior({u..v} \<inter> \<Union>(p - {{u..v}}))" 
+        apply (rule arg_cong[of _ _ interior])
+        apply (rule *[OF _ uv])
+        using p(8)
+        apply auto
+        done
+      also have "\<dots> = {}"
+        unfolding interior_inter
+        apply (rule inter_interior_unions_intervals)
+        using p(6) p(7)[OF p(2)] p(3)
+        apply auto
+        done
+      finally show "interior ({a..b} \<inter> \<Union>(p - {{u..v}})) = {}" .
+    qed auto
+  qed
+qed
 
 lemma division_of_unions: assumes "finite f"  "\<And>p. p\<in>f \<Longrightarrow> p division_of (\<Union>p)"
   "\<And>k1 k2. \<lbrakk>k1 \<in> \<Union>f; k2 \<in> \<Union>f; k1 \<noteq> k2\<rbrakk> \<Longrightarrow> interior k1 \<inter> interior k2 = {}"
