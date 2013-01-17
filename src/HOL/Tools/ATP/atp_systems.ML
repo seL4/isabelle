@@ -41,6 +41,13 @@ sig
   val e_default_sym_offs_weight : real Config.T
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
+  val spass_H1SOS : string
+  val spass_H2 : string
+  val spass_H2LR0LT0 : string
+  val spass_H2NuVS0 : string
+  val spass_H2NuVS0Red2 : string
+  val spass_H2SOS : string
+  val spass_extra_options : string Config.T
   val alt_ergoN : string
   val dummy_thfN : string
   val eN : string
@@ -465,6 +472,9 @@ val spass_H2NuVS0 = "-Heuristic=2 -RNuV=1 -Sorts=0"
 val spass_H2NuVS0Red2 = "-Heuristic=2 -RNuV=1 -Sorts=0 -RFRew=2 -RBRew=2 -RTaut=2"
 val spass_H2SOS = "-Heuristic=2 -SOS"
 
+val spass_extra_options =
+  Attrib.setup_config_string @{binding atp_spass_extra_options} (K "")
+
 (* FIXME: Make "SPASS_NEW_HOME" legacy. *)
 val spass_config : atp_config =
   {exec = (["SPASS_NEW_HOME", "SPASS_HOME"], ["SPASS"]),
@@ -485,7 +495,7 @@ val spass_config : atp_config =
       (InternalError, "Please report this error")] @
       known_perl_failures,
    prem_role = Conjecture,
-   best_slices = fn _ =>
+   best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.1667, ((150, DFG Monomorphic, "mono_native", combsN, true), "")),
       (0.1667, ((500, DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
@@ -494,7 +504,10 @@ val spass_config : atp_config =
       (0.1000, ((1000, DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
       (0.1000, ((150, DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
       (0.1000, ((300, DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
-      (0.1000, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))],
+      (0.1000, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))]
+     |> (case Config.get ctxt spass_extra_options of
+           "" => I
+         | opts => map (apsnd (apsnd (K opts)))),
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
