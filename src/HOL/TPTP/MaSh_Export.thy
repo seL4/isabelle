@@ -31,7 +31,7 @@ val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
 val range = (1, NONE)
 val step = 1
-val max_suggestions = 1536
+val max_suggestions = 1024
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
 *}

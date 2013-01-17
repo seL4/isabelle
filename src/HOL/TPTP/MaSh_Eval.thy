@@ -27,6 +27,7 @@ open MaSh_Eval
 ML {*
 val do_it = false (* switch to "true" to generate the files *)
 val params = Sledgehammer_Isar.default_params @{context} []
+val range = (1, NONE)
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
 val prob_dir = prefix ^ "mash_problems"
@@ -41,10 +42,15 @@ else
 
 ML {*
 if do_it then
-  evaluate_mash_suggestions @{context} params (1, NONE)
+  evaluate_mash_suggestions @{context} params range
       [MePoN, MaSh_IsarN, MaSh_ProverN, MeSh_IsarN, MeSh_ProverN, IsarN]
-      (SOME prob_dir) (prefix ^ "mash_suggestions")
-      (prefix ^ "mash_prover_suggestions") (prefix ^ "mash_eval")
+      (SOME prob_dir)
+      (prefix ^ "mepo_suggestions")
+      (prefix ^ "mash_suggestions")
+      (prefix ^ "mash_prover_suggestions")
+      (prefix ^ "mesh_suggestions")
+      (prefix ^ "mesh_prover_suggestions")
+      (prefix ^ "mash_eval")
 else
   ()
 *}
