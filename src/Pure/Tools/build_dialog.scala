@@ -120,13 +120,15 @@ object Build_Dialog
     val button = new Button("Cancel") {
       reactions += { case ButtonClicked(_) => button_action() }
     }
-    def button_exit()
-    {
-      check_auto_close()
-      button.text = if (return_code == 0) "OK" else "Exit"
-      button_action = (() => sys.exit(return_code))
-      button.peer.getRootPane.setDefaultButton(button.peer)
-    }
+
+    val delay_button_exit =
+      Swing_Thread.delay_first(Time.seconds(1.0))
+      {
+        check_auto_close()
+        button.text = if (return_code == 0) "OK" else "Exit"
+        button_action = (() => sys.exit(return_code))
+        button.peer.getRootPane.setDefaultButton(button.peer)
+      }
 
 
     val action_panel = new FlowPanel(FlowPanel.Alignment.Center)(button, auto_close)
@@ -157,7 +159,7 @@ object Build_Dialog
       Swing_Thread.now {
         progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
         return_code = rc
-        button_exit()
+        delay_button_exit.invoke()
       }
     })
   }
