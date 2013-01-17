@@ -12,9 +12,9 @@ ML_file "mash_export.ML"
 
 sledgehammer_params
   [provers = spass, max_facts = 32, strict, dont_slice, type_enc = mono_native,
-   lam_trans = combs_and_lifting, timeout = 2, dont_preplay, minimize]
+   lam_trans = lifting, timeout = 2, dont_preplay, minimize]
 
-declare [[sledgehammer_instantiate_inducts]]
+declare [[sledgehammer_instantiate_inducts = false]]
 
 ML {*
 !Multithreading.max_threads
@@ -29,7 +29,7 @@ val do_it = false (* switch to "true" to generate the files *)
 val thys = [@{theory List}]
 val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
-val max_suggestions = 1024
+val max_suggestions = 1536
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
 *}
