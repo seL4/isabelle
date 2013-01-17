@@ -786,12 +786,12 @@ fun run_atp mode name
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
             val full_proof = debug orelse isar_proofs
-            val args = arguments ctxt full_proof extra
-                                 (slice_timeout |> the_default one_day)
-                                 (ord, ord_info, sel_weights)
+            val args =
+              arguments ctxt full_proof extra
+                        (slice_timeout |> the_default one_day)
+                        (File.shell_path prob_path) (ord, ord_info, sel_weights)
             val command =
-              "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^
-              File.shell_path prob_path ^ ")"
+              "(exec 2>&1; " ^ File.shell_path command0 ^ " " ^ args ^ " " ^ ")"
               |> enclose "TIMEFORMAT='%3R'; { time " " ; }"
             val _ =
               atp_problem
