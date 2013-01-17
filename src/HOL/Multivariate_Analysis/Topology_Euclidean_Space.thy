@@ -2414,32 +2414,6 @@ proof -
     by (auto simp: convergent_def comp_def)
 qed
 
-lemma finite_range_imp_infinite_repeats:
-  fixes f :: "nat \<Rightarrow> 'a"
-  assumes "finite (range f)"
-  shows "\<exists>k. infinite {n. f n = k}"
-proof -
-  { fix A :: "'a set" assume "finite A"
-    hence "\<And>f. infinite {n. f n \<in> A} \<Longrightarrow> \<exists>k. infinite {n. f n = k}"
-    proof (induct)
-      case empty thus ?case by simp
-    next
-      case (insert x A)
-     show ?case
-      proof (cases "finite {n. f n = x}")
-        case True
-        with `infinite {n. f n \<in> insert x A}`
-        have "infinite {n. f n \<in> A}" by simp
-        thus "\<exists>k. infinite {n. f n = k}" by (rule insert)
-      next
-        case False thus "\<exists>k. infinite {n. f n = k}" ..
-      qed
-    qed
-  } note H = this
-  from assms show "\<exists>k. infinite {n. f n = k}"
-    by (rule H) simp
-qed
-
 lemma sequence_infinite_lemma:
   fixes f :: "nat \<Rightarrow> 'a::t1_space"
   assumes "\<forall>n. f n \<noteq> l" and "(f ---> l) sequentially"
@@ -2808,37 +2782,60 @@ next
   with `U \<inter> \<Inter>A = {}` show False by auto
 qed
 
-lemma countable_compact:
-  fixes U :: "'a :: second_countable_topology set"
-  shows "compact U \<longleftrightarrow>
+definition "countably_compact U \<longleftrightarrow>
     (\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T))"
-proof (safe intro!: compact_eq_heine_borel[THEN iffD2])
+
+lemma countably_compactE:
+  assumes "countably_compact s" and "\<forall>t\<in>C. open t" and "s \<subseteq> \<Union>C" "countable C"
+  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> \<Union>C'"
+  using assms unfolding countably_compact_def by metis
+
+lemma countably_compactI:
+  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union>C \<Longrightarrow> countable C \<Longrightarrow> (\<exists>C'\<subseteq>C. finite C' \<and> s \<subseteq> \<Union>C')"
+  shows "countably_compact s"
+  using assms unfolding countably_compact_def by metis
+
+lemma compact_imp_countably_compact: "compact U \<Longrightarrow> countably_compact U"
+  by (auto simp: compact_eq_heine_borel countably_compact_def)
+
+lemma countably_compact_imp_compact:
+  assumes "countably_compact U"
+  assumes ccover: "countable B" "\<forall>b\<in>B. open b"
+  assumes basis: "\<And>T x. open T \<Longrightarrow> x \<in> T \<Longrightarrow> x \<in> U \<Longrightarrow> \<exists>b\<in>B. x \<in> b \<and> b \<inter> U \<subseteq> T"
+  shows "compact U"
+  using `countably_compact U` unfolding compact_eq_heine_borel countably_compact_def
+proof safe
   fix A assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A"
   assume *: "\<forall>A. countable A \<longrightarrow> (\<forall>a\<in>A. open a) \<longrightarrow> U \<subseteq> \<Union>A \<longrightarrow> (\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T)"
-  def B \<equiv> "SOME B::'a set set. countable B \<and> topological_basis B"
-  then have B: "countable B" "topological_basis B"
-    by (auto simp: countable_basis is_basis)
 
-  moreover def C \<equiv> "{b\<in>B. \<exists>a\<in>A. b \<subseteq> a}"
+  moreover def C \<equiv> "{b\<in>B. \<exists>a\<in>A. b \<inter> U \<subseteq> a}"
   ultimately have "countable C" "\<forall>a\<in>C. open a"
-    unfolding C_def by (auto simp: topological_basis_open)
+    unfolding C_def using ccover by auto
   moreover
-  have "\<Union>A \<subseteq> \<Union>C"
+  have "\<Union>A \<inter> U \<subseteq> \<Union>C"
   proof safe
-    fix x a assume "x \<in> a" "a \<in> A"
-    with topological_basisE[of B a x] B A
-    obtain b where "x \<in> b" "b \<in> B" "b \<subseteq> a" by metis
-    with `a \<in> A` show "x \<in> \<Union>C" unfolding C_def by auto
+    fix x a assume "x \<in> U" "x \<in> a" "a \<in> A"
+    with basis[of a x] A obtain b where "b \<in> B" "x \<in> b" "b \<inter> U \<subseteq> a" by blast
+    with `a \<in> A` show "x \<in> \<Union>C" unfolding C_def
+      by auto
   qed
   then have "U \<subseteq> \<Union>C" using `U \<subseteq> \<Union>A` by auto
   ultimately obtain T where "T\<subseteq>C" "finite T" "U \<subseteq> \<Union>T"
     using * by metis
-  moreover then have "\<forall>t\<in>T. \<exists>a\<in>A. t \<subseteq> a"
+  moreover then have "\<forall>t\<in>T. \<exists>a\<in>A. t \<inter> U \<subseteq> a"
     by (auto simp: C_def)
   then guess f unfolding bchoice_iff Bex_def ..
   ultimately show "\<exists>T\<subseteq>A. finite T \<and> U \<subseteq> \<Union>T"
     unfolding C_def by (intro exI[of _ "f`T"]) fastforce
-qed (auto simp: compact_eq_heine_borel)
+qed
+
+lemma countably_compact_imp_compact_second_countable:
+  "countably_compact U \<Longrightarrow> compact (U :: 'a :: second_countable_topology set)"
+proof (rule countably_compact_imp_compact)
+  fix T and x :: 'a assume "open T" "x \<in> T"
+  from topological_basisE[OF is_basis this] guess b .
+  then show "\<exists>b\<in>SOME B. countable B \<and> topological_basis B. x \<in> b \<and> b \<inter> U \<subseteq> T" by auto
+qed (insert countable_basis topological_basis_open[OF is_basis], auto)
 
 subsubsection{* Sequential compactness *}
 
@@ -2848,12 +2845,11 @@ definition
    (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially))"
 
-lemma seq_compact_imp_compact:
-  fixes U :: "'a :: second_countable_topology set"
+lemma seq_compact_imp_countably_compact:
+  fixes U :: "'a :: first_countable_topology set"
   assumes "seq_compact U"
-  shows "compact U"
-  unfolding countable_compact
-proof safe
+  shows "countably_compact U"
+proof (safe intro!: countably_compactI)
   fix A assume A: "\<forall>a\<in>A. open a" "U \<subseteq> \<Union>A" "countable A"
   have subseq: "\<And>X. range X \<subseteq> U \<Longrightarrow> \<exists>r x. x \<in> U \<and> subseq r \<and> (X \<circ> r) ----> x"
     using `seq_compact U` by (fastforce simp: seq_compact_def subset_eq)
@@ -2944,7 +2940,8 @@ qed
 lemma seq_compact_eq_compact:
   fixes U :: "'a :: second_countable_topology set"
   shows "seq_compact U \<longleftrightarrow> compact U"
-  using compact_imp_seq_compact seq_compact_imp_compact by blast
+  using compact_imp_seq_compact seq_compact_imp_countably_compact countably_compact_imp_compact_second_countable
+    by blast
 
 lemma seq_compactI:
   assumes "\<And>f. \<forall>n. f n \<in> S \<Longrightarrow> \<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially"
@@ -2962,31 +2959,25 @@ lemma bolzano_weierstrass_imp_seq_compact:
   shows "seq_compact s"
 proof -
   { fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
-    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    have "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
     proof (cases "finite (range f)")
       case True
-      hence "\<exists>l. infinite {n. f n = l}"
-        by (rule finite_range_imp_infinite_repeats)
-      then obtain l where "infinite {n. f n = l}" ..
-      hence "\<exists>r. subseq r \<and> (\<forall>n. r n \<in> {n. f n = l})"
-        by (rule infinite_enumerate)
-      then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = l" by auto
-      hence "subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        unfolding o_def by (simp add: fr tendsto_const)
-      hence "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        by - (rule exI)
-      from f have "\<forall>n. f (r n) \<in> s" by simp
-      hence "l \<in> s" by (simp add: fr)
-      thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-        by (rule rev_bexI) fact
+      obtain l where "infinite {n. f n = f l}"
+        using pigeonhole_infinite[OF _ True] by auto
+      then obtain r where "subseq r" and fr: "\<forall>n. f (r n) = f l"
+        using infinite_enumerate by blast
+      hence "subseq r \<and> (f \<circ> r) ----> f l"
+        by (simp add: fr tendsto_const o_def)
+      with f show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+        by auto
     next
       case False
       with f assms have "\<exists>x\<in>s. x islimpt (range f)" by auto
       then obtain l where "l \<in> s" "l islimpt (range f)" ..
-      have "\<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+      have "\<exists>r. subseq r \<and> (f \<circ> r) ----> l"
         using `l islimpt (range f)`
         by (rule islimpt_range_imp_convergent_subsequence)
-      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" ..
+      with `l \<in> s` show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l" ..
     qed
   }
   thus ?thesis unfolding seq_compact_def by auto
