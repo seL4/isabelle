@@ -17,6 +17,13 @@ imports
   Norm_Arith
 begin
 
+(* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
+lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
+  apply (frule isGlb_isLb)
+  apply (frule_tac x = y in isGlb_isLb)
+  apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
+  done
+
 lemma countable_PiE: 
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
@@ -2320,13 +2327,6 @@ lemma Inf_insert_finite:
   fixes S :: "real set"
   shows "finite S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))"
   by (rule Inf_insert, rule finite_imp_bounded, simp)
-
-(* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
-lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
-  apply (frule isGlb_isLb)
-  apply (frule_tac x = y in isGlb_isLb)
-  apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
-  done
 
 subsection {* Compactness *}
 
