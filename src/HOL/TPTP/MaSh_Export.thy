@@ -105,4 +105,12 @@ else
   ()
 *}
 
+ML {*
+if do_it then
+  generate_mesh_suggestions max_suggestions (prefix ^ "mash_prover_suggestions")
+      (prefix ^ "mepo_suggestions") (prefix ^ "mesh_prover_suggestions")
+else
+  ()
+*}
+
 end
