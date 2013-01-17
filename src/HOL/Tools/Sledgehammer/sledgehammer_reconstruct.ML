@@ -741,7 +741,7 @@ fun isar_proof_text ctxt isar_proofs
         and do_case outer (c, infs) =
           Assume (label_of_clause c, prop_of_clause c) ::
           map (isar_step_of_direct_inf outer) infs
-        val (isar_proof, (preplay_fail, ext_time)) =
+        val (isar_proof, (preplay_fail, preplay_time)) =
           ref_graph
           |> redirect_graph axioms tainted
           |> map (isar_step_of_direct_inf true)
@@ -771,8 +771,8 @@ fun isar_proof_text ctxt isar_proofs
           let
             val msg =
               (if preplay then
-                [if preplay_fail then "may fail"
-                 else string_from_ext_time ext_time]
+                [(if preplay_fail then "may fail, " else "") ^
+                   Sledgehammer_Preplay.string_of_preplay_time preplay_time]
                else
                  []) @
               (if verbose then

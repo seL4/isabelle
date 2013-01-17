@@ -8,9 +8,10 @@ Shrinking of reconstructed isar proofs.
 signature SLEDGEHAMMER_SHRINK =
 sig
   type isar_step = Sledgehammer_Proof.isar_step
+  type preplay_time = Sledgehammer_Preplay.preplay_time
   val shrink_proof :
     bool -> Proof.context -> string -> string -> bool -> Time.time option
-    -> real -> isar_step list -> isar_step list * (bool * (bool * Time.time))
+    -> real -> isar_step list -> isar_step list * (bool * preplay_time)
 end
 
 structure Sledgehammer_Shrink : SLEDGEHAMMER_SHRINK =
@@ -45,10 +46,6 @@ fun pop tab key =
 fun pop_max tab = pop tab (the (Inttab.max_key tab))
 fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
-(* Timing *)
-fun ext_time_add (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
-val no_time = (false, Time.zeroTime)
-
 (* Main function for shrinking proofs *)
 fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                  isar_shrink proof =
@@ -64,9 +61,11 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       fun handle_metis_fail try_metis () =
         try_metis () handle exn =>
           (if Exn.is_interrupt exn orelse debug then reraise exn
-           else metis_fail := true; SOME Time.zeroTime)
+           else metis_fail := true; some_preplay_time)
       fun get_time lazy_time =
-        if !metis_fail then SOME Time.zeroTime else Lazy.force lazy_time
+        if !metis_fail andalso not (Lazy.is_finished lazy_time)
+          then some_preplay_time
+          else Lazy.force lazy_time
       val metis_fail = fn () => !metis_fail
     end
 
@@ -115,10 +114,10 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       (* cache metis preplay times in lazy time vector *)
       val metis_time =
         v_map_index
-          (if not preplay then K (SOME Time.zeroTime) #> Lazy.value
+          (if not preplay then K (zero_preplay_time) #> Lazy.value
            else
-             apsnd the
-             #> apfst (fn i => try (get (i-1) #> the) proof_vect)
+             apsnd the (* step *)
+             #> apfst (fn i => try (get (i-1) #> the) proof_vect) (* succedent *)
              #> try_metis debug type_enc lam_trans ctxt preplay_timeout
              #> handle_metis_fail
              #> Lazy.lazy)
@@ -126,47 +125,46 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
       fun sum_up_time lazy_time_vector =
         Vector.foldl
-          ((fn (SOME t, (b, ts)) => (b, Time.+(t, ts))
-             | (NONE, (_, ts)) => (true, Time.+(ts, preplay_timeout)))
-            o apfst get_time)
-          no_time lazy_time_vector
+          (apfst get_time #> uncurry add_preplay_time)
+          zero_preplay_time lazy_time_vector
 
       (* Merging *)
-      (* TODO: consider adding "Obtain" cases *)
       fun merge (Prove (_, label1, _, By_Metis (lfs1, gfs1))) step2 =
           let
             val (step_constructor, lfs2, gfs2) =
               (case step2 of
                 (Prove (qs2, label2, t, By_Metis (lfs2, gfs2))) =>
                   (fn by => Prove (qs2, label2, t, by), lfs2, gfs2)
-              | (Obtain(qs2, xs, label2, t, By_Metis (lfs2, gfs2))) =>
+              | (Obtain (qs2, xs, label2, t, By_Metis (lfs2, gfs2))) =>
                   (fn by => Obtain (qs2, xs, label2, t, by), lfs2, gfs2)
-              | _ => error "Internal error: unmergeable Isar steps" )
+              | _ => error "sledgehammer_shrink: unmergeable Isar steps" )
             val lfs = remove (op =) label1 lfs2 |> union (op =) lfs1
             val gfs = union (op =) gfs1 gfs2
           in step_constructor (By_Metis (lfs, gfs)) end
-        | merge _ _ = error "Internal error: unmergeable Isar steps"
+        | merge _ _ = error "sledgehammer_shrink: unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
-        (case get i metis_time |> Lazy.force of
-          NONE => (NONE, metis_time)
-        | SOME t1 =>
-          (case get j metis_time |> Lazy.force of
-            NONE => (NONE, metis_time)
-          | SOME t2 =>
-            let
-              val s12 = merge s1 s2
-              val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
-            in
-              case try_metis_quietly debug type_enc lam_trans ctxt timeout
-              (NONE, s12) () of
-                NONE => (NONE, metis_time)
-              | some_t12 =>
-                (SOME s12, metis_time
-                           |> replace (Time.zeroTime |> SOME |> Lazy.value) i
-                           |> replace (Lazy.value some_t12) j)
+        if not preplay then (merge s1 s2 |> SOME, metis_time)
+        else
+          (case get i metis_time |> Lazy.force of
+            (true, _) => (NONE, metis_time)
+          | (_, t1) =>
+            (case get j metis_time |> Lazy.force of
+              (true, _) => (NONE, metis_time)
+            | (_, t2) =>
+              let
+                val s12 = merge s1 s2
+                val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
+              in
+                case try_metis_quietly debug type_enc lam_trans ctxt timeout
+                (NONE, s12) () of
+                  (true, _) => (NONE, metis_time)
+                | exact_time =>
+                  (SOME s12, metis_time
+                             |> replace (zero_preplay_time |> Lazy.value) i
+                             |> replace (Lazy.value exact_time) j)
 
-            end))
+              end))
 
       fun merge_steps metis_time proof_vect refed_by cand_tab n' n_metis' =
         if Inttab.is_empty cand_tab
@@ -225,20 +223,20 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           proof |> do_case_splits rich_ctxt
                 |>> shrink_top_level on_top_level rich_ctxt
       in
-        (proof, ext_time_add lower_level_time top_level_time)
+        (proof, add_preplay_time lower_level_time top_level_time)
       end
 
     and do_case_splits ctxt proof =
       let
         fun shrink_each_and_collect_time shrink candidates =
-          let fun f_m cand time = shrink cand ||> ext_time_add time
-          in fold_map f_m candidates no_time end
+          let fun f_m cand time = shrink cand ||> add_preplay_time time
+          in fold_map f_m candidates zero_preplay_time end
         val shrink_case_split =
           shrink_each_and_collect_time (do_proof false ctxt)
         fun shrink (Prove (qs, l, t, Case_Split (cases, facts))) =
             let val (cases, time) = shrink_case_split cases
             in (Prove (qs, l, t, Case_Split (cases, facts)), time) end
-          | shrink step = (step, no_time)
+          | shrink step = (step, zero_preplay_time)
       in
         shrink_each_and_collect_time shrink proof
       end
