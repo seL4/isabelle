@@ -125,6 +125,7 @@ case "$PLATFORM_FAMILY" in
 
     cp "$ISABELLE_HOME/Admin/Windows/launch4j/Isabelle.exe" "$ISABELLE_TARGET/Isabelle2013.exe"
     cp "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Setup.bat" \
+      "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Latex-Setup.bat" \
       "$ISABELLE_HOME/Admin/Windows/Cygwin/Cygwin-Terminal.bat" "$ISABELLE_TARGET"
 
     for NAME in init.bat postinstall rebaseall

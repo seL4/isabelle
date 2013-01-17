@@ -11,9 +11,9 @@ Checklist for official releases
 
 - test Proof General 4.1, 3.7.1.1;
 
-- check HTML header of library;
+- test 'display_drafts' command;
 
-- check CTRL-C, SIGINT in tty (also for external processes);
+- check HTML header of library;
 
 - check persistent sessions with PG and Poly/ML 5.x;
 
