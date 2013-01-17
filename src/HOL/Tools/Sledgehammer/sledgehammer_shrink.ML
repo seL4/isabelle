@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
-Shrinking and preplaying of reconstructed isar proofs.
+Shrinking of reconstructed isar proofs.
 *)
 
 signature SLEDGEHAMMER_SHRINK =
@@ -18,6 +18,7 @@ struct
 
 open Sledgehammer_Util
 open Sledgehammer_Proof
+open Sledgehammer_Preplay
 
 (* Parameters *)
 val merge_timeout_slack = 1.2
@@ -47,13 +48,6 @@ fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 (* Timing *)
 fun ext_time_add (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
 val no_time = (false, Time.zeroTime)
-fun take_time timeout tac arg =
-  let val timing = Timing.start () in
-    (TimeLimit.timeLimit timeout tac arg;
-     Timing.result timing |> #cpu |> SOME)
-    handle TimeLimit.TimeOut => NONE
-  end
-
 
 (* Main function for shrinking proofs *)
 fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
@@ -118,74 +112,18 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         v_fold_index (add_if_cand proof_vect) refed_by_vect []
         |> Inttab.make_list
 
-      (* Metis Preplaying *)
-      fun resolve_fact_names names =
-        names
-          |>> map string_for_label
-          |> op @
-          |> maps (thms_of_name ctxt)
-
-      (* TODO: add "Obtain" case *)
-      exception ZEROTIME
-      fun try_metis timeout (succedent, step) =
-        (if not preplay then K (SOME Time.zeroTime) else
-          let
-            val (t, byline, obtain) =
-              (case step of
-                Prove (_, _, t, byline) => (t, byline, false)
-              | Obtain (_, xs, _, t, byline) =>
-                (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
-                   (see ~~/src/Pure/Isar/obtain.ML) *)
-                let
-                  val thesis = Term.Free ("thesis", HOLogic.boolT)
-                  val thesis_prop = thesis |> HOLogic.mk_Trueprop
-                  val frees = map Term.Free xs
-
-                  (* !!x1..xn. t ==> thesis (xs = [x1, .., xn]) *)
-                  val inner_prop =
-                    fold_rev Logic.all frees (Logic.mk_implies (t, thesis_prop))
-
-                  (* !!thesis. (!!x1..xn. t ==> thesis) ==> thesis *)
-                  val prop =
-                    Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
-                in
-                  (prop, byline, true)
-                end
-              | _ => raise ZEROTIME)
-            val make_thm = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-            val facts =
-              (case byline of
-                By_Metis fact_names => resolve_fact_names fact_names
-              | Case_Split (cases, fact_names) =>
-                resolve_fact_names fact_names
-                  @ (case the succedent of
-                      Assume (_, t) => make_thm t
-                    | Obtain (_, _, _, t, _) => make_thm t
-                    | Prove (_, _, t, _) => make_thm t
-                    | _ => error "Internal error: unexpected succedent of case split")
-                  :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
-                                  | _ => error "Internal error: malformed case split")
-                             #> make_thm)
-                       cases)
-            val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
-                            |> obtain ? Config.put Metis_Tactic.new_skolem true
-            val goal =
-              Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
-            fun tac {context = ctxt, prems = _} =
-              Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
-          in
-            take_time timeout (fn () => goal tac)
-          end)
-          handle ZEROTIME => K (SOME Time.zeroTime)
-
-      val try_metis_quietly = the_default NONE oo try oo try_metis
-
       (* cache metis preplay times in lazy time vector *)
       val metis_time =
         v_map_index
-          (Lazy.lazy o handle_metis_fail o try_metis preplay_timeout
-            o apfst (fn i => try (the o get (i-1)) proof_vect) o apsnd the)
+          (if not preplay then K (SOME Time.zeroTime) #> Lazy.value
+           else
+             apsnd the
+             #> apfst (fn i => try (get (i-1) #> the) proof_vect)
+             #> try_metis debug type_enc lam_trans ctxt preplay_timeout
+             #> handle_metis_fail
+             #> Lazy.lazy)
           proof_vect
+
       fun sum_up_time lazy_time_vector =
         Vector.foldl
           ((fn (SOME t, (b, ts)) => (b, Time.+(t, ts))
@@ -220,7 +158,8 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
               val s12 = merge s1 s2
               val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
             in
-              case try_metis_quietly timeout (NONE, s12) () of
+              case try_metis_quietly debug type_enc lam_trans ctxt timeout
+              (NONE, s12) () of
                 NONE => (NONE, metis_time)
               | some_t12 =>
                 (SOME s12, metis_time
