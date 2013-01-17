@@ -9,9 +9,15 @@ signature MASH_EVAL =
 sig
   type params = Sledgehammer_Provers.params
 
+  val MePoN : string
+  val MaSh_IsarN : string
+  val MaSh_ProverN : string
+  val MeSh_IsarN : string
+  val MeSh_ProverN : string
+  val IsarN : string
   val evaluate_mash_suggestions :
-    Proof.context -> params -> int * int option -> string option -> string
-    -> string -> string -> unit
+    Proof.context -> params -> int * int option -> string list -> string option
+    -> string -> string -> string -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -34,7 +40,7 @@ val IsarN = "Isar"
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
 
-fun evaluate_mash_suggestions ctxt params range prob_dir_name
+fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
         isar_sugg_file_name prover_sugg_file_name report_file_name =
   let
     val report_path = report_file_name |> Path.explode
@@ -55,11 +61,11 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name
     val name_tabs = build_name_tables nickname_of_thm facts
     fun with_index facts s = (find_index (curry (op =) s) facts + 1, s)
     fun index_str (j, s) = s ^ "@" ^ string_of_int j
-    val str_of_heading = enclose "  " ": "
-    fun str_of_result heading facts ({outcome, run_time, used_facts, ...}
+    val str_of_method = enclose "  " ": "
+    fun str_of_result method facts ({outcome, run_time, used_facts, ...}
                                      : prover_result) =
       let val facts = facts |> map (fn ((name, _), _) => name ()) in
-        str_of_heading heading ^
+        str_of_method method ^
         (if is_none outcome then
            "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
            (used_facts |> map (with_index facts o fst)
@@ -110,20 +116,21 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name
           val isar_facts =
             find_suggested_facts (map (rpair 1.0) isar_deps) facts
           (* adapted from "mirabelle_sledgehammer.ML" *)
-          fun set_file_name heading (SOME dir) =
+          fun set_file_name method (SOME dir) =
               let
                 val prob_prefix =
                   "goal_" ^ string_of_int j ^ "__" ^ encode_str name ^ "__" ^
-                  heading
+                  method
               in
                 Config.put dest_dir dir
                 #> Config.put problem_prefix (prob_prefix ^ "__")
                 #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I
-          fun prove heading get facts =
-            if null facts andalso heading <> IsarN then
-              (str_of_heading heading ^ "Skipped", 0)
+          fun prove method get facts =
+            if not (member (op =) methods method) orelse
+               (null facts andalso method <> IsarN) then
+              (str_of_method method ^ "Skipped", 0)
             else
               let
                 fun nickify ((_, stature), th) =
@@ -133,11 +140,11 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name
                   |> map (get #> nickify)
                   |> maybe_instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
-                val ctxt = ctxt |> set_file_name heading prob_dir_name
+                val ctxt = ctxt |> set_file_name method prob_dir_name
                 val res as {outcome, ...} =
                   run_prover_for_mash ctxt params prover facts goal
                 val ok = if is_none outcome then 1 else 0
-              in (str_of_result heading facts res, ok) end
+              in (str_of_result method facts res, ok) end
           val ress =
             [fn () => prove MePoN fst mepo_facts,
              fn () => prove MaSh_IsarN fst mash_isar_facts,
@@ -153,8 +160,8 @@ fun evaluate_mash_suggestions ctxt params range prob_dir_name
         end
       else
         [0, 0, 0, 0, 0, 0]
-    fun total_of heading ok n =
-      "  " ^ heading ^ ": " ^ string_of_int ok ^ " (" ^
+    fun total_of method ok n =
+      str_of_method method ^ string_of_int ok ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
                (100.0 * Real.fromInt ok / Real.fromInt n) ^ "%)"
     val inst_inducts = Config.get ctxt instantiate_inducts
