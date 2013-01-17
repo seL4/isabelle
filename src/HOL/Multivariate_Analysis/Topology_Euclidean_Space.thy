@@ -2205,6 +2205,9 @@ lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S 
 lemma bounded_Union[intro]: "finite F \<Longrightarrow> (\<forall>S\<in>F. bounded S) \<Longrightarrow> bounded(\<Union>F)"
   by (induct rule: finite_induct[of F], auto)
 
+lemma bounded_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. bounded (B x) \<Longrightarrow> bounded (\<Union>x\<in>A. B x)"
+  by (induct set: finite, auto)
+
 lemma bounded_insert [simp]: "bounded (insert x S) \<longleftrightarrow> bounded S"
 proof -
   have "\<forall>y\<in>{x}. dist x y \<le> 0" by simp
@@ -2583,21 +2586,10 @@ proof -
   have "compact U" "\<forall>x\<in>U. open (ball x 1)" "U \<subseteq> (\<Union>x\<in>U. ball x 1)" using assms by auto
   then obtain D where D: "D \<subseteq> U" "finite D" "U \<subseteq> (\<Union>x\<in>D. ball x 1)"
     by (elim compactE_image)
-  def d \<equiv> "SOME d. d \<in> D"
-  show "bounded U"
-    unfolding bounded_def
-  proof (intro exI, safe)
-    fix x assume "x \<in> U"
-    with D obtain d' where "d' \<in> D" "x \<in> ball d' 1" by auto
-    moreover have "dist d x \<le> dist d d' + dist d' x"
-      using dist_triangle[of d x d'] by (simp add: dist_commute)
-    moreover
-    from `x\<in>U` D have "d \<in> D"
-      unfolding d_def by (rule_tac someI_ex) auto
-    ultimately
-    show "dist d x \<le> Max ((\<lambda>d'. dist d d' + 1) ` D)"
-      using D by (subst Max_ge_iff) (auto intro!: bexI[of _ d'])
-  qed
+  from `finite D` have "bounded (\<Union>x\<in>D. ball x 1)"
+    by (simp add: bounded_UN)
+  thus "bounded U" using `U \<subseteq> (\<Union>x\<in>D. ball x 1)` 
+    by (rule bounded_subset)
 qed
 
 text{* In particular, some common special cases. *}
