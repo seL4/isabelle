@@ -102,33 +102,5 @@ object Properties
         case Some((_, value)) => Value.Double.unapply(value)
       }
   }
-
-
-  /* concrete syntax -- similar to ML */
-
-  private val syntax = Outer_Syntax.empty + "," + "(" + ")" + "[" + "]"
-
-  private object Parser extends Parse.Parser
-  {
-    def prop: Parser[Entry] =
-      keyword("(") ~ string ~ keyword(",") ~ string ~ keyword(")") ^^
-      { case _ ~ x ~ _ ~ y ~ _ => (x, y) }
-    def props: Parser[T] =
-      keyword("[") ~> repsep(prop, keyword(",")) <~ keyword("]")
-  }
-
-  def parse(text: java.lang.String): Properties.T =
-  {
-    Parser.parse_all(Parser.props, Token.reader(syntax.scan(text))) match {
-      case Parser.Success(result, _) => result
-      case bad => error(bad.toString)
-    }
-  }
-
-  def parse_lines(prefix: java.lang.String, lines: List[java.lang.String]): List[T] =
-    for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse(s)
-
-  def find_parse_line(prefix: java.lang.String, lines: List[java.lang.String]): Option[T] =
-    lines.find(_.startsWith(prefix)).map(line => parse(line.substring(prefix.length)))
 }
 
