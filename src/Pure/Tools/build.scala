@@ -521,6 +521,37 @@ object Build
   }
 
 
+  /* inlined properties -- syntax similar to ML */
+
+  object Props
+  {
+    private val syntax = Outer_Syntax.empty + "," + "(" + ")" + "[" + "]"
+
+    private object Parser extends Parse.Parser
+    {
+      def prop: Parser[Properties.Entry] =
+        keyword("(") ~ string ~ keyword(",") ~ string ~ keyword(")") ^^
+        { case _ ~ x ~ _ ~ y ~ _ => (x, y) }
+      def props: Parser[Properties.T] =
+        keyword("[") ~> repsep(prop, keyword(",")) <~ keyword("]")
+    }
+
+    def parse(text: String): Properties.T =
+    {
+      Parser.parse_all(Parser.props, Token.reader(syntax.scan(text))) match {
+        case Parser.Success(result, _) => result
+        case bad => error(bad.toString)
+      }
+    }
+
+    def parse_lines(prefix: String, lines: List[String]): List[Properties.T] =
+      for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse(s)
+
+    def find_parse_line(prefix: String, lines: List[String]): Option[Properties.T] =
+      lines.find(_.startsWith(prefix)).map(line => parse(line.substring(prefix.length)))
+  }
+
+
   /* log files */
 
   private val LOG = Path.explode("log")
@@ -529,13 +560,14 @@ object Build
 
   private val SESSION_PARENT_PATH = "\fSession.parent_path = "
 
+
   sealed case class Log_Info(stats: List[Properties.T], timing: Properties.T)
 
   def parse_log(text: String): Log_Info =
   {
     val lines = split_lines(text)
-    val stats = Properties.parse_lines("\fML_statistics = ", lines)
-    val timing = Properties.find_parse_line("\fTiming = ", lines) getOrElse Nil
+    val stats = Props.parse_lines("\fML_statistics = ", lines)
+    val timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
     Log_Info(stats, timing)
   }
 
