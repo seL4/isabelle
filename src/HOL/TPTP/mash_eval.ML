@@ -93,11 +93,12 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                          mesh_isar_line), mesh_prover_line)) =
       if in_range range j then
         let
-          val (name1, mepo_suggs) = extract_suggestions mepo_line
-          val (name2, mash_isar_suggs) = extract_suggestions mash_isar_line
-          val (name3, mash_prover_suggs) = extract_suggestions mash_prover_line
-          val (name4, mesh_isar_suggs) = extract_suggestions mesh_isar_line
-          val (name5, mesh_prover_suggs) = extract_suggestions mesh_prover_line
+          val get_suggs = extract_suggestions ##> take slack_max_facts
+          val (name1, mepo_suggs) = get_suggs mepo_line
+          val (name2, mash_isar_suggs) = get_suggs mash_isar_line
+          val (name3, mash_prover_suggs) = get_suggs mash_prover_line
+          val (name4, mesh_isar_suggs) = get_suggs mesh_isar_line
+          val (name5, mesh_prover_suggs) = get_suggs mesh_prover_line
           val [name] =
             [name1, name2, name3, name4, name5]
             |> filter (curry (op <>) "") |> distinct (op =)
@@ -115,12 +116,12 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           val mepo_facts =
             get_facts mepo_suggs (fn _ =>
                 mepo_suggested_facts ctxt params prover slack_max_facts NONE
-                                     hyp_ts concl_t facts
-                |> weight_mepo_facts)
+                                     hyp_ts concl_t facts)
+            |> weight_mepo_facts
           fun mash_of suggs =
             get_facts suggs (fn _ =>
-                find_mash_suggestions slack_max_facts suggs facts [] []
-                |> fst |> weight_mash_facts)
+                find_mash_suggestions slack_max_facts suggs facts [] [] |> fst)
+            |> weight_mash_facts
           val mash_isar_facts = mash_of mash_isar_suggs
           val mash_prover_facts = mash_of mash_prover_suggs
           fun mess_of mash_facts =
@@ -129,12 +130,10 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           fun mesh_of suggs mash_facts =
             get_facts suggs (fn _ =>
                 mesh_facts (Thm.eq_thm_prop o pairself snd) slack_max_facts
-                           (mess_of mash_facts)
-                |> map (rpair 1.0))
+                           (mess_of mash_facts))
           val mesh_isar_facts = mesh_of mesh_isar_suggs mash_isar_facts
           val mesh_prover_facts = mesh_of mesh_prover_suggs mash_prover_facts
-          val isar_facts =
-            find_suggested_facts (map (rpair 1.0) isar_deps) facts
+          val isar_facts = find_suggested_facts isar_deps facts
           (* adapted from "mirabelle_sledgehammer.ML" *)
           fun set_file_name method (SOME dir) =
               let
@@ -147,7 +146,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                 #> Config.put SMT_Config.debug_files (dir ^ "/" ^ prob_prefix)
               end
             | set_file_name _ NONE = I
-          fun prove method facts =
+          fun prove method get facts =
             if not (member (op =) methods method) orelse
                (null facts andalso method <> IsarN) then
               (str_of_method method ^ "Skipped", 0)
@@ -157,7 +156,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                   ((K (encode_str (nickname_of_thm th)), stature), th)
                 val facts =
                   facts
-                  |> map (fst #> nickify)
+                  |> map (get #> nickify)
                   |> maybe_instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
                 val ctxt = ctxt |> set_file_name method prob_dir_name
@@ -166,12 +165,12 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                 val ok = if is_none outcome then 1 else 0
               in (str_of_result method facts res, ok) end
           val ress =
-            [fn () => prove MePoN mepo_facts,
-             fn () => prove MaSh_IsarN mash_isar_facts,
-             fn () => prove MaSh_ProverN mash_prover_facts,
-             fn () => prove MeSh_IsarN mesh_isar_facts,
-             fn () => prove MeSh_ProverN mesh_prover_facts,
-             fn () => prove IsarN isar_facts]
+            [fn () => prove MePoN fst mepo_facts,
+             fn () => prove MaSh_IsarN fst mash_isar_facts,
+             fn () => prove MaSh_ProverN fst mash_prover_facts,
+             fn () => prove MeSh_IsarN I mesh_isar_facts,
+             fn () => prove MeSh_ProverN I mesh_prover_facts,
+             fn () => prove IsarN I isar_facts]
             |> (* Par_List. *) map (fn f => f ())
         in
           "Goal " ^ string_of_int j ^ ": " ^ name :: map fst ress

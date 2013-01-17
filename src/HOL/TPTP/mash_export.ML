@@ -213,10 +213,10 @@ fun generate_mesh_suggestions max_suggs mash_file_name mepo_file_name
       let
         val (name, mash_suggs) =
           extract_suggestions mash_line
-          ||> (map fst #> weight_mash_facts)
+          ||> weight_mash_facts
         val (name', mepo_suggs) =
           extract_suggestions mepo_line
-          ||> (map fst #> weight_mash_facts)
+          ||> weight_mepo_facts
         val _ = if name = name' then () else error "Input files out of sync."
         val mess =
           [(mepo_weight, (mepo_suggs, [])),

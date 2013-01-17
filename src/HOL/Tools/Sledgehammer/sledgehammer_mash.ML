@@ -29,7 +29,7 @@ sig
   val unencode_str : string -> string
   val unencode_strs : string -> string list
   val encode_features : (string * real) list -> string
-  val extract_suggestions : string -> string * (string * real) list
+  val extract_suggestions : string -> string * string list
 
   structure MaSh:
   sig
@@ -41,14 +41,12 @@ sig
       Proof.context -> bool -> (string * string list) list -> unit
     val suggest :
       Proof.context -> bool -> bool -> int
-      -> string list * (string * real) list * string list
-      -> (string * real) list
+      -> string list * (string * real) list * string list -> string list
   end
 
   val mash_unlearn : Proof.context -> unit
   val nickname_of_thm : thm -> string
-  val find_suggested_facts :
-    (string * 'a) list -> ('b * thm) list -> (('b * thm) * 'a) list
+  val find_suggested_facts : string list -> ('b * thm) list -> ('b * thm) list
   val mesh_facts :
     ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
     -> 'a list
@@ -69,8 +67,8 @@ sig
     -> bool * string list
   val weight_mash_facts : 'a list -> ('a * real) list
   val find_mash_suggestions :
-    int -> (Symtab.key * 'a) list -> ('b * thm) list -> ('b * thm) list
-    -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
+    int -> string list -> ('b * thm) list -> ('b * thm) list -> ('b * thm) list
+    -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term -> fact list
     -> fact list * fact list
@@ -219,11 +217,13 @@ fun str_of_query learn_hints (parents, feats, hints) =
   (if learn_hints orelse null hints then "" else "; " ^ encode_strs hints) ^
   "\n"
 
+(* The weights currently returned by "mash.py" are too spaced out to make any
+   sense. *)
 fun extract_suggestion sugg =
   case space_explode "=" sugg of
     [name, weight] =>
-    SOME (unencode_str name, Real.fromString weight |> the_default 1.0)
-  | [name] => SOME (unencode_str name, 1.0)
+    SOME (unencode_str name (* , Real.fromString weight |> the_default 1.0 *))
+  | [name] => SOME (unencode_str name (* , 1.0 *))
   | _ => NONE
 
 fun extract_suggestions line =
@@ -436,10 +436,8 @@ fun nickname_of_thm th =
 fun find_suggested_facts suggs facts =
   let
     fun add_fact (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
-    val tab = Symtab.empty |> fold add_fact facts
-    fun find_sugg (name, weight) =
-      Symtab.lookup tab name |> Option.map (rpair weight)
-  in map_filter find_sugg suggs end
+    val tab = fold add_fact facts Symtab.empty
+  in map_filter (Symtab.lookup tab) suggs end
 
 fun scaled_avg [] = 0
   | scaled_avg xs =
@@ -776,11 +774,7 @@ val max_proximity_facts = 100
 fun find_mash_suggestions _ [] _ _ raw_unknown = ([], raw_unknown)
   | find_mash_suggestions max_facts suggs facts chained raw_unknown =
     let
-      val raw_mash =
-        facts |> find_suggested_facts suggs
-              (* The weights currently returned by "mash.py" are too spaced out
-                 to make any sense. *)
-              |> map fst
+      val raw_mash = find_suggested_facts suggs facts
       val unknown_chained =
         inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
       val proximity =
@@ -814,9 +808,8 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
                 chained |> filter (is_fact_in_graph access_G snd)
                         |> map (nickname_of_thm o snd)
             in
-              (access_G,
-               MaSh.suggest ctxt overlord learn max_facts
-                            (parents, feats, hints))
+              (access_G, MaSh.suggest ctxt overlord learn max_facts
+                                      (parents, feats, hints))
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
   in find_mash_suggestions max_facts suggs facts chained unknown end
@@ -1079,7 +1072,7 @@ fun mash_can_suggest_facts ctxt =
 
 (* Generate more suggestions than requested, because some might be thrown out
    later for various reasons. *)
-fun generous_max_facts max_facts = max_facts + Int.min (50, max_facts div 2)
+fun generous_max_facts max_facts = max_facts + Int.min (50, max_facts)
 
 val mepo_weight = 0.5
 val mash_weight = 0.5
