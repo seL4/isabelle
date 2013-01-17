@@ -6699,7 +6699,7 @@ qed
 subsection {* Edelstein fixed point theorem *}
 
 lemma edelstein_fix:
-  fixes s :: "'a::real_normed_vector set"
+  fixes s :: "'a::metric_space set"
   assumes s:"compact s" "s \<noteq> {}" and gs:"(g ` s) \<subseteq> s"
       and dist:"\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
   shows "\<exists>! x\<in>s. g x = x"
@@ -6760,23 +6760,29 @@ next
     unfolding o_def a_def b_def by (rule tendsto_intros)+
 
   { fix n::nat
-    have *:"\<And>fx fy (x::'a) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (dist (fx - fy) (a - b) < dist a b - dist x y)" unfolding dist_norm by norm
-    { fix x y :: 'a
-      have "dist (-x) (-y) = dist x y" unfolding dist_norm
-        using norm_minus_cancel[of "x - y"] by (auto simp add: uminus_add_conv_diff) } note ** = this
+    have *:"\<And>fx fy (x::'a) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (\<bar>dist fx fy - dist a b\<bar> < dist a b - dist x y)" by auto
 
     { assume as:"dist a b > dist (f n x) (f n y)"
       then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
         and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
         using lima limb unfolding h_def LIMSEQ_def by (fastforce simp del: less_divide_eq_numeral1)
-      hence "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) < dist a b - dist (f n x) (f n y)"
-        apply(erule_tac x="Na+Nb+n" in allE)
-        apply(erule_tac x="Na+Nb+n" in allE) apply simp
-        using dist_triangle_add_half[of a "f (r (Na + Nb + n)) x" "dist a b - dist (f n x) (f n y)"
-          "-b"  "- f (r (Na + Nb + n)) y"]
-        unfolding ** by (auto simp add: algebra_simps dist_commute)
+      hence "\<bar>dist (f (r (Na + Nb + n)) x) (f (r (Na + Nb + n)) y) - dist a b\<bar> < dist a b - dist (f n x) (f n y)"
+        apply -
+        apply (drule_tac x="Na+Nb+n" in spec, drule mp, simp)
+        apply (drule_tac x="Na+Nb+n" in spec, drule mp, simp)
+        apply (drule (1) add_strict_mono, simp only: real_sum_of_halves)
+        apply (erule le_less_trans [rotated])
+        apply (erule thin_rl)
+        apply (rule abs_leI)
+        apply (simp add: diff_le_iff add_assoc)
+        apply (rule order_trans [OF dist_triangle add_left_mono])
+        apply (subst add_commute, rule dist_triangle2)
+        apply (simp add: diff_le_iff add_assoc)
+        apply (rule order_trans [OF dist_triangle3 add_left_mono])
+        apply (subst add_commute, rule dist_triangle)
+        done
       moreover
-      have "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) \<ge> dist a b - dist (f n x) (f n y)"
+      have "\<bar>dist (f (r (Na + Nb + n)) x) (f (r (Na + Nb + n)) y) - dist a b\<bar> \<ge> dist a b - dist (f n x) (f n y)"
         using distf[of n "r (Na+Nb+n)", OF _ `x\<in>s` `y\<in>s`]
         using seq_suble[OF r, of "Na+Nb+n"]
         using *[of "f (r (Na + Nb + n)) x" "f (r (Na + Nb + n)) y" "f n x" "f n y"] by auto
@@ -6797,7 +6803,10 @@ next
     moreover have "dist (f (Suc n) y) (g b) \<le> dist (f n y) b"
       using dist[THEN bspec[where x="f n y"], THEN bspec[where x="b"]] and fs by auto
     ultimately have "dist (f (Suc n) x) (g a) + dist (f (Suc n) y) (g b) < e" using n by auto
-    thus False unfolding e_def using ab_fn[of "Suc n"] by norm
+    thus False unfolding e_def using ab_fn[of "Suc n"]
+      using dist_triangle2 [of "f (Suc n) y" "g a" "g b"]
+      using dist_triangle2 [of "f (Suc n) x" "f (Suc n) y" "g a"]
+      by auto
   qed
 
   have [simp]:"\<And>n. f (Suc n) x = f n y" unfolding f_def y_def by(induct_tac n)auto
