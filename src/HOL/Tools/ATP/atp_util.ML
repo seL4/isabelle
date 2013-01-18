@@ -156,12 +156,11 @@ fun type_intersect _ (TVar _) _ = true
     let
       val tvars = Term.add_tvar_namesT T []
       val tvars' = Term.add_tvar_namesT T' []
+      val maxidx' = maxidx_of_typ T'
       val T =
-        if exists (member (op =) tvars') tvars then
-          T |> Logic.incr_tvar (maxidx_of_typ T' + 1)
-        else
-          T
-    in can (Sign.typ_unify thy (T, T')) (Vartab.empty, 0) end
+        T |> exists (member (op =) tvars') tvars ? Logic.incr_tvar (maxidx' + 1)
+      val maxidx = Integer.max (maxidx_of_typ T) maxidx'
+    in can (Sign.typ_unify thy (T, T')) (Vartab.empty, maxidx) end
 
 val type_equiv = Sign.typ_equiv
 

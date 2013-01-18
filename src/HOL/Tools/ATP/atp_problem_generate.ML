@@ -849,7 +849,7 @@ fun chop_fun 0 T = ([], T)
 
 fun filter_type_args thy constrs type_enc s ary T_args =
   let val poly = polymorphism_of_type_enc type_enc in
-    if s = type_tag_name then (* ### FIXME: why not "type_guard_name" as well? *)
+    if s = type_tag_name then (* FIXME: why not "type_guard_name" as well? *)
       T_args
     else case type_enc of
       Native (_, Raw_Polymorphic _, _) => T_args
@@ -1580,7 +1580,7 @@ fun sym_table_for_facts ctxt type_enc app_op_level conjs facts =
     fun add_iterm_syms conj_fact =
       add_iterm_syms_to_sym_table ctxt app_op_level conj_fact true
     fun add_fact_syms conj_fact =
-      K (add_iterm_syms conj_fact) |> formula_fold NONE |> ifact_lift
+      ifact_lift (formula_fold NONE (K (add_iterm_syms conj_fact)))
   in
     ((false, []), Symtab.empty)
     |> fold (add_fact_syms true) conjs
@@ -2243,7 +2243,7 @@ fun sym_decl_table_for_facts thy type_enc sym_tab (conjs, facts, extra_tms) =
          | _ => I)
         #> fold add_iterm_syms args
       end
-    val add_fact_syms = K add_iterm_syms |> formula_fold NONE |> ifact_lift
+    val add_fact_syms = ifact_lift (formula_fold NONE (K add_iterm_syms))
     fun add_formula_var_types (ATyQuant (_, _, phi)) = add_formula_var_types phi
       | add_formula_var_types (AQuant (_, xs, phi)) =
         fold (fn (_, SOME T) => insert_type thy I T | _ => I) xs
@@ -2291,8 +2291,8 @@ fun default_mono level completish =
      | _ => known_infinite_types,
    maybe_nonmono_Ts = [if completish then tvar_a else @{typ bool}]}
 
-(* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
-   out with monotonicity" paper presented at CADE 2011. *)
+(* This inference is described in section 4 of Blanchette et al., "Encoding
+   monomorphic and polymorphic types", TACAS 2013. *)
 fun add_iterm_mononotonicity_info _ _ (SOME false) _ mono = mono
   | add_iterm_mononotonicity_info ctxt level _
         (IApp (IApp (IConst ((s, _), Type (_, [T, _]), _), tm1), tm2))
@@ -2338,8 +2338,10 @@ fun add_iformula_monotonic_types ctxt mono type_enc =
       | add_args _ = I
     and add_term tm = add_type (ityp_of tm) #> add_args tm
   in formula_fold NONE (K add_term) end
+
 fun add_fact_monotonic_types ctxt mono type_enc =
-  add_iformula_monotonic_types ctxt mono type_enc |> ifact_lift
+  ifact_lift (add_iformula_monotonic_types ctxt mono type_enc)
+
 fun monotonic_types_for_facts ctxt mono type_enc facts =
   let val level = level_of_type_enc type_enc in
     [] |> (is_type_enc_polymorphic type_enc andalso
@@ -2396,8 +2398,7 @@ fun decl_line_for_sym ctxt mono type_enc s
                    ? curry APi (map (tvar_name o dest_TVar) T_args))
   end
 
-fun honor_conj_sym_role in_conj =
-  if in_conj then (Hypothesis, I) else (Axiom, I)
+fun honor_conj_sym_role in_conj = (if in_conj then Hypothesis else Axiom, I)
 
 fun line_for_guards_sym_decl ctxt mono type_enc n s j
                              (s', T_args, T, _, ary, in_conj) =
