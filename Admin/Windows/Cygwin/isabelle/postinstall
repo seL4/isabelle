@@ -1,8 +1,12 @@
-#!/bin/dash
+#!/bin/bash
 
 PATH=/bin
+
+CONTRIB="$(cygpath -u "$(cygpath -w /)\..")"
+peflags -x8192000 -z500 "$CONTRIB/polyml-5.5.0/x86-cygwin/poly.exe"
 
 bash /etc/postinstall/base-files-mketc.sh.done
 
 mkpasswd -l >/etc/passwd
 mkgroup -l >/etc/group
+

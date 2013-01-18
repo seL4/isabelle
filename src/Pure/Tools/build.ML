@@ -19,13 +19,21 @@ fun ML_statistics (function :: stats) "" =
       else NONE
   | ML_statistics _ _ = NONE;
 
+fun task_statistics (function :: stats) "" =
+      if function = Markup.task_statistics then SOME stats
+      else NONE
+  | task_statistics _ _ = NONE;
+
 fun protocol_message props output =
   (case ML_statistics props output of
     SOME stats => writeln ("\fML_statistics = " ^ ML_Syntax.print_properties stats)
   | NONE =>
-      (case Markup.dest_loading_theory props of
-        SOME name => writeln ("\floading_theory = " ^ name)
-      | NONE => raise Fail "Undefined Output.protocol_message"));
+      (case task_statistics props output of
+        SOME stats => writeln ("\ftask_statistics = " ^ ML_Syntax.print_properties stats)
+      | NONE =>
+          (case Markup.dest_loading_theory props of
+            SOME name => writeln ("\floading_theory = " ^ name)
+          | NONE => raise Fail "Undefined Output.protocol_message")));
 
 
 (* build *)

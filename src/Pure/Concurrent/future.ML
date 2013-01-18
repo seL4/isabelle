@@ -52,6 +52,7 @@ sig
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
   val ML_statistics: bool Unsynchronized.ref
+  val forked_proofs: int Unsynchronized.ref
   val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
@@ -187,6 +188,7 @@ fun count_workers state = (*requires SYNCHRONIZED*)
 (* status *)
 
 val ML_statistics = Unsynchronized.ref false;
+val forked_proofs = Unsynchronized.ref 0;
 
 fun report_status () = (*requires SYNCHRONIZED*)
   if ! ML_statistics then
@@ -197,6 +199,7 @@ fun report_status () = (*requires SYNCHRONIZED*)
       val waiting = count_workers Waiting;
       val stats =
        [("now", signed_string_of_real (Time.toReal (Time.now ()))),
+        ("tasks_proof", Markup.print_int (! forked_proofs)),
         ("tasks_ready", Markup.print_int ready),
         ("tasks_pending", Markup.print_int pending),
         ("tasks_running", Markup.print_int running),
@@ -253,12 +256,11 @@ fun worker_exec (task, jobs) =
       Task_Queue.running task (fn () =>
         setmp_worker_task task (fn () =>
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
-    val _ = Multithreading.tracing 2 (fn () =>
-      let
-        val s = Task_Queue.str_of_task_groups task;
-        fun micros time = string_of_int (Time.toNanoseconds time div 1000);
-        val (run, wait, deps) = Task_Queue.timing_of_task task;
-      in "TASK " ^ s ^ " " ^ micros run ^ " " ^ micros wait ^ " (" ^ commas deps ^ ")" end);
+    val _ =
+      if ! Multithreading.trace >= 2 then
+        Output.protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) ""
+          handle Fail msg => warning msg
+      else ();
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);

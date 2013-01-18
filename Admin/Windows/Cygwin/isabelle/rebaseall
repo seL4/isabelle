@@ -14,3 +14,4 @@ done
 dash /bin/rebaseall -T "$FILE_LIST"
 
 rm -f "$FILE_LIST"
+
