@@ -1383,7 +1383,7 @@ fun is_type_kind_of_surely_infinite ctxt strictness cached_Ts T =
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
    proofs. On the other hand, all HOL infinite types can be given the same
-   models in first-order logic (via Löwenheim-Skolem). *)
+   models in first-order logic (via Loewenheim-Skolem). *)
 
 fun should_encode_type ctxt {maybe_finite_Ts, surely_infinite_Ts,
                              maybe_nonmono_Ts}

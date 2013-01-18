@@ -39,7 +39,7 @@ sig
       -> (string * string list * (string * real) list * string list) list -> unit
     val relearn :
       Proof.context -> bool -> (string * string list) list -> unit
-    val suggest :
+    val query :
       Proof.context -> bool -> bool -> int
       -> string list * (string * real) list * string list -> string list
   end
@@ -256,8 +256,8 @@ fun relearn _ _ [] = ()
          elide_string 1000 (space_implode " " (map #1 relearns)));
      run_mash_tool ctxt overlord true 0 (relearns, str_of_relearn) (K ()))
 
-fun suggest ctxt overlord learn_hints max_suggs (query as (_, feats, hints)) =
-  (trace_msg ctxt (fn () => "MaSh suggest " ^ encode_features feats);
+fun query ctxt overlord learn_hints max_suggs (query as (_, feats, hints)) =
+  (trace_msg ctxt (fn () => "MaSh query " ^ encode_features feats);
    run_mash_tool ctxt overlord (learn_hints andalso not (null hints))
        max_suggs ([query], str_of_query learn_hints)
        (fn suggs =>
@@ -808,8 +808,8 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
                 chained |> filter (is_fact_in_graph access_G snd)
                         |> map (nickname_of_thm o snd)
             in
-              (access_G, MaSh.suggest ctxt overlord learn max_facts
-                                      (parents, feats, hints))
+              (access_G, MaSh.query ctxt overlord learn max_facts
+                                    (parents, feats, hints))
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
   in find_mash_suggestions max_facts suggs facts chained unknown end
