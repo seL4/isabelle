@@ -9,3 +9,4 @@ bash /etc/postinstall/base-files-mketc.sh.done
 
 mkpasswd -l >/etc/passwd
 mkgroup -l >/etc/group
+
