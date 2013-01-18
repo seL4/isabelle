@@ -3284,7 +3284,7 @@ proof-
   have "convex hull s \<noteq> {}" using hull_subset[of s convex] and assms(2) by auto
   then obtain u v where obt:"u\<in>convex hull s" "v\<in>convex hull s"
     "\<forall>x\<in>convex hull s. \<forall>y\<in>convex hull s. norm (x - y) \<le> norm (u - v)"
-    using compact_sup_maxdistance[OF finite_imp_compact_convex_hull[OF assms(1)]] by auto
+    using compact_sup_maxdistance[OF finite_imp_compact_convex_hull[OF assms(1)]] by (auto simp: dist_norm)
   thus ?thesis proof(cases "u\<notin>s \<or> v\<notin>s", erule_tac disjE)
     assume "u\<notin>s" then obtain y where "y\<in>convex hull s" "norm (u - v) < norm (y - v)"
       using simplex_furthest_lt[OF assms(1), THEN bspec[where x=u]] and obt(1) by auto

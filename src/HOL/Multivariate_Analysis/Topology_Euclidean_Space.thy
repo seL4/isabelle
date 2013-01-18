@@ -3230,10 +3230,10 @@ next
     using bounded_closed_imp_seq_compact[of s] unfolding compact_eq_seq_compact_metric by auto
 qed
 
-(* TODO: merge this lemma with the ones above *)
+(* TODO: is this lemma necessary? *)
 lemma bounded_increasing_convergent:
   fixes s :: "nat \<Rightarrow> real"
-  shows "bounded {s n| n. True} \<Longrightarrow> \<forall>n. s n \<le> s(Suc n) \<Longrightarrow> \<exists>l. s ----> l"
+  shows "bounded {s n| n. True} \<Longrightarrow> \<forall>n. s n \<le> s (Suc n) \<Longrightarrow> \<exists>l. s ----> l"
   using Bseq_mono_convergent[of s] incseq_Suc_iff[of s]
   by (auto simp: image_def Bseq_eq_bounded convergent_def incseq_def)
 
@@ -3760,6 +3760,10 @@ lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f 
 
 lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (at x)"
   using continuous_within [of x UNIV f] by simp
+
+lemma continuous_isCont: "isCont f x = continuous (at x) f"
+  unfolding isCont_def LIM_def
+  unfolding continuous_at Lim_at unfolding dist_nz by auto
 
 lemma continuous_at_within:
   assumes "continuous (at x) f"  shows "continuous (at x within s) f"
@@ -5098,66 +5102,74 @@ qed
 text {* Hence we get the following. *}
 
 lemma compact_sup_maxdistance:
-  fixes s :: "'a::real_normed_vector set"
+  fixes s :: "'a::metric_space set"
   assumes "compact s"  "s \<noteq> {}"
-  shows "\<exists>x\<in>s. \<exists>y\<in>s. \<forall>u\<in>s. \<forall>v\<in>s. norm(u - v) \<le> norm(x - y)"
+  shows "\<exists>x\<in>s. \<exists>y\<in>s. \<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
 proof-
-  have "{x - y | x y . x\<in>s \<and> y\<in>s} \<noteq> {}" using `s \<noteq> {}` by auto
-  then obtain x where x:"x\<in>{x - y |x y. x \<in> s \<and> y \<in> s}"  "\<forall>y\<in>{x - y |x y. x \<in> s \<and> y \<in> s}. norm y \<le> norm x"
-    using compact_differences[OF assms(1) assms(1)]
-    using distance_attains_sup[where 'a="'a", unfolded dist_norm, of "{x - y | x y . x\<in>s \<and> y\<in>s}" 0] by auto
-  from x(1) obtain a b where "a\<in>s" "b\<in>s" "x = a - b" by auto
-  thus ?thesis using x(2)[unfolded `x = a - b`] by blast
+  have "compact (s \<times> s)" using `compact s` by (intro compact_Times)
+  moreover have "s \<times> s \<noteq> {}" using `s \<noteq> {}` by auto
+  moreover have "continuous_on (s \<times> s) (\<lambda>x. dist (fst x) (snd x))"
+    by (intro continuous_at_imp_continuous_on ballI continuous_dist
+      continuous_isCont[THEN iffD1] isCont_fst isCont_snd isCont_ident)
+  ultimately show ?thesis
+    using continuous_attains_sup[of "s \<times> s" "\<lambda>x. dist (fst x) (snd x)"] by auto
 qed
 
 text {* We can state this in terms of diameter of a set. *}
 
-definition "diameter s = (if s = {} then 0::real else Sup {norm(x - y) | x y. x \<in> s \<and> y \<in> s})"
-  (* TODO: generalize to class metric_space *)
+definition "diameter s = (if s = {} then 0::real else Sup {dist x y | x y. x \<in> s \<and> y \<in> s})"
+
+lemma diameter_bounded_bound:
+  fixes s :: "'a :: metric_space set"
+  assumes s: "bounded s" "x \<in> s" "y \<in> s"
+  shows "dist x y \<le> diameter s"
+proof -
+  let ?D = "{dist x y |x y. x \<in> s \<and> y \<in> s}"
+  from s obtain z d where z: "\<And>x. x \<in> s \<Longrightarrow> dist z x \<le> d"
+    unfolding bounded_def by auto
+  have "dist x y \<le> Sup ?D"
+  proof (rule Sup_upper, safe)
+    fix a b assume "a \<in> s" "b \<in> s"
+    with z[of a] z[of b] dist_triangle[of a b z]
+    show "dist a b \<le> 2 * d"
+      by (simp add: dist_commute)
+  qed (insert s, auto)
+  with `x \<in> s` show ?thesis
+    by (auto simp add: diameter_def)
+qed
+
+lemma diameter_lower_bounded:
+  fixes s :: "'a :: metric_space set"
+  assumes s: "bounded s" and d: "0 < d" "d < diameter s"
+  shows "\<exists>x\<in>s. \<exists>y\<in>s. d < dist x y"
+proof (rule ccontr)
+  let ?D = "{dist x y |x y. x \<in> s \<and> y \<in> s}"
+  assume contr: "\<not> ?thesis"
+  moreover
+  from d have "s \<noteq> {}"
+    by (auto simp: diameter_def)
+  then have "?D \<noteq> {}" by auto
+  ultimately have "Sup ?D \<le> d"
+    by (intro Sup_least) (auto simp: not_less)
+  with `d < diameter s` `s \<noteq> {}` show False
+    by (auto simp: diameter_def)
+qed
 
 lemma diameter_bounded:
   assumes "bounded s"
-  shows "\<forall>x\<in>s. \<forall>y\<in>s. norm(x - y) \<le> diameter s"
-        "\<forall>d>0. d < diameter s --> (\<exists>x\<in>s. \<exists>y\<in>s. norm(x - y) > d)"
-proof-
-  let ?D = "{norm (x - y) |x y. x \<in> s \<and> y \<in> s}"
-  obtain a where a:"\<forall>x\<in>s. norm x \<le> a" using assms[unfolded bounded_iff] by auto
-  { fix x y assume "x \<in> s" "y \<in> s"
-    hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: field_simps)  }
-  note * = this
-  { fix x y assume "x\<in>s" "y\<in>s"  hence "s \<noteq> {}" by auto
-    have "norm(x - y) \<le> diameter s" unfolding diameter_def using `s\<noteq>{}` *[OF `x\<in>s` `y\<in>s`] `x\<in>s` `y\<in>s`
-      by simp (blast del: Sup_upper intro!: * Sup_upper) }
-  moreover
-  { fix d::real assume "d>0" "d < diameter s"
-    hence "s\<noteq>{}" unfolding diameter_def by auto
-    have "\<exists>d' \<in> ?D. d' > d"
-    proof(rule ccontr)
-      assume "\<not> (\<exists>d'\<in>{norm (x - y) |x y. x \<in> s \<and> y \<in> s}. d < d')"
-      hence "\<forall>d'\<in>?D. d' \<le> d" by auto (metis not_leE) 
-      thus False using `d < diameter s` `s\<noteq>{}` 
-        apply (auto simp add: diameter_def) 
-        apply (drule Sup_real_iff [THEN [2] rev_iffD2])
-        apply (auto, force) 
-        done
-    qed
-    hence "\<exists>x\<in>s. \<exists>y\<in>s. norm(x - y) > d" by auto  }
-  ultimately show "\<forall>x\<in>s. \<forall>y\<in>s. norm(x - y) \<le> diameter s"
-        "\<forall>d>0. d < diameter s --> (\<exists>x\<in>s. \<exists>y\<in>s. norm(x - y) > d)" by auto
-qed
-
-lemma diameter_bounded_bound:
- "bounded s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s ==> norm(x - y) \<le> diameter s"
-  using diameter_bounded by blast
+  shows "\<forall>x\<in>s. \<forall>y\<in>s. dist x y \<le> diameter s"
+        "\<forall>d>0. d < diameter s \<longrightarrow> (\<exists>x\<in>s. \<exists>y\<in>s. dist x y > d)"
+  using diameter_bounded_bound[of s] diameter_lower_bounded[of s] assms
+  by auto
 
 lemma diameter_compact_attained:
-  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  "s \<noteq> {}"
-  shows "\<exists>x\<in>s. \<exists>y\<in>s. (norm(x - y) = diameter s)"
-proof-
+  shows "\<exists>x\<in>s. \<exists>y\<in>s. dist x y = diameter s"
+proof -
   have b:"bounded s" using assms(1) by (rule compact_imp_bounded)
-  then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. norm (u - v) \<le> norm (x - y)" using compact_sup_maxdistance[OF assms] by auto
-  hence "diameter s \<le> norm (x - y)"
+  then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
+    using compact_sup_maxdistance[OF assms] by auto
+  hence "diameter s \<le> dist x y"
     unfolding diameter_def by clarsimp (rule Sup_least, fast+)
   thus ?thesis
     by (metis b diameter_bounded_bound order_antisym xys)
