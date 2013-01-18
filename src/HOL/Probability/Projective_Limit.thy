@@ -11,7 +11,7 @@ theory Projective_Limit
     Regularity
     Projective_Family
     Infinite_Product_Measure
-    "~~/src/HOL/Library/Countable_Set"
+    "~~/src/HOL/Library/Diagonal_Subsequence"
 begin
 
 subsection {* Sequences of Finite Maps in Compact Sets *}

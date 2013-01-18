@@ -9,7 +9,6 @@ header {* Elementary topology in Euclidean space. *}
 theory Topology_Euclidean_Space
 imports
   Complex_Main
-  "~~/src/HOL/Library/Diagonal_Subsequence"
   "~~/src/HOL/Library/Countable_Set"
   "~~/src/HOL/Library/Glbs"
   "~~/src/HOL/Library/FuncSet"
@@ -3417,10 +3416,120 @@ qed
 
 subsubsection{* Completeness *}
 
-definition
-  complete :: "'a::metric_space set \<Rightarrow> bool" where
-  "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f
-                      --> (\<exists>l \<in> s. (f ---> l) sequentially))"
+definition complete :: "'a::metric_space set \<Rightarrow> bool" where
+  "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f \<longrightarrow> (\<exists>l\<in>s. f ----> l))"
+
+lemma compact_imp_complete: assumes "compact s" shows "complete s"
+proof-
+  { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
+    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "(f \<circ> r) ----> l"
+      using assms unfolding compact_def by blast
+
+    note lr' = seq_suble [OF lr(2)]
+
+    { fix e::real assume "e>0"
+      from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2" unfolding cauchy_def using `e>0` apply (erule_tac x="e/2" in allE) by auto
+      from lr(3)[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < e/2" using `e>0` by auto
+      { fix n::nat assume n:"n \<ge> max N M"
+        have "dist ((f \<circ> r) n) l < e/2" using n M by auto
+        moreover have "r n \<ge> N" using lr'[of n] n by auto
+        hence "dist (f n) ((f \<circ> r) n) < e / 2" using N using n by auto
+        ultimately have "dist (f n) l < e" using dist_triangle_half_r[of "f (r n)" "f n" e l] by (auto simp add: dist_commute)  }
+      hence "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast  }
+    hence "\<exists>l\<in>s. (f ---> l) sequentially" using `l\<in>s` unfolding LIMSEQ_def by auto  }
+  thus ?thesis unfolding complete_def by auto
+qed
+
+lemma nat_approx_posE:
+  fixes e::real
+  assumes "0 < e"
+  obtains n::nat where "1 / (Suc n) < e"
+proof atomize_elim
+  have " 1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
+    by (rule divide_strict_left_mono) (auto intro!: mult_pos_pos simp: `0 < e`)
+  also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
+    by (rule divide_left_mono) (auto intro!: divide_pos_pos simp: `0 < e`)
+  also have "\<dots> = e" by simp
+  finally show  "\<exists>n. 1 / real (Suc n) < e" ..
+qed
+
+lemma compact_eq_totally_bounded:
+  "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k)))"
+    (is "_ \<longleftrightarrow> ?rhs")
+proof
+  assume assms: "?rhs"
+  then obtain k where k: "\<And>e. 0 < e \<Longrightarrow> finite (k e)" "\<And>e. 0 < e \<Longrightarrow> s \<subseteq> (\<Union>x\<in>k e. ball x e)"
+    by (auto simp: choice_iff')
+
+  show "compact s"
+  proof cases
+    assume "s = {}" thus "compact s" by (simp add: compact_def)
+  next
+    assume "s \<noteq> {}"
+    show ?thesis
+      unfolding compact_def
+    proof safe
+      fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
+      
+      def e \<equiv> "\<lambda>n. 1 / (2 * Suc n)"
+      then have [simp]: "\<And>n. 0 < e n" by auto
+      def B \<equiv> "\<lambda>n U. SOME b. infinite {n. f n \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U)"
+      { fix n U assume "infinite {n. f n \<in> U}"
+        then have "\<exists>b\<in>k (e n). infinite {i\<in>{n. f n \<in> U}. f i \<in> ball b (e n)}"
+          using k f by (intro pigeonhole_infinite_rel) (auto simp: subset_eq)
+        then guess a ..
+        then have "\<exists>b. infinite {i. f i \<in> b} \<and> (\<exists>x. b \<subseteq> ball x (e n) \<inter> U)"
+          by (intro exI[of _ "ball a (e n) \<inter> U"] exI[of _ a]) (auto simp: ac_simps)
+        from someI_ex[OF this]
+        have "infinite {i. f i \<in> B n U}" "\<exists>x. B n U \<subseteq> ball x (e n) \<inter> U"
+          unfolding B_def by auto }
+      note B = this
+
+      def F \<equiv> "nat_rec (B 0 UNIV) B"
+      { fix n have "infinite {i. f i \<in> F n}"
+          by (induct n) (auto simp: F_def B) }
+      then have F: "\<And>n. \<exists>x. F (Suc n) \<subseteq> ball x (e n) \<inter> F n"
+        using B by (simp add: F_def)
+      then have F_dec: "\<And>m n. m \<le> n \<Longrightarrow> F n \<subseteq> F m"
+        using decseq_SucI[of F] by (auto simp: decseq_def)
+
+      obtain sel where sel: "\<And>k i. i < sel k i" "\<And>k i. f (sel k i) \<in> F k"
+      proof (atomize_elim, unfold all_conj_distrib[symmetric], intro choice allI)
+        fix k i
+        have "infinite ({n. f n \<in> F k} - {.. i})"
+          using `infinite {n. f n \<in> F k}` by auto
+        from infinite_imp_nonempty[OF this]
+        show "\<exists>x>i. f x \<in> F k"
+          by (simp add: set_eq_iff not_le conj_commute)
+      qed
+
+      def t \<equiv> "nat_rec (sel 0 0) (\<lambda>n i. sel (Suc n) i)"
+      have "subseq t"
+        unfolding subseq_Suc_iff by (simp add: t_def sel)
+      moreover have "\<forall>i. (f \<circ> t) i \<in> s"
+        using f by auto
+      moreover
+      { fix n have "(f \<circ> t) n \<in> F n"
+          by (cases n) (simp_all add: t_def sel) }
+      note t = this
+
+      have "Cauchy (f \<circ> t)"
+      proof (safe intro!: metric_CauchyI exI elim!: nat_approx_posE)
+        fix r :: real and N n m assume "1 / Suc N < r" "Suc N \<le> n" "Suc N \<le> m"
+        then have "(f \<circ> t) n \<in> F (Suc N)" "(f \<circ> t) m \<in> F (Suc N)" "2 * e N < r"
+          using F_dec t by (auto simp: e_def field_simps real_of_nat_Suc)
+        with F[of N] obtain x where "dist x ((f \<circ> t) n) < e N" "dist x ((f \<circ> t) m) < e N"
+          by (auto simp: subset_eq)
+        with dist_triangle[of "(f \<circ> t) m" "(f \<circ> t) n" x] `2 * e N < r`
+        show "dist ((f \<circ> t) m) ((f \<circ> t) n) < r"
+          by (simp add: dist_commute)
+      qed
+
+      ultimately show "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l"
+        using assms unfolding complete_def by blast
+    qed
+  qed
+qed (metis compact_imp_complete compact_imp_seq_compact seq_compact_imp_totally_bounded)
 
 lemma cauchy: "Cauchy s \<longleftrightarrow> (\<forall>e>0.\<exists> N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
 proof-
@@ -3462,35 +3571,15 @@ proof-
     apply(erule_tac x=y in allE) apply(erule_tac x=y in ballE) by auto
 qed
 
-lemma seq_compact_imp_complete: assumes "seq_compact s" shows "complete s"
-proof-
-  { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
-    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "((f \<circ> r) ---> l) sequentially" using assms unfolding seq_compact_def by blast
-
-    note lr' = seq_suble [OF lr(2)]
-
-    { fix e::real assume "e>0"
-      from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2" unfolding cauchy_def using `e>0` apply (erule_tac x="e/2" in allE) by auto
-      from lr(3)[unfolded LIMSEQ_def, THEN spec[where x="e/2"]] obtain M where M:"\<forall>n\<ge>M. dist ((f \<circ> r) n) l < e/2" using `e>0` by auto
-      { fix n::nat assume n:"n \<ge> max N M"
-        have "dist ((f \<circ> r) n) l < e/2" using n M by auto
-        moreover have "r n \<ge> N" using lr'[of n] n by auto
-        hence "dist (f n) ((f \<circ> r) n) < e / 2" using N using n by auto
-        ultimately have "dist (f n) l < e" using dist_triangle_half_r[of "f (r n)" "f n" e l] by (auto simp add: dist_commute)  }
-      hence "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast  }
-    hence "\<exists>l\<in>s. (f ---> l) sequentially" using `l\<in>s` unfolding LIMSEQ_def by auto  }
-  thus ?thesis unfolding complete_def by auto
-qed
-
 instance heine_borel < complete_space
 proof
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
   hence "bounded (range f)"
     by (rule cauchy_imp_bounded)
-  hence "seq_compact (closure (range f))"
-    using bounded_closed_imp_seq_compact [of "closure (range f)"] by auto
+  hence "compact (closure (range f))"
+    unfolding compact_eq_bounded_closed by auto
   hence "complete (closure (range f))"
-    by (rule seq_compact_imp_complete)
+    by (rule compact_imp_complete)
   moreover have "\<forall>n. f n \<in> closure (range f)"
     using closure_subset [of "range f"] by auto
   ultimately have "\<exists>l\<in>closure (range f). (f ---> l) sequentially"
@@ -3542,154 +3631,6 @@ lemma convergent_imp_bounded:
   fixes s :: "nat \<Rightarrow> 'a::metric_space"
   shows "(s ---> l) sequentially \<Longrightarrow> bounded (range s)"
   by (intro cauchy_imp_bounded LIMSEQ_imp_Cauchy)
-
-lemma nat_approx_posE:
-  fixes e::real
-  assumes "0 < e"
-  obtains n::nat where "1 / (Suc n) < e"
-proof atomize_elim
-  have " 1 / real (Suc (nat (ceiling (1/e)))) < 1 / (ceiling (1/e))"
-    by (rule divide_strict_left_mono) (auto intro!: mult_pos_pos simp: `0 < e`)
-  also have "1 / (ceiling (1/e)) \<le> 1 / (1/e)"
-    by (rule divide_left_mono) (auto intro!: divide_pos_pos simp: `0 < e`)
-  also have "\<dots> = e" by simp
-  finally show  "\<exists>n. 1 / real (Suc n) < e" ..
-qed
-
-lemma compact_eq_totally_bounded:
-  "compact s \<longleftrightarrow> complete s \<and> (\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k)))"
-proof (safe intro!: seq_compact_imp_complete[unfolded  compact_eq_seq_compact_metric[symmetric]])
-  fix e::real
-  def f \<equiv> "(\<lambda>x::'a. ball x e) ` UNIV"
-  assume "0 < e" "compact s"
-  hence "(\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f \<longrightarrow> (\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')"
-    by (simp add: compact_eq_heine_borel)
-  moreover
-  have d0: "\<And>x::'a. dist x x < e" using `0 < e` by simp
-  hence "(\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f" by (auto simp: f_def intro!: d0)
-  ultimately have "(\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')" ..
-  then guess K .. note K = this
-  have "\<forall>K'\<in>K. \<exists>k. K' = ball k e" using K by (auto simp: f_def)
-  then obtain k where "\<And>K'. K' \<in> K \<Longrightarrow> K' = ball (k K') e" unfolding bchoice_iff by blast
-  thus "\<exists>k. finite k \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k" using K
-    by (intro exI[where x="k ` K"]) (auto simp: f_def)
-next
-  assume assms: "complete s" "\<forall>e>0. \<exists>k. finite k \<and> s \<subseteq> \<Union>(\<lambda>x. ball x e) ` k"
-  show "compact s"
-  proof cases
-    assume "s = {}" thus "compact s" by (simp add: compact_def)
-  next
-    assume "s \<noteq> {}"
-    show ?thesis
-      unfolding compact_def
-    proof safe
-      fix f::"nat \<Rightarrow> _" assume "\<forall>n. f n \<in> s" hence f: "\<And>n. f n \<in> s" by simp
-      from assms have "\<forall>e. \<exists>k. e>0 \<longrightarrow> finite k \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` k))" by simp
-      then obtain K where
-        K: "\<And>e. e > 0 \<Longrightarrow> finite (K e) \<and> s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` (K e)))"
-        unfolding choice_iff by blast
-      {
-        fix e::real and f' have f': "\<And>n::nat. (f o f') n \<in> s" using f by auto
-        assume "e > 0"
-        from K[OF this] have K: "finite (K e)" "s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` (K e)))"
-          by simp_all
-        have "\<exists>k\<in>(K e). \<exists>r. subseq r \<and> (\<forall>i. (f o f' o r) i \<in> ball k e)"
-        proof (rule ccontr)
-          from K have "finite (K e)" "K e \<noteq> {}" "s \<subseteq> (\<Union>((\<lambda>x. ball x e) ` (K e)))"
-            using `s \<noteq> {}`
-            by auto
-          moreover
-          assume "\<not> (\<exists>k\<in>K e. \<exists>r. subseq r \<and> (\<forall>i. (f \<circ> f' o r) i \<in> ball k e))"
-          hence "\<And>r k. k \<in> K e \<Longrightarrow> subseq r \<Longrightarrow> (\<exists>i. (f o f' o r) i \<notin> ball k e)" by simp
-          ultimately
-          show False using f'
-          proof (induct arbitrary: s f f' rule: finite_ne_induct)
-            case (singleton x)
-            have "\<exists>i. (f \<circ> f' o id) i \<notin> ball x e" by (rule singleton) (auto simp: subseq_def)
-            thus ?case using singleton by (auto simp: ball_def)
-          next
-            case (insert x A)
-            show ?case
-            proof cases
-              have inf_ms: "infinite ((f o f') -` s)" using insert by (simp add: vimage_def)
-              have "infinite ((f o f') -` \<Union>((\<lambda>x. ball x e) ` (insert x A)))"
-                using insert by (intro infinite_super[OF _ inf_ms]) auto
-              also have "((f o f') -` \<Union>((\<lambda>x. ball x e) ` (insert x A))) =
-                {m. (f o f') m \<in> ball x e} \<union> {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}" by auto
-              finally have "infinite \<dots>" .
-              moreover assume "finite {m. (f o f') m \<in> ball x e}"
-              ultimately have inf: "infinite {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}" by blast
-              hence "A \<noteq> {}" by auto then obtain k where "k \<in> A" by auto
-              def r \<equiv> "enumerate {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}"
-              have r_mono: "\<And>n m. n < m \<Longrightarrow> r n < r m"
-                using enumerate_mono[OF _ inf] by (simp add: r_def)
-              hence "subseq r" by (simp add: subseq_def)
-              have r_in_set: "\<And>n. r n \<in> {m. (f o f') m \<in> \<Union>((\<lambda>x. ball x e) ` A)}"
-                using enumerate_in_set[OF inf] by (simp add: r_def)
-              show False
-              proof (rule insert)
-                show "\<Union>(\<lambda>x. ball x e) ` A \<subseteq> \<Union>(\<lambda>x. ball x e) ` A" by simp
-                fix k s assume "k \<in> A" "subseq s"
-                thus "\<exists>i. (f o f' o r o s) i \<notin> ball k e" using `subseq r`
-                  by (subst (2) o_assoc[symmetric]) (intro insert(6) subseq_o, simp_all)
-              next
-                fix n show "(f \<circ> f' o r) n \<in> \<Union>(\<lambda>x. ball x e) ` A" using r_in_set by auto
-              qed
-            next
-              assume inf: "infinite {m. (f o f') m \<in> ball x e}"
-              def r \<equiv> "enumerate {m. (f o f') m \<in> ball x e}"
-              have r_mono: "\<And>n m. n < m \<Longrightarrow> r n < r m"
-                using enumerate_mono[OF _ inf] by (simp add: r_def)
-              hence "subseq r" by (simp add: subseq_def)
-              from insert(6)[OF insertI1 this] obtain i where "(f o f') (r i) \<notin> ball x e" by auto
-              moreover
-              have r_in_set: "\<And>n. r n \<in> {m. (f o f') m \<in> ball x e}"
-                using enumerate_in_set[OF inf] by (simp add: r_def)
-              hence "(f o f') (r i) \<in> ball x e" by simp
-              ultimately show False by simp
-            qed
-          qed
-        qed
-      }
-      hence ex: "\<forall>f'. \<forall>e > 0. (\<exists>k\<in>K e. \<exists>r. subseq r \<and> (\<forall>i. (f o f' \<circ> r) i \<in> ball k e))" by simp
-      let ?e = "\<lambda>n. 1 / real (Suc n)"
-      let ?P = "\<lambda>n s. \<exists>k\<in>K (?e n). (\<forall>i. (f o s) i \<in> ball k (?e n))"
-      interpret subseqs ?P using ex by unfold_locales force
-      from `complete s` have limI: "\<And>f. (\<And>n. f n \<in> s) \<Longrightarrow> Cauchy f \<Longrightarrow> (\<exists>l\<in>s. f ----> l)"
-        by (simp add: complete_def)
-      have "\<exists>l\<in>s. (f o diagseq) ----> l"
-      proof (intro limI metric_CauchyI)
-        fix e::real assume "0 < e" hence "0 < e / 2" by auto
-        from nat_approx_posE[OF this] guess n . note n = this
-        show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist ((f \<circ> diagseq) m) ((f \<circ> diagseq) n) < e"
-        proof (rule exI[where x="Suc n"], safe)
-          fix m mm assume "Suc n \<le> m" "Suc n \<le> mm"
-          let ?e = "1 / real (Suc n)"
-          from reducer_reduces[of n] obtain k where
-            "k\<in>K ?e"  "\<And>i. (f o seqseq (Suc n)) i \<in> ball k ?e"
-            unfolding seqseq_reducer by auto
-          moreover
-          note diagseq_sub[OF `Suc n \<le> m`] diagseq_sub[OF `Suc n \<le> mm`]
-          ultimately have "{(f o diagseq) m, (f o diagseq) mm} \<subseteq> ball k ?e" by auto
-          also have "\<dots> \<subseteq> ball k (e / 2)" using n by (intro subset_ball) simp
-          finally
-          have "dist k ((f \<circ> diagseq) m) + dist k ((f \<circ> diagseq) mm) < e / 2 + e /2"
-            by (intro add_strict_mono) auto
-          hence "dist ((f \<circ> diagseq) m) k + dist ((f \<circ> diagseq) mm) k < e"
-            by (simp add: dist_commute)
-          moreover have "dist ((f \<circ> diagseq) m) ((f \<circ> diagseq) mm) \<le>
-            dist ((f \<circ> diagseq) m) k + dist ((f \<circ> diagseq) mm) k"
-            by (rule dist_triangle2)
-          ultimately show "dist ((f \<circ> diagseq) m) ((f \<circ> diagseq) mm) < e"
-            by simp
-        qed
-      next
-        fix n show "(f o diagseq) n \<in> s" using f by simp
-      qed
-      thus "\<exists>l\<in>s. \<exists>r. subseq r \<and> (f \<circ> r) ----> l" using subseq_diagseq by auto
-    qed
-  qed
-qed
 
 lemma compact_cball[simp]:
   fixes x :: "'a::heine_borel"
