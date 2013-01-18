@@ -16,8 +16,17 @@ imports
   Norm_Arith
 begin
 
+lemma dist_0_norm:
+  fixes x :: "'a::real_normed_vector"
+  shows "dist 0 x = norm x"
+unfolding dist_norm by simp
+
 lemma dist_double: "dist x y < d / 2 \<Longrightarrow> dist x z < d / 2 \<Longrightarrow> dist y z < d"
   using dist_triangle[of y z x] by (simp add: dist_commute)
+
+(* LEGACY *)
+lemma lim_subseq: "subseq r \<Longrightarrow> s ----> l \<Longrightarrow> (s o r) ----> l"
+  by (rule LIMSEQ_subseq_LIMSEQ)
 
 (* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
 lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
@@ -2222,6 +2231,9 @@ lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<i
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x <= y \<longrightarrow> x <= 1 + abs y)")
   by metis arith
 
+lemma Bseq_eq_bounded: "Bseq f \<longleftrightarrow> bounded (range f)"
+  unfolding Bseq_def bounded_pos by auto
+
 lemma bounded_Int[intro]: "bounded S \<or> bounded T \<Longrightarrow> bounded (S \<inter> T)"
   by (metis Int_lower1 Int_lower2 bounded_subset)
 
@@ -3218,88 +3230,24 @@ next
     using bounded_closed_imp_seq_compact[of s] unfolding compact_eq_seq_compact_metric by auto
 qed
 
-lemma lim_subseq:
-  "subseq r \<Longrightarrow> (s ---> l) sequentially \<Longrightarrow> ((s o r) ---> l) sequentially"
-unfolding tendsto_def eventually_sequentially o_def
-by (metis seq_suble le_trans)
-
-lemma num_Axiom: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
-  unfolding Ex1_def
-  apply (rule_tac x="nat_rec e f" in exI)
-  apply (rule conjI)+
-apply (rule def_nat_rec_0, simp)
-apply (rule allI, rule def_nat_rec_Suc, simp)
-apply (rule allI, rule impI, rule ext)
-apply (erule conjE)
-apply (induct_tac x)
-apply simp
-apply (erule_tac x="n" in allE)
-apply (simp)
-done
-
-lemma convergent_bounded_increasing: fixes s ::"nat\<Rightarrow>real"
-  assumes "incseq s" and "\<forall>n. abs(s n) \<le> b"
-  shows "\<exists> l. \<forall>e::real>0. \<exists> N. \<forall>n \<ge> N.  abs(s n - l) < e"
-proof-
-  have "isUb UNIV (range s) b" using assms(2) and abs_le_D1 unfolding isUb_def and setle_def by auto
-  then obtain t where t:"isLub UNIV (range s) t" using reals_complete[of "range s" ] by auto
-  { fix e::real assume "e>0" and as:"\<forall>N. \<exists>n\<ge>N. \<not> \<bar>s n - t\<bar> < e"
-    { fix n::nat
-      obtain N where "N\<ge>n" and n:"\<bar>s N - t\<bar> \<ge> e" using as[THEN spec[where x=n]] by auto
-      have "t \<ge> s N" using isLub_isUb[OF t, unfolded isUb_def setle_def] by auto
-      with n have "s N \<le> t - e" using `e>0` by auto
-      hence "s n \<le> t - e" using assms(1)[unfolded incseq_def, THEN spec[where x=n], THEN spec[where x=N]] using `n\<le>N` by auto  }
-    hence "isUb UNIV (range s) (t - e)" unfolding isUb_def and setle_def by auto
-    hence False using isLub_le_isUb[OF t, of "t - e"] and `e>0` by auto  }
-  thus ?thesis by blast
-qed
-
-lemma convergent_bounded_monotone: fixes s::"nat \<Rightarrow> real"
-  assumes "\<forall>n. abs(s n) \<le> b" and "monoseq s"
-  shows "\<exists>l. \<forall>e::real>0. \<exists>N. \<forall>n\<ge>N. abs(s n - l) < e"
-  using convergent_bounded_increasing[of s b] assms using convergent_bounded_increasing[of "\<lambda>n. - s n" b]
-  unfolding monoseq_def incseq_def
-  apply auto unfolding minus_add_distrib[THEN sym, unfolded diff_minus[THEN sym]]
-  unfolding abs_minus_cancel by(rule_tac x="-l" in exI)auto
-
 (* TODO: merge this lemma with the ones above *)
-lemma bounded_increasing_convergent: fixes s::"nat \<Rightarrow> real"
-  assumes "bounded {s n| n::nat. True}"  "\<forall>n. (s n) \<le>(s(Suc n))"
-  shows "\<exists>l. (s ---> l) sequentially"
-proof-
-  obtain a where a:"\<forall>n. \<bar> (s n)\<bar> \<le>  a" using assms(1)[unfolded bounded_iff] by auto
-  { fix m::nat
-    have "\<And> n. n\<ge>m \<longrightarrow>  (s m) \<le> (s n)"
-      apply(induct_tac n) apply simp using assms(2) apply(erule_tac x="na" in allE)
-      apply(case_tac "m \<le> na") unfolding not_less_eq_eq by(auto simp add: not_less_eq_eq)  }
-  hence "\<forall>m n. m \<le> n \<longrightarrow> (s m) \<le> (s n)" by auto
-  then obtain l where "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar> (s n) - l\<bar> < e" using convergent_bounded_monotone[OF a]
-    unfolding monoseq_def by auto
-  thus ?thesis unfolding LIMSEQ_def apply(rule_tac x="l" in exI)
-    unfolding dist_norm  by auto
-qed
-
-lemma compact_real_lemma:
-  assumes "\<forall>n::nat. abs(s n) \<le> b"
-  shows "\<exists>(l::real) r. subseq r \<and> ((s \<circ> r) ---> l) sequentially"
-proof-
-  obtain r where r:"subseq r" "monoseq (\<lambda>n. s (r n))"
-    using seq_monosub[of s] by auto
-  thus ?thesis using convergent_bounded_monotone[of "\<lambda>n. s (r n)" b] and assms
-    unfolding tendsto_iff dist_norm eventually_sequentially by auto
-qed
+lemma bounded_increasing_convergent:
+  fixes s :: "nat \<Rightarrow> real"
+  shows "bounded {s n| n. True} \<Longrightarrow> \<forall>n. s n \<le> s(Suc n) \<Longrightarrow> \<exists>l. s ----> l"
+  using Bseq_mono_convergent[of s] incseq_Suc_iff[of s]
+  by (auto simp: image_def Bseq_eq_bounded convergent_def incseq_def)
 
 instance real :: heine_borel
 proof
   fix s :: "real set" and f :: "nat \<Rightarrow> real"
   assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
-  then obtain b where b: "\<forall>n. abs (f n) \<le> b"
-    unfolding bounded_iff by auto
-  obtain l :: real and r :: "nat \<Rightarrow> nat" where
-    r: "subseq r" and l: "((f \<circ> r) ---> l) sequentially"
-    using compact_real_lemma [OF b] by auto
-  thus "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
-    by auto
+  obtain r where r: "subseq r" "monoseq (f \<circ> r)"
+    unfolding comp_def by (metis seq_monosub)
+  moreover
+  then have "Bseq (f \<circ> r)"
+    unfolding Bseq_eq_bounded using s f by (auto intro: bounded_subset)
+  ultimately show "\<exists>l r. subseq r \<and> (f \<circ> r) ----> l"
+    using Bseq_monoseq_convergent[of "f \<circ> r"] by (auto simp: convergent_def)
 qed
 
 lemma compact_lemma:
@@ -3405,7 +3353,7 @@ proof
     using bounded_imp_convergent_subsequence [OF s2 f2]
     unfolding o_def by fast
   have l1': "((\<lambda>n. fst (f (r1 (r2 n)))) ---> l1) sequentially"
-    using lim_subseq [OF r2 l1] unfolding o_def .
+    using LIMSEQ_subseq_LIMSEQ [OF l1 r2] unfolding o_def .
   have l: "((f \<circ> (r1 \<circ> r2)) ---> (l1, l2)) sequentially"
     using tendsto_Pair [OF l1' l2] unfolding o_def by simp
   have r: "subseq (r1 \<circ> r2)"
@@ -5083,7 +5031,7 @@ apply (clarify, rename_tac l2 r2)
 apply (rule_tac x="(l1, l2)" in rev_bexI, simp)
 apply (rule_tac x="r1 \<circ> r2" in exI)
 apply (rule conjI, simp add: subseq_def)
-apply (drule_tac r=r2 in lim_subseq [rotated], assumption)
+apply (drule_tac f=r2 in LIMSEQ_subseq_LIMSEQ, assumption)
 apply (drule (1) tendsto_Pair) back
 apply (simp add: o_def)
 done
@@ -5267,7 +5215,7 @@ proof-
     obtain l' r where "l'\<in>s" and r:"subseq r" and lr:"(((\<lambda>n. fst (f n)) \<circ> r) ---> l') sequentially"
       using assms(1)[unfolded compact_def, THEN spec[where x="\<lambda> n. fst (f n)"]] using f(2) by auto
     have "((\<lambda>n. snd (f (r n))) ---> l - l') sequentially"
-      using tendsto_diff[OF lim_subseq[OF r as(2)] lr] and f(1) unfolding o_def by auto
+      using tendsto_diff[OF LIMSEQ_subseq_LIMSEQ[OF as(2) r] lr] and f(1) unfolding o_def by auto
     hence "l - l' \<in> t"
       using assms(2)[unfolded closed_sequential_limits, THEN spec[where x="\<lambda> n. snd (f (r n))"], THEN spec[where x="l - l'"]]
       using f(3) by auto
@@ -6260,11 +6208,6 @@ proof-
       unfolding `f \<circ> x = g` by auto  }
   thus ?thesis unfolding complete_def by auto
 qed
-
-lemma dist_0_norm:
-  fixes x :: "'a::real_normed_vector"
-  shows "dist 0 x = norm x"
-unfolding dist_norm by simp
 
 lemma injective_imp_isometric: fixes f::"'a::euclidean_space \<Rightarrow> 'b::euclidean_space"
   assumes s:"closed s"  "subspace s"  and f:"bounded_linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
