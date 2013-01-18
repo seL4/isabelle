@@ -30,7 +30,6 @@ declare -a SOURCES=(
   Isar/outer_syntax.scala
   Isar/parse.scala
   Isar/token.scala
-  ML/ml_statistics.scala
   PIDE/command.scala
   PIDE/document.scala
   PIDE/markup.scala
@@ -65,6 +64,7 @@ declare -a SOURCES=(
   Tools/build.scala
   Tools/build_dialog.scala
   Tools/main.scala
+  Tools/ml_statistics.scala
   Tools/task_statistics.scala
   library.scala
   package.scala

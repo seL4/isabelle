@@ -105,12 +105,12 @@ final class ML_Statistics private(val stats: List[Properties.T])
 
   def chart(arg: (String, Iterable[String])): JFreeChart = chart(arg._1, arg._2)
 
-  def standard_frames: Unit =
+  def show_standard_frames(): Unit =
     ML_Statistics.standard_fields.map(chart(_)).foreach(c =>
       Swing_Thread.later {
         new Frame {
           iconImage = Isabelle_System.get_icon().getImage
-          title = "ML statistics"
+          title = "Statistics"
           contents = Component.wrap(new ChartPanel(c))
           visible = true
         }
