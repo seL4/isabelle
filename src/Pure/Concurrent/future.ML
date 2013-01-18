@@ -61,7 +61,6 @@ sig
   type params = {name: string, group: group option, deps: task list, pri: int, interrupts: bool}
   val default_params: params
   val forks: params -> (unit -> 'a) list -> 'a future list
-  val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
   val join_results: 'a future list -> 'a Exn.result list
   val join_result: 'a future -> 'a Exn.result
@@ -521,10 +520,8 @@ fun forks ({name, group, deps, pri, interrupts}: params) es =
         in futures end)
     end;
 
-fun fork_pri pri e =
-  (singleton o forks) {name = "fork", group = NONE, deps = [], pri = pri, interrupts = true} e;
-
-fun fork e = fork_pri 0 e;
+fun fork e =
+  (singleton o forks) {name = "fork", group = NONE, deps = [], pri = 0, interrupts = true} e;
 
 
 (* join *)
