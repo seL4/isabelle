@@ -561,14 +561,16 @@ object Build
   private val SESSION_PARENT_PATH = "\fSession.parent_path = "
 
 
-  sealed case class Log_Info(stats: List[Properties.T], timing: Properties.T)
+  sealed case class Log_Info(
+    stats: List[Properties.T], tasks: List[Properties.T], timing: Properties.T)
 
   def parse_log(text: String): Log_Info =
   {
     val lines = split_lines(text)
     val stats = Props.parse_lines("\fML_statistics = ", lines)
+    val tasks = Props.parse_lines("\ftask_statistics = ", lines)
     val timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
-    Log_Info(stats, timing)
+    Log_Info(stats, tasks, timing)
   }
 
 

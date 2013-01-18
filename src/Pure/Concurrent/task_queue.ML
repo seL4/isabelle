@@ -22,7 +22,7 @@ sig
   val pri_of_task: task -> int
   val str_of_task: task -> string
   val str_of_task_groups: task -> string
-  val timing_of_task: task -> Time.time * Time.time * string list
+  val task_statistics: task -> Properties.T
   val running: task -> (unit -> 'a) -> 'a
   val joining: task -> (unit -> 'a) -> 'a
   val waiting: task -> task list -> (unit -> 'a) -> 'a
@@ -114,14 +114,17 @@ abstype task = Task of
   name: string,
   id: int,
   pri: int option,
-  timing: timing Synchronized.var option}
+  timing: timing Synchronized.var option,
+  pos: Position.T}
 with
 
 val dummy_task =
-  Task {group = new_group NONE, name = "", id = 0, pri = NONE, timing = NONE};
+  Task {group = new_group NONE, name = "", id = 0, pri = NONE, timing = NONE,
+    pos = Position.none};
 
 fun new_task group name pri =
-  Task {group = group, name = name, id = new_id (), pri = pri, timing = new_timing ()};
+  Task {group = group, name = name, id = new_id (), pri = pri, timing = new_timing (),
+    pos = Position.thread_data ()};
 
 fun group_of_task (Task {group, ...}) = group;
 fun name_of_task (Task {name, ...}) = name;
@@ -131,9 +134,6 @@ fun str_of_task (Task {name, id, ...}) =
   if name = "" then string_of_int id else string_of_int id ^ " (" ^ name ^ ")";
 
 fun str_of_task_groups task = str_of_task task ^ " in " ^ str_of_groups (group_of_task task);
-
-fun timing_of_task (Task {timing, ...}) =
-  (case timing of NONE => timing_start | SOME var => Synchronized.value var);
 
 fun update_timing update (Task {timing, ...}) e =
   uninterruptible (fn restore_attributes => fn () =>
@@ -146,6 +146,18 @@ fun update_timing update (Task {timing, ...}) e =
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
   prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));
+
+fun task_statistics (Task {name, id, timing, pos, ...}) =
+  let
+    val (run, wait, wait_deps) =
+      (case timing of NONE => timing_start | SOME var => Synchronized.value var);
+    fun micros time = string_of_int (Time.toNanoseconds time div 1000);
+  in
+    [("now", signed_string_of_real (Time.toReal (Time.now ()))),
+     ("task_name", name), ("task_id", Markup.print_int id),
+     ("run", micros run), ("wait", micros wait), ("wait_deps", commas wait_deps)] @
+    Position.properties_of pos
+  end;
 
 end;
 

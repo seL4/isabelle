@@ -364,6 +364,9 @@ class Session(val thy_load: Thy_Load)
         case Markup.ML_Statistics(props) if output.is_protocol =>
           statistics.event(Session.Statistics(props))
 
+        case Markup.Task_Statistics(props) if output.is_protocol =>
+          // FIXME
+
         case _ if output.is_init =>
           phase = Session.Ready
 

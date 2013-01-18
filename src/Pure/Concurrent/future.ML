@@ -256,12 +256,11 @@ fun worker_exec (task, jobs) =
       Task_Queue.running task (fn () =>
         setmp_worker_task task (fn () =>
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
-    val _ = Multithreading.tracing 2 (fn () =>
-      let
-        val s = Task_Queue.str_of_task_groups task;
-        fun micros time = string_of_int (Time.toNanoseconds time div 1000);
-        val (run, wait, deps) = Task_Queue.timing_of_task task;
-      in "TASK " ^ s ^ " " ^ micros run ^ " " ^ micros wait ^ " (" ^ commas deps ^ ")" end);
+    val _ =
+      if ! Multithreading.trace >= 2 then
+        Output.protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) ""
+          handle Fail msg => warning msg
+      else ();
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
