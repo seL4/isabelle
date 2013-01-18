@@ -5445,7 +5445,7 @@ proof-
 have *: "S Int closure T = S" using assms by auto
 have "~(rel_interior S <= rel_frontier T)"
      using closure_mono[of "rel_interior S" "rel_frontier T"] closed_rel_frontier[of T]
-     closure_closed convex_closure_rel_interior[of S] closure_subset[of S] assms by auto
+     closure_closed[of S] convex_closure_rel_interior[of S] closure_subset[of S] assms by auto
 hence "(rel_interior S) Int (rel_interior (closure T)) ~= {}"
      using assms rel_frontier_def[of T] rel_interior_subset convex_rel_interior_closure[of T] by auto
 hence "rel_interior S Int rel_interior T = rel_interior (S Int closure T)" using assms convex_closure
