@@ -21,10 +21,13 @@ object ML_Statistics
 
   final case class Entry(time: Double, data: Map[String, Double])
 
-  def apply(stats: List[Properties.T]): ML_Statistics = new ML_Statistics(stats)
-  def apply(path: Path): ML_Statistics = apply(Build.parse_log(File.read_gzip(path)).stats)
+  def apply(name: String, stats: List[Properties.T]): ML_Statistics =
+    new ML_Statistics(name, stats)
 
-  val empty = apply(Nil)
+  def apply(info: Build.Log_Info): ML_Statistics =
+    apply(info.name, info.stats)
+
+  val empty = apply("", Nil)
 
 
   /* standard fields */
@@ -53,7 +56,7 @@ object ML_Statistics
     List(GC_fields, heap_fields, threads_fields, time_fields, tasks_fields, workers_fields)
 }
 
-final class ML_Statistics private(val stats: List[Properties.T])
+final class ML_Statistics private(val name: String, val stats: List[Properties.T])
 {
   val Now = new Properties.Double("now")
   def now(props: Properties.T): Double = Now.unapply(props).get
@@ -110,7 +113,7 @@ final class ML_Statistics private(val stats: List[Properties.T])
       Swing_Thread.later {
         new Frame {
           iconImage = Isabelle_System.get_icon().getImage
-          title = "Statistics"
+          title = name
           contents = Component.wrap(new ChartPanel(c))
           visible = true
         }

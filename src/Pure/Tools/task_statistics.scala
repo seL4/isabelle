@@ -17,18 +17,22 @@ import org.jfree.chart.renderer.xy.{XYBarRenderer, StandardXYBarPainter}
 
 object Task_Statistics
 {
-  def apply(stats: List[Properties.T]): Task_Statistics = new Task_Statistics(stats)
+  def apply(name: String, tasks: List[Properties.T]): Task_Statistics =
+    new Task_Statistics(name, tasks)
+
+  def apply(info: Build.Log_Info): Task_Statistics =
+    apply(info.name, info.tasks)
 }
 
-final class Task_Statistics private(val stats: List[Properties.T])
+final class Task_Statistics private(val name: String, val tasks: List[Properties.T])
 {
-  val Task_Name = new Properties.String("task_name")
-  val Run = new Properties.Int("run")
+  private val Task_Name = new Properties.String("task_name")
+  private val Run = new Properties.Int("run")
 
   def chart(bins: Int = 100): JFreeChart =
   {
-    val values = new Array[Double](stats.length)
-    for ((Run(x), i) <- stats.iterator.zipWithIndex) values(i) =
+    val values = new Array[Double](tasks.length)
+    for ((Run(x), i) <- tasks.iterator.zipWithIndex) values(i) =
       Math.log10(x.toDouble / 1000000)
 
     val data = new HistogramDataset
@@ -50,7 +54,7 @@ final class Task_Statistics private(val stats: List[Properties.T])
     Swing_Thread.later {
       new Frame {
         iconImage = Isabelle_System.get_icon().getImage
-        title = "Statistics"
+        title = name
         contents = Component.wrap(new ChartPanel(chart(bins)))
         visible = true
       }

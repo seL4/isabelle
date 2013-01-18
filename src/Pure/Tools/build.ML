@@ -98,6 +98,7 @@ fun build args_file = Command_Line.tool (fn () =>
           [] => ()
         | dups => error ("Duplicate document variants: " ^ commas_quote dups));
 
+      val _ = writeln ("\fSession.name = " ^ name);
       val _ =
         (case Session.path () of
           [] => ()

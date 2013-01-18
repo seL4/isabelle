@@ -28,7 +28,7 @@ class Monitor_Dockable(view: View, position: String) extends Dockable(view, posi
 
   private val delay_update =
     Swing_Thread.delay_first(PIDE.options.seconds("editor_chart_delay")) {
-      ML_Statistics(rev_stats.reverse)
+      ML_Statistics("", rev_stats.reverse)
         .update_data(data, ML_Statistics.workers_fields._2) // FIXME selectable fields
     }
 
