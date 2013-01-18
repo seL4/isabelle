@@ -65,6 +65,7 @@ declare -a SOURCES=(
   Tools/build.scala
   Tools/build_dialog.scala
   Tools/main.scala
+  Tools/task_statistics.scala
   library.scala
   package.scala
   term.scala
