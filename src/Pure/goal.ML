@@ -116,9 +116,7 @@ fun count_forked i =
   Synchronized.change forked_proofs (fn (m, groups, tab) =>
     let
       val n = m + i;
-      val _ =
-        Multithreading.tracing 2 (fn () =>
-          ("PROOFS " ^ Time.toString (Time.now ()) ^ ": " ^ string_of_int n));
+      val _ = Future.forked_proofs := n;
     in (n, groups, tab) end);
 
 fun register_forked id future =
@@ -176,7 +174,7 @@ fun peek_futures id =
 
 fun reset_futures () =
   Synchronized.change_result forked_proofs (fn (m, groups, tab) =>
-    (groups, (0, [], Inttab.empty)));
+    (Future.forked_proofs := 0; (groups, (0, [], Inttab.empty))));
 
 end;
 

@@ -43,7 +43,8 @@ object ML_Statistics
     ("Time", List("time_GC_system", "time_GC_user", "time_non_GC_system", "time_non_GC_user"))
 
   val tasks_fields =
-    ("Future tasks", List("tasks_ready", "tasks_pending", "tasks_running", "tasks_passive"))
+    ("Future tasks",
+      List("tasks_proof", "tasks_ready", "tasks_pending", "tasks_running", "tasks_passive"))
 
   val workers_fields =
     ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
