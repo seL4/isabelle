@@ -225,6 +225,7 @@ fun future_result ctxt result prop =
         Thm.strip_shyps);
     val local_result =
       Thm.future global_result global_prop
+      |> Thm.close_derivation
       |> Thm.instantiate (instT, [])
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms;
