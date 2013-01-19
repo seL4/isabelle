@@ -10,7 +10,7 @@ session HOL (main) = Pure +
 
 session "HOL-Proofs" = Pure +
   description {* HOL-Main with explicit proof terms *}
-  options [document = false, proofs = 2, parallel_proofs = 0]
+  options [document = false, proofs = 2]
   theories Main
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
