@@ -18,7 +18,6 @@ sig
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
-  val weight_mepo_facts : 'a list -> ('a * real) list
   val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
     -> term list -> term -> fact list -> fact list
@@ -509,13 +508,6 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
-
-(* FUDGE *)
-fun weight_of_mepo_fact rank =
-  Math.pow (0.62, log2 (Real.fromInt (rank + 1)))
-
-fun weight_mepo_facts facts =
-  facts ~~ map weight_of_mepo_fact (0 upto length facts - 1)
 
 fun mepo_suggested_facts ctxt
         ({fact_thresholds = (thres0, thres1), ...} : params) prover

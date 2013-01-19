@@ -65,6 +65,7 @@ sig
     Proof.context -> params -> string -> int -> fact list
     -> string Symtab.table * string Symtab.table -> thm
     -> bool * string list
+  val weight_mepo_facts : 'a list -> ('a * real) list
   val weight_mash_facts : 'a list -> ('a * real) list
   val find_mash_suggestions :
     int -> string list -> ('b * thm) list -> ('b * thm) list -> ('b * thm) list
@@ -758,6 +759,13 @@ fun maximal_in_graph access_G facts =
 
 fun is_fact_in_graph access_G get_th fact =
   can (Graph.get_node access_G) (nickname_of_thm (get_th fact))
+
+(* FUDGE *)
+fun weight_of_mepo_fact rank =
+  Math.pow (0.62, log2 (Real.fromInt (rank + 1)))
+
+fun weight_mepo_facts facts =
+  facts ~~ map weight_of_mepo_fact (0 upto length facts - 1)
 
 val weight_raw_mash_facts = weight_mepo_facts
 val weight_mash_facts = weight_raw_mash_facts
