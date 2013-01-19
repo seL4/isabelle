@@ -8,3 +8,7 @@ Requirements:
 * Platypus 4.7 http://www.sveinbjorn.org/platypus
   Preferences: Install command line tool
 
+* final packaging:
+
+  hdiutil create -srcfolder DIR DMG
+

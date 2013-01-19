@@ -55,9 +55,7 @@ Packaging
 
 - hg up -r DISTNAME && Admin/Release/build -r DISTNAME /home/isabelle/dist
 
-- Mac OS X: hdiutil create -srcfolder DIR DMG
-
-- Windows: cat 7zsd_All.sfx sfx.txt Isabelle.7z > Isabelle.exe
+- manual packaging of .app (Mac OS) and .exe (Windows)
 
 
 Final release stage

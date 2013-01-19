@@ -1,23 +1,14 @@
-Notes on Cygwin
-===============
+Cygwin
+======
 
 * http://www.cygwin.com/
-
-* http://www.cygwin.com/cygwin-ug-net/ntsec.html
-
-* http://chinese-watercolor.com/LRP/printsrv/cygwin-sshd.html
-
-* Cygwin crash of Poly/ML 5.4.0, 5.4.1 with threads (and sockets?)
-http://cygwin.com/ml/cygwin/2012-04/msg00415.html
-http://cygwin.com/ml/cygwin/2012-04/msg00417.html
 
 * Mirror with many old versions (not setup.ini)
   http://ftp.eq.uc.pt/software/pc/prog/cygwin
 
-* Time machine for older versions:
-  http://www.fruitbat.org/Cygwin/index.html#cygwincirca
+* Local snapshots:
+  http://isabelle.in.tum.de/cygwin  (Isabelle2012)
+  http://isabelle.in.tum.de/cygwin_2013  (Isabelle2013)
 
-  e.g. ftp://www.fruitbat.org/pub/cygwin/circa/2012/02/04/034515/setup.ini
-  for last 1.7.9 version
+* Quasi-component: "isabelle makedist_cygwin"
 
-* 7zip self-extracting installer: http://www.7zsfx.info
