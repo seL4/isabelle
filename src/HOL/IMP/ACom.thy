@@ -4,9 +4,6 @@ theory ACom
 imports Com
 begin
 
-(* is there a better place? *)
-definition "show_state xs s = [(x,s x). x \<leftarrow> xs]"
-
 subsection "Annotated Commands"
 
 datatype 'a acom =

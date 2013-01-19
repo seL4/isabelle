@@ -5,7 +5,7 @@ theory Hoare_Examples imports Hoare begin
 subsection{* Example: Sums *}
 
 text{* Summing up the first @{text n} natural numbers. The sum is accumulated
-in variable @{text 0}, the loop counter is variable @{text 1}. *}
+in variable @{text x}, the loop counter is variable @{text y}. *}
 
 abbreviation "w n ==
   WHILE Less (V ''y'') (N n)

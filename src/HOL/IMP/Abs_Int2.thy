@@ -179,75 +179,52 @@ lemma in_gamma_update:
   "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(update S x a)"
 by(simp add: \<gamma>_st_def)
 
-theorem step_preserves_le:
-  "\<lbrakk> S \<subseteq> \<gamma>\<^isub>o S'; C \<le> \<gamma>\<^isub>c C'; C' \<in> L X; S' \<in> L X \<rbrakk> \<Longrightarrow> step S C \<le> \<gamma>\<^isub>c (step' S' C')"
-proof(induction C arbitrary: C' S S')
-  case SKIP thus ?case by(auto simp:SKIP_le map_acom_SKIP)
+lemma step_step': "C \<in> L X \<Longrightarrow> S \<in> L X \<Longrightarrow> step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
+proof(induction C arbitrary: S)
+  case SKIP thus ?case by auto
 next
   case Assign thus ?case
-    by (fastforce simp: Assign_le map_acom_Assign L_option_def L_st_def
-        intro: aval'_sound in_gamma_update  split: option.splits del:subsetD)
+    by (fastforce simp: L_st_def intro: aval'_sound in_gamma_update split: option.splits)
 next
-  case Seq thus ?case apply (auto simp: Seq_le map_acom_Seq)
-    by (metis le_post post_map_acom post_in_L)
+  case Seq thus ?case by auto
 next
-  case (If b P1 C1 P2 C2 Q)
-  then obtain P1' C1' P2' C2' Q' where
-      "C' = IF b THEN {P1'} C1' ELSE {P2'} C2' {Q'}"
-      "P1 \<subseteq> \<gamma>\<^isub>o P1'" "P2 \<subseteq> \<gamma>\<^isub>o P2'"  "C1 \<le> \<gamma>\<^isub>c C1'" "C2 \<le> \<gamma>\<^isub>c C2'" "Q \<subseteq> \<gamma>\<^isub>o Q'" 
-    by (fastforce simp: If_le map_acom_If)
-  moreover from this(1) `C' \<in> L X`
-  have L: "C1' \<in> L X" "C2' \<in> L X" "P1' \<in> L X" "P2' \<in> L X" and "vars b \<subseteq> X"
-    by simp_all
-  moreover have "post C1 \<subseteq> \<gamma>\<^isub>o(post C1' \<squnion> post C2')"
-    by (metis (no_types) `C1 \<le> \<gamma>\<^isub>c C1'` join_ge1 le_post mono_gamma_o order_trans post_map_acom post_in_L L)
-  moreover have "post C2 \<subseteq> \<gamma>\<^isub>o(post C1' \<squnion> post C2')"
-    by (metis (no_types) `C2 \<le> \<gamma>\<^isub>c C2'` join_ge2 le_post mono_gamma_o order_trans post_map_acom post_in_L L)
-  moreover note vars = `S' \<in> L X` `vars b \<subseteq> X`
-  ultimately show ?case using `S \<subseteq> \<gamma>\<^isub>o S'`
-    by (simp add: If.IH subset_iff bfilter_sound[OF vars] bfilter_in_L[OF vars])
+  case (If b _ C1 _ C2)
+  hence 0: "post C1 \<sqsubseteq> post C1 \<squnion> post C2 \<and> post C2 \<sqsubseteq> post C1 \<squnion> post C2"
+    by(simp, metis post_in_L join_ge1 join_ge2)
+  have "vars b \<subseteq> X" using If.prems by simp
+  note vars = `S \<in> L X` `vars b \<subseteq> X`
+  show ?case using If 0
+    by (auto simp: mono_gamma_o bfilter_sound[OF vars] bfilter_in_L[OF vars])
 next
-  case (While I b P C1 Q)
-  then obtain C1' I' P' Q' where
-    "C' = {I'} WHILE b DO {P'} C1' {Q'}"
-    "I \<subseteq> \<gamma>\<^isub>o I'" "P \<subseteq> \<gamma>\<^isub>o P'" "Q \<subseteq> \<gamma>\<^isub>o Q'" "C1 \<le> \<gamma>\<^isub>c C1'"
-    by (fastforce simp: map_acom_While While_le)
-  moreover from this(1) `C' \<in> L X`
-  have L: "C1' \<in> L X" "I' \<in> L X" "P' \<in> L X" and "vars b \<subseteq> X" by simp_all
-  moreover note compat = `S' \<in> L X` post_in_L[OF L(1)]
-  moreover note vars = `I' \<in> L X` `vars b \<subseteq> X`
-  moreover have "S \<union> post C1 \<subseteq> \<gamma>\<^isub>o (S' \<squnion> post C1')"
-    using `S \<subseteq> \<gamma>\<^isub>o S'` le_post[OF `C1 \<le> \<gamma>\<^isub>c C1'`, simplified]
-    by (metis (no_types) join_ge1[OF compat] join_ge2[OF compat] le_sup_iff mono_gamma_o order_trans)
-  ultimately show ?case
-    by (simp add: While.IH subset_iff bfilter_sound[OF vars] bfilter_in_L[OF vars])
+  case (While I b)
+  hence vars: "I \<in> L X" "vars b \<subseteq> X" by simp_all
+  thus ?case using While
+    by (auto simp: mono_gamma_o bfilter_sound[OF vars] bfilter_in_L[OF vars])
 qed
 
-lemma step'_in_L[simp]:
-  "\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> step' S C \<in> L X"
+lemma step'_in_L[simp]: "\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> step' S C \<in> L X"
 proof(induction C arbitrary: S)
   case Assign thus ?case by(simp add: L_option_def L_st_def update_def split: option.splits)
 qed (auto simp add: bfilter_in_L)
 
-theorem AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
+lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' (top c)) (bot c) = Some C"
   have "C \<in> L(vars c)"
     by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
       (erule step'_in_L[OF _ top_in_L])
-  have 2: "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
-  have 3: "strip (\<gamma>\<^isub>c (step' (top c) C)) = c"
-    by(simp add: strip_pfp[OF _ 1])
-  have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' (top c) C)"
-  proof(rule lfp_lowerbound[simplified,OF 3])
-    show "step UNIV (\<gamma>\<^isub>c (step' (top c) C)) \<le> \<gamma>\<^isub>c (step' (top c) C)"
-    proof(rule step_preserves_le[OF _ _ `C \<in> L(vars c)` top_in_L])
-      show "UNIV \<subseteq> \<gamma>\<^isub>o (top c)" by simp
-      show "\<gamma>\<^isub>c (step' (top c) C) \<le> \<gamma>\<^isub>c C" by(rule mono_gamma_c[OF 2])
-    qed
+  have pfp': "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
+  have 2: "step (\<gamma>\<^isub>o(top c)) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  proof(rule order_trans)
+    show "step (\<gamma>\<^isub>o (top c)) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top c) C)"
+      by(rule step_step'[OF `C \<in> L(vars c)` top_in_L])
+    show "\<gamma>\<^isub>c (step' (top c) C) \<le> \<gamma>\<^isub>c C"
+      by(rule mono_gamma_c[OF pfp'])
   qed
-  from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C"
-    by (blast intro: mono_gamma_c order_trans)
+  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
+  have "lfp c (step (\<gamma>\<^isub>o(top c))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top c))", OF 3 2])
+  thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
 end

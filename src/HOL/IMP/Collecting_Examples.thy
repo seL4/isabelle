@@ -12,7 +12,7 @@ definition "c = WHILE Less (V ''x'') (N 3)
                 DO ''x'' ::= Plus (V ''x'') (N 2)"
 definition C0 :: "state set acom" where "C0 = anno {} c"
 
-definition "show_acom xs = map_acom (\<lambda>S. show_state xs ` S)"
+definition "show_acom xs = map_acom (\<lambda>S. (\<lambda>s. [(x,s x). x \<leftarrow> xs]) ` S)"
 
 text{* Collecting semantics: *}
 

@@ -366,18 +366,17 @@ proof(simp add: CS_def AI_wn_def)
   have 2: "(strip C = c & C \<in> L(vars c)) \<and> step' \<top>\<^bsub>c\<^esub> C \<sqsubseteq> C"
     by(rule pfp_wn_pfp[where x="bot c"])
       (simp_all add: 1 mono_step'_top widen_c_in_L narrow_c_in_L)
-  have 3: "strip (\<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)) = c" by(simp add: strip_pfp_wn[OF _ 1])
-  have "lfp c (step UNIV) \<le> \<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)"
-  proof(rule lfp_lowerbound[simplified,OF 3])
-    show "step UNIV (\<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)) \<le> \<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C)"
-    proof(rule step_preserves_le[OF _ _ _ top_in_L])
-      show "UNIV \<subseteq> \<gamma>\<^isub>o \<top>\<^bsub>c\<^esub>" by simp
-      show "\<gamma>\<^isub>c (step' \<top>\<^bsub>c\<^esub> C) \<le> \<gamma>\<^isub>c C" by(rule mono_gamma_c[OF conjunct2[OF 2]])
-      show "C \<in> L(vars c)" using 2 by blast
-    qed
+  have pfp: "step (\<gamma>\<^isub>o(top c)) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  proof(rule order_trans)
+    show "step (\<gamma>\<^isub>o (top c)) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top c) C)"
+      by(rule step_step'[OF conjunct2[OF conjunct1[OF 2]] top_in_L])
+    show "... \<le> \<gamma>\<^isub>c C"
+      by(rule mono_gamma_c[OF conjunct2[OF 2]])
   qed
-  from this 2 show "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C"
-    by (blast intro: mono_gamma_c order_trans)
+  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp_wn[OF _ 1])
+  have "lfp c (step (\<gamma>\<^isub>o (top c))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top c))", OF 3 pfp])
+  thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
 end
