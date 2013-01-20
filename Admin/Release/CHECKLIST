@@ -15,8 +15,6 @@ Checklist for official releases
 
 - check HTML header of library;
 
-- check persistent sessions with PG and Poly/ML 5.x;
-
 - check file positions within logic images (hyperlinks etc.);
 
 - isabelle update_keywords;
@@ -44,7 +42,6 @@ Checklist for official releases
 
 - test contrib components:
     x86_64-linux without 32bit C/C++ libraries
-    Mac OS X Leopard
 
 - check "Handler catches all exceptions", using
   PolyML.Compiler.reportExhaustiveHandlers := true;
