@@ -379,7 +379,7 @@ AFP entry "Ordinals_and_Cardinals").
 with support for mixed, nested recursion and interesting non-free
 datatypes.
 
-* HOL/Finite_Set and Relation: added new set and relation operations 
+* HOL/Finite_Set and Relation: added new set and relation operations
 expressed by Finite_Set.fold.
 
 * New theory HOL/Library/RBT_Set: implementation of sets by red-black

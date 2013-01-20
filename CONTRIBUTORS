@@ -18,7 +18,7 @@ Contributions to this Isabelle version
   including a smart type annotation algorithm and proof shrinking.
 
 * December 2012: Alessandro Coglio, Kestrel
-  Contributions to HOL's Lattice library
+  Contributions to HOL's Lattice library.
 
 * November 2012: Fabian Immler, TUM
   "Symbols" dockable for Isabelle/jEdit.

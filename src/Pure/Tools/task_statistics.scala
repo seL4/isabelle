@@ -33,7 +33,7 @@ final class Task_Statistics private(val name: String, val tasks: List[Properties
   {
     val values = new Array[Double](tasks.length)
     for ((Run(x), i) <- tasks.iterator.zipWithIndex) values(i) =
-      Math.log10(x.toDouble / 1000000)
+      java.lang.Math.log10(x.toDouble / 1000000)
 
     val data = new HistogramDataset
     data.addSeries("tasks", values, bins)
