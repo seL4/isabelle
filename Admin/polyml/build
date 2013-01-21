@@ -92,3 +92,7 @@ mv "$SOURCE/$TARGET/bin/"* "$TARGET/"
 mv "$SOURCE/$TARGET/lib/"* "$TARGET/"
 rmdir "$SOURCE/$TARGET/bin" "$SOURCE/$TARGET/lib"
 rm -rf "$SOURCE/$TARGET/share"
+
+if [ "$TARGET" = x86-cygwin ]; then
+  peflags -x8192000 -z500 "$TARGET/poly.exe"
+fi
