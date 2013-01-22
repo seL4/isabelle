@@ -273,7 +273,14 @@ text {* Package setup. *}
 ML_file "Tools/Datatype/datatype_aux.ML"
 ML_file "Tools/Datatype/datatype_prop.ML"
 ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
+
+consts
+  case_nil :: "'a \<Rightarrow> 'b"
+  case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+  case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
+  case_abs :: "('c \<Rightarrow> 'b) \<Rightarrow> 'b"
 ML_file "Tools/Datatype/datatype_case.ML" setup Datatype_Case.setup
+
 ML_file "Tools/Datatype/rep_datatype.ML"
 ML_file "Tools/Datatype/datatype_codegen.ML" setup Datatype_Codegen.setup
 ML_file "Tools/Datatype/primrec.ML"
@@ -290,7 +297,7 @@ let
   fun fun_tr ctxt [cs] =
     let
       val x = Syntax.free (fst (Name.variant "x" (Term.declare_term_frees cs Name.context)));
-      val ft = Datatype_Case.case_tr true ctxt [x, cs];
+      val ft = Datatype_Case.case_tr ctxt [x, cs];
     in lambda x ft end
 in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
 *}

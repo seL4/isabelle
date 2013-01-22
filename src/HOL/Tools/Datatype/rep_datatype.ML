@@ -536,7 +536,6 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
     |> snd
     |> Datatype_Data.register dt_infos
     |> Datatype_Data.interpretation_data (config, dt_names)
-    |> Datatype_Case.add_case_tr' case_names
     |> pair dt_names
   end;
 
