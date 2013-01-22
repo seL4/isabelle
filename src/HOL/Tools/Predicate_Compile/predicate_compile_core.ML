@@ -640,7 +640,7 @@ fun compile_match compilation_modifiers additional_arguments ctxt param_modes
     val v = Free (name, T);
     val v' = Free (name', T);
   in
-    lambda v (Datatype_Case.make_case ctxt Datatype_Case.Quiet Name.context v
+    lambda v (Case_Translation.make_case ctxt Case_Translation.Quiet Name.context v
       [(HOLogic.mk_tuple out_ts,
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $
@@ -916,7 +916,7 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
         in
           (pattern, compilation)
         end
-        val switch = Datatype_Case.make_case ctxt Datatype_Case.Quiet Name.context inp_var
+        val switch = Case_Translation.make_case ctxt Case_Translation.Quiet Name.context inp_var
           ((map compile_single_case switched_clauses) @
             [(xt, mk_empty compfuns (HOLogic.mk_tupleT outTs))])
       in

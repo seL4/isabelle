@@ -518,6 +518,12 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
     val unnamed_rules = map (fn induct =>
       ((Binding.empty, [Rule_Cases.inner_rule, Induct.induct_type ""]), [([induct], [])]))
         (drop (length dt_names) inducts);
+
+    val ctxt = Proof_Context.init_global thy9;
+    val case_combs = map (Proof_Context.read_const ctxt false dummyT) case_names;
+    val constrss = map (fn (dtname, {descr, index, ...}) =>
+      map (Proof_Context.read_const ctxt false dummyT o fst)
+        (#3 (the (AList.lookup op = descr index)))) dt_infos
   in
     thy9
     |> Global_Theory.note_thmss ""
@@ -535,6 +541,7 @@ fun derive_datatype_props config dt_names descr induct inject distinct thy1 =
           named_rules @ unnamed_rules)
     |> snd
     |> Datatype_Data.register dt_infos
+    |> Context.theory_map (fold2 Case_Translation.register case_combs constrss)
     |> Datatype_Data.interpretation_data (config, dt_names)
     |> pair dt_names
   end;

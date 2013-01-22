@@ -293,7 +293,7 @@ fun mk_test_term lookup mk_closure mk_if mk_let none_t return ctxt =
                 val cont_t = mk_smart_test_term' concl bound_vars' (new_assms @ assms) genuine
               in
                 mk_test (vars_of lhs,
-                  Datatype_Case.make_case ctxt Datatype_Case.Quiet Name.context lhs
+                  Case_Translation.make_case ctxt Case_Translation.Quiet Name.context lhs
                     [(list_comb (constr, vars), cont_t), (dummy_var, none_t)])
               end
             else c (assm, assms)

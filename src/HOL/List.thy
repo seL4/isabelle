@@ -407,7 +407,7 @@ parse_translation (advanced) {*
           Syntax.const @{syntax_const "_case1"} $
             Syntax.const @{const_syntax dummy_pattern} $ NilC;
         val cs = Syntax.const @{syntax_const "_case2"} $ case1 $ case2;
-      in Syntax_Trans.abs_tr [x, Datatype_Case.case_tr ctxt [x, cs]] end;
+      in Syntax_Trans.abs_tr [x, Case_Translation.case_tr ctxt [x, cs]] end;
 
     fun abs_tr ctxt p e opti =
       (case Term_Position.strip_positions p of
