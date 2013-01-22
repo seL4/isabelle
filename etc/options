@@ -94,7 +94,7 @@ option editor_update_delay : real = 0.5
 option editor_reparse_limit : int = 10000
   -- "maximum amount of reparsed text outside perspective"
 
-option editor_tracing_messages : int = 100
+option editor_tracing_messages : int = 1000
   -- "initial number of tracing messages for each command transaction"
 
 option editor_chart_delay : real = 3.0

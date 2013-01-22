@@ -91,7 +91,7 @@ fun update_tracing () =
             val (text, promise) = Active.dialog_text ();
             val _ =
               writeln ("Tracing paused.  " ^ text "Stop" ^ ", or continue with next " ^
-                text "10" ^ ", " ^ text "100" ^ ", " ^ text "1000" ^ " messages?")
+                text "100" ^ ", " ^ text "1000" ^ ", " ^ text "10000" ^ " messages?")
             val m = Markup.parse_int (Future.join promise)
               handle Fail _ => error "Stopped";
           in
