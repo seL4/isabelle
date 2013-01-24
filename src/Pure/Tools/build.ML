@@ -14,6 +14,8 @@ struct
 
 (* protocol messages *)
 
+local
+
 fun ML_statistics (function :: stats) "" =
       if function = Markup.ML_statistics then SOME stats
       else NONE
@@ -24,16 +26,22 @@ fun task_statistics (function :: stats) "" =
       else NONE
   | task_statistics _ _ = NONE;
 
+val print_properties = YXML.string_of_body o XML.Encode.properties;
+
+in
+
 fun protocol_message props output =
   (case ML_statistics props output of
-    SOME stats => writeln ("\fML_statistics = " ^ ML_Syntax.print_properties stats)
+    SOME stats => writeln ("\fML_statistics = " ^ print_properties stats)
   | NONE =>
       (case task_statistics props output of
-        SOME stats => writeln ("\ftask_statistics = " ^ ML_Syntax.print_properties stats)
+        SOME stats => writeln ("\ftask_statistics = " ^ print_properties stats)
       | NONE =>
           (case Markup.dest_loading_theory props of
             SOME name => writeln ("\floading_theory = " ^ name)
           | NONE => raise Fail "Undefined Output.protocol_message")));
+
+end;
 
 
 (* build *)

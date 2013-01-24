@@ -96,9 +96,9 @@ fun with_timing name verbose f x =
     val factor = Time.toReal (#cpu timing) / Time.toReal (#elapsed timing)
       |> Real.fmt (StringCvt.FIX (SOME 2));
 
-    val _ =
-      writeln ("\fTiming = " ^ ML_Syntax.print_properties
-        ([("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)]));
+    val timing_props =
+      [("threads", threads)] @ Markup.timing_properties timing @ [("factor", factor)];
+    val _ = writeln ("\fTiming = " ^ YXML.string_of_body (XML.Encode.properties timing_props));
     val _ =
       if verbose then
         Output.physical_stderr ("Timing " ^ name ^ " (" ^

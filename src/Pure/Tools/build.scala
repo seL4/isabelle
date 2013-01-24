@@ -521,28 +521,11 @@ object Build
   }
 
 
-  /* inlined properties -- syntax similar to ML */
+  /* inlined properties (YXML) */
 
   object Props
   {
-    private val syntax = Outer_Syntax.empty + "," + "(" + ")" + "[" + "]"
-
-    private object Parser extends Parse.Parser
-    {
-      def prop: Parser[Properties.Entry] =
-        keyword("(") ~ string ~ keyword(",") ~ string ~ keyword(")") ^^
-        { case _ ~ x ~ _ ~ y ~ _ => (x, y) }
-      def props: Parser[Properties.T] =
-        keyword("[") ~> repsep(prop, keyword(",")) <~ keyword("]")
-    }
-
-    def parse(text: String): Properties.T =
-    {
-      Parser.parse_all(Parser.props, Token.reader(syntax.scan(text))) match {
-        case Parser.Success(result, _) => result
-        case bad => error(bad.toString)
-      }
-    }
+    def parse(text: String): Properties.T = XML.Decode.properties(YXML.parse_body(text))
 
     def parse_lines(prefix: String, lines: List[String]): List[Properties.T] =
       for (line <- lines; s <- Library.try_unprefix(prefix, line)) yield parse(s)
