@@ -318,9 +318,10 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     (* runtime status *)
 
     val _ =
-      if tick then Unsynchronized.change status_ticks (fn i => (i + 1) mod 10) else ();
+      if tick then Unsynchronized.change status_ticks (fn i => i + 1) else ();
     val _ =
-      if tick andalso ! status_ticks = 0 then report_status () else ();
+      if tick andalso ! status_ticks mod (if ! Multithreading.trace >= 1 then 2 else 10) = 0
+      then report_status () else ();
 
     val _ =
       if forall (Thread.isActive o #1) (! workers) then ()
