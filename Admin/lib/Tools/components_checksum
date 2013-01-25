@@ -71,7 +71,7 @@ CHECKSUM_TMP="$CHECKSUM_DIR/components.sha1.tmp"
 
 (
   cd "$COMPONENTS_DIR"
-  sha1sum *.tar.gz | sort -k2 > "$CHECKSUM_TMP"
+  sha1sum *.tar.gz | sort -k2 -f > "$CHECKSUM_TMP"
 )
 
 [ -n "$UPDATE" ] && mv "$CHECKSUM_TMP" "$CHECKSUM_FILE"
