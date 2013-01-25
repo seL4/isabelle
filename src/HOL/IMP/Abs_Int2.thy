@@ -55,11 +55,11 @@ locale Val_abs1 =
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and filter_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
-assumes test_num': "test_num' n a = (n : \<gamma> a)"
+assumes test_num': "test_num' i a = (i : \<gamma> a)"
 and filter_plus': "filter_plus' a a1 a2 = (b1,b2) \<Longrightarrow>
-  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma> a \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
-and filter_less': "filter_less' (n1<n2) a1 a2 = (b1,b2) \<Longrightarrow>
-  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
+  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma> a \<Longrightarrow> i1 : \<gamma> b1 \<and> i2 : \<gamma> b2"
+and filter_less': "filter_less' (i1<i2) a1 a2 = (b1,b2) \<Longrightarrow>
+  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> b1 \<and> i2 : \<gamma> b2"
 
 
 locale Abs_Int1 =
@@ -80,13 +80,13 @@ by(simp add: L_option_def L_st_def aval'_sound split: option.splits)
 subsubsection "Backward analysis"
 
 fun afilter :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
-"afilter (N n) a S = (if test_num' n a then S else None)" |
+"afilter (N i) a S = (if test_num' i a then S else None)" |
 "afilter (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
   let a' = fun S x \<sqinter> a in
   if a' \<sqsubseteq> \<bottom> then None else Some(update S x a'))" |
 "afilter (Plus e1 e2) a S =
- (let (a1,a2) = filter_plus' a (aval'' e1 S) (aval'' e2 S)
-  in afilter e1 a1 (afilter e2 a2 S))"
+ (let (a\<^isub>1',a\<^isub>2') = filter_plus' a (aval'' e1 S) (aval'' e2 S)
+  in afilter e1 a\<^isub>1' (afilter e2 a\<^isub>2' S))"
 
 text{* The test for @{const bot} in the @{const V}-case is important: @{const
 bot} indicates that a variable has no possible values, i.e.\ that the current
@@ -105,8 +105,8 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
   (if res then bfilter b1 True (bfilter b2 True S)
    else bfilter b1 False S \<squnion> bfilter b2 False S)" |
 "bfilter (Less e1 e2) res S =
-  (let (res1,res2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
-   in afilter e1 res1 (afilter e2 res2 S))"
+  (let (a\<^isub>1',a\<^isub>2') = filter_less' res (aval'' e1 S) (aval'' e2 S)
+   in afilter e1 a\<^isub>1' (afilter e2 a\<^isub>2' S))"
 
 lemma afilter_in_L: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> afilter e a S \<in> L X"
 by(induction e arbitrary: a S)

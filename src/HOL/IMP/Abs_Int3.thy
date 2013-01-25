@@ -416,14 +416,14 @@ value "show_acom (step_down_ivl 1 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 2 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 3 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 4 (step_up_ivl 8 (bot test3_ivl)))"
-value "show_acom_opt (AI_ivl' test3_ivl)"
+value "show_acom (the(AI_ivl' test3_ivl))"
 
 
 text{* Now all the analyses terminate: *}
 
-value "show_acom_opt (AI_ivl' test4_ivl)"
-value "show_acom_opt (AI_ivl' test5_ivl)"
-value "show_acom_opt (AI_ivl' test6_ivl)"
+value "show_acom (the(AI_ivl' test4_ivl))"
+value "show_acom (the(AI_ivl' test5_ivl))"
+value "show_acom (the(AI_ivl' test6_ivl))"
 
 
 subsubsection "Generic Termination Proof"

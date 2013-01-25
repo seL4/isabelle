@@ -109,7 +109,6 @@ definition "show_st S = (\<lambda>x. (x, fun S x)) ` dom S"
 value [code] "show_st (FunDom (\<lambda>x. 1::int) {''a'',''b''})"
 
 definition "show_acom = map_acom (Option.map show_st)"
-definition "show_acom_opt = Option.map show_acom"
 
 definition "update F x y = FunDom ((fun F)(x:=y)) (dom F)"
 
