@@ -34,8 +34,8 @@ is called fastforce / fast_force_tac already since Isabelle2011-1.
 * Updated and extended "isar-ref" and "implementation" manual, reduced
 remaining material in old "ref" manual.
 
-* Improved support for auxiliary contexts indicate block structure for
-specifications: nesting of "context fixes ... context assumes ..."
+* Improved support for auxiliary contexts that indicate block structure
+for specifications.  Nesting of "context fixes ... context assumes ..."
 and "class ... context ...".
 
 * Attribute "consumes" allows a negative value as well, which is
@@ -285,7 +285,6 @@ changes as follows.
       not_le_list_length ~> Sublist.not_sublisteq_length
 
 INCOMPATIBILITY.
-
 
 * New theory Library/Countable_Set.
 
