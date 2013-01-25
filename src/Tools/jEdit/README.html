@@ -23,7 +23,7 @@ body { font-family: IsabelleText; font-size: 14pt; }
 </p>
 
 <p>
-  <b>Isabelle/jEdit</b> is the main example application within the PIDE
+  <b>Isabelle/jEdit</b> is the flagship application of the PIDE
   framework &mdash; it illustrates many of the ideas in a realistic
   manner, ready to be used right now in Isabelle applications.
 </p>
@@ -67,6 +67,9 @@ principles.
 <li>Dockable panels (e.g. <em>Output</em>) are managed as independent
   windows by jEdit, which also allows multiple instances.</li>
 
+<li>Formal output (tooltips etc.) may be explored recursively, using the
+same techniques as in the editor source buffer.</li>
+
 <li>Prover process and source files are managed by the Isabelle/Scala on
 the editor side.  The prover experiences a mostly timeless and
 stateless environment of formal document content.</li>
@@ -103,6 +106,7 @@ stateless environment of formal document content.</li>
 
   <li>Input methods:
     <ul>
+      <li>use the Symbols dockable</li>
       <li>copy/paste from decoded source files</li>
       <li>copy/paste from prover output</li>
       <li>completion provided by Isabelle plugin, e.g.<br/>
