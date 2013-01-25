@@ -1031,8 +1031,8 @@ end;
 local
 
 fun skipped_proof state =
-  Context_Position.report_text (context_of state) (Position.thread_data ())
-    Markup.bad "Skipped proof";
+  Context_Position.if_visible (context_of state) Output.report
+    (Markup.markup Markup.bad "Skipped proof");
 
 in
 

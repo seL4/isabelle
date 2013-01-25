@@ -209,7 +209,7 @@ final class Command private(
   val range: Text.Range = Text.Range(0, length)
 
   val proper_range: Text.Range =
-    Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_space))(_ - _.source.length))
+    Text.Range(0, (length /: span.reverse.iterator.takeWhile(_.is_improper))(_ - _.source.length))
 
   def source(range: Text.Range): String = source.substring(range.start, range.stop)
 
