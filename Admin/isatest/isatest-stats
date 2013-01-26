@@ -10,15 +10,18 @@ PLATFORMS="at-poly at-poly-test afp at64-poly mac-poly-M2 mac-poly-M4 mac-poly64
 
 ISABELLE_SESSIONS="
   HOL
-  HOL-Main
-  HOL-Plain
-  HOL-Base
-  HOL-Library
   HOL-Algebra
   HOL-Auth
+  HOL-BNF
+  HOL-BNF-Examples
+  HOL-BNF-LFP
   HOL-Bali
   HOL-Boogie
   HOL-Boogie-Examples
+  HOL-Cardinals
+  HOL-Cardinals-Base
+  HOL-Codegenerator_Test
+  HOL-Datatype_Benchmark
   HOL-Decision_Procs
   HOL-Hahn_Banach
   HOL-Hoare
@@ -31,14 +34,17 @@ ISABELLE_SESSIONS="
   HOL-Induct
   HOL-Isar_Examples
   HOL-Lattice
-  HOL-Library-Codegenerator_Test
+  HOL-Library
   HOL-Matrix_LP
   HOL-Metis_Examples
   HOL-MicroJava
+  HOL-MicroJava-skip_proofs
   HOL-Mirabelle
+  HOL-Mirabelle-ex
   HOL-Multivariate_Analysis
   HOL-Mutabelle
   HOL-NSA
+  HOL-NSA-Examples
   HOL-NanoJava
   HOL-Nitpick_Examples
   HOL-Nominal
@@ -52,13 +58,19 @@ ISABELLE_SESSIONS="
   HOL-Proofs-Extraction
   HOL-Proofs-Lambda
   HOL-Proofs-ex
+  HOL-Quickcheck_Benchmark
   HOL-Quickcheck_Examples
   HOL-Quotient_Examples
+  HOL-Record_Benchmark
   HOL-SET_Protocol
   HOL-SPARK
   HOL-SPARK-Examples
   HOL-SPARK-Manual
   HOL-Statespace
+  HOL-TLA
+  HOL-TLA-Buffer
+  HOL-TLA-Inc
+  HOL-TLA-Memory
   HOL-TPTP
   HOL-UNITY
   HOL-Unix
@@ -67,7 +79,6 @@ ISABELLE_SESSIONS="
   HOL-Word-SMT_Examples
   HOL-ZF
   HOL-ex
-  HOL4
   HOLCF
   HOLCF-FOCUS
   HOLCF-IMP
@@ -79,112 +90,151 @@ ISABELLE_SESSIONS="
   IOA-NTP
   IOA-Storage
   IOA-ex
-  TLA
-  TLA-Buffer
-  TLA-Inc
-  TLA-Memory
-  HOL-Datatype_Benchmark
-  HOL-Record_Benchmark"
+  ZF
+  ZF-AC
+  ZF-Coind
+  ZF-Constructible
+  ZF-IMP
+  ZF-Induct
+  ZF-Resid
+  ZF-UNITY
+  ZF-ex
+"
 
 AFP_SESSIONS="
+  AVL-Trees
+  Abortable_Linearizable_Modules
+  Abstract-Hoare-Logics
+  Abstract-Rewriting
   ArrowImpossibilityGS
+  AutoFocus-Stream
+  BDD
+  BinarySearchTree
+  Binomial-Heaps
+  Binomial-Queues
+  Bondy
+  BytecodeLogicJmlTypes
+  CCS
+  Category
+  Category2
+  Cauchy
+  Circus
+  ClockSynchInst
+  CofGroups
   Coinductive
+  Collections
+  Compiling-Exceptions-Correctly
+  Completeness
   CoreC++
-  HOL-AVL-Trees
-  HOL-Abstract-Hoare-Logics
-  HOL-Abstract-Rewriting
-  HOL-BinarySearchTree
-  HOL-Binomial-Heaps
-  HOL-Binomial-Queues
-  HOL-BytecodeLogicJmlTypes
-  HOL-Cardinals
-  HOL-Category
-  HOL-Category2
-  HOL-Cauchy
-  HOL-ClockSynchInst
-  HOL-CofGroups
-  HOL-Collections
-  HOL-Compiling-Exceptions-Correctly
-  HOL-Completeness
-  HOL-DPT-SAT-Solver
-  HOL-DataRefinementIBP
-  HOL-Depth-First-Search
-  HOL-DiskPaxos
-  HOL-Example-Submission
-  HOL-FFT
-  HOL-FOL-Fitting
-  HOL-FeatherweightJava
-  HOL-FileRefinement
-  HOL-FinFun
-  HOL-Finger-Trees
-  HOL-Flyspeck-Tame
-  HOL-Free-Boolean-Algebra
-  HOL-Free-Groups
-  HOL-FunWithFunctions
-  HOL-FunWithTilings
-  HOL-Functional-Automata
-  HOL-Gauss-Jordan-Elim-Fun
-  HOL-GenClock
-  HOL-General-Triangle
-  HOL-GraphMarkingIBP
-  HOL-HotelKeyCards
-  HOL-Huffman
-  HOL-Integration
-  HOL-JiveDataStoreModel
-  HOL-KBPs
-  HOL-Lazy-Lists-II
-  HOL-LightweightJava
-  HOL-List-Index
-  HOL-Locally-Nameless-Sigma
-  HOL-Marriage
-  HOL-Matrix
-  HOL-Max-Card-Matching
-  HOL-MiniML
-  HOL-MuchAdoAboutTwo
-  HOL-Multivariate_Analysis
-  HOL-Myhill-Nerode
-  HOL-Nominal
-  HOL-Nominal-Lam-ml-Normalization
-  HOL-Nominal-SequentInvertibility
-  HOL-Ordinal
-  HOL-POPLmark-deBruijn
-  HOL-Perfect-Number-Thm
-  HOL-Polynomials
-  HOL-Presburger-Automata
-  HOL-Program-Conflict-Analysis
-  HOL-Ramsey-Infinite
-  HOL-Recursion-Theory-I
-  HOL-Regular-Sets
-  HOL-Robbins-Conjecture
-  HOL-SATSolverVerification
-  HOL-SIFPL
-  HOL-SenSocialChoice
-  HOL-Statecharts
-  HOL-Topology
-  HOL-Transitive-Closure
-  HOL-Tree-Automata
-  HOL-Verified-Prover
-  HOL-Word
-  HOL-Word-RIPEMD-160-SPARK
-  HOL-Word-JinjaThreads-Basic-JinjaThreads
-  HOLCF
-  HOLCF-Shivers-CFA
-  HOLCF-Stream-Fusion
-  HOLCF-WorkerWrapper
+  DPT-SAT-Solver
+  DataRefinementIBP
+  Datatype_Order_Generator
+  Depth-First-Search
+  Dijkstra_Shortest_Path
+  DiskPaxos
+  Efficient-Mergesort
+  Example-Submission
+  FFT
+  FOL-Fitting
+  FeatherweightJava
+  Fermat3_4
+  FileRefinement
+  FinFun
+  Finger-Trees
+  Flyspeck-Tame
+  Free-Boolean-Algebra
+  Free-Groups
+  FunWithFunctions
+  FunWithTilings
+  Functional-Automata
+  Gauss-Jordan-Elim-Fun
+  GenClock
+  General-Triangle
+  Girth_Chromatic
+  GraphMarkingIBP
+  Group-Ring-Module
   HRB-Slicing
-  HRB-Slicing-InformationFlowSlicing
+  Heard_Of
+  HotelKeyCards
+  Huffman
+  Impossible_Geometry
+  Inductive_Confidentiality
+  InformationFlowSlicing_Inter
+  InformationFlowSlicing_Intra
+  Integration
   Jinja
+  JinjaThreads
+  JiveDataStoreModel
+  KBPs
+  Kleene_Algebra
+  Lam-ml-Normalization
   LatticeProperties
-  LatticeProperties-MonoBoolTranAlgebra
-  LatticeProperties-PseudoHoops
+  Lazy-Lists-II
+  LightweightJava
+  LinearQuantifierElim
+  List-Index
+  List-Infinite
+  Locally-Nameless-Sigma
   Lower_Semicontinuous
+  Markov_Models
+  Marriage
+  Matrix
+  Max-Card-Matching
+  MiniML
+  MonoBoolTranAlgebra
+  MuchAdoAboutTwo
+  Myhill-Nerode
+  Nat-Interval-Logic
   NormByEval
+  Open_Induction
+  Ordinal
+  Ordinals_and_Cardinals
+  Ordinary_Differential_Equations
+  PCF
+  POPLmark-deBruijn
+  Perfect-Number-Thm
+  Pi_Calculus
+  Polynomials
+  Possibilistic_Noninterference
+  Presburger-Automata
+  Program-Conflict-Analysis
+  PseudoHoops
+  Psi_Calculi
+  RIPEMD-160-SPARK
+  RSAPSS
+  Ramsey-Infinite
+  Rank_Nullity_Theorem
+  Recursion-Theory-I
+  Refine_Monadic
+  Regular-Sets
+  Robbins-Conjecture
+  SATSolverVerification
+  SIFPL
+  SenSocialChoice
+  Separation_Algebra
+  Separation_Logic_Imperative_HOL
+  SequentInvertibility
+  Shivers-CFA
   Simpl
-  Simpl-BDD
   Slicing
-  Slicing-InformationFlowSlicing
-  VolpanoSmith"
-
+  Sqrt_Babylonian
+  Statecharts
+  Stream-Fusion
+  Stuttering_Equivalence
+  SumSquares
+  TLA
+  Tarskis_Geometry
+  Topology
+  Transitive-Closure
+  Transitive-Closure-II
+  Tree-Automata
+  Tycon
+  Valuation
+  Verified-Prover
+  VolpanoSmith
+  Well_Quasi_Orders
+  WorkerWrapper
+"
 
 for PLATFORM in $PLATFORMS
 do
