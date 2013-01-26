@@ -8,7 +8,7 @@ section {* Isabelle/jEdit Prover IDE \label{sec:tool-jedit} *}
 
 text {* The @{tool_def jedit} tool invokes a version of
   jEdit\footnote{\url{http://www.jedit.org/}} that has been augmented
-  with some components to provide a fully-featured Prover IDE:
+  with some plugins to provide a fully-featured Prover IDE:
 \begin{ttbox} Usage: isabelle jedit [OPTIONS]
   [FILES ...]
 
@@ -37,7 +37,8 @@ Start jEdit with Isabelle plugin setup and open theory FILES
   store the result session image (see also \secref{sec:tool-build}).
   The @{verbatim "-n"} option bypasses the session build dialog.
 
-  The @{verbatim "-m"} option specifies additional print modes.
+  The @{verbatim "-m"} option specifies additional print modes for the
+  prover process.
 
   The @{verbatim "-J"} and @{verbatim "-j"} options allow to pass
   additional low-level options to the JVM or jEdit, respectively.  The
@@ -61,14 +62,16 @@ text {* The @{tool_def emacs} tool invokes a version of Emacs and
   regular Isabelle settings environment (\secref{sec:settings}).  This
   is more convenient than starting Emacs separately, loading the Proof
   General LISP files, and then attempting to start Isabelle with
-  dynamic @{setting PATH} lookup etc.
+  dynamic @{setting PATH} lookup etc., although it might fail if a
+  different version of Proof General is already part of the Emacs
+  installation of the operating system.
 
   The actual interface script is part of the Proof General
   distribution; its usage depends on the particular version.  There
   are some options available, such as @{verbatim "-l"} for passing the
   logic image to be used by default, or @{verbatim "-m"} to tune the
-  standard print mode.  The following Isabelle settings are
-  particularly important for Proof General:
+  standard print mode of the prover process.  The following Isabelle
+  settings are particularly important for Proof General:
 
   \begin{description}
 
