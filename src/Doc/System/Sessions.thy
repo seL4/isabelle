@@ -5,8 +5,8 @@ begin
 chapter {* Isabelle sessions and build management \label{ch:session} *}
 
 text {* An Isabelle \emph{session} consists of a collection of related
-  theories that may be associated with formal documents (see also
-  \chref{ch:present}).  There is also a notion of \emph{persistent
+  theories that may be associated with formal documents
+  (\chref{ch:present}).  There is also a notion of \emph{persistent
   heap} image to capture the state of a session, similar to
   object-code in compiled programming languages.  Thus the concept of
   session resembles that of a ``project'' in common IDE environments,
@@ -43,7 +43,8 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   specifications like this.
 
   Isabelle/jEdit (\secref{sec:tool-jedit}) includes a simple editing
-  mode @{verbatim "isabelle-root"} for session ROOT files.
+  mode @{verbatim "isabelle-root"} for session ROOT files, which is
+  enabled by default for any file of that name.
 
   @{rail "
     @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
@@ -79,8 +80,8 @@ text {* Session specifications reside in files called @{verbatim ROOT}
 
   All such session specifications together describe a hierarchy (tree)
   of sessions, with globally unique names.  The new session name
-  @{text "A"} should be sufficiently long to stand on its own in a
-  potentially large library.
+  @{text "A"} should be sufficiently long and descriptive to stand on
+  its own in a potentially large library.
 
   \item \isakeyword{session}~@{text "A (groups)"} indicates a
   collection of groups where the new session is a member.  Group names
@@ -118,19 +119,20 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   files that are involved in the processing of this session.  This
   should cover anything outside the formal content of the theory
   sources, say some auxiliary {\TeX} files that are required for
-  document processing.  In contrast, files that are specified in
-  formal theory headers as @{keyword "uses"} need not be declared
-  again.
+  document processing.  In contrast, files that are loaded formally
+  within a theory, e.g.\ via @{keyword "ML_file"}, need not be
+  declared again.
 
   \end{description}
 *}
 
+
 subsubsection {* Examples *}
 
 text {* See @{file "~~/src/HOL/ROOT"} for a diversity of practically
-  relevant situations, but it uses relatively complex quasi-hierarchic
-  naming conventions like @{text "HOL\<dash>SPARK"}, @{text
-  "HOL\<dash>SPARK\<dash>Examples"}.  An alternative is to use
+  relevant situations, although it uses relatively complex
+  quasi-hierarchic naming conventions like @{text "HOL\<dash>SPARK"},
+  @{text "HOL\<dash>SPARK\<dash>Examples"}.  An alternative is to use
   unqualified names that are relatively long and descriptive, as in
   the Archive of Formal Proofs (\url{http://afp.sf.net}), for
   example. *}
@@ -142,6 +144,81 @@ text {* See @{file "~~/etc/options"} for the main defaults provided by
   the Isabelle distribution.  Isabelle/jEdit (\secref{sec:tool-jedit})
   includes a simple editing mode @{verbatim "isabelle-options"} for
   this file-format.
+
+  The following options are particulary relevant to build Isabelle
+  sessions, in particular with document preparation
+  (\chref{ch:present}).
+
+  \begin{itemize}
+
+  \item @{system_option_def "browser_info"} controls output of HTML
+  browser info, see also \secref{sec:info}.
+
+  \item @{system_option_def "document"} specifies the document output
+  format, see @{tool document} option @{verbatim "-o"} in
+  \secref{sec:tool-document}.  In practice, the most relevant values
+  are @{verbatim "document=false"} or @{verbatim "document=pdf"}.
+
+  \item @{system_option_def "document_output"} specifies an
+  alternative directory for generated output of the document
+  preparation system; the default is within the @{setting
+  "ISABELLE_BROWSER_INFO"} hierarchy as explained in
+  \secref{sec:info}.  See also @{tool mkroot}, which generates a
+  default configuration with output readily available to the author of
+  the document.
+
+  \item @{system_option_def "document_variants"} specifies document
+  variants as a colon-separated list of @{text "name=tags"} entries,
+  corresponding to @{tool document} options @{verbatim "-n"} and
+  @{verbatim "-t"}.
+
+  For example, @{verbatim
+  "document_variants=document:outline=/proof,/ML"} indicates two
+  documents: the one called @{verbatim document} with default tags,
+  and the other called @{verbatim outline} where proofs and ML
+  sections are folded.
+
+  Document variant names are just a matter of conventions.  It is also
+  possible to use different document variant names (without tags) for
+  different document root entries, see also
+  \secref{sec:tool-document}.
+
+  \item @{system_option_def "document_graph"} tells whether the
+  generated document files should include a theory graph (cf.\
+  \secref{sec:browse} and \secref{sec:info}).  The resulting EPS or
+  PDF file can be included as graphics in {\LaTeX}.
+
+  Note that this option is usually determined as static parameter of
+  some session (e.g.\ within its @{verbatim ROOT} file) and \emph{not}
+  given globally or on the command line of @{tool build}.
+
+  \item @{system_option_def "threads"} determines the number of worker
+  threads for parallel checking of theories and proofs.  The default
+  @{text "0"} means that a sensible maximum value is determined by the
+  underlying hardware.  For machines with many cores or with
+  hyperthreading, this is often requires manual adjustment (on the
+  command-line or within personal settings or preferences, not within
+  a session @{verbatim ROOT}).
+
+  \item @{system_option_def "condition"} specifies a comma-separated
+  list of process environment variables (or Isabelle settings) that
+  are required for the subsequent theories to be processed.
+  Conditions are considered ``true'' if the corresponding environment
+  value is defined and non-empty.
+
+  For example, the @{verbatim "condition=ISABELLE_FULL_TEST"} may be
+  used to guard extraordinary theories, which are meant to be enabled
+  explicitly via some shell prefix @{verbatim "env ISABELLE_FULL_TEST=true"}
+  before invoking @{tool build}.
+
+  \item @{system_option_def "timeout"} specifies a real wall-clock
+  timeout (in seconds) for the session as a whole.  The timer is
+  controlled outside the ML process by the JVM that runs
+  Isabelle/Scala.  Thus it is relatively reliable in canceling
+  processes that get out of control, even if there is a deadlock
+  without CPU time usage.
+
+  \end{itemize}
 
   The @{tool_def options} tool prints Isabelle system options.  Its
   command-line usage is:
