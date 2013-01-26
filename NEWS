@@ -428,8 +428,16 @@ necessarily printing visible text.
 
 * Advanced support for Isabelle sessions and build management, see
 "system" manual for the chapter of that name, especially the "isabelle
-build" tool and its examples.  INCOMPATIBILITY, isabelle usedir /
+build" tool and its examples.  The "isabelle mkroot" tool prepares
+session root directories for use with "isabelle build", similar to
+former "isabelle mkdir" for "isabelle usedir".  Note that this affects
+document preparation as well.  INCOMPATIBILITY, isabelle usedir /
 mkdir / make are rendered obsolete.
+
+* Discontinued obsolete Isabelle/build script, it is superseded by the
+regular isabelle build tool.  For example:
+
+  isabelle build -s -b HOL
 
 * Discontinued obsolete "isabelle makeall".
 
@@ -439,17 +447,8 @@ provides some traditional targets that invoke "isabelle build".  Note
 that this is inefficient!  Applications of Isabelle/HOL involving
 "isabelle make" should be upgraded to use "isabelle build" directly.
 
-* Discontinued obsolete Isabelle/build script, it is superseded by the
-regular isabelle build tool.  For example:
-
-  isabelle build -s -b HOLCF
-
 * The "isabelle options" tool prints Isabelle system options, as
 required for "isabelle build", for example.
-
-* The "isabelle mkroot" tool prepares session root directories for use
-with "isabelle build", similar to former "isabelle mkdir" for
-"isabelle usedir".
 
 * The "isabelle logo" tool produces EPS and PDF format simultaneously.
 Minor INCOMPATIBILITY in command-line options.
