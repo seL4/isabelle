@@ -41,11 +41,12 @@ text {*
   clearly recognized from the input syntax, e.g.\ encounter of the
   next command keyword.
 
-  More advanced interfaces such as Proof~General \cite{proofgeneral}
-  do not require explicit semicolons, the amount of input text is
-  determined automatically by inspecting the present content of the
-  Emacs text buffer.  In the printed presentation of Isabelle/Isar
-  documents semicolons are omitted altogether for readability.
+  More advanced interfaces such as Isabelle/jEdit \cite{Wenzel:2012}
+  and Proof~General \cite{proofgeneral} do not require explicit
+  semicolons, the amount of input text is determined automatically by
+  inspecting the present content of the Emacs text buffer.  In the
+  printed presentation of Isabelle/Isar documents semicolons are
+  omitted altogether for readability.
 
   \begin{warn}
     Proof~General requires certain syntax classification tables in

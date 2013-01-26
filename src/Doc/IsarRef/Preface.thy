@@ -17,12 +17,16 @@ text {*
   theory and proof development.  Compared to raw ML, the Isabelle/Isar
   top-level provides a more robust and comfortable development
   platform, with proper support for theory development graphs, managed
-  transactions with unlimited undo etc.  The Isabelle/Isar version of
-  the \emph{Proof~General} user interface
-  \cite{proofgeneral,Aspinall:TACAS:2000} provides a decent front-end
-  for interactive theory and proof development in this advanced
-  theorem proving environment, even though it is somewhat biased
-  towards old-style proof scripts.
+  transactions with unlimited undo etc.
+
+  In its pioneering times, the Isabelle/Isar version of the
+  \emph{Proof~General} user interface
+  \cite{proofgeneral,Aspinall:TACAS:2000} has contributed to the
+  success of for interactive theory and proof development in this
+  advanced theorem proving environment, even though it was somewhat
+  biased towards old-style proof scripts.  The more recent
+  Isabelle/jEdit Prover IDE \cite{Wenzel:2012} emphasizes the
+  document-oriented approach of Isabelle/Isar again more explicitly.
 
   \medskip Apart from the technical advances over bare-bones ML
   programming, the main purpose of the Isar language is to provide a
