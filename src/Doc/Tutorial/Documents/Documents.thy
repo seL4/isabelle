@@ -347,18 +347,21 @@ text {*
   (usually rooted at \verb,~/.isabelle/IsabelleXXXX/browser_info,).
 
   \medskip The easiest way to manage Isabelle sessions is via
-  \texttt{isabelle mkdir} (generates an initial session source setup)
-  and \texttt{isabelle make} (run sessions controlled by
-  \texttt{IsaMakefile}).  For example, a new session
-  \texttt{MySession} derived from \texttt{HOL} may be produced as
-  follows:
+  \texttt{isabelle mkroot} (to generate an initial session source
+  setup) and \texttt{isabelle build} (to run sessions as specified in
+  the corresponding \texttt{ROOT} file).  These Isabelle tools are
+  described in further detail in the \emph{Isabelle System Manual}
+  \cite{isabelle-sys}.
+
+  For example, a new session \texttt{MySession} (with document
+  preparation) may be produced as follows:
 
 \begin{verbatim}
-  isabelle mkdir HOL MySession
-  isabelle make
+  isabelle mkroot -d MySession
+  isabelle build -D MySession
 \end{verbatim}
 
-  The \texttt{isabelle make} job also informs about the file-system
+  The \texttt{isabelle build} job also informs about the file-system
   location of the ultimate results.  The above dry run should be able
   to produce some \texttt{document.pdf} (with dummy title, empty table
   of contents etc.).  Any failure at this stage usually indicates
@@ -372,10 +375,9 @@ text {*
   \item Directory \texttt{MySession} holds the required theory files
   $T@1$\texttt{.thy}, \dots, $T@n$\texttt{.thy}.
 
-  \item File \texttt{MySession/ROOT.ML} holds appropriate ML commands
-  for loading all wanted theories, usually just
-  ``\texttt{use_thy"$T@i$";}'' for any $T@i$ in leaf position of the
-  dependency graph.
+  \item File \texttt{MySession/ROOT} specifies the session options and
+  content, with declarations for all wanted theories; it is sufficient
+  to specify the terminal nodes of the theory dependency graph.
 
   \item Directory \texttt{MySession/document} contains everything
   required for the {\LaTeX} stage; only \texttt{root.tex} needs to be
@@ -389,17 +391,10 @@ text {*
   \verb,\input{session}, in the body of \texttt{root.tex} does the job
   in most situations.
 
-  \item \texttt{IsaMakefile} holds appropriate dependencies and
-  invocations of Isabelle tools to control the batch job.  In fact,
-  several sessions may be managed by the same \texttt{IsaMakefile}.
-  See the \emph{Isabelle System Manual} \cite{isabelle-sys} 
-  for further details, especially on
-  \texttt{isabelle usedir} and \texttt{isabelle make}.
-
   \end{itemize}
 
-  One may now start to populate the directory \texttt{MySession}, and
-  the file \texttt{MySession/ROOT.ML} accordingly.  The file
+  One may now start to populate the directory \texttt{MySession} and
+  its \texttt{ROOT} file accordingly.  The file
   \texttt{MySession/document/root.tex} should also be adapted at some
   point; the default version is mostly self-explanatory.  Note that
   \verb,\isabellestyle, enables fine-tuning of the general appearance
@@ -719,14 +714,18 @@ text {*
   collection of theories changes.
 
   Alternatively, one may tune the theory loading process in
-  \texttt{ROOT.ML} itself: traversal of the theory dependency graph
-  may be fine-tuned by adding \verb,use_thy, invocations, although
-  topological sorting still has to be observed.  Moreover, the ML
-  operator \verb,no_document, temporarily disables document generation
-  while executing a theory loader command.  Its usage is like this:
+  \texttt{ROOT} itself: some sequential order of \textbf{theories}
+  sections may enforce a certain traversal of the dependency graph,
+  although this could degrade parallel processing.  The nodes of each
+  sub-graph that is specified here are presented in some topological
+  order of their formal dependencies.
+
+  Moreover, the system build option \verb,document=false, allows to
+  disable document generation for some theories.  Its usage in the
+  session \texttt{ROOT} is like this:
 
 \begin{verbatim}
-  no_document use_thy "T";
+  theories [document = false] T
 \end{verbatim}
 
   \medskip Theory output may be suppressed more selectively, either
@@ -753,7 +752,7 @@ text {*
   tagged region, in order to keep, drop, or fold the corresponding
   parts of the document.  See the \emph{Isabelle System Manual}
   \cite{isabelle-sys} for further details, especially on
-  \texttt{isabelle usedir} and \texttt{isabelle document}.
+  \texttt{isabelle build} and \texttt{isabelle document}.
 
   Ignored material is specified by delimiting the original formal
   source with special source comments

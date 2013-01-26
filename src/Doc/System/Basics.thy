@@ -495,10 +495,6 @@ isabelle-process Test
 isabelle-process -r Test
 \end{ttbox}
 
-  \medskip Note that manual session management like this does
-  \emph{not} provide proper setup for theory presentation.  This would
-  require @{tool usedir}.
-
   \bigskip The next example demonstrates batch execution of Isabelle.
   We retrieve the @{verbatim Main} theory value from the theory loader
   within ML (observe the delicate quoting rules for the Bash shell
