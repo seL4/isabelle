@@ -5,7 +5,7 @@ Notes on building Poly/ML as Isabelle component
 
 * copy build
 
-* copy updated etc/settings
+* copy etc/settings
 
 * include full source (without symlink)
 
