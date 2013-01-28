@@ -100,8 +100,17 @@ fi
 
 DISTBASE="$BASE_DIR/dist-${DISTNAME}"
 
-"$ISABELLE_TOOL" makedist_bundles "$DISTBASE/${DISTNAME}.tar.gz"
+
+for PLATFORM_FAMILY in linux macos windows
+do
+
+echo
+echo "*** $PLATFORM_FAMILY ***"
+
+"$ISABELLE_TOOL" makedist_bundle "$DISTBASE/${DISTNAME}.tar.gz" "$PLATFORM_FAMILY"
 [ "$?" = 0 ] || exit "$?"
+
+done
 
 "$THIS/build_library" $JOBS "$DISTBASE/${DISTNAME}_${ISABELLE_PLATFORM_FAMILY}.tar.gz"
 

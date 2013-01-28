@@ -9,10 +9,10 @@ PRG=$(basename "$0")
 function usage()
 {
   echo
-  echo "Usage: isabelle $PRG ARCHIVE"
+  echo "Usage: isabelle $PRG ARCHIVE PLATFORM_FAMILY"
   echo
   echo "  Re-package Isabelle source distribution with add-on components"
-  echo "  and post-hoc patches for platform families linux, macos, windows."
+  echo "  and post-hoc patches for platform family linux, macos, windows."
   echo
   echo "  Add-on components are that of the running Isabelle version!"
   echo
@@ -28,9 +28,10 @@ function fail()
 
 ## arguments
 
-[ "$#" -ne 1 ] && usage
+[ "$#" -ne 2 ] && usage
 
 ARCHIVE="$1"; shift
+PLATFORM_FAMILY="$1"; shift
 
 [ -f "$ARCHIVE" ] || fail "Bad source archive: $ARCHIVE"
 
@@ -41,12 +42,6 @@ ISABELLE_NAME="$(basename "$ARCHIVE" .tar.gz)"
 ## main
 
 export COPYFILE_DISABLE=true
-
-for PLATFORM_FAMILY in linux macos windows
-do
-
-echo
-echo "*** $PLATFORM_FAMILY ***"
 
 TMP="/var/tmp/isabelle-makedist$$"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
@@ -183,6 +178,3 @@ tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME" || exit 2
 
 # clean up
 rm -rf "$TMP"
-
-done
-
