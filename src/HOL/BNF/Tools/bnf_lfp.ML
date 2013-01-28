@@ -152,7 +152,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val timer = time (timer "Extracted terms & thms");
 
     (* nonemptiness check *)
-    fun new_wit X wit = subset (op =) (#I wit, (0 upto m - 1) @ map snd X);
+    fun new_wit X (wit: nonemptiness_witness) = subset (op =) (#I wit, (0 upto m - 1) @ map snd X);
 
     val all = m upto m + n - 1;
 

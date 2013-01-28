@@ -1383,7 +1383,7 @@ fun mk_coalg_thePull_tac m coalg_def map_wpulls set_naturalss pickWP_assms_tacs
   (map_wpulls ~~ (pickWP_assms_tacs ~~ set_naturalss)) 1;
 
 fun mk_mor_thePull_nth_tac conv pick m mor_def map_wpulls map_comps pickWP_assms_tacs
-  {context = ctxt, prems = _} =
+  {context = ctxt, prems = _: thm list} =
   let
     val n = length map_comps;
   in
