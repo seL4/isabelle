@@ -12,7 +12,7 @@ sig
   type formula_role = ATP_Problem.formula_role
   type failure = ATP_Proof.failure
 
-  type slice_spec = int * atp_format * string * string * bool
+  type slice_spec = (int * string) * atp_format * string * string * bool
   type atp_config =
     {exec : string list * string list,
      arguments :
@@ -91,7 +91,7 @@ open ATP_Problem_Generate
 val default_max_mono_iters = 3 (* FUDGE *)
 val default_max_new_mono_instances = 200 (* FUDGE *)
 
-type slice_spec = int * atp_format * string * string * bool
+type slice_spec = (int * string) * atp_format * string * string * bool
 
 type atp_config =
   {exec : string list * string list,
@@ -107,17 +107,25 @@ type atp_config =
    best_max_new_mono_instances : int}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
-   the ATPs are run in parallel. The "real" component gives the faction of the
-   time available given to the slice and should add up to 1.0. The "int"
-   component indicates the preferred number of facts to pass; the first
-   "string", the preferred type system (which should be sound or quasi-sound);
-   the second "string", the preferred lambda translation scheme; the "bool",
-   whether uncurried aliased should be generated; the third "string", extra
-   information to the prover (e.g., SOS or no SOS).
+   the ATPs are run in parallel. Each slice has the format
+
+     (time_frac, ((max_facts, fact_filter), format, type_enc,
+                  lam_trans, uncurried_aliases), extra)
+
+   where
+
+     time_frac = faction of the time available given to the slice (which should
+       add up to 1.0)
+
+     extra = extra information to the prover (e.g., SOS or no SOS).
 
    The last slice should be the most "normal" one, because it will get all the
    time available if the other slices fail early and also because it is used if
    slicing is disabled (e.g., by the minimizer). *)
+
+val mepoN = "mepo"
+val mashN = "mash"
+val meshN = "mesh"
 
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
@@ -209,7 +217,7 @@ val alt_ergo_config : atp_config =
    prem_role = Hypothesis,
    best_slices = fn _ =>
      (* FUDGE *)
-     [(1.0, ((100, alt_ergo_tff1, "poly_native", liftingN, false), ""))],
+     [(1.0, (((100, ""), alt_ergo_tff1, "poly_native", liftingN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -328,11 +336,14 @@ val e_config : atp_config =
      let val heuristic = effective_e_selection_heuristic ctxt in
        (* FUDGE *)
        if heuristic = e_smartN then
-         [(0.333, ((500, FOF, "mono_tags??", combsN, false), e_fun_weightN)),
-          (0.334, ((50, FOF, "mono_guards??", combsN, false), e_fun_weightN)),
-          (0.333, ((1000, FOF, "mono_tags??", combsN, false), e_sym_offset_weightN))]
+         [(0.1667, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
+          (0.1667, (((128, mashN), FOF, "mono_guards??", combsN, false), e_sym_offset_weightN)),
+          (0.1666, (((91, mepoN), FOF, "mono_tags??", combsN, false), e_autoN)),
+          (0.1667, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
+          (0.1667, (((1000, meshN), FOF, "poly_guards??", combsN, false), e_sym_offset_weightN)),
+          (0.1666, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN))]
        else
-         [(1.0, ((500, FOF, "mono_tags??", combsN, false), heuristic))]
+         [(1.0, (((500, ""), FOF, "mono_tags??", combsN, false), heuristic))]
      end,
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
@@ -351,8 +362,7 @@ val e_males_config : atp_config =
    prem_role = Conjecture,
    best_slices =
      (* FUDGE *)
-     K [(0.5, ((1000, FOF, "mono_tags??", combsN, false), "")),
-        (0.5, ((1000, FOF, "mono_guards??", combsN, false), ""))],
+     K [(1.0, (((1000, ""), FOF, "poly_guards??", combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -390,7 +400,7 @@ val iprover_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, ((150, FOF, "mono_guards??", liftingN, false), ""))],
+     K [(1.0, (((150, ""), FOF, "mono_guards??", liftingN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -434,7 +444,7 @@ val leo2_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, ((40, leo2_thf0, "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((40, ""), leo2_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
 
@@ -456,7 +466,7 @@ val satallax_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(1.0, ((60, satallax_thf0, "mono_native_higher", keep_lamsN, false), ""))],
+     K [(1.0, (((60, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters - 1 (* FUDGE *),
    best_max_new_mono_instances = default_max_new_mono_instances div 2 (* FUDGE *)}
 
@@ -497,14 +507,14 @@ val spass_config : atp_config =
    prem_role = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.1667, ((150, DFG Monomorphic, "mono_native", combsN, true), "")),
-      (0.1667, ((500, DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
-      (0.1666, ((50, DFG Monomorphic,  "mono_native", liftingN, true), spass_H2LR0LT0)),
-      (0.1000, ((250, DFG Monomorphic, "mono_native", combsN, true), spass_H2NuVS0)),
-      (0.1000, ((1000, DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
-      (0.1000, ((150, DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
-      (0.1000, ((300, DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
-      (0.1000, ((100, DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))]
+     [(0.1667, (((150, meshN), DFG Monomorphic, "mono_native", combsN, true), "")),
+      (0.1667, (((500, mepoN), DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
+      (0.1666, (((50, mashN), DFG Monomorphic,  "mono_native", liftingN, true), spass_H2LR0LT0)),
+      (0.1000, (((250, mepoN), DFG Monomorphic, "mono_native", combsN, true), spass_H2NuVS0)),
+      (0.1000, (((1000, meshN), DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
+      (0.1000, (((150, mashN), DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
+      (0.1000, (((300, mepoN), DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
+      (0.1000, (((100, meshN), DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))]
      |> (case Config.get ctxt spass_extra_options of
            "" => I
          | opts => map (apsnd (apsnd (K opts)))),
@@ -551,13 +561,16 @@ val vampire_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_vampire_beyond_1_8 () then
-        [(0.333, ((500, vampire_tff0, "mono_guards??", combs_or_liftingN, false), sosN)),
-         (0.333, ((150, vampire_tff0, "poly_tags??", combs_or_liftingN, false), sosN)),
-         (0.334, ((50, vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
+        [(0.1667, (((128, meshN), vampire_tff0, "mono_guards??", combs_or_liftingN, false), e_fun_weightN)),
+         (0.1667, (((128, mashN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), e_sym_offset_weightN)),
+         (0.1666, (((91, mepoN), vampire_tff0, "mono_native", combsN, false), e_autoN)),
+         (0.1667, (((64, mashN), vampire_tff0, "mono_tags??", liftingN, false), e_fun_weightN)),
+         (0.1667, (((1000, meshN), vampire_tff0, "poly_guards??", combs_or_liftingN, false), e_sym_offset_weightN)),
+         (0.1666, (((256, mepoN), vampire_tff0, "mono_native", combs_or_liftingN, false), e_fun_weightN))]
       else
-        [(0.333, ((150, FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
-         (0.333, ((500, FOF, "mono_tags??", combs_or_liftingN, false), sosN)),
-         (0.334, ((50, FOF, "mono_guards??", combs_or_liftingN, false), no_sosN))])
+        [(0.333, (((150, mepoN), FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
+         (0.333, (((500, meshN), FOF, "mono_tags??", combs_or_liftingN, false), sosN)),
+         (0.334, (((50, mashN), FOF, "mono_guards??", combs_or_liftingN, false), no_sosN))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I),
    best_max_mono_iters = default_max_mono_iters,
@@ -580,10 +593,10 @@ val z3_tptp_config : atp_config =
    prem_role = Hypothesis,
    best_slices =
      (* FUDGE *)
-     K [(0.5, ((250, z3_tff0, "mono_native", combsN, false), "")),
-        (0.25, ((125, z3_tff0, "mono_native", combsN, false), "")),
-        (0.125, ((62, z3_tff0, "mono_native", combsN, false), "")),
-        (0.125, ((31, z3_tff0, "mono_native", combsN, false), ""))],
+     K [(0.5, (((250, meshN), z3_tff0, "mono_native", combsN, false), "")),
+        (0.25, (((125, mepoN), z3_tff0, "mono_native", combsN, false), "")),
+        (0.125, (((62, mashN), z3_tff0, "mono_native", combsN, false), "")),
+        (0.125, (((31, meshN), z3_tff0, "mono_native", combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
@@ -599,7 +612,7 @@ fun dummy_config format type_enc : atp_config =
    known_failures = known_szs_status_failures,
    prem_role = Hypothesis,
    best_slices =
-     K [(1.0, ((200, format, type_enc,
+     K [(1.0, (((200, ""), format, type_enc,
                 if is_format_higher_order format then keep_lamsN
                 else combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
@@ -692,32 +705,32 @@ val explicit_tff0 = TFF (Monomorphic, TPTP_Explicit)
 
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
-      (K ((750, FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
+      (K (((750, ""), FOF, "mono_tags??", combsN, false), "") (* FUDGE *))
 val remote_iprover =
   remotify_atp iprover "iProver" []
-      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
+      (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_iprover_eq =
   remotify_atp iprover_eq "iProver-Eq" []
-      (K ((150, FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
+      (K (((150, ""), FOF, "mono_guards??", liftingN, false), "") (* FUDGE *))
 val remote_leo2 =
   remotify_atp leo2 "LEO-II" ["1.2.8", "1.2.6"]
-      (K ((100, leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
+      (K (((100, ""), leo2_thf0, "mono_native_higher", liftingN, false), "") (* FUDGE *))
 val remote_satallax =
   remotify_atp satallax "Satallax" ["2.3", "2.2", "2"]
-      (K ((100, satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
+      (K (((100, ""), satallax_thf0, "mono_native_higher", keep_lamsN, false), "") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["2.6", "2.5", "1.8"]
-      (K ((250, vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
+      (K (((250, ""), vampire_tff0, "mono_native", combs_or_liftingN, false), "") (* FUDGE *))
 val remote_e_sine =
   remote_atp e_sineN "SInE" ["0.4"] [] (#known_failures e_config) Conjecture
-      (K ((500, FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
+      (K (((500, ""), FOF, "mono_guards??", combsN, false), "") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
       [("refutation.", "end_refutation.")] [] Hypothesis
-      (K ((100, explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
+      (K (((100, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_e_tofof =
   remote_atp e_tofofN "ToFoF" ["0.1"] [] (#known_failures e_config) Hypothesis
-      (K ((150, explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
+      (K (((150, ""), explicit_tff0, "mono_native", liftingN, false), "") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
       [("#START OF PROOF", "Proved Goals:")]
@@ -725,7 +738,7 @@ val remote_waldmeister =
        (Inappropriate, "****  Unexpected end of file."),
        (Crashed, "Unrecoverable Segmentation Fault")]
       Hypothesis
-      (K ((50, CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
+      (K (((50, ""), CNF_UEQ, "raw_mono_tags??", combsN, false), "") (* FUDGE *))
 
 (* Setup *)
 

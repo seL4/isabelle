@@ -196,7 +196,7 @@ fun default_max_facts_for_prover ctxt slice name =
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o #1 o fst o snd o snd)
+      fold (Integer.max o fst o #1 o fst o snd o snd)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -710,8 +710,9 @@ fun run_atp mode name
           end
         fun run_slice time_left (cache_key, cache_value)
                 (slice, (time_frac,
-                     (key as (best_max_facts, format, best_type_enc,
-                              best_lam_trans, best_uncurried_aliases),
+                     (key as ((best_max_facts, best_fact_filter), format,
+                              best_type_enc, best_lam_trans,
+                              best_uncurried_aliases),
                       extra))) =
           let
             val num_facts =
