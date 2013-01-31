@@ -698,7 +698,7 @@ proof -
   have "integral\<^isup>P lebesgue f = ereal (integral UNIV f')"
   proof (rule tendsto_unique[OF trivial_limit_sequentially])
     have "(\<lambda>i. integral\<^isup>S lebesgue (u i)) ----> (SUP i. integral\<^isup>P lebesgue (u i))"
-      unfolding u_eq by (intro LIMSEQ_ereal_SUPR incseq_positive_integral u)
+      unfolding u_eq by (intro LIMSEQ_SUP incseq_positive_integral u)
     also note positive_integral_monotone_convergence_SUP
       [OF u(2)  borel_measurable_simple_function[OF u(1)] u(5), symmetric]
     finally show "(\<lambda>k. integral\<^isup>S lebesgue (u k)) ----> integral\<^isup>P lebesgue f"

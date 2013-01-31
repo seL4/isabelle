@@ -6,7 +6,7 @@
 header {* Extended natural numbers (i.e. with infinity) *}
 
 theory Extended_Nat
-imports Main
+imports "~~/src/HOL/Main"
 begin
 
 class infinity =

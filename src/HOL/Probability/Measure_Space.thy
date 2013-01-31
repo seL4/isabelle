@@ -50,7 +50,7 @@ proof -
   then have "\<And>n. (\<Sum>j<n. f j * indicator (A j) x) = (if i < n then f i else 0 :: ereal)"
     by (auto simp: setsum_cases)
   moreover have "(SUP n. if i < n then f i else 0) = (f i :: ereal)"
-  proof (rule ereal_SUPI)
+  proof (rule SUP_eqI)
     fix y :: ereal assume "\<And>n. n \<in> UNIV \<Longrightarrow> (if i < n then f i else 0) \<le> y"
     from this[of "Suc i"] show "f i \<le> y" by auto
   qed (insert assms, simp)
@@ -523,7 +523,7 @@ lemma incseq_emeasure:
 lemma SUP_emeasure_incseq:
   assumes A: "range A \<subseteq> sets M" "incseq A"
   shows "(SUP n. emeasure M (A n)) = emeasure M (\<Union>i. A i)"
-  using LIMSEQ_ereal_SUPR[OF incseq_emeasure, OF A] Lim_emeasure_incseq[OF A]
+  using LIMSEQ_SUP[OF incseq_emeasure, OF A] Lim_emeasure_incseq[OF A]
   by (simp add: LIMSEQ_unique)
 
 lemma decseq_emeasure:
@@ -1570,7 +1570,7 @@ proof (rule emeasure_measure_of_sigma)
       have "incseq (\<lambda>i. ?M (F i))"
         using `incseq F` unfolding incseq_def by (auto simp: card_mono dest: finite_subset)
       then have "(\<lambda>i. ?M (F i)) ----> (SUP n. ?M (F n))"
-        by (rule LIMSEQ_ereal_SUPR)
+        by (rule LIMSEQ_SUP)
 
       moreover have "(SUP n. ?M (F n)) = \<infinity>"
       proof (rule SUP_PInfty)
