@@ -21,6 +21,9 @@ option jedit_text_overview_limit : int = 100000
 option jedit_symbols_search_limit : int = 50
   -- "maximum number of symbols in search result"
 
+option jedit_mac_adapter : bool = true
+  -- "some native Mac OS X support (potential conflict with MacOSX plugin)"
+
 
 section "Rendering of Document Content"
 

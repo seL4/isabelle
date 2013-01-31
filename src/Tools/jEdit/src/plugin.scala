@@ -212,6 +212,15 @@ class Plugin extends EBPlugin
   }
 
 
+  /* Mac OS X application hooks */
+
+  def handle_quit(): Boolean =
+  {
+    jEdit.exit(jEdit.getActiveView(), true)
+    false
+  }
+
+
   /* main plugin plumbing */
 
   override def handleMessage(message: EBMessage)
@@ -279,6 +288,9 @@ class Plugin extends EBPlugin
 
       val init_options = Options.init()
       Swing_Thread.now { PIDE.options.update(init_options)  }
+
+      if (Platform.is_macos && PIDE.options.bool("jedit_mac_adapter"))
+        OSX_Adapter.set_quit_handler(this, this.getClass.getDeclaredMethod("handle_quit"))
 
       SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
       if (ModeProvider.instance.isInstanceOf[ModeProvider])
