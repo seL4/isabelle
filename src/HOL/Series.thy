@@ -367,7 +367,7 @@ great as any partial sum.*}
 
 lemma pos_summable:
   fixes f:: "nat \<Rightarrow> real"
-  assumes pos: "!!n. 0 \<le> f n" and le: "!!n. setsum f {0..<n} \<le> x"
+  assumes pos: "\<And>n. 0 \<le> f n" and le: "\<And>n. setsum f {0..<n} \<le> x"
   shows "summable f"
 proof -
   have "convergent (\<lambda>n. setsum f {0..<n})"
@@ -386,35 +386,65 @@ proof -
 qed
 
 lemma series_pos_le:
-  fixes f :: "nat \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
   shows "\<lbrakk>summable f; \<forall>m\<ge>n. 0 \<le> f m\<rbrakk> \<Longrightarrow> setsum f {0..<n} \<le> suminf f"
-apply (drule summable_sums)
-apply (simp add: sums_def)
-apply (cut_tac k = "setsum f {0..<n}" in tendsto_const)
-apply (erule LIMSEQ_le, blast)
-apply (rule_tac x="n" in exI, clarify)
-apply (rule setsum_mono2)
-apply auto
-done
+  apply (drule summable_sums)
+  apply (simp add: sums_def)
+  apply (rule LIMSEQ_le_const)
+  apply assumption
+  apply (intro exI[of _ n])
+  apply (auto intro!: setsum_mono2)
+  done
 
 lemma series_pos_less:
-  fixes f :: "nat \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_ab_semigroup_add_imp_le, ordered_comm_monoid_add, linorder_topology}"
   shows "\<lbrakk>summable f; \<forall>m\<ge>n. 0 < f m\<rbrakk> \<Longrightarrow> setsum f {0..<n} < suminf f"
-apply (rule_tac y="setsum f {0..<Suc n}" in order_less_le_trans)
-apply simp
-apply (erule series_pos_le)
-apply (simp add: order_less_imp_le)
-done
+  apply (rule_tac y="setsum f {0..<Suc n}" in order_less_le_trans)
+  using add_less_cancel_left [of "setsum f {0..<n}" 0 "f n"]
+  apply simp
+  apply (erule series_pos_le)
+  apply (simp add: order_less_imp_le)
+  done
+
+lemma suminf_eq_zero_iff:
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
+  shows "\<lbrakk>summable f; \<forall>n. 0 \<le> f n\<rbrakk> \<Longrightarrow> suminf f = 0 \<longleftrightarrow> (\<forall>n. f n = 0)"
+proof
+  assume "summable f" "suminf f = 0" and pos: "\<forall>n. 0 \<le> f n"
+  then have "f sums 0"
+    by (simp add: sums_iff)
+  then have f: "(\<lambda>n. \<Sum>i<n. f i) ----> 0"
+    by (simp add: sums_def atLeast0LessThan)
+  have "\<And>i. (\<Sum>n\<in>{i}. f n) \<le> 0"
+  proof (rule LIMSEQ_le_const[OF f])
+    fix i show "\<exists>N. \<forall>n\<ge>N. (\<Sum>n\<in>{i}. f n) \<le> setsum f {..<n}"
+      using pos by (intro exI[of _ "Suc i"] allI impI setsum_mono2) auto
+  qed
+  with pos show "\<forall>n. f n = 0"
+    by (auto intro!: antisym)
+next
+  assume "\<forall>n. f n = 0"
+  then have "f = (\<lambda>n. 0)"
+    by auto
+  then show "suminf f = 0"
+    by simp
+qed
+
+lemma suminf_gt_zero_iff:
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
+  shows "\<lbrakk>summable f; \<forall>n. 0 \<le> f n\<rbrakk> \<Longrightarrow> 0 < suminf f \<longleftrightarrow> (\<exists>i. 0 < f i)"
+  using series_pos_le[of f 0] suminf_eq_zero_iff[of f]
+  by (simp add: less_le)
 
 lemma suminf_gt_zero:
-  fixes f :: "nat \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
   shows "\<lbrakk>summable f; \<forall>n. 0 < f n\<rbrakk> \<Longrightarrow> 0 < suminf f"
-by (drule_tac n="0" in series_pos_less, simp_all)
+  using suminf_gt_zero_iff[of f] by (simp add: less_imp_le)
 
 lemma suminf_ge_zero:
-  fixes f :: "nat \<Rightarrow> real"
+  fixes f :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
   shows "\<lbrakk>summable f; \<forall>n. 0 \<le> f n\<rbrakk> \<Longrightarrow> 0 \<le> suminf f"
-by (drule_tac n="0" in series_pos_le, simp_all)
+  by (drule_tac n="0" in series_pos_le, simp_all)
 
 lemma sumr_pos_lt_pair:
   fixes f :: "nat \<Rightarrow> real"
@@ -493,9 +523,14 @@ apply (drule_tac x="n" in spec, simp)
 done
 
 lemma suminf_le:
-  fixes x :: real
+  fixes x :: "'a :: {ordered_comm_monoid_add, linorder_topology}"
   shows "summable f \<Longrightarrow> (!!n. setsum f {0..<n} \<le> x) \<Longrightarrow> suminf f \<le> x"
-  by (simp add: summable_convergent_sumr_iff suminf_eq_lim lim_le)
+  apply (drule summable_sums)
+  apply (simp add: sums_def)
+  apply (rule LIMSEQ_le_const2)
+  apply assumption
+  apply auto
+  done
 
 lemma summable_Cauchy:
      "summable (f::nat \<Rightarrow> 'a::banach) =
@@ -575,7 +610,7 @@ qed
 text{*Limit comparison property for series (c.f. jrh)*}
 
 lemma summable_le:
-  fixes f g :: "nat \<Rightarrow> real"
+  fixes f g :: "nat \<Rightarrow> 'a::{ordered_comm_monoid_add, linorder_topology}"
   shows "\<lbrakk>\<forall>n. f n \<le> g n; summable f; summable g\<rbrakk> \<Longrightarrow> suminf f \<le> suminf g"
 apply (drule summable_sums)+
 apply (simp only: sums_def, erule (1) LIMSEQ_le)
@@ -597,15 +632,7 @@ lemma suminf_0_le:
   fixes f::"nat\<Rightarrow>real"
   assumes gt0: "\<forall>n. 0 \<le> f n" and sm: "summable f"
   shows "0 \<le> suminf f"
-proof -
-  let ?g = "(\<lambda>n. (0::real))"
-  from gt0 have "\<forall>n. ?g n \<le> f n" by simp
-  moreover have "summable ?g" by (rule summable_zero)
-  moreover from sm have "summable f" .
-  ultimately have "suminf ?g \<le> suminf f" by (rule summable_le)
-  then show "0 \<le> suminf f" by simp
-qed
-
+  using suminf_ge_zero[OF sm gt0] by simp
 
 text{*Absolute convergence imples normal convergence*}
 lemma summable_norm_cancel:

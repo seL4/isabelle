@@ -368,19 +368,16 @@ lemma increasing_LIMSEQ:
       and bdd: "\<And>n. f n \<le> l"
       and en: "\<And>e. 0 < e \<Longrightarrow> \<exists>n. l \<le> f n + e"
   shows "f ----> l"
-  unfolding LIMSEQ_def
-proof safe
-  fix r :: real assume "0 < r"
-  with bdd en[of "r / 2"] obtain n where n: "dist (f n) l \<le> r / 2"
-    by (auto simp add: field_simps dist_real_def)
-  { fix N assume "n \<le> N"
-    then have "dist (f N) l \<le> dist (f n) l"
-      using incseq_SucI[of f] inc bdd by (auto dest!: incseqD simp: dist_real_def)
-    then have "dist (f N) l < r"
-      using `0 < r` n by simp }
-  with `0 < r` show "\<exists>no. \<forall>n\<ge>no. dist (f n) l < r"
-    by (auto simp add: LIMSEQ_def field_simps intro!: exI[of _ n])
-qed
+proof (rule increasing_tendsto)
+  fix x assume "x < l"
+  with dense[of 0 "l - x"] obtain e where "0 < e" "e < l - x"
+    by auto
+  from en[OF `0 < e`] obtain n where "l - e \<le> f n"
+    by (auto simp: field_simps)
+  with `e < l - x` `0 < e` have "x < f n" by simp
+  with incseq_SucI[of f, OF inc] show "eventually (\<lambda>n. x < f n) sequentially"
+    by (auto simp: eventually_sequentially incseq_def intro: less_le_trans)
+qed (insert bdd, auto)
 
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"
@@ -437,15 +434,15 @@ lemma LIMSEQ_inverse_real_of_nat_add_minus_mult:
   by auto
 
 lemma LIMSEQ_le_const:
-  "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. a \<le> X n\<rbrakk> \<Longrightarrow> a \<le> x"
+  "\<lbrakk>X ----> (x::'a::linorder_topology); \<exists>N. \<forall>n\<ge>N. a \<le> X n\<rbrakk> \<Longrightarrow> a \<le> x"
   using tendsto_le_const[of sequentially X x a] by (simp add: eventually_sequentially)
 
 lemma LIMSEQ_le:
-  "\<lbrakk>X ----> x; Y ----> y; \<exists>N. \<forall>n\<ge>N. X n \<le> Y n\<rbrakk> \<Longrightarrow> x \<le> (y::real)"
+  "\<lbrakk>X ----> x; Y ----> y; \<exists>N. \<forall>n\<ge>N. X n \<le> Y n\<rbrakk> \<Longrightarrow> x \<le> (y::'a::linorder_topology)"
   using tendsto_le[of sequentially Y y X x] by (simp add: eventually_sequentially)
 
 lemma LIMSEQ_le_const2:
-  "\<lbrakk>X ----> (x::real); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
+  "\<lbrakk>X ----> (x::'a::linorder_topology); \<exists>N. \<forall>n\<ge>N. X n \<le> a\<rbrakk> \<Longrightarrow> x \<le> a"
   by (rule LIMSEQ_le[of X x "\<lambda>n. a"]) (auto simp: tendsto_const)
 
 subsection {* Convergence *}
