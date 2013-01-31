@@ -146,13 +146,18 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val sugg_path = Path.explode sugg_file
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
     val cmd_path = Path.explode cmd_file
+    val model_dir = File.shell_path (mash_model_dir ())
     val core =
       "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
       " --numberOfPredictions " ^ string_of_int max_suggs ^
       (* " --learnTheories" ^ *) (if save then " --saveModel" else "")
     val command =
-      "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet --outputDir " ^
-      File.shell_path (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
+      "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet" ^
+      " --outputDir " ^ model_dir ^
+      " --modelFile=" ^ model_dir ^ "/model.pickle" ^
+      " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
+      " --theoryFile=" ^ model_dir ^ "/theory.pickle" ^
+      " --log " ^ log_file ^ " " ^ core ^
       " >& " ^ err_file
     fun run_on () =
       (Isabelle_System.bash command
