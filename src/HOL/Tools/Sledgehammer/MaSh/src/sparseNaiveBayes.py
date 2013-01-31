@@ -34,15 +34,13 @@ class sparseNBClassifier(object):
         """
         for d in trainData:            
             dFeatureCounts = {}
-            # Give p |- p a higher weight
+            # Add p proves p with weight self.defaultPriorWeight
             if not self.defaultPriorWeight == 0:            
                 for f,_w in dicts.featureDict[d]:
                     dFeatureCounts[f] = self.defaultPriorWeight
             self.counts[d] = [self.defaultPriorWeight,dFeatureCounts]
 
-        for key in dicts.dependenciesDict.keys():
-            # Add p proves p
-            keyDeps = [key]+dicts.dependenciesDict[key]
+        for key,keyDeps in dicts.dependenciesDict.iteritems():
             for dep in keyDeps:
                 self.counts[dep][0] += 1
                 depFeatures = dicts.featureDict[key]
@@ -105,7 +103,7 @@ class sparseNBClassifier(object):
             resultA = log(posA)
             for f,w in features:
                 # DEBUG
-                #w = 1
+                #w = 1.0
                 if f in fA:
                     if fWeightsA[f] == 0:
                         resultA += w*self.defVal
