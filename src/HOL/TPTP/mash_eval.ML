@@ -9,6 +9,7 @@ signature MASH_EVAL =
 sig
   type params = Sledgehammer_Provers.params
 
+  val MePoN : string
   val MaSh_IsarN : string
   val MaSh_ProverN : string
   val MeSh_IsarN : string
