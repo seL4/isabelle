@@ -159,10 +159,6 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
        (unknownN, state))
   end
 
-fun class_of_smt_solver ctxt name =
-  ctxt |> select_smt_solver name
-       |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
-
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
@@ -195,28 +191,6 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
-      fun launch_provers state get_facts provers =
-        let
-          val facts = get_facts ()
-          val num_facts = length facts
-          val problem =
-            {state = state, goal = goal, subgoal = i, subgoal_count = n,
-             facts = facts}
-          fun learn prover =
-            mash_learn_proof ctxt params prover (prop_of goal) all_facts
-          val launch = launch_prover params mode minimize_command only learn
-        in
-          if mode = Auto_Try then
-            (unknownN, state)
-            |> fold (fn prover => fn accum as (outcome_code, _) =>
-                        if outcome_code = someN then accum
-                        else launch problem prover)
-                    provers
-          else
-            provers
-            |> (if blocking then Par_List.map else map) (launch problem #> fst)
-            |> max_outcome_code |> rpair state
-        end
       fun get_facts label is_appropriate_prop provers =
         let
           val max_max_facts =
@@ -247,6 +221,28 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                      else
                        ())
         end
+      fun launch_provers state label is_appropriate_prop provers =
+        let
+          val facts = get_facts label is_appropriate_prop provers
+          val num_facts = length facts
+          val problem =
+            {state = state, goal = goal, subgoal = i, subgoal_count = n,
+             facts = facts}
+          fun learn prover =
+            mash_learn_proof ctxt params prover (prop_of goal) all_facts
+          val launch = launch_prover params mode minimize_command only learn
+        in
+          if mode = Auto_Try then
+            (unknownN, state)
+            |> fold (fn prover => fn accum as (outcome_code, _) =>
+                        if outcome_code = someN then accum
+                        else launch problem prover)
+                    provers
+          else
+            provers
+            |> (if blocking then Par_List.map else map) (launch problem #> fst)
+            |> max_outcome_code |> rpair state
+        end
       fun launch_atps label is_appropriate_prop atps accum =
         if null atps then
           accum
@@ -260,18 +256,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
              ();
            accum)
         else
-          launch_provers state (get_facts label is_appropriate_prop o K atps)
-                         atps
+          launch_provers state label is_appropriate_prop atps
       fun launch_smts accum =
-        if null smts then
-          accum
-        else
-          let val facts = get_facts "SMT solver" NONE smts in
-            smts |> map (`(class_of_smt_solver ctxt))
-                 |> AList.group (op =)
-                 |> map (snd #> launch_provers state (K facts) #> fst)
-                 |> max_outcome_code |> rpair state
-          end
+        if null smts then accum else launch_provers state "SMT solver" NONE smts
       val launch_full_atps = launch_atps "ATP" NONE full_atps
       val launch_ueq_atps =
         launch_atps "Unit equational provers" (SOME is_unit_equality) ueq_atps
