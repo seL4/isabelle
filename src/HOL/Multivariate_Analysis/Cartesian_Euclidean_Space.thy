@@ -1,4 +1,3 @@
-
 header {*Instanciates the finite cartesian product of euclidean spaces as a euclidean space.*}
 
 theory Cartesian_Euclidean_Space
@@ -828,7 +827,7 @@ lemma bounded_component_cart: "bounded s \<Longrightarrow> bounded ((\<lambda>x.
 
 lemma compact_lemma_cart:
   fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n"
-  assumes "bounded s" and "\<forall>n. f n \<in> s"
+  assumes f: "bounded (range f)"
   shows "\<forall>d.
         \<exists>l r. subseq r \<and>
         (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
@@ -842,16 +841,17 @@ proof
     thus ?case unfolding subseq_def by auto
   next
     case (insert k d)
-    have s': "bounded ((\<lambda>x. x $ k) ` s)"
-      using `bounded s` by (rule bounded_component_cart)
     obtain l1::"'a^'n" and r1 where r1:"subseq r1"
       and lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
       using insert(3) by auto
-    have f': "\<forall>n. f (r1 n) $ k \<in> (\<lambda>x. x $ k) ` s"
-      using `\<forall>n. f n \<in> s` by simp
-    obtain l2 r2 where r2: "subseq r2"
+    have s': "bounded ((\<lambda>x. x $ k) ` range f)" using `bounded (range f)`
+      by (auto intro!: bounded_component_cart)
+    have f': "\<forall>n. f (r1 n) $ k \<in> (\<lambda>x. x $ k) ` range f" by simp
+    have "bounded (range (\<lambda>i. f (r1 i) $ k))"
+      by (metis (lifting) bounded_subset image_subsetI f' s')
+    then obtain l2 r2 where r2: "subseq r2"
       and lr2: "((\<lambda>i. f (r1 (r2 i)) $ k) ---> l2) sequentially"
-      using bounded_imp_convergent_subsequence[OF s' f'] unfolding o_def by auto
+      using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) $ k"] by (auto simp: o_def)
     def r \<equiv> "r1 \<circ> r2"
     have r: "subseq r"
       using r1 and r2 unfolding r_def o_def subseq_def by auto
@@ -873,11 +873,11 @@ qed
 
 instance vec :: (heine_borel, finite) heine_borel
 proof
-  fix s :: "('a ^ 'b) set" and f :: "nat \<Rightarrow> 'a ^ 'b"
-  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
+  fix f :: "nat \<Rightarrow> 'a ^ 'b"
+  assume f: "bounded (range f)"
   then obtain l r where r: "subseq r"
       and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>UNIV. dist (f (r n) $ i) (l $ i) < e) sequentially"
-    using compact_lemma_cart [OF s f] by blast
+    using compact_lemma_cart [OF f] by blast
   let ?d = "UNIV::'b set"
   { fix e::real assume "e>0"
     hence "0 < e / (real_of_nat (card ?d))"
