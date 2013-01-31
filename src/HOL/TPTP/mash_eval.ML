@@ -71,7 +71,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
     val str_of_method = enclose "  " ": "
     fun str_of_result method facts ({outcome, run_time, used_facts, ...}
                                      : prover_result) =
-      let val facts = facts |> map (fn ((name, _), _) => name ()) in
+      let val facts = facts |> map (fst o fst) in
         str_of_method method ^
         (if is_none outcome then
            "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
@@ -111,7 +111,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
           val isar_deps = isar_dependencies_of name_tabs th
           val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-          val find_suggs = find_suggested_facts facts
+          val find_suggs = find_suggested_facts facts #> map fact_of_raw_fact
           fun get_facts [] compute = compute facts
             | get_facts suggs _ = find_suggs suggs
           val mepo_facts =
@@ -121,7 +121,8 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
             |> weight_mepo_facts
           fun mash_of suggs =
             get_facts suggs (fn _ =>
-                find_mash_suggestions slack_max_facts suggs facts [] [] |> fst)
+                find_mash_suggestions slack_max_facts suggs facts [] []
+                |> fst |> map fact_of_raw_fact)
             |> weight_mash_facts
           val mash_isar_facts = mash_of mash_isar_suggs
           val mash_prover_facts = mash_of mash_prover_suggs
@@ -160,6 +161,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                   |> map (get #> nickify)
                   |> maybe_instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
+                  |> map fact_of_raw_fact
                 val ctxt = ctxt |> set_file_name method prob_dir_name
                 val res as {outcome, ...} =
                   run_prover_for_mash ctxt params prover facts goal

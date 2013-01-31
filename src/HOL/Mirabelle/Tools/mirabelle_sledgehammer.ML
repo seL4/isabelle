@@ -478,7 +478,6 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
           |> #1 (*###*)
-          |> map (apfst (apfst (fn name => name ())))
           |> tap (fn facts =>
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
                      (if null facts then

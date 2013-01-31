@@ -8,6 +8,7 @@ Sledgehammer's iterative relevance filter (MePo = Meng-Paulson).
 signature SLEDGEHAMMER_MEPO =
 sig
   type stature = ATP_Problem_Generate.stature
+  type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
   type params = Sledgehammer_Provers.params
   type relevance_fudge = Sledgehammer_Provers.relevance_fudge
@@ -20,7 +21,7 @@ sig
     -> string list
   val mepo_suggested_facts :
     Proof.context -> params -> string -> int -> relevance_fudge option
-    -> term list -> term -> fact list -> fact list
+    -> term list -> term -> raw_fact list -> fact list
 end;
 
 structure Sledgehammer_MePo : SLEDGEHAMMER_MEPO =
@@ -337,7 +338,7 @@ fun fact_weight fudge stature const_tab relevant_consts chained_consts
 
 fun take_most_relevant ctxt max_facts remaining_max
         ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
-        (candidates : ((fact * (string * ptype) list) * real) list) =
+        (candidates : ((raw_fact * (string * ptype) list) * real) list) =
   let
     val max_imperfect =
       Real.ceil (Math.pow (max_imperfect,
@@ -533,6 +534,7 @@ fun mepo_suggested_facts ctxt
        relevance_filter ctxt thres0 decay max_facts is_built_in_const fudge
            facts hyp_ts
            (concl_t |> theory_constify fudge (Context.theory_name thy)))
+    |> map fact_of_raw_fact
   end
 
 end;

@@ -136,7 +136,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
            |> Sledgehammer_MePo.mepo_suggested_facts ctxt params
                   default_prover (the_default default_max_facts max_facts)
                   (SOME relevance_fudge) hyp_ts concl_t
-            |> map ((fn name => name ()) o fst o fst)
+            |> map (fst o fst)
          val (found_facts, lost_facts) =
            flat proofs |> sort_distinct string_ord
            |> map (fn fact => (find_index (curry (op =) fact) facts, fact))

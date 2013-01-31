@@ -7,6 +7,7 @@ Sledgehammer's machine-learning-based relevance filter (MaSh).
 signature SLEDGEHAMMER_MASH =
 sig
   type stature = ATP_Problem_Generate.stature
+  type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type params = Sledgehammer_Provers.params
@@ -62,7 +63,7 @@ sig
   val isar_dependencies_of :
     string Symtab.table * string Symtab.table -> thm -> string list
   val prover_dependencies_of :
-    Proof.context -> params -> string -> int -> fact list
+    Proof.context -> params -> string -> int -> raw_fact list
     -> string Symtab.table * string Symtab.table -> thm
     -> bool * string list
   val weight_mepo_facts : 'a list -> ('a * real) list
@@ -71,8 +72,8 @@ sig
     int -> string list -> ('b * thm) list -> ('b * thm) list -> ('b * thm) list
     -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts :
-    Proof.context -> params -> string -> int -> term list -> term -> fact list
-    -> fact list * fact list
+    Proof.context -> params -> string -> int -> term list -> term
+    -> raw_fact list -> fact list * fact list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -85,7 +86,7 @@ sig
   val mash_weight : real
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
-    -> term -> fact list -> fact list * fact list * fact list
+    -> term -> raw_fact list -> fact list * fact list * fact list
   val kill_learners : unit -> unit
   val running_learners : unit -> unit
 end;
@@ -531,8 +532,7 @@ fun run_prover_for_mash ctxt params prover facts goal =
   let
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       facts = facts |> map (apfst (apfst (fn name => name ())))
-                     |> map Untranslated_Fact}
+       facts = facts |> map Untranslated_Fact}
   in
     get_minimizing_isar_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
                                problem
@@ -687,14 +687,13 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val goal = goal_of_thm thy th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
       val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-      fun nickify ((_, stature), th) =
-        ((fn () => nickname_of_thm th, stature), th)
+      fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
       fun is_dep dep (_, th) = nickname_of_thm th = dep
       fun add_isar_dep facts dep accum =
         if exists (is_dep dep) accum then
           accum
         else case find_first (is_dep dep) facts of
-          SOME ((name, status), th) => accum @ [((name, status), th)]
+          SOME ((_, status), th) => accum @ [(("", status), th)]
         | NONE => accum (* shouldn't happen *)
       val facts =
         facts
@@ -825,7 +824,10 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
                                     (parents, feats, hints))
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
-  in find_mash_suggestions max_facts suggs facts chained unknown end
+  in
+    find_mash_suggestions max_facts suggs facts chained unknown
+    |> pairself (map fact_of_raw_fact)
+  end
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (learns, graph) =
   let
@@ -1099,7 +1101,9 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
-    (facts, facts, facts)
+    let val facts = facts |> map fact_of_raw_fact in
+      (facts, facts, facts)
+    end
   else if max_facts <= 0 orelse null facts then
     ([], [], [])
   else
@@ -1129,11 +1133,12 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
           else
             mepoN
       val add_ths = Attrib.eval_thms ctxt add
-      val in_add = member Thm.eq_thm_prop add_ths o snd
+      fun in_add (_, th) = member Thm.eq_thm_prop add_ths th
       fun add_and_take accepts =
         (case add_ths of
            [] => accepts
-         | _ => (facts |> filter in_add) @ (accepts |> filter_out in_add))
+         | _ => (facts |> filter in_add |> map fact_of_raw_fact) @
+                (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
         mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
