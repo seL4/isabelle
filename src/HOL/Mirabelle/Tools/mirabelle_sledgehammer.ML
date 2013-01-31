@@ -473,12 +473,13 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
               Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
               hyp_ts concl_t
+        val fact_triple =
+          facts
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
-          |> #1 (*###*)
-          |> tap (fn facts =>
+          |> tap (fn (facts, _, _) => (* FIXME *)
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
                      (if null facts then
                         "Found no relevant facts."
@@ -490,7 +491,8 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         val prover = get_prover ctxt prover_name params goal facts
         val problem =
           {state = st', goal = goal, subgoal = i,
-           subgoal_count = Sledgehammer_Util.subgoal_count st, facts = facts}
+           subgoal_count = Sledgehammer_Util.subgoal_count st,
+           fact_triple = fact_triple}
       in prover params (K (K (K ""))) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate

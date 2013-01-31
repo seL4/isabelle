@@ -65,7 +65,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                               timeout, expect, ...})
                   mode minimize_command only learn
-                  {state, goal, subgoal, subgoal_count, facts} name =
+                  {state, goal, subgoal, subgoal_count,
+                   fact_triple as (facts, _, _)} name =
   let
     val ctxt = Proof.context_of state
     val hard_timeout = time_mult 3.0 (timeout |> the_default one_day)
@@ -79,10 +80,12 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
     val problem =
       {state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count,
-       facts = facts
-               |> not (Sledgehammer_Provers.is_ho_atp ctxt name)
-                  ? filter_out (curry (op =) Induction o snd o snd o fst)
-               |> take num_facts}
+       fact_triple =
+         fact_triple
+         |> triple_self ((not (is_ho_atp ctxt name)
+                          ? filter_out (fn ((_, (_, Induction)), _) => true
+                                         | _ => false))
+                         #> take num_facts)}
     fun print_used_facts used_facts =
       tag_list 1 facts
       |> map (fn (j, fact) => fact |> apsnd (K j))
@@ -177,7 +180,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
       val ctxt = Proof.context_of state
       val {facts = chained, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
-      val ho_atp = exists (Sledgehammer_Provers.is_ho_atp ctxt) provers
+      val ho_atp = exists (is_ho_atp ctxt) provers
       val reserved = reserved_isar_keyword_table ()
       val css = clasimpset_rule_table_of ctxt
       val all_facts =
@@ -191,7 +194,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
-      fun get_facts label is_appropriate_prop provers =
+      fun get_fact_triple label is_appropriate_prop provers =
         let
           val max_max_facts =
             case max_facts of
@@ -207,8 +210,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
               | NONE => I)
           |> relevant_facts ctxt params (hd provers) max_max_facts fact_override
                             hyp_ts concl_t
-          |> #1 (*###*)
-          |> tap (fn facts =>
+          |> tap (fn (facts, _, _) => (* FIXME *)
                      if verbose then
                        label ^ plural_s (length provers) ^ ": " ^
                        (if null facts then
@@ -223,11 +225,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
         end
       fun launch_provers state label is_appropriate_prop provers =
         let
-          val facts = get_facts label is_appropriate_prop provers
-          val num_facts = length facts
+          val fact_triple = get_fact_triple label is_appropriate_prop provers
           val problem =
             {state = state, goal = goal, subgoal = i, subgoal_count = n,
-             facts = facts}
+             fact_triple = fact_triple}
           fun learn prover =
             mash_learn_proof ctxt params prover (prop_of goal) all_facts
           val launch = launch_prover params mode minimize_command only learn

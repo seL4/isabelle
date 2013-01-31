@@ -68,11 +68,11 @@ sig
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     facts : fact list}
+     fact_triple : fact list * fact list * fact list}
 
   type prover_result =
     {outcome : failure option,
-     used_facts : (string * stature) list,
+     used_facts : (string * stature) list, (* FIXME: store triple component *)
      run_time : Time.time,
      preplay : play Lazy.lazy,
      message : play -> string,
@@ -354,7 +354,7 @@ type prover_problem =
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   facts : fact list}
+   fact_triple : fact list * fact list * fact list}
 
 type prover_result =
   {outcome : failure option,
@@ -630,7 +630,8 @@ fun run_atp mode name
                     max_new_mono_instances, isar_proofs, isar_shrink,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, fact_triple = (facts, _, _), (* FIXME *)
+          ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -1057,7 +1058,8 @@ fun smt_filter_loop name
 
 fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, fact_triple = (facts, _, _), (* FIXME *)
+         ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val num_facts = length facts
@@ -1099,7 +1101,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
 fun run_reconstructor mode name
         (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
         minimize_command
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, subgoal, subgoal_count, fact_triple = (facts, _, _), ...}
+         : prover_problem) =
   let
     val reconstr =
       if name = metisN then

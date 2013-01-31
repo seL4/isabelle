@@ -11,6 +11,7 @@ sig
   val plural_s : int -> string
   val serial_commas : string -> string list -> string list
   val simplify_spaces : string -> string
+  val triple_self : ('a -> 'b) -> 'a * 'a * 'a -> 'b * 'b * 'b
   val with_cleanup : ('a -> unit) -> ('a -> 'b) -> 'a -> 'b
   val infinite_timeout : Time.time
   val time_mult : real -> Time.time -> Time.time
@@ -42,6 +43,8 @@ fun plural_s n = if n = 1 then "" else "s"
 
 val serial_commas = Try.serial_commas
 val simplify_spaces = strip_spaces false (K true)
+
+fun triple_self f (x, y, z) = (f x, f y, f z)
 
 fun with_cleanup clean_up f x =
   Exn.capture f x

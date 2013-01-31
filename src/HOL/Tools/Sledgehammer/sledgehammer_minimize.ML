@@ -81,7 +81,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts}
+       fact_triple = (facts, facts, facts)}
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in
@@ -267,7 +267,8 @@ fun adjust_reconstructor_params override_params
 
 fun maybe_minimize ctxt mode do_learn name
         (params as {verbose, isar_proofs, minimize, ...})
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
+        ({state, subgoal, subgoal_count, fact_triple = (facts, _, _), ...}
+         : prover_problem)
         (result as {outcome, used_facts, run_time, preplay, message,
                     message_tail} : prover_result) =
   if is_some outcome orelse null used_facts then
