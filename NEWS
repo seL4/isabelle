@@ -4,6 +4,12 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** HOL ***
+
+* Theory "RealVector" and "Limits": Introduce type class
+(lin)order_topology. Allows to generalize theorems about limits and
+order. Instances are reals and extended reals.
+
 
 New in Isabelle2013 (February 2013)
 -----------------------------------

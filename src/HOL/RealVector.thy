@@ -725,10 +725,20 @@ class dist_norm = dist + norm + minus +
   assumes dist_norm: "dist x y = norm (x - y)"
 
 class real_normed_vector = real_vector + sgn_div_norm + dist_norm + open_dist +
-  assumes norm_ge_zero [simp]: "0 \<le> norm x"
-  and norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
+  assumes norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
   and norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
   and norm_scaleR [simp]: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
+begin
+
+lemma norm_ge_zero [simp]: "0 \<le> norm x"
+proof -
+  have "0 = norm (x + -1 *\<^sub>R x)" 
+    using scaleR_add_left[of 1 "-1" x] norm_scaleR[of 0 x] by (simp add: scaleR_one)
+  also have "\<dots> \<le> norm x + norm (-1 *\<^sub>R x)" by (rule norm_triangle_ineq)
+  finally show ?thesis by simp
+qed
+
+end
 
 class real_normed_algebra = real_algebra + real_normed_vector +
   assumes norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
@@ -954,7 +964,6 @@ apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
 apply (rule open_real_def)
 apply (simp add: sgn_real_def)
-apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
 apply (rule abs_mult)
