@@ -42,6 +42,7 @@ fun run_prover override_params fact_override i n ctxt goal =
       |> relevant_facts ctxt params name
              (the_default default_max_facts max_facts) fact_override hyp_ts
              concl_t
+      |> #1
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts |> map (apfst (apfst (fn name => name ())))

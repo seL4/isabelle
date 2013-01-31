@@ -85,7 +85,7 @@ sig
   val mash_weight : real
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
-    -> term -> fact list -> fact list
+    -> term -> fact list -> fact list * fact list * fact list
   val kill_learners : unit -> unit
   val running_learners : unit -> unit
 end;
@@ -1099,9 +1099,9 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
-    facts
+    (facts, facts, facts)
   else if max_facts <= 0 orelse null facts then
-    []
+    ([], [], [])
   else
     let
       fun maybe_learn () =
@@ -1129,9 +1129,11 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
           else
             mepoN
       val add_ths = Attrib.eval_thms ctxt add
-      fun prepend_facts ths accepts =
-        ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
-         (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
+      val in_add = member Thm.eq_thm_prop add_ths o snd
+      fun add_and_take accepts =
+        (case add_ths of
+           [] => accepts
+         | _ => (facts |> filter in_add) @ (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
         mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
@@ -1142,13 +1144,19 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
             hyp_ts concl_t facts
         |>> weight_mash_facts
       val mess =
-        [] |> (if fact_filter <> mashN then cons (mepo_weight, (mepo (), []))
+        (* the order is important for the "case" expression below *)
+        [] |> (if fact_filter <> mepoN then cons (mash_weight, (mash ()))
                else I)
-           |> (if fact_filter <> mepoN then cons (mash_weight, (mash ()))
+           |> (if fact_filter <> mashN then cons (mepo_weight, (mepo (), []))
                else I)
+      val mesh =
+        mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
+        |> add_and_take
     in
-      mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
-      |> not (null add_ths) ? prepend_facts add_ths
+      case mess of
+        [(_, (mepo, _)), (_, (mash, _))] =>
+        (mesh, mepo |> map fst |> add_and_take, mash |> map fst |> add_and_take)
+      | _ => (mesh, mesh, mesh)
     end
 
 fun kill_learners () = Async_Manager.kill_threads MaShN "learner"
