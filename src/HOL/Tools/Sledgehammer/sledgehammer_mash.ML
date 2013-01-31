@@ -15,7 +15,9 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
+  val MePoN : string
   val MaShN : string
+  val MeShN : string
   val mepoN : string
   val mashN : string
   val meshN : string
@@ -106,7 +108,9 @@ val trace =
   Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
+val MePoN = "MePo"
 val MaShN = "MaSh"
+val MeShN = "MeSh"
 
 val mepoN = "mepo"
 val mashN = "mash"

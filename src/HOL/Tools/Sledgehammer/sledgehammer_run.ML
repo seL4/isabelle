@@ -8,6 +8,7 @@ Sledgehammer's heart.
 
 signature SLEDGEHAMMER_RUN =
 sig
+  type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type minimize_command = Sledgehammer_Reconstruct.minimize_command
   type mode = Sledgehammer_Provers.mode
@@ -17,6 +18,7 @@ sig
   val noneN : string
   val timeoutN : string
   val unknownN : string
+  val string_of_fact_triple : fact list * fact list * fact list -> string
   val run_sledgehammer :
     params -> mode -> int -> fact_override
     -> ((string * string list) list -> string -> minimize_command)
@@ -164,6 +166,22 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
 
 val auto_try_max_facts_divisor = 2 (* FUDGE *)
 
+fun string_of_facts facts =
+  "Including " ^ string_of_int (length facts) ^
+  " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
+  (facts |> map (fst o fst) |> space_implode " ") ^ "."
+
+fun eq_facts p = eq_list (op = o pairself fst) p
+
+fun string_of_fact_triple ([], [], []) = "Found no relevant facts."
+  | string_of_fact_triple (mesh, mepo, mash) =
+    if eq_facts (mesh, mepo) andalso eq_facts (mesh, mash) then
+      string_of_facts mesh
+    else
+      MeShN ^ ": " ^ string_of_facts mesh ^ "\n\n" ^
+      MePoN ^ ": " ^ string_of_facts mepo ^ "\n\n" ^
+      MaShN ^ ": " ^ string_of_facts mash
+
 fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
                                  slice, ...})
         mode i (fact_override as {only, ...}) minimize_command state =
@@ -210,15 +228,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
               | NONE => I)
           |> relevant_facts ctxt params (hd provers) max_max_facts fact_override
                             hyp_ts concl_t
-          |> tap (fn (facts, _, _) => (* FIXME *)
+          |> tap (fn fact_triple =>
                      if verbose then
                        label ^ plural_s (length provers) ^ ": " ^
-                       (if null facts then
-                          "Found no relevant facts."
-                        else
-                          "Including " ^ string_of_int (length facts) ^
-                          " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
-                          (facts |> map (fst o fst) |> space_implode " ") ^ ".")
+                       string_of_fact_triple fact_triple
                        |> print
                      else
                        ())

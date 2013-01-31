@@ -479,14 +479,9 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
-          |> tap (fn (facts, _, _) => (* FIXME *)
+          |> tap (fn fact_triple =>
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
-                     (if null facts then
-                        "Found no relevant facts."
-                      else
-                        "Including " ^ string_of_int (length facts) ^
-                        " relevant fact(s):\n" ^
-                        (facts |> map (fst o fst) |> space_implode " ") ^ ".")
+                     Sledgehammer_Run.string_of_fact_triple fact_triple
                      |> Output.urgent_message)
         val prover = get_prover ctxt prover_name params goal facts
         val problem =

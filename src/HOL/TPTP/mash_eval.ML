@@ -9,7 +9,6 @@ signature MASH_EVAL =
 sig
   type params = Sledgehammer_Provers.params
 
-  val MePoN : string
   val MaSh_IsarN : string
   val MaSh_ProverN : string
   val MeSh_IsarN : string
@@ -30,11 +29,10 @@ open Sledgehammer_MaSh
 open Sledgehammer_Provers
 open Sledgehammer_Isar
 
-val MePoN = "MePo"
-val MaSh_IsarN = "MaSh-Isar"
-val MaSh_ProverN = "MaSh-Prover"
-val MeSh_IsarN = "MeSh-Isar"
-val MeSh_ProverN = "MeSh-Prover"
+val MaSh_IsarN = MaShN ^ "-Isar"
+val MaSh_ProverN = MaShN ^ "-Prover"
+val MeSh_IsarN = MeShN ^ "-Isar"
+val MeSh_ProverN = MeShN ^ "-Prover"
 val IsarN = "Isar"
 
 fun in_range (from, to) j =
