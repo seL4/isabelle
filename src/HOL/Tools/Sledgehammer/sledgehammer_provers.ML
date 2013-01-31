@@ -530,6 +530,12 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred
    clearly inconsistent facts such as X = a | X = b, though it by no means
    guarantees soundness. *)
 
+fun get_facts_for_filter _ [(_, facts)] = facts
+  | get_facts_for_filter fact_filter factss =
+    case AList.lookup (op =) factss fact_filter of
+      SOME facts => facts
+    | NONE => snd (hd factss)
+
 (* Unwanted equalities are those between a (bound or schematic) variable that
    does not properly occur in the second operand. *)
 val is_exhaustive_finite =
@@ -632,8 +638,7 @@ fun run_atp mode name
                     max_new_mono_instances, isar_proofs, isar_shrink,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, factss = (_, facts) :: _, (* FIXME *)
-          ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -715,6 +720,7 @@ fun run_atp mode name
                               best_uncurried_aliases),
                       extra))) =
           let
+            val facts = get_facts_for_filter best_fact_filter factss
             val num_facts =
               length facts |> is_none max_facts ? Integer.min best_max_facts
             val soundness = if strict then Strict else Non_Strict
@@ -785,7 +791,7 @@ fun run_atp mode name
               |> lines_for_atp_problem format ord ord_info
               |> cons ("% " ^ command ^ "\n")
               |> File.write_list prob_path
-            val ((output, run_time), (atp_proof, outcome)) =
+            val ((output, run_time), used_from, (atp_proof, outcome)) =
               time_limit generous_slice_timeout Isabelle_System.bash_output
                          command
               |>> (if overlord then
@@ -794,14 +800,14 @@ fun run_atp mode name
                      I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
-                     (accum,
+                     (accum, facts,
                       extract_tstplike_proof_and_outcome verbose proof_delims
                                                          known_failures output
                       |>> atp_proof_from_tstplike_proof atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () =>
                              ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut =>
-                     (("", the slice_timeout), ([], SOME TimedOut))
+                     (("", the slice_timeout), [], ([], SOME TimedOut))
             val outcome =
               case outcome of
                 NONE =>
@@ -817,10 +823,12 @@ fun run_atp mode name
                    end
                  | NONE => NONE)
               | _ => outcome
-          in ((SOME key, value), (output, run_time, atp_proof, outcome)) end
+          in
+            ((SOME key, value), (output, run_time, facts, atp_proof, outcome))
+          end
         val timer = Timer.startRealTimer ()
         fun maybe_run_slice slice
-                (result as (cache, (_, run_time0, _, SOME _))) =
+                (result as (cache, (_, run_time0, _, _, SOME _))) =
             let
               val time_left =
                 Option.map
@@ -832,25 +840,26 @@ fun run_atp mode name
                 result
               else
                 run_slice time_left cache slice
-                |> (fn (cache, (output, run_time, atp_proof, outcome)) =>
-                       (cache, (output, Time.+ (run_time0, run_time),
+                |> (fn (cache, (output, run_time, used_from, atp_proof,
+                                outcome)) =>
+                       (cache, (output, Time.+ (run_time0, run_time), used_from,
                                 atp_proof, outcome)))
             end
           | maybe_run_slice _ result = result
       in
         ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
-         ("", Time.zeroTime, [], SOME InternalError))
+         ("", Time.zeroTime, [], [], SOME InternalError))
         |> fold maybe_run_slice actual_slices
       end
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
     fun clean_up () =
       if dest_dir = "" then (try File.rm prob_path; ()) else ()
-    fun export (_, (output, _, _, _)) =
+    fun export (_, (output, _, _, _, _)) =
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
     val ((_, (_, pool, fact_names, _, sym_tab)),
-         (output, run_time, atp_proof, outcome)) =
+         (output, run_time, used_from, atp_proof, outcome)) =
       with_cleanup clean_up run () |> tap export
     val important_message =
       if mode = Normal andalso
@@ -874,7 +883,7 @@ fun run_atp mode name
            Lazy.lazy (fn () =>
              let
                val used_pairs =
-                 facts |> filter_used_facts false used_facts
+                 used_from |> filter_used_facts false used_facts
              in
                play_one_line_proof mode debug verbose preplay_timeout
                    used_pairs state subgoal (hd reconstrs) reconstrs
@@ -912,7 +921,7 @@ fun run_atp mode name
         ([], Lazy.value (Failed_to_Play plain_metis),
          fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, used_from = facts (* ### *),
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
      run_time = run_time, preplay = preplay, message = message,
      message_tail = message_tail}
   end
