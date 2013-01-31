@@ -42,15 +42,15 @@ fun run_prover override_params fact_override i n ctxt goal =
       |> relevant_facts ctxt params name
              (the_default default_max_facts max_facts) fact_override hyp_ts
              concl_t
-      |> #1
+      |> hd |> snd
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
-       fact_triple = (facts, facts, facts)}
+       factss = [("", facts)]}
   in
     (case prover params (K (K (K ""))) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
-      handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
+    handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
 fun sledgehammer_with_metis_tac ctxt override_params fact_override i th =

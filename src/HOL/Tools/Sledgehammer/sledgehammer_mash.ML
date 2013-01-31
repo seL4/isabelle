@@ -88,7 +88,7 @@ sig
   val mash_weight : real
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
-    -> term -> raw_fact list -> fact list * fact list * fact list
+    -> term -> raw_fact list -> (string * fact list) list
   val kill_learners : unit -> unit
   val running_learners : unit -> unit
 end;
@@ -536,7 +536,7 @@ fun run_prover_for_mash ctxt params prover facts goal =
   let
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       fact_triple = (facts, facts, facts)}
+       factss = [("", facts)]}
   in
     get_minimizing_isar_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
                                problem
@@ -1106,10 +1106,10 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
     let val facts = facts |> map fact_of_raw_fact in
-      (facts, facts, facts)
+      [("", facts)]
     end
   else if max_facts <= 0 orelse null facts then
-    ([], [], [])
+    [("", [])]
   else
     let
       fun maybe_learn () =
@@ -1164,8 +1164,9 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
     in
       case mess of
         [(_, (mepo, _)), (_, (mash, _))] =>
-        (mesh, mepo |> map fst |> add_and_take, mash |> map fst |> add_and_take)
-      | _ => (mesh, mesh, mesh)
+        [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
+         (mashN, mash |> map fst |> add_and_take)]
+      | _ => [("", mesh)]
     end
 
 fun kill_learners () = Async_Manager.kill_threads MaShN "learner"

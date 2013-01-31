@@ -68,7 +68,7 @@ sig
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     fact_triple : fact list * fact list * fact list}
+     factss : (string * fact list) list}
 
   type prover_result =
     {outcome : failure option,
@@ -355,7 +355,7 @@ type prover_problem =
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   fact_triple : fact list * fact list * fact list}
+   factss : (string * fact list) list}
 
 type prover_result =
   {outcome : failure option,
@@ -632,7 +632,7 @@ fun run_atp mode name
                     max_new_mono_instances, isar_proofs, isar_shrink,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, fact_triple = (facts, _, _), (* FIXME *)
+        ({state, goal, subgoal, subgoal_count, factss = (_, facts) :: _, (* FIXME *)
           ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -1064,7 +1064,7 @@ fun smt_filter_loop name
 
 fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, fact_triple = (facts, _, _), (* FIXME *)
+        ({state, goal, subgoal, subgoal_count, factss = (_, facts) :: _, (* FIXME *)
          ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
@@ -1108,7 +1108,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
 fun run_reconstructor mode name
         (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
         minimize_command
-        ({state, subgoal, subgoal_count, fact_triple = (facts, _, _), ...}
+        ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...}
          : prover_problem) =
   let
     val reconstr =

@@ -81,7 +81,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       fact_triple = (facts, facts, facts)}
+       factss = [("", facts)]}
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in
@@ -267,8 +267,7 @@ fun adjust_reconstructor_params override_params
 
 fun maybe_minimize ctxt mode do_learn name
         (params as {verbose, isar_proofs, minimize, ...})
-        ({state, subgoal, subgoal_count, fact_triple = (facts, _, _), ...}
-         : prover_problem)
+        ({state, subgoal, subgoal_count, ...} : prover_problem)
         (result as {outcome, used_facts, used_from, run_time, preplay, message,
                     message_tail} : prover_result) =
   if is_some outcome orelse null used_facts then
@@ -310,7 +309,7 @@ fun maybe_minimize ctxt mode do_learn name
         if minimize then
           minimize_facts do_learn minimize_name params
               (mode <> Normal orelse not verbose) subgoal subgoal_count state
-              (filter_used_facts true used_facts (map (apsnd single) facts))
+              (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
           (SOME used_facts, (preplay, message, ""))
