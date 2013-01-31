@@ -269,7 +269,7 @@ fun maybe_minimize ctxt mode do_learn name
         (params as {verbose, isar_proofs, minimize, ...})
         ({state, subgoal, subgoal_count, fact_triple = (facts, _, _), ...}
          : prover_problem)
-        (result as {outcome, used_facts, run_time, preplay, message,
+        (result as {outcome, used_facts, used_from, run_time, preplay, message,
                     message_tail} : prover_result) =
   if is_some outcome orelse null used_facts then
     result
@@ -317,8 +317,9 @@ fun maybe_minimize ctxt mode do_learn name
     in
       case used_facts of
         SOME used_facts =>
-        {outcome = NONE, used_facts = used_facts, run_time = run_time,
-         preplay = preplay, message = message, message_tail = message_tail}
+        {outcome = NONE, used_facts = used_facts, used_from = used_from,
+         run_time = run_time, preplay = preplay, message = message,
+         message_tail = message_tail}
       | NONE => result
     end
 

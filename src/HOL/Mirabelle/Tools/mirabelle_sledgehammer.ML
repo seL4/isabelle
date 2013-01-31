@@ -456,13 +456,14 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
-      ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
+      ({outcome = SOME failure, used_facts = [], used_from = [],
+        run_time = Time.zeroTime,
         preplay = Lazy.value (Sledgehammer_Reconstruct.Failed_to_Play
           Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
-    val ({outcome, used_facts, run_time, preplay, message, message_tail}
+    val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}
          : Sledgehammer_Provers.prover_result,
-        time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
+         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"

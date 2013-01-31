@@ -72,7 +72,8 @@ sig
 
   type prover_result =
     {outcome : failure option,
-     used_facts : (string * stature) list, (* FIXME: store triple component *)
+     used_facts : (string * stature) list,
+     used_from : fact list,
      run_time : Time.time,
      preplay : play Lazy.lazy,
      message : play -> string,
@@ -359,6 +360,7 @@ type prover_problem =
 type prover_result =
   {outcome : failure option,
    used_facts : (string * stature) list,
+   used_from : fact list,
    run_time : Time.time,
    preplay : play Lazy.lazy,
    message : play -> string,
@@ -909,8 +911,9 @@ fun run_atp mode name
         ([], Lazy.value (Failed_to_Play plain_metis),
          fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = facts (* ### *),
+     run_time = run_time, preplay = preplay, message = message,
+     message_tail = message_tail}
   end
 
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
@@ -970,7 +973,7 @@ fun smt_filter_loop name
     val ctxt = Proof.context_of state |> repair_context
     val state = state |> Proof.map_context (K ctxt)
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
-    fun do_slice timeout slice outcome0 time_so_far facts =
+    fun do_slice timeout slice outcome0 time_so_far weighted_facts =
       let
         val timer = Timer.startRealTimer ()
         val state =
@@ -989,7 +992,7 @@ fun smt_filter_loop name
             end
           else
             timeout
-        val num_facts = length facts
+        val num_facts = length weighted_facts
         val _ =
           if debug then
             quote name ^ " slice " ^ string_of_int slice ^ " with " ^
@@ -1005,7 +1008,8 @@ fun smt_filter_loop name
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val state_facts = these (try (#facts o Proof.goal) state)
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter_preprocess ctxt state_facts goal facts i
+          SMT_Solver.smt_filter_preprocess ctxt state_facts goal weighted_facts
+              i
           |> SMT_Solver.smt_filter_apply (slice_timeout |> the_default one_day)
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
@@ -1047,12 +1051,14 @@ fun smt_filter_loop name
               else
                 ()
           in
-            facts |> take new_num_facts
-                  |> do_slice timeout (slice + 1) outcome0 time_so_far
+            weighted_facts
+            |> take new_num_facts
+            |> do_slice timeout (slice + 1) outcome0 time_so_far
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
-           used_facts = used_facts, run_time = time_so_far}
+           used_facts = used_facts, used_from = map (apsnd snd) weighted_facts,
+           run_time = time_so_far}
       end
   in do_slice timeout 1 NONE Time.zeroTime end
 
@@ -1066,7 +1072,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
     val facts =
       facts ~~ (0 upto num_facts - 1)
       |> map (weight_smt_fact ctxt num_facts)
-    val {outcome, used_facts = used_pairs, run_time} =
+    val {outcome, used_facts = used_pairs, used_from, run_time} =
       smt_filter_loop name params state goal subgoal facts
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
@@ -1094,8 +1100,9 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         (Lazy.value (Failed_to_Play plain_metis),
          fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
+     run_time = run_time, preplay = preplay, message = message,
+     message_tail = message_tail}
   end
 
 fun run_reconstructor mode name
@@ -1118,8 +1125,8 @@ fun run_reconstructor mode name
                              verbose timeout facts state subgoal reconstr
                              [reconstr] of
       play as Played (_, time) =>
-      {outcome = NONE, used_facts = used_facts, run_time = time,
-       preplay = Lazy.value play,
+      {outcome = NONE, used_facts = used_facts, used_from = facts,
+       run_time = time, preplay = Lazy.value play,
        message =
          fn play =>
             let
@@ -1135,8 +1142,8 @@ fun run_reconstructor mode name
       let
         val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
       in
-        {outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
-         preplay = Lazy.value play,
+        {outcome = SOME failure, used_facts = [], used_from = [],
+         run_time = Time.zeroTime, preplay = Lazy.value play,
          message = fn _ => string_for_failure failure, message_tail = ""}
       end
   end

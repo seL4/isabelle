@@ -88,8 +88,8 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
                           ? filter_out (fn ((_, (_, Induction)), _) => true
                                          | _ => false))
                          #> take num_facts)}
-    fun print_used_facts used_facts =
-      tag_list 1 facts
+    fun print_used_facts used_facts used_from =
+      tag_list 1 used_from
       |> map (fn (j, fact) => fact |> apsnd (K j))
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
@@ -100,9 +100,10 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
     fun really_go () =
       problem
       |> get_minimizing_isar_prover ctxt mode learn name params minimize_command
-      |> verbose ? tap (fn {outcome = NONE, used_facts as _ :: _, ...} =>
-                           print_used_facts used_facts
-                         | _ => ())
+      |> verbose
+         ? tap (fn {outcome = NONE, used_facts as _ :: _, used_from, ...} =>
+                   print_used_facts used_facts used_from
+                 | _ => ())
       |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
