@@ -532,7 +532,7 @@ fun run_prover_for_mash ctxt params prover facts goal =
   let
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       facts = facts |> map Untranslated_Fact}
+       facts = facts}
   in
     get_minimizing_isar_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
                                problem

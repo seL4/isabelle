@@ -11,6 +11,7 @@ sig
   type failure = ATP_Proof.failure
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
+  type fact = Sledgehammer_Fact.fact
   type reconstructor = Sledgehammer_Reconstruct.reconstructor
   type play = Sledgehammer_Reconstruct.play
   type minimize_command = Sledgehammer_Reconstruct.minimize_command
@@ -62,16 +63,12 @@ sig
      threshold_divisor : real,
      ridiculous_threshold : real}
 
-  datatype prover_fact =
-    Untranslated_Fact of (string * stature) * thm |
-    SMT_Weighted_Fact of (string * stature) * (int option * thm)
-
   type prover_problem =
     {state : Proof.state,
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     facts : prover_fact list}
+     facts : fact list}
 
   type prover_result =
     {outcome : failure option,
@@ -123,10 +120,6 @@ sig
   val weight_smt_fact :
     Proof.context -> int -> ((string * stature) * thm) * int
     -> (string * stature) * (int option * thm)
-  val untranslated_fact : prover_fact -> (string * stature) * thm
-  val smt_weighted_fact :
-    Proof.context -> int -> prover_fact * int
-    -> (string * stature) * (int option * thm)
   val supported_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -149,6 +142,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
+open Sledgehammer_Fact
 open Sledgehammer_Reconstruct
 
 
@@ -355,16 +349,12 @@ type relevance_fudge =
    threshold_divisor : real,
    ridiculous_threshold : real}
 
-datatype prover_fact =
-  Untranslated_Fact of (string * stature) * thm |
-  SMT_Weighted_Fact of (string * stature) * (int option * thm)
-
 type prover_problem =
   {state : Proof.state,
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   facts : prover_fact list}
+   facts : fact list}
 
 type prover_result =
   {outcome : failure option,
@@ -429,12 +419,6 @@ fun weight_smt_fact ctxt num_facts ((info, th), j) =
   let val thy = Proof_Context.theory_of ctxt in
     (info, (smt_fact_weight ctxt j num_facts, th |> Thm.transfer thy))
   end
-
-fun untranslated_fact (Untranslated_Fact p) = p
-  | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
-fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
-  | smt_weighted_fact ctxt num_facts (fact, j) =
-    (untranslated_fact fact, j) |> weight_smt_fact ctxt num_facts
 
 fun overlord_file_location_for_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
@@ -773,7 +757,6 @@ fun run_atp mode name
                 cache_value
               else
                 facts
-                |> map untranslated_fact
                 |> not sound
                    ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                 |> take num_facts
@@ -887,8 +870,7 @@ fun run_atp mode name
            Lazy.lazy (fn () =>
              let
                val used_pairs =
-                 facts |> map untranslated_fact
-                       |> filter_used_facts false used_facts
+                 facts |> filter_used_facts false used_facts
              in
                play_one_line_proof mode debug verbose preplay_timeout
                    used_pairs state subgoal (hd reconstrs) reconstrs
@@ -1079,8 +1061,9 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
   let
     val ctxt = Proof.context_of state
     val num_facts = length facts
-    val facts = facts ~~ (0 upto num_facts - 1)
-                |> map (smt_weighted_fact ctxt num_facts)
+    val facts =
+      facts ~~ (0 upto num_facts - 1)
+      |> map (weight_smt_fact ctxt num_facts)
     val {outcome, used_facts = used_pairs, run_time} =
       smt_filter_loop name params state goal subgoal facts
     val used_facts = used_pairs |> map fst
@@ -1126,11 +1109,10 @@ fun run_reconstructor mode name
         SMT
       else
         raise Fail ("unknown reconstructor: " ^ quote name)
-    val used_pairs = facts |> map untranslated_fact
-    val used_facts = used_pairs |> map fst
+    val used_facts = facts |> map fst
   in
     case play_one_line_proof (if mode = Minimize then Normal else mode) debug
-                             verbose timeout used_pairs state subgoal reconstr
+                             verbose timeout facts state subgoal reconstr
                              [reconstr] of
       play as Played (_, time) =>
       {outcome = NONE, used_facts = used_facts, run_time = time,

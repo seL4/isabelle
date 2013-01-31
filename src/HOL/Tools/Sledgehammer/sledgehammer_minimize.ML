@@ -68,8 +68,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
            else
              "") ^ "...")
     val {goal, ...} = Proof.goal state
-    val facts =
-      facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
+    val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_enc = type_enc, strict = strict,
@@ -309,10 +308,8 @@ fun maybe_minimize ctxt mode do_learn name
       val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts do_learn minimize_name params
-                         (mode <> Normal orelse not verbose) subgoal
-                         subgoal_count state
-                         (filter_used_facts true used_facts
-                              (map (apsnd single o untranslated_fact) facts))
+              (mode <> Normal orelse not verbose) subgoal subgoal_count state
+              (filter_used_facts true used_facts (map (apsnd single) facts))
           |>> Option.map (map fst)
         else
           (SOME used_facts, (preplay, message, ""))

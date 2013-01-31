@@ -81,12 +81,11 @@ fun launch_prover (params as {debug, verbose, blocking, max_facts, slice,
        subgoal_count = subgoal_count,
        facts = facts
                |> not (Sledgehammer_Provers.is_ho_atp ctxt name)
-                  ? filter_out (curry (op =) Induction o snd o snd o fst
-                                o untranslated_fact)
+                  ? filter_out (curry (op =) Induction o snd o snd o fst)
                |> take num_facts}
     fun print_used_facts used_facts =
       tag_list 1 facts
-      |> map (fn (j, fact) => fact |> untranslated_fact |> apsnd (K j))
+      |> map (fn (j, fact) => fact |> apsnd (K j))
       |> filter_used_facts false used_facts
       |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
       |> commas
@@ -196,12 +195,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
       val (smts, (ueq_atps, full_atps)) =
         provers |> List.partition (is_smt_prover ctxt)
                 ||> List.partition (is_unit_equational_atp ctxt)
-      fun launch_provers state get_facts translate provers =
+      fun launch_provers state get_facts provers =
         let
           val facts = get_facts ()
           val num_facts = length facts
-          val facts = facts ~~ (0 upto num_facts - 1)
-                      |> map (translate num_facts)
           val problem =
             {state = state, goal = goal, subgoal = i, subgoal_count = n,
              facts = facts}
@@ -264,18 +261,15 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
            accum)
         else
           launch_provers state (get_facts label is_appropriate_prop o K atps)
-                         (K (Untranslated_Fact o fst)) atps
+                         atps
       fun launch_smts accum =
         if null smts then
           accum
         else
-          let
-            val facts = get_facts "SMT solver" NONE smts
-            val weight = SMT_Weighted_Fact oo weight_smt_fact ctxt
-          in
+          let val facts = get_facts "SMT solver" NONE smts in
             smts |> map (`(class_of_smt_solver ctxt))
                  |> AList.group (op =)
-                 |> map (snd #> launch_provers state (K facts) weight #> fst)
+                 |> map (snd #> launch_provers state (K facts) #> fst)
                  |> max_outcome_code |> rpair state
           end
       val launch_full_atps = launch_atps "ATP" NONE full_atps
