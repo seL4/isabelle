@@ -926,6 +926,10 @@ fun run_atp mode name
      message_tail = message_tail}
   end
 
+fun rotate_one (x :: xs) = xs @ [x]
+
+fun app_hd f (x :: xs) = f x :: xs
+
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
    ourselves. *)
@@ -958,11 +962,12 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
 val smt_max_slices =
   Attrib.setup_config_int @{binding sledgehammer_smt_max_slices} (K 8)
 val smt_slice_fact_frac =
-  Attrib.setup_config_real @{binding sledgehammer_smt_slice_fact_frac} (K 0.5)
+  Attrib.setup_config_real @{binding sledgehammer_smt_slice_fact_frac}
+                           (K 0.667)
 val smt_slice_time_frac =
-  Attrib.setup_config_real @{binding sledgehammer_smt_slice_time_frac} (K 0.5)
+  Attrib.setup_config_real @{binding sledgehammer_smt_slice_time_frac} (K 0.333)
 val smt_slice_min_secs =
-  Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 5)
+  Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 3)
 
 fun smt_filter_loop name
                     ({debug, verbose, overlord, max_mono_iters,
@@ -983,7 +988,7 @@ fun smt_filter_loop name
     val ctxt = Proof.context_of state |> repair_context
     val state = state |> Proof.map_context (K ctxt)
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
-    fun do_slice timeout slice outcome0 time_so_far weighted_facts =
+    fun do_slice timeout slice outcome0 time_so_far weighted_factss =
       let
         val timer = Timer.startRealTimer ()
         val state =
@@ -1002,6 +1007,7 @@ fun smt_filter_loop name
             end
           else
             timeout
+        val weighted_facts = hd weighted_factss
         val num_facts = length weighted_facts
         val _ =
           if debug then
@@ -1061,8 +1067,9 @@ fun smt_filter_loop name
               else
                 ()
           in
-            weighted_facts
-            |> take new_num_facts
+            weighted_factss
+            |> rotate_one
+            |> app_hd (take new_num_facts)
             |> do_slice timeout (slice + 1) outcome0 time_so_far
           end
         else
@@ -1074,16 +1081,17 @@ fun smt_filter_loop name
 
 fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, factss = (_, facts) :: _, (* FIXME *)
-         ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
-    val num_facts = length facts
-    val facts =
-      facts ~~ (0 upto num_facts - 1)
-      |> map (weight_smt_fact ctxt num_facts)
+    fun weight_facts facts =
+      let val num_facts = length facts in
+        facts ~~ (0 upto num_facts - 1)
+        |> map (weight_smt_fact ctxt num_facts)
+      end
+    val weighted_factss = factss |> map (snd #> weight_facts)
     val {outcome, used_facts = used_pairs, used_from, run_time} =
-      smt_filter_loop name params state goal subgoal facts
+      smt_filter_loop name params state goal subgoal weighted_factss
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
     val (preplay, message, message_tail) =
