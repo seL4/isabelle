@@ -106,6 +106,7 @@ else
   DISTVERSION="$DISTNAME: $DISTDATE"
 fi
 
+DISTPREFIX="$(cd "$DISTPREFIX"; pwd)"
 DISTBASE="$DISTPREFIX/dist-$DISTNAME"
 mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir \"$DISTBASE\""
 
