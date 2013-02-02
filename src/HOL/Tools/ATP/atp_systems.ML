@@ -336,12 +336,9 @@ val e_config : atp_config =
      let val heuristic = effective_e_selection_heuristic ctxt in
        (* FUDGE *)
        if heuristic = e_smartN then
-         [(0.15, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
-          (0.15, (((128, mashN), FOF, "mono_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.15, (((91, mepoN), FOF, "mono_tags??", combsN, false), e_autoN)),
-          (0.15, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
-          (0.15, (((1000, meshN), FOF, "poly_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.25, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN))]
+         [(0.333, (((500, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
+          (0.334, (((50, meshN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
+          (0.333, (((1000, mepoN), FOF, "mono_tags??", combsN, false), e_sym_offset_weightN))]
        else
          [(1.0, (((500, ""), FOF, "mono_tags??", combsN, false), heuristic))]
      end,
@@ -507,14 +504,14 @@ val spass_config : atp_config =
    prem_role = Conjecture,
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.15, (((150, meshN), DFG Monomorphic, "mono_native", combsN, true), "")),
-      (0.15, (((500, mepoN), DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
-      (0.15, (((50, mashN), DFG Monomorphic,  "mono_native", liftingN, true), spass_H2LR0LT0)),
-      (0.10, (((250, mepoN), DFG Monomorphic, "mono_native", combsN, true), spass_H2NuVS0)),
-      (0.10, (((1000, meshN), DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
-      (0.10, (((150, mashN), DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
-      (0.10, (((300, mepoN), DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
-      (0.15, (((100, meshN), DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))]
+     [(0.1667, (((150, meshN), DFG Monomorphic, "mono_native", combsN, true), "")),
+      (0.1667, (((500, meshN), DFG Monomorphic, "mono_native", liftingN, true), spass_H2SOS)),
+      (0.1666, (((50, meshN), DFG Monomorphic,  "mono_native", liftingN, true), spass_H2LR0LT0)),
+      (0.1000, (((250, meshN), DFG Monomorphic, "mono_native", combsN, true), spass_H2NuVS0)),
+      (0.1000, (((1000, mepoN), DFG Monomorphic, "mono_native", liftingN, true), spass_H1SOS)),
+      (0.1000, (((150, meshN), DFG Monomorphic, "poly_guards??", liftingN, false), spass_H2NuVS0Red2)),
+      (0.1000, (((300, meshN), DFG Monomorphic, "mono_native", combsN, true), spass_H2SOS)),
+      (0.1000, (((100, meshN), DFG Monomorphic, "mono_native", combs_and_liftingN, true), spass_H2))]
      |> (case Config.get ctxt spass_extra_options of
            "" => I
          | opts => map (apsnd (apsnd (K opts)))),
@@ -561,16 +558,13 @@ val vampire_config : atp_config =
    best_slices = fn ctxt =>
      (* FUDGE *)
      (if is_vampire_beyond_1_8 () then
-        [(0.20, (((128, meshN), vampire_tff0, "mono_guards??", combs_or_liftingN, false), e_fun_weightN)),
-         (0.15, (((128, mashN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), e_sym_offset_weightN)),
-         (0.15, (((91, mepoN), vampire_tff0, "mono_native", combsN, false), e_autoN)),
-         (0.15, (((64, mashN), vampire_tff0, "mono_tags??", liftingN, false), e_fun_weightN)),
-         (0.15, (((1000, meshN), vampire_tff0, "poly_guards??", combs_or_liftingN, false), e_sym_offset_weightN)),
-         (0.20, (((256, mepoN), vampire_tff0, "mono_native", combs_or_liftingN, false), e_fun_weightN))]
+        [(0.333, (((500, meshN), vampire_tff0, "mono_guards??", combs_or_liftingN, false), sosN)),
+         (0.333, (((150, meshN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), sosN)),
+         (0.334, (((50, mepoN), vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
       else
-        [(0.333, (((150, mepoN), FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
+        [(0.333, (((150, meshN), FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
          (0.333, (((500, meshN), FOF, "mono_tags??", combs_or_liftingN, false), sosN)),
-         (0.334, (((50, mashN), FOF, "mono_guards??", combs_or_liftingN, false), no_sosN))])
+         (0.334, (((50, meshN), FOF, "mono_guards??", combs_or_liftingN, false), no_sosN))])
      |> (if Config.get ctxt force_sos then hd #> apfst (K 1.0) #> single
          else I),
    best_max_mono_iters = default_max_mono_iters,
