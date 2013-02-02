@@ -336,9 +336,12 @@ val e_config : atp_config =
      let val heuristic = effective_e_selection_heuristic ctxt in
        (* FUDGE *)
        if heuristic = e_smartN then
-         [(0.333, (((500, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
-          (0.334, (((50, meshN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
-          (0.333, (((1000, mepoN), FOF, "mono_tags??", combsN, false), e_sym_offset_weightN))]
+         [(0.15, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
+          (0.15, (((128, mashN), FOF, "mono_guards??", combsN, false), e_sym_offset_weightN)),
+          (0.15, (((91, mepoN), FOF, "mono_tags??", combsN, false), e_autoN)),
+          (0.15, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
+          (0.15, (((1000, meshN), FOF, "poly_guards??", combsN, false), e_sym_offset_weightN)),
+          (0.25, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN))]
        else
          [(1.0, (((500, ""), FOF, "mono_tags??", combsN, false), heuristic))]
      end,
@@ -560,7 +563,7 @@ val vampire_config : atp_config =
      (if is_vampire_beyond_1_8 () then
         [(0.333, (((500, meshN), vampire_tff0, "mono_guards??", combs_or_liftingN, false), sosN)),
          (0.333, (((150, meshN), vampire_tff0, "poly_tags??", combs_or_liftingN, false), sosN)),
-         (0.334, (((50, mepoN), vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
+         (0.334, (((50, meshN), vampire_tff0, "mono_native", combs_or_liftingN, false), no_sosN))]
       else
         [(0.333, (((150, meshN), FOF, "poly_guards??", combs_or_liftingN, false), sosN)),
          (0.333, (((500, meshN), FOF, "mono_tags??", combs_or_liftingN, false), sosN)),
