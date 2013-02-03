@@ -362,7 +362,10 @@ val e_males_config : atp_config =
    prem_role = Conjecture,
    best_slices =
      (* FUDGE *)
-     K [(1.0, (((1000, ""), FOF, "poly_guards??", combsN, false), ""))],
+     K [(0.25, (((500, meshN), FOF, "mono_guards??", combs_or_liftingN, false), "")),
+        (0.25, (((150, meshN), FOF, "poly_tags??", combs_or_liftingN, false), "")),
+        (0.25, (((50, meshN), FOF, "mono_tags??", combs_or_liftingN, false), "")),
+        (0.25, (((1000, meshN), FOF, "poly_guards??", combsN, false), ""))],
    best_max_mono_iters = default_max_mono_iters,
    best_max_new_mono_instances = default_max_new_mono_instances}
 
