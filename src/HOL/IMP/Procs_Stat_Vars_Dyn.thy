@@ -33,9 +33,6 @@ Proc: "(p,cp)#pe \<turnstile> (c,s) \<Rightarrow> t  \<Longrightarrow>  pe \<tur
 
 code_pred big_step .
 
-values "{map t [''x'', ''y'', ''z''] |t. 
-            [] \<turnstile> (CALL ''p'', <''x'' := 42, ''y'' := 43>) \<Rightarrow> t}"
-
-values "{map t [''x'', ''y'', ''z''] |t. [] \<turnstile> (test_com, <>) \<Rightarrow> t}"
+values "{map t [''x'', ''y''] |t. [] \<turnstile> (test_com, <>) \<Rightarrow> t}"
 
 end

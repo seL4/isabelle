@@ -32,7 +32,7 @@ WhileTrue:
    e \<turnstile> (WHILE b DO c, s\<^isub>1) \<Rightarrow> s\<^isub>3" |
 
 Var: "(pe,ve(x:=f),f+1) \<turnstile> (c,s) \<Rightarrow> t  \<Longrightarrow>
-      (pe,ve,f) \<turnstile> ({VAR x;; c}, s) \<Rightarrow> t(f := s f)" |
+      (pe,ve,f) \<turnstile> ({VAR x;; c}, s) \<Rightarrow> t" |
 
 Call1: "((p,c,ve)#pe,ve,f) \<turnstile> (c, s) \<Rightarrow> t  \<Longrightarrow>
         ((p,c,ve)#pe,ve',f) \<turnstile> (CALL p, s) \<Rightarrow> t" |
@@ -45,10 +45,8 @@ Proc: "((p,cp,ve)#pe,ve,f) \<turnstile> (c,s) \<Rightarrow> t
 code_pred big_step .
 
 
-values "{map t [0,1] |t. ([], <>, 0) \<turnstile> (CALL ''p'', nth [42, 43]) \<Rightarrow> t}"
-
-values "{map t [0, 1, 2] |t.
-  ([], <''x'' := 0, ''y'' := 1,''z'' := 2>, 0)
+values "{map t [10,11] |t.
+  ([], <''x'' := 10, ''y'' := 11>, 12)
   \<turnstile> (test_com, <>) \<Rightarrow> t}"
 
 end

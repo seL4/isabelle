@@ -18,12 +18,11 @@ datatype
 
 definition "test_com =
 {VAR ''x'';;
- ''x'' ::= N 0;
- {PROC ''p'' = ''x'' ::= Plus (V ''x'') (V ''x'');;
+ {PROC ''p'' = ''x'' ::= N 1;;
   {PROC ''q'' = CALL ''p'';;
    {VAR ''x'';;
-    ''x'' ::= N 5;
-    {PROC ''p'' = ''x'' ::= Plus (V ''x'') (N 1);;
+    ''x'' ::= N 2;
+    {PROC ''p'' = ''x'' ::= N 3;;
      CALL ''q''; ''y'' ::= V ''x''}}}}}"
 
 end
