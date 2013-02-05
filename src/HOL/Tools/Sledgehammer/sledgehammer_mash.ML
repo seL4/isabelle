@@ -668,9 +668,7 @@ fun trim_dependencies th deps =
   if length deps > max_dependencies then NONE else SOME deps
 
 fun isar_dependencies_of name_tabs th =
-  let
-    val deps = thms_in_proof (SOME name_tabs) th
-  in
+  let val deps = thms_in_proof (SOME name_tabs) th in
     if deps = [typedef_dep] orelse
        deps = [class_some_dep] orelse
        exists (member (op =) fundef_ths) deps orelse
