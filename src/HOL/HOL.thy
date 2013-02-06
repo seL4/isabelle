@@ -1265,15 +1265,15 @@ in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
           val fx_g = Simplifier.rewrite ss (Thm.apply cf cx);
           val (_ $ _ $ g) = prop_of fx_g;
           val g' = abstract_over (x,g);
+          val abs_g'= Abs (n,xT,g');
         in (if (g aconv g')
              then
                 let
                   val rl =
                     cterm_instantiate [(f_Let_unfold, cf), (x_Let_unfold, cx)] @{thm Let_unfold};
                 in SOME (rl OF [fx_g]) end
-             else if Term.betapply (f, x) aconv g then NONE (*avoid identity conversion*)
+             else if (Envir.beta_eta_contract f) aconv (Envir.beta_eta_contract abs_g') then NONE (*avoid identity conversion*)
              else let
-                   val abs_g'= Abs (n,xT,g');
                    val g'x = abs_g'$x;
                    val g_g'x = Thm.symmetric (Thm.beta_conversion false (cterm_of thy g'x));
                    val rl = cterm_instantiate
