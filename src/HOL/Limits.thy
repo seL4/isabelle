@@ -469,12 +469,6 @@ apply (simp only: less_diff_eq)
 apply (erule le_less_trans [OF dist_triangle])
 done
 
-lemma eventually_nhds_order:
-  "eventually P (nhds (a::'a::linorder_topology)) \<longleftrightarrow>
-    (\<exists>S. open_interval S \<and> a \<in> S \<and> (\<forall>z\<in>S. P z))"
-  (is "_ \<longleftrightarrow> ?rhs")
-  unfolding eventually_nhds by (auto dest!: open_orderD dest: open_interval_imp_open)
-
 lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
   unfolding trivial_limit_def eventually_nhds by simp
 
@@ -838,6 +832,35 @@ lemma tendsto_iff:
   "(f ---> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   using tendstoI tendstoD by fast
 
+lemma order_tendstoI:
+  fixes y :: "_ :: order_topology"
+  assumes "\<And>a. a < y \<Longrightarrow> eventually (\<lambda>x. a < f x) F"
+  assumes "\<And>a. y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F"
+  shows "(f ---> y) F"
+proof (rule topological_tendstoI)
+  fix S assume "open S" "y \<in> S"
+  then show "eventually (\<lambda>x. f x \<in> S) F"
+    unfolding open_generated_order
+  proof induct
+    case (UN K)
+    then obtain k where "y \<in> k" "k \<in> K" by auto
+    with UN(2)[of k] show ?case
+      by (auto elim: eventually_elim1)
+  qed (insert assms, auto elim: eventually_elim2)
+qed
+
+lemma order_tendstoD:
+  fixes y :: "_ :: order_topology"
+  assumes y: "(f ---> y) F"
+  shows "a < y \<Longrightarrow> eventually (\<lambda>x. a < f x) F"
+    and "y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F"
+  using topological_tendstoD[OF y, of "{..< a}"] topological_tendstoD[OF y, of "{a <..}"] by auto
+
+lemma order_tendsto_iff: 
+  fixes f :: "_ \<Rightarrow> 'a :: order_topology"
+  shows "(f ---> x) F \<longleftrightarrow>(\<forall>l<x. eventually (\<lambda>x. l < f x) F) \<and> (\<forall>u>x. eventually (\<lambda>x. f x < u) F)"
+  by (metis order_tendstoI order_tendstoD)
+
 lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
@@ -908,34 +931,18 @@ proof (rule tendstoI)
 qed
 
 lemma increasing_tendsto:
-  fixes f :: "_ \<Rightarrow> 'a::linorder_topology"
+  fixes f :: "_ \<Rightarrow> 'a::order_topology"
   assumes bdd: "eventually (\<lambda>n. f n \<le> l) F"
       and en: "\<And>x. x < l \<Longrightarrow> eventually (\<lambda>n. x < f n) F"
   shows "(f ---> l) F"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "l \<in> S"
-  then show "eventually (\<lambda>x. f x \<in> S) F"
-  proof (induct rule: open_order_induct)
-    case (greaterThanLessThan a b) with en bdd show ?case
-      by (auto elim!: eventually_elim2)
-  qed (insert en bdd, auto elim!: eventually_elim1)
-qed
+  using assms by (intro order_tendstoI) (auto elim!: eventually_elim1)
 
 lemma decreasing_tendsto:
-  fixes f :: "_ \<Rightarrow> 'a::linorder_topology"
+  fixes f :: "_ \<Rightarrow> 'a::order_topology"
   assumes bdd: "eventually (\<lambda>n. l \<le> f n) F"
       and en: "\<And>x. l < x \<Longrightarrow> eventually (\<lambda>n. f n < x) F"
   shows "(f ---> l) F"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "l \<in> S"
-  then show "eventually (\<lambda>x. f x \<in> S) F"
-  proof (induct rule: open_order_induct)
-    case (greaterThanLessThan a b)
-    with en have "eventually (\<lambda>n. f n < b) F" by auto
-    with bdd show ?case
-      by eventually_elim (insert greaterThanLessThan, auto)
-  qed (insert en bdd, auto elim!: eventually_elim1)
-qed
+  using assms by (intro order_tendstoI) (auto elim!: eventually_elim1)
 
 subsubsection {* Distance and norms *}
 
@@ -1039,20 +1046,16 @@ next
 qed
 
 lemma tendsto_sandwich:
-  fixes f g h :: "'a \<Rightarrow> 'b::linorder_topology"
+  fixes f g h :: "'a \<Rightarrow> 'b::order_topology"
   assumes ev: "eventually (\<lambda>n. f n \<le> g n) net" "eventually (\<lambda>n. g n \<le> h n) net"
   assumes lim: "(f ---> c) net" "(h ---> c) net"
   shows "(g ---> c) net"
-proof (rule topological_tendstoI)
-  fix S assume "open S" "c \<in> S"
-  from open_orderD[OF this] obtain T where "open_interval T" "c \<in> T" "T \<subseteq> S" by auto
-  with lim[THEN topological_tendstoD, of T]
-  have "eventually (\<lambda>x. f x \<in> T) net" "eventually (\<lambda>x. h x \<in> T) net"
-    by (auto dest: open_interval_imp_open)
-  with ev have "eventually (\<lambda>x. g x \<in> T) net"
-    by eventually_elim (insert `open_interval T`, auto dest: open_intervalD)
-  with `T \<subseteq> S` show "eventually (\<lambda>x. g x \<in> S) net"
-    by (auto elim: eventually_elim1)
+proof (rule order_tendstoI)
+  fix a show "a < c \<Longrightarrow> eventually (\<lambda>x. a < g x) net"
+    using order_tendstoD[OF lim(1), of a] ev by (auto elim: eventually_elim2)
+next
+  fix a show "c < a \<Longrightarrow> eventually (\<lambda>x. g x < a) net"
+    using order_tendstoD[OF lim(2), of a] ev by (auto elim: eventually_elim2)
 qed
 
 lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
@@ -1129,15 +1132,12 @@ lemma tendsto_le:
   shows "y \<le> x"
 proof (rule ccontr)
   assume "\<not> y \<le> x"
-  then have "x < y" by simp
-  from less_separate[OF this] obtain a b where xy: "x \<in> {..<a}" "y \<in> {b <..}" "{..<a} \<inter> {b<..} = {}"
-    by auto
-  then have less: "\<And>x y. x < a \<Longrightarrow> b < y \<Longrightarrow> x < y"
-    by auto
-  from x[THEN topological_tendstoD, of "{..<a}"] y[THEN topological_tendstoD, of "{b <..}"] xy
-  have "eventually (\<lambda>x. f x \<in> {..<a}) F" "eventually (\<lambda>x. g x \<in> {b <..}) F" by auto
+  with less_separate[of x y] obtain a b where xy: "x < a" "b < y" "{..<a} \<inter> {b<..} = {}"
+    by (auto simp: not_le)
+  then have "eventually (\<lambda>x. f x < a) F" "eventually (\<lambda>x. b < g x) F"
+    using x y by (auto intro: order_tendstoD)
   with ev have "eventually (\<lambda>x. False) F"
-    by eventually_elim (auto dest!: less)
+    by eventually_elim (insert xy, fastforce)
   with F show False
     by (simp add: eventually_False)
 qed

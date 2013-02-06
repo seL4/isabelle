@@ -11,6 +11,13 @@ theory Extended_Real
 imports "~~/src/HOL/Complex_Main" Extended_Nat
 begin
 
+text {*
+
+For more lemmas about the extended real numbers go to
+  @{file "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
+
+*}
+
 lemma LIMSEQ_SUP:
   fixes X :: "nat \<Rightarrow> 'a :: {complete_linorder, linorder_topology}"
   assumes "incseq X"
@@ -22,24 +29,37 @@ lemma LIMSEQ_SUP:
 lemma eventually_const: "\<not> trivial_limit net \<Longrightarrow> eventually (\<lambda>x. P) net \<longleftrightarrow> P"
   by (cases P) (simp_all add: eventually_False)
 
-lemma (in complete_lattice) Inf_le_Sup:
-  assumes "A \<noteq> {}" shows "Inf A \<le> Sup A"
-proof -
-  from `A \<noteq> {}` obtain x where "x \<in> A" by auto
-  then show ?thesis
-    by (metis Sup_upper2 Inf_lower)
-qed
+lemma (in complete_lattice) Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
+  by (metis Sup_upper2 Inf_lower ex_in_conv)
 
-lemma (in complete_lattice) INF_le_SUP:
-  "A \<noteq> {} \<Longrightarrow> INFI A f \<le> SUPR A f"
+lemma (in complete_lattice) INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFI A f \<le> SUPR A f"
   unfolding INF_def SUP_def by (rule Inf_le_Sup) auto
 
-text {*
+lemma (in complete_linorder) le_Sup_iff:
+  "x \<le> Sup A \<longleftrightarrow> (\<forall>y<x. \<exists>a\<in>A. y < a)"
+proof safe
+  fix y assume "x \<le> Sup A" "y < x"
+  then have "y < Sup A" by auto
+  then show "\<exists>a\<in>A. y < a"
+    unfolding less_Sup_iff .
+qed (auto elim!: allE[of _ "Sup A"] simp add: not_le[symmetric] Sup_upper)
 
-For more lemmas about the extended real numbers go to
-  @{file "~~/src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
+lemma (in complete_linorder) le_SUP_iff:
+  "x \<le> SUPR A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
+  unfolding le_Sup_iff SUP_def by simp
 
-*}
+lemma (in complete_linorder) Inf_le_iff:
+  "Inf A \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>a\<in>A. y > a)"
+proof safe
+  fix y assume "x \<ge> Inf A" "y > x"
+  then have "y > Inf A" by auto
+  then show "\<exists>a\<in>A. y > a"
+    unfolding Inf_less_iff .
+qed (auto elim!: allE[of _ "Inf A"] simp add: not_le[symmetric] Inf_lower)
+
+lemma (in complete_linorder) le_INF_iff:
+  "INFI A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
+  unfolding Inf_le_iff INF_def by simp
 
 lemma (in complete_lattice) Sup_eqI:
   assumes "\<And>y. y \<in> A \<Longrightarrow> y \<le> x"
@@ -1429,8 +1449,7 @@ qed
 
 lemma ereal_le_Sup:
   fixes x :: ereal
-  shows "(x <= (SUP i:A. f i)) <-> (ALL y. y < x --> (EX i. i : A & y <= f i))"
-(is "?lhs <-> ?rhs")
+  shows "(x <= (SUP i:A. f i)) <-> (ALL y. y < x --> (EX i. i : A & y <= f i))" (is "?lhs = ?rhs")
 proof-
 { assume "?rhs"
   { assume "~(x <= (SUP i:A. f i))" hence "(SUP i:A. f i)<x" by (simp add: not_le)
@@ -1994,18 +2013,13 @@ proof (intro topological_tendstoI)
 qed
 
 lemma tendsto_PInfty: "(f ---> \<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. ereal r < f x) F)"
-  unfolding tendsto_def
-proof safe
-  fix S :: "ereal set" assume "open S" "\<infinity> \<in> S"
-  from open_PInfty[OF this] guess B .. note B = this
-  moreover
-  assume "\<forall>r::real. eventually (\<lambda>z. r < f z) F"
-  then have "eventually (\<lambda>z. f z \<in> {B <..}) F" by auto
-  ultimately show "eventually (\<lambda>z. f z \<in> S) F" by (auto elim!: eventually_elim1)
-next
-  fix x assume "\<forall>S. open S \<longrightarrow> \<infinity> \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F"
-  from this[rule_format, of "{ereal x <..}"]
-  show "eventually (\<lambda>y. ereal x < f y) F" by auto
+proof -
+  { fix l :: ereal assume "\<forall>r. eventually (\<lambda>x. ereal r < f x) F"
+    from this[THEN spec, of "real l"]
+    have "l \<noteq> \<infinity> \<Longrightarrow> eventually (\<lambda>x. l < f x) F"
+      by (cases l) (auto elim: eventually_elim1) }
+  then show ?thesis
+    by (auto simp: order_tendsto_iff)
 qed
 
 lemma tendsto_MInfty: "(f ---> -\<infinity>) F \<longleftrightarrow> (\<forall>r. eventually (\<lambda>x. f x < ereal r) F)"
@@ -2209,7 +2223,6 @@ lemma ereal_max_least:
   "[| (a::ereal) <= x; c <= x |] ==> max a c <= x"
   by (metis sup_ereal_def sup_least)
 
-
 lemma ereal_LimI_finite:
   fixes x :: ereal
   assumes "\<bar>x\<bar> \<noteq> \<infinity>"
@@ -2403,25 +2416,142 @@ lemma Limsup_bounded:
   shows "Limsup F X \<le> C"
   using Limsup_mono[OF le] Limsup_const[OF ntriv, of C] by simp
 
+lemma le_Liminf_iff:
+  fixes X :: "_ \<Rightarrow> _ :: complete_linorder"
+  shows "C \<le> Liminf F X \<longleftrightarrow> (\<forall>y<C. eventually (\<lambda>x. y < X x) F)"
+proof -
+  { fix y P assume "eventually P F" "y < INFI (Collect P) X"
+    then have "eventually (\<lambda>x. y < X x) F"
+      by (auto elim!: eventually_elim1 dest: less_INF_D) }
+  moreover
+  { fix y P assume "y < C" and y: "\<forall>y<C. eventually (\<lambda>x. y < X x) F"
+    have "\<exists>P. eventually P F \<and> y < INFI (Collect P) X"
+    proof cases
+      assume "\<exists>z. y < z \<and> z < C"
+      then guess z ..
+      moreover then have "z \<le> INFI {x. z < X x} X"
+        by (auto intro!: INF_greatest)
+      ultimately show ?thesis
+        using y by (intro exI[of _ "\<lambda>x. z < X x"]) auto
+    next
+      assume "\<not> (\<exists>z. y < z \<and> z < C)"
+      then have "C \<le> INFI {x. y < X x} X"
+        by (intro INF_greatest) auto
+      with `y < C` show ?thesis
+        using y by (intro exI[of _ "\<lambda>x. y < X x"]) auto
+    qed }
+  ultimately show ?thesis
+    unfolding Liminf_def le_SUP_iff by auto
+qed
+
+lemma lim_imp_Liminf:
+  fixes f :: "'a \<Rightarrow> _ :: {complete_linorder, linorder_topology}"
+  assumes ntriv: "\<not> trivial_limit F"
+  assumes lim: "(f ---> f0) F"
+  shows "Liminf F f = f0"
+proof (intro Liminf_eqI)
+  fix P assume P: "eventually P F"
+  then have "eventually (\<lambda>x. INFI (Collect P) f \<le> f x) F"
+    by eventually_elim (auto intro!: INF_lower)
+  then show "INFI (Collect P) f \<le> f0"
+    by (rule tendsto_le[OF ntriv lim tendsto_const])
+next
+  fix y assume upper: "\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> y"
+  show "f0 \<le> y"
+  proof cases
+    assume "\<exists>z. y < z \<and> z < f0"
+    then guess z ..
+    moreover have "z \<le> INFI {x. z < f x} f"
+      by (rule INF_greatest) simp
+    ultimately show ?thesis
+      using lim[THEN topological_tendstoD, THEN upper, of "{z <..}"] by auto
+  next
+    assume discrete: "\<not> (\<exists>z. y < z \<and> z < f0)"
+    show ?thesis
+    proof (rule classical)
+      assume "\<not> f0 \<le> y"
+      then have "eventually (\<lambda>x. y < f x) F"
+        using lim[THEN topological_tendstoD, of "{y <..}"] by auto
+      then have "eventually (\<lambda>x. f0 \<le> f x) F"
+        using discrete by (auto elim!: eventually_elim1)
+      then have "INFI {x. f0 \<le> f x} f \<le> y"
+        by (rule upper)
+      moreover have "f0 \<le> INFI {x. f0 \<le> f x} f"
+        by (intro INF_greatest) simp
+      ultimately show "f0 \<le> y" by simp
+    qed
+  qed
+qed
+
+lemma lim_imp_Limsup:
+  fixes f :: "'a \<Rightarrow> _ :: {complete_linorder, linorder_topology}"
+  assumes ntriv: "\<not> trivial_limit F"
+  assumes lim: "(f ---> f0) F"
+  shows "Limsup F f = f0"
+proof (intro Limsup_eqI)
+  fix P assume P: "eventually P F"
+  then have "eventually (\<lambda>x. f x \<le> SUPR (Collect P) f) F"
+    by eventually_elim (auto intro!: SUP_upper)
+  then show "f0 \<le> SUPR (Collect P) f"
+    by (rule tendsto_le[OF ntriv tendsto_const lim])
+next
+  fix y assume lower: "\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f"
+  show "y \<le> f0"
+  proof cases
+    assume "\<exists>z. f0 < z \<and> z < y"
+    then guess z ..
+    moreover have "SUPR {x. f x < z} f \<le> z"
+      by (rule SUP_least) simp
+    ultimately show ?thesis
+      using lim[THEN topological_tendstoD, THEN lower, of "{..< z}"] by auto
+  next
+    assume discrete: "\<not> (\<exists>z. f0 < z \<and> z < y)"
+    show ?thesis
+    proof (rule classical)
+      assume "\<not> y \<le> f0"
+      then have "eventually (\<lambda>x. f x < y) F"
+        using lim[THEN topological_tendstoD, of "{..< y}"] by auto
+      then have "eventually (\<lambda>x. f x \<le> f0) F"
+        using discrete by (auto elim!: eventually_elim1 simp: not_less)
+      then have "y \<le> SUPR {x. f x \<le> f0} f"
+        by (rule lower)
+      moreover have "SUPR {x. f x \<le> f0} f \<le> f0"
+        by (intro SUP_least) simp
+      ultimately show "y \<le> f0" by simp
+    qed
+  qed
+qed
+
+lemma Liminf_eq_Limsup:
+  fixes f0 :: "'a :: {complete_linorder, linorder_topology}"
+  assumes ntriv: "\<not> trivial_limit F"
+    and lim: "Liminf F f = f0" "Limsup F f = f0"
+  shows "(f ---> f0) F"
+proof (rule order_tendstoI)
+  fix a assume "f0 < a"
+  with assms have "Limsup F f < a" by simp
+  then obtain P where "eventually P F" "SUPR (Collect P) f < a"
+    unfolding Limsup_def INF_less_iff by auto
+  then show "eventually (\<lambda>x. f x < a) F"
+    by (auto elim!: eventually_elim1 dest: SUP_lessD)
+next
+  fix a assume "a < f0"
+  with assms have "a < Liminf F f" by simp
+  then obtain P where "eventually P F" "a < INFI (Collect P) f"
+    unfolding Liminf_def less_SUP_iff by auto
+  then show "eventually (\<lambda>x. a < f x) F"
+    by (auto elim!: eventually_elim1 dest: less_INF_D)
+qed
+
+lemma tendsto_iff_Liminf_eq_Limsup:
+  fixes f0 :: "'a :: {complete_linorder, linorder_topology}"
+  shows "\<not> trivial_limit F \<Longrightarrow> (f ---> f0) F \<longleftrightarrow> (Liminf F f = f0 \<and> Limsup F f = f0)"
+  by (metis Liminf_eq_Limsup lim_imp_Limsup lim_imp_Liminf)
+
 lemma liminf_bounded_iff:
   fixes x :: "nat \<Rightarrow> ereal"
   shows "C \<le> liminf x \<longleftrightarrow> (\<forall>B<C. \<exists>N. \<forall>n\<ge>N. B < x n)" (is "?lhs <-> ?rhs")
-proof safe
-  fix B assume "B < C" "C \<le> liminf x"
-  then have "B < liminf x" by auto
-  then obtain N where "B < (INF m:{N..}. x m)"
-    unfolding liminf_SUPR_INFI SUP_def less_Sup_iff by auto
-  from less_INF_D[OF this] show "\<exists>N. \<forall>n\<ge>N. B < x n" by auto
-next
-  assume *: "\<forall>B<C. \<exists>N. \<forall>n\<ge>N. B < x n"
-  { fix B assume "B<C"
-    then obtain N where "\<forall>n\<ge>N. B < x n" using `?rhs` by auto
-    hence "B \<le> (INF m:{N..}. x m)" by (intro INF_greatest) auto
-    also have "... \<le> liminf x" unfolding liminf_SUPR_INFI by (intro SUP_upper) simp
-    finally have "B \<le> liminf x" .
-  } then show "?lhs"
-    by (metis * leD Liminf_bounded[OF sequentially_bot] linorder_le_less_linear eventually_sequentially)
-qed
+  unfolding le_Liminf_iff eventually_sequentially ..
 
 lemma liminf_subseq_mono:
   fixes X :: "nat \<Rightarrow> 'a :: complete_linorder"
@@ -2447,56 +2577,6 @@ proof-
       using seq_suble[OF `subseq r`, of m] by (intro bexI[of _ "r m"]) auto
   qed
   then show ?thesis by (auto intro!: INF_mono simp: limsup_INFI_SUPR comp_def)
-qed
-
-lemma lim_imp_Liminf:
-  fixes f :: "'a \<Rightarrow> ereal" (* generalize to inner dense, complete_linorder, order_topology *)
-  assumes ntriv: "\<not> trivial_limit F"
-  assumes lim: "(f ---> f0) F"
-  shows "Liminf F f = f0"
-proof (rule Liminf_eqI)
-  fix y assume *: "\<And>P. eventually P F \<Longrightarrow> INFI (Collect P) f \<le> y"
-  show "f0 \<le> y"
-  proof (rule ereal_le_ereal)
-    fix B
-    assume "B < f0"
-    have "B \<le> INFI {x. B < f x} f"
-      by (rule INF_greatest) simp
-    also have "INFI {x. B < f x} f \<le> y"
-      using lim[THEN topological_tendstoD, of "{B <..}"] `B < f0` * by auto
-    finally show "B \<le> y" .
-  qed
-next
-  fix P assume P: "eventually P F"
-  then have "eventually (\<lambda>x. INFI (Collect P) f \<le> f x) F"
-    by eventually_elim (auto intro!: INF_lower)
-  then show "INFI (Collect P) f \<le> f0"
-    by (rule tendsto_le[OF ntriv lim tendsto_const])
-qed
-
-lemma lim_imp_Limsup:
-  fixes f :: "'a \<Rightarrow> ereal" (* generalize to inner dense, complete_linorder, order_topology *)
-  assumes ntriv: "\<not> trivial_limit F"
-  assumes lim: "(f ---> f0) F"
-  shows "Limsup F f = f0"
-proof (rule Limsup_eqI)
-  fix y assume *: "\<And>P. eventually P F \<Longrightarrow> y \<le> SUPR (Collect P) f"
-  show "y \<le> f0"
-  proof (rule ereal_ge_ereal, safe)
-    fix B
-    assume "f0 < B"
-    have "y \<le> SUPR {x. f x < B} f"
-      using lim[THEN topological_tendstoD, of "{..< B}"] `f0 < B` * by auto
-    also have "SUPR {x. f x < B} f \<le> B"
-      by (rule SUP_least) simp
-    finally show "y \<le> B" .
-  qed
-next
-  fix P assume P: "eventually P F"
-  then have "eventually (\<lambda>x. f x \<le> SUPR (Collect P) f) F"
-    by eventually_elim (auto intro!: SUP_upper)
-  then show "f0 \<le> SUPR (Collect P) f"
-    by (rule tendsto_le[OF ntriv tendsto_const lim])
 qed
 
 definition (in order) mono_set:

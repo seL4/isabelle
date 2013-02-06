@@ -559,60 +559,6 @@ proof -
     by (simp add: closed_Int)
 qed
 
-inductive open_interval :: "'a::order set \<Rightarrow> bool" where
-  empty[intro]: "open_interval {}" |
-  UNIV[intro]: "open_interval UNIV" |
-  greaterThan[intro]: "open_interval {a <..}" |
-  lessThan[intro]: "open_interval {..< b}" |
-  greaterThanLessThan[intro]: "open_interval {a <..< b}"
-hide_fact (open) empty UNIV greaterThan lessThan greaterThanLessThan
-
-lemma open_intervalD:
-  "open_interval S \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<le> z \<Longrightarrow> z \<le> y \<Longrightarrow> z \<in> S"
-  by (cases rule: open_interval.cases) auto
-
-lemma open_interval_Int[intro]:
-  fixes S T :: "'a :: linorder set"
-  assumes S: "open_interval S" and T: "open_interval T"
-  shows "open_interval (S \<inter> T)"
-proof -
-  { fix a b :: 'a have "{..<b} \<inter> {a<..} = { a <..} \<inter> {..< b }" by auto } note this[simp]
-  { fix a b :: 'a and A have "{a <..} \<inter> ({b <..} \<inter> A) = {max a b <..} \<inter> A" by auto } note this[simp]
-  { fix a b :: 'a and A have "{..<b} \<inter> (A \<inter> {..<a}) = A \<inter> {..<min a b}" by auto } note this[simp]
-  { fix a b :: 'a have "open_interval ({ a <..} \<inter> {..< b})"
-      unfolding greaterThanLessThan_eq[symmetric] by auto } note this[simp]
-  show ?thesis
-    by (cases rule: open_interval.cases[OF S, case_product open_interval.cases[OF T]])
-       (auto simp: greaterThanLessThan_eq lessThan_Int_lessThan greaterThan_Int_greaterThan Int_assoc)
-qed
-
-lemma open_interval_imp_open: "open_interval S \<Longrightarrow> open (S::'a::order_topology set)"
-  by (cases S rule: open_interval.cases) auto
-
-lemma open_orderD:
-  "open (S::'a::linorder_topology set) \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>T. open_interval T \<and> T \<subseteq> S \<and> x \<in> T"
-  unfolding open_generated_order
-proof (induct rule: generate_topology.induct)
-  case (UN K) then obtain k where "k \<in> K" "x \<in> k" by auto
-  with UN(2)[of k] show ?case by auto
-qed auto
-
-lemma open_order_induct[consumes 2, case_names subset UNIV lessThan greaterThan greaterThanLessThan]:
-  fixes S :: "'a::linorder_topology set"
-  assumes S: "open S" "x \<in> S"
-  assumes subset: "\<And>S T. P S \<Longrightarrow> S \<subseteq> T \<Longrightarrow> P T"
-  assumes univ: "P UNIV"
-  assumes lt: "\<And>a. x < a \<Longrightarrow> P {..< a}"
-  assumes gt: "\<And>a. a < x \<Longrightarrow> P {a <..}"
-  assumes lgt: "\<And>a b. a < x \<Longrightarrow> x < b \<Longrightarrow> P {a <..< b}"
-  shows "P S"
-proof -
-  from open_orderD[OF S] obtain T where "open_interval T" "T \<subseteq> S" "x \<in> T"
-    by auto
-  then show "P S"
-    by induct (auto intro: univ subset lt gt lgt)
-qed
-
 subsection {* Metric spaces *}
 
 class dist =
