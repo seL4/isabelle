@@ -690,6 +690,7 @@ text {*
   \chref{ch:gen-tools} and \partref{part:hol}).
 
   \begin{matharray}{rcl}
+    @{command_def "print_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\[0.5ex]
     @{method_def "-"} & : & @{text method} \\
     @{method_def "fact"} & : & @{text method} \\
     @{method_def "assumption"} & : & @{text method} \\
@@ -728,6 +729,14 @@ text {*
 
   \begin{description}
   
+  \item @{command "print_rules"} prints rules declared via attributes
+  @{attribute (Pure) intro}, @{attribute (Pure) elim}, @{attribute
+  (Pure) dest} of Isabelle/Pure.
+
+  See also the analogous @{command "print_claset"} command for similar
+  rule declarations of the classical reasoner
+  (\secref{sec:classical}).
+
   \item ``@{method "-"}'' (minus) does nothing but insert the forward
   chaining facts as premises into the goal.  Note that command
   @{command_ref "proof"} without any method actually performs a single
@@ -783,7 +792,7 @@ text {*
   
   \item @{attribute (Pure) rule}~@{text del} undeclares introduction,
   elimination, or destruct rules.
-  
+
   \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some theorem to all
   of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"} in canonical right-to-left
   order, which means that premises stemming from the @{text "a\<^sub>i"}
