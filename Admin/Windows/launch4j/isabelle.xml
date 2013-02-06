@@ -20,7 +20,7 @@
     <cp>%EXEDIR%\lib\classes\ext\scala-swing.jar</cp>
   </classPath>
   <jre>
-    <path>%EXEDIR%\contrib\jdk-7u11\x86-cygwin\jdk1.7.0_11</path>
+    <path>%EXEDIR%\contrib\jdk-7u13\x86-cygwin\jdk1.7.0_13</path>
     <minVersion></minVersion>
     <maxVersion></maxVersion>
     <jdkPreference>jdkOnly</jdkPreference>
