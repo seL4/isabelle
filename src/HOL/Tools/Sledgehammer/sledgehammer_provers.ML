@@ -634,7 +634,7 @@ fun run_atp mode name
         ({exec, arguments, proof_delims, known_failures, prem_role, best_slices,
           best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
-                    uncurried_aliases, max_facts, max_mono_iters,
+                    uncurried_aliases, fact_filter, max_facts, max_mono_iters,
                     max_new_mono_instances, isar_proofs, isar_shrink,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
@@ -720,7 +720,9 @@ fun run_atp mode name
                               best_uncurried_aliases),
                       extra))) =
           let
-            val facts = get_facts_for_filter best_fact_filter factss
+            val effective_fact_filter =
+              fact_filter |> the_default best_fact_filter
+            val facts = get_facts_for_filter effective_fact_filter factss
             val num_facts =
               length facts |> is_none max_facts ? Integer.min best_max_facts
             val soundness = if strict then Strict else Non_Strict
@@ -988,7 +990,8 @@ fun smt_filter_loop name
     val ctxt = Proof.context_of state |> repair_context
     val state = state |> Proof.map_context (K ctxt)
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
-    fun do_slice timeout slice outcome0 time_so_far weighted_factss =
+    fun do_slice timeout slice outcome0 time_so_far
+                 (weighted_factss as (fact_filter, weighted_facts) :: _) =
       let
         val timer = Timer.startRealTimer ()
         val state =
@@ -1007,7 +1010,6 @@ fun smt_filter_loop name
             end
           else
             timeout
-        val weighted_facts = hd weighted_factss
         val num_facts = length weighted_facts
         val _ =
           if debug then
@@ -1056,21 +1058,27 @@ fun smt_filter_loop name
             val new_num_facts =
               Real.ceil (Config.get ctxt smt_slice_fact_frac
                          * Real.fromInt num_facts)
+            val weighted_factss as (new_fact_filter, _) :: _ =
+              weighted_factss
+              |> rotate_one
+              |> app_hd (apsnd (take new_num_facts))
+            val show_filter = fact_filter <> new_fact_filter
+            fun num_of_facts fact_filter num_facts =
+              string_of_int num_facts ^
+              (if show_filter then " " ^ quote fact_filter else "") ^
+              " fact" ^ plural_s num_facts
             val _ =
               if verbose andalso is_some outcome then
-                quote name ^ " invoked with " ^ string_of_int num_facts ^
-                " fact" ^ plural_s num_facts ^ ": " ^
+                quote name ^ " invoked with " ^
+                num_of_facts fact_filter num_facts ^ ": " ^
                 string_for_failure (failure_from_smt_failure (the outcome)) ^
-                " Retrying with " ^ string_of_int new_num_facts ^ " fact" ^
-                plural_s new_num_facts ^ "..."
+                " Retrying with " ^ num_of_facts new_fact_filter new_num_facts ^
+                "..."
                 |> Output.urgent_message
               else
                 ()
           in
-            weighted_factss
-            |> rotate_one
-            |> app_hd (take new_num_facts)
-            |> do_slice timeout (slice + 1) outcome0 time_so_far
+            do_slice timeout (slice + 1) outcome0 time_so_far weighted_factss
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
@@ -1089,7 +1097,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         facts ~~ (0 upto num_facts - 1)
         |> map (weight_smt_fact ctxt num_facts)
       end
-    val weighted_factss = factss |> map (snd #> weight_facts)
+    val weighted_factss = factss |> map (apsnd weight_facts)
     val {outcome, used_facts = used_pairs, used_from, run_time} =
       smt_filter_loop name params state goal subgoal weighted_factss
     val used_facts = used_pairs |> map fst

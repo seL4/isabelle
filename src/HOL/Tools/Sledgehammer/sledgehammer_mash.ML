@@ -1123,13 +1123,11 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
           end
         else
           ()
-      val fact_filter =
+      val effective_fact_filter =
         case fact_filter of
           SOME ff => (() |> ff <> mepoN ? maybe_learn; ff)
         | NONE =>
-          if is_smt_prover ctxt prover then
-            mepoN
-          else if is_mash_enabled () then
+          if is_mash_enabled () then
             (maybe_learn ();
              if mash_can_suggest_facts ctxt then meshN else mepoN)
           else
@@ -1152,16 +1150,20 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
         |>> weight_mash_facts
       val mess =
         (* the order is important for the "case" expression below *)
-        [] |> (if fact_filter <> mepoN then cons (mash_weight, (mash ()))
-               else I)
-           |> (if fact_filter <> mashN then cons (mepo_weight, (mepo (), []))
-               else I)
+        [] |> (if effective_fact_filter <> mepoN then
+                 cons (mash_weight, (mash ()))
+               else
+                 I)
+           |> (if effective_fact_filter <> mashN then
+                 cons (mepo_weight, (mepo (), []))
+               else
+                 I)
       val mesh =
         mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
         |> add_and_take
     in
-      case mess of
-        [(_, (mepo, _)), (_, (mash, _))] =>
+      case (fact_filter, mess) of
+        (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
         [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
          (mashN, mash |> map fst |> add_and_take)]
       | _ => [("", mesh)]
