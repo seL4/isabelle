@@ -210,7 +210,7 @@ fun freshish_name () =
 
 fun encode_feature (name, weight) =
   encode_str name ^
-  (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
+  (if Real.== (weight, 1.0) then "" else "=" ^ smart_string_of_real weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
@@ -330,7 +330,7 @@ val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20130113a ***"
+val version = "*** MaSh version 20130207a ***"
 
 exception Too_New of unit
 
