@@ -124,7 +124,7 @@ function pre_latex ()
   "$ISABELLE_TOOL" latex -o "$FMT" "$ROOT_NAME.tex" && \
   { [ ! -f "$ROOT_NAME.bib" ] || "$ISABELLE_TOOL" latex -o bbl "$ROOT_NAME.tex"; } && \
   { [ ! -f "$ROOT_NAME.idx" ] || "$ISABELLE_TOOL" latex -o idx "$ROOT_NAME.tex"; } && \
-  "$ISABELLE_TOOL" latex -o "$FMT"
+  "$ISABELLE_TOOL" latex -o "$FMT" "$ROOT_NAME.tex"
 }
 
 (
