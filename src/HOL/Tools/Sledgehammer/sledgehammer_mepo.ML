@@ -498,10 +498,10 @@ fun relevance_filter ctxt thres0 decay max_facts is_built_in_const
                     |> chop special_fact_index
         in bef @ add @ after end
     fun insert_special_facts accepts =
-       (* FIXME: get rid of "ext" here once it is treated as a helper *)
-       [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
-          |> add_set_const_thms accepts
-          |> insert_into_facts accepts
+      (* FIXME: get rid of "ext" here once it is treated as a helper *)
+      [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
+         |> add_set_const_thms accepts
+         |> insert_into_facts accepts
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_facts thres0 goal_const_tab []
