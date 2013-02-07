@@ -39,7 +39,8 @@ sig
   val string_of_ref_graph : ref_graph -> string
   val redirect_sequent : atom list -> atom -> ref_sequent -> direct_sequent
   val direct_graph : direct_sequent list -> direct_graph
-  val redirect_graph : atom list -> atom list -> ref_graph -> direct_proof
+  val redirect_graph :
+    atom list -> atom list -> atom -> ref_graph -> direct_proof
   val succedent_of_cases : (clause * direct_inference list) list -> clause
   val string_of_direct_proof : direct_proof -> string
 end;
@@ -147,19 +148,11 @@ fun zones_of 0 _ = []
   | zones_of n (bs :: bss) =
     (fold (subtract atom_eq) bss) bs :: zones_of (n - 1) (bss @ [bs])
 
-fun redirect_graph axioms tainted ref_graph =
+fun redirect_graph axioms tainted bot ref_graph =
   let
-    val bot =
-      case Atom_Graph.maximals ref_graph of
-        [bot] => bot
-      | bots =>
-        raise Fail ("Malformed refutation graph with " ^
-                    string_of_int (length bots) ^ " maximal nodes (" ^
-                    commas_quote (map Atom.string_of bots) ^ ")")
     val seqs =
       map (redirect_sequent tainted bot) (sequents_of_ref_graph ref_graph)
     val direct_graph = direct_graph seqs
-
     fun redirect c proved seqs =
       if null seqs then
         []

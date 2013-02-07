@@ -131,6 +131,7 @@ fun lam_trans_from_atp_proof atp_proof default =
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
+
 fun is_typed_helper_used_in_atp_proof atp_proof =
   is_axiom_used_in_proof is_typed_helper_name atp_proof
 
@@ -677,6 +678,7 @@ fun isar_proof_text ctxt isar_proofs
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
         val axioms = axioms_of_ref_graph ref_graph conjs
         val tainted = tainted_atoms_of_ref_graph ref_graph conjs
+        val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val steps =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
@@ -742,7 +744,7 @@ fun isar_proof_text ctxt isar_proofs
           map (isar_step_of_direct_inf outer) infs
         val (isar_proof, (preplay_fail, preplay_time)) =
           ref_graph
-          |> redirect_graph axioms tainted
+          |> redirect_graph axioms tainted bot
           |> map (isar_step_of_direct_inf true)
           |> append assms
           |> (if not preplay andalso isar_shrink <= 1.0 then
