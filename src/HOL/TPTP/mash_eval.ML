@@ -43,6 +43,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
         mepo_file_name mash_isar_file_name mash_prover_file_name
         mesh_isar_file_name mesh_prover_file_name report_file_name =
   let
+    val zeros = [0, 0, 0, 0, 0, 0]
     val report_path = report_file_name |> Path.explode
     val _ = File.write report_path ""
     fun print s = File.append report_path (s ^ "\n")
@@ -180,11 +181,11 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           map snd ress
         end
       else
-        [0, 0, 0, 0, 0, 0]
+        zeros
     fun total_of method ok n =
       str_of_method method ^ string_of_int ok ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
-               (100.0 * Real.fromInt ok / Real.fromInt n) ^ "%)"
+               (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
       ["prover = " ^ prover,
@@ -200,7 +201,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
     val n = length oks
     val [mepo_ok, mash_isar_ok, mash_prover_ok, mesh_isar_ok, mesh_prover_ok,
          isar_ok] =
-      map Integer.sum (map_transpose I oks)
+      if n = 0 then zeros else map Integer.sum (map_transpose I oks)
   in
     ["Successes (of " ^ string_of_int n ^ " goals)",
      total_of MePoN mepo_ok n,
