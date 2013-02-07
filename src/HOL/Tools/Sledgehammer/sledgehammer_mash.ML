@@ -467,9 +467,8 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
     map fst (take max_facts sels) @ take (max_facts - length sels) unks
   | mesh_facts fact_eq max_facts mess =
     let
-      val mess =
-        mess |> map (apsnd (apfst (normalize_scores max_facts #> `length)))
-      fun score_in fact (global_weight, ((sel_len, sels), unks)) =
+      val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
+      fun score_in fact (global_weight, (sels, unks)) =
         let
           fun score_at j =
             case try (nth sels) j of
@@ -484,8 +483,7 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
         end
       fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
       val facts =
-        fold (union fact_eq o map fst o take max_facts o snd o fst o snd) mess
-             []
+        fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
     in
       facts |> map (`weight_of) |> sort (int_ord o swap o pairself fst)
             |> map snd |> take max_facts
