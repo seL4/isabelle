@@ -15,6 +15,7 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
+  val snow : bool Config.T
   val MePoN : string
   val MaShN : string
   val MeShN : string
@@ -106,6 +107,9 @@ open Sledgehammer_MePo
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
+val snow =
+  Attrib.setup_config_bool @{binding sledgehammer_mash_snow} (K false)
+
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val MePoN = "MePo"
@@ -157,7 +161,9 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
       " --numberOfPredictions " ^ string_of_int max_suggs ^
       (* " --learnTheories" ^ *) (if save then " --saveModel" else "")
     val command =
-      "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet" ^
+      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
+      "./mash.py --quiet" ^
+      (if Config.get ctxt snow then " --snow" else "") ^
       " --outputDir " ^ model_dir ^
       " --modelFile=" ^ model_dir ^ "/model.pickle" ^
       " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
