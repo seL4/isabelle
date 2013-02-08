@@ -83,15 +83,30 @@ fun generate_features ctxt prover thys include_thys file_name =
       in File.append path s end
   in List.app do_fact facts end
 
-fun isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
-                                   isar_deps_opt =
-  case params_opt of
-    SOME (params as {provers = prover :: _, ...}) =>
-    prover_dependencies_of ctxt params prover 0 facts name_tabs th |> snd
-  | NONE =>
-    case isar_deps_opt of
-      SOME deps => deps
-    | NONE => isar_dependencies_of name_tabs th
+val isar_marker = "$i"
+val omitted_marker = "$o"
+val prover_marker = "$a"
+val prover_failed_marker = "$x"
+
+fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
+  let
+    val (marker, deps) =
+      case params_opt of
+        SOME (params as {provers = prover :: _, ...}) =>
+        prover_dependencies_of ctxt params prover 0 facts name_tabs th
+        |>> (fn true => prover_marker | false => prover_failed_marker)
+      | NONE =>
+        let
+          val deps =
+            case isar_deps_opt of
+              SOME deps => deps
+            | NONE => isar_dependencies_of name_tabs th
+        in (isar_marker, deps) end
+  in
+    case trim_dependencies th deps of
+      SOME deps => (marker, deps)
+    | NONE => (omitted_marker, [])
+  end
 
 fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
                                          file_name =
@@ -105,10 +120,9 @@ fun generate_isar_or_prover_dependencies ctxt params_opt range thys include_thys
         let
           val name = nickname_of_thm th
           val _ = tracing ("Fact " ^ string_of_int j ^ ": " ^ name)
-          val deps =
-            isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
-                                           NONE
-        in encode_str name ^ ": " ^ encode_strs deps ^ "\n" end
+          val (marker, deps) =
+            smart_dependencies_of ctxt params_opt facts name_tabs th NONE
+        in encode_str name ^ ": " ^ marker ^ " " ^ encode_strs deps ^ "\n" end
       else
         ""
     val lines = Par_List.map do_fact (tag_list 1 facts)
@@ -141,9 +155,9 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
           val feats =
             features_of ctxt prover (theory_of_thm th) stature [prop_of th]
           val isar_deps = isar_dependencies_of name_tabs th
-          val deps =
-            isar_or_prover_dependencies_of ctxt params_opt facts name_tabs th
-                                           (SOME isar_deps)
+          val (marker, deps) =
+            smart_dependencies_of ctxt params_opt facts name_tabs th
+                                  (SOME isar_deps)
           val core =
             encode_str name ^ ": " ^ encode_strs prevs ^ "; " ^
             encode_features (sort_wrt fst feats)
@@ -151,8 +165,7 @@ fun generate_isar_or_prover_commands ctxt prover params_opt (range, step) thys
             if is_bad_query ctxt ho_atp step j th isar_deps then ""
             else "? " ^ core ^ "\n"
           val update =
-            "! " ^ core ^ "; " ^
-            encode_strs (these (trim_dependencies th deps)) ^ "\n"
+            "! " ^ core ^ "; " ^ marker ^ " " ^ encode_strs deps ^ "\n"
         in query ^ update end
       else
         ""
