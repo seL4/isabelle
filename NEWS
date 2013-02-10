@@ -93,7 +93,8 @@ schemes.
 * Dockable window "Symbols" provides some editing support for Isabelle
 symbols.
 
-* Dockable window "Monitor" shows ML runtime statistics.
+* Dockable window "Monitor" shows ML runtime statistics.  Note that
+continuous display of the chart slows down the system.
 
 * Improved editing support for control styles: subscript, superscript,
 bold, reset of style -- operating on single symbols or text
