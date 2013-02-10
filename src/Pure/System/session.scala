@@ -407,7 +407,7 @@ class Session(val thy_load: Thy_Load)
           reply(())
 
         case Session.Global_Options(options) if prover.isDefined =>
-          prover.get.options(options)
+          if (is_ready) prover.get.options(options)
 
         case Cancel_Execution if prover.isDefined =>
           prover.get.cancel_execution()
