@@ -23,9 +23,9 @@ body { font-family: IsabelleText; font-size: 14pt; }
 </p>
 
 <p>
-  <b>Isabelle/jEdit</b> is the flagship application of the PIDE
-  framework &mdash; it illustrates many of the ideas in a realistic
-  manner, ready to be used right now in Isabelle applications.
+  <b>Isabelle/jEdit</b> is the flagship application of the PIDE framework
+  &mdash; it is ready for small and large Isabelle applications, for
+  beginners and experts alike.
 </p>
 
 <p>
@@ -48,31 +48,40 @@ principles.
 
 <ul>
 
-<li>The original jEdit look-and-feel is generally preserved, although
-  some default properties have been changed to accommodate Isabelle
-  (e.g. the text area font).</li>
+<li>The original jEdit look-and-feel is generally preserved, although some
+default properties have been changed to accommodate Isabelle (e.g. the text
+area font).</li>
 
-<li>Formal Isabelle/Isar text is checked asynchronously while editing.
-  The user is in full command of the editor, and the prover refrains
-  from locking portions of the buffer etc.</li>
+<li>Formal Isabelle/Isar text is checked asynchronously while editing. The
+user is in full command of the editor, and the prover refrains from locking
+portions of the buffer.</li>
 
-<li>Prover feedback works via tooltips, syntax highlighting, colors,
-  boxes etc. based on semantic markup provided by Isabelle in the
-  background.</li>
+<li>Prover feedback works via colors, boxes, squiggly underline,
+hyperlinks, popup windows, icons, clickable output, all based on semantic
+markup produced by Isabelle in the background.</li>
 
-<li>Using the mouse together with the modifier key <tt>C</tt>
-(<tt>CONTROL</tt> on Linux or Windows,
-  <tt>COMMAND</tt> on Mac OS X) exposes additional information.</li>
+<li>Using the mouse together with the modifier key <tt>CONTROL</tt> (Linux,
+Windows) or <tt>COMMAND</tt> (Mac OS X) exposes additional formal
+content.</li>
 
-<li>Dockable panels (e.g. <em>Output</em>) are managed as independent
-  windows by jEdit, which also allows multiple instances.</li>
+<li>Dockable panels (e.g. <em>Output</em>, <em>Symbols</em>) are managed as
+independent windows by jEdit, which also allows multiple instances.</li>
 
-<li>Formal output (tooltips etc.) may be explored recursively, using the
+<li>Formal output (in popups etc.) may be explored recursively, using the
 same techniques as in the editor source buffer.</li>
 
-<li>Prover process and source files are managed by the Isabelle/Scala on
-the editor side.  The prover experiences a mostly timeless and
-stateless environment of formal document content.</li>
+<li>The prover process and source files are managed on the editor side. The
+prover operates on timeless and stateless document content via
+Isabelle/Scala.</li>
+
+<li>Plugin options of jEdit (for the <em>Isabelle</em> plugin) give access
+to a selection of Isabelle/Scala options and its persistence preferences,
+usually with immediate effect on the prover back-end or editor
+front-end.</li>
+
+<li>The logic image of the prover session may be specified within
+Isabelle/jEdit, but this requires restart. The new image is provided
+automatically by the Isabelle build process.</li>
 
 </ul>
 
@@ -152,11 +161,14 @@ stateless environment of formal document content.</li>
     as the Unicode sequences coincide with the symbol mapping.
   </li>
 
-  <li><b>NOTE:</b> Raw unicode characters within prover source files
+  <li><b>NOTE:</b> Raw Unicode characters within prover source files
   should be restricted to informal parts, e.g. to write text in
   non-latin alphabets.  Mathematical symbols should be defined via the
   official rendering tables.
   </li>
+
+  <li><b>NOTE:</b> Control symbols may be applied to a region of selected
+    text, either using the Symbols dockable or keyboard shortcuts.</li>
 
 </ul>
 
@@ -164,7 +176,12 @@ stateless environment of formal document content.</li>
 <h2>Limitations and known problems</h2>
 
 <ul>
-  <li>Lack of dependency managed for auxiliary files that contribute
+  <li>Keyboard shortcuts C-PLUS and C-MINUS for adjusting the editor font
+  size depend on platform details and national keyboards.<br/>
+  <em>Workaround: Use numeric keypad or rebind keys in the jEdit Shortcuts
+  options dialog.</em></li>
+
+  <li>Lack of dependency management for auxiliary files that contribute
   to a theory (e.g. <tt>ML_file</tt>).<br/>
   <em>Workaround:</em> Re-load files manually within the prover.</li>
 
@@ -177,17 +194,19 @@ stateless environment of formal document content.</li>
   <em>Workaround:</em> Restart whole Isabelle/jEdit session in
   worst-case situation.</li>
 
-  <li>No support for non-local markup, e.g. commands reporting on
-  previous commands (proof end on proof head), or markup produced by
-  loading external files.</li>
+  <li>Some Linux desktop environments with extreme animation effects
+  may disrupt Java 7 window placement and keyboard focus.</br/>
+  <em>Workaround:</em> Disable such effects.</li>
 
-  <li>The native MacOSX plugin for jEdit tends to be disruptive. It
-  might or might not improve the user experience, and is off by
-  default.</li>
+  <li>The native MacOSX plugin for jEdit tends to be disruptive and is off
+  by default. Enabling it might or might not improve the user
+  experience.<br/>
+  <em>Workaround:</em> Disable MacOSX plugin.</li></li>
 
-  <li>Java 7 on MacOSX is officially supported on Lion and Mountain
-  Lion, but not Snow Leopard. It usually works on the latter, but
-  there might be some instabilities.</li>
+  <li>Java 7 on MacOSX is officially supported on Lion and Mountain Lion,
+  but not Snow Leopard. It usually works on the latter, although with a
+  small risk of instabilities.<br/>
+  <em>Workaround:</em> Update to OS X Mountain Lion.</li>
 </ul>
 
 
@@ -197,11 +216,15 @@ stateless environment of formal document content.</li>
 
 <li>Isabelle: BSD-style</li>
 
+<li>Poly/ML: LGPL <br/> http://www.polyml.org </li>
+
 <li>Scala: BSD-style <br/> http://www.scala-lang.org</li>
 
-<li>jEdit: GPL (with special cases) <br/> http://www.jedit.org/</li>
+<li>jEdit: GPL (with special cases) <br/> http://www.jedit.org</li>
 
-<li>Lobo/Cobra: GPL and LGPL <br/> http://lobobrowser.org/</li>
+<li>JFreeChart: LGPL <br/> http://www.jfree.org</li>
+
+<li>Lobo/Cobra: GPL and LGPL <br/> http://lobobrowser.org</li>
 
 </ul>
 
