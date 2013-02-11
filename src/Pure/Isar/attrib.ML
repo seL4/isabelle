@@ -420,7 +420,7 @@ val _ = Context.>> (Context.map_theory
   setup (Binding.name "abs_def")
     (Scan.succeed (Thm.rule_attribute (fn context =>
       Local_Defs.meta_rewrite_rule (Context.proof_of context) #> Drule.abs_def)))
-    "abstract over free variables of definitionial theorem"));
+    "abstract over free variables of definitional theorem"));
 
 
 
