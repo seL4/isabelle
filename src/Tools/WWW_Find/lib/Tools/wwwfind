@@ -124,17 +124,20 @@ fi
 
 WWWPORT=`sed -e 's/[ 	]*//g' -ne 's/server.port=\([0-9][0-9]*\),\?/\1/p' "$WWWCONFIG"`
 SCGIPORT=`sed -e 's/[ 	]*//g' -ne 's/"port"=>\([0-9][0-9]*\),\?/\1/p' "$WWWCONFIG"`
-MLSTARTSERVER="YXML_Find_Theorems.init (); ScgiServer.server' 10 \"/\" $SCGIPORT;"
+
+# inform theory which SCGI port to use via environment variable
+export SCGIPORT
+MLSTARTSERVER="use_thy \"Start_WWW_Find\";"
 
 case "$COMMAND" in
   start)
     "$LIGHTTPD" -f "$WWWCONFIG"
     if [ "$LOGFILE" = true ]; then
       (cd "$WWWFINDDIR"; \
-       nohup "$ISABELLE_PROCESS" -r -u -e "$MLSTARTSERVER" "$INPUT") &
+       nohup "$ISABELLE_PROCESS" -r -e "$MLSTARTSERVER" "$INPUT") &
     else
       (cd "$WWWFINDDIR"; \
-       nohup "$ISABELLE_PROCESS" -r -u -e "$MLSTARTSERVER" \
+       nohup "$ISABELLE_PROCESS" -r -e "$MLSTARTSERVER" \
          "$INPUT" > /dev/null 2> /dev/null) &
     fi
     ;;

@@ -103,7 +103,7 @@ fun server server_prefix port =
         loop ()
       end;
   in
-    tracing ("SCGI server started.");
+    tracing ("SCGI server started on port " ^ string_of_int port ^ ".");
     dump_handlers ();
     loop ();
     Socket.close passive_sock
