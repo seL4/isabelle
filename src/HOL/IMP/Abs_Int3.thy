@@ -358,24 +358,24 @@ where \<gamma>=\<gamma> for \<gamma> :: "'av::{WN,lattice} \<Rightarrow> val set
 begin
 
 definition AI_wn :: "com \<Rightarrow> 'av st option acom option" where
-"AI_wn c = pfp_wn (step' (top c)) (bot c)"
+"AI_wn c = pfp_wn (step' (top(vars c))) (bot c)"
 
 lemma AI_wn_sound: "AI_wn c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_wn_def)
-  assume 1: "pfp_wn (step' (top c)) (bot c) = Some C"
-  have 2: "(strip C = c & C \<in> L(vars c)) \<and> step' \<top>\<^bsub>c\<^esub> C \<sqsubseteq> C"
+  assume 1: "pfp_wn (step' (top(vars c))) (bot c) = Some C"
+  have 2: "(strip C = c & C \<in> L(vars c)) \<and> step' \<top>\<^bsub>vars c\<^esub> C \<sqsubseteq> C"
     by(rule pfp_wn_pfp[where x="bot c"])
       (simp_all add: 1 mono_step'_top widen_c_in_L narrow_c_in_L)
-  have pfp: "step (\<gamma>\<^isub>o(top c)) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  have pfp: "step (\<gamma>\<^isub>o(top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o (top c)) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top c) C)"
+    show "step (\<gamma>\<^isub>o (top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top(vars c)) C)"
       by(rule step_step'[OF conjunct2[OF conjunct1[OF 2]] top_in_L])
     show "... \<le> \<gamma>\<^isub>c C"
       by(rule mono_gamma_c[OF conjunct2[OF 2]])
   qed
   have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp_wn[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o (top c))) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top c))", OF 3 pfp])
+  have "lfp c (step (\<gamma>\<^isub>o (top(vars c)))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top(vars c)))", OF 3 pfp])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
@@ -396,9 +396,9 @@ lemma [code]: "equal_class.equal (x::'a st) y = equal_class.equal x y"
 by(rule refl)
 
 definition "step_up_ivl n =
-  ((\<lambda>C. C \<nabla> step_ivl (top(strip C)) C)^^n)"
+  ((\<lambda>C. C \<nabla> step_ivl (top(vars(strip C))) C)^^n)"
 definition "step_down_ivl n =
-  ((\<lambda>C. C \<triangle> step_ivl (top (strip C)) C)^^n)"
+  ((\<lambda>C. C \<triangle> step_ivl (top(vars(strip C))) C)^^n)"
 
 text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
 the loop took to execute. In contrast, @{const AI_ivl'} converges in a
@@ -416,14 +416,14 @@ value "show_acom (step_down_ivl 1 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 2 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 3 (step_up_ivl 8 (bot test3_ivl)))"
 value "show_acom (step_down_ivl 4 (step_up_ivl 8 (bot test3_ivl)))"
-value "show_acom (the(AI_ivl' test3_ivl))"
+value "show_acom_opt (AI_ivl' test3_ivl)"
 
 
 text{* Now all the analyses terminate: *}
 
-value "show_acom (the(AI_ivl' test4_ivl))"
-value "show_acom (the(AI_ivl' test5_ivl))"
-value "show_acom (the(AI_ivl' test6_ivl))"
+value "show_acom_opt (AI_ivl' test4_ivl)"
+value "show_acom_opt (AI_ivl' test5_ivl)"
+value "show_acom_opt (AI_ivl' test6_ivl)"
 
 
 subsubsection "Generic Termination Proof"
@@ -629,14 +629,14 @@ qed
 
 
 lemma iter_winden_step_ivl_termination:
-  "\<exists>C. iter_widen (step_ivl (top c)) (bot c) = Some C"
+  "\<exists>C. iter_widen (step_ivl (top(vars c))) (bot c) = Some C"
 apply(rule iter_widen_termination[where m = "m_c" and P = "%C. C \<in> Lc c"])
 apply (simp_all add: step'_in_Lc m_c_widen)
 done
 
 lemma iter_narrow_step_ivl_termination:
-  "C0 \<in> Lc c \<Longrightarrow> step_ivl (top c) C0 \<sqsubseteq> C0 \<Longrightarrow>
-  \<exists>C. iter_narrow (step_ivl (top c)) C0 = Some C"
+  "C0 \<in> Lc c \<Longrightarrow> step_ivl (top(vars c)) C0 \<sqsubseteq> C0 \<Longrightarrow>
+  \<exists>C. iter_narrow (step_ivl (top(vars c))) C0 = Some C"
 apply(rule iter_narrow_termination[where n = "n_c" and P = "%C. C \<in> Lc c"])
 apply (simp add: step'_in_Lc)
 apply (simp)
@@ -654,7 +654,7 @@ theorem AI_ivl'_termination:
 apply(auto simp: AI_wn_def pfp_wn_def iter_winden_step_ivl_termination
            split: option.split)
 apply(rule iter_narrow_step_ivl_termination)
-apply(blast intro: iter_widen_inv[where f = "step' \<top>\<^bsub>c\<^esub>" and P = "%C. C \<in> Lc c"] bot_in_Lc Lc_widen step'_in_Lc[where S = "\<top>\<^bsub>c\<^esub>" and c=c, simplified])
+apply(blast intro: iter_widen_inv[where f = "step' \<top>\<^bsub>vars c\<^esub>" and P = "%C. C \<in> Lc c"] bot_in_Lc Lc_widen step'_in_Lc[where S = "\<top>\<^bsub>vars c\<^esub>" and c=c, simplified])
 apply(erule iter_widen_pfp)
 done
 

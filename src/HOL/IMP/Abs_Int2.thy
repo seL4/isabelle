@@ -55,11 +55,11 @@ locale Val_abs1 =
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and filter_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
-assumes test_num': "test_num' i a = (i : \<gamma> a)"
+assumes test_num': "test_num' n a = (n : \<gamma> a)"
 and filter_plus': "filter_plus' a a1 a2 = (b1,b2) \<Longrightarrow>
-  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma> a \<Longrightarrow> i1 : \<gamma> b1 \<and> i2 : \<gamma> b2"
-and filter_less': "filter_less' (i1<i2) a1 a2 = (b1,b2) \<Longrightarrow>
-  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> b1 \<and> i2 : \<gamma> b2"
+  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma> a \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
+and filter_less': "filter_less' (n1<n2) a1 a2 = (b1,b2) \<Longrightarrow>
+  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
 
 
 locale Abs_Int1 =
@@ -80,13 +80,13 @@ by(simp add: L_option_def L_st_def aval'_sound split: option.splits)
 subsubsection "Backward analysis"
 
 fun afilter :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow> 'av st option" where
-"afilter (N i) a S = (if test_num' i a then S else None)" |
+"afilter (N n) a S = (if test_num' n a then S else None)" |
 "afilter (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
   let a' = fun S x \<sqinter> a in
   if a' \<sqsubseteq> \<bottom> then None else Some(update S x a'))" |
 "afilter (Plus e1 e2) a S =
- (let (a\<^isub>1',a\<^isub>2') = filter_plus' a (aval'' e1 S) (aval'' e2 S)
-  in afilter e1 a\<^isub>1' (afilter e2 a\<^isub>2' S))"
+ (let (a1,a2) = filter_plus' a (aval'' e1 S) (aval'' e2 S)
+  in afilter e1 a1 (afilter e2 a2 S))"
 
 text{* The test for @{const bot} in the @{const V}-case is important: @{const
 bot} indicates that a variable has no possible values, i.e.\ that the current
@@ -105,8 +105,8 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
   (if res then bfilter b1 True (bfilter b2 True S)
    else bfilter b1 False S \<squnion> bfilter b2 False S)" |
 "bfilter (Less e1 e2) res S =
-  (let (a\<^isub>1',a\<^isub>2') = filter_less' res (aval'' e1 S) (aval'' e2 S)
-   in afilter e1 a\<^isub>1' (afilter e2 a\<^isub>2' S))"
+  (let (res1,res2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
+   in afilter e1 res1 (afilter e2 res2 S))"
 
 lemma afilter_in_L: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> afilter e a S \<in> L X"
 by(induction e arbitrary: a S)
@@ -167,7 +167,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
    {bfilter b False I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI c = pfp (step' \<top>\<^bsub>c\<^esub>) (bot c)"
+"AI c = pfp (step' \<top>\<^bsub>vars c\<^esub>) (bot c)"
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
@@ -209,21 +209,21 @@ qed (auto simp add: bfilter_in_L)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "pfp (step' (top c)) (bot c) = Some C"
+  assume 1: "pfp (step' (top(vars c))) (bot c) = Some C"
   have "C \<in> L(vars c)"
     by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
       (erule step'_in_L[OF _ top_in_L])
-  have pfp': "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o(top c)) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  have pfp': "step' (top(vars c)) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
+  have 2: "step (\<gamma>\<^isub>o(top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o (top c)) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top c) C)"
+    show "step (\<gamma>\<^isub>o (top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top(vars c)) C)"
       by(rule step_step'[OF `C \<in> L(vars c)` top_in_L])
-    show "\<gamma>\<^isub>c (step' (top c) C) \<le> \<gamma>\<^isub>c C"
+    show "\<gamma>\<^isub>c (step' (top(vars c)) C) \<le> \<gamma>\<^isub>c C"
       by(rule mono_gamma_c[OF pfp'])
   qed
   have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o(top c))) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top c))", OF 3 2])
+  have "lfp c (step (\<gamma>\<^isub>o(top(vars c)))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top(vars c)))", OF 3 2])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
@@ -281,8 +281,8 @@ apply (auto simp: Let_def mono_bfilter mono_aval' mono_post
             split: option.split)
 done
 
-lemma mono_step'_top: "C1 \<in> L(vars c) \<Longrightarrow> C2 \<in> L(vars c) \<Longrightarrow>
-  C1 \<sqsubseteq> C2 \<Longrightarrow> step' (top c) C1 \<sqsubseteq> step' (top c) C2"
+lemma mono_step'_top: "C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
+  C1 \<sqsubseteq> C2 \<Longrightarrow> step' (top X) C1 \<sqsubseteq> step' (top X) C2"
 by (metis top_in_L mono_step' preord_class.le_refl)
 
 end

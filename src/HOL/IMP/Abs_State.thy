@@ -60,12 +60,12 @@ instance ..
 end
 
 class semilatticeL = join + L +
-fixes top :: "com \<Rightarrow> 'a"
+fixes top :: "vname set \<Rightarrow> 'a"
 assumes join_ge1 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<sqsubseteq> x \<squnion> y"
 and join_ge2 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> y \<sqsubseteq> x \<squnion> y"
 and join_least[simp]: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
-and top[simp]: "x \<in> L(vars c) \<Longrightarrow> x \<sqsubseteq> top c"
-and top_in_L[simp]: "top c \<in> L(vars c)"
+and top[simp]: "x \<in> L X \<Longrightarrow> x \<sqsubseteq> top X"
+and top_in_L[simp]: "top X \<in> L X"
 and join_in_L[simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<squnion> y \<in> L X"
 
 notation (input) top ("\<top>\<^bsub>_\<^esub>")
@@ -109,6 +109,7 @@ definition "show_st S = (\<lambda>x. (x, fun S x)) ` dom S"
 value [code] "show_st (FunDom (\<lambda>x. 1::int) {''a'',''b''})"
 
 definition "show_acom = map_acom (Option.map show_st)"
+definition "show_acom_opt = Option.map show_acom"
 
 definition "update F x y = FunDom ((fun F)(x:=y)) (dom F)"
 
@@ -157,7 +158,7 @@ end
 instantiation st :: (semilattice) semilatticeL
 begin
 
-definition top_st where "top c = FunDom (\<lambda>x. \<top>) (vars c)"
+definition top_st where "top X = FunDom (\<lambda>x. \<top>) X"
 
 instance
 proof
@@ -199,8 +200,6 @@ by(auto simp: top_st_def \<gamma>_st_def)
 
 lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o (top c) = UNIV"
 by (simp add: top_option_def)
-
-(* FIXME (maybe also le \<rightarrow> sqle?) *)
 
 lemma mono_gamma_s: "f \<sqsubseteq> g \<Longrightarrow> \<gamma>\<^isub>s f \<subseteq> \<gamma>\<^isub>s g"
 apply(simp add:\<gamma>_st_def subset_iff le_st_def split: if_splits)
