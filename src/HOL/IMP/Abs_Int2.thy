@@ -105,8 +105,8 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
   (if res then bfilter b1 True (bfilter b2 True S)
    else bfilter b1 False S \<squnion> bfilter b2 False S)" |
 "bfilter (Less e1 e2) res S =
-  (let (res1,res2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
-   in afilter e1 res1 (afilter e2 res2 S))"
+  (let (a1,a2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
+   in afilter e1 a1 (afilter e2 a2 S))"
 
 lemma afilter_in_L: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> afilter e a S \<in> L X"
 by(induction e arbitrary: a S)
