@@ -446,7 +446,7 @@ session "HOL-ex" in ex = HOL +
     Termination
     Coherent
     PresburgerEx
-    ReflectionEx
+    Reflection_Examples
     Sqrt
     Sqrt_Script
     Transfer_Ex
