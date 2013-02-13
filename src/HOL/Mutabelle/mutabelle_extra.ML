@@ -105,7 +105,7 @@ type report = entry list
 
 (** quickcheck **)
 
-fun invoke_quickcheck change_options quickcheck_generator thy t =
+fun invoke_quickcheck change_options thy t =
   TimeLimit.timeLimit (seconds 30.0)
       (fn _ =>
           let
@@ -123,7 +123,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
          (Timeout, [("timelimit", Real.floor (!Try.auto_time_limit))])
 
 fun quickcheck_mtd change_options quickcheck_generator =
-  ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options quickcheck_generator)
+  ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options)
 
 (** solve direct **)
  
@@ -335,8 +335,6 @@ fun thms_of all thy =
       (* andalso is_executable_thm thy th *))
     (map snd (filter_out is_forbidden_theorem (Mutabelle.all_unconcealed_thms_of thy)))
 
-fun count x = (length oo filter o equal) x
-
 fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
@@ -354,26 +352,13 @@ fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
     val _ = Output.urgent_message ("Invoking " ^ mtd_name)
     val (res, timing) = elapsed_time "total time"
       (fn () => case try (invoke_mtd thy) t of
-          SOME (res, timing) => res
+          SOME (res, _) => res
         | NONE => (Output.urgent_message ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
             Error))
     val _ = Output.urgent_message (" Done")
   in (res, [timing]) end
 
-(* theory -> term list -> mtd -> subentry *)
-
-fun test_mutants_using_one_method thy mutants (mtd_name, invoke_mtd) =
-  let
-     val res = map (fst o safe_invoke_mtd thy (mtd_name, invoke_mtd)) mutants
-  in
-    (mtd_name, count GenuineCex res, count PotentialCex res, count NoCex res,
-     count Donno res, count Timeout res, count Error res)
-  end
-
 (* creating entries *)
-
-fun create_entry thy thm exec mutants mtds =
-  (Thm.get_name_hint thm, exec, map (test_mutants_using_one_method thy mutants) mtds)
 
 fun create_detailed_entry thy thm exec mutants mtds =
   let
@@ -422,15 +407,6 @@ fun mutate_theorem create_entry thy (num_mutations, max_mutants) mtds thm =
     create_entry thy thm exec mutants mtds
   end
 
-(* theory -> mtd list -> thm list -> report *)
-val mutate_theorems = map oooo mutate_theorem
-
-fun string_of_mutant_subentry thy thm_name (t, results) =
-  "mutant: " ^ Syntax.string_of_term_global thy t ^ "\n" ^
-  space_implode "; "
-    (map (fn (mtd_name, (outcome, timing)) => mtd_name ^ ": " ^ string_of_outcome outcome) results) ^
-  "\n"
-
 (* string -> string *)
 val unyxml = XML.content_of o YXML.parse_body
 
@@ -456,16 +432,6 @@ fun string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) =
    thm_name ^ " " ^ (if exec then "[exe]" else "[noexe]") ^ ": " ^
    Syntax.string_of_term_global thy t ^ "\n" ^                                    
    cat_lines (map (string_of_mutant_subentry' thy thm_name) mutant_subentries) ^ "\n"
-
-fun theoryfile_string_of_mutant_subentry thy thm_name (i, (t, results)) =
-  "lemma " ^ thm_name ^ "_" ^ string_of_int (i + 1) ^ ":\n" ^
-  "\"" ^ unyxml (Syntax.string_of_term_global thy t) ^
-  "\" \nquickcheck\noops\n"
-
-fun theoryfile_string_of_detailed_entry thy (thm_name, exec, t, mutant_subentries) =
-  "subsubsection {* mutants of " ^ thm_name ^ " *}\n\n" ^
-  cat_lines (map_index
-    (theoryfile_string_of_mutant_subentry thy thm_name) mutant_subentries) ^ "\n"
 
 (* subentry -> string *)
 fun string_for_subentry (mtd_name, genuine_cex, potential_cex, no_cex, donno,
