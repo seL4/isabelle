@@ -794,7 +794,7 @@ proof -
     finally show "y \<in> ball x e" by (auto simp: ball_def)
   qed (insert a b, auto simp: box_def)
 qed
- 
+
 lemma open_UNION_box:
   fixes M :: "'a\<Colon>euclidean_space set"
   assumes "open M" 
@@ -5796,7 +5796,7 @@ proof
   show "\<exists>B::'a set set. countable B \<and> topological_basis B" unfolding topological_basis_def by blast
 qed
 
-instance ordered_euclidean_space \<subseteq> polish_space ..
+instance euclidean_space \<subseteq> polish_space ..
 
 text {* Intervals in general, including infinite and mixtures of open and closed. *}
 
