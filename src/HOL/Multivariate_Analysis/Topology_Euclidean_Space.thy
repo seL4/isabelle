@@ -304,6 +304,31 @@ lemma (in first_countable_topology) first_countable_basisE:
   using first_countable_basis[of x]
   by atomize_elim auto
 
+lemma (in first_countable_topology) first_countable_basis_Int_stableE:
+  obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
+    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
+    "\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<inter> b \<in> A"
+proof atomize_elim
+  from first_countable_basisE[of x] guess A' . note A' = this
+  def A \<equiv> "(\<lambda>N. \<Inter>((\<lambda>n. from_nat_into A' n) ` N)) ` (Collect finite::nat set set)"
+  thus "\<exists>A. countable A \<and> (\<forall>a. a \<in> A \<longrightarrow> x \<in> a) \<and> (\<forall>a. a \<in> A \<longrightarrow> open a) \<and>
+        (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)) \<and> (\<forall>a b. a \<in> A \<longrightarrow> b \<in> A \<longrightarrow> a \<inter> b \<in> A)"
+  proof (safe intro!: exI[where x=A])
+    show "countable A" unfolding A_def by (intro countable_image countable_Collect_finite)
+    fix a assume "a \<in> A"
+    thus "x \<in> a" "open a" using A'(4)[OF open_UNIV] by (auto simp: A_def intro: A' from_nat_into)
+  next
+    let ?int = "\<lambda>N. \<Inter>from_nat_into A' ` N"
+    fix a b assume "a \<in> A" "b \<in> A"
+    then obtain N M where "a = ?int N" "b = ?int M" "finite (N \<union> M)" by (auto simp: A_def)
+    thus "a \<inter> b \<in> A" by (auto simp: A_def intro!: image_eqI[where x="N \<union> M"])
+  next
+    fix S assume "open S" "x \<in> S" then obtain a where a: "a\<in>A'" "a \<subseteq> S" using A' by blast
+    thus "\<exists>a\<in>A. a \<subseteq> S" using a A'
+      by (intro bexI[where x=a]) (auto simp: A_def intro: image_eqI[where x="{to_nat_on A' a}"])
+  qed
+qed
+
 instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
 proof
   fix x :: "'a \<times> 'b"
