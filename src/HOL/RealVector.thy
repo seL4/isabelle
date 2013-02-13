@@ -508,6 +508,56 @@ lemma closed_Compl [intro]: "open S \<Longrightarrow> closed (- S)"
 
 end
 
+inductive generate_topology for S where
+  UNIV: "generate_topology S UNIV"
+| Int: "generate_topology S a \<Longrightarrow> generate_topology S b \<Longrightarrow> generate_topology S (a \<inter> b)"
+| UN: "(\<And>k. k \<in> K \<Longrightarrow> generate_topology S k) \<Longrightarrow> generate_topology S (\<Union>K)"
+| Basis: "s \<in> S \<Longrightarrow> generate_topology S s"
+
+hide_fact (open) UNIV Int UN Basis 
+
+lemma generate_topology_Union: 
+  "(\<And>k. k \<in> I \<Longrightarrow> generate_topology S (K k)) \<Longrightarrow> generate_topology S (\<Union>k\<in>I. K k)"
+  unfolding SUP_def by (intro generate_topology.UN) auto
+
+lemma topological_space_generate_topology:
+  "class.topological_space (generate_topology S)"
+  by default (auto intro: generate_topology.intros)
+
+class order_topology = order + "open" +
+  assumes open_generated_order: "open = generate_topology (range (\<lambda>a. {..< a}) \<union> range (\<lambda>a. {a <..}))"
+begin
+
+subclass topological_space
+  unfolding open_generated_order
+  by (rule topological_space_generate_topology)
+
+lemma open_greaterThan [simp]: "open {a <..}"
+  unfolding open_generated_order by (auto intro: generate_topology.Basis)
+
+lemma open_lessThan [simp]: "open {..< a}"
+  unfolding open_generated_order by (auto intro: generate_topology.Basis)
+
+lemma open_greaterThanLessThan [simp]: "open {a <..< b}"
+   unfolding greaterThanLessThan_eq by (simp add: open_Int)
+
+end
+
+class linorder_topology = linorder + order_topology
+
+lemma closed_atMost [simp]: "closed {.. a::'a::linorder_topology}"
+  by (simp add: closed_open)
+
+lemma closed_atLeast [simp]: "closed {a::'a::linorder_topology ..}"
+  by (simp add: closed_open)
+
+lemma closed_atLeastAtMost [simp]: "closed {a::'a::linorder_topology .. b}"
+proof -
+  have "{a .. b} = {a ..} \<inter> {.. b}"
+    by auto
+  then show ?thesis
+    by (simp add: closed_Int)
+qed
 
 subsection {* Metric spaces *}
 
@@ -621,10 +671,20 @@ class dist_norm = dist + norm + minus +
   assumes dist_norm: "dist x y = norm (x - y)"
 
 class real_normed_vector = real_vector + sgn_div_norm + dist_norm + open_dist +
-  assumes norm_ge_zero [simp]: "0 \<le> norm x"
-  and norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
+  assumes norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
   and norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
   and norm_scaleR [simp]: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
+begin
+
+lemma norm_ge_zero [simp]: "0 \<le> norm x"
+proof -
+  have "0 = norm (x + -1 *\<^sub>R x)" 
+    using scaleR_add_left[of 1 "-1" x] norm_scaleR[of 0 x] by (simp add: scaleR_one)
+  also have "\<dots> \<le> norm x + norm (-1 *\<^sub>R x)" by (rule norm_triangle_ineq)
+  finally show ?thesis by simp
+qed
+
+end
 
 class real_normed_algebra = real_algebra + real_normed_vector +
   assumes norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
@@ -850,7 +910,6 @@ apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
 apply (rule open_real_def)
 apply (simp add: sgn_real_def)
-apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
 apply (rule abs_mult)
@@ -859,46 +918,46 @@ done
 
 end
 
-lemma open_real_lessThan [simp]:
-  fixes a :: real shows "open {..<a}"
-unfolding open_real_def dist_real_def
-proof (clarify)
-  fix x assume "x < a"
-  hence "0 < a - x \<and> (\<forall>y. \<bar>y - x\<bar> < a - x \<longrightarrow> y \<in> {..<a})" by auto
-  thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {..<a}" ..
+instance real :: linorder_topology
+proof
+  show "(open :: real set \<Rightarrow> bool) = generate_topology (range lessThan \<union> range greaterThan)"
+  proof (rule ext, safe)
+    fix S :: "real set" assume "open S"
+    then guess f unfolding open_real_def bchoice_iff ..
+    then have *: "S = (\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x})"
+      by (fastforce simp: dist_real_def)
+    show "generate_topology (range lessThan \<union> range greaterThan) S"
+      apply (subst *)
+      apply (intro generate_topology_Union generate_topology.Int)
+      apply (auto intro: generate_topology.Basis)
+      done
+  next
+    fix S :: "real set" assume "generate_topology (range lessThan \<union> range greaterThan) S"
+    moreover have "\<And>a::real. open {..<a}"
+      unfolding open_real_def dist_real_def
+    proof clarify
+      fix x a :: real assume "x < a"
+      hence "0 < a - x \<and> (\<forall>y. \<bar>y - x\<bar> < a - x \<longrightarrow> y \<in> {..<a})" by auto
+      thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {..<a}" ..
+    qed
+    moreover have "\<And>a::real. open {a <..}"
+      unfolding open_real_def dist_real_def
+    proof clarify
+      fix x a :: real assume "a < x"
+      hence "0 < x - a \<and> (\<forall>y. \<bar>y - x\<bar> < x - a \<longrightarrow> y \<in> {a<..})" by auto
+      thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {a<..}" ..
+    qed
+    ultimately show "open S"
+      by induct auto
+  qed
 qed
 
-lemma open_real_greaterThan [simp]:
-  fixes a :: real shows "open {a<..}"
-unfolding open_real_def dist_real_def
-proof (clarify)
-  fix x assume "a < x"
-  hence "0 < x - a \<and> (\<forall>y. \<bar>y - x\<bar> < x - a \<longrightarrow> y \<in> {a<..})" by auto
-  thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {a<..}" ..
-qed
-
-lemma open_real_greaterThanLessThan [simp]:
-  fixes a b :: real shows "open {a<..<b}"
-proof -
-  have "{a<..<b} = {a<..} \<inter> {..<b}" by auto
-  thus "open {a<..<b}" by (simp add: open_Int)
-qed
-
-lemma closed_real_atMost [simp]: 
-  fixes a :: real shows "closed {..a}"
-unfolding closed_open by simp
-
-lemma closed_real_atLeast [simp]:
-  fixes a :: real shows "closed {a..}"
-unfolding closed_open by simp
-
-lemma closed_real_atLeastAtMost [simp]:
-  fixes a b :: real shows "closed {a..b}"
-proof -
-  have "{a..b} = {a..} \<inter> {..b}" by auto
-  thus "closed {a..b}" by (simp add: closed_Int)
-qed
-
+lemmas open_real_greaterThan = open_greaterThan[where 'a=real]
+lemmas open_real_lessThan = open_lessThan[where 'a=real]
+lemmas open_real_greaterThanLessThan = open_greaterThanLessThan[where 'a=real]
+lemmas closed_real_atMost = closed_atMost[where 'a=real]
+lemmas closed_real_atLeast = closed_atLeast[where 'a=real]
+lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
 subsection {* Extra type constraints *}
 
@@ -1171,6 +1230,30 @@ class t2_space = topological_space +
 
 instance t2_space \<subseteq> t1_space
 proof qed (fast dest: hausdorff)
+
+lemma (in linorder) less_separate:
+  assumes "x < y"
+  shows "\<exists>a b. x \<in> {..< a} \<and> y \<in> {b <..} \<and> {..< a} \<inter> {b <..} = {}"
+proof cases
+  assume "\<exists>z. x < z \<and> z < y"
+  then guess z ..
+  then have "x \<in> {..< z} \<and> y \<in> {z <..} \<and> {z <..} \<inter> {..< z} = {}"
+    by auto
+  then show ?thesis by blast
+next
+  assume "\<not> (\<exists>z. x < z \<and> z < y)"
+  with `x < y` have "x \<in> {..< y} \<and> y \<in> {x <..} \<and> {x <..} \<inter> {..< y} = {}"
+    by auto
+  then show ?thesis by blast
+qed
+
+instance linorder_topology \<subseteq> t2_space
+proof
+  fix x y :: 'a
+  from less_separate[of x y] less_separate[of y x]
+  show "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+    by (elim neqE) (metis open_lessThan open_greaterThan Int_commute)+
+qed
 
 instance metric_space \<subseteq> t2_space
 proof

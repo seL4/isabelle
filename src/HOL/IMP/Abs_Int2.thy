@@ -105,8 +105,8 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
   (if res then bfilter b1 True (bfilter b2 True S)
    else bfilter b1 False S \<squnion> bfilter b2 False S)" |
 "bfilter (Less e1 e2) res S =
-  (let (res1,res2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
-   in afilter e1 res1 (afilter e2 res2 S))"
+  (let (a1,a2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
+   in afilter e1 a1 (afilter e2 a2 S))"
 
 lemma afilter_in_L: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> afilter e a S \<in> L X"
 by(induction e arbitrary: a S)
@@ -167,7 +167,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
    {bfilter b False I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI c = pfp (step' \<top>\<^bsub>c\<^esub>) (bot c)"
+"AI c = pfp (step' \<top>\<^bsub>vars c\<^esub>) (bot c)"
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(induct c arbitrary: S) (simp_all add: Let_def)
@@ -209,21 +209,21 @@ qed (auto simp add: bfilter_in_L)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "pfp (step' (top c)) (bot c) = Some C"
+  assume 1: "pfp (step' (top(vars c))) (bot c) = Some C"
   have "C \<in> L(vars c)"
     by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
       (erule step'_in_L[OF _ top_in_L])
-  have pfp': "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o(top c)) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  have pfp': "step' (top(vars c)) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
+  have 2: "step (\<gamma>\<^isub>o(top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o (top c)) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top c) C)"
+    show "step (\<gamma>\<^isub>o (top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top(vars c)) C)"
       by(rule step_step'[OF `C \<in> L(vars c)` top_in_L])
-    show "\<gamma>\<^isub>c (step' (top c) C) \<le> \<gamma>\<^isub>c C"
+    show "\<gamma>\<^isub>c (step' (top(vars c)) C) \<le> \<gamma>\<^isub>c C"
       by(rule mono_gamma_c[OF pfp'])
   qed
   have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o(top c))) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top c))", OF 3 2])
+  have "lfp c (step (\<gamma>\<^isub>o(top(vars c)))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top(vars c)))", OF 3 2])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
@@ -281,8 +281,8 @@ apply (auto simp: Let_def mono_bfilter mono_aval' mono_post
             split: option.split)
 done
 
-lemma mono_step'_top: "C1 \<in> L(vars c) \<Longrightarrow> C2 \<in> L(vars c) \<Longrightarrow>
-  C1 \<sqsubseteq> C2 \<Longrightarrow> step' (top c) C1 \<sqsubseteq> step' (top c) C2"
+lemma mono_step'_top: "C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
+  C1 \<sqsubseteq> C2 \<Longrightarrow> step' (top X) C1 \<sqsubseteq> step' (top X) C2"
 by (metis top_in_L mono_step' preord_class.le_refl)
 
 end

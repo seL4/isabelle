@@ -68,8 +68,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
            else
              "") ^ "...")
     val {goal, ...} = Proof.goal state
-    val facts =
-      facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
+    val facts = facts |> maps (fn (n, ths) => map (pair n) ths)
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_enc = type_enc, strict = strict,
@@ -82,7 +81,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        preplay_timeout = preplay_timeout, expect = ""}
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts}
+       factss = [("", facts)]}
     val result as {outcome, used_facts, run_time, ...} =
       prover params (K (K (K ""))) problem
   in
@@ -268,8 +267,8 @@ fun adjust_reconstructor_params override_params
 
 fun maybe_minimize ctxt mode do_learn name
         (params as {verbose, isar_proofs, minimize, ...})
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
-        (result as {outcome, used_facts, run_time, preplay, message,
+        ({state, subgoal, subgoal_count, ...} : prover_problem)
+        (result as {outcome, used_facts, used_from, run_time, preplay, message,
                     message_tail} : prover_result) =
   if is_some outcome orelse null used_facts then
     result
@@ -309,18 +308,17 @@ fun maybe_minimize ctxt mode do_learn name
       val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts do_learn minimize_name params
-                         (mode <> Normal orelse not verbose) subgoal
-                         subgoal_count state
-                         (filter_used_facts true used_facts
-                              (map (apsnd single o untranslated_fact) facts))
+              (mode <> Normal orelse not verbose) subgoal subgoal_count state
+              (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
           (SOME used_facts, (preplay, message, ""))
     in
       case used_facts of
         SOME used_facts =>
-        {outcome = NONE, used_facts = used_facts, run_time = run_time,
-         preplay = preplay, message = message, message_tail = message_tail}
+        {outcome = NONE, used_facts = used_facts, used_from = used_from,
+         run_time = run_time, preplay = preplay, message = message,
+         message_tail = message_tail}
       | NONE => result
     end
 

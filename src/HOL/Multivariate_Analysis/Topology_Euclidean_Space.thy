@@ -47,6 +47,17 @@ begin
 definition "topological_basis B =
   ((\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> Union B' = x)))"
 
+lemma "topological_basis B = (\<forall>x. open x \<longleftrightarrow> (\<exists>B'. B' \<subseteq> B \<and> Union B' = x))"
+  unfolding topological_basis_def
+  apply safe
+     apply fastforce
+    apply fastforce
+   apply (erule_tac x="x" in allE)
+   apply simp
+   apply (rule_tac x="{x}" in exI)
+  apply auto
+  done
+
 lemma topological_basis_iff:
   assumes "\<And>B'. B' \<in> B \<Longrightarrow> open B'"
   shows "topological_basis B \<longleftrightarrow> (\<forall>O'. open O' \<longrightarrow> (\<forall>x\<in>O'. \<exists>B'\<in>B. x \<in> B' \<and> B' \<subseteq> O'))"
@@ -2143,6 +2154,9 @@ definition (in metric_space)
   bounded :: "'a set \<Rightarrow> bool" where
   "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
 
+lemma bounded_subset_cball: "bounded S \<longleftrightarrow> (\<exists>e x. S \<subseteq> cball x e)"
+  unfolding bounded_def subset_eq by auto
+
 lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
 unfolding bounded_def
 apply safe
@@ -3202,16 +3216,16 @@ text {*
 
 class heine_borel = metric_space +
   assumes bounded_imp_convergent_subsequence:
-    "bounded s \<Longrightarrow> \<forall>n. f n \<in> s
-      \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    "bounded (range f) \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
 
 lemma bounded_closed_imp_seq_compact:
   fixes s::"'a::heine_borel set"
   assumes "bounded s" and "closed s" shows "seq_compact s"
 proof (unfold seq_compact_def, clarify)
   fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
+  with `bounded s` have "bounded (range f)" by (auto intro: bounded_subset)
   obtain l r where r: "subseq r" and l: "((f \<circ> r) ---> l) sequentially"
-    using bounded_imp_convergent_subsequence [OF `bounded s` `\<forall>n. f n \<in> s`] by auto
+    using bounded_imp_convergent_subsequence [OF `bounded (range f)`] by auto
   from f have fr: "\<forall>n. (f \<circ> r) n \<in> s" by simp
   have "l \<in> s" using `closed s` fr l
     unfolding closed_sequential_limits by blast
@@ -3239,20 +3253,20 @@ lemma bounded_increasing_convergent:
 
 instance real :: heine_borel
 proof
-  fix s :: "real set" and f :: "nat \<Rightarrow> real"
-  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
+  fix f :: "nat \<Rightarrow> real"
+  assume f: "bounded (range f)"
   obtain r where r: "subseq r" "monoseq (f \<circ> r)"
     unfolding comp_def by (metis seq_monosub)
   moreover
   then have "Bseq (f \<circ> r)"
-    unfolding Bseq_eq_bounded using s f by (auto intro: bounded_subset)
+    unfolding Bseq_eq_bounded using f by (auto intro: bounded_subset)
   ultimately show "\<exists>l r. subseq r \<and> (f \<circ> r) ----> l"
     using Bseq_monoseq_convergent[of "f \<circ> r"] by (auto simp: convergent_def)
 qed
 
 lemma compact_lemma:
   fixes f :: "nat \<Rightarrow> 'a::euclidean_space"
-  assumes "bounded s" and "\<forall>n. f n \<in> s"
+  assumes "bounded (range f)"
   shows "\<forall>d\<subseteq>Basis. \<exists>l::'a. \<exists> r. subseq r \<and>
         (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
 proof safe
@@ -3262,14 +3276,16 @@ proof safe
       (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially)"
   proof(induct d) case empty thus ?case unfolding subseq_def by auto
   next case (insert k d) have k[intro]:"k\<in>Basis" using insert by auto
-    have s': "bounded ((\<lambda>x. x \<bullet> k) ` s)" using `bounded s`
+    have s': "bounded ((\<lambda>x. x \<bullet> k) ` range f)" using `bounded (range f)`
       by (auto intro!: bounded_linear_image bounded_linear_inner_left)
     obtain l1::"'a" and r1 where r1:"subseq r1" and
       lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) \<bullet> i) (l1 \<bullet> i) < e) sequentially"
       using insert(3) using insert(4) by auto
-    have f': "\<forall>n. f (r1 n) \<bullet> k \<in> (\<lambda>x. x \<bullet> k) ` s" using `\<forall>n. f n \<in> s` by simp
-    obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) \<bullet> k) ---> l2) sequentially"
-      using bounded_imp_convergent_subsequence[OF s' f'] unfolding o_def by auto
+    have f': "\<forall>n. f (r1 n) \<bullet> k \<in> (\<lambda>x. x \<bullet> k) ` range f" by simp
+    have "bounded (range (\<lambda>i. f (r1 i) \<bullet> k))"
+      by (metis (lifting) bounded_subset f' image_subsetI s')
+    then obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) \<bullet> k) ---> l2) sequentially"
+      using bounded_imp_convergent_subsequence[of "\<lambda>i. f (r1 i) \<bullet> k"] by (auto simp: o_def)
     def r \<equiv> "r1 \<circ> r2" have r:"subseq r"
       using r1 and r2 unfolding r_def o_def subseq_def by auto
     moreover
@@ -3289,11 +3305,11 @@ qed
 
 instance euclidean_space \<subseteq> heine_borel
 proof
-  fix s :: "'a set" and f :: "nat \<Rightarrow> 'a"
-  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
+  fix f :: "nat \<Rightarrow> 'a"
+  assume f: "bounded (range f)"
   then obtain l::'a and r where r: "subseq r"
     and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e) sequentially"
-    using compact_lemma [OF s f] by blast
+    using compact_lemma [OF f] by blast
   { fix e::real assume "e>0"
     hence "0 < e / real_of_nat DIM('a)" by (auto intro!: divide_pos_pos DIM_positive)
     with l have "eventually (\<lambda>n. \<forall>i\<in>Basis. dist (f (r n) \<bullet> i) (l \<bullet> i) < e / (real_of_nat DIM('a))) sequentially"
@@ -3338,19 +3354,16 @@ done
 
 instance prod :: (heine_borel, heine_borel) heine_borel
 proof
-  fix s :: "('a * 'b) set" and f :: "nat \<Rightarrow> 'a * 'b"
-  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
-  from s have s1: "bounded (fst ` s)" by (rule bounded_fst)
-  from f have f1: "\<forall>n. fst (f n) \<in> fst ` s" by simp
-  obtain l1 r1 where r1: "subseq r1"
-    and l1: "((\<lambda>n. fst (f (r1 n))) ---> l1) sequentially"
-    using bounded_imp_convergent_subsequence [OF s1 f1]
-    unfolding o_def by fast
-  from s have s2: "bounded (snd ` s)" by (rule bounded_snd)
-  from f have f2: "\<forall>n. snd (f (r1 n)) \<in> snd ` s" by simp
+  fix f :: "nat \<Rightarrow> 'a \<times> 'b"
+  assume f: "bounded (range f)"
+  from f have s1: "bounded (range (fst \<circ> f))" unfolding image_comp by (rule bounded_fst)
+  obtain l1 r1 where r1: "subseq r1" and l1: "(\<lambda>n. fst (f (r1 n))) ----> l1"
+    using bounded_imp_convergent_subsequence [OF s1] unfolding o_def by fast
+  from f have s2: "bounded (range (snd \<circ> f \<circ> r1))"
+    by (auto simp add: image_comp intro: bounded_snd bounded_subset)
   obtain l2 r2 where r2: "subseq r2"
     and l2: "((\<lambda>n. snd (f (r1 (r2 n)))) ---> l2) sequentially"
-    using bounded_imp_convergent_subsequence [OF s2 f2]
+    using bounded_imp_convergent_subsequence [OF s2]
     unfolding o_def by fast
   have l1': "((\<lambda>n. fst (f (r1 (r2 n)))) ---> l1) sequentially"
     using LIMSEQ_subseq_LIMSEQ [OF l1 r2] unfolding o_def .

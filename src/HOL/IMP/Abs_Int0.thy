@@ -242,9 +242,8 @@ fixes \<gamma> :: "'av::semilattice \<Rightarrow> val set"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'av"
 and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
-  assumes gamma_num': "i : \<gamma>(num' i)"
-  and gamma_plus':
- "i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma>(plus' a1 a2)"
+  assumes gamma_num': "i \<in> \<gamma>(num' i)"
+  and gamma_plus': "i1 \<in> \<gamma> a1 \<Longrightarrow> i2 \<in> \<gamma> a2 \<Longrightarrow> i1+i2 \<in> \<gamma>(plus' a1 a2)"
 
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
@@ -263,7 +262,8 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
   x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
 "step' S (C1; C2) = step' S C1; step' (post C1) C2" |
 "step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-   IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2 {post C1 \<squnion> post C2}" |
+   IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2
+   {post C1 \<squnion> post C2}" |
 "step' S ({I} WHILE b DO {P} C {Q}) =
   {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
 
@@ -289,8 +289,6 @@ by(simp add: Top_fun_def \<gamma>_fun_def)
 
 lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o Top = UNIV"
 by (simp add: Top_option_def)
-
-(* FIXME (maybe also le \<rightarrow> sqle?) *)
 
 lemma mono_gamma_s: "f1 \<sqsubseteq> f2 \<Longrightarrow> \<gamma>\<^isub>s f1 \<subseteq> \<gamma>\<^isub>s f2"
 by(auto simp: le_fun_def \<gamma>_fun_def dest: mono_gamma)

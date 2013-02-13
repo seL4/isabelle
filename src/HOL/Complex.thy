@@ -288,8 +288,6 @@ lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twos
 
 instance proof
   fix r :: real and x y :: complex and S :: "complex set"
-  show "0 \<le> norm x"
-    by (induct x) simp
   show "(norm x = 0) = (x = 0)"
     by (induct x) simp
   show "norm (x + y) \<le> norm x + norm y"

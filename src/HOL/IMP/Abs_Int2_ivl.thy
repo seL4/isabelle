@@ -255,7 +255,7 @@ value "show_acom_opt (AI_ivl test3_const)"
 value "show_acom_opt (AI_ivl test4_const)"
 value "show_acom_opt (AI_ivl test6_const)"
 
-definition "steps c i = (step_ivl(top c) ^^ i) (bot c)"
+definition "steps c i = (step_ivl(top(vars c)) ^^ i) (bot c)"
 
 value "show_acom_opt (AI_ivl test2_ivl)"
 value "show_acom (steps test2_ivl 0)"

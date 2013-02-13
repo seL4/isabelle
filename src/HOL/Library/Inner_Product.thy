@@ -117,8 +117,6 @@ qed
 subclass real_normed_vector
 proof
   fix a :: real and x y :: 'a
-  show "0 \<le> norm x"
-    unfolding norm_eq_sqrt_inner by simp
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_eq_sqrt_inner by simp
   show "norm (x + y) \<le> norm x + norm y"

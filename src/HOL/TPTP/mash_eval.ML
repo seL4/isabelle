@@ -30,11 +30,10 @@ open Sledgehammer_MaSh
 open Sledgehammer_Provers
 open Sledgehammer_Isar
 
-val MePoN = "MePo"
-val MaSh_IsarN = "MaSh-Isar"
-val MaSh_ProverN = "MaSh-Prover"
-val MeSh_IsarN = "MeSh-Isar"
-val MeSh_ProverN = "MeSh-Prover"
+val MaSh_IsarN = MaShN ^ "-Isar"
+val MaSh_ProverN = MaShN ^ "-Prover"
+val MeSh_IsarN = MeShN ^ "-Isar"
+val MeSh_ProverN = MeShN ^ "-Prover"
 val IsarN = "Isar"
 
 fun in_range (from, to) j =
@@ -44,6 +43,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
         mepo_file_name mash_isar_file_name mash_prover_file_name
         mesh_isar_file_name mesh_prover_file_name report_file_name =
   let
+    val zeros = [0, 0, 0, 0, 0, 0]
     val report_path = report_file_name |> Path.explode
     val _ = File.write report_path ""
     fun print s = File.append report_path (s ^ "\n")
@@ -71,7 +71,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
     val str_of_method = enclose "  " ": "
     fun str_of_result method facts ({outcome, run_time, used_facts, ...}
                                      : prover_result) =
-      let val facts = facts |> map (fn ((name, _), _) => name ()) in
+      let val facts = facts |> map (fst o fst) in
         str_of_method method ^
         (if is_none outcome then
            "Success (" ^ ATP_Util.string_from_time run_time ^ "): " ^
@@ -111,7 +111,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
           val isar_deps = isar_dependencies_of name_tabs th
           val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-          val find_suggs = find_suggested_facts facts
+          val find_suggs = find_suggested_facts facts #> map fact_of_raw_fact
           fun get_facts [] compute = compute facts
             | get_facts suggs _ = find_suggs suggs
           val mepo_facts =
@@ -121,7 +121,8 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
             |> weight_mepo_facts
           fun mash_of suggs =
             get_facts suggs (fn _ =>
-                find_mash_suggestions slack_max_facts suggs facts [] [] |> fst)
+                find_mash_suggestions slack_max_facts suggs facts [] []
+                |> fst |> map fact_of_raw_fact)
             |> weight_mash_facts
           val mash_isar_facts = mash_of mash_isar_suggs
           val mash_prover_facts = mash_of mash_prover_suggs
@@ -160,6 +161,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
                   |> map (get #> nickify)
                   |> maybe_instantiate_inducts ctxt hyp_ts concl_t
                   |> take (the max_facts)
+                  |> map fact_of_raw_fact
                 val ctxt = ctxt |> set_file_name method prob_dir_name
                 val res as {outcome, ...} =
                   run_prover_for_mash ctxt params prover facts goal
@@ -179,11 +181,11 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
           map snd ress
         end
       else
-        [0, 0, 0, 0, 0, 0]
+        zeros
     fun total_of method ok n =
       str_of_method method ^ string_of_int ok ^ " (" ^
       Real.fmt (StringCvt.FIX (SOME 1))
-               (100.0 * Real.fromInt ok / Real.fromInt n) ^ "%)"
+               (100.0 * Real.fromInt ok / Real.fromInt (Int.max (1, n))) ^ "%)"
     val inst_inducts = Config.get ctxt instantiate_inducts
     val options =
       ["prover = " ^ prover,
@@ -199,7 +201,7 @@ fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
     val n = length oks
     val [mepo_ok, mash_isar_ok, mash_prover_ok, mesh_isar_ok, mesh_prover_ok,
          isar_ok] =
-      map Integer.sum (map_transpose I oks)
+      if n = 0 then zeros else map Integer.sum (map_transpose I oks)
   in
     ["Successes (of " ^ string_of_int n ^ " goals)",
      total_of MePoN mepo_ok n,

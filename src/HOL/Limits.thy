@@ -832,6 +832,35 @@ lemma tendsto_iff:
   "(f ---> l) F \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) F)"
   using tendstoI tendstoD by fast
 
+lemma order_tendstoI:
+  fixes y :: "_ :: order_topology"
+  assumes "\<And>a. a < y \<Longrightarrow> eventually (\<lambda>x. a < f x) F"
+  assumes "\<And>a. y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F"
+  shows "(f ---> y) F"
+proof (rule topological_tendstoI)
+  fix S assume "open S" "y \<in> S"
+  then show "eventually (\<lambda>x. f x \<in> S) F"
+    unfolding open_generated_order
+  proof induct
+    case (UN K)
+    then obtain k where "y \<in> k" "k \<in> K" by auto
+    with UN(2)[of k] show ?case
+      by (auto elim: eventually_elim1)
+  qed (insert assms, auto elim: eventually_elim2)
+qed
+
+lemma order_tendstoD:
+  fixes y :: "_ :: order_topology"
+  assumes y: "(f ---> y) F"
+  shows "a < y \<Longrightarrow> eventually (\<lambda>x. a < f x) F"
+    and "y < a \<Longrightarrow> eventually (\<lambda>x. f x < a) F"
+  using topological_tendstoD[OF y, of "{..< a}"] topological_tendstoD[OF y, of "{a <..}"] by auto
+
+lemma order_tendsto_iff: 
+  fixes f :: "_ \<Rightarrow> 'a :: order_topology"
+  shows "(f ---> x) F \<longleftrightarrow>(\<forall>l<x. eventually (\<lambda>x. l < f x) F) \<and> (\<forall>u>x. eventually (\<lambda>x. f x < u) F)"
+  by (metis order_tendstoI order_tendstoD)
+
 lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
@@ -900,6 +929,20 @@ proof (rule tendstoI)
   with le show "eventually (\<lambda>x. dist (g x) b < e) F"
     using le_less_trans by (rule eventually_elim2)
 qed
+
+lemma increasing_tendsto:
+  fixes f :: "_ \<Rightarrow> 'a::order_topology"
+  assumes bdd: "eventually (\<lambda>n. f n \<le> l) F"
+      and en: "\<And>x. x < l \<Longrightarrow> eventually (\<lambda>n. x < f n) F"
+  shows "(f ---> l) F"
+  using assms by (intro order_tendstoI) (auto elim!: eventually_elim1)
+
+lemma decreasing_tendsto:
+  fixes f :: "_ \<Rightarrow> 'a::order_topology"
+  assumes bdd: "eventually (\<lambda>n. l \<le> f n) F"
+      and en: "\<And>x. l < x \<Longrightarrow> eventually (\<lambda>n. f n < x) F"
+  shows "(f ---> l) F"
+  using assms by (intro order_tendstoI) (auto elim!: eventually_elim1)
 
 subsubsection {* Distance and norms *}
 
@@ -1002,21 +1045,20 @@ next
     by (simp add: tendsto_const)
 qed
 
-lemma real_tendsto_sandwich:
-  fixes f g h :: "'a \<Rightarrow> real"
+lemma tendsto_sandwich:
+  fixes f g h :: "'a \<Rightarrow> 'b::order_topology"
   assumes ev: "eventually (\<lambda>n. f n \<le> g n) net" "eventually (\<lambda>n. g n \<le> h n) net"
   assumes lim: "(f ---> c) net" "(h ---> c) net"
   shows "(g ---> c) net"
-proof -
-  have "((\<lambda>n. g n - f n) ---> 0) net"
-  proof (rule metric_tendsto_imp_tendsto)
-    show "eventually (\<lambda>n. dist (g n - f n) 0 \<le> dist (h n - f n) 0) net"
-      using ev by (rule eventually_elim2) (simp add: dist_real_def)
-    show "((\<lambda>n. h n - f n) ---> 0) net"
-      using tendsto_diff[OF lim(2,1)] by simp
-  qed
-  from tendsto_add[OF this lim(1)] show ?thesis by simp
+proof (rule order_tendstoI)
+  fix a show "a < c \<Longrightarrow> eventually (\<lambda>x. a < g x) net"
+    using order_tendstoD[OF lim(1), of a] ev by (auto elim: eventually_elim2)
+next
+  fix a show "c < a \<Longrightarrow> eventually (\<lambda>x. g x < a) net"
+    using order_tendstoD[OF lim(2), of a] ev by (auto elim: eventually_elim2)
 qed
+
+lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
 
 subsubsection {* Linear operators and multiplication *}
 
@@ -1082,29 +1124,30 @@ next
     by (simp add: tendsto_const)
 qed
 
-lemma tendsto_le_const:
-  fixes f :: "_ \<Rightarrow> real" 
-  assumes F: "\<not> trivial_limit F"
-  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>x. a \<le> f x) F"
-  shows "a \<le> x"
-proof (rule ccontr)
-  assume "\<not> a \<le> x"
-  with x have "eventually (\<lambda>x. f x < a) F"
-    by (auto simp add: tendsto_def elim!: allE[of _ "{..< a}"])
-  with a have "eventually (\<lambda>x. False) F"
-    by eventually_elim auto
-  with F show False
-    by (simp add: eventually_False)
-qed
-
 lemma tendsto_le:
-  fixes f g :: "_ \<Rightarrow> real" 
+  fixes f g :: "'a \<Rightarrow> 'b::linorder_topology"
   assumes F: "\<not> trivial_limit F"
   assumes x: "(f ---> x) F" and y: "(g ---> y) F"
   assumes ev: "eventually (\<lambda>x. g x \<le> f x) F"
   shows "y \<le> x"
-  using tendsto_le_const[OF F tendsto_diff[OF x y], of 0] ev
-  by (simp add: sign_simps)
+proof (rule ccontr)
+  assume "\<not> y \<le> x"
+  with less_separate[of x y] obtain a b where xy: "x < a" "b < y" "{..<a} \<inter> {b<..} = {}"
+    by (auto simp: not_le)
+  then have "eventually (\<lambda>x. f x < a) F" "eventually (\<lambda>x. b < g x) F"
+    using x y by (auto intro: order_tendstoD)
+  with ev have "eventually (\<lambda>x. False) F"
+    by eventually_elim (insert xy, fastforce)
+  with F show False
+    by (simp add: eventually_False)
+qed
+
+lemma tendsto_le_const:
+  fixes f :: "'a \<Rightarrow> 'b::linorder_topology"
+  assumes F: "\<not> trivial_limit F"
+  assumes x: "(f ---> x) F" and a: "eventually (\<lambda>x. a \<le> f x) F"
+  shows "a \<le> x"
+  using F x tendsto_const a by (rule tendsto_le)
 
 subsubsection {* Inverse and division *}
 

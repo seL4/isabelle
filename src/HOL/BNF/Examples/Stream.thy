@@ -12,7 +12,7 @@ theory Stream
 imports "../BNF"
 begin
 
-codata 'a stream = Stream (shd: 'a) (stl: "'a stream")
+codata 'a stream = Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
 
 (* TODO: Provide by the package*)
 theorem stream_set_induct:
@@ -42,7 +42,7 @@ subsection {* prepend list to stream *}
 
 primrec shift :: "'a list \<Rightarrow> 'a stream \<Rightarrow> 'a stream" (infixr "@-" 65) where
   "shift [] s = s"
-| "shift (x # xs) s = Stream x (shift xs s)"
+| "shift (x # xs) s = x ## shift xs s"
 
 lemma shift_append[simp]: "(xs @ ys) @- s = xs @- ys @- s"
 by (induct xs) auto
@@ -71,10 +71,10 @@ proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>u. s1 = cycle
   thus ?case using stream.unfold[of hd "\<lambda>xs. tl xs @ [hd xs]" u] by (auto simp: cycle_def)
 qed auto
 
-lemma cycle_Cons: "cycle (x # xs) = Stream x (cycle (xs @ [x]))"
-proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>x xs. s1 = cycle (x # xs) \<and> s2 = Stream x (cycle (xs @ [x]))"])
+lemma cycle_Cons: "cycle (x # xs) = x ## cycle (xs @ [x])"
+proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>x xs. s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])"])
   case (2 s1 s2)
-  then obtain x xs where "s1 = cycle (x # xs) \<and> s2 = Stream x (cycle (xs @ [x]))" by blast
+  then obtain x xs where "s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])" by blast
   thus ?case
     by (auto simp: cycle_def intro!: exI[of _ "hd (xs @ [x])"] exI[of _ "tl (xs @ [x])"] stream.unfold)
 qed auto
@@ -83,7 +83,7 @@ coinductive_set
   streams :: "'a set => 'a stream set"
   for A :: "'a set"
 where
-  Stream[intro!, simp, no_atp]: "\<lbrakk>a \<in> A; s \<in> streams A\<rbrakk> \<Longrightarrow> Stream a s \<in> streams A"
+  Stream[intro!, simp, no_atp]: "\<lbrakk>a \<in> A; s \<in> streams A\<rbrakk> \<Longrightarrow> a ## s \<in> streams A"
 
 lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Longrightarrow> w @- s \<in> streams A"
 by (induct w) auto
@@ -91,13 +91,13 @@ by (induct w) auto
 lemma stream_set_streams:
   assumes "stream_set s \<subseteq> A"
   shows "s \<in> streams A"
-proof (coinduct rule: streams.coinduct[of "\<lambda>s'. \<exists>a s. s' = Stream a s \<and> a \<in> A \<and> stream_set s \<subseteq> A"])
+proof (coinduct rule: streams.coinduct[of "\<lambda>s'. \<exists>a s. s' = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A"])
   case streams from assms show ?case by (cases s) auto
 next
-  fix s' assume "\<exists>a s. s' = Stream a s \<and> a \<in> A \<and> stream_set s \<subseteq> A"
+  fix s' assume "\<exists>a s. s' = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A"
   then guess a s by (elim exE)
-  with assms show "\<exists>a l. s' = Stream a l \<and>
-    a \<in> A \<and> ((\<exists>a s. l = Stream a s \<and> a \<in> A \<and> stream_set s \<subseteq> A) \<or> l \<in> streams A)"
+  with assms show "\<exists>a l. s' = a ## l \<and>
+    a \<in> A \<and> ((\<exists>a s. l = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A) \<or> l \<in> streams A)"
     by (cases s) auto
 qed
 
@@ -105,17 +105,17 @@ qed
 subsection {* flatten a stream of lists *}
 
 definition flat where
-  "flat \<equiv> stream_unfold (hd o shd) (\<lambda>s. if tl (shd s) = [] then stl s else Stream (tl (shd s)) (stl s))"
+  "flat \<equiv> stream_unfold (hd o shd) (\<lambda>s. if tl (shd s) = [] then stl s else tl (shd s) ## stl s)"
 
 lemma flat_simps[simp]:
   "shd (flat ws) = hd (shd ws)"
-  "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else Stream (tl (shd ws)) (stl ws))"
+  "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else tl (shd ws) ## stl ws)"
 unfolding flat_def by auto
 
-lemma flat_Cons[simp]: "flat (Stream (x#xs) w) = Stream x (flat (if xs = [] then w else Stream xs w))"
-unfolding flat_def using stream.unfold[of "hd o shd" _ "Stream (x#xs) w"] by auto
+lemma flat_Cons[simp]: "flat ((x # xs) ## ws) = x ## flat (if xs = [] then ws else xs ## ws)"
+unfolding flat_def using stream.unfold[of "hd o shd" _ "(x # xs) ## ws"] by auto
 
-lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (Stream xs ws) = xs @- flat ws"
+lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs @- flat ws"
 by (induct xs) auto
 
 lemma flat_unfold: "shd ws \<noteq> [] \<Longrightarrow> flat ws = shd ws @- flat (stl ws)"
@@ -132,9 +132,9 @@ primrec sdrop :: "nat \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where
   "sdrop 0 s = s"
 | "sdrop (Suc n) s = sdrop n (stl s)"
 
-primrec snth :: "nat \<Rightarrow> 'a stream \<Rightarrow> 'a" where
-  "snth 0 s = shd s"
-| "snth (Suc n) s = snth n (stl s)"
+primrec snth :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100) where
+  "s !! 0 = shd s"
+| "s !! Suc n = stl s !! n"
 
 lemma stake_sdrop: "stake n s @- sdrop n s = s"
 by (induct n arbitrary: s) auto

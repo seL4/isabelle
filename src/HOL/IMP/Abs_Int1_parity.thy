@@ -121,13 +121,13 @@ subsubsection "Tests"
 definition "test1_parity =
   ''x'' ::= N 1;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 2)"
-value [code] "show_acom_opt (AI_parity test1_parity)"
+value [code] "show_acom (the(AI_parity test1_parity))"
 
 definition "test2_parity =
   ''x'' ::= N 1;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 3)"
 
-definition "steps c i = (step_parity(top c) ^^ i) (bot c)"
+definition "steps c i = (step_parity(top(vars c)) ^^ i) (bot c)"
 
 value "show_acom (steps test2_parity 0)"
 value "show_acom (steps test2_parity 1)"
@@ -136,7 +136,7 @@ value "show_acom (steps test2_parity 3)"
 value "show_acom (steps test2_parity 4)"
 value "show_acom (steps test2_parity 5)"
 value "show_acom (steps test2_parity 6)"
-value "show_acom_opt (AI_parity test2_parity)"
+value "show_acom (the(AI_parity test2_parity))"
 
 
 subsubsection "Termination"

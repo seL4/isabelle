@@ -117,6 +117,11 @@ by (simp add: atMost_def)
 lemma atMost_Int_atLeast: "!!n:: 'a::order. atMost n Int atLeast n = {n}"
 by (blast intro: order_antisym)
 
+lemma (in linorder) lessThan_Int_lessThan: "{ a <..} \<inter> { b <..} = { max a b <..}"
+  by auto
+
+lemma (in linorder) greaterThan_Int_greaterThan: "{..< a} \<inter> {..< b} = {..< min a b}"
+  by auto
 
 subsection {* Logical Equivalences for Set Inclusion and Equality *}
 
@@ -189,6 +194,9 @@ by (simp add: atLeastAtMost_def)
 text {* The above four lemmas could be declared as iffs. Unfortunately this
 breaks many proofs. Since it only helps blast, it is better to leave well
 alone *}
+
+lemma greaterThanLessThan_eq: "{ a <..< b} = { a <..} \<inter> {..< b }"
+  by auto
 
 end
 

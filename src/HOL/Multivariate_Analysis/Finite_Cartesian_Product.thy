@@ -387,9 +387,6 @@ definition "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
 
 instance proof
   fix a :: real and x y :: "'a ^ 'b"
-  show "0 \<le> norm x"
-    unfolding norm_vec_def
-    by (rule setL2_nonneg)
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_vec_def
     by (simp add: setL2_eq_0_iff vec_eq_iff)

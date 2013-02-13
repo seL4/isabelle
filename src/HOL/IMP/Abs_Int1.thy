@@ -71,7 +71,7 @@ fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av s
    {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI c = pfp (step' (top c)) (bot c)"
+"AI c = pfp (step' (top(vars c))) (bot c)"
 
 
 lemma strip_step'[simp]: "strip(step' S C) = strip C"
@@ -110,21 +110,21 @@ qed auto
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "pfp (step' (top c)) (bot c) = Some C"
+  assume 1: "pfp (step' (top(vars c))) (bot c) = Some C"
   have "C \<in> L(vars c)"
     by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
       (erule step'_in_L[OF _ top_in_L])
-  have pfp': "step' (top c) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o(top c)) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  have pfp': "step' (top(vars c)) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
+  have 2: "step (\<gamma>\<^isub>o(top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o (top c)) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top c) C)"
+    show "step (\<gamma>\<^isub>o (top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top(vars c)) C)"
       by(rule step_step'[OF `C \<in> L(vars c)` top_in_L])
-    show "\<gamma>\<^isub>c (step' (top c) C) \<le> \<gamma>\<^isub>c C"
+    show "\<gamma>\<^isub>c (step' (top(vars c)) C) \<le> \<gamma>\<^isub>c C"
       by(rule mono_gamma_c[OF pfp'])
   qed
   have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o(top c))) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top c))", OF 3 2])
+  have "lfp c (step (\<gamma>\<^isub>o(top(vars c)))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top(vars c)))", OF 3 2])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
@@ -153,8 +153,8 @@ apply (auto simp: Let_def mono_aval' mono_post
             split: option.split)
 done
 
-lemma mono_step'_top: "C \<in> L(vars c) \<Longrightarrow> C' \<in> L(vars c) \<Longrightarrow>
-  C \<sqsubseteq> C' \<Longrightarrow> step' (top c) C \<sqsubseteq> step' (top c) C'"
+lemma mono_step'_top: "C \<in> L X \<Longrightarrow> C' \<in> L X \<Longrightarrow>
+  C \<sqsubseteq> C' \<Longrightarrow> step' (top X) C \<sqsubseteq> step' (top X) C'"
 by (metis top_in_L mono_step' preord_class.le_refl)
 
 lemma pfp_bot_least:
@@ -167,7 +167,7 @@ apply(rule while_least[OF assms(1,2) _ _ assms(3) _ assms(6)[unfolded pfp_def]])
 by (simp_all add: assms(4,5) bot_least)
 
 lemma AI_least_pfp: assumes "AI c = Some C"
-and "step' (top c) C' \<sqsubseteq> C'" "strip C' = c" "C' \<in> L(vars c)"
+and "step' (top(vars c)) C' \<sqsubseteq> C'" "strip C' = c" "C' \<in> L(vars c)"
 shows "C \<sqsubseteq> C'"
 apply(rule pfp_bot_least[OF _ _ assms(2-4) assms(1)[unfolded AI_def]])
 by (simp_all add: mono_step'_top)

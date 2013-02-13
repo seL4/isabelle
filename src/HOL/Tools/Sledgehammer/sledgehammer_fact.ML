@@ -10,7 +10,8 @@ sig
   type status = ATP_Problem_Generate.status
   type stature = ATP_Problem_Generate.stature
 
-  type fact = ((unit -> string) * stature) * thm
+  type raw_fact = ((unit -> string) * stature) * thm
+  type fact = (string * stature) * thm
 
   type fact_override =
     {add : (Facts.ref * Attrib.src list) list,
@@ -33,12 +34,13 @@ sig
     Proof.context -> term list -> term -> (((unit -> string) * 'a) * thm) list
     -> (((unit -> string) * 'a) * thm) list
   val maybe_filter_no_atps : Proof.context -> ('a * thm) list -> ('a * thm) list
+  val fact_of_raw_fact : raw_fact -> fact
   val all_facts :
     Proof.context -> bool -> bool -> unit Symtab.table -> thm list -> thm list
-    -> status Termtab.table -> fact list
+    -> status Termtab.table -> raw_fact list
   val nearly_all_facts :
     Proof.context -> bool -> fact_override -> unit Symtab.table
-    -> status Termtab.table -> thm list -> term list -> term -> fact list
+    -> status Termtab.table -> thm list -> term list -> term -> raw_fact list
 end;
 
 structure Sledgehammer_Fact : SLEDGEHAMMER_FACT =
@@ -49,7 +51,8 @@ open ATP_Problem_Generate
 open Metis_Tactic
 open Sledgehammer_Util
 
-type fact = ((unit -> string) * stature) * thm
+type raw_fact = ((unit -> string) * stature) * thm
+type fact = (string * stature) * thm
 
 type fact_override =
   {add : (Facts.ref * Attrib.src list) list,
@@ -418,6 +421,8 @@ fun maybe_instantiate_inducts ctxt hyp_ts concl_t =
 
 fun maybe_filter_no_atps ctxt =
   not (Config.get ctxt ignore_no_atp) ? filter_out (No_ATPs.member ctxt o snd)
+
+fun fact_of_raw_fact ((name, stature), th) = ((name (), stature), th)
 
 fun all_facts ctxt generous ho_atp reserved add_ths chained css =
   let

@@ -201,9 +201,7 @@ val vampire_fact_prefix = "f"
 
 fun step_name_ord p =
   let val q = pairself fst p in
-    (* The "unprefix" part is to cope with remote Vampire's output. The proper
-       solution would be to perform a topological sort, e.g. using the nice
-       "Graph" functor. *)
+    (* The "unprefix" part is to cope with remote Vampire's output. *)
     case pairself (Int.fromString
                    o perhaps (try (unprefix vampire_fact_prefix))) q of
       (NONE, NONE) => string_ord q
@@ -228,6 +226,8 @@ val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
+
+val scan_nat = Scan.repeat1 (Scan.one Symbol.is_ascii_digit) >> implode
 
 val skip_term =
   let
@@ -264,9 +264,13 @@ and parse_inference_source x =
   (Scan.this_string "inference" |-- $$ "(" |-- scan_general_id
    --| skip_term --| $$ "," --| skip_term --| $$ "," --| $$ "["
    -- parse_dependencies --| $$ "]" --| $$ ")") x
+and skip_introduced x =
+  (Scan.this_string "introduced" |-- $$ "(" |-- skip_term --| $$ ")") x
 and parse_source x =
   (parse_file_source >> File_Source
    || parse_inference_source >> Inference_Source
+   || skip_introduced >> K dummy_inference (* for Vampire *)
+   || scan_nat >> (fn s => Inference_Source ("", [s])) (* for E *)
    || skip_term >> K dummy_inference) x
 
 fun list_app (f, args) =
@@ -508,7 +512,7 @@ fun atp_proof_from_tstplike_proof _ "" = []
   | atp_proof_from_tstplike_proof problem tstp =
     tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
     |> parse_proof problem
-    |> sort (step_name_ord o pairself step_name) (* FIXME: needed? *)
+    |> sort (step_name_ord o pairself step_name)
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen

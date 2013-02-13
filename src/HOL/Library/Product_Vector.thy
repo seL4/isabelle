@@ -408,8 +408,6 @@ lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<twosuperior> + (norm b)\<twosupe
 
 instance proof
   fix r :: real and x y :: "'a \<times> 'b"
-  show "0 \<le> norm x"
-    unfolding norm_prod_def by simp
   show "norm x = 0 \<longleftrightarrow> x = 0"
     unfolding norm_prod_def
     by (simp add: prod_eq_iff)

@@ -297,7 +297,7 @@ proof -
     qed
   next
     fix x show "(SUP i. ?g i x) = max 0 (u x)"
-    proof (rule ereal_SUPI)
+    proof (rule SUP_eqI)
       fix i show "?g i x \<le> max 0 (u x)" unfolding max_def f_def
         by (cases "u x") (auto simp: field_simps real_natfloor_le natfloor_neg
                                      mult_nonpos_nonneg mult_nonneg_nonneg)
@@ -2147,7 +2147,7 @@ proof -
     assume neq_0: "(\<integral>\<^isup>+ x. max 0 (ereal (2 * w x)) \<partial>M) \<noteq> 0" (is "?wx \<noteq> 0")
     have "0 = limsup (\<lambda>n. 0 :: ereal)" by (simp add: Limsup_const)
     also have "\<dots> \<le> limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)"
-      by (intro limsup_mono positive_integral_positive)
+      by (simp add: Limsup_mono  positive_integral_positive)
     finally have pos: "0 \<le> limsup (\<lambda>n. \<integral>\<^isup>+ x. ereal \<bar>u n x - u' x\<bar> \<partial>M)" .
     have "?wx = (\<integral>\<^isup>+ x. liminf (\<lambda>n. max 0 (ereal (?diff n x))) \<partial>M)"
       using u'
@@ -2178,11 +2178,11 @@ proof -
   qed
 
   have "liminf ?f \<le> limsup ?f"
-    by (intro ereal_Liminf_le_Limsup trivial_limit_sequentially)
+    by (intro Liminf_le_Limsup trivial_limit_sequentially)
   moreover
   { have "0 = liminf (\<lambda>n. 0 :: ereal)" by (simp add: Liminf_const)
     also have "\<dots> \<le> liminf ?f"
-      by (intro liminf_mono positive_integral_positive)
+      by (simp add: Liminf_mono positive_integral_positive)
     finally have "0 \<le> liminf ?f" . }
   ultimately have liminf_limsup_eq: "liminf ?f = ereal 0" "limsup ?f = ereal 0"
     using `limsup ?f = 0` by auto

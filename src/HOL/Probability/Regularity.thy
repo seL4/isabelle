@@ -16,7 +16,7 @@ lemma ereal_approx_SUP:
   assumes f_nonneg: "\<And>i. 0 \<le> f i"
   assumes approx: "\<And>e. (e::real) > 0 \<Longrightarrow> \<exists>i \<in> A. x \<le> f i + e"
   shows "x = (SUP i : A. f i)"
-proof (subst eq_commute, rule ereal_SUPI)
+proof (subst eq_commute, rule SUP_eqI)
   show "\<And>i. i \<in> A \<Longrightarrow> f i \<le> x" using f_bound by simp
 next
   fix y :: ereal assume f_le_y: "(\<And>i::'a. i \<in> A \<Longrightarrow> f i \<le> y)"
@@ -45,7 +45,7 @@ lemma ereal_approx_INF:
   assumes f_nonneg: "\<And>i. 0 \<le> f i"
   assumes approx: "\<And>e. (e::real) > 0 \<Longrightarrow> \<exists>i \<in> A. f i \<le> x + e"
   shows "x = (INF i : A. f i)"
-proof (subst eq_commute, rule ereal_INFI)
+proof (subst eq_commute, rule INF_eqI)
   show "\<And>i. i \<in> A \<Longrightarrow> x \<le> f i" using f_bound by simp
 next
   fix y :: ereal assume f_le_y: "(\<And>i::'a. i \<in> A \<Longrightarrow> y \<le> f i)"
@@ -79,7 +79,7 @@ proof (rule ccontr, clarsimp)
   from INF have "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> y \<le> f i) \<Longrightarrow> y \<le> x" by (auto intro: INF_greatest)
   ultimately
   have "(INF i : A. f i) = x + e" using `e > 0`
-    by (intro ereal_INFI)
+    by (intro INF_eqI)
       (force, metis add.comm_neutral add_left_mono ereal_less(1)
         linorder_not_le not_less_iff_gr_or_eq)
   thus False using assms by auto
@@ -97,7 +97,7 @@ proof (rule ccontr, clarsimp)
   from SUP have "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<le> y) \<Longrightarrow> y \<ge> x" by (auto intro: SUP_least)
   ultimately
   have "(SUP i : A. f i) = x - e" using `e > 0` `\<bar>x\<bar> \<noteq> \<infinity>`
-    by (intro ereal_SUPI)
+    by (intro SUP_eqI)
        (metis PInfty_neq_ereal(2) abs_ereal.simps(1) ereal_minus_le linorder_linear,
         metis ereal_between(1) ereal_less(2) less_eq_ereal_def order_trans)
   thus False using assms by auto
@@ -290,7 +290,7 @@ proof -
       have "emeasure M A \<le> (INF U:{U. A \<subseteq> U \<and> open U}. emeasure M U)"
         by (rule INF_greatest) (auto intro!: emeasure_mono simp: sb)
       ultimately show ?thesis by simp
-    qed (auto intro!: ereal_INFI)
+    qed (auto intro!: INF_eqI)
     note `?inner A` `?outer A` }
   note closed_in_D = this
   from `B \<in> sets borel`
@@ -299,8 +299,8 @@ proof -
   then show "?inner B" "?outer B"
   proof (induct B rule: sigma_sets_induct_disjoint)
     case empty
-    { case 1 show ?case by (intro ereal_SUPI[symmetric]) auto }
-    { case 2 show ?case by (intro ereal_INFI[symmetric]) (auto elim!: meta_allE[of _ "{}"]) }
+    { case 1 show ?case by (intro SUP_eqI[symmetric]) auto }
+    { case 2 show ?case by (intro INF_eqI[symmetric]) (auto elim!: meta_allE[of _ "{}"]) }
   next
     case (basic B)
     { case 1 from basic closed_in_D show ?case by auto }

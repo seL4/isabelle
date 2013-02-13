@@ -456,13 +456,14 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
-      ({outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
+      ({outcome = SOME failure, used_facts = [], used_from = [],
+        run_time = Time.zeroTime,
         preplay = Lazy.value (Sledgehammer_Reconstruct.Failed_to_Play
           Sledgehammer_Provers.plain_metis),
         message = K "", message_tail = ""}, ~1)
-    val ({outcome, used_facts, run_time, preplay, message, message_tail}
+    val ({outcome, used_facts, run_time, preplay, message, message_tail, ...}
          : Sledgehammer_Provers.prover_result,
-        time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
+         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"
@@ -473,25 +474,20 @@ fun run_sh prover_name fact_filter type_enc strict max_facts slice
           Sledgehammer_Fact.nearly_all_facts ctxt ho_atp
               Sledgehammer_Fact.no_fact_override reserved css_table chained_ths
               hyp_ts concl_t
+        val factss =
+          facts
           |> filter (is_appropriate_prop o prop_of o snd)
           |> Sledgehammer_MaSh.relevant_facts ctxt params prover_name
                  (the_default default_max_facts max_facts)
                  Sledgehammer_Fact.no_fact_override hyp_ts concl_t
-          |> map (apfst (apfst (fn name => name ())))
-          |> tap (fn facts =>
+          |> tap (fn factss =>
                      "Line " ^ str0 (Position.line_of pos) ^ ": " ^
-                     (if null facts then
-                        "Found no relevant facts."
-                      else
-                        "Including " ^ string_of_int (length facts) ^
-                        " relevant fact(s):\n" ^
-                        (facts |> map (fst o fst) |> space_implode " ") ^ ".")
+                     Sledgehammer_Run.string_of_factss factss
                      |> Output.urgent_message)
         val prover = get_prover ctxt prover_name params goal facts
         val problem =
           {state = st', goal = goal, subgoal = i,
-           subgoal_count = Sledgehammer_Util.subgoal_count st,
-           facts = facts |> map Sledgehammer_Provers.Untranslated_Fact}
+           subgoal_count = Sledgehammer_Util.subgoal_count st, factss = factss}
       in prover params (K (K (K ""))) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate

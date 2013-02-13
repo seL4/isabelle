@@ -72,6 +72,7 @@ but the first one works better when using the theorem in further proofs.
 \end{warn}
 
 \subsection{Sets}
+\label{sec:Sets}
 
 Sets of elements of type @{typ 'a} have type @{typ"'a set"}.
 They can be finite or infinite. Sets come with the usual notation:

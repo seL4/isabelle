@@ -7,6 +7,7 @@ Sledgehammer's machine-learning-based relevance filter (MaSh).
 signature SLEDGEHAMMER_MASH =
 sig
   type stature = ATP_Problem_Generate.stature
+  type raw_fact = Sledgehammer_Fact.raw_fact
   type fact = Sledgehammer_Fact.fact
   type fact_override = Sledgehammer_Fact.fact_override
   type params = Sledgehammer_Provers.params
@@ -14,7 +15,10 @@ sig
   type prover_result = Sledgehammer_Provers.prover_result
 
   val trace : bool Config.T
+  val snow : bool Config.T
+  val MePoN : string
   val MaShN : string
+  val MeShN : string
   val mepoN : string
   val mashN : string
   val meshN : string
@@ -62,7 +66,7 @@ sig
   val isar_dependencies_of :
     string Symtab.table * string Symtab.table -> thm -> string list
   val prover_dependencies_of :
-    Proof.context -> params -> string -> int -> fact list
+    Proof.context -> params -> string -> int -> raw_fact list
     -> string Symtab.table * string Symtab.table -> thm
     -> bool * string list
   val weight_mepo_facts : 'a list -> ('a * real) list
@@ -71,8 +75,8 @@ sig
     int -> string list -> ('b * thm) list -> ('b * thm) list -> ('b * thm) list
     -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts :
-    Proof.context -> params -> string -> int -> term list -> term -> fact list
-    -> fact list * fact list
+    Proof.context -> params -> string -> int -> term list -> term
+    -> raw_fact list -> fact list * fact list
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
@@ -85,7 +89,7 @@ sig
   val mash_weight : real
   val relevant_facts :
     Proof.context -> params -> string -> int -> fact_override -> term list
-    -> term -> fact list -> fact list
+    -> term -> raw_fact list -> (string * fact list) list
   val kill_learners : unit -> unit
   val running_learners : unit -> unit
 end;
@@ -103,9 +107,14 @@ open Sledgehammer_MePo
 
 val trace =
   Attrib.setup_config_bool @{binding sledgehammer_mash_trace} (K false)
+val snow =
+  Attrib.setup_config_bool @{binding sledgehammer_mash_snow} (K false)
+
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
+val MePoN = "MePo"
 val MaShN = "MaSh"
+val MeShN = "MeSh"
 
 val mepoN = "mepo"
 val mashN = "mash"
@@ -146,13 +155,20 @@ fun run_mash_tool ctxt overlord save max_suggs write_cmds read_suggs =
     val sugg_path = Path.explode sugg_file
     val cmd_file = temp_dir ^ "/mash_commands" ^ serial
     val cmd_path = Path.explode cmd_file
+    val model_dir = File.shell_path (mash_model_dir ())
     val core =
       "--inputFile " ^ cmd_file ^ " --predictions " ^ sugg_file ^
       " --numberOfPredictions " ^ string_of_int max_suggs ^
       (* " --learnTheories" ^ *) (if save then " --saveModel" else "")
     val command =
-      "\"$ISABELLE_SLEDGEHAMMER_MASH/src/mash.py\" --quiet --outputDir " ^
-      File.shell_path (mash_model_dir ()) ^ " --log " ^ log_file ^ " " ^ core ^
+      "cd \"$ISABELLE_SLEDGEHAMMER_MASH\"/src; " ^
+      "./mash.py --quiet" ^
+      (if Config.get ctxt snow then " --snow" else "") ^
+      " --outputDir " ^ model_dir ^
+      " --modelFile=" ^ model_dir ^ "/model.pickle" ^
+      " --dictsFile=" ^ model_dir ^ "/dict.pickle" ^
+      " --theoryFile=" ^ model_dir ^ "/theory.pickle" ^
+      " --log " ^ log_file ^ " " ^ core ^
       " >& " ^ err_file
     fun run_on () =
       (Isabelle_System.bash command
@@ -200,7 +216,7 @@ fun freshish_name () =
 
 fun encode_feature (name, weight) =
   encode_str name ^
-  (if Real.== (weight, 1.0) then "" else "=" ^ Real.toString weight)
+  (if Real.== (weight, 1.0) then "" else "=" ^ smart_string_of_real weight)
 
 val encode_features = map encode_feature #> space_implode " "
 
@@ -320,7 +336,7 @@ val empty_state = {access_G = Graph.empty, dirty = SOME []}
 
 local
 
-val version = "*** MaSh version 20130113a ***"
+val version = "*** MaSh version 20130207a ***"
 
 exception Too_New of unit
 
@@ -457,9 +473,8 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
     map fst (take max_facts sels) @ take (max_facts - length sels) unks
   | mesh_facts fact_eq max_facts mess =
     let
-      val mess =
-        mess |> map (apsnd (apfst (normalize_scores max_facts #> `length)))
-      fun score_in fact (global_weight, ((sel_len, sels), unks)) =
+      val mess = mess |> map (apsnd (apfst (normalize_scores max_facts)))
+      fun score_in fact (global_weight, (sels, unks)) =
         let
           fun score_at j =
             case try (nth sels) j of
@@ -474,8 +489,7 @@ fun mesh_facts _ max_facts [(_, (sels, unks))] =
         end
       fun weight_of fact = mess |> map_filter (score_in fact) |> scaled_avg
       val facts =
-        fold (union fact_eq o map fst o take max_facts o snd o fst o snd) mess
-             []
+        fold (union fact_eq o map fst o take max_facts o fst o snd) mess []
     in
       facts |> map (`weight_of) |> sort (int_ord o swap o pairself fst)
             |> map snd |> take max_facts
@@ -526,8 +540,7 @@ fun run_prover_for_mash ctxt params prover facts goal =
   let
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = 1, subgoal_count = 1,
-       facts = facts |> map (apfst (apfst (fn name => name ())))
-                     |> map Untranslated_Fact}
+       factss = [("", facts)]}
   in
     get_minimizing_isar_prover ctxt MaSh (K (K ())) prover params (K (K (K "")))
                                problem
@@ -659,9 +672,7 @@ fun trim_dependencies th deps =
   if length deps > max_dependencies then NONE else SOME deps
 
 fun isar_dependencies_of name_tabs th =
-  let
-    val deps = thms_in_proof (SOME name_tabs) th
-  in
+  let val deps = thms_in_proof (SOME name_tabs) th in
     if deps = [typedef_dep] orelse
        deps = [class_some_dep] orelse
        exists (member (op =) fundef_ths) deps orelse
@@ -682,14 +693,13 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val goal = goal_of_thm thy th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
       val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
-      fun nickify ((_, stature), th) =
-        ((fn () => nickname_of_thm th, stature), th)
+      fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
       fun is_dep dep (_, th) = nickname_of_thm th = dep
       fun add_isar_dep facts dep accum =
         if exists (is_dep dep) accum then
           accum
         else case find_first (is_dep dep) facts of
-          SOME ((name, status), th) => accum @ [((name, status), th)]
+          SOME ((_, status), th) => accum @ [(("", status), th)]
         | NONE => accum (* shouldn't happen *)
       val facts =
         facts
@@ -820,7 +830,10 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
                                     (parents, feats, hints))
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
-  in find_mash_suggestions max_facts suggs facts chained unknown end
+  in
+    find_mash_suggestions max_facts suggs facts chained unknown
+    |> pairself (map fact_of_raw_fact)
+  end
 
 fun learn_wrt_access_graph ctxt (name, parents, feats, deps) (learns, graph) =
   let
@@ -1094,9 +1107,11 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
   if not (subset (op =) (the_list fact_filter, fact_filters)) then
     error ("Unknown fact filter: " ^ quote (the fact_filter) ^ ".")
   else if only then
-    facts
+    let val facts = facts |> map fact_of_raw_fact in
+      [("", facts)]
+    end
   else if max_facts <= 0 orelse null facts then
-    []
+    [("", [])]
   else
     let
       fun maybe_learn () =
@@ -1112,21 +1127,22 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
           end
         else
           ()
-      val fact_filter =
+      val effective_fact_filter =
         case fact_filter of
           SOME ff => (() |> ff <> mepoN ? maybe_learn; ff)
         | NONE =>
-          if is_smt_prover ctxt prover then
-            mepoN
-          else if is_mash_enabled () then
+          if is_mash_enabled () then
             (maybe_learn ();
              if mash_can_suggest_facts ctxt then meshN else mepoN)
           else
             mepoN
       val add_ths = Attrib.eval_thms ctxt add
-      fun prepend_facts ths accepts =
-        ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
-         (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
+      fun in_add (_, th) = member Thm.eq_thm_prop add_ths th
+      fun add_and_take accepts =
+        (case add_ths of
+           [] => accepts
+         | _ => (facts |> filter in_add |> map fact_of_raw_fact) @
+                (accepts |> filter_out in_add))
         |> take max_facts
       fun mepo () =
         mepo_suggested_facts ctxt params prover max_facts NONE hyp_ts concl_t
@@ -1137,13 +1153,24 @@ fun relevant_facts ctxt (params as {learn, fact_filter, timeout, ...}) prover
             hyp_ts concl_t facts
         |>> weight_mash_facts
       val mess =
-        [] |> (if fact_filter <> mashN then cons (mepo_weight, (mepo (), []))
-               else I)
-           |> (if fact_filter <> mepoN then cons (mash_weight, (mash ()))
-               else I)
+        (* the order is important for the "case" expression below *)
+        [] |> (if effective_fact_filter <> mepoN then
+                 cons (mash_weight, (mash ()))
+               else
+                 I)
+           |> (if effective_fact_filter <> mashN then
+                 cons (mepo_weight, (mepo (), []))
+               else
+                 I)
+      val mesh =
+        mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
+        |> add_and_take
     in
-      mesh_facts (Thm.eq_thm_prop o pairself snd) max_facts mess
-      |> not (null add_ths) ? prepend_facts add_ths
+      case (fact_filter, mess) of
+        (NONE, [(_, (mepo, _)), (_, (mash, _))]) =>
+        [(meshN, mesh), (mepoN, mepo |> map fst |> add_and_take),
+         (mashN, mash |> map fst |> add_and_take)]
+      | _ => [("", mesh)]
     end
 
 fun kill_learners () = Async_Manager.kill_threads MaShN "learner"

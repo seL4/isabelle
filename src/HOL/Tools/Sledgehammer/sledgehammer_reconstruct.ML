@@ -131,6 +131,7 @@ fun lam_trans_from_atp_proof atp_proof default =
 
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
+
 fun is_typed_helper_used_in_atp_proof atp_proof =
   is_axiom_used_in_proof is_typed_helper_name atp_proof
 
@@ -145,7 +146,7 @@ val isa_short_ext = Long_Name.base_name isa_ext
 
 fun ext_name ctxt =
   if Thm.eq_thm_prop (@{thm ext},
-         singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
+       singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
     isa_short_ext
   else
     isa_ext
@@ -158,8 +159,8 @@ fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, _, rule, deps)) =
        insert (op =) (ext_name ctxt, (Global, General))
      else if rule = leo2_unfold_def_rule then
        (* LEO 1.3.3 does not record definitions properly, leading to missing
-         dependencies in the TSTP proof. Remove the next line once this is
-         fixed. *)
+          dependencies in the TSTP proof. Remove the next line once this is
+          fixed. *)
        add_non_rec_defs fact_names
      else if rule = satallax_coreN then
        (fn [] =>
@@ -169,8 +170,7 @@ fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, _, rule, deps)) =
          | facts => facts)
      else
        I)
-    #> (if null deps then union (op =) (resolve_fact fact_names ss)
-        else I)
+    #> (if null deps then union (op =) (resolve_fact fact_names ss) else I)
   | add_fact _ _ _ = I
 
 fun used_facts_in_atp_proof ctxt fact_names atp_proof =
@@ -678,6 +678,7 @@ fun isar_proof_text ctxt isar_proofs
         val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
         val axioms = axioms_of_ref_graph ref_graph conjs
         val tainted = tainted_atoms_of_ref_graph ref_graph conjs
+        val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val steps =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
@@ -743,7 +744,7 @@ fun isar_proof_text ctxt isar_proofs
           map (isar_step_of_direct_inf outer) infs
         val (isar_proof, (preplay_fail, preplay_time)) =
           ref_graph
-          |> redirect_graph axioms tainted
+          |> redirect_graph axioms tainted bot
           |> map (isar_step_of_direct_inf true)
           |> append assms
           |> (if not preplay andalso isar_shrink <= 1.0 then

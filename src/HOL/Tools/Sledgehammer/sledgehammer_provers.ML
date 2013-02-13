@@ -11,6 +11,7 @@ sig
   type failure = ATP_Proof.failure
   type stature = ATP_Problem_Generate.stature
   type type_enc = ATP_Problem_Generate.type_enc
+  type fact = Sledgehammer_Fact.fact
   type reconstructor = Sledgehammer_Reconstruct.reconstructor
   type play = Sledgehammer_Reconstruct.play
   type minimize_command = Sledgehammer_Reconstruct.minimize_command
@@ -62,20 +63,17 @@ sig
      threshold_divisor : real,
      ridiculous_threshold : real}
 
-  datatype prover_fact =
-    Untranslated_Fact of (string * stature) * thm |
-    SMT_Weighted_Fact of (string * stature) * (int option * thm)
-
   type prover_problem =
     {state : Proof.state,
      goal : thm,
      subgoal : int,
      subgoal_count : int,
-     facts : prover_fact list}
+     factss : (string * fact list) list}
 
   type prover_result =
     {outcome : failure option,
      used_facts : (string * stature) list,
+     used_from : fact list,
      run_time : Time.time,
      preplay : play Lazy.lazy,
      message : play -> string,
@@ -123,10 +121,6 @@ sig
   val weight_smt_fact :
     Proof.context -> int -> ((string * stature) * thm) * int
     -> (string * stature) * (int option * thm)
-  val untranslated_fact : prover_fact -> (string * stature) * thm
-  val smt_weighted_fact :
-    Proof.context -> int -> prover_fact * int
-    -> (string * stature) * (int option * thm)
   val supported_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
@@ -149,6 +143,7 @@ open ATP_Problem_Generate
 open ATP_Proof_Reconstruct
 open Metis_Tactic
 open Sledgehammer_Util
+open Sledgehammer_Fact
 open Sledgehammer_Reconstruct
 
 
@@ -201,7 +196,7 @@ fun default_max_facts_for_prover ctxt slice name =
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o #1 o fst o snd o snd)
+      fold (Integer.max o fst o #1 o fst o snd o snd)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -355,20 +350,17 @@ type relevance_fudge =
    threshold_divisor : real,
    ridiculous_threshold : real}
 
-datatype prover_fact =
-  Untranslated_Fact of (string * stature) * thm |
-  SMT_Weighted_Fact of (string * stature) * (int option * thm)
-
 type prover_problem =
   {state : Proof.state,
    goal : thm,
    subgoal : int,
    subgoal_count : int,
-   facts : prover_fact list}
+   factss : (string * fact list) list}
 
 type prover_result =
   {outcome : failure option,
    used_facts : (string * stature) list,
+   used_from : fact list,
    run_time : Time.time,
    preplay : play Lazy.lazy,
    message : play -> string,
@@ -429,12 +421,6 @@ fun weight_smt_fact ctxt num_facts ((info, th), j) =
   let val thy = Proof_Context.theory_of ctxt in
     (info, (smt_fact_weight ctxt j num_facts, th |> Thm.transfer thy))
   end
-
-fun untranslated_fact (Untranslated_Fact p) = p
-  | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
-fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
-  | smt_weighted_fact ctxt num_facts (fact, j) =
-    (untranslated_fact fact, j) |> weight_smt_fact ctxt num_facts
 
 fun overlord_file_location_for_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
@@ -544,6 +530,12 @@ fun play_one_line_proof mode debug verbose timeout pairs state i preferred
    clearly inconsistent facts such as X = a | X = b, though it by no means
    guarantees soundness. *)
 
+fun get_facts_for_filter _ [(_, facts)] = facts
+  | get_facts_for_filter fact_filter factss =
+    case AList.lookup (op =) factss fact_filter of
+      SOME facts => facts
+    | NONE => snd (hd factss)
+
 (* Unwanted equalities are those between a (bound or schematic) variable that
    does not properly occur in the second operand. *)
 val is_exhaustive_finite =
@@ -642,11 +634,11 @@ fun run_atp mode name
         ({exec, arguments, proof_delims, known_failures, prem_role, best_slices,
           best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
-                    uncurried_aliases, max_facts, max_mono_iters,
+                    uncurried_aliases, fact_filter, max_facts, max_mono_iters,
                     max_new_mono_instances, isar_proofs, isar_shrink,
                     slice, timeout, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -723,10 +715,14 @@ fun run_atp mode name
           end
         fun run_slice time_left (cache_key, cache_value)
                 (slice, (time_frac,
-                     (key as (best_max_facts, format, best_type_enc,
-                              best_lam_trans, best_uncurried_aliases),
+                     (key as ((best_max_facts, best_fact_filter), format,
+                              best_type_enc, best_lam_trans,
+                              best_uncurried_aliases),
                       extra))) =
           let
+            val effective_fact_filter =
+              fact_filter |> the_default best_fact_filter
+            val facts = get_facts_for_filter effective_fact_filter factss
             val num_facts =
               length facts |> is_none max_facts ? Integer.min best_max_facts
             val soundness = if strict then Strict else Non_Strict
@@ -773,7 +769,6 @@ fun run_atp mode name
                 cache_value
               else
                 facts
-                |> map untranslated_fact
                 |> not sound
                    ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                 |> take num_facts
@@ -798,7 +793,7 @@ fun run_atp mode name
               |> lines_for_atp_problem format ord ord_info
               |> cons ("% " ^ command ^ "\n")
               |> File.write_list prob_path
-            val ((output, run_time), (atp_proof, outcome)) =
+            val ((output, run_time), used_from, (atp_proof, outcome)) =
               time_limit generous_slice_timeout Isabelle_System.bash_output
                          command
               |>> (if overlord then
@@ -807,14 +802,14 @@ fun run_atp mode name
                      I)
               |> fst |> split_time
               |> (fn accum as (output, _) =>
-                     (accum,
+                     (accum, facts,
                       extract_tstplike_proof_and_outcome verbose proof_delims
                                                          known_failures output
                       |>> atp_proof_from_tstplike_proof atp_problem
                       handle UNRECOGNIZED_ATP_PROOF () =>
                              ([], SOME ProofIncomplete)))
               handle TimeLimit.TimeOut =>
-                     (("", the slice_timeout), ([], SOME TimedOut))
+                     (("", the slice_timeout), [], ([], SOME TimedOut))
             val outcome =
               case outcome of
                 NONE =>
@@ -830,10 +825,12 @@ fun run_atp mode name
                    end
                  | NONE => NONE)
               | _ => outcome
-          in ((SOME key, value), (output, run_time, atp_proof, outcome)) end
+          in
+            ((SOME key, value), (output, run_time, facts, atp_proof, outcome))
+          end
         val timer = Timer.startRealTimer ()
         fun maybe_run_slice slice
-                (result as (cache, (_, run_time0, _, SOME _))) =
+                (result as (cache, (_, run_time0, _, _, SOME _))) =
             let
               val time_left =
                 Option.map
@@ -845,25 +842,26 @@ fun run_atp mode name
                 result
               else
                 run_slice time_left cache slice
-                |> (fn (cache, (output, run_time, atp_proof, outcome)) =>
-                       (cache, (output, Time.+ (run_time0, run_time),
+                |> (fn (cache, (output, run_time, used_from, atp_proof,
+                                outcome)) =>
+                       (cache, (output, Time.+ (run_time0, run_time), used_from,
                                 atp_proof, outcome)))
             end
           | maybe_run_slice _ result = result
       in
         ((NONE, ([], Symtab.empty, Vector.fromList [], [], Symtab.empty)),
-         ("", Time.zeroTime, [], SOME InternalError))
+         ("", Time.zeroTime, [], [], SOME InternalError))
         |> fold maybe_run_slice actual_slices
       end
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)
     fun clean_up () =
       if dest_dir = "" then (try File.rm prob_path; ()) else ()
-    fun export (_, (output, _, _, _)) =
+    fun export (_, (output, _, _, _, _)) =
       if dest_dir = "" then ()
       else File.write (Path.explode (Path.implode prob_path ^ "_proof")) output
     val ((_, (_, pool, fact_names, _, sym_tab)),
-         (output, run_time, atp_proof, outcome)) =
+         (output, run_time, used_from, atp_proof, outcome)) =
       with_cleanup clean_up run () |> tap export
     val important_message =
       if mode = Normal andalso
@@ -887,8 +885,7 @@ fun run_atp mode name
            Lazy.lazy (fn () =>
              let
                val used_pairs =
-                 facts |> map untranslated_fact
-                       |> filter_used_facts false used_facts
+                 used_from |> filter_used_facts false used_facts
              in
                play_one_line_proof mode debug verbose preplay_timeout
                    used_pairs state subgoal (hd reconstrs) reconstrs
@@ -926,9 +923,14 @@ fun run_atp mode name
         ([], Lazy.value (Failed_to_Play plain_metis),
          fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
+     run_time = run_time, preplay = preplay, message = message,
+     message_tail = message_tail}
   end
+
+fun rotate_one (x :: xs) = xs @ [x]
+
+fun app_hd f (x :: xs) = f x :: xs
 
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
@@ -962,11 +964,12 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
 val smt_max_slices =
   Attrib.setup_config_int @{binding sledgehammer_smt_max_slices} (K 8)
 val smt_slice_fact_frac =
-  Attrib.setup_config_real @{binding sledgehammer_smt_slice_fact_frac} (K 0.5)
+  Attrib.setup_config_real @{binding sledgehammer_smt_slice_fact_frac}
+                           (K 0.667)
 val smt_slice_time_frac =
-  Attrib.setup_config_real @{binding sledgehammer_smt_slice_time_frac} (K 0.5)
+  Attrib.setup_config_real @{binding sledgehammer_smt_slice_time_frac} (K 0.333)
 val smt_slice_min_secs =
-  Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 5)
+  Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 3)
 
 fun smt_filter_loop name
                     ({debug, verbose, overlord, max_mono_iters,
@@ -987,7 +990,8 @@ fun smt_filter_loop name
     val ctxt = Proof.context_of state |> repair_context
     val state = state |> Proof.map_context (K ctxt)
     val max_slices = if slice then Config.get ctxt smt_max_slices else 1
-    fun do_slice timeout slice outcome0 time_so_far facts =
+    fun do_slice timeout slice outcome0 time_so_far
+                 (weighted_factss as (fact_filter, weighted_facts) :: _) =
       let
         val timer = Timer.startRealTimer ()
         val state =
@@ -1006,7 +1010,7 @@ fun smt_filter_loop name
             end
           else
             timeout
-        val num_facts = length facts
+        val num_facts = length weighted_facts
         val _ =
           if debug then
             quote name ^ " slice " ^ string_of_int slice ^ " with " ^
@@ -1022,7 +1026,8 @@ fun smt_filter_loop name
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val state_facts = these (try (#facts o Proof.goal) state)
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter_preprocess ctxt state_facts goal facts i
+          SMT_Solver.smt_filter_preprocess ctxt state_facts goal weighted_facts
+              i
           |> SMT_Solver.smt_filter_apply (slice_timeout |> the_default one_day)
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
@@ -1053,36 +1058,48 @@ fun smt_filter_loop name
             val new_num_facts =
               Real.ceil (Config.get ctxt smt_slice_fact_frac
                          * Real.fromInt num_facts)
+            val weighted_factss as (new_fact_filter, _) :: _ =
+              weighted_factss
+              |> rotate_one
+              |> app_hd (apsnd (take new_num_facts))
+            val show_filter = fact_filter <> new_fact_filter
+            fun num_of_facts fact_filter num_facts =
+              string_of_int num_facts ^
+              (if show_filter then " " ^ quote fact_filter else "") ^
+              " fact" ^ plural_s num_facts
             val _ =
               if verbose andalso is_some outcome then
-                quote name ^ " invoked with " ^ string_of_int num_facts ^
-                " fact" ^ plural_s num_facts ^ ": " ^
+                quote name ^ " invoked with " ^
+                num_of_facts fact_filter num_facts ^ ": " ^
                 string_for_failure (failure_from_smt_failure (the outcome)) ^
-                " Retrying with " ^ string_of_int new_num_facts ^ " fact" ^
-                plural_s new_num_facts ^ "..."
+                " Retrying with " ^ num_of_facts new_fact_filter new_num_facts ^
+                "..."
                 |> Output.urgent_message
               else
                 ()
           in
-            facts |> take new_num_facts
-                  |> do_slice timeout (slice + 1) outcome0 time_so_far
+            do_slice timeout (slice + 1) outcome0 time_so_far weighted_factss
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
-           used_facts = used_facts, run_time = time_so_far}
+           used_facts = used_facts, used_from = map (apsnd snd) weighted_facts,
+           run_time = time_so_far}
       end
   in do_slice timeout 1 NONE Time.zeroTime end
 
 fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         minimize_command
-        ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
-    val num_facts = length facts
-    val facts = facts ~~ (0 upto num_facts - 1)
-                |> map (smt_weighted_fact ctxt num_facts)
-    val {outcome, used_facts = used_pairs, run_time} =
-      smt_filter_loop name params state goal subgoal facts
+    fun weight_facts facts =
+      let val num_facts = length facts in
+        facts ~~ (0 upto num_facts - 1)
+        |> map (weight_smt_fact ctxt num_facts)
+      end
+    val weighted_factss = factss |> map (apsnd weight_facts)
+    val {outcome, used_facts = used_pairs, used_from, run_time} =
+      smt_filter_loop name params state goal subgoal weighted_factss
     val used_facts = used_pairs |> map fst
     val outcome = outcome |> Option.map failure_from_smt_failure
     val (preplay, message, message_tail) =
@@ -1109,14 +1126,16 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
         (Lazy.value (Failed_to_Play plain_metis),
          fn _ => string_for_failure failure, "")
   in
-    {outcome = outcome, used_facts = used_facts, run_time = run_time,
-     preplay = preplay, message = message, message_tail = message_tail}
+    {outcome = outcome, used_facts = used_facts, used_from = used_from,
+     run_time = run_time, preplay = preplay, message = message,
+     message_tail = message_tail}
   end
 
 fun run_reconstructor mode name
         (params as {debug, verbose, timeout, type_enc, lam_trans, ...})
         minimize_command
-        ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+        ({state, subgoal, subgoal_count, factss = (_, facts) :: _, ...}
+         : prover_problem) =
   let
     val reconstr =
       if name = metisN then
@@ -1126,15 +1145,14 @@ fun run_reconstructor mode name
         SMT
       else
         raise Fail ("unknown reconstructor: " ^ quote name)
-    val used_pairs = facts |> map untranslated_fact
-    val used_facts = used_pairs |> map fst
+    val used_facts = facts |> map fst
   in
     case play_one_line_proof (if mode = Minimize then Normal else mode) debug
-                             verbose timeout used_pairs state subgoal reconstr
+                             verbose timeout facts state subgoal reconstr
                              [reconstr] of
       play as Played (_, time) =>
-      {outcome = NONE, used_facts = used_facts, run_time = time,
-       preplay = Lazy.value play,
+      {outcome = NONE, used_facts = used_facts, used_from = facts,
+       run_time = time, preplay = Lazy.value play,
        message =
          fn play =>
             let
@@ -1150,8 +1168,8 @@ fun run_reconstructor mode name
       let
         val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
       in
-        {outcome = SOME failure, used_facts = [], run_time = Time.zeroTime,
-         preplay = Lazy.value play,
+        {outcome = SOME failure, used_facts = [], used_from = [],
+         run_time = Time.zeroTime, preplay = Lazy.value play,
          message = fn _ => string_for_failure failure, message_tail = ""}
       end
   end

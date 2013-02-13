@@ -3,7 +3,7 @@
 *)
 
 theory Discrete_Topology
-imports Multivariate_Analysis
+imports "~~/src/HOL/Multivariate_Analysis/Multivariate_Analysis"
 begin
 
 text {* Copy of discrete types with discrete topology. This space is polish. *}
