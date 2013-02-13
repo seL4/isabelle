@@ -76,9 +76,8 @@ lemma domain_finmap_of[simp]:
 
 lemma finmap_of_eq_iff[simp]:
   assumes "finite i" "finite j"
-  shows "finmap_of i m = finmap_of j n \<longleftrightarrow> i = j \<and> restrict m i = restrict n i"
-  using assms
-  apply (auto simp: finmap_eq_iff restrict_def) by metis
+  shows "finmap_of i m = finmap_of j n \<longleftrightarrow> i = j \<and> (\<forall>k\<in>i. m k= n k)"
+  using assms by (auto simp: finmap_eq_iff)
 
 lemma finmap_of_inj_on_extensional_finite:
   assumes "finite K"
@@ -169,16 +168,7 @@ instantiation finmap :: (type, metric_space) metric_space
 begin
 
 definition dist_finmap where
-  "dist P Q = (\<Sum>i\<in>domain P \<union> domain Q. dist ((P)\<^isub>F i) ((Q)\<^isub>F i)) +
-    card ((domain P - domain Q) \<union> (domain Q - domain P))"
-
-lemma dist_finmap_extend:
-  assumes "finite X"
-  shows "dist P Q = (\<Sum>i\<in>domain P \<union> domain Q \<union> X. dist ((P)\<^isub>F i) ((Q)\<^isub>F i)) +
-    card ((domain P - domain Q) \<union> (domain Q - domain P))"
-    unfolding dist_finmap_def add_right_cancel
-    using assms extensional_arb[of "(P)\<^isub>F"] extensional_arb[of "(Q)\<^isub>F" "domain Q"]
-    by (intro setsum_mono_zero_cong_left) auto
+  "dist P Q = Max (range (\<lambda>i. dist ((P)\<^isub>F i) ((Q)\<^isub>F i))) + (if domain P = domain Q then 0 else 1)"
 
 definition open_finmap :: "('a \<Rightarrow>\<^isub>F 'b) set \<Rightarrow> bool" where
   "open_finmap S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
@@ -189,25 +179,45 @@ lemma add_eq_zero_iff[simp]:
   shows "a + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
 using assms by auto
 
-lemma dist_le_1_imp_domain_eq:
-  assumes "dist P Q < 1"
-  shows "domain P = domain Q"
+lemma finite_proj_image': "x \<notin> domain P \<Longrightarrow> finite ((P)\<^isub>F ` S)"
+  by (rule finite_subset[of _ "proj P ` (domain P \<inter> S \<union> {x})"]) auto
+
+lemma finite_proj_image: "finite ((P)\<^isub>F ` S)"
+ by (cases "\<exists>x. x \<notin> domain P") (auto intro: finite_proj_image' finite_subset[where B="domain P"])
+
+lemma finite_proj_diag: "finite ((\<lambda>i. d ((P)\<^isub>F i) ((Q)\<^isub>F i)) ` S)"
 proof -
-  have "0 \<le> (\<Sum>i\<in>domain P \<union> domain Q. dist (P i) (Q i))"
-    by (simp add: setsum_nonneg)
-  with assms have "card (domain P - domain Q \<union> (domain Q - domain P)) = 0"
-    unfolding dist_finmap_def by arith
-  thus "domain P = domain Q" by auto
+  have "(\<lambda>i. d ((P)\<^isub>F i) ((Q)\<^isub>F i)) ` S = (\<lambda>(i, j). d i j) ` ((\<lambda>i. ((P)\<^isub>F i, (Q)\<^isub>F i)) ` S)" by auto
+  moreover have "((\<lambda>i. ((P)\<^isub>F i, (Q)\<^isub>F i)) ` S) \<subseteq> (\<lambda>i. (P)\<^isub>F i) ` S \<times> (\<lambda>i. (Q)\<^isub>F i) ` S" by auto
+  moreover have "finite \<dots>" using finite_proj_image[of P S] finite_proj_image[of Q S]
+    by (intro finite_cartesian_product) simp_all
+  ultimately show ?thesis by (simp add: finite_subset)
 qed
+
+lemma dist_le_1_imp_domain_eq:
+  shows "dist P Q < 1 \<Longrightarrow> domain P = domain Q"
+  by (simp add: dist_finmap_def finite_proj_diag split: split_if_asm)
 
 lemma dist_proj:
   shows "dist ((x)\<^isub>F i) ((y)\<^isub>F i) \<le> dist x y"
 proof -
-  have "dist (x i) (y i) = (\<Sum>i\<in>{i}. dist (x i) (y i))" by simp
-  also have "\<dots> \<le> (\<Sum>i\<in>domain x \<union> domain y \<union> {i}. dist (x i) (y i))"
-    by (intro setsum_mono2) auto
-  also have "\<dots> \<le> dist x y" by (simp add: dist_finmap_extend[of "{i}"])
-  finally show ?thesis by simp
+  have "dist (x i) (y i) \<le> Max (range (\<lambda>i. dist (x i) (y i)))"
+    by (simp add: Max_ge_iff finite_proj_diag)
+  also have "\<dots> \<le> dist x y" by (simp add: dist_finmap_def)
+  finally show ?thesis .
+qed
+
+lemma dist_finmap_lessI:
+  assumes "domain P = domain Q" "0 < e" "\<And>i. i \<in> domain P \<Longrightarrow> dist (P i) (Q i) < e"
+  shows "dist P Q < e"
+proof -
+  have "dist P Q = Max (range (\<lambda>i. dist (P i) (Q i)))"
+    using assms by (simp add: dist_finmap_def finite_proj_diag)
+  also have "\<dots> < e"
+  proof (subst Max_less_iff, safe)
+    fix i show "dist ((P)\<^isub>F i) ((Q)\<^isub>F i) < e" using assms by (cases "i \<in> domain P") simp_all
+  qed (simp add: finite_proj_diag)
+  finally show ?thesis .
 qed
 
 lemma open_Pi'I:
@@ -266,24 +276,25 @@ proof
     unfolding open_finmap_def ..
 next
   fix P Q::"'a \<Rightarrow>\<^isub>F 'b"
+  have Max_eq_iff: "\<And>A m. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (Max A = m) = (m \<in> A \<and> (\<forall>a\<in>A. a \<le> m))"
+    by (metis Max.in_idem Max_in max_def min_max.sup.commute order_refl)
   show "dist P Q = 0 \<longleftrightarrow> P = Q"
-    by (auto simp: finmap_eq_iff dist_finmap_def setsum_nonneg setsum_nonneg_eq_0_iff)
+    by (auto simp: finmap_eq_iff dist_finmap_def Max_ge_iff finite_proj_diag Max_eq_iff
+      intro!: Max_eqI image_eqI[where x=undefined])
 next
   fix P Q R::"'a \<Rightarrow>\<^isub>F 'b"
-  let ?symdiff = "\<lambda>a b. domain a - domain b \<union> (domain b - domain a)"
-  def E \<equiv> "domain P \<union> domain Q \<union> domain R"
-  hence "finite E" by (simp add: E_def)
-  have "card (?symdiff P Q) \<le> card (?symdiff P R \<union> ?symdiff Q R)"
-    by (auto intro: card_mono)
-  also have "\<dots> \<le> card (?symdiff P R) + card (?symdiff Q R)"
-    by (subst card_Un_Int) auto
-  finally have "dist P Q \<le> (\<Sum>i\<in>E. dist (P i) (R i) + dist (Q i) (R i)) +
-    real (card (?symdiff P R) + card (?symdiff Q R))"
-    unfolding dist_finmap_extend[OF `finite E`]
-    by (intro add_mono) (auto simp: E_def intro: setsum_mono dist_triangle_le)
-  also have "\<dots> \<le> dist P R + dist Q R"
-    unfolding dist_finmap_extend[OF `finite E`] by (simp add: ac_simps E_def setsum_addf[symmetric])
-  finally show "dist P Q \<le> dist P R + dist Q R" by simp
+  let ?dists = "\<lambda>P Q i. dist ((P)\<^isub>F i) ((Q)\<^isub>F i)"
+  let ?dpq = "?dists P Q" and ?dpr = "?dists P R" and ?dqr = "?dists Q R"
+  let ?dom = "\<lambda>P Q. (if domain P = domain Q then 0 else 1::real)"
+  have "dist P Q = Max (range ?dpq) + ?dom P Q"
+    by (simp add: dist_finmap_def)
+  also obtain t where "t \<in> range ?dpq" "t = Max (range ?dpq)" by (simp add: finite_proj_diag)
+  then obtain i where "Max (range ?dpq) = ?dpq i" by auto
+  also have "?dpq i \<le> ?dpr i + ?dqr i" by (rule dist_triangle2)
+  also have "?dpr i \<le> Max (range ?dpr)" by (simp add: finite_proj_diag)
+  also have "?dqr i \<le> Max (range ?dqr)" by (simp add: finite_proj_diag)
+  also have "?dom P Q \<le> ?dom P R + ?dom Q R" by simp
+  finally show "dist P Q \<le> dist P R + dist Q R" by (simp add: dist_finmap_def ac_simps)
 qed
 
 end
@@ -353,26 +364,27 @@ qed
 
 subsection {* Complete Space of Finite Maps *}
 
-lemma tendsto_dist_zero:
-  assumes "(\<lambda>i. dist (f i) g) ----> 0"
-  shows "f ----> g"
-  using assms by (auto simp: tendsto_iff dist_real_def)
-
-lemma tendsto_dist_zero':
-  assumes "(\<lambda>i. dist (f i) g) ----> x"
-  assumes "0 = x"
-  shows "f ----> g"
-  using assms tendsto_dist_zero by simp
-
 lemma tendsto_finmap:
   fixes f::"nat \<Rightarrow> ('i \<Rightarrow>\<^isub>F ('a::metric_space))"
   assumes ind_f:  "\<And>n. domain (f n) = domain g"
   assumes proj_g:  "\<And>i. i \<in> domain g \<Longrightarrow> (\<lambda>n. (f n) i) ----> g i"
   shows "f ----> g"
-  apply (rule tendsto_dist_zero')
-  unfolding dist_finmap_def assms
-  apply (rule tendsto_intros proj_g | simp)+
-  done
+  unfolding tendsto_iff
+proof safe
+  fix e::real assume "0 < e"
+  let ?dists = "\<lambda>x i. dist ((f x)\<^isub>F i) ((g)\<^isub>F i)"
+  have "eventually (\<lambda>x. \<forall>i\<in>domain g. ?dists x i < e) sequentially"
+    using finite_domain[of g] proj_g
+  proof induct
+    case (insert i G)
+    with `0 < e` have "eventually (\<lambda>x. ?dists x i < e) sequentially" by (auto simp add: tendsto_iff)
+    moreover
+    from insert have "eventually (\<lambda>x. \<forall>i\<in>G. dist ((f x)\<^isub>F i) ((g)\<^isub>F i) < e) sequentially" by simp
+    ultimately show ?case by eventually_elim auto
+  qed simp
+  thus "eventually (\<lambda>x. dist (f x) g < e) sequentially"
+    by eventually_elim (auto simp add: dist_finmap_def finite_proj_diag ind_f `0 < e`)
+qed
 
 instance finmap :: (type, complete_space) complete_space
 proof
@@ -412,34 +424,27 @@ proof
   have "P ----> Q"
   proof (rule metric_LIMSEQ_I)
     fix e::real assume "0 < e"
-    def e' \<equiv> "min 1 (e / (card d + 1))"
-    hence "0 < e'" using `0 < e` by (auto simp: e'_def intro: divide_pos_pos)
-    have "\<exists>ni. \<forall>i\<in>d. \<forall>n\<ge>ni i. dist (p i n) (q i) < e'"
+    have "\<exists>ni. \<forall>i\<in>d. \<forall>n\<ge>ni i. dist (p i n) (q i) < e"
     proof (safe intro!: bchoice)
       fix i assume "i \<in> d"
-      from p[OF `i \<in> d`, THEN metric_LIMSEQ_D, OF `0 < e'`]
-      show "\<exists>no. \<forall>n\<ge>no. dist (p i n) (q i) < e'" .
+      from p[OF `i \<in> d`, THEN metric_LIMSEQ_D, OF `0 < e`]
+      show "\<exists>no. \<forall>n\<ge>no. dist (p i n) (q i) < e" .
     qed then guess ni .. note ni = this
     def N \<equiv> "max Nd (Max (ni ` d))"
     show "\<exists>N. \<forall>n\<ge>N. dist (P n) Q < e"
     proof (safe intro!: exI[where x="N"])
       fix n assume "N \<le> n"
-      hence "domain (P n) = d" "domain Q = d" "domain (P n) = domain Q"
+      hence dom: "domain (P n) = d" "domain Q = d" "domain (P n) = domain Q"
         using dim by (simp_all add: N_def Q_def dim_def Abs_finmap_inverse)
-      hence "dist (P n) Q = (\<Sum>i\<in>d. dist ((P n) i) (Q i))" by (simp add: dist_finmap_def)
-      also have "\<dots> \<le> (\<Sum>i\<in>d. e')"
-      proof (intro setsum_mono less_imp_le)
-        fix i assume "i \<in> d"
-        hence "ni i \<le> Max (ni ` d)" by simp
+      show "dist (P n) Q < e"
+      proof (rule dist_finmap_lessI[OF dom(3) `0 < e`])
+        fix i
+        assume "i \<in> domain (P n)"
+        hence "ni i \<le> Max (ni ` d)" using dom by simp
         also have "\<dots> \<le> N" by (simp add: N_def)
-        also have "\<dots> \<le> n" using `N \<le> n` .
-        finally
-        show "dist ((P n) i) (Q i) < e'"
-          using ni `i \<in> d` by (auto simp: p_def q N_def)
+        finally show "dist ((P n)\<^isub>F i) ((Q)\<^isub>F i) < e" using ni `i \<in> domain (P n)` `N \<le> n` dom
+          by (auto simp: p_def q N_def less_imp_le)
       qed
-      also have "\<dots> = card d * e'" by (simp add: real_eq_of_nat)
-      also have "\<dots> < e" using `0 < e` by (simp add: e'_def field_simps min_def)
-      finally show "dist (P n) Q < e" .
     qed
   qed
   thus "convergent P" by (auto simp: convergent_def)
@@ -489,16 +494,14 @@ next
   fix O'::"('a \<Rightarrow>\<^isub>F 'b) set" and x
   assume "open O'" "x \<in> O'"
   then obtain e where e: "e > 0" "\<And>y. dist y x < e \<Longrightarrow> y \<in> O'"  unfolding open_dist by blast
-  def e' \<equiv> "e / (card (domain x) + 1)"
-
   have "\<exists>B.
-    (\<forall>i\<in>domain x. x i \<in> B i \<and> B i \<subseteq> ball (x i) e' \<and> B i \<in> union_closed_basis)"
+    (\<forall>i\<in>domain x. x i \<in> B i \<and> B i \<subseteq> ball (x i) e \<and> B i \<in> union_closed_basis)"
   proof (rule bchoice, safe)
     fix i assume "i \<in> domain x"
-    have "open (ball (x i) e')" "x i \<in> ball (x i) e'" using e
-      by (auto simp add: e'_def intro!: divide_pos_pos)
+    have "open (ball (x i) e)" "x i \<in> ball (x i) e" using e
+      by (auto simp add: intro!: divide_pos_pos)
     from topological_basisE[OF basis_union_closed_basis this] guess b' .
-    thus "\<exists>y. x i \<in> y \<and> y \<subseteq> ball (x i) e' \<and> y \<in> union_closed_basis" by auto
+    thus "\<exists>y. x i \<in> y \<and> y \<subseteq> ball (x i) e \<and> y \<in> union_closed_basis" by auto
   qed
   then guess B .. note B = this
   def B' \<equiv> "Pi' (domain x) (\<lambda>i. (B i)::'b set)"
@@ -507,24 +510,16 @@ next
   moreover have "x \<in> B'" unfolding B'_def using B by auto
   moreover have "B' \<subseteq> O'"
   proof
-    fix y assume "y \<in> B'" with B have "domain y = domain x" unfolding B'_def
+    fix y assume "y \<in> B'" with B have dom: "domain y = domain x" unfolding B'_def
       by (simp add: Pi'_def)
     show "y \<in> O'"
-    proof (rule e)
-      have "dist y x = (\<Sum>i \<in> domain x. dist (y i) (x i))"
-        using `domain y = domain x` by (simp add: dist_finmap_def)
-      also have "\<dots> \<le> (\<Sum>i \<in> domain x. e')"
-      proof (rule setsum_mono)
-        fix i assume "i \<in> domain x"
-        with `y \<in> B'` B have "y i \<in> B i"
-          by (simp add: Pi'_def B'_def)
-        hence "y i \<in> ball (x i) e'" using B `domain y = domain x` `i \<in> domain x`
-          by force
-        thus "dist (y i) (x i) \<le> e'" by (simp add: dist_commute)
-      qed
-      also have "\<dots> = card (domain x) * e'" by (simp add: real_eq_of_nat)
-      also have "\<dots> < e" using e by (simp add: e'_def field_simps)
-      finally show "dist y x < e" .
+    proof (rule e, rule dist_finmap_lessI[OF dom `0 < e`])
+      fix i assume "i \<in> domain y"
+      with `y \<in> B'` B have "y i \<in> B i"
+        by (simp add: Pi'_def B'_def)
+      hence "y i \<in> ball (x i) e" using B `domain y = domain x` `i \<in> domain y`
+        by force
+      thus "dist (y i) (x i) < e" by (simp add: dist_commute)
     qed
   qed
   ultimately
