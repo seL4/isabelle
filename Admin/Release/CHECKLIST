@@ -59,7 +59,8 @@ Final release stage
 ===================
 
 - various .hg/hgrc files:
-  default = /home/isabelle-repository/repos/isabelle-release
+  default = http://bitbucket.org/isabelle_project/isabelle-release
+  default = ssh://hg@bitbucket.org/isabelle_project/isabelle-release
 
 - isatest@macbroy28:hg-isabelle/.hg/hgrc
 - isatest@macbroy28:devel-page/content/index.content
