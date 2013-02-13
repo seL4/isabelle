@@ -182,7 +182,7 @@ end;
 (* scheduling parameters *)
 
 val parallel_proofs = Unsynchronized.ref 1;
-val parallel_proofs_threshold = Unsynchronized.ref 50;
+val parallel_proofs_threshold = Unsynchronized.ref 100;
 
 fun future_enabled_level n =
   Multithreading.enabled () andalso ! parallel_proofs >= n andalso
