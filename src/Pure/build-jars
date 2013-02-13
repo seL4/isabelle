@@ -16,6 +16,7 @@ declare -a SOURCES=(
   General/exn.scala
   General/file.scala
   General/graph.scala
+  General/graphics_file.scala
   General/linear_set.scala
   General/path.scala
   General/position.scala
