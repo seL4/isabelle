@@ -49,7 +49,7 @@ if [ -z "$INFILE" ]; then
   EXIT="fun exit rc : unit = Posix.Process.exit (Word8.fromInt rc);"
 else
   check_file "$INFILE"
-  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle Fail msg => (TextIO.output (TextIO.stdErr, msg ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"
+  INIT="(Signal.signal (2, Signal.SIG_HANDLE (fn _ => Process.interruptConsoleProcesses ())); PolyML.SaveState.loadState \"$INFILE\" handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $INFILE\\n\"); Posix.Process.exit 0w1));"
   EXIT=""
 fi
 
@@ -57,7 +57,7 @@ if [ -z "$OUTFILE" ]; then
   COMMIT='fun commit () = false;'
   MLEXIT=""
 else
-  COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true);"
+  COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true) handle exn => (TextIO.output (TextIO.stdErr, General.exnMessage exn ^ \": $OUTFILE\\n\"); Posix.Process.exit 0w1);"
   [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
   MLEXIT="commit();"
 fi
