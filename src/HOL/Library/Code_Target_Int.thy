@@ -26,18 +26,18 @@ lemma [code]:
   by (simp add: integer_of_num_def fun_eq_iff)
 
 lemma [code_abbrev]:
-  "int_of_integer (Code_Numeral_Types.Pos k) = Int.Pos k"
+  "int_of_integer (numeral k) = Int.Pos k"
   by simp
 
 lemma [code_abbrev]:
-  "int_of_integer (Code_Numeral_Types.Neg k) = Int.Neg k"
+  "int_of_integer (neg_numeral k) = Int.Neg k"
   by simp
-
-lemma [code]:
+  
+lemma [code, symmetric, code_post]:
   "0 = int_of_integer 0"
   by simp
 
-lemma [code]:
+lemma [code, symmetric, code_post]:
   "1 = int_of_integer 1"
   by simp
 

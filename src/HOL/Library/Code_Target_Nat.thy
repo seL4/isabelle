@@ -14,13 +14,15 @@ definition Nat :: "integer \<Rightarrow> nat"
 where
   "Nat = nat_of_integer"
 
-definition integer_of_nat :: "nat \<Rightarrow> integer"
-where
-  [code_abbrev]: "integer_of_nat = of_nat"
+lemma [code_post]:
+  "Nat 0 = 0"
+  "Nat 1 = 1"
+  "Nat (numeral k) = numeral k"
+  by (simp_all add: Nat_def nat_of_integer_def)
 
-lemma int_of_integer_integer_of_nat [simp]:
-  "int_of_integer (integer_of_nat n) = of_nat n"
-  by (simp add: integer_of_nat_def)
+lemma [code_abbrev]:
+  "integer_of_nat = of_nat"
+  by (fact integer_of_nat_def)
 
 lemma [code_unfold]:
   "Int.nat (int_of_integer k) = nat_of_integer k"
@@ -35,7 +37,7 @@ lemma [code abstract]:
   by (simp add: integer_of_nat_def)
 
 lemma [code_abbrev]:
-  "nat_of_integer (Code_Numeral_Types.Pos k) = nat_of_num k"
+  "nat_of_integer (numeral k) = nat_of_num k"
   by (simp add: nat_of_integer_def nat_of_num_numeral)
 
 lemma [code abstract]:

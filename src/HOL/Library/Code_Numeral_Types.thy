@@ -83,6 +83,14 @@ lemma int_of_integer_of_nat [simp]:
   "int_of_integer (of_nat n) = of_nat n"
   by (induct n) simp_all
 
+definition integer_of_nat :: "nat \<Rightarrow> integer"
+where
+  "integer_of_nat = of_nat"
+
+lemma int_of_integer_integer_of_nat [simp]:
+  "int_of_integer (integer_of_nat n) = of_nat n"
+  by (simp add: integer_of_nat_def)
+  
 definition nat_of_integer :: "integer \<Rightarrow> nat"
 where
   "nat_of_integer k = Int.nat (int_of_integer k)"
@@ -95,7 +103,11 @@ lemma int_of_integer_of_int [simp]:
   "int_of_integer (of_int k) = k"
   by (induct k) (simp_all, simp only: neg_numeral_def numeral_One int_of_integer_uminus int_of_integer_one)
 
-lemma integer_integer_of_int_eq_of_integer_integer_of_int [simp, code_abbrev]:
+lemma nat_of_integer_integer_of_nat [simp]:
+  "nat_of_integer (integer_of_nat n) = n"
+  by (simp add: integer_of_nat_def)
+
+lemma integer_of_int_eq_of_int [simp, code_abbrev]:
   "integer_of_int = of_int"
   by rule (simp add: integer_eq_iff)
 
@@ -784,6 +796,12 @@ subsection {* Code refinement for target language naturals *}
 definition Nat :: "integer \<Rightarrow> natural"
 where
   "Nat = natural_of_integer"
+
+lemma [code_post]:
+  "Nat 0 = 0"
+  "Nat 1 = 1"
+  "Nat (numeral k) = numeral k"
+  by (simp_all add: Nat_def nat_of_integer_def natural_of_integer_def)
 
 lemma [code abstype]:
   "Nat (integer_of_natural n) = n"
