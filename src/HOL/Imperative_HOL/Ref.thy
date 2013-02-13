@@ -216,7 +216,7 @@ lemma update_change [code]:
   by (rule Heap_eqI) (simp add: change_def lookup_chain)
 
 
-text {* Non-interaction between imperative array and imperative references *}
+text {* Non-interaction between imperative arrays and imperative references *}
 
 lemma array_get_set [simp]:
   "Array.get (set r v h) = Array.get h"
@@ -263,7 +263,7 @@ hide_const (open) present get set alloc noteq lookup update change
 
 subsection {* Code generator setup *}
 
-text {* Intermediate operation avoids invariance problem in @{text Scala} (similiar to value restriction) *}
+text {* Intermediate operation avoids invariance problem in @{text Scala} (similar to value restriction) *}
 
 definition ref' where
   [code del]: "ref' = ref"
