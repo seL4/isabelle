@@ -3704,7 +3704,7 @@ qed
 
 text{* Cauchy-type criteria for uniform convergence. *}
 
-lemma uniformly_convergent_eq_cauchy: fixes s::"nat \<Rightarrow> 'b \<Rightarrow> 'a::heine_borel" shows
+lemma uniformly_convergent_eq_cauchy: fixes s::"nat \<Rightarrow> 'b \<Rightarrow> 'a::complete_space" shows
  "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e) \<longleftrightarrow>
   (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  --> dist (s m x) (s n x) < e)" (is "?lhs = ?rhs")
 proof(rule)
@@ -3738,7 +3738,7 @@ next
 qed
 
 lemma uniformly_cauchy_imp_uniformly_convergent:
-  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::heine_borel"
+  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::complete_space"
   assumes "\<forall>e>0.\<exists>N. \<forall>m (n::nat) x. N \<le> m \<and> N \<le> n \<and> P x --> dist(s m x)(s n x) < e"
           "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n --> dist(s n x)(l x) < e)"
   shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e"
