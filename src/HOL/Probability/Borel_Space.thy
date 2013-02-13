@@ -149,10 +149,6 @@ next
   thus "b \<in> sigma_sets UNIV (Collect open)" by auto
 qed simp_all
 
-lemma borel_eq_union_closed_basis:
-  "borel = sigma UNIV union_closed_basis"
-  by (rule borel_eq_countable_basis[OF countable_union_closed_basis basis_union_closed_basis])
-
 lemma borel_measurable_Pair[measurable (raw)]:
   fixes f :: "'a \<Rightarrow> 'b::second_countable_topology" and g :: "'a \<Rightarrow> 'c::second_countable_topology"
   assumes f[measurable]: "f \<in> borel_measurable M"

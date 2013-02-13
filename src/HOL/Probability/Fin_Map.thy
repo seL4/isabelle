@@ -93,17 +93,6 @@ proof (rule inj_onI)
   show "x = y" using assms by (simp add: extensional_restrict)
 qed
 
-lemma finmap_choice:
-  assumes *: "\<And>i. i \<in> I \<Longrightarrow> \<exists>x. P i x" and I: "finite I"
-  shows "\<exists>fm. domain fm = I \<and> (\<forall>i\<in>I. P i (fm i))"
-proof -
-  have "\<exists>f. \<forall>i\<in>I. P i (f i)"
-    unfolding bchoice_iff[symmetric] using * by auto
-  then guess f ..
-  with I show ?thesis
-    by (intro exI[of _ "finmap_of I f"]) auto
-qed
-
 subsection {* Product set of Finite Maps *}
 
 text {* This is @{term Pi} for Finite Maps, most of this is copied *}
@@ -532,40 +521,50 @@ subsection {* Second Countable Space of Finite Maps *}
 instantiation finmap :: (countable, second_countable_topology) second_countable_topology
 begin
 
+definition basis_proj::"'b set set"
+  where "basis_proj = (SOME B. countable B \<and> topological_basis B)"
+
+lemma countable_basis_proj: "countable basis_proj" and basis_proj: "topological_basis basis_proj"
+  unfolding basis_proj_def by (intro is_basis countable_basis)+
+
 definition basis_finmap::"('a \<Rightarrow>\<^isub>F 'b) set set"
-  where "basis_finmap = {Pi' I S|I S. finite I \<and> (\<forall>i \<in> I. S i \<in> union_closed_basis)}"
+  where "basis_finmap = {Pi' I S|I S. finite I \<and> (\<forall>i \<in> I. S i \<in> basis_proj)}"
 
 lemma in_basis_finmapI:
-  assumes "finite I" assumes "\<And>i. i \<in> I \<Longrightarrow> S i \<in> union_closed_basis"
+  assumes "finite I" assumes "\<And>i. i \<in> I \<Longrightarrow> S i \<in> basis_proj"
   shows "Pi' I S \<in> basis_finmap"
   using assms unfolding basis_finmap_def by auto
 
-lemma in_basis_finmapE:
-  assumes "x \<in> basis_finmap"
-  obtains I S where "x = Pi' I S" "finite I" "\<And>i. i \<in> I \<Longrightarrow> S i \<in> union_closed_basis"
-  using assms unfolding basis_finmap_def by auto
-
 lemma basis_finmap_eq:
-  "basis_finmap = (\<lambda>f. Pi' (domain f) (\<lambda>i. from_nat_into union_closed_basis ((f)\<^isub>F i))) `
+  assumes "basis_proj \<noteq> {}"
+  shows "basis_finmap = (\<lambda>f. Pi' (domain f) (\<lambda>i. from_nat_into basis_proj ((f)\<^isub>F i))) `
     (UNIV::('a \<Rightarrow>\<^isub>F nat) set)" (is "_ = ?f ` _")
   unfolding basis_finmap_def
 proof safe
   fix I::"'a set" and S::"'a \<Rightarrow> 'b set"
-  assume "finite I" "\<forall>i\<in>I. S i \<in> union_closed_basis"
-  hence "Pi' I S = ?f (finmap_of I (\<lambda>x. to_nat_on union_closed_basis (S x)))"
-    by (force simp: Pi'_def countable_union_closed_basis)
+  assume "finite I" "\<forall>i\<in>I. S i \<in> basis_proj"
+  hence "Pi' I S = ?f (finmap_of I (\<lambda>x. to_nat_on basis_proj (S x)))"
+    by (force simp: Pi'_def countable_basis_proj)
   thus "Pi' I S \<in> range ?f" by simp
-qed (metis (mono_tags) empty_basisI equals0D finite_domain from_nat_into)
+next
+  fix x and f::"'a \<Rightarrow>\<^isub>F nat"
+  show "\<exists>I S. (\<Pi>' i\<in>domain f. from_nat_into local.basis_proj ((f)\<^isub>F i)) = Pi' I S \<and>
+    finite I \<and> (\<forall>i\<in>I. S i \<in> local.basis_proj)"
+    using assms by (auto intro: from_nat_into)
+qed
+
+lemma basis_finmap_eq_empty: "basis_proj = {} \<Longrightarrow> basis_finmap = {Pi' {} undefined}"
+  by (auto simp: Pi'_iff basis_finmap_def)
 
 lemma countable_basis_finmap: "countable basis_finmap"
-  unfolding basis_finmap_eq by simp
+  by (cases "basis_proj = {}") (auto simp: basis_finmap_eq basis_finmap_eq_empty)
 
 lemma finmap_topological_basis:
   "topological_basis basis_finmap"
 proof (subst topological_basis_iff, safe)
   fix B' assume "B' \<in> basis_finmap"
   thus "open B'"
-    by (auto intro!: open_Pi'I topological_basis_open[OF basis_union_closed_basis]
+    by (auto intro!: open_Pi'I topological_basis_open[OF basis_proj]
       simp: topological_basis_def basis_finmap_def Let_def)
 next
   fix O'::"('a \<Rightarrow>\<^isub>F 'b) set" and x
@@ -586,12 +585,12 @@ next
     thus ?case by blast
   qed (auto simp: Pi'_def)
   have "\<exists>B.
-    (\<forall>i\<in>domain x. x i \<in> B i \<and> B i \<subseteq> a i \<and> B i \<in> union_closed_basis)"
+    (\<forall>i\<in>domain x. x i \<in> B i \<and> B i \<subseteq> a i \<and> B i \<in> basis_proj)"
   proof (rule bchoice, safe)
     fix i assume "i \<in> domain x"
     hence "open (a i)" "x i \<in> a i" using a by auto
-    from topological_basisE[OF basis_union_closed_basis this] guess b' .
-    thus "\<exists>y. x i \<in> y \<and> y \<subseteq> a i \<and> y \<in> union_closed_basis" by auto
+    from topological_basisE[OF basis_proj this] guess b' .
+    thus "\<exists>y. x i \<in> y \<and> y \<subseteq> a i \<and> y \<in> basis_proj" by auto
   qed
   then guess B .. note B = this
   def B' \<equiv> "Pi' (domain x) (\<lambda>i. (B i)::'b set)"
@@ -1017,9 +1016,8 @@ qed (auto simp: Pi'_def `finite I`)
 text {* adapted from @{thm sigma_prod_algebra_sigma_eq} *}
 
 lemma sigma_fprod_algebra_sigma_eq:
-  fixes E :: "'i \<Rightarrow> 'a set set"
+  fixes E :: "'i \<Rightarrow> 'a set set" and S :: "'i \<Rightarrow> nat \<Rightarrow> 'a set"
   assumes [simp]: "finite I" "I \<noteq> {}"
-  assumes S_mono: "\<And>i. i \<in> I \<Longrightarrow> incseq (S i)"
     and S_union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (M i)"
     and S_in_E: "\<And>i. i \<in> I \<Longrightarrow> range (S i) \<subseteq> E i"
   assumes E_closed: "\<And>i. i \<in> I \<Longrightarrow> E i \<subseteq> Pow (space (M i))"
@@ -1028,6 +1026,9 @@ lemma sigma_fprod_algebra_sigma_eq:
   shows "sets (PiF {I} M) = sigma_sets (space (PiF {I} M)) P"
 proof
   let ?P = "sigma (space (Pi\<^isub>F {I} M)) P"
+  from `finite I`[THEN ex_bij_betw_finite_nat] guess T ..
+  then have T: "\<And>i. i \<in> I \<Longrightarrow> T i < card I" "\<And>i. i\<in>I \<Longrightarrow> the_inv_into I T (T i) = i"
+    by (auto simp add: bij_betw_def set_eq_iff image_iff the_inv_into_f_f simp del: `finite I`)
   have P_closed: "P \<subseteq> Pow (space (Pi\<^isub>F {I} M))"
     using E_closed by (auto simp: space_PiF P_def Pi'_iff subset_eq)
   then have space_P: "space ?P = (\<Pi>' i\<in>I. space (M i))"
@@ -1050,15 +1051,20 @@ proof
           using E_closed `i \<in> I` by (auto simp: space_P Pi_iff subset_eq split: split_if_asm)
         also have "\<dots> = (\<Pi>' j\<in>I. \<Union>n. if i = j then A else S j n)"
           by (intro Pi'_cong) (simp_all add: S_union)
-        also have "\<dots> = (\<Union>n. \<Pi>' j\<in>I. if i = j then A else S j n)"
-          using S_mono
-          by (subst Pi'_UN[symmetric, OF `finite I`]) (auto simp: incseq_def)
+        also have "\<dots> = (\<Union>xs\<in>{xs. length xs = card I}. \<Pi>' j\<in>I. if i = j then A else S j (xs ! T j))"
+          using T
+          apply auto
+          apply (simp_all add: Pi'_iff bchoice_iff)
+          apply (erule conjE exE)+
+          apply (rule_tac x="map (\<lambda>n. f (the_inv_into I T n)) [0..<card I]" in exI)
+          apply (auto simp: bij_betw_def)
+          done
         also have "\<dots> \<in> sets ?P"
         proof (safe intro!: sets.countable_UN)
-          fix n show "(\<Pi>' j\<in>I. if i = j then A else S j n) \<in> sets ?P"
+          fix xs show "(\<Pi>' j\<in>I. if i = j then A else S j (xs ! T j)) \<in> sets ?P"
             using A S_in_E
             by (simp add: P_closed)
-               (auto simp: P_def subset_eq intro!: exI[of _ "\<lambda>j. if i = j then A else S j n"])
+               (auto simp: P_def subset_eq intro!: exI[of _ "\<lambda>j. if i = j then A else S j (xs ! T j)"])
         qed
         finally show "(\<lambda>x. (x)\<^isub>F i) -` A \<inter> space ?P \<in> sets ?P"
           using P_closed by simp
@@ -1078,76 +1084,28 @@ proof
     by (auto intro!: sets.sigma_sets_subset product_in_sets_PiFI simp: E_generates P_def)
 qed
 
-lemma sets_PiF_eq_sigma_union_closed_basis_single:
-  assumes "I \<noteq> {}"
-  assumes [simp]: "finite I"
-  shows "sets (PiF {I} (\<lambda>_. borel)) = sigma_sets (space (PiF {I} (\<lambda>_. borel)))
-    {Pi' I F |F. (\<forall>i\<in>I. F i \<in> union_closed_basis)}"
-proof -
-  from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
-  show ?thesis
-  proof (rule sigma_fprod_algebra_sigma_eq)
-    show "finite I" by simp
-    show "I \<noteq> {}" by fact
-    show "incseq S" "(\<Union>j. S j) = space borel" "range S \<subseteq> union_closed_basis"
-      using S by simp_all
-    show "union_closed_basis \<subseteq> Pow (space borel)" by simp
-    show "sets borel = sigma_sets (space borel) union_closed_basis"
-      by (simp add: borel_eq_union_closed_basis)
-  qed
-qed
-
-text {* adapted from @{thm sets_PiF_eq_sigma_union_closed_basis_single} *}
-
-lemma sets_PiM_eq_sigma_union_closed_basis:
-  assumes "I \<noteq> {}"
-  assumes [simp]: "finite I"
-  shows "sets (PiM I (\<lambda>_. borel)) = sigma_sets (space (PiM I (\<lambda>_. borel)))
-    {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> union_closed_basis}"
-proof -
-  from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
-  show ?thesis
-  proof (rule sigma_prod_algebra_sigma_eq)
-    show "finite I" by simp note[[show_types]]
-    fix i show "(\<Union>j. S j) = space borel" "range S \<subseteq> union_closed_basis"
-      using S by simp_all
-    show "union_closed_basis \<subseteq> Pow (space borel)" by simp
-    show "sets borel = sigma_sets (space borel) union_closed_basis"
-      by (simp add: borel_eq_union_closed_basis)
-  qed
-qed
-
 lemma product_open_generates_sets_PiF_single:
   assumes "I \<noteq> {}"
   assumes [simp]: "finite I"
   shows "sets (PiF {I} (\<lambda>_. borel::'b::second_countable_topology measure)) =
     sigma_sets (space (PiF {I} (\<lambda>_. borel))) {Pi' I F |F. (\<forall>i\<in>I. F i \<in> Collect open)}"
 proof -
-  from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
+  from open_countable_basisE[OF open_UNIV] guess S::"'b set set" . note S = this
   show ?thesis
   proof (rule sigma_fprod_algebra_sigma_eq)
     show "finite I" by simp
     show "I \<noteq> {}" by fact
-    show "incseq S" "(\<Union>j. S j) = space borel" "range S \<subseteq> Collect open"
-      using S by (auto simp: open_union_closed_basis)
-    show "Collect open \<subseteq> Pow (space borel)" by simp
-    show "sets borel = sigma_sets (space borel) (Collect open)"
-      by (simp add: borel_def)
-  qed
-qed
-
-lemma product_open_generates_sets_PiM:
-  assumes "I \<noteq> {}"
-  assumes [simp]: "finite I"
-  shows "sets (PiM I (\<lambda>_. borel::'b::second_countable_topology measure)) =
-    sigma_sets (space (PiM I (\<lambda>_. borel))) {Pi\<^isub>E I F |F. \<forall>i\<in>I. F i \<in> Collect open}"
-proof -
-  from open_incseqE[OF open_UNIV] guess S::"nat \<Rightarrow> 'b set" . note S = this
-  show ?thesis
-  proof (rule sigma_prod_algebra_sigma_eq)
-    show "finite I" by simp note[[show_types]]
-    fix i show "(\<Union>j. S j) = space borel" "range S \<subseteq> Collect open"
-      using S by (auto simp: open_union_closed_basis)
+    def S'\<equiv>"from_nat_into S"
+    show "(\<Union>j. S' j) = space borel"
+      using S
+      apply (auto simp add: from_nat_into countable_basis_proj S'_def basis_proj_def)
+      apply (metis (lifting, mono_tags) UNIV_I UnionE basis_proj_def countable_basis_proj countable_subset from_nat_into_surj)
+      done
+    show "range S' \<subseteq> Collect open"
+      using S
+      apply (auto simp add: from_nat_into countable_basis_proj S'_def)
+      apply (metis UNIV_not_empty Union_empty from_nat_into set_mp topological_basis_open[OF basis_proj] basis_proj_def)
+      done
     show "Collect open \<subseteq> Pow (space borel)" by simp
     show "sets borel = sigma_sets (space borel) (Collect open)"
       by (simp add: borel_def)
@@ -1174,7 +1132,7 @@ proof (rule measure_eqI, clarsimp, rule sigma_sets_eqI)
     proof
       fix x assume "x \<in> B'" with B' have "x \<in> basis_finmap" by auto
       then obtain J X where "x = Pi' J X" "finite J" "X \<in> J \<rightarrow> sigma_sets UNIV (Collect open)"
-        by (auto simp: basis_finmap_def open_union_closed_basis)
+        by (auto simp: basis_finmap_def topological_basis_open[OF basis_proj])
       thus "x \<in> sets ?s" by auto
     qed
   qed
