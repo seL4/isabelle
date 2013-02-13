@@ -162,6 +162,13 @@ primrec find :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a 
 
 hide_const (open) find
 
+primrec those :: "'a option list \<Rightarrow> 'a list option"
+where
+"those [] = Some []" |
+"those (x # xs) = (case x of
+  None \<Rightarrow> None
+| Some y \<Rightarrow> Option.map (Cons y) (those xs))"
+
 primrec remove1 :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "remove1 x [] = []" |
 "remove1 x (y # xs) = (if x = y then xs else y # remove1 x xs)"

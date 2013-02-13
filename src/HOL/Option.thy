@@ -101,6 +101,10 @@ next
   qed
 qed
 
+lemma option_case_map [simp]:
+  "option_case g h (Option.map f x) = option_case g (h \<circ> f) x"
+  by (cases x) simp_all
+
 primrec bind :: "'a option \<Rightarrow> ('a \<Rightarrow> 'b option) \<Rightarrow> 'b option" where
 bind_lzero: "bind None f = None" |
 bind_lunit: "bind (Some x) f = f x"
