@@ -3368,4 +3368,80 @@ lemma genric_XDp_foldr_nth:
   foldr (%c r. (k c + of_nat n) * r) cs (g c0 a $ n)"
   by (induct cs arbitrary: c0) (auto simp add: algebra_simps f)
 
+lemma dist_less_imp_nth_equal:
+  assumes "dist f g < inverse (2 ^ i)"
+  assumes "j \<le> i"
+  shows "f $ j = g $ j"
+proof cases
+  assume "f \<noteq> g"
+  hence "\<exists>n. f $ n \<noteq> g $ n" by (simp add: fps_eq_iff)
+  with assms have "i < The (leastP (\<lambda>n. f $ n \<noteq> g $ n))"
+    by (simp add: split_if_asm dist_fps_def)
+  moreover
+  from fps_eq_least_unique[OF `f \<noteq> g`]
+  obtain n where "leastP (\<lambda>n. f$n \<noteq> g$n) n" "The (leastP (\<lambda>n. f $ n \<noteq> g $ n)) = n" by blast
+  moreover hence "\<And>m. m < n \<Longrightarrow> f$m = g$m" "f$n \<noteq> g$n"
+    by (auto simp add: leastP_def setge_def)
+  ultimately show ?thesis using `j \<le> i` by simp
+qed simp
+
+lemma nth_equal_imp_dist_less:
+  assumes "\<And>j. j \<le> i \<Longrightarrow> f $ j = g $ j"
+  shows "dist f g < inverse (2 ^ i)"
+proof cases
+  assume "f \<noteq> g"
+  hence "\<exists>n. f $ n \<noteq> g $ n" by (simp add: fps_eq_iff)
+  with assms have "dist f g = inverse (2 ^ (The (leastP (\<lambda>n. f $ n \<noteq> g $ n))))"
+    by (simp add: split_if_asm dist_fps_def)
+  moreover
+  from fps_eq_least_unique[OF `f \<noteq> g`]
+  obtain n where "leastP (\<lambda>n. f$n \<noteq> g$n) n" "The (leastP (\<lambda>n. f $ n \<noteq> g $ n)) = n" by blast
+  with assms have "i < The (leastP (\<lambda>n. f $ n \<noteq> g $ n))"
+    by (metis (full_types) leastPD1 not_le)
+  ultimately show ?thesis by simp
+qed simp
+
+lemma dist_less_eq_nth_equal:
+  shows "dist f g < inverse (2 ^ i) \<longleftrightarrow> (\<forall>j \<le> i. f $ j = g $ j)"
+  using dist_less_imp_nth_equal nth_equal_imp_dist_less by blast
+
+instance fps :: (comm_ring_1) complete_space
+proof
+  fix X::"nat \<Rightarrow> 'a fps"
+  assume "Cauchy X"
+  {
+    fix i
+    have "0 < inverse ((2::real)^i)" by simp
+    from metric_CauchyD[OF `Cauchy X` this] dist_less_imp_nth_equal
+    have "\<exists>M. \<forall>m \<ge> M. \<forall>j\<le>i. X M $ j = X m $ j" by blast
+  }
+  then obtain M where M: "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j" by metis
+  hence "\<forall>i. \<forall>m \<ge> M i. \<forall>j \<le> i. X (M i) $ j = X m $ j" by metis
+  show "convergent X"
+  proof (rule convergentI)
+    show "X ----> Abs_fps (\<lambda>i. X (M i) $ i)"
+      unfolding tendsto_iff
+    proof safe
+      fix e::real assume "0 < e"
+      with LIMSEQ_inverse_realpow_zero[of 2, simplified, simplified filterlim_iff,
+        THEN spec, of "\<lambda>x. x < e"]
+      have "eventually (\<lambda>i. inverse (2 ^ i) < e) sequentially"
+        by safe (auto simp: eventually_nhds)
+      then obtain i where "inverse (2 ^ i) < e" by (auto simp: eventually_sequentially)
+      have "eventually (\<lambda>x. M i \<le> x) sequentially" by (auto simp: eventually_sequentially)
+      thus "eventually (\<lambda>x. dist (X x) (Abs_fps (\<lambda>i. X (M i) $ i)) < e) sequentially"
+      proof eventually_elim
+        fix x assume "M i \<le> x"
+        moreover
+        have "\<And>j. j \<le> i \<Longrightarrow> X (M i) $ j = X (M j) $ j"
+          using M by (metis nat_le_linear)
+        ultimately have "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < inverse (2 ^ i)"
+          using M by (force simp: dist_less_eq_nth_equal)
+        also note `inverse (2 ^ i) < e`
+        finally show "dist (X x) (Abs_fps (\<lambda>j. X (M j) $ j)) < e" .
+      qed
+    qed
+  qed
+qed
+
 end
