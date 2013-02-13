@@ -1,5 +1,5 @@
 theory IArray_Examples
-imports "~~/src/HOL/Library/IArray"
+imports "~~/src/HOL/Library/IArray" "~~/src/HOL/Library/Efficient_Nat"
 begin
 
 lemma "IArray [True,False] !! 1 = False"
@@ -24,3 +24,4 @@ lemma "sum (IArray [1,2,3,4,5,6,7,8,9::int]) = 45"
 by eval
 
 end
+
