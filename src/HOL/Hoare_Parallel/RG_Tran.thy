@@ -715,9 +715,6 @@ apply(rule tl_zero)
 apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
 done
 
-lemma less_Suc_0 [iff]: "(n < Suc 0) = (n = 0)"
-by auto
-
 lemma aux_onlyif [rule_format]: "\<forall>xs s. (xs, s)#ys \<in> par_cptn \<longrightarrow> 
   (\<exists>clist. (length clist = length xs) \<and> 
   (xs, s)#ys \<propto> map (\<lambda>i. (fst i,s)#(snd i)) (zip xs clist) \<and> 
