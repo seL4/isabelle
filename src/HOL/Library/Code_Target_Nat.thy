@@ -1,11 +1,11 @@
 (*  Title:      HOL/Library/Code_Target_Nat.thy
-    Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
+    Author:     Florian Haftmann, TU Muenchen
 *)
 
 header {* Implementation of natural numbers by target-language integers *}
 
 theory Code_Target_Nat
-imports Main Code_Numeral_Types Code_Binary_Nat
+imports Code_Abstract_Nat Code_Numeral_Types
 begin
 
 subsection {* Implementation for @{typ nat} *}
@@ -52,16 +52,13 @@ lemma [code abstract]:
   "integer_of_nat 1 = 1"
   by (simp add: integer_eq_iff integer_of_nat_def)
 
+lemma [code]:
+  "Suc n = n + 1"
+  by simp
+
 lemma [code abstract]:
   "integer_of_nat (m + n) = of_nat m + of_nat n"
   by (simp add: integer_eq_iff integer_of_nat_def)
-
-lemma [code abstract]:
-  "integer_of_nat (Code_Binary_Nat.dup n) = Code_Numeral_Types.dup (of_nat n)"
-  by (simp add: integer_eq_iff Code_Binary_Nat.dup_def integer_of_nat_def)
-
-lemma [code, code del]:
-  "Code_Binary_Nat.sub = Code_Binary_Nat.sub" ..
 
 lemma [code abstract]:
   "integer_of_nat (m - n) = max 0 (of_nat m - of_nat n)"
