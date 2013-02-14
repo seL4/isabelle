@@ -1444,6 +1444,99 @@ lemma finfun_to_list_update_code [code]:
   (if b = finfun_default f then List.remove1 a (finfun_to_list f) else List.insort_insert a (finfun_to_list f))"
 by(simp add: finfun_to_list_update)
 
+text {* More type class instantiations *}
+
+lemma card_eq_1_iff: "card A = 1 \<longleftrightarrow> A \<noteq> {} \<and> (\<forall>x\<in>A. \<forall>y\<in>A. x = y)"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  moreover {
+    fix x y
+    assume A: "x \<in> A" "y \<in> A" and neq: "x \<noteq> y"
+    have "finite A" using `?lhs` by(simp add: card_ge_0_finite)
+    from neq have "2 = card {x, y}" by simp
+    also have "\<dots> \<le> card A" using A `finite A`
+      by(auto intro: card_mono)
+    finally have False using `?lhs` by simp }
+  ultimately show ?rhs by auto
+next
+  assume ?rhs
+  hence "A = {THE x. x \<in> A}"
+    by safe (auto intro: theI the_equality[symmetric])
+  also have "card \<dots> = 1" by simp
+  finally show ?lhs .
+qed
+
+lemma card_UNIV_finfun: 
+  defines "F == finfun :: ('a \<Rightarrow> 'b) set"
+  shows "CARD('a \<Rightarrow>f 'b) = (if CARD('a) \<noteq> 0 \<and> CARD('b) \<noteq> 0 \<or> CARD('b) = 1 then CARD('b) ^ CARD('a) else 0)"
+proof(cases "0 < CARD('a) \<and> 0 < CARD('b) \<or> CARD('b) = 1")
+  case True
+  from True have "F = UNIV"
+  proof
+    assume b: "CARD('b) = 1"
+    hence "\<forall>x :: 'b. x = undefined"
+      by(auto simp add: card_eq_1_iff simp del: One_nat_def)
+    thus ?thesis by(auto simp add: finfun_def F_def intro: exI[where x=undefined])
+  qed(auto simp add: finfun_def card_gt_0_iff F_def intro: finite_subset[where B=UNIV])
+  moreover have "CARD('a \<Rightarrow>f 'b) = card F"
+    unfolding type_definition.Abs_image[OF type_definition_finfun, symmetric]
+    by(auto intro!: card_image inj_onI simp add: Abs_finfun_inject F_def)
+  ultimately show ?thesis by(simp add: card_fun)
+next
+  case False
+  hence infinite: "\<not> (finite (UNIV :: 'a set) \<and> finite (UNIV :: 'b set))"
+    and b: "CARD('b) \<noteq> 1" by(simp_all add: card_eq_0_iff)
+  from b obtain b1 b2 :: 'b where "b1 \<noteq> b2"
+    by(auto simp add: card_eq_1_iff simp del: One_nat_def)
+  let ?f = "\<lambda>a a' :: 'a. if a = a' then b1 else b2"
+  from infinite have "\<not> finite (UNIV :: ('a \<Rightarrow>f 'b) set)"
+  proof(rule contrapos_nn[OF _ conjI])
+    assume finite: "finite (UNIV :: ('a \<Rightarrow>f 'b) set)"
+    hence "finite F"
+      unfolding type_definition.Abs_image[OF type_definition_finfun, symmetric] F_def
+      by(rule finite_imageD)(auto intro: inj_onI simp add: Abs_finfun_inject)
+    hence "finite (range ?f)" 
+      by(rule finite_subset[rotated 1])(auto simp add: F_def finfun_def `b1 \<noteq> b2` intro!: exI[where x=b2])
+    thus "finite (UNIV :: 'a set)"
+      by(rule finite_imageD)(auto intro: inj_onI simp add: fun_eq_iff `b1 \<noteq> b2` split: split_if_asm)
+    
+    from finite have "finite (range (\<lambda>b. ((K$ b) :: 'a \<Rightarrow>f 'b)))"
+      by(rule finite_subset[rotated 1]) simp
+    thus "finite (UNIV :: 'b set)"
+      by(rule finite_imageD)(auto intro!: inj_onI)
+  qed
+  with False show ?thesis by simp
+qed
+
+lemma finite_UNIV_finfun:
+  "finite (UNIV :: ('a \<Rightarrow>f 'b) set) \<longleftrightarrow>
+  (finite (UNIV :: 'a set) \<and> finite (UNIV :: 'b set) \<or> CARD('b) = 1)"
+  (is "?lhs \<longleftrightarrow> ?rhs")
+proof -
+  have "?lhs \<longleftrightarrow> CARD('a \<Rightarrow>f 'b) > 0" by(simp add: card_gt_0_iff)
+  also have "\<dots> \<longleftrightarrow> CARD('a) > 0 \<and> CARD('b) > 0 \<or> CARD('b) = 1"
+    by(simp add: card_UNIV_finfun)
+  also have "\<dots> = ?rhs" by(simp add: card_gt_0_iff)
+  finally show ?thesis .
+qed
+
+instantiation finfun :: (finite_UNIV, card_UNIV) finite_UNIV begin
+definition "finite_UNIV = Phantom('a \<Rightarrow>f 'b)
+  (let cb = of_phantom (card_UNIV :: 'b card_UNIV)
+   in cb = 1 \<or> of_phantom (finite_UNIV :: 'a finite_UNIV) \<and> cb \<noteq> 0)"
+instance
+  by intro_classes (auto simp add: finite_UNIV_finfun_def Let_def card_UNIV finite_UNIV finite_UNIV_finfun card_gt_0_iff)
+end
+
+instantiation finfun :: (card_UNIV, card_UNIV) card_UNIV begin
+definition "card_UNIV = Phantom('a \<Rightarrow>f 'b)
+  (let ca = of_phantom (card_UNIV :: 'a card_UNIV);
+       cb = of_phantom (card_UNIV :: 'b card_UNIV)
+   in if ca \<noteq> 0 \<and> cb \<noteq> 0 \<or> cb = 1 then cb ^ ca else 0)"
+instance by intro_classes (simp add: card_UNIV_finfun_def card_UNIV Let_def card_UNIV_finfun)
+end
+
 text {* Deactivate syntax again. Import theory @{text FinFun_Syntax} to reactivate it again *}
 
 no_type_notation
