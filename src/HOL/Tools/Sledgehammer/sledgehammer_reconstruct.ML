@@ -699,7 +699,8 @@ fun isar_proof_text ctxt isar_proofs
                               else
                                 I))))
                   atp_proof
-        fun is_clause_skolemize_rule [(s, _)] =
+        fun is_clause_skolemize_rule [atom as (s, _)] =
+            not (member (op =) tainted atom) andalso
             Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) =
             SOME true
           | is_clause_skolemize_rule _ = false
