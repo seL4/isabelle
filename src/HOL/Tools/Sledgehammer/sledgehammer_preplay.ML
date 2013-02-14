@@ -26,11 +26,13 @@ open Sledgehammer_Util
 open Sledgehammer_Proof
 
 (* The boolean flag encodes whether the time is exact (false) or an lower bound
-     (true) *)
+   (true):
+      (t, false) = "t ms"
+      (t, true)  = "> t ms" *)
 type preplay_time = bool * Time.time
 
-val zero_preplay_time = (false, Time.zeroTime)
-val some_preplay_time = (true, Time.zeroTime)
+val zero_preplay_time = (false, Time.zeroTime) (* 0 ms *)
+val some_preplay_time = (true, Time.zeroTime)  (* > 0 ms *)
 
 fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
 
@@ -93,8 +95,24 @@ fun try_metis debug type_enc lam_trans ctxt timeout (succedent, step) =
                           | _ => error "preplay error: malformed case split")
                      #> make_thm)
                cases
-      (* TODO: implement *)
-      | Subblock _ => [])
+      | Subblock proof =>
+        let
+          val (steps, last_step) = split_last proof
+          (* TODO: assuming Fix may only occur at the beginning of a subblock,
+             this can be optimized *)
+          val fixed_frees =
+            fold (fn Fix xs => append (map Free xs) | _ => I) steps []
+          (* TODO: make sure the var indexnames are actually fresh *)
+          fun var_of_free (Free (x, T)) = Var((x, 1), T)
+            | var_of_free _ = error "preplay error: not a free variable"
+          val substitutions = map (`var_of_free #> swap) fixed_frees
+          val concl =
+            (case last_step of
+              Prove (_, _, t, _) => t
+            | _ => error "preplay error: unexpected conclusion of subblock")
+        in
+          concl |> subst_free substitutions |> make_thm |> single
+        end)
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
                     |> obtain ? Config.put Metis_Tactic.new_skolem true
     val goal =
