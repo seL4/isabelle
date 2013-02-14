@@ -2,7 +2,7 @@
 
 header {* A simple counterexample generator performing random testing *}
 
-theory Quickcheck
+theory Quickcheck_Random
 imports Random Code_Evaluation Enum
 begin
 
@@ -195,90 +195,10 @@ code_reserved Quickcheck Random_Generators
 
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
-subsection {* The Random-Predicate Monad *} 
-
-fun iter' ::
-  "'a itself => code_numeral => code_numeral => code_numeral * code_numeral
-    => ('a::random) Predicate.pred"
-where
-  "iter' T nrandom sz seed = (if nrandom = 0 then bot_class.bot else
-     let ((x, _), seed') = random sz seed
-   in Predicate.Seq (%u. Predicate.Insert x (iter' T (nrandom - 1) sz seed')))"
-
-definition iter :: "code_numeral => code_numeral => code_numeral * code_numeral
-  => ('a::random) Predicate.pred"
-where
-  "iter nrandom sz seed = iter' (TYPE('a)) nrandom sz seed"
-
-lemma [code]:
-  "iter nrandom sz seed = (if nrandom = 0 then bot_class.bot else
-     let ((x, _), seed') = random sz seed
-   in Predicate.Seq (%u. Predicate.Insert x (iter (nrandom - 1) sz seed')))"
-unfolding iter_def iter'.simps[of _ nrandom] ..
-
-type_synonym 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
-
-definition empty :: "'a randompred"
-  where "empty = Pair (bot_class.bot)"
-
-definition single :: "'a => 'a randompred"
-  where "single x = Pair (Predicate.single x)"
-
-definition bind :: "'a randompred \<Rightarrow> ('a \<Rightarrow> 'b randompred) \<Rightarrow> 'b randompred"
-  where
-    "bind R f = (\<lambda>s. let
-       (P, s') = R s;
-       (s1, s2) = Random.split_seed s'
-     in (Predicate.bind P (%a. fst (f a s1)), s2))"
-
-definition union :: "'a randompred \<Rightarrow> 'a randompred \<Rightarrow> 'a randompred"
-where
-  "union R1 R2 = (\<lambda>s. let
-     (P1, s') = R1 s; (P2, s'') = R2 s'
-   in (sup_class.sup P1 P2, s''))"
-
-definition if_randompred :: "bool \<Rightarrow> unit randompred"
-where
-  "if_randompred b = (if b then single () else empty)"
-
-definition iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a randompred"
-where
-  "iterate_upto f n m = Pair (Predicate.iterate_upto f n m)"
-
-definition not_randompred :: "unit randompred \<Rightarrow> unit randompred"
-where
-  "not_randompred P = (\<lambda>s. let
-     (P', s') = P s
-   in if Predicate.eval P' () then (Orderings.bot, s') else (Predicate.single (), s'))"
-
-definition Random :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> 'a randompred"
-  where "Random g = scomp g (Pair o (Predicate.single o fst))"
-
-definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a randompred \<Rightarrow> 'b randompred)"
-  where "map f P = bind P (single o f)"
-
-hide_fact
-  random_bool_def
-  random_itself_def
-  random_char_def
-  random_literal_def
-  random_nat_def
-  random_int_def
-  random_fun_lift_def
-  random_fun_def
-  collapse_def
-  beyond_def
-  beyond_zero
-  random_aux_rec
-
+    
 hide_const (open) catch_match random collapse beyond random_fun_aux random_fun_lift
 
-hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def
-  if_randompred_def iterate_upto_def not_randompred_def Random_def map_def 
-hide_type (open) randompred
-hide_const (open) iter' iter empty single bind union if_randompred
-  iterate_upto not_randompred Random map
+hide_fact (open) collapse_def beyond_def random_fun_lift_def
 
 end
 

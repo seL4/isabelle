@@ -117,7 +117,7 @@ definition (in term_syntax)
 
 fun (in term_syntax) random_aux_alist 
 where
-  "random_aux_alist i j = (if i = 0 then Pair valterm_empty else Quickcheck.collapse (Random.select_weight [(i, Quickcheck.random j \<circ>\<rightarrow> (%k. Quickcheck.random j \<circ>\<rightarrow> (%v. random_aux_alist (i - 1) j \<circ>\<rightarrow> (%a. Pair (valterm_update k v a))))), (1, Pair valterm_empty)]))"
+  "random_aux_alist i j = (if i = 0 then Pair valterm_empty else Quickcheck_Random.collapse (Random.select_weight [(i, Quickcheck_Random.random j \<circ>\<rightarrow> (%k. Quickcheck_Random.random j \<circ>\<rightarrow> (%v. random_aux_alist (i - 1) j \<circ>\<rightarrow> (%a. Pair (valterm_update k v a))))), (1, Pair valterm_empty)]))"
 
 instantiation alist :: (random, random) random
 begin

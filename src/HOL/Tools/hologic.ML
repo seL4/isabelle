@@ -686,7 +686,7 @@ fun mk_ST clauses t U (someT, V) =
 
 val random_seedT = mk_prodT (code_numeralT, code_numeralT);
 
-fun mk_random T t = Const ("Quickcheck.random_class.random", code_numeralT
+fun mk_random T t = Const ("Quickcheck_Random.random_class.random", code_numeralT
   --> random_seedT --> mk_prodT (mk_prodT (T, unitT --> termT), random_seedT)) $ t;
 
 end;

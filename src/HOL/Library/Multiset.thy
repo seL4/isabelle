@@ -1314,7 +1314,7 @@ instantiation multiset :: (random) random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (bagify xs))"
+  "Quickcheck_Random.random i = Quickcheck_Random.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (bagify xs))"
 
 instance ..
 

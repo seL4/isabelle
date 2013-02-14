@@ -1641,7 +1641,7 @@ instantiation real :: random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
+  "Quickcheck_Random.random i = Quickcheck_Random.random i \<circ>\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
 
 instance ..
 

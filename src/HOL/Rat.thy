@@ -1030,7 +1030,7 @@ instantiation rat :: random
 begin
 
 definition
-  "Quickcheck.random i = Quickcheck.random i \<circ>\<rightarrow> (\<lambda>num. Random.range i \<circ>\<rightarrow> (\<lambda>denom. Pair (
+  "Quickcheck_Random.random i = Quickcheck_Random.random i \<circ>\<rightarrow> (\<lambda>num. Random.range i \<circ>\<rightarrow> (\<lambda>denom. Pair (
      let j = Code_Numeral.int_of (denom + 1)
      in valterm_fract num (j, \<lambda>u. Code_Evaluation.term_of j))))"
 

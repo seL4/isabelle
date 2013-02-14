@@ -12,7 +12,7 @@ sig
     (unit -> int -> int -> int -> seed -> term list Predicate.pred) ->
       Proof.context -> Proof.context;
   val put_dseq_result :
-    (unit -> int -> int -> seed -> term list DSequence.dseq * seed) ->
+    (unit -> int -> int -> seed -> term list Limited_Sequence.dseq * seed) ->
       Proof.context -> Proof.context;
   val put_lseq_result :
     (unit -> int -> int -> seed -> int -> term list Lazy_Sequence.lazy_sequence) ->
@@ -49,7 +49,7 @@ val put_pred_result = Pred_Result.put;
 
 structure Dseq_Result = Proof_Data
 (
-  type T = unit -> int -> int -> seed -> term list DSequence.dseq * seed
+  type T = unit -> int -> int -> seed -> term list Limited_Sequence.dseq * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Result"
 );
@@ -297,11 +297,11 @@ fun compile_term compilation options ctxt t =
             val compiled_term =
               Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Quickcheck.put_dseq_result")
                 thy4 (SOME target)
-                (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (DSequence.map o map) proc)
+                (fn proc => fn g => fn n => fn size => fn s => g n size s |>> (Limited_Sequence.map o map) proc)
                 qc_term []
           in
             (fn size => fn nrandom => fn depth =>
-              Option.map fst (DSequence.yield
+              Option.map fst (Limited_Sequence.yield
                 (compiled_term nrandom size |> Random_Engine.run) depth true))
           end
       | New_Pos_Random_DSeq =>
@@ -311,7 +311,7 @@ fun compile_term compilation options ctxt t =
                 (Lseq_Result.get, put_lseq_result, "Predicate_Compile_Quickcheck.put_lseq_result")
                 thy4 (SOME target)
                 (fn proc => fn g => fn nrandom => fn size => fn s => fn depth =>
-                  g nrandom size s depth |> (Lazy_Sequence.mapa o map) proc)
+                  g nrandom size s depth |> (Lazy_Sequence.map o map) proc)
                   qc_term []
           in
             fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield 
@@ -326,7 +326,7 @@ fun compile_term compilation options ctxt t =
               Code_Runtime.dynamic_value_strict
                 (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Quickcheck.put_new_dseq_result")
                 thy4 (SOME target)
-                (fn proc => fn g => fn depth => g depth |> (Lazy_Sequence.mapa o map) proc)
+                (fn proc => fn g => fn depth => g depth |> (Lazy_Sequence.map o map) proc)
                 qc_term []
           in
             fn size => fn nrandom => fn depth => Option.map fst (Lazy_Sequence.yield (compiled_term depth))

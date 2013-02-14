@@ -7,158 +7,230 @@ theory Lazy_Sequence
 imports Predicate
 begin
 
-datatype 'a lazy_sequence = Empty | Insert 'a "'a lazy_sequence"
+subsection {* Type of lazy sequences *}
 
-definition Lazy_Sequence :: "(unit => ('a * 'a lazy_sequence) option) => 'a lazy_sequence"
+datatype 'a lazy_sequence = lazy_sequence_of_list "'a list"
+
+primrec list_of_lazy_sequence :: "'a lazy_sequence \<Rightarrow> 'a list"
 where
-  "Lazy_Sequence f = (case f () of None => Empty | Some (x, xq) => Insert x xq)"
+  "list_of_lazy_sequence (lazy_sequence_of_list xs) = xs"
 
-code_datatype Lazy_Sequence 
+lemma lazy_sequence_of_list_of_lazy_sequence [simp]:
+  "lazy_sequence_of_list (list_of_lazy_sequence xq) = xq"
+  by (cases xq) simp_all
 
-primrec yield :: "'a lazy_sequence => ('a * 'a lazy_sequence) option"
+lemma lazy_sequence_eqI:
+  "list_of_lazy_sequence xq = list_of_lazy_sequence yq \<Longrightarrow> xq = yq"
+  by (cases xq, cases yq) simp
+
+lemma lazy_sequence_eq_iff:
+  "xq = yq \<longleftrightarrow> list_of_lazy_sequence xq = list_of_lazy_sequence yq"
+  by (auto intro: lazy_sequence_eqI)
+
+lemma lazy_sequence_size_eq:
+  "lazy_sequence_size f xq = Suc (list_size f (list_of_lazy_sequence xq))"
+  by (cases xq) simp
+
+lemma size_lazy_sequence_eq [code]:
+  "size (xq :: 'a lazy_sequence) = 0"
+  by (cases xq) simp
+
+lemma lazy_sequence_case [simp]:
+  "lazy_sequence_case f xq = f (list_of_lazy_sequence xq)"
+  by (cases xq) auto
+
+lemma lazy_sequence_rec [simp]:
+  "lazy_sequence_rec f xq = f (list_of_lazy_sequence xq)"
+  by (cases xq) auto
+
+definition Lazy_Sequence :: "(unit \<Rightarrow> ('a \<times> 'a lazy_sequence) option) \<Rightarrow> 'a lazy_sequence"
 where
-  "yield Empty = None"
-| "yield (Insert x xq) = Some (x, xq)"
+  "Lazy_Sequence f = lazy_sequence_of_list (case f () of
+    None \<Rightarrow> []
+  | Some (x, xq) \<Rightarrow> x # list_of_lazy_sequence xq)"
 
-lemma [simp]: "yield xq = Some (x, xq') ==> size xq' < size xq"
-by (cases xq) auto
+code_datatype Lazy_Sequence
 
-lemma yield_Seq [code]:
+declare list_of_lazy_sequence.simps [code del]
+declare lazy_sequence.cases [code del]
+declare lazy_sequence.recs [code del]
+
+lemma list_of_Lazy_Sequence [simp]:
+  "list_of_lazy_sequence (Lazy_Sequence f) = (case f () of
+    None \<Rightarrow> []
+  | Some (x, xq) \<Rightarrow> x # list_of_lazy_sequence xq)"
+  by (simp add: Lazy_Sequence_def)
+
+definition yield :: "'a lazy_sequence \<Rightarrow> ('a \<times> 'a lazy_sequence) option"
+where
+  "yield xq = (case list_of_lazy_sequence xq of
+    [] \<Rightarrow> None
+  | x # xs \<Rightarrow> Some (x, lazy_sequence_of_list xs))" 
+
+lemma yield_Seq [simp, code]:
   "yield (Lazy_Sequence f) = f ()"
-unfolding Lazy_Sequence_def by (cases "f ()") auto
+  by (cases "f ()") (simp_all add: yield_def split_def)
 
-lemma Seq_yield:
-  "Lazy_Sequence (%u. yield f) = f"
-unfolding Lazy_Sequence_def by (cases f) auto
+lemma case_yield_eq [simp]: "option_case g h (yield xq) =
+  list_case g (\<lambda>x. curry h x \<circ> lazy_sequence_of_list) (list_of_lazy_sequence xq)"
+  by (cases "list_of_lazy_sequence xq") (simp_all add: yield_def)
 
 lemma lazy_sequence_size_code [code]:
-  "lazy_sequence_size s xq = (case yield xq of None => 0 | Some (x, xq') => s x + lazy_sequence_size s xq' + 1)"
-by (cases xq) auto
+  "lazy_sequence_size s xq = (case yield xq of
+    None \<Rightarrow> 1
+  | Some (x, xq') \<Rightarrow> Suc (s x + lazy_sequence_size s xq'))"
+  by (cases "list_of_lazy_sequence xq") (simp_all add: lazy_sequence_size_eq)
 
-lemma size_code [code]:
-  "size xq = (case yield xq of None => 0 | Some (x, xq') => size xq' + 1)"
-by (cases xq) auto
-
-lemma [code]: "HOL.equal xq yq = (case (yield xq, yield yq) of
-  (None, None) => True | (Some (x, xq'), Some (y, yq')) => (HOL.equal x y) \<and> (HOL.equal xq yq) | _ => False)"
-apply (cases xq) apply (cases yq) apply (auto simp add: equal_eq) 
-apply (cases yq) apply (auto simp add: equal_eq) done
+lemma equal_lazy_sequence_code [code]:
+  "HOL.equal xq yq = (case (yield xq, yield yq) of
+    (None, None) \<Rightarrow> True
+  | (Some (x, xq'), Some (y, yq')) \<Rightarrow> HOL.equal x y \<and> HOL.equal xq yq
+  | _ \<Rightarrow> False)"
+  by (simp_all add: lazy_sequence_eq_iff equal_eq split: list.splits)
 
 lemma [code nbe]:
   "HOL.equal (x :: 'a lazy_sequence) x \<longleftrightarrow> True"
   by (fact equal_refl)
 
-lemma seq_case [code]:
-  "lazy_sequence_case f g xq = (case (yield xq) of None => f | Some (x, xq') => g x xq')"
-by (cases xq) auto
-
-lemma [code]: "lazy_sequence_rec f g xq = (case (yield xq) of None => f | Some (x, xq') => g x xq' (lazy_sequence_rec f g xq'))"
-by (cases xq) auto
-
 definition empty :: "'a lazy_sequence"
 where
-  [code]: "empty = Lazy_Sequence (%u. None)"
+  "empty = lazy_sequence_of_list []"
 
-definition single :: "'a => 'a lazy_sequence"
+lemma list_of_lazy_sequence_empty [simp]:
+  "list_of_lazy_sequence empty = []"
+  by (simp add: empty_def)
+
+lemma empty_code [code]:
+  "empty = Lazy_Sequence (\<lambda>_. None)"
+  by (simp add: lazy_sequence_eq_iff)
+
+definition single :: "'a \<Rightarrow> 'a lazy_sequence"
 where
-  [code]: "single x = Lazy_Sequence (%u. Some (x, empty))"
+  "single x = lazy_sequence_of_list [x]"
 
-primrec append :: "'a lazy_sequence => 'a lazy_sequence => 'a lazy_sequence"
+lemma list_of_lazy_sequence_single [simp]:
+  "list_of_lazy_sequence (single x) = [x]"
+  by (simp add: single_def)
+
+lemma single_code [code]:
+  "single x = Lazy_Sequence (\<lambda>_. Some (x, empty))"
+  by (simp add: lazy_sequence_eq_iff)
+
+definition append :: "'a lazy_sequence \<Rightarrow> 'a lazy_sequence \<Rightarrow> 'a lazy_sequence"
 where
-  "append Empty yq = yq"
-| "append (Insert x xq) yq = Insert x (append xq yq)"
+  "append xq yq = lazy_sequence_of_list (list_of_lazy_sequence xq @ list_of_lazy_sequence yq)"
 
-lemma [code]:
-  "append xq yq = Lazy_Sequence (%u. case yield xq of
-     None => yield yq
-  | Some (x, xq') => Some (x, append xq' yq))"
-unfolding Lazy_Sequence_def
-apply (cases "xq")
-apply auto
-apply (cases "yq")
-apply auto
-done
+lemma list_of_lazy_sequence_append [simp]:
+  "list_of_lazy_sequence (append xq yq) = list_of_lazy_sequence xq @ list_of_lazy_sequence yq"
+  by (simp add: append_def)
 
-primrec flat :: "'a lazy_sequence lazy_sequence => 'a lazy_sequence"
+lemma append_code [code]:
+  "append xq yq = Lazy_Sequence (\<lambda>_. case yield xq of
+    None \<Rightarrow> yield yq
+  | Some (x, xq') \<Rightarrow> Some (x, append xq' yq))"
+  by (simp_all add: lazy_sequence_eq_iff split: list.splits)
+
+definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a lazy_sequence \<Rightarrow> 'b lazy_sequence"
 where
-  "flat Empty = Empty"
-| "flat (Insert xq xqq) = append xq (flat xqq)"
- 
-lemma [code]:
-  "flat xqq = Lazy_Sequence (%u. case yield xqq of
-    None => None
-  | Some (xq, xqq') => yield (append xq (flat xqq')))"
-apply (cases "xqq")
-apply (auto simp add: Seq_yield)
-unfolding Lazy_Sequence_def
-by auto
+  "map f xq = lazy_sequence_of_list (List.map f (list_of_lazy_sequence xq))"
 
-primrec map :: "('a => 'b) => 'a lazy_sequence => 'b lazy_sequence"
+lemma list_of_lazy_sequence_map [simp]:
+  "list_of_lazy_sequence (map f xq) = List.map f (list_of_lazy_sequence xq)"
+  by (simp add: map_def)
+
+lemma map_code [code]:
+  "map f xq =
+    Lazy_Sequence (\<lambda>_. Option.map (\<lambda>(x, xq'). (f x, map f xq')) (yield xq))"
+  by (simp_all add: lazy_sequence_eq_iff split: list.splits)
+
+definition flat :: "'a lazy_sequence lazy_sequence \<Rightarrow> 'a lazy_sequence"
 where
-  "map f Empty = Empty"
-| "map f (Insert x xq) = Insert (f x) (map f xq)"
+  "flat xqq = lazy_sequence_of_list (concat (List.map list_of_lazy_sequence (list_of_lazy_sequence xqq)))"
 
-lemma [code]:
-  "map f xq = Lazy_Sequence (%u. Option.map (%(x, xq'). (f x, map f xq')) (yield xq))"
-apply (cases xq)
-apply (auto simp add: Seq_yield)
-unfolding Lazy_Sequence_def
-apply auto
-done
+lemma list_of_lazy_sequence_flat [simp]:
+  "list_of_lazy_sequence (flat xqq) = concat (List.map list_of_lazy_sequence (list_of_lazy_sequence xqq))"
+  by (simp add: flat_def)
 
-definition bind :: "'a lazy_sequence => ('a => 'b lazy_sequence) => 'b lazy_sequence"
+lemma flat_code [code]:
+  "flat xqq = Lazy_Sequence (\<lambda>_. case yield xqq of
+    None \<Rightarrow> None
+  | Some (xq, xqq') \<Rightarrow> yield (append xq (flat xqq')))"
+  by (simp add: lazy_sequence_eq_iff split: list.splits)
+
+definition bind :: "'a lazy_sequence \<Rightarrow> ('a \<Rightarrow> 'b lazy_sequence) \<Rightarrow> 'b lazy_sequence"
 where
-  [code]: "bind xq f = flat (map f xq)"
+  "bind xq f = flat (map f xq)"
 
-definition if_seq :: "bool => unit lazy_sequence"
+definition if_seq :: "bool \<Rightarrow> unit lazy_sequence"
 where
   "if_seq b = (if b then single () else empty)"
 
-function iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a Lazy_Sequence.lazy_sequence"
+definition those :: "'a option lazy_sequence \<Rightarrow> 'a lazy_sequence option"
 where
-  "iterate_upto f n m = Lazy_Sequence.Lazy_Sequence (%u. if n > m then None else Some (f n, iterate_upto f (n + 1) m))"
-by pat_completeness auto
+  "those xq = Option.map lazy_sequence_of_list (List.those (list_of_lazy_sequence xq))"
+  
+function iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a lazy_sequence"
+where
+  "iterate_upto f n m =
+    Lazy_Sequence (\<lambda>_. if n > m then None else Some (f n, iterate_upto f (n + 1) m))"
+  by pat_completeness auto
 
 termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
 
-definition not_seq :: "unit lazy_sequence => unit lazy_sequence"
+definition not_seq :: "unit lazy_sequence \<Rightarrow> unit lazy_sequence"
 where
-  "not_seq xq = (case yield xq of None => single () | Some ((), xq) => empty)"
+  "not_seq xq = (case yield xq of
+    None \<Rightarrow> single ()
+  | Some ((), xq) \<Rightarrow> empty)"
 
+  
 subsection {* Code setup *}
-
-fun anamorph :: "('a \<Rightarrow> ('b \<times> 'a) option) \<Rightarrow> code_numeral \<Rightarrow> 'a \<Rightarrow> 'b list \<times> 'a" where
-  "anamorph f k x = (if k = 0 then ([], x)
-    else case f x of None \<Rightarrow> ([], x) | Some (v, y) \<Rightarrow>
-      let (vs, z) = anamorph f (k - 1) y
-    in (v # vs, z))"
-
-definition yieldn :: "code_numeral \<Rightarrow> 'a lazy_sequence \<Rightarrow> 'a list \<times> 'a lazy_sequence" where
-  "yieldn = anamorph yield"
 
 code_reflect Lazy_Sequence
   datatypes lazy_sequence = Lazy_Sequence
-  functions map yield yieldn
+
+ML {*
+signature LAZY_SEQUENCE =
+sig
+  datatype 'a lazy_sequence = Lazy_Sequence of (unit -> ('a * 'a Lazy_Sequence.lazy_sequence) option)
+  val map: ('a -> 'b) -> 'a lazy_sequence -> 'b lazy_sequence
+  val yield: 'a lazy_sequence -> ('a * 'a lazy_sequence) option
+  val yieldn: int -> 'a lazy_sequence -> 'a list * 'a lazy_sequence
+end;
+
+structure Lazy_Sequence : LAZY_SEQUENCE =
+struct
+
+datatype lazy_sequence = datatype Lazy_Sequence.lazy_sequence;
+
+fun map f = @{code Lazy_Sequence.map} f;
+
+fun yield P = @{code Lazy_Sequence.yield} P;
+
+fun yieldn k = Predicate.anamorph yield k;
+
+end;
+*}
+
 
 subsection {* Generator Sequences *}
 
-
 subsubsection {* General lazy sequence operation *}
 
-definition product :: "'a Lazy_Sequence.lazy_sequence \<Rightarrow> 'b Lazy_Sequence.lazy_sequence \<Rightarrow> ('a * 'b) Lazy_Sequence.lazy_sequence"
+definition product :: "'a lazy_sequence \<Rightarrow> 'b lazy_sequence \<Rightarrow> ('a \<times> 'b) lazy_sequence"
 where
-  "product s1 s2 = Lazy_Sequence.bind s1 (%a. Lazy_Sequence.bind s2 (%b. Lazy_Sequence.single (a, b)))"
+  "product s1 s2 = bind s1 (\<lambda>a. bind s2 (\<lambda>b. single (a, b)))"
 
 
 subsubsection {* Small lazy typeclasses *}
 
 class small_lazy =
-  fixes small_lazy :: "code_numeral \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
+  fixes small_lazy :: "code_numeral \<Rightarrow> 'a lazy_sequence"
 
 instantiation unit :: small_lazy
 begin
 
-definition "small_lazy d = Lazy_Sequence.single ()"
+definition "small_lazy d = single ()"
 
 instance ..
 
@@ -170,15 +242,17 @@ begin
 text {* maybe optimise this expression -> append (single x) xs == cons x xs 
 Performance difference? *}
 
-function small_lazy' :: "int => int => int Lazy_Sequence.lazy_sequence"
-where "small_lazy' d i = (if d < i then Lazy_Sequence.empty else
-  Lazy_Sequence.append (Lazy_Sequence.single i) (small_lazy' d (i + 1)))"
-by pat_completeness auto
+function small_lazy' :: "int \<Rightarrow> int \<Rightarrow> int lazy_sequence"
+where
+  "small_lazy' d i = (if d < i then empty
+    else append (single i) (small_lazy' d (i + 1)))"
+    by pat_completeness auto
 
 termination 
   by (relation "measure (%(d, i). nat (d + 1 - i))") auto
 
-definition "small_lazy d = small_lazy' (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
+definition
+  "small_lazy d = small_lazy' (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
 
 instance ..
 
@@ -197,9 +271,11 @@ end
 instantiation list :: (small_lazy) small_lazy
 begin
 
-fun small_lazy_list :: "code_numeral => 'a list Lazy_Sequence.lazy_sequence"
+fun small_lazy_list :: "code_numeral \<Rightarrow> 'a list lazy_sequence"
 where
-  "small_lazy_list d = Lazy_Sequence.append (Lazy_Sequence.single []) (if d > 0 then Lazy_Sequence.bind (product (small_lazy (d - 1)) (small_lazy (d - 1))) (%(x, xs). Lazy_Sequence.single (x # xs)) else Lazy_Sequence.empty)"
+  "small_lazy_list d = append (single [])
+    (if d > 0 then bind (product (small_lazy (d - 1))
+      (small_lazy (d - 1))) (\<lambda>(x, xs). single (x # xs)) else empty)"
 
 instance ..
 
@@ -212,56 +288,61 @@ type_synonym 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
 
 definition hit_bound :: "'a hit_bound_lazy_sequence"
 where
-  [code]: "hit_bound = Lazy_Sequence (%u. Some (None, empty))"
+  "hit_bound = Lazy_Sequence (\<lambda>_. Some (None, empty))"
 
-definition hb_single :: "'a => 'a hit_bound_lazy_sequence"
+lemma list_of_lazy_sequence_hit_bound [simp]:
+  "list_of_lazy_sequence hit_bound = [None]"
+  by (simp add: hit_bound_def)
+  
+definition hb_single :: "'a \<Rightarrow> 'a hit_bound_lazy_sequence"
 where
-  [code]: "hb_single x = Lazy_Sequence (%u. Some (Some x, empty))"
+  "hb_single x = Lazy_Sequence (\<lambda>_. Some (Some x, empty))"
 
-primrec hb_flat :: "'a hit_bound_lazy_sequence hit_bound_lazy_sequence => 'a hit_bound_lazy_sequence"
+definition hb_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a hit_bound_lazy_sequence \<Rightarrow> 'b hit_bound_lazy_sequence"
 where
-  "hb_flat Empty = Empty"
-| "hb_flat (Insert xq xqq) = append (case xq of None => hit_bound | Some xq => xq) (hb_flat xqq)"
+  "hb_map f xq = map (Option.map f) xq"
 
-lemma [code]:
-  "hb_flat xqq = Lazy_Sequence (%u. case yield xqq of
-    None => None
-  | Some (xq, xqq') => yield (append (case xq of None => hit_bound | Some xq => xq) (hb_flat xqq')))"
-apply (cases "xqq")
-apply (auto simp add: Seq_yield)
-unfolding Lazy_Sequence_def
-by auto
+lemma hb_map_code [code]:
+  "hb_map f xq =
+    Lazy_Sequence (\<lambda>_. Option.map (\<lambda>(x, xq'). (Option.map f x, hb_map f xq')) (yield xq))"
+  using map_code [of "Option.map f" xq] by (simp add: hb_map_def)
 
-primrec hb_map :: "('a => 'b) => 'a hit_bound_lazy_sequence => 'b hit_bound_lazy_sequence"
+definition hb_flat :: "'a hit_bound_lazy_sequence hit_bound_lazy_sequence \<Rightarrow> 'a hit_bound_lazy_sequence"
 where
-  "hb_map f Empty = Empty"
-| "hb_map f (Insert x xq) = Insert (Option.map f x) (hb_map f xq)"
+  "hb_flat xqq = lazy_sequence_of_list (concat
+    (List.map ((\<lambda>x. case x of None \<Rightarrow> [None] | Some xs \<Rightarrow> xs) \<circ> Option.map list_of_lazy_sequence) (list_of_lazy_sequence xqq)))"
 
-lemma [code]:
-  "hb_map f xq = Lazy_Sequence (%u. Option.map (%(x, xq'). (Option.map f x, hb_map f xq')) (yield xq))"
-apply (cases xq)
-apply (auto simp add: Seq_yield)
-unfolding Lazy_Sequence_def
-apply auto
-done
+lemma list_of_lazy_sequence_hb_flat [simp]:
+  "list_of_lazy_sequence (hb_flat xqq) =
+    concat (List.map ((\<lambda>x. case x of None \<Rightarrow> [None] | Some xs \<Rightarrow> xs) \<circ> Option.map list_of_lazy_sequence) (list_of_lazy_sequence xqq))"
+  by (simp add: hb_flat_def)
 
-definition hb_bind :: "'a hit_bound_lazy_sequence => ('a => 'b hit_bound_lazy_sequence) => 'b hit_bound_lazy_sequence"
+lemma hb_flat_code [code]:
+  "hb_flat xqq = Lazy_Sequence (\<lambda>_. case yield xqq of
+    None \<Rightarrow> None
+  | Some (xq, xqq') \<Rightarrow> yield
+     (append (case xq of None \<Rightarrow> hit_bound | Some xq \<Rightarrow> xq) (hb_flat xqq')))"
+  by (simp add: lazy_sequence_eq_iff split: list.splits option.splits)
+
+definition hb_bind :: "'a hit_bound_lazy_sequence \<Rightarrow> ('a \<Rightarrow> 'b hit_bound_lazy_sequence) \<Rightarrow> 'b hit_bound_lazy_sequence"
 where
-  [code]: "hb_bind xq f = hb_flat (hb_map f xq)"
+  "hb_bind xq f = hb_flat (hb_map f xq)"
 
-definition hb_if_seq :: "bool => unit hit_bound_lazy_sequence"
+definition hb_if_seq :: "bool \<Rightarrow> unit hit_bound_lazy_sequence"
 where
   "hb_if_seq b = (if b then hb_single () else empty)"
 
-definition hb_not_seq :: "unit hit_bound_lazy_sequence => unit lazy_sequence"
+definition hb_not_seq :: "unit hit_bound_lazy_sequence \<Rightarrow> unit lazy_sequence"
 where
-  "hb_not_seq xq = (case yield xq of None => single () | Some (x, xq) => empty)"
+  "hb_not_seq xq = (case yield xq of
+    None \<Rightarrow> single ()
+  | Some (x, xq) \<Rightarrow> empty)"
 
-hide_type (open) lazy_sequence
-hide_const (open) Empty Insert Lazy_Sequence yield empty single append flat map bind if_seq
-  iterate_upto not_seq product
-  
-hide_fact yield.simps empty_def single_def append.simps flat.simps map.simps bind_def
-  iterate_upto.simps product_def if_seq_def not_seq_def
+hide_const (open) yield empty single append flat map bind
+  if_seq those iterate_upto not_seq product
+
+hide_fact (open) yield_def empty_def single_def append_def flat_def map_def bind_def
+  if_seq_def those_def not_seq_def product_def 
 
 end
+

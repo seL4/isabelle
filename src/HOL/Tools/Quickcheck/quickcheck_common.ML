@@ -309,7 +309,7 @@ fun mk_safe_if genuine_only none (cond, then_t, else_t) genuine =
     val T = fastype_of then_t
     val if_t = Const (@{const_name "If"}, @{typ bool} --> T --> T --> T)
   in
-    Const (@{const_name "Quickcheck.catch_match"}, T --> T --> T) $ 
+    Const (@{const_name "Quickcheck_Random.catch_match"}, T --> T --> T) $ 
       (if_t $ cond $ then_t $ else_t genuine) $
       (if_t $ genuine_only $ none $ else_t false)
   end

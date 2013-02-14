@@ -3,7 +3,7 @@
 header {* A simple counterexample generator performing exhaustive testing *}
 
 theory Quickcheck_Exhaustive
-imports Quickcheck
+imports Quickcheck_Random
 keywords "quickcheck_generator" :: thy_decl
 begin
 

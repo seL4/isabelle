@@ -222,7 +222,7 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
             tc @{typ Random.seed} (SOME T, @{typ Random.seed});
         val tk = if is_rec
           then if k = 0 then size
-            else @{term "Quickcheck.beyond :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
+            else @{term "Quickcheck_Random.beyond :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
              $ HOLogic.mk_number @{typ code_numeral} k $ size
           else @{term "1::code_numeral"}
       in (is_rec, HOLogic.mk_prod (tk, t)) end;
@@ -233,7 +233,7 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
       |> (map o apfst) Type
       |> map (fn (T, cs) => (T, (sort_rec o map (mk_consexpr T)) cs));
     fun mk_select (rT, xs) =
-      mk_const @{const_name Quickcheck.collapse} [@{typ "Random.seed"}, termifyT rT]
+      mk_const @{const_name Quickcheck_Random.collapse} [@{typ Random.seed}, termifyT rT]
       $ (mk_const @{const_name Random.select_weight} [random_resultT rT]
         $ HOLogic.mk_list (HOLogic.mk_prodT (@{typ code_numeral}, random_resultT rT)) xs)
           $ seed;
@@ -315,7 +315,7 @@ fun mk_generator_expr ctxt (t, _) =
       mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
-      (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
+      (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
   in
     lambda genuine_only
       (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
@@ -333,7 +333,7 @@ fun mk_reporting_generator_expr ctxt (t, _) =
     val prop' = betapplys (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds)
     val (assms, concl) = Quickcheck_Common.strip_imp prop'
-    val return = HOLogic.pair_const resultT @{typ "Random.seed"};
+    val return = HOLogic.pair_const resultT @{typ Random.seed};
     fun mk_assms_report i =
       HOLogic.mk_prod (@{term "None :: (bool * term list) option"},
         HOLogic.mk_prod (HOLogic.mk_list HOLogic.boolT
@@ -361,7 +361,7 @@ fun mk_reporting_generator_expr ctxt (t, _) =
       mk_scomp (mk_termtyp T) resultT @{typ Random.seed} t
         (mk_split T $ Abs ("", T, Abs ("", @{typ "unit => term"}, t')));
     fun mk_bindclause (_, _, i, T) = mk_scomp_split T
-      (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
+      (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
   in
     lambda genuine_only
       (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))

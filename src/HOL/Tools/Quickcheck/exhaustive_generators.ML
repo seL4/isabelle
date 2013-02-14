@@ -243,7 +243,7 @@ fun mk_safe_let_expr genuine_only none safe (x, t, e) genuine =
     val (T1, T2) = (fastype_of x, fastype_of (e genuine))
     val if_t = Const (@{const_name "If"}, @{typ bool} --> T2 --> T2 --> T2)
   in
-    Const (@{const_name "Quickcheck.catch_match"}, T2 --> T2 --> T2) $ 
+    Const (@{const_name "Quickcheck_Random.catch_match"}, T2 --> T2 --> T2) $ 
       (Const (@{const_name Let}, T1 --> (T1 --> T2) --> T2) $ t $ lambda x (e genuine)) $
       (if_t $ genuine_only $ none $ safe false)
   end
@@ -337,9 +337,9 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
     val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if mk_let none_t return ctxt 
   in lambda depth (@{term "catch_Counterexample :: unit => term list option"} $ mk_test_term t) end
 
-fun mk_unknown_term T = HOLogic.reflect_term (Const ("Quickcheck_Exhaustive.unknown", T))
+fun mk_unknown_term T = HOLogic.reflect_term (Const (@{const_name Quickcheck_Exhaustive.unknown}, T))
 
-fun mk_safe_term t = @{term "Quickcheck.catch_match :: term => term => term"}
+fun mk_safe_term t = @{term "Quickcheck_Random.catch_match :: term => term => term"}
       $ (HOLogic.mk_term_of (fastype_of t) t) $ mk_unknown_term (fastype_of t)    
 
 fun mk_return t genuine = @{term "Some :: bool * term list => (bool * term list) option"} $
