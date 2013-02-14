@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Product_Lattice.thy
+(*  Title:      HOL/Library/Product_Order.thy
     Author:     Brian Huffman
 *)
 
-header {* Lattice operations on product types *}
+header {* Pointwise order on product types *}
 
-theory Product_Lattice
+theory Product_Order
 imports "~~/src/HOL/Library/Product_plus"
 begin
 
@@ -234,5 +234,5 @@ next
     by (auto simp: inf_prod_def Sup_prod_def SUP_prod_alt_def inf_Sup inf_SUP)
 qed
 
-
 end
+

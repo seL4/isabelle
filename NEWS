@@ -10,6 +10,15 @@ New in this Isabelle version
 (lin)order_topology. Allows to generalize theorems about limits and
 order. Instances are reals and extended reals.
 
+*** HOL ***
+
+* Consolidation of library theories on product orders:
+
+    Product_Lattice ~> Product_Order -- pointwise order on products
+    Product_ord ~> Product_Lexorder -- lexicographic order on products
+
+INCOMPATIBILITY.
+
 
 New in Isabelle2013 (February 2013)
 -----------------------------------

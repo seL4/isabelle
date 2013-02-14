@@ -5,7 +5,7 @@
 header {* Implementation of sets using RBT trees *}
 
 theory RBT_Set
-imports RBT Product_ord
+imports RBT Product_Lexorder
 begin
 
 (*
