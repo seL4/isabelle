@@ -91,6 +91,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         | refs (Prove (_, _, _, By_Metis (lfs, _))) = lookup_indices lfs
         | refs (Prove (_, _, _, Case_Split (cases, (lfs, _)))) =
           lookup_indices lfs @ maps (maps refs) cases
+        | refs (Prove (_, _, _, Subblock proof)) = maps refs proof
         | refs _ = []
       val refed_by_vect =
         Vector.tabulate (n, (fn _ => []))
@@ -218,24 +219,27 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           | enrich_with_step _ = I
         val rich_ctxt = fold enrich_with_step proof ctxt
 
-        (* Shrink case_splits and top-levl *)
+        (* Shrink subproofs (case_splits and subblocks) and top-levl *)
         val ((proof, top_level_time), lower_level_time) =
-          proof |> do_case_splits rich_ctxt
+          proof |> do_subproof rich_ctxt
                 |>> shrink_top_level on_top_level rich_ctxt
       in
         (proof, add_preplay_time lower_level_time top_level_time)
       end
 
-    and do_case_splits ctxt proof =
+    and do_subproof ctxt proof =
       let
         fun shrink_each_and_collect_time shrink candidates =
           let fun f_m cand time = shrink cand ||> add_preplay_time time
           in fold_map f_m candidates zero_preplay_time end
-        val shrink_case_split =
+        val shrink_subproof =
           shrink_each_and_collect_time (do_proof false ctxt)
         fun shrink (Prove (qs, l, t, Case_Split (cases, facts))) =
-            let val (cases, time) = shrink_case_split cases
+            let val (cases, time) = shrink_subproof cases
             in (Prove (qs, l, t, Case_Split (cases, facts)), time) end
+          | shrink (Prove (qs, l, t, Subblock proof)) =
+            let val ([proof], time) = shrink_subproof [proof]
+            in (Prove (qs, l, t, Subblock proof), time) end
           | shrink step = (step, zero_preplay_time)
       in
         shrink_each_and_collect_time shrink proof

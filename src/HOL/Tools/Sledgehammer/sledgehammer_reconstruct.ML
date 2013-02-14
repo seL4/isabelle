@@ -499,14 +499,14 @@ fun string_for_proof ctxt type_enc lam_trans i n =
            (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
            Vampire). *)
         do_metis ind "using [[metis_new_skolem]] " facts ^ "\n"
-      | do_step ind (Prove (qs, l, t, By_Metis facts)) =
-        do_indent ind ^ do_have qs ^ " " ^
-        do_label l ^ do_term t ^ do_metis ind "" facts ^ "\n"
+      | do_step ind (Prove (qs, l, t, By_Metis facts)) = 
+        do_prove ind qs l t facts
       | do_step ind (Prove (qs, l, t, Case_Split (proofs, facts))) =
         implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
                      proofs) ^
-        do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
-        do_metis ind "" facts ^ "\n"
+        do_prove ind qs l t facts
+      | do_step ind (Prove (qs, l, t, Subblock proof)) =
+        do_block ind proof ^ do_prove ind qs l t ([], [])
     and do_steps prefix suffix ind steps =
       let val s = implode (map (do_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
@@ -515,6 +515,9 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         suffix ^ "\n"
       end
     and do_block ind proof = do_steps "{ " " }" (ind + 1) proof
+    and do_prove ind qs l t facts =
+      do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
+      do_metis ind "" facts ^ "\n"
     (* One-step proofs are pointless; better use the Metis one-liner
        directly. *)
     and do_proof [Prove (_, _, _, By_Metis _)] = ""
@@ -529,7 +532,8 @@ fun used_labels_of_step (Obtain (_, _, _, _, By_Metis (ls, _))) = ls
     (case by of
        By_Metis (ls, _) => ls
      | Case_Split (proofs, (ls, _)) =>
-       fold (union (op =) o used_labels_of) proofs ls)
+       fold (union (op =) o used_labels_of) proofs ls
+     | Subblock proof => used_labels_of proof)
   | used_labels_of_step _ = []
 and used_labels_of proof = fold (union (op =) o used_labels_of_step) proof []
 
@@ -543,10 +547,12 @@ fun kill_useless_labels_in_proof proof =
         Prove (qs, do_label l, t,
                case by of
                  Case_Split (proofs, facts) =>
-                 Case_Split (map (map do_step) proofs, facts)
+                 Case_Split (map do_proof proofs, facts)
+               | Subblock proof => Subblock (do_proof proof)
                | _ => by)
       | do_step step = step
-  in map do_step proof end
+    and do_proof proof = map do_step proof
+  in do_proof proof end
 
 fun prefix_for_depth n = replicate_string (n + 1)
 
@@ -561,12 +567,13 @@ val relabel_proof =
         end
     fun do_facts subst =
       apfst (maps (the_list o AList.lookup (op =) subst))
-    fun do_byline subst depth by =
+    fun do_byline subst depth nexts by =
       case by of
         By_Metis facts => By_Metis (do_facts subst facts)
       | Case_Split (proofs, facts) =>
         Case_Split (map (do_proof subst (depth + 1) (1, 1)) proofs,
                     do_facts subst facts)
+      | Subblock proof => Subblock (do_proof subst depth nexts proof)
     and do_proof _ _ _ [] = []
       | do_proof subst depth (next_assum, next_have) (Assume (l, t) :: proof) =
         if l = no_label then
@@ -576,26 +583,26 @@ val relabel_proof =
             Assume (l', t) ::
             do_proof ((l, l') :: subst) depth (next_assum + 1, next_have) proof
           end
-      | do_proof subst depth (next_assum, next_have)
+      | do_proof subst depth (nexts as (next_assum, next_have))
             (Obtain (qs, xs, l, t, by) :: proof) =
         let
           val (l, subst, next_have) = (l, subst, next_have) |> fresh_label depth
-          val by = by |> do_byline subst depth
+          val by = by |> do_byline subst depth nexts
         in
           Obtain (qs, xs, l, t, by) ::
           do_proof subst depth (next_assum, next_have) proof
         end
-      | do_proof subst depth (next_assum, next_have)
+      | do_proof subst depth (nexts as (next_assum, next_have))
             (Prove (qs, l, t, by) :: proof) =
         let
           val (l, subst, next_have) = (l, subst, next_have) |> fresh_label depth
-          val by = by |> do_byline subst depth
+          val by = by |> do_byline subst depth nexts
         in
           Prove (qs, l, t, by) ::
           do_proof subst depth (next_assum, next_have) proof
         end
-      | do_proof subst depth nextp (step :: proof) =
-        step :: do_proof subst depth nextp proof
+      | do_proof subst depth nexts (step :: proof) =
+        step :: do_proof subst depth nexts proof
   in do_proof [] 0 (1, 1) end
 
 val chain_direct_proof =
@@ -617,7 +624,9 @@ val chain_direct_proof =
         else
           step
       | chain_step _ (Prove (qs, l, t, Case_Split (proofs, facts))) =
-        Prove (qs, l, t, Case_Split ((map (chain_proof NONE) proofs), facts))
+        Prove (qs, l, t, Case_Split (map (chain_proof NONE) proofs, facts))
+      | chain_step _ (Prove (qs, l, t, Subblock proof)) =
+        Prove (qs, l, t, Subblock (chain_proof NONE proof))
       | chain_step _ step = step
     and chain_proof _ [] = []
       | chain_proof (prev as SOME _) (i :: is) =

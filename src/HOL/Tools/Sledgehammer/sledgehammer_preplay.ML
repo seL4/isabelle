@@ -92,7 +92,9 @@ fun try_metis debug type_enc lam_trans ctxt timeout (succedent, step) =
           :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
                           | _ => error "preplay error: malformed case split")
                      #> make_thm)
-               cases)
+               cases
+      (* TODO: implement *)
+      | Subblock _ => [])
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
                     |> obtain ? Config.put Metis_Tactic.new_skolem true
     val goal =
