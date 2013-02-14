@@ -54,7 +54,7 @@ open ATP_Proof_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Proof
 open Sledgehammer_Annotate
-open Sledgehammer_Shrink
+open Sledgehammer_Compress
 
 structure String_Redirect = ATP_Proof_Redirect(
   type key = step_name
@@ -639,7 +639,7 @@ type isar_params =
   * (string * stature) list vector * int Symtab.table * string proof * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, isar_shrink, pool, fact_names, sym_tab,
+    (debug, verbose, preplay_timeout, isar_compress, pool, fact_names, sym_tab,
      atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
@@ -757,12 +757,12 @@ fun isar_proof_text ctxt isar_proofs
           |> redirect_graph axioms tainted bot
           |> map (isar_step_of_direct_inf true)
           |> append assms
-          |> (if not preplay andalso isar_shrink <= 1.0 then
+          |> (if not preplay andalso isar_compress <= 1.0 then
                 rpair (false, (true, seconds 0.0))
               else
-                shrink_proof debug ctxt type_enc lam_trans preplay
+                compress_proof debug ctxt type_enc lam_trans preplay
                   preplay_timeout
-                  (if isar_proofs then isar_shrink else 1000.0))
+                  (if isar_proofs then isar_compress else 1000.0))
        (* |>> reorder_proof_to_minimize_jumps (* ? *) *)
           |>> chain_direct_proof
           |>> kill_useless_labels_in_proof
