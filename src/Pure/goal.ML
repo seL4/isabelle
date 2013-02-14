@@ -39,6 +39,8 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove: Proof.context -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
+  val prove_global_future: theory -> string list -> term list -> term ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
@@ -294,7 +296,11 @@ fun prove_common immediate ctxt xs asms props tac =
 val prove_multi = prove_common true;
 
 fun prove_future ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [prop] tac);
+
 fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
+
+fun prove_global_future thy xs asms prop tac =
+  Drule.export_without_context (prove_future (Proof_Context.init_global thy) xs asms prop tac);
 
 fun prove_global thy xs asms prop tac =
   Drule.export_without_context (prove (Proof_Context.init_global thy) xs asms prop tac);
