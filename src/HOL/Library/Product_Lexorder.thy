@@ -1,10 +1,10 @@
-(*  Title:      HOL/Library/Product_ord.thy
+(*  Title:      HOL/Library/Product_Lexorder.thy
     Author:     Norbert Voelker
 *)
 
-header {* Order on product types *}
+header {* Lexicographic order on product types *}
 
-theory Product_ord
+theory Product_Lexorder
 imports Main
 begin
 
@@ -12,37 +12,47 @@ instantiation prod :: (ord, ord) ord
 begin
 
 definition
-  prod_le_def: "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x \<le> snd y"
+  "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x \<le> snd y"
 
 definition
-  prod_less_def: "x < y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x < snd y"
+  "x < y \<longleftrightarrow> fst x < fst y \<or> fst x \<le> fst y \<and> snd x < snd y"
 
 instance ..
 
 end
 
-lemma [code]:
-  "(x1::'a::{ord, equal}, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 \<le> x2 \<and> y1 \<le> y2"
-  "(x1::'a::{ord, equal}, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 \<le> x2 \<and> y1 < y2"
-  unfolding prod_le_def prod_less_def by simp_all
+lemma less_eq_prod_simp [simp, code]:
+  "(x1, y1) \<le> (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 \<le> x2 \<and> y1 \<le> y2"
+  by (simp add: less_eq_prod_def)
+
+lemma less_prod_simp [simp, code]:
+  "(x1, y1) < (x2, y2) \<longleftrightarrow> x1 < x2 \<or> x1 \<le> x2 \<and> y1 < y2"
+  by (simp add: less_prod_def)
+
+text {* A stronger version for partial orders. *}
+
+lemma less_prod_def':
+  fixes x y :: "'a::order \<times> 'b::ord"
+  shows "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
+  by (auto simp add: less_prod_def le_less)
 
 instance prod :: (preorder, preorder) preorder
-  by default (auto simp: prod_le_def prod_less_def less_le_not_le intro: order_trans)
+  by default (auto simp: less_eq_prod_def less_prod_def less_le_not_le intro: order_trans)
 
 instance prod :: (order, order) order
-  by default (auto simp add: prod_le_def)
+  by default (auto simp add: less_eq_prod_def)
 
 instance prod :: (linorder, linorder) linorder
-  by default (auto simp: prod_le_def)
+  by default (auto simp: less_eq_prod_def)
 
 instantiation prod :: (linorder, linorder) distrib_lattice
 begin
 
 definition
-  inf_prod_def: "(inf :: 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = min"
+  "(inf :: 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = min"
 
 definition
-  sup_prod_def: "(sup :: 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = max"
+  "(sup :: 'a \<times> 'b \<Rightarrow> _ \<Rightarrow> _) = max"
 
 instance
   by default (auto simp add: inf_prod_def sup_prod_def min_max.sup_inf_distrib1)
@@ -53,10 +63,10 @@ instantiation prod :: (bot, bot) bot
 begin
 
 definition
-  bot_prod_def: "bot = (bot, bot)"
+  "bot = (bot, bot)"
 
 instance
-  by default (auto simp add: bot_prod_def prod_le_def)
+  by default (auto simp add: bot_prod_def)
 
 end
 
@@ -64,19 +74,12 @@ instantiation prod :: (top, top) top
 begin
 
 definition
-  top_prod_def: "top = (top, top)"
+  "top = (top, top)"
 
 instance
-  by default (auto simp add: top_prod_def prod_le_def)
+  by default (auto simp add: top_prod_def)
 
 end
-
-text {* A stronger version of the definition holds for partial orders. *}
-
-lemma prod_less_eq:
-  fixes x y :: "'a::order \<times> 'b::ord"
-  shows "x < y \<longleftrightarrow> fst x < fst y \<or> (fst x = fst y \<and> snd x < snd y)"
-  unfolding prod_less_def fst_conv snd_conv le_less by auto
 
 instance prod :: (wellorder, wellorder) wellorder
 proof
@@ -102,7 +105,7 @@ proof
           next
             case False
             with p have 1: "a\<^isub>1 = fst p" and 2: "snd p < b\<^isub>1"
-              by (simp_all add: prod_less_eq)
+              by (simp_all add: less_prod_def')
             from 2 have "P (a\<^isub>1, snd p)" by (rule b\<^isub>1)
             with 1 show ?thesis by simp
           qed
@@ -112,4 +115,11 @@ proof
   qed
 qed
 
+text {* Legacy lemma bindings *}
+
+lemmas prod_le_def = less_eq_prod_def
+lemmas prod_less_def = less_prod_def
+lemmas prod_less_eq = less_prod_def'
+
 end
+

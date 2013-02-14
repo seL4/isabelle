@@ -1,7 +1,7 @@
 (* Author: Alessandro Coglio *)
 
 theory Finite_Lattice
-imports Product_Lattice
+imports Product_Order
 begin
 
 text {* A non-empty finite lattice is a complete lattice.

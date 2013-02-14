@@ -26,6 +26,8 @@ session "HOL-Library" (main) in Library = HOL +
     Finite_Lattice
     Code_Char_chr
     Code_Char_ord
+    Product_Lexorder
+    Product_Order
     Code_Integer
     Efficient_Nat
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
