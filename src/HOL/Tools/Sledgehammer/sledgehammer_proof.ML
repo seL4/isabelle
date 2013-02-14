@@ -60,7 +60,7 @@ fun metis_steps_total proof =
          | Prove (_, _, _, Case_Split (cases, _)) =>
            Integer.add (fold (Integer.add o metis_steps_total) cases 1)
          | Prove (_, _, _, Subblock subproof) =>
-           Integer.add (metis_steps_total subproof)
+           Integer.add (metis_steps_total subproof + 1)
          | _ => I) proof 0
 
 end
