@@ -5,7 +5,7 @@
 header {* Definition of Quotient Types *}
 
 theory Quotient
-imports Plain Hilbert_Choice Equiv_Relations Lifting
+imports Hilbert_Choice Equiv_Relations Lifting
 keywords
   "print_quotmapsQ3" "print_quotientsQ3" "print_quotconsts" :: diag and
   "quotient_type" :: thy_goal and "/" and

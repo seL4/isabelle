@@ -5,7 +5,7 @@
 header {* Generic theorem transfer using relations *}
 
 theory Transfer
-imports Plain Hilbert_Choice
+imports Hilbert_Choice
 begin
 
 subsection {* Relator for function space *}

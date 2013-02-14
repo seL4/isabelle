@@ -6,7 +6,7 @@
 header {* Big operators and finite (non-empty) sets *}
 
 theory Big_Operators
-imports Plain
+imports Finite_Set Metis
 begin
 
 subsection {* Generic monoid operation over a set *}

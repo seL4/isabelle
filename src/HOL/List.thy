@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Presburger Code_Numeral Quotient ATP
+imports Presburger Code_Numeral Quotient ATP
 begin
 
 datatype 'a list =

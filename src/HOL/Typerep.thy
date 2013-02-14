@@ -3,7 +3,7 @@
 header {* Reflecting Pure types into HOL *}
 
 theory Typerep
-imports Plain String
+imports String
 begin
 
 datatype typerep = Typerep String.literal "typerep list"

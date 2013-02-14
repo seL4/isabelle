@@ -6,7 +6,7 @@
 header {* Lifting package *}
 
 theory Lifting
-imports Plain Equiv_Relations Transfer
+imports Equiv_Relations Transfer
 keywords
   "print_quotmaps" "print_quotients" :: diag and
   "lift_definition" :: thy_goal and

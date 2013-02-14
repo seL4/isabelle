@@ -5,7 +5,7 @@
 header {* Term evaluation using the generic code generator *}
 
 theory Code_Evaluation
-imports Plain Typerep New_DSequence
+imports Typerep New_DSequence
 begin
 
 subsection {* Term representation *}
