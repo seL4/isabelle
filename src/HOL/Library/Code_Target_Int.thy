@@ -15,47 +15,47 @@ lemma [code, code del]:
 
 lemma [code]:
   "integer_of_int (int_of_integer k) = k"
-  by (simp add: integer_eq_iff)
+  by transfer rule
 
 lemma [code]:
   "Int.Pos = int_of_integer \<circ> integer_of_num"
-  by (simp add: integer_of_num_def fun_eq_iff)
+  by transfer (simp add: fun_eq_iff) 
 
 lemma [code]:
   "Int.Neg = int_of_integer \<circ> uminus \<circ> integer_of_num"
-  by (simp add: integer_of_num_def fun_eq_iff)
+  by transfer (simp add: fun_eq_iff) 
 
 lemma [code_abbrev]:
   "int_of_integer (numeral k) = Int.Pos k"
-  by simp
+  by transfer simp
 
 lemma [code_abbrev]:
   "int_of_integer (neg_numeral k) = Int.Neg k"
-  by simp
+  by transfer simp
   
 lemma [code, symmetric, code_post]:
   "0 = int_of_integer 0"
-  by simp
+  by transfer simp
 
 lemma [code, symmetric, code_post]:
   "1 = int_of_integer 1"
-  by simp
+  by transfer simp
 
 lemma [code]:
   "k + l = int_of_integer (of_int k + of_int l)"
-  by simp
+  by transfer simp
 
 lemma [code]:
   "- k = int_of_integer (- of_int k)"
-  by simp
+  by transfer simp
 
 lemma [code]:
   "k - l = int_of_integer (of_int k - of_int l)"
-  by simp
+  by transfer simp
 
 lemma [code]:
   "Int.dup k = int_of_integer (Code_Numeral_Types.dup (of_int k))"
-  by simp
+  by transfer simp
 
 lemma [code, code del]:
   "Int.sub = Int.sub" ..
@@ -79,15 +79,15 @@ lemma [code]:
 
 lemma [code]:
   "HOL.equal k l = HOL.equal (of_int k :: integer) (of_int l)"
-  by (simp add: equal integer_eq_iff)
+  by transfer (simp add: equal)
 
 lemma [code]:
   "k \<le> l \<longleftrightarrow> (of_int k :: integer) \<le> of_int l"
-  by (simp add: less_eq_int_def)
+  by transfer rule
 
 lemma [code]:
   "k < l \<longleftrightarrow> (of_int k :: integer) < of_int l"
-  by (simp add: less_int_def)
+  by transfer rule
 
 lemma (in ring_1) of_int_code:
   "of_int k = (if k = 0 then 0
@@ -107,7 +107,7 @@ declare of_int_code [code]
 
 lemma [code]:
   "nat = nat_of_integer \<circ> of_int"
-  by (simp add: fun_eq_iff nat_of_integer_def)
+  by transfer (simp add: fun_eq_iff)
 
 code_modulename SML
   Code_Target_Int Arith

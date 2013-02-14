@@ -13,9 +13,11 @@ subsection {* Type of target language integers *}
 typedef integer = "UNIV \<Colon> int set"
   morphisms int_of_integer integer_of_int ..
 
+setup_lifting (no_code) type_definition_integer
+
 lemma integer_eq_iff:
   "k = l \<longleftrightarrow> int_of_integer k = int_of_integer l"
-  using int_of_integer_inject [of k l] ..
+  by transfer rule
 
 lemma integer_eqI:
   "int_of_integer k = int_of_integer l \<Longrightarrow> k = l"
@@ -23,172 +25,199 @@ lemma integer_eqI:
 
 lemma int_of_integer_integer_of_int [simp]:
   "int_of_integer (integer_of_int k) = k"
-  using integer_of_int_inverse [of k] by simp
+  by transfer rule
 
 lemma integer_of_int_int_of_integer [simp]:
   "integer_of_int (int_of_integer k) = k"
-  using int_of_integer_inverse [of k] by simp
+  by transfer rule
 
 instantiation integer :: ring_1
 begin
 
-definition
-  "0 = integer_of_int 0"
+lift_definition zero_integer :: integer
+  is "0 :: int"
+  .
 
-lemma int_of_integer_zero [simp]:
-  "int_of_integer 0 = 0"
-  by (simp add: zero_integer_def)
+declare zero_integer.rep_eq [simp]
 
-definition
-  "1 = integer_of_int 1"
+lift_definition one_integer :: integer
+  is "1 :: int"
+  .
 
-lemma int_of_integer_one [simp]:
-  "int_of_integer 1 = 1"
-  by (simp add: one_integer_def)
+declare one_integer.rep_eq [simp]
 
-definition
-  "k + l = integer_of_int (int_of_integer k + int_of_integer l)"
+lift_definition plus_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "plus :: int \<Rightarrow> int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_plus [simp]:
-  "int_of_integer (k + l) = int_of_integer k + int_of_integer l"
-  by (simp add: plus_integer_def)
+declare plus_integer.rep_eq [simp]
 
-definition
-  "- k = integer_of_int (- int_of_integer k)"
+lift_definition uminus_integer :: "integer \<Rightarrow> integer"
+  is "uminus :: int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_uminus [simp]:
-  "int_of_integer (- k) = - int_of_integer k"
-  by (simp add: uminus_integer_def)
+declare uminus_integer.rep_eq [simp]
 
-definition
-  "k - l = integer_of_int (int_of_integer k - int_of_integer l)"
+lift_definition minus_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "minus :: int \<Rightarrow> int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_minus [simp]:
-  "int_of_integer (k - l) = int_of_integer k - int_of_integer l"
-  by (simp add: minus_integer_def)
+declare minus_integer.rep_eq [simp]
 
-definition
-  "k * l = integer_of_int (int_of_integer k * int_of_integer l)"
+lift_definition times_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "times :: int \<Rightarrow> int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_times [simp]:
-  "int_of_integer (k * l) = int_of_integer k * int_of_integer l"
-  by (simp add: times_integer_def)
+declare times_integer.rep_eq [simp]
 
 instance proof
-qed (auto simp add: integer_eq_iff algebra_simps)
+qed (transfer, simp add: algebra_simps)+
 
 end
 
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_integer (of_nat :: nat \<Rightarrow> int) (of_nat :: nat \<Rightarrow> integer)"
+  by (unfold of_nat_def [abs_def])  transfer_prover
+
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_integer (\<lambda>k :: int. k :: int) (of_int :: int \<Rightarrow> integer)"
+proof -
+  have "fun_rel HOL.eq cr_integer (of_int :: int \<Rightarrow> int) (of_int :: int \<Rightarrow> integer)"
+    by (unfold of_int_of_nat [abs_def]) transfer_prover
+  then show ?thesis by (simp add: id_def)
+qed
+
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_integer (numeral :: num \<Rightarrow> int) (numeral :: num \<Rightarrow> integer)"
+proof -
+  have "fun_rel HOL.eq cr_integer (numeral :: num \<Rightarrow> int) (\<lambda>n. of_int (numeral n))"
+    by transfer_prover
+  then show ?thesis by simp
+qed
+
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_integer (neg_numeral :: num \<Rightarrow> int) (neg_numeral :: num \<Rightarrow> integer)"
+  by (unfold neg_numeral_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "fun_rel HOL.eq (fun_rel HOL.eq cr_integer) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> int) (Num.sub :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold Num.sub_def [abs_def]) transfer_prover
+
 lemma int_of_integer_of_nat [simp]:
   "int_of_integer (of_nat n) = of_nat n"
-  by (induct n) simp_all
+  by transfer rule
 
-definition integer_of_nat :: "nat \<Rightarrow> integer"
-where
-  "integer_of_nat = of_nat"
+lift_definition integer_of_nat :: "nat \<Rightarrow> integer"
+  is "of_nat :: nat \<Rightarrow> int"
+  .
 
 lemma int_of_integer_integer_of_nat [simp]:
   "int_of_integer (integer_of_nat n) = of_nat n"
-  by (simp add: integer_of_nat_def)
-  
-definition nat_of_integer :: "integer \<Rightarrow> nat"
-where
-  "nat_of_integer k = Int.nat (int_of_integer k)"
+  by transfer rule
+
+lift_definition nat_of_integer :: "integer \<Rightarrow> nat"
+  is Int.nat
+  .
 
 lemma nat_of_integer_of_nat [simp]:
   "nat_of_integer (of_nat n) = n"
-  by (simp add: nat_of_integer_def)
+  by transfer simp
 
 lemma int_of_integer_of_int [simp]:
   "int_of_integer (of_int k) = k"
-  by (induct k) (simp_all, simp only: neg_numeral_def numeral_One int_of_integer_uminus int_of_integer_one)
+  by transfer simp
 
 lemma nat_of_integer_integer_of_nat [simp]:
   "nat_of_integer (integer_of_nat n) = n"
-  by (simp add: integer_of_nat_def)
+  by transfer simp
 
 lemma integer_of_int_eq_of_int [simp, code_abbrev]:
   "integer_of_int = of_int"
-  by rule (simp add: integer_eq_iff)
+  by transfer (simp add: fun_eq_iff)
 
 lemma of_int_integer_of [simp]:
   "of_int (int_of_integer k) = (k :: integer)"
-  by (simp add: integer_eq_iff)
+  by transfer rule
 
 lemma int_of_integer_numeral [simp]:
   "int_of_integer (numeral k) = numeral k"
-  using int_of_integer_of_int [of "numeral k"] by simp
+  by transfer rule
 
 lemma int_of_integer_neg_numeral [simp]:
   "int_of_integer (neg_numeral k) = neg_numeral k"
-  by (simp only: neg_numeral_def int_of_integer_uminus) simp
+  by transfer rule
 
 lemma int_of_integer_sub [simp]:
   "int_of_integer (Num.sub k l) = Num.sub k l"
-  by (simp only: Num.sub_def int_of_integer_minus int_of_integer_numeral)
+  by transfer rule
 
 instantiation integer :: "{ring_div, equal, linordered_idom}"
 begin
 
-definition
-  "k div l = of_int (int_of_integer k div int_of_integer l)"
+lift_definition div_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "Divides.div :: int \<Rightarrow> int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_div [simp]:
-  "int_of_integer (k div l) = int_of_integer k div int_of_integer l"
-  by (simp add: div_integer_def)
+declare div_integer.rep_eq [simp]
 
-definition
-  "k mod l = of_int (int_of_integer k mod int_of_integer l)"
+lift_definition mod_integer :: "integer \<Rightarrow> integer \<Rightarrow> integer"
+  is "Divides.mod :: int \<Rightarrow> int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_mod [simp]:
-  "int_of_integer (k mod l) = int_of_integer k mod int_of_integer l"
-  by (simp add: mod_integer_def)
+declare mod_integer.rep_eq [simp]
 
-definition
-  "\<bar>k\<bar> = of_int \<bar>int_of_integer k\<bar>"
+lift_definition abs_integer :: "integer \<Rightarrow> integer"
+  is "abs :: int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_abs [simp]:
-  "int_of_integer \<bar>k\<bar> = \<bar>int_of_integer k\<bar>"
-  by (simp add: abs_integer_def)
+declare abs_integer.rep_eq [simp]
 
-definition
-  "sgn k = of_int (sgn (int_of_integer k))"
+lift_definition sgn_integer :: "integer \<Rightarrow> integer"
+  is "sgn :: int \<Rightarrow> int"
+  .
 
-lemma int_of_integer_sgn [simp]:
-  "int_of_integer (sgn k) = sgn (int_of_integer k)"
-  by (simp add: sgn_integer_def)
+declare sgn_integer.rep_eq [simp]
 
-definition
-  "k \<le> l \<longleftrightarrow> int_of_integer k \<le> int_of_integer l"
+lift_definition less_eq_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
+  is "less_eq :: int \<Rightarrow> int \<Rightarrow> bool"
+  .
 
-definition
-  "k < l \<longleftrightarrow> int_of_integer k < int_of_integer l"
+lift_definition less_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
+  is "less :: int \<Rightarrow> int \<Rightarrow> bool"
+  .
 
-definition
-  "HOL.equal k l \<longleftrightarrow> HOL.equal (int_of_integer k) (int_of_integer l)"
+lift_definition equal_integer :: "integer \<Rightarrow> integer \<Rightarrow> bool"
+  is "HOL.equal :: int \<Rightarrow> int \<Rightarrow> bool"
+  .
 
 instance proof
-qed (auto simp add: integer_eq_iff algebra_simps
-  less_eq_integer_def less_integer_def equal_integer_def equal
-  intro: mult_strict_right_mono)
+qed (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] mult_strict_right_mono linear)+
 
 end
 
+lemma [transfer_rule]:
+  "fun_rel cr_integer (fun_rel cr_integer cr_integer) (min :: _ \<Rightarrow> _ \<Rightarrow> int) (min :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold min_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "fun_rel cr_integer (fun_rel cr_integer cr_integer) (max :: _ \<Rightarrow> _ \<Rightarrow> int) (max :: _ \<Rightarrow> _ \<Rightarrow> integer)"
+  by (unfold max_def [abs_def]) transfer_prover
+
 lemma int_of_integer_min [simp]:
   "int_of_integer (min k l) = min (int_of_integer k) (int_of_integer l)"
-  by (simp add: min_def less_eq_integer_def)
+  by transfer rule
 
 lemma int_of_integer_max [simp]:
   "int_of_integer (max k l) = max (int_of_integer k) (int_of_integer l)"
-  by (simp add: max_def less_eq_integer_def)
+  by transfer rule
 
 lemma nat_of_integer_non_positive [simp]:
   "k \<le> 0 \<Longrightarrow> nat_of_integer k = 0"
-  by (simp add: nat_of_integer_def less_eq_integer_def)
+  by transfer simp
 
 lemma of_nat_of_integer [simp]:
   "of_nat (nat_of_integer k) = max 0 k"
-  by (simp add: nat_of_integer_def integer_eq_iff less_eq_integer_def max_def)
+  by transfer auto
 
 
 subsection {* Code theorems for target language integers *}
@@ -199,29 +228,36 @@ definition Pos :: "num \<Rightarrow> integer"
 where
   [simp, code_abbrev]: "Pos = numeral"
 
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_integer numeral Pos"
+  by simp transfer_prover
+
 definition Neg :: "num \<Rightarrow> integer"
 where
   [simp, code_abbrev]: "Neg = neg_numeral"
+
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_integer neg_numeral Neg"
+  by simp transfer_prover
 
 code_datatype "0::integer" Pos Neg
 
 
 text {* Auxiliary operations *}
 
-definition dup :: "integer \<Rightarrow> integer"
-where
-  [simp]: "dup k = k + k"
+lift_definition dup :: "integer \<Rightarrow> integer"
+  is "\<lambda>k::int. k + k"
+  .
 
 lemma dup_code [code]:
   "dup 0 = 0"
   "dup (Pos n) = Pos (Num.Bit0 n)"
   "dup (Neg n) = Neg (Num.Bit0 n)"
-  unfolding Pos_def Neg_def neg_numeral_def
-  by (simp_all add: numeral_Bit0)
+  by (transfer, simp only: neg_numeral_def numeral_Bit0 minus_add_distrib)+
 
-definition sub :: "num \<Rightarrow> num \<Rightarrow> integer"
-where
-  [simp]: "sub m n = numeral m - numeral n"
+lift_definition sub :: "num \<Rightarrow> num \<Rightarrow> integer"
+  is "\<lambda>m n. numeral m - numeral n :: int"
+  .
 
 lemma sub_code [code]:
   "sub Num.One Num.One = 0"
@@ -233,9 +269,7 @@ lemma sub_code [code]:
   "sub (Num.Bit1 m) (Num.Bit1 n) = dup (sub m n)"
   "sub (Num.Bit1 m) (Num.Bit0 n) = dup (sub m n) + 1"
   "sub (Num.Bit0 m) (Num.Bit1 n) = dup (sub m n) - 1"
-  unfolding sub_def dup_def numeral.simps Pos_def Neg_def
-    neg_numeral_def numeral_BitM
-  by (simp_all only: algebra_simps add.comm_neutral)
+  by (transfer, simp add: dbl_def dbl_inc_def dbl_dec_def)+
 
 
 text {* Implementations *}
@@ -251,7 +285,7 @@ lemma plus_integer_code [code]:
   "Pos m + Neg n = sub m n"
   "Neg m + Pos n = sub n m"
   "Neg m + Neg n = Neg (m + n)"
-  by simp_all
+  by (transfer, simp)+
 
 lemma uminus_integer_code [code]:
   "uminus 0 = (0::integer)"
@@ -266,7 +300,7 @@ lemma minus_integer_code [code]:
   "Pos m - Neg n = Pos (m + n)"
   "Neg m - Pos n = Neg (m + n)"
   "Neg m - Neg n = sub n m"
-  by simp_all
+  by (transfer, simp)+
 
 lemma abs_integer_code [code]:
   "\<bar>k\<bar> = (if (k::integer) < 0 then - k else k)"
@@ -322,15 +356,18 @@ lemma divmod_abs_rec_code [code]:
     (let j = sub k l in
        if j < 0 then (0, Pos k)
        else let (q, r) = divmod_abs j (Pos l) in (q + 1, r))"
-  by (auto simp add: prod_eq_iff integer_eq_iff Let_def prod_case_beta
-    sub_non_negative sub_negative div_pos_pos_trivial mod_pos_pos_trivial div_pos_geq mod_pos_geq)
+  apply (simp add: prod_eq_iff Let_def prod_case_beta)
+  apply transfer
+  apply (simp add: sub_non_negative sub_negative div_pos_pos_trivial mod_pos_pos_trivial div_pos_geq mod_pos_geq)
+  done
 
-lemma divmod_integer_code [code]: "divmod_integer k l =
-  (if k = 0 then (0, 0) else if l = 0 then (0, k) else
-  (apsnd \<circ> times \<circ> sgn) l (if sgn k = sgn l
-    then divmod_abs k l
-    else (let (r, s) = divmod_abs k l in
-      if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
+lemma divmod_integer_code [code]:
+  "divmod_integer k l =
+    (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+    (apsnd \<circ> times \<circ> sgn) l (if sgn k = sgn l
+      then divmod_abs k l
+      else (let (r, s) = divmod_abs k l in
+        if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
 proof -
   have aux1: "\<And>k l::int. sgn k = sgn l \<longleftrightarrow> k = 0 \<and> l = 0 \<or> 0 < l \<and> 0 < k \<or> l < 0 \<and> k < 0"
     by (auto simp add: sgn_if)
@@ -358,7 +395,7 @@ lemma equal_integer_code [code]:
   "HOL.equal (Neg k) 0 \<longleftrightarrow> False"
   "HOL.equal (Neg k) (Pos l) \<longleftrightarrow> False"
   "HOL.equal (Neg k) (Neg l) \<longleftrightarrow> HOL.equal k l"
-  by (simp_all add: equal integer_eq_iff)
+  by (simp_all add: equal)
 
 lemma equal_integer_refl [code nbe]:
   "HOL.equal (k::integer) k \<longleftrightarrow> True"
@@ -374,7 +411,7 @@ lemma less_eq_integer_code [code]:
   "Neg k \<le> 0 \<longleftrightarrow> True"
   "Neg k \<le> Pos l \<longleftrightarrow> True"
   "Neg k \<le> Neg l \<longleftrightarrow> l \<le> k"
-  by (simp_all add: less_eq_integer_def)
+  by simp_all
 
 lemma less_integer_code [code]:
   "0 < (0::integer) \<longleftrightarrow> False"
@@ -386,21 +423,21 @@ lemma less_integer_code [code]:
   "Neg k < 0 \<longleftrightarrow> True"
   "Neg k < Pos l \<longleftrightarrow> True"
   "Neg k < Neg l \<longleftrightarrow> l < k"
-  by (simp_all add: less_integer_def)
+  by simp_all
 
-definition integer_of_num :: "num \<Rightarrow> integer"
-where
-  "integer_of_num = numeral"
+lift_definition integer_of_num :: "num \<Rightarrow> integer"
+  is "numeral :: num \<Rightarrow> int"
+  .
 
 lemma integer_of_num [code]:
   "integer_of_num num.One = 1"
   "integer_of_num (num.Bit0 n) = (let k = integer_of_num n in k + k)"
   "integer_of_num (num.Bit1 n) = (let k = integer_of_num n in k + k + 1)"
-  by (simp_all only: Let_def) (simp_all only: integer_of_num_def numeral.simps)
+  by (transfer, simp only: numeral.simps Let_def)+
 
-definition num_of_integer :: "integer \<Rightarrow> num"
-where
-  "num_of_integer = num_of_nat \<circ> nat_of_integer"
+lift_definition num_of_integer :: "integer \<Rightarrow> num"
+  is "num_of_nat \<circ> nat"
+  .
 
 lemma num_of_integer_code [code]:
   "num_of_integer k = (if k \<le> 1 then Num.One
@@ -587,9 +624,11 @@ subsection {* Type of target language naturals *}
 typedef natural = "UNIV \<Colon> nat set"
   morphisms nat_of_natural natural_of_nat ..
 
+setup_lifting (no_code) type_definition_natural
+
 lemma natural_eq_iff [termination_simp]:
   "m = n \<longleftrightarrow> nat_of_natural m = nat_of_natural n"
-  using nat_of_natural_inject [of m n] ..
+  by transfer rule
 
 lemma natural_eqI:
   "nat_of_natural m = nat_of_natural n \<Longrightarrow> m = n"
@@ -597,168 +636,179 @@ lemma natural_eqI:
 
 lemma nat_of_natural_of_nat_inverse [simp]:
   "nat_of_natural (natural_of_nat n) = n"
-  using natural_of_nat_inverse [of n] by simp
+  by transfer rule
 
 lemma natural_of_nat_of_natural_inverse [simp]:
   "natural_of_nat (nat_of_natural n) = n"
-  using nat_of_natural_inverse [of n] by simp
+  by transfer rule
 
 instantiation natural :: "{comm_monoid_diff, semiring_1}"
 begin
 
-definition
-  "0 = natural_of_nat 0"
+lift_definition zero_natural :: natural
+  is "0 :: nat"
+  .
 
-lemma nat_of_natural_zero [simp]:
-  "nat_of_natural 0 = 0"
-  by (simp add: zero_natural_def)
+declare zero_natural.rep_eq [simp]
 
-definition
-  "1 = natural_of_nat 1"
+lift_definition one_natural :: natural
+  is "1 :: nat"
+  .
 
-lemma nat_of_natural_one [simp]:
-  "nat_of_natural 1 = 1"
-  by (simp add: one_natural_def)
+declare one_natural.rep_eq [simp]
 
-definition
-  "m + n = natural_of_nat (nat_of_natural m + nat_of_natural n)"
+lift_definition plus_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "plus :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
 
-lemma nat_of_natural_plus [simp]:
-  "nat_of_natural (m + n) = nat_of_natural m + nat_of_natural n"
-  by (simp add: plus_natural_def)
+declare plus_natural.rep_eq [simp]
 
-definition
-  "m - n = natural_of_nat (nat_of_natural m - nat_of_natural n)"
+lift_definition minus_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "minus :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
 
-lemma nat_of_natural_minus [simp]:
-  "nat_of_natural (m - n) = nat_of_natural m - nat_of_natural n"
-  by (simp add: minus_natural_def)
+declare minus_natural.rep_eq [simp]
 
-definition
-  "m * n = natural_of_nat (nat_of_natural m * nat_of_natural n)"
+lift_definition times_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "times :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
 
-lemma nat_of_natural_times [simp]:
-  "nat_of_natural (m * n) = nat_of_natural m * nat_of_natural n"
-  by (simp add: times_natural_def)
+declare times_natural.rep_eq [simp]
 
 instance proof
-qed (auto simp add: natural_eq_iff algebra_simps)
+qed (transfer, simp add: algebra_simps)+
 
 end
 
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_natural (\<lambda>n::nat. n) (of_nat :: nat \<Rightarrow> natural)"
+proof -
+  have "fun_rel HOL.eq cr_natural (of_nat :: nat \<Rightarrow> nat) (of_nat :: nat \<Rightarrow> natural)"
+    by (unfold of_nat_def [abs_def]) transfer_prover
+  then show ?thesis by (simp add: id_def)
+qed
+
+lemma [transfer_rule]:
+  "fun_rel HOL.eq cr_natural (numeral :: num \<Rightarrow> nat) (numeral :: num \<Rightarrow> natural)"
+proof -
+  have "fun_rel HOL.eq cr_natural (numeral :: num \<Rightarrow> nat) (\<lambda>n. of_nat (numeral n))"
+    by transfer_prover
+  then show ?thesis by simp
+qed
+
 lemma nat_of_natural_of_nat [simp]:
   "nat_of_natural (of_nat n) = n"
-  by (induct n) simp_all
+  by transfer rule
 
 lemma natural_of_nat_of_nat [simp, code_abbrev]:
   "natural_of_nat = of_nat"
-  by rule (simp add: natural_eq_iff)
+  by transfer rule
 
 lemma of_nat_of_natural [simp]:
   "of_nat (nat_of_natural n) = n"
-  using natural_of_nat_of_natural_inverse [of n] by simp
+  by transfer rule
 
 lemma nat_of_natural_numeral [simp]:
   "nat_of_natural (numeral k) = numeral k"
-  using nat_of_natural_of_nat [of "numeral k"] by simp
+  by transfer rule
 
 instantiation natural :: "{semiring_div, equal, linordered_semiring}"
 begin
 
-definition
-  "m div n = natural_of_nat (nat_of_natural m div nat_of_natural n)"
+lift_definition div_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "Divides.div :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
 
-lemma nat_of_natural_div [simp]:
-  "nat_of_natural (m div n) = nat_of_natural m div nat_of_natural n"
-  by (simp add: div_natural_def)
+declare div_natural.rep_eq [simp]
 
-definition
-  "m mod n = natural_of_nat (nat_of_natural m mod nat_of_natural n)"
+lift_definition mod_natural :: "natural \<Rightarrow> natural \<Rightarrow> natural"
+  is "Divides.mod :: nat \<Rightarrow> nat \<Rightarrow> nat"
+  .
 
-lemma nat_of_natural_mod [simp]:
-  "nat_of_natural (m mod n) = nat_of_natural m mod nat_of_natural n"
-  by (simp add: mod_natural_def)
+declare mod_natural.rep_eq [simp]
 
-definition
-  [termination_simp]: "m \<le> n \<longleftrightarrow> nat_of_natural m \<le> nat_of_natural n"
+lift_definition less_eq_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
+  is "less_eq :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  .
 
-definition
-  [termination_simp]: "m < n \<longleftrightarrow> nat_of_natural m < nat_of_natural n"
+declare less_eq_natural.rep_eq [termination_simp]
 
-definition
-  "HOL.equal m n \<longleftrightarrow> HOL.equal (nat_of_natural m) (nat_of_natural n)"
+lift_definition less_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
+  is "less :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  .
+
+declare less_natural.rep_eq [termination_simp]
+
+lift_definition equal_natural :: "natural \<Rightarrow> natural \<Rightarrow> bool"
+  is "HOL.equal :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  .
 
 instance proof
-qed (auto simp add: natural_eq_iff algebra_simps
-  less_eq_natural_def less_natural_def equal_natural_def equal)
+qed (transfer, simp add: algebra_simps equal less_le_not_le [symmetric] linear)+
 
 end
 
+lemma [transfer_rule]:
+  "fun_rel cr_natural (fun_rel cr_natural cr_natural) (min :: _ \<Rightarrow> _ \<Rightarrow> nat) (min :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  by (unfold min_def [abs_def]) transfer_prover
+
+lemma [transfer_rule]:
+  "fun_rel cr_natural (fun_rel cr_natural cr_natural) (max :: _ \<Rightarrow> _ \<Rightarrow> nat) (max :: _ \<Rightarrow> _ \<Rightarrow> natural)"
+  by (unfold max_def [abs_def]) transfer_prover
+
 lemma nat_of_natural_min [simp]:
   "nat_of_natural (min k l) = min (nat_of_natural k) (nat_of_natural l)"
-  by (simp add: min_def less_eq_natural_def)
+  by transfer rule
 
 lemma nat_of_natural_max [simp]:
   "nat_of_natural (max k l) = max (nat_of_natural k) (nat_of_natural l)"
-  by (simp add: max_def less_eq_natural_def)
+  by transfer rule
 
-definition natural_of_integer :: "integer \<Rightarrow> natural"
-where
-  "natural_of_integer = of_nat \<circ> nat_of_integer"
+lift_definition natural_of_integer :: "integer \<Rightarrow> natural"
+  is "nat :: int \<Rightarrow> nat"
+  .
 
-definition integer_of_natural :: "natural \<Rightarrow> integer"
-where
-  "integer_of_natural = of_nat \<circ> nat_of_natural"
+lift_definition integer_of_natural :: "natural \<Rightarrow> integer"
+  is "of_nat :: nat \<Rightarrow> int"
+  .
 
 lemma natural_of_integer_of_natural [simp]:
   "natural_of_integer (integer_of_natural n) = n"
-  by (simp add: natural_of_integer_def integer_of_natural_def natural_eq_iff)
+  by transfer simp
 
 lemma integer_of_natural_of_integer [simp]:
   "integer_of_natural (natural_of_integer k) = max 0 k"
-  by (simp add: natural_of_integer_def integer_of_natural_def integer_eq_iff)
+  by transfer auto
 
 lemma int_of_integer_of_natural [simp]:
   "int_of_integer (integer_of_natural n) = of_nat (nat_of_natural n)"
-  by (simp add: integer_of_natural_def)
+  by transfer rule
 
 lemma integer_of_natural_of_nat [simp]:
   "integer_of_natural (of_nat n) = of_nat n"
-  by (simp add: integer_eq_iff)
+  by transfer rule
 
 lemma [measure_function]:
-  "is_measure nat_of_natural" by (rule is_measure_trivial)
+  "is_measure nat_of_natural"
+  by (rule is_measure_trivial)
 
 
 subsection {* Inductive represenation of target language naturals *}
 
-definition Suc :: "natural \<Rightarrow> natural"
-where
-  "Suc = natural_of_nat \<circ> Nat.Suc \<circ> nat_of_natural"
+lift_definition Suc :: "natural \<Rightarrow> natural"
+  is Nat.Suc
+  .
 
-lemma nat_of_natural_Suc [simp]:
-  "nat_of_natural (Suc n) = Nat.Suc (nat_of_natural n)"
-  by (simp add: Suc_def)
+declare Suc.rep_eq [simp]
 
 rep_datatype "0::natural" Suc
-proof -
-  fix P :: "natural \<Rightarrow> bool"
-  fix n :: natural
-  assume "P 0" then have init: "P (natural_of_nat 0)" by simp
-  assume "\<And>n. P n \<Longrightarrow> P (Suc n)"
-    then have "\<And>n. P (natural_of_nat n) \<Longrightarrow> P (Suc (natural_of_nat n))" .
-    then have step: "\<And>n. P (natural_of_nat n) \<Longrightarrow> P (natural_of_nat (Nat.Suc n))"
-      by (simp add: Suc_def)
-  from init step have "P (natural_of_nat (nat_of_natural n))"
-    by (rule nat.induct)
-  with natural_of_nat_of_natural_inverse show "P n" by simp
-qed (simp_all add: natural_eq_iff)
+  by (transfer, fact nat.induct nat.inject nat.distinct)+
 
 lemma natural_case [case_names nat, cases type: natural]:
   fixes m :: natural
   assumes "\<And>n. m = of_nat n \<Longrightarrow> P"
   shows P
-  by (rule assms [of "nat_of_natural m"]) simp
+  using assms by transfer blast
 
 lemma [simp, code]:
   "natural_size = nat_of_natural"
@@ -778,7 +828,7 @@ qed
 
 lemma natural_decr [termination_simp]:
   "n \<noteq> 0 \<Longrightarrow> nat_of_natural n - Nat.Suc 0 < nat_of_natural n"
-  by (simp add: natural_eq_iff)
+  by transfer simp
 
 lemma natural_zero_minus_one:
   "(0::natural) - 1 = 0"
@@ -786,26 +836,26 @@ lemma natural_zero_minus_one:
 
 lemma Suc_natural_minus_one:
   "Suc n - 1 = n"
-  by (simp add: natural_eq_iff)
+  by transfer simp
 
 hide_const (open) Suc
 
 
 subsection {* Code refinement for target language naturals *}
 
-definition Nat :: "integer \<Rightarrow> natural"
-where
-  "Nat = natural_of_integer"
+lift_definition Nat :: "integer \<Rightarrow> natural"
+  is nat
+  .
 
 lemma [code_post]:
   "Nat 0 = 0"
   "Nat 1 = 1"
   "Nat (numeral k) = numeral k"
-  by (simp_all add: Nat_def nat_of_integer_def natural_of_integer_def)
+  by (transfer, simp)+
 
 lemma [code abstype]:
   "Nat (integer_of_natural n) = n"
-  by (unfold Nat_def) (fact natural_of_integer_of_natural)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural (natural_of_nat n) = of_nat n"
@@ -817,23 +867,23 @@ lemma [code abstract]:
 
 lemma [code_abbrev]:
   "natural_of_integer (Code_Numeral_Types.Pos k) = numeral k"
-  by (simp add: nat_of_integer_def natural_of_integer_def)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural 0 = 0"
-  by (simp add: integer_eq_iff)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural 1 = 1"
-  by (simp add: integer_eq_iff)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural (Code_Numeral_Types.Suc n) = integer_of_natural n + 1"
-  by (simp add: integer_eq_iff)
+  by transfer simp
 
 lemma [code]:
   "nat_of_natural = nat_of_integer \<circ> integer_of_natural"
-  by (simp add: integer_of_natural_def fun_eq_iff)
+  by transfer (simp add: fun_eq_iff)
 
 lemma [code, code_unfold]:
   "natural_case f g n = (if n = 0 then f else g (n - 1))"
@@ -843,39 +893,39 @@ declare natural.recs [code del]
 
 lemma [code abstract]:
   "integer_of_natural (m + n) = integer_of_natural m + integer_of_natural n"
-  by (simp add: integer_eq_iff)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural (m - n) = max 0 (integer_of_natural m - integer_of_natural n)"
-  by (simp add: integer_eq_iff)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_natural (m * n) = integer_of_natural m * integer_of_natural n"
-  by (simp add: integer_eq_iff of_nat_mult)
+  by transfer (simp add: of_nat_mult)
 
 lemma [code abstract]:
   "integer_of_natural (m div n) = integer_of_natural m div integer_of_natural n"
-  by (simp add: integer_eq_iff zdiv_int)
+  by transfer (simp add: zdiv_int)
 
 lemma [code abstract]:
   "integer_of_natural (m mod n) = integer_of_natural m mod integer_of_natural n"
-  by (simp add: integer_eq_iff zmod_int)
+  by transfer (simp add: zmod_int)
 
 lemma [code]:
   "HOL.equal m n \<longleftrightarrow> HOL.equal (integer_of_natural m) (integer_of_natural n)"
-  by (simp add: equal natural_eq_iff integer_eq_iff)
+  by transfer (simp add: equal)
 
 lemma [code nbe]:
   "HOL.equal n (n::natural) \<longleftrightarrow> True"
   by (simp add: equal)
 
 lemma [code]:
-  "m \<le> n \<longleftrightarrow> (integer_of_natural m) \<le> integer_of_natural n"
-  by (simp add: less_eq_natural_def less_eq_integer_def)
+  "m \<le> n \<longleftrightarrow> integer_of_natural m \<le> integer_of_natural n"
+  by transfer simp
 
 lemma [code]:
-  "m < n \<longleftrightarrow> (integer_of_natural m) < integer_of_natural n"
-  by (simp add: less_natural_def less_integer_def)
+  "m < n \<longleftrightarrow> integer_of_natural m < integer_of_natural n"
+  by transfer simp
 
 hide_const (open) Nat
 

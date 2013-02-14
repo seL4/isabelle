@@ -10,47 +10,47 @@ begin
 
 subsection {* Implementation for @{typ nat} *}
 
-definition Nat :: "integer \<Rightarrow> nat"
-where
-  "Nat = nat_of_integer"
+lift_definition Nat :: "integer \<Rightarrow> nat"
+  is nat
+  .
 
 lemma [code_post]:
   "Nat 0 = 0"
   "Nat 1 = 1"
   "Nat (numeral k) = numeral k"
-  by (simp_all add: Nat_def nat_of_integer_def)
+  by (transfer, simp)+
 
 lemma [code_abbrev]:
   "integer_of_nat = of_nat"
-  by (fact integer_of_nat_def)
+  by transfer rule
 
 lemma [code_unfold]:
   "Int.nat (int_of_integer k) = nat_of_integer k"
-  by (simp add: nat_of_integer_def)
+  by transfer rule
 
 lemma [code abstype]:
   "Code_Target_Nat.Nat (integer_of_nat n) = n"
-  by (simp add: Nat_def integer_of_nat_def)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_nat (nat_of_integer k) = max 0 k"
-  by (simp add: integer_of_nat_def)
+  by transfer auto
 
 lemma [code_abbrev]:
   "nat_of_integer (numeral k) = nat_of_num k"
-  by (simp add: nat_of_integer_def nat_of_num_numeral)
+  by transfer (simp add: nat_of_num_numeral)
 
 lemma [code abstract]:
   "integer_of_nat (nat_of_num n) = integer_of_num n"
-  by (simp add: integer_eq_iff integer_of_num_def nat_of_num_numeral)
+  by transfer (simp add: nat_of_num_numeral)
 
 lemma [code abstract]:
   "integer_of_nat 0 = 0"
-  by (simp add: integer_eq_iff integer_of_nat_def)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_nat 1 = 1"
-  by (simp add: integer_eq_iff integer_of_nat_def)
+  by transfer simp
 
 lemma [code]:
   "Suc n = n + 1"
@@ -58,23 +58,23 @@ lemma [code]:
 
 lemma [code abstract]:
   "integer_of_nat (m + n) = of_nat m + of_nat n"
-  by (simp add: integer_eq_iff integer_of_nat_def)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_nat (m - n) = max 0 (of_nat m - of_nat n)"
-  by (simp add: integer_eq_iff integer_of_nat_def)
+  by transfer simp
 
 lemma [code abstract]:
   "integer_of_nat (m * n) = of_nat m * of_nat n"
-  by (simp add: integer_eq_iff of_nat_mult integer_of_nat_def)
+  by transfer (simp add: of_nat_mult)
 
 lemma [code abstract]:
   "integer_of_nat (m div n) = of_nat m div of_nat n"
-  by (simp add: integer_eq_iff zdiv_int integer_of_nat_def)
+  by transfer (simp add: zdiv_int)
 
 lemma [code abstract]:
   "integer_of_nat (m mod n) = of_nat m mod of_nat n"
-  by (simp add: integer_eq_iff zmod_int integer_of_nat_def)
+  by transfer (simp add: zmod_int)
 
 lemma [code]:
   "Divides.divmod_nat m n = (m div n, m mod n)"
@@ -82,7 +82,7 @@ lemma [code]:
 
 lemma [code]:
   "HOL.equal m n = HOL.equal (of_nat m :: integer) (of_nat n)"
-  by (simp add: equal integer_eq_iff)
+  by transfer (simp add: equal)
 
 lemma [code]:
   "m \<le> n \<longleftrightarrow> (of_nat m :: integer) \<le> of_nat n"
@@ -94,7 +94,7 @@ lemma [code]:
 
 lemma num_of_nat_code [code]:
   "num_of_nat = num_of_integer \<circ> of_nat"
-  by (simp add: fun_eq_iff num_of_integer_def integer_of_nat_def)
+  by transfer (simp add: fun_eq_iff)
 
 lemma (in semiring_1) of_nat_code:
   "of_nat n = (if n = 0 then 0
@@ -121,7 +121,7 @@ lemma [code]:
 
 lemma [code abstract]:
   "integer_of_nat (nat k) = max 0 (integer_of_int k)"
-  by (simp add: integer_of_nat_def of_int_of_nat max_def)
+  by transfer auto
 
 code_modulename SML
   Code_Target_Nat Arith
