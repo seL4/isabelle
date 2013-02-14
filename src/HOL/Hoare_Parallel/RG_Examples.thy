@@ -323,9 +323,8 @@ lemma Example3_list: "m mod n=0 \<Longrightarrow> \<turnstile> (COBEGIN SCHEME [
         (\<acute>Y!i<m \<longrightarrow> P(B!(\<acute>Y!i)) \<and> \<acute>Y!i\<le> m+i) \<and> (\<exists>j<n. \<acute>Y!j \<le> \<acute>X!i)\<rbrace>]"
 apply(rule Parallel)
 --{* 5 subgoals left *}
+apply auto
 apply force+
-apply clarify
-apply simp
 apply(rule While)
     apply force
    apply force

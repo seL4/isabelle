@@ -128,9 +128,7 @@ where
 subsection {* Equivalence of Both Definitions.*}
 
 lemma last_length: "((a#xs)!(length xs))=last (a#xs)"
-apply simp
-apply(induct xs,simp+)
-done
+  by (induct xs) auto
 
 lemma div_seq [rule_format]: "list \<in> cptn_mod \<Longrightarrow>
  (\<forall>s P Q zs. list=(Some (Seq P Q), s)#zs \<longrightarrow>
@@ -261,13 +259,10 @@ done
 
 lemma last_lift: "\<lbrakk>xs\<noteq>[]; fst(xs!(length xs - (Suc 0)))=None\<rbrakk> 
  \<Longrightarrow> fst((map (lift P) xs)!(length (map (lift P) xs)- (Suc 0)))=(Some P)"
-apply(case_tac "(xs ! (length xs - (Suc 0)))")
-apply (simp add:lift_def)
-done
+  by (cases "(xs ! (length xs - (Suc 0)))") (simp add:lift_def)
 
 lemma last_fst [rule_format]: "P((a#x)!length x) \<longrightarrow> \<not>P a \<longrightarrow> P (x!(length x - (Suc 0)))" 
-apply(induct x,simp+)
-done
+  by (induct x) simp_all
 
 lemma last_fst_esp: 
  "fst(((Some a,s)#xs)!(length xs))=None \<Longrightarrow> fst(xs!(length xs - (Suc 0)))=None" 
@@ -277,24 +272,20 @@ done
 
 lemma last_snd: "xs\<noteq>[] \<Longrightarrow> 
   snd(((map (lift P) xs))!(length (map (lift P) xs) - (Suc 0)))=snd(xs!(length xs - (Suc 0)))"
-apply(case_tac "(xs ! (length xs - (Suc 0)))",simp)
-apply (simp add:lift_def)
-done
+  by (cases "(xs ! (length xs - (Suc 0)))") (simp_all add:lift_def)
 
 lemma Cons_lift: "(Some (Seq P Q), s) # (map (lift Q) xs) = map (lift Q) ((Some P, s) # xs)"
-by(simp add:lift_def)
+  by (simp add:lift_def)
 
 lemma Cons_lift_append: 
   "(Some (Seq P Q), s) # (map (lift Q) xs) @ ys = map (lift Q) ((Some P, s) # xs)@ ys "
-by(simp add:lift_def)
+  by (simp add:lift_def)
 
 lemma lift_nth: "i<length xs \<Longrightarrow> map (lift Q) xs ! i = lift Q  (xs! i)"
-by (simp add:lift_def)
+  by (simp add:lift_def)
 
 lemma snd_lift: "i< length xs \<Longrightarrow> snd(lift Q (xs ! i))= snd (xs ! i)"
-apply(case_tac "xs!i")
-apply(simp add:lift_def)
-done
+  by (cases "xs!i") (simp add:lift_def)
 
 lemma cptn_if_cptn_mod: "c \<in> cptn_mod \<Longrightarrow> c \<in> cptn"
 apply(erule cptn_mod.induct)
@@ -425,10 +416,7 @@ subsubsection {* Some previous lemmas *}
 
 lemma list_eq_if [rule_format]: 
   "\<forall>ys. xs=ys \<longrightarrow> (length xs = length ys) \<longrightarrow> (\<forall>i<length xs. xs!i=ys!i)"
-apply (induct xs)
- apply simp
-apply clarify
-done
+  by (induct xs) auto
 
 lemma list_eq: "(length xs = length ys \<and> (\<forall>i<length xs. xs!i=ys!i)) = (xs=ys)"
 apply(rule iffI)
@@ -438,43 +426,25 @@ apply(rule iffI)
 done
 
 lemma nth_tl: "\<lbrakk> ys!0=a; ys\<noteq>[] \<rbrakk> \<Longrightarrow> ys=(a#(tl ys))"
-apply(case_tac ys)
- apply simp+
-done
+  by (cases ys) simp_all
 
 lemma nth_tl_if [rule_format]: "ys\<noteq>[] \<longrightarrow> ys!0=a \<longrightarrow> P ys \<longrightarrow> P (a#(tl ys))"
-apply(induct ys)
- apply simp+
-done
+  by (induct ys) simp_all
 
 lemma nth_tl_onlyif [rule_format]: "ys\<noteq>[] \<longrightarrow> ys!0=a \<longrightarrow> P (a#(tl ys)) \<longrightarrow> P ys"
-apply(induct ys)
- apply simp+
-done
+  by (induct ys) simp_all
 
 lemma seq_not_eq1: "Seq c1 c2\<noteq>c1"
-apply(rule com.induct)
-apply simp_all
-apply clarify
-done
+  by (induct c1) auto
 
 lemma seq_not_eq2: "Seq c1 c2\<noteq>c2"
-apply(rule com.induct)
-apply simp_all
-apply clarify
-done
+  by (induct c2) auto
 
 lemma if_not_eq1: "Cond b c1 c2 \<noteq>c1"
-apply(rule com.induct)
-apply simp_all
-apply clarify
-done
+  by (induct c1) auto
 
 lemma if_not_eq2: "Cond b c1 c2\<noteq>c2"
-apply(rule com.induct)
-apply simp_all
-apply clarify
-done
+  by (induct c2) auto
 
 lemmas seq_and_if_not_eq [simp] = seq_not_eq1 seq_not_eq2 
 seq_not_eq1 [THEN not_sym] seq_not_eq2 [THEN not_sym] 
@@ -507,14 +477,11 @@ apply simp
 done
 
 lemma tl_in_cptn: "\<lbrakk> a#xs \<in>cptn; xs\<noteq>[] \<rbrakk> \<Longrightarrow> xs\<in>cptn"
-apply(force elim:cptn.cases)
-done
+  by (force elim: cptn.cases)
 
 lemma tl_zero[rule_format]: 
   "P (ys!Suc j) \<longrightarrow> Suc j<length ys \<longrightarrow> ys\<noteq>[] \<longrightarrow> P (tl(ys)!j)"
-apply(induct ys)
- apply simp_all
-done
+  by (induct ys) simp_all
 
 subsection {* The Semantics is Compositional *}
 
@@ -747,9 +714,6 @@ apply(rule tl_zero)
  apply force
 apply(erule_tac x=i and P="\<lambda>j. ?H j \<longrightarrow> (length (?s j) = ?t)" in allE,force)
 done
-
-lemma less_Suc_0 [iff]: "(n < Suc 0) = (n = 0)"
-by auto
 
 lemma aux_onlyif [rule_format]: "\<forall>xs s. (xs, s)#ys \<in> par_cptn \<longrightarrow> 
   (\<exists>clist. (length clist = length xs) \<and> 
