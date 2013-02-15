@@ -460,72 +460,72 @@ val no_label = ("", ~1)
 
 fun string_for_proof ctxt type_enc lam_trans i n =
   let
-    fun do_indent ind = replicate_string (ind * indent_size) " "
-    fun do_free (s, T) =
+    fun of_indent ind = replicate_string (ind * indent_size) " "
+    fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
       maybe_quote (simplify_spaces (with_vanilla_print_mode
         (Syntax.string_of_typ ctxt) T))
-    fun do_label l = if l = no_label then "" else string_for_label l ^ ": "
-    fun do_have qs =
+    val of_frees = space_implode " and " o map of_free
+    fun of_label l = if l = no_label then "" else string_for_label l ^ ": "
+    fun of_have qs =
       (if member (op =) qs Ultimately then "ultimately " else "") ^
       (if member (op =) qs Then then
          if member (op =) qs Show then "thus" else "hence"
        else
          if member (op =) qs Show then "show" else "have")
-    fun do_obtain qs xs =
+    fun of_obtain qs xs =
       (if member (op =) qs Then then "then " else "") ^ "obtain " ^
-      (space_implode " " (map fst xs)) ^ " where"
-    val do_term =
+      of_frees xs ^ " where"
+    val of_term =
       annotate_types ctxt
       #> with_vanilla_print_mode (Syntax.string_of_term ctxt)
       #> simplify_spaces
       #> maybe_quote
     val reconstr = Metis (type_enc, lam_trans)
-    fun do_metis ind options (ls, ss) =
-      "\n" ^ do_indent (ind + 1) ^ options ^
+    fun of_metis ind options (ls, ss) =
+      "\n" ^ of_indent (ind + 1) ^ options ^
       reconstructor_command reconstr 1 1 [] 0
           (ls |> sort_distinct (prod_ord string_ord int_ord),
            ss |> sort_distinct string_ord)
-    and do_step ind (Fix xs) =
-        do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
-      | do_step ind (Let (t1, t2)) =
-        do_indent ind ^ "let " ^ do_term t1 ^ " = " ^ do_term t2 ^ "\n"
-      | do_step ind (Assume (l, t)) =
-        do_indent ind ^ "assume " ^ do_label l ^ do_term t ^ "\n"
-      | do_step ind (Obtain (qs, xs, l, t, By_Metis facts)) =
-        do_indent ind ^ do_obtain qs xs ^ " " ^
-        do_label l ^ do_term t ^
+    and of_step ind (Fix xs) = of_indent ind ^ "fix " ^ of_frees xs ^ "\n"
+      | of_step ind (Let (t1, t2)) =
+        of_indent ind ^ "let " ^ of_term t1 ^ " = " ^ of_term t2 ^ "\n"
+      | of_step ind (Assume (l, t)) =
+        of_indent ind ^ "assume " ^ of_label l ^ of_term t ^ "\n"
+      | of_step ind (Obtain (qs, xs, l, t, By_Metis facts)) =
+        of_indent ind ^ of_obtain qs xs ^ " " ^
+        of_label l ^ of_term t ^
         (* The new skolemizer puts the arguments in the same order as the ATPs
            (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
            Vampire). *)
-        do_metis ind "using [[metis_new_skolem]] " facts ^ "\n"
-      | do_step ind (Prove (qs, l, t, By_Metis facts)) = 
-        do_prove ind qs l t facts
-      | do_step ind (Prove (qs, l, t, Case_Split proofs)) =
-        implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
+        of_metis ind "using [[metis_new_skolem]] " facts ^ "\n"
+      | of_step ind (Prove (qs, l, t, By_Metis facts)) =
+        of_prove ind qs l t facts
+      | of_step ind (Prove (qs, l, t, Case_Split proofs)) =
+        implode (map (prefix (of_indent ind ^ "moreover\n") o of_block ind)
                      proofs) ^
-        do_prove ind qs l t ([], [])
-      | do_step ind (Prove (qs, l, t, Subblock proof)) =
-        do_block ind proof ^ do_prove ind qs l t ([], [])
-    and do_steps prefix suffix ind steps =
-      let val s = implode (map (do_step ind) steps) in
+        of_prove ind qs l t ([], [])
+      | of_step ind (Prove (qs, l, t, Subblock proof)) =
+        of_block ind proof ^ of_prove ind qs l t ([], [])
+    and of_steps prefix suffix ind steps =
+      let val s = implode (map (of_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
         String.extract (s, ind * indent_size,
                         SOME (size s - ind * indent_size - 1)) ^
         suffix ^ "\n"
       end
-    and do_block ind proof = do_steps "{ " " }" (ind + 1) proof
-    and do_prove ind qs l t facts =
-      do_indent ind ^ do_have qs ^ " " ^ do_label l ^ do_term t ^
-      do_metis ind "" facts ^ "\n"
+    and of_block ind proof = of_steps "{ " " }" (ind + 1) proof
+    and of_prove ind qs l t facts =
+      of_indent ind ^ of_have qs ^ " " ^ of_label l ^ of_term t ^
+      of_metis ind "" facts ^ "\n"
     (* One-step proofs are pointless; better use the Metis one-liner
        directly. *)
-    and do_proof [Prove (_, _, _, By_Metis _)] = ""
-      | do_proof proof =
+    and of_proof [Prove (_, _, _, By_Metis _)] = ""
+      | of_proof proof =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
-        do_indent 0 ^ "proof -\n" ^ do_steps "" "" 1 proof ^ do_indent 0 ^
+        of_indent 0 ^ "proof -\n" ^ of_steps "" "" 1 proof ^ of_indent 0 ^
         (if n <> 1 then "next" else "qed")
-  in do_proof end
+  in of_proof end
 
 fun used_labels_of_step (Obtain (_, _, _, _, By_Metis (ls, _))) = ls
   | used_labels_of_step (Prove (_, _, _, by)) =
@@ -731,7 +731,7 @@ fun isar_proof_text ctxt isar_proofs
                 isar_proof_of_direct_proof outer (step :: accum) infs
               val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
               fun skolems_of t =
-                Term.add_frees t [] |> filter_out (is_fixed o fst)
+                Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
             in
               case inf of
                 Have (gamma, c) =>
