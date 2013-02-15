@@ -21,10 +21,6 @@ subsection {* Representation *}
 
 code_datatype "0::nat" nat_of_num
 
-lemma [code_abbrev]:
-  "nat_of_num = numeral"
-  by (fact nat_of_num_numeral)
-
 lemma [code]:
   "num_of_nat 0 = Num.One"
   "num_of_nat (nat_of_num k) = k"

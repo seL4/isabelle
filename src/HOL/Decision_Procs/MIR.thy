@@ -4,7 +4,7 @@
 
 theory MIR
 imports Complex_Main Dense_Linear_Order DP_Library
-  "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
+  "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
 section {* Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"} *}
@@ -5521,14 +5521,18 @@ ML {*
 oracle mirfr_oracle = {* fn (proofs, ct) =>
 let
 
+val mk_C = @{code C} o @{code int_of_integer};
+val mk_Dvd = @{code Dvd} o apfst @{code int_of_integer};
+val mk_Bound = @{code Bound} o @{code nat_of_integer};
+
 fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
      of NONE => error "Variable not found in the list!"
-      | SOME n => @{code Bound} n)
-  | num_of_term vs @{term "real (0::int)"} = @{code C} 0
-  | num_of_term vs @{term "real (1::int)"} = @{code C} 1
-  | num_of_term vs @{term "0::real"} = @{code C} 0
-  | num_of_term vs @{term "1::real"} = @{code C} 1
-  | num_of_term vs (Bound i) = @{code Bound} i
+      | SOME n => mk_Bound n)
+  | num_of_term vs @{term "real (0::int)"} = mk_C 0
+  | num_of_term vs @{term "real (1::int)"} = mk_C 1
+  | num_of_term vs @{term "0::real"} = mk_C 0
+  | num_of_term vs @{term "1::real"} = mk_C 1
+  | num_of_term vs (Bound i) = mk_Bound i
   | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
   | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
       @{code Add} (num_of_term vs t1, num_of_term vs t2)
@@ -5539,17 +5543,17 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
        of @{code C} i => @{code Mul} (i, num_of_term vs t2)
         | _ => error "num_of_term: unsupported Multiplication")
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t')) =
-      @{code C} (HOLogic.dest_num t')
+      mk_C (HOLogic.dest_num t')
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t')) =
-      @{code C} (~ (HOLogic.dest_num t'))
+      mk_C (~ (HOLogic.dest_num t'))
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "floor :: real \<Rightarrow> int"} $ t')) =
       @{code Floor} (num_of_term vs t')
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ t')) =
       @{code Neg} (@{code Floor} (@{code Neg} (num_of_term vs t')))
   | num_of_term vs (@{term "numeral :: _ \<Rightarrow> real"} $ t') =
-      @{code C} (HOLogic.dest_num t')
+      mk_C (HOLogic.dest_num t')
   | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> real"} $ t') =
-      @{code C} (~ (HOLogic.dest_num t'))
+      mk_C (~ (HOLogic.dest_num t'))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
 fun fm_of_term vs @{term True} = @{code T}
@@ -5561,9 +5565,9 @@ fun fm_of_term vs @{term True} = @{code T}
   | fm_of_term vs (@{term "op = :: real \<Rightarrow> real \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2)) 
   | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
-      @{code Dvd} (HOLogic.dest_num t1, num_of_term vs t2)
+      mk_Dvd (HOLogic.dest_num t1, num_of_term vs t2)
   | fm_of_term vs (@{term "op rdvd"} $ (@{term "real :: int \<Rightarrow> real"} $ (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t1)) $ t2) =
-      @{code Dvd} (~ (HOLogic.dest_num t1), num_of_term vs t2)
+      mk_Dvd (~ (HOLogic.dest_num t1), num_of_term vs t2)
   | fm_of_term vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term vs t1, fm_of_term vs t2)
   | fm_of_term vs (@{term HOL.conj} $ t1 $ t2) =
@@ -5580,8 +5584,12 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code A} (fm_of_term (map (fn (v, n) => (v, n + 1)) vs) p)
   | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
-fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HOLogic.mk_number HOLogic.intT i
-  | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
+fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $
+      HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
+  | term_of_num vs (@{code Bound} n) =
+      let
+        val m = @{code integer_of_nat} n;
+      in fst (the (find_first (fn (_, q) => m = q) vs)) end
   | term_of_num vs (@{code Neg} (@{code Floor} (@{code Neg} t'))) =
       @{term "real :: int \<Rightarrow> real"} $ (@{term "ceiling :: real \<Rightarrow> int"} $ term_of_num vs t')
   | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'
@@ -5660,3 +5668,4 @@ lemma "ALL (x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<long
   by mir
 
 end
+

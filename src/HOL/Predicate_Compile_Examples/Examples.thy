@@ -309,7 +309,14 @@ thm big_step.equation
 definition list :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a list" where
   "list s n = map s [0 ..< n]"
 
-values [expected "{[42, (43 :: nat)]}"] "{list s 2|s. (SKIP, nth [42, 43]) \<Rightarrow> s}"
+values [expected "{[Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc
+     (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc
+     (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0)
+     )))))))))))))))))))))))))))))))))))))))),
+   Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc   (Suc (Suc (Suc (Suc
+     (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc
+     (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc (Suc 0)
+     )))))))))))))))))))))))))))))))))))))))))]}"] "{list s 2|s. (SKIP, nth [42, 43]) \<Rightarrow> s}"
 
 
 subsection {* CCS *}

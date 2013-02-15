@@ -5,7 +5,7 @@
 header {* Linked Lists by ML references *}
 
 theory Linked_Lists
-imports "../Imperative_HOL" "~~/src/HOL/Library/Code_Integer"
+imports "../Imperative_HOL" "~~/src/HOL/Library/Code_Target_Int"
 begin
 
 section {* Definition of Linked Lists *}

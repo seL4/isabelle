@@ -5,7 +5,7 @@
 header {* Code generation of pretty characters with character codes *}
 
 theory Code_Char_chr
-imports Char_nat Code_Char Code_Integer Main
+imports Char_nat Code_Char Code_Target_Int Main
 begin
 
 definition

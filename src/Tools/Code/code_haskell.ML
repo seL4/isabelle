@@ -418,9 +418,6 @@ in Literals {
   literal_char = Library.enclose "'" "'" o char_haskell,
   literal_string = quote o translate_string char_haskell,
   literal_numeral = numeral_haskell,
-  literal_positive_numeral = numeral_haskell,
-  literal_alternative_numeral = numeral_haskell,
-  literal_naive_numeral = numeral_haskell,
   literal_list = enum "," "[" "]",
   infix_cons = (5, ":")
 } end;

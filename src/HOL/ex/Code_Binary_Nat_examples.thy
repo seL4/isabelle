@@ -2,10 +2,10 @@
     Author:     Florian Haftmann, TU Muenchen
 *)
 
-header {* Simple examples for natural numbers implemented in binary representation theory. *}
+header {* Simple examples for natural numbers implemented in binary representation. *}
 
 theory Code_Binary_Nat_examples
-imports Complex_Main "~~/src/HOL/Library/Efficient_Nat"
+imports Complex_Main "~~/src/HOL/Library/Code_Binary_Nat"
 begin
 
 fun to_n :: "nat \<Rightarrow> nat list"

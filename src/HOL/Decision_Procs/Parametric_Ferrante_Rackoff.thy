@@ -6,7 +6,7 @@ header{* A formalization of Ferrante and Rackoff's procedure with polynomial par
 
 theory Parametric_Ferrante_Rackoff
 imports Reflected_Multivariate_Polynomial Dense_Linear_Order DP_Library
-  "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
+  "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
 subsection {* Terms *}
@@ -2795,6 +2795,10 @@ let
 fun binopT T = T --> T --> T;
 fun relT T = T --> T --> @{typ bool};
 
+val mk_C = @{code C} o pairself @{code int_of_integer};
+val mk_poly_Bound = @{code poly.Bound} o @{code nat_of_integer};
+val mk_Bound = @{code Bound} o @{code nat_of_integer};
+
 val dest_num = snd o HOLogic.dest_number;
 
 fun try_dest_num t = SOME ((snd o HOLogic.dest_number) t)
@@ -2812,19 +2816,19 @@ fun num_of_term ps (Const (@{const_name Groups.uminus}, _) $ t) = @{code poly.Ne
   | num_of_term ps (Const (@{const_name Groups.plus}, _) $ a $ b) = @{code poly.Add} (num_of_term ps a, num_of_term ps b)
   | num_of_term ps (Const (@{const_name Groups.minus}, _) $ a $ b) = @{code poly.Sub} (num_of_term ps a, num_of_term ps b)
   | num_of_term ps (Const (@{const_name Groups.times}, _) $ a $ b) = @{code poly.Mul} (num_of_term ps a, num_of_term ps b)
-  | num_of_term ps (Const (@{const_name Power.power}, _) $ a $ n) = @{code poly.Pw} (num_of_term ps a, dest_nat n)
-  | num_of_term ps (Const (@{const_name Fields.divide}, _) $ a $ b) = @{code poly.C} (dest_num a, dest_num b)
+  | num_of_term ps (Const (@{const_name Power.power}, _) $ a $ n) = @{code poly.Pw} (num_of_term ps a, @{code nat_of_integer} (dest_nat n))
+  | num_of_term ps (Const (@{const_name Fields.divide}, _) $ a $ b) = mk_C (dest_num a, dest_num b)
   | num_of_term ps t = (case try_dest_num t
-     of SOME k => @{code poly.C} (k, 1)
-      | NONE => @{code poly.Bound} (the_index ps t));
+     of SOME k => mk_C (k, 1)
+      | NONE => mk_poly_Bound (the_index ps t));
 
 fun tm_of_term fs ps (Const(@{const_name Groups.uminus}, _) $ t) = @{code Neg} (tm_of_term fs ps t)
   | tm_of_term fs ps (Const(@{const_name Groups.plus}, _) $ a $ b) = @{code Add} (tm_of_term fs ps a, tm_of_term fs ps b)
   | tm_of_term fs ps (Const(@{const_name Groups.minus}, _) $ a $ b) = @{code Sub} (tm_of_term fs ps a, tm_of_term fs ps b)
   | tm_of_term fs ps (Const(@{const_name Groups.times}, _) $ a $ b) = @{code Mul} (num_of_term ps a, tm_of_term fs ps b)
   | tm_of_term fs ps t = (@{code CP} (num_of_term ps t) 
-      handle TERM _ => @{code Bound} (the_index fs t)
-           | General.Subscript => @{code Bound} (the_index fs t));
+      handle TERM _ => mk_Bound (the_index fs t)
+           | General.Subscript => mk_Bound (the_index fs t));
 
 fun fm_of_term fs ps @{term True} = @{code T}
   | fm_of_term fs ps @{term False} = @{code F}
@@ -2850,21 +2854,25 @@ fun fm_of_term fs ps @{term True} = @{code T}
   | fm_of_term fs ps _ = error "fm_of_term";
 
 fun term_of_num T ps (@{code poly.C} (a, b)) = 
-    (if b = 1 then HOLogic.mk_number T a
-     else if b = 0 then Const (@{const_name Groups.zero}, T)
-     else Const (@{const_name Fields.divide}, binopT T) $ HOLogic.mk_number T a $ HOLogic.mk_number T b)
-  | term_of_num T ps (@{code poly.Bound} i) = nth ps i
+      let
+        val (c, d) = pairself (@{code integer_of_int}) (a, b)
+      in
+        (if d = 1 then HOLogic.mk_number T c
+        else if d = 0 then Const (@{const_name Groups.zero}, T)
+        else Const (@{const_name Fields.divide}, binopT T) $ HOLogic.mk_number T c $ HOLogic.mk_number T d)
+      end
+  | term_of_num T ps (@{code poly.Bound} i) = nth ps (@{code integer_of_nat} i)
   | term_of_num T ps (@{code poly.Add} (a, b)) = Const (@{const_name Groups.plus}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
   | term_of_num T ps (@{code poly.Mul} (a, b)) = Const (@{const_name Groups.times}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
   | term_of_num T ps (@{code poly.Sub} (a, b)) = Const (@{const_name Groups.minus}, binopT T) $ term_of_num T ps a $ term_of_num T ps b
   | term_of_num T ps (@{code poly.Neg} a) = Const (@{const_name Groups.uminus}, T --> T) $ term_of_num T ps a
-  | term_of_num T ps (@{code poly.Pw} (a, n)) =
-      Const (@{const_name Power.power}, T --> @{typ nat} --> T) $ term_of_num T ps a $ HOLogic.mk_number HOLogic.natT n
+  | term_of_num T ps (@{code poly.Pw} (a, n)) = Const (@{const_name Power.power},
+      T --> @{typ nat} --> T) $ term_of_num T ps a $ HOLogic.mk_number HOLogic.natT (@{code integer_of_nat} n)
   | term_of_num T ps (@{code poly.CN} (c, n, p)) =
       term_of_num T ps (@{code poly.Add} (c, @{code poly.Mul} (@{code poly.Bound} n, p)));
 
 fun term_of_tm T fs ps (@{code CP} p) = term_of_num T ps p
-  | term_of_tm T fs ps (@{code Bound} i) = nth fs i
+  | term_of_tm T fs ps (@{code Bound} i) = nth fs (@{code integer_of_nat} i)
   | term_of_tm T fs ps (@{code Add} (a, b)) = Const (@{const_name Groups.plus}, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
   | term_of_tm T fs ps (@{code Mul} (a, b)) = Const (@{const_name Groups.times}, binopT T) $ term_of_num T ps a $ term_of_tm T fs ps b
   | term_of_tm T fs ps (@{code Sub} (a, b)) = Const (@{const_name Groups.minus}, binopT T) $ term_of_tm T fs ps a $ term_of_tm T fs ps b
@@ -2992,4 +3000,5 @@ apply ferrack
 oops
 *)
 end
+
 

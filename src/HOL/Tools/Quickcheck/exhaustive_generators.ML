@@ -10,11 +10,11 @@ sig
     Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
   val compile_generator_exprs: Proof.context -> term list -> (int -> term list option) list
   val compile_validator_exprs: Proof.context -> term list -> (int -> bool) list
-  val put_counterexample: (unit -> int -> bool -> int -> (bool * term list) option)
+  val put_counterexample: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> (bool * term list) option)
     -> Proof.context -> Proof.context
-  val put_counterexample_batch: (unit -> (int -> term list option) list)
+  val put_counterexample_batch: (unit -> (Code_Numeral.natural -> term list option) list)
     -> Proof.context -> Proof.context
-  val put_validator_batch: (unit -> (int -> bool) list) -> Proof.context -> Proof.context
+  val put_validator_batch: (unit -> (Code_Numeral.natural -> bool) list) -> Proof.context -> Proof.context
   exception Counterexample of term list
   val smart_quantifier : bool Config.T
   val optimise_equality : bool Config.T
@@ -50,9 +50,9 @@ val quickcheck_pretty = Attrib.setup_config_bool @{binding quickcheck_pretty} (K
 
 fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => Code_Evaluation.term"});
 
-val size = @{term "i :: code_numeral"}
-val size_pred = @{term "(i :: code_numeral) - 1"}
-val size_ge_zero = @{term "(i :: code_numeral) > 0"}
+val size = @{term "i :: natural"}
+val size_pred = @{term "(i :: natural) - 1"}
+val size_ge_zero = @{term "(i :: natural) > 0"}
 
 fun mk_none_continuation (x, y) =
   let
@@ -81,13 +81,13 @@ val full_exhaustiveN = "full_exhaustive";
 val bounded_forallN = "bounded_forall";
 
 fun fast_exhaustiveT T = (T --> @{typ unit})
-  --> @{typ code_numeral} --> @{typ unit}
+  --> @{typ natural} --> @{typ unit}
 
-fun exhaustiveT T = (T --> resultT) --> @{typ code_numeral} --> resultT
+fun exhaustiveT T = (T --> resultT) --> @{typ natural} --> resultT
 
-fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
+fun bounded_forallT T = (T --> @{typ bool}) --> @{typ natural} --> @{typ bool}
 
-fun full_exhaustiveT T = (termifyT T --> resultT) --> @{typ code_numeral} --> resultT
+fun full_exhaustiveT T = (termifyT T --> resultT) --> @{typ natural} --> resultT
 
 fun check_allT T = (termifyT T --> resultT) --> resultT
 
@@ -323,7 +323,7 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name], _) = Variable.variant_fixes ["depth"] ctxt'
-    val depth = Free (depth_name, @{typ code_numeral})
+    val depth = Free (depth_name, @{typ natural})
     fun return _ = @{term "throw_Counterexample :: term list => unit"} $
       (HOLogic.mk_list @{typ "term"}
         (map (fn t => HOLogic.mk_term_of (fastype_of t) t) (frees @ eval_terms)))
@@ -353,7 +353,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name, genuine_only_name], _) =
       Variable.variant_fixes ["depth", "genuine_only"] ctxt'
-    val depth = Free (depth_name, @{typ code_numeral})
+    val depth = Free (depth_name, @{typ natural})
     val genuine_only = Free (genuine_only_name, @{typ bool}) 
     val return = mk_return (HOLogic.mk_list @{typ "term"}
         (map (fn t => HOLogic.mk_term_of (fastype_of t) t) frees @ map mk_safe_term eval_terms))
@@ -375,7 +375,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val ([depth_name, genuine_only_name], ctxt'') =
       Variable.variant_fixes ["depth", "genuine_only"] ctxt'
     val (term_names, _) = Variable.variant_fixes (map (prefix "t_") names) ctxt''
-    val depth = Free (depth_name, @{typ code_numeral})
+    val depth = Free (depth_name, @{typ natural})
     val genuine_only = Free (genuine_only_name, @{typ bool})    
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
     fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
@@ -402,18 +402,18 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
 fun mk_parametric_generator_expr mk_generator_expr =
   Quickcheck_Common.gen_mk_parametric_generator_expr 
     ((mk_generator_expr,
-      absdummy @{typ bool} (absdummy @{typ "code_numeral"} (Const (@{const_name "None"}, resultT)))),
-      @{typ bool} --> @{typ "code_numeral"} --> resultT)
+      absdummy @{typ bool} (absdummy @{typ natural} (Const (@{const_name "None"}, resultT)))),
+      @{typ bool} --> @{typ natural} --> resultT)
 
 fun mk_validator_expr ctxt t =
   let
-    fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
+    fun bounded_forallT T = (T --> @{typ bool}) --> @{typ natural} --> @{typ bool}
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name], _) = Variable.variant_fixes ["depth"] ctxt'
-    val depth = Free (depth_name, @{typ code_numeral})
+    val depth = Free (depth_name, @{typ natural})
     fun mk_bounded_forall (Free (s, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"}, bounded_forallT T)
         $ lambda (Free (s, T)) t $ depth
@@ -443,7 +443,7 @@ fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) =
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> int -> bool -> int -> (bool * term list) option
+  type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> (bool * term list) option
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -451,7 +451,7 @@ val put_counterexample = Counterexample.put;
 
 structure Counterexample_Batch = Proof_Data
 (
-  type T = unit -> (int -> term list option) list
+  type T = unit -> (Code_Numeral.natural -> term list option) list
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -459,7 +459,7 @@ val put_counterexample_batch = Counterexample_Batch.put;
 
 structure Validator_Batch = Proof_Data
 (
-  type T = unit -> (int -> bool) list
+  type T = unit -> (Code_Numeral.natural -> bool) list
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -468,7 +468,7 @@ val put_validator_batch = Validator_Batch.put;
 
 val target = "Quickcheck";
 
-fun compile_generator_expr ctxt ts =
+fun compile_generator_expr_raw ctxt ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val mk_generator_expr = 
@@ -487,7 +487,14 @@ fun compile_generator_expr ctxt ts =
         Option.map (apsnd (map Quickcheck_Common.post_process_term)) else I))
   end;
 
-fun compile_generator_exprs ctxt ts =
+fun compile_generator_expr ctxt ts =
+  let
+    val compiled = compile_generator_expr_raw ctxt ts;
+  in fn genuine_only => fn [card, size] =>
+    compiled genuine_only [Code_Numeral.natural_of_integer card, Code_Numeral.natural_of_integer size]
+  end;
+
+fun compile_generator_exprs_raw ctxt ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val ts' = map (fn t => mk_generator_expr ctxt (t, [])) ts;
@@ -495,21 +502,29 @@ fun compile_generator_exprs ctxt ts =
       (Counterexample_Batch.get, put_counterexample_batch,
         "Exhaustive_Generators.put_counterexample_batch")
       thy (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
-      (HOLogic.mk_list @{typ "code_numeral => term list option"} ts') []
+      (HOLogic.mk_list @{typ "natural => term list option"} ts') []
   in
     map (fn compile => fn size => compile size
-      |> Option.map (map Quickcheck_Common.post_process_term)) compiles
+      |> (Option.map o map) Quickcheck_Common.post_process_term) compiles
   end;
 
-fun compile_validator_exprs ctxt ts =
+fun compile_generator_exprs ctxt ts =
+  compile_generator_exprs_raw ctxt ts
+  |> map (fn f => fn size => f (Code_Numeral.natural_of_integer size));
+
+fun compile_validator_exprs_raw ctxt ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val ts' = map (mk_validator_expr ctxt) ts
   in
     Code_Runtime.dynamic_value_strict
       (Validator_Batch.get, put_validator_batch, "Exhaustive_Generators.put_validator_batch")
-      thy (SOME target) (K I) (HOLogic.mk_list @{typ "code_numeral => bool"} ts') []
+      thy (SOME target) (K I) (HOLogic.mk_list @{typ "natural => bool"} ts') []
   end;
+
+fun compile_validator_exprs ctxt ts =
+  compile_validator_exprs_raw ctxt ts
+  |> map (fn f => fn size => f (Code_Numeral.natural_of_integer size));
 
 fun size_matters_for thy Ts = not (forall (fn T => Sign.of_sort thy (T,  @{sort check_all})) Ts)
 

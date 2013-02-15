@@ -31,7 +31,7 @@ fun mk_if cond = Const (@{const_name Predicate.if_pred},
 
 fun mk_iterate_upto T (f, from, to) =
   list_comb (Const (@{const_name Predicate.iterate_upto},
-      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}] ---> mk_monadT T),
+      [@{typ natural} --> T, @{typ natural}, @{typ natural}] ---> mk_monadT T),
     [f, from, to])
 
 fun mk_not t =
@@ -115,10 +115,10 @@ structure Pos_Bounded_CPS_Comp_Funs =
 struct
 
 val resultT = @{typ "(bool * Code_Evaluation.term list) option"}
-fun mk_monadT T = (T --> resultT) --> @{typ "code_numeral"} --> resultT
+fun mk_monadT T = (T --> resultT) --> @{typ "natural"} --> resultT
 
 fun dest_monadT (Type ("fun", [Type ("fun", [T, @{typ "(bool * term list) option"}]),
-  @{typ "code_numeral => (bool * term list) option"}])) = T
+  @{typ "natural => (bool * term list) option"}])) = T
   | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
 
 fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_empty}, mk_monadT T);
@@ -143,7 +143,7 @@ fun mk_iterate_upto _ _ = error "not implemented yet"
 fun mk_not t =
   let
     val nT = @{typ "(unit Quickcheck_Exhaustive.unknown =>
-      Code_Evaluation.term list Quickcheck_Exhaustive.three_valued) => code_numeral =>
+      Code_Evaluation.term list Quickcheck_Exhaustive.three_valued) => natural =>
       Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"}
     val T = mk_monadT HOLogic.unitT
   in Const (@{const_name Quickcheck_Exhaustive.pos_bound_cps_not}, nT --> T) $ t end
@@ -169,11 +169,11 @@ struct
 fun mk_monadT T =
   (Type (@{type_name "Quickcheck_Exhaustive.unknown"}, [T])
     --> @{typ "Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"})
-    --> @{typ "code_numeral => Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"}
+    --> @{typ "natural => Code_Evaluation.term list Quickcheck_Exhaustive.three_valued"}
 
 fun dest_monadT (Type ("fun", [Type ("fun", [Type (@{type_name "Quickcheck_Exhaustive.unknown"}, [T]),
     @{typ "term list Quickcheck_Exhaustive.three_valued"}]),
-    @{typ "code_numeral => term list Quickcheck_Exhaustive.three_valued"}])) = T
+    @{typ "natural => term list Quickcheck_Exhaustive.three_valued"}])) = T
   | dest_monadT T = raise TYPE ("dest_monadT", [T], []);
 
 fun mk_empty T = Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_empty}, mk_monadT T);
@@ -199,7 +199,7 @@ fun mk_not t =
   let
     val T = mk_monadT HOLogic.unitT
     val pT = @{typ "(unit => (bool * Code_Evaluation.term list) option)"}
-      --> @{typ "code_numeral => (bool * Code_Evaluation.term list) option"}
+      --> @{typ "natural => (bool * Code_Evaluation.term list) option"}
   in Const (@{const_name Quickcheck_Exhaustive.neg_bound_cps_not}, pT --> T) $ t end
 
 fun mk_Enum _ = error "not implemented"
@@ -251,7 +251,7 @@ fun mk_if cond = Const (@{const_name Random_Pred.if_randompred},
 
 fun mk_iterate_upto T (f, from, to) =
   list_comb (Const (@{const_name Random_Pred.iterate_upto},
-      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}] ---> mk_randompredT T),
+      [@{typ natural} --> T, @{typ natural}, @{typ natural}] ---> mk_randompredT T),
     [f, from, to])
 
 fun mk_not t =
@@ -272,10 +272,10 @@ end;
 structure DSequence_CompFuns =
 struct
 
-fun mk_dseqT T = Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
+fun mk_dseqT T = Type ("fun", [@{typ natural}, Type ("fun", [@{typ bool},
   Type (@{type_name Option.option}, [Type  (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])
 
-fun dest_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ bool},
+fun dest_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ bool},
   Type (@{type_name Option.option}, [Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])) = T
   | dest_dseqT T = raise TYPE ("dest_dseqT", [T], []);
 
@@ -315,9 +315,9 @@ structure New_Pos_DSequence_CompFuns =
 struct
 
 fun mk_pos_dseqT T =
-    @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
+    @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
 
-fun dest_pos_dseqT (Type ("fun", [@{typ code_numeral},
+fun dest_pos_dseqT (Type ("fun", [@{typ natural},
     Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])) = T
   | dest_pos_dseqT T = raise TYPE ("dest_pos_dseqT", [T], []);
 
@@ -353,7 +353,7 @@ fun mk_not t =
   let
     val pT = mk_pos_dseqT HOLogic.unitT
     val nT =
-      @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
+      @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
         [Type (@{type_name Option.option}, [@{typ unit}])])
   in Const (@{const_name Limited_Sequence.pos_not_seq}, nT --> pT) $ t end
 
@@ -375,10 +375,10 @@ end;
 structure New_Neg_DSequence_CompFuns =
 struct
 
-fun mk_neg_dseqT T = @{typ code_numeral} -->
+fun mk_neg_dseqT T = @{typ natural} -->
   Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])
 
-fun dest_neg_dseqT (Type ("fun", [@{typ code_numeral},
+fun dest_neg_dseqT (Type ("fun", [@{typ natural},
     Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])])) = T
   | dest_neg_dseqT T = raise TYPE ("dest_neg_dseqT", [T], []);
 
@@ -414,7 +414,7 @@ fun mk_not t =
   let
     val nT = mk_neg_dseqT HOLogic.unitT
     val pT =
-      @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
+      @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
         [@{typ unit}])
   in Const (@{const_name Limited_Sequence.neg_not_seq}, pT --> nT) $ t end
 
@@ -437,11 +437,11 @@ structure New_Pos_Random_Sequence_CompFuns =
 struct
 
 fun mk_pos_random_dseqT T =
-  @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
-    @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
+  @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
+    @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])
 
-fun dest_pos_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
-    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ code_numeral},
+fun dest_pos_random_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
+    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ natural},
     Type (@{type_name Lazy_Sequence.lazy_sequence}, [T])])])])])) = T
   | dest_pos_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
 
@@ -473,15 +473,15 @@ fun mk_if cond = Const (@{const_name Random_Sequence.pos_if_random_dseq},
 
 fun mk_iterate_upto T (f, from, to) =
   list_comb (Const (@{const_name Random_Sequence.pos_iterate_upto},
-      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}]
+      [@{typ natural} --> T, @{typ natural}, @{typ natural}]
         ---> mk_pos_random_dseqT T),
     [f, from, to])
 
 fun mk_not t =
   let
     val pT = mk_pos_random_dseqT HOLogic.unitT
-    val nT = @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
-      @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
+    val nT = @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
+      @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence},
         [Type (@{type_name Option.option}, [@{typ unit}])])
 
   in Const (@{const_name Random_Sequence.pos_not_random_dseq}, nT --> pT) $ t end
@@ -504,12 +504,12 @@ structure New_Neg_Random_Sequence_CompFuns =
 struct
 
 fun mk_neg_random_dseqT T =
-   @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
-    @{typ code_numeral} --> 
+   @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
+    @{typ natural} --> 
     Type (@{type_name Lazy_Sequence.lazy_sequence}, [Type (@{type_name Option.option}, [T])])
 
-fun dest_neg_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
-    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ code_numeral},
+fun dest_neg_random_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
+    Type ("fun", [@{typ Random.seed}, Type ("fun", [@{typ natural},
       Type (@{type_name Lazy_Sequence.lazy_sequence},
         [Type (@{type_name Option.option}, [T])])])])])])) = T
   | dest_neg_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);
@@ -542,15 +542,15 @@ fun mk_if cond = Const (@{const_name Random_Sequence.neg_if_random_dseq},
 
 fun mk_iterate_upto T (f, from, to) =
   list_comb (Const (@{const_name Random_Sequence.neg_iterate_upto},
-      [@{typ code_numeral} --> T, @{typ code_numeral}, @{typ code_numeral}]
+      [@{typ natural} --> T, @{typ natural}, @{typ natural}]
         ---> mk_neg_random_dseqT T),
     [f, from, to])
 
 fun mk_not t =
   let
     val nT = mk_neg_random_dseqT HOLogic.unitT
-    val pT = @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
-    @{typ code_numeral} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [@{typ unit}])
+    val pT = @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
+    @{typ natural} --> Type (@{type_name Lazy_Sequence.lazy_sequence}, [@{typ unit}])
   in Const (@{const_name Random_Sequence.neg_not_random_dseq}, pT --> nT) $ t end
 
 fun mk_map T1 T2 tf tp = Const (@{const_name Random_Sequence.neg_map},
@@ -572,10 +572,10 @@ structure Random_Sequence_CompFuns =
 struct
 
 fun mk_random_dseqT T =
-  @{typ code_numeral} --> @{typ code_numeral} --> @{typ Random.seed} -->
+  @{typ natural} --> @{typ natural} --> @{typ Random.seed} -->
     HOLogic.mk_prodT (DSequence_CompFuns.mk_dseqT T, @{typ Random.seed})
 
-fun dest_random_dseqT (Type ("fun", [@{typ code_numeral}, Type ("fun", [@{typ code_numeral},
+fun dest_random_dseqT (Type ("fun", [@{typ natural}, Type ("fun", [@{typ natural},
   Type ("fun", [@{typ Random.seed},
   Type (@{type_name Product_Type.prod}, [T, @{typ Random.seed}])])])])) = DSequence_CompFuns.dest_dseqT T
   | dest_random_dseqT T = raise TYPE ("dest_random_dseqT", [T], []);

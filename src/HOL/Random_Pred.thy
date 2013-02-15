@@ -7,13 +7,13 @@ theory Random_Pred
 imports Quickcheck_Random
 begin
 
-fun iter' :: "'a itself \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a::random) Predicate.pred"
+fun iter' :: "'a itself \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> ('a::random) Predicate.pred"
 where
   "iter' T nrandom sz seed = (if nrandom = 0 then bot_class.bot else
      let ((x, _), seed') = Quickcheck_Random.random sz seed
    in Predicate.Seq (%u. Predicate.Insert x (iter' T (nrandom - 1) sz seed')))"
 
-definition iter :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a::random) Predicate.pred"
+definition iter :: "natural \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> ('a::random) Predicate.pred"
 where
   "iter nrandom sz seed = iter' (TYPE('a)) nrandom sz seed"
 
@@ -48,7 +48,7 @@ definition if_randompred :: "bool \<Rightarrow> unit random_pred"
 where
   "if_randompred b = (if b then single () else empty)"
 
-definition iterate_upto :: "(code_numeral \<Rightarrow> 'a) => code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a random_pred"
+definition iterate_upto :: "(natural \<Rightarrow> 'a) => natural \<Rightarrow> natural \<Rightarrow> 'a random_pred"
 where
   "iterate_upto f n m = Pair (Predicate.iterate_upto f n m)"
 

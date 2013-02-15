@@ -22,7 +22,7 @@ sig
     Prove of isar_qualifier list * label * term * byline
   and byline =
     By_Metis of facts |
-    Case_Split of isar_step list list * facts |
+    Case_Split of isar_step list list |
     Subblock of isar_step list
 
   val string_for_label : label -> string
@@ -46,7 +46,7 @@ datatype isar_step =
   Prove of isar_qualifier list * label * term * byline
 and byline =
   By_Metis of facts |
-  Case_Split of isar_step list list * facts |
+  Case_Split of isar_step list list |
   Subblock of isar_step list
 
 fun string_for_label (s, num) = s ^ string_of_int num
@@ -57,7 +57,7 @@ fun metis_steps_top_level proof =
 fun metis_steps_total proof =
   fold (fn Obtain _ => Integer.add 1
          | Prove (_, _, _, By_Metis _) => Integer.add 1
-         | Prove (_, _, _, Case_Split (cases, _)) =>
+         | Prove (_, _, _, Case_Split cases) =>
            Integer.add (fold (Integer.add o metis_steps_total) cases 1)
          | Prove (_, _, _, Subblock subproof) =>
            Integer.add (metis_steps_total subproof + 1)

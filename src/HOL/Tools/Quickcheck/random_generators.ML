@@ -12,9 +12,9 @@ sig
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val compile_generator_expr:
     Proof.context -> (term * term list) list -> bool -> int list -> (bool * term list) option * Quickcheck.report option
-  val put_counterexample: (unit -> int -> bool -> int -> seed -> (bool * term list) option * seed)
+  val put_counterexample: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> (bool * term list) option * seed)
     -> Proof.context -> Proof.context
-  val put_counterexample_report: (unit -> int -> bool -> int -> seed -> ((bool * term list) option * (bool list * bool)) * seed)
+  val put_counterexample_report: (unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed)
     -> Proof.context -> Proof.context
   val instantiate_random_datatype : Datatype_Aux.config -> Datatype_Aux.descr ->
     (string * sort) list -> string list -> string -> string list * string list -> typ list * typ list -> theory -> theory
@@ -27,9 +27,9 @@ struct
 (** abstract syntax **)
 
 fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"})
-val size = @{term "i::code_numeral"};
-val size_pred = @{term "(i::code_numeral) - 1"};
-val size' = @{term "j::code_numeral"};
+val size = @{term "i::natural"};
+val size_pred = @{term "(i::natural) - 1"};
+val size' = @{term "j::natural"};
 val seed = @{term "s::Random.seed"};
 
 val resultT =  @{typ "(bool * term list) option"};
@@ -76,8 +76,8 @@ val pt_random_aux = lhs |> Thm.dest_fun;
 val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
 val aT = pt_random_aux |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
 
-val rew_thms = map mk_meta_eq [@{thm code_numeral_zero_minus_one},
-  @{thm Suc_code_numeral_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
+val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},
+  @{thm Suc_natural_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
 val rew_ts = map (Logic.dest_equals o Thm.prop_of) rew_thms;
 val rew_ss = HOL_ss addsimps rew_thms;
 
@@ -94,7 +94,7 @@ fun random_aux_primrec eq lthy =
     val inst = Thm.instantiate_cterm ([(aT, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
     val t_rhs = lambda t_k proto_t_rhs;
-    val eqs0 = [subst_v @{term "0::code_numeral"} eq,
+    val eqs0 = [subst_v @{term "0::natural"} eq,
       subst_v (@{const Code_Numeral.Suc} $ t_k) eq];
     val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, (_, eqs2)), lthy') = Primrec.add_primrec_simple
@@ -189,7 +189,7 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
     val rTs = Ts @ Us;
     fun random_resultT T = @{typ Random.seed}
       --> HOLogic.mk_prodT (termifyT T,@{typ Random.seed});
-    fun sizeT T = @{typ code_numeral} --> @{typ code_numeral} --> T;
+    fun sizeT T = @{typ natural} --> @{typ natural} --> T;
     val random_auxT = sizeT o random_resultT;
     val random_auxs = map2 (fn s => fn rT => Free (s, random_auxT rT))
       random_auxsN rTs;
@@ -222,9 +222,9 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
             tc @{typ Random.seed} (SOME T, @{typ Random.seed});
         val tk = if is_rec
           then if k = 0 then size
-            else @{term "Quickcheck_Random.beyond :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
-             $ HOLogic.mk_number @{typ code_numeral} k $ size
-          else @{term "1::code_numeral"}
+            else @{term "Quickcheck_Random.beyond :: natural \<Rightarrow> natural \<Rightarrow> natural"}
+             $ HOLogic.mk_number @{typ natural} k $ size
+          else @{term "1::natural"}
       in (is_rec, HOLogic.mk_prod (tk, t)) end;
     fun sort_rec xs =
       map_filter (fn (true, t) => SOME t | _ =>  NONE) xs
@@ -235,7 +235,7 @@ fun mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us) =
     fun mk_select (rT, xs) =
       mk_const @{const_name Quickcheck_Random.collapse} [@{typ Random.seed}, termifyT rT]
       $ (mk_const @{const_name Random.select_weight} [random_resultT rT]
-        $ HOLogic.mk_list (HOLogic.mk_prodT (@{typ code_numeral}, random_resultT rT)) xs)
+        $ HOLogic.mk_list (HOLogic.mk_prodT (@{typ natural}, random_resultT rT)) xs)
           $ seed;
     val auxs_lhss = map (fn t => t $ size $ size' $ seed) random_auxs;
     val auxs_rhss = map mk_select gen_exprss;
@@ -247,8 +247,8 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
     val mk_prop_eq = HOLogic.mk_Trueprop o HOLogic.mk_eq;
     fun mk_size_arg k = case Datatype_Aux.find_shortest_path descr k
      of SOME (_, l) => if l = 0 then size
-          else @{term "max :: code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"}
-            $ HOLogic.mk_number @{typ code_numeral} l $ size
+          else @{term "max :: natural \<Rightarrow> natural \<Rightarrow> natural"}
+            $ HOLogic.mk_number @{typ natural} l $ size
       | NONE => size;
     val (random_auxs, auxs_eqs) = (apsnd o map) mk_prop_eq
       (mk_random_aux_eqs thy descr vs (names, auxnames) (Ts, Us));
@@ -272,7 +272,7 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> int -> bool -> int -> int * int -> (bool * term list) option * (int * int)
+  type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> (bool * term list) option * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -280,7 +280,7 @@ val put_counterexample = Counterexample.put;
 
 structure Counterexample_Report = Proof_Data
 (
-  type T = unit -> int -> bool -> int -> seed -> ((bool * term list) option * (bool list * bool)) * seed
+  type T = unit -> Code_Numeral.natural -> bool -> Code_Numeral.natural -> seed -> ((bool * term list) option * (bool list * bool)) * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample_Report"
 );
@@ -318,7 +318,7 @@ fun mk_generator_expr ctxt (t, _) =
       (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
   in
     lambda genuine_only
-      (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
+      (Abs ("n", @{typ natural}, fold_rev mk_bindclause bounds (return $ check true)))
   end;
 
 fun mk_reporting_generator_expr ctxt (t, _) =
@@ -364,21 +364,21 @@ fun mk_reporting_generator_expr ctxt (t, _) =
       (Sign.mk_const thy (@{const_name Quickcheck_Random.random}, [T]) $ Bound i);
   in
     lambda genuine_only
-      (Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check true)))
+      (Abs ("n", @{typ natural}, fold_rev mk_bindclause bounds (return $ check true)))
   end
 
 val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_generator_expr, 
-    absdummy @{typ bool} (absdummy @{typ code_numeral}
+    absdummy @{typ bool} (absdummy @{typ natural}
       @{term "Pair None :: Random.seed => (bool * term list) option * Random.seed"})),
-    @{typ "bool => code_numeral => Random.seed => (bool * term list) option * Random.seed"})
+    @{typ "bool => natural => Random.seed => (bool * term list) option * Random.seed"})
 
 val mk_parametric_reporting_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
   ((mk_reporting_generator_expr,
-    absdummy @{typ bool} (absdummy @{typ code_numeral}
+    absdummy @{typ bool} (absdummy @{typ natural}
       @{term "Pair (None, ([], False)) :: Random.seed =>
         ((bool * term list) option * (bool list * bool)) * Random.seed"})),
-    @{typ "bool => code_numeral => Random.seed => ((bool * term list) option * (bool list * bool)) * Random.seed"})
+    @{typ "bool => natural => Random.seed => ((bool * term list) option * (bool list * bool)) * Random.seed"})
     
     
 (* single quickcheck report *)
@@ -402,7 +402,7 @@ fun collect_single_report single_report
 val empty_report = Quickcheck.Report { iterations = 0, raised_match_errors = 0,
   satisfied_assms = [], positive_concl_tests = 0 }
     
-fun compile_generator_expr ctxt ts =
+fun compile_generator_expr_raw ctxt ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val iterations = Config.get ctxt Quickcheck.iterations
@@ -447,6 +447,13 @@ fun compile_generator_expr ctxt ts =
         fn genuine_only => fn [card, size] =>
           (rpair NONE (iterate genuine_only (card, size) iterations))
       end
+  end;
+
+fun compile_generator_expr ctxt ts =
+  let
+    val compiled = compile_generator_expr_raw ctxt ts
+  in fn genuine_only => fn [card, size] =>
+    compiled genuine_only [Code_Numeral.natural_of_integer card, Code_Numeral.natural_of_integer size]
   end;
 
 val size_types = [@{type_name Enum.finite_1}, @{type_name Enum.finite_2},

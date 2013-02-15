@@ -18,7 +18,7 @@ sig
   structure Atom_Graph : GRAPH
 
   type ref_sequent = atom list * atom
-  type ref_graph = unit Atom_Graph.T
+  type refute_graph = unit Atom_Graph.T
 
   type clause = atom list
   type direct_sequent = atom list * clause
@@ -32,15 +32,15 @@ sig
 
   type direct_proof = direct_inference list
 
-  val make_ref_graph : (atom list * atom) list -> ref_graph
-  val axioms_of_ref_graph : ref_graph -> atom list -> atom list
-  val tainted_atoms_of_ref_graph : ref_graph -> atom list -> atom list
-  val sequents_of_ref_graph : ref_graph -> ref_sequent list
-  val string_of_ref_graph : ref_graph -> string
+  val make_refute_graph : (atom list * atom) list -> refute_graph
+  val axioms_of_refute_graph : refute_graph -> atom list -> atom list
+  val tainted_atoms_of_refute_graph : refute_graph -> atom list -> atom list
+  val sequents_of_refute_graph : refute_graph -> ref_sequent list
+  val string_of_refute_graph : refute_graph -> string
   val redirect_sequent : atom list -> atom -> ref_sequent -> direct_sequent
   val direct_graph : direct_sequent list -> direct_graph
   val redirect_graph :
-    atom list -> atom list -> atom -> ref_graph -> direct_proof
+    atom list -> atom list -> atom -> refute_graph -> direct_proof
   val succedent_of_cases : (clause * direct_inference list) list -> clause
   val string_of_direct_proof : direct_proof -> string
 end;
@@ -53,7 +53,7 @@ type atom = Atom.key
 structure Atom_Graph = Graph(Atom)
 
 type ref_sequent = atom list * atom
-type ref_graph = unit Atom_Graph.T
+type refute_graph = unit Atom_Graph.T
 
 type clause = atom list
 type direct_sequent = atom list * clause
@@ -72,7 +72,7 @@ fun clause_eq (c, d) = (length c = length d andalso forall atom_eq (c ~~ d))
 fun direct_sequent_eq ((gamma, c), (delta, d)) =
   clause_eq (gamma, delta) andalso clause_eq (c, d)
 
-fun make_ref_graph infers =
+fun make_refute_graph infers =
   let
     fun add_edge to from =
       Atom_Graph.default_node (from, ())
@@ -81,21 +81,24 @@ fun make_ref_graph infers =
     fun add_infer (froms, to) = fold (add_edge to) froms
   in Atom_Graph.empty |> fold add_infer infers end
 
-fun axioms_of_ref_graph ref_graph conjs =
-  subtract atom_eq conjs (Atom_Graph.minimals ref_graph)
-fun tainted_atoms_of_ref_graph ref_graph = Atom_Graph.all_succs ref_graph
+fun axioms_of_refute_graph refute_graph conjs =
+  subtract atom_eq conjs (Atom_Graph.minimals refute_graph)
 
-fun sequents_of_ref_graph ref_graph =
-  map (`(Atom_Graph.immediate_preds ref_graph))
-      (filter_out (Atom_Graph.is_minimal ref_graph) (Atom_Graph.keys ref_graph))
+fun tainted_atoms_of_refute_graph refute_graph =
+  Atom_Graph.all_succs refute_graph
+
+fun sequents_of_refute_graph refute_graph =
+  map (`(Atom_Graph.immediate_preds refute_graph))
+      (filter_out (Atom_Graph.is_minimal refute_graph)
+                  (Atom_Graph.keys refute_graph))
 
 val string_of_context = map Atom.string_of #> space_implode ", "
 
 fun string_of_sequent (gamma, c) =
   string_of_context gamma ^ " \<turnstile> " ^ Atom.string_of c
 
-fun string_of_ref_graph ref_graph =
-  ref_graph |> sequents_of_ref_graph |> map string_of_sequent |> cat_lines
+val string_of_refute_graph =
+  sequents_of_refute_graph #> map string_of_sequent #> cat_lines
 
 fun redirect_sequent tainted bot (gamma, c) =
   if member atom_eq tainted c then
@@ -148,10 +151,10 @@ fun zones_of 0 _ = []
   | zones_of n (bs :: bss) =
     (fold (subtract atom_eq) bss) bs :: zones_of (n - 1) (bss @ [bs])
 
-fun redirect_graph axioms tainted bot ref_graph =
+fun redirect_graph axioms tainted bot refute_graph =
   let
     val seqs =
-      map (redirect_sequent tainted bot) (sequents_of_ref_graph ref_graph)
+      map (redirect_sequent tainted bot) (sequents_of_refute_graph refute_graph)
     val direct_graph = direct_graph seqs
     fun redirect c proved seqs =
       if null seqs then

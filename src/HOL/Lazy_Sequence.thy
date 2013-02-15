@@ -169,13 +169,14 @@ definition those :: "'a option lazy_sequence \<Rightarrow> 'a lazy_sequence opti
 where
   "those xq = Option.map lazy_sequence_of_list (List.those (list_of_lazy_sequence xq))"
   
-function iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a lazy_sequence"
+function iterate_upto :: "(natural \<Rightarrow> 'a) \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> 'a lazy_sequence"
 where
   "iterate_upto f n m =
     Lazy_Sequence (\<lambda>_. if n > m then None else Some (f n, iterate_upto f (n + 1) m))"
   by pat_completeness auto
 
-termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
+termination by (relation "measure (\<lambda>(f, n, m). nat_of_natural (m + 1 - n))")
+  (auto simp add: less_natural_def)
 
 definition not_seq :: "unit lazy_sequence \<Rightarrow> unit lazy_sequence"
 where
@@ -225,7 +226,7 @@ where
 subsubsection {* Small lazy typeclasses *}
 
 class small_lazy =
-  fixes small_lazy :: "code_numeral \<Rightarrow> 'a lazy_sequence"
+  fixes small_lazy :: "natural \<Rightarrow> 'a lazy_sequence"
 
 instantiation unit :: small_lazy
 begin
@@ -252,7 +253,7 @@ termination
   by (relation "measure (%(d, i). nat (d + 1 - i))") auto
 
 definition
-  "small_lazy d = small_lazy' (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
+  "small_lazy d = small_lazy' (int (nat_of_natural d)) (- (int (nat_of_natural d)))"
 
 instance ..
 
@@ -271,7 +272,7 @@ end
 instantiation list :: (small_lazy) small_lazy
 begin
 
-fun small_lazy_list :: "code_numeral \<Rightarrow> 'a list lazy_sequence"
+fun small_lazy_list :: "natural \<Rightarrow> 'a list lazy_sequence"
 where
   "small_lazy_list d = append (single [])
     (if d > 0 then bind (product (small_lazy (d - 1))

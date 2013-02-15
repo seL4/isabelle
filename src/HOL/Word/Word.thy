@@ -86,7 +86,7 @@ begin
 
 definition
   "random_word i = Random.range i \<circ>\<rightarrow> (\<lambda>k. Pair (
-     let j = word_of_int (Code_Numeral.int_of k) :: 'a word
+     let j = word_of_int (int_of_integer (integer_of_natural k)) :: 'a word
      in (j, \<lambda>_::unit. Code_Evaluation.term_of j)))"
 
 instance ..
@@ -4651,3 +4651,4 @@ setup {* SMT_Word.setup *}
 hide_const (open) Word
 
 end
+

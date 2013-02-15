@@ -89,8 +89,7 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       (* proof references *)
       fun refs (Obtain (_, _, _, _, By_Metis (lfs, _))) = lookup_indices lfs
         | refs (Prove (_, _, _, By_Metis (lfs, _))) = lookup_indices lfs
-        | refs (Prove (_, _, _, Case_Split (cases, (lfs, _)))) =
-          lookup_indices lfs @ maps (maps refs) cases
+        | refs (Prove (_, _, _, Case_Split cases)) = maps (maps refs) cases
         | refs (Prove (_, _, _, Subblock proof)) = maps refs proof
         | refs _ = []
       val refed_by_vect =
@@ -234,9 +233,9 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           in fold_map f_m candidates zero_preplay_time end
         val compress_subproof =
           compress_each_and_collect_time (do_proof false ctxt)
-        fun compress (Prove (qs, l, t, Case_Split (cases, facts))) =
+        fun compress (Prove (qs, l, t, Case_Split cases)) =
             let val (cases, time) = compress_subproof cases
-            in (Prove (qs, l, t, Case_Split (cases, facts)), time) end
+            in (Prove (qs, l, t, Case_Split cases), time) end
           | compress (Prove (qs, l, t, Subblock proof)) =
             let val ([proof], time) = compress_subproof [proof]
             in (Prove (qs, l, t, Subblock proof), time) end

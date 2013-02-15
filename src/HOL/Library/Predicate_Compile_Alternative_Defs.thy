@@ -99,10 +99,10 @@ let
     end
   fun enumerate_addups_nat compfuns (_ : typ) =
     absdummy @{typ nat} (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ "nat * nat"}
-    (absdummy @{typ code_numeral} (@{term "Pair :: nat => nat => nat * nat"} $
-      (@{term "Code_Numeral.nat_of"} $ Bound 0) $
-      (@{term "op - :: nat => nat => nat"} $ Bound 1 $ (@{term "Code_Numeral.nat_of"} $ Bound 0))),
-      @{term "0 :: code_numeral"}, @{term "Code_Numeral.of_nat"} $ Bound 0))
+    (absdummy @{typ natural} (@{term "Pair :: nat => nat => nat * nat"} $
+      (@{term "nat_of_natural"} $ Bound 0) $
+      (@{term "op - :: nat => nat => nat"} $ Bound 1 $ (@{term "nat_of_natural"} $ Bound 0))),
+      @{term "0 :: natural"}, @{term "natural_of_nat"} $ Bound 0))
   fun enumerate_nats compfuns  (_ : typ) =
     let
       val (single_const, _) = strip_comb (Predicate_Compile_Aux.mk_single compfuns @{term "0 :: nat"})
@@ -111,8 +111,8 @@ let
       absdummy @{typ nat} (absdummy @{typ nat}
         (Const (@{const_name If}, @{typ bool} --> T --> T --> T) $
           (@{term "op = :: nat => nat => bool"} $ Bound 0 $ @{term "0::nat"}) $
-          (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ nat} (@{term "Code_Numeral.nat_of"},
-            @{term "0::code_numeral"}, @{term "Code_Numeral.of_nat"} $ Bound 1)) $
+          (Predicate_Compile_Aux.mk_iterate_upto compfuns @{typ nat} (@{term "nat_of_natural"},
+            @{term "0::natural"}, @{term "natural_of_nat"} $ Bound 1)) $
             (single_const $ (@{term "op + :: nat => nat => nat"} $ Bound 1 $ Bound 0))))
     end
 in
