@@ -29,6 +29,10 @@ lemma card_num0 [simp]: "CARD (num0) = 0"
   unfolding type_definition.card [OF type_definition_num0]
   by simp
 
+lemma infinite_num0: "\<not> finite (UNIV :: num0 set)"
+  using card_num0[unfolded card_eq_0_iff]
+  by simp
+
 lemma card_num1 [simp]: "CARD(num1) = 1"
   unfolding type_definition.card [OF type_definition_num1]
   by (simp only: card_UNIV_unit)
@@ -282,6 +286,172 @@ lemmas bit1_iszero_numeral [simp] = bit1.iszero_numeral
 
 declare eq_numeral_iff_iszero [where 'a="('a::finite) bit0", standard, simp]
 declare eq_numeral_iff_iszero [where 'a="('a::finite) bit1", standard, simp]
+
+subsection {* Linorder instance *}
+
+instantiation bit0 and bit1 :: (finite) linorder begin
+
+definition "a < b \<longleftrightarrow> Rep_bit0 a < Rep_bit0 b"
+definition "a \<le> b \<longleftrightarrow> Rep_bit0 a \<le> Rep_bit0 b"
+definition "a < b \<longleftrightarrow> Rep_bit1 a < Rep_bit1 b"
+definition "a \<le> b \<longleftrightarrow> Rep_bit1 a \<le> Rep_bit1 b"
+
+instance
+  by(intro_classes)
+    (auto simp add: less_eq_bit0_def less_bit0_def less_eq_bit1_def less_bit1_def Rep_bit0_inject Rep_bit1_inject)
+
+end
+
+subsection {* Code setup and type classes for code generation *}
+
+text {* Code setup for @{typ num0} and @{typ num1} *}
+
+definition Num0 :: num0 where "Num0 = Abs_num0 0"
+code_datatype Num0
+
+instantiation num0 :: equal begin
+definition equal_num0 :: "num0 \<Rightarrow> num0 \<Rightarrow> bool" 
+  where "equal_num0 = op ="
+instance by intro_classes (simp add: equal_num0_def)
+end
+
+lemma equal_num0_code [code]:
+  "equal_class.equal Num0 Num0 = True"
+by(rule equal_refl)
+
+code_datatype "1 :: num1"
+
+instantiation num1 :: equal begin
+definition equal_num1 :: "num1 \<Rightarrow> num1 \<Rightarrow> bool"
+  where "equal_num1 = op ="
+instance by intro_classes (simp add: equal_num1_def)
+end
+
+lemma equal_num1_code [code]:
+  "equal_class.equal (1 :: num1) 1 = True"
+by(rule equal_refl)
+
+instantiation num1 :: enum begin
+definition "enum_class.enum = [1 :: num1]"
+definition "enum_class.enum_all P = P (1 :: num1)"
+definition "enum_class.enum_ex P = P (1 :: num1)"
+instance
+  by intro_classes
+     (auto simp add: enum_num1_def enum_all_num1_def enum_ex_num1_def num1_eq_iff Ball_def, 
+      (metis (full_types) num1_eq_iff)+)
+end
+
+instantiation num0 and num1 :: card_UNIV begin
+definition "finite_UNIV = Phantom(num0) False"
+definition "card_UNIV = Phantom(num0) 0"
+definition "finite_UNIV = Phantom(num1) True"
+definition "card_UNIV = Phantom(num1) 1"
+instance
+  by intro_classes
+     (simp_all add: finite_UNIV_num0_def card_UNIV_num0_def infinite_num0 finite_UNIV_num1_def card_UNIV_num1_def)
+end
+
+
+text {* Code setup for @{typ "'a bit0"} and @{typ "'a bit1"} *}
+
+declare
+  bit0.Rep_inverse[code abstype]
+  bit0.Rep_0[code abstract]
+  bit0.Rep_1[code abstract]
+
+lemma Abs_bit0'_code [code abstract]:
+  "Rep_bit0 (Abs_bit0' x :: 'a :: finite bit0) = x mod int (CARD('a bit0))"
+by(auto simp add: Abs_bit0'_def intro!: Abs_bit0_inverse)
+  (metis bit0.Rep_Abs_mod bit0.Rep_less_n card_bit0 of_nat_numeral zmult_int)
+
+lemma inj_on_Abs_bit0:
+  "inj_on (Abs_bit0 :: int \<Rightarrow> 'a bit0) {0..<2 * int CARD('a :: finite)}"
+by(auto intro: inj_onI simp add: Abs_bit0_inject)
+
+declare
+  bit1.Rep_inverse[code abstype]
+  bit1.Rep_0[code abstract]
+  bit1.Rep_1[code abstract]
+
+lemma Abs_bit1'_code [code abstract]:
+  "Rep_bit1 (Abs_bit1' x :: 'a :: finite bit1) = x mod int (CARD('a bit1))"
+by(auto simp add: Abs_bit1'_def intro!: Abs_bit1_inverse)
+  (metis of_nat_0_less_iff of_nat_Suc of_nat_mult of_nat_numeral pos_mod_conj zero_less_Suc)
+
+lemma inj_on_Abs_bit1:
+  "inj_on (Abs_bit1 :: int \<Rightarrow> 'a bit1) {0..<1 + 2 * int CARD('a :: finite)}"
+by(auto intro: inj_onI simp add: Abs_bit1_inject)
+
+instantiation bit0 and bit1 :: (finite) equal begin
+
+definition "equal_class.equal x y \<longleftrightarrow> Rep_bit0 x = Rep_bit0 y"
+definition "equal_class.equal x y \<longleftrightarrow> Rep_bit1 x = Rep_bit1 y"
+
+instance
+  by intro_classes (simp_all add: equal_bit0_def equal_bit1_def Rep_bit0_inject Rep_bit1_inject)
+
+end
+
+instantiation bit0 :: (finite) enum begin
+definition "(enum_class.enum :: 'a bit0 list) = map (Abs_bit0' \<circ> int) (upt 0 (CARD('a bit0)))"
+definition "enum_class.enum_all P = (\<forall>b :: 'a bit0 \<in> set enum_class.enum. P b)"
+definition "enum_class.enum_ex P = (\<exists>b :: 'a bit0 \<in> set enum_class.enum. P b)"
+
+instance
+proof(intro_classes)
+  show "distinct (enum_class.enum :: 'a bit0 list)"
+    by(auto intro!: inj_onI simp add: Abs_bit0'_def Abs_bit0_inject zmod_int[symmetric] enum_bit0_def distinct_map)
+
+  show univ_eq: "(UNIV :: 'a bit0 set) = set enum_class.enum"
+    unfolding enum_bit0_def type_definition.Abs_image[OF type_definition_bit0, symmetric]
+    by(simp add: image_comp inj_on_Abs_bit0 card_image image_int_atLeastLessThan)
+      (auto intro!: image_cong[OF refl] simp add: Abs_bit0'_def mod_pos_pos_trivial)
+
+  fix P :: "'a bit0 \<Rightarrow> bool"
+  show "enum_class.enum_all P = Ball UNIV P"
+    and "enum_class.enum_ex P = Bex UNIV P"
+    by(simp_all add: enum_all_bit0_def enum_ex_bit0_def univ_eq)
+qed
+
+end
+
+instantiation bit1 :: (finite) enum begin
+definition "(enum_class.enum :: 'a bit1 list) = map (Abs_bit1' \<circ> int) (upt 0 (CARD('a bit1)))"
+definition "enum_class.enum_all P = (\<forall>b :: 'a bit1 \<in> set enum_class.enum. P b)"
+definition "enum_class.enum_ex P = (\<exists>b :: 'a bit1 \<in> set enum_class.enum. P b)"
+
+instance
+proof(intro_classes)
+  show "distinct (enum_class.enum :: 'a bit1 list)"
+    by(simp only: Abs_bit1'_def zmod_int[symmetric] enum_bit1_def distinct_map Suc_eq_plus1 card_bit1 o_apply inj_on_def)
+      (clarsimp simp add: Abs_bit1_inject)
+
+  show univ_eq: "(UNIV :: 'a bit1 set) = set enum_class.enum"
+    unfolding enum_bit1_def type_definition.Abs_image[OF type_definition_bit1, symmetric]
+    by(simp add: image_comp inj_on_Abs_bit1 card_image image_int_atLeastLessThan)
+      (auto intro!: image_cong[OF refl] simp add: Abs_bit1'_def mod_pos_pos_trivial)
+
+  fix P :: "'a bit1 \<Rightarrow> bool"
+  show "enum_class.enum_all P = Ball UNIV P"
+    and "enum_class.enum_ex P = Bex UNIV P"
+    by(simp_all add: enum_all_bit1_def enum_ex_bit1_def univ_eq)
+qed
+
+end
+
+instantiation bit0 and bit1 :: (finite) finite_UNIV begin
+definition "finite_UNIV = Phantom('a bit0) True"
+definition "finite_UNIV = Phantom('a bit1) True"
+instance by intro_classes (simp_all add: finite_UNIV_bit0_def finite_UNIV_bit1_def)
+end
+
+instantiation bit0 and bit1 :: ("{finite,card_UNIV}") card_UNIV begin
+definition "card_UNIV = Phantom('a bit0) (2 * of_phantom (card_UNIV :: 'a card_UNIV))"
+definition
+  "card_UNIV = Phantom('a bit1) (let ca = of_phantom (card_UNIV :: 'a card_UNIV)
+  in if ca \<noteq> 0 then 1 + 2 * ca else 2 * ca)"
+instance by intro_classes (simp_all add: card_UNIV_bit0_def card_UNIV_bit1_def card_UNIV)
+end
 
 subsection {* Syntax *}
 
