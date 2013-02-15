@@ -745,30 +745,34 @@ fun isar_proof_text ctxt isar_proofs
                 Prove (maybe_show outer c [], l, t, by)
             end
           | isar_step_of_direct_inf outer (Cases cases) =
-            let val c = succedent_of_cases cases in
+            let
+              fun do_case (c, infs) =
+                Assume (label_of_clause c, prop_of_clause c) ::
+                map (isar_step_of_direct_inf false) infs
+              val c = succedent_of_cases cases
+              val cases = map do_case cases
+            in
               Prove (maybe_show outer c [Ultimately], label_of_clause c,
-                     prop_of_clause c,
-                     Case_Split (map (do_case false) cases, ([], [])))
+                     prop_of_clause c, Case_Split (cases, ([], [])))
             end
-        and do_case outer (c, infs) =
-          Assume (label_of_clause c, prop_of_clause c) ::
-          map (isar_step_of_direct_inf outer) infs
+        fun isar_proof_of_direct_proof direct_proof =
+          direct_proof
+          |> map (isar_step_of_direct_inf true)
+          |> append assms
         val (isar_proof, (preplay_fail, preplay_time)) =
           refute_graph
           |> redirect_graph axioms tainted bot
-          |> map (isar_step_of_direct_inf true)
-          |> append assms
+          |> isar_proof_of_direct_proof
           |> (if not preplay andalso isar_compress <= 1.0 then
                 rpair (false, (true, seconds 0.0))
               else
                 compress_proof debug ctxt type_enc lam_trans preplay
                   preplay_timeout
                   (if isar_proofs then isar_compress else 1000.0))
-       (* |>> reorder_proof_to_minimize_jumps (* ? *) *)
-          |>> chain_direct_proof
-          |>> kill_useless_labels_in_proof
-          |>> relabel_proof
-          |>> not (null params) ? cons (Fix params)
+          |>> (chain_direct_proof
+               #> kill_useless_labels_in_proof
+               #> relabel_proof
+               #> not (null params) ? cons (Fix params))
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
                            isar_proof
