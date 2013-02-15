@@ -684,9 +684,10 @@ fun isar_proof_text ctxt isar_proofs
         fun dep_of_step (Definition_Step _) = NONE
           | dep_of_step (Inference_Step (name, _, _, _, from)) =
             SOME (from, name)
-        val ref_graph = atp_proof |> map_filter dep_of_step |> make_ref_graph
-        val axioms = axioms_of_ref_graph ref_graph conjs
-        val tainted = tainted_atoms_of_ref_graph ref_graph conjs
+        val refute_graph =
+          atp_proof |> map_filter dep_of_step |> make_refute_graph
+        val axioms = axioms_of_refute_graph refute_graph conjs
+        val tainted = tainted_atoms_of_refute_graph refute_graph conjs
         val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val steps =
           Symtab.empty
@@ -753,7 +754,7 @@ fun isar_proof_text ctxt isar_proofs
           Assume (label_of_clause c, prop_of_clause c) ::
           map (isar_step_of_direct_inf outer) infs
         val (isar_proof, (preplay_fail, preplay_time)) =
-          ref_graph
+          refute_graph
           |> redirect_graph axioms tainted bot
           |> map (isar_step_of_direct_inf true)
           |> append assms
