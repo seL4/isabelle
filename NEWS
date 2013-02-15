@@ -19,6 +19,11 @@ order. Instances are reals and extended reals.
 
 INCOMPATIBILITY.
 
+* Sledgehammer:
+
+  - Renamed option:
+      isar_shrink ~> isar_compress
+
 
 New in Isabelle2013 (February 2013)
 -----------------------------------
