@@ -48,7 +48,7 @@ fun has_thys thys th = exists (has_thm_thy th) thys
 fun all_facts ctxt =
   let val css = Sledgehammer_Fact.clasimpset_rule_table_of ctxt in
     Sledgehammer_Fact.all_facts ctxt true false Symtab.empty [] [] css
-    |> sort (thm_ord o pairself snd)
+    |> sort (crude_thm_ord o pairself snd)
   end
 
 fun generate_accessibility ctxt thys include_thys file_name =

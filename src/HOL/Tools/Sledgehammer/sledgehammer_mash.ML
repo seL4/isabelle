@@ -55,8 +55,7 @@ sig
   val mesh_facts :
     ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
     -> 'a list
-  val theory_ord : theory * theory -> order
-  val thm_ord : thm * thm -> order
+  val crude_thm_ord : thm * thm -> order
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
@@ -510,7 +509,7 @@ val local_feature = ("local", 8.0 (* FUDGE *))
 val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
-fun theory_ord p =
+fun crude_theory_ord p =
   if Theory.subthy p then
     if Theory.eq_thy p then EQUAL else LESS
   else if Theory.subthy (swap p) then
@@ -519,8 +518,8 @@ fun theory_ord p =
     EQUAL => string_ord (pairself Context.theory_name p)
   | order => order
 
-fun thm_ord p =
-  case theory_ord (pairself theory_of_thm p) of
+fun crude_thm_ord p =
+  case crude_theory_ord (pairself theory_of_thm p) of
     EQUAL =>
     let val q = pairself nickname_of_thm p in
       (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
@@ -697,7 +696,8 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-      val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+      val facts =
+        facts |> filter (fn (_, th') => crude_thm_ord (th', th) = LESS)
       fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
       fun is_dep dep (_, th) = nickname_of_thm th = dep
       fun add_isar_dep facts dep accum =
@@ -801,7 +801,7 @@ fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
       val unknown_chained =
         inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
       val proximity =
-        facts |> sort (thm_ord o pairself snd o swap)
+        facts |> sort (crude_thm_ord o pairself snd o swap)
               |> take max_proximity_facts
       val mess =
         [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
@@ -904,7 +904,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {access_G, ...} = peek_state ctxt I
-    val facts = facts |> sort (thm_ord o pairself snd)
+    val facts = facts |> sort (crude_thm_ord o pairself snd)
     val (old_facts, new_facts) =
       facts |> List.partition (is_fact_in_graph access_G snd)
   in
@@ -996,7 +996,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               (* crude approximation *)
               val ancestors =
                 old_facts
-                |> filter (fn (_, th) => thm_ord (th, last_th) <> GREATER)
+                |> filter (fn (_, th) => crude_thm_ord (th, last_th) <> GREATER)
               val parents = maximal_in_graph access_G ancestors
               val (learns, (_, n, _, _)) =
                 ([], (parents, 0, next_commit_time (), false))
