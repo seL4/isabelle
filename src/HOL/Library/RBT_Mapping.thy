@@ -73,7 +73,7 @@ end
 
 lemma equal_Mapping [code]:
   "HOL.equal (Mapping t1) (Mapping t2) \<longleftrightarrow> entries t1 = entries t2"
-by (transfer fixing: t1 t2) (simp add: entries_lookup)
+  by (transfer fixing: t1 t2) (simp add: entries_lookup)
 
 lemma [code nbe]:
   "HOL.equal (x :: (_, _) mapping) x \<longleftrightarrow> True"

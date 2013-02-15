@@ -1,11 +1,14 @@
-(*  Title:      HOL/Codegenerator_Test/RBT_Set_Test.thy
-    Author:     Ondrej Kuncar
-*)
 
-header {* Test of the code generator using an implementation of sets by RBT trees *}
+(* Author: Ondrej Kuncar, TU Muenchen *)
 
-theory RBT_Set_Test
-imports "~~/src/HOL/Library/Library" "~~/src/HOL/Library/RBT_Set"
+header {* Pervasive test of code generator *}
+
+theory Generate_Efficient_Datastructures
+imports
+  Candidates
+  "~~/src/HOL/Library/DAList"
+  "~~/src/HOL/Library/RBT_Mapping"
+  "~~/src/HOL/Library/RBT_Set"
 begin
 
 (* 

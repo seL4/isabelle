@@ -20,18 +20,25 @@ session "HOL-Library" (main) in Library = HOL +
   description {* Classical Higher-order Logic -- batteries included *}
   theories
     Library
-    Sublist
+    (*conflicting type class instantiations*)
     List_lexord
     Sublist_Order
-    Finite_Lattice
-    Code_Char
     Product_Lexorder
     Product_Order
+    Finite_Lattice
+    (*data refinements and dependent applications*)
+    AList_Mapping
+    Code_Binary_Nat
+    Code_Char
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
     Code_Target_Numeral
-    IArray
+    DAList
+    RBT_Mapping
+    RBT_Set
+    (*legacy tools*)
     Refute
+    Old_Recdef
   theories [condition = ISABELLE_FULL_TEST]
     Sum_of_Squares_Remote
   files "document/root.bib" "document/root.tex"
@@ -148,7 +155,7 @@ session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   options [document = false, document_graph = false, browser_info = false]
-  theories Generate Generate_Pretty RBT_Set_Test
+  theories Generate Generate_Binary_Nat Generate_Target_Nat Generate_Efficient_Datastructures Generate_Pretty_Char
 
 session "HOL-Metis_Examples" in Metis_Examples = HOL +
   description {*

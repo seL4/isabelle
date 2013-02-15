@@ -3,11 +3,12 @@
 
 header {* Pervasive test of code generator *}
 
-theory Generate
+theory Generate_Pretty_Char
 imports
   Candidates
   "~~/src/HOL/Library/AList_Mapping"
   "~~/src/HOL/Library/Finite_Lattice"
+  "~~/src/HOL/Library/Code_Char"
 begin
 
 text {*
@@ -18,4 +19,3 @@ text {*
 export_code _ checking SML OCaml? Haskell? Scala
 
 end
-

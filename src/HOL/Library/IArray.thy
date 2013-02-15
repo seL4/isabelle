@@ -46,6 +46,26 @@ code_type iarray
 code_const IArray
   (SML "Vector.fromList")
 
+lemma [code]:
+"size (as :: 'a iarray) = 0"
+by (cases as) simp
+
+lemma [code]:
+"iarray_size f as = Suc (list_size f (IArray.list_of as))"
+by (cases as) simp
+
+lemma [code]:
+"iarray_rec f as = f (IArray.list_of as)"
+by (cases as) simp
+
+lemma [code]:
+"iarray_case f as = f (IArray.list_of as)"
+by (cases as) simp
+
+lemma [code]:
+"HOL.equal as bs \<longleftrightarrow> HOL.equal (IArray.list_of as) (IArray.list_of bs)"
+by (cases as, cases bs) (simp add: equal)
+
 primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
 "tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
 hide_const (open) tabulate

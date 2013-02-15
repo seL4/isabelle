@@ -2,7 +2,7 @@
 theory Library
 imports
   Abstract_Rat
-  AList_Mapping
+  AList
   BigO
   Binomial
   Bit
@@ -29,6 +29,7 @@ imports
   Indicator_Function
   Infinite_Set
   Inner_Product
+  IArray
   Lattice_Algebras
   Lattice_Syntax
   ListVector
@@ -37,7 +38,6 @@ imports
   Monad_Syntax
   Multiset
   Numeral_Type
-  Old_Recdef
   OptionalSugar
   Option_ord
   Parallel
@@ -56,11 +56,10 @@ imports
   Quotient_Type
   Ramsey
   Reflection
-  RBT_Mapping
-  (* RBT_Set *) (* FIXME not included because it breaks Codegenerator_Test/Generate*.thy *)
   Saturated
   Set_Algebras
   State_Monad
+  Sublist
   Sum_of_Squares
   Transitive_Closure_Table
   Univ_Poly

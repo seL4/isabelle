@@ -34,10 +34,12 @@ lift_definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping" is
 lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('c, 'd) mapping" is
   "\<lambda>f g m. (Option.map g \<circ> m \<circ> f)" .
 
+
 subsection {* Functorial structure *}
 
 enriched_type map: map
   by (transfer, auto simp add: fun_eq_iff Option.map.compositionality Option.map.id)+
+
 
 subsection {* Derived operations *}
 
@@ -66,6 +68,22 @@ lemma map_entry_code [code]: "map_entry k f m = (case lookup m k of None \<Right
 
 definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
   "map_default k v f m = map_entry k f (default k v m)" 
+
+instantiation mapping :: (type, type) equal
+begin
+
+definition
+  "HOL.equal m1 m2 \<longleftrightarrow> (\<forall>k. lookup m1 k = lookup m2 k)"
+
+instance proof
+qed (unfold equal_mapping_def, transfer, auto)
+
+end
+
+lemma [transfer_rule]:
+  "fun_rel cr_mapping (fun_rel cr_mapping HOL.iff) HOL.eq HOL.equal"
+  by (unfold equal) transfer_prover
+
 
 subsection {* Properties *}
 
@@ -258,18 +276,8 @@ subsection {* Code generator setup *}
 
 code_datatype empty update
 
-instantiation mapping :: (type, type) equal
-begin
-
-lift_definition equal_mapping :: "('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping \<Rightarrow> bool" is "op=" .
-
-instance proof
-qed(transfer, rule)
-
-end
-
-
 hide_const (open) empty is_empty rep lookup update delete ordered_keys keys size
   replace default map_entry map_default tabulate bulkload map
 
 end
+

@@ -5,7 +5,7 @@
 header {* (Finite) multisets *}
 
 theory Multiset
-imports Main DAList
+imports Main DAList (* FIXME too specific dependency for a generic theory *)
 begin
 
 subsection {* The type of multisets *}
