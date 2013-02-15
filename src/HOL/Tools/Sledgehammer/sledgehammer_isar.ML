@@ -101,8 +101,7 @@ val default_default_params =
    ("preplay_timeout", "3")]
 
 val alias_params =
-  [("prover", ("provers", [])), (* legacy *)
-   ("max_relevant", ("max_facts", [])), (* legacy *)
+  [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"]))]
 val negated_alias_params =
   [("no_debug", "debug"),
