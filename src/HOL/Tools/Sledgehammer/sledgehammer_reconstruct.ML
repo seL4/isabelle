@@ -721,7 +721,8 @@ fun isar_proof_text ctxt isar_proofs
               | _ => fold (curry s_disj) lits @{term False}
             end
             |> HOLogic.mk_Trueprop |> close_form
-        fun isar_proof_of_direct_proof _ accum [] = assms @ rev accum
+        fun isar_proof_of_direct_proof outer accum [] =
+            rev accum |> outer ? append assms
           | isar_proof_of_direct_proof outer accum (inf :: infs) =
             let
               fun maybe_show outer c =
