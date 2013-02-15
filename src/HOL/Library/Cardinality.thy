@@ -225,11 +225,24 @@ definition "card_UNIV = Phantom(int) 0"
 instance by intro_classes (simp_all add: card_UNIV_int_def finite_UNIV_int_def infinite_UNIV_int)
 end
 
-instantiation code_numeral :: card_UNIV begin
-definition "finite_UNIV = Phantom(code_numeral) False"
-definition "card_UNIV = Phantom(code_numeral) 0"
-instance
-  by(intro_classes)(auto simp add: card_UNIV_code_numeral_def finite_UNIV_code_numeral_def type_definition.univ[OF type_definition_code_numeral] card_eq_0_iff dest!: finite_imageD intro: inj_onI)
+instantiation natural :: card_UNIV begin
+definition "finite_UNIV = Phantom(natural) False"
+definition "card_UNIV = Phantom(natural) 0"
+instance proof
+qed (auto simp add: finite_UNIV_natural_def card_UNIV_natural_def card_eq_0_iff
+  type_definition.univ [OF type_definition_natural] natural_eq_iff
+  dest!: finite_imageD intro: inj_onI)
+end
+
+declare [[show_consts]]
+
+instantiation integer :: card_UNIV begin
+definition "finite_UNIV = Phantom(integer) False"
+definition "card_UNIV = Phantom(integer) 0"
+instance proof
+qed (auto simp add: finite_UNIV_integer_def card_UNIV_integer_def card_eq_0_iff
+  type_definition.univ [OF type_definition_integer] infinite_UNIV_int
+  dest!: finite_imageD intro: inj_onI)
 end
 
 instantiation list :: (type) card_UNIV begin

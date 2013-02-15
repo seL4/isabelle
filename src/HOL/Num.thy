@@ -545,13 +545,20 @@ lemma mult_2_right: "z * 2 = z + z"
 
 end
 
-lemma nat_of_num_numeral: "nat_of_num = numeral"
+lemma nat_of_num_numeral [code_abbrev]:
+  "nat_of_num = numeral"
 proof
   fix n
   have "numeral n = nat_of_num n"
     by (induct n) (simp_all add: numeral.simps)
   then show "nat_of_num n = numeral n" by simp
 qed
+
+lemma nat_of_num_code [code]:
+  "nat_of_num One = 1"
+  "nat_of_num (Bit0 n) = (let m = nat_of_num n in m + m)"
+  "nat_of_num (Bit1 n) = (let m = nat_of_num n in Suc (m + m))"
+  by (simp_all add: Let_def)
 
 subsubsection {*
   Equality: class @{text semiring_char_0}
@@ -1097,6 +1104,7 @@ lemma mult_numeral_left [simp]:
 
 hide_const (open) One Bit0 Bit1 BitM inc pow sqr sub dbl dbl_inc dbl_dec
 
+
 subsection {* code module namespace *}
 
 code_modulename SML
@@ -1109,4 +1117,5 @@ code_modulename Haskell
   Num Arith
 
 end
+
 

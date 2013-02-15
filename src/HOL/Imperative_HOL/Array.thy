@@ -361,38 +361,38 @@ subsection {* Code generator setup *}
 subsubsection {* Logical intermediate layer *}
 
 definition new' where
-  [code del]: "new' = Array.new o Code_Numeral.nat_of"
+  [code del]: "new' = Array.new o nat_of_integer"
 
 lemma [code]:
-  "Array.new = new' o Code_Numeral.of_nat"
+  "Array.new = new' o of_nat"
   by (simp add: new'_def o_def)
 
 definition make' where
-  [code del]: "make' i f = Array.make (Code_Numeral.nat_of i) (f o Code_Numeral.of_nat)"
+  [code del]: "make' i f = Array.make (nat_of_integer i) (f o of_nat)"
 
 lemma [code]:
-  "Array.make n f = make' (Code_Numeral.of_nat n) (f o Code_Numeral.nat_of)"
+  "Array.make n f = make' (of_nat n) (f o nat_of_integer)"
   by (simp add: make'_def o_def)
 
 definition len' where
-  [code del]: "len' a = Array.len a \<guillemotright>= (\<lambda>n. return (Code_Numeral.of_nat n))"
+  [code del]: "len' a = Array.len a \<guillemotright>= (\<lambda>n. return (of_nat n))"
 
 lemma [code]:
-  "Array.len a = len' a \<guillemotright>= (\<lambda>i. return (Code_Numeral.nat_of i))"
+  "Array.len a = len' a \<guillemotright>= (\<lambda>i. return (nat_of_integer i))"
   by (simp add: len'_def)
 
 definition nth' where
-  [code del]: "nth' a = Array.nth a o Code_Numeral.nat_of"
+  [code del]: "nth' a = Array.nth a o nat_of_integer"
 
 lemma [code]:
-  "Array.nth a n = nth' a (Code_Numeral.of_nat n)"
+  "Array.nth a n = nth' a (of_nat n)"
   by (simp add: nth'_def)
 
 definition upd' where
-  [code del]: "upd' a i x = Array.upd (Code_Numeral.nat_of i) x a \<guillemotright> return ()"
+  [code del]: "upd' a i x = Array.upd (nat_of_integer i) x a \<guillemotright> return ()"
 
 lemma [code]:
-  "Array.upd i x a = upd' a (Code_Numeral.of_nat i) x \<guillemotright> return a"
+  "Array.upd i x a = upd' a (of_nat i) x \<guillemotright> return a"
   by (simp add: upd'_def upd_return)
 
 lemma [code]:
@@ -501,3 +501,4 @@ code_const Array.freeze (Scala "('_: Unit)/ =>/ Array.freeze((_))")
 code_const "HOL.equal :: 'a array \<Rightarrow> 'a array \<Rightarrow> bool" (Scala infixl 5 "==")
 
 end
+

@@ -13,21 +13,21 @@ notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 subsection {* Auxiliary functions *}
 
-fun log :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
+fun log :: "natural \<Rightarrow> natural \<Rightarrow> natural" where
   "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
 
-definition inc_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
+definition inc_shift :: "natural \<Rightarrow> natural \<Rightarrow> natural" where
   "inc_shift v k = (if v = k then 1 else k + 1)"
 
-definition minus_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
+definition minus_shift :: "natural \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> natural" where
   "minus_shift r k l = (if k < l then r + k - l else k - l)"
 
 
 subsection {* Random seeds *}
 
-type_synonym seed = "code_numeral \<times> code_numeral"
+type_synonym seed = "natural \<times> natural"
 
-primrec "next" :: "seed \<Rightarrow> code_numeral \<times> seed" where
+primrec "next" :: "seed \<Rightarrow> natural \<times> seed" where
   "next (v, w) = (let
      k =  v div 53668;
      v' = minus_shift 2147483563 ((v mod 53668) * 40014) (k * 12211);
@@ -47,55 +47,55 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
 
 subsection {* Base selectors *}
 
-fun iterate :: "code_numeral \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
+fun iterate :: "natural \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "iterate k f x = (if k = 0 then Pair x else f x \<circ>\<rightarrow> iterate (k - 1) f)"
 
-definition range :: "code_numeral \<Rightarrow> seed \<Rightarrow> code_numeral \<times> seed" where
+definition range :: "natural \<Rightarrow> seed \<Rightarrow> natural \<times> seed" where
   "range k = iterate (log 2147483561 k)
       (\<lambda>l. next \<circ>\<rightarrow> (\<lambda>v. Pair (v + l * 2147483561))) 1
     \<circ>\<rightarrow> (\<lambda>v. Pair (v mod k))"
 
 lemma range:
   "k > 0 \<Longrightarrow> fst (range k s) < k"
-  by (simp add: range_def split_def del: log.simps iterate.simps)
+  by (simp add: range_def split_def less_natural_def del: log.simps iterate.simps)
 
 definition select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
-  "select xs = range (Code_Numeral.of_nat (length xs))
-    \<circ>\<rightarrow> (\<lambda>k. Pair (nth xs (Code_Numeral.nat_of k)))"
+  "select xs = range (natural_of_nat (length xs))
+    \<circ>\<rightarrow> (\<lambda>k. Pair (nth xs (nat_of_natural k)))"
      
 lemma select:
   assumes "xs \<noteq> []"
   shows "fst (select xs s) \<in> set xs"
 proof -
-  from assms have "Code_Numeral.of_nat (length xs) > 0" by simp
+  from assms have "natural_of_nat (length xs) > 0" by (simp add: less_natural_def)
   with range have
-    "fst (range (Code_Numeral.of_nat (length xs)) s) < Code_Numeral.of_nat (length xs)" by best
+    "fst (range (natural_of_nat (length xs)) s) < natural_of_nat (length xs)" by best
   then have
-    "Code_Numeral.nat_of (fst (range (Code_Numeral.of_nat (length xs)) s)) < length xs" by simp
+    "nat_of_natural (fst (range (natural_of_nat (length xs)) s)) < length xs" by (simp add: less_natural_def)
   then show ?thesis
     by (simp add: split_beta select_def)
 qed
 
-primrec pick :: "(code_numeral \<times> 'a) list \<Rightarrow> code_numeral \<Rightarrow> 'a" where
+primrec pick :: "(natural \<times> 'a) list \<Rightarrow> natural \<Rightarrow> 'a" where
   "pick (x # xs) i = (if i < fst x then snd x else pick xs (i - fst x))"
 
 lemma pick_member:
   "i < listsum (map fst xs) \<Longrightarrow> pick xs i \<in> set (map snd xs)"
-  by (induct xs arbitrary: i) simp_all
+  by (induct xs arbitrary: i) (simp_all add: less_natural_def)
 
 lemma pick_drop_zero:
   "pick (filter (\<lambda>(k, _). k > 0) xs) = pick xs"
-  by (induct xs) (auto simp add: fun_eq_iff)
+  by (induct xs) (auto simp add: fun_eq_iff less_natural_def minus_natural_def)
 
 lemma pick_same:
-  "l < length xs \<Longrightarrow> Random.pick (map (Pair 1) xs) (Code_Numeral.of_nat l) = nth xs l"
+  "l < length xs \<Longrightarrow> Random.pick (map (Pair 1) xs) (natural_of_nat l) = nth xs l"
 proof (induct xs arbitrary: l)
   case Nil then show ?case by simp
 next
-  case (Cons x xs) then show ?case by (cases l) simp_all
+  case (Cons x xs) then show ?case by (cases l) (simp_all add: less_natural_def)
 qed
 
-definition select_weight :: "(code_numeral \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
+definition select_weight :: "(natural \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   "select_weight xs = range (listsum (map fst xs))
    \<circ>\<rightarrow> (\<lambda>k. Pair (pick xs k))"
 
@@ -112,13 +112,13 @@ qed
 
 lemma select_weight_cons_zero:
   "select_weight ((0, x) # xs) = select_weight xs"
-  by (simp add: select_weight_def)
+  by (simp add: select_weight_def less_natural_def)
 
 lemma select_weight_drop_zero:
   "select_weight (filter (\<lambda>(k, _). k > 0) xs) = select_weight xs"
 proof -
   have "listsum (map fst [(k, _)\<leftarrow>xs . 0 < k]) = listsum (map fst xs)"
-    by (induct xs) auto
+    by (induct xs) (auto simp add: less_natural_def, simp add: plus_natural_def)
   then show ?thesis by (simp only: select_weight_def pick_drop_zero)
 qed
 
@@ -126,13 +126,13 @@ lemma select_weight_select:
   assumes "xs \<noteq> []"
   shows "select_weight (map (Pair 1) xs) = select xs"
 proof -
-  have less: "\<And>s. fst (range (Code_Numeral.of_nat (length xs)) s) < Code_Numeral.of_nat (length xs)"
-    using assms by (intro range) simp
-  moreover have "listsum (map fst (map (Pair 1) xs)) = Code_Numeral.of_nat (length xs)"
+  have less: "\<And>s. fst (range (natural_of_nat (length xs)) s) < natural_of_nat (length xs)"
+    using assms by (intro range) (simp add: less_natural_def)
+  moreover have "listsum (map fst (map (Pair 1) xs)) = natural_of_nat (length xs)"
     by (induct xs) simp_all
   ultimately show ?thesis
     by (auto simp add: select_weight_def select_def scomp_def split_def
-      fun_eq_iff pick_same [symmetric])
+      fun_eq_iff pick_same [symmetric] less_natural_def)
 qed
 
 
@@ -147,7 +147,7 @@ struct
 
 open Random_Engine;
 
-type seed = int * int;
+type seed = Code_Numeral.natural * Code_Numeral.natural;
 
 local
 
@@ -156,7 +156,7 @@ val seed = Unsynchronized.ref
     val now = Time.toMilliseconds (Time.now ());
     val (q, s1) = IntInf.divMod (now, 2147483562);
     val s2 = q mod 2147483398;
-  in (s1 + 1, s2 + 1) end);
+  in pairself Code_Numeral.natural_of_integer (s1 + 1, s2 + 1) end);
 
 in
 
@@ -188,3 +188,4 @@ no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
 end
+

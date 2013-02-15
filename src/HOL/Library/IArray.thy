@@ -46,34 +46,34 @@ code_type iarray
 code_const IArray
   (SML "Vector.fromList")
 
-primrec tabulate :: "code_numeral \<times> (code_numeral \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
-"tabulate (n, f) = IArray (map (f \<circ> Code_Numeral.of_nat) [0..<Code_Numeral.nat_of n])"
+primrec tabulate :: "integer \<times> (integer \<Rightarrow> 'a) \<Rightarrow> 'a iarray" where
+"tabulate (n, f) = IArray (map (f \<circ> integer_of_nat) [0..<nat_of_integer n])"
 hide_const (open) tabulate
 
 lemma [code]:
-"IArray.of_fun f n = IArray.tabulate (Code_Numeral.of_nat n, f \<circ> Code_Numeral.nat_of)"
+"IArray.of_fun f n = IArray.tabulate (integer_of_nat n, f \<circ> nat_of_integer)"
 by simp 
 
 code_const IArray.tabulate
   (SML "Vector.tabulate")
 
-primrec sub' :: "'a iarray \<times> code_numeral \<Rightarrow> 'a" where
-"sub' (as, n) = IArray.list_of as ! Code_Numeral.nat_of n"
+primrec sub' :: "'a iarray \<times> integer \<Rightarrow> 'a" where
+"sub' (as, n) = IArray.list_of as ! nat_of_integer n"
 hide_const (open) sub'
 
 lemma [code]:
-"as !! n = IArray.sub' (as, Code_Numeral.of_nat n)"
+"as !! n = IArray.sub' (as, integer_of_nat n)"
 by simp
 
 code_const IArray.sub'
   (SML "Vector.sub")
 
-definition length' :: "'a iarray \<Rightarrow> code_numeral" where
-[simp]: "length' as = Code_Numeral.of_nat (List.length (IArray.list_of as))"
+definition length' :: "'a iarray \<Rightarrow> integer" where
+[simp]: "length' as = integer_of_nat (List.length (IArray.list_of as))"
 hide_const (open) length'
 
 lemma [code]:
-"IArray.length as = Code_Numeral.nat_of (IArray.length' as)"
+"IArray.length as = nat_of_integer (IArray.length' as)"
 by simp
 
 code_const IArray.length'

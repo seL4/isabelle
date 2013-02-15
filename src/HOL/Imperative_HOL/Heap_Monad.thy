@@ -8,7 +8,6 @@ theory Heap_Monad
 imports
   Heap
   "~~/src/HOL/Library/Monad_Syntax"
-  "~~/src/HOL/Library/Code_Natural"
 begin
 
 subsection {* The monad *}
@@ -529,33 +528,31 @@ import qualified Control.Monad.ST;
 import qualified Data.STRef;
 import qualified Data.Array.ST;
 
-import Natural;
-
 type RealWorld = Control.Monad.ST.RealWorld;
 type ST s a = Control.Monad.ST.ST s a;
 type STRef s a = Data.STRef.STRef s a;
-type STArray s a = Data.Array.ST.STArray s Natural a;
+type STArray s a = Data.Array.ST.STArray s Integer a;
 
 newSTRef = Data.STRef.newSTRef;
 readSTRef = Data.STRef.readSTRef;
 writeSTRef = Data.STRef.writeSTRef;
 
-newArray :: Natural -> a -> ST s (STArray s a);
+newArray :: Integer -> a -> ST s (STArray s a);
 newArray k = Data.Array.ST.newArray (0, k);
 
 newListArray :: [a] -> ST s (STArray s a);
 newListArray xs = Data.Array.ST.newListArray (0, (fromInteger . toInteger . length) xs) xs;
 
-newFunArray :: Natural -> (Natural -> a) -> ST s (STArray s a);
+newFunArray :: Integer -> (Integer -> a) -> ST s (STArray s a);
 newFunArray k f = Data.Array.ST.newListArray (0, k) (map f [0..k-1]);
 
-lengthArray :: STArray s a -> ST s Natural;
+lengthArray :: STArray s a -> ST s Integer;
 lengthArray a = Control.Monad.liftM snd (Data.Array.ST.getBounds a);
 
-readArray :: STArray s a -> Natural -> ST s a;
+readArray :: STArray s a -> Integer -> ST s a;
 readArray = Data.Array.ST.readArray;
 
-writeArray :: STArray s a -> Natural -> a -> ST s ();
+writeArray :: STArray s a -> Integer -> a -> ST s ();
 writeArray = Data.Array.ST.writeArray;*}
 
 code_reserved Haskell Heap
@@ -590,16 +587,16 @@ object Ref {
 
 object Array {
   import collection.mutable.ArraySeq
-  def alloc[A](n: Natural)(x: A): ArraySeq[A] =
-    ArraySeq.fill(n.as_Int)(x)
-  def make[A](n: Natural)(f: Natural => A): ArraySeq[A] =
-    ArraySeq.tabulate(n.as_Int)((k: Int) => f(Natural(k)))
-  def len[A](a: ArraySeq[A]): Natural =
-    Natural(a.length)
-  def nth[A](a: ArraySeq[A], n: Natural): A =
-    a(n.as_Int)
-  def upd[A](a: ArraySeq[A], n: Natural, x: A): Unit =
-    a.update(n.as_Int, x)
+  def alloc[A](n: BigInt)(x: A): ArraySeq[A] =
+    ArraySeq.fill(n.toInt)(x)
+  def make[A](n: BigInt)(f: BigInt => A): ArraySeq[A] =
+    ArraySeq.tabulate(n.toInt)((k: Int) => f(BigInt(k)))
+  def len[A](a: ArraySeq[A]): BigInt =
+    BigInt(a.length)
+  def nth[A](a: ArraySeq[A], n: BigInt): A =
+    a(n.toInt)
+  def upd[A](a: ArraySeq[A], n: BigInt, x: A): Unit =
+    a.update(n.toInt, x)
   def freeze[A](a: ArraySeq[A]): List[A] =
     a.toList
 }

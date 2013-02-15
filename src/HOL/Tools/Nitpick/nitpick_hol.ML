@@ -589,11 +589,11 @@ val is_typedef = is_some oo typedef_info
 val is_real_datatype = is_some oo Datatype.get_info
 fun is_standard_datatype thy = the oo triple_lookup (type_match thy)
 
-(* FIXME: Use antiquotation for "code_numeral" below or detect "rep_datatype",
+(* FIXME: Use antiquotation for "natural" below or detect "rep_datatype",
    e.g., by adding a field to "Datatype_Aux.info". *)
 fun is_basic_datatype thy stds s =
   member (op =) [@{type_name prod}, @{type_name set}, @{type_name bool},
-                 @{type_name int}, "Code_Numeral.code_numeral"] s orelse
+                 @{type_name int}, @{type_name natural}, @{type_name integer}] s orelse
   (s = @{type_name nat} andalso is_standard_datatype thy stds nat_T)
 
 fun repair_constr_type ctxt body_T' T =

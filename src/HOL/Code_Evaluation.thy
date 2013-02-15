@@ -158,10 +158,16 @@ lemma (in term_syntax) term_of_nat_code [code]:
     else termify (numeral :: num \<Rightarrow> nat) <\<cdot>> term_of_num_semiring (2::nat) n)"
   by (simp only: term_of_anything)
 
-lemma (in term_syntax) term_of_code_numeral_code [code]:
-  "term_of (k::code_numeral) = (
-    if k = 0 then termify (0 :: code_numeral)
-    else termify (numeral :: num \<Rightarrow> code_numeral) <\<cdot>> term_of_num_semiring (2::code_numeral) k)"
+lemma (in term_syntax) term_of_natural_code [code]:
+  "term_of (k::natural) = (
+    if k = 0 then termify (0 :: natural)
+    else termify (numeral :: num \<Rightarrow> natural) <\<cdot>> term_of_num_semiring (2::natural) k)"
+  by (simp only: term_of_anything)
+
+lemma (in term_syntax) term_of_integer_code [code]:
+  "term_of (k::integer) = (if k = 0 then termify (0 :: integer)
+    else if k < 0 then termify (neg_numeral :: num \<Rightarrow> integer) <\<cdot>> term_of_num_semiring (2::integer) (- k)
+    else termify (numeral :: num \<Rightarrow> integer) <\<cdot>> term_of_num_semiring (2::integer) k)"
   by (simp only: term_of_anything)
 
 lemma (in term_syntax) term_of_int_code [code]:
@@ -199,3 +205,4 @@ hide_const dummy_term valapp
 hide_const (open) Const App Abs Free termify valtermify term_of term_of_num_semiring tracing
 
 end
+

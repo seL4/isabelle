@@ -7,7 +7,7 @@ theory Random_Sequence
 imports Random_Pred
 begin
 
-type_synonym 'a random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a Limited_Sequence.dseq \<times> Random.seed)"
+type_synonym 'a random_dseq = "natural \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> ('a Limited_Sequence.dseq \<times> Random.seed)"
 
 definition empty :: "'a random_dseq"
 where
@@ -44,13 +44,13 @@ definition map :: "('a => 'b) => 'a random_dseq => 'b random_dseq"
 where
   "map f P = bind P (single o f)"
 
-fun Random :: "(code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)) \<Rightarrow> 'a random_dseq"
+fun Random :: "(natural \<Rightarrow> Random.seed \<Rightarrow> (('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)) \<Rightarrow> 'a random_dseq"
 where
   "Random g nrandom = (%size. if nrandom <= 0 then (Pair Limited_Sequence.empty) else
      (scomp (g size) (%r. scomp (Random g (nrandom - 1) size) (%rs. Pair (Limited_Sequence.union (Limited_Sequence.single (fst r)) rs)))))"
 
 
-type_synonym 'a pos_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a Limited_Sequence.pos_dseq"
+type_synonym 'a pos_random_dseq = "natural \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> 'a Limited_Sequence.pos_dseq"
 
 definition pos_empty :: "'a pos_random_dseq"
 where
@@ -76,7 +76,7 @@ definition pos_if_random_dseq :: "bool => unit pos_random_dseq"
 where
   "pos_if_random_dseq b = (if b then pos_single () else pos_empty)"
 
-definition pos_iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a pos_random_dseq"
+definition pos_iterate_upto :: "(natural => 'a) => natural => natural => 'a pos_random_dseq"
 where
   "pos_iterate_upto f n m = (\<lambda>nrandom size seed. Limited_Sequence.pos_iterate_upto f n m)"
 
@@ -85,18 +85,18 @@ where
   "pos_map f P = pos_bind P (pos_single o f)"
 
 fun iter :: "(Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
-  \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
+  \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
 where
   "iter random nrandom seed =
     (if nrandom = 0 then Lazy_Sequence.empty else Lazy_Sequence.Lazy_Sequence (%u. let ((x, _), seed') = random seed in Some (x, iter random (nrandom - 1) seed')))"
 
-definition pos_Random :: "(code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
+definition pos_Random :: "(natural \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
   \<Rightarrow> 'a pos_random_dseq"
 where
   "pos_Random g = (%nrandom size seed depth. iter (g size) nrandom seed)"
 
 
-type_synonym 'a neg_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a Limited_Sequence.neg_dseq"
+type_synonym 'a neg_random_dseq = "natural \<Rightarrow> natural \<Rightarrow> Random.seed \<Rightarrow> 'a Limited_Sequence.neg_dseq"
 
 definition neg_empty :: "'a neg_random_dseq"
 where
@@ -122,7 +122,7 @@ definition neg_if_random_dseq :: "bool => unit neg_random_dseq"
 where
   "neg_if_random_dseq b = (if b then neg_single () else neg_empty)"
 
-definition neg_iterate_upto :: "(code_numeral => 'a) => code_numeral => code_numeral => 'a neg_random_dseq"
+definition neg_iterate_upto :: "(natural => 'a) => natural => natural => 'a neg_random_dseq"
 where
   "neg_iterate_upto f n m = (\<lambda>nrandom size seed. Limited_Sequence.neg_iterate_upto f n m)"
 

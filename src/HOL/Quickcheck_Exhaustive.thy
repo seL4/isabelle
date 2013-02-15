@@ -16,42 +16,78 @@ where
 subsection {* exhaustive generator type classes *}
 
 class exhaustive = term_of +
-  fixes exhaustive :: "('a \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
+  fixes exhaustive :: "('a \<Rightarrow> (bool * term list) option) \<Rightarrow> natural \<Rightarrow> (bool * term list) option"
   
 class full_exhaustive = term_of +
-  fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
+  fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> (bool * term list) option) \<Rightarrow> natural \<Rightarrow> (bool * term list) option"
 
-instantiation code_numeral :: full_exhaustive
+instantiation natural :: full_exhaustive
 begin
 
-function full_exhaustive_code_numeral' :: "(code_numeral * (unit => term) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
-  where "full_exhaustive_code_numeral' f d i =
+function full_exhaustive_natural' :: "(natural * (unit => term) => (bool * term list) option) => natural => natural => (bool * term list) option"
+  where "full_exhaustive_natural' f d i =
     (if d < i then None
-    else (f (i, %_. Code_Evaluation.term_of i)) orelse (full_exhaustive_code_numeral' f d (i + 1)))"
+    else (f (i, %_. Code_Evaluation.term_of i)) orelse (full_exhaustive_natural' f d (i + 1)))"
 by pat_completeness auto
 
 termination
-  by (relation "measure (%(_, d, i). Code_Numeral.nat_of (d + 1 - i))") auto
+  by (relation "measure (%(_, d, i). nat_of_natural (d + 1 - i))")
+    (auto simp add: less_natural_def)
 
-definition "full_exhaustive f d = full_exhaustive_code_numeral' f d 0"
+definition "full_exhaustive f d = full_exhaustive_natural' f d 0"
 
 instance ..
 
 end
 
-instantiation code_numeral :: exhaustive
+instantiation natural :: exhaustive
 begin
 
-function exhaustive_code_numeral' :: "(code_numeral => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
-  where "exhaustive_code_numeral' f d i =
+function exhaustive_natural' :: "(natural => (bool * term list) option) => natural => natural => (bool * term list) option"
+  where "exhaustive_natural' f d i =
     (if d < i then None
-    else (f i orelse exhaustive_code_numeral' f d (i + 1)))"
+    else (f i orelse exhaustive_natural' f d (i + 1)))"
 by pat_completeness auto
 
 termination
-  by (relation "measure (%(_, d, i). Code_Numeral.nat_of (d + 1 - i))") auto
+  by (relation "measure (%(_, d, i). nat_of_natural (d + 1 - i))")
+    (auto simp add: less_natural_def)
 
-definition "exhaustive f d = exhaustive_code_numeral' f d 0"
+definition "exhaustive f d = exhaustive_natural' f d 0"
+
+instance ..
+
+end
+
+instantiation integer :: exhaustive
+begin
+
+function exhaustive_integer' :: "(integer => (bool * term list) option) => integer => integer => (bool * term list) option"
+  where "exhaustive_integer' f d i = (if d < i then None else (f i orelse exhaustive_integer' f d (i + 1)))"
+by pat_completeness auto
+
+termination 
+  by (relation "measure (%(_, d, i). nat_of_integer (d + 1 - i))")
+    (auto simp add: less_integer_def nat_of_integer_def)
+
+definition "exhaustive f d = exhaustive_integer' f (integer_of_natural d) (- (integer_of_natural d))"
+
+instance ..
+
+end
+
+instantiation integer :: full_exhaustive
+begin
+
+function full_exhaustive_integer' :: "(integer * (unit => term) => (bool * term list) option) => integer => integer => (bool * term list) option"
+  where "full_exhaustive_integer' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_exhaustive_integer' f d (i + 1)))"
+by pat_completeness auto
+
+termination 
+  by (relation "measure (%(_, d, i). nat_of_integer (d + 1 - i))")
+    (auto simp add: less_integer_def nat_of_integer_def)
+
+definition "full_exhaustive f d = full_exhaustive_integer' f (integer_of_natural d) (- (integer_of_natural d))"
 
 instance ..
 
@@ -60,7 +96,7 @@ end
 instantiation nat :: exhaustive
 begin
 
-definition "exhaustive f d = exhaustive (%x. f (Code_Numeral.nat_of x)) d"
+definition "exhaustive f d = exhaustive (%x. f (nat_of_natural x)) d"
 
 instance ..
 
@@ -69,7 +105,7 @@ end
 instantiation nat :: full_exhaustive
 begin
 
-definition "full_exhaustive f d = full_exhaustive (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
+definition "full_exhaustive f d = full_exhaustive (%(x, xt). f (nat_of_natural x, %_. Code_Evaluation.term_of (nat_of_natural x))) d"
 
 instance ..
 
@@ -78,14 +114,15 @@ end
 instantiation int :: exhaustive
 begin
 
-function exhaustive' :: "(int => (bool * term list) option) => int => int => (bool * term list) option"
-  where "exhaustive' f d i = (if d < i then None else (f i orelse exhaustive' f d (i + 1)))"
+function exhaustive_int' :: "(int => (bool * term list) option) => int => int => (bool * term list) option"
+  where "exhaustive_int' f d i = (if d < i then None else (f i orelse exhaustive_int' f d (i + 1)))"
 by pat_completeness auto
 
 termination 
   by (relation "measure (%(_, d, i). nat (d + 1 - i))") auto
 
-definition "exhaustive f d = exhaustive' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
+definition "exhaustive f d = exhaustive_int' f (int_of_integer (integer_of_natural d))
+  (- (int_of_integer (integer_of_natural d)))"
 
 instance ..
 
@@ -94,14 +131,15 @@ end
 instantiation int :: full_exhaustive
 begin
 
-function full_exhaustive' :: "(int * (unit => term) => (bool * term list) option) => int => int => (bool * term list) option"
-  where "full_exhaustive' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_exhaustive' f d (i + 1)))"
+function full_exhaustive_int' :: "(int * (unit => term) => (bool * term list) option) => int => int => (bool * term list) option"
+  where "full_exhaustive_int' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_exhaustive_int' f d (i + 1)))"
 by pat_completeness auto
 
 termination 
   by (relation "measure (%(_, d, i). nat (d + 1 - i))") auto
 
-definition "full_exhaustive f d = full_exhaustive' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
+definition "full_exhaustive f d = full_exhaustive_int' f (int_of_integer (integer_of_natural d))
+  (- (int_of_integer (integer_of_natural d)))"
 
 instance ..
 
@@ -154,14 +192,14 @@ end
 instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
 
-fun exhaustive_fun' :: "(('a => 'b) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
+fun exhaustive_fun' :: "(('a => 'b) => (bool * term list) option) => natural => natural => (bool * term list) option"
 where
   "exhaustive_fun' f i d = (exhaustive (%b. f (%_. b)) d)
    orelse (if i > 1 then
      exhaustive_fun' (%g. exhaustive (%a. exhaustive (%b.
        f (g(a := b))) d) d) (i - 1) d else None)"
 
-definition exhaustive_fun :: "(('a => 'b) => (bool * term list) option) => code_numeral => (bool * term list) option"
+definition exhaustive_fun :: "(('a => 'b) => (bool * term list) option) => natural => (bool * term list) option"
 where
   "exhaustive_fun f d = exhaustive_fun' f d d" 
 
@@ -176,14 +214,14 @@ definition (in term_syntax) [code_unfold]: "valtermify_fun_upd g a b = Code_Eval
 instantiation "fun" :: ("{equal, full_exhaustive}", full_exhaustive) full_exhaustive
 begin
 
-fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => (bool * term list) option) => code_numeral => code_numeral => (bool * term list) option"
+fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => (bool * term list) option) => natural => natural => (bool * term list) option"
 where
   "full_exhaustive_fun' f i d = (full_exhaustive (%v. f (valtermify_absdummy v)) d)
    orelse (if i > 1 then
      full_exhaustive_fun' (%g. full_exhaustive (%a. full_exhaustive (%b.
        f (valtermify_fun_upd g a b)) d) d) (i - 1) d else None)"
 
-definition full_exhaustive_fun :: "(('a => 'b) * (unit => term) => (bool * term list) option) => code_numeral => (bool * term list) option"
+definition full_exhaustive_fun :: "(('a => 'b) * (unit => term) => (bool * term list) option) => natural => (bool * term list) option"
 where
   "full_exhaustive_fun f d = full_exhaustive_fun' f d d" 
 
@@ -197,7 +235,7 @@ class check_all = enum + term_of +
   fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> (bool * term list) option) \<Rightarrow> (bool * term list) option"
   fixes enum_term_of :: "'a itself \<Rightarrow> unit \<Rightarrow> term list"
   
-fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term list) \<Rightarrow> (bool * term list) option) \<Rightarrow> code_numeral \<Rightarrow> (bool * term list) option"
+fun check_all_n_lists :: "(('a :: check_all) list * (unit \<Rightarrow> term list) \<Rightarrow> (bool * term list) option) \<Rightarrow> natural \<Rightarrow> (bool * term list) option"
 where
   "check_all_n_lists f n =
      (if n = 0 then f ([], (%_. [])) else check_all (%(x, xt). check_all_n_lists (%(xs, xst). f ((x # xs), (%_. (xt () # xst ())))) (n - 1)))"
@@ -227,7 +265,7 @@ definition
     (let
       mk_term = mk_map_term (%_. Typerep.typerep (TYPE('a))) (%_. Typerep.typerep (TYPE('b))) (enum_term_of (TYPE('a)));
       enum = (Enum.enum :: 'a list)
-    in check_all_n_lists (\<lambda>(ys, yst). f (the o map_of (zip enum ys), mk_term yst)) (Code_Numeral.of_nat (length enum)))"
+    in check_all_n_lists (\<lambda>(ys, yst). f (the o map_of (zip enum ys), mk_term yst)) (natural_of_nat (length enum)))"
 
 definition enum_term_of_fun :: "('a => 'b) itself => unit => term list"
 where
@@ -470,12 +508,12 @@ end
 subsection {* Bounded universal quantifiers *}
 
 class bounded_forall =
-  fixes bounded_forall :: "('a \<Rightarrow> bool) \<Rightarrow> code_numeral \<Rightarrow> bool"
+  fixes bounded_forall :: "('a \<Rightarrow> bool) \<Rightarrow> natural \<Rightarrow> bool"
 
 subsection {* Fast exhaustive combinators *}
 
 class fast_exhaustive = term_of +
-  fixes fast_exhaustive :: "('a \<Rightarrow> unit) \<Rightarrow> code_numeral \<Rightarrow> unit"
+  fixes fast_exhaustive :: "('a \<Rightarrow> unit) \<Rightarrow> natural \<Rightarrow> unit"
 
 axiomatization throw_Counterexample :: "term list => unit"
 axiomatization catch_Counterexample :: "unit => term list option"
@@ -513,7 +551,7 @@ definition cps_not :: "unit cps => unit cps"
 where
   "cps_not n = (%c. case n (%u. Some []) of None => c () | Some _ => None)"
 
-type_synonym 'a pos_bound_cps = "('a => (bool * term list) option) => code_numeral => (bool * term list) option"
+type_synonym 'a pos_bound_cps = "('a => (bool * term list) option) => natural => (bool * term list) option"
 
 definition pos_bound_cps_empty :: "'a pos_bound_cps"
 where
@@ -538,7 +576,7 @@ where
 datatype 'a unknown = Unknown | Known 'a
 datatype 'a three_valued = Unknown_value | Value 'a | No_value
 
-type_synonym 'a neg_bound_cps = "('a unknown => term list three_valued) => code_numeral => term list three_valued"
+type_synonym 'a neg_bound_cps = "('a unknown => term list three_valued) => natural => term list three_valued"
 
 definition neg_bound_cps_empty :: "'a neg_bound_cps"
 where
@@ -573,7 +611,7 @@ subsection {* Defining generators for any first-order data type *}
 axiomatization unknown :: 'a
 
 notation (output) unknown  ("?")
- 
+
 ML_file "Tools/Quickcheck/exhaustive_generators.ML"
 
 setup {* Exhaustive_Generators.setup *}
@@ -588,15 +626,19 @@ hide_fact (open) orelse_def
 no_notation orelse (infixr "orelse" 55)
 
 hide_fact
-  exhaustive'_def
-  exhaustive_code_numeral'_def
+  exhaustive_int'_def
+  exhaustive_integer'_def
+  exhaustive_natural'_def
 
 hide_const valtermify_absdummy valtermify_fun_upd valterm_emptyset valtermify_insert valtermify_pair
   valtermify_Inl valtermify_Inr
   termify_fun_upd term_emptyset termify_insert termify_pair setify
 
 hide_const (open)
-  exhaustive full_exhaustive exhaustive' exhaustive_code_numeral' full_exhaustive_code_numeral'
+  exhaustive full_exhaustive
+  exhaustive_int' full_exhaustive_int'
+  exhaustive_integer' full_exhaustive_integer'
+  exhaustive_natural' full_exhaustive_natural'
   throw_Counterexample catch_Counterexample
   check_all enum_term_of
   orelse unknown mk_map_term check_all_n_lists check_all_subsets

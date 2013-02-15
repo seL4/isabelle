@@ -136,7 +136,7 @@ no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 instantiation alist :: (exhaustive, exhaustive) exhaustive
 begin
 
-fun exhaustive_alist :: "(('a, 'b) alist => (bool * term list) option) => code_numeral => (bool * term list) option"
+fun exhaustive_alist :: "(('a, 'b) alist => (bool * term list) option) => natural => (bool * term list) option"
 where
   "exhaustive_alist f i = (if i = 0 then None else case f empty of Some ts => Some ts | None =>
      exhaustive_alist (%a. Quickcheck_Exhaustive.exhaustive (%k. Quickcheck_Exhaustive.exhaustive (%v. f (update k v a)) (i - 1)) (i - 1)) (i - 1))"
@@ -148,7 +148,7 @@ end
 instantiation alist :: (full_exhaustive, full_exhaustive) full_exhaustive
 begin
 
-fun full_exhaustive_alist :: "(('a, 'b) alist * (unit => term) => (bool * term list) option) => code_numeral => (bool * term list) option"
+fun full_exhaustive_alist :: "(('a, 'b) alist * (unit => term) => (bool * term list) option) => natural => (bool * term list) option"
 where
   "full_exhaustive_alist f i = (if i = 0 then None else case f valterm_empty of Some ts => Some ts | None =>
      full_exhaustive_alist (%a. Quickcheck_Exhaustive.full_exhaustive (%k. Quickcheck_Exhaustive.full_exhaustive (%v. f (valterm_update k v a)) (i - 1)) (i - 1)) (i - 1))"

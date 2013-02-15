@@ -10,7 +10,7 @@ theory Euclid
 imports
   "~~/src/HOL/Number_Theory/UniqueFactorization"
   Util
-  "~~/src/HOL/Library/Efficient_Nat"
+  "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
 text {*

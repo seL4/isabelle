@@ -267,23 +267,23 @@ fun lint vars tm =  if is_number tm then tm  else case tm of
   end
  | _ => addC $ (mulC $ one $ tm) $ zero;
 
-fun lin (vs as x::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Orderings.less}, T) $ s $ t)) =
+fun lin (vs as _::_) (Const (@{const_name Not}, _) $ (Const (@{const_name Orderings.less}, T) $ s $ t)) =
     lin vs (Const (@{const_name Orderings.less_eq}, T) $ t $ s)
-  | lin (vs as x::_) (Const (@{const_name Not},_) $ (Const(@{const_name Orderings.less_eq}, T) $ s $ t)) =
+  | lin (vs as _::_) (Const (@{const_name Not},_) $ (Const(@{const_name Orderings.less_eq}, T) $ s $ t)) =
     lin vs (Const (@{const_name Orderings.less}, T) $ t $ s)
   | lin vs (Const (@{const_name Not},T)$t) = Const (@{const_name Not},T)$ (lin vs t)
-  | lin (vs as x::_) (Const(@{const_name Rings.dvd},_)$d$t) =
+  | lin (vs as _::_) (Const(@{const_name Rings.dvd},_)$d$t) =
     HOLogic.mk_binrel @{const_name Rings.dvd} (numeral1 abs d, lint vs t)
   | lin (vs as x::_) ((b as Const(@{const_name HOL.eq},_))$s$t) =
      (case lint vs (subC$t$s) of
-      (t as a$(m$c$y)$r) =>
+      (t as _$(m$c$y)$r) =>
         if x <> y then b$zero$t
         else if dest_number c < 0 then b$(m$(numeral1 ~ c)$y)$r
         else b$(m$c$y)$(linear_neg r)
       | t => b$zero$t)
   | lin (vs as x::_) (b$s$t) =
      (case lint vs (subC$t$s) of
-      (t as a$(m$c$y)$r) =>
+      (t as _$(m$c$y)$r) =>
         if x <> y then b$zero$t
         else if dest_number c < 0 then b$(m$(numeral1 ~ c)$y)$r
         else b$(linear_neg r)$(m$c$y)
@@ -303,7 +303,7 @@ fun is_intrel (b$_$_) = is_intrel_type (fastype_of b)
   | is_intrel _ = false;
 
 fun linearize_conv ctxt vs ct = case term_of ct of
-  Const(@{const_name Rings.dvd},_)$d$t =>
+  Const(@{const_name Rings.dvd},_)$_$_ =>
   let
     val th = Conv.binop_conv (lint_conv ctxt vs) ct
     val (d',t') = Thm.dest_binop (Thm.rhs_of th)
@@ -565,9 +565,9 @@ fun conv ctxt p =
   Qelim.gen_qelim_conv (Simplifier.rewrite conv_ss) (Simplifier.rewrite presburger_ss) (Simplifier.rewrite conv_ss)
     (cons o term_of) (Misc_Legacy.term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt)
     (cooperex_conv ctxt) p
-  handle CTERM s => raise COOPER "bad cterm"
-       | THM s => raise COOPER "bad thm"
-       | TYPE s => raise COOPER "bad type"
+  handle CTERM _ => raise COOPER "bad cterm"
+       | THM _ => raise COOPER "bad thm"
+       | TYPE _ => raise COOPER "bad type"
 
 fun add_bools t =
   let
@@ -593,14 +593,14 @@ fun descend vs (abs as (_, xT, _)) =
 
 local structure Proc = Cooper_Procedure in
 
-fun num_of_term vs (Free vT) = Proc.Bound (find_index (fn vT' => vT' = vT) vs)
-  | num_of_term vs (Term.Bound i) = Proc.Bound i
-  | num_of_term vs @{term "0::int"} = Proc.C 0
-  | num_of_term vs @{term "1::int"} = Proc.C 1
+fun num_of_term vs (Free vT) = Proc.Bound (Proc.nat_of_integer (find_index (fn vT' => vT' = vT) vs))
+  | num_of_term vs (Term.Bound i) = Proc.Bound (Proc.nat_of_integer i)
+  | num_of_term vs @{term "0::int"} = Proc.C (Proc.Int_of_integer 0)
+  | num_of_term vs @{term "1::int"} = Proc.C (Proc.Int_of_integer 1)
   | num_of_term vs (t as Const (@{const_name numeral}, _) $ _) =
-      Proc.C (dest_number t)
+      Proc.C (Proc.Int_of_integer (dest_number t))
   | num_of_term vs (t as Const (@{const_name neg_numeral}, _) $ _) =
-      Proc.Neg (Proc.C (dest_number t))
+      Proc.Neg (Proc.C (Proc.Int_of_integer (dest_number t)))
   | num_of_term vs (Const (@{const_name Groups.uminus}, _) $ t') =
       Proc.Neg (num_of_term vs t')
   | num_of_term vs (Const (@{const_name Groups.plus}, _) $ t1 $ t2) =
@@ -609,9 +609,9 @@ fun num_of_term vs (Free vT) = Proc.Bound (find_index (fn vT' => vT' = vT) vs)
       Proc.Sub (num_of_term vs t1, num_of_term vs t2)
   | num_of_term vs (Const (@{const_name Groups.times}, _) $ t1 $ t2) =
      (case perhaps_number t1
-       of SOME n => Proc.Mul (n, num_of_term vs t2)
+       of SOME n => Proc.Mul (Proc.Int_of_integer n, num_of_term vs t2)
         | NONE => (case perhaps_number t2
-           of SOME n => Proc.Mul (n, num_of_term vs t1)
+           of SOME n => Proc.Mul (Proc.Int_of_integer n, num_of_term vs t1)
             | NONE => raise COOPER "reification: unsupported kind of multiplication"))
   | num_of_term _ _ = raise COOPER "reification: bad term";
 
@@ -639,13 +639,13 @@ fun fm_of_term ps vs (Const (@{const_name True}, _)) = Proc.T
       Proc.Lt (Proc.Sub (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term ps vs (Const (@{const_name Rings.dvd}, _) $ t1 $ t2) =
      (case perhaps_number t1
-       of SOME n => Proc.Dvd (n, num_of_term vs t2)
+       of SOME n => Proc.Dvd (Proc.Int_of_integer n, num_of_term vs t2)
         | NONE => raise COOPER "reification: unsupported dvd")
   | fm_of_term ps vs t = let val n = find_index (fn t' => t aconv t') ps
-      in if n > 0 then Proc.Closed n else raise COOPER "reification: unknown term" end;
+      in if n > 0 then Proc.Closed (Proc.nat_of_integer n) else raise COOPER "reification: unknown term" end;
 
-fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT i
-  | term_of_num vs (Proc.Bound n) = Free (nth vs n)
+fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i)
+  | term_of_num vs (Proc.Bound n) = Free (nth vs (Proc.integer_of_nat n))
   | term_of_num vs (Proc.Neg t') =
       @{term "uminus :: int => _"} $ term_of_num vs t'
   | term_of_num vs (Proc.Add (t1, t2)) =
@@ -653,7 +653,7 @@ fun term_of_num vs (Proc.C i) = HOLogic.mk_number HOLogic.intT i
   | term_of_num vs (Proc.Sub (t1, t2)) =
       @{term "op - :: int => _"} $ term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (Proc.Mul (i, t2)) =
-      @{term "op * :: int => _"} $ HOLogic.mk_number HOLogic.intT i $ term_of_num vs t2
+      @{term "op * :: int => _"} $ HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t2
   | term_of_num vs (Proc.Cn (n, i, t')) =
       term_of_num vs (Proc.Add (Proc.Mul (i, Proc.Bound n), t'));
 
@@ -671,9 +671,9 @@ fun term_of_fm ps vs Proc.T = @{term True}
   | term_of_fm ps vs (Proc.Gt t') = @{term "op < :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
   | term_of_fm ps vs (Proc.Ge t') = @{term "op <= :: int => _ "} $ @{term "0::int"} $ term_of_num vs t'
   | term_of_fm ps vs (Proc.Dvd (i, t')) = @{term "op dvd :: int => _ "} $
-      HOLogic.mk_number HOLogic.intT i $ term_of_num vs t'
+      HOLogic.mk_number HOLogic.intT (Proc.integer_of_int i) $ term_of_num vs t'
   | term_of_fm ps vs (Proc.NDvd (i, t')) = term_of_fm ps vs (Proc.Not (Proc.Dvd (i, t')))
-  | term_of_fm ps vs (Proc.Closed n) = nth ps n
+  | term_of_fm ps vs (Proc.Closed n) = nth ps (Proc.integer_of_nat n)
   | term_of_fm ps vs (Proc.NClosed n) = term_of_fm ps vs (Proc.Not (Proc.Closed n));
 
 fun procedure t =
@@ -701,7 +701,7 @@ fun strip_objimp ct =
 
 fun strip_objall ct = 
  case term_of ct of 
-  Const (@{const_name All}, _) $ Abs (xn,xT,p) => 
+  Const (@{const_name All}, _) $ Abs (xn,_,_) => 
    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
    in apfst (cons (a,v)) (strip_objall t')
    end
@@ -782,7 +782,7 @@ fun int_nat_terms ctxt ct =
  in h [] ct end
 end;
 
-fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
+fun generalize_tac f = CSUBGOAL (fn (p, _) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
    fun gen x t = Thm.apply (all (ctyp_of_term x)) (Thm.lambda x t)

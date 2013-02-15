@@ -9,7 +9,7 @@ imports
   "~~/src/HOL/Library/Float"
   "~~/src/HOL/Library/Reflection"
   "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
-  "~~/src/HOL/Library/Efficient_Nat"
+  "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
 declare powr_numeral[simp]
@@ -3329,8 +3329,11 @@ let
   fun term_of_bool true = @{term True}
     | term_of_bool false = @{term False};
 
+  val mk_int = HOLogic.mk_number @{typ int} o @{code integer_of_int};
+  val dest_int = @{code int_of_integer} o snd o HOLogic.dest_number;
+
   fun term_of_float (@{code Float} (k, l)) =
-    @{term Float} $ HOLogic.mk_number @{typ int} k $ HOLogic.mk_number @{typ int} l;
+    @{term Float} $ mk_int k $ mk_int l;
 
   fun term_of_float_float_option NONE = @{term "None :: (float \<times> float) option"}
     | term_of_float_float_option (SOME ff) = @{term "Some :: float \<times> float \<Rightarrow> _"}
@@ -3339,10 +3342,11 @@ let
   val term_of_float_float_option_list =
     HOLogic.mk_list @{typ "(float \<times> float) option"} o map term_of_float_float_option;
 
-  fun nat_of_term t = HOLogic.dest_nat t handle TERM _ => snd (HOLogic.dest_number t);
+  fun nat_of_term t = @{code nat_of_integer}
+    (HOLogic.dest_nat t handle TERM _ => snd (HOLogic.dest_number t));
 
   fun float_of_term (@{term Float} $ k $ l) =
-        @{code Float} (snd (HOLogic.dest_number k), snd (HOLogic.dest_number l))
+        @{code Float} (dest_int k, dest_int l)
     | float_of_term t = bad t;
 
   fun floatarith_of_term (@{term Add} $ a $ b) = @{code Add} (floatarith_of_term a, floatarith_of_term b)

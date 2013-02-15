@@ -29,7 +29,7 @@ code_pred [random_dseq] True' .
 thm True'.equation
 thm True'.dseq_equation
 thm True'.random_dseq_equation
-values [expected "{()}" ]"{x. True'}"
+values [expected "{()}"] "{x. True'}"
 values [expected "{}" dseq 0] "{x. True'}"
 values [expected "{()}" dseq 1] "{x. True'}"
 values [expected "{()}" dseq 2] "{x. True'}"
@@ -119,22 +119,22 @@ where
 
 code_pred nested_tuples .
 
-inductive JamesBond :: "nat => int => code_numeral => bool"
+inductive JamesBond :: "nat => int => natural => bool"
 where
   "JamesBond 0 0 7"
 
 code_pred JamesBond .
 
-values [expected "{(0::nat, 0::int , 7::code_numeral)}"] "{(a, b, c). JamesBond a b c}"
-values [expected "{(0::nat, 7::code_numeral, 0:: int)}"] "{(a, c, b). JamesBond a b c}"
-values [expected "{(0::int, 0::nat, 7::code_numeral)}"] "{(b, a, c). JamesBond a b c}"
-values [expected "{(0::int, 7::code_numeral, 0::nat)}"] "{(b, c, a). JamesBond a b c}"
-values [expected "{(7::code_numeral, 0::nat, 0::int)}"] "{(c, a, b). JamesBond a b c}"
-values [expected "{(7::code_numeral, 0::int, 0::nat)}"] "{(c, b, a). JamesBond a b c}"
+values [expected "{(0::nat, 0::int , 7::natural)}"] "{(a, b, c). JamesBond a b c}"
+values [expected "{(0::nat, 7::natural, 0:: int)}"] "{(a, c, b). JamesBond a b c}"
+values [expected "{(0::int, 0::nat, 7::natural)}"] "{(b, a, c). JamesBond a b c}"
+values [expected "{(0::int, 7::natural, 0::nat)}"] "{(b, c, a). JamesBond a b c}"
+values [expected "{(7::natural, 0::nat, 0::int)}"] "{(c, a, b). JamesBond a b c}"
+values [expected "{(7::natural, 0::int, 0::nat)}"] "{(c, b, a). JamesBond a b c}"
 
-values [expected "{(7::code_numeral, 0::int)}"] "{(a, b). JamesBond 0 b a}"
-values [expected "{(7::code_numeral, 0::nat)}"] "{(c, a). JamesBond a 0 c}"
-values [expected "{(0::nat, 7::code_numeral)}"] "{(a, c). JamesBond a 0 c}"
+values [expected "{(7::natural, 0::int)}"] "{(a, b). JamesBond 0 b a}"
+values [expected "{(7::natural, 0::nat)}"] "{(c, a). JamesBond a 0 c}"
+values [expected "{(0::nat, 7::natural)}"] "{(a, c). JamesBond a 0 c}"
 
 
 subsection {* Alternative Rules *}

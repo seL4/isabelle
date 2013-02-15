@@ -679,14 +679,15 @@ lemma of_seq_code [code]:
 
 text {* Lazy Evaluation of an indexed function *}
 
-function iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a Predicate.pred"
+function iterate_upto :: "(natural \<Rightarrow> 'a) \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> 'a Predicate.pred"
 where
   "iterate_upto f n m =
     Predicate.Seq (%u. if n > m then Predicate.Empty
      else Predicate.Insert (f n) (iterate_upto f (n + 1) m))"
 by pat_completeness auto
 
-termination by (relation "measure (%(f, n, m). Code_Numeral.nat_of (m + 1 - n))") auto
+termination by (relation "measure (%(f, n, m). nat_of_natural (m + 1 - n))")
+  (auto simp add: less_natural_def)
 
 text {* Misc *}
 
