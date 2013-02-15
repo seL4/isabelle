@@ -95,14 +95,13 @@ val default_default_params =
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
    ("isar_proofs", "false"),
-   ("isar_shrink", "10"),
+   ("isar_compress", "10"),
    ("slice", "true"),
    ("minimize", "smart"),
    ("preplay_timeout", "3")]
 
 val alias_params =
-  [("prover", ("provers", [])), (* legacy *)
-   ("max_relevant", ("max_facts", [])), (* legacy *)
+  [("prover", ("provers", [])), (* undocumented *)
    ("dont_preplay", ("preplay_timeout", ["0"]))]
 val negated_alias_params =
   [("no_debug", "debug"),
@@ -119,7 +118,7 @@ val negated_alias_params =
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
-   "learn", "isar_proofs", "isar_shrink", "timeout", "preplay_timeout"]
+   "learn", "isar_proofs", "isar_compress", "timeout", "preplay_timeout"]
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -314,7 +313,7 @@ fun extract_params mode default_params override_params =
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
     val isar_proofs = lookup_bool "isar_proofs"
-    val isar_shrink = Real.max (1.0, lookup_real "isar_shrink")
+    val isar_compress = Real.max (1.0, lookup_real "isar_compress")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =
       if mode = Auto_Try then NONE else lookup_option lookup_bool "minimize"
@@ -330,7 +329,7 @@ fun extract_params mode default_params override_params =
      learn = learn, fact_filter = fact_filter, max_facts = max_facts,
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
-     isar_shrink = isar_shrink, slice = slice, minimize = minimize,
+     isar_compress = isar_compress, slice = slice, minimize = minimize,
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 

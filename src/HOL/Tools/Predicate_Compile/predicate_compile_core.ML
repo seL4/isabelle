@@ -26,8 +26,8 @@ sig
   val put_pred_result : (unit -> term Predicate.pred) -> Proof.context -> Proof.context
   val put_pred_random_result : (unit -> seed -> term Predicate.pred * seed) ->
     Proof.context -> Proof.context
-  val put_dseq_result : (unit -> term DSequence.dseq) -> Proof.context -> Proof.context
-  val put_dseq_random_result : (unit -> int -> int -> seed -> term DSequence.dseq * seed) ->
+  val put_dseq_result : (unit -> term Limited_Sequence.dseq) -> Proof.context -> Proof.context
+  val put_dseq_random_result : (unit -> int -> int -> seed -> term Limited_Sequence.dseq * seed) ->
     Proof.context -> Proof.context
   val put_new_dseq_result : (unit -> int -> term Lazy_Sequence.lazy_sequence) ->
     Proof.context -> Proof.context
@@ -325,20 +325,20 @@ val random_comp_modifiers = Comp_Mod.Comp_Modifiers
   function_name_prefix = "random_",
   compfuns = Predicate_Comp_Funs.compfuns,
   mk_random = (fn T => fn additional_arguments =>
-  list_comb (Const(@{const_name Quickcheck.iter},
+  list_comb (Const(@{const_name Random_Pred.iter},
   [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}] ---> 
     Predicate_Comp_Funs.mk_monadT T), additional_arguments)),
   modify_funT = (fn T =>
     let
       val (Ts, U) = strip_type T
-      val Ts' = [@{typ code_numeral}, @{typ code_numeral}, @{typ "code_numeral * code_numeral"}]
+      val Ts' = [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}]
     in (Ts @ Ts') ---> U end),
   additional_arguments = (fn names =>
     let
       val [nrandom, size, seed] = Name.variant_list names ["nrandom", "size", "seed"]
     in
       [Free (nrandom, @{typ code_numeral}), Free (size, @{typ code_numeral}),
-        Free (seed, @{typ "code_numeral * code_numeral"})]
+        Free (seed, @{typ Random.seed})]
     end),
   wrap_compilation = K (K (K (K (K I))))
     : (compilation_funs -> string -> typ -> mode -> term list -> term -> term),
@@ -351,21 +351,21 @@ val depth_limited_random_comp_modifiers = Comp_Mod.Comp_Modifiers
   function_name_prefix = "depth_limited_random_",
   compfuns = Predicate_Comp_Funs.compfuns,
   mk_random = (fn T => fn additional_arguments =>
-  list_comb (Const(@{const_name Quickcheck.iter},
+  list_comb (Const(@{const_name Random_Pred.iter},
   [@{typ code_numeral}, @{typ code_numeral}, @{typ Random.seed}] ---> 
     Predicate_Comp_Funs.mk_monadT T), tl additional_arguments)),
   modify_funT = (fn T =>
     let
       val (Ts, U) = strip_type T
       val Ts' = [@{typ code_numeral}, @{typ code_numeral}, @{typ code_numeral},
-        @{typ "code_numeral * code_numeral"}]
+        @{typ Random.seed}]
     in (Ts @ Ts') ---> U end),
   additional_arguments = (fn names =>
     let
       val [depth, nrandom, size, seed] = Name.variant_list names ["depth", "nrandom", "size", "seed"]
     in
       [Free (depth, @{typ code_numeral}), Free (nrandom, @{typ code_numeral}),
-        Free (size, @{typ code_numeral}), Free (seed, @{typ "code_numeral * code_numeral"})]
+        Free (size, @{typ code_numeral}), Free (seed, @{typ Random.seed})]
     end),
   wrap_compilation =
   fn compfuns => fn _ => fn T => fn mode => fn additional_arguments => fn compilation =>
@@ -423,11 +423,11 @@ val pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = Random_Sequence_CompFuns.compfuns,
   mk_random = (fn T => fn _ =>
   let
-    val random = Const ("Quickcheck.random_class.random",
+    val random = Const (@{const_name Quickcheck_Random.random},
       @{typ code_numeral} --> @{typ Random.seed} -->
         HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
   in
-    Const ("Random_Sequence.Random", (@{typ code_numeral} --> @{typ Random.seed} -->
+    Const (@{const_name Random_Sequence.Random}, (@{typ code_numeral} --> @{typ Random.seed} -->
       HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
       Random_Sequence_CompFuns.mk_random_dseqT T) $ random
   end),
@@ -460,11 +460,11 @@ val new_pos_random_dseq_comp_modifiers = Comp_Mod.Comp_Modifiers
   compfuns = New_Pos_Random_Sequence_CompFuns.depth_limited_compfuns,
   mk_random = (fn T => fn _ =>
   let
-    val random = Const ("Quickcheck.random_class.random",
+    val random = Const (@{const_name Quickcheck_Random.random},
       @{typ code_numeral} --> @{typ Random.seed} -->
         HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed}))
   in
-    Const ("New_Random_Sequence.Random", (@{typ code_numeral} --> @{typ Random.seed} -->
+    Const (@{const_name Random_Sequence.pos_Random}, (@{typ code_numeral} --> @{typ Random.seed} -->
       HOLogic.mk_prodT (HOLogic.mk_prodT (T, @{typ "unit => term"}), @{typ Random.seed})) -->
       New_Pos_Random_Sequence_CompFuns.mk_pos_random_dseqT T) $ random
   end),
@@ -1647,7 +1647,7 @@ val put_pred_random_result = Pred_Random_Result.put;
 
 structure Dseq_Result = Proof_Data
 (
-  type T = unit -> term DSequence.dseq
+  type T = unit -> term Limited_Sequence.dseq
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Result"
 );
@@ -1655,7 +1655,7 @@ val put_dseq_result = Dseq_Result.put;
 
 structure Dseq_Random_Result = Proof_Data
 (
-  type T = unit -> int -> int -> seed -> term DSequence.dseq * seed
+  type T = unit -> int -> int -> seed -> term Limited_Sequence.dseq * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Random_Result"
 );
@@ -1843,24 +1843,24 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           let
             val [nrandom, size, depth] = arguments
           in
-            rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (DSequence.yieldn k
+            rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (Limited_Sequence.yieldn k
               (Code_Runtime.dynamic_value_strict (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
-                thy NONE (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
+                thy NONE (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> Limited_Sequence.map proc)
                   t' [] nrandom size
                 |> Random_Engine.run)
               depth true)) ())
           end
       | DSeq =>
-          rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (DSequence.yieldn k
+          rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (Limited_Sequence.yieldn k
             (Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
-              thy NONE DSequence.map t' []) (the_single arguments) true)) ())
+              thy NONE Limited_Sequence.map t' []) (the_single arguments) true)) ())
       | Pos_Generator_DSeq =>
           let
             val depth = (the_single arguments)
           in
             rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (Lazy_Sequence.yieldn k
               (Code_Runtime.dynamic_value_strict (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Core.put_new_dseq_result")
-              thy NONE (fn proc => fn g => fn depth => g depth |> Lazy_Sequence.mapa proc)
+              thy NONE (fn proc => fn g => fn depth => g depth |> Lazy_Sequence.map proc)
               t' [] depth))) ())
           end
       | New_Pos_Random_DSeq =>
@@ -1875,7 +1875,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
                   (Lseq_Random_Stats_Result.get, put_lseq_random_stats_result, "Predicate_Compile_Core.put_lseq_random_stats_result")
                   thy NONE
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
-                    |> Lazy_Sequence.mapa (apfst proc))
+                    |> Lazy_Sequence.map (apfst proc))
                     t' [] nrandom size seed depth))) ()))
             else rpair NONE
               (TimeLimit.timeLimit time_limit (fn () => fst (Lazy_Sequence.yieldn k
@@ -1883,7 +1883,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
                   (Lseq_Random_Result.get, put_lseq_random_result, "Predicate_Compile_Core.put_lseq_random_result")
                   thy NONE 
                   (fn proc => fn g => fn nrandom => fn size => fn s => fn depth => g nrandom size s depth
-                    |> Lazy_Sequence.mapa proc)
+                    |> Lazy_Sequence.map proc)
                     t' [] nrandom size seed depth))) ())
           end
       | _ =>

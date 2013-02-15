@@ -956,7 +956,7 @@ fun values ctxt soln t_compr =
     val tss = run (#timeout system_config, #prolog_system system_config)
       p (translate_const constant_table' name, args') output_names soln
     val _ = tracing "Restoring terms..."
-    val empty = Const("Orderings.bot_class.bot", fastype_of t_compr)
+    val empty = Const(@{const_name bot}, fastype_of t_compr)
     fun mk_insert x S =
       Const (@{const_name "Set.insert"}, fastype_of x --> fastype_of S --> fastype_of S) $ x $ S 
     fun mk_set_compr in_insert [] xs =

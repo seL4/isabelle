@@ -1,20 +1,20 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_shrink.ML
+(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_compress.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
-Shrinking of reconstructed isar proofs.
+Compression of reconstructed isar proofs.
 *)
 
-signature SLEDGEHAMMER_SHRINK =
+signature SLEDGEHAMMER_COMPRESS =
 sig
   type isar_step = Sledgehammer_Proof.isar_step
   type preplay_time = Sledgehammer_Preplay.preplay_time
-  val shrink_proof :
+  val compress_proof :
     bool -> Proof.context -> string -> string -> bool -> Time.time option
     -> real -> isar_step list -> isar_step list * (bool * preplay_time)
 end
 
-structure Sledgehammer_Shrink : SLEDGEHAMMER_SHRINK =
+structure Sledgehammer_Compress : SLEDGEHAMMER_COMPRESS =
 struct
 
 open Sledgehammer_Util
@@ -46,9 +46,9 @@ fun pop tab key =
 fun pop_max tab = pop tab (the (Inttab.max_key tab))
 fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
-(* Main function for shrinking proofs *)
-fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
-                 isar_shrink proof =
+(* Main function for compresing proofs *)
+fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
+                   isar_compress proof =
   let
     (* 60 seconds seems like a good interpreation of "no timeout" *)
     val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
@@ -69,14 +69,14 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       val metis_fail = fn () => !metis_fail
     end
 
-    (* Shrink proof on top level - do not shrink case splits *)
-    fun shrink_top_level on_top_level ctxt proof =
+    (* compress proof on top level - do not compress case splits *)
+    fun compress_top_level on_top_level ctxt proof =
     let
       (* proof vector *)
       val proof_vect = proof |> map SOME |> Vector.fromList
       val n = Vector.length proof_vect
       val n_metis = metis_steps_top_level proof
-      val target_n_metis = Real.fromInt n_metis / isar_shrink |> Real.round
+      val target_n_metis = Real.fromInt n_metis / isar_compress |> Real.round
 
       (* table for mapping from (top-level-)label to proof position *)
       fun update_table (i, Assume (l, _)) = Label_Table.update_new (l, i)
@@ -91,6 +91,7 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         | refs (Prove (_, _, _, By_Metis (lfs, _))) = lookup_indices lfs
         | refs (Prove (_, _, _, Case_Split (cases, (lfs, _)))) =
           lookup_indices lfs @ maps (maps refs) cases
+        | refs (Prove (_, _, _, Subblock proof)) = maps refs proof
         | refs _ = []
       val refed_by_vect =
         Vector.tabulate (n, (fn _ => []))
@@ -137,11 +138,11 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                   (fn by => Prove (qs2, label2, t, by), lfs2, gfs2)
               | (Obtain (qs2, xs, label2, t, By_Metis (lfs2, gfs2))) =>
                   (fn by => Obtain (qs2, xs, label2, t, by), lfs2, gfs2)
-              | _ => error "sledgehammer_shrink: unmergeable Isar steps" )
+              | _ => error "sledgehammer_compress: unmergeable Isar steps" )
             val lfs = remove (op =) label1 lfs2 |> union (op =) lfs1
             val gfs = union (op =) gfs1 gfs2
           in step_constructor (By_Metis (lfs, gfs)) end
-        | merge _ _ = error "sledgehammer_shrink: unmergeable Isar steps"
+        | merge _ _ = error "sledgehammer_compress: unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
         if not preplay then (merge s1 s2 |> SOME, metis_time)
@@ -218,27 +219,30 @@ fun shrink_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           | enrich_with_step _ = I
         val rich_ctxt = fold enrich_with_step proof ctxt
 
-        (* Shrink case_splits and top-levl *)
+        (* compress subproofs (case_splits and subblocks) and top-levl *)
         val ((proof, top_level_time), lower_level_time) =
-          proof |> do_case_splits rich_ctxt
-                |>> shrink_top_level on_top_level rich_ctxt
+          proof |> do_subproof rich_ctxt
+                |>> compress_top_level on_top_level rich_ctxt
       in
         (proof, add_preplay_time lower_level_time top_level_time)
       end
 
-    and do_case_splits ctxt proof =
+    and do_subproof ctxt proof =
       let
-        fun shrink_each_and_collect_time shrink candidates =
-          let fun f_m cand time = shrink cand ||> add_preplay_time time
+        fun compress_each_and_collect_time compress candidates =
+          let fun f_m cand time = compress cand ||> add_preplay_time time
           in fold_map f_m candidates zero_preplay_time end
-        val shrink_case_split =
-          shrink_each_and_collect_time (do_proof false ctxt)
-        fun shrink (Prove (qs, l, t, Case_Split (cases, facts))) =
-            let val (cases, time) = shrink_case_split cases
+        val compress_subproof =
+          compress_each_and_collect_time (do_proof false ctxt)
+        fun compress (Prove (qs, l, t, Case_Split (cases, facts))) =
+            let val (cases, time) = compress_subproof cases
             in (Prove (qs, l, t, Case_Split (cases, facts)), time) end
-          | shrink step = (step, zero_preplay_time)
+          | compress (Prove (qs, l, t, Subblock proof)) =
+            let val ([proof], time) = compress_subproof [proof]
+            in (Prove (qs, l, t, Subblock proof), time) end
+          | compress step = (step, zero_preplay_time)
       in
-        shrink_each_and_collect_time shrink proof
+        compress_each_and_collect_time compress proof
       end
   in
     do_proof true ctxt proof

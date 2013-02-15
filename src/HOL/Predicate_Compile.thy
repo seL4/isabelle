@@ -5,7 +5,7 @@
 header {* A compiler for predicates defined by introduction rules *}
 
 theory Predicate_Compile
-imports New_Random_Sequence Quickcheck_Exhaustive
+imports Random_Sequence Quickcheck_Exhaustive
 keywords "code_pred" :: thy_goal and "values" :: diag
 begin
 

@@ -193,9 +193,9 @@ fun is_too_complex ho_atp t =
 
 (* FIXME: Ad hoc list *)
 val technical_prefixes =
-  ["ATP", "Code_Evaluation", "Datatype", "DSequence", "Enum", "Lazy_Sequence",
-   "Meson", "Metis", "Nitpick", "New_DSequence", "New_Random_Sequence",
-   "Quickcheck", "Quickcheck_Exhaustive", "Quickcheck_Narrowing",
+  ["ATP", "Code_Evaluation", "Datatype", "Enum", "Lazy_Sequence",
+   "Limited_Sequence", "Meson", "Metis", "Nitpick",
+   "Quickcheck_Random", "Quickcheck_Exhaustive", "Quickcheck_Narrowing",
    "Random_Sequence", "Sledgehammer", "SMT"]
   |> map (suffix Long_Name.separator)
 

@@ -8,7 +8,10 @@ package isabelle
 
 
 import java.awt.Graphics2D
+import java.awt.geom.Rectangle2D
 import java.io.{FileOutputStream, BufferedOutputStream, File => JFile}
+
+import org.jfree.chart.JFreeChart
 
 
 object Graphics_File
@@ -44,5 +47,14 @@ object Graphics_File
 
   def write_pdf(path: Path, paint: Graphics2D => Unit, width: Int, height: Int): Unit =
     write_pdf(path.file, paint, width, height)
+
+  def write_pdf(file: JFile, chart: JFreeChart, width: Int, height: Int)
+  {
+    def paint(gfx: Graphics2D) = chart.draw(gfx, new Rectangle2D.Double(0, 0, width, height))
+    write_pdf(file, paint _, width, height)
+  }
+
+  def write_pdf(path: Path, chart: JFreeChart, width: Int, height: Int): Unit =
+    write_pdf(path.file, chart, width, height)
 }
 

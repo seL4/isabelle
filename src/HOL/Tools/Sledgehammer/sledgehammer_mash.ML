@@ -50,12 +50,12 @@ sig
 
   val mash_unlearn : Proof.context -> unit
   val nickname_of_thm : thm -> string
-  val find_suggested_facts : ('b * thm) list -> string list -> ('b * thm) list
+  val find_suggested_facts :
+    Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
   val mesh_facts :
     ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
     -> 'a list
-  val theory_ord : theory * theory -> order
-  val thm_ord : thm * thm -> order
+  val crude_thm_ord : thm * thm -> order
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
@@ -72,8 +72,8 @@ sig
   val weight_mepo_facts : 'a list -> ('a * real) list
   val weight_mash_facts : 'a list -> ('a * real) list
   val find_mash_suggestions :
-    int -> string list -> ('b * thm) list -> ('b * thm) list -> ('b * thm) list
-    -> ('b * thm) list * ('b * thm) list
+    Proof.context -> int -> string list -> ('b * thm) list -> ('b * thm) list
+    -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
     -> raw_fact list -> fact list * fact list
@@ -450,11 +450,15 @@ fun nickname_of_thm th =
   else
     elided_backquote_thm 200 th
 
-fun find_suggested_facts facts =
+fun find_suggested_facts ctxt facts =
   let
-    fun add_fact (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
-    val tab = fold add_fact facts Symtab.empty
-  in map_filter (Symtab.lookup tab) end
+    fun add (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
+    val tab = fold add facts Symtab.empty
+    fun lookup nick =
+      Symtab.lookup tab nick
+      |> tap (fn NONE => trace_msg ctxt (fn () => "Cannot find " ^ quote nick)
+               | _ => ())
+  in map_filter lookup end
 
 fun scaled_avg [] = 0
   | scaled_avg xs =
@@ -505,7 +509,11 @@ val local_feature = ("local", 8.0 (* FUDGE *))
 val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
-fun theory_ord p =
+(* The following "crude" functions should be progressively phased out, since
+   they create visibility edges that do not exist in Isabelle, resulting in
+   failed lookups later on. *)
+
+fun crude_theory_ord p =
   if Theory.subthy p then
     if Theory.eq_thy p then EQUAL else LESS
   else if Theory.subthy (swap p) then
@@ -514,8 +522,8 @@ fun theory_ord p =
     EQUAL => string_ord (pairself Context.theory_name p)
   | order => order
 
-fun thm_ord p =
-  case theory_ord (pairself theory_of_thm p) of
+fun crude_thm_ord p =
+  case crude_theory_ord (pairself theory_of_thm p) of
     EQUAL =>
     let val q = pairself nickname_of_thm p in
       (* Hack to put "xxx_def" before "xxxI" and "xxxE" *)
@@ -524,6 +532,9 @@ fun thm_ord p =
       | ord => ord
     end
   | ord => ord
+
+val thm_less_eq = Theory.subthy o pairself theory_of_thm
+fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
 
 val freezeT = Type.legacy_freeze_type
 
@@ -636,7 +647,7 @@ fun features_of ctxt prover thy (scope, status) ts =
    isn't much to learn from such proofs. *)
 val max_dependencies = 20
 
-val prover_dependency_default_max_facts = 50
+val prover_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_dep = nickname_of_thm @{thm CollectI}
@@ -692,7 +703,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-      val facts = facts |> filter (fn (_, th') => thm_ord (th', th) = LESS)
+      val facts = facts |> filter (fn (_, th') => thm_less (th', th))
       fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
       fun is_dep dep (_, th) = nickname_of_thm th = dep
       fun add_isar_dep facts dep accum =
@@ -704,8 +715,8 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val facts =
         facts
         |> mepo_suggested_facts ctxt params prover
-               (max_facts |> the_default prover_dependency_default_max_facts)
-               NONE hyp_ts concl_t
+               (max_facts |> the_default prover_default_max_facts) NONE hyp_ts
+               concl_t
         |> fold (add_isar_dep facts) isar_deps
         |> map nickify
     in
@@ -789,14 +800,14 @@ fun weight_proximity_facts facts =
 
 val max_proximity_facts = 100
 
-fun find_mash_suggestions _ [] _ _ raw_unknown = ([], raw_unknown)
-  | find_mash_suggestions max_facts suggs facts chained raw_unknown =
+fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
+  | find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     let
-      val raw_mash = find_suggested_facts facts suggs
+      val raw_mash = find_suggested_facts ctxt facts suggs
       val unknown_chained =
         inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
       val proximity =
-        facts |> sort (thm_ord o pairself snd o swap)
+        facts |> sort (crude_thm_ord o pairself snd o swap)
               |> take max_proximity_facts
       val mess =
         [(0.90 (* FUDGE *), (map (rpair 1.0) unknown_chained, [])),
@@ -831,7 +842,7 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
   in
-    find_mash_suggestions max_facts suggs facts chained unknown
+    find_mash_suggestions ctxt max_facts suggs facts chained unknown
     |> pairself (map fact_of_raw_fact)
   end
 
@@ -899,7 +910,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
     fun next_commit_time () =
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {access_G, ...} = peek_state ctxt I
-    val facts = facts |> sort (thm_ord o pairself snd)
+    val facts = facts |> sort (crude_thm_ord o pairself snd)
     val (old_facts, new_facts) =
       facts |> List.partition (is_fact_in_graph access_G snd)
   in
@@ -991,7 +1002,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               (* crude approximation *)
               val ancestors =
                 old_facts
-                |> filter (fn (_, th) => thm_ord (th, last_th) <> GREATER)
+                |> filter (fn (_, th) => crude_thm_ord (th, last_th) <> GREATER)
               val parents = maximal_in_graph access_G ancestors
               val (learns, (_, n, _, _)) =
                 ([], (parents, 0, next_commit_time (), false))

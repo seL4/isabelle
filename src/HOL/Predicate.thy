@@ -600,25 +600,34 @@ lemma the_eq [code]: "the A = singleton (\<lambda>x. not_unique A) A"
 
 code_reflect Predicate
   datatypes pred = Seq and seq = Empty | Insert | Join
-  functions map
 
 ML {*
 signature PREDICATE =
 sig
+  val anamorph: ('a -> ('b * 'a) option) -> int -> 'a -> 'b list * 'a
   datatype 'a pred = Seq of (unit -> 'a seq)
   and 'a seq = Empty | Insert of 'a * 'a pred | Join of 'a pred * 'a seq
+  val map: ('a -> 'b) -> 'a pred -> 'b pred
   val yield: 'a pred -> ('a * 'a pred) option
   val yieldn: int -> 'a pred -> 'a list * 'a pred
-  val map: ('a -> 'b) -> 'a pred -> 'b pred
 end;
 
 structure Predicate : PREDICATE =
 struct
 
+fun anamorph f k x =
+ (if k = 0 then ([], x)
+  else case f x
+   of NONE => ([], x)
+    | SOME (v, y) => let
+        val k' = k - 1;
+        val (vs, z) = anamorph f k' y
+      in (v :: vs, z) end);
+
 datatype pred = datatype Predicate.pred
 datatype seq = datatype Predicate.seq
 
-fun map f = Predicate.map f;
+fun map f = @{code Predicate.map} f;
 
 fun yield (Seq f) = next (f ())
 and next Empty = NONE
@@ -627,14 +636,7 @@ and next Empty = NONE
      of NONE => next xq
       | SOME (x, Q) => SOME (x, Seq (fn _ => Join (Q, xq))));
 
-fun anamorph f k x = (if k = 0 then ([], x)
-  else case f x
-   of NONE => ([], x)
-    | SOME (v, y) => let
-        val (vs, z) = anamorph f (k - 1) y
-      in (v :: vs, z) end);
-
-fun yieldn P = anamorph yield P;
+fun yieldn k = anamorph yield k;
 
 end;
 *}
