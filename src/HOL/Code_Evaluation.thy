@@ -119,11 +119,10 @@ lemma [code, code del]: "(Code_Evaluation.term_of \<Colon> 'a::{type, term_of} P
   = Code_Evaluation.term_of" ..
 
 lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]:
-  "Code_Evaluation.term_of c =
-    (let (n, m) = nibble_pair_of_char c
-  in Code_Evaluation.App (Code_Evaluation.App
+  "Code_Evaluation.term_of c = (case c of Char x y \<Rightarrow>
+   Code_Evaluation.App (Code_Evaluation.App
     (Code_Evaluation.Const (STR ''String.char.Char'') (TYPEREP(nibble \<Rightarrow> nibble \<Rightarrow> char)))
-      (Code_Evaluation.term_of n)) (Code_Evaluation.term_of m))"
+      (Code_Evaluation.term_of x)) (Code_Evaluation.term_of y))"
   by (subst term_of_anything) rule 
 
 code_type "term"

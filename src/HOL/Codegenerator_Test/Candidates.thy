@@ -6,7 +6,7 @@ header {* A huge collection of equations to generate code from *}
 theory Candidates
 imports
   Complex_Main
-  Library
+  "~~/src/HOL/Library/Library"
   "~~/src/HOL/Library/Sublist"
   "~~/src/HOL/Number_Theory/Primes"
   "~~/src/HOL/ex/Records"

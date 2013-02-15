@@ -81,7 +81,7 @@ fun string_ast_tr [Ast.Variable str] =
 fun list_ast_tr' [args] =
       Ast.Appl [Ast.Constant @{syntax_const "_String"},
         syntax_string (map dest_char (Ast.unfold_ast @{syntax_const "_args"} args))]
-  | list_ast_tr' ts = raise Match;
+  | list_ast_tr' _ = raise Match;
 
 
 (* theory setup *)

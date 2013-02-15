@@ -5,7 +5,7 @@
 header {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
-imports List Code_Evaluation Main
+imports Main "~~/src/HOL/Library/Char_ord"
 begin
 
 code_type char
@@ -58,4 +58,47 @@ code_const explode
   (Haskell "_")
   (Scala "!(_.toList)")
 
+
+definition integer_of_char :: "char \<Rightarrow> integer"
+where
+  "integer_of_char = integer_of_nat o nat_of_char"
+
+definition char_of_integer :: "integer \<Rightarrow> char"
+where
+  "char_of_integer = char_of_nat \<circ> nat_of_integer"
+
+lemma [code]:
+  "nat_of_char = nat_of_integer o integer_of_char"
+  by (simp add: integer_of_char_def fun_eq_iff)
+
+lemma [code]:
+  "char_of_nat = char_of_integer o integer_of_nat"
+  by (simp add: char_of_integer_def fun_eq_iff)
+
+code_const integer_of_char and char_of_integer
+  (SML "!(IntInf.fromInt o Char.ord)"
+    and "!(Char.chr o IntInf.toInt)")
+  (OCaml "Big'_int.big'_int'_of'_int (Char.code _)"
+    and "Char.chr (Big'_int.int'_of'_big'_int _)")
+  (Haskell "Prelude.toInteger (Prelude.fromEnum (_ :: Prelude.Char))"
+    and "!(let chr k | (0 <= k && k < 256) = Prelude.toEnum k :: Prelude.Char in chr . Prelude.fromInteger)")
+  (Scala "BigInt(_.toInt)"
+    and "!((k: BigInt) => if (BigInt(0) <= k && k < BigInt(256)) k.charValue else error(\"character value out of range\"))")
+
+
+code_const "Orderings.less_eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+  (SML "!((_ : char) <= _)")
+  (OCaml "!((_ : char) <= _)")
+  (Haskell infix 4 "<=")
+  (Scala infixl 4 "<=")
+  (Eval infixl 6 "<=")
+
+code_const "Orderings.less \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+  (SML "!((_ : char) < _)")
+  (OCaml "!((_ : char) < _)")
+  (Haskell infix 4 "<")
+  (Scala infixl 4 "<")
+  (Eval infixl 6 "<")
+
 end
+

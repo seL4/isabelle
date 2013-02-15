@@ -27,14 +27,14 @@ fun decode_char nibbles' tt =
     | _ => NONE
   end;
    
-fun implode_string char' nibbles' mk_char mk_string ts =
+fun implode_string literals char' nibbles' ts =
   let
     fun implode_char (IConst { name = c, ... } `$ t1 `$ t2) =
           if c = char' then decode_char nibbles' (t1, t2) else NONE
       | implode_char _ = NONE;
     val ts' = map_filter implode_char ts;
   in if length ts = length ts'
-    then (SOME o Code_Printer.str o mk_string o implode) ts'
+    then (SOME o Code_Printer.str o Code_Printer.literal_string literals o implode) ts'
     else NONE
   end;
 
@@ -50,10 +50,9 @@ val cs_summa = [@{const_name Nil}, @{const_name Cons}, @{const_name Char}] @ cs_
 
 fun add_literal_list_string target =
   let
-    fun pretty literals (nil' :: cons' :: char' :: nibbles') pr thm vars fxy [(t1, _), (t2, _)] =
+    fun pretty literals (nil' :: cons' :: char' :: nibbles') pr _ vars fxy [(t1, _), (t2, _)] =
       case Option.map (cons t1) (List_Code.implode_list nil' cons' t2)
-       of SOME ts => (case implode_string char' nibbles'
-          (Code_Printer.literal_char literals) (Code_Printer.literal_string literals) ts
+       of SOME ts => (case implode_string literals char' nibbles' ts
              of SOME p => p
               | NONE =>
                   Code_Printer.literal_list literals (map (pr vars Code_Printer.NOBR) ts))
@@ -77,8 +76,7 @@ fun add_literal_string target =
   let
     fun pretty literals (nil' :: cons' :: char' :: nibbles') _ thm _ _ [(t, _)] =
       case List_Code.implode_list nil' cons' t
-       of SOME ts => (case implode_string char' nibbles'
-          (Code_Printer.literal_char literals) (Code_Printer.literal_string literals) ts
+       of SOME ts => (case implode_string literals char' nibbles' ts
              of SOME p => p
               | NONE => Code_Printer.eqn_error thm "Illegal message expression")
         | NONE => Code_Printer.eqn_error thm "Illegal message expression";

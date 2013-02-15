@@ -150,10 +150,6 @@ text {*
        containing both @{text "Code_Target_Nat"} and
        @{text "Code_Target_Int"}.
 
-    \item[@{text "Code_Char_chr"}] like @{text "Code_Char"}, but
-       also offers treatment of character codes; includes @{text
-       "Code_Char"}.
-
     \item[@{text "Efficient_Nat"}] \label{eff_nat} implements
        natural numbers by integers, which in general will result in
        higher efficiency; pattern matching with @{term "0\<Colon>nat"} /

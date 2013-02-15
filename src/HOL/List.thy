@@ -1626,6 +1626,35 @@ done
 lemma in_set_conv_nth: "(x \<in> set xs) = (\<exists>i < length xs. xs!i = x)"
 by(auto simp:set_conv_nth)
 
+lemma nth_equal_first_eq:
+  assumes "x \<notin> set xs"
+  assumes "n \<le> length xs"
+  shows "(x # xs) ! n = x \<longleftrightarrow> n = 0" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  show ?rhs
+  proof (rule ccontr)
+    assume "n \<noteq> 0"
+    then have "n > 0" by simp
+    with `?lhs` have "xs ! (n - 1) = x" by simp
+    moreover from `n > 0` `n \<le> length xs` have "n - 1 < length xs" by simp
+    ultimately have "\<exists>i<length xs. xs ! i = x" by auto
+    with `x \<notin> set xs` in_set_conv_nth [of x xs] show False by simp
+  qed
+next
+  assume ?rhs then show ?lhs by simp
+qed
+
+lemma nth_non_equal_first_eq:
+  assumes "x \<noteq> y"
+  shows "(x # xs) ! n = y \<longleftrightarrow> xs ! (n - 1) = y \<and> n > 0" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume "?lhs" with assms have "n > 0" by (cases n) simp_all
+  with `?lhs` show ?rhs by simp
+next
+  assume "?rhs" then show "?lhs" by simp
+qed
+
 lemma list_ball_nth: "[| n < length xs; !x : set xs. P x|] ==> P(xs!n)"
 by (auto simp add: set_conv_nth)
 
@@ -2613,6 +2642,22 @@ subsubsection {* @{const List.product} *}
 lemma product_list_set:
   "set (List.product xs ys) = set xs \<times> set ys"
   by (induct xs) auto
+
+lemma length_product [simp]:
+  "length (List.product xs ys) = length xs * length ys"
+  by (induct xs) simp_all
+
+lemma product_nth:
+  assumes "n < length xs * length ys"
+  shows "List.product xs ys ! n = (xs ! (n div length ys), ys ! (n mod length ys))"
+using assms proof (induct xs arbitrary: n)
+  case Nil then show ?case by simp
+next
+  case (Cons x xs n)
+  then have "length ys > 0" by auto
+  with Cons show ?case
+    by (auto simp add: nth_append not_less le_mod_geq le_div_geq)
+qed
 
 
 subsubsection {* @{const fold} with natural argument order *}

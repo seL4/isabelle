@@ -49,6 +49,72 @@ lemma card_UNIV_nibble:
   "card (UNIV :: nibble set) = 16"
   by (simp add: card_UNIV_length_enum enum_nibble_def)
 
+primrec nat_of_nibble :: "nibble \<Rightarrow> nat"
+where
+  "nat_of_nibble Nibble0 = 0"
+| "nat_of_nibble Nibble1 = 1"
+| "nat_of_nibble Nibble2 = 2"
+| "nat_of_nibble Nibble3 = 3"
+| "nat_of_nibble Nibble4 = 4"
+| "nat_of_nibble Nibble5 = 5"
+| "nat_of_nibble Nibble6 = 6"
+| "nat_of_nibble Nibble7 = 7"
+| "nat_of_nibble Nibble8 = 8"
+| "nat_of_nibble Nibble9 = 9"
+| "nat_of_nibble NibbleA = 10"
+| "nat_of_nibble NibbleB = 11"
+| "nat_of_nibble NibbleC = 12"
+| "nat_of_nibble NibbleD = 13"
+| "nat_of_nibble NibbleE = 14"
+| "nat_of_nibble NibbleF = 15"
+
+definition nibble_of_nat :: "nat \<Rightarrow> nibble" where
+  "nibble_of_nat n = Enum.enum ! (n mod 16)"
+
+lemma nibble_of_nat_simps [simp]:
+  "nibble_of_nat  0 = Nibble0"
+  "nibble_of_nat  1 = Nibble1"
+  "nibble_of_nat  2 = Nibble2"
+  "nibble_of_nat  3 = Nibble3"
+  "nibble_of_nat  4 = Nibble4"
+  "nibble_of_nat  5 = Nibble5"
+  "nibble_of_nat  6 = Nibble6"
+  "nibble_of_nat  7 = Nibble7"
+  "nibble_of_nat  8 = Nibble8"
+  "nibble_of_nat  9 = Nibble9"
+  "nibble_of_nat 10 = NibbleA"
+  "nibble_of_nat 11 = NibbleB"
+  "nibble_of_nat 12 = NibbleC"
+  "nibble_of_nat 13 = NibbleD"
+  "nibble_of_nat 14 = NibbleE"
+  "nibble_of_nat 15 = NibbleF"
+  unfolding nibble_of_nat_def by (simp_all add: enum_nibble_def)
+
+lemma nibble_of_nat_of_nibble [simp]:
+  "nibble_of_nat (nat_of_nibble x) = x"
+  by (cases x) (simp_all add: nibble_of_nat_def enum_nibble_def)
+
+lemma nat_of_nibble_of_nat [simp]:
+  "nat_of_nibble (nibble_of_nat n) = n mod 16"
+  by (cases "nibble_of_nat n")
+     (simp_all add: nibble_of_nat_def enum_nibble_def nth_equal_first_eq nth_non_equal_first_eq, arith)
+
+lemma inj_nat_of_nibble:
+  "inj nat_of_nibble"
+  by (rule inj_on_inverseI) (rule nibble_of_nat_of_nibble)
+
+lemma nat_of_nibble_eq_iff:
+  "nat_of_nibble x = nat_of_nibble y \<longleftrightarrow> x = y"
+  by (rule inj_eq) (rule inj_nat_of_nibble)
+
+lemma nat_of_nibble_less_16:
+  "nat_of_nibble x < 16"
+  by (cases x) auto
+
+lemma nibble_of_nat_mod_16:
+  "nibble_of_nat (n mod 16) = nibble_of_nat n"
+  by (simp add: nibble_of_nat_def)
+
 datatype char = Char nibble nibble
   -- "Note: canonical order of character encoding coincides with standard term ordering"
 
@@ -154,13 +220,15 @@ definition
 definition
   "Enum.enum_ex P \<longleftrightarrow> list_ex P (Enum.enum :: char list)"
 
+lemma enum_char_product_enum_nibble:
+  "(Enum.enum :: char list) = map (split Char) (List.product Enum.enum Enum.enum)"
+  by (simp add: enum_char_def enum_nibble_def)
+
 instance proof
-  have enum: "(Enum.enum :: char list) = map (split Char) (List.product Enum.enum Enum.enum)"
-    by (simp add: enum_char_def enum_nibble_def)
   show UNIV: "UNIV = set (Enum.enum :: char list)"
-    by (simp add: enum UNIV_char product_list_set enum_UNIV)
+    by (simp add: enum_char_product_enum_nibble UNIV_char product_list_set enum_UNIV)
   show "distinct (Enum.enum :: char list)"
-    by (auto intro: inj_onI simp add: enum distinct_map distinct_product enum_distinct)
+    by (auto intro: inj_onI simp add: enum_char_product_enum_nibble distinct_map distinct_product enum_distinct)
   show "\<And>P. Enum.enum_all P \<longleftrightarrow> Ball (UNIV :: char set) P"
     by (simp add: UNIV enum_all_char_def list_all_iff)
   show "\<And>P. Enum.enum_ex P \<longleftrightarrow> Bex (UNIV :: char set) P"
@@ -173,30 +241,115 @@ lemma card_UNIV_char:
   "card (UNIV :: char set) = 256"
   by (simp add: card_UNIV_length_enum enum_char_def)
 
-primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
-  "nibble_pair_of_char (Char n m) = (n, m)"
+definition nat_of_char :: "char \<Rightarrow> nat"
+where
+  "nat_of_char c = (case c of Char x y \<Rightarrow> nat_of_nibble x * 16 + nat_of_nibble y)"
+
+lemma nat_of_char_Char:
+  "nat_of_char (Char x y) = nat_of_nibble x * 16 + nat_of_nibble y"
+  by (simp add: nat_of_char_def)
 
 setup {*
 let
   val nibbles = map_range (Thm.cterm_of @{theory} o HOLogic.mk_nibble) 16;
-  val thms = map_product
-   (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
-      nibbles nibbles;
+  val simpset = HOL_ss addsimps
+    @{thms nat_of_nibble.simps mult_0 mult_1 add_0 add_0_right arith_simps numeral_plus_one};
+  fun mk_code_eqn x y =
+    Drule.instantiate' [] [SOME x, SOME y] @{thm nat_of_char_Char}
+    |> simplify simpset;
+  val code_eqns = map_product mk_code_eqn nibbles nibbles;
 in
   Global_Theory.note_thmss ""
-    [((@{binding nibble_pair_of_char_simps}, []), [(thms, [])])]
-  #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
+    [((@{binding nat_of_char_simps}, []), [(code_eqns, [])])]
+  #> snd
 end
 *}
 
-lemma char_case_nibble_pair [code, code_unfold]:
-  "char_case f = split f o nibble_pair_of_char"
+declare nat_of_char_simps [code]
+
+lemma nibble_of_nat_of_char_div_16:
+  "nibble_of_nat (nat_of_char c div 16) = (case c of Char x y \<Rightarrow> x)"
+  by (cases c)
+    (simp add: nat_of_char_def add_commute nat_of_nibble_less_16)
+
+lemma nibble_of_nat_nat_of_char:
+  "nibble_of_nat (nat_of_char c) = (case c of Char x y \<Rightarrow> y)"
+proof (cases c)
+  case (Char x y)
+  then have *: "nibble_of_nat ((nat_of_nibble y + nat_of_nibble x * 16) mod 16) = y"
+    by (simp add: nibble_of_nat_mod_16)
+  then have "nibble_of_nat (nat_of_nibble y + nat_of_nibble x * 16) = y"
+    by (simp only: nibble_of_nat_mod_16)
+  with Char show ?thesis by (simp add: nat_of_char_def add_commute)
+qed
+
+code_datatype Char -- {* drop case certificate for char *}
+
+lemma char_case_code [code]:
+  "char_case f c = (let n = nat_of_char c in f (nibble_of_nat (n div 16)) (nibble_of_nat n))"
+  by (cases c)
+    (simp only: Let_def nibble_of_nat_of_char_div_16 nibble_of_nat_nat_of_char char.cases)
+
+lemma [code]:
+  "char_rec = char_case"
   by (simp add: fun_eq_iff split: char.split)
 
-lemma char_rec_nibble_pair [code, code_unfold]:
-  "char_rec f = split f o nibble_pair_of_char"
-  unfolding char_case_nibble_pair [symmetric]
-  by (simp add: fun_eq_iff split: char.split)
+definition char_of_nat :: "nat \<Rightarrow> char" where
+  "char_of_nat n = Enum.enum ! (n mod 256)"
+
+lemma char_of_nat_Char_nibbles:
+  "char_of_nat n = Char (nibble_of_nat (n div 16)) (nibble_of_nat n)"
+proof -
+  from mod_mult2_eq [of n 16 16]
+  have "n mod 256 = 16 * (n div 16 mod 16) + n mod 16" by simp
+  then show ?thesis
+    by (simp add: char_of_nat_def enum_char_product_enum_nibble card_UNIV_nibble
+      card_UNIV_length_enum [symmetric] nibble_of_nat_def product_nth add_commute)
+qed
+
+lemma char_of_nat_of_char [simp]:
+  "char_of_nat (nat_of_char c) = c"
+  by (cases c)
+    (simp add: char_of_nat_Char_nibbles nibble_of_nat_of_char_div_16 nibble_of_nat_nat_of_char)
+
+lemma nat_of_char_of_nat [simp]:
+  "nat_of_char (char_of_nat n) = n mod 256"
+proof -
+  have "n mod 256 = n mod (16 * 16)" by simp
+  then have "n div 16 mod 16 * 16 + n mod 16 = n mod 256" by (simp only: mod_mult2_eq)
+  then show ?thesis
+    by (cases "char_of_nat n") (auto simp add: nat_of_char_def char_of_nat_Char_nibbles)
+qed
+
+lemma inj_nat_of_char:
+  "inj nat_of_char"
+  by (rule inj_on_inverseI) (rule char_of_nat_of_char)
+
+lemma nat_of_char_eq_iff:
+  "nat_of_char c = nat_of_char d \<longleftrightarrow> c = d"
+  by (rule inj_eq) (rule inj_nat_of_char)
+
+lemma nat_of_char_less_256:
+  "nat_of_char c < 256"
+proof (cases c)
+  case (Char x y)
+  with nat_of_nibble_less_16 [of x] nat_of_nibble_less_16 [of y]
+  show ?thesis by (simp add: nat_of_char_def)
+qed
+
+lemma char_of_nat_mod_256:
+  "char_of_nat (n mod 256) = char_of_nat n"
+proof -
+  from nibble_of_nat_mod_16 [of "n mod 256"]
+  have "nibble_of_nat (n mod 256) = nibble_of_nat (n mod 256 mod 16)" by simp
+  with nibble_of_nat_mod_16 [of n]
+  have *: "nibble_of_nat (n mod 256) = nibble_of_nat n" by (simp add: mod_mod_cancel)
+  have "n mod 256 = n mod (16 * 16)" by simp
+  then have **: "n mod 256 = n div 16 mod 16 * 16 + n mod 16" by (simp only: mod_mult2_eq)
+  show ?thesis
+    by (simp add: char_of_nat_Char_nibbles *)
+     (simp add: div_add1_eq nibble_of_nat_mod_16 [of "n div 16"] **)
+qed
 
 
 subsection {* Strings as dedicated type *}
@@ -228,8 +381,9 @@ qed (auto simp add: equal_literal_def explode_inject)
 
 end
 
-lemma STR_inject' [simp]: "(STR xs = STR ys) = (xs = ys)"
-by(simp add: STR_inject)
+lemma STR_inject' [simp]:
+  "STR xs = STR ys \<longleftrightarrow> xs = ys"
+  by (simp add: STR_inject)
 
 
 subsection {* Code generator *}
