@@ -722,7 +722,8 @@ fun isar_proof_text ctxt isar_proofs
             end
             |> HOLogic.mk_Trueprop |> close_form
         fun isar_proof_of_direct_proof outer accum [] =
-            rev accum |> outer ? append assms
+            rev accum |> outer ? (append assms
+                                  #> not (null params) ? cons (Fix params))
           | isar_proof_of_direct_proof outer accum (inf :: infs) =
             let
               fun maybe_show outer c =
@@ -779,6 +780,10 @@ fun isar_proof_text ctxt isar_proofs
                                   Case_Split (map do_case cases)))
                 end
             end
+        val cleanup_labels_in_proof =
+          chain_direct_proof
+          #> kill_useless_labels_in_proof
+          #> relabel_proof
         val (isar_proof, (preplay_fail, preplay_time)) =
           refute_graph
           |> redirect_graph axioms tainted bot
@@ -789,10 +794,7 @@ fun isar_proof_text ctxt isar_proofs
                 compress_proof debug ctxt type_enc lam_trans preplay
                   preplay_timeout
                   (if isar_proofs then isar_compress else 1000.0))
-          |>> (chain_direct_proof
-               #> kill_useless_labels_in_proof
-               #> relabel_proof
-               #> not (null params) ? cons (Fix params))
+          |>> cleanup_labels_in_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
                            isar_proof
