@@ -55,7 +55,7 @@ text {*
   \end{itemize}
 
   \noindent However, even if you ought refrain from setting up
-  adaptation yourself, already the @{text "HOL"} comes with some
+  adaptation yourself, already @{text "HOL"} comes with some
   reasonable default adaptations (say, using target language list
   syntax).  There also some common adaptation cases which you can
   setup by importing particular library theories.  In order to
@@ -146,15 +146,9 @@ text {*
        by @{typ integer} and thus by target-language built-in integers;
        contains @{text "Code_Binary_Nat"} as a prerequisite.
 
-    \item[@{text "Code_Target_Numeral"}] is a convenience node
+    \item[@{text "Code_Target_Numeral"}] is a convenience theory
        containing both @{text "Code_Target_Nat"} and
        @{text "Code_Target_Int"}.
-
-    \item[@{text "Efficient_Nat"}] \label{eff_nat} implements
-       natural numbers by integers, which in general will result in
-       higher efficiency; pattern matching with @{term "0\<Colon>nat"} /
-       @{const "Suc"} is eliminated; includes @{text "Code_Integer"}
-       and @{text "Code_Numeral"}.
 
     \item[@{text "Code_Char"}] represents @{text HOL} characters by
        character literals in target languages.
@@ -165,15 +159,11 @@ text {*
        for code setups which involve e.g.~printing (error) messages.
        Part of @{text "HOL-Main"}.
 
-  \end{description}
+    \item[@{theory "IArray"}] provides a type @{typ "'a iarray"}
+       isomorphic to lists but implemented by (effectively immutable)
+       arrays \emph{in SML only}.
 
-  \begin{warn}
-    When importing any of those theories which are not part of
-    @{text "HOL-Main"}, they should form the last
-    items in an import list.  Since these theories adapt the code
-    generator setup in a non-conservative fashion, strange effects may
-    occur otherwise.
-  \end{warn}
+  \end{description}
 *}
 
 

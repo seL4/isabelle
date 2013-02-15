@@ -4,6 +4,7 @@ imports
   "~~/src/HOL/Library/Dlist"
   "~~/src/HOL/Library/RBT"
   "~~/src/HOL/Library/Mapping"
+  "~~/src/HOL/Library/IArray"
 begin
 
 (* FIXME avoid writing into source directory *)
