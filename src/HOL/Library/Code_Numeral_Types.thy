@@ -111,6 +111,10 @@ lift_definition integer_of_nat :: "nat \<Rightarrow> integer"
   is "of_nat :: nat \<Rightarrow> int"
   .
 
+lemma integer_of_nat_eq_of_nat [code]:
+  "integer_of_nat = of_nat"
+  by transfer rule
+
 lemma int_of_integer_integer_of_nat [simp]:
   "int_of_integer (integer_of_nat n) = of_nat n"
   by transfer rule
