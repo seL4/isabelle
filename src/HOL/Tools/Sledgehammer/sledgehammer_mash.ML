@@ -509,6 +509,10 @@ val local_feature = ("local", 8.0 (* FUDGE *))
 val lams_feature = ("lams", 2.0 (* FUDGE *))
 val skos_feature = ("skos", 2.0 (* FUDGE *))
 
+(* The following "crude" functions should be progressively phased out, since
+   they create visibility edges that do not exist in Isabelle, resulting in
+   failed lookups later on. *)
+
 fun crude_theory_ord p =
   if Theory.subthy p then
     if Theory.eq_thy p then EQUAL else LESS
@@ -528,6 +532,9 @@ fun crude_thm_ord p =
       | ord => ord
     end
   | ord => ord
+
+val thm_less_eq = Theory.subthy o pairself theory_of_thm
+fun thm_less p = thm_less_eq p andalso not (thm_less_eq (swap p))
 
 val freezeT = Type.legacy_freeze_type
 
@@ -696,8 +703,7 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val thy = Proof_Context.theory_of ctxt
       val goal = goal_of_thm thy th
       val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
-      val facts =
-        facts |> filter (fn (_, th') => crude_thm_ord (th', th) = LESS)
+      val facts = facts |> filter (fn (_, th') => thm_less (th', th))
       fun nickify ((_, stature), th) = ((nickname_of_thm th, stature), th)
       fun is_dep dep (_, th) = nickname_of_thm th = dep
       fun add_isar_dep facts dep accum =
