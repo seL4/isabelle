@@ -96,18 +96,17 @@ fun try_metis debug type_enc lam_trans ctxt timeout (succedent, step) =
       | Subblock proof =>
         let
           val (steps, last_step) = split_last proof
-          (* TODO: assuming Fix may only occur at the beginning of a subblock,
-             this can be optimized *)
-          val fixed_frees =
-            fold (fn Fix xs => append (map Free xs) | _ => I) steps []
-          (* TODO: make sure the var indexnames are actually fresh *)
-          fun var_of_free (Free (x, T)) = Var((x, 1), T)
-            | var_of_free _ = error "preplay error: not a free variable"
-          val substitutions = map (`var_of_free #> swap) fixed_frees
           val concl =
             (case last_step of
               Prove (_, _, t, _) => t
             | _ => error "preplay error: unexpected conclusion of subblock")
+          (* TODO: assuming Fix may only occur at the beginning of a subblock,
+             this can be optimized *)
+          val fixed_frees = fold (fn Fix xs => append xs | _ => I) steps []
+          val var_idx = maxidx_of_term concl + 1
+          fun var_of_free (x, T) = Var((x, var_idx), T)
+          val substitutions =
+            map (`var_of_free #> swap #> apfst Free) fixed_frees
         in
           concl |> subst_free substitutions |> make_thm |> single
         end)
