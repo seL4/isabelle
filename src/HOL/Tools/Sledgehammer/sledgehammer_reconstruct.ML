@@ -685,13 +685,14 @@ fun isar_proof_text ctxt isar_proofs
           atp_proof |> map_filter dep_of_step |> make_refute_graph
         val axioms = axioms_of_refute_graph refute_graph conjs
         val tainted = tainted_atoms_of_refute_graph refute_graph conjs
+        val is_clause_tainted = exists (member (op =) tainted)
         val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val steps =
           Symtab.empty
           |> fold (fn Definition_Step _ => I (* FIXME *)
                     | Inference_Step (name as (s, ss), role, t, rule, _) =>
                       Symtab.update_new (s, (rule,
-                        t |> (if member (op = o apsnd fst) tainted s then
+                        t |> (if is_clause_tainted [name] then
                                 s_maybe_not role
                                 #> fold exists_of (map Var (Term.add_vars t []))
                               else
@@ -741,12 +742,12 @@ fun isar_proof_text ctxt isar_proofs
                     By_Metis (fold (add_fact_from_dependencies fact_names) gamma
                                    ([], []))
                   fun prove outer = Prove (maybe_show outer c [], l, t, by)
-                  val redirected = exists (member (op =) tainted) c
                 in
-                  if redirected then
+                  if is_clause_tainted c then
                     case gamma of
                       [g] =>
-                      if is_clause_skolemize_rule g then
+                      if is_clause_skolemize_rule g andalso
+                         is_clause_tainted g then
                         let
                           val proof =
                             Fix (skolems_of (prop_of_clause g)) :: rev accum
