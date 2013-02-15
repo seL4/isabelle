@@ -564,6 +564,9 @@ proof safe
   qed
 qed auto
 
+lemma image_int_atLeastLessThan: "int ` {a..<b} = {int a..<int b}"
+by(auto intro!: image_eqI[where x="nat x", standard])
+
 context ordered_ab_group_add
 begin
 
