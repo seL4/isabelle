@@ -129,7 +129,6 @@ oops
 text {* Now we specify on which subterm it should be applied *}
 lemma "A \<noteq> B \<and> (B \<longrightarrow> A \<noteq> (B \<or> C \<and> (B \<longrightarrow> A \<or> D))) \<longrightarrow> A \<or> B \<and> D"
   apply (reflection Ifm.simps only: "B \<or> C \<and> (B \<longrightarrow> A \<or> D)")
-  apply code_simp
 oops
 
 
