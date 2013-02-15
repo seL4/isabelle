@@ -50,7 +50,8 @@ sig
 
   val mash_unlearn : Proof.context -> unit
   val nickname_of_thm : thm -> string
-  val find_suggested_facts : ('b * thm) list -> string list -> ('b * thm) list
+  val find_suggested_facts :
+    Proof.context -> ('b * thm) list -> string list -> ('b * thm) list
   val mesh_facts :
     ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
     -> 'a list
@@ -72,8 +73,8 @@ sig
   val weight_mepo_facts : 'a list -> ('a * real) list
   val weight_mash_facts : 'a list -> ('a * real) list
   val find_mash_suggestions :
-    int -> string list -> ('b * thm) list -> ('b * thm) list -> ('b * thm) list
-    -> ('b * thm) list * ('b * thm) list
+    Proof.context -> int -> string list -> ('b * thm) list -> ('b * thm) list
+    -> ('b * thm) list -> ('b * thm) list * ('b * thm) list
   val mash_suggested_facts :
     Proof.context -> params -> string -> int -> term list -> term
     -> raw_fact list -> fact list * fact list
@@ -450,11 +451,15 @@ fun nickname_of_thm th =
   else
     elided_backquote_thm 200 th
 
-fun find_suggested_facts facts =
+fun find_suggested_facts ctxt facts =
   let
-    fun add_fact (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
-    val tab = fold add_fact facts Symtab.empty
-  in map_filter (Symtab.lookup tab) end
+    fun add (fact as (_, th)) = Symtab.default (nickname_of_thm th, fact)
+    val tab = fold add facts Symtab.empty
+    fun lookup nick =
+      Symtab.lookup tab nick
+      |> tap (fn NONE => trace_msg ctxt (fn () => "Cannot find " ^ quote nick)
+               | _ => ())
+  in map_filter lookup end
 
 fun scaled_avg [] = 0
   | scaled_avg xs =
@@ -789,10 +794,10 @@ fun weight_proximity_facts facts =
 
 val max_proximity_facts = 100
 
-fun find_mash_suggestions _ [] _ _ raw_unknown = ([], raw_unknown)
-  | find_mash_suggestions max_facts suggs facts chained raw_unknown =
+fun find_mash_suggestions _ _ [] _ _ raw_unknown = ([], raw_unknown)
+  | find_mash_suggestions ctxt max_facts suggs facts chained raw_unknown =
     let
-      val raw_mash = find_suggested_facts facts suggs
+      val raw_mash = find_suggested_facts ctxt facts suggs
       val unknown_chained =
         inter (Thm.eq_thm_prop o pairself snd) chained raw_unknown
       val proximity =
@@ -831,7 +836,7 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
             end)
     val unknown = facts |> filter_out (is_fact_in_graph access_G snd)
   in
-    find_mash_suggestions max_facts suggs facts chained unknown
+    find_mash_suggestions ctxt max_facts suggs facts chained unknown
     |> pairself (map fact_of_raw_fact)
   end
 
