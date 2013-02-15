@@ -91,7 +91,6 @@ sig
   val dest_nat: term -> int
   val class_size: string
   val size_const: typ -> term
-  val code_numeralT: typ
   val intT: typ
   val one_const: term
   val bit0_const: term
@@ -105,6 +104,8 @@ sig
   val add_numerals: term -> (term * typ) list -> (term * typ) list
   val mk_number: typ -> int -> term
   val dest_number: term -> typ * int
+  val code_integerT: typ
+  val code_naturalT: typ
   val realT: typ
   val nibbleT: typ
   val mk_nibble: int -> term
@@ -487,11 +488,6 @@ val class_size = "Nat.size";
 fun size_const T = Const ("Nat.size_class.size", T --> natT);
 
 
-(* code numeral *)
-
-val code_numeralT = Type ("Code_Numeral.code_numeral", []);
-
-
 (* binary numerals and int *)
 
 val numT = Type ("Num.num", []);
@@ -541,6 +537,13 @@ fun dest_number (Const ("Groups.zero_class.zero", T)) = (T, 0)
   | dest_number (Const ("Num.neg_numeral_class.neg_numeral", Type ("fun", [_, T])) $ t) =
       (T, ~ (dest_num t))
   | dest_number t = raise TERM ("dest_number", [t]);
+
+
+(* code target numerals *)
+
+val code_integerT = Type ("Code_Numeral.integer", []);
+
+val code_naturalT = Type ("Code_Numeral.natural", []);
 
 
 (* real *)
@@ -684,9 +687,9 @@ fun mk_ST clauses t U (someT, V) =
 
 (* random seeds *)
 
-val random_seedT = mk_prodT (code_numeralT, code_numeralT);
+val random_seedT = mk_prodT (code_naturalT, code_naturalT);
 
-fun mk_random T t = Const ("Quickcheck_Random.random_class.random", code_numeralT
+fun mk_random T t = Const ("Quickcheck_Random.random_class.random", code_naturalT
   --> random_seedT --> mk_prodT (mk_prodT (T, unitT --> termT), random_seedT)) $ t;
 
 end;

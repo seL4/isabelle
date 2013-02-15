@@ -4,7 +4,7 @@
 
 theory Ferrack
 imports Complex_Main Dense_Linear_Order DP_Library
-  "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
+  "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
 section {* Quantifier elimination for @{text "\<real> (0, 1, +, <)"} *}
@@ -1818,7 +1818,7 @@ next
   with usubst_I[OF lp mnp stnb, where x="x" and bs="bs"] tnU smU show ?lhs by blast
 qed
 
-lemma ferrack: 
+lemma ferrack:
   assumes qf: "qfree p"
   shows "qfree (ferrack p) \<and> ((Ifm bs (ferrack p)) = (\<exists> x. Ifm (x#bs) p))"
   (is "_ \<and> (?rhs = ?lhs)")
@@ -1922,12 +1922,15 @@ ML {* @{code ferrack_test} () *}
 oracle linr_oracle = {*
 let
 
-fun num_of_term vs (Free vT) = @{code Bound} (find_index (fn vT' => vT = vT') vs)
-  | num_of_term vs @{term "real (0::int)"} = @{code C} 0
-  | num_of_term vs @{term "real (1::int)"} = @{code C} 1
-  | num_of_term vs @{term "0::real"} = @{code C} 0
-  | num_of_term vs @{term "1::real"} = @{code C} 1
-  | num_of_term vs (Bound i) = @{code Bound} i
+val mk_C = @{code C} o @{code int_of_integer};
+val mk_Bound = @{code Bound} o @{code nat_of_integer};
+
+fun num_of_term vs (Free vT) = mk_Bound (find_index (fn vT' => vT = vT') vs)
+  | num_of_term vs @{term "real (0::int)"} = mk_C 0
+  | num_of_term vs @{term "real (1::int)"} = mk_C 1
+  | num_of_term vs @{term "0::real"} = mk_C 0
+  | num_of_term vs @{term "1::real"} = mk_C 1
+  | num_of_term vs (Bound i) = mk_Bound i
   | num_of_term vs (@{term "uminus :: real \<Rightarrow> real"} $ t') = @{code Neg} (num_of_term vs t')
   | num_of_term vs (@{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $ t1 $ t2) =
      @{code Add} (num_of_term vs t1, num_of_term vs t2)
@@ -1937,10 +1940,10 @@ fun num_of_term vs (Free vT) = @{code Bound} (find_index (fn vT' => vT = vT') vs
      of @{code C} i => @{code Mul} (i, num_of_term vs t2)
       | _ => error "num_of_term: unsupported multiplication")
   | num_of_term vs (@{term "real :: int \<Rightarrow> real"} $ t') =
-     (@{code C} (snd (HOLogic.dest_number t'))
+     (mk_C (snd (HOLogic.dest_number t'))
        handle TERM _ => error ("num_of_term: unknown term"))
   | num_of_term vs t' =
-     (@{code C} (snd (HOLogic.dest_number t'))
+     (mk_C (snd (HOLogic.dest_number t'))
        handle TERM _ => error ("num_of_term: unknown term"));
 
 fun fm_of_term vs @{term True} = @{code T}
@@ -1963,8 +1966,9 @@ fun fm_of_term vs @{term True} = @{code T}
       @{code A} (fm_of_term (("", dummyT) ::  vs) p)
   | fm_of_term vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
-fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $ HOLogic.mk_number HOLogic.intT i
-  | term_of_num vs (@{code Bound} n) = Free (nth vs n)
+fun term_of_num vs (@{code C} i) = @{term "real :: int \<Rightarrow> real"} $
+      HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
+  | term_of_num vs (@{code Bound} n) = Free (nth vs (@{code integer_of_nat} n))
   | term_of_num vs (@{code Neg} t') = @{term "uminus :: real \<Rightarrow> real"} $ term_of_num vs t'
   | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: real \<Rightarrow> real \<Rightarrow> real"} $
       term_of_num vs t1 $ term_of_num vs t2
@@ -2026,3 +2030,4 @@ lemma
   by rferrack
 
 end
+

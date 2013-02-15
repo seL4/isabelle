@@ -600,7 +600,6 @@ definition %quote example :: int where
 text {*
   \noindent This maps to Haskell as follows:
 *}
-(*<*)code_include %invisible Haskell "Natural" -(*>*)
 text %quotetypewriter {*
   @{code_stmts example (Haskell)}
 *}
@@ -616,7 +615,6 @@ text %quotetypewriter {*
 text {*
   \noindent In Scala, implicts are used as dictionaries:
 *}
-(*<*)code_include %invisible Scala "Natural" -(*>*)
 text %quotetypewriter {*
   @{code_stmts example (Scala)}
 *}
@@ -640,3 +638,4 @@ text {*
 *}
 
 end
+

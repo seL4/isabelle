@@ -5,7 +5,7 @@
 header {* Implementation of natural numbers by target-language integers *}
 
 theory Code_Target_Nat
-imports Code_Abstract_Nat Code_Numeral_Types
+imports Code_Abstract_Nat
 begin
 
 subsection {* Implementation for @{typ nat} *}

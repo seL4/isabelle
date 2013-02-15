@@ -6,7 +6,7 @@
 header {* Weak normalization for simply-typed lambda calculus *}
 
 theory WeakNorm
-imports LambdaType NormalForm "~~/src/HOL/Library/Code_Integer"
+imports LambdaType NormalForm "~~/src/HOL/Library/Code_Target_Int"
 begin
 
 text {*
@@ -387,14 +387,16 @@ text {*
 *}
 
 ML {*
+val nat_of_integer = @{code nat} o @{code int_of_integer};
+
 fun dBtype_of_typ (Type ("fun", [T, U])) =
       @{code Fun} (dBtype_of_typ T, dBtype_of_typ U)
   | dBtype_of_typ (TFree (s, _)) = (case raw_explode s of
-        ["'", a] => @{code Atom} (@{code nat} (ord a - 97))
+        ["'", a] => @{code Atom} (nat_of_integer (ord a - 97))
       | _ => error "dBtype_of_typ: variable name")
   | dBtype_of_typ _ = error "dBtype_of_typ: bad type";
 
-fun dB_of_term (Bound i) = @{code dB.Var} (@{code nat} i)
+fun dB_of_term (Bound i) = @{code dB.Var} (nat_of_integer i)
   | dB_of_term (t $ u) = @{code dB.App} (dB_of_term t, dB_of_term u)
   | dB_of_term (Abs (_, _, t)) = @{code dB.Abs} (dB_of_term t)
   | dB_of_term _ = error "dB_of_term: bad term";
@@ -402,23 +404,23 @@ fun dB_of_term (Bound i) = @{code dB.Var} (@{code nat} i)
 fun term_of_dB Ts (Type ("fun", [T, U])) (@{code dB.Abs} dBt) =
       Abs ("x", T, term_of_dB (T :: Ts) U dBt)
   | term_of_dB Ts _ dBt = term_of_dB' Ts dBt
-and term_of_dB' Ts (@{code dB.Var} n) = Bound (@{code int_of_nat} n)
+and term_of_dB' Ts (@{code dB.Var} n) = Bound (@{code integer_of_nat} n)
   | term_of_dB' Ts (@{code dB.App} (dBt, dBu)) =
       let val t = term_of_dB' Ts dBt
       in case fastype_of1 (Ts, t) of
-          Type ("fun", [T, U]) => t $ term_of_dB Ts T dBu
+          Type ("fun", [T, _]) => t $ term_of_dB Ts T dBu
         | _ => error "term_of_dB: function type expected"
       end
   | term_of_dB' _ _ = error "term_of_dB: term not in normal form";
 
 fun typing_of_term Ts e (Bound i) =
-      @{code Var} (e, @{code nat} i, dBtype_of_typ (nth Ts i))
+      @{code Var} (e, nat_of_integer i, dBtype_of_typ (nth Ts i))
   | typing_of_term Ts e (t $ u) = (case fastype_of1 (Ts, t) of
         Type ("fun", [T, U]) => @{code App} (e, dB_of_term t,
           dBtype_of_typ T, dBtype_of_typ U, dB_of_term u,
           typing_of_term Ts e t, typing_of_term Ts e u)
       | _ => error "typing_of_term: function type expected")
-  | typing_of_term Ts e (Abs (s, T, t)) =
+  | typing_of_term Ts e (Abs (_, T, t)) =
       let val dBT = dBtype_of_typ T
       in @{code Abs} (e, dBT, dB_of_term t,
         dBtype_of_typ (fastype_of1 (T :: Ts, t)),

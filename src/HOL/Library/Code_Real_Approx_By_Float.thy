@@ -1,7 +1,7 @@
 (* Authors: Florian Haftmann, Johannes Hölzl, Tobias Nipkow *)
 
 theory Code_Real_Approx_By_Float
-imports Complex_Main "~~/src/HOL/Library/Code_Integer"
+imports Complex_Main "~~/src/HOL/Library/Code_Target_Int"
 begin
 
 text{* \textbf{WARNING} This theory implements mathematical reals by machine
@@ -119,15 +119,19 @@ code_const arcsin
   (OCaml "Pervasives.asin")
 declare arcsin_def[code del]
 
-definition real_of_int :: "int \<Rightarrow> real" where
-  "real_of_int \<equiv> of_int"
+definition real_of_integer :: "integer \<Rightarrow> real" where
+  "real_of_integer = of_int \<circ> int_of_integer"
 
-code_const real_of_int
+code_const real_of_integer
   (SML "Real.fromInt")
   (OCaml "Pervasives.float (Big'_int.int'_of'_big'_int (_))")
 
-lemma of_int_eq_real_of_int[code_unfold]: "of_int = real_of_int"
-  unfolding real_of_int_def ..
+definition real_of_int :: "int \<Rightarrow> real" where
+  [code_abbrev]: "real_of_int = of_int"
+
+lemma [code]:
+  "real_of_int = real_of_integer \<circ> integer_of_int"
+  by (simp add: fun_eq_iff real_of_integer_def real_of_int_def)
 
 lemma [code_unfold del]:
   "0 \<equiv> (of_rat 0 :: real)"
@@ -155,3 +159,4 @@ begin
 end
 
 end
+

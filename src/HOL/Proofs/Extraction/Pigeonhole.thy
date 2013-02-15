@@ -5,7 +5,7 @@
 header {* The pigeonhole principle *}
 
 theory Pigeonhole
-imports Util "~~/src/HOL/Library/Efficient_Nat"
+imports Util "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
 text {*
@@ -237,11 +237,11 @@ instance ..
 end
 
 definition
-  "test n u = pigeonhole n (\<lambda>m. m - 1)"
+  "test n u = pigeonhole (nat_of_integer n) (\<lambda>m. m - 1)"
 definition
-  "test' n u = pigeonhole_slow n (\<lambda>m. m - 1)"
+  "test' n u = pigeonhole_slow (nat_of_integer n) (\<lambda>m. m - 1)"
 definition
-  "test'' u = pigeonhole 8 (op ! [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
+  "test'' u = pigeonhole 8 (List.nth [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
 
 ML "timeit (@{code test} 10)" 
 ML "timeit (@{code test'} 10)"

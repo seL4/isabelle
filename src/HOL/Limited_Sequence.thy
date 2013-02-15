@@ -9,7 +9,7 @@ begin
 
 subsection {* Depth-Limited Sequence *}
 
-type_synonym 'a dseq = "code_numeral \<Rightarrow> bool \<Rightarrow> 'a lazy_sequence option"
+type_synonym 'a dseq = "natural \<Rightarrow> bool \<Rightarrow> 'a lazy_sequence option"
 
 definition empty :: "'a dseq"
 where
@@ -19,11 +19,11 @@ definition single :: "'a \<Rightarrow> 'a dseq"
 where
   "single x = (\<lambda>_ _. Some (Lazy_Sequence.single x))"
 
-definition eval :: "'a dseq \<Rightarrow> code_numeral \<Rightarrow> bool \<Rightarrow> 'a lazy_sequence option"
+definition eval :: "'a dseq \<Rightarrow> natural \<Rightarrow> bool \<Rightarrow> 'a lazy_sequence option"
 where
   [simp]: "eval f i pol = f i pol"
 
-definition yield :: "'a dseq \<Rightarrow> code_numeral \<Rightarrow> bool \<Rightarrow> ('a \<times> 'a dseq) option" 
+definition yield :: "'a dseq \<Rightarrow> natural \<Rightarrow> bool \<Rightarrow> ('a \<times> 'a dseq) option" 
 where
   "yield f i pol = (case eval f i pol of
     None \<Rightarrow> None
@@ -82,7 +82,7 @@ where
 
 subsection {* Positive Depth-Limited Sequence *}
 
-type_synonym 'a pos_dseq = "code_numeral \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
+type_synonym 'a pos_dseq = "natural \<Rightarrow> 'a Lazy_Sequence.lazy_sequence"
 
 definition pos_empty :: "'a pos_dseq"
 where
@@ -112,7 +112,7 @@ definition pos_if_seq :: "bool \<Rightarrow> unit pos_dseq"
 where
   "pos_if_seq b = (if b then pos_single () else pos_empty)"
 
-definition pos_iterate_upto :: "(code_numeral \<Rightarrow> 'a) \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> 'a pos_dseq"
+definition pos_iterate_upto :: "(natural \<Rightarrow> 'a) \<Rightarrow> natural \<Rightarrow> natural \<Rightarrow> 'a pos_dseq"
 where
   "pos_iterate_upto f n m = (\<lambda>i. Lazy_Sequence.iterate_upto f n m)"
  
@@ -123,7 +123,7 @@ where
 
 subsection {* Negative Depth-Limited Sequence *}
 
-type_synonym 'a neg_dseq = "code_numeral \<Rightarrow> 'a Lazy_Sequence.hit_bound_lazy_sequence"
+type_synonym 'a neg_dseq = "natural \<Rightarrow> 'a Lazy_Sequence.hit_bound_lazy_sequence"
 
 definition neg_empty :: "'a neg_dseq"
 where
@@ -178,16 +178,16 @@ where
 ML {*
 signature LIMITED_SEQUENCE =
 sig
-  type 'a dseq = int -> bool -> 'a Lazy_Sequence.lazy_sequence option
+  type 'a dseq = Code_Numeral.natural -> bool -> 'a Lazy_Sequence.lazy_sequence option
   val map : ('a -> 'b) -> 'a dseq -> 'b dseq
-  val yield : 'a dseq -> int -> bool -> ('a * 'a dseq) option
-  val yieldn : int -> 'a dseq -> int -> bool -> 'a list * 'a dseq
+  val yield : 'a dseq -> Code_Numeral.natural -> bool -> ('a * 'a dseq) option
+  val yieldn : int -> 'a dseq -> Code_Numeral.natural -> bool -> 'a list * 'a dseq
 end;
 
 structure Limited_Sequence : LIMITED_SEQUENCE =
 struct
 
-type 'a dseq = int -> bool -> 'a Lazy_Sequence.lazy_sequence option
+type 'a dseq = Code_Numeral.natural -> bool -> 'a Lazy_Sequence.lazy_sequence option
 
 fun map f = @{code Limited_Sequence.map} f;
 

@@ -21,7 +21,7 @@ code_const catch_match
 subsection {* The @{text random} class *}
 
 class random = typerep +
-  fixes random :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  fixes random :: "natural \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 
 
 subsection {* Fundamental and numeric types*}
@@ -41,7 +41,7 @@ instantiation itself :: (typerep) random
 begin
 
 definition
-  random_itself :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  random_itself :: "natural \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 where "random_itself _ = Pair (Code_Evaluation.valtermify TYPE('a))"
 
 instance ..
@@ -71,11 +71,11 @@ end
 instantiation nat :: random
 begin
 
-definition random_nat :: "code_numeral \<Rightarrow> Random.seed
+definition random_nat :: "natural \<Rightarrow> Random.seed
   \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed"
 where
   "random_nat i = Random.range (i + 1) \<circ>\<rightarrow> (\<lambda>k. Pair (
-     let n = Code_Numeral.nat_of k
+     let n = nat_of_natural k
      in (n, \<lambda>_. Code_Evaluation.term_of n)))"
 
 instance ..
@@ -87,8 +87,34 @@ begin
 
 definition
   "random i = Random.range (2 * i + 1) \<circ>\<rightarrow> (\<lambda>k. Pair (
-     let j = (if k \<ge> i then Code_Numeral.int_of (k - i) else - Code_Numeral.int_of (i - k))
+     let j = (if k \<ge> i then int (nat_of_natural (k - i)) else - (int (nat_of_natural (i - k))))
      in (j, \<lambda>_. Code_Evaluation.term_of j)))"
+
+instance ..
+
+end
+
+instantiation natural :: random
+begin
+
+definition random_natural :: "natural \<Rightarrow> Random.seed
+  \<Rightarrow> (natural \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed"
+where
+  "random_natural i = Random.range (i + 1) \<circ>\<rightarrow> (\<lambda>n. Pair (n, \<lambda>_. Code_Evaluation.term_of n))"
+
+instance ..
+
+end
+
+instantiation integer :: random
+begin
+
+definition random_integer :: "natural \<Rightarrow> Random.seed
+  \<Rightarrow> (integer \<times> (unit \<Rightarrow> Code_Evaluation.term)) \<times> Random.seed"
+where
+  "random_integer i = Random.range (2 * i + 1) \<circ>\<rightarrow> (\<lambda>k. Pair (
+     let j = (if k \<ge> i then integer_of_natural (k - i) else - (integer_of_natural (i - k)))
+      in (j, \<lambda>_. Code_Evaluation.term_of j)))"
 
 instance ..
 
@@ -114,7 +140,7 @@ instantiation "fun" :: ("{equal, term_of}", random) random
 begin
 
 definition
-  random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  random_fun :: "natural \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
   where "random i = random_fun_lift (random i)"
 
 instance ..
@@ -126,7 +152,7 @@ text {* Towards type copies and datatypes *}
 definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a"
   where "collapse f = (f \<circ>\<rightarrow> id)"
 
-definition beyond :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
+definition beyond :: "natural \<Rightarrow> natural \<Rightarrow> natural"
   where "beyond k l = (if l > k then l else 0)"
 
 lemma beyond_zero: "beyond k 0 = 0"
@@ -155,13 +181,13 @@ lemma [code]:
   "random_aux_set i j =
     collapse (Random.select_weight [(1, Pair valterm_emptyset),
       (i, random j \<circ>\<rightarrow> (%x. random_aux_set (i - 1) j \<circ>\<rightarrow> (%s. Pair (valtermify_insert x s))))])"
-proof (induct i rule: code_numeral.induct)
+proof (induct i rule: natural.induct)
   case zero
   show ?case by (subst select_weight_drop_zero [symmetric])
-    (simp add: random_aux_set.simps [simplified])
+    (simp add: random_aux_set.simps [simplified] less_natural_def)
 next
   case (Suc i)
-  show ?case by (simp only: random_aux_set.simps(2) [of "i"] Suc_code_numeral_minus_one)
+  show ?case by (simp only: random_aux_set.simps(2) [of "i"] Suc_natural_minus_one)
 qed
 
 definition "random_set i = random_aux_set i i"
@@ -171,11 +197,11 @@ instance ..
 end
 
 lemma random_aux_rec:
-  fixes random_aux :: "code_numeral \<Rightarrow> 'a"
+  fixes random_aux :: "natural \<Rightarrow> 'a"
   assumes "random_aux 0 = rhs 0"
     and "\<And>k. random_aux (Code_Numeral.Suc k) = rhs (Code_Numeral.Suc k)"
   shows "random_aux k = rhs k"
-  using assms by (rule code_numeral.induct)
+  using assms by (rule natural.induct)
 
 subsection {* Deriving random generators for datatypes *}
 

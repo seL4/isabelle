@@ -105,8 +105,8 @@ lemma
   [code]: "cps_of_set (set xs) f = find_first f xs"
 sorry
 
-consts pos_cps_of_set :: "'a set => ('a => (bool * term list) option) => code_numeral => (bool * term list) option"
-consts neg_cps_of_set :: "'a set => ('a Quickcheck_Exhaustive.unknown => term list Quickcheck_Exhaustive.three_valued) => code_numeral => term list Quickcheck_Exhaustive.three_valued"
+consts pos_cps_of_set :: "'a set => ('a => (bool * term list) option) => natural => (bool * term list) option"
+consts neg_cps_of_set :: "'a set => ('a Quickcheck_Exhaustive.unknown => term list Quickcheck_Exhaustive.three_valued) => natural => term list Quickcheck_Exhaustive.three_valued"
 
 lemma
   [code]: "pos_cps_of_set (set xs) f i = find_first f xs"

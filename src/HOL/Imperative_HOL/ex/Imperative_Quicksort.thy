@@ -9,7 +9,7 @@ imports
   "~~/src/HOL/Imperative_HOL/Imperative_HOL"
   Subarray
   "~~/src/HOL/Library/Multiset"
-  "~~/src/HOL/Library/Efficient_Nat"
+  "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 
 text {* We prove QuickSort correct in the Relational Calculus. *}
@@ -657,7 +657,12 @@ definition "qsort a = do {
 
 code_reserved SML upto
 
-ML {* @{code qsort} (Array.fromList [42, 2, 3, 5, 0, 1705, 8, 3, 15]) () *}
+definition "example = do {
+    a \<leftarrow> Array.of_list [42, 2, 3, 5, 0, 1705, 8, 3, 15];
+    qsort a
+  }"
+
+ML {* @{code example} () *}
 
 export_code qsort checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 

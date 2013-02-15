@@ -3,7 +3,7 @@
 *)
 
 theory Cooper
-imports Complex_Main "~~/src/HOL/Library/Efficient_Nat" "~~/src/HOL/Library/Old_Recdef"
+imports Complex_Main "~~/src/HOL/Library/Code_Target_Numeral" "~~/src/HOL/Library/Old_Recdef"
 begin
 
 (* Periodicity of dvd *)
@@ -1996,21 +1996,23 @@ definition cooper_test :: "unit \<Rightarrow> fm"
 
 ML {* @{code cooper_test} () *}
 
-(* code_reflect Cooper_Procedure
+(*code_reflect Cooper_Procedure
   functions pa
-  file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML" *)
+  file "~~/src/HOL/Tools/Qelim/cooper_procedure.ML"*)
 
 oracle linzqe_oracle = {*
 let
 
 fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
      of NONE => error "Variable not found in the list!"
-      | SOME n => @{code Bound} n)
-  | num_of_term vs @{term "0::int"} = @{code C} 0
-  | num_of_term vs @{term "1::int"} = @{code C} 1
-  | num_of_term vs (@{term "numeral :: _ \<Rightarrow> int"} $ t) = @{code C} (HOLogic.dest_num t)
-  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t) = @{code C} (~(HOLogic.dest_num t))
-  | num_of_term vs (Bound i) = @{code Bound} i
+      | SOME n => @{code Bound} (@{code nat_of_integer} n))
+  | num_of_term vs @{term "0::int"} = @{code C} (@{code int_of_integer} 0)
+  | num_of_term vs @{term "1::int"} = @{code C} (@{code int_of_integer} 1)
+  | num_of_term vs (@{term "numeral :: _ \<Rightarrow> int"} $ t) =
+      @{code C} (@{code int_of_integer} (HOLogic.dest_num t))
+  | num_of_term vs (@{term "neg_numeral :: _ \<Rightarrow> int"} $ t) =
+      @{code C} (@{code int_of_integer} (~(HOLogic.dest_num t)))
+  | num_of_term vs (Bound i) = @{code Bound} (@{code nat_of_integer} i)
   | num_of_term vs (@{term "uminus :: int \<Rightarrow> int"} $ t') = @{code Neg} (num_of_term vs t')
   | num_of_term vs (@{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       @{code Add} (num_of_term vs t1, num_of_term vs t2)
@@ -2018,9 +2020,9 @@ fun num_of_term vs (t as Free (xn, xT)) = (case AList.lookup (op =) vs t
       @{code Sub} (num_of_term vs t1, num_of_term vs t2)
   | num_of_term vs (@{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $ t1 $ t2) =
       (case try HOLogic.dest_number t1
-       of SOME (_, i) => @{code Mul} (i, num_of_term vs t2)
+       of SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t2)
         | NONE => (case try HOLogic.dest_number t2
-                of SOME (_, i) => @{code Mul} (i, num_of_term vs t1)
+                of SOME (_, i) => @{code Mul} (@{code int_of_integer} i, num_of_term vs t1)
                  | NONE => error "num_of_term: unsupported multiplication"))
   | num_of_term vs t = error ("num_of_term: unknown term " ^ Syntax.string_of_term @{context} t);
 
@@ -2034,7 +2036,7 @@ fun fm_of_term ps vs @{term True} = @{code T}
       @{code Eq} (@{code Sub} (num_of_term vs t1, num_of_term vs t2))
   | fm_of_term ps vs (@{term "op dvd :: int \<Rightarrow> int \<Rightarrow> bool"} $ t1 $ t2) =
       (case try HOLogic.dest_number t1
-       of SOME (_, i) => @{code Dvd} (i, num_of_term vs t2)
+       of SOME (_, i) => @{code Dvd} (@{code int_of_integer} i, num_of_term vs t2)
         | NONE => error "num_of_term: unsupported dvd")
   | fm_of_term ps vs (@{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ t1 $ t2) =
       @{code Iff} (fm_of_term ps vs t1, fm_of_term ps vs t2)
@@ -2058,8 +2060,11 @@ fun fm_of_term ps vs @{term True} = @{code T}
       in @{code A} (fm_of_term ps vs' p) end
   | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
 
-fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT i
-  | term_of_num vs (@{code Bound} n) = fst (the (find_first (fn (_, m) => n = m) vs))
+fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT (@{code integer_of_int} i)
+  | term_of_num vs (@{code Bound} n) =
+      let
+        val q = @{code integer_of_nat} n
+      in fst (the (find_first (fn (_, m) => q = m) vs)) end
   | term_of_num vs (@{code Neg} t') = @{term "uminus :: int \<Rightarrow> int"} $ term_of_num vs t'
   | term_of_num vs (@{code Add} (t1, t2)) = @{term "op + :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs t1 $ term_of_num vs t2
@@ -2097,7 +2102,10 @@ fun term_of_fm ps vs @{code T} = @{term True}
       HOLogic.imp $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (@{code Iff} (t1, t2)) =
       @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
-  | term_of_fm ps vs (@{code Closed} n) = (fst o the) (find_first (fn (_, m) => m = n) ps)
+  | term_of_fm ps vs (@{code Closed} n) =
+      let
+        val q = @{code integer_of_nat} n
+      in (fst o the) (find_first (fn (_, m) => m = q) ps) end
   | term_of_fm ps vs (@{code NClosed} n) = term_of_fm ps vs (@{code NOT} (@{code Closed} n));
 
 fun term_bools acc t =

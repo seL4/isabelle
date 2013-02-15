@@ -1326,7 +1326,7 @@ no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 instantiation multiset :: (exhaustive) exhaustive
 begin
 
-definition exhaustive_multiset :: "('a multiset => (bool * term list) option) => code_numeral => (bool * term list) option"
+definition exhaustive_multiset :: "('a multiset => (bool * term list) option) => natural => (bool * term list) option"
 where
   "exhaustive_multiset f i = Quickcheck_Exhaustive.exhaustive (%xs. f (Bag xs)) i"
 
@@ -1337,7 +1337,7 @@ end
 instantiation multiset :: (full_exhaustive) full_exhaustive
 begin
 
-definition full_exhaustive_multiset :: "('a multiset * (unit => term) => (bool * term list) option) => code_numeral => (bool * term list) option"
+definition full_exhaustive_multiset :: "('a multiset * (unit => term) => (bool * term list) option) => natural => (bool * term list) option"
 where
   "full_exhaustive_multiset f i = Quickcheck_Exhaustive.full_exhaustive (%xs. f (bagify xs)) i"
 

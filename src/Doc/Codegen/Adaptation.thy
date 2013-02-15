@@ -125,11 +125,30 @@ text {*
 
   \begin{description}
 
-    \item[@{text "Code_Integer"}] represents @{text HOL} integers by
-       big integer literals in target languages.
+    \item[@{theory "Code_Numeral"}] provides additional numeric
+       types @{typ integer} and @{typ natural} isomorphic to types
+       @{typ int} and @{typ nat} respectively.  Type @{typ integer}
+       is mapped to target-language built-in integers; @{typ natural}
+       is implemented as abstract type over @{typ integer}.
+       Useful for code setups which involve e.g.~indexing
+       of target-language arrays.  Part of @{text "HOL-Main"}.
 
-    \item[@{text "Code_Char"}] represents @{text HOL} characters by
-       character literals in target languages.
+    \item[@{text "Code_Target_Int"}] implements type @{typ int}
+       by @{typ integer} and thus by target-language built-in integers.
+
+    \item[@{text "Code_Binary_Nat"}] \label{eff_nat} implements type
+       @{typ nat} using a binary rather than a linear representation,
+       which yields a considerable speedup for computations.
+       Pattern matching with @{term "0\<Colon>nat"} / @{const "Suc"} is eliminated
+       by a preprocessor.
+
+    \item[@{text "Code_Target_Nat"}] implements type @{typ int}
+       by @{typ integer} and thus by target-language built-in integers;
+       contains @{text "Code_Binary_Nat"} as a prerequisite.
+
+    \item[@{text "Code_Target_Numeral"}] is a convenience node
+       containing both @{text "Code_Target_Nat"} and
+       @{text "Code_Target_Int"}.
 
     \item[@{text "Code_Char_chr"}] like @{text "Code_Char"}, but
        also offers treatment of character codes; includes @{text
@@ -141,10 +160,8 @@ text {*
        @{const "Suc"} is eliminated; includes @{text "Code_Integer"}
        and @{text "Code_Numeral"}.
 
-    \item[@{theory "Code_Numeral"}] provides an additional datatype
-       @{typ index} which is mapped to target-language built-in
-       integers.  Useful for code setups which involve e.g.~indexing
-       of target-language arrays.  Part of @{text "HOL-Main"}.
+    \item[@{text "Code_Char"}] represents @{text HOL} characters by
+       character literals in target languages.
 
     \item[@{theory "String"}] provides an additional datatype @{typ
        String.literal} which is isomorphic to strings; @{typ

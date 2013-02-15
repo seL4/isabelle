@@ -1031,7 +1031,7 @@ begin
 
 definition
   "Quickcheck_Random.random i = Quickcheck_Random.random i \<circ>\<rightarrow> (\<lambda>num. Random.range i \<circ>\<rightarrow> (\<lambda>denom. Pair (
-     let j = Code_Numeral.int_of (denom + 1)
+     let j = int_of_integer (integer_of_natural (denom + 1))
      in valterm_fract num (j, \<lambda>u. Code_Evaluation.term_of j))))"
 
 instance ..
@@ -1045,7 +1045,8 @@ instantiation rat :: exhaustive
 begin
 
 definition
-  "exhaustive_rat f d = Quickcheck_Exhaustive.exhaustive (%l. Quickcheck_Exhaustive.exhaustive (%k. f (Fract k (Code_Numeral.int_of l + 1))) d) d"
+  "exhaustive_rat f d = Quickcheck_Exhaustive.exhaustive
+    (\<lambda>l. Quickcheck_Exhaustive.exhaustive (\<lambda>k. f (Fract k (int_of_integer (integer_of_natural l) + 1))) d) d"
 
 instance ..
 
@@ -1056,7 +1057,7 @@ begin
 
 definition
   "full_exhaustive_rat f d = Quickcheck_Exhaustive.full_exhaustive (%(l, _). Quickcheck_Exhaustive.full_exhaustive (%k.
-     f (let j = Code_Numeral.int_of l + 1
+     f (let j = int_of_integer (integer_of_natural l) + 1
         in valterm_fract k (j, %_. Code_Evaluation.term_of j))) d) d"
 
 instance ..
@@ -1135,3 +1136,4 @@ text {* De-register @{text "rat"} as a quotient type: *}
 declare Quotient_rat[quot_del]
 
 end
+

@@ -5,7 +5,7 @@
 header {* Implementation of integer numbers by target-language integers *}
 
 theory Code_Target_Int
-imports Main "~~/src/HOL/Library/Code_Numeral_Types"
+imports Main
 begin
 
 code_datatype int_of_integer
@@ -54,7 +54,7 @@ lemma [code]:
   by transfer simp
 
 lemma [code]:
-  "Int.dup k = int_of_integer (Code_Numeral_Types.dup (of_int k))"
+  "Int.dup k = int_of_integer (Code_Numeral.dup (of_int k))"
   by transfer simp
 
 lemma [code, code del]:
@@ -66,7 +66,7 @@ lemma [code]:
 
 lemma [code]:
   "pdivmod k l = map_pair int_of_integer int_of_integer
-    (Code_Numeral_Types.divmod_abs (of_int k) (of_int l))"
+    (Code_Numeral.divmod_abs (of_int k) (of_int l))"
   by (simp add: prod_eq_iff pdivmod_def)
 
 lemma [code]:

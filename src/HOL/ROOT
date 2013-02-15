@@ -28,8 +28,6 @@ session "HOL-Library" (main) in Library = HOL +
     Code_Char_ord
     Product_Lexorder
     Product_Order
-    Code_Integer
-    Efficient_Nat
     (* Code_Prolog  FIXME cf. 76965c356d2a *)
     Code_Real_Approx_By_Float
     Code_Target_Numeral
@@ -282,7 +280,6 @@ session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
   theories [document = false]
     "~~/src/HOL/Library/Countable"
     "~~/src/HOL/Library/Monad_Syntax"
-    "~~/src/HOL/Library/Code_Natural"
     "~~/src/HOL/Library/LaTeXsugar"
   theories Imperative_HOL_ex
   files "document/root.bib" "document/root.tex"
@@ -299,7 +296,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {* Examples for program extraction in Higher-Order Logic *}
   options [condition = ISABELLE_POLYML, proofs = 2, parallel_proofs = 0]
   theories [document = false]
-    "~~/src/HOL/Library/Efficient_Nat"
+    "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
     "~~/src/HOL/Number_Theory/Primes"
     "~~/src/HOL/Number_Theory/UniqueFactorization"
@@ -315,7 +312,7 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
 session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
   options [document_graph, print_mode = "no_brackets", proofs = 2, parallel_proofs = 0]
   theories [document = false]
-    "~~/src/HOL/Library/Code_Integer"
+    "~~/src/HOL/Library/Code_Target_Int"
   theories
     Eta
     StrongNorm

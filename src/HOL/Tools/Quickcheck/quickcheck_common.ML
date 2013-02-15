@@ -429,10 +429,10 @@ fun gen_mk_parametric_generator_expr ((mk_generator_expr, out_of_bounds), T) ctx
   let
     val if_t = Const (@{const_name "If"}, @{typ bool} --> T --> T --> T)
     fun mk_if (index, (t, eval_terms)) else_t = if_t $
-        (HOLogic.eq_const @{typ code_numeral} $ Bound 0 $ HOLogic.mk_number @{typ code_numeral} index) $
+        (HOLogic.eq_const @{typ natural} $ Bound 0 $ HOLogic.mk_number @{typ natural} index) $
         (mk_generator_expr ctxt (t, eval_terms)) $ else_t
   in
-    absdummy @{typ "code_numeral"} (fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds)
+    absdummy @{typ natural} (fold_rev mk_if (1 upto (length ts) ~~ ts) out_of_bounds)
   end
 
 (** post-processing of function terms **)

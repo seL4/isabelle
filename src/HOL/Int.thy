@@ -853,7 +853,7 @@ apply (subst of_nat_diff)
 apply (rule nat_mono, simp_all)
 done
 
-lemma nat_numeral [simp, code_abbrev]:
+lemma nat_numeral [simp]:
   "nat (numeral k) = numeral k"
   by (simp add: nat_eq_iff)
 
