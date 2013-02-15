@@ -501,10 +501,10 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         do_metis ind "using [[metis_new_skolem]] " facts ^ "\n"
       | do_step ind (Prove (qs, l, t, By_Metis facts)) = 
         do_prove ind qs l t facts
-      | do_step ind (Prove (qs, l, t, Case_Split (proofs, facts))) =
+      | do_step ind (Prove (qs, l, t, Case_Split proofs)) =
         implode (map (prefix (do_indent ind ^ "moreover\n") o do_block ind)
                      proofs) ^
-        do_prove ind qs l t facts
+        do_prove ind qs l t ([], [])
       | do_step ind (Prove (qs, l, t, Subblock proof)) =
         do_block ind proof ^ do_prove ind qs l t ([], [])
     and do_steps prefix suffix ind steps =
@@ -531,8 +531,7 @@ fun used_labels_of_step (Obtain (_, _, _, _, By_Metis (ls, _))) = ls
   | used_labels_of_step (Prove (_, _, _, by)) =
     (case by of
        By_Metis (ls, _) => ls
-     | Case_Split (proofs, (ls, _)) =>
-       fold (union (op =) o used_labels_of) proofs ls
+     | Case_Split proofs => fold (union (op =) o used_labels_of) proofs []
      | Subblock proof => used_labels_of proof)
   | used_labels_of_step _ = []
 and used_labels_of proof = fold (union (op =) o used_labels_of_step) proof []
@@ -546,8 +545,7 @@ fun kill_useless_labels_in_proof proof =
       | do_step (Prove (qs, l, t, by)) =
         Prove (qs, do_label l, t,
                case by of
-                 Case_Split (proofs, facts) =>
-                 Case_Split (map do_proof proofs, facts)
+                 Case_Split proofs => Case_Split (map do_proof proofs)
                | Subblock proof => Subblock (do_proof proof)
                | _ => by)
       | do_step step = step
@@ -570,9 +568,8 @@ val relabel_proof =
     fun do_byline subst depth nexts by =
       case by of
         By_Metis facts => By_Metis (do_facts subst facts)
-      | Case_Split (proofs, facts) =>
-        Case_Split (map (do_proof subst (depth + 1) (1, 1)) proofs,
-                    do_facts subst facts)
+      | Case_Split proofs =>
+        Case_Split (map (do_proof subst (depth + 1) (1, 1)) proofs)
       | Subblock proof => Subblock (do_proof subst depth nexts proof)
     and do_proof _ _ _ [] = []
       | do_proof subst depth (next_assum, next_have) (Assume (l, t) :: proof) =
@@ -623,8 +620,8 @@ val chain_direct_proof =
           Prove (Then :: qs, l, t, By_Metis (lfs |> remove (op =) l0, gfs))
         else
           step
-      | chain_step _ (Prove (qs, l, t, Case_Split (proofs, facts))) =
-        Prove (qs, l, t, Case_Split (map (chain_proof NONE) proofs, facts))
+      | chain_step _ (Prove (qs, l, t, Case_Split proofs)) =
+        Prove (qs, l, t, Case_Split (map (chain_proof NONE) proofs))
       | chain_step _ (Prove (qs, l, t, Subblock proof)) =
         Prove (qs, l, t, Subblock (chain_proof NONE proof))
       | chain_step _ step = step
@@ -750,10 +747,9 @@ fun isar_proof_text ctxt isar_proofs
                 Assume (label_of_clause c, prop_of_clause c) ::
                 map (isar_step_of_direct_inf false) infs
               val c = succedent_of_cases cases
-              val cases = map do_case cases
             in
               Prove (maybe_show outer c [Ultimately], label_of_clause c,
-                     prop_of_clause c, Case_Split (cases, ([], [])))
+                     prop_of_clause c, Case_Split (map do_case cases))
             end
         fun isar_proof_of_direct_proof direct_proof =
           direct_proof

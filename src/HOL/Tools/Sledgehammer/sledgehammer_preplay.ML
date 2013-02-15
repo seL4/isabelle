@@ -84,17 +84,15 @@ fun try_metis debug type_enc lam_trans ctxt timeout (succedent, step) =
     val facts =
       (case byline of
         By_Metis fact_names => resolve_fact_names ctxt fact_names
-      | Case_Split (cases, fact_names) =>
-        resolve_fact_names ctxt fact_names
-          @ (case the succedent of
-              Assume (_, t) => make_thm t
-            | Obtain (_, _, _, t, _) => make_thm t
-            | Prove (_, _, t, _) => make_thm t
-            | _ => error "preplay error: unexpected succedent of case split")
-          :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
-                          | _ => error "preplay error: malformed case split")
-                     #> make_thm)
-               cases
+      | Case_Split cases =>
+        (case the succedent of
+            Assume (_, t) => make_thm t
+          | Obtain (_, _, _, t, _) => make_thm t
+          | Prove (_, _, t, _) => make_thm t
+          | _ => error "preplay error: unexpected succedent of case split")
+        :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
+                        | _ => error "preplay error: malformed case split")
+                   #> make_thm) cases
       | Subblock proof =>
         let
           val (steps, last_step) = split_last proof
