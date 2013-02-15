@@ -636,7 +636,7 @@ fun features_of ctxt prover thy (scope, status) ts =
    isn't much to learn from such proofs. *)
 val max_dependencies = 20
 
-val prover_dependency_default_max_facts = 50
+val prover_default_max_facts = 50
 
 (* "type_definition_xxx" facts are characterized by their use of "CollectI". *)
 val typedef_dep = nickname_of_thm @{thm CollectI}
@@ -704,8 +704,8 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
       val facts =
         facts
         |> mepo_suggested_facts ctxt params prover
-               (max_facts |> the_default prover_dependency_default_max_facts)
-               NONE hyp_ts concl_t
+               (max_facts |> the_default prover_default_max_facts) NONE hyp_ts
+               concl_t
         |> fold (add_isar_dep facts) isar_deps
         |> map nickify
     in
