@@ -388,65 +388,133 @@ end
 subsection {* Code setup for sets *}
 
 text {*
-  Implement operations @{term "finite"}, @{term "card"}, @{term "op \<subseteq>"}, and @{term "op ="} 
-  for sets using @{term "finite_UNIV"} and @{term "card_UNIV"}.
+  Implement @{term "CARD('a)"} via @{term card_UNIV} and provide
+  implementations for @{term "finite"}, @{term "card"}, @{term "op \<subseteq>"}, 
+  and @{term "op ="}if the calling context already provides @{class finite_UNIV}
+  and @{class card_UNIV} instances. If we implemented the latter
+  always via @{term card_UNIV}, we would require instances of essentially all 
+  element types, i.e., a lot of instantiation proofs and -- at run time --
+  possibly slow dictionary constructions.
 *}
+
+definition card_UNIV' :: "'a card_UNIV"
+where [code del]: "card_UNIV' = Phantom('a) CARD('a)"
+
+lemma CARD_code [code_unfold]:
+  "CARD('a) = of_phantom (card_UNIV' :: 'a card_UNIV)"
+by(simp add: card_UNIV'_def)
+
+lemma card_UNIV'_code [code]:
+  "card_UNIV' = card_UNIV"
+by(simp add: card_UNIV card_UNIV'_def)
+
+hide_const (open) card_UNIV'
 
 lemma card_Compl:
   "finite A \<Longrightarrow> card (- A) = card (UNIV :: 'a set) - card (A :: 'a set)"
 by (metis Compl_eq_Diff_UNIV card_Diff_subset top_greatest)
 
-lemma card_coset_code [code]:
-  fixes xs :: "'a :: card_UNIV list" 
-  shows "card (List.coset xs) = of_phantom (card_UNIV :: 'a card_UNIV) - length (remdups xs)"
-by(simp add: List.card_set card_Compl card_UNIV)
+context fixes xs :: "'a :: finite_UNIV list"
+begin
 
-lemma [code, code del]: "finite = finite" ..
+definition finite' :: "'a set \<Rightarrow> bool"
+where [simp, code del, code_abbrev]: "finite' = finite"
 
-lemma [code]:
-  fixes xs :: "'a :: card_UNIV list" 
-  shows finite_set_code:
-  "finite (set xs) = True" 
-  and finite_coset_code:
-  "finite (List.coset xs) \<longleftrightarrow> of_phantom (finite_UNIV :: 'a finite_UNIV)"
+lemma finite'_code [code]:
+  "finite' (set xs) \<longleftrightarrow> True"
+  "finite' (List.coset xs) \<longleftrightarrow> of_phantom (finite_UNIV :: 'a finite_UNIV)"
 by(simp_all add: card_gt_0_iff finite_UNIV)
 
-lemma coset_subset_code [code]:
-  fixes xs :: "'a list" shows
-  "List.coset xs \<subseteq> set ys \<longleftrightarrow> (let n = CARD('a) in n > 0 \<and> card (set (xs @ ys)) = n)"
+end
+
+context fixes xs :: "'a :: card_UNIV list"
+begin
+
+definition card' :: "'a set \<Rightarrow> nat" 
+where [simp, code del, code_abbrev]: "card' = card"
+ 
+lemma card'_code [code]:
+  "card' (set xs) = length (remdups xs)"
+  "card' (List.coset xs) = of_phantom (card_UNIV :: 'a card_UNIV) - length (remdups xs)"
+by(simp_all add: List.card_set card_Compl card_UNIV)
+
+
+definition subset' :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+where [simp, code del, code_abbrev]: "subset' = op \<subseteq>"
+
+lemma subset'_code [code]:
+  "subset' A (List.coset ys) \<longleftrightarrow> (\<forall>y \<in> set ys. y \<notin> A)"
+  "subset' (set ys) B \<longleftrightarrow> (\<forall>y \<in> set ys. y \<in> B)"
+  "subset' (List.coset xs) (set ys) \<longleftrightarrow> (let n = CARD('a) in n > 0 \<and> card(set (xs @ ys)) = n)"
 by(auto simp add: Let_def card_gt_0_iff dest: card_eq_UNIV_imp_eq_UNIV intro: arg_cong[where f=card])
   (metis finite_compl finite_set rev_finite_subset)
 
-lemma equal_set_code [code]:
-  fixes xs ys :: "'a :: equal list"
+definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool"
+where [simp, code del, code_abbrev]: "eq_set = op ="
+
+lemma eq_set_code [code]:
+  fixes ys
   defines "rhs \<equiv> 
   let n = CARD('a)
   in if n = 0 then False else 
         let xs' = remdups xs; ys' = remdups ys 
         in length xs' + length ys' = n \<and> (\<forall>x \<in> set xs'. x \<notin> set ys') \<and> (\<forall>y \<in> set ys'. y \<notin> set xs')"
-  shows "equal_class.equal (List.coset xs) (set ys) \<longleftrightarrow> rhs" (is ?thesis1)
-  and "equal_class.equal (set ys) (List.coset xs) \<longleftrightarrow> rhs" (is ?thesis2)
-  and "equal_class.equal (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis3)
-  and "equal_class.equal (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis4)
+  shows "eq_set (List.coset xs) (set ys) \<longleftrightarrow> rhs" (is ?thesis1)
+  and "eq_set (set ys) (List.coset xs) \<longleftrightarrow> rhs" (is ?thesis2)
+  and "eq_set (set xs) (set ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis3)
+  and "eq_set (List.coset xs) (List.coset ys) \<longleftrightarrow> (\<forall>x \<in> set xs. x \<in> set ys) \<and> (\<forall>y \<in> set ys. y \<in> set xs)" (is ?thesis4)
 proof -
   show ?thesis1 (is "?lhs \<longleftrightarrow> ?rhs")
   proof
     assume ?lhs thus ?rhs
-      by(auto simp add: equal_eq rhs_def Let_def List.card_set[symmetric] card_Un_Int[where A="set xs" and B="- set xs"] card_UNIV Compl_partition card_gt_0_iff dest: sym)(metis finite_compl finite_set)
+      by(auto simp add: rhs_def Let_def List.card_set[symmetric] card_Un_Int[where A="set xs" and B="- set xs"] card_UNIV Compl_partition card_gt_0_iff dest: sym)(metis finite_compl finite_set)
   next
     assume ?rhs
     moreover have "\<lbrakk> \<forall>y\<in>set xs. y \<notin> set ys; \<forall>x\<in>set ys. x \<notin> set xs \<rbrakk> \<Longrightarrow> set xs \<inter> set ys = {}" by blast
     ultimately show ?lhs
-      by(auto simp add: equal_eq rhs_def Let_def List.card_set[symmetric] card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"] dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
+      by(auto simp add: rhs_def Let_def List.card_set[symmetric] card_UNIV card_gt_0_iff card_Un_Int[where A="set xs" and B="set ys"] dest: card_eq_UNIV_imp_eq_UNIV split: split_if_asm)
   qed
-  thus ?thesis2 unfolding equal_eq by blast
-  show ?thesis3 ?thesis4 unfolding equal_eq List.coset_def by blast+
+  thus ?thesis2 unfolding eq_set_def by blast
+  show ?thesis3 ?thesis4 unfolding eq_set_def List.coset_def by blast+
 qed
 
-notepad begin (* test code setup *)
-have "List.coset [True] = set [False] \<and> List.coset [] \<subseteq> List.set [True, False] \<and> finite (List.coset [True])"
+end
+
+text {* 
+  Provide more informative exceptions than Match for non-rewritten cases.
+  If generated code raises one these exceptions, then a code equation calls
+  the mentioned operator for an element type that is not an instance of
+  @{class card_UNIV} and is therefore not implemented via @{term card_UNIV}.
+  Constrain the element type with sort @{class card_UNIV} to change this.
+*}
+
+definition card_coset_requires_card_UNIV :: "'a list \<Rightarrow> nat"
+where [code del, simp]: "card_coset_requires_card_UNIV xs = card (List.coset xs)"
+
+code_abort card_coset_requires_card_UNIV
+
+lemma card_coset_error [code]:
+  "card (List.coset xs) = card_coset_requires_card_UNIV xs"
+by(simp)
+
+definition coset_subseteq_set_requires_card_UNIV :: "'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+where [code del, simp]: "coset_subseteq_set_requires_card_UNIV xs ys \<longleftrightarrow> List.coset xs \<subseteq> set ys"
+
+code_abort coset_subseteq_set_requires_card_UNIV
+
+lemma coset_subseteq_set_code [code]:
+  "List.coset xs \<subseteq> set ys \<longleftrightarrow> 
+  (if xs = [] \<and> ys = [] then False else coset_subseteq_set_requires_card_UNIV xs ys)"
+by simp
+
+notepad begin -- "test code setup"
+have "List.coset [True] = set [False] \<and> 
+      List.coset [] \<subseteq> List.set [True, False] \<and> 
+      finite (List.coset [True])"
   by eval
 end
+
+hide_const (open) card' finite' subset' eq_set
 
 end
 

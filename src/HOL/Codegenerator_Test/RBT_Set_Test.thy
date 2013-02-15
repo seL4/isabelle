@@ -25,9 +25,17 @@ lemma [code, code del]:
 lemma [code, code del]:
   "acc = acc" ..
 
-lemmas [code del] =
-  finite_set_code finite_coset_code 
-  equal_set_code
+lemma [code, code del]:
+  "Cardinality.card' = Cardinality.card'" ..
+
+lemma [code, code del]:
+  "Cardinality.finite' = Cardinality.finite'" ..
+
+lemma [code, code del]:
+  "Cardinality.subset' = Cardinality.subset'" ..
+
+lemma [code, code del]:
+  "Cardinality.eq_set = Cardinality.eq_set" ..
 
 (*
   If the code generation ends with an exception with the following message:
