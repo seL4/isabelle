@@ -697,8 +697,7 @@ fun isar_proof_text ctxt isar_proofs
                               else
                                 I))))
                   atp_proof
-        fun is_clause_skolemize_rule [atom as (s, _)] =
-            not (member (op =) tainted atom) andalso
+        fun is_clause_skolemize_rule [(s, _)] =
             Option.map (is_skolemize_rule o fst) (Symtab.lookup steps s) =
             SOME true
           | is_clause_skolemize_rule _ = false
@@ -724,41 +723,45 @@ fun isar_proof_text ctxt isar_proofs
         fun maybe_show outer c =
           (outer andalso length c = 1 andalso subset (op =) (c, conjs))
           ? cons Show
-        fun isar_step_of_direct_inf outer (Have (gamma, c)) =
+        fun isar_proof_of_direct_proof _ accum [] = rev accum
+          | isar_proof_of_direct_proof outer accum (inf :: infs) =
             let
-              val l = label_of_clause c
-              val t = prop_of_clause c
-              val by =
-                By_Metis (fold (add_fact_from_dependencies fact_names) gamma
-                               ([], []))
+              fun do_rest step =
+                isar_proof_of_direct_proof outer (step :: accum) infs
+              val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
+              fun skolems_of t =
+                Term.add_frees t [] |> filter_out (is_fixed o fst)
             in
-              if is_clause_skolemize_rule c then
+              case inf of
+                Have (gamma, c) =>
                 let
-                  val is_fixed =
-                    Variable.is_declared ctxt orf can Name.dest_skolem
-                  val xs = Term.add_frees t [] |> filter_out (is_fixed o fst)
-                in Obtain ([], xs, l, t, by) end
-              else
-                Prove (maybe_show outer c [], l, t, by)
+                  val l = label_of_clause c
+                  val t = prop_of_clause c
+                  val by =
+                    By_Metis (fold (add_fact_from_dependencies fact_names) gamma
+                                   ([], []))
+                in
+                  if is_clause_skolemize_rule c andalso
+                     not (member (op =) tainted (the_single c)) then
+                    do_rest (Obtain ([], skolems_of t, l, t, by))
+                  else
+                    do_rest (Prove (maybe_show outer c [], l, t, by))
+                end
+              | Cases cases =>
+                let
+                  fun do_case (c, infs) =
+                    Assume (label_of_clause c, prop_of_clause c) ::
+                    isar_proof_of_direct_proof false [] infs
+                  val c = succedent_of_cases cases
+                  val step =
+                    Prove (maybe_show outer c [Ultimately], label_of_clause c,
+                           prop_of_clause c, Case_Split (map do_case cases))
+                in do_rest step end
             end
-          | isar_step_of_direct_inf outer (Cases cases) =
-            let
-              fun do_case (c, infs) =
-                Assume (label_of_clause c, prop_of_clause c) ::
-                map (isar_step_of_direct_inf false) infs
-              val c = succedent_of_cases cases
-            in
-              Prove (maybe_show outer c [Ultimately], label_of_clause c,
-                     prop_of_clause c, Case_Split (map do_case cases))
-            end
-        fun isar_proof_of_direct_proof direct_proof =
-          direct_proof
-          |> map (isar_step_of_direct_inf true)
-          |> append assms
         val (isar_proof, (preplay_fail, preplay_time)) =
           refute_graph
           |> redirect_graph axioms tainted bot
-          |> isar_proof_of_direct_proof
+          |> isar_proof_of_direct_proof true assms
           |> (if not preplay andalso isar_compress <= 1.0 then
                 rpair (false, (true, seconds 0.0))
               else
