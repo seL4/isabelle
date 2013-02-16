@@ -3077,15 +3077,13 @@ by (simp add: nth_Cons')
 
 subsubsection {* @{text upto}: interval-list on @{typ int} *}
 
-(* FIXME make upto tail recursive? *)
-
 function upto :: "int \<Rightarrow> int \<Rightarrow> int list" ("(1[_../_])") where
-"upto i j = (if i \<le> j then i # [i+1..j] else [])"
+  "upto i j = (if i \<le> j then i # [i+1..j] else [])"
 by auto
 termination
 by(relation "measure(%(i::int,j). nat(j - i + 1))") auto
 
-declare upto.simps[code, simp del]
+declare upto.simps[simp del]
 
 lemmas upto_rec_numeral [simp] =
   upto.simps[of "numeral m" "numeral n"]
@@ -3096,12 +3094,47 @@ lemmas upto_rec_numeral [simp] =
 lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)
 
+lemma upto_rec1: "i \<le> j \<Longrightarrow> [i..j] = i#[i+1..j]"
+by(simp add: upto.simps)
+
+lemma upto_rec2: "i \<le> j \<Longrightarrow> [i..j] = [i..j - 1]@[j]"
+proof(induct "nat(j-i)" arbitrary: i j)
+  case 0 thus ?case by(simp add: upto.simps)
+next
+  case (Suc n)
+  hence "n = nat (j - (i + 1))" "i < j" by linarith+
+  from this(2) Suc.hyps(1)[OF this(1)] Suc(2,3) upto_rec1 show ?case by simp
+qed
+
 lemma set_upto[simp]: "set[i..j] = {i..j}"
 proof(induct i j rule:upto.induct)
   case (1 i j)
   from this show ?case
     unfolding upto.simps[of i j] simp_from_to[of i j] by auto
 qed
+
+text{* Tail recursive version for code generation: *}
+
+function upto_aux :: "int \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+  "upto_aux i j js = (if j<i then js else upto_aux i (j - 1) (j#js))"
+by auto
+termination by(relation "measure(%(i::int,j,js). nat(j - i + 1))") auto
+
+lemma upto_aux_upto: "upto_aux i j js = [i..j] @ js"
+proof cases
+  assume "j < i" thus ?thesis by(simp)
+next
+  assume "\<not> j < i"
+  thus ?thesis
+  proof(induct i j js rule: upto_aux.induct)
+     case 1 thus ?case using upto_rec2 by simp
+  qed
+qed
+
+declare upto_aux.simps[simp del]
+
+lemma upto_code[code]: "[i..j] = upto_aux i j []"
+by(simp add: upto_aux_upto)
 
 
 subsubsection {* @{const distinct} and @{const remdups} *}
