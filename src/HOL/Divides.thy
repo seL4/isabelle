@@ -740,6 +740,10 @@ lemma mod_less_divisor [simp]:
   shows "m mod n < (n::nat)"
   using assms divmod_nat_rel [of m n] unfolding divmod_nat_rel_def by auto
 
+lemma mod_Suc_le_divisor [simp]:
+  "m mod Suc n \<le> n"
+  using mod_less_divisor [of "Suc n" m] by arith
+
 lemma mod_less_eq_dividend [simp]:
   fixes m n :: nat
   shows "m mod n \<le> m"

@@ -1587,6 +1587,12 @@ by arith
 lemma less_diff_conv: "(i < j-k) = (i+k < (j::nat))"
 by arith
 
+lemma less_diff_conv2:
+  fixes j k i :: nat
+  assumes "k \<le> j"
+  shows "j - k < i \<longleftrightarrow> j < i + k"
+  using assms by arith
+
 lemma le_diff_conv: "(j-k \<le> (i::nat)) = (j \<le> i+k)"
 by arith
 
@@ -1800,6 +1806,74 @@ lemma nat_dvd_not_less:
   fixes m n :: nat
   shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
 by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+
+lemma dvd_plusE:
+  fixes m n q :: nat
+  assumes "m dvd n + q" "m dvd n"
+  obtains "m dvd q"
+proof (cases "m = 0")
+  case True with assms that show thesis by simp
+next
+  case False then have "m > 0" by simp
+  from assms obtain r s where "n = m * r" and "n + q = m * s" by (blast elim: dvdE)
+  then have *: "m * r + q = m * s" by simp
+  show thesis proof (cases "r \<le> s")
+    case False then have "s < r" by (simp add: not_le)
+    with * have "m * r + q - m * s = m * s - m * s" by simp
+    then have "m * r + q - m * s = 0" by simp
+    with `m > 0` `s < r` have "m * r - m * s + q = 0" by simp
+    then have "m * (r - s) + q = 0" by auto
+    then have "m * (r - s) = 0" by simp
+    then have "m = 0 \<or> r - s = 0" by simp
+    with `s < r` have "m = 0" by arith
+    with `m > 0` show thesis by auto
+  next
+    case True with * have "m * r + q - m * r = m * s - m * r" by simp
+    with `m > 0` `r \<le> s` have "m * r - m * r + q = m * s - m * r" by simp
+    then have "q = m * (s - r)" by (simp add: diff_mult_distrib2)
+    with assms that show thesis by (auto intro: dvdI)
+  qed
+qed
+
+lemma dvd_plus_eq_right:
+  fixes m n q :: nat
+  assumes "m dvd n"
+  shows "m dvd n + q \<longleftrightarrow> m dvd q"
+  using assms by (auto elim: dvd_plusE)
+
+lemma dvd_plus_eq_left:
+  fixes m n q :: nat
+  assumes "m dvd q"
+  shows "m dvd n + q \<longleftrightarrow> m dvd n"
+  using assms by (simp add: dvd_plus_eq_right add_commute [of n])
+
+lemma less_dvd_minus:
+  fixes m n :: nat
+  assumes "m < n"
+  shows "m dvd n \<longleftrightarrow> m dvd (n - m)"
+proof -
+  from assms have "n = m + (n - m)" by arith
+  then obtain q where "n = m + q" ..
+  then show ?thesis by (simp add: dvd_reduce add_commute [of m])
+qed
+
+lemma dvd_minus_self:
+  fixes m n :: nat
+  shows "m dvd n - m \<longleftrightarrow> n < m \<or> m dvd n"
+  by (cases "n < m") (auto elim!: dvdE simp add: not_less le_imp_diff_is_add)
+
+lemma dvd_minus_add:
+  fixes m n q r :: nat
+  assumes "q \<le> n" "q \<le> r * m"
+  shows "m dvd n - q \<longleftrightarrow> m dvd n + (r * m - q)"
+proof -
+  have "m dvd n - q \<longleftrightarrow> m dvd r * m + (n - q)"
+    by (auto elim: dvd_plusE)
+  also with assms have "\<dots> \<longleftrightarrow> m dvd r * m + n - q" by simp
+  also with assms have "\<dots> \<longleftrightarrow> m dvd (r * m - q) + n" by simp
+  also have "\<dots> \<longleftrightarrow> m dvd n + (r * m - q)" by (simp add: add_commute)
+  finally show ?thesis .
+qed
 
 
 subsection {* aliasses *}

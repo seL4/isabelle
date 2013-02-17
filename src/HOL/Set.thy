@@ -908,6 +908,10 @@ lemma imageE [elim!]:
   -- {* The eta-expansion gives variable-name preservation. *}
   by (unfold image_def) blast
 
+lemma Compr_image_eq:
+  "{x \<in> f ` A. P x} = f ` {x \<in> A. P (f x)}"
+  by auto
+
 lemma image_Un: "f`(A Un B) = f`A Un f`B"
   by blast
 

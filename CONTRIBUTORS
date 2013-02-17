@@ -6,9 +6,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* 2013: Florian Haftmann, TUM
+* Feb. 2013: Florian Haftmann, TUM
   Reworking and consolidation of code generation for target
   language numerals.
+
+* Feb. 2013: Florian Haftmann, TUM
+  Sieve of Eratosthenes.
 
 
 Contributions to Isabelle2013

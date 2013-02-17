@@ -835,17 +835,33 @@ lemma fst_apfst [simp]:
   "fst (apfst f x) = f (fst x)"
   by (cases x) simp
 
+lemma fst_comp_apfst [simp]:
+  "fst \<circ> apfst f = f \<circ> fst"
+  by (simp add: fun_eq_iff)
+
 lemma fst_apsnd [simp]:
   "fst (apsnd f x) = fst x"
   by (cases x) simp
+
+lemma fst_comp_apsnd [simp]:
+  "fst \<circ> apsnd f = fst"
+  by (simp add: fun_eq_iff)
 
 lemma snd_apfst [simp]:
   "snd (apfst f x) = snd x"
   by (cases x) simp
 
+lemma snd_comp_apfst [simp]:
+  "snd \<circ> apfst f = snd"
+  by (simp add: fun_eq_iff)
+
 lemma snd_apsnd [simp]:
   "snd (apsnd f x) = f (snd x)"
   by (cases x) simp
+
+lemma snd_comp_apsnd [simp]:
+  "snd \<circ> apsnd f = f \<circ> snd"
+  by (simp add: fun_eq_iff)
 
 lemma apfst_compose:
   "apfst f (apfst g x) = apfst (f \<circ> g) x"

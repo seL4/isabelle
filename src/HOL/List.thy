@@ -196,6 +196,9 @@ text {*
 abbreviation length :: "'a list \<Rightarrow> nat" where
 "length \<equiv> size"
 
+definition enumerate :: "nat \<Rightarrow> 'a list \<Rightarrow> (nat \<times> 'a) list" where
+enumerate_eq_zip: "enumerate n xs = zip [n..<n + length xs] xs"
+
 primrec rotate1 :: "'a list \<Rightarrow> 'a list" where
 "rotate1 [] = []" |
 "rotate1 (x # xs) = xs @ [x]"
@@ -245,6 +248,7 @@ text{*
 @{lemma "foldl f x [a,b,c] = f (f (f x a) b) c" by simp}\\
 @{lemma "zip [a,b,c] [x,y,z] = [(a,x),(b,y),(c,z)]" by simp}\\
 @{lemma "zip [a,b] [x,y,z] = [(a,x),(b,y)]" by simp}\\
+@{lemma "enumerate 3 [a,b,c] = [(3,a),(4,b),(5,c)]" by normalization}\\
 @{lemma "List.product [a,b] [c,d] = [(a, c), (a, d), (b, c), (b, d)]" by simp}\\
 @{lemma "splice [a,b,c] [x,y,z] = [a,x,b,y,c,z]" by simp}\\
 @{lemma "splice [a,b,c,d] [x,y] = [a,x,b,y,c,d]" by simp}\\
@@ -2479,6 +2483,20 @@ lemma zip_eq_conv:
   "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
   by (auto simp add: zip_map_fst_snd)
 
+lemma in_set_zip:
+  "p \<in> set (zip xs ys) \<longleftrightarrow> (\<exists>n. xs ! n = fst p \<and> ys ! n = snd p
+    \<and> n < length xs \<and> n < length ys)"
+  by (cases p) (auto simp add: set_zip)
+
+lemma pair_list_eqI:
+  assumes "map fst xs = map fst ys" and "map snd xs = map snd ys"
+  shows "xs = ys"
+proof -
+  from assms(1) have "length xs = length ys" by (rule map_eq_imp_length_eq)
+  from this assms show ?thesis
+    by (induct xs ys rule: list_induct2) (simp_all add: prod_eqI)
+qed
+
 
 subsubsection {* @{const list_all2} *}
 
@@ -3878,6 +3896,57 @@ proof -
     by (auto simp: replicate_add)
   then show ?thesis by blast
 qed
+
+
+subsubsection {* @{const enumerate} *}
+
+lemma enumerate_simps [simp, code]:
+  "enumerate n [] = []"
+  "enumerate n (x # xs) = (n, x) # enumerate (Suc n) xs"
+  apply (auto simp add: enumerate_eq_zip not_le)
+  apply (cases "n < n + length xs")
+  apply (auto simp add: upt_conv_Cons)
+  done
+
+lemma length_enumerate [simp]:
+  "length (enumerate n xs) = length xs"
+  by (simp add: enumerate_eq_zip)
+
+lemma map_fst_enumerate [simp]:
+  "map fst (enumerate n xs) = [n..<n + length xs]"
+  by (simp add: enumerate_eq_zip)
+
+lemma map_snd_enumerate [simp]:
+  "map snd (enumerate n xs) = xs"
+  by (simp add: enumerate_eq_zip)
+  
+lemma in_set_enumerate_eq:
+  "p \<in> set (enumerate n xs) \<longleftrightarrow> n \<le> fst p \<and> fst p < length xs + n \<and> nth xs (fst p - n) = snd p"
+proof -
+  { fix m
+    assume "n \<le> m"
+    moreover assume "m < length xs + n"
+    ultimately have "[n..<n + length xs] ! (m - n) = m \<and>
+      xs ! (m - n) = xs ! (m - n) \<and> m - n < length xs" by auto
+    then have "\<exists>q. [n..<n + length xs] ! q = m \<and>
+        xs ! q = xs ! (m - n) \<and> q < length xs" ..
+  } then show ?thesis by (cases p) (auto simp add: enumerate_eq_zip in_set_zip)
+qed
+
+lemma nth_enumerate_eq:
+  assumes "m < length xs"
+  shows "enumerate n xs ! m = (n + m, xs ! m)"
+  using assms by (simp add: enumerate_eq_zip)
+
+lemma enumerate_replicate_eq:
+  "enumerate n (replicate m a) = map (\<lambda>q. (q, a)) [n..<n + m]"
+  by (rule pair_list_eqI)
+    (simp_all add: enumerate_eq_zip comp_def map_replicate_const)
+
+lemma enumerate_Suc_eq:
+  "enumerate (Suc n) xs = map (apfst Suc) (enumerate n xs)"
+  by (rule pair_list_eqI)
+    (simp_all add: not_le, simp del: map_map [simp del] add: map_Suc_upt map_map [symmetric])
 
 
 subsubsection {* @{const rotate1} and @{const rotate} *}
