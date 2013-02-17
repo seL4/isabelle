@@ -15,6 +15,7 @@ imports
   Countable_Set
   Debug
   Diagonal_Subsequence
+  Discrete
   Dlist
   Eval_Witness
   Extended_Nat
