@@ -117,8 +117,8 @@ text {*
   interface, transforming a list of function theorems to another list
   of function theorems, provided that neither the heading constant nor
   its type change.  The @{term "0\<Colon>nat"} / @{const Suc} pattern
-  elimination implemented in theory @{text Code_Binary_Nat} (see
-  \secref{eff_nat}) uses this interface.
+  used in theory @{text Code_Abstract_Nat} (see \secref{abstract_nat})
+  uses this interface.
 
   \noindent The current setup of the preprocessor may be inspected
   using the @{command_def print_codeproc} command.  @{command_def

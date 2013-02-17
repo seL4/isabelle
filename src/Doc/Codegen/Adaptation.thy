@@ -136,15 +136,16 @@ text {*
     \item[@{text "Code_Target_Int"}] implements type @{typ int}
        by @{typ integer} and thus by target-language built-in integers.
 
-    \item[@{text "Code_Binary_Nat"}] \label{eff_nat} implements type
+    \item[@{text "Code_Binary_Nat"}] implements type
        @{typ nat} using a binary rather than a linear representation,
        which yields a considerable speedup for computations.
        Pattern matching with @{term "0\<Colon>nat"} / @{const "Suc"} is eliminated
-       by a preprocessor.
+       by a preprocessor.\label{abstract_nat}
 
-    \item[@{text "Code_Target_Nat"}] implements type @{typ int}
-       by @{typ integer} and thus by target-language built-in integers;
-       contains @{text "Code_Binary_Nat"} as a prerequisite.
+    \item[@{text "Code_Target_Nat"}] implements type @{typ nat}
+       by @{typ integer} and thus by target-language built-in integers.
+       Pattern matching with @{term "0\<Colon>nat"} / @{const "Suc"} is eliminated
+       by a preprocessor.
 
     \item[@{text "Code_Target_Numeral"}] is a convenience theory
        containing both @{text "Code_Target_Nat"} and
