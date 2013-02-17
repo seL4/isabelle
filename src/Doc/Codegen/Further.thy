@@ -219,6 +219,14 @@ text %quotetypewriter {*
 *}
 
 
+subsection {* Parallel computation *}
+
+text {*
+  Theory @{text Parallel} in @{text "HOL/Library"} contains
+  operations to exploit parallelism inside the Isabelle/ML
+  runtime engine.
+*}
+
 subsection {* Imperative data structures *}
 
 text {*

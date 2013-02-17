@@ -119,7 +119,7 @@ text {*
   The @{theory HOL} @{theory Main} theory already provides a code
   generator setup which should be suitable for most applications.
   Common extensions and modifications are available by certain
-  theories of the @{text HOL} library; beside being useful in
+  theories in @{text "HOL/Library"}; beside being useful in
   applications, they may serve as a tutorial for customising the code
   generator setup (see below \secref{sec:adaptation_mechanisms}).
 
