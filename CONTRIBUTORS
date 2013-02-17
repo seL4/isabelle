@@ -6,6 +6,11 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* 2013: Florian Haftmann, TUM
+  Reworking and consolidation of code generation for target
+  language numerals.
+
+
 Contributions to Isabelle2013
 -----------------------------
 
