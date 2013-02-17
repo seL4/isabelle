@@ -3115,26 +3115,15 @@ qed
 
 text{* Tail recursive version for code generation: *}
 
-function upto_aux :: "int \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+definition upto_aux :: "int \<Rightarrow> int \<Rightarrow> int list \<Rightarrow> int list" where
+  "upto_aux i j js = [i..j] @ js"
+
+lemma upto_aux_rec [code]:
   "upto_aux i j js = (if j<i then js else upto_aux i (j - 1) (j#js))"
-by auto
-termination by(relation "measure(%(i::int,j,js). nat(j - i + 1))") auto
-
-lemma upto_aux_upto: "upto_aux i j js = [i..j] @ js"
-proof cases
-  assume "j < i" thus ?thesis by(simp)
-next
-  assume "\<not> j < i"
-  thus ?thesis
-  proof(induct i j js rule: upto_aux.induct)
-     case 1 thus ?case using upto_rec2 by simp
-  qed
-qed
-
-declare upto_aux.simps[simp del]
+  by (simp add: upto_aux_def upto_rec2)
 
 lemma upto_code[code]: "[i..j] = upto_aux i j []"
-by(simp add: upto_aux_upto)
+by(simp add: upto_aux_def)
 
 
 subsubsection {* @{const distinct} and @{const remdups} *}
