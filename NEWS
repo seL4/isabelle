@@ -6,11 +6,21 @@ New in this Isabelle version
 
 *** HOL ***
 
+* Numeric types mapped by default to target language numerals:
+natural (replaces former code_numeral) and integer (replaces
+former code_int).  Conversions are available as integer_of_natural /
+natural_of_integer / integer_of_nat / nat_of_integer (in HOL) and
+Code_Numeral.integer_of_natural / Code_Numeral.natural_of_integer (in ML).
+INCOMPATIBILITY.
+
+* Discontinued theories Code_Integer and Efficient_Nat by a more
+fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
+Code_Target_Nat and Code_Target_Numeral.  See the tutorial on
+code generation for details.  INCOMPATIBILITY.
+
 * Theory "RealVector" and "Limits": Introduce type class
 (lin)order_topology. Allows to generalize theorems about limits and
 order. Instances are reals and extended reals.
-
-*** HOL ***
 
 * Consolidation of library theories on product orders:
 
@@ -169,18 +179,6 @@ a Hasse diagram.
 
 
 *** HOL ***
-
-* Numeric types mapped by default to target language numerals:
-natural (replaces former code_numeral) and integer (replaces
-former code_int).  Conversions are available as integer_of_natural /
-natural_of_integer / integer_of_nat / nat_of_integer (in HOL) and
-Code_Numeral.integer_of_natural / Code_Numeral.natural_of_integer (in ML).
-INCOMPATIBILITY.
-
-* Discontinued theories Code_Integer and Efficient_Nat by a more
-fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
-Code_Target_Nat and Code_Target_Numeral.  See the tutorial on
-code generation for details.  INCOMPATIBILITY.
 
 * Sledgehammer:
 
