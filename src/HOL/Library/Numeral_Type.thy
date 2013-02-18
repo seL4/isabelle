@@ -447,9 +447,7 @@ end
 
 instantiation bit0 and bit1 :: ("{finite,card_UNIV}") card_UNIV begin
 definition "card_UNIV = Phantom('a bit0) (2 * of_phantom (card_UNIV :: 'a card_UNIV))"
-definition
-  "card_UNIV = Phantom('a bit1) (let ca = of_phantom (card_UNIV :: 'a card_UNIV)
-  in if ca \<noteq> 0 then 1 + 2 * ca else 2 * ca)"
+definition "card_UNIV = Phantom('a bit1) (1 + 2 * of_phantom (card_UNIV :: 'a card_UNIV))"
 instance by intro_classes (simp_all add: card_UNIV_bit0_def card_UNIV_bit1_def card_UNIV)
 end
 
