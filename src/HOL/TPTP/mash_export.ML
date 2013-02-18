@@ -104,7 +104,7 @@ fun smart_dependencies_of ctxt params_opt facts name_tabs th isar_deps_opt =
             | NONE => isar_dependencies_of name_tabs th
         in (if null deps then unprovable_marker else isar_marker, deps) end
   in
-    case trim_dependencies th deps of
+    case trim_dependencies deps of
       SOME deps => (marker, deps)
     | NONE => (omitted_marker, [])
   end
