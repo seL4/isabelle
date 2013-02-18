@@ -905,7 +905,10 @@ fun attach_parents_to_facts facts =
     fun do_facts _ [] = []
       | do_facts parents ((fact as (_, th)) :: facts) =
         (parents, fact) :: do_facts [nickname_of_thm th] facts
-  in do_facts [] facts end
+  in
+    facts |> sort (crude_thm_ord o pairself snd)
+          |> do_facts []
+  end
 
 fun sendback sub = Active.sendback_markup (sledgehammerN ^ " " ^ sub)
 
@@ -920,7 +923,6 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
       Time.+ (Timer.checkRealTimer timer, commit_timeout)
     val {access_G, ...} = peek_state ctxt I
     val is_in_access_G = is_fact_in_graph access_G snd
-    val facts = facts |> sort (crude_thm_ord o pairself snd)
     val no_new_facts = forall is_in_access_G facts
   in
     if no_new_facts andalso not run_prover then
