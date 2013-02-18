@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Author:     Steffen Juilf Smolka, TU Muenchen
 
-Supplement term with explicit type constraints that show up as 
+Supplement term with explicit type constraints that show up as
 type annotations when printing the term.
 *)
 

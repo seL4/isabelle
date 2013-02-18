@@ -50,23 +50,25 @@ fun take_time timeout tac arg =
 
 (* lookup facts in context *)
 fun resolve_fact_names ctxt names =
-  names
+  (names
     |>> map string_for_label
     |> op @
-    |> maps (thms_of_name ctxt)
+    |> maps (thms_of_name ctxt))
+  handle ERROR msg => error ("preplay error: " ^ msg)
 
 (* *)
 fun thm_of_term ctxt = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-fun fact_of_subproof ctxt proof =
+fun fact_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   let
-    val (fixed_frees, assms, concl) = split_proof proof
+    val concl = (case try List.last steps of
+                  SOME (Prove (_, _, t, _)) => t
+                | _ => error "preplay error: malformed subproof")
     val var_idx = maxidx_of_term concl + 1
     fun var_of_free (x, T) = Var((x, var_idx), T)
     val substitutions =
       map (`var_of_free #> swap #> apfst Free) fixed_frees
-    val assms = assms |> map snd
   in
-    Logic.list_implies(assms, concl)
+    Logic.list_implies (assms |> map snd, concl)
       |> subst_free substitutions
       |> thm_of_term ctxt
   end
@@ -78,7 +80,7 @@ fun try_metis debug type_enc lam_trans ctxt timeout step =
       (case step of
         Prove (_, _, t, By_Metis (subproofs, fact_names)) =>
             (t, subproofs, fact_names, false)
-      | Obtain (_, xs, _, t, By_Metis (subproofs, fact_names)) =>
+      | Obtain (_, Fix xs, _, t, By_Metis (subproofs, fact_names)) =>
         (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
            (see ~~/src/Pure/Isar/obtain.ML) *)
         let
@@ -98,7 +100,7 @@ fun try_metis debug type_enc lam_trans ctxt timeout step =
         end
       | _ => raise ZEROTIME)
     val facts =
-      map (fact_of_subproof ctxt) subproofs @
+      map (fact_of_proof ctxt) subproofs @
       resolve_fact_names ctxt fact_names
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
                     |> obtain ? Config.put Metis_Tactic.new_skolem true
