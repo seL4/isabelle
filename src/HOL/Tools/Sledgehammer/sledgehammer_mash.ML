@@ -748,20 +748,19 @@ fun prover_dependencies_of ctxt (params as {verbose, max_facts, ...}) prover
 
 fun num_keys keys = Graph.Keys.fold (K (Integer.add 1)) keys 0
 
-fun maximal_in_graph access_G facts =
+fun maximal_wrt_graph G keys =
   let
-    val facts = [] |> fold (cons o nickname_of_thm o snd) facts
-    val tab = Symtab.empty |> fold (fn name => Symtab.default (name, ())) facts
+    val tab = Symtab.empty |> fold (fn name => Symtab.default (name, ())) keys
     fun insert_new seen name =
       not (Symtab.defined seen name) ? insert (op =) name
     fun find_maxes _ (maxs, []) = map snd maxs
       | find_maxes seen (maxs, new :: news) =
         find_maxes
-            (seen |> num_keys (Graph.imm_succs access_G new) > 1
+            (seen |> num_keys (Graph.imm_succs G new) > 1
                      ? Symtab.default (new, ()))
             (if Symtab.defined tab new then
                let
-                 val newp = Graph.all_preds access_G [new]
+                 val newp = Graph.all_preds G [new]
                  fun is_ancestor x yp = member (op =) yp x
                  val maxs =
                    maxs |> filter (fn (_, max) => not (is_ancestor max newp))
@@ -775,8 +774,12 @@ fun maximal_in_graph access_G facts =
                end
              else
                (maxs, Graph.Keys.fold (insert_new seen)
-                                      (Graph.imm_preds access_G new) news))
-  in find_maxes Symtab.empty ([], Graph.maximals access_G) end
+                                      (Graph.imm_preds G new) news))
+  in find_maxes Symtab.empty ([], Graph.maximals G) end
+
+fun maximal_wrt_access_graph access_G =
+  map (nickname_of_thm o snd)
+  #> maximal_wrt_graph access_G
 
 fun is_fact_in_graph access_G get_th fact =
   can (Graph.get_node access_G) (nickname_of_thm (get_th fact))
@@ -830,7 +833,7 @@ fun mash_suggested_facts ctxt ({overlord, learn, ...} : params) prover max_facts
             (access_G, [])
           else
             let
-              val parents = maximal_in_graph access_G facts
+              val parents = maximal_wrt_access_graph access_G facts
               val feats =
                 features_of ctxt prover thy (Local, General) (concl_t :: hyp_ts)
               val hints =
@@ -888,7 +891,7 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
       in
         peek_state ctxt (fn {access_G, ...} =>
             let
-              val parents = maximal_in_graph access_G facts
+              val parents = maximal_wrt_access_graph access_G facts
               val deps =
                 used_ths |> filter (is_fact_in_graph access_G I)
                          |> map nickname_of_thm
@@ -1003,7 +1006,7 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
               val ancestors =
                 old_facts
                 |> filter (fn (_, th) => crude_thm_ord (th, last_th) <> GREATER)
-              val parents = maximal_in_graph access_G ancestors
+              val parents = maximal_wrt_access_graph access_G ancestors
               val (learns, (_, n, _, _)) =
                 ([], (parents, 0, next_commit_time (), false))
                 |> fold learn_new_fact new_facts
