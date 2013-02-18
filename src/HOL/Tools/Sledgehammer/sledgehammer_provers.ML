@@ -930,8 +930,6 @@ fun run_atp mode name
 
 fun rotate_one (x :: xs) = xs @ [x]
 
-fun app_hd f (x :: xs) = f x :: xs
-
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
    ourselves. *)

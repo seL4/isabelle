@@ -437,13 +437,15 @@ fun elided_backquote_thm threshold th =
   elide_string threshold
     (backquote_thm (Proof_Context.init_global (Thm.theory_of_thm th)) th)
 
+val thy_name_of_thm = Context.theory_name o Thm.theory_of_thm
+
 fun nickname_of_thm th =
   if Thm.has_name_hint th then
     let val hint = Thm.get_name_hint th in
       (* There must be a better way to detect local facts. *)
       case try (unprefix local_prefix) hint of
         SOME suf =>
-        Context.theory_name (Thm.theory_of_thm th) ^ Long_Name.separator ^ suf ^
+        thy_name_of_thm th ^ Long_Name.separator ^ suf ^
         Long_Name.separator ^ elided_backquote_thm 50 th
       | NONE => hint
     end
@@ -900,14 +902,49 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
         (true, "")
       end)
 
+fun chunks_and_parents_for chunks th =
+  let
+    fun insert_parent new parents =
+      let val parents = parents |> filter_out (fn p => thm_less_eq (p, new)) in
+        parents |> forall (fn p => not (thm_less_eq (new, p))) parents
+                   ? cons new
+      end
+    fun rechunk seen (rest as th' :: ths) =
+      if thm_less_eq (th', th) then (rev seen, rest)
+      else rechunk (th' :: seen) ths
+    fun do_chunk [] accum = accum
+      | do_chunk (chunk as hd_chunk :: _) (chunks, parents) =
+        if thm_less_eq (hd_chunk, th) then
+          (chunk :: chunks, insert_parent hd_chunk parents)
+        else if thm_less_eq (List.last chunk, th) then
+          let val (front, back as hd_back :: _) = rechunk [] chunk in
+            (front :: back :: chunks, insert_parent hd_back parents)
+          end
+        else
+          (chunk :: chunks, parents)
+  in
+    fold_rev do_chunk chunks ([], [])
+    |>> cons []
+  end
+
 fun attach_parents_to_facts facts =
   let
-    fun do_facts _ [] = []
-      | do_facts parents ((fact as (_, th)) :: facts) =
-        (parents, fact) :: do_facts [nickname_of_thm th] facts
+    fun do_facts _ _ [] = []
+      | do_facts _ parents [fact] = [(parents, fact)]
+      | do_facts chunks parents ((fact as (_, th)) :: (facts as (_, th') :: _)) =
+        let
+          val chunks = app_hd (cons th) chunks
+          val (chunks', parents') =
+            (if thm_less_eq (th, th') andalso
+                thy_name_of_thm th = thy_name_of_thm th' then
+               (chunks, [th])
+             else
+               chunks_and_parents_for chunks th')
+            ||> map nickname_of_thm
+        in (parents, fact) :: do_facts chunks' parents' facts end
   in
     facts |> sort (crude_thm_ord o pairself snd)
-          |> do_facts []
+          |> do_facts [[]] []
   end
 
 fun sendback sub = Active.sendback_markup (sledgehammerN ^ " " ^ sub)
