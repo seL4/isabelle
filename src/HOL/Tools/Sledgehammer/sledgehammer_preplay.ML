@@ -14,9 +14,9 @@ sig
   val add_preplay_time : preplay_time -> preplay_time -> preplay_time
   val string_of_preplay_time : preplay_time -> string
   val try_metis : bool -> string -> string -> Proof.context ->
-    Time.time -> (isar_step option * isar_step) -> unit -> preplay_time
+    Time.time -> isar_step -> unit -> preplay_time
   val try_metis_quietly : bool -> string -> string -> Proof.context ->
-    Time.time -> (isar_step option * isar_step) -> unit -> preplay_time
+    Time.time -> isar_step -> unit -> preplay_time
 end
 
 structure Sledgehammer_Preplay : SLEDGEHAMMER_PREPLAY =
@@ -55,13 +55,30 @@ fun resolve_fact_names ctxt names =
     |> op @
     |> maps (thms_of_name ctxt)
 
-exception ZEROTIME
-fun try_metis debug type_enc lam_trans ctxt timeout (succedent, step) =
+(* *)
+fun thm_of_term ctxt = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+fun fact_of_subproof ctxt proof =
   let
-    val (t, byline, obtain) =
+    val (fixed_frees, assms, concl) = split_proof proof
+    val var_idx = maxidx_of_term concl + 1
+    fun var_of_free (x, T) = Var((x, var_idx), T)
+    val substitutions =
+      map (`var_of_free #> swap #> apfst Free) fixed_frees
+    val assms = assms |> map snd
+  in
+    Logic.list_implies(assms, concl)
+      |> subst_free substitutions
+      |> thm_of_term ctxt
+  end
+
+exception ZEROTIME
+fun try_metis debug type_enc lam_trans ctxt timeout step =
+  let
+    val (t, subproofs, fact_names, obtain) =
       (case step of
-        Prove (_, _, t, byline) => (t, byline, false)
-      | Obtain (_, xs, _, t, byline) =>
+        Prove (_, _, t, By_Metis (subproofs, fact_names)) =>
+            (t, subproofs, fact_names, false)
+      | Obtain (_, xs, _, t, By_Metis (subproofs, fact_names)) =>
         (* proof obligation: !!thesis. (!!x. A x ==> thesis) ==> thesis
            (see ~~/src/Pure/Isar/obtain.ML) *)
         let
@@ -77,39 +94,12 @@ fun try_metis debug type_enc lam_trans ctxt timeout (succedent, step) =
           val prop =
             Logic.all thesis (Logic.mk_implies (inner_prop, thesis_prop))
         in
-          (prop, byline, true)
+          (prop, subproofs, fact_names, true)
         end
       | _ => raise ZEROTIME)
-    val make_thm = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
     val facts =
-      (case byline of
-        By_Metis fact_names => resolve_fact_names ctxt fact_names
-      | Case_Split cases =>
-        (case the succedent of
-            Assume (_, t) => make_thm t
-          | Obtain (_, _, _, t, _) => make_thm t
-          | Prove (_, _, t, _) => make_thm t
-          | _ => error "preplay error: unexpected succedent of case split")
-        :: map (hd #> (fn Assume (_, a) => Logic.mk_implies (a, t)
-                        | _ => error "preplay error: malformed case split")
-                   #> make_thm) cases
-      | Subblock proof =>
-        let
-          val (steps, last_step) = split_last proof
-          val concl =
-            (case last_step of
-              Prove (_, _, t, _) => t
-            | _ => error "preplay error: unexpected conclusion of subblock")
-          (* TODO: assuming Fix may only occur at the beginning of a subblock,
-             this can be optimized *)
-          val fixed_frees = fold (fn Fix xs => append xs | _ => I) steps []
-          val var_idx = maxidx_of_term concl + 1
-          fun var_of_free (x, T) = Var((x, var_idx), T)
-          val substitutions =
-            map (`var_of_free #> swap #> apfst Free) fixed_frees
-        in
-          concl |> subst_free substitutions |> make_thm |> single
-        end)
+      map (fact_of_subproof ctxt) subproofs @
+      resolve_fact_names ctxt fact_names
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
                     |> obtain ? Config.put Metis_Tactic.new_skolem true
     val goal =

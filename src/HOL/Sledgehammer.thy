@@ -11,6 +11,7 @@ imports ATP SMT
 keywords "sledgehammer" :: diag and "sledgehammer_params" :: thy_decl
 begin
 
+
 ML_file "Tools/Sledgehammer/async_manager.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_util.ML"
 ML_file "Tools/Sledgehammer/sledgehammer_fact.ML"

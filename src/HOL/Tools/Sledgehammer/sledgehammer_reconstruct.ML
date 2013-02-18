@@ -456,23 +456,29 @@ fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
        map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
 val indent_size = 2
-val no_label = ("", ~1)
 
 fun string_for_proof ctxt type_enc lam_trans i n =
   let
+    fun maybe_show qs = if member (op =) qs Show then "show" else "have"
     fun of_indent ind = replicate_string (ind * indent_size) " "
     fun of_free (s, T) =
       maybe_quote s ^ " :: " ^
       maybe_quote (simplify_spaces (with_vanilla_print_mode
         (Syntax.string_of_typ ctxt) T))
     val of_frees = space_implode " and " o map of_free
+    fun maybe_moreover ind qs nr_subproofs =
+        if member (op =) qs Then andalso nr_subproofs > 0
+          then of_indent ind ^ "moreover\n"
+          else ""
     fun of_label l = if l = no_label then "" else string_for_label l ^ ": "
-    fun of_have qs =
-      (if member (op =) qs Ultimately then "ultimately " else "") ^
-      (if member (op =) qs Then then
-         if member (op =) qs Show then "thus" else "hence"
-       else
-         if member (op =) qs Show then "show" else "have")
+    fun of_have qs nr_subproofs =
+      if (member (op =) qs Then andalso nr_subproofs>0) orelse (nr_subproofs>1)
+        then "ultimately " ^ maybe_show qs
+        else
+          (if member (op =) qs Then orelse nr_subproofs>0 then
+             if member (op =) qs Show then "thus" else "hence"
+           else
+             maybe_show qs)
     fun of_obtain qs xs =
       (if member (op =) qs Then then "then " else "") ^ "obtain " ^
       of_frees xs ^ " where"
@@ -492,21 +498,19 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         of_indent ind ^ "let " ^ of_term t1 ^ " = " ^ of_term t2 ^ "\n"
       | of_step ind (Assume (l, t)) =
         of_indent ind ^ "assume " ^ of_label l ^ of_term t ^ "\n"
-      | of_step ind (Obtain (qs, xs, l, t, By_Metis facts)) =
+      | of_step ind (Obtain (qs, xs, l, t, By_Metis (subproofs, facts))) =      (* FIXME *)
+        maybe_moreover ind qs (length subproofs) ^
+        of_subproofs ind subproofs ^
         of_indent ind ^ of_obtain qs xs ^ " " ^
         of_label l ^ of_term t ^
         (* The new skolemizer puts the arguments in the same order as the ATPs
            (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
            Vampire). *)
         of_metis ind "using [[metis_new_skolem]] " facts ^ "\n"
-      | of_step ind (Prove (qs, l, t, By_Metis facts)) =
-        of_prove ind qs l t facts
-      | of_step ind (Prove (qs, l, t, Case_Split proofs)) =
-        implode (map (prefix (of_indent ind ^ "moreover\n") o of_block ind)
-                     proofs) ^
-        of_prove ind qs l t ([], [])
-      | of_step ind (Prove (qs, l, t, Subblock proof)) =
-        of_block ind proof ^ of_prove ind qs l t ([], [])
+      | of_step ind (Prove (qs, l, t, By_Metis (subproofs, facts))) =
+        maybe_moreover ind qs (length subproofs) ^
+        of_subproofs ind subproofs ^
+        of_prove ind qs (length subproofs) l t facts
     and of_steps prefix suffix ind steps =
       let val s = implode (map (of_step ind) steps) in
         replicate_string (ind * indent_size - size prefix) " " ^ prefix ^
@@ -515,39 +519,39 @@ fun string_for_proof ctxt type_enc lam_trans i n =
         suffix ^ "\n"
       end
     and of_block ind proof = of_steps "{ " " }" (ind + 1) proof
-    and of_prove ind qs l t facts =
-      of_indent ind ^ of_have qs ^ " " ^ of_label l ^ of_term t ^
+    and of_subproofs ind subproofs =
+        subproofs
+          |> map (of_block ind)
+          |> space_implode (of_indent ind ^ "moreover\n")
+    and of_prove ind qs nr_subproofs l t facts =
+      of_indent ind ^ of_have qs nr_subproofs ^ " " ^ of_label l ^ of_term t ^
       of_metis ind "" facts ^ "\n"
     (* One-step proofs are pointless; better use the Metis one-liner
        directly. *)
-    and of_proof [Prove (_, _, _, By_Metis _)] = ""
+    and of_proof [Prove (_, _, _, By_Metis ([], _))] = ""
       | of_proof proof =
         (if i <> 1 then "prefer " ^ string_of_int i ^ "\n" else "") ^
         of_indent 0 ^ "proof -\n" ^ of_steps "" "" 1 proof ^ of_indent 0 ^
         (if n <> 1 then "next" else "qed")
   in of_proof end
 
-fun used_labels_of_step (Obtain (_, _, _, _, By_Metis (ls, _))) = ls
-  | used_labels_of_step (Prove (_, _, _, by)) =
-    (case by of
-       By_Metis (ls, _) => ls
-     | Case_Split proofs => fold (union (op =) o used_labels_of) proofs []
-     | Subblock proof => used_labels_of proof)
-  | used_labels_of_step _ = []
-and used_labels_of proof = fold (union (op =) o used_labels_of_step) proof []
+fun add_labels_of_step (Obtain (_, _, _, _, By_Metis (subproofs, (ls, _)))) =
+      union (op =) (add_labels_of_proofs subproofs ls)
+  | add_labels_of_step (Prove (_, _, _, By_Metis (subproofs, (ls, _)))) =
+      union (op =) (add_labels_of_proofs subproofs ls)
+  | add_labels_of_step _ = I
+and add_labels_of_proof proof = fold add_labels_of_step proof
+and add_labels_of_proofs proofs = fold add_labels_of_proof proofs
 
 fun kill_useless_labels_in_proof proof =
   let
-    val used_ls = used_labels_of proof
+    val used_ls = add_labels_of_proof proof []
     fun do_label l = if member (op =) used_ls l then l else no_label
     fun do_step (Assume (l, t)) = Assume (do_label l, t)
-      | do_step (Obtain (qs, xs, l, t, by)) = Obtain (qs, xs, do_label l, t, by)
-      | do_step (Prove (qs, l, t, by)) =
-        Prove (qs, do_label l, t,
-               case by of
-                 Case_Split proofs => Case_Split (map do_proof proofs)
-               | Subblock proof => Subblock (do_proof proof)
-               | _ => by)
+      | do_step (Obtain (qs, xs, l, t, By_Metis (subproofs, facts))) =
+          Obtain (qs, xs, do_label l, t, By_Metis (map do_proof subproofs, facts))
+      | do_step (Prove (qs, l, t, By_Metis (subproofs, facts))) =
+          Prove (qs, do_label l, t, By_Metis (map do_proof subproofs, facts))
       | do_step step = step
     and do_proof proof = map do_step proof
   in do_proof proof end
@@ -565,12 +569,9 @@ val relabel_proof =
         end
     fun do_facts subst =
       apfst (maps (the_list o AList.lookup (op =) subst))
-    fun do_byline subst depth nexts by =
-      case by of
-        By_Metis facts => By_Metis (do_facts subst facts)
-      | Case_Split proofs =>
-        Case_Split (map (do_proof subst (depth + 1) (1, 1)) proofs)
-      | Subblock proof => Subblock (do_proof subst depth nexts proof)
+    fun do_byline subst depth nexts (By_Metis (subproofs, facts)) =
+      By_Metis
+        (map (do_proof subst (depth + 1) (1, 1)) subproofs, do_facts subst facts)
     and do_proof _ _ _ [] = []
       | do_proof subst depth (next_assum, next_have) (Assume (l, t) :: proof) =
         if l = no_label then
@@ -608,27 +609,27 @@ val chain_direct_proof =
       | label_of (Obtain (_, _, l, _, _)) = SOME l
       | label_of (Prove (_, l, _, _)) = SOME l
       | label_of _ = NONE
-    fun chain_step (SOME l0)
-                   (step as Obtain (qs, xs, l, t, By_Metis (lfs, gfs))) =
-        if member (op =) lfs l0 then
-          Obtain (Then :: qs, xs, l, t, By_Metis (lfs |> remove (op =) l0, gfs))
-        else
-          step
-      | chain_step (SOME l0)
-                   (step as Prove (qs, l, t, By_Metis (lfs, gfs))) =
-        if member (op =) lfs l0 then
-          Prove (Then :: qs, l, t, By_Metis (lfs |> remove (op =) l0, gfs))
-        else
-          step
-      | chain_step _ (Prove (qs, l, t, Case_Split proofs)) =
-        Prove (qs, l, t, Case_Split (map (chain_proof NONE) proofs))
-      | chain_step _ (Prove (qs, l, t, Subblock proof)) =
-        Prove (qs, l, t, Subblock (chain_proof NONE proof))
+    fun do_qs_lfs NONE lfs = ([], lfs)
+      | do_qs_lfs (SOME l0) lfs =
+        if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0)
+        else ([], lfs)
+    fun chain_step lbl (Obtain (qs, xs, l, t,
+                                        By_Metis (subproofs, (lfs, gfs)))) =
+        let val (qs', lfs) = do_qs_lfs lbl lfs in
+          Obtain (qs' @ qs, xs, l, t,
+            By_Metis (chain_proofs subproofs, (lfs, gfs)))
+        end
+      | chain_step lbl (Prove (qs, l, t, By_Metis (subproofs, (lfs, gfs)))) =
+        let val (qs', lfs) = do_qs_lfs lbl lfs in
+          Prove (qs' @ qs, l, t,
+            By_Metis (chain_proofs subproofs, (lfs, gfs)))
+        end
       | chain_step _ step = step
     and chain_proof _ [] = []
       | chain_proof (prev as SOME _) (i :: is) =
         chain_step prev i :: chain_proof (label_of i) is
       | chain_proof _ (i :: is) = i :: chain_proof (label_of i) is
+    and chain_proofs proofs = map (chain_proof NONE) proofs
   in chain_proof NONE end
 
 type isar_params =
@@ -721,16 +722,16 @@ fun isar_proof_text ctxt isar_proofs
               | _ => fold (curry s_disj) lits @{term False}
             end
             |> HOLogic.mk_Trueprop |> close_form
-        fun isar_proof_of_direct_proof outer accum [] =
+        fun isar_proof_of_direct_proof outer predecessor accum [] =
             rev accum |> outer ? (append assms
                                   #> not (null params) ? cons (Fix params))
-          | isar_proof_of_direct_proof outer accum (inf :: infs) =
+          | isar_proof_of_direct_proof outer predecessor accum (inf :: infs) =
             let
               fun maybe_show outer c =
                 (outer andalso length c = 1 andalso subset (op =) (c, conjs))
                 ? cons Show
-              fun do_rest step =
-                isar_proof_of_direct_proof outer (step :: accum) infs
+              fun do_rest lbl step =
+                isar_proof_of_direct_proof outer lbl (step :: accum) infs
               val is_fixed = Variable.is_declared ctxt orf can Name.dest_skolem
               fun skolems_of t =
                 Term.add_frees t [] |> filter_out (is_fixed o fst) |> rev
@@ -741,8 +742,9 @@ fun isar_proof_text ctxt isar_proofs
                   val l = label_of_clause c
                   val t = prop_of_clause c
                   val by =
-                    By_Metis (fold (add_fact_from_dependencies fact_names) gamma
-                                   ([], []))
+                    By_Metis ([],
+                      (fold (add_fact_from_dependencies fact_names)
+                            gamma no_facts))
                   fun prove outer = Prove (maybe_show outer c [], l, t, by)
                 in
                   if is_clause_tainted c then
@@ -751,33 +753,35 @@ fun isar_proof_text ctxt isar_proofs
                       if is_clause_skolemize_rule g andalso
                          is_clause_tainted g then
                         let
-                          val proof =
+                          val subproof =
                             Fix (skolems_of (prop_of_clause g)) :: rev accum
                         in
-                          isar_proof_of_direct_proof outer
-                              [Prove (maybe_show outer c [Then],
+                          isar_proof_of_direct_proof outer l
+                              [Prove (maybe_show outer c [],
                                       label_of_clause c, prop_of_clause c,
-                                      Subblock proof)] []
+                                      By_Metis ([subproof], no_facts))] []
                         end
                       else
-                        do_rest (prove outer)
-                    | _ => do_rest (prove outer)
+                        do_rest l (prove outer)
+                    | _ => do_rest l (prove outer)
                   else
                     if is_clause_skolemize_rule c then
-                      do_rest (Obtain ([], skolems_of t, l, t, by))
+                      do_rest l (Obtain ([], skolems_of t, l, t, by))
                     else
-                      do_rest (prove outer)
+                      do_rest l (prove outer)
                 end
               | Cases cases =>
                 let
                   fun do_case (c, infs) =
                     Assume (label_of_clause c, prop_of_clause c) ::
-                    isar_proof_of_direct_proof false [] infs
+                    isar_proof_of_direct_proof false no_label [] infs
                   val c = succedent_of_cases cases
+                  val l = label_of_clause c
                 in
-                  do_rest (Prove (maybe_show outer c [Ultimately],
-                                  label_of_clause c, prop_of_clause c,
-                                  Case_Split (map do_case cases)))
+                  do_rest l
+                    (Prove (maybe_show outer c [],
+                            l, prop_of_clause c,
+                            By_Metis (map do_case cases, ([predecessor], []))))
                 end
             end
         val cleanup_labels_in_proof =
@@ -787,7 +791,7 @@ fun isar_proof_text ctxt isar_proofs
         val (isar_proof, (preplay_fail, preplay_time)) =
           refute_graph
           |> redirect_graph axioms tainted bot
-          |> isar_proof_of_direct_proof true []
+          |> isar_proof_of_direct_proof true no_label []
           |> (if not preplay andalso isar_compress <= 1.0 then
                 rpair (false, (true, seconds 0.0))
               else

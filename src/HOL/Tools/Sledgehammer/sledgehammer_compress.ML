@@ -34,7 +34,6 @@ structure Label_Table = Table(
 fun get i v = Vector.sub (v, i)
 fun replace x i v = Vector.update (v, i, x)
 fun update f i v = replace (get i v |> f) i v
-fun v_map_index f v = Vector.foldr (op::) nil v |> map_index f |> Vector.fromList
 fun v_fold_index f v s =
   Vector.foldl (fn (x, (i, s)) => (i+1, f (i, x) s)) (0, s) v |> snd
 
@@ -69,7 +68,7 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       val metis_fail = fn () => !metis_fail
     end
 
-    (* compress proof on top level - do not compress case splits *)
+    (* compress proof on top level - do not compress subproofs *)
     fun compress_top_level on_top_level ctxt proof =
     let
       (* proof vector *)
@@ -87,13 +86,13 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       val lookup_indices = map_filter (Label_Table.lookup label_index_table)
 
       (* proof references *)
-      fun refs (Obtain (_, _, _, _, By_Metis (lfs, _))) = lookup_indices lfs
-        | refs (Prove (_, _, _, By_Metis (lfs, _))) = lookup_indices lfs
-        | refs (Prove (_, _, _, Case_Split cases)) = maps (maps refs) cases
-        | refs (Prove (_, _, _, Subblock proof)) = maps refs proof
+      fun refs (Obtain (_, _, _, _, By_Metis (subproofs, (lfs, _)))) =
+              maps (maps refs) subproofs @ lookup_indices lfs
+        | refs (Prove (_, _, _, By_Metis (subproofs, (lfs, _)))) =
+              maps (maps refs) subproofs @ lookup_indices lfs
         | refs _ = []
       val refed_by_vect =
-        Vector.tabulate (n, (fn _ => []))
+        Vector.tabulate (n, K [])
         |> fold_index (fn (i, step) => fold (update (cons i)) (refs step)) proof
         |> Vector.map rev (* after rev, indices are sorted in ascending order *)
 
@@ -113,11 +112,10 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
 
       (* cache metis preplay times in lazy time vector *)
       val metis_time =
-        v_map_index
+        Vector.map
           (if not preplay then K (zero_preplay_time) #> Lazy.value
            else
-             apsnd the (* step *)
-             #> apfst (fn i => try (get (i-1) #> the) proof_vect) (* succedent *)
+             the
              #> try_metis debug type_enc lam_trans ctxt preplay_timeout
              #> handle_metis_fail
              #> Lazy.lazy)
@@ -129,18 +127,20 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           zero_preplay_time lazy_time_vector
 
       (* Merging *)
-      fun merge (Prove (_, label1, _, By_Metis (lfs1, gfs1))) step2 =
+      fun merge (Prove (_, label1, _, By_Metis (subproofs1, (lfs1, gfs1))))
+                                                                        step2 =
           let
-            val (step_constructor, lfs2, gfs2) =
+            val (step_constructor, (subproofs2, (lfs2, gfs2))) =
               (case step2 of
-                (Prove (qs2, label2, t, By_Metis (lfs2, gfs2))) =>
-                  (fn by => Prove (qs2, label2, t, by), lfs2, gfs2)
-              | (Obtain (qs2, xs, label2, t, By_Metis (lfs2, gfs2))) =>
-                  (fn by => Obtain (qs2, xs, label2, t, by), lfs2, gfs2)
+                Prove (qs2, label2, t, By_Metis x) =>
+                  (fn by => Prove (qs2, label2, t, by), x)
+              | Obtain (qs2, xs, label2, t, By_Metis x) =>
+                  (fn by => Obtain (qs2, xs, label2, t, by), x)
               | _ => error "sledgehammer_compress: unmergeable Isar steps" )
             val lfs = remove (op =) label1 lfs2 |> union (op =) lfs1
             val gfs = union (op =) gfs1 gfs2
-          in step_constructor (By_Metis (lfs, gfs)) end
+            val subproofs = subproofs1 @ subproofs2
+          in step_constructor (By_Metis (subproofs, (lfs, gfs))) end
         | merge _ _ = error "sledgehammer_compress: unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
@@ -156,8 +156,8 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
                 val s12 = merge s1 s2
                 val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
               in
-                case try_metis_quietly debug type_enc lam_trans ctxt timeout
-                (NONE, s12) () of
+                case try_metis_quietly debug type_enc lam_trans
+                                                        ctxt timeout s12 () of
                   (true, _) => (NONE, metis_time)
                 | exact_time =>
                   (SOME s12, metis_time
@@ -218,28 +218,25 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           | enrich_with_step _ = I
         val rich_ctxt = fold enrich_with_step proof ctxt
 
-        (* compress subproofs (case_splits and subblocks) and top-levl *)
+        (* compress subproofs and top-levl proof *)
         val ((proof, top_level_time), lower_level_time) =
-          proof |> do_subproof rich_ctxt
+          proof |> do_subproofs rich_ctxt
                 |>> compress_top_level on_top_level rich_ctxt
       in
         (proof, add_preplay_time lower_level_time top_level_time)
       end
 
-    and do_subproof ctxt proof =
+    and do_subproofs ctxt proof =
       let
-        fun compress_each_and_collect_time compress candidates =
-          let fun f_m cand time = compress cand ||> add_preplay_time time
-          in fold_map f_m candidates zero_preplay_time end
-        val compress_subproof =
+        fun compress_each_and_collect_time compress subproofs =
+          let fun f_m proof time = compress proof ||> add_preplay_time time
+          in fold_map f_m subproofs zero_preplay_time end
+        val compress_subproofs =
           compress_each_and_collect_time (do_proof false ctxt)
-        fun compress (Prove (qs, l, t, Case_Split cases)) =
-            let val (cases, time) = compress_subproof cases
-            in (Prove (qs, l, t, Case_Split cases), time) end
-          | compress (Prove (qs, l, t, Subblock proof)) =
-            let val ([proof], time) = compress_subproof [proof]
-            in (Prove (qs, l, t, Subblock proof), time) end
-          | compress step = (step, zero_preplay_time)
+        fun compress (Prove (qs, l, t, By_Metis(subproofs, facts))) =
+              let val (subproofs, time) = compress_subproofs subproofs
+              in (Prove (qs, l, t, By_Metis(subproofs, facts)), time) end
+          | compress atomic_step = (atomic_step, zero_preplay_time)
       in
         compress_each_and_collect_time compress proof
       end
