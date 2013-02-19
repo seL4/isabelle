@@ -93,7 +93,7 @@ in
 
 fun build args_file = Command_Line.tool (fn () =>
     let
-      val (timings, (do_output, (options, (verbose, (browser_info,
+      val (command_timings, (do_output, (options, (verbose, (browser_info,
           (parent_name, (name, theories))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>
           let open XML.Decode in
@@ -126,7 +126,7 @@ fun build args_file = Command_Line.tool (fn () =>
 
       val last_timing =
         the_default Timing.zero o
-          Timings.lookup (make_timings timings) o Toplevel.approximative_id;
+          Timings.lookup (make_timings command_timings) o Toplevel.approximative_id;
 
       val res1 =
         theories |>

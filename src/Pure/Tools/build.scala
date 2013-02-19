@@ -288,9 +288,16 @@ object Build
 
   object Queue
   {
-    def apply(tree: Session_Tree): Queue =
+    def apply(tree: Session_Tree, get_timings: String => (List[Properties.T], Double)): Queue =
     {
       val graph = tree.graph
+      val sessions = graph.keys.toList
+
+      val timings = sessions.map(name => (name, get_timings(name)))
+      val command_timings =
+        Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
+      val session_timing =
+        Map(timings.map({ case (name, (_, t)) => (name, t) }): _*).withDefaultValue(0.0)
 
       def outdegree(name: String): Int = graph.imm_succs(name).size
       def timeout(name: String): Double = tree(name).options.real("timeout")
@@ -300,25 +307,32 @@ object Build
         def compare(name1: String, name2: String): Int =
           outdegree(name2) compare outdegree(name1) match {
             case 0 =>
-              timeout(name2) compare timeout(name1) match {
-                case 0 => name1 compare name2
+              session_timing(name2) compare session_timing(name1) match {
+                case 0 =>
+                  timeout(name2) compare timeout(name1) match {
+                    case 0 => name1 compare name2
+                    case ord => ord
+                  }
                 case ord => ord
               }
             case ord => ord
           }
       }
 
-      new Queue(graph, SortedSet(graph.keys.toList: _*)(Ordering))
+      new Queue(graph, SortedSet(sessions: _*)(Ordering), command_timings)
     }
   }
 
-  final class Queue private(graph: Graph[String, Session_Info], order: SortedSet[String])
+  final class Queue private(
+    graph: Graph[String, Session_Info],
+    order: SortedSet[String],
+    val command_timings: String => List[Properties.T])
   {
     def is_inner(name: String): Boolean = !graph.is_maximal(name)
 
     def is_empty: Boolean = graph.is_empty
 
-    def - (name: String): Queue = new Queue(graph.del_node(name), order - name)
+    def - (name: String): Queue = new Queue(graph.del_node(name), order - name, command_timings)
 
     def dequeue(skip: String => Boolean): Option[(String, Session_Info)] =
     {
@@ -419,7 +433,7 @@ object Build
 
   private class Job(progress: Build.Progress,
     name: String, val info: Session_Info, output: Path, do_output: Boolean,
-    verbose: Boolean, browser_info: Path)
+    verbose: Boolean, browser_info: Path, command_timings: List[Properties.T])
   {
     // global browser info dir
     if (info.options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
@@ -445,7 +459,7 @@ object Build
           import XML.Encode._
               pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
                 pair(string, pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
-              (Nil /* FIXME */, (do_output, (info.options, (verbose, (browser_info,
+              (command_timings, (do_output, (info.options, (verbose, (browser_info,
                 (parent, (name, info.theories))))))))
         }))
 
@@ -546,17 +560,22 @@ object Build
 
 
   sealed case class Log_Info(
-    name: String, stats: List[Properties.T], tasks: List[Properties.T], timing: Properties.T)
+    name: String,
+    stats: List[Properties.T],
+    tasks: List[Properties.T],
+    command_timings: List[Properties.T],
+    session_timing: Properties.T)
 
-  def parse_log(text: String): Log_Info =
+  def parse_log(full_stats: Boolean, text: String): Log_Info =
   {
     val lines = split_lines(text)
     val name =
       lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) getOrElse ""
-    val stats = Props.parse_lines("\fML_statistics = ", lines)
-    val tasks = Props.parse_lines("\ftask_statistics = ", lines)
-    val timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
-    Log_Info(name, stats, tasks, timing)
+    val stats = if (full_stats) Props.parse_lines("\fML_statistics = ", lines) else Nil
+    val tasks = if (full_stats) Props.parse_lines("\ftask_statistics = ", lines) else Nil
+    val command_timings = Props.parse_lines("\fcommand_timing = ", lines)
+    val session_timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
+    Log_Info(name, stats, tasks, command_timings, session_timing)
   }
 
 
@@ -612,15 +631,19 @@ object Build
     verbose: Boolean = false,
     sessions: List[String] = Nil): Int =
   {
+    /* session tree and dependencies */
+
     val full_tree = find_sessions(options, more_dirs)
     val (selected, selected_tree) =
       full_tree.selection(requirements, all_sessions, session_groups, sessions)
 
     val deps = dependencies(progress, true, verbose, list_files, selected_tree)
-    val queue = Queue(selected_tree)
 
     def make_stamp(name: String): String =
       sources_stamp(selected_tree(name).entry_digest :: deps.sources(name))
+
+
+    /* persistent information */
 
     val (input_dirs, output_dir, browser_info) =
       if (system_mode) {
@@ -632,6 +655,33 @@ object Build
         (output_dir :: Isabelle_System.find_logics_dirs(), output_dir,
          Path.explode("$ISABELLE_BROWSER_INFO"))
       }
+
+    def find_log(name: String): Option[Path] =
+      input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir => dir + log_gz(name))
+
+
+    /* queue with scheduling information */
+
+    def get_timing(name: String): (List[Properties.T], Double) =
+      find_log(name) match {
+        case Some(path) =>
+          try {
+            val info = parse_log(false, File.read_gzip(path))
+            val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
+            (info.command_timings, session_timing)
+          }
+          catch {
+            case ERROR(msg) =>
+              java.lang.System.err.println("### Ignoring bad log file: " + path + "\n" + msg)
+            (Nil, 0.0)
+          }
+        case None => (Nil, 0.0)
+      }
+
+    val queue = Queue(selected_tree, get_timing)
+
+
+    /* main build process */
 
     // prepare log dir
     Isabelle_System.mkdirs(output_dir + LOG)
@@ -718,11 +768,11 @@ object Build
 
                 val (current, heap) =
                 {
-                  input_dirs.find(dir => (dir + log_gz(name)).is_file) match {
-                    case Some(dir) =>
-                      read_stamps(dir + log_gz(name)) match {
+                  find_log(name) match {
+                    case Some(path) =>
+                      read_stamps(path) match {
                         case Some((s, h1, h2)) =>
-                          val heap = heap_stamp(Some(dir + Path.basic(name)))
+                          val heap = heap_stamp(Some(path.dir + Path.basic(name)))
                           (s == make_stamp(name) && h1 == parent_result.heap && h2 == heap &&
                             !(do_output && heap == no_heap), heap)
                         case None => (false, no_heap)
@@ -740,7 +790,9 @@ object Build
                 }
                 else if (parent_result.rc == 0) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
-                  val job = new Job(progress, name, info, output, do_output, verbose, browser_info)
+                  val job =
+                    new Job(progress, name, info, output, do_output, verbose, browser_info,
+                      queue.command_timings(name))
                   loop(pending, running + (name -> (parent_result.heap, job)), results)
                 }
                 else {
@@ -753,6 +805,9 @@ object Build
           case None => sleep(); loop(pending, running, results)
         }
     }
+
+
+    /* build results */
 
     val results =
       if (deps.is_empty) {
