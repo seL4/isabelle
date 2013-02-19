@@ -876,9 +876,15 @@ fun isar_proof_text ctxt isar_proofs
                   ""
   in one_line_proof ^ isar_proof end
 
+fun isar_proof_would_be_a_good_idea preplay =
+  case preplay of
+    Played (reconstr, _) => reconstr = SMT
+  | Trust_Playable _ => false
+  | Failed_to_Play _ => true
+
 fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if case preplay of Failed_to_Play _ => true | _ => isar_proofs then
+  (if isar_proofs orelse isar_proof_would_be_a_good_idea preplay then
      isar_proof_text ctxt isar_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params
