@@ -703,9 +703,14 @@ fun proof_result immediate (tr, proof_trs) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
+        val timing_estimate = fold (Timing.add o get_timing) proof_trs Timing.zero;
+        val timing_order =
+          Real.floor (Real.max (Math.log10 (Time.toReal (#elapsed timing_estimate)), ~3.0));
+        val pri = Int.min (timing_order - 3, ~1);
+
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Goal.fork_name "Toplevel.future_proof"
+            Goal.fork_name "Toplevel.future_proof" pri
               (fn () =>
                 let val (result, result_state) =
                   (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)

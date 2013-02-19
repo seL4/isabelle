@@ -1188,7 +1188,7 @@ fun future_terminal_proof n proof1 proof2 meths int state =
     andalso not (is_relevant state)
   then
     snd (proof2 (fn state' =>
-      Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state)
+      Goal.fork_name "Proof.future_terminal_proof" ~1 (fn () => ((), proof1 meths state'))) state)
   else proof1 meths state;
 
 in
