@@ -44,8 +44,8 @@ local
 fun no_document options =
   (case Options.string options "document" of "" => true | "false" => true | _ => false);
 
-fun use_thys options =
-  Thy_Info.use_thys
+fun use_theories last_timing options =
+  Thy_Info.use_theories {last_timing = last_timing, master_dir = Path.current}
     |> Unsynchronized.setmp Proofterm.proofs (Options.int options "proofs")
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
@@ -71,10 +71,10 @@ fun use_thys options =
     |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 
-fun use_theories (options, thys) =
+fun use_theories_condition last_timing (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in
     (case filter_out (can getenv_strict) condition of
-      [] => use_thys options (map (rpair Position.none) thys)
+      [] => use_theories last_timing options (map (rpair Position.none) thys)
     | conds =>
         Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
@@ -117,7 +117,7 @@ fun build args_file = Command_Line.tool (fn () =>
 
       val res1 =
         theories |>
-          (List.app use_theories
+          (List.app (use_theories_condition (K Timing.zero))  (* FIXME *)
             |> Session.with_timing name verbose
             |> Unsynchronized.setmp Output.Private_Hooks.protocol_message_fn protocol_message
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")

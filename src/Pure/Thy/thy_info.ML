@@ -17,7 +17,8 @@ sig
   val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
-  val use_thys_wrt: Path.T -> (string * Position.T) list -> unit
+  val use_theories: {last_timing: Toplevel.transition -> Timing.timing, master_dir: Path.T} ->
+    (string * Position.T) list -> unit
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
   val toplevel_begin_theory: Path.T -> Thy_Header.header -> theory
@@ -221,7 +222,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy initiators update_time deps text (name, pos) uses keywords parents =
+fun load_thy last_timing initiators update_time deps text (name, pos) uses keywords parents =
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -234,7 +235,7 @@ fun load_thy initiators update_time deps text (name, pos) uses keywords parents 
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
 
     val (theory, present) =
-      Thy_Load.load_thy update_time dir header (Path.position thy_path) text
+      Thy_Load.load_thy last_timing update_time dir header (Path.position thy_path) text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
@@ -259,9 +260,9 @@ fun check_deps dir name =
 
 in
 
-fun require_thys initiators dir strs tasks =
-      fold_map (require_thy initiators dir) strs tasks |>> forall I
-and require_thy initiators dir (str, require_pos) tasks =
+fun require_thys last_timing initiators dir strs tasks =
+      fold_map (require_thy last_timing initiators dir) strs tasks |>> forall I
+and require_thy last_timing initiators dir (str, require_pos) tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
@@ -280,7 +281,7 @@ and require_thy initiators dir (str, require_pos) tasks =
 
           val parents = map (base_name o #1) imports;
           val (parents_current, tasks') =
-            require_thys (name :: initiators)
+            require_thys last_timing (name :: initiators)
               (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
@@ -293,7 +294,8 @@ and require_thy initiators dir (str, require_pos) tasks =
                   let
                     val update_time = serial ();
                     val load =
-                      load_thy initiators update_time dep text (name, theory_pos) uses keywords;
+                      load_thy last_timing initiators update_time dep
+                        text (name, theory_pos) uses keywords;
                   in Task (parents, load) end);
 
           val tasks'' = new_entry name parents task tasks';
@@ -305,10 +307,10 @@ end;
 
 (* use_thy *)
 
-fun use_thys_wrt dir arg =
-  schedule_tasks (snd (require_thys [] dir arg String_Graph.empty));
+fun use_theories {last_timing, master_dir} imports =
+  schedule_tasks (snd (require_thys last_timing [] master_dir imports String_Graph.empty));
 
-val use_thys = use_thys_wrt Path.current;
+val use_thys = use_theories {last_timing = K Timing.zero, master_dir = Path.current};
 val use_thy = use_thys o single;
 
 
@@ -318,7 +320,7 @@ fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
   let
     val {name = (name, _), imports, ...} = header;
     val _ = kill_thy name;
-    val _ = use_thys_wrt master_dir imports;
+    val _ = use_theories {last_timing = K Timing.zero, master_dir = master_dir} imports;
     val _ = Thy_Header.define_keywords header;
     val parents = map (get_theory o base_name o fst) imports;
   in Thy_Load.begin_theory master_dir header parents end;

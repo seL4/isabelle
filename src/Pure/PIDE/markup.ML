@@ -92,6 +92,7 @@ sig
   val elapsedN: string
   val cpuN: string
   val gcN: string
+  val timing_propertiesN: string list
   val timing_properties: Timing.timing -> Properties.T
   val timingN: string val timing: Timing.timing -> T
   val subgoalsN: string
@@ -332,6 +333,8 @@ val (keyword2N, keyword2) = markup_elem "keyword2";
 val elapsedN = "elapsed";
 val cpuN = "cpu";
 val gcN = "gc";
+
+val timing_propertiesN = [elapsedN, cpuN, gcN];
 
 fun timing_properties {elapsed, cpu, gc} =
  [(elapsedN, Time.toString elapsed),

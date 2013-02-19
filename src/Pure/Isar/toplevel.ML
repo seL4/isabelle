@@ -89,6 +89,9 @@ sig
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val status: transition -> Markup.T -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
+  val approximative_id: transition -> Properties.T
+  val get_timing: transition -> Timing.timing
+  val put_timing: Timing.timing -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
   val proof_result: bool -> transition * transition list -> state ->
@@ -340,16 +343,17 @@ datatype transition = Transition of
   int_only: bool,            (*interactive-only*)
   print: bool,               (*print result state*)
   no_timing: bool,           (*suppress timing*)
+  timing: Timing.timing,     (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
-fun make_transition (name, pos, int_only, print, no_timing, trans) =
-  Transition {name = name, pos = pos, int_only = int_only, print = print, no_timing = no_timing,
-    trans = trans};
+fun make_transition (name, pos, int_only, print, no_timing, timing, trans) =
+  Transition {name = name, pos = pos, int_only = int_only, print = print,
+    no_timing = no_timing, timing = timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, int_only, print, no_timing, trans}) =
-  make_transition (f (name, pos, int_only, print, no_timing, trans));
+fun map_transition f (Transition {name, pos, int_only, print, no_timing, timing, trans}) =
+  make_transition (f (name, pos, int_only, print, no_timing, timing, trans));
 
-val empty = make_transition ("", Position.none, false, false, false, []);
+val empty = make_transition ("", Position.none, false, false, false, Timing.zero, []);
 
 
 (* diagnostics *)
@@ -367,26 +371,26 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name name = map_transition (fn (_, pos, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun name name = map_transition (fn (_, pos, int_only, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
-fun position pos = map_transition (fn (name, _, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun position pos = map_transition (fn (name, _, int_only, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
-fun interactive int_only = map_transition (fn (name, pos, _, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun interactive int_only = map_transition (fn (name, pos, _, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
-val no_timing = map_transition (fn (name, pos, int_only, print, _, trans) =>
-  (name, pos, int_only, print, true, trans));
+val no_timing = map_transition (fn (name, pos, int_only, print, _, timing, trans) =>
+  (name, pos, int_only, print, true, timing, trans));
 
-fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, tr :: trans));
+fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, tr :: trans));
 
-val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, _) =>
-  (name, pos, int_only, print, no_timing, []));
+val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, timing, _) =>
+  (name, pos, int_only, print, no_timing, timing, []));
 
-fun set_print print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun set_print print = map_transition (fn (name, pos, int_only, _, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
 val print = set_print true;
 
@@ -610,13 +614,19 @@ end;
 
 (* apply transitions *)
 
+fun approximative_id tr =
+  (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
+
+fun get_timing (Transition {timing, ...}) = timing;
+fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timing, _, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
+
 local
 
 fun timing_message tr t =
   if Timing.is_relevant t then
     Output.protocol_message
-      (Markup.command_timing :: (Markup.nameN, name_of tr) ::
-        Position.properties_of (pos_of tr) @ Markup.timing_properties t) ""
+      (Markup.command_timing :: approximative_id tr @ Markup.timing_properties t) ""
     handle Fail _ => ()
   else ();
 
