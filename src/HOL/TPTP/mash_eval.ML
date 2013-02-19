@@ -16,8 +16,9 @@ sig
   val MeSh_ProverN : string
   val IsarN : string
   val evaluate_mash_suggestions :
-    Proof.context -> params -> int * int option -> string list -> string option
-    -> string -> string -> string -> string -> string -> string -> unit
+    Proof.context -> params -> int * int option -> bool -> string list
+    -> string option -> string -> string -> string -> string -> string -> string
+    -> unit
 end;
 
 structure MaSh_Eval : MASH_EVAL =
@@ -39,7 +40,7 @@ val IsarN = "Isar"
 fun in_range (from, to) j =
   j >= from andalso (to = NONE orelse j <= the to)
 
-fun evaluate_mash_suggestions ctxt params range methods prob_dir_name
+fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
         mepo_file_name mash_isar_file_name mash_prover_file_name
         mesh_isar_file_name mesh_prover_file_name report_file_name =
   let

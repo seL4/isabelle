@@ -56,6 +56,7 @@ sig
     ('a * 'a -> bool) -> int -> (real * (('a * real) list * 'a list)) list
     -> 'a list
   val crude_thm_ord : thm * thm -> order
+  val thm_less : thm * thm -> bool
   val goal_of_thm : theory -> thm -> thm
   val run_prover_for_mash :
     Proof.context -> params -> string -> fact list -> thm -> prover_result
@@ -80,6 +81,8 @@ sig
   val mash_learn_proof :
     Proof.context -> params -> string -> term -> ('a * thm) list -> thm list
     -> unit
+  val attach_parents_to_facts :
+    ('a * thm) list -> ('a * thm) list -> (string list * ('a * thm)) list
   val mash_learn :
     Proof.context -> params -> fact_override -> thm list -> bool -> unit
   val is_mash_enabled : unit -> bool
@@ -902,6 +905,8 @@ fun mash_learn_proof ctxt ({overlord, timeout, ...} : params) prover t facts
         (true, "")
       end)
 
+(* In the following functions, chunks are risers w.r.t. "thm_less_eq". *)
+
 fun chunks_and_parents_for chunks th =
   let
     fun insert_parent new parents =
@@ -925,27 +930,30 @@ fun chunks_and_parents_for chunks th =
   in
     fold_rev do_chunk chunks ([], [])
     |>> cons []
+    ||> map nickname_of_thm
   end
 
-fun attach_parents_to_facts facts =
-  let
-    fun do_facts _ _ [] = []
-      | do_facts _ parents [fact] = [(parents, fact)]
-      | do_facts chunks parents ((fact as (_, th)) :: (facts as (_, th') :: _)) =
-        let
-          val chunks = app_hd (cons th) chunks
-          val (chunks', parents') =
-            (if thm_less_eq (th, th') andalso
-                thy_name_of_thm th = thy_name_of_thm th' then
-               (chunks, [th])
-             else
-               chunks_and_parents_for chunks th')
-            ||> map nickname_of_thm
-        in (parents, fact) :: do_facts chunks' parents' facts end
-  in
-    facts |> sort (crude_thm_ord o pairself snd)
-          |> do_facts [[]] []
-  end
+fun attach_parents_to_facts _ [] = []
+  | attach_parents_to_facts old_facts (facts as (_, th) :: _) =
+    let
+      fun do_facts _ [] = []
+        | do_facts (_, parents) [fact] = [(parents, fact)]
+        | do_facts (chunks, parents)
+                   ((fact as (_, th)) :: (facts as (_, th') :: _)) =
+          let
+            val chunks = app_hd (cons th) chunks
+            val chunks_and_parents' =
+              if thm_less_eq (th, th') andalso
+                 thy_name_of_thm th = thy_name_of_thm th' then
+                (chunks, [nickname_of_thm th])
+              else
+                chunks_and_parents_for chunks th'
+          in (parents, fact) :: do_facts chunks_and_parents' facts end
+    in
+      old_facts @ facts
+      |> do_facts (chunks_and_parents_for [[]] th)
+      |> drop (length old_facts)
+    end
 
 fun sendback sub = Active.sendback_markup (sledgehammerN ^ " " ^ sub)
 
@@ -1046,12 +1054,12 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
             0
           else
             let
-              val facts =
+              val new_facts =
                 facts |> attach_parents_to_facts
                       |> filter_out (is_in_access_G o snd)
               val (learns, (n, _, _)) =
                 ([], (0, next_commit_time (), false))
-                |> fold learn_new_fact facts
+                |> fold learn_new_fact new_facts
             in commit true learns [] []; n end
         fun relearn_old_fact _ (accum as (_, (_, _, true))) = accum
           | relearn_old_fact ((_, (_, status)), th)
