@@ -569,11 +569,15 @@ object Build
   def parse_log(full_stats: Boolean, text: String): Log_Info =
   {
     val lines = split_lines(text)
+    val xml_cache = new XML.Cache()
+    def parse_lines(prfx: String): List[Properties.T] =
+      Props.parse_lines(prfx, lines).map(xml_cache.cache_props)
+
     val name =
       lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) getOrElse ""
-    val stats = if (full_stats) Props.parse_lines("\fML_statistics = ", lines) else Nil
-    val tasks = if (full_stats) Props.parse_lines("\ftask_statistics = ", lines) else Nil
-    val command_timings = Props.parse_lines("\fcommand_timing = ", lines)
+    val stats = if (full_stats) parse_lines("\fML_statistics = ") else Nil
+    val tasks = if (full_stats) parse_lines("\ftask_statistics = ") else Nil
+    val command_timings = parse_lines("\fcommand_timing = ")
     val session_timing = Props.find_parse_line("\fTiming = ", lines) getOrElse Nil
     Log_Info(name, stats, tasks, command_timings, session_timing)
   }
