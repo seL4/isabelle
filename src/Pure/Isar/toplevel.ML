@@ -624,7 +624,7 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 local
 
 fun timing_message tr t =
-  if Timing.is_relevant t then
+  if Timing.is_relevant t andalso not (Position.is_reported (pos_of tr)) then
     Output.protocol_message
       (Markup.command_timing :: approximative_id tr @ Markup.timing_properties t) ""
     handle Fail _ => ()
