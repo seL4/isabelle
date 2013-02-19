@@ -16,30 +16,23 @@ struct
 
 local
 
-fun ML_statistics (function :: stats) "" =
-      if function = Markup.ML_statistics then SOME stats
-      else NONE
-  | ML_statistics _ _ = NONE;
+(* FIXME avoid hardwired stuff!? *)
+val protocol_echo = [Markup.ML_statistics, Markup.task_statistics, Markup.command_timing];
 
-fun task_statistics (function :: stats) "" =
-      if function = Markup.task_statistics then SOME stats
-      else NONE
-  | task_statistics _ _ = NONE;
-
-val print_properties = YXML.string_of_body o XML.Encode.properties;
+fun protocol_undef () = raise Fail "Undefined Output.protocol_message";
 
 in
 
 fun protocol_message props output =
-  (case ML_statistics props output of
-    SOME stats => writeln ("\fML_statistics = " ^ print_properties stats)
-  | NONE =>
-      (case task_statistics props output of
-        SOME stats => writeln ("\ftask_statistics = " ^ print_properties stats)
-      | NONE =>
-          (case Markup.dest_loading_theory props of
-            SOME name => writeln ("\floading_theory = " ^ name)
-          | NONE => raise Fail "Undefined Output.protocol_message")));
+  (case props of
+    function :: args =>
+      if member (op =) protocol_echo function then
+        writeln ("\f" ^ #2 function ^ " = " ^ YXML.string_of_body (XML.Encode.properties args))
+      else
+        (case Markup.dest_loading_theory props of
+          SOME name => writeln ("\floading_theory = " ^ name)
+        | NONE => protocol_undef ())
+  | [] => protocol_undef ());
 
 end;
 

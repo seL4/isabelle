@@ -612,11 +612,21 @@ end;
 
 local
 
+fun timing_message tr t =
+  if Timing.is_relevant t then
+    Output.protocol_message
+      (Markup.command_timing :: (Markup.nameN, name_of tr) ::
+        Position.properties_of (pos_of tr) @ Markup.timing_properties t) ""
+    handle Fail _ => ()
+  else ();
+
 fun app int (tr as Transition {trans, print, no_timing, ...}) =
   setmp_thread_position tr (fn state =>
     let
       fun do_timing f x = (warning (command_msg "" tr); timeap f x);
       fun do_profiling f x = profile (! profiling) f x;
+
+      val start = Timing.start ();
 
       val (result, status) =
          state |>
@@ -625,6 +635,8 @@ fun app int (tr as Transition {trans, print, no_timing, ...}) =
             |> (! profiling > 0 orelse ! timing andalso not no_timing) ? do_timing);
 
       val _ = if int andalso not (! quiet) andalso print then print_state false result else ();
+
+      val _ = timing_message tr (Timing.result start);
     in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) status) end);
 
 in

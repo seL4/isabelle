@@ -135,6 +135,7 @@ sig
   val cancel_scala: string -> Properties.T
   val ML_statistics: Properties.entry
   val task_statistics: Properties.entry
+  val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
   val no_output: Output.output * Output.output
@@ -414,6 +415,8 @@ fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
 val ML_statistics = (functionN, "ML_statistics");
 
 val task_statistics = (functionN, "task_statistics");
+
+val command_timing = (functionN, "command_timing");
 
 fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 
