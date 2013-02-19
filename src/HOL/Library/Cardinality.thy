@@ -234,8 +234,6 @@ qed (auto simp add: finite_UNIV_natural_def card_UNIV_natural_def card_eq_0_iff
   dest!: finite_imageD intro: inj_onI)
 end
 
-declare [[show_consts]]
-
 instantiation integer :: card_UNIV begin
 definition "finite_UNIV = Phantom(integer) False"
 definition "card_UNIV = Phantom(integer) 0"
