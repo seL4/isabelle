@@ -36,7 +36,7 @@ sig
   val isar: TextIO.instream -> bool -> isar
   val span_cmts: Token.T list -> Token.T list
   val read_span: outer_syntax -> Token.T list -> Toplevel.transition * bool
-  val read_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.element ->
+  val read_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.span Thy_Syntax.element ->
     (Toplevel.transition * Toplevel.transition list) list
 end;
 
@@ -331,13 +331,16 @@ fun read_span outer_syntax toks =
       handle ERROR msg => (Toplevel.malformed proper_range msg, true)
   end;
 
-fun read_element outer_syntax init {head, proof, proper_proof} =
+fun read_element outer_syntax init (Thy_Syntax.Element (head, opt_proof)) =
   let
     val read = read_span outer_syntax o Thy_Syntax.span_content;
     val (tr, proper_head) = read head |>> Toplevel.modify_init init;
-    val proof_trs = map read proof |> filter #2 |> map #1;
+    val proof_trs =
+      (case opt_proof of
+        NONE => []
+      | SOME (a, b) => map read (maps Thy_Syntax.flat_element a @ [b]) |> filter #2 |> map #1);
   in
-    if proper_head andalso proper_proof andalso
+    if proper_head andalso
       not (Keyword.is_schematic_goal (Toplevel.name_of tr)) then [(tr, proof_trs)]
     else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;

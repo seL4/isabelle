@@ -15,8 +15,10 @@ sig
   val span_content: span -> Token.T list
   val present_span: span -> Output.output
   val parse_spans: Token.T list -> span list
-  type element = {head: span, proof: span list, proper_proof: bool}
-  val parse_elements: span list -> element list
+  datatype 'a element = Element of 'a * ('a element list * 'a) option
+  val map_element: ('a -> 'b) -> 'a element -> 'b element
+  val flat_element: 'a element -> 'a list
+  val parse_elements: span list -> span element list
 end;
 
 structure Thy_Syntax: THY_SYNTAX =
@@ -134,10 +136,17 @@ end;
 
 (** specification elements: commands with optional proof **)
 
-type element = {head: span, proof: span list, proper_proof: bool};
+datatype 'a element = Element of 'a * ('a element list * 'a) option;
 
-fun make_element head proof proper_proof =
-  {head = head, proof = proof, proper_proof = proper_proof};
+fun element (a, b) = Element (a, SOME b);
+fun atom a = Element (a, NONE);
+
+fun map_element f (Element (a, NONE)) = Element (f a, NONE)
+  | map_element f (Element (a, SOME (elems, b))) =
+      Element (f a, SOME ((map o map_element) f elems, f b));
+
+fun flat_element (Element (a, NONE)) = [a]
+  | flat_element (Element (a, SOME (elems, b))) = a :: maps flat_element elems @ [b];
 
 
 (* scanning spans *)
@@ -159,24 +168,21 @@ local
 fun command_with pred =
   Scan.one (fn (Span (Command (name, _), _)) => pred name | _ => false);
 
-val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
-  if d <= 0 then Scan.fail
-  else
-    command_with Keyword.is_qed_global >> pair ~1 ||
-    command_with Keyword.is_proof_goal >> pair (d + 1) ||
-    (if d = 0 then Scan.fail else command_with Keyword.is_qed >> pair (d - 1)) ||
-    Scan.unless (command_with Keyword.is_theory) (Scan.one not_eof) >> pair d)) -- Scan.state);
+val proof_atom =
+  Scan.one (fn (Span (Command (name, _), _)) => Keyword.is_proof_body name | _ => true) >> atom;
 
-val element =
-  command_with Keyword.is_theory_goal -- proof
-    >> (fn (a, (bs, d)) => make_element a bs (d >= 0)) ||
-  Scan.one not_eof >> (fn a => make_element a [] true);
+fun proof_element x = (command_with Keyword.is_proof_goal -- proof_rest >> element || proof_atom) x
+and proof_rest x = (Scan.repeat proof_element -- command_with Keyword.is_qed) x;
+
+val other_element =
+  command_with Keyword.is_theory_goal -- proof_rest >> element ||
+  Scan.one not_eof >> atom;
 
 in
 
 val parse_elements =
   Source.of_list #>
-  Source.source stopper (Scan.bulk element) NONE #>
+  Source.source stopper (Scan.bulk other_element) NONE #>
   Source.exhaust;
 
 end;
