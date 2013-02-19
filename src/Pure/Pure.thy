@@ -41,8 +41,8 @@ theory Pure
   and "include" "including" :: prf_decl
   and "print_bundles" :: diag
   and "context" "locale" :: thy_decl
-  and "sublocale" "interpretation" :: thy_schematic_goal
-  and "interpret" :: prf_goal % "proof"  (* FIXME schematic? *)
+  and "sublocale" "interpretation" :: thy_goal
+  and "interpret" :: prf_goal % "proof"
   and "class" :: thy_decl
   and "subclass" :: thy_goal
   and "instantiation" :: thy_decl
