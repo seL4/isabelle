@@ -1055,7 +1055,8 @@ fun mash_learn_facts ctxt (params as {debug, verbose, overlord, ...}) prover
           else
             let
               val new_facts =
-                facts |> attach_parents_to_facts []
+                facts |> sort (crude_thm_ord o pairself snd)
+                      |> attach_parents_to_facts []
                       |> filter_out (is_in_access_G o snd)
               val (learns, (n, _, _)) =
                 ([], (0, next_commit_time (), false))
