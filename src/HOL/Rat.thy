@@ -1129,7 +1129,7 @@ lemmas [transfer_rule del] =
   rat.All_transfer rat.Ex_transfer rat.rel_eq_transfer forall_rat_transfer
   Fract.transfer zero_rat.transfer one_rat.transfer plus_rat.transfer
   uminus_rat.transfer times_rat.transfer inverse_rat.transfer
-  positive.transfer of_rat.transfer
+  positive.transfer of_rat.transfer rat.right_unique rat.right_total
 
 text {* De-register @{text "rat"} as a quotient type: *}
 
