@@ -191,12 +191,14 @@ fun get_slices slice slices =
 
 val reconstructor_default_max_facts = 20
 
+fun slice_max_facts (_, (_, ( ((max_facts, _), _, _, _, _), _))) = max_facts
+
 fun default_max_facts_for_prover ctxt slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o fst o #1 o fst o snd o snd)
+      fold (Integer.max o slice_max_facts)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -630,6 +632,10 @@ val atp_timeout_slack = seconds 1.0
 
 val mono_max_privileged_facts = 10
 
+(* For low values of "max_facts", this fudge value ensures that most slices are
+   invoked with a nontrivial amount of facts. *)
+val max_fact_factor_fudge = 5
+
 fun run_atp mode name
         ({exec, arguments, proof_delims, known_failures, prem_role, best_slices,
           best_max_mono_iters, best_max_new_mono_instances, ...} : atp_config)
@@ -692,6 +698,13 @@ fun run_atp mode name
            time available. *)
         val actual_slices = get_slices slice (best_slices ctxt)
         val num_actual_slices = length actual_slices
+        val max_fact_factor =
+          case max_facts of
+            NONE => 1.0
+          | SOME max =>
+            Real.fromInt max
+            / Real.fromInt (fold (Integer.max o slice_max_facts)
+                                 actual_slices 0)
         fun monomorphize_facts facts =
           let
             val ctxt =
@@ -724,7 +737,9 @@ fun run_atp mode name
               fact_filter |> the_default best_fact_filter
             val facts = get_facts_for_filter effective_fact_filter factss
             val num_facts =
-              length facts |> is_none max_facts ? Integer.min best_max_facts
+              Real.ceil (max_fact_factor * Real.fromInt best_max_facts) +
+              max_fact_factor_fudge
+              |> Integer.min (length facts)
             val soundness = if strict then Strict else Non_Strict
             val type_enc =
               type_enc |> choose_type_enc soundness best_type_enc format
