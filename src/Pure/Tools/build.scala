@@ -656,27 +656,34 @@ object Build
          Path.explode("$ISABELLE_BROWSER_INFO"))
       }
 
-    def find_log(name: String): Option[Path] =
-      input_dirs.find(dir => (dir + log_gz(name)).is_file).map(dir => dir + log_gz(name))
+    def find_log(name: String): Option[(Path, Path)] =
+      input_dirs.find(dir => (dir + log(name)).is_file).map(dir => (dir, dir + log(name)))
 
 
     /* queue with scheduling information */
 
     def get_timing(name: String): (List[Properties.T], Double) =
-      find_log(name) match {
-        case Some(path) =>
-          try {
-            val info = parse_log(false, File.read_gzip(path))
-            val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
-            (info.command_timings, session_timing)
-          }
-          catch {
-            case ERROR(msg) =>
-              java.lang.System.err.println("### Ignoring bad log file: " + path + "\n" + msg)
-            (Nil, 0.0)
-          }
-        case None => (Nil, 0.0)
+    {
+      val (path, text) =
+        find_log(name + ".gz") match {
+          case Some((_, path)) => (path, File.read_gzip(path))
+          case None =>
+            find_log(name) match {
+              case Some((_, path)) => (path, File.read(path))
+              case None => (Path.current, "")
+            }
+        }
+      try {
+        val info = parse_log(false, text)
+        val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
+        (info.command_timings, session_timing)
       }
+      catch {
+        case ERROR(msg) =>
+          java.lang.System.err.println("### Ignoring bad log file: " + path + "\n" + msg)
+        (Nil, 0.0)
+      }
+    }
 
     val queue = Queue(selected_tree, get_timing)
 
@@ -768,11 +775,11 @@ object Build
 
                 val (current, heap) =
                 {
-                  find_log(name) match {
-                    case Some(path) =>
+                  find_log(name + ".gz") match {
+                    case Some((dir, path)) =>
                       read_stamps(path) match {
                         case Some((s, h1, h2)) =>
-                          val heap = heap_stamp(Some(path.dir + Path.basic(name)))
+                          val heap = heap_stamp(Some(dir + Path.basic(name)))
                           (s == make_stamp(name) && h1 == parent_result.heap && h2 == heap &&
                             !(do_output && heap == no_heap), heap)
                         case None => (false, no_heap)
