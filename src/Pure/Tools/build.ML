@@ -80,16 +80,25 @@ fun use_theories_condition last_timing (options, thys) =
           " (undefined " ^ commas conds ^ ")\n"))
   end;
 
+structure Timings =
+  Table(type key = Properties.T val ord = dict_ord (prod_ord fast_string_ord fast_string_ord));
+
+fun make_timing props =
+  let val (t, id) = List.partition (member (op =) Markup.timing_propertiesN o fst) props
+  in (id, Markup.parse_timing_properties t) end;
+
+fun make_timings timings = fold (Timings.update o make_timing) timings Timings.empty;
+
 in
 
 fun build args_file = Command_Line.tool (fn () =>
     let
-      val (do_output, (options, (verbose, (browser_info, (parent_name,
-          (name, theories)))))) =
+      val (timings, (do_output, (options, (verbose, (browser_info,
+          (parent_name, (name, theories))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>
           let open XML.Decode in
-            pair bool (pair Options.decode (pair bool (pair string (pair string
-              (pair string ((list (pair Options.decode (list string)))))))))
+            pair (list properties) (pair bool (pair Options.decode (pair bool (pair string
+              (pair string (pair string ((list (pair Options.decode (list string))))))))))
           end;
 
       val document_variants =
@@ -115,9 +124,13 @@ fun build args_file = Command_Line.tool (fn () =>
           (false, "") ""
           verbose;
 
+      val last_timing =
+        the_default Timing.zero o
+          Timings.lookup (make_timings timings) o Toplevel.approximative_id;
+
       val res1 =
         theories |>
-          (List.app (use_theories_condition (K Timing.zero))  (* FIXME *)
+          (List.app (use_theories_condition last_timing)
             |> Session.with_timing name verbose
             |> Unsynchronized.setmp Output.Private_Hooks.protocol_message_fn protocol_message
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")

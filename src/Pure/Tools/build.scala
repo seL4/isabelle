@@ -443,10 +443,10 @@ object Build
       else
         {
           import XML.Encode._
-              pair(bool, pair(Options.encode, pair(bool, pair(Path.encode, pair(string,
-                pair(string, list(pair(Options.encode, list(Path.encode)))))))))(
-              (do_output, (info.options, (verbose, (browser_info, (parent,
-                (name, info.theories)))))))
+              pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
+                pair(string, pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
+              (Nil /* FIXME */, (do_output, (info.options, (verbose, (browser_info,
+                (parent, (name, info.theories))))))))
         }))
 
     private val env =

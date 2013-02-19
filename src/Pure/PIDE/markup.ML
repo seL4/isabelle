@@ -94,6 +94,7 @@ sig
   val gcN: string
   val timing_propertiesN: string list
   val timing_properties: Timing.timing -> Properties.T
+  val parse_timing_properties: Properties.T -> Timing.timing
   val timingN: string val timing: Timing.timing -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
@@ -340,6 +341,16 @@ fun timing_properties {elapsed, cpu, gc} =
  [(elapsedN, Time.toString elapsed),
   (cpuN, Time.toString cpu),
   (gcN, Time.toString gc)];
+
+fun get_time props name =
+  (case AList.lookup (op =) props name of
+    NONE => Time.zeroTime
+  | SOME s => seconds (the_default 0.0 (Real.fromString s)));
+
+fun parse_timing_properties props =
+ {elapsed = get_time props elapsedN,
+  cpu = get_time props cpuN,
+  gc = get_time props gcN};
 
 val timingN = "timing";
 fun timing t = (timingN, timing_properties t);
