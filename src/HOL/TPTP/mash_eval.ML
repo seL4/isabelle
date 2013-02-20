@@ -112,7 +112,10 @@ fun evaluate_mash_suggestions ctxt params range linearize methods prob_dir_name
           val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal 1
           val isar_deps = isar_dependencies_of name_tabs th
           val facts =
-            facts |> filter (fn (_, th') => crude_thm_ord (th', th) = LESS)
+            facts
+            |> filter (fn (_, th') =>
+                          if linearize then crude_thm_ord (th', th) = LESS
+                          else thm_less (th', th))
           val find_suggs =
             find_suggested_facts ctxt facts #> map fact_of_raw_fact
           fun get_facts [] compute = compute facts
