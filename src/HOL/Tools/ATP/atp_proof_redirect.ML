@@ -165,7 +165,10 @@ fun redirect_graph axioms tainted bot refute_graph =
           val provable =
             filter (fn (gamma, _) => subset atom_eq (gamma, proved)) seqs
           val horn_provable = filter (fn (_, [_]) => true | _ => false) provable
-          val seq as (gamma, c) = hd (horn_provable @ provable)
+          val seq as (gamma, c) =
+            case horn_provable @ provable of
+              [] => raise Fail "ill-formed refutation graph"
+            | next :: _ => next
         in
           Have (map single gamma, c) ::
           redirect c proved (filter (curry (not o direct_sequent_eq) seq) seqs)
