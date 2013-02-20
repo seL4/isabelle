@@ -807,17 +807,15 @@ fun isar_proof_text ctxt isar_proofs
         | _ =>
           let
             val msg =
-              (if preplay then
-                [(if preplay_fail then "may fail, " else "") ^
-                   Sledgehammer_Preplay.string_of_preplay_time preplay_time]
-               else
-                 []) @
               (if verbose then
                 let
                   val num_steps = add_metis_steps (steps_of_proof isar_proof) 0
-                in
-                  [string_of_int num_steps ^ " step" ^ plural_s num_steps]
-                end
+                in [string_of_int num_steps ^ " step" ^ plural_s num_steps] end
+               else
+                 []) @
+              (if preplay then
+                [(if preplay_fail then "may fail, " else "") ^
+                   Sledgehammer_Preplay.string_of_preplay_time preplay_time]
                else
                  [])
           in

@@ -388,7 +388,9 @@ fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if String.isSubstring "metis (" msg then
+    if String.isSubstring " ms)" msg orelse String.isSubstring " s)" msg then
+      "none" (* trust the preplayed proof *)
+    else if String.isSubstring "metis (" msg then
       msg |> Substring.full
           |> Substring.position "metis ("
           |> snd |> Substring.position ")"
