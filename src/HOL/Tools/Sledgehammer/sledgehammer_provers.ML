@@ -1065,10 +1065,8 @@ fun smt_filter_loop name
         val birth = Timer.checkRealTimer timer
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
-        val state_facts = these (try (#facts o Proof.goal) state)
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter_preprocess ctxt state_facts goal weighted_facts
-              i
+          SMT_Solver.smt_filter_preprocess ctxt [] goal weighted_facts i
           |> SMT_Solver.smt_filter_apply (slice_timeout |> the_default one_day)
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
