@@ -50,7 +50,7 @@ val separator = "-----"
 
 (*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
 (*defaults used in this Mirabelle action*)
-val preplay_timeout_default = "4"
+val preplay_timeout_default = "3"
 val lam_trans_default = "smart"
 val uncurried_aliases_default = "smart"
 val fact_filter_default = "smart"
@@ -383,12 +383,13 @@ fun get_prover ctxt name params goal all_facts =
 
 type stature = ATP_Problem_Generate.stature
 
-(* hack *)
+(* Fragile hack *)
 fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if String.isSubstring " ms)" msg orelse String.isSubstring " s)" msg then
+    if (String.isSubstring " ms)" msg orelse String.isSubstring " s)" msg)
+       andalso not (String.isSubstring "(> " msg) then
       "none" (* trust the preplayed proof *)
     else if String.isSubstring "metis (" msg then
       msg |> Substring.full
