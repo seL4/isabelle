@@ -678,12 +678,12 @@ fun isar_proof_text ctxt isar_proofs
                  | _ => NONE)
               | _ => NONE)
         fun dep_of_step (name, _, _, _, from) = SOME (from, name)
+        val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val refute_graph =
-          atp_proof |> map_filter dep_of_step |> make_refute_graph
+          atp_proof |> map_filter dep_of_step |> make_refute_graph bot
         val axioms = axioms_of_refute_graph refute_graph conjs
         val tainted = tainted_atoms_of_refute_graph refute_graph conjs
         val is_clause_tainted = exists (member (op =) tainted)
-        val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val steps =
           Symtab.empty
           |> fold (fn (name as (s, _), role, t, rule, _) =>

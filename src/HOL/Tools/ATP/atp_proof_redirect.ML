@@ -32,7 +32,7 @@ sig
 
   type direct_proof = direct_inference list
 
-  val make_refute_graph : (atom list * atom) list -> refute_graph
+  val make_refute_graph : atom -> (atom list * atom) list -> refute_graph
   val axioms_of_refute_graph : refute_graph -> atom list -> atom list
   val tainted_atoms_of_refute_graph : refute_graph -> atom list -> atom list
   val sequents_of_refute_graph : refute_graph -> ref_sequent list
@@ -72,14 +72,16 @@ fun clause_eq (c, d) = (length c = length d andalso forall atom_eq (c ~~ d))
 fun direct_sequent_eq ((gamma, c), (delta, d)) =
   clause_eq (gamma, delta) andalso clause_eq (c, d)
 
-fun make_refute_graph infers =
+fun make_refute_graph bot infers =
   let
     fun add_edge to from =
       Atom_Graph.default_node (from, ())
       #> Atom_Graph.default_node (to, ())
       #> Atom_Graph.add_edge_acyclic (from, to)
     fun add_infer (froms, to) = fold (add_edge to) froms
-  in Atom_Graph.empty |> fold add_infer infers end
+    val graph = fold add_infer infers Atom_Graph.empty
+    val reachable = Atom_Graph.all_preds graph [bot]
+  in graph |> Atom_Graph.restrict (member (is_equal o Atom.ord) reachable) end
 
 fun axioms_of_refute_graph refute_graph conjs =
   subtract atom_eq conjs (Atom_Graph.minimals refute_graph)
