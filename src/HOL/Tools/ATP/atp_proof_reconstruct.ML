@@ -158,6 +158,10 @@ fun num_type_args thy s =
 
 fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
 
+(* Cope with "tt(X) = X" atoms, where "X" is existentially quantified. *)
+fun loose_aconv (Free (s, _), Free (s', _)) = s = s'
+  | loose_aconv (t, t') = t aconv t'
+
 val vampire_skolem_prefix = "sK"
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
@@ -178,8 +182,7 @@ fun term_from_atp ctxt textual sym_tab =
         else if s = tptp_equal then
           let val ts = map (do_term [] NONE) us in
             if textual andalso length ts = 2 andalso
-              hd ts aconv List.last ts then
-              (* Vampire is keen on producing these. *)
+               loose_aconv (hd ts, List.last ts) then
               @{const True}
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)

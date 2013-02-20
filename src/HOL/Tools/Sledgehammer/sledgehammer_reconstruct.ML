@@ -395,8 +395,6 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
       line :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
     else case take_prefix (not o is_same_inference (role, t)) lines of
-      (* FIXME: Doesn't this code risk conflating proofs involving different
-         types? *)
       (_, []) => line :: lines
     | (pre, Inference_Step (name', _, _, _, _) :: post) =>
       line :: pre @ map (replace_dependencies_in_line (name', [name])) post
