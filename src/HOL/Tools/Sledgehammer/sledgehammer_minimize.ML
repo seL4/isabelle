@@ -293,24 +293,21 @@ fun maybe_minimize ctxt mode do_learn name
                 <= Config.get ctxt auto_minimize_max_time
               fun prover_fast_enough () = can_min_fast_enough run_time
             in
-              if isar_proofs then
-                ((prover_fast_enough (), (name, params)), preplay)
-              else
-                (case Lazy.force preplay of
-                   Played (reconstr as Metis _, timeout) =>
-                   if can_min_fast_enough timeout then
-                     (true, extract_reconstructor params reconstr
-                            ||> (fn override_params =>
-                                    adjust_reconstructor_params
-                                        override_params params))
-                   else
-                     (prover_fast_enough (), (name, params))
-                 | Played (SMT, timeout) =>
-                   (* Cheat: assume the original prover is as fast as "smt" for
-                      the goal it proved itself *)
-                   (can_min_fast_enough timeout, (name, params))
-                 | _ => (prover_fast_enough (), (name, params)),
-                 preplay)
+              (case Lazy.force preplay of
+                 Played (reconstr as Metis _, timeout) =>
+                 if can_min_fast_enough timeout then
+                   (true, extract_reconstructor params reconstr
+                          ||> (fn override_params =>
+                                  adjust_reconstructor_params override_params
+                                      params))
+                 else
+                   (prover_fast_enough (), (name, params))
+               | Played (SMT, timeout) =>
+                 (* Cheat: assume the original prover is as fast as "smt" for
+                    the goal it proved itself *)
+                 (can_min_fast_enough timeout, (name, params))
+               | _ => (prover_fast_enough (), (name, params)),
+               preplay)
             end
         else
           ((false, (name, params)), preplay)

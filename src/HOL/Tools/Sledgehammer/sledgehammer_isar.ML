@@ -94,7 +94,7 @@ val default_default_params =
    ("fact_thresholds", "0.45 0.85"),
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
-   ("isar_proofs", "false"),
+   ("isar_proofs", "smart"),
    ("isar_compress", "10"),
    ("slice", "true"),
    ("minimize", "smart"),
@@ -313,7 +313,7 @@ fun extract_params mode default_params override_params =
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
-    val isar_proofs = lookup_bool "isar_proofs"
+    val isar_proofs = lookup_option lookup_bool "isar_proofs"
     val isar_compress = Real.max (1.0, lookup_real "isar_compress")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =

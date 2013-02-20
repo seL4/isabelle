@@ -38,9 +38,10 @@ sig
     string list option
   val one_line_proof_text : int -> one_line_params -> string
   val isar_proof_text :
-    Proof.context -> bool -> isar_params -> one_line_params -> string
+    Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool -> isar_params -> int -> one_line_params -> string
+    Proof.context -> bool option -> isar_params -> int -> one_line_params
+    -> string
 end;
 
 structure Sledgehammer_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -831,7 +832,7 @@ fun isar_proof_text ctxt isar_proofs
               else
                 compress_proof debug ctxt type_enc lam_trans preplay
                   preplay_timeout
-                  (if isar_proofs then isar_compress else 1000.0))
+                  (if isar_proofs = SOME true then isar_compress else 1000.0))
           |>> cleanup_labels_in_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
@@ -839,7 +840,7 @@ fun isar_proof_text ctxt isar_proofs
       in
         case isar_text of
           "" =>
-          if isar_proofs then
+          if isar_proofs = SOME true then
             "\nNo structured proof available (proof too simple)."
           else
             ""
@@ -870,7 +871,7 @@ fun isar_proof_text ctxt isar_proofs
         isar_proof_of ()
       else case try isar_proof_of () of
         SOME s => s
-      | NONE => if isar_proofs then
+      | NONE => if isar_proofs = SOME true then
                   "\nWarning: The Isar proof construction failed."
                 else
                   ""
@@ -884,7 +885,8 @@ fun isar_proof_would_be_a_good_idea preplay =
 
 fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if isar_proofs orelse isar_proof_would_be_a_good_idea preplay then
+  (if isar_proofs = SOME true orelse
+      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
      isar_proof_text ctxt isar_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params

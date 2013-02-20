@@ -34,7 +34,7 @@ sig
      fact_thresholds : real * real,
      max_mono_iters : int option,
      max_new_mono_instances : int option,
-     isar_proofs : bool,
+     isar_proofs : bool option,
      isar_compress : real,
      slice : bool,
      minimize : bool option,
@@ -323,7 +323,7 @@ type params =
    fact_thresholds : real * real,
    max_mono_iters : int option,
    max_new_mono_instances : int option,
-   isar_proofs : bool,
+   isar_proofs : bool option,
    isar_compress : real,
    slice : bool,
    minimize : bool option,
@@ -795,7 +795,7 @@ fun run_atp mode name
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
-            val full_proof = debug orelse isar_proofs
+            val full_proof = debug orelse isar_proofs = SOME true
             val args =
               arguments ctxt full_proof extra
                         (slice_timeout |> the_default one_day)
