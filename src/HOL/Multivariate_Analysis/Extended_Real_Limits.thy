@@ -82,7 +82,7 @@ proof (default, rule)
     case (real r) then have fin: "\<bar>a\<bar> \<noteq> \<infinity>" by simp
     from ereal_open_cont_interval[OF a singletonI this] guess e . note e = this
     then obtain b where b_def: "a<b & b<a+e"
-      using fin ereal_between ereal_dense[of a "a+e"] by auto
+      using fin ereal_between dense[of a "a+e"] by auto
     then have "b: {a-e <..< a+e}" using fin ereal_between[of a e] e by auto
     then show False using b_def e by auto
   qed
@@ -157,7 +157,7 @@ proof (rule ccontr)
   { assume fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>"
     from ereal_open_cont_interval[OF assms(1) * fin] guess e . note e = this
     then obtain b where b_def: "Inf S-e<b & b<Inf S"
-      using fin ereal_between[of "Inf S" e] ereal_dense[of "Inf S-e"] by auto
+      using fin ereal_between[of "Inf S" e] dense[of "Inf S-e"] by auto
     then have "b: {Inf S-e <..< Inf S+e}" using e fin ereal_between[of "Inf S" e]
       by auto
     then have "b:S" using e by auto
@@ -335,7 +335,7 @@ next
   assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
   assume P: "\<forall>P. eventually P net \<longrightarrow> INFI (Collect P) f \<le> y"
   show "l \<le> y"
-  proof (rule ereal_le_ereal)
+  proof (rule dense_le)
     fix B assume "B < l"
     then have "eventually (\<lambda>x. f x \<in> {B <..}) net"
       by (intro S[rule_format]) auto
@@ -369,7 +369,7 @@ next
   assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
   assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> SUPR (Collect P) f"
   show "y \<le> l"
-  proof (rule ereal_ge_ereal, safe)
+  proof (rule dense_ge)
     fix B assume "l < B"
     then have "eventually (\<lambda>x. f x \<in> {..< B}) net"
       by (intro S[rule_format]) auto

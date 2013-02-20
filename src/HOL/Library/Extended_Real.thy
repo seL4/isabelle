@@ -26,6 +26,18 @@ lemma INFI_pair:
   "(INF i : A. INF j : B. f i j) = (INF p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: INF_greatest INF_lower2)
 
+lemma le_Sup_iff_less:
+  fixes x :: "'a :: {complete_linorder, inner_dense_linorder}"
+  shows "x \<le> (SUP i:A. f i) \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y \<le> f i)" (is "?lhs = ?rhs")
+  unfolding le_SUP_iff
+  by (blast intro: less_imp_le less_trans less_le_trans dest: dense)
+
+lemma Inf_le_iff_less:
+  fixes x :: "'a :: {complete_linorder, inner_dense_linorder}"
+  shows "(INF i:A. f i) \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. f i \<le> y)"
+  unfolding INF_le_iff
+  by (blast intro: less_imp_le less_trans le_less_trans dest: dense)
+
 subsection {* Definition and basic properties *}
 
 datatype ereal = ereal real | PInfty | MInfty
@@ -295,6 +307,12 @@ qed
 
 end
 
+lemma ereal_dense2: "x < y \<Longrightarrow> \<exists>z. x < ereal z \<and> ereal z < y"
+  using lt_ex gt_ex dense by (cases x y rule: ereal2_cases) auto
+
+instance ereal :: inner_dense_linorder
+  by default (blast dest: ereal_dense2)
+
 instance ereal :: ordered_ab_semigroup_add
 proof
   fix a b c :: ereal assume "a \<le> b" then show "c + a \<le> c + b"
@@ -388,14 +406,6 @@ lemma ereal_0_le_uminus_iff[simp]:
 lemma ereal_uminus_le_0_iff[simp]:
   fixes a :: ereal shows "-a \<le> 0 \<longleftrightarrow> 0 \<le> a"
   by (cases rule: ereal2_cases[of a]) auto
-
-lemma ereal_dense2: "x < y \<Longrightarrow> \<exists>z. x < ereal z \<and> ereal z < y"
-  using lt_ex gt_ex dense by (cases x y rule: ereal2_cases) auto
-
-lemma ereal_dense:
-  fixes x y :: ereal assumes "x < y"
-  shows "\<exists>z. x < z \<and> z < y"
-  using ereal_dense2[OF `x < y`] by blast
 
 lemma ereal_add_strict_mono:
   fixes a b c d :: ereal
@@ -724,18 +734,6 @@ lemma ereal_le_real:
   assumes "ALL z. x <= ereal z --> y <= ereal z"
   shows "y <= x"
 by (metis assms ereal_bot ereal_cases ereal_infty_less_eq(2) ereal_less_eq(1) linorder_le_cases)
-
-lemma ereal_le_ereal:
-  fixes x y :: ereal
-  assumes "\<And>B. B < x \<Longrightarrow> B <= y"
-  shows "x <= y"
-by (metis assms ereal_dense leD linorder_le_less_linear)
-
-lemma ereal_ge_ereal:
-  fixes x y :: ereal
-  assumes "ALL B. B>x --> B >= y"
-  shows "x >= y"
-by (metis assms ereal_dense leD linorder_le_less_linear)
 
 lemma setprod_ereal_0:
   fixes f :: "'a \<Rightarrow> ereal"
@@ -1126,11 +1124,11 @@ begin
 definition "bot = (-\<infinity>::ereal)"
 definition "top = (\<infinity>::ereal)"
 
-definition "Sup S = (LEAST z. \<forall>x\<in>S. x \<le> z :: ereal)"
-definition "Inf S = (GREATEST z. \<forall>x\<in>S. z \<le> x :: ereal)"
+definition "Sup S = (SOME x :: ereal. (\<forall>y\<in>S. y \<le> x) \<and> (\<forall>z. (\<forall>y\<in>S. y \<le> z) \<longrightarrow> x \<le> z))"
+definition "Inf S = (SOME x :: ereal. (\<forall>y\<in>S. x \<le> y) \<and> (\<forall>z. (\<forall>y\<in>S. z \<le> y) \<longrightarrow> z \<le> x))"
 
 lemma ereal_complete_Sup:
-  fixes S :: "ereal set" assumes "S \<noteq> {}"
+  fixes S :: "ereal set"
   shows "\<exists>x. (\<forall>y\<in>S. y \<le> x) \<and> (\<forall>z. (\<forall>y\<in>S. y \<le> z) \<longrightarrow> x \<le> z)"
 proof cases
   assume "\<exists>x. \<forall>a\<in>S. a \<le> ereal x"
@@ -1138,69 +1136,23 @@ proof cases
   then have "\<infinity> \<notin> S" by force
   show ?thesis
   proof cases
-    assume "S = {-\<infinity>}"
-    then show ?thesis by (auto intro!: exI[of _ "-\<infinity>"])
-  next
-    assume "S \<noteq> {-\<infinity>}"
-    with `S \<noteq> {}` `\<infinity> \<notin> S` obtain x where "x \<in> S - {-\<infinity>}" "x \<noteq> \<infinity>" by auto
-    with y `\<infinity> \<notin> S` have "\<forall>z\<in>real ` (S - {-\<infinity>}). z \<le> y"
-      by (auto simp: real_of_ereal_ord_simps)
-    with complete_real[of "real ` (S - {-\<infinity>})"] `x \<in> S - {-\<infinity>}`
-    obtain s where s:
-       "\<forall>y\<in>S - {-\<infinity>}. real y \<le> s" "\<And>z. (\<forall>y\<in>S - {-\<infinity>}. real y \<le> z) \<Longrightarrow> s \<le> z"
-       by auto
+    assume "S \<noteq> {-\<infinity>} \<and> S \<noteq> {}"
+    with `\<infinity> \<notin> S` obtain x where x: "x \<in> S" "\<bar>x\<bar> \<noteq> \<infinity>" by auto
+    obtain s where s: "\<forall>x\<in>ereal -` S. x \<le> s" "\<And>z. (\<forall>x\<in>ereal -` S. x \<le> z) \<Longrightarrow> s \<le> z"
+    proof (atomize_elim, rule complete_real)
+      show "\<exists>x. x \<in> ereal -` S" using x by auto
+      show "\<exists>z. \<forall>x\<in>ereal -` S. x \<le> z" by (auto dest: y intro!: exI[of _ y])
+    qed
     show ?thesis
     proof (safe intro!: exI[of _ "ereal s"])
-      fix z assume "z \<in> S" with `\<infinity> \<notin> S` show "z \<le> ereal s"
-      proof (cases z)
-        case (real r)
-        then show ?thesis
-          using s(1)[rule_format, of z] `z \<in> S` `z = ereal r` by auto
-      qed auto
+      fix y assume "y \<in> S" with s `\<infinity> \<notin> S` show "y \<le> ereal s"
+        by (cases y) auto
     next
-      fix z assume *: "\<forall>y\<in>S. y \<le> z"
-      with `S \<noteq> {-\<infinity>}` `S \<noteq> {}` show "ereal s \<le> z"
-      proof (cases z)
-        case (real u)
-        with * have "s \<le> u"
-          by (intro s(2)[of u]) (auto simp: real_of_ereal_ord_simps)
-        then show ?thesis using real by simp
-      qed auto
+      fix z assume "\<forall>y\<in>S. y \<le> z" with `S \<noteq> {-\<infinity>} \<and> S \<noteq> {}` show "ereal s \<le> z"
+        by (cases z) (auto intro!: s)
     qed
-  qed
-next
-  assume *: "\<not> (\<exists>x. \<forall>a\<in>S. a \<le> ereal x)"
-  show ?thesis
-  proof (safe intro!: exI[of _ \<infinity>])
-    fix y assume **: "\<forall>z\<in>S. z \<le> y"
-    with * show "\<infinity> \<le> y"
-    proof (cases y)
-      case MInf with * ** show ?thesis by (force simp: not_le)
-    qed auto
-  qed simp
-qed
-
-lemma ereal_complete_Inf:
-  fixes S :: "ereal set" assumes "S ~= {}"
-  shows "EX x. (ALL y:S. x <= y) & (ALL z. (ALL y:S. z <= y) --> z <= x)"
-proof-
-def S1 == "uminus ` S"
-hence "S1 ~= {}" using assms by auto
-then obtain x where x_def: "(ALL y:S1. y <= x) & (ALL z. (ALL y:S1. y <= z) --> x <= z)"
-   using ereal_complete_Sup[of S1] by auto
-{ fix z assume "ALL y:S. z <= y"
-  hence "ALL y:S1. y <= -z" unfolding S1_def by auto
-  hence "x <= -z" using x_def by auto
-  hence "z <= -x"
-    apply (subst ereal_uminus_uminus[symmetric])
-    unfolding ereal_minus_le_minus . }
-moreover have "(ALL y:S. -x <= y)"
-   using x_def unfolding S1_def
-   apply simp
-   apply (subst (3) ereal_uminus_uminus[symmetric])
-   unfolding ereal_minus_le_minus by simp
-ultimately show ?thesis by auto
-qed
+  qed (auto intro!: exI[of _ "-\<infinity>"])
+qed (fastforce intro!: exI[of _ \<infinity>] ereal_top intro: order_trans dest: less_imp_le simp: not_le)
 
 lemma ereal_complete_uminus_eq:
   fixes S :: "ereal set"
@@ -1208,99 +1160,39 @@ lemma ereal_complete_uminus_eq:
      \<longleftrightarrow> (\<forall>y\<in>S. -x \<le> y) \<and> (\<forall>z. (\<forall>y\<in>S. z \<le> y) \<longrightarrow> z \<le> -x)"
   by simp (metis ereal_minus_le_minus ereal_uminus_uminus)
 
-lemma ereal_Sup_uminus_image_eq:
-  fixes S :: "ereal set"
-  shows "Sup (uminus ` S) = - Inf S"
-proof cases
-  assume "S = {}"
-  moreover have "(THE x. All (op \<le> x)) = (-\<infinity>::ereal)"
-    by (rule the_equality) (auto intro!: ereal_bot)
-  moreover have "(SOME x. \<forall>y. y \<le> x) = (\<infinity>::ereal)"
-    by (rule some_equality) (auto intro!: ereal_top)
-  ultimately show ?thesis unfolding Inf_ereal_def Sup_ereal_def
-    Least_def Greatest_def GreatestM_def by simp
-next
-  assume "S \<noteq> {}"
-  with ereal_complete_Sup[of "uminus`S"]
-  obtain x where x: "(\<forall>y\<in>S. -x \<le> y) \<and> (\<forall>z. (\<forall>y\<in>S. z \<le> y) \<longrightarrow> z \<le> -x)"
-    unfolding ereal_complete_uminus_eq by auto
-  show "Sup (uminus ` S) = - Inf S"
-    unfolding Inf_ereal_def Greatest_def GreatestM_def
-  proof (intro someI2[of _ _ "\<lambda>x. Sup (uminus`S) = - x"])
-    show "(\<forall>y\<in>S. -x \<le> y) \<and> (\<forall>y. (\<forall>z\<in>S. y \<le> z) \<longrightarrow> y \<le> -x)"
-      using x .
-    fix x' assume "(\<forall>y\<in>S. x' \<le> y) \<and> (\<forall>y. (\<forall>z\<in>S. y \<le> z) \<longrightarrow> y \<le> x')"
-    then have "(\<forall>y\<in>uminus`S. y \<le> - x') \<and> (\<forall>y. (\<forall>z\<in>uminus`S. z \<le> y) \<longrightarrow> - x' \<le> y)"
-      unfolding ereal_complete_uminus_eq by simp
-    then show "Sup (uminus ` S) = -x'"
-      unfolding Sup_ereal_def ereal_uminus_eq_iff
-      by (intro Least_equality) auto
-  qed
-qed
+lemma ereal_complete_Inf:
+  "\<exists>x. (\<forall>y\<in>S::ereal set. x \<le> y) \<and> (\<forall>z. (\<forall>y\<in>S. z \<le> y) \<longrightarrow> z \<le> x)"
+  using ereal_complete_Sup[of "uminus ` S"] unfolding ereal_complete_uminus_eq by auto
 
 instance
-proof
-  { fix x :: ereal and A
-    show "bot <= x" by (cases x) (simp_all add: bot_ereal_def)
-    show "x <= top" by (simp add: top_ereal_def) }
-
-  { fix x :: ereal and A assume "x : A"
-    with ereal_complete_Sup[of A]
-    obtain s where s: "\<forall>y\<in>A. y <= s" "\<forall>z. (\<forall>y\<in>A. y <= z) \<longrightarrow> s <= z" by auto
-    hence "x <= s" using `x : A` by auto
-    also have "... = Sup A" using s unfolding Sup_ereal_def
-      by (auto intro!: Least_equality[symmetric])
-    finally show "x <= Sup A" . }
-  note le_Sup = this
-
-  { fix x :: ereal and A assume *: "!!z. (z : A ==> z <= x)"
-    show "Sup A <= x"
-    proof (cases "A = {}")
-      case True
-      hence "Sup A = -\<infinity>" unfolding Sup_ereal_def
-        by (auto intro!: Least_equality)
-      thus "Sup A <= x" by simp
-    next
-      case False
-      with ereal_complete_Sup[of A]
-      obtain s where s: "\<forall>y\<in>A. y <= s" "\<forall>z. (\<forall>y\<in>A. y <= z) \<longrightarrow> s <= z" by auto
-      hence "Sup A = s"
-        unfolding Sup_ereal_def by (auto intro!: Least_equality)
-      also have "s <= x" using * s by auto
-      finally show "Sup A <= x" .
-    qed }
-  note Sup_le = this
-
-  { fix x :: ereal and A assume "x \<in> A"
-    with le_Sup[of "-x" "uminus`A"] show "Inf A \<le> x"
-      unfolding ereal_Sup_uminus_image_eq by simp }
-
-  { fix x :: ereal and A assume *: "!!z. (z : A ==> x <= z)"
-    with Sup_le[of "uminus`A" "-x"] show "x \<le> Inf A"
-      unfolding ereal_Sup_uminus_image_eq by force }
-qed
+  by default (auto intro: someI2_ex ereal_complete_Sup ereal_complete_Inf
+                   simp: Sup_ereal_def Inf_ereal_def bot_ereal_def top_ereal_def)
 
 end
 
 instance ereal :: complete_linorder ..
 
+lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
+  by (auto intro!: Sup_eqI
+           simp: Ball_def[symmetric] ereal_uminus_le_reorder le_Inf_iff
+           intro!: complete_lattice_class.Inf_lower2)
+
+lemma ereal_inj_on_uminus[intro, simp]: "inj_on uminus (A :: ereal set)"
+  by (auto intro!: inj_onI)
+
+lemma ereal_Inf_uminus_image_eq: "Inf (uminus ` S::ereal set) = - Sup S"
+  using ereal_Sup_uminus_image_eq[of "uminus ` S"] by simp
+
 lemma ereal_SUPR_uminus:
   fixes f :: "'a => ereal"
   shows "(SUP i : R. -(f i)) = -(INF i : R. f i)"
-  unfolding SUP_def INF_def
   using ereal_Sup_uminus_image_eq[of "f`R"]
-  by (simp add: image_image)
+  by (simp add: SUP_def INF_def image_image)
 
 lemma ereal_INFI_uminus:
   fixes f :: "'a => ereal"
   shows "(INF i : R. -(f i)) = -(SUP i : R. f i)"
   using ereal_SUPR_uminus[of _ "\<lambda>x. - f x"] by simp
-
-lemma ereal_Inf_uminus_image_eq: "Inf (uminus ` S) = - Sup (S::ereal set)"
-  using ereal_Sup_uminus_image_eq[of "uminus ` S"] by (simp add: image_image)
-
-lemma ereal_inj_on_uminus[intro, simp]: "inj_on uminus (A :: ereal set)"
-  by (auto intro!: inj_onI)
 
 lemma ereal_image_uminus_shift:
   fixes X Y :: "ereal set" shows "uminus ` X = Y \<longleftrightarrow> X = uminus ` Y"
@@ -1319,14 +1211,7 @@ lemma Inf_ereal_iff:
 
 lemma Sup_eq_MInfty:
   fixes S :: "ereal set" shows "Sup S = -\<infinity> \<longleftrightarrow> S = {} \<or> S = {-\<infinity>}"
-proof
-  assume a: "Sup S = -\<infinity>"
-  with complete_lattice_class.Sup_upper[of _ S]
-  show "S={} \<or> S={-\<infinity>}" by auto
-next
-  assume "S={} \<or> S={-\<infinity>}" then show "Sup S = -\<infinity>"
-    unfolding Sup_ereal_def by (auto intro!: Least_equality)
-qed
+  unfolding bot_ereal_def[symmetric] by auto
 
 lemma Inf_eq_PInfty:
   fixes S :: "ereal set" shows "Inf S = \<infinity> \<longleftrightarrow> S = {} \<or> S = {\<infinity>}"
@@ -1335,13 +1220,11 @@ lemma Inf_eq_PInfty:
 
 lemma Inf_eq_MInfty: 
   fixes S :: "ereal set" shows "-\<infinity> \<in> S \<Longrightarrow> Inf S = -\<infinity>"
-  unfolding Inf_ereal_def
-  by (auto intro!: Greatest_equality)
+  unfolding bot_ereal_def[symmetric] by auto
 
 lemma Sup_eq_PInfty:
   fixes S :: "ereal set" shows "\<infinity> \<in> S \<Longrightarrow> Sup S = \<infinity>"
-  unfolding Sup_ereal_def
-  by (auto intro!: Least_equality)
+  unfolding top_ereal_def[symmetric] by auto
 
 lemma Sup_ereal_close:
   fixes e :: ereal
@@ -2007,39 +1890,6 @@ lemma ereal_mult_m1[simp]: "x * ereal (-1) = -x"
 lemma ereal_real': assumes "\<bar>x\<bar> \<noteq> \<infinity>" shows "ereal (real x) = x"
   using assms by auto
 
-lemma ereal_le_ereal_bounded:
-  fixes x y z :: ereal
-  assumes "z \<le> y"
-  assumes *: "\<And>B. z < B \<Longrightarrow> B < x \<Longrightarrow> B \<le> y"
-  shows "x \<le> y"
-proof (rule ereal_le_ereal)
-  fix B assume "B < x"
-  show "B \<le> y"
-  proof cases
-    assume "z < B" from *[OF this `B < x`] show "B \<le> y" .
-  next
-    assume "\<not> z < B" with `z \<le> y` show "B \<le> y" by auto
-  qed
-qed
-
-lemma fixes x y :: ereal
-  shows Sup_atMost[simp]: "Sup {.. y} = y"
-    and Sup_lessThan[simp]: "Sup {..< y} = y"
-    and Sup_atLeastAtMost[simp]: "x \<le> y \<Longrightarrow> Sup { x .. y} = y"
-    and Sup_greaterThanAtMost[simp]: "x < y \<Longrightarrow> Sup { x <.. y} = y"
-    and Sup_atLeastLessThan[simp]: "x < y \<Longrightarrow> Sup { x ..< y} = y"
-  by (auto simp: Sup_ereal_def intro!: Least_equality
-           intro: ereal_le_ereal ereal_le_ereal_bounded[of x])
-
-lemma Sup_greaterThanlessThan[simp]:
-  fixes x y :: ereal assumes "x < y" shows "Sup { x <..< y} = y"
-  unfolding Sup_ereal_def
-proof (intro Least_equality ereal_le_ereal_bounded[of _ _ y])
-  fix z assume z: "\<forall>u\<in>{x<..<y}. u \<le> z"
-  from ereal_dense[OF `x < y`] guess w .. note w = this
-  with z[THEN bspec, of w] show "x \<le> z" by auto
-qed auto
-
 lemma real_ereal_id: "real o ereal = id"
 proof-
   { fix x have "(real o ereal) x = id x" by auto }
@@ -2109,6 +1959,7 @@ lemma tendsto_obtains_N:
   assumes "f ----> f0"
   assumes "open S" "f0 : S"
   obtains N where "ALL n>=N. f n : S"
+  using assms using tendsto_def
   using tendsto_explicit[of f f0] assms by auto
 
 lemma ereal_LimI_finite_iff:

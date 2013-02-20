@@ -363,8 +363,7 @@ lemma (in ring_of_sets) inf_measure_agrees:
   assumes posf: "positive M f" and ca: "countably_additive M f"
       and s: "s \<in> M"
   shows "Inf (measure_set M f s) = f s"
-  unfolding Inf_ereal_def
-proof (safe intro!: Greatest_equality)
+proof (intro Inf_eqI)
   fix z
   assume z: "z \<in> measure_set M f s"
   from this obtain A where
@@ -394,12 +393,7 @@ proof (safe intro!: Greatest_equality)
     qed
   also have "... = z" by (rule si)
   finally show "f s \<le> z" .
-next
-  fix y
-  assume y: "\<forall>u \<in> measure_set M f s. y \<le> u"
-  thus "y \<le> f s"
-    by (blast intro: inf_measure_nonempty [of _ f, OF posf s subset_refl])
-qed
+qed (blast intro: inf_measure_nonempty [of _ f, OF posf s subset_refl])
 
 lemma measure_set_pos:
   assumes posf: "positive M f" "r \<in> measure_set M f X"

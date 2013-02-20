@@ -455,6 +455,9 @@ qed (simp add: bot_nat_def)
 
 end
 
+instance nat :: no_top
+  by default (auto intro: less_Suc_eq_le[THEN iffD2])
+
 subsubsection {* Introduction properties *}
 
 lemma lessI [iff]: "n < Suc n"

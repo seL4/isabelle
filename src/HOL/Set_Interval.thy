@@ -267,7 +267,7 @@ qed simp
 
 end
 
-context dense_linorder
+context inner_dense_linorder
 begin
 
 lemma greaterThanLessThan_empty_iff[simp]:
@@ -307,6 +307,22 @@ lemma greaterThanLessThan_subseteq_atLeastLessThan_iff:
   "{a <..< b} \<subseteq> { c ..< d } \<longleftrightarrow> (a < b \<longrightarrow> c \<le> a \<and> b \<le> d)"
   using dense[of "a" "min c b"] dense[of "max a d" "b"]
   by (force simp: subset_eq Ball_def not_less[symmetric])
+
+end
+
+context no_top
+begin
+
+lemma greaterThan_non_empty: "{x <..} \<noteq> {}"
+  using gt_ex[of x] by auto
+
+end
+
+context no_bot
+begin
+
+lemma lessThan_non_empty: "{..< x} \<noteq> {}"
+  using lt_ex[of x] by auto
 
 end
 
@@ -378,6 +394,36 @@ lemma Int_atMost[simp]: "{..a} \<inter> {..b} = {.. min a b}"
 
 end
 
+context complete_lattice
+begin
+
+lemma
+  shows Sup_atLeast[simp]: "Sup {x ..} = top"
+    and Sup_greaterThanAtLeast[simp]: "x < top \<Longrightarrow> Sup {x <..} = top"
+    and Sup_atMost[simp]: "Sup {.. y} = y"
+    and Sup_atLeastAtMost[simp]: "x \<le> y \<Longrightarrow> Sup { x .. y} = y"
+    and Sup_greaterThanAtMost[simp]: "x < y \<Longrightarrow> Sup { x <.. y} = y"
+  by (auto intro!: Sup_eqI)
+
+lemma
+  shows Inf_atMost[simp]: "Inf {.. x} = bot"
+    and Inf_atMostLessThan[simp]: "top < x \<Longrightarrow> Inf {..< x} = bot"
+    and Inf_atLeast[simp]: "Inf {x ..} = x"
+    and Inf_atLeastAtMost[simp]: "x \<le> y \<Longrightarrow> Inf { x .. y} = x"
+    and Inf_atLeastLessThan[simp]: "x < y \<Longrightarrow> Inf { x ..< y} = x"
+  by (auto intro!: Inf_eqI)
+
+end
+
+lemma
+  fixes x y :: "'a :: {complete_lattice, inner_dense_linorder}"
+  shows Sup_lessThan[simp]: "Sup {..< y} = y"
+    and Sup_atLeastLessThan[simp]: "x < y \<Longrightarrow> Sup { x ..< y} = y"
+    and Sup_greaterThanLessThan[simp]: "x < y \<Longrightarrow> Sup { x <..< y} = y"
+    and Inf_greaterThan[simp]: "Inf {x <..} = x"
+    and Inf_greaterThanAtMost[simp]: "x < y \<Longrightarrow> Inf { x <.. y} = x"
+    and Inf_greaterThanLessThan[simp]: "x < y \<Longrightarrow> Inf { x <..< y} = x"
+  by (auto intro!: Inf_eqI Sup_eqI intro: dense_le dense_le_bounded dense_ge dense_ge_bounded)
 
 subsection {* Intervals of natural numbers *}
 

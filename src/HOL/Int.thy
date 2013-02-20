@@ -303,6 +303,18 @@ proof
 qed
 
 
+instance int :: no_top
+  apply default
+  apply (rule_tac x="x + 1" in exI)
+  apply simp
+  done
+
+instance int :: no_bot
+  apply default
+  apply (rule_tac x="x - 1" in exI)
+  apply simp
+  done
+
 subsection {* Magnitude of an Integer, as a Natural Number: @{text nat} *}
 
 lift_definition nat :: "int \<Rightarrow> nat" is "\<lambda>(x, y). x - y"

@@ -57,7 +57,7 @@ proof -
   proof
     fix i show "\<exists>x. 0 < x \<and> x < inverse (?B i)"
       using measure[of i] emeasure_nonneg[of M "A i"]
-      by (auto intro!: ereal_dense simp: ereal_0_gt_inverse ereal_zero_le_0_iff)
+      by (auto intro!: dense simp: ereal_0_gt_inverse ereal_zero_le_0_iff)
   qed
   from choice[OF this] obtain n where n: "\<And>i. 0 < n i"
     "\<And>i. n i < inverse (2^Suc i * emeasure M (A i))" by auto
