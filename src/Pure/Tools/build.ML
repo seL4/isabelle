@@ -80,14 +80,29 @@ fun use_theories_condition last_timing (options, thys) =
           " (undefined " ^ commas conds ^ ")\n"))
   end;
 
-structure Timings =
-  Table(type key = Properties.T val ord = dict_ord (prod_ord fast_string_ord fast_string_ord));
 
-fun make_timing props =
-  let val (t, id) = List.partition (member (op =) Markup.timing_propertiesN o fst) props
-  in (id, Markup.parse_timing_properties t) end;
+(* command timings *)
 
-fun make_timings timings = fold (Timings.update o make_timing) timings Timings.empty;
+type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name * time *)
+
+val empty_timings: timings = Symtab.empty;
+
+fun update_timings props =
+  (case Markup.parse_command_timing_properties props of
+    SOME ({file, offset, name}, time) =>
+      Symtab.map_default (file, Inttab.empty) (Inttab.update (offset, (name, time)))
+  | NONE => I);
+
+fun lookup_timings timings tr =
+  (case Toplevel.approximative_id tr of
+    SOME {file, offset, name} =>
+      (case Symtab.lookup timings file of
+        SOME offsets =>
+          (case Inttab.lookup offsets offset of
+            SOME (name', time) => if name = name' then time else Time.zeroTime
+          | NONE => Time.zeroTime)
+      | NONE => Time.zeroTime)
+  | NONE => Time.zeroTime);
 
 in
 
@@ -124,9 +139,7 @@ fun build args_file = Command_Line.tool (fn () =>
           (false, "") ""
           verbose;
 
-      val last_timing =
-        the_default Timing.zero o
-          Timings.lookup (make_timings command_timings) o Toplevel.approximative_id;
+      val last_timing = lookup_timings (fold update_timings command_timings empty_timings);
 
       val res1 =
         theories |>

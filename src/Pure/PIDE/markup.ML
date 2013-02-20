@@ -95,6 +95,11 @@ sig
   val timing_propertiesN: string list
   val timing_properties: Timing.timing -> Properties.T
   val parse_timing_properties: Properties.T -> Timing.timing
+  val command_timingN: string
+  val command_timing_properties:
+    {file: string, offset: int, name: string} -> Time.time -> Properties.T
+  val parse_command_timing_properties:
+    Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val timingN: string val timing: Timing.timing -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
@@ -351,6 +356,24 @@ fun parse_timing_properties props =
  {elapsed = get_time props elapsedN,
   cpu = get_time props cpuN,
   gc = get_time props gcN};
+
+
+(* command timing *)
+
+val command_timingN = "command_timing";
+
+fun command_timing_properties {file, offset, name} elapsed =
+ [(fileN, file), (offsetN, print_int offset),
+  (nameN, name), (elapsedN, Time.toString elapsed)];
+
+fun parse_command_timing_properties props =
+  (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
+    (SOME file, SOME offset, SOME name) =>
+      SOME ({file = file, offset = parse_int offset, name = name}, get_time props elapsedN)
+  | _ => NONE);
+
+
+(* session timing *)
 
 val timingN = "timing";
 fun timing t = (timingN, timing_properties t);

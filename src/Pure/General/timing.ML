@@ -16,12 +16,11 @@ signature TIMING =
 sig
   include BASIC_TIMING
   type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time}
-  val zero: timing
-  val add: timing -> timing -> timing
   type start
   val start: unit -> start
   val result: start -> timing
   val timing: ('a -> 'b) -> 'a -> timing * 'b
+  val is_relevant_time: Time.time -> bool
   val is_relevant: timing -> bool
   val message: timing -> string
 end
@@ -32,13 +31,6 @@ struct
 (* type timing *)
 
 type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time};
-
-val zero = {elapsed = Time.zeroTime, cpu = Time.zeroTime, gc = Time.zeroTime};
-
-fun add (t1: timing) (t2: timing) =
- {elapsed = Time.+ (#elapsed t1, #elapsed t2),
-  cpu = Time.+ (#cpu t1, #cpu t2),
-  gc = Time.+ (#gc t1, #gc t2)};
 
 
 (* timer control *)
@@ -82,10 +74,12 @@ fun timing f x =
 
 val min_time = Time.fromMilliseconds 1;
 
+fun is_relevant_time time = Time.>= (time, min_time);
+
 fun is_relevant {elapsed, cpu, gc} =
-  Time.>= (elapsed, min_time) orelse
-  Time.>= (cpu, min_time) orelse
-  Time.>= (gc, min_time);
+  is_relevant_time elapsed orelse
+  is_relevant_time cpu orelse
+  is_relevant_time gc;
 
 fun message {elapsed, cpu, gc} =
   Time.toString elapsed ^ "s elapsed time, " ^

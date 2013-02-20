@@ -89,9 +89,9 @@ sig
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val status: transition -> Markup.T -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
-  val approximative_id: transition -> Properties.T
-  val get_timing: transition -> Timing.timing
-  val put_timing: Timing.timing -> transition -> transition
+  val approximative_id: transition -> {file: string, offset: int, name: string} option
+  val get_timing: transition -> Time.time
+  val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
   val proof_result: bool -> transition * transition list -> state ->
@@ -343,7 +343,7 @@ datatype transition = Transition of
   int_only: bool,            (*interactive-only*)
   print: bool,               (*print result state*)
   no_timing: bool,           (*suppress timing*)
-  timing: Timing.timing,     (*prescient timing information*)
+  timing: Time.time,         (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
 fun make_transition (name, pos, int_only, print, no_timing, timing, trans) =
@@ -353,7 +353,7 @@ fun make_transition (name, pos, int_only, print, no_timing, timing, trans) =
 fun map_transition f (Transition {name, pos, int_only, print, no_timing, timing, trans}) =
   make_transition (f (name, pos, int_only, print, no_timing, timing, trans));
 
-val empty = make_transition ("", Position.none, false, false, false, Timing.zero, []);
+val empty = make_transition ("", Position.none, false, false, false, Time.zeroTime, []);
 
 
 (* diagnostics *)
@@ -591,6 +591,19 @@ fun get_id (Transition {pos, ...}) = Position.get_id pos;
 fun put_id id (tr as Transition {pos, ...}) = position (Position.put_id id pos) tr;
 
 
+(* approximative identification within source file *)
+
+fun approximative_id tr =
+  let
+    val name = name_of tr;
+    val pos = pos_of tr;
+  in
+    (case (Position.file_of pos, Position.offset_of pos) of
+      (SOME file, SOME offset) => SOME {file = file, offset = offset, name = name}
+    | _ => NONE)
+  end;
+
+
 (* thread position *)
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
@@ -614,9 +627,6 @@ end;
 
 (* apply transitions *)
 
-fun approximative_id tr =
-  (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
-
 fun get_timing (Transition {timing, ...}) = timing;
 fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timing, _, trans) =>
   (name, pos, int_only, print, no_timing, timing, trans));
@@ -624,10 +634,14 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 local
 
 fun timing_message tr t =
-  if Timing.is_relevant t andalso not (Position.is_reported (pos_of tr)) then
-    Output.protocol_message
-      (Markup.command_timing :: approximative_id tr @ Markup.timing_properties t) ""
-    handle Fail _ => ()
+  if Timing.is_relevant_time (#elapsed t) andalso not (Position.is_reported (pos_of tr))
+  then
+    (case approximative_id tr of
+      SOME id =>
+        (Output.protocol_message
+          (Markup.command_timing :: Markup.command_timing_properties id (#elapsed t)) ""
+        handle Fail _ => ())
+    | NONE => ())
   else ();
 
 fun app int (tr as Transition {trans, print, no_timing, ...}) =
@@ -704,9 +718,8 @@ fun proof_result immediate (tr, proof_trs) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
-        val timing_estimate = fold (Timing.add o get_timing) proof_trs Timing.zero;
-        val timing_order =
-          Real.floor (Real.max (Math.log10 (Time.toReal (#elapsed timing_estimate)), ~3.0));
+        val timing_estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
+        val timing_order = Real.floor (Real.max (Math.log10 (Time.toReal timing_estimate), ~3.0));
         val pri = Int.min (timing_order - 3, ~1);
 
         val future_proof = Proof.global_future_proof
