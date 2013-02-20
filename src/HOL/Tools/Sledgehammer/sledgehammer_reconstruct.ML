@@ -536,16 +536,19 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
         add_step_pre ind qs subproofs
         #> add_suffix (of_prove qs (length subproofs) ^ " ")
         #> add_step_post ind l t facts ""
-      | add_step ind (Obtain (qs, Fix xs, l, t,
-                      By_Metis (subproofs, facts))) =
+      | add_step ind (Obtain (qs, Fix xs, l, t, By_Metis (subproofs, facts))) =
         add_step_pre ind qs subproofs
         #> add_suffix (of_obtain qs (length subproofs) ^ " ")
         #> add_frees xs
         #> add_suffix " where "
         (* The new skolemizer puts the arguments in the same order as the ATPs
-         (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
-         Vampire). *)
-        #> add_step_post ind l t facts "using [[metis_new_skolem]] "
+           (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
+           Vampire). *)
+        #> add_step_post ind l t facts
+               (if exists (fn (_, T) => length (binder_types T) > 1) xs then
+                  "using [[metis_new_skolem]] "
+                else
+                  "")
     and add_steps ind steps =
       fold (add_step ind) steps
     and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
@@ -616,17 +619,13 @@ val relabel_proof =
           val (l, subst, next) =
             (l, subst, next) |> fresh_label depth have_prefix
           val by = by |> do_byline subst depth
-        in
-          Obtain (qs, xs, l, t, by) :: do_steps subst depth next steps
-        end
+        in Obtain (qs, xs, l, t, by) :: do_steps subst depth next steps end
       | do_steps subst depth next (Prove (qs, l, t, by) :: steps) =
         let
           val (l, subst, next) =
             (l, subst, next) |> fresh_label depth have_prefix
           val by = by |> do_byline subst depth
-        in
-          Prove (qs, l, t, by) :: do_steps subst depth next steps
-        end
+        in Prove (qs, l, t, by) :: do_steps subst depth next steps end
       | do_steps subst depth next (step :: steps) =
         step :: do_steps subst depth next steps
     and do_proof subst depth (Proof (fix, assms, steps)) =
@@ -645,7 +644,7 @@ val chain_direct_proof =
         if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0)
         else ([], lfs)
     fun chain_step lbl (Obtain (qs, xs, l, t,
-                                        By_Metis (subproofs, (lfs, gfs)))) =
+                                By_Metis (subproofs, (lfs, gfs)))) =
         let val (qs', lfs) = do_qs_lfs lbl lfs in
           Obtain (qs' @ qs, xs, l, t,
             By_Metis (chain_proofs subproofs, (lfs, gfs)))
