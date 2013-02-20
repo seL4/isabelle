@@ -460,8 +460,9 @@ val parse_spass_debug =
 (* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>.
            derived from formulae <ident>* *)
 fun parse_spass_line x =
-  (parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
-     -- Symbol.scan_ascii_id -- parse_spass_annotations --| $$ "]"
+  (parse_spass_debug |-- scan_general_id --| $$ "[" --|
+     Scan.many1 Symbol.is_digit --| $$ ":" -- Symbol.scan_ascii_id
+     -- parse_spass_annotations --| $$ "]"
      -- parse_horn_clause --| $$ "."
      -- Scan.option (Scan.this_string "derived from formulae "
                      |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
