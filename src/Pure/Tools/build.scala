@@ -313,9 +313,9 @@ object Build
         }
 
         def compare(name1: String, name2: String): Int =
-          compare_timing(name2, name1) match {
+          outdegree(name2) compare outdegree(name1) match {
             case 0 =>
-              outdegree(name2) compare outdegree(name1) match {
+              compare_timing(name2, name1) match {
                 case 0 =>
                   timeout(name2) compare timeout(name1) match {
                     case 0 => name1 compare name2
