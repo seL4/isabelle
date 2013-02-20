@@ -38,7 +38,6 @@ sig
   type step_name = string * string list
 
   datatype 'a step =
-    Definition_Step of step_name * 'a * 'a |
     Inference_Step of step_name * formula_role * 'a * string * step_name list
 
   type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
@@ -211,13 +210,11 @@ fun step_name_ord p =
   end
 
 datatype 'a step =
-  Definition_Step of step_name * 'a * 'a |
   Inference_Step of step_name * formula_role * 'a * string * step_name list
 
 type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
-fun step_name (Definition_Step (name, _, _)) = name
-  | step_name (Inference_Step (name, _, _, _, _)) = name
+fun step_name (Inference_Step (name, _, _, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -427,9 +424,7 @@ fun parse_tstp_line problem =
             case role_of_tptp_string role of
               Definition =>
               (case phi of
-                 AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                 Definition_Step (name, phi1, phi2)
-               | AAtom (ATerm (("equal", []), _)) =>
+                 AAtom (ATerm (("equal", []), _)) =>
                  (* Vampire's equality proxy axiom *)
                  Inference_Step (name, Definition, phi, rule,
                                  map (rpair []) deps)
@@ -516,9 +511,6 @@ fun atp_proof_from_tstplike_proof _ "" = []
 
 fun clean_up_dependencies _ [] = []
   | clean_up_dependencies seen
-                          ((step as Definition_Step (name, _, _)) :: steps) =
-    step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen
         (Inference_Step (name, role, u, rule, deps) :: steps) =
     Inference_Step (name, role, u, rule,
         map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
@@ -533,9 +525,7 @@ fun map_term_names_in_atp_proof f =
         AQuant (q, map (apfst f) xs, do_formula phi)
       | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
       | do_formula (AAtom t) = AAtom (do_term t)
-    fun do_step (Definition_Step (name, phi1, phi2)) =
-        Definition_Step (name, do_formula phi1, do_formula phi2)
-      | do_step (Inference_Step (name, role, phi, rule, deps)) =
+    fun do_step (Inference_Step (name, role, phi, rule, deps)) =
         Inference_Step (name, role, do_formula phi, rule, deps)
   in map do_step end
 
