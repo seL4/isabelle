@@ -295,7 +295,11 @@ fun maybe_minimize ctxt mode do_learn name
             in
               (case Lazy.force preplay of
                  Played (reconstr as Metis _, timeout) =>
-                 if can_min_fast_enough timeout then
+                 if isar_proofs = SOME true then
+                   (* Cheat: Assume the original prover is as fast as "metis"
+                      for the goal it proved itself. *)
+                   (can_min_fast_enough timeout, (name, params))
+                 else if can_min_fast_enough timeout then
                    (true, extract_reconstructor params reconstr
                           ||> (fn override_params =>
                                   adjust_reconstructor_params override_params
@@ -303,7 +307,7 @@ fun maybe_minimize ctxt mode do_learn name
                  else
                    (prover_fast_enough (), (name, params))
                | Played (SMT, timeout) =>
-                 (* Cheat: assume the original prover is as fast as "smt" for
+                 (* Cheat: Assume the original prover is as fast as "smt" for
                     the goal it proved itself *)
                  (can_min_fast_enough timeout, (name, params))
                | _ => (prover_fast_enough (), (name, params)),
