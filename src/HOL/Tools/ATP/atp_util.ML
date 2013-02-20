@@ -287,15 +287,23 @@ fun s_not (Const (@{const_name All}, T) $ Abs (s, T', t')) =
   | s_not t = @{const Not} $ t
 fun s_conj (@{const True}, t2) = t2
   | s_conj (t1, @{const True}) = t1
+  | s_conj (@{const False}, _) = @{const False}
+  | s_conj (_, @{const False}) = @{const False}
   | s_conj (t1, t2) = if t1 aconv t2 then t1 else HOLogic.mk_conj (t1, t2)
 fun s_disj (@{const False}, t2) = t2
   | s_disj (t1, @{const False}) = t1
+  | s_disj (@{const True}, _) = @{const True}
+  | s_disj (_, @{const True}) = @{const True}
   | s_disj (t1, t2) = if t1 aconv t2 then t1 else HOLogic.mk_disj (t1, t2)
 fun s_imp (@{const True}, t2) = t2
   | s_imp (t1, @{const False}) = s_not t1
+  | s_imp (@{const False}, _) = @{const True}
+  | s_imp (_, @{const True}) = @{const True}
   | s_imp p = HOLogic.mk_imp p
 fun s_iff (@{const True}, t2) = t2
   | s_iff (t1, @{const True}) = t1
+  | s_iff (@{const False}, t2) = s_not t2
+  | s_iff (t1, @{const False}) = s_not t1
   | s_iff (t1, t2) = HOLogic.eq_const HOLogic.boolT $ t1 $ t2
 
 (* cf. "close_form" in "refute.ML" *)
