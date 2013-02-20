@@ -288,12 +288,14 @@ object Build
 
   object Queue
   {
-    def apply(tree: Session_Tree, get_timings: String => (List[Properties.T], Double)): Queue =
+    def apply(tree: Session_Tree, load_timings: String => (List[Properties.T], Double)): Queue =
     {
       val graph = tree.graph
       val sessions = graph.keys.toList
 
-      val timings = sessions.map(name => (name, get_timings(name)))
+      val timings = sessions.map((name: String) =>
+        if (tree(name).options.bool("parallel_proofs_reuse_timing")) (name, load_timings(name))
+        else (name, (Nil, 0.0)))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
@@ -680,7 +682,7 @@ object Build
 
     /* queue with scheduling information */
 
-    def get_timing(name: String): (List[Properties.T], Double) =
+    def load_timings(name: String): (List[Properties.T], Double) =
     {
       val (path, text) =
         find_log(name + ".gz") match {
@@ -703,7 +705,7 @@ object Build
       }
     }
 
-    val queue = Queue(selected_tree, get_timing)
+    val queue = Queue(selected_tree, load_timings)
 
 
     /* main build process */
