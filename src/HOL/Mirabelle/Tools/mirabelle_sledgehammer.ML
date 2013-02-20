@@ -389,7 +389,8 @@ fun reconstructor_from_msg args msg =
     SOME name => name
   | NONE =>
     if (String.isSubstring " ms)" msg orelse String.isSubstring " s)" msg)
-       andalso not (String.isSubstring "(> " msg) then
+       andalso not (String.isSubstring "(> " msg)
+       andalso not (String.isSubstring ", > " msg) then
       "none" (* trust the preplayed proof *)
     else if String.isSubstring "metis (" msg then
       msg |> Substring.full
