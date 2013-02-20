@@ -543,7 +543,10 @@ val vampire_config : atp_config =
        "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
        " --proof tptp --output_axiom_names on" ^
        (if is_vampire_at_least_1_8 () then
-          " --forced_options propositional_to_bdd=off"
+          (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
+          " --forced_options propositional_to_bdd=off:splitting=off:\
+          \equality_proxy=off:general_splitting=off:inequality_splitting=0:\
+          \naming=0"
         else
           "") ^
        " --thanks \"Andrei and Krystof\" --input_file " ^ file_name
