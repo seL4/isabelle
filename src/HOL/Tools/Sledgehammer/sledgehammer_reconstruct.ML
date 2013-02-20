@@ -549,8 +549,7 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
                   "using [[metis_new_skolem]] "
                 else
                   "")
-    and add_steps ind steps =
-      fold (add_step ind) steps
+    and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
       ("", ctxt)
       |> add_fix ind xs
@@ -568,12 +567,11 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
   end
 
 fun add_labels_of_step step =
-  (case byline_of_step step of
-     NONE => I
-  |  SOME (By_Metis (subproofs, (ls, _))) =>
-      union (op =) (add_labels_of_proofs subproofs ls))
+  case byline_of_step step of
+    NONE => I
+  | SOME (By_Metis (subproofs, (ls, _))) =>
+    union (op =) ls #> fold add_labels_of_proof subproofs
 and add_labels_of_proof proof = fold add_labels_of_step (steps_of_proof proof)
-and add_labels_of_proofs proofs = fold add_labels_of_proof proofs
 
 fun kill_useless_labels_in_proof proof =
   let
