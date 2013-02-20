@@ -119,7 +119,7 @@ fun is_lam_lifted s =
 val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 
 fun is_axiom_used_in_proof pred =
-  exists (fn ((_, ss), _, _, _, []) => exists pred ss)
+  exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
 fun lam_trans_from_atp_proof atp_proof default =
   case (is_axiom_used_in_proof is_combinator_def atp_proof,
