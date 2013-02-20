@@ -375,7 +375,6 @@ fun add_line fact_names (Inference_Step (name as (_, ss), role, t, rule, []))
       (_, []) => line :: lines
     | (pre, Inference_Step (name', _, _, _, _) :: post) =>
       line :: pre @ map (replace_dependencies_in_line (name', [name])) post
-    | _ => raise Fail "unexpected inference"
 
 val waldmeister_conjecture_num = "1.0.0.0"
 

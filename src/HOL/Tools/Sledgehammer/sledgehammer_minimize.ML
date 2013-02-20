@@ -35,6 +35,7 @@ struct
 open ATP_Util
 open ATP_Proof
 open ATP_Problem_Generate
+open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstruct
@@ -296,9 +297,10 @@ fun maybe_minimize ctxt mode do_learn name
               (case Lazy.force preplay of
                  Played (reconstr as Metis _, timeout) =>
                  if isar_proofs = SOME true then
-                   (* Cheat: Assume the original prover is as fast as "metis"
-                      for the goal it proved itself. *)
-                   (can_min_fast_enough timeout, (name, params))
+                   (* Cheat: Assume the selected ATP is as fast as "metis" for
+                      the goal it proved itself. *)
+                   (can_min_fast_enough timeout,
+                    (isar_proof_reconstructor ctxt name, params))
                  else if can_min_fast_enough timeout then
                    (true, extract_reconstructor params reconstr
                           ||> (fn override_params =>
@@ -334,14 +336,10 @@ fun maybe_minimize ctxt mode do_learn name
       | NONE => result
     end
 
-(* TODO: implement *)
-fun maybe_regenerate_isar_proof result = result
-
 fun get_minimizing_prover ctxt mode do_learn name params minimize_command
                           problem =
   get_prover ctxt mode name params minimize_command problem
   |> maybe_minimize ctxt mode do_learn name params problem
-  |> maybe_regenerate_isar_proof
 
 fun run_minimize (params as {provers, ...}) do_learn i refs state =
   let

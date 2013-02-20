@@ -110,6 +110,10 @@ sig
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
+  val remotify_prover_if_supported_and_not_already_remote :
+    Proof.context -> string -> string option
+  val remotify_prover_if_not_installed :
+    Proof.context -> string -> string option
   val default_max_facts_for_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
@@ -129,6 +133,7 @@ sig
   val filter_used_facts :
     bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
+  val isar_proof_reconstructor : Proof.context -> string -> string
   val get_prover : Proof.context -> mode -> string -> prover
 end;
 
@@ -185,6 +190,20 @@ fun is_prover_supported ctxt =
 fun is_prover_installed ctxt =
   is_reconstructor orf is_smt_prover ctxt orf
   is_atp_installed (Proof_Context.theory_of ctxt)
+
+fun remotify_prover_if_supported_and_not_already_remote ctxt name =
+  if String.isPrefix remote_prefix name then
+    SOME name
+  else
+    let val remote_name = remote_prefix ^ name in
+      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
+    end
+
+fun remotify_prover_if_not_installed ctxt name =
+  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then
+    SOME name
+  else
+    remotify_prover_if_supported_and_not_already_remote ctxt name
 
 fun get_slices slice slices =
   (0 upto length slices - 1) ~~ slices |> not slice ? (List.last #> single)
@@ -598,19 +617,26 @@ fun choose_type_enc soundness best_type_enc format =
   #> type_enc_from_string soundness
   #> adjust_type_enc format
 
-val metis_minimize_max_time = seconds 2.0
+fun isar_proof_reconstructor ctxt name =
+  let val thy = Proof_Context.theory_of ctxt in
+    if is_atp thy name then name
+    else remotify_prover_if_not_installed ctxt eN |> the_default name
+  end
 
-fun choose_minimize_command params minimize_command name preplay =
+(* See the analogous logic in the function "maybe_minimize" in
+  "sledgehammer_minimize.ML". *)
+fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
+                            name preplay =
   let
-    val (name, override_params) =
+    val maybe_isar_name =
+      name |> isar_proofs = SOME true ? isar_proof_reconstructor ctxt
+    val (min_name, override_params) =
       case preplay of
-        Played (reconstr, time) =>
-        if Time.<= (time, metis_minimize_max_time) then
-          extract_reconstructor params reconstr
-        else
-          (name, [])
-      | _ => (name, [])
-  in minimize_command override_params name end
+        Played (reconstr, _) =>
+        if isar_proofs = SOME true then (maybe_isar_name, [])
+        else extract_reconstructor params reconstr
+      | _ => (maybe_isar_name, [])
+  in minimize_command override_params min_name end
 
 fun repair_monomorph_context max_iters best_max_iters max_new_instances
                              best_max_new_instances =
@@ -795,7 +821,8 @@ fun run_atp mode name
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
-            val full_proof = debug orelse isar_proofs = SOME true
+            val full_proof =
+              debug orelse (isar_proofs |> the_default (mode = Minimize))
             val args =
               arguments ctxt full_proof extra
                         (slice_timeout |> the_default one_day)
@@ -917,7 +944,8 @@ fun run_atp mode name
                    pool, fact_names, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
-                   choose_minimize_command params minimize_command name preplay,
+                   choose_minimize_command ctxt params minimize_command name
+                                           preplay,
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
@@ -1127,7 +1155,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
             let
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
-                 choose_minimize_command params minimize_command name preplay,
+                 choose_minimize_command ctxt params minimize_command name
+                                         preplay,
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in one_line_proof_text num_chained one_line_params end,

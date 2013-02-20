@@ -189,20 +189,6 @@ structure Data = Theory_Data
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
-fun remotify_prover_if_supported_and_not_already_remote ctxt name =
-  if String.isPrefix remote_prefix name then
-    SOME name
-  else
-    let val remote_name = remote_prefix ^ name in
-      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
-    end
-
-fun remotify_prover_if_not_installed ctxt name =
-  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then
-    SOME name
-  else
-    remotify_prover_if_supported_and_not_already_remote ctxt name
-
 fun avoid_too_many_threads _ _ [] = []
   | avoid_too_many_threads _ (0, 0) _ = []
   | avoid_too_many_threads ctxt (0, max_remote) provers =
