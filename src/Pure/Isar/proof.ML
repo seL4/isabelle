@@ -114,6 +114,7 @@ sig
   val show_cmd: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
+  val is_relevant: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
   val global_future_proof: (state -> ('a * context) future) -> state -> 'a future * context
   val local_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
