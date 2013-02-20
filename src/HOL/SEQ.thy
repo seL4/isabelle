@@ -322,6 +322,16 @@ lemma LIMSEQ_const_iff:
   shows "(\<lambda>n. k) ----> l \<longleftrightarrow> k = l"
   using trivial_limit_sequentially by (rule tendsto_const_iff)
 
+lemma LIMSEQ_SUP:
+  "incseq X \<Longrightarrow> X ----> (SUP i. X i :: 'a :: {complete_linorder, linorder_topology})"
+  by (intro increasing_tendsto)
+     (auto simp: SUP_upper less_SUP_iff incseq_def eventually_sequentially intro: less_le_trans)
+
+lemma LIMSEQ_INF:
+  "decseq X \<Longrightarrow> X ----> (INF i. X i :: 'a :: {complete_linorder, linorder_topology})"
+  by (intro decreasing_tendsto)
+     (auto simp: INF_lower INF_less_iff decseq_def eventually_sequentially intro: le_less_trans)
+
 lemma LIMSEQ_ignore_initial_segment:
   "f ----> a \<Longrightarrow> (\<lambda>n. f (n + k)) ----> a"
 apply (rule topological_tendstoI)

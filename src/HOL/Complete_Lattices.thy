@@ -89,6 +89,22 @@ lemma SUP_foundation_dual [no_atp]:
   by (simp add: fun_eq_iff SUP_def
     complete_lattice.INF_def [OF dual_complete_lattice])
 
+lemma Sup_eqI:
+  "(\<And>y. y \<in> A \<Longrightarrow> y \<le> x) \<Longrightarrow> (\<And>y. (\<And>z. z \<in> A \<Longrightarrow> z \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> \<Squnion>A = x"
+  by (blast intro: antisym Sup_least Sup_upper)
+
+lemma Inf_eqI:
+  "(\<And>i. i \<in> A \<Longrightarrow> x \<le> i) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> y \<le> i) \<Longrightarrow> y \<le> x) \<Longrightarrow> \<Sqinter>A = x"
+  by (blast intro: antisym Inf_greatest Inf_lower)
+
+lemma SUP_eqI:
+  "(\<And>i. i \<in> A \<Longrightarrow> f i \<le> x) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> (\<Squnion>i\<in>A. f i) = x"
+  unfolding SUP_def by (rule Sup_eqI) auto
+
+lemma INF_eqI:
+  "(\<And>i. i \<in> A \<Longrightarrow> x \<le> f i) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<ge> y) \<Longrightarrow> x \<ge> y) \<Longrightarrow> (\<Sqinter>i\<in>A. f i) = x"
+  unfolding INF_def by (rule Inf_eqI) auto
+
 lemma INF_lower: "i \<in> A \<Longrightarrow> (\<Sqinter>i\<in>A. f i) \<sqsubseteq> f i"
   by (auto simp add: INF_def intro: Inf_lower)
 
@@ -242,6 +258,18 @@ proof -
   ultimately show ?thesis by (rule Sup_upper2)
 qed
 
+lemma SUPR_eq:
+  assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<le> g j"
+  assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<le> f i"
+  shows "(SUP i:A. f i) = (SUP j:B. g j)"
+  by (intro antisym SUP_least) (blast intro: SUP_upper2 dest: assms)+
+
+lemma INFI_eq:
+  assumes "\<And>i. i \<in> A \<Longrightarrow> \<exists>j\<in>B. f i \<ge> g j"
+  assumes "\<And>j. j \<in> B \<Longrightarrow> \<exists>i\<in>A. g j \<ge> f i"
+  shows "(INF i:A. f i) = (INF j:B. g j)"
+  by (intro antisym INF_greatest) (blast intro: INF_lower2 dest: assms)+
+
 lemma less_eq_Inf_inter: "\<Sqinter>A \<squnion> \<Sqinter>B \<sqsubseteq> \<Sqinter>(A \<inter> B)"
   by (auto intro: Inf_greatest Inf_lower)
 
@@ -377,6 +405,12 @@ lemma INF_UNIV_bool_expand:
 lemma SUP_UNIV_bool_expand:
   "(\<Squnion>b. A b) = A True \<squnion> A False"
   by (simp add: UNIV_bool SUP_insert sup_commute)
+
+lemma Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
+  by (blast intro: Sup_upper2 Inf_lower ex_in_conv)
+
+lemma INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFI A f \<le> SUPR A f"
+  unfolding INF_def SUP_def by (rule Inf_le_Sup) auto
 
 end
 
@@ -530,8 +564,30 @@ lemma INF_eq_bot_iff [simp]:
   "(\<Sqinter>i\<in>A. f i) = \<bottom> \<longleftrightarrow> (\<forall>x>\<bottom>. \<exists>i\<in>A. f i < x)"
   unfolding INF_def by auto
 
-end
+lemma le_Sup_iff: "x \<le> \<Squnion>A \<longleftrightarrow> (\<forall>y<x. \<exists>a\<in>A. y < a)"
+proof safe
+  fix y assume "x \<le> \<Squnion>A" "y < x"
+  then have "y < \<Squnion>A" by auto
+  then show "\<exists>a\<in>A. y < a"
+    unfolding less_Sup_iff .
+qed (auto elim!: allE[of _ "\<Squnion>A"] simp add: not_le[symmetric] Sup_upper)
 
+lemma le_SUP_iff: "x \<le> SUPR A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
+  unfolding le_Sup_iff SUP_def by simp
+
+lemma Inf_le_iff: "\<Sqinter>A \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>a\<in>A. y > a)"
+proof safe
+  fix y assume "x \<ge> \<Sqinter>A" "y > x"
+  then have "y > \<Sqinter>A" by auto
+  then show "\<exists>a\<in>A. y > a"
+    unfolding Inf_less_iff .
+qed (auto elim!: allE[of _ "\<Sqinter>A"] simp add: not_le[symmetric] Inf_lower)
+
+lemma INF_le_iff:
+  "INFI A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
+  unfolding Inf_le_iff INF_def by simp
+
+end
 
 subsection {* Complete lattice on @{typ bool} *}
 

@@ -330,6 +330,20 @@ lemma atLeastLessThan_eq_iff:
   shows "{a ..< b} = {c ..< d} \<longleftrightarrow> a = c \<and> b = d"
   using atLeastLessThan_inj assms by auto
 
+context complete_lattice
+begin
+
+lemma atLeast_eq_UNIV_iff: "{x..} = UNIV \<longleftrightarrow> x = bot"
+  by (auto simp: set_eq_iff intro: le_bot)
+
+lemma atMost_eq_UNIV_iff: "{..x} = UNIV \<longleftrightarrow> x = top"
+  by (auto simp: set_eq_iff intro: top_le)
+
+lemma atLeastAtMost_eq_UNIV_iff: "{x..y} = UNIV \<longleftrightarrow> (x = bot \<and> y = top)"
+  by (auto simp: set_eq_iff intro: top_le le_bot)
+
+end
+
 subsubsection {* Intersection *}
 
 context linorder

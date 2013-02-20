@@ -264,6 +264,9 @@ abbreviation (input) trivial_limit :: "'a filter \<Rightarrow> bool"
 lemma trivial_limit_def: "trivial_limit F \<longleftrightarrow> eventually (\<lambda>x. False) F"
   by (rule eventually_False [symmetric])
 
+lemma eventually_const: "\<not> trivial_limit net \<Longrightarrow> eventually (\<lambda>x. P) net \<longleftrightarrow> P"
+  by (cases P) (simp_all add: eventually_False)
+
 
 subsection {* Map function for filters *}
 

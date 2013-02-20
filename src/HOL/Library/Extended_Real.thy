@@ -18,79 +18,6 @@ For more lemmas about the extended real numbers go to
 
 *}
 
-lemma LIMSEQ_SUP:
-  fixes X :: "nat \<Rightarrow> 'a :: {complete_linorder, linorder_topology}"
-  assumes "incseq X"
-  shows "X ----> (SUP i. X i)"
-  using `incseq X`
-  by (intro increasing_tendsto)
-     (auto simp: SUP_upper less_SUP_iff incseq_def eventually_sequentially intro: less_le_trans)
-
-lemma eventually_const: "\<not> trivial_limit net \<Longrightarrow> eventually (\<lambda>x. P) net \<longleftrightarrow> P"
-  by (cases P) (simp_all add: eventually_False)
-
-lemma (in complete_lattice) Inf_le_Sup: "A \<noteq> {} \<Longrightarrow> Inf A \<le> Sup A"
-  by (metis Sup_upper2 Inf_lower ex_in_conv)
-
-lemma (in complete_lattice) INF_le_SUP: "A \<noteq> {} \<Longrightarrow> INFI A f \<le> SUPR A f"
-  unfolding INF_def SUP_def by (rule Inf_le_Sup) auto
-
-lemma (in complete_linorder) le_Sup_iff:
-  "x \<le> Sup A \<longleftrightarrow> (\<forall>y<x. \<exists>a\<in>A. y < a)"
-proof safe
-  fix y assume "x \<le> Sup A" "y < x"
-  then have "y < Sup A" by auto
-  then show "\<exists>a\<in>A. y < a"
-    unfolding less_Sup_iff .
-qed (auto elim!: allE[of _ "Sup A"] simp add: not_le[symmetric] Sup_upper)
-
-lemma (in complete_linorder) le_SUP_iff:
-  "x \<le> SUPR A f \<longleftrightarrow> (\<forall>y<x. \<exists>i\<in>A. y < f i)"
-  unfolding le_Sup_iff SUP_def by simp
-
-lemma (in complete_linorder) Inf_le_iff:
-  "Inf A \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>a\<in>A. y > a)"
-proof safe
-  fix y assume "x \<ge> Inf A" "y > x"
-  then have "y > Inf A" by auto
-  then show "\<exists>a\<in>A. y > a"
-    unfolding Inf_less_iff .
-qed (auto elim!: allE[of _ "Inf A"] simp add: not_le[symmetric] Inf_lower)
-
-lemma (in complete_linorder) le_INF_iff:
-  "INFI A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
-  unfolding Inf_le_iff INF_def by simp
-
-lemma (in complete_lattice) Sup_eqI:
-  assumes "\<And>y. y \<in> A \<Longrightarrow> y \<le> x"
-  assumes "\<And>y. (\<And>z. z \<in> A \<Longrightarrow> z \<le> y) \<Longrightarrow> x \<le> y"
-  shows "Sup A = x"
-  by (metis antisym Sup_least Sup_upper assms)
-
-lemma (in complete_lattice) Inf_eqI:
-  assumes "\<And>i. i \<in> A \<Longrightarrow> x \<le> i"
-  assumes "\<And>y. (\<And>i. i \<in> A \<Longrightarrow> y \<le> i) \<Longrightarrow> y \<le> x"
-  shows "Inf A = x"
-  by (metis antisym Inf_greatest Inf_lower assms)
-
-lemma (in complete_lattice) SUP_eqI:
-  "(\<And>i. i \<in> A \<Longrightarrow> f i \<le> x) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<le> y) \<Longrightarrow> x \<le> y) \<Longrightarrow> (SUP i:A. f i) = x"
-  unfolding SUP_def by (rule Sup_eqI) auto
-
-lemma (in complete_lattice) INF_eqI:
-  "(\<And>i. i \<in> A \<Longrightarrow> x \<le> f i) \<Longrightarrow> (\<And>y. (\<And>i. i \<in> A \<Longrightarrow> f i \<ge> y) \<Longrightarrow> x \<ge> y) \<Longrightarrow> (INF i:A. f i) = x"
-  unfolding INF_def by (rule Inf_eqI) auto
-
-lemma (in complete_lattice) atLeast_eq_UNIV_iff: "{x..} = UNIV \<longleftrightarrow> x = bot"
-proof
-  assume "{x..} = UNIV"
-  show "x = bot"
-  proof (rule ccontr)
-    assume "x \<noteq> bot" then have "bot \<notin> {x..}" by (simp add: le_less)
-    then show False using `{x..} = UNIV` by simp
-  qed
-qed auto
-
 lemma SUPR_pair:
   "(SUP i : A. SUP j : B. f i j) = (SUP p : A \<times> B. f (fst p) (snd p))"
   by (rule antisym) (auto intro!: SUP_least SUP_upper2)
@@ -1447,43 +1374,6 @@ proof -
     by (auto simp: top_ereal_def)
 qed
 
-lemma ereal_le_Sup:
-  fixes x :: ereal
-  shows "(x <= (SUP i:A. f i)) <-> (ALL y. y < x --> (EX i. i : A & y <= f i))" (is "?lhs = ?rhs")
-proof-
-{ assume "?rhs"
-  { assume "~(x <= (SUP i:A. f i))" hence "(SUP i:A. f i)<x" by (simp add: not_le)
-    then obtain y where y_def: "(SUP i:A. f i)<y & y<x" using ereal_dense by auto
-    then obtain i where "i : A & y <= f i" using `?rhs` by auto
-    hence "y <= (SUP i:A. f i)" using SUP_upper[of i A f] by auto
-    hence False using y_def by auto
-  } hence "?lhs" by auto
-}
-moreover
-{ assume "?lhs" hence "?rhs"
-  by (metis less_SUP_iff order_less_imp_le order_less_le_trans)
-} ultimately show ?thesis by auto
-qed
-
-lemma ereal_Inf_le:
-  fixes x :: ereal
-  shows "((INF i:A. f i) <= x) <-> (ALL y. x < y --> (EX i. i : A & f i <= y))"
-(is "?lhs <-> ?rhs")
-proof-
-{ assume "?rhs"
-  { assume "~((INF i:A. f i) <= x)" hence "x < (INF i:A. f i)" by (simp add: not_le)
-    then obtain y where y_def: "x<y & y<(INF i:A. f i)" using ereal_dense by auto
-    then obtain i where "i : A & f i <= y" using `?rhs` by auto
-    hence "(INF i:A. f i) <= y" using INF_lower[of i A f] by auto
-    hence False using y_def by auto
-  } hence "?lhs" by auto
-}
-moreover
-{ assume "?lhs" hence "?rhs"
-  by (metis INF_less_iff order_le_less order_less_le_trans)
-} ultimately show ?thesis by auto
-qed
-
 lemma Inf_less:
   fixes x :: ereal
   assumes "(INF i:A. f i) < x"
@@ -1493,44 +1383,6 @@ proof(rule ccontr)
   hence "ALL i:A. f i > x" by auto
   hence "(INF i:A. f i) >= x" apply (subst INF_greatest) by auto
   thus False using assms by auto
-qed
-
-lemma same_INF:
-  assumes "ALL e:A. f e = g e"
-  shows "(INF e:A. f e) = (INF e:A. g e)"
-proof-
-have "f ` A = g ` A" unfolding image_def using assms by auto
-thus ?thesis unfolding INF_def by auto
-qed
-
-lemma same_SUP:
-  assumes "ALL e:A. f e = g e"
-  shows "(SUP e:A. f e) = (SUP e:A. g e)"
-proof-
-have "f ` A = g ` A" unfolding image_def using assms by auto
-thus ?thesis unfolding SUP_def by auto
-qed
-
-lemma SUPR_eq:
-  assumes "\<forall>i\<in>A. \<exists>j\<in>B. f i \<le> g j"
-  assumes "\<forall>j\<in>B. \<exists>i\<in>A. g j \<le> f i"
-  shows "(SUP i:A. f i) = (SUP j:B. g j)"
-proof (intro antisym)
-  show "(SUP i:A. f i) \<le> (SUP j:B. g j)"
-    using assms by (metis SUP_least SUP_upper2)
-  show "(SUP i:B. g i) \<le> (SUP j:A. f j)"
-    using assms by (metis SUP_least SUP_upper2)
-qed
-
-lemma INFI_eq:
-  assumes "\<forall>i\<in>A. \<exists>j\<in>B. f i \<ge> g j"
-  assumes "\<forall>j\<in>B. \<exists>i\<in>A. g j \<ge> f i"
-  shows "(INF i:A. f i) = (INF j:B. g j)"
-proof (intro antisym)
-  show "(INF i:A. f i) \<le> (INF j:B. g j)"
-    using assms by (metis INF_greatest INF_lower2)
-  show "(INF i:B. g i) \<le> (INF j:A. f j)"
-    using assms by (metis INF_greatest INF_lower2)
 qed
 
 lemma SUP_ereal_le_addI:
