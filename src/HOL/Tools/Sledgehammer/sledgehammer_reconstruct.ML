@@ -677,10 +677,12 @@ fun isar_proof_text ctxt isar_proofs
                    else SOME (raw_label_for_name name, nth hyp_ts j)
                  | _ => NONE)
               | _ => NONE)
-        fun dep_of_step (name, _, _, _, from) = SOME (from, name)
-        val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
+        val bot = atp_proof |> List.last |> #1
         val refute_graph =
-          atp_proof |> map_filter dep_of_step |> make_refute_graph bot
+          atp_proof
+          |> map (fn (name, _, _, _, from) => (from, name))
+          |> make_refute_graph bot
+          |> fold (Atom_Graph.default_node o rpair ()) conjs
         val axioms = axioms_of_refute_graph refute_graph conjs
         val tainted = tainted_atoms_of_refute_graph refute_graph conjs
         val is_clause_tainted = exists (member (op =) tainted)
@@ -711,9 +713,8 @@ fun isar_proof_text ctxt isar_proofs
             in
               case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
-                HOLogic.mk_imp
-                  (Library.foldr1 s_conj (map HOLogic.dest_not negs),
-                   Library.foldr1 s_disj pos)
+                s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs),
+                       Library.foldr1 s_disj pos)
               | _ => fold (curry s_disj) lits @{term False}
             end
             |> HOLogic.mk_Trueprop |> close_form
