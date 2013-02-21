@@ -718,9 +718,10 @@ fun proof_result immediate (tr, proof_trs) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
-        val timing_estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
-        val timing_order = Real.floor (Real.max (Math.log10 (Time.toReal timing_estimate), ~3.0));
-        val pri = Int.min (timing_order - 3, ~1);
+        val estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
+        val pri =
+          if estimate = Time.zeroTime then ~1
+	  else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
 
         val future_proof = Proof.global_future_proof
           (fn prf =>
