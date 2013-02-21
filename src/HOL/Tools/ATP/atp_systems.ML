@@ -339,9 +339,9 @@ val e_config : atp_config =
          [(0.15, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
           (0.15, (((128, mashN), FOF, "mono_guards??", combsN, false), e_sym_offset_weightN)),
           (0.15, (((91, mepoN), FOF, "mono_tags??", combsN, false), e_autoN)),
-          (0.15, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
           (0.15, (((1000, meshN), FOF, "poly_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.25, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN))]
+          (0.15, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN)),
+          (0.25, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN))]
        else
          [(1.0, (((500, ""), FOF, "mono_tags??", combsN, false), heuristic))]
      end,
