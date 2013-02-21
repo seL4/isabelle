@@ -936,7 +936,7 @@ fun run_atp mode name
               let
                 val _ =
                   if verbose then
-                    Output.urgent_message "Generating structured proof..."
+                    Output.urgent_message "Generating proof text..."
                   else
                     ()
                 val isar_params =
