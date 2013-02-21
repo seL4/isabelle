@@ -34,7 +34,7 @@ sig
      fact_thresholds : real * real,
      max_mono_iters : int option,
      max_new_mono_instances : int option,
-     isar_proofs : bool,
+     isar_proofs : bool option,
      isar_compress : real,
      slice : bool,
      minimize : bool option,
@@ -110,6 +110,10 @@ sig
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
+  val remotify_prover_if_supported_and_not_already_remote :
+    Proof.context -> string -> string option
+  val remotify_prover_if_not_installed :
+    Proof.context -> string -> string option
   val default_max_facts_for_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
   val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
@@ -129,6 +133,7 @@ sig
   val filter_used_facts :
     bool -> (''a * stature) list -> ((''a * stature) * 'b) list ->
     ((''a * stature) * 'b) list
+  val isar_proof_reconstructor : Proof.context -> string -> string
   val get_prover : Proof.context -> mode -> string -> prover
 end;
 
@@ -186,17 +191,33 @@ fun is_prover_installed ctxt =
   is_reconstructor orf is_smt_prover ctxt orf
   is_atp_installed (Proof_Context.theory_of ctxt)
 
+fun remotify_prover_if_supported_and_not_already_remote ctxt name =
+  if String.isPrefix remote_prefix name then
+    SOME name
+  else
+    let val remote_name = remote_prefix ^ name in
+      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
+    end
+
+fun remotify_prover_if_not_installed ctxt name =
+  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then
+    SOME name
+  else
+    remotify_prover_if_supported_and_not_already_remote ctxt name
+
 fun get_slices slice slices =
   (0 upto length slices - 1) ~~ slices |> not slice ? (List.last #> single)
 
 val reconstructor_default_max_facts = 20
+
+fun slice_max_facts (_, (_, ( ((max_facts, _), _, _, _, _), _))) = max_facts
 
 fun default_max_facts_for_prover ctxt slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_reconstructor name then
       reconstructor_default_max_facts
     else if is_atp thy name then
-      fold (Integer.max o fst o #1 o fst o snd o snd)
+      fold (Integer.max o slice_max_facts)
            (get_slices slice (#best_slices (get_atp thy name ()) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -321,7 +342,7 @@ type params =
    fact_thresholds : real * real,
    max_mono_iters : int option,
    max_new_mono_instances : int option,
-   isar_proofs : bool,
+   isar_proofs : bool option,
    isar_compress : real,
    slice : bool,
    minimize : bool option,
@@ -596,19 +617,26 @@ fun choose_type_enc soundness best_type_enc format =
   #> type_enc_from_string soundness
   #> adjust_type_enc format
 
-val metis_minimize_max_time = seconds 2.0
+fun isar_proof_reconstructor ctxt name =
+  let val thy = Proof_Context.theory_of ctxt in
+    if is_atp thy name then name
+    else remotify_prover_if_not_installed ctxt eN |> the_default name
+  end
 
-fun choose_minimize_command params minimize_command name preplay =
+(* See the analogous logic in the function "maybe_minimize" in
+  "sledgehammer_minimize.ML". *)
+fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
+                            name preplay =
   let
-    val (name, override_params) =
+    val maybe_isar_name =
+      name |> isar_proofs = SOME true ? isar_proof_reconstructor ctxt
+    val (min_name, override_params) =
       case preplay of
-        Played (reconstr, time) =>
-        if Time.<= (time, metis_minimize_max_time) then
-          extract_reconstructor params reconstr
-        else
-          (name, [])
-      | _ => (name, [])
-  in minimize_command override_params name end
+        Played (reconstr, _) =>
+        if isar_proofs = SOME true then (maybe_isar_name, [])
+        else extract_reconstructor params reconstr
+      | _ => (maybe_isar_name, [])
+  in minimize_command override_params min_name end
 
 fun repair_monomorph_context max_iters best_max_iters max_new_instances
                              best_max_new_instances =
@@ -629,6 +657,10 @@ fun suffix_for_mode Auto_Try = "_try"
 val atp_timeout_slack = seconds 1.0
 
 val mono_max_privileged_facts = 10
+
+(* For low values of "max_facts", this fudge value ensures that most slices are
+   invoked with a nontrivial amount of facts. *)
+val max_fact_factor_fudge = 5
 
 fun run_atp mode name
         ({exec, arguments, proof_delims, known_failures, prem_role, best_slices,
@@ -692,6 +724,13 @@ fun run_atp mode name
            time available. *)
         val actual_slices = get_slices slice (best_slices ctxt)
         val num_actual_slices = length actual_slices
+        val max_fact_factor =
+          case max_facts of
+            NONE => 1.0
+          | SOME max =>
+            Real.fromInt max
+            / Real.fromInt (fold (Integer.max o slice_max_facts)
+                                 actual_slices 0)
         fun monomorphize_facts facts =
           let
             val ctxt =
@@ -724,7 +763,9 @@ fun run_atp mode name
               fact_filter |> the_default best_fact_filter
             val facts = get_facts_for_filter effective_fact_filter factss
             val num_facts =
-              length facts |> is_none max_facts ? Integer.min best_max_facts
+              Real.ceil (max_fact_factor * Real.fromInt best_max_facts) +
+              max_fact_factor_fudge
+              |> Integer.min (length facts)
             val soundness = if strict then Strict else Non_Strict
             val type_enc =
               type_enc |> choose_type_enc soundness best_type_enc format
@@ -780,7 +821,8 @@ fun run_atp mode name
             fun sel_weights () = atp_problem_selection_weights atp_problem
             fun ord_info () = atp_problem_term_order_info atp_problem
             val ord = effective_term_order ctxt name
-            val full_proof = debug orelse isar_proofs
+            val full_proof =
+              debug orelse (isar_proofs |> the_default (mode = Minimize))
             val args =
               arguments ctxt full_proof extra
                         (slice_timeout |> the_default one_day)
@@ -894,7 +936,7 @@ fun run_atp mode name
               let
                 val _ =
                   if verbose then
-                    Output.urgent_message "Generating proof text..."
+                    Output.urgent_message "Generating structured proof..."
                   else
                     ()
                 val isar_params =
@@ -902,7 +944,8 @@ fun run_atp mode name
                    pool, fact_names, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
-                   choose_minimize_command params minimize_command name preplay,
+                   choose_minimize_command ctxt params minimize_command name
+                                           preplay,
                    subgoal, subgoal_count)
                 val num_chained = length (#facts (Proof.goal state))
               in
@@ -1022,10 +1065,8 @@ fun smt_filter_loop name
         val birth = Timer.checkRealTimer timer
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
-        val state_facts = these (try (#facts o Proof.goal) state)
         val (outcome, used_facts) =
-          SMT_Solver.smt_filter_preprocess ctxt state_facts goal weighted_facts
-              i
+          SMT_Solver.smt_filter_preprocess ctxt [] goal weighted_facts i
           |> SMT_Solver.smt_filter_apply (slice_timeout |> the_default one_day)
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
@@ -1112,7 +1153,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
             let
               val one_line_params =
                 (preplay, proof_banner mode name, used_facts,
-                 choose_minimize_command params minimize_command name preplay,
+                 choose_minimize_command ctxt params minimize_command name
+                                         preplay,
                  subgoal, subgoal_count)
               val num_chained = length (#facts (Proof.goal state))
             in one_line_proof_text num_chained one_line_params end,

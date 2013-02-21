@@ -18,10 +18,11 @@ sig
   val auto_minimize_max_time : real Config.T
   val minimize_facts :
     (string -> thm list -> unit) -> string -> params -> bool -> int -> int
-    -> Proof.state -> ((string * stature) * thm list) list
+    -> Proof.state -> play Lazy.lazy option
+    -> ((string * stature) * thm list) list
     -> ((string * stature) * thm list) list option
        * (play Lazy.lazy * (play -> string) * string)
-  val get_minimizing_isar_prover :
+  val get_minimizing_prover :
     Proof.context -> mode -> (string -> thm list -> unit) -> string -> prover
   val run_minimize :
     params -> (string -> thm list -> unit) -> int
@@ -34,6 +35,7 @@ struct
 open ATP_Util
 open ATP_Proof
 open ATP_Problem_Generate
+open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Fact
 open Sledgehammer_Reconstruct
@@ -190,7 +192,7 @@ fun binary_minimize test timeout result xs =
   end
 
 fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
-                   i n state facts =
+                   i n state preplay0 facts =
   let
     val ctxt = Proof.context_of state
     val prover =
@@ -221,7 +223,12 @@ fun minimize_facts do_learn prover_name (params as {learn, timeout, ...}) silent
                  0 => ""
                | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".");
          (if learn then do_learn prover_name (maps snd min_facts) else ());
-         (SOME min_facts, (preplay, message, message_tail))
+         (SOME min_facts,
+          (if is_some preplay0 andalso length min_facts = length facts then
+             the preplay0
+           else
+             preplay,
+           message, message_tail))
        end
      | {outcome = SOME TimedOut, preplay, ...} =>
        (NONE,
@@ -287,20 +294,26 @@ fun maybe_minimize ctxt mode do_learn name
                 <= Config.get ctxt auto_minimize_max_time
               fun prover_fast_enough () = can_min_fast_enough run_time
             in
-              if isar_proofs then
-                ((prover_fast_enough (), (name, params)), preplay)
-              else
-                (case Lazy.force preplay of
-                   Played (reconstr, timeout) =>
-                   if can_min_fast_enough timeout then
-                     (true, extract_reconstructor params reconstr
-                            ||> (fn override_params =>
-                                    adjust_reconstructor_params
-                                        override_params params))
-                   else
-                     (prover_fast_enough (), (name, params))
-                 | _ => (prover_fast_enough (), (name, params)),
-                 preplay)
+              (case Lazy.force preplay of
+                 Played (reconstr as Metis _, timeout) =>
+                 if isar_proofs = SOME true then
+                   (* Cheat: Assume the selected ATP is as fast as "metis" for
+                      the goal it proved itself. *)
+                   (can_min_fast_enough timeout,
+                    (isar_proof_reconstructor ctxt name, params))
+                 else if can_min_fast_enough timeout then
+                   (true, extract_reconstructor params reconstr
+                          ||> (fn override_params =>
+                                  adjust_reconstructor_params override_params
+                                      params))
+                 else
+                   (prover_fast_enough (), (name, params))
+               | Played (SMT, timeout) =>
+                 (* Cheat: Assume the original prover is as fast as "smt" for
+                    the goal it proved itself *)
+                 (can_min_fast_enough timeout, (name, params))
+               | _ => (prover_fast_enough (), (name, params)),
+               preplay)
             end
         else
           ((false, (name, params)), preplay)
@@ -309,6 +322,7 @@ fun maybe_minimize ctxt mode do_learn name
         if minimize then
           minimize_facts do_learn minimize_name params
               (mode <> Normal orelse not verbose) subgoal subgoal_count state
+              (SOME preplay)
               (filter_used_facts true used_facts (map (apsnd single) used_from))
           |>> Option.map (map fst)
         else
@@ -322,14 +336,10 @@ fun maybe_minimize ctxt mode do_learn name
       | NONE => result
     end
 
-(* TODO: implement *)
-fun maybe_regenerate_isar_proof result = result
-
-fun get_minimizing_isar_prover ctxt mode do_learn name params minimize_command
-                               problem =
+fun get_minimizing_prover ctxt mode do_learn name params minimize_command
+                          problem =
   get_prover ctxt mode name params minimize_command problem
   |> maybe_minimize ctxt mode do_learn name params problem
-  |> maybe_regenerate_isar_proof
 
 fun run_minimize (params as {provers, ...}) do_learn i refs state =
   let
@@ -347,7 +357,7 @@ fun run_minimize (params as {provers, ...}) do_learn i refs state =
              [] => error "No prover is set."
            | prover :: _ =>
              (kill_provers ();
-              minimize_facts do_learn prover params false i n state facts
+              minimize_facts do_learn prover params false i n state NONE facts
               |> (fn (_, (preplay, message, message_tail)) =>
                      message (Lazy.force preplay) ^ message_tail
                      |> Output.urgent_message))

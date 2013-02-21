@@ -50,7 +50,7 @@ val separator = "-----"
 
 (*FIXME sensible to have Mirabelle-level Sledgehammer defaults?*)
 (*defaults used in this Mirabelle action*)
-val preplay_timeout_default = "4"
+val preplay_timeout_default = "3"
 val lam_trans_default = "smart"
 val uncurried_aliases_default = "smart"
 val fact_filter_default = "smart"
@@ -377,18 +377,22 @@ fun get_prover ctxt name params goal all_facts =
     fun learn prover =
       Sledgehammer_MaSh.mash_learn_proof ctxt params prover (prop_of goal) all_facts
   in
-    Sledgehammer_Minimize.get_minimizing_isar_prover ctxt Sledgehammer_Provers.Normal
+    Sledgehammer_Minimize.get_minimizing_prover ctxt Sledgehammer_Provers.Normal
       learn name
   end
 
 type stature = ATP_Problem_Generate.stature
 
-(* hack *)
+(* Fragile hack *)
 fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if String.isSubstring "metis (" msg then
+    if (String.isSubstring " ms)" msg orelse String.isSubstring " s)" msg)
+       andalso not (String.isSubstring "(> " msg)
+       andalso not (String.isSubstring ", > " msg) then
+      "none" (* trust the preplayed proof *)
+    else if String.isSubstring "metis (" msg then
       msg |> Substring.full
           |> Substring.position "metis ("
           |> snd |> Substring.position ")"
@@ -605,7 +609,7 @@ fun run_minimize args reconstructor named_thms id
           true 1 (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
     val (used_facts, (preplay, message, message_tail)) =
-      minimize st (these (!named_thms))
+      minimize st NONE (these (!named_thms))
     val msg = message (Lazy.force preplay) ^ message_tail
   in
     case used_facts of

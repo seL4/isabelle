@@ -33,6 +33,7 @@ val params as {provers, ...} = Sledgehammer_Isar.default_params @{context} []
 val prover = hd provers
 val range = (1, NONE)
 val step = 1
+val linearize = false
 val max_suggestions = 1024
 val dir = "List"
 val prefix = "/tmp/" ^ dir ^ "/"
@@ -47,21 +48,22 @@ else
 
 ML {*
 if do_it then
-  generate_accessibility @{context} thys false (prefix ^ "mash_accessibility")
+  generate_accessibility @{context} thys linearize
+      (prefix ^ "mash_accessibility")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_features @{context} prover thys false (prefix ^ "mash_features")
+  generate_features @{context} prover thys (prefix ^ "mash_features")
 else
   ()
 *}
 
 ML {*
 if do_it then
-  generate_isar_dependencies @{context} thys false
+  generate_isar_dependencies @{context} thys linearize
       (prefix ^ "mash_dependencies")
 else
   ()
@@ -70,7 +72,7 @@ else
 ML {*
 if do_it then
   generate_isar_commands @{context} prover (range, step) thys
-      (prefix ^ "mash_commands")
+      linearize (prefix ^ "mash_commands")
 else
   ()
 *}
@@ -78,7 +80,7 @@ else
 ML {*
 if do_it then
   generate_mepo_suggestions @{context} params (range, step) thys
-      max_suggestions (prefix ^ "mepo_suggestions")
+      linearize max_suggestions (prefix ^ "mepo_suggestions")
 else
   ()
 *}
@@ -93,7 +95,7 @@ else
 
 ML {*
 if do_it then
-  generate_prover_dependencies @{context} params range thys false
+  generate_prover_dependencies @{context} params range thys linearize
       (prefix ^ "mash_prover_dependencies")
 else
   ()
@@ -102,7 +104,7 @@ else
 ML {*
 if do_it then
   generate_prover_commands @{context} params (range, step) thys
-      (prefix ^ "mash_prover_commands")
+      linearize (prefix ^ "mash_prover_commands")
 else
   ()
 *}

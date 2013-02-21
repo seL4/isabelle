@@ -933,7 +933,8 @@ declare Abs_real_cases [cases del]
 lemmas [transfer_rule del] =
   real.All_transfer real.Ex_transfer real.rel_eq_transfer forall_real_transfer
   zero_real.transfer one_real.transfer plus_real.transfer uminus_real.transfer
-  times_real.transfer inverse_real.transfer positive.transfer
+  times_real.transfer inverse_real.transfer positive.transfer real.right_unique
+  real.right_total
 
 subsection{*More Lemmas*}
 

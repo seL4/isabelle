@@ -207,7 +207,7 @@ val alt_ergo_tff1 = TFF (Polymorphic, TPTP_Explicit)
 val alt_ergo_config : atp_config =
   {exec = (["WHY3_HOME"], ["why3"]),
    arguments = fn _ => fn _ => fn _ => fn timeout => fn file_name => fn _ =>
-       "--format tff1 --prover alt-ergo --timelimit " ^
+       "--format tptp --prover 'Alt-Ergo,0.95,' --timelimit " ^
        string_of_int (to_secs 1 timeout) ^ " " ^ file_name,
    proof_delims = [],
    known_failures =
@@ -339,9 +339,9 @@ val e_config : atp_config =
          [(0.15, (((128, meshN), FOF, "mono_tags??", combsN, false), e_fun_weightN)),
           (0.15, (((128, mashN), FOF, "mono_guards??", combsN, false), e_sym_offset_weightN)),
           (0.15, (((91, mepoN), FOF, "mono_tags??", combsN, false), e_autoN)),
-          (0.15, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN)),
           (0.15, (((1000, meshN), FOF, "poly_guards??", combsN, false), e_sym_offset_weightN)),
-          (0.25, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN))]
+          (0.15, (((256, mepoN), FOF, "mono_tags??", liftingN, false), e_fun_weightN)),
+          (0.25, (((64, mashN), FOF, "mono_guards??", combsN, false), e_fun_weightN))]
        else
          [(1.0, (((500, ""), FOF, "mono_tags??", combsN, false), heuristic))]
      end,
@@ -543,7 +543,10 @@ val vampire_config : atp_config =
        "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
        " --proof tptp --output_axiom_names on" ^
        (if is_vampire_at_least_1_8 () then
-          " --forced_options propositional_to_bdd=off"
+          (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
+          " --forced_options propositional_to_bdd=off:splitting=off:\
+          \equality_proxy=off:general_splitting=off:inequality_splitting=0:\
+          \naming=0"
         else
           "") ^
        " --thanks \"Andrei and Krystof\" --input_file " ^ file_name

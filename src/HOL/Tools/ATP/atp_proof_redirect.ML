@@ -32,7 +32,7 @@ sig
 
   type direct_proof = direct_inference list
 
-  val make_refute_graph : (atom list * atom) list -> refute_graph
+  val make_refute_graph : atom -> (atom list * atom) list -> refute_graph
   val axioms_of_refute_graph : refute_graph -> atom list -> atom list
   val tainted_atoms_of_refute_graph : refute_graph -> atom list -> atom list
   val sequents_of_refute_graph : refute_graph -> ref_sequent list
@@ -67,19 +67,22 @@ datatype direct_inference =
 
 type direct_proof = direct_inference list
 
-fun atom_eq p = (Atom.ord p = EQUAL)
-fun clause_eq (c, d) = (length c = length d andalso forall atom_eq (c ~~ d))
-fun direct_sequent_eq ((gamma, c), (delta, d)) =
-  clause_eq (gamma, delta) andalso clause_eq (c, d)
+val atom_eq = is_equal o Atom.ord
+val clause_ord = dict_ord Atom.ord
+val clause_eq = is_equal o clause_ord
+val direct_sequent_ord = prod_ord clause_ord clause_ord
+val direct_sequent_eq = is_equal o direct_sequent_ord
 
-fun make_refute_graph infers =
+fun make_refute_graph bot infers =
   let
     fun add_edge to from =
       Atom_Graph.default_node (from, ())
       #> Atom_Graph.default_node (to, ())
       #> Atom_Graph.add_edge_acyclic (from, to)
     fun add_infer (froms, to) = fold (add_edge to) froms
-  in Atom_Graph.empty |> fold add_infer infers end
+    val graph = fold add_infer infers Atom_Graph.empty
+    val reachable = Atom_Graph.all_preds graph [bot]
+  in graph |> Atom_Graph.restrict (member (is_equal o Atom.ord) reachable) end
 
 fun axioms_of_refute_graph refute_graph conjs =
   subtract atom_eq conjs (Atom_Graph.minimals refute_graph)
@@ -165,7 +168,10 @@ fun redirect_graph axioms tainted bot refute_graph =
           val provable =
             filter (fn (gamma, _) => subset atom_eq (gamma, proved)) seqs
           val horn_provable = filter (fn (_, [_]) => true | _ => false) provable
-          val seq as (gamma, c) = hd (horn_provable @ provable)
+          val seq as (gamma, c) =
+            case horn_provable @ provable of
+              [] => raise Fail "ill-formed refutation graph"
+            | next :: _ => next
         in
           Have (map single gamma, c) ::
           redirect c proved (filter (curry (not o direct_sequent_eq) seq) seqs)

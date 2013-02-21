@@ -38,9 +38,10 @@ sig
     string list option
   val one_line_proof_text : int -> one_line_params -> string
   val isar_proof_text :
-    Proof.context -> bool -> isar_params -> one_line_params -> string
+    Proof.context -> bool option -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool -> isar_params -> int -> one_line_params -> string
+    Proof.context -> bool option -> isar_params -> int -> one_line_params
+    -> string
 end;
 
 structure Sledgehammer_Reconstruct : SLEDGEHAMMER_PROOF_RECONSTRUCT =
@@ -118,8 +119,7 @@ fun is_lam_lifted s =
 val is_combinator_def = String.isPrefix (helper_prefix ^ combinator_prefix)
 
 fun is_axiom_used_in_proof pred =
-  exists (fn Inference_Step ((_, ss), _, _, _, []) => exists pred ss
-           | _ => false)
+  exists (fn ((_, ss), _, _, _, []) => exists pred ss | _ => false)
 
 fun lam_trans_from_atp_proof atp_proof default =
   case (is_axiom_used_in_proof is_combinator_def atp_proof,
@@ -154,24 +154,23 @@ fun ext_name ctxt =
 val leo2_extcnf_equal_neg_rule = "extcnf_equal_neg"
 val leo2_unfold_def_rule = "unfold_def"
 
-fun add_fact ctxt fact_names (Inference_Step ((_, ss), _, _, rule, deps)) =
-    (if rule = leo2_extcnf_equal_neg_rule then
-       insert (op =) (ext_name ctxt, (Global, General))
-     else if rule = leo2_unfold_def_rule then
-       (* LEO 1.3.3 does not record definitions properly, leading to missing
-          dependencies in the TSTP proof. Remove the next line once this is
-          fixed. *)
-       add_non_rec_defs fact_names
-     else if rule = satallax_coreN then
-       (fn [] =>
-           (* Satallax doesn't include definitions in its unsatisfiable cores,
-              so we assume the worst and include them all here. *)
-           [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
-         | facts => facts)
-     else
-       I)
-    #> (if null deps then union (op =) (resolve_fact fact_names ss) else I)
-  | add_fact _ _ _ = I
+fun add_fact ctxt fact_names ((_, ss), _, _, rule, deps) =
+  (if rule = leo2_extcnf_equal_neg_rule then
+     insert (op =) (ext_name ctxt, (Global, General))
+   else if rule = leo2_unfold_def_rule then
+     (* LEO 1.3.3 does not record definitions properly, leading to missing
+        dependencies in the TSTP proof. Remove the next line once this is
+        fixed. *)
+     add_non_rec_defs fact_names
+   else if rule = satallax_coreN then
+     (fn [] =>
+         (* Satallax doesn't include definitions in its unsatisfiable cores, so
+            we assume the worst and include them all here. *)
+         [(ext_name ctxt, (Global, General))] |> add_non_rec_defs fact_names
+       | facts => facts)
+   else
+     I)
+  #> (if null deps then union (op =) (resolve_fact fact_names ss) else I)
 
 fun used_facts_in_atp_proof ctxt fact_names atp_proof =
   if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
@@ -298,9 +297,6 @@ fun repair_name "$true" = "c_True"
     else
       s
 
-fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
-  | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
-
 fun infer_formula_types ctxt =
   Type.constraint HOLogic.boolT
   #> Syntax.check_term
@@ -325,41 +321,22 @@ fun uncombine_term thy =
       | aux t = t
   in aux end
 
-fun decode_line sym_tab (Definition_Step (name, phi1, phi2)) ctxt =
-    let
-      val thy = Proof_Context.theory_of ctxt
-      val t1 = prop_from_atp ctxt true sym_tab phi1
-      val vars = snd (strip_comb t1)
-      val frees = map unvarify_term vars
-      val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_atp ctxt true sym_tab phi2
-      val (t1, t2) =
-        HOLogic.eq_const HOLogic.typeT $ t1 $ t2
-        |> unvarify_args |> uncombine_term thy |> infer_formula_types ctxt
-        |> HOLogic.dest_eq
-    in
-      (Definition_Step (name, t1, t2),
-       fold Variable.declare_term (maps Misc_Legacy.term_frees [t1, t2]) ctxt)
-    end
-  | decode_line sym_tab (Inference_Step (name, role, u, rule, deps)) ctxt =
-    let
-      val thy = Proof_Context.theory_of ctxt
-      val t = u |> prop_from_atp ctxt true sym_tab
-                |> uncombine_term thy |> infer_formula_types ctxt
-    in
-      (Inference_Step (name, role, t, rule, deps),
-       fold Variable.declare_term (Misc_Legacy.term_frees t) ctxt)
-    end
+fun decode_line sym_tab (name, role, u, rule, deps) ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val t = u |> prop_from_atp ctxt true sym_tab
+              |> uncombine_term thy |> infer_formula_types ctxt
+  in
+    ((name, role, t, rule, deps),
+     fold Variable.declare_term (Misc_Legacy.term_frees t) ctxt)
+  end
 fun decode_lines ctxt sym_tab lines =
   fst (fold_map (decode_line sym_tab) lines ctxt)
 
 fun replace_one_dependency (old, new) dep =
   if is_same_atp_step dep old then new else [dep]
-fun replace_dependencies_in_line _ (line as Definition_Step _) = line
-  | replace_dependencies_in_line p
-        (Inference_Step (name, role, t, rule, deps)) =
-    Inference_Step (name, role, t, rule,
-                    fold (union (op =) o replace_one_dependency p) deps [])
+fun replace_dependencies_in_line p (name, role, t, rule, deps) =
+  (name, role, t, rule, fold (union (op =) o replace_one_dependency p) deps [])
 
 (* No "real" literals means only type information (tfree_tcs, clsrel, or
    clsarity). *)
@@ -367,19 +344,16 @@ fun is_only_type_information t = t aconv @{term True}
 
 fun s_maybe_not role = role <> Conjecture ? s_not
 
-fun is_same_inference _ (Definition_Step _) = false
-  | is_same_inference (role, t) (Inference_Step (_, role', t', _, _)) =
-    s_maybe_not role t aconv s_maybe_not role' t'
+fun is_same_inference (role, t) (_, role', t', _, _) =
+  s_maybe_not role t aconv s_maybe_not role' t'
 
 (* Discard facts; consolidate adjacent lines that prove the same formula, since
    they differ only in type information.*)
-fun add_line _ (line as Definition_Step _) lines = line :: lines
-  | add_line fact_names (Inference_Step (name as (_, ss), role, t, rule, []))
-             lines =
+fun add_line fact_names (name as (_, ss), role, t, rule, []) lines =
     (* No dependencies: fact, conjecture, or (for Vampire) internal facts or
        definitions. *)
     if is_conjecture ss then
-      Inference_Step (name, role, t, rule, []) :: lines
+      (name, role, t, rule, []) :: lines
     else if is_fact fact_names ss then
       (* Facts are not proof lines. *)
       if is_only_type_information t then
@@ -388,35 +362,30 @@ fun add_line _ (line as Definition_Step _) lines = line :: lines
         lines
     else
       map (replace_dependencies_in_line (name, [])) lines
-  | add_line _ (line as Inference_Step (name, role, t, rule, deps)) lines =
+  | add_line _ (line as (name, role, t, _, _)) lines =
     (* Type information will be deleted later; skip repetition test. *)
     if is_only_type_information t then
       line :: lines
     (* Is there a repetition? If so, replace later line by earlier one. *)
     else case take_prefix (not o is_same_inference (role, t)) lines of
-      (* FIXME: Doesn't this code risk conflating proofs involving different
-         types? *)
       (_, []) => line :: lines
-    | (pre, Inference_Step (name', _, _, _, _) :: post) =>
+    | (pre, (name', _, _, _, _) :: post) =>
       line :: pre @ map (replace_dependencies_in_line (name', [name])) post
-    | _ => raise Fail "unexpected inference"
 
 val waldmeister_conjecture_num = "1.0.0.0"
 
 val repair_waldmeister_endgame =
   let
-    fun do_tail (Inference_Step (name, _, t, rule, deps)) =
-        Inference_Step (name, Negated_Conjecture, s_not t, rule, deps)
-      | do_tail line = line
+    fun do_tail (name, _, t, rule, deps) =
+      (name, Negated_Conjecture, s_not t, rule, deps)
     fun do_body [] = []
-      | do_body ((line as Inference_Step ((num, _), _, _, _, _)) :: lines) =
+      | do_body ((line as ((num, _), _, _, _, _)) :: lines) =
         if num = waldmeister_conjecture_num then map do_tail (line :: lines)
         else line :: do_body lines
-      | do_body (line :: lines) = line :: do_body lines
   in do_body end
 
 (* Recursively delete empty lines (type information) from the proof. *)
-fun add_nontrivial_line (line as Inference_Step (name, _, t, _, [])) lines =
+fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
     if is_only_type_information t then delete_dependency name lines
     else line :: lines
   | add_nontrivial_line line lines = line :: lines
@@ -435,25 +404,23 @@ val vampire_skolemisation_rule = "skolemisation"
 val is_skolemize_rule =
   member (op =) [e_skolemize_rule, vampire_skolemisation_rule]
 
-fun add_desired_line _ _ (line as Definition_Step (name, _, _)) (j, lines) =
-    (j, line :: map (replace_dependencies_in_line (name, [])) lines)
-  | add_desired_line fact_names frees
-        (Inference_Step (name as (_, ss), role, t, rule, deps)) (j, lines) =
-    (j + 1,
-     if is_fact fact_names ss orelse
-        is_conjecture ss orelse
-        is_skolemize_rule rule orelse
-        (* the last line must be kept *)
-        j = 0 orelse
-        (not (is_only_type_information t) andalso
-         null (Term.add_tvars t []) andalso
-         not (exists_subterm (is_bad_free frees) t) andalso
-         length deps >= 2 andalso
-         (* kill next to last line, which usually results in a trivial step *)
-         j <> 1) then
-       Inference_Step (name, role, t, rule, deps) :: lines  (* keep line *)
-     else
-       map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
+fun add_desired_line fact_names frees (name as (_, ss), role, t, rule, deps)
+                     (j, lines) =
+  (j + 1,
+   if is_fact fact_names ss orelse
+      is_conjecture ss orelse
+      is_skolemize_rule rule orelse
+      (* the last line must be kept *)
+      j = 0 orelse
+      (not (is_only_type_information t) andalso
+       null (Term.add_tvars t []) andalso
+       not (exists_subterm (is_bad_free frees) t) andalso
+       length deps >= 2 andalso
+       (* kill next to last line, which usually results in a trivial step *)
+       j <> 1) then
+     (name, role, t, rule, deps) :: lines  (* keep line *)
+   else
+     map (replace_dependencies_in_line (name, deps)) lines)  (* drop line *)
 
 val indent_size = 2
 
@@ -537,18 +504,20 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
         add_step_pre ind qs subproofs
         #> add_suffix (of_prove qs (length subproofs) ^ " ")
         #> add_step_post ind l t facts ""
-      | add_step ind (Obtain (qs, Fix xs, l, t,
-                      By_Metis (subproofs, facts))) =
+      | add_step ind (Obtain (qs, Fix xs, l, t, By_Metis (subproofs, facts))) =
         add_step_pre ind qs subproofs
         #> add_suffix (of_obtain qs (length subproofs) ^ " ")
         #> add_frees xs
         #> add_suffix " where "
         (* The new skolemizer puts the arguments in the same order as the ATPs
-         (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
-         Vampire). *)
-        #> add_step_post ind l t facts "using [[metis_new_skolem]] "
-    and add_steps ind steps =
-      fold (add_step ind) steps
+           (E and Vampire -- but see also "atp_proof_reconstruct.ML" regarding
+           Vampire). *)
+        #> add_step_post ind l t facts
+               (if exists (fn (_, T) => length (binder_types T) > 1) xs then
+                  "using [[metis_new_skolem]] "
+                else
+                  "")
+    and add_steps ind = fold (add_step ind)
     and of_proof ind ctxt (Proof (Fix xs, Assume assms, steps)) =
       ("", ctxt)
       |> add_fix ind xs
@@ -566,12 +535,11 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
   end
 
 fun add_labels_of_step step =
-  (case byline_of_step step of
-     NONE => I
-  |  SOME (By_Metis (subproofs, (ls, _))) =>
-      union (op =) (add_labels_of_proofs subproofs ls))
+  case byline_of_step step of
+    NONE => I
+  | SOME (By_Metis (subproofs, (ls, _))) =>
+    union (op =) ls #> fold add_labels_of_proof subproofs
 and add_labels_of_proof proof = fold add_labels_of_step (steps_of_proof proof)
-and add_labels_of_proofs proofs = fold add_labels_of_proof proofs
 
 fun kill_useless_labels_in_proof proof =
   let
@@ -617,17 +585,13 @@ val relabel_proof =
           val (l, subst, next) =
             (l, subst, next) |> fresh_label depth have_prefix
           val by = by |> do_byline subst depth
-        in
-          Obtain (qs, xs, l, t, by) :: do_steps subst depth next steps
-        end
+        in Obtain (qs, xs, l, t, by) :: do_steps subst depth next steps end
       | do_steps subst depth next (Prove (qs, l, t, by) :: steps) =
         let
           val (l, subst, next) =
             (l, subst, next) |> fresh_label depth have_prefix
           val by = by |> do_byline subst depth
-        in
-          Prove (qs, l, t, by) :: do_steps subst depth next steps
-        end
+        in Prove (qs, l, t, by) :: do_steps subst depth next steps end
       | do_steps subst depth next (step :: steps) =
         step :: do_steps subst depth next steps
     and do_proof subst depth (Proof (fix, assms, steps)) =
@@ -646,7 +610,7 @@ val chain_direct_proof =
         if member (op =) lfs l0 then ([Then], lfs |> remove (op =) l0)
         else ([], lfs)
     fun chain_step lbl (Obtain (qs, xs, l, t,
-                                        By_Metis (subproofs, (lfs, gfs)))) =
+                                By_Metis (subproofs, (lfs, gfs)))) =
         let val (qs', lfs) = do_qs_lfs lbl lfs in
           Obtain (qs' @ qs, xs, l, t,
             By_Metis (chain_proofs subproofs, (lfs, gfs)))
@@ -701,31 +665,30 @@ fun isar_proof_text ctxt isar_proofs
         val conj_name = conjecture_prefix ^ string_of_int (length hyp_ts)
         val conjs =
           atp_proof |> map_filter
-            (fn Inference_Step (name as (_, ss), _, _, _, []) =>
+            (fn (name as (_, ss), _, _, _, []) =>
                 if member (op =) ss conj_name then SOME name else NONE
               | _ => NONE)
         val assms =
           atp_proof |> map_filter
-            (fn Inference_Step (name as (_, ss), _, _, _, []) =>
+            (fn (name as (_, ss), _, _, _, []) =>
                 (case resolve_conjecture ss of
                    [j] =>
                    if j = length hyp_ts then NONE
                    else SOME (raw_label_for_name name, nth hyp_ts j)
                  | _ => NONE)
               | _ => NONE)
-        fun dep_of_step (Definition_Step _) = NONE
-          | dep_of_step (Inference_Step (name, _, _, _, from)) =
-            SOME (from, name)
+        val bot = atp_proof |> List.last |> #1
         val refute_graph =
-          atp_proof |> map_filter dep_of_step |> make_refute_graph
+          atp_proof
+          |> map (fn (name, _, _, _, from) => (from, name))
+          |> make_refute_graph bot
+          |> fold (Atom_Graph.default_node o rpair ()) conjs
         val axioms = axioms_of_refute_graph refute_graph conjs
         val tainted = tainted_atoms_of_refute_graph refute_graph conjs
         val is_clause_tainted = exists (member (op =) tainted)
-        val bot = atp_proof |> List.last |> dep_of_step |> the |> snd
         val steps =
           Symtab.empty
-          |> fold (fn Definition_Step _ => I (* FIXME *)
-                    | Inference_Step (name as (s, _), role, t, rule, _) =>
+          |> fold (fn (name as (s, _), role, t, rule, _) =>
                       Symtab.update_new (s, (rule,
                         t |> (if is_clause_tainted [name] then
                                 s_maybe_not role
@@ -750,9 +713,8 @@ fun isar_proof_text ctxt isar_proofs
             in
               case List.partition (can HOLogic.dest_not) lits of
                 (negs as _ :: _, pos as _ :: _) =>
-                HOLogic.mk_imp
-                  (Library.foldr1 s_conj (map HOLogic.dest_not negs),
-                   Library.foldr1 s_disj pos)
+                s_imp (Library.foldr1 s_conj (map HOLogic.dest_not negs),
+                       Library.foldr1 s_disj pos)
               | _ => fold (curry s_disj) lits @{term False}
             end
             |> HOLogic.mk_Trueprop |> close_form
@@ -831,7 +793,7 @@ fun isar_proof_text ctxt isar_proofs
               else
                 compress_proof debug ctxt type_enc lam_trans preplay
                   preplay_timeout
-                  (if isar_proofs then isar_compress else 1000.0))
+                  (if isar_proofs = SOME true then isar_compress else 1000.0))
           |>> cleanup_labels_in_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
@@ -839,24 +801,22 @@ fun isar_proof_text ctxt isar_proofs
       in
         case isar_text of
           "" =>
-          if isar_proofs then
+          if isar_proofs = SOME true then
             "\nNo structured proof available (proof too simple)."
           else
             ""
         | _ =>
           let
             val msg =
-              (if preplay then
-                [(if preplay_fail then "may fail, " else "") ^
-                   Sledgehammer_Preplay.string_of_preplay_time preplay_time]
-               else
-                 []) @
               (if verbose then
                 let
                   val num_steps = add_metis_steps (steps_of_proof isar_proof) 0
-                in
-                  [string_of_int num_steps ^ " step" ^ plural_s num_steps]
-                end
+                in [string_of_int num_steps ^ " step" ^ plural_s num_steps] end
+               else
+                 []) @
+              (if preplay then
+                [(if preplay_fail then "may fail, " else "") ^
+                   Sledgehammer_Preplay.string_of_preplay_time preplay_time]
                else
                  [])
           in
@@ -870,15 +830,22 @@ fun isar_proof_text ctxt isar_proofs
         isar_proof_of ()
       else case try isar_proof_of () of
         SOME s => s
-      | NONE => if isar_proofs then
+      | NONE => if isar_proofs = SOME true then
                   "\nWarning: The Isar proof construction failed."
                 else
                   ""
   in one_line_proof ^ isar_proof end
 
+fun isar_proof_would_be_a_good_idea preplay =
+  case preplay of
+    Played (reconstr, _) => reconstr = SMT
+  | Trust_Playable _ => true
+  | Failed_to_Play _ => true
+
 fun proof_text ctxt isar_proofs isar_params num_chained
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if case preplay of Failed_to_Play _ => true | _ => isar_proofs then
+  (if isar_proofs = SOME true orelse
+      (isar_proofs = NONE andalso isar_proof_would_be_a_good_idea preplay) then
      isar_proof_text ctxt isar_proofs isar_params
    else
      one_line_proof_text num_chained) one_line_params

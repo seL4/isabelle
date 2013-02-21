@@ -94,7 +94,7 @@ val default_default_params =
    ("fact_thresholds", "0.45 0.85"),
    ("max_mono_iters", "smart"),
    ("max_new_mono_instances", "smart"),
-   ("isar_proofs", "false"),
+   ("isar_proofs", "smart"),
    ("isar_compress", "10"),
    ("slice", "true"),
    ("minimize", "smart"),
@@ -102,7 +102,8 @@ val default_default_params =
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
-   ("dont_preplay", ("preplay_timeout", ["0"]))]
+   ("dont_preplay", ("preplay_timeout", ["0"])),
+   ("dont_compress_isar", ("isar_compress", ["0"]))]
 val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
@@ -187,20 +188,6 @@ structure Data = Theory_Data
   val extend = I
   fun merge data : T = AList.merge (op =) (K true) data
 )
-
-fun remotify_prover_if_supported_and_not_already_remote ctxt name =
-  if String.isPrefix remote_prefix name then
-    SOME name
-  else
-    let val remote_name = remote_prefix ^ name in
-      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
-    end
-
-fun remotify_prover_if_not_installed ctxt name =
-  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then
-    SOME name
-  else
-    remotify_prover_if_supported_and_not_already_remote ctxt name
 
 fun avoid_too_many_threads _ _ [] = []
   | avoid_too_many_threads _ (0, 0) _ = []
@@ -312,7 +299,7 @@ fun extract_params mode default_params override_params =
     val max_mono_iters = lookup_option lookup_int "max_mono_iters"
     val max_new_mono_instances =
       lookup_option lookup_int "max_new_mono_instances"
-    val isar_proofs = lookup_bool "isar_proofs"
+    val isar_proofs = lookup_option lookup_bool "isar_proofs"
     val isar_compress = Real.max (1.0, lookup_real "isar_compress")
     val slice = mode <> Auto_Try andalso lookup_bool "slice"
     val minimize =

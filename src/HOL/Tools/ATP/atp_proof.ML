@@ -36,10 +36,7 @@ sig
     UnknownError of string
 
   type step_name = string * string list
-
-  datatype 'a step =
-    Definition_Step of step_name * 'a * 'a |
-    Inference_Step of step_name * formula_role * 'a * string * step_name list
+  type 'a step = step_name * formula_role * 'a * string * step_name list
 
   type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 
@@ -210,14 +207,9 @@ fun step_name_ord p =
     | (SOME i, SOME j) => int_ord (i, j)
   end
 
-datatype 'a step =
-  Definition_Step of step_name * 'a * 'a |
-  Inference_Step of step_name * formula_role * 'a * string * step_name list
+type 'a step = step_name * formula_role * 'a * string * step_name list
 
 type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
-
-fun step_name (Definition_Step (name, _, _)) = name
-  | step_name (Inference_Step (name, _, _, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
@@ -421,18 +413,14 @@ fun parse_tstp_line problem =
                   phi), "", [])
               | Inference_Source (rule, deps) => (((num, []), phi), rule, deps)
             fun mk_step () =
-              Inference_Step (name, role_of_tptp_string role, phi, rule,
-                              map (rpair []) deps)
+              (name, role_of_tptp_string role, phi, rule, map (rpair []) deps)
           in
             case role_of_tptp_string role of
               Definition =>
               (case phi of
-                 AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                 Definition_Step (name, phi1, phi2)
-               | AAtom (ATerm (("equal", []), _)) =>
+                 AAtom (ATerm (("equal", []), _)) =>
                  (* Vampire's equality proxy axiom *)
-                 Inference_Step (name, Definition, phi, rule,
-                                 map (rpair []) deps)
+                 (name, Definition, phi, rule, map (rpair []) deps)
                | _ => mk_step ())
             | _ => mk_step ()
           end)
@@ -472,14 +460,14 @@ val parse_spass_debug =
 (* Syntax: <num>[0:<inference><annotations>] <atoms> || <atoms> -> <atoms>.
            derived from formulae <ident>* *)
 fun parse_spass_line x =
-  (parse_spass_debug |-- scan_general_id --| $$ "[" --| $$ "0" --| $$ ":"
-     -- Symbol.scan_ascii_id -- parse_spass_annotations --| $$ "]"
+  (parse_spass_debug |-- scan_general_id --| $$ "[" --|
+     Scan.many1 Symbol.is_digit --| $$ ":" -- Symbol.scan_ascii_id
+     -- parse_spass_annotations --| $$ "]"
      -- parse_horn_clause --| $$ "."
      -- Scan.option (Scan.this_string "derived from formulae "
                      |-- Scan.repeat (scan_general_id --| Scan.option ($$ " ")))
    >> (fn ((((num, rule), deps), u), names) =>
-          Inference_Step ((num, these names), Unknown, u, rule,
-                          map (rpair []) deps))) x
+          ((num, these names), Unknown, u, rule, map (rpair []) deps))) x
 
 val satallax_coreN = "__satallax_core" (* arbitrary *)
 val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
@@ -488,14 +476,12 @@ val z3_tptp_coreN = "__z3_tptp_core" (* arbitrary *)
 fun parse_z3_tptp_line x =
   (scan_general_id --| $$ "," --| $$ "[" -- parse_dependencies --| $$ "]"
    >> (fn (name, names) =>
-          Inference_Step (("", name :: names), Unknown, dummy_phi,
-                          z3_tptp_coreN, []))) x
+          (("", name :: names), Unknown, dummy_phi, z3_tptp_coreN, []))) x
 
 (* Syntax: <name> *)
 fun parse_satallax_line x =
   (scan_general_id --| Scan.option ($$ " ")
-   >> (fn s => Inference_Step ((s, [s]), Unknown, dummy_phi, satallax_coreN,
-                               []))) x
+   >> (fn s => ((s, [s]), Unknown, dummy_phi, satallax_coreN, []))) x
 
 fun parse_line problem =
   parse_tstp_line problem || parse_spass_line || parse_z3_tptp_line
@@ -512,16 +498,12 @@ fun atp_proof_from_tstplike_proof _ "" = []
   | atp_proof_from_tstplike_proof problem tstp =
     tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
     |> parse_proof problem
-    |> sort (step_name_ord o pairself step_name)
+    |> sort (step_name_ord o pairself #1)
 
 fun clean_up_dependencies _ [] = []
-  | clean_up_dependencies seen
-                          ((step as Definition_Step (name, _, _)) :: steps) =
-    step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen
-        (Inference_Step (name, role, u, rule, deps) :: steps) =
-    Inference_Step (name, role, u, rule,
-        map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
+  | clean_up_dependencies seen ((name, role, u, rule, deps) :: steps) =
+    (name, role, u, rule,
+     map_filter (fn dep => find_first (is_same_atp_step dep) seen) deps) ::
     clean_up_dependencies (name :: seen) steps
 
 fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
@@ -533,10 +515,8 @@ fun map_term_names_in_atp_proof f =
         AQuant (q, map (apfst f) xs, do_formula phi)
       | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
       | do_formula (AAtom t) = AAtom (do_term t)
-    fun do_step (Definition_Step (name, phi1, phi2)) =
-        Definition_Step (name, do_formula phi1, do_formula phi2)
-      | do_step (Inference_Step (name, role, phi, rule, deps)) =
-        Inference_Step (name, role, do_formula phi, rule, deps)
+    fun do_step (name, role, phi, rule, deps) =
+      (name, role, do_formula phi, rule, deps)
   in map do_step end
 
 fun nasty_name pool s = s |> Symtab.lookup pool |> the_default s
