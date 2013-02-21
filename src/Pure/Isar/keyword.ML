@@ -63,6 +63,7 @@ sig
   val is_theory_load: string -> bool
   val is_theory: string -> bool
   val is_proof: string -> bool
+  val is_proof_body: string -> bool
   val is_theory_goal: string -> bool
   val is_proof_goal: string -> bool
   val is_schematic_goal: string -> bool
@@ -230,10 +231,13 @@ fun define (name, opt_kind) = change_keywords (fn ((minor, major), commands) =>
 
 (* command categories *)
 
-fun command_category ks name =
-  (case command_keyword name of
-    NONE => false
-  | SOME k => member (op = o pairself kind_of) ks k);
+fun command_category ks =
+  let val tab = Symtab.make_set (map kind_of ks) in
+    fn name =>
+      (case command_keyword name of
+        NONE => false
+      | SOME k => Symtab.defined tab (kind_of k))
+  end;
 
 val is_diag = command_category [diag];
 val is_control = command_category [control];
@@ -255,6 +259,10 @@ val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,
     prf_goal, prf_block, prf_open, prf_close, prf_chain, prf_decl,
     prf_asm, prf_asm_goal, prf_script];
+
+val is_proof_body = command_category
+  [diag, prf_heading2, prf_heading3, prf_heading4, prf_block, prf_open,
+    prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
 val is_theory_goal = command_category [thy_goal, thy_schematic_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal];

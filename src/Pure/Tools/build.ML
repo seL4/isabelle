@@ -16,30 +16,23 @@ struct
 
 local
 
-fun ML_statistics (function :: stats) "" =
-      if function = Markup.ML_statistics then SOME stats
-      else NONE
-  | ML_statistics _ _ = NONE;
+(* FIXME avoid hardwired stuff!? *)
+val protocol_echo = [Markup.ML_statistics, Markup.task_statistics, Markup.command_timing];
 
-fun task_statistics (function :: stats) "" =
-      if function = Markup.task_statistics then SOME stats
-      else NONE
-  | task_statistics _ _ = NONE;
-
-val print_properties = YXML.string_of_body o XML.Encode.properties;
+fun protocol_undef () = raise Fail "Undefined Output.protocol_message";
 
 in
 
 fun protocol_message props output =
-  (case ML_statistics props output of
-    SOME stats => writeln ("\fML_statistics = " ^ print_properties stats)
-  | NONE =>
-      (case task_statistics props output of
-        SOME stats => writeln ("\ftask_statistics = " ^ print_properties stats)
-      | NONE =>
-          (case Markup.dest_loading_theory props of
-            SOME name => writeln ("\floading_theory = " ^ name)
-          | NONE => raise Fail "Undefined Output.protocol_message")));
+  (case props of
+    function :: args =>
+      if member (op =) protocol_echo function then
+        writeln ("\f" ^ #2 function ^ " = " ^ YXML.string_of_body (XML.Encode.properties args))
+      else
+        (case Markup.dest_loading_theory props of
+          SOME name => writeln ("\floading_theory = " ^ name)
+        | NONE => protocol_undef ())
+  | [] => protocol_undef ());
 
 end;
 
@@ -51,8 +44,8 @@ local
 fun no_document options =
   (case Options.string options "document" of "" => true | "false" => true | _ => false);
 
-fun use_thys options =
-  Thy_Info.use_thys
+fun use_theories last_timing options =
+  Thy_Info.use_theories {last_timing = last_timing, master_dir = Path.current}
     |> Unsynchronized.setmp Proofterm.proofs (Options.int options "proofs")
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
@@ -78,25 +71,49 @@ fun use_thys options =
     |> Unsynchronized.setmp Pretty.margin_default (Options.int options "pretty_margin")
     |> Unsynchronized.setmp Toplevel.timing (Options.bool options "timing");
 
-fun use_theories (options, thys) =
+fun use_theories_condition last_timing (options, thys) =
   let val condition = space_explode "," (Options.string options "condition") in
     (case filter_out (can getenv_strict) condition of
-      [] => use_thys options (map (rpair Position.none) thys)
+      [] => use_theories last_timing options (map (rpair Position.none) thys)
     | conds =>
         Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
   end;
 
+
+(* command timings *)
+
+type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name * time *)
+
+val empty_timings: timings = Symtab.empty;
+
+fun update_timings props =
+  (case Markup.parse_command_timing_properties props of
+    SOME ({file, offset, name}, time) =>
+      Symtab.map_default (file, Inttab.empty) (Inttab.update (offset, (name, time)))
+  | NONE => I);
+
+fun lookup_timings timings tr =
+  (case Toplevel.approximative_id tr of
+    SOME {file, offset, name} =>
+      (case Symtab.lookup timings file of
+        SOME offsets =>
+          (case Inttab.lookup offsets offset of
+            SOME (name', time) => if name = name' then time else Time.zeroTime
+          | NONE => Time.zeroTime)
+      | NONE => Time.zeroTime)
+  | NONE => Time.zeroTime);
+
 in
 
 fun build args_file = Command_Line.tool (fn () =>
     let
-      val (do_output, (options, (verbose, (browser_info, (parent_name,
-          (name, theories)))))) =
+      val (command_timings, (do_output, (options, (verbose, (browser_info,
+          (parent_name, (name, theories))))))) =
         File.read (Path.explode args_file) |> YXML.parse_body |>
           let open XML.Decode in
-            pair bool (pair Options.decode (pair bool (pair string (pair string
-              (pair string ((list (pair Options.decode (list string)))))))))
+            pair (list properties) (pair bool (pair Options.decode (pair bool (pair string
+              (pair string (pair string ((list (pair Options.decode (list string))))))))))
           end;
 
       val document_variants =
@@ -122,9 +139,11 @@ fun build args_file = Command_Line.tool (fn () =>
           (false, "") ""
           verbose;
 
+      val last_timing = lookup_timings (fold update_timings command_timings empty_timings);
+
       val res1 =
         theories |>
-          (List.app use_theories
+          (List.app (use_theories_condition last_timing)
             |> Session.with_timing name verbose
             |> Unsynchronized.setmp Output.Private_Hooks.protocol_message_fn protocol_message
             |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")

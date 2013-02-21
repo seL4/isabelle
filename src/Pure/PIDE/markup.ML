@@ -92,7 +92,14 @@ sig
   val elapsedN: string
   val cpuN: string
   val gcN: string
+  val timing_propertiesN: string list
   val timing_properties: Timing.timing -> Properties.T
+  val parse_timing_properties: Properties.T -> Timing.timing
+  val command_timingN: string
+  val command_timing_properties:
+    {file: string, offset: int, name: string} -> Time.time -> Properties.T
+  val parse_command_timing_properties:
+    Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
   val timingN: string val timing: Timing.timing -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
@@ -135,6 +142,7 @@ sig
   val cancel_scala: string -> Properties.T
   val ML_statistics: Properties.entry
   val task_statistics: Properties.entry
+  val command_timing: Properties.entry
   val loading_theory: string -> Properties.T
   val dest_loading_theory: Properties.T -> string option
   val no_output: Output.output * Output.output
@@ -332,10 +340,40 @@ val elapsedN = "elapsed";
 val cpuN = "cpu";
 val gcN = "gc";
 
+val timing_propertiesN = [elapsedN, cpuN, gcN];
+
 fun timing_properties {elapsed, cpu, gc} =
  [(elapsedN, Time.toString elapsed),
   (cpuN, Time.toString cpu),
   (gcN, Time.toString gc)];
+
+fun get_time props name =
+  (case AList.lookup (op =) props name of
+    NONE => Time.zeroTime
+  | SOME s => seconds (the_default 0.0 (Real.fromString s)));
+
+fun parse_timing_properties props =
+ {elapsed = get_time props elapsedN,
+  cpu = get_time props cpuN,
+  gc = get_time props gcN};
+
+
+(* command timing *)
+
+val command_timingN = "command_timing";
+
+fun command_timing_properties {file, offset, name} elapsed =
+ [(fileN, file), (offsetN, print_int offset),
+  (nameN, name), (elapsedN, Time.toString elapsed)];
+
+fun parse_command_timing_properties props =
+  (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
+    (SOME file, SOME offset, SOME name) =>
+      SOME ({file = file, offset = parse_int offset, name = name}, get_time props elapsedN)
+  | _ => NONE);
+
+
+(* session timing *)
 
 val timingN = "timing";
 fun timing t = (timingN, timing_properties t);
@@ -414,6 +452,8 @@ fun cancel_scala id = [(functionN, "cancel_scala"), (idN, id)];
 val ML_statistics = (functionN, "ML_statistics");
 
 val task_statistics = (functionN, "task_statistics");
+
+val command_timing = (functionN, "command_timing");
 
 fun loading_theory name = [("function", "loading_theory"), ("name", name)];
 

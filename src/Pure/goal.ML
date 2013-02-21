@@ -24,8 +24,8 @@ sig
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
-  val fork_name: string -> (unit -> 'a) -> 'a future
-  val fork: (unit -> 'a) -> 'a future
+  val fork_name: string -> int -> (unit -> 'a) -> 'a future
+  val fork: int -> (unit -> 'a) -> 'a future
   val peek_futures: serial -> unit future list
   val reset_futures: unit -> Future.group list
   val future_enabled_level: int -> bool
@@ -134,7 +134,7 @@ fun status task markups =
 
 in
 
-fun fork_name name e =
+fun fork_name name pri e =
   uninterruptible (fn _ => fn () =>
     let
       val pos = Position.thread_data ();
@@ -143,7 +143,7 @@ fun fork_name name e =
 
       val future =
         (singleton o Future.forks)
-          {name = name, group = NONE, deps = [], pri = ~1, interrupts = false}
+          {name = name, group = NONE, deps = [], pri = pri, interrupts = false}
           (fn () =>
             let
               val task = the (Future.worker_task ());
@@ -167,7 +167,7 @@ fun fork_name name e =
       val _ = register_forked id future;
     in future end) ();
 
-fun fork e = fork_name "Goal.fork" e;
+fun fork pri e = fork_name "Goal.fork" pri e;
 
 fun forked_count () = #1 (Synchronized.value forked_proofs);
 
@@ -285,7 +285,7 @@ fun prove_common immediate ctxt xs asms props tac =
     val res =
       if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (future_enabled ())
       then result ()
-      else future_result ctxt' (fork result) (Thm.term_of stmt);
+      else future_result ctxt' (fork ~1 result) (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)

@@ -20,6 +20,7 @@ sig
   val start: unit -> start
   val result: start -> timing
   val timing: ('a -> 'b) -> 'a -> timing * 'b
+  val is_relevant_time: Time.time -> bool
   val is_relevant: timing -> bool
   val message: timing -> string
 end
@@ -27,9 +28,12 @@ end
 structure Timing: TIMING =
 struct
 
-(* timer control *)
+(* type timing *)
 
 type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time};
+
+
+(* timer control *)
 
 abstype start = Start of
   Timer.real_timer * Time.time * Timer.cpu_timer *
@@ -70,10 +74,12 @@ fun timing f x =
 
 val min_time = Time.fromMilliseconds 1;
 
+fun is_relevant_time time = Time.>= (time, min_time);
+
 fun is_relevant {elapsed, cpu, gc} =
-  Time.>= (elapsed, min_time) orelse
-  Time.>= (cpu, min_time) orelse
-  Time.>= (gc, min_time);
+  is_relevant_time elapsed orelse
+  is_relevant_time cpu orelse
+  is_relevant_time gc;
 
 fun message {elapsed, cpu, gc} =
   Time.toString elapsed ^ "s elapsed time, " ^

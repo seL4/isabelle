@@ -89,6 +89,9 @@ sig
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val status: transition -> Markup.T -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
+  val approximative_id: transition -> {file: string, offset: int, name: string} option
+  val get_timing: transition -> Time.time
+  val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
   val proof_result: bool -> transition * transition list -> state ->
@@ -340,16 +343,17 @@ datatype transition = Transition of
   int_only: bool,            (*interactive-only*)
   print: bool,               (*print result state*)
   no_timing: bool,           (*suppress timing*)
+  timing: Time.time,         (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
-fun make_transition (name, pos, int_only, print, no_timing, trans) =
-  Transition {name = name, pos = pos, int_only = int_only, print = print, no_timing = no_timing,
-    trans = trans};
+fun make_transition (name, pos, int_only, print, no_timing, timing, trans) =
+  Transition {name = name, pos = pos, int_only = int_only, print = print,
+    no_timing = no_timing, timing = timing, trans = trans};
 
-fun map_transition f (Transition {name, pos, int_only, print, no_timing, trans}) =
-  make_transition (f (name, pos, int_only, print, no_timing, trans));
+fun map_transition f (Transition {name, pos, int_only, print, no_timing, timing, trans}) =
+  make_transition (f (name, pos, int_only, print, no_timing, timing, trans));
 
-val empty = make_transition ("", Position.none, false, false, false, []);
+val empty = make_transition ("", Position.none, false, false, false, Time.zeroTime, []);
 
 
 (* diagnostics *)
@@ -367,26 +371,26 @@ fun type_error tr state =
 
 (* modify transitions *)
 
-fun name name = map_transition (fn (_, pos, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun name name = map_transition (fn (_, pos, int_only, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
-fun position pos = map_transition (fn (name, _, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun position pos = map_transition (fn (name, _, int_only, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
-fun interactive int_only = map_transition (fn (name, pos, _, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun interactive int_only = map_transition (fn (name, pos, _, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
-val no_timing = map_transition (fn (name, pos, int_only, print, _, trans) =>
-  (name, pos, int_only, print, true, trans));
+val no_timing = map_transition (fn (name, pos, int_only, print, _, timing, trans) =>
+  (name, pos, int_only, print, true, timing, trans));
 
-fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, tr :: trans));
+fun add_trans tr = map_transition (fn (name, pos, int_only, print, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, tr :: trans));
 
-val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, _) =>
-  (name, pos, int_only, print, no_timing, []));
+val reset_trans = map_transition (fn (name, pos, int_only, print, no_timing, timing, _) =>
+  (name, pos, int_only, print, no_timing, timing, []));
 
-fun set_print print = map_transition (fn (name, pos, int_only, _, no_timing, trans) =>
-  (name, pos, int_only, print, no_timing, trans));
+fun set_print print = map_transition (fn (name, pos, int_only, _, no_timing, timing, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
 
 val print = set_print true;
 
@@ -587,6 +591,19 @@ fun get_id (Transition {pos, ...}) = Position.get_id pos;
 fun put_id id (tr as Transition {pos, ...}) = position (Position.put_id id pos) tr;
 
 
+(* approximative identification within source file *)
+
+fun approximative_id tr =
+  let
+    val name = name_of tr;
+    val pos = pos_of tr;
+  in
+    (case (Position.file_of pos, Position.offset_of pos) of
+      (SOME file, SOME offset) => SOME {file = file, offset = offset, name = name}
+    | _ => NONE)
+  end;
+
+
 (* thread position *)
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
@@ -610,13 +627,30 @@ end;
 
 (* apply transitions *)
 
+fun get_timing (Transition {timing, ...}) = timing;
+fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timing, _, trans) =>
+  (name, pos, int_only, print, no_timing, timing, trans));
+
 local
+
+fun timing_message tr t =
+  if Timing.is_relevant_time (#elapsed t) andalso not (Position.is_reported (pos_of tr))
+  then
+    (case approximative_id tr of
+      SOME id =>
+        (Output.protocol_message
+          (Markup.command_timing :: Markup.command_timing_properties id (#elapsed t)) ""
+        handle Fail _ => ())
+    | NONE => ())
+  else ();
 
 fun app int (tr as Transition {trans, print, no_timing, ...}) =
   setmp_thread_position tr (fn state =>
     let
       fun do_timing f x = (warning (command_msg "" tr); timeap f x);
       fun do_profiling f x = profile (! profiling) f x;
+
+      val start = Timing.start ();
 
       val (result, status) =
          state |>
@@ -625,6 +659,8 @@ fun app int (tr as Transition {trans, print, no_timing, ...}) =
             |> (! profiling > 0 orelse ! timing andalso not no_timing) ? do_timing);
 
       val _ = if int andalso not (! quiet) andalso print then print_state false result else ();
+
+      val _ = timing_message tr (Timing.result start);
     in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) status) end);
 
 in
@@ -672,7 +708,8 @@ structure Result = Proof_Data
 
 fun proof_result immediate (tr, proof_trs) st =
   let val st' = command tr st in
-    if immediate orelse null proof_trs orelse not (can proof_of st')
+    if immediate orelse null proof_trs orelse not (can proof_of st') orelse
+      Proof.is_relevant (proof_of st')
     then
       let val (results, st'') = fold_map command_result proof_trs st'
       in (Future.value ((tr, st') :: results), st'') end
@@ -681,9 +718,13 @@ fun proof_result immediate (tr, proof_trs) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
+        val timing_estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
+        val timing_order = Real.floor (Real.max (Math.log10 (Time.toReal timing_estimate), ~3.0));
+        val pri = Int.min (timing_order - 3, ~1);
+
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Goal.fork_name "Toplevel.future_proof"
+            Goal.fork_name "Toplevel.future_proof" pri
               (fn () =>
                 let val (result, result_state) =
                   (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)

@@ -22,8 +22,8 @@ sig
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
-  val load_thy: int -> Path.T -> Thy_Header.header -> Position.T -> string ->
-    theory list -> theory * unit future
+  val load_thy: (Toplevel.transition -> Time.time) -> int -> Path.T -> Thy_Header.header ->
+    Position.T -> string -> theory list -> theory * unit future
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -214,9 +214,12 @@ fun begin_theory master_dir {name, imports, keywords, uses} parents =
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
 
-fun excursion init elements =
+fun excursion last_timing init elements =
   let
     val immediate = not (Goal.future_enabled ());
+
+    fun put_timing tr = Toplevel.put_timing (last_timing tr) tr;
+    fun put_timings (tr, trs) = (put_timing tr, map put_timing trs);
 
     fun proof_result (tr, trs) (st, _) =
       let
@@ -225,7 +228,7 @@ fun excursion init elements =
       in (result, (st', pos')) end;
 
     fun element_result elem x =
-      fold_map proof_result
+      fold_map (proof_result o put_timings)
         (Outer_Syntax.read_element (#2 (Outer_Syntax.get_syntax ())) init elem) x;
 
     val (results, (end_state, end_pos)) =
@@ -234,7 +237,7 @@ fun excursion init elements =
     val thy = Toplevel.end_theory end_pos end_state;
   in (flat results, thy) end;
 
-fun load_thy update_time master_dir header text_pos text parents =
+fun load_thy last_timing update_time master_dir header text_pos text parents =
   let
     val time = ! Toplevel.timing;
 
@@ -255,7 +258,7 @@ fun load_thy update_time master_dir header text_pos text parents =
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val (results, thy) = cond_timeit time "" (fn () => excursion init elements);
+    val (results, thy) = cond_timeit time "" (fn () => excursion last_timing init elements);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     val present =

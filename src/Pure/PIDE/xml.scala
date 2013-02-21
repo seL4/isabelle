@@ -188,6 +188,7 @@ object XML
 
     // main methods
     def cache_string(x: String): String = synchronized { _cache_string(x) }
+    def cache_props(x: Properties.T): Properties.T = synchronized { _cache_props(x) }
     def cache_markup(x: Markup): Markup = synchronized { _cache_markup(x) }
     def cache_tree(x: XML.Tree): XML.Tree = synchronized { _cache_tree(x) }
     def cache_body(x: XML.Body): XML.Body = synchronized { _cache_body(x) }

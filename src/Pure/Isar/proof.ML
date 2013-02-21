@@ -114,6 +114,7 @@ sig
   val show_cmd: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
+  val is_relevant: state -> bool
   val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
   val global_future_proof: (state -> ('a * context) future) -> state -> 'a future * context
   val local_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
@@ -1188,7 +1189,7 @@ fun future_terminal_proof n proof1 proof2 meths int state =
     andalso not (is_relevant state)
   then
     snd (proof2 (fn state' =>
-      Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state)
+      Goal.fork_name "Proof.future_terminal_proof" ~1 (fn () => ((), proof1 meths state'))) state)
   else proof1 meths state;
 
 in
