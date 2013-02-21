@@ -224,7 +224,7 @@ session "HOL-Auth" in Auth = HOL +
     "Guard/Auth_Guard_Public"
   files "document/root.tex"
 
-session "HOL-UNITY" in UNITY = HOL +
+session "HOL-UNITY" in UNITY = "HOL-Auth" +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
@@ -232,7 +232,6 @@ session "HOL-UNITY" in UNITY = HOL +
     Verifying security protocols using UNITY.
   *}
   options [document_graph]
-  theories [document = false] "../Auth/Public"
   theories
     (*Basic meta-theory*)
     "UNITY_Main"
@@ -276,12 +275,10 @@ session "HOL-Unix" in Unix = HOL +
   files "document/root.bib" "document/root.tex"
 
 session "HOL-ZF" in ZF = HOL +
-  description {* *}
   theories MainZF Games
   files "document/root.tex"
 
 session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
-  description {* *}
   options [document_graph, print_mode = "iff,no_brackets"]
   theories [document = false]
     "~~/src/HOL/Library/Countable"
