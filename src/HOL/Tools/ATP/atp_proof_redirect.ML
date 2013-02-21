@@ -67,10 +67,11 @@ datatype direct_inference =
 
 type direct_proof = direct_inference list
 
-fun atom_eq p = (Atom.ord p = EQUAL)
-fun clause_eq (c, d) = (length c = length d andalso forall atom_eq (c ~~ d))
-fun direct_sequent_eq ((gamma, c), (delta, d)) =
-  clause_eq (gamma, delta) andalso clause_eq (c, d)
+val atom_eq = is_equal o Atom.ord
+val clause_ord = dict_ord Atom.ord
+val clause_eq = is_equal o clause_ord
+val direct_sequent_ord = prod_ord clause_ord clause_ord
+val direct_sequent_eq = is_equal o direct_sequent_ord
 
 fun make_refute_graph bot infers =
   let
