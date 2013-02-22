@@ -351,11 +351,11 @@ fun process_constraints ctxt err cs tye_idx =
               | INVARIANT_TO T => (cs, unify_list [T, fst constraint, snd constraint] tye_idx
                   handle NO_UNIFIER (msg, _) =>
                     err_list ctxt (gen_msg err
-                      "failed to unify invariant arguments w.r.t. to the known map function" ^ msg)
+                      "failed to unify invariant arguments w.r.t. to the known map function\n" ^ msg)
                       (fst tye_idx) (T :: Ts))
               | INVARIANT => (cs, strong_unify ctxt constraint tye_idx
                   handle NO_UNIFIER (msg, _) =>
-                    error (gen_msg err ("failed to unify invariant arguments" ^ msg))));
+                    error (gen_msg err ("failed to unify invariant arguments\n" ^ msg))));
             val (new, (tye', idx')) = apfst (fn cs => (cs ~~ replicate (length cs) error_pack))
               (fold new_constraints (arg_var ~~ (Ts ~~ Us)) ([], (tye, idx)));
             val test_update = is_typeT orf is_freeT orf is_fixedvarT;
@@ -506,7 +506,7 @@ fun process_constraints ctxt err cs tye_idx =
                       (fn cycle => fn tye_idx' => (unify_list cycle tye_idx'
                         handle NO_UNIFIER (msg, _) =>
                           err_bound ctxt
-                            (gen_msg err ("constraint cycle not unifiable" ^ msg)) (fst tye_idx)
+                            (gen_msg err ("constraint cycle not unifiable\n" ^ msg)) (fst tye_idx)
                             (find_cycle_packs cycle)))
                       cycles tye_idx
                 in
