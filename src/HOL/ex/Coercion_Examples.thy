@@ -5,8 +5,10 @@ Examples for coercive subtyping via subtype constraints.
 *)
 
 theory Coercion_Examples
-imports Complex_Main
+imports Main
 begin
+
+declare[[coercion_enabled]]
 
 (* Error messages test *)
 
