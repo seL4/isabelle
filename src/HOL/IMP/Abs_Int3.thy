@@ -87,18 +87,18 @@ definition "widen_ivl ivl1 ivl2 =
   ((*if is_empty ivl1 then ivl2 else
    if is_empty ivl2 then ivl1 else*)
      case (ivl1,ivl2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow>
-       Ivl (if le_option False l2 l1 \<and> l2 \<noteq> l1 then None else l1)
-           (if le_option True h1 h2 \<and> h1 \<noteq> h2 then None else h1))"
+       Ivl (if l2 \<le> l1 \<and> l2 \<noteq> l1 then Minf else l1)
+           (if h1 \<le> h2 \<and> h1 \<noteq> h2 then Pinf else h1))"
 
 definition "narrow_ivl ivl1 ivl2 =
   ((*if is_empty ivl1 \<or> is_empty ivl2 then empty else*)
      case (ivl1,ivl2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow>
-       Ivl (if l1 = None then l2 else l1)
-           (if h1 = None then h2 else h1))"
+       Ivl (if l1 = Minf then l2 else l1)
+           (if h1 = Pinf then h2 else h1))"
 
 instance
 proof qed
-  (auto simp add: widen_ivl_def narrow_ivl_def le_option_def le_ivl_def empty_def split: ivl.split option.split if_splits)
+  (auto simp add: widen_ivl_def narrow_ivl_def le_lub_defs le_ivl_def empty_def split: ivl.split lub_splits if_splits)
 
 end
 
@@ -382,7 +382,7 @@ qed
 end
 
 interpretation Abs_Int2
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 defines AI_ivl' is AI_wn
@@ -583,19 +583,19 @@ subsubsection "Termination: Intervals"
 
 definition m_ivl :: "ivl \<Rightarrow> nat" where
 "m_ivl ivl = (case ivl of Ivl l h \<Rightarrow>
-     (case l of None \<Rightarrow> 0 | Some _ \<Rightarrow> 1) + (case h of None \<Rightarrow> 0 | Some _ \<Rightarrow> 1))"
+     (case l of Minf \<Rightarrow> 0 | Lb _ \<Rightarrow> 1) + (case h of Pinf \<Rightarrow> 0 | Ub _ \<Rightarrow> 1))"
 
 lemma m_ivl_height: "m_ivl ivl \<le> 2"
-by(simp add: m_ivl_def split: ivl.split option.split)
+by(simp add: m_ivl_def split: ivl.split lub_splits)
 
 lemma m_ivl_anti_mono: "(y::ivl) \<sqsubseteq> x \<Longrightarrow> m_ivl x \<le> m_ivl y"
-by(auto simp: m_ivl_def le_option_def le_ivl_def
-        split: ivl.split option.split if_splits)
+by(auto simp: m_ivl_def le_lub_defs le_ivl_def
+        split: ivl.split lub_splits if_splits)
 
 lemma m_ivl_widen:
   "~ y \<sqsubseteq> x \<Longrightarrow> m_ivl(x \<nabla> y) < m_ivl x"
-by(auto simp: m_ivl_def widen_ivl_def le_option_def le_ivl_def
-        split: ivl.splits option.splits if_splits)
+by(auto simp: m_ivl_def widen_ivl_def le_lub_defs le_ivl_def
+        split: ivl.splits lub_splits if_splits)
 
 definition n_ivl :: "ivl \<Rightarrow> nat" where
 "n_ivl ivl = 2 - m_ivl ivl"
@@ -605,12 +605,12 @@ unfolding n_ivl_def by (metis diff_le_mono2 m_ivl_anti_mono)
 
 lemma n_ivl_narrow:
   "~ x \<sqsubseteq> x \<triangle> y \<Longrightarrow> n_ivl(x \<triangle> y) < n_ivl x"
-by(auto simp: n_ivl_def m_ivl_def narrow_ivl_def le_option_def le_ivl_def
-        split: ivl.splits option.splits if_splits)
+by(auto simp: n_ivl_def m_ivl_def narrow_ivl_def le_lub_defs le_ivl_def
+        split: ivl.splits lub_splits if_splits)
 
 
 interpretation Abs_Int2_measure
-where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = plus_ivl
+where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 and m = m_ivl and n = n_ivl and h = 2
