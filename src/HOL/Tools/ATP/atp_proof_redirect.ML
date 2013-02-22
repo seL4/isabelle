@@ -100,8 +100,8 @@ val string_of_context = map Atom.string_of #> space_implode ", "
 fun string_of_sequent (gamma, c) =
   string_of_context gamma ^ " \<turnstile> " ^ Atom.string_of c
 
-val string_of_refute_graph =
-  sequents_of_refute_graph #> map string_of_sequent #> cat_lines
+fun string_of_refute_graph refute_graph =
+  refute_graph |> sequents_of_refute_graph |> map string_of_sequent |> cat_lines
 
 fun redirect_sequent tainted bot (gamma, c) =
   if member atom_eq tainted c then
