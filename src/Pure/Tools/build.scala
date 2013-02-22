@@ -693,15 +693,22 @@ object Build
               case None => (Path.current, "")
             }
         }
+
+      def ignore_error(msg: String): (List[Properties.T], Double) =
+      {
+        java.lang.System.err.println("### Ignoring bad log file: " + path +
+          (if (msg == "") "" else "\n" + msg))
+        (Nil, 0.0)
+      }
+
       try {
         val info = parse_log(false, text)
         val session_timing = Markup.Elapsed.unapply(info.session_timing) getOrElse 0.0
         (info.command_timings, session_timing)
       }
       catch {
-        case ERROR(msg) =>
-          java.lang.System.err.println("### Ignoring bad log file: " + path + "\n" + msg)
-        (Nil, 0.0)
+        case ERROR(msg) => ignore_error(msg)
+        case _: XML.XML_Atom | _: XML.XML_Body => ignore_error("")
       }
     }
 
