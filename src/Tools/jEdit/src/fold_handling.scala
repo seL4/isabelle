@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/fold_handler.scala
+/*  Title:      Tools/jEdit/src/fold_handling.scala
     Author:     Makarius
 
 Handling of folds within the text structure.
