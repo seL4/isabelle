@@ -360,8 +360,9 @@ fun process_constraints ctxt err cs tye_idx =
               (fold new_constraints (arg_var ~~ (Ts ~~ Us)) ([], (tye, idx)));
             val test_update = is_typeT orf is_freeT orf is_fixedvarT;
             val (ch, done') =
-              if not (null new) then ([], done)
-              else split_cs (test_update o Type_Infer.deref tye') done;
+              done
+              |> map (apfst (pairself (Type_Infer.deref tye')))
+              |> (if not (null new) then rpair []  else split_cs test_update);
             val todo' = ch @ todo;
           in
             simplify done' (new @ todo') (tye', idx')
