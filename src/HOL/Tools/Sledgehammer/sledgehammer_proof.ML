@@ -8,7 +8,7 @@ for dealing with Isar proof texts.
 
 signature SLEDGEHAMMER_PROOF =
 sig
-	type label = string * int
+  type label = string * int
   type facts = label list * string list
 
   datatype isar_qualifier = Show | Then

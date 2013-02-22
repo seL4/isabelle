@@ -721,7 +721,7 @@ fun proof_result immediate (tr, proof_trs) st =
         val estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
         val pri =
           if estimate = Time.zeroTime then ~1
-	  else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
+          else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
 
         val future_proof = Proof.global_future_proof
           (fn prf =>
