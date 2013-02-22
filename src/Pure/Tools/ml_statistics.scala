@@ -1,4 +1,4 @@
-/*  Title:      Pure/ML/ml_statistics.ML
+/*  Title:      Pure/Tools/ml_statistics.scala
     Author:     Makarius
 
 ML runtime statistics.

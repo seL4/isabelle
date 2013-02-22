@@ -52,7 +52,8 @@ fun identify exn =
   let
     val exn' = Par_Exn.identify [] exn;
     val exec_id = Properties.get (Exn_Properties.get exn') Markup.exec_idN;
-  in ((Par_Exn.the_serial exn', exn'), exec_id) end;
+    val i = Par_Exn.the_serial exn' handle Option.Option => serial ();
+  in ((i, exn'), exec_id) end;
 
 fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn
   | flatten context (Exn.EXCEPTIONS exns) = maps (flatten context) exns

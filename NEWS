@@ -6,6 +6,9 @@ New in this Isabelle version
 
 *** HOL ***
 
+* Discontinued obsolete src/HOL/IsaMakefile (considered legacy since
+Isabelle2013).  Use "isabelle build" to operate on Isabelle sessions.
+
 * Numeric types mapped by default to target language numerals:
 natural (replaces former code_numeral) and integer (replaces
 former code_int).  Conversions are available as integer_of_natural /

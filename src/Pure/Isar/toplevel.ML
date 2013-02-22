@@ -633,7 +633,7 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 
 local
 
-fun timing_message tr t =
+fun timing_message tr (t: Timing.timing) =
   if Timing.is_relevant_time (#elapsed t) andalso not (Position.is_reported (pos_of tr))
   then
     (case approximative_id tr of
@@ -721,7 +721,7 @@ fun proof_result immediate (tr, proof_trs) st =
         val estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
         val pri =
           if estimate = Time.zeroTime then ~1
-	  else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
+          else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
 
         val future_proof = Proof.global_future_proof
           (fn prf =>
