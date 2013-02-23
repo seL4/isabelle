@@ -38,7 +38,7 @@ object Build
 
     @volatile private var is_stopped = false
     def interrupt_handler[A](e: => A): A = Interrupt.handler { is_stopped = true } { e }
-    override def stopped: Boolean = { val b = is_stopped; is_stopped = false; b  }
+    override def stopped: Boolean = is_stopped
   }
 
 
@@ -745,11 +745,10 @@ object Build
       results: Map[String, Result]): Map[String, Result] =
     {
       if (pending.is_empty) results
-      else if (progress.stopped) {
-        for ((_, (_, job)) <- running) job.terminate
-        sleep(); loop(pending, running, results)
-      }
-      else
+      else {
+        if (progress.stopped)
+          for ((_, (_, job)) <- running) job.terminate
+
         running.find({ case (_, (_, job)) => job.is_finished }) match {
           case Some((name, (parent_heap, job))) =>
             //{{{ finish job
@@ -826,7 +825,7 @@ object Build
                   if (verbose) progress.echo("Skipping " + name + " ...")
                   loop(pending - name, running, results + (name -> Result(false, None, heap, 1)))
                 }
-                else if (parent_result.rc == 0) {
+                else if (parent_result.rc == 0 && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
                   val job =
                     new Job(progress, name, info, output, do_output, verbose, browser_info,
@@ -842,6 +841,7 @@ object Build
             ///}}}
           case None => sleep(); loop(pending, running, results)
         }
+      }
     }
 
 

@@ -69,7 +69,7 @@ object Build_Dialog
 
     /* GUI state */
 
-    private var is_stopped = false
+    @volatile private var is_stopped = false
     private var return_code = 2
 
     override def closeOperation { sys.exit(return_code) }
@@ -96,8 +96,7 @@ object Build_Dialog
         }
       override def theory(session: String, theory: String): Unit =
         echo(session + ": theory " + theory)
-      override def stopped: Boolean =
-        Swing_Thread.now { val b = is_stopped; is_stopped = false; b  }
+      override def stopped: Boolean = is_stopped
     }
 
 
