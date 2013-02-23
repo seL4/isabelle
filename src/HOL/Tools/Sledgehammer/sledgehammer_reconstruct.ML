@@ -374,7 +374,7 @@ fun add_line fact_names (name as (_, ss), role, t, rule, []) lines =
 
 val waldmeister_conjecture_num = "1.0.0.0"
 
-val repair_waldmeister_endgame =
+fun repair_waldmeister_endgame arg =
   let
     fun do_tail (name, _, t, rule, deps) =
       (name, Negated_Conjecture, s_not t, rule, deps)
@@ -382,7 +382,7 @@ val repair_waldmeister_endgame =
       | do_body ((line as ((num, _), _, _, _, _)) :: lines) =
         if num = waldmeister_conjecture_num then map do_tail (line :: lines)
         else line :: do_body lines
-  in do_body end
+  in do_body arg end
 
 (* Recursively delete empty lines (type information) from the proof. *)
 fun add_nontrivial_line (line as (name, _, t, _, [])) lines =
