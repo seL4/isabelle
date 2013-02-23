@@ -9,7 +9,7 @@ package isabelle
 
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   InputStream, FileInputStream, BufferedInputStream, BufferedReader, InputStreamReader,
-  File => JFile}
+  File => JFile, IOException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import scala.collection.mutable
@@ -81,7 +81,7 @@ object File
   {
     val result = new mutable.ListBuffer[String]
     var line: String = null
-    while ({ line = reader.readLine; line != null }) {
+    while ({ line = try { reader.readLine} catch { case _: IOException => null }; line != null }) {
       progress(line)
       result += line
     }
