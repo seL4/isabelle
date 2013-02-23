@@ -44,7 +44,9 @@ object Exn
     else None
 
   def message(exn: Throwable): String =
-    user_message(exn) getOrElse exn.toString
+    user_message(exn) getOrElse
+      (if (exn.isInstanceOf[InterruptedException]) "Interrupt"
+       else exn.toString)
 
 
   /* recover from spurious crash */
