@@ -298,8 +298,11 @@ object Isabelle_System
 
     private def kill(signal: String): Boolean =
     {
-      execute(true, "kill", "-" + signal, "-" + pid).waitFor
-      execute(true, "kill", "-0", "-" + pid).waitFor == 0
+      try {
+        execute(true, "kill", "-" + signal, "-" + pid).waitFor
+        execute(true, "kill", "-0", "-" + pid).waitFor == 0
+      }
+      catch { case _: InterruptedException => true }
     }
 
     private def multi_kill(signal: String): Boolean =
@@ -308,7 +311,7 @@ object Isabelle_System
       var count = 10
       while (running && count > 0) {
         if (kill(signal)) {
-          Thread.sleep(100)
+          try { Thread.sleep(100) } catch { case _: InterruptedException => }
           count -= 1
         }
         else running = false
@@ -363,7 +366,7 @@ object Isabelle_System
 
       val rc =
         try { proc.join }
-        catch { case e: InterruptedException => Thread.interrupted; proc.terminate; 130 }
+        catch { case e: InterruptedException => proc.terminate; 130 }
       Bash_Result(stdout.join, stderr.join, rc)
     }
   }
