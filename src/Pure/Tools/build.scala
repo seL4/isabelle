@@ -35,6 +35,10 @@ object Build
     override def echo(msg: String) { java.lang.System.out.println(msg) }
     override def theory(session: String, theory: String): Unit =
       if (verbose) echo(session + ": theory " + theory)
+
+    @volatile private var is_stopped = false
+    def interrupt_handler[A](e: => A): A = Interrupt.handler { is_stopped = true } { e }
+    override def stopped: Boolean = { val b = is_stopped; is_stopped = false; b  }
   }
 
 
@@ -889,9 +893,12 @@ object Build
             val dirs =
               select_dirs.map(d => (true, Path.explode(d))) :::
               include_dirs.map(d => (false, Path.explode(d)))
-            build(new Build.Console_Progress(verbose), options, requirements, all_sessions,
-              build_heap, clean_build, dirs, session_groups, max_jobs, list_files, no_build,
-              system_mode, verbose, sessions)
+            val progress = new Build.Console_Progress(verbose)
+            progress.interrupt_handler {
+              build(progress, options, requirements, all_sessions,
+                build_heap, clean_build, dirs, session_groups, max_jobs, list_files, no_build,
+                system_mode, verbose, sessions)
+            }
         case _ => error("Bad arguments:\n" + cat_lines(args))
       }
     }
