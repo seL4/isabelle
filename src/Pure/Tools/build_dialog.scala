@@ -10,7 +10,7 @@ package isabelle
 import java.awt.{GraphicsEnvironment, Point, Font}
 
 import scala.swing.{ScrollPane, Button, CheckBox, FlowPanel,
-  BorderPanel, MainFrame, TextArea, SwingApplication}
+  BorderPanel, MainFrame, TextArea, SwingApplication, Component, Label}
 import scala.swing.event.ButtonClicked
 
 
@@ -100,7 +100,25 @@ object Build_Dialog
     }
 
 
-    /* action panel */
+    /* layout panel with dynamic actions */
+
+    val action_panel = new FlowPanel(FlowPanel.Alignment.Center)()
+    val layout_panel = new BorderPanel
+    layout_panel.layout(scroll_text) = BorderPanel.Position.Center
+    layout_panel.layout(action_panel) = BorderPanel.Position.South
+
+    contents = layout_panel
+
+    def set_actions(cs: Component*)
+    {
+      action_panel.contents.clear
+      action_panel.contents ++= cs
+      layout_panel.revalidate
+      layout_panel.repaint
+    }
+
+
+    /* actions */
 
     var do_auto_close = true
     def check_auto_close(): Unit = if (do_auto_close && return_code == 0) sys.exit(return_code)
@@ -115,31 +133,30 @@ object Build_Dialog
     auto_close.tooltip = "Automatically close dialog when finished"
 
 
-    var button_action: () => Unit = (() => is_stopped = true)
-    val button = new Button("Cancel") {
-      reactions += { case ButtonClicked(_) => button_action() }
+    val stop_button = new Button("Stop") {
+      reactions += {
+        case ButtonClicked(_) =>
+          is_stopped = true
+          set_actions(new Label("Stopping ..."))
+      }
     }
 
-    val delay_button_exit =
+    set_actions(stop_button, auto_close)
+
+
+    /* exit */
+
+    val delay_exit =
       Swing_Thread.delay_first(Time.seconds(1.0))
       {
         check_auto_close()
-        button.text = if (return_code == 0) "OK" else "Exit"
-        button_action = (() => sys.exit(return_code))
+        val button =
+          new Button(if (return_code == 0) "OK" else "Exit") {
+            reactions += { case ButtonClicked(_) => sys.exit(return_code) }
+          }
+        set_actions(button)
         button.peer.getRootPane.setDefaultButton(button.peer)
       }
-
-
-    val action_panel = new FlowPanel(FlowPanel.Alignment.Center)(button, auto_close)
-
-
-    /* layout panel */
-
-    val layout_panel = new BorderPanel
-    layout_panel.layout(scroll_text) = BorderPanel.Position.Center
-    layout_panel.layout(action_panel) = BorderPanel.Position.South
-
-    contents = layout_panel
 
 
     /* main build */
@@ -158,7 +175,7 @@ object Build_Dialog
       Swing_Thread.now {
         progress.echo(out + (if (rc == 0) "OK\n" else "Return code: " + rc + "\n"))
         return_code = rc
-        delay_button_exit.invoke()
+        delay_exit.invoke()
       }
     })
   }
