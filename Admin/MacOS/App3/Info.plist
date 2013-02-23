@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>CFBundleDevelopmentRegion</key>
+<string>English</string>
+<key>CFBundleExecutable</key>
+<string>JavaAppLauncher</string>
+<key>CFBundleIconFile</key>
+<string>isabelle.icns</string>
+<key>CFBundleIdentifier</key>
+<string>de.tum.in.isabelle</string>
+<key>CFBundleDisplayName</key>
+<string>Isabelle</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundleName</key>
+<string>Isabelle</string>
+<key>CFBundlePackageType</key>
+<string>APPL</string>
+<key>CFBundleShortVersionString</key>
+<string>1.0</string>
+<key>CFBundleSignature</key>
+<string>????</string>
+<key>CFBundleVersion</key>
+<string>1</string>
+<key>NSHumanReadableCopyright</key>
+<string></string>
+<key>LSApplicationCategoryType</key>
+<string>public.app-category.developer-tools</string>
+<key>JVMRuntime</key>
+<string>jdk</string>
+<key>JVMMainClassName</key>
+<string>isabelle.Main</string>
+<key>JVMOptions</key>
+<array>
+<string>-Dapple.laf.useScreenMenuBar=true</string>
+<string>-Disabelle.home=$APP_ROOT/Isabelle</string>
+</array>
+<key>JVMArguments</key>
+<array>
+</array>
+</dict>
+</plist>
+
