@@ -44,6 +44,7 @@ declare -a SOURCES=(
   System/event_bus.scala
   System/gui_setup.scala
   System/html5_panel.scala
+  System/interrupt.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
   System/isabelle_process.scala
