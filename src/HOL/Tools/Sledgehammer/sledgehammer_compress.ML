@@ -69,11 +69,10 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
     end
 
     (* compress top level steps - do not compress subproofs *)
-    fun compress_top_level on_top_level ctxt steps =
+    fun compress_top_level on_top_level ctxt n steps =
     let
       (* proof step vector *)
       val step_vect = steps |> map SOME |> Vector.fromList
-      val n = Vector.length step_vect
       val n_metis = add_metis_steps_top_level steps 0
       val target_n_metis = Real.fromInt n_metis / isar_compress |> Real.round
 
@@ -91,7 +90,7 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
         | SOME (By_Metis (subproofs, (lfs, _))) =>
             maps (steps_of_proof #> maps refs) subproofs @ lookup_indices lfs)
       val refed_by_vect =
-        Vector.tabulate (n, K [])
+        Vector.tabulate (Vector.length step_vect, K [])
         |> fold_index (fn (i, step) => fold (update (cons i)) (refs step)) steps
         |> Vector.map rev (* after rev, indices are sorted in ascending order *)
 
@@ -202,7 +201,7 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
       merge_steps metis_time step_vect refed_by_vect cand_tab n n_metis
     end
 
-    fun do_proof on_top_level ctxt (Proof (fix, assms,steps)) =
+    fun do_proof on_top_level ctxt (Proof (Fix fix, Assume assms, steps)) =
       let
         (* Enrich context with top-level facts *)
         val thy = Proof_Context.theory_of ctxt
@@ -214,17 +213,18 @@ fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
           | enrich_with_step (Obtain (_, _, l, t, _)) = enrich_with_fact l t
           | enrich_with_step _ = I
         val enrich_with_steps = fold enrich_with_step
-        fun enrich_with_assms (Assume assms) =
-          fold (uncurry enrich_with_fact) assms
+        val enrich_with_assms = fold (uncurry enrich_with_fact)
         val rich_ctxt =
           ctxt |> enrich_with_assms assms |> enrich_with_steps steps
+
+        val n = List.length fix + List.length assms + List.length steps
 
         (* compress subproofs and top-levl steps *)
         val ((steps, top_level_time), lower_level_time) =
           steps |> do_subproofs rich_ctxt
-                |>> compress_top_level on_top_level rich_ctxt
+                |>> compress_top_level on_top_level rich_ctxt n
       in
-        (Proof (fix, assms, steps),
+        (Proof (Fix fix, Assume assms, steps),
           add_preplay_time lower_level_time top_level_time)
       end
 
