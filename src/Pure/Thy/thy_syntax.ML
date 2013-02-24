@@ -18,6 +18,7 @@ sig
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val map_element: ('a -> 'b) -> 'a element -> 'b element
   val flat_element: 'a element -> 'a list
+  val last_element: 'a element -> 'a
   val parse_elements: span list -> span element list
 end;
 
@@ -147,6 +148,9 @@ fun map_element f (Element (a, NONE)) = Element (f a, NONE)
 
 fun flat_element (Element (a, NONE)) = [a]
   | flat_element (Element (a, SOME (elems, b))) = a :: maps flat_element elems @ [b];
+
+fun last_element (Element (a, NONE)) = a
+  | last_element (Element (_, SOME (_, b))) = b;
 
 
 (* scanning spans *)

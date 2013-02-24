@@ -218,18 +218,30 @@ fun excursion last_timing init elements =
   let
     val immediate = not (Goal.future_enabled ());
 
-    fun put_timing tr = Toplevel.put_timing (last_timing tr) tr;
-    fun put_timings (tr, trs) = (put_timing tr, map put_timing trs);
+    fun prepare_span span =
+      Thy_Syntax.span_content span
+      |> Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ()))
+      |> Toplevel.modify_init init
+      |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
-    fun proof_result (tr, trs) (st, _) =
+    fun element_result span_elem (st, _) =
       let
-        val (result, st') = Toplevel.proof_result immediate (tr, trs) st;
-        val pos' = Toplevel.pos_of (List.last (tr :: trs));
-      in (result, (st', pos')) end;
+        val tr_elem = Thy_Syntax.map_element prepare_span span_elem;
+        val Thy_Syntax.Element (tr, opt_proof) = tr_elem;
+        val proof_trs =
+          (case opt_proof of
+            NONE => []
+          | SOME (a, b) => (maps Thy_Syntax.flat_element a @ [b]) |> filter_out Toplevel.is_ignored);
 
-    fun element_result elem x =
-      fold_map (proof_result o put_timings)
-        (Outer_Syntax.read_element (#2 (Outer_Syntax.get_syntax ())) init elem) x;
+        val elems =
+          if Toplevel.is_ignored tr then map (rpair []) proof_trs
+          else if Keyword.is_schematic_goal (Toplevel.name_of tr)
+          then map (rpair []) (tr :: proof_trs)
+          else [(tr, proof_trs)];
+
+        val (results, st') = fold_map (Toplevel.proof_result immediate) elems st;
+        val pos' = Toplevel.pos_of (Thy_Syntax.last_element tr_elem);
+      in (results, (st', pos')) end;
 
     val (results, (end_state, end_pos)) =
       fold_map element_result elements (Toplevel.toplevel, Position.none);
