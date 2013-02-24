@@ -1,4 +1,4 @@
-(* Author: Tobias Nipkow *)
+(* Author: Tobias Nipkow and Gerwin Klein *)
 
 header "Compiler for IMP"
 
@@ -7,25 +7,29 @@ begin
 
 subsection "List setup"
 
-text {*
-  We are going to define a small machine language where programs are
-  lists of instructions. For nicer algebraic properties in our lemmas
-  later, we prefer @{typ int} to @{term nat} as program counter.
-  
-  Therefore, we define notation for size and indexing for lists 
-  on @{typ int}:
+text {* 
+  In the following, we use the length of lists as integers 
+  instead of natural numbers. Instead of converting @{typ nat}
+  to @{typ int} explicitly, we tell Isabelle to coerce @{typ nat}
+  automatically when necessary.
 *}
-abbreviation "isize xs == int (length xs)" 
+declare [[coercion_enabled]] 
+declare [[coercion "int :: nat \<Rightarrow> int"]]
 
+text {* 
+  Similarly, we will want to access the ith element of a list, 
+  where @{term i} is an @{typ int}.
+*}
 fun inth :: "'a list \<Rightarrow> int \<Rightarrow> 'a" (infixl "!!" 100) where
 "(x # xs) !! n = (if n = 0 then x else xs !! (n - 1))"
 
 text {*
-  The only additional lemma we need is indexing over append:
+  The only additional lemma we need about this function 
+  is indexing over append:
 *}
 lemma inth_append [simp]:
   "0 \<le> n \<Longrightarrow>
-  (xs @ ys) !! n = (if n < isize xs then xs !! n else ys !! (n - isize xs))"
+  (xs @ ys) !! n = (if n < size xs then xs !! n else ys !! (n - size xs))"
 by (induction xs arbitrary: n) (auto simp: algebra_simps)
 
 subsection "Instructions and Stack Machine"
@@ -60,12 +64,12 @@ definition
      ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [59,0,59] 60) 
 where
   "P \<turnstile> c \<rightarrow> c' = 
-  (\<exists>i s stk. c = (i,s,stk) \<and> c' = iexec(P!!i) (i,s,stk) \<and> 0 \<le> i \<and> i < isize P)"
+  (\<exists>i s stk. c = (i,s,stk) \<and> c' = iexec(P!!i) (i,s,stk) \<and> 0 \<le> i \<and> i < size P)"
 
 declare exec1_def [simp]
 
 lemma exec1I [intro, code_pred_intro]:
-  "c' = iexec (P!!i) (i,s,stk) \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < isize P
+  "c' = iexec (P!!i) (i,s,stk) \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < size P
   \<Longrightarrow> P \<turnstile> (i,s,stk) \<rightarrow> c'"
 by simp
 
@@ -107,14 +111,18 @@ lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \
 by (induction rule: exec.induct) (fastforce intro: exec1_appendR)+
 
 lemma exec1_appendL:
+  fixes i i' :: int 
+  shows
   "P \<turnstile> (i,s,stk) \<rightarrow> (i',s',stk') \<Longrightarrow>
-   P' @ P \<turnstile> (isize(P')+i,s,stk) \<rightarrow> (isize(P')+i',s',stk')"
-by (auto split: instr.split)
+   P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow> (size(P')+i',s',stk')"
+  by (auto split: instr.split)
 
 lemma exec_appendL:
+  fixes i i' :: int 
+  shows
  "P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')  \<Longrightarrow>
-  P' @ P \<turnstile> (isize(P')+i,s,stk) \<rightarrow>* (isize(P')+i',s',stk')"
-by (induction rule: exec_induct) (blast intro!: exec1_appendL)+
+  P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow>* (size(P')+i',s',stk')"
+  by (induction rule: exec_induct) (blast intro!: exec1_appendL)+
 
 text{* Now we specialise the above lemmas to enable automatic proofs of
 @{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
@@ -130,19 +138,23 @@ lemma exec_Cons_1 [intro]:
 by (drule exec_appendL[where P'="[instr]"]) simp
 
 lemma exec_appendL_if[intro]:
- "isize P' <= i
-  \<Longrightarrow> P \<turnstile> (i - isize P',s,stk) \<rightarrow>* (i',s',stk')
-  \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (isize P' + i',s',stk')"
+  fixes i i' :: int
+  shows
+  "size P' <= i
+   \<Longrightarrow> P \<turnstile> (i - size P',s,stk) \<rightarrow>* (i',s',stk')
+   \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (size P' + i',s',stk')"
 by (drule exec_appendL[where P'=P']) simp
 
 text{* Split the execution of a compound program up into the excution of its
 parts: *}
 
 lemma exec_append_trans[intro]:
+  fixes i' i'' j'' :: int
+  shows
 "P \<turnstile> (0,s,stk) \<rightarrow>* (i',s',stk') \<Longrightarrow>
- isize P \<le> i' \<Longrightarrow>
- P' \<turnstile>  (i' - isize P,s',stk') \<rightarrow>* (i'',s'',stk'') \<Longrightarrow>
- j'' = isize P + i''
+ size P \<le> i' \<Longrightarrow>
+ P' \<turnstile>  (i' - size P,s',stk') \<rightarrow>* (i'',s'',stk'') \<Longrightarrow>
+ j'' = size P + i''
  \<Longrightarrow>
  P @ P' \<turnstile> (0,s,stk) \<rightarrow>* (j'',s'',stk'')"
 by(metis exec_trans[OF exec_appendR exec_appendL_if])
@@ -159,7 +171,7 @@ fun acomp :: "aexp \<Rightarrow> instr list" where
 "acomp (Plus a1 a2) = acomp a1 @ acomp a2 @ [ADD]"
 
 lemma acomp_correct[intro]:
-  "acomp a \<turnstile> (0,s,stk) \<rightarrow>* (isize(acomp a),s,aval a s#stk)"
+  "acomp a \<turnstile> (0,s,stk) \<rightarrow>* (size(acomp a),s,aval a s#stk)"
 by (induction a arbitrary: stk) fastforce+
 
 fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list" where
@@ -167,7 +179,7 @@ fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> int \<Rightarrow> instr list
 "bcomp (Not b) c n = bcomp b (\<not>c) n" |
 "bcomp (And b1 b2) c n =
  (let cb2 = bcomp b2 c n;
-        m = (if c then isize cb2 else isize cb2+n);
+        m = (if c then size cb2 else (size cb2::int)+n);
       cb1 = bcomp b1 False m
   in cb1 @ cb2)" |
 "bcomp (Less a1 a2) c n =
@@ -178,15 +190,17 @@ value
      False 3"
 
 lemma bcomp_correct[intro]:
+  fixes n :: int
+  shows
   "0 \<le> n \<Longrightarrow>
   bcomp b c n \<turnstile>
- (0,s,stk)  \<rightarrow>*  (isize(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
+ (0,s,stk)  \<rightarrow>*  (size(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
 proof(induction b arbitrary: c n)
   case Not
   from Not(1)[where c="~c"] Not(2) show ?case by fastforce
 next
   case (And b1 b2)
-  from And(1)[of "if c then isize(bcomp b2 c n) else isize(bcomp b2 c n) + n" 
+  from And(1)[of "if c then size(bcomp b2 c n) else size(bcomp b2 c n) + n" 
                  "False"] 
        And(2)[of n  "c"] And(3) 
   show ?case by fastforce
@@ -197,11 +211,11 @@ fun ccomp :: "com \<Rightarrow> instr list" where
 "ccomp (x ::= a) = acomp a @ [STORE x]" |
 "ccomp (c\<^isub>1;c\<^isub>2) = ccomp c\<^isub>1 @ ccomp c\<^isub>2" |
 "ccomp (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
-  (let cc\<^isub>1 = ccomp c\<^isub>1; cc\<^isub>2 = ccomp c\<^isub>2; cb = bcomp b False (isize cc\<^isub>1 + 1)
-   in cb @ cc\<^isub>1 @ JMP (isize cc\<^isub>2) # cc\<^isub>2)" |
+  (let cc\<^isub>1 = ccomp c\<^isub>1; cc\<^isub>2 = ccomp c\<^isub>2; cb = bcomp b False (size cc\<^isub>1 + 1)
+   in cb @ cc\<^isub>1 @ JMP (size cc\<^isub>2) # cc\<^isub>2)" |
 "ccomp (WHILE b DO c) =
- (let cc = ccomp c; cb = bcomp b False (isize cc + 1)
-  in cb @ cc @ [JMP (-(isize cb + isize cc + 1))])"
+ (let cc = ccomp c; cb = bcomp b False (size cc + 1)
+  in cb @ cc @ [JMP (-(size cb + size cc + 1))])"
 
 
 value "ccomp
@@ -214,34 +228,34 @@ value "ccomp (WHILE Less (V ''u'') (N 1) DO (''u'' ::= Plus (V ''u'') (N 1)))"
 subsection "Preservation of semantics"
 
 lemma ccomp_bigstep:
-  "(c,s) \<Rightarrow> t \<Longrightarrow> ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (isize(ccomp c),t,stk)"
+  "(c,s) \<Rightarrow> t \<Longrightarrow> ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (size(ccomp c),t,stk)"
 proof(induction arbitrary: stk rule: big_step_induct)
   case (Assign x a s)
   show ?case by (fastforce simp:fun_upd_def cong: if_cong)
 next
   case (Seq c1 s1 s2 c2 s3)
   let ?cc1 = "ccomp c1"  let ?cc2 = "ccomp c2"
-  have "?cc1 @ ?cc2 \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cc1,s2,stk)"
+  have "?cc1 @ ?cc2 \<turnstile> (0,s1,stk) \<rightarrow>* (size ?cc1,s2,stk)"
     using Seq.IH(1) by fastforce
   moreover
-  have "?cc1 @ ?cc2 \<turnstile> (isize ?cc1,s2,stk) \<rightarrow>* (isize(?cc1 @ ?cc2),s3,stk)"
+  have "?cc1 @ ?cc2 \<turnstile> (size ?cc1,s2,stk) \<rightarrow>* (size(?cc1 @ ?cc2),s3,stk)"
     using Seq.IH(2) by fastforce
   ultimately show ?case by simp (blast intro: exec_trans)
 next
   case (WhileTrue b s1 c s2 s3)
   let ?cc = "ccomp c"
-  let ?cb = "bcomp b False (isize ?cc + 1)"
+  let ?cb = "bcomp b False (size ?cc + 1)"
   let ?cw = "ccomp(WHILE b DO c)"
-  have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (isize ?cb,s1,stk)"
+  have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (size ?cb,s1,stk)"
     using `bval b s1` by fastforce
   moreover
-  have "?cw \<turnstile> (isize ?cb,s1,stk) \<rightarrow>* (isize ?cb + isize ?cc,s2,stk)"
+  have "?cw \<turnstile> (size ?cb,s1,stk) \<rightarrow>* (size ?cb + size ?cc,s2,stk)"
     using WhileTrue.IH(1) by fastforce
   moreover
-  have "?cw \<turnstile> (isize ?cb + isize ?cc,s2,stk) \<rightarrow>* (0,s2,stk)"
+  have "?cw \<turnstile> (size ?cb + size ?cc,s2,stk) \<rightarrow>* (0,s2,stk)"
     by fastforce
   moreover
-  have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (isize ?cw,s3,stk)" by(rule WhileTrue.IH(2))
+  have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (size ?cw,s3,stk)" by(rule WhileTrue.IH(2))
   ultimately show ?case by(blast intro: exec_trans)
 qed fastforce+
 
