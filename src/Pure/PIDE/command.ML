@@ -23,7 +23,7 @@ struct
 (* span range *)
 
 val range = Token.position_range_of;
-val proper_range = Token.position_range_of o #1 o take_suffix Token.is_space;
+val proper_range = Token.position_range_of o #1 o take_suffix Token.is_improper;
 
 
 (* memo results *)

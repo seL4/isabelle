@@ -32,6 +32,7 @@ sig
   val is_command: T -> bool
   val is_name: T -> bool
   val is_proper: T -> bool
+  val is_improper: T -> bool
   val is_semicolon: T -> bool
   val is_comment: T -> bool
   val is_begin_ignore: T -> bool
@@ -171,6 +172,8 @@ fun ident_with pred (Token (_, (Ident, x), _)) = pred x
 fun is_proper (Token (_, (Space, _), _)) = false
   | is_proper (Token (_, (Comment, _), _)) = false
   | is_proper _ = true;
+
+val is_improper = not o is_proper;
 
 fun is_semicolon (Token (_, (Keyword, ";"), _)) = true
   | is_semicolon _ = false;
