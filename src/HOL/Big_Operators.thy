@@ -1808,4 +1808,20 @@ lemma minus_Min_eq_Max [simp]:
 
 end
 
+lemma (in linorder) mono_Max_commute:
+  assumes "mono f"
+  assumes "finite A" and "A \<noteq> {}"
+  shows "f (Max A) = Max (f ` A)"
+proof (rule linorder_class.Max_eqI [symmetric])
+  from `finite A` show "finite (f ` A)" by simp
+  from assms show "f (Max A) \<in> f ` A" by simp
+  fix x
+  assume "x \<in> f ` A"
+  then obtain y where "y \<in> A" and "x = f y" ..
+  with assms have "y \<le> Max A" by auto
+  with `mono f` have "f y \<le> f (Max A)" by (rule monoE)
+  with `x = f y` show "x \<le> f (Max A)" by simp
+qed (* FIXME augment also dual rule mono_Min_commute *)
+
 end
+

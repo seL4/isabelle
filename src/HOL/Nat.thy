@@ -1201,6 +1201,16 @@ lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
     apply (auto)
   done
 
+lemma mono_times_nat:
+  fixes n :: nat
+  assumes "n > 0"
+  shows "mono (times n)"
+proof
+  fix m q :: nat
+  assume "m \<le> q"
+  with assms show "n * m \<le> n * q" by simp
+qed
+
 text {* the lattice order on @{typ nat} *}
 
 instantiation nat :: distrib_lattice

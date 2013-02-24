@@ -721,6 +721,18 @@ lemma power_dvd_imp_le:
   apply (erule dvd_imp_le, simp)
   done
 
+lemma power2_nat_le_eq_le:
+  fixes m n :: nat
+  shows "m\<twosuperior> \<le> n\<twosuperior> \<longleftrightarrow> m \<le> n"
+  by (auto intro: power2_le_imp_le power_mono)
+
+lemma power2_nat_le_imp_le:
+  fixes m n :: nat
+  assumes "m\<twosuperior> \<le> n"
+  shows "m \<le> n"
+  using assms by (cases m) (simp_all add: power2_eq_square)
+
+
 
 subsection {* Code generator tweak *}
 

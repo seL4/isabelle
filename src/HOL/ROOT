@@ -455,7 +455,6 @@ session "HOL-ex" in ex = HOL +
     Transfer_Int_Nat
     HarmonicSeries
     Refute_Examples
-    Landau
     Execute_Choice
     Summation
     Gauge_Integration

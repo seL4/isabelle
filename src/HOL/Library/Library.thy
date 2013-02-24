@@ -15,7 +15,6 @@ imports
   Countable_Set
   Debug
   Diagonal_Subsequence
-  Discrete
   Dlist
   Eval_Witness
   Extended_Nat
@@ -26,6 +25,7 @@ imports
   FrechetDeriv
   FuncSet
   Function_Division
+  Function_Growth
   Fundamental_Theorem_Algebra
   Indicator_Function
   Infinite_Set

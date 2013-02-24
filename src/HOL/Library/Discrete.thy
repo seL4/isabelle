@@ -6,11 +6,6 @@ theory Discrete
 imports Main
 begin
 
-lemma power2_nat_le_eq_le:
-  fixes m n :: nat
-  shows "m ^ 2 \<le> n ^ 2 \<longleftrightarrow> m \<le> n"
-  by (auto intro: power2_le_imp_le power_mono)
-
 subsection {* Discrete logarithm *}
 
 fun log :: "nat \<Rightarrow> nat" where
@@ -81,10 +76,32 @@ subsection {* Discrete square root *}
 
 definition sqrt :: "nat \<Rightarrow> nat"
 where
-  "sqrt n = Max {m. m ^ 2 \<le> n}"
+  "sqrt n = Max {m. m\<twosuperior> \<le> n}"
+
+lemma sqrt_aux:
+  fixes n :: nat
+  shows "finite {m. m\<twosuperior> \<le> n}" and "{m. m\<twosuperior> \<le> n} \<noteq> {}"
+proof -
+  { fix m
+    assume "m\<twosuperior> \<le> n"
+    then have "m \<le> n"
+      by (cases m) (simp_all add: power2_eq_square)
+  } note ** = this
+  then have "{m. m\<twosuperior> \<le> n} \<subseteq> {m. m \<le> n}" by auto
+  then show "finite {m. m\<twosuperior> \<le> n}" by (rule finite_subset) rule
+  have "0\<twosuperior> \<le> n" by simp
+  then show *: "{m. m\<twosuperior> \<le> n} \<noteq> {}" by blast
+qed
+
+lemma [code]:
+  "sqrt n = Max (Set.filter (\<lambda>m. m\<twosuperior> \<le> n) {0..n})"
+proof -
+  from power2_nat_le_imp_le [of _ n] have "{m. m \<le> n \<and> m\<twosuperior> \<le> n} = {m. m\<twosuperior> \<le> n}" by auto
+  then show ?thesis by (simp add: sqrt_def Set.filter_def)
+qed
 
 lemma sqrt_inverse_power2 [simp]:
-  "sqrt (n ^ 2) = n"
+  "sqrt (n\<twosuperior>) = n"
 proof -
   have "{m. m \<le> n} \<noteq> {}" by auto
   then have "Max {m. m \<le> n} \<le> n" by auto
@@ -92,32 +109,74 @@ proof -
     by (auto simp add: sqrt_def power2_nat_le_eq_le intro: antisym)
 qed
 
-lemma [code]:
-  "sqrt n = Max (Set.filter (\<lambda>m. m ^ 2 \<le> n) {0..n})"
+lemma mono_sqrt: "mono sqrt"
+proof
+  fix m n :: nat
+  have *: "0 * 0 \<le> m" by simp
+  assume "m \<le> n"
+  then show "sqrt m \<le> sqrt n"
+    by (auto intro!: Max_mono `0 * 0 \<le> m` finite_less_ub simp add: power2_eq_square sqrt_def)
+qed
+
+lemma sqrt_greater_zero_iff [simp]:
+  "sqrt n > 0 \<longleftrightarrow> n > 0"
 proof -
-  { fix m
-    assume "m\<twosuperior> \<le> n"
-    then have "m \<le> n"
-      by (cases m) (simp_all add: power2_eq_square)
-  }
-  then have "{m. m \<le> n \<and> m\<twosuperior> \<le> n} = {m. m\<twosuperior> \<le> n}" by auto
-  then show ?thesis by (simp add: sqrt_def Set.filter_def)
+  have *: "0 < Max {m. m\<twosuperior> \<le> n} \<longleftrightarrow> (\<exists>a\<in>{m. m\<twosuperior> \<le> n}. 0 < a)"
+    by (rule Max_gr_iff) (fact sqrt_aux)+
+  show ?thesis
+  proof
+    assume "0 < sqrt n"
+    then have "0 < Max {m. m\<twosuperior> \<le> n}" by (simp add: sqrt_def)
+    with * show "0 < n" by (auto dest: power2_nat_le_imp_le)
+  next
+    assume "0 < n"
+    then have "1\<twosuperior> \<le> n \<and> 0 < (1::nat)" by simp
+    then have "\<exists>q. q\<twosuperior> \<le> n \<and> 0 < q" ..
+    with * have "0 < Max {m. m\<twosuperior> \<le> n}" by blast
+    then show "0 < sqrt n" by  (simp add: sqrt_def)
+  qed
+qed
+
+lemma sqrt_power2_le [simp]: (* FIXME tune proof *)
+  "(sqrt n)\<twosuperior> \<le> n"
+proof (cases "n > 0")
+  case False then show ?thesis by (simp add: sqrt_def)
+next
+  case True then have "sqrt n > 0" by simp
+  then have "mono (times (Max {m. m\<twosuperior> \<le> n}))" by (auto intro: mono_times_nat simp add: sqrt_def)
+  then have *: "Max {m. m\<twosuperior> \<le> n} * Max {m. m\<twosuperior> \<le> n} = Max (times (Max {m. m\<twosuperior> \<le> n}) ` {m. m\<twosuperior> \<le> n})"
+    using sqrt_aux [of n] by (rule mono_Max_commute)
+  have "Max (op * (Max {m. m * m \<le> n}) ` {m. m * m \<le> n}) \<le> n"
+    apply (subst Max_le_iff)
+    apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
+    apply simp
+    apply (metis le0 mult_0_right)
+    apply auto
+    proof -
+      fix q
+      assume "q * q \<le> n"
+      show "Max {m. m * m \<le> n} * q \<le> n"
+      proof (cases "q > 0")
+        case False then show ?thesis by simp
+      next
+        case True then have "mono (times q)" by (rule mono_times_nat)
+        then have "q * Max {m. m * m \<le> n} = Max (times q ` {m. m * m \<le> n})"
+          using sqrt_aux [of n] by (auto simp add: power2_eq_square intro: mono_Max_commute)
+        then have "Max {m. m * m \<le> n} * q = Max (times q ` {m. m * m \<le> n})" by (simp add: mult_ac)
+        then show ?thesis apply simp
+          apply (subst Max_le_iff)
+          apply auto
+          apply (metis (mono_tags) finite_imageI finite_less_ub le_square)
+          apply (metis `q * q \<le> n`)
+          using `q * q \<le> n` by (metis le_cases mult_le_mono1 mult_le_mono2 order_trans)
+      qed
+    qed
+  with * show ?thesis by (simp add: sqrt_def power2_eq_square)
 qed
 
 lemma sqrt_le:
   "sqrt n \<le> n"
-proof -
-  have "0\<twosuperior> \<le> n" by simp
-  then have *: "{m. m\<twosuperior> \<le> n} \<noteq> {}" by blast
-  { fix m
-    assume "m\<twosuperior> \<le> n"
-    then have "m \<le> n"
-      by (cases m) (simp_all add: power2_eq_square)
-  } note ** = this
-  then have "{m. m\<twosuperior> \<le> n} \<subseteq> {m. m \<le> n}" by auto
-  then have "finite {m. m\<twosuperior> \<le> n}" by (rule finite_subset) rule
-  with * show ?thesis by (auto simp add: sqrt_def intro: **)
-qed
+  using sqrt_aux [of n] by (auto simp add: sqrt_def intro: power2_nat_le_imp_le)
 
 hide_const (open) log sqrt
 

@@ -965,6 +965,15 @@ lemma monoD [dest?]:
   shows "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
   unfolding mono_def by iprover
 
+lemma monoE:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  assumes "mono f"
+  assumes "x \<le> y"
+  obtains "f x \<le> f y"
+proof
+  from assms show "f x \<le> f y" by (simp add: mono_def)
+qed
+
 definition strict_mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
   "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
 
@@ -997,6 +1006,21 @@ end
 
 context linorder
 begin
+
+lemma mono_invE:
+  fixes f :: "'a \<Rightarrow> 'b\<Colon>order"
+  assumes "mono f"
+  assumes "f x < f y"
+  obtains "x \<le> y"
+proof
+  show "x \<le> y"
+  proof (rule ccontr)
+    assume "\<not> x \<le> y"
+    then have "y \<le> x" by simp
+    with `mono f` obtain "f y \<le> f x" by (rule monoE)
+    with `f x < f y` show False by simp
+  qed
+qed
 
 lemma strict_mono_eq:
   assumes "strict_mono f"
