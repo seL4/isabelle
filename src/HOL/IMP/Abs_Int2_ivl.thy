@@ -37,7 +37,7 @@ fun in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool" where
 "in_ivl k (Ivl Minf Pinf) \<longleftrightarrow> True"
 
 
-instantiation lb :: order
+instantiation lb :: linorder
 begin
 
 definition less_eq_lb where
@@ -55,11 +55,13 @@ next
   case goal3 thus ?case by(auto simp: less_eq_lb_def split:lub_splits)
 next
   case goal4 thus ?case by(auto simp: less_eq_lb_def split:lub_splits)
+next
+  case goal5 thus ?case by(auto simp: less_eq_lb_def split:lub_splits)
 qed
 
 end
 
-instantiation ub :: order
+instantiation ub :: linorder
 begin
 
 definition less_eq_ub where
@@ -77,11 +79,18 @@ next
   case goal3 thus ?case by(auto simp: less_eq_ub_def split:lub_splits)
 next
   case goal4 thus ?case by(auto simp: less_eq_ub_def split:lub_splits)
+next
+  case goal5 thus ?case by(auto simp: less_eq_ub_def split:lub_splits)
 qed
 
 end
 
 lemmas le_lub_defs = less_eq_lb_def less_eq_ub_def
+
+lemma le_lub_simps[simp]:
+  "Minf \<le> l" "Lb i \<le> Lb j = (i \<le> j)" "~ Lb i \<le> Minf"
+  "h \<le> Pinf" "Ub i \<le> Ub j = (i \<le> j)" "~ Pinf \<le> Ub j"
+by(auto simp: le_lub_defs split: lub_splits)
 
 definition empty where "empty = {1\<dots>0}"
 
@@ -200,15 +209,6 @@ fun uminus_lb :: "lb \<Rightarrow> ub" where
 "uminus_lb(Lb( x)) = Ub(-x)" |
 "uminus_lb Minf = Pinf"
 
-instantiation ivl :: minus
-begin
-
-definition "i1 - i2 = (if is_empty i1 | is_empty i2 then empty else
-  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (l1 + uminus_ub h2) (h1 + uminus_lb l2))"
-
-instance ..
-end
-
 instantiation ivl :: uminus
 begin
 
@@ -218,12 +218,22 @@ fun uminus_ivl where
 instance ..
 end
 
-lemma minus_ivl_nice_def: "(i1::ivl) - i2 = i1 + -i2"
+instantiation ivl :: minus
+begin
+
+definition minus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" where
+"(i1::ivl) - i2 = i1 + -i2"
+
+instance ..
+end
+
+lemma minus_ivl_cases: "i1 - i2 = (if is_empty i1 | is_empty i2 then empty else
+  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (l1 + uminus_ub h2) (h1 + uminus_lb l2))"
 by(auto simp: plus_ivl_def minus_ivl_def split: ivl.split lub_splits)
 
 lemma gamma_minus_ivl:
   "n1 : \<gamma>_ivl i1 \<Longrightarrow> n2 : \<gamma>_ivl i2 \<Longrightarrow> n1-n2 : \<gamma>_ivl(i1 - i2)"
-by(auto simp add: minus_ivl_def \<gamma>_ivl_def split: ivl.splits lub_splits)
+by(auto simp add: minus_ivl_def plus_ivl_def \<gamma>_ivl_def split: ivl.splits lub_splits)
 
 definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
   i1 \<sqinter> (i - i2), i2 \<sqinter> (i - i1))"
@@ -261,7 +271,7 @@ qed
 
 lemma mono_minus_ivl: fixes i1 :: ivl
 shows "i1 \<sqsubseteq> i1' \<Longrightarrow> i2 \<sqsubseteq> i2' \<Longrightarrow> i1 - i2 \<sqsubseteq> i1' - i2'"
-apply(auto simp add: minus_ivl_def empty_def le_ivl_def le_lub_defs split: ivl.splits)
+apply(auto simp add: minus_ivl_cases empty_def le_ivl_def le_lub_defs split: ivl.splits)
   apply(simp split: lub_splits)
  apply(simp split: lub_splits)
 apply(simp split: lub_splits)
