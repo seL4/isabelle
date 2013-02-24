@@ -235,7 +235,7 @@ fun output_token lex state =
 fun basic_token pred (BasicToken tok) = pred tok
   | basic_token _ _ = false;
 
-val improper_token = basic_token (not o Token.is_proper);
+val improper_token = basic_token Token.is_improper;
 val comment_token = basic_token Token.is_comment;
 val blank_token = basic_token Token.is_blank;
 val newline_token = basic_token Token.is_newline;

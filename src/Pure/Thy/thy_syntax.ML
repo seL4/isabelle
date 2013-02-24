@@ -118,7 +118,7 @@ local
 fun make_span toks =
   if not (null toks) andalso Token.is_command (hd toks) then
     Span (Command (Token.content_of (hd toks), Token.position_of (hd toks)), toks)
-  else if forall (not o Token.is_proper) toks then Span (Ignored, toks)
+  else if forall Token.is_improper toks then Span (Ignored, toks)
   else Span (Malformed, toks);
 
 fun flush (result, span) = if null span then (result, span) else (rev span :: result, []);
