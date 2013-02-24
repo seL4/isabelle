@@ -265,7 +265,7 @@ subsection {* Further Examples *}
 
 text {*
   Further examples for compiling inductive predicates can be found in
-  the @{text "HOL/ex/Predicate_Compile_ex.thy"} theory file.  There are
+  the @{text "HOL/Predicate_Compile_Examples.thy"} theory file.  There are
   also some examples in the Archive of Formal Proofs, notably in the
   @{text "POPLmark-deBruijn"} and the @{text "FeatherweightJava"}
   sessions.
