@@ -268,9 +268,8 @@ fun define_command (id: command_id) name text =
       val id_string = print_id id;
       val span = Lazy.lazy (fn () =>
         Position.setmp_thread_data (Position.id_only id_string)
-          (fn () =>
-            Thy_Syntax.parse_tokens
-              (#1 (Outer_Syntax.get_syntax ())) (Position.id id_string) text) ());
+          (fn () => Thy_Syntax.parse_tokens (Keyword.get_lexicons ()) (Position.id id_string) text)
+            ());
       val _ =
         Position.setmp_thread_data (Position.id_only id_string)
           (fn () => Output.status (Markup.markup_only Markup.accepted)) ();
@@ -453,7 +452,7 @@ fun new_exec state proper_init command_id' (execs, command_exec, init) =
           (fn () =>
             let
               val tr =
-                #1 (Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span)
+                Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ())) span
                 |> modify_init
                 |> Toplevel.put_id exec_id'_string;
               val cmts = Outer_Syntax.span_cmts span;

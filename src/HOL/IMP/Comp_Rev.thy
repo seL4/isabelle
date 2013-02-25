@@ -1,3 +1,5 @@
+(* Author: Gerwin Klein *)
+
 theory Comp_Rev
 imports Compiler
 begin
@@ -14,7 +16,7 @@ where
   "P \<turnstile> c \<rightarrow>^0 c' = (c'=c)" |
   "P \<turnstile> c \<rightarrow>^(Suc n) c'' = (\<exists>c'. (P \<turnstile> c \<rightarrow> c') \<and> P \<turnstile> c' \<rightarrow>^n c'')"
 
-text {* The possible successor pc's of an instruction at position @{term n} *}
+text {* The possible successor PCs of an instruction at position @{term n} *}
 definition
   "isuccs i n \<equiv> case i of 
      JMP j \<Rightarrow> {n + 1 + j}
@@ -22,13 +24,14 @@ definition
    | JMPGE j \<Rightarrow> {n + 1 + j, n + 1}
    | _ \<Rightarrow> {n +1}"
 
-text {* The possible successors pc's of an instruction list *}
+text {* The possible successors PCs of an instruction list *}
 definition
-  "succs P n = {s. \<exists>i. 0 \<le> i \<and> i < isize P \<and> s \<in> isuccs (P!!i) (n+i)}" 
+  succs :: "instr list \<Rightarrow> int \<Rightarrow> int set" where
+  "succs P n = {s. \<exists>i::int. 0 \<le> i \<and> i < size P \<and> s \<in> isuccs (P!!i) (n+i)}" 
 
-text {* Possible exit pc's of a program *}
+text {* Possible exit PCs of a program *}
 definition
-  "exits P = succs P 0 - {0..< isize P}"
+  "exits P = succs P 0 - {0..< size P}"
 
   
 subsection {* Basic properties of @{term exec_n} *}
@@ -69,11 +72,11 @@ lemma exec_n_step:
   by (cases k) auto
 
 lemma exec1_end:
-  "isize P <= fst c \<Longrightarrow> \<not> P \<turnstile> c \<rightarrow> c'"
+  "size P <= fst c \<Longrightarrow> \<not> P \<turnstile> c \<rightarrow> c'"
   by auto
 
 lemma exec_n_end:
-  "isize P <= n \<Longrightarrow> 
+  "size P <= (n::int) \<Longrightarrow> 
   P \<turnstile> (n,s,stk) \<rightarrow>^k (n',s',stk') = (n' = n \<and> stk'=stk \<and> s'=s \<and> k =0)"
   by (cases k) (auto simp: exec1_end)
 
@@ -98,9 +101,9 @@ lemma succs_empty [iff]: "succs [] n = {}"
 lemma succs_Cons:
   "succs (x#xs) n = isuccs x n \<union> succs xs (1+n)" (is "_ = ?x \<union> ?xs")
 proof 
-  let ?isuccs = "\<lambda>p P n i. 0 \<le> i \<and> i < isize P \<and> p \<in> isuccs (P!!i) (n+i)"
+  let ?isuccs = "\<lambda>p P n i::int. 0 \<le> i \<and> i < size P \<and> p \<in> isuccs (P!!i) (n+i)"
   { fix p assume "p \<in> succs (x#xs) n"
-    then obtain i where isuccs: "?isuccs p (x#xs) n i"
+    then obtain i::int where isuccs: "?isuccs p (x#xs) n i"
       unfolding succs_def by auto     
     have "p \<in> ?x \<union> ?xs" 
     proof cases
@@ -132,7 +135,7 @@ proof
 qed
 
 lemma succs_iexec1:
-  assumes "c' = iexec (P!!i) (i,s,stk)" "0 \<le> i" "i < isize P"
+  assumes "c' = iexec (P!!i) (i,s,stk)" "0 \<le> i" "i < size P"
   shows "fst c' \<in> succs P 0"
   using assms by (auto simp: succs_def isuccs_def split: instr.split)
 
@@ -149,13 +152,13 @@ lemma succs_set_shift [simp]:
   by (force simp: succs_shift [where n=i, symmetric] intro: set_eqI)
 
 lemma succs_append [simp]:
-  "succs (xs @ ys) n = succs xs n \<union> succs ys (n + isize xs)"
+  "succs (xs @ ys) n = succs xs n \<union> succs ys (n + size xs)"
   by (induct xs arbitrary: n) (auto simp: succs_Cons algebra_simps)
 
 
 lemma exits_append [simp]:
-  "exits (xs @ ys) = exits xs \<union> (op + (isize xs)) ` exits ys - 
-                     {0..<isize xs + isize ys}" 
+  "exits (xs @ ys) = exits xs \<union> (op + (size xs)) ` exits ys - 
+                     {0..<size xs + size ys}" 
   by (auto simp: exits_def image_set_diff)
   
 lemma exits_single:
@@ -164,7 +167,7 @@ lemma exits_single:
   
 lemma exits_Cons:
   "exits (x # xs) = (isuccs x 0 - {0}) \<union> (op + 1) ` exits xs - 
-                     {0..<1 + isize xs}" 
+                     {0..<1 + size xs}" 
   using exits_append [of "[x]" xs]
   by (simp add: exits_single)
 
@@ -181,21 +184,21 @@ lemma exits_simps [simp]:
   by (auto simp: exits_def)
 
 lemma acomp_succs [simp]:
-  "succs (acomp a) n = {n + 1 .. n + isize (acomp a)}"
+  "succs (acomp a) n = {n + 1 .. n + size (acomp a)}"
   by (induct a arbitrary: n) auto
 
 lemma acomp_size:
-  "1 \<le> isize (acomp a)"
+  "(1::int) \<le> size (acomp a)"
   by (induct a) auto
 
 lemma acomp_exits [simp]:
-  "exits (acomp a) = {isize (acomp a)}"
+  "exits (acomp a) = {size (acomp a)}"
   by (auto simp: exits_def acomp_size)
 
 lemma bcomp_succs:
   "0 \<le> i \<Longrightarrow>
-  succs (bcomp b c i) n \<subseteq> {n .. n + isize (bcomp b c i)}
-                           \<union> {n + i + isize (bcomp b c i)}" 
+  succs (bcomp b c i) n \<subseteq> {n .. n + size (bcomp b c i)}
+                           \<union> {n + i + size (bcomp b c i)}" 
 proof (induction b arbitrary: c i n)
   case (And b1 b2)
   from And.prems
@@ -208,17 +211,19 @@ qed auto
 lemmas bcomp_succsD [dest!] = bcomp_succs [THEN subsetD, rotated]
 
 lemma bcomp_exits:
+  fixes i :: int
+  shows
   "0 \<le> i \<Longrightarrow>
-  exits (bcomp b c i) \<subseteq> {isize (bcomp b c i), i + isize (bcomp b c i)}" 
+  exits (bcomp b c i) \<subseteq> {size (bcomp b c i), i + size (bcomp b c i)}" 
   by (auto simp: exits_def)
   
 lemma bcomp_exitsD [dest!]:
   "p \<in> exits (bcomp b c i) \<Longrightarrow> 0 \<le> i \<Longrightarrow> 
-  p = isize (bcomp b c i) \<or> p = i + isize (bcomp b c i)"
+  p = size (bcomp b c i) \<or> p = i + size (bcomp b c i)"
   using bcomp_exits by auto
 
 lemma ccomp_succs:
-  "succs (ccomp c) n \<subseteq> {n..n + isize (ccomp c)}"
+  "succs (ccomp c) n \<subseteq> {n..n + size (ccomp c)}"
 proof (induction c arbitrary: n)
   case SKIP thus ?case by simp
 next
@@ -240,58 +245,61 @@ next
 qed
 
 lemma ccomp_exits:
-  "exits (ccomp c) \<subseteq> {isize (ccomp c)}"
+  "exits (ccomp c) \<subseteq> {size (ccomp c)}"
   using ccomp_succs [of c 0] by (auto simp: exits_def)
 
 lemma ccomp_exitsD [dest!]:
-  "p \<in> exits (ccomp c) \<Longrightarrow> p = isize (ccomp c)"
+  "p \<in> exits (ccomp c) \<Longrightarrow> p = size (ccomp c)"
   using ccomp_exits by auto
 
 
 subsection {* Splitting up machine executions *}
 
 lemma exec1_split:
-  "P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow> (j,s') \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < isize c \<Longrightarrow> 
-  c \<turnstile> (i,s) \<rightarrow> (j - isize P, s')"
+  fixes i j :: int
+  shows
+  "P @ c @ P' \<turnstile> (size P + i, s) \<rightarrow> (j,s') \<Longrightarrow> 0 \<le> i \<Longrightarrow> i < size c \<Longrightarrow> 
+  c \<turnstile> (i,s) \<rightarrow> (j - size P, s')"
   by (auto split: instr.splits)
 
 lemma exec_n_split:
-  assumes "P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow>^n (j, s')"
-          "0 \<le> i" "i < isize c" 
-          "j \<notin> {isize P ..< isize P + isize c}"
-  shows "\<exists>s'' i' k m. 
+  fixes i j :: int
+  assumes "P @ c @ P' \<turnstile> (size P + i, s) \<rightarrow>^n (j, s')"
+          "0 \<le> i" "i < size c" 
+          "j \<notin> {size P ..< size P + size c}"
+  shows "\<exists>s'' (i'::int) k m. 
                    c \<turnstile> (i, s) \<rightarrow>^k (i', s'') \<and>
                    i' \<in> exits c \<and> 
-                   P @ c @ P' \<turnstile> (isize P + i', s'') \<rightarrow>^m (j, s') \<and>
+                   P @ c @ P' \<turnstile> (size P + i', s'') \<rightarrow>^m (j, s') \<and>
                    n = k + m" 
 using assms proof (induction n arbitrary: i j s)
   case 0
   thus ?case by simp
 next
   case (Suc n)
-  have i: "0 \<le> i" "i < isize c" by fact+
+  have i: "0 \<le> i" "i < size c" by fact+
   from Suc.prems
-  have j: "\<not> (isize P \<le> j \<and> j < isize P + isize c)" by simp
+  have j: "\<not> (size P \<le> j \<and> j < size P + size c)" by simp
   from Suc.prems 
   obtain i0 s0 where
-    step: "P @ c @ P' \<turnstile> (isize P + i, s) \<rightarrow> (i0,s0)" and
+    step: "P @ c @ P' \<turnstile> (size P + i, s) \<rightarrow> (i0,s0)" and
     rest: "P @ c @ P' \<turnstile> (i0,s0) \<rightarrow>^n (j, s')"
     by clarsimp
 
   from step i
-  have c: "c \<turnstile> (i,s) \<rightarrow> (i0 - isize P, s0)" by (rule exec1_split)
+  have c: "c \<turnstile> (i,s) \<rightarrow> (i0 - size P, s0)" by (rule exec1_split)
 
-  have "i0 = isize P + (i0 - isize P) " by simp
-  then obtain j0 where j0: "i0 = isize P + j0"  ..
+  have "i0 = size P + (i0 - size P) " by simp
+  then obtain j0::int where j0: "i0 = size P + j0"  ..
 
   note split_paired_Ex [simp del]
 
-  { assume "j0 \<in> {0 ..< isize c}"
+  { assume "j0 \<in> {0 ..< size c}"
     with j0 j rest c
     have ?case
       by (fastforce dest!: Suc.IH intro!: exec_Suc)
   } moreover {
-    assume "j0 \<notin> {0 ..< isize c}"
+    assume "j0 \<notin> {0 ..< size c}"
     moreover
     from c j0 have "j0 \<in> succs c 0"
       by (auto dest: succs_iexec1 simp del: iexec.simps)
@@ -305,7 +313,8 @@ next
 qed
 
 lemma exec_n_drop_right:
-  assumes "c @ P' \<turnstile> (0, s) \<rightarrow>^n (j, s')" "j \<notin> {0..<isize c}"
+  fixes j :: int
+  assumes "c @ P' \<turnstile> (0, s) \<rightarrow>^n (j, s')" "j \<notin> {0..<size c}"
   shows "\<exists>s'' i' k m. 
           (if c = [] then s'' = s \<and> i' = 0 \<and> k = 0
            else c \<turnstile> (0, s) \<rightarrow>^k (i', s'') \<and>
@@ -322,22 +331,24 @@ text {*
 *}
 
 lemma exec1_drop_left:
-  assumes "P1 @ P2 \<turnstile> (i, s, stk) \<rightarrow> (n, s', stk')" and "isize P1 \<le> i"
-  shows "P2 \<turnstile> (i - isize P1, s, stk) \<rightarrow> (n - isize P1, s', stk')"
+  fixes i n :: int
+  assumes "P1 @ P2 \<turnstile> (i, s, stk) \<rightarrow> (n, s', stk')" and "size P1 \<le> i"
+  shows "P2 \<turnstile> (i - size P1, s, stk) \<rightarrow> (n - size P1, s', stk')"
 proof -
-  have "i = isize P1 + (i - isize P1)" by simp 
-  then obtain i' where "i = isize P1 + i'" ..
+  have "i = size P1 + (i - size P1)" by simp 
+  then obtain i' :: int where "i = size P1 + i'" ..
   moreover
-  have "n = isize P1 + (n - isize P1)" by simp 
-  then obtain n' where "n = isize P1 + n'" ..
+  have "n = size P1 + (n - size P1)" by simp 
+  then obtain n' :: int where "n = size P1 + n'" ..
   ultimately 
   show ?thesis using assms by (clarsimp simp del: iexec.simps)
 qed
 
 lemma exec_n_drop_left:
+  fixes i n :: int
   assumes "P @ P' \<turnstile> (i, s, stk) \<rightarrow>^k (n, s', stk')"
-          "isize P \<le> i" "exits P' \<subseteq> {0..}"
-  shows "P' \<turnstile> (i - isize P, s, stk) \<rightarrow>^k (n - isize P, s', stk')"
+          "size P \<le> i" "exits P' \<subseteq> {0..}"
+  shows "P' \<turnstile> (i - size P, s, stk) \<rightarrow>^k (n - size P, s', stk')"
 using assms proof (induction k arbitrary: i s stk)
   case 0 thus ?case by simp
 next
@@ -347,16 +358,16 @@ next
     step: "P @ P' \<turnstile> (i, s, stk) \<rightarrow> (i', s'', stk'')" and
     rest: "P @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^k (n, s', stk')"
     by (auto simp del: exec1_def)
-  from step `isize P \<le> i`
-  have "P' \<turnstile> (i - isize P, s, stk) \<rightarrow> (i' - isize P, s'', stk'')" 
+  from step `size P \<le> i`
+  have "P' \<turnstile> (i - size P, s, stk) \<rightarrow> (i' - size P, s'', stk'')" 
     by (rule exec1_drop_left)
   moreover
-  then have "i' - isize P \<in> succs P' 0"
+  then have "i' - size P \<in> succs P' 0"
     by (fastforce dest!: succs_iexec1 simp del: iexec.simps)
   with `exits P' \<subseteq> {0..}`
-  have "isize P \<le> i'" by (auto simp: exits_def)
+  have "size P \<le> i'" by (auto simp: exits_def)
   from rest this `exits P' \<subseteq> {0..}`     
-  have "P' \<turnstile> (i' - isize P, s'', stk'') \<rightarrow>^k (n - isize P, s', stk')"
+  have "P' \<turnstile> (i' - size P, s'', stk'') \<rightarrow>^k (n - size P, s', stk')"
     by (rule Suc.IH)
   ultimately
   show ?case by auto
@@ -366,7 +377,7 @@ lemmas exec_n_drop_Cons =
   exec_n_drop_left [where P="[instr]", simplified] for instr
 
 definition
-  "closed P \<longleftrightarrow> exits P \<subseteq> {isize P}" 
+  "closed P \<longleftrightarrow> exits P \<subseteq> {size P}" 
 
 lemma ccomp_closed [simp, intro!]: "closed (ccomp c)"
   using ccomp_exits by (auto simp: closed_def)
@@ -375,27 +386,28 @@ lemma acomp_closed [simp, intro!]: "closed (acomp c)"
   by (simp add: closed_def)
 
 lemma exec_n_split_full:
+  fixes j :: int
   assumes exec: "P @ P' \<turnstile> (0,s,stk) \<rightarrow>^k (j, s', stk')"
-  assumes P: "isize P \<le> j" 
+  assumes P: "size P \<le> j" 
   assumes closed: "closed P"
   assumes exits: "exits P' \<subseteq> {0..}"
-  shows "\<exists>k1 k2 s'' stk''. P \<turnstile> (0,s,stk) \<rightarrow>^k1 (isize P, s'', stk'') \<and> 
-                           P' \<turnstile> (0,s'',stk'') \<rightarrow>^k2 (j - isize P, s', stk')"
+  shows "\<exists>k1 k2 s'' stk''. P \<turnstile> (0,s,stk) \<rightarrow>^k1 (size P, s'', stk'') \<and> 
+                           P' \<turnstile> (0,s'',stk'') \<rightarrow>^k2 (j - size P, s', stk')"
 proof (cases "P")
   case Nil with exec
   show ?thesis by fastforce
 next
   case Cons
-  hence "0 < isize P" by simp
+  hence "0 < size P" by simp
   with exec P closed
   obtain k1 k2 s'' stk'' where
-    1: "P \<turnstile> (0,s,stk) \<rightarrow>^k1 (isize P, s'', stk'')" and
-    2: "P @ P' \<turnstile> (isize P,s'',stk'') \<rightarrow>^k2 (j, s', stk')"
+    1: "P \<turnstile> (0,s,stk) \<rightarrow>^k1 (size P, s'', stk'')" and
+    2: "P @ P' \<turnstile> (size P,s'',stk'') \<rightarrow>^k2 (j, s', stk')"
     by (auto dest!: exec_n_split [where P="[]" and i=0, simplified] 
              simp: closed_def)
   moreover
-  have "j = isize P + (j - isize P)" by simp
-  then obtain j0 where "j = isize P + j0" ..
+  have "j = size P + (j - size P)" by simp
+  then obtain j0 :: int where "j = size P + j0" ..
   ultimately
   show ?thesis using exits
     by (fastforce dest: exec_n_drop_left)
@@ -409,18 +421,18 @@ lemma acomp_neq_Nil [simp]:
   by (induct a) auto
 
 lemma acomp_exec_n [dest!]:
-  "acomp a \<turnstile> (0,s,stk) \<rightarrow>^n (isize (acomp a),s',stk') \<Longrightarrow> 
+  "acomp a \<turnstile> (0,s,stk) \<rightarrow>^n (size (acomp a),s',stk') \<Longrightarrow> 
   s' = s \<and> stk' = aval a s#stk"
 proof (induction a arbitrary: n s' stk stk')
   case (Plus a1 a2)
-  let ?sz = "isize (acomp a1) + (isize (acomp a2) + 1)"
+  let ?sz = "size (acomp a1) + (size (acomp a2) + 1)"
   from Plus.prems
   have "acomp a1 @ acomp a2 @ [ADD] \<turnstile> (0,s,stk) \<rightarrow>^n (?sz, s', stk')" 
     by (simp add: algebra_simps)
       
   then obtain n1 s1 stk1 n2 s2 stk2 n3 where 
-    "acomp a1 \<turnstile> (0,s,stk) \<rightarrow>^n1 (isize (acomp a1), s1, stk1)"
-    "acomp a2 \<turnstile> (0,s1,stk1) \<rightarrow>^n2 (isize (acomp a2), s2, stk2)" 
+    "acomp a1 \<turnstile> (0,s,stk) \<rightarrow>^n1 (size (acomp a1), s1, stk1)"
+    "acomp a2 \<turnstile> (0,s1,stk1) \<rightarrow>^n2 (size (acomp a2), s2, stk2)" 
        "[ADD] \<turnstile> (0,s2,stk2) \<rightarrow>^n3 (1, s', stk')"
     by (auto dest!: exec_n_split_full)
 
@@ -428,19 +440,21 @@ proof (induction a arbitrary: n s' stk stk')
 qed (auto simp: exec_n_simps)
 
 lemma bcomp_split:
+  fixes i j :: int
   assumes "bcomp b c i @ P' \<turnstile> (0, s, stk) \<rightarrow>^n (j, s', stk')" 
-          "j \<notin> {0..<isize (bcomp b c i)}" "0 \<le> i"
-  shows "\<exists>s'' stk'' i' k m. 
+          "j \<notin> {0..<size (bcomp b c i)}" "0 \<le> i"
+  shows "\<exists>s'' stk'' (i'::int) k m. 
            bcomp b c i \<turnstile> (0, s, stk) \<rightarrow>^k (i', s'', stk'') \<and>
-           (i' = isize (bcomp b c i) \<or> i' = i + isize (bcomp b c i)) \<and>
+           (i' = size (bcomp b c i) \<or> i' = i + size (bcomp b c i)) \<and>
            bcomp b c i @ P' \<turnstile> (i', s'', stk'') \<rightarrow>^m (j, s', stk') \<and>
            n = k + m"
   using assms by (cases "bcomp b c i = []") (fastforce dest!: exec_n_drop_right)+
 
 lemma bcomp_exec_n [dest]:
+  fixes i j :: int
   assumes "bcomp b c j \<turnstile> (0, s, stk) \<rightarrow>^n (i, s', stk')"
-          "isize (bcomp b c j) \<le> i" "0 \<le> j"
-  shows "i = isize(bcomp b c j) + (if c = bval b s then j else 0) \<and>
+          "size (bcomp b c j) \<le> i" "0 \<le> j"
+  shows "i = size(bcomp b c j) + (if c = bval b s then j else 0) \<and>
          s' = s \<and> stk' = stk"
 using assms proof (induction b arbitrary: c j i n s' stk')
   case Bc thus ?case 
@@ -453,19 +467,19 @@ next
   case (And b1 b2)
   
   let ?b2 = "bcomp b2 c j" 
-  let ?m  = "if c then isize ?b2 else isize ?b2 + j"
+  let ?m  = "if c then size ?b2 else size ?b2 + j"
   let ?b1 = "bcomp b1 False ?m" 
 
-  have j: "isize (bcomp (And b1 b2) c j) \<le> i" "0 \<le> j" by fact+
+  have j: "size (bcomp (And b1 b2) c j) \<le> i" "0 \<le> j" by fact+
   
   from And.prems
-  obtain s'' stk'' i' k m where 
+  obtain s'' stk'' and i'::int and k m where 
     b1: "?b1 \<turnstile> (0, s, stk) \<rightarrow>^k (i', s'', stk'')"
-        "i' = isize ?b1 \<or> i' = ?m + isize ?b1" and
-    b2: "?b2 \<turnstile> (i' - isize ?b1, s'', stk'') \<rightarrow>^m (i - isize ?b1, s', stk')"
+        "i' = size ?b1 \<or> i' = ?m + size ?b1" and
+    b2: "?b2 \<turnstile> (i' - size ?b1, s'', stk'') \<rightarrow>^m (i - size ?b1, s', stk')"
     by (auto dest!: bcomp_split dest: exec_n_drop_left)
   from b1 j
-  have "i' = isize ?b1 + (if \<not>bval b1 s then ?m else 0) \<and> s'' = s \<and> stk'' = stk"
+  have "i' = size ?b1 + (if \<not>bval b1 s then ?m else 0) \<and> s'' = s \<and> stk'' = stk"
     by (auto dest!: And.IH)
   with b2 j
   show ?case 
@@ -482,7 +496,7 @@ lemma ccomp_empty [elim!]:
 declare assign_simp [simp]
 
 lemma ccomp_exec_n:
-  "ccomp c \<turnstile> (0,s,stk) \<rightarrow>^n (isize(ccomp c),t,stk')
+  "ccomp c \<turnstile> (0,s,stk) \<rightarrow>^n (size(ccomp c),t,stk')
   \<Longrightarrow> (c,s) \<Rightarrow> t \<and> stk'=stk"
 proof (induction c arbitrary: s t stk stk' n)
   case SKIP
@@ -500,24 +514,24 @@ next
 
   let ?if = "IF b THEN c1 ELSE c2"
   let ?cs = "ccomp ?if"
-  let ?bcomp = "bcomp b False (isize (ccomp c1) + 1)"
+  let ?bcomp = "bcomp b False (size (ccomp c1) + 1)"
   
-  from `?cs \<turnstile> (0,s,stk) \<rightarrow>^n (isize ?cs,t,stk')`
-  obtain i' k m s'' stk'' where
-    cs: "?cs \<turnstile> (i',s'',stk'') \<rightarrow>^m (isize ?cs,t,stk')" and
+  from `?cs \<turnstile> (0,s,stk) \<rightarrow>^n (size ?cs,t,stk')`
+  obtain i' :: int and k m s'' stk'' where
+    cs: "?cs \<turnstile> (i',s'',stk'') \<rightarrow>^m (size ?cs,t,stk')" and
         "?bcomp \<turnstile> (0,s,stk) \<rightarrow>^k (i', s'', stk'')" 
-        "i' = isize ?bcomp \<or> i' = isize ?bcomp + isize (ccomp c1) + 1"
+        "i' = size ?bcomp \<or> i' = size ?bcomp + size (ccomp c1) + 1"
     by (auto dest!: bcomp_split)
 
   hence i':
     "s''=s" "stk'' = stk" 
-    "i' = (if bval b s then isize ?bcomp else isize ?bcomp+isize(ccomp c1)+1)"
+    "i' = (if bval b s then size ?bcomp else size ?bcomp+size(ccomp c1)+1)"
     by auto
   
   with cs have cs':
-    "ccomp c1@JMP (isize (ccomp c2))#ccomp c2 \<turnstile> 
-       (if bval b s then 0 else isize (ccomp c1)+1, s, stk) \<rightarrow>^m
-       (1 + isize (ccomp c1) + isize (ccomp c2), t, stk')"
+    "ccomp c1@JMP (size (ccomp c2))#ccomp c2 \<turnstile> 
+       (if bval b s then 0 else size (ccomp c1)+1, s, stk) \<rightarrow>^m
+       (1 + size (ccomp c1) + size (ccomp c2), t, stk')"
     by (fastforce dest: exec_n_drop_left simp: exits_Cons isuccs_def algebra_simps)
      
   show ?case
@@ -551,12 +565,12 @@ next
       assume b: "bval b s"
       let ?c0 = "WHILE b DO c"
       let ?cs = "ccomp ?c0"
-      let ?bs = "bcomp b False (isize (ccomp c) + 1)"
-      let ?jmp = "[JMP (-((isize ?bs + isize (ccomp c) + 1)))]"
+      let ?bs = "bcomp b False (size (ccomp c) + 1)"
+      let ?jmp = "[JMP (-((size ?bs + size (ccomp c) + 1)))]"
       
       from "1.prems" b
       obtain k where
-        cs: "?cs \<turnstile> (isize ?bs, s, stk) \<rightarrow>^k (isize ?cs, t, stk')" and
+        cs: "?cs \<turnstile> (size ?bs, s, stk) \<rightarrow>^k (size ?cs, t, stk')" and
         k:  "k \<le> n"
         by (fastforce dest!: bcomp_split)
       
@@ -565,7 +579,7 @@ next
         assume "ccomp c = []"
         with cs k
         obtain m where
-          "?cs \<turnstile> (0,s,stk) \<rightarrow>^m (isize (ccomp ?c0), t, stk')"
+          "?cs \<turnstile> (0,s,stk) \<rightarrow>^m (size (ccomp ?c0), t, stk')"
           "m < n"
           by (auto simp: exec_n_step [where k=k])
         with "1.IH"
@@ -574,9 +588,9 @@ next
         assume "ccomp c \<noteq> []"
         with cs
         obtain m m' s'' stk'' where
-          c: "ccomp c \<turnstile> (0, s, stk) \<rightarrow>^m' (isize (ccomp c), s'', stk'')" and 
-          rest: "?cs \<turnstile> (isize ?bs + isize (ccomp c), s'', stk'') \<rightarrow>^m 
-                       (isize ?cs, t, stk')" and
+          c: "ccomp c \<turnstile> (0, s, stk) \<rightarrow>^m' (size (ccomp c), s'', stk'')" and 
+          rest: "?cs \<turnstile> (size ?bs + size (ccomp c), s'', stk'') \<rightarrow>^m 
+                       (size ?cs, t, stk')" and
           m: "k = m + m'"
           by (auto dest: exec_n_split [where i=0, simplified])
         from c
@@ -585,7 +599,7 @@ next
         moreover
         from rest m k stk
         obtain k' where
-          "?cs \<turnstile> (0, s'', stk) \<rightarrow>^k' (isize ?cs, t, stk')"
+          "?cs \<turnstile> (0, s'', stk) \<rightarrow>^k' (size ?cs, t, stk')"
           "k' < n"
           by (auto simp: exec_n_step [where k=m])
         with "1.IH"
@@ -599,11 +613,11 @@ next
 qed
 
 theorem ccomp_exec:
-  "ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (isize(ccomp c),t,stk') \<Longrightarrow> (c,s) \<Rightarrow> t"
+  "ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (size(ccomp c),t,stk') \<Longrightarrow> (c,s) \<Rightarrow> t"
   by (auto dest: exec_exec_n ccomp_exec_n)
 
 corollary ccomp_sound:
-  "ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (isize(ccomp c),t,stk)  \<longleftrightarrow>  (c,s) \<Rightarrow> t"
+  "ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (size(ccomp c),t,stk)  \<longleftrightarrow>  (c,s) \<Rightarrow> t"
   by (blast intro!: ccomp_exec ccomp_bigstep)
 
 end

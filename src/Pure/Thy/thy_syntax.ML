@@ -18,6 +18,7 @@ sig
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val map_element: ('a -> 'b) -> 'a element -> 'b element
   val flat_element: 'a element -> 'a list
+  val last_element: 'a element -> 'a
   val parse_elements: span list -> span element list
 end;
 
@@ -118,7 +119,7 @@ local
 fun make_span toks =
   if not (null toks) andalso Token.is_command (hd toks) then
     Span (Command (Token.content_of (hd toks), Token.position_of (hd toks)), toks)
-  else if forall (not o Token.is_proper) toks then Span (Ignored, toks)
+  else if forall Token.is_improper toks then Span (Ignored, toks)
   else Span (Malformed, toks);
 
 fun flush (result, span) = if null span then (result, span) else (rev span :: result, []);
@@ -147,6 +148,9 @@ fun map_element f (Element (a, NONE)) = Element (f a, NONE)
 
 fun flat_element (Element (a, NONE)) = [a]
   | flat_element (Element (a, SOME (elems, b))) = a :: maps flat_element elems @ [b];
+
+fun last_element (Element (a, NONE)) = a
+  | last_element (Element (_, SOME (_, b))) = b;
 
 
 (* scanning spans *)

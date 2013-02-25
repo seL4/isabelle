@@ -51,6 +51,7 @@ sig
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
   val ignored: Position.T -> transition
+  val is_ignored: transition -> bool
   val malformed: Position.T -> string -> transition
   val is_malformed: transition -> bool
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
@@ -414,6 +415,7 @@ fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
 
 fun ignored pos = empty |> name "<ignored>" |> position pos |> imperative I;
+fun is_ignored tr = name_of tr = "<ignored>";
 
 val malformed_name = "<malformed>";
 fun malformed pos msg =
