@@ -136,7 +136,7 @@ code_datatype Unit Null Bool Intg Addr undefined_val
 definition
   "test = exec (E, start_state E test_name makelist_name)"
 
-ML {*
+ML_val {*
   @{code test}; 
   @{code exec} (@{code E}, @{code the} it);
   @{code exec} (@{code E}, @{code the} it);

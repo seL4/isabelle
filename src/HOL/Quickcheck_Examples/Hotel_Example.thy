@@ -92,7 +92,7 @@ lemmas issued_simps[code] = issued_nil issued.simps(2)
 setup {*  Predicate_Compile_Data.ignore_consts [@{const_name Set.member},
   @{const_name "issued"}, @{const_name "cards"}, @{const_name "isin"},
   @{const_name Collect}, @{const_name insert}] *}
-ML {* Core_Data.force_modes_and_compilations *}
+ML_val {* Core_Data.force_modes_and_compilations *}
 
 fun find_first :: "('a => 'b option) => 'a list => 'b option"
 where

@@ -243,14 +243,14 @@ definition
 definition
   "test'' u = pigeonhole 8 (List.nth [0, 1, 2, 3, 4, 5, 6, 3, 7, 8])"
 
-ML "timeit (@{code test} 10)" 
-ML "timeit (@{code test'} 10)"
-ML "timeit (@{code test} 20)"
-ML "timeit (@{code test'} 20)"
-ML "timeit (@{code test} 25)"
-ML "timeit (@{code test'} 25)"
-ML "timeit (@{code test} 500)"
-ML "timeit @{code test''}"
+ML_val "timeit (@{code test} 10)" 
+ML_val "timeit (@{code test'} 10)"
+ML_val "timeit (@{code test} 20)"
+ML_val "timeit (@{code test'} 20)"
+ML_val "timeit (@{code test} 25)"
+ML_val "timeit (@{code test'} 25)"
+ML_val "timeit (@{code test} 500)"
+ML_val "timeit @{code test''}"
 
 end
 

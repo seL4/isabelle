@@ -256,6 +256,6 @@ text {*
   @{thm [display] warshall_correctness [no_vars]}
 *}
 
-ML "@{code warshall}"
+ML_val "@{code warshall}"
 
 end

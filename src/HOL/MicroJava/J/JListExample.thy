@@ -151,7 +151,7 @@ lemma test_code [code]:
   "test = exec_i_i_i_o example_prg (Norm (empty, empty)) E"
 by(auto intro: exec_i_i_i_oI intro!: pred_eqI elim: exec_i_i_i_oE simp add: test_def)
 
-ML {* 
+ML_val {* 
   val SOME ((_, (heap, locs)), _) = Predicate.yield @{code test};
   locs @{code l1_name};
   locs @{code l2_name};

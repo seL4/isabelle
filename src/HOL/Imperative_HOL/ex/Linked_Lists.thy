@@ -996,9 +996,9 @@ definition test_3 where "test_3 =
 
 code_reserved SML upto
 
-ML {* @{code test_1} () *}
-ML {* @{code test_2} () *}
-ML {* @{code test_3} () *}
+ML_val {* @{code test_1} () *}
+ML_val {* @{code test_2} () *}
+ML_val {* @{code test_3} () *}
 
 export_code test_1 test_2 test_3 checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 
