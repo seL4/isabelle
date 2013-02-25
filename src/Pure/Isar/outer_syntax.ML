@@ -293,7 +293,7 @@ val span_cmts = filter Token.is_proper #> cmts;
 end;
 
 
-(* read toplevel commands -- fail-safe *)
+(* read command span -- fail-safe *)
 
 fun read_span outer_syntax toks =
   let
