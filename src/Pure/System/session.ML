@@ -67,14 +67,8 @@ fun init_name reset parent name =
 
 (* finish *)
 
-fun finish_futures () =
-  (case map_filter Task_Queue.group_status (Goal.reset_futures ()) of
-    [] => ()
-  | exns => raise Par_Exn.make exns);
-
 fun finish () =
- (Future.shutdown ();
-  finish_futures ();
+ (Goal.shutdown_futures ();
   Thy_Info.finish ();
   Present.finish ();
   Keyword.status ();

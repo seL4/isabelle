@@ -28,6 +28,7 @@ sig
   val fork: int -> (unit -> 'a) -> 'a future
   val peek_futures: serial -> unit future list
   val reset_futures: unit -> Future.group list
+  val shutdown_futures: unit -> unit
   val future_enabled_level: int -> bool
   val future_enabled: unit -> bool
   val future_enabled_nested: int -> bool
@@ -177,6 +178,12 @@ fun peek_futures id =
 fun reset_futures () =
   Synchronized.change_result forked_proofs (fn (m, groups, tab) =>
     (Future.forked_proofs := 0; (groups, (0, [], Inttab.empty))));
+
+fun shutdown_futures () =
+  (Future.shutdown ();
+    (case map_filter Task_Queue.group_status (reset_futures ()) of
+      [] => ()
+    | exns => raise Par_Exn.make exns));
 
 end;
 
