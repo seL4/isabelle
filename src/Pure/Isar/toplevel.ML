@@ -720,8 +720,7 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
     val st' = command head_tr st;
   in
     if not future_enabled orelse is_ignored head_tr orelse
-      Keyword.is_schematic_goal (name_of head_tr) orelse null proof_trs orelse
-      not (can proof_of st') orelse Proof.is_relevant (proof_of st')
+      null proof_trs orelse not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
       let val (results, st'') = fold_map atom_result proof_trs st'
       in (Future.value (if is_ignored head_tr then results else (head_tr, st') :: results), st'') end

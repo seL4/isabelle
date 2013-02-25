@@ -50,7 +50,7 @@ theory Pure
   and "overloading" :: thy_decl
   and "code_datatype" :: thy_decl
   and "theorem" "lemma" "corollary" :: thy_goal
-  and "schematic_theorem" "schematic_lemma" "schematic_corollary" :: thy_schematic_goal
+  and "schematic_theorem" "schematic_lemma" "schematic_corollary" :: thy_goal
   and "notepad" :: thy_decl
   and "have" :: prf_goal % "proof"
   and "hence" :: prf_goal % "proof" == "then have"
