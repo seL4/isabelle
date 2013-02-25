@@ -75,7 +75,7 @@ theory Pure
   and "finally" "ultimately" :: prf_chain % "proof"
   and "back" :: prf_script % "proof"
   and "Isabelle.command" :: control
-  and "pretty_setmargin" "help" "print_commands" "print_configs"
+  and "help" "print_commands" "print_configs"
     "print_context" "print_theory" "print_syntax" "print_abbrevs"
     "print_theorems" "print_locales" "print_classes" "print_locale"
     "print_interps" "print_dependencies" "print_attributes"
@@ -88,7 +88,7 @@ theory Pure
   and "pwd" :: diag
   and "use_thy" "remove_thy" "kill_thy" :: control
   and "display_drafts" "print_drafts" "pr" :: diag
-  and "disable_pr" "enable_pr" "commit" "quit" "exit" :: control
+  and "pretty_setmargin" "disable_pr" "enable_pr" "commit" "quit" "exit" :: control
   and "welcome" :: diag
   and "init_toplevel" "linear_undo" "undo" "undos_proof" "cannot_undo" "kill" :: control
   and "end" :: thy_end % "theory"
