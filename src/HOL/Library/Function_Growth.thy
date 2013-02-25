@@ -11,7 +11,7 @@ subsection {* Motivation *}
 
 text {*
   When comparing growth of functions in computer science, it is common to adhere
-  on Landau Symbols (\<guillemotright>O-Notation\<guillemotleft>).  However these come at the cost of notational
+  on Landau Symbols (``O-Notation'').  However these come at the cost of notational
   oddities, particularly writing @{text "f = O(g)"} for @{text "f \<in> O(g)"} etc.
   
   Here we suggest a diffent way, following Hardy (G.~H.~Hardy and J.~E.~Littlewood,
@@ -152,7 +152,7 @@ text {*
   However @{text "f \<in> o(g) \<longrightarrow> f \<prec> g"} is provable, and this yields a
   handy introduction rule.
 
-  Note that D. Knuth ignores @{text o} altogether.  So what\<dots>
+  Note that D. Knuth ignores @{text o} altogether.  So what \dots
 
   Something still has to be said about the coefficient @{text c} in
   the definition of @{text "(\<prec>)"}.  In the typical definition of @{text o},
@@ -291,10 +291,10 @@ text {* @{prop "(\<lambda>n. f n + k) \<cong> f"} *}
 text {* @{prop "(\<lambda>n. Suc k * f n) \<cong> f"} *}
 
 lemma "f \<lesssim> (\<lambda>n. f n + g n)"
-by rule auto
+  by rule auto
 
 lemma "(\<lambda>_. 0) \<prec> (\<lambda>n. Suc k)"
-by (rule less_fun_strongI) auto
+  by (rule less_fun_strongI) auto
 
 lemma "(\<lambda>_. k) \<prec> Discrete.log"
 proof (rule less_fun_strongI)
@@ -335,10 +335,10 @@ proof (rule less_fun_strongI)
 qed
 
 lemma "id \<prec> (\<lambda>n. n\<twosuperior>)"
-by (rule less_fun_strongI) (auto simp add: power2_eq_square)
+  by (rule less_fun_strongI) (auto simp add: power2_eq_square)
 
 lemma "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. n ^ Suc k)"
-by (rule less_fun_strongI) auto
+  by (rule less_fun_strongI) auto
 
 text {* @{prop "(\<lambda>n. n ^ k) \<prec> (\<lambda>n. 2 ^ n)"} *}
 
