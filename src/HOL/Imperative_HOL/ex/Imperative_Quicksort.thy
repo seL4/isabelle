@@ -662,7 +662,7 @@ definition "example = do {
     qsort a
   }"
 
-ML {* @{code example} () *}
+ML_val {* @{code example} () *}
 
 export_code qsort checking SML SML_imp OCaml? OCaml_imp? Haskell? Scala Scala_imp
 

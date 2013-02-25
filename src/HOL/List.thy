@@ -444,7 +444,7 @@ parse_translation (advanced) {*
   in [(@{syntax_const "_listcompr"}, lc_tr)] end
 *}
 
-ML {*
+ML_val {*
   let
     val read = Syntax.read_term @{context};
     fun check s1 s2 = read s1 aconv read s2 orelse error ("Check failed: " ^ quote s1);

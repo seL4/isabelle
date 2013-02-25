@@ -33,16 +33,16 @@ ML {*
 fun check_upto f i j = if i > j then true else f i andalso check_upto f (i + 1) j
 *}
 
-ML {* 
+ML_val {* 
   map (fn test => check_upto test 0 1) testers
 *}
-ML {* 
+ML_val {* 
   map (fn test => check_upto test 0 2) testers
 *}
-ML {* 
+ML_val {* 
   map (fn test => check_upto test 0 3) testers
 *}
-ML {* 
+ML_val {* 
   map (fn test => check_upto test 0 7) testers
 *}
 

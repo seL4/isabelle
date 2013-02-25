@@ -35,9 +35,7 @@ sig
   type isar
   val isar: TextIO.instream -> bool -> isar
   val span_cmts: Token.T list -> Token.T list
-  val read_span: outer_syntax -> Token.T list -> Toplevel.transition * bool
-  val read_element: outer_syntax -> (unit -> theory) -> Thy_Syntax.span Thy_Syntax.element ->
-    (Toplevel.transition * Toplevel.transition list) list
+  val read_span: outer_syntax -> Token.T list -> Toplevel.transition
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -295,7 +293,7 @@ val span_cmts = filter Token.is_proper #> cmts;
 end;
 
 
-(* read toplevel commands -- fail-safe *)
+(* read command span -- fail-safe *)
 
 fun read_span outer_syntax toks =
   let
@@ -319,30 +317,16 @@ fun read_span outer_syntax toks =
     val (is_malformed, token_reports) = Thy_Syntax.reports_of_tokens toks;
     val _ = Position.reports_text (token_reports @ maps command_reports toks);
   in
-    if is_malformed then (Toplevel.malformed pos "Malformed command syntax", true)
+    if is_malformed then Toplevel.malformed pos "Malformed command syntax"
     else
       (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
         [tr] =>
           if Keyword.is_control (Toplevel.name_of tr) then
-            (Toplevel.malformed pos "Illegal control command", true)
-          else (tr, true)
-      | [] => (Toplevel.ignored (Position.set_range (Command.range toks)), false)
-      | _ => (Toplevel.malformed proper_range "Exactly one command expected", true))
-      handle ERROR msg => (Toplevel.malformed proper_range msg, true)
-  end;
-
-fun read_element outer_syntax init (Thy_Syntax.Element (head, opt_proof)) =
-  let
-    val read = read_span outer_syntax o Thy_Syntax.span_content;
-    val (tr, proper_head) = read head |>> Toplevel.modify_init init;
-    val proof_trs =
-      (case opt_proof of
-        NONE => []
-      | SOME (a, b) => map read (maps Thy_Syntax.flat_element a @ [b]) |> filter #2 |> map #1);
-  in
-    if proper_head andalso
-      not (Keyword.is_schematic_goal (Toplevel.name_of tr)) then [(tr, proof_trs)]
-    else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
+            Toplevel.malformed pos "Illegal control command"
+          else tr
+      | [] => Toplevel.ignored (Position.set_range (Command.range toks))
+      | _ => Toplevel.malformed proper_range "Exactly one command expected")
+      handle ERROR msg => Toplevel.malformed proper_range msg
   end;
 
 end;

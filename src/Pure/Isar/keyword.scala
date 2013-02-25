@@ -24,7 +24,6 @@ object Keyword
   val THY_LOAD = "thy_load"
   val THY_SCRIPT = "thy_script"
   val THY_GOAL = "thy_goal"
-  val THY_SCHEMATIC_GOAL = "thy_schematic_goal"
   val QED = "qed"
   val QED_BLOCK = "qed_block"
   val QED_GLOBAL = "qed_global"
@@ -49,7 +48,7 @@ object Keyword
   val diag = Set(DIAG)
   val theory =
     Set(THY_BEGIN, THY_END, THY_HEADING1, THY_HEADING2, THY_HEADING3, THY_HEADING4,
-      THY_DECL, THY_SCRIPT, THY_GOAL, THY_SCHEMATIC_GOAL)
+      THY_DECL, THY_SCRIPT, THY_GOAL)
   val theory1 = Set(THY_BEGIN, THY_END)
   val theory2 = Set(THY_DECL, THY_GOAL)
   val proof =

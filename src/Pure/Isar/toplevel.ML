@@ -51,6 +51,7 @@ sig
   val keep': (bool -> state -> unit) -> transition -> transition
   val imperative: (unit -> unit) -> transition -> transition
   val ignored: Position.T -> transition
+  val is_ignored: transition -> bool
   val malformed: Position.T -> string -> transition
   val is_malformed: transition -> bool
   val generic_theory: (generic_theory -> generic_theory) -> transition -> transition
@@ -94,7 +95,7 @@ sig
   val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
-  val proof_result: bool -> transition * transition list -> state ->
+  val element_result: transition Thy_Syntax.element -> state ->
     (transition * state) list future * state
 end;
 
@@ -414,6 +415,7 @@ fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
 
 fun ignored pos = empty |> name "<ignored>" |> position pos |> imperative I;
+fun is_ignored tr = name_of tr = "<ignored>";
 
 val malformed_name = "<malformed>";
 fun malformed pos msg =
@@ -692,10 +694,6 @@ fun command tr st =
       if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
 
-fun command_result tr st =
-  let val st' = command tr st
-  in ((tr, st'), st') end;
-
 
 (* scheduled proof result *)
 
@@ -706,13 +704,26 @@ structure Result = Proof_Data
   fun init _ = empty;
 );
 
-fun proof_result immediate (tr, proof_trs) st =
-  let val st' = command tr st in
-    if immediate orelse null proof_trs orelse not (can proof_of st') orelse
-      Proof.is_relevant (proof_of st')
+fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
+  let
+    val future_enabled = Goal.future_enabled ();
+
+    fun atom_result tr st =
+      let val st' = command tr st
+      in ((tr, st'), st') end;
+
+    val proof_trs =
+      (case opt_proof of
+        NONE => []
+      | SOME (a, b) => (maps Thy_Syntax.flat_element a @ [b]) |> filter_out is_ignored);
+
+    val st' = command head_tr st;
+  in
+    if not future_enabled orelse is_ignored head_tr orelse
+      null proof_trs orelse not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
-      let val (results, st'') = fold_map command_result proof_trs st'
-      in (Future.value ((tr, st') :: results), st'') end
+      let val (results, st'') = fold_map atom_result proof_trs st'
+      in (Future.value (if is_ignored head_tr then results else (head_tr, st') :: results), st'') end
     else
       let
         val (body_trs, end_tr) = split_last proof_trs;
@@ -730,15 +741,15 @@ fun proof_result immediate (tr, proof_trs) st =
                 let val (result, result_state) =
                   (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
                     => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                  |> fold_map command_result body_trs ||> command end_tr;
+                  |> fold_map atom_result body_trs ||> command end_tr;
                 in (result, presentation_context_of result_state) end))
           #-> Result.put;
 
         val st'' = st'
-          |> command (tr |> set_print false |> reset_trans |> end_proof (K future_proof));
+          |> command (head_tr |> set_print false |> reset_trans |> end_proof (K future_proof));
         val result =
           Result.get (presentation_context_of st'')
-          |> Future.map (fn body => (tr, st') :: body @ [(end_tr, st'')]);
+          |> Future.map (fn body => (head_tr, st') :: body @ [(end_tr, st'')]);
 
       in (result, st'') end
   end;

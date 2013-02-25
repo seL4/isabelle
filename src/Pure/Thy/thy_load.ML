@@ -216,26 +216,24 @@ fun begin_theory master_dir {name, imports, keywords, uses} parents =
 
 fun excursion last_timing init elements =
   let
-    val immediate = not (Goal.future_enabled ());
+    fun prepare_span span =
+      Thy_Syntax.span_content span
+      |> Outer_Syntax.read_span (#2 (Outer_Syntax.get_syntax ()))
+      |> Toplevel.modify_init init
+      |> (fn tr => Toplevel.put_timing (last_timing tr) tr);
 
-    fun put_timing tr = Toplevel.put_timing (last_timing tr) tr;
-    fun put_timings (tr, trs) = (put_timing tr, map put_timing trs);
-
-    fun proof_result (tr, trs) (st, _) =
+    fun element_result span_elem (st, _) =
       let
-        val (result, st') = Toplevel.proof_result immediate (tr, trs) st;
-        val pos' = Toplevel.pos_of (List.last (tr :: trs));
-      in (result, (st', pos')) end;
-
-    fun element_result elem x =
-      fold_map (proof_result o put_timings)
-        (Outer_Syntax.read_element (#2 (Outer_Syntax.get_syntax ())) init elem) x;
+        val elem = Thy_Syntax.map_element prepare_span span_elem;
+        val (results, st') = Toplevel.element_result elem st;
+        val pos' = Toplevel.pos_of (Thy_Syntax.last_element elem);
+      in (results, (st', pos')) end;
 
     val (results, (end_state, end_pos)) =
       fold_map element_result elements (Toplevel.toplevel, Position.none);
 
     val thy = Toplevel.end_theory end_pos end_state;
-  in (flat results, thy) end;
+  in (results, thy) end;
 
 fun load_thy last_timing update_time master_dir header text_pos text parents =
   let

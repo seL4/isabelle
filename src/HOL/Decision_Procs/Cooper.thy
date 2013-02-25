@@ -1994,7 +1994,7 @@ definition cooper_test :: "unit \<Rightarrow> fm"
       pa (E (A (Imp (Ge (Sub (Bound 0) (Bound 1)))
         (E (E (Eq (Sub (Add (Mul 3 (Bound 1)) (Mul 5 (Bound 0))) (Bound 2))))))))"
 
-ML {* @{code cooper_test} () *}
+ML_val {* @{code cooper_test} () *}
 
 (*code_reflect Cooper_Procedure
   functions pa

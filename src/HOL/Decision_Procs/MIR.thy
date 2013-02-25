@@ -5502,17 +5502,15 @@ definition
 definition
   "problem4 = E (And (Ge (Sub (Bound 1) (Bound 0))) (Eq (Add (Floor (Bound 1)) (Floor (Neg (Bound 0))))))"
 
-ML {*
-  Par_List.map (fn e => e ())
-   [fn () => @{code mircfrqe} @{code problem1},
-    fn () => @{code mirlfrqe} @{code problem1},
-    fn () => @{code mircfrqe} @{code problem2},
-    fn () => @{code mirlfrqe} @{code problem2},
-    fn () => @{code mircfrqe} @{code problem3},
-    fn () => @{code mirlfrqe} @{code problem3},
-    fn () => @{code mircfrqe} @{code problem4},
-    fn () => @{code mirlfrqe} @{code problem4}]
-*}
+ML_val {* @{code mircfrqe} @{code problem1} *}
+ML_val {* @{code mirlfrqe} @{code problem1} *}
+ML_val {* @{code mircfrqe} @{code problem2} *}
+ML_val {* @{code mirlfrqe} @{code problem2} *}
+ML_val {* @{code mircfrqe} @{code problem3} *}
+ML_val {* @{code mirlfrqe} @{code problem3} *}
+ML_val {* @{code mircfrqe} @{code problem4} *}
+ML_val {* @{code mirlfrqe} @{code problem4} *}
+
 
 (*code_reflect Mir
   functions mircfrqe mirlfrqe

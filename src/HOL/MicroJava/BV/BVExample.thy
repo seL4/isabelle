@@ -480,7 +480,7 @@ definition test1 where
 definition test2 where
   "test2 = test_kil E test_name [] (PrimT Void) 3 2 [] make_list_ins"
 
-ML {* 
+ML_val {* 
   @{code test1}; 
   @{code test2};
 *}

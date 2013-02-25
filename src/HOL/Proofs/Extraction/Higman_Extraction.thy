@@ -88,7 +88,7 @@ fun f2 :: "nat \<Rightarrow> letter list" where
   | "f2 (Suc (Suc 0)) = [B, A]"
   | "f2 _ = []"
 
-ML {*
+ML_val {*
 local
   val higman_idx = @{code higman_idx};
   val g1 = @{code g1};

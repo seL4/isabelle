@@ -22,7 +22,6 @@ sig
   val thy_load_files: string list -> T
   val thy_script: T
   val thy_goal: T
-  val thy_schematic_goal: T
   val qed: T
   val qed_block: T
   val qed_global: T
@@ -66,7 +65,6 @@ sig
   val is_proof_body: string -> bool
   val is_theory_goal: string -> bool
   val is_proof_goal: string -> bool
-  val is_schematic_goal: string -> bool
   val is_qed: string -> bool
   val is_qed_global: string -> bool
 end;
@@ -104,7 +102,6 @@ val thy_load = kind "thy_load";
 fun thy_load_files files = Keyword {kind = "thy_load", files = files, tags = []};
 val thy_script = kind "thy_script";
 val thy_goal = kind "thy_goal";
-val thy_schematic_goal = kind "thy_schematic_goal";
 val qed = kind "qed";
 val qed_block = kind "qed_block";
 val qed_global = kind "qed_global";
@@ -123,7 +120,7 @@ val prf_script = kind "prf_script";
 
 val kinds =
   [control, diag, thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_script, thy_goal, thy_schematic_goal, qed, qed_block, qed_global,
+    thy_load, thy_decl, thy_script, thy_goal, qed, qed_block, qed_global,
     prf_heading2, prf_heading3, prf_heading4, prf_goal, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
@@ -253,7 +250,7 @@ val is_theory_load = command_category [thy_load];
 
 val is_theory = command_category
   [thy_begin, thy_end, thy_heading1, thy_heading2, thy_heading3, thy_heading4,
-    thy_load, thy_decl, thy_script, thy_goal, thy_schematic_goal];
+    thy_load, thy_decl, thy_script, thy_goal];
 
 val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading2, prf_heading3, prf_heading4,
@@ -264,9 +261,8 @@ val is_proof_body = command_category
   [diag, prf_heading2, prf_heading3, prf_heading4, prf_block, prf_open,
     prf_close, prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
 
-val is_theory_goal = command_category [thy_goal, thy_schematic_goal];
+val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal];
-val is_schematic_goal = command_category [thy_schematic_goal];
 val is_qed = command_category [qed, qed_block];
 val is_qed_global = command_category [qed_global];
 

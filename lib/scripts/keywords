@@ -41,7 +41,6 @@ my %convert_kinds = (
   "thy_decl" => "theory-decl",
   "thy_script" => "theory-script",
   "thy_goal" => "theory-goal",
-  "thy_schematic_goal" => "theory-goal",
   "qed_block" => "qed-block",
   "qed_global" => "qed-global",
   "prf_heading2" => "proof-heading",

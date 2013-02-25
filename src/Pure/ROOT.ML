@@ -208,6 +208,7 @@ use "ML/ml_context.ML";
 
 (*theory sources*)
 use "Thy/thy_header.ML";
+use "Thy/thy_syntax.ML";
 use "Thy/html.ML";
 use "Thy/latex.ML";
 
@@ -257,7 +258,6 @@ use "Isar/toplevel.ML";
 use "System/isabelle_system.ML";
 use "Thy/term_style.ML";
 use "Thy/thy_output.ML";
-use "Thy/thy_syntax.ML";
 use "PIDE/command.ML";
 use "Isar/outer_syntax.ML";
 use "General/graph_display.ML";
