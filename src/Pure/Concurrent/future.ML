@@ -678,12 +678,14 @@ fun terminate group =
 (* shutdown *)
 
 fun shutdown () =
-  if Multithreading.available then
+  if not Multithreading.available then ()
+  else if is_some (worker_task ()) then
+    raise Fail "Cannot shutdown while running as worker thread"
+  else
     SYNCHRONIZED "shutdown" (fn () =>
       while scheduler_active () do
        (Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
-        wait scheduler_event))
-  else ();
+        wait scheduler_event));
 
 
 (*final declarations of this structure!*)
