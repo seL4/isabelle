@@ -1644,11 +1644,10 @@ lemma udvd_minus_le':
   apply (erule (2) udvd_decr0)
   done
 
-ML {* Delsimprocs [@{simproc linordered_ring_less_cancel_factor}] *}
-
 lemma udvd_incr2_K: 
   "p < a + s \<Longrightarrow> a <= a + s \<Longrightarrow> K udvd s \<Longrightarrow> K udvd p - a \<Longrightarrow> a <= p \<Longrightarrow> 
     0 < K \<Longrightarrow> p <= p + K & p + K <= a + s"
+  using [[simproc del: linordered_ring_less_cancel_factor]]
   apply (unfold udvd_def)
   apply clarify
   apply (simp add: uint_arith_simps split: split_if_asm)
@@ -1661,8 +1660,6 @@ lemma udvd_incr2_K:
    apply arith
   apply simp
   done
-
-ML {* Addsimprocs [@{simproc linordered_ring_less_cancel_factor}] *}
 
 (* links with rbl operations *)
 lemma word_succ_rbl:
