@@ -637,8 +637,7 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 local
 
 fun timing_message tr (t: Timing.timing) =
-  if Timing.is_relevant_time (#elapsed t) andalso not (Position.is_reported (pos_of tr))
-  then
+  if Timing.is_relevant_time (#elapsed t) then
     (case approximative_id tr of
       SOME id =>
         (Output.protocol_message
