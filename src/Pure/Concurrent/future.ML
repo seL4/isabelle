@@ -331,7 +331,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
           val _ = workers := alive;
         in
           Multithreading.tracing 0 (fn () =>
-            "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")
+            "SCHEDULER: disposed " ^ string_of_int (length dead) ^ " dead worker threads")
         end;
 
 
@@ -398,7 +398,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end
   handle exn =>
     if Exn.is_interrupt exn then
-     (Multithreading.tracing 1 (fn () => "Interrupt");
+     (Multithreading.tracing 1 (fn () => "SCHEDULER: Interrupt");
       List.app cancel_later (cancel_all ());
       broadcast_work (); true)
     else reraise exn;
@@ -684,8 +684,10 @@ fun terminate group =
 fun shutdown () =
   if Multithreading.available then
     SYNCHRONIZED "shutdown" (fn () =>
-     while scheduler_active () do
-      (wait scheduler_event; broadcast_work ()))
+      while scheduler_active () do
+       (Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
+        wait scheduler_event;
+        broadcast_work ()))
   else ();
 
 
