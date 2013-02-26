@@ -686,8 +686,7 @@ fun shutdown () =
     SYNCHRONIZED "shutdown" (fn () =>
       while scheduler_active () do
        (Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
-        wait scheduler_event;
-        broadcast_work ()))
+        wait scheduler_event))
   else ();
 
 
