@@ -95,8 +95,7 @@ sig
   val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command_exception: bool -> transition -> state -> state
-  val command_errors: bool -> transition -> state ->
-    ((serial * string) * string option) list * state option
+  val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val element_result: transition Thy_Syntax.element -> state ->
     (transition * state) list future * state
 end;
