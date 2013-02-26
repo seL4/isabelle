@@ -164,7 +164,7 @@ fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
 
 (* scheduling loader tasks *)
 
-type result = theory * unit future * (unit -> unit);
+type result = theory * serial * unit future * (unit -> unit);
 
 datatype task =
   Task of string list * (theory list -> result) |
@@ -177,8 +177,14 @@ fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) de
 
 local
 
-fun finish_thy ((thy, present, commit): result) =
-  (Thm.join_theory_proofs thy; Future.join present; commit (); thy);
+fun finish_thy ((thy, id, present, commit): result) =
+  let
+    val result1 = Exn.capture Thm.join_theory_proofs thy;
+    val results2 = Future.join_results (Goal.peek_futures id);
+    val result3 = Future.join_result present;
+    val _ = Par_Exn.release_all (result1 :: results2 @ [result3]);
+    val _ = commit ();
+  in thy end;
 
 val schedule_seq =
   String_Graph.schedule (fn deps => fn (_, task) =>
@@ -186,22 +192,29 @@ val schedule_seq =
       Task (parents, body) => finish_thy (body (task_parents deps parents))
     | Finished thy => thy)) #> ignore;
 
-val schedule_futures = uninterruptible (fn _ =>
-  String_Graph.schedule (fn deps => fn (name, task) =>
-    (case task of
-      Task (parents, body) =>
-        (singleton o Future.forks)
-          {name = "theory:" ^ name, group = NONE,
-            deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
-          (fn () =>
-            (case filter (not o can Future.join o #2) deps of
-              [] => body (map (#1 o Future.join) (task_parents deps parents))
-            | bad =>
-                error (loader_msg ("failed to load " ^ quote name ^
-                  " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
-    | Finished thy => Future.value (thy, Future.value (), I)))
-  #> maps (fn result => (finish_thy (Future.join result); []) handle exn => [Exn.Exn exn])
-  #> rev #> Par_Exn.release_all) #> ignore;
+val schedule_futures = uninterruptible (fn _ => fn tasks =>
+  let
+    val results1 = tasks
+      |> String_Graph.schedule (fn deps => fn (name, task) =>
+        (case task of
+          Task (parents, body) =>
+            (singleton o Future.forks)
+              {name = "theory:" ^ name, group = NONE,
+                deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
+              (fn () =>
+                (case filter (not o can Future.join o #2) deps of
+                  [] => body (map (#1 o Future.join) (task_parents deps parents))
+                | bad =>
+                    error (loader_msg ("failed to load " ^ quote name ^
+                      " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
+        | Finished thy => Future.value (thy, 0, Future.value (), I)))
+      |> maps (fn result => (finish_thy (Future.join result); []) handle exn => [Exn.Exn exn]);
+
+    (* FIXME avoid global reset_futures (!??) *)
+    val results2 = map Exn.Exn (map_filter Task_Queue.group_status (Goal.reset_futures ()));
+
+    val _ = Par_Exn.release_all (rev (results2 @ results1));
+  in () end);
 
 in
 
@@ -234,11 +247,13 @@ fun load_thy last_timing initiators update_time deps text (name, pos) uses keywo
 
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
 
+    val id = serial ();
+    val text_pos = Position.put_id (Markup.print_int id) (Path.position thy_path);
     val (theory, present) =
-      Thy_Load.load_thy last_timing update_time dir header (Path.position thy_path) text
+      Thy_Load.load_thy last_timing update_time dir header text_pos text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
-  in (theory, present, commit) end;
+  in (theory, id, present, commit) end;
 
 fun check_deps dir name =
   (case lookup_deps name of

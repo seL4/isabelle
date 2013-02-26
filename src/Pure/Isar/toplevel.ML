@@ -94,8 +94,9 @@ sig
   val get_timing: transition -> Time.time
   val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
-  val command: transition -> state -> state
-  val atom_result: transition -> state -> (transition * state) * state
+  val command_exception: bool -> transition -> state -> state
+  val command_errors: bool -> transition -> state ->
+    ((serial * string) * string option) list * state option
   val element_result: transition Thy_Syntax.element -> state ->
     (transition * state) list future * state
 end;
@@ -685,14 +686,20 @@ fun transition int tr st =
 end;
 
 
-(* nested commands *)
+(* managed commands *)
 
-fun command tr st =
-  (case transition (! interact) tr st of
+fun command_exception int tr st =
+  (case transition int tr st of
     SOME (st', NONE) => st'
   | SOME (_, SOME (exn, info)) =>
       if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
+
+fun command_errors int tr st =
+  (case transition int tr st of
+    SOME (st', NONE) => ([], SOME st')
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
+  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
 
 
 (* scheduled proof result *)
@@ -710,12 +717,19 @@ fun priority trs =
     else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1)
   end;
 
-fun atom_result tr st =
-  let val st' = command tr st
-  in ((tr, st'), st') end;
-
 fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
   let
+    val command = command_exception (! interact);
+
+    fun atom_result tr st =
+      let
+        val st' =
+          if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
+            setmp_thread_position tr (fn () =>
+              (Goal.fork_name "Toplevel.diag" (priority [tr]) (fn () => command tr st); st)) ()
+          else command tr st;
+      in ((tr, st'), st') end;
+
     val proof_trs =
       (case opt_proof of
         NONE => []
@@ -735,13 +749,14 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
 
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Goal.fork_name "Toplevel.future_proof" (priority proof_trs)
-              (fn () =>
-                let val (result, result_state) =
-                  (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
-                    => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                  |> fold_map atom_result body_trs ||> command end_tr;
-                in (result, presentation_context_of result_state) end))
+            setmp_thread_position head_tr (fn () =>
+              Goal.fork_name "Toplevel.future_proof" (priority proof_trs)
+                (fn () =>
+                  let val (result, result_state) =
+                    (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
+                      => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
+                    |> fold_map atom_result body_trs ||> command end_tr;
+                  in (result, presentation_context_of result_state) end)) ())
           #-> Result.put;
 
         val st'' = st'
