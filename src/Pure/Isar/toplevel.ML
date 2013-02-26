@@ -95,6 +95,7 @@ sig
   val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
+  val atom_result: transition -> state -> (transition * state) * state
   val element_result: transition Thy_Syntax.element -> state ->
     (transition * state) list future * state
 end;
@@ -704,22 +705,26 @@ structure Result = Proof_Data
   fun init _ = empty;
 );
 
+fun priority trs =
+  let val estimate = fold (curry Time.+ o get_timing) trs Time.zeroTime in
+    if estimate = Time.zeroTime then ~1
+    else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1)
+  end;
+
+fun atom_result tr st =
+  let val st' = command tr st
+  in ((tr, st'), st') end;
+
 fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
   let
-    val future_enabled = Goal.future_enabled ();
-
-    fun atom_result tr st =
-      let val st' = command tr st
-      in ((tr, st'), st') end;
-
     val proof_trs =
       (case opt_proof of
         NONE => []
       | SOME (a, b) => (maps Thy_Syntax.flat_element a @ [b]) |> filter_out is_ignored);
 
-    val st' = command head_tr st;
+    val (_, st') = atom_result head_tr st;
   in
-    if not future_enabled orelse is_ignored head_tr orelse
+    if not (Goal.future_enabled ()) orelse is_ignored head_tr orelse
       null proof_trs orelse not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
       let val (results, st'') = fold_map atom_result proof_trs st'
@@ -729,14 +734,9 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
-        val estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
-        val pri =
-          if estimate = Time.zeroTime then ~1
-          else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
-
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Goal.fork_name "Toplevel.future_proof" pri
+            Goal.fork_name "Toplevel.future_proof" (priority proof_trs)
               (fn () =>
                 let val (result, result_state) =
                   (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
