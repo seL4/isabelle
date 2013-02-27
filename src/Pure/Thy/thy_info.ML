@@ -243,7 +243,7 @@ fun load_thy last_timing initiators update_time deps text (name, pos) keywords p
 
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
-    val header = Thy_Header.make (name, pos) imports keywords [];
+    val header = Thy_Header.make (name, pos) imports keywords;
 
     val _ = Position.reports (map #2 imports ~~ map Theory.get_markup parents);
 

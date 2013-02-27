@@ -10,9 +10,8 @@ sig
   type header =
    {name: string * Position.T,
     imports: (string * Position.T) list,
-    keywords: keywords,
-    files: Path.T list}
-  val make: string * Position.T -> (string * Position.T) list -> keywords -> Path.T list -> header
+    keywords: keywords}
+  val make: string * Position.T -> (string * Position.T) list -> keywords -> header
   val define_keywords: header -> unit
   val declare_keyword: string * Keyword.spec option -> theory -> theory
   val the_keyword: theory -> string -> Keyword.spec option
@@ -29,11 +28,10 @@ type keywords = (string * Keyword.spec option) list;
 type header =
  {name: string * Position.T,
   imports: (string * Position.T) list,
-  keywords: keywords,
-  files: Path.T list};
+  keywords: keywords};
 
-fun make name imports keywords files : header =
-  {name = name, imports = imports, keywords = keywords, files = files};
+fun make name imports keywords : header =
+  {name = name, imports = imports, keywords = keywords};
 
 
 
@@ -111,7 +109,7 @@ val args =
   Scan.optional (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) [] --
   Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
   Parse.$$$ beginN >>
-  (fn ((name, imports), keywords) => make name imports keywords []);
+  (fn ((name, imports), keywords) => make name imports keywords);
 
 end;
 

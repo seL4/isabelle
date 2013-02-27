@@ -157,7 +157,7 @@ class Plugin extends EBPlugin
 
         val thy_info = new Thy_Info(PIDE.thy_load)
         // FIXME avoid I/O in Swing thread!?!
-        val files = thy_info.dependencies(true, thys).deps.map(_.name.node).
+        val files = thy_info.dependencies(thys).deps.map(_.name.node).
           filter(file => !loaded_buffer(file) && PIDE.thy_load.check_file(view, file))
 
         if (!files.isEmpty) {

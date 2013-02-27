@@ -83,7 +83,7 @@ fun map_node f (Node {header, perspective, entries, result}) =
 fun make_perspective command_ids : perspective =
   (Inttab.defined (Inttab.make (map (rpair ()) command_ids)), try List.last command_ids);
 
-val no_header = ("", Thy_Header.make ("", Position.none) [] [] [], ["Bad theory header"]);
+val no_header = ("", Thy_Header.make ("", Position.none) [] [], ["Bad theory header"]);
 val no_perspective = make_perspective [];
 
 val empty_node = make_node (no_header, no_perspective, (Entries.empty, true), NONE);
@@ -102,9 +102,9 @@ fun get_header (Node {header = (master, header, errors), ...}) =
 
 fun read_header node span =
   let
-    val (dir, {name = (name, _), imports, keywords, files}) = get_header node;
+    val (dir, {name = (name, _), imports, keywords}) = get_header node;
     val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
-  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords files) end;
+  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords) end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective ids =

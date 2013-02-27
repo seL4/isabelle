@@ -132,7 +132,7 @@ fun check_thy dir thy_name =
     val master_file = check_file dir path;
     val text = File.read master_file;
 
-    val {name = (name, pos), imports, files = [], keywords} =
+    val {name = (name, pos), imports, keywords} =
       Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.here pos);
@@ -207,7 +207,7 @@ fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 (* load_thy *)
 
-fun begin_theory master_dir {name, imports, keywords, files = []} parents =
+fun begin_theory master_dir {name, imports, keywords} parents =
   Theory.begin_theory name parents
   |> put_deps master_dir imports
   |> fold Thy_Header.declare_keyword keywords
@@ -238,7 +238,7 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
   let
     val time = ! Toplevel.timing;
 
-    val {name = (name, _), files = [], ...} = header;
+    val {name = (name, _), ...} = header;
     val _ = Thy_Header.define_keywords header;
     val _ = Present.init_theory name;
     fun init () =

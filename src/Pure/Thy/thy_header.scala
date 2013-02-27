@@ -12,8 +12,6 @@ import scala.collection.mutable
 import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.util.matching.Regex
 
-import java.io.{File => JFile}
-
 
 object Thy_Header extends Parse.Parser
 {
@@ -72,7 +70,7 @@ object Thy_Header extends Parse.Parser
       (opt(keyword(IMPORTS) ~! (rep1(theory_name))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt(keyword(KEYWORDS) ~! keyword_decls) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       keyword(BEGIN) ^^
-      { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs, Nil) }
+      { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
       ((doc_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
@@ -117,10 +115,9 @@ object Thy_Header extends Parse.Parser
 sealed case class Thy_Header(
   name: String,
   imports: List[String],
-  keywords: Thy_Header.Keywords,
-  files: List[String])
+  keywords: Thy_Header.Keywords)
 {
   def map(f: String => String): Thy_Header =
-    Thy_Header(f(name), imports.map(f), keywords, files.map(f))
+    Thy_Header(f(name), imports.map(f), keywords)
 }
 
