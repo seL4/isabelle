@@ -362,28 +362,14 @@ proof -
  finally show ?thesis .
 qed
 
-
-lemma finite_SigmaI2:
-  assumes "finite {x\<in>A. B x \<noteq> {}}"
-  and "\<And>a. a \<in> A \<Longrightarrow> finite (B a)"
-  shows "finite (Sigma A B)"
-proof -
-  from assms have "finite (Sigma {x\<in>A. B x \<noteq> {}} B)"
-    by(rule finite_SigmaI) simp
-  also have "Sigma {x:A. B x \<noteq> {}} B = Sigma A B" by auto
-  finally show ?thesis .
-qed
-
 lemma card_UNION:
-  fixes A :: "'a set set"
-  assumes "finite A"
-  and "\<forall>k \<in> A. finite k"
+  assumes "finite A" and "\<forall>k \<in> A. finite k"
   shows "card (\<Union>A) = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. -1 ^ (card I + 1) * int (card (\<Inter>I)))"
   (is "?lhs = ?rhs")
 proof -
   have "?rhs = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. -1 ^ (card I + 1) * (\<Sum>_\<in>\<Inter>I. 1))" by simp
   also have "\<dots> = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. -1 ^ (card I + 1)))" (is "_ = nat ?rhs")
-    by(subst setsum_linear[symmetric]) simp
+    by(subst setsum_right_distrib) simp
   also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. -1 ^ (card I + 1))"
     using assms by(subst setsum_Sigma)(auto)
   also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). -1 ^ (card I + 1))"
@@ -409,7 +395,7 @@ proof -
     also have "\<dots> = (\<Sum>i=1..card A. (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. -1 ^ (i + 1)))"
       using assms by(subst setsum_Sigma) auto
     also have "\<dots> = (\<Sum>i=1..card A. -1 ^ (i + 1) * (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1))"
-      by(subst setsum_linear[symmetric]) simp
+      by(subst setsum_right_distrib) simp
     also have "\<dots> = (\<Sum>i=1..card K. -1 ^ (i + 1) * (\<Sum>I|I \<subseteq> K \<and> card I = i. 1))" (is "_ = ?rhs")
     proof(rule setsum_mono_zero_cong_right[rule_format])
       show "{1..card K} \<subseteq> {1..card A}" using `finite A`
@@ -438,7 +424,7 @@ proof -
     also have "\<dots> = (\<Sum>i = 0..card K. -1 * (-1 ^ i * int (card K choose i))) + 1"
       using K by(subst card_subsets_nat[symmetric]) simp_all
     also have "\<dots> = - (\<Sum>i = 0..card K. -1 ^ i * int (card K choose i)) + 1"
-      by(subst setsum_linear) simp
+      by(subst setsum_right_distrib[symmetric]) simp
     also have "\<dots> =  - ((-1 + 1) ^ card K) + 1"
       by(subst binomial)(simp add: mult_ac)
     also have "\<dots> = 1" using x K by(auto simp add: K_def card_gt_0_iff)
