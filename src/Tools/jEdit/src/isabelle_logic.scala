@@ -79,7 +79,7 @@ object Isabelle_Logic
   {
     val dirs = session_dirs()
     val name = session_args().last
-    Build.session_content(inlined_files, dirs, name).check_errors
+    Build.session_content(inlined_files, dirs, name)
   }
 }
 

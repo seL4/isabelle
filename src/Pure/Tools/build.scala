@@ -368,15 +368,7 @@ object Build
   sealed case class Session_Content(
     loaded_theories: Set[String],
     syntax: Outer_Syntax,
-    sources: List[(Path, SHA1.Digest)],
-    errors: List[String])
-  {
-    def check_errors: Session_Content =
-    {
-      if (errors.isEmpty) this
-      else error(cat_lines(errors))
-    }
-  }
+    sources: List[(Path, SHA1.Digest)])
 
   sealed case class Deps(deps: Map[String, Session_Content])
   {
@@ -389,13 +381,13 @@ object Build
       verbose: Boolean, list_files: Boolean, tree: Session_Tree): Deps =
     Deps((Map.empty[String, Session_Content] /: tree.topological_order)(
       { case (deps, (name, info)) =>
-          val (preloaded, parent_syntax, parent_errors) =
+          val (preloaded, parent_syntax) =
             info.parent match {
               case None =>
-                (Set.empty[String], Outer_Syntax.init_pure(), Nil)
+                (Set.empty[String], Outer_Syntax.init_pure())
               case Some(parent_name) =>
                 val parent = deps(parent_name)
-                (parent.loaded_theories, parent.syntax, parent.errors)
+                (parent.loaded_theories, parent.syntax)
             }
           val thy_info = new Thy_Info(new Thy_Load(preloaded, parent_syntax))
 
@@ -430,9 +422,8 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " +
                   quote(name) + Position.here(info.pos))
             }
-          val errors = parent_errors
 
-          deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
+          deps + (name -> Session_Content(loaded_theories, syntax, sources))
       }))
 
   def session_content(inlined_files: Boolean, dirs: List[Path], session: String): Session_Content =
@@ -444,7 +435,7 @@ object Build
   }
 
   def outer_syntax(session: String): Outer_Syntax =
-    session_content(false, Nil, session).check_errors.syntax
+    session_content(false, Nil, session).syntax
 
 
   /* jobs */
