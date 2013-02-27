@@ -65,10 +65,13 @@ class Thy_Info(thy_load: Thy_Load)
 
     def load_files: List[Path] =
     {
-      // FIXME par.map (!?)
-      ((Nil: List[Path]) /: rev_deps) {
-        case (files, dep) =>
-          dep.load_files(syntax).map(a => Path.explode(dep.name.dir) + Path.explode(a)) ::: files
+      val dep_files =
+        rev_deps.par.map(dep =>
+          Exn.capture {
+            dep.load_files(syntax).map(a => Path.explode(dep.name.dir) + Path.explode(a))
+          }).toList
+      ((Nil: List[Path]) /: dep_files) {
+        case (acc_files, files) => Exn.release(files) ::: acc_files
       }
     }
   }
