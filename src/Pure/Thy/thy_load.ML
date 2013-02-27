@@ -12,7 +12,7 @@ sig
   val parse_files: string -> (theory -> Token.file list) parser
   val check_thy: Path.T -> string ->
    {master: Path.T * SHA1.digest, text: string, theory_pos: Position.T,
-    imports: (string * Position.T) list, uses: (Path.T * bool) list, keywords: Thy_Header.keywords}
+    imports: (string * Position.T) list, keywords: Thy_Header.keywords}
   val provide: Path.T * SHA1.digest -> theory -> theory
   val provide_parse_files: string -> (theory -> Token.file list * theory) parser
   val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
@@ -132,13 +132,13 @@ fun check_thy dir thy_name =
     val master_file = check_file dir path;
     val text = File.read master_file;
 
-    val {name = (name, pos), imports, uses, keywords} =
+    val {name = (name, pos), imports, files = [], keywords} =
       Thy_Header.read (Path.position master_file) text;
     val _ = thy_name <> name andalso
       error ("Bad file name " ^ Path.print path ^ " for theory " ^ quote name ^ Position.here pos);
   in
    {master = (master_file, SHA1.digest text), text = text, theory_pos = pos,
-    imports = imports, uses = uses, keywords = keywords}
+    imports = imports, keywords = keywords}
   end;
 
 
@@ -207,11 +207,10 @@ fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 (* load_thy *)
 
-fun begin_theory master_dir {name, imports, keywords, uses} parents =
+fun begin_theory master_dir {name, imports, keywords, files = []} parents =
   Theory.begin_theory name parents
   |> put_deps master_dir imports
   |> fold Thy_Header.declare_keyword keywords
-  |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
 
 fun excursion last_timing init elements =
@@ -239,12 +238,12 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
   let
     val time = ! Toplevel.timing;
 
-    val {name = (name, _), uses, ...} = header;
+    val {name = (name, _), files = [], ...} = header;
     val _ = Thy_Header.define_keywords header;
     val _ = Present.init_theory name;
     fun init () =
       begin_theory master_dir header parents
-      |> Present.begin_theory update_time master_dir uses;
+      |> Present.begin_theory update_time master_dir;
 
     val lexs = Keyword.get_lexicons ();
 

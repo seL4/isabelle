@@ -94,7 +94,7 @@ class Thy_Info(thy_load: Thy_Load)
                 Library.future_value(Exn.capture {
                   try {
                     val files = thy_load.body_files(syntax0, string)
-                    header0.copy(uses = header0.uses ::: files.map((_, false)))
+                    header0.copy(files = header0.files ::: files)
                   }
                   catch { case ERROR(msg) => err(msg) }
                 })

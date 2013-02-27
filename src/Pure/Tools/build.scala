@@ -417,9 +417,9 @@ object Build
           val all_files =
             (thy_deps.deps.map({ case dep =>
               val thy = Path.explode(dep.name.node)
-              val uses = dep.join_header.uses.map(p =>
-                Path.explode(dep.name.dir) + Path.explode(p._1))
-              thy :: uses
+              val files = dep.join_header.files.map(file =>
+                Path.explode(dep.name.dir) + Path.explode(file))
+              thy :: files
             }).flatten ::: info.files.map(file => info.dir + file)).map(_.expand)
 
           if (list_files)

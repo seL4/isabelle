@@ -40,7 +40,7 @@ object Document
     sealed case class Header(
       imports: List[Name],
       keywords: Thy_Header.Keywords,
-      uses: List[(String, Boolean)],
+      files: List[String],
       errors: List[String] = Nil)
     {
       def error(msg: String): Header = copy(errors = errors ::: List(msg))

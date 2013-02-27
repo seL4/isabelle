@@ -249,7 +249,6 @@
     "type_elims"
     "type_intros"
     "unchecked"
-    "uses"
     "where"))
 
 (defconst isar-keywords-control

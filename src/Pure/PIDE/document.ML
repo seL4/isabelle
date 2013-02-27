@@ -102,9 +102,9 @@ fun get_header (Node {header = (master, header, errors), ...}) =
 
 fun read_header node span =
   let
-    val (dir, {name = (name, _), imports, keywords, uses}) = get_header node;
+    val (dir, {name = (name, _), imports, keywords, files}) = get_header node;
     val {name = (_, pos), imports = imports', ...} = Thy_Header.read_tokens span;
-  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords uses) end;
+  in (dir, Thy_Header.make (name, pos) (map #1 imports ~~ map #2 imports') keywords files) end;
 
 fun get_perspective (Node {perspective, ...}) = perspective;
 fun set_perspective ids =

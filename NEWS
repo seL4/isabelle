@@ -4,6 +4,13 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** General ***
+
+* Discontinued obsolete 'uses' within theory header.  Note that
+commands like 'ML_file' work without separate declaration of file
+dependencies.  Minor INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * Discontinued obsolete src/HOL/IsaMakefile (considered legacy since

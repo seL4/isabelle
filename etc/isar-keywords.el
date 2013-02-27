@@ -346,7 +346,6 @@
     "structure"
     "unchecked"
     "unsafe"
-    "uses"
     "where"))
 
 (defconst isar-keywords-control

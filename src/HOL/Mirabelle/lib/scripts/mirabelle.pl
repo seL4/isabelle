@@ -69,7 +69,7 @@ if ($#action_files >= 0) {
   my $s = join ("\n", @action_files);
   my @action_files = split(/\n/, $s . "\n" . $s);
   %action_files = sort(@action_files);
-  $tools = "uses " . join(" ", sort(keys(%action_files)));
+  $tools = join("", map { "ML_file " . $_ . "\n" } (sort(keys(%action_files))));
 }
 
 open(SETUP_FILE, ">$setup_file") || die "Could not create file '$setup_file'";
@@ -77,8 +77,9 @@ open(SETUP_FILE, ">$setup_file") || die "Could not create file '$setup_file'";
 print SETUP_FILE <<END;
 theory "$setup_thy_name"
 imports "$mirabelle_thy" "$mirabelle_theory"
-$tools
 begin
+
+$tools
 
 setup {*
   Config.put_global Mirabelle.logfile "$log_file" #>

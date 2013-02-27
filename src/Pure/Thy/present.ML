@@ -21,7 +21,7 @@ sig
   val init_theory: string -> unit
   val theory_source: string -> (unit -> HTML.text) -> unit
   val theory_output: string -> string -> unit
-  val begin_theory: int -> Path.T -> (Path.T * bool) list -> theory -> theory
+  val begin_theory: int -> Path.T -> theory -> theory
   val drafts: string -> Path.T list -> Path.T
 end;
 
@@ -451,13 +451,14 @@ fun parent_link remote_path curr_session thy =
         else Url.File (Path.append (mk_rel_path curr_session session) (html_path name)));
   in (link, name) end;
 
-fun begin_theory update_time dir files thy =
+fun begin_theory update_time dir thy =
     session_default thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
     val name = Context.theory_name thy;
     val parents = Theory.parents_of thy;
     val parent_specs = map (parent_link remote_path path) parents;
 
+    val files = [];  (* FIXME *)
     val files_html = files |> map (fn (raw_path, loadit) =>
       let
         val path = File.check_file (File.full_path dir raw_path);
