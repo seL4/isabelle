@@ -12,8 +12,7 @@ theory Pure
     "attach" "begin" "binder" "constrains" "defines" "fixes" "for"
     "identifier" "if" "imports" "in" "includes" "infix" "infixl"
     "infixr" "is" "keywords" "notes" "obtains" "open" "output"
-    "overloaded" "pervasive" "shows" "structure" "unchecked" "uses"
-    "where" "|"
+    "overloaded" "pervasive" "shows" "structure" "unchecked" "where" "|"
   and "header" :: diag
   and "chapter" :: thy_heading1
   and "section" :: thy_heading2
@@ -30,7 +29,7 @@ theory Pure
     "abbreviation" "type_notation" "no_type_notation" "notation"
     "no_notation" "axiomatization" "theorems" "lemmas" "declare"
     "hide_class" "hide_type" "hide_const" "hide_fact" :: thy_decl
-  and "use" "ML" :: thy_decl % "ML"
+  and "ML" :: thy_decl % "ML"
   and "ML_prf" :: prf_decl % "proof"  (* FIXME % "ML" ?? *)
   and "ML_val" "ML_command" :: diag % "ML"
   and "setup" "local_setup" "attribute_setup" "method_setup"

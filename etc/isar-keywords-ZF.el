@@ -200,7 +200,6 @@
     "undos_proof"
     "unfolding"
     "unused_thms"
-    "use"
     "use_thy"
     "using"
     "welcome"
@@ -249,7 +248,6 @@
     "type_elims"
     "type_intros"
     "unchecked"
-    "uses"
     "where"))
 
 (defconst isar-keywords-control
@@ -408,8 +406,7 @@
     "type_notation"
     "type_synonym"
     "typed_print_translation"
-    "typedecl"
-    "use"))
+    "typedecl"))
 
 (defconst isar-keywords-theory-script
   '("inductive_cases"))

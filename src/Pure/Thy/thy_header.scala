@@ -12,8 +12,6 @@ import scala.collection.mutable
 import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.util.matching.Regex
 
-import java.io.{File => JFile}
-
 
 object Thy_Header extends Parse.Parser
 {
@@ -22,12 +20,11 @@ object Thy_Header extends Parse.Parser
   val IMPORTS = "imports"
   val KEYWORDS = "keywords"
   val AND = "and"
-  val USES = "uses"
   val BEGIN = "begin"
 
   private val lexicon =
     Scan.Lexicon("%", "(", ")", ",", "::", ";", "==",
-      AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY, USES)
+      AND, BEGIN, HEADER, IMPORTS, KEYWORDS, THEORY)
 
 
   /* theory file name */
@@ -72,9 +69,8 @@ object Thy_Header extends Parse.Parser
       theory_name ~
       (opt(keyword(IMPORTS) ~! (rep1(theory_name))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       (opt(keyword(KEYWORDS) ~! keyword_decls) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
-      (opt(keyword(USES) ~! (rep1(file))) ^^ { case None => Nil case Some(_ ~ xs) => xs }) ~
       keyword(BEGIN) ^^
-      { case x ~ ys ~ zs ~ ws ~ _ => Thy_Header(x, ys, zs, ws) }
+      { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
       ((doc_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
@@ -119,10 +115,9 @@ object Thy_Header extends Parse.Parser
 sealed case class Thy_Header(
   name: String,
   imports: List[String],
-  keywords: Thy_Header.Keywords,
-  uses: List[(String, Boolean)])
+  keywords: Thy_Header.Keywords)
 {
   def map(f: String => String): Thy_Header =
-    Thy_Header(f(name), imports.map(f), keywords, uses.map(p => (f(p._1), p._2)))
+    Thy_Header(f(name), imports.map(f), keywords)
 }
 

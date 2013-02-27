@@ -540,7 +540,7 @@ subsection {* Isar ML commands *}
 
 text {* The primary Isar source language provides facilities to ``open
   a window'' to the underlying ML compiler.  Especially see the Isar
-  commands @{command_ref "use"} and @{command_ref "ML"}: both work the
+  commands @{command_ref "ML_file"} and @{command_ref "ML"}: both work the
   same way, only the source text is provided via a file vs.\ inlined,
   respectively.  Apart from embedding ML into the main theory
   definition like that, there are many more commands that refer to ML

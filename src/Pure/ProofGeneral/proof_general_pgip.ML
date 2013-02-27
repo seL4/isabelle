@@ -592,10 +592,9 @@ fun askrefs (Askrefs vs) =
 
         fun filerefs f =
             let val thy = thy_name f
-                val filerefs = map #1 (#uses (Thy_Load.check_thy (Path.dir f) thy))
             in
                 issue_pgip (Setrefs {url=url, thyname=NONE, objtype=SOME PgipTypes.ObjFile,
-                                     name=NONE, idtables=[], fileurls=filerefs})
+                                     name=NONE, idtables=[], fileurls=[]})
             end
 
         fun thyrefs thy =

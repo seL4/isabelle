@@ -407,20 +407,18 @@ object Build
           }
 
           val thy_deps =
-            thy_info.dependencies(inlined_files,
+            thy_info.dependencies(
               info.theories.map(_._2).flatten.
                 map(thy => Thy_Load.path_node_name(info.dir + Thy_Load.thy_path(thy))))
 
           val loaded_theories = thy_deps.loaded_theories
-          val syntax = thy_deps.make_syntax
+          val syntax = thy_deps.syntax
+
+          val body_files = if (inlined_files) thy_deps.load_files else Nil
 
           val all_files =
-            (thy_deps.deps.map({ case dep =>
-              val thy = Path.explode(dep.name.node)
-              val uses = dep.join_header.uses.map(p =>
-                Path.explode(dep.name.dir) + Path.explode(p._1))
-              thy :: uses
-            }).flatten ::: info.files.map(file => info.dir + file)).map(_.expand)
+            (thy_deps.deps.map(dep => Path.explode(dep.name.node)) ::: body_files :::
+              info.files.map(file => info.dir + file)).map(_.expand)
 
           if (list_files)
             progress.echo(cat_lines(all_files.map(_.implode).sorted.map("  " + _)))
@@ -432,7 +430,7 @@ object Build
                 error(msg + "\nThe error(s) above occurred in session " +
                   quote(name) + Position.here(info.pos))
             }
-          val errors = parent_errors ::: thy_deps.deps.map(dep => dep.join_header.errors).flatten
+          val errors = parent_errors
 
           deps + (name -> Session_Content(loaded_theories, syntax, sources, errors))
       }))

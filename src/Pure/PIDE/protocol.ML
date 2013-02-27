@@ -37,17 +37,14 @@ val _ =
                   fn ([], a) => Document.Edits (list (pair (option int) (option int)) a),
                   fn ([], a) =>
                     let
-                      val (master, (name, (imports, (keywords, (uses, errors))))) =
+                      val (master, (name, (imports, (keywords, errors)))) =
                         pair string (pair string (pair (list string)
                           (pair (list (pair string
                             (option (pair (pair string (list string)) (list string)))))
-                            (pair (list (pair string bool)) (list string))))) a;
+                            (list string)))) a;
                       val imports' = map (rpair Position.none) imports;
-                      val (uses', errors') =
-                        (map (apfst Path.explode) uses, errors)
-                          handle ERROR msg => ([], errors @ [msg]);
-                      val header = Thy_Header.make (name, Position.none) imports' keywords uses';
-                    in Document.Deps (master, header, errors') end,
+                      val header = Thy_Header.make (name, Position.none) imports' keywords;
+                    in Document.Deps (master, header, errors) end,
                   fn (a, []) => Document.Perspective (map int_atom a)]))
             end;
 

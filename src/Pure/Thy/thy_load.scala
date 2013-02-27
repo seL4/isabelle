@@ -114,8 +114,7 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
           " for theory " + quote(name1))
 
       val imports = header.imports.map(import_name(name.dir, _))
-      val uses = header.uses
-      Document.Node.Header(imports, header.keywords, uses)
+      Document.Node.Header(imports, header.keywords, Nil)
     }
     catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
   }

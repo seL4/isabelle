@@ -10,10 +10,8 @@ sig
   type header =
    {name: string * Position.T,
     imports: (string * Position.T) list,
-    keywords: keywords,
-    uses: (Path.T * bool) list}
-  val make: string * Position.T -> (string * Position.T) list -> keywords ->
-    (Path.T * bool) list -> header
+    keywords: keywords}
+  val make: string * Position.T -> (string * Position.T) list -> keywords -> header
   val define_keywords: header -> unit
   val declare_keyword: string * Keyword.spec option -> theory -> theory
   val the_keyword: theory -> string -> Keyword.spec option
@@ -30,11 +28,10 @@ type keywords = (string * Keyword.spec option) list;
 type header =
  {name: string * Position.T,
   imports: (string * Position.T) list,
-  keywords: keywords,
-  uses: (Path.T * bool) list};
+  keywords: keywords};
 
-fun make name imports keywords uses : header =
-  {name = name, imports = imports, keywords = keywords, uses = uses};
+fun make name imports keywords : header =
+  {name = name, imports = imports, keywords = keywords};
 
 
 
@@ -73,12 +70,11 @@ val headerN = "header";
 val theoryN = "theory";
 val importsN = "imports";
 val keywordsN = "keywords";
-val usesN = "uses";
 val beginN = "begin";
 
 val header_lexicons =
   pairself (Scan.make_lexicon o map Symbol.explode)
-   (["%", "(", ")", ",", "::", ";", "==", "and", beginN, importsN, keywordsN, usesN],
+   (["%", "(", ")", ",", "::", ";", "==", "and", beginN, importsN, keywordsN],
     [headerN, theoryN]);
 
 
@@ -86,7 +82,6 @@ val header_lexicons =
 
 local
 
-val file_name = Parse.group (fn () => "file name") Parse.path >> Path.explode;
 val theory_name = Parse.group (fn () => "theory name") (Parse.position Parse.name);
 
 val opt_files =
@@ -107,19 +102,14 @@ val keyword_decl =
 
 val keyword_decls = Parse.and_list1 keyword_decl >> flat;
 
-val file =
-  Parse.$$$ "(" |-- Parse.!!! (file_name --| Parse.$$$ ")") >> rpair false ||
-  file_name >> rpair true;
-
 in
 
 val args =
   theory_name --
   Scan.optional (Parse.$$$ importsN |-- Parse.!!! (Scan.repeat1 theory_name)) [] --
-  Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --
-  Scan.optional (Parse.$$$ usesN |-- Parse.!!! (Scan.repeat1 file)) [] --|
+  Scan.optional (Parse.$$$ keywordsN |-- Parse.!!! keyword_decls) [] --|
   Parse.$$$ beginN >>
-  (fn (((name, imports), keywords), uses) => make name imports keywords uses);
+  (fn ((name, imports), keywords) => make name imports keywords);
 
 end;
 
