@@ -362,4 +362,90 @@ proof -
  finally show ?thesis .
 qed
 
+
+lemma finite_SigmaI2:
+  assumes "finite {x\<in>A. B x \<noteq> {}}"
+  and "\<And>a. a \<in> A \<Longrightarrow> finite (B a)"
+  shows "finite (Sigma A B)"
+proof -
+  from assms have "finite (Sigma {x\<in>A. B x \<noteq> {}} B)"
+    by(rule finite_SigmaI) simp
+  also have "Sigma {x:A. B x \<noteq> {}} B = Sigma A B" by auto
+  finally show ?thesis .
+qed
+
+lemma card_UNION:
+  fixes A :: "'a set set"
+  assumes "finite A"
+  and "\<forall>k \<in> A. finite k"
+  shows "card (\<Union>A) = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. -1 ^ (card I + 1) * int (card (\<Inter>I)))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?rhs = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. -1 ^ (card I + 1) * (\<Sum>_\<in>\<Inter>I. 1))" by simp
+  also have "\<dots> = nat (\<Sum>I | I \<subseteq> A \<and> I \<noteq> {}. (\<Sum>_\<in>\<Inter>I. -1 ^ (card I + 1)))" (is "_ = nat ?rhs")
+    by(subst setsum_linear[symmetric]) simp
+  also have "?rhs = (\<Sum>(I, _)\<in>Sigma {I. I \<subseteq> A \<and> I \<noteq> {}} Inter. -1 ^ (card I + 1))"
+    using assms by(subst setsum_Sigma)(auto)
+  also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:UNIV. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). -1 ^ (card I + 1))"
+    by(rule setsum_reindex_cong[where f="\<lambda>(x, y). (y, x)"])(auto intro: inj_onI simp add: split_beta)
+  also have "\<dots> = (\<Sum>(x, I)\<in>(SIGMA x:\<Union>A. {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}). -1 ^ (card I + 1))"
+    using assms by(auto intro!: setsum_mono_zero_cong_right finite_SigmaI2 intro: finite_subset[where B="\<Union>A"])
+  also have "\<dots> = (\<Sum>x\<in>\<Union>A. (\<Sum>I|I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I. -1 ^ (card I + 1)))" 
+    using assms by(subst setsum_Sigma) auto
+  also have "\<dots> = (\<Sum>_\<in>\<Union>A. 1)" (is "setsum ?lhs _ = _")
+  proof(rule setsum_cong[OF refl])
+    fix x
+    assume x: "x \<in> \<Union>A"
+    def K \<equiv> "{X \<in> A. x \<in> X}"
+    with `finite A` have K: "finite K" by auto
+
+    let ?I = "\<lambda>i. {I. I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I}"
+    have "inj_on snd (SIGMA i:{1..card A}. ?I i)"
+      using assms by(auto intro!: inj_onI)
+    moreover have [symmetric]: "snd ` (SIGMA i:{1..card A}. ?I i) = {I. I \<subseteq> A \<and> I \<noteq> {} \<and> x \<in> \<Inter>I}"
+      using assms by(auto intro!: rev_image_eqI[where x="(card a, a)", standard] simp add: card_gt_0_iff[folded Suc_le_eq] One_nat_def dest: finite_subset intro: card_mono)
+    ultimately have "?lhs x = (\<Sum>(i, I)\<in>(SIGMA i:{1..card A}. ?I i). -1 ^ (i + 1))"
+      by(rule setsum_reindex_cong[where f=snd]) fastforce
+    also have "\<dots> = (\<Sum>i=1..card A. (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. -1 ^ (i + 1)))"
+      using assms by(subst setsum_Sigma) auto
+    also have "\<dots> = (\<Sum>i=1..card A. -1 ^ (i + 1) * (\<Sum>I|I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1))"
+      by(subst setsum_linear[symmetric]) simp
+    also have "\<dots> = (\<Sum>i=1..card K. -1 ^ (i + 1) * (\<Sum>I|I \<subseteq> K \<and> card I = i. 1))" (is "_ = ?rhs")
+    proof(rule setsum_mono_zero_cong_right[rule_format])
+      show "{1..card K} \<subseteq> {1..card A}" using `finite A`
+        by(auto simp add: K_def intro: card_mono)
+    next
+      fix i
+      assume "i \<in> {1..card A} - {1..card K}"
+      hence i: "i \<le> card A" "card K < i" by auto
+      have "{I. I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I} = {I. I \<subseteq> K \<and> card I = i}" 
+        by(auto simp add: K_def)
+      also have "\<dots> = {}" using `finite A` i
+        by(auto simp add: K_def dest: card_mono[rotated 1])
+      finally show "-1 ^ (i + 1) * (\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1 :: int) = 0"
+        by(simp only:) simp
+    next
+      fix i
+      have "(\<Sum>I | I \<subseteq> A \<and> card I = i \<and> x \<in> \<Inter>I. 1) = (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)"
+        (is "?lhs = ?rhs")
+        by(rule setsum_cong)(auto simp add: K_def)
+      thus "-1 ^ (i + 1) * ?lhs = -1 ^ (i + 1) * ?rhs" by simp
+    qed simp
+    also have "{I. I \<subseteq> K \<and> card I = 0} = {{}}" using assms
+      by(auto simp add: card_eq_0_iff K_def dest: finite_subset)
+    hence "?rhs = (\<Sum>i = 0..card K. -1 ^ (i + 1) * (\<Sum>I | I \<subseteq> K \<and> card I = i. 1 :: int)) + 1"
+      by(subst (2) setsum_head_Suc)(simp_all add: One_nat_def)
+    also have "\<dots> = (\<Sum>i = 0..card K. -1 * (-1 ^ i * int (card K choose i))) + 1"
+      using K by(subst card_subsets_nat[symmetric]) simp_all
+    also have "\<dots> = - (\<Sum>i = 0..card K. -1 ^ i * int (card K choose i)) + 1"
+      by(subst setsum_linear) simp
+    also have "\<dots> =  - ((-1 + 1) ^ card K) + 1"
+      by(subst binomial)(simp add: mult_ac)
+    also have "\<dots> = 1" using x K by(auto simp add: K_def card_gt_0_iff)
+    finally show "?lhs x = 1" .
+  qed
+  also have "nat \<dots> = card (\<Union>A)" by simp
+  finally show ?thesis ..
+qed
+
 end
