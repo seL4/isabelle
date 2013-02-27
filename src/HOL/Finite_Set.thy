@@ -356,6 +356,16 @@ lemma finite_SigmaI [simp, intro]:
   "finite A \<Longrightarrow> (\<And>a. a\<in>A \<Longrightarrow> finite (B a)) ==> finite (SIGMA a:A. B a)"
   by (unfold Sigma_def) blast
 
+lemma finite_SigmaI2:
+  assumes "finite {x\<in>A. B x \<noteq> {}}"
+  and "\<And>a. a \<in> A \<Longrightarrow> finite (B a)"
+  shows "finite (Sigma A B)"
+proof -
+  from assms have "finite (Sigma {x\<in>A. B x \<noteq> {}} B)" by auto
+  also have "Sigma {x:A. B x \<noteq> {}} B = Sigma A B" by auto
+  finally show ?thesis .
+qed
+
 lemma finite_cartesian_product:
   "finite A \<Longrightarrow> finite B \<Longrightarrow> finite (A \<times> B)"
   by (rule finite_SigmaI)
