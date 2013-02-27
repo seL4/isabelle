@@ -287,10 +287,9 @@ lemmas bit1_iszero_numeral [simp] = bit1.iszero_numeral
 declare eq_numeral_iff_iszero [where 'a="('a::finite) bit0", standard, simp]
 declare eq_numeral_iff_iszero [where 'a="('a::finite) bit1", standard, simp]
 
-subsection {* Linorder instance *}
+subsection {* Order instances *}
 
 instantiation bit0 and bit1 :: (finite) linorder begin
-
 definition "a < b \<longleftrightarrow> Rep_bit0 a < Rep_bit0 b"
 definition "a \<le> b \<longleftrightarrow> Rep_bit0 a \<le> Rep_bit0 b"
 definition "a < b \<longleftrightarrow> Rep_bit1 a < Rep_bit1 b"
@@ -299,8 +298,23 @@ definition "a \<le> b \<longleftrightarrow> Rep_bit1 a \<le> Rep_bit1 b"
 instance
   by(intro_classes)
     (auto simp add: less_eq_bit0_def less_bit0_def less_eq_bit1_def less_bit1_def Rep_bit0_inject Rep_bit1_inject)
-
 end
+
+lemma (in preorder) tranclp_less: "op <\<^sup>+\<^sup>+ = op <"
+by(auto simp add: fun_eq_iff intro: less_trans elim: tranclp.induct)
+
+instance bit0 and bit1 :: (finite) wellorder
+proof -
+  have "wf {(x :: 'a bit0, y). x < y}"
+    by(auto simp add: trancl_def tranclp_less intro!: finite_acyclic_wf acyclicI)
+  thus "OFCLASS('a bit0, wellorder_class)"
+    by(rule wf_wellorderI) intro_classes
+next
+  have "wf {(x :: 'a bit1, y). x < y}"
+    by(auto simp add: trancl_def tranclp_less intro!: finite_acyclic_wf acyclicI)
+  thus "OFCLASS('a bit1, wellorder_class)"
+    by(rule wf_wellorderI) intro_classes
+qed
 
 subsection {* Code setup and type classes for code generation *}
 
