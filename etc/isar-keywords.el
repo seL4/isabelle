@@ -288,7 +288,6 @@
     "undos_proof"
     "unfolding"
     "unused_thms"
-    "use"
     "use_thy"
     "using"
     "value"
@@ -573,8 +572,7 @@
     "type_notation"
     "type_synonym"
     "typed_print_translation"
-    "typedecl"
-    "use"))
+    "typedecl"))
 
 (defconst isar-keywords-theory-script
   '("inductive_cases"
