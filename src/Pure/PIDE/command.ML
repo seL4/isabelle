@@ -62,10 +62,11 @@ end;
 local
 
 fun run int tr st =
-  (case Toplevel.transition int tr st of
-    SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
-  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
+  if Goal.future_enabled () andalso Keyword.is_diag (Toplevel.name_of tr) then
+    Toplevel.setmp_thread_position tr (fn () =>
+      (Goal.fork_name "Toplevel.diag" ~1
+        (fn () => Toplevel.command_exception int tr st); ([], SOME st))) ()
+  else Toplevel.command_errors int tr st;
 
 fun check_cmts tr cmts st =
   Toplevel.setmp_thread_position tr

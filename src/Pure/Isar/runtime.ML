@@ -12,7 +12,8 @@ sig
   exception TOPLEVEL_ERROR
   val debug: bool Unsynchronized.ref
   val exn_context: Proof.context option -> exn -> exn
-  val exn_messages_ids: (exn -> Position.T) -> exn -> ((serial * string) * string option) list
+  type error = ((serial * string) * string option)
+  val exn_messages_ids: (exn -> Position.T) -> exn -> error list
   val exn_messages: (exn -> Position.T) -> exn -> (serial * string) list
   val exn_message: (exn -> Position.T) -> exn -> string
   val debugging: ('a -> 'b) -> 'a -> 'b
@@ -42,6 +43,8 @@ fun exn_context NONE exn = exn
 
 
 (* exn_message *)
+
+type error = ((serial * string) * string option);
 
 local
 

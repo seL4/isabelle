@@ -154,10 +154,6 @@ fun signal cond = (*requires SYNCHRONIZED*)
 fun broadcast cond = (*requires SYNCHRONIZED*)
   ConditionVar.broadcast cond;
 
-fun broadcast_work () = (*requires SYNCHRONIZED*)
- (ConditionVar.broadcast work_available;
-  ConditionVar.broadcast work_finished);
-
 end;
 
 
@@ -331,7 +327,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
           val _ = workers := alive;
         in
           Multithreading.tracing 0 (fn () =>
-            "SCHEDULE: disposed " ^ string_of_int (length dead) ^ " dead worker threads")
+            "SCHEDULER: disposed " ^ string_of_int (length dead) ^ " dead worker threads")
         end;
 
 
@@ -380,7 +376,7 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
        (Multithreading.tracing 1 (fn () =>
           string_of_int (length (! canceled)) ^ " canceled groups");
         Unsynchronized.change canceled (filter_out (null o cancel_now));
-        broadcast_work ());
+        signal work_available);
 
 
     (* delay loop *)
@@ -398,9 +394,9 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
   in continue end
   handle exn =>
     if Exn.is_interrupt exn then
-     (Multithreading.tracing 1 (fn () => "Interrupt");
+     (Multithreading.tracing 1 (fn () => "SCHEDULER: Interrupt");
       List.app cancel_later (cancel_all ());
-      broadcast_work (); true)
+      signal work_available; true)
     else reraise exn;
 
 fun scheduler_loop () =
@@ -682,11 +678,14 @@ fun terminate group =
 (* shutdown *)
 
 fun shutdown () =
-  if Multithreading.available then
+  if not Multithreading.available then ()
+  else if is_some (worker_task ()) then
+    raise Fail "Cannot shutdown while running as worker thread"
+  else
     SYNCHRONIZED "shutdown" (fn () =>
-     while scheduler_active () do
-      (wait scheduler_event; broadcast_work ()))
-  else ();
+      while scheduler_active () do
+       (Multithreading.tracing 1 (fn () => "SHUTDOWN: wait");
+        wait scheduler_event));
 
 
 (*final declarations of this structure!*)

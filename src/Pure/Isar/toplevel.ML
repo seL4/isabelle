@@ -94,7 +94,8 @@ sig
   val get_timing: transition -> Time.time
   val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
-  val command: transition -> state -> state
+  val command_exception: bool -> transition -> state -> state
+  val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val element_result: transition Thy_Syntax.element -> state ->
     (transition * state) list future * state
 end;
@@ -636,8 +637,7 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 local
 
 fun timing_message tr (t: Timing.timing) =
-  if Timing.is_relevant_time (#elapsed t) andalso not (Position.is_reported (pos_of tr))
-  then
+  if Timing.is_relevant_time (#elapsed t) then
     (case approximative_id tr of
       SOME id =>
         (Output.protocol_message
@@ -685,14 +685,20 @@ fun transition int tr st =
 end;
 
 
-(* nested commands *)
+(* managed commands *)
 
-fun command tr st =
-  (case transition (! interact) tr st of
+fun command_exception int tr st =
+  (case transition int tr st of
     SOME (st', NONE) => st'
   | SOME (_, SOME (exn, info)) =>
       if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
+
+fun command_errors int tr st =
+  (case transition int tr st of
+    SOME (st', NONE) => ([], SOME st')
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
+  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
 
 
 (* scheduled proof result *)
@@ -704,12 +710,23 @@ structure Result = Proof_Data
   fun init _ = empty;
 );
 
+fun priority trs =
+  let val estimate = fold (curry Time.+ o get_timing) trs Time.zeroTime in
+    if estimate = Time.zeroTime then ~1
+    else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1)
+  end;
+
 fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
   let
-    val future_enabled = Goal.future_enabled ();
+    val command = command_exception (! interact);
 
     fun atom_result tr st =
-      let val st' = command tr st
+      let
+        val st' =
+          if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
+            setmp_thread_position tr (fn () =>
+              (Goal.fork_name "Toplevel.diag" (priority [tr]) (fn () => command tr st); st)) ()
+          else command tr st;
       in ((tr, st'), st') end;
 
     val proof_trs =
@@ -717,9 +734,9 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
         NONE => []
       | SOME (a, b) => (maps Thy_Syntax.flat_element a @ [b]) |> filter_out is_ignored);
 
-    val st' = command head_tr st;
+    val (_, st') = atom_result head_tr st;
   in
-    if not future_enabled orelse is_ignored head_tr orelse
+    if not (Goal.future_enabled ()) orelse is_ignored head_tr orelse
       null proof_trs orelse not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
       let val (results, st'') = fold_map atom_result proof_trs st'
@@ -729,20 +746,16 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
-        val estimate = fold (curry Time.+ o get_timing) proof_trs Time.zeroTime;
-        val pri =
-          if estimate = Time.zeroTime then ~1
-          else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
-
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Goal.fork_name "Toplevel.future_proof" pri
-              (fn () =>
-                let val (result, result_state) =
-                  (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
-                    => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                  |> fold_map atom_result body_trs ||> command end_tr;
-                in (result, presentation_context_of result_state) end))
+            setmp_thread_position head_tr (fn () =>
+              Goal.fork_name "Toplevel.future_proof" (priority proof_trs)
+                (fn () =>
+                  let val (result, result_state) =
+                    (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
+                      => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
+                    |> fold_map atom_result body_trs ||> command end_tr;
+                  in (result, presentation_context_of result_state) end)) ())
           #-> Result.put;
 
         val st'' = st'
