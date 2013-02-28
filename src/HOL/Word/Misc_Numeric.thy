@@ -5,7 +5,7 @@
 header {* Useful Numerical Lemmas *}
 
 theory Misc_Numeric
-imports "~~/src/HOL/Main" "~~/src/HOL/Parity"
+imports Main Parity
 begin
 
 lemma the_elemI: "y = {x} ==> the_elem y = x" 

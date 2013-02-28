@@ -5,7 +5,7 @@
 header {* Frechet Derivative *}
 
 theory FrechetDeriv
-imports "~~/src/HOL/Complex_Main"
+imports Complex_Main
 begin
 
 definition

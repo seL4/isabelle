@@ -5,7 +5,7 @@
 header {* Additive group operations on product types *}
 
 theory Product_plus
-imports "~~/src/HOL/Main"
+imports Main
 begin
 
 subsection {* Operations *}

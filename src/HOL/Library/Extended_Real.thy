@@ -8,7 +8,7 @@
 header {* Extended real number line *}
 
 theory Extended_Real
-imports "~~/src/HOL/Complex_Main" Extended_Nat
+imports Complex_Main Extended_Nat
 begin
 
 text {*
