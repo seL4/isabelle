@@ -686,6 +686,8 @@ lemma divmod_nat_if [code]: "divmod_nat m n = (if n = 0 \<or> m < n then (0, m) 
 
 text {* Simproc for cancelling @{const div} and @{const mod} *}
 
+ML_file "~~/src/Provers/Arith/cancel_div_mod.ML"
+
 ML {*
 structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 (
