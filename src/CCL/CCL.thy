@@ -51,25 +51,26 @@ consts
   Trm         ::       "i => o"
   Dvg         ::       "i => o"
 
-axioms
-
   (******* EVALUATION SEMANTICS *******)
 
   (**  This is the evaluation semantics from which the axioms below were derived.  **)
   (**  It is included here just as an evaluator for FUN and has no influence on    **)
   (**  inference in the theory CCL.                                                **)
 
-  trueV:       "true ---> true"
-  falseV:      "false ---> false"
-  pairV:       "<a,b> ---> <a,b>"
-  lamV:        "lam x. b(x) ---> lam x. b(x)"
-  caseVtrue:   "[| t ---> true;  d ---> c |] ==> case(t,d,e,f,g) ---> c"
-  caseVfalse:  "[| t ---> false;  e ---> c |] ==> case(t,d,e,f,g) ---> c"
-  caseVpair:   "[| t ---> <a,b>;  f(a,b) ---> c |] ==> case(t,d,e,f,g) ---> c"
-  caseVlam:    "[| t ---> lam x. b(x);  g(b) ---> c |] ==> case(t,d,e,f,g) ---> c"
+axiomatization where
+  trueV:       "true ---> true" and
+  falseV:      "false ---> false" and
+  pairV:       "<a,b> ---> <a,b>" and
+  lamV:        "\<And>b. lam x. b(x) ---> lam x. b(x)" and
+
+  caseVtrue:   "[| t ---> true;  d ---> c |] ==> case(t,d,e,f,g) ---> c" and
+  caseVfalse:  "[| t ---> false;  e ---> c |] ==> case(t,d,e,f,g) ---> c" and
+  caseVpair:   "[| t ---> <a,b>;  f(a,b) ---> c |] ==> case(t,d,e,f,g) ---> c" and
+  caseVlam:    "\<And>b. [| t ---> lam x. b(x);  g(b) ---> c |] ==> case(t,d,e,f,g) ---> c"
 
   (*** Properties of evaluation: note that "t ---> c" impies that c is canonical ***)
 
+axiomatization where
   canonical:  "[| t ---> c; c==true ==> u--->v;
                           c==false ==> u--->v;
                     !!a b. c==<a,b> ==> u--->v;
@@ -77,14 +78,16 @@ axioms
              u--->v"
 
   (* Should be derivable - but probably a bitch! *)
+axiomatization where
   substitute: "[| a==a'; t(a)--->c(a) |] ==> t(a')--->c(a')"
 
   (************** LOGIC ***************)
 
   (*** Definitions used in the following rules ***)
 
+axiomatization where
+  bot_def:         "bot == (lam x. x`x)`(lam x. x`x)" and
   apply_def:     "f ` t == case(f,bot,bot,%x y. bot,%u. u(t))"
-  bot_def:         "bot == (lam x. x`x)`(lam x. x`x)"
 
 defs
   fix_def:      "fix(f) == (lam x. f(x`x))`(lam x. f(x`x))"
@@ -108,10 +111,10 @@ defs
 
   (** Partial Order **)
 
-axioms
-  po_refl:        "a [= a"
-  po_trans:       "[| a [= b;  b [= c |] ==> a [= c"
-  po_cong:        "a [= b ==> f(a) [= f(b)"
+axiomatization where
+  po_refl:        "a [= a" and
+  po_trans:       "[| a [= b;  b [= c |] ==> a [= c" and
+  po_cong:        "a [= b ==> f(a) [= f(b)" and
 
   (* Extend definition of [= to program fragments of higher type *)
   po_abstractn:   "(!!x. f(x) [= g(x)) ==> (%x. f(x)) [= (%x. g(x))"
@@ -119,22 +122,26 @@ axioms
   (** Equality - equivalence axioms inherited from FOL.thy   **)
   (**          - congruence of "=" is axiomatised implicitly **)
 
+axiomatization where
   eq_iff:         "t = t' <-> t [= t' & t' [= t"
 
   (** Properties of canonical values given by greatest fixed point definitions **)
 
-  PO_iff:         "t [= t' <-> <t,t'> : PO"
+axiomatization where
+  PO_iff:         "t [= t' <-> <t,t'> : PO" and
   EQ_iff:         "t =  t' <-> <t,t'> : EQ"
 
   (** Behaviour of non-canonical terms (ie case) given by the following beta-rules **)
 
-  caseBtrue:            "case(true,d,e,f,g) = d"
-  caseBfalse:          "case(false,d,e,f,g) = e"
-  caseBpair:           "case(<a,b>,d,e,f,g) = f(a,b)"
-  caseBlam:       "case(lam x. b(x),d,e,f,g) = g(b)"
-  caseBbot:              "case(bot,d,e,f,g) = bot"            (* strictness *)
+axiomatization where
+  caseBtrue:            "case(true,d,e,f,g) = d" and
+  caseBfalse:          "case(false,d,e,f,g) = e" and
+  caseBpair:           "case(<a,b>,d,e,f,g) = f(a,b)" and
+  caseBlam:       "\<And>b. case(lam x. b(x),d,e,f,g) = g(b)" and
+  caseBbot:              "case(bot,d,e,f,g) = bot"           (* strictness *)
 
   (** The theory is non-trivial **)
+axiomatization where
   distinctness:   "~ lam x. b(x) = bot"
 
   (*** Definitions of Termination and Divergence ***)
