@@ -11,7 +11,7 @@ sig
   val noneN: string
   val unknownN: string
   val setup: theory -> theory
-  (* configuration *)
+  (*configuration*)
   val auto: bool Unsynchronized.ref
   val batch_tester : string Config.T
   val size : int Config.T
@@ -22,7 +22,7 @@ sig
   val timeout : real Config.T
   val timing : bool Config.T
   val genuine_only : bool Config.T
-  val abort_potential : bool Config.T  
+  val abort_potential : bool Config.T
   val quiet : bool Config.T
   val verbose : bool Config.T
   val use_subtype : bool Config.T
@@ -41,7 +41,7 @@ sig
   datatype report = Report of
     { iterations : int, raised_match_errors : int,
       satisfied_assms : int list, positive_concl_tests : int }
-  (* quickcheck's result *)
+  (*quickcheck's result*)
   datatype result =
     Result of
      {counterexample : (bool * (string * term) list) option,
@@ -51,11 +51,12 @@ sig
   val empty_result : result
   val found_counterexample : result -> bool
   val add_timing : (string * int) -> result Unsynchronized.ref -> unit
-  val add_response : string list -> term list -> (bool * term list) option -> result Unsynchronized.ref -> unit
+  val add_response : string list -> term list -> (bool * term list) option ->
+    result Unsynchronized.ref -> unit
   val add_report : int -> report option -> result Unsynchronized.ref -> unit
   val counterexample_of : result -> (bool * (string * term) list) option
   val timings_of : result -> (string * int) list
-  (* registering testers & generators *) 
+  (*registering testers & generators*)
   type tester =
     Proof.context -> bool -> (string * typ) list -> (term * term list) list -> result list
   val add_tester : string * (bool Config.T * tester) -> Context.generic -> Context.generic
@@ -65,19 +66,20 @@ sig
   val add_batch_validator :
     string * (Proof.context -> term list -> (int -> bool) list)
       -> Context.generic -> Context.generic
-  (* basic operations *)
+  (*basic operations*)
   val message : Proof.context -> string -> unit
   val verbose_message : Proof.context -> string -> unit
   val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a
   val pretty_counterex : Proof.context -> bool ->
     ((bool * (string * term) list) * (term * term) list) option -> Pretty.T
-  (* testing terms and proof states *)
+  (*testing terms and proof states*)
   val mk_batch_validator : Proof.context -> term list -> (int -> bool) list option
   val mk_batch_tester : Proof.context -> term list -> (int -> term list option) list option
   val active_testers : Proof.context -> tester list
-  val test_terms :
-    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list -> result list option
-  val quickcheck: (string * string list) list -> int -> Proof.state -> (bool * (string * term) list) option
+  val test_terms : Proof.context -> bool * bool -> (string * typ) list ->
+    (term * term list) list -> result list option
+  val quickcheck: (string * string list) list -> int -> Proof.state ->
+    (bool * (string * term) list) option
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -88,6 +90,7 @@ val quickcheckN = "quickcheck"
 val genuineN = "genuine"
 val noneN = "none"
 val unknownN = "unknown"
+
 
 (* preferences *)
 
@@ -100,11 +103,13 @@ val _ =
       "auto-quickcheck"
       "Run Quickcheck automatically.") ());
 
+
 (* quickcheck report *)
 
 datatype report = Report of
   { iterations : int, raised_match_errors : int,
     satisfied_assms : int list, positive_concl_tests : int }
+
 
 (* Quickcheck Result *)
 
@@ -155,6 +160,7 @@ fun add_report size report result_ref =
 fun add_response names eval_terms response result_ref =
   Unsynchronized.change result_ref (set_response names eval_terms response)
 
+
 (* expectation *)
 
 datatype expectation = No_Expectation | No_Counterexample | Counterexample;
@@ -162,7 +168,7 @@ datatype expectation = No_Expectation | No_Counterexample | Counterexample;
 fun merge_expectation (expect1, expect2) =
   if expect1 = expect2 then expect1 else No_Expectation
 
-(* quickcheck configuration -- default parameters, test generators *)
+(*quickcheck configuration -- default parameters, test generators*)
 val batch_tester = Attrib.setup_config_string @{binding quickcheck_batch_tester} (K "")
 val size = Attrib.setup_config_int @{binding quickcheck_size} (K 10)
 val iterations = Attrib.setup_config_int @{binding quickcheck_iterations} (K 100)
@@ -206,7 +212,7 @@ fun merge_test_params
     (merge (op =) (default_type1, default_type2), merge_expectation (expect1, expect2));
 
 type tester =
-  Proof.context -> bool -> (string * typ) list -> (term * term list) list -> result list
+  Proof.context -> bool -> (string * typ) list -> (term * term list) list -> result list;
 
 structure Data = Generic_Data
 (
@@ -245,45 +251,49 @@ fun active_testers ctxt =
   in
     map snd (filter (fn (active, _) => Config.get ctxt active) testers)
   end
-  
+
 fun set_active_testers [] gen_ctxt = gen_ctxt
   | set_active_testers testers gen_ctxt =
-  let
-    val registered_testers = (fst o fst o Data.get) gen_ctxt
-  in
-    fold (fn (name, (config, _)) => Config.put_generic config (member (op =) testers name))
-      registered_testers gen_ctxt
-  end
-    
+      let
+        val registered_testers = (fst o fst o Data.get) gen_ctxt
+      in
+        fold (fn (name, (config, _)) => Config.put_generic config (member (op =) testers name))
+          registered_testers gen_ctxt
+      end;
+
+
 (* generating tests *)
 
 fun gen_mk_tester lookup ctxt v =
   let
     val name = Config.get ctxt batch_tester
-    val tester = case lookup ctxt name
-      of NONE => error ("No such quickcheck batch-tester: " ^ name)
-      | SOME tester => tester ctxt;
+    val tester =
+      (case lookup ctxt name of
+        NONE => error ("No such quickcheck batch-tester: " ^ name)
+      | SOME tester => tester ctxt);
   in
     if Config.get ctxt quiet then
       try tester v
     else
       let (* FIXME !?!? *)
         val tester = Exn.interruptible_capture tester v
-      in case Exn.get_res tester of
+      in
+        (case Exn.get_res tester of
           NONE => SOME (Exn.release tester)
-        | SOME tester => SOME tester
+        | SOME tester => SOME tester)
       end
-  end
+  end;
 
 val mk_batch_tester =
-  gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o snd o fst o Data.get o Context.Proof) ctxt))
+  gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o snd o fst o Data.get o Context.Proof) ctxt));
 val mk_batch_validator =
-  gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o snd o fst o Data.get o Context.Proof) ctxt))
-  
+  gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o snd o fst o Data.get o Context.Proof) ctxt));
+
+
 (* testing propositions *)
 
 type compile_generator =
-  Proof.context -> (term * term list) list -> int list -> term list option * report option
+  Proof.context -> (term * term list) list -> int list -> term list option * report option;
 
 fun limit timeout (limit_time, is_interactive) f exc () =
   if limit_time then
@@ -291,51 +301,53 @@ fun limit timeout (limit_time, is_interactive) f exc () =
     handle TimeLimit.TimeOut =>
       if is_interactive then exc () else raise TimeLimit.TimeOut
   else
-    f ()
+    f ();
 
-fun message ctxt s = if Config.get ctxt quiet then () else Output.urgent_message s
+fun message ctxt s = if Config.get ctxt quiet then () else Output.urgent_message s;
 
-fun verbose_message ctxt s = if not (Config.get ctxt quiet) andalso Config.get ctxt verbose
-  then Output.urgent_message s else ()
+fun verbose_message ctxt s =
+  if not (Config.get ctxt quiet) andalso Config.get ctxt verbose
+  then Output.urgent_message s else ();
 
 fun test_terms ctxt (limit_time, is_interactive) insts goals =
-  case active_testers ctxt of
+  (case active_testers ctxt of
     [] => error "No active testers for quickcheck"
   | testers =>
     limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive)
       (fn () => Par_List.get_some (fn tester =>
-      tester ctxt (length testers > 1) insts goals |>
-      (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
-      (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ();
+        tester ctxt (length testers > 1) insts goals |>
+        (fn result => if exists found_counterexample result then SOME result else NONE)) testers)
+      (fn () => (message ctxt "Quickcheck ran out of time"; NONE)) ());
 
 fun all_axioms_of ctxt t =
   let
-    val intros = Locale.get_intros ctxt
-    val unfolds = Locale.get_unfolds ctxt
-    fun retrieve_prems thms t = 
-       case filter (fn th => Term.could_unify (Thm.concl_of th, t)) thms of
-         [] => NONE 
+    val intros = Locale.get_intros ctxt;
+    val unfolds = Locale.get_unfolds ctxt;
+    fun retrieve_prems thms t =
+       (case filter (fn th => Term.could_unify (Thm.concl_of th, t)) thms of
+         [] => NONE
        | [th] =>
-         let
-           val (tyenv, tenv) =
-             Pattern.match (Proof_Context.theory_of ctxt) (Thm.concl_of th, t) (Vartab.empty, Vartab.empty)
-         in SOME (map (Envir.subst_term (tyenv, tenv)) (Thm.prems_of th)) end
+           let
+             val (tyenv, tenv) =
+               Pattern.match (Proof_Context.theory_of ctxt)
+                (Thm.concl_of th, t) (Vartab.empty, Vartab.empty)
+           in SOME (map (Envir.subst_term (tyenv, tenv)) (Thm.prems_of th)) end);
     fun all t =
-      case retrieve_prems intros t of
+      (case retrieve_prems intros t of
         NONE => retrieve_prems unfolds t
-      | SOME ts => SOME (maps (fn t => the_default [t] (all t)) ts)
+      | SOME ts => SOME (maps (fn t => the_default [t] (all t)) ts));
   in
     all t
-  end
+  end;
 
 fun locale_config_of s =
   let
-    val cs = space_explode " " s
+    val cs = space_explode " " s;
   in
     if forall (fn c => c = "expand" orelse c = "interpret") cs then cs
     else (warning ("Invalid quickcheck_locale setting: falling back to the default setting.");
       ["interpret", "expand"])
-  end
+  end;
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
@@ -346,34 +358,46 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
       | strip t = t;
     val {goal = st, ...} = Proof.raw_goal state;
     val (gi, frees) = Logic.goal_params (prop_of st) i;
-    val some_locale = case (Option.map #target o Named_Target.peek) lthy
-     of NONE => NONE
+    val some_locale =
+      (case (Option.map #target o Named_Target.peek) lthy of
+        NONE => NONE
       | SOME "" => NONE
-      | SOME locale => SOME locale;
-    val assms = if Config.get lthy no_assms then [] else case some_locale
-     of NONE => Assumption.all_assms_of lthy
-      | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
+      | SOME locale => SOME locale);
+    val assms =
+      if Config.get lthy no_assms then []
+      else
+        (case some_locale of
+          NONE => Assumption.all_assms_of lthy
+        | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy));
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
-    fun axioms_of locale = case fst (Locale.specification_of thy locale) of
+    fun axioms_of locale =
+      (case fst (Locale.specification_of thy locale) of
         NONE => []
-      | SOME t => the_default [] (all_axioms_of lthy t)
-   val config = locale_config_of (Config.get lthy locale) 
-   val goals = case some_locale
-     of NONE => [(proto_goal, eval_terms)]
-      | SOME locale => fold (fn c =>
-          if c = "expand" then cons (Logic.list_implies (axioms_of locale, proto_goal), eval_terms) else
-          if c = "interpret" then
-            append (map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
-          (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale)) else I) config [];
-    val _ = verbose_message lthy (Pretty.string_of
-      (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term lthy o fst) goals)))
+      | SOME t => the_default [] (all_axioms_of lthy t));
+   val config = locale_config_of (Config.get lthy locale);
+   val goals =
+    (case some_locale of
+      NONE => [(proto_goal, eval_terms)]
+    | SOME locale =>
+        fold (fn c =>
+          if c = "expand" then cons (Logic.list_implies (axioms_of locale, proto_goal), eval_terms)
+          else if c = "interpret" then
+            append (map (fn (_, phi) =>
+                (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
+              (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale))
+          else I) config []);
+    val _ =
+      verbose_message lthy
+        (Pretty.string_of
+          (Pretty.big_list ("Checking goals: ") (map (Syntax.pretty_term lthy o fst) goals)));
   in
     test_terms lthy (time_limit, is_interactive) insts goals
-  end
+  end;
+
 
 (* pretty printing *)
 
-fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck"
+fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck";
 
 fun pretty_counterex ctxt auto NONE =
     Pretty.str (tool_name auto ^ " found no counterexample." ^ Config.get ctxt tag)
@@ -390,39 +414,42 @@ fun pretty_counterex ctxt auto NONE =
                Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1,
                  Syntax.pretty_term ctxt u]) (rev eval_terms))));
 
+
 (* Isar commands *)
 
-fun read_nat s = case (Library.read_int o Symbol.explode) s
- of (k, []) => if k >= 0 then k
+fun read_nat s =
+  (case (Library.read_int o Symbol.explode) s of
+    (k, []) =>
+      if k >= 0 then k
       else error ("Not a natural number: " ^ s)
-  | (_, _ :: _) => error ("Not a natural number: " ^ s);
+  | (_, _ :: _) => error ("Not a natural number: " ^ s));
 
 fun read_bool "false" = false
   | read_bool "true" = true
-  | read_bool s = error ("Not a Boolean value: " ^ s)
+  | read_bool s = error ("Not a Boolean value: " ^ s);
 
 fun read_real s =
-  case (Real.fromString s) of
+  (case (Real.fromString s) of
     SOME s => s
-  | NONE => error ("Not a real number: " ^ s)
+  | NONE => error ("Not a real number: " ^ s));
 
 fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "no_counterexample" = No_Counterexample
   | read_expectation "counterexample" = Counterexample
-  | read_expectation s = error ("Not an expectation value: " ^ s)
+  | read_expectation s = error ("Not an expectation value: " ^ s);
 
-fun valid_tester_name genctxt name = AList.defined (op =) (fst (fst (Data.get genctxt))) name
-  
+fun valid_tester_name genctxt name = AList.defined (op =) (fst (fst (Data.get genctxt))) name;
+
 fun parse_tester name (testers, genctxt) =
   if valid_tester_name genctxt name then
-    (insert (op =) name testers, genctxt)  
+    (insert (op =) name testers, genctxt)
   else
-    error ("Unknown tester: " ^ name)
+    error ("Unknown tester: " ^ name);
 
 fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("size", [arg]) = apsnd (Config.put_generic size (read_nat arg))
   | parse_test_param ("iterations", [arg]) = apsnd (Config.put_generic iterations (read_nat arg))
-  | parse_test_param ("depth", [arg]) = apsnd (Config.put_generic depth (read_nat arg))  
+  | parse_test_param ("depth", [arg]) = apsnd (Config.put_generic depth (read_nat arg))
   | parse_test_param ("default_type", arg) = (fn (testers, gen_ctxt) =>
     (testers, map_test_params
       ((apfst o K) (map (Proof_Context.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt))
@@ -434,42 +461,42 @@ fun parse_test_param ("tester", args) = fold parse_tester args
   | parse_test_param ("quiet", [arg]) = apsnd (Config.put_generic quiet (read_bool arg))
   | parse_test_param ("verbose", [arg]) = apsnd (Config.put_generic verbose (read_bool arg))
   | parse_test_param ("tag", [arg]) = apsnd (Config.put_generic tag arg)
-  | parse_test_param ("use_subtype", [arg]) = apsnd (Config.put_generic use_subtype (read_bool arg))  
+  | parse_test_param ("use_subtype", [arg]) = apsnd (Config.put_generic use_subtype (read_bool arg))
   | parse_test_param ("timeout", [arg]) = apsnd (Config.put_generic timeout (read_real arg))
   | parse_test_param ("finite_types", [arg]) = apsnd (Config.put_generic finite_types (read_bool arg))
   | parse_test_param ("allow_function_inversion", [arg]) =
       apsnd (Config.put_generic allow_function_inversion (read_bool arg))
   | parse_test_param ("finite_type_size", [arg]) =
     apsnd (Config.put_generic finite_type_size (read_nat arg))
-  | parse_test_param (name, _) = (fn (testers, genctxt) =>
-    if valid_tester_name genctxt name then
-      (insert (op =) name testers, genctxt)  
-    else error ("Unknown tester or test parameter: " ^ name));
+  | parse_test_param (name, _) =
+      (fn (testers, genctxt) =>
+        if valid_tester_name genctxt name then
+          (insert (op =) name testers, genctxt)
+        else error ("Unknown tester or test parameter: " ^ name));
 
 fun proof_map_result f = apsnd Context.the_proof o f o Context.Proof;
 
 fun parse_test_param_inst (name, arg) ((insts, eval_terms), (testers, ctxt)) =
-      case try (Proof_Context.read_typ ctxt) name
-       of SOME (TFree (v, _)) =>
-         ((AList.update (op =) (v, Proof_Context.read_typ ctxt (the_single arg)) insts, eval_terms),
-           (testers, ctxt))
-        | NONE => (case name of
-            "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), (testers, ctxt))
-          | _ => ((insts, eval_terms),
-            proof_map_result (fn gen_ctxt => parse_test_param (name, arg) (testers, gen_ctxt)) ctxt));
+  (case try (Proof_Context.read_typ ctxt) name of
+    SOME (TFree (v, _)) =>
+      ((AList.update (op =) (v, Proof_Context.read_typ ctxt (the_single arg)) insts, eval_terms),
+        (testers, ctxt))
+  | NONE =>
+      (case name of
+        "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), (testers, ctxt))
+      | _ =>
+        ((insts, eval_terms),
+          proof_map_result (fn gen_ctxt => parse_test_param (name, arg) (testers, gen_ctxt)) ctxt)));
 
 fun quickcheck_params_cmd args = Context.theory_map
   (fn gen_ctxt => uncurry set_active_testers (fold parse_test_param args ([], gen_ctxt)));
 
 fun check_expectation state results =
-  (if is_some results andalso expect (Proof.context_of state) = No_Counterexample
-  then
-    error ("quickcheck expected to find no counterexample but found one")
-  else
-    (if is_none results andalso expect (Proof.context_of state) = Counterexample
-    then
-      error ("quickcheck expected to find a counterexample but did not find one")
-    else ()))
+  if is_some results andalso expect (Proof.context_of state) = No_Counterexample then
+    error "quickcheck expected to find no counterexample but found one"
+  else if is_none results andalso expect (Proof.context_of state) = Counterexample then
+    error "quickcheck expected to find a counterexample but did not find one"
+  else ();
 
 fun gen_quickcheck args i state =
   state
@@ -477,16 +504,17 @@ fun gen_quickcheck args i state =
     apsnd (fn (testers, ctxt) => Context.proof_map (set_active_testers testers) ctxt)
       (fold parse_test_param_inst args (([], []), ([], ctxt))))
   |> (fn ((insts, eval_terms), state') => test_goal (true, true) (insts, eval_terms) i state'
-  |> tap (check_expectation state') |> rpair state')
+      |> tap (check_expectation state') |> rpair state');
 
 fun quickcheck args i state =
-  Option.map (the o get_first counterexample_of) (fst (gen_quickcheck args i state))
+  Option.map (the o get_first counterexample_of) (fst (gen_quickcheck args i state));
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
   |> apfst (Option.map (the o get_first response_of))
-  |> (fn (r, state) => Output.urgent_message (Pretty.string_of
-       (pretty_counterex (Proof.context_of state) false r)));
+  |> (fn (r, state) =>
+      Output.urgent_message (Pretty.string_of
+        (pretty_counterex (Proof.context_of state) false r)));
 
 val parse_arg =
   Parse.name --
@@ -507,6 +535,7 @@ val _ =
     (parse_args -- Scan.optional Parse.nat 1
       >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
 
+
 (* automatic testing *)
 
 fun try_quickcheck auto state =
@@ -518,7 +547,7 @@ fun try_quickcheck auto state =
       |> Proof.map_context (Config.put report false #> Config.put quiet true)
       |> try (test_goal (false, false) ([], []) i);
   in
-    case res of
+    (case res of
       NONE => (unknownN, state)
     | SOME results =>
         let
@@ -534,11 +563,11 @@ fun try_quickcheck auto state =
                    tap (fn _ => Output.urgent_message (Pretty.string_of msg))))
           else
             (noneN, state)
-        end
+        end)
   end
-  |> `(fn (outcome_code, _) => outcome_code = genuineN)
+  |> `(fn (outcome_code, _) => outcome_code = genuineN);
 
-val setup = Try.register_tool (quickcheckN, (20, auto, try_quickcheck))
+val setup = Try.register_tool (quickcheckN, (20, auto, try_quickcheck));
 
 end;
 
