@@ -119,7 +119,6 @@ text {*
   \begin{tabular}{lll}
     @{ML stac}~@{text "a 1"} & & @{text "subst a"} \\
     @{ML hyp_subst_tac}~@{text 1} & & @{text hypsubst} \\
-    @{ML strip_tac}~@{text 1} & @{text "\<approx>"} & @{text "intro strip"} \\
     @{ML split_all_tac}~@{text 1} & & @{text "simp (no_asm_simp) only: split_tupled_all"} \\
       & @{text "\<approx>"} & @{text "simp only: split_tupled_all"} \\
       & @{text "\<lless>"} & @{text "clarify"} \\

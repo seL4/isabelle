@@ -1987,8 +1987,6 @@ setup {*
 subsection {* Legacy tactics and ML bindings *}
 
 ML {*
-fun strip_tac i = REPEAT (resolve_tac [impI, allI] i);
-
 (* combination of (spec RS spec RS ...(j times) ... spec RS mp) *)
 local
   fun wrong_prem (Const (@{const_name All}, _) $ Abs (_, _, t)) = wrong_prem t
