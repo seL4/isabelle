@@ -6,26 +6,25 @@ theory Washing
 imports ILL
 begin
 
-consts
-  dollar :: o
-  quarter :: o
-  loaded :: o
-  dirty :: o
-  wet :: o
+axiomatization
+  dollar :: o and
+  quarter :: o and
+  loaded :: o and
+  dirty :: o and
+  wet :: o and
   clean :: o
-
-axioms
+where
   change:
-  "dollar |- (quarter >< quarter >< quarter >< quarter)"
+  "dollar |- (quarter >< quarter >< quarter >< quarter)" and
 
   load1:
-  "quarter , quarter , quarter , quarter , quarter |- loaded"
+  "quarter , quarter , quarter , quarter , quarter |- loaded" and
 
   load2:
-  "dollar , quarter |- loaded"
+  "dollar , quarter |- loaded" and
 
   wash:
-  "loaded , dirty |- wet"
+  "loaded , dirty |- wet" and
 
   dry:
   "wet, quarter , quarter , quarter |- clean"

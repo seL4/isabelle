@@ -54,47 +54,47 @@ liff_def:        "P o-o Q == (P -o Q) >< (Q -o P)"
 aneg_def:        "~A == A -o 0"
 
 
-axioms
+axiomatization where
 
-identity:        "P |- P"
+identity:        "P |- P" and
 
-zerol:           "$G, 0, $H |- A"
+zerol:           "$G, 0, $H |- A" and
 
   (* RULES THAT DO NOT DIVIDE CONTEXT *)
 
-derelict:   "$F, A, $G |- C ==> $F, !A, $G |- C"
+derelict:   "$F, A, $G |- C ==> $F, !A, $G |- C" and
   (* unfortunately, this one removes !A  *)
 
-contract:  "$F, !A, !A, $G |- C ==> $F, !A, $G |- C"
+contract:  "$F, !A, !A, $G |- C ==> $F, !A, $G |- C" and
 
-weaken:     "$F, $G |- C ==> $G, !A, $F |- C"
+weaken:     "$F, $G |- C ==> $G, !A, $F |- C" and
   (* weak form of weakening, in practice just to clean context *)
   (* weaken and contract not needed (CHECK)  *)
 
-promote2:        "promaux{ || $H || B} ==> $H |- !B"
+promote2:        "promaux{ || $H || B} ==> $H |- !B" and
 promote1:        "promaux{!A, $G || $H || B}
-                  ==> promaux {$G || $H, !A || B}"
-promote0:        "$G |- A ==> promaux {$G || || A}"
+                  ==> promaux {$G || $H, !A || B}" and
+promote0:        "$G |- A ==> promaux {$G || || A}" and
 
 
 
-tensl:     "$H, A, B, $G |- C ==> $H, A >< B, $G |- C"
+tensl:     "$H, A, B, $G |- C ==> $H, A >< B, $G |- C" and
 
-impr:      "A, $F |- B ==> $F |- A -o B"
+impr:      "A, $F |- B ==> $F |- A -o B" and
 
 conjr:           "[| $F |- A ;
                  $F |- B |]
-                ==> $F |- (A && B)"
+                ==> $F |- (A && B)" and
 
-conjll:          "$G, A, $H |- C ==> $G, A && B, $H |- C"
+conjll:          "$G, A, $H |- C ==> $G, A && B, $H |- C" and
 
-conjlr:          "$G, B, $H |- C ==> $G, A && B, $H |- C"
+conjlr:          "$G, B, $H |- C ==> $G, A && B, $H |- C" and
 
-disjrl:          "$G |- A ==> $G |- A ++ B"
-disjrr:          "$G |- B ==> $G |- A ++ B"
+disjrl:          "$G |- A ==> $G |- A ++ B" and
+disjrr:          "$G |- B ==> $G |- A ++ B" and
 disjl:           "[| $G, A, $H |- C ;
                      $G, B, $H |- C |]
-                 ==> $G, A ++ B, $H |- C"
+                 ==> $G, A ++ B, $H |- C" and
 
 
       (* RULES THAT DIVIDE CONTEXT *)
@@ -102,26 +102,26 @@ disjl:           "[| $G, A, $H |- C ;
 tensr:           "[| $F, $J :=: $G;
                      $F |- A ;
                      $J |- B     |]
-                     ==> $G |- A >< B"
+                     ==> $G |- A >< B" and
 
 impl:            "[| $G, $F :=: $J, $H ;
                      B, $F |- C ;
                         $G |- A |]
-                     ==> $J, A -o B, $H |- C"
+                     ==> $J, A -o B, $H |- C" and
 
 
 cut: " [| $J1, $H1, $J2, $H3, $J3, $H2, $J4, $H4 :=: $F ;
           $H1, $H2, $H3, $H4 |- A ;
-          $J1, $J2, A, $J3, $J4 |- B |]  ==> $F |- B"
+          $J1, $J2, A, $J3, $J4 |- B |]  ==> $F |- B" and
 
 
   (* CONTEXT RULES *)
 
-context1:     "$G :=: $G"
-context2:     "$F, $G :=: $H, !A, $G ==> $F, A, $G :=: $H, !A, $G"
-context3:     "$F, $G :=: $H, $J ==> $F, A, $G :=: $H, A, $J"
-context4a:    "$F :=: $H, $G ==> $F :=: $H, !A, $G"
-context4b:    "$F, $H :=: $G ==> $F, !A, $H :=: $G"
+context1:     "$G :=: $G" and
+context2:     "$F, $G :=: $H, !A, $G ==> $F, A, $G :=: $H, !A, $G" and
+context3:     "$F, $G :=: $H, $J ==> $F, A, $G :=: $H, A, $J" and
+context4a:    "$F :=: $H, $G ==> $F :=: $H, !A, $G" and
+context4b:    "$F, $H :=: $G ==> $F, !A, $H :=: $G" and
 context5:     "$F, $G :=: $H ==> $G, $F :=: $H"
 
 

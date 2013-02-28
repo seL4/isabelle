@@ -11,20 +11,22 @@ begin
 
 typedecl nat
 arities nat :: "term"
-consts  Zero :: nat      ("0")
-        Suc :: "nat=>nat"
-        rec :: "[nat, 'a, [nat,'a]=>'a] => 'a"
-        add :: "[nat, nat] => nat"                (infixl "+" 60)
 
-axioms
+axiomatization
+  Zero :: nat      ("0") and
+  Suc :: "nat=>nat" and
+  rec :: "[nat, 'a, [nat,'a]=>'a] => 'a"
+where
   induct:  "[| $H |- $E, P(0), $F;
-              !!x. $H, P(x) |- $E, P(Suc(x)), $F |] ==> $H |- $E, P(n), $F"
+              !!x. $H, P(x) |- $E, P(Suc(x)), $F |] ==> $H |- $E, P(n), $F" and
 
-  Suc_inject:  "|- Suc(m)=Suc(n) --> m=n"
-  Suc_neq_0:   "|- Suc(m) ~= 0"
-  rec_0:       "|- rec(0,a,f) = a"
+  Suc_inject:  "|- Suc(m)=Suc(n) --> m=n" and
+  Suc_neq_0:   "|- Suc(m) ~= 0" and
+  rec_0:       "|- rec(0,a,f) = a" and
   rec_Suc:     "|- rec(Suc(m), a, f) = f(m, rec(m,a,f))"
-  add_def:     "m+n == rec(m, n, %x y. Suc(y))"
+
+definition add :: "[nat, nat] => nat"  (infixl "+" 60)
+  where "m + n == rec(m, n, %x y. Suc(y))"
 
 
 declare Suc_neq_0 [simp]

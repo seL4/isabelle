@@ -7,26 +7,26 @@ theory S4
 imports Modal0
 begin
 
-axioms
+axiomatization where
 (* Definition of the star operation using a set of Horn clauses *)
 (* For system S4:  gamma * == {[]P | []P : gamma}               *)
 (*                 delta * == {<>P | <>P : delta}               *)
 
-  lstar0:         "|L>"
-  lstar1:         "$G |L> $H ==> []P, $G |L> []P, $H"
-  lstar2:         "$G |L> $H ==>   P, $G |L>      $H"
-  rstar0:         "|R>"
-  rstar1:         "$G |R> $H ==> <>P, $G |R> <>P, $H"
-  rstar2:         "$G |R> $H ==>   P, $G |R>      $H"
+  lstar0:         "|L>" and
+  lstar1:         "$G |L> $H ==> []P, $G |L> []P, $H" and
+  lstar2:         "$G |L> $H ==>   P, $G |L>      $H" and
+  rstar0:         "|R>" and
+  rstar1:         "$G |R> $H ==> <>P, $G |R> <>P, $H" and
+  rstar2:         "$G |R> $H ==>   P, $G |R>      $H" and
 
 (* Rules for [] and <> *)
 
   boxR:
    "[| $E |L> $E';  $F |R> $F';  $G |R> $G';
-           $E'         |- $F', P, $G'|] ==> $E          |- $F, []P, $G"
-  boxL:     "$E,P,$F,[]P |-         $G    ==> $E, []P, $F |-          $G"
+           $E'         |- $F', P, $G'|] ==> $E          |- $F, []P, $G" and
+  boxL:     "$E,P,$F,[]P |-         $G    ==> $E, []P, $F |-          $G" and
 
-  diaR:     "$E          |- $F,P,$G,<>P   ==> $E          |- $F, <>P, $G"
+  diaR:     "$E          |- $F,P,$G,<>P   ==> $E          |- $F, <>P, $G" and
   diaL:
    "[| $E |L> $E';  $F |L> $F';  $G |R> $G';
            $E', P, $F' |-         $G'|] ==> $E, <>P, $F |- $G"

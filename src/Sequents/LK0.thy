@@ -59,67 +59,69 @@ notation (HTML output)
   Ex  (binder "\<exists>" 10) and
   not_equal  (infixl "\<noteq>" 50)
 
-axioms
+axiomatization where
 
   (*Structural rules: contraction, thinning, exchange [Soren Heilmann] *)
 
-  contRS: "$H |- $E, $S, $S, $F ==> $H |- $E, $S, $F"
-  contLS: "$H, $S, $S, $G |- $E ==> $H, $S, $G |- $E"
+  contRS: "$H |- $E, $S, $S, $F ==> $H |- $E, $S, $F" and
+  contLS: "$H, $S, $S, $G |- $E ==> $H, $S, $G |- $E" and
 
-  thinRS: "$H |- $E, $F ==> $H |- $E, $S, $F"
-  thinLS: "$H, $G |- $E ==> $H, $S, $G |- $E"
+  thinRS: "$H |- $E, $F ==> $H |- $E, $S, $F" and
+  thinLS: "$H, $G |- $E ==> $H, $S, $G |- $E" and
 
-  exchRS: "$H |- $E, $R, $S, $F ==> $H |- $E, $S, $R, $F"
-  exchLS: "$H, $R, $S, $G |- $E ==> $H, $S, $R, $G |- $E"
+  exchRS: "$H |- $E, $R, $S, $F ==> $H |- $E, $S, $R, $F" and
+  exchLS: "$H, $R, $S, $G |- $E ==> $H, $S, $R, $G |- $E" and
 
-  cut:   "[| $H |- $E, P;  $H, P |- $E |] ==> $H |- $E"
+  cut:   "[| $H |- $E, P;  $H, P |- $E |] ==> $H |- $E" and
 
   (*Propositional rules*)
 
-  basic: "$H, P, $G |- $E, P, $F"
+  basic: "$H, P, $G |- $E, P, $F" and
 
-  conjR: "[| $H|- $E, P, $F;  $H|- $E, Q, $F |] ==> $H|- $E, P&Q, $F"
-  conjL: "$H, P, Q, $G |- $E ==> $H, P & Q, $G |- $E"
+  conjR: "[| $H|- $E, P, $F;  $H|- $E, Q, $F |] ==> $H|- $E, P&Q, $F" and
+  conjL: "$H, P, Q, $G |- $E ==> $H, P & Q, $G |- $E" and
 
-  disjR: "$H |- $E, P, Q, $F ==> $H |- $E, P|Q, $F"
-  disjL: "[| $H, P, $G |- $E;  $H, Q, $G |- $E |] ==> $H, P|Q, $G |- $E"
+  disjR: "$H |- $E, P, Q, $F ==> $H |- $E, P|Q, $F" and
+  disjL: "[| $H, P, $G |- $E;  $H, Q, $G |- $E |] ==> $H, P|Q, $G |- $E" and
 
-  impR:  "$H, P |- $E, Q, $F ==> $H |- $E, P-->Q, $F"
-  impL:  "[| $H,$G |- $E,P;  $H, Q, $G |- $E |] ==> $H, P-->Q, $G |- $E"
+  impR:  "$H, P |- $E, Q, $F ==> $H |- $E, P-->Q, $F" and
+  impL:  "[| $H,$G |- $E,P;  $H, Q, $G |- $E |] ==> $H, P-->Q, $G |- $E" and
 
-  notR:  "$H, P |- $E, $F ==> $H |- $E, ~P, $F"
-  notL:  "$H, $G |- $E, P ==> $H, ~P, $G |- $E"
+  notR:  "$H, P |- $E, $F ==> $H |- $E, ~P, $F" and
+  notL:  "$H, $G |- $E, P ==> $H, ~P, $G |- $E" and
 
-  FalseL: "$H, False, $G |- $E"
+  FalseL: "$H, False, $G |- $E" and
 
-  True_def: "True == False-->False"
+  True_def: "True == False-->False" and
   iff_def:  "P<->Q == (P-->Q) & (Q-->P)"
 
+axiomatization where
   (*Quantifiers*)
 
-  allR:  "(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x. P(x), $F"
-  allL:  "$H, P(x), $G, ALL x. P(x) |- $E ==> $H, ALL x. P(x), $G |- $E"
+  allR:  "(!!x.$H |- $E, P(x), $F) ==> $H |- $E, ALL x. P(x), $F" and
+  allL:  "$H, P(x), $G, ALL x. P(x) |- $E ==> $H, ALL x. P(x), $G |- $E" and
 
-  exR:   "$H |- $E, P(x), $F, EX x. P(x) ==> $H |- $E, EX x. P(x), $F"
-  exL:   "(!!x.$H, P(x), $G |- $E) ==> $H, EX x. P(x), $G |- $E"
+  exR:   "$H |- $E, P(x), $F, EX x. P(x) ==> $H |- $E, EX x. P(x), $F" and
+  exL:   "(!!x.$H, P(x), $G |- $E) ==> $H, EX x. P(x), $G |- $E" and
 
   (*Equality*)
-
-  refl:  "$H |- $E, a=a, $F"
-  subst: "$H(a), $G(a) |- $E(a) ==> $H(b), a=b, $G(b) |- $E(b)"
+  refl:  "$H |- $E, a=a, $F" and
+  subst: "\<And>G H E. $H(a), $G(a) |- $E(a) ==> $H(b), a=b, $G(b) |- $E(b)"
 
   (* Reflection *)
 
-  eq_reflection:  "|- x=y ==> (x==y)"
+axiomatization where
+  eq_reflection:  "|- x=y ==> (x==y)" and
   iff_reflection: "|- P<->Q ==> (P==Q)"
 
   (*Descriptions*)
 
+axiomatization where
   The: "[| $H |- $E, P(a), $F;  !!x.$H, P(x) |- $E, x=a, $F |] ==>
           $H |- $E, P(THE x. P(x)), $F"
 
-definition If :: "[o, 'a, 'a] => 'a" ("(if (_)/ then (_)/ else (_))" 10) where 
-   "If(P,x,y) == THE z::'a. (P --> z=x) & (~P --> z=y)"
+definition If :: "[o, 'a, 'a] => 'a" ("(if (_)/ then (_)/ else (_))" 10)
+  where "If(P,x,y) == THE z::'a. (P --> z=x) & (~P --> z=y)"
 
 
 (** Structural Rules on formulas **)
