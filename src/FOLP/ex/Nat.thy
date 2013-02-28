@@ -12,34 +12,30 @@ begin
 typedecl nat
 arities nat :: "term"
 
-consts
-  Zero :: nat    ("0")
-  Suc :: "nat => nat"
-  rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
-  add :: "[nat, nat] => nat"    (infixl "+" 60)
+axiomatization
+  Zero :: nat    ("0") and
+  Suc :: "nat => nat" and
+  rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a" and
 
   (*Proof terms*)
-  nrec :: "[nat, p, [nat, p] => p] => p"
-  ninj :: "p => p"
-  nneq :: "p => p"
-  rec0 :: "p"
+  nrec :: "[nat, p, [nat, p] => p] => p" and
+  ninj :: "p => p" and
+  nneq :: "p => p" and
+  rec0 :: "p" and
   recSuc :: "p"
-
-axioms
+where
   induct:     "[| b:P(0); !!x u. u:P(x) ==> c(x,u):P(Suc(x))
-              |] ==> nrec(n,b,c):P(n)"
+              |] ==> nrec(n,b,c):P(n)" and
 
-  Suc_inject: "p:Suc(m)=Suc(n) ==> ninj(p) : m=n"
-  Suc_neq_0:  "p:Suc(m)=0      ==> nneq(p) : R"
-  rec_0:      "rec0 : rec(0,a,f) = a"
-  rec_Suc:    "recSuc : rec(Suc(m), a, f) = f(m, rec(m,a,f))"
-
-defs
-  add_def:    "m+n == rec(m, n, %x y. Suc(y))"
-
-axioms
-  nrecB0:     "b: A ==> nrec(0,b,c) = b : A"
+  Suc_inject: "p:Suc(m)=Suc(n) ==> ninj(p) : m=n" and
+  Suc_neq_0:  "p:Suc(m)=0      ==> nneq(p) : R" and
+  rec_0:      "rec0 : rec(0,a,f) = a" and
+  rec_Suc:    "recSuc : rec(Suc(m), a, f) = f(m, rec(m,a,f))" and
+  nrecB0:     "b: A ==> nrec(0,b,c) = b : A" and
   nrecBSuc:   "c(n,nrec(n,b,c)) : A ==> nrec(Suc(n),b,c) = c(n,nrec(n,b,c)) : A"
+
+definition add :: "[nat, nat] => nat"    (infixl "+" 60)
+  where "m + n == rec(m, n, %x y. Suc(y))"
 
 
 subsection {* Proofs about the natural numbers *}

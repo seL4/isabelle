@@ -80,71 +80,84 @@ print_translation (advanced) {*
   in [(@{const_syntax Proof}, proof_tr')] end
 *}
 
-axioms
 
 (**** Propositional logic ****)
 
 (*Equality*)
 (* Like Intensional Equality in MLTT - but proofs distinct from terms *)
 
-ieqI:      "ideq(a) : a=a"
+axiomatization where
+ieqI:      "ideq(a) : a=a" and
 ieqE:      "[| p : a=b;  !!x. f(x) : P(x,x) |] ==> idpeel(p,f) : P(a,b)"
 
 (* Truth and Falsity *)
 
-TrueI:     "tt : True"
+axiomatization where
+TrueI:     "tt : True" and
 FalseE:    "a:False ==> contr(a):P"
 
 (* Conjunction *)
 
-conjI:     "[| a:P;  b:Q |] ==> <a,b> : P&Q"
-conjunct1: "p:P&Q ==> fst(p):P"
+axiomatization where
+conjI:     "[| a:P;  b:Q |] ==> <a,b> : P&Q" and
+conjunct1: "p:P&Q ==> fst(p):P" and
 conjunct2: "p:P&Q ==> snd(p):Q"
 
 (* Disjunction *)
 
-disjI1:    "a:P ==> inl(a):P|Q"
-disjI2:    "b:Q ==> inr(b):P|Q"
+axiomatization where
+disjI1:    "a:P ==> inl(a):P|Q" and
+disjI2:    "b:Q ==> inr(b):P|Q" and
 disjE:     "[| a:P|Q;  !!x. x:P ==> f(x):R;  !!x. x:Q ==> g(x):R
            |] ==> when(a,f,g):R"
 
 (* Implication *)
 
-impI:      "(!!x. x:P ==> f(x):Q) ==> lam x. f(x):P-->Q"
-mp:        "[| f:P-->Q;  a:P |] ==> f`a:Q"
+axiomatization where
+impI:      "\<And>P Q f. (!!x. x:P ==> f(x):Q) ==> lam x. f(x):P-->Q" and
+mp:        "\<And>P Q f. [| f:P-->Q;  a:P |] ==> f`a:Q"
 
 (*Quantifiers*)
 
-allI:      "(!!x. f(x) : P(x)) ==> all x. f(x) : ALL x. P(x)"
-spec:      "(f:ALL x. P(x)) ==> f^x : P(x)"
+axiomatization where
+allI:      "\<And>P. (!!x. f(x) : P(x)) ==> all x. f(x) : ALL x. P(x)" and
+spec:      "\<And>P f. (f:ALL x. P(x)) ==> f^x : P(x)"
 
-exI:       "p : P(x) ==> [x,p] : EX x. P(x)"
+axiomatization where
+exI:       "p : P(x) ==> [x,p] : EX x. P(x)" and
 exE:       "[| p: EX x. P(x);  !!x u. u:P(x) ==> f(x,u) : R |] ==> xsplit(p,f):R"
 
 (**** Equality between proofs ****)
 
-prefl:     "a : P ==> a = a : P"
-psym:      "a = b : P ==> b = a : P"
+axiomatization where
+prefl:     "a : P ==> a = a : P" and
+psym:      "a = b : P ==> b = a : P" and
 ptrans:    "[| a = b : P;  b = c : P |] ==> a = c : P"
 
+axiomatization where
 idpeelB:   "[| !!x. f(x) : P(x,x) |] ==> idpeel(ideq(a),f) = f(a) : P(a,a)"
 
-fstB:      "a:P ==> fst(<a,b>) = a : P"
-sndB:      "b:Q ==> snd(<a,b>) = b : Q"
+axiomatization where
+fstB:      "a:P ==> fst(<a,b>) = a : P" and
+sndB:      "b:Q ==> snd(<a,b>) = b : Q" and
 pairEC:    "p:P&Q ==> p = <fst(p),snd(p)> : P&Q"
 
-whenBinl:  "[| a:P;  !!x. x:P ==> f(x) : Q |] ==> when(inl(a),f,g) = f(a) : Q"
-whenBinr:  "[| b:P;  !!x. x:P ==> g(x) : Q |] ==> when(inr(b),f,g) = g(b) : Q"
+axiomatization where
+whenBinl:  "[| a:P;  !!x. x:P ==> f(x) : Q |] ==> when(inl(a),f,g) = f(a) : Q" and
+whenBinr:  "[| b:P;  !!x. x:P ==> g(x) : Q |] ==> when(inr(b),f,g) = g(b) : Q" and
 plusEC:    "a:P|Q ==> when(a,%x. inl(x),%y. inr(y)) = a : P|Q"
 
-applyB:     "[| a:P;  !!x. x:P ==> b(x) : Q |] ==> (lam x. b(x)) ` a = b(a) : Q"
+axiomatization where
+applyB:     "[| a:P;  !!x. x:P ==> b(x) : Q |] ==> (lam x. b(x)) ` a = b(a) : Q" and
 funEC:      "f:P ==> f = lam x. f`x : P"
 
+axiomatization where
 specB:      "[| !!x. f(x) : P(x) |] ==> (all x. f(x)) ^ a = f(a) : P(a)"
 
 
 (**** Definitions ****)
 
+defs
 not_def:              "~P == P-->False"
 iff_def:         "P<->Q == (P-->Q) & (Q-->P)"
 
@@ -152,7 +165,8 @@ iff_def:         "P<->Q == (P-->Q) & (Q-->P)"
 ex1_def:   "EX! x. P(x) == EX x. P(x) & (ALL y. P(y) --> y=x)"
 
 (*Rewriting -- special constants to flag normalized terms and formulae*)
-norm_eq: "nrm : norm(x) = x"
+axiomatization where
+norm_eq: "nrm : norm(x) = x" and
 NORM_iff:        "NRM : NORM(P) <-> P"
 
 (*** Sequent-style elimination rules for & --> and ALL ***)
