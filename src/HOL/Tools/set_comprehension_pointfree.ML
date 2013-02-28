@@ -307,12 +307,6 @@ val rewrite_term = try mk_pointfree_expr
 
 val prod_case_distrib = @{lemma "(prod_case g x) z = prod_case (% x y. (g x y) z) x" by (simp add: prod_case_beta)}
 
-(* FIXME: another clone *)
-fun eq_conv cv1 cv2 ct =
-  (case Thm.term_of ct of
-    Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
-  | _ => raise CTERM ("eq_conv", [ct]))
-
 val vimageI2' = @{lemma "f a \<notin> A ==> a \<notin> f -` A" by simp}
 val vimageE' =
   @{lemma "a \<notin> f -` B ==> (\<And> x. f a = x ==> x \<notin> B ==> P) ==> P" by simp}
@@ -331,7 +325,8 @@ fun intro_image_tac ctxt = rtac @{thm image_eqI}
       ORELSE' rtac
         @{thm arg_cong2[OF refl, where f="op =", OF prod.cases, THEN iffD2]}
       ORELSE' CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1
-        (HOLogic.Trueprop_conv (eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq prod_case_distrib)))))) ctxt)))
+        (HOLogic.Trueprop_conv
+          (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq prod_case_distrib)))))) ctxt)))
 
 fun elim_image_tac ss = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
@@ -482,7 +477,9 @@ fun conv ss t =
     fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac ss' context fm 1)
     fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
-    val post = Conv.fconv_rule (HOLogic.Trueprop_conv (eq_conv Conv.all_conv (unfold_conv post_thms)))
+    val post =
+      Conv.fconv_rule
+        (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (unfold_conv post_thms)))
     val export = singleton (Variable.export ctxt' ctxt)
   in
     Option.map (export o post o unfold o mk_thm) (rewrite_term t'')

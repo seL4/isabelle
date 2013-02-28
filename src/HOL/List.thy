@@ -514,24 +514,14 @@ fun Collect_conv cv ctxt ct =
     Const (@{const_name Set.Collect}, _) $ Abs _ => Conv.arg_conv (Conv.abs_conv cv ctxt) ct
   | _ => raise CTERM ("Collect_conv", [ct]))
 
-fun eq_conv cv1 cv2 ct =
-  (case Thm.term_of ct of
-    Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
-  | _ => raise CTERM ("eq_conv", [ct]))
-
-fun conj_conv cv1 cv2 ct =
-  (case Thm.term_of ct of
-    Const (@{const_name HOL.conj}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
-  | _ => raise CTERM ("conj_conv", [ct]))
-
 fun rewr_conv' th = Conv.rewr_conv (mk_meta_eq th)
 
 fun conjunct_assoc_conv ct =
   Conv.try_conv
-    (rewr_conv' @{thm conj_assoc} then_conv conj_conv Conv.all_conv conjunct_assoc_conv) ct
+    (rewr_conv' @{thm conj_assoc} then_conv HOLogic.conj_conv Conv.all_conv conjunct_assoc_conv) ct
 
 fun right_hand_set_comprehension_conv conv ctxt =
-  HOLogic.Trueprop_conv (eq_conv Conv.all_conv
+  HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv
     (Collect_conv (all_exists_conv conv o #2) ctxt))
 
 
@@ -593,14 +583,14 @@ fun simproc ss redex =
           THEN rtac @{thm impI} 1
           THEN Subgoal.FOCUS (fn {prems, context, ...} =>
             CONVERSION (right_hand_set_comprehension_conv (K
-              (conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
+              (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
                then_conv
                rewr_conv' @{lemma "(True & P) = P" by simp})) context) 1) ctxt 1
           THEN tac ctxt cont
           THEN rtac @{thm impI} 1
           THEN Subgoal.FOCUS (fn {prems, context, ...} =>
               CONVERSION (right_hand_set_comprehension_conv (K
-                (conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
+                (HOLogic.conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
                  then_conv rewr_conv' @{lemma "(False & P) = False" by simp})) context) 1) ctxt 1
           THEN rtac set_Nil_I 1
       | tac ctxt (Case (T, i) :: cont) =
@@ -617,13 +607,13 @@ fun simproc ss redex =
                 (* continue recursively *)
                 Subgoal.FOCUS (fn {prems, context, ...} =>
                   CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
-                      ((conj_conv
-                        (eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
+                      ((HOLogic.conj_conv
+                        (HOLogic.eq_conv Conv.all_conv (rewr_conv' (List.last prems)) then_conv
                           (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq (#inject info)))))
                         Conv.all_conv)
                         then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
                         then_conv conjunct_assoc_conv)) context
-                    then_conv (HOLogic.Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
+                    then_conv (HOLogic.Trueprop_conv (HOLogic.eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
                       Conv.repeat_conv
                         (all_but_last_exists_conv
                           (K (rewr_conv'
@@ -633,14 +623,14 @@ fun simproc ss redex =
                 Subgoal.FOCUS (fn {prems, context, ...} =>
                   CONVERSION
                     (right_hand_set_comprehension_conv (K
-                      (conj_conv
-                        ((eq_conv Conv.all_conv
+                      (HOLogic.conj_conv
+                        ((HOLogic.eq_conv Conv.all_conv
                           (rewr_conv' (List.last prems))) then_conv
                           (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info))))
                         Conv.all_conv then_conv
                         (rewr_conv' @{lemma "(False & P) = False" by simp}))) context then_conv
                       HOLogic.Trueprop_conv
-                        (eq_conv Conv.all_conv
+                        (HOLogic.eq_conv Conv.all_conv
                           (Collect_conv (fn (_, ctxt) =>
                             Conv.repeat_conv
                               (Conv.bottom_conv

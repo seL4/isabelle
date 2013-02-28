@@ -42,9 +42,11 @@ sig
   val disjuncts: term -> term list
   val dest_imp: term -> term * term
   val dest_not: term -> term
+  val conj_conv: conv -> conv -> conv
   val eq_const: typ -> term
   val mk_eq: term * term -> term
   val dest_eq: term -> term * term
+  val eq_conv: conv -> conv -> conv
   val all_const: typ -> term
   val mk_all: string * typ * term -> term
   val list_all: (string * typ) list * term -> term
@@ -257,11 +259,26 @@ fun dest_imp (Const ("HOL.implies", _) $ A $ B) = (A, B)
 fun dest_not (Const ("HOL.Not", _) $ t) = t
   | dest_not t = raise TERM ("dest_not", [t]);
 
-fun eq_const T = Const ("HOL.eq", T --> T --> boolT);
+
+fun conj_conv cv1 cv2 ct =
+  (case Thm.term_of ct of
+    Const (@{const_name HOL.conj}, _) $ _ $ _ =>
+      Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
+  | _ => raise CTERM ("conj_conv", [ct]));
+
+
+fun eq_const T = Const (@{const_name HOL.eq}, T --> T --> boolT);
+
 fun mk_eq (t, u) = eq_const (fastype_of t) $ t $ u;
 
-fun dest_eq (Const ("HOL.eq", _) $ lhs $ rhs) = (lhs, rhs)
+fun dest_eq (Const (@{const_name HOL.eq}, _) $ lhs $ rhs) = (lhs, rhs)
   | dest_eq t = raise TERM ("dest_eq", [t])
+
+fun eq_conv cv1 cv2 ct =
+  (case Thm.term_of ct of
+    Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
+  | _ => raise CTERM ("eq_conv", [ct]));
+
 
 fun all_const T = Const ("HOL.All", (T --> boolT) --> boolT);
 fun mk_all (x, T, P) = all_const T $ absfree (x, T) P;
