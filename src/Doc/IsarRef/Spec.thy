@@ -270,9 +270,8 @@ text {*
 
   These specification mechanisms provide a slightly more abstract view
   than the underlying primitives of @{command "consts"}, @{command
-  "defs"} (see \secref{sec:consts}), and @{command "axioms"} (see
-  \secref{sec:axms-thms}).  In particular, type-inference is commonly
-  available, and result names need not be given.
+  "defs"} (see \secref{sec:consts}), and raw axioms.  In particular,
+  type-inference covers the whole specification as usual.
 
   @{rail "
     @@{command axiomatization} @{syntax \"fixes\"}? (@'where' specs)?
@@ -387,7 +386,7 @@ text {*
   \item @{command "declare"}~@{text thms} declares theorems to the
   current local theory context.  No theorem binding is involved here,
   unlike @{command "theorems"} or @{command "lemmas"} (cf.\
-  \secref{sec:axms-thms}), so @{command "declare"} only has the effect
+  \secref{sec:theorems}), so @{command "declare"} only has the effect
   of applying attributes as included in the theorem specification.
 
   \end{description}
@@ -1212,33 +1211,21 @@ text {*
 *}
 
 
-section {* Axioms and theorems \label{sec:axms-thms} *}
+section {* Naming existing theorems \label{sec:theorems} *}
 
 text {*
   \begin{matharray}{rcll}
-    @{command_def "axioms"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
     @{command_def "lemmas"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "theorems"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   @{rail "
-    @@{command axioms} (@{syntax axmdecl} @{syntax prop} +)
-    ;
     (@@{command lemmas} | @@{command theorems}) @{syntax target}? \\
       (@{syntax thmdef}? @{syntax thmrefs} + @'and')
       (@'for' (@{syntax vars} + @'and'))?
   "}
 
   \begin{description}
-  
-  \item @{command "axioms"}~@{text "a: \<phi>"} introduces arbitrary
-  statements as axioms of the meta-logic.  In fact, axioms are
-  ``axiomatic theorems'', and may be referred later just as any other
-  theorem.
-  
-  Axioms are usually only introduced when declaring new logical
-  systems.  Everyday work is typically done the hard way, with proper
-  definitions and proven theorems.
   
   \item @{command "lemmas"}~@{text "a = b\<^sub>1 \<dots> b\<^sub>n"}~@{keyword_def
   "for"}~@{text "x\<^sub>1 \<dots> x\<^sub>m"} evaluates given facts (with attributes) in

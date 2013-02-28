@@ -14,6 +14,13 @@ dependencies.  Minor INCOMPATIBILITY.
 'ML_file' in Isabelle2013.  Minor INCOMPATIBILITY.
 
 
+*** Pure ***
+
+* Discontinued obsolete 'axioms' command, which has been marked as
+legacy since Isabelle2009-2.  INCOMPATIBILITY, use 'axiomatization'
+instead, while observing its uniform scope for polymorphism.
+
+
 *** HOL ***
 
 * Discontinued obsolete src/HOL/IsaMakefile (considered legacy since
