@@ -96,7 +96,7 @@ do
       MLTEXT="$MLTEXT $OPTARG"
       ;;
     f)
-      MLTEXT="$MLTEXT Session.finish();"
+      MLTEXT="$MLTEXT Command_Line.tool0 Session.finish;"
       ;;
     m)
       if [ -z "$MODES" ]; then

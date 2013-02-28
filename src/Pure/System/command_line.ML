@@ -7,6 +7,7 @@ Support for Isabelle/ML command line tools.
 signature COMMAND_LINE =
 sig
   val tool: (unit -> int) -> unit
+  val tool0: (unit -> unit) -> unit
 end;
 
 structure Command_Line: COMMAND_LINE =
@@ -18,6 +19,8 @@ fun tool body =
       restore_attributes body () handle exn =>
         (Output.error_msg (ML_Compiler.exn_message exn); if Exn.is_interrupt exn then 130 else 1);
     in if rc = 0 then () else exit rc end) ();
+
+fun tool0 body = tool (fn () => (body (); 0));
 
 end;
 
