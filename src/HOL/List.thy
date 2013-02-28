@@ -514,11 +514,6 @@ fun Collect_conv cv ctxt ct =
     Const (@{const_name Set.Collect}, _) $ Abs _ => Conv.arg_conv (Conv.abs_conv cv ctxt) ct
   | _ => raise CTERM ("Collect_conv", [ct]))
 
-fun Trueprop_conv cv ct =
-  (case Thm.term_of ct of
-    Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct
-  | _ => raise CTERM ("Trueprop_conv", [ct]))
-
 fun eq_conv cv1 cv2 ct =
   (case Thm.term_of ct of
     Const (@{const_name HOL.eq}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
@@ -536,7 +531,7 @@ fun conjunct_assoc_conv ct =
     (rewr_conv' @{thm conj_assoc} then_conv conj_conv Conv.all_conv conjunct_assoc_conv) ct
 
 fun right_hand_set_comprehension_conv conv ctxt =
-  Trueprop_conv (eq_conv Conv.all_conv
+  HOLogic.Trueprop_conv (eq_conv Conv.all_conv
     (Collect_conv (all_exists_conv conv o #2) ctxt))
 
 
@@ -628,7 +623,7 @@ fun simproc ss redex =
                         Conv.all_conv)
                         then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
                         then_conv conjunct_assoc_conv)) context
-                    then_conv (Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
+                    then_conv (HOLogic.Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
                       Conv.repeat_conv
                         (all_but_last_exists_conv
                           (K (rewr_conv'
@@ -644,7 +639,7 @@ fun simproc ss redex =
                           (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info))))
                         Conv.all_conv then_conv
                         (rewr_conv' @{lemma "(False & P) = False" by simp}))) context then_conv
-                      Trueprop_conv
+                      HOLogic.Trueprop_conv
                         (eq_conv Conv.all_conv
                           (Collect_conv (fn (_, ctxt) =>
                             Conv.repeat_conv

@@ -98,16 +98,11 @@ fun Rel_conv ct =
       val (cU, _) = dest_funcT cT'
   in Drule.instantiate' [SOME cT, SOME cU] [SOME ct] Rel_rule end
 
-fun Trueprop_conv cv ct =
-  (case Thm.term_of ct of
-    Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct
-  | _ => raise CTERM ("Trueprop_conv", [ct]))
-
 (* Conversion to preprocess a transfer rule *)
 fun prep_conv ct = (
       Conv.implies_conv Conv.all_conv prep_conv
       else_conv
-      Trueprop_conv (Conv.fun_conv (Conv.fun_conv Rel_conv))
+      HOLogic.Trueprop_conv (Conv.fun_conv (Conv.fun_conv Rel_conv))
       else_conv
       Conv.all_conv) ct
 

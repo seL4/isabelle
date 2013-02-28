@@ -303,15 +303,10 @@ fun imp_prems_conv cv ct =
     Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
   | _ => Conv.all_conv ct
 
-fun Trueprop_conv cv ct =
-  case Thm.term_of ct of
-    Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct  
-  | _ => raise Fail "Trueprop_conv"
-
 fun preprocess_intro thy rule =
   Conv.fconv_rule
     (imp_prems_conv
-      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv @{thm Predicate.eq_is_eq}))))
+      (HOLogic.Trueprop_conv (Conv.try_conv (Conv.rewr_conv @{thm Predicate.eq_is_eq}))))
     (Thm.transfer thy rule)
 
 fun translate_intros ensure_groundness ctxt gr const constant_table =

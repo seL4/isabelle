@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/numeral.ML
     Author:     Makarius
 
-Logical operations on numerals (see also HOL/hologic.ML).
+Logical operations on numerals (see also HOL/Tools/hologic.ML).
 *)
 
 signature NUMERAL =

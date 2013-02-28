@@ -1158,15 +1158,11 @@ fun unify_consts thy cs intr_ts =
 
 (* preprocessing rules *)
 
-fun Trueprop_conv cv ct =
-  case Thm.term_of ct of
-    Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct  
-  | _ => raise Fail "Trueprop_conv"
-
 fun preprocess_equality thy rule =
   Conv.fconv_rule
     (imp_prems_conv
-      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
+      (HOLogic.Trueprop_conv
+        (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
     (Thm.transfer thy rule)
 
 fun preprocess_intro thy = expand_tuples thy #> preprocess_equality thy

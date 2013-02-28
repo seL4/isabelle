@@ -15,6 +15,7 @@ sig
   val Trueprop: term
   val mk_Trueprop: term -> term
   val dest_Trueprop: term -> term
+  val Trueprop_conv: conv -> conv
   val mk_induct_forall: typ -> term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
@@ -195,12 +196,18 @@ fun dest_mem (Const ("Set.member", _) $ x $ A) = (x, A)
 
 (* logic *)
 
-val Trueprop = Const ("HOL.Trueprop", boolT --> propT);
+val Trueprop = Const (@{const_name Trueprop}, boolT --> propT);
 
 fun mk_Trueprop P = Trueprop $ P;
 
-fun dest_Trueprop (Const ("HOL.Trueprop", _) $ P) = P
+fun dest_Trueprop (Const (@{const_name Trueprop}, _) $ P) = P
   | dest_Trueprop t = raise TERM ("dest_Trueprop", [t]);
+
+fun Trueprop_conv cv ct =
+  (case Thm.term_of ct of
+    Const (@{const_name Trueprop}, _) $ _ => Conv.arg_conv cv ct
+  | _ => raise CTERM ("Trueprop_conv", [ct]))
+
 
 fun conj_intr thP thQ =
   let

@@ -699,8 +699,6 @@ lemmas [trans] = trans
   and [sym] = sym not_sym
   and [Pure.elim?] = iffD1 iffD2 impE
 
-ML_file "Tools/hologic.ML"
-
 
 subsubsection {* Atomizing meta-level connectives *}
 
@@ -781,6 +779,9 @@ lemma atomize_elimL[atomize_elim]: "(!!B. (A ==> B) ==> B) == Trueprop A" ..
 
 
 subsection {* Package setup *}
+
+ML_file "Tools/hologic.ML"
+
 
 subsubsection {* Sledgehammer setup *}
 
