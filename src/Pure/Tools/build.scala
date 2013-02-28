@@ -297,9 +297,12 @@ object Build
       val graph = tree.graph
       val sessions = graph.keys.toList
 
-      val timings = sessions.map((name: String) =>
-        if (tree(name).options.bool("parallel_proofs_reuse_timing")) (name, load_timings(name))
-        else (name, (Nil, 0.0)))
+      val timings =
+        sessions.par.map((name: String) =>
+          Exn.capture {
+            if (tree(name).options.bool("parallel_proofs_reuse_timing")) (name, load_timings(name))
+            else (name, (Nil, 0.0))
+          }).toList.map(Exn.release(_))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =
