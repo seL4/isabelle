@@ -10,14 +10,13 @@ begin
 
 typedecl ty
 
-consts
-  bool    :: ty
-  nat     :: ty
-  arrow   :: "ty => ty => ty"       (infixr "->" 20)
-  typeof  :: "[tm, ty] => bool"
+axiomatization
+  bool    :: ty and
+  nat     :: ty and
+  arrow   :: "ty => ty => ty"       (infixr "->" 20) and
+  typeof  :: "[tm, ty] => bool" and
   anyterm :: tm
-
-axioms  common_typeof:   "
+where common_typeof:   "
 typeof (app M N) B       :- typeof M (A -> B) & typeof N A..
 
 typeof (cond C L R) A :- typeof C bool & typeof L A & typeof R A..
@@ -35,13 +34,13 @@ typeof (M + N) nat :- typeof M nat & typeof N nat..
 typeof (M - N) nat :- typeof M nat & typeof N nat..
 typeof (M * N) nat :- typeof M nat & typeof N nat"
 
-axioms good_typeof:     "
+axiomatization where good_typeof:     "
 typeof (abs Bo) (A -> B) :- (!x. typeof x A => typeof (Bo x) B)"
 
-axioms bad1_typeof:     "
+axiomatization where bad1_typeof:     "
 typeof (abs Bo) (A -> B) :- (typeof varterm A => typeof (Bo varterm) B)"
 
-axioms bad2_typeof:     "
+axiomatization where bad2_typeof:     "
 typeof (abs Bo) (A -> B) :- (typeof anyterm A => typeof (Bo anyterm) B)"
 
 

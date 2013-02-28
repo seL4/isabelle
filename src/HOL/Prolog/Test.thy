@@ -26,52 +26,51 @@ translations
 
 typedecl person
 
-consts
-  append  :: "['a list, 'a list, 'a list]            => bool"
-  reverse :: "['a list, 'a list]                     => bool"
+axiomatization
+  append  :: "['a list, 'a list, 'a list]            => bool" and
+  reverse :: "['a list, 'a list]                     => bool" and
 
-  mappred :: "[('a => 'b => bool), 'a list, 'b list] => bool"
-  mapfun  :: "[('a => 'b), 'a list, 'b list]         => bool"
+  mappred :: "[('a => 'b => bool), 'a list, 'b list] => bool" and
+  mapfun  :: "[('a => 'b), 'a list, 'b list]         => bool" and
 
-  bob     :: person
-  sue     :: person
-  ned     :: person
+  bob     :: person and
+  sue     :: person and
+  ned     :: person and
 
-  nat23   :: nat          ("23")
-  nat24   :: nat          ("24")
-  nat25   :: nat          ("25")
+  nat23   :: nat          ("23") and
+  nat24   :: nat          ("24") and
+  nat25   :: nat          ("25") and
 
-  age     :: "[person, nat]                          => bool"
+  age     :: "[person, nat]                          => bool" and
 
-  eq      :: "['a, 'a]                               => bool"
+  eq      :: "['a, 'a]                               => bool" and
 
-  empty   :: "['b]                                   => bool"
-  add     :: "['a, 'b, 'b]                           => bool"
-  remove  :: "['a, 'b, 'b]                           => bool"
+  empty   :: "['b]                                   => bool" and
+  add     :: "['a, 'b, 'b]                           => bool" and
+  remove  :: "['a, 'b, 'b]                           => bool" and
   bag_appl:: "['a, 'a, 'a, 'a]                       => bool"
-
-axioms
-        append:  "append  []    xs  xs    ..
-                  append (x#xs) ys (x#zs) :- append xs ys zs"
-        reverse: "reverse L1 L2 :- (!rev_aux.
+where
+        append:  "\<And>x xs ys zs. append  []    xs  xs    ..
+                  append (x#xs) ys (x#zs) :- append xs ys zs" and
+        reverse: "\<And>L1 L2. reverse L1 L2 :- (!rev_aux.
                   (!L.          rev_aux  []    L  L )..
                   (!X L1 L2 L3. rev_aux (X#L1) L2 L3 :- rev_aux L1 L2 (X#L3))
-                  => rev_aux L1 L2 [])"
+                  => rev_aux L1 L2 [])" and
 
-        mappred: "mappred P  []     []    ..
-                  mappred P (x#xs) (y#ys) :- P x y  &  mappred P xs ys"
-        mapfun:  "mapfun f  []     []      ..
-                  mapfun f (x#xs) (f x#ys) :- mapfun f xs ys"
+        mappred: "\<And>x xs y ys P. mappred P  []     []    ..
+                  mappred P (x#xs) (y#ys) :- P x y  &  mappred P xs ys" and
+        mapfun:  "\<And>x xs ys f. mapfun f  []     []      ..
+                  mapfun f (x#xs) (f x#ys) :- mapfun f xs ys" and
 
         age:     "age bob 24 ..
                   age sue 23 ..
-                  age ned 23"
+                  age ned 23" and
 
-        eq:      "eq x x"
+        eq:      "\<And>x. eq x x" and
 
 (* actual definitions of empty and add is hidden -> yields abstract data type *)
 
-        bag_appl: "bag_appl A B X Y:- (? S1 S2 S3 S4 S5.
+        bag_appl: "\<And>A B X Y. bag_appl A B X Y:- (? S1 S2 S3 S4 S5.
                                 empty    S1    &
                                 add A    S1 S2 &
                                 add B    S2 S3 &
