@@ -47,8 +47,8 @@ No two agents have the same public key, and no private key equals
 any public key.
 *}
 
-axioms
-  inj_pubK:        "inj pubK"
+axiomatization where
+  inj_pubK:        "inj pubK" and
   priK_neq_pubK:   "priK A \<noteq> pubK B"
 (*<*)
 lemmas [iff] = inj_pubK [THEN inj_eq]
