@@ -76,39 +76,38 @@ consts
   hasty :: "[Val, Ty] => bool" ("_ hasty _" [36,36] 50)
   hasty_env :: "[ValEnv,TyEnv] => bool" ("_ hastyenv _ " [36,36] 35)
 
-axioms
-
 (*
   Expression constructors must be injective, distinct and it must be possible
   to do induction over expressions.
 *)
 
 (* All the constructors are injective *)
-
-  e_const_inj: "e_const(c1) = e_const(c2) ==> c1 = c2"
-  e_var_inj: "e_var(ev1) = e_var(ev2) ==> ev1 = ev2"
-  e_fn_inj: "fn ev1 => e1 = fn ev2 => e2 ==> ev1 = ev2 & e1 = e2"
+axiomatization where
+  e_const_inj: "e_const(c1) = e_const(c2) ==> c1 = c2" and
+  e_var_inj: "e_var(ev1) = e_var(ev2) ==> ev1 = ev2" and
+  e_fn_inj: "fn ev1 => e1 = fn ev2 => e2 ==> ev1 = ev2 & e1 = e2" and
   e_fix_inj:
     " fix ev11e(v12) = e1 = fix ev21(ev22) = e2 ==>
-     ev11 = ev21 & ev12 = ev22 & e1 = e2
-   "
+     ev11 = ev21 & ev12 = ev22 & e1 = e2" and
   e_app_inj: "e11 @@ e12 = e21 @@ e22 ==> e11 = e21 & e12 = e22"
 
 (* All constructors are distinct *)
 
-  e_disj_const_var: "~e_const(c) = e_var(ev)"
-  e_disj_const_fn: "~e_const(c) = fn ev => e"
-  e_disj_const_fix: "~e_const(c) = fix ev1(ev2) = e"
-  e_disj_const_app: "~e_const(c) = e1 @@ e2"
-  e_disj_var_fn: "~e_var(ev1) = fn ev2 => e"
-  e_disj_var_fix: "~e_var(ev) = fix ev1(ev2) = e"
-  e_disj_var_app: "~e_var(ev) = e1 @@ e2"
-  e_disj_fn_fix: "~fn ev1 => e1 = fix ev21(ev22) = e2"
-  e_disj_fn_app: "~fn ev1 => e1 = e21 @@ e22"
+axiomatization where
+  e_disj_const_var: "~e_const(c) = e_var(ev)" and
+  e_disj_const_fn: "~e_const(c) = fn ev => e" and
+  e_disj_const_fix: "~e_const(c) = fix ev1(ev2) = e" and
+  e_disj_const_app: "~e_const(c) = e1 @@ e2" and
+  e_disj_var_fn: "~e_var(ev1) = fn ev2 => e" and
+  e_disj_var_fix: "~e_var(ev) = fix ev1(ev2) = e" and
+  e_disj_var_app: "~e_var(ev) = e1 @@ e2" and
+  e_disj_fn_fix: "~fn ev1 => e1 = fix ev21(ev22) = e2" and
+  e_disj_fn_app: "~fn ev1 => e1 = e21 @@ e22" and
   e_disj_fix_app: "~fix ev11(ev12) = e1 = e21 @@ e22"
 
 (* Strong elimination, induction on expressions  *)
 
+axiomatization where
   e_ind:
     " [|  !!ev. P(e_var(ev));
          !!c. P(e_const(c));
@@ -123,13 +122,15 @@ axioms
 
 (* All constructors are injective *)
 
-  t_const_inj: "t_const(c1) = t_const(c2) ==> c1 = c2"
+axiomatization where
+  t_const_inj: "t_const(c1) = t_const(c2) ==> c1 = c2" and
   t_fun_inj: "t11 -> t12 = t21 -> t22 ==> t11 = t21 & t12 = t22"
 
 (* All constructors are distinct, not needed so far ... *)
 
 (* Strong elimination, induction on types *)
 
+axiomatization where
  t_ind:
     "[| !!p. P(t_const p); !!t1 t2. P(t1) ==> P(t2) ==> P(t_fun t1 t2) |]
     ==> P(t)"
@@ -139,13 +140,15 @@ axioms
 
 (* All constructors are injective *)
 
-  v_const_inj: "v_const(c1) = v_const(c2) ==> c1 = c2"
+axiomatization where
+  v_const_inj: "v_const(c1) = v_const(c2) ==> c1 = c2" and
   v_clos_inj:
     " v_clos(<|ev1,e1,ve1|>) = v_clos(<|ev2,e2,ve2|>) ==>
      ev1 = ev2 & e1 = e2 & ve1 = ve2"
 
 (* All constructors are distinct *)
 
+axiomatization where
   v_disj_const_clos: "~v_const(c) = v_clos(cl)"
 
 (* No induction on values: they are a codatatype! ... *)
@@ -156,18 +159,20 @@ axioms
   properties are needed.
 *)
 
-  ve_dom_owr: "ve_dom(ve + {ev |-> v}) = ve_dom(ve) Un {ev}"
+axiomatization where
+  ve_dom_owr: "ve_dom(ve + {ev |-> v}) = ve_dom(ve) Un {ev}" and
 
-  ve_app_owr1: "ve_app (ve + {ev |-> v}) ev=v"
+  ve_app_owr1: "ve_app (ve + {ev |-> v}) ev=v" and
   ve_app_owr2: "~ev1=ev2 ==> ve_app (ve+{ev1 |-> v}) ev2=ve_app ve ev2"
 
 
 (* Type Environments bind variables to types. The following trivial
 properties are needed.  *)
 
-  te_dom_owr: "te_dom(te + {ev |=> t}) = te_dom(te) Un {ev}"
+axiomatization where
+  te_dom_owr: "te_dom(te + {ev |=> t}) = te_dom(te) Un {ev}" and
 
-  te_app_owr1: "te_app (te + {ev |=> t}) ev=t"
+  te_app_owr1: "te_app (te + {ev |=> t}) ev=t" and
   te_app_owr2: "~ev1=ev2 ==> te_app (te+{ev1 |=> t}) ev2=te_app te ev2"
 
 
@@ -239,7 +244,7 @@ type t in the type environment te.
      )
    "
 
-axioms
+axiomatization where
   isof_app: "[| c1 isof t1->t2; c2 isof t1 |] ==> c_app c1 c2 isof t2"
 
 defs
