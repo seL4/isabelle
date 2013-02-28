@@ -746,7 +746,7 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o Proof_Context.theory_of;
 
-        val future_proof = Proof.global_future_proof
+        val future_proof = Proof.future_proof
           (fn prf =>
             setmp_thread_position head_tr (fn () =>
               Goal.fork_name "Toplevel.future_proof" (priority proof_trs)
@@ -756,7 +756,7 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
                       => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
                     |> fold_map atom_result body_trs ||> command end_tr;
                   in (result, presentation_context_of result_state) end)) ())
-          #-> Result.put;
+          #> (fn (result, state') => state' |> Proof.global_done_proof |> Result.put result);
 
         val st'' = st'
           |> command (head_tr |> set_print false |> reset_trans |> end_proof (K future_proof));

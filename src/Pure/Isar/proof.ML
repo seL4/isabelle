@@ -115,8 +115,7 @@ sig
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val schematic_goal: state -> bool
   val is_relevant: state -> bool
-  val local_future_proof: (state -> ('a * state) future) -> state -> 'a future * state
-  val global_future_proof: (state -> ('a * context) future) -> state -> 'a future * context
+  val future_proof: (state -> ('a * context) future) -> state -> 'a future * state
   val local_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
     state -> state
   val global_future_terminal_proof: Method.text_range * Method.text_range option -> bool ->
@@ -1140,7 +1139,9 @@ fun the_result ctxt =
 val set_result = Result.put o SOME;
 val reset_result = Result.put NONE;
 
-fun future_proof done get_context fork_proof state =
+in
+
+fun future_proof fork_proof state =
   let
     val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
@@ -1164,18 +1165,12 @@ fun future_proof done get_context fork_proof state =
         (fold (Variable.declare_typ o TFree) goal_tfrees)
       |> fork_proof;
 
-    val future_thm = result_ctxt |> Future.map (fn (_, x) => the_result (get_context x));
+    val future_thm = Future.map (the_result o snd) result_ctxt;
     val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
-      |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed)) I
-      |> done;
-  in (Future.map #1 result_ctxt, state') end;
-
-in
-
-fun local_future_proof x = future_proof local_done_proof context_of x;
-fun global_future_proof x = future_proof global_done_proof I x;
+      |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed)) I;
+  in (Future.map fst result_ctxt, state') end;
 
 end;
 
@@ -1184,21 +1179,26 @@ end;
 
 local
 
-fun future_terminal_proof n proof1 proof2 meths int state =
+fun future_terminal_proof n proof1 proof2 done int state =
   if (Goal.future_enabled_level 4 orelse Goal.future_enabled_nested n andalso not int)
     andalso not (is_relevant state)
   then
-    snd (proof2 (fn state' =>
-      Goal.fork_name "Proof.future_terminal_proof" ~1 (fn () => ((), proof1 meths state'))) state)
-  else proof1 meths state;
+    state |> future_proof (fn state' =>
+      Goal.fork_name "Proof.future_terminal_proof" ~1
+        (fn () => ((), proof2 state'))) |> snd |> done
+  else proof1 state;
 
 in
 
-fun local_future_terminal_proof x =
-  future_terminal_proof 2 local_terminal_proof local_future_proof x;
+fun local_future_terminal_proof meths =
+  future_terminal_proof 2
+    (local_terminal_proof meths)
+    (local_terminal_proof meths #> context_of) local_done_proof;
 
-fun global_future_terminal_proof x =
-  future_terminal_proof 3 global_terminal_proof global_future_proof x;
+fun global_future_terminal_proof meths =
+  future_terminal_proof 3
+    (global_terminal_proof meths)
+    (global_terminal_proof meths) global_done_proof;
 
 end;
 
