@@ -122,8 +122,7 @@ done
 
 lemma evaln_nonstrict [rule_format]: "<c,s> -n-> t ==> !m. n<=m --> <c,s> -m-> t"
 apply (erule evaln.induct)
-apply (tactic {* ALLGOALS (EVERY'[strip_tac,TRY o etac @{thm Suc_le_D_lemma}, REPEAT o smp_tac 1]) *})
-apply (tactic {* ALLGOALS (resolve_tac @{thms evaln.intros} THEN_ALL_NEW atac) *})
+apply (auto elim!: Suc_le_D_lemma)
 done
 
 lemma evaln_Suc: "<c,s> -n-> s' ==> <c,s> -Suc n-> s'"
