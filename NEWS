@@ -20,6 +20,9 @@ dependencies.  Minor INCOMPATIBILITY.
 legacy since Isabelle2009-2.  INCOMPATIBILITY, use 'axiomatization'
 instead, while observing its uniform scope for polymorphism.
 
+* Discontinued empty name bindings in 'axiomatization'.
+INCOMPATIBILITY.
+
 
 *** HOL ***
 

@@ -351,16 +351,14 @@ fun stripped_sorts thy t =
 
 fun add_axiom ctxt (b, prop) thy =
   let
-    val b' = if Binding.is_empty b then Binding.name ("unnamed_axiom_" ^ serial_string ()) else b;
-
     val _ = Sign.no_vars ctxt prop;
     val (strip, recover, prop') = stripped_sorts thy prop;
     val constraints = map (fn (TFree (_, S), T) => (T, S)) strip;
     val of_sorts = maps (fn (T as TFree (_, S), _) => of_sort (Thm.ctyp_of thy T, S)) strip;
 
     val thy' = thy
-      |> Theory.add_axiom ctxt (b', Logic.list_implies (maps Logic.mk_of_sort constraints, prop'));
-    val axm_name = Sign.full_name thy' b';
+      |> Theory.add_axiom ctxt (b, Logic.list_implies (maps Logic.mk_of_sort constraints, prop'));
+    val axm_name = Sign.full_name thy' b;
     val axm' = Thm.axiom thy' axm_name;
     val thm =
       Thm.instantiate (recover, []) axm'
