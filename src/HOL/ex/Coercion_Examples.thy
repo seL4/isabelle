@@ -178,4 +178,22 @@ definition ys :: "bool list list list list list" where "ys=[[[[[True]]]]]"
 
 term "ys=[[[[[1::nat]]]]]"
 
+consts
+  case_nil :: "'a \<Rightarrow> 'b"
+  case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
+  case_abs :: "('c \<Rightarrow> 'b) \<Rightarrow> 'b"
+  case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
+
+declare [[coercion_args case_cons - -]]
+declare [[coercion_args case_abs -]]
+declare [[coercion_args case_elem - +]]
+
+term "case_cons (case_abs (\<lambda>n. case_abs (\<lambda>is. case_elem (((n::nat),(is::int list))) (n#is)))) case_nil"
+
+consts n :: nat m :: nat
+term "- (n + m)"
+declare [[coercion_args uminus -]]
+declare [[coercion_args plus + +]]
+term "- (n + m)"
+ 
 end
