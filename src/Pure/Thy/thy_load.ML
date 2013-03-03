@@ -265,7 +265,7 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
         let val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax () in
           Thy_Output.present_thy minor Keyword.command_tags
             (Outer_Syntax.is_markup outer_syntax)
-            (maps Future.join results) toks
+            (filter_out (Toplevel.is_ignored o #1) (maps Future.join results)) toks
           |> Buffer.content
           |> Present.theory_output name
         end);

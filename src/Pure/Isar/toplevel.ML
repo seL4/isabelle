@@ -735,15 +735,15 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
     val proof_trs =
       (case opt_proof of
         NONE => []
-      | SOME (a, b) => (maps Thy_Syntax.flat_element a @ [b]) |> filter_out is_ignored);
+      | SOME (a, b) => maps Thy_Syntax.flat_element a @ [b]);
 
     val (_, st') = atom_result head_tr st;
   in
-    if not (Goal.future_enabled ()) orelse is_ignored head_tr orelse
-      null proof_trs orelse not (can proof_of st') orelse Proof.is_relevant (proof_of st')
+    if not (Goal.future_enabled ()) orelse null proof_trs orelse
+      not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
       let val (results, st'') = fold_map atom_result proof_trs st'
-      in (Future.value (if is_ignored head_tr then results else (head_tr, st') :: results), st'') end
+      in (Future.value ((head_tr, st') :: results), st'') end
     else
       let
         val (body_trs, end_tr) = split_last proof_trs;
