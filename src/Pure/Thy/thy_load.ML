@@ -259,13 +259,13 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     val present =
-      singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
-        deps = map Future.task_of results, pri = 0, interrupts = true})
-      (fn () =>
-        let val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax () in
+      Future.flat results |> Future.map (fn res0 =>
+        let
+          val res = filter_out (Toplevel.is_ignored o #1) res0;
+          val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax ();
+        in
           Thy_Output.present_thy minor Keyword.command_tags
-            (Outer_Syntax.is_markup outer_syntax)
-            (filter_out (Toplevel.is_ignored o #1) (maps Future.join results)) toks
+            (Outer_Syntax.is_markup outer_syntax) res toks
           |> Buffer.content
           |> Present.theory_output name
         end);
