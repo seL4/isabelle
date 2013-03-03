@@ -710,8 +710,10 @@ structure Result = Proof_Data
   fun init _ = empty;
 );
 
-fun priority trs =
-  let val estimate = fold (curry Time.+ o get_timing) trs Time.zeroTime in
+fun priority elem =
+  let
+    val estimate = Thy_Syntax.fold_element (curry Time.+ o get_timing) elem Time.zeroTime;
+  in
     if estimate = Time.zeroTime then ~1
     else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1)
   end;
@@ -725,7 +727,8 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
         val st' =
           if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
             setmp_thread_position tr (fn () =>
-              (Goal.fork_name "Toplevel.diag" (priority [tr]) (fn () => command tr st); st)) ()
+              (Goal.fork_name "Toplevel.diag" (priority (Thy_Syntax.atom tr))
+                (fn () => command tr st); st)) ()
           else command tr st;
       in ((tr, st'), st') end;
 
@@ -749,7 +752,8 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
         val future_proof = Proof.future_proof
           (fn prf =>
             setmp_thread_position head_tr (fn () =>
-              Goal.fork_name "Toplevel.future_proof" (priority proof_trs)
+              Goal.fork_name "Toplevel.future_proof"
+                (priority (Thy_Syntax.Element (empty, opt_proof)))
                 (fn () =>
                   let val (result, result_state) =
                     (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
