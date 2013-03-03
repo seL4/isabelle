@@ -94,8 +94,8 @@ sig
   val get_timing: transition -> Time.time
   val put_timing: Time.time -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
-  val command_exception: bool -> transition -> state -> state
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
+  val command_exception: bool -> transition -> state -> state
   val element_result: transition Thy_Syntax.element -> state ->
     (transition * state) list future * state
 end;
@@ -687,6 +687,12 @@ end;
 
 (* managed commands *)
 
+fun command_errors int tr st =
+  (case transition int tr st of
+    SOME (st', NONE) => ([], SOME st')
+  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
+  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
+
 fun command_exception int tr st =
   (case transition int tr st of
     SOME (st', NONE) => st'
@@ -694,14 +700,12 @@ fun command_exception int tr st =
       if Exn.is_interrupt exn then reraise exn else raise Runtime.EXCURSION_FAIL (exn, info)
   | NONE => raise Runtime.EXCURSION_FAIL (Runtime.TERMINATE, at_command tr));
 
-fun command_errors int tr st =
-  (case transition int tr st of
-    SOME (st', NONE) => ([], SOME st')
-  | SOME (_, SOME (exn, _)) => (ML_Compiler.exn_messages_ids exn, NONE)
-  | NONE => (ML_Compiler.exn_messages_ids Runtime.TERMINATE, NONE));
+fun command tr = command_exception (! interact) tr;
 
 
 (* scheduled proof result *)
+
+local
 
 structure Result = Proof_Data
 (
@@ -718,20 +722,20 @@ fun priority elem =
     else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1)
   end;
 
+fun atom_result tr st =
+  let
+    val st' =
+      if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
+        setmp_thread_position tr (fn () =>
+          (Goal.fork_name "Toplevel.diag" (priority (Thy_Syntax.atom tr))
+            (fn () => command tr st); st)) ()
+      else command tr st;
+  in ((tr, st'), st') end;
+
+in
+
 fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
   let
-    val command = command_exception (! interact);
-
-    fun atom_result tr st =
-      let
-        val st' =
-          if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
-            setmp_thread_position tr (fn () =>
-              (Goal.fork_name "Toplevel.diag" (priority (Thy_Syntax.atom tr))
-                (fn () => command tr st); st)) ()
-          else command tr st;
-      in ((tr, st'), st') end;
-
     val proof_trs =
       (case opt_proof of
         NONE => []
@@ -770,5 +774,7 @@ fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
 
       in (result, st'') end
   end;
+
+end;
 
 end;
