@@ -714,6 +714,20 @@ structure Result = Proof_Data
   fun init _ = empty;
 );
 
+fun done_proof state =
+  if can (Proof.assert_bottom true) state
+  then Proof.global_done_proof state
+  else Proof.context_of (Proof.local_done_proof state);
+
+fun proof_future_enabled st =
+  (case try proof_of st of
+    NONE => false
+  | SOME state =>
+      not (Proof.is_relevant state) andalso
+       (if can (Proof.assert_bottom true) state
+        then Goal.future_enabled ()
+        else Goal.future_enabled_nested 2));
+
 fun priority elem =
   let
     val estimate = Thy_Syntax.fold_element (curry Time.+ o get_timing) elem Time.zeroTime;
@@ -734,46 +748,44 @@ fun atom_result tr st =
 
 in
 
-fun element_result (Thy_Syntax.Element (head_tr, opt_proof)) st =
-  let
-    val proof_trs =
-      (case opt_proof of
-        NONE => []
-      | SOME (a, b) => maps Thy_Syntax.flat_element a @ [b]);
-
-    val (_, st') = atom_result head_tr st;
-  in
-    if not (Goal.future_enabled ()) orelse null proof_trs orelse
-      not (can proof_of st') orelse Proof.is_relevant (proof_of st')
-    then
-      let val (results, st'') = fold_map atom_result proof_trs st'
-      in (Future.value ((head_tr, st') :: results), st'') end
-    else
+fun element_result (Thy_Syntax.Element (tr, NONE)) st =
+      let val (result, st') = atom_result tr st
+      in (Future.value [result], st') end
+  | element_result (Thy_Syntax.Element (head_tr, SOME proof)) st =
       let
-        val (body_trs, end_tr) = split_last proof_trs;
-        val finish = Context.Theory o Proof_Context.theory_of;
+        val (head_result, st') = atom_result head_tr st;
+        val (body_elems, end_tr) = proof;
+        val body_trs = maps Thy_Syntax.flat_element body_elems;
+      in
+        if not (proof_future_enabled st')
+        then
+          let val (proof_results, st'') = fold_map atom_result (body_trs @ [end_tr]) st'
+          in (Future.value (head_result :: proof_results), st'') end
+        else
+          let
+            val finish = Context.Theory o Proof_Context.theory_of;
 
-        val future_proof = Proof.future_proof
-          (fn prf =>
-            setmp_thread_position head_tr (fn () =>
-              Goal.fork_name "Toplevel.future_proof"
-                (priority (Thy_Syntax.Element (empty, opt_proof)))
-                (fn () =>
-                  let val (result, result_state) =
-                    (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
-                      => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                    |> fold_map atom_result body_trs ||> command end_tr;
-                  in (result, presentation_context_of result_state) end)) ())
-          #> (fn (result, state') => state' |> Proof.global_done_proof |> Result.put result);
+            val future_proof = Proof.future_proof
+              (fn prf =>
+                setmp_thread_position head_tr (fn () =>
+                  Goal.fork_name "Toplevel.future_proof"
+                    (priority (Thy_Syntax.Element (empty, SOME proof)))
+                    (fn () =>
+                      let val (result, result_state) =
+                        (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
+                          => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
+                        |> fold_map atom_result body_trs ||> command end_tr;
+                      in (result, presentation_context_of result_state) end)) ())
+              #> (fn (result, state') => state' |> done_proof |> Result.put result);
 
-        val st'' = st'
-          |> command (head_tr |> set_print false |> reset_trans |> end_proof (K future_proof));
-        val result =
-          Result.get (presentation_context_of st'')
-          |> Future.map (fn body => (head_tr, st') :: body @ [(end_tr, st'')]);
+            val st'' = st'
+              |> command (head_tr |> set_print false |> reset_trans |> end_proof (K future_proof));
+            val result =
+              Result.get (presentation_context_of st'')
+              |> Future.map (fn body_results => head_result :: body_results @ [(end_tr, st'')]);
 
-      in (result, st'') end
-  end;
+          in (result, st'') end
+      end;
 
 end;
 
