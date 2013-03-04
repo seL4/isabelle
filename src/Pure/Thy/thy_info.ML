@@ -164,7 +164,11 @@ fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
 
 (* scheduling loader tasks *)
 
-type result = theory * serial * unit future * (unit -> unit);
+datatype result =
+  Result of {theory: theory, id: serial, present: unit future, commit: unit -> unit};
+
+fun result_theory (Result {theory, ...}) = theory;
+fun theory_result theory = Result {theory = theory, id = 0, present = Future.value (), commit = I};
 
 datatype task =
   Task of string list * (theory list -> result) |
@@ -177,14 +181,14 @@ fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) de
 
 local
 
-fun finish_thy ((thy, id, present, commit): result) =
+fun finish_thy (Result {theory, id, present, commit}) =
   let
-    val result1 = Exn.capture Thm.join_theory_proofs thy;
+    val result1 = Exn.capture Thm.join_theory_proofs theory;
     val results2 = Future.join_results (Goal.peek_futures id);
     val result3 = Future.join_result present;
     val _ = Par_Exn.release_all (result1 :: results2 @ [result3]);
     val _ = commit ();
-  in thy end;
+  in theory end;
 
 val schedule_seq =
   String_Graph.schedule (fn deps => fn (_, task) =>
@@ -203,11 +207,11 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
                 deps = map (Future.task_of o #2) deps, pri = 0, interrupts = true}
               (fn () =>
                 (case filter (not o can Future.join o #2) deps of
-                  [] => body (map (#1 o Future.join) (task_parents deps parents))
+                  [] => body (map (result_theory o Future.join) (task_parents deps parents))
                 | bad =>
                     error (loader_msg ("failed to load " ^ quote name ^
                       " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
-        | Finished thy => Future.value (thy, 0, Future.value (), I)))
+        | Finished theory => Future.value (theory_result theory)))
       |> maps (fn result => (finish_thy (Future.join result); []) handle exn => [Exn.Exn exn]);
 
     (* FIXME avoid global reset_futures (!??) *)
@@ -253,7 +257,7 @@ fun load_thy last_timing initiators update_time deps text (name, pos) keywords p
       Thy_Load.load_thy last_timing update_time dir header text_pos text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
-  in (theory, id, present, commit) end;
+  in Result {theory = theory, id = id, present = present, commit = commit} end;
 
 fun check_deps dir name =
   (case lookup_deps name of
