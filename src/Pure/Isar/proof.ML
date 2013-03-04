@@ -1191,7 +1191,7 @@ fun future_terminal_proof n proof1 proof2 done int state =
 in
 
 fun local_future_terminal_proof meths =
-  future_terminal_proof 2
+  future_terminal_proof 3
     (local_terminal_proof meths)
     (local_terminal_proof meths #> context_of) local_done_proof;
 

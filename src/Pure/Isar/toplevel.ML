@@ -96,8 +96,9 @@ sig
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
-  val element_result: transition Thy_Syntax.element -> state ->
-    (transition * state) list future * state
+  type result
+  val join_results: result -> (transition * state) list
+  val element_result: transition Thy_Syntax.element -> state -> result * state
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -705,19 +706,26 @@ fun command tr = command_exception (! interact) tr;
 
 (* scheduled proof result *)
 
+datatype result =
+  Result of transition * state |
+  Result_List of result list |
+  Result_Future of result future;
+
+fun join_results (Result x) = [x]
+  | join_results (Result_List xs) = maps join_results xs
+  | join_results (Result_Future x) = join_results (Future.join x);
+
 local
 
 structure Result = Proof_Data
 (
-  type T = (transition * state) list future;
-  val empty: T = Future.value [];
+  type T = result;
+  val empty: T = Result_List [];
   fun init _ = empty;
 );
 
-fun done_proof state =
-  if can (Proof.assert_bottom true) state
-  then Proof.global_done_proof state
-  else Proof.context_of (Proof.local_done_proof state);
+val get_result = Result.get o Proof.context_of;
+val put_result = Proof.map_context o Result.put;
 
 fun proof_future_enabled st =
   (case try proof_of st of
@@ -744,46 +752,52 @@ fun atom_result tr st =
           (Goal.fork_name "Toplevel.diag" (priority (Thy_Syntax.atom tr))
             (fn () => command tr st); st)) ()
       else command tr st;
-  in ((tr, st'), st') end;
+  in (Result (tr, st'), st') end;
 
 in
 
-fun element_result (Thy_Syntax.Element (tr, NONE)) st =
-      let val (result, st') = atom_result tr st
-      in (Future.value [result], st') end
-  | element_result (Thy_Syntax.Element (head_tr, SOME proof)) st =
+fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
+  | element_result (Thy_Syntax.Element (head_tr, SOME element_rest)) st =
       let
         val (head_result, st') = atom_result head_tr st;
-        val (body_elems, end_tr) = proof;
-        val body_trs = maps Thy_Syntax.flat_element body_elems;
+        val (body_elems, end_tr) = element_rest;
       in
         if not (proof_future_enabled st')
         then
-          let val (proof_results, st'') = fold_map atom_result (body_trs @ [end_tr]) st'
-          in (Future.value (head_result :: proof_results), st'') end
+          let
+            val proof_trs = maps Thy_Syntax.flat_element body_elems @ [end_tr];
+            val (proof_results, st'') = fold_map atom_result proof_trs st';
+          in (Result_List (head_result :: proof_results), st'') end
         else
           let
             val finish = Context.Theory o Proof_Context.theory_of;
 
             val future_proof = Proof.future_proof
-              (fn prf =>
+              (fn state =>
                 setmp_thread_position head_tr (fn () =>
                   Goal.fork_name "Toplevel.future_proof"
-                    (priority (Thy_Syntax.Element (empty, SOME proof)))
+                    (priority (Thy_Syntax.Element (empty, SOME element_rest)))
                     (fn () =>
-                      let val (result, result_state) =
-                        (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
-                          => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                        |> fold_map atom_result body_trs ||> command end_tr;
-                      in (result, presentation_context_of result_state) end)) ())
-              #> (fn (result, state') => state' |> done_proof |> Result.put result);
+                      let
+                        val State (SOME (Proof (prf, (_, orig_gthy))), prev) = st';
+                        val prf' = Proof_Node.apply (K state) prf;
+                        val (result, result_state) =
+                          State (SOME (Proof (prf', (finish, orig_gthy))), prev)
+                          |> fold_map element_result body_elems ||> command end_tr;
+                      in (Result_List result, presentation_context_of result_state) end)) ())
+              #> (fn (res, state') => state' |> put_result (Result_Future res));
+
+            val forked_proof =
+              proof (future_proof #>
+                (fn state => state |> Proof.local_done_proof |> put_result (get_result state))) o
+              end_proof (fn _ => future_proof #>
+                (fn state => state |> Proof.global_done_proof |> Result.put (get_result state)));
 
             val st'' = st'
-              |> command (head_tr |> set_print false |> reset_trans |> end_proof (K future_proof));
+              |> command (head_tr |> set_print false |> reset_trans |> forked_proof);
+            val end_result = Result (end_tr, st'');
             val result =
-              Result.get (presentation_context_of st'')
-              |> Future.map (fn body_results => head_result :: body_results @ [(end_tr, st'')]);
-
+              Result_List [head_result, Result.get (presentation_context_of st''), end_result];
           in (result, st'') end
       end;
 
