@@ -23,7 +23,7 @@ sig
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
   val load_thy: (Toplevel.transition -> Time.time) -> int -> Path.T -> Thy_Header.header ->
-    Position.T -> string -> theory list -> theory * unit future
+    Position.T -> string -> theory list -> theory * (unit -> unit) * int
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
 end;
@@ -258,19 +258,18 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
     val (results, thy) = cond_timeit time "" (fn () => excursion last_timing init elements);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
-    val present =
-      Future.flat results |> Future.map (fn res0 =>
-        let
-          val res = filter_out (Toplevel.is_ignored o #1) res0;
-          val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax ();
-        in
-          Thy_Output.present_thy minor Keyword.command_tags
-            (Outer_Syntax.is_markup outer_syntax) res toks
-          |> Buffer.content
-          |> Present.theory_output name
-        end);
+    fun present () =
+      let
+        val res = filter_out (Toplevel.is_ignored o #1) (flat (Future.joins results));
+        val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax ();
+      in
+        Thy_Output.present_thy minor Keyword.command_tags
+          (Outer_Syntax.is_markup outer_syntax) res toks
+        |> Buffer.content
+        |> Present.theory_output name
+      end;
 
-  in (thy, present) end;
+  in (thy, present, size text) end;
 
 
 (* document antiquotation *)

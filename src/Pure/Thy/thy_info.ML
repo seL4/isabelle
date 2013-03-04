@@ -165,10 +165,21 @@ fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
 (* scheduling loader tasks *)
 
 datatype result =
-  Result of {theory: theory, id: serial, present: unit future, commit: unit -> unit};
+  Result of {theory: theory, id: serial, present: unit -> unit, commit: unit -> unit, weight: int};
+
+fun theory_result theory = Result {theory = theory, id = 0, present = I, commit = I, weight = 0};
 
 fun result_theory (Result {theory, ...}) = theory;
-fun theory_result theory = Result {theory = theory, id = 0, present = Future.value (), commit = I};
+fun result_present (Result {present, ...}) = present;
+fun result_commit (Result {commit, ...}) = commit;
+fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
+
+fun join_proofs (Result {theory, id, present, ...}) =
+  let
+    val result1 = Exn.capture Thm.join_theory_proofs theory;
+    val results2 = Future.join_results (Goal.peek_futures id);
+  in result1 :: results2 end;
+
 
 datatype task =
   Task of string list * (theory list -> result) |
@@ -181,24 +192,21 @@ fun task_parents deps (parents: string list) = map (the o AList.lookup (op =) de
 
 local
 
-fun finish_thy (Result {theory, id, present, commit}) =
-  let
-    val result1 = Exn.capture Thm.join_theory_proofs theory;
-    val results2 = Future.join_results (Goal.peek_futures id);
-    val result3 = Future.join_result present;
-    val _ = Par_Exn.release_all (result1 :: results2 @ [result3]);
-    val _ = commit ();
-  in theory end;
-
 val schedule_seq =
   String_Graph.schedule (fn deps => fn (_, task) =>
     (case task of
-      Task (parents, body) => finish_thy (body (task_parents deps parents))
+      Task (parents, body) =>
+        let
+          val result = body (task_parents deps parents);
+          val _ = Par_Exn.release_all (join_proofs result);
+          val _ = result_present result ();
+          val _ = result_commit result ();
+        in result_theory result end
     | Finished thy => thy)) #> ignore;
 
 val schedule_futures = uninterruptible (fn _ => fn tasks =>
   let
-    val results1 = tasks
+    val futures = tasks
       |> String_Graph.schedule (fn deps => fn (name, task) =>
         (case task of
           Task (parents, body) =>
@@ -211,13 +219,27 @@ val schedule_futures = uninterruptible (fn _ => fn tasks =>
                 | bad =>
                     error (loader_msg ("failed to load " ^ quote name ^
                       " (unresolved " ^ commas_quote (map #1 bad) ^ ")") [])))
-        | Finished theory => Future.value (theory_result theory)))
-      |> maps (fn result => (finish_thy (Future.join result); []) handle exn => [Exn.Exn exn]);
+        | Finished theory => Future.value (theory_result theory)));
+
+    val results1 = futures
+      |> maps (fn future =>
+          (case Future.join_result future of
+            Exn.Res result => join_proofs result
+          | Exn.Exn exn => [Exn.Exn exn]));
+
+    val results2 = futures
+      |> map_filter (Exn.get_res o Future.join_result)
+      |> sort result_ord
+      |> Par_List.map (fn result => Exn.capture (result_present result) ());
+
+    (* FIXME more precise commit order (!?) *)
+    val results3 = futures
+      |> map (fn future => Exn.capture (fn () => result_commit (Future.join future) ()) ());
 
     (* FIXME avoid global reset_futures (!??) *)
-    val results2 = map Exn.Exn (map_filter Task_Queue.group_status (Goal.reset_futures ()));
+    val results4 = map Exn.Exn (map_filter Task_Queue.group_status (Goal.reset_futures ()));
 
-    val _ = Par_Exn.release_all (rev (results2 @ results1));
+    val _ = Par_Exn.release_all (results1 @ results2 @ results3 @ results4);
   in () end);
 
 in
@@ -253,11 +275,11 @@ fun load_thy last_timing initiators update_time deps text (name, pos) keywords p
 
     val id = serial ();
     val text_pos = Position.put_id (Markup.print_int id) (Path.position thy_path);
-    val (theory, present) =
+    val (theory, present, weight) =
       Thy_Load.load_thy last_timing update_time dir header text_pos text
         (if name = Context.PureN then [ML_Context.the_global_context ()] else parents);
     fun commit () = update_thy deps theory;
-  in Result {theory = theory, id = id, present = present, commit = commit} end;
+  in Result {theory = theory, id = id, present = present, commit = commit, weight = weight} end;
 
 fun check_deps dir name =
   (case lookup_deps name of
