@@ -242,7 +242,7 @@ val _ =
         Multithreading.max_threads := Options.int options "threads";
         if Multithreading.max_threads_value () < 2
         then Multithreading.max_threads := 2 else ();
-        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 4 else 0);
+        Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0);
         Goal.parallel_proofs_threshold := Options.int options "parallel_proofs_threshold";
         tracing_messages := Options.int options "editor_tracing_messages"
       end);

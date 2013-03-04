@@ -260,7 +260,7 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
 
     fun present () =
       let
-        val res = filter_out (Toplevel.is_ignored o #1) (flat (Future.joins results));
+        val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
         val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax ();
       in
         Thy_Output.present_thy minor Keyword.command_tags
