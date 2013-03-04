@@ -20,7 +20,7 @@ struct
 (** coercions data **)
 
 datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT | INVARIANT_TO of typ;
-datatype coerce_arg = PERMIT | FORBID
+datatype coerce_arg = PERMIT | FORBID | LEAVE
 
 datatype data = Data of
   {coes: (term * ((typ list * typ list) * term list)) Symreltab.table,  (*coercions table*)
@@ -29,7 +29,7 @@ datatype data = Data of
    (*coercions graph restricted to base types - for efficiency reasons strored in the context*)
    coes_graph: int Graph.T,
    tmaps: (term * variance list) Symtab.table,  (*map functions*)
-   coerce_args: coerce_arg option list Symtab.table  (*special constants with non-coercible arguments*)};
+   coerce_args: coerce_arg list Symtab.table  (*special constants with non-coercible arguments*)};
 
 fun make_data (coes, full_graph, coes_graph, tmaps, coerce_args) =
   Data {coes = coes, full_graph = full_graph, coes_graph = coes_graph,
@@ -297,8 +297,7 @@ fun update_coerce_arg ctxt old t =
   let
     val mk_coerce_args = the_default [] o Symtab.lookup (coerce_args_of ctxt);
     fun update _ [] = old
-      | update 0 (coerce :: _) =
-        (case coerce of NONE => old | SOME PERMIT => true | SOME FORBID => false)
+      | update 0 (coerce :: _) = (case coerce of LEAVE => old | PERMIT => true | FORBID => false)
       | update n (_ :: cs) = update (n - 1) cs;
     val (f, n) = Term.strip_comb (Type.strip_constraints t) ||> length;
   in
@@ -1054,9 +1053,7 @@ fun print_coercion_maps ctxt =
 (* theory setup *)
 
 val parse_coerce_args =
-  Args.$$$ "+" >> K (SOME PERMIT) ||
-  Args.$$$ "-" >> K (SOME FORBID) ||
-  Args.$$$ "0" >> K NONE
+  Args.$$$ "+" >> K PERMIT || Args.$$$ "-" >> K FORBID || Args.$$$ "0" >> K LEAVE
 
 val setup =
   Context.theory_map add_term_check #>
