@@ -63,6 +63,9 @@ lemma shift_simps[simp]:
 lemma stream_set_shift[simp]: "stream_set (xs @- s) = set xs \<union> stream_set s"
   by (induct xs) auto
 
+lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
+  by (induct xs) auto
+
 
 subsection {* set of streams with elements in some fixes set *}
 
@@ -87,26 +90,6 @@ next
     a \<in> A \<and> ((\<exists>a s. l = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A) \<or> l \<in> streams A)"
     by (cases s) auto
 qed
-
-
-subsection {* flatten a stream of lists *}
-
-definition flat where
-  "flat \<equiv> stream_unfold (hd o shd) (\<lambda>s. if tl (shd s) = [] then stl s else tl (shd s) ## stl s)"
-
-lemma flat_simps[simp]:
-  "shd (flat ws) = hd (shd ws)"
-  "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else tl (shd ws) ## stl ws)"
-  unfolding flat_def by auto
-
-lemma flat_Cons[simp]: "flat ((x # xs) ## ws) = x ## flat (if xs = [] then ws else xs ## ws)"
-  unfolding flat_def using stream.unfold[of "hd o shd" _ "(x # xs) ## ws"] by auto
-
-lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs @- flat ws"
-  by (induct xs) auto
-
-lemma flat_unfold: "shd ws \<noteq> [] \<Longrightarrow> flat ws = shd ws @- flat (stl ws)"
-  by (cases ws) auto
 
 
 subsection {* nth, take, drop for streams *}
@@ -159,6 +142,9 @@ lemma sdrop_simps[simp]:
 lemma sdrop_stream_map[simp]: "sdrop n (stream_map f s) = stream_map f (sdrop n s)"
   by (induct n arbitrary: s) auto
 
+lemma sdrop_stl: "sdrop n (stl s) = stl (sdrop n s)"
+  by (induct n) auto
+
 lemma stake_sdrop: "stake n s @- sdrop n s = s"
   by (induct n arbitrary: s) auto
 
@@ -199,6 +185,62 @@ lemma stream_all_iff[iff]: "stream_all P s \<longleftrightarrow> Ball (stream_se
 
 lemma stream_all_shift[simp]: "stream_all P (xs @- s) = (list_all P xs \<and> stream_all P s)"
   unfolding stream_all_iff list_all_iff by auto
+
+
+subsection {* flatten a stream of lists *}
+
+definition flat where
+  "flat \<equiv> stream_unfold (hd o shd) (\<lambda>s. if tl (shd s) = [] then stl s else tl (shd s) ## stl s)"
+
+lemma flat_simps[simp]:
+  "shd (flat ws) = hd (shd ws)"
+  "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else tl (shd ws) ## stl ws)"
+  unfolding flat_def by auto
+
+lemma flat_Cons[simp]: "flat ((x # xs) ## ws) = x ## flat (if xs = [] then ws else xs ## ws)"
+  unfolding flat_def using stream.unfold[of "hd o shd" _ "(x # xs) ## ws"] by auto
+
+lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs @- flat ws"
+  by (induct xs) auto
+
+lemma flat_unfold: "shd ws \<noteq> [] \<Longrightarrow> flat ws = shd ws @- flat (stl ws)"
+  by (cases ws) auto
+
+lemma flat_snth: "\<forall>xs \<in> stream_set s. xs \<noteq> [] \<Longrightarrow> flat s !! n = (if n < length (shd s) then 
+  shd s ! n else flat (stl s) !! (n - length (shd s)))"
+  by (metis flat_unfold not_less shd_stream_set shift_snth_ge shift_snth_less)
+
+lemma stream_set_flat[simp]: "\<forall>xs \<in> stream_set s. xs \<noteq> [] \<Longrightarrow> 
+  stream_set (flat s) = (\<Union>xs \<in> stream_set s. set xs)" (is "?P \<Longrightarrow> ?L = ?R")
+proof safe
+  fix x assume ?P "x : ?L"
+  then obtain m where "x = flat s !! m" by (metis image_iff stream_set_range)
+  with `?P` obtain n m' where "x = s !! n ! m'" "m' < length (s !! n)"
+  proof (atomize_elim, induct m arbitrary: s rule: less_induct)
+    case (less y)
+    thus ?case
+    proof (cases "y < length (shd s)")
+      case True thus ?thesis by (metis flat_snth less(2,3) snth.simps(1))
+    next
+      case False
+      hence "x = flat (stl s) !! (y - length (shd s))" by (metis less(2,3) flat_snth)
+      moreover
+      { from less(2) have "length (shd s) > 0" by (cases s) simp_all
+        moreover with False have "y > 0" by (cases y) simp_all
+        ultimately have "y - length (shd s) < y" by simp
+      }
+      moreover have "\<forall>xs \<in> stream_set (stl s). xs \<noteq> []" using less(2) by (cases s) auto
+      ultimately have "\<exists>n m'. x = stl s !! n ! m' \<and> m' < length (stl s !! n)" by (intro less(1)) auto
+      thus ?thesis by (metis snth.simps(2))
+    qed
+  qed
+  thus "x \<in> ?R" by (auto simp: stream_set_range dest!: nth_mem)
+next
+  fix x xs assume "xs \<in> stream_set s" ?P "x \<in> set xs" thus "x \<in> ?L"
+    by (induct rule: stream_set_induct1)
+      (metis UnI1 flat_unfold shift.simps(1) stream_set_shift,
+       metis UnI2 flat_unfold shd_stream_set stl_stream_set stream_set_shift)
+qed
 
 
 subsection {* recurring stream out of a list *}
@@ -306,6 +348,18 @@ lemma stake_fromN[simp]: "stake m (fromN n) = [n ..< m + n]"
 
 lemma sdrop_fromN[simp]: "sdrop m (fromN n) = fromN (n + m)"
   unfolding fromN_def by (induct m arbitrary: n) auto
+
+lemma stream_set_fromN[simp]: "stream_set (fromN n) = {n ..}" (is "?L = ?R")
+proof safe
+  fix m assume "m : ?L"
+  moreover
+  { fix s assume "m \<in> stream_set s" "\<exists>n'\<ge>n. s = fromN n'"
+    hence "n \<le> m" by (induct arbitrary: n rule: stream_set_induct1) fastforce+
+  }
+  ultimately show "n \<le> m" by blast
+next
+  fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_stream_set)
+qed
 
 abbreviation "nats \<equiv> fromN 0"
 
