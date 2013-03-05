@@ -70,4 +70,10 @@ lemma isGlb_le_isLb: "isGlb R S x \<Longrightarrow> isLb R S y \<Longrightarrow>
 lemma isGlb_ubs: "isGlb R S x \<Longrightarrow> lbs R S *<= x"
   unfolding lbs_def isGlb_def by (rule greatestPD2)
 
+lemma isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::'a::linorder)"
+  apply (frule isGlb_isLb)
+  apply (frule_tac x = y in isGlb_isLb)
+  apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
+  done
+
 end

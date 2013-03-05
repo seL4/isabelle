@@ -28,12 +28,7 @@ lemma dist_double: "dist x y < d / 2 \<Longrightarrow> dist x z < d / 2 \<Longri
 lemma lim_subseq: "subseq r \<Longrightarrow> s ----> l \<Longrightarrow> (s o r) ----> l"
   by (rule LIMSEQ_subseq_LIMSEQ)
 
-(* TODO: Move this to RComplete.thy -- would need to include Glb into RComplete *)
-lemma real_isGlb_unique: "[| isGlb R S x; isGlb R S y |] ==> x = (y::real)"
-  apply (frule isGlb_isLb)
-  apply (frule_tac x = y in isGlb_isLb)
-  apply (blast intro!: order_antisym dest!: isGlb_le_isLb)
-  done
+lemmas real_isGlb_unique = isGlb_unique[where 'a=real]
 
 lemma countable_PiE: 
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
