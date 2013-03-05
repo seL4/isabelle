@@ -589,6 +589,14 @@ lemma INF_le_iff:
 
 end
 
+instance complete_linorder \<subseteq> complete_distrib_lattice
+  apply default
+  apply (safe intro!: INF_eqI[symmetric] sup_mono complete_lattice_class.Inf_lower
+                      SUP_eqI[symmetric] inf_mono complete_lattice_class.Sup_upper)
+  apply (auto simp: not_less[symmetric]
+                    Inf_less_iff less_Sup_iff le_max_iff_disj sup_max min_le_iff_disj inf_min)
+  done
+
 subsection {* Complete lattice on @{typ bool} *}
 
 instantiation bool :: complete_lattice
