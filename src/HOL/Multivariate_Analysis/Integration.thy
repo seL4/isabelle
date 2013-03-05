@@ -48,6 +48,11 @@ lemma bounded_linearI:
     and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x" "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
   unfolding bounded_linear_def additive_def bounded_linear_axioms_def using assms by auto
+
+lemma Inf: (* rename *)
+  fixes S :: "real set"
+  shows "S \<noteq> {} ==> (\<exists>b. b <=* S) ==> isGlb UNIV S (Inf S)"
+by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def) 
  
 lemma real_le_inf_subset:
   assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. b <=* s"

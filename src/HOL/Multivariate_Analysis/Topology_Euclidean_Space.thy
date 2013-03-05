@@ -4967,11 +4967,6 @@ lemma continuous_attains_inf:
 
 text {* Hence some handy theorems on distance, diameter etc. of/from a set. *}
 
-
-lemma Inf:
-  fixes S :: "real set"
-  shows "S \<noteq> {} ==> (\<exists>b. b <=* S) ==> isGlb UNIV S (Inf S)"
-by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def) 
 lemma distance_attains_sup:
   assumes "compact s" "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a y \<le> dist a x"
