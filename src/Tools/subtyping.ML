@@ -119,6 +119,8 @@ val is_compT = fn (Type (_, _ :: _)) => true | _ => false;
 val is_freeT = fn (TFree _) => true | _ => false;
 val is_fixedvarT = fn (TVar (xi, _)) => not (Type_Infer.is_param xi) | _ => false;
 val is_funtype = fn (Type ("fun", [_, _])) => true | _ => false;
+
+fun mk_identity T = Abs (Name.uu, T, Bound 0);
 val is_identity = fn (Abs (_, _, Bound 0)) => true | _ => false;
 
 fun instantiate t Ts = Term.subst_TVars
@@ -665,7 +667,7 @@ fun gen_coercion ctxt err tye TU =
     fun gen (T1, T2) = (case pairself (Type_Infer.deref tye) (T1, T2) of
         (T1 as (Type (a, [])), T2 as (Type (b, []))) =>
             if a = b
-            then Abs (Name.uu, Type (a, []), Bound 0)
+            then mk_identity T1
             else
               (case Symreltab.lookup (coes_of ctxt) (a, b) of
                 NONE => raise COERCION_GEN_ERROR (err ++> quote (Syntax.string_of_typ ctxt T1) ^
@@ -692,31 +694,35 @@ fun gen_coercion ctxt err tye TU =
                   end)
             else
               let
-                fun sub_co (COVARIANT, TU) = SOME (gen TU)
-                  | sub_co (CONTRAVARIANT, TU) = SOME (gen (swap TU))
-                  | sub_co (INVARIANT_TO _, _) = NONE;
+                fun sub_co (COVARIANT, TU) = (SOME (gen TU), NONE)
+                  | sub_co (CONTRAVARIANT, TU) = (SOME (gen (swap TU)), NONE)
+                  | sub_co (INVARIANT, (T, _)) = (NONE, SOME T)
+                  | sub_co (INVARIANT_TO T, _) = (NONE, NONE);
                 fun ts_of [] = []
                   | ts_of (Type ("fun", [x1, x2]) :: xs) = x1 :: x2 :: (ts_of xs);
               in
                 (case Symtab.lookup (tmaps_of ctxt) a of
                   NONE =>
                     if Type.could_unify (T1, T2)
-                    then Abs (Name.uu, T1, Bound 0)
+                    then mk_identity T1
                     else raise COERCION_GEN_ERROR
                       (err ++> "No map function for " ^ quote a ^ " known")
-                | SOME tmap =>
+                | SOME (tmap, variances) =>
                     let
-                      val used_coes = map_filter sub_co ((snd tmap) ~~ (Ts ~~ Us));
+                      val (used_coes, invarTs) =
+                        map_split sub_co (variances ~~ (Ts ~~ Us))
+                        |>> map_filter I
+                        ||> map_filter I;
+                      val Tinsts = ts_of (map fastype_of used_coes) @ invarTs;
                     in
                       if null (filter (not o is_identity) used_coes)
-                      then Abs (Name.uu, Type (a, Ts), Bound 0)
-                      else Term.list_comb
-                        (instantiate (fst tmap) (ts_of (map fastype_of used_coes)), used_coes)
+                      then mk_identity (Type (a, Ts))
+                      else Term.list_comb (instantiate tmap Tinsts, used_coes)
                     end)
               end
       | (T, U) =>
             if Type.could_unify (T, U)
-            then Abs (Name.uu, T, Bound 0)
+            then mk_identity T
             else raise COERCION_GEN_ERROR (err ++> "Cannot generate coercion from " ^
               quote (Syntax.string_of_typ ctxt T) ^ " to " ^
               quote (Syntax.string_of_typ ctxt U)));
@@ -875,17 +881,18 @@ fun add_type_map raw_t context =
       handle List.Empty => error ("Not a proper map function:" ^ err_str t);
 
     fun gen_arg_var ([], []) = []
-      | gen_arg_var ((T, T') :: Ts, (U, U') :: Us) =
+      | gen_arg_var (Ts, (U, U') :: Us) =
           if U = U' then
-            if is_stypeT U then INVARIANT_TO U :: gen_arg_var ((T, T') :: Ts, Us)
-            else error ("Invariant xi and yi should be base types:" ^ err_str t)
-          else if T = U andalso T' = U' then COVARIANT :: gen_arg_var (Ts, Us)
-          else if T = U' andalso T' = U then CONTRAVARIANT :: gen_arg_var (Ts, Us)
-          else error ("Functions do not apply to arguments correctly:" ^ err_str t)
-      | gen_arg_var (_, Ts) =
-          if forall (op = andf is_stypeT o fst) Ts
-          then map (INVARIANT_TO o fst) Ts
-          else error ("Different numbers of functions and variant arguments\n" ^ err_str t);
+            if null (Term.add_tvarsT U []) then INVARIANT_TO U :: gen_arg_var (Ts, Us)
+            else if Term.is_TVar U then INVARIANT :: gen_arg_var (Ts, Us)
+            else error ("Invariant xi and yi should be variables or variable-free:" ^ err_str t)
+          else
+            (case Ts of
+              [] => error ("Different numbers of functions and variant arguments\n" ^ err_str t)
+            | (T, T') :: Ts =>
+              if T = U andalso T' = U' then COVARIANT :: gen_arg_var (Ts, Us)
+              else if T = U' andalso T' = U then CONTRAVARIANT :: gen_arg_var (Ts, Us)
+              else error ("Functions do not apply to arguments correctly:" ^ err_str t));
 
     (*retry flag needed to adjust the type lists, when given a map over type constructor fun*)
     fun check_map_fun fis (Type (C1, Ts)) (Type (C2, Us)) retry =
@@ -915,7 +922,7 @@ fun transitive_coercion ctxt tab G (a, b) =
     val path' = fst (split_last path) ~~ tl path;
     val coercions = map (fst o the o Symreltab.lookup tab) path';
     val trans_co = singleton (Variable.polymorphic ctxt)
-      (fold safe_app coercions (Abs (Name.uu, dummyT, Bound 0)));
+      (fold safe_app coercions (mk_identity dummyT));
     val (Ts, Us) = pairself (snd o Term.dest_Type) (Term.dest_funT (type_of trans_co))
   in
     (trans_co, ((Ts, Us), coercions))

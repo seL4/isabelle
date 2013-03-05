@@ -178,6 +178,12 @@ definition ys :: "bool list list list list list" where "ys=[[[[[True]]]]]"
 
 term "ys=[[[[[1::nat]]]]]"
 
+typedecl ('a, 'b, 'c) F
+consts Fmap :: "('a \<Rightarrow> 'd) \<Rightarrow> ('a, 'b, 'c) F \<Rightarrow> ('d, 'b, 'c) F"
+consts z :: "(bool, nat, bool) F"
+declare [[coercion_map "Fmap :: ('a \<Rightarrow> 'd) \<Rightarrow> ('a, 'b, 'c) F \<Rightarrow> ('d, 'b, 'c) F"]]
+term "z :: (nat, nat, bool) F"
+
 consts
   case_nil :: "'a \<Rightarrow> 'b"
   case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
