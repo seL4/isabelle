@@ -956,6 +956,9 @@ lemma islimpt_approachable_le:
 lemma islimpt_UNIV_iff: "x islimpt UNIV \<longleftrightarrow> \<not> open {x}"
   unfolding islimpt_def by (safe, fast, case_tac "T = {x}", fast, fast)
 
+lemma islimpt_punctured: "x islimpt S = x islimpt (S-{x})"
+  unfolding islimpt_def by blast
+
 text {* A perfect space has no isolated points. *}
 
 lemma islimpt_UNIV [simp, intro]: "(x::'a::perfect_space) islimpt UNIV"
@@ -1239,6 +1242,10 @@ proof (rule closure_unique)
 qed
 
 
+lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
+  unfolding closure_def using islimpt_punctured by blast
+
+
 subsection {* Frontier (aka boundary) *}
 
 definition "frontier S = closure S - interior S"
@@ -1327,6 +1334,9 @@ lemma trivial_limit_at_infinity:
   apply (cut_tac islimpt_UNIV [of "0::'a", unfolded islimpt_def])
   apply (drule_tac x=UNIV in spec, simp)
   done
+
+lemma not_trivial_limit_within: "~trivial_limit (at x within S) = (x:closure(S-{x}))"
+  using islimpt_in_closure by (metis trivial_limit_within)
 
 text {* Some property holds "sufficiently close" to the limit point. *}
 
@@ -1816,6 +1826,62 @@ lemma closed_approachable:
   fixes S :: "'a::metric_space set"
   shows "closed S ==> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
   by (metis closure_closed closure_approachable)
+
+lemma closure_contains_Inf:
+  fixes S :: "real set"
+  assumes "S \<noteq> {}" "\<forall>x\<in>S. B \<le> x"
+  shows "Inf S \<in> closure S"
+  unfolding closure_approachable
+proof safe
+  have *: "\<forall>x\<in>S. Inf S \<le> x"
+    using Inf_lower_EX[of _ S] assms by metis
+
+  fix e :: real assume "0 < e"
+  then obtain x where x: "x \<in> S" "x < Inf S + e"
+    using Inf_close `S \<noteq> {}` by auto
+  moreover then have "x > Inf S - e" using * by auto
+  ultimately have "abs (x - Inf S) < e" by (simp add: abs_diff_less_iff)
+  then show "\<exists>x\<in>S. dist x (Inf S) < e"
+    using x by (auto simp: dist_norm)
+qed
+
+lemma closed_contains_Inf:
+  fixes S :: "real set"
+  assumes "S \<noteq> {}" "\<forall>x\<in>S. B \<le> x"
+    and "closed S"
+  shows "Inf S \<in> S"
+  by (metis closure_contains_Inf closure_closed assms)
+
+
+lemma not_trivial_limit_within_ball:
+  "(\<not> trivial_limit (at x within S)) = (\<forall>e>0. S \<inter> ball x e - {x} \<noteq> {})"
+  (is "?lhs = ?rhs")
+proof -
+  { assume "?lhs"
+    { fix e :: real
+      assume "e>0"
+      then obtain y where "y:(S-{x}) & dist y x < e"
+        using `?lhs` not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"]
+        by auto
+      then have "y : (S Int ball x e - {x})"
+        unfolding ball_def by (simp add: dist_commute)
+      then have "S Int ball x e - {x} ~= {}" by blast
+    } then have "?rhs" by auto
+  }
+  moreover
+  { assume "?rhs"
+    { fix e :: real
+      assume "e>0"
+      then obtain y where "y : (S Int ball x e - {x})" using `?rhs` by blast
+      then have "y:(S-{x}) & dist y x < e"
+        unfolding ball_def by (simp add: dist_commute)
+      then have "EX y:(S-{x}). dist y x < e" by auto
+    }
+    then have "?lhs"
+      using not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"] by auto
+  }
+  ultimately show ?thesis by auto
+qed
 
 subsection {* Infimum Distance *}
 
@@ -3834,6 +3900,7 @@ lemma continuous_at_within:
   using assms unfolding continuous_at continuous_within
   by (rule Lim_at_within)
 
+
 text{* Derive the epsilon-delta forms, which we often use as "definitions" *}
 
 lemma continuous_within_eps_delta:
@@ -4385,6 +4452,20 @@ lemma continuous_at_open:
   shows "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t --> (\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x' \<in> s. (f x') \<in> t)))"
 unfolding continuous_within_topological [of x UNIV f, unfolded within_UNIV]
 unfolding imp_conjL by (intro all_cong imp_cong ex_cong conj_cong refl) auto
+
+lemma continuous_imp_tendsto:
+  assumes "continuous (at x0) f" and "x ----> x0"
+  shows "(f \<circ> x) ----> (f x0)"
+proof (rule topological_tendstoI)
+  fix S
+  assume "open S" "f x0 \<in> S"
+  then obtain T where T_def: "open T" "x0 \<in> T" "\<forall>x\<in>T. f x \<in> S"
+     using assms continuous_at_open by metis
+  then have "eventually (\<lambda>n. x n \<in> T) sequentially"
+    using assms T_def by (auto simp: tendsto_def)
+  then show "eventually (\<lambda>n. (f \<circ> x) n \<in> S) sequentially"
+    using T_def by (auto elim!: eventually_elim1)
+qed
 
 lemma continuous_on_open:
   shows "continuous_on s f \<longleftrightarrow>

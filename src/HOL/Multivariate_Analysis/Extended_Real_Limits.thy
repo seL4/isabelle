@@ -11,6 +11,114 @@ theory Extended_Real_Limits
   imports Topology_Euclidean_Space "~~/src/HOL/Library/Extended_Real"
 begin
 
+lemma convergent_limsup_cl:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  shows "convergent X \<Longrightarrow> limsup X = lim X"
+  by (auto simp: convergent_def limI lim_imp_Limsup)
+
+lemma lim_increasing_cl:
+  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<ge> f m"
+  obtains l where "f ----> (l::'a::{complete_linorder, linorder_topology})"
+proof
+  show "f ----> (SUP n. f n)"
+    using assms
+    by (intro increasing_tendsto)
+       (auto simp: SUP_upper eventually_sequentially less_SUP_iff intro: less_le_trans)
+qed
+
+lemma lim_decreasing_cl:
+  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<le> f m"
+  obtains l where "f ----> (l::'a::{complete_linorder, linorder_topology})"
+proof
+  show "f ----> (INF n. f n)"
+    using assms
+    by (intro decreasing_tendsto)
+       (auto simp: INF_lower eventually_sequentially INF_less_iff intro: le_less_trans)
+qed
+
+lemma compact_complete_linorder:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  shows "\<exists>l r. subseq r \<and> (X \<circ> r) ----> l"
+proof -
+  obtain r where "subseq r" and mono: "monoseq (X \<circ> r)"
+    using seq_monosub[of X] unfolding comp_def by auto
+  then have "(\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) m \<le> (X \<circ> r) n) \<or> (\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) n \<le> (X \<circ> r) m)"
+    by (auto simp add: monoseq_def)
+  then obtain l where "(X\<circ>r) ----> l"
+     using lim_increasing_cl[of "X \<circ> r"] lim_decreasing_cl[of "X \<circ> r"] by auto
+  then show ?thesis using `subseq r` by auto
+qed
+
+lemma compact_UNIV: "compact (UNIV :: 'a::{complete_linorder, linorder_topology, second_countable_topology} set)"
+  using compact_complete_linorder
+  by (auto simp: seq_compact_eq_compact[symmetric] seq_compact_def)
+
+lemma compact_eq_closed:
+  fixes S :: "'a::{complete_linorder, linorder_topology, second_countable_topology} set"
+  shows "compact S \<longleftrightarrow> closed S"
+  using closed_inter_compact[of S, OF _ compact_UNIV] compact_imp_closed by auto
+
+lemma closed_contains_Sup_cl:
+  fixes S :: "'a::{complete_linorder, linorder_topology, second_countable_topology} set"
+  assumes "closed S" "S \<noteq> {}" shows "Sup S \<in> S"
+proof -
+  from compact_eq_closed[of S] compact_attains_sup[of S] assms
+  obtain s where "s \<in> S" "\<forall>t\<in>S. t \<le> s" by auto
+  moreover then have "Sup S = s"
+    by (auto intro!: Sup_eqI)
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma closed_contains_Inf_cl:
+  fixes S :: "'a::{complete_linorder, linorder_topology, second_countable_topology} set"
+  assumes "closed S" "S \<noteq> {}" shows "Inf S \<in> S"
+proof -
+  from compact_eq_closed[of S] compact_attains_inf[of S] assms
+  obtain s where "s \<in> S" "\<forall>t\<in>S. s \<le> t" by auto
+  moreover then have "Inf S = s"
+    by (auto intro!: Inf_eqI)
+  ultimately show ?thesis
+    by simp
+qed
+
+lemma ereal_dense3: 
+  fixes x y :: ereal shows "x < y \<Longrightarrow> \<exists>r::rat. x < real_of_rat r \<and> real_of_rat r < y"
+proof (cases x y rule: ereal2_cases, simp_all)
+  fix r q :: real assume "r < q"
+  from Rats_dense_in_real[OF this]
+  show "\<exists>x. r < real_of_rat x \<and> real_of_rat x < q"
+    by (fastforce simp: Rats_def)
+next
+  fix r :: real show "\<exists>x. r < real_of_rat x" "\<exists>x. real_of_rat x < r"
+    using gt_ex[of r] lt_ex[of r] Rats_dense_in_real
+    by (auto simp: Rats_def)
+qed
+
+instance ereal :: second_countable_topology
+proof (default, intro exI conjI)
+  let ?B = "(\<Union>r\<in>\<rat>. {{..< r}, {r <..}} :: ereal set set)"
+  show "countable ?B" by (auto intro: countable_rat)
+  show "open = generate_topology ?B"
+  proof (intro ext iffI)
+    fix S :: "ereal set" assume "open S"
+    then show "generate_topology ?B S"
+      unfolding open_generated_order
+    proof induct
+      case (Basis b)
+      then obtain e where "b = {..< e} \<or> b = {e <..}" by auto
+      moreover have "{..<e} = \<Union>{{..<x}|x. x \<in> \<rat> \<and> x < e}" "{e<..} = \<Union>{{x<..}|x. x \<in> \<rat> \<and> e < x}"
+        by (auto dest: ereal_dense3
+                 simp del: ex_simps
+                 simp add: ex_simps[symmetric] conj_commute Rats_def image_iff)
+      ultimately show ?case
+        by (auto intro: generate_topology.intros)
+    qed (auto intro: generate_topology.intros)
+  next
+    fix S assume "generate_topology ?B S" then show "open S" by induct auto
+  qed
+qed
+
 lemma continuous_on_ereal[intro, simp]: "continuous_on A ereal"
   unfolding continuous_on_topological open_ereal_def by auto
 
@@ -41,57 +149,6 @@ lemma ereal_closed_uminus:
   shows "closed (uminus ` S)"
   using assms unfolding closed_def ereal_uminus_complement[symmetric] by (rule ereal_open_uminus)
 
-lemma ereal_closed_contains_Inf:
-  fixes S :: "ereal set"
-  assumes "closed S" "S ~= {}"
-  shows "Inf S : S"
-proof (rule ccontr)
-  assume "Inf S \<notin> S"
-  then have a: "open (-S)" "Inf S:(- S)" using assms by auto
-  show False
-  proof (cases "Inf S")
-    case MInf
-    then have "(-\<infinity>) : - S" using a by auto
-    then obtain y where "{..<ereal y} <= (-S)" using a open_MInfty2[of "- S"] by auto
-    then have "ereal y <= Inf S" by (metis Compl_anti_mono Compl_lessThan atLeast_iff
-      complete_lattice_class.Inf_greatest double_complement set_rev_mp)
-    then show False using MInf by auto
-  next
-    case PInf
-    then have "S={\<infinity>}" by (metis Inf_eq_PInfty assms(2))
-    then show False using `Inf S ~: S` by (simp add: top_ereal_def)
-  next
-    case (real r)
-    then have fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>" by simp
-    from ereal_open_cont_interval[OF a this] guess e . note e = this
-    { fix x
-      assume "x:S" then have "x>=Inf S" by (rule complete_lattice_class.Inf_lower)
-      then have *: "x>Inf S-e" using e by (metis fin ereal_between(1) order_less_le_trans)
-      { assume "x<Inf S+e"
-        then have "x:{Inf S-e <..< Inf S+e}" using * by auto
-        then have False using e `x:S` by auto
-      } then have "x>=Inf S+e" by (metis linorder_le_less_linear)
-    }
-    then have "Inf S + e <= Inf S" by (metis le_Inf_iff)
-    then show False using real e by (cases e) auto
-  qed
-qed
-
-lemma ereal_closed_contains_Sup:
-  fixes S :: "ereal set"
-  assumes "closed S" "S ~= {}"
-  shows "Sup S : S"
-proof -
-  have "closed (uminus ` S)"
-    by (metis assms(1) ereal_closed_uminus)
-  then have "Inf (uminus ` S) : uminus ` S"
-    using assms ereal_closed_contains_Inf[of "uminus ` S"] by auto
-  then have "- Sup S : uminus ` S"
-    using ereal_Sup_uminus_image_eq[of "uminus ` S"] by (auto simp: image_image)
-  then show ?thesis
-    by (metis imageI ereal_uminus_uminus ereal_minus_minus_image)
-qed
-
 lemma ereal_open_closed_aux:
   fixes S :: "ereal set"
   assumes "open S" "closed S"
@@ -99,7 +156,7 @@ lemma ereal_open_closed_aux:
   shows "S = {}"
 proof (rule ccontr)
   assume "S ~= {}"
-  then have *: "(Inf S):S" by (metis assms(2) ereal_closed_contains_Inf)
+  then have *: "(Inf S):S" by (metis assms(2) closed_contains_Inf_cl)
   { assume "Inf S=(-\<infinity>)"
     then have False using * assms(3) by auto }
   moreover
@@ -237,14 +294,6 @@ lemma ereal_lim_uminus:
     ereal_lim_mult[of "(\<lambda>i. - X i)" "-L" net "ereal (-1)"]
   by (auto simp add: algebra_simps)
 
-lemma Lim_bounded2_ereal:
-  assumes lim:"f ----> (l :: ereal)"
-    and ge: "ALL n>=N. f n >= C"
-  shows "l>=C"
-  using ge
-  by (intro tendsto_le[OF trivial_limit_sequentially lim tendsto_const])
-     (auto simp: eventually_sequentially)
-
 lemma ereal_open_atLeast: fixes x :: ereal shows "open {x..} \<longleftrightarrow> x = -\<infinity>"
 proof
   assume "x = -\<infinity>" then have "{x..} = UNIV" by auto
@@ -272,74 +321,50 @@ lemma ereal_Lim_uminus:
     ereal_lim_mult[of "\<lambda>x. - (f x)" "-f0" net "- 1"]
   by (auto simp: ereal_uminus_reorder)
 
-lemma convergent_ereal_limsup:
-  fixes X :: "nat \<Rightarrow> ereal"
-  shows "convergent X \<Longrightarrow> limsup X = lim X"
-  by (auto simp: convergent_def limI lim_imp_Limsup)
-
 lemma Liminf_PInfty:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<not> trivial_limit net"
   shows "(f ---> \<infinity>) net \<longleftrightarrow> Liminf net f = \<infinity>"
-proof (intro lim_imp_Liminf iffI assms)
-  assume rhs: "Liminf net f = \<infinity>"
-  show "(f ---> \<infinity>) net"
-    unfolding tendsto_PInfty
-  proof
-    fix r :: real
-    have "ereal r < top" unfolding top_ereal_def by simp
-    with rhs obtain P where "eventually P net" "r < INFI (Collect P) f"
-      unfolding Liminf_def SUP_eq_top_iff top_ereal_def[symmetric] by auto
-    then show "eventually (\<lambda>x. ereal r < f x) net"
-      by (auto elim!: eventually_elim1 dest: less_INF_D)
-  qed
-qed
+  unfolding tendsto_iff_Liminf_eq_Limsup[OF assms] using Liminf_le_Limsup[OF assms, of f] by auto
 
 lemma Limsup_MInfty:
   fixes f :: "'a \<Rightarrow> ereal"
   assumes "\<not> trivial_limit net"
   shows "(f ---> -\<infinity>) net \<longleftrightarrow> Limsup net f = -\<infinity>"
-  using assms ereal_Lim_uminus[of f "-\<infinity>"] Liminf_PInfty[of _ "\<lambda>x. - (f x)"]
-        ereal_Liminf_uminus[of _ f] by (auto simp: ereal_uminus_eq_reorder)
+  unfolding tendsto_iff_Liminf_eq_Limsup[OF assms] using Liminf_le_Limsup[OF assms, of f] by auto
 
 lemma convergent_ereal:
-  fixes X :: "nat \<Rightarrow> ereal"
+  fixes X :: "nat \<Rightarrow> 'a :: {complete_linorder, linorder_topology}"
   shows "convergent X \<longleftrightarrow> limsup X = liminf X"
   using tendsto_iff_Liminf_eq_Limsup[of sequentially]
   by (auto simp: convergent_def)
 
-lemma limsup_INFI_SUPR:
-  fixes f :: "nat \<Rightarrow> ereal"
-  shows "limsup f = (INF n. SUP m:{n..}. f m)"
-  using ereal_Limsup_uminus[of sequentially "\<lambda>x. - f x"]
-  by (simp add: liminf_SUPR_INFI ereal_INFI_uminus ereal_SUPR_uminus)
-
 lemma liminf_PInfty:
-  fixes X :: "nat => ereal"
-  shows "X ----> \<infinity> <-> liminf X = \<infinity>"
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "X ----> \<infinity> \<longleftrightarrow> liminf X = \<infinity>"
   by (metis Liminf_PInfty trivial_limit_sequentially)
 
 lemma limsup_MInfty:
-  fixes X :: "nat => ereal"
-  shows "X ----> (-\<infinity>) <-> limsup X = (-\<infinity>)"
+  fixes X :: "nat \<Rightarrow> ereal"
+  shows "X ----> -\<infinity> \<longleftrightarrow> limsup X = -\<infinity>"
   by (metis Limsup_MInfty trivial_limit_sequentially)
 
 lemma ereal_lim_mono:
-  fixes X Y :: "nat => ereal"
+  fixes X Y :: "nat => 'a::linorder_topology"
   assumes "\<And>n. N \<le> n \<Longrightarrow> X n <= Y n"
     and "X ----> x" "Y ----> y"
   shows "x <= y"
   using assms(1) by (intro LIMSEQ_le[OF assms(2,3)]) auto
 
 lemma incseq_le_ereal:
-  fixes X :: "nat \<Rightarrow> ereal"
+  fixes X :: "nat \<Rightarrow> 'a::linorder_topology"
   assumes inc: "incseq X" and lim: "X ----> L"
   shows "X N \<le> L"
   using inc by (intro ereal_lim_mono[of N, OF _ tendsto_const lim]) (simp add: incseq_def)
 
 lemma decseq_ge_ereal:
   assumes dec: "decseq X"
-    and lim: "X ----> (L::ereal)"
+    and lim: "X ----> (L::'a::linorder_topology)"
   shows "X N >= L"
   using dec by (intro ereal_lim_mono[of N, OF _ lim tendsto_const]) (simp add: decseq_def)
 
@@ -349,62 +374,25 @@ lemma bounded_abs:
   by (metis abs_less_iff assms leI le_max_iff_disj
     less_eq_real_def less_le_not_le less_minus_iff minus_minus)
 
-lemma lim_ereal_increasing:
-  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<ge> f m"
-  obtains l where "f ----> (l::'a::{complete_linorder, linorder_topology})"
-proof
-  show "f ----> (SUP n. f n)"
-    using assms
-    by (intro increasing_tendsto)
-       (auto simp: SUP_upper eventually_sequentially less_SUP_iff intro: less_le_trans)
-qed
-
-lemma lim_ereal_decreasing:
-  assumes "\<And>n m. n \<ge> m \<Longrightarrow> f n \<le> f m"
-  obtains l where "f ----> (l::'a::{complete_linorder, linorder_topology})"
-proof
-  show "f ----> (INF n. f n)"
-    using assms
-    by (intro decreasing_tendsto)
-       (auto simp: INF_lower eventually_sequentially INF_less_iff intro: le_less_trans)
-qed
-
-lemma compact_ereal:
-  fixes X :: "nat \<Rightarrow> ereal"
-  shows "\<exists>l r. subseq r \<and> (X \<circ> r) ----> l"
-proof -
-  obtain r where "subseq r" and mono: "monoseq (X \<circ> r)"
-    using seq_monosub[of X] unfolding comp_def by auto
-  then have "(\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) m \<le> (X \<circ> r) n) \<or> (\<forall>n m. m \<le> n \<longrightarrow> (X \<circ> r) n \<le> (X \<circ> r) m)"
-    by (auto simp add: monoseq_def)
-  then obtain l where "(X\<circ>r) ----> l"
-     using lim_ereal_increasing[of "X \<circ> r"] lim_ereal_decreasing[of "X \<circ> r"] by auto
-  then show ?thesis using `subseq r` by auto
-qed
-
 lemma ereal_Sup_lim:
-  assumes "\<And>n. b n \<in> s" "b ----> (a::ereal)"
+  assumes "\<And>n. b n \<in> s" "b ----> (a::'a::{complete_linorder, linorder_topology})"
   shows "a \<le> Sup s"
   by (metis Lim_bounded_ereal assms complete_lattice_class.Sup_upper)
 
 lemma ereal_Inf_lim:
-  assumes "\<And>n. b n \<in> s" "b ----> (a::ereal)"
+  assumes "\<And>n. b n \<in> s" "b ----> (a::'a::{complete_linorder, linorder_topology})"
   shows "Inf s \<le> a"
   by (metis Lim_bounded2_ereal assms complete_lattice_class.Inf_lower)
 
 lemma SUP_Lim_ereal:
   fixes X :: "nat \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
-  assumes inc: "incseq X" and l: "X ----> l"
-  shows "(SUP n. X n) = l"
+  assumes inc: "incseq X" and l: "X ----> l" shows "(SUP n. X n) = l"
   using LIMSEQ_SUP[OF inc] tendsto_unique[OF trivial_limit_sequentially l] by simp
 
-lemma INF_Lim_ereal: "decseq X \<Longrightarrow> X ----> l \<Longrightarrow> (INF n. X n) = (l::ereal)"
-  using SUP_Lim_ereal[of "\<lambda>i. - X i" "- l"]
-  by (simp add: ereal_SUPR_uminus ereal_lim_uminus)
-
-lemma LIMSEQ_ereal_INFI: "decseq X \<Longrightarrow> X ----> (INF n. X n :: ereal)"
-  using LIMSEQ_SUP[of "\<lambda>i. - X i"]
-  by (simp add: ereal_SUPR_uminus ereal_lim_uminus)
+lemma INF_Lim_ereal:
+  fixes X :: "nat \<Rightarrow> 'a::{complete_linorder, linorder_topology}"
+  assumes dec: "decseq X" and l: "X ----> l" shows "(INF n. X n) = l"
+  using LIMSEQ_INF[OF dec] tendsto_unique[OF trivial_limit_sequentially l] by simp
 
 lemma SUP_eq_LIMSEQ:
   assumes "mono f"
@@ -419,48 +407,6 @@ proof
   { assume "(SUP n. ereal (f n)) = ereal x"
     with LIMSEQ_SUP[OF inc]
     show "f ----> x" by auto }
-qed
-
-lemma islimpt_punctured: "x islimpt S = x islimpt (S-{x})"
-  unfolding islimpt_def by blast
-
-
-lemma islimpt_in_closure: "(x islimpt S) = (x:closure(S-{x}))"
-  unfolding closure_def using islimpt_punctured by blast
-
-
-lemma not_trivial_limit_within: "~trivial_limit (at x within S) = (x:closure(S-{x}))"
-  using islimpt_in_closure by (metis trivial_limit_within)
-
-
-lemma not_trivial_limit_within_ball:
-  "(~trivial_limit (at x within S)) = (ALL e>0. S Int ball x e - {x} ~= {})"
-  (is "?lhs = ?rhs")
-proof -
-  { assume "?lhs"
-    { fix e :: real
-      assume "e>0"
-      then obtain y where "y:(S-{x}) & dist y x < e"
-        using `?lhs` not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"]
-        by auto
-      then have "y : (S Int ball x e - {x})"
-        unfolding ball_def by (simp add: dist_commute)
-      then have "S Int ball x e - {x} ~= {}" by blast
-    } then have "?rhs" by auto
-  }
-  moreover
-  { assume "?rhs"
-    { fix e :: real
-      assume "e>0"
-      then obtain y where "y : (S Int ball x e - {x})" using `?rhs` by blast
-      then have "y:(S-{x}) & dist y x < e"
-        unfolding ball_def by (simp add: dist_commute)
-      then have "EX y:(S-{x}). dist y x < e" by auto
-    }
-    then have "?lhs"
-      using not_trivial_limit_within[of x S] closure_approachable[of x "S - {x}"] by auto
-  }
-  ultimately show ?thesis by auto
 qed
 
 lemma liminf_ereal_cminus:
@@ -483,43 +429,6 @@ qed (insert `c \<noteq> -\<infinity>`, simp)
 
 
 subsubsection {* Continuity *}
-
-lemma continuous_imp_tendsto:
-  assumes "continuous (at x0) f"
-    and "x ----> x0"
-  shows "(f o x) ----> (f x0)"
-proof -
-  { fix S
-    assume "open S & (f x0):S"
-    then obtain T where T_def: "open T & x0 : T & (ALL x:T. f x : S)"
-       using assms continuous_at_open by metis
-    then have "(EX N. ALL n>=N. x n : T)"
-      using assms tendsto_explicit T_def by auto
-    then have "(EX N. ALL n>=N. f(x n) : S)" using T_def by auto
-  }
-  then show ?thesis using tendsto_explicit[of "f o x" "f x0"] by auto
-qed
-
-
-lemma continuous_at_sequentially2:
-  fixes f :: "'a::metric_space => 'b:: topological_space"
-  shows "continuous (at x0) f <-> (ALL x. (x ----> x0) --> (f o x) ----> (f x0))"
-proof -
-  { assume "~(continuous (at x0) f)"
-    then obtain T where
-      T_def: "open T & f x0 : T & (ALL S. (open S & x0 : S) --> (EX x':S. f x' ~: T))"
-      using continuous_at_open[of x0 f] by metis
-    def X == "{x'. f x' ~: T}"
-    then have "x0 islimpt X"
-      unfolding islimpt_def using T_def by auto
-    then obtain x where x_def: "(ALL n. x n : X) & x ----> x0"
-      using islimpt_sequential[of x0 X] by auto
-    then have "~(f o x) ----> (f x0)"
-      unfolding tendsto_explicit using X_def T_def by auto
-    then have "EX x. x ----> x0 & (~(f o x) ----> (f x0))" using x_def by auto
-  }
-  then show ?thesis using continuous_imp_tendsto by auto
-qed
 
 lemma continuous_at_of_ereal:
   fixes x0 :: ereal
@@ -604,35 +513,6 @@ lemma continuous_at_const:
   assumes "ALL x. (f x = C)"
   shows "ALL x. continuous (at x) f"
   unfolding continuous_at_open using assms t1_space by auto
-
-
-lemma closure_contains_Inf:
-  fixes S :: "real set"
-  assumes "S ~= {}" "EX B. ALL x:S. B<=x"
-  shows "Inf S : closure S"
-proof -
-  have *: "ALL x:S. Inf S <= x"
-    using Inf_lower_EX[of _ S] assms by metis
-  { fix e
-    assume "e>(0 :: real)"
-    then obtain x where x_def: "x:S & x < Inf S + e" using Inf_close `S ~= {}` by auto
-    moreover then have "x > Inf S - e" using * by auto
-    ultimately have "abs (x - Inf S) < e" by (simp add: abs_diff_less_iff)
-    then have "EX x:S. abs (x - Inf S) < e" using x_def by auto
-  }
-  then show ?thesis
-    apply (subst closure_approachable)
-    unfolding dist_norm apply auto
-    done
-qed
-
-
-lemma closed_contains_Inf:
-  fixes S :: "real set"
-  assumes "S ~= {}" "EX B. ALL x:S. B<=x"
-    and "closed S"
-  shows "Inf S : S"
-  by (metis closure_contains_Inf closure_closed assms)
 
 
 lemma mono_closed_real:

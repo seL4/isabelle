@@ -131,10 +131,11 @@ lemma ereal_infinity_cases: "(a::ereal) \<noteq> \<infinity> \<Longrightarrow> a
 
 subsubsection "Addition"
 
-instantiation ereal :: comm_monoid_add
+instantiation ereal :: "{one, comm_monoid_add}"
 begin
 
 definition "0 = ereal 0"
+definition "1 = ereal 1"
 
 function plus_ereal where
 "ereal r + ereal p = ereal (r + p)" |
@@ -172,6 +173,8 @@ proof
     by (cases rule: ereal3_cases[of a b c]) simp_all
 qed
 end
+
+instance ereal :: numeral ..
 
 lemma real_of_ereal_0[simp]: "real (0::ereal) = 0"
   unfolding real_of_ereal_def zero_ereal_def by simp
@@ -474,9 +477,7 @@ subsubsection "Multiplication"
 instantiation ereal :: "{comm_monoid_mult, sgn}"
 begin
 
-definition "1 = ereal 1"
-
-function sgn_ereal where
+function sgn_ereal :: "ereal \<Rightarrow> ereal" where
   "sgn (ereal r) = ereal (sgn r)"
 | "sgn (\<infinity>::ereal) = 1"
 | "sgn (-\<infinity>::ereal) = -1"
@@ -660,8 +661,6 @@ lemma ereal_distrib:
   shows "(a + b) * c = a * c + b * c"
   using assms
   by (cases rule: ereal3_cases[of a b c]) (simp_all add: field_simps)
-
-instance ereal :: numeral ..
 
 lemma numeral_eq_ereal [simp]: "numeral w = ereal (numeral w)"
   apply (induct w rule: num_induct)
@@ -1811,8 +1810,15 @@ lemma Lim_bounded_PInfty2:
   "f ----> l \<Longrightarrow> ALL n>=N. f n <= ereal B \<Longrightarrow> l ~= \<infinity>"
   using LIMSEQ_le_const2[of f l "ereal B"] by fastforce
 
-lemma Lim_bounded_ereal: "f ----> (l :: ereal) \<Longrightarrow> ALL n>=M. f n <= C \<Longrightarrow> l<=C"
+lemma Lim_bounded_ereal: "f ----> (l :: 'a::linorder_topology) \<Longrightarrow> ALL n>=M. f n <= C \<Longrightarrow> l<=C"
   by (intro LIMSEQ_le_const2) auto
+
+lemma Lim_bounded2_ereal:
+  assumes lim:"f ----> (l :: 'a::linorder_topology)" and ge: "ALL n>=N. f n >= C"
+  shows "l>=C"
+  using ge
+  by (intro tendsto_le[OF trivial_limit_sequentially lim tendsto_const])
+     (auto simp: eventually_sequentially)
 
 lemma real_of_ereal_mult[simp]:
   fixes a b :: ereal shows "real (a * b) = real a * real b"

@@ -1133,7 +1133,7 @@ lemma borel_measurable_extreal_lim[measurable (raw)]:
   shows "(\<lambda>x. lim (\<lambda>i. f i x)) \<in> borel_measurable M"
 proof -
   have "\<And>x. lim (\<lambda>i. f i x) = (if convergent (\<lambda>i. f i x) then limsup (\<lambda>i. f i x) else (THE i. False))"
-    using convergent_ereal_limsup by (simp add: lim_def convergent_def)
+    by (simp add: lim_def convergent_def convergent_limsup_cl)
   then show ?thesis
     by simp
 qed

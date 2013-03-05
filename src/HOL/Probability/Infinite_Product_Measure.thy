@@ -303,7 +303,7 @@ next
       with `(\<Inter>i. A i) = {}` show False by auto
     qed
     ultimately show "(\<lambda>i. \<mu>G (A i)) ----> 0"
-      using LIMSEQ_ereal_INFI[of "\<lambda>i. \<mu>G (A i)"] by simp
+      using LIMSEQ_INF[of "\<lambda>i. \<mu>G (A i)"] by simp
   qed fact+
   then guess \<mu> .. note \<mu> = this
   show ?thesis

@@ -385,7 +385,7 @@ next
     finally have "f (A n - (\<Inter>i. A i)) + f (\<Inter>i. A i) = f (A n)" . }
   ultimately have "(INF n. f (A n)) = f (\<Inter>i. A i)"
     by simp
-  with LIMSEQ_ereal_INFI[OF decseq_fA]
+  with LIMSEQ_INF[OF decseq_fA]
   show "(\<lambda>i. f (A i)) ----> f (\<Inter>i. A i)" by simp
 qed
 
@@ -565,7 +565,7 @@ qed
 lemma Lim_emeasure_decseq:
   assumes A: "range A \<subseteq> sets M" "decseq A" and fin: "\<And>i. emeasure M (A i) \<noteq> \<infinity>"
   shows "(\<lambda>i. emeasure M (A i)) ----> emeasure M (\<Inter>i. A i)"
-  using LIMSEQ_ereal_INFI[OF decseq_emeasure, OF A]
+  using LIMSEQ_INF[OF decseq_emeasure, OF A]
   using INF_emeasure_decseq[OF A fin] by simp
 
 lemma emeasure_subadditive:

@@ -515,7 +515,7 @@ proof -
       thus False using Z by simp
     qed
     ultimately show "(\<lambda>i. \<mu>G (Z i)) ----> 0"
-      using LIMSEQ_ereal_INFI[of "\<lambda>i. \<mu>G (Z i)"] by simp
+      using LIMSEQ_INF[of "\<lambda>i. \<mu>G (Z i)"] by simp
   qed
   then guess \<mu> .. note \<mu> = this
   def f \<equiv> "finmap_of J B"
