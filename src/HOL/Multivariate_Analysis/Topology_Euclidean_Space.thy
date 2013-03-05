@@ -5031,11 +5031,43 @@ apply (drule (1) tendsto_Pair) back
 apply (simp add: o_def)
 done
 
-text {* Generalize to @{class topological_space} *}
 lemma compact_Times: 
-  fixes s :: "'a::metric_space set" and t :: "'b::metric_space set"
-  shows "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
-  unfolding compact_eq_seq_compact_metric by (rule seq_compact_Times)
+  assumes "compact s" "compact t"
+  shows "compact (s \<times> t)"
+proof (rule compactI)
+  fix C assume C: "\<forall>t\<in>C. open t" "s \<times> t \<subseteq> \<Union>C"
+  have "\<forall>x\<in>s. \<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
+  proof
+    fix x assume "x \<in> s"
+    have "\<forall>y\<in>t. \<exists>a b c. c \<in> C \<and> open a \<and> open b \<and> x \<in> a \<and> y \<in> b \<and> a \<times> b \<subseteq> c" (is "\<forall>y\<in>t. ?P y")
+    proof 
+      fix y assume "y \<in> t"
+      with `x \<in> s` C obtain c where "c \<in> C" "(x, y) \<in> c" "open c" by auto
+      then show "?P y" by (auto elim!: open_prod_elim)
+    qed
+    then obtain a b c where b: "\<And>y. y \<in> t \<Longrightarrow> open (b y)"
+      and c: "\<And>y. y \<in> t \<Longrightarrow> c y \<in> C \<and> open (a y) \<and> open (b y) \<and> x \<in> a y \<and> y \<in> b y \<and> a y \<times> b y \<subseteq> c y"
+      by metis
+    then have "\<forall>y\<in>t. open (b y)" "t \<subseteq> (\<Union>y\<in>t. b y)" by auto
+    from compactE_image[OF `compact t` this] obtain D where "D \<subseteq> t" "finite D" "t \<subseteq> (\<Union>y\<in>D. b y)"
+      by auto
+    moreover with c have "(\<Inter>y\<in>D. a y) \<times> t \<subseteq> (\<Union>y\<in>D. c y)"
+      by (fastforce simp: subset_eq)
+    ultimately show "\<exists>a. open a \<and> x \<in> a \<and> (\<exists>d\<subseteq>C. finite d \<and> a \<times> t \<subseteq> \<Union>d)"
+      using c by (intro exI[of _ "c`D"] exI[of _ "\<Inter>a`D"] conjI) (auto intro!: open_INT)
+  qed
+  then obtain a d where a: "\<forall>x\<in>s. open (a x)" "s \<subseteq> (\<Union>x\<in>s. a x)"
+    and d: "\<And>x. x \<in> s \<Longrightarrow> d x \<subseteq> C \<and> finite (d x) \<and> a x \<times> t \<subseteq> \<Union>d x"
+    unfolding subset_eq UN_iff by metis
+  moreover from compactE_image[OF `compact s` a] obtain e where e: "e \<subseteq> s" "finite e"
+    and s: "s \<subseteq> (\<Union>x\<in>e. a x)" by auto
+  moreover
+  { from s have "s \<times> t \<subseteq> (\<Union>x\<in>e. a x \<times> t)" by auto
+    also have "\<dots> \<subseteq> (\<Union>x\<in>e. \<Union>d x)" using d `e \<subseteq> s` by (intro UN_mono) auto
+    finally have "s \<times> t \<subseteq> (\<Union>x\<in>e. \<Union>d x)" . }
+  ultimately show "\<exists>C'\<subseteq>C. finite C' \<and> s \<times> t \<subseteq> \<Union>C'"
+    by (intro exI[of _ "(\<Union>x\<in>e. d x)"]) (auto simp add: subset_eq)
+qed
 
 text{* Hence some useful properties follow quite easily. *}
 
