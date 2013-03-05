@@ -4974,7 +4974,7 @@ lemma Inf:
 by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def) 
 lemma distance_attains_sup:
   assumes "compact s" "s \<noteq> {}"
-  shows "\<exists>x \<in> s. \<forall>y \<in> s. dist a y \<le> dist a x"
+  shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a y \<le> dist a x"
 proof (rule continuous_attains_sup [OF assms])
   { fix x assume "x\<in>s"
     have "(dist a ---> dist a x) (at x within s)"
@@ -4989,34 +4989,17 @@ text {* For \emph{minimal} distance, we only need closure, not compactness. *}
 lemma distance_attains_inf:
   fixes a :: "'a::heine_borel"
   assumes "closed s"  "s \<noteq> {}"
-  shows "\<exists>x \<in> s. \<forall>y \<in> s. dist a x \<le> dist a y"
+  shows "\<exists>x\<in>s. \<forall>y\<in>s. dist a x \<le> dist a y"
 proof-
-  from assms(2) obtain b where "b\<in>s" by auto
-  let ?B = "cball a (dist b a) \<inter> s"
-  have "b \<in> ?B" using `b\<in>s` by (simp add: dist_commute)
-  hence "?B \<noteq> {}" by auto
-  moreover
-  { fix x assume "x\<in>?B"
-    fix e::real assume "e>0"
-    { fix x' assume "x'\<in>?B" and as:"dist x' x < e"
-      from as have "\<bar>dist a x' - dist a x\<bar> < e"
-        unfolding abs_less_iff minus_diff_eq
-        using dist_triangle2 [of a x' x]
-        using dist_triangle [of a x x']
-        by arith
-    }
-    hence "\<exists>d>0. \<forall>x'\<in>?B. dist x' x < d \<longrightarrow> \<bar>dist a x' - dist a x\<bar> < e"
-      using `e>0` by auto
-  }
-  hence "continuous_on (cball a (dist b a) \<inter> s) (dist a)"
-    unfolding continuous_on Lim_within dist_norm real_norm_def
-    by fast
+  from assms(2) obtain b where "b \<in> s" by auto
+  let ?B = "s \<inter> cball a (dist b a)"
+  have "?B \<noteq> {}" using `b \<in> s` by (auto simp add: dist_commute)
+  moreover have "continuous_on ?B (dist a)"
+    by (auto intro!: continuous_at_imp_continuous_on continuous_dist continuous_at_id continuous_const)
   moreover have "compact ?B"
-    using compact_cball[of a "dist b a"]
-    unfolding compact_eq_bounded_closed
-    using bounded_Int and closed_Int and assms(1) by auto
-  ultimately obtain x where "x\<in>cball a (dist b a) \<inter> s" "\<forall>y\<in>cball a (dist b a) \<inter> s. dist a x \<le> dist a y"
-    using continuous_attains_inf[of ?B "dist a"] by fastforce
+    by (intro closed_inter_compact `closed s` compact_cball)
+  ultimately obtain x where "x \<in> ?B" "\<forall>y\<in>?B. dist a x \<le> dist a y"
+    by (metis continuous_attains_inf)
   thus ?thesis by fastforce
 qed
 
@@ -5334,50 +5317,23 @@ qed
 
 lemma separate_compact_closed:
   fixes s t :: "'a::heine_borel set"
-  assumes "compact s" and "closed t" and "s \<inter> t = {}"
+  assumes "compact s" and t: "closed t" "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
-proof - (* FIXME: long proof *)
-  let ?T = "\<Union>x\<in>s. { ball x (d / 2) | d. 0 < d \<and> (\<forall>y\<in>t. d \<le> dist x y) }"
-  note `compact s`
-  moreover have "\<forall>t\<in>?T. open t" by auto
-  moreover have "s \<subseteq> \<Union>?T"
-    apply auto
-    apply (rule rev_bexI, assumption)
-    apply (subgoal_tac "x \<notin> t")
-    apply (drule separate_point_closed [OF `closed t`])
-    apply clarify
-    apply (rule_tac x="ball x (d / 2)" in exI)
-    apply simp
-    apply fast
-    apply (cut_tac assms(3))
-    apply auto
-    done
-  ultimately obtain U where "U \<subseteq> ?T" and "finite U" and "s \<subseteq> \<Union>U"
-    by (rule compactE)
-  from `finite U` and `U \<subseteq> ?T` have "\<exists>d>0. \<forall>x\<in>\<Union>U. \<forall>y\<in>t. d \<le> dist x y"
-    apply (induct set: finite)
-    apply simp
-    apply (rule exI)
-    apply (rule zero_less_one)
-    apply clarsimp
-    apply (rename_tac y e)
-    apply (rule_tac x="min d (e / 2)" in exI)
-    apply simp
-    apply (subst ball_Un)
-    apply (rule conjI)
-    apply (intro ballI, rename_tac z)
-    apply (rule min_max.le_infI2)
-    apply (simp only: mem_ball)
-    apply (drule (1) bspec)
-    apply (cut_tac x=y and y=x and z=z in dist_triangle, arith)
-    apply simp
-    apply (intro ballI)
-    apply (rule min_max.le_infI1)
-    apply simp
-    done
-  with `s \<subseteq> \<Union>U` show ?thesis
-    by fast
-qed
+proof cases
+  assume "s \<noteq> {} \<and> t \<noteq> {}"
+  then have "s \<noteq> {}" "t \<noteq> {}" by auto
+  let ?inf = "\<lambda>x. infdist x t"
+  have "continuous_on s ?inf"
+    by (auto intro!: continuous_at_imp_continuous_on continuous_infdist continuous_at_id)
+  then obtain x where x: "x \<in> s" "\<forall>y\<in>s. ?inf x \<le> ?inf y"
+    using continuous_attains_inf[OF `compact s` `s \<noteq> {}`] by auto
+  then have "0 < ?inf x"
+    using t `t \<noteq> {}` in_closed_iff_infdist_zero by (auto simp: less_le infdist_nonneg)
+  moreover have "\<forall>x'\<in>s. \<forall>y\<in>t. ?inf x \<le> dist x' y"
+    using x by (auto intro: order_trans infdist_le)
+  ultimately show ?thesis
+    by auto
+qed (auto intro!: exI[of _ 1])
 
 lemma separate_closed_compact:
   fixes s t :: "'a::heine_borel set"
