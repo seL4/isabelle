@@ -17,7 +17,7 @@ imports
   Diagonal_Subsequence
   Dlist
   Eval_Witness
-  Extended_Nat
+  Extended Extended_Nat Extended_Real
   FinFun
   Float
   Formal_Power_Series
