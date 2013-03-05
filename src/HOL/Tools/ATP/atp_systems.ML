@@ -766,11 +766,10 @@ fun refresh_systems_on_tptp () =
 fun effective_term_order ctxt atp =
   let val ord = Config.get ctxt term_order in
     if ord = smartN then
-      if atp = spassN then
-        {is_lpo = false, gen_weights = true, gen_prec = true, gen_simp = false}
-      else
-        {is_lpo = false, gen_weights = false, gen_prec = false,
+      let val is_spass = (atp = spassN orelse atp = spass_polyN) in
+        {is_lpo = false, gen_weights = is_spass, gen_prec = is_spass,
          gen_simp = false}
+      end
     else
       let val is_lpo = String.isSubstring lpoN ord in
         {is_lpo = is_lpo,
