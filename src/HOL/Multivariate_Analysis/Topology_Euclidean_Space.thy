@@ -245,6 +245,70 @@ proof atomize_elim
   qed
 qed
 
+
+lemma countable_basis:
+  obtains A :: "nat \<Rightarrow> 'a::first_countable_topology set" where
+    "\<And>i. open (A i)" "\<And>i. x \<in> A i"
+    "\<And>F. (\<forall>n. F n \<in> A n) \<Longrightarrow> F ----> x"
+proof atomize_elim
+  from countable_basis_at_decseq[of x] guess A . note A = this
+  { fix F S assume "\<forall>n. F n \<in> A n" "open S" "x \<in> S"
+    with A(3)[of S] have "eventually (\<lambda>n. F n \<in> S) sequentially"
+      by (auto elim: eventually_elim1 simp: subset_eq) }
+  with A show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and> (\<forall>F. (\<forall>n. F n \<in> A n) \<longrightarrow> F ----> x)"
+    by (intro exI[of _ A]) (auto simp: tendsto_def)
+qed
+
+lemma sequentially_imp_eventually_nhds_within:
+  fixes a :: "'a::first_countable_topology"
+  assumes "\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
+  shows "eventually P (nhds a within s)"
+proof (rule ccontr)
+  from countable_basis[of a] guess A . note A = this
+  assume "\<not> eventually P (nhds a within s)"
+  with A have P: "\<exists>F. \<forall>n. F n \<in> s \<and> F n \<in> A n \<and> \<not> P (F n)"
+    unfolding Limits.eventually_within eventually_nhds by (intro choice) fastforce
+  then guess F ..
+  hence F0: "\<forall>n. F n \<in> s" and F2: "\<forall>n. F n \<in> A n" and F3: "\<forall>n. \<not> P (F n)"
+    by fast+
+  with A have "F ----> a" by auto
+  hence "eventually (\<lambda>n. P (F n)) sequentially"
+    using assms F0 by simp
+  thus "False" by (simp add: F3)
+qed
+
+lemma eventually_nhds_within_iff_sequentially:
+  fixes a :: "'a::first_countable_topology"
+  shows "eventually P (nhds a within s) \<longleftrightarrow> 
+    (\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
+proof (safe intro!: sequentially_imp_eventually_nhds_within)
+  assume "eventually P (nhds a within s)" 
+  then obtain S where "open S" "a \<in> S" "\<forall>x\<in>S. x \<in> s \<longrightarrow> P x"
+    by (auto simp: Limits.eventually_within eventually_nhds)
+  moreover fix f assume "\<forall>n. f n \<in> s" "f ----> a"
+  ultimately show "eventually (\<lambda>n. P (f n)) sequentially"
+    by (auto dest!: topological_tendstoD elim: eventually_elim1)
+qed
+
+lemma eventually_nhds_iff_sequentially:
+  fixes a :: "'a::first_countable_topology"
+  shows "eventually P (nhds a) \<longleftrightarrow> (\<forall>f. f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
+  using eventually_nhds_within_iff_sequentially[of P a UNIV] by simp
+
+lemma not_eventually_sequentiallyD:
+  assumes P: "\<not> eventually P sequentially"
+  shows "\<exists>r. subseq r \<and> (\<forall>n. \<not> P (r n))"
+proof -
+  from P have "\<forall>n. \<exists>m\<ge>n. \<not> P m"
+    unfolding eventually_sequentially by (simp add: not_less)
+  then obtain r where "\<And>n. r n \<ge> n" "\<And>n. \<not> P (r n)"
+    by (auto simp: choice_iff)
+  then show ?thesis
+    by (auto intro!: exI[of _ "\<lambda>n. r (((Suc \<circ> r) ^^ Suc n) 0)"]
+             simp: less_eq_Suc_le subseq_Suc_iff)
+qed
+
+
 instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
 proof
   fix x :: "'a \<times> 'b"
