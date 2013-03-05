@@ -4,6 +4,11 @@
     Author:     Jeremy Avigad
 
 lessThan, greaterThan, atLeast, atMost and two-sided intervals
+
+Modern convention: Ixy stands for an interval where x and y
+describe the lower and upper bound and x,y : {c,o,i}
+where c = closed, o = open, i = infinite.
+Examples: Ico = {_ ..< _} and Ici = {_ ..}
 *)
 
 header {* Set intervals *}
@@ -256,6 +261,10 @@ lemma atLeastatMost_psubset_iff:
    ((~ a <= b) | c <= a & b <= d & (c < a | b < d))  &  c <= d"
 by(simp add: psubset_eq set_eq_iff less_le_not_le)(blast intro: order_trans)
 
+lemma Icc_eq_Icc[simp]:
+  "{l..h} = {l'..h'} = (l=l' \<and> h=h' \<or> \<not> l\<le>h \<and> \<not> l'\<le>h')"
+by(simp add: order_class.eq_iff)(auto intro: order_trans)
+
 lemma atLeastAtMost_singleton_iff[simp]:
   "{a .. b} = {c} \<longleftrightarrow> a = b \<and> b = c"
 proof
@@ -265,7 +274,104 @@ proof
   ultimately show "a = b \<and> b = c" by auto
 qed simp
 
+lemma Icc_subset_Ici_iff[simp]:
+  "{l..h} \<subseteq> {l'..} = (~ l\<le>h \<or> l\<ge>l')"
+by(auto simp: subset_eq intro: order_trans)
+
+lemma Icc_subset_Iic_iff[simp]:
+  "{l..h} \<subseteq> {..h'} = (~ l\<le>h \<or> h\<le>h')"
+by(auto simp: subset_eq intro: order_trans)
+
+lemma not_Ici_eq_empty[simp]: "{l..} \<noteq> {}"
+by(auto simp: set_eq_iff)
+
+lemma not_Iic_eq_empty[simp]: "{..h} \<noteq> {}"
+by(auto simp: set_eq_iff)
+
+lemmas not_empty_eq_Ici_eq_empty[simp] = not_Ici_eq_empty[symmetric]
+lemmas not_empty_eq_Iic_eq_empty[simp] = not_Iic_eq_empty[symmetric]
+
 end
+
+context no_top
+begin
+
+(* also holds for no_bot but no_top should suffice *)
+lemma not_UNIV_le_Icc[simp]: "\<not> UNIV \<subseteq> {l..h}"
+using gt_ex[of h] by(auto simp: subset_eq less_le_not_le)
+
+lemma not_UNIV_le_Iic[simp]: "\<not> UNIV \<subseteq> {..h}"
+using gt_ex[of h] by(auto simp: subset_eq less_le_not_le)
+
+lemma not_Ici_le_Icc[simp]: "\<not> {l..} \<subseteq> {l'..h'}"
+using gt_ex[of h']
+by(auto simp: subset_eq less_le)(blast dest:antisym_conv intro: order_trans)
+
+lemma not_Ici_le_Iic[simp]: "\<not> {l..} \<subseteq> {..h'}"
+using gt_ex[of h']
+by(auto simp: subset_eq less_le)(blast dest:antisym_conv intro: order_trans)
+
+end
+
+context no_bot
+begin
+
+lemma not_UNIV_le_Ici[simp]: "\<not> UNIV \<subseteq> {l..}"
+using lt_ex[of l] by(auto simp: subset_eq less_le_not_le)
+
+lemma not_Iic_le_Icc[simp]: "\<not> {..h} \<subseteq> {l'..h'}"
+using lt_ex[of l']
+by(auto simp: subset_eq less_le)(blast dest:antisym_conv intro: order_trans)
+
+lemma not_Iic_le_Ici[simp]: "\<not> {..h} \<subseteq> {l'..}"
+using lt_ex[of l']
+by(auto simp: subset_eq less_le)(blast dest:antisym_conv intro: order_trans)
+
+end
+
+
+context no_top
+begin
+
+(* also holds for no_bot but no_top should suffice *)
+lemma not_UNIV_eq_Icc[simp]: "\<not> UNIV = {l'..h'}"
+using gt_ex[of h'] by(auto simp: set_eq_iff  less_le_not_le)
+
+lemmas not_Icc_eq_UNIV[simp] = not_UNIV_eq_Icc[symmetric]
+
+lemma not_UNIV_eq_Iic[simp]: "\<not> UNIV = {..h'}"
+using gt_ex[of h'] by(auto simp: set_eq_iff  less_le_not_le)
+
+lemmas not_Iic_eq_UNIV[simp] = not_UNIV_eq_Iic[symmetric]
+
+lemma not_Icc_eq_Ici[simp]: "\<not> {l..h} = {l'..}"
+unfolding atLeastAtMost_def using not_Ici_le_Iic[of l'] by blast
+
+lemmas not_Ici_eq_Icc[simp] = not_Icc_eq_Ici[symmetric]
+
+(* also holds for no_bot but no_top should suffice *)
+lemma not_Iic_eq_Ici[simp]: "\<not> {..h} = {l'..}"
+using not_Ici_le_Iic[of l' h] by blast
+
+lemmas not_Ici_eq_Iic[simp] = not_Iic_eq_Ici[symmetric]
+
+end
+
+context no_bot
+begin
+
+lemma not_UNIV_eq_Ici[simp]: "\<not> UNIV = {l'..}"
+using lt_ex[of l'] by(auto simp: set_eq_iff  less_le_not_le)
+
+lemmas not_Ici_eq_UNIV[simp] = not_UNIV_eq_Ici[symmetric]
+
+lemma not_Icc_eq_Iic[simp]: "\<not> {l..h} = {..h'}"
+unfolding atLeastAtMost_def using not_Iic_le_Ici[of h'] by blast
+
+lemmas not_Iic_eq_Icc[simp] = not_Icc_eq_Iic[symmetric]
+
+end
+
 
 context inner_dense_linorder
 begin
@@ -313,7 +419,7 @@ end
 context no_top
 begin
 
-lemma greaterThan_non_empty: "{x <..} \<noteq> {}"
+lemma greaterThan_non_empty[simp]: "{x <..} \<noteq> {}"
   using gt_ex[of x] by auto
 
 end
@@ -321,7 +427,7 @@ end
 context no_bot
 begin
 
-lemma lessThan_non_empty: "{..< x} \<noteq> {}"
+lemma lessThan_non_empty[simp]: "{..< x} \<noteq> {}"
   using lt_ex[of x] by auto
 
 end
@@ -346,19 +452,16 @@ lemma atLeastLessThan_eq_iff:
   shows "{a ..< b} = {c ..< d} \<longleftrightarrow> a = c \<and> b = d"
   using atLeastLessThan_inj assms by auto
 
-context complete_lattice
-begin
+lemma (in bot) atLeast_eq_UNIV_iff: "{x..} = UNIV \<longleftrightarrow> x = bot"
+by (auto simp: set_eq_iff intro: le_bot)
 
-lemma atLeast_eq_UNIV_iff: "{x..} = UNIV \<longleftrightarrow> x = bot"
-  by (auto simp: set_eq_iff intro: le_bot)
+lemma (in top) atMost_eq_UNIV_iff: "{..x} = UNIV \<longleftrightarrow> x = top"
+by (auto simp: set_eq_iff intro: top_le)
 
-lemma atMost_eq_UNIV_iff: "{..x} = UNIV \<longleftrightarrow> x = top"
-  by (auto simp: set_eq_iff intro: top_le)
+lemma (in bounded_lattice) atLeastAtMost_eq_UNIV_iff:
+  "{x..y} = UNIV \<longleftrightarrow> (x = bot \<and> y = top)"
+by (auto simp: set_eq_iff intro: top_le le_bot)
 
-lemma atLeastAtMost_eq_UNIV_iff: "{x..y} = UNIV \<longleftrightarrow> (x = bot \<and> y = top)"
-  by (auto simp: set_eq_iff intro: top_le le_bot)
-
-end
 
 subsubsection {* Intersection *}
 

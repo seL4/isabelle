@@ -639,6 +639,9 @@ lemma UNIV_eq_I: "(\<And>x. x \<in> A) \<Longrightarrow> UNIV = A"
 lemma UNIV_not_empty [iff]: "UNIV ~= {}"
   by (blast elim: equalityE)
 
+lemma empty_not_UNIV[simp]: "{} \<noteq> UNIV"
+by blast
+
 
 subsubsection {* The Powerset operator -- Pow *}
 
