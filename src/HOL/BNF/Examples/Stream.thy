@@ -52,6 +52,9 @@ primrec shift :: "'a list \<Rightarrow> 'a stream \<Rightarrow> 'a stream" (infi
   "shift [] s = s"
 | "shift (x # xs) s = x ## shift xs s"
 
+lemma stream_map_shift[simp]: "stream_map f (xs @- s) = map f xs @- stream_map f s"
+  by (induct xs) auto
+
 lemma shift_append[simp]: "(xs @ ys) @- s = xs @- ys @- s"
   by (induct xs) auto
 
