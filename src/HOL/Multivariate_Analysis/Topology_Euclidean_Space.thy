@@ -4915,59 +4915,63 @@ lemma continuous_on_real_range:
   shows "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d --> abs(f x' - f x) < e))"
   unfolding continuous_on_iff dist_norm by simp
 
+lemma compact_attains_sup:
+  fixes S :: "'a::linorder_topology set"
+  assumes "compact S" "S \<noteq> {}"
+  shows "\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s"
+proof (rule classical)
+  assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s)"
+  then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. s < t s"
+    by (metis not_le)
+  then have "\<forall>s\<in>S. open {..< t s}" "S \<subseteq> (\<Union>s\<in>S. {..< t s})"
+    by auto
+  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {..< t s})"
+    by (erule compactE_image)
+  with `S \<noteq> {}` have Max: "Max (t`C) \<in> t`C" and "\<forall>s\<in>t`C. s \<le> Max (t`C)"
+    by (auto intro!: Max_in)
+  with C have "S \<subseteq> {..< Max (t`C)}"
+    by (auto intro: less_le_trans simp: subset_eq)
+  with t Max `C \<subseteq> S` show ?thesis
+    by fastforce
+qed
+
+lemma compact_attains_inf:
+  fixes S :: "'a::linorder_topology set"
+  assumes "compact S" "S \<noteq> {}"
+  shows "\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t"
+proof (rule classical)
+  assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t)"
+  then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. t s < s"
+    by (metis not_le)
+  then have "\<forall>s\<in>S. open {t s <..}" "S \<subseteq> (\<Union>s\<in>S. {t s <..})"
+    by auto
+  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {t s <..})"
+    by (erule compactE_image)
+  with `S \<noteq> {}` have Min: "Min (t`C) \<in> t`C" and "\<forall>s\<in>t`C. Min (t`C) \<le> s"
+    by (auto intro!: Min_in)
+  with C have "S \<subseteq> {Min (t`C) <..}"
+    by (auto intro: le_less_trans simp: subset_eq)
+  with t Min `C \<subseteq> S` show ?thesis
+    by fastforce
+qed
+
+lemma continuous_attains_sup:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
+  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s.  f y \<le> f x)"
+  using compact_attains_sup[of "f ` s"] compact_continuous_image[of s f] by auto
+
+lemma continuous_attains_inf:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
+  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s. f x \<le> f y)"
+  using compact_attains_inf[of "f ` s"] compact_continuous_image[of s f] by auto
+
 text {* Hence some handy theorems on distance, diameter etc. of/from a set. *}
 
-lemma compact_attains_sup:
-  fixes s :: "real set"
-  assumes "compact s"  "s \<noteq> {}"
-  shows "\<exists>x \<in> s. \<forall>y \<in> s. y \<le> x"
-proof-
-  from assms(1) have a:"bounded s" "closed s" unfolding compact_eq_bounded_closed by auto
-  { fix e::real assume as: "\<forall>x\<in>s. x \<le> Sup s" "Sup s \<notin> s"  "0 < e" "\<forall>x'\<in>s. x' = Sup s \<or> \<not> Sup s - x' < e"
-    have "isLub UNIV s (Sup s)" using Sup[OF assms(2)] unfolding setle_def using as(1) by auto
-    moreover have "isUb UNIV s (Sup s - e)" unfolding isUb_def unfolding setle_def using as(4,2) by auto
-    ultimately have False using isLub_le_isUb[of UNIV s "Sup s" "Sup s - e"] using `e>0` by auto  }
-  thus ?thesis using bounded_has_Sup(1)[OF a(1) assms(2)] using a(2)[unfolded closed_real, THEN spec[where x="Sup s"]]
-    apply(rule_tac x="Sup s" in bexI) by auto
-qed
 
 lemma Inf:
   fixes S :: "real set"
   shows "S \<noteq> {} ==> (\<exists>b. b <=* S) ==> isGlb UNIV S (Inf S)"
 by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def) 
-
-lemma compact_attains_inf:
-  fixes s :: "real set"
-  assumes "compact s" "s \<noteq> {}"  shows "\<exists>x \<in> s. \<forall>y \<in> s. x \<le> y"
-proof-
-  from assms(1) have a:"bounded s" "closed s" unfolding compact_eq_bounded_closed by auto
-  { fix e::real assume as: "\<forall>x\<in>s. x \<ge> Inf s"  "Inf s \<notin> s"  "0 < e"
-      "\<forall>x'\<in>s. x' = Inf s \<or> \<not> abs (x' - Inf s) < e"
-    have "isGlb UNIV s (Inf s)" using Inf[OF assms(2)] unfolding setge_def using as(1) by auto
-    moreover
-    { fix x assume "x \<in> s"
-      hence *:"abs (x - Inf s) = x - Inf s" using as(1)[THEN bspec[where x=x]] by auto
-      have "Inf s + e \<le> x" using as(4)[THEN bspec[where x=x]] using as(2) `x\<in>s` unfolding * by auto }
-    hence "isLb UNIV s (Inf s + e)" unfolding isLb_def and setge_def by auto
-    ultimately have False using isGlb_le_isLb[of UNIV s "Inf s" "Inf s + e"] using `e>0` by auto  }
-  thus ?thesis using bounded_has_Inf(1)[OF a(1) assms(2)] using a(2)[unfolded closed_real, THEN spec[where x="Inf s"]]
-    apply(rule_tac x="Inf s" in bexI) by auto
-qed
-
-lemma continuous_attains_sup:
-  fixes f :: "'a::topological_space \<Rightarrow> real"
-  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f
-        ==> (\<exists>x \<in> s. \<forall>y \<in> s.  f y \<le> f x)"
-  using compact_attains_sup[of "f ` s"]
-  using compact_continuous_image[of s f] by auto
-
-lemma continuous_attains_inf:
-  fixes f :: "'a::topological_space \<Rightarrow> real"
-  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f
-        \<Longrightarrow> (\<exists>x \<in> s. \<forall>y \<in> s. f x \<le> f y)"
-  using compact_attains_inf[of "f ` s"]
-  using compact_continuous_image[of s f] by auto
-
 lemma distance_attains_sup:
   assumes "compact s" "s \<noteq> {}"
   shows "\<exists>x \<in> s. \<forall>y \<in> s. dist a y \<le> dist a x"
