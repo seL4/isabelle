@@ -2190,7 +2190,7 @@ proof -
     using diff positive_integral_positive[of M]
     by (subst integral_eq_positive_integral[of _ M]) (auto simp: ereal_real integrable_def)
   then show ?lim_diff
-    using ereal_Liminf_eq_Limsup[OF trivial_limit_sequentially liminf_limsup_eq]
+    using Liminf_eq_Limsup[OF trivial_limit_sequentially liminf_limsup_eq]
     by simp
 
   show ?lim

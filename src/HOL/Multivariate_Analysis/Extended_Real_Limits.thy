@@ -22,35 +22,13 @@ lemma continuous_within_ereal[intro, simp]: "x \<in> A \<Longrightarrow> continu
 
 lemma ereal_open_uminus:
   fixes S :: "ereal set"
-  assumes "open S"
-  shows "open (uminus ` S)"
-  unfolding open_ereal_def
-proof (intro conjI impI)
-  obtain x y where
-    S: "open (ereal -` S)" "\<infinity> \<in> S \<Longrightarrow> {ereal x<..} \<subseteq> S" "-\<infinity> \<in> S \<Longrightarrow> {..< ereal y} \<subseteq> S"
-    using `open S` unfolding open_ereal_def by auto
-  have "ereal -` uminus ` S = uminus ` (ereal -` S)"
-  proof safe
-    fix x y
-    assume "ereal x = - y" "y \<in> S"
-    then show "x \<in> uminus ` ereal -` S" by (cases y) auto
-  next
-    fix x
-    assume "ereal x \<in> S"
-    then show "- x \<in> ereal -` uminus ` S"
-      by (auto intro: image_eqI[of _ _ "ereal x"])
-  qed
-  then show "open (ereal -` uminus ` S)"
-    using S by (auto intro: open_negations)
-  { assume "\<infinity> \<in> uminus ` S"
-    then have "-\<infinity> \<in> S" by (metis image_iff ereal_uminus_uminus)
-    then have "uminus ` {..<ereal y} \<subseteq> uminus ` S" using S by (intro image_mono) auto
-    then show "\<exists>x. {ereal x<..} \<subseteq> uminus ` S" using ereal_uminus_lessThan by auto }
-  { assume "-\<infinity> \<in> uminus ` S"
-    then have "\<infinity> : S" by (metis image_iff ereal_uminus_uminus)
-    then have "uminus ` {ereal x<..} <= uminus ` S" using S by (intro image_mono) auto
-    then show "\<exists>y. {..<ereal y} <= uminus ` S" using ereal_uminus_greaterThan by auto }
-qed
+  assumes "open S" shows "open (uminus ` S)"
+  using `open S`[unfolded open_generated_order]
+proof induct
+  have "range uminus = (UNIV :: ereal set)"
+    by (auto simp: image_iff ereal_uminus_eq_reorder)
+  then show "open (range uminus :: ereal set)" by simp
+qed (auto simp add: image_Union image_Int)
 
 lemma ereal_uminus_complement:
   fixes S :: "ereal set"
@@ -61,32 +39,7 @@ lemma ereal_closed_uminus:
   fixes S :: "ereal set"
   assumes "closed S"
   shows "closed (uminus ` S)"
-  using assms unfolding closed_def
-  using ereal_open_uminus[of "- S"] ereal_uminus_complement by auto
-
-instance ereal :: perfect_space
-proof (default, rule)
-  fix a :: ereal assume a: "open {a}"
-  show False
-  proof (cases a)
-    case MInf
-    then obtain y where "{..<ereal y} <= {a}" using a open_MInfty2[of "{a}"] by auto
-    then have "ereal(y - 1):{a}" apply (subst subsetD[of "{..<ereal y}"]) by auto
-    then show False using `a=(-\<infinity>)` by auto
-  next
-    case PInf
-    then obtain y where "{ereal y<..} <= {a}" using a open_PInfty2[of "{a}"] by auto
-    then have "ereal(y+1):{a}" apply (subst subsetD[of "{ereal y<..}"]) by auto
-    then show False using `a=\<infinity>` by auto
-  next
-    case (real r) then have fin: "\<bar>a\<bar> \<noteq> \<infinity>" by simp
-    from ereal_open_cont_interval[OF a singletonI this] guess e . note e = this
-    then obtain b where b_def: "a<b & b<a+e"
-      using fin ereal_between dense[of a "a+e"] by auto
-    then have "b: {a-e <..< a+e}" using fin ereal_between[of a e] e by auto
-    then show False using b_def e by auto
-  qed
-qed
+  using assms unfolding closed_def ereal_uminus_complement[symmetric] by (rule ereal_open_uminus)
 
 lemma ereal_closed_contains_Inf:
   fixes S :: "ereal set"
@@ -303,112 +256,8 @@ next
   then show "x = -\<infinity>" by (simp add: bot_ereal_def atLeast_eq_UNIV_iff)
 qed
 
-lemma ereal_open_mono_set:
-  fixes S :: "ereal set"
-  shows "(open S \<and> mono_set S) \<longleftrightarrow> (S = UNIV \<or> S = {Inf S <..})"
-  by (metis Inf_UNIV atLeast_eq_UNIV_iff ereal_open_atLeast
-    ereal_open_closed mono_set_iff open_ereal_greaterThan)
-
-lemma ereal_closed_mono_set:
-  fixes S :: "ereal set"
-  shows "(closed S \<and> mono_set S) \<longleftrightarrow> (S = {} \<or> S = {Inf S ..})"
-  by (metis Inf_UNIV atLeast_eq_UNIV_iff closed_ereal_atLeast
-    ereal_open_closed mono_empty mono_set_iff open_ereal_greaterThan)
-
-lemma ereal_Liminf_Sup_monoset:
-  fixes f :: "'a => ereal"
-  shows "Liminf net f =
-    Sup {l. \<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
-    (is "_ = Sup ?A")
-proof (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper complete_lattice_class.Sup_least)
-  fix P assume P: "eventually P net"
-  fix S assume S: "mono_set S" "INFI (Collect P) f \<in> S"
-  { fix x assume "P x"
-    then have "INFI (Collect P) f \<le> f x"
-      by (intro complete_lattice_class.INF_lower) simp
-    with S have "f x \<in> S"
-      by (simp add: mono_set) }
-  with P show "eventually (\<lambda>x. f x \<in> S) net"
-    by (auto elim: eventually_elim1)
-next
-  fix y l
-  assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
-  assume P: "\<forall>P. eventually P net \<longrightarrow> INFI (Collect P) f \<le> y"
-  show "l \<le> y"
-  proof (rule dense_le)
-    fix B assume "B < l"
-    then have "eventually (\<lambda>x. f x \<in> {B <..}) net"
-      by (intro S[rule_format]) auto
-    then have "INFI {x. B < f x} f \<le> y"
-      using P by auto
-    moreover have "B \<le> INFI {x. B < f x} f"
-      by (intro INF_greatest) auto
-    ultimately show "B \<le> y"
-      by simp
-  qed
-qed
-
-lemma ereal_Limsup_Inf_monoset:
-  fixes f :: "'a => ereal"
-  shows "Limsup net f =
-    Inf {l. \<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
-    (is "_ = Inf ?A")
-proof (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower complete_lattice_class.Inf_greatest)
-  fix P assume P: "eventually P net"
-  fix S assume S: "mono_set (uminus`S)" "SUPR (Collect P) f \<in> S"
-  { fix x assume "P x"
-    then have "f x \<le> SUPR (Collect P) f"
-      by (intro complete_lattice_class.SUP_upper) simp
-    with S(1)[unfolded mono_set, rule_format, of "- SUPR (Collect P) f" "- f x"] S(2)
-    have "f x \<in> S"
-      by (simp add: inj_image_mem_iff) }
-  with P show "eventually (\<lambda>x. f x \<in> S) net"
-    by (auto elim: eventually_elim1)
-next
-  fix y l
-  assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
-  assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> SUPR (Collect P) f"
-  show "y \<le> l"
-  proof (rule dense_ge)
-    fix B assume "l < B"
-    then have "eventually (\<lambda>x. f x \<in> {..< B}) net"
-      by (intro S[rule_format]) auto
-    then have "y \<le> SUPR {x. f x < B} f"
-      using P by auto
-    moreover have "SUPR {x. f x < B} f \<le> B"
-      by (intro SUP_least) auto
-    ultimately show "y \<le> B"
-      by simp
-  qed
-qed
-
 lemma open_uminus_iff: "open (uminus ` S) \<longleftrightarrow> open (S::ereal set)"
   using ereal_open_uminus[of S] ereal_open_uminus[of "uminus`S"] by auto
-
-lemma ereal_Limsup_uminus:
-  fixes f :: "'a => ereal"
-  shows "Limsup net (\<lambda>x. - (f x)) = -(Liminf net f)"
-proof -
-  { fix P l
-    have "(\<exists>x. (l::ereal) = -x \<and> P x) \<longleftrightarrow> P (-l)"
-      by (auto intro!: exI[of _ "-l"]) }
-  note Ex_cancel = this
-  { fix P :: "ereal set \<Rightarrow> bool"
-    have "(\<forall>S. P S) \<longleftrightarrow> (\<forall>S. P (uminus`S))"
-      apply auto
-      apply (erule_tac x="uminus`S" in allE)
-      apply (auto simp: image_image)
-      done }
-  note add_uminus_image = this
-  { fix x S
-    have "(x::ereal) \<in> uminus`S \<longleftrightarrow> -x\<in>S"
-      by (auto intro!: image_eqI[of _ _ "-x"]) }
-  note remove_uminus_image = this
-  show ?thesis
-    unfolding ereal_Limsup_Inf_monoset ereal_Liminf_Sup_monoset
-    unfolding ereal_Inf_uminus_image_eq[symmetric] image_Collect Ex_cancel
-    by (subst add_uminus_image) (simp add: open_uminus_iff remove_uminus_image)
-qed
 
 lemma ereal_Liminf_uminus:
   fixes f :: "'a => ereal"
@@ -422,14 +271,6 @@ lemma ereal_Lim_uminus:
     ereal_lim_mult[of f f0 net "- 1"]
     ereal_lim_mult[of "\<lambda>x. - (f x)" "-f0" net "- 1"]
   by (auto simp: ereal_uminus_reorder)
-
-lemma lim_imp_Limsup:
-  fixes f :: "'a => ereal"
-  assumes "\<not> trivial_limit net"
-    and lim: "(f ---> f0) net"
-  shows "Limsup net f = f0"
-  using ereal_Lim_uminus[of f f0] lim_imp_Liminf[of net "(%x. -(f x))" "-f0"]
-     ereal_Liminf_uminus[of net f] assms by simp
 
 lemma convergent_ereal_limsup:
   fixes X :: "nat \<Rightarrow> ereal"
@@ -461,43 +302,10 @@ lemma Limsup_MInfty:
   using assms ereal_Lim_uminus[of f "-\<infinity>"] Liminf_PInfty[of _ "\<lambda>x. - (f x)"]
         ereal_Liminf_uminus[of _ f] by (auto simp: ereal_uminus_eq_reorder)
 
-lemma ereal_Liminf_eq_Limsup:
-  fixes f :: "'a \<Rightarrow> ereal"
-  assumes ntriv: "\<not> trivial_limit net"
-    and lim: "Liminf net f = f0" "Limsup net f = f0"
-  shows "(f ---> f0) net"
-proof (cases f0)
-  case PInf
-  then show ?thesis using Liminf_PInfty[OF ntriv] lim by auto
-next
-  case MInf
-  then show ?thesis using Limsup_MInfty[OF ntriv] lim by auto
-next
-  case (real r)
-  show "(f ---> f0) net"
-  proof (rule topological_tendstoI)
-    fix S
-    assume "open S" "f0 \<in> S"
-    then obtain a b where "a < Liminf net f" "Limsup net f < b" "{a<..<b} \<subseteq> S"
-      using ereal_open_cont_interval2[of S f0] real lim by auto
-    then have "eventually (\<lambda>x. f x \<in> {a<..<b}) net"
-      unfolding Liminf_def Limsup_def less_SUP_iff INF_less_iff
-      by (auto intro!: eventually_conj elim: eventually_elim1 dest: less_INF_D SUP_lessD)
-    with `{a<..<b} \<subseteq> S` show "eventually (%x. f x : S) net"
-      by (rule_tac eventually_mono) auto
-  qed
-qed
-
-lemma ereal_Liminf_eq_Limsup_iff:
-  fixes f :: "'a \<Rightarrow> ereal"
-  assumes "\<not> trivial_limit net"
-  shows "(f ---> f0) net \<longleftrightarrow> Liminf net f = f0 \<and> Limsup net f = f0"
-  by (metis assms ereal_Liminf_eq_Limsup lim_imp_Liminf lim_imp_Limsup)
-
 lemma convergent_ereal:
   fixes X :: "nat \<Rightarrow> ereal"
   shows "convergent X \<longleftrightarrow> limsup X = liminf X"
-  using ereal_Liminf_eq_Limsup_iff[of sequentially]
+  using tendsto_iff_Liminf_eq_Limsup[of sequentially]
   by (auto simp: convergent_def)
 
 lemma limsup_INFI_SUPR:
@@ -534,45 +342,6 @@ lemma decseq_ge_ereal:
     and lim: "X ----> (L::ereal)"
   shows "X N >= L"
   using dec by (intro ereal_lim_mono[of N, OF _ lim tendsto_const]) (simp add: decseq_def)
-
-lemma liminf_bounded_open:
-  fixes x :: "nat \<Rightarrow> ereal"
-  shows "x0 \<le> liminf x \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> x0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. x n \<in> S))"
-  (is "_ \<longleftrightarrow> ?P x0")
-proof
-  assume "?P x0"
-  then show "x0 \<le> liminf x"
-    unfolding ereal_Liminf_Sup_monoset eventually_sequentially
-    by (intro complete_lattice_class.Sup_upper) auto
-next
-  assume "x0 \<le> liminf x"
-  { fix S :: "ereal set"
-    assume om: "open S & mono_set S & x0:S"
-    { assume "S = UNIV" then have "EX N. (ALL n>=N. x n : S)" by auto }
-    moreover
-    { assume "~(S=UNIV)"
-      then obtain B where B_def: "S = {B<..}" using om ereal_open_mono_set by auto
-      then have "B<x0" using om by auto
-      then have "EX N. ALL n>=N. x n : S"
-        unfolding B_def using `x0 \<le> liminf x` liminf_bounded_iff by auto
-    }
-    ultimately have "EX N. (ALL n>=N. x n : S)" by auto
-  }
-  then show "?P x0" by auto
-qed
-
-lemma limsup_subseq_mono:
-  fixes X :: "nat \<Rightarrow> ereal"
-  assumes "subseq r"
-  shows "limsup (X \<circ> r) \<le> limsup X"
-proof -
-  have "(\<lambda>n. - X n) \<circ> r = (\<lambda>n. - (X \<circ> r) n)" by (simp add: fun_eq_iff)
-  then have "- limsup X \<le> - limsup (X \<circ> r)"
-     using liminf_subseq_mono[of r "(%n. - X n)"]
-       ereal_Liminf_uminus[of sequentially X]
-       ereal_Liminf_uminus[of sequentially "X o r"] assms by auto
-  then show ?thesis by auto
-qed
 
 lemma bounded_abs:
   assumes "(a::real)<=x" "x<=b"
@@ -651,85 +420,6 @@ proof
     with LIMSEQ_SUP[OF inc]
     show "f ----> x" by auto }
 qed
-
-lemma Liminf_within:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
-  shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S \<inter> ball x e - {x}). f y)"
-  unfolding Liminf_def eventually_within
-proof (rule SUPR_eq, simp_all add: Ball_def Bex_def, safe)
-  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
-  then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
-    by (auto simp: zero_less_dist_iff dist_commute)
-  then show "\<exists>r>0. INFI (Collect P) f \<le> INFI (S \<inter> ball x r - {x}) f"
-    by (intro exI[of _ d] INF_mono conjI `0 < d`) auto
-next
-  fix d :: real assume "0 < d"
-  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
-    INFI (S \<inter> ball x d - {x}) f \<le> INFI (Collect P) f"
-    by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
-       (auto intro!: INF_mono exI[of _ d] simp: dist_commute)
-qed
-
-lemma Limsup_within:
-  fixes f :: "'a::metric_space => 'b::complete_lattice"
-  shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S \<inter> ball x e - {x}). f y)"
-  unfolding Limsup_def eventually_within
-proof (rule INFI_eq, simp_all add: Ball_def Bex_def, safe)
-  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
-  then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
-    by (auto simp: zero_less_dist_iff dist_commute)
-  then show "\<exists>r>0. SUPR (S \<inter> ball x r - {x}) f \<le> SUPR (Collect P) f"
-    by (intro exI[of _ d] SUP_mono conjI `0 < d`) auto
-next
-  fix d :: real assume "0 < d"
-  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
-    SUPR (Collect P) f \<le> SUPR (S \<inter> ball x d - {x}) f"
-    by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
-       (auto intro!: SUP_mono exI[of _ d] simp: dist_commute)
-qed
-
-lemma Liminf_within_UNIV:
-  fixes f :: "'a::metric_space => _"
-  shows "Liminf (at x) f = Liminf (at x within UNIV) f"
-  by simp (* TODO: delete *)
-
-
-lemma Liminf_at:
-  fixes f :: "'a::metric_space => _"
-  shows "Liminf (at x) f = (SUP e:{0<..}. INF y:(ball x e - {x}). f y)"
-  using Liminf_within[of x UNIV f] by simp
-
-
-lemma Limsup_within_UNIV:
-  fixes f :: "'a::metric_space => _"
-  shows "Limsup (at x) f = Limsup (at x within UNIV) f"
-  by simp (* TODO: delete *)
-
-
-lemma Limsup_at:
-  fixes f :: "'a::metric_space => _"
-  shows "Limsup (at x) f = (INF e:{0<..}. SUP y:(ball x e - {x}). f y)"
-  using Limsup_within[of x UNIV f] by simp
-
-lemma Lim_within_constant:
-  assumes "ALL y:S. f y = C"
-  shows "(f ---> C) (at x within S)"
-  unfolding tendsto_def Limits.eventually_within eventually_at_topological
-  using assms by simp (metis open_UNIV UNIV_I)
-
-lemma Liminf_within_constant:
-  fixes f :: "'a::topological_space \<Rightarrow> ereal"
-  assumes "ALL y:S. f y = C"
-    and "~trivial_limit (at x within S)"
-  shows "Liminf (at x within S) f = C"
-  by (metis Lim_within_constant assms lim_imp_Liminf)
-
-lemma Limsup_within_constant:
-  fixes f :: "'a::topological_space \<Rightarrow> ereal"
-  assumes "ALL y:S. f y = C"
-    and "~trivial_limit (at x within S)"
-  shows "Limsup (at x within S) f = C"
-  by (metis Lim_within_constant assms lim_imp_Limsup)
 
 lemma islimpt_punctured: "x islimpt S = x islimpt (S-{x})"
   unfolding islimpt_def by blast
@@ -1316,5 +1006,206 @@ proof
     finally have False using `(\<Sum>i. f i) = 0` by auto }
   then show "\<forall>i. f i = 0" by auto
 qed simp
+
+lemma Liminf_within:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
+  shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S \<inter> ball x e - {x}). f y)"
+  unfolding Liminf_def eventually_within
+proof (rule SUPR_eq, simp_all add: Ball_def Bex_def, safe)
+  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
+  then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
+    by (auto simp: zero_less_dist_iff dist_commute)
+  then show "\<exists>r>0. INFI (Collect P) f \<le> INFI (S \<inter> ball x r - {x}) f"
+    by (intro exI[of _ d] INF_mono conjI `0 < d`) auto
+next
+  fix d :: real assume "0 < d"
+  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
+    INFI (S \<inter> ball x d - {x}) f \<le> INFI (Collect P) f"
+    by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
+       (auto intro!: INF_mono exI[of _ d] simp: dist_commute)
+qed
+
+lemma Limsup_within:
+  fixes f :: "'a::metric_space => 'b::complete_lattice"
+  shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S \<inter> ball x e - {x}). f y)"
+  unfolding Limsup_def eventually_within
+proof (rule INFI_eq, simp_all add: Ball_def Bex_def, safe)
+  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
+  then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
+    by (auto simp: zero_less_dist_iff dist_commute)
+  then show "\<exists>r>0. SUPR (S \<inter> ball x r - {x}) f \<le> SUPR (Collect P) f"
+    by (intro exI[of _ d] SUP_mono conjI `0 < d`) auto
+next
+  fix d :: real assume "0 < d"
+  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
+    SUPR (Collect P) f \<le> SUPR (S \<inter> ball x d - {x}) f"
+    by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
+       (auto intro!: SUP_mono exI[of _ d] simp: dist_commute)
+qed
+
+lemma Liminf_at:
+  fixes f :: "'a::metric_space => _"
+  shows "Liminf (at x) f = (SUP e:{0<..}. INF y:(ball x e - {x}). f y)"
+  using Liminf_within[of x UNIV f] by simp
+
+lemma Limsup_at:
+  fixes f :: "'a::metric_space => _"
+  shows "Limsup (at x) f = (INF e:{0<..}. SUP y:(ball x e - {x}). f y)"
+  using Limsup_within[of x UNIV f] by simp
+
+lemma min_Liminf_at:
+  fixes f :: "'a::metric_space => 'b::complete_linorder"
+  shows "min (f x) (Liminf (at x) f) = (SUP e:{0<..}. INF y:ball x e. f y)"
+  unfolding inf_min[symmetric] Liminf_at
+  apply (subst inf_commute)
+  apply (subst SUP_inf)
+  apply (intro SUP_cong[OF refl])
+  apply (cut_tac A="ball x b - {x}" and B="{x}" and M=f in INF_union)
+  apply (simp add: INF_def del: inf_ereal_def)
+  done
+
+subsection {* monoset *}
+
+definition (in order) mono_set:
+  "mono_set S \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> x \<in> S \<longrightarrow> y \<in> S)"
+
+lemma (in order) mono_greaterThan [intro, simp]: "mono_set {B<..}" unfolding mono_set by auto
+lemma (in order) mono_atLeast [intro, simp]: "mono_set {B..}" unfolding mono_set by auto
+lemma (in order) mono_UNIV [intro, simp]: "mono_set UNIV" unfolding mono_set by auto
+lemma (in order) mono_empty [intro, simp]: "mono_set {}" unfolding mono_set by auto
+
+lemma (in complete_linorder) mono_set_iff:
+  fixes S :: "'a set"
+  defines "a \<equiv> Inf S"
+  shows "mono_set S \<longleftrightarrow> (S = {a <..} \<or> S = {a..})" (is "_ = ?c")
+proof
+  assume "mono_set S"
+  then have mono: "\<And>x y. x \<le> y \<Longrightarrow> x \<in> S \<Longrightarrow> y \<in> S" by (auto simp: mono_set)
+  show ?c
+  proof cases
+    assume "a \<in> S"
+    show ?c
+      using mono[OF _ `a \<in> S`]
+      by (auto intro: Inf_lower simp: a_def)
+  next
+    assume "a \<notin> S"
+    have "S = {a <..}"
+    proof safe
+      fix x assume "x \<in> S"
+      then have "a \<le> x" unfolding a_def by (rule Inf_lower)
+      then show "a < x" using `x \<in> S` `a \<notin> S` by (cases "a = x") auto
+    next
+      fix x assume "a < x"
+      then obtain y where "y < x" "y \<in> S" unfolding a_def Inf_less_iff ..
+      with mono[of y x] show "x \<in> S" by auto
+    qed
+    then show ?c ..
+  qed
+qed auto
+
+lemma ereal_open_mono_set:
+  fixes S :: "ereal set"
+  shows "(open S \<and> mono_set S) \<longleftrightarrow> (S = UNIV \<or> S = {Inf S <..})"
+  by (metis Inf_UNIV atLeast_eq_UNIV_iff ereal_open_atLeast
+    ereal_open_closed mono_set_iff open_ereal_greaterThan)
+
+lemma ereal_closed_mono_set:
+  fixes S :: "ereal set"
+  shows "(closed S \<and> mono_set S) \<longleftrightarrow> (S = {} \<or> S = {Inf S ..})"
+  by (metis Inf_UNIV atLeast_eq_UNIV_iff closed_ereal_atLeast
+    ereal_open_closed mono_empty mono_set_iff open_ereal_greaterThan)
+
+lemma ereal_Liminf_Sup_monoset:
+  fixes f :: "'a => ereal"
+  shows "Liminf net f =
+    Sup {l. \<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
+    (is "_ = Sup ?A")
+proof (safe intro!: Liminf_eqI complete_lattice_class.Sup_upper complete_lattice_class.Sup_least)
+  fix P assume P: "eventually P net"
+  fix S assume S: "mono_set S" "INFI (Collect P) f \<in> S"
+  { fix x assume "P x"
+    then have "INFI (Collect P) f \<le> f x"
+      by (intro complete_lattice_class.INF_lower) simp
+    with S have "f x \<in> S"
+      by (simp add: mono_set) }
+  with P show "eventually (\<lambda>x. f x \<in> S) net"
+    by (auto elim: eventually_elim1)
+next
+  fix y l
+  assume S: "\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
+  assume P: "\<forall>P. eventually P net \<longrightarrow> INFI (Collect P) f \<le> y"
+  show "l \<le> y"
+  proof (rule dense_le)
+    fix B assume "B < l"
+    then have "eventually (\<lambda>x. f x \<in> {B <..}) net"
+      by (intro S[rule_format]) auto
+    then have "INFI {x. B < f x} f \<le> y"
+      using P by auto
+    moreover have "B \<le> INFI {x. B < f x} f"
+      by (intro INF_greatest) auto
+    ultimately show "B \<le> y"
+      by simp
+  qed
+qed
+
+lemma ereal_Limsup_Inf_monoset:
+  fixes f :: "'a => ereal"
+  shows "Limsup net f =
+    Inf {l. \<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net}"
+    (is "_ = Inf ?A")
+proof (safe intro!: Limsup_eqI complete_lattice_class.Inf_lower complete_lattice_class.Inf_greatest)
+  fix P assume P: "eventually P net"
+  fix S assume S: "mono_set (uminus`S)" "SUPR (Collect P) f \<in> S"
+  { fix x assume "P x"
+    then have "f x \<le> SUPR (Collect P) f"
+      by (intro complete_lattice_class.SUP_upper) simp
+    with S(1)[unfolded mono_set, rule_format, of "- SUPR (Collect P) f" "- f x"] S(2)
+    have "f x \<in> S"
+      by (simp add: inj_image_mem_iff) }
+  with P show "eventually (\<lambda>x. f x \<in> S) net"
+    by (auto elim: eventually_elim1)
+next
+  fix y l
+  assume S: "\<forall>S. open S \<longrightarrow> mono_set (uminus ` S) \<longrightarrow> l \<in> S \<longrightarrow> eventually  (\<lambda>x. f x \<in> S) net"
+  assume P: "\<forall>P. eventually P net \<longrightarrow> y \<le> SUPR (Collect P) f"
+  show "y \<le> l"
+  proof (rule dense_ge)
+    fix B assume "l < B"
+    then have "eventually (\<lambda>x. f x \<in> {..< B}) net"
+      by (intro S[rule_format]) auto
+    then have "y \<le> SUPR {x. f x < B} f"
+      using P by auto
+    moreover have "SUPR {x. f x < B} f \<le> B"
+      by (intro SUP_least) auto
+    ultimately show "y \<le> B"
+      by simp
+  qed
+qed
+
+lemma liminf_bounded_open:
+  fixes x :: "nat \<Rightarrow> ereal"
+  shows "x0 \<le> liminf x \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> mono_set S \<longrightarrow> x0 \<in> S \<longrightarrow> (\<exists>N. \<forall>n\<ge>N. x n \<in> S))"
+  (is "_ \<longleftrightarrow> ?P x0")
+proof
+  assume "?P x0"
+  then show "x0 \<le> liminf x"
+    unfolding ereal_Liminf_Sup_monoset eventually_sequentially
+    by (intro complete_lattice_class.Sup_upper) auto
+next
+  assume "x0 \<le> liminf x"
+  { fix S :: "ereal set"
+    assume om: "open S & mono_set S & x0:S"
+    { assume "S = UNIV" then have "EX N. (ALL n>=N. x n : S)" by auto }
+    moreover
+    { assume "~(S=UNIV)"
+      then obtain B where B_def: "S = {B<..}" using om ereal_open_mono_set by auto
+      then have "B<x0" using om by auto
+      then have "EX N. ALL n>=N. x n : S"
+        unfolding B_def using `x0 \<le> liminf x` liminf_bounded_iff by auto
+    }
+    ultimately have "EX N. (ALL n>=N. x n : S)" by auto
+  }
+  then show "?P x0" by auto
+qed
 
 end
