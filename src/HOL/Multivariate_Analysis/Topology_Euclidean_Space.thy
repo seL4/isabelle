@@ -6569,129 +6569,37 @@ lemma edelstein_fix:
   fixes s :: "'a::metric_space set"
   assumes s:"compact s" "s \<noteq> {}" and gs:"(g ` s) \<subseteq> s"
       and dist:"\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
-  shows "\<exists>! x\<in>s. g x = x"
-proof(cases "\<exists>x\<in>s. g x \<noteq> x")
-  obtain x where "x\<in>s" using s(2) by auto
-  case False hence g:"\<forall>x\<in>s. g x = x" by auto
-  { fix y assume "y\<in>s"
-    hence "x = y" using `x\<in>s` and dist[THEN bspec[where x=x], THEN bspec[where x=y]]
-      unfolding g[THEN bspec[where x=x], OF `x\<in>s`]
-      unfolding g[THEN bspec[where x=y], OF `y\<in>s`] by auto  }
-  thus ?thesis using `x\<in>s` and g by blast+
-next
-  case True
-  then obtain x where [simp]:"x\<in>s" and "g x \<noteq> x" by auto
-  { fix x y assume "x \<in> s" "y \<in> s"
-    hence "dist (g x) (g y) \<le> dist x y"
-      using dist[THEN bspec[where x=x], THEN bspec[where x=y]] by auto } note dist' = this
-  def y \<equiv> "g x"
-  have [simp]:"y\<in>s" unfolding y_def using gs[unfolded image_subset_iff] and `x\<in>s` by blast
-  def f \<equiv> "\<lambda>n. g ^^ n"
-  have [simp]:"\<And>n z. g (f n z) = f (Suc n) z" unfolding f_def by auto
-  have [simp]:"\<And>z. f 0 z = z" unfolding f_def by auto
-  { fix n::nat and z assume "z\<in>s"
-    have "f n z \<in> s" unfolding f_def
-    proof(induct n)
-      case 0 thus ?case using `z\<in>s` by simp
-    next
-      case (Suc n) thus ?case using gs[unfolded image_subset_iff] by auto
-    qed } note fs = this
-  { fix m n ::nat assume "m\<le>n"
-    fix w z assume "w\<in>s" "z\<in>s"
-    have "dist (f n w) (f n z) \<le> dist (f m w) (f m z)" using `m\<le>n`
-    proof(induct n)
-      case 0 thus ?case by auto
-    next
-      case (Suc n)
-      thus ?case proof(cases "m\<le>n")
-        case True thus ?thesis using Suc(1)
-          using dist'[OF fs fs, OF `w\<in>s` `z\<in>s`, of n n] by auto
-      next
-        case False hence mn:"m = Suc n" using Suc(2) by simp
-        show ?thesis unfolding mn  by auto
-      qed
-    qed } note distf = this
+  shows "\<exists>!x\<in>s. g x = x"
+proof -
+  let ?D = "(\<lambda>x. (x, x)) ` s"
+  have D: "compact ?D" "?D \<noteq> {}"
+    by (rule compact_continuous_image)
+       (auto intro!: s continuous_Pair continuous_within_id simp: continuous_on_eq_continuous_within)
 
-  def h \<equiv> "\<lambda>n. (f n x, f n y)"
-  let ?s2 = "s \<times> s"
-  obtain l r where "l\<in>?s2" and r:"subseq r" and lr:"((h \<circ> r) ---> l) sequentially"
-    using compact_Times [OF s(1) s(1), unfolded compact_def, THEN spec[where x=h]] unfolding  h_def
-    using fs[OF `x\<in>s`] and fs[OF `y\<in>s`] by blast
-  def a \<equiv> "fst l" def b \<equiv> "snd l"
-  have lab:"l = (a, b)" unfolding a_def b_def by simp
-  have [simp]:"a\<in>s" "b\<in>s" unfolding a_def b_def using `l\<in>?s2` by auto
+  have "\<And>x y e. x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> 0 < e \<Longrightarrow> dist y x < e \<Longrightarrow> dist (g y) (g x) < e"
+    using dist by fastforce
+  then have "continuous_on s g"
+    unfolding continuous_on_iff by auto
+  then have cont: "continuous_on ?D (\<lambda>x. dist ((g \<circ> fst) x) (snd x))"
+    unfolding continuous_on_eq_continuous_within
+    by (intro continuous_dist ballI continuous_within_compose)
+       (auto intro!:  continuous_fst continuous_snd continuous_within_id simp: image_image)
 
-  have lima:"((fst \<circ> (h \<circ> r)) ---> a) sequentially"
-   and limb:"((snd \<circ> (h \<circ> r)) ---> b) sequentially"
-    using lr
-    unfolding o_def a_def b_def by (rule tendsto_intros)+
+  obtain a where "a \<in> s" and le: "\<And>x. x \<in> s \<Longrightarrow> dist (g a) a \<le> dist (g x) x"
+    using continuous_attains_inf[OF D cont] by auto
 
-  { fix n::nat
-    have *:"\<And>fx fy (x::'a) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (\<bar>dist fx fy - dist a b\<bar> < dist a b - dist x y)" by auto
-
-    { assume as:"dist a b > dist (f n x) (f n y)"
-      then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
-        and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
-        using lima limb unfolding h_def LIMSEQ_def by (fastforce simp del: less_divide_eq_numeral1)
-      hence "\<bar>dist (f (r (Na + Nb + n)) x) (f (r (Na + Nb + n)) y) - dist a b\<bar> < dist a b - dist (f n x) (f n y)"
-        apply -
-        apply (drule_tac x="Na+Nb+n" in spec, drule mp, simp)
-        apply (drule_tac x="Na+Nb+n" in spec, drule mp, simp)
-        apply (drule (1) add_strict_mono, simp only: real_sum_of_halves)
-        apply (erule le_less_trans [rotated])
-        apply (erule thin_rl)
-        apply (rule abs_leI)
-        apply (simp add: diff_le_iff add_assoc)
-        apply (rule order_trans [OF dist_triangle add_left_mono])
-        apply (subst add_commute, rule dist_triangle2)
-        apply (simp add: diff_le_iff add_assoc)
-        apply (rule order_trans [OF dist_triangle3 add_left_mono])
-        apply (subst add_commute, rule dist_triangle)
-        done
-      moreover
-      have "\<bar>dist (f (r (Na + Nb + n)) x) (f (r (Na + Nb + n)) y) - dist a b\<bar> \<ge> dist a b - dist (f n x) (f n y)"
-        using distf[of n "r (Na+Nb+n)", OF _ `x\<in>s` `y\<in>s`]
-        using seq_suble[OF r, of "Na+Nb+n"]
-        using *[of "f (r (Na + Nb + n)) x" "f (r (Na + Nb + n)) y" "f n x" "f n y"] by auto
-      ultimately have False by simp
-    }
-    hence "dist a b \<le> dist (f n x) (f n y)" by(rule ccontr)auto }
-  note ab_fn = this
-
-  have [simp]:"a = b" proof(rule ccontr)
-    def e \<equiv> "dist a b - dist (g a) (g b)"
-    assume "a\<noteq>b" hence "e > 0" unfolding e_def using dist by fastforce
-    hence "\<exists>n. dist (f n x) a < e/2 \<and> dist (f n y) b < e/2"
-      using lima limb unfolding LIMSEQ_def
-      apply (auto elim!: allE[where x="e/2"]) apply(rename_tac N N', rule_tac x="r (max N N')" in exI) unfolding h_def by fastforce
-    then obtain n where n:"dist (f n x) a < e/2 \<and> dist (f n y) b < e/2" by auto
-    have "dist (f (Suc n) x) (g a) \<le> dist (f n x) a"
-      using dist[THEN bspec[where x="f n x"], THEN bspec[where x="a"]] and fs by auto
-    moreover have "dist (f (Suc n) y) (g b) \<le> dist (f n y) b"
-      using dist[THEN bspec[where x="f n y"], THEN bspec[where x="b"]] and fs by auto
-    ultimately have "dist (f (Suc n) x) (g a) + dist (f (Suc n) y) (g b) < e" using n by auto
-    thus False unfolding e_def using ab_fn[of "Suc n"]
-      using dist_triangle2 [of "f (Suc n) y" "g a" "g b"]
-      using dist_triangle2 [of "f (Suc n) x" "f (Suc n) y" "g a"]
-      by auto
+  have "g a = a"
+  proof (rule ccontr)
+    assume "g a \<noteq> a"
+    with `a \<in> s` gs have "dist (g (g a)) (g a) < dist (g a) a"
+      by (intro dist[rule_format]) auto
+    moreover have "dist (g a) a \<le> dist (g (g a)) (g a)"
+      using `a \<in> s` gs by (intro le) auto
+    ultimately show False by auto
   qed
-
-  have [simp]:"\<And>n. f (Suc n) x = f n y" unfolding f_def y_def by(induct_tac n)auto
-  { fix x y assume "x\<in>s" "y\<in>s" moreover
-    fix e::real assume "e>0" ultimately
-    have "dist y x < e \<longrightarrow> dist (g y) (g x) < e" using dist by fastforce }
-  hence "continuous_on s g" unfolding continuous_on_iff by auto
-
-  hence "((snd \<circ> h \<circ> r) ---> g a) sequentially" unfolding continuous_on_sequentially
-    apply (rule allE[where x="\<lambda>n. (fst \<circ> h \<circ> r) n"]) apply (erule ballE[where x=a])
-    using lima unfolding h_def o_def using fs[OF `x\<in>s`] by (auto simp add: y_def)
-  hence "g a = a" using tendsto_unique[OF trivial_limit_sequentially limb, of "g a"]
-    unfolding `a=b` and o_assoc by auto
-  moreover
-  { fix x assume "x\<in>s" "g x = x" "x\<noteq>a"
-    hence "False" using dist[THEN bspec[where x=a], THEN bspec[where x=x]]
-      using `g a = a` and `a\<in>s` by auto  }
-  ultimately show "\<exists>!x\<in>s. g x = x" using `a\<in>s` by blast
+  moreover have "\<And>x. x \<in> s \<Longrightarrow> g x = x \<Longrightarrow> x = a"
+    using dist[THEN bspec[where x=a]] `g a = a` and `a\<in>s` by auto
+  ultimately show "\<exists>!x\<in>s. g x = x" using `a \<in> s` by blast
 qed
 
 declare tendsto_const [intro] (* FIXME: move *)
