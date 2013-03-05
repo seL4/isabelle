@@ -4037,6 +4037,15 @@ lemma continuous_at_id: "continuous (at a) (\<lambda>x. x)"
 lemma continuous_const: "continuous F (\<lambda>x. c)"
   unfolding continuous_def by (rule tendsto_const)
 
+lemma continuous_fst: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
+  unfolding continuous_def by (rule tendsto_fst)
+
+lemma continuous_snd: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. snd (f x))"
+  unfolding continuous_def by (rule tendsto_snd)
+
+lemma continuous_Pair: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
+  unfolding continuous_def by (rule tendsto_Pair)
+
 lemma continuous_dist:
   assumes "continuous F f" and "continuous F g"
   shows "continuous F (\<lambda>x. dist (f x) (g x))"
