@@ -50,15 +50,13 @@ qed
 
 instance discrete :: (countable) second_countable_topology
 proof
-  let ?B = "(range (\<lambda>n::nat. {from_nat n::'a discrete}))"
-  have "topological_basis ?B"
-  proof (intro topological_basisI)
-    fix x::"'a discrete" and O' assume "open O'" "x \<in> O'"
-    thus "\<exists>B'\<in>range (\<lambda>n. {from_nat n}). x \<in> B' \<and> B' \<subseteq> O'"
-      by (auto intro: exI[where x="to_nat x"])
-  qed (simp add: open_discrete_def)
+  let ?B = "range (\<lambda>n::'a discrete. {n})"
+  have "\<And>S. generate_topology ?B (\<Union>x\<in>S. {x})"
+    by (intro generate_topology_Union) (auto intro: generate_topology.intros)
+  then have "open = generate_topology ?B"
+    by (auto intro!: ext simp: open_discrete_def)
   moreover have "countable ?B" by simp
-  ultimately show "\<exists>B::'a discrete set set. countable B \<and> topological_basis B" by blast
+  ultimately show "\<exists>B::'a discrete set set. countable B \<and> open = generate_topology B" by blast
 qed
 
 instance discrete :: (countable) polish_space ..

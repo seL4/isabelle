@@ -40,9 +40,10 @@ context topological_space
 begin
 
 definition "topological_basis B =
-  ((\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> Union B' = x)))"
+  ((\<forall>b\<in>B. open b) \<and> (\<forall>x. open x \<longrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x)))"
 
-lemma "topological_basis B = (\<forall>x. open x \<longleftrightarrow> (\<exists>B'. B' \<subseteq> B \<and> Union B' = x))"
+lemma topological_basis:
+  "topological_basis B = (\<forall>x. open x \<longleftrightarrow> (\<exists>B'. B' \<subseteq> B \<and> \<Union>B' = x))"
   unfolding topological_basis_def
   apply safe
      apply fastforce
@@ -99,6 +100,19 @@ lemma topological_basis_open:
   shows "open X"
   using assms
   by (simp add: topological_basis_def)
+
+lemma topological_basis_imp_subbasis:
+  assumes B: "topological_basis B" shows "open = generate_topology B"
+proof (intro ext iffI)
+  fix S :: "'a set" assume "open S"
+  with B obtain B' where "B' \<subseteq> B" "S = \<Union>B'"
+    unfolding topological_basis_def by blast
+  then show "generate_topology B S"
+    by (auto intro: generate_topology.intros dest: topological_basis_open)
+next
+  fix S :: "'a set" assume "generate_topology B S" then show "open S"
+    by induct (auto dest: topological_basis_open[OF B])
+qed
 
 lemma basis_dense:
   fixes B::"'a set set" and f::"'a set \<Rightarrow> 'a"
@@ -269,11 +283,56 @@ proof
 qed
 
 class second_countable_topology = topological_space +
-  assumes ex_countable_basis:
-    "\<exists>B::'a::topological_space set set. countable B \<and> topological_basis B"
+  assumes ex_countable_subbasis: "\<exists>B::'a::topological_space set set. countable B \<and> open = generate_topology B"
+begin
 
-sublocale second_countable_topology < countable_basis "SOME B. countable B \<and> topological_basis B"
-  using someI_ex[OF ex_countable_basis] by unfold_locales safe
+lemma ex_countable_basis: "\<exists>B::'a set set. countable B \<and> topological_basis B"
+proof -
+  from ex_countable_subbasis obtain B where B: "countable B" "open = generate_topology B" by blast
+  let ?B = "Inter ` {b. finite b \<and> b \<subseteq> B }"
+
+  show ?thesis
+  proof (intro exI conjI)
+    show "countable ?B"
+      by (intro countable_image countable_Collect_finite_subset B)
+    { fix S assume "open S"
+      then have "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. (\<Union>b\<in>B'. \<Inter>b) = S"
+        unfolding B
+      proof induct
+        case UNIV show ?case by (intro exI[of _ "{{}}"]) simp
+      next
+        case (Int a b)
+        then obtain x y where x: "a = UNION x Inter" "\<And>i. i \<in> x \<Longrightarrow> finite i \<and> i \<subseteq> B"
+          and y: "b = UNION y Inter" "\<And>i. i \<in> y \<Longrightarrow> finite i \<and> i \<subseteq> B"
+          by blast
+        show ?case
+          unfolding x y Int_UN_distrib2
+          by (intro exI[of _ "{i \<union> j| i j.  i \<in> x \<and> j \<in> y}"]) (auto dest: x(2) y(2))
+      next
+        case (UN K)
+        then have "\<forall>k\<in>K. \<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = k" by auto
+        then guess k unfolding bchoice_iff ..
+        then show "\<exists>B'\<subseteq>{b. finite b \<and> b \<subseteq> B}. UNION B' Inter = \<Union>K"
+          by (intro exI[of _ "UNION K k"]) auto
+      next
+        case (Basis S) then show ?case
+          by (intro exI[of _ "{{S}}"]) auto
+      qed
+      then have "(\<exists>B'\<subseteq>Inter ` {b. finite b \<and> b \<subseteq> B}. \<Union>B' = S)"
+        unfolding subset_image_iff by blast }
+    then show "topological_basis ?B"
+      unfolding topological_space_class.topological_basis_def
+      by (safe intro!: topological_space_class.open_Inter) 
+         (simp_all add: B generate_topology.Basis subset_eq)
+  qed
+qed
+
+end
+
+sublocale second_countable_topology <
+  countable_basis "SOME B. countable B \<and> topological_basis B"
+  using someI_ex[OF ex_countable_basis]
+  by unfold_locales safe
 
 instance prod :: (second_countable_topology, second_countable_topology) second_countable_topology
 proof
@@ -282,8 +341,9 @@ proof
   moreover
   obtain B :: "'b set set" where "countable B" "topological_basis B"
     using ex_countable_basis by auto
-  ultimately show "\<exists>B::('a \<times> 'b) set set. countable B \<and> topological_basis B"
-    by (auto intro!: exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"] topological_basis_prod)
+  ultimately show "\<exists>B::('a \<times> 'b) set set. countable B \<and> open = generate_topology B"
+    by (auto intro!: exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"] topological_basis_prod
+      topological_basis_imp_subbasis)
 qed
 
 instance second_countable_topology \<subseteq> first_countable_topology
@@ -5706,9 +5766,6 @@ proof
   then have b: "\<And>f. (\<Sum>i\<in>Basis. snd (f i) *\<^sub>R i) = b f" by simp
   def B \<equiv> "(\<lambda>f. box (a f) (b f)) ` (Basis \<rightarrow>\<^isub>E (\<rat> \<times> \<rat>))"
 
-  have "countable B" unfolding B_def 
-    by (intro countable_image countable_PiE finite_Basis countable_SIGMA countable_rat)
-  moreover
   have "Ball B open" by (simp add: B_def open_box)
   moreover have "(\<forall>A. open A \<longrightarrow> (\<exists>B'\<subseteq>B. \<Union>B' = A))"
   proof safe
@@ -5720,7 +5777,12 @@ proof
       done
   qed
   ultimately
-  show "\<exists>B::'a set set. countable B \<and> topological_basis B" unfolding topological_basis_def by blast
+  have "topological_basis B" unfolding topological_basis_def by blast
+  moreover
+  have "countable B" unfolding B_def 
+    by (intro countable_image countable_PiE finite_Basis countable_SIGMA countable_rat)
+  ultimately show "\<exists>B::'a set set. countable B \<and> open = generate_topology B"
+    by (blast intro: topological_basis_imp_subbasis)
 qed
 
 instance euclidean_space \<subseteq> polish_space ..

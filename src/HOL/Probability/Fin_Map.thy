@@ -605,7 +605,7 @@ lemma range_enum_basis_finmap_imp_open:
   shows "open x"
   using finmap_topological_basis assms by (auto simp: topological_basis_def)
 
-instance proof qed (blast intro: finmap_topological_basis countable_basis_finmap)
+instance proof qed (blast intro: finmap_topological_basis countable_basis_finmap topological_basis_imp_subbasis)
 
 end
 
