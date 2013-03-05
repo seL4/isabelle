@@ -535,7 +535,7 @@ let
   val terms = map (HOLogic.mk_Trueprop o Prop_Logic.term_of_prop_formula) clauses
   val cterms = map (Thm.cterm_of @{theory}) terms
   val start = Timing.start ()
-  val thm = sat.rawsat_thm @{context} cterms
+  val _ = sat.rawsat_thm @{context} cterms
 in
   (Timing.result start, ! sat.counter)
 end;
