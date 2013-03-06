@@ -6315,20 +6315,18 @@ proof-
   show ?th unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
-    using assms apply (auto simp add: dist_commute)
-    unfolding dist_norm
-    apply (auto simp add: pos_divide_less_eq mult_strict_left_mono)
-    unfolding continuous_on
-    by (intro ballI tendsto_intros, simp)+
+    using assms
+    apply (auto intro!: continuous_on_intros
+                simp: dist_commute dist_norm pos_divide_less_eq mult_strict_left_mono)
+    done
 next
   show ?cth unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *\<^sub>R (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
-    using assms apply (auto simp add: dist_commute)
-    unfolding dist_norm
-    apply (auto simp add: pos_divide_le_eq)
-    unfolding continuous_on
-    by (intro ballI tendsto_intros, simp)+
+    using assms
+    apply (auto intro!: continuous_on_intros
+                simp: dist_commute dist_norm pos_divide_le_eq mult_strict_left_mono)
+    done
 qed
 
 text{* "Isometry" (up to constant bounds) of injective linear map etc.           *}
