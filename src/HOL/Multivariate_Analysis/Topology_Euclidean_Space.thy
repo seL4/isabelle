@@ -1376,6 +1376,13 @@ text{* Notation Lim to avoid collition with lim defined in analysis *}
 definition Lim :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b::t2_space) \<Rightarrow> 'b"
   where "Lim A f = (THE l. (f ---> l) A)"
 
+text{* Uniqueness of the limit, when nontrivial. *}
+
+lemma tendsto_Lim:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space"
+  shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
+  unfolding Lim_def using tendsto_unique[of net f] by auto
+
 lemma Lim:
  "(f ---> l) net \<longleftrightarrow>
         trivial_limit net \<or>
@@ -1638,13 +1645,6 @@ proof-
   thus ?thesis by simp
 qed
 
-text{* Uniqueness of the limit, when nontrivial. *}
-
-lemma tendsto_Lim:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space"
-  shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
-  unfolding Lim_def using tendsto_unique[of net f] by auto
-
 text{* Limit under bilinear function *}
 
 lemma Lim_bilinear:
@@ -1669,21 +1669,12 @@ lemma Lim_at_zero:
 
 text{* It's also sometimes useful to extract the limit point from the filter. *}
 
-definition
-  netlimit :: "'a::t2_space filter \<Rightarrow> 'a" where
-  "netlimit net = (SOME a. ((\<lambda>x. x) ---> a) net)"
+abbreviation netlimit :: "'a::t2_space filter \<Rightarrow> 'a" where
+  "netlimit F \<equiv> Lim F (\<lambda>x. x)"
 
 lemma netlimit_within:
-  assumes "\<not> trivial_limit (at a within S)"
-  shows "netlimit (at a within S) = a"
-unfolding netlimit_def
-apply (rule some_equality)
-apply (rule Lim_at_within)
-apply (rule tendsto_ident_at)
-apply (erule tendsto_unique [OF assms])
-apply (rule Lim_at_within)
-apply (rule tendsto_ident_at)
-done
+  "\<not> trivial_limit (at a within S) \<Longrightarrow> netlimit (at a within S) = a"
+  by (rule tendsto_Lim) (auto intro: tendsto_intros)
 
 lemma netlimit_at:
   fixes a :: "'a::{perfect_space,t2_space}"
@@ -6781,5 +6772,6 @@ proof -
 qed
 
 declare tendsto_const [intro] (* FIXME: move *)
+
 
 end
