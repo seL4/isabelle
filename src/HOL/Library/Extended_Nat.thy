@@ -499,8 +499,12 @@ struct
           if u aconv t then (rev past @ terms)
           else find_first_t (t::past) u terms
 
+  fun dest_summing (Const (@{const_name Groups.plus}, _) $ t $ u, ts) =
+        dest_summing (t, dest_summing (u, ts))
+    | dest_summing (t, ts) = t :: ts
+
   val mk_sum = Arith_Data.long_mk_sum
-  val dest_sum = Arith_Data.dest_sum
+  fun dest_sum t = dest_summing (t, [])
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
   val norm_ss = HOL_basic_ss addsimps
