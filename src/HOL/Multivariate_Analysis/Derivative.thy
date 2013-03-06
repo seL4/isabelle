@@ -116,21 +116,40 @@ lemma derivative_is_linear:
 
 subsubsection {* Combining theorems. *}
 
-lemma has_derivative_id: "((\<lambda>x. x) has_derivative (\<lambda>h. h)) net"
+lemma has_derivative_eq_rhs: "(f has_derivative x) F \<Longrightarrow> x = y \<Longrightarrow> (f has_derivative y) F"
+  by simp
+
+ML {*
+
+structure Has_Derivative_Intros = Named_Thms
+(
+  val name = @{binding has_derivative_intros}
+  val description = "introduction rules for has_derivative"
+)
+
+*}
+
+setup {*
+  Has_Derivative_Intros.setup #>
+  Global_Theory.add_thms_dynamic (@{binding has_derivative_eq_intros},
+    map (fn thm => @{thm has_derivative_eq_rhs} OF [thm]) o Has_Derivative_Intros.get o Context.proof_of);
+*}
+
+lemma has_derivative_id[has_derivative_intros]: "((\<lambda>x. x) has_derivative (\<lambda>h. h)) net"
   unfolding has_derivative_def
   by (simp add: bounded_linear_ident tendsto_const)
 
-lemma has_derivative_const: "((\<lambda>x. c) has_derivative (\<lambda>h. 0)) net"
+lemma has_derivative_const[has_derivative_intros]: "((\<lambda>x. c) has_derivative (\<lambda>h. 0)) net"
   unfolding has_derivative_def
   by (simp add: bounded_linear_zero tendsto_const)
 
-lemma (in bounded_linear) has_derivative': "(f has_derivative f) net"
+lemma (in bounded_linear) has_derivative'[has_derivative_intros]: "(f has_derivative f) net"
   unfolding has_derivative_def apply(rule,rule bounded_linear_axioms)
   unfolding diff by (simp add: tendsto_const)
 
 lemma (in bounded_linear) bounded_linear: "bounded_linear f" ..
 
-lemma (in bounded_linear) has_derivative:
+lemma (in bounded_linear) has_derivative[has_derivative_intros]:
   assumes "((\<lambda>x. g x) has_derivative (\<lambda>h. g' h)) net"
   shows "((\<lambda>x. f (g x)) has_derivative (\<lambda>h. f (g' h))) net"
   using assms unfolding has_derivative_def
@@ -140,30 +159,30 @@ lemma (in bounded_linear) has_derivative:
   apply (simp add: local.scaleR local.diff local.add local.zero)
   done
 
-lemmas scaleR_right_has_derivative =
+lemmas scaleR_right_has_derivative[has_derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_scaleR_right]
 
-lemmas scaleR_left_has_derivative =
+lemmas scaleR_left_has_derivative[has_derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_scaleR_left]
 
-lemmas inner_right_has_derivative =
+lemmas inner_right_has_derivative[has_derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_inner_right]
 
-lemmas inner_left_has_derivative =
+lemmas inner_left_has_derivative[has_derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_inner_left]
 
-lemmas mult_right_has_derivative =
+lemmas mult_right_has_derivative[has_derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_mult_right]
 
-lemmas mult_left_has_derivative =
+lemmas mult_left_has_derivative[has_derivative_intros] =
   bounded_linear.has_derivative [OF bounded_linear_mult_left]
 
-lemma has_derivative_neg:
+lemma has_derivative_neg[has_derivative_intros]:
   assumes "(f has_derivative f') net"
   shows "((\<lambda>x. -(f x)) has_derivative (\<lambda>h. -(f' h))) net"
   using scaleR_right_has_derivative [where r="-1", OF assms] by auto
 
-lemma has_derivative_add:
+lemma has_derivative_add[has_derivative_intros]:
   assumes "(f has_derivative f') net" and "(g has_derivative g') net"
   shows "((\<lambda>x. f(x) + g(x)) has_derivative (\<lambda>h. f'(h) + g'(h))) net"
 proof-
@@ -175,25 +194,18 @@ qed
 
 lemma has_derivative_add_const:
   "(f has_derivative f') net \<Longrightarrow> ((\<lambda>x. f x + c) has_derivative f') net"
-  by (drule has_derivative_add, rule has_derivative_const, auto)
+  by (intro has_derivative_eq_intros) auto
 
-lemma has_derivative_sub:
+lemma has_derivative_sub[has_derivative_intros]:
   assumes "(f has_derivative f') net" and "(g has_derivative g') net"
   shows "((\<lambda>x. f(x) - g(x)) has_derivative (\<lambda>h. f'(h) - g'(h))) net"
-  unfolding diff_minus by (intro has_derivative_add has_derivative_neg assms)
+  unfolding diff_minus by (intro has_derivative_intros assms)
 
-lemma has_derivative_setsum:
+lemma has_derivative_setsum[has_derivative_intros]:
   assumes "finite s" and "\<forall>a\<in>s. ((f a) has_derivative (f' a)) net"
   shows "((\<lambda>x. setsum (\<lambda>a. f a x) s) has_derivative (\<lambda>h. setsum (\<lambda>a. f' a h) s)) net"
   using assms by (induct, simp_all add: has_derivative_const has_derivative_add)
 text {* Somewhat different results for derivative of scalar multiplier. *}
-
-lemmas has_derivative_intros =
-  has_derivative_id has_derivative_const
-  has_derivative_add has_derivative_sub has_derivative_neg
-  has_derivative_add_const
-  scaleR_left_has_derivative scaleR_right_has_derivative
-  inner_left_has_derivative inner_right_has_derivative
 
 subsubsection {* Limit transformation for derivatives *}
 
@@ -378,7 +390,7 @@ lemma has_derivative_at_alt:
 
 subsection {* The chain rule. *}
 
-lemma diff_chain_within:
+lemma diff_chain_within[has_derivative_intros]:
   assumes "(f has_derivative f') (at x within s)"
   assumes "(g has_derivative g') (at (f x) within (f ` s))"
   shows "((g o f) has_derivative (g' o f'))(at x within s)"
@@ -448,7 +460,7 @@ proof(rule,rule)
   qed
 qed
 
-lemma diff_chain_at:
+lemma diff_chain_at[has_derivative_intros]:
   "(f has_derivative f') (at x) \<Longrightarrow> (g has_derivative g') (at (f x)) \<Longrightarrow> ((g o f) has_derivative (g' o f')) (at x)"
   using diff_chain_within[of f f' x UNIV g g']
   using has_derivative_within_subset[of g g' "f x" UNIV "range f"]
@@ -476,18 +488,15 @@ lemma differentiable_neg [intro]:
   unfolding differentiable_def
   apply(erule exE, drule has_derivative_neg) by auto
 
-lemma differentiable_add: "f differentiable net \<Longrightarrow> g differentiable net
-   \<Longrightarrow> (\<lambda>z. f z + g z) differentiable (net::'a::real_normed_vector filter)"
-    unfolding differentiable_def apply(erule exE)+ apply(rule_tac x="\<lambda>z. f' z + f'a z" in exI)
-    apply(rule has_derivative_add) by auto
+lemma differentiable_add [intro]: "f differentiable net \<Longrightarrow> g differentiable net
+   \<Longrightarrow> (\<lambda>z. f z + g z) differentiable net"
+  by (auto intro: has_derivative_eq_intros simp: differentiable_def)
 
-lemma differentiable_sub: "f differentiable net \<Longrightarrow> g differentiable net
-  \<Longrightarrow> (\<lambda>z. f z - g z) differentiable (net::'a::real_normed_vector filter)"
-  unfolding differentiable_def apply(erule exE)+
-  apply(rule_tac x="\<lambda>z. f' z - f'a z" in exI)
-  apply(rule has_derivative_sub) by auto
+lemma differentiable_sub [intro]: "f differentiable net \<Longrightarrow> g differentiable net
+  \<Longrightarrow> (\<lambda>z. f z - g z) differentiable net"
+  by (auto intro: has_derivative_eq_intros simp: differentiable_def)
 
-lemma differentiable_setsum:
+lemma differentiable_setsum [intro]:
   assumes "finite s" "\<forall>a\<in>s. (f a) differentiable net"
   shows "(\<lambda>x. setsum (\<lambda>a. f a x) s) differentiable net"
 proof-
@@ -515,7 +524,7 @@ text {*
  The general result is a bit messy because we need approachability of the
  limit point from any direction. But OK for nontrivial intervals etc.
 *}
-    
+
 lemma frechet_derivative_unique_within:
   fixes f :: "'a::euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "(f has_derivative f') (at x within s)"
