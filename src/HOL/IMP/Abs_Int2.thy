@@ -4,16 +4,21 @@ theory Abs_Int2
 imports Abs_Int1
 begin
 
-instantiation prod :: (preord,preord) preord
+instantiation prod :: (order,order) order
 begin
 
-definition "le_prod p1 p2 = (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
+definition "less_eq_prod p1 p2 = (fst p1 \<le> fst p2 \<and> snd p1 \<le> snd p2)"
+definition "less_prod p1 p2 = (p1 \<le> p2 \<and> \<not> p2 \<le> (p1::'a*'b))"
 
 instance
 proof
-  case goal1 show ?case by(simp add: le_prod_def)
+  case goal1 show ?case by(rule less_prod_def)
 next
-  case goal2 thus ?case unfolding le_prod_def by(metis le_trans)
+  case goal2 show ?case by(simp add: less_eq_prod_def)
+next
+  case goal3 thus ?case unfolding less_eq_prod_def by(metis order_trans)
+next
+  case goal4 thus ?case by(simp add: less_eq_prod_def)(metis eq_iff surjective_pairing)
 qed
 
 end
@@ -23,13 +28,13 @@ subsection "Backward Analysis of Expressions"
 
 class lattice = semilattice + bot +
 fixes meet :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 65)
-assumes meet_le1 [simp]: "x \<sqinter> y \<sqsubseteq> x"
-and meet_le2 [simp]: "x \<sqinter> y \<sqsubseteq> y"
-and meet_greatest: "x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<sqinter> z"
+assumes meet_le1 [simp]: "x \<sqinter> y \<le> x"
+and meet_le2 [simp]: "x \<sqinter> y \<le> y"
+and meet_greatest: "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<sqinter> z"
 begin
 
-lemma mono_meet: "x \<sqsubseteq> x' \<Longrightarrow> y \<sqsubseteq> y' \<Longrightarrow> x \<sqinter> y \<sqsubseteq> x' \<sqinter> y'"
-by (metis meet_greatest meet_le1 meet_le2 le_trans)
+lemma mono_meet: "x \<le> x' \<Longrightarrow> y \<le> y' \<Longrightarrow> x \<sqinter> y \<le> x' \<sqinter> y'"
+by (metis meet_greatest meet_le1 meet_le2 order_trans)
 
 end
 
@@ -83,7 +88,7 @@ fun afilter :: "aexp \<Rightarrow> 'av \<Rightarrow> 'av st option \<Rightarrow>
 "afilter (N n) a S = (if test_num' n a then S else None)" |
 "afilter (V x) a S = (case S of None \<Rightarrow> None | Some S \<Rightarrow>
   let a' = fun S x \<sqinter> a in
-  if a' \<sqsubseteq> \<bottom> then None else Some(update S x a'))" |
+  if a' = \<bottom> then None else Some(update S x a'))" |
 "afilter (Plus e1 e2) a S =
  (let (a1,a2) = filter_plus' a (aval'' e1 S) (aval'' e2 S)
   in afilter e1 a1 (afilter e2 a2 S))"
@@ -110,8 +115,7 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
 
 lemma afilter_in_L: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> afilter e a S \<in> L X"
 by(induction e arbitrary: a S)
-  (auto simp: Let_def update_def L_st_def
-           split: option.splits prod.split)
+  (auto simp: Let_def L_st_def split: option.splits prod.split)
 
 lemma afilter_sound: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow>
   s : \<gamma>\<^isub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>o (afilter e a S)"
@@ -189,7 +193,7 @@ next
   case Seq thus ?case by auto
 next
   case (If b _ C1 _ C2)
-  hence 0: "post C1 \<sqsubseteq> post C1 \<squnion> post C2 \<and> post C2 \<sqsubseteq> post C1 \<squnion> post C2"
+  hence 0: "post C1 \<le> post C1 \<squnion> post C2 \<and> post C2 \<le> post C1 \<squnion> post C2"
     by(simp, metis post_in_L join_ge1 join_ge2)
   have "vars b \<subseteq> X" using If.prems by simp
   note vars = `S \<in> L X` `vars b \<subseteq> X`
@@ -204,26 +208,26 @@ qed
 
 lemma step'_in_L[simp]: "\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> step' S C \<in> L X"
 proof(induction C arbitrary: S)
-  case Assign thus ?case by(simp add: L_option_def L_st_def update_def split: option.splits)
+  case Assign thus ?case by(auto simp add: L_option_def L_st_def split: option.splits)
 qed (auto simp add: bfilter_in_L)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "pfp (step' (top(vars c))) (bot c) = Some C"
+  assume 1: "pfp (step' (Top(vars c))) (bot c) = Some C"
   have "C \<in> L(vars c)"
     by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
-      (erule step'_in_L[OF _ top_in_L])
-  have pfp': "step' (top(vars c)) C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o(top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+      (erule step'_in_L[OF _ Top_in_L])
+  have pfp': "step' (Top(vars c)) C \<le> C" by(rule pfp_pfp[OF 1])
+  have 2: "step (\<gamma>\<^isub>o(Top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o (top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (top(vars c)) C)"
-      by(rule step_step'[OF `C \<in> L(vars c)` top_in_L])
-    show "\<gamma>\<^isub>c (step' (top(vars c)) C) \<le> \<gamma>\<^isub>c C"
+    show "step (\<gamma>\<^isub>o (Top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (Top(vars c)) C)"
+      by(rule step_step'[OF `C \<in> L(vars c)` Top_in_L])
+    show "\<gamma>\<^isub>c (step' (Top(vars c)) C) \<le> \<gamma>\<^isub>c C"
       by(rule mono_gamma_c[OF pfp'])
   qed
   have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o(top(vars c)))) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(top(vars c)))", OF 3 2])
+  have "lfp c (step (\<gamma>\<^isub>o(Top(vars c)))) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(Top(vars c)))", OF 3 2])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
@@ -233,19 +237,19 @@ end
 subsubsection "Monotonicity"
 
 locale Abs_Int1_mono = Abs_Int1 +
-assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
-and mono_filter_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> r \<sqsubseteq> r' \<Longrightarrow>
-  filter_plus' r a1 a2 \<sqsubseteq> filter_plus' r' b1 b2"
-and mono_filter_less': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow>
-  filter_less' bv a1 a2 \<sqsubseteq> filter_less' bv b1 b2"
+assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
+and mono_filter_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> r \<le> r' \<Longrightarrow>
+  filter_plus' r a1 a2 \<le> filter_plus' r' b1 b2"
+and mono_filter_less': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow>
+  filter_less' bv a1 a2 \<le> filter_less' bv b1 b2"
 begin
 
 lemma mono_aval':
-  "S1 \<sqsubseteq> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval' e S1 \<sqsubseteq> aval' e S2"
-by(induction e) (auto simp: le_st_def mono_plus' L_st_def)
+  "S1 \<le> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval' e S1 \<le> aval' e S2"
+by(induction e) (auto simp: less_eq_st_def mono_plus' L_st_def)
 
 lemma mono_aval'':
-  "S1 \<sqsubseteq> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval'' e S1 \<sqsubseteq> aval'' e S2"
+  "S1 \<le> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval'' e S1 \<le> aval'' e S2"
 apply(cases S1)
  apply simp
 apply(cases S2)
@@ -253,37 +257,37 @@ apply(cases S2)
 by (simp add: mono_aval')
 
 lemma mono_afilter: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow>
-  r1 \<sqsubseteq> r2 \<Longrightarrow> S1 \<sqsubseteq> S2 \<Longrightarrow> afilter e r1 S1 \<sqsubseteq> afilter e r2 S2"
+  r1 \<le> r2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> afilter e r1 S1 \<le> afilter e r2 S2"
 apply(induction e arbitrary: r1 r2 S1 S2)
 apply(auto simp: test_num' Let_def mono_meet split: option.splits prod.splits)
 apply (metis mono_gamma subsetD)
 apply(drule (2) mono_fun_L)
-apply (metis mono_meet le_trans)
-apply(metis mono_aval'' mono_filter_plus'[simplified le_prod_def] fst_conv snd_conv afilter_in_L)
+apply (metis mono_meet le_bot)
+apply(metis mono_aval'' mono_filter_plus'[simplified less_eq_prod_def] fst_conv snd_conv afilter_in_L)
 done
 
 lemma mono_bfilter: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow>
-  S1 \<sqsubseteq> S2 \<Longrightarrow> bfilter b bv S1 \<sqsubseteq> bfilter b bv S2"
+  S1 \<le> S2 \<Longrightarrow> bfilter b bv S1 \<le> bfilter b bv S2"
 apply(induction b arbitrary: bv S1 S2)
 apply(simp)
 apply(simp)
 apply simp
-apply(metis join_least le_trans[OF _ join_ge1] le_trans[OF _ join_ge2] bfilter_in_L)
+apply(metis join_least order_trans[OF _ join_ge1] order_trans[OF _ join_ge2] bfilter_in_L)
 apply (simp split: prod.splits)
-apply(metis mono_aval'' mono_afilter mono_filter_less'[simplified le_prod_def] fst_conv snd_conv afilter_in_L)
+apply(metis mono_aval'' mono_afilter mono_filter_less'[simplified less_eq_prod_def] fst_conv snd_conv afilter_in_L)
 done
 
 theorem mono_step': "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
-  S1 \<sqsubseteq> S2 \<Longrightarrow> C1 \<sqsubseteq> C2 \<Longrightarrow> step' S1 C1 \<sqsubseteq> step' S2 C2"
-apply(induction C1 C2 arbitrary: S1 S2 rule: le_acom.induct)
+  S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
+apply(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
 apply (auto simp: Let_def mono_bfilter mono_aval' mono_post
   le_join_disj le_join_disj[OF  post_in_L post_in_L] bfilter_in_L
             split: option.split)
 done
 
 lemma mono_step'_top: "C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
-  C1 \<sqsubseteq> C2 \<Longrightarrow> step' (top X) C1 \<sqsubseteq> step' (top X) C2"
-by (metis top_in_L mono_step' preord_class.le_refl)
+  C1 \<le> C2 \<Longrightarrow> step' (Top X) C1 \<le> step' (Top X) C2"
+by (metis Top_in_L mono_step' order_refl)
 
 end
 

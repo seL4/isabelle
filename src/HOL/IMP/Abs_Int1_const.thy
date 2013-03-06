@@ -23,10 +23,12 @@ by(auto split: prod.split const.split)
 instantiation const :: semilattice
 begin
 
-fun le_const where
-"_ \<sqsubseteq> Any = True" |
-"Const n \<sqsubseteq> Const m = (n=m)" |
-"Any \<sqsubseteq> Const _ = False"
+fun less_eq_const where
+"_ \<le> Any = True" |
+"Const n \<le> Const m = (n=m)" |
+"Any \<le> Const _ = False"
+
+definition "a < (b::const) = (a \<le> b & ~ b \<le> a)"
 
 fun join_const where
 "Const m \<squnion> Const n = (if n=m then Const m else Any)" |
@@ -36,17 +38,21 @@ definition "\<top> = Any"
 
 instance
 proof
-  case goal1 thus ?case by (cases x) simp_all
+  case goal1 thus ?case by (rule less_const_def)
 next
-  case goal2 thus ?case by(cases z, cases y, cases x, simp_all)
+  case goal2 show ?case by (cases x) simp_all
 next
-  case goal3 thus ?case by(cases x, cases y, simp_all)
+  case goal3 thus ?case by(cases z, cases y, cases x, simp_all)
 next
-  case goal4 thus ?case by(cases y, cases x, simp_all)
+  case goal4 thus ?case by(cases x, cases y, simp_all, cases y, simp_all)
 next
-  case goal5 thus ?case by(cases z, cases y, cases x, simp_all)
+  case goal6 thus ?case by(cases x, cases y, simp_all)
 next
-  case goal6 thus ?case by(simp add: Top_const_def)
+  case goal7 thus ?case by(cases y, cases x, simp_all)
+next
+  case goal8 thus ?case by(cases z, cases y, cases x, simp_all)
+next
+  case goal5 thus ?case by(simp add: top_const_def)
 qed
 
 end
@@ -58,7 +64,7 @@ proof
   case goal1 thus ?case
     by(cases a, cases b, simp, simp, cases b, simp, simp)
 next
-  case goal2 show ?case by(simp add: Top_const_def)
+  case goal2 show ?case by(simp add: top_const_def)
 next
   case goal3 show ?case by simp
 next
@@ -74,7 +80,7 @@ defines AI_const is AI and step_const is step' and aval'_const is aval'
 
 subsubsection "Tests"
 
-definition "steps c i = (step_const(top(vars c)) ^^ i) (bot c)"
+definition "steps c i = (step_const(Top(vars c)) ^^ i) (bot c)"
 
 value "show_acom (steps test1_const 0)"
 value "show_acom (steps test1_const 1)"
@@ -139,7 +145,7 @@ proof
 next
   case goal2 thus ?case by(auto simp: m_const_def split: const.splits)
 next
-  case goal3 thus ?case by(auto simp: m_const_def split: const.splits)
+  case goal3 thus ?case by(auto simp: m_const_def less_const_def split: const.splits)
 qed
 
 thm AI_Some_measure

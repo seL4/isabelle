@@ -1,297 +1,341 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int2_ivl
-imports Abs_Int2
+imports "~~/src/HOL/Library/Quotient_List"
+        "~~/src/HOL/Library/Extended"
+        Abs_Int2
 begin
 
 subsection "Interval Analysis"
 
-datatype lb = Minf | Lb int
-datatype ub = Pinf | Ub int
+type_synonym eint = "int extended"
+type_synonym eint2 = "eint * eint"
 
-datatype ivl = Ivl lb ub
+definition \<gamma>_rep :: "eint2 \<Rightarrow> int set" where
+"\<gamma>_rep p = (let (l,h) = p in {i. l \<le> Fin i \<and> Fin i \<le> h})"
 
-definition "\<gamma>_ivl i = (case i of
-  Ivl (Lb l) (Ub h) \<Rightarrow> {l..h} |
-  Ivl (Lb l) Pinf \<Rightarrow> {l..} |
-  Ivl Minf (Ub h) \<Rightarrow> {..h} |
-  Ivl Minf Pinf \<Rightarrow> UNIV)"
+definition eq_ivl :: "eint2 \<Rightarrow> eint2 \<Rightarrow> bool" where
+"eq_ivl p1 p2 = (\<gamma>_rep p1 = \<gamma>_rep p2)"
 
-abbreviation Ivl_Lb_Ub :: "int \<Rightarrow> int \<Rightarrow> ivl"  ("{_\<dots>_}") where
-"{lo\<dots>hi} == Ivl (Lb lo) (Ub hi)"
-abbreviation Ivl_Lb_Pinf :: "int \<Rightarrow> ivl"  ("{_\<dots>}") where
-"{lo\<dots>} == Ivl (Lb lo) Pinf"
-abbreviation Ivl_Minf_Ub :: "int \<Rightarrow> ivl"  ("{\<dots>_}") where
-"{\<dots>hi} == Ivl Minf (Ub hi)"
-abbreviation Ivl_Minf_Pinf :: "ivl"  ("{\<dots>}") where
-"{\<dots>} == Ivl Minf Pinf"
+lemma refl_eq_ivl[simp]: "eq_ivl p p"
+by(auto simp: eq_ivl_def)
 
-lemmas lub_splits = lb.splits ub.splits
+quotient_type ivl = eint2 / eq_ivl
+by(rule equivpI)(auto simp: reflp_def symp_def transp_def eq_ivl_def)
 
-definition "num_ivl n = {n\<dots>n}"
+lift_definition \<gamma>_ivl :: "ivl \<Rightarrow> int set" is \<gamma>_rep
+by(simp add: eq_ivl_def)
 
-fun in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool" where
-"in_ivl k (Ivl (Lb l) (Ub h)) \<longleftrightarrow> l \<le> k \<and> k \<le> h" |
-"in_ivl k (Ivl (Lb l) Pinf) \<longleftrightarrow> l \<le> k" |
-"in_ivl k (Ivl Minf (Ub h)) \<longleftrightarrow> k \<le> h" |
-"in_ivl k (Ivl Minf Pinf) \<longleftrightarrow> True"
+abbreviation ivl_abbr :: "eint \<Rightarrow> eint \<Rightarrow> ivl" ("[_\<dots>_]") where
+"[l\<dots>h] == abs_ivl(l,h)"
 
+lift_definition num_ivl :: "int \<Rightarrow> ivl" is "\<lambda>i. (Fin i, Fin i)"
+by(auto simp: eq_ivl_def)
 
-instantiation lb :: linorder
-begin
+fun in_ivl_rep :: "int \<Rightarrow> eint2 \<Rightarrow> bool" where
+"in_ivl_rep k (l,h) \<longleftrightarrow> l \<le> Fin k \<and> Fin k \<le> h"
 
-definition less_eq_lb where
-"l1 \<le> l2 = (case l1 of Minf \<Rightarrow> True | Lb i1 \<Rightarrow> (case l2 of Minf \<Rightarrow> False | Lb i2 \<Rightarrow> i1 \<le> i2))"
+lift_definition in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool" is in_ivl_rep
+by(auto simp: eq_ivl_def \<gamma>_rep_def)
 
-definition less_lb :: "lb \<Rightarrow> lb \<Rightarrow> bool" where
-"((l1::lb) < l2) = (l1 \<le> l2 & ~ l1 \<ge> l2)"
+definition is_empty_rep :: "eint2 \<Rightarrow> bool" where
+"is_empty_rep p = (let (l,h) = p in l>h | l=Pinf & h=Pinf | l=Minf & h=Minf)"
 
-instance
-proof
-  case goal1 show ?case by(rule less_lb_def)
-next
-  case goal2 show ?case by(auto simp: less_eq_lb_def split:lub_splits)
-next
-  case goal3 thus ?case by(auto simp: less_eq_lb_def split:lub_splits)
-next
-  case goal4 thus ?case by(auto simp: less_eq_lb_def split:lub_splits)
-next
-  case goal5 thus ?case by(auto simp: less_eq_lb_def split:lub_splits)
-qed
+lemma \<gamma>_rep_cases: "\<gamma>_rep p = (case p of (Fin i,Fin j) => {i..j} | (Fin i,Pinf) => {i..} |
+  (Minf,Fin i) \<Rightarrow> {..i} | (Minf,Pinf) \<Rightarrow> UNIV | _ \<Rightarrow> {})"
+by(auto simp add: \<gamma>_rep_def split: prod.splits extended.splits)
 
-end
+lift_definition  is_empty_ivl :: "ivl \<Rightarrow> bool" is is_empty_rep
+apply(auto simp: eq_ivl_def \<gamma>_rep_cases is_empty_rep_def)
+apply(auto simp: not_less less_eq_extended_cases split: extended.splits)
+done
 
-instantiation ub :: linorder
-begin
+lemma eq_ivl_iff: "eq_ivl p1 p2 = (is_empty_rep p1 & is_empty_rep p2 | p1 = p2)"
+by(auto simp: eq_ivl_def is_empty_rep_def \<gamma>_rep_cases Icc_eq_Icc split: prod.splits extended.splits)
 
-definition less_eq_ub where
-"u1 \<le> u2 = (case u2 of Pinf \<Rightarrow> True | Ub i2 \<Rightarrow> (case u1 of Pinf \<Rightarrow> False | Ub i1 \<Rightarrow> i1 \<le> i2))"
+definition empty_rep :: eint2 where "empty_rep = (Pinf,Minf)"
 
-definition less_ub :: "ub \<Rightarrow> ub \<Rightarrow> bool" where
-"((u1::ub) < u2) = (u1 \<le> u2 & ~ u1 \<ge> u2)"
+lift_definition empty_ivl :: ivl is empty_rep
+by simp
 
-instance
-proof
-  case goal1 show ?case by(rule less_ub_def)
-next
-  case goal2 show ?case by(auto simp: less_eq_ub_def split:lub_splits)
-next
-  case goal3 thus ?case by(auto simp: less_eq_ub_def split:lub_splits)
-next
-  case goal4 thus ?case by(auto simp: less_eq_ub_def split:lub_splits)
-next
-  case goal5 thus ?case by(auto simp: less_eq_ub_def split:lub_splits)
-qed
+lemma is_empty_empty_rep[simp]: "is_empty_rep empty_rep"
+by(auto simp add: is_empty_rep_def empty_rep_def)
 
-end
+lemma is_empty_rep_iff: "is_empty_rep p = (\<gamma>_rep p = {})"
+by(auto simp add: \<gamma>_rep_cases is_empty_rep_def split: prod.splits extended.splits)
 
-lemmas le_lub_defs = less_eq_lb_def less_eq_ub_def
-
-lemma le_lub_simps[simp]:
-  "Minf \<le> l" "Lb i \<le> Lb j = (i \<le> j)" "~ Lb i \<le> Minf"
-  "h \<le> Pinf" "Ub i \<le> Ub j = (i \<le> j)" "~ Pinf \<le> Ub j"
-by(auto simp: le_lub_defs split: lub_splits)
-
-definition empty where "empty = {1\<dots>0}"
-
-fun is_empty where
-"is_empty {l\<dots>h} = (h<l)" |
-"is_empty _ = False"
-
-lemma [simp]: "is_empty(Ivl l h) =
-  (case l of Lb l \<Rightarrow> (case h of Ub h \<Rightarrow> h<l | Pinf \<Rightarrow> False) | Minf \<Rightarrow> False)"
-by(auto split: lub_splits)
-
-lemma [simp]: "is_empty i \<Longrightarrow> \<gamma>_ivl i = {}"
-by(auto simp add: \<gamma>_ivl_def split: ivl.split lub_splits)
+declare is_empty_rep_iff[THEN iffD1, simp]
 
 
 instantiation ivl :: semilattice
 begin
 
-fun le_aux where
-"le_aux (Ivl l1 h1) (Ivl l2 h2) = (l2 \<le> l1 & h1 \<le> h2)"
+definition le_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> bool" where
+"le_rep p1 p2 = (let (l1,h1) = p1; (l2,h2) = p2 in
+  if is_empty_rep(l1,h1) then True else
+  if is_empty_rep(l2,h2) then False else l1 \<ge> l2 & h1 \<le> h2)"
 
-definition le_ivl where
-"i1 \<sqsubseteq> i2 =
- (if is_empty i1 then True else
-  if is_empty i2 then False else le_aux i1 i2)"
+lemma le_iff_subset: "le_rep p1 p2 \<longleftrightarrow> \<gamma>_rep p1 \<subseteq> \<gamma>_rep p2"
+apply rule
+apply(auto simp: is_empty_rep_def le_rep_def \<gamma>_rep_def split: if_splits prod.splits)[1]
+apply(auto simp: is_empty_rep_def \<gamma>_rep_cases le_rep_def)
+apply(auto simp: not_less split: extended.splits)
+done
 
-definition "i1 \<squnion> i2 =
- (if is_empty i1 then i2 else if is_empty i2 then i1
-  else case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (min l1 l2) (max h1 h2))"
+lift_definition less_eq_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> bool" is le_rep
+by(auto simp: eq_ivl_def le_iff_subset)
 
-definition "\<top> = {\<dots>}"
+definition less_ivl where "i1 < i2 = (i1 \<le> i2 \<and> \<not> i2 \<le> (i1::ivl))"
+
+definition join_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> eint2" where
+"join_rep p1 p2 = (if is_empty_rep p1 then p2 else if is_empty_rep p2 then p1
+  else let (l1,h1) = p1; (l2,h2) = p2 in  (min l1 l2, max h1 h2))"
+
+lift_definition join_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" is join_rep
+by(auto simp: eq_ivl_iff join_rep_def)
+
+lift_definition top_ivl :: ivl is "(Minf,Pinf)"
+by(auto simp: eq_ivl_def)
+
+lemma is_empty_min_max:
+  "\<not> is_empty_rep (l1,h1) \<Longrightarrow> \<not> is_empty_rep (l2, h2) \<Longrightarrow> \<not> is_empty_rep (min l1 l2, max h1 h2)"
+by(auto simp add: is_empty_rep_def max_def min_def split: if_splits)
 
 instance
 proof
-  case goal1 thus ?case
-    by(cases x, simp add: le_ivl_def)
+  case goal1 show ?case by (rule less_ivl_def)
 next
-  case goal2 thus ?case
-    by(cases x, cases y, cases z, auto simp: le_ivl_def split: if_splits)
+  case goal2 show ?case by transfer (simp add: le_rep_def split: prod.splits)
 next
-  case goal3 thus ?case
-    by(cases x, cases y, simp add: le_ivl_def join_ivl_def le_lub_defs min_def max_def split: lub_splits)
+  case goal3 thus ?case by transfer (auto simp: le_rep_def split: if_splits)
 next
-  case goal4 thus ?case
-    by(cases x, cases y, simp add: le_ivl_def join_ivl_def le_lub_defs min_def max_def split: lub_splits)
+  case goal4 thus ?case by transfer (auto simp: le_rep_def eq_ivl_iff split: if_splits)
 next
-  case goal5 thus ?case
-    by(cases x, cases y, cases z, auto simp add: le_ivl_def join_ivl_def le_lub_defs min_def max_def split: lub_splits if_splits)
+  case goal6 thus ?case by transfer (auto simp add: le_rep_def join_rep_def is_empty_min_max)
 next
-  case goal6 thus ?case
-    by(cases x, simp add: Top_ivl_def le_ivl_def le_lub_defs split: lub_splits)
+  case goal7 thus ?case by transfer (auto simp add: le_rep_def join_rep_def is_empty_min_max)
+next
+  case goal8 thus ?case by transfer (auto simp add: le_rep_def join_rep_def)
+next
+  case goal5 show ?case by transfer (simp add: le_rep_def is_empty_rep_def)
 qed
 
 end
 
+text{* Implement (naive) executable equality: *}
+instantiation ivl :: equal
+begin
+
+definition equal_ivl where
+"equal_ivl i1 (i2::ivl) = (i1\<le>i2 \<and> i2 \<le> i1)"
+
+instance
+proof
+  case goal1 show ?case by(simp add: equal_ivl_def eq_iff)
+qed
+
+end
+
+lemma [simp]: fixes x :: "'a::linorder extended" shows "(\<not> x < Pinf) = (x = Pinf)"
+by(simp add: not_less)
+lemma [simp]: fixes x :: "'a::linorder extended" shows "(\<not> Minf < x) = (x = Minf)"
+by(simp add: not_less)
 
 instantiation ivl :: lattice
 begin
 
-definition "i1 \<sqinter> i2 = (if is_empty i1 \<or> is_empty i2 then empty else
-  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (max l1 l2) (min h1 h2))"
+definition meet_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> eint2" where
+"meet_rep p1 p2 = (let (l1,h1) = p1; (l2,h2) = p2 in (max l1 l2, min h1 h2))"
 
-definition "\<bottom> = empty"
+lemma \<gamma>_meet_rep: "\<gamma>_rep(meet_rep p1 p2) = \<gamma>_rep p1 \<inter> \<gamma>_rep p2"
+by(auto simp:meet_rep_def \<gamma>_rep_cases split: prod.splits extended.splits)
+
+lift_definition meet_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" is meet_rep
+by(auto simp: \<gamma>_meet_rep eq_ivl_def)
+
+definition "\<bottom> = empty_ivl"
 
 instance
 proof
   case goal2 thus ?case
-    by (simp add:meet_ivl_def empty_def le_ivl_def le_lub_defs max_def min_def split: ivl.splits lub_splits)
+    unfolding meet_rep_def by transfer (auto simp: le_iff_subset \<gamma>_meet_rep)
 next
   case goal3 thus ?case
-    by (simp add: empty_def meet_ivl_def le_ivl_def le_lub_defs max_def min_def split: ivl.splits lub_splits)
+    unfolding meet_rep_def by transfer (auto simp: le_iff_subset \<gamma>_meet_rep)
 next
   case goal4 thus ?case
-    by (cases x, cases y, cases z, auto simp add: le_ivl_def meet_ivl_def empty_def le_lub_defs max_def min_def split: lub_splits if_splits)
+    unfolding meet_rep_def by transfer (auto simp: le_iff_subset \<gamma>_meet_rep)
 next
-  case goal1 show ?case by(cases x, simp add: bot_ivl_def empty_def le_ivl_def)
+  case goal1 show ?case unfolding bot_ivl_def by transfer (auto simp: le_iff_subset)
 qed
 
 end
 
 
-instantiation lb :: plus
-begin
+lemma eq_ivl_empty: "eq_ivl p empty_rep = is_empty_rep p"
+by (metis eq_ivl_iff is_empty_empty_rep)
 
-fun plus_lb where
-"Lb x + Lb y = Lb(x+y)" |
-"_ + _ = Minf"
+lemma le_ivl_nice: "[l1\<dots>h1] \<le> [l2\<dots>h2] \<longleftrightarrow>
+  (if [l1\<dots>h1] = \<bottom> then True else
+   if [l2\<dots>h2] = \<bottom> then False else l1 \<ge> l2 & h1 \<le> h2)"
+unfolding bot_ivl_def by transfer (simp add: le_rep_def eq_ivl_empty)
 
-instance ..
-end
+lemma join_ivl_nice: "[l1\<dots>h1] \<squnion> [l2\<dots>h2] =
+  (if [l1\<dots>h1] = \<bottom> then [l2\<dots>h2] else
+   if [l2\<dots>h2] = \<bottom> then [l1\<dots>h1] else [min l1 l2\<dots>max h1 h2])"
+unfolding bot_ivl_def by transfer (simp add: join_rep_def eq_ivl_empty)
 
-instantiation ub :: plus
-begin
+lemma meet_nice: "[l1\<dots>h1] \<sqinter> [l2\<dots>h2] = [max l1 l2\<dots>min h1 h2]"
+by transfer (simp add: meet_rep_def)
 
-fun plus_ub where
-"Ub x + Ub y = Ub(x+y)" |
-"_ + _ = Pinf"
-
-instance ..
-end
 
 instantiation ivl :: plus
 begin
 
-definition "i1+i2 = (if is_empty i1 | is_empty i2 then empty else
-  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (l1+l2) (h1+h2))"
+definition plus_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> eint2" where
+"plus_rep p1 p2 =
+  (if is_empty_rep p1 \<or> is_empty_rep p2 then empty_rep else
+   let (l1,h1) = p1; (l2,h2) = p2 in (l1+l2, h1+h2))"
+
+lift_definition plus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" is plus_rep
+by(auto simp: plus_rep_def eq_ivl_iff)
 
 instance ..
 end
 
-fun uminus_ub :: "ub \<Rightarrow> lb" where
-"uminus_ub(Ub( x)) = Lb(-x)" |
-"uminus_ub Pinf = Minf"
+lemma plus_ivl_nice: "[l1\<dots>h1] + [l2\<dots>h2] =
+  (if [l1\<dots>h1] = \<bottom> \<or> [l2\<dots>h2] = \<bottom> then \<bottom> else [l1+l2 \<dots> h1+h2])"
+unfolding bot_ivl_def by transfer (auto simp: plus_rep_def eq_ivl_empty)
 
-fun uminus_lb :: "lb \<Rightarrow> ub" where
-"uminus_lb(Lb( x)) = Ub(-x)" |
-"uminus_lb Minf = Pinf"
+lemma uminus_eq_Minf[simp]: "-x = Minf \<longleftrightarrow> x = Pinf"
+by(cases x) auto
+lemma uminus_eq_Pinf[simp]: "-x = Pinf \<longleftrightarrow> x = Minf"
+by(cases x) auto
+
+lemma uminus_le_Fin_iff: "- x \<le> Fin(-y) \<longleftrightarrow> Fin y \<le> (x::'a::ordered_ab_group_add extended)"
+by(cases x) auto
+lemma Fin_uminus_le_iff: "Fin(-y) \<le> -x \<longleftrightarrow> x \<le> ((Fin y)::'a::ordered_ab_group_add extended)"
+by(cases x) auto
 
 instantiation ivl :: uminus
 begin
 
-fun uminus_ivl where
-"-(Ivl l h) = Ivl (uminus_ub h) (uminus_lb l)"
+definition uminus_rep :: "eint2 \<Rightarrow> eint2" where
+"uminus_rep p = (let (l,h) = p in (-h, -l))"
+
+lemma \<gamma>_uminus_rep: "i : \<gamma>_rep p \<Longrightarrow> -i \<in> \<gamma>_rep(uminus_rep p)"
+by(auto simp: uminus_rep_def \<gamma>_rep_def image_def uminus_le_Fin_iff Fin_uminus_le_iff
+        split: prod.split)
+
+lift_definition uminus_ivl :: "ivl \<Rightarrow> ivl" is uminus_rep
+by (auto simp: uminus_rep_def eq_ivl_def \<gamma>_rep_cases)
+   (auto simp: Icc_eq_Icc split: extended.splits)
 
 instance ..
 end
+
+lemma uminus_nice: "-[l\<dots>h] = [-h\<dots>-l]"
+by transfer (simp add: uminus_rep_def)
 
 instantiation ivl :: minus
 begin
-
-definition minus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" where
-"(i1::ivl) - i2 = i1 + -i2"
-
+definition minus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" where "(iv1::ivl) - iv2 = iv1 + -iv2"
 instance ..
 end
 
-lemma minus_ivl_cases: "i1 - i2 = (if is_empty i1 | is_empty i2 then empty else
-  case (i1,i2) of (Ivl l1 h1, Ivl l2 h2) \<Rightarrow> Ivl (l1 + uminus_ub h2) (h1 + uminus_lb l2))"
-by(auto simp: plus_ivl_def minus_ivl_def split: ivl.split lub_splits)
 
-lemma gamma_minus_ivl:
-  "n1 : \<gamma>_ivl i1 \<Longrightarrow> n2 : \<gamma>_ivl i2 \<Longrightarrow> n1-n2 : \<gamma>_ivl(i1 - i2)"
-by(auto simp add: minus_ivl_def plus_ivl_def \<gamma>_ivl_def split: ivl.splits lub_splits)
+definition filter_plus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl*ivl" where
+"filter_plus_ivl iv iv1 iv2 = (iv1 \<sqinter> (iv - iv2), iv2 \<sqinter> (iv - iv1))"
 
-definition "filter_plus_ivl i i1 i2 = ((*if is_empty i then empty else*)
-  i1 \<sqinter> (i - i2), i2 \<sqinter> (i - i1))"
-
-fun filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
-"filter_less_ivl res (Ivl l1 h1) (Ivl l2 h2) =
-  (if is_empty(Ivl l1 h1) \<or> is_empty(Ivl l2 h2) then (empty, empty) else
+definition filter_less_rep :: "bool \<Rightarrow> eint2 \<Rightarrow> eint2 \<Rightarrow> eint2 * eint2" where
+"filter_less_rep res p1 p2 =
+  (if is_empty_rep p1 \<or> is_empty_rep p2 then (empty_rep,empty_rep) else
+   let (l1,h1) = p1; (l2,h2) = p2 in
    if res
-   then (Ivl l1 (min h1 (h2 + Ub -1)), Ivl (max (l1 + Lb 1) l2) h2)
-   else (Ivl (max l1 l2) h1, Ivl l2 (min h1 h2)))"
+   then ((l1, min h1 (h2 + Fin -1)), (max (l1 + Fin 1) l2, h2))
+   else ((max l1 l2, h1), (l2, min h1 h2)))"
+
+lift_definition filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" is filter_less_rep
+by(auto simp: prod_pred_def filter_less_rep_def eq_ivl_iff)
+declare filter_less_ivl.abs_eq[code] (* bug in lifting *)
+
+lemma filter_less_ivl_nice: "filter_less_ivl b [l1\<dots>h1] [l2\<dots>h2] =
+  (if [l1\<dots>h1] = \<bottom> \<or> [l2\<dots>h2] = \<bottom> then (\<bottom>,\<bottom>) else
+   if b
+   then ([l1 \<dots> min h1 (h2 + Fin -1)], [max (l1 + Fin 1) l2 \<dots> h2])
+   else ([max l1 l2 \<dots> h1], [l2 \<dots> min h1 h2]))"
+unfolding prod_rel_eq[symmetric] bot_ivl_def
+by transfer (auto simp: filter_less_rep_def eq_ivl_empty)
+
+lemma add_mono_le_Fin:
+  "\<lbrakk>x1 \<le> Fin y1; x2 \<le> Fin y2\<rbrakk> \<Longrightarrow> x1 + x2 \<le> Fin (y1 + (y2::'a::ordered_ab_group_add))"
+by(drule (1) add_mono) simp
+
+lemma add_mono_Fin_le:
+  "\<lbrakk>Fin y1 \<le> x1; Fin y2 \<le> x2\<rbrakk> \<Longrightarrow> Fin(y1 + y2::'a::ordered_ab_group_add) \<le> x1 + x2"
+by(drule (1) add_mono) simp
+
+lemma plus_rep_plus:
+  "\<lbrakk> i1 \<in> \<gamma>_rep (l1,h1); i2 \<in> \<gamma>_rep (l2, h2)\<rbrakk> \<Longrightarrow> i1 + i2 \<in> \<gamma>_rep (l1 + l2, h1 + h2)"
+by(simp add: \<gamma>_rep_def add_mono_Fin_le add_mono_le_Fin)
 
 interpretation Val_abs
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 proof
-  case goal1 thus ?case
-    by(auto simp: \<gamma>_ivl_def le_ivl_def le_lub_defs split: ivl.split lub_splits if_splits)
+  case goal1 thus ?case by transfer (simp add: le_iff_subset)
 next
-  case goal2 show ?case by(simp add: \<gamma>_ivl_def Top_ivl_def)
+  case goal2 show ?case by transfer (simp add: \<gamma>_rep_def)
 next
-  case goal3 thus ?case by(simp add: \<gamma>_ivl_def num_ivl_def)
+  case goal3 show ?case by transfer (simp add: \<gamma>_rep_def)
 next
   case goal4 thus ?case
-    by(auto simp add: \<gamma>_ivl_def plus_ivl_def split: ivl.split lub_splits)
+    apply transfer
+    apply(auto simp: \<gamma>_rep_def plus_rep_def add_mono_le_Fin add_mono_Fin_le)
+    by(auto simp: empty_rep_def is_empty_rep_def)
 qed
+
 
 interpretation Val_abs1_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 defines aval_ivl is aval'
 proof
-  case goal1 thus ?case
-    by(auto simp add: \<gamma>_ivl_def meet_ivl_def empty_def min_def max_def split: ivl.split lub_splits)
+  case goal1 show ?case
+    by transfer (auto simp add:meet_rep_def \<gamma>_rep_cases split: prod.split extended.split)
 next
-  case goal2 show ?case by(auto simp add: bot_ivl_def \<gamma>_ivl_def empty_def)
+  case goal2 show ?case unfolding bot_ivl_def by transfer simp
 qed
 
-lemma mono_minus_ivl: fixes i1 :: ivl
-shows "i1 \<sqsubseteq> i1' \<Longrightarrow> i2 \<sqsubseteq> i2' \<Longrightarrow> i1 - i2 \<sqsubseteq> i1' - i2'"
-apply(auto simp add: minus_ivl_cases empty_def le_ivl_def le_lub_defs split: ivl.splits)
-  apply(simp split: lub_splits)
- apply(simp split: lub_splits)
-apply(simp split: lub_splits)
-done
+lemma \<gamma>_plus_rep: "i1 : \<gamma>_rep p1 \<Longrightarrow> i2 : \<gamma>_rep p2 \<Longrightarrow> i1+i2 \<in> \<gamma>_rep(plus_rep p1 p2)"
+by(auto simp: plus_rep_def plus_rep_plus split: prod.splits)
 
+lemma non_empty_meet: "\<lbrakk>n1 \<in> \<gamma>_rep a1; n2 \<in> \<gamma>_rep a2; n1 + n2 \<in> \<gamma>_rep a \<rbrakk> \<Longrightarrow>
+     \<not> is_empty_rep (meet_rep a1 (plus_rep a (uminus_rep a2)))"
+by (auto simp add: \<gamma>_meet_rep set_eq_iff is_empty_rep_iff simp del: all_not_in_conv)
+   (metis \<gamma>_plus_rep \<gamma>_uminus_rep add_diff_cancel diff_minus)
+
+lemma filter_plus: "\<lbrakk>eq_ivl (meet_rep a1 (plus_rep a (uminus_rep a2))) b1 \<and>
+       eq_ivl (meet_rep a2 (plus_rep a (uminus_rep a1))) b2;
+        n1 \<in> \<gamma>_rep a1; n2 \<in> \<gamma>_rep a2; n1 + n2 \<in> \<gamma>_rep a\<rbrakk>
+       \<Longrightarrow> n1 \<in> \<gamma>_rep b1 \<and> n2 \<in> \<gamma>_rep b2"
+by (auto simp: eq_ivl_iff \<gamma>_meet_rep non_empty_meet add_ac)
+   (metis \<gamma>_plus_rep \<gamma>_uminus_rep add_diff_cancel diff_def add_commute)+
 
 interpretation Val_abs1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
-  case goal1 thus ?case
-    by (simp add: \<gamma>_ivl_def split: ivl.split lub_splits)
+  case goal1 thus ?case by transfer (auto simp: \<gamma>_rep_def)
 next
-  case goal2 thus ?case
-    by(auto simp add: filter_plus_ivl_def)
-      (metis gamma_minus_ivl add_diff_cancel add_commute)+
+  case goal2 thus ?case unfolding filter_plus_ivl_def minus_ivl_def prod_rel_eq[symmetric]
+    by transfer (simp add: filter_plus)
 next
   case goal3 thus ?case
-    by(cases a1, cases a2, auto simp: \<gamma>_ivl_def min_def max_def split: if_splits lub_splits)
+    unfolding prod_rel_eq[symmetric]
+    apply transfer
+    apply (auto simp add: filter_less_rep_def eq_ivl_iff max_def min_def split: if_splits)
+    apply(auto simp: \<gamma>_rep_cases is_empty_rep_def split: extended.splits)
+    done
 qed
 
 interpretation Abs_Int1
@@ -308,24 +352,40 @@ and aval_ivl' is aval''
 
 text{* Monotonicity: *}
 
+lemma mono_meet_rep: "le_rep p1 p2 \<Longrightarrow> le_rep q1 q2 \<Longrightarrow> le_rep (meet_rep p1 q1) (meet_rep p2 q2)"
+by(auto simp add: le_iff_subset \<gamma>_meet_rep)
+
+lemma mono_plus_rep: "le_rep p1 p2 \<Longrightarrow> le_rep q1 q2 \<Longrightarrow> le_rep (plus_rep p1 q1) (plus_rep p2 q2)"
+apply(auto simp: plus_rep_def le_iff_subset split: if_splits)
+by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
+
+lemma mono_minus_rep: "le_rep p1 p2 \<Longrightarrow> le_rep (uminus_rep p1) (uminus_rep p2)"
+apply(auto simp: uminus_rep_def le_iff_subset split: if_splits prod.split)
+by(auto simp: \<gamma>_rep_cases split: extended.splits)
+
 interpretation Abs_Int1_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
-  case goal1 thus ?case
-    by(auto simp: plus_ivl_def le_ivl_def le_lub_defs empty_def split: if_splits ivl.splits lub_splits)
+  case goal1 thus ?case by transfer (rule mono_plus_rep)
 next
-  case goal2 thus ?case
-    by(auto simp: filter_plus_ivl_def le_prod_def mono_meet mono_minus_ivl)
+  case goal2 thus ?case unfolding filter_plus_ivl_def minus_ivl_def less_eq_prod_def
+    by transfer (auto simp: mono_meet_rep mono_plus_rep mono_minus_rep)
 next
-  case goal3 thus ?case
-    apply(cases a1, cases b1, cases a2, cases b2, auto simp: le_prod_def)
-    by(auto simp add: empty_def le_ivl_def le_lub_defs min_def max_def split: lub_splits)
+  case goal3 thus ?case unfolding less_eq_prod_def
+    apply transfer
+    apply(auto simp:filter_less_rep_def le_iff_subset min_def max_def split: if_splits)
+    by(auto simp:is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
 qed
 
 
 subsubsection "Tests"
+
+(* Hide Fin in numerals on output *)
+declare
+Fin_numeral [code_post] Fin_neg_numeral [code_post]
+zero_extended_def[symmetric, code_post] one_extended_def[symmetric, code_post]
 
 value "show_acom_opt (AI_ivl test1_ivl)"
 
@@ -334,7 +394,7 @@ value "show_acom_opt (AI_ivl test3_const)"
 value "show_acom_opt (AI_ivl test4_const)"
 value "show_acom_opt (AI_ivl test6_const)"
 
-definition "steps c i = (step_ivl(top(vars c)) ^^ i) (bot c)"
+definition "steps c i = (step_ivl(Top(vars c)) ^^ i) (bot c)"
 
 value "show_acom_opt (AI_ivl test2_ivl)"
 value "show_acom (steps test2_ivl 0)"

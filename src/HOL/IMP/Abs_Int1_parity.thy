@@ -1,3 +1,5 @@
+(* Author: Tobias Nipkow *)
+
 theory Abs_Int1_parity
 imports Abs_Int1
 begin
@@ -6,29 +8,41 @@ subsection "Parity Analysis"
 
 datatype parity = Even | Odd | Either
 
-text{* Instantiation of class @{class preord} with type @{typ parity}: *}
+text{* Instantiation of class @{class order} with type @{typ parity}: *}
 
-instantiation parity :: preord
+instantiation parity :: order
 begin
 
-text{* First the definition of the interface function @{text"\<sqsubseteq>"}. Note that
-the header of the definition must refer to the ascii name @{const le} of the
-constants as @{text le_parity} and the definition is named @{text
-le_parity_def}.  Inside the definition the symbolic names can be used. *}
+text{* First the definition of the interface function @{text"\<le>"}. Note that
+the header of the definition must refer to the ascii name @{const less_eq} of the
+constants as @{text less_eq_parity} and the definition is named @{text
+less_eq_parity_def}.  Inside the definition the symbolic names can be used. *}
 
-definition le_parity where
-"x \<sqsubseteq> y = (y = Either \<or> x=y)"
+definition less_eq_parity where
+"x \<le> y = (y = Either \<or> x=y)"
 
-text{* Now the instance proof, i.e.\ the proof that the definition fulfills
+text{* We also need @{text"<"}, which is defined canonically: *}
+
+definition less_parity where
+"x < y = (x \<le> y \<and> \<not> y \<le> (x::parity))"
+
+text{*\noindent (The type annotation is necessary to fix the type of the polymorphic predicates.)
+
+Now the instance proof, i.e.\ the proof that the definition fulfills
 the axioms (assumptions) of the class. The initial proof-step generates the
 necessary proof obligations. *}
 
 instance
 proof
-  fix x::parity show "x \<sqsubseteq> x" by(auto simp: le_parity_def)
+  fix x::parity show "x \<le> x" by(auto simp: less_eq_parity_def)
 next
-  fix x y z :: parity assume "x \<sqsubseteq> y" "y \<sqsubseteq> z" thus "x \<sqsubseteq> z"
-    by(auto simp: le_parity_def)
+  fix x y z :: parity assume "x \<le> y" "y \<le> z" thus "x \<le> z"
+    by(auto simp: less_eq_parity_def)
+next
+  fix x y :: parity assume "x \<le> y" "y \<le> x" thus "x = y"
+    by(auto simp: less_eq_parity_def)
+next
+  fix x y :: parity show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)" by(rule less_parity_def)
 qed
 
 end
@@ -39,9 +53,9 @@ instantiation parity :: semilattice
 begin
 
 definition join_parity where
-"x \<squnion> y = (if x \<sqsubseteq> y then y else if y \<sqsubseteq> x then x else Either)"
+"x \<squnion> y = (if x \<le> y then y else if y \<le> x then x else Either)"
 
-definition Top_parity where
+definition top_parity where
 "\<top> = Either"
 
 text{* Now the instance proof. This time we take a lazy shortcut: we do not
@@ -52,13 +66,13 @@ in the class definition. *}
 
 instance
 proof
-  case goal1 (*join1*) show ?case by(auto simp: le_parity_def join_parity_def)
+  case goal1 (*top*) show ?case by(auto simp: less_eq_parity_def top_parity_def)
 next
-  case goal2 (*join2*) show ?case by(auto simp: le_parity_def join_parity_def)
+  case goal2 (*join1*) show ?case by(auto simp: less_eq_parity_def join_parity_def)
 next
-  case goal3 (*join least*) thus ?case by(auto simp: le_parity_def join_parity_def)
+  case goal3 (*join2*) show ?case by(auto simp: less_eq_parity_def join_parity_def)
 next
-  case goal4 (*Top*) show ?case by(auto simp: le_parity_def Top_parity_def)
+  case goal4 (*join least*) thus ?case by(auto simp: less_eq_parity_def join_parity_def)
 qed
 
 end
@@ -92,10 +106,10 @@ interpretation Val_abs
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 proof txt{* of the locale axioms *}
   fix a b :: parity
-  assume "a \<sqsubseteq> b" thus "\<gamma>_parity a \<subseteq> \<gamma>_parity b"
-    by(auto simp: le_parity_def)
+  assume "a \<le> b" thus "\<gamma>_parity a \<subseteq> \<gamma>_parity b"
+    by(auto simp: less_eq_parity_def)
 next txt{* The rest in the lazy, implicit way *}
-  case goal2 show ?case by(auto simp: Top_parity_def)
+  case goal2 show ?case by(auto simp: top_parity_def)
 next
   case goal3 show ?case by auto
 next
@@ -127,7 +141,7 @@ definition "test2_parity =
   ''x'' ::= N 1;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 3)"
 
-definition "steps c i = (step_parity(top(vars c)) ^^ i) (bot c)"
+definition "steps c i = (step_parity(Top(vars c)) ^^ i) (bot c)"
 
 value "show_acom (steps test2_parity 0)"
 value "show_acom (steps test2_parity 1)"
@@ -147,7 +161,7 @@ proof
   case goal1 thus ?case
   proof(cases a1 a2 b1 b2
    rule: parity.exhaust[case_product parity.exhaust[case_product parity.exhaust[case_product parity.exhaust]]]) (* FIXME - UGLY! *)
-  qed (auto simp add:le_parity_def)
+  qed (auto simp add:less_eq_parity_def)
 qed
 
 definition m_parity :: "parity \<Rightarrow> nat" where
@@ -157,11 +171,11 @@ interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity
 and m = m_parity and h = "1"
 proof
-  case goal1 thus ?case by(auto simp add: m_parity_def le_parity_def)
+  case goal1 thus ?case by(auto simp add: m_parity_def less_eq_parity_def)
 next
-  case goal2 thus ?case by(auto simp add: m_parity_def le_parity_def)
+  case goal2 thus ?case by(auto simp add: m_parity_def less_eq_parity_def)
 next
-  case goal3 thus ?case by(auto simp add: m_parity_def le_parity_def)
+  case goal3 thus ?case by(auto simp add: m_parity_def less_eq_parity_def less_parity_def)
 qed
 
 thm AI_Some_measure

@@ -6,52 +6,26 @@ begin
 
 subsection "Orderings"
 
-class preord =
-fixes le :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<sqsubseteq>" 50)
-assumes le_refl[simp]: "x \<sqsubseteq> x"
-and le_trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
-begin
+notation
+  Orderings.bot ("\<bottom>") and
+  Orderings.top ("\<top>")
 
-definition mono where "mono f = (\<forall>x y. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y)"
+declare order_trans[trans]
 
-declare le_trans[trans]
-
-end
-
-text{* Note: no antisymmetry. Allows implementations where some abstract
-element is implemented by two different values @{prop "x \<noteq> y"}
-such that @{prop"x \<sqsubseteq> y"} and @{prop"y \<sqsubseteq> x"}. Antisymmetry is not
-needed because we never compare elements for equality but only for @{text"\<sqsubseteq>"}.
-*}
-
-class join = preord +
+class join = order +
 fixes join :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
 
-class semilattice = join +
-fixes Top :: "'a" ("\<top>")
-assumes join_ge1 [simp]: "x \<sqsubseteq> x \<squnion> y"
-and join_ge2 [simp]: "y \<sqsubseteq> x \<squnion> y"
-and join_least: "x \<sqsubseteq> z \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<squnion> y \<sqsubseteq> z"
-and top[simp]: "x \<sqsubseteq> \<top>"
+class semilattice = join + top +
+assumes join_ge1 [simp]: "x \<le> x \<squnion> y"
+and join_ge2 [simp]: "y \<le> x \<squnion> y"
+and join_least: "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<squnion> y \<le> z"
 begin
 
-lemma join_le_iff[simp]: "x \<squnion> y \<sqsubseteq> z \<longleftrightarrow> x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
-by (metis join_ge1 join_ge2 join_least le_trans)
+lemma join_le_iff[simp]: "x \<squnion> y \<le> z \<longleftrightarrow> x \<le> z \<and> y \<le> z"
+by (metis join_ge1 join_ge2 join_least order_trans)
 
-lemma le_join_disj: "x \<sqsubseteq> y \<or> x \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<squnion> z"
-by (metis join_ge1 join_ge2 le_trans)
-
-end
-
-instantiation "fun" :: (type, preord) preord
-begin
-
-definition "f \<sqsubseteq> g = (\<forall>x. f x \<sqsubseteq> g x)"
-
-instance
-proof
-  case goal2 thus ?case by (metis le_fun_def preord_class.le_trans)
-qed (simp_all add: le_fun_def)
+lemma le_join_disj: "x \<le> y \<or> x \<le> z \<Longrightarrow> x \<le> y \<squnion> z"
+by (metis join_ge1 join_ge2 order_trans)
 
 end
 
@@ -60,81 +34,41 @@ instantiation "fun" :: (type, semilattice) semilattice
 begin
 
 definition "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
-definition "\<top> = (\<lambda>x. \<top>)"
 
 lemma join_apply[simp]: "(f \<squnion> g) x = f x \<squnion> g x"
 by (simp add: join_fun_def)
 
 instance
 proof
-qed (simp_all add: le_fun_def Top_fun_def)
+qed (simp_all add: le_fun_def)
 
 end
 
 
-instantiation acom :: (preord) preord
+instantiation option :: (order)order
 begin
 
-fun le_acom :: "('a::preord)acom \<Rightarrow> 'a acom \<Rightarrow> bool" where
-"le_acom (SKIP {S}) (SKIP {S'}) = (S \<sqsubseteq> S')" |
-"le_acom (x ::= e {S}) (x' ::= e' {S'}) = (x=x' \<and> e=e' \<and> S \<sqsubseteq> S')" |
-"le_acom (C1;C2) (D1;D2) = (C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2)" |
-"le_acom (IF b THEN {p1} C1 ELSE {p2} C2 {S}) (IF b' THEN {q1} D1 ELSE {q2} D2 {S'}) =
-  (b=b' \<and> p1 \<sqsubseteq> q1 \<and> C1 \<sqsubseteq> D1 \<and> p2 \<sqsubseteq> q2 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')" |
-"le_acom ({I} WHILE b DO {p} C {P}) ({I'} WHILE b' DO {p'} C' {P'}) =
-  (b=b' \<and> p \<sqsubseteq> p' \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')" |
-"le_acom _ _ = False"
+fun less_eq_option where
+"Some x \<le> Some y = (x \<le> y)" |
+"None \<le> y = True" |
+"Some _ \<le> None = False"
 
-lemma [simp]: "SKIP {S} \<sqsubseteq> C \<longleftrightarrow> (\<exists>S'. C = SKIP {S'} \<and> S \<sqsubseteq> S')"
-by (cases C) auto
+definition less_option where "x < (y::'a option) = (x \<le> y \<and> \<not> y \<le> x)"
 
-lemma [simp]: "x ::= e {S} \<sqsubseteq> C \<longleftrightarrow> (\<exists>S'. C = x ::= e {S'} \<and> S \<sqsubseteq> S')"
-by (cases C) auto
-
-lemma [simp]: "C1;C2 \<sqsubseteq> C \<longleftrightarrow> (\<exists>D1 D2. C = D1;D2 \<and> C1 \<sqsubseteq> D1 \<and> C2 \<sqsubseteq> D2)"
-by (cases C) auto
-
-lemma [simp]: "IF b THEN {p1} C1 ELSE {p2} C2 {S} \<sqsubseteq> C \<longleftrightarrow>
-  (\<exists>q1 q2 D1 D2 S'. C = IF b THEN {q1} D1 ELSE {q2} D2 {S'} \<and>
-     p1 \<sqsubseteq> q1 \<and> C1 \<sqsubseteq> D1 \<and> p2 \<sqsubseteq> q2 \<and> C2 \<sqsubseteq> D2 \<and> S \<sqsubseteq> S')"
-by (cases C) auto
-
-lemma [simp]: "{I} WHILE b DO {p} C {P} \<sqsubseteq> W \<longleftrightarrow>
-  (\<exists>I' p' C' P'. W = {I'} WHILE b DO {p'} C' {P'} \<and> p \<sqsubseteq> p' \<and> C \<sqsubseteq> C' \<and> I \<sqsubseteq> I' \<and> P \<sqsubseteq> P')"
-by (cases W) auto
-
-instance
-proof
-  case goal1 thus ?case by (induct x) auto
-next
-  case goal2 thus ?case
-  apply(induct x y arbitrary: z rule: le_acom.induct)
-  apply (auto intro: le_trans)
-  done
-qed
-
-end
-
-
-instantiation option :: (preord)preord
-begin
-
-fun le_option where
-"Some x \<sqsubseteq> Some y = (x \<sqsubseteq> y)" |
-"None \<sqsubseteq> y = True" |
-"Some _ \<sqsubseteq> None = False"
-
-lemma [simp]: "(x \<sqsubseteq> None) = (x = None)"
+lemma [simp]: "(x \<le> None) = (x = None)"
 by (cases x) simp_all
 
-lemma [simp]: "(Some x \<sqsubseteq> u) = (\<exists>y. u = Some y \<and> x \<sqsubseteq> y)"
+lemma [simp]: "(Some x \<le> u) = (\<exists>y. u = Some y \<and> x \<le> y)"
 by (cases u) auto
 
 instance proof
-  case goal1 show ?case by(cases x, simp_all)
+  case goal1 show ?case by(rule less_option_def)
 next
-  case goal2 thus ?case
-    by(cases z, simp, cases y, simp, cases x, auto intro: le_trans)
+  case goal2 show ?case by(cases x, simp_all)
+next
+  case goal3 thus ?case by(cases z, simp, cases y, simp, cases x, auto)
+next
+  case goal4 thus ?case by(cases y, simp, cases x, auto)
 qed
 
 end
@@ -157,25 +91,21 @@ end
 instantiation option :: (semilattice)semilattice
 begin
 
-definition "\<top> = Some \<top>"
+definition top_option where "\<top> = Some \<top>"
 
 instance proof
-  case goal1 thus ?case by(cases x, simp, cases y, simp_all)
+  case goal1 show ?case by(cases a, simp_all add: top_option_def)
 next
-  case goal2 thus ?case by(cases y, simp, cases x, simp_all)
+  case goal2 thus ?case by(cases x, simp, cases y, simp_all)
 next
-  case goal3 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
+  case goal3 thus ?case by(cases y, simp, cases x, simp_all)
 next
-  case goal4 thus ?case by(cases x, simp_all add: Top_option_def)
+  case goal4 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
 qed
 
 end
 
-class bot = preord +
-fixes bot :: "'a" ("\<bottom>")
-assumes bot[simp]: "\<bottom> \<sqsubseteq> x"
-
-instantiation option :: (preord)bot
+instantiation option :: (order)bot
 begin
 
 definition bot_option :: "'a option" where
@@ -192,7 +122,7 @@ end
 definition bot :: "com \<Rightarrow> 'a option acom" where
 "bot c = anno None c"
 
-lemma bot_least: "strip C = c \<Longrightarrow> bot c \<sqsubseteq> C"
+lemma bot_least: "strip C = c \<Longrightarrow> bot c \<le> C"
 by(induct C arbitrary: c)(auto simp: bot_def)
 
 lemma strip_bot[simp]: "strip(bot c) = c"
@@ -201,20 +131,21 @@ by(simp add: bot_def)
 
 subsubsection "Post-fixed point iteration"
 
-definition pfp :: "(('a::preord) \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
-"pfp f = while_option (\<lambda>x. \<not> f x \<sqsubseteq> x) f"
+definition pfp :: "(('a::order) \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option" where
+"pfp f = while_option (\<lambda>x. \<not> f x \<le> x) f"
 
-lemma pfp_pfp: assumes "pfp f x0 = Some x" shows "f x \<sqsubseteq> x"
+lemma pfp_pfp: assumes "pfp f x0 = Some x" shows "f x \<le> x"
 using while_option_stop[OF assms[simplified pfp_def]] by simp
 
 lemma while_least:
-assumes "\<forall>x\<in>L.\<forall>y\<in>L. x \<sqsubseteq> y \<longrightarrow> f x \<sqsubseteq> f y" and "\<forall>x. x \<in> L \<longrightarrow> f x \<in> L"
-and "\<forall>x \<in> L. b \<sqsubseteq> x" and "b \<in> L" and "f q \<sqsubseteq> q" and "q \<in> L"
+fixes q :: "'a::order"
+assumes "\<forall>x\<in>L.\<forall>y\<in>L. x \<le> y \<longrightarrow> f x \<le> f y" and "\<forall>x. x \<in> L \<longrightarrow> f x \<in> L"
+and "\<forall>x \<in> L. b \<le> x" and "b \<in> L" and "f q \<le> q" and "q \<in> L"
 and "while_option P f b = Some p"
-shows "p \<sqsubseteq> q"
+shows "p \<le> q"
 using while_option_rule[OF _  assms(7)[unfolded pfp_def],
-                        where P = "%x. x \<in> L \<and> x \<sqsubseteq> q"]
-by (metis assms(1-6) le_trans)
+                        where P = "%x. x \<in> L \<and> x \<le> q"]
+by (metis assms(1-6) order_trans)
 
 lemma pfp_inv:
   "pfp f x = Some y \<Longrightarrow> (\<And>x. P x \<Longrightarrow> P(f x)) \<Longrightarrow> P x \<Longrightarrow> P y"
@@ -238,7 +169,7 @@ text{* The interface for abstract values: *}
 
 locale Val_abs =
 fixes \<gamma> :: "'av::semilattice \<Rightarrow> val set"
-  assumes mono_gamma: "a \<sqsubseteq> b \<Longrightarrow> \<gamma> a \<subseteq> \<gamma> b"
+  assumes mono_gamma: "a \<le> b \<Longrightarrow> \<gamma> a \<le> \<gamma> b"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'av"
 and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
@@ -284,21 +215,21 @@ where "\<gamma>\<^isub>o == \<gamma>_option \<gamma>\<^isub>s"
 abbreviation \<gamma>\<^isub>c :: "'av st option acom \<Rightarrow> state set acom"
 where "\<gamma>\<^isub>c == map_acom \<gamma>\<^isub>o"
 
-lemma gamma_s_Top[simp]: "\<gamma>\<^isub>s Top = UNIV"
-by(simp add: Top_fun_def \<gamma>_fun_def)
+lemma gamma_s_Top[simp]: "\<gamma>\<^isub>s \<top> = UNIV"
+by(simp add: top_fun_def \<gamma>_fun_def)
 
-lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o Top = UNIV"
-by (simp add: Top_option_def)
+lemma gamma_o_Top[simp]: "\<gamma>\<^isub>o \<top> = UNIV"
+by (simp add: top_option_def)
 
-lemma mono_gamma_s: "f1 \<sqsubseteq> f2 \<Longrightarrow> \<gamma>\<^isub>s f1 \<subseteq> \<gamma>\<^isub>s f2"
+lemma mono_gamma_s: "f1 \<le> f2 \<Longrightarrow> \<gamma>\<^isub>s f1 \<subseteq> \<gamma>\<^isub>s f2"
 by(auto simp: le_fun_def \<gamma>_fun_def dest: mono_gamma)
 
 lemma mono_gamma_o:
-  "S1 \<sqsubseteq> S2 \<Longrightarrow> \<gamma>\<^isub>o S1 \<subseteq> \<gamma>\<^isub>o S2"
-by(induction S1 S2 rule: le_option.induct)(simp_all add: mono_gamma_s)
+  "S1 \<le> S2 \<Longrightarrow> \<gamma>\<^isub>o S1 \<subseteq> \<gamma>\<^isub>o S2"
+by(induction S1 S2 rule: less_eq_option.induct)(simp_all add: mono_gamma_s)
 
-lemma mono_gamma_c: "C1 \<sqsubseteq> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
-by (induction C1 C2 rule: le_acom.induct) (simp_all add:mono_gamma_o)
+lemma mono_gamma_c: "C1 \<le> C2 \<Longrightarrow> \<gamma>\<^isub>c C1 \<le> \<gamma>\<^isub>c C2"
+by (induction C1 C2 rule: less_eq_acom.induct) (simp_all add:mono_gamma_o)
 
 text{* Soundness: *}
 
@@ -326,7 +257,7 @@ qed
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
   assume 1: "pfp (step' \<top>) (bot c) = Some C"
-  have pfp': "step' \<top> C \<sqsubseteq> C" by(rule pfp_pfp[OF 1])
+  have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
   have 2: "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"  --"transfer the pfp'"
   proof(rule order_trans)
     show "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' \<top> C)" by(rule step_step')
@@ -343,21 +274,21 @@ end
 
 subsubsection "Monotonicity"
 
-lemma mono_post: "C1 \<sqsubseteq> C2 \<Longrightarrow> post C1 \<sqsubseteq> post C2"
-by(induction C1 C2 rule: le_acom.induct) (auto)
+lemma mono_post: "C1 \<le> C2 \<Longrightarrow> post C1 \<le> post C2"
+by(induction C1 C2 rule: less_eq_acom.induct) (auto)
 
 locale Abs_Int_Fun_mono = Abs_Int_Fun +
-assumes mono_plus': "a1 \<sqsubseteq> b1 \<Longrightarrow> a2 \<sqsubseteq> b2 \<Longrightarrow> plus' a1 a2 \<sqsubseteq> plus' b1 b2"
+assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
 begin
 
-lemma mono_aval': "S \<sqsubseteq> S' \<Longrightarrow> aval' e S \<sqsubseteq> aval' e S'"
+lemma mono_aval': "S \<le> S' \<Longrightarrow> aval' e S \<le> aval' e S'"
 by(induction e)(auto simp: le_fun_def mono_plus')
 
-lemma mono_update: "a \<sqsubseteq> a' \<Longrightarrow> S \<sqsubseteq> S' \<Longrightarrow> S(x := a) \<sqsubseteq> S'(x := a')"
+lemma mono_update: "a \<le> a' \<Longrightarrow> S \<le> S' \<Longrightarrow> S(x := a) \<le> S'(x := a')"
 by(simp add: le_fun_def)
 
-lemma mono_step': "S1 \<sqsubseteq> S2 \<Longrightarrow> C1 \<sqsubseteq> C2 \<Longrightarrow> step' S1 C1 \<sqsubseteq> step' S2 C2"
-apply(induction C1 C2 arbitrary: S1 S2 rule: le_acom.induct)
+lemma mono_step': "S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
+apply(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
 apply (auto simp: Let_def mono_update mono_aval' mono_post le_join_disj
             split: option.split)
 done
