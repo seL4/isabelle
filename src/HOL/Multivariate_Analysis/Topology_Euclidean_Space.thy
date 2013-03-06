@@ -4257,67 +4257,79 @@ lemma continuous_at_inverse[continuous_intros]:
 
 subsubsection {* Structural rules for setwise continuity *}
 
-lemma continuous_on_id: "continuous_on s (\<lambda>x. x)"
+ML {*
+
+structure Continuous_On_Intros = Named_Thms
+(
+  val name = @{binding continuous_on_intros}
+  val description = "Structural introduction rules for setwise continuity"
+)
+
+*}
+
+setup Continuous_On_Intros.setup
+
+lemma continuous_on_id[continuous_on_intros]: "continuous_on s (\<lambda>x. x)"
   unfolding continuous_on_def by (fast intro: tendsto_ident_at_within)
 
-lemma continuous_on_const: "continuous_on s (\<lambda>x. c)"
+lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
 
-lemma continuous_on_norm:
+lemma continuous_on_norm[continuous_on_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. norm (f x))"
   unfolding continuous_on_def by (fast intro: tendsto_norm)
 
-lemma continuous_on_infnorm:
+lemma continuous_on_infnorm[continuous_on_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
   unfolding continuous_on by (fast intro: tendsto_infnorm)
 
-lemma continuous_on_minus:
+lemma continuous_on_minus[continuous_on_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
 
-lemma continuous_on_add:
+lemma continuous_on_add[continuous_on_intros]:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g
            \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
 
-lemma continuous_on_diff:
+lemma continuous_on_diff[continuous_on_intros]:
   fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous_on s f \<Longrightarrow> continuous_on s g
            \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
   unfolding continuous_on_def by (auto intro: tendsto_intros)
 
-lemma (in bounded_linear) continuous_on:
+lemma (in bounded_linear) continuous_on[continuous_on_intros]:
   "continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f (g x))"
   unfolding continuous_on_def by (fast intro: tendsto)
 
-lemma (in bounded_bilinear) continuous_on:
+lemma (in bounded_bilinear) continuous_on[continuous_on_intros]:
   "\<lbrakk>continuous_on s f; continuous_on s g\<rbrakk> \<Longrightarrow> continuous_on s (\<lambda>x. f x ** g x)"
   unfolding continuous_on_def by (fast intro: tendsto)
 
-lemma continuous_on_scaleR:
+lemma continuous_on_scaleR[continuous_on_intros]:
   fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   assumes "continuous_on s f" and "continuous_on s g"
   shows "continuous_on s (\<lambda>x. f x *\<^sub>R g x)"
   using bounded_bilinear_scaleR assms
   by (rule bounded_bilinear.continuous_on)
 
-lemma continuous_on_mult:
+lemma continuous_on_mult[continuous_on_intros]:
   fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra"
   assumes "continuous_on s f" and "continuous_on s g"
   shows "continuous_on s (\<lambda>x. f x * g x)"
   using bounded_bilinear_mult assms
   by (rule bounded_bilinear.continuous_on)
 
-lemma continuous_on_inner:
+lemma continuous_on_inner[continuous_on_intros]:
   fixes g :: "'a::topological_space \<Rightarrow> 'b::real_inner"
   assumes "continuous_on s f" and "continuous_on s g"
   shows "continuous_on s (\<lambda>x. inner (f x) (g x))"
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
 
-lemma continuous_on_inverse:
+lemma continuous_on_inverse[continuous_on_intros]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
   shows "continuous_on s (\<lambda>x. inverse (f x))"
@@ -4325,15 +4337,15 @@ lemma continuous_on_inverse:
 
 subsubsection {* Structural rules for uniform continuity *}
 
-lemma uniformly_continuous_on_id:
+lemma uniformly_continuous_on_id[continuous_on_intros]:
   shows "uniformly_continuous_on s (\<lambda>x. x)"
   unfolding uniformly_continuous_on_def by auto
 
-lemma uniformly_continuous_on_const:
+lemma uniformly_continuous_on_const[continuous_on_intros]:
   shows "uniformly_continuous_on s (\<lambda>x. c)"
   unfolding uniformly_continuous_on_def by simp
 
-lemma uniformly_continuous_on_dist:
+lemma uniformly_continuous_on_dist[continuous_on_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "uniformly_continuous_on s f"
   assumes "uniformly_continuous_on s g"
@@ -4355,20 +4367,20 @@ proof -
     unfolding dist_real_def by simp
 qed
 
-lemma uniformly_continuous_on_norm:
+lemma uniformly_continuous_on_norm[continuous_on_intros]:
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. norm (f x))"
   unfolding norm_conv_dist using assms
   by (intro uniformly_continuous_on_dist uniformly_continuous_on_const)
 
-lemma (in bounded_linear) uniformly_continuous_on:
+lemma (in bounded_linear) uniformly_continuous_on[continuous_on_intros]:
   assumes "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f (g x))"
   using assms unfolding uniformly_continuous_on_sequentially
   unfolding dist_norm tendsto_norm_zero_iff diff[symmetric]
   by (auto intro: tendsto_zero)
 
-lemma uniformly_continuous_on_cmul:
+lemma uniformly_continuous_on_cmul[continuous_on_intros]:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. c *\<^sub>R f(x))"
@@ -4380,12 +4392,12 @@ lemma dist_minus:
   shows "dist (- x) (- y) = dist x y"
   unfolding dist_norm minus_diff_minus norm_minus_cancel ..
 
-lemma uniformly_continuous_on_minus:
+lemma uniformly_continuous_on_minus[continuous_on_intros]:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s (\<lambda>x. - f x)"
   unfolding uniformly_continuous_on_def dist_minus .
 
-lemma uniformly_continuous_on_add:
+lemma uniformly_continuous_on_add[continuous_on_intros]:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f"
   assumes "uniformly_continuous_on s g"
@@ -4394,7 +4406,7 @@ lemma uniformly_continuous_on_add:
   unfolding dist_norm tendsto_norm_zero_iff add_diff_add
   by (auto intro: tendsto_add_zero)
 
-lemma uniformly_continuous_on_diff:
+lemma uniformly_continuous_on_diff[continuous_on_intros]:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f" and "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f x - g x)"
@@ -4411,13 +4423,13 @@ unfolding continuous_within
 unfolding tendsto_def Limits.eventually_within eventually_at_topological
 by (intro ball_cong [OF refl] all_cong imp_cong ex_cong conj_cong refl) auto
 
-lemma continuous_within_compose:
+lemma continuous_within_compose[continuous_intros]:
   assumes "continuous (at x within s) f"
   assumes "continuous (at (f x) within f ` s) g"
   shows "continuous (at x within s) (g o f)"
 using assms unfolding continuous_within_topological by simp metis
 
-lemma continuous_at_compose:
+lemma continuous_at_compose[continuous_intros]:
   assumes "continuous (at x) f" and "continuous (at (f x)) g"
   shows "continuous (at x) (g o f)"
 proof-
@@ -4427,11 +4439,11 @@ proof-
     using continuous_within_compose[of x UNIV f g] by simp
 qed
 
-lemma continuous_on_compose:
+lemma continuous_on_compose[continuous_on_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
   unfolding continuous_on_topological by simp metis
 
-lemma uniformly_continuous_on_compose:
+lemma uniformly_continuous_on_compose[continuous_on_intros]:
   assumes "uniformly_continuous_on s f"  "uniformly_continuous_on (f ` s) g"
   shows "uniformly_continuous_on s (g o f)"
 proof-
@@ -4441,17 +4453,6 @@ proof-
     hence "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist ((g \<circ> f) x') ((g \<circ> f) x) < e" using `d>0` using d by auto  }
   thus ?thesis using assms unfolding uniformly_continuous_on_def by auto
 qed
-
-lemmas continuous_on_intros = continuous_on_id continuous_on_const
-  continuous_on_compose continuous_on_norm continuous_on_infnorm
-  continuous_on_add continuous_on_minus continuous_on_diff
-  continuous_on_scaleR continuous_on_mult continuous_on_inverse
-  continuous_on_inner
-  uniformly_continuous_on_id uniformly_continuous_on_const
-  uniformly_continuous_on_dist uniformly_continuous_on_norm
-  uniformly_continuous_on_compose uniformly_continuous_on_add
-  uniformly_continuous_on_minus uniformly_continuous_on_diff
-  uniformly_continuous_on_cmul
 
 text{* Continuity in terms of open preimages. *}
 
