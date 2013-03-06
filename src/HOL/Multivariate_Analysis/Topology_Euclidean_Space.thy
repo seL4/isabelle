@@ -4159,94 +4159,101 @@ lemma continuous_transform_at:
 
 subsubsection {* Structural rules for pointwise continuity *}
 
-lemma continuous_within_id: "continuous (at a within s) (\<lambda>x. x)"
+ML {*
+
+structure Continuous_Intros = Named_Thms
+(
+  val name = @{binding continuous_intros}
+  val description = "Structural introduction rules for pointwise continuity"
+)
+
+*}
+
+setup Continuous_Intros.setup
+
+lemma continuous_within_id[continuous_intros]: "continuous (at a within s) (\<lambda>x. x)"
   unfolding continuous_within by (rule tendsto_ident_at_within)
 
-lemma continuous_at_id: "continuous (at a) (\<lambda>x. x)"
+lemma continuous_at_id[continuous_intros]: "continuous (at a) (\<lambda>x. x)"
   unfolding continuous_at by (rule tendsto_ident_at)
 
-lemma continuous_const: "continuous F (\<lambda>x. c)"
+lemma continuous_const[continuous_intros]: "continuous F (\<lambda>x. c)"
   unfolding continuous_def by (rule tendsto_const)
 
-lemma continuous_fst: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
+lemma continuous_fst[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
   unfolding continuous_def by (rule tendsto_fst)
 
-lemma continuous_snd: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. snd (f x))"
+lemma continuous_snd[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. snd (f x))"
   unfolding continuous_def by (rule tendsto_snd)
 
-lemma continuous_Pair: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
+lemma continuous_Pair[continuous_intros]: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
   unfolding continuous_def by (rule tendsto_Pair)
 
-lemma continuous_dist:
+lemma continuous_dist[continuous_intros]:
   assumes "continuous F f" and "continuous F g"
   shows "continuous F (\<lambda>x. dist (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_dist)
 
-lemma continuous_infdist:
+lemma continuous_infdist[continuous_intros]:
   assumes "continuous F f"
   shows "continuous F (\<lambda>x. infdist (f x) A)"
   using assms unfolding continuous_def by (rule tendsto_infdist)
 
-lemma continuous_norm:
+lemma continuous_norm[continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. norm (f x))"
   unfolding continuous_def by (rule tendsto_norm)
 
-lemma continuous_infnorm:
+lemma continuous_infnorm[continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. infnorm (f x))"
   unfolding continuous_def by (rule tendsto_infnorm)
 
-lemma continuous_add:
+lemma continuous_add[continuous_intros]:
   fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x + g x)"
   unfolding continuous_def by (rule tendsto_add)
 
-lemma continuous_minus:
+lemma continuous_minus[continuous_intros]:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
   unfolding continuous_def by (rule tendsto_minus)
 
-lemma continuous_diff:
+lemma continuous_diff[continuous_intros]:
   fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
   unfolding continuous_def by (rule tendsto_diff)
 
-lemma continuous_scaleR:
+lemma continuous_scaleR[continuous_intros]:
   fixes g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x *\<^sub>R g x)"
   unfolding continuous_def by (rule tendsto_scaleR)
 
-lemma continuous_mult:
+lemma continuous_mult[continuous_intros]:
   fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_algebra"
   shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x * g x)"
   unfolding continuous_def by (rule tendsto_mult)
 
-lemma continuous_inner:
+lemma continuous_inner[continuous_intros]:
   assumes "continuous F f" and "continuous F g"
   shows "continuous F (\<lambda>x. inner (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_inner)
 
-lemma continuous_inverse:
+lemma continuous_inverse[continuous_intros]:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous F f" and "f (netlimit F) \<noteq> 0"
   shows "continuous F (\<lambda>x. inverse (f x))"
   using assms unfolding continuous_def by (rule tendsto_inverse)
 
-lemma continuous_at_within_inverse:
+lemma continuous_at_within_inverse[continuous_intros]:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous (at a within s) f" and "f a \<noteq> 0"
   shows "continuous (at a within s) (\<lambda>x. inverse (f x))"
   using assms unfolding continuous_within by (rule tendsto_inverse)
 
-lemma continuous_at_inverse:
+lemma continuous_at_inverse[continuous_intros]:
   fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
   assumes "continuous (at a) f" and "f a \<noteq> 0"
   shows "continuous (at a) (\<lambda>x. inverse (f x))"
   using assms unfolding continuous_at by (rule tendsto_inverse)
-
-lemmas continuous_intros = continuous_at_id continuous_within_id
-  continuous_const continuous_dist continuous_norm continuous_infnorm
-  continuous_add continuous_minus continuous_diff continuous_scaleR continuous_mult
-  continuous_inner continuous_at_inverse continuous_at_within_inverse
 
 subsubsection {* Structural rules for setwise continuity *}
 
