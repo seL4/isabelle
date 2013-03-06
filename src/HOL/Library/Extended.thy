@@ -13,6 +13,7 @@ datatype 'a extended = Fin 'a | Pinf ("\<infinity>") | Minf ("-\<infinity>")
 lemmas extended_cases2 = extended.exhaust[case_product extended.exhaust]
 lemmas extended_cases3 = extended.exhaust[case_product extended_cases2]
 
+
 instantiation extended :: (order)order
 begin
 
@@ -84,6 +85,18 @@ lemma max_extended_simps[simp]:
 by (auto simp add: max_def)
 
 
+instantiation extended :: (zero)zero
+begin
+definition "0 = Fin(0::'a)"
+instance ..
+end
+
+instantiation extended :: (one)one
+begin
+definition "1 = Fin(1::'a)"
+instance ..
+end
+
 instantiation extended :: (plus)plus
 begin
 
@@ -122,17 +135,10 @@ proof
     by (cases rule: extended_cases3[of a b c]) (auto simp: add_left_mono)
 qed
 
-instantiation extended :: (comm_monoid_add)comm_monoid_add
-begin
-
-definition "0 = Fin 0"
-
-instance
+instance extended :: (comm_monoid_add)comm_monoid_add
 proof
   fix x :: "'a extended" show "0 + x = x" unfolding zero_extended_def by(cases x)auto
 qed
-
-end
 
 instantiation extended :: (uminus)uminus
 begin
@@ -164,6 +170,18 @@ lemma minus_extended_simps[simp]:
   "Minf  - Minf  = Pinf"
   "Pinf  - Pinf  = Pinf"
 by (simp_all add: minus_extended_def)
+
+
+text{* Numerals: *}
+
+instance extended :: ("{ab_semigroup_add,one}")numeral ..
+
+lemma Fin_numeral: "Fin(numeral w) = numeral w"
+  apply (induct w rule: num_induct)
+  apply (simp only: numeral_One one_extended_def)
+  apply (simp only: numeral_inc one_extended_def plus_extended.simps(1)[symmetric])
+  done
+
 
 instantiation extended :: (lattice)bounded_lattice
 begin
