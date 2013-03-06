@@ -775,15 +775,24 @@ abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
   "(f ---> l) F \<equiv> filterlim f (nhds l) F"
 
+lemma tendsto_eq_rhs: "(f ---> x) F \<Longrightarrow> x = y \<Longrightarrow> (f ---> y) F"
+  by simp
+
 ML {*
+
 structure Tendsto_Intros = Named_Thms
 (
   val name = @{binding tendsto_intros}
   val description = "introduction rules for tendsto"
 )
+
 *}
 
-setup Tendsto_Intros.setup
+setup {*
+  Tendsto_Intros.setup #>
+  Global_Theory.add_thms_dynamic (@{binding tendsto_eq_intros},
+    map (fn thm => @{thm tendsto_eq_rhs} OF [thm]) o Tendsto_Intros.get o Context.proof_of);
+*}
 
 lemma tendsto_def: "(f ---> l) F \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) F)"
   unfolding filterlim_def
