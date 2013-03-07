@@ -113,14 +113,13 @@ fun string_for_failure Unprovable = "The generated problem is unprovable."
     "The prover claims the conjecture is a theorem but provided an incomplete \
     \(or unparsable) proof."
   | string_for_failure (UnsoundProof (false, ss)) =
-    "The prover found a type-unsound proof " ^ involving ss ^
+    "The prover found an unsound proof " ^ involving ss ^
     "(or, less likely, your axioms are inconsistent). Specify a sound type \
     \encoding or omit the \"type_enc\" option."
   | string_for_failure (UnsoundProof (true, ss)) =
-    "The prover found a type-unsound proof " ^ involving ss ^
-    "even though a supposedly type-sound encoding was used (or, less likely, \
-    \your axioms are inconsistent). Please report this to the Isabelle \
-    \developers."
+    "The prover found an unsound proof " ^ involving ss ^
+    "(or, less likely, your axioms are inconsistent). Please report this to \
+    \the Isabelle developers."
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure Inappropriate =
