@@ -90,8 +90,8 @@ end;
 signature PRIVATE_CODE =
 sig
   include CODE
-  val declare_data: Object.T -> serial
-  val change_yield_data: serial * ('a -> Object.T) * (Object.T -> 'a)
+  val declare_data: Any.T -> serial
+  val change_yield_data: serial * ('a -> Any.T) * (Any.T -> 'a)
     -> theory -> ('a -> 'b * 'a) -> 'b * 'a
 end;
 
@@ -249,7 +249,7 @@ structure Datatab = Table(type key = int val ord = int_ord);
 
 local
 
-type kind = { empty: Object.T };
+type kind = { empty: Any.T };
 
 val kinds = Synchronized.var "Code_Data" (Datatab.empty: kind Datatab.table);
 
@@ -276,7 +276,7 @@ end; (*local*)
 
 local
 
-type data = Object.T Datatab.table;
+type data = Any.T Datatab.table;
 fun empty_dataref () = Synchronized.var "code data" (NONE : (data * theory_ref) option);
 
 structure Code_Data = Theory_Data

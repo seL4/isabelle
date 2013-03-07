@@ -92,16 +92,16 @@ sig
   include CONTEXT
   structure Theory_Data:
   sig
-    val declare: Position.T -> Object.T -> (Object.T -> Object.T) ->
-      (pretty -> Object.T * Object.T -> Object.T) -> serial
-    val get: serial -> (Object.T -> 'a) -> theory -> 'a
-    val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
+    val declare: Position.T -> Any.T -> (Any.T -> Any.T) ->
+      (pretty -> Any.T * Any.T -> Any.T) -> serial
+    val get: serial -> (Any.T -> 'a) -> theory -> 'a
+    val put: serial -> ('a -> Any.T) -> 'a -> theory -> theory
   end
   structure Proof_Data:
   sig
-    val declare: (theory -> Object.T) -> serial
-    val get: serial -> (Object.T -> 'a) -> Proof.context -> 'a
-    val put: serial -> ('a -> Object.T) -> 'a -> Proof.context -> Proof.context
+    val declare: (theory -> Any.T) -> serial
+    val get: serial -> (Any.T -> 'a) -> Proof.context -> 'a
+    val put: serial -> ('a -> Any.T) -> 'a -> Proof.context -> Proof.context
   end
 end;
 
@@ -119,15 +119,15 @@ val timing = Unsynchronized.ref false;
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
 
-datatype pretty = Pretty of Object.T;
+datatype pretty = Pretty of Any.T;
 
 local
 
 type kind =
  {pos: Position.T,
-  empty: Object.T,
-  extend: Object.T -> Object.T,
-  merge: pretty -> Object.T * Object.T -> Object.T};
+  empty: Any.T,
+  extend: Any.T -> Any.T,
+  merge: pretty -> Any.T * Any.T -> Any.T};
 
 val kinds = Synchronized.var "Theory_Data" (Datatab.empty: kind Datatab.table);
 
@@ -170,7 +170,7 @@ datatype theory =
     id: serial,                   (*identifier*)
     ids: unit Inttab.table} *     (*cumulative identifiers of non-drafts -- symbolic body content*)
    (*data*)
-   Object.T Datatab.table *       (*body content*)
+   Any.T Datatab.table *       (*body content*)
    (*ancestry*)
    {parents: theory list,         (*immediate predecessors*)
     ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
@@ -464,7 +464,7 @@ end;
 
 structure Proof =
 struct
-  datatype context = Context of Object.T Datatab.table * theory_ref;
+  datatype context = Context of Any.T Datatab.table * theory_ref;
 end;
 
 fun theory_of_proof (Proof.Context (_, thy_ref)) = deref thy_ref;
@@ -476,7 +476,7 @@ fun map_prf f (Proof.Context (data, thy_ref)) = Proof.Context (f data, thy_ref);
 
 local
 
-val kinds = Synchronized.var "Proof_Data" (Datatab.empty: (theory -> Object.T) Datatab.table);
+val kinds = Synchronized.var "Proof_Data" (Datatab.empty: (theory -> Any.T) Datatab.table);
 
 fun invoke_init k =
   (case Datatab.lookup (Synchronized.value kinds) k of

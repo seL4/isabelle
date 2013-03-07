@@ -216,7 +216,7 @@ sig
   val serial_string: unit -> string
   eqtype stamp
   val stamp: unit -> stamp
-  structure Object: sig type T = exn end
+  structure Any: sig type T = exn end
   val cd: string -> unit
   val pwd: unit -> string
   val getenv: string -> string
@@ -1065,11 +1065,11 @@ datatype stamp = Stamp of serial;
 fun stamp () = Stamp (serial ());
 
 
-(* generic objects *)
+(* values of any type *)
 
 (*note that the builtin exception datatype may be extended by new
   constructors at any time*)
-structure Object = struct type T = exn end;
+structure Any = struct type T = exn end;
 
 
 (* current directory *)
