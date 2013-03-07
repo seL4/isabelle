@@ -54,7 +54,7 @@ val mod_add_right_eq = @{thm "mod_add_right_eq"} RS sym;
 val nat_div_add_eq = @{thm "div_add1_eq"} RS sym;
 val int_div_add_eq = @{thm "zdiv_zadd1_eq"} RS sym;
 
-fun prepare_for_mir thy q fm = 
+fun prepare_for_mir q fm = 
   let
     val ps = Logic.strip_params fm
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
@@ -89,7 +89,7 @@ fun mir_tac ctxt q =
   let
     val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
-    val (t,np,nh) = prepare_for_mir thy q g
+    val (t,np,nh) = prepare_for_mir q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss 
                         addsimps [refl, mod_add_eq, 
