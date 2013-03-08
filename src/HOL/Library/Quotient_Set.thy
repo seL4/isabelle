@@ -22,7 +22,16 @@ lemma set_relI:
 lemma set_rel_conversep: "set_rel (conversep R) = conversep (set_rel R)"
   unfolding set_rel_def by auto
 
-lemma set_rel_OO: "set_rel (R OO S) = set_rel R OO set_rel S"
+lemma set_rel_eq [relator_eq]: "set_rel (op =) = (op =)"
+  unfolding set_rel_def fun_eq_iff by auto
+
+lemma set_rel_mono[relator_mono]:
+  assumes "A \<le> B"
+  shows "set_rel A \<le> set_rel B"
+using assms unfolding set_rel_def by blast
+
+lemma set_rel_OO[relator_distr]: "set_rel R OO set_rel S = set_rel (R OO S)"
+  apply (rule sym)
   apply (intro ext, rename_tac X Z)
   apply (rule iffI)
   apply (rule_tac b="{y. (\<exists>x\<in>X. R x y) \<and> (\<exists>z\<in>Z. S y z)}" in relcomppI)
@@ -30,9 +39,6 @@ lemma set_rel_OO: "set_rel (R OO S) = set_rel R OO set_rel S"
   apply (simp add: set_rel_def, fast)
   apply (simp add: set_rel_def, fast)
   done
-
-lemma set_rel_eq [relator_eq]: "set_rel (op =) = (op =)"
-  unfolding set_rel_def fun_eq_iff by auto
 
 lemma reflp_set_rel[reflexivity_rule]: "reflp R \<Longrightarrow> reflp (set_rel R)"
   unfolding reflp_def set_rel_def by fast
@@ -207,7 +213,7 @@ lemma Quotient_set[quot_map]:
   assumes "Quotient R Abs Rep T"
   shows "Quotient (set_rel R) (image Abs) (image Rep) (set_rel T)"
   using assms unfolding Quotient_alt_def4
-  apply (simp add: set_rel_OO set_rel_conversep)
+  apply (simp add: set_rel_OO[symmetric] set_rel_conversep)
   apply (simp add: set_rel_def, fast)
   done
 

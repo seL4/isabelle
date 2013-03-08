@@ -27,6 +27,16 @@ lemma prod_rel_eq [id_simps, relator_eq]:
   shows "prod_rel (op =) (op =) = (op =)"
   by (simp add: fun_eq_iff)
 
+lemma prod_rel_mono[relator_mono]:
+  assumes "A \<le> C"
+  assumes "B \<le> D"
+  shows "(prod_rel A B) \<le> (prod_rel C D)"
+using assms by (auto simp: prod_rel_def)
+
+lemma prod_rel_OO[relator_distr]:
+  "(prod_rel A B) OO (prod_rel C D) = prod_rel (A OO C) (B OO D)"
+by (rule ext)+ (auto simp: prod_rel_def OO_def)
+
 lemma prod_reflp [reflexivity_rule]:
   assumes "reflp R1"
   assumes "reflp R2"

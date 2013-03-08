@@ -46,6 +46,15 @@ lemma split_option_all: "(\<forall>x. P x) \<longleftrightarrow> P None \<and> (
 lemma split_option_ex: "(\<exists>x. P x) \<longleftrightarrow> P None \<or> (\<exists>x. P (Some x))"
   by (metis option.exhaust) (* TODO: move to Option.thy *)
 
+lemma option_rel_mono[relator_mono]:
+  assumes "A \<le> B"
+  shows "(option_rel A) \<le> (option_rel B)"
+using assms by (auto simp: option_rel_unfold split: option.splits)
+
+lemma option_rel_OO[relator_distr]:
+  "(option_rel A) OO (option_rel B) = option_rel (A OO B)"
+by (rule ext)+ (auto simp: option_rel_unfold OO_def split: option.split)
+
 lemma option_reflp[reflexivity_rule]:
   "reflp R \<Longrightarrow> reflp (option_rel R)"
   unfolding reflp_def split_option_all by simp

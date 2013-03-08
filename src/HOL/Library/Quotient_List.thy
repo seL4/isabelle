@@ -22,7 +22,12 @@ proof (rule ext)+
     by (induct xs ys rule: list_induct2') simp_all
 qed
 
-lemma list_all2_OO: "list_all2 (A OO B) = list_all2 A OO list_all2 B"
+lemma list_all2_mono[relator_mono]:
+  assumes "A \<le> B"
+  shows "(list_all2 A) \<le> (list_all2 B)"
+using assms by (auto intro: list_all2_mono)
+
+lemma list_all2_OO[relator_distr]: "list_all2 A OO list_all2 B = list_all2 (A OO B)"
 proof (intro ext iffI)
   fix xs ys
   assume "list_all2 (A OO B) xs ys"

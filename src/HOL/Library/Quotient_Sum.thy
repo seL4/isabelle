@@ -46,6 +46,16 @@ lemma split_sum_all: "(\<forall>x. P x) \<longleftrightarrow> (\<forall>x. P (In
 lemma split_sum_ex: "(\<exists>x. P x) \<longleftrightarrow> (\<exists>x. P (Inl x)) \<or> (\<exists>x. P (Inr x))"
   by (metis sum.exhaust) (* TODO: move to Sum_Type.thy *)
 
+lemma sum_rel_mono[relator_mono]:
+  assumes "A \<le> C"
+  assumes "B \<le> D"
+  shows "(sum_rel A B) \<le> (sum_rel C D)"
+using assms by (auto simp: sum_rel_unfold split: sum.splits)
+
+lemma sum_rel_OO[relator_distr]:
+  "(sum_rel A B) OO (sum_rel C D) = sum_rel (A OO C) (B OO D)"
+by (rule ext)+ (auto simp add: sum_rel_unfold OO_def split_sum_ex split: sum.split)
+
 lemma sum_reflp[reflexivity_rule]:
   "reflp R1 \<Longrightarrow> reflp R2 \<Longrightarrow> reflp (sum_rel R1 R2)"
   unfolding reflp_def split_sum_all sum_rel.simps by fast
