@@ -25,27 +25,32 @@ lemma transp_list_eq: "transp list_eq"
 lemma equivp_list_eq: "equivp list_eq"
   by (intro equivpI reflp_list_eq symp_list_eq transp_list_eq)
 
-quotient_type 'a fset = "'a list" / "list_eq"
+lemma list_eq_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(list_all2 A ===> list_all2 A ===> op =) list_eq list_eq"
+  unfolding list_eq_def [abs_def] by transfer_prover
+
+quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
   by (rule equivp_list_eq)
 
 subsection {* Lifted constant definitions *}
 
-lift_definition fnil :: "'a fset" is "[]"
+lift_definition fnil :: "'a fset" is "[]" parametric Nil_transfer
   by simp
 
-lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons
+lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons parametric Cons_transfer
   by simp
 
-lift_definition fappend :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is append
+lift_definition fappend :: "'a fset \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is append parametric append_transfer
   by simp
 
-lift_definition fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" is map
+lift_definition fmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a fset \<Rightarrow> 'b fset" is map parametric map_transfer
   by simp
 
-lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is filter
+lift_definition ffilter :: "('a \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is filter parametric filter_transfer
   by simp
 
-lift_definition fset :: "'a fset \<Rightarrow> 'a set" is set
+lift_definition fset :: "'a fset \<Rightarrow> 'a set" is set parametric set_transfer
   by simp
 
 text {* Constants with nested types (like concat) yield a more
@@ -62,7 +67,7 @@ lemma list_all2_cr_fset:
 lemma abs_fset_eq_iff: "abs_fset xs = abs_fset ys \<longleftrightarrow> list_eq xs ys"
   using Quotient_rel [OF Quotient_fset] by simp
 
-lift_definition fconcat :: "'a fset fset \<Rightarrow> 'a fset" is concat
+lift_definition fconcat :: "'a fset fset \<Rightarrow> 'a fset" is concat parametric concat_transfer
 proof -
   fix xss yss :: "'a list list"
   assume "(list_all2 cr_fset OO list_eq OO (list_all2 cr_fset)\<inverse>\<inverse>) xss yss"
@@ -85,13 +90,6 @@ text {* We can export code: *}
 
 export_code fnil fcons fappend fmap ffilter fset in SML
 
-text {* Note that the generated transfer rule contains a composition
-  of relations. The transfer rule is not yet very useful in this form. *}
-
-lemma "(list_all2 cr_fset OO cr_fset ===> cr_fset) concat fconcat"
-  by (fact fconcat.transfer)
-
-
 subsection {* Using transfer with type @{text "fset"} *}
 
 text {* The correspondence relation @{text "cr_fset"} can only relate
@@ -101,121 +99,6 @@ text {* The correspondence relation @{text "cr_fset"} can only relate
   correspondence relation, @{text "pcr_fset"}. *}
 
 thm pcr_fset_def
-
-lemma right_unique_pcr_fset [transfer_rule]:
-  "right_unique A \<Longrightarrow> right_unique (pcr_fset A)"
-  unfolding pcr_fset_def
-  by (intro right_unique_OO right_unique_list_all2 fset.right_unique)
-
-lemma right_total_pcr_fset [transfer_rule]:
-  "right_total A \<Longrightarrow> right_total (pcr_fset A)"
-  unfolding pcr_fset_def
-  by (intro right_total_OO right_total_list_all2 fset.right_total)
-
-lemma bi_total_pcr_fset [transfer_rule]:
-  "bi_total A \<Longrightarrow> bi_total (pcr_fset A)"
-  unfolding pcr_fset_def
-  by (intro bi_total_OO bi_total_list_all2 fset.bi_total)
-
-text {* Transfer rules for @{text "pcr_fset"} can be derived from the
-  existing transfer rules for @{text "cr_fset"} together with the
-  transfer rules for the polymorphic raw constants. *}
-
-text {* Note that the proofs below all have a similar structure and
-  could potentially be automated. *}
-
-lemma fnil_transfer [transfer_rule]:
-  "(pcr_fset A) [] fnil"
-  unfolding pcr_fset_def
-  apply (rule relcomppI)
-  apply (rule Nil_transfer)
-  apply (rule fnil.transfer)
-  done
-
-lemma fcons_transfer [transfer_rule]:
-  "(A ===> pcr_fset A ===> pcr_fset A) Cons fcons"
-  unfolding pcr_fset_def
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (rule relcomppI)
-  apply (erule (1) Cons_transfer [THEN fun_relD, THEN fun_relD])
-  apply (erule fcons.transfer [THEN fun_relD, THEN fun_relD, OF refl])
-  done
-
-lemma fappend_transfer [transfer_rule]:
-  "(pcr_fset A ===> pcr_fset A ===> pcr_fset A) append fappend"
-  unfolding pcr_fset_def
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (rule relcomppI)
-  apply (erule (1) append_transfer [THEN fun_relD, THEN fun_relD])
-  apply (erule (1) fappend.transfer [THEN fun_relD, THEN fun_relD])
-  done
-
-lemma fmap_transfer [transfer_rule]:
-  "((A ===> B) ===> pcr_fset A ===> pcr_fset B) map fmap"
-  unfolding pcr_fset_def
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (rule relcomppI)
-  apply (erule (1) map_transfer [THEN fun_relD, THEN fun_relD])
-  apply (erule fmap.transfer [THEN fun_relD, THEN fun_relD, unfolded relator_eq, OF refl])
-  done
-
-lemma ffilter_transfer [transfer_rule]:
-  "((A ===> op =) ===> pcr_fset A ===> pcr_fset A) filter ffilter"
-  unfolding pcr_fset_def
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (rule relcomppI)
-  apply (erule (1) filter_transfer [THEN fun_relD, THEN fun_relD])
-  apply (erule ffilter.transfer [THEN fun_relD, THEN fun_relD, unfolded relator_eq, OF refl])
-  done
-
-lemma fset_transfer [transfer_rule]:
-  "(pcr_fset A ===> set_rel A) set fset"
-  unfolding pcr_fset_def
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (drule fset.transfer [THEN fun_relD, unfolded relator_eq])
-  apply (erule subst)
-  apply (erule set_transfer [THEN fun_relD])
-  done
-
-lemma fconcat_transfer [transfer_rule]:
-  "(pcr_fset (pcr_fset A) ===> pcr_fset A) concat fconcat"
-  unfolding pcr_fset_def
-  unfolding list_all2_OO
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (rule relcomppI)
-  apply (erule concat_transfer [THEN fun_relD])
-  apply (rule fconcat.transfer [THEN fun_relD])
-  apply (erule (1) relcomppI)
-  done
-
-lemma list_eq_transfer [transfer_rule]:
-  assumes [transfer_rule]: "bi_unique A"
-  shows "(list_all2 A ===> list_all2 A ===> op =) list_eq list_eq"
-  unfolding list_eq_def [abs_def] by transfer_prover
-
-lemma fset_eq_transfer [transfer_rule]:
-  assumes "bi_unique A"
-  shows "(pcr_fset A ===> pcr_fset A ===> op =) list_eq (op =)"
-  unfolding pcr_fset_def
-  apply (intro fun_relI)
-  apply (elim relcomppE)
-  apply (rule trans)
-  apply (erule (1) list_eq_transfer [THEN fun_relD, THEN fun_relD, OF assms])
-  apply (erule (1) fset.rel_eq_transfer [THEN fun_relD, THEN fun_relD])
-  done
-
-text {* We don't need the original transfer rules any more: *}
-
-lemmas [transfer_rule del] =
-  fset.bi_total fset.right_total fset.right_unique
-  fnil.transfer fcons.transfer fappend.transfer fmap.transfer
-  ffilter.transfer fset.transfer fconcat.transfer fset.rel_eq_transfer
 
 subsection {* Transfer examples *}
 
