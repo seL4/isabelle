@@ -8,6 +8,7 @@ header {* Lifting package *}
 theory Lifting
 imports Equiv_Relations Transfer
 keywords
+  "parametric" and
   "print_quotmaps" "print_quotients" :: diag and
   "lift_definition" :: thy_goal and
   "setup_lifting" :: thy_decl
@@ -342,6 +343,16 @@ lemma typedef_bi_unique: "bi_unique T"
   unfolding bi_unique_def T_def
   by (simp add: type_definition.Rep_inject [OF type])
 
+(* the following two theorems are here only for convinience *)
+
+lemma typedef_right_unique: "right_unique T"
+  using T_def type Quotient_right_unique typedef_to_Quotient 
+  by blast
+
+lemma typedef_right_total: "right_total T"
+  using T_def type Quotient_right_total typedef_to_Quotient 
+  by blast
+
 lemma typedef_rep_transfer: "(T ===> op =) (\<lambda>x. x) Rep"
   unfolding fun_rel_def T_def by simp
 
@@ -410,6 +421,125 @@ qed
 lemma reflp_equality: "reflp (op =)"
 by (auto intro: reflpI)
 
+text {* Proving a parametrized correspondence relation *}
+
+lemma eq_OO: "op= OO R = R"
+unfolding OO_def by metis
+
+definition POS :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+"POS A B \<equiv> A \<le> B"
+
+definition  NEG :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool" where
+"NEG A B \<equiv> B \<le> A"
+
+definition left_unique :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> bool"
+  where "left_unique R \<longleftrightarrow> (\<forall>x y z. R x z \<longrightarrow> R y z \<longrightarrow> x = y)"
+
+(*
+  The following two rules are here because we don't have any proper
+  left-unique ant left-total relations. Left-unique and left-total
+  assumptions show up in distributivity rules for the function type.
+*)
+
+lemma bi_unique_left_unique[transfer_rule]: "bi_unique R \<Longrightarrow> left_unique R"
+unfolding bi_unique_def left_unique_def by blast
+
+lemma bi_total_left_total[transfer_rule]: "bi_total R \<Longrightarrow> left_total R"
+unfolding bi_total_def left_total_def by blast
+
+lemma pos_OO_eq:
+  shows "POS (A OO op=) A"
+unfolding POS_def OO_def by blast
+
+lemma pos_eq_OO:
+  shows "POS (op= OO A) A"
+unfolding POS_def OO_def by blast
+
+lemma neg_OO_eq:
+  shows "NEG (A OO op=) A"
+unfolding NEG_def OO_def by auto
+
+lemma neg_eq_OO:
+  shows "NEG (op= OO A) A"
+unfolding NEG_def OO_def by blast
+
+lemma POS_trans:
+  assumes "POS A B"
+  assumes "POS B C"
+  shows "POS A C"
+using assms unfolding POS_def by auto
+
+lemma NEG_trans:
+  assumes "NEG A B"
+  assumes "NEG B C"
+  shows "NEG A C"
+using assms unfolding NEG_def by auto
+
+lemma POS_NEG:
+  "POS A B \<equiv> NEG B A"
+  unfolding POS_def NEG_def by auto
+
+lemma NEG_POS:
+  "NEG A B \<equiv> POS B A"
+  unfolding POS_def NEG_def by auto
+
+lemma POS_pcr_rule:
+  assumes "POS (A OO B) C"
+  shows "POS (A OO B OO X) (C OO X)"
+using assms unfolding POS_def OO_def by blast
+
+lemma NEG_pcr_rule:
+  assumes "NEG (A OO B) C"
+  shows "NEG (A OO B OO X) (C OO X)"
+using assms unfolding NEG_def OO_def by blast
+
+lemma POS_apply:
+  assumes "POS R R'"
+  assumes "R f g"
+  shows "R' f g"
+using assms unfolding POS_def by auto
+
+text {* Proving a parametrized correspondence relation *}
+
+lemma fun_mono:
+  assumes "A \<ge> C"
+  assumes "B \<le> D"
+  shows   "(A ===> B) \<le> (C ===> D)"
+using assms unfolding fun_rel_def by blast
+
+lemma pos_fun_distr: "((R ===> S) OO (R' ===> S')) \<le> ((R OO R') ===> (S OO S'))"
+unfolding OO_def fun_rel_def by blast
+
+lemma functional_relation: "right_unique R \<Longrightarrow> left_total R \<Longrightarrow> \<forall>x. \<exists>!y. R x y"
+unfolding right_unique_def left_total_def by blast
+
+lemma functional_converse_relation: "left_unique R \<Longrightarrow> right_total R \<Longrightarrow> \<forall>y. \<exists>!x. R x y"
+unfolding left_unique_def right_total_def by blast
+
+lemma neg_fun_distr1:
+assumes 1: "left_unique R" "right_total R"
+assumes 2: "right_unique R'" "left_total R'"
+shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S')) "
+  using functional_relation[OF 2] functional_converse_relation[OF 1]
+  unfolding fun_rel_def OO_def
+  apply clarify
+  apply (subst all_comm)
+  apply (subst all_conj_distrib[symmetric])
+  apply (intro choice)
+  by metis
+
+lemma neg_fun_distr2:
+assumes 1: "right_unique R'" "left_total R'"
+assumes 2: "left_unique S'" "right_total S'"
+shows "(R OO R' ===> S OO S') \<le> ((R ===> S) OO (R' ===> S'))"
+  using functional_converse_relation[OF 2] functional_relation[OF 1]
+  unfolding fun_rel_def OO_def
+  apply clarify
+  apply (subst all_comm)
+  apply (subst all_conj_distrib[symmetric])
+  apply (intro choice)
+  by metis
+
 subsection {* ML setup *}
 
 ML_file "Tools/Lifting/lifting_util.ML"
@@ -417,8 +547,12 @@ ML_file "Tools/Lifting/lifting_util.ML"
 ML_file "Tools/Lifting/lifting_info.ML"
 setup Lifting_Info.setup
 
-declare fun_quotient[quot_map]
 lemmas [reflexivity_rule] = reflp_equality reflp_Quotient_composition
+
+(* setup for the function type *)
+declare fun_quotient[quot_map]
+declare fun_mono[relator_mono]
+lemmas [relator_distr] = pos_fun_distr neg_fun_distr1 neg_fun_distr2
 
 ML_file "Tools/Lifting/lifting_term.ML"
 
@@ -426,6 +560,6 @@ ML_file "Tools/Lifting/lifting_def.ML"
 
 ML_file "Tools/Lifting/lifting_setup.ML"
 
-hide_const (open) invariant
+hide_const (open) invariant POS NEG
 
 end

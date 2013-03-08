@@ -9,6 +9,7 @@ sig
   val prep_conv: conv
   val get_relator_eq: Proof.context -> thm list
   val get_sym_relator_eq: Proof.context -> thm list
+  val get_transfer_raw: Proof.context -> thm list
   val transfer_add: attribute
   val transfer_del: attribute
   val transfer_rule_of_term: Proof.context -> term -> thm
