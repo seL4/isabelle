@@ -167,7 +167,6 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
              SOME disc)) ks ms ctrs0;
 
     val no_discs = map is_none disc_bindings;
-    val no_discs_at_all = forall I no_discs;
 
     fun std_sel_binding m l = Binding.name o mk_unN m l o base_name_of_ctr;
 
@@ -240,19 +239,13 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
           fun alternate_disc k =
             Term.lambda u (alternate_disc_lhs (K o rapp u o disc_free) (3 - k));
 
-          fun mk_default T t =
-            let
-              val Ts0 = map TFree (Term.add_tfreesT (fastype_of t) []);
-              val Ts = map TFree (Term.add_tfreesT T []);
-            in Term.subst_atomic_types (Ts0 ~~ Ts) t end;
-
           fun mk_sel_case_args b proto_sels T =
             map2 (fn Ts => fn k =>
               (case AList.lookup (op =) proto_sels k of
                 NONE =>
                 (case AList.lookup Binding.eq_name (rev (nth sel_defaultss (k - 1))) b of
                   NONE => fold_rev (Term.lambda o curry Free Name.uu) Ts (mk_undefined T)
-                | SOME t => mk_default (Ts ---> T) t)
+                | SOME t => t |> Type.constraint (Ts ---> T) |> Syntax.check_term no_defs_lthy)
               | SOME (xs, x) => fold_rev Term.lambda xs x)) ctr_Tss ks;
 
           fun sel_spec b proto_sels =
@@ -658,7 +651,7 @@ fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
 
 val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap_datatype Syntax.read_term;
+  prepare_wrap_datatype Syntax.parse_term;
 
 fun parse_bracket_list parser = @{keyword "["} |-- Parse.list parser --|  @{keyword "]"};
 

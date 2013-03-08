@@ -1165,7 +1165,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
 val datatypes = define_datatypes (K I) (K I) (K I);
 
-val datatype_cmd = define_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.read_term;
+val datatype_cmd = define_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term;
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
