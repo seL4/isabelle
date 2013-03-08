@@ -17,8 +17,6 @@ by(cases x) simp
 lemma type_definition_phantom': "type_definition of_phantom phantom UNIV"
 by(unfold_locales) simp_all
 
-setup_lifting (no_code) type_definition_phantom'
-
 lemma phantom_comp_of_phantom [simp]: "phantom \<circ> of_phantom = id"
   and of_phantom_comp_phantom [simp]: "of_phantom \<circ> phantom = id"
 by(simp_all add: o_def id_def)
