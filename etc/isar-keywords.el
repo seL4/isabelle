@@ -337,6 +337,7 @@
     "open"
     "output"
     "overloaded"
+    "parametric"
     "permissive"
     "pervasive"
     "rep_compat"
