@@ -373,8 +373,8 @@ quotient_type real = "nat \<Rightarrow> rat" / partial: realrel
   morphisms rep_real Real
   by (rule part_equivp_realrel)
 
-lemma cr_real_eq: "cr_real = (\<lambda>x y. cauchy x \<and> Real x = y)"
-  unfolding cr_real_def realrel_def by simp
+lemma cr_real_eq: "pcr_real = (\<lambda>x y. cauchy x \<and> Real x = y)"
+  unfolding real.pcr_cr_eq cr_real_def realrel_def by auto
 
 lemma Real_induct [induct type: real]: (* TODO: generate automatically *)
   assumes "\<And>X. cauchy X \<Longrightarrow> P (Real X)" shows "P x"
@@ -387,14 +387,14 @@ qed
 lemma eq_Real:
   "cauchy X \<Longrightarrow> cauchy Y \<Longrightarrow> Real X = Real Y \<longleftrightarrow> vanishes (\<lambda>n. X n - Y n)"
   using real.rel_eq_transfer
-  unfolding cr_real_def fun_rel_def realrel_def by simp
+  unfolding real.pcr_cr_eq cr_real_def fun_rel_def realrel_def by simp
 
 declare real.forall_transfer [transfer_rule del]
 
 lemma forall_real_transfer [transfer_rule]: (* TODO: generate automatically *)
-  "(fun_rel (fun_rel cr_real op =) op =)
+  "(fun_rel (fun_rel pcr_real op =) op =)
     (transfer_bforall cauchy) transfer_forall"
-  using Quotient_forall_transfer [OF Quotient_real]
+  using real.forall_transfer
   by (simp add: realrel_def)
 
 instantiation real :: field_inverse_zero

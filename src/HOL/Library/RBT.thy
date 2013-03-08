@@ -5,7 +5,7 @@
 header {* Abstract type of RBT trees *}
 
 theory RBT 
-imports Main RBT_Impl
+imports Main RBT_Impl Quotient_List
 begin
 
 subsection {* Type definition *}
@@ -36,6 +36,7 @@ lemma RBT_impl_of [simp, code abstype]:
 subsection {* Primitive operations *}
 
 setup_lifting type_definition_rbt
+print_theorems
 
 lift_definition lookup :: "('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'a \<rightharpoonup> 'b" is "rbt_lookup" 
 by simp
@@ -61,7 +62,7 @@ by simp
 lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is rbt_map_entry 
 by simp
 
-lift_definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'b) rbt" is RBT_Impl.map
+lift_definition map :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> ('a, 'c) rbt" is RBT_Impl.map
 by simp
 
 lift_definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'c) \<Rightarrow> ('a\<Colon>linorder, 'b) rbt \<Rightarrow> 'c \<Rightarrow> 'c"  is RBT_Impl.fold 

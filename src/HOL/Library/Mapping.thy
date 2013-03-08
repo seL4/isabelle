@@ -5,7 +5,7 @@
 header {* An abstract view on maps for code generation. *}
 
 theory Mapping
-imports Main Quotient_Option
+imports Main Quotient_Option Quotient_List
 begin
 
 subsection {* Type definition and primitive operations *}
@@ -81,7 +81,7 @@ qed (unfold equal_mapping_def, transfer, auto)
 end
 
 lemma [transfer_rule]:
-  "fun_rel cr_mapping (fun_rel cr_mapping HOL.iff) HOL.eq HOL.equal"
+  "fun_rel (pcr_mapping op= op=) (fun_rel (pcr_mapping op= op=) HOL.iff) HOL.eq HOL.equal"
   by (unfold equal) transfer_prover
 
 

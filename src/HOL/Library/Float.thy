@@ -223,15 +223,15 @@ lemma float_numeral[simp]: "real (numeral x :: float) = numeral x"
   done
 
 lemma transfer_numeral [transfer_rule]: 
-  "fun_rel (op =) cr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
-  unfolding fun_rel_def cr_float_def by simp
+  "fun_rel (op =) pcr_float (numeral :: _ \<Rightarrow> real) (numeral :: _ \<Rightarrow> float)"
+  unfolding fun_rel_def float.pcr_cr_eq  cr_float_def by simp
 
 lemma float_neg_numeral[simp]: "real (neg_numeral x :: float) = neg_numeral x"
   by (simp add: minus_numeral[symmetric] del: minus_numeral)
 
 lemma transfer_neg_numeral [transfer_rule]: 
-  "fun_rel (op =) cr_float (neg_numeral :: _ \<Rightarrow> real) (neg_numeral :: _ \<Rightarrow> float)"
-  unfolding fun_rel_def cr_float_def by simp
+  "fun_rel (op =) pcr_float (neg_numeral :: _ \<Rightarrow> real) (neg_numeral :: _ \<Rightarrow> float)"
+  unfolding fun_rel_def float.pcr_cr_eq cr_float_def by simp
 
 lemma
   shows float_of_numeral[simp]: "numeral k = float_of (numeral k)"
