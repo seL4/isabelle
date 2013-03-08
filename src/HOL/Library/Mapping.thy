@@ -8,6 +8,70 @@ theory Mapping
 imports Main Quotient_Option Quotient_List
 begin
 
+subsection {* Parametricity transfer rules *}
+
+lemma empty_transfer: "(A ===> option_rel B) Map.empty Map.empty" by transfer_prover
+
+lemma lookup_transfer: "((A ===> B) ===> A ===> B) (\<lambda>m k. m k) (\<lambda>m k. m k)" by transfer_prover
+
+lemma update_transfer:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> B ===> (A ===> option_rel B) ===> A ===> option_rel B) 
+          (\<lambda>k v m. m(k \<mapsto> v)) (\<lambda>k v m. m(k \<mapsto> v))"
+by transfer_prover
+
+lemma delete_transfer:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> (A ===> option_rel B) ===> A ===> option_rel B) 
+          (\<lambda>k m. m(k := None)) (\<lambda>k m. m(k := None))"
+by transfer_prover
+
+definition equal_None :: "'a option \<Rightarrow> bool" where "equal_None x \<equiv> x = None"
+
+lemma [transfer_rule]: "(option_rel A ===> op=) equal_None equal_None" 
+unfolding fun_rel_def option_rel_unfold equal_None_def by (auto split: option.split)
+
+lemma dom_transfer:
+  assumes [transfer_rule]: "bi_total A"
+  shows "((A ===> option_rel B) ===> set_rel A) dom dom" 
+unfolding dom_def[abs_def] equal_None_def[symmetric] 
+by transfer_prover
+
+lemma map_of_transfer [transfer_rule]:
+  assumes [transfer_rule]: "bi_unique R1"
+  shows "(list_all2 (prod_rel R1 R2) ===> R1 ===> option_rel R2) map_of map_of"
+unfolding map_of_def by transfer_prover
+
+lemma tabulate_transfer: 
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(list_all2 A ===> (A ===> B) ===> A ===> option_rel B) 
+    (\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))) (\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks)))"
+by transfer_prover
+
+lemma bulkload_transfer: 
+  "(list_all2 A ===> op= ===> option_rel A) 
+    (\<lambda>xs k. if k < length xs then Some (xs ! k) else None) (\<lambda>xs k. if k < length xs then Some (xs ! k) else None)"
+unfolding fun_rel_def 
+apply clarsimp 
+apply (erule list_all2_induct) 
+  apply simp 
+apply (case_tac xa) 
+  apply simp 
+by (auto dest: list_all2_lengthD list_all2_nthD)
+
+lemma map_transfer: 
+  "((A ===> B) ===> (C ===> D) ===> (B ===> option_rel C) ===> A ===> option_rel D) 
+    (\<lambda>f g m. (Option.map g \<circ> m \<circ> f)) (\<lambda>f g m. (Option.map g \<circ> m \<circ> f))"
+by transfer_prover
+
+lemma map_entry_transfer:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> (B ===> B) ===> (A ===> option_rel B) ===> A ===> option_rel B) 
+    (\<lambda>k f m. (case m k of None \<Rightarrow> m
+      | Some v \<Rightarrow> m (k \<mapsto> (f v)))) (\<lambda>k f m. (case m k of None \<Rightarrow> m
+      | Some v \<Rightarrow> m (k \<mapsto> (f v))))"
+by transfer_prover
+
 subsection {* Type definition and primitive operations *}
 
 typedef ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
@@ -15,24 +79,27 @@ typedef ('a, 'b) mapping = "UNIV :: ('a \<rightharpoonup> 'b) set"
 
 setup_lifting(no_code) type_definition_mapping
 
-lift_definition empty :: "('a, 'b) mapping" is "(\<lambda>_. None)" .
+lift_definition empty :: "('a, 'b) mapping" is Map.empty parametric empty_transfer .
 
-lift_definition lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<Rightarrow> 'b option" is "\<lambda>m k. m k" .
+lift_definition lookup :: "('a, 'b) mapping \<Rightarrow> 'a \<Rightarrow> 'b option" is "\<lambda>m k. m k" 
+  parametric lookup_transfer .
 
-lift_definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is "\<lambda>k v m. m(k \<mapsto> v)" .
+lift_definition update :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is "\<lambda>k v m. m(k \<mapsto> v)" 
+  parametric update_transfer .
 
-lift_definition delete :: "'a \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is "\<lambda>k m. m(k := None)" .
+lift_definition delete :: "'a \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is "\<lambda>k m. m(k := None)" 
+  parametric delete_transfer .
 
-lift_definition keys :: "('a, 'b) mapping \<Rightarrow> 'a set" is dom .
+lift_definition keys :: "('a, 'b) mapping \<Rightarrow> 'a set" is dom parametric dom_transfer .
 
 lift_definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping" is
-  "\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))" .
+  "\<lambda>ks f. (map_of (List.map (\<lambda>k. (k, f k)) ks))" parametric tabulate_transfer .
 
 lift_definition bulkload :: "'a list \<Rightarrow> (nat, 'a) mapping" is
-  "\<lambda>xs k. if k < length xs then Some (xs ! k) else None" .
+  "\<lambda>xs k. if k < length xs then Some (xs ! k) else None" parametric bulkload_transfer .
 
 lift_definition map :: "('c \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'd) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('c, 'd) mapping" is
-  "\<lambda>f g m. (Option.map g \<circ> m \<circ> f)" .
+  "\<lambda>f g m. (Option.map g \<circ> m \<circ> f)" parametric map_transfer .
 
 
 subsection {* Functorial structure *}
@@ -60,7 +127,7 @@ definition default :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) mapping \<Righ
 
 lift_definition map_entry :: "'a \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" is
   "\<lambda>k f m. (case m k of None \<Rightarrow> m
-    | Some v \<Rightarrow> m (k \<mapsto> (f v)))" .
+    | Some v \<Rightarrow> m (k \<mapsto> (f v)))" parametric map_entry_transfer .
 
 lemma map_entry_code [code]: "map_entry k f m = (case lookup m k of None \<Rightarrow> m
     | Some v \<Rightarrow> update k (f v) m)"
@@ -68,6 +135,13 @@ lemma map_entry_code [code]: "map_entry k f m = (case lookup m k of None \<Right
 
 definition map_default :: "'a \<Rightarrow> 'b \<Rightarrow> ('b \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) mapping \<Rightarrow> ('a, 'b) mapping" where
   "map_default k v f m = map_entry k f (default k v m)" 
+
+lift_definition assoc_list_to_mapping :: "('k \<times> 'v) list \<Rightarrow> ('k, 'v) mapping"
+is map_of parametric map_of_transfer .
+
+lemma assoc_list_to_mapping_code [code]:
+  "assoc_list_to_mapping xs = foldr (\<lambda>(k, v) m. update k v m) xs empty"
+by transfer(simp add: map_add_map_of_foldr[symmetric])
 
 instantiation mapping :: (type, type) equal
 begin
@@ -81,8 +155,10 @@ qed (unfold equal_mapping_def, transfer, auto)
 end
 
 lemma [transfer_rule]:
-  "fun_rel (pcr_mapping op= op=) (fun_rel (pcr_mapping op= op=) HOL.iff) HOL.eq HOL.equal"
-  by (unfold equal) transfer_prover
+  assumes [transfer_rule]: "bi_total A"
+  assumes [transfer_rule]: "bi_unique B"
+  shows  "fun_rel (pcr_mapping A B) (fun_rel (pcr_mapping A B) HOL.iff) HOL.eq HOL.equal"
+by (unfold equal) transfer_prover
 
 
 subsection {* Properties *}
@@ -280,4 +356,5 @@ hide_const (open) empty is_empty rep lookup update delete ordered_keys keys size
   replace default map_entry map_default tabulate bulkload map
 
 end
+
 
