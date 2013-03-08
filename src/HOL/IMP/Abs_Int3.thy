@@ -426,23 +426,43 @@ subsubsection "Generic Termination Proof"
 
 locale Measure_WN = Measure1 where m=m for m :: "'av::WN \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
+assumes m_anti_mono: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 assumes m_widen: "~ y \<le> x \<Longrightarrow> m(x \<nabla> y) < m x"
 assumes n_mono: "x \<le> y \<Longrightarrow> n x \<le> n y"
 assumes n_narrow: "y \<le> x \<Longrightarrow> ~ x \<le> x \<triangle> y \<Longrightarrow> n(x \<triangle> y) < n x"
 
 begin
 
+lemma m_s_anti_mono: "S1 \<le> S2 \<Longrightarrow> m_s S1 \<ge> m_s S2"
+proof(auto simp add: less_eq_st_def m_s_def)
+  assume "\<forall>x\<in>dom S2. fun S1 x \<le> fun S2 x"
+  hence "\<forall>x\<in>dom S2. m(fun S1 x) \<ge> m(fun S2 x)" by (metis m_anti_mono)
+  thus "(\<Sum>x\<in>dom S2. m (fun S2 x)) \<le> (\<Sum>x\<in>dom S2. m (fun S1 x))"
+    by (metis setsum_mono)
+qed
+
 lemma m_s_widen: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X \<Longrightarrow>
   ~ S2 \<le> S1 \<Longrightarrow> m_s(S1 \<nabla> S2) < m_s S1"
 proof(auto simp add: less_eq_st_def m_s_def L_st_def widen_st_def)
   assume "finite(dom S1)"
   have 1: "\<forall>x\<in>dom S1. m(fun S1 x) \<ge> m(fun S1 x \<nabla> fun S2 x)"
-    by (metis m1 WN_class.widen1)
+    by (metis m_anti_mono WN_class.widen1)
   fix x assume "x \<in> dom S1" "\<not> fun S2 x \<le> fun S1 x"
   hence 2: "EX x : dom S1. m(fun S1 x) > m(fun S1 x \<nabla> fun S2 x)"
     using m_widen by blast
   from setsum_strict_mono_ex1[OF `finite(dom S1)` 1 2]
   show "(\<Sum>x\<in>dom S1. m (fun S1 x \<nabla> fun S2 x)) < (\<Sum>x\<in>dom S1. m (fun S1 x))" .
+qed
+
+lemma m_o_anti_mono: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
+  o1 \<le> o2 \<Longrightarrow> m_o (card X) o1 \<ge> m_o (card X) o2"
+proof(induction o1 o2 rule: less_eq_option.induct)
+  case 1 thus ?case by (simp add: m_o_def)(metis m_s_anti_mono)
+next
+  case 2 thus ?case
+    by(simp add: L_option_def m_o_def le_SucI m_s_h split: option.splits)
+next
+  case 3 thus ?case by simp
 qed
 
 lemma m_o_widen: "\<lbrakk> S1 \<in> L X; S2 \<in> L X; finite X; \<not> S2 \<le> S1 \<rbrakk> \<Longrightarrow>
@@ -458,7 +478,7 @@ apply (auto)
 apply(rule setsum_strict_mono_ex1)
 apply simp
 apply (clarsimp)
-apply(simp add: m_o1 finite_cvars widen1[where c = "strip C2"])
+apply(simp add: m_o_anti_mono finite_cvars widen1[where c = "strip C2"])
 apply(auto simp: le_iff_le_annos listrel_iff_nth)
 apply(rule_tac x=i in bexI)
 prefer 2 apply simp
@@ -622,9 +642,9 @@ and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 and m = m_ivl and n = n_ivl and h = 3
 proof
-  case goal1 thus ?case by(rule m_ivl_anti_mono)
+  case goal2 thus ?case by(rule m_ivl_anti_mono)
 next
-  case goal2 thus ?case by(rule m_ivl_height)
+  case goal1 thus ?case by(rule m_ivl_height)
 next
   case goal3 thus ?case by(rule m_ivl_widen)
 next
