@@ -722,6 +722,9 @@ lemma map_union_fset:
   shows "map_fset f (S |\<union>| T) = map_fset f S |\<union>| map_fset f T"
   by (descending) (simp)
 
+lemma in_fset_map_fset[simp]: "a |\<in>| map_fset f X = (\<exists>b. b |\<in>| X \<and> a = f b)"
+  by descending auto
+
 
 subsection {* card_fset *}
 
