@@ -173,9 +173,7 @@ and m = m_parity and h = "1"
 proof
   case goal1 thus ?case by(auto simp add: m_parity_def less_eq_parity_def)
 next
-  case goal2 thus ?case by(auto simp add: m_parity_def less_eq_parity_def)
-next
-  case goal3 thus ?case by(auto simp add: m_parity_def less_eq_parity_def less_parity_def)
+  case goal2 thus ?case by(auto simp add: m_parity_def less_eq_parity_def less_parity_def)
 qed
 
 thm AI_Some_measure

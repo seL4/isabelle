@@ -143,9 +143,7 @@ and m = m_const and h = "1"
 proof
   case goal1 thus ?case by(auto simp: m_const_def split: const.splits)
 next
-  case goal2 thus ?case by(auto simp: m_const_def split: const.splits)
-next
-  case goal3 thus ?case by(auto simp: m_const_def less_const_def split: const.splits)
+  case goal2 thus ?case by(auto simp: m_const_def less_const_def split: const.splits)
 qed
 
 thm AI_Some_measure

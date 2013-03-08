@@ -197,7 +197,6 @@ qed
 locale Measure1 =
 fixes m :: "'av::order \<Rightarrow> nat"
 fixes h :: "nat"
-assumes m1: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 assumes h: "m x \<le> h"
 begin
 
@@ -208,30 +207,11 @@ lemma m_s_h: "x \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_s x \<l
 by(simp add: L_st_def m_s_def)
   (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
 
-lemma m_s1: "S1 \<le> S2 \<Longrightarrow> m_s S1 \<ge> m_s S2"
-proof(auto simp add: less_eq_st_def m_s_def)
-  assume "\<forall>x\<in>dom S2. fun S1 x \<le> fun S2 x"
-  hence "\<forall>x\<in>dom S2. m(fun S1 x) \<ge> m(fun S2 x)" by (metis m1)
-  thus "(\<Sum>x\<in>dom S2. m (fun S2 x)) \<le> (\<Sum>x\<in>dom S2. m (fun S1 x))"
-    by (metis setsum_mono)
-qed
-
 definition m_o :: "nat \<Rightarrow> 'av st option \<Rightarrow> nat" ("m\<^isub>o") where
 "m_o d opt = (case opt of None \<Rightarrow> h*d+1 | Some S \<Rightarrow> m_s S)"
 
 lemma m_o_h: "ost \<in> L X \<Longrightarrow> finite X \<Longrightarrow> m_o (card X) ost \<le> (h*card X + 1)"
 by(auto simp add: m_o_def m_s_h split: option.split dest!:m_s_h)
-
-lemma m_o1: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
-  o1 \<le> o2 \<Longrightarrow> m_o (card X) o1 \<ge> m_o (card X) o2"
-proof(induction o1 o2 rule: less_eq_option.induct)
-  case 1 thus ?case by (simp add: m_o_def)(metis m_s1)
-next
-  case 2 thus ?case
-    by(simp add: L_option_def m_o_def le_SucI m_s_h split: option.splits)
-next
-  case 3 thus ?case by simp
-qed
 
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^isub>c") where
 "m_c C = (\<Sum>i<size(annos C). m_o (card(vars(strip C))) (annos C ! i))"
@@ -257,6 +237,9 @@ locale Measure = Measure1 +
 assumes m2: "x < y \<Longrightarrow> m x > m y"
 begin
 
+lemma m1: "x \<le> y \<Longrightarrow> m x \<ge> m y"
+by(auto simp: le_less m2)
+
 lemma m_s2: "finite(dom S1) \<Longrightarrow> S1 < S2 \<Longrightarrow> m_s S1 > m_s S2"
 proof(auto simp add: less_st_def less_eq_st_def m_s_def)
   assume "finite(dom S2)" and 0: "\<forall>x\<in>dom S2. fun S1 x \<le> fun S2 x"
@@ -277,7 +260,10 @@ next
   case 3 thus ?case by (auto simp: less_option_def)
 qed
 
-find_theorems "(_<_) = _"
+lemma m_o1: "finite X \<Longrightarrow> o1 \<in> L X \<Longrightarrow> o2 \<in> L X \<Longrightarrow>
+  o1 \<le> o2 \<Longrightarrow> m_o (card X) o1 \<ge> m_o (card X) o2"
+by(auto simp: le_less m_o2)
+
 lemma m_c2: "C1 \<in> L(vars(strip C1)) \<Longrightarrow> C2 \<in> L(vars(strip C2)) \<Longrightarrow>
   C1 < C2 \<Longrightarrow> m_c C1 > m_c C2"
 proof(auto simp add: le_iff_le_annos m_c_def size_annos_same[of C1 C2] less_acom_def L_acom_def)
