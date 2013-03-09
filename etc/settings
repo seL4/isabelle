@@ -11,7 +11,7 @@
 ### JVM components (Scala or Java)
 ###
 
-ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5"
+ISABELLE_SCALA_BUILD_OPTIONS="-nowarn -target:jvm-1.5 -Xmax-classfile-name 130"
 
 
 ###
