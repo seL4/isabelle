@@ -404,9 +404,7 @@ fun apply_method current_context meth state =
   end;
 
 fun select_goals n meth state =
-  state
-  |> (#2 o #2 o get_goal)
-  |> ALLGOALS Goal.conjunction_tac
+  ALLGOALS Goal.conjunction_tac (#2 (#2 (get_goal state)))
   |> Seq.maps (fn goal =>
     state
     |> Seq.lift provide_goal (Goal.extract 1 n goal |> Seq.maps (Goal.conjunction_tac 1))
@@ -426,7 +424,7 @@ fun apply_text cc text state =
       | eval (Method.Orelse txts) = Seq.FIRST (map eval txts)
       | eval (Method.Try txt) = Seq.TRY (eval txt)
       | eval (Method.Repeat1 txt) = Seq.REPEAT1 (eval txt)
-      | eval (Method.SelectGoals (n, txt)) = select_goals n (eval txt);
+      | eval (Method.Select_Goals (n, txt)) = select_goals n (eval txt);
   in eval text state end;
 
 in

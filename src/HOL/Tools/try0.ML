@@ -61,7 +61,7 @@ fun apply_named_method_on_first_goal method thy =
   method |> parse_method
          |> Method.method thy
          |> Method.Basic
-         |> curry Method.SelectGoals 1
+         |> curry Method.Select_Goals 1
          |> Proof.refine
   handle ERROR _ => K Seq.empty (* e.g., the method isn't available yet *)
 

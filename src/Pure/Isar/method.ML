@@ -53,7 +53,7 @@ sig
     Orelse of text list |
     Try of text |
     Repeat1 of text |
-    SelectGoals of int * text
+    Select_Goals of int * text
   val primitive_text: (thm -> thm) -> text
   val succeed_text: text
   val default_text: text
@@ -289,7 +289,7 @@ datatype text =
   Orelse of text list |
   Try of text |
   Repeat1 of text |
-  SelectGoals of int * text;
+  Select_Goals of int * text;
 
 fun primitive_text r = Basic (K (SIMPLE_METHOD (PRIMITIVE r)));
 val succeed_text = Basic (K succeed);
@@ -407,7 +407,8 @@ fun meth4 x =
 and meth3 x =
  (meth4 --| Parse.$$$ "?" >> Try ||
   meth4 --| Parse.$$$ "+" >> Repeat1 ||
-  meth4 -- (Parse.$$$ "[" |-- Scan.optional Parse.nat 1 --| Parse.$$$ "]") >> (SelectGoals o swap) ||
+  meth4 -- (Parse.$$$ "[" |-- Scan.optional Parse.nat 1 --| Parse.$$$ "]")
+    >> (Select_Goals o swap) ||
   meth4) x
 and meth2 x =
  (Parse.position (Parse.xname -- Args.parse1 is_symid_meth) >> (Source o Args.src) ||
