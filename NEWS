@@ -26,6 +26,9 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Discontinued theory src/HOL/Library/Eval_Witness.
+INCOMPATIBILITY.
+
 * Discontinued obsolete src/HOL/IsaMakefile (considered legacy since
 Isabelle2013).  Use "isabelle build" to operate on Isabelle sessions.
 

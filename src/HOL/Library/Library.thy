@@ -16,7 +16,6 @@ imports
   Debug
   Diagonal_Subsequence
   Dlist
-  Eval_Witness
   Extended Extended_Nat Extended_Real
   FinFun
   Float
