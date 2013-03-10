@@ -273,7 +273,7 @@ definition iter_widen :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> (
 where "iter_widen f = while_option (\<lambda>x. \<not> f x \<le> x) (\<lambda>x. x \<nabla> f x)"
 
 definition iter_narrow :: "('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> ('a::{order,narrow})option"
-where "iter_narrow f = while_option (\<lambda>x. \<not> x \<le> x \<triangle> f x) (\<lambda>x. x \<triangle> f x)"
+where "iter_narrow f = while_option (\<lambda>x. x \<triangle> f x < x) (\<lambda>x. x \<triangle> f x)"
 
 definition pfp_wn :: "('a::{order,widen,narrow} \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a option"
 where "pfp_wn f x =
@@ -424,12 +424,17 @@ value "show_acom_opt (AI_ivl' test6_ivl)"
 
 subsubsection "Generic Termination Proof"
 
+text{* The assumptions for widening and narrowing differ because during
+narrowing we have the invariant @{prop"y \<le> x"} (where @{text y} is the next
+iterate), but during widening there is no such invariant, there we only have
+that not yet @{prop"y \<le> x"}. This complicates the termination proof for
+widening. *}
+
 locale Measure_WN = Measure1 where m=m for m :: "'av::WN \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
 assumes m_anti_mono: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 assumes m_widen: "~ y \<le> x \<Longrightarrow> m(x \<nabla> y) < m x"
-assumes n_mono: "x \<le> y \<Longrightarrow> n x \<le> n y"
-assumes n_narrow: "y \<le> x \<Longrightarrow> ~ x \<le> x \<triangle> y \<Longrightarrow> n(x \<triangle> y) < n x"
+assumes n_narrow: "y \<le> x \<Longrightarrow> x \<triangle> y < x \<Longrightarrow> n(x \<triangle> y) < n x"
 
 begin
 
@@ -490,25 +495,26 @@ done
 definition n_s :: "'av st \<Rightarrow> nat" ("n\<^isub>s") where
 "n\<^isub>s S = (\<Sum>x\<in>dom S. n(fun S x))"
 
-lemma n_s_mono: assumes "S1 \<le> S2" shows "n\<^isub>s S1 \<le> n\<^isub>s S2"
-proof-
-  from assms have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S1 x \<le> fun S2 x"
-    by(simp_all add: less_eq_st_def)
-  have "(\<Sum>x\<in>dom S1. n(fun S1 x)) \<le> (\<Sum>x\<in>dom S1. n(fun S2 x))"
-    by(rule setsum_mono)(simp add: less_eq_st_def n_mono)
-  thus ?thesis by(simp add: n_s_def)
-qed
+lemma less_stD:
+  "(S1 < S2) \<Longrightarrow> (S1 \<le> S2 \<and> (\<exists>x\<in>dom S1. fun S1 x < fun S2 x))"
+by (metis less_eq_st_def less_le_not_le)
 
 lemma n_s_narrow:
-assumes "finite(dom S1)" and "S2 \<le> S1" "\<not> S1 \<le> S1 \<triangle> S2"
+assumes "finite(dom S1)" and "S2 \<le> S1" "S1 \<triangle> S2 < S1"
 shows "n\<^isub>s (S1 \<triangle> S2) < n\<^isub>s S1"
 proof-
-  from `S2\<le>S1` have [simp]: "dom S1 = dom S2" "\<forall>x\<in>dom S1. fun S2 x \<le> fun S1 x"
+  from `S2\<le>S1`
+  have dom[simp]: "dom S1 = dom S2" and "\<forall>x\<in>dom S1. fun S2 x \<le> fun S1 x"
     by(simp_all add: less_eq_st_def)
-  have 1: "\<forall>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) \<le> n(fun S1 x)"
-    by(auto simp: less_eq_st_def narrow_st_def n_mono WN_class.narrow2)
-  have 2: "\<exists>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) < n(fun S1 x)" using `\<not> S1 \<le> S1 \<triangle> S2`
-    by(force simp: less_eq_st_def narrow_st_def intro: n_narrow)
+  { fix x assume "x \<in> dom S1"
+    hence "n(fun (S1 \<triangle> S2) x) \<le> n(fun S1 x)"
+    using less_stD[OF `S1 \<triangle> S2 < S1`] `S2 \<le> S1` dom
+    apply(auto simp: less_eq_st_def narrow_st_def)
+    by (metis less_le n_narrow not_less)
+  } note 1 = this
+  have 2: "\<exists>x\<in>dom S1. n(fun (S1 \<triangle> S2) x) < n(fun S1 x)"
+    using less_stD[OF `S1 \<triangle> S2 < S1`] `S2 \<le> S1`
+    by(auto simp: less_eq_st_def narrow_st_def intro: n_narrow)
   have "(\<Sum>x\<in>dom S1. n(fun (S1 \<triangle> S2) x)) < (\<Sum>x\<in>dom S1. n(fun S1 x))"
     apply(rule setsum_strict_mono_ex1[OF `finite(dom S1)`]) using 1 2 by blast+
   moreover have "dom (S1 \<triangle> S2) = dom S1" by(simp add: narrow_st_def)
@@ -519,12 +525,13 @@ qed
 definition n_o :: "'av st option \<Rightarrow> nat" ("n\<^isub>o") where
 "n\<^isub>o opt = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s S + 1)"
 
-lemma n_o_mono: "S1 \<le> S2 \<Longrightarrow> n\<^isub>o S1 \<le> n\<^isub>o S2"
-by(induction S1 S2 rule: less_eq_option.induct)(auto simp: n_o_def n_s_mono)
+(* FIXME mv *)
+lemma [simp]: "(Some x < Some y) = (x < y)"
+by(auto simp: less_le)
 
 lemma n_o_narrow:
   "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X
-  \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> \<not> S1 \<le> S1 \<triangle> S2 \<Longrightarrow> n\<^isub>o (S1 \<triangle> S2) < n\<^isub>o S1"
+  \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1 \<Longrightarrow> n\<^isub>o (S1 \<triangle> S2) < n\<^isub>o S1"
 apply(induction S1 S2 rule: narrow_option.induct)
 apply(auto simp: n_o_def L_st_def n_s_narrow)
 done
@@ -533,23 +540,24 @@ done
 definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^isub>c") where
 "n\<^isub>c C = (let as = annos C in \<Sum>i<size as. n\<^isub>o (as!i))"
 
+lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>
+  (\<exists>i<length (annos C1). annos C1 ! i < annos C2 ! i))"
+by(metis (hide_lams, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
+
 lemma n_c_narrow: "C1 \<in> Lc c \<Longrightarrow> C2 \<in> Lc c \<Longrightarrow>
-  C2 \<le> C1 \<Longrightarrow> \<not> C1 \<le> C1 \<triangle> C2 \<Longrightarrow> n\<^isub>c (C1 \<triangle> C2) < n\<^isub>c C1"
+  C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n\<^isub>c (C1 \<triangle> C2) < n\<^isub>c C1"
 apply(auto simp: n_c_def Let_def Lc_acom_def narrow_acom_def)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
+apply(simp add: less_annos_iff le_iff_le_annos)
 apply(rule setsum_strict_mono_ex1)
-apply simp
-apply (clarsimp)
-apply(rule n_o_mono)
-apply(rule narrow2)
-apply(fastforce simp: le_iff_le_annos listrel_iff_nth)
-apply(auto simp: le_iff_le_annos listrel_iff_nth)
+apply auto
+apply (metis n_o_narrow nth_mem finite_cvars less_imp_le le_less order_refl)
 apply(rule_tac x=i in bexI)
 prefer 2 apply simp
 apply(rule n_o_narrow[where X = "vars(strip C1)"])
-apply (simp add: finite_cvars)+
+apply (simp_all add: finite_cvars)
 done
 
 end
@@ -574,13 +582,13 @@ fixes n :: "'a::WN_Lc \<Rightarrow> nat"
 assumes P_f: "\<And>C. P C \<Longrightarrow> P(f C)"
 and P_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> P(C1 \<triangle> C2)"
 and mono: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> f C1 \<le> f C2"
-and n_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> ~ C1 \<le> C1 \<triangle> C2 \<Longrightarrow> n(C1 \<triangle> C2) < n C1"
+and n_narrow: "\<And>C1 C2. P C1 \<Longrightarrow> P C2 \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n(C1 \<triangle> C2) < n C1"
 and init: "P C" "f C \<le> C" shows "EX C'. iter_narrow f C = Some C'"
 proof(simp add: iter_narrow_def,
       rule measure_while_option_Some[where f=n and P = "%C. P C \<and> f C \<le> C"])
   show "P C \<and> f C \<le> C" using init by blast
 next
-  fix C assume 1: "P C \<and> f C \<le> C" and 2: "\<not> C \<le> C \<triangle> f C"
+  fix C assume 1: "P C \<and> f C \<le> C" and 2: "C \<triangle> f C < C"
   hence "P (C \<triangle> f C)" by(simp add: P_f P_narrow)
   moreover then have "f (C \<triangle> f C) \<le> C \<triangle> f C"
     by (metis narrow1 narrow2 1 mono order_trans)
@@ -625,15 +633,13 @@ by transfer
 definition n_ivl :: "ivl \<Rightarrow> nat" where
 "n_ivl ivl = 3 - m_ivl ivl"
 
-lemma n_ivl_mono: "x \<le> y \<Longrightarrow> n_ivl x \<le> n_ivl y"
-unfolding n_ivl_def by (metis diff_le_mono2 m_ivl_anti_mono)
-
 lemma n_ivl_narrow:
-  "~ x \<le> x \<triangle> y \<Longrightarrow> n_ivl(x \<triangle> y) < n_ivl x"
+  "x \<triangle> y < x \<Longrightarrow> n_ivl(x \<triangle> y) < n_ivl x"
 unfolding n_ivl_def
-by transfer
-   (auto simp add: m_rep_def narrow_rep_def is_empty_rep_def empty_rep_def \<gamma>_rep_cases le_iff_subset
-         split: prod.splits if_splits extended.splits)
+apply(subst (asm) less_le_not_le)
+apply transfer
+by(auto simp add: m_rep_def narrow_rep_def is_empty_rep_def empty_rep_def \<gamma>_rep_cases le_iff_subset
+         split: prod.splits if_splits extended.split)
 
 
 interpretation Abs_Int2_measure
@@ -648,9 +654,7 @@ next
 next
   case goal3 thus ?case by(rule m_ivl_widen)
 next
-  case goal4 thus ?case by(rule n_ivl_mono)
-next
-  case goal5 from goal5(2) show ?case by(rule n_ivl_narrow)
+  case goal4 from goal4(2) show ?case by(rule n_ivl_narrow)
   -- "note that the first assms is unnecessary for intervals"
 qed
 
