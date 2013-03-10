@@ -649,15 +649,8 @@ lemma sup_boolE:
 
 subsection {* Lattice on @{typ "_ \<Rightarrow> _"} *}
 
-instantiation "fun" :: (type, lattice) lattice
+instantiation "fun" :: (type, semilattice_sup) semilattice_sup
 begin
-
-definition
-  "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
-
-lemma inf_apply [simp, code]:
-  "(f \<sqinter> g) x = f x \<sqinter> g x"
-  by (simp add: inf_fun_def)
 
 definition
   "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
@@ -670,6 +663,23 @@ instance proof
 qed (simp_all add: le_fun_def)
 
 end
+
+instantiation "fun" :: (type, semilattice_inf) semilattice_inf
+begin
+
+definition
+  "f \<sqinter> g = (\<lambda>x. f x \<sqinter> g x)"
+
+lemma inf_apply [simp, code]:
+  "(f \<sqinter> g) x = f x \<sqinter> g x"
+  by (simp add: inf_fun_def)
+
+instance proof
+qed (simp_all add: le_fun_def)
+
+end
+
+instance "fun" :: (type, lattice) lattice ..
 
 instance "fun" :: (type, distrib_lattice) distrib_lattice proof
 qed (rule ext, simp add: sup_inf_distrib1)
