@@ -26,17 +26,7 @@ end
 
 subsection "Backward Analysis of Expressions"
 
-class lattice = semilattice + bot +
-fixes meet :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<sqinter>" 65)
-assumes meet_le1 [simp]: "x \<sqinter> y \<le> x"
-and meet_le2 [simp]: "x \<sqinter> y \<le> y"
-and meet_greatest: "x \<le> y \<Longrightarrow> x \<le> z \<Longrightarrow> x \<le> y \<sqinter> z"
-begin
-
-lemma mono_meet: "x \<le> x' \<Longrightarrow> y \<le> y' \<Longrightarrow> x \<sqinter> y \<le> x' \<sqinter> y'"
-by (metis meet_greatest meet_le1 meet_le2 order_trans)
-
-end
+class lattice = semilattice + semilattice_inf + bot
 
 locale Val_abs1_gamma =
   Gamma where \<gamma> = \<gamma> for \<gamma> :: "'av::lattice \<Rightarrow> val set" +
@@ -49,7 +39,8 @@ lemma in_gamma_meet: "x : \<gamma> a1 \<Longrightarrow> x : \<gamma> a2 \<Longri
 by (metis IntI inter_gamma_subset_gamma_meet set_mp)
 
 lemma gamma_meet[simp]: "\<gamma>(a1 \<sqinter> a2) = \<gamma> a1 \<inter> \<gamma> a2"
-by (metis equalityI inter_gamma_subset_gamma_meet le_inf_iff mono_gamma meet_le1 meet_le2)
+by(rule equalityI[OF _ inter_gamma_subset_gamma_meet])
+  (metis inf_le1 inf_le2 le_inf_iff mono_gamma)
 
 end
 
@@ -71,9 +62,9 @@ locale Abs_Int1 =
   Val_abs1 where \<gamma> = \<gamma> for \<gamma> :: "'av::lattice \<Rightarrow> val set"
 begin
 
-lemma in_gamma_join_UpI:
+lemma in_gamma_sup_UpI:
   "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> s : \<gamma>\<^isub>o S1 \<or> s : \<gamma>\<^isub>o S2 \<Longrightarrow> s : \<gamma>\<^isub>o(S1 \<squnion> S2)"
-by (metis (hide_lams, no_types) semilatticeL_class.join_ge1 semilatticeL_class.join_ge2 mono_gamma_o subsetD)
+by (metis (hide_lams, no_types) semilatticeL_class.sup_ge1 semilatticeL_class.sup_ge2 mono_gamma_o subsetD)
 
 fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |
@@ -98,7 +89,7 @@ bot} indicates that a variable has no possible values, i.e.\ that the current
 program point is unreachable. But then the abstract state should collapse to
 @{const None}. Put differently, we maintain the invariant that in an abstract
 state of the form @{term"Some s"}, all variables are mapped to non-@{const
-bot} values. Otherwise the (pointwise) join of two abstract states, one of
+bot} values. Otherwise the (pointwise) sup of two abstract states, one of
 which contains @{const bot} values, may produce too large a result, thus
 making the analysis less precise. *}
 
@@ -148,27 +139,35 @@ next
   case (Not b) thus ?case by simp
 next
   case (And b1 b2) thus ?case
-    by simp (metis And(1) And(2) bfilter_in_L in_gamma_join_UpI)
+    by simp (metis And(1) And(2) bfilter_in_L in_gamma_sup_UpI)
 next
   case (Less e1 e2) thus ?case
     by(auto split: prod.split)
       (metis (lifting) afilter_in_L afilter_sound aval''_sound filter_less')
 qed
 
+(* Interpretation would be nicer but is impossible *)
+definition "step' = Step.Step
+  (\<lambda>x e S. case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S)))
+  (\<lambda>b S. bfilter b True S)"
 
-fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom"
- where
-"step' S (SKIP {P}) = (SKIP {S})" |
-"step' S (x ::= e {P}) =
-  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}" |
-"step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-  (let P1' = bfilter b True S; C1' = step' P1 C1; P2' = bfilter b False S; C2' = step' P2 C2
-   in IF b THEN {P1'} C1' ELSE {P2'} C2' {post C1 \<squnion> post C2})" |
-"step' S ({I} WHILE b DO {p} C {Q}) =
+lemma [code,simp]: "step' S (SKIP {P}) = (SKIP {S})"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S (x ::= e {P}) =
+  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S (C1; C2) = step' S C1; step' (post C1) C2"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+  (let P1' = bfilter b True S; C1' = step' P1 C1;
+       P2' = bfilter b False S; C2' = step' P2 C2
+   in IF b THEN {P1'} C1' ELSE {P2'} C2' {post C1 \<squnion> post C2})"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S ({I} WHILE b DO {p} C {Q}) =
    {S \<squnion> post C}
    WHILE b DO {bfilter b True I} step' p C
    {bfilter b False I}"
+by(simp add: step'_def Step.Step.simps)
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = pfp (step' \<top>\<^bsub>vars c\<^esub>) (bot c)"
@@ -194,7 +193,7 @@ next
 next
   case (If b _ C1 _ C2)
   hence 0: "post C1 \<le> post C1 \<squnion> post C2 \<and> post C2 \<le> post C1 \<squnion> post C2"
-    by(simp, metis post_in_L join_ge1 join_ge2)
+    by(simp, metis post_in_L sup_ge1 sup_ge2)
   have "vars b \<subseteq> X" using If.prems by simp
   note vars = `S \<in> L X` `vars b \<subseteq> X`
   show ?case using If 0
@@ -259,10 +258,10 @@ by (simp add: mono_aval')
 lemma mono_afilter: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow>
   r1 \<le> r2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> afilter e r1 S1 \<le> afilter e r2 S2"
 apply(induction e arbitrary: r1 r2 S1 S2)
-apply(auto simp: test_num' Let_def mono_meet split: option.splits prod.splits)
+apply(auto simp: test_num' Let_def inf_mono split: option.splits prod.splits)
 apply (metis mono_gamma subsetD)
-apply(drule (2) mono_fun_L)
-apply (metis mono_meet le_bot)
+apply (metis inf_mono le_bot mono_fun_L)
+apply (metis inf_mono mono_fun_L mono_update)
 apply(metis mono_aval'' mono_filter_plus'[simplified less_eq_prod_def] fst_conv snd_conv afilter_in_L)
 done
 
@@ -272,7 +271,7 @@ apply(induction b arbitrary: bv S1 S2)
 apply(simp)
 apply(simp)
 apply simp
-apply(metis join_least order_trans[OF _ join_ge1] order_trans[OF _ join_ge2] bfilter_in_L)
+apply(metis sup_least order_trans[OF _ sup_ge1] order_trans[OF _ sup_ge2] bfilter_in_L)
 apply (simp split: prod.splits)
 apply(metis mono_aval'' mono_afilter mono_filter_less'[simplified less_eq_prod_def] fst_conv snd_conv afilter_in_L)
 done
@@ -281,7 +280,7 @@ theorem mono_step': "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarro
   S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
 apply(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
 apply (auto simp: Let_def mono_bfilter mono_aval' mono_post
-  le_join_disj le_join_disj[OF  post_in_L post_in_L] bfilter_in_L
+  le_sup_disj le_sup_disj[OF  post_in_L post_in_L] bfilter_in_L
             split: option.split)
 done
 

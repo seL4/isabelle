@@ -52,7 +52,7 @@ text{* Instantiation of class @{class semilattice} with type @{typ parity}: *}
 instantiation parity :: semilattice
 begin
 
-definition join_parity where
+definition sup_parity where
 "x \<squnion> y = (if x \<le> y then y else if y \<le> x then x else Either)"
 
 definition top_parity where
@@ -66,13 +66,13 @@ in the class definition. *}
 
 instance
 proof
-  case goal1 (*top*) show ?case by(auto simp: less_eq_parity_def top_parity_def)
+  case goal1 (*sup1*) show ?case by(auto simp: less_eq_parity_def sup_parity_def)
 next
-  case goal2 (*join1*) show ?case by(auto simp: less_eq_parity_def join_parity_def)
+  case goal2 (*sup2*) show ?case by(auto simp: less_eq_parity_def sup_parity_def)
 next
-  case goal3 (*join2*) show ?case by(auto simp: less_eq_parity_def join_parity_def)
+  case goal3 (*sup least*) thus ?case by(auto simp: less_eq_parity_def sup_parity_def)
 next
-  case goal4 (*join least*) thus ?case by(auto simp: less_eq_parity_def join_parity_def)
+  case goal4 (*top*) show ?case by(auto simp: less_eq_parity_def top_parity_def)
 qed
 
 end
@@ -165,7 +165,7 @@ proof
 qed
 
 definition m_parity :: "parity \<Rightarrow> nat" where
-"m_parity x = (if x=Either then 0 else 1)"
+"m_parity x = (if x = Either then 0 else 1)"
 
 interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_parity and num' = num_parity and plus' = plus_parity

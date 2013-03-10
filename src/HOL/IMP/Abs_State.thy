@@ -59,14 +59,14 @@ instance ..
 
 end
 
-class semilatticeL = join + L +
+class semilatticeL = order + sup + L +
 fixes Top :: "vname set \<Rightarrow> 'a"
-assumes join_ge1 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<le> x \<squnion> y"
-and join_ge2 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> y \<le> x \<squnion> y"
-and join_least[simp]: "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<squnion> y \<le> z"
+assumes sup_ge1 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<le> x \<squnion> y"
+and sup_ge2 [simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> y \<le> x \<squnion> y"
+and sup_least[simp]: "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<squnion> y \<le> z"
 and Top[simp]: "x \<in> L X \<Longrightarrow> x \<le> Top X"
 and Top_in_L[simp]: "Top X \<in> L X"
-and join_in_L[simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<squnion> y \<in> L X"
+and sup_in_L[simp]: "x \<in> L X \<Longrightarrow> y \<in> L X \<Longrightarrow> x \<squnion> y \<in> L X"
 
 notation (input) Top ("\<top>\<^bsub>_\<^esub>")
 notation (latex output) Top ("\<top>\<^bsub>\<^raw:\isa{>_\<^raw:}>\<^esub>")
@@ -171,10 +171,10 @@ qed
 
 end
 
-instantiation st :: (join) join
+instantiation st :: (sup) sup
 begin
 
-definition join_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" where
+definition sup_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" where
 "F \<squnion> (G::'a st) = St (\<lambda>x. fun F x \<squnion> fun G x) (dom F)"
 
 instance ..
@@ -197,7 +197,7 @@ begin
 definition Top_st :: "vname set \<Rightarrow> 'a st" where "Top(X) = St (\<lambda>x. \<top>) X"
 
 instance
-proof qed(auto simp add: less_eq_st_def join_st_def Top_st_def L_st_def)
+proof qed(auto simp add: less_eq_st_def sup_st_def Top_st_def L_st_def)
 
 end
 

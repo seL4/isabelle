@@ -6,16 +6,10 @@ begin
 
 subsection "Orderings"
 
-notation
-  Orderings.bot ("\<bottom>") and
-  Orderings.top ("\<top>")
-
 declare order_trans[trans]
 
-class join = order +
-fixes join :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<squnion>" 65)
-
-class semilattice = join + top +
+class semilattice = semilattice_sup + top
+(* +
 assumes join_ge1 [simp]: "x \<le> x \<squnion> y"
 and join_ge2 [simp]: "y \<le> x \<squnion> y"
 and join_least: "x \<le> z \<Longrightarrow> y \<le> z \<Longrightarrow> x \<squnion> y \<le> z"
@@ -23,17 +17,15 @@ begin
 
 lemma join_le_iff[simp]: "x \<squnion> y \<le> z \<longleftrightarrow> x \<le> z \<and> y \<le> z"
 by (metis join_ge1 join_ge2 join_least order_trans)
+*)
 
-lemma le_join_disj: "x \<le> y \<or> x \<le> z \<Longrightarrow> x \<le> y \<squnion> z"
-by (metis join_ge1 join_ge2 order_trans)
-
-end
+lemma le_join_disj: "x \<le> y \<or> x \<le> z \<Longrightarrow> x \<le> y \<squnion> (z::'a::semilattice_sup)"
+by (metis sup_ge1 sup_ge2 order_trans)
 
 
-instantiation "fun" :: (type, semilattice) semilattice
-begin
-
-definition "f \<squnion> g = (\<lambda>x. f x \<squnion> g x)"
+instance "fun" :: (type, semilattice) semilattice ..
+(*
+definition top_fun where "top_fun = (\<lambda>x. \<top>)"
 
 lemma join_apply[simp]: "(f \<squnion> g) x = f x \<squnion> g x"
 by (simp add: join_fun_def)
@@ -43,7 +35,7 @@ proof
 qed (simp_all add: le_fun_def)
 
 end
-
+*)
 
 instantiation option :: (order)order
 begin
@@ -73,15 +65,15 @@ qed
 
 end
 
-instantiation option :: (join)join
+instantiation option :: (sup)sup
 begin
 
-fun join_option where
+fun sup_option where
 "Some x \<squnion> Some y = Some(x \<squnion> y)" |
 "None \<squnion> y = y" |
 "x \<squnion> None = x"
 
-lemma join_None2[simp]: "x \<squnion> None = x"
+lemma sup_None2[simp]: "x \<squnion> None = x"
 by (cases x) simp_all
 
 instance ..
@@ -94,13 +86,13 @@ begin
 definition top_option where "\<top> = Some \<top>"
 
 instance proof
-  case goal1 show ?case by(cases a, simp_all add: top_option_def)
+  case goal4 show ?case by(cases a, simp_all add: top_option_def)
 next
-  case goal2 thus ?case by(cases x, simp, cases y, simp_all)
+  case goal1 thus ?case by(cases x, simp, cases y, simp_all)
 next
-  case goal3 thus ?case by(cases y, simp, cases x, simp_all)
+  case goal2 thus ?case by(cases y, simp, cases x, simp_all)
 next
-  case goal4 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
+  case goal3 thus ?case by(cases z, simp, cases y, simp, cases x, simp_all)
 qed
 
 end
@@ -186,17 +178,25 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom"
- where
-"step' S (SKIP {P}) = (SKIP {S})" |
-"step' S (x ::= e {P}) =
-  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}" |
-"step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+(* Interpretation would be nicer but is impossible *)
+definition "step' = Step.Step
+  (\<lambda>x e S. case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S)))
+  (\<lambda>b S. S)"
+
+lemma [simp]: "step' S (SKIP {P}) = (SKIP {S})"
+by(simp add: step'_def Step.Step.simps)
+lemma [simp]: "step' S (x ::= e {P}) =
+  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S))}"
+by(simp add: step'_def Step.Step.simps)
+lemma [simp]: "step' S (C1; C2) = step' S C1; step' (post C1) C2"
+by(simp add: step'_def Step.Step.simps)
+lemma [simp]: "step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
    IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2
-   {post C1 \<squnion> post C2}" |
-"step' S ({I} WHILE b DO {P} C {Q}) =
+   {post C1 \<squnion> post C2}"
+by(simp add: step'_def Step.Step.simps)
+lemma [simp]: "step' S ({I} WHILE b DO {P} C {Q}) =
   {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
+by(simp add: step'_def Step.Step.simps)
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = pfp (step' \<top>) (bot c)"

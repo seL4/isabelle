@@ -30,7 +30,7 @@ fun less_eq_const where
 
 definition "a < (b::const) = (a \<le> b & ~ b \<le> a)"
 
-fun join_const where
+fun sup_const where
 "Const m \<squnion> Const n = (if n=m then Const m else Any)" |
 "_ \<squnion> _ = Any"
 
@@ -48,11 +48,11 @@ next
 next
   case goal6 thus ?case by(cases x, cases y, simp_all)
 next
-  case goal7 thus ?case by(cases y, cases x, simp_all)
+  case goal5 thus ?case by(cases y, cases x, simp_all)
 next
-  case goal8 thus ?case by(cases z, cases y, cases x, simp_all)
+  case goal7 thus ?case by(cases z, cases y, cases x, simp_all)
 next
-  case goal5 thus ?case by(simp add: top_const_def)
+  case goal8 thus ?case by(simp add: top_const_def)
 qed
 
 end

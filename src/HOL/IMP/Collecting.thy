@@ -1,6 +1,34 @@
 theory Collecting
 imports Complete_Lattice Big_Step ACom
+        "~~/src/HOL/ex/Interpretation_with_Defs"
 begin
+
+subsection "The generic Step function"
+
+notation
+  sup (infixl "\<squnion>" 65) and
+  inf (infixl "\<sqinter>" 70) and
+  bot ("\<bottom>") and
+  top ("\<top>")
+
+locale Step =
+fixes step_assign :: "vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"
+and step_cond :: "bexp \<Rightarrow> 'a \<Rightarrow> 'a"
+begin
+
+fun Step :: "'a \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
+"Step S (SKIP {Q}) = (SKIP {S})" |
+"Step S (x ::= e {Q}) =
+  x ::= e {step_assign x e S}" |
+"Step S (C1; C2) = Step S C1; Step (post C1) C2" |
+"Step S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+  IF b THEN {step_cond b S} Step P1 C1 ELSE {step_cond (Not b) S} Step P2 C2
+  {post C1 \<squnion> post C2}" |
+"Step S ({I} WHILE b DO {P} C {Q}) =
+  {S \<squnion> post C} WHILE b DO {step_cond b I} Step P C {step_cond (Not b) I}"
+
+end
+
 
 subsection "Collecting Semantics of Commands"
 
@@ -141,16 +169,11 @@ by(induction c d rule: less_eq_acom.induct) auto
 
 subsubsection "Collecting semantics"
 
-fun step :: "state set \<Rightarrow> state set acom \<Rightarrow> state set acom" where
-"step S (SKIP {Q}) = (SKIP {S})" |
-"step S (x ::= e {Q}) =
-  x ::= e {{s(x := aval e s) |s. s : S}}" |
-"step S (C1; C2) = step S C1; step (post C1) C2" |
-"step S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-  IF b THEN {{s:S. bval b s}} step P1 C1 ELSE {{s:S. \<not> bval b s}} step P2 C2
-  {post C1 \<union> post C2}" |
-"step S ({I} WHILE b DO {P} C {Q}) =
-  {S \<union> post C} WHILE b DO {{s:I. bval b s}} step P C {{s:I. \<not> bval b s}}"
+interpretation Step
+where step_assign = "\<lambda>x e S. {s(x := aval e s) |s. s : S}"
+and step_cond = "\<lambda>b S. {s:S. bval b s}"
+defines step is Step
+.
 
 definition CS :: "com \<Rightarrow> state set acom" where
 "CS c = lfp c (step UNIV)"

@@ -60,15 +60,25 @@ the name of the type parameter @{typ 'av} which would otherwise be renamed to
 locale Abs_Int = Gamma where \<gamma>=\<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
 begin
 
-fun step' :: "'av st option \<Rightarrow> 'av st option acom \<Rightarrow> 'av st option acom" where
-"step' S (SKIP {P}) = (SKIP {S})" |
-"step' S (x ::= e {P}) =
-  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}" |
-"step' S (C1; C2) = step' S C1; step' (post C1) C2" |
-"step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-  (IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2 {post C1 \<squnion> post C2})" |
-"step' S ({I} WHILE b DO {P} C {Q}) =
-   {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
+(* Interpretation would be nicer but is impossible *)
+definition "step' = Step.Step
+  (\<lambda>x e S. case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S)))
+  (\<lambda>b S. S)"
+
+lemma [code,simp]: "step' S (SKIP {P}) = (SKIP {S})"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S (x ::= e {P}) =
+  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S (C1; C2) = step' S C1; step' (post C1) C2"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+   IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2
+   {post C1 \<squnion> post C2}"
+by(simp add: step'_def Step.Step.simps)
+lemma [code,simp]: "step' S ({I} WHILE b DO {P} C {Q}) =
+  {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
+by(simp add: step'_def Step.Step.simps)
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = pfp (step' (Top(vars c))) (bot c)"
@@ -95,7 +105,7 @@ next
 next
   case (If b p1 C1 p2 C2 P)
   hence "post C1 \<le> post C1 \<squnion> post C2 \<and> post C2 \<le> post C1 \<squnion> post C2"
-    by(simp, metis post_in_L join_ge1 join_ge2)
+    by(simp, metis post_in_L sup_ge1 sup_ge2)
   thus ?case using If by (auto simp: mono_gamma_o)
 next
   case While thus ?case by (auto simp: mono_gamma_o)
@@ -133,9 +143,9 @@ end
 
 subsubsection "Monotonicity"
 
-lemma le_join_disj: "y \<in> L X \<Longrightarrow> (z::_::semilatticeL) \<in> L X \<Longrightarrow>
+lemma le_sup_disj: "y \<in> L X \<Longrightarrow> (z::_::semilatticeL) \<in> L X \<Longrightarrow>
   x \<le> y \<or> x \<le> z \<Longrightarrow> x \<le> y \<squnion> z"
-by (metis join_ge1 join_ge2 order_trans)
+by (metis sup_ge1 sup_ge2 order_trans)
 
 locale Abs_Int_mono = Abs_Int +
 assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
@@ -149,7 +159,7 @@ theorem mono_step': "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarro
   S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
 apply(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
 apply (auto simp: Let_def mono_aval' mono_post
-  le_join_disj le_join_disj[OF  post_in_L post_in_L]
+  le_sup_disj le_sup_disj[OF  post_in_L post_in_L]
             split: option.split)
 done
 
