@@ -513,6 +513,12 @@ lemma dual_complete_linorder:
   "class.complete_linorder Sup Inf sup (op \<ge>) (op >) inf \<top> \<bottom>"
   by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
 
+lemma complete_linorder_inf_min: "inf = min"
+  by (rule ext)+ (auto intro: antisym)
+
+lemma complete_linorder_sup_max: "sup = max"
+  by (rule ext)+ (auto intro: antisym)
+
 lemma Inf_less_iff:
   "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"
   unfolding not_le [symmetric] le_Inf_iff by auto
@@ -587,15 +593,17 @@ lemma INF_le_iff:
   "INFI A f \<le> x \<longleftrightarrow> (\<forall>y>x. \<exists>i\<in>A. y > f i)"
   unfolding Inf_le_iff INF_def by simp
 
+subclass complete_distrib_lattice
+proof
+  fix a and B
+  show "a \<squnion> \<Sqinter>B = (\<Sqinter>b\<in>B. a \<squnion> b)" and "a \<sqinter> \<Squnion>B = (\<Squnion>b\<in>B. a \<sqinter> b)"
+    by (safe intro!: INF_eqI [symmetric] sup_mono Inf_lower SUP_eqI [symmetric] inf_mono Sup_upper)
+      (auto simp: not_less [symmetric] Inf_less_iff less_Sup_iff
+        le_max_iff_disj complete_linorder_sup_max min_le_iff_disj complete_linorder_inf_min)
+qed
+
 end
 
-instance complete_linorder \<subseteq> complete_distrib_lattice
-  apply default
-  apply (safe intro!: INF_eqI[symmetric] sup_mono complete_lattice_class.Inf_lower
-                      SUP_eqI[symmetric] inf_mono complete_lattice_class.Sup_upper)
-  apply (auto simp: not_less[symmetric]
-                    Inf_less_iff less_Sup_iff le_max_iff_disj sup_max min_le_iff_disj inf_min)
-  done
 
 subsection {* Complete lattice on @{typ bool} *}
 
@@ -728,7 +736,7 @@ definition
   "\<Squnion>A = {x. \<Squnion>((\<lambda>B. x \<in> B) ` A)}"
 
 instance proof
-qed (auto simp add: less_eq_set_def Inf_set_def Sup_set_def Inf_bool_def Sup_bool_def le_fun_def)
+qed (auto simp add: less_eq_set_def Inf_set_def Sup_set_def le_fun_def)
 
 end
 
