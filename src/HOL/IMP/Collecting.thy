@@ -11,23 +11,26 @@ notation
   bot ("\<bottom>") and
   top ("\<top>")
 
-locale Step =
-fixes step_assign :: "vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"
-and step_cond :: "bexp \<Rightarrow> 'a \<Rightarrow> 'a"
-begin
-
-fun Step :: "'a \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
-"Step S (SKIP {Q}) = (SKIP {S})" |
-"Step S (x ::= e {Q}) =
-  x ::= e {step_assign x e S}" |
-"Step S (C1; C2) = Step S C1; Step (post C1) C2" |
-"Step S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-  IF b THEN {step_cond b S} Step P1 C1 ELSE {step_cond (Not b) S} Step P2 C2
+fun Step :: "(vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup) \<Rightarrow> (bexp \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a acom \<Rightarrow> 'a acom" where
+"Step f g S (SKIP {Q}) = (SKIP {S})" |
+"Step f g S (x ::= e {Q}) =
+  x ::= e {f x e S}" |
+"Step f g S (C1; C2) = Step f g S C1; Step f g (post C1) C2" |
+"Step f g S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
+  IF b THEN {g b S} Step f g P1 C1 ELSE {g (Not b) S} Step f g P2 C2
   {post C1 \<squnion> post C2}" |
-"Step S ({I} WHILE b DO {P} C {Q}) =
-  {S \<squnion> post C} WHILE b DO {step_cond b I} Step P C {step_cond (Not b) I}"
+"Step f g S ({I} WHILE b DO {P} C {Q}) =
+  {S \<squnion> post C} WHILE b DO {g b I} Step f g P C {g (Not b) I}"
 
-end
+(* Could hide f and g like this:
+consts fa :: "vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"
+       fb :: "bexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"
+abbreviation "STEP == Step fa fb"
+thm Step.simps[where f = fa and g = fb]
+*)
+
+lemma strip_Step[simp]: "strip(Step f g S C) = strip C"
+by(induct C arbitrary: S) auto
 
 
 subsection "Collecting Semantics of Commands"
@@ -169,31 +172,35 @@ by(induction c d rule: less_eq_acom.induct) auto
 
 subsubsection "Collecting semantics"
 
-interpretation Step
-where step_assign = "\<lambda>x e S. {s(x := aval e s) |s. s : S}"
-and step_cond = "\<lambda>b S. {s:S. bval b s}"
-defines step is Step
-.
+definition "step = Step (\<lambda>x e S. {s(x := aval e s) |s. s : S}) (\<lambda>b S. {s:S. bval b s})"
 
 definition CS :: "com \<Rightarrow> state set acom" where
 "CS c = lfp c (step UNIV)"
 
-lemma mono2_step: "c1 \<le> c2 \<Longrightarrow> S1 \<subseteq> S2 \<Longrightarrow> step S1 c1 \<le> step S2 c2"
-proof(induction c1 c2 arbitrary: S1 S2 rule: less_eq_acom.induct)
-  case 2 thus ?case by fastforce
+lemma mono2_Step: fixes C1 C2 :: "'a::semilattice_sup acom"
+  assumes "!!x e S1 S2. S1 \<le> S2 \<Longrightarrow> f x e S1 \<le> f x e S2"
+          "!!b S1 S2. S1 \<le> S2 \<Longrightarrow> g b S1 \<le> g b S2"
+  shows "C1 \<le> C2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> Step f g S1 C1 \<le> Step f g S2 C2"
+proof(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
+  case 2 thus ?case by (fastforce simp: assms(1))
 next
   case 3 thus ?case by(simp add: le_post)
 next
-  case 4 thus ?case by(simp add: subset_iff)(metis le_post set_mp)+
+  case 4 thus ?case
+    by(simp add: subset_iff assms(2)) (metis le_post le_supI1 le_supI2)
 next
-  case 5 thus ?case by(simp add: subset_iff) (metis le_post set_mp)
+  case 5 thus ?case
+    by(simp add: subset_iff assms(2)) (metis le_post le_supI1 le_supI2)
 qed auto
+
+lemma mono2_step: "C1 \<le> C2 \<Longrightarrow> S1 \<subseteq> S2 \<Longrightarrow> step S1 C1 \<le> step S2 C2"
+unfolding step_def by(rule mono2_Step) auto
 
 lemma mono_step: "mono (step S)"
 by(blast intro: monoI mono2_step)
 
 lemma strip_step: "strip(step S C) = strip C"
-by (induction C arbitrary: S) auto
+by (induction C arbitrary: S) (auto simp: step_def)
 
 lemma lfp_cs_unfold: "lfp c (step S) = step S (lfp c (step S))"
 apply(rule lfp_unfold[OF _  mono_step])
@@ -224,23 +231,24 @@ by(auto simp add: lfp_def post_Union_acom)
 lemma big_step_post_step:
   "\<lbrakk> (c, s) \<Rightarrow> t;  strip C = c;  s \<in> S;  step S C \<le> C \<rbrakk> \<Longrightarrow> t \<in> post C"
 proof(induction arbitrary: C S rule: big_step_induct)
-  case Skip thus ?case by(auto simp: strip_eq_SKIP)
+  case Skip thus ?case by(auto simp: strip_eq_SKIP step_def)
 next
-  case Assign thus ?case by(fastforce simp: strip_eq_Assign)
+  case Assign thus ?case by(fastforce simp: strip_eq_Assign step_def)
 next
-  case Seq thus ?case by(fastforce simp: strip_eq_Seq)
+  case Seq thus ?case by(fastforce simp: strip_eq_Seq step_def)
 next
-  case IfTrue thus ?case apply(auto simp: strip_eq_If)
-    by (metis (lifting) mem_Collect_eq set_mp)
+  case IfTrue thus ?case apply(auto simp: strip_eq_If step_def)
+    by (metis (lifting,full_types) mem_Collect_eq set_mp)
 next
-  case IfFalse thus ?case apply(auto simp: strip_eq_If)
-    by (metis (lifting) mem_Collect_eq set_mp)
+  case IfFalse thus ?case apply(auto simp: strip_eq_If step_def)
+    by (metis (lifting,full_types) mem_Collect_eq set_mp)
 next
   case (WhileTrue b s1 c' s2 s3)
   from WhileTrue.prems(1) obtain I P C' Q where "C = {I} WHILE b DO {P} C' {Q}" "strip C' = c'"
     by(auto simp: strip_eq_While)
   from WhileTrue.prems(3) `C = _`
-  have "step P C' \<le> C'"  "{s \<in> I. bval b s} \<le> P"  "S \<le> I"  "step (post C') C \<le> C"  by auto
+  have "step P C' \<le> C'"  "{s \<in> I. bval b s} \<le> P"  "S \<le> I"  "step (post C') C \<le> C"
+    by (auto simp: step_def)
   have "step {s \<in> I. bval b s} C' \<le> C'"
     by (rule order_trans[OF mono2_step[OF order_refl `{s \<in> I. bval b s} \<le> P`] `step P C' \<le> C'`])
   have "s1: {s:I. bval b s}" using `s1 \<in> S` `S \<subseteq> I` `bval b s1` by auto
@@ -248,7 +256,7 @@ next
   from WhileTrue.IH(2)[OF WhileTrue.prems(1) s2_in_post_C' `step (post C') C \<le> C`]
   show ?case .
 next
-  case (WhileFalse b s1 c') thus ?case by (force simp: strip_eq_While)
+  case (WhileFalse b s1 c') thus ?case by (force simp: strip_eq_While step_def)
 qed
 
 lemma big_step_lfp: "\<lbrakk> (c,s) \<Rightarrow> t;  s \<in> S \<rbrakk> \<Longrightarrow> t \<in> post(lfp c (step S))"

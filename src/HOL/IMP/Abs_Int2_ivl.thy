@@ -1,9 +1,7 @@
 (* Author: Tobias Nipkow *)
 
 theory Abs_Int2_ivl
-imports "~~/src/HOL/Library/Quotient_List"
-        "~~/src/HOL/Library/Extended"
-        Abs_Int2
+imports Abs_Int2
 begin
 
 subsection "Interval Analysis"

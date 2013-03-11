@@ -37,8 +37,7 @@ by(simp add: L_acom_def post_in_annos)
 
 subsection "Computable Abstract Interpretation"
 
-text{* Abstract interpretation over type @{text st} instead of
-functions. *}
+text{* Abstract interpretation over type @{text st} instead of functions. *}
 
 context Gamma
 begin
@@ -51,7 +50,28 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 lemma aval'_sound: "s : \<gamma>\<^isub>s S \<Longrightarrow> vars a \<subseteq> dom S \<Longrightarrow> aval a s : \<gamma>(aval' a S)"
 by (induction a) (auto simp: gamma_num' gamma_plus' \<gamma>_st_def)
 
+lemma gamma_Step_subcomm: fixes C1 C2 :: "'a::semilattice_sup acom"
+  assumes "!!x e S. x : X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> S \<in> L X \<Longrightarrow> f1 x e (\<gamma>\<^isub>o S) \<subseteq> \<gamma>\<^isub>o (f2 x e S)"
+          "!!b S. S \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow> g1 b (\<gamma>\<^isub>o S) \<subseteq> \<gamma>\<^isub>o (g2 b S)"
+  shows "C \<in> L X \<Longrightarrow> S \<in> L X \<Longrightarrow> Step f1 g1 (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (Step f2 g2 S C)"
+proof(induction C arbitrary: S)
+qed (auto simp: assms intro!: mono_gamma_o post_in_L sup_ge1 sup_ge2)
+
+lemma in_gamma_update: "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(update S x a)"
+by(simp add: \<gamma>_st_def)
+
 end
+
+
+lemma Step_in_L: fixes C :: "'a::semilatticeL acom"
+assumes "!!x e S. \<lbrakk>S \<in> L X; x \<in> X; vars e \<subseteq> X\<rbrakk> \<Longrightarrow> f x e S \<in> L X"
+        "!!b S. S \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow> g b S \<in> L X"
+shows"\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> Step f g S C \<in> L X"
+proof(induction C arbitrary: S)
+  case Assign thus ?case
+    by(auto simp: L_st_def assms split: option.splits)
+qed (auto simp: assms)
+
 
 text{* The for-clause (here and elsewhere) only serves the purpose of fixing
 the name of the type parameter @{typ 'av} which would otherwise be renamed to
@@ -60,63 +80,28 @@ the name of the type parameter @{typ 'av} which would otherwise be renamed to
 locale Abs_Int = Gamma where \<gamma>=\<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
 begin
 
-(* Interpretation would be nicer but is impossible *)
-definition "step' = Step.Step
+definition "step' = Step
   (\<lambda>x e S. case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S)))
   (\<lambda>b S. S)"
-
-lemma [code,simp]: "step' S (SKIP {P}) = (SKIP {S})"
-by(simp add: step'_def Step.Step.simps)
-lemma [code,simp]: "step' S (x ::= e {P}) =
-  x ::= e {case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(update S x (aval' e S))}"
-by(simp add: step'_def Step.Step.simps)
-lemma [code,simp]: "step' S (C1; C2) = step' S C1; step' (post C1) C2"
-by(simp add: step'_def Step.Step.simps)
-lemma [code,simp]: "step' S (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-   IF b THEN {S} step' P1 C1 ELSE {S} step' P2 C2
-   {post C1 \<squnion> post C2}"
-by(simp add: step'_def Step.Step.simps)
-lemma [code,simp]: "step' S ({I} WHILE b DO {P} C {Q}) =
-  {S \<squnion> post C} WHILE b DO {I} step' P C {I}"
-by(simp add: step'_def Step.Step.simps)
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = pfp (step' (Top(vars c))) (bot c)"
 
 
 lemma strip_step'[simp]: "strip(step' S C) = strip C"
-by(induct C arbitrary: S) (simp_all add: Let_def)
+by(simp add: step'_def)
 
 
 text{* Soundness: *}
 
-lemma in_gamma_update:
-  "\<lbrakk> s : \<gamma>\<^isub>s S; i : \<gamma> a \<rbrakk> \<Longrightarrow> s(x := i) : \<gamma>\<^isub>s(update S x a)"
-by(simp add: \<gamma>_st_def)
-
 lemma step_step': "C \<in> L X \<Longrightarrow> S \<in> L X \<Longrightarrow> step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
-proof(induction C arbitrary: S)
-  case SKIP thus ?case by auto
-next
-  case Assign thus ?case
-    by (fastforce simp: L_st_def intro: aval'_sound in_gamma_update split: option.splits)
-next
-  case Seq thus ?case by auto
-next
-  case (If b p1 C1 p2 C2 P)
-  hence "post C1 \<le> post C1 \<squnion> post C2 \<and> post C2 \<le> post C1 \<squnion> post C2"
-    by(simp, metis post_in_L sup_ge1 sup_ge2)
-  thus ?case using If by (auto simp: mono_gamma_o)
-next
-  case While thus ?case by (auto simp: mono_gamma_o)
-qed
+unfolding step_def step'_def
+by(rule gamma_Step_subcomm)
+  (auto simp: L_st_def intro!: aval'_sound in_gamma_update split: option.splits)
 
-lemma step'_in_L[simp]:
-  "\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> (step' S C) \<in> L X"
-proof(induction C arbitrary: S)
-  case Assign thus ?case
-    by(auto simp: L_st_def split: option.splits)
-qed auto
+lemma step'_in_L[simp]: "\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> step' S C \<in> L X"
+unfolding step'_def
+by(rule Step_in_L)(auto simp: L_st_def step'_def split: option.splits)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
@@ -132,7 +117,7 @@ proof(simp add: CS_def AI_def)
     show "\<gamma>\<^isub>c (step' (Top(vars c)) C) \<le> \<gamma>\<^isub>c C"
       by(rule mono_gamma_c[OF pfp'])
   qed
-  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
+  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1] step'_def)
   have "lfp c (step (\<gamma>\<^isub>o(Top(vars c)))) \<le> \<gamma>\<^isub>c C"
     by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(Top(vars c)))", OF 3 2])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
@@ -147,6 +132,15 @@ lemma le_sup_disj: "y \<in> L X \<Longrightarrow> (z::_::semilatticeL) \<in> L X
   x \<le> y \<or> x \<le> z \<Longrightarrow> x \<le> y \<squnion> z"
 by (metis sup_ge1 sup_ge2 order_trans)
 
+theorem mono2_Step: fixes C1 :: "'a::semilatticeL acom"
+  assumes "!!x e S1 S2. \<lbrakk>S1 \<in> L X; S2 \<in> L X; x \<in> X; vars e \<subseteq> X; S1 \<le> S2\<rbrakk> \<Longrightarrow> f x e S1 \<le> f x e S2"
+          "!!b S1 S2. S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> g b S1 \<le> g b S2"
+  shows "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
+  S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> Step f g S1 C1 \<le> Step f g S2 C2"
+by(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
+  (auto simp: mono_post assms le_sup_disj le_sup_disj[OF  post_in_L post_in_L])
+
+
 locale Abs_Int_mono = Abs_Int +
 assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
 begin
@@ -157,11 +151,8 @@ by(induction e) (auto simp: less_eq_st_def mono_plus' L_st_def)
 
 theorem mono_step': "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
   S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
-apply(induction C1 C2 arbitrary: S1 S2 rule: less_eq_acom.induct)
-apply (auto simp: Let_def mono_aval' mono_post
-  le_sup_disj le_sup_disj[OF  post_in_L post_in_L]
-            split: option.split)
-done
+unfolding step'_def
+by(rule mono2_Step) (auto simp: mono_aval' split: option.split)
 
 lemma mono_step'_top: "C \<in> L X \<Longrightarrow> C' \<in> L X \<Longrightarrow>
   C \<le> C' \<Longrightarrow> step' (Top X) C \<le> step' (Top X) C'"
@@ -173,14 +164,14 @@ assumes "\<forall>x\<in>L(vars c)\<inter>{C. strip C = c}.\<forall>y\<in>L(vars 
 and "\<forall>C. C \<in> L(vars c)\<inter>{C. strip C = c} \<longrightarrow> f C \<in> L(vars c)\<inter>{C. strip C = c}"
 and "f C' \<le> C'" "strip C' = c" "C' \<in> L(vars c)" "pfp f (bot c) = Some C"
 shows "C \<le> C'"
-apply(rule while_least[OF assms(1,2) _ _ assms(3) _ assms(6)[unfolded pfp_def]])
-by (simp_all add: assms(4,5) bot_least)
+by(rule while_least[OF assms(1,2) _ _ assms(3) _ assms(6)[unfolded pfp_def]])
+  (simp_all add: assms(4,5) bot_least)
 
 lemma AI_least_pfp: assumes "AI c = Some C"
 and "step' (Top(vars c)) C' \<le> C'" "strip C' = c" "C' \<in> L(vars c)"
 shows "C \<le> C'"
-apply(rule pfp_bot_least[OF _ _ assms(2-4) assms(1)[unfolded AI_def]])
-by (simp_all add: mono_step'_top)
+by(rule pfp_bot_least[OF _ _ assms(2-4) assms(1)[unfolded AI_def]])
+  (simp_all add: mono_step'_top)
 
 end
 

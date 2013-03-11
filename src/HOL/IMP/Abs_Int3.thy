@@ -350,7 +350,7 @@ qed
 lemma strip_pfp_wn:
   "\<lbrakk> \<forall>C. strip(f C) = strip C; pfp_wn f C = Some C' \<rbrakk> \<Longrightarrow> strip C' = strip C"
 by(auto simp add: pfp_wn_def iter_narrow_def split: option.splits)
-  (metis (no_types) narrow_acom_def strip_iter_widen strip_map2_acom strip_while)
+  (metis (mono_tags) strip_iter_widen strip_narrow_acom strip_while)
 
 
 locale Abs_Int2 = Abs_Int1_mono
@@ -478,17 +478,17 @@ lemma m_c_widen:
   "C1 \<in> Lc c \<Longrightarrow> C2 \<in> Lc c \<Longrightarrow> \<not> C2 \<le> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
 apply(auto simp: Lc_acom_def m_c_def Let_def widen_acom_def)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
-prefer 2 apply (simp add: size_annos_same2)
+ prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
 apply(rule setsum_strict_mono_ex1)
-apply simp
-apply (clarsimp)
-apply(simp add: m_o_anti_mono finite_cvars widen1[where c = "strip C2"])
+  apply simp
+ apply (clarsimp)
+ apply(simp add: m_o_anti_mono finite_cvars widen1[where c = "strip C2"])
 apply(auto simp: le_iff_le_annos listrel_iff_nth)
 apply(rule_tac x=i in bexI)
-prefer 2 apply simp
+ prefer 2 apply simp
 apply(rule m_o_widen)
-apply (simp add: finite_cvars)+
+   apply (simp add: finite_cvars)+
 done
 
 
@@ -524,10 +524,6 @@ qed
 
 definition n_o :: "'av st option \<Rightarrow> nat" ("n\<^isub>o") where
 "n\<^isub>o opt = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s S + 1)"
-
-(* FIXME mv *)
-lemma [simp]: "(Some x < Some y) = (x < y)"
-by(auto simp: less_le)
 
 lemma n_o_narrow:
   "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> finite X
@@ -689,7 +685,7 @@ apply(blast intro: iter_widen_inv[where f = "step' \<top>\<^bsub>vars c\<^esub>"
 apply(erule iter_widen_pfp)
 done
 
-(*unused_thms Abs_Int_init -*)
+(*unused_thms Abs_Int_init - *)
 
 subsubsection "Counterexamples"
 
