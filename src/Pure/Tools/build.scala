@@ -14,6 +14,7 @@ import java.io.{BufferedInputStream, FileInputStream,
 import java.util.zip.GZIPInputStream
 
 import scala.collection.SortedSet
+import scala.collection.mutable
 import scala.annotation.tailrec
 
 
@@ -46,6 +47,8 @@ object Build
   /** session information **/
 
   // external version
+  abstract class Entry
+  sealed case class Chapter(name: String) extends Entry
   sealed case class Session_Entry(
     pos: Position.T,
     name: String,
@@ -55,10 +58,11 @@ object Build
     description: String,
     options: List[Options.Spec],
     theories: List[(List[Options.Spec], List[String])],
-    files: List[String])
+    files: List[String]) extends Entry
 
   // internal version
   sealed case class Session_Info(
+    chapter: String,
     select: Boolean,
     pos: Position.T,
     groups: List[String],
@@ -72,8 +76,8 @@ object Build
 
   def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  def session_info(options: Options, select: Boolean, dir: Path, entry: Session_Entry)
-      : (String, Session_Info) =
+  def session_info(options: Options, select: Boolean, dir: Path,
+      chapter: String, entry: Session_Entry): (String, Session_Info) =
     try {
       val name = entry.name
 
@@ -87,10 +91,11 @@ object Build
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts, thys.map(Path.explode(_))) })
       val files = entry.files.map(Path.explode(_))
-      val entry_digest = SHA1.digest((name, entry.parent, entry.options, entry.theories).toString)
+      val entry_digest =
+        SHA1.digest((chapter, name, entry.parent, entry.options, entry.theories).toString)
 
       val info =
-        Session_Info(select, entry.pos, entry.groups, dir + Path.explode(entry.path),
+        Session_Info(chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
           entry.parent, entry.description, session_options, theories, files, entry_digest)
 
       (name, info)
@@ -180,6 +185,9 @@ object Build
 
   /* parser */
 
+  val chapter_default = "Unsorted"
+
+  private val CHAPTER = "chapter"
   private val SESSION = "session"
   private val IN = "in"
   private val DESCRIPTION = "description"
@@ -189,10 +197,20 @@ object Build
 
   lazy val root_syntax =
     Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      (SESSION, Keyword.THY_DECL) + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+      (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
+      IN + DESCRIPTION + OPTIONS + THEORIES + FILES
 
   private object Parser extends Parse.Parser
   {
+    def entry(pos: Position.T): Parser[Entry] = chapter(pos) | session_entry(pos)
+
+    def chapter(pos: Position.T): Parser[Chapter] =
+    {
+      val chapter_name = atom("chapter name", _.is_name)
+
+      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
+    }
+
     def session_entry(pos: Position.T): Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
@@ -219,11 +237,19 @@ object Build
             Session_Entry(pos, a, b, c, d, e, f, g, h) }
     }
 
-    def parse_entries(root: Path): List[Session_Entry] =
+    def parse_entries(root: Path): List[(String, Session_Entry)] =
     {
       val toks = root_syntax.scan(File.read(root))
-      parse_all(rep(session_entry(root.position)), Token.reader(toks, root.implode)) match {
-        case Success(result, _) => result
+
+      parse_all(rep(entry(root.position)), Token.reader(toks, root.implode)) match {
+        case Success(result, _) =>
+          var chapter = chapter_default
+          val entries = new mutable.ListBuffer[(String, Session_Entry)]
+          result.foreach {
+            case Chapter(name) => chapter = name
+            case session_entry: Session_Entry => entries += ((chapter, session_entry))
+          }
+          entries.toList
         case bad => error(bad.toString)
       }
     }
@@ -250,7 +276,8 @@ object Build
     def find_root(select: Boolean, dir: Path): List[(String, Session_Info)] =
     {
       val root = dir + ROOT
-      if (root.is_file) Parser.parse_entries(root).map(session_info(options, select, dir, _))
+      if (root.is_file)
+        Parser.parse_entries(root).map(p => session_info(options, select, dir, p._1, p._2))
       else Nil
     }
 
@@ -398,7 +425,7 @@ object Build
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
-            progress.echo("Session " + name + groups)
+            progress.echo("Session " + info.chapter + "/" + name + groups)
           }
 
           val thy_deps =

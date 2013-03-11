@@ -1,3 +1,5 @@
+chapter Cube
+
 session Cube = Pure +
   description {*
     Author:     Tobias Nipkow

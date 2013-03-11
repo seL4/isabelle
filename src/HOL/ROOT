@@ -1,3 +1,5 @@
+chapter HOL
+
 session HOL (main) = Pure +
   description {* Classical Higher-order Logic *}
   options [document_graph]

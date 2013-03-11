@@ -1,3 +1,5 @@
+chapter FOL
+
 session FOL = Pure +
   description "First-Order Logic with Natural Deduction"
   options [proofs = 2]

@@ -1,3 +1,5 @@
+chapter Doc
+
 session Classes (doc) in "Classes" = HOL +
   options [document_variants = "classes"]
   theories [document = false] Setup

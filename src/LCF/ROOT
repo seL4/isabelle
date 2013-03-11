@@ -1,3 +1,5 @@
+chapter LCF
+
 session LCF = Pure +
   description {*
     Author:     Tobias Nipkow

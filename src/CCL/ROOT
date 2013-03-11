@@ -1,3 +1,5 @@
+chapter CCL
+
 session CCL = Pure +
   description {*
     Author:     Martin Coen, Cambridge University Computer Laboratory

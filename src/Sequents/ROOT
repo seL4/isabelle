@@ -1,3 +1,5 @@
+chapter Sequents
+
 session Sequents = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
