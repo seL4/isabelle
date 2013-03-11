@@ -12,7 +12,7 @@ sig
   val welcome: unit -> string
   val finish: unit -> unit
   val init: bool -> bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
-    string -> string -> bool * string -> string -> bool -> unit
+    string -> string -> bool * string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
@@ -34,7 +34,6 @@ fun name () = "Isabelle/" ^ List.last (! session);
 (* access path *)
 
 val session_path = Unsynchronized.ref ([]: string list);
-val remote_path = Unsynchronized.ref (NONE: Url.T option);
 
 fun path () = ! session_path;
 
@@ -100,19 +99,11 @@ fun with_timing name verbose f x =
       else ();
   in y end;
 
-fun get_rpath rpath =
-  (if rpath = "" then () else
-     if is_some (! remote_path) then
-       error "Path for remote theory browsing information may only be set once"
-     else
-       remote_path := SOME (Url.explode rpath);
-   (! remote_path, rpath <> ""));
-
 fun init build reset info info_path doc doc_graph doc_output doc_variants
-    parent name doc_dump rpath verbose =
+    parent name doc_dump verbose =
  (init_name reset parent name;
   Present.init build info info_path (if doc = "false" then "" else doc) doc_graph doc_output
-    doc_variants (path ()) name doc_dump (get_rpath rpath) verbose
+    doc_variants (path ()) name doc_dump verbose
     (map Thy_Info.get_theory (Thy_Info.get_names ())));
 
 local
@@ -132,8 +123,13 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
         Output.physical_stderr
           "### Legacy feature: old \"isabelle usedir\" -- use \"isabelle build\" instead!\n";
       val _ =
+        if rpath = "" then ()
+        else
+          Output.physical_stderr "### Ignoring remote path (historic usedir option -P)\n";
+
+      val _ =
         init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
-          doc_dump rpath verbose;
+          doc_dump verbose;
       val res1 = (use |> with_timing item timing |> Exn.capture) root;
       val res2 = Exn.capture finish ();
     in ignore (Par_Exn.release_all [res1, res2]) end)

@@ -15,8 +15,7 @@ sig
   val session_name: theory -> string
   val read_variant: string -> string * string
   val init: bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
-    string list -> string -> bool * string -> Url.T option * bool -> bool ->
-    theory list -> unit  (*not thread-safe!*)
+    string list -> string -> bool * string -> bool -> theory list -> unit  (*not thread-safe!*)
   val finish: unit -> unit  (*not thread-safe!*)
   val init_theory: string -> unit
   val theory_source: string -> (unit -> HTML.text) -> unit
@@ -51,8 +50,9 @@ val pre_index_path = Path.explode ".session/pre-index";
 
 fun mk_rel_path [] ys = Path.make ys
   | mk_rel_path xs [] = Path.appends (replicate (length xs) Path.parent)
-  | mk_rel_path (ps as x :: xs) (qs as y :: ys) = if x = y then mk_rel_path xs ys else
-      Path.appends (replicate (length ps) Path.parent @ [Path.make qs]);
+  | mk_rel_path (ps as x :: xs) (qs as y :: ys) =
+      if x = y then mk_rel_path xs ys
+      else Path.appends (replicate (length ps) Path.parent @ [Path.make qs]);
 
 fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 
@@ -62,8 +62,8 @@ fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 
 structure Browser_Info = Theory_Data
 (
-  type T = {name: string, session: string list, is_local: bool};
-  val empty = {name = "", session = [], is_local = false}: T;
+  type T = {name: string, session: string list};
+  val empty = {name = "", session = []}: T;
   fun extend _ = empty;
   fun merge _ = empty;
 );
@@ -81,17 +81,14 @@ fun ID_of_thy thy = ID_of (#session (get_info thy)) (Context.theory_name thy);
 
 
 (*retrieve graph data from initial collection of theories*)
-fun init_graph remote_path curr_sess = rev o map (fn thy =>
+fun init_graph curr_sess = rev o map (fn thy =>
   let
     val name = Context.theory_name thy;
-    val {name = sess_name, session, is_local} = get_info thy;
+    val {name = sess_name, session} = get_info thy;
     val entry =
      {name = name, ID = ID_of session name, dir = sess_name,
       path =
-        if null session then "" else
-        if is_some remote_path andalso not is_local then
-          Url.implode (Url.append (the remote_path) (Url.File
-            (Path.append (Path.make session) (html_path name))))
+        if null session then ""
         else Path.implode (Path.append (mk_rel_path curr_sess session) (html_path name)),
       unfold = false,
       parents = map ID_of_thy (Theory.parents_of thy),
@@ -130,8 +127,8 @@ fun make_browser_info (theories, files, tex_index, html_index, graph) =
 
 val empty_browser_info = make_browser_info (Symtab.empty, [], [], [], []);
 
-fun init_browser_info remote_path curr_sess thys = make_browser_info
-  (Symtab.empty, [], [], [], init_graph remote_path curr_sess thys);
+fun init_browser_info curr_sess thys = make_browser_info
+  (Symtab.empty, [], [], [], init_graph curr_sess thys);
 
 fun map_browser_info f {theories, files, tex_index, html_index, graph} =
   make_browser_info (f (theories, files, tex_index, html_index, graph));
@@ -191,16 +188,16 @@ fun add_html_source name txt = change_theory_info name (fn (tex_source, html_sou
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, doc_output: Path.T option,
-    documents: (string * string) list, doc_dump: (bool * string), remote_path: Url.T option,
-    verbose: bool, readme: Path.T option};
+    documents: (string * string) list, doc_dump: (bool * string), verbose: bool,
+    readme: Path.T option};
 
 fun make_session_info
   (name, parent, session, path, html_prefix, info, doc_format, doc_graph, doc_output,
-    documents, doc_dump, remote_path, verbose, readme) =
+    documents, doc_dump, verbose, readme) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
     info = info, doc_format = doc_format, doc_graph = doc_graph, doc_output = doc_output,
-    documents = documents, doc_dump = doc_dump, remote_path = remote_path,
-    verbose = verbose, readme = readme}: session_info;
+    documents = documents, doc_dump = doc_dump, verbose = verbose,
+    readme = readme}: session_info;
 
 
 (* state *)
@@ -251,7 +248,7 @@ fun read_variant str =
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info info_path doc doc_graph document_output doc_variants path name
-    (doc_dump as (_, dump_prefix)) (remote_path, first_time) verbose thys =
+    (doc_dump as (_, dump_prefix)) verbose thys =
   if not build andalso not info andalso doc = "" andalso dump_prefix = "" then
     (browser_info := empty_browser_info; session_info := NONE)
   else
@@ -270,10 +267,7 @@ fun init build info info_path doc doc_graph document_output doc_variants path na
         else doc_variants;
 
       val parent_index_path = Path.append Path.parent index_path;
-      val index_up_lnk =
-        if first_time then
-          Url.append (the remote_path) (Url.File (Path.append sess_prefix parent_index_path))
-        else Url.File parent_index_path;
+      val index_up_lnk = Url.File parent_index_path;
       val readme =
         if File.exists readme_html_path then SOME readme_html_path
         else if File.exists readme_path then SOME readme_path
@@ -287,8 +281,8 @@ fun init build info info_path doc doc_graph document_output doc_variants path na
     in
       session_info :=
         SOME (make_session_info (name, parent_name, session_name, path, html_prefix, info, doc,
-          doc_graph, doc_output, documents, doc_dump, remote_path, verbose, readme));
-      browser_info := init_browser_info remote_path path thys;
+          doc_graph, doc_output, documents, doc_dump, verbose, readme));
+      browser_info := init_browser_info path thys;
       add_html_index (0, index_text)
     end;
 
@@ -439,24 +433,21 @@ fun theory_output name s =
   session_default () (fn _ => add_tex_source name (Latex.isabelle_file name s));
 
 
-fun parent_link remote_path curr_session thy =
+fun parent_link curr_session thy =
   let
-    val {name = _, session, is_local} = get_info thy;
+    val {name = _, session} = get_info thy;
     val name = Context.theory_name thy;
     val link =
       if null session then NONE
-      else SOME
-       (if is_some remote_path andalso not is_local then
-         Url.append (the remote_path) (Url.File (Path.append (Path.make session) (html_path name)))
-        else Url.File (Path.append (mk_rel_path curr_session session) (html_path name)));
+      else SOME (Url.File (Path.append (mk_rel_path curr_session session) (html_path name)));
   in (link, name) end;
 
 fun begin_theory update_time dir thy =
-    session_default thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
+    session_default thy (fn {name = sess_name, session, path, html_prefix, ...} =>
   let
     val name = Context.theory_name thy;
     val parents = Theory.parents_of thy;
-    val parent_specs = map (parent_link remote_path path) parents;
+    val parent_specs = map (parent_link path) parents;
 
     val files = [];  (* FIXME *)
     val files_html = files |> map (fn (raw_path, loadit) =>
@@ -484,7 +475,7 @@ fun begin_theory update_time dir thy =
     add_graph_entry (update_time, entry);
     add_html_index (update_time, HTML.theory_entry (Url.File (html_path name), name));
     add_tex_index (update_time, Latex.theory_entry name);
-    put_info {name = sess_name, session = path, is_local = is_some remote_path} thy
+    put_info {name = sess_name, session = path} thy
   end);
 
 

@@ -136,7 +136,7 @@ fun build args_file = Command_Line.tool (fn () =>
           (Options.string options "document_output")
           document_variants
           parent_name name
-          (false, "") ""
+          (false, "")
           verbose;
 
       val last_timing = lookup_timings (fold update_timings command_timings empty_timings);
