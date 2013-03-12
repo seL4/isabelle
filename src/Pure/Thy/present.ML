@@ -53,7 +53,7 @@ fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 structure Browser_Info = Theory_Data
 (
   type T = {chapter: string, name: string};
-  val empty = {chapter = "Unsorted", name = "Unknown"}: T;  (* FIXME !? *)
+  val empty = {chapter = Context.PureN, name = Context.PureN}: T;
   fun extend _ = empty;
   fun merge _ = empty;
 );
@@ -68,25 +68,32 @@ val session_chapter_name = (fn {chapter, name} => [chapter, name]) o Browser_Inf
 fun ID_of sess s = space_implode "/" (sess @ [s]);
 fun ID_of_thy thy = ID_of (session_chapter_name thy) (Context.theory_name thy);
 
-fun theory_link curr_chapter thy =
+fun theory_link (curr_chapter, curr_session) thy =
   let
-    val chapter = #chapter (Browser_Info.get thy);
-    val thy_html = html_path (Context.theory_name thy);
+    val {chapter, name = session} = Browser_Info.get thy;
+    val link = html_path (Context.theory_name thy);
   in
-    if curr_chapter = chapter then thy_html
-    else Path.appends [Path.parent, Path.basic chapter, thy_html]
+    if curr_session = session then SOME link
+    else if curr_chapter = chapter then
+      SOME (Path.appends [Path.parent, Path.basic session, link])
+    else if chapter = Context.PureN then NONE
+    else SOME (Path.appends [Path.parent, Path.parent, Path.basic chapter, Path.basic session, link])
   end;
 
 (*retrieve graph data from initial collection of theories*)
-fun init_graph curr_chapter = rev o map (fn thy =>
+fun init_graph (curr_chapter, curr_session) = rev o map (fn thy =>
   let
     val {chapter, name = session_name} = Browser_Info.get thy;
     val thy_name = Context.theory_name thy;
+    val path =
+      (case theory_link (curr_chapter, curr_session) thy of
+        NONE => ""
+      | SOME p => Path.implode p);
     val entry =
      {name = thy_name,
       ID = ID_of [chapter, session_name] thy_name,
       dir = session_name,
-      path = Path.implode (theory_link curr_chapter thy),
+      path = path,
       unfold = false,
       parents = map ID_of_thy (Theory.parents_of thy),
       content = []};
@@ -124,8 +131,8 @@ fun make_browser_info (theories, files, tex_index, html_index, graph) =
 
 val empty_browser_info = make_browser_info (Symtab.empty, [], [], [], []);
 
-fun init_browser_info chapter thys =
-  make_browser_info (Symtab.empty, [], [], [], init_graph chapter thys);
+fun init_browser_info session thys =
+  make_browser_info (Symtab.empty, [], [], [], init_graph session thys);
 
 fun map_browser_info f {theories, files, tex_index, html_index, graph} =
   make_browser_info (f (theories, files, tex_index, html_index, graph));
@@ -248,7 +255,7 @@ fun init build info info_path doc doc_graph document_output doc_variants
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
           doc_graph, doc_output, documents, doc_dump, verbose, readme));
-      browser_info := init_browser_info chapter thys;
+      browser_info := init_browser_info (chapter, name) thys;
       add_html_index (0, index_text)
     end;
 
@@ -403,11 +410,11 @@ fun theory_output name s =
 fun begin_theory update_time dir thy =
     with_session_info thy (fn {name = session_name, chapter, info_path, ...} =>
   let
-    val path = [chapter, session_name];
     val name = Context.theory_name thy;
     val parents = Theory.parents_of thy;
     val parent_specs = parents |> map (fn parent =>
-      (SOME (Url.File (theory_link chapter parent)), name));
+      (Option.map Url.File (theory_link (chapter, session_name) parent),
+        (Context.theory_name parent)));
 
     val files = [];  (* FIXME *)
     val files_html = files |> map (fn (raw_path, loadit) =>
@@ -427,7 +434,10 @@ fun begin_theory update_time dir thy =
       in (tex_source, Buffer.empty, Buffer.add txt html) end;
 
     val entry =
-     {name = name, ID = ID_of path name, dir = session_name, unfold = true,
+     {name = name,
+      ID = ID_of [chapter, session_name] name,
+      dir = session_name,
+      unfold = true,
       path = Path.implode (html_path name),
       parents = map ID_of_thy parents,
       content = []};
