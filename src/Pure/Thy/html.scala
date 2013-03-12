@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
 
 object HTML
 {
-  // encode text
+  /* encode text */
 
   def encode(text: String): String =
   {
@@ -29,7 +29,27 @@ object HTML
   }
 
 
-  // common markup elements
+  /* document */
+
+  val end_document = "\n</div>\n</body>\n</html>\n"
+
+  def begin_document(title: String): String =
+    "<?xml version=\"1.0\" encoding=\"utf-8\" ?>\n" +
+    "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" " +
+    "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" +
+    "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+    "<head>\n" +
+    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n" +
+    "<title>" + encode(title) + "</title>\n" +
+    "<link media=\"all\" rel=\"stylesheet\" type=\"text/css\" href=\"isabelle.css\"/>\n" +
+    "</head>\n" +
+    "\n" +
+    "<body>\n" +
+    "<div class=\"head\">" +
+    "<h1>" + encode(title) + "</h1>\n"
+
+
+  /* common markup elements */
 
   def session_entry(name: String): String =
     XML.string_of_tree(
@@ -37,11 +57,11 @@ object HTML
         List(XML.Elem(Markup("a", List(("href", name + "/index.html"))),
           List(XML.Text(name)))))) + "\n"
 
-  def session_entries(names: List[String]): String =
-    if (names.isEmpty) "</ul>"
-    else
-      "</ul>\n</div>\n<div class=\"sessions\">\n" +
-      "<h2>Sessions</h2>\n<ul>\n" + names.map(session_entry).mkString + "</ul>";
-
-  val end_document = "\n</div>\n</body>\n</html>\n"
+  def chapter_index(chapter: String, sessions: List[String]): String =
+  {
+    begin_document("Isabelle/" + chapter + " sessions") +
+      (if (sessions.isEmpty) ""
+       else "<div class=\"sessions\"><ul>\n" + sessions.map(session_entry(_)).mkString + "</ul>") +
+    end_document
+  }
 }

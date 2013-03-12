@@ -9,33 +9,29 @@ package isabelle
 
 object Present
 {
-  /* maintain session index -- NOT thread-safe */
+  /* maintain chapter index -- NOT thread-safe */
 
   private val index_path = Path.basic("index.html")
-  private val session_entries_path = Path.explode(".session/entries")
-  private val pre_index_path = Path.explode(".session/pre-index")
+  private val sessions_path = Path.basic(".sessions")
 
-  private def get_entries(dir: Path): List[String] =
-    split_lines(File.read(dir + session_entries_path))
+  private def read_sessions(dir: Path): List[String] =
+    split_lines(File.read(dir + sessions_path))
 
-  private def put_entries(entries: List[String], dir: Path): Unit =
-    File.write(dir + session_entries_path, cat_lines(entries))
+  private def write_sessions(dir: Path, sessions: List[String]): Unit =
+    File.write(dir + sessions_path, cat_lines(sessions))
 
-  def create_index(dir: Path): Unit =
-    File.write(dir + index_path,
-      File.read(dir + pre_index_path) +
-      HTML.session_entries(get_entries(dir)) +
-      HTML.end_document)
+  def update_chapter_index(info_path: Path, chapter: String, new_sessions: List[String]): Unit =
+  {
+    val dir = info_path + Path.basic(chapter)
+    Isabelle_System.mkdirs(dir)
 
-  def update_index(dir: Path, names: List[String]): Unit =
-    try {
-      put_entries(get_entries(dir).filterNot(names.contains) ::: names, dir)
-      create_index(dir)
-    }
-    catch {
-      case ERROR(msg) =>
-        java.lang.System.err.println(
-          "### " + msg + "\n### Browser info: failed to update session index of " + dir)
-    }
+    val sessions0 =
+      try { split_lines(File.read(dir + sessions_path)) }
+      catch { case ERROR(_) => Nil }
+
+    val sessions = sessions0.filterNot(new_sessions.contains) ::: new_sessions
+    write_sessions(dir, sessions)
+    File.write(dir + index_path, HTML.chapter_index(chapter, sessions))
+  }
 }
 

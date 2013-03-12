@@ -63,9 +63,9 @@ INCOMPATIBILITY.
 
 *** System ***
 
-* Discontinued "isabelle usedir" option -P (remote path).  Note that
-usedir is legacy and superseded by "isabelle build" since
-Isabelle2013.
+* Discontinued "isabelle usedir" option -P (remote path) and -r (reset
+session path).  Note that usedir is legacy and superseded by "isabelle
+build" since Isabelle2013.
 
 
 
