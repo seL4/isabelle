@@ -35,7 +35,7 @@ object Present
     Isabelle_System.mkdirs(dir)
 
     val sessions0 =
-      try { read_sessions(dir + sessions_path) }
+      try { read_sessions(dir) }
       catch { case ERROR(_) => Nil case _: XML.XML_Atom => Nil case _: XML.XML_Body => Nil }
 
     val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
