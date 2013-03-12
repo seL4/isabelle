@@ -14,6 +14,7 @@ import java.io.{BufferedInputStream, FileInputStream,
 import java.util.zip.GZIPInputStream
 
 import scala.collection.SortedSet
+import scala.collection.mutable
 import scala.annotation.tailrec
 
 
@@ -46,6 +47,8 @@ object Build
   /** session information **/
 
   // external version
+  abstract class Entry
+  sealed case class Chapter(name: String) extends Entry
   sealed case class Session_Entry(
     pos: Position.T,
     name: String,
@@ -55,10 +58,11 @@ object Build
     description: String,
     options: List[Options.Spec],
     theories: List[(List[Options.Spec], List[String])],
-    files: List[String])
+    files: List[String]) extends Entry
 
   // internal version
   sealed case class Session_Info(
+    chapter: String,
     select: Boolean,
     pos: Position.T,
     groups: List[String],
@@ -72,8 +76,8 @@ object Build
 
   def is_pure(name: String): Boolean = name == "RAW" || name == "Pure"
 
-  def session_info(options: Options, select: Boolean, dir: Path, entry: Session_Entry)
-      : (String, Session_Info) =
+  def session_info(options: Options, select: Boolean, dir: Path,
+      chapter: String, entry: Session_Entry): (String, Session_Info) =
     try {
       val name = entry.name
 
@@ -87,10 +91,11 @@ object Build
         entry.theories.map({ case (opts, thys) =>
           (session_options ++ opts, thys.map(Path.explode(_))) })
       val files = entry.files.map(Path.explode(_))
-      val entry_digest = SHA1.digest((name, entry.parent, entry.options, entry.theories).toString)
+      val entry_digest =
+        SHA1.digest((chapter, name, entry.parent, entry.options, entry.theories).toString)
 
       val info =
-        Session_Info(select, entry.pos, entry.groups, dir + Path.explode(entry.path),
+        Session_Info(chapter, select, entry.pos, entry.groups, dir + Path.explode(entry.path),
           entry.parent, entry.description, session_options, theories, files, entry_digest)
 
       (name, info)
@@ -180,6 +185,9 @@ object Build
 
   /* parser */
 
+  val chapter_default = "Unsorted"
+
+  private val CHAPTER = "chapter"
   private val SESSION = "session"
   private val IN = "in"
   private val DESCRIPTION = "description"
@@ -189,10 +197,20 @@ object Build
 
   lazy val root_syntax =
     Outer_Syntax.init() + "(" + ")" + "+" + "," + "=" + "[" + "]" +
-      (SESSION, Keyword.THY_DECL) + IN + DESCRIPTION + OPTIONS + THEORIES + FILES
+      (CHAPTER, Keyword.THY_DECL) + (SESSION, Keyword.THY_DECL) +
+      IN + DESCRIPTION + OPTIONS + THEORIES + FILES
 
   private object Parser extends Parse.Parser
   {
+    def entry(pos: Position.T): Parser[Entry] = chapter(pos) | session_entry(pos)
+
+    def chapter(pos: Position.T): Parser[Chapter] =
+    {
+      val chapter_name = atom("chapter name", _.is_name)
+
+      command(CHAPTER) ~! chapter_name ^^ { case _ ~ a => Chapter(a) }
+    }
+
     def session_entry(pos: Position.T): Parser[Session_Entry] =
     {
       val session_name = atom("session name", _.is_name)
@@ -219,11 +237,19 @@ object Build
             Session_Entry(pos, a, b, c, d, e, f, g, h) }
     }
 
-    def parse_entries(root: Path): List[Session_Entry] =
+    def parse_entries(root: Path): List[(String, Session_Entry)] =
     {
       val toks = root_syntax.scan(File.read(root))
-      parse_all(rep(session_entry(root.position)), Token.reader(toks, root.implode)) match {
-        case Success(result, _) => result
+
+      parse_all(rep(entry(root.position)), Token.reader(toks, root.implode)) match {
+        case Success(result, _) =>
+          var chapter = chapter_default
+          val entries = new mutable.ListBuffer[(String, Session_Entry)]
+          result.foreach {
+            case Chapter(name) => chapter = name
+            case session_entry: Session_Entry => entries += ((chapter, session_entry))
+          }
+          entries.toList
         case bad => error(bad.toString)
       }
     }
@@ -250,7 +276,8 @@ object Build
     def find_root(select: Boolean, dir: Path): List[(String, Session_Info)] =
     {
       val root = dir + ROOT
-      if (root.is_file) Parser.parse_entries(root).map(session_info(options, select, dir, _))
+      if (root.is_file)
+        Parser.parse_entries(root).map(p => session_info(options, select, dir, p._1, p._2))
       else Nil
     }
 
@@ -398,7 +425,7 @@ object Build
             val groups =
               if (info.groups.isEmpty) ""
               else info.groups.mkString(" (", " ", ")")
-            progress.echo("Session " + name + groups)
+            progress.echo("Session " + info.chapter + "/" + name + groups)
           }
 
           val thy_deps =
@@ -470,9 +497,10 @@ object Build
         {
           import XML.Encode._
               pair(list(properties), pair(bool, pair(Options.encode, pair(bool, pair(Path.encode,
-                pair(string, pair(string, list(pair(Options.encode, list(Path.encode))))))))))(
+                pair(string, pair(string, pair(string,
+                  list(pair(Options.encode, list(Path.encode)))))))))))(
               (command_timings, (do_output, (info.options, (verbose, (browser_info,
-                (parent, (name, info.theories))))))))
+                (parent, (info.chapter, (name, info.theories)))))))))
         }))
 
     private val env =
@@ -568,7 +596,6 @@ object Build
   private def log_gz(name: String): Path = log(name).ext("gz")
 
   private val SESSION_NAME = "\fSession.name = "
-  private val SESSION_PARENT_PATH = "\fSession.parent_path = "
 
 
   sealed case class Log_Info(
@@ -727,7 +754,7 @@ object Build
     }
 
     // scheduler loop
-    case class Result(current: Boolean, parent_path: Option[String], heap: String, rc: Int)
+    case class Result(current: Boolean, heap: String, rc: Int)
 
     def sleep(): Unit = Thread.sleep(500)
 
@@ -748,7 +775,7 @@ object Build
             val res = job.join
             progress.echo(res.err)
 
-            val (parent_path, heap) =
+            val heap =
               if (res.rc == 0) {
                 (output_dir + log(name)).file.delete
 
@@ -757,13 +784,7 @@ object Build
                 File.write_gzip(output_dir + log_gz(name),
                   sources + "\n" + parent_heap + "\n" + heap + "\n" + res.out)
 
-                val parent_path =
-                  if (job.info.options.bool("browser_info"))
-                    res.out_lines.find(_.startsWith(SESSION_PARENT_PATH))
-                      .map(_.substring(SESSION_PARENT_PATH.length))
-                  else None
-
-                (parent_path, heap)
+                heap
               }
               else {
                 (output_dir + Path.basic(name)).file.delete
@@ -778,10 +799,10 @@ object Build
                   progress.echo("\n" + cat_lines(tail))
                 }
 
-                (None, no_heap)
+                no_heap
               }
             loop(pending - name, running - name,
-              results + (name -> Result(false, parent_path, heap, res.rc)))
+              results + (name -> Result(false, heap, res.rc)))
             //}}}
           case None if (running.size < (max_jobs max 1)) =>
             //{{{ check/start next job
@@ -789,7 +810,7 @@ object Build
               case Some((name, info)) =>
                 val parent_result =
                   info.parent match {
-                    case None => Result(true, None, no_heap, 0)
+                    case None => Result(true, no_heap, 0)
                     case Some(parent) => results(parent)
                   }
                 val output = output_dir + Path.basic(name)
@@ -812,10 +833,10 @@ object Build
                 val all_current = current && parent_result.current
 
                 if (all_current)
-                  loop(pending - name, running, results + (name -> Result(true, None, heap, 0)))
+                  loop(pending - name, running, results + (name -> Result(true, heap, 0)))
                 else if (no_build) {
                   if (verbose) progress.echo("Skipping " + name + " ...")
-                  loop(pending - name, running, results + (name -> Result(false, None, heap, 1)))
+                  loop(pending - name, running, results + (name -> Result(false, heap, 1)))
                 }
                 else if (parent_result.rc == 0 && !progress.stopped) {
                   progress.echo((if (do_output) "Building " else "Running ") + name + " ...")
@@ -826,7 +847,7 @@ object Build
                 }
                 else {
                   progress.echo(name + " CANCELLED")
-                  loop(pending - name, running, results + (name -> Result(false, None, heap, 1)))
+                  loop(pending - name, running, results + (name -> Result(false, heap, 1)))
                 }
               case None => sleep(); loop(pending, running, results)
             }
@@ -847,11 +868,11 @@ object Build
       else loop(queue, Map.empty, Map.empty)
 
     val session_entries =
-      (for ((name, res) <- results.iterator if res.parent_path.isDefined)
-        yield (res.parent_path.get, name)).toList.groupBy(_._1).map(
-          { case (p, es) => (p, es.map(_._2).sorted) })
-    for ((p, names) <- session_entries)
-      Present.update_index(browser_info + Path.explode(p), names)
+      (for { (name, res) <- results.iterator; info = full_tree(name) }
+        yield (info.chapter, (name, info.description))).toList.groupBy(_._1).map(
+          { case (chapter, es) => (chapter, es.map(_._2)) })
+    for ((chapter, entries) <- session_entries)
+      Present.update_chapter_index(browser_info, chapter, entries)
 
     val rc = (0 /: results)({ case (rc1, (_, res)) => rc1 max res.rc })
     if (rc != 0 && (verbose || !no_build)) {

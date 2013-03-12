@@ -7,35 +7,41 @@ Theory presentation: HTML.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Present
 {
-  /* maintain session index -- NOT thread-safe */
+  /* maintain chapter index -- NOT thread-safe */
 
   private val index_path = Path.basic("index.html")
-  private val session_entries_path = Path.explode(".session/entries")
-  private val pre_index_path = Path.explode(".session/pre-index")
+  private val sessions_path = Path.basic(".sessions")
 
-  private def get_entries(dir: Path): List[String] =
-    split_lines(File.read(dir + session_entries_path))
+  private def read_sessions(dir: Path): List[(String, String)] =
+  {
+    import XML.Decode._
+    list(pair(string, string))(YXML.parse_body(File.read(dir + sessions_path)))
+  }
 
-  private def put_entries(entries: List[String], dir: Path): Unit =
-    File.write(dir + session_entries_path, cat_lines(entries))
+  private def write_sessions(dir: Path, sessions: List[(String, String)])
+  {
+    import XML.Encode._
+    File.write(dir + sessions_path, YXML.string_of_body(list(pair(string, string))(sessions)))
+  }
 
-  def create_index(dir: Path): Unit =
-    File.write(dir + index_path,
-      File.read(dir + pre_index_path) +
-      HTML.session_entries(get_entries(dir)) +
-      HTML.end_document)
+  def update_chapter_index(info_path: Path, chapter: String, new_sessions: List[(String, String)])
+  {
+    val dir = info_path + Path.basic(chapter)
+    Isabelle_System.mkdirs(dir)
 
-  def update_index(dir: Path, names: List[String]): Unit =
-    try {
-      put_entries(get_entries(dir).filterNot(names.contains) ::: names, dir)
-      create_index(dir)
-    }
-    catch {
-      case ERROR(msg) =>
-        java.lang.System.err.println(
-          "### " + msg + "\n### Browser info: failed to update session index of " + dir)
-    }
+    val sessions0 =
+      try { read_sessions(dir + sessions_path) }
+      catch { case ERROR(_) => Nil case _: XML.XML_Atom => Nil case _: XML.XML_Body => Nil }
+
+    val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
+
+    write_sessions(dir, sessions)
+    File.write(dir + index_path, HTML.chapter_index(chapter, sessions))
+  }
 }
 

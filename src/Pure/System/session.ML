@@ -1,18 +1,16 @@
 (*  Title:      Pure/System/session.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Session management -- maintain state of logic images.
+Session management -- internal state of logic images.
 *)
 
 signature SESSION =
 sig
-  val id: unit -> string list
   val name: unit -> string
-  val path: unit -> string list
   val welcome: unit -> string
+  val init: bool -> bool -> Path.T -> string -> bool -> string -> (string * string) list ->
+    string -> string * string -> bool * string -> bool -> unit
   val finish: unit -> unit
-  val init: bool -> bool -> bool -> string -> string -> bool -> string -> (string * string) list ->
-    string -> string -> bool * string -> string -> bool -> unit
   val with_timing: string -> bool -> ('a -> 'b) -> 'a -> 'b
   val use_dir: string -> string -> bool -> string list -> bool -> bool -> string ->
     string -> bool -> string list -> string -> string -> bool * string ->
@@ -24,22 +22,10 @@ struct
 
 (* session state *)
 
-val session = Unsynchronized.ref ([Context.PureN]: string list);
+val session = Unsynchronized.ref {chapter = "Pure", name = "Pure"};
 val session_finished = Unsynchronized.ref false;
 
-fun id () = ! session;
-fun name () = "Isabelle/" ^ List.last (! session);
-
-
-(* access path *)
-
-val session_path = Unsynchronized.ref ([]: string list);
-val remote_path = Unsynchronized.ref (NONE: Url.T option);
-
-fun path () = ! session_path;
-
-
-(* welcome *)
+fun name () = "Isabelle/" ^ #name (! session);
 
 fun welcome () =
   if Distribution.is_official then
@@ -47,22 +33,21 @@ fun welcome () =
   else "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")";
 
 
-(* add_path *)
+(* init *)
 
-fun add_path reset s =
-  let val sess = ! session @ [s] in
-    (case duplicates (op =) sess of
-      [] => (session := sess; session_path := ((if reset then [] else ! session_path) @ [s]))
-    | dups => error ("Duplicate session identifiers " ^ commas_quote dups))
-  end;
-
-
-(* init_name *)
-
-fun init_name reset parent name =
-  if not (member (op =) (! session) parent) orelse not (! session_finished) then
+fun init build info info_path doc doc_graph doc_output doc_variants
+    parent (chapter, name) doc_dump verbose =
+  if #name (! session) <> parent orelse not (! session_finished) then
     error ("Unfinished parent session " ^ quote parent ^ " for " ^ quote name)
-  else (add_path reset name; session_finished := false);
+  else
+    let
+      val _ = session := {chapter = chapter, name = name};
+      val _ = session_finished := false;
+    in
+      Present.init build info info_path (if doc = "false" then "" else doc)
+        doc_graph doc_output doc_variants (chapter, name)
+        doc_dump verbose (map Thy_Info.get_theory (Thy_Info.get_names ()))
+    end;
 
 
 (* finish *)
@@ -78,7 +63,7 @@ fun finish () =
   session_finished := true);
 
 
-(* use_dir *)
+(* timing within ML *)
 
 fun with_timing name verbose f x =
   let
@@ -100,28 +85,12 @@ fun with_timing name verbose f x =
       else ();
   in y end;
 
-fun get_rpath rpath =
-  (if rpath = "" then () else
-     if is_some (! remote_path) then
-       error "Path for remote theory browsing information may only be set once"
-     else
-       remote_path := SOME (Url.explode rpath);
-   (! remote_path, rpath <> ""));
 
-fun init build reset info info_path doc doc_graph doc_output doc_variants
-    parent name doc_dump rpath verbose =
- (init_name reset parent name;
-  Present.init build info info_path (if doc = "false" then "" else doc) doc_graph doc_output
-    doc_variants (path ()) name doc_dump (get_rpath rpath) verbose
-    (map Thy_Info.get_theory (Thy_Info.get_names ())));
-
-local
+(* use_dir *)
 
 fun read_variants strs =
   rev (distinct (eq_fst (op =)) (rev (("document", "") :: map Present.read_variant strs)))
   |> filter_out (fn (_, s) => s = "-");
-
-in
 
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name doc_dump rpath level timing verbose max_threads trace_threads
@@ -132,8 +101,15 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
         Output.physical_stderr
           "### Legacy feature: old \"isabelle usedir\" -- use \"isabelle build\" instead!\n";
       val _ =
-        init build reset info info_path doc doc_graph "" (read_variants doc_variants) parent name
-          doc_dump rpath verbose;
+        if not reset then ()
+        else Output.physical_stderr "### Ignoring reset (historic usedir option -r)\n";
+      val _ =
+        if rpath = "" then ()
+        else Output.physical_stderr "### Ignoring remote path (historic usedir option -P)\n";
+
+      val _ =
+        init build info (Path.explode info_path) doc doc_graph "" (read_variants doc_variants)
+          parent ("Unsorted", name) doc_dump verbose;
       val res1 = (use |> with_timing item timing |> Exn.capture) root;
       val res2 = Exn.capture finish ();
     in ignore (Par_Exn.release_all [res1, res2]) end)
@@ -146,7 +122,5 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
       (if Multithreading.available then max_threads
        else (if max_threads = 1 then () else warning "Multithreading support unavailable"; 1))) ()
   handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
-
-end;
 
 end;

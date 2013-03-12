@@ -1,9 +1,17 @@
+chapter Cube
+
 session Cube = Pure +
   description {*
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
 
-    The Lambda-Cube a la Barendregt.
+    Barendregt's Lambda-Cube.
+
+    NB: the formalization is not completely sound!  It does not enforce
+    distinctness of variable names in contexts!
+
+    For more information about the Lambda-Cube, see H. Barendregt, Introduction
+    to Generalised Type Systems, J. Functional Programming.
   *}
   options [document = false]
   theories Example

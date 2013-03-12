@@ -22,12 +22,11 @@ sig
   val verbatim: string -> text
   val begin_document: string -> text
   val end_document: text
-  val begin_index: Url.T * string -> Url.T * string -> (Url.T * string) list -> Url.T -> text
+  val begin_session_index: string -> (Url.T * string) list -> Url.T -> text
   val applet_pages: string -> Url.T * string -> (string * string) list
   val theory_entry: Url.T * string -> text
-  val session_entries: (Url.T * string) list -> text
   val theory_source: text -> text
-  val begin_theory: Url.T * string -> string -> (Url.T option * string) list ->
+  val begin_theory: string -> (Url.T option * string) list ->
     (Url.T * Url.T * bool) list -> text -> text
   val external_file: Url.T -> string -> text
 end;
@@ -288,21 +287,19 @@ fun begin_document title =
 
 val end_document = "\n</div>\n</body>\n</html>\n";
 
-fun gen_link how (path, name) = para (href_path path how ^ " to index of " ^ plain name);
-val up_link = gen_link "Up";
-val back_link = gen_link "Back";
-
 
 (* session index *)
 
-fun begin_index up (index_path, session) docs graph =
-  begin_document ("Index of " ^ session) ^ up_link up ^
+fun begin_session_index session docs graph =
+  begin_document ("Session " ^ plain session) ^
   para ("View " ^ href_path graph "theory dependencies" ^
     implode (map (fn (p, name) => "<br/>\nView " ^ href_path p name) docs)) ^
   "\n</div>\n<div class=\"theories\">\n<h2>Theories</h2>\n<ul>\n";
 
 fun choice chs s = space_implode " " (map (fn (s', lnk) =>
   enclose "[" "]" (if s = s' then keyword s' else href_name lnk s')) chs);
+
+fun back_link (path, name) = para (href_path path "Back" ^ " to index of " ^ plain name);
 
 fun applet_pages session back =
   let
@@ -329,14 +326,7 @@ fun applet_pages session back =
   in map applet_page sizes end;
 
 
-fun entry (p, s) = "<li>" ^ href_path p (plain s) ^ "</li>\n";
-
-val theory_entry = entry;
-
-fun session_entries [] = "</ul>"
-  | session_entries es =
-      "</ul>\n</div>\n<div class=\"sessions\">\n\
-      \<h2>Sessions</h2>\n<ul>\n" ^ implode (map entry es) ^ "</ul>";
+fun theory_entry (p, s) = "<li>" ^ href_path p (plain s) ^ "</li>\n";
 
 
 (* theory *)
@@ -350,9 +340,8 @@ local
   fun file (href, path, loadit) =
     href_path href (if loadit then file_path path else enclose "(" ")" (file_path path));
 
-  fun theory up A =
-    begin_document ("Theory " ^ A) ^ "\n" ^ up_link up ^
-    command "theory" ^ " " ^ name A;
+  fun theory A =
+    begin_document ("Theory " ^ A) ^ "\n" ^ command "theory" ^ " " ^ name A;
 
   fun imports Bs =
     keyword "imports" ^ " " ^ space_implode " " (map (uncurry href_opt_path o apsnd name) Bs);
@@ -360,8 +349,8 @@ local
   fun uses Ps = keyword "uses" ^ " " ^ space_implode " " (map file Ps) ^ "<br/>\n";
 in
 
-fun begin_theory up A Bs Ps body =
-  theory up A ^ "<br/>\n" ^
+fun begin_theory A Bs Ps body =
+  theory A ^ "<br/>\n" ^
   imports Bs ^ "<br/>\n" ^
   (if null Ps then "" else uses Ps) ^
   body;
