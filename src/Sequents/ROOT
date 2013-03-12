@@ -5,7 +5,37 @@ session Sequents = Pure +
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 
-    Classical Sequent Calculus based on Pure Isabelle.
+    Various Sequent Calculi for Classical, Linear, and Modal Logic.
+
+    Much of the work in Modal logic was done by Martin Coen. Thanks to Rajeev
+    Gore' for supplying the inference system for S43. Sara Kalvala reorganized
+    the files and supplied Linear Logic. Jacob Frost provided some improvements
+    to the syntax of sequents.
+
+
+    Useful references on sequent calculi:
+
+    Steve Reeves and Michael Clarke, Logic for Computer Science
+    (Addison-Wesley, 1990)
+
+    G. Takeuti, Proof Theory (North Holland, 1987)
+
+
+    Useful references on Modal Logics:
+
+    Melvin C Fitting, Proof Methods for Modal and Intuitionistic Logics
+    (Reidel, 1983)
+
+    Lincoln A. Wallen, Automated Deduction in Nonclassical Logics (MIT Press,
+    1990)
+
+
+    Useful references on Linear Logic:
+
+    A. S. Troelstra, Lectures on Linear Logic (CSLI, 1992)
+
+    S. Kalvala and V. de Paiva, Linear Logic in Isabelle (in TR 379, University
+    of Cambridge Computer Lab, 1995, ed L. Paulson)
   *}
   options [document = false]
   theories

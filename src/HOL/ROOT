@@ -50,12 +50,40 @@ session "HOL-Hahn_Banach" in Hahn_Banach = HOL +
     Author:     Gertrud Bauer, TU Munich
 
     The Hahn-Banach theorem for real vector spaces.
+
+    This is the proof of the Hahn-Banach theorem for real vectorspaces,
+    following H. Heuser, Funktionalanalysis, p. 228 -232. The Hahn-Banach
+    theorem is one of the fundamental theorems of functioal analysis. It is a
+    conclusion of Zorn's lemma.
+
+    Two different formaulations of the theorem are presented, one for general
+    real vectorspaces and its application to normed vectorspaces.
+
+    The theorem says, that every continous linearform, defined on arbitrary
+    subspaces (not only one-dimensional subspaces), can be extended to a
+    continous linearform on the whole vectorspace.
   *}
   options [document_graph]
   theories Hahn_Banach
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Induct" in Induct = HOL +
+  description {*
+    Examples of (Co)Inductive Definitions.
+
+    Comb proves the Church-Rosser theorem for combinators (see
+    http://www.cl.cam.ac.uk/ftp/papers/reports/TR396-lcp-generic-automatic-proof-tools.ps.gz).
+
+    Mutil is the famous Mutilated Chess Board problem (see
+    http://www.cl.cam.ac.uk/ftp/papers/reports/TR394-lcp-mutilated-chess-board.dvi.gz).
+
+    PropLog proves the completeness of a formalization of propositional logic
+    (see
+    HREF="http://www.cl.cam.ac.uk/Research/Reports/TR312-lcp-set-II.ps.gz).
+
+    Exp demonstrates the use of iterated inductive definitions to reason about
+    mutually recursive relations.
+  *}
   theories [quick_and_dirty]
     Common_Patterns
   theories
@@ -117,6 +145,12 @@ session "HOL-IMPP" in IMPP = HOL +
   description {*
     Author:     David von Oheimb
     Copyright   1999 TUM
+
+    IMPP -- An imperative language with procedures.
+
+    This is an extension of IMP with local variables and mutually recursive
+    procedures. For documentation see "Hoare Logic for Mutual Recursion and
+    Local Variables" (http://isabelle.in.tum.de/Bali/papers/FSTTCS99.html).
   *}
   options [document = false]
   theories EvenOdd
@@ -131,6 +165,10 @@ session "HOL-Number_Theory" in Number_Theory = HOL +
   theories Number_Theory
 
 session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
+  description {*
+    Fundamental Theorem of Arithmetic, Chinese Remainder Theorem, Fermat/Euler
+    Theorem, Wilson's Theorem, Quadratic Reciprocity.
+  *}
   options [document_graph]
   theories [document = false]
     "~~/src/HOL/Library/Infinite_Set"
@@ -147,10 +185,19 @@ session "HOL-Old_Number_Theory" in Old_Number_Theory = HOL +
   files "document/root.tex"
 
 session "HOL-Hoare" in Hoare = HOL +
+  description {*
+    Verification of imperative programs (verification conditions are generated
+    automatically from pre/post conditions and loop invariants).
+  *}
+
   theories Hoare
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
+  description {*
+    Verification of shared-variable imperative programs a la Owicki-Gries.
+    (verification conditions are generated automatically).
+  *}
   options [document_graph]
   theories Hoare_Parallel
   files "document/root.bib" "document/root.tex"
@@ -217,6 +264,7 @@ session "HOL-Algebra" (main) in Algebra = HOL +
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Auth" in Auth = HOL +
+  description {* A new approach to verifying authentication protocols. *}
   options [document_graph]
   theories
     Auth_Shared
@@ -231,7 +279,7 @@ session "HOL-UNITY" in UNITY = "HOL-Auth" +
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 
-    Verifying security protocols using UNITY.
+    Verifying security protocols using Chandy and Misra's UNITY formalism.
   *}
   options [document_graph]
   theories
@@ -315,6 +363,15 @@ session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
+  description {*
+    Lambda Calculus in de Bruijn's Notation.
+
+    This session defines lambda-calculus terms with de Bruijn indixes and
+    proves confluence of beta, eta and beta+eta.
+
+    The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
+    theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
+  *}
   options [document_graph, print_mode = "no_brackets", proofs = 2, parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Int"
@@ -328,11 +385,22 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
 session "HOL-Prolog" in Prolog = HOL +
   description {*
     Author:   David von Oheimb (based on a lecture on Lambda Prolog by Nadathur)
+
+    A bare-bones implementation of Lambda-Prolog.
+
+    This is a simple exploratory implementation of Lambda-Prolog in HOL,
+    including some minimal examples (in Test.thy) and a more typical example of
+    a little functional language and its type system.
   *}
   options [document = false]
   theories Test Type
 
 session "HOL-MicroJava" in MicroJava = HOL +
+  description {*
+    Formalization of a fragment of Java, together with a corresponding virtual
+    machine and a specification of its bytecode verifier and a lightweight
+    bytecode verifier, including proofs of type-safety.
+  *}
   options [document_graph]
   theories [document = false] "~~/src/HOL/Library/While_Combinator"
   theories MicroJava
@@ -346,6 +414,9 @@ session "HOL-MicroJava-skip_proofs" in MicroJava = HOL +
   theories MicroJava
 
 session "HOL-NanoJava" in NanoJava = HOL +
+  description {*
+    Hoare Logic for a tiny fragment of Java.
+  *}
   options [document_graph]
   theories Example
   files "document/root.bib" "document/root.tex"
@@ -361,10 +432,12 @@ session "HOL-Bali" in Bali = HOL +
 
 session "HOL-IOA" in IOA = HOL +
   description {*
-    Author:     Tobias Nipkow & Konrad Slind
-    Copyright   1994  TU Muenchen
+    Author:     Tobias Nipkow and Konrad Slind and Olaf Müller
+    Copyright   1994--1996  TU Muenchen
 
-    The meta theory of I/O-Automata.
+    The meta theory of I/O-Automata in HOL. This formalization has been
+    significantly changed and extended, see HOLCF/IOA. There are also the
+    proofs of two communication protocols which formerly have been here.
 
     @inproceedings{Nipkow-Slind-IOA,
     author={Tobias Nipkow and Konrad Slind},
@@ -485,7 +558,9 @@ try use_thy "SAT_Examples";   (* FIXME try!? (not really a proper test) *)
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Isar_Examples" in Isar_Examples = HOL +
-  description {* Miscellaneous Isabelle/Isar examples for Higher-Order Logic. *}
+  description {*
+    Miscellaneous Isabelle/Isar examples for Higher-Order Logic.
+  *}
   theories [document = false]
     "~~/src/HOL/Library/Lattice_Syntax"
     "../Number_Theory/Primes"
@@ -511,18 +586,26 @@ session "HOL-Isar_Examples" in Isar_Examples = HOL +
     "document/style.tex"
 
 session "HOL-SET_Protocol" in SET_Protocol = HOL +
+  description {*
+    Verification of the SET Protocol.
+  *}
   options [document_graph]
   theories [document = false] "~~/src/HOL/Library/Nat_Bijection"
   theories SET_Protocol
   files "document/root.tex"
 
 session "HOL-Matrix_LP" in Matrix_LP = HOL +
+  description {*
+    Two-dimensional matrices and linear programming.
+  *}
   options [document_graph]
   theories Cplex
   files "document/root.tex"
 
 session "HOL-TLA" in TLA = HOL +
-  description {* The Temporal Logic of Actions *}
+  description {*
+    Lamport's Temporal Logic of Actions.
+  *}
   options [document = false]
   theories TLA
 
@@ -637,6 +720,7 @@ session "HOL-Statespace" in Statespace = HOL +
   files "document/root.tex"
 
 session "HOL-NSA" in NSA = HOL +
+  description {* Nonstandard analysis. *}
   options [document_graph]
   theories Hypercomplex
   files "document/root.tex"
@@ -864,6 +948,11 @@ session "HOLCF-Library" in "HOLCF/Library" = HOLCF +
   theories HOLCF_Library
 
 session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
+  description {*
+    IMP -- A WHILE-language and its Semantics.
+
+    This is the HOLCF-based denotational semantics of a simple WHILE-language.
+  *}
   options [document = false]
   theories HoareEx
   files "document/root.tex"
@@ -885,6 +974,20 @@ session "HOLCF-ex" in "HOLCF/ex" = HOLCF +
     Pattern_Match
 
 session "HOLCF-FOCUS" in "HOLCF/FOCUS" = HOLCF +
+  description {*
+    FOCUS: a theory of stream-processing functions Isabelle/HOLCF.
+
+    For introductions to FOCUS, see
+
+    "The Design of Distributed Systems - An Introduction to FOCUS"
+    http://www4.in.tum.de/publ/html.php?e=2
+
+    "Specification and Refinement of a Buffer of Length One"
+    http://www4.in.tum.de/publ/html.php?e=15
+
+    "Specification and Development of Interactive Systems: Focus on Streams,
+    Interfaces, and Refinement" http://www4.in.tum.de/publ/html.php?e=321
+  *}
   options [document = false]
   theories
     Fstreams
@@ -894,8 +997,13 @@ session "HOLCF-FOCUS" in "HOLCF/FOCUS" = HOLCF +
 session IOA in "HOLCF/IOA" = HOLCF +
   description {*
     Author:     Olaf Mueller
+    Copyright   1997 TU München
 
-    Formalization of a semantic model of I/O-Automata.
+    A formalization of I/O automata in HOLCF.
+
+    The distribution contains simulation relations, temporal logic, and an
+    abstraction theory. Everything is based upon a domain-theoretic model of
+    finite and infinite sequences.
   *}
   options [document = false]
   theories "meta_theory/Abstraction"

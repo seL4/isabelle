@@ -4,6 +4,11 @@ session LCF = Pure +
   description {*
     Author:     Tobias Nipkow
     Copyright   1992  University of Cambridge
+
+    Logic for Computable Functions.
+
+    Useful references on LCF: Lawrence C. Paulson,
+    Logic and Computation: Interactive proof with Cambridge LCF (CUP, 1987)
   *}
   options [document = false]
   theories LCF

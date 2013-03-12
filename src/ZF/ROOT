@@ -5,9 +5,42 @@ session ZF (main) = Pure +
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1995  University of Cambridge
 
-    Zermelo-Fraenkel Set Theory on top of classical First-Order Logic.
+    Zermelo-Fraenkel Set Theory. This theory is the work of Martin Coen,
+    Philippe Noel and Lawrence Paulson.
 
-    This theory is the work of Martin Coen, Philippe Noel and Lawrence Paulson.
+    Isabelle/ZF formalizes the greater part of elementary set theory, including
+    relations, functions, injections, surjections, ordinals and cardinals.
+    Results proved include Cantor's Theorem, the Recursion Theorem, the
+    Schroeder-Bernstein Theorem, and (assuming AC) the Wellordering Theorem.
+
+    Isabelle/ZF also provides theories of lists, trees, etc., for formalizing
+    computational notions. It supports inductive definitions of
+    infinite-branching trees for any cardinality of branching.
+
+
+    Useful references for Isabelle/ZF:
+
+    Lawrence C. Paulson, Set theory for verification: I. From foundations to
+    functions. J. Automated Reasoning 11 (1993), 353-389.
+
+    Lawrence C. Paulson, Set theory for verification: II. Induction and
+    recursion. Report 312, Computer Lab (1993).
+
+    Lawrence C. Paulson, A fixedpoint approach to implementing (co)inductive
+    definitions. In: A. Bundy (editor), CADE-12: 12th International
+    Conference on Automated Deduction, (Springer LNAI 814, 1994), 148-161.
+
+
+    Useful references on ZF set theory:
+
+    Paul R. Halmos, Naive Set Theory (Van Nostrand, 1960)
+
+    Patrick Suppes, Axiomatic Set Theory (Dover, 1972)
+
+    Keith J. Devlin, Fundamentals of Contemporary Set Theory (Springer, 1979)
+
+    Kenneth Kunen, Set Theory: An Introduction to Independence Proofs,
+    (North-Holland, 1980)
   *}
   options [document_graph]
   theories
@@ -21,6 +54,14 @@ session "ZF-AC" in AC = ZF +
     Copyright   1995  University of Cambridge
 
     Proofs of AC-equivalences, due to Krzysztof Grabczewski.
+
+    See also the book "Equivalents of the Axiom of Choice, II" by H. Rubin and
+    J.E. Rubin, 1985.
+
+    The report
+    http://www.cl.cam.ac.uk/Research/Reports/TR377-lcp-mechanising-set-theory.ps.gz
+    "Mechanizing Set Theory", by Paulson and Grabczewski, describes both this
+    development and ZF's theories of cardinals.
   *}
   options [document_graph]
   theories
@@ -43,6 +84,12 @@ session "ZF-Coind" in Coind = ZF +
 
     Coind -- A Coinduction Example.
 
+    It involves proving the consistency of the dynamic and static semantics for
+    a small functional language. A codatatype definition specifies values and
+    value environments in mutual recursion: non-well-founded values represent
+    recursive functions; value environments are variant functions from
+    variables into values.
+
     Based upon the article
         Robin Milner and Mads Tofte,
         Co-induction in Relational Semantics,
@@ -51,12 +98,31 @@ session "ZF-Coind" in Coind = ZF +
     Written up as
         Jacob Frost, A Case Study of Co_induction in Isabelle
         Report, Computer Lab, University of Cambridge (1995).
+        http://www.cl.cam.ac.uk/Research/Reports/TR359-jf10008-co-induction-in-isabelle.dvi.gz
   *}
   options [document = false]
   theories ECR
 
 session "ZF-Constructible" in Constructible = ZF +
-  description {* Inner Models, Absoluteness and Consistency Proofs. *}
+  description {*
+    Relative Consistency of the Axiom of Choice:
+    Inner Models, Absoluteness and Consistency Proofs.
+
+    Gödel's proof of the relative consistency of the axiom of choice is
+    mechanized using Isabelle/ZF. The proof builds upon a previous
+    mechanization of the reflection theorem (see
+    http://www.cl.cam.ac.uk/users/lcp/papers/Sets/reflection.pdf). The heavy
+    reliance on metatheory in the original proof makes the formalization
+    unusually long, and not entirely satisfactory: two parts of the proof do
+    not fit together. It seems impossible to solve these problems without
+    formalizing the metatheory. However, the present development follows a
+    standard textbook, Kunen's Set Theory, and could support the formalization
+    of further material from that book. It also serves as an example of what to
+    expect when deep mathematics is formalized.
+
+    A paper describing this development is
+    http://www.cl.cam.ac.uk/TechReports/UCAM-CL-TR-551.pdf
+  *}
   options [document_graph]
   theories DPow_absolute AC_in_L Rank_Separation
   files "document/root.tex" "document/root.bib"
@@ -122,6 +188,10 @@ session "ZF-Resid" in Resid = ZF +
 
     Gerard Huet.  Residual Theory in Lambda-Calculus: A Formal Development.
     J. Functional Programming 4(3) 1994, 371-394.
+
+    See Rasmussen's report: The Church-Rosser Theorem in Isabelle: A Proof
+    Porting Experiment.
+    http://www.cl.cam.ac.uk/ftp/papers/reports/TR364-or200-church-rosser-isabelle.ps.gz
   *}
   options [document = false]
   theories Confluence
@@ -150,6 +220,15 @@ session "ZF-ex" in ex = ZF +
     Copyright   1993  University of Cambridge
 
     Miscellaneous examples for Zermelo-Fraenkel Set Theory.
+
+    Includes a simple form of Ramsey's theorem. A report is available:
+    http://www.cl.cam.ac.uk/Research/Reports/TR271-lcp-set-theory.dvi.Z
+
+    Several (co)inductive and (co)datatype definitions are presented. The
+    report http://www.cl.cam.ac.uk/Research/Reports/TR312-lcp-set-II.ps.gz
+    describes the theoretical foundations of datatypes while
+    href="http://www.cl.cam.ac.uk/Research/Reports/TR320-lcp-isabelle-ind-defs.dvi.gz
+    describes the package that automates their declaration.
   *}
   options [document = false]
   theories

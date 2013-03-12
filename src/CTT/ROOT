@@ -4,6 +4,17 @@ session CTT = Pure +
   description {*
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
+
+    This is a version of Constructive Type Theory (extensional equality,
+    no universes).
+
+    Useful references on Constructive Type Theory:
+
+    B. Nordström, K. Petersson and J. M. Smith, Programming in Martin-Löf's
+    Type Theory (Oxford University Press, 1990)
+
+    Simon Thompson, Type Theory and Functional Programming (Addison-Wesley,
+    1991)
   *}
   options [document = false]
   theories Main
