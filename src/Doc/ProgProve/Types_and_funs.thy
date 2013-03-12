@@ -91,6 +91,10 @@ fun lookup :: "('a * 'b) list \<Rightarrow> 'a \<Rightarrow> 'b option" where
 
 text{*
 Note that @{text"\<tau>\<^isub>1 * \<tau>\<^isub>2"} is the type of pairs, also written @{text"\<tau>\<^isub>1 \<times> \<tau>\<^isub>2"}.
+Pairs can be taken apart either by pattern matching (as above) or with the
+projection functions @{const fst} and @{const snd}: @{thm fst_conv} and @{thm snd_conv}. Tuples are simulated by pairs nested to the right: @{term"(a,b,c)"}
+abbreviates @{text"(a, (b, c))"} and @{text "\<tau>\<^isub>1 \<times> \<tau>\<^isub>2 \<times> \<tau>\<^isub>3"} abbreviates
+@{text "\<tau>\<^isub>1 \<times> (\<tau>\<^isub>2 \<times> \<tau>\<^isub>3)"}.
 
 \subsection{Definitions}
 
