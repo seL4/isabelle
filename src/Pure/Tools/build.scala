@@ -868,11 +868,11 @@ object Build
       else loop(queue, Map.empty, Map.empty)
 
     val session_entries =
-      (for ((name, res) <- results.iterator)
-        yield (full_tree(name).chapter, name)).toList.groupBy(_._1).map(
-          { case (chapter, es) => (chapter, es.map(_._2).sorted) })
-    for ((chapter, names) <- session_entries)
-      Present.update_chapter_index(browser_info, chapter, names)
+      (for { (name, res) <- results.iterator; info = full_tree(name) }
+        yield (info.chapter, (name, info.description))).toList.groupBy(_._1).map(
+          { case (chapter, es) => (chapter, es.map(_._2)) })
+    for ((chapter, entries) <- session_entries)
+      Present.update_chapter_index(browser_info, chapter, entries)
 
     val rc = (0 /: results)({ case (rc1, (_, res)) => rc1 max res.rc })
     if (rc != 0 && (verbose || !no_build)) {

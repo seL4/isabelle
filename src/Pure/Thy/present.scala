@@ -7,6 +7,9 @@ Theory presentation: HTML.
 package isabelle
 
 
+import scala.collection.immutable.SortedMap
+
+
 object Present
 {
   /* maintain chapter index -- NOT thread-safe */
@@ -14,22 +17,29 @@ object Present
   private val index_path = Path.basic("index.html")
   private val sessions_path = Path.basic(".sessions")
 
-  private def read_sessions(dir: Path): List[String] =
-    split_lines(File.read(dir + sessions_path))
+  private def read_sessions(dir: Path): List[(String, String)] =
+  {
+    import XML.Decode._
+    list(pair(string, string))(YXML.parse_body(File.read(dir + sessions_path)))
+  }
 
-  private def write_sessions(dir: Path, sessions: List[String]): Unit =
-    File.write(dir + sessions_path, cat_lines(sessions))
+  private def write_sessions(dir: Path, sessions: List[(String, String)])
+  {
+    import XML.Encode._
+    File.write(dir + sessions_path, YXML.string_of_body(list(pair(string, string))(sessions)))
+  }
 
-  def update_chapter_index(info_path: Path, chapter: String, new_sessions: List[String]): Unit =
+  def update_chapter_index(info_path: Path, chapter: String, new_sessions: List[(String, String)])
   {
     val dir = info_path + Path.basic(chapter)
     Isabelle_System.mkdirs(dir)
 
     val sessions0 =
-      try { split_lines(File.read(dir + sessions_path)) }
-      catch { case ERROR(_) => Nil }
+      try { read_sessions(dir + sessions_path) }
+      catch { case ERROR(_) => Nil case _: XML.XML_Atom => Nil case _: XML.XML_Body => Nil }
 
-    val sessions = sessions0.filterNot(new_sessions.contains) ::: new_sessions
+    val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
+
     write_sessions(dir, sessions)
     File.write(dir + index_path, HTML.chapter_index(chapter, sessions))
   }

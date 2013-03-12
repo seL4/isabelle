@@ -51,13 +51,19 @@ object HTML
 
   /* common markup elements */
 
-  def session_entry(name: String): String =
+  private def session_entry(entry: (String, String)): String =
+  {
+    val (name, description) = entry
+    val descr =
+      if (description == "") Nil
+      else List(XML.elem("br"), XML.elem("pre", List(XML.Text(description))))
     XML.string_of_tree(
       XML.elem("li",
         List(XML.Elem(Markup("a", List(("href", name + "/index.html"))),
-          List(XML.Text(name)))))) + "\n"
+          List(XML.Text(name)))) ::: descr)) + "\n"
+  }
 
-  def chapter_index(chapter: String, sessions: List[String]): String =
+  def chapter_index(chapter: String, sessions: List[(String, String)]): String =
   {
     begin_document("Isabelle/" + chapter + " sessions") +
       (if (sessions.isEmpty) ""
