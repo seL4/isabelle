@@ -249,14 +249,12 @@ fun init build info info_path doc doc_graph document_output doc_variants
       val docs =
         (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
           map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
-      val index_text =  (* FIXME move to finish!? *)
-        HTML.begin_session_index name docs (Url.explode "medium.html");
     in
       session_info :=
         SOME (make_session_info (name, chapter, info_path, info, doc,
           doc_graph, doc_output, documents, doc_dump, verbose, readme));
       browser_info := init_browser_info (chapter, name) thys;
-      add_html_index (0, index_text)
+      add_html_index (0, HTML.begin_session_index name docs (Url.explode "medium.html"))
     end;
 
 
