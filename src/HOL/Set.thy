@@ -48,11 +48,11 @@ translations
   "{x. P}" == "CONST Collect (%x. P)"
 
 syntax
-  "_Collect" :: "idt => 'a set => bool => 'a set"    ("(1{_ :/ _./ _})")
+  "_Collect" :: "pttrn => 'a set => bool => 'a set"    ("(1{_ :/ _./ _})")
 syntax (xsymbols)
-  "_Collect" :: "idt => 'a set => bool => 'a set"    ("(1{_ \<in>/ _./ _})")
+  "_Collect" :: "pttrn => 'a set => bool => 'a set"    ("(1{_ \<in>/ _./ _})")
 translations
-  "{x:A. P}" => "{x. x:A & P}"
+  "{p:A. P}" => "CONST Collect (%p. p:A & P)"
 
 lemma CollectI: "P a \<Longrightarrow> a \<in> {x. P x}"
   by simp

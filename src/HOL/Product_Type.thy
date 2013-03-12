@@ -184,6 +184,8 @@ syntax
 
 translations
   "(x, y)" == "CONST Pair x y"
+  "_pattern x y" => "CONST Pair x y"
+  "_patterns x y" => "CONST Pair x y"
   "_tuple x (_tuple_args y z)" == "_tuple x (_tuple_arg (_tuple y z))"
   "%(x, y, zs). b" == "CONST prod_case (%x (y, zs). b)"
   "%(x, y). b" == "CONST prod_case (%x y. b)"
