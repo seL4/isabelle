@@ -36,7 +36,6 @@ val html_ext = Path.ext "html";
 val html_path = html_ext o Path.basic;
 val index_path = Path.basic "index.html";
 val readme_html_path = Path.basic "README.html";
-val readme_path = Path.basic "README";
 val documentN = "document";
 val document_path = Path.basic documentN;
 val doc_indexN = "session";
@@ -241,10 +240,7 @@ fun init build info info_path doc doc_graph document_output doc_variants
            else (); [])
         else doc_variants;
 
-      val readme =
-        if File.exists readme_html_path then SOME readme_html_path
-        else if File.exists readme_path then SOME readme_path
-        else NONE;
+      val readme = if File.exists readme_html_path then SOME readme_html_path else NONE;
 
       val docs =
         (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
