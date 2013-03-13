@@ -368,4 +368,20 @@ lemma set_encode_eq:
   "\<lbrakk>finite A; finite B\<rbrakk> \<Longrightarrow> set_encode A = set_encode B \<longleftrightarrow> A = B"
 by (rule iffI, simp add: inj_onD [OF inj_on_set_encode], simp)
 
+lemma subset_decode_imp_le: assumes "set_decode m \<subseteq> set_decode n" shows "m \<le> n"
+proof -
+  have "n = m + set_encode (set_decode n - set_decode m)"
+  proof -
+    obtain A B where "m = set_encode A" "finite A" 
+                     "n = set_encode B" "finite B"
+      by (metis finite_set_decode set_decode_inverse)
+  thus ?thesis using assms
+    apply auto
+    apply (simp add: set_encode_def nat_add_commute setsum.F_subset_diff)
+    done
+  qed
+  thus ?thesis
+    by (metis le_add1)
+qed
+
 end
