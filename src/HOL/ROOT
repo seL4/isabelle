@@ -210,7 +210,12 @@ session "HOL-Hoare_Parallel" in Hoare_Parallel = HOL +
 
 session "HOL-Codegenerator_Test" in Codegenerator_Test = "HOL-Library" +
   options [document = false, document_graph = false, browser_info = false]
-  theories Generate Generate_Binary_Nat Generate_Target_Nat Generate_Efficient_Datastructures Generate_Pretty_Char
+  theories
+    Generate
+    Generate_Binary_Nat
+    Generate_Target_Nat
+    Generate_Efficient_Datastructures
+    Generate_Pretty_Char
 
 session "HOL-Metis_Examples" in Metis_Examples = HOL +
   description {*
