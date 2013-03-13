@@ -1,7 +1,9 @@
 chapter HOL
 
 session HOL (main) = Pure +
-  description {* Classical Higher-order Logic *}
+  description {*
+    Classical Higher-order Logic.
+  *}
   options [document_graph]
   theories Complex_Main
   files
@@ -11,7 +13,9 @@ session HOL (main) = Pure +
     "document/root.tex"
 
 session "HOL-Proofs" = Pure +
-  description {* HOL-Main with explicit proof terms *}
+  description {*
+    HOL-Main with explicit proof terms.
+  *}
   options [document = false, proofs = 2]
   theories Main
   files
@@ -19,7 +23,9 @@ session "HOL-Proofs" = Pure +
     "Tools/Quickcheck/PNF_Narrowing_Engine.hs"
 
 session "HOL-Library" (main) in Library = HOL +
-  description {* Classical Higher-order Logic -- batteries included *}
+  description {*
+    Classical Higher-order Logic -- batteries included.
+  *}
   theories
     Library
     (*conflicting type class instantiations*)
@@ -264,7 +270,9 @@ session "HOL-Algebra" (main) in Algebra = HOL +
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Auth" in Auth = HOL +
-  description {* A new approach to verifying authentication protocols. *}
+  description {*
+    A new approach to verifying authentication protocols.
+  *}
   options [document_graph]
   theories
     Auth_Shared
@@ -346,7 +354,9 @@ session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
   theories Hilbert_Classical
 
 session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
-  description {* Examples for program extraction in Higher-Order Logic *}
+  description {*
+    Examples for program extraction in Higher-Order Logic.
+  *}
   options [condition = ISABELLE_POLYML, proofs = 2, parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Numeral"
@@ -471,7 +481,9 @@ session "HOL-Lattice" in Lattice = HOL +
   files "document/root.tex"
 
 session "HOL-ex" in ex = HOL +
-  description {* Miscellaneous examples for Higher-Order Logic. *}
+  description {*
+    Miscellaneous examples for Higher-Order Logic.
+  *}
   options [timeout = 3600, condition = ISABELLE_POLYML]
   theories [document = false]
     "~~/src/HOL/Library/State_Monad"
@@ -669,12 +681,16 @@ session "HOL-Nominal-Examples" in "Nominal/Examples" = "HOL-Nominal" +
   theories [quick_and_dirty] VC_Condition
 
 session "HOL-Cardinals-Base" in Cardinals = HOL +
-  description {* Ordinals and Cardinals, Base Theories *}
+  description {*
+    Ordinals and Cardinals, Base Theories.
+  *}
   options [document = false]
   theories Cardinal_Arithmetic
 
 session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
-  description {* Ordinals and Cardinals, Full Theories *}
+  description {*
+    Ordinals and Cardinals, Full Theories.
+  *}
   options [document = false]
   theories Cardinals
   files
@@ -683,17 +699,23 @@ session "HOL-Cardinals" in Cardinals = "HOL-Cardinals-Base" +
     "document/root.bib"
 
 session "HOL-BNF-LFP" in BNF = "HOL-Cardinals-Base" +
-  description {* Bounded Natural Functors for Datatypes *}
+  description {*
+    Bounded Natural Functors for Datatypes.
+  *}
   options [document = false]
   theories BNF_LFP
 
 session "HOL-BNF" in BNF = "HOL-Cardinals" +
-  description {* Bounded Natural Functors for (Co)datatypes *}
+  description {*
+    Bounded Natural Functors for (Co)datatypes.
+  *}
   options [document = false]
   theories BNF
 
 session "HOL-BNF-Examples" in "BNF/Examples" = "HOL-BNF" +
-  description {* Examples for Bounded Natural Functors *}
+  description {*
+    Examples for Bounded Natural Functors.
+  *}
   options [document = false]
   theories
     Lambda_Term
@@ -720,7 +742,9 @@ session "HOL-Statespace" in Statespace = HOL +
   files "document/root.tex"
 
 session "HOL-NSA" in NSA = HOL +
-  description {* Nonstandard analysis. *}
+  description {*
+    Nonstandard analysis.
+  *}
   options [document_graph]
   theories Hypercomplex
   files "document/root.tex"
@@ -958,7 +982,9 @@ session "HOLCF-IMP" in "HOLCF/IMP" = HOLCF +
   files "document/root.tex"
 
 session "HOLCF-ex" in "HOLCF/ex" = HOLCF +
-  description {* Misc HOLCF examples *}
+  description {*
+    Miscellaneous examples for HOLCF.
+  *}
   options [document = false]
   theories
     Dnat
@@ -1046,7 +1072,9 @@ session "IOA-ex" in "HOLCF/IOA/ex" = IOA +
     TrivEx2
 
 session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
-  description {* Some rather large datatype examples (from John Harrison). *}
+  description {*
+    Some rather large datatype examples (from John Harrison).
+  *}
   options [document = false]
   theories [condition = ISABELLE_FULL_TEST, timing]
     Brackin
@@ -1055,7 +1083,9 @@ session "HOL-Datatype_Benchmark" in Datatype_Benchmark = HOL +
     Verilog
 
 session "HOL-Record_Benchmark" in Record_Benchmark = HOL +
-  description {* Some benchmark on large record. *}
+  description {*
+    Some benchmark on large record.
+  *}
   options [document = false]
   theories [condition = ISABELLE_FULL_TEST, timing]
     Record_Benchmark
