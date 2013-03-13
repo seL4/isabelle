@@ -14,6 +14,35 @@ begin
 
 codata 'a stream = Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
 
+declaration {*
+  Nitpick_HOL.register_codatatype
+    @{typ "'stream_element_type stream"} @{const_name stream_case} [dest_Const @{term Stream}]
+    (*FIXME: long type variable name required to reduce the probability of
+        a name clash of Nitpick in context. E.g.:
+        context
+        fixes x :: 'stream_element_type
+        begin
+
+        lemma "stream_set s = {}"
+        nitpick
+        oops
+
+        end
+    *)
+*}
+
+code_datatype Stream
+lemmas [code] = stream.sels stream.sets stream.case
+
+lemma stream_case_cert:
+  assumes "CASE \<equiv> stream_case c"
+  shows "CASE (a ## s) \<equiv> c a s"
+  using assms by simp_all
+
+setup {*
+  Code.add_case @{thm stream_case_cert}
+*}
+
 (* TODO: Provide by the package*)
 theorem stream_set_induct:
   "\<lbrakk>\<And>s. P (shd s) s; \<And>s y. \<lbrakk>y \<in> stream_set (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s\<rbrakk> \<Longrightarrow>
@@ -26,7 +55,7 @@ lemma stream_map_simps[simp]:
   unfolding shd_def stl_def stream_case_def stream_map_def stream.dtor_unfold
   by (case_tac [!] s) (auto simp: Stream_def stream.dtor_ctor)
 
-lemma stream_map_Stream[simp]: "stream_map f (x ## s) = f x ## stream_map f s"
+lemma stream_map_Stream[simp, code]: "stream_map f (x ## s) = f x ## stream_map f s"
   by (metis stream.exhaust stream.sels stream_map_simps)
 
 theorem shd_stream_set: "shd s \<in> stream_set s"
@@ -200,7 +229,7 @@ lemma flat_simps[simp]:
   "stl (flat ws) = flat (if tl (shd ws) = [] then stl ws else tl (shd ws) ## stl ws)"
   unfolding flat_def by auto
 
-lemma flat_Cons[simp]: "flat ((x # xs) ## ws) = x ## flat (if xs = [] then ws else xs ## ws)"
+lemma flat_Cons[simp, code]: "flat ((x # xs) ## ws) = x ## flat (if xs = [] then ws else xs ## ws)"
   unfolding flat_def using stream.unfold[of "hd o shd" _ "(x # xs) ## ws"] by auto
 
 lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs @- flat ws"
@@ -263,7 +292,7 @@ proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>u. s1 = cycle
   thus ?case using stream.unfold[of hd "\<lambda>xs. tl xs @ [hd xs]" u] by (auto simp: cycle_def)
 qed auto
 
-lemma cycle_Cons: "cycle (x # xs) = x ## cycle (xs @ [x])"
+lemma cycle_Cons[code]: "cycle (x # xs) = x ## cycle (xs @ [x])"
 proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>x xs. s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])"])
   case (2 s1 s2)
   then obtain x xs where "s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])" by blast
@@ -314,7 +343,7 @@ definition "same x = stream_unfold (\<lambda>_. x) id ()"
 lemma same_simps[simp]: "shd (same x) = x" "stl (same x) = same x"
   unfolding same_def by auto
 
-lemma same_unfold: "same x = Stream x (same x)"
+lemma same_unfold[code]: "same x = x ## same x"
   by (metis same_simps stream.collapse)
 
 lemma snth_same[simp]: "same x !! n = x"
@@ -342,6 +371,9 @@ definition "fromN n = stream_unfold id Suc n"
 
 lemma fromN_simps[simp]: "shd (fromN n) = n" "stl (fromN n) = fromN (Suc n)"
   unfolding fromN_def by auto
+
+lemma fromN_unfold[code]: "fromN n = n ## fromN (Suc n)"
+  unfolding fromN_def by (metis id_def stream.unfold)
 
 lemma snth_fromN[simp]: "fromN n !! m = n + m"
   unfolding fromN_def by (induct m arbitrary: n) auto
@@ -376,6 +408,9 @@ lemma szip_simps[simp]:
   "shd (szip s1 s2) = (shd s1, shd s2)" "stl (szip s1 s2) = szip (stl s1) (stl s2)"
   unfolding szip_def by auto
 
+lemma szip_unfold[code]: "szip (Stream a s1) (Stream b s2) = Stream (a, b) (szip s1 s2)"
+  unfolding szip_def by (subst stream.unfold) simp
+
 lemma snth_szip[simp]: "szip s1 s2 !! n = (s1 !! n, s2 !! n)"
   by (induct n arbitrary: s1 s2) auto
 
@@ -386,9 +421,13 @@ definition "stream_map2 f s1 s2 =
   stream_unfold (\<lambda>(s1,s2). f (shd s1) (shd s2)) (map_pair stl stl) (s1, s2)"
 
 lemma stream_map2_simps[simp]:
- "shd (stream_map2 f s1 s2) = f (shd s1) (shd s2)"
- "stl (stream_map2 f s1 s2) = stream_map2 f (stl s1) (stl s2)"
+  "shd (stream_map2 f s1 s2) = f (shd s1) (shd s2)"
+  "stl (stream_map2 f s1 s2) = stream_map2 f (stl s1) (stl s2)"
   unfolding stream_map2_def by auto
+
+lemma stream_map2_unfold[code]:
+  "stream_map2 f (Stream a s1) (Stream b s2) = Stream (f a b) (stream_map2 f s1 s2)"
+  unfolding stream_map2_def by (subst stream.unfold) simp
 
 lemma stream_map2_szip:
   "stream_map2 f s1 s2 = stream_map (split f) (szip s1 s2)"
