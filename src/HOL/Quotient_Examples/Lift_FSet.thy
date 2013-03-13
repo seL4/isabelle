@@ -93,18 +93,23 @@ translations
   "{|x, xs|}" == "CONST fcons x {|xs|}"
   "{|x|}"     == "CONST fcons x {||}"
 
-lift_definition fset_member :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is "\<lambda>x xs. x \<in> set xs"
-   by simp
+lemma member_transfer:
+  assumes [transfer_rule]: "bi_unique A"
+  shows "(A ===> list_all2 A ===> op=) (\<lambda>x xs. x \<in> set xs) (\<lambda>x xs. x \<in> set xs)"
+by transfer_prover
+
+lift_definition fmember :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is "\<lambda>x xs. x \<in> set xs"
+   parametric member_transfer by simp
 
 abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
   "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
 
-lemma fset_member_fmap[simp]: "a |\<in>| fmap f X = (\<exists>b. b |\<in>| X \<and> a = f b)"
+lemma fmember_fmap[simp]: "a |\<in>| fmap f X = (\<exists>b. b |\<in>| X \<and> a = f b)"
   by transfer auto
 
 text {* We can export code: *}
 
-export_code fnil fcons fappend fmap ffilter fset in SML
+export_code fnil fcons fappend fmap ffilter fset fmember in SML
 
 subsection {* Using transfer with type @{text "fset"} *}
 
