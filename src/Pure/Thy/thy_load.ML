@@ -22,7 +22,7 @@ sig
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> Thy_Header.header -> theory list -> theory
-  val load_thy: (Toplevel.transition -> Time.time) -> int -> Path.T -> Thy_Header.header ->
+  val load_thy: (Toplevel.transition -> Time.time option) -> int -> Path.T -> Thy_Header.header ->
     Position.T -> string -> theory list -> theory * (unit -> unit) * int
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T

@@ -91,8 +91,8 @@ sig
   val status: transition -> Markup.T -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
   val approximative_id: transition -> {file: string, offset: int, name: string} option
-  val get_timing: transition -> Time.time
-  val put_timing: Time.time -> transition -> transition
+  val get_timing: transition -> Time.time option
+  val put_timing: Time.time option -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command_errors: bool -> transition -> state -> Runtime.error list * state option
   val command_exception: bool -> transition -> state -> state
@@ -346,7 +346,7 @@ datatype transition = Transition of
   int_only: bool,            (*interactive-only*)
   print: bool,               (*print result state*)
   no_timing: bool,           (*suppress timing*)
-  timing: Time.time,         (*prescient timing information*)
+  timing: Time.time option,  (*prescient timing information*)
   trans: trans list};        (*primitive transitions (union)*)
 
 fun make_transition (name, pos, int_only, print, no_timing, timing, trans) =
@@ -356,7 +356,7 @@ fun make_transition (name, pos, int_only, print, no_timing, timing, trans) =
 fun map_transition f (Transition {name, pos, int_only, print, no_timing, timing, trans}) =
   make_transition (f (name, pos, int_only, print, no_timing, timing, trans));
 
-val empty = make_transition ("", Position.none, false, false, false, Time.zeroTime, []);
+val empty = make_transition ("", Position.none, false, false, false, NONE, []);
 
 
 (* diagnostics *)
@@ -638,14 +638,12 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 local
 
 fun timing_message tr (t: Timing.timing) =
-  if Timing.is_relevant_time (#elapsed t) then
-    (case approximative_id tr of
-      SOME id =>
-        (Output.protocol_message
-          (Markup.command_timing :: Markup.command_timing_properties id (#elapsed t)) ""
-        handle Fail _ => ())
-    | NONE => ())
-  else ();
+  (case approximative_id tr of
+    SOME id =>
+      (Output.protocol_message
+        (Markup.command_timing :: Markup.command_timing_properties id (#elapsed t)) ""
+      handle Fail _ => ())
+  | NONE => ());
 
 fun app int (tr as Transition {trans, print, no_timing, ...}) =
   setmp_thread_position tr (fn state =>
@@ -727,29 +725,38 @@ structure Result = Proof_Data
 val get_result = Result.get o Proof.context_of;
 val put_result = Proof.map_context o Result.put;
 
-fun proof_future_enabled st =
+fun timing_estimate include_head elem =
+  let
+    val trs = Thy_Syntax.flat_element elem |> not include_head ? tl;
+    val timings = map get_timing trs;
+  in
+    if forall is_some timings then
+      SOME (fold (curry Time.+ o the) timings Time.zeroTime)
+    else NONE
+  end;
+
+fun priority NONE = ~1
+  | priority (SOME estimate) =
+      Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1);
+
+fun proof_future_enabled estimate st =
   (case try proof_of st of
     NONE => false
   | SOME state =>
       not (Proof.is_relevant state) andalso
        (if can (Proof.assert_bottom true) state
         then Goal.future_enabled ()
-        else Goal.future_enabled_nested 2));
-
-fun priority elem =
-  let
-    val estimate = Thy_Syntax.fold_element (curry Time.+ o get_timing) elem Time.zeroTime;
-  in
-    if estimate = Time.zeroTime then ~1
-    else Int.min (Real.floor (Real.max (Math.log10 (Time.toReal estimate), ~3.0)) - 3, ~1)
-  end;
+        else
+          (case estimate of
+            NONE => Goal.future_enabled_nested 2
+          | SOME t => Goal.future_enabled_timing t)));
 
 fun atom_result tr st =
   let
     val st' =
       if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
         setmp_thread_position tr (fn () =>
-          (Goal.fork_name "Toplevel.diag" (priority (Thy_Syntax.atom tr))
+          (Goal.fork_name "Toplevel.diag" (priority (timing_estimate true (Thy_Syntax.atom tr)))
             (fn () => command tr st); st)) ()
       else command tr st;
   in (Result (tr, st'), st') end;
@@ -757,12 +764,13 @@ fun atom_result tr st =
 in
 
 fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
-  | element_result (Thy_Syntax.Element (head_tr, SOME element_rest)) st =
+  | element_result (elem as Thy_Syntax.Element (head_tr, SOME element_rest)) st =
       let
         val (head_result, st') = atom_result head_tr st;
         val (body_elems, end_tr) = element_rest;
+        val estimate = timing_estimate false elem;
       in
-        if not (proof_future_enabled st')
+        if not (proof_future_enabled estimate st')
         then
           let
             val proof_trs = maps Thy_Syntax.flat_element body_elems @ [end_tr];
@@ -776,7 +784,7 @@ fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
               (fn state =>
                 setmp_thread_position head_tr (fn () =>
                   Goal.fork_name "Toplevel.future_proof"
-                    (priority (Thy_Syntax.Element (empty, SOME element_rest)))
+                    (priority estimate)
                     (fn () =>
                       let
                         val State (SOME (Proof (prf, (_, orig_gthy))), prev) = st';

@@ -17,7 +17,7 @@ sig
   val loaded_files: string -> Path.T list
   val remove_thy: string -> unit
   val kill_thy: string -> unit
-  val use_theories: {last_timing: Toplevel.transition -> Time.time, master_dir: Path.T} ->
+  val use_theories: {last_timing: Toplevel.transition -> Time.time option, master_dir: Path.T} ->
     (string * Position.T) list -> unit
   val use_thys: (string * Position.T) list -> unit
   val use_thy: string * Position.T -> unit
@@ -174,7 +174,7 @@ fun result_present (Result {present, ...}) = present;
 fun result_commit (Result {commit, ...}) = commit;
 fun result_ord (Result {weight = i, ...}, Result {weight = j, ...}) = int_ord (j, i);
 
-fun join_proofs (Result {theory, id, present, ...}) =
+fun join_proofs (Result {theory, id, ...}) =
   let
     val result1 = Exn.capture Thm.join_theory_proofs theory;
     val results2 = Future.join_results (Goal.peek_futures id);
@@ -351,7 +351,7 @@ end;
 fun use_theories {last_timing, master_dir} imports =
   schedule_tasks (snd (require_thys last_timing [] master_dir imports String_Graph.empty));
 
-val use_thys = use_theories {last_timing = K Time.zeroTime, master_dir = Path.current};
+val use_thys = use_theories {last_timing = K NONE, master_dir = Path.current};
 val use_thy = use_thys o single;
 
 
@@ -361,7 +361,7 @@ fun toplevel_begin_theory master_dir (header: Thy_Header.header) =
   let
     val {name = (name, _), imports, ...} = header;
     val _ = kill_thy name;
-    val _ = use_theories {last_timing = K Time.zeroTime, master_dir = master_dir} imports;
+    val _ = use_theories {last_timing = K NONE, master_dir = master_dir} imports;
     val _ = Thy_Header.define_keywords header;
     val parents = map (get_theory o base_name o fst) imports;
   in Thy_Load.begin_theory master_dir header parents end;

@@ -94,7 +94,7 @@ fun read_variants strs =
 
 fun use_dir item root build modes reset info info_path doc doc_graph doc_variants parent
     name doc_dump rpath level timing verbose max_threads trace_threads
-    parallel_proofs parallel_proofs_threshold =
+    parallel_proofs parallel_subproofs_saturation =
   ((fn () =>
     let
       val _ =
@@ -116,7 +116,7 @@ fun use_dir item root build modes reset info info_path doc doc_graph doc_variant
     |> Unsynchronized.setmp Proofterm.proofs level
     |> Unsynchronized.setmp print_mode (modes @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs parallel_proofs
-    |> Unsynchronized.setmp Goal.parallel_proofs_threshold parallel_proofs_threshold
+    |> Unsynchronized.setmp Goal.parallel_subproofs_saturation parallel_subproofs_saturation
     |> Unsynchronized.setmp Multithreading.trace trace_threads
     |> Unsynchronized.setmp Multithreading.max_threads
       (if Multithreading.available then max_threads

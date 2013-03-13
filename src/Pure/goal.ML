@@ -7,7 +7,8 @@ Goals in tactical theorem proving, with support for forked proofs.
 signature BASIC_GOAL =
 sig
   val parallel_proofs: int Unsynchronized.ref
-  val parallel_proofs_threshold: int Unsynchronized.ref
+  val parallel_subproofs_saturation: int Unsynchronized.ref
+  val parallel_subproofs_threshold: real Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
@@ -32,6 +33,7 @@ sig
   val future_enabled_level: int -> bool
   val future_enabled: unit -> bool
   val future_enabled_nested: int -> bool
+  val future_enabled_timing: Time.time -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
@@ -191,7 +193,8 @@ end;
 (* scheduling parameters *)
 
 val parallel_proofs = Unsynchronized.ref 1;
-val parallel_proofs_threshold = Unsynchronized.ref 100;
+val parallel_subproofs_saturation = Unsynchronized.ref 100;
+val parallel_subproofs_threshold = Unsynchronized.ref 0.01;
 
 fun future_enabled_level n =
   Multithreading.enabled () andalso ! parallel_proofs >= n andalso
@@ -201,7 +204,10 @@ fun future_enabled () = future_enabled_level 1;
 
 fun future_enabled_nested n =
   future_enabled_level n andalso
-  forked_count () < ! parallel_proofs_threshold * Multithreading.max_threads_value ();
+  forked_count () < ! parallel_subproofs_saturation * Multithreading.max_threads_value ();
+
+fun future_enabled_timing t =
+  future_enabled () andalso Time.toReal t >= ! parallel_subproofs_threshold;
 
 
 (* future_result *)
