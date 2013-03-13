@@ -474,18 +474,6 @@ object Build
     name: String, val info: Session_Info, output: Path, do_output: Boolean,
     verbose: Boolean, browser_info: Path, command_timings: List[Properties.T])
   {
-    // global browser info dir
-    if (info.options.bool("browser_info") && !(browser_info + Path.explode("index.html")).is_file)
-    {
-      Isabelle_System.mkdirs(browser_info)
-      File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
-        browser_info + Path.explode("isabelle.gif"))
-      File.write(browser_info + Path.explode("index.html"),
-        File.read(Path.explode("~~/lib/html/library_index_header.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_content.template")) +
-        File.read(Path.explode("~~/lib/html/library_index_footer.template")))
-    }
-
     def output_path: Option[Path] = if (do_output) Some(output) else None
 
     private val parent = info.parent.getOrElse("")
@@ -867,12 +855,36 @@ object Build
       }
       else loop(queue, Map.empty, Map.empty)
 
-    val session_entries =
-      (for { (name, res) <- results.iterator; info = full_tree(name) }
-        yield (info.chapter, (name, info.description))).toList.groupBy(_._1).map(
-          { case (chapter, es) => (chapter, es.map(_._2)) })
-    for ((chapter, entries) <- session_entries)
-      Present.update_chapter_index(browser_info, chapter, entries)
+
+    /* global browser info */
+
+    if (!no_build) {
+      val browser_chapters =
+        (for {
+          (name, result) <- results.iterator
+          if result.rc == 0
+          info = full_tree(name)
+          if info.options.bool("browser_info")
+        } yield (info.chapter, (name, info.description))).toList.groupBy(_._1).
+            map({ case (chapter, es) => (chapter, es.map(_._2)) }).filterNot(_._2.isEmpty)
+
+      for ((chapter, entries) <- browser_chapters)
+        Present.update_chapter_index(browser_info, chapter, entries)
+
+      if (!browser_chapters.isEmpty && !(browser_info + Path.explode("index.html")).is_file)
+      {
+        Isabelle_System.mkdirs(browser_info)
+        File.copy(Path.explode("~~/lib/logo/isabelle.gif"),
+          browser_info + Path.explode("isabelle.gif"))
+        File.write(browser_info + Path.explode("index.html"),
+          File.read(Path.explode("~~/lib/html/library_index_header.template")) +
+          File.read(Path.explode("~~/lib/html/library_index_content.template")) +
+          File.read(Path.explode("~~/lib/html/library_index_footer.template")))
+      }
+    }
+
+
+    /* return code */
 
     val rc = (0 /: results)({ case (rc1, (_, res)) => rc1 max res.rc })
     if (rc != 0 && (verbose || !no_build)) {
