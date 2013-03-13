@@ -5,6 +5,7 @@ begin
 
 subsection "Syntax Directed Typing"
 
+text_raw{*\snip{sectypeDef}{0}{2}{% *}
 inductive sec_type :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile> _)" [0,0] 50) where
 Skip:
   "l \<turnstile> SKIP" |
@@ -16,6 +17,7 @@ If:
   "\<lbrakk> max (sec b) l \<turnstile> c\<^isub>1;  max (sec b) l \<turnstile> c\<^isub>2 \<rbrakk> \<Longrightarrow> l \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2" |
 While:
   "max (sec b) l \<turnstile> c \<Longrightarrow> l \<turnstile> WHILE b DO c"
+text_raw{*}%endsnip*}
 
 code_pred (expected_modes: i => i => bool) sec_type .
 
@@ -181,6 +183,7 @@ standard formulation, however, is slightly different, replacing the maximum
 computation by an antimonotonicity rule. We introduce the standard system now
 and show the equivalence with our formulation. *}
 
+text_raw{*\snip{sectypepDef}{0}{2}{% *}
 inductive sec_type' :: "nat \<Rightarrow> com \<Rightarrow> bool" ("(_/ \<turnstile>'' _)" [0,0] 50) where
 Skip':
   "l \<turnstile>' SKIP" |
@@ -194,6 +197,7 @@ While':
   "\<lbrakk> sec b \<le> l;  l \<turnstile>' c \<rbrakk> \<Longrightarrow> l \<turnstile>' WHILE b DO c" |
 anti_mono':
   "\<lbrakk> l \<turnstile>' c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile>' c"
+text_raw{*}%endsnip*}
 
 lemma sec_type_sec_type': "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
 apply(induction rule: sec_type.induct)
@@ -215,6 +219,7 @@ by (metis anti_mono)
 
 subsection "A Bottom-Up Typing System"
 
+text_raw{*\snip{sectypebDef}{0}{2}{% *}
 inductive sec_type2 :: "com \<Rightarrow> level \<Rightarrow> bool" ("(\<turnstile> _ : _)" [0,0] 50) where
 Skip2:
   "\<turnstile> SKIP : l" |
@@ -227,6 +232,7 @@ If2:
   \<Longrightarrow> \<turnstile> IF b THEN c\<^isub>1 ELSE c\<^isub>2 : min l\<^isub>1 l\<^isub>2" |
 While2:
   "\<lbrakk> sec b \<le> l;  \<turnstile> c : l \<rbrakk> \<Longrightarrow> \<turnstile> WHILE b DO c : l"
+text_raw{*}%endsnip*}
 
 
 lemma sec_type2_sec_type': "\<turnstile> c : l \<Longrightarrow> l \<turnstile>' c"
