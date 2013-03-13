@@ -138,8 +138,8 @@ message, it refers to the HOL syntax as the \concept{inner syntax} and the
 enclosing theory language as the \concept{outer syntax}.
 \sem
 \begin{warn}
-For reasons of readability, we almost never show the quotation marks in this
-book. Consult the accompanying theory files to see where they need to go.
+In the Isabelle part of the book we show all quotation marks.
+In the Semantics part we omit them for reasons of readability.
 \end{warn}
 \endsem
 %
