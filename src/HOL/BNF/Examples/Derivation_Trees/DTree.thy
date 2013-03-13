@@ -26,12 +26,15 @@ definition "unfold rt ct \<equiv> dtree_unfold rt (the_inv fset o ct)"
 definition "corec rt qt ct dt \<equiv> dtree_corec rt qt (the_inv fset o ct) (the_inv fset o dt)"
 
 lemma finite_cont[simp]: "finite (cont tr)"
-unfolding cont_def by auto
+  unfolding cont_def o_apply by (cases tr, clarsimp) (transfer, simp) 
 
 lemma Node_root_cont[simp]:
-"Node (root tr) (cont tr) = tr"
-using dtree.collapse unfolding Node_def cont_def
-by (metis cont_def finite_cont fset_cong fset_to_fset o_def)
+  "Node (root tr) (cont tr) = tr"
+  unfolding Node_def cont_def o_apply
+  apply (rule trans[OF _ dtree.collapse])
+  apply (rule arg_cong2[OF refl the_inv_into_f_f[unfolded inj_on_def]])
+  apply transfer apply simp_all
+  done
 
 lemma dtree_simps[simp]:
 assumes "finite as" and "finite as'"
@@ -77,7 +80,7 @@ lemma unfold:
 using dtree.sel_unfold[of rt "the_inv fset \<circ> ct" b] unfolding unfold_def
 apply - apply metis
 unfolding cont_def comp_def
-by (metis (no_types) fset_to_fset map_fset_image)
+by simp
 
 lemma corec:
 "root (corec rt qt ct dt b) = rt b"
@@ -89,6 +92,6 @@ unfolding corec_def
 apply -
 apply simp
 unfolding cont_def comp_def id_def
-by (metis (no_types) fset_to_fset map_fset_image)
+by simp
 
 end

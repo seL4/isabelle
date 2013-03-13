@@ -25,7 +25,7 @@ definition tmap where
 
 lemma tmap_simps[simp]:
 "lab (tmap f t) = f (lab t)"
-"sub (tmap f t) = map_fset (tmap f) (sub t)"
+"sub (tmap f t) = fmap (tmap f) (sub t)"
 unfolding tmap_def treeFsetI.sel_unfold by simp+
 
 lemma "tmap (f o g) x = tmap f (tmap g x)"
