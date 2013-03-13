@@ -6,6 +6,13 @@ New in this Isabelle version
 
 *** General ***
 
+* Sessions may be organized via 'chapter' specifications in the ROOT
+file, which determines a two-level hierarchy of browser info.  The old
+tree-like organization via implicit sub-session relation, with its
+tendency towards erratic fluctuation of URLs, has been discontinued.
+The default chapter is "Unsorted".  Potential INCOMPATIBILITY for HTML
+presentation of theories.
+
 * Discontinued obsolete 'uses' within theory header.  Note that
 commands like 'ML_file' work without separate declaration of file
 dependencies.  Minor INCOMPATIBILITY.
