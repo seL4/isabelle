@@ -17,7 +17,6 @@ sig
   val parse_spans: Token.T list -> span list
   datatype 'a element = Element of 'a * ('a element list * 'a) option
   val atom: 'a -> 'a element
-  val fold_element: ('a -> 'b -> 'b) -> 'a element -> 'b -> 'b
   val map_element: ('a -> 'b) -> 'a element -> 'b element
   val flat_element: 'a element -> 'a list
   val last_element: 'a element -> 'a
@@ -143,9 +142,6 @@ datatype 'a element = Element of 'a * ('a element list * 'a) option;
 
 fun element (a, b) = Element (a, SOME b);
 fun atom a = Element (a, NONE);
-
-fun fold_element f (Element (a, NONE)) = f a
-  | fold_element f (Element (a, SOME (elems, b))) = f a #> (fold o fold_element) f elems #> f b;
 
 fun map_element f (Element (a, NONE)) = Element (f a, NONE)
   | map_element f (Element (a, SOME (elems, b))) =

@@ -57,9 +57,11 @@ text {*
   theory browsing information, including HTML documents that show the
   theory sources and the relationship with its ancestors and
   descendants.  Besides the HTML file that is generated for every
-  theory, Isabelle stores links to all theories in an index
-  file. These indexes are linked with other indexes to represent the
-  overall tree structure of the sessions.
+  theory, Isabelle stores links to all theories of a session in an
+  index file.  As a second hierarchy, groups of sessions are organized
+  as \emph{chapters}, with a separate index.  Note that the implicit
+  tree structure of the session build hierarchy is \emph{not} relevant
+  for the presentation.
 
   Isabelle also generates graph files that represent the theory
   dependencies within a session.  There is a graph browser Java applet
@@ -80,7 +82,7 @@ isabelle build -o browser_info -v -c FOL
 \end{ttbox}
 
   The presentation output will appear in @{verbatim
-  "$ISABELLE_BROWSER_INFO/FOL"} as reported by the above verbose
+  "$ISABELLE_BROWSER_INFO/FOL/FOL"} as reported by the above verbose
   invocation of the build process.
 
   Many Isabelle sessions (such as @{verbatim "HOL-Library"} in @{file
@@ -99,11 +101,9 @@ isabelle build -o browser_info -o document=pdf -v -c HOL-Library
   \bigskip The theory browsing information is stored in a
   sub-directory directory determined by the @{setting_ref
   ISABELLE_BROWSER_INFO} setting plus a prefix corresponding to the
-  session identifier (according to the tree structure of sub-sessions
-  by default).  In order to present Isabelle applications on the web,
-  the corresponding subdirectory from @{setting ISABELLE_BROWSER_INFO}
-  can be put on a WWW server.
-*}
+  session chapter and identifier.  In order to present Isabelle
+  applications on the web, the corresponding subdirectory from
+  @{setting ISABELLE_BROWSER_INFO} can be put on a WWW server.  *}
 
 section {* Preparing session root directories \label{sec:tool-mkroot} *}
 
@@ -311,7 +311,7 @@ text {* Invoking @{tool latex} by hand may be occasionally useful when
   inspect {\LaTeX} runs in further detail, e.g.\ like this:
 
 \begin{ttbox}
-  cd ~/.isabelle/IsabelleXXXX/browser_info/HOL/Test/document
+  cd ~/.isabelle/IsabelleXXXX/browser_info/Unsorted/Test/document
   isabelle latex -o pdf
 \end{ttbox}
 *}

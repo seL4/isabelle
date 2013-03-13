@@ -50,8 +50,10 @@ fun use_theories last_timing options =
     |> Unsynchronized.setmp print_mode
         (space_explode "," (Options.string options "print_mode") @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs (Options.int options "parallel_proofs")
-    |> Unsynchronized.setmp Goal.parallel_proofs_threshold
-        (Options.int options "parallel_proofs_threshold")
+    |> Unsynchronized.setmp Goal.parallel_subproofs_saturation
+        (Options.int options "parallel_subproofs_saturation")
+    |> Unsynchronized.setmp Goal.parallel_subproofs_threshold
+        (Options.real options "parallel_subproofs_threshold")
     |> Unsynchronized.setmp Multithreading.trace (Options.int options "threads_trace")
     |> Unsynchronized.setmp Multithreading.max_threads (Options.int options "threads")
     |> Unsynchronized.setmp Future.ML_statistics true
@@ -99,10 +101,10 @@ fun lookup_timings timings tr =
       (case Symtab.lookup timings file of
         SOME offsets =>
           (case Inttab.lookup offsets offset of
-            SOME (name', time) => if name = name' then time else Time.zeroTime
-          | NONE => Time.zeroTime)
-      | NONE => Time.zeroTime)
-  | NONE => Time.zeroTime);
+            SOME (name', time) => if name = name' then SOME time else NONE
+          | NONE => NONE)
+      | NONE => NONE)
+  | NONE => NONE);
 
 in
 

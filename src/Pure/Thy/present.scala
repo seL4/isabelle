@@ -19,8 +19,12 @@ object Present
 
   private def read_sessions(dir: Path): List[(String, String)] =
   {
-    import XML.Decode._
-    list(pair(string, string))(YXML.parse_body(File.read(dir + sessions_path)))
+    val path = dir + sessions_path
+    if (path.is_file) {
+      import XML.Decode._
+      list(pair(string, string))(YXML.parse_body(File.read(path)))
+    }
+    else Nil
   }
 
   private def write_sessions(dir: Path, sessions: List[(String, String)])
@@ -36,7 +40,7 @@ object Present
 
     val sessions0 =
       try { read_sessions(dir) }
-      catch { case ERROR(_) => Nil case _: XML.XML_Atom => Nil case _: XML.XML_Body => Nil }
+      catch { case _: XML.XML_Atom => Nil case _: XML.XML_Body => Nil }
 
     val sessions = (SortedMap.empty[String, String] ++ sessions0 ++ new_sessions).toList
 

@@ -38,15 +38,20 @@ text {* Session specifications reside in files called @{verbatim ROOT}
   \emph{outer syntax} of Isabelle/Isar, see also
   \cite{isabelle-isar-ref}.  This defines common forms like
   identifiers, names, quoted strings, verbatim text, nested comments
-  etc.  The grammar for a single @{syntax session_entry} is given as
-  syntax diagram below; each ROOT file may contain multiple session
-  specifications like this.
+  etc.  The grammar for @{syntax session_chapter} and @{syntax
+  session_entry} is given as syntax diagram below; each ROOT file may
+  contain multiple specifications like this.  Chapters help to
+  organize browser info (\secref{sec:info}), but have no formal
+  meaning.  The default chapter is ``@{text "Unsorted"}''.
 
   Isabelle/jEdit (\secref{sec:tool-jedit}) includes a simple editing
   mode @{verbatim "isabelle-root"} for session ROOT files, which is
   enabled by default for any file of that name.
 
   @{rail "
+    @{syntax_def session_chapter}: @'chapter' @{syntax name}
+    ;
+
     @{syntax_def session_entry}: @'session' spec '=' (@{syntax name} '+')? body
     ;
     body: description? options? ( theories + ) files?
