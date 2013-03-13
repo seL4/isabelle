@@ -35,7 +35,7 @@ quotient_type 'a fset = "'a list" / "list_eq" parametric list_eq_transfer
 
 subsection {* Lifted constant definitions *}
 
-lift_definition fnil :: "'a fset" is "[]" parametric Nil_transfer
+lift_definition fnil :: "'a fset" ("{||}") is "[]" parametric Nil_transfer
   by simp
 
 lift_definition fcons :: "'a \<Rightarrow> 'a fset \<Rightarrow> 'a fset" is Cons parametric Cons_transfer
@@ -85,6 +85,22 @@ proof -
     apply (drule iffD2, fast, clarsimp simp add: abs_fset_eq_iff, fast)
     done
 qed
+
+syntax
+  "_insert_fset"     :: "args => 'a fset"  ("{|(_)|}")
+
+translations
+  "{|x, xs|}" == "CONST fcons x {|xs|}"
+  "{|x|}"     == "CONST fcons x {||}"
+
+lift_definition fset_member :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<in>|" 50) is "\<lambda>x xs. x \<in> set xs"
+   by simp
+
+abbreviation notin_fset :: "'a \<Rightarrow> 'a fset \<Rightarrow> bool" (infix "|\<notin>|" 50) where
+  "x |\<notin>| S \<equiv> \<not> (x |\<in>| S)"
+
+lemma fset_member_fmap[simp]: "a |\<in>| fmap f X = (\<exists>b. b |\<in>| X \<and> a = f b)"
+  by transfer auto
 
 text {* We can export code: *}
 

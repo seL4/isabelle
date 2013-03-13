@@ -34,17 +34,9 @@ apply induct
 apply (rule Var)
 apply (erule App, assumption)
 apply (erule Lam)
-using Lt unfolding fset_fset_member mem_Collect_eq
-apply (rule meta_mp)
-defer
-apply assumption
-apply (erule thin_rl)
-apply assumption
-apply (drule meta_spec)
-apply (drule meta_spec)
-apply (drule meta_mp)
-apply assumption
-apply (auto simp: snds_def)
+apply (rule Lt)
+apply transfer
+apply (auto simp: snds_def)+
 done
 
 
@@ -62,7 +54,7 @@ lemma varsOf_simps[simp]:
 "varsOf (App t1 t2) = varsOf t1 \<union> varsOf t2"
 "varsOf (Lam x t) = varsOf t \<union> {x}"
 "varsOf (Lt xts t) =
- varsOf t \<union> (\<Union> { {x} \<union> X | x X. (x,X) |\<in>| map_fset (\<lambda> (x,t1). (x,varsOf t1)) xts})"
+ varsOf t \<union> (\<Union> { {x} \<union> X | x X. (x,X) |\<in>| fmap (\<lambda> (x,t1). (x,varsOf t1)) xts})"
 unfolding varsOf_def by (simp add: map_pair_def)+
 
 definition "fvarsOf = trm_fold
@@ -77,16 +69,15 @@ lemma fvarsOf_simps[simp]:
 "fvarsOf (Lam x t) = fvarsOf t - {x}"
 "fvarsOf (Lt xts t) =
  fvarsOf t
- - {x | x X. (x,X) |\<in>| map_fset (\<lambda> (x,t1). (x,fvarsOf t1)) xts}
- \<union> (\<Union> {X | x X. (x,X) |\<in>| map_fset (\<lambda> (x,t1). (x,fvarsOf t1)) xts})"
+ - {x | x X. (x,X) |\<in>| fmap (\<lambda> (x,t1). (x,fvarsOf t1)) xts}
+ \<union> (\<Union> {X | x X. (x,X) |\<in>| fmap (\<lambda> (x,t1). (x,fvarsOf t1)) xts})"
 unfolding fvarsOf_def by (simp add: map_pair_def)+
 
 lemma diff_Un_incl_triv: "\<lbrakk>A \<subseteq> D; C \<subseteq> E\<rbrakk> \<Longrightarrow> A - B \<union> C \<subseteq> D \<union> E" by blast
 
 lemma in_map_fset_iff:
-"(x, X) |\<in>| map_fset (\<lambda>(x, t1). (x, f t1)) xts \<longleftrightarrow>
- (\<exists> t1. (x,t1) |\<in>| xts \<and> X = f t1)"
-unfolding map_fset_def2_raw in_fset fset_afset unfolding fset_def2_raw by auto
+  "(x, X) |\<in>| fmap (\<lambda>(x, t1). (x, f t1)) xts \<longleftrightarrow> (\<exists> t1. (x,t1) |\<in>| xts \<and> X = f t1)"
+  by transfer auto
 
 lemma fvarsOf_varsOf: "fvarsOf t \<subseteq> varsOf t"
 proof induct
@@ -94,16 +85,16 @@ proof induct
   thus ?case unfolding fvarsOf_simps varsOf_simps
   proof (elim diff_Un_incl_triv)
     show
-    "\<Union>{X | x X. (x, X) |\<in>| map_fset (\<lambda>(x, t1). (x, fvarsOf t1)) xts}
-     \<subseteq> \<Union>{{x} \<union> X |x X. (x, X) |\<in>| map_fset (\<lambda>(x, t1). (x, varsOf t1)) xts}"
+    "\<Union>{X | x X. (x, X) |\<in>| fmap (\<lambda>(x, t1). (x, fvarsOf t1)) xts}
+     \<subseteq> \<Union>{{x} \<union> X |x X. (x, X) |\<in>| fmap (\<lambda>(x, t1). (x, varsOf t1)) xts}"
      (is "_ \<subseteq> \<Union> ?L")
     proof(rule Sup_mono, safe)
       fix a x X
-      assume "(x, X) |\<in>| map_fset (\<lambda>(x, t1). (x, fvarsOf t1)) xts"
+      assume "(x, X) |\<in>| fmap (\<lambda>(x, t1). (x, fvarsOf t1)) xts"
       then obtain t1 where x_t1: "(x,t1) |\<in>| xts" and X: "X = fvarsOf t1"
       unfolding in_map_fset_iff by auto
       let ?Y = "varsOf t1"
-      have x_Y: "(x,?Y) |\<in>| map_fset (\<lambda>(x, t1). (x, varsOf t1)) xts"
+      have x_Y: "(x,?Y) |\<in>| fmap (\<lambda>(x, t1). (x, varsOf t1)) xts"
       using x_t1 unfolding in_map_fset_iff by auto
       show "\<exists> Y \<in> ?L. X \<subseteq> Y" unfolding X using Lt(1) x_Y x_t1 by auto
     qed

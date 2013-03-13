@@ -14,7 +14,7 @@ theory More_BNFs
 imports
   BNF_LFP
   BNF_GFP
-  "~~/src/HOL/Quotient_Examples/FSet"
+  "~~/src/HOL/Quotient_Examples/Lift_FSet"
   "~~/src/HOL/Library/Multiset"
   Countable_Type
 begin
@@ -195,6 +195,28 @@ proof -
   qed
 qed
 
+lemma wpull_map:
+  assumes "wpull A B1 B2 f1 f2 p1 p2"
+  shows "wpull {x. set x \<subseteq> A} {x. set x \<subseteq> B1} {x. set x \<subseteq> B2} (map f1) (map f2) (map p1) (map p2)"
+    (is "wpull ?A ?B1 ?B2 _ _ _ _")
+proof (unfold wpull_def)
+  { fix as bs assume *: "as \<in> ?B1" "bs \<in> ?B2" "map f1 as = map f2 bs"
+    hence "length as = length bs" by (metis length_map)
+    hence "\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs" using *
+    proof (induct as bs rule: list_induct2)
+      case (Cons a as b bs)
+      hence "a \<in> B1" "b \<in> B2" "f1 a = f2 b" by auto
+      with assms obtain z where "z \<in> A" "p1 z = a" "p2 z = b" unfolding wpull_def by blast
+      moreover
+      from Cons obtain zs where "zs \<in> ?A" "map p1 zs = as" "map p2 zs = bs" by auto
+      ultimately have "z # zs \<in> ?A" "map p1 (z # zs) = a # as \<and> map p2 (z # zs) = b # bs" by auto
+      thus ?case by (rule_tac x = "z # zs" in bexI)
+    qed simp
+  }
+  thus "\<forall>as bs. as \<in> ?B1 \<and> bs \<in> ?B2 \<and> map f1 as = map f2 bs \<longrightarrow>
+    (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
+qed
+
 bnf_def map [set] "\<lambda>_::'a list. natLeq" ["[]"]
 proof -
   show "map id = id" by (rule List.map.id)
@@ -221,112 +243,55 @@ next
 next
   fix A :: "'a set"
   show "|{x. set x \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq" by (rule list_in_bd)
-next
-  fix A B1 B2 f1 f2 p1 p2
-  assume "wpull A B1 B2 f1 f2 p1 p2"
-  hence pull: "\<And>b1 b2. b1 \<in> B1 \<and> b2 \<in> B2 \<and> f1 b1 = f2 b2 \<Longrightarrow> \<exists>a \<in> A. p1 a = b1 \<and> p2 a = b2"
-    unfolding wpull_def by auto
-  show "wpull {x. set x \<subseteq> A} {x. set x \<subseteq> B1} {x. set x \<subseteq> B2} (map f1) (map f2) (map p1) (map p2)"
-    (is "wpull ?A ?B1 ?B2 _ _ _ _")
-  proof (unfold wpull_def)
-    { fix as bs assume *: "as \<in> ?B1" "bs \<in> ?B2" "map f1 as = map f2 bs"
-      hence "length as = length bs" by (metis length_map)
-      hence "\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs" using *
-      proof (induct as bs rule: list_induct2)
-        case (Cons a as b bs)
-        hence "a \<in> B1" "b \<in> B2" "f1 a = f2 b" by auto
-        with pull obtain z where "z \<in> A" "p1 z = a" "p2 z = b" by blast
-        moreover
-        from Cons obtain zs where "zs \<in> ?A" "map p1 zs = as" "map p2 zs = bs" by auto
-        ultimately have "z # zs \<in> ?A" "map p1 (z # zs) = a # as \<and> map p2 (z # zs) = b # bs" by auto
-        thus ?case by (rule_tac x = "z # zs" in bexI)
-      qed simp
-    }
-    thus "\<forall>as bs. as \<in> ?B1 \<and> bs \<in> ?B2 \<and> map f1 as = map f2 bs \<longrightarrow>
-      (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
-  qed
-qed simp+
+qed (simp add: wpull_map)+
 
 (* Finite sets *)
-abbreviation afset where "afset \<equiv> abs_fset"
-abbreviation rfset where "rfset \<equiv> rep_fset"
 
-lemma fset_fset_member:
-"fset A = {a. a |\<in>| A}"
-unfolding fset_def fset_member_def by auto
+definition fset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" where
+"fset_rel R a b \<longleftrightarrow>
+ (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and>
+ (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
 
-lemma afset_rfset:
-"afset (rfset x) = x"
-by (rule Quotient_fset[unfolded Quotient_def, THEN conjunct1, rule_format])
 
-lemma afset_rfset_id:
-"afset o rfset = id"
-unfolding comp_def afset_rfset id_def ..
+lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
+  by (rule f_the_inv_into_f[unfolded inj_on_def])
+    (transfer, simp,
+     transfer, metis Collect_finite_eq_lists lists_UNIV mem_Collect_eq)
 
-lemma rfset:
-"rfset A = rfset B \<longleftrightarrow> A = B"
-by (metis afset_rfset)
 
-lemma afset_set:
-"afset as = afset bs \<longleftrightarrow> set as = set bs"
-using Quotient_fset unfolding Quotient_def list_eq_def by auto
+lemma fset_rel_aux:
+"(\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u) \<longleftrightarrow>
+ (a, b) \<in> (Gr {a. fset a \<subseteq> {(a, b). R a b}} (fmap fst))\<inverse> O
+          Gr {a. fset a \<subseteq> {(a, b). R a b}} (fmap snd)" (is "?L = ?R")
+proof
+  assume ?L
+  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?L'")
+  have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) (transfer, simp)+
+  hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
+  show ?R unfolding Gr_def relcomp_unfold converse_unfold
+  proof (intro CollectI prod_caseI exI conjI)
+    from * show "(R', a) = (R', fmap fst R')" using conjunct1[OF `?L`]
+      by (clarify, transfer, auto simp add: image_def Int_def split: prod.splits)
+    from * show "(R', b) = (R', fmap snd R')" using conjunct2[OF `?L`]
+      by (clarify, transfer, auto simp add: image_def Int_def split: prod.splits)
+  qed (auto simp add: *)
+next
+  assume ?R thus ?L unfolding Gr_def relcomp_unfold converse_unfold
+  apply (simp add: subset_eq Ball_def)
+  apply (rule conjI)
+  apply (transfer, clarsimp, metis snd_conv)
+  by (transfer, clarsimp, metis fst_conv)
+qed
 
-lemma surj_afset:
-"\<exists> as. A = afset as"
-by (metis afset_rfset)
+lemma abs_fset_rep_fset[simp]: "abs_fset (rep_fset x) = x"
+  by (rule Quotient_fset[unfolded Quotient_def, THEN conjunct1, rule_format])
 
-lemma fset_def2:
-"fset = set o rfset"
-unfolding fset_def map_fun_def[abs_def] by simp
-
-lemma fset_def2_raw:
-"fset A = set (rfset A)"
-unfolding fset_def2 by simp
-
-lemma fset_comp_afset:
-"fset o afset = set"
-unfolding fset_def2 comp_def apply(rule ext)
-unfolding afset_set[symmetric] afset_rfset ..
-
-lemma fset_afset:
-"fset (afset as) = set as"
-unfolding fset_comp_afset[symmetric] by simp
-
-lemma set_rfset_afset:
-"set (rfset (afset as)) = set as"
-unfolding afset_set[symmetric] afset_rfset ..
-
-lemma map_fset_comp_afset:
-"(map_fset f) o afset = afset o (map f)"
-unfolding map_fset_def map_fun_def[abs_def] comp_def apply(rule ext)
-unfolding afset_set set_map set_rfset_afset id_apply ..
-
-lemma map_fset_afset:
-"(map_fset f) (afset as) = afset (map f as)"
-using map_fset_comp_afset unfolding comp_def fun_eq_iff by auto
-
-lemma fset_map_fset:
-"fset (map_fset f A) = (image f) (fset A)"
-apply(subst afset_rfset[symmetric, of A])
-unfolding map_fset_afset fset_afset set_map
-unfolding fset_def2_raw ..
-
-lemma map_fset_def2:
-"map_fset f = afset o (map f) o rfset"
-unfolding map_fset_def map_fun_def[abs_def] by simp
-
-lemma map_fset_def2_raw:
-"map_fset f A = afset (map f (rfset A))"
-unfolding map_fset_def2 by simp
-
-lemma finite_ex_fset:
-assumes "finite A"
-shows "\<exists> B. fset B = A"
-by (metis assms finite_list fset_afset)
+lemma wpull_Gr_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Gr B1 f1 O (Gr B2 f2)\<inverse> \<subseteq> (Gr A p1)\<inverse> O Gr A p2"
+  unfolding wpull_def Gr_def relcomp_unfold converse_unfold by auto
 
 lemma wpull_image:
-assumes "wpull A B1 B2 f1 f2 p1 p2"
-shows "wpull (Pow A) (Pow B1) (Pow B2) (image f1) (image f2) (image p1) (image p2)"
+  assumes "wpull A B1 B2 f1 f2 p1 p2"
+  shows "wpull (Pow A) (Pow B1) (Pow B2) (image f1) (image f2) (image p1) (image p2)"
 unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
   fix Y1 Y2 assume Y1: "Y1 \<subseteq> B1" and Y2: "Y2 \<subseteq> B2" and EQ: "f1 ` Y1 = f2 ` Y2"
   def X \<equiv> "{a \<in> A. p1 a \<in> Y1 \<and> p2 a \<in> Y2}"
@@ -357,123 +322,51 @@ unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
   qed(unfold X_def, auto)
 qed
 
-lemma fset_to_fset: "finite A \<Longrightarrow> fset (the_inv fset A) = A"
-by (rule f_the_inv_into_f) (auto simp: inj_on_def fset_cong dest!: finite_ex_fset)
-
-definition fset_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a fset \<Rightarrow> 'b fset \<Rightarrow> bool" where
-"fset_rel R a b \<longleftrightarrow>
- (\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and>
- (\<forall>t \<in> fset b. \<exists>u \<in> fset a. R u t)"
-
-lemma fset_rel_aux:
-"(\<forall>t \<in> fset a. \<exists>u \<in> fset b. R t u) \<and> (\<forall>u \<in> fset b. \<exists>t \<in> fset a. R t u) \<longleftrightarrow>
- (a, b) \<in> (Gr {a. fset a \<subseteq> {(a, b). R a b}} (map_fset fst))\<inverse> O
-          Gr {a. fset a \<subseteq> {(a, b). R a b}} (map_fset snd)" (is "?L = ?R")
-proof
-  assume ?L
-  def R' \<equiv> "the_inv fset (Collect (split R) \<inter> (fset a \<times> fset b))" (is "the_inv fset ?L'")
-  have "finite ?L'" by (intro finite_Int[OF disjI2] finite_cartesian_product) auto
-  hence *: "fset R' = ?L'" unfolding R'_def by (intro fset_to_fset)
-  show ?R unfolding Gr_def relcomp_unfold converse_unfold
-  proof (intro CollectI prod_caseI exI conjI)
-    from * show "(R', a) = (R', map_fset fst R')" using conjunct1[OF `?L`]
-      by (auto simp add: fset_cong[symmetric] image_def Int_def split: prod.splits)
-    from * show "(R', b) = (R', map_fset snd R')" using conjunct2[OF `?L`]
-      by (auto simp add: fset_cong[symmetric] image_def Int_def split: prod.splits)
-  qed (auto simp add: *)
-next
-  assume ?R thus ?L unfolding Gr_def relcomp_unfold converse_unfold
-  apply (simp add: subset_eq Ball_def)
-  apply (rule conjI)
-  apply (clarsimp, metis snd_conv)
-  by (clarsimp, metis fst_conv)
+lemma wpull_fmap:
+  assumes "wpull A B1 B2 f1 f2 p1 p2"
+  shows "wpull {x. fset x \<subseteq> A} {x. fset x \<subseteq> B1} {x. fset x \<subseteq> B2}
+              (fmap f1) (fmap f2) (fmap p1) (fmap p2)"
+unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
+  fix y1 y2
+  assume Y1: "fset y1 \<subseteq> B1" and Y2: "fset y2 \<subseteq> B2"
+  assume "fmap f1 y1 = fmap f2 y2"
+  hence EQ: "f1 ` (fset y1) = f2 ` (fset y2)" by transfer simp
+  with Y1 Y2 obtain X where X: "X \<subseteq> A" and Y1: "p1 ` X = fset y1" and Y2: "p2 ` X = fset y2"
+    using wpull_image[OF assms] unfolding wpull_def Pow_def
+    by (auto elim!: allE[of _ "fset y1"] allE[of _ "fset y2"])
+  have "\<forall> y1' \<in> fset y1. \<exists> x. x \<in> X \<and> y1' = p1 x" using Y1 by auto
+  then obtain q1 where q1: "\<forall> y1' \<in> fset y1. q1 y1' \<in> X \<and> y1' = p1 (q1 y1')" by metis
+  have "\<forall> y2' \<in> fset y2. \<exists> x. x \<in> X \<and> y2' = p2 x" using Y2 by auto
+  then obtain q2 where q2: "\<forall> y2' \<in> fset y2. q2 y2' \<in> X \<and> y2' = p2 (q2 y2')" by metis
+  def X' \<equiv> "q1 ` (fset y1) \<union> q2 ` (fset y2)"
+  have X': "X' \<subseteq> A" and Y1: "p1 ` X' = fset y1" and Y2: "p2 ` X' = fset y2"
+  using X Y1 Y2 q1 q2 unfolding X'_def by auto
+  have fX': "finite X'" unfolding X'_def by transfer simp
+  then obtain x where X'eq: "X' = fset x" by transfer (metis finite_list)
+  show "\<exists>x. fset x \<subseteq> A \<and> fmap p1 x = y1 \<and> fmap p2 x = y2"
+     using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, simp)+
 qed
 
-bnf_def map_fset [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
-proof -
-  show "map_fset id = id"
-  unfolding map_fset_def2 map_id o_id afset_rfset_id ..
-next
-  fix f g
-  show "map_fset (g o f) = map_fset g o map_fset f"
-  unfolding map_fset_def2 map.comp[symmetric] comp_def apply(rule ext)
-  unfolding afset_set set_map fset_def2_raw[symmetric] image_image[symmetric]
-  unfolding map_fset_afset[symmetric] map_fset_image afset_rfset
-  by (rule refl)
-next
-  fix x f g
-  assume "\<And>z. z \<in> fset x \<Longrightarrow> f z = g z"
-  hence "map f (rfset x) = map g (rfset x)"
-  apply(intro map_cong) unfolding fset_def2_raw by auto
-  thus "map_fset f x = map_fset g x" unfolding map_fset_def2_raw
-  by (rule arg_cong)
-next
-  fix f
-  show "fset o map_fset f = image f o fset"
-  unfolding comp_def fset_map_fset ..
-next
-  show "card_order natLeq" by (rule natLeq_card_order)
-next
-  show "cinfinite natLeq" by (rule natLeq_cinfinite)
-next
-  fix x
-  show "|fset x| \<le>o natLeq"
-  unfolding fset_def2_raw
-  apply (rule ordLess_imp_ordLeq)
-  apply (rule finite_iff_ordLess_natLeq[THEN iffD1])
-  by (rule finite_set)
-next
-  fix A :: "'a set"
-  have "|{x. fset x \<subseteq> A}| \<le>o |afset ` {as. set as \<subseteq> A}|"
-  apply(rule card_of_mono1) unfolding fset_def2_raw apply auto
-  apply (rule image_eqI)
-  by (auto simp: afset_rfset)
-  also have "|afset ` {as. set as \<subseteq> A}| \<le>o |{as. set as \<subseteq> A}|" using card_of_image .
-  also have "|{as. set as \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq" by (rule list_in_bd)
-  finally show "|{x. fset x \<subseteq> A}| \<le>o ( |A| +c ctwo) ^c natLeq" .
-next
-  fix A B1 B2 f1 f2 p1 p2
-  assume wp: "wpull A B1 B2 f1 f2 p1 p2"
-  hence "wpull (Pow A) (Pow B1) (Pow B2) (image f1) (image f2) (image p1) (image p2)"
-  by (rule wpull_image)
-  show "wpull {x. fset x \<subseteq> A} {x. fset x \<subseteq> B1} {x. fset x \<subseteq> B2}
-              (map_fset f1) (map_fset f2) (map_fset p1) (map_fset p2)"
-  unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
-    fix y1 y2
-    assume Y1: "fset y1 \<subseteq> B1" and Y2: "fset y2 \<subseteq> B2"
-    assume "map_fset f1 y1 = map_fset f2 y2"
-    hence EQ: "f1 ` (fset y1) = f2 ` (fset y2)" unfolding map_fset_def2_raw
-    unfolding afset_set set_map fset_def2_raw .
-    with Y1 Y2 obtain X where X: "X \<subseteq> A"
-    and Y1: "p1 ` X = fset y1" and Y2: "p2 ` X = fset y2"
-    using wpull_image[OF wp] unfolding wpull_def Pow_def
-    unfolding Bex_def mem_Collect_eq apply -
-    apply(erule allE[of _ "fset y1"], erule allE[of _ "fset y2"]) by auto
-    have "\<forall> y1' \<in> fset y1. \<exists> x. x \<in> X \<and> y1' = p1 x" using Y1 by auto
-    then obtain q1 where q1: "\<forall> y1' \<in> fset y1. q1 y1' \<in> X \<and> y1' = p1 (q1 y1')" by metis
-    have "\<forall> y2' \<in> fset y2. \<exists> x. x \<in> X \<and> y2' = p2 x" using Y2 by auto
-    then obtain q2 where q2: "\<forall> y2' \<in> fset y2. q2 y2' \<in> X \<and> y2' = p2 (q2 y2')" by metis
-    def X' \<equiv> "q1 ` (fset y1) \<union> q2 ` (fset y2)"
-    have X': "X' \<subseteq> A" and Y1: "p1 ` X' = fset y1" and Y2: "p2 ` X' = fset y2"
-    using X Y1 Y2 q1 q2 unfolding X'_def by auto
-    have fX': "finite X'" unfolding X'_def by simp
-    then obtain x where X'eq: "X' = fset x" by (auto dest: finite_ex_fset)
-    show "\<exists>x. fset x \<subseteq> A \<and> map_fset p1 x = y1 \<and> map_fset p2 x = y2"
-    apply(intro exI[of _ "x"]) using X' Y1 Y2
-    unfolding X'eq map_fset_def2_raw fset_def2_raw set_map[symmetric]
-    afset_set[symmetric] afset_rfset by simp
-  qed
-next
-  fix R
-  show "{p. fset_rel (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
-        (Gr {x. fset x \<subseteq> R} (map_fset fst))\<inverse> O Gr {x. fset x \<subseteq> R} (map_fset snd)"
-  unfolding fset_rel_def fset_rel_aux by simp
-qed auto
+bnf_def fmap [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
+apply -
+          apply transfer' apply simp
+         apply transfer' apply simp
+        apply transfer apply force
+       apply transfer apply force
+      apply (rule natLeq_card_order)
+     apply (rule natLeq_cinfinite)
+    apply transfer apply (metis ordLess_imp_ordLeq finite_iff_ordLess_natLeq finite_set)
+   apply (rule ordLeq_transitive[OF surj_imp_ordLeq[of _ abs_fset] list_in_bd])
+   apply (auto simp: fset_def intro!: image_eqI[of _ abs_fset]) []
+  apply (erule wpull_fmap)
+ apply (simp add: Gr_def relcomp_unfold converse_unfold fset_rel_def fset_rel_aux) 
+apply transfer apply simp
+done
 
 lemmas [simp] = fset.map_comp' fset.map_id' fset.set_natural'
 
 lemma fset_rel_fset: "set_rel \<chi> (fset A1) (fset A2) = fset_rel \<chi> A1 A2"
-unfolding fset_rel_def set_rel_def by auto 
+  unfolding fset_rel_def set_rel_def by auto 
 
 (* Countable sets *)
 
