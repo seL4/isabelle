@@ -44,7 +44,7 @@ val graph_path = Path.basic "session.graph";
 val graph_pdf_path = Path.basic "session_graph.pdf";
 val graph_eps_path = Path.basic "session_graph.eps";
 
-fun show_path path = Path.implode (Path.append (File.pwd ()) path);
+fun show_path path = Path.implode (Path.expand (Path.append (File.pwd ()) path));
 
 
 
