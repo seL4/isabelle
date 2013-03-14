@@ -247,12 +247,10 @@ fun introduce_polarities rule =
     val _ = if has_duplicates op= concl_pairs 
       then error "The rule contains duplicated variables in the conlusion." else ()
 
-    fun mem a l = member op= l a
-
     fun rewrite_prem prem_pair = 
-      if mem prem_pair concl_pairs 
+      if member op= concl_pairs prem_pair
       then HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm POS_def}))
-      else if mem (swap prem_pair) concl_pairs 
+      else if member op= concl_pairs (swap prem_pair)
         then HOLogic.Trueprop_conv (Conv.rewr_conv (Thm.symmetric @{thm NEG_def}))
       else error "The rule contains a non-relevant assumption."
     
