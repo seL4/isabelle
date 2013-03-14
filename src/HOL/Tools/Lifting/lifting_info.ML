@@ -167,7 +167,7 @@ fun dest_quotients ctxt =  (* FIXME slightly expensive way to retrieve data *)
 
 fun print_quotients ctxt =
   let
-    fun prt_quot (qty_name, {quot_thm, pcrel_info}) =
+    fun prt_quot (qty_name, {quot_thm, pcrel_info}: quotients) =
       Pretty.block (separate (Pretty.brk 2)
        [Pretty.str "type:", 
         Pretty.str qty_name,
