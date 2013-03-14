@@ -81,10 +81,10 @@ They can be finite or infinite. Sets come with the usual notation:
 \item @{prop"e \<in> A"},\quad @{prop"A \<subseteq> B"}
 \item @{term"A \<union> B"},\quad @{term"A \<inter> B"},\quad @{term"A - B"},\quad @{term"-A"}
 \end{itemize}
+(where @{term"A-B"} and @{text"-A"} are set difference and complement)
 and much more. @{const UNIV} is the set of all elements of some type.
 Set comprehension is written @{term"{x. P}"}
-rather than @{text"{x | P}"}, to emphasize the variable binding nature
-of the construct.
+rather than @{text"{x | P}"}.
 \begin{warn}
 In @{term"{x. P}"} the @{text x} must be a variable. Set comprehension
 involving a proper term @{text t} must be written

@@ -7,14 +7,12 @@ begin
 
 subsection "Liveness Analysis"
 
-text_raw{*\snip{LDef}{0}{2}{% *}
 fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
-"L SKIP     X = X" |
+"L SKIP X = X" |
 "L (x ::= a) X = (X - {x}) \<union> vars a" |
-"L (c\<^isub>1; c\<^isub>2)  X = (L c\<^isub>1 \<circ> L c\<^isub>2) X" |
+"L (c\<^isub>1; c\<^isub>2) X = L c\<^isub>1 (L c\<^isub>2 X)" |
 "L (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> L c\<^isub>1 X \<union> L c\<^isub>2 X" |
-"L (WHILE b DO c)          X = vars b \<union> X \<union> L c X"
-text_raw{*}%endsnip*}
+"L (WHILE b DO c) X = vars b \<union> X \<union> L c X"
 
 value "show (L (''y'' ::= V ''z''; ''x'' ::= Plus (V ''y'') (V ''z'')) {''x''})"
 
