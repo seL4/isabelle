@@ -23,7 +23,6 @@ sig
   val mk_defpair: term * term -> string * term
   val get_def: theory -> xstring -> thm
   val METAHYPS: (thm list -> tactic) -> int -> tactic
-  val gensym: string -> string
   val freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val freeze_thaw: thm -> thm * (thm -> thm)
 end;
