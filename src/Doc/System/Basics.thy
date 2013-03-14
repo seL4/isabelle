@@ -221,6 +221,13 @@ text {*
   automatically obtained by composing the values of @{setting
   ML_SYSTEM}, @{setting ML_PLATFORM} and the Isabelle version values.
 
+  \item[@{setting_def ISABELLE_POLYML}@{text "\<^sup>*"}] is @{verbatim true}
+  for @{setting ML_SYSTEM} values derived from Poly/ML, as opposed to
+  SML/NJ where it is empty.  This is particularly useful with the
+  build option @{system_option condition}
+  (\secref{sec:system-options}) to restrict big sessions to something
+  that SML/NJ can still handle.
+
   \item[@{setting_def ISABELLE_JDK_HOME}] needs to point to a full JDK
   (Java Development Kit) installation with @{verbatim javac} and
   @{verbatim jar} executables.  This is essential for Isabelle/Scala
