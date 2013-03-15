@@ -207,6 +207,29 @@ lemma stake_add[simp]: "stake m s @ stake n (sdrop m s) = stake (m + n) s"
 lemma sdrop_add[simp]: "sdrop n (sdrop m s) = sdrop (m + n) s"
   by (induct m arbitrary: s) auto
 
+partial_function (tailrec) sdrop_while :: "('a \<Rightarrow> bool) \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where 
+  "sdrop_while P s = (if P (shd s) then sdrop_while P (stl s) else s)"
+
+lemma sdrop_while_Stream[code]:
+  "sdrop_while P (Stream a s) = (if P a then sdrop_while P s else Stream a s)"
+  by (subst sdrop_while.simps) simp
+
+lemma sdrop_while_sdrop_LEAST:
+  assumes "\<exists>n. P (s !! n)"
+  shows "sdrop_while (Not o P) s = sdrop (LEAST n. P (s !! n)) s"
+proof -
+  from assms obtain m where "P (s !! m)" "\<And>n. P (s !! n) \<Longrightarrow> m \<le> n"
+    and *: "(LEAST n. P (s !! n)) = m" by atomize_elim (auto intro: LeastI Least_le)
+  thus ?thesis unfolding *
+  proof (induct m arbitrary: s)
+    case (Suc m)
+    hence "sdrop_while (Not \<circ> P) (stl s) = sdrop m (stl s)"
+      by (metis (full_types) not_less_eq_eq snth.simps(2))
+    moreover from Suc(3) have "\<not> (P (s !! 0))" by blast
+    ultimately show ?case by (subst sdrop_while.simps) simp
+  qed (metis comp_apply sdrop.simps(1) sdrop_while.simps snth.simps(1))
+qed
+
 
 subsection {* unary predicates lifted to streams *}
 
