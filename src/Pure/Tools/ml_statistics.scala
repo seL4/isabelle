@@ -7,6 +7,7 @@ ML runtime statistics.
 package isabelle
 
 
+import scala.collection.mutable
 import scala.collection.immutable.{SortedSet, SortedMap}
 import scala.swing.{Frame, Component}
 
@@ -42,8 +43,9 @@ object ML_Statistics
     ("Threads", List("threads_total", "threads_in_ML", "threads_wait_condvar",
       "threads_wait_IO", "threads_wait_mutex", "threads_wait_signal"))
 
-  val time_fields =
-    ("Time", List("time_GC_system", "time_GC_user", "time_non_GC_system", "time_non_GC_user"))
+  val time_fields = ("Time", List("time_CPU", "time_GC"))
+
+  val speed_fields = ("Speed", List("speed_CPU", "speed_GC"))
 
   val tasks_fields =
     ("Future tasks",
@@ -53,7 +55,8 @@ object ML_Statistics
     ("Worker threads", List("workers_total", "workers_active", "workers_waiting"))
 
   val standard_fields =
-    List(GC_fields, heap_fields, threads_fields, time_fields, tasks_fields, workers_fields)
+    List(GC_fields, heap_fields, threads_fields, time_fields, speed_fields,
+      tasks_fields, workers_fields)
 }
 
 final class ML_Statistics private(val name: String, val stats: List[Properties.T])
@@ -72,15 +75,34 @@ final class ML_Statistics private(val name: String, val stats: List[Properties.T
         yield x)
 
   val content: List[ML_Statistics.Entry] =
-    stats.map(props => {
+  {
+    var last_edge = Map.empty[String, (Double, Double, Double)]
+    val result = new mutable.ListBuffer[ML_Statistics.Entry]
+    for (props <- stats) {
       val time = now(props) - time_start
       require(time >= 0.0)
+
+      // rising edges -- relative speed
+      val speeds =
+        for ((key, value) <- props; a <- Library.try_unprefix("time", key)) yield {
+          val (x0, y0, s0) = last_edge.get(a) getOrElse (0.0, 0.0, 0.0)
+
+          val x1 = time
+          val y1 = java.lang.Double.parseDouble(value)
+          val s1 = if (x1 == x0) 0.0 else (y1 - y0) / (x1 - x0)
+
+          val b = ("speed" + a).intern
+          if (y1 > y0) { last_edge += (a -> (x1, y1, s1)); (b, s1) } else (b, s0)
+        }
+
       val data =
-        SortedMap.empty[String, Double] ++
+        SortedMap.empty[String, Double] ++ speeds ++
           (for ((x, y) <- props.iterator if x != Now.name)
             yield (x, java.lang.Double.parseDouble(y)))
-      ML_Statistics.Entry(time, data)
-    })
+      result += ML_Statistics.Entry(time, data)
+    }
+    result.toList
+  }
 
 
   /* charts */
