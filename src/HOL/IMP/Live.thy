@@ -32,7 +32,7 @@ fun gen :: "com \<Rightarrow> vname set" where
 "gen (IF b THEN c\<^isub>1 ELSE c\<^isub>2) = vars b \<union> gen c\<^isub>1 \<union> gen c\<^isub>2" |
 "gen (WHILE b DO c) = vars b \<union> gen c"
 
-lemma L_gen_kill: "L c X = (X - kill c) \<union> gen c"
+lemma L_gen_kill: "L c X = gen c \<union> (X - kill c)"
 by(induct c arbitrary:X) auto
 
 lemma L_While_pfp: "L c (L (WHILE b DO c) X) \<subseteq> L (WHILE b DO c) X"
@@ -250,7 +250,7 @@ corollary final_bury_sound2: "(bury c UNIV,s) \<Rightarrow> s' \<Longrightarrow>
 using bury_sound2[of c UNIV]
 by (auto simp: fun_eq_iff[symmetric])
 
-corollary bury_iff: "(bury c UNIV,s) \<Rightarrow> s' \<longleftrightarrow> (c,s) \<Rightarrow> s'"
+corollary bury_sim: "bury c UNIV \<sim> c"
 by(metis final_bury_sound final_bury_sound2)
 
 end

@@ -428,7 +428,7 @@ text{* In this particular example we could have backchained with
 
 \subsubsection{Finding theorems}
 
-Command \isacom{find\_theorems} searches for specific theorems in the current
+Command \isacom{find{\isacharunderscorekeyword}theorems} searches for specific theorems in the current
 theory. Search criteria include pattern matching on terms and on names.
 For details see the Isabelle/Isar Reference Manual~\cite{IsarRef}.
 \bigskip
