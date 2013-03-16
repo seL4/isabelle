@@ -9,9 +9,6 @@
 \usepackage{ccfonts}
 \usepackage[euler-digits]{eulervm}
 
-\let\bfdefaultold=\bfdefault
-\def\bfdefault{sbc} % make sans serif the default bold font
-
 \usepackage{isabelle,isabellesym}
 \usepackage{mathpartir}
 \usepackage{amssymb}
@@ -63,7 +60,7 @@
 % isabelle keyword, adapted from isabelle.sty
 \renewcommand{\isakeyword}[1]
 {\emph{\def\isachardot{.}\def\isacharunderscore{\isacharunderscorekeyword}%
-\def\isacharbraceleft{\{}\def\isacharbraceright{\}}\textbf{#1}}}
+\def\isacharbraceleft{\{}\def\isacharbraceright{\}}\def\bfdefault{sbc}\textbf{#1}}}
 
 % add \noindent to text blocks automatically
 \renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\noindent}{\end{isapar}}

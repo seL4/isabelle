@@ -5,10 +5,7 @@ begin
 (*>*)
 text{*
 \vspace{-5ex}
-\section{Logic and proof beyond equality}
-\label{sec:Logic}
-
-\subsection{Formulas}
+\section{Formulas}
 
 The core syntax of formulas (\textit{form} below)
 provides the standard logical constructs, in decreasing order of precedence:
@@ -71,7 +68,7 @@ not @{text"A\<^isub>1 \<and> \<dots> \<and> A\<^isub>n \<longrightarrow> A"}. Bo
 but the first one works better when using the theorem in further proofs.
 \end{warn}
 
-\subsection{Sets}
+\section{Sets}
 \label{sec:Sets}
 
 Sets of elements of type @{typ 'a} have type @{typ"'a set"}.
@@ -108,7 +105,7 @@ Here are the ASCII representations of the mathematical symbols:
 Sets also allow bounded quantifications @{prop"ALL x : A. P"} and
 @{prop"EX x : A. P"}.
 
-\subsection{Proof automation}
+\section{Proof automation}
 
 So far we have only seen @{text simp} and @{text auto}: Both perform
 rewriting, both can also prove linear arithmetic facts (no multiplication),
@@ -181,7 +178,7 @@ Method @{text blast}
 Because of its strength in logic and sets and its weakness in equality reasoning, it complements the earlier proof methods.
 
 
-\subsubsection{Sledgehammer}
+\subsection{Sledgehammer}
 
 Command \isacom{sledgehammer} calls a number of external automatic
 theorem provers (ATPs) that run for up to 30 seconds searching for a
@@ -221,7 +218,7 @@ Just as for the other proof methods we have seen, there is no guarantee that
 incomparable. Therefore it is recommended to apply @{text simp} or @{text
 auto} before invoking \isacom{sledgehammer} on what is left.
 
-\subsubsection{Arithmetic}
+\subsection{Arithmetic}
 
 By arithmetic formulas we mean formulas involving variables, numbers, @{text
 "+"}, @{text"-"}, @{text "="}, @{text "<"}, @{text "\<le>"} and the usual logical
@@ -247,7 +244,7 @@ of further operators like @{const min} and @{const max}. On @{typ nat} and
 but we will not enlarge on that here.
 
 
-\subsubsection{Trying them all}
+\subsection{Trying them all}
 
 If you want to try all of the above automatic proof methods you simply type
 \begin{isabelle}
@@ -260,7 +257,7 @@ You can also add specific simplification and introduction rules:
 There is also a lightweight variant \isacom{try0} that does not call
 sledgehammer.
 
-\subsection{Single step proofs}
+\section{Single step proofs}
 
 Although automation is nice, it often fails, at least initially, and you need
 to find out why. When @{text fastforce} or @{text blast} simply fail, you have
@@ -273,7 +270,7 @@ be achieved by applying \emph{conjunction introduction}
 \]
 to the proof state. We will now examine the details of this process.
 
-\subsubsection{Instantiating unknowns}
+\subsection{Instantiating unknowns}
 
 We had briefly mentioned earlier that after proving some theorem,
 Isabelle replaces all free variables @{text x} by so called \concept{unknowns}
@@ -301,7 +298,7 @@ Unknowns can also be instantiated by name, for example
 @{text "conjI[where ?P = \"a=b\" and ?Q = \"False\"]"}.
 
 
-\subsubsection{Rule application}
+\subsection{Rule application}
 
 \concept{Rule application} means applying a rule backwards to a proof state.
 For example, applying rule @{thm[source]conjI} to a proof state
@@ -327,7 +324,7 @@ This is the command to apply rule @{text xyz}:
 \end{quote}
 This is also called \concept{backchaining} with rule @{text xyz}.
 
-\subsubsection{Introduction rules}
+\subsection{Introduction rules}
 
 Conjunction introduction (@{thm[source] conjI}) is one example of a whole
 class of rules known as \concept{introduction rules}. They explain under which
@@ -377,7 +374,7 @@ by(blast intro: le_trans)
 text{*
 Of course this is just an example and could be proved by @{text arith}, too.
 
-\subsubsection{Forward proof}
+\subsection{Forward proof}
 \label{sec:forward-proof}
 
 Forward proof means deriving new theorems from old theorems. We have already
@@ -426,7 +423,7 @@ by(blast dest: Suc_leD)
 text{* In this particular example we could have backchained with
 @{thm[source] Suc_leD}, too, but because the premise is more complicated than the conclusion this can easily lead to nontermination.
 
-\subsubsection{Finding theorems}
+\subsection{Finding theorems}
 
 Command \isacom{find{\isacharunderscorekeyword}theorems} searches for specific theorems in the current
 theory. Search criteria include pattern matching on terms and on names.
