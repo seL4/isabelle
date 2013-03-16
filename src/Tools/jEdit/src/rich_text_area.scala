@@ -175,7 +175,7 @@ class Rich_Text_Area(
 
         if ((control || hovering) && !buffer.isLoading) {
           JEdit_Lib.buffer_lock(buffer) {
-            JEdit_Lib.pixel_range(text_area, e.getX(), e.getY()) match {
+            JEdit_Lib.pixel_range(text_area, e.getX, e.getY) match {
               case None => active_reset()
               case Some(range) =>
                 val rendering = get_rendering()
@@ -189,6 +189,9 @@ class Rich_Text_Area(
           }
         }
         else active_reset()
+
+        tooltip_event = Some(e)
+        tooltip_delay.invoke()
       }
     }
   }
@@ -196,32 +199,35 @@ class Rich_Text_Area(
 
   /* tooltips */
 
-  private val tooltip_painter = new TextAreaExtension
-  {
-    override def getToolTipText(x: Int, y: Int): String =
-    {
-      robust_body(null: String) {
-        val rendering = get_rendering()
-        val snapshot = rendering.snapshot
-        if (!snapshot.is_outdated) {
-          JEdit_Lib.pixel_range(text_area, x, y) match {
-            case None =>
-            case Some(range) =>
-              val tip =
-                if (control) rendering.tooltip(range)
-                else rendering.tooltip_message(range)
-              if (!tip.isEmpty) {
-                val painter = text_area.getPainter
-                val y1 = y + painter.getFontMetrics.getHeight / 2
-                val results = rendering.command_results(range)
-                new Pretty_Tooltip(view, painter, rendering, x, y1, results, tip)
-              }
+  private var tooltip_event: Option[MouseEvent] = None
+
+  private val tooltip_delay =
+    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+      tooltip_event match {
+        case Some(e) if e.getSource == text_area.getPainter =>
+          val rendering = get_rendering()
+          val snapshot = rendering.snapshot
+          if (!snapshot.is_outdated) {
+            val x = e.getX
+            val y = e.getY
+            JEdit_Lib.pixel_range(text_area, x, y) match {
+              case None =>
+              case Some(range) =>
+                val tip =
+                  if (control) rendering.tooltip(range)
+                  else rendering.tooltip_message(range)
+                if (!tip.isEmpty) {
+                  val painter = text_area.getPainter
+                  val y1 = y + painter.getFontMetrics.getHeight / 2
+                  val results = rendering.command_results(range)
+                  new Pretty_Tooltip(view, painter, rendering, x, y1, results, tip)
+                }
+            }
           }
-        }
-        null
+          tooltip_event = None
+        case _ =>
       }
     }
-  }
 
 
   /* text background */
@@ -507,7 +513,6 @@ class Rich_Text_Area(
   {
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_state)
-    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
     painter.addExtension(TextAreaPainter.TEXT_LAYER, text_painter)
     painter.addExtension(TextAreaPainter.CARET_LAYER - 1, before_caret_painter1)
@@ -541,7 +546,6 @@ class Rich_Text_Area(
     painter.removeExtension(before_caret_painter1)
     painter.removeExtension(text_painter)
     painter.removeExtension(background_painter)
-    painter.removeExtension(tooltip_painter)
     painter.removeExtension(set_state)
   }
 }
