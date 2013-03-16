@@ -39,7 +39,7 @@ lemma delete_Mapping [code]:
 
 lemma map_entry_Mapping [code]:
   "Mapping.map_entry k f (Mapping t) = Mapping (map_entry k f t)"
-by (transfer fixing: t, case_tac "lookup t k") auto
+  apply (transfer fixing: t) by (case_tac "lookup t k") auto
 
 lemma keys_Mapping [code]:
   "Mapping.keys (Mapping t) = set (keys t)"
