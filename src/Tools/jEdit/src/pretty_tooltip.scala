@@ -104,6 +104,7 @@ class Pretty_Tooltip(
       XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(fm)))(0)(
         (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
+    window.setSize(new Dimension(100, 100))
     window.setPreferredSize(new Dimension(100, 100))
     window.pack
     val deco_width = window.getWidth - painter.getWidth
@@ -117,8 +118,10 @@ class Pretty_Tooltip(
       (fm.getHeight * (lines + 1) + deco_height) min
       (screen_bounds.height * bounds).toInt
 
+    window.setSize(new Dimension(w, h))
     window.setPreferredSize(new Dimension(w, h))
     window.pack
+    window.revalidate
 
     val x = screen_point.x min (screen_bounds.x + screen_bounds.width - window.getWidth)
     val y = screen_point.y min (screen_bounds.y + screen_bounds.height - window.getHeight)
