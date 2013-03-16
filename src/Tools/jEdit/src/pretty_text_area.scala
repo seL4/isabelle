@@ -93,23 +93,22 @@ class Pretty_Text_Area(
     }
     getPainter.setFoldLineStyle(fold_line_style)
 
+    getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
+    getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
+    background.map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
+    getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
+    getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
+    getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
+    getGutter.setBorder(0,
+      jEdit.getColorProperty("view.gutter.focusBorderColor"),
+      jEdit.getColorProperty("view.gutter.noFocusBorderColor"),
+      getPainter.getBackground)
+    getGutter.setFoldPainter(getFoldPainter)
+    getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
+
     if (getWidth > 0) {
-      getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
-      getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
-      background.map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
-      getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
-      getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
-      getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
-      getGutter.setBorder(0,
-        jEdit.getColorProperty("view.gutter.focusBorderColor"),
-        jEdit.getColorProperty("view.gutter.noFocusBorderColor"),
-        getPainter.getBackground)
-      getGutter.setFoldPainter(getFoldPainter)
-
-      getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
-
       val fm = getPainter.getFontMetrics
-      val margin = ((getWidth - getGutter.getWidth) / (Pretty.char_width_int(fm) max 1) - 2) max 20
+      val margin = (getPainter.getWidth / (Pretty.char_width_int(fm) max 1)) max 20
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
