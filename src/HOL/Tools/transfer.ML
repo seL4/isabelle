@@ -29,22 +29,27 @@ structure Data = Generic_Data
     { transfer_raw : thm Item_Net.T,
       known_frees : (string * typ) list,
       compound_rhs : unit Net.net,
-      relator_eq : thm Item_Net.T }
+      relator_eq : thm Item_Net.T,
+      relator_eq_raw : thm Item_Net.T }
   val empty =
     { transfer_raw = Thm.full_rules,
       known_frees = [],
       compound_rhs = Net.empty,
-      relator_eq = Thm.full_rules }
+      relator_eq = Thm.full_rules,
+      relator_eq_raw = Thm.full_rules }
   val extend = I
   fun merge
     ( { transfer_raw = t1, known_frees = k1,
-        compound_rhs = c1, relator_eq = r1},
+        compound_rhs = c1, relator_eq = r1,
+        relator_eq_raw = rw1 },
       { transfer_raw = t2, known_frees = k2,
-        compound_rhs = c2, relator_eq = r2}) =
+        compound_rhs = c2, relator_eq = r2,
+        relator_eq_raw = rw2 } ) =
     { transfer_raw = Item_Net.merge (t1, t2),
       known_frees = Library.merge (op =) (k1, k2),
       compound_rhs = Net.merge (K true) (c1, c2),
-      relator_eq = Item_Net.merge (r1, r2) }
+      relator_eq = Item_Net.merge (r1, r2),
+      relator_eq_raw = Item_Net.merge (rw1, rw2) }
 )
 
 fun get_relator_eq ctxt = ctxt
@@ -55,6 +60,9 @@ fun get_sym_relator_eq ctxt = ctxt
   |> (Item_Net.content o #relator_eq o Data.get o Context.Proof)
   |> map (Thm.symmetric o safe_mk_meta_eq)
 
+fun get_relator_eq_raw ctxt = ctxt
+  |> (Item_Net.content o #relator_eq_raw o Data.get o Context.Proof)
+
 fun get_transfer_raw ctxt = ctxt
   |> (Item_Net.content o #transfer_raw o Data.get o Context.Proof)
 
@@ -64,17 +72,19 @@ fun get_known_frees ctxt = ctxt
 fun get_compound_rhs ctxt = ctxt
   |> (#compound_rhs o Data.get o Context.Proof)
 
-fun map_data f1 f2 f3 f4
-  { transfer_raw, known_frees, compound_rhs, relator_eq } =
+fun map_data f1 f2 f3 f4 f5
+  { transfer_raw, known_frees, compound_rhs, relator_eq, relator_eq_raw } =
   { transfer_raw = f1 transfer_raw,
     known_frees = f2 known_frees,
     compound_rhs = f3 compound_rhs,
-    relator_eq = f4 relator_eq }
+    relator_eq = f4 relator_eq,
+    relator_eq_raw = f5 relator_eq_raw }
 
-fun map_transfer_raw f = map_data f I I I
-fun map_known_frees f = map_data I f I I
-fun map_compound_rhs f = map_data I I f I
-fun map_relator_eq f = map_data I I I f
+fun map_transfer_raw f = map_data f I I I I
+fun map_known_frees f = map_data I f I I I
+fun map_compound_rhs f = map_data I I f I I
+fun map_relator_eq f = map_data I I I f I
+fun map_relator_eq_raw f = map_data I I I I f
 
 fun add_transfer_thm thm = Data.map
   (map_transfer_raw (Item_Net.update thm) o
@@ -277,12 +287,15 @@ fun transfer_rule_of_term ctxt t =
     Thm.generalize (tfrees, rnames @ frees) (Thm.maxidx_of thm + 1) thm
   end
 
+fun eq_tac eq_rules = TRY o REPEAT_ALL_NEW (resolve_tac eq_rules) THEN_ALL_NEW rtac @{thm is_equality_eq}
+
 fun transfer_tac equiv ctxt i =
   let
     val pre_simps = @{thms transfer_forall_eq transfer_implies_eq}
     val start_rule = 
       if equiv then @{thm transfer_start} else @{thm transfer_start'}
     val rules = get_transfer_raw ctxt
+    val eq_rules = get_relator_eq_raw ctxt
     (* allow unsolved subgoals only for standard transfer method, not for transfer' *)
     val end_tac = if equiv then K all_tac else K no_tac
     val err_msg = "Transfer failed to convert goal to an object-logic formula"
@@ -290,7 +303,7 @@ fun transfer_tac equiv ctxt i =
       rtac start_rule i THEN
       (rtac (transfer_rule_of_term ctxt (HOLogic.dest_Trueprop t))
         THEN_ALL_NEW
-          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules))
+          (SOLVED' (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))
             ORELSE' end_tac)) (i + 1)
         handle TERM (_, ts) => raise TERM (err_msg, ts)
   in
@@ -307,12 +320,13 @@ fun transfer_prover_tac ctxt = SUBGOAL (fn (t, i) =>
     val rhs = (snd o Term.dest_comb o HOLogic.dest_Trueprop) t
     val rule1 = transfer_rule_of_term ctxt rhs
     val rules = get_transfer_raw ctxt
+    val eq_rules = get_relator_eq_raw ctxt
   in
     EVERY
       [CONVERSION prep_conv i,
        rtac @{thm transfer_prover_start} i,
        (rtac rule1 THEN_ALL_NEW
-         REPEAT_ALL_NEW (resolve_tac rules)) (i+1),
+         (REPEAT_ALL_NEW (resolve_tac rules) THEN_ALL_NEW (DETERM o eq_tac eq_rules))) (i+1),
        rtac @{thm refl} i]
   end)
 
@@ -350,9 +364,9 @@ val relator_eq_setup =
   let
     val name = @{binding relator_eq}
     fun add_thm thm = Data.map (map_relator_eq (Item_Net.update thm))
-      #> add_transfer_thm (abstract_equalities_relator_eq thm)
+      #> Data.map (map_relator_eq_raw (Item_Net.update (abstract_equalities_relator_eq thm)))
     fun del_thm thm = Data.map (map_relator_eq (Item_Net.remove thm))
-      #> del_transfer_thm (abstract_equalities_relator_eq thm)
+      #> Data.map (map_relator_eq_raw (Item_Net.remove (abstract_equalities_relator_eq thm)))
     val add = Thm.declaration_attribute add_thm
     val del = Thm.declaration_attribute del_thm
     val text = "declaration of relator equality rule (used by transfer method)"
@@ -368,6 +382,8 @@ val setup =
      "transfer rule for transfer method"
   #> Global_Theory.add_thms_dynamic
      (@{binding transfer_raw}, Item_Net.content o #transfer_raw o Data.get)
+  #> Global_Theory.add_thms_dynamic
+     (@{binding relator_eq_raw}, Item_Net.content o #relator_eq_raw o Data.get)
   #> Method.setup @{binding transfer} (transfer_method true)
      "generic theorem transfer method"
   #> Method.setup @{binding transfer'} (transfer_method false)
