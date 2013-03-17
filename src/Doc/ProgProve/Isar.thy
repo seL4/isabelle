@@ -894,6 +894,7 @@ free variables in rule @{text i} to @{text"x\<^isub>1 \<dots> x\<^isub>k"},
 going through rule @{text i} from left to right.
 
 \subsection{Assumption naming}
+\label{sec:assm-naming}
 
 In any induction, \isacom{case}~@{text name} sets up a list of assumptions
 also called @{text name}, which is subdivided into three parts:
@@ -978,8 +979,74 @@ qed
 
 text{* Normally not all cases will be impossible. As a simple exercise,
 prove that \mbox{@{prop"\<not> ev(Suc(Suc(Suc 0)))"}.}
-*}
 
+\subsection{Advanced rule induction}
+
+So far, rule induction was always applied to goals of the form @{text"I x y z \<Longrightarrow> \<dots>"}
+where @{text I} is some inductively defined predicate and @{text x}, @{text y}, @{text z}
+are variables. In some rare situations one needs to deal with an assumption where
+not all arguments @{text r}, @{text s}, @{text t} are variables:
+\begin{isabelle}
+\isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}
+\end{isabelle}
+Applying the standard form of
+rule induction in such a situation will lead to strange and typically unproveable goals.
+We can easily reduce this situation to the standard one by introducing
+new variables @{text x}, @{text y}, @{text z} and reformulating the goal like this:
+\begin{isabelle}
+\isacom{lemma} @{text[source]"I x y z \<Longrightarrow> x = r \<Longrightarrow> y = s \<Longrightarrow> z = t \<Longrightarrow> \<dots>"}
+\end{isabelle}
+Standard rule induction will worke fine now, provided the free variables in
+@{text r}, @{text s}, @{text t} are generalized via @{text"arbitrary"}.
+
+However, induction can do the above transformation for us, behind the curtains, so we never
+need to see the expanded version of the lemma. This is what we need to write:
+\begin{isabelle}
+\isacom{lemma} @{text[source]"I r s t \<Longrightarrow> \<dots>"}\isanewline
+\isacom{proof}@{text"(induction \"r\" \"s\" \"t\" arbitrary: \<dots> rule: I.induct)"}
+\end{isabelle}
+Just like for rule inversion, cases that are impossible because of constructor clashes
+will not show up at all. Here is a concrete example: *}
+
+lemma "ev (Suc m) \<Longrightarrow> \<not> ev m"
+proof(induction "Suc m" arbitrary: m rule: ev.induct)
+  fix n assume IH: "\<And>m. n = Suc m \<Longrightarrow> \<not> ev m"
+  show "\<not> ev (Suc n)"
+  proof --"contradition"
+    assume "ev(Suc n)"
+    thus False
+    proof cases --"rule inversion"
+      fix k assume "n = Suc k" "ev k"
+      thus False using IH by auto
+    qed
+  qed
+qed
+
+text{*
+Remarks:
+\begin{itemize}
+\item 
+Instead of the \isacom{case} and @{text ?case} magic we have spelled all formulas out.
+This is merely for greater clarity.
+\item
+We only need to deal with one case because the @{thm[source] ev0} case is impossible.
+\item
+The form of the @{text IH} shows us that internally the lemma was expanded as explained
+above: \noquotes{@{prop[source]"ev x \<Longrightarrow> x = Suc m \<Longrightarrow> \<not> ev m"}}.
+\item
+The goal @{prop"\<not> ev (Suc n)"} may suprise. The expanded version of the lemma
+would suggest that we have a \isacom{fix} @{text m} \isacom{assume} @{prop"Suc(Suc n) = Suc m"}
+and need to show @{prop"\<not> ev m"}. What happened is that Isabelle immediately
+simplified @{prop"Suc(Suc n) = Suc m"} to @{prop"Suc n = m"} and could then eliminate
+@{text m}. Beware of such nice surprises with this advanced form of induction.
+\end{itemize}
+\begin{warn}
+This advanced form of induction does not support the @{text IH}
+naming schema explained in \autoref{sec:assm-naming}:
+the induction hypotheses are instead found under the name @{text hyps}, like for the simpler
+@{text induct} method.
+\end{warn}
+*}
 (*
 lemma "\<not> ev(Suc(Suc(Suc 0)))"
 proof
