@@ -51,14 +51,14 @@ object Pretty_Tooltip
         case Some(window) => window.descendants()
       }
     val window =
-      if (old_windows.isEmpty) {
-        val window = new Pretty_Tooltip(view, parent, parent_window)
-        window_stack = window :: window_stack
-        window
-      }
-      else {
-        old_windows.foreach(_.dispose)
-        old_windows.last
+      old_windows.reverse match {
+        case Nil =>
+          val window = new Pretty_Tooltip(view, parent, parent_window)
+          window_stack = window :: window_stack
+          window
+        case window :: others =>
+          others.foreach(_.dispose)
+          window
       }
     window.init(rendering, mouse_x, mouse_y, results, body)
     window
@@ -98,6 +98,9 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
 
 
   /* main content */
+
+  window.setUndecorated(true)
+  window.getRootPane.setBorder(new LineBorder(Color.BLACK))
 
   private val content_panel =
     new JPanel(new BorderLayout) { override def getFocusTraversalKeysEnabled = false }
@@ -143,10 +146,6 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
     current_results = results
     current_body = body
 
-    window.setUndecorated(true)
-    window.setFocusableWindowState(true)
-    window.getRootPane.setBorder(new LineBorder(Color.BLACK))
-
     pretty_text_area.resize(Rendering.font_family(),
       Rendering.font_size("jedit_tooltip_font_scale").round)
     pretty_text_area.update(rendering.snapshot, results, body)
@@ -172,9 +171,13 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
         XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(fm)))(0)(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
-      window.setSize(new Dimension(100, 100))
-      window.setPreferredSize(new Dimension(100, 100))
+      if (window.getWidth == 0) {
+        window.setSize(new Dimension(100, 100))
+        window.setPreferredSize(new Dimension(100, 100))
+      }
       window.pack
+      window.revalidate
+
       val deco_width = window.getWidth - painter.getWidth
       val deco_height = window.getHeight - painter.getHeight
 
