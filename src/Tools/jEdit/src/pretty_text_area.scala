@@ -54,7 +54,6 @@ object Pretty_Text_Area
 
 class Pretty_Text_Area(
   view: View,
-  background: Option[Color] = None,
   close_action: () => Unit = () => (),
   propagate_keys: Boolean = false) extends JEditEmbeddedTextArea
 {
@@ -95,7 +94,6 @@ class Pretty_Text_Area(
 
     getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
     getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
-    background.map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
     getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
     getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
     getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
@@ -169,10 +167,7 @@ class Pretty_Text_Area(
           Registers.copy(text_area, '$')
           evt.consume
         case KeyEvent.VK_ESCAPE =>
-          Window.getWindows foreach {
-            case c: Pretty_Tooltip => c.dispose
-            case _ =>
-          }
+          Pretty_Tooltip.windows().foreach(_.dispose)
           evt.consume
         case _ =>
       }
