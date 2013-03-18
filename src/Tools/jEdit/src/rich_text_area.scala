@@ -190,8 +190,10 @@ class Rich_Text_Area(
         }
         else active_reset()
 
-        tooltip_event = Some(e)
-        tooltip_delay.invoke()
+        if (Pretty_Tooltip.is_active) {
+          tooltip_event = Some(e)
+          tooltip_delay.invoke()
+        }
       }
     }
   }

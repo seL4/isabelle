@@ -63,6 +63,29 @@ object Pretty_Tooltip
     window.init(rendering, mouse_x, mouse_y, results, body)
     window
   }
+
+
+  /* global dismissed delay -- owned by Swing thread */
+
+  private var active = true
+
+  private lazy val reactivate_delay =
+    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+      active = true
+    }
+
+  def dismissed
+  {
+    Swing_Thread.require()
+    active = false
+    reactivate_delay.invoke()
+  }
+
+  def is_active: Boolean =
+  {
+    Swing_Thread.require()
+    active
+  }
 }
 
 
@@ -92,7 +115,7 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
   window.addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) {
       if (!descendants().exists(_.isDisplayable))
-        window.dispose()
+        window.dismiss
     }
   })
 
@@ -106,7 +129,7 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
     new JPanel(new BorderLayout) { override def getFocusTraversalKeysEnabled = false }
   window.setContentPane(content_panel)
 
-  val pretty_text_area = new Pretty_Text_Area(view, () => window.dispose(), true) {
+  val pretty_text_area = new Pretty_Text_Area(view, () => window.dismiss, true) {
     override def get_background() = Some(current_rendering.tooltip_color)
   }
   window.add(pretty_text_area)
@@ -118,7 +141,7 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
     icon = Rendering.tooltip_close_icon
     tooltip = "Close tooltip window"
     listenTo(mouse.clicks)
-    reactions += { case _: MouseClicked => window.dispose() }
+    reactions += { case _: MouseClicked => window.dismiss }
   }
 
   private val detach = new Label {
@@ -128,7 +151,7 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
     reactions += {
       case _: MouseClicked =>
         Info_Dockable(view, current_rendering.snapshot, current_results, current_body)
-        window.dispose()
+        window.dismiss
     }
   }
 
@@ -136,7 +159,7 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
   window.add(controls.peer, BorderLayout.NORTH)
 
 
-  /* refresh */
+  /* init */
 
   def init(
     rendering: Rendering,
@@ -201,6 +224,16 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
     window.setVisible(true)
     pretty_text_area.requestFocus
     pretty_text_area.refresh()
+  }
+
+
+  /* dismiss */
+
+  def dismiss
+  {
+    Swing_Thread.require()
+    Pretty_Tooltip.dismissed
+    window.dispose
   }
 }
 

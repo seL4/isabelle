@@ -7,7 +7,7 @@ option jedit_font_scale : real = 1.0
   -- "scale factor of add-on panels wrt. main text area"
 
 option jedit_tooltip_delay : real = 0.75
-  -- "delay for semantic tooltip popup"
+  -- "open/close delay for document tooltips"
 
 option jedit_tooltip_font_scale : real = 0.85
   -- "scale factor of tooltips wrt. main text area"
