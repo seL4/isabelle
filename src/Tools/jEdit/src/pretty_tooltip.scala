@@ -21,46 +21,117 @@ import org.gjt.sp.jedit.View
 import org.gjt.sp.jedit.textarea.TextArea
 
 
-class Pretty_Tooltip(
-  view: View,
-  parent: JComponent,
-  rendering: Rendering,
-  mouse_x: Int, mouse_y: Int,
-  results: Command.Results,
-  body: XML.Body)
-  extends JDialog(JEdit_Lib.parent_window(parent) getOrElse view)
+object Pretty_Tooltip
+{
+  /* window stack -- owned by Swing thread */
+
+  private var window_stack: List[Pretty_Tooltip] = Nil
+
+  def windows(): List[Pretty_Tooltip] =
+  {
+    Swing_Thread.require()
+    window_stack
+  }
+
+  def apply(
+    view: View,
+    parent: JComponent,
+    rendering: Rendering,
+    mouse_x: Int, mouse_y: Int,
+    results: Command.Results,
+    body: XML.Body): Pretty_Tooltip =
+  {
+    Swing_Thread.require()
+
+    val parent_window = JEdit_Lib.parent_window(parent) getOrElse view
+
+    val old_windows =
+      windows().find(_ == parent_window) match {
+        case None => windows()
+        case Some(window) => window.descendants()
+      }
+    val window =
+      old_windows.reverse match {
+        case Nil =>
+          val window = new Pretty_Tooltip(view, parent, parent_window)
+          window_stack = window :: window_stack
+          window
+        case window :: others =>
+          others.foreach(_.dispose)
+          window
+      }
+    window.init(rendering, mouse_x, mouse_y, results, body)
+    window
+  }
+
+
+  /* global dismissed delay -- owned by Swing thread */
+
+  private var active = true
+
+  private lazy val reactivate_delay =
+    Swing_Thread.delay_last(PIDE.options.seconds("jedit_tooltip_delay")) {
+      active = true
+    }
+
+  def dismissed
+  {
+    Swing_Thread.require()
+    active = false
+    reactivate_delay.invoke()
+  }
+
+  def is_active: Boolean =
+  {
+    Swing_Thread.require()
+    active
+  }
+}
+
+
+class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Window)
+  extends JDialog(parent_window)
 {
   window =>
 
   Swing_Thread.require()
 
 
-  window.setUndecorated(true)
-  window.setFocusableWindowState(true)
+  /* implicit state -- owned by Swing thread */
+
+  private var current_rendering: Rendering =
+    Rendering(Document.State.init.snapshot(), PIDE.options.value)
+  private var current_results = Command.Results.empty
+  private var current_body: XML.Body = Nil
+
+
+  /* window hierarchy */
+
+  def descendants(): List[Pretty_Tooltip] =
+    if (Pretty_Tooltip.windows().exists(_ == window))
+      Pretty_Tooltip.windows().takeWhile(_ != window)
+    else Nil
 
   window.addWindowFocusListener(new WindowAdapter {
     override def windowLostFocus(e: WindowEvent) {
-      if (!Window.getWindows.exists(w =>
-            w.isDisplayable && JEdit_Lib.ancestors(w).exists(_ == window)))
-        window.dispose()
+      if (!descendants().exists(_.isDisplayable))
+        window.dismiss
     }
   })
 
-  window.setContentPane(new JPanel(new BorderLayout) {
-    setBackground(rendering.tooltip_color)
-    override def getFocusTraversalKeysEnabled(): Boolean = false
-  })
+
+  /* main content */
+
+  window.setUndecorated(true)
   window.getRootPane.setBorder(new LineBorder(Color.BLACK))
 
+  private val content_panel =
+    new JPanel(new BorderLayout) { override def getFocusTraversalKeysEnabled = false }
+  window.setContentPane(content_panel)
 
-  /* pretty text area */
-
-  val pretty_text_area =
-    new Pretty_Text_Area(view, Some(rendering.tooltip_color), () => window.dispose(), true)
-  pretty_text_area.resize(Rendering.font_family(),
-    Rendering.font_size("jedit_tooltip_font_scale").round)
-  pretty_text_area.update(rendering.snapshot, results, body)
-
+  val pretty_text_area = new Pretty_Text_Area(view, () => window.dismiss, true) {
+    override def get_background() = Some(current_rendering.tooltip_color)
+  }
   window.add(pretty_text_area)
 
 
@@ -70,7 +141,7 @@ class Pretty_Tooltip(
     icon = Rendering.tooltip_close_icon
     tooltip = "Close tooltip window"
     listenTo(mouse.clicks)
-    reactions += { case _: MouseClicked => window.dispose() }
+    reactions += { case _: MouseClicked => window.dismiss }
   }
 
   private val detach = new Label {
@@ -79,57 +150,90 @@ class Pretty_Tooltip(
     listenTo(mouse.clicks)
     reactions += {
       case _: MouseClicked =>
-        Info_Dockable(view, rendering.snapshot, results, body)
-        window.dispose()
+        Info_Dockable(view, current_rendering.snapshot, current_results, current_body)
+        window.dismiss
     }
   }
 
-  private val controls = new FlowPanel(FlowPanel.Alignment.Left)(close, detach) {
-    background = rendering.tooltip_color
-  }
+  private val controls = new FlowPanel(FlowPanel.Alignment.Left)(close, detach)
   window.add(controls.peer, BorderLayout.NORTH)
 
 
-  /* window geometry */
+  /* init */
 
-  val screen_point = new Point(mouse_x, mouse_y)
-  SwingUtilities.convertPointToScreen(screen_point, parent)
-  val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
-
+  def init(
+    rendering: Rendering,
+    mouse_x: Int, mouse_y: Int,
+    results: Command.Results,
+    body: XML.Body)
   {
-    val painter = pretty_text_area.getPainter
-    val fm = painter.getFontMetrics
-    val margin = rendering.tooltip_margin
-    val lines =
-      XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(fm)))(0)(
-        (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
+    current_rendering = rendering
+    current_results = results
+    current_body = body
 
-    window.setSize(new Dimension(100, 100))
-    window.setPreferredSize(new Dimension(100, 100))
-    window.pack
-    val deco_width = window.getWidth - painter.getWidth
-    val deco_height = window.getHeight - painter.getHeight
+    pretty_text_area.resize(Rendering.font_family(),
+      Rendering.font_size("jedit_tooltip_font_scale").round)
+    pretty_text_area.update(rendering.snapshot, results, body)
 
-    val bounds = rendering.tooltip_bounds
-    val w =
-      ((Pretty.char_width(fm) * (margin + 1)).round.toInt + deco_width) min
-      (screen_bounds.width * bounds).toInt
-    val h =
-      (fm.getHeight * (lines + 1) + deco_height) min
-      (screen_bounds.height * bounds).toInt
+    content_panel.setBackground(rendering.tooltip_color)
+    controls.background = rendering.tooltip_color
 
-    window.setSize(new Dimension(w, h))
-    window.setPreferredSize(new Dimension(w, h))
-    window.pack
-    window.revalidate
 
-    val x = screen_point.x min (screen_bounds.x + screen_bounds.width - window.getWidth)
-    val y = screen_point.y min (screen_bounds.y + screen_bounds.height - window.getHeight)
-    window.setLocation(x, y)
+    /* window geometry */
+
+    val screen_point = new Point(mouse_x, mouse_y)
+    SwingUtilities.convertPointToScreen(screen_point, parent)
+    val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
+
+    {
+      val painter = pretty_text_area.getPainter
+      val fm = painter.getFontMetrics
+      val margin = rendering.tooltip_margin
+      val lines =
+        XML.traverse_text(Pretty.formatted(body, margin, Pretty.font_metric(fm)))(0)(
+          (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
+
+      if (window.getWidth == 0) {
+        window.setSize(new Dimension(100, 100))
+        window.setPreferredSize(new Dimension(100, 100))
+      }
+      window.pack
+      window.revalidate
+
+      val deco_width = window.getWidth - painter.getWidth
+      val deco_height = window.getHeight - painter.getHeight
+
+      val bounds = rendering.tooltip_bounds
+      val w =
+        ((Pretty.char_width(fm) * (margin + 1)).round.toInt + deco_width) min
+        (screen_bounds.width * bounds).toInt
+      val h =
+        (fm.getHeight * (lines + 1) + deco_height) min
+        (screen_bounds.height * bounds).toInt
+
+      window.setSize(new Dimension(w, h))
+      window.setPreferredSize(new Dimension(w, h))
+      window.pack
+      window.revalidate
+
+      val x = screen_point.x min (screen_bounds.x + screen_bounds.width - window.getWidth)
+      val y = screen_point.y min (screen_bounds.y + screen_bounds.height - window.getHeight)
+      window.setLocation(x, y)
+    }
+
+    window.setVisible(true)
+    pretty_text_area.requestFocus
+    pretty_text_area.refresh()
   }
 
-  window.setVisible(true)
-  pretty_text_area.requestFocus
-  pretty_text_area.refresh()
+
+  /* dismiss */
+
+  def dismiss
+  {
+    Swing_Thread.require()
+    Pretty_Tooltip.dismissed
+    window.dispose
+  }
 }
 
