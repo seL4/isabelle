@@ -53,14 +53,14 @@ object Pretty_Tooltip
     val window =
       old_windows.reverse match {
         case Nil =>
-          val window = new Pretty_Tooltip(view, parent, parent_window)
+          val window = new Pretty_Tooltip(view, parent_window)
           window_stack = window :: window_stack
           window
         case window :: others =>
           others.foreach(_.dispose)
           window
       }
-    window.init(rendering, mouse_x, mouse_y, results, body)
+    window.init(rendering, parent, mouse_x, mouse_y, results, body)
     window
   }
 
@@ -89,7 +89,7 @@ object Pretty_Tooltip
 }
 
 
-class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Window)
+class Pretty_Tooltip private(view: View, parent_window: Window)
   extends JDialog(parent_window)
 {
   window =>
@@ -163,6 +163,7 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
 
   def init(
     rendering: Rendering,
+    parent: JComponent,
     mouse_x: Int, mouse_y: Int,
     results: Command.Results,
     body: XML.Body)
