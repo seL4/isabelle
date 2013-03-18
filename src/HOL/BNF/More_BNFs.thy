@@ -22,13 +22,6 @@ begin
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
-definition option_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> 'a option \<Rightarrow> 'b option \<Rightarrow> bool" where
-"option_rel R x_opt y_opt =
-  (case (x_opt, y_opt) of
-    (None, None) \<Rightarrow> True
-  | (Some x, Some y) \<Rightarrow> R x y
-  | _ \<Rightarrow> False)"
-
 bnf_def Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"] option_rel
 proof -
   show "Option.map id = id" by (simp add: fun_eq_iff Option.map_def split: option.split)
@@ -92,7 +85,7 @@ next
   fix R
   show "{p. option_rel (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
         (Gr {x. Option.set x \<subseteq> R} (Option.map fst))\<inverse> O Gr {x. Option.set x \<subseteq> R} (Option.map snd)"
-  unfolding option_rel_def Gr_def relcomp_unfold converse_unfold
+  unfolding option_rel_unfold Gr_def relcomp_unfold converse_unfold
   by (auto simp: trans[OF eq_commute option_map_is_None] trans[OF eq_commute option_map_eq_Some]
            split: option.splits) blast
 qed
@@ -285,9 +278,6 @@ qed
 
 lemma abs_fset_rep_fset[simp]: "abs_fset (rep_fset x) = x"
   by (rule Quotient_fset[unfolded Quotient_def, THEN conjunct1, rule_format])
-
-lemma wpull_Gr_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Gr B1 f1 O (Gr B2 f2)\<inverse> \<subseteq> (Gr A p1)\<inverse> O Gr A p2"
-  unfolding wpull_def Gr_def relcomp_unfold converse_unfold by auto
 
 lemma wpull_image:
   assumes "wpull A B1 B2 f1 f2 p1 p2"

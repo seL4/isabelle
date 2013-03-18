@@ -13,4 +13,8 @@ theory BNF
 imports More_BNFs
 begin
 
+hide_const (open) Gr collect fsts snds setl setr 
+  convol thePull pick_middle fstO sndO csquare inver
+  image2 relImage relInvImage prefCl PrefCl Succ Shift shift
+
 end

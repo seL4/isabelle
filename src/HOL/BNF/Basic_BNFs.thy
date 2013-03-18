@@ -24,11 +24,12 @@ using Card_order_ctwo by (unfold ctwo_def Field_card_of)
 lemma natLeq_cinfinite: "cinfinite natLeq"
 unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 
+lemma wpull_Gr_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Gr B1 f1 O (Gr B2 f2)\<inverse> \<subseteq> (Gr A p1)\<inverse> O Gr A p2"
+  unfolding wpull_def Gr_def relcomp_unfold converse_unfold by auto
+
 bnf_def ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
   "\<lambda>x :: 'a \<Rightarrow> 'b \<Rightarrow> bool. x"
-apply auto
-apply (rule natLeq_card_order)
-apply (rule natLeq_cinfinite)
+apply (auto simp: Gr_def fun_eq_iff natLeq_card_order natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
 apply (auto simp add: Field_card_of Field_natLeq card_of_well_order_on)[3]
 apply (rule ordLeq_transitive)
@@ -48,18 +49,13 @@ apply (rule cone_ordLeq_ctwo)
 apply (rule ordLeq_csum2)
 apply (rule Card_order_ctwo)
 apply (rule natLeq_Card_order)
-apply (auto simp: Gr_def fun_eq_iff)
 done
 
 bnf_def DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
   "op =::'a \<Rightarrow> 'a \<Rightarrow> bool"
-apply (auto simp add: wpull_id)
-apply (rule card_order_csum)
-apply (rule natLeq_card_order)
-apply (rule card_of_card_order_on)
-apply (rule cinfinite_csum)
-apply (rule disjI1)
-apply (rule natLeq_cinfinite)
+apply (auto simp add: wpull_Gr_def Gr_def
+  card_order_csum natLeq_card_order card_of_card_order_on
+  cinfinite_csum natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq)
 apply (rule ordLess_ordLeq_trans)
 apply (rule ordLess_ctwo_cexp)
@@ -69,7 +65,6 @@ apply (rule ordLeq_csum2)
 apply (rule card_of_Card_order)
 apply (rule ctwo_Cnotzero)
 apply (rule card_of_Card_order)
-apply (auto simp: Id_def Gr_def fun_eq_iff)
 done
 
 definition setl :: "'a + 'b \<Rightarrow> 'a set" where
@@ -344,11 +339,8 @@ proof -
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
-definition fun_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> ('c \<Rightarrow> 'b) \<Rightarrow> bool" where
-"fun_rel \<phi> f g = (\<forall>x. \<phi> (f x) (g x))"
-
 bnf_def "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|" ["%c x::'b::type. c::'a::type"]
-  fun_rel
+  "fun_rel op ="
 proof
   fix f show "id \<circ> f = id f" by simp
 next
@@ -408,10 +400,10 @@ next
   qed
 next
   fix R
-  show "{p. fun_rel (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
+  show "{p. fun_rel op = (\<lambda>x y. (x, y) \<in> R) (fst p) (snd p)} =
         (Gr {x. range x \<subseteq> R} (op \<circ> fst))\<inverse> O Gr {x. range x \<subseteq> R} (op \<circ> snd)"
   unfolding fun_rel_def Gr_def relcomp_unfold converse_unfold
-  by (auto intro!: exI dest!: in_mono)
+  by force
 qed auto
 
 end
