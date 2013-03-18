@@ -18,7 +18,7 @@ sig
   val mk_append: term * term -> term
   val mk_congruent: term -> term -> term
   val mk_clists: term -> term
-  val mk_diag: term -> term
+  val mk_Id_on: term -> term
   val mk_equiv: term -> term -> term
   val mk_fromCard: term -> term -> term
   val mk_list_rec: term -> term -> term
@@ -59,11 +59,11 @@ fun mk_Sigma (A, B) =
     val ABT = mk_relT (HOLogic.dest_setT AT, HOLogic.dest_setT (range_type BT));
   in Const (@{const_name Sigma}, AT --> BT --> ABT) $ A $ B end;
 
-fun mk_diag A =
+fun mk_Id_on A =
   let
     val AT = fastype_of A;
     val AAT = mk_relT (HOLogic.dest_setT AT, HOLogic.dest_setT AT);
-  in Const (@{const_name diag}, AT --> AAT) $ A end;
+  in Const (@{const_name Id_on}, AT --> AAT) $ A end;
 
 fun mk_Times (A, B) =
   let val AT = HOLogic.dest_setT (fastype_of A);

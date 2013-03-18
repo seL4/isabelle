@@ -270,7 +270,7 @@ fun mk_bis_srel_tac m bis_def srel_O_Grs map_comps map_congs set_naturalss =
             CONJ_WRAP' (fn (i, thm) =>
               if i <= m
               then EVERY' [rtac ord_eq_le_trans, rtac thm, rtac subset_trans,
-                etac @{thm image_mono}, rtac @{thm image_subsetI}, etac @{thm diagI}]
+                etac @{thm image_mono}, rtac @{thm image_subsetI}, etac @{thm Id_onI}]
               else EVERY' [rtac ord_eq_le_trans, rtac trans, rtac thm,
                 rtac trans_fun_cong_image_id_id_apply, atac])
             (1 upto (m + n) ~~ set_naturals),
@@ -295,13 +295,13 @@ fun mk_bis_srel_tac m bis_def srel_O_Grs map_comps map_congs set_naturalss =
         REPEAT_DETERM_N m o rtac (@{thm id_o} RS fun_cong),
         REPEAT_DETERM_N n o rtac (@{thm o_id} RS fun_cong),
         rtac trans, rtac map_cong,
-        REPEAT_DETERM_N m o EVERY' [rtac @{thm diagE'}, etac set_mp, atac],
+        REPEAT_DETERM_N m o EVERY' [rtac @{thm Id_onD'}, etac set_mp, atac],
         REPEAT_DETERM_N n o rtac refl,
         etac sym, rtac CollectI,
         CONJ_WRAP' (fn (i, thm) =>
           if i <= m
           then EVERY' [rtac ord_eq_le_trans, rtac thm, rtac @{thm image_subsetI},
-            rtac @{thm diag_fst}, etac set_mp, atac]
+            rtac @{thm Id_on_fst}, etac set_mp, atac]
           else EVERY' [rtac ord_eq_le_trans, rtac trans, rtac thm,
             rtac trans_fun_cong_image_id_id_apply, atac])
         (1 upto (m + n) ~~ set_naturals)];
@@ -319,7 +319,7 @@ fun mk_bis_converse_tac m bis_srel srel_congs srel_converses =
     CONJ_WRAP' (fn (srel_cong, srel_converse) =>
       EVERY' [rtac allI, rtac allI, rtac impI, rtac @{thm set_mp[OF equalityD2]},
         rtac (srel_cong RS trans),
-        REPEAT_DETERM_N m o rtac @{thm diag_converse},
+        REPEAT_DETERM_N m o rtac (@{thm converse_Id_on} RS sym),
         REPEAT_DETERM_N (length srel_congs) o rtac refl,
         rtac srel_converse,
         REPEAT_DETERM o etac allE,
@@ -332,7 +332,7 @@ fun mk_bis_O_tac m bis_srel srel_congs srel_Os =
     CONJ_WRAP' (fn (srel_cong, srel_O) =>
       EVERY' [rtac allI, rtac allI, rtac impI, rtac @{thm set_mp[OF equalityD2]},
         rtac (srel_cong RS trans),
-        REPEAT_DETERM_N m o rtac @{thm diag_Comp},
+        REPEAT_DETERM_N m o rtac @{thm Id_on_Comp},
         REPEAT_DETERM_N (length srel_congs) o rtac refl,
         rtac srel_O,
         etac @{thm relcompE},
@@ -343,7 +343,7 @@ fun mk_bis_O_tac m bis_srel srel_congs srel_Os =
 
 fun mk_bis_Gr_tac bis_srel srel_Grs mor_images morEs coalg_ins
   {context = ctxt, prems = _} =
-  unfold_thms_tac ctxt (bis_srel :: @{thm diag_Gr} :: srel_Grs) THEN
+  unfold_thms_tac ctxt (bis_srel :: @{thm Id_on_Gr} :: srel_Grs) THEN
   EVERY' [rtac conjI,
     CONJ_WRAP' (fn thm => rtac (@{thm Gr_incl} RS ssubst) THEN' etac thm) mor_images,
     CONJ_WRAP' (fn (coalg_in, morE) =>
@@ -383,12 +383,12 @@ fun mk_incl_lsbis_tac n i lsbis_def =
     REPEAT_DETERM_N n o rtac exI, rtac conjI, rtac refl, atac, rtac equalityD2,
     rtac (mk_nth_conv n i)] 1;
 
-fun mk_equiv_lsbis_tac sbis_lsbis lsbis_incl incl_lsbis bis_diag bis_converse bis_O =
+fun mk_equiv_lsbis_tac sbis_lsbis lsbis_incl incl_lsbis bis_Id_on bis_converse bis_O =
   EVERY' [rtac (@{thm equiv_def} RS iffD2),
 
     rtac conjI, rtac (@{thm refl_on_def} RS iffD2),
     rtac conjI, rtac lsbis_incl, rtac ballI, rtac set_mp,
-    rtac incl_lsbis, rtac bis_diag, atac, etac @{thm diagI},
+    rtac incl_lsbis, rtac bis_Id_on, atac, etac @{thm Id_onI},
 
     rtac conjI, rtac (@{thm sym_def} RS iffD2),
     rtac allI, rtac allI, rtac impI, rtac set_mp,
@@ -1090,7 +1090,7 @@ fun mk_raw_coind_tac bis_def bis_cong bis_O bis_converse bis_Gr tcoalg coalgT mo
           rtac @{thm xt1(3)}, rtac @{thm Sigma_cong},
           rtac @{thm proj_image}, rtac @{thm proj_image}, rtac lsbis_incl,
           rtac subset_trans, rtac @{thm relImage_mono}, rtac incl_lsbis, atac,
-          rtac @{thm relImage_proj}, rtac equiv_LSBIS, rtac @{thm relInvImage_diag},
+          rtac @{thm relImage_proj}, rtac equiv_LSBIS, rtac @{thm relInvImage_Id_on},
           rtac Rep_inject])
       (Rep_injects ~~ (equiv_LSBISs ~~ (incl_lsbiss ~~ lsbis_incls)))] 1
   end;
@@ -1163,16 +1163,16 @@ fun mk_dtor_map_coinduct_tac m ks raw_coind bis_def =
         rtac CollectI, etac (refl RSN (2, @{thm subst_Pair}))]) ks] 1
   end;
 
-fun mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def bis_diag =
+fun mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def bis_Id_on =
   EVERY' [rtac rev_mp, rtac (Drule.instantiate' cTs cts dtor_map_coinduct),
     EVERY' (map (fn i =>
       EVERY' [etac disjE, REPEAT_DETERM o dtac @{thm meta_spec}, etac meta_mp,
-        atac, rtac rev_mp, rtac subst, rtac bis_def, rtac bis_diag,
+        atac, rtac rev_mp, rtac subst, rtac bis_def, rtac bis_Id_on,
         rtac impI, dtac conjunct2, dtac (mk_conjunctN (length ks) i), REPEAT_DETERM o etac allE,
-        etac impE, etac @{thm diag_UNIV_I}, REPEAT_DETERM o eresolve_tac [bexE, conjE, CollectE],
+        etac impE, etac @{thm Id_on_UNIV_I}, REPEAT_DETERM o eresolve_tac [bexE, conjE, CollectE],
         rtac exI, rtac conjI, etac conjI, atac,
         CONJ_WRAP' (K (EVERY' [REPEAT_DETERM o resolve_tac [allI, impI],
-          rtac disjI2, rtac @{thm diagE}, etac set_mp, atac])) ks])
+          rtac disjI2, rtac @{thm Id_onD}, etac set_mp, atac])) ks])
     ks),
     rtac impI, REPEAT_DETERM o etac conjE,
     CONJ_WRAP' (K (rtac impI THEN' etac mp THEN' etac disjI1)) ks] 1;

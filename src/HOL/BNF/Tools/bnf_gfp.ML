@@ -198,7 +198,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ||>> mk_Freess "K" (map (fn AT => map (fn T => T --> AT) activeAs) ATs);
 
     val passive_UNIVs = map HOLogic.mk_UNIV passiveAs;
-    val passive_diags = map mk_diag As;
+    val passive_Id_ons = map mk_Id_on As;
     val active_UNIVs = map HOLogic.mk_UNIV activeAs;
     val sum_UNIVs = map HOLogic.mk_UNIV sumBsAs;
     val passive_ids = map HOLogic.id_const passiveAs;
@@ -854,7 +854,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           list_all_free [b1, b2] (HOLogic.mk_imp
             (HOLogic.mk_mem (HOLogic.mk_prod (b1, b2), R),
             HOLogic.mk_mem (HOLogic.mk_prod (s $ b1, s' $ b2),
-              Term.list_comb (srel, passive_diags @ Rs))));
+              Term.list_comb (srel, passive_Id_ons @ Rs))));
 
         val rhs = HOLogic.mk_conj
           (bis_le, Library.foldr1 HOLogic.mk_conj
@@ -907,8 +907,8 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
       ((bis_O_thm OF [bis_Gr_thm RS bis_converse_thm, bis_Gr_thm]) ::
       replicate n @{thm image2_Gr});
 
-    val bis_diag_thm = bis_cong_thm OF ((mor_id_thm RSN (2, bis_Gr_thm)) ::
-      replicate n @{thm diag_Gr});
+    val bis_Id_on_thm = bis_cong_thm OF ((mor_id_thm RSN (2, bis_Gr_thm)) ::
+      replicate n @{thm Id_on_Gr});
 
     val bis_Union_thm =
       let
@@ -1004,7 +1004,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         map3 (fn goal => fn l_incl => fn incl_l =>
           Skip_Proof.prove lthy [] [] goal
             (K (mk_equiv_lsbis_tac sbis_lsbis_thm l_incl incl_l
-              bis_diag_thm bis_converse_thm bis_O_thm))
+              bis_Id_on_thm bis_converse_thm bis_O_thm))
           |> Thm.close_derivation)
         goals lsbis_incl_thms incl_lsbis_thms
       end;
@@ -2187,7 +2187,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         val zs = Jzs1 @ Jzs2;
         val frees = phis @ zs;
 
-        fun mk_Ids Id = if Id then map Id_const passiveAs else map mk_diag passive_UNIVs;
+        fun mk_Ids Id = if Id then map Id_const passiveAs else map mk_Id_on passive_UNIVs;
 
         fun mk_phi strong_eq phi z1 z2 = if strong_eq
           then Term.absfree (dest_Free z1) (Term.absfree (dest_Free z2)
@@ -2220,7 +2220,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           fold_rev Logic.all frees (Logic.list_implies (srel_prems, concl));
         val coinduct_params = rev (Term.add_tfrees dtor_srel_coinduct_goal []);
 
-        val dtor_srel_coinduct = unfold_thms lthy @{thms diag_UNIV}
+        val dtor_srel_coinduct = unfold_thms lthy @{thms Id_on_UNIV}
           (Skip_Proof.prove lthy [] [] dtor_srel_coinduct_goal
             (K (mk_dtor_srel_coinduct_tac ks raw_coind_thm bis_srel_thm))
           |> Thm.close_derivation);
@@ -2270,7 +2270,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           (Skip_Proof.prove lthy [] []
             (fold_rev Logic.all zs (Logic.list_implies (strong_prems, concl)))
             (K (mk_dtor_map_strong_coinduct_tac ks cTs cts dtor_map_coinduct bis_def
-              (tcoalg_thm RS bis_diag_thm))))
+              (tcoalg_thm RS bis_Id_on_thm))))
           |> Thm.close_derivation;
 
         val rel_of_srel_thms =

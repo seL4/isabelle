@@ -44,35 +44,29 @@ proof -
 qed
 
 (* Operators: *)
-definition diag where "diag A \<equiv> {(a,a) | a. a \<in> A}"
 definition image2 where "image2 A f g = {(f a, g a) | a. a \<in> A}"
 
-lemma diagI: "x \<in> A \<Longrightarrow> (x, x) \<in> diag A"
-unfolding diag_def by simp
 
-lemma diagE: "(a, b) \<in> diag A \<Longrightarrow> a = b"
-unfolding diag_def by simp
+lemma Id_onD: "(a, b) \<in> Id_on A \<Longrightarrow> a = b"
+unfolding Id_on_def by simp
 
-lemma diagE': "x \<in> diag A \<Longrightarrow> fst x = snd x"
-unfolding diag_def by auto
+lemma Id_onD': "x \<in> Id_on A \<Longrightarrow> fst x = snd x"
+unfolding Id_on_def by auto
 
-lemma diag_fst: "x \<in> diag A \<Longrightarrow> fst x \<in> A"
-unfolding diag_def by auto
+lemma Id_on_fst: "x \<in> Id_on A \<Longrightarrow> fst x \<in> A"
+unfolding Id_on_def by auto
 
-lemma diag_UNIV: "diag UNIV = Id"
-unfolding diag_def by auto
+lemma Id_on_UNIV: "Id_on UNIV = Id"
+unfolding Id_on_def by auto
 
-lemma diag_converse: "diag A = (diag A) ^-1"
-unfolding diag_def by auto
+lemma Id_on_Comp: "Id_on A = Id_on A O Id_on A"
+unfolding Id_on_def by auto
 
-lemma diag_Comp: "diag A = diag A O diag A"
-unfolding diag_def by auto
+lemma Id_on_Gr: "Id_on A = Gr A id"
+unfolding Id_on_def Gr_def by auto
 
-lemma diag_Gr: "diag A = Gr A id"
-unfolding diag_def Gr_def by simp
-
-lemma diag_UNIV_I: "x = y \<Longrightarrow> (x, y) \<in> diag UNIV"
-unfolding diag_def by auto
+lemma Id_on_UNIV_I: "x = y \<Longrightarrow> (x, y) \<in> Id_on UNIV"
+unfolding Id_on_def by auto
 
 lemma image2_eqI: "\<lbrakk>b = f x; c = g x; x \<in> A\<rbrakk> \<Longrightarrow> (b, c) \<in> image2 A f g"
 unfolding image2_def by auto
@@ -122,9 +116,9 @@ lemma relInvImage_mono:
 "R1 \<subseteq> R2 \<Longrightarrow> relInvImage A R1 f \<subseteq> relInvImage A R2 f"
 unfolding relInvImage_def by auto
 
-lemma relInvImage_diag:
-"(\<And>a1 a2. f a1 = f a2 \<longleftrightarrow> a1 = a2) \<Longrightarrow> relInvImage A (diag B) f \<subseteq> Id"
-unfolding relInvImage_def diag_def by auto
+lemma relInvImage_Id_on:
+"(\<And>a1 a2. f a1 = f a2 \<longleftrightarrow> a1 = a2) \<Longrightarrow> relInvImage A (Id_on B) f \<subseteq> Id"
+unfolding relInvImage_def Id_on_def by auto
 
 lemma relInvImage_UNIV_relImage:
 "R \<subseteq> relInvImage UNIV (relImage R f) f"
@@ -135,10 +129,10 @@ unfolding equiv_def refl_on_def Image_def by (auto intro: transD symD)
 
 lemma relImage_proj:
 assumes "equiv A R"
-shows "relImage R (proj R) \<subseteq> diag (A//R)"
-unfolding relImage_def diag_def apply safe
-using proj_iff[OF assms]
-by (metis assms equiv_Image proj_def proj_preserves)
+shows "relImage R (proj R) \<subseteq> Id_on (A//R)"
+unfolding relImage_def Id_on_def
+using proj_iff[OF assms] equiv_class_eq_iff[OF assms]
+by (auto simp: proj_preserves)
 
 lemma relImage_relInvImage:
 assumes "R \<subseteq> f ` A <*> f ` A"
