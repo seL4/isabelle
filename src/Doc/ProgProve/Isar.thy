@@ -981,6 +981,7 @@ text{* Normally not all cases will be impossible. As a simple exercise,
 prove that \mbox{@{prop"\<not> ev(Suc(Suc(Suc 0)))"}.}
 
 \subsection{Advanced rule induction}
+\label{sec:advanced-rule-induction}
 
 So far, rule induction was always applied to goals of the form @{text"I x y z \<Longrightarrow> \<dots>"}
 where @{text I} is some inductively defined predicate and @{text x}, @{text y}, @{text z}
