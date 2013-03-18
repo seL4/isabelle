@@ -184,7 +184,8 @@ While':
 anti_mono':
   "\<lbrakk> l \<turnstile>' c;  l' \<le> l \<rbrakk> \<Longrightarrow> l' \<turnstile>' c"
 
-lemma "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
+lemma sec_type_sec_type': 
+  "l \<turnstile> c \<Longrightarrow> l \<turnstile>' c"
 apply(induction rule: sec_type.induct)
 apply (metis Skip')
 apply (metis Assign')
@@ -193,7 +194,8 @@ apply (metis min_max.inf_sup_ord(3) min_max.sup_absorb2 nat_le_linear If' anti_m
 by (metis While')
 
 
-lemma "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
+lemma sec_type'_sec_type:
+  "l \<turnstile>' c \<Longrightarrow> l \<turnstile> c"
 apply(induction rule: sec_type'.induct)
 apply (metis Skip)
 apply (metis Assign)
@@ -201,5 +203,8 @@ apply (metis Seq)
 apply (metis min_max.sup_absorb2 If)
 apply (metis While)
 by (metis anti_mono)
+
+corollary sec_type_eq: "l \<turnstile> c \<longleftrightarrow> l \<turnstile>' c"
+by (metis sec_type'_sec_type sec_type_sec_type')
 
 end
