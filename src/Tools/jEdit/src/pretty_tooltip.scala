@@ -43,17 +43,20 @@ object Pretty_Tooltip
   {
     Swing_Thread.require()
 
-    val parent_window = JEdit_Lib.parent_window(parent) getOrElse view
-
     val old_windows =
-      windows().find(_ == parent_window) match {
-        case None => windows()
-        case Some(window) => window.descendants()
+      JEdit_Lib.parent_window(parent) match {
+        case Some(parent_window: Pretty_Tooltip) =>
+          windows().find(_ == parent_window) match {
+            case Some(window) => window.descendants()
+            case None => windows()
+          }
+        case _ => windows()
       }
+
     val window =
       old_windows.reverse match {
         case Nil =>
-          val window = new Pretty_Tooltip(view, parent_window)
+          val window = new Pretty_Tooltip(view)
           window_stack = window :: window_stack
           window
         case window :: others =>
@@ -89,8 +92,7 @@ object Pretty_Tooltip
 }
 
 
-class Pretty_Tooltip private(view: View, parent_window: Window)
-  extends JDialog(parent_window)
+class Pretty_Tooltip private(view: View) extends JDialog
 {
   window =>
 
