@@ -106,7 +106,9 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
     new JPanel(new BorderLayout) { override def getFocusTraversalKeysEnabled = false }
   window.setContentPane(content_panel)
 
-  val pretty_text_area = new Pretty_Text_Area(view, () => window.dispose(), true)
+  val pretty_text_area = new Pretty_Text_Area(view, () => window.dispose(), true) {
+    override def get_background() = Some(current_rendering.tooltip_color)
+  }
   window.add(pretty_text_area)
 
 
@@ -150,11 +152,8 @@ class Pretty_Tooltip private(view: View, parent: JComponent, parent_window: Wind
       Rendering.font_size("jedit_tooltip_font_scale").round)
     pretty_text_area.update(rendering.snapshot, results, body)
 
-    val background = rendering.tooltip_color
-    content_panel.setBackground(background)
-    controls.background = background
-    pretty_text_area.getPainter.setBackground(background)
-    pretty_text_area.getGutter.setBackground(background)
+    content_panel.setBackground(rendering.tooltip_color)
+    controls.background = rendering.tooltip_color
 
 
     /* window geometry */

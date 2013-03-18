@@ -74,6 +74,8 @@ class Pretty_Text_Area(
     new Rich_Text_Area(view, text_area, () => current_rendering, close_action,
       caret_visible = false, hovering = true)
 
+  def get_background(): Option[Color] = None
+
   def refresh()
   {
     Swing_Thread.require()
@@ -94,6 +96,7 @@ class Pretty_Text_Area(
 
     getGutter.setForeground(jEdit.getColorProperty("view.gutter.fgColor"))
     getGutter.setBackground(jEdit.getColorProperty("view.gutter.bgColor"))
+    get_background().map(bg => { getPainter.setBackground(bg); getGutter.setBackground(bg) })
     getGutter.setHighlightedForeground(jEdit.getColorProperty("view.gutter.highlightColor"))
     getGutter.setFoldColor(jEdit.getColorProperty("view.gutter.foldColor"))
     getGutter.setFont(jEdit.getFontProperty("view.gutter.font"))
