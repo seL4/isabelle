@@ -9,7 +9,7 @@ subsection "True Liveness Analysis"
 fun L :: "com \<Rightarrow> vname set \<Rightarrow> vname set" where
 "L SKIP X = X" |
 "L (x ::= a) X = (if x \<in> X then vars a \<union> (X - {x}) else X)" |
-"L (c\<^isub>1; c\<^isub>2) X = (L c\<^isub>1 \<circ> L c\<^isub>2) X" |
+"L (c\<^isub>1; c\<^isub>2) X = L c\<^isub>1 (L c\<^isub>2 X)" |
 "L (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = vars b \<union> L c\<^isub>1 X \<union> L c\<^isub>2 X" |
 "L (WHILE b DO c) X = lfp(\<lambda>Y. vars b \<union> X \<union> L c Y)"
 
