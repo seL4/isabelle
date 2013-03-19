@@ -9,7 +9,9 @@ datatype val = Iv int | Rv real
 type_synonym vname = string
 type_synonym state = "vname \<Rightarrow> val"
 
+text_raw{*\snip{aexptDef}{0}{2}{% *}
 datatype aexp =  Ic int | Rc real | V vname | Plus aexp aexp
+text_raw{*}%endsnip*}
 
 inductive taval :: "aexp \<Rightarrow> state \<Rightarrow> val \<Rightarrow> bool" where
 "taval (Ic i) s (Iv i)" |
