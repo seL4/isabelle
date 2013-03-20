@@ -133,8 +133,8 @@ combinator obeys the recursion equation
 and is thus executable. *}
 
 lemma L_While: fixes b c X
-assumes "finite X" defines "f == \<lambda>A. vars b \<union> X \<union> L c A"
-shows "L (WHILE b DO c) X = while (\<lambda>A. f A \<noteq> A) f {}" (is "_ = ?r")
+assumes "finite X" defines "f == \<lambda>Y. vars b \<union> X \<union> L c Y"
+shows "L (WHILE b DO c) X = while (\<lambda>Y. f Y \<noteq> Y) f {}" (is "_ = ?r")
 proof -
   let ?V = "vars b \<union> vars c \<union> X"
   have "lfp f = ?r"
@@ -149,10 +149,15 @@ proof -
   thus ?thesis by (simp add: f_def)
 qed
 
-lemma L_While_set: "L (WHILE b DO c) (set xs) =
-  (let f = (\<lambda>A. vars b \<union> set xs \<union> L c A)
-   in while (\<lambda>A. f A \<noteq> A) f {})"
+lemma L_While_let: "finite X \<Longrightarrow> L (WHILE b DO c) X =
+  (let f = (\<lambda>Y. vars b \<union> X \<union> L c Y)
+   in while (\<lambda>Y. f Y \<noteq> Y) f {})"
 by(simp add: L_While del: L.simps(5))
+
+lemma L_While_set: "L (WHILE b DO c) (set xs) =
+  (let f = (\<lambda>Y. vars b \<union> set xs \<union> L c Y)
+   in while (\<lambda>Y. f Y \<noteq> Y) f {})"
+by(rule L_While_let, simp)
 
 text{* Replace the equation for @{text "L (WHILE \<dots>)"} by the executable @{thm[source] L_While_set}: *}
 lemmas [code] = L.simps(1-4) L_While_set
