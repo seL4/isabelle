@@ -16,6 +16,7 @@ text{*
 Type synonyms are expanded after parsing and are not present in internal representation and output. They are mere conveniences for the reader.
 
 \subsection{Datatypes}
+\label{sec:datatypes}
 
 The general form of a datatype definition looks like this:
 \begin{quote}
