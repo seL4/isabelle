@@ -168,7 +168,7 @@ object JEdit_Lib
   // NB: last line lacks \n
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
   {
-    val char_width = Pretty.char_width_int(text_area.getPainter.getFontMetrics)
+    val char_width = Pretty.char_width(text_area.getPainter.getFontMetrics).round.toInt
 
     val buffer = text_area.getBuffer
 

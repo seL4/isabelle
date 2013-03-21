@@ -109,7 +109,7 @@ class Pretty_Text_Area(
 
     if (getWidth > 0) {
       val fm = getPainter.getFontMetrics
-      val margin = (getPainter.getWidth / (Pretty.char_width_int(fm) max 1)) max 20
+      val margin = (getPainter.getWidth / (Pretty.char_width(fm).ceil.toInt max 1)) max 20
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
