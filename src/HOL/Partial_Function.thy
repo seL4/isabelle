@@ -284,6 +284,39 @@ proof -
   thus ?thesis using result defined by blast
 qed
 
+lemma admissible_image:
+  assumes pfun: "partial_function_definitions le lub"
+  assumes adm: "ccpo.admissible lub le (P o g)"
+  assumes inj: "\<And>x y. f x = f y \<Longrightarrow> x = y"
+  assumes inv: "\<And>x. f (g x) = x"
+  shows "ccpo.admissible (img_lub f g lub) (img_ord f le) P"
+proof (rule ccpo.admissibleI, rule ccpo, rule partial_function_image, fact pfun, fact inj, fact inv)
+  fix A assume "chain (img_ord f le) A"
+   then have ch': "chain le (f ` A)"
+      by (auto simp: img_ord_def intro: chainI dest: chainD)
+  assume P_A: "\<forall>x\<in>A. P x"
+  have "(P o g) (lub (f ` A))"
+  proof (rule ccpo.admissibleD[OF ccpo, OF pfun adm ch'])
+    fix x assume "x \<in> f ` A"
+    with P_A show "(P o g) x" by (auto simp: inj[OF inv])
+  qed
+  thus "P (img_lub f g lub A)" unfolding img_lub_def by simp
+qed
+
+lemma admissible_fun:
+  assumes pfun: "partial_function_definitions le lub"
+  assumes adm: "\<And>x. ccpo.admissible lub le (Q x)"
+  shows "ccpo.admissible  (fun_lub lub) (fun_ord le) (\<lambda>f. \<forall>x. Q x (f x))"
+proof (rule ccpo.admissibleI, rule ccpo, rule partial_function_lift, rule pfun)
+  fix A :: "('b \<Rightarrow> 'a) set"
+  assume Q: "\<forall>f\<in>A. \<forall>x. Q x (f x)"
+  assume ch: "chain (fun_ord le) A"
+  show "\<forall>x. Q x (fun_lub lub A x)"
+    unfolding fun_lub_def
+    by (rule allI, rule ccpo.admissibleD[OF ccpo, OF pfun adm chain_fun[OF ch]])
+      (auto simp: Q)
+qed
+
 
 abbreviation "option_ord \<equiv> flat_ord None"
 abbreviation "mono_option \<equiv> monotone (fun_ord option_ord) option_ord"

@@ -321,7 +321,7 @@ lemma execute_bind_eq_SomeI:
   using assms by (simp add: bind_def)
 
 lemma return_bind [simp]: "return x \<guillemotright>= f = f x"
-  by (rule Heap_eqI) (simp add: execute_bind execute_simps)
+  by (rule Heap_eqI) (simp add: execute_simps)
 
 lemma bind_return [simp]: "f \<guillemotright>= return = f"
   by (rule Heap_eqI) (simp add: bind_def execute_simps split: option.splits)
@@ -417,7 +417,7 @@ definition Heap_ord :: "'a Heap \<Rightarrow> 'a Heap \<Rightarrow> bool" where
 definition Heap_lub :: "'a Heap set \<Rightarrow> 'a Heap" where
   "Heap_lub = img_lub execute Heap (fun_lub (flat_lub None))"
 
-interpretation heap!: partial_function_definitions Heap_ord Heap_lub
+lemma heap_interpretation: "partial_function_definitions Heap_ord Heap_lub"
 proof -
   have "partial_function_definitions (fun_ord option_ord) (fun_lub (flat_lub None))"
     by (rule partial_function_lift) (rule flat_interpretation)
@@ -428,8 +428,57 @@ proof -
     by (simp only: Heap_ord_def Heap_lub_def)
 qed
 
+interpretation heap!: partial_function_definitions Heap_ord Heap_lub
+by (fact heap_interpretation)
+
+lemma heap_step_admissible: 
+  "option.admissible
+      (\<lambda>f:: 'a => ('b * 'c) option. \<forall>h h' r. f h = Some (r, h') \<longrightarrow> P x h h' r)"
+proof (rule ccpo.admissibleI[OF option.ccpo])
+  fix A :: "('a \<Rightarrow> ('b * 'c) option) set"
+  assume ch: "Complete_Partial_Order.chain option.le_fun A"
+    and IH: "\<forall>f\<in>A. \<forall>h h' r. f h = Some (r, h') \<longrightarrow> P x h h' r"
+  from ch have ch': "\<And>x. Complete_Partial_Order.chain option_ord {y. \<exists>f\<in>A. y = f x}" by (rule chain_fun)
+  show "\<forall>h h' r. option.lub_fun A h = Some (r, h') \<longrightarrow> P x h h' r"
+  proof (intro allI impI)
+    fix h h' r assume "option.lub_fun A h = Some (r, h')"
+    from flat_lub_in_chain[OF ch' this[unfolded fun_lub_def]]
+    have "Some (r, h') \<in> {y. \<exists>f\<in>A. y = f h}" by simp
+    then have "\<exists>f\<in>A. f h = Some (r, h')" by auto
+    with IH show "P x h h' r" by auto
+  qed
+qed
+
+lemma admissible_heap: 
+  "heap.admissible (\<lambda>f. \<forall>x h h' r. effect (f x) h h' r \<longrightarrow> P x h h' r)"
+proof (rule admissible_fun[OF heap_interpretation])
+  fix x
+  show "ccpo.admissible Heap_lub Heap_ord (\<lambda>a. \<forall>h h' r. effect a h h' r \<longrightarrow> P x h h' r)"
+    unfolding Heap_ord_def Heap_lub_def
+  proof (intro admissible_image partial_function_lift flat_interpretation)
+    show "option.admissible ((\<lambda>a. \<forall>h h' r. effect a h h' r \<longrightarrow> P x h h' r) \<circ> Heap)"
+      unfolding comp_def effect_def execute.simps
+      by (rule heap_step_admissible)
+  qed (auto simp add: Heap_eqI)
+qed
+
+lemma fixp_induct_heap:
+  fixes F :: "'c \<Rightarrow> 'c" and
+    U :: "'c \<Rightarrow> 'b \<Rightarrow> 'a Heap" and
+    C :: "('b \<Rightarrow> 'a Heap) \<Rightarrow> 'c" and
+    P :: "'b \<Rightarrow> heap \<Rightarrow> heap \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes mono: "\<And>x. monotone (fun_ord Heap_ord) Heap_ord (\<lambda>f. U (F (C f)) x)"
+  assumes eq: "f \<equiv> C (ccpo.fixp (fun_lub Heap_lub) (fun_ord Heap_ord) (\<lambda>f. U (F (C f))))"
+  assumes inverse2: "\<And>f. U (C f) = f"
+  assumes step: "\<And>f x h h' r. (\<And>x h h' r. effect (U f x) h h' r \<Longrightarrow> P x h h' r) 
+    \<Longrightarrow> effect (U (F f) x) h h' r \<Longrightarrow> P x h h' r"
+  assumes defined: "effect (U f x) h h' r"
+  shows "P x h h' r"
+  using step defined heap.fixp_induct_uc[of U F C, OF mono eq inverse2 admissible_heap, of P]
+  by blast
+
 declaration {* Partial_Function.init "heap" @{term heap.fixp_fun}
-  @{term heap.mono_body} @{thm heap.fixp_rule_uc} NONE *}
+  @{term heap.mono_body} @{thm heap.fixp_rule_uc} (SOME @{thm fixp_induct_heap}) *}
 
 
 abbreviation "mono_Heap \<equiv> monotone (fun_ord Heap_ord) Heap_ord"
