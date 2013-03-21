@@ -42,6 +42,14 @@ lemma L_While_lpfp:
   "vars b \<union> X \<union> L c P \<subseteq> P \<Longrightarrow> L (WHILE b DO c) X \<subseteq> P"
 by(simp add: L_gen_kill)
 
+lemma L_While_vars: "vars b \<subseteq> L (WHILE b DO c) X"
+by auto
+
+lemma L_While_X: "X \<subseteq> L (WHILE b DO c) X"
+by auto
+
+text{* Disable L WHILE equation and reason only with L WHILE constraints *}
+declare L.simps(5)[simp del]
 
 subsection "Soundness"
 
@@ -78,14 +86,15 @@ next
   thus ?case using `~bval b t` by auto
 next
   case (WhileFalse b s c)
-  hence "~ bval b t" by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
-  thus ?case using WhileFalse.prems by auto
+  hence "~ bval b t"
+    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+  thus ?case by(metis WhileFalse.prems L_While_X big_step.WhileFalse set_mp)
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
   from `bval b s1` WhileTrue.prems have "bval b t1"
-    by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
-  have "s1 = t1 on L c (L ?w X)" using  L_While_pfp WhileTrue.prems
+    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+  have "s1 = t1 on L c (L ?w X)" using L_While_pfp WhileTrue.prems
     by (blast)
   from WhileTrue.IH(1)[OF this] obtain t2 where
     "(c, t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
@@ -103,7 +112,7 @@ fun bury :: "com \<Rightarrow> vname set \<Rightarrow> com" where
 "bury (x ::= a) X = (if x \<in> X then x ::= a else SKIP)" |
 "bury (c\<^isub>1; c\<^isub>2) X = (bury c\<^isub>1 (L c\<^isub>2 X); bury c\<^isub>2 X)" |
 "bury (IF b THEN c\<^isub>1 ELSE c\<^isub>2) X = IF b THEN bury c\<^isub>1 X ELSE bury c\<^isub>2 X" |
-"bury (WHILE b DO c) X = WHILE b DO bury c (vars b \<union> X \<union> L c X)"
+"bury (WHILE b DO c) X = WHILE b DO bury c (L (WHILE b DO c) X)"
 
 text{* We could prove the analogous lemma to @{thm[source]L_sound}, and the
 proof would be very similar. However, we phrase it as a semantics
@@ -142,13 +151,14 @@ next
   thus ?case using `~bval b t` by auto
 next
   case (WhileFalse b s c)
-  hence "~ bval b t" by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
-  thus ?case using WhileFalse.prems by auto
+  hence "~ bval b t" by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+  thus ?case
+    by simp (metis L_While_X WhileFalse.prems big_step.WhileFalse set_mp)
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
   from `bval b s1` WhileTrue.prems have "bval b t1"
-    by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
+    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
   have "s1 = t1 on L c (L ?w X)"
     using L_While_pfp WhileTrue.prems by blast
   from WhileTrue.IH(1)[OF this] obtain t2 where
@@ -182,7 +192,7 @@ lemma If_bury[simp]: "IF b THEN bc1 ELSE bc2 = bury c X \<longleftrightarrow>
 by (cases c) auto
 
 lemma While_bury[simp]: "WHILE b DO bc' = bury c X \<longleftrightarrow>
-  (EX c'. c = WHILE b DO c' & bc' = bury c' (vars b \<union> X \<union> L c X))"
+  (EX c'. c = WHILE b DO c' & bc' = bury c' (L (WHILE b DO c') X))"
 by (cases c) auto
 
 theorem bury_sound2:
@@ -226,24 +236,25 @@ next
   thus ?case using c `~bval b t` by auto
 next
   case (WhileFalse b s c)
-  hence "~ bval b t" by (auto simp: ball_Un dest: bval_eq_if_eq_on_vars)
-  thus ?case using WhileFalse by auto
+  hence "~ bval b t"
+    by auto (metis L_While_vars bval_eq_if_eq_on_vars set_rev_mp)
+  thus ?case using WhileFalse
+    by auto (metis L_While_X big_step.WhileFalse set_mp)
 next
-  case (WhileTrue b s1 bc' s2 s3 c X t1)
-  then obtain c' where c: "c = WHILE b DO c'"
-    and bc': "bc' = bury c' (vars b \<union> X \<union> L c' X)" by auto
-  let ?w = "WHILE b DO c'"
-  from `bval b s1` WhileTrue.prems c have "bval b t1"
-    by (auto simp: ball_Un) (metis bval_eq_if_eq_on_vars)
+  case (WhileTrue b s1 bc' s2 s3 w X t1)
+  then obtain c' where w: "w = WHILE b DO c'"
+    and bc': "bc' = bury c' (L (WHILE b DO c') X)" by auto
+  from `bval b s1` WhileTrue.prems w have "bval b t1"
+    by auto (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
   note IH = WhileTrue.hyps(3,5)
-  have "s1 = t1 on L c' (L ?w X)"
-    using L_While_pfp WhileTrue.prems c by blast
-  with IH(1)[OF bc', of t1] obtain t2 where
-    "(c', t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
-  from IH(2)[OF WhileTrue.hyps(6), of t2] c this(2) obtain t3
-    where "(?w,t2) \<Rightarrow> t3" "s3 = t3 on X"
+  have "s1 = t1 on L c' (L w X)"
+    using L_While_pfp WhileTrue.prems w by blast
+  with IH(1)[OF bc', of t1] w obtain t2 where
+    "(c', t1) \<Rightarrow> t2" "s2 = t2 on L w X" by auto
+  from IH(2)[OF WhileTrue.hyps(6), of t2] w this(2) obtain t3
+    where "(w,t2) \<Rightarrow> t3" "s3 = t3 on X"
     by auto
-  with `bval b t1` `(c', t1) \<Rightarrow> t2` c show ?case by auto
+  with `bval b t1` `(c', t1) \<Rightarrow> t2` w show ?case by auto
 qed
 
 corollary final_bury_sound2: "(bury c UNIV,s) \<Rightarrow> s' \<Longrightarrow> (c,s) \<Rightarrow> s'"

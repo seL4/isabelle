@@ -37,6 +37,18 @@ lemma L_While_unfold:
   "L (WHILE b DO c) X = vars b \<union> X \<union> L c (L (WHILE b DO c) X)"
 by(metis lfp_unfold[OF mono_union_L] L.simps(5))
 
+lemma L_While_pfp: "L c (L (WHILE b DO c) X) \<subseteq> L (WHILE b DO c) X"
+using L_While_unfold by blast
+
+lemma L_While_vars: "vars b \<subseteq> L (WHILE b DO c) X"
+using L_While_unfold by blast
+
+lemma L_While_X: "X \<subseteq> L (WHILE b DO c) X"
+using L_While_unfold by blast
+
+text{* Disable L WHILE equation and reason only with L WHILE constraints *}
+declare L.simps(5)[simp del]
+
 
 subsection "Soundness"
 
@@ -74,14 +86,14 @@ next
 next
   case (WhileFalse b s c)
   hence "~ bval b t"
-    by (metis L_While_unfold UnI1 bval_eq_if_eq_on_vars)
-  thus ?case using WhileFalse.prems L_While_unfold[of b c X] by auto
+    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+  thus ?case using WhileFalse.prems L_While_X[of X b c] by auto
 next
   case (WhileTrue b s1 c s2 s3 X t1)
   let ?w = "WHILE b DO c"
   from `bval b s1` WhileTrue.prems have "bval b t1"
-    by (metis L_While_unfold UnI1 bval_eq_if_eq_on_vars)
-  have "s1 = t1 on L c (L ?w X)" using  L_While_unfold WhileTrue.prems
+    by (metis L_While_vars bval_eq_if_eq_on_vars set_mp)
+  have "s1 = t1 on L c (L ?w X)" using  L_While_pfp WhileTrue.prems
     by (blast)
   from WhileTrue.IH(1)[OF this] obtain t2 where
     "(c, t1) \<Rightarrow> t2" "s2 = t2 on L ?w X" by auto
@@ -89,6 +101,8 @@ next
     by auto
   with `bval b t1` `(c, t1) \<Rightarrow> t2` show ?case by auto
 qed
+
+(*declare L.simps(5)[simp]*)
 
 
 subsection "Executability"
@@ -113,7 +127,7 @@ proof(induction c arbitrary: X)
   have "lfp(\<lambda>Y. vars b \<union> X \<union> L c Y) \<subseteq> vars b \<union> vars c \<union> X"
     using While.IH[of "vars b \<union> vars c \<union> X"]
     by (auto intro!: lfp_lowerbound)
-  thus ?case by simp
+  thus ?case by (simp add: L.simps(5))
 qed auto
 
 lemma afinite[simp]: "finite(vars(a::aexp))"
@@ -146,13 +160,13 @@ proof -
   next
     show "finite ?V" using `finite X` by simp
   qed
-  thus ?thesis by (simp add: f_def)
+  thus ?thesis by (simp add: f_def L.simps(5))
 qed
 
 lemma L_While_let: "finite X \<Longrightarrow> L (WHILE b DO c) X =
   (let f = (\<lambda>Y. vars b \<union> X \<union> L c Y)
    in while (\<lambda>Y. f Y \<noteq> Y) f {})"
-by(simp add: L_While del: L.simps(5))
+by(simp add: L_While)
 
 lemma L_While_set: "L (WHILE b DO c) (set xs) =
   (let f = (\<lambda>Y. vars b \<union> set xs \<union> L c Y)
@@ -206,7 +220,7 @@ proof(induction c arbitrary: X)
   let ?f  = "\<lambda>A. vars b \<union> X \<union> L  c A"
   let ?fb = "\<lambda>A. vars b \<union> X \<union> Lb c A"
   show ?case
-  proof (simp, rule lfp_subset_iter[OF mono_union_L])
+  proof (simp add: L.simps(5), rule lfp_subset_iter[OF mono_union_L])
     show "!!X. ?f X \<subseteq> ?fb X" using While.IH by blast
     show "lfp ?f \<subseteq> vars b \<union> vars c \<union> X"
       by (metis (full_types) L.simps(5) L_subset_vars vars_com.simps(5))
