@@ -72,14 +72,6 @@ object Pretty
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
 
-  private sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
-  {
-    def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
-    def string(s: String, len: Double): Text = copy(tx = XML.Text(s) :: tx, pos = pos + len)
-    def blanks(wd: Int): Text = string(spaces(wd), wd.toDouble)
-    def content: XML.Body = tx.reverse
-  }
-
   private val margin_default = 76
   private def metric_default(s: String) = s.length.toDouble
 
@@ -95,6 +87,18 @@ object Pretty
   def formatted(input: XML.Body, margin: Int = margin_default,
     metric: String => Double = metric_default): XML.Body =
   {
+    sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
+    {
+      def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
+      def string(s: String, len: Double): Text = copy(tx = XML.Text(s) :: tx, pos = pos + len)
+      def blanks(wd: Int): Text =
+      {
+        val s = spaces(wd)
+        string(s, metric(s))
+      }
+      def content: XML.Body = tx.reverse
+    }
+
     val breakgain = margin / 20
     val emergencypos = margin / 2
 
