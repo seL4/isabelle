@@ -178,10 +178,10 @@ fun mk_curried_induct args ctxt ccurry cuncurry rule =
     val inst_rule =
       cterm_instantiate' [SOME cuncurry, NONE, SOME ccurry] rule
 
-    val plain_resultT = 
-      Thm.prop_of inst_rule |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop
-      |> Term.head_of |> Term.dest_Var |> snd |> range_type |> domain_type
-    val PT = map (snd o dest_Free) args ---> plain_resultT --> HOLogic.boolT
+    val P_rangeT =
+       Thm.prop_of inst_rule |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop
+      |> Term.head_of |> Term.dest_Var |> snd |> range_type
+    val PT = map (snd o dest_Free) args ---> P_rangeT
     val x_inst = cert (foldl1 HOLogic.mk_prod args)
     val P_inst = cert (uncurry_n (length args) (Free (P, PT)))
 
