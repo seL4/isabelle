@@ -100,11 +100,29 @@ next
     unfolding open_dist by fast
 qed
 
-lemma (in metric_space) open_ball: "open {y. dist x y < d}"
+lemma open_ball: "open {y. dist x y < d}"
 proof (unfold open_dist, intro ballI)
   fix y assume *: "y \<in> {y. dist x y < d}"
   then show "\<exists>e>0. \<forall>z. dist z y < e \<longrightarrow> z \<in> {y. dist x y < d}"
     by (auto intro!: exI[of _ "d - dist x y"] simp: field_simps dist_triangle_lt)
+qed
+
+subclass first_countable_topology
+proof
+  fix x 
+  show "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+  proof (safe intro!: exI[of _ "\<lambda>n. {y. dist x y < inverse (Suc n)}"])
+    fix S assume "open S" "x \<in> S"
+    then obtain e where "0 < e" "{y. dist x y < e} \<subseteq> S"
+      by (auto simp: open_dist subset_eq dist_commute)
+    moreover
+    then obtain i where "inverse (Suc i) < e"
+      by (auto dest!: reals_Archimedean)
+    then have "{y. dist x y < inverse (Suc i)} \<subseteq> {y. dist x y < e}"
+      by auto
+    ultimately show "\<exists>i. {y. dist x y < inverse (Suc i)} \<subseteq> S"
+      by blast
+  qed (auto intro: open_ball)
 qed
 
 end

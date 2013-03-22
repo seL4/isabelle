@@ -181,44 +181,15 @@ lemma countable_dense_setE:
 
 end
 
-class first_countable_topology = topological_space +
-  assumes first_countable_basis:
-    "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-
-lemma (in first_countable_topology) countable_basis_at_decseq:
-  obtains A :: "nat \<Rightarrow> 'a set" where
-    "\<And>i. open (A i)" "\<And>i. x \<in> (A i)"
-    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
-proof atomize_elim
-  from first_countable_basis[of x] obtain A
-    where "countable A"
-    and nhds: "\<And>a. a \<in> A \<Longrightarrow> open a" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a"
-    and incl: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"  by auto
-  then have "A \<noteq> {}" by auto
-  with `countable A` have r: "A = range (from_nat_into A)" by auto
-  def F \<equiv> "\<lambda>n. \<Inter>i\<le>n. from_nat_into A i"
-  show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and>
-      (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially)"
-  proof (safe intro!: exI[of _ F])
-    fix i
-    show "open (F i)" using nhds(1) r by (auto simp: F_def intro!: open_INT)
-    show "x \<in> F i" using nhds(2) r by (auto simp: F_def)
-  next
-    fix S assume "open S" "x \<in> S"
-    from incl[OF this] obtain i where "F i \<subseteq> S"
-      by (subst (asm) r) (auto simp: F_def)
-    moreover have "\<And>j. i \<le> j \<Longrightarrow> F j \<subseteq> F i"
-      by (auto simp: F_def)
-    ultimately show "eventually (\<lambda>i. F i \<subseteq> S) sequentially"
-      by (auto simp: eventually_sequentially)
-  qed
-qed
-
 lemma (in first_countable_topology) first_countable_basisE:
   obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
     "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
   using first_countable_basis[of x]
-  by atomize_elim auto
+  apply atomize_elim
+  apply (elim exE)
+  apply (rule_tac x="range A" in exI)
+  apply auto
+  done
 
 lemma (in first_countable_topology) first_countable_basis_Int_stableE:
   obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
@@ -245,77 +216,25 @@ proof atomize_elim
   qed
 qed
 
-
-lemma countable_basis:
-  obtains A :: "nat \<Rightarrow> 'a::first_countable_topology set" where
-    "\<And>i. open (A i)" "\<And>i. x \<in> A i"
-    "\<And>F. (\<forall>n. F n \<in> A n) \<Longrightarrow> F ----> x"
-proof atomize_elim
-  from countable_basis_at_decseq[of x] guess A . note A = this
-  { fix F S assume "\<forall>n. F n \<in> A n" "open S" "x \<in> S"
-    with A(3)[of S] have "eventually (\<lambda>n. F n \<in> S) sequentially"
-      by (auto elim: eventually_elim1 simp: subset_eq) }
-  with A show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and> (\<forall>F. (\<forall>n. F n \<in> A n) \<longrightarrow> F ----> x)"
-    by (intro exI[of _ A]) (auto simp: tendsto_def)
+lemma (in topological_space) first_countableI:
+  assumes "countable A" and 1: "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
+   and 2: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"
+  shows "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+proof (safe intro!: exI[of _ "from_nat_into A"])
+  have "A \<noteq> {}" using 2[of UNIV] by auto
+  { fix i show "x \<in> from_nat_into A i" "open (from_nat_into A i)"
+      using range_from_nat_into_subset[OF `A \<noteq> {}`] 1 by auto }
+  { fix S assume "open S" "x\<in>S" from 2[OF this] show "\<exists>i. from_nat_into A i \<subseteq> S"
+      using subset_range_from_nat_into[OF `countable A`] by auto }
 qed
-
-lemma sequentially_imp_eventually_nhds_within:
-  fixes a :: "'a::first_countable_topology"
-  assumes "\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
-  shows "eventually P (nhds a within s)"
-proof (rule ccontr)
-  from countable_basis[of a] guess A . note A = this
-  assume "\<not> eventually P (nhds a within s)"
-  with A have P: "\<exists>F. \<forall>n. F n \<in> s \<and> F n \<in> A n \<and> \<not> P (F n)"
-    unfolding Limits.eventually_within eventually_nhds by (intro choice) fastforce
-  then guess F ..
-  hence F0: "\<forall>n. F n \<in> s" and F2: "\<forall>n. F n \<in> A n" and F3: "\<forall>n. \<not> P (F n)"
-    by fast+
-  with A have "F ----> a" by auto
-  hence "eventually (\<lambda>n. P (F n)) sequentially"
-    using assms F0 by simp
-  thus "False" by (simp add: F3)
-qed
-
-lemma eventually_nhds_within_iff_sequentially:
-  fixes a :: "'a::first_countable_topology"
-  shows "eventually P (nhds a within s) \<longleftrightarrow> 
-    (\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
-proof (safe intro!: sequentially_imp_eventually_nhds_within)
-  assume "eventually P (nhds a within s)" 
-  then obtain S where "open S" "a \<in> S" "\<forall>x\<in>S. x \<in> s \<longrightarrow> P x"
-    by (auto simp: Limits.eventually_within eventually_nhds)
-  moreover fix f assume "\<forall>n. f n \<in> s" "f ----> a"
-  ultimately show "eventually (\<lambda>n. P (f n)) sequentially"
-    by (auto dest!: topological_tendstoD elim: eventually_elim1)
-qed
-
-lemma eventually_nhds_iff_sequentially:
-  fixes a :: "'a::first_countable_topology"
-  shows "eventually P (nhds a) \<longleftrightarrow> (\<forall>f. f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
-  using eventually_nhds_within_iff_sequentially[of P a UNIV] by simp
-
-lemma not_eventually_sequentiallyD:
-  assumes P: "\<not> eventually P sequentially"
-  shows "\<exists>r. subseq r \<and> (\<forall>n. \<not> P (r n))"
-proof -
-  from P have "\<forall>n. \<exists>m\<ge>n. \<not> P m"
-    unfolding eventually_sequentially by (simp add: not_less)
-  then obtain r where "\<And>n. r n \<ge> n" "\<And>n. \<not> P (r n)"
-    by (auto simp: choice_iff)
-  then show ?thesis
-    by (auto intro!: exI[of _ "\<lambda>n. r (((Suc \<circ> r) ^^ Suc n) 0)"]
-             simp: less_eq_Suc_le subseq_Suc_iff)
-qed
-
 
 instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
 proof
   fix x :: "'a \<times> 'b"
   from first_countable_basisE[of "fst x"] guess A :: "'a set set" . note A = this
   from first_countable_basisE[of "snd x"] guess B :: "'b set set" . note B = this
-  show "\<exists>A::('a\<times>'b) set set. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-  proof (intro exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
+  show "\<exists>A::nat \<Rightarrow> ('a \<times> 'b) set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+  proof (rule first_countableI[of "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
     fix a b assume x: "a \<in> A" "b \<in> B"
     with A(2, 3)[of a] B(2, 3)[of b] show "x \<in> a \<times> b" "open (a \<times> b)"
       unfolding mem_Times_iff by (auto intro: open_Times)
@@ -327,23 +246,6 @@ proof
     ultimately show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
       by (auto intro!: bexI[of _ "a \<times> b"] bexI[of _ a] bexI[of _ b])
   qed (simp add: A B)
-qed
-
-instance metric_space \<subseteq> first_countable_topology
-proof
-  fix x :: 'a
-  show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-  proof (intro exI, safe)
-    fix S assume "open S" "x \<in> S"
-    then obtain r where "0 < r" "{y. dist x y < r} \<subseteq> S"
-      by (auto simp: open_dist dist_commute subset_eq)
-    moreover from reals_Archimedean[OF `0 < r`] guess n ..
-    moreover
-    then have "{y. dist x y < inverse (Suc n)} \<subseteq> {y. dist x y < r}"
-      by (auto simp: inverse_eq_divide)
-    ultimately show "\<exists>a\<in>range (\<lambda>n. {y. dist x y < inverse (Suc n)}). a \<subseteq> S"
-      by auto
-  qed (auto intro: open_ball)
 qed
 
 class second_countable_topology = topological_space +
@@ -417,9 +319,9 @@ proof
   then have B: "countable B" "topological_basis B"
     using countable_basis is_basis
     by (auto simp: countable_basis is_basis)
-  then show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-    by (intro exI[of _ "{b\<in>B. x \<in> b}"])
-       (fastforce simp: topological_space_class.topological_basis_def)
+  then show "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+    by (intro first_countableI[of "{b\<in>B. x \<in> b}"])
+       (fastforce simp: topological_space_class.topological_basis_def)+
 qed
 
 subsection {* Polish spaces *}
@@ -2353,7 +2255,7 @@ lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<i
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x <= y \<longrightarrow> x <= 1 + abs y)")
   by metis arith
 
-lemma Bseq_eq_bounded: "Bseq f \<longleftrightarrow> bounded (range f)"
+lemma Bseq_eq_bounded: "Bseq f \<longleftrightarrow> bounded (range f::_::real_normed_vector set)"
   unfolding Bseq_def bounded_pos by auto
 
 lemma bounded_Int[intro]: "bounded S \<or> bounded T \<Longrightarrow> bounded (S \<inter> T)"

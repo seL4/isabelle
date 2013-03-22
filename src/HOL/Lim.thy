@@ -226,58 +226,6 @@ lemma (in bounded_linear) Cauchy: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n
 by (rule isUCont [THEN isUCont_Cauchy])
 
 
-subsection {* Relation of LIM and LIMSEQ *}
-
-lemma sequentially_imp_eventually_within:
-  fixes a :: "'a::metric_space"
-  assumes "\<forall>f. (\<forall>n. f n \<in> s \<and> f n \<noteq> a) \<and> f ----> a \<longrightarrow>
-    eventually (\<lambda>n. P (f n)) sequentially"
-  shows "eventually P (at a within s)"
-proof (rule ccontr)
-  let ?I = "\<lambda>n. inverse (real (Suc n))"
-  def F \<equiv> "\<lambda>n::nat. SOME x. x \<in> s \<and> x \<noteq> a \<and> dist x a < ?I n \<and> \<not> P x"
-  assume "\<not> eventually P (at a within s)"
-  hence P: "\<forall>d>0. \<exists>x. x \<in> s \<and> x \<noteq> a \<and> dist x a < d \<and> \<not> P x"
-    unfolding eventually_within eventually_at by fast
-  hence "\<And>n. \<exists>x. x \<in> s \<and> x \<noteq> a \<and> dist x a < ?I n \<and> \<not> P x" by simp
-  hence F: "\<And>n. F n \<in> s \<and> F n \<noteq> a \<and> dist (F n) a < ?I n \<and> \<not> P (F n)"
-    unfolding F_def by (rule someI_ex)
-  hence F0: "\<forall>n. F n \<in> s" and F1: "\<forall>n. F n \<noteq> a"
-    and F2: "\<forall>n. dist (F n) a < ?I n" and F3: "\<forall>n. \<not> P (F n)"
-    by fast+
-  from LIMSEQ_inverse_real_of_nat have "F ----> a"
-    by (rule metric_tendsto_imp_tendsto,
-      simp add: dist_norm F2 less_imp_le)
-  hence "eventually (\<lambda>n. P (F n)) sequentially"
-    using assms F0 F1 by simp
-  thus "False" by (simp add: F3)
-qed
-
-lemma sequentially_imp_eventually_at:
-  fixes a :: "'a::metric_space"
-  assumes "\<forall>f. (\<forall>n. f n \<noteq> a) \<and> f ----> a \<longrightarrow>
-    eventually (\<lambda>n. P (f n)) sequentially"
-  shows "eventually P (at a)"
-  using assms sequentially_imp_eventually_within [where s=UNIV] by simp
-
-lemma LIMSEQ_SEQ_conv1:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes f: "f -- a --> l"
-  shows "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. f (S n)) ----> l"
-  using tendsto_compose_eventually [OF f, where F=sequentially] by simp
-
-lemma LIMSEQ_SEQ_conv2:
-  fixes f :: "'a::metric_space \<Rightarrow> 'b::topological_space"
-  assumes "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. f (S n)) ----> l"
-  shows "f -- a --> l"
-  using assms unfolding tendsto_def [where l=l]
-  by (simp add: sequentially_imp_eventually_at)
-
-lemma LIMSEQ_SEQ_conv:
-  "(\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> (a::'a::metric_space) \<longrightarrow> (\<lambda>n. X (S n)) ----> L) =
-   (X -- a --> (L::'b::topological_space))"
-  using LIMSEQ_SEQ_conv2 LIMSEQ_SEQ_conv1 ..
-
 lemma LIM_less_bound: 
   fixes f :: "real \<Rightarrow> real"
   assumes ev: "b < x" "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and "isCont f x"
