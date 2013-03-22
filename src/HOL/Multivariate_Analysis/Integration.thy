@@ -8,6 +8,45 @@ imports
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
+lemma cSup_finite_ge_iff: 
+  fixes S :: "real set"
+  assumes fS: "finite S" and Se: "S \<noteq> {}"
+  shows "a \<le> Sup S \<longleftrightarrow> (\<exists> x \<in> S. a \<le> x)"
+by (metis Max_ge Se cSup_eq_Max Max_in fS linorder_not_le less_le_trans)
+
+lemma cSup_finite_le_iff: 
+  fixes S :: "real set"
+  assumes fS: "finite S" and Se: "S \<noteq> {}"
+  shows "a \<ge> Sup S \<longleftrightarrow> (\<forall> x \<in> S. a \<ge> x)"
+by (metis Max_ge Se cSup_eq_Max Max_in fS order_trans)
+
+lemma Inf: (* rename *)
+  fixes S :: "real set"
+  shows "S \<noteq> {} ==> (\<exists>b. b <=* S) ==> isGlb UNIV S (Inf S)"
+by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def intro: cInf_lower cInf_greatest) 
+ 
+lemma real_le_inf_subset:
+  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. b <=* s"
+  shows "Inf s <= Inf (t::real set)"
+  apply (rule isGlb_le_isLb)
+  apply (rule Inf[OF assms(1)])
+  apply (insert assms)
+  apply (erule exE)
+  apply (rule_tac x = b in exI)
+  apply (auto simp: isLb_def setge_def intro: cInf_lower cInf_greatest)
+  done
+
+lemma real_ge_sup_subset:
+  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. s *<= b"
+  shows "Sup s >= Sup (t::real set)"
+  apply (rule isLub_le_isUb)
+  apply (rule isLub_cSup[OF assms(1)])
+  apply (insert assms)
+  apply (erule exE)
+  apply (rule_tac x = b in exI)
+  apply (auto simp: isUb_def setle_def intro: cSup_upper cSup_least)
+  done
+
 (*declare not_less[simp] not_le[simp]*)
 
 lemmas scaleR_simps = scaleR_zero_left scaleR_minus_left scaleR_left_diff_distrib
@@ -48,33 +87,6 @@ lemma bounded_linearI:
     and "\<And>r x. f (r *\<^sub>R x) = r *\<^sub>R f x" "\<And>x. norm (f x) \<le> norm x * K"
   shows "bounded_linear f"
   unfolding bounded_linear_def additive_def bounded_linear_axioms_def using assms by auto
-
-lemma Inf: (* rename *)
-  fixes S :: "real set"
-  shows "S \<noteq> {} ==> (\<exists>b. b <=* S) ==> isGlb UNIV S (Inf S)"
-by (auto simp add: isLb_def setle_def setge_def isGlb_def greatestP_def) 
- 
-lemma real_le_inf_subset:
-  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. b <=* s"
-  shows "Inf s <= Inf (t::real set)"
-  apply (rule isGlb_le_isLb)
-  apply (rule Inf[OF assms(1)])
-  apply (insert assms)
-  apply (erule exE)
-  apply (rule_tac x = b in exI)
-  apply (auto simp: isLb_def setge_def)
-  done
-
-lemma real_ge_sup_subset:
-  assumes "t \<noteq> {}" "t \<subseteq> s" "\<exists>b. s *<= b"
-  shows "Sup s >= Sup (t::real set)"
-  apply (rule isLub_le_isUb)
-  apply (rule Sup[OF assms(1)])
-  apply (insert assms)
-  apply (erule exE)
-  apply (rule_tac x = b in exI)
-  apply (auto simp: isUb_def setle_def)
-  done
 
 lemma bounded_linear_component [intro]: "bounded_linear (\<lambda>x::'a::euclidean_space. x \<bullet> k)"
   by (rule bounded_linear_inner_left)
@@ -387,14 +399,14 @@ lemma interval_upperbound[simp]:
     interval_upperbound {a..b} = (b::'a::ordered_euclidean_space)"
   unfolding interval_upperbound_def euclidean_representation_setsum
   by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] setle_def
-           intro!: Sup_unique)
+           intro!: cSup_unique)
 
 lemma interval_lowerbound[simp]:
   "\<forall>i\<in>Basis. a\<bullet>i \<le> b\<bullet>i \<Longrightarrow>
     interval_lowerbound {a..b} = (a::'a::ordered_euclidean_space)"
   unfolding interval_lowerbound_def euclidean_representation_setsum
   by (auto simp del: ex_simps simp add: Bex_def ex_simps[symmetric] eucl_le[where 'a='a] setge_def
-           intro!: Inf_unique)
+           intro!: cInf_unique)
 
 lemmas interval_bounds = interval_upperbound interval_lowerbound
 
@@ -3201,7 +3213,7 @@ next fix f::"'b \<Rightarrow> 'a" and a b::"'b" assume assm:"\<forall>x. x \<not
       let ?goal = "norm ((\<Sum>(x, k)\<in>p. content k *\<^sub>R f x) - 0) < e"
       { presume "p\<noteq>{} \<Longrightarrow> ?goal" thus ?goal apply(cases "p={}") using goal1 by auto  }
       assume as':"p \<noteq> {}" from real_arch_simple[of "Sup((\<lambda>(x,k). norm(f x)) ` p)"] guess N ..
-      hence N:"\<forall>x\<in>(\<lambda>(x, k). norm (f x)) ` p. x \<le> real N" apply(subst(asm) Sup_finite_le_iff) using as as' by auto
+      hence N:"\<forall>x\<in>(\<lambda>(x, k). norm (f x)) ` p. x \<le> real N" apply(subst(asm) cSup_finite_le_iff) using as as' by auto
       have "\<forall>i. \<exists>q. q tagged_division_of {a..b} \<and> (d i) fine q \<and> (\<forall>(x, k)\<in>p. k \<subseteq> (d i) x \<longrightarrow> (x, k) \<in> q)"
         apply(rule,rule tagged_division_finer[OF as(1) d(1)]) by auto
       from choice[OF this] guess q .. note q=conjunctD3[OF this[rule_format]]
@@ -5480,7 +5492,7 @@ lemma bounded_variation_absolutely_integrable_interval:
   "\<forall>d. d division_of {a..b} \<longrightarrow> setsum (\<lambda>k. norm(integral k f)) d \<le> B"
   shows "f absolutely_integrable_on {a..b}"
 proof- let ?S = "(\<lambda>d. setsum (\<lambda>k. norm(integral k f)) d) ` {d. d division_of {a..b} }" def i \<equiv> "Sup ?S"
-  have i:"isLub UNIV ?S i" unfolding i_def apply(rule Sup)
+  have i:"isLub UNIV ?S i" unfolding i_def apply(rule isLub_cSup)
     apply(rule elementary_interval) defer apply(rule_tac x=B in exI)
     apply(rule setleI) using assms(2) by auto
   show ?thesis apply(rule,rule assms) apply rule apply(subst has_integral[of _ i])
@@ -5693,7 +5705,7 @@ lemma bounded_variation_absolutely_integrable:  fixes f::"'n::ordered_euclidean_
   shows "f absolutely_integrable_on UNIV"
 proof(rule absolutely_integrable_onI,fact,rule)
   let ?S = "(\<lambda>d. setsum (\<lambda>k. norm(integral k f)) d) ` {d. d division_of  (\<Union>d)}" def i \<equiv> "Sup ?S"
-  have i:"isLub UNIV ?S i" unfolding i_def apply(rule Sup)
+  have i:"isLub UNIV ?S i" unfolding i_def apply(rule isLub_cSup)
     apply(rule elementary_interval) defer apply(rule_tac x=B in exI)
     apply(rule setleI) using assms(2) by auto
   have f_int:"\<And>a b. f absolutely_integrable_on {a..b}"
@@ -6044,7 +6056,7 @@ proof -
         prefer 5
         unfolding real_norm_def
         apply rule
-        apply (rule Inf_abs_ge)
+        apply (rule cInf_abs_ge)
         prefer 5
         apply rule
         apply (rule_tac g = h in absolutely_integrable_integrable_bound_real)
@@ -6065,11 +6077,11 @@ proof -
     fix x
     assume x: "x \<in> s"
     show "Inf {f j x |j. j \<in> {m..m + Suc k}} \<le> Inf {f j x |j. j \<in> {m..m + k}}"
-      apply (rule Inf_ge)
+      apply (rule cInf_ge)
       unfolding setge_def
       defer
       apply rule
-      apply (subst Inf_finite_le_iff)
+      apply (subst cInf_finite_le_iff)
       prefer 3
       apply (rule_tac x=xa in bexI)
       apply auto
@@ -6119,7 +6131,7 @@ proof -
             prefer 3
             apply (rule,rule isGlbD1[OF i])
             prefer 3
-            apply (subst Inf_finite_le_iff)
+            apply (subst cInf_finite_le_iff)
             prefer 3
             apply (rule_tac x=y in bexI)
             using N goal1
@@ -6146,7 +6158,7 @@ proof -
         apply(rule absolutely_integrable_sup_real)
         prefer 5 unfolding real_norm_def
         apply rule
-        apply (rule Sup_abs_le)
+        apply (rule cSup_abs_le)
         prefer 5
         apply rule
         apply (rule_tac g=h in absolutely_integrable_integrable_bound_real)
@@ -6167,11 +6179,11 @@ proof -
     fix x
     assume x: "x\<in>s"
     show "Sup {f j x |j. j \<in> {m..m + Suc k}} \<ge> Sup {f j x |j. j \<in> {m..m + k}}"
-      apply (rule Sup_le)
+      apply (rule cSup_le)
       unfolding setle_def
       defer
       apply rule
-      apply (subst Sup_finite_ge_iff)
+      apply (subst cSup_finite_ge_iff)
       prefer 3
       apply (rule_tac x=y in bexI)
       apply auto
@@ -6183,7 +6195,7 @@ proof -
       case goal1 note r=this
       have i: "isLub UNIV ?S i"
         unfolding i_def
-        apply (rule Sup)
+        apply (rule isLub_cSup)
         defer
         apply (rule_tac x="h x" in exI)
         unfolding setle_def
@@ -6221,7 +6233,7 @@ proof -
           prefer 3
           apply (rule, rule isLubD1[OF i])
           prefer 3
-          apply (subst Sup_finite_ge_iff)
+          apply (subst cSup_finite_ge_iff)
           prefer 3
           apply (rule_tac x = y in bexI)
           using N goal1
@@ -6246,7 +6258,7 @@ proof -
         apply fact+
         unfolding real_norm_def
         apply rule
-        apply (rule Inf_abs_ge)
+        apply (rule cInf_abs_ge)
         using assms(3)
         apply auto
         done
@@ -6276,7 +6288,7 @@ proof -
         apply (rule_tac x=N in exI,safe)
         unfolding real_norm_def
         apply (rule le_less_trans[of _ "r/2"])
-        apply (rule Inf_asclose)
+        apply (rule cInf_asclose)
         apply safe
         defer
         apply (rule less_imp_le)
@@ -6302,7 +6314,7 @@ proof -
         apply fact+
         unfolding real_norm_def
         apply rule
-        apply (rule Sup_abs_le)
+        apply (rule cSup_abs_le)
         using assms(3)
         apply auto
         done
@@ -6330,7 +6342,7 @@ proof -
         apply (rule_tac x=N in exI,safe)
         unfolding real_norm_def
         apply (rule le_less_trans[of _ "r/2"])
-        apply (rule Sup_asclose)
+        apply (rule cSup_asclose)
         apply safe
         defer
         apply (rule less_imp_le)
@@ -6364,7 +6376,7 @@ proof -
           assume x: "x \<in> s" 
           have *: "\<And>x y::real. x \<ge> - y \<Longrightarrow> - x \<le> y" by auto
           show "Inf {f j x |j. n \<le> j} \<le> f n x"
-            apply (rule Inf_lower[where z="- h x"])
+            apply (rule cInf_lower[where z="- h x"])
             defer
             apply (rule *)
             using assms(3)[rule_format,OF x]
@@ -6377,7 +6389,7 @@ proof -
           fix x
           assume x: "x \<in> s"
           show "f n x \<le> Sup {f j x |j. n \<le> j}"
-            apply (rule Sup_upper[where z="h x"])
+            apply (rule cSup_upper[where z="h x"])
             defer
             using assms(3)[rule_format,OF x]
             unfolding real_norm_def abs_le_iff

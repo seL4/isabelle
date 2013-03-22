@@ -2498,6 +2498,9 @@ lemma infnorm_set_image:
   "{ abs ((x::'a::euclidean_space) \<bullet> i) |i. i \<in> Basis} = (\<lambda>i. abs(x \<bullet> i)) ` Basis"
   by blast
 
+lemma infnorm_Max: "infnorm (x::'a::euclidean_space) = Max ((\<lambda>i. abs(x \<bullet> i)) ` Basis)"
+  by (simp add: infnorm_def infnorm_set_image cSup_eq_Max)
+
 lemma infnorm_set_lemma:
   shows "finite {abs((x::'a::euclidean_space) \<bullet> i) |i. i \<in> Basis}"
   and "{abs(x \<bullet> i) |i. i \<in> Basis} \<noteq> {}"
@@ -2505,41 +2508,22 @@ lemma infnorm_set_lemma:
   by auto
 
 lemma infnorm_pos_le: "0 \<le> infnorm (x::'a::euclidean_space)"
-  unfolding infnorm_def
-  unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
-  unfolding infnorm_set_image
-  by (auto simp: ex_in_conv)
+  by (simp add: infnorm_Max Max_ge_iff ex_in_conv)
 
 lemma infnorm_triangle: "infnorm ((x::'a::euclidean_space) + y) \<le> infnorm x + infnorm y"
 proof -
-  have th: "\<And>x y (z::real). x - y <= z \<longleftrightarrow> x - z <= y" by arith
-  have th1: "\<And>S f. f ` S = { f i| i. i \<in> S}" by blast
-  have th2: "\<And>x (y::real). abs(x + y) - abs(x) <= abs(y)" by arith
+  have *: "\<And>a b c d :: real. \<bar>a\<bar> \<le> c \<Longrightarrow> \<bar>b\<bar> \<le> d \<Longrightarrow> \<bar>a + b\<bar> \<le> c + d"
+    by simp
   show ?thesis
-    unfolding infnorm_def 
-    unfolding Sup_finite_le_iff[ OF infnorm_set_lemma[where 'a='a]]
-    apply (subst diff_le_eq[symmetric])
-    unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma]
-    unfolding infnorm_set_image bex_simps
-    apply (subst th)
-    unfolding th1
-    unfolding Sup_finite_ge_iff[ OF infnorm_set_lemma[where 'a='a]]
-    unfolding infnorm_set_image ball_simps bex_simps
-    apply (simp add: inner_add_left)
-    apply (metis th2)
-    done
+    by (auto simp: infnorm_Max inner_add_left intro!: *)
 qed
 
 lemma infnorm_eq_0: "infnorm x = 0 \<longleftrightarrow> (x::_::euclidean_space) = 0"
 proof -
-  have "infnorm x <= 0 \<longleftrightarrow> x = 0"
-    unfolding infnorm_def
-    unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
-    unfolding infnorm_set_image ball_simps
-    apply (subst (1) euclidean_eq_iff)
-    apply auto
-    done
-  then show ?thesis using infnorm_pos_le[of x] by simp
+  have "infnorm x \<le> 0 \<longleftrightarrow> x = 0"
+    unfolding infnorm_Max by (simp add: euclidean_all_zero_iff)
+  then show ?thesis
+    using infnorm_pos_le[of x] by simp
 qed
 
 lemma infnorm_0: "infnorm 0 = 0"
@@ -2573,40 +2557,24 @@ lemma real_abs_infnorm: " \<bar>infnorm x\<bar> = infnorm x"
   using infnorm_pos_le[of x] by arith
 
 lemma Basis_le_infnorm:
-  assumes b: "b \<in> Basis" shows "\<bar>x \<bullet> b\<bar> \<le> infnorm (x::'a::euclidean_space)"
-  unfolding infnorm_def
-proof (subst Sup_finite_ge_iff)
-  let ?S = "{\<bar>x \<bullet> i\<bar> |i. i \<in> Basis}"
-  show "finite ?S" by (rule infnorm_set_lemma)
-  show "?S \<noteq> {}" by auto
-  show "Bex ?S (op \<le> \<bar>x \<bullet> b\<bar>)"
-     using b by (auto intro!: exI[of _ b])
-qed
-
-lemma infnorm_mul_lemma: "infnorm(a *\<^sub>R x) <= \<bar>a\<bar> * infnorm x"
-  apply (subst infnorm_def)
-  unfolding Sup_finite_le_iff[OF infnorm_set_lemma]
-  unfolding infnorm_set_image ball_simps inner_scaleR abs_mult
-  using Basis_le_infnorm[of _ x]
-  apply (auto intro: mult_mono)
-  done
+  "b \<in> Basis \<Longrightarrow> \<bar>x \<bullet> b\<bar> \<le> infnorm (x::'a::euclidean_space)"
+  by (simp add: infnorm_Max)
 
 lemma infnorm_mul: "infnorm(a *\<^sub>R x) = abs a * infnorm x"
-proof -
-  { assume a0: "a = 0" then have ?thesis by (simp add: infnorm_0) }
-  moreover
-  { assume a0: "a \<noteq> 0"
-    from a0 have th: "(1/a) *\<^sub>R (a *\<^sub>R x) = x" by simp
-    from a0 have ap: "\<bar>a\<bar> > 0" by arith
-    from infnorm_mul_lemma[of "1/a" "a *\<^sub>R x"]
-    have "infnorm x \<le> 1/\<bar>a\<bar> * infnorm (a*\<^sub>R x)"
-      unfolding th by simp
-    with ap have "\<bar>a\<bar> * infnorm x \<le> \<bar>a\<bar> * (1/\<bar>a\<bar> * infnorm (a *\<^sub>R x))" by (simp add: field_simps)
-    then have "\<bar>a\<bar> * infnorm x \<le> infnorm (a*\<^sub>R x)"
-      using ap by (simp add: field_simps)
-    with infnorm_mul_lemma[of a x] have ?thesis by arith }
-  ultimately show ?thesis by blast
-qed
+  unfolding infnorm_Max
+proof (safe intro!: Max_eqI)
+  let ?B = "(\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis"
+  show "\<And>b :: 'a. b \<in> Basis \<Longrightarrow> \<bar>a *\<^sub>R x \<bullet> b\<bar> \<le> \<bar>a\<bar> * Max ?B"
+    by (simp add: abs_mult mult_left_mono)
+
+  from Max_in[of ?B] obtain b where "b \<in> Basis" "Max ?B = \<bar>x \<bullet> b\<bar>"
+    by (auto simp del: Max_in)
+  then show "\<bar>a\<bar> * Max ((\<lambda>i. \<bar>x \<bullet> i\<bar>) ` Basis) \<in> (\<lambda>i. \<bar>a *\<^sub>R x \<bullet> i\<bar>) ` Basis"
+    by (intro image_eqI[where x=b]) (auto simp: abs_mult)
+qed simp
+
+lemma infnorm_mul_lemma: "infnorm(a *\<^sub>R x) \<le> \<bar>a\<bar> * infnorm x"
+  unfolding infnorm_mul ..
 
 lemma infnorm_pos_lt: "infnorm x > 0 \<longleftrightarrow> x \<noteq> 0"
   using infnorm_pos_le[of x] infnorm_eq_0[of x] by arith
@@ -2614,15 +2582,13 @@ lemma infnorm_pos_lt: "infnorm x > 0 \<longleftrightarrow> x \<noteq> 0"
 text {* Prove that it differs only up to a bound from Euclidean norm. *}
 
 lemma infnorm_le_norm: "infnorm x \<le> norm x"
-  unfolding infnorm_def Sup_finite_le_iff[OF infnorm_set_lemma]
-  unfolding infnorm_set_image  ball_simps
-  by (metis Basis_le_norm)
+  by (simp add: Basis_le_norm infnorm_Max)
 
 lemma euclidean_inner: "inner x y = (\<Sum>b\<in>Basis. (x \<bullet> b) * (y \<bullet> b))"
   by (subst (1 2) euclidean_representation[symmetric, where 'a='a])
      (simp add: inner_setsum_left inner_setsum_right setsum_cases inner_Basis ac_simps if_distrib)
 
-lemma norm_le_infnorm: "norm(x) <= sqrt DIM('a) * infnorm(x::'a::euclidean_space)"
+lemma norm_le_infnorm: "norm x \<le> sqrt DIM('a) * infnorm(x::'a::euclidean_space)"
 proof -
   let ?d = "DIM('a)"
   have "real ?d \<ge> 0" by simp
@@ -2639,10 +2605,7 @@ proof -
     apply (auto simp add: power2_eq_square[symmetric])
     apply (subst power2_abs[symmetric])
     apply (rule power_mono)
-    unfolding infnorm_def Sup_finite_ge_iff[OF infnorm_set_lemma]
-    unfolding infnorm_set_image bex_simps
-    apply (rule_tac x=i in bexI)
-    apply auto
+    apply (auto simp: infnorm_Max)
     done
   from real_le_lsqrt[OF inner_ge_zero th th1]
   show ?thesis unfolding norm_eq_sqrt_inner id_def .

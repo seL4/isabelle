@@ -3491,11 +3491,11 @@ next
     apply(rule,rule) defer apply(rule) unfolding inner_minus_left and neg_less_iff_less proof-
     from ab have "((\<lambda>x. inner a x) ` t) *<= (inner a y - b)"
       apply(erule_tac x=y in ballE) apply(rule setleI) using `y\<in>s` by auto
-    hence k:"isLub UNIV ((\<lambda>x. inner a x) ` t) k" unfolding k_def apply(rule_tac Sup) using assms(5) by auto
+    hence k:"isLub UNIV ((\<lambda>x. inner a x) ` t) k" unfolding k_def apply(rule_tac isLub_cSup) using assms(5) by auto
     fix x assume "x\<in>t" thus "inner a x < (k + b / 2)" using `0<b` and isLubD2[OF k, of "inner a x"] by auto
   next
     fix x assume "x\<in>s"
-    hence "k \<le> inner a x - b" unfolding k_def apply(rule_tac Sup_least) using assms(5)
+    hence "k \<le> inner a x - b" unfolding k_def apply(rule_tac cSup_least) using assms(5)
       using ab[THEN bspec[where x=x]] by auto
     thus "k + b / 2 < inner a x" using `0 < b` by auto
   qed
@@ -3544,9 +3544,9 @@ proof- from separating_hyperplane_set_0[OF convex_differences[OF assms(2,1)]]
   thus ?thesis
     apply(rule_tac x=a in exI, rule_tac x="Sup ((\<lambda>x. inner a x) ` s)" in exI) using `a\<noteq>0`
     apply auto
-    apply (rule Sup[THEN isLubD2])
+    apply (rule isLub_cSup[THEN isLubD2])
     prefer 4
-    apply (rule Sup_least)
+    apply (rule cSup_least)
      using assms(3-5) apply (auto simp add: setle_def)
     apply metis
     done
@@ -6208,7 +6208,7 @@ proof (cases rule: linorder_cases)
     using interior_subset[of I] `x \<in> interior I` by auto
 
   have "Inf (?F x) \<le> (f x - f y) / (x - y)"
-  proof (rule Inf_lower2)
+  proof (rule cInf_lower2)
     show "(f x - f t) / (x - t) \<in> ?F x"
       using `t \<in> I` `x < t` by auto
     show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
@@ -6231,7 +6231,7 @@ next
   with `x \<in> interior I` e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
 
   have "(f x - f y) / (x - y) \<le> Inf (?F x)"
-  proof (rule Inf_greatest)
+  proof (rule cInf_greatest)
     have "(f x - f y) / (x - y) = (f y - f x) / (y - x)"
       using `y < x` by (auto simp: field_simps)
     also

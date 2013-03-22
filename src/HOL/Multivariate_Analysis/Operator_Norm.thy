@@ -58,7 +58,7 @@ proof-
     hence Se: "?S \<noteq> {}" by auto
     from linear_bounded[OF lf] have b: "\<exists> b. ?S *<= b"
       unfolding norm_bound_generalize[OF lf, symmetric] by (auto simp add: setle_def)
-    {from Sup[OF Se b, unfolded onorm_def[symmetric]]
+    { from isLub_cSup[OF Se b, unfolded onorm_def[symmetric]]
       show "norm (f x) <= onorm f * norm x"
         apply -
         apply (rule spec[where x = x])
@@ -66,7 +66,7 @@ proof-
         by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
     {
       show "\<forall>x. norm (f x) <= b * norm x \<Longrightarrow> onorm f <= b"
-        using Sup[OF Se b, unfolded onorm_def[symmetric]]
+        using isLub_cSup[OF Se b, unfolded onorm_def[symmetric]]
         unfolding norm_bound_generalize[OF lf, symmetric]
         by (auto simp add: isLub_def isUb_def leastP_def setge_def setle_def)}
   }
@@ -93,7 +93,7 @@ proof-
     by (auto simp: SOME_Basis intro!: exI[of _ "SOME i. i \<in> Basis"])
   show ?thesis
     unfolding onorm_def th
-    apply (rule Sup_unique) by (simp_all  add: setle_def)
+    apply (rule cSup_unique) by (simp_all  add: setle_def)
 qed
 
 lemma onorm_pos_lt: assumes lf: "linear (f::'a::euclidean_space \<Rightarrow> 'b::euclidean_space)"

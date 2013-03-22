@@ -18,7 +18,7 @@ lemma axis_in_Basis: "a \<in> Basis \<Longrightarrow> axis i a \<in> Basis"
 subsection {*Fashoda meet theorem. *}
 
 lemma infnorm_2: "infnorm (x::real^2) = max (abs(x$1)) (abs(x$2))"
-  unfolding infnorm_cart UNIV_2 apply(rule Sup_eq) by auto
+  unfolding infnorm_cart UNIV_2 apply(rule cSup_eq) by auto
 
 lemma infnorm_eq_1_2: "infnorm (x::real^2) = 1 \<longleftrightarrow>
         (abs(x$1) \<le> 1 \<and> abs(x$2) \<le> 1 \<and> (x$1 = -1 \<or> x$1 = 1 \<or> x$2 = -1 \<or> x$2 = 1))"

@@ -1401,7 +1401,7 @@ next
     show "(\<lambda>n. f (S n)) ----> Inf (f ` ({x<..} \<inter> I))"
     proof (rule LIMSEQ_I, rule ccontr)
       fix r :: real assume "0 < r"
-      with Inf_close[of "f ` ({x<..} \<inter> I)" r]
+      with cInf_close[of "f ` ({x<..} \<inter> I)" r]
       obtain y where y: "x < y" "y \<in> I" "f y < Inf (f ` ({x <..} \<inter> I)) + r" by auto
       from `x < y` have "0 < y - x" by auto
       from S(2)[THEN LIMSEQ_D, OF this]
@@ -1409,7 +1409,7 @@ next
       
       assume "\<not> (\<exists>N. \<forall>n\<ge>N. norm (f (S n) - Inf (f ` ({x<..} \<inter> I))) < r)"
       moreover have "\<And>n. Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
-        using S bnd by (intro Inf_lower[where z=K]) auto
+        using S bnd by (intro cInf_lower[where z=K]) auto
       ultimately obtain n where n: "N \<le> n" "r + Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
         by (auto simp: not_less field_simps)
       with N[OF n(1)] mono[OF _ `y \<in> I`, of "S n"] S(1)[THEN spec, of n] y
@@ -1727,11 +1727,11 @@ lemma closure_contains_Inf:
   unfolding closure_approachable
 proof safe
   have *: "\<forall>x\<in>S. Inf S \<le> x"
-    using Inf_lower_EX[of _ S] assms by metis
+    using cInf_lower_EX[of _ S] assms by metis
 
   fix e :: real assume "0 < e"
   then obtain x where x: "x \<in> S" "x < Inf S + e"
-    using Inf_close `S \<noteq> {}` by auto
+    using cInf_close `S \<noteq> {}` by auto
   moreover then have "x > Inf S - e" using * by auto
   ultimately have "abs (x - Inf S) < e" by (simp add: abs_diff_less_iff)
   then show "\<exists>x\<in>S. dist x (Inf S) < e"
@@ -1785,13 +1785,13 @@ lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = Inf {dist
 
 lemma infdist_nonneg:
   shows "0 \<le> infdist x A"
-  using assms by (auto simp add: infdist_def)
+  using assms by (auto simp add: infdist_def intro: cInf_greatest)
 
 lemma infdist_le:
   assumes "a \<in> A"
   assumes "d = dist x a"
   shows "infdist x A \<le> d"
-  using assms by (auto intro!: SupInf.Inf_lower[where z=0] simp add: infdist_def)
+  using assms by (auto intro!: cInf_lower[where z=0] simp add: infdist_def)
 
 lemma infdist_zero[simp]:
   assumes "a \<in> A" shows "infdist a A = 0"
@@ -1807,13 +1807,13 @@ proof cases
 next
   assume "A \<noteq> {}" then obtain a where "a \<in> A" by auto
   have "infdist x A \<le> Inf {dist x y + dist y a |a. a \<in> A}"
-  proof
+  proof (rule cInf_greatest)
     from `A \<noteq> {}` show "{dist x y + dist y a |a. a \<in> A} \<noteq> {}" by simp
     fix d assume "d \<in> {dist x y + dist y a |a. a \<in> A}"
     then obtain a where d: "d = dist x y + dist y a" "a \<in> A" by auto
     show "infdist x A \<le> d"
       unfolding infdist_notempty[OF `A \<noteq> {}`]
-    proof (rule Inf_lower2)
+    proof (rule cInf_lower2)
       show "dist x a \<in> {dist x a |a. a \<in> A}" using `a \<in> A` by auto
       show "dist x a \<le> d" unfolding d by (rule dist_triangle)
       fix d assume "d \<in> {dist x a |a. a \<in> A}"
@@ -1822,20 +1822,19 @@ next
     qed
   qed
   also have "\<dots> = dist x y + infdist y A"
-  proof (rule Inf_eq, safe)
+  proof (rule cInf_eq, safe)
     fix a assume "a \<in> A"
     thus "dist x y + infdist y A \<le> dist x y + dist y a" by (auto intro: infdist_le)
   next
     fix i assume inf: "\<And>d. d \<in> {dist x y + dist y a |a. a \<in> A} \<Longrightarrow> i \<le> d"
     hence "i - dist x y \<le> infdist y A" unfolding infdist_notempty[OF `A \<noteq> {}`] using `a \<in> A`
-      by (intro Inf_greatest) (auto simp: field_simps)
+      by (intro cInf_greatest) (auto simp: field_simps)
     thus "i \<le> dist x y + infdist y A" by simp
   qed
   finally show ?thesis by simp
 qed
 
-lemma
-  in_closure_iff_infdist_zero:
+lemma in_closure_iff_infdist_zero:
   assumes "A \<noteq> {}"
   shows "x \<in> closure A \<longleftrightarrow> infdist x A = 0"
 proof
@@ -1859,13 +1858,12 @@ next
     assume "\<not> (\<exists>y\<in>A. dist y x < e)"
     hence "infdist x A \<ge> e" using `a \<in> A`
       unfolding infdist_def
-      by (force simp: dist_commute)
+      by (force simp: dist_commute intro: cInf_greatest)
     with x `0 < e` show False by auto
   qed
 qed
 
-lemma
-  in_closed_iff_infdist_zero:
+lemma in_closed_iff_infdist_zero:
   assumes "closed A" "A \<noteq> {}"
   shows "x \<in> A \<longleftrightarrow> infdist x A = 0"
 proof -
@@ -2326,16 +2324,19 @@ lemma bounded_has_Sup:
 proof
   fix x assume "x\<in>S"
   thus "x \<le> Sup S"
-    by (metis SupInf.Sup_upper abs_le_D1 assms(1) bounded_real)
+    by (metis cSup_upper abs_le_D1 assms(1) bounded_real)
 next
   show "\<forall>b. (\<forall>x\<in>S. x \<le> b) \<longrightarrow> Sup S \<le> b" using assms
-    by (metis SupInf.Sup_least)
+    by (metis cSup_least)
 qed
 
 lemma Sup_insert:
   fixes S :: "real set"
   shows "bounded S ==> Sup(insert x S) = (if S = {} then x else max x (Sup S))" 
-by auto (metis Int_absorb Sup_insert_nonempty assms bounded_has_Sup(1) disjoint_iff_not_equal) 
+  apply (subst cSup_insert_If)
+  apply (rule bounded_has_Sup(1)[of S, rule_format])
+  apply (auto simp: sup_max)
+  done
 
 lemma Sup_insert_finite:
   fixes S :: "real set"
@@ -2352,16 +2353,19 @@ proof
   fix x assume "x\<in>S"
   from assms(1) obtain a where a:"\<forall>x\<in>S. \<bar>x\<bar> \<le> a" unfolding bounded_real by auto
   thus "x \<ge> Inf S" using `x\<in>S`
-    by (metis Inf_lower_EX abs_le_D2 minus_le_iff)
+    by (metis cInf_lower_EX abs_le_D2 minus_le_iff)
 next
   show "\<forall>b. (\<forall>x\<in>S. x >= b) \<longrightarrow> Inf S \<ge> b" using assms
-    by (metis SupInf.Inf_greatest)
+    by (metis cInf_greatest)
 qed
 
 lemma Inf_insert:
   fixes S :: "real set"
   shows "bounded S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))" 
-by auto (metis Int_absorb Inf_insert_nonempty bounded_has_Inf(1) disjoint_iff_not_equal)
+  apply (subst cInf_insert_if)
+  apply (rule bounded_has_Inf(1)[of S, rule_format])
+  apply (auto simp: inf_min)
+  done
 
 lemma Inf_insert_finite:
   fixes S :: "real set"
@@ -3125,7 +3129,7 @@ subsubsection{* Total boundedness *}
 
 lemma cauchy_def:
   "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
-unfolding Cauchy_def by blast
+unfolding Cauchy_def by metis
 
 fun helper_1::"('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
@@ -5197,7 +5201,7 @@ proof -
   from s obtain z d where z: "\<And>x. x \<in> s \<Longrightarrow> dist z x \<le> d"
     unfolding bounded_def by auto
   have "dist x y \<le> Sup ?D"
-  proof (rule Sup_upper, safe)
+  proof (rule cSup_upper, safe)
     fix a b assume "a \<in> s" "b \<in> s"
     with z[of a] z[of b] dist_triangle[of a b z]
     show "dist a b \<le> 2 * d"
@@ -5219,7 +5223,7 @@ proof (rule ccontr)
     by (auto simp: diameter_def)
   then have "?D \<noteq> {}" by auto
   ultimately have "Sup ?D \<le> d"
-    by (intro Sup_least) (auto simp: not_less)
+    by (intro cSup_least) (auto simp: not_less)
   with `d < diameter s` `s \<noteq> {}` show False
     by (auto simp: diameter_def)
 qed
@@ -5239,7 +5243,7 @@ proof -
   then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
     using compact_sup_maxdistance[OF assms] by auto
   hence "diameter s \<le> dist x y"
-    unfolding diameter_def by clarsimp (rule Sup_least, fast+)
+    unfolding diameter_def by clarsimp (rule cSup_least, fast+)
   thus ?thesis
     by (metis b diameter_bounded_bound order_antisym xys)
 qed
@@ -6674,6 +6678,5 @@ proof -
 qed
 
 declare tendsto_const [intro] (* FIXME: move *)
-
 
 end

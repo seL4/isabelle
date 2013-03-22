@@ -523,7 +523,7 @@ lemma mono_closed_real:
 proof -
   { assume "S ~= {}"
     { assume ex: "EX B. ALL x:S. B<=x"
-      then have *: "ALL x:S. Inf S <= x" using Inf_lower_EX[of _ S] ex by metis
+      then have *: "ALL x:S. Inf S <= x" using cInf_lower_EX[of _ S] ex by metis
       then have "Inf S : S" apply (subst closed_contains_Inf) using ex `S ~= {}` `closed S` by auto
       then have "ALL x. (Inf S <= x <-> x:S)" using mono[rule_format, of "Inf S"] * by auto
       then have "S = {Inf S ..}" by auto
