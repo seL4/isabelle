@@ -10,6 +10,17 @@ theory NthRoot
 imports Parity Deriv
 begin
 
+lemma abs_sgn_eq: "abs (sgn x :: real) = (if x = 0 then 0 else 1)"
+  by (simp add: sgn_real_def)
+
+lemma inverse_sgn: "sgn (inverse a) = inverse (sgn a :: real)"
+  by (simp add: sgn_real_def)
+
+lemma power_eq_iff_eq_base: 
+  fixes a b :: "_ :: linordered_semidom"
+  shows "0 < n \<Longrightarrow> 0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a ^ n = b ^ n \<longleftrightarrow> a = b"
+  using power_eq_imp_eq_base[of a n b] by auto
+
 subsection {* Existence of Nth Root *}
 
 text {* Existence follows from the Intermediate Value Theorem *}
@@ -43,11 +54,8 @@ by (blast intro: realpow_pos_nth)
 
 text {* Uniqueness of nth positive root *}
 
-lemma realpow_pos_nth_unique:
-  "\<lbrakk>0 < n; 0 < a\<rbrakk> \<Longrightarrow> \<exists>!r. 0 < r \<and> r ^ n = (a::real)"
-apply (auto intro!: realpow_pos_nth)
-apply (rule_tac n=n in power_eq_imp_eq_base, simp_all)
-done
+lemma realpow_pos_nth_unique: "\<lbrakk>0 < n; 0 < a\<rbrakk> \<Longrightarrow> \<exists>!r. 0 < r \<and> r ^ n = (a::real)"
+  by (auto intro!: realpow_pos_nth simp: power_eq_iff_eq_base)
 
 subsection {* Nth Root *}
 
@@ -55,66 +63,86 @@ text {* We define roots of negative reals such that
   @{term "root n (- x) = - root n x"}. This allows
   us to omit side conditions from many theorems. *}
 
-definition
-  root :: "[nat, real] \<Rightarrow> real" where
-  "root n x = (if 0 < x then (THE u. 0 < u \<and> u ^ n = x) else
-               if x < 0 then - (THE u. 0 < u \<and> u ^ n = - x) else 0)"
+lemma inj_sgn_power: assumes "0 < n" shows "inj (\<lambda>y. sgn y * \<bar>y\<bar>^n :: real)" (is "inj ?f")
+proof (rule injI)
+  have x: "\<And>a b :: real. (0 < a \<and> b < 0) \<or> (a < 0 \<and> 0 < b) \<Longrightarrow> a \<noteq> b" by auto
+  fix x y assume "?f x = ?f y" with power_eq_iff_eq_base[of n "\<bar>x\<bar>" "\<bar>y\<bar>"] `0<n` show "x = y"
+    by (cases rule: linorder_cases[of 0 x, case_product linorder_cases[of 0 y]])
+       (simp_all add: x)
+qed
+
+lemma sgn_power_injE: "sgn a * \<bar>a\<bar> ^ n = x \<Longrightarrow> x = sgn b * \<bar>b\<bar> ^ n \<Longrightarrow> 0 < n \<Longrightarrow> a = (b::real)"
+  using inj_sgn_power[THEN injD, of n a b] by simp
+
+definition root :: "nat \<Rightarrow> real \<Rightarrow> real" where
+  "root n x = (if n = 0 then 0 else the_inv (\<lambda>y. sgn y * \<bar>y\<bar>^n) x)"
+
+lemma root_0 [simp]: "root 0 x = 0"
+  by (simp add: root_def)
+
+lemma root_sgn_power: "0 < n \<Longrightarrow> root n (sgn y * \<bar>y\<bar>^n) = y"
+  using the_inv_f_f[OF inj_sgn_power] by (simp add: root_def)
+
+lemma sgn_power_root:
+  assumes "0 < n" shows "sgn (root n x) * \<bar>(root n x)\<bar>^n = x" (is "?f (root n x) = x")
+proof cases
+  assume "x \<noteq> 0"
+  with realpow_pos_nth[OF `0 < n`, of "\<bar>x\<bar>"] obtain r where "0 < r" "r ^ n = \<bar>x\<bar>" by auto
+  with `x \<noteq> 0` have S: "x \<in> range ?f"
+    by (intro image_eqI[of _ _ "sgn x * r"])
+       (auto simp: abs_mult sgn_mult power_mult_distrib abs_sgn_eq mult_sgn_abs)
+  from `0 < n` f_the_inv_into_f[OF inj_sgn_power[OF `0 < n`] this]  show ?thesis
+    by (simp add: root_def)
+qed (insert `0 < n` root_sgn_power[of n 0], simp)
+
+lemma split_root: "P (root n x) \<longleftrightarrow> (n = 0 \<longrightarrow> P 0) \<and> (0 < n \<longrightarrow> (\<forall>y. sgn y * \<bar>y\<bar>^n = x \<longrightarrow> P y))"
+  apply (cases "n = 0")
+  apply simp_all
+  apply (metis root_sgn_power sgn_power_root)
+  done
 
 lemma real_root_zero [simp]: "root n 0 = 0"
-unfolding root_def by simp
+  by (simp split: split_root add: sgn_zero_iff)
 
-lemma real_root_minus: "0 < n \<Longrightarrow> root n (- x) = - root n x"
-unfolding root_def by simp
+lemma real_root_minus: "root n (- x) = - root n x"
+  by (clarsimp split: split_root elim!: sgn_power_injE simp: sgn_minus)
+
+lemma real_root_less_mono: "\<lbrakk>0 < n; x < y\<rbrakk> \<Longrightarrow> root n x < root n y"
+proof (clarsimp split: split_root)
+  have x: "\<And>a b :: real. (0 < b \<and> a < 0) \<Longrightarrow> \<not> a > b" by auto
+  fix a b :: real assume "0 < n" "sgn a * \<bar>a\<bar> ^ n < sgn b * \<bar>b\<bar> ^ n" then show "a < b"
+    using power_less_imp_less_base[of a n b]  power_less_imp_less_base[of "-b" n "-a"]
+    by (simp add: sgn_real_def power_less_zero_eq x[of "a ^ n" "- ((- b) ^ n)"] split: split_if_asm)
+qed
 
 lemma real_root_gt_zero: "\<lbrakk>0 < n; 0 < x\<rbrakk> \<Longrightarrow> 0 < root n x"
-apply (simp add: root_def)
-apply (drule (1) realpow_pos_nth_unique)
-apply (erule theI' [THEN conjunct1])
-done
+  using real_root_less_mono[of n 0 x] by simp
+
+lemma real_root_ge_zero: "0 \<le> x \<Longrightarrow> 0 \<le> root n x"
+  using real_root_gt_zero[of n x] by (cases "n = 0") (auto simp add: le_less)
 
 lemma real_root_pow_pos: (* TODO: rename *)
   "\<lbrakk>0 < n; 0 < x\<rbrakk> \<Longrightarrow> root n x ^ n = x"
-apply (simp add: root_def)
-apply (drule (1) realpow_pos_nth_unique)
-apply (erule theI' [THEN conjunct2])
-done
+  using sgn_power_root[of n x] real_root_gt_zero[of n x] by simp
 
 lemma real_root_pow_pos2 [simp]: (* TODO: rename *)
   "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> root n x ^ n = x"
 by (auto simp add: order_le_less real_root_pow_pos)
 
-lemma odd_real_root_pow: "odd n \<Longrightarrow> root n x ^ n = x"
-apply (rule_tac x=0 and y=x in linorder_le_cases)
-apply (erule (1) real_root_pow_pos2 [OF odd_pos])
-apply (subgoal_tac "root n (- x) ^ n = - x")
-apply (simp add: real_root_minus odd_pos)
-apply (simp add: odd_pos)
-done
+lemma sgn_root: "0 < n \<Longrightarrow> sgn (root n x) = sgn x"
+  by (auto split: split_root simp: sgn_real_def power_less_zero_eq)
 
-lemma real_root_ge_zero: "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> 0 \<le> root n x"
-by (auto simp add: order_le_less real_root_gt_zero)
+lemma odd_real_root_pow: "odd n \<Longrightarrow> root n x ^ n = x"
+  using sgn_power_root[of n x] by (simp add: odd_pos sgn_real_def split: split_if_asm)
 
 lemma real_root_power_cancel: "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> root n (x ^ n) = x"
-apply (subgoal_tac "0 \<le> x ^ n")
-apply (subgoal_tac "0 \<le> root n (x ^ n)")
-apply (subgoal_tac "root n (x ^ n) ^ n = x ^ n")
-apply (erule (3) power_eq_imp_eq_base)
-apply (erule (1) real_root_pow_pos2)
-apply (erule (1) real_root_ge_zero)
-apply (erule zero_le_power)
-done
+  using root_sgn_power[of n x] by (auto simp add: le_less power_0_left)
 
 lemma odd_real_root_power_cancel: "odd n \<Longrightarrow> root n (x ^ n) = x"
-apply (rule_tac x=0 and y=x in linorder_le_cases)
-apply (erule (1) real_root_power_cancel [OF odd_pos])
-apply (subgoal_tac "root n ((- x) ^ n) = - x")
-apply (simp add: real_root_minus odd_pos)
-apply (erule real_root_power_cancel [OF odd_pos], simp)
-done
+  using root_sgn_power[of n x] by (simp add: odd_pos sgn_real_def power_0_left split: split_if_asm)
 
-lemma real_root_pos_unique:
-  "\<lbrakk>0 < n; 0 \<le> y; y ^ n = x\<rbrakk> \<Longrightarrow> root n x = y"
-by (erule subst, rule real_root_power_cancel)
+lemma real_root_pos_unique: "\<lbrakk>0 < n; 0 \<le> y; y ^ n = x\<rbrakk> \<Longrightarrow> root n x = y"
+  using root_sgn_power[of n y] by (auto simp add: le_less power_0_left)
 
 lemma odd_real_root_unique:
   "\<lbrakk>odd n; y ^ n = x\<rbrakk> \<Longrightarrow> root n x = y"
@@ -125,32 +153,8 @@ by (simp add: real_root_pos_unique)
 
 text {* Root function is strictly monotonic, hence injective *}
 
-lemma real_root_less_mono_lemma:
-  "\<lbrakk>0 < n; 0 \<le> x; x < y\<rbrakk> \<Longrightarrow> root n x < root n y"
-apply (subgoal_tac "0 \<le> y")
-apply (subgoal_tac "root n x ^ n < root n y ^ n")
-apply (erule power_less_imp_less_base)
-apply (erule (1) real_root_ge_zero)
-apply simp
-apply simp
-done
-
-lemma real_root_less_mono: "\<lbrakk>0 < n; x < y\<rbrakk> \<Longrightarrow> root n x < root n y"
-apply (cases "0 \<le> x")
-apply (erule (2) real_root_less_mono_lemma)
-apply (cases "0 \<le> y")
-apply (rule_tac y=0 in order_less_le_trans)
-apply (subgoal_tac "0 < root n (- x)")
-apply (simp add: real_root_minus)
-apply (simp add: real_root_gt_zero)
-apply (simp add: real_root_ge_zero)
-apply (subgoal_tac "root n (- y) < root n (- x)")
-apply (simp add: real_root_minus)
-apply (simp add: real_root_less_mono_lemma)
-done
-
 lemma real_root_le_mono: "\<lbrakk>0 < n; x \<le> y\<rbrakk> \<Longrightarrow> root n x \<le> root n y"
-by (auto simp add: order_le_less real_root_less_mono)
+  by (auto simp add: order_le_less real_root_less_mono)
 
 lemma real_root_less_iff [simp]:
   "0 < n \<Longrightarrow> (root n x < root n y) = (x < y)"
@@ -191,26 +195,34 @@ by (insert real_root_le_iff [where y=1], simp)
 lemma real_root_eq_1_iff [simp]: "0 < n \<Longrightarrow> (root n x = 1) = (x = 1)"
 by (insert real_root_eq_iff [where y=1], simp)
 
+text {* Roots of multiplication and division *}
+
+lemma real_root_mult: "root n (x * y) = root n x * root n y"
+  by (auto split: split_root elim!: sgn_power_injE simp: sgn_mult abs_mult power_mult_distrib)
+
+lemma real_root_inverse: "root n (inverse x) = inverse (root n x)"
+  by (auto split: split_root elim!: sgn_power_injE simp: inverse_sgn power_inverse)
+
+lemma real_root_divide: "root n (x / y) = root n x / root n y"
+  by (simp add: divide_inverse real_root_mult real_root_inverse)
+
+lemma real_root_abs: "0 < n \<Longrightarrow> root n \<bar>x\<bar> = \<bar>root n x\<bar>"
+  by (simp add: abs_if real_root_minus)
+
+lemma real_root_power: "0 < n \<Longrightarrow> root n (x ^ k) = root n x ^ k"
+  by (induct k) (simp_all add: real_root_mult)
+
 text {* Roots of roots *}
 
 lemma real_root_Suc_0 [simp]: "root (Suc 0) x = x"
 by (simp add: odd_real_root_unique)
 
-lemma real_root_pos_mult_exp:
-  "\<lbrakk>0 < m; 0 < n; 0 < x\<rbrakk> \<Longrightarrow> root (m * n) x = root m (root n x)"
-by (rule real_root_pos_unique, simp_all add: power_mult)
+lemma real_root_mult_exp: "root (m * n) x = root m (root n x)"
+  by (auto split: split_root elim!: sgn_power_injE
+           simp: sgn_zero_iff sgn_mult power_mult[symmetric] abs_mult power_mult_distrib abs_sgn_eq)
 
-lemma real_root_mult_exp:
-  "\<lbrakk>0 < m; 0 < n\<rbrakk> \<Longrightarrow> root (m * n) x = root m (root n x)"
-apply (rule linorder_cases [where x=x and y=0])
-apply (subgoal_tac "root (m * n) (- x) = root m (root n (- x))")
-apply (simp add: real_root_minus)
-apply (simp_all add: real_root_pos_mult_exp)
-done
-
-lemma real_root_commute:
-  "\<lbrakk>0 < m; 0 < n\<rbrakk> \<Longrightarrow> root m (root n x) = root n (root m x)"
-by (simp add: real_root_mult_exp [symmetric] mult_commute)
+lemma real_root_commute: "root m (root n x) = root n (root m x)"
+  by (simp add: real_root_mult_exp [symmetric] mult_commute)
 
 text {* Monotonicity in first argument *}
 
@@ -236,118 +248,35 @@ lemma real_root_increasing:
   "\<lbrakk>0 < n; n < N; 0 \<le> x; x \<le> 1\<rbrakk> \<Longrightarrow> root n x \<le> root N x"
 by (auto simp add: order_le_less real_root_strict_increasing)
 
-text {* Roots of multiplication and division *}
-
-lemma real_root_mult_lemma:
-  "\<lbrakk>0 < n; 0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> root n (x * y) = root n x * root n y"
-by (simp add: real_root_pos_unique mult_nonneg_nonneg power_mult_distrib)
-
-lemma real_root_inverse_lemma:
-  "\<lbrakk>0 < n; 0 \<le> x\<rbrakk> \<Longrightarrow> root n (inverse x) = inverse (root n x)"
-by (simp add: real_root_pos_unique power_inverse [symmetric])
-
-lemma real_root_mult:
-  assumes n: "0 < n"
-  shows "root n (x * y) = root n x * root n y"
-proof (rule linorder_le_cases, rule_tac [!] linorder_le_cases)
-  assume "0 \<le> x" and "0 \<le> y"
-  thus ?thesis by (rule real_root_mult_lemma [OF n])
-next
-  assume "0 \<le> x" and "y \<le> 0"
-  hence "0 \<le> x" and "0 \<le> - y" by simp_all
-  hence "root n (x * - y) = root n x * root n (- y)"
-    by (rule real_root_mult_lemma [OF n])
-  thus ?thesis by (simp add: real_root_minus [OF n])
-next
-  assume "x \<le> 0" and "0 \<le> y"
-  hence "0 \<le> - x" and "0 \<le> y" by simp_all
-  hence "root n (- x * y) = root n (- x) * root n y"
-    by (rule real_root_mult_lemma [OF n])
-  thus ?thesis by (simp add: real_root_minus [OF n])
-next
-  assume "x \<le> 0" and "y \<le> 0"
-  hence "0 \<le> - x" and "0 \<le> - y" by simp_all
-  hence "root n (- x * - y) = root n (- x) * root n (- y)"
-    by (rule real_root_mult_lemma [OF n])
-  thus ?thesis by (simp add: real_root_minus [OF n])
-qed
-
-lemma real_root_inverse:
-  assumes n: "0 < n"
-  shows "root n (inverse x) = inverse (root n x)"
-proof (rule linorder_le_cases)
-  assume "0 \<le> x"
-  thus ?thesis by (rule real_root_inverse_lemma [OF n])
-next
-  assume "x \<le> 0"
-  hence "0 \<le> - x" by simp
-  hence "root n (inverse (- x)) = inverse (root n (- x))"
-    by (rule real_root_inverse_lemma [OF n])
-  thus ?thesis by (simp add: real_root_minus [OF n])
-qed
-
-lemma real_root_divide:
-  "0 < n \<Longrightarrow> root n (x / y) = root n x / root n y"
-by (simp add: divide_inverse real_root_mult real_root_inverse)
-
-lemma real_root_power:
-  "0 < n \<Longrightarrow> root n (x ^ k) = root n x ^ k"
-by (induct k, simp_all add: real_root_mult)
-
-lemma real_root_abs: "0 < n \<Longrightarrow> root n \<bar>x\<bar> = \<bar>root n x\<bar>"
-by (simp add: abs_if real_root_minus)
-
 text {* Continuity and derivatives *}
 
-lemma isCont_root_pos:
-  assumes n: "0 < n"
-  assumes x: "0 < x"
-  shows "isCont (root n) x"
-proof -
-  have "isCont (root n) (root n x ^ n)"
-  proof (rule isCont_inverse_function [where f="\<lambda>a. a ^ n"])
-    show "0 < root n x" using n x by simp
-    show "\<forall>z. \<bar>z - root n x\<bar> \<le> root n x \<longrightarrow> root n (z ^ n) = z"
-      by (simp add: abs_le_iff real_root_power_cancel n)
-    show "\<forall>z. \<bar>z - root n x\<bar> \<le> root n x \<longrightarrow> isCont (\<lambda>a. a ^ n) z"
-      by simp
-  qed
-  thus ?thesis using n x by simp
-qed
+lemma isCont_real_root: "isCont (root n) x"
+proof cases
+  assume n: "0 < n"
+  let ?f = "\<lambda>y::real. sgn y * \<bar>y\<bar>^n"
+  have "continuous_on ({0..} \<union> {.. 0}) (\<lambda>x. if 0 < x then x ^ n else - ((-x) ^ n) :: real)"
+    using n by (intro continuous_on_If continuous_on_intros) auto
+  then have "continuous_on UNIV ?f"
+    by (rule continuous_on_cong[THEN iffD1, rotated 2]) (auto simp: not_less real_sgn_neg le_less n)
+  then have [simp]: "\<And>x. isCont ?f x"
+    by (simp add: continuous_on_eq_continuous_at)
 
-lemma isCont_root_neg:
-  "\<lbrakk>0 < n; x < 0\<rbrakk> \<Longrightarrow> isCont (root n) x"
-apply (subgoal_tac "isCont (\<lambda>x. - root n (- x)) x")
-apply (simp add: real_root_minus)
-apply (rule isCont_o2 [OF isCont_minus [OF isCont_ident]])
-apply (simp add: isCont_root_pos)
-done
-
-lemma isCont_root_zero:
-  "0 < n \<Longrightarrow> isCont (root n) 0"
-unfolding isCont_def
-apply (rule LIM_I)
-apply (rule_tac x="r ^ n" in exI, safe)
-apply (simp)
-apply (simp add: real_root_abs [symmetric])
-apply (rule_tac n="n" in power_less_imp_less_base, simp_all)
-done
-
-lemma isCont_real_root: "0 < n \<Longrightarrow> isCont (root n) x"
-apply (rule_tac x=x and y=0 in linorder_cases)
-apply (simp_all add: isCont_root_pos isCont_root_neg isCont_root_zero)
-done
+  have "isCont (root n) (?f (root n x))"
+    by (rule isCont_inverse_function [where f="?f" and d=1]) (auto simp: root_sgn_power n)
+  then show ?thesis
+    by (simp add: sgn_power_root n)
+qed (simp add: root_def[abs_def])
 
 lemma tendsto_real_root[tendsto_intros]:
-  "(f ---> x) F \<Longrightarrow> 0 < n \<Longrightarrow> ((\<lambda>x. root n (f x)) ---> root n x) F"
-  using isCont_tendsto_compose[OF isCont_real_root, of n f x F] .
+  "(f ---> x) F \<Longrightarrow> ((\<lambda>x. root n (f x)) ---> root n x) F"
+  using isCont_tendsto_compose[OF isCont_real_root, of f x F] .
 
 lemma continuous_real_root[continuous_intros]:
-  "continuous F f \<Longrightarrow> 0 < n \<Longrightarrow> continuous F (\<lambda>x. root n (f x))"
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. root n (f x))"
   unfolding continuous_def by (rule tendsto_real_root)
   
 lemma continuous_on_real_root[continuous_on_intros]:
-  "continuous_on s f \<Longrightarrow> 0 < n \<Longrightarrow> continuous_on s (\<lambda>x. root n (f x))"
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. root n (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_real_root)
 
 lemma DERIV_real_root:
@@ -363,9 +292,7 @@ proof (rule DERIV_inverse_function)
     by (rule DERIV_pow)
   show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using n x by simp
-  show "isCont (root n) x"
-    using n by (rule isCont_real_root)
-qed
+qed (rule isCont_real_root)
 
 lemma DERIV_odd_real_root:
   assumes n: "odd n"
@@ -380,9 +307,7 @@ proof (rule DERIV_inverse_function)
     by (rule DERIV_pow)
   show "real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using odd_pos [OF n] x by simp
-  show "isCont (root n) x"
-    using odd_pos [OF n] by (rule isCont_real_root)
-qed
+qed (rule isCont_real_root)
 
 lemma DERIV_even_real_root:
   assumes n: "0 < n" and "even n"
@@ -396,7 +321,7 @@ next
   proof (rule allI, rule impI, erule conjE)
     fix y assume "x - 1 < y" and "y < 0"
     hence "root n (-y) ^ n = -y" using `0 < n` by simp
-    with real_root_minus[OF `0 < n`] and `even n`
+    with real_root_minus and `even n`
     show "- (root n y ^ n) = y" by simp
   qed
 next
@@ -404,9 +329,7 @@ next
     by  (auto intro!: DERIV_intros)
   show "- real n * root n x ^ (n - Suc 0) \<noteq> 0"
     using n x by simp
-  show "isCont (root n) x"
-    using n by (rule isCont_real_root)
-qed
+qed (rule isCont_real_root)
 
 lemma DERIV_real_root_generic:
   assumes "0 < n" and "x \<noteq> 0"
@@ -421,8 +344,7 @@ using assms by (cases "even n", cases "0 < x",
 
 subsection {* Square Root *}
 
-definition
-  sqrt :: "real \<Rightarrow> real" where
+definition sqrt :: "real \<Rightarrow> real" where
   "sqrt = root 2"
 
 lemma pos2: "0 < (2::nat)" by simp
@@ -453,16 +375,16 @@ lemma real_sqrt_one [simp]: "sqrt 1 = 1"
 unfolding sqrt_def by (rule real_root_one [OF pos2])
 
 lemma real_sqrt_minus: "sqrt (- x) = - sqrt x"
-unfolding sqrt_def by (rule real_root_minus [OF pos2])
+unfolding sqrt_def by (rule real_root_minus)
 
 lemma real_sqrt_mult: "sqrt (x * y) = sqrt x * sqrt y"
-unfolding sqrt_def by (rule real_root_mult [OF pos2])
+unfolding sqrt_def by (rule real_root_mult)
 
 lemma real_sqrt_inverse: "sqrt (inverse x) = inverse (sqrt x)"
-unfolding sqrt_def by (rule real_root_inverse [OF pos2])
+unfolding sqrt_def by (rule real_root_inverse)
 
 lemma real_sqrt_divide: "sqrt (x / y) = sqrt x / sqrt y"
-unfolding sqrt_def by (rule real_root_divide [OF pos2])
+unfolding sqrt_def by (rule real_root_divide)
 
 lemma real_sqrt_power: "sqrt (x ^ k) = sqrt x ^ k"
 unfolding sqrt_def by (rule real_root_power [OF pos2])
@@ -471,7 +393,7 @@ lemma real_sqrt_gt_zero: "0 < x \<Longrightarrow> 0 < sqrt x"
 unfolding sqrt_def by (rule real_root_gt_zero [OF pos2])
 
 lemma real_sqrt_ge_zero: "0 \<le> x \<Longrightarrow> 0 \<le> sqrt x"
-unfolding sqrt_def by (rule real_root_ge_zero [OF pos2])
+unfolding sqrt_def by (rule real_root_ge_zero)
 
 lemma real_sqrt_less_mono: "x < y \<Longrightarrow> sqrt x < sqrt y"
 unfolding sqrt_def by (rule real_root_less_mono [OF pos2])
@@ -501,19 +423,19 @@ lemmas real_sqrt_le_1_iff [simp] = real_sqrt_le_iff [where y=1, simplified]
 lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, simplified]
 
 lemma isCont_real_sqrt: "isCont sqrt x"
-unfolding sqrt_def by (rule isCont_real_root [OF pos2])
+unfolding sqrt_def by (rule isCont_real_root)
 
 lemma tendsto_real_sqrt[tendsto_intros]:
   "(f ---> x) F \<Longrightarrow> ((\<lambda>x. sqrt (f x)) ---> sqrt x) F"
-  unfolding sqrt_def by (rule tendsto_real_root [OF _ pos2])
+  unfolding sqrt_def by (rule tendsto_real_root)
 
 lemma continuous_real_sqrt[continuous_intros]:
   "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sqrt (f x))"
-  unfolding sqrt_def by (rule continuous_real_root [OF _ pos2])
+  unfolding sqrt_def by (rule continuous_real_root)
   
 lemma continuous_on_real_sqrt[continuous_on_intros]:
   "continuous_on s f \<Longrightarrow> 0 < n \<Longrightarrow> continuous_on s (\<lambda>x. sqrt (f x))"
-  unfolding sqrt_def by (rule continuous_on_real_root [OF _ pos2])
+  unfolding sqrt_def by (rule continuous_on_real_root)
 
 lemma DERIV_real_sqrt_generic:
   assumes "x \<noteq> 0"

@@ -244,7 +244,7 @@ lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr neg_numeral n = 1 / x^nu
 
 lemma root_powr_inverse:
   "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
-by (auto simp: root_def powr_realpow[symmetric] powr_powr)
+  by (rule real_root_pos_unique) (auto simp: powr_realpow[symmetric] powr_powr)
 
 lemma ln_powr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
 by (unfold powr_def, simp)
