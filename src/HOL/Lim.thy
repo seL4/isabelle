@@ -10,27 +10,11 @@ theory Lim
 imports SEQ
 begin
 
-text{*Standard Definitions*}
-
-abbreviation
-  LIM :: "['a::topological_space \<Rightarrow> 'b::topological_space, 'a, 'b] \<Rightarrow> bool"
-        ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
-  "f -- a --> L \<equiv> (f ---> L) (at a)"
-
-definition
-  isCont :: "['a::topological_space \<Rightarrow> 'b::topological_space, 'a] \<Rightarrow> bool" where
-  "isCont f a = (f -- a --> (f a))"
-
 definition
   isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
   "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
 
 subsection {* Limits of Functions *}
-
-lemma LIM_def: "f -- a --> L =
-     (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & dist x a < s
-        --> dist (f x) L < r)"
-unfolding tendsto_iff eventually_at ..
 
 lemma metric_LIM_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r)
@@ -81,8 +65,6 @@ lemma LIM_offset_zero_cancel:
   shows "(\<lambda>h. f (a + h)) -- 0 --> L \<Longrightarrow> f -- a --> L"
 by (drule_tac k="- a" in LIM_offset, simp)
 
-lemma LIM_cong_limit: "\<lbrakk> f -- x --> L ; K = L \<rbrakk> \<Longrightarrow> f -- x --> K" by simp
-
 lemma LIM_zero:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. f x - l) ---> 0) F"
@@ -114,36 +96,6 @@ lemma LIM_imp_LIM:
   by (rule metric_LIM_imp_LIM [OF f],
     simp add: dist_norm le)
 
-lemma LIM_const_not_eq:
-  fixes a :: "'a::perfect_space"
-  fixes k L :: "'b::t2_space"
-  shows "k \<noteq> L \<Longrightarrow> \<not> (\<lambda>x. k) -- a --> L"
-  by (simp add: tendsto_const_iff)
-
-lemmas LIM_not_zero = LIM_const_not_eq [where L = 0]
-
-lemma LIM_const_eq:
-  fixes a :: "'a::perfect_space"
-  fixes k L :: "'b::t2_space"
-  shows "(\<lambda>x. k) -- a --> L \<Longrightarrow> k = L"
-  by (simp add: tendsto_const_iff)
-
-lemma LIM_unique:
-  fixes a :: "'a::perfect_space"
-  fixes L M :: "'b::t2_space"
-  shows "\<lbrakk>f -- a --> L; f -- a --> M\<rbrakk> \<Longrightarrow> L = M"
-  using at_neq_bot by (rule tendsto_unique)
-
-text{*Limits are equal for functions equal except at limit point*}
-lemma LIM_equal:
-     "[| \<forall>x. x \<noteq> a --> (f x = g x) |] ==> (f -- a --> l) = (g -- a --> l)"
-unfolding tendsto_def eventually_at_topological by simp
-
-lemma LIM_cong:
-  "\<lbrakk>a = b; \<And>x. x \<noteq> b \<Longrightarrow> f x = g x; l = m\<rbrakk>
-   \<Longrightarrow> ((\<lambda>x. f x) -- a --> l) = ((\<lambda>x. g x) -- b --> m)"
-by (simp add: LIM_equal)
-
 lemma metric_LIM_equal2:
   assumes 1: "0 < R"
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < R\<rbrakk> \<Longrightarrow> f x = g x"
@@ -163,13 +115,6 @@ lemma LIM_equal2:
   shows "g -- a --> l \<Longrightarrow> f -- a --> l"
 by (rule metric_LIM_equal2 [OF 1 2], simp_all add: dist_norm)
 
-lemma LIM_compose_eventually:
-  assumes f: "f -- a --> b"
-  assumes g: "g -- b --> c"
-  assumes inj: "eventually (\<lambda>x. f x \<noteq> b) (at a)"
-  shows "(\<lambda>x. g (f x)) -- a --> c"
-  using g f inj by (rule tendsto_compose_eventually)
-
 lemma metric_LIM_compose2:
   assumes f: "f -- a --> b"
   assumes g: "g -- b --> c"
@@ -186,16 +131,13 @@ lemma LIM_compose2:
   shows "(\<lambda>x. g (f x)) -- a --> c"
 by (rule metric_LIM_compose2 [OF f g inj [folded dist_norm]])
 
-lemma LIM_o: "\<lbrakk>g -- l --> g l; f -- a --> l\<rbrakk> \<Longrightarrow> (g \<circ> f) -- a --> g l"
-  unfolding o_def by (rule tendsto_compose)
-
 lemma real_LIM_sandwich_zero:
   fixes f g :: "'a::topological_space \<Rightarrow> real"
   assumes f: "f -- a --> 0"
   assumes 1: "\<And>x. x \<noteq> a \<Longrightarrow> 0 \<le> g x"
   assumes 2: "\<And>x. x \<noteq> a \<Longrightarrow> g x \<le> f x"
   shows "g -- a --> 0"
-proof (rule LIM_imp_LIM [OF f])
+proof (rule LIM_imp_LIM [OF f]) (* FIXME: use tendsto_sandwich *)
   fix x assume x: "x \<noteq> a"
   have "norm (g x - 0) = g x" by (simp add: 1 x)
   also have "g x \<le> f x" by (rule 2 [OF x])
@@ -216,12 +158,6 @@ lemma isCont_iff:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
   shows "isCont f x = (\<lambda>h. f (x + h)) -- 0 --> f x"
 by (simp add: isCont_def LIM_isCont_iff)
-
-lemma isCont_ident [simp]: "isCont (\<lambda>x. x) a"
-  unfolding isCont_def by (rule tendsto_ident_at)
-
-lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
-  unfolding isCont_def by (rule tendsto_const)
 
 lemma isCont_norm [simp]:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
@@ -263,10 +199,6 @@ lemma isCont_divide [simp]:
   shows "\<lbrakk>isCont f a; isCont g a; g a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x / g x) a"
   unfolding isCont_def by (rule tendsto_divide)
 
-lemma isCont_tendsto_compose:
-  "\<lbrakk>isCont g l; (f ---> l) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
-  unfolding isCont_def by (rule tendsto_compose)
-
 lemma metric_isCont_LIM_compose2:
   assumes f [unfolded isCont_def]: "isCont f a"
   assumes g: "g -- f a --> l"
@@ -281,12 +213,6 @@ lemma isCont_LIM_compose2:
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < d \<longrightarrow> f x \<noteq> f a"
   shows "(\<lambda>x. g (f x)) -- a --> l"
 by (rule LIM_compose2 [OF f g inj])
-
-lemma isCont_o2: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
-  unfolding isCont_def by (rule tendsto_compose)
-
-lemma isCont_o: "\<lbrakk>isCont f a; isCont g (f a)\<rbrakk> \<Longrightarrow> isCont (g o f) a"
-  unfolding o_def by (rule isCont_o2)
 
 lemma (in bounded_linear) isCont:
   "isCont g a \<Longrightarrow> isCont (\<lambda>x. f (g x)) a"
@@ -372,7 +298,7 @@ proof (rule ccontr)
   def F \<equiv> "\<lambda>n::nat. SOME x. x \<in> s \<and> x \<noteq> a \<and> dist x a < ?I n \<and> \<not> P x"
   assume "\<not> eventually P (at a within s)"
   hence P: "\<forall>d>0. \<exists>x. x \<in> s \<and> x \<noteq> a \<and> dist x a < d \<and> \<not> P x"
-    unfolding Limits.eventually_within Limits.eventually_at by fast
+    unfolding eventually_within eventually_at by fast
   hence "\<And>n. \<exists>x. x \<in> s \<and> x \<noteq> a \<and> dist x a < ?I n \<and> \<not> P x" by simp
   hence F: "\<And>n. F n \<in> s \<and> F n \<noteq> a \<and> dist (F n) a < ?I n \<and> \<not> P (F n)"
     unfolding F_def by (rule someI_ex)

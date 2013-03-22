@@ -1340,11 +1340,11 @@ lemma not_trivial_limit_within: "~trivial_limit (at x within S) = (x:closure(S-{
 
 text {* Some property holds "sufficiently close" to the limit point. *}
 
-lemma eventually_at: (* FIXME: this replaces Limits.eventually_at *)
+lemma eventually_at: (* FIXME: this replaces Metric_Spaces.eventually_at *)
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding eventually_at dist_nz by auto
 
-lemma eventually_within: (* FIXME: this replaces Limits.eventually_within *)
+lemma eventually_within: (* FIXME: this replaces Topological_Spaces.eventually_within *)
   "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
   by (rule eventually_within_less)
@@ -1448,12 +1448,12 @@ proof-
   from assms obtain T where T: "open T" "x \<in> T" "T \<subseteq> S" ..
   { assume "?lhs"
     then obtain A where "open A" "x \<in> A" "\<forall>y\<in>A. y \<noteq> x \<longrightarrow> y \<in> S \<longrightarrow> P y"
-      unfolding Limits.eventually_within Limits.eventually_at_topological
+      unfolding Limits.eventually_within eventually_at_topological
       by auto
     with T have "open (A \<inter> T)" "x \<in> A \<inter> T" "\<forall>y\<in>(A \<inter> T). y \<noteq> x \<longrightarrow> P y"
       by auto
     then have "?rhs"
-      unfolding Limits.eventually_at_topological by auto
+      unfolding eventually_at_topological by auto
   } moreover
   { assume "?rhs" hence "?lhs"
       unfolding Limits.eventually_within
