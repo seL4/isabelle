@@ -582,6 +582,16 @@ proof (rule tendstoI)
   qed
 qed
 
+lemma continuous_dist[continuous_intros]:
+  fixes f g :: "_ \<Rightarrow> 'a :: metric_space"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. dist (f x) (g x))"
+  unfolding continuous_def by (rule tendsto_dist)
+
+lemma continuous_on_dist[continuous_on_intros]:
+  fixes f g :: "_ \<Rightarrow> 'a :: metric_space"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. dist (f x) (g x))"
+  unfolding continuous_on_def by (auto intro: tendsto_dist)
+
 lemma tendsto_at_topI_sequentially:
   fixes f :: "real \<Rightarrow> real"
   assumes mono: "mono f"

@@ -117,15 +117,6 @@ proof -
     by (simp add: closed_vimage_fst closed_vimage_snd closed_Int)
 qed
 
-lemma openI: (* TODO: move *)
-  assumes "\<And>x. x \<in> S \<Longrightarrow> \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S"
-  shows "open S"
-proof -
-  have "open (\<Union>{T. open T \<and> T \<subseteq> S})" by auto
-  moreover have "\<Union>{T. open T \<and> T \<subseteq> S} = S" by (auto dest!: assms)
-  ultimately show "open S" by simp
-qed
-
 lemma subset_fst_imageI: "A \<times> B \<subseteq> S \<Longrightarrow> y \<in> B \<Longrightarrow> A \<subseteq> fst ` S"
   unfolding image_def subset_eq by force
 
@@ -202,15 +193,23 @@ proof (rule topological_tendstoI)
        (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
 qed
 
+lemma continuous_fst[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
+  unfolding continuous_def by (rule tendsto_fst)
+
+lemma continuous_snd[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. snd (f x))"
+  unfolding continuous_def by (rule tendsto_snd)
+
+lemma continuous_Pair[continuous_intros]: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
+  unfolding continuous_def by (rule tendsto_Pair)
+
 lemma isCont_fst [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. fst (f x)) a"
-  unfolding isCont_def by (rule tendsto_fst)
+  by (fact continuous_fst)
 
 lemma isCont_snd [simp]: "isCont f a \<Longrightarrow> isCont (\<lambda>x. snd (f x)) a"
-  unfolding isCont_def by (rule tendsto_snd)
+  by (fact continuous_snd)
 
-lemma isCont_Pair [simp]:
-  "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
-  unfolding isCont_def by (rule tendsto_Pair)
+lemma isCont_Pair [simp]: "\<lbrakk>isCont f a; isCont g a\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) a"
+  by (fact continuous_Pair)
 
 subsubsection {* Separation axioms *}
 

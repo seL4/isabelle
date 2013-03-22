@@ -236,6 +236,14 @@ lemma tendsto_norm [tendsto_intros]:
   "(f ---> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) F"
   unfolding norm_conv_dist by (intro tendsto_intros)
 
+lemma continuous_norm [continuous_intros]:
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. norm (f x))"
+  unfolding continuous_def by (rule tendsto_norm)
+
+lemma continuous_on_norm [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. norm (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_norm)
+
 lemma tendsto_norm_zero:
   "(f ---> 0) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> 0) F"
   by (drule tendsto_norm, simp)
@@ -251,6 +259,14 @@ lemma tendsto_norm_zero_iff:
 lemma tendsto_rabs [tendsto_intros]:
   "(f ---> (l::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> \<bar>l\<bar>) F"
   by (fold real_norm_def, rule tendsto_norm)
+
+lemma continuous_rabs [continuous_intros]:
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. \<bar>f x :: real\<bar>)"
+  unfolding real_norm_def[symmetric] by (rule continuous_norm)
+
+lemma continuous_on_rabs [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. \<bar>f x :: real\<bar>)"
+  unfolding real_norm_def[symmetric] by (rule continuous_on_norm)
 
 lemma tendsto_rabs_zero:
   "(f ---> (0::real)) F \<Longrightarrow> ((\<lambda>x. \<bar>f x\<bar>) ---> 0) F"
@@ -271,8 +287,18 @@ lemma tendsto_add [tendsto_intros]:
   shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) F"
   by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
 
+lemma continuous_add [continuous_intros]:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x + g x)"
+  unfolding continuous_def by (rule tendsto_add)
+
+lemma continuous_on_add [continuous_on_intros]:
+  fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
+  unfolding continuous_on_def by (auto intro: tendsto_add)
+
 lemma tendsto_add_zero:
-  fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "_ \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>(f ---> 0) F; (g ---> 0) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> 0) F"
   by (drule (1) tendsto_add, simp)
 
@@ -280,6 +306,16 @@ lemma tendsto_minus [tendsto_intros]:
   fixes a :: "'a::real_normed_vector"
   shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. - f x) ---> - a) F"
   by (simp only: tendsto_Zfun_iff minus_diff_minus Zfun_minus)
+
+lemma continuous_minus [continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
+  unfolding continuous_def by (rule tendsto_minus)
+
+lemma continuous_on_minus [continuous_on_intros]:
+  fixes f :: "_ \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
+  unfolding continuous_on_def by (auto intro: tendsto_minus)
 
 lemma tendsto_minus_cancel:
   fixes a :: "'a::real_normed_vector"
@@ -296,6 +332,16 @@ lemma tendsto_diff [tendsto_intros]:
   shows "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) F"
   by (simp add: diff_minus tendsto_add tendsto_minus)
 
+lemma continuous_diff [continuous_intros]:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
+  unfolding continuous_def by (rule tendsto_diff)
+
+lemma continuous_on_diff [continuous_on_intros]:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
+  unfolding continuous_on_def by (auto intro: tendsto_diff)
+
 lemma tendsto_setsum [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
   assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> a i) F"
@@ -308,6 +354,16 @@ next
     by (simp add: tendsto_const)
 qed
 
+lemma continuous_setsum [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::real_normed_vector"
+  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Sum>i\<in>S. f i x)"
+  unfolding continuous_def by (rule tendsto_setsum)
+
+lemma continuous_on_setsum [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> _ \<Rightarrow> 'c::real_normed_vector"
+  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Sum>i\<in>S. f i x)"
+  unfolding continuous_on_def by (auto intro: tendsto_setsum)
+
 lemmas real_tendsto_sandwich = tendsto_sandwich[where 'b=real]
 
 subsubsection {* Linear operators and multiplication *}
@@ -315,6 +371,14 @@ subsubsection {* Linear operators and multiplication *}
 lemma (in bounded_linear) tendsto:
   "(g ---> a) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) F"
   by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
+
+lemma (in bounded_linear) continuous:
+  "continuous F g \<Longrightarrow> continuous F (\<lambda>x. f (g x))"
+  using tendsto[of g _ F] by (auto simp: continuous_def)
+
+lemma (in bounded_linear) continuous_on:
+  "continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f (g x))"
+  using tendsto[of g] by (auto simp: continuous_on_def)
 
 lemma (in bounded_linear) tendsto_zero:
   "(g ---> 0) F \<Longrightarrow> ((\<lambda>x. f (g x)) ---> 0) F"
@@ -324,6 +388,14 @@ lemma (in bounded_bilinear) tendsto:
   "\<lbrakk>(f ---> a) F; (g ---> b) F\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) F"
   by (simp only: tendsto_Zfun_iff prod_diff_prod
                  Zfun_add Zfun Zfun_left Zfun_right)
+
+lemma (in bounded_bilinear) continuous:
+  "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. f x ** g x)"
+  using tendsto[of f _ F g] by (auto simp: continuous_def)
+
+lemma (in bounded_bilinear) continuous_on:
+  "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f x ** g x)"
+  using tendsto[of f _ _ g] by (auto simp: continuous_on_def)
 
 lemma (in bounded_bilinear) tendsto_zero:
   assumes f: "(f ---> 0) F"
@@ -348,6 +420,24 @@ lemmas tendsto_scaleR [tendsto_intros] =
 lemmas tendsto_mult [tendsto_intros] =
   bounded_bilinear.tendsto [OF bounded_bilinear_mult]
 
+lemmas continuous_of_real [continuous_intros] =
+  bounded_linear.continuous [OF bounded_linear_of_real]
+
+lemmas continuous_scaleR [continuous_intros] =
+  bounded_bilinear.continuous [OF bounded_bilinear_scaleR]
+
+lemmas continuous_mult [continuous_intros] =
+  bounded_bilinear.continuous [OF bounded_bilinear_mult]
+
+lemmas continuous_on_of_real [continuous_on_intros] =
+  bounded_linear.continuous_on [OF bounded_linear_of_real]
+
+lemmas continuous_on_scaleR [continuous_on_intros] =
+  bounded_bilinear.continuous_on [OF bounded_bilinear_scaleR]
+
+lemmas continuous_on_mult [continuous_on_intros] =
+  bounded_bilinear.continuous_on [OF bounded_bilinear_mult]
+
 lemmas tendsto_mult_zero =
   bounded_bilinear.tendsto_zero [OF bounded_bilinear_mult]
 
@@ -362,6 +452,16 @@ lemma tendsto_power [tendsto_intros]:
   shows "(f ---> a) F \<Longrightarrow> ((\<lambda>x. f x ^ n) ---> a ^ n) F"
   by (induct n) (simp_all add: tendsto_const tendsto_mult)
 
+lemma continuous_power [continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::{power,real_normed_algebra}"
+  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. (f x)^n)"
+  unfolding continuous_def by (rule tendsto_power)
+
+lemma continuous_on_power [continuous_on_intros]:
+  fixes f :: "_ \<Rightarrow> 'b::{power,real_normed_algebra}"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. (f x)^n)"
+  unfolding continuous_on_def by (auto intro: tendsto_power)
+
 lemma tendsto_setprod [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
   assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> L i) F"
@@ -373,6 +473,16 @@ next
   assume "\<not> finite S" thus ?thesis
     by (simp add: tendsto_const)
 qed
+
+lemma continuous_setprod [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
+  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous F (f i)) \<Longrightarrow> continuous F (\<lambda>x. \<Prod>i\<in>S. f i x)"
+  unfolding continuous_def by (rule tendsto_setprod)
+
+lemma continuous_on_setprod [continuous_intros]:
+  fixes f :: "'a \<Rightarrow> _ \<Rightarrow> 'c::{real_normed_algebra,comm_ring_1}"
+  shows "(\<And>i. i \<in> S \<Longrightarrow> continuous_on s (f i)) \<Longrightarrow> continuous_on s (\<lambda>x. \<Prod>i\<in>S. f i x)"
+  unfolding continuous_on_def by (auto intro: tendsto_setprod)
 
 subsubsection {* Inverse and division *}
 
@@ -483,16 +593,88 @@ proof -
     unfolding tendsto_Zfun_iff by (rule Zfun_ssubst)
 qed
 
+lemma continuous_inverse:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "continuous F f" and "f (Lim F (\<lambda>x. x)) \<noteq> 0"
+  shows "continuous F (\<lambda>x. inverse (f x))"
+  using assms unfolding continuous_def by (rule tendsto_inverse)
+
+lemma continuous_at_within_inverse[continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "continuous (at a within s) f" and "f a \<noteq> 0"
+  shows "continuous (at a within s) (\<lambda>x. inverse (f x))"
+  using assms unfolding continuous_within by (rule tendsto_inverse)
+
+lemma isCont_inverse[continuous_intros, simp]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "isCont f a" and "f a \<noteq> 0"
+  shows "isCont (\<lambda>x. inverse (f x)) a"
+  using assms unfolding continuous_at by (rule tendsto_inverse)
+
+lemma continuous_on_inverse[continuous_on_intros]:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
+  assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
+  shows "continuous_on s (\<lambda>x. inverse (f x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_inverse)
+
 lemma tendsto_divide [tendsto_intros]:
   fixes a b :: "'a::real_normed_field"
   shows "\<lbrakk>(f ---> a) F; (g ---> b) F; b \<noteq> 0\<rbrakk>
     \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) F"
   by (simp add: tendsto_mult tendsto_inverse divide_inverse)
 
+lemma continuous_divide:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_field"
+  assumes "continuous F f" and "continuous F g" and "g (Lim F (\<lambda>x. x)) \<noteq> 0"
+  shows "continuous F (\<lambda>x. (f x) / (g x))"
+  using assms unfolding continuous_def by (rule tendsto_divide)
+
+lemma continuous_at_within_divide[continuous_intros]:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_field"
+  assumes "continuous (at a within s) f" "continuous (at a within s) g" and "g a \<noteq> 0"
+  shows "continuous (at a within s) (\<lambda>x. (f x) / (g x))"
+  using assms unfolding continuous_within by (rule tendsto_divide)
+
+lemma isCont_divide[continuous_intros, simp]:
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_field"
+  assumes "isCont f a" "isCont g a" "g a \<noteq> 0"
+  shows "isCont (\<lambda>x. (f x) / g x) a"
+  using assms unfolding continuous_at by (rule tendsto_divide)
+
+lemma continuous_on_divide[continuous_on_intros]:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_field"
+  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. g x \<noteq> 0"
+  shows "continuous_on s (\<lambda>x. (f x) / (g x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_divide)
+
 lemma tendsto_sgn [tendsto_intros]:
   fixes l :: "'a::real_normed_vector"
   shows "\<lbrakk>(f ---> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) F"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
+
+lemma continuous_sgn:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "continuous F f" and "f (Lim F (\<lambda>x. x)) \<noteq> 0"
+  shows "continuous F (\<lambda>x. sgn (f x))"
+  using assms unfolding continuous_def by (rule tendsto_sgn)
+
+lemma continuous_at_within_sgn[continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "continuous (at a within s) f" and "f a \<noteq> 0"
+  shows "continuous (at a within s) (\<lambda>x. sgn (f x))"
+  using assms unfolding continuous_within by (rule tendsto_sgn)
+
+lemma isCont_sgn[continuous_intros]:
+  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "isCont f a" and "f a \<noteq> 0"
+  shows "isCont (\<lambda>x. sgn (f x)) a"
+  using assms unfolding continuous_at by (rule tendsto_sgn)
+
+lemma continuous_on_sgn[continuous_on_intros]:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
+  assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
+  shows "continuous_on s (\<lambda>x. sgn (f x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_sgn)
 
 lemma filterlim_at_infinity:
   fixes f :: "_ \<Rightarrow> 'a\<Colon>real_normed_vector"

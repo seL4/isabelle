@@ -21,6 +21,29 @@ definition
   "log a x = ln x / ln a"
 
 
+lemma tendsto_log [tendsto_intros]:
+  "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a; a \<noteq> 1; 0 < b\<rbrakk> \<Longrightarrow> ((\<lambda>x. log (f x) (g x)) ---> log a b) F"
+  unfolding log_def by (intro tendsto_intros) auto
+
+lemma continuous_log:
+  assumes "continuous F f" and "continuous F g" and "0 < f (Lim F (\<lambda>x. x))" and "f (Lim F (\<lambda>x. x)) \<noteq> 1" and "0 < g (Lim F (\<lambda>x. x))"
+  shows "continuous F (\<lambda>x. log (f x) (g x))"
+  using assms unfolding continuous_def by (rule tendsto_log)
+
+lemma continuous_at_within_log[continuous_intros]:
+  assumes "continuous (at a within s) f" "continuous (at a within s) g" and "0 < f a" and "f a \<noteq> 1" and "0 < g a"
+  shows "continuous (at a within s) (\<lambda>x. log (f x) (g x))"
+  using assms unfolding continuous_within by (rule tendsto_log)
+
+lemma isCont_log[continuous_intros, simp]:
+  assumes "isCont f a" "isCont g a" "0 < f a" "f a \<noteq> 1" "0 < g a"
+  shows "isCont (\<lambda>x. log (f x) (g x)) a"
+  using assms unfolding continuous_at by (rule tendsto_log)
+
+lemma continuous_on_log[continuous_on_intros]:
+  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. 0 < f x" "\<forall>x\<in>s. f x \<noteq> 1" "\<forall>x\<in>s. 0 < g x"
+  shows "continuous_on s (\<lambda>x. log (f x) (g x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_log)
 
 lemma powr_one_eq_one [simp]: "1 powr a = 1"
 by (simp add: powr_def)
@@ -337,6 +360,26 @@ qed
 lemma tendsto_powr [tendsto_intros]:
   "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x powr g x) ---> a powr b) F"
   unfolding powr_def by (intro tendsto_intros)
+
+lemma continuous_powr:
+  assumes "continuous F f" and "continuous F g" and "0 < f (Lim F (\<lambda>x. x))"
+  shows "continuous F (\<lambda>x. (f x) powr (g x))"
+  using assms unfolding continuous_def by (rule tendsto_powr)
+
+lemma continuous_at_within_powr[continuous_intros]:
+  assumes "continuous (at a within s) f" "continuous (at a within s) g" and "0 < f a"
+  shows "continuous (at a within s) (\<lambda>x. (f x) powr (g x))"
+  using assms unfolding continuous_within by (rule tendsto_powr)
+
+lemma isCont_powr[continuous_intros, simp]:
+  assumes "isCont f a" "isCont g a" "0 < f a"
+  shows "isCont (\<lambda>x. (f x) powr g x) a"
+  using assms unfolding continuous_at by (rule tendsto_powr)
+
+lemma continuous_on_powr[continuous_on_intros]:
+  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. 0 < f x"
+  shows "continuous_on s (\<lambda>x. (f x) powr (g x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_powr)
 
 (* FIXME: generalize by replacing d by with g x and g ---> d? *)
 lemma tendsto_zero_powrI:

@@ -338,6 +338,18 @@ apply (rule_tac x=x and y=0 in linorder_cases)
 apply (simp_all add: isCont_root_pos isCont_root_neg isCont_root_zero)
 done
 
+lemma tendsto_real_root[tendsto_intros]:
+  "(f ---> x) F \<Longrightarrow> 0 < n \<Longrightarrow> ((\<lambda>x. root n (f x)) ---> root n x) F"
+  using isCont_tendsto_compose[OF isCont_real_root, of n f x F] .
+
+lemma continuous_real_root[continuous_intros]:
+  "continuous F f \<Longrightarrow> 0 < n \<Longrightarrow> continuous F (\<lambda>x. root n (f x))"
+  unfolding continuous_def by (rule tendsto_real_root)
+  
+lemma continuous_on_real_root[continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> 0 < n \<Longrightarrow> continuous_on s (\<lambda>x. root n (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_real_root)
+
 lemma DERIV_real_root:
   assumes n: "0 < n"
   assumes x: "0 < x"
@@ -490,6 +502,18 @@ lemmas real_sqrt_eq_1_iff [simp] = real_sqrt_eq_iff [where y=1, simplified]
 
 lemma isCont_real_sqrt: "isCont sqrt x"
 unfolding sqrt_def by (rule isCont_real_root [OF pos2])
+
+lemma tendsto_real_sqrt[tendsto_intros]:
+  "(f ---> x) F \<Longrightarrow> ((\<lambda>x. sqrt (f x)) ---> sqrt x) F"
+  unfolding sqrt_def by (rule tendsto_real_root [OF _ pos2])
+
+lemma continuous_real_sqrt[continuous_intros]:
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sqrt (f x))"
+  unfolding sqrt_def by (rule continuous_real_root [OF _ pos2])
+  
+lemma continuous_on_real_sqrt[continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> 0 < n \<Longrightarrow> continuous_on s (\<lambda>x. sqrt (f x))"
+  unfolding sqrt_def by (rule continuous_on_real_root [OF _ pos2])
 
 lemma DERIV_real_sqrt_generic:
   assumes "x \<noteq> 0"

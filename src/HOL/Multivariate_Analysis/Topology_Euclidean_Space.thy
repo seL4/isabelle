@@ -1273,18 +1273,6 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 
 subsection {* Limits *}
 
-text{* Notation Lim to avoid collition with lim defined in analysis *}
-
-definition Lim :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b::t2_space) \<Rightarrow> 'b"
-  where "Lim A f = (THE l. (f ---> l) A)"
-
-text{* Uniqueness of the limit, when nontrivial. *}
-
-lemma tendsto_Lim:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space"
-  shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
-  unfolding Lim_def using tendsto_unique[of net f] by auto
-
 lemma Lim:
  "(f ---> l) net \<longleftrightarrow>
         trivial_limit net \<or>
@@ -3769,35 +3757,6 @@ qed
 
 subsection {* Continuity *}
 
-text {* Define continuity over a net to take in restrictions of the set. *}
-
-definition
-  continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool"
-  where "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
-
-lemma continuous_trivial_limit:
- "trivial_limit net ==> continuous net f"
-  unfolding continuous_def tendsto_def trivial_limit_eq by auto
-
-lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f(x)) (at x within s)"
-  unfolding continuous_def
-  unfolding tendsto_def
-  using netlimit_within[of x s]
-  by (cases "trivial_limit (at x within s)") (auto simp add: trivial_limit_eventually)
-
-lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (at x)"
-  using continuous_within [of x UNIV f] by simp
-
-lemma continuous_isCont: "isCont f x = continuous (at x) f"
-  unfolding isCont_def LIM_def
-  unfolding continuous_at Lim_at unfolding dist_nz by auto
-
-lemma continuous_at_within:
-  assumes "continuous (at x) f"  shows "continuous (at x within s) f"
-  using assms unfolding continuous_at continuous_within
-  by (rule Lim_at_within)
-
-
 text{* Derive the epsilon-delta forms, which we often use as "definitions" *}
 
 lemma continuous_within_eps_delta:
@@ -3843,20 +3802,6 @@ qed
 
 text{* Define setwise continuity in terms of limits within the set. *}
 
-definition
-  continuous_on ::
-    "'a set \<Rightarrow> ('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> bool"
-where
-  "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f ---> f x) (at x within s))"
-
-lemma continuous_on_topological:
-  "continuous_on s f \<longleftrightarrow>
-    (\<forall>x\<in>s. \<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow>
-      (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
-unfolding continuous_on_def tendsto_def
-unfolding Limits.eventually_within eventually_at_topological
-by (intro ball_cong [OF refl] all_cong imp_cong ex_cong conj_cong refl) auto
-
 lemma continuous_on_iff:
   "continuous_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
@@ -3884,38 +3829,7 @@ lemma continuous_at_imp_continuous_within:
   unfolding continuous_within continuous_at using Lim_at_within by auto
 
 lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f ---> l) net"
-unfolding tendsto_def by (simp add: trivial_limit_eq)
-
-lemma continuous_at_imp_continuous_on:
-  assumes "\<forall>x\<in>s. continuous (at x) f"
-  shows "continuous_on s f"
-unfolding continuous_on_def
-proof
-  fix x assume "x \<in> s"
-  with assms have *: "(f ---> f (netlimit (at x))) (at x)"
-    unfolding continuous_def by simp
-  have "(f ---> f x) (at x)"
-  proof (cases "trivial_limit (at x)")
-    case True thus ?thesis
-      by (rule Lim_trivial_limit)
-  next
-    case False
-    hence 1: "netlimit (at x) = x"
-      using netlimit_within [of x UNIV] by simp
-    with * show ?thesis by simp
-  qed
-  thus "(f ---> f x) (at x within s)"
-    by (rule Lim_at_within)
-qed
-
-lemma continuous_on_eq_continuous_within:
-  "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. continuous (at x within s) f)"
-unfolding continuous_on_def continuous_def
-apply (rule ball_cong [OF refl])
-apply (case_tac "trivial_limit (at x within s)")
-apply (simp add: Lim_trivial_limit)
-apply (simp add: netlimit_within)
-done
+  by simp
 
 lemmas continuous_on = continuous_on_def -- "legacy theorem name"
 
@@ -4056,168 +3970,31 @@ lemma continuous_transform_at:
 
 subsubsection {* Structural rules for pointwise continuity *}
 
-ML {*
+lemmas continuous_within_id = continuous_ident
 
-structure Continuous_Intros = Named_Thms
-(
-  val name = @{binding continuous_intros}
-  val description = "Structural introduction rules for pointwise continuity"
-)
-
-*}
-
-setup Continuous_Intros.setup
-
-lemma continuous_within_id[continuous_intros]: "continuous (at a within s) (\<lambda>x. x)"
-  unfolding continuous_within by (rule tendsto_ident_at_within)
-
-lemma continuous_at_id[continuous_intros]: "continuous (at a) (\<lambda>x. x)"
-  unfolding continuous_at by (rule tendsto_ident_at)
-
-lemma continuous_const[continuous_intros]: "continuous F (\<lambda>x. c)"
-  unfolding continuous_def by (rule tendsto_const)
-
-lemma continuous_fst[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
-  unfolding continuous_def by (rule tendsto_fst)
-
-lemma continuous_snd[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. snd (f x))"
-  unfolding continuous_def by (rule tendsto_snd)
-
-lemma continuous_Pair[continuous_intros]: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
-  unfolding continuous_def by (rule tendsto_Pair)
-
-lemma continuous_dist[continuous_intros]:
-  assumes "continuous F f" and "continuous F g"
-  shows "continuous F (\<lambda>x. dist (f x) (g x))"
-  using assms unfolding continuous_def by (rule tendsto_dist)
+lemmas continuous_at_id = isCont_ident
 
 lemma continuous_infdist[continuous_intros]:
   assumes "continuous F f"
   shows "continuous F (\<lambda>x. infdist (f x) A)"
   using assms unfolding continuous_def by (rule tendsto_infdist)
 
-lemma continuous_norm[continuous_intros]:
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. norm (f x))"
-  unfolding continuous_def by (rule tendsto_norm)
-
 lemma continuous_infnorm[continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. infnorm (f x))"
   unfolding continuous_def by (rule tendsto_infnorm)
-
-lemma continuous_add[continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x + g x)"
-  unfolding continuous_def by (rule tendsto_add)
-
-lemma continuous_minus[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
-  unfolding continuous_def by (rule tendsto_minus)
-
-lemma continuous_diff[continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
-  unfolding continuous_def by (rule tendsto_diff)
-
-lemma continuous_scaleR[continuous_intros]:
-  fixes g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x *\<^sub>R g x)"
-  unfolding continuous_def by (rule tendsto_scaleR)
-
-lemma continuous_mult[continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_algebra"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x * g x)"
-  unfolding continuous_def by (rule tendsto_mult)
 
 lemma continuous_inner[continuous_intros]:
   assumes "continuous F f" and "continuous F g"
   shows "continuous F (\<lambda>x. inner (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_inner)
 
-lemma continuous_inverse[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous F f" and "f (netlimit F) \<noteq> 0"
-  shows "continuous F (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_def by (rule tendsto_inverse)
-
-lemma continuous_at_within_inverse[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous (at a within s) f" and "f a \<noteq> 0"
-  shows "continuous (at a within s) (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_within by (rule tendsto_inverse)
-
-lemma continuous_at_inverse[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous (at a) f" and "f a \<noteq> 0"
-  shows "continuous (at a) (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_at by (rule tendsto_inverse)
+lemmas continuous_at_inverse = isCont_inverse
 
 subsubsection {* Structural rules for setwise continuity *}
-
-ML {*
-
-structure Continuous_On_Intros = Named_Thms
-(
-  val name = @{binding continuous_on_intros}
-  val description = "Structural introduction rules for setwise continuity"
-)
-
-*}
-
-setup Continuous_On_Intros.setup
-
-lemma continuous_on_id[continuous_on_intros]: "continuous_on s (\<lambda>x. x)"
-  unfolding continuous_on_def by (fast intro: tendsto_ident_at_within)
-
-lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_norm[continuous_on_intros]:
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. norm (f x))"
-  unfolding continuous_on_def by (fast intro: tendsto_norm)
 
 lemma continuous_on_infnorm[continuous_on_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
   unfolding continuous_on by (fast intro: tendsto_infnorm)
-
-lemma continuous_on_minus[continuous_on_intros]:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_add[continuous_on_intros]:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g
-           \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_diff[continuous_on_intros]:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g
-           \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma (in bounded_linear) continuous_on[continuous_on_intros]:
-  "continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f (g x))"
-  unfolding continuous_on_def by (fast intro: tendsto)
-
-lemma (in bounded_bilinear) continuous_on[continuous_on_intros]:
-  "\<lbrakk>continuous_on s f; continuous_on s g\<rbrakk> \<Longrightarrow> continuous_on s (\<lambda>x. f x ** g x)"
-  unfolding continuous_on_def by (fast intro: tendsto)
-
-lemma continuous_on_scaleR[continuous_on_intros]:
-  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "continuous_on s f" and "continuous_on s g"
-  shows "continuous_on s (\<lambda>x. f x *\<^sub>R g x)"
-  using bounded_bilinear_scaleR assms
-  by (rule bounded_bilinear.continuous_on)
-
-lemma continuous_on_mult[continuous_on_intros]:
-  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra"
-  assumes "continuous_on s f" and "continuous_on s g"
-  shows "continuous_on s (\<lambda>x. f x * g x)"
-  using bounded_bilinear_mult assms
-  by (rule bounded_bilinear.continuous_on)
 
 lemma continuous_on_inner[continuous_on_intros]:
   fixes g :: "'a::topological_space \<Rightarrow> 'b::real_inner"
@@ -4225,12 +4002,6 @@ lemma continuous_on_inner[continuous_on_intros]:
   shows "continuous_on s (\<lambda>x. inner (f x) (g x))"
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
-
-lemma continuous_on_inverse[continuous_on_intros]:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
-  shows "continuous_on s (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_on by (fast intro: tendsto_inverse)
 
 subsubsection {* Structural rules for uniform continuity *}
 
@@ -4312,33 +4083,7 @@ lemma uniformly_continuous_on_diff[continuous_on_intros]:
 
 text{* Continuity of all kinds is preserved under composition. *}
 
-lemma continuous_within_topological:
-  "continuous (at x within s) f \<longleftrightarrow>
-    (\<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow>
-      (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
-unfolding continuous_within
-unfolding tendsto_def Limits.eventually_within eventually_at_topological
-by (intro ball_cong [OF refl] all_cong imp_cong ex_cong conj_cong refl) auto
-
-lemma continuous_within_compose[continuous_intros]:
-  assumes "continuous (at x within s) f"
-  assumes "continuous (at (f x) within f ` s) g"
-  shows "continuous (at x within s) (g o f)"
-using assms unfolding continuous_within_topological by simp metis
-
-lemma continuous_at_compose[continuous_intros]:
-  assumes "continuous (at x) f" and "continuous (at (f x)) g"
-  shows "continuous (at x) (g o f)"
-proof-
-  have "continuous (at (f x) within range f) g" using assms(2)
-    using continuous_within_subset[of "f x" UNIV g "range f"] by simp
-  thus ?thesis using assms(1)
-    using continuous_within_compose[of x UNIV f g] by simp
-qed
-
-lemma continuous_on_compose[continuous_on_intros]:
-  "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
-  unfolding continuous_on_topological by simp metis
+lemmas continuous_at_compose = isCont_o
 
 lemma uniformly_continuous_on_compose[continuous_on_intros]:
   assumes "uniformly_continuous_on s f"  "uniformly_continuous_on (f ` s) g"
@@ -5182,8 +4927,7 @@ proof-
   have "compact (s \<times> s)" using `compact s` by (intro compact_Times)
   moreover have "s \<times> s \<noteq> {}" using `s \<noteq> {}` by auto
   moreover have "continuous_on (s \<times> s) (\<lambda>x. dist (fst x) (snd x))"
-    by (intro continuous_at_imp_continuous_on ballI continuous_dist
-      continuous_isCont[THEN iffD1] isCont_fst isCont_snd isCont_ident)
+    by (intro continuous_at_imp_continuous_on ballI continuous_intros)
   ultimately show ?thesis
     using continuous_attains_sup[of "s \<times> s" "\<lambda>x. dist (fst x) (snd x)"] by auto
 qed
@@ -5873,7 +5617,7 @@ lemma isCont_closed_vimage:
   by (rule isCont_open_vimage)
 
 lemma open_Collect_less:
-  fixes f g :: "'a::topological_space \<Rightarrow> real"
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
   assumes f: "\<And>x. isCont f x"
   assumes g: "\<And>x. isCont g x"
   shows "open {x. f x < g x}"
@@ -5887,7 +5631,7 @@ proof -
 qed
 
 lemma closed_Collect_le:
-  fixes f g :: "'a::topological_space \<Rightarrow> real"
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
   assumes f: "\<And>x. isCont f x"
   assumes g: "\<And>x. isCont g x"
   shows "closed {x. f x \<le> g x}"
@@ -5901,7 +5645,7 @@ proof -
 qed
 
 lemma closed_Collect_eq:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::t2_space"
   assumes f: "\<And>x. isCont f x"
   assumes g: "\<And>x. isCont g x"
   shows "closed {x. f x = g x}"

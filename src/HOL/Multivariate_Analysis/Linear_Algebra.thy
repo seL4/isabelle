@@ -22,7 +22,7 @@ proof -
 qed
 
 lemma square_continuous: "0 < (e::real) ==> \<exists>d. 0 < d \<and> (\<forall>y. abs(y - x) < d \<longrightarrow> abs(y * y - x * x) < e)"
-  using isCont_power[OF isCont_ident, of 2, unfolded isCont_def LIM_eq, rule_format, of e x]
+  using isCont_power[OF isCont_ident, of x, unfolded isCont_def LIM_eq, rule_format, of e 2]
   apply (auto simp add: power2_eq_square)
   apply (rule_tac x="s" in exI)
   apply auto

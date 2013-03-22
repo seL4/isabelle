@@ -8,6 +8,14 @@ theory Path_Connected
 imports Convex_Euclidean_Space
 begin
 
+lemma continuous_on_cong: (* MOVE to Topological_Spaces *)
+  "s = t \<Longrightarrow> (\<And>x. x \<in> t \<Longrightarrow> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
+  unfolding continuous_on_def by (intro ball_cong Lim_cong_within) auto
+
+lemma continuous_on_compose2:
+  shows "continuous_on t g \<Longrightarrow> continuous_on s f \<Longrightarrow> t = f ` s \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
+  using continuous_on_compose[of s f g] by (simp add: comp_def)
+
 subsection {* Paths. *}
 
 definition path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
@@ -111,106 +119,32 @@ lemma path_join[simp]:
   assumes "pathfinish g1 = pathstart g2"
   shows "path (g1 +++ g2) \<longleftrightarrow> path g1 \<and> path g2"
   unfolding path_def pathfinish_def pathstart_def
-  apply rule defer
-  apply(erule conjE)
-proof -
-  assume as: "continuous_on {0..1} (g1 +++ g2)"
-  have *: "g1 = (\<lambda>x. g1 (2 *\<^sub>R x)) \<circ> (\<lambda>x. (1/2) *\<^sub>R x)"
-      "g2 = (\<lambda>x. g2 (2 *\<^sub>R x - 1)) \<circ> (\<lambda>x. (1/2) *\<^sub>R (x + 1))"
-    unfolding o_def by (auto simp add: add_divide_distrib)
-  have "op *\<^sub>R (1 / 2) ` {0::real..1} \<subseteq> {0..1}"
-    "(\<lambda>x. (1 / 2) *\<^sub>R (x + 1)) ` {(0::real)..1} \<subseteq> {0..1}"
-    by auto
-  then show "continuous_on {0..1} g1 \<and> continuous_on {0..1} g2"
-    apply -
-    apply rule
-    apply (subst *) defer
-    apply (subst *)
-    apply (rule_tac[!] continuous_on_compose)
-    apply (intro continuous_on_intros) defer
-    apply (intro continuous_on_intros)
-    apply (rule_tac[!] continuous_on_eq[of _ "g1 +++ g2"]) defer prefer 3
-    apply (rule_tac[1-2] continuous_on_subset[of "{0 .. 1}"])
-    apply (rule as, assumption, rule as, assumption)
-    apply rule defer
-    apply rule
-  proof -
-    fix x
-    assume "x \<in> op *\<^sub>R (1 / 2) ` {0::real..1}"
-    then have "x \<le> 1 / 2" unfolding image_iff by auto
-    then show "(g1 +++ g2) x = g1 (2 *\<^sub>R x)" unfolding joinpaths_def by auto
-  next
-    fix x
-    assume "x \<in> (\<lambda>x. (1 / 2) *\<^sub>R (x + 1)) ` {0::real..1}"
-    then have "x \<ge> 1 / 2" unfolding image_iff by auto
-    then show "(g1 +++ g2) x = g2 (2 *\<^sub>R x - 1)"
-    proof (cases "x = 1 / 2")
-      case True
-      then have "x = (1/2) *\<^sub>R 1" by auto
-      then show ?thesis
-        unfolding joinpaths_def
-        using assms[unfolded pathstart_def pathfinish_def]
-        by (auto simp add: mult_ac)
-    qed (auto simp add:le_less joinpaths_def)
-  qed
+proof safe
+  assume cont: "continuous_on {0..1} (g1 +++ g2)"
+  have g1: "continuous_on {0..1} g1 \<longleftrightarrow> continuous_on {0..1} ((g1 +++ g2) \<circ> (\<lambda>x. x / 2))"
+    by (intro continuous_on_cong refl) (auto simp: joinpaths_def)
+  have g2: "continuous_on {0..1} g2 \<longleftrightarrow> continuous_on {0..1} ((g1 +++ g2) \<circ> (\<lambda>x. x / 2 + 1/2))"
+    using assms by (intro continuous_on_cong refl) (auto simp: joinpaths_def pathfinish_def pathstart_def)
+  show "continuous_on {0..1} g1" "continuous_on {0..1} g2"
+    unfolding g1 g2 by (auto intro!: continuous_on_intros continuous_on_subset[OF cont])
 next
-  assume as:"continuous_on {0..1} g1" "continuous_on {0..1} g2"
-  have *: "{0 .. 1::real} = {0.. (1/2)*\<^sub>R 1} \<union> {(1/2) *\<^sub>R 1 .. 1}" by auto
-  have **: "op *\<^sub>R 2 ` {0..(1 / 2) *\<^sub>R 1} = {0..1::real}"
-    apply (rule set_eqI, rule)
-    unfolding image_iff
-    defer
-    apply (rule_tac x="(1/2)*\<^sub>R x" in bexI)
-    apply auto
-    done
-  have ***: "(\<lambda>x. 2 *\<^sub>R x - 1) ` {(1 / 2) *\<^sub>R 1..1} = {0..1::real}"
-    apply (auto simp add: image_def)
-    apply (rule_tac x="(x + 1) / 2" in bexI)
-    apply (auto simp add: add_divide_distrib)
-    done
+  assume g1g2: "continuous_on {0..1} g1" "continuous_on {0..1} g2"
+  have 01: "{0 .. 1} = {0..1/2} \<union> {1/2 .. 1::real}"
+    by auto
+  { fix x :: real assume "0 \<le> x" "x \<le> 1" then have "x \<in> (\<lambda>x. x * 2) ` {0..1 / 2}"
+      by (intro image_eqI[where x="x/2"]) auto }
+  note 1 = this
+  { fix x :: real assume "0 \<le> x" "x \<le> 1" then have "x \<in> (\<lambda>x. x * 2 - 1) ` {1 / 2..1}"
+      by (intro image_eqI[where x="x/2 + 1/2"]) auto }
+  note 2 = this
   show "continuous_on {0..1} (g1 +++ g2)"
-    unfolding *
-    apply (rule continuous_on_union)
-    apply (rule closed_real_atLeastAtMost)+
-  proof -
-    show "continuous_on {0..(1 / 2) *\<^sub>R 1} (g1 +++ g2)"
-      apply (rule continuous_on_eq[of _ "\<lambda>x. g1 (2 *\<^sub>R x)"]) defer
-      unfolding o_def[THEN sym]
-      apply (rule continuous_on_compose)
-      apply (intro continuous_on_intros)
-      unfolding **
-      apply (rule as(1))
-      unfolding joinpaths_def
-      apply auto
-      done
-  next
-    show "continuous_on {(1/2)*\<^sub>R1..1} (g1 +++ g2)"
-      apply (rule continuous_on_eq[of _ "g2 \<circ> (\<lambda>x. 2 *\<^sub>R x - 1)"]) defer
-      apply (rule continuous_on_compose)
-      apply (intro continuous_on_intros)
-      unfolding *** o_def joinpaths_def
-      apply (rule as(2))
-      using assms[unfolded pathstart_def pathfinish_def]
-      apply (auto simp add: mult_ac)  
-      done
-  qed
+    using assms unfolding joinpaths_def 01
+    by (intro continuous_on_cases closed_atLeastAtMost g1g2[THEN continuous_on_compose2] continuous_on_intros)
+       (auto simp: field_simps pathfinish_def pathstart_def intro!: 1 2)
 qed
 
 lemma path_image_join_subset: "path_image(g1 +++ g2) \<subseteq> (path_image g1 \<union> path_image g2)"
-proof
-  fix x
-  assume "x \<in> path_image (g1 +++ g2)"
-  then obtain y where y:"y\<in>{0..1}" "x = (if y \<le> 1 / 2 then g1 (2 *\<^sub>R y) else g2 (2 *\<^sub>R y - 1))"
-    unfolding path_image_def image_iff joinpaths_def by auto
-  then show "x \<in> path_image g1 \<union> path_image g2"
-    apply (cases "y \<le> 1/2")
-    apply (rule_tac UnI1) defer
-    apply (rule_tac UnI2)
-    unfolding y(2) path_image_def
-    using y(1)
-    apply (auto intro!: imageI)
-    done
-qed
+  unfolding path_image_def joinpaths_def by auto
 
 lemma subset_path_image_join:
   assumes "path_image g1 \<subseteq> s" "path_image g2 \<subseteq> s"
@@ -218,7 +152,7 @@ lemma subset_path_image_join:
   using path_image_join_subset[of g1 g2] and assms by auto
 
 lemma path_image_join:
-  assumes "path g1" "path g2" "pathfinish g1 = pathstart g2"
+  assumes "pathfinish g1 = pathstart g2"
   shows "path_image(g1 +++ g2) = (path_image g1) \<union> (path_image g2)"
   apply (rule, rule path_image_join_subset, rule)
   unfolding Un_iff
@@ -240,7 +174,7 @@ next
   then show "x \<in> path_image (g1 +++ g2)"
     unfolding joinpaths_def path_image_def image_iff
     apply(rule_tac x="(1/2) *\<^sub>R (y + 1)" in bexI)
-    using assms(3)[unfolded pathfinish_def pathstart_def]
+    using assms(1)[unfolded pathfinish_def pathstart_def]
     apply (auto simp add: add_divide_distrib) 
     done
 qed

@@ -39,6 +39,15 @@ lemma open_Inter [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \
 lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
   unfolding INF_def by (rule open_Inter) auto
 
+lemma openI:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S"
+  shows "open S"
+proof -
+  have "open (\<Union>{T. open T \<and> T \<subseteq> S})" by auto
+  moreover have "\<Union>{T. open T \<and> T \<subseteq> S} = S" by (auto dest!: assms)
+  ultimately show "open S" by simp
+qed
+
 lemma closed_empty [intro, simp]:  "closed {}"
   unfolding closed_def by simp
 
@@ -835,6 +844,9 @@ abbreviation (in topological_space)
   tendsto :: "('b \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'b filter \<Rightarrow> bool" (infixr "--->" 55) where
   "(f ---> l) F \<equiv> filterlim f (nhds l) F"
 
+definition (in t2_space) Lim :: "'f filter \<Rightarrow> ('f \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  "Lim A f = (THE l. (f ---> l) A)"
+
 lemma tendsto_eq_rhs: "(f ---> x) F \<Longrightarrow> x = y \<Longrightarrow> (f ---> y) F"
   by simp
 
@@ -919,11 +931,10 @@ lemma tendsto_ident_at_within [tendsto_intros]:
   "((\<lambda>x. x) ---> a) (at a within S)"
   unfolding tendsto_def eventually_within eventually_at_topological by auto
 
-lemma tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) F"
+lemma (in topological_space) tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) F"
   by (simp add: tendsto_def)
 
-lemma tendsto_unique:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space"
+lemma (in t2_space) tendsto_unique:
   assumes "\<not> trivial_limit F" and "(f ---> a) F" and "(f ---> b) F"
   shows "a = b"
 proof (rule ccontr)
@@ -946,9 +957,8 @@ proof (rule ccontr)
     by (simp add: trivial_limit_def)
 qed
 
-lemma tendsto_const_iff:
-  fixes a b :: "'a::t2_space"
-  assumes "\<not> trivial_limit F" shows "((\<lambda>x. a) ---> b) F \<longleftrightarrow> a = b"
+lemma (in t2_space) tendsto_const_iff:
+  assumes "\<not> trivial_limit F" shows "((\<lambda>x. a :: 'a) ---> b) F \<longleftrightarrow> a = b"
   by (safe intro!: tendsto_const tendsto_unique [OF assms tendsto_const])
 
 lemma increasing_tendsto:
@@ -1002,6 +1012,18 @@ lemma tendsto_le_const:
   assumes x: "(f ---> x) F" and a: "eventually (\<lambda>x. a \<le> f x) F"
   shows "a \<le> x"
   using F x tendsto_const a by (rule tendsto_le)
+
+subsubsection {* Rules about @{const Lim} *}
+
+lemma (in t2_space) tendsto_Lim:
+  "\<not>(trivial_limit net) \<Longrightarrow> (f ---> l) net \<Longrightarrow> Lim net f = l"
+  unfolding Lim_def using tendsto_unique[of net f] by auto
+
+lemma Lim_ident_at: "\<not> trivial_limit (at x) \<Longrightarrow> Lim (at x) (\<lambda>x. x) = x"
+  by (rule tendsto_Lim[OF _ tendsto_ident_at]) auto
+
+lemma Lim_ident_at_within: "\<not> trivial_limit (at x within s) \<Longrightarrow> Lim (at x within s) (\<lambda>x. x) = x"
+  by (rule tendsto_Lim[OF _ tendsto_ident_at_within]) auto
 
 subsection {* Limits to @{const at_top} and @{const at_bot} *}
 
@@ -1132,13 +1154,14 @@ abbreviation (in topological_space)
     ("((_)/ ----> (_))" [60, 60] 60) where
   "X ----> L \<equiv> (X ---> L) sequentially"
 
-definition
-  lim :: "(nat \<Rightarrow> 'a::t2_space) \<Rightarrow> 'a" where
-    --{*Standard definition of limit using choice operator*}
-  "lim X = (THE L. X ----> L)"
+abbreviation (in t2_space) lim :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  "lim X \<equiv> Lim sequentially X"
 
 definition (in topological_space) convergent :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "convergent X = (\<exists>L. X ----> L)"
+
+lemma lim_def: "lim X = (THE L. X ----> L)"
+  unfolding Lim_def ..
 
 subsubsection {* Monotone sequences and subsequences *}
 
@@ -1608,23 +1631,154 @@ lemma LIMSEQ_SEQ_conv:
 
 subsection {* Continuity *}
 
-definition isCont :: "('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> bool" where
-  "isCont f a \<longleftrightarrow> f -- a --> f a"
+subsubsection {* Continuity on a set *}
 
-lemma isCont_ident [simp]: "isCont (\<lambda>x. x) a"
-  unfolding isCont_def by (rule tendsto_ident_at)
+definition continuous_on :: "'a set \<Rightarrow> ('a :: topological_space \<Rightarrow> 'b :: topological_space) \<Rightarrow> bool" where
+  "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f ---> f x) (at x within s))"
 
-lemma isCont_const [simp]: "isCont (\<lambda>x. k) a"
-  unfolding isCont_def by (rule tendsto_const)
+lemma continuous_on_topological:
+  "continuous_on s f \<longleftrightarrow>
+    (\<forall>x\<in>s. \<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow> (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
+  unfolding continuous_on_def tendsto_def eventually_within eventually_at_topological by metis
 
-lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f ---> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
-  unfolding isCont_def by (rule tendsto_compose)
+lemma continuous_on_open_invariant:
+  "continuous_on s f \<longleftrightarrow> (\<forall>B. open B \<longrightarrow> (\<exists>A. open A \<and> A \<inter> s = f -` B \<inter> s))"
+proof safe
+  fix B :: "'b set" assume "continuous_on s f" "open B"
+  then have "\<forall>x\<in>f -` B \<inter> s. (\<exists>A. open A \<and> x \<in> A \<and> s \<inter> A \<subseteq> f -` B)"
+    by (auto simp: continuous_on_topological subset_eq Ball_def imp_conjL)
+  then guess A unfolding bchoice_iff ..
+  then show "\<exists>A. open A \<and> A \<inter> s = f -` B \<inter> s"
+    by (intro exI[of _ "\<Union>x\<in>f -` B \<inter> s. A x"]) auto
+next
+  assume B: "\<forall>B. open B \<longrightarrow> (\<exists>A. open A \<and> A \<inter> s = f -` B \<inter> s)"
+  show "continuous_on s f"
+    unfolding continuous_on_topological
+  proof safe
+    fix x B assume "x \<in> s" "open B" "f x \<in> B"
+    with B obtain A where A: "open A" "A \<inter> s = f -` B \<inter> s" by auto
+    with `x \<in> s` `f x \<in> B` show "\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)"
+      by (intro exI[of _ A]) auto
+  qed
+qed
+
+lemma continuous_on_closed_invariant:
+  "continuous_on s f \<longleftrightarrow> (\<forall>B. closed B \<longrightarrow> (\<exists>A. closed A \<and> A \<inter> s = f -` B \<inter> s))"
+proof -
+  have *: "\<And>P Q::'b set\<Rightarrow>bool. (\<And>A. P A \<longleftrightarrow> Q (- A)) \<Longrightarrow> (\<forall>A. P A) \<longleftrightarrow> (\<forall>A. Q A)"
+    by (metis double_compl)
+  show ?thesis
+    unfolding continuous_on_open_invariant by (intro *) (auto simp: open_closed[symmetric])
+qed
+
+ML {*
+
+structure Continuous_On_Intros = Named_Thms
+(
+  val name = @{binding continuous_on_intros}
+  val description = "Structural introduction rules for setwise continuity"
+)
+
+*}
+
+setup Continuous_On_Intros.setup
+
+lemma continuous_on_id[continuous_on_intros]: "continuous_on s (\<lambda>x. x)"
+  unfolding continuous_on_def by (fast intro: tendsto_ident_at_within)
+
+lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c)"
+  unfolding continuous_on_def by (auto intro: tendsto_const)
+
+lemma continuous_on_compose[continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
+  unfolding continuous_on_topological by simp metis
+
+subsubsection {* Continuity at a point *}
+
+definition continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool" where
+  "continuous F f \<longleftrightarrow> (f ---> f (Lim F (\<lambda>x. x))) F"
+
+ML {*
+
+structure Continuous_Intros = Named_Thms
+(
+  val name = @{binding continuous_intros}
+  val description = "Structural introduction rules for pointwise continuity"
+)
+
+*}
+
+setup Continuous_Intros.setup
+
+lemma continuous_bot[continuous_intros, simp]: "continuous bot f"
+  unfolding continuous_def by auto
+
+lemma continuous_trivial_limit: "trivial_limit net \<Longrightarrow> continuous net f"
+  by simp
+
+lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f x) (at x within s)"
+  by (cases "trivial_limit (at x within s)") (auto simp add: Lim_ident_at_within continuous_def)
+
+lemma continuous_within_topological:
+  "continuous (at x within s) f \<longleftrightarrow>
+    (\<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow> (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
+  unfolding continuous_within tendsto_def eventually_within eventually_at_topological by metis
+
+lemma continuous_within_compose[continuous_intros]:
+  "continuous (at x within s) f \<Longrightarrow> continuous (at (f x) within f ` s) g \<Longrightarrow>
+  continuous (at x within s) (g o f)"
+  by (simp add: continuous_within_topological) metis
+
+lemma continuous_within_compose2:
+  "continuous (at x within s) f \<Longrightarrow> continuous (at (f x) within f ` s) g \<Longrightarrow>
+  continuous (at x within s) (\<lambda>x. g (f x))"
+  using continuous_within_compose[of x s f g] by (simp add: comp_def)
+
+lemma continuous_at: "continuous (at x) f \<longleftrightarrow> f -- x --> f x"
+  using continuous_within[of x UNIV f] by simp
+
+lemma continuous_ident[continuous_intros, simp]: "continuous (at x within S) (\<lambda>x. x)"
+  unfolding continuous_within by (rule tendsto_ident_at_within)
+
+lemma continuous_const[continuous_intros, simp]: "continuous F (\<lambda>x. c)"
+  unfolding continuous_def by (rule tendsto_const)
+
+lemma continuous_on_eq_continuous_within:
+  "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. continuous (at x within s) f)"
+  unfolding continuous_on_def continuous_within ..
+
+abbreviation isCont :: "('a::t2_space \<Rightarrow> 'b::topological_space) \<Rightarrow> 'a \<Rightarrow> bool" where
+  "isCont f a \<equiv> continuous (at a) f"
+
+lemma isCont_def: "isCont f a \<longleftrightarrow> f -- a --> f a"
+  by (rule continuous_at)
+
+lemma continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"
+  by (auto intro: within_le filterlim_mono simp: continuous_at continuous_within)
+
+lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longrightarrow> continuous_on s f"
+  by (auto intro: continuous_at_within simp: continuous_on_eq_continuous_within)
+
+lemma isContI_continuous: "continuous (at x within UNIV) f \<Longrightarrow> isCont f x"
+  by simp
+
+lemma isCont_ident[continuous_intros, simp]: "isCont (\<lambda>x. x) a"
+  using continuous_ident by (rule isContI_continuous)
+
+lemmas isCont_const = continuous_const
 
 lemma isCont_o2: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (\<lambda>x. g (f x)) a"
   unfolding isCont_def by (rule tendsto_compose)
 
-lemma isCont_o: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (g o f) a"
+lemma isCont_o[continuous_intros]: "isCont f a \<Longrightarrow> isCont g (f a) \<Longrightarrow> isCont (g \<circ> f) a"
   unfolding o_def by (rule isCont_o2)
+
+lemma isCont_tendsto_compose: "isCont g l \<Longrightarrow> (f ---> l) F \<Longrightarrow> ((\<lambda>x. g (f x)) ---> g l) F"
+  unfolding isCont_def by (rule tendsto_compose)
+
+lemma continuous_within_compose3:
+  "isCont g (f x) \<Longrightarrow> continuous (at x within s) f \<Longrightarrow> continuous (at x within s) (\<lambda>x. g (f x))"
+  using continuous_within_compose2[of x s f g] by (simp add: continuous_at_within)
 
 end
 

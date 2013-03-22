@@ -675,11 +675,6 @@ lemma borel_measurable_times[measurable (raw)]:
   by (rule borel_measurable_continuous_Pair)
      (auto intro: continuous_on_fst continuous_on_snd continuous_on_mult)
 
-lemma continuous_on_dist:
-  fixes f :: "'a :: t2_space \<Rightarrow> 'b :: metric_space"
-  shows "continuous_on A f \<Longrightarrow> continuous_on A g \<Longrightarrow> continuous_on A (\<lambda>x. dist (f x) (g x))"
-  unfolding continuous_on_eq_continuous_within by (auto simp: continuous_dist)
-
 lemma borel_measurable_dist[measurable (raw)]:
   fixes g f :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
   assumes f: "f \<in> borel_measurable M"
@@ -794,8 +789,7 @@ proof -
   have "(\<lambda>x. if f x \<in> {0<..} then ln (f x) else ln 0) \<in> borel_measurable M"
   proof (rule borel_measurable_continuous_on_open[OF _ _ f])
     show "continuous_on {0<..} ln"
-      by (auto intro!: continuous_at_imp_continuous_on DERIV_ln DERIV_isCont
-               simp: continuous_isCont[symmetric])
+      by (auto intro!: continuous_at_imp_continuous_on DERIV_ln DERIV_isCont)
     show "open ({0<..}::real set)" by auto
   qed
   also have "(\<lambda>x. if x \<in> {0<..} then ln x else ln 0) = ln"
@@ -808,8 +802,7 @@ lemma borel_measurable_log[measurable (raw)]:
   unfolding log_def by auto
 
 lemma borel_measurable_exp[measurable]: "exp \<in> borel_measurable borel"
-  by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI
-            continuous_isCont[THEN iffD1] isCont_exp)
+  by (intro borel_measurable_continuous_on1 continuous_at_imp_continuous_on ballI isCont_exp)
 
 lemma measurable_count_space_eq2_countable:
   fixes f :: "'a => 'c::countable"
