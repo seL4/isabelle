@@ -2362,28 +2362,6 @@ lemma Inf_insert_finite:
 
 subsection {* Compactness *}
 
-subsubsection{* Open-cover compactness *}
-
-definition compact :: "'a::topological_space set \<Rightarrow> bool" where
-  compact_eq_heine_borel: -- "This name is used for backwards compatibility"
-    "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
-
-lemma compactI:
-  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union> C \<Longrightarrow> \<exists>C'. C' \<subseteq> C \<and> finite C' \<and> s \<subseteq> \<Union> C'"
-  shows "compact s"
-  unfolding compact_eq_heine_borel using assms by metis
-
-lemma compactE:
-  assumes "compact s" and "\<forall>t\<in>C. open t" and "s \<subseteq> \<Union>C"
-  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> \<Union>C'"
-  using assms unfolding compact_eq_heine_borel by metis
-
-lemma compactE_image:
-  assumes "compact s" and "\<forall>t\<in>C. open (f t)" and "s \<subseteq> (\<Union>c\<in>C. f c)"
-  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> (\<Union>c\<in>C'. f c)"
-  using assms unfolding ball_simps[symmetric] SUP_def
-  by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
-
 subsubsection {* Bolzano-Weierstrass property *}
 
 lemma heine_borel_imp_bolzano_weierstrass:
@@ -2620,11 +2598,6 @@ proof -
 qed
 
 text{* In particular, some common special cases. *}
-
-lemma compact_empty[simp]:
- "compact {}"
-  unfolding compact_eq_heine_borel
-  by auto
 
 lemma compact_union [intro]:
   assumes "compact s" "compact t" shows " compact (s \<union> t)"
@@ -4523,40 +4496,6 @@ next
   qed
 qed
 
-lemma compact_continuous_image:
-  assumes "continuous_on s f" and "compact s"
-  shows "compact (f ` s)"
-using assms (* FIXME: long unstructured proof *)
-unfolding continuous_on_open
-unfolding compact_eq_openin_cover
-apply clarify
-apply (drule_tac x="image (\<lambda>t. {x \<in> s. f x \<in> t}) C" in spec)
-apply (drule mp)
-apply (rule conjI)
-apply simp
-apply clarsimp
-apply (drule subsetD)
-apply (erule imageI)
-apply fast
-apply (erule thin_rl)
-apply clarify
-apply (rule_tac x="image (inv_into C (\<lambda>t. {x \<in> s. f x \<in> t})) D" in exI)
-apply (intro conjI)
-apply clarify
-apply (rule inv_into_into)
-apply (erule (1) subsetD)
-apply (erule finite_imageI)
-apply (clarsimp, rename_tac x)
-apply (drule (1) subsetD, clarify)
-apply (drule (1) subsetD, clarify)
-apply (rule rev_bexI)
-apply assumption
-apply (subgoal_tac "{x \<in> s. f x \<in> t} \<in> (\<lambda>t. {x \<in> s. f x \<in> t}) ` C")
-apply (drule f_inv_into_f)
-apply fast
-apply (erule imageI)
-done
-
 lemma connected_continuous_image:
   assumes "continuous_on s f"  "connected s"
   shows "connected(f ` s)"
@@ -4709,56 +4648,6 @@ lemma continuous_on_real_range:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
   shows "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d --> abs(f x' - f x) < e))"
   unfolding continuous_on_iff dist_norm by simp
-
-lemma compact_attains_sup:
-  fixes S :: "'a::linorder_topology set"
-  assumes "compact S" "S \<noteq> {}"
-  shows "\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s"
-proof (rule classical)
-  assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s)"
-  then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. s < t s"
-    by (metis not_le)
-  then have "\<forall>s\<in>S. open {..< t s}" "S \<subseteq> (\<Union>s\<in>S. {..< t s})"
-    by auto
-  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {..< t s})"
-    by (erule compactE_image)
-  with `S \<noteq> {}` have Max: "Max (t`C) \<in> t`C" and "\<forall>s\<in>t`C. s \<le> Max (t`C)"
-    by (auto intro!: Max_in)
-  with C have "S \<subseteq> {..< Max (t`C)}"
-    by (auto intro: less_le_trans simp: subset_eq)
-  with t Max `C \<subseteq> S` show ?thesis
-    by fastforce
-qed
-
-lemma compact_attains_inf:
-  fixes S :: "'a::linorder_topology set"
-  assumes "compact S" "S \<noteq> {}"
-  shows "\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t"
-proof (rule classical)
-  assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t)"
-  then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. t s < s"
-    by (metis not_le)
-  then have "\<forall>s\<in>S. open {t s <..}" "S \<subseteq> (\<Union>s\<in>S. {t s <..})"
-    by auto
-  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {t s <..})"
-    by (erule compactE_image)
-  with `S \<noteq> {}` have Min: "Min (t`C) \<in> t`C" and "\<forall>s\<in>t`C. Min (t`C) \<le> s"
-    by (auto intro!: Min_in)
-  with C have "S \<subseteq> {Min (t`C) <..}"
-    by (auto intro: le_less_trans simp: subset_eq)
-  with t Min `C \<subseteq> S` show ?thesis
-    by fastforce
-qed
-
-lemma continuous_attains_sup:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
-  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s.  f y \<le> f x)"
-  using compact_attains_sup[of "f ` s"] compact_continuous_image[of s f] by auto
-
-lemma continuous_attains_inf:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
-  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s. f x \<le> f y)"
-  using compact_attains_inf[of "f ` s"] compact_continuous_image[of s f] by auto
 
 text {* Hence some handy theorems on distance, diameter etc. of/from a set. *}
 

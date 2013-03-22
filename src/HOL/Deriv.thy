@@ -566,102 +566,71 @@ apply (blast intro: IVT2)
 done
 
 
+lemma compact_Icc[simp, intro]: "compact {a .. b::real}"
+proof (cases "a \<le> b", rule compactI)
+  fix C assume C: "a \<le> b" "\<forall>t\<in>C. open t" "{a..b} \<subseteq> \<Union>C"
+  def T == "{a .. b}"
+  from C(1,3) show "\<exists>C'\<subseteq>C. finite C' \<and> {a..b} \<subseteq> \<Union>C'"
+  proof (induct rule: Bolzano)
+    case (trans a b c)
+    then have *: "{a .. c} = {a .. b} \<union> {b .. c}" by auto
+    from trans obtain C1 C2 where "C1\<subseteq>C \<and> finite C1 \<and> {a..b} \<subseteq> \<Union>C1" "C2\<subseteq>C \<and> finite C2 \<and> {b..c} \<subseteq> \<Union>C2"
+      by (auto simp: *)
+    with trans show ?case
+      unfolding * by (intro exI[of _ "C1 \<union> C2"]) auto
+  next
+    case (local x)
+    then have "x \<in> \<Union>C" using C by auto
+    with C(2) obtain c where "x \<in> c" "open c" "c \<in> C" by auto
+    then obtain e where "0 < e" "{x - e <..< x + e} \<subseteq> c"
+      by (auto simp: open_real_def dist_real_def subset_eq Ball_def abs_less_iff)
+    with `c \<in> C` show ?case
+      by (safe intro!: exI[of _ "e/2"] exI[of _ "{c}"]) auto
+  qed
+qed simp
+
 subsection {* Boundedness of continuous functions *}
 
 text{*By bisection, function continuous on closed interval is bounded above*}
 
+lemma isCont_eq_Ub:
+  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
+  shows "a \<le> b \<Longrightarrow> \<forall>x::real. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
+    \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M) \<and> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
+  using continuous_attains_sup[of "{a .. b}" f]
+  apply (simp add: continuous_at_imp_continuous_on Ball_def)
+  apply safe
+  apply (rule_tac x="f x" in exI)
+  apply auto
+  done
+
+lemma isCont_eq_Lb:
+  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
+  shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
+    \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> M \<le> f x) \<and> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
+  using continuous_attains_inf[of "{a .. b}" f]
+  apply (simp add: continuous_at_imp_continuous_on Ball_def)
+  apply safe
+  apply (rule_tac x="f x" in exI)
+  apply auto
+  done
+
 lemma isCont_bounded:
-     "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-      ==> \<exists>M::real. \<forall>x::real. a \<le> x & x \<le> b --> f(x) \<le> M"
-apply (cut_tac P = "% (u,v) . a \<le> u & u \<le> v & v \<le> b --> (\<exists>M. \<forall>x. u \<le> x & x \<le> v --> f x \<le> M)" in lemma_BOLZANO2)
-apply safe
-apply simp_all
-apply (rename_tac x xa ya M Ma)
-apply (metis linorder_not_less order_le_less order_trans)
-apply (case_tac "a \<le> x & x \<le> b")
- prefer 2
- apply (rule_tac x = 1 in exI, force)
-apply (simp add: LIM_eq isCont_iff)
-apply (drule_tac x = x in spec, auto)
-apply (erule_tac V = "\<forall>M. \<exists>x. a \<le> x & x \<le> b & ~ f x \<le> M" in thin_rl)
-apply (drule_tac x = 1 in spec, auto)
-apply (rule_tac x = s in exI, clarify)
-apply (rule_tac x = "\<bar>f x\<bar> + 1" in exI, clarify)
-apply (drule_tac x = "xa-x" in spec)
-apply (auto simp add: abs_ge_self)
-done
+  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
+  shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow> \<exists>M. \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M"
+  using isCont_eq_Ub[of a b f] by auto
+
+lemma isCont_has_Ub:
+  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
+  shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
+    \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M) \<and> (\<forall>N. N < M \<longrightarrow> (\<exists>x. a \<le> x \<and> x \<le> b \<and> N < f x))"
+  using isCont_eq_Ub[of a b f] by auto
 
 text{*Refine the above to existence of least upper bound*}
 
 lemma lemma_reals_complete: "((\<exists>x. x \<in> S) & (\<exists>y. isUb UNIV S (y::real))) -->
       (\<exists>t. isLub UNIV S t)"
 by (blast intro: reals_complete)
-
-lemma isCont_has_Ub: "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-         ==> \<exists>M::real. (\<forall>x::real. a \<le> x & x \<le> b --> f(x) \<le> M) &
-                   (\<forall>N. N < M --> (\<exists>x. a \<le> x & x \<le> b & N < f(x)))"
-apply (cut_tac S = "Collect (%y. \<exists>x. a \<le> x & x \<le> b & y = f x)"
-        in lemma_reals_complete)
-apply auto
-apply (drule isCont_bounded, assumption)
-apply (auto simp add: isUb_def leastP_def isLub_def setge_def setle_def)
-apply (rule exI, auto)
-apply (auto dest!: spec simp add: linorder_not_less)
-done
-
-text{*Now show that it attains its upper bound*}
-
-lemma isCont_eq_Ub:
-  assumes le: "a \<le> b"
-      and con: "\<forall>x::real. a \<le> x & x \<le> b --> isCont f x"
-  shows "\<exists>M::real. (\<forall>x. a \<le> x & x \<le> b --> f(x) \<le> M) &
-             (\<exists>x. a \<le> x & x \<le> b & f(x) = M)"
-proof -
-  from isCont_has_Ub [OF le con]
-  obtain M where M1: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M"
-             and M2: "!!N. N<M ==> \<exists>x. a \<le> x \<and> x \<le> b \<and> N < f x"  by blast
-  show ?thesis
-  proof (intro exI, intro conjI)
-    show " \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M" by (rule M1)
-    show "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M"
-    proof (rule ccontr)
-      assume "\<not> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
-      with M1 have M3: "\<forall>x. a \<le> x & x \<le> b --> f x < M"
-        by (fastforce simp add: linorder_not_le [symmetric])
-      hence "\<forall>x. a \<le> x & x \<le> b --> isCont (%x. inverse (M - f x)) x"
-        by (auto simp add: con)
-      from isCont_bounded [OF le this]
-      obtain k where k: "!!x. a \<le> x & x \<le> b --> inverse (M - f x) \<le> k" by auto
-      have Minv: "!!x. a \<le> x & x \<le> b --> 0 < inverse (M - f (x))"
-        by (simp add: M3 algebra_simps)
-      have "!!x. a \<le> x & x \<le> b --> inverse (M - f x) < k+1" using k
-        by (auto intro: order_le_less_trans [of _ k])
-      with Minv
-      have "!!x. a \<le> x & x \<le> b --> inverse(k+1) < inverse(inverse(M - f x))"
-        by (intro strip less_imp_inverse_less, simp_all)
-      hence invlt: "!!x. a \<le> x & x \<le> b --> inverse(k+1) < M - f x"
-        by simp
-      have "M - inverse (k+1) < M" using k [of a] Minv [of a] le
-        by (simp, arith)
-      from M2 [OF this]
-      obtain x where ax: "a \<le> x & x \<le> b & M - inverse(k+1) < f x" ..
-      thus False using invlt [of x] by force
-    qed
-  qed
-qed
-
-
-text{*Same theorem for lower bound*}
-
-lemma isCont_eq_Lb: "[| a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-         ==> \<exists>M::real. (\<forall>x::real. a \<le> x & x \<le> b --> M \<le> f(x)) &
-                   (\<exists>x. a \<le> x & x \<le> b & f(x) = M)"
-apply (subgoal_tac "\<forall>x. a \<le> x & x \<le> b --> isCont (%x. - (f x)) x")
-prefer 2 apply (blast intro: isCont_minus)
-apply (drule_tac f = "(%x. - (f x))" in isCont_eq_Ub)
-apply safe
-apply auto
-done
 
 
 text{*Another version.*}
