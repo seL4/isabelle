@@ -207,7 +207,7 @@ proof -
     thus "\<exists> N. \<forall> n \<ge> N. norm (- a (2 * n) - 0) < r" by auto
   qed
   ultimately
-  show ?thesis by (rule lemma_nest_unique)
+  show ?thesis by (rule nested_sequence_unique)
 qed
 
 lemma summable_Leibniz': fixes a :: "nat \<Rightarrow> real"

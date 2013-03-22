@@ -373,16 +373,13 @@ proof -
   have "convergent (\<lambda>n. setsum f {0..<n})"
     proof (rule Bseq_mono_convergent)
       show "Bseq (\<lambda>n. setsum f {0..<n})"
-        by (rule f_inc_g_dec_Beq_f [of "(\<lambda>n. setsum f {0..<n})" "\<lambda>n. x"])
-           (auto simp add: le pos)
+        by (intro BseqI'[of _ x]) (auto simp add: setsum_nonneg pos intro: le)
     next
       show "\<forall>m n. m \<le> n \<longrightarrow> setsum f {0..<m} \<le> setsum f {0..<n}"
         by (auto intro: setsum_mono2 pos)
     qed
-  then obtain L where "(%n. setsum f {0..<n}) ----> L"
-    by (blast dest: convergentD)
   thus ?thesis
-    by (force simp add: summable_def sums_def)
+    by (force simp add: summable_def sums_def convergent_def)
 qed
 
 lemma series_pos_le:

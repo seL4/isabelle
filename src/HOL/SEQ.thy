@@ -301,6 +301,43 @@ lemma CauchyD:
   shows "\<lbrakk>Cauchy X; 0 < e\<rbrakk> \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e"
 by (simp add: Cauchy_iff)
 
+lemma Bseq_eq_bounded: "range f \<subseteq> {a .. b::real} \<Longrightarrow> Bseq f"
+  apply (simp add: subset_eq)
+  apply (rule BseqI'[where K="max (norm a) (norm b)"])
+  apply (erule_tac x=n in allE)
+  apply auto
+  done
+
+lemma incseq_bounded: "incseq X \<Longrightarrow> \<forall>i. X i \<le> (B::real) \<Longrightarrow> Bseq X"
+  by (intro Bseq_eq_bounded[of X "X 0" B]) (auto simp: incseq_def)
+
+lemma decseq_bounded: "decseq X \<Longrightarrow> \<forall>i. (B::real) \<le> X i \<Longrightarrow> Bseq X"
+  by (intro Bseq_eq_bounded[of X B "X 0"]) (auto simp: decseq_def)
+
+lemma incseq_convergent:
+  fixes X :: "nat \<Rightarrow> real"
+  assumes "incseq X" and "\<forall>i. X i \<le> B"
+  obtains L where "X ----> L" "\<forall>i. X i \<le> L"
+proof atomize_elim
+  from incseq_bounded[OF assms] `incseq X` Bseq_monoseq_convergent[of X]
+  obtain L where "X ----> L"
+    by (auto simp: convergent_def monoseq_def incseq_def)
+  with `incseq X` show "\<exists>L. X ----> L \<and> (\<forall>i. X i \<le> L)"
+    by (auto intro!: exI[of _ L] incseq_le)
+qed
+
+lemma decseq_convergent:
+  fixes X :: "nat \<Rightarrow> real"
+  assumes "decseq X" and "\<forall>i. B \<le> X i"
+  obtains L where "X ----> L" "\<forall>i. L \<le> X i"
+proof atomize_elim
+  from decseq_bounded[OF assms] `decseq X` Bseq_monoseq_convergent[of X]
+  obtain L where "X ----> L"
+    by (auto simp: convergent_def monoseq_def decseq_def)
+  with `decseq X` show "\<exists>L. X ----> L \<and> (\<forall>i. L \<le> X i)"
+    by (auto intro!: exI[of _ L] decseq_le)
+qed
+
 subsubsection {* Cauchy Sequences are Bounded *}
 
 text{*A Cauchy sequence is bounded -- this is the standard

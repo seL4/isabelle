@@ -425,80 +425,27 @@ lemma differentiable_power [simp]:
 
 subsection {* Nested Intervals and Bisection *}
 
-text{*Lemmas about nested intervals and proof by bisection (cf.Harrison).
-     All considerably tidied by lcp.*}
+lemma nested_sequence_unique:
+  assumes "\<forall>n. f n \<le> f (Suc n)" "\<forall>n. g (Suc n) \<le> g n" "\<forall>n. f n \<le> g n" "(\<lambda>n. f n - g n) ----> 0"
+  shows "\<exists>l::real. ((\<forall>n. f n \<le> l) \<and> f ----> l) \<and> ((\<forall>n. l \<le> g n) \<and> g ----> l)"
+proof -
+  have "incseq f" unfolding incseq_Suc_iff by fact
+  have "decseq g" unfolding decseq_Suc_iff by fact
 
-lemma lemma_f_mono_add [rule_format (no_asm)]: "(\<forall>n. (f::nat=>real) n \<le> f (Suc n)) --> f m \<le> f(m + no)"
-apply (induct "no")
-apply (auto intro: order_trans)
-done
-
-lemma f_inc_g_dec_Beq_f: "[| \<forall>n. f(n) \<le> f(Suc n);
-         \<forall>n. g(Suc n) \<le> g(n);
-         \<forall>n. f(n) \<le> g(n) |]
-      ==> Bseq (f :: nat \<Rightarrow> real)"
-apply (rule_tac k = "f 0" and K = "g 0" in BseqI2, rule allI)
-apply (rule conjI)
-apply (induct_tac "n")
-apply (auto intro: order_trans)
-apply (rule_tac y = "g n" in order_trans)
-apply (induct_tac [2] "n")
-apply (auto intro: order_trans)
-done
-
-lemma f_inc_g_dec_Beq_g: "[| \<forall>n. f(n) \<le> f(Suc n);
-         \<forall>n. g(Suc n) \<le> g(n);
-         \<forall>n. f(n) \<le> g(n) |]
-      ==> Bseq (g :: nat \<Rightarrow> real)"
-apply (subst Bseq_minus_iff [symmetric])
-apply (rule_tac g = "%x. - (f x)" in f_inc_g_dec_Beq_f)
-apply auto
-done
-
-lemma f_inc_imp_le_lim:
-  fixes f :: "nat \<Rightarrow> real"
-  shows "\<lbrakk>\<forall>n. f n \<le> f (Suc n); convergent f\<rbrakk> \<Longrightarrow> f n \<le> lim f"
-  by (rule incseq_le, simp add: incseq_SucI, simp add: convergent_LIMSEQ_iff)
-
-lemma lim_uminus:
-  fixes g :: "nat \<Rightarrow> 'a::real_normed_vector"
-  shows "convergent g ==> lim (%x. - g x) = - (lim g)"
-apply (rule tendsto_minus [THEN limI])
-apply (simp add: convergent_LIMSEQ_iff)
-done
-
-lemma g_dec_imp_lim_le:
-  fixes g :: "nat \<Rightarrow> real"
-  shows "\<lbrakk>\<forall>n. g (Suc n) \<le> g(n); convergent g\<rbrakk> \<Longrightarrow> lim g \<le> g n"
-  by (rule decseq_le, simp add: decseq_SucI, simp add: convergent_LIMSEQ_iff)
-
-lemma lemma_nest: "[| \<forall>n. f(n) \<le> f(Suc n);
-         \<forall>n. g(Suc n) \<le> g(n);
-         \<forall>n. f(n) \<le> g(n) |]
-      ==> \<exists>l m :: real. l \<le> m &  ((\<forall>n. f(n) \<le> l) & f ----> l) &
-                            ((\<forall>n. m \<le> g(n)) & g ----> m)"
-apply (subgoal_tac "monoseq f & monoseq g")
-prefer 2 apply (force simp add: LIMSEQ_iff monoseq_Suc)
-apply (subgoal_tac "Bseq f & Bseq g")
-prefer 2 apply (blast intro: f_inc_g_dec_Beq_f f_inc_g_dec_Beq_g)
-apply (auto dest!: Bseq_monoseq_convergent simp add: convergent_LIMSEQ_iff)
-apply (rule_tac x = "lim f" in exI)
-apply (rule_tac x = "lim g" in exI)
-apply (auto intro: LIMSEQ_le)
-apply (auto simp add: f_inc_imp_le_lim g_dec_imp_lim_le convergent_LIMSEQ_iff)
-done
-
-lemma lemma_nest_unique: "[| \<forall>n. f(n) \<le> f(Suc n);
-         \<forall>n. g(Suc n) \<le> g(n);
-         \<forall>n. f(n) \<le> g(n);
-         (%n. f(n) - g(n)) ----> 0 |]
-      ==> \<exists>l::real. ((\<forall>n. f(n) \<le> l) & f ----> l) &
-                ((\<forall>n. l \<le> g(n)) & g ----> l)"
-apply (drule lemma_nest, auto)
-apply (subgoal_tac "l = m")
-apply (drule_tac [2] f = f in tendsto_diff)
-apply (auto intro: LIMSEQ_unique)
-done
+  { fix n
+    from `decseq g` have "g n \<le> g 0" by (rule decseqD) simp
+    with `\<forall>n. f n \<le> g n`[THEN spec, of n] have "f n \<le> g 0" by auto }
+  then obtain u where "f ----> u" "\<forall>i. f i \<le> u"
+    using incseq_convergent[OF `incseq f`] by auto
+  moreover
+  { fix n
+    from `incseq f` have "f 0 \<le> f n" by (rule incseqD) simp
+    with `\<forall>n. f n \<le> g n`[THEN spec, of n] have "f 0 \<le> g n" by simp }
+  then obtain l where "g ----> l" "\<forall>i. l \<le> g i"
+    using decseq_convergent[OF `decseq g`] by auto
+  moreover note LIMSEQ_unique[OF assms(4) tendsto_diff[OF `f ----> u` `g ----> l`]]
+  ultimately show ?thesis by auto
+qed
 
 lemma Bolzano[consumes 1, case_names trans local]:
   fixes P :: "real \<Rightarrow> real \<Rightarrow> bool"
@@ -516,7 +463,7 @@ proof -
   { fix n have "l n \<le> u n" by (induct n) auto } note this[simp]
 
   have "\<exists>x. ((\<forall>n. l n \<le> x) \<and> l ----> x) \<and> ((\<forall>n. x \<le> u n) \<and> u ----> x)"
-  proof (safe intro!: lemma_nest_unique)
+  proof (safe intro!: nested_sequence_unique)
     fix n show "l n \<le> l (Suc n)" "u (Suc n) \<le> u n" by (induct n) auto
   next
     { fix n have "l n - u n = (a - b) / 2^n" by (induct n) (auto simp: field_simps) }
