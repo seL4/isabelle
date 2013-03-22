@@ -236,35 +236,27 @@ proof
     by (elim neqE) (metis open_lessThan open_greaterThan Int_commute)+
 qed
 
-lemma open_right:
-  fixes S :: "'a :: {no_top, linorder_topology} set"
-  assumes "open S" "x \<in> S" shows "\<exists>b>x. {x ..< b} \<subseteq> S"
+lemma (in linorder_topology) open_right:
+  assumes "open S" "x \<in> S" and gt_ex: "x < y" shows "\<exists>b>x. {x ..< b} \<subseteq> S"
   using assms unfolding open_generated_order
 proof induction
   case (Int A B)
   then obtain a b where "a > x" "{x ..< a} \<subseteq> A"  "b > x" "{x ..< b} \<subseteq> B" by auto
   then show ?case by (auto intro!: exI[of _ "min a b"])
 next
-  case (Basis S)
-  moreover from gt_ex[of x] guess b ..
-  ultimately show ?case by (fastforce intro: exI[of _ b])
-qed (fastforce intro: gt_ex)+
+  case (Basis S) then show ?case by (fastforce intro: exI[of _ y] gt_ex)
+qed blast+
 
-lemma open_left:
-  fixes S :: "'a :: {no_bot, linorder_topology} set"
-  assumes "open S" "x \<in> S" shows "\<exists>b<x. {b <.. x} \<subseteq> S"
+lemma (in linorder_topology) open_left:
+  assumes "open S" "x \<in> S" and lt_ex: "y < x" shows "\<exists>b<x. {b <.. x} \<subseteq> S"
   using assms unfolding open_generated_order
 proof induction
   case (Int A B)
   then obtain a b where "a < x" "{a <.. x} \<subseteq> A"  "b < x" "{b <.. x} \<subseteq> B" by auto
   then show ?case by (auto intro!: exI[of _ "max a b"])
 next
-  case (Basis S)
-  moreover from lt_ex[of x] guess b ..
-  ultimately show ?case by (fastforce intro: exI[of _ b])
-next
-  case UN then show ?case by blast
-qed (fastforce intro: lt_ex)
+  case (Basis S) then show ?case by (fastforce intro: exI[of _ y] lt_ex)
+qed blast+
 
 subsection {* Filters *}
 
@@ -744,8 +736,9 @@ lemma eventually_at_right:
   shows "eventually P (at_right x) \<longleftrightarrow> (\<exists>b. x < b \<and> (\<forall>z. x < z \<and> z < b \<longrightarrow> P z))"
   unfolding eventually_nhds eventually_within at_def
 proof safe
-  fix S assume "open S" "x \<in> S"
-  note open_right[OF this]
+  from gt_ex[of x] guess y ..
+  moreover fix S assume "open S" "x \<in> S" note open_right[OF this, of y]
+  moreover note gt_ex[of x]
   moreover assume "\<forall>s\<in>S. s \<in> - {x} \<longrightarrow> s \<in> {x<..} \<longrightarrow> P s"
   ultimately show "\<exists>b>x. \<forall>z. x < z \<and> z < b \<longrightarrow> P z"
     by (auto simp: subset_eq Ball_def)
@@ -760,8 +753,8 @@ lemma eventually_at_left:
   shows "eventually P (at_left x) \<longleftrightarrow> (\<exists>b. x > b \<and> (\<forall>z. b < z \<and> z < x \<longrightarrow> P z))"
   unfolding eventually_nhds eventually_within at_def
 proof safe
-  fix S assume "open S" "x \<in> S"
-  note open_left[OF this]
+  from lt_ex[of x] guess y ..
+  moreover fix S assume "open S" "x \<in> S" note open_left[OF this, of y]
   moreover assume "\<forall>s\<in>S. s \<in> - {x} \<longrightarrow> s \<in> {..<x} \<longrightarrow> P s"
   ultimately show "\<exists>b<x. \<forall>z. b < z \<and> z < x \<longrightarrow> P z"
     by (auto simp: subset_eq Ball_def)
@@ -1482,7 +1475,7 @@ proof atomize_elim
       (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially)"
   proof (safe intro!: exI[of _ F])
     fix i
-    show "open (F i)" using nhds(1) by (auto simp: F_def intro!: open_INT)
+    show "open (F i)" using nhds(1) by (auto simp: F_def)
     show "x \<in> F i" using nhds(2) by (auto simp: F_def)
   next
     fix S assume "open S" "x \<in> S"
@@ -1872,6 +1865,66 @@ lemma continuous_attains_inf:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
   shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s. f x \<le> f y)"
   using compact_attains_inf[of "f ` s"] compact_continuous_image[of s f] by auto
+
+
+subsection {* Connectedness *}
+
+context topological_space
+begin
+
+definition "connected S \<longleftrightarrow>
+  \<not> (\<exists>A B. open A \<and> open B \<and> S \<subseteq> A \<union> B \<and> A \<inter> B \<inter> S = {} \<and> A \<inter> S \<noteq> {} \<and> B \<inter> S \<noteq> {})"
+
+lemma connectedI:
+  "(\<And>A B. open A \<Longrightarrow> open B \<Longrightarrow> A \<inter> U \<noteq> {} \<Longrightarrow> B \<inter> U \<noteq> {} \<Longrightarrow> A \<inter> B \<inter> U = {} \<Longrightarrow> U \<subseteq> A \<union> B \<Longrightarrow> False)
+  \<Longrightarrow> connected U"
+  by (auto simp: connected_def)
+
+lemma connected_empty[simp]: "connected {}"
+  by (auto intro!: connectedI)
+
+end
+
+lemma (in linorder_topology) connectedD_interval:
+  assumes "connected U" and xy: "x \<in> U" "y \<in> U" and "x \<le> z" "z \<le> y"
+  shows "z \<in> U"
+proof -
+  have eq: "{..<z} \<union> {z<..} = - {z}"
+    by auto
+  { assume "z \<notin> U" "x < z" "z < y"
+    with xy have "\<not> connected U"
+      unfolding connected_def simp_thms
+      apply (rule_tac exI[of _ "{..< z}"])
+      apply (rule_tac exI[of _ "{z <..}"])
+      apply (auto simp add: eq)
+      done }
+  with assms show "z \<in> U"
+    by (metis less_le)
+qed
+
+lemma connected_continuous_image:
+  assumes *: "continuous_on s f"
+  assumes "connected s"
+  shows "connected (f ` s)"
+proof (rule connectedI)
+  fix A B assume A: "open A" "A \<inter> f ` s \<noteq> {}" and B: "open B" "B \<inter> f ` s \<noteq> {}" and
+    AB: "A \<inter> B \<inter> f ` s = {}" "f ` s \<subseteq> A \<union> B"
+  obtain A' where A': "open A'" "f -` A \<inter> s = A' \<inter> s"
+    using * `open A` unfolding continuous_on_open_invariant by metis
+  obtain B' where B': "open B'" "f -` B \<inter> s = B' \<inter> s"
+    using * `open B` unfolding continuous_on_open_invariant by metis
+
+  have "\<exists>A B. open A \<and> open B \<and> s \<subseteq> A \<union> B \<and> A \<inter> B \<inter> s = {} \<and> A \<inter> s \<noteq> {} \<and> B \<inter> s \<noteq> {}"
+  proof (rule exI[of _ A'], rule exI[of _ B'], intro conjI)
+    have "s \<subseteq> (f -` A \<inter> s) \<union> (f -` B \<inter> s)" using AB by auto
+    then show "s \<subseteq> A' \<union> B'" using A' B' by auto
+  next
+    have "(f -` A \<inter> s) \<inter> (f -` B \<inter> s) = {}" using AB by auto
+    then show "A' \<inter> B' \<inter> s = {}" using A' B' by auto
+  qed (insert A' B' A B, auto)
+  with `connected s` show False
+    unfolding connected_def by blast
+qed
 
 end
 

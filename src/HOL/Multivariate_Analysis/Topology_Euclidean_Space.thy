@@ -769,10 +769,6 @@ qed (auto simp: I_def)
 
 subsection{* Connectedness *}
 
-definition "connected S \<longleftrightarrow>
-  ~(\<exists>e1 e2. open e1 \<and> open e2 \<and> S \<subseteq> (e1 \<union> e2) \<and> (e1 \<inter> e2 \<inter> S = {})
-  \<and> ~(e1 \<inter> S = {}) \<and> ~(e2 \<inter> S = {}))"
-
 lemma connected_local:
  "connected S \<longleftrightarrow> ~(\<exists>e1 e2.
                  openin (subtopology euclidean S) e1 \<and>

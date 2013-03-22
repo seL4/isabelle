@@ -1155,119 +1155,32 @@ qed
 
 subsection {* Connectedness of convex sets *}
 
-lemma connected_real_lemma:
-  fixes f :: "real \<Rightarrow> 'a::metric_space"
-  assumes ab: "a \<le> b" and fa: "f a \<in> e1" and fb: "f b \<in> e2"
-    and dst: "\<And>e x. a <= x \<Longrightarrow> x <= b \<Longrightarrow> 0 < e ==> \<exists>d > 0. \<forall>y. abs(y - x) < d \<longrightarrow> dist(f y) (f x) < e"
-    and e1: "\<forall>y \<in> e1. \<exists>e > 0. \<forall>y'. dist y' y < e \<longrightarrow> y' \<in> e1"
-    and e2: "\<forall>y \<in> e2. \<exists>e > 0. \<forall>y'. dist y' y < e \<longrightarrow> y' \<in> e2"
-    and e12: "~(\<exists>x \<ge> a. x <= b \<and> f x \<in> e1 \<and> f x \<in> e2)"
-  shows "\<exists>x \<ge> a. x <= b \<and> f x \<notin> e1 \<and> f x \<notin> e2" (is "\<exists> x. ?P x")
-proof -
-  let ?S = "{c. \<forall>x \<ge> a. x <= c \<longrightarrow> f x \<in> e1}"
-  have Se: " \<exists>x. x \<in> ?S"
-    apply (rule exI[where x=a])
-    apply (auto simp add: fa)
-    done
-  have Sub: "\<exists>y. isUb UNIV ?S y"
-    apply (rule exI[where x= b])
-    using ab fb e12 apply (auto simp add: isUb_def setle_def)
-    done
-  from reals_complete[OF Se Sub] obtain l where
-    l: "isLub UNIV ?S l"by blast
-  have alb: "a \<le> l" "l \<le> b" using l ab fa fb e12
-    apply (auto simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-    apply (metis linorder_linear)
-    done
-  have ale1: "\<forall>z \<ge> a. z < l \<longrightarrow> f z \<in> e1" using l
-    apply (auto simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-    apply (metis linorder_linear not_le)
-    done
-  have th1: "\<And>z x e d :: real. z <= x + e \<Longrightarrow> e < d ==> z < x \<or> abs(z - x) < d" by arith
-  have th2: "\<And>e x:: real. 0 < e ==> ~(x + e <= x)" by arith
-  have "\<And>d::real. 0 < d \<Longrightarrow> 0 < d/2 \<and> d/2 < d" by simp
-  then have th3: "\<And>d::real. d > 0 \<Longrightarrow> \<exists>e > 0. e < d" by blast
-  { assume le2: "f l \<in> e2"
-    from le2 fa fb e12 alb have la: "l \<noteq> a" by metis
-    then have lap: "l - a > 0" using alb by arith
-    from e2[rule_format, OF le2] obtain e where
-      e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e2" by metis
-    from dst[OF alb e(1)] obtain d where
-      d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
-    let ?d' = "min (d/2) ((l - a)/2)"
-    have "?d' < d \<and> 0 < ?d' \<and> ?d' < l - a" using lap d(1)
-      by (simp add: min_max.less_infI2)
-    then have "\<exists>d'. d' < d \<and> d' >0 \<and> l - d' > a" by auto
-    then obtain d' where d': "d' > 0" "d' < d" "l - d' > a" by metis
-    from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e2" by metis
-    from th0[rule_format, of "l - d'"] d' have "f (l - d') \<in> e2" by auto
-    moreover
-    have "f (l - d') \<in> e1" using ale1[rule_format, of "l -d'"] d' by auto
-    ultimately have False using e12 alb d' by auto }
-  moreover
-  { assume le1: "f l \<in> e1"
-    from le1 fa fb e12 alb have lb: "l \<noteq> b" by metis
-    then have blp: "b - l > 0" using alb by arith
-    from e1[rule_format, OF le1] obtain e where
-      e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e1" by metis
-    from dst[OF alb e(1)] obtain d where
-      d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
-    have "\<And>d::real. 0 < d \<Longrightarrow> d/2 < d \<and> 0 < d/2" by simp
-    then have "\<exists>d'. d' < d \<and> d' >0" using d(1) by blast
-    then obtain d' where d': "d' > 0" "d' < d" by metis
-    from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e1" by auto
-    then have "\<forall>y. l \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" using d' by auto
-    with ale1 have "\<forall>y. a \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" by auto
-    with l d' have False
-      by (auto simp add: isLub_def isUb_def setle_def setge_def leastP_def) }
-  ultimately show ?thesis using alb by metis
-qed
+lemma connectedD:
+  "connected S \<Longrightarrow> open A \<Longrightarrow> open B \<Longrightarrow> S \<subseteq> A \<union> B \<Longrightarrow> A \<inter> B \<inter> S = {} \<Longrightarrow> A \<inter> S = {} \<or> B \<inter> S = {}"
+  by (metis connected_def)
 
 lemma convex_connected:
   fixes s :: "'a::real_normed_vector set"
   assumes "convex s" shows "connected s"
-proof -
-  { fix e1 e2
-    assume as:"open e1" "open e2" "e1 \<inter> e2 \<inter> s = {}" "s \<subseteq> e1 \<union> e2"
-    assume "e1 \<inter> s \<noteq> {}" "e2 \<inter> s \<noteq> {}"
-    then obtain x1 x2 where x1:"x1\<in>e1" "x1\<in>s" and x2:"x2\<in>e2" "x2\<in>s" by auto
-    then have n: "norm (x1 - x2) > 0" unfolding zero_less_norm_iff using as(3) by auto
-
-    { fix x e::real assume as:"0 \<le> x" "x \<le> 1" "0 < e"
-      { fix y
-        have *: "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2) = (y - x) *\<^sub>R x1 - (y - x) *\<^sub>R x2"
-          by (simp add: algebra_simps)
-        assume "\<bar>y - x\<bar> < e / norm (x1 - x2)"
-        hence "norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
-          unfolding * and scaleR_right_diff_distrib[symmetric]
-          unfolding less_divide_eq using n by auto
-      }
-      then have "\<exists>d>0. \<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
-        apply (rule_tac x="e / norm (x1 - x2)" in exI)
-        using as
-        apply auto
-        unfolding zero_less_divide_iff
-        using n apply simp
-        done
-    } note * = this
-
-    have "\<exists>x\<ge>0. x \<le> 1 \<and> (1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e1 \<and> (1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e2"
-      apply (rule connected_real_lemma)
-      apply (simp add: `x1\<in>e1` `x2\<in>e2` dist_commute)+
-      using * apply (simp add: dist_norm)
-      using as(1,2)[unfolded open_dist] apply simp
-      using as(1,2)[unfolded open_dist] apply simp
-      using assms[unfolded convex_alt, THEN bspec[where x=x1], THEN bspec[where x=x2]] using x1 x2
-      using as(3) apply auto
-      done
-    then obtain x where "x\<ge>0" "x\<le>1" "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e1"  "(1 - x) *\<^sub>R x1 + x *\<^sub>R x2 \<notin> e2"
-      by auto
-    then have False
-      using as(4)
-      using assms[unfolded convex_alt, THEN bspec[where x=x1], THEN bspec[where x=x2]]
-      using x1(2) x2(2) by auto
-    }
-  then show ?thesis unfolding connected_def by auto
+proof (rule connectedI)
+  fix A B
+  assume "open A" "open B" "A \<inter> B \<inter> s = {}" "s \<subseteq> A \<union> B"
+  moreover
+  assume "A \<inter> s \<noteq> {}" "B \<inter> s \<noteq> {}"
+  then obtain a b where a: "a \<in> A" "a \<in> s" and b: "b \<in> B" "b \<in> s" by auto
+  def f \<equiv> "\<lambda>u. u *\<^sub>R a + (1 - u) *\<^sub>R b"
+  then have "continuous_on {0 .. 1} f"
+    by (auto intro!: continuous_on_intros)
+  then have "connected (f ` {0 .. 1})"
+    by (auto intro!: connected_continuous_image)
+  note connectedD[OF this, of A B]
+  moreover have "a \<in> A \<inter> f ` {0 .. 1}"
+    using a by (auto intro!: image_eqI[of _ _ 1] simp: f_def)
+  moreover have "b \<in> B \<inter> f ` {0 .. 1}"
+    using b by (auto intro!: image_eqI[of _ _ 0] simp: f_def)
+  moreover have "f ` {0 .. 1} \<subseteq> s"
+    using `convex s` a b unfolding convex_def f_def by auto
+  ultimately show False by auto
 qed
 
 text {* One rather trivial consequence. *}

@@ -495,63 +495,6 @@ proof -
   qed
 qed
 
-lemma lemma_BOLZANO:
-     "[| \<forall>a b c. P(a,b) & P(b,c) & a \<le> b & b \<le> c --> P(a,c);
-         \<forall>x. \<exists>d::real. 0 < d &
-                (\<forall>a b. a \<le> x & x \<le> b & (b-a) < d --> P(a,b));
-         a \<le> b |]
-      ==> P(a,b)"
-  using Bolzano[of a b "\<lambda>a b. P (a, b)"] by metis
-
-lemma lemma_BOLZANO2: "((\<forall>a b c. (a \<le> b & b \<le> c & P(a,b) & P(b,c)) --> P(a,c)) &
-       (\<forall>x. \<exists>d::real. 0 < d &
-                (\<forall>a b. a \<le> x & x \<le> b & (b-a) < d --> P(a,b))))
-      --> (\<forall>a b. a \<le> b --> P(a,b))"
-apply clarify
-apply (blast intro: lemma_BOLZANO)
-done
-
-
-subsection {* Intermediate Value Theorem *}
-
-text {*Prove Contrapositive by Bisection*}
-
-lemma IVT: "[| f(a::real) \<le> (y::real); y \<le> f(b);
-         a \<le> b;
-         (\<forall>x. a \<le> x & x \<le> b --> isCont f x) |]
-      ==> \<exists>x. a \<le> x & x \<le> b & f(x) = y"
-apply (rule contrapos_pp, assumption)
-apply (cut_tac P = "% (u,v) . a \<le> u & u \<le> v & v \<le> b --> ~ (f (u) \<le> y & y \<le> f (v))" in lemma_BOLZANO2)
-apply safe
-apply simp_all
-apply (simp add: isCont_iff LIM_eq)
-apply (rule ccontr)
-apply (subgoal_tac "a \<le> x & x \<le> b")
- prefer 2
- apply simp
- apply (drule_tac P = "%d. 0<d --> ?P d" and x = 1 in spec, arith)
-apply (drule_tac x = x in spec)+
-apply simp
-apply (drule_tac P = "%r. ?P r --> (\<exists>s>0. ?Q r s) " and x = "\<bar>y - f x\<bar>" in spec)
-apply safe
-apply simp
-apply (drule_tac x = s in spec, clarify)
-apply (cut_tac x = "f x" and y = y in linorder_less_linear, safe)
-apply (drule_tac x = "ba-x" in spec)
-apply (simp_all add: abs_if)
-apply (drule_tac x = "aa-x" in spec)
-apply (case_tac "x \<le> aa", simp_all)
-done
-
-lemma IVT2: "[| f(b::real) \<le> (y::real); y \<le> f(a);
-         a \<le> b;
-         (\<forall>x. a \<le> x & x \<le> b --> isCont f x)
-      |] ==> \<exists>x. a \<le> x & x \<le> b & f(x) = y"
-apply (subgoal_tac "- f a \<le> -y & -y \<le> - f b", clarify)
-apply (drule IVT [where f = "%x. - f x"], assumption)
-apply simp_all
-done
-
 (*HOL style here: object-level formulations*)
 lemma IVT_objl: "(f(a::real) \<le> (y::real) & y \<le> f(b) & a \<le> b &
       (\<forall>x. a \<le> x & x \<le> b --> isCont f x))
