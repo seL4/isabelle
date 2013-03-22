@@ -34,6 +34,24 @@ lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
 
+lemma Lim_within_open:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
+  by (fact tendsto_within_open)
+
+lemma Lim_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
+  by (fact tendsto_within_subset)
+
+lemma continuous_on_union:
+  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
+  by (fact continuous_on_closed_Un)
+
+lemma continuous_on_cases:
+  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow>
+    \<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x \<Longrightarrow>
+    continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
+  by (rule continuous_on_If) auto
+
 subsection {* Topological Basis *}
 
 context topological_space
@@ -1301,10 +1319,6 @@ text{* The expected monotonicity property. *}
 lemma Lim_within_empty: "(f ---> l) (net within {})"
   unfolding tendsto_def Limits.eventually_within by simp
 
-lemma Lim_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
-  unfolding tendsto_def Topological_Spaces.eventually_within
-  by (auto elim!: eventually_elim1)
-
 lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
   shows "(f ---> l) (net within (S \<union> T))"
   using assms unfolding tendsto_def Limits.eventually_within
@@ -1351,16 +1365,6 @@ qed
 lemma at_within_interior:
   "x \<in> interior S \<Longrightarrow> at x within S = at x"
   by (simp add: filter_eq_iff eventually_within_interior)
-
-lemma at_within_open:
-  "\<lbrakk>x \<in> S; open S\<rbrakk> \<Longrightarrow> at x within S = at x"
-  by (simp only: at_within_interior interior_open)
-
-lemma Lim_within_open:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes"a \<in> S" "open S"
-  shows "(f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
-  using assms by (simp only: at_within_open)
 
 lemma Lim_within_LIMSEQ:
   fixes a :: "'a::metric_space"
@@ -2552,35 +2556,6 @@ proof-
   thus ?thesis unfolding closed_sequential_limits by fast
 qed
 
-lemma compact_imp_closed:
-  fixes s :: "'a::t2_space set"
-  assumes "compact s" shows "closed s"
-unfolding closed_def
-proof (rule openI)
-  fix y assume "y \<in> - s"
-  let ?C = "\<Union>x\<in>s. {u. open u \<and> x \<in> u \<and> eventually (\<lambda>y. y \<notin> u) (nhds y)}"
-  note `compact s`
-  moreover have "\<forall>u\<in>?C. open u" by simp
-  moreover have "s \<subseteq> \<Union>?C"
-  proof
-    fix x assume "x \<in> s"
-    with `y \<in> - s` have "x \<noteq> y" by clarsimp
-    hence "\<exists>u v. open u \<and> open v \<and> x \<in> u \<and> y \<in> v \<and> u \<inter> v = {}"
-      by (rule hausdorff)
-    with `x \<in> s` show "x \<in> \<Union>?C"
-      unfolding eventually_nhds by auto
-  qed
-  ultimately obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
-    by (rule compactE)
-  from `D \<subseteq> ?C` have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
-  with `finite D` have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
-    by (simp add: eventually_Ball_finite)
-  with `s \<subseteq> \<Union>D` have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
-    by (auto elim!: eventually_mono [rotated])
-  thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
-    by (simp add: eventually_nhds subset_eq)
-qed
-
 lemma compact_imp_bounded:
   assumes "compact U" shows "bounded U"
 proof -
@@ -2613,20 +2588,6 @@ lemma compact_Union [intro]: "finite S \<Longrightarrow> (\<And>T. T \<in> S \<L
 lemma compact_UN [intro]:
   "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
   unfolding SUP_def by (rule compact_Union) auto
-
-lemma compact_inter_closed [intro]:
-  assumes "compact s" and "closed t"
-  shows "compact (s \<inter> t)"
-proof (rule compactI)
-  fix C assume C: "\<forall>c\<in>C. open c" and cover: "s \<inter> t \<subseteq> \<Union>C"
-  from C `closed t` have "\<forall>c\<in>C \<union> {-t}. open c" by auto
-  moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
-  ultimately have "\<exists>D\<subseteq>C \<union> {-t}. finite D \<and> s \<subseteq> \<Union>D"
-    using `compact s` unfolding compact_eq_heine_borel by auto
-  then guess D ..
-  then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
-    by (intro exI[of _ "D - {-t}"]) auto
-qed
 
 lemma closed_inter_compact [intro]:
   assumes "closed s" and "compact t"
@@ -3802,18 +3763,10 @@ lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f ---> l) net"
 
 lemmas continuous_on = continuous_on_def -- "legacy theorem name"
 
-lemma continuous_on_eq_continuous_at:
-  shows "open s ==> (continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. continuous (at x) f))"
-  by (auto simp add: continuous_on continuous_at Lim_within_open)
-
 lemma continuous_within_subset:
  "continuous (at x within s) f \<Longrightarrow> t \<subseteq> s
              ==> continuous (at x within t) f"
   unfolding continuous_within by(metis Lim_within_subset)
-
-lemma continuous_on_subset:
-  shows "continuous_on s f \<Longrightarrow> t \<subseteq> s ==> continuous_on t f"
-  unfolding continuous_on by (metis subset_eq Lim_within_subset)
 
 lemma continuous_on_interior:
   shows "continuous_on s f \<Longrightarrow> x \<in> interior s \<Longrightarrow> continuous (at x) f"
@@ -4087,70 +4040,18 @@ proof (rule topological_tendstoI)
 qed
 
 lemma continuous_on_open:
-  shows "continuous_on s f \<longleftrightarrow>
+  "continuous_on s f \<longleftrightarrow>
         (\<forall>t. openin (subtopology euclidean (f ` s)) t
             --> openin (subtopology euclidean s) {x \<in> s. f x \<in> t})" (is "?lhs = ?rhs")
-proof (safe)
-  fix t :: "'b set"
-  assume 1: "continuous_on s f"
-  assume 2: "openin (subtopology euclidean (f ` s)) t"
-  from 2 obtain B where B: "open B" and t: "t = f ` s \<inter> B"
-    unfolding openin_open by auto
-  def U == "\<Union>{A. open A \<and> (\<forall>x\<in>s. x \<in> A \<longrightarrow> f x \<in> B)}"
-  have "open U" unfolding U_def by (simp add: open_Union)
-  moreover have "\<forall>x\<in>s. x \<in> U \<longleftrightarrow> f x \<in> t"
-  proof (intro ballI iffI)
-    fix x assume "x \<in> s" and "x \<in> U" thus "f x \<in> t"
-      unfolding U_def t by auto
-  next
-    fix x assume "x \<in> s" and "f x \<in> t"
-    hence "x \<in> s" and "f x \<in> B"
-      unfolding t by auto
-    with 1 B obtain A where "open A" "x \<in> A" "\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B"
-      unfolding t continuous_on_topological by metis
-    then show "x \<in> U"
-      unfolding U_def by auto
-  qed
-  ultimately have "open U \<and> {x \<in> s. f x \<in> t} = s \<inter> U" by auto
-  then show "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
-    unfolding openin_open by fast
-next
-  assume "?rhs" show "continuous_on s f"
-  unfolding continuous_on_topological
-  proof (clarify)
-    fix x and B assume "x \<in> s" and "open B" and "f x \<in> B"
-    have "openin (subtopology euclidean (f ` s)) (f ` s \<inter> B)"
-      unfolding openin_open using `open B` by auto
-    then have "openin (subtopology euclidean s) {x \<in> s. f x \<in> f ` s \<inter> B}"
-      using `?rhs` by fast
-    then show "\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)"
-      unfolding openin_open using `x \<in> s` and `f x \<in> B` by auto
-  qed
-qed
+  unfolding continuous_on_open_invariant openin_open Int_def vimage_def Int_commute
+  by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
 text {* Similarly in terms of closed sets. *}
 
 lemma continuous_on_closed:
   shows "continuous_on s f \<longleftrightarrow>  (\<forall>t. closedin (subtopology euclidean (f ` s)) t  --> closedin (subtopology euclidean s) {x \<in> s. f x \<in> t})" (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  { fix t
-    have *:"s - {x \<in> s. f x \<in> f ` s - t} = {x \<in> s. f x \<in> t}" by auto
-    have **:"f ` s - (f ` s - (f ` s - t)) = f ` s - t" by auto
-    assume as:"closedin (subtopology euclidean (f ` s)) t"
-    hence "closedin (subtopology euclidean (f ` s)) (f ` s - (f ` s - t))" unfolding closedin_def topspace_euclidean_subtopology unfolding ** by auto
-    hence "closedin (subtopology euclidean s) {x \<in> s. f x \<in> t}" using `?lhs`[unfolded continuous_on_open, THEN spec[where x="(f ` s) - t"]]
-      unfolding openin_closedin_eq topspace_euclidean_subtopology unfolding * by auto  }
-  thus ?rhs by auto
-next
-  assume ?rhs
-  { fix t
-    have *:"s - {x \<in> s. f x \<in> f ` s - t} = {x \<in> s. f x \<in> t}" by auto
-    assume as:"openin (subtopology euclidean (f ` s)) t"
-    hence "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}" using `?rhs`[THEN spec[where x="(f ` s) - t"]]
-      unfolding openin_closedin_eq topspace_euclidean_subtopology *[THEN sym] closedin_subtopology by auto }
-  thus ?lhs unfolding continuous_on_open by auto
-qed
+  unfolding continuous_on_closed_invariant closedin_closed Int_def vimage_def Int_commute
+  by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
 text {* Half-global and completely global cases. *}
 
@@ -4543,38 +4444,6 @@ proof (cases, safe)
       by (intro dist_double[where x="f y" and d=e]) (auto simp: dist_commute subset_eq)
   qed (insert D, auto)
 qed auto
-
-text{* Continuity of inverse function on compact domain. *}
-
-lemma continuous_on_inv:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
-  assumes "continuous_on s f"  "compact s"  "\<forall>x \<in> s. g (f x) = x"
-  shows "continuous_on (f ` s) g"
-unfolding continuous_on_topological
-proof (clarsimp simp add: assms(3))
-  fix x :: 'a and B :: "'a set"
-  assume "x \<in> s" and "open B" and "x \<in> B"
-  have 1: "\<forall>x\<in>s. f x \<in> f ` (s - B) \<longleftrightarrow> x \<in> s - B"
-    using assms(3) by (auto, metis)
-  have "continuous_on (s - B) f"
-    using `continuous_on s f` Diff_subset
-    by (rule continuous_on_subset)
-  moreover have "compact (s - B)"
-    using `open B` and `compact s`
-    unfolding Diff_eq by (intro compact_inter_closed closed_Compl)
-  ultimately have "compact (f ` (s - B))"
-    by (rule compact_continuous_image)
-  hence "closed (f ` (s - B))"
-    by (rule compact_imp_closed)
-  hence "open (- f ` (s - B))"
-    by (rule open_Compl)
-  moreover have "f x \<in> - f ` (s - B)"
-    using `x \<in> s` and `x \<in> B` by (simp add: 1)
-  moreover have "\<forall>y\<in>s. f y \<in> - f ` (s - B) \<longrightarrow> y \<in> B"
-    by (simp add: 1)
-  ultimately show "\<exists>A. open A \<and> f x \<in> A \<and> (\<forall>y\<in>s. f y \<in> A \<longrightarrow> y \<in> B)"
-    by fast
-qed
 
 text {* A uniformly convergent limit of continuous functions is continuous. *}
 
@@ -5663,27 +5532,6 @@ lemma Lim_topological:
         trivial_limit net \<or>
         (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
   unfolding tendsto_def trivial_limit_eq by auto
-
-lemma continuous_on_union:
-  assumes "closed s" "closed t" "continuous_on s f" "continuous_on t f"
-  shows "continuous_on (s \<union> t) f"
-  using assms unfolding continuous_on Lim_within_union
-  unfolding Lim_topological trivial_limit_within closed_limpt by auto
-
-lemma continuous_on_cases:
-  assumes "closed s" "closed t" "continuous_on s f" "continuous_on t g"
-          "\<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x"
-  shows "continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
-proof-
-  let ?h = "(\<lambda>x. if P x then f x else g x)"
-  have "\<forall>x\<in>s. f x = (if P x then f x else g x)" using assms(5) by auto
-  hence "continuous_on s ?h" using continuous_on_eq[of s f ?h] using assms(3) by auto
-  moreover
-  have "\<forall>x\<in>t. g x = (if P x then f x else g x)" using assms(5) by auto
-  hence "continuous_on t ?h" using continuous_on_eq[of t g ?h] using assms(4) by auto
-  ultimately show ?thesis using continuous_on_union[OF assms(1,2), of ?h] by auto
-qed
-
 
 text{* Some more convenient intermediate-value theorem formulations.             *}
 

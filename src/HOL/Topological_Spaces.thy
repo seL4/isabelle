@@ -724,6 +724,9 @@ lemma eventually_at_topological:
   "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
 unfolding at_def eventually_within eventually_nhds by simp
 
+lemma at_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> at a within S = at a"
+  unfolding filter_eq_iff eventually_within eventually_at_topological by (metis open_Int Int_iff)
+
 lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
   by (safe, case_tac "S = {a}", simp, fast, fast)
@@ -868,6 +871,9 @@ proof safe
     unfolding eventually_nhds eventually_filtermap le_filter_def
     by (auto elim!: allE[of _ "\<lambda>x. x \<in> S"] eventually_rev_mp)
 qed (auto elim!: eventually_rev_mp simp: eventually_nhds eventually_filtermap le_filter_def)
+
+lemma tendsto_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
+  by (auto simp: tendsto_def eventually_within elim!: eventually_elim1)
 
 lemma filterlim_at:
   "(LIM x F. f x :> at b) \<longleftrightarrow> (eventually (\<lambda>x. f x \<noteq> b) F \<and> (f ---> b) F)"
@@ -1540,6 +1546,9 @@ abbreviation
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
   "f -- a --> L \<equiv> (f ---> L) (at a)"
 
+lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l) (at a within S) \<longleftrightarrow> (f -- a --> l)"
+  unfolding tendsto_def by (simp add: at_within_open)
+
 lemma LIM_const_not_eq[tendsto_intros]:
   fixes a :: "'a::perfect_space"
   fixes k L :: "'b::t2_space"
@@ -1629,6 +1638,10 @@ subsubsection {* Continuity on a set *}
 definition continuous_on :: "'a set \<Rightarrow> ('a :: topological_space \<Rightarrow> 'b :: topological_space) \<Rightarrow> bool" where
   "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f ---> f x) (at x within s))"
 
+lemma continuous_on_cong [cong]:
+  "s = t \<Longrightarrow> (\<And>x. x \<in> t \<Longrightarrow> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
+  unfolding continuous_on_def by (intro ball_cong filterlim_cong) (auto simp: eventually_within)
+
 lemma continuous_on_topological:
   "continuous_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow> (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
@@ -1655,6 +1668,11 @@ next
   qed
 qed
 
+lemma continuous_on_open_vimage:
+  "open s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>B. open B \<longrightarrow> open (f -` B \<inter> s))"
+  unfolding continuous_on_open_invariant
+  by (metis open_Int Int_absorb Int_commute[of s] Int_assoc[of _ _ s])
+
 lemma continuous_on_closed_invariant:
   "continuous_on s f \<longleftrightarrow> (\<forall>B. closed B \<longrightarrow> (\<exists>A. closed A \<and> A \<inter> s = f -` B \<inter> s))"
 proof -
@@ -1662,6 +1680,36 @@ proof -
     by (metis double_compl)
   show ?thesis
     unfolding continuous_on_open_invariant by (intro *) (auto simp: open_closed[symmetric])
+qed
+
+lemma continuous_on_closed_vimage:
+  "closed s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>B. closed B \<longrightarrow> closed (f -` B \<inter> s))"
+  unfolding continuous_on_closed_invariant
+  by (metis closed_Int Int_absorb Int_commute[of s] Int_assoc[of _ _ s])
+
+lemma continuous_on_open_Union:
+  "(\<And>s. s \<in> S \<Longrightarrow> open s) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on s f) \<Longrightarrow> continuous_on (\<Union>S) f"
+  unfolding continuous_on_def by (simp add: tendsto_within_open open_Union)
+
+lemma continuous_on_open_UN:
+  "(\<And>s. s \<in> S \<Longrightarrow> open (A s)) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on (A s) f) \<Longrightarrow> continuous_on (\<Union>s\<in>S. A s) f"
+  unfolding Union_image_eq[symmetric] by (rule continuous_on_open_Union) auto
+
+lemma continuous_on_closed_Un:
+  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
+  by (auto simp add: continuous_on_closed_vimage closed_Un Int_Un_distrib)
+
+lemma continuous_on_If:
+  assumes closed: "closed s" "closed t" and cont: "continuous_on s f" "continuous_on t g"
+    and P: "\<And>x. x \<in> s \<Longrightarrow> \<not> P x \<Longrightarrow> f x = g x" "\<And>x. x \<in> t \<Longrightarrow> P x \<Longrightarrow> f x = g x"
+  shows "continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)" (is "continuous_on _ ?h")
+proof-
+  from P have "\<forall>x\<in>s. f x = ?h x" "\<forall>x\<in>t. g x = ?h x"
+    by auto
+  with cont have "continuous_on s ?h" "continuous_on t ?h"
+    by simp_all
+  with closed show ?thesis
+    by (rule continuous_on_closed_Un)
 qed
 
 ML {*
@@ -1685,6 +1733,10 @@ lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c
 lemma continuous_on_compose[continuous_on_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
   unfolding continuous_on_topological by simp metis
+
+lemma continuous_on_compose2:
+  "continuous_on t g \<Longrightarrow> continuous_on s f \<Longrightarrow> t = f ` s \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
+  using continuous_on_compose[of s f g] by (simp add: comp_def)
 
 subsubsection {* Continuity at a point *}
 
@@ -1749,6 +1801,12 @@ lemma isCont_def: "isCont f a \<longleftrightarrow> f -- a --> f a"
 lemma continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"
   by (auto intro: within_le filterlim_mono simp: continuous_at continuous_within)
 
+lemma continuous_on_eq_continuous_at: "open s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. isCont f x)"
+  by (simp add: continuous_on_def continuous_at tendsto_within_open)
+
+lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous_on t f"
+  unfolding continuous_on_def by (metis subset_eq tendsto_within_subset)
+
 lemma continuous_at_imp_continuous_on: "\<forall>x\<in>s. isCont f x \<Longrightarrow> continuous_on s f"
   by (auto intro: continuous_at_within simp: continuous_on_eq_continuous_within)
 
@@ -1801,7 +1859,100 @@ lemma compactE_image:
   using assms unfolding ball_simps[symmetric] SUP_def
   by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
 
+lemma compact_inter_closed [intro]:
+  assumes "compact s" and "closed t"
+  shows "compact (s \<inter> t)"
+proof (rule compactI)
+  fix C assume C: "\<forall>c\<in>C. open c" and cover: "s \<inter> t \<subseteq> \<Union>C"
+  from C `closed t` have "\<forall>c\<in>C \<union> {-t}. open c" by auto
+  moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
+  ultimately have "\<exists>D\<subseteq>C \<union> {-t}. finite D \<and> s \<subseteq> \<Union>D"
+    using `compact s` unfolding compact_eq_heine_borel by auto
+  then guess D ..
+  then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
+    by (intro exI[of _ "D - {-t}"]) auto
+qed
+
 end
+
+lemma (in t2_space) compact_imp_closed:
+  assumes "compact s" shows "closed s"
+unfolding closed_def
+proof (rule openI)
+  fix y assume "y \<in> - s"
+  let ?C = "\<Union>x\<in>s. {u. open u \<and> x \<in> u \<and> eventually (\<lambda>y. y \<notin> u) (nhds y)}"
+  note `compact s`
+  moreover have "\<forall>u\<in>?C. open u" by simp
+  moreover have "s \<subseteq> \<Union>?C"
+  proof
+    fix x assume "x \<in> s"
+    with `y \<in> - s` have "x \<noteq> y" by clarsimp
+    hence "\<exists>u v. open u \<and> open v \<and> x \<in> u \<and> y \<in> v \<and> u \<inter> v = {}"
+      by (rule hausdorff)
+    with `x \<in> s` show "x \<in> \<Union>?C"
+      unfolding eventually_nhds by auto
+  qed
+  ultimately obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
+    by (rule compactE)
+  from `D \<subseteq> ?C` have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
+  with `finite D` have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
+    by (simp add: eventually_Ball_finite)
+  with `s \<subseteq> \<Union>D` have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
+    by (auto elim!: eventually_mono [rotated])
+  thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
+    by (simp add: eventually_nhds subset_eq)
+qed
+
+lemma compact_continuous_image:
+  assumes f: "continuous_on s f" and s: "compact s"
+  shows "compact (f ` s)"
+proof (rule compactI)
+  fix C assume "\<forall>c\<in>C. open c" and cover: "f`s \<subseteq> \<Union>C"
+  with f have "\<forall>c\<in>C. \<exists>A. open A \<and> A \<inter> s = f -` c \<inter> s"
+    unfolding continuous_on_open_invariant by blast
+  then guess A unfolding bchoice_iff .. note A = this
+  with cover have "\<forall>c\<in>C. open (A c)" "s \<subseteq> (\<Union>c\<in>C. A c)"
+    by (fastforce simp add: subset_eq set_eq_iff)+
+  from compactE_image[OF s this] obtain D where "D \<subseteq> C" "finite D" "s \<subseteq> (\<Union>c\<in>D. A c)" .
+  with A show "\<exists>D \<subseteq> C. finite D \<and> f`s \<subseteq> \<Union>D"
+    by (intro exI[of _ D]) (fastforce simp add: subset_eq set_eq_iff)+
+qed
+
+lemma continuous_on_inv:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  assumes "continuous_on s f"  "compact s"  "\<forall>x\<in>s. g (f x) = x"
+  shows "continuous_on (f ` s) g"
+unfolding continuous_on_topological
+proof (clarsimp simp add: assms(3))
+  fix x :: 'a and B :: "'a set"
+  assume "x \<in> s" and "open B" and "x \<in> B"
+  have 1: "\<forall>x\<in>s. f x \<in> f ` (s - B) \<longleftrightarrow> x \<in> s - B"
+    using assms(3) by (auto, metis)
+  have "continuous_on (s - B) f"
+    using `continuous_on s f` Diff_subset
+    by (rule continuous_on_subset)
+  moreover have "compact (s - B)"
+    using `open B` and `compact s`
+    unfolding Diff_eq by (intro compact_inter_closed closed_Compl)
+  ultimately have "compact (f ` (s - B))"
+    by (rule compact_continuous_image)
+  hence "closed (f ` (s - B))"
+    by (rule compact_imp_closed)
+  hence "open (- f ` (s - B))"
+    by (rule open_Compl)
+  moreover have "f x \<in> - f ` (s - B)"
+    using `x \<in> s` and `x \<in> B` by (simp add: 1)
+  moreover have "\<forall>y\<in>s. f y \<in> - f ` (s - B) \<longrightarrow> y \<in> B"
+    by (simp add: 1)
+  ultimately show "\<exists>A. open A \<and> f x \<in> A \<and> (\<forall>y\<in>s. f y \<in> A \<longrightarrow> y \<in> B)"
+    by fast
+qed
+
+lemma continuous_on_inv_into:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  assumes s: "continuous_on s f" "compact s" and f: "inj_on f s"
+  shows "continuous_on (f ` s) (the_inv_into s f)"
+  by (rule continuous_on_inv[OF s]) (auto simp: the_inv_into_f_f[OF f])
 
 lemma (in linorder_topology) compact_attains_sup:
   assumes "compact S" "S \<noteq> {}"
@@ -1839,21 +1990,6 @@ proof (rule classical)
     by (auto intro: le_less_trans simp: subset_eq)
   with t Min `C \<subseteq> S` show ?thesis
     by fastforce
-qed
-
-lemma compact_continuous_image:
-  assumes f: "continuous_on s f" and s: "compact s"
-  shows "compact (f ` s)"
-proof (rule compactI)
-  fix C assume "\<forall>c\<in>C. open c" and cover: "f`s \<subseteq> \<Union>C"
-  with f have "\<forall>c\<in>C. \<exists>A. open A \<and> A \<inter> s = f -` c \<inter> s"
-    unfolding continuous_on_open_invariant by blast
-  then guess A unfolding bchoice_iff .. note A = this
-  with cover have "\<forall>c\<in>C. open (A c)" "s \<subseteq> (\<Union>c\<in>C. A c)"
-    by (fastforce simp add: subset_eq set_eq_iff)+
-  from compactE_image[OF s this] obtain D where "D \<subseteq> C" "finite D" "s \<subseteq> (\<Union>c\<in>D. A c)" .
-  with A show "\<exists>D \<subseteq> C. finite D \<and> f`s \<subseteq> \<Union>D"
-    by (intro exI[of _ D]) (fastforce simp add: subset_eq set_eq_iff)+
 qed
 
 lemma continuous_attains_sup:

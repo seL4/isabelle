@@ -8,14 +8,6 @@ theory Path_Connected
 imports Convex_Euclidean_Space
 begin
 
-lemma continuous_on_cong: (* MOVE to Topological_Spaces *)
-  "s = t \<Longrightarrow> (\<And>x. x \<in> t \<Longrightarrow> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
-  unfolding continuous_on_def by (intro ball_cong Lim_cong_within) auto
-
-lemma continuous_on_compose2:
-  shows "continuous_on t g \<Longrightarrow> continuous_on s f \<Longrightarrow> t = f ` s \<Longrightarrow> continuous_on s (\<lambda>x. g (f x))"
-  using continuous_on_compose[of s f g] by (simp add: comp_def)
-
 subsection {* Paths. *}
 
 definition path :: "(real \<Rightarrow> 'a::topological_space) \<Rightarrow> bool"
@@ -126,7 +118,8 @@ proof safe
   have g2: "continuous_on {0..1} g2 \<longleftrightarrow> continuous_on {0..1} ((g1 +++ g2) \<circ> (\<lambda>x. x / 2 + 1/2))"
     using assms by (intro continuous_on_cong refl) (auto simp: joinpaths_def pathfinish_def pathstart_def)
   show "continuous_on {0..1} g1" "continuous_on {0..1} g2"
-    unfolding g1 g2 by (auto intro!: continuous_on_intros continuous_on_subset[OF cont])
+    unfolding g1 g2
+    by (auto intro!: continuous_on_intros continuous_on_subset[OF cont] simp del: o_apply)
 next
   assume g1g2: "continuous_on {0..1} g1" "continuous_on {0..1} g2"
   have 01: "{0 .. 1} = {0..1/2} \<union> {1/2 .. 1::real}"
@@ -689,8 +682,8 @@ proof (rule, rule)
     unfolding xy
     apply (rule_tac x="f \<circ> g" in exI)
     unfolding path_defs
-    using assms(1)
-    apply (auto intro!: continuous_on_compose continuous_on_subset[of _ _ "g ` {0..1}"])
+    apply (intro conjI continuous_on_compose continuous_on_subset[OF assms(1)])
+    apply auto
     done
 qed
 

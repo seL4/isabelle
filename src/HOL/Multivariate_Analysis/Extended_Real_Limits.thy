@@ -470,7 +470,7 @@ lemma continuous_on_iff_ereal:
   fixes f :: "'a::t2_space => real"
   fixes A assumes "open A"
   shows "continuous_on A f <-> continuous_on A (ereal o f)"
-  using continuous_at_iff_ereal assms by (auto simp add: continuous_on_eq_continuous_at)
+  using continuous_at_iff_ereal assms by (auto simp add: continuous_on_eq_continuous_at cong del: continuous_on_cong)
 
 
 lemma continuous_on_real: "continuous_on (UNIV-{\<infinity>,(-\<infinity>::ereal)}) real"

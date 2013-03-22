@@ -950,6 +950,8 @@ qed
 
 end
 
+instance real :: linear_continuum_topology ..
+
 lemma connectedI_interval:
   fixes U :: "'a :: linear_continuum_topology set"
   assumes *: "\<And>x y z. x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x \<le> z \<Longrightarrow> z \<le> y \<Longrightarrow> z \<in> U"
@@ -1068,6 +1070,27 @@ lemma IVT2:
   shows "f b \<le> y \<Longrightarrow> y \<le> f a \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
   by (rule IVT2') (auto intro: continuous_at_imp_continuous_on)
 
-instance real :: linear_continuum_topology ..
+lemma continuous_inj_imp_mono:
+  fixes f :: "'a::linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes x: "a < x" "x < b"
+  assumes cont: "continuous_on {a..b} f"
+  assumes inj: "inj_on f {a..b}"
+  shows "(f a < f x \<and> f x < f b) \<or> (f b < f x \<and> f x < f a)"
+proof -
+  note I = inj_on_iff[OF inj]
+  { assume "f x < f a" "f x < f b"
+    then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f x < f s"
+      using IVT'[of f x "min (f a) (f b)" b] IVT2'[of f x "min (f a) (f b)" a] x
+      by (auto simp: continuous_on_subset[OF cont] less_imp_le)
+    with x I have False by auto }
+  moreover
+  { assume "f a < f x" "f b < f x"
+    then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f s < f x"
+      using IVT'[of f a "max (f a) (f b)" x] IVT2'[of f b "max (f a) (f b)" x] x
+      by (auto simp: continuous_on_subset[OF cont] less_imp_le)
+    with x I have False by auto }
+  ultimately show ?thesis
+    using I[of a x] I[of x b] x less_trans[OF x] by (auto simp add: le_less less_imp_neq neq_iff)
+qed
 
 end

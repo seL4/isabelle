@@ -2457,17 +2457,6 @@ lemma arctan_le_zero_iff [simp]: "arctan x \<le> 0 \<longleftrightarrow> x \<le>
 lemma arctan_eq_zero_iff [simp]: "arctan x = 0 \<longleftrightarrow> x = 0"
   using arctan_eq_iff [of x 0] by simp
 
-lemma isCont_inverse_function2: (* generalize with continuous_on *)
-  fixes f g :: "real \<Rightarrow> real" shows
-  "\<lbrakk>a < x; x < b;
-    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> g (f z) = z;
-    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> isCont f z\<rbrakk>
-   \<Longrightarrow> isCont g (f x)"
-apply (rule isCont_inverse_function
-       [where f=f and d="min (x - a) (b - x)"])
-apply (simp_all add: abs_le_iff)
-done
-
 lemma isCont_arcsin: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arcsin x" (* generalize with continuous_on {-1 .. 1} *)
 apply (subgoal_tac "isCont arcsin (sin (arcsin x))", simp)
 apply (rule isCont_inverse_function2 [where f=sin])

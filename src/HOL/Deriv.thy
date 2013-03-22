@@ -831,16 +831,7 @@ subsection{*Mean Value Theorem*}
 
 lemma lemma_MVT:
      "f a - (f b - f a)/(b-a) * a = f b - (f b - f a)/(b-a) * (b::real)"
-proof cases
-  assume "a=b" thus ?thesis by simp
-next
-  assume "a\<noteq>b"
-  hence ba: "b-a \<noteq> 0" by arith
-  show ?thesis
-    by (rule real_mult_left_cancel [OF ba, THEN iffD1],
-        simp add: right_diff_distrib,
-        simp add: left_diff_distrib)
-qed
+  by (cases "a = b") (simp_all add: field_simps)
 
 theorem MVT:
   assumes lt:  "a < b"
@@ -1090,151 +1081,46 @@ proof -
     by simp
 qed
 
-subsection {* Continuous injective functions *}
-
-text{*Dull lemma: an continuous injection on an interval must have a
-strict maximum at an end point, not in the middle.*}
-
-lemma lemma_isCont_inj:
-  fixes f :: "real \<Rightarrow> real"
-  assumes d: "0 < d"
-      and inj [rule_format]: "\<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z"
-      and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z"
-  shows "\<exists>z. \<bar>z-x\<bar> \<le> d & f x < f z"
-proof (rule ccontr)
-  assume  "~ (\<exists>z. \<bar>z-x\<bar> \<le> d & f x < f z)"
-  hence all [rule_format]: "\<forall>z. \<bar>z - x\<bar> \<le> d --> f z \<le> f x" by auto
-  show False
-  proof (cases rule: linorder_le_cases [of "f(x-d)" "f(x+d)"])
-    case le
-    from d cont all [of "x+d"]
-    have flef: "f(x+d) \<le> f x"
-     and xlex: "x - d \<le> x"
-     and cont': "\<forall>z. x - d \<le> z \<and> z \<le> x \<longrightarrow> isCont f z"
-       by (auto simp add: abs_if)
-    from IVT [OF le flef xlex cont']
-    obtain x' where "x-d \<le> x'" "x' \<le> x" "f x' = f(x+d)" by blast
-    moreover
-    hence "g(f x') = g (f(x+d))" by simp
-    ultimately show False using d inj [of x'] inj [of "x+d"]
-      by (simp add: abs_le_iff)
-  next
-    case ge
-    from d cont all [of "x-d"]
-    have flef: "f(x-d) \<le> f x"
-     and xlex: "x \<le> x+d"
-     and cont': "\<forall>z. x \<le> z \<and> z \<le> x+d \<longrightarrow> isCont f z"
-       by (auto simp add: abs_if)
-    from IVT2 [OF ge flef xlex cont']
-    obtain x' where "x \<le> x'" "x' \<le> x+d" "f x' = f(x-d)" by blast
-    moreover
-    hence "g(f x') = g (f(x-d))" by simp
-    ultimately show False using d inj [of x'] inj [of "x-d"]
-      by (simp add: abs_le_iff)
-  qed
-qed
-
-
-text{*Similar version for lower bound.*}
-
-lemma lemma_isCont_inj2:
-  fixes f g :: "real \<Rightarrow> real"
-  shows "[|0 < d; \<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z;
-        \<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z |]
-      ==> \<exists>z. \<bar>z-x\<bar> \<le> d & f z < f x"
-apply (insert lemma_isCont_inj
-          [where f = "%x. - f x" and g = "%y. g(-y)" and x = x and d = d])
-apply (simp add: linorder_not_le)
-done
-
-text{*Show there's an interval surrounding @{term "f(x)"} in
-@{text "f[[x - d, x + d]]"} .*}
-
-lemma isCont_inj_range:
-  fixes f :: "real \<Rightarrow> real"
-  assumes d: "0 < d"
-      and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z"
-      and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z"
-  shows "\<exists>e>0. \<forall>y. \<bar>y - f x\<bar> \<le> e --> (\<exists>z. \<bar>z-x\<bar> \<le> d & f z = y)"
-proof -
-  have "x-d \<le> x+d" "\<forall>z. x-d \<le> z \<and> z \<le> x+d \<longrightarrow> isCont f z" using cont d
-    by (auto simp add: abs_le_iff)
-  from isCont_Lb_Ub [OF this]
-  obtain L M
-  where all1 [rule_format]: "\<forall>z. x-d \<le> z \<and> z \<le> x+d \<longrightarrow> L \<le> f z \<and> f z \<le> M"
-    and all2 [rule_format]:
-           "\<forall>y. L \<le> y \<and> y \<le> M \<longrightarrow> (\<exists>z. x-d \<le> z \<and> z \<le> x+d \<and> f z = y)"
-    by auto
-  with d have "L \<le> f x & f x \<le> M" by simp
-  moreover have "L \<noteq> f x"
-  proof -
-    from lemma_isCont_inj2 [OF d inj cont]
-    obtain u where "\<bar>u - x\<bar> \<le> d" "f u < f x"  by auto
-    thus ?thesis using all1 [of u] by arith
-  qed
-  moreover have "f x \<noteq> M"
-  proof -
-    from lemma_isCont_inj [OF d inj cont]
-    obtain u where "\<bar>u - x\<bar> \<le> d" "f x < f u"  by auto
-    thus ?thesis using all1 [of u] by arith
-  qed
-  ultimately have "L < f x & f x < M" by arith
-  hence "0 < f x - L" "0 < M - f x" by arith+
-  from real_lbound_gt_zero [OF this]
-  obtain e where e: "0 < e" "e < f x - L" "e < M - f x" by auto
-  thus ?thesis
-  proof (intro exI conjI)
-    show "0<e" using e(1) .
-    show "\<forall>y. \<bar>y - f x\<bar> \<le> e \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> d \<and> f z = y)"
-    proof (intro strip)
-      fix y::real
-      assume "\<bar>y - f x\<bar> \<le> e"
-      with e have "L \<le> y \<and> y \<le> M" by arith
-      from all2 [OF this]
-      obtain z where "x - d \<le> z" "z \<le> x + d" "f z = y" by blast
-      thus "\<exists>z. \<bar>z - x\<bar> \<le> d \<and> f z = y" 
-        by (force simp add: abs_le_iff)
-    qed
-  qed
-qed
-
-
 text{*Continuity of inverse function*}
 
 lemma isCont_inverse_function:
   fixes f g :: "real \<Rightarrow> real"
   assumes d: "0 < d"
-      and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d --> g(f z) = z"
-      and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d --> isCont f z"
+      and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d \<longrightarrow> g (f z) = z"
+      and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d \<longrightarrow> isCont f z"
   shows "isCont g (f x)"
-proof (simp add: isCont_iff LIM_eq)
-  show "\<forall>r. 0 < r \<longrightarrow>
-         (\<exists>s>0. \<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r)"
-  proof (intro strip)
-    fix r::real
-    assume r: "0<r"
-    from real_lbound_gt_zero [OF r d]
-    obtain e where e: "0 < e" and e_lt: "e < r \<and> e < d" by blast
-    with inj cont
-    have e_simps: "\<forall>z. \<bar>z-x\<bar> \<le> e --> g (f z) = z"
-                  "\<forall>z. \<bar>z-x\<bar> \<le> e --> isCont f z"   by auto
-    from isCont_inj_range [OF e this]
-    obtain e' where e': "0 < e'"
-        and all: "\<forall>y. \<bar>y - f x\<bar> \<le> e' \<longrightarrow> (\<exists>z. \<bar>z - x\<bar> \<le> e \<and> f z = y)"
-          by blast
-    show "\<exists>s>0. \<forall>z. z\<noteq>0 \<and> \<bar>z\<bar> < s \<longrightarrow> \<bar>g(f x + z) - g(f x)\<bar> < r"
-    proof (intro exI conjI)
-      show "0<e'" using e' .
-      show "\<forall>z. z \<noteq> 0 \<and> \<bar>z\<bar> < e' \<longrightarrow> \<bar>g (f x + z) - g (f x)\<bar> < r"
-      proof (intro strip)
-        fix z::real
-        assume z: "z \<noteq> 0 \<and> \<bar>z\<bar> < e'"
-        with e e_lt e_simps all [rule_format, of "f x + z"]
-        show "\<bar>g (f x + z) - g (f x)\<bar> < r" by force
-      qed
-    qed
-  qed
+proof -
+  let ?A = "f (x - d)" and ?B = "f (x + d)" and ?D = "{x - d..x + d}"
+
+  have f: "continuous_on ?D f"
+    using cont by (intro continuous_at_imp_continuous_on ballI) auto
+  then have g: "continuous_on (f`?D) g"
+    using inj by (intro continuous_on_inv) auto
+
+  from d f have "{min ?A ?B <..< max ?A ?B} \<subseteq> f ` ?D"
+    by (intro connected_contains_Ioo connected_continuous_image) (auto split: split_min split_max)
+  with g have "continuous_on {min ?A ?B <..< max ?A ?B} g"
+    by (rule continuous_on_subset)
+  moreover
+  have "(?A < f x \<and> f x < ?B) \<or> (?B < f x \<and> f x < ?A)"
+    using d inj by (intro continuous_inj_imp_mono[OF _ _ f] inj_on_imageI2[of g, OF inj_onI]) auto
+  then have "f x \<in> {min ?A ?B <..< max ?A ?B}"
+    by auto
+  ultimately
+  show ?thesis
+    by (simp add: continuous_on_eq_continuous_at)
 qed
+
+lemma isCont_inverse_function2:
+  fixes f g :: "real \<Rightarrow> real" shows
+  "\<lbrakk>a < x; x < b;
+    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> g (f z) = z;
+    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> isCont f z\<rbrakk>
+   \<Longrightarrow> isCont g (f x)"
+apply (rule isCont_inverse_function
+       [where f=f and d="min (x - a) (b - x)"])
+apply (simp_all add: abs_le_iff)
+done
 
 text {* Derivative of inverse function *}
 
@@ -1284,7 +1170,6 @@ next
         -- x --> inverse D"
     using neq by (rule tendsto_inverse)
 qed
-
 
 subsection {* Generalized Mean Value Theorem *}
 
@@ -1354,21 +1239,6 @@ lemma isCont_inv_fun:
          \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
       ==> isCont g (f x)"
 by (rule isCont_inverse_function)
-
-lemma isCont_inv_fun_inv:
-  fixes f g :: "real \<Rightarrow> real"
-  shows "[| 0 < d;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
-       ==> \<exists>e. 0 < e &  
-             (\<forall>y. 0 < \<bar>y - f(x)\<bar> & \<bar>y - f(x)\<bar> < e --> f(g(y)) = y)"
-apply (drule isCont_inj_range)
-prefer 2 apply (assumption, assumption, auto)
-apply (rule_tac x = e in exI, auto)
-apply (rotate_tac 2)
-apply (drule_tac x = y in spec, auto)
-done
-
 
 text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
 lemma LIM_fun_gt_zero:
