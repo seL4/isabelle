@@ -2457,21 +2457,47 @@ lemma arctan_le_zero_iff [simp]: "arctan x \<le> 0 \<longleftrightarrow> x \<le>
 lemma arctan_eq_zero_iff [simp]: "arctan x = 0 \<longleftrightarrow> x = 0"
   using arctan_eq_iff [of x 0] by simp
 
-lemma isCont_arcsin: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arcsin x" (* generalize with continuous_on {-1 .. 1} *)
-apply (subgoal_tac "isCont arcsin (sin (arcsin x))", simp)
-apply (rule isCont_inverse_function2 [where f=sin])
-apply (erule (1) arcsin_lt_bounded [THEN conjunct1])
-apply (erule (1) arcsin_lt_bounded [THEN conjunct2])
-apply (fast intro: arcsin_sin, simp)
-done
+lemma continuous_on_arcsin': "continuous_on {-1 .. 1} arcsin"
+proof -
+  have "continuous_on (sin ` {- pi / 2 .. pi / 2}) arcsin"
+    by (rule continuous_on_inv) (auto intro: continuous_on_intros simp: arcsin_sin)
+  also have "sin ` {- pi / 2 .. pi / 2} = {-1 .. 1}"
+  proof safe
+    fix x :: real assume "x \<in> {-1..1}" then show "x \<in> sin ` {- pi / 2..pi / 2}"
+      using arcsin_lbound arcsin_ubound by (intro image_eqI[where x="arcsin x"]) auto
+  qed simp
+  finally show ?thesis .
+qed
 
-lemma isCont_arccos: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arccos x" (* generalize with continuous_on {-1 .. 1} *)
-apply (subgoal_tac "isCont arccos (cos (arccos x))", simp)
-apply (rule isCont_inverse_function2 [where f=cos])
-apply (erule (1) arccos_lt_bounded [THEN conjunct1])
-apply (erule (1) arccos_lt_bounded [THEN conjunct2])
-apply (fast intro: arccos_cos, simp)
-done
+lemma continuous_on_arcsin [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. -1 \<le> f x \<and> f x \<le> 1) \<Longrightarrow> continuous_on s (\<lambda>x. arcsin (f x))"
+  using continuous_on_compose[of s f, OF _ continuous_on_subset[OF  continuous_on_arcsin']]
+  by (auto simp: comp_def subset_eq)
+
+lemma isCont_arcsin: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont arcsin x"
+  using continuous_on_arcsin'[THEN continuous_on_subset, of "{ -1 <..< 1 }"]
+  by (auto simp: continuous_on_eq_continuous_at subset_eq)
+
+lemma continuous_on_arccos': "continuous_on {-1 .. 1} arccos"
+proof -
+  have "continuous_on (cos ` {0 .. pi}) arccos"
+    by (rule continuous_on_inv) (auto intro: continuous_on_intros simp: arccos_cos)
+  also have "cos ` {0 .. pi} = {-1 .. 1}"
+  proof safe
+    fix x :: real assume "x \<in> {-1..1}" then show "x \<in> cos ` {0..pi}"
+      using arccos_lbound arccos_ubound by (intro image_eqI[where x="arccos x"]) auto
+  qed simp
+  finally show ?thesis .
+qed
+
+lemma continuous_on_arccos [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. -1 \<le> f x \<and> f x \<le> 1) \<Longrightarrow> continuous_on s (\<lambda>x. arccos (f x))"
+  using continuous_on_compose[of s f, OF _ continuous_on_subset[OF  continuous_on_arccos']]
+  by (auto simp: comp_def subset_eq)
+
+lemma isCont_arccos: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont arccos x"
+  using continuous_on_arccos'[THEN continuous_on_subset, of "{ -1 <..< 1 }"]
+  by (auto simp: continuous_on_eq_continuous_at subset_eq)
 
 lemma isCont_arctan: "isCont arctan x"
 apply (rule arctan_lbound [of x, THEN dense, THEN exE], clarify)
