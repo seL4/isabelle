@@ -10,21 +10,7 @@ theory Lim
 imports SEQ
 begin
 
-definition
-  isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
-  "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
-
 subsection {* Limits of Functions *}
-
-lemma metric_LIM_I:
-  "(\<And>r. 0 < r \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r)
-    \<Longrightarrow> f -- a --> L"
-by (simp add: LIM_def)
-
-lemma metric_LIM_D:
-  "\<lbrakk>f -- a --> L; 0 < r\<rbrakk>
-    \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r"
-by (simp add: LIM_def)
 
 lemma LIM_eq:
   fixes a :: "'a::real_normed_vector" and L :: "'b::real_normed_vector"
@@ -80,13 +66,6 @@ lemma LIM_zero_iff:
   shows "((\<lambda>x. f x - l) ---> 0) F = (f ---> l) F"
 unfolding tendsto_iff dist_norm by simp
 
-lemma metric_LIM_imp_LIM:
-  assumes f: "f -- a --> l"
-  assumes le: "\<And>x. x \<noteq> a \<Longrightarrow> dist (g x) m \<le> dist (f x) l"
-  shows "g -- a --> m"
-  by (rule metric_tendsto_imp_tendsto [OF f],
-    auto simp add: eventually_at_topological le)
-
 lemma LIM_imp_LIM:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   fixes g :: "'a::topological_space \<Rightarrow> 'c::real_normed_vector"
@@ -96,32 +75,12 @@ lemma LIM_imp_LIM:
   by (rule metric_LIM_imp_LIM [OF f],
     simp add: dist_norm le)
 
-lemma metric_LIM_equal2:
-  assumes 1: "0 < R"
-  assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < R\<rbrakk> \<Longrightarrow> f x = g x"
-  shows "g -- a --> l \<Longrightarrow> f -- a --> l"
-apply (rule topological_tendstoI)
-apply (drule (2) topological_tendstoD)
-apply (simp add: eventually_at, safe)
-apply (rule_tac x="min d R" in exI, safe)
-apply (simp add: 1)
-apply (simp add: 2)
-done
-
 lemma LIM_equal2:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::topological_space"
   assumes 1: "0 < R"
   assumes 2: "\<And>x. \<lbrakk>x \<noteq> a; norm (x - a) < R\<rbrakk> \<Longrightarrow> f x = g x"
   shows "g -- a --> l \<Longrightarrow> f -- a --> l"
 by (rule metric_LIM_equal2 [OF 1 2], simp_all add: dist_norm)
-
-lemma metric_LIM_compose2:
-  assumes f: "f -- a --> b"
-  assumes g: "g -- b --> c"
-  assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> b"
-  shows "(\<lambda>x. g (f x)) -- a --> c"
-  using g f inj [folded eventually_at]
-  by (rule tendsto_compose_eventually)
 
 lemma LIM_compose2:
   fixes a :: "'a::real_normed_vector"
@@ -199,13 +158,6 @@ lemma isCont_divide [simp]:
   shows "\<lbrakk>isCont f a; isCont g a; g a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. f x / g x) a"
   unfolding isCont_def by (rule tendsto_divide)
 
-lemma metric_isCont_LIM_compose2:
-  assumes f [unfolded isCont_def]: "isCont f a"
-  assumes g: "g -- f a --> l"
-  assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> f a"
-  shows "(\<lambda>x. g (f x)) -- a --> l"
-by (rule metric_LIM_compose2 [OF f g inj])
-
 lemma isCont_LIM_compose2:
   fixes a :: "'a::real_normed_vector"
   assumes f [unfolded isCont_def]: "isCont f a"
@@ -250,18 +202,6 @@ lemmas isCont_intros =
   isCont_of_real isCont_power isCont_sgn isCont_setsum
 
 subsection {* Uniform Continuity *}
-
-lemma isUCont_isCont: "isUCont f ==> isCont f x"
-by (simp add: isUCont_def isCont_def LIM_def, force)
-
-lemma isUCont_Cauchy:
-  "\<lbrakk>isUCont f; Cauchy X\<rbrakk> \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
-unfolding isUCont_def
-apply (rule metric_CauchyI)
-apply (drule_tac x=e in spec, safe)
-apply (drule_tac e=s in metric_CauchyD, safe)
-apply (rule_tac x=M in exI, simp)
-done
 
 lemma (in bounded_linear) isUCont: "isUCont f"
 unfolding isUCont_def dist_norm

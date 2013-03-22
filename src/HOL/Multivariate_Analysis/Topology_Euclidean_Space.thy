@@ -1416,7 +1416,7 @@ lemma Lim_within_empty: "(f ---> l) (net within {})"
   unfolding tendsto_def Limits.eventually_within by simp
 
 lemma Lim_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
-  unfolding tendsto_def Limits.eventually_within
+  unfolding tendsto_def Topological_Spaces.eventually_within
   by (auto elim!: eventually_elim1)
 
 lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
@@ -4667,7 +4667,7 @@ proof-
   hence "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
     using `a \<notin> U` by (fast elim: eventually_mono [rotated])
   thus ?thesis
-    unfolding Limits.eventually_within Limits.eventually_at
+    unfolding Limits.eventually_within Metric_Spaces.eventually_at
     by (rule ex_forward, cut_tac `f x \<noteq> a`, auto simp: dist_commute)
 qed
 

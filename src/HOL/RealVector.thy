@@ -5,7 +5,7 @@
 header {* Vector Spaces and Algebras over the Reals *}
 
 theory RealVector
-imports RComplete
+imports RComplete Metric_Spaces
 begin
 
 subsection {* Locale for additive functions *}
@@ -434,106 +434,6 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
   by (rule Reals_cases) auto
 
 
-subsection {* Metric spaces *}
-
-class dist =
-  fixes dist :: "'a \<Rightarrow> 'a \<Rightarrow> real"
-
-class open_dist = "open" + dist +
-  assumes open_dist: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-
-class metric_space = open_dist +
-  assumes dist_eq_0_iff [simp]: "dist x y = 0 \<longleftrightarrow> x = y"
-  assumes dist_triangle2: "dist x y \<le> dist x z + dist y z"
-begin
-
-lemma dist_self [simp]: "dist x x = 0"
-by simp
-
-lemma zero_le_dist [simp]: "0 \<le> dist x y"
-using dist_triangle2 [of x x y] by simp
-
-lemma zero_less_dist_iff: "0 < dist x y \<longleftrightarrow> x \<noteq> y"
-by (simp add: less_le)
-
-lemma dist_not_less_zero [simp]: "\<not> dist x y < 0"
-by (simp add: not_less)
-
-lemma dist_le_zero_iff [simp]: "dist x y \<le> 0 \<longleftrightarrow> x = y"
-by (simp add: le_less)
-
-lemma dist_commute: "dist x y = dist y x"
-proof (rule order_antisym)
-  show "dist x y \<le> dist y x"
-    using dist_triangle2 [of x y x] by simp
-  show "dist y x \<le> dist x y"
-    using dist_triangle2 [of y x y] by simp
-qed
-
-lemma dist_triangle: "dist x z \<le> dist x y + dist y z"
-using dist_triangle2 [of x z y] by (simp add: dist_commute)
-
-lemma dist_triangle3: "dist x y \<le> dist a x + dist a y"
-using dist_triangle2 [of x y a] by (simp add: dist_commute)
-
-lemma dist_triangle_alt:
-  shows "dist y z <= dist x y + dist x z"
-by (rule dist_triangle3)
-
-lemma dist_pos_lt:
-  shows "x \<noteq> y ==> 0 < dist x y"
-by (simp add: zero_less_dist_iff)
-
-lemma dist_nz:
-  shows "x \<noteq> y \<longleftrightarrow> 0 < dist x y"
-by (simp add: zero_less_dist_iff)
-
-lemma dist_triangle_le:
-  shows "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
-by (rule order_trans [OF dist_triangle2])
-
-lemma dist_triangle_lt:
-  shows "dist x z + dist y z < e ==> dist x y < e"
-by (rule le_less_trans [OF dist_triangle2])
-
-lemma dist_triangle_half_l:
-  shows "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
-by (rule dist_triangle_lt [where z=y], simp)
-
-lemma dist_triangle_half_r:
-  shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
-by (rule dist_triangle_half_l, simp_all add: dist_commute)
-
-subclass topological_space
-proof
-  have "\<exists>e::real. 0 < e"
-    by (fast intro: zero_less_one)
-  then show "open UNIV"
-    unfolding open_dist by simp
-next
-  fix S T assume "open S" "open T"
-  then show "open (S \<inter> T)"
-    unfolding open_dist
-    apply clarify
-    apply (drule (1) bspec)+
-    apply (clarify, rename_tac r s)
-    apply (rule_tac x="min r s" in exI, simp)
-    done
-next
-  fix K assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
-    unfolding open_dist by fast
-qed
-
-lemma (in metric_space) open_ball: "open {y. dist x y < d}"
-proof (unfold open_dist, intro ballI)
-  fix y assume *: "y \<in> {y. dist x y < d}"
-  then show "\<exists>e>0. \<forall>z. dist z y < e \<longrightarrow> z \<in> {y. dist x y < d}"
-    by (auto intro!: exI[of _ "d - dist x y"] simp: field_simps dist_triangle_lt)
-qed
-
-end
-
-
 subsection {* Real normed vector spaces *}
 
 class norm =
@@ -774,16 +674,9 @@ begin
 definition real_norm_def [simp]:
   "norm r = \<bar>r\<bar>"
 
-definition dist_real_def:
-  "dist x y = \<bar>x - y\<bar>"
-
-definition open_real_def:
-  "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-
 instance
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
-apply (rule open_real_def)
 apply (simp add: sgn_real_def)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
@@ -792,47 +685,6 @@ apply (rule abs_mult)
 done
 
 end
-
-instance real :: linorder_topology
-proof
-  show "(open :: real set \<Rightarrow> bool) = generate_topology (range lessThan \<union> range greaterThan)"
-  proof (rule ext, safe)
-    fix S :: "real set" assume "open S"
-    then guess f unfolding open_real_def bchoice_iff ..
-    then have *: "S = (\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x})"
-      by (fastforce simp: dist_real_def)
-    show "generate_topology (range lessThan \<union> range greaterThan) S"
-      apply (subst *)
-      apply (intro generate_topology_Union generate_topology.Int)
-      apply (auto intro: generate_topology.Basis)
-      done
-  next
-    fix S :: "real set" assume "generate_topology (range lessThan \<union> range greaterThan) S"
-    moreover have "\<And>a::real. open {..<a}"
-      unfolding open_real_def dist_real_def
-    proof clarify
-      fix x a :: real assume "x < a"
-      hence "0 < a - x \<and> (\<forall>y. \<bar>y - x\<bar> < a - x \<longrightarrow> y \<in> {..<a})" by auto
-      thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {..<a}" ..
-    qed
-    moreover have "\<And>a::real. open {a <..}"
-      unfolding open_real_def dist_real_def
-    proof clarify
-      fix x a :: real assume "a < x"
-      hence "0 < x - a \<and> (\<forall>y. \<bar>y - x\<bar> < x - a \<longrightarrow> y \<in> {a<..})" by auto
-      thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {a<..}" ..
-    qed
-    ultimately show "open S"
-      by induct auto
-  qed
-qed
-
-lemmas open_real_greaterThan = open_greaterThan[where 'a=real]
-lemmas open_real_lessThan = open_lessThan[where 'a=real]
-lemmas open_real_greaterThanLessThan = open_greaterThanLessThan[where 'a=real]
-lemmas closed_real_atMost = closed_atMost[where 'a=real]
-lemmas closed_real_atLeast = closed_atLeast[where 'a=real]
-lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
 subsection {* Extra type constraints *}
 
@@ -850,7 +702,6 @@ text {* Only allow @{term norm} in class @{text real_normed_vector}. *}
 
 setup {* Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
-
 
 subsection {* Sign function *}
 
@@ -1057,21 +908,6 @@ lemma bounded_linear_scaleR_right: "bounded_linear (\<lambda>x. scaleR r x)"
 lemma bounded_linear_of_real: "bounded_linear (\<lambda>r. of_real r)"
   unfolding of_real_def by (rule bounded_linear_scaleR_left)
 
-
-instance metric_space \<subseteq> t2_space
-proof
-  fix x y :: "'a::metric_space"
-  assume xy: "x \<noteq> y"
-  let ?U = "{y'. dist x y' < dist x y / 2}"
-  let ?V = "{x'. dist y x' < dist x y / 2}"
-  have th0: "\<And>d x y z. (d x z :: real) \<le> d x y + d y z \<Longrightarrow> d y z = d z y
-               \<Longrightarrow> \<not>(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
-  have "open ?U \<and> open ?V \<and> x \<in> ?U \<and> y \<in> ?V \<and> ?U \<inter> ?V = {}"
-    using dist_pos_lt[OF xy] th0[of dist, OF dist_triangle dist_commute]
-    using open_ball[of _ "dist x y / 2"] by auto
-  then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-    by blast
-qed
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof
   fix x::'a

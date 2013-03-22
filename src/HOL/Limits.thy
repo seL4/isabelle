@@ -11,31 +11,6 @@ begin
 definition at_infinity :: "'a::real_normed_vector filter" where
   "at_infinity = Abs_filter (\<lambda>P. \<exists>r. \<forall>x. r \<le> norm x \<longrightarrow> P x)"
 
-
-lemma eventually_nhds_metric:
-  "eventually P (nhds a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. dist x a < d \<longrightarrow> P x)"
-unfolding eventually_nhds open_dist
-apply safe
-apply fast
-apply (rule_tac x="{x. dist x a < d}" in exI, simp)
-apply clarsimp
-apply (rule_tac x="d - dist x a" in exI, clarsimp)
-apply (simp only: less_diff_eq)
-apply (erule le_less_trans [OF dist_triangle])
-done
-
-lemma eventually_at:
-  fixes a :: "'a::metric_space"
-  shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding at_def eventually_within eventually_nhds_metric by auto
-lemma eventually_within_less: (* COPY FROM Topo/eventually_within *)
-  "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  unfolding eventually_within eventually_at dist_nz by auto
-
-lemma eventually_within_le: (* COPY FROM Topo/eventually_within_le *)
-  "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)"
-  unfolding eventually_within_less by auto (metis dense order_le_less_trans)
-
 lemma eventually_at_infinity:
   "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. b \<le> norm x \<longrightarrow> P x)"
 unfolding at_infinity_def
@@ -246,38 +221,7 @@ lemmas Zfun_mult_left = bounded_bilinear.Zfun_left [OF bounded_bilinear_mult]
 lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
-
-lemma metric_tendsto_imp_tendsto:
-  assumes f: "(f ---> a) F"
-  assumes le: "eventually (\<lambda>x. dist (g x) b \<le> dist (f x) a) F"
-  shows "(g ---> b) F"
-proof (rule tendstoI)
-  fix e :: real assume "0 < e"
-  with f have "eventually (\<lambda>x. dist (f x) a < e) F" by (rule tendstoD)
-  with le show "eventually (\<lambda>x. dist (g x) b < e) F"
-    using le_less_trans by (rule eventually_elim2)
-qed
 subsubsection {* Distance and norms *}
-
-lemma tendsto_dist [tendsto_intros]:
-  assumes f: "(f ---> l) F" and g: "(g ---> m) F"
-  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) F"
-proof (rule tendstoI)
-  fix e :: real assume "0 < e"
-  hence e2: "0 < e/2" by simp
-  from tendstoD [OF f e2] tendstoD [OF g e2]
-  show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) F"
-  proof (eventually_elim)
-    case (elim x)
-    then show "dist (dist (f x) (g x)) (dist l m) < e"
-      unfolding dist_real_def
-      using dist_triangle2 [of "f x" "g x" "l"]
-      using dist_triangle2 [of "g x" "l" "m"]
-      using dist_triangle3 [of "l" "m" "f x"]
-      using dist_triangle [of "f x" "m" "g x"]
-      by arith
-  qed
-qed
 
 lemma norm_conv_dist: "norm x = dist x 0"
   unfolding dist_norm by simp
@@ -544,50 +488,6 @@ lemma tendsto_sgn [tendsto_intros]:
   shows "\<lbrakk>(f ---> l) F; l \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. sgn (f x)) ---> sgn l) F"
   unfolding sgn_div_norm by (simp add: tendsto_intros)
 
-lemma filterlim_at_bot_at_right:
-  fixes f :: "real \<Rightarrow> 'b::linorder"
-  assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
-  assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
-  assumes Q: "eventually Q (at_right a)" and bound: "\<And>b. Q b \<Longrightarrow> a < b"
-  assumes P: "eventually P at_bot"
-  shows "filterlim f at_bot (at_right a)"
-proof -
-  from P obtain x where x: "\<And>y. y \<le> x \<Longrightarrow> P y"
-    unfolding eventually_at_bot_linorder by auto
-  show ?thesis
-  proof (intro filterlim_at_bot_le[THEN iffD2] allI impI)
-    fix z assume "z \<le> x"
-    with x have "P z" by auto
-    have "eventually (\<lambda>x. x \<le> g z) (at_right a)"
-      using bound[OF bij(2)[OF `P z`]]
-      by (auto simp add: eventually_within_less dist_real_def intro!:  exI[of _ "g z - a"])
-    with Q show "eventually (\<lambda>x. f x \<le> z) (at_right a)"
-      by eventually_elim (metis bij `P z` mono)
-  qed
-qed
-
-lemma filterlim_at_top_at_left:
-  fixes f :: "real \<Rightarrow> 'b::linorder"
-  assumes mono: "\<And>x y. Q x \<Longrightarrow> Q y \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
-  assumes bij: "\<And>x. P x \<Longrightarrow> f (g x) = x" "\<And>x. P x \<Longrightarrow> Q (g x)"
-  assumes Q: "eventually Q (at_left a)" and bound: "\<And>b. Q b \<Longrightarrow> b < a"
-  assumes P: "eventually P at_top"
-  shows "filterlim f at_top (at_left a)"
-proof -
-  from P obtain x where x: "\<And>y. x \<le> y \<Longrightarrow> P y"
-    unfolding eventually_at_top_linorder by auto
-  show ?thesis
-  proof (intro filterlim_at_top_ge[THEN iffD2] allI impI)
-    fix z assume "x \<le> z"
-    with x have "P z" by auto
-    have "eventually (\<lambda>x. g z \<le> x) (at_left a)"
-      using bound[OF bij(2)[OF `P z`]]
-      by (auto simp add: eventually_within_less dist_real_def intro!:  exI[of _ "a - g z"])
-    with Q show "eventually (\<lambda>x. z \<le> f x) (at_left a)"
-      by eventually_elim (metis bij `P z` mono)
-  qed
-qed
-
 lemma filterlim_at_infinity:
   fixes f :: "_ \<Rightarrow> 'a\<Colon>real_normed_vector"
   assumes "0 \<le> c"
@@ -606,13 +506,6 @@ proof safe
     with P show "P (f x)" by auto
   qed
 qed force
-
-lemma filterlim_real_sequentially: "LIM x sequentially. real x :> at_top"
-  unfolding filterlim_at_top
-  apply (intro allI)
-  apply (rule_tac c="natceiling (Z + 1)" in eventually_sequentiallyI)
-  apply (auto simp: natceiling_le_eq)
-  done
 
 subsection {* Relate @{const at}, @{const at_left} and @{const at_right} *}
 
