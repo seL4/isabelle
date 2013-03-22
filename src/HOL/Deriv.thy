@@ -19,15 +19,6 @@ definition
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "DERIV f x :> D = ((%h. (f(x + h) - f x) / h) -- 0 --> D)"
 
-primrec
-  Bolzano_bisect :: "(real \<times> real \<Rightarrow> bool) \<Rightarrow> real \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real \<times> real" where
-  "Bolzano_bisect P a b 0 = (a, b)"
-  | "Bolzano_bisect P a b (Suc n) =
-      (let (x, y) = Bolzano_bisect P a b n
-       in if P (x, (x+y) / 2) then ((x+y)/2, y)
-                              else (x, (x+y)/2))"
-
-
 subsection {* Derivatives *}
 
 lemma DERIV_iff: "(DERIV f x :> D) = ((%h. (f(x + h) - f(x))/h) -- 0 --> D)"
@@ -509,72 +500,53 @@ apply (drule_tac [2] f = f in tendsto_diff)
 apply (auto intro: LIMSEQ_unique)
 done
 
-text{*The universal quantifiers below are required for the declaration
-  of @{text Bolzano_nest_unique} below.*}
+lemma Bolzano[consumes 1, case_names trans local]:
+  fixes P :: "real \<Rightarrow> real \<Rightarrow> bool"
+  assumes [arith]: "a \<le> b"
+  assumes trans: "\<And>a b c. \<lbrakk>P a b; P b c; a \<le> b; b \<le> c\<rbrakk> \<Longrightarrow> P a c"
+  assumes local: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> \<exists>d>0. \<forall>a b. a \<le> x \<and> x \<le> b \<and> b - a < d \<longrightarrow> P a b"
+  shows "P a b"
+proof -
+  def bisect \<equiv> "nat_rec (a, b) (\<lambda>n (x, y). if P x ((x+y) / 2) then ((x+y)/2, y) else (x, (x+y)/2))"
+  def l \<equiv> "\<lambda>n. fst (bisect n)" and u \<equiv> "\<lambda>n. snd (bisect n)"
+  have l[simp]: "l 0 = a" "\<And>n. l (Suc n) = (if P (l n) ((l n + u n) / 2) then (l n + u n) / 2 else l n)"
+    and u[simp]: "u 0 = b" "\<And>n. u (Suc n) = (if P (l n) ((l n + u n) / 2) then u n else (l n + u n) / 2)"
+    by (simp_all add: l_def u_def bisect_def split: prod.split)
 
-lemma Bolzano_bisect_le:
- "a \<le> b ==> \<forall>n. fst (Bolzano_bisect P a b n) \<le> snd (Bolzano_bisect P a b n)"
-apply (rule allI)
-apply (induct_tac "n")
-apply (auto simp add: Let_def split_def)
-done
+  { fix n have "l n \<le> u n" by (induct n) auto } note this[simp]
 
-lemma Bolzano_bisect_fst_le_Suc: "a \<le> b ==>
-   \<forall>n. fst(Bolzano_bisect P a b n) \<le> fst (Bolzano_bisect P a b (Suc n))"
-apply (rule allI)
-apply (induct_tac "n")
-apply (auto simp add: Bolzano_bisect_le Let_def split_def)
-done
+  have "\<exists>x. ((\<forall>n. l n \<le> x) \<and> l ----> x) \<and> ((\<forall>n. x \<le> u n) \<and> u ----> x)"
+  proof (safe intro!: lemma_nest_unique)
+    fix n show "l n \<le> l (Suc n)" "u (Suc n) \<le> u n" by (induct n) auto
+  next
+    { fix n have "l n - u n = (a - b) / 2^n" by (induct n) (auto simp: field_simps) }
+    then show "(\<lambda>n. l n - u n) ----> 0" by (simp add: LIMSEQ_divide_realpow_zero)
+  qed fact
+  then obtain x where x: "\<And>n. l n \<le> x" "\<And>n. x \<le> u n" and "l ----> x" "u ----> x" by auto
+  obtain d where "0 < d" and d: "\<And>a b. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> b - a < d \<Longrightarrow> P a b"
+    using `l 0 \<le> x` `x \<le> u 0` local[of x] by auto
 
-lemma Bolzano_bisect_Suc_le_snd: "a \<le> b ==>
-   \<forall>n. snd(Bolzano_bisect P a b (Suc n)) \<le> snd (Bolzano_bisect P a b n)"
-apply (rule allI)
-apply (induct_tac "n")
-apply (auto simp add: Bolzano_bisect_le Let_def split_def)
-done
-
-lemma eq_divide_2_times_iff: "((x::real) = y / (2 * z)) = (2 * x = y/z)"
-apply (auto)
-apply (drule_tac f = "%u. (1/2) *u" in arg_cong)
-apply (simp)
-done
-
-lemma Bolzano_bisect_diff:
-     "a \<le> b ==>
-      snd(Bolzano_bisect P a b n) - fst(Bolzano_bisect P a b n) =
-      (b-a) / (2 ^ n)"
-apply (induct "n")
-apply (auto simp add: eq_divide_2_times_iff add_divide_distrib Let_def split_def)
-done
-
-lemmas Bolzano_nest_unique =
-    lemma_nest_unique
-    [OF Bolzano_bisect_fst_le_Suc Bolzano_bisect_Suc_le_snd Bolzano_bisect_le]
-
-
-lemma not_P_Bolzano_bisect:
-  assumes P:    "!!a b c. [| P(a,b); P(b,c); a \<le> b; b \<le> c|] ==> P(a,c)"
-      and notP: "~ P(a,b)"
-      and le:   "a \<le> b"
-  shows "~ P(fst(Bolzano_bisect P a b n), snd(Bolzano_bisect P a b n))"
-proof (induct n)
-  case 0 show ?case using notP by simp
- next
-  case (Suc n)
-  thus ?case
- by (auto simp del: surjective_pairing [symmetric]
-             simp add: Let_def split_def Bolzano_bisect_le [OF le]
-     P [of "fst (Bolzano_bisect P a b n)" _ "snd (Bolzano_bisect P a b n)"])
+  show "P a b"
+  proof (rule ccontr)
+    assume "\<not> P a b" 
+    { fix n have "\<not> P (l n) (u n)"
+      proof (induct n)
+        case (Suc n) with trans[of "l n" "(l n + u n) / 2" "u n"] show ?case by auto
+      qed (simp add: `\<not> P a b`) }
+    moreover
+    { have "eventually (\<lambda>n. x - d / 2 < l n) sequentially"
+        using `0 < d` `l ----> x` by (intro order_tendstoD[of _ x]) auto
+      moreover have "eventually (\<lambda>n. u n < x + d / 2) sequentially"
+        using `0 < d` `u ----> x` by (intro order_tendstoD[of _ x]) auto
+      ultimately have "eventually (\<lambda>n. P (l n) (u n)) sequentially"
+      proof eventually_elim
+        fix n assume "x - d / 2 < l n" "u n < x + d / 2"
+        from add_strict_mono[OF this] have "u n - l n < d" by simp
+        with x show "P (l n) (u n)" by (rule d)
+      qed }
+    ultimately show False by simp
+  qed
 qed
-
-(*Now we re-package P_prem as a formula*)
-lemma not_P_Bolzano_bisect':
-     "[| \<forall>a b c. P(a,b) & P(b,c) & a \<le> b & b \<le> c --> P(a,c);
-         ~ P(a,b);  a \<le> b |] ==>
-      \<forall>n. ~ P(fst(Bolzano_bisect P a b n), snd(Bolzano_bisect P a b n))"
-by (blast elim!: not_P_Bolzano_bisect [THEN [2] rev_notE])
-
-
 
 lemma lemma_BOLZANO:
      "[| \<forall>a b c. P(a,b) & P(b,c) & a \<le> b & b \<le> c --> P(a,c);
@@ -582,28 +554,7 @@ lemma lemma_BOLZANO:
                 (\<forall>a b. a \<le> x & x \<le> b & (b-a) < d --> P(a,b));
          a \<le> b |]
       ==> P(a,b)"
-apply (rule Bolzano_nest_unique [where P=P, THEN exE], assumption+)
-apply (rule tendsto_minus_cancel)
-apply (simp (no_asm_simp) add: Bolzano_bisect_diff LIMSEQ_divide_realpow_zero)
-apply (rule ccontr)
-apply (drule not_P_Bolzano_bisect', assumption+)
-apply (rename_tac "l")
-apply (drule_tac x = l in spec, clarify)
-apply (simp add: LIMSEQ_iff)
-apply (drule_tac P = "%r. 0<r --> ?Q r" and x = "d/2" in spec)
-apply (drule_tac P = "%r. 0<r --> ?Q r" and x = "d/2" in spec)
-apply (drule real_less_half_sum, auto)
-apply (drule_tac x = "fst (Bolzano_bisect P a b (no + noa))" in spec)
-apply (drule_tac x = "snd (Bolzano_bisect P a b (no + noa))" in spec)
-apply safe
-apply (simp_all (no_asm_simp))
-apply (rule_tac y = "abs (fst (Bolzano_bisect P a b (no + noa)) - l) + abs (snd (Bolzano_bisect P a b (no + noa)) - l)" in order_le_less_trans)
-apply (simp (no_asm_simp) add: abs_if)
-apply (rule real_sum_of_halves [THEN subst])
-apply (rule add_strict_mono)
-apply (simp_all add: diff_minus [symmetric])
-done
-
+  using Bolzano[of a b "\<lambda>a b. P (a, b)"] by metis
 
 lemma lemma_BOLZANO2: "((\<forall>a b c. (a \<le> b & b \<le> c & P(a,b) & P(b,c)) --> P(a,c)) &
        (\<forall>x. \<exists>d::real. 0 < d &
