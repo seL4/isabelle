@@ -13,64 +13,6 @@ theory SEQ
 imports Limits
 begin
 
-subsection {* Defintions of limits *}
-
-definition
-  Bseq :: "(nat => 'a::real_normed_vector) => bool" where
-    --{*Standard definition for bounded sequence*}
-  "Bseq X = (\<exists>K>0.\<forall>n. norm (X n) \<le> K)"
-
-subsection {* Bounded Sequences *}
-
-lemma BseqI': assumes K: "\<And>n. norm (X n) \<le> K" shows "Bseq X"
-unfolding Bseq_def
-proof (intro exI conjI allI)
-  show "0 < max K 1" by simp
-next
-  fix n::nat
-  have "norm (X n) \<le> K" by (rule K)
-  thus "norm (X n) \<le> max K 1" by simp
-qed
-
-lemma BseqE: "\<lbrakk>Bseq X; \<And>K. \<lbrakk>0 < K; \<forall>n. norm (X n) \<le> K\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-unfolding Bseq_def by auto
-
-lemma BseqI2': assumes K: "\<forall>n\<ge>N. norm (X n) \<le> K" shows "Bseq X"
-proof (rule BseqI')
-  let ?A = "norm ` X ` {..N}"
-  have 1: "finite ?A" by simp
-  fix n::nat
-  show "norm (X n) \<le> max K (Max ?A)"
-  proof (cases rule: linorder_le_cases)
-    assume "n \<ge> N"
-    hence "norm (X n) \<le> K" using K by simp
-    thus "norm (X n) \<le> max K (Max ?A)" by simp
-  next
-    assume "n \<le> N"
-    hence "norm (X n) \<in> ?A" by simp
-    with 1 have "norm (X n) \<le> Max ?A" by (rule Max_ge)
-    thus "norm (X n) \<le> max K (Max ?A)" by simp
-  qed
-qed
-
-lemma Bseq_ignore_initial_segment: "Bseq X \<Longrightarrow> Bseq (\<lambda>n. X (n + k))"
-unfolding Bseq_def by auto
-
-lemma Bseq_offset: "Bseq (\<lambda>n. X (n + k)) \<Longrightarrow> Bseq X"
-apply (erule BseqE)
-apply (rule_tac N="k" and K="K" in BseqI2')
-apply clarify
-apply (drule_tac x="n - k" in spec, simp)
-done
-
-lemma Bseq_conv_Bfun: "Bseq X \<longleftrightarrow> Bfun X sequentially"
-unfolding Bfun_def eventually_sequentially
-apply (rule iffI)
-apply (simp add: Bseq_def)
-apply (auto intro: BseqI2')
-done
-
-
 subsection {* Limits of Sequences *}
 
 lemma [trans]: "X=Y ==> Y ----> z ==> X ----> z"
@@ -105,7 +47,7 @@ done
 lemma Bseq_inverse:
   fixes a :: "'a::real_normed_div_algebra"
   shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
-unfolding Bseq_conv_Bfun by (rule Bfun_inverse)
+  by (rule Bfun_inverse)
 
 lemma LIMSEQ_diff_approach_zero:
   fixes L :: "'a::real_normed_vector"
@@ -188,7 +130,25 @@ done
 
 subsection {* Bounded Monotonic Sequences *}
 
-text{*Bounded Sequence*}
+subsubsection {* Bounded Sequences *}
+
+lemma BseqI': "(\<And>n. norm (X n) \<le> K) \<Longrightarrow> Bseq X"
+  by (intro BfunI) (auto simp: eventually_sequentially)
+
+lemma BseqI2': "\<forall>n\<ge>N. norm (X n) \<le> K \<Longrightarrow> Bseq X"
+  by (intro BfunI) (auto simp: eventually_sequentially)
+
+lemma Bseq_def: "Bseq X \<longleftrightarrow> (\<exists>K>0. \<forall>n. norm (X n) \<le> K)"
+  unfolding Bfun_def eventually_sequentially
+proof safe
+  fix N K assume "0 < K" "\<forall>n\<ge>N. norm (X n) \<le> K"
+  then show "\<exists>K>0. \<forall>n. norm (X n) \<le> K"
+    by (intro exI[of _ "max (Max (norm ` X ` {..N})) K"] min_max.less_supI2)
+       (auto intro!: imageI not_less[where 'a=nat, THEN iffD1] Max_ge simp: le_max_iff_disj)
+qed auto
+
+lemma BseqE: "\<lbrakk>Bseq X; \<And>K. \<lbrakk>0 < K; \<forall>n. norm (X n) \<le> K\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+unfolding Bseq_def by auto
 
 lemma BseqD: "Bseq X ==> \<exists>K. 0 < K & (\<forall>n. norm (X n) \<le> K)"
 by (simp add: Bseq_def)
@@ -280,11 +240,11 @@ subsubsection{*A Bounded and Monotonic Sequence Converges*}
 (* TODO: delete *)
 (* FIXME: one use in NSA/HSEQ.thy *)
 lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n --> X n = X m ==> \<exists>L. (X ----> L)"
-unfolding tendsto_def eventually_sequentially
-apply (rule_tac x = "X m" in exI, safe)
-apply (rule_tac x = m in exI, safe)
-apply (drule spec, erule impE, auto)
-done
+  apply (rule_tac x="X m" in exI)
+  apply (rule filterlim_cong[THEN iffD2, OF refl refl _ tendsto_const])
+  unfolding eventually_sequentially
+  apply blast
+  done
 
 text {* A monotone sequence converges to its least upper bound. *}
 
@@ -317,7 +277,7 @@ lemma Bseq_mono_convergent:
    "Bseq X \<Longrightarrow> \<forall>m. \<forall>n \<ge> m. X m \<le> X n \<Longrightarrow> convergent (X::nat=>real)"
   by (metis Bseq_isLub isLub_mono_imp_LIMSEQ convergentI)
 
-lemma Bseq_minus_iff: "Bseq (%n. -(X n)) = Bseq X"
+lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
   by (simp add: Bseq_def)
 
 text{*Main monotonicity theorem*}
@@ -352,18 +312,6 @@ apply (clarify, drule spec, drule (1) mp)
 apply (simp only: norm_minus_commute)
 apply (drule order_le_less_trans [OF norm_triangle_ineq2])
 apply simp
-done
-
-lemma Cauchy_Bseq: "Cauchy X ==> Bseq X"
-apply (simp add: Cauchy_iff)
-apply (drule spec, drule mp, rule zero_less_one, safe)
-apply (drule_tac x="M" in spec, simp)
-apply (drule lemmaCauchy)
-apply (rule_tac k="M" in Bseq_offset)
-apply (simp add: Bseq_def)
-apply (rule_tac x="1 + norm (X M)" in exI)
-apply (rule conjI, rule order_less_le_trans [OF zero_less_one], simp)
-apply (simp add: order_less_imp_le)
 done
 
 class banach = real_normed_vector + complete_space

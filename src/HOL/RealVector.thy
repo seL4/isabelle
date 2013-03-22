@@ -665,7 +665,6 @@ next
     using norm_triangle_ineq4 [of "x - z" "y - z"] by simp
 qed
 
-
 subsection {* Class instances for real numbers *}
 
 instantiation real :: real_normed_field
@@ -743,6 +742,8 @@ unfolding real_sgn_eq by simp
 lemma real_sgn_neg: "(x::real) < 0 \<Longrightarrow> sgn x = -1"
 unfolding real_sgn_eq by simp
 
+lemma norm_conv_dist: "norm x = dist x 0"
+  unfolding dist_norm by simp
 
 subsection {* Bounded Linear and Bilinear Operators *}
 

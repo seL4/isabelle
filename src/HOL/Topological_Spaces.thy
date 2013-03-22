@@ -643,6 +643,17 @@ lemma eventually_sequentiallyI:
   shows "eventually P sequentially"
 using assms by (auto simp: eventually_sequentially)
 
+lemma eventually_sequentially_seg:
+  "eventually (\<lambda>n. P (n + k)) sequentially \<longleftrightarrow> eventually P sequentially"
+  unfolding eventually_sequentially
+  apply safe
+   apply (rule_tac x="N + k" in exI)
+   apply rule
+   apply (erule_tac x="n - k" in allE)
+   apply auto []
+  apply (rule_tac x=N in exI)
+  apply auto []
+  done
 
 subsubsection {* Standard filters *}
 
@@ -1354,25 +1365,13 @@ lemma LIMSEQ_INF:
 
 lemma LIMSEQ_ignore_initial_segment:
   "f ----> a \<Longrightarrow> (\<lambda>n. f (n + k)) ----> a"
-apply (rule topological_tendstoI)
-apply (drule (2) topological_tendstoD)
-apply (simp only: eventually_sequentially)
-apply (erule exE, rename_tac N)
-apply (rule_tac x=N in exI)
-apply simp
-done
+  unfolding tendsto_def
+  by (subst eventually_sequentially_seg[where k=k])
 
 lemma LIMSEQ_offset:
   "(\<lambda>n. f (n + k)) ----> a \<Longrightarrow> f ----> a"
-apply (rule topological_tendstoI)
-apply (drule (2) topological_tendstoD)
-apply (simp only: eventually_sequentially)
-apply (erule exE, rename_tac N)
-apply (rule_tac x="N + k" in exI)
-apply clarify
-apply (drule_tac x="n - k" in spec)
-apply (simp add: le_diff_conv2)
-done
+  unfolding tendsto_def
+  by (subst (asm) eventually_sequentially_seg[where k=k])
 
 lemma LIMSEQ_Suc: "f ----> l \<Longrightarrow> (\<lambda>n. f (Suc n)) ----> l"
 by (drule_tac k="Suc 0" in LIMSEQ_ignore_initial_segment, simp)

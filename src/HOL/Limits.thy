@@ -49,8 +49,18 @@ lemma at_bot_le_at_infinity:
 
 subsection {* Boundedness *}
 
-definition Bfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool"
-  where "Bfun f F = (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) F)"
+lemma Bfun_def:
+  "Bfun f F \<longleftrightarrow> (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) F)"
+  unfolding Bfun_metric_def norm_conv_dist
+proof safe
+  fix y K assume "0 < K" and *: "eventually (\<lambda>x. dist (f x) y \<le> K) F"
+  moreover have "eventually (\<lambda>x. dist (f x) 0 \<le> dist (f x) y + dist 0 y) F"
+    by (intro always_eventually) (metis dist_commute dist_triangle)
+  with * have "eventually (\<lambda>x. dist (f x) 0 \<le> K + dist 0 y) F"
+    by eventually_elim auto
+  with `0 < K` show "\<exists>K>0. eventually (\<lambda>x. dist (f x) 0 \<le> K) F"
+    by (intro exI[of _ "K + dist 0 y"] add_pos_nonneg conjI zero_le_dist) auto
+qed auto
 
 lemma BfunI:
   assumes K: "eventually (\<lambda>x. norm (f x) \<le> K) F" shows "Bfun f F"
@@ -66,7 +76,6 @@ lemma BfunE:
   assumes "Bfun f F"
   obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) F"
 using assms unfolding Bfun_def by fast
-
 
 subsection {* Convergence to Zero *}
 
@@ -222,9 +231,6 @@ lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
 subsubsection {* Distance and norms *}
-
-lemma norm_conv_dist: "norm x = dist x 0"
-  unfolding dist_norm by simp
 
 lemma tendsto_norm [tendsto_intros]:
   "(f ---> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) F"

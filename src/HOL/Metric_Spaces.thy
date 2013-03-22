@@ -285,6 +285,22 @@ lemma metric_isCont_LIM_compose2:
   shows "(\<lambda>x. g (f x)) -- a --> l"
 by (rule metric_LIM_compose2 [OF f g inj])
 
+subsubsection {* Boundedness *}
+
+definition Bfun :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a filter \<Rightarrow> bool" where
+  Bfun_metric_def: "Bfun f F = (\<exists>y. \<exists>K>0. eventually (\<lambda>x. dist (f x) y \<le> K) F)"
+
+abbreviation Bseq :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> bool" where
+  "Bseq X \<equiv> Bfun X sequentially"
+
+lemma Bseq_conv_Bfun: "Bseq X \<longleftrightarrow> Bfun X sequentially" ..
+
+lemma Bseq_ignore_initial_segment: "Bseq X \<Longrightarrow> Bseq (\<lambda>n. X (n + k))"
+  unfolding Bfun_metric_def by (subst eventually_sequentially_seg)
+
+lemma Bseq_offset: "Bseq (\<lambda>n. X (n + k)) \<Longrightarrow> Bseq X"
+  unfolding Bfun_metric_def by (subst (asm) eventually_sequentially_seg)
+
 subsection {* Complete metric spaces *}
 
 subsection {* Cauchy sequences *}
@@ -320,6 +336,18 @@ apply (rule_tac x=M in exI, clarify)
 apply (blast intro: le_trans [OF _ seq_suble] dest!: spec)
 done
 
+lemma Cauchy_Bseq: "Cauchy X \<Longrightarrow> Bseq X"
+  unfolding Cauchy_def Bfun_metric_def eventually_sequentially
+  apply (erule_tac x=1 in allE)
+  apply simp
+  apply safe
+  apply (rule_tac x="X M" in exI)
+  apply (rule_tac x=1 in exI)
+  apply (erule_tac x=M in allE)
+  apply simp
+  apply (rule_tac x=M in exI)
+  apply (auto simp: dist_commute)
+  done
 
 subsubsection {* Cauchy Sequences are Convergent *}
 
