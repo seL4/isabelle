@@ -12,6 +12,79 @@ begin
 ML_file "~~/src/Provers/order.ML"
 ML_file "~~/src/Provers/quasi.ML"  (* FIXME unused? *)
 
+subsection {* Abstract ordering *}
+
+locale ordering =
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
+   and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
+  assumes strict_iff_order: "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
+  assumes refl: "a \<preceq> a" -- {* not @{text iff}: makes problems due to multiple (dual) interpretations *}
+    and antisym: "a \<preceq> b \<Longrightarrow> b \<preceq> a \<Longrightarrow> a = b"
+    and trans: "a \<preceq> b \<Longrightarrow> b \<preceq> c \<Longrightarrow> a \<preceq> c"
+begin
+
+lemma strict_implies_order:
+  "a \<prec> b \<Longrightarrow> a \<preceq> b"
+  by (simp add: strict_iff_order)
+
+lemma strict_implies_not_eq:
+  "a \<prec> b \<Longrightarrow> a \<noteq> b"
+  by (simp add: strict_iff_order)
+
+lemma not_eq_order_implies_strict:
+  "a \<noteq> b \<Longrightarrow> a \<preceq> b \<Longrightarrow> a \<prec> b"
+  by (simp add: strict_iff_order)
+
+lemma order_iff_strict:
+  "a \<preceq> b \<longleftrightarrow> a \<prec> b \<or> a = b"
+  by (auto simp add: strict_iff_order refl)
+
+lemma irrefl: -- {* not @{text iff}: makes problems due to multiple (dual) interpretations *}
+  "\<not> a \<prec> a"
+  by (simp add: strict_iff_order)
+
+lemma asym:
+  "a \<prec> b \<Longrightarrow> b \<prec> a \<Longrightarrow> False"
+  by (auto simp add: strict_iff_order intro: antisym)
+
+lemma strict_trans1:
+  "a \<preceq> b \<Longrightarrow> b \<prec> c \<Longrightarrow> a \<prec> c"
+  by (auto simp add: strict_iff_order intro: trans antisym)
+
+lemma strict_trans2:
+  "a \<prec> b \<Longrightarrow> b \<preceq> c \<Longrightarrow> a \<prec> c"
+  by (auto simp add: strict_iff_order intro: trans antisym)
+
+lemma strict_trans:
+  "a \<prec> b \<Longrightarrow> b \<prec> c \<Longrightarrow> a \<prec> c"
+  by (auto intro: strict_trans1 strict_implies_order)
+
+end
+
+locale ordering_top = ordering +
+  fixes top :: "'a"
+  assumes extremum [simp]: "a \<preceq> top"
+begin
+
+lemma extremum_uniqueI:
+  "top \<preceq> a \<Longrightarrow> a = top"
+  by (rule antisym) auto
+
+lemma extremum_unique:
+  "top \<preceq> a \<longleftrightarrow> a = top"
+  by (auto intro: antisym)
+
+lemma extremum_strict [simp]:
+  "\<not> (top \<prec> a)"
+  using extremum [of a] by (auto simp add: order_iff_strict intro: asym irrefl)
+
+lemma not_eq_extremum:
+  "a \<noteq> top \<longleftrightarrow> a \<prec> top"
+  by (auto simp add: order_iff_strict intro: not_eq_order_implies_strict extremum)
+
+end  
+
+
 subsection {* Syntactic orders *}
 
 class ord =
@@ -119,10 +192,21 @@ class order = preorder +
   assumes antisym: "x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
 begin
 
-text {* Reflexivity. *}
-
 lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
-by (auto simp add: less_le_not_le intro: antisym)
+  by (auto simp add: less_le_not_le intro: antisym)
+
+end
+
+sublocale order < order!: ordering less_eq less
+  by default (auto intro: antisym order_trans simp add: less_le)
+
+sublocale order < dual_order!: ordering greater_eq greater
+  by default (auto intro: antisym order_trans simp add: less_le)
+
+context order
+begin
+
+text {* Reflexivity. *}
 
 lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
@@ -1089,46 +1173,59 @@ subsection {* (Unique) top and bottom elements *}
 
 class bot = order +
   fixes bot :: 'a ("\<bottom>")
-  assumes bot_least [simp]: "\<bottom> \<le> a"
+  assumes bot_least: "\<bottom> \<le> a"
+
+sublocale bot < bot!: ordering_top greater_eq greater bot
+proof
+qed (fact bot_least)
+
+context bot
 begin
 
 lemma le_bot:
   "a \<le> \<bottom> \<Longrightarrow> a = \<bottom>"
-  by (auto intro: antisym)
+  by (fact bot.extremum_uniqueI)
 
 lemma bot_unique:
   "a \<le> \<bottom> \<longleftrightarrow> a = \<bottom>"
-  by (auto intro: antisym)
+  by (fact bot.extremum_unique)
 
-lemma not_less_bot [simp]:
-  "\<not> (a < \<bottom>)"
-  using bot_least [of a] by (auto simp: le_less)
+lemma not_less_bot:
+  "\<not> a < \<bottom>"
+  by (fact bot.extremum_strict)
 
 lemma bot_less:
   "a \<noteq> \<bottom> \<longleftrightarrow> \<bottom> < a"
-  by (auto simp add: less_le_not_le intro!: antisym)
+  by (fact bot.not_eq_extremum)
 
 end
 
 class top = order +
   fixes top :: 'a ("\<top>")
-  assumes top_greatest [simp]: "a \<le> \<top>"
+  assumes top_greatest: "a \<le> \<top>"
+
+sublocale top < top!: ordering_top less_eq less top
+proof
+qed (fact top_greatest)
+
+context top
 begin
 
 lemma top_le:
   "\<top> \<le> a \<Longrightarrow> a = \<top>"
-  by (rule antisym) auto
+  by (fact top.extremum_uniqueI)
 
 lemma top_unique:
   "\<top> \<le> a \<longleftrightarrow> a = \<top>"
-  by (auto intro: antisym)
+  by (fact top.extremum_unique)
 
-lemma not_top_less [simp]: "\<not> (\<top> < a)"
-  using top_greatest [of a] by (auto simp: le_less)
+lemma not_top_less:
+  "\<not> \<top> < a"
+  by (fact top.extremum_strict)
 
 lemma less_top:
   "a \<noteq> \<top> \<longleftrightarrow> a < \<top>"
-  by (auto simp add: less_le_not_le intro!: antisym)
+  by (fact top.not_eq_extremum)
 
 end
 
@@ -1489,3 +1586,4 @@ lemmas linorder_antisym_conv2 = linorder_class.antisym_conv2
 lemmas linorder_antisym_conv3 = linorder_class.antisym_conv3
 
 end
+

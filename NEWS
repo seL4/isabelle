@@ -33,6 +33,8 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Locale hierarchy for abstract orderings and (semi)lattices.
+
 * Discontinued theory src/HOL/Library/Eval_Witness.
 INCOMPATIBILITY.
 

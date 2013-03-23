@@ -1280,8 +1280,16 @@ qed
 
 end
 
+class ab_semigroup_idem_mult = ab_semigroup_mult +
+  assumes mult_idem: "x * x = x"
+
+sublocale ab_semigroup_idem_mult < times!: semilattice times proof
+qed (fact mult_idem)
+
 context ab_semigroup_idem_mult
 begin
+ 
+lemmas mult_left_idem = times.left_idem
 
 lemma comp_fun_idem: "comp_fun_idem (op *)"
   by default (simp_all add: fun_eq_iff mult_left_commute)

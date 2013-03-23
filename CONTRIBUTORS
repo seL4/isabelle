@@ -6,6 +6,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* March 2013: Florian Haftmann, TUM
+  Algebraic locale hierarchy for orderings and (semi)lattices.
+
 * Feb. 2013: Florian Haftmann, TUM
   Reworking and consolidation of code generation for target
   language numerals.

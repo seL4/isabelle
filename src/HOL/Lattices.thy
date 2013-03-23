@@ -11,38 +11,133 @@ begin
 subsection {* Abstract semilattice *}
 
 text {*
-  This locales provide a basic structure for interpretation into
+  These locales provide a basic structure for interpretation into
   bigger structures;  extensions require careful thinking, otherwise
   undesired effects may occur due to interpretation.
 *}
 
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
+
 locale semilattice = abel_semigroup +
-  assumes idem [simp]: "f a a = a"
+  assumes idem [simp]: "a * a = a"
 begin
 
-lemma left_idem [simp]: "f a (f a b) = f a b"
+lemma left_idem [simp]: "a * (a * b) = a * b"
 by (simp add: assoc [symmetric])
 
-lemma right_idem [simp]: "f (f a b) b = f a b"
+lemma right_idem [simp]: "(a * b) * b = a * b"
 by (simp add: assoc)
 
 end
 
+locale semilattice_neutr = semilattice + comm_monoid
 
-subsection {* Idempotent semigroup *}
-
-class ab_semigroup_idem_mult = ab_semigroup_mult +
-  assumes mult_idem: "x * x = x"
-
-sublocale ab_semigroup_idem_mult < times!: semilattice times proof
-qed (fact mult_idem)
-
-context ab_semigroup_idem_mult
+locale semilattice_order = semilattice +
+  fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<preceq>" 50)
+    and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<prec>" 50)
+  assumes order_iff: "a \<preceq> b \<longleftrightarrow> a = a * b"
+    and semilattice_strict_iff_order: "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
 begin
 
-lemmas mult_left_idem = times.left_idem
+lemma orderI:
+  "a = a * b \<Longrightarrow> a \<preceq> b"
+  by (simp add: order_iff)
+
+lemma orderE:
+  assumes "a \<preceq> b"
+  obtains "a = a * b"
+  using assms by (unfold order_iff)
 
 end
+
+sublocale semilattice_order < ordering less_eq less
+proof
+  fix a b
+  show "a \<prec> b \<longleftrightarrow> a \<preceq> b \<and> a \<noteq> b"
+    by (fact semilattice_strict_iff_order)
+next
+  fix a
+  show "a \<preceq> a"
+    by (simp add: order_iff)
+next
+  fix a b
+  assume "a \<preceq> b" "b \<preceq> a"
+  then have "a = a * b" "a * b = b"
+    by (simp_all add: order_iff commute)
+  then show "a = b" by simp
+next
+  fix a b c
+  assume "a \<preceq> b" "b \<preceq> c"
+  then have "a = a * b" "b = b * c"
+    by (simp_all add: order_iff commute)
+  then have "a = a * (b * c)"
+    by simp
+  then have "a = (a * b) * c"
+    by (simp add: assoc)
+  with `a = a * b` [symmetric] have "a = a * c" by simp
+  then show "a \<preceq> c" by (rule orderI)
+qed
+
+context semilattice_order
+begin
+
+lemma cobounded1 [simp]:
+  "a * b \<preceq> a"
+  by (simp add: order_iff commute)  
+
+lemma cobounded2 [simp]:
+  "a * b \<preceq> b"
+  by (simp add: order_iff)
+
+lemma boundedI:
+  assumes "a \<preceq> b" and "a \<preceq> c"
+  shows "a \<preceq> b * c"
+proof (rule orderI)
+  from assms obtain "a * b = a" and "a * c = a" by (auto elim!: orderE)
+  then show "a = a * (b * c)" by (simp add: assoc [symmetric])
+qed
+
+lemma boundedE:
+  assumes "a \<preceq> b * c"
+  obtains "a \<preceq> b" and "a \<preceq> c"
+  using assms by (blast intro: trans cobounded1 cobounded2)
+
+lemma bounded_iff:
+  "a \<preceq> b * c \<longleftrightarrow> a \<preceq> b \<and> a \<preceq> c"
+  by (blast intro: boundedI elim: boundedE)
+
+lemma strict_boundedE:
+  assumes "a \<prec> b * c"
+  obtains "a \<prec> b" and "a \<prec> c"
+  using assms by (auto simp add: commute strict_iff_order bounded_iff elim: orderE intro!: that)+
+
+lemma coboundedI1:
+  "a \<preceq> c \<Longrightarrow> a * b \<preceq> c"
+  by (rule trans) auto
+
+lemma coboundedI2:
+  "b \<preceq> c \<Longrightarrow> a * b \<preceq> c"
+  by (rule trans) auto
+
+lemma mono: "a \<preceq> c \<Longrightarrow> b \<preceq> d \<Longrightarrow> a * b \<preceq> c * d"
+  by (blast intro: boundedI coboundedI1 coboundedI2)
+
+lemma absorb1: "a \<preceq> b \<Longrightarrow> a * b = a"
+  by (rule antisym) (auto simp add: refl bounded_iff)
+
+lemma absorb2: "b \<preceq> a \<Longrightarrow> a * b = b"
+  by (rule antisym) (auto simp add: refl bounded_iff)
+
+end
+
+locale semilattice_neutr_order = semilattice_neutr + semilattice_order
+
+sublocale semilattice_neutr_order < ordering_top less_eq less 1
+  by default (simp add: order_iff)
+
+notation times (infixl "*" 70)
+notation Groups.one ("1")
 
 
 subsection {* Syntactic infimum and supremum operations *}
@@ -171,6 +266,23 @@ proof
     by (rule antisym) auto
 qed
 
+sublocale semilattice_sup < sup!: semilattice sup
+proof
+  fix a b c
+  show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
+    by (rule antisym) (auto intro: le_supI1 le_supI2)
+  show "a \<squnion> b = b \<squnion> a"
+    by (rule antisym) auto
+  show "a \<squnion> a = a"
+    by (rule antisym) auto
+qed
+
+sublocale semilattice_inf < inf!: semilattice_order inf less_eq less
+  by default (auto simp add: le_iff_inf less_le)
+
+sublocale semilattice_sup < sup!: semilattice_order sup greater_eq greater
+  by default (auto simp add: le_iff_sup sup.commute less_le)
+
 context semilattice_inf
 begin
 
@@ -201,17 +313,6 @@ lemma inf_absorb2: "y \<sqsubseteq> x \<Longrightarrow> x \<sqinter> y = y"
 lemmas inf_aci = inf_commute inf_assoc inf_left_commute inf_left_idem
 
 end
-
-sublocale semilattice_sup < sup!: semilattice sup
-proof
-  fix a b c
-  show "(a \<squnion> b) \<squnion> c = a \<squnion> (b \<squnion> c)"
-    by (rule antisym) (auto intro: le_supI1 le_supI2)
-  show "a \<squnion> b = b \<squnion> a"
-    by (rule antisym) auto
-  show "a \<squnion> a = a"
-    by (rule antisym) auto
-qed
 
 context semilattice_sup
 begin
@@ -367,8 +468,32 @@ end
 
 subsection {* Bounded lattices and boolean algebras *}
 
+class bounded_semilattice_inf_top = semilattice_inf + top
+
+sublocale bounded_semilattice_inf_top < inf_top!: semilattice_neutr inf top
+proof
+  fix x
+  show "x \<sqinter> \<top> = x"
+    by (rule inf_absorb1) simp
+qed
+
+sublocale bounded_semilattice_inf_top < inf_top!: semilattice_neutr_order inf top less_eq less ..
+
+class bounded_semilattice_sup_bot = semilattice_sup + bot
+
+sublocale bounded_semilattice_sup_bot < sup_bot!: semilattice_neutr sup bot
+proof
+  fix x
+  show "x \<squnion> \<bottom> = x"
+    by (rule sup_absorb1) simp
+qed
+
+sublocale bounded_semilattice_sup_bot < sup_bot!: semilattice_neutr_order sup bot greater_eq greater ..
+
 class bounded_lattice_bot = lattice + bot
 begin
+
+subclass bounded_semilattice_sup_bot ..
 
 lemma inf_bot_left [simp]:
   "\<bottom> \<sqinter> x = \<bottom>"
@@ -378,13 +503,13 @@ lemma inf_bot_right [simp]:
   "x \<sqinter> \<bottom> = \<bottom>"
   by (rule inf_absorb2) simp
 
-lemma sup_bot_left [simp]:
+lemma sup_bot_left:
   "\<bottom> \<squnion> x = x"
-  by (rule sup_absorb2) simp
+  by (fact sup_bot.left_neutral)
 
-lemma sup_bot_right [simp]:
+lemma sup_bot_right:
   "x \<squnion> \<bottom> = x"
-  by (rule sup_absorb1) simp
+  by (fact sup_bot.right_neutral)
 
 lemma sup_eq_bot_iff [simp]:
   "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
@@ -395,6 +520,8 @@ end
 class bounded_lattice_top = lattice + top
 begin
 
+subclass bounded_semilattice_inf_top ..
+
 lemma sup_top_left [simp]:
   "\<top> \<squnion> x = \<top>"
   by (rule sup_absorb1) simp
@@ -403,13 +530,13 @@ lemma sup_top_right [simp]:
   "x \<squnion> \<top> = \<top>"
   by (rule sup_absorb2) simp
 
-lemma inf_top_left [simp]:
+lemma inf_top_left:
   "\<top> \<sqinter> x = x"
-  by (rule inf_absorb2) simp
+  by (fact inf_top.left_neutral)
 
-lemma inf_top_right [simp]:
+lemma inf_top_right:
   "x \<sqinter> \<top> = x"
-  by (rule inf_absorb1) simp
+  by (fact inf_top.right_neutral)
 
 lemma inf_eq_top_iff [simp]:
   "x \<sqinter> y = \<top> \<longleftrightarrow> x = \<top> \<and> y = \<top>"
@@ -417,8 +544,11 @@ lemma inf_eq_top_iff [simp]:
 
 end
 
-class bounded_lattice = bounded_lattice_bot + bounded_lattice_top
+class bounded_lattice = lattice + bot + top
 begin
+
+subclass bounded_lattice_bot ..
+subclass bounded_lattice_top ..
 
 lemma dual_bounded_lattice:
   "class.bounded_lattice sup greater_eq greater inf \<top> \<bottom>"
