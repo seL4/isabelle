@@ -201,7 +201,8 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_r
                 val range = info.range + command_start
                 val content = command.source(info.range).replace('\n', ' ')
                 val info_text =
-                  Pretty.formatted(Library.separate(Pretty.FBreak, info.info), margin = 40).mkString
+                  Pretty.formatted(Library.separate(Pretty.FBreak, info.info), margin = 40.0)
+                    .mkString
 
                 new DefaultMutableTreeNode(
                   new Isabelle_Sidekick.Asset(command.toString, range.start, range.stop) {

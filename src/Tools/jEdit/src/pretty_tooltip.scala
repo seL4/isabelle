@@ -191,7 +191,7 @@ class Pretty_Tooltip private(view: View) extends JDialog
     {
       val painter = pretty_text_area.getPainter
       val metric = JEdit_Lib.pretty_metric(painter)
-      val margin = (rendering.tooltip_margin * metric.average).toInt
+      val margin = rendering.tooltip_margin * metric.average
       val lines =
         XML.traverse_text(Pretty.formatted(body, margin, metric))(0)(
           (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
@@ -208,7 +208,7 @@ class Pretty_Tooltip private(view: View) extends JDialog
 
       val bounds = rendering.tooltip_bounds
       val w =
-        ((metric.unit * (margin + 1)).round.toInt + deco_width) min
+        ((metric.unit * (margin + metric.average)).round.toInt + deco_width) min
         (screen_bounds.width * bounds).toInt
       val h =
         (painter.getFontMetrics.getHeight * (lines + 1) + deco_height) min

@@ -89,9 +89,9 @@ object Pretty
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
 
-  private val margin_default = 76
+  private val margin_default = 76.0
 
-  def formatted(input: XML.Body, margin: Int = margin_default,
+  def formatted(input: XML.Body, margin: Double = margin_default,
     metric: Metric = Metric_Default): XML.Body =
   {
     sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
@@ -162,7 +162,7 @@ object Pretty
     format(standard_format(input), 0.0, 0.0, Text()).content
   }
 
-  def string_of(input: XML.Body, margin: Int = margin_default,
+  def string_of(input: XML.Body, margin: Double = margin_default,
       metric: Metric = Metric_Default): String =
     XML.content(formatted(input, margin, metric))
 
