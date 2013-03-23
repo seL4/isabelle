@@ -101,7 +101,7 @@ class Text_Overview(doc_view: Document_View) extends JPanel(new BorderLayout)
 
           if (!(line_count == last_line_count && char_count == last_char_count &&
                 L == last_L && H == last_H && relevant_range == last_relevant_range &&
-                (snapshot eq_markup last_snapshot) && (options eq last_options)))
+                (snapshot eq_content last_snapshot) && (options eq last_options)))
           {
             @tailrec def loop(l: Int, h: Int, p: Int, q: Int, colors: List[(Color, Int, Int)])
               : List[(Color, Int, Int)] =

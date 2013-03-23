@@ -25,7 +25,7 @@ object Command
     def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
   }
 
-  final class Results private(rep: SortedMap[Long, XML.Tree])
+  final class Results private(private val rep: SortedMap[Long, XML.Tree])
   {
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
     def get(serial: Long): Option[XML.Tree] = rep.get(serial)
@@ -40,6 +40,12 @@ object Command
       else if (rep.isEmpty) other
       else (this /: other.entries)(_ + _)
 
+    override def hashCode: Int = rep.hashCode
+    override def equals(that: Any): Boolean =
+      that match {
+        case other: Results => rep == other.rep
+        case _ => false
+      }
     override def toString: String = entries.mkString("Results(", ", ", ")")
   }
 
@@ -56,7 +62,13 @@ object Command
       markup.to_XML(command.range, command.source, filter)
 
 
-    /* accumulate content */
+    /* content */
+
+    def eq_content(other: State): Boolean =
+      command.source == other.command.source &&
+      status == other.status &&
+      results == other.results &&
+      markup == other.markup
 
     private def add_status(st: Markup): State = copy(status = st :: status)
     private def add_markup(m: Text.Markup): State = copy(markup = markup + m)
