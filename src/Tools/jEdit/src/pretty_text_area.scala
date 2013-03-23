@@ -116,35 +116,26 @@ class Pretty_Text_Area(
       val base_results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin, metric)
 
-      def apply_result(result: (String, Rendering))
-      {
-        val (text, rendering) = result
-        current_rendering = rendering
-        JEdit_Lib.buffer_edit(getBuffer) {
-          rich_text_area.active_reset()
-          getBuffer.setReadOnly(false)
-          getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-          setText(text)
-          setCaretPosition(0)
-          getBuffer.setReadOnly(true)
-        }
-      }
-
       future_rendering.map(_.cancel(true))
-      if (XML.text_length(formatted_body) <= 1000) {
-        apply_result(Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body))
-        future_rendering = None
-      }
-      else {
-        future_rendering = Some(default_thread_pool.submit(() =>
-          {
-            val result =
-              try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
-              catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
-            Simple_Thread.interrupted_exception()
-            Swing_Thread.later { apply_result(result) }
-          }))
-      }
+      future_rendering = Some(default_thread_pool.submit(() =>
+        {
+          val (text, rendering) =
+            try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
+            catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
+          Simple_Thread.interrupted_exception()
+
+          Swing_Thread.later {
+            current_rendering = rendering
+            JEdit_Lib.buffer_edit(getBuffer) {
+              rich_text_area.active_reset()
+              getBuffer.setReadOnly(false)
+              getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
+              setText(text)
+              setCaretPosition(0)
+              getBuffer.setReadOnly(true)
+            }
+          }
+        }))
     }
   }
 
