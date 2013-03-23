@@ -45,7 +45,7 @@ INCOMPATIBILITY.
     Note that foundational constants comm_monoid_set.F and
     semilattice_set.F correspond to former combinators fold_image
     and fold1 respectively.  These are now gone.  You may use
-    those foundational counstants as substitutes, but it is
+    those foundational constants as substitutes, but it is
     preferable to interpret the above locales accordingly. 
   - Dropped class ab_semigroup_idem_mult (special case of lattice,
     no longer needed in connection with Finite_Set.fold etc.)
