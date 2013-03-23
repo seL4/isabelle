@@ -96,20 +96,23 @@ subsection {* Fold operator *}
 definition
   fold_pd ::
     "('a compact_basis \<Rightarrow> 'b::type) \<Rightarrow> ('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a pd_basis \<Rightarrow> 'b"
-  where "fold_pd g f t = fold1 f (g ` Rep_pd_basis t)"
+  where "fold_pd g f t = semilattice_set.F f (g ` Rep_pd_basis t)"
 
 lemma fold_pd_PDUnit:
-  assumes "class.ab_semigroup_idem_mult f"
+  assumes "semilattice f"
   shows "fold_pd g f (PDUnit x) = g x"
-unfolding fold_pd_def Rep_PDUnit by simp
+proof -
+  from assms interpret semilattice_set f by (rule semilattice_set.intro)
+  show ?thesis by (simp add: fold_pd_def Rep_PDUnit)
+qed
 
 lemma fold_pd_PDPlus:
-  assumes "class.ab_semigroup_idem_mult f"
+  assumes "semilattice f"
   shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 proof -
-  interpret ab_semigroup_idem_mult f by fact
-  show ?thesis unfolding fold_pd_def Rep_PDPlus
-    by (simp add: image_Un fold1_Un2)
+  from assms interpret semilattice_set f by (rule semilattice_set.intro)
+  show ?thesis by (simp add: image_Un fold_pd_def Rep_PDPlus union)
 qed
 
 end
+

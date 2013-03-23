@@ -377,7 +377,7 @@ proof -
       by (metis finite_set_decode set_decode_inverse)
   thus ?thesis using assms
     apply auto
-    apply (simp add: set_encode_def nat_add_commute setsum.F_subset_diff)
+    apply (simp add: set_encode_def nat_add_commute setsum.subset_diff)
     done
   qed
   thus ?thesis
@@ -385,3 +385,4 @@ proof -
 qed
 
 end
+

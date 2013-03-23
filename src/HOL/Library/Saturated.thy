@@ -207,47 +207,65 @@ qed (simp_all add: inf_sat_def sup_sat_def bot_sat_def top_sat_def min_max.sup_i
 
 end
 
-instantiation sat :: (len) complete_lattice
+instantiation sat :: (len) "{Inf, Sup}"
 begin
 
 definition
-  "Inf (A :: 'a sat set) = Finite_Set.fold min top A"
+  "Inf = (semilattice_neutr_set.F min top :: 'a sat set \<Rightarrow> 'a sat)"
 
 definition
-  "Sup (A :: 'a sat set) = Finite_Set.fold max bot A"
+  "Sup = (semilattice_neutr_set.F max bot :: 'a sat set \<Rightarrow> 'a sat)"
 
-instance proof
+instance ..
+
+end
+
+interpretation Inf_sat!: semilattice_neutr_set min "top :: 'a::len sat"
+where
+  "semilattice_neutr_set.F min (top :: 'a sat) = Inf"
+proof -
+  show "semilattice_neutr_set min (top :: 'a sat)" by default (simp add: min_def)
+  show "semilattice_neutr_set.F min (top :: 'a sat) = Inf" by (simp add: Inf_sat_def)
+qed
+
+interpretation Sup_sat!: semilattice_neutr_set max "bot :: 'a::len sat"
+where
+  "semilattice_neutr_set.F max (bot :: 'a sat) = Sup"
+proof -
+  show "semilattice_neutr_set max (bot :: 'a sat)" by default (simp add: max_def bot.extremum_unique)
+  show "semilattice_neutr_set.F max (bot :: 'a sat) = Sup" by (simp add: Sup_sat_def)
+qed
+
+instance sat :: (len) complete_lattice
+proof 
   fix x :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume "x \<in> A"
-  ultimately have "Finite_Set.fold min top A \<le> min x top" by (rule min_max.fold_inf_le_inf)
-  then show "Inf A \<le> x" by (simp add: Inf_sat_def)
+  ultimately show "Inf A \<le> x"
+    by (induct A) (auto intro: min_max.le_infI2)
 next
   fix z :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume z: "\<And>x. x \<in> A \<Longrightarrow> z \<le> x"
-  ultimately have "min z top \<le> Finite_Set.fold min top A" by (blast intro: min_max.inf_le_fold_inf)
-  then show "z \<le> Inf A" by (simp add: Inf_sat_def min_def)
+  ultimately show "z \<le> Inf A" by (induct A) simp_all
 next
   fix x :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume "x \<in> A"
-  ultimately have "max x bot \<le> Finite_Set.fold max bot A" by (rule min_max.sup_le_fold_sup)
-  then show "x \<le> Sup A" by (simp add: Sup_sat_def)
+  ultimately show "x \<le> Sup A"
+    by (induct A) (auto intro: min_max.le_supI2)
 next
   fix z :: "'a sat"
   fix A :: "'a sat set"
   note finite
   moreover assume z: "\<And>x. x \<in> A \<Longrightarrow> x \<le> z"
-  ultimately have "Finite_Set.fold max bot A \<le> max z bot" by (blast intro: min_max.fold_sup_le_sup)
-  then show "Sup A \<le> z" by (simp add: Sup_sat_def max_def bot_unique)
+  ultimately show "Sup A \<le> z" by (induct A) auto
 qed
-
-end
 
 hide_const (open) sat_of_nat
 
 end
+

@@ -406,7 +406,7 @@ proof
 next
   fix P Q::"'a \<Rightarrow>\<^isub>F 'b"
   have Max_eq_iff: "\<And>A m. finite A \<Longrightarrow> A \<noteq> {} \<Longrightarrow> (Max A = m) = (m \<in> A \<and> (\<forall>a\<in>A. a \<le> m))"
-    by (metis Max.in_idem Max_in max_def min_max.sup.commute order_refl)
+    by (auto intro: Max_in Max_eqI)
   show "dist P Q = 0 \<longleftrightarrow> P = Q"
     by (auto simp: finmap_eq_iff dist_finmap_def Max_ge_iff finite_proj_diag Max_eq_iff
       intro!: Max_eqI image_eqI[where x=undefined])

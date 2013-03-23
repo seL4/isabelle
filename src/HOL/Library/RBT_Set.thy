@@ -316,11 +316,10 @@ lemma rbt_min_eq_rbt_min_opt:
   assumes "is_rbt t"
   shows "rbt_min t = rbt_min_opt t"
 proof -
-  interpret ab_semigroup_idem_mult "(min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" using ab_semigroup_idem_mult_min
-    unfolding class.ab_semigroup_idem_mult_def by blast
-  show ?thesis
-    by (simp add: Min_eqI rbt_min_opt_is_min rbt_min_opt_in_set assms Min_def[symmetric]
-      non_empty_rbt_keys fold1_set_fold[symmetric] rbt_min_def rbt_fold1_keys_def)
+  from assms have "hd (RBT_Impl.keys t) # tl (RBT_Impl.keys t) = RBT_Impl.keys t" by (cases t) simp_all
+  with assms show ?thesis
+    by (simp add: rbt_min_def rbt_fold1_keys_def rbt_min_opt_is_min
+      min_max.Inf_fin.set_eq_fold [symmetric] Min_eqI rbt_min_opt_in_set)
 qed
 
 (* maximum *)
@@ -337,12 +336,7 @@ lemma fold_max_rev_eq:
   fixes xs :: "('a :: linorder) list"
   assumes "xs \<noteq> []"
   shows "List.fold max (tl xs) (hd xs) = List.fold max (tl (rev xs)) (hd (rev xs))" 
-proof -
-  interpret ab_semigroup_idem_mult "(max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" using ab_semigroup_idem_mult_max
-    unfolding class.ab_semigroup_idem_mult_def by blast
-  show ?thesis
-  using assms by (auto simp add: fold1_set_fold[symmetric])
-qed
+  using assms by (simp add: min_max.Sup_fin.set_eq_fold [symmetric])
 
 lemma rbt_max_simps:
   assumes "is_rbt (Branch c lt k v RBT_Impl.Empty)" 
@@ -416,11 +410,10 @@ lemma rbt_max_eq_rbt_max_opt:
   assumes "is_rbt t"
   shows "rbt_max t = rbt_max_opt t"
 proof -
-  interpret ab_semigroup_idem_mult "(max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" using ab_semigroup_idem_mult_max
-    unfolding class.ab_semigroup_idem_mult_def by blast
-  show ?thesis
-    by (simp add: Max_eqI rbt_max_opt_is_max rbt_max_opt_in_set assms Max_def[symmetric]
-      non_empty_rbt_keys fold1_set_fold[symmetric] rbt_max_def rbt_fold1_keys_def)
+  from assms have "hd (RBT_Impl.keys t) # tl (RBT_Impl.keys t) = RBT_Impl.keys t" by (cases t) simp_all
+  with assms show ?thesis
+    by (simp add: rbt_max_def rbt_fold1_keys_def rbt_max_opt_is_max
+      min_max.Sup_fin.set_eq_fold [symmetric] Max_eqI rbt_max_opt_in_set)
 qed
 
 
@@ -434,13 +427,13 @@ lemma fold1_keys_def_alt:
   by transfer (simp add: rbt_fold1_keys_def)
 
 lemma finite_fold1_fold1_keys:
-  assumes "class.ab_semigroup_mult f"
-  assumes "\<not> (is_empty t)"
-  shows "Finite_Set.fold1 f (Set t) = fold1_keys f t"
+  assumes "semilattice f"
+  assumes "\<not> is_empty t"
+  shows "semilattice_set.F f (Set t) = fold1_keys f t"
 proof -
-  interpret ab_semigroup_mult f by fact
+  from `semilattice f` interpret semilattice_set f by (rule semilattice_set.intro)
   show ?thesis using assms 
-    by (auto simp: fold1_keys_def_alt set_keys fold_def_alt fold1_distinct_set_fold non_empty_keys)
+    by (auto simp: fold1_keys_def_alt set_keys fold_def_alt non_empty_keys set_eq_fold [symmetric])
 qed
 
 (* minimum *)
@@ -658,14 +651,14 @@ by (simp add: subset_code Ball_Set)
 
 lemma card_Set [code]:
   "card (Set t) = fold_keys (\<lambda>_ n. n + 1) t 0"
-by (auto simp add: card_def fold_image_def intro!: finite_fold_fold_keys) (default, simp) 
+  by (auto simp add: card.eq_fold intro: finite_fold_fold_keys comp_fun_commute_const)
 
 lemma setsum_Set [code]:
   "setsum f (Set xs) = fold_keys (plus o f) xs 0"
 proof -
   have "comp_fun_commute (\<lambda>x. op + (f x))" by default (auto simp: add_ac)
   then show ?thesis 
-    by (auto simp add: setsum_def fold_image_def finite_fold_fold_keys o_def)
+    by (auto simp add: setsum.eq_fold finite_fold_fold_keys o_def)
 qed
 
 definition not_a_singleton_tree  where [code del]: "not_a_singleton_tree x y = x y"
@@ -743,11 +736,10 @@ code_abort not_non_empty_tree
 lemma Min_fin_set_fold [code]:
   "Min (Set t) = (if is_empty t then not_non_empty_tree Min (Set t) else r_min_opt t)"
 proof -
-  have *:"(class.ab_semigroup_mult (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a))" using ab_semigroup_idem_mult_min
-    unfolding class.ab_semigroup_idem_mult_def by blast
+  have *: "semilattice (min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" ..
+  with finite_fold1_fold1_keys [OF *, folded Min_def]
   show ?thesis
-    by (auto simp add: Min_def not_non_empty_tree_def finite_fold1_fold1_keys[OF *] r_min_alt_def 
-      r_min_eq_r_min_opt[symmetric])  
+    by (simp add: not_non_empty_tree_def r_min_alt_def r_min_eq_r_min_opt [symmetric])  
 qed
 
 lemma Inf_fin_set_fold [code]:
@@ -781,11 +773,10 @@ qed
 lemma Max_fin_set_fold [code]:
   "Max (Set t) = (if is_empty t then not_non_empty_tree Max (Set t) else r_max_opt t)"
 proof -
-  have *:"(class.ab_semigroup_mult (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a))" using ab_semigroup_idem_mult_max
-    unfolding class.ab_semigroup_idem_mult_def by blast
+  have *: "semilattice (max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a)" ..
+  with finite_fold1_fold1_keys [OF *, folded Max_def]
   show ?thesis
-    by (auto simp add: Max_def not_non_empty_tree_def finite_fold1_fold1_keys[OF *] r_max_alt_def 
-      r_max_eq_r_max_opt[symmetric])  
+    by (simp add: not_non_empty_tree_def r_max_alt_def r_max_eq_r_max_opt [symmetric])  
 qed
 
 lemma Sup_fin_set_fold [code]:

@@ -2744,12 +2744,15 @@ proof- have *:"(\<lambda>(x,l). f l) = (f o snd)" unfolding o_def by(rule,auto) 
 
 subsection {* Additivity of content. *}
 
-lemma setsum_iterate:assumes "finite s" shows "setsum f s = iterate op + s f"
-proof- have *:"setsum f s = setsum f (support op + f s)"
-    apply(rule setsum_mono_zero_right)
+lemma setsum_iterate:
+  assumes "finite s" shows "setsum f s = iterate op + s f"
+proof -
+  have *: "setsum f s = setsum f (support op + f s)"
+    apply (rule setsum_mono_zero_right)
     unfolding support_def neutral_monoid using assms by auto
-  thus ?thesis unfolding * setsum_def iterate_def fold_image_def fold'_def
-    unfolding neutral_monoid . qed
+  then show ?thesis unfolding * iterate_def fold'_def setsum.eq_fold
+    unfolding neutral_monoid by (simp add: comp_def)
+qed
 
 lemma additive_content_division: assumes "d division_of {a..b}"
   shows "setsum content d = content({a..b})"

@@ -1022,7 +1022,7 @@ proof(induct k rule: nat_less_induct)
         also have "\<dots> = (\<Sum>i = 0..m. a ^ l $ i * a $ (m - i))" by (simp add: fps_mult_nth)
         also have "\<dots> = 0" apply (rule setsum_0')
           apply auto
-          apply (case_tac "aa = m")
+          apply (case_tac "x = m")
           using a0
           apply simp
           apply (rule H[rule_format])
@@ -2270,10 +2270,10 @@ lemma product_composition_lemma':
   unfolding fps_mult_nth
   apply (rule setsum_0')
   apply (clarsimp simp add: not_le)
-  apply (case_tac "aaa < aa")
+  apply (case_tac "x < aa")
   apply (rule startsby_zero_power_prefix[OF c0, rule_format])
   apply simp
-  apply (subgoal_tac "n - aaa < ba")
+  apply (subgoal_tac "n - x < ba")
   apply (frule_tac k = "ba" in startsby_zero_power_prefix[OF d0, rule_format])
   apply simp
   apply arith

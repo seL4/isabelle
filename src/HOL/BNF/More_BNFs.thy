@@ -548,16 +548,16 @@ lemma mcard_singl[simp]: "mcard {#a#} = Suc 0"
 unfolding mcard_def by auto
 
 lemma mcard_Plus[simp]: "mcard (M + N) = mcard M + mcard N"
-proof-
+proof -
   have "setsum (count M) {a. 0 < count M a + count N a} =
         setsum (count M) {a. a \<in># M}"
-  apply(rule setsum_mono_zero_cong_right) by auto
+  apply (rule setsum_mono_zero_cong_right) by auto
   moreover
   have "setsum (count N) {a. 0 < count M a + count N a} =
         setsum (count N) {a. a \<in># N}"
-  apply(rule setsum_mono_zero_cong_right) by auto
+  apply (rule setsum_mono_zero_cong_right) by auto
   ultimately show ?thesis
-  unfolding mcard_def count_union[THEN ext] comm_monoid_add_class.setsum.F_fun_f by simp
+  unfolding mcard_def count_union [THEN ext] by (simp add: setsum.distrib)
 qed
 
 lemma setsum_gt_0_iff:
@@ -1207,7 +1207,7 @@ proof-
   have "setsum L {aa. f aa = a \<and> 0 < L aa} = setsum L {aa. f aa = a \<and> 0 < K aa + L aa}"
   apply(rule setsum_mono_zero_cong_left) using C by auto
   ultimately show ?thesis
-  unfolding mmap_def unfolding comm_monoid_add_class.setsum.F_fun_f by auto
+  unfolding mmap_def by (auto simp add: setsum.distrib)
 qed
 
 lemma multiset_map_Plus[simp]:
@@ -1265,10 +1265,10 @@ proof-
   have "setsum (\<lambda> x. setsum (count M) (A x)) ?B = setsum (setsum (count M) o A) ?B"
   unfolding comp_def ..
   also have "... = (\<Sum>x\<in> A ` ?B. setsum (count M) x)"
-  unfolding comm_monoid_add_class.setsum_reindex[OF i, symmetric] ..
+  unfolding setsum.reindex [OF i, symmetric] ..
   also have "... = setsum (count M) (\<Union>x\<in>A ` {b. 0 < setsum (count M) (A b)}. x)"
   (is "_ = setsum (count M) ?J")
-  apply(rule comm_monoid_add_class.setsum_UN_disjoint[symmetric])
+  apply(rule setsum.UNION_disjoint[symmetric])
   using 0 fin unfolding A_def by (auto intro!: finite_imageI)
   also have "?J = {a. a \<in># M}" unfolding AB unfolding A_def by auto
   finally have "setsum (\<lambda> x. setsum (count M) (A x)) ?B =

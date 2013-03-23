@@ -514,10 +514,10 @@ lemma dual_complete_linorder:
   by (rule class.complete_linorder.intro, rule dual_complete_lattice, rule dual_linorder)
 
 lemma complete_linorder_inf_min: "inf = min"
-  by (rule ext)+ (auto intro: antisym)
+  by (rule ext)+ (auto intro: antisym simp add: min_def)
 
 lemma complete_linorder_sup_max: "sup = max"
-  by (rule ext)+ (auto intro: antisym)
+  by (rule ext)+ (auto intro: antisym simp add: max_def)
 
 lemma Inf_less_iff:
   "\<Sqinter>S \<sqsubset> a \<longleftrightarrow> (\<exists>x\<in>S. x \<sqsubset> a)"

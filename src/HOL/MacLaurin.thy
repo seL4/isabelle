@@ -428,7 +428,7 @@ apply safe
 apply (simp (no_asm))
 apply (simp (no_asm) add: sin_expansion_lemma)
 apply (force intro!: DERIV_intros)
-apply (subst (asm) setsum_0', clarify, case_tac "a", simp, simp)
+apply (subst (asm) setsum_0', clarify, case_tac "x", simp, simp)
 apply (cases n, simp, simp)
 apply (rule ccontr, simp)
 apply (drule_tac x = x in spec, simp)

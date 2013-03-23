@@ -716,32 +716,6 @@ next
 qed
 
 
-subsection {* @{const min}/@{const max} on linear orders as
-  special case of @{const inf}/@{const sup} *}
-
-sublocale linorder < min_max!: distrib_lattice min less_eq less max
-proof
-  fix x y z
-  show "max x (min y z) = min (max x y) (max x z)"
-    by (auto simp add: min_def max_def)
-qed (auto simp add: min_def max_def not_le less_imp_le)
-
-lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
-  by (rule ext)+ (auto intro: antisym)
-
-lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
-  by (rule ext)+ (auto intro: antisym)
-
-lemmas le_maxI1 = min_max.sup_ge1
-lemmas le_maxI2 = min_max.sup_ge2
- 
-lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-  min_max.inf.left_commute
-
-lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-  min_max.sup.left_commute
-
-
 subsection {* Lattice on @{typ bool} *}
 
 instantiation bool :: boolean_algebra

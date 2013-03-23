@@ -188,9 +188,6 @@ instance vec :: (monoid_mult, finite) monoid_mult
 instance vec :: (ab_semigroup_mult, finite) ab_semigroup_mult
   by default (vector mult_commute)
 
-instance vec :: (ab_semigroup_idem_mult, finite) ab_semigroup_idem_mult
-  by default (vector mult_idem)
-
 instance vec :: (comm_monoid_mult, finite) comm_monoid_mult
   by default vector
 

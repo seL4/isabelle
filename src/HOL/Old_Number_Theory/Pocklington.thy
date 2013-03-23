@@ -566,7 +566,7 @@ proof-
     [x1 = x2] (mod n) \<and> [y1 = y2] (mod n) \<longrightarrow> [x1 * y1 = x2 * y2] (mod n)"
     by blast
   have th4:"\<forall>x\<in>S. [a x mod n = a x] (mod n)" by (simp add: modeq_def)
-  from fold_image_related[where h="(\<lambda>m. a(m) mod n)" and g=a, OF th1 th3 fS, OF th4] show ?thesis unfolding setprod_def by (simp add: fS)
+  from setprod.related [where h="(\<lambda>m. a(m) mod n)" and g=a, OF th1 th3 fS, OF th4] show ?thesis by (simp add: fS)
 qed
 
 lemma nproduct_cmul:
@@ -577,7 +577,7 @@ unfolding setprod_timesf setprod_constant[OF fS, of c] ..
 lemma coprime_nproduct:
   assumes fS: "finite S" and Sn: "\<forall>x\<in>S. coprime n (a x)"
   shows "coprime n (setprod a S)"
-  using fS unfolding setprod_def by (rule finite_subset_induct)
+  using fS by (rule finite_subset_induct)
     (insert Sn, auto simp add: coprime_mul)
 
 lemma fermat_little: assumes an: "coprime a n"
@@ -607,12 +607,8 @@ proof-
       hence hS: "?h ` ?S = ?S"by (auto simp add: image_iff)
       have "a\<noteq>0" using an n1 nz apply- apply (rule ccontr) by simp
       hence inj: "inj_on (op * a) ?S" unfolding inj_on_def by simp
-
-      have eq0: "fold_image op * (?h \<circ> op * a) 1 {m. coprime m n \<and> m < n} =
-     fold_image op * (\<lambda>m. m) 1 {m. coprime m n \<and> m < n}"
-      proof (rule fold_image_eq_general[where h="?h o (op * a)"])
-        show "finite ?S" using fS .
-      next
+      have eq0: "setprod (?h \<circ> op * a) {m. coprime m n \<and> m < n} = setprod (\<lambda>m. m) {m. coprime m n \<and> m < n}"
+      proof (rule setprod.eq_general [where h="?h o (op * a)"])
         {fix y assume yS: "y \<in> ?S" hence y: "coprime y n" "y < n" by simp_all
           from cong_solve_unique[OF an nz, of y]
           obtain x where x:"x < n" "[a * x = y] (mod n)" "\<forall>z. z < n \<and> [a * z = y] (mod n) \<longrightarrow> z=x" by blast

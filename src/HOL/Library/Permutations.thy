@@ -216,36 +216,36 @@ lemma finite_permutations: assumes fS: "finite S" shows "finite {p. p permutes S
 (* Permutations of index set for iterated operations.                        *)
 (* ------------------------------------------------------------------------- *)
 
-lemma (in ab_semigroup_mult) fold_image_permute: assumes fS: "finite S" and pS: "p permutes S"
-  shows "fold_image times f z S = fold_image times (f o p) z S"
-  using fold_image_reindex[OF fS subset_inj_on[OF permutes_inj[OF pS], of S, simplified], of f z]
-  unfolding permutes_image[OF pS] .
-lemma (in ab_semigroup_add) fold_image_permute: assumes fS: "finite S" and pS: "p permutes S"
-  shows "fold_image plus f z S = fold_image plus (f o p) z S"
-proof-
-  interpret ab_semigroup_mult plus apply unfold_locales apply (simp add: add_assoc)
-    apply (simp add: add_commute) done
-  from fold_image_reindex[OF fS subset_inj_on[OF permutes_inj[OF pS], of S, simplified], of f z]
-  show ?thesis
-  unfolding permutes_image[OF pS] .
+lemma (in comm_monoid_set) permute:
+  assumes "p permutes S"
+  shows "F g S = F (g o p) S"
+proof -
+  from `p permutes S` have "inj p" by (rule permutes_inj)
+  then have "inj_on p S" by (auto intro: subset_inj_on)
+  then have "F g (p ` S) = F (g o p) S" by (rule reindex)
+  moreover from `p permutes S` have "p ` S = S" by (rule permutes_image)
+  ultimately show ?thesis by simp
 qed
 
-lemma setsum_permute: assumes pS: "p permutes S"
+lemma setsum_permute:
+  assumes "p permutes S"
   shows "setsum f S = setsum (f o p) S"
-  unfolding setsum_def using fold_image_permute[of S p f 0] pS by clarsimp
+  using assms by (fact setsum.permute)
 
-lemma setsum_permute_natseg:assumes pS: "p permutes {m .. n}"
+lemma setsum_permute_natseg:
+  assumes pS: "p permutes {m .. n}"
   shows "setsum f {m .. n} = setsum (f o p) {m .. n}"
-  using setsum_permute[OF pS, of f ] pS by blast
+  using setsum_permute [OF pS, of f ] pS by blast
 
-lemma setprod_permute: assumes pS: "p permutes S"
+lemma setprod_permute:
+  assumes "p permutes S"
   shows "setprod f S = setprod (f o p) S"
-  unfolding setprod_def
-  using ab_semigroup_mult_class.fold_image_permute[of S p f 1] pS by clarsimp
+  using assms by (fact setprod.permute)
 
-lemma setprod_permute_natseg:assumes pS: "p permutes {m .. n}"
+lemma setprod_permute_natseg:
+  assumes pS: "p permutes {m .. n}"
   shows "setprod f {m .. n} = setprod (f o p) {m .. n}"
-  using setprod_permute[OF pS, of f ] pS by blast
+  using setprod_permute [OF pS, of f ] pS by blast
 
 (* ------------------------------------------------------------------------- *)
 (* Various combinations of transpositions with 2, 1 and 0 common elements.   *)
@@ -835,7 +835,6 @@ proof-
         by (simp add: o_def)
       with bc have "b = c \<and> p = q" by blast
     }
-
     then show "inj_on ?f (insert a S \<times> ?P)"
       unfolding inj_on_def
       apply clarify by metis
@@ -843,3 +842,4 @@ proof-
 qed
 
 end
+

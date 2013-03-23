@@ -36,36 +36,71 @@ declare One_nat_def [simp del]
    "ALL i :# M. P i"? 
 *)
 
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
+
+locale comm_monoid_mset = comm_monoid
+begin
+
+definition F :: "'a multiset \<Rightarrow> 'a"
+where
+  eq_fold: "F M = Multiset.fold f 1 M"
+
+lemma empty [simp]:
+  "F {#} = 1"
+  by (simp add: eq_fold)
+
+lemma singleton [simp]:
+  "F {#x#} = x"
+proof -
+  interpret comp_fun_commute
+    by default (simp add: fun_eq_iff left_commute)
+  show ?thesis by (simp add: eq_fold)
+qed
+
+lemma union [simp]:
+  "F (M + N) = F M * F N"
+proof -
+  interpret comp_fun_commute f
+    by default (simp add: fun_eq_iff left_commute)
+  show ?thesis by (induct N) (simp_all add: left_commute eq_fold)
+qed
+
+end
+
+notation times (infixl "*" 70)
+notation Groups.one ("1")
+
+definition (in comm_monoid_mult) msetprod :: "'a multiset \<Rightarrow> 'a"
+where
+  "msetprod = comm_monoid_mset.F times 1"
+
+sublocale comm_monoid_mult < msetprod!: comm_monoid_mset times 1
+where
+  "comm_monoid_mset.F times 1 = msetprod"
+proof -
+  show "comm_monoid_mset times 1" ..
+  from msetprod_def show "comm_monoid_mset.F times 1 = msetprod" by rule
+qed
+
 context comm_monoid_mult
 begin
 
-definition msetprod :: "'a multiset \<Rightarrow> 'a"
-where
-  "msetprod M = Multiset.fold times 1 M"
-
-lemma msetprod_empty [simp]:
+lemma msetprod_empty:
   "msetprod {#} = 1"
-  by (simp add: msetprod_def)
+  by (fact msetprod.empty)
 
-lemma msetprod_singleton [simp]:
+lemma msetprod_singleton:
   "msetprod {#x#} = x"
-proof -
-  interpret comp_fun_commute times
-    by (fact comp_fun_commute)
-  show ?thesis by (simp add: msetprod_def)
-qed
+  by (fact msetprod.singleton)
 
-lemma msetprod_Un [simp]:
+lemma msetprod_Un:
   "msetprod (A + B) = msetprod A * msetprod B" 
-proof -
-  interpret comp_fun_commute times
-    by (fact comp_fun_commute)
-  show ?thesis by (induct B) (simp_all add: msetprod_def mult_ac)
-qed
+  by (fact msetprod.union)
 
 lemma msetprod_multiplicity:
   "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
-  by (simp add: msetprod_def setprod_def Multiset.fold_def fold_image_def funpow_times_power)
+  by (simp add: Multiset.fold_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
 
 abbreviation msetprod_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
 where
@@ -111,8 +146,7 @@ proof (rule nat_less_induct, clarify)
     by arith
   moreover {
     assume "n = 1"
-    then have "(ALL p : set_of {#}. prime p) & n = (PROD i :# {#}. i)"
-        by (auto simp add: msetprod_def)
+    then have "(ALL p : set_of {#}. prime p) & n = (PROD i :# {#}. i)" by auto
   } moreover {
     assume "n > 1" and "prime n"
     then have "(ALL p : set_of {# n #}. prime p) & n = (PROD i :# {# n #}. i)"

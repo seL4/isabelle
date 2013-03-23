@@ -1462,6 +1462,10 @@ by (auto simp add: abs_mult_self trans [OF lcm_unique_int eq_commute, symmetric]
 
 subsection {* The complete divisibility lattice *}
 
+lemma semilattice_neutr_set_lcm_one_nat:
+  "semilattice_neutr_set lcm (1::nat)"
+  by default simp_all
+
 interpretation gcd_semilattice_nat: semilattice_inf gcd "op dvd" "(%m n::nat. m dvd n & ~ n dvd m)"
 proof
   case goal3 thus ?case by(metis gcd_unique_nat)
@@ -1486,33 +1490,62 @@ instantiation nat :: Gcd
 begin
 
 definition
-  "Lcm (M::nat set) = (if finite M then Finite_Set.fold lcm 1 M else 0)"
+  "Lcm (M::nat set) = (if finite M then semilattice_neutr_set.F lcm 1 M else 0)"
+
+lemma Lcm_nat_infinite:
+  "\<not> finite M \<Longrightarrow> Lcm M = (0::nat)"
+  by (simp add: Lcm_nat_def)
+
+lemma Lcm_nat_empty:
+  "Lcm {} = (1::nat)"
+proof -
+  interpret semilattice_neutr_set lcm "1::nat"
+    by (fact semilattice_neutr_set_lcm_one_nat)
+  show ?thesis by (simp add: Lcm_nat_def)
+qed
+
+lemma Lcm_nat_insert:
+  "Lcm (insert n M) = lcm (n::nat) (Lcm M)"
+proof (cases "finite M")
+  interpret semilattice_neutr_set lcm "1::nat"
+    by (fact semilattice_neutr_set_lcm_one_nat)
+  case True
+  then show ?thesis by (simp add: Lcm_nat_def)
+next
+  case False then show ?thesis by (simp add: Lcm_nat_infinite)
+qed
 
 definition
   "Gcd (M::nat set) = Lcm {d. \<forall>m\<in>M. d dvd m}"
 
 instance ..
+
 end
 
 lemma dvd_Lcm_nat [simp]:
-  fixes M :: "nat set" assumes "m \<in> M" shows "m dvd Lcm M"
-  using lcm_semilattice_nat.sup_le_fold_sup[OF _ assms, of 1]
-  by (simp add: Lcm_nat_def)
+  fixes M :: "nat set"
+  assumes "m \<in> M"
+  shows "m dvd Lcm M"
+proof (cases "finite M")
+  case False then show ?thesis by (simp add: Lcm_nat_infinite)
+next
+  case True then show ?thesis using assms by (induct M) (auto simp add: Lcm_nat_insert)
+qed
 
 lemma Lcm_dvd_nat [simp]:
-  fixes M :: "nat set" assumes "\<forall>m\<in>M. m dvd n" shows "Lcm M dvd n"
+  fixes M :: "nat set"
+  assumes "\<forall>m\<in>M. m dvd n"
+  shows "Lcm M dvd n"
 proof (cases "n = 0")
   assume "n \<noteq> 0"
   hence "finite {d. d dvd n}" by (rule finite_divisors_nat)
   moreover have "M \<subseteq> {d. d dvd n}" using assms by fast
   ultimately have "finite M" by (rule rev_finite_subset)
-  thus ?thesis
-    using lcm_semilattice_nat.fold_sup_le_sup [OF _ assms, of 1]
-    by (simp add: Lcm_nat_def)
+  then show ?thesis using assms by (induct M) (simp_all add: Lcm_nat_empty Lcm_nat_insert)
 qed simp
 
 interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice Gcd Lcm gcd "op dvd" "%m n::nat. m dvd n & ~ n dvd m" lcm 1 0
+  complete_lattice Gcd Lcm gcd "op dvd" "\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m" lcm 1 0
 proof
   case goal1 show ?case by simp
 next

@@ -97,9 +97,6 @@ instance "fun" :: (type, semigroup_mult) semigroup_mult
 instance "fun" :: (type, ab_semigroup_mult) ab_semigroup_mult
   by default (simp add: fun_eq_iff mult.commute)
 
-instance "fun" :: (type, ab_semigroup_idem_mult) ab_semigroup_idem_mult
-  by default (simp add: fun_eq_iff)
-
 instance "fun" :: (type, monoid_mult) monoid_mult
   by default (simp_all add: fun_eq_iff)
 

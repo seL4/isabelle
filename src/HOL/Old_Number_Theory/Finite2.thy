@@ -23,7 +23,7 @@ proof cases
   assume "finite S"
   thus ?thesis using a by induct (simp_all add: zcong_zadd)
 next
-  assume "infinite S" thus ?thesis by(simp add:setsum_def)
+  assume "infinite S" thus ?thesis by simp
 qed
 
 lemma setprod_same_function_zcong:
@@ -33,7 +33,7 @@ proof cases
   assume "finite S"
   thus ?thesis using a by induct (simp_all add: zcong_zmult)
 next
-  assume "infinite S" thus ?thesis by(simp add:setprod_def)
+  assume "infinite S" thus ?thesis by simp
 qed
 
 lemma setsum_const: "finite X ==> setsum (%x. (c :: int)) X = c * int(card X)"

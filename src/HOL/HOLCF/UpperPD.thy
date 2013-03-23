@@ -302,7 +302,7 @@ definition
     (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<sharp> y\<cdot>f)"
 
 lemma ACI_upper_bind:
-  "class.ab_semigroup_idem_mult (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<sharp> y\<cdot>f)"
+  "semilattice (\<lambda>x y. \<Lambda> f. x\<cdot>f \<union>\<sharp> y\<cdot>f)"
 apply unfold_locales
 apply (simp add: upper_plus_assoc)
 apply (simp add: upper_plus_commute)

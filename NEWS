@@ -33,6 +33,28 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Revised devices for recursive definitions over finite sets:
+  - Only one fundamental fold combinator on finite set remains:
+    Finite_Set.fold :: ('a => 'b => 'b) => 'b => 'a set => 'b
+    This is now identity on infinite sets.
+  - Locales (»mini packages«) for fundamental definitions with
+    Finite_Set.fold: folding, folding_idem.
+  - Locales comm_monoid_set, semilattice_order_set and
+    semilattice_neutr_order_set for big operators on sets.
+    See theory Big_Operators for canonical examples.
+    Note that foundational constants comm_monoid_set.F and
+    semilattice_set.F correspond to former combinators fold_image
+    and fold1 respectively.  These are now gone.  You may use
+    those foundational counstants as substitutes, but it is
+    preferable to interpret the above locales accordingly. 
+  - Dropped class ab_semigroup_idem_mult (special case of lattice,
+    no longer needed in connection with Finite_Set.fold etc.)
+  - Fact renames:
+      card.union_inter ~> card_Un_Int [symmetric]
+      card.union_disjoint ~> card_Un_disjoint
+
+INCOMPATIBILITY.
+
 * Locale hierarchy for abstract orderings and (semi)lattices.
 
 * Discontinued theory src/HOL/Library/Eval_Witness.

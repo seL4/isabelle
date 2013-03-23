@@ -39,6 +39,30 @@ lemma finite_lattice_complete_top_def:
 by (metis finite_UNIV inf_Sup_absorb inf_top_left iso_tuple_UNIV_I)
 -- "Derived definition of @{const top}."
 
+lemma finite_lattice_complete_Inf_empty:
+  "Inf {} = (top :: 'a::finite_lattice_complete)"
+  by (simp add: Inf_def)
+
+lemma finite_lattice_complete_Sup_empty:
+  "Sup {} = (bot :: 'a::finite_lattice_complete)"
+  by (simp add: Sup_def)
+
+lemma finite_lattice_complete_Inf_insert:
+  fixes A :: "'a::finite_lattice_complete set"
+  shows "Inf (insert x A) = inf x (Inf A)"
+proof -
+  interpret comp_fun_idem "inf :: 'a \<Rightarrow> _" by (fact comp_fun_idem_inf)
+  show ?thesis by (simp add: Inf_def)
+qed
+
+lemma finite_lattice_complete_Sup_insert:
+  fixes A :: "'a::finite_lattice_complete set"
+  shows "Sup (insert x A) = sup x (Sup A)"
+proof -
+  interpret comp_fun_idem "sup :: 'a \<Rightarrow> _" by (fact comp_fun_idem_sup)
+  show ?thesis by (simp add: Sup_def)
+qed
+
 text {* The definitional assumptions
 on the operators @{const Inf} and @{const Sup}
 of class @{class finite_lattice_complete}
@@ -47,19 +71,19 @@ as required for a complete lattice. *}
 
 lemma finite_lattice_complete_Inf_lower:
   "(x::'a::finite_lattice_complete) \<in> A \<Longrightarrow> Inf A \<le> x"
-unfolding Inf_def by (metis finite_code le_inf_iff fold_inf_le_inf)
+  using finite [of A] by (induct A) (auto simp add: finite_lattice_complete_Inf_insert intro: le_infI2)
 
 lemma finite_lattice_complete_Inf_greatest:
   "\<forall>x::'a::finite_lattice_complete \<in> A. z \<le> x \<Longrightarrow> z \<le> Inf A"
-unfolding Inf_def by (metis finite_code inf_le_fold_inf inf_top_right)
+  using finite [of A] by (induct A) (auto simp add: finite_lattice_complete_Inf_empty finite_lattice_complete_Inf_insert)
 
 lemma finite_lattice_complete_Sup_upper:
   "(x::'a::finite_lattice_complete) \<in> A \<Longrightarrow> Sup A \<ge> x"
-unfolding Sup_def by (metis finite_code le_sup_iff sup_le_fold_sup)
+  using finite [of A] by (induct A) (auto simp add: finite_lattice_complete_Sup_insert intro: le_supI2)
 
 lemma finite_lattice_complete_Sup_least:
   "\<forall>x::'a::finite_lattice_complete \<in> A. z \<ge> x \<Longrightarrow> z \<ge> Sup A"
-unfolding Sup_def by (metis finite_code fold_sup_le_sup sup_bot_right)
+  using finite [of A] by (induct A) (auto simp add: finite_lattice_complete_Sup_empty finite_lattice_complete_Sup_insert)
 
 instance finite_lattice_complete \<subseteq> complete_lattice
 proof

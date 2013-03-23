@@ -687,7 +687,7 @@ lemma coeff_natsum:
 proof (cases "finite A")
   case True then show ?thesis by induct auto
 next
-  case False then show ?thesis by (simp add: setsum_def)
+  case False then show ?thesis by simp
 qed
 (* Instance of a more general result!!! *)
 

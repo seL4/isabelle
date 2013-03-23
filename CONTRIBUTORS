@@ -7,6 +7,9 @@ Contributions to this Isabelle version
 --------------------------------------
 
 * March 2013: Florian Haftmann, TUM
+  Reform of "big operators" on sets.
+
+* March 2013: Florian Haftmann, TUM
   Algebraic locale hierarchy for orderings and (semi)lattices.
 
 * Feb. 2013: Florian Haftmann, TUM

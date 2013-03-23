@@ -103,18 +103,7 @@ definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
 lemma setprod_permute:
   assumes p: "p permutes S"
   shows "setprod f S = setprod (f o p) S"
-proof-
-  {assume "\<not> finite S" hence ?thesis by simp}
-  moreover
-  {assume fS: "finite S"
-    then have ?thesis
-      apply (simp add: setprod_def cong del:strong_setprod_cong)
-      apply (rule ab_semigroup_mult.fold_image_permute)
-      apply (auto simp add: p)
-      apply unfold_locales
-      done}
-  ultimately show ?thesis by blast
-qed
+  using assms by (fact setprod.permute)
 
 lemma setproduct_permute_nat_interval: "p permutes {m::nat .. n} ==> setprod f {m..n} = setprod (f o p) {m..n}"
   by (blast intro!: setprod_permute)

@@ -2734,51 +2734,11 @@ text {* @{const Finite_Set.fold} and @{const fold} *}
 
 lemma (in comp_fun_commute) fold_set_fold_remdups:
   "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
-  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
-
-lemma (in ab_semigroup_mult) fold1_distinct_set_fold:
-  assumes "xs \<noteq> []"
-  assumes d: "distinct xs"
-  shows "Finite_Set.fold1 times (set xs) = List.fold times (tl xs) (hd xs)"
-proof -
-  interpret comp_fun_commute times by (fact comp_fun_commute)
-  from assms obtain y ys where xs: "xs = y # ys"
-    by (cases xs) auto
-  then have *: "y \<notin> set ys" using assms by simp
-  from xs d have **: "remdups ys = ys"  by safe (induct ys, auto)
-  show ?thesis
-  proof (cases "set ys = {}")
-    case True with xs show ?thesis by simp
-  next
-    case False
-    then have "fold1 times (Set.insert y (set ys)) = Finite_Set.fold times y (set ys)"
-      by (simp_all add: fold1_eq_fold *)
-    with xs show ?thesis
-      by (simp add: fold_set_fold_remdups **)
-  qed
-qed
+  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm insert_absorb)
 
 lemma (in comp_fun_idem) fold_set_fold:
   "Finite_Set.fold f y (set xs) = fold f xs y"
-  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
-
-lemma (in ab_semigroup_idem_mult) fold1_set_fold:
-  assumes "xs \<noteq> []"
-  shows "Finite_Set.fold1 times (set xs) = fold times (tl xs) (hd xs)"
-proof -
-  interpret comp_fun_idem times by (fact comp_fun_idem)
-  from assms obtain y ys where xs: "xs = y # ys"
-    by (cases xs) auto
-  show ?thesis
-  proof (cases "set ys = {}")
-    case True with xs show ?thesis by simp
-  next
-    case False
-    then have "fold1 times (insert y (set ys)) = Finite_Set.fold times y (set ys)"
-      by (simp only: finite_set fold1_eq_fold_idem)
-    with xs show ?thesis by (simp add: fold_set_fold mult_commute)
-  qed
-qed
+  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_left_comm)
 
 lemma union_set_fold [code]:
   "set xs \<union> A = fold Set.insert xs A"
@@ -2813,49 +2773,18 @@ lemma inter_coset_fold [code]:
   "A \<inter> List.coset xs = fold Set.remove xs A"
   by (simp add: Diff_eq [symmetric] minus_set_fold)
 
-lemma (in lattice) Inf_fin_set_fold:
-  "Inf_fin (set (x # xs)) = fold inf xs x"
+lemma (in semilattice_set) set_eq_fold:
+  "F (set (x # xs)) = fold f xs x"
 proof -
-  interpret ab_semigroup_idem_mult "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_inf)
-  show ?thesis
-    by (simp add: Inf_fin_def fold1_set_fold del: set.simps)
+  interpret comp_fun_idem f
+    by default (simp_all add: fun_eq_iff left_commute)
+  show ?thesis by (simp add: eq_fold fold_set_fold)
 qed
 
-declare Inf_fin_set_fold [code]
-
-lemma (in lattice) Sup_fin_set_fold:
-  "Sup_fin (set (x # xs)) = fold sup xs x"
-proof -
-  interpret ab_semigroup_idem_mult "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_sup)
-  show ?thesis
-    by (simp add: Sup_fin_def fold1_set_fold del: set.simps)
-qed
-
-declare Sup_fin_set_fold [code]
-
-lemma (in linorder) Min_fin_set_fold:
-  "Min (set (x # xs)) = fold min xs x"
-proof -
-  interpret ab_semigroup_idem_mult "min :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_min)
-  show ?thesis
-    by (simp add: Min_def fold1_set_fold del: set.simps)
-qed
-
-declare Min_fin_set_fold [code]
-
-lemma (in linorder) Max_fin_set_fold:
-  "Max (set (x # xs)) = fold max xs x"
-proof -
-  interpret ab_semigroup_idem_mult "max :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact ab_semigroup_idem_mult_max)
-  show ?thesis
-    by (simp add: Max_def fold1_set_fold del: set.simps)
-qed
-
-declare Max_fin_set_fold [code]
+declare Inf_fin.set_eq_fold [code]
+declare Sup_fin.set_eq_fold [code]
+declare min_max.Inf_fin.set_eq_fold [code]
+declare min_max.Sup_fin.set_eq_fold [code]
 
 lemma (in complete_lattice) Inf_set_fold:
   "Inf (set xs) = fold inf xs top"
@@ -4915,24 +4844,36 @@ lists. Warning: in most cases it is not a good idea to convert from
 sets to lists but one should convert in the other direction (via
 @{const set}). *}
 
+subsubsection {* @{text sorted_list_of_set} *}
+
+text{* This function maps (finite) linearly ordered sets to sorted
+lists. Warning: in most cases it is not a good idea to convert from
+sets to lists but one should convert in the other direction (via
+@{const set}). *}
+
+definition (in linorder) sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
+  "sorted_list_of_set = folding.F insort []"
+
+sublocale linorder < sorted_list_of_set!: folding insort Nil
+where
+  "folding.F insort [] = sorted_list_of_set"
+proof -
+  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
+  show "folding insort" by default (fact comp_fun_commute)
+  show "folding.F insort [] = sorted_list_of_set" by (simp only: sorted_list_of_set_def)
+qed
+
 context linorder
 begin
 
-definition sorted_list_of_set :: "'a set \<Rightarrow> 'a list" where
-"sorted_list_of_set = Finite_Set.fold insort []"
-
-lemma sorted_list_of_set_empty [simp]:
+lemma sorted_list_of_set_empty:
   "sorted_list_of_set {} = []"
-  by (simp add: sorted_list_of_set_def)
+  by (fact sorted_list_of_set.empty)
 
 lemma sorted_list_of_set_insert [simp]:
   assumes "finite A"
   shows "sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
-proof -
-  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
-  from assms show ?thesis
-    by (simp add: sorted_list_of_set_def fold_insert_remove)
-qed
+  using assms by (fact sorted_list_of_set.insert_remove)
 
 lemma sorted_list_of_set [simp]:
   "finite A \<Longrightarrow> set (sorted_list_of_set A) = A \<and> sorted (sorted_list_of_set A) 
@@ -4943,7 +4884,7 @@ lemma sorted_list_of_set_sort_remdups [code]:
   "sorted_list_of_set (set xs) = sort (remdups xs)"
 proof -
   interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
-  show ?thesis by (simp add: sorted_list_of_set_def sort_conv_fold fold_set_fold_remdups)
+  show ?thesis by (simp add: sorted_list_of_set.eq_fold sort_conv_fold fold_set_fold_remdups)
 qed
 
 lemma sorted_list_of_set_remove:
