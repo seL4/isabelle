@@ -26,6 +26,23 @@ object Pretty
   }
 
 
+  /* text metric -- standardized to width of space */
+
+  abstract class Metric
+  {
+    val unit: Double
+    def average: Double
+    def apply(s: String): Double
+  }
+
+  object Metric_Default extends Metric
+  {
+    val unit = 1.0
+    val average = 1.0
+    def apply(s: String): Double = s.length.toDouble
+  }
+
+
   /* markup trees with physical blocks and breaks */
 
   def block(body: XML.Body): XML.Tree = Block(2, body)
@@ -73,29 +90,15 @@ object Pretty
     }
 
   private val margin_default = 76
-  private def metric_default(s: String) = s.length.toDouble
-
-  def char_width(metrics: FontMetrics): Double = metrics.stringWidth("mix").toDouble / 3
-
-  def font_metric(metrics: FontMetrics): String => Double =
-    if (metrics == null) ((s: String) => s.length.toDouble)
-    else {
-      val unit = char_width(metrics)
-      ((s: String) => if (s == "\n") 1.0 else metrics.stringWidth(s) / unit)
-    }
 
   def formatted(input: XML.Body, margin: Int = margin_default,
-    metric: String => Double = metric_default): XML.Body =
+    metric: Metric = Metric_Default): XML.Body =
   {
     sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
     {
       def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
-      def string(s: String, len: Double): Text = copy(tx = XML.Text(s) :: tx, pos = pos + len)
-      def blanks(wd: Int): Text =
-      {
-        val s = spaces(wd)
-        string(s, metric(s))
-      }
+      def string(s: String): Text = copy(tx = XML.Text(s) :: tx, pos = pos + metric(s))
+      def blanks(wd: Int): Text = string(spaces(wd))
       def content: XML.Body = tx.reverse
     }
 
@@ -153,14 +156,14 @@ object Pretty
           val btext1 = btext.copy(tx = XML.Elem(markup, btext.content) :: text.tx)
           format(ts1, blockin, after, btext1)
 
-        case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s, metric(s)))
+        case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
       }
 
     format(standard_format(input), 0.0, 0.0, Text()).content
   }
 
   def string_of(input: XML.Body, margin: Int = margin_default,
-      metric: String => Double = metric_default): String =
+      metric: Metric = Metric_Default): String =
     XML.content(formatted(input, margin, metric))
 
 

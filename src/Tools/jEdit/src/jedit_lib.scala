@@ -15,7 +15,7 @@ import scala.annotation.tailrec
 
 import org.gjt.sp.jedit.{jEdit, Buffer, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaPainter}
 
 
 object JEdit_Lib
@@ -168,7 +168,8 @@ object JEdit_Lib
   // NB: last line lacks \n
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
   {
-    val char_width = Pretty.char_width(text_area.getPainter.getFontMetrics).round.toInt
+    val metric = JEdit_Lib.pretty_metric(text_area.getPainter)
+    val char_width = (metric.unit * metric.average).round.toInt
 
     val buffer = text_area.getBuffer
 
@@ -203,5 +204,18 @@ object JEdit_Lib
       case _ => None
     }
   }
+
+
+  /* pretty text metric */
+
+  def string_width(painter: TextAreaPainter, s: String): Double =
+    painter.getFont.getStringBounds(s, painter.getFontRenderContext).getWidth
+
+  def pretty_metric(painter: TextAreaPainter): Pretty.Metric =
+    new Pretty.Metric {
+      val unit = string_width(painter, Pretty.space)
+      val average = string_width(painter, "mix") / (3 * unit)
+      def apply(s: String): Double = if (s == "\n") 1.0 else string_width(painter, s) / unit
+    }
 }
 

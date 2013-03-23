@@ -108,12 +108,12 @@ class Pretty_Text_Area(
     getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
 
     if (getWidth > 0) {
-      val fm = getPainter.getFontMetrics
-      val margin = (getPainter.getWidth / (Pretty.char_width(fm).ceil.toInt max 1)) max 20
+      val metric = JEdit_Lib.pretty_metric(getPainter)
+      val margin = (getPainter.getWidth.toDouble / metric.unit).toInt max 20
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
-      val formatted_body = Pretty.formatted(current_body, margin, Pretty.font_metric(fm))
+      val formatted_body = Pretty.formatted(current_body, margin, metric)
 
       future_rendering.map(_.cancel(true))
       future_rendering = Some(default_thread_pool.submit(() =>
