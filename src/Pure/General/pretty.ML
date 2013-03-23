@@ -79,12 +79,13 @@ struct
 (** spaces **)
 
 local
-  val small_spaces = Vector.tabulate (65, fn i => Library.replicate_string i Symbol.space);
+  val small_spaces = Vector.tabulate (65, fn i => replicate_string i Symbol.space);
 in
   fun spaces k =
     if k < 64 then Vector.sub (small_spaces, k)
-    else Library.replicate_string (k div 64) (Vector.sub (small_spaces, 64)) ^
-      Vector.sub (small_spaces, k mod 64);
+    else
+      replicate_string (k div 64) (Vector.sub (small_spaces, 64)) ^
+        Vector.sub (small_spaces, k mod 64);
 end;
 
 
