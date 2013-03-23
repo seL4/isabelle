@@ -222,8 +222,8 @@ proof
   hence open_sub: "\<And>i S. i\<in>domain x \<Longrightarrow> open (S i) \<Longrightarrow> x i\<in>(S i) \<Longrightarrow> (\<exists>a\<in>A i. a\<subseteq>(S i))" by auto
   have A_notempty: "\<And>i. i \<in> domain x \<Longrightarrow> A i \<noteq> {}" using open_sub[of _ "\<lambda>_. UNIV"] by auto
   let ?A = "(\<lambda>f. Pi' (domain x) f) ` (Pi\<^isub>E (domain x) A)"
-  show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-  proof (rule exI[where x="?A"], safe)
+  show "\<exists>A::nat \<Rightarrow> ('a\<Rightarrow>\<^isub>F'b) set. (\<forall>i. x \<in> (A i) \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+  proof (rule first_countableI[where A="?A"], safe)
     show "countable ?A" using A by (simp add: countable_PiE)
   next
     fix S::"('a \<Rightarrow>\<^isub>F 'b) set" assume "open S" "x \<in> S"

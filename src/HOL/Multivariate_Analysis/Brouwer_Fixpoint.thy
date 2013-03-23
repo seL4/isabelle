@@ -26,14 +26,6 @@ begin
 lemma divide_nonneg_nonneg:assumes "a \<ge> 0" "b \<ge> 0" shows "0 \<le> a / (b::real)"
   apply(cases "b=0") defer apply(rule divide_nonneg_pos) using assms by auto
 
-lemma continuous_setsum:
-  fixes f :: "'i \<Rightarrow> 'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  assumes f: "\<And>i. i \<in> I \<Longrightarrow> continuous F (f i)" shows "continuous F (\<lambda>x. \<Sum>i\<in>I. f i x)"
-proof cases
-  assume "finite I" from this f show ?thesis
-    by (induct I) (auto intro!: continuous_intros)
-qed (auto intro!: continuous_intros)
-
 lemma brouwer_compactness_lemma:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::euclidean_space"
   assumes "compact s" "continuous_on s f" "\<not> (\<exists>x\<in>s. (f x = 0))"

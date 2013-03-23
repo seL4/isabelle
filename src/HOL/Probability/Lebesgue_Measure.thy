@@ -1049,7 +1049,7 @@ proof cases
 
     let ?g = "\<lambda>x. if x = a then f a else if x = b then f b else if x \<in> {a <..< b} then f x else 0"
     from f have "continuous_on {a <..< b} f"
-      by (subst continuous_on_eq_continuous_at) (auto simp add: continuous_isCont)
+      by (subst continuous_on_eq_continuous_at) auto
     then have "?g \<in> borel_measurable borel"
       using borel_measurable_continuous_on_open[of "{a <..< b }" f "\<lambda>x. x" borel 0]
       by (auto intro!: measurable_If[where P="\<lambda>x. x = a"] measurable_If[where P="\<lambda>x. x = b"])

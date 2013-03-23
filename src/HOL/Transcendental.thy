@@ -207,7 +207,7 @@ proof -
     thus "\<exists> N. \<forall> n \<ge> N. norm (- a (2 * n) - 0) < r" by auto
   qed
   ultimately
-  show ?thesis by (rule lemma_nest_unique)
+  show ?thesis by (rule nested_sequence_unique)
 qed
 
 lemma summable_Leibniz': fixes a :: "nat \<Rightarrow> real"
@@ -881,6 +881,12 @@ lemma tendsto_exp [tendsto_intros]:
   "(f ---> a) F \<Longrightarrow> ((\<lambda>x. exp (f x)) ---> exp a) F"
   by (rule isCont_tendsto_compose [OF isCont_exp])
 
+lemma continuous_exp [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. exp (f x))"
+  unfolding continuous_def by (rule tendsto_exp)
+
+lemma continuous_on_exp [continuous_on_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. exp (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_exp)
+
 subsubsection {* Properties of the Exponential Function *}
 
 lemma powser_zero:
@@ -1169,6 +1175,22 @@ lemma tendsto_ln [tendsto_intros]:
   "\<lbrakk>(f ---> a) F; 0 < a\<rbrakk> \<Longrightarrow> ((\<lambda>x. ln (f x)) ---> ln a) F"
   by (rule isCont_tendsto_compose [OF isCont_ln])
 
+lemma continuous_ln:
+  "continuous F f \<Longrightarrow> 0 < f (Lim F (\<lambda>x. x)) \<Longrightarrow> continuous F (\<lambda>x. ln (f x))"
+  unfolding continuous_def by (rule tendsto_ln)
+
+lemma isCont_ln' [continuous_intros]:
+  "continuous (at x) f \<Longrightarrow> 0 < f x \<Longrightarrow> continuous (at x) (\<lambda>x. ln (f x))"
+  unfolding continuous_at by (rule tendsto_ln)
+
+lemma continuous_within_ln [continuous_intros]:
+  "continuous (at x within s) f \<Longrightarrow> 0 < f x \<Longrightarrow> continuous (at x within s) (\<lambda>x. ln (f x))"
+  unfolding continuous_within by (rule tendsto_ln)
+
+lemma continuous_on_ln [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. 0 < f x) \<Longrightarrow> continuous_on s (\<lambda>x. ln (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_ln)
+
 lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
   apply (rule DERIV_inverse_function [where f=exp and a=0 and b="x+1"])
   apply (erule DERIV_cong [OF DERIV_exp exp_ln])
@@ -1448,6 +1470,22 @@ lemma tendsto_sin [tendsto_intros]:
 lemma tendsto_cos [tendsto_intros]:
   "(f ---> a) F \<Longrightarrow> ((\<lambda>x. cos (f x)) ---> cos a) F"
   by (rule isCont_tendsto_compose [OF isCont_cos])
+
+lemma continuous_sin [continuous_intros]:
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. sin (f x))"
+  unfolding continuous_def by (rule tendsto_sin)
+
+lemma continuous_on_sin [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. sin (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_sin)
+
+lemma continuous_cos [continuous_intros]:
+  "continuous F f \<Longrightarrow> continuous F (\<lambda>x. cos (f x))"
+  unfolding continuous_def by (rule tendsto_cos)
+
+lemma continuous_on_cos [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. cos (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_cos)
 
 declare
   DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
@@ -2076,6 +2114,22 @@ lemma tendsto_tan [tendsto_intros]:
   "\<lbrakk>(f ---> a) F; cos a \<noteq> 0\<rbrakk> \<Longrightarrow> ((\<lambda>x. tan (f x)) ---> tan a) F"
   by (rule isCont_tendsto_compose [OF isCont_tan])
 
+lemma continuous_tan:
+  "continuous F f \<Longrightarrow> cos (f (Lim F (\<lambda>x. x))) \<noteq> 0 \<Longrightarrow> continuous F (\<lambda>x. tan (f x))"
+  unfolding continuous_def by (rule tendsto_tan)
+
+lemma isCont_tan'' [continuous_intros]:
+  "continuous (at x) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x) (\<lambda>x. tan (f x))"
+  unfolding continuous_at by (rule tendsto_tan)
+
+lemma continuous_within_tan [continuous_intros]:
+  "continuous (at x within s) f \<Longrightarrow> cos (f x) \<noteq> 0 \<Longrightarrow> continuous (at x within s) (\<lambda>x. tan (f x))"
+  unfolding continuous_within by (rule tendsto_tan)
+
+lemma continuous_on_tan [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. cos (f x) \<noteq> 0) \<Longrightarrow> continuous_on s (\<lambda>x. tan (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_tan)
+
 lemma LIM_cos_div_sin: "(%x. cos(x)/sin(x)) -- pi/2 --> 0"
   by (rule LIM_cong_limit, (rule tendsto_intros)+, simp_all)
 
@@ -2403,32 +2457,47 @@ lemma arctan_le_zero_iff [simp]: "arctan x \<le> 0 \<longleftrightarrow> x \<le>
 lemma arctan_eq_zero_iff [simp]: "arctan x = 0 \<longleftrightarrow> x = 0"
   using arctan_eq_iff [of x 0] by simp
 
-lemma isCont_inverse_function2:
-  fixes f g :: "real \<Rightarrow> real" shows
-  "\<lbrakk>a < x; x < b;
-    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> g (f z) = z;
-    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> isCont f z\<rbrakk>
-   \<Longrightarrow> isCont g (f x)"
-apply (rule isCont_inverse_function
-       [where f=f and d="min (x - a) (b - x)"])
-apply (simp_all add: abs_le_iff)
-done
+lemma continuous_on_arcsin': "continuous_on {-1 .. 1} arcsin"
+proof -
+  have "continuous_on (sin ` {- pi / 2 .. pi / 2}) arcsin"
+    by (rule continuous_on_inv) (auto intro: continuous_on_intros simp: arcsin_sin)
+  also have "sin ` {- pi / 2 .. pi / 2} = {-1 .. 1}"
+  proof safe
+    fix x :: real assume "x \<in> {-1..1}" then show "x \<in> sin ` {- pi / 2..pi / 2}"
+      using arcsin_lbound arcsin_ubound by (intro image_eqI[where x="arcsin x"]) auto
+  qed simp
+  finally show ?thesis .
+qed
 
-lemma isCont_arcsin: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arcsin x"
-apply (subgoal_tac "isCont arcsin (sin (arcsin x))", simp)
-apply (rule isCont_inverse_function2 [where f=sin])
-apply (erule (1) arcsin_lt_bounded [THEN conjunct1])
-apply (erule (1) arcsin_lt_bounded [THEN conjunct2])
-apply (fast intro: arcsin_sin, simp)
-done
+lemma continuous_on_arcsin [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. -1 \<le> f x \<and> f x \<le> 1) \<Longrightarrow> continuous_on s (\<lambda>x. arcsin (f x))"
+  using continuous_on_compose[of s f, OF _ continuous_on_subset[OF  continuous_on_arcsin']]
+  by (auto simp: comp_def subset_eq)
 
-lemma isCont_arccos: "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> isCont arccos x"
-apply (subgoal_tac "isCont arccos (cos (arccos x))", simp)
-apply (rule isCont_inverse_function2 [where f=cos])
-apply (erule (1) arccos_lt_bounded [THEN conjunct1])
-apply (erule (1) arccos_lt_bounded [THEN conjunct2])
-apply (fast intro: arccos_cos, simp)
-done
+lemma isCont_arcsin: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont arcsin x"
+  using continuous_on_arcsin'[THEN continuous_on_subset, of "{ -1 <..< 1 }"]
+  by (auto simp: continuous_on_eq_continuous_at subset_eq)
+
+lemma continuous_on_arccos': "continuous_on {-1 .. 1} arccos"
+proof -
+  have "continuous_on (cos ` {0 .. pi}) arccos"
+    by (rule continuous_on_inv) (auto intro: continuous_on_intros simp: arccos_cos)
+  also have "cos ` {0 .. pi} = {-1 .. 1}"
+  proof safe
+    fix x :: real assume "x \<in> {-1..1}" then show "x \<in> cos ` {0..pi}"
+      using arccos_lbound arccos_ubound by (intro image_eqI[where x="arccos x"]) auto
+  qed simp
+  finally show ?thesis .
+qed
+
+lemma continuous_on_arccos [continuous_on_intros]:
+  "continuous_on s f \<Longrightarrow> (\<forall>x\<in>s. -1 \<le> f x \<and> f x \<le> 1) \<Longrightarrow> continuous_on s (\<lambda>x. arccos (f x))"
+  using continuous_on_compose[of s f, OF _ continuous_on_subset[OF  continuous_on_arccos']]
+  by (auto simp: comp_def subset_eq)
+
+lemma isCont_arccos: "-1 < x \<Longrightarrow> x < 1 \<Longrightarrow> isCont arccos x"
+  using continuous_on_arccos'[THEN continuous_on_subset, of "{ -1 <..< 1 }"]
+  by (auto simp: continuous_on_eq_continuous_at subset_eq)
 
 lemma isCont_arctan: "isCont arctan x"
 apply (rule arctan_lbound [of x, THEN dense, THEN exE], clarify)
@@ -2439,6 +2508,15 @@ apply (metis arctan_tan order_le_less_trans order_less_le_trans)
 apply (metis cos_gt_zero_pi isCont_tan order_less_le_trans less_le)
 done
 
+lemma tendsto_arctan [tendsto_intros]: "(f ---> x) F \<Longrightarrow> ((\<lambda>x. arctan (f x)) ---> arctan x) F"
+  by (rule isCont_tendsto_compose [OF isCont_arctan])
+
+lemma continuous_arctan [continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. arctan (f x))"
+  unfolding continuous_def by (rule tendsto_arctan)
+
+lemma continuous_on_arctan [continuous_on_intros]: "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. arctan (f x))"
+  unfolding continuous_on_def by (auto intro: tendsto_arctan)
+  
 lemma DERIV_arcsin:
   "\<lbrakk>-1 < x; x < 1\<rbrakk> \<Longrightarrow> DERIV arcsin x :> inverse (sqrt (1 - x\<twosuperior>))"
 apply (rule DERIV_inverse_function [where f=sin and a="-1" and b="1"])

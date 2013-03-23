@@ -159,11 +159,11 @@ proof -
   moreover
   { fix y assume y: "y \<in> I"
     with q(2) `open I` have "Sup ((\<lambda>x. q x + ?F x * (y - x)) ` I) = q y"
-      by (auto intro!: Sup_eq_maximum convex_le_Inf_differential image_eqI[OF _ y] simp: interior_open) }
+      by (auto intro!: cSup_eq_maximum convex_le_Inf_differential image_eqI[OF _ y] simp: interior_open) }
   ultimately have "q (expectation X) = Sup ((\<lambda>x. q x + ?F x * (expectation X - x)) ` I)"
     by simp
   also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
-  proof (rule Sup_least)
+  proof (rule cSup_least)
     show "(\<lambda>x. q x + ?F x * (expectation X - x)) ` I \<noteq> {}"
       using `I \<noteq> {}` by auto
   next

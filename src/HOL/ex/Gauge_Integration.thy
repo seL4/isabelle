@@ -97,11 +97,7 @@ lemma BOLZANO:
   assumes 2: "\<And>a b c. \<lbrakk>P a b; P b c; a \<le> b; b \<le> c\<rbrakk> \<Longrightarrow> P a c"
   assumes 3: "\<And>x. \<exists>d>0. \<forall>a b. a \<le> x & x \<le> b & (b-a) < d \<longrightarrow> P a b"
   shows "P a b"
-apply (subgoal_tac "split P (a,b)", simp)
-apply (rule lemma_BOLZANO [OF _ _ 1])
-apply (clarify, erule (3) 2)
-apply (clarify, rule 3)
-done
+  using 1 2 3 by (rule Bolzano)
 
 text{*We can always find a division that is fine wrt any gauge*}
 

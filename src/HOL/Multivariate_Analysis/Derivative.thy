@@ -576,10 +576,6 @@ lemma frechet_derivative_unique_at:
   unfolding FDERIV_conv_has_derivative [symmetric]
   by (rule FDERIV_unique)
 
-lemma continuous_isCont: "isCont f x = continuous (at x) f"
-  unfolding isCont_def LIM_def
-  unfolding continuous_at Lim_at unfolding dist_nz by auto
-
 lemma frechet_derivative_unique_within_closed_interval:
   fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
   assumes "\<forall>i\<in>Basis. a\<bullet>i < b\<bullet>i" "x \<in> {a..b}" (is "x\<in>?I")
@@ -783,15 +779,12 @@ lemma mvt: fixes f::"real \<Rightarrow> real"
   shows "\<exists>x\<in>{a<..<b}. (f b - f a = (f' x) (b - a))"
 proof-
   have "\<exists>x\<in>{a<..<b}. (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa) = (\<lambda>v. 0)"
-    apply(rule rolle[OF assms(1), of "\<lambda>x. f x - (f b - f a) / (b - a) * x"])
-    defer
-    apply(rule continuous_on_intros assms(2))+
-  proof
+  proof (intro rolle[OF assms(1), of "\<lambda>x. f x - (f b - f a) / (b - a) * x"] ballI)
     fix x assume x:"x \<in> {a<..<b}"
     show "((\<lambda>x. f x - (f b - f a) / (b - a) * x) has_derivative (\<lambda>xa. f' x xa - (f b - f a) / (b - a) * xa)) (at x)"
       by (intro has_derivative_intros assms(3)[rule_format,OF x]
         mult_right_has_derivative)
-  qed(insert assms(1), auto simp add:field_simps)
+  qed (insert assms(1,2), auto intro!: continuous_on_intros simp: field_simps)
   then guess x ..
   thus ?thesis apply(rule_tac x=x in bexI)
     apply(drule fun_cong[of _ _ "b - a"]) by auto

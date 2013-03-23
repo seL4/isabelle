@@ -343,7 +343,7 @@ done
 text{*Standard Version: easily now proved using equivalence of NS and
  standard definitions *}
 
-lemma convergent_Bseq: "convergent X ==> Bseq X"
+lemma convergent_Bseq: "convergent X ==> Bseq (X::nat \<Rightarrow> _::real_normed_vector)"
 by (simp add: NSconvergent_NSBseq convergent_NSconvergent_iff Bseq_NSBseq_iff)
 
 subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}

@@ -5,7 +5,7 @@
 header {* Vector Spaces and Algebras over the Reals *}
 
 theory RealVector
-imports RComplete
+imports RComplete Metric_Spaces SupInf
 begin
 
 subsection {* Locale for additive functions *}
@@ -434,231 +434,6 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
   by (rule Reals_cases) auto
 
 
-subsection {* Topological spaces *}
-
-class "open" =
-  fixes "open" :: "'a set \<Rightarrow> bool"
-
-class topological_space = "open" +
-  assumes open_UNIV [simp, intro]: "open UNIV"
-  assumes open_Int [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<inter> T)"
-  assumes open_Union [intro]: "\<forall>S\<in>K. open S \<Longrightarrow> open (\<Union> K)"
-begin
-
-definition
-  closed :: "'a set \<Rightarrow> bool" where
-  "closed S \<longleftrightarrow> open (- S)"
-
-lemma open_empty [intro, simp]: "open {}"
-  using open_Union [of "{}"] by simp
-
-lemma open_Un [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<union> T)"
-  using open_Union [of "{S, T}"] by simp
-
-lemma open_UN [intro]: "\<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Union>x\<in>A. B x)"
-  unfolding SUP_def by (rule open_Union) auto
-
-lemma open_Inter [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
-  by (induct set: finite) auto
-
-lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
-  unfolding INF_def by (rule open_Inter) auto
-
-lemma closed_empty [intro, simp]:  "closed {}"
-  unfolding closed_def by simp
-
-lemma closed_Un [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<union> T)"
-  unfolding closed_def by auto
-
-lemma closed_UNIV [intro, simp]: "closed UNIV"
-  unfolding closed_def by simp
-
-lemma closed_Int [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<inter> T)"
-  unfolding closed_def by auto
-
-lemma closed_INT [intro]: "\<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Inter>x\<in>A. B x)"
-  unfolding closed_def by auto
-
-lemma closed_Inter [intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
-  unfolding closed_def uminus_Inf by auto
-
-lemma closed_Union [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed T \<Longrightarrow> closed (\<Union>S)"
-  by (induct set: finite) auto
-
-lemma closed_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
-  unfolding SUP_def by (rule closed_Union) auto
-
-lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
-  unfolding closed_def by simp
-
-lemma closed_open: "closed S \<longleftrightarrow> open (- S)"
-  unfolding closed_def by simp
-
-lemma open_Diff [intro]: "open S \<Longrightarrow> closed T \<Longrightarrow> open (S - T)"
-  unfolding closed_open Diff_eq by (rule open_Int)
-
-lemma closed_Diff [intro]: "closed S \<Longrightarrow> open T \<Longrightarrow> closed (S - T)"
-  unfolding open_closed Diff_eq by (rule closed_Int)
-
-lemma open_Compl [intro]: "closed S \<Longrightarrow> open (- S)"
-  unfolding closed_open .
-
-lemma closed_Compl [intro]: "open S \<Longrightarrow> closed (- S)"
-  unfolding open_closed .
-
-end
-
-inductive generate_topology for S where
-  UNIV: "generate_topology S UNIV"
-| Int: "generate_topology S a \<Longrightarrow> generate_topology S b \<Longrightarrow> generate_topology S (a \<inter> b)"
-| UN: "(\<And>k. k \<in> K \<Longrightarrow> generate_topology S k) \<Longrightarrow> generate_topology S (\<Union>K)"
-| Basis: "s \<in> S \<Longrightarrow> generate_topology S s"
-
-hide_fact (open) UNIV Int UN Basis 
-
-lemma generate_topology_Union: 
-  "(\<And>k. k \<in> I \<Longrightarrow> generate_topology S (K k)) \<Longrightarrow> generate_topology S (\<Union>k\<in>I. K k)"
-  unfolding SUP_def by (intro generate_topology.UN) auto
-
-lemma topological_space_generate_topology:
-  "class.topological_space (generate_topology S)"
-  by default (auto intro: generate_topology.intros)
-
-class order_topology = order + "open" +
-  assumes open_generated_order: "open = generate_topology (range (\<lambda>a. {..< a}) \<union> range (\<lambda>a. {a <..}))"
-begin
-
-subclass topological_space
-  unfolding open_generated_order
-  by (rule topological_space_generate_topology)
-
-lemma open_greaterThan [simp]: "open {a <..}"
-  unfolding open_generated_order by (auto intro: generate_topology.Basis)
-
-lemma open_lessThan [simp]: "open {..< a}"
-  unfolding open_generated_order by (auto intro: generate_topology.Basis)
-
-lemma open_greaterThanLessThan [simp]: "open {a <..< b}"
-   unfolding greaterThanLessThan_eq by (simp add: open_Int)
-
-end
-
-class linorder_topology = linorder + order_topology
-
-lemma closed_atMost [simp]: "closed {.. a::'a::linorder_topology}"
-  by (simp add: closed_open)
-
-lemma closed_atLeast [simp]: "closed {a::'a::linorder_topology ..}"
-  by (simp add: closed_open)
-
-lemma closed_atLeastAtMost [simp]: "closed {a::'a::linorder_topology .. b}"
-proof -
-  have "{a .. b} = {a ..} \<inter> {.. b}"
-    by auto
-  then show ?thesis
-    by (simp add: closed_Int)
-qed
-
-subsection {* Metric spaces *}
-
-class dist =
-  fixes dist :: "'a \<Rightarrow> 'a \<Rightarrow> real"
-
-class open_dist = "open" + dist +
-  assumes open_dist: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-
-class metric_space = open_dist +
-  assumes dist_eq_0_iff [simp]: "dist x y = 0 \<longleftrightarrow> x = y"
-  assumes dist_triangle2: "dist x y \<le> dist x z + dist y z"
-begin
-
-lemma dist_self [simp]: "dist x x = 0"
-by simp
-
-lemma zero_le_dist [simp]: "0 \<le> dist x y"
-using dist_triangle2 [of x x y] by simp
-
-lemma zero_less_dist_iff: "0 < dist x y \<longleftrightarrow> x \<noteq> y"
-by (simp add: less_le)
-
-lemma dist_not_less_zero [simp]: "\<not> dist x y < 0"
-by (simp add: not_less)
-
-lemma dist_le_zero_iff [simp]: "dist x y \<le> 0 \<longleftrightarrow> x = y"
-by (simp add: le_less)
-
-lemma dist_commute: "dist x y = dist y x"
-proof (rule order_antisym)
-  show "dist x y \<le> dist y x"
-    using dist_triangle2 [of x y x] by simp
-  show "dist y x \<le> dist x y"
-    using dist_triangle2 [of y x y] by simp
-qed
-
-lemma dist_triangle: "dist x z \<le> dist x y + dist y z"
-using dist_triangle2 [of x z y] by (simp add: dist_commute)
-
-lemma dist_triangle3: "dist x y \<le> dist a x + dist a y"
-using dist_triangle2 [of x y a] by (simp add: dist_commute)
-
-lemma dist_triangle_alt:
-  shows "dist y z <= dist x y + dist x z"
-by (rule dist_triangle3)
-
-lemma dist_pos_lt:
-  shows "x \<noteq> y ==> 0 < dist x y"
-by (simp add: zero_less_dist_iff)
-
-lemma dist_nz:
-  shows "x \<noteq> y \<longleftrightarrow> 0 < dist x y"
-by (simp add: zero_less_dist_iff)
-
-lemma dist_triangle_le:
-  shows "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
-by (rule order_trans [OF dist_triangle2])
-
-lemma dist_triangle_lt:
-  shows "dist x z + dist y z < e ==> dist x y < e"
-by (rule le_less_trans [OF dist_triangle2])
-
-lemma dist_triangle_half_l:
-  shows "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
-by (rule dist_triangle_lt [where z=y], simp)
-
-lemma dist_triangle_half_r:
-  shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
-by (rule dist_triangle_half_l, simp_all add: dist_commute)
-
-subclass topological_space
-proof
-  have "\<exists>e::real. 0 < e"
-    by (fast intro: zero_less_one)
-  then show "open UNIV"
-    unfolding open_dist by simp
-next
-  fix S T assume "open S" "open T"
-  then show "open (S \<inter> T)"
-    unfolding open_dist
-    apply clarify
-    apply (drule (1) bspec)+
-    apply (clarify, rename_tac r s)
-    apply (rule_tac x="min r s" in exI, simp)
-    done
-next
-  fix K assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
-    unfolding open_dist by fast
-qed
-
-lemma (in metric_space) open_ball: "open {y. dist x y < d}"
-proof (unfold open_dist, intro ballI)
-  fix y assume *: "y \<in> {y. dist x y < d}"
-  then show "\<exists>e>0. \<forall>z. dist z y < e \<longrightarrow> z \<in> {y. dist x y < d}"
-    by (auto intro!: exI[of _ "d - dist x y"] simp: field_simps dist_triangle_lt)
-qed
-
-end
-
-
 subsection {* Real normed vector spaces *}
 
 class norm =
@@ -890,7 +665,6 @@ next
     using norm_triangle_ineq4 [of "x - z" "y - z"] by simp
 qed
 
-
 subsection {* Class instances for real numbers *}
 
 instantiation real :: real_normed_field
@@ -899,16 +673,9 @@ begin
 definition real_norm_def [simp]:
   "norm r = \<bar>r\<bar>"
 
-definition dist_real_def:
-  "dist x y = \<bar>x - y\<bar>"
-
-definition open_real_def:
-  "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-
 instance
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
-apply (rule open_real_def)
 apply (simp add: sgn_real_def)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)
@@ -917,47 +684,6 @@ apply (rule abs_mult)
 done
 
 end
-
-instance real :: linorder_topology
-proof
-  show "(open :: real set \<Rightarrow> bool) = generate_topology (range lessThan \<union> range greaterThan)"
-  proof (rule ext, safe)
-    fix S :: "real set" assume "open S"
-    then guess f unfolding open_real_def bchoice_iff ..
-    then have *: "S = (\<Union>x\<in>S. {x - f x <..} \<inter> {..< x + f x})"
-      by (fastforce simp: dist_real_def)
-    show "generate_topology (range lessThan \<union> range greaterThan) S"
-      apply (subst *)
-      apply (intro generate_topology_Union generate_topology.Int)
-      apply (auto intro: generate_topology.Basis)
-      done
-  next
-    fix S :: "real set" assume "generate_topology (range lessThan \<union> range greaterThan) S"
-    moreover have "\<And>a::real. open {..<a}"
-      unfolding open_real_def dist_real_def
-    proof clarify
-      fix x a :: real assume "x < a"
-      hence "0 < a - x \<and> (\<forall>y. \<bar>y - x\<bar> < a - x \<longrightarrow> y \<in> {..<a})" by auto
-      thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {..<a}" ..
-    qed
-    moreover have "\<And>a::real. open {a <..}"
-      unfolding open_real_def dist_real_def
-    proof clarify
-      fix x a :: real assume "a < x"
-      hence "0 < x - a \<and> (\<forall>y. \<bar>y - x\<bar> < x - a \<longrightarrow> y \<in> {a<..})" by auto
-      thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {a<..}" ..
-    qed
-    ultimately show "open S"
-      by induct auto
-  qed
-qed
-
-lemmas open_real_greaterThan = open_greaterThan[where 'a=real]
-lemmas open_real_lessThan = open_lessThan[where 'a=real]
-lemmas open_real_greaterThanLessThan = open_greaterThanLessThan[where 'a=real]
-lemmas closed_real_atMost = closed_atMost[where 'a=real]
-lemmas closed_real_atLeast = closed_atLeast[where 'a=real]
-lemmas closed_real_atLeastAtMost = closed_atLeastAtMost[where 'a=real]
 
 subsection {* Extra type constraints *}
 
@@ -975,7 +701,6 @@ text {* Only allow @{term norm} in class @{text real_normed_vector}. *}
 
 setup {* Sign.add_const_constraint
   (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
-
 
 subsection {* Sign function *}
 
@@ -1017,6 +742,8 @@ unfolding real_sgn_eq by simp
 lemma real_sgn_neg: "(x::real) < 0 \<Longrightarrow> sgn x = -1"
 unfolding real_sgn_eq by simp
 
+lemma norm_conv_dist: "norm x = dist x 0"
+  unfolding dist_norm by simp
 
 subsection {* Bounded Linear and Bilinear Operators *}
 
@@ -1182,115 +909,188 @@ lemma bounded_linear_scaleR_right: "bounded_linear (\<lambda>x. scaleR r x)"
 lemma bounded_linear_of_real: "bounded_linear (\<lambda>r. of_real r)"
   unfolding of_real_def by (rule bounded_linear_scaleR_left)
 
-subsection{* Hausdorff and other separation properties *}
-
-class t0_space = topological_space +
-  assumes t0_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
-
-class t1_space = topological_space +
-  assumes t1_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> x \<in> U \<and> y \<notin> U"
-
-instance t1_space \<subseteq> t0_space
-proof qed (fast dest: t1_space)
-
-lemma separation_t1:
-  fixes x y :: "'a::t1_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> x \<in> U \<and> y \<notin> U)"
-  using t1_space[of x y] by blast
-
-lemma closed_singleton:
-  fixes a :: "'a::t1_space"
-  shows "closed {a}"
-proof -
-  let ?T = "\<Union>{S. open S \<and> a \<notin> S}"
-  have "open ?T" by (simp add: open_Union)
-  also have "?T = - {a}"
-    by (simp add: set_eq_iff separation_t1, auto)
-  finally show "closed {a}" unfolding closed_def .
-qed
-
-lemma closed_insert [simp]:
-  fixes a :: "'a::t1_space"
-  assumes "closed S" shows "closed (insert a S)"
-proof -
-  from closed_singleton assms
-  have "closed ({a} \<union> S)" by (rule closed_Un)
-  thus "closed (insert a S)" by simp
-qed
-
-lemma finite_imp_closed:
-  fixes S :: "'a::t1_space set"
-  shows "finite S \<Longrightarrow> closed S"
-by (induct set: finite, simp_all)
-
-text {* T2 spaces are also known as Hausdorff spaces. *}
-
-class t2_space = topological_space +
-  assumes hausdorff: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-
-instance t2_space \<subseteq> t1_space
-proof qed (fast dest: hausdorff)
-
-lemma (in linorder) less_separate:
-  assumes "x < y"
-  shows "\<exists>a b. x \<in> {..< a} \<and> y \<in> {b <..} \<and> {..< a} \<inter> {b <..} = {}"
-proof cases
-  assume "\<exists>z. x < z \<and> z < y"
-  then guess z ..
-  then have "x \<in> {..< z} \<and> y \<in> {z <..} \<and> {z <..} \<inter> {..< z} = {}"
-    by auto
-  then show ?thesis by blast
-next
-  assume "\<not> (\<exists>z. x < z \<and> z < y)"
-  with `x < y` have "x \<in> {..< y} \<and> y \<in> {x <..} \<and> {x <..} \<inter> {..< y} = {}"
-    by auto
-  then show ?thesis by blast
-qed
-
-instance linorder_topology \<subseteq> t2_space
-proof
-  fix x y :: 'a
-  from less_separate[of x y] less_separate[of y x]
-  show "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-    by (elim neqE) (metis open_lessThan open_greaterThan Int_commute)+
-qed
-
-instance metric_space \<subseteq> t2_space
-proof
-  fix x y :: "'a::metric_space"
-  assume xy: "x \<noteq> y"
-  let ?U = "{y'. dist x y' < dist x y / 2}"
-  let ?V = "{x'. dist y x' < dist x y / 2}"
-  have th0: "\<And>d x y z. (d x z :: real) \<le> d x y + d y z \<Longrightarrow> d y z = d z y
-               \<Longrightarrow> \<not>(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
-  have "open ?U \<and> open ?V \<and> x \<in> ?U \<and> y \<in> ?V \<and> ?U \<inter> ?V = {}"
-    using dist_pos_lt[OF xy] th0[of dist, OF dist_triangle dist_commute]
-    using open_ball[of _ "dist x y / 2"] by auto
-  then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-    by blast
-qed
-
-lemma separation_t2:
-  fixes x y :: "'a::t2_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
-  using hausdorff[of x y] by blast
-
-lemma separation_t0:
-  fixes x y :: "'a::t0_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))"
-  using t0_space[of x y] by blast
-
-text {* A perfect space is a topological space with no isolated points. *}
-
-class perfect_space = topological_space +
-  assumes not_open_singleton: "\<not> open {x}"
-
 instance real_normed_algebra_1 \<subseteq> perfect_space
 proof
   fix x::'a
   show "\<not> open {x}"
     unfolding open_dist dist_norm
     by (clarsimp, rule_tac x="x + of_real (e/2)" in exI, simp)
+qed
+
+section {* Connectedness *}
+
+class linear_continuum_topology = linorder_topology + conditional_complete_linorder + inner_dense_linorder
+begin
+
+lemma Inf_notin_open:
+  assumes A: "open A" and bnd: "\<forall>a\<in>A. x < a"
+  shows "Inf A \<notin> A"
+proof
+  assume "Inf A \<in> A"
+  then obtain b where "b < Inf A" "{b <.. Inf A} \<subseteq> A"
+    using open_left[of A "Inf A" x] assms by auto
+  with dense[of b "Inf A"] obtain c where "c < Inf A" "c \<in> A"
+    by (auto simp: subset_eq)
+  then show False
+    using cInf_lower[OF `c \<in> A`, of x] bnd by (metis less_imp_le not_le)
+qed
+
+lemma Sup_notin_open:
+  assumes A: "open A" and bnd: "\<forall>a\<in>A. a < x"
+  shows "Sup A \<notin> A"
+proof
+  assume "Sup A \<in> A"
+  then obtain b where "Sup A < b" "{Sup A ..< b} \<subseteq> A"
+    using open_right[of A "Sup A" x] assms by auto
+  with dense[of "Sup A" b] obtain c where "Sup A < c" "c \<in> A"
+    by (auto simp: subset_eq)
+  then show False
+    using cSup_upper[OF `c \<in> A`, of x] bnd by (metis less_imp_le not_le)
+qed
+
+end
+
+instance real :: linear_continuum_topology ..
+
+lemma connectedI_interval:
+  fixes U :: "'a :: linear_continuum_topology set"
+  assumes *: "\<And>x y z. x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x \<le> z \<Longrightarrow> z \<le> y \<Longrightarrow> z \<in> U"
+  shows "connected U"
+proof (rule connectedI)
+  { fix A B assume "open A" "open B" "A \<inter> B \<inter> U = {}" "U \<subseteq> A \<union> B"
+    fix x y assume "x < y" "x \<in> A" "y \<in> B" "x \<in> U" "y \<in> U"
+
+    let ?z = "Inf (B \<inter> {x <..})"
+
+    have "x \<le> ?z" "?z \<le> y"
+      using `y \<in> B` `x < y` by (auto intro: cInf_lower[where z=x] cInf_greatest)
+    with `x \<in> U` `y \<in> U` have "?z \<in> U"
+      by (rule *)
+    moreover have "?z \<notin> B \<inter> {x <..}"
+      using `open B` by (intro Inf_notin_open) auto
+    ultimately have "?z \<in> A"
+      using `x \<le> ?z` `A \<inter> B \<inter> U = {}` `x \<in> A` `U \<subseteq> A \<union> B` by auto
+
+    { assume "?z < y"
+      obtain a where "?z < a" "{?z ..< a} \<subseteq> A"
+        using open_right[OF `open A` `?z \<in> A` `?z < y`] by auto
+      moreover obtain b where "b \<in> B" "x < b" "b < min a y"
+        using cInf_less_iff[of "B \<inter> {x <..}" x "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
+        by (auto intro: less_imp_le)
+      moreover then have "?z \<le> b"
+        by (intro cInf_lower[where z=x]) auto
+      moreover have "b \<in> U"
+        using `x \<le> ?z` `?z \<le> b` `b < min a y`
+        by (intro *[OF `x \<in> U` `y \<in> U`]) (auto simp: less_imp_le)
+      ultimately have "\<exists>b\<in>B. b \<in> A \<and> b \<in> U"
+        by (intro bexI[of _ b]) auto }
+    then have False
+      using `?z \<le> y` `?z \<in> A` `y \<in> B` `y \<in> U` `A \<inter> B \<inter> U = {}` unfolding le_less by blast }
+  note not_disjoint = this
+
+  fix A B assume AB: "open A" "open B" "U \<subseteq> A \<union> B" "A \<inter> B \<inter> U = {}"
+  moreover assume "A \<inter> U \<noteq> {}" then obtain x where x: "x \<in> U" "x \<in> A" by auto
+  moreover assume "B \<inter> U \<noteq> {}" then obtain y where y: "y \<in> U" "y \<in> B" by auto
+  moreover note not_disjoint[of B A y x] not_disjoint[of A B x y]
+  ultimately show False by (cases x y rule: linorder_cases) auto
+qed
+
+lemma connected_iff_interval:
+  fixes U :: "'a :: linear_continuum_topology set"
+  shows "connected U \<longleftrightarrow> (\<forall>x\<in>U. \<forall>y\<in>U. \<forall>z. x \<le> z \<longrightarrow> z \<le> y \<longrightarrow> z \<in> U)"
+  by (auto intro: connectedI_interval dest: connectedD_interval)
+
+lemma connected_UNIV[simp]: "connected (UNIV::'a::linear_continuum_topology set)"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ioi[simp]: "connected {a::'a::linear_continuum_topology <..}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ici[simp]: "connected {a::'a::linear_continuum_topology ..}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Iio[simp]: "connected {..< a::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Iic[simp]: "connected {.. a::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ioo[simp]: "connected {a <..< b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ioc[simp]: "connected {a <.. b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ico[simp]: "connected {a ..< b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Icc[simp]: "connected {a .. b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_contains_Ioo: 
+  fixes A :: "'a :: linorder_topology set"
+  assumes A: "connected A" "a \<in> A" "b \<in> A" shows "{a <..< b} \<subseteq> A"
+  using connectedD_interval[OF A] by (simp add: subset_eq Ball_def less_imp_le)
+
+subsection {* Intermediate Value Theorem *}
+
+lemma IVT':
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes y: "f a \<le> y" "y \<le> f b" "a \<le> b"
+  assumes *: "continuous_on {a .. b} f"
+  shows "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+proof -
+  have "connected {a..b}"
+    unfolding connected_iff_interval by auto
+  from connected_continuous_image[OF * this, THEN connectedD_interval, of "f a" "f b" y] y
+  show ?thesis
+    by (auto simp add: atLeastAtMost_def atLeast_def atMost_def)
+qed
+
+lemma IVT2':
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes y: "f b \<le> y" "y \<le> f a" "a \<le> b"
+  assumes *: "continuous_on {a .. b} f"
+  shows "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+proof -
+  have "connected {a..b}"
+    unfolding connected_iff_interval by auto
+  from connected_continuous_image[OF * this, THEN connectedD_interval, of "f b" "f a" y] y
+  show ?thesis
+    by (auto simp add: atLeastAtMost_def atLeast_def atMost_def)
+qed
+
+lemma IVT:
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  shows "f a \<le> y \<Longrightarrow> y \<le> f b \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+  by (rule IVT') (auto intro: continuous_at_imp_continuous_on)
+
+lemma IVT2:
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  shows "f b \<le> y \<Longrightarrow> y \<le> f a \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+  by (rule IVT2') (auto intro: continuous_at_imp_continuous_on)
+
+lemma continuous_inj_imp_mono:
+  fixes f :: "'a::linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes x: "a < x" "x < b"
+  assumes cont: "continuous_on {a..b} f"
+  assumes inj: "inj_on f {a..b}"
+  shows "(f a < f x \<and> f x < f b) \<or> (f b < f x \<and> f x < f a)"
+proof -
+  note I = inj_on_iff[OF inj]
+  { assume "f x < f a" "f x < f b"
+    then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f x < f s"
+      using IVT'[of f x "min (f a) (f b)" b] IVT2'[of f x "min (f a) (f b)" a] x
+      by (auto simp: continuous_on_subset[OF cont] less_imp_le)
+    with x I have False by auto }
+  moreover
+  { assume "f a < f x" "f b < f x"
+    then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f s < f x"
+      using IVT'[of f a "max (f a) (f b)" x] IVT2'[of f b "max (f a) (f b)" x] x
+      by (auto simp: continuous_on_subset[OF cont] less_imp_le)
+    with x I have False by auto }
+  ultimately show ?thesis
+    using I[of a x] I[of x b] x less_trans[OF x] by (auto simp add: le_less less_imp_neq neq_iff)
 qed
 
 end

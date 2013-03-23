@@ -34,6 +34,24 @@ lemma countable_PiE:
   "finite I \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> countable (F i)) \<Longrightarrow> countable (PiE I F)"
   by (induct I arbitrary: F rule: finite_induct) (auto simp: PiE_insert_eq)
 
+lemma Lim_within_open:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
+  shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
+  by (fact tendsto_within_open)
+
+lemma Lim_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
+  by (fact tendsto_within_subset)
+
+lemma continuous_on_union:
+  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
+  by (fact continuous_on_closed_Un)
+
+lemma continuous_on_cases:
+  "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t g \<Longrightarrow>
+    \<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x \<Longrightarrow>
+    continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
+  by (rule continuous_on_If) auto
+
 subsection {* Topological Basis *}
 
 context topological_space
@@ -181,44 +199,15 @@ lemma countable_dense_setE:
 
 end
 
-class first_countable_topology = topological_space +
-  assumes first_countable_basis:
-    "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-
-lemma (in first_countable_topology) countable_basis_at_decseq:
-  obtains A :: "nat \<Rightarrow> 'a set" where
-    "\<And>i. open (A i)" "\<And>i. x \<in> (A i)"
-    "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially"
-proof atomize_elim
-  from first_countable_basis[of x] obtain A
-    where "countable A"
-    and nhds: "\<And>a. a \<in> A \<Longrightarrow> open a" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a"
-    and incl: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"  by auto
-  then have "A \<noteq> {}" by auto
-  with `countable A` have r: "A = range (from_nat_into A)" by auto
-  def F \<equiv> "\<lambda>n. \<Inter>i\<le>n. from_nat_into A i"
-  show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and>
-      (\<forall>S. open S \<longrightarrow> x \<in> S \<longrightarrow> eventually (\<lambda>i. A i \<subseteq> S) sequentially)"
-  proof (safe intro!: exI[of _ F])
-    fix i
-    show "open (F i)" using nhds(1) r by (auto simp: F_def intro!: open_INT)
-    show "x \<in> F i" using nhds(2) r by (auto simp: F_def)
-  next
-    fix S assume "open S" "x \<in> S"
-    from incl[OF this] obtain i where "F i \<subseteq> S"
-      by (subst (asm) r) (auto simp: F_def)
-    moreover have "\<And>j. i \<le> j \<Longrightarrow> F j \<subseteq> F i"
-      by (auto simp: F_def)
-    ultimately show "eventually (\<lambda>i. F i \<subseteq> S) sequentially"
-      by (auto simp: eventually_sequentially)
-  qed
-qed
-
 lemma (in first_countable_topology) first_countable_basisE:
   obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
     "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> (\<exists>a\<in>A. a \<subseteq> S)"
   using first_countable_basis[of x]
-  by atomize_elim auto
+  apply atomize_elim
+  apply (elim exE)
+  apply (rule_tac x="range A" in exI)
+  apply auto
+  done
 
 lemma (in first_countable_topology) first_countable_basis_Int_stableE:
   obtains A where "countable A" "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
@@ -245,77 +234,25 @@ proof atomize_elim
   qed
 qed
 
-
-lemma countable_basis:
-  obtains A :: "nat \<Rightarrow> 'a::first_countable_topology set" where
-    "\<And>i. open (A i)" "\<And>i. x \<in> A i"
-    "\<And>F. (\<forall>n. F n \<in> A n) \<Longrightarrow> F ----> x"
-proof atomize_elim
-  from countable_basis_at_decseq[of x] guess A . note A = this
-  { fix F S assume "\<forall>n. F n \<in> A n" "open S" "x \<in> S"
-    with A(3)[of S] have "eventually (\<lambda>n. F n \<in> S) sequentially"
-      by (auto elim: eventually_elim1 simp: subset_eq) }
-  with A show "\<exists>A. (\<forall>i. open (A i)) \<and> (\<forall>i. x \<in> A i) \<and> (\<forall>F. (\<forall>n. F n \<in> A n) \<longrightarrow> F ----> x)"
-    by (intro exI[of _ A]) (auto simp: tendsto_def)
+lemma (in topological_space) first_countableI:
+  assumes "countable A" and 1: "\<And>a. a \<in> A \<Longrightarrow> x \<in> a" "\<And>a. a \<in> A \<Longrightarrow> open a"
+   and 2: "\<And>S. open S \<Longrightarrow> x \<in> S \<Longrightarrow> \<exists>a\<in>A. a \<subseteq> S"
+  shows "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+proof (safe intro!: exI[of _ "from_nat_into A"])
+  have "A \<noteq> {}" using 2[of UNIV] by auto
+  { fix i show "x \<in> from_nat_into A i" "open (from_nat_into A i)"
+      using range_from_nat_into_subset[OF `A \<noteq> {}`] 1 by auto }
+  { fix S assume "open S" "x\<in>S" from 2[OF this] show "\<exists>i. from_nat_into A i \<subseteq> S"
+      using subset_range_from_nat_into[OF `countable A`] by auto }
 qed
-
-lemma sequentially_imp_eventually_nhds_within:
-  fixes a :: "'a::first_countable_topology"
-  assumes "\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
-  shows "eventually P (nhds a within s)"
-proof (rule ccontr)
-  from countable_basis[of a] guess A . note A = this
-  assume "\<not> eventually P (nhds a within s)"
-  with A have P: "\<exists>F. \<forall>n. F n \<in> s \<and> F n \<in> A n \<and> \<not> P (F n)"
-    unfolding Limits.eventually_within eventually_nhds by (intro choice) fastforce
-  then guess F ..
-  hence F0: "\<forall>n. F n \<in> s" and F2: "\<forall>n. F n \<in> A n" and F3: "\<forall>n. \<not> P (F n)"
-    by fast+
-  with A have "F ----> a" by auto
-  hence "eventually (\<lambda>n. P (F n)) sequentially"
-    using assms F0 by simp
-  thus "False" by (simp add: F3)
-qed
-
-lemma eventually_nhds_within_iff_sequentially:
-  fixes a :: "'a::first_countable_topology"
-  shows "eventually P (nhds a within s) \<longleftrightarrow> 
-    (\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
-proof (safe intro!: sequentially_imp_eventually_nhds_within)
-  assume "eventually P (nhds a within s)" 
-  then obtain S where "open S" "a \<in> S" "\<forall>x\<in>S. x \<in> s \<longrightarrow> P x"
-    by (auto simp: Limits.eventually_within eventually_nhds)
-  moreover fix f assume "\<forall>n. f n \<in> s" "f ----> a"
-  ultimately show "eventually (\<lambda>n. P (f n)) sequentially"
-    by (auto dest!: topological_tendstoD elim: eventually_elim1)
-qed
-
-lemma eventually_nhds_iff_sequentially:
-  fixes a :: "'a::first_countable_topology"
-  shows "eventually P (nhds a) \<longleftrightarrow> (\<forall>f. f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
-  using eventually_nhds_within_iff_sequentially[of P a UNIV] by simp
-
-lemma not_eventually_sequentiallyD:
-  assumes P: "\<not> eventually P sequentially"
-  shows "\<exists>r. subseq r \<and> (\<forall>n. \<not> P (r n))"
-proof -
-  from P have "\<forall>n. \<exists>m\<ge>n. \<not> P m"
-    unfolding eventually_sequentially by (simp add: not_less)
-  then obtain r where "\<And>n. r n \<ge> n" "\<And>n. \<not> P (r n)"
-    by (auto simp: choice_iff)
-  then show ?thesis
-    by (auto intro!: exI[of _ "\<lambda>n. r (((Suc \<circ> r) ^^ Suc n) 0)"]
-             simp: less_eq_Suc_le subseq_Suc_iff)
-qed
-
 
 instance prod :: (first_countable_topology, first_countable_topology) first_countable_topology
 proof
   fix x :: "'a \<times> 'b"
   from first_countable_basisE[of "fst x"] guess A :: "'a set set" . note A = this
   from first_countable_basisE[of "snd x"] guess B :: "'b set set" . note B = this
-  show "\<exists>A::('a\<times>'b) set set. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-  proof (intro exI[of _ "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
+  show "\<exists>A::nat \<Rightarrow> ('a \<times> 'b) set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+  proof (rule first_countableI[of "(\<lambda>(a, b). a \<times> b) ` (A \<times> B)"], safe)
     fix a b assume x: "a \<in> A" "b \<in> B"
     with A(2, 3)[of a] B(2, 3)[of b] show "x \<in> a \<times> b" "open (a \<times> b)"
       unfolding mem_Times_iff by (auto intro: open_Times)
@@ -327,23 +264,6 @@ proof
     ultimately show "\<exists>a\<in>(\<lambda>(a, b). a \<times> b) ` (A \<times> B). a \<subseteq> S"
       by (auto intro!: bexI[of _ "a \<times> b"] bexI[of _ a] bexI[of _ b])
   qed (simp add: A B)
-qed
-
-instance metric_space \<subseteq> first_countable_topology
-proof
-  fix x :: 'a
-  show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-  proof (intro exI, safe)
-    fix S assume "open S" "x \<in> S"
-    then obtain r where "0 < r" "{y. dist x y < r} \<subseteq> S"
-      by (auto simp: open_dist dist_commute subset_eq)
-    moreover from reals_Archimedean[OF `0 < r`] guess n ..
-    moreover
-    then have "{y. dist x y < inverse (Suc n)} \<subseteq> {y. dist x y < r}"
-      by (auto simp: inverse_eq_divide)
-    ultimately show "\<exists>a\<in>range (\<lambda>n. {y. dist x y < inverse (Suc n)}). a \<subseteq> S"
-      by auto
-  qed (auto intro: open_ball)
 qed
 
 class second_countable_topology = topological_space +
@@ -417,9 +337,9 @@ proof
   then have B: "countable B" "topological_basis B"
     using countable_basis is_basis
     by (auto simp: countable_basis is_basis)
-  then show "\<exists>A. countable A \<and> (\<forall>a\<in>A. x \<in> a \<and> open a) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>a\<in>A. a \<subseteq> S))"
-    by (intro exI[of _ "{b\<in>B. x \<in> b}"])
-       (fastforce simp: topological_space_class.topological_basis_def)
+  then show "\<exists>A::nat \<Rightarrow> 'a set. (\<forall>i. x \<in> A i \<and> open (A i)) \<and> (\<forall>S. open S \<and> x \<in> S \<longrightarrow> (\<exists>i. A i \<subseteq> S))"
+    by (intro first_countableI[of "{b\<in>B. x \<in> b}"])
+       (fastforce simp: topological_space_class.topological_basis_def)+
 qed
 
 subsection {* Polish spaces *}
@@ -866,10 +786,6 @@ proof safe
 qed (auto simp: I_def)
 
 subsection{* Connectedness *}
-
-definition "connected S \<longleftrightarrow>
-  ~(\<exists>e1 e2. open e1 \<and> open e2 \<and> S \<subseteq> (e1 \<union> e2) \<and> (e1 \<inter> e2 \<inter> S = {})
-  \<and> ~(e1 \<inter> S = {}) \<and> ~(e2 \<inter> S = {}))"
 
 lemma connected_local:
  "connected S \<longleftrightarrow> ~(\<exists>e1 e2.
@@ -1340,11 +1256,11 @@ lemma not_trivial_limit_within: "~trivial_limit (at x within S) = (x:closure(S-{
 
 text {* Some property holds "sufficiently close" to the limit point. *}
 
-lemma eventually_at: (* FIXME: this replaces Limits.eventually_at *)
+lemma eventually_at: (* FIXME: this replaces Metric_Spaces.eventually_at *)
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding eventually_at dist_nz by auto
 
-lemma eventually_within: (* FIXME: this replaces Limits.eventually_within *)
+lemma eventually_within: (* FIXME: this replaces Topological_Spaces.eventually_within *)
   "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
   by (rule eventually_within_less)
@@ -1370,18 +1286,6 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 
 
 subsection {* Limits *}
-
-text{* Notation Lim to avoid collition with lim defined in analysis *}
-
-definition Lim :: "'a filter \<Rightarrow> ('a \<Rightarrow> 'b::t2_space) \<Rightarrow> 'b"
-  where "Lim A f = (THE l. (f ---> l) A)"
-
-text{* Uniqueness of the limit, when nontrivial. *}
-
-lemma tendsto_Lim:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space"
-  shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
-  unfolding Lim_def using tendsto_unique[of net f] by auto
 
 lemma Lim:
  "(f ---> l) net \<longleftrightarrow>
@@ -1415,10 +1319,6 @@ text{* The expected monotonicity property. *}
 lemma Lim_within_empty: "(f ---> l) (net within {})"
   unfolding tendsto_def Limits.eventually_within by simp
 
-lemma Lim_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
-  unfolding tendsto_def Limits.eventually_within
-  by (auto elim!: eventually_elim1)
-
 lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
   shows "(f ---> l) (net within (S \<union> T))"
   using assms unfolding tendsto_def Limits.eventually_within
@@ -1448,12 +1348,12 @@ proof-
   from assms obtain T where T: "open T" "x \<in> T" "T \<subseteq> S" ..
   { assume "?lhs"
     then obtain A where "open A" "x \<in> A" "\<forall>y\<in>A. y \<noteq> x \<longrightarrow> y \<in> S \<longrightarrow> P y"
-      unfolding Limits.eventually_within Limits.eventually_at_topological
+      unfolding Limits.eventually_within eventually_at_topological
       by auto
     with T have "open (A \<inter> T)" "x \<in> A \<inter> T" "\<forall>y\<in>(A \<inter> T). y \<noteq> x \<longrightarrow> P y"
       by auto
     then have "?rhs"
-      unfolding Limits.eventually_at_topological by auto
+      unfolding eventually_at_topological by auto
   } moreover
   { assume "?rhs" hence "?lhs"
       unfolding Limits.eventually_within
@@ -1465,16 +1365,6 @@ qed
 lemma at_within_interior:
   "x \<in> interior S \<Longrightarrow> at x within S = at x"
   by (simp add: filter_eq_iff eventually_within_interior)
-
-lemma at_within_open:
-  "\<lbrakk>x \<in> S; open S\<rbrakk> \<Longrightarrow> at x within S = at x"
-  by (simp only: at_within_interior interior_open)
-
-lemma Lim_within_open:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
-  assumes"a \<in> S" "open S"
-  shows "(f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
-  using assms by (simp only: at_within_open)
 
 lemma Lim_within_LIMSEQ:
   fixes a :: "'a::metric_space"
@@ -1499,7 +1389,7 @@ next
     show "(\<lambda>n. f (S n)) ----> Inf (f ` ({x<..} \<inter> I))"
     proof (rule LIMSEQ_I, rule ccontr)
       fix r :: real assume "0 < r"
-      with Inf_close[of "f ` ({x<..} \<inter> I)" r]
+      with cInf_close[of "f ` ({x<..} \<inter> I)" r]
       obtain y where y: "x < y" "y \<in> I" "f y < Inf (f ` ({x <..} \<inter> I)) + r" by auto
       from `x < y` have "0 < y - x" by auto
       from S(2)[THEN LIMSEQ_D, OF this]
@@ -1507,7 +1397,7 @@ next
       
       assume "\<not> (\<exists>N. \<forall>n\<ge>N. norm (f (S n) - Inf (f ` ({x<..} \<inter> I))) < r)"
       moreover have "\<And>n. Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
-        using S bnd by (intro Inf_lower[where z=K]) auto
+        using S bnd by (intro cInf_lower[where z=K]) auto
       ultimately obtain n where n: "N \<le> n" "r + Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
         by (auto simp: not_less field_simps)
       with N[OF n(1)] mono[OF _ `y \<in> I`, of "S n"] S(1)[THEN spec, of n] y
@@ -1825,11 +1715,11 @@ lemma closure_contains_Inf:
   unfolding closure_approachable
 proof safe
   have *: "\<forall>x\<in>S. Inf S \<le> x"
-    using Inf_lower_EX[of _ S] assms by metis
+    using cInf_lower_EX[of _ S] assms by metis
 
   fix e :: real assume "0 < e"
   then obtain x where x: "x \<in> S" "x < Inf S + e"
-    using Inf_close `S \<noteq> {}` by auto
+    using cInf_close `S \<noteq> {}` by auto
   moreover then have "x > Inf S - e" using * by auto
   ultimately have "abs (x - Inf S) < e" by (simp add: abs_diff_less_iff)
   then show "\<exists>x\<in>S. dist x (Inf S) < e"
@@ -1883,13 +1773,13 @@ lemma infdist_notempty: "A \<noteq> {} \<Longrightarrow> infdist x A = Inf {dist
 
 lemma infdist_nonneg:
   shows "0 \<le> infdist x A"
-  using assms by (auto simp add: infdist_def)
+  using assms by (auto simp add: infdist_def intro: cInf_greatest)
 
 lemma infdist_le:
   assumes "a \<in> A"
   assumes "d = dist x a"
   shows "infdist x A \<le> d"
-  using assms by (auto intro!: SupInf.Inf_lower[where z=0] simp add: infdist_def)
+  using assms by (auto intro!: cInf_lower[where z=0] simp add: infdist_def)
 
 lemma infdist_zero[simp]:
   assumes "a \<in> A" shows "infdist a A = 0"
@@ -1905,13 +1795,13 @@ proof cases
 next
   assume "A \<noteq> {}" then obtain a where "a \<in> A" by auto
   have "infdist x A \<le> Inf {dist x y + dist y a |a. a \<in> A}"
-  proof
+  proof (rule cInf_greatest)
     from `A \<noteq> {}` show "{dist x y + dist y a |a. a \<in> A} \<noteq> {}" by simp
     fix d assume "d \<in> {dist x y + dist y a |a. a \<in> A}"
     then obtain a where d: "d = dist x y + dist y a" "a \<in> A" by auto
     show "infdist x A \<le> d"
       unfolding infdist_notempty[OF `A \<noteq> {}`]
-    proof (rule Inf_lower2)
+    proof (rule cInf_lower2)
       show "dist x a \<in> {dist x a |a. a \<in> A}" using `a \<in> A` by auto
       show "dist x a \<le> d" unfolding d by (rule dist_triangle)
       fix d assume "d \<in> {dist x a |a. a \<in> A}"
@@ -1920,20 +1810,19 @@ next
     qed
   qed
   also have "\<dots> = dist x y + infdist y A"
-  proof (rule Inf_eq, safe)
+  proof (rule cInf_eq, safe)
     fix a assume "a \<in> A"
     thus "dist x y + infdist y A \<le> dist x y + dist y a" by (auto intro: infdist_le)
   next
     fix i assume inf: "\<And>d. d \<in> {dist x y + dist y a |a. a \<in> A} \<Longrightarrow> i \<le> d"
     hence "i - dist x y \<le> infdist y A" unfolding infdist_notempty[OF `A \<noteq> {}`] using `a \<in> A`
-      by (intro Inf_greatest) (auto simp: field_simps)
+      by (intro cInf_greatest) (auto simp: field_simps)
     thus "i \<le> dist x y + infdist y A" by simp
   qed
   finally show ?thesis by simp
 qed
 
-lemma
-  in_closure_iff_infdist_zero:
+lemma in_closure_iff_infdist_zero:
   assumes "A \<noteq> {}"
   shows "x \<in> closure A \<longleftrightarrow> infdist x A = 0"
 proof
@@ -1957,13 +1846,12 @@ next
     assume "\<not> (\<exists>y\<in>A. dist y x < e)"
     hence "infdist x A \<ge> e" using `a \<in> A`
       unfolding infdist_def
-      by (force simp: dist_commute)
+      by (force simp: dist_commute intro: cInf_greatest)
     with x `0 < e` show False by auto
   qed
 qed
 
-lemma
-  in_closed_iff_infdist_zero:
+lemma in_closed_iff_infdist_zero:
   assumes "closed A" "A \<noteq> {}"
   shows "x \<in> A \<longleftrightarrow> infdist x A = 0"
 proof -
@@ -2353,7 +2241,7 @@ lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<i
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x <= y \<longrightarrow> x <= 1 + abs y)")
   by metis arith
 
-lemma Bseq_eq_bounded: "Bseq f \<longleftrightarrow> bounded (range f)"
+lemma Bseq_eq_bounded: "Bseq f \<longleftrightarrow> bounded (range f::_::real_normed_vector set)"
   unfolding Bseq_def bounded_pos by auto
 
 lemma bounded_Int[intro]: "bounded S \<or> bounded T \<Longrightarrow> bounded (S \<inter> T)"
@@ -2424,16 +2312,19 @@ lemma bounded_has_Sup:
 proof
   fix x assume "x\<in>S"
   thus "x \<le> Sup S"
-    by (metis SupInf.Sup_upper abs_le_D1 assms(1) bounded_real)
+    by (metis cSup_upper abs_le_D1 assms(1) bounded_real)
 next
   show "\<forall>b. (\<forall>x\<in>S. x \<le> b) \<longrightarrow> Sup S \<le> b" using assms
-    by (metis SupInf.Sup_least)
+    by (metis cSup_least)
 qed
 
 lemma Sup_insert:
   fixes S :: "real set"
   shows "bounded S ==> Sup(insert x S) = (if S = {} then x else max x (Sup S))" 
-by auto (metis Int_absorb Sup_insert_nonempty assms bounded_has_Sup(1) disjoint_iff_not_equal) 
+  apply (subst cSup_insert_If)
+  apply (rule bounded_has_Sup(1)[of S, rule_format])
+  apply (auto simp: sup_max)
+  done
 
 lemma Sup_insert_finite:
   fixes S :: "real set"
@@ -2450,16 +2341,19 @@ proof
   fix x assume "x\<in>S"
   from assms(1) obtain a where a:"\<forall>x\<in>S. \<bar>x\<bar> \<le> a" unfolding bounded_real by auto
   thus "x \<ge> Inf S" using `x\<in>S`
-    by (metis Inf_lower_EX abs_le_D2 minus_le_iff)
+    by (metis cInf_lower_EX abs_le_D2 minus_le_iff)
 next
   show "\<forall>b. (\<forall>x\<in>S. x >= b) \<longrightarrow> Inf S \<ge> b" using assms
-    by (metis SupInf.Inf_greatest)
+    by (metis cInf_greatest)
 qed
 
 lemma Inf_insert:
   fixes S :: "real set"
   shows "bounded S ==> Inf(insert x S) = (if S = {} then x else min x (Inf S))" 
-by auto (metis Int_absorb Inf_insert_nonempty bounded_has_Inf(1) disjoint_iff_not_equal)
+  apply (subst cInf_insert_if)
+  apply (rule bounded_has_Inf(1)[of S, rule_format])
+  apply (auto simp: inf_min)
+  done
 
 lemma Inf_insert_finite:
   fixes S :: "real set"
@@ -2467,28 +2361,6 @@ lemma Inf_insert_finite:
   by (rule Inf_insert, rule finite_imp_bounded, simp)
 
 subsection {* Compactness *}
-
-subsubsection{* Open-cover compactness *}
-
-definition compact :: "'a::topological_space set \<Rightarrow> bool" where
-  compact_eq_heine_borel: -- "This name is used for backwards compatibility"
-    "compact S \<longleftrightarrow> (\<forall>C. (\<forall>c\<in>C. open c) \<and> S \<subseteq> \<Union>C \<longrightarrow> (\<exists>D\<subseteq>C. finite D \<and> S \<subseteq> \<Union>D))"
-
-lemma compactI:
-  assumes "\<And>C. \<forall>t\<in>C. open t \<Longrightarrow> s \<subseteq> \<Union> C \<Longrightarrow> \<exists>C'. C' \<subseteq> C \<and> finite C' \<and> s \<subseteq> \<Union> C'"
-  shows "compact s"
-  unfolding compact_eq_heine_borel using assms by metis
-
-lemma compactE:
-  assumes "compact s" and "\<forall>t\<in>C. open t" and "s \<subseteq> \<Union>C"
-  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> \<Union>C'"
-  using assms unfolding compact_eq_heine_borel by metis
-
-lemma compactE_image:
-  assumes "compact s" and "\<forall>t\<in>C. open (f t)" and "s \<subseteq> (\<Union>c\<in>C. f c)"
-  obtains C' where "C' \<subseteq> C" and "finite C'" and "s \<subseteq> (\<Union>c\<in>C'. f c)"
-  using assms unfolding ball_simps[symmetric] SUP_def
-  by (metis (lifting) finite_subset_image compact_eq_heine_borel[of s])
 
 subsubsection {* Bolzano-Weierstrass property *}
 
@@ -2684,35 +2556,6 @@ proof-
   thus ?thesis unfolding closed_sequential_limits by fast
 qed
 
-lemma compact_imp_closed:
-  fixes s :: "'a::t2_space set"
-  assumes "compact s" shows "closed s"
-unfolding closed_def
-proof (rule openI)
-  fix y assume "y \<in> - s"
-  let ?C = "\<Union>x\<in>s. {u. open u \<and> x \<in> u \<and> eventually (\<lambda>y. y \<notin> u) (nhds y)}"
-  note `compact s`
-  moreover have "\<forall>u\<in>?C. open u" by simp
-  moreover have "s \<subseteq> \<Union>?C"
-  proof
-    fix x assume "x \<in> s"
-    with `y \<in> - s` have "x \<noteq> y" by clarsimp
-    hence "\<exists>u v. open u \<and> open v \<and> x \<in> u \<and> y \<in> v \<and> u \<inter> v = {}"
-      by (rule hausdorff)
-    with `x \<in> s` show "x \<in> \<Union>?C"
-      unfolding eventually_nhds by auto
-  qed
-  ultimately obtain D where "D \<subseteq> ?C" and "finite D" and "s \<subseteq> \<Union>D"
-    by (rule compactE)
-  from `D \<subseteq> ?C` have "\<forall>x\<in>D. eventually (\<lambda>y. y \<notin> x) (nhds y)" by auto
-  with `finite D` have "eventually (\<lambda>y. y \<notin> \<Union>D) (nhds y)"
-    by (simp add: eventually_Ball_finite)
-  with `s \<subseteq> \<Union>D` have "eventually (\<lambda>y. y \<notin> s) (nhds y)"
-    by (auto elim!: eventually_mono [rotated])
-  thus "\<exists>t. open t \<and> y \<in> t \<and> t \<subseteq> - s"
-    by (simp add: eventually_nhds subset_eq)
-qed
-
 lemma compact_imp_bounded:
   assumes "compact U" shows "bounded U"
 proof -
@@ -2726,11 +2569,6 @@ proof -
 qed
 
 text{* In particular, some common special cases. *}
-
-lemma compact_empty[simp]:
- "compact {}"
-  unfolding compact_eq_heine_borel
-  by auto
 
 lemma compact_union [intro]:
   assumes "compact s" "compact t" shows " compact (s \<union> t)"
@@ -2750,20 +2588,6 @@ lemma compact_Union [intro]: "finite S \<Longrightarrow> (\<And>T. T \<in> S \<L
 lemma compact_UN [intro]:
   "finite A \<Longrightarrow> (\<And>x. x \<in> A \<Longrightarrow> compact (B x)) \<Longrightarrow> compact (\<Union>x\<in>A. B x)"
   unfolding SUP_def by (rule compact_Union) auto
-
-lemma compact_inter_closed [intro]:
-  assumes "compact s" and "closed t"
-  shows "compact (s \<inter> t)"
-proof (rule compactI)
-  fix C assume C: "\<forall>c\<in>C. open c" and cover: "s \<inter> t \<subseteq> \<Union>C"
-  from C `closed t` have "\<forall>c\<in>C \<union> {-t}. open c" by auto
-  moreover from cover have "s \<subseteq> \<Union>(C \<union> {-t})" by auto
-  ultimately have "\<exists>D\<subseteq>C \<union> {-t}. finite D \<and> s \<subseteq> \<Union>D"
-    using `compact s` unfolding compact_eq_heine_borel by auto
-  then guess D ..
-  then show "\<exists>D\<subseteq>C. finite D \<and> s \<inter> t \<subseteq> \<Union>D"
-    by (intro exI[of _ "D - {-t}"]) auto
-qed
 
 lemma closed_inter_compact [intro]:
   assumes "closed s" and "compact t"
@@ -3223,7 +3047,7 @@ subsubsection{* Total boundedness *}
 
 lemma cauchy_def:
   "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
-unfolding Cauchy_def by blast
+unfolding Cauchy_def by metis
 
 fun helper_1::"('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
@@ -3863,35 +3687,6 @@ qed
 
 subsection {* Continuity *}
 
-text {* Define continuity over a net to take in restrictions of the set. *}
-
-definition
-  continuous :: "'a::t2_space filter \<Rightarrow> ('a \<Rightarrow> 'b::topological_space) \<Rightarrow> bool"
-  where "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
-
-lemma continuous_trivial_limit:
- "trivial_limit net ==> continuous net f"
-  unfolding continuous_def tendsto_def trivial_limit_eq by auto
-
-lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f(x)) (at x within s)"
-  unfolding continuous_def
-  unfolding tendsto_def
-  using netlimit_within[of x s]
-  by (cases "trivial_limit (at x within s)") (auto simp add: trivial_limit_eventually)
-
-lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (at x)"
-  using continuous_within [of x UNIV f] by simp
-
-lemma continuous_isCont: "isCont f x = continuous (at x) f"
-  unfolding isCont_def LIM_def
-  unfolding continuous_at Lim_at unfolding dist_nz by auto
-
-lemma continuous_at_within:
-  assumes "continuous (at x) f"  shows "continuous (at x within s) f"
-  using assms unfolding continuous_at continuous_within
-  by (rule Lim_at_within)
-
-
 text{* Derive the epsilon-delta forms, which we often use as "definitions" *}
 
 lemma continuous_within_eps_delta:
@@ -3937,20 +3732,6 @@ qed
 
 text{* Define setwise continuity in terms of limits within the set. *}
 
-definition
-  continuous_on ::
-    "'a set \<Rightarrow> ('a::topological_space \<Rightarrow> 'b::topological_space) \<Rightarrow> bool"
-where
-  "continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. (f ---> f x) (at x within s))"
-
-lemma continuous_on_topological:
-  "continuous_on s f \<longleftrightarrow>
-    (\<forall>x\<in>s. \<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow>
-      (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
-unfolding continuous_on_def tendsto_def
-unfolding Limits.eventually_within eventually_at_topological
-by (intro ball_cong [OF refl] all_cong imp_cong ex_cong conj_cong refl) auto
-
 lemma continuous_on_iff:
   "continuous_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>e>0. \<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e)"
@@ -3978,53 +3759,14 @@ lemma continuous_at_imp_continuous_within:
   unfolding continuous_within continuous_at using Lim_at_within by auto
 
 lemma Lim_trivial_limit: "trivial_limit net \<Longrightarrow> (f ---> l) net"
-unfolding tendsto_def by (simp add: trivial_limit_eq)
-
-lemma continuous_at_imp_continuous_on:
-  assumes "\<forall>x\<in>s. continuous (at x) f"
-  shows "continuous_on s f"
-unfolding continuous_on_def
-proof
-  fix x assume "x \<in> s"
-  with assms have *: "(f ---> f (netlimit (at x))) (at x)"
-    unfolding continuous_def by simp
-  have "(f ---> f x) (at x)"
-  proof (cases "trivial_limit (at x)")
-    case True thus ?thesis
-      by (rule Lim_trivial_limit)
-  next
-    case False
-    hence 1: "netlimit (at x) = x"
-      using netlimit_within [of x UNIV] by simp
-    with * show ?thesis by simp
-  qed
-  thus "(f ---> f x) (at x within s)"
-    by (rule Lim_at_within)
-qed
-
-lemma continuous_on_eq_continuous_within:
-  "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. continuous (at x within s) f)"
-unfolding continuous_on_def continuous_def
-apply (rule ball_cong [OF refl])
-apply (case_tac "trivial_limit (at x within s)")
-apply (simp add: Lim_trivial_limit)
-apply (simp add: netlimit_within)
-done
+  by simp
 
 lemmas continuous_on = continuous_on_def -- "legacy theorem name"
-
-lemma continuous_on_eq_continuous_at:
-  shows "open s ==> (continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. continuous (at x) f))"
-  by (auto simp add: continuous_on continuous_at Lim_within_open)
 
 lemma continuous_within_subset:
  "continuous (at x within s) f \<Longrightarrow> t \<subseteq> s
              ==> continuous (at x within t) f"
   unfolding continuous_within by(metis Lim_within_subset)
-
-lemma continuous_on_subset:
-  shows "continuous_on s f \<Longrightarrow> t \<subseteq> s ==> continuous_on t f"
-  unfolding continuous_on by (metis subset_eq Lim_within_subset)
 
 lemma continuous_on_interior:
   shows "continuous_on s f \<Longrightarrow> x \<in> interior s \<Longrightarrow> continuous (at x) f"
@@ -4150,168 +3892,31 @@ lemma continuous_transform_at:
 
 subsubsection {* Structural rules for pointwise continuity *}
 
-ML {*
+lemmas continuous_within_id = continuous_ident
 
-structure Continuous_Intros = Named_Thms
-(
-  val name = @{binding continuous_intros}
-  val description = "Structural introduction rules for pointwise continuity"
-)
-
-*}
-
-setup Continuous_Intros.setup
-
-lemma continuous_within_id[continuous_intros]: "continuous (at a within s) (\<lambda>x. x)"
-  unfolding continuous_within by (rule tendsto_ident_at_within)
-
-lemma continuous_at_id[continuous_intros]: "continuous (at a) (\<lambda>x. x)"
-  unfolding continuous_at by (rule tendsto_ident_at)
-
-lemma continuous_const[continuous_intros]: "continuous F (\<lambda>x. c)"
-  unfolding continuous_def by (rule tendsto_const)
-
-lemma continuous_fst[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. fst (f x))"
-  unfolding continuous_def by (rule tendsto_fst)
-
-lemma continuous_snd[continuous_intros]: "continuous F f \<Longrightarrow> continuous F (\<lambda>x. snd (f x))"
-  unfolding continuous_def by (rule tendsto_snd)
-
-lemma continuous_Pair[continuous_intros]: "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. (f x, g x))"
-  unfolding continuous_def by (rule tendsto_Pair)
-
-lemma continuous_dist[continuous_intros]:
-  assumes "continuous F f" and "continuous F g"
-  shows "continuous F (\<lambda>x. dist (f x) (g x))"
-  using assms unfolding continuous_def by (rule tendsto_dist)
+lemmas continuous_at_id = isCont_ident
 
 lemma continuous_infdist[continuous_intros]:
   assumes "continuous F f"
   shows "continuous F (\<lambda>x. infdist (f x) A)"
   using assms unfolding continuous_def by (rule tendsto_infdist)
 
-lemma continuous_norm[continuous_intros]:
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. norm (f x))"
-  unfolding continuous_def by (rule tendsto_norm)
-
 lemma continuous_infnorm[continuous_intros]:
   shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. infnorm (f x))"
   unfolding continuous_def by (rule tendsto_infnorm)
-
-lemma continuous_add[continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x + g x)"
-  unfolding continuous_def by (rule tendsto_add)
-
-lemma continuous_minus[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous F f \<Longrightarrow> continuous F (\<lambda>x. - f x)"
-  unfolding continuous_def by (rule tendsto_minus)
-
-lemma continuous_diff[continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x - g x)"
-  unfolding continuous_def by (rule tendsto_diff)
-
-lemma continuous_scaleR[continuous_intros]:
-  fixes g :: "'a::t2_space \<Rightarrow> 'b::real_normed_vector"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x *\<^sub>R g x)"
-  unfolding continuous_def by (rule tendsto_scaleR)
-
-lemma continuous_mult[continuous_intros]:
-  fixes f g :: "'a::t2_space \<Rightarrow> 'b::real_normed_algebra"
-  shows "\<lbrakk>continuous F f; continuous F g\<rbrakk> \<Longrightarrow> continuous F (\<lambda>x. f x * g x)"
-  unfolding continuous_def by (rule tendsto_mult)
 
 lemma continuous_inner[continuous_intros]:
   assumes "continuous F f" and "continuous F g"
   shows "continuous F (\<lambda>x. inner (f x) (g x))"
   using assms unfolding continuous_def by (rule tendsto_inner)
 
-lemma continuous_inverse[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous F f" and "f (netlimit F) \<noteq> 0"
-  shows "continuous F (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_def by (rule tendsto_inverse)
-
-lemma continuous_at_within_inverse[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous (at a within s) f" and "f a \<noteq> 0"
-  shows "continuous (at a within s) (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_within by (rule tendsto_inverse)
-
-lemma continuous_at_inverse[continuous_intros]:
-  fixes f :: "'a::t2_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous (at a) f" and "f a \<noteq> 0"
-  shows "continuous (at a) (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_at by (rule tendsto_inverse)
+lemmas continuous_at_inverse = isCont_inverse
 
 subsubsection {* Structural rules for setwise continuity *}
-
-ML {*
-
-structure Continuous_On_Intros = Named_Thms
-(
-  val name = @{binding continuous_on_intros}
-  val description = "Structural introduction rules for setwise continuity"
-)
-
-*}
-
-setup Continuous_On_Intros.setup
-
-lemma continuous_on_id[continuous_on_intros]: "continuous_on s (\<lambda>x. x)"
-  unfolding continuous_on_def by (fast intro: tendsto_ident_at_within)
-
-lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_norm[continuous_on_intros]:
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. norm (f x))"
-  unfolding continuous_on_def by (fast intro: tendsto_norm)
 
 lemma continuous_on_infnorm[continuous_on_intros]:
   shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. infnorm (f x))"
   unfolding continuous_on by (fast intro: tendsto_infnorm)
-
-lemma continuous_on_minus[continuous_on_intros]:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_add[continuous_on_intros]:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g
-           \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma continuous_on_diff[continuous_on_intros]:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  shows "continuous_on s f \<Longrightarrow> continuous_on s g
-           \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
-  unfolding continuous_on_def by (auto intro: tendsto_intros)
-
-lemma (in bounded_linear) continuous_on[continuous_on_intros]:
-  "continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. f (g x))"
-  unfolding continuous_on_def by (fast intro: tendsto)
-
-lemma (in bounded_bilinear) continuous_on[continuous_on_intros]:
-  "\<lbrakk>continuous_on s f; continuous_on s g\<rbrakk> \<Longrightarrow> continuous_on s (\<lambda>x. f x ** g x)"
-  unfolding continuous_on_def by (fast intro: tendsto)
-
-lemma continuous_on_scaleR[continuous_on_intros]:
-  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
-  assumes "continuous_on s f" and "continuous_on s g"
-  shows "continuous_on s (\<lambda>x. f x *\<^sub>R g x)"
-  using bounded_bilinear_scaleR assms
-  by (rule bounded_bilinear.continuous_on)
-
-lemma continuous_on_mult[continuous_on_intros]:
-  fixes g :: "'a::topological_space \<Rightarrow> 'b::real_normed_algebra"
-  assumes "continuous_on s f" and "continuous_on s g"
-  shows "continuous_on s (\<lambda>x. f x * g x)"
-  using bounded_bilinear_mult assms
-  by (rule bounded_bilinear.continuous_on)
 
 lemma continuous_on_inner[continuous_on_intros]:
   fixes g :: "'a::topological_space \<Rightarrow> 'b::real_inner"
@@ -4319,12 +3924,6 @@ lemma continuous_on_inner[continuous_on_intros]:
   shows "continuous_on s (\<lambda>x. inner (f x) (g x))"
   using bounded_bilinear_inner assms
   by (rule bounded_bilinear.continuous_on)
-
-lemma continuous_on_inverse[continuous_on_intros]:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_div_algebra"
-  assumes "continuous_on s f" and "\<forall>x\<in>s. f x \<noteq> 0"
-  shows "continuous_on s (\<lambda>x. inverse (f x))"
-  using assms unfolding continuous_on by (fast intro: tendsto_inverse)
 
 subsubsection {* Structural rules for uniform continuity *}
 
@@ -4406,33 +4005,7 @@ lemma uniformly_continuous_on_diff[continuous_on_intros]:
 
 text{* Continuity of all kinds is preserved under composition. *}
 
-lemma continuous_within_topological:
-  "continuous (at x within s) f \<longleftrightarrow>
-    (\<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow>
-      (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
-unfolding continuous_within
-unfolding tendsto_def Limits.eventually_within eventually_at_topological
-by (intro ball_cong [OF refl] all_cong imp_cong ex_cong conj_cong refl) auto
-
-lemma continuous_within_compose[continuous_intros]:
-  assumes "continuous (at x within s) f"
-  assumes "continuous (at (f x) within f ` s) g"
-  shows "continuous (at x within s) (g o f)"
-using assms unfolding continuous_within_topological by simp metis
-
-lemma continuous_at_compose[continuous_intros]:
-  assumes "continuous (at x) f" and "continuous (at (f x)) g"
-  shows "continuous (at x) (g o f)"
-proof-
-  have "continuous (at (f x) within range f) g" using assms(2)
-    using continuous_within_subset[of "f x" UNIV g "range f"] by simp
-  thus ?thesis using assms(1)
-    using continuous_within_compose[of x UNIV f g] by simp
-qed
-
-lemma continuous_on_compose[continuous_on_intros]:
-  "continuous_on s f \<Longrightarrow> continuous_on (f ` s) g \<Longrightarrow> continuous_on s (g o f)"
-  unfolding continuous_on_topological by simp metis
+lemmas continuous_at_compose = isCont_o
 
 lemma uniformly_continuous_on_compose[continuous_on_intros]:
   assumes "uniformly_continuous_on s f"  "uniformly_continuous_on (f ` s) g"
@@ -4467,70 +4040,18 @@ proof (rule topological_tendstoI)
 qed
 
 lemma continuous_on_open:
-  shows "continuous_on s f \<longleftrightarrow>
+  "continuous_on s f \<longleftrightarrow>
         (\<forall>t. openin (subtopology euclidean (f ` s)) t
             --> openin (subtopology euclidean s) {x \<in> s. f x \<in> t})" (is "?lhs = ?rhs")
-proof (safe)
-  fix t :: "'b set"
-  assume 1: "continuous_on s f"
-  assume 2: "openin (subtopology euclidean (f ` s)) t"
-  from 2 obtain B where B: "open B" and t: "t = f ` s \<inter> B"
-    unfolding openin_open by auto
-  def U == "\<Union>{A. open A \<and> (\<forall>x\<in>s. x \<in> A \<longrightarrow> f x \<in> B)}"
-  have "open U" unfolding U_def by (simp add: open_Union)
-  moreover have "\<forall>x\<in>s. x \<in> U \<longleftrightarrow> f x \<in> t"
-  proof (intro ballI iffI)
-    fix x assume "x \<in> s" and "x \<in> U" thus "f x \<in> t"
-      unfolding U_def t by auto
-  next
-    fix x assume "x \<in> s" and "f x \<in> t"
-    hence "x \<in> s" and "f x \<in> B"
-      unfolding t by auto
-    with 1 B obtain A where "open A" "x \<in> A" "\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B"
-      unfolding t continuous_on_topological by metis
-    then show "x \<in> U"
-      unfolding U_def by auto
-  qed
-  ultimately have "open U \<and> {x \<in> s. f x \<in> t} = s \<inter> U" by auto
-  then show "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}"
-    unfolding openin_open by fast
-next
-  assume "?rhs" show "continuous_on s f"
-  unfolding continuous_on_topological
-  proof (clarify)
-    fix x and B assume "x \<in> s" and "open B" and "f x \<in> B"
-    have "openin (subtopology euclidean (f ` s)) (f ` s \<inter> B)"
-      unfolding openin_open using `open B` by auto
-    then have "openin (subtopology euclidean s) {x \<in> s. f x \<in> f ` s \<inter> B}"
-      using `?rhs` by fast
-    then show "\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)"
-      unfolding openin_open using `x \<in> s` and `f x \<in> B` by auto
-  qed
-qed
+  unfolding continuous_on_open_invariant openin_open Int_def vimage_def Int_commute
+  by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
 text {* Similarly in terms of closed sets. *}
 
 lemma continuous_on_closed:
   shows "continuous_on s f \<longleftrightarrow>  (\<forall>t. closedin (subtopology euclidean (f ` s)) t  --> closedin (subtopology euclidean s) {x \<in> s. f x \<in> t})" (is "?lhs = ?rhs")
-proof
-  assume ?lhs
-  { fix t
-    have *:"s - {x \<in> s. f x \<in> f ` s - t} = {x \<in> s. f x \<in> t}" by auto
-    have **:"f ` s - (f ` s - (f ` s - t)) = f ` s - t" by auto
-    assume as:"closedin (subtopology euclidean (f ` s)) t"
-    hence "closedin (subtopology euclidean (f ` s)) (f ` s - (f ` s - t))" unfolding closedin_def topspace_euclidean_subtopology unfolding ** by auto
-    hence "closedin (subtopology euclidean s) {x \<in> s. f x \<in> t}" using `?lhs`[unfolded continuous_on_open, THEN spec[where x="(f ` s) - t"]]
-      unfolding openin_closedin_eq topspace_euclidean_subtopology unfolding * by auto  }
-  thus ?rhs by auto
-next
-  assume ?rhs
-  { fix t
-    have *:"s - {x \<in> s. f x \<in> f ` s - t} = {x \<in> s. f x \<in> t}" by auto
-    assume as:"openin (subtopology euclidean (f ` s)) t"
-    hence "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}" using `?rhs`[THEN spec[where x="(f ` s) - t"]]
-      unfolding openin_closedin_eq topspace_euclidean_subtopology *[THEN sym] closedin_subtopology by auto }
-  thus ?lhs unfolding continuous_on_open by auto
-qed
+  unfolding continuous_on_closed_invariant closedin_closed Int_def vimage_def Int_commute
+  by (simp add: imp_ex imageI conj_commute eq_commute cong: conj_cong)
 
 text {* Half-global and completely global cases. *}
 
@@ -4667,7 +4188,7 @@ proof-
   hence "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
     using `a \<notin> U` by (fast elim: eventually_mono [rotated])
   thus ?thesis
-    unfolding Limits.eventually_within Limits.eventually_at
+    unfolding Limits.eventually_within Metric_Spaces.eventually_at
     by (rule ex_forward, cut_tac `f x \<noteq> a`, auto simp: dist_commute)
 qed
 
@@ -4872,40 +4393,6 @@ next
   qed
 qed
 
-lemma compact_continuous_image:
-  assumes "continuous_on s f" and "compact s"
-  shows "compact (f ` s)"
-using assms (* FIXME: long unstructured proof *)
-unfolding continuous_on_open
-unfolding compact_eq_openin_cover
-apply clarify
-apply (drule_tac x="image (\<lambda>t. {x \<in> s. f x \<in> t}) C" in spec)
-apply (drule mp)
-apply (rule conjI)
-apply simp
-apply clarsimp
-apply (drule subsetD)
-apply (erule imageI)
-apply fast
-apply (erule thin_rl)
-apply clarify
-apply (rule_tac x="image (inv_into C (\<lambda>t. {x \<in> s. f x \<in> t})) D" in exI)
-apply (intro conjI)
-apply clarify
-apply (rule inv_into_into)
-apply (erule (1) subsetD)
-apply (erule finite_imageI)
-apply (clarsimp, rename_tac x)
-apply (drule (1) subsetD, clarify)
-apply (drule (1) subsetD, clarify)
-apply (rule rev_bexI)
-apply assumption
-apply (subgoal_tac "{x \<in> s. f x \<in> t} \<in> (\<lambda>t. {x \<in> s. f x \<in> t}) ` C")
-apply (drule f_inv_into_f)
-apply fast
-apply (erule imageI)
-done
-
 lemma connected_continuous_image:
   assumes "continuous_on s f"  "connected s"
   shows "connected(f ` s)"
@@ -4957,38 +4444,6 @@ proof (cases, safe)
       by (intro dist_double[where x="f y" and d=e]) (auto simp: dist_commute subset_eq)
   qed (insert D, auto)
 qed auto
-
-text{* Continuity of inverse function on compact domain. *}
-
-lemma continuous_on_inv:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::t2_space"
-  assumes "continuous_on s f"  "compact s"  "\<forall>x \<in> s. g (f x) = x"
-  shows "continuous_on (f ` s) g"
-unfolding continuous_on_topological
-proof (clarsimp simp add: assms(3))
-  fix x :: 'a and B :: "'a set"
-  assume "x \<in> s" and "open B" and "x \<in> B"
-  have 1: "\<forall>x\<in>s. f x \<in> f ` (s - B) \<longleftrightarrow> x \<in> s - B"
-    using assms(3) by (auto, metis)
-  have "continuous_on (s - B) f"
-    using `continuous_on s f` Diff_subset
-    by (rule continuous_on_subset)
-  moreover have "compact (s - B)"
-    using `open B` and `compact s`
-    unfolding Diff_eq by (intro compact_inter_closed closed_Compl)
-  ultimately have "compact (f ` (s - B))"
-    by (rule compact_continuous_image)
-  hence "closed (f ` (s - B))"
-    by (rule compact_imp_closed)
-  hence "open (- f ` (s - B))"
-    by (rule open_Compl)
-  moreover have "f x \<in> - f ` (s - B)"
-    using `x \<in> s` and `x \<in> B` by (simp add: 1)
-  moreover have "\<forall>y\<in>s. f y \<in> - f ` (s - B) \<longrightarrow> y \<in> B"
-    by (simp add: 1)
-  ultimately show "\<exists>A. open A \<and> f x \<in> A \<and> (\<forall>y\<in>s. f y \<in> A \<longrightarrow> y \<in> B)"
-    by fast
-qed
 
 text {* A uniformly convergent limit of continuous functions is continuous. *}
 
@@ -5058,56 +4513,6 @@ lemma continuous_on_real_range:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real"
   shows "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d --> abs(f x' - f x) < e))"
   unfolding continuous_on_iff dist_norm by simp
-
-lemma compact_attains_sup:
-  fixes S :: "'a::linorder_topology set"
-  assumes "compact S" "S \<noteq> {}"
-  shows "\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s"
-proof (rule classical)
-  assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. t \<le> s)"
-  then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. s < t s"
-    by (metis not_le)
-  then have "\<forall>s\<in>S. open {..< t s}" "S \<subseteq> (\<Union>s\<in>S. {..< t s})"
-    by auto
-  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {..< t s})"
-    by (erule compactE_image)
-  with `S \<noteq> {}` have Max: "Max (t`C) \<in> t`C" and "\<forall>s\<in>t`C. s \<le> Max (t`C)"
-    by (auto intro!: Max_in)
-  with C have "S \<subseteq> {..< Max (t`C)}"
-    by (auto intro: less_le_trans simp: subset_eq)
-  with t Max `C \<subseteq> S` show ?thesis
-    by fastforce
-qed
-
-lemma compact_attains_inf:
-  fixes S :: "'a::linorder_topology set"
-  assumes "compact S" "S \<noteq> {}"
-  shows "\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t"
-proof (rule classical)
-  assume "\<not> (\<exists>s\<in>S. \<forall>t\<in>S. s \<le> t)"
-  then obtain t where t: "\<forall>s\<in>S. t s \<in> S" and "\<forall>s\<in>S. t s < s"
-    by (metis not_le)
-  then have "\<forall>s\<in>S. open {t s <..}" "S \<subseteq> (\<Union>s\<in>S. {t s <..})"
-    by auto
-  with `compact S` obtain C where "C \<subseteq> S" "finite C" and C: "S \<subseteq> (\<Union>s\<in>C. {t s <..})"
-    by (erule compactE_image)
-  with `S \<noteq> {}` have Min: "Min (t`C) \<in> t`C" and "\<forall>s\<in>t`C. Min (t`C) \<le> s"
-    by (auto intro!: Min_in)
-  with C have "S \<subseteq> {Min (t`C) <..}"
-    by (auto intro: le_less_trans simp: subset_eq)
-  with t Min `C \<subseteq> S` show ?thesis
-    by fastforce
-qed
-
-lemma continuous_attains_sup:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
-  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s.  f y \<le> f x)"
-  using compact_attains_sup[of "f ` s"] compact_continuous_image[of s f] by auto
-
-lemma continuous_attains_inf:
-  fixes f :: "'a::topological_space \<Rightarrow> 'b::linorder_topology"
-  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s f \<Longrightarrow> (\<exists>x\<in>s. \<forall>y\<in>s. f x \<le> f y)"
-  using compact_attains_inf[of "f ` s"] compact_continuous_image[of s f] by auto
 
 text {* Hence some handy theorems on distance, diameter etc. of/from a set. *}
 
@@ -5276,8 +4681,7 @@ proof-
   have "compact (s \<times> s)" using `compact s` by (intro compact_Times)
   moreover have "s \<times> s \<noteq> {}" using `s \<noteq> {}` by auto
   moreover have "continuous_on (s \<times> s) (\<lambda>x. dist (fst x) (snd x))"
-    by (intro continuous_at_imp_continuous_on ballI continuous_dist
-      continuous_isCont[THEN iffD1] isCont_fst isCont_snd isCont_ident)
+    by (intro continuous_at_imp_continuous_on ballI continuous_intros)
   ultimately show ?thesis
     using continuous_attains_sup[of "s \<times> s" "\<lambda>x. dist (fst x) (snd x)"] by auto
 qed
@@ -5295,7 +4699,7 @@ proof -
   from s obtain z d where z: "\<And>x. x \<in> s \<Longrightarrow> dist z x \<le> d"
     unfolding bounded_def by auto
   have "dist x y \<le> Sup ?D"
-  proof (rule Sup_upper, safe)
+  proof (rule cSup_upper, safe)
     fix a b assume "a \<in> s" "b \<in> s"
     with z[of a] z[of b] dist_triangle[of a b z]
     show "dist a b \<le> 2 * d"
@@ -5317,7 +4721,7 @@ proof (rule ccontr)
     by (auto simp: diameter_def)
   then have "?D \<noteq> {}" by auto
   ultimately have "Sup ?D \<le> d"
-    by (intro Sup_least) (auto simp: not_less)
+    by (intro cSup_least) (auto simp: not_less)
   with `d < diameter s` `s \<noteq> {}` show False
     by (auto simp: diameter_def)
 qed
@@ -5337,7 +4741,7 @@ proof -
   then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. dist u v \<le> dist x y"
     using compact_sup_maxdistance[OF assms] by auto
   hence "diameter s \<le> dist x y"
-    unfolding diameter_def by clarsimp (rule Sup_least, fast+)
+    unfolding diameter_def by clarsimp (rule cSup_least, fast+)
   thus ?thesis
     by (metis b diameter_bounded_bound order_antisym xys)
 qed
@@ -5967,7 +5371,7 @@ lemma isCont_closed_vimage:
   by (rule isCont_open_vimage)
 
 lemma open_Collect_less:
-  fixes f g :: "'a::topological_space \<Rightarrow> real"
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
   assumes f: "\<And>x. isCont f x"
   assumes g: "\<And>x. isCont g x"
   shows "open {x. f x < g x}"
@@ -5981,7 +5385,7 @@ proof -
 qed
 
 lemma closed_Collect_le:
-  fixes f g :: "'a::topological_space \<Rightarrow> real"
+  fixes f g :: "'a::t2_space \<Rightarrow> real"
   assumes f: "\<And>x. isCont f x"
   assumes g: "\<And>x. isCont g x"
   shows "closed {x. f x \<le> g x}"
@@ -5995,7 +5399,7 @@ proof -
 qed
 
 lemma closed_Collect_eq:
-  fixes f g :: "'a::topological_space \<Rightarrow> 'b::t2_space"
+  fixes f g :: "'a::t2_space \<Rightarrow> 'b::t2_space"
   assumes f: "\<And>x. isCont f x"
   assumes g: "\<And>x. isCont g x"
   shows "closed {x. f x = g x}"
@@ -6128,27 +5532,6 @@ lemma Lim_topological:
         trivial_limit net \<or>
         (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
   unfolding tendsto_def trivial_limit_eq by auto
-
-lemma continuous_on_union:
-  assumes "closed s" "closed t" "continuous_on s f" "continuous_on t f"
-  shows "continuous_on (s \<union> t) f"
-  using assms unfolding continuous_on Lim_within_union
-  unfolding Lim_topological trivial_limit_within closed_limpt by auto
-
-lemma continuous_on_cases:
-  assumes "closed s" "closed t" "continuous_on s f" "continuous_on t g"
-          "\<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x"
-  shows "continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
-proof-
-  let ?h = "(\<lambda>x. if P x then f x else g x)"
-  have "\<forall>x\<in>s. f x = (if P x then f x else g x)" using assms(5) by auto
-  hence "continuous_on s ?h" using continuous_on_eq[of s f ?h] using assms(3) by auto
-  moreover
-  have "\<forall>x\<in>t. g x = (if P x then f x else g x)" using assms(5) by auto
-  hence "continuous_on t ?h" using continuous_on_eq[of t g ?h] using assms(4) by auto
-  ultimately show ?thesis using continuous_on_union[OF assms(1,2), of ?h] by auto
-qed
-
 
 text{* Some more convenient intermediate-value theorem formulations.             *}
 
@@ -6772,6 +6155,5 @@ proof -
 qed
 
 declare tendsto_const [intro] (* FIXME: move *)
-
 
 end
