@@ -12,9 +12,9 @@ imports Order_Relation
 begin
 
 (* Define globally? In Set.thy? *)
-definition chain_subset :: "'a set set \<Rightarrow> bool" ("chain\<^bsub>\<subseteq>\<^esub>")
+definition chain_subset :: "'a set set \<Rightarrow> bool" ("chain\<^sub>\<subseteq>")
 where
-  "chain\<^bsub>\<subseteq>\<^esub> C \<equiv> \<forall>A\<in>C.\<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
+  "chain\<^sub>\<subseteq> C \<equiv> \<forall>A\<in>C.\<forall>B\<in>C. A \<subseteq> B \<or> B \<subseteq> A"
 
 text{*
   The lemma and section numbers refer to an unpublished article
@@ -23,7 +23,7 @@ text{*
 
 definition chain :: "'a set set \<Rightarrow> 'a set set set"
 where
-  "chain S = {F. F \<subseteq> S \<and> chain\<^bsub>\<subseteq>\<^esub> F}"
+  "chain S = {F. F \<subseteq> S \<and> chain\<^sub>\<subseteq> F}"
 
 definition super :: "'a set set \<Rightarrow> 'a set set \<Rightarrow> 'a set set set"
 where
@@ -203,13 +203,13 @@ subsection{*Zorn's Lemma: If All Chains Have Upper Bounds Then
 
 lemma chain_extend:
   "[| c \<in> chain S; z \<in> S; \<forall>x \<in> c. x \<subseteq> (z:: 'a set) |] ==> {z} Un c \<in> chain S"
-by (unfold chain_def chain_subset_def) blast
+  by (unfold chain_def chain_subset_def) blast
 
 lemma chain_Union_upper: "[| c \<in> chain S; x \<in> c |] ==> x \<subseteq> Union(c)"
-by auto
+  by auto
 
 lemma chain_ball_Union_upper: "c \<in> chain S ==> \<forall>x \<in> c. x \<subseteq> Union(c)"
-by auto
+  by auto
 
 lemma maxchain_Zorn:
   "[| c \<in> maxchain S; u \<in> S; Union(c) \<subseteq> u |] ==> Union(c) = u"
@@ -337,21 +337,21 @@ lemma Chain_init_seg_of_Union:
 by(simp add: init_seg_of_def Chain_def Ball_def) blast
 
 lemma chain_subset_trans_Union:
-  "chain\<^bsub>\<subseteq>\<^esub> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans(\<Union>R)"
+  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. trans r \<Longrightarrow> trans(\<Union>R)"
 apply(simp add:chain_subset_def)
 apply(simp (no_asm_use) add:trans_def)
 by (metis subsetD)
 
 lemma chain_subset_antisym_Union:
-  "chain\<^bsub>\<subseteq>\<^esub> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym(\<Union>R)"
+  "chain\<^sub>\<subseteq> R \<Longrightarrow> \<forall>r\<in>R. antisym r \<Longrightarrow> antisym(\<Union>R)"
 by (simp add:chain_subset_def antisym_def) (metis subsetD)
 
 lemma chain_subset_Total_Union:
-assumes "chain\<^bsub>\<subseteq>\<^esub> R" "\<forall>r\<in>R. Total r"
+assumes "chain\<^sub>\<subseteq> R" "\<forall>r\<in>R. Total r"
 shows "Total (\<Union>R)"
 proof (simp add: total_on_def Ball_def, auto del:disjCI)
   fix r s a b assume A: "r:R" "s:R" "a:Field r" "b:Field s" "a\<noteq>b"
-  from `chain\<^bsub>\<subseteq>\<^esub> R` `r:R` `s:R` have "r\<subseteq>s \<or> s\<subseteq>r"
+  from `chain\<^sub>\<subseteq> R` `r:R` `s:R` have "r\<subseteq>s \<or> s\<subseteq>r"
     by(simp add:chain_subset_def)
   thus "(\<exists>r\<in>R. (a,b) \<in> r) \<or> (\<exists>r\<in>R. (b,a) \<in> r)"
   proof
@@ -400,7 +400,7 @@ proof-
   let ?WO = "{r::('a*'a)set. Well_order r}"
   def I \<equiv> "init_seg_of \<inter> ?WO \<times> ?WO"
   have I_init: "I \<subseteq> init_seg_of" by(simp add: I_def)
-  hence subch: "!!R. R : Chain I \<Longrightarrow> chain\<^bsub>\<subseteq>\<^esub> R"
+  hence subch: "!!R. R : Chain I \<Longrightarrow> chain\<^sub>\<subseteq> R"
     by(auto simp:init_seg_of_def chain_subset_def Chain_def)
   have Chain_wo: "!!R r. R \<in> Chain I \<Longrightarrow> r \<in> R \<Longrightarrow> Well_order r"
     by(simp add:Chain_def I_def) blast
@@ -410,7 +410,7 @@ proof-
 -- {*I-chains have upper bounds in ?WO wrt I: their Union*}
   { fix R assume "R \<in> Chain I"
     hence Ris: "R \<in> Chain init_seg_of" using mono_Chain[OF I_init] by blast
-    have subch: "chain\<^bsub>\<subseteq>\<^esub> R" using `R : Chain I` I_init
+    have subch: "chain\<^sub>\<subseteq> R" using `R : Chain I` I_init
       by(auto simp:init_seg_of_def chain_subset_def Chain_def)
     have "\<forall>r\<in>R. Refl r" "\<forall>r\<in>R. trans r" "\<forall>r\<in>R. antisym r" "\<forall>r\<in>R. Total r"
          "\<forall>r\<in>R. wf(r-Id)"
@@ -457,7 +457,6 @@ proof-
 --{*The extension of m by x:*}
     let ?s = "{(a,x)|a. a : Field m}" let ?m = "insert (x,x) m Un ?s"
     have Fm: "Field ?m = insert x (Field m)"
-      apply(simp add:Field_insert Field_Un)
       unfolding Field_def by auto
     have "Refl m" "trans m" "antisym m" "Total m" "wf(m-Id)"
       using `Well_order m` by(simp_all add:order_on_defs)
