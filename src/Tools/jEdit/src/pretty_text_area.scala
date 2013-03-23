@@ -21,14 +21,6 @@ import org.gjt.sp.util.{SyntaxUtilities, Log}
 
 object Pretty_Text_Area
 {
-  private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
-    formatted_body: XML.Body): (String, Rendering) =
-  {
-    val (text, state) = Pretty_Text_Area.document_state(base_snapshot, base_results, formatted_body)
-    val rendering = Rendering(state.snapshot(), PIDE.options.value)
-    (text, rendering)
-  }
-
   private def document_state(base_snapshot: Document.Snapshot, base_results: Command.Results,
     formatted_body: XML.Body): (String, Document.State) =
   {
@@ -49,6 +41,14 @@ object Pretty_Text_Area
         .assign(version1.id, List(command.id -> Some(Document.new_id())))._2
 
     (command.source, state1)
+  }
+
+  private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
+    formatted_body: XML.Body): (String, Rendering) =
+  {
+    val (text, state) = document_state(base_snapshot, base_results, formatted_body)
+    val rendering = Rendering(state.snapshot(), PIDE.options.value)
+    (text, rendering)
   }
 }
 
@@ -115,26 +115,35 @@ class Pretty_Text_Area(
       val base_results = current_base_results
       val formatted_body = Pretty.formatted(current_body, margin, metric)
 
-      future_rendering.map(_.cancel(true))
-      future_rendering = Some(default_thread_pool.submit(() =>
-        {
-          val (text, rendering) =
-            try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
-            catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
-          Simple_Thread.interrupted_exception()
+      def apply_result(result: (String, Rendering))
+      {
+        val (text, rendering) = result
+        current_rendering = rendering
+        JEdit_Lib.buffer_edit(getBuffer) {
+          rich_text_area.active_reset()
+          getBuffer.setReadOnly(false)
+          getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
+          setText(text)
+          setCaretPosition(0)
+          getBuffer.setReadOnly(true)
+        }
+      }
 
-          Swing_Thread.later {
-            current_rendering = rendering
-            JEdit_Lib.buffer_edit(getBuffer) {
-              rich_text_area.active_reset()
-              getBuffer.setReadOnly(false)
-              getBuffer.setFoldHandler(new Fold_Handling.Document_Fold_Handler(rendering))
-              setText(text)
-              setCaretPosition(0)
-              getBuffer.setReadOnly(true)
-            }
-          }
-        }))
+      future_rendering.map(_.cancel(true))
+      if (XML.text_length(formatted_body) <= 1000) {
+        apply_result(Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body))
+        future_rendering = None
+      }
+      else {
+        future_rendering = Some(default_thread_pool.submit(() =>
+          {
+            val result =
+              try { Pretty_Text_Area.text_rendering(base_snapshot, base_results, formatted_body) }
+              catch { case exn: Throwable => Log.log(Log.ERROR, this, exn); throw exn }
+            Simple_Thread.interrupted_exception()
+            Swing_Thread.later { apply_result(result) }
+          }))
+      }
     }
   }
 
