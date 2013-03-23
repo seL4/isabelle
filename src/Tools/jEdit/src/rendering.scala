@@ -275,22 +275,30 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     (Command.Results.empty /: results)(_ ++ _)
   }
 
-  def tooltip_message(range: Text.Range): XML.Body =
+  def tooltip_message(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
-    val msgs =
-      Command.Results.merge(
-        snapshot.cumulate_markup[Command.Results](range, Command.Results.empty,
-          Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
-          {
-            case (msgs, Text.Info(_, XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
-            if name == Markup.WRITELN ||
-                name == Markup.WARNING ||
-                name == Markup.ERROR =>
-              msgs + (serial -> XML.Elem(Markup(Markup.message(name), props), body))
-            case (msgs, Text.Info(_, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
-            if !body.isEmpty => msgs + (Document.new_id() -> msg)
-          }).map(_.info))
-    Pretty.separate(msgs.entries.map(_._2).toList)
+    val results =
+      snapshot.cumulate_markup[List[Text.Info[Command.Results.Entry]]](range, Nil,
+        Some(Set(Markup.WRITELN, Markup.WARNING, Markup.ERROR, Markup.BAD)), _ =>
+        {
+          case (msgs, Text.Info(info_range,
+            XML.Elem(Markup(name, props @ Markup.Serial(serial)), body)))
+          if name == Markup.WRITELN || name == Markup.WARNING || name == Markup.ERROR =>
+            val entry: Command.Results.Entry =
+              (serial -> XML.Elem(Markup(Markup.message(name), props), body))
+            Text.Info(snapshot.convert(info_range), entry) :: msgs
+
+          case (msgs, Text.Info(info_range, msg @ XML.Elem(Markup(Markup.BAD, _), body)))
+          if !body.isEmpty =>
+            val entry: Command.Results.Entry = (Document.new_id(), msg)
+            Text.Info(snapshot.convert(info_range), entry) :: msgs
+        }).toList.flatMap(_.info)
+    if (results.isEmpty) None
+    else {
+      val r = Text.Range(results.head.range.start, results.last.range.stop)
+      val msgs = Command.Results.make(results.map(_.info))
+      Some(Text.Info(r, Pretty.separate(msgs.entries.map(_._2).toList)))
+    }
   }
 
 
@@ -317,12 +325,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
 
-  def tooltip(range: Text.Range): XML.Body =
+  def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
-    def add(prev: Text.Info[List[(Boolean, XML.Tree)]], r: Text.Range, p: (Boolean, XML.Tree)) =
+    def add(prev: Text.Info[List[(Boolean, XML.Tree)]], r0: Text.Range, p: (Boolean, XML.Tree)) =
+    {
+      val r = snapshot.convert(r0)
       if (prev.range == r) Text.Info(r, p :: prev.info) else Text.Info(r, List(p))
+    }
 
-    val tips =
+    val results =
       snapshot.cumulate_markup[Text.Info[(List[(Boolean, XML.Tree)])]](
         range, Text.Info(range, Nil), Some(tooltip_elements), _ =>
         {
@@ -340,11 +351,15 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
             add(prev, r, (false, pretty_typing("ML:", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _)))
           if tooltips.isDefinedAt(name) => add(prev, r, (true, XML.Text(tooltips(name))))
-        }).toList.flatMap(_.info.info)
+        }).toList.map(_.info)
 
-    val all_tips =
-      (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
-    Library.separate(Pretty.FBreak, all_tips.toList)
+    results.flatMap(_.info) match {
+      case Nil => None
+      case tips =>
+        val r = Text.Range(results.head.range.start, results.last.range.stop)
+        val all_tips = (tips.filter(_._1) ++ tips.filter(!_._1).lastOption.toList).map(_._2)
+        Some(Text.Info(r, Library.separate(Pretty.FBreak, all_tips)))
+    }
   }
 
   val tooltip_margin: Int = options.int("jedit_tooltip_margin")

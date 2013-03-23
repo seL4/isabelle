@@ -215,14 +215,16 @@ class Rich_Text_Area(
             JEdit_Lib.pixel_range(text_area, x, y) match {
               case None =>
               case Some(range) =>
-                val tip =
+                val result =
                   if (control) rendering.tooltip(range)
                   else rendering.tooltip_message(range)
-                if (!tip.isEmpty) {
-                  val painter = text_area.getPainter
-                  val y1 = y + painter.getFontMetrics.getHeight / 2
-                  val results = rendering.command_results(range)
-                  Pretty_Tooltip(view, painter, rendering, x, y1, results, tip)
+                result match {
+                  case None =>
+                  case Some(tip) =>
+                    val painter = text_area.getPainter
+                    val y1 = y + painter.getFontMetrics.getHeight / 2
+                    val results = rendering.command_results(range)
+                    Pretty_Tooltip(view, painter, rendering, x, y1, results, tip.range, tip.info)
                 }
             }
           }
@@ -497,11 +499,12 @@ class Rich_Text_Area(
           if (start <= caret && caret == end - 1) {
             val painter = text_area.getPainter
             val fm = painter.getFontMetrics
+            val metric = JEdit_Lib.pretty_metric(painter)
 
             val offset = caret - text_area.getLineStartOffset(physical_line)
             val x = text_area.offsetToXY(physical_line, offset).x
             gfx.setColor(painter.getCaretColor)
-            gfx.drawRect(x, y, Pretty.char_width(fm).round.toInt - 1, fm.getHeight - 1)
+            gfx.drawRect(x, y, (metric.unit * metric.average).round.toInt - 1, fm.getHeight - 1)
           }
         }
       }

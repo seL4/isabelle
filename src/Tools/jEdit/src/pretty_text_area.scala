@@ -21,14 +21,6 @@ import org.gjt.sp.util.{SyntaxUtilities, Log}
 
 object Pretty_Text_Area
 {
-  private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
-    formatted_body: XML.Body): (String, Rendering) =
-  {
-    val (text, state) = Pretty_Text_Area.document_state(base_snapshot, base_results, formatted_body)
-    val rendering = Rendering(state.snapshot(), PIDE.options.value)
-    (text, rendering)
-  }
-
   private def document_state(base_snapshot: Document.Snapshot, base_results: Command.Results,
     formatted_body: XML.Body): (String, Document.State) =
   {
@@ -49,6 +41,14 @@ object Pretty_Text_Area
         .assign(version1.id, List(command.id -> Some(Document.new_id())))._2
 
     (command.source, state1)
+  }
+
+  private def text_rendering(base_snapshot: Document.Snapshot, base_results: Command.Results,
+    formatted_body: XML.Body): (String, Rendering) =
+  {
+    val (text, state) = document_state(base_snapshot, base_results, formatted_body)
+    val rendering = Rendering(state.snapshot(), PIDE.options.value)
+    (text, rendering)
   }
 }
 
@@ -83,6 +83,7 @@ class Pretty_Text_Area(
     val font = new Font(current_font_family, Font.PLAIN, current_font_size)
     getPainter.setFont(font)
     getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
+    getPainter.setFractionalFontMetricsEnabled(jEdit.getBooleanProperty("view.fracFontMetrics"))
     getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
     val fold_line_style = new Array[SyntaxStyle](4)
@@ -108,12 +109,12 @@ class Pretty_Text_Area(
     getGutter.setGutterEnabled(jEdit.getBooleanProperty("view.gutter.enabled"))
 
     if (getWidth > 0) {
-      val fm = getPainter.getFontMetrics
-      val margin = (getPainter.getWidth / (Pretty.char_width(fm).ceil.toInt max 1)) max 20
+      val metric = JEdit_Lib.pretty_metric(getPainter)
+      val margin = (getPainter.getWidth.toDouble / metric.unit) max 20.0
 
       val base_snapshot = current_base_snapshot
       val base_results = current_base_results
-      val formatted_body = Pretty.formatted(current_body, margin, Pretty.font_metric(fm))
+      val formatted_body = Pretty.formatted(current_body, margin, metric)
 
       future_rendering.map(_.cancel(true))
       future_rendering = Some(default_thread_pool.submit(() =>
