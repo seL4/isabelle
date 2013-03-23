@@ -39,6 +39,7 @@ object Pretty_Tooltip
     rendering: Rendering,
     mouse_x: Int, mouse_y: Int,
     results: Command.Results,
+    range: Text.Range,
     body: XML.Body): Pretty_Tooltip =
   {
     Swing_Thread.require()
@@ -63,7 +64,7 @@ object Pretty_Tooltip
           others.foreach(_.dispose)
           window
       }
-    window.init(rendering, parent, mouse_x, mouse_y, results, body)
+    window.init(rendering, parent, mouse_x, mouse_y, results, range, body)
     window
   }
 
@@ -104,6 +105,7 @@ class Pretty_Tooltip private(view: View) extends JDialog
   private var current_rendering: Rendering =
     Rendering(Document.State.init.snapshot(), PIDE.options.value)
   private var current_results = Command.Results.empty
+  private var current_range = Text.Range(-1)
   private var current_body: XML.Body = Nil
 
 
@@ -168,60 +170,64 @@ class Pretty_Tooltip private(view: View) extends JDialog
     parent: JComponent,
     mouse_x: Int, mouse_y: Int,
     results: Command.Results,
+    range: Text.Range,
     body: XML.Body)
   {
-    current_rendering = rendering
-    current_results = results
-    current_body = body
+    if (!(results == current_results && range == current_range && body == current_body)) {
+      current_rendering = rendering
+      current_results = results
+      current_range = range
+      current_body = body
 
-    pretty_text_area.resize(Rendering.font_family(),
-      Rendering.font_size("jedit_tooltip_font_scale").round)
-    pretty_text_area.update(rendering.snapshot, results, body)
+      pretty_text_area.resize(Rendering.font_family(),
+        Rendering.font_size("jedit_tooltip_font_scale").round)
+      pretty_text_area.update(rendering.snapshot, results, body)
 
-    content_panel.setBackground(rendering.tooltip_color)
-    controls.background = rendering.tooltip_color
+      content_panel.setBackground(rendering.tooltip_color)
+      controls.background = rendering.tooltip_color
 
 
-    /* window geometry */
+      /* window geometry */
 
-    val screen_point = new Point(mouse_x, mouse_y)
-    SwingUtilities.convertPointToScreen(screen_point, parent)
-    val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
+      val screen_point = new Point(mouse_x, mouse_y)
+      SwingUtilities.convertPointToScreen(screen_point, parent)
+      val screen_bounds = JEdit_Lib.screen_bounds(screen_point)
 
-    {
-      val painter = pretty_text_area.getPainter
-      val metric = JEdit_Lib.pretty_metric(painter)
-      val margin = rendering.tooltip_margin * metric.average
-      val lines =
-        XML.traverse_text(Pretty.formatted(body, margin, metric))(0)(
-          (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
+      {
+        val painter = pretty_text_area.getPainter
+        val metric = JEdit_Lib.pretty_metric(painter)
+        val margin = rendering.tooltip_margin * metric.average
+        val lines =
+          XML.traverse_text(Pretty.formatted(body, margin, metric))(0)(
+            (n: Int, s: String) => n + s.iterator.filter(_ == '\n').length)
 
-      if (window.getWidth == 0) {
-        window.setSize(new Dimension(100, 100))
-        window.setPreferredSize(new Dimension(100, 100))
+        if (window.getWidth == 0) {
+          window.setSize(new Dimension(100, 100))
+          window.setPreferredSize(new Dimension(100, 100))
+        }
+        window.pack
+        window.revalidate
+
+        val deco_width = window.getWidth - painter.getWidth
+        val deco_height = window.getHeight - painter.getHeight
+
+        val bounds = rendering.tooltip_bounds
+        val w =
+          ((metric.unit * (margin + metric.average)).round.toInt + deco_width) min
+          (screen_bounds.width * bounds).toInt
+        val h =
+          (painter.getFontMetrics.getHeight * (lines + 1) + deco_height) min
+          (screen_bounds.height * bounds).toInt
+
+        window.setSize(new Dimension(w, h))
+        window.setPreferredSize(new Dimension(w, h))
+        window.pack
+        window.revalidate
+
+        val x = screen_point.x min (screen_bounds.x + screen_bounds.width - window.getWidth)
+        val y = screen_point.y min (screen_bounds.y + screen_bounds.height - window.getHeight)
+        window.setLocation(x, y)
       }
-      window.pack
-      window.revalidate
-
-      val deco_width = window.getWidth - painter.getWidth
-      val deco_height = window.getHeight - painter.getHeight
-
-      val bounds = rendering.tooltip_bounds
-      val w =
-        ((metric.unit * (margin + metric.average)).round.toInt + deco_width) min
-        (screen_bounds.width * bounds).toInt
-      val h =
-        (painter.getFontMetrics.getHeight * (lines + 1) + deco_height) min
-        (screen_bounds.height * bounds).toInt
-
-      window.setSize(new Dimension(w, h))
-      window.setPreferredSize(new Dimension(w, h))
-      window.pack
-      window.revalidate
-
-      val x = screen_point.x min (screen_bounds.x + screen_bounds.width - window.getWidth)
-      val y = screen_point.y min (screen_bounds.y + screen_bounds.height - window.getHeight)
-      window.setLocation(x, y)
     }
 
     window.setVisible(true)

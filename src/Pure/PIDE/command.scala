@@ -21,7 +21,9 @@ object Command
 
   object Results
   {
+    type Entry = (Long, XML.Tree)
     val empty = new Results(SortedMap.empty)
+    def make(es: Iterable[Results.Entry]): Results = (empty /: es.iterator)(_ + _)
     def merge(rs: Iterable[Results]): Results = (empty /: rs.iterator)(_ ++ _)
   }
 
@@ -29,9 +31,9 @@ object Command
   {
     def defined(serial: Long): Boolean = rep.isDefinedAt(serial)
     def get(serial: Long): Option[XML.Tree] = rep.get(serial)
-    def entries: Iterator[(Long, XML.Tree)] = rep.iterator
+    def entries: Iterator[Results.Entry] = rep.iterator
 
-    def + (entry: (Long, XML.Tree)): Results =
+    def + (entry: Results.Entry): Results =
       if (defined(entry._1)) this
       else new Results(rep + entry)
 
