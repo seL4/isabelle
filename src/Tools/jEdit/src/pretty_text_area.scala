@@ -83,6 +83,7 @@ class Pretty_Text_Area(
     val font = new Font(current_font_family, Font.PLAIN, current_font_size)
     getPainter.setFont(font)
     getPainter.setAntiAlias(new AntiAlias(jEdit.getProperty("view.antiAlias")))
+    getPainter.setFractionalFontMetricsEnabled(jEdit.getBooleanProperty("view.fracFontMetrics"))
     getPainter.setStyles(SyntaxUtilities.loadStyles(current_font_family, current_font_size))
 
     val fold_line_style = new Array[SyntaxStyle](4)
