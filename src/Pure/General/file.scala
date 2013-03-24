@@ -137,14 +137,12 @@ object File
       new XZOutputStream(new BufferedOutputStream(s), options))
   }
 
-  def write_xz(file: JFile, text: CharSequence): Unit =
-    write_xz(file, text, LZMA2Options.PRESET_DEFAULT)
+  def write_xz(file: JFile, text: CharSequence): Unit = write_xz(file, text, 3)
 
   def write_xz(path: Path, text: CharSequence, preset: Int): Unit =
     write_xz(path.file, text, preset)
 
-  def write_xz(path: Path, text: CharSequence): Unit =
-    write_xz(path.file, text, LZMA2Options.PRESET_DEFAULT)
+  def write_xz(path: Path, text: CharSequence): Unit = write_xz(path.file, text, 3)
 
 
   /* copy */
