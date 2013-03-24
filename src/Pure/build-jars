@@ -196,7 +196,7 @@ then
   JFXRT="$ISABELLE_JDK_HOME/jre/lib/jfxrt.jar"
 
   (
-    for X in "$JFXRT" "${JFREECHART_JARS[@]}" classes
+    for X in "$JFXRT" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar" classes
     do
       CLASSPATH="$CLASSPATH:$X"
     done

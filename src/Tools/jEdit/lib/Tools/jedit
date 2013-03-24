@@ -233,7 +233,7 @@ else
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
       declare -a DEPS=(
-        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}"
+        "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar"
         "$PURE_JAR" "$GRAPHVIEW_JAR" "${SOURCES[@]}" "${RESOURCES[@]}"
       )
     elif [ -e "$ISABELLE_HOME/Admin/build" ]; then
@@ -287,8 +287,8 @@ then
 
   cp -p -R -f "${JEDIT_JARS[@]}" dist/jars/. || failed
   (
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" "$PURE_JAR" \
-      "$GRAPHVIEW_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "${JFREECHART_JARS[@]}" "$XZ_JAVA_HOME/lib/xz.jar" \
+      "$PURE_JAR" "$GRAPHVIEW_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
     do
       CLASSPATH="$CLASSPATH:$JAR"
     done

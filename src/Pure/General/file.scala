@@ -8,11 +8,13 @@ package isabelle
 
 
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
-  InputStream, FileInputStream, BufferedInputStream, BufferedReader, InputStreamReader,
-  File => JFile, IOException}
+  OutputStream, InputStream, FileInputStream, BufferedInputStream, BufferedReader,
+  InputStreamReader, File => JFile, IOException}
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
 import scala.collection.mutable
+
+import org.tukaani.xz.{LZMA2Options, XZInputStream, XZOutputStream}
 
 
 object File
@@ -72,7 +74,13 @@ object File
 
   def read_gzip(file: JFile): String =
     read_stream(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))))
+
   def read_gzip(path: Path): String = read_gzip(path.file)
+
+  def read_xz(file: JFile): String =
+    read_stream(new XZInputStream(new BufferedInputStream(new FileInputStream(file))))
+
+  def read_xz(path: Path): String = read_xz(path.file)
 
 
   /* read lines */
@@ -105,20 +113,38 @@ object File
 
   /* write */
 
-  private def write_file(file: JFile, text: CharSequence, gzip: Boolean)
+  private def write_file(file: JFile, text: CharSequence, make_stream: OutputStream => OutputStream)
   {
-    val stream1 = new FileOutputStream(file)
-    val stream2 = if (gzip) new GZIPOutputStream(new BufferedOutputStream(stream1)) else stream1
-    val writer = new BufferedWriter(new OutputStreamWriter(stream2, UTF8.charset))
-    try { writer.append(text) }
-    finally { writer.close }
+    val stream = make_stream(new FileOutputStream(file))
+    val writer = new BufferedWriter(new OutputStreamWriter(stream, UTF8.charset))
+    try { writer.append(text) } finally { writer.close }
   }
 
-  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, false)
+  def write(file: JFile, text: CharSequence): Unit = write_file(file, text, (s) => s)
+
   def write(path: Path, text: CharSequence): Unit = write(path.file, text)
 
-  def write_gzip(file: JFile, text: CharSequence): Unit = write_file(file, text, true)
+  def write_gzip(file: JFile, text: CharSequence): Unit =
+    write_file(file, text, (s: OutputStream) => new GZIPOutputStream(new BufferedOutputStream(s)))
+
   def write_gzip(path: Path, text: CharSequence): Unit = write_gzip(path.file, text)
+
+  def write_xz(file: JFile, text: CharSequence, preset: Int)
+  {
+    val options = new LZMA2Options
+    options.setPreset(preset)
+    write_file(file, text, (s: OutputStream) =>
+      new XZOutputStream(new BufferedOutputStream(s), options))
+  }
+
+  def write_xz(file: JFile, text: CharSequence): Unit =
+    write_xz(file, text, LZMA2Options.PRESET_DEFAULT)
+
+  def write_xz(path: Path, text: CharSequence, preset: Int): Unit =
+    write_xz(path.file, text, preset)
+
+  def write_xz(path: Path, text: CharSequence): Unit =
+    write_xz(path.file, text, LZMA2Options.PRESET_DEFAULT)
 
 
   /* copy */
