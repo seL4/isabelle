@@ -30,6 +30,9 @@ declaration {*
         end
     *)
 *}
+translations -- "poor man's case syntax"
+  "case p of XCONST Stream x s \<Rightarrow> b" \<rightleftharpoons> "CONST stream_case (\<lambda>x s. b) p"
+  "case p of (XCONST Stream :: 'b) x s \<Rightarrow> b" \<rightharpoonup>" CONST stream_case (\<lambda>x s. b) p"
 
 code_datatype Stream
 lemmas [code] = stream.sels stream.sets stream.case
