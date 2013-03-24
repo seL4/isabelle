@@ -22,6 +22,8 @@ Quick start in 25min
 
     ./bin/isabelle jedit -l HOL
 
+    ./bin/isabelle build -b HOL  #optional: build session image manually
+
 3. Update repository (bash shell commands):
 
     cd isabelle
@@ -31,6 +33,14 @@ Quick start in 25min
     ./bin/isabelle components -a
 
     ./bin/isabelle jedit -l HOL
+
+    ./bin/isabelle jedit -b -f  #optional: force fresh build of Isabelle/Scala
+
+4. Access documentation (bash shell commands):
+
+    ./bin/isabelle build_doc -p -a
+
+    ./bin/isabelle doc system
 
 
 Introduction
@@ -50,17 +60,18 @@ responsibility to maintain a certain development process that fits to
 a particular project.
 
 Regular Mercurial operations are strictly monotonic, where changeset
-transactions are only added, but never deleted.  There are special
-tools to manipulate repositories via non-monotonic actions (such as
-"rollback" or "strip"), but recovering from gross mistakes that have
-escaped into the public can be hard and embarrassing.  It is much
-easier to inspect and amend changesets routinely before pushing.
+transactions are only added, but never deleted or mutated.  There are
+special tools to manipulate repositories via non-monotonic actions
+(such as "rollback" or "strip"), but recovering from gross mistakes
+that have escaped into the public can be hard and embarrassing.  It is
+much easier to inspect and amend changesets routinely before pushing.
 
 The effect of the critical "pull" / "push" operations can be tested in
 a dry run via "incoming" / "outgoing".  The "fetch" extension includes
-useful sanity checks beyond raw "pull" / "update" / "merge".  Most
-other operations are local to the user's repository clone.  This gives
-some freedom for experimentation without affecting anybody else.
+useful sanity checks beyond raw "pull" / "update" / "merge", although
+it has lost popularity in recent years.  Most other operations are
+local to the user's repository clone.  This gives some freedom for
+experimentation without affecting anybody else.
 
 Mercurial provides nice web presentation of incoming changes with a
 digest of log entries; this also includes RSS/Atom news feeds.  There
@@ -72,7 +83,7 @@ content of non-trivial merge nodes.
 Initial configuration
 ---------------------
 
-The official Isabelle repository can be cloned like this:
+The main Isabelle repository can be cloned like this:
 
   hg clone http://isabelle.in.tum.de/repos/isabelle
 
@@ -125,7 +136,7 @@ quite easy to publish changed clones again on the web, using the
 ad-hoc command "hg serve -v", or the hgweb.cgi or hgwebdir.cgi scripts
 that are included in the Mercurial distribution, and send a "pull
 request" to someone else.  There are also public hosting services for
-Mercurial repositories.
+Mercurial repositories, notably Bitbucket.
 
 The downstream/upstream mode of operation is quite common in the
 distributed version control community, and works well for occasional
@@ -134,8 +145,8 @@ maintainers need to review and moderate changes being proposed, before
 pushing anything onto the official Isabelle repository at TUM.  Direct
 pushes are also reviewed routinely in a post-hoc fashion; everybody
 hooked on the main repository is called to keep an eye on incoming
-changes.  In any case, changesets need to be understandable, at the
-time of writing and many years later.
+changes.  In any case, changesets need to be understandable, both at
+the time of writing and many years later.
 
 Push access to the Isabelle repository requires an account at TUM,
 with properly configured ssh to isabelle-server.in.tum.de.  You also
@@ -243,11 +254,11 @@ changesets that are meant to be published at some point.
     to describe faithfully what has been done, and provide some clues
     about the motivation behind it.  The main recipient is someone who
     needs to understand the change in the distant future to isolate
-    problems.  Sometimes it is helpful to reference past changes via
-    changeset ids in the log entry.
+    problems.  Sometimes it is helpful to reference past changes
+    formally via changeset ids in the log entry.
 
   * The standard changelog entry format of the Isabelle repository
-    admits several (vaguely related) items to be rolled into one
+    admits several (somehow related) items to be rolled into one
     changeset.  Each item is then described on a separate line that
     may become longer as screen line and is terminated by punctuation.
     These lines are roughly ordered by importance.
@@ -268,47 +279,32 @@ changesets that are meant to be published at some point.
     items on the same line in the original text!
 
 
-Building a repository version of Isabelle
------------------------------------------
+Testing of changes (before push)
+--------------------------------
 
-This first requires to resolve add-on components first, including the
-ML system.  Some extra configuration is required to approximate some
-of the system integration of official Isabelle releases from a
-bare-bones repository snapshot.  The special directory Admin/ -- which
-is absent in official releases -- might provide some further clues.
+The integrity of the standard pull/push area of Isabelle needs the be
+preserved at all time.  This means that a complete test with default
+configuration needs to be finished successfully before push.  If the
+preparation of the push involves a pull/merge phase, its result needs
+to covered by the test as well.
 
-Here is a reasonably easy way to include important Isabelle components
-on the spot:
+There are several possibilities to perform the test, e.g. using the
+Isabelle testboard at TUM.  In contrast, the subsequent command-line
+examples are for tests on the local machine:
 
-  (1) The bash script ISABELLE_HOME_USER/etc/settings is augmented by
-  some shell function invocations like this:
+  ./bin/isabelle build -a  #regular test
 
-      init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/main"
-      init_components "$HOME/.isabelle/contrib" "$ISABELLE_HOME/Admin/components/optional"
+  ./bin/isabelle build -a -o document=pdf  #test with document preparation
 
-  This uses some central place "$HOME/.isabelle/contrib" to keep
-  component directories that are shared by all Isabelle versions.
+  ./bin/isabelle build -a -j2 -o threads=4  #test on multiple cores (example)
 
-  (2) Missing components are resolved on the command line like this:
+See also the chapter on Isabelle sessions and build management in the
+"system" manual.
 
-      isabelle components -a
-
-  This will saturate the "$HOME/.isabelle/contrib" directory structure
-  according to $ISABELLE_COMPONENT_REPOSITORY.
-
-Since the given component catalogs in $ISABELLE_HOME/Admin/components
-are subject to the Mercurial history, it is possible to bisect over a
-range of Isabelle versions while references to the contributing
-components change accordingly.
-
-The Isabelle build process is managed as follows:
-
-  * regular "isabelle build" to build session images, for example:
-
-      isabelle build -b HOL
-
-  * administrative "isabelle build_doc" to populate the doc/
-    directory, such that "isabelle doc" will find the results, for example:
-
-      isabelle build_doc -p IsarRef
-
+Note that implicit dependencies on Isabelle components are specified
+via catalog files in $ISABELLE_HOME/Admin/components/ as part of the
+Mercurial history.  This allows to bisect over a range of Isabelle
+versions while references to the contributing components change
+accordingly.  Recall that "isabelle components -a" updates the local
+component store monotonically according to that information, and thus
+resolves missing components.
