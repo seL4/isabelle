@@ -167,11 +167,13 @@ fun pretty_full_theory verbose thy =
     val extern_const = Name_Space.extern ctxt (#1 constants);
     val {classes, default, types, ...} = Type.rep_tsig tsig;
     val (class_space, class_algebra) = classes;
+    val class_ord = string_ord o pairself (Name_Space.extern ctxt class_space);
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
 
     val clsses =
-      Name_Space.dest_table ctxt (class_space, Symtab.make (map (apfst fst) (Graph.dest classes)));
+      Name_Space.dest_table ctxt (class_space,
+        Symtab.make (map (fn ((c, _), cs) => (c, sort class_ord cs)) (Graph.dest classes)));
     val tdecls = Name_Space.dest_table ctxt types;
     val arties = Name_Space.dest_table ctxt (Type.type_space tsig, arities);
 
