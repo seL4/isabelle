@@ -8,23 +8,23 @@ type_synonym
   tab = "vname \<Rightarrow> val option"
 
 (* maybe better as the composition of substitution and the existing simp_const(0) *)
-fun simp_const :: "aexp \<Rightarrow> tab \<Rightarrow> aexp" where
-"simp_const (N n) _ = N n" |
-"simp_const (V x) t = (case t x of None \<Rightarrow> V x | Some k \<Rightarrow> N k)" |
-"simp_const (Plus e1 e2) t = (case (simp_const e1 t, simp_const e2 t) of
+fun afold :: "aexp \<Rightarrow> tab \<Rightarrow> aexp" where
+"afold (N n) _ = N n" |
+"afold (V x) t = (case t x of None \<Rightarrow> V x | Some k \<Rightarrow> N k)" |
+"afold (Plus e1 e2) t = (case (afold e1 t, afold e2 t) of
   (N n1, N n2) \<Rightarrow> N(n1+n2) | (e1',e2') \<Rightarrow> Plus e1' e2')"
 
 definition "approx t s \<longleftrightarrow> (ALL x k. t x = Some k \<longrightarrow> s x = k)"
 
-theorem aval_simp_const[simp]:
+theorem aval_afold[simp]:
 assumes "approx t s"
-shows "aval (simp_const a t) s = aval a s"
+shows "aval (afold a t) s = aval a s"
   using assms
   by (induct a) (auto simp: approx_def split: aexp.split option.split)
 
-theorem aval_simp_const_N:
+theorem aval_afold_N:
 assumes "approx t s"
-shows "simp_const a t = N n \<Longrightarrow> aval a s = n"
+shows "afold a t = N n \<Longrightarrow> aval a s = n"
   using assms
   by (induct a arbitrary: n)
      (auto simp: approx_def split: aexp.splits option.splits)
@@ -42,14 +42,14 @@ primrec lnames :: "com \<Rightarrow> vname set" where
 primrec "defs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
 "defs SKIP t = t" |
 "defs (x ::= a) t =
-  (case simp_const a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
+  (case afold a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
 "defs (c1;c2) t = (defs c2 o defs c1) t" |
 "defs (IF b THEN c1 ELSE c2) t = merge (defs c1 t) (defs c2 t)" |
 "defs (WHILE b DO c) t = t |` (-lnames c)"
 
 primrec fold where
 "fold SKIP _ = SKIP" |
-"fold (x ::= a) t = (x ::= (simp_const a t))" |
+"fold (x ::= a) t = (x ::= (afold a t))" |
 "fold (c1;c2) t = (fold c1 t; fold c2 (defs c1 t))" |
 "fold (IF b THEN c1 ELSE c2) t = IF b THEN fold c1 t ELSE fold c2 t" |
 "fold (WHILE b DO c) t = WHILE b DO fold c (t |` (-lnames c))"
@@ -119,7 +119,7 @@ proof (induction arbitrary: t rule: big_step_induct)
 next
   case Assign
   thus ?case
-    by (clarsimp simp: aval_simp_const_N approx_def split: aexp.split)
+    by (clarsimp simp: aval_afold_N approx_def split: aexp.split)
 next
   case (Seq c1 s1 s2 c2 s3)
   have "approx (defs c1 t) s2" by (rule Seq.IH(1)[OF Seq.prems])
@@ -221,15 +221,15 @@ theorem constant_folding_equiv:
 subsection {* More ambitious folding including boolean expressions *}
 
 
-fun bsimp_const :: "bexp \<Rightarrow> tab \<Rightarrow> bexp" where
-"bsimp_const (Less a1 a2) t = less (simp_const a1 t) (simp_const a2 t)" |
-"bsimp_const (And b1 b2) t = and (bsimp_const b1 t) (bsimp_const b2 t)" |
-"bsimp_const (Not b) t = not(bsimp_const b t)" |
-"bsimp_const (Bc bc) _ = Bc bc"
+fun bfold :: "bexp \<Rightarrow> tab \<Rightarrow> bexp" where
+"bfold (Less a1 a2) t = less (afold a1 t) (afold a2 t)" |
+"bfold (And b1 b2) t = and (bfold b1 t) (bfold b2 t)" |
+"bfold (Not b) t = not(bfold b t)" |
+"bfold (Bc bc) _ = Bc bc"
 
-theorem bvalsimp_const [simp]:
+theorem bval_bfold [simp]:
   assumes "approx t s"
-  shows "bval (bsimp_const b t) s = bval b s"
+  shows "bval (bfold b t) s = bval b s"
   using assms by (induct b) auto
 
 lemma not_Bc [simp]: "not (Bc v) = Bc (\<not>v)"
@@ -248,38 +248,38 @@ lemma less_Bc_eq [simp]:
   "(less a b = Bc v) = (\<exists>n1 n2. a = N n1 \<and> b = N n2 \<and> v = (n1 < n2))"
   by (rule less.induct) auto
 
-theorem bvalsimp_const_Bc:
+theorem bval_bfold_Bc:
 assumes "approx t s"
-shows "bsimp_const b t = Bc v \<Longrightarrow> bval b s = v"
+shows "bfold b t = Bc v \<Longrightarrow> bval b s = v"
   using assms
   by (induct b arbitrary: v)
-     (auto simp: approx_def and_Bc_eq aval_simp_const_N
+     (auto simp: approx_def and_Bc_eq aval_afold_N
            split: bexp.splits bool.splits)
 
 
 primrec "bdefs" :: "com \<Rightarrow> tab \<Rightarrow> tab" where
 "bdefs SKIP t = t" |
 "bdefs (x ::= a) t =
-  (case simp_const a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
+  (case afold a t of N k \<Rightarrow> t(x \<mapsto> k) | _ \<Rightarrow> t(x:=None))" |
 "bdefs (c1;c2) t = (bdefs c2 o bdefs c1) t" |
-"bdefs (IF b THEN c1 ELSE c2) t = (case bsimp_const b t of
+"bdefs (IF b THEN c1 ELSE c2) t = (case bfold b t of
     Bc True \<Rightarrow> bdefs c1 t
   | Bc False \<Rightarrow> bdefs c2 t
   | _ \<Rightarrow> merge (bdefs c1 t) (bdefs c2 t))" |
 "bdefs (WHILE b DO c) t = t |` (-lnames c)"
 
 
-primrec bfold where
-"bfold SKIP _ = SKIP" |
-"bfold (x ::= a) t = (x ::= (simp_const a t))" |
-"bfold (c1;c2) t = (bfold c1 t; bfold c2 (bdefs c1 t))" |
-"bfold (IF b THEN c1 ELSE c2) t = (case bsimp_const b t of
-    Bc True \<Rightarrow> bfold c1 t
-  | Bc False \<Rightarrow> bfold c2 t
-  | _ \<Rightarrow> IF bsimp_const b t THEN bfold c1 t ELSE bfold c2 t)" |
-"bfold (WHILE b DO c) t = (case bsimp_const b t of
+primrec fold' where
+"fold' SKIP _ = SKIP" |
+"fold' (x ::= a) t = (x ::= (afold a t))" |
+"fold' (c1;c2) t = (fold' c1 t; fold' c2 (bdefs c1 t))" |
+"fold' (IF b THEN c1 ELSE c2) t = (case bfold b t of
+    Bc True \<Rightarrow> fold' c1 t
+  | Bc False \<Rightarrow> fold' c2 t
+  | _ \<Rightarrow> IF bfold b t THEN fold' c1 t ELSE fold' c2 t)" |
+"fold' (WHILE b DO c) t = (case bfold b t of
     Bc False \<Rightarrow> SKIP
-  | _ \<Rightarrow> WHILE bsimp_const b (t |` (-lnames c)) DO bfold c (t |` (-lnames c)))"
+  | _ \<Rightarrow> WHILE bfold b (t |` (-lnames c)) DO fold' c (t |` (-lnames c)))"
 
 
 lemma bdefs_restrict:
@@ -324,7 +324,7 @@ proof (induction arbitrary: t rule: big_step_induct)
 next
   case Assign
   thus ?case
-    by (clarsimp simp: aval_simp_const_N approx_def split: aexp.split)
+    by (clarsimp simp: aval_afold_N approx_def split: aexp.split)
 next
   case (Seq c1 s1 s2 c2 s3)
   have "approx (bdefs c1 t) s2" by (rule Seq.IH(1)[OF Seq.prems])
@@ -334,18 +334,18 @@ next
   case (IfTrue b s c1 s')
   hence "approx (bdefs c1 t) s'" by simp
   thus ?case using `bval b s` `approx t s`
-    by (clarsimp simp: approx_merge bvalsimp_const_Bc
+    by (clarsimp simp: approx_merge bval_bfold_Bc
                  split: bexp.splits bool.splits)
 next
   case (IfFalse b s c2 s')
   hence "approx (bdefs c2 t) s'" by simp
   thus ?case using `\<not>bval b s` `approx t s`
-    by (clarsimp simp: approx_merge bvalsimp_const_Bc
+    by (clarsimp simp: approx_merge bval_bfold_Bc
                  split: bexp.splits bool.splits)
 next
   case WhileFalse
   thus ?case
-    by (clarsimp simp: bvalsimp_const_Bc approx_def restrict_map_def
+    by (clarsimp simp: bval_bfold_Bc approx_def restrict_map_def
                  split: bexp.splits bool.splits)
 next
   case (WhileTrue b s1 c s2 s3)
@@ -357,8 +357,8 @@ next
     by (simp add: bdefs_restrict)
 qed
 
-lemma bfold_equiv:
-  "approx t \<Turnstile> c \<sim> bfold c t"
+lemma fold'_equiv:
+  "approx t \<Turnstile> c \<sim> fold' c t"
 proof (induction c arbitrary: t)
   case SKIP show ?case by simp
 next
@@ -370,17 +370,17 @@ next
 next
   case (If b c1 c2)
   hence "approx t \<Turnstile> IF b THEN c1 ELSE c2 \<sim>
-                   IF Fold.bsimp_const b t THEN bfold c1 t ELSE bfold c2 t"
+                   IF bfold b t THEN fold' c1 t ELSE fold' c2 t"
     by (auto intro: equiv_up_to_if_weak simp: bequiv_up_to_def)
   thus ?case using If
-    by (fastforce simp: bvalsimp_const_Bc split: bexp.splits bool.splits
+    by (fastforce simp: bval_bfold_Bc split: bexp.splits bool.splits
                  intro: equiv_up_to_trans)
   next
   case (While b c)
   hence "approx (t |` (- lnames c)) \<Turnstile>
                    WHILE b DO c \<sim>
-                   WHILE bsimp_const b (t |` (- lnames c))
-                      DO bfold c (t |` (- lnames c))" (is "_ \<Turnstile> ?W \<sim> ?W'")
+                   WHILE bfold b (t |` (- lnames c))
+                      DO fold' c (t |` (- lnames c))" (is "_ \<Turnstile> ?W \<sim> ?W'")
     by (auto intro: equiv_up_to_while_weak big_step_pres_approx_restrict
              simp: bequiv_up_to_def)
   hence "approx t \<Turnstile> ?W \<sim> ?W'"
@@ -388,13 +388,13 @@ next
   thus ?case
     by (auto split: bexp.splits bool.splits
              intro: equiv_up_to_while_False
-             simp: bvalsimp_const_Bc)
+             simp: bval_bfold_Bc)
 qed
 
 
-theorem constant_bfolding_equiv:
-  "bfold c empty \<sim> c"
-  using bfold_equiv [of empty c]
+theorem constant_folding_equiv':
+  "fold' c empty \<sim> c"
+  using fold'_equiv [of empty c]
   by (simp add: equiv_up_to_True equiv_sym)
 
 
