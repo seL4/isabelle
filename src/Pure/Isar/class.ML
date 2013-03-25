@@ -161,34 +161,50 @@ fun print_classes ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
+
+    val class_space = Proof_Context.class_space ctxt;
+    val type_space = Proof_Context.type_space ctxt;
+    val const_space = Proof_Context.const_space ctxt;
+
     val arities =
       Symtab.empty
       |> Symtab.fold (fn (tyco, arities) => fold (fn (class, _) =>
            Symtab.map_default (class, []) (insert (op =) tyco)) arities)
              (Sorts.arities_of algebra);
-    val the_arities = these o Symtab.lookup arities;
-    fun mk_arity class tyco =
+
+    fun prt_supersort class =
+      Syntax.pretty_sort ctxt (Sign.minimize_sort thy (Sign.super_classes thy class));
+
+    fun prt_arity class tyco =
       let
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
-    fun mk_param (c, ty) =
-      Pretty.str (Proof_Context.extern_const ctxt c ^ " :: " ^
-        Syntax.string_of_typ ctxt (Type.strip_sorts_dummy ty));
-    fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
-      (SOME o Pretty.str) ("class " ^ Proof_Context.extern_class ctxt class ^ ":"),
-      (SOME o Pretty.block) [Pretty.str "supersort: ",
-        (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
-      ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks)
-          (Pretty.str "parameters:" :: ps)) o map mk_param
-        o these o Option.map #params o try (AxClass.get_info thy)) class,
-      (SOME o Pretty.block o Pretty.breaks) [
-        Pretty.str "instances:",
-        Pretty.list "" "" (map (mk_arity class) (the_arities class))
-      ]
-    ]
+
+    fun prt_param (c, ty) =
+      Pretty.block
+       [Pretty.mark_str (Name_Space.markup_extern ctxt const_space c), Pretty.str " ::",
+        Pretty.brk 1, Syntax.pretty_typ ctxt (Type.strip_sorts_dummy ty)];
+
+    fun prt_entry class =
+      Pretty.block
+        ([Pretty.command "class", Pretty.brk 1,
+          Pretty.mark_str (Name_Space.markup_extern ctxt class_space class), Pretty.str ":",
+          Pretty.fbrk, Pretty.block [Pretty.str "supersort: ", prt_supersort class]] @
+          (case try (AxClass.get_info thy) class of
+            NONE => []
+          | SOME {params, ...} =>
+              [Pretty.fbrk, Pretty.big_list "parameters:" (map prt_param params)]) @
+          (case Symtab.lookup arities class of
+            NONE => []
+          | SOME ars =>
+              [Pretty.fbrk, Pretty.big_list "instances:"
+                (map (prt_arity class) (sort (Name_Space.extern_ord ctxt type_space) ars))]));
   in
-    (Pretty.writeln o Pretty.chunks o separate (Pretty.str "")
-      o map mk_entry o Sorts.all_classes) algebra
+    Sorts.all_classes algebra
+    |> sort (Name_Space.extern_ord ctxt class_space)
+    |> map prt_entry
+    |> Pretty.chunks2
+    |> Pretty.writeln
   end;
 
 
