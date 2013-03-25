@@ -122,8 +122,7 @@ fun pretty_full_theory verbose thy =
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block
-          (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 ::
-            Pretty.commas (map prt_cls cs));
+          (prt_cls c :: Pretty.str " <" :: Pretty.brk 1 :: Pretty.commas (map prt_cls cs));
 
     fun pretty_default S = Pretty.block
       [Pretty.str "default sort:", Pretty.brk 1, prt_sort S];
@@ -171,7 +170,8 @@ fun pretty_full_theory verbose thy =
     val arities = Sorts.arities_of class_algebra;
 
     val clsses =
-      Name_Space.dest_table ctxt (class_space, Symtab.make (map (apfst fst) (Graph.dest classes)));
+      Name_Space.dest_table ctxt (class_space,
+        Symtab.make (map (fn ((c, _), cs) => (c, Sign.minimize_sort thy cs)) (Graph.dest classes)));
     val tdecls = Name_Space.dest_table ctxt types;
     val arties = Name_Space.dest_table ctxt (Type.type_space tsig, arities);
 

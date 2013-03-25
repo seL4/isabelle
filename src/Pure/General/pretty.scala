@@ -31,14 +31,12 @@ object Pretty
   abstract class Metric
   {
     val unit: Double
-    def average: Double
     def apply(s: String): Double
   }
 
   object Metric_Default extends Metric
   {
     val unit = 1.0
-    val average = 1.0
     def apply(s: String): Double = s.length.toDouble
   }
 

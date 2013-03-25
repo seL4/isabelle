@@ -31,6 +31,8 @@ sig
   val names_unique_raw: Config.raw
   val names_unique: bool Config.T
   val extern: Proof.context -> T -> string -> xstring
+  val extern_ord: Proof.context -> T -> string * string -> order
+  val markup_extern: Proof.context -> T -> string -> Markup.T * xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
@@ -193,6 +195,10 @@ fun extern ctxt space name =
     else if names_short then Long_Name.base_name name
     else ext (get_accesses space name)
   end;
+
+fun extern_ord ctxt space = string_ord o pairself (extern ctxt space);
+
+fun markup_extern ctxt space name = (markup space name, extern ctxt space name);
 
 
 (* modify internals *)

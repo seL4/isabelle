@@ -211,7 +211,7 @@ then
       isabelle_scala scalac $SCALAC_OPTIONS "${PIDE_SOURCES[@]}" "${PURE_SOURCES[@]}" || \
         fail "Failed to compile sources"
     fi
-  )
+  ) || exit "$?"
 
   mkdir -p "$TARGET_DIR/ext" || fail "Failed to create directory $TARGET_DIR/ext"
 

@@ -168,7 +168,12 @@ fun markup_chunks m prts = markup m (fbreaks (map (mark Markup.text_fold) prts))
 val chunks = markup_chunks Markup.empty;
 
 fun chunks2 prts =
-  blk (0, flat (Library.separate [fbrk, fbrk] (map (single o mark Markup.text_fold) prts)));
+  (case try split_last prts of
+    NONE => blk (0, [])
+  | SOME (prefix, last) =>
+      blk (0,
+        maps (fn prt => [markup Markup.text_fold [prt, fbrk], fbrk]) prefix @
+        [mark Markup.text_fold last]));
 
 fun block_enclose (prt1, prt2) prts = chunks [block (fbreaks (prt1 :: prts)), prt2];
 
