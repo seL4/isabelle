@@ -68,42 +68,10 @@ constructs univariate polynomials over rings and integral domains.
 	  Degree function.  Universal Property.
 </UL>
 
-<H2>Legacy Development of Rings using Axiomatic Type Classes</H2>
+<H2>Development of Polynomials using Type Classes</H2>
 
-<P>This development of univariate polynomials is separated into an
-abstract development of rings and the development of polynomials
-itself. The formalisation is based on [Jacobson1985], and polynomials
-have a sparse, mathematical representation. These theories were
-developed as a base for the integration of a computer algebra system
-to Isabelle [Ballarin1999], and was designed to match implementations
-of these domains in some typed computer algebra systems.  Summary:
-
-<P><EM>Rings:</EM>
-  Classes of rings are represented by axiomatic type classes. The
-  following are available:
-
-<PRE>
-  ring:		Commutative rings with one (including a summation
-		operator, which is needed for the polynomials)
-  domain:	Integral domains
-  factorial:	Factorial domains (divisor chain condition is missing)
-  pid:		Principal ideal domains
-  field:	Fields
-</PRE>
-
-  Also, some facts about ring homomorphisms and ideals are mechanised.
-
-<P><EM>Polynomials:</EM>
-  Polynomials have a natural, mathematical representation. Facts about
-  the following topics are provided:
-
-<MENU>
-<LI>Degree function
-<LI> Universal Property, evaluation homomorphism
-<LI>Long division (existence and uniqueness)
-<LI>Polynomials over a ring form a ring
-<LI>Polynomials over an integral domain form an integral domain
-</MENU>
+<P>A development of univariate polynomials for HOL's ring classes
+is available at <CODE>HOL/Library/Polynomial</CODE>.
 
 <P>[Jacobson1985] Nathan Jacobson, Basic Algebra I, Freeman, 1985.
 

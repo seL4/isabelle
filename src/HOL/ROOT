@@ -268,10 +268,6 @@ session "HOL-Algebra" (main) in Algebra = HOL +
     Divisibility         (* Rings *)
     IntRing              (* Ideals and residue classes *)
     UnivPoly             (* Polynomials *)
-  theories [document = false]
-    (*** Old development, based on axiomatic type classes ***)
-    "abstract/Abstract"  (*The ring theory*)
-    "poly/Polynomial"    (*The full theory*)
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Auth" in Auth = HOL +

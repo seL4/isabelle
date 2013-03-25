@@ -92,6 +92,14 @@ INCOMPATIBILITY.
       isar_shrink ~> isar_compress
 
 
+*** HOL-Algebra ***
+
+* Discontinued theories src/HOL/Algebra/abstract and .../poly.
+Existing theories should be based on src/HOL/Library/Polynomial
+instead.  The latter provides integration with HOL's type classes for
+rings.  INCOMPATIBILITY.
+
+
 *** System ***
 
 * Discontinued "isabelle usedir" option -P (remote path) and -r (reset
