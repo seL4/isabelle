@@ -75,7 +75,7 @@ proof -
    and "\<forall>x. (t2 |` S) x = (t |` S) x" by auto
   thus ?thesis
     by (auto simp: merge_def restrict_map_def
-             split: if_splits intro: ext)
+             split: if_splits)
 qed
 
 
@@ -205,7 +205,7 @@ qed
 
 lemma approx_empty [simp]:
   "approx empty = (\<lambda>_. True)"
-  by (auto intro!: ext simp: approx_def)
+  by (auto simp: approx_def)
 
 lemma equiv_sym:
   "c \<sim> c' \<longleftrightarrow> c' \<sim> c"
