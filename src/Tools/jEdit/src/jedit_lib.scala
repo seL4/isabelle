@@ -168,7 +168,7 @@ object JEdit_Lib
   // NB: last line lacks \n
   def gfx_range(text_area: TextArea, range: Text.Range): Option[Gfx_Range] =
   {
-    val metric = JEdit_Lib.pretty_metric(text_area.getPainter)
+    val metric = pretty_metric(text_area.getPainter)
     val char_width = (metric.unit * metric.average).round.toInt
 
     val buffer = text_area.getBuffer
@@ -208,14 +208,19 @@ object JEdit_Lib
 
   /* pretty text metric */
 
-  def string_width(painter: TextAreaPainter, s: String): Double =
-    painter.getFont.getStringBounds(s, painter.getFontRenderContext).getWidth
+  abstract class Pretty_Metric extends Pretty.Metric
+  {
+    def average: Double
+  }
 
-  def pretty_metric(painter: TextAreaPainter): Pretty.Metric =
-    new Pretty.Metric {
-      val unit = string_width(painter, Pretty.space)
-      val average = string_width(painter, "mix") / (3 * unit)
-      def apply(s: String): Double = if (s == "\n") 1.0 else string_width(painter, s) / unit
+  def pretty_metric(painter: TextAreaPainter): Pretty_Metric =
+    new Pretty_Metric {
+      def string_width(s: String): Double =
+        painter.getFont.getStringBounds(s, painter.getFontRenderContext).getWidth
+
+      val unit = string_width(Pretty.space)
+      val average = string_width("mix") / (3 * unit)
+      def apply(s: String): Double = if (s == "\n") 1.0 else string_width(s) / unit
     }
 }
 
