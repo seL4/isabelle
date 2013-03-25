@@ -757,6 +757,14 @@ text {* Interpreted versions *}
 lemma "0 = glob_one (op +)" by (rule int.def.one_def)
 lemma "- x = glob_inv(op +, x)" by (rule int.def.inv_def)
 
+text {* Roundup applies mixins at declaration level in DFS tree *}
+
+locale roundup = fixes x assumes true: "x <-> True"
+
+sublocale roundup \<subseteq> sub: roundup x where "x <-> True & True"
+  apply unfold_locales apply (simp add: true) done
+lemma (in roundup) "True & True <-> True" by (rule sub.true)
+
 
 section {* Interpretation in proofs *}
 

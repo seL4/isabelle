@@ -259,7 +259,7 @@ local
 
 val roundup_bound = 120;
 
-fun add thy depth stem export (name, morph, mixins) (deps, marked) =
+fun add thy depth stem export (name, morph) (deps, marked) =
   if depth > roundup_bound
   then error "Roundup bound exceeded (sublocale relation probably not terminating)."
   else
@@ -269,17 +269,16 @@ fun add thy depth stem export (name, morph, mixins) (deps, marked) =
       if redundant_ident thy marked (name, instance) then (deps, marked)
       else
         let
-          val full_morph = morph $> compose_mixins mixins $> stem;
           (* no inheritance of mixins, regardless of requests by clients *)
           val dependencies = dependencies_of thy name |>
             map (fn ((name', (morph', export')), serial') =>
-              (name', morph' $> export', mixins_of thy name serial'));
+              (name', morph' $> export' $> compose_mixins (mixins_of thy name serial')));
           val marked' = insert_idents (name, instance) marked;
           val (deps', marked'') =
-            fold_rev (add thy (depth + 1) full_morph export) dependencies
+            fold_rev (add thy (depth + 1) (morph $> stem) export) dependencies
               ([], marked');
         in
-          ((name, full_morph) :: deps' @ deps, marked'')
+          ((name, morph $> stem) :: deps' @ deps, marked'')
         end
     end;
 
@@ -293,7 +292,7 @@ fun roundup thy activate_dep export (name, morph) (marked, input) =
     (* Find all dependencies including new ones (which are dependencies enriching
       existing registrations). *)
     val (dependencies, marked') =
-      add thy 0 Morphism.identity export (name, morph, []) ([], empty_idents);
+      add thy 0 Morphism.identity export (name, morph) ([], empty_idents);
     (* Filter out fragments from marked; these won't be activated. *)
     val dependencies' = filter_out (fn (name, morph) =>
       redundant_ident thy marked (name, instance_of thy name (morph $> export))) dependencies;
