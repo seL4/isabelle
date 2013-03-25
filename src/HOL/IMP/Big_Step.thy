@@ -78,8 +78,8 @@ subsection "Rule inversion"
 text{* What can we deduce from @{prop "(SKIP,s) \<Rightarrow> t"} ?
 That @{prop "s = t"}. This is how we can automatically prove it: *}
 
-inductive_cases skipE[elim!]: "(SKIP,s) \<Rightarrow> t"
-thm skipE
+inductive_cases SkipE[elim!]: "(SKIP,s) \<Rightarrow> t"
+thm SkipE
 
 text{* This is an \emph{elimination rule}. The [elim] attribute tells auto,
 blast and friends (but not simp!) to use it automatically; [elim!] means that
@@ -215,6 +215,16 @@ lemma commute_if:
    \<sim> 
    (IF b2 THEN (IF b1 THEN c11 ELSE c2) ELSE (IF b1 THEN c12 ELSE c2))"
 by blast
+
+lemma sim_while_cong_aux:
+  "(WHILE b DO c,s) \<Rightarrow> t  \<Longrightarrow> c \<sim> c' \<Longrightarrow>  (WHILE b DO c',s) \<Rightarrow> t"
+apply(induction "WHILE b DO c" s t arbitrary: b c rule: big_step_induct)
+ apply blast
+apply blast
+done
+
+lemma sim_while_cong: "c \<sim> c' \<Longrightarrow> WHILE b DO c \<sim> WHILE b DO c'"
+by (metis sim_while_cong_aux)
 
 
 subsection "Execution is deterministic"
