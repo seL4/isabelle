@@ -1545,24 +1545,30 @@ proof (cases "n = 0")
 qed simp
 
 interpretation gcd_lcm_complete_lattice_nat:
-  complete_lattice Gcd Lcm gcd "op dvd" "\<lambda>m n::nat. m dvd n \<and> \<not> n dvd m" lcm 1 0
-proof
-  case goal1 show ?case by simp
-next
-  case goal2 show ?case by simp
-next
-  case goal5 thus ?case by (rule dvd_Lcm_nat)
-next
-  case goal6 thus ?case by simp
-next
-  case goal3 thus ?case by (simp add: Gcd_nat_def)
-next
-  case goal4 thus ?case by (simp add: Gcd_nat_def)
+  complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat"
+where
+  "complete_lattice.INFI Gcd A f = Gcd (f ` A :: nat set)"
+  and "complete_lattice.SUPR Lcm A f = Lcm (f ` A)"
+proof -
+  show "class.complete_lattice Gcd Lcm gcd Rings.dvd (\<lambda>m n. m dvd n \<and> \<not> n dvd m) lcm 1 (0::nat)"
+  proof
+    case goal1 show ?case by simp
+  next
+    case goal2 show ?case by simp
+  next
+    case goal5 thus ?case by (rule dvd_Lcm_nat)
+  next
+    case goal6 thus ?case by simp
+  next
+    case goal3 thus ?case by (simp add: Gcd_nat_def)
+  next
+    case goal4 thus ?case by (simp add: Gcd_nat_def)
+  qed
+  then interpret gcd_lcm_complete_lattice_nat:
+    complete_lattice Gcd Lcm gcd Rings.dvd "\<lambda>m n. m dvd n \<and> \<not> n dvd m" lcm 1 "0::nat" .
+  from gcd_lcm_complete_lattice_nat.INF_def show "complete_lattice.INFI Gcd A f = Gcd (f ` A)" .
+  from gcd_lcm_complete_lattice_nat.SUP_def show "complete_lattice.SUPR Lcm A f = Lcm (f ` A)" .
 qed
-(* bh: This interpretation generates many lemmas about
-"complete_lattice.SUPR Lcm" and "complete_lattice.INFI Gcd".
-Should we define binder versions of LCM and GCD to correspond
-with these? *)
 
 lemma Lcm_empty_nat: "Lcm {} = (1::nat)"
   by (fact gcd_lcm_complete_lattice_nat.Sup_empty) (* already simp *)
@@ -1717,11 +1723,12 @@ lemma dvd_Gcd_int[simp]:
   using assms by (simp add: Gcd_int_def dvd_int_iff)
 
 lemma Lcm_set_int [code_unfold]:
-  "Lcm (set xs) = foldl lcm (1::int) xs"
+  "Lcm (set xs) = fold lcm xs (1::int)"
   by (induct xs rule: rev_induct, simp_all add: lcm_commute_int)
 
 lemma Gcd_set_int [code_unfold]:
-  "Gcd (set xs) = foldl gcd (0::int) xs"
+  "Gcd (set xs) = fold gcd xs (0::int)"
   by (induct xs rule: rev_induct, simp_all add: gcd_commute_int)
 
 end
+
