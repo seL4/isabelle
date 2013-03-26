@@ -21,39 +21,6 @@ lemma abs_diff_less_iff:
 subsection {* Completeness of Positive Reals *}
 
 text {*
-  Supremum property for the set of positive reals
-
-  Let @{text "P"} be a non-empty set of positive reals, with an upper
-  bound @{text "y"}.  Then @{text "P"} has a least upper bound
-  (written @{text "S"}).
-
-  FIXME: Can the premise be weakened to @{text "\<forall>x \<in> P. x\<le> y"}?
-*}
-
-text {* Only used in HOL/Import/HOL4Compat.thy; delete? *}
-
-lemma posreal_complete:
-  fixes P :: "real set"
-  assumes not_empty_P: "\<exists>x. x \<in> P"
-    and upper_bound_Ex: "\<exists>y. \<forall>x \<in> P. x<y"
-  shows "\<exists>S. \<forall>y. (\<exists>x \<in> P. y < x) = (y < S)"
-proof -
-  from upper_bound_Ex have "\<exists>z. \<forall>x\<in>P. x \<le> z"
-    by (auto intro: less_imp_le)
-  from complete_real [OF not_empty_P this] obtain S
-  where S1: "\<And>x. x \<in> P \<Longrightarrow> x \<le> S" and S2: "\<And>z. \<forall>x\<in>P. x \<le> z \<Longrightarrow> S \<le> z" by fast
-  have "\<forall>y. (\<exists>x \<in> P. y < x) = (y < S)"
-  proof
-    fix y show "(\<exists>x\<in>P. y < x) = (y < S)"
-      apply (cases "\<exists>x\<in>P. y < x", simp_all)
-      apply (clarify, drule S1, simp)
-      apply (simp add: not_less S2)
-      done
-  qed
-  thus ?thesis ..
-qed
-
-text {*
   \medskip Completeness properties using @{text "isUb"}, @{text "isLub"} etc.
 *}
 
@@ -68,16 +35,8 @@ text {*
   \medskip reals Completeness (again!)
 *}
 
-lemma reals_complete:
-  assumes notempty_S: "\<exists>X. X \<in> S"
-    and exists_Ub: "\<exists>Y. isUb (UNIV::real set) S Y"
-  shows "\<exists>t. isLub (UNIV :: real set) S t"
-proof -
-  from assms have "\<exists>X. X \<in> S" and "\<exists>Y. \<forall>x\<in>S. x \<le> Y"
-    unfolding isUb_def setle_def by simp_all
-  from complete_real [OF this] show ?thesis
-    by (simp add: isLub_def leastP_def isUb_def setle_def setge_def)
-qed
+lemma reals_complete: "\<exists>X. X \<in> S \<Longrightarrow> \<exists>Y. isUb (UNIV::real set) S Y \<Longrightarrow> \<exists>t. isLub (UNIV :: real set) S t"
+  by (intro exI[of _ "Sup S"] isLub_cSup) (auto simp: setle_def isUb_def intro: cSup_upper)
 
 
 subsection {* The Archimedean Property of the Reals *}
