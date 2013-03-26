@@ -5,7 +5,7 @@
 header {* Filters and Limits *}
 
 theory Limits
-imports RealVector
+imports Real_Vector_Spaces
 begin
 
 definition at_infinity :: "'a::real_normed_vector filter" where

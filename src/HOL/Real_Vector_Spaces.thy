@@ -1,10 +1,10 @@
-(*  Title:      HOL/RealVector.thy
+(*  Title:      HOL/Real_Vector_Spaces.thy
     Author:     Brian Huffman
 *)
 
 header {* Vector Spaces and Algebras over the Reals *}
 
-theory RealVector
+theory Real_Vector_Spaces
 imports Metric_Spaces
 begin
 
