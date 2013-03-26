@@ -8,8 +8,7 @@ declare [[quickcheck_finite_types = false]]
 
 find_unused_assms Divides
 find_unused_assms GCD
-find_unused_assms RealDef
-find_unused_assms RComplete
+find_unused_assms Real
 
 section {* Set Theory *}
 

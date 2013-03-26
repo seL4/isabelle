@@ -572,7 +572,7 @@ val code_naturalT = Type ("Code_Numeral.natural", []);
 
 (* real *)
 
-val realT = Type ("RealDef.real", []);
+val realT = Type ("Real.real", []);
 
 
 (* list *)

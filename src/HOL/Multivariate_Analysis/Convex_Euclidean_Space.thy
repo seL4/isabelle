@@ -468,7 +468,7 @@ next
           u x *\<^sub>R x + (1 - u x) *\<^sub>R ((\<Sum>xa\<in>s - {x}. u xa *\<^sub>R xa) /\<^sub>R (1 - u x)) \<in> V"
         apply -
         apply (rule as(3)[rule_format])
-        unfolding  RealVector.scaleR_right.setsum
+        unfolding  Real_Vector_Spaces.scaleR_right.setsum
         using x(1) as(6) apply auto
         done
       then show "(\<Sum>x\<in>s. u x *\<^sub>R x) \<in> V"
@@ -530,7 +530,7 @@ next
       apply (rule_tac x="sx \<union> sy" in exI)
       apply (rule_tac x="\<lambda>a. (if a\<in>sx then u * ux a else 0) + (if a\<in>sy then v * uy a else 0)" in exI)
       unfolding scaleR_left_distrib setsum_addf if_smult scaleR_zero_left ** setsum_restrict_set[OF xy, symmetric]
-      unfolding scaleR_scaleR[symmetric] RealVector.scaleR_right.setsum [symmetric] and setsum_right_distrib[symmetric]
+      unfolding scaleR_scaleR[symmetric] Real_Vector_Spaces.scaleR_right.setsum [symmetric] and setsum_right_distrib[symmetric]
       unfolding x y
       using x(1-3) y(1-3) uv apply simp
       done
@@ -2848,7 +2848,7 @@ proof-
   obtain e2 where e2_def: "e2>0 & cball z e2 Int affine hull (f ` S) <= (f ` S)"
     using z_def rel_interior_cball[of "f ` S"] by auto
   obtain K where K_def: "K>0 & (! x. norm (f x) <= norm x * K)"
-   using assms RealVector.bounded_linear.pos_bounded[of f] by auto
+   using assms Real_Vector_Spaces.bounded_linear.pos_bounded[of f] by auto
   def e1 == "1/K" hence e1_def: "e1>0 & (! x. e1 * norm (f x) <= norm x)"
    using K_def pos_le_divide_eq[of e1] by auto
   def e == "e1 * e2" hence "e>0" using e1_def e2_def mult_pos_pos by auto

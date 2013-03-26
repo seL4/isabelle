@@ -6,7 +6,7 @@
 header{* Limits and Continuity (Nonstandard) *}
 
 theory HLim
-imports Star Lim
+imports Star
 begin
 
 text{*Nonstandard Definitions*}

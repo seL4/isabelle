@@ -6,7 +6,7 @@
 header {* Topological Spaces *}
 
 theory Topological_Spaces
-imports Main
+imports Main Conditional_Complete_Lattices
 begin
 
 subsection {* Topological space *}
@@ -2060,6 +2060,181 @@ proof (rule connectedI)
   qed (insert A' B' A B, auto)
   with `connected s` show False
     unfolding connected_def by blast
+qed
+
+
+section {* Connectedness *}
+
+class linear_continuum_topology = linorder_topology + conditional_complete_linorder + inner_dense_linorder
+begin
+
+lemma Inf_notin_open:
+  assumes A: "open A" and bnd: "\<forall>a\<in>A. x < a"
+  shows "Inf A \<notin> A"
+proof
+  assume "Inf A \<in> A"
+  then obtain b where "b < Inf A" "{b <.. Inf A} \<subseteq> A"
+    using open_left[of A "Inf A" x] assms by auto
+  with dense[of b "Inf A"] obtain c where "c < Inf A" "c \<in> A"
+    by (auto simp: subset_eq)
+  then show False
+    using cInf_lower[OF `c \<in> A`, of x] bnd by (metis less_imp_le not_le)
+qed
+
+lemma Sup_notin_open:
+  assumes A: "open A" and bnd: "\<forall>a\<in>A. a < x"
+  shows "Sup A \<notin> A"
+proof
+  assume "Sup A \<in> A"
+  then obtain b where "Sup A < b" "{Sup A ..< b} \<subseteq> A"
+    using open_right[of A "Sup A" x] assms by auto
+  with dense[of "Sup A" b] obtain c where "Sup A < c" "c \<in> A"
+    by (auto simp: subset_eq)
+  then show False
+    using cSup_upper[OF `c \<in> A`, of x] bnd by (metis less_imp_le not_le)
+qed
+
+end
+
+lemma connectedI_interval:
+  fixes U :: "'a :: linear_continuum_topology set"
+  assumes *: "\<And>x y z. x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x \<le> z \<Longrightarrow> z \<le> y \<Longrightarrow> z \<in> U"
+  shows "connected U"
+proof (rule connectedI)
+  { fix A B assume "open A" "open B" "A \<inter> B \<inter> U = {}" "U \<subseteq> A \<union> B"
+    fix x y assume "x < y" "x \<in> A" "y \<in> B" "x \<in> U" "y \<in> U"
+
+    let ?z = "Inf (B \<inter> {x <..})"
+
+    have "x \<le> ?z" "?z \<le> y"
+      using `y \<in> B` `x < y` by (auto intro: cInf_lower[where z=x] cInf_greatest)
+    with `x \<in> U` `y \<in> U` have "?z \<in> U"
+      by (rule *)
+    moreover have "?z \<notin> B \<inter> {x <..}"
+      using `open B` by (intro Inf_notin_open) auto
+    ultimately have "?z \<in> A"
+      using `x \<le> ?z` `A \<inter> B \<inter> U = {}` `x \<in> A` `U \<subseteq> A \<union> B` by auto
+
+    { assume "?z < y"
+      obtain a where "?z < a" "{?z ..< a} \<subseteq> A"
+        using open_right[OF `open A` `?z \<in> A` `?z < y`] by auto
+      moreover obtain b where "b \<in> B" "x < b" "b < min a y"
+        using cInf_less_iff[of "B \<inter> {x <..}" x "min a y"] `?z < a` `?z < y` `x < y` `y \<in> B`
+        by (auto intro: less_imp_le)
+      moreover then have "?z \<le> b"
+        by (intro cInf_lower[where z=x]) auto
+      moreover have "b \<in> U"
+        using `x \<le> ?z` `?z \<le> b` `b < min a y`
+        by (intro *[OF `x \<in> U` `y \<in> U`]) (auto simp: less_imp_le)
+      ultimately have "\<exists>b\<in>B. b \<in> A \<and> b \<in> U"
+        by (intro bexI[of _ b]) auto }
+    then have False
+      using `?z \<le> y` `?z \<in> A` `y \<in> B` `y \<in> U` `A \<inter> B \<inter> U = {}` unfolding le_less by blast }
+  note not_disjoint = this
+
+  fix A B assume AB: "open A" "open B" "U \<subseteq> A \<union> B" "A \<inter> B \<inter> U = {}"
+  moreover assume "A \<inter> U \<noteq> {}" then obtain x where x: "x \<in> U" "x \<in> A" by auto
+  moreover assume "B \<inter> U \<noteq> {}" then obtain y where y: "y \<in> U" "y \<in> B" by auto
+  moreover note not_disjoint[of B A y x] not_disjoint[of A B x y]
+  ultimately show False by (cases x y rule: linorder_cases) auto
+qed
+
+lemma connected_iff_interval:
+  fixes U :: "'a :: linear_continuum_topology set"
+  shows "connected U \<longleftrightarrow> (\<forall>x\<in>U. \<forall>y\<in>U. \<forall>z. x \<le> z \<longrightarrow> z \<le> y \<longrightarrow> z \<in> U)"
+  by (auto intro: connectedI_interval dest: connectedD_interval)
+
+lemma connected_UNIV[simp]: "connected (UNIV::'a::linear_continuum_topology set)"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ioi[simp]: "connected {a::'a::linear_continuum_topology <..}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ici[simp]: "connected {a::'a::linear_continuum_topology ..}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Iio[simp]: "connected {..< a::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Iic[simp]: "connected {.. a::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ioo[simp]: "connected {a <..< b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ioc[simp]: "connected {a <.. b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Ico[simp]: "connected {a ..< b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_Icc[simp]: "connected {a .. b::'a::linear_continuum_topology}"
+  unfolding connected_iff_interval by auto
+
+lemma connected_contains_Ioo: 
+  fixes A :: "'a :: linorder_topology set"
+  assumes A: "connected A" "a \<in> A" "b \<in> A" shows "{a <..< b} \<subseteq> A"
+  using connectedD_interval[OF A] by (simp add: subset_eq Ball_def less_imp_le)
+
+subsection {* Intermediate Value Theorem *}
+
+lemma IVT':
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes y: "f a \<le> y" "y \<le> f b" "a \<le> b"
+  assumes *: "continuous_on {a .. b} f"
+  shows "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+proof -
+  have "connected {a..b}"
+    unfolding connected_iff_interval by auto
+  from connected_continuous_image[OF * this, THEN connectedD_interval, of "f a" "f b" y] y
+  show ?thesis
+    by (auto simp add: atLeastAtMost_def atLeast_def atMost_def)
+qed
+
+lemma IVT2':
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes y: "f b \<le> y" "y \<le> f a" "a \<le> b"
+  assumes *: "continuous_on {a .. b} f"
+  shows "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+proof -
+  have "connected {a..b}"
+    unfolding connected_iff_interval by auto
+  from connected_continuous_image[OF * this, THEN connectedD_interval, of "f b" "f a" y] y
+  show ?thesis
+    by (auto simp add: atLeastAtMost_def atLeast_def atMost_def)
+qed
+
+lemma IVT:
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  shows "f a \<le> y \<Longrightarrow> y \<le> f b \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+  by (rule IVT') (auto intro: continuous_at_imp_continuous_on)
+
+lemma IVT2:
+  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  shows "f b \<le> y \<Longrightarrow> y \<le> f a \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
+  by (rule IVT2') (auto intro: continuous_at_imp_continuous_on)
+
+lemma continuous_inj_imp_mono:
+  fixes f :: "'a::linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  assumes x: "a < x" "x < b"
+  assumes cont: "continuous_on {a..b} f"
+  assumes inj: "inj_on f {a..b}"
+  shows "(f a < f x \<and> f x < f b) \<or> (f b < f x \<and> f x < f a)"
+proof -
+  note I = inj_on_iff[OF inj]
+  { assume "f x < f a" "f x < f b"
+    then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f x < f s"
+      using IVT'[of f x "min (f a) (f b)" b] IVT2'[of f x "min (f a) (f b)" a] x
+      by (auto simp: continuous_on_subset[OF cont] less_imp_le)
+    with x I have False by auto }
+  moreover
+  { assume "f a < f x" "f b < f x"
+    then obtain s t where "x \<le> s" "s \<le> b" "a \<le> t" "t \<le> x" "f s = f t" "f s < f x"
+      using IVT'[of f a "max (f a) (f b)" x] IVT2'[of f b "max (f a) (f b)" x] x
+      by (auto simp: continuous_on_subset[OF cont] less_imp_le)
+    with x I have False by auto }
+  ultimately show ?thesis
+    using I[of a x] I[of x b] x less_trans[OF x] by (auto simp add: le_less less_imp_neq neq_iff)
 qed
 
 end

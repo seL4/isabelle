@@ -6,7 +6,7 @@
 header{*Infinite Numbers, Infinitesimals, Infinitely Close Relation*}
 
 theory NSA
-imports HyperDef RComplete
+imports HyperDef
 begin
 
 definition

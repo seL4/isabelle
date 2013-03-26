@@ -9,7 +9,7 @@
 header {* Sequences and Convergence (Nonstandard) *}
 
 theory HSEQ
-imports SEQ NatStar
+imports Limits NatStar
 begin
 
 definition
