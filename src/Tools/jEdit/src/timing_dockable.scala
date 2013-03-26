@@ -11,7 +11,7 @@ import isabelle._
 
 import scala.actors.Actor._
 import scala.swing.{FlowPanel, Label, ListView, Alignment, ScrollPane, Component, TextField}
-import scala.swing.event.{EditDone, MouseClicked}
+import scala.swing.event.{MouseClicked, ValueChanged}
 
 import java.lang.System
 import java.awt.{BorderLayout, Graphics2D, Insets, Color}
@@ -134,15 +134,16 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val threshold_value = new TextField(Time.print_seconds(timing_threshold)) {
     reactions += {
-      case EditDone(_) =>
+      case _: ValueChanged =>
         text match {
           case Properties.Value.Double(x) if x >= 0.0 => timing_threshold = x
           case _ =>
         }
-        text = Time.print_seconds(timing_threshold)
         handle_update()
     }
     tooltip = "Threshold for timing display (seconds)"
+    verifier = ((s: String) =>
+      s match { case Properties.Value.Double(x) => x >= 0.0 case _ => false })
   }
 
   private val controls = new FlowPanel(FlowPanel.Alignment.Right)(threshold_label, threshold_value)
