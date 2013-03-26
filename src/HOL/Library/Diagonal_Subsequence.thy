@@ -3,7 +3,7 @@
 header {* Sequence of Properties on Subsequences *}
 
 theory Diagonal_Subsequence
-imports SEQ
+imports Complex_Main
 begin
 
 locale subseqs =

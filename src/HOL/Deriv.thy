@@ -8,7 +8,7 @@
 header{* Differentiation *}
 
 theory Deriv
-imports Lim
+imports Limits
 begin
 
 text{*Standard Definitions*}
