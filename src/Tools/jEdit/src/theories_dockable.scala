@@ -30,7 +30,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
     reactions += {
       case MouseClicked(_, point, _, clicks, _) if clicks == 2 =>
         val index = peer.locationToIndex(point)
-        if (index >= 0) jEdit.openFile(view, listData(index).node)
+        if (index >= 0) Hyperlink(listData(index).node).follow(view)
     }
   }
   status.peer.setLayoutOrientation(JList.HORIZONTAL_WRAP)

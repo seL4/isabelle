@@ -16,7 +16,7 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 
 object Hyperlink
 {
-  def apply(jedit_file: String, line: Int, column: Int): Hyperlink =
+  def apply(jedit_file: String, line: Int = 0, column: Int = 0): Hyperlink =
     File_Link(jedit_file, line, column)
 }
 

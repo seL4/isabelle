@@ -46,14 +46,29 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         entry: Entry, index: Int): Component =
       {
         val component = Renderer_Component
-        component.text = Time.print_seconds(entry.timing) + "s " + entry.command.name
+        component.text = entry.print
         component
       }
     }
   }
 
-  private case class Entry(command: Command, timing: Double)
+  private abstract class Entry
   {
+    def timing: Double
+    def print: String
+    def follow(snapshot: Document.Snapshot)
+  }
+
+  private case class Theory_Entry(name: Document.Node.Name, timing: Double) extends Entry
+  {
+    def print: String = Time.print_seconds(timing) + "s theory " + quote(name.theory)
+    def follow(snapshot: Document.Snapshot): Unit = Hyperlink(name.node).follow(view)
+  }
+
+  private case class Command_Entry(command: Command, timing: Double) extends Entry
+  {
+    def print: String = "  " + Time.print_seconds(timing) + "s command " + quote(command.name)
+
     def follow(snapshot: Document.Snapshot)
     {
       val node = snapshot.version.nodes(command.node_name)
@@ -88,7 +103,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private var timing_threshold = PIDE.options.real("jedit_timing_threshold")
 
-  private val threshold_label = new Label("Timing threshold: ")
+  private val threshold_label = new Label("Threshold: ")
 
   private val threshold_value = new TextField(Time.print_seconds(timing_threshold)) {
     reactions += {
@@ -110,8 +125,29 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
   /* component state -- owned by Swing thread */
 
   private var nodes_timing = Map.empty[Document.Node.Name, Protocol.Node_Timing]
-  private var current_name = Document.Node.Name.empty
-  private var current_timing = Protocol.empty_node_timing
+
+  private def make_entries(): List[Entry] =
+  {
+    Swing_Thread.require()
+
+    val name =
+      Document_View(view.getTextArea) match {
+        case None => Document.Node.Name.empty
+        case Some(doc_view) => doc_view.model.name
+      }
+    val timing = nodes_timing.get(name) getOrElse Protocol.empty_node_timing
+
+    val theories =
+      (for {
+        (node_name, node_timing) <- nodes_timing.toList
+        if node_timing.total > timing_threshold
+      } yield Theory_Entry(node_name, node_timing.total)).sorted(Entry.Ordering)
+    val commands =
+      (for ((command, command_timing) <- timing.commands.toList)
+        yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
+
+    theories.flatMap(entry => entry :: (if (entry.name == name) commands else Nil))
+  }
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
   {
@@ -134,18 +170,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         })
       nodes_timing = nodes_timing1
 
-      Document_View(view.getTextArea) match {
-        case Some(doc_view) =>
-          val name = doc_view.model.name
-          val timing = nodes_timing.get(name) getOrElse Protocol.empty_node_timing
-          if (current_name != name || current_timing != timing) {
-            current_name = name
-            current_timing = timing
-            timing_view.listData =
-              timing.commands.toList.map(p => Entry(p._1, p._2)).sorted(Entry.Ordering)
-          }
-        case None =>
-      }
+      val entries = make_entries()
+      if (timing_view.listData.toList != entries) timing_view.listData = entries
     }
   }
 
