@@ -2783,8 +2783,8 @@ qed
 
 declare Inf_fin.set_eq_fold [code]
 declare Sup_fin.set_eq_fold [code]
-declare min_max.Inf_fin.set_eq_fold [code]
-declare min_max.Sup_fin.set_eq_fold [code]
+declare Min.set_eq_fold [code]
+declare Max.set_eq_fold [code]
 
 lemma (in complete_lattice) Inf_set_fold:
   "Inf (set xs) = fold inf xs top"

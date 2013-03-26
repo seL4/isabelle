@@ -689,6 +689,19 @@ qed
 end
 
 
+subsection {* @{text "min/max"} as special case of lattice *}
+
+sublocale linorder < min!: semilattice_order min less_eq less
+  + max!: semilattice_order max greater_eq greater
+  by default (auto simp add: min_def max_def)
+
+lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+  by (auto intro: antisym simp add: min_def fun_eq_iff)
+
+lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
+  by (auto intro: antisym simp add: max_def fun_eq_iff)
+
+
 subsection {* Uniqueness of inf and sup *}
 
 lemma (in semilattice_inf) inf_unique:

@@ -233,7 +233,7 @@ lemma sec_type2_sec_type': "\<turnstile> c : l \<Longrightarrow> l \<turnstile>'
 apply(induction rule: sec_type2.induct)
 apply (metis Skip')
 apply (metis Assign' eq_imp_le)
-apply (metis Seq' anti_mono' min_max.inf.commute min_max.inf_le2)
+apply (metis Seq' anti_mono' min_max.inf_le1 min_max.inf_le2)
 apply (metis If' anti_mono' min_max.inf_absorb2 min_max.le_iff_inf nat_le_linear)
 by (metis While')
 

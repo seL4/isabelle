@@ -1694,6 +1694,21 @@ definition (in linorder) Max :: "'a set \<Rightarrow> 'a"
 where
   "Max = semilattice_set.F max"
 
+sublocale linorder < Min!: semilattice_order_set min less_eq less
+  + Max!: semilattice_order_set max greater_eq greater
+where
+  "semilattice_set.F min = Min"
+  and "semilattice_set.F max = Max"
+proof -
+  show "semilattice_order_set min less_eq less" by default (auto simp add: min_def)
+  then interpret Min!: semilattice_order_set min less_eq less.
+  show "semilattice_order_set max greater_eq greater" by default (auto simp add: max_def)
+  then interpret Max!: semilattice_order_set max greater_eq greater .
+  from Min_def show "semilattice_set.F min = Min" by rule
+  from Max_def show "semilattice_set.F max = Max" by rule
+qed
+
+
 text {* An aside: @{const min}/@{const max} on linear orders as special case of @{const inf}/@{const sup} *}
 
 sublocale linorder < min_max!: distrib_lattice min less_eq less max
@@ -1714,20 +1729,14 @@ proof -
     by (simp only: min_max.Sup_fin_def Max_def)
 qed
 
-lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{semilattice_inf, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
-  by (rule ext)+ (auto intro: antisym)
-
-lemma sup_max: "sup = (max \<Colon> 'a\<Colon>{semilattice_sup, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
-  by (rule ext)+ (auto intro: antisym)
-
 lemmas le_maxI1 = min_max.sup_ge1
 lemmas le_maxI2 = min_max.sup_ge2
  
 lemmas min_ac = min_max.inf_assoc min_max.inf_commute
-  min_max.inf.left_commute
+  min.left_commute
 
 lemmas max_ac = min_max.sup_assoc min_max.sup_commute
-  min_max.sup.left_commute
+  max.left_commute
 
 
 text {* Lattice operations proper *}
@@ -1751,6 +1760,18 @@ proof -
   show "Sup_fin.F = Sup_fin"
     by (fact Sup_fin_def [symmetric])
 qed
+
+
+text {* An aside again: @{const Min}/@{const Max} on linear orders as special case of @{const Inf_fin}/@{const Sup_fin} *}
+
+lemma Inf_fin_Min:
+  "Inf_fin = (Min :: 'a::{semilattice_inf, linorder} set \<Rightarrow> 'a)"
+  by (simp add: Inf_fin_def Min_def inf_min)
+
+lemma Sup_fin_Max:
+  "Sup_fin = (Max :: 'a::{semilattice_sup, linorder} set \<Rightarrow> 'a)"
+  by (simp add: Sup_fin_def Max_def sup_max)
+
 
 
 subsection {* Infimum and Supremum over non-empty sets *}
@@ -1920,34 +1941,34 @@ proof -
   show ?thesis by (simp add: dual.Max_def dual_max Min_def)
 qed
 
-lemmas Min_singleton = min_max.Inf_fin.singleton
-lemmas Max_singleton = min_max.Sup_fin.singleton
-lemmas Min_insert = min_max.Inf_fin.insert
-lemmas Max_insert = min_max.Sup_fin.insert
-lemmas Min_Un = min_max.Inf_fin.union
-lemmas Max_Un = min_max.Sup_fin.union
-lemmas hom_Min_commute = min_max.Inf_fin.hom_commute
-lemmas hom_Max_commute = min_max.Sup_fin.hom_commute
+lemmas Min_singleton = Min.singleton
+lemmas Max_singleton = Max.singleton
+lemmas Min_insert = Min.insert
+lemmas Max_insert = Max.insert
+lemmas Min_Un = Min.union
+lemmas Max_Un = Max.union
+lemmas hom_Min_commute = Min.hom_commute
+lemmas hom_Max_commute = Max.hom_commute
 
 lemma Min_in [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Min A \<in> A"
-  using assms by (auto simp add: min_def min_max.Inf_fin.closed)
+  using assms by (auto simp add: min_def Min.closed)
 
 lemma Max_in [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<in> A"
-  using assms by (auto simp add: max_def min_max.Sup_fin.closed)
+  using assms by (auto simp add: max_def Max.closed)
 
 lemma Min_le [simp]:
   assumes "finite A" and "x \<in> A"
   shows "Min A \<le> x"
-  using assms by (fact min_max.Inf_fin.coboundedI)
+  using assms by (fact Min.coboundedI)
 
 lemma Max_ge [simp]:
   assumes "finite A" and "x \<in> A"
   shows "x \<le> Max A"
-  using assms by (fact min_max.Sup_fin.coboundedI)
+  using assms by (fact Max.coboundedI)
 
 lemma Min_eqI:
   assumes "finite A"
@@ -1976,12 +1997,12 @@ qed
 lemma Min_ge_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
-  using assms by (fact min_max.Inf_fin.bounded_iff)
+  using assms by (fact Min.bounded_iff)
 
 lemma Max_le_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
-  using assms by (fact min_max.Sup_fin.bounded_iff)
+  using assms by (fact Max.bounded_iff)
 
 lemma Min_gr_iff [simp, no_atp]:
   assumes "finite A" and "A \<noteq> {}"
@@ -2016,12 +2037,12 @@ lemma Max_gr_iff [no_atp]:
 lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Min N \<le> Min M"
-  using assms by (fact min_max.Inf_fin.antimono)
+  using assms by (fact Min.antimono)
 
 lemma Max_mono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Max M \<le> Max N"
-  using assms by (fact min_max.Sup_fin.antimono)
+  using assms by (fact Max.antimono)
 
 lemma mono_Min_commute:
   assumes "mono f"
@@ -2130,6 +2151,29 @@ lemma minus_Max_eq_Min [simp]:
 lemma minus_Min_eq_Max [simp]:
   "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> - Min S = Max (uminus ` S)"
   by (induct S rule: finite_ne_induct) (simp_all add: minus_min_eq_max)
+
+end
+
+context complete_linorder
+begin
+
+lemma Min_Inf:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Min A = Inf A"
+proof -
+  from assms obtain b B where "A = insert b B" and "finite B" by auto
+  then show ?thesis
+    by (simp add: Min.eq_fold complete_linorder_inf_min [symmetric] inf_Inf_fold_inf inf.commute [of b])
+qed
+
+lemma Max_Sup:
+  assumes "finite A" and "A \<noteq> {}"
+  shows "Max A = Sup A"
+proof -
+  from assms obtain b B where "A = insert b B" and "finite B" by auto
+  then show ?thesis
+    by (simp add: Max.eq_fold complete_linorder_sup_max [symmetric] sup_Sup_fold_sup sup.commute [of b])
+qed
 
 end
 

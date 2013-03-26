@@ -45,7 +45,7 @@ lemma min_len_of_nat_of [simp]:
 
 lemma min_nat_of_len_of [simp]:
   "min (nat_of (n::('a::len) sat)) (len_of TYPE('a)) = nat_of n"
-  by (subst min_max.inf.commute) simp
+  by (subst min.commute) simp
 
 lemma Abs_sat'_nat_of [simp]:
   "Abs_sat' (nat_of n) = n"

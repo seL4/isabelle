@@ -319,7 +319,7 @@ proof -
   from assms have "hd (RBT_Impl.keys t) # tl (RBT_Impl.keys t) = RBT_Impl.keys t" by (cases t) simp_all
   with assms show ?thesis
     by (simp add: rbt_min_def rbt_fold1_keys_def rbt_min_opt_is_min
-      min_max.Inf_fin.set_eq_fold [symmetric] Min_eqI rbt_min_opt_in_set)
+      Min.set_eq_fold [symmetric] Min_eqI rbt_min_opt_in_set)
 qed
 
 (* maximum *)
@@ -336,7 +336,7 @@ lemma fold_max_rev_eq:
   fixes xs :: "('a :: linorder) list"
   assumes "xs \<noteq> []"
   shows "List.fold max (tl xs) (hd xs) = List.fold max (tl (rev xs)) (hd (rev xs))" 
-  using assms by (simp add: min_max.Sup_fin.set_eq_fold [symmetric])
+  using assms by (simp add: Max.set_eq_fold [symmetric])
 
 lemma rbt_max_simps:
   assumes "is_rbt (Branch c lt k v RBT_Impl.Empty)" 
@@ -413,7 +413,7 @@ proof -
   from assms have "hd (RBT_Impl.keys t) # tl (RBT_Impl.keys t) = RBT_Impl.keys t" by (cases t) simp_all
   with assms show ?thesis
     by (simp add: rbt_max_def rbt_fold1_keys_def rbt_max_opt_is_max
-      min_max.Sup_fin.set_eq_fold [symmetric] Max_eqI rbt_max_opt_in_set)
+      Max.set_eq_fold [symmetric] Max_eqI rbt_max_opt_in_set)
 qed
 
 
