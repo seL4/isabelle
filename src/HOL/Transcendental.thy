@@ -1,6 +1,8 @@
 (*  Title:      HOL/Transcendental.thy
     Author:     Jacques D. Fleuriot, University of Cambridge, University of Edinburgh
     Author:     Lawrence C Paulson
+    Author:     Jeremy Avigad
+
 *)
 
 header{*Power Series, Transcendental Functions etc.*}
@@ -871,6 +873,8 @@ apply (rule exp_converges [THEN sums_summable, unfolded scaleR_conv_of_real])+
 apply (simp del: of_real_add)
 done
 
+declare DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+
 lemma isCont_exp: "isCont exp x"
   by (rule DERIV_exp [THEN DERIV_isCont])
 
@@ -1200,6 +1204,8 @@ lemma DERIV_ln: "0 < x \<Longrightarrow> DERIV ln x :> inverse x"
 lemma DERIV_ln_divide: "0 < x ==> DERIV ln x :> 1 / x"
   by (rule DERIV_ln[THEN DERIV_cong], simp, simp add: divide_inverse)
 
+declare DERIV_ln_divide[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+
 lemma ln_series: assumes "0 < x" and "x < 2"
   shows "ln x = (\<Sum> n. (-1)^n * (1 / real (n + 1)) * (x - 1)^(Suc n))" (is "ln x = suminf (?f (x - 1))")
 proof -
@@ -1337,6 +1343,223 @@ lemma exp_ge_add_one_self [simp]: "1 + (x::real) <= exp x"
   apply auto
 done
 
+lemma ln_one_plus_pos_lower_bound: "0 <= x ==> x <= 1 ==> x - x^2 <= ln (1 + x)"
+proof -
+  assume a: "0 <= x" and b: "x <= 1"
+  have "exp (x - x^2) = exp x / exp (x^2)"
+    by (rule exp_diff)
+  also have "... <= (1 + x + x^2) / exp (x ^2)"
+    apply (rule divide_right_mono) 
+    apply (rule exp_bound)
+    apply (rule a, rule b)
+    apply simp
+    done
+  also have "... <= (1 + x + x^2) / (1 + x^2)"
+    apply (rule divide_left_mono)
+    apply (simp add: exp_ge_add_one_self_aux)
+    apply (simp add: a)
+    apply (simp add: mult_pos_pos add_pos_nonneg)
+    done
+  also from a have "... <= 1 + x"
+    by (simp add: field_simps add_strict_increasing zero_le_mult_iff)
+  finally have "exp (x - x^2) <= 1 + x" .
+  also have "... = exp (ln (1 + x))"
+  proof -
+    from a have "0 < 1 + x" by auto
+    thus ?thesis
+      by (auto simp only: exp_ln_iff [THEN sym])
+  qed
+  finally have "exp (x - x ^ 2) <= exp (ln (1 + x))" .
+  thus ?thesis by (auto simp only: exp_le_cancel_iff)
+qed
+
+lemma aux5: "x < 1 ==> ln(1 - x) = - ln(1 + x / (1 - x))"
+proof -
+  assume a: "x < 1"
+  have "ln(1 - x) = - ln(1 / (1 - x))"
+  proof -
+    have "ln(1 - x) = - (- ln (1 - x))"
+      by auto
+    also have "- ln(1 - x) = ln 1 - ln(1 - x)"
+      by simp
+    also have "... = ln(1 / (1 - x))"
+      apply (rule ln_div [THEN sym])
+      by (insert a, auto)
+    finally show ?thesis .
+  qed
+  also have " 1 / (1 - x) = 1 + x / (1 - x)" using a by(simp add:field_simps)
+  finally show ?thesis .
+qed
+
+lemma ln_one_minus_pos_lower_bound: "0 <= x ==> x <= (1 / 2) ==> 
+    - x - 2 * x^2 <= ln (1 - x)"
+proof -
+  assume a: "0 <= x" and b: "x <= (1 / 2)"
+  from b have c: "x < 1"
+    by auto
+  then have "ln (1 - x) = - ln (1 + x / (1 - x))"
+    by (rule aux5)
+  also have "- (x / (1 - x)) <= ..."
+  proof - 
+    have "ln (1 + x / (1 - x)) <= x / (1 - x)"
+      apply (rule ln_add_one_self_le_self)
+      apply (rule divide_nonneg_pos)
+      by (insert a c, auto) 
+    thus ?thesis
+      by auto
+  qed
+  also have "- (x / (1 - x)) = -x / (1 - x)"
+    by auto
+  finally have d: "- x / (1 - x) <= ln (1 - x)" .
+  have "0 < 1 - x" using a b by simp
+  hence e: "-x - 2 * x^2 <= - x / (1 - x)"
+    using mult_right_le_one_le[of "x*x" "2*x"] a b
+    by (simp add:field_simps power2_eq_square)
+  from e d show "- x - 2 * x^2 <= ln (1 - x)"
+    by (rule order_trans)
+qed
+
+lemma ln_add_one_self_le_self2: "-1 < x ==> ln(1 + x) <= x"
+  apply (subgoal_tac "ln (1 + x) \<le> ln (exp x)", simp)
+  apply (subst ln_le_cancel_iff)
+  apply auto
+done
+
+lemma abs_ln_one_plus_x_minus_x_bound_nonneg:
+    "0 <= x ==> x <= 1 ==> abs(ln (1 + x) - x) <= x^2"
+proof -
+  assume x: "0 <= x"
+  assume x1: "x <= 1"
+  from x have "ln (1 + x) <= x"
+    by (rule ln_add_one_self_le_self)
+  then have "ln (1 + x) - x <= 0" 
+    by simp
+  then have "abs(ln(1 + x) - x) = - (ln(1 + x) - x)"
+    by (rule abs_of_nonpos)
+  also have "... = x - ln (1 + x)" 
+    by simp
+  also have "... <= x^2"
+  proof -
+    from x x1 have "x - x^2 <= ln (1 + x)"
+      by (intro ln_one_plus_pos_lower_bound)
+    thus ?thesis
+      by simp
+  qed
+  finally show ?thesis .
+qed
+
+lemma abs_ln_one_plus_x_minus_x_bound_nonpos:
+    "-(1 / 2) <= x ==> x <= 0 ==> abs(ln (1 + x) - x) <= 2 * x^2"
+proof -
+  assume a: "-(1 / 2) <= x"
+  assume b: "x <= 0"
+  have "abs(ln (1 + x) - x) = x - ln(1 - (-x))" 
+    apply (subst abs_of_nonpos)
+    apply simp
+    apply (rule ln_add_one_self_le_self2)
+    using a apply auto
+    done
+  also have "... <= 2 * x^2"
+    apply (subgoal_tac "- (-x) - 2 * (-x)^2 <= ln (1 - (-x))")
+    apply (simp add: algebra_simps)
+    apply (rule ln_one_minus_pos_lower_bound)
+    using a b apply auto
+    done
+  finally show ?thesis .
+qed
+
+lemma abs_ln_one_plus_x_minus_x_bound:
+    "abs x <= 1 / 2 ==> abs(ln (1 + x) - x) <= 2 * x^2"
+  apply (case_tac "0 <= x")
+  apply (rule order_trans)
+  apply (rule abs_ln_one_plus_x_minus_x_bound_nonneg)
+  apply auto
+  apply (rule abs_ln_one_plus_x_minus_x_bound_nonpos)
+  apply auto
+done
+
+lemma ln_x_over_x_mono: "exp 1 <= x ==> x <= y ==> (ln y / y) <= (ln x / x)"  
+proof -
+  assume x: "exp 1 <= x" "x <= y"
+  moreover have "0 < exp (1::real)" by simp
+  ultimately have a: "0 < x" and b: "0 < y"
+    by (fast intro: less_le_trans order_trans)+
+  have "x * ln y - x * ln x = x * (ln y - ln x)"
+    by (simp add: algebra_simps)
+  also have "... = x * ln(y / x)"
+    by (simp only: ln_div a b)
+  also have "y / x = (x + (y - x)) / x"
+    by simp
+  also have "... = 1 + (y - x) / x"
+    using x a by (simp add: field_simps)
+  also have "x * ln(1 + (y - x) / x) <= x * ((y - x) / x)"
+    apply (rule mult_left_mono)
+    apply (rule ln_add_one_self_le_self)
+    apply (rule divide_nonneg_pos)
+    using x a apply simp_all
+    done
+  also have "... = y - x" using a by simp
+  also have "... = (y - x) * ln (exp 1)" by simp
+  also have "... <= (y - x) * ln x"
+    apply (rule mult_left_mono)
+    apply (subst ln_le_cancel_iff)
+    apply fact
+    apply (rule a)
+    apply (rule x)
+    using x apply simp
+    done
+  also have "... = y * ln x - x * ln x"
+    by (rule left_diff_distrib)
+  finally have "x * ln y <= y * ln x"
+    by arith
+  then have "ln y <= (y * ln x) / x" using a by (simp add: field_simps)
+  also have "... = y * (ln x / x)" by simp
+  finally show ?thesis using b by (simp add: field_simps)
+qed
+
+lemma ln_le_minus_one:
+  "0 < x \<Longrightarrow> ln x \<le> x - 1"
+  using exp_ge_add_one_self[of "ln x"] by simp
+
+lemma ln_eq_minus_one:
+  assumes "0 < x" "ln x = x - 1" shows "x = 1"
+proof -
+  let "?l y" = "ln y - y + 1"
+  have D: "\<And>x. 0 < x \<Longrightarrow> DERIV ?l x :> (1 / x - 1)"
+    by (auto intro!: DERIV_intros)
+
+  show ?thesis
+  proof (cases rule: linorder_cases)
+    assume "x < 1"
+    from dense[OF `x < 1`] obtain a where "x < a" "a < 1" by blast
+    from `x < a` have "?l x < ?l a"
+    proof (rule DERIV_pos_imp_increasing, safe)
+      fix y assume "x \<le> y" "y \<le> a"
+      with `0 < x` `a < 1` have "0 < 1 / y - 1" "0 < y"
+        by (auto simp: field_simps)
+      with D show "\<exists>z. DERIV ?l y :> z \<and> 0 < z"
+        by auto
+    qed
+    also have "\<dots> \<le> 0"
+      using ln_le_minus_one `0 < x` `x < a` by (auto simp: field_simps)
+    finally show "x = 1" using assms by auto
+  next
+    assume "1 < x"
+    from dense[OF `1 < x`] obtain a where "1 < a" "a < x" by blast
+    from `a < x` have "?l x < ?l a"
+    proof (rule DERIV_neg_imp_decreasing, safe)
+      fix y assume "a \<le> y" "y \<le> x"
+      with `1 < a` have "1 / y - 1 < 0" "0 < y"
+        by (auto simp: field_simps)
+      with D show "\<exists>z. DERIV ?l y :> z \<and> z < 0"
+        by blast
+    qed
+    also have "\<dots> \<le> 0"
+      using ln_le_minus_one `1 < a` by (auto simp: field_simps)
+    finally show "x = 1" using assms by auto
+  qed simp
+qed
+
 lemma exp_at_bot: "(exp ---> (0::real)) at_bot"
   unfolding tendsto_Zfun_iff
 proof (rule ZfunI, simp add: eventually_at_bot_dense)
@@ -1381,6 +1604,415 @@ next
     show "((\<lambda>x. real (Suc k) * x ^ k / exp x) ---> 0) at_top"
       by simp
   qed (rule exp_at_top)
+qed
+
+
+definition
+  powr  :: "[real,real] => real"     (infixr "powr" 80) where
+    --{*exponentation with real exponent*}
+  "x powr a = exp(a * ln x)"
+
+definition
+  log :: "[real,real] => real" where
+    --{*logarithm of @{term x} to base @{term a}*}
+  "log a x = ln x / ln a"
+
+
+lemma tendsto_log [tendsto_intros]:
+  "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a; a \<noteq> 1; 0 < b\<rbrakk> \<Longrightarrow> ((\<lambda>x. log (f x) (g x)) ---> log a b) F"
+  unfolding log_def by (intro tendsto_intros) auto
+
+lemma continuous_log:
+  assumes "continuous F f" and "continuous F g" and "0 < f (Lim F (\<lambda>x. x))" and "f (Lim F (\<lambda>x. x)) \<noteq> 1" and "0 < g (Lim F (\<lambda>x. x))"
+  shows "continuous F (\<lambda>x. log (f x) (g x))"
+  using assms unfolding continuous_def by (rule tendsto_log)
+
+lemma continuous_at_within_log[continuous_intros]:
+  assumes "continuous (at a within s) f" "continuous (at a within s) g" and "0 < f a" and "f a \<noteq> 1" and "0 < g a"
+  shows "continuous (at a within s) (\<lambda>x. log (f x) (g x))"
+  using assms unfolding continuous_within by (rule tendsto_log)
+
+lemma isCont_log[continuous_intros, simp]:
+  assumes "isCont f a" "isCont g a" "0 < f a" "f a \<noteq> 1" "0 < g a"
+  shows "isCont (\<lambda>x. log (f x) (g x)) a"
+  using assms unfolding continuous_at by (rule tendsto_log)
+
+lemma continuous_on_log[continuous_on_intros]:
+  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. 0 < f x" "\<forall>x\<in>s. f x \<noteq> 1" "\<forall>x\<in>s. 0 < g x"
+  shows "continuous_on s (\<lambda>x. log (f x) (g x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_log)
+
+lemma powr_one_eq_one [simp]: "1 powr a = 1"
+by (simp add: powr_def)
+
+lemma powr_zero_eq_one [simp]: "x powr 0 = 1"
+by (simp add: powr_def)
+
+lemma powr_one_gt_zero_iff [simp]: "(x powr 1 = x) = (0 < x)"
+by (simp add: powr_def)
+declare powr_one_gt_zero_iff [THEN iffD2, simp]
+
+lemma powr_mult: 
+      "[| 0 < x; 0 < y |] ==> (x * y) powr a = (x powr a) * (y powr a)"
+by (simp add: powr_def exp_add [symmetric] ln_mult distrib_left)
+
+lemma powr_gt_zero [simp]: "0 < x powr a"
+by (simp add: powr_def)
+
+lemma powr_ge_pzero [simp]: "0 <= x powr y"
+by (rule order_less_imp_le, rule powr_gt_zero)
+
+lemma powr_not_zero [simp]: "x powr a \<noteq> 0"
+by (simp add: powr_def)
+
+lemma powr_divide:
+     "[| 0 < x; 0 < y |] ==> (x / y) powr a = (x powr a)/(y powr a)"
+apply (simp add: divide_inverse positive_imp_inverse_positive powr_mult)
+apply (simp add: powr_def exp_minus [symmetric] exp_add [symmetric] ln_inverse)
+done
+
+lemma powr_divide2: "x powr a / x powr b = x powr (a - b)"
+  apply (simp add: powr_def)
+  apply (subst exp_diff [THEN sym])
+  apply (simp add: left_diff_distrib)
+done
+
+lemma powr_add: "x powr (a + b) = (x powr a) * (x powr b)"
+by (simp add: powr_def exp_add [symmetric] distrib_right)
+
+lemma powr_mult_base:
+  "0 < x \<Longrightarrow>x * x powr y = x powr (1 + y)"
+using assms by (auto simp: powr_add)
+
+lemma powr_powr: "(x powr a) powr b = x powr (a * b)"
+by (simp add: powr_def)
+
+lemma powr_powr_swap: "(x powr a) powr b = (x powr b) powr a"
+by (simp add: powr_powr mult_commute)
+
+lemma powr_minus: "x powr (-a) = inverse (x powr a)"
+by (simp add: powr_def exp_minus [symmetric])
+
+lemma powr_minus_divide: "x powr (-a) = 1/(x powr a)"
+by (simp add: divide_inverse powr_minus)
+
+lemma powr_less_mono: "[| a < b; 1 < x |] ==> x powr a < x powr b"
+by (simp add: powr_def)
+
+lemma powr_less_cancel: "[| x powr a < x powr b; 1 < x |] ==> a < b"
+by (simp add: powr_def)
+
+lemma powr_less_cancel_iff [simp]: "1 < x ==> (x powr a < x powr b) = (a < b)"
+by (blast intro: powr_less_cancel powr_less_mono)
+
+lemma powr_le_cancel_iff [simp]: "1 < x ==> (x powr a \<le> x powr b) = (a \<le> b)"
+by (simp add: linorder_not_less [symmetric])
+
+lemma log_ln: "ln x = log (exp(1)) x"
+by (simp add: log_def)
+
+lemma DERIV_log: assumes "x > 0" shows "DERIV (\<lambda>y. log b y) x :> 1 / (ln b * x)"
+proof -
+  def lb \<equiv> "1 / ln b"
+  moreover have "DERIV (\<lambda>y. lb * ln y) x :> lb / x"
+    using `x > 0` by (auto intro!: DERIV_intros)
+  ultimately show ?thesis
+    by (simp add: log_def)
+qed
+
+lemmas DERIV_log[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+
+lemma powr_log_cancel [simp]:
+     "[| 0 < a; a \<noteq> 1; 0 < x |] ==> a powr (log a x) = x"
+by (simp add: powr_def log_def)
+
+lemma log_powr_cancel [simp]: "[| 0 < a; a \<noteq> 1 |] ==> log a (a powr y) = y"
+by (simp add: log_def powr_def)
+
+lemma log_mult: 
+     "[| 0 < a; a \<noteq> 1; 0 < x; 0 < y |]  
+      ==> log a (x * y) = log a x + log a y"
+by (simp add: log_def ln_mult divide_inverse distrib_right)
+
+lemma log_eq_div_ln_mult_log: 
+     "[| 0 < a; a \<noteq> 1; 0 < b; b \<noteq> 1; 0 < x |]  
+      ==> log a x = (ln b/ln a) * log b x"
+by (simp add: log_def divide_inverse)
+
+text{*Base 10 logarithms*}
+lemma log_base_10_eq1: "0 < x ==> log 10 x = (ln (exp 1) / ln 10) * ln x"
+by (simp add: log_def)
+
+lemma log_base_10_eq2: "0 < x ==> log 10 x = (log 10 (exp 1)) * ln x"
+by (simp add: log_def)
+
+lemma log_one [simp]: "log a 1 = 0"
+by (simp add: log_def)
+
+lemma log_eq_one [simp]: "[| 0 < a; a \<noteq> 1 |] ==> log a a = 1"
+by (simp add: log_def)
+
+lemma log_inverse:
+     "[| 0 < a; a \<noteq> 1; 0 < x |] ==> log a (inverse x) = - log a x"
+apply (rule_tac a1 = "log a x" in add_left_cancel [THEN iffD1])
+apply (simp add: log_mult [symmetric])
+done
+
+lemma log_divide:
+     "[|0 < a; a \<noteq> 1; 0 < x; 0 < y|] ==> log a (x/y) = log a x - log a y"
+by (simp add: log_mult divide_inverse log_inverse)
+
+lemma log_less_cancel_iff [simp]:
+     "[| 1 < a; 0 < x; 0 < y |] ==> (log a x < log a y) = (x < y)"
+apply safe
+apply (rule_tac [2] powr_less_cancel)
+apply (drule_tac a = "log a x" in powr_less_mono, auto)
+done
+
+lemma log_inj: assumes "1 < b" shows "inj_on (log b) {0 <..}"
+proof (rule inj_onI, simp)
+  fix x y assume pos: "0 < x" "0 < y" and *: "log b x = log b y"
+  show "x = y"
+  proof (cases rule: linorder_cases)
+    assume "x < y" hence "log b x < log b y"
+      using log_less_cancel_iff[OF `1 < b`] pos by simp
+    thus ?thesis using * by simp
+  next
+    assume "y < x" hence "log b y < log b x"
+      using log_less_cancel_iff[OF `1 < b`] pos by simp
+    thus ?thesis using * by simp
+  qed simp
+qed
+
+lemma log_le_cancel_iff [simp]:
+     "[| 1 < a; 0 < x; 0 < y |] ==> (log a x \<le> log a y) = (x \<le> y)"
+by (simp add: linorder_not_less [symmetric])
+
+lemma zero_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 < log a x \<longleftrightarrow> 1 < x"
+  using log_less_cancel_iff[of a 1 x] by simp
+
+lemma zero_le_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 0 \<le> log a x \<longleftrightarrow> 1 \<le> x"
+  using log_le_cancel_iff[of a 1 x] by simp
+
+lemma log_less_zero_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x < 0 \<longleftrightarrow> x < 1"
+  using log_less_cancel_iff[of a x 1] by simp
+
+lemma log_le_zero_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 0 \<longleftrightarrow> x \<le> 1"
+  using log_le_cancel_iff[of a x 1] by simp
+
+lemma one_less_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 1 < log a x \<longleftrightarrow> a < x"
+  using log_less_cancel_iff[of a a x] by simp
+
+lemma one_le_log_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> 1 \<le> log a x \<longleftrightarrow> a \<le> x"
+  using log_le_cancel_iff[of a a x] by simp
+
+lemma log_less_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x < 1 \<longleftrightarrow> x < a"
+  using log_less_cancel_iff[of a x a] by simp
+
+lemma log_le_one_cancel_iff[simp]: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> log a x \<le> 1 \<longleftrightarrow> x \<le> a"
+  using log_le_cancel_iff[of a x a] by simp
+
+lemma powr_realpow: "0 < x ==> x powr (real n) = x^n"
+  apply (induct n, simp)
+  apply (subgoal_tac "real(Suc n) = real n + 1")
+  apply (erule ssubst)
+  apply (subst powr_add, simp, simp)
+done
+
+lemma powr_realpow2: "0 <= x ==> 0 < n ==> x^n = (if (x = 0) then 0 else x powr (real n))"
+  apply (case_tac "x = 0", simp, simp)
+  apply (rule powr_realpow [THEN sym], simp)
+done
+
+lemma powr_int:
+  assumes "x > 0"
+  shows "x powr i = (if i \<ge> 0 then x ^ nat i else 1 / x ^ nat (-i))"
+proof cases
+  assume "i < 0"
+  have r: "x powr i = 1 / x powr (-i)" by (simp add: powr_minus field_simps)
+  show ?thesis using `i < 0` `x > 0` by (simp add: r field_simps powr_realpow[symmetric])
+qed (simp add: assms powr_realpow[symmetric])
+
+lemma powr_numeral: "0 < x \<Longrightarrow> x powr numeral n = x^numeral n"
+  using powr_realpow[of x "numeral n"] by simp
+
+lemma powr_neg_numeral: "0 < x \<Longrightarrow> x powr neg_numeral n = 1 / x^numeral n"
+  using powr_int[of x "neg_numeral n"] by simp
+
+lemma root_powr_inverse:
+  "0 < n \<Longrightarrow> 0 < x \<Longrightarrow> root n x = x powr (1/n)"
+  by (rule real_root_pos_unique) (auto simp: powr_realpow[symmetric] powr_powr)
+
+lemma ln_powr: "0 < x ==> 0 < y ==> ln(x powr y) = y * ln x"
+by (unfold powr_def, simp)
+
+lemma log_powr: "0 < x ==> 0 \<le> y ==> log b (x powr y) = y * log b x"
+  apply (case_tac "y = 0")
+  apply force
+  apply (auto simp add: log_def ln_powr field_simps)
+done
+
+lemma log_nat_power: "0 < x ==> log b (x^n) = real n * log b x"
+  apply (subst powr_realpow [symmetric])
+  apply (auto simp add: log_powr)
+done
+
+lemma ln_bound: "1 <= x ==> ln x <= x"
+  apply (subgoal_tac "ln(1 + (x - 1)) <= x - 1")
+  apply simp
+  apply (rule ln_add_one_self_le_self, simp)
+done
+
+lemma powr_mono: "a <= b ==> 1 <= x ==> x powr a <= x powr b"
+  apply (case_tac "x = 1", simp)
+  apply (case_tac "a = b", simp)
+  apply (rule order_less_imp_le)
+  apply (rule powr_less_mono, auto)
+done
+
+lemma ge_one_powr_ge_zero: "1 <= x ==> 0 <= a ==> 1 <= x powr a"
+  apply (subst powr_zero_eq_one [THEN sym])
+  apply (rule powr_mono, assumption+)
+done
+
+lemma powr_less_mono2: "0 < a ==> 0 < x ==> x < y ==> x powr a <
+    y powr a"
+  apply (unfold powr_def)
+  apply (rule exp_less_mono)
+  apply (rule mult_strict_left_mono)
+  apply (subst ln_less_cancel_iff, assumption)
+  apply (rule order_less_trans)
+  prefer 2
+  apply assumption+
+done
+
+lemma powr_less_mono2_neg: "a < 0 ==> 0 < x ==> x < y ==> y powr a <
+    x powr a"
+  apply (unfold powr_def)
+  apply (rule exp_less_mono)
+  apply (rule mult_strict_left_mono_neg)
+  apply (subst ln_less_cancel_iff)
+  apply assumption
+  apply (rule order_less_trans)
+  prefer 2
+  apply assumption+
+done
+
+lemma powr_mono2: "0 <= a ==> 0 < x ==> x <= y ==> x powr a <= y powr a"
+  apply (case_tac "a = 0", simp)
+  apply (case_tac "x = y", simp)
+  apply (rule order_less_imp_le)
+  apply (rule powr_less_mono2, auto)
+done
+
+lemma powr_inj:
+  "0 < a \<Longrightarrow> a \<noteq> 1 \<Longrightarrow> a powr x = a powr y \<longleftrightarrow> x = y"
+  unfolding powr_def exp_inj_iff by simp
+
+lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
+  apply (rule mult_imp_le_div_pos)
+  apply (assumption)
+  apply (subst mult_commute)
+  apply (subst ln_powr [THEN sym])
+  apply auto
+  apply (rule ln_bound)
+  apply (erule ge_one_powr_ge_zero)
+  apply (erule order_less_imp_le)
+done
+
+lemma ln_powr_bound2:
+  assumes "1 < x" and "0 < a"
+  shows "(ln x) powr a <= (a powr a) * x"
+proof -
+  from assms have "ln x <= (x powr (1 / a)) / (1 / a)"
+    apply (intro ln_powr_bound)
+    apply (erule order_less_imp_le)
+    apply (rule divide_pos_pos)
+    apply simp_all
+    done
+  also have "... = a * (x powr (1 / a))"
+    by simp
+  finally have "(ln x) powr a <= (a * (x powr (1 / a))) powr a"
+    apply (intro powr_mono2)
+    apply (rule order_less_imp_le, rule assms)
+    apply (rule ln_gt_zero)
+    apply (rule assms)
+    apply assumption
+    done
+  also have "... = (a powr a) * ((x powr (1 / a)) powr a)"
+    apply (rule powr_mult)
+    apply (rule assms)
+    apply (rule powr_gt_zero)
+    done
+  also have "(x powr (1 / a)) powr a = x powr ((1 / a) * a)"
+    by (rule powr_powr)
+  also have "... = x"
+    apply simp
+    apply (subgoal_tac "a ~= 0")
+    using assms apply auto
+    done
+  finally show ?thesis .
+qed
+
+lemma tendsto_powr [tendsto_intros]:
+  "\<lbrakk>(f ---> a) F; (g ---> b) F; 0 < a\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x powr g x) ---> a powr b) F"
+  unfolding powr_def by (intro tendsto_intros)
+
+lemma continuous_powr:
+  assumes "continuous F f" and "continuous F g" and "0 < f (Lim F (\<lambda>x. x))"
+  shows "continuous F (\<lambda>x. (f x) powr (g x))"
+  using assms unfolding continuous_def by (rule tendsto_powr)
+
+lemma continuous_at_within_powr[continuous_intros]:
+  assumes "continuous (at a within s) f" "continuous (at a within s) g" and "0 < f a"
+  shows "continuous (at a within s) (\<lambda>x. (f x) powr (g x))"
+  using assms unfolding continuous_within by (rule tendsto_powr)
+
+lemma isCont_powr[continuous_intros, simp]:
+  assumes "isCont f a" "isCont g a" "0 < f a"
+  shows "isCont (\<lambda>x. (f x) powr g x) a"
+  using assms unfolding continuous_at by (rule tendsto_powr)
+
+lemma continuous_on_powr[continuous_on_intros]:
+  assumes "continuous_on s f" "continuous_on s g" and "\<forall>x\<in>s. 0 < f x"
+  shows "continuous_on s (\<lambda>x. (f x) powr (g x))"
+  using assms unfolding continuous_on_def by (fast intro: tendsto_powr)
+
+(* FIXME: generalize by replacing d by with g x and g ---> d? *)
+lemma tendsto_zero_powrI:
+  assumes "eventually (\<lambda>x. 0 < f x ) F" and "(f ---> 0) F"
+  assumes "0 < d"
+  shows "((\<lambda>x. f x powr d) ---> 0) F"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  def Z \<equiv> "e powr (1 / d)"
+  with `0 < e` have "0 < Z" by simp
+  with assms have "eventually (\<lambda>x. 0 < f x \<and> dist (f x) 0 < Z) F"
+    by (intro eventually_conj tendstoD)
+  moreover
+  from assms have "\<And>x. 0 < x \<and> dist x 0 < Z \<Longrightarrow> x powr d < Z powr d"
+    by (intro powr_less_mono2) (auto simp: dist_real_def)
+  with assms `0 < e` have "\<And>x. 0 < x \<and> dist x 0 < Z \<Longrightarrow> dist (x powr d) 0 < e"
+    unfolding dist_real_def Z_def by (auto simp: powr_powr)
+  ultimately
+  show "eventually (\<lambda>x. dist (f x powr d) 0 < e) F" by (rule eventually_elim1)
+qed
+
+lemma tendsto_neg_powr:
+  assumes "s < 0" and "LIM x F. f x :> at_top"
+  shows "((\<lambda>x. f x powr s) ---> 0) F"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  def Z \<equiv> "e powr (1 / s)"
+  from assms have "eventually (\<lambda>x. Z < f x) F"
+    by (simp add: filterlim_at_top_dense)
+  moreover
+  from assms have "\<And>x. Z < x \<Longrightarrow> x powr s < Z powr s"
+    by (auto simp: Z_def intro!: powr_less_mono2_neg)
+  with assms `0 < e` have "\<And>x. Z < x \<Longrightarrow> dist (x powr s) 0 < e"
+    by (simp add: powr_powr Z_def dist_real_def)
+  ultimately
+  show "eventually (\<lambda>x. dist (f x powr s) 0 < e) F" by (rule eventually_elim1)
 qed
 
 subsection {* Sine and Cosine *}
@@ -1444,12 +2076,16 @@ lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
     summable_minus summable_sin summable_cos)
   done
 
+declare DERIV_sin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+
 lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
   unfolding cos_def sin_def
   apply (rule DERIV_cong, rule termdiffs [where K="1 + \<bar>x\<bar>"])
   apply (simp_all add: diffs_sin_coeff diffs_cos_coeff diffs_minus
     summable_minus summable_sin summable_cos suminf_minus)
   done
+
+declare DERIV_cos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
 
 lemma isCont_sin: "isCont sin x"
   by (rule DERIV_sin [THEN DERIV_isCont])
@@ -1486,12 +2122,6 @@ lemma continuous_cos [continuous_intros]:
 lemma continuous_on_cos [continuous_on_intros]:
   "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. cos (f x))"
   unfolding continuous_on_def by (auto intro: tendsto_cos)
-
-declare
-  DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_ln_divide[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_sin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_cos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
 
 subsection {* Properties of Sine and Cosine *}
 
