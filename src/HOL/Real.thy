@@ -1,4 +1,4 @@
-(*  Title:      HOL/RealDef.thy
+(*  Title:      HOL/Real.thy
     Author:     Jacques D. Fleuriot, University of Edinburgh, 1998
     Author:     Larry Paulson, University of Cambridge
     Author:     Jeremy Avigad, Carnegie Mellon University
@@ -9,7 +9,7 @@
 
 header {* Development of the Reals using Cauchy Sequences *}
 
-theory RealDef
+theory Real
 imports Rat Conditional_Complete_Lattices
 begin
 
