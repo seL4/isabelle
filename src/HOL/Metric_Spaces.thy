@@ -6,7 +6,7 @@
 header {* Metric Spaces *}
 
 theory Metric_Spaces
-imports RComplete Topological_Spaces
+imports RealDef Topological_Spaces
 begin
 
 

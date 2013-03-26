@@ -1,5 +1,5 @@
 theory Real
-imports RComplete RealVector
+imports RealVector
 begin
 
 ML_file "Tools/SMT/smt_real.ML"
