@@ -8,7 +8,7 @@ imports
   Complex_Main
   "~~/src/HOL/Library/Float"
   "~~/src/HOL/Library/Reflection"
-  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+  Dense_Linear_Order
   "~~/src/HOL/Library/Code_Target_Numeral"
 begin
 

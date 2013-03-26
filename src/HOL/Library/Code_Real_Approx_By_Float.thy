@@ -1,7 +1,7 @@
 (* Authors: Florian Haftmann, Johannes Hölzl, Tobias Nipkow *)
 
 theory Code_Real_Approx_By_Float
-imports Complex_Main "~~/src/HOL/Library/Code_Target_Int"
+imports Complex_Main Code_Target_Int
 begin
 
 text{* \textbf{WARNING} This theory implements mathematical reals by machine

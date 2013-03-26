@@ -6,7 +6,7 @@
 header {* Floating-Point Numbers *}
 
 theory Float
-imports Complex_Main "~~/src/HOL/Library/Lattice_Algebras"
+imports Complex_Main Lattice_Algebras
 begin
 
 definition "float = {m * 2 powr e | (m :: int) (e :: int). True}"

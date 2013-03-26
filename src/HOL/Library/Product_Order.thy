@@ -5,7 +5,7 @@
 header {* Pointwise order on product types *}
 
 theory Product_Order
-imports "~~/src/HOL/Library/Product_plus"
+imports Product_plus
 begin
 
 subsection {* Pointwise ordering *}

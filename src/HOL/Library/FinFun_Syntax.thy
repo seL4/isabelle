@@ -2,7 +2,9 @@
 
 header {* Pretty syntax for almost everywhere constant functions *}
 
-theory FinFun_Syntax imports FinFun begin
+theory FinFun_Syntax
+imports FinFun
+begin
 
 type_notation
   finfun ("(_ =>f /_)" [22, 21] 21)
