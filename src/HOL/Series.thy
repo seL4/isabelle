@@ -10,7 +10,7 @@ Additional contributions by Jeremy Avigad
 header{*Finite Summation and Infinite Series*}
 
 theory Series
-imports Deriv
+imports Limits
 begin
 
 definition
