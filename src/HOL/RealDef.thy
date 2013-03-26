@@ -1,7 +1,6 @@
 (*  Title       : HOL/RealDef.thy
     Author      : Jacques D. Fleuriot, 1998
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
-    Additional contributions by Jeremy Avigad
     Construction of Cauchy Reals by Brian Huffman, 2010
 *)
 
@@ -1553,6 +1552,8 @@ lemma real_less_half_sum: "x < y ==> x < (x+y) / (2::real)"
 lemma real_gt_half_sum: "x < y ==> (x+y)/(2::real) < y"
   by auto
 
+lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
+  by simp
 
 subsection{*Absolute Value Function for the Reals*}
 

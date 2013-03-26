@@ -94,4 +94,10 @@ lemma isLub_le_isUb: "isLub R S x \<Longrightarrow> isUb R S y \<Longrightarrow>
 lemma isLub_ubs: "isLub R S x \<Longrightarrow> x <=* ubs R S"
   unfolding ubs_def isLub_def by (rule leastPD2)
 
+lemma isLub_unique: "[| isLub R S x; isLub R S y |] ==> x = (y::'a::linorder)"
+  apply (frule isLub_isUb)
+  apply (frule_tac x = y in isLub_isUb)
+  apply (blast intro!: order_antisym dest!: isLub_le_isUb)
+  done
+
 end

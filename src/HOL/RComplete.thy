@@ -8,28 +8,14 @@
 header {* Completeness of the Reals; Floor and Ceiling Functions *}
 
 theory RComplete
-imports Conditional_Complete_Lattices RealDef
+imports RealDef
 begin
-
-lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"
-  by simp
-
-lemma abs_diff_less_iff:
-  "(\<bar>x - a\<bar> < (r::'a::linordered_idom)) = (a - r < x \<and> x < a + r)"
-  by auto
 
 subsection {* Completeness of Positive Reals *}
 
 text {*
   \medskip Completeness properties using @{text "isUb"}, @{text "isLub"} etc.
 *}
-
-lemma real_isLub_unique: "[| isLub R S x; isLub R S y |] ==> x = (y::real)"
-  apply (frule isLub_isUb)
-  apply (frule_tac x = y in isLub_isUb)
-  apply (blast intro!: order_antisym dest!: isLub_le_isUb)
-  done
-
 
 text {*
   \medskip reals Completeness (again!)
