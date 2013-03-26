@@ -347,6 +347,9 @@ session "HOL-Imperative_HOL" in Imperative_HOL = HOL +
   files "document/root.bib" "document/root.tex"
 
 session "HOL-Decision_Procs" in Decision_Procs = HOL +
+  description {*
+    Various decision procedures, typically involving reflection.
+  *}
   options [condition = ISABELLE_POLYML, document = false]
   theories Decision_Procs
 
