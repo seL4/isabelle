@@ -57,7 +57,21 @@ lemma at_bot_le_at_infinity:
   "at_bot \<le> (at_infinity :: real filter)"
   unfolding at_infinity_eq_at_top_bot by simp
 
-subsection {* Boundedness *}
+subsubsection {* Boundedness *}
+
+definition Bfun :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'a filter \<Rightarrow> bool" where
+  Bfun_metric_def: "Bfun f F = (\<exists>y. \<exists>K>0. eventually (\<lambda>x. dist (f x) y \<le> K) F)"
+
+abbreviation Bseq :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> bool" where
+  "Bseq X \<equiv> Bfun X sequentially"
+
+lemma Bseq_conv_Bfun: "Bseq X \<longleftrightarrow> Bfun X sequentially" ..
+
+lemma Bseq_ignore_initial_segment: "Bseq X \<Longrightarrow> Bseq (\<lambda>n. X (n + k))"
+  unfolding Bfun_metric_def by (subst eventually_sequentially_seg)
+
+lemma Bseq_offset: "Bseq (\<lambda>n. X (n + k)) \<Longrightarrow> Bseq X"
+  unfolding Bfun_metric_def by (subst (asm) eventually_sequentially_seg)
 
 lemma Bfun_def:
   "Bfun f F \<longleftrightarrow> (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) F)"
@@ -86,6 +100,154 @@ lemma BfunE:
   assumes "Bfun f F"
   obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) F"
 using assms unfolding Bfun_def by fast
+
+lemma Cauchy_Bseq: "Cauchy X \<Longrightarrow> Bseq X"
+  unfolding Cauchy_def Bfun_metric_def eventually_sequentially
+  apply (erule_tac x=1 in allE)
+  apply simp
+  apply safe
+  apply (rule_tac x="X M" in exI)
+  apply (rule_tac x=1 in exI)
+  apply (erule_tac x=M in allE)
+  apply simp
+  apply (rule_tac x=M in exI)
+  apply (auto simp: dist_commute)
+  done
+
+
+subsubsection {* Bounded Sequences *}
+
+lemma BseqI': "(\<And>n. norm (X n) \<le> K) \<Longrightarrow> Bseq X"
+  by (intro BfunI) (auto simp: eventually_sequentially)
+
+lemma BseqI2': "\<forall>n\<ge>N. norm (X n) \<le> K \<Longrightarrow> Bseq X"
+  by (intro BfunI) (auto simp: eventually_sequentially)
+
+lemma Bseq_def: "Bseq X \<longleftrightarrow> (\<exists>K>0. \<forall>n. norm (X n) \<le> K)"
+  unfolding Bfun_def eventually_sequentially
+proof safe
+  fix N K assume "0 < K" "\<forall>n\<ge>N. norm (X n) \<le> K"
+  then show "\<exists>K>0. \<forall>n. norm (X n) \<le> K"
+    by (intro exI[of _ "max (Max (norm ` X ` {..N})) K"] min_max.less_supI2)
+       (auto intro!: imageI not_less[where 'a=nat, THEN iffD1] Max_ge simp: le_max_iff_disj)
+qed auto
+
+lemma BseqE: "\<lbrakk>Bseq X; \<And>K. \<lbrakk>0 < K; \<forall>n. norm (X n) \<le> K\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
+unfolding Bseq_def by auto
+
+lemma BseqD: "Bseq X ==> \<exists>K. 0 < K & (\<forall>n. norm (X n) \<le> K)"
+by (simp add: Bseq_def)
+
+lemma BseqI: "[| 0 < K; \<forall>n. norm (X n) \<le> K |] ==> Bseq X"
+by (auto simp add: Bseq_def)
+
+lemma lemma_NBseq_def:
+  "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
+proof safe
+  fix K :: real
+  from reals_Archimedean2 obtain n :: nat where "K < real n" ..
+  then have "K \<le> real (Suc n)" by auto
+  moreover assume "\<forall>m. norm (X m) \<le> K"
+  ultimately have "\<forall>m. norm (X m) \<le> real (Suc n)"
+    by (blast intro: order_trans)
+  then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
+qed (force simp add: real_of_nat_Suc)
+
+text{* alternative definition for Bseq *}
+lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
+apply (simp add: Bseq_def)
+apply (simp (no_asm) add: lemma_NBseq_def)
+done
+
+lemma lemma_NBseq_def2:
+     "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
+apply (subst lemma_NBseq_def, auto)
+apply (rule_tac x = "Suc N" in exI)
+apply (rule_tac [2] x = N in exI)
+apply (auto simp add: real_of_nat_Suc)
+ prefer 2 apply (blast intro: order_less_imp_le)
+apply (drule_tac x = n in spec, simp)
+done
+
+(* yet another definition for Bseq *)
+lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
+by (simp add: Bseq_def lemma_NBseq_def2)
+
+subsubsection{*A Few More Equivalence Theorems for Boundedness*}
+
+text{*alternative formulation for boundedness*}
+lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. norm (X(n) + -x) \<le> k)"
+apply (unfold Bseq_def, safe)
+apply (rule_tac [2] x = "k + norm x" in exI)
+apply (rule_tac x = K in exI, simp)
+apply (rule exI [where x = 0], auto)
+apply (erule order_less_le_trans, simp)
+apply (drule_tac x=n in spec, fold diff_minus)
+apply (drule order_trans [OF norm_triangle_ineq2])
+apply simp
+done
+
+text{*alternative formulation for boundedness*}
+lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. norm(X(n) + -X(N)) \<le> k)"
+apply safe
+apply (simp add: Bseq_def, safe)
+apply (rule_tac x = "K + norm (X N)" in exI)
+apply auto
+apply (erule order_less_le_trans, simp)
+apply (rule_tac x = N in exI, safe)
+apply (drule_tac x = n in spec)
+apply (rule order_trans [OF norm_triangle_ineq], simp)
+apply (auto simp add: Bseq_iff2)
+done
+
+lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> (K::real)) ==> Bseq f"
+apply (simp add: Bseq_def)
+apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
+apply (drule_tac x = n in spec, arith)
+done
+
+subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
+
+lemma Bseq_isUb:
+  "!!(X::nat=>real). Bseq X ==> \<exists>U. isUb (UNIV::real set) {x. \<exists>n. X n = x} U"
+by (auto intro: isUbI setleI simp add: Bseq_def abs_le_iff)
+
+text{* Use completeness of reals (supremum property)
+   to show that any bounded sequence has a least upper bound*}
+
+lemma Bseq_isLub:
+  "!!(X::nat=>real). Bseq X ==>
+   \<exists>U. isLub (UNIV::real set) {x. \<exists>n. X n = x} U"
+by (blast intro: reals_complete Bseq_isUb)
+
+lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
+  by (simp add: Bseq_def)
+
+lemma Bseq_eq_bounded: "range f \<subseteq> {a .. b::real} \<Longrightarrow> Bseq f"
+  apply (simp add: subset_eq)
+  apply (rule BseqI'[where K="max (norm a) (norm b)"])
+  apply (erule_tac x=n in allE)
+  apply auto
+  done
+
+lemma incseq_bounded: "incseq X \<Longrightarrow> \<forall>i. X i \<le> (B::real) \<Longrightarrow> Bseq X"
+  by (intro Bseq_eq_bounded[of X "X 0" B]) (auto simp: incseq_def)
+
+lemma decseq_bounded: "decseq X \<Longrightarrow> \<forall>i. (B::real) \<le> X i \<Longrightarrow> Bseq X"
+  by (intro Bseq_eq_bounded[of X B "X 0"]) (auto simp: decseq_def)
+
+subsection {* Bounded Monotonic Sequences *}
+
+subsubsection{*A Bounded and Monotonic Sequence Converges*}
+
+(* TODO: delete *)
+(* FIXME: one use in NSA/HSEQ.thy *)
+lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n --> X n = X m ==> \<exists>L. (X ----> L)"
+  apply (rule_tac x="X m" in exI)
+  apply (rule filterlim_cong[THEN iffD2, OF refl refl _ tendsto_const])
+  unfolding eventually_sequentially
+  apply blast
+  done
 
 subsection {* Convergence to Zero *}
 
@@ -241,6 +403,37 @@ lemma tendsto_Zfun_iff: "(f ---> a) F = Zfun (\<lambda>x. f x - a) F"
   by (simp only: tendsto_iff Zfun_def dist_norm)
 
 subsubsection {* Distance and norms *}
+
+lemma tendsto_dist [tendsto_intros]:
+  fixes l m :: "'a :: metric_space"
+  assumes f: "(f ---> l) F" and g: "(g ---> m) F"
+  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) F"
+proof (rule tendstoI)
+  fix e :: real assume "0 < e"
+  hence e2: "0 < e/2" by simp
+  from tendstoD [OF f e2] tendstoD [OF g e2]
+  show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) F"
+  proof (eventually_elim)
+    case (elim x)
+    then show "dist (dist (f x) (g x)) (dist l m) < e"
+      unfolding dist_real_def
+      using dist_triangle2 [of "f x" "g x" "l"]
+      using dist_triangle2 [of "g x" "l" "m"]
+      using dist_triangle3 [of "l" "m" "f x"]
+      using dist_triangle [of "f x" "m" "g x"]
+      by arith
+  qed
+qed
+
+lemma continuous_dist[continuous_intros]:
+  fixes f g :: "_ \<Rightarrow> 'a :: metric_space"
+  shows "continuous F f \<Longrightarrow> continuous F g \<Longrightarrow> continuous F (\<lambda>x. dist (f x) (g x))"
+  unfolding continuous_def by (rule tendsto_dist)
+
+lemma continuous_on_dist[continuous_on_intros]:
+  fixes f g :: "_ \<Rightarrow> 'a :: metric_space"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> continuous_on s (\<lambda>x. dist (f x) (g x))"
+  unfolding continuous_on_def by (auto intro: tendsto_dist)
 
 lemma tendsto_norm [tendsto_intros]:
   "(f ---> a) F \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) F"
@@ -1152,123 +1345,6 @@ apply (auto dest: tendsto_minus)
 apply (drule tendsto_minus, auto)
 done
 
-subsection {* Bounded Monotonic Sequences *}
-
-subsubsection {* Bounded Sequences *}
-
-lemma BseqI': "(\<And>n. norm (X n) \<le> K) \<Longrightarrow> Bseq X"
-  by (intro BfunI) (auto simp: eventually_sequentially)
-
-lemma BseqI2': "\<forall>n\<ge>N. norm (X n) \<le> K \<Longrightarrow> Bseq X"
-  by (intro BfunI) (auto simp: eventually_sequentially)
-
-lemma Bseq_def: "Bseq X \<longleftrightarrow> (\<exists>K>0. \<forall>n. norm (X n) \<le> K)"
-  unfolding Bfun_def eventually_sequentially
-proof safe
-  fix N K assume "0 < K" "\<forall>n\<ge>N. norm (X n) \<le> K"
-  then show "\<exists>K>0. \<forall>n. norm (X n) \<le> K"
-    by (intro exI[of _ "max (Max (norm ` X ` {..N})) K"] min_max.less_supI2)
-       (auto intro!: imageI not_less[where 'a=nat, THEN iffD1] Max_ge simp: le_max_iff_disj)
-qed auto
-
-lemma BseqE: "\<lbrakk>Bseq X; \<And>K. \<lbrakk>0 < K; \<forall>n. norm (X n) \<le> K\<rbrakk> \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
-unfolding Bseq_def by auto
-
-lemma BseqD: "Bseq X ==> \<exists>K. 0 < K & (\<forall>n. norm (X n) \<le> K)"
-by (simp add: Bseq_def)
-
-lemma BseqI: "[| 0 < K; \<forall>n. norm (X n) \<le> K |] ==> Bseq X"
-by (auto simp add: Bseq_def)
-
-lemma lemma_NBseq_def:
-  "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
-proof safe
-  fix K :: real
-  from reals_Archimedean2 obtain n :: nat where "K < real n" ..
-  then have "K \<le> real (Suc n)" by auto
-  moreover assume "\<forall>m. norm (X m) \<le> K"
-  ultimately have "\<forall>m. norm (X m) \<le> real (Suc n)"
-    by (blast intro: order_trans)
-  then show "\<exists>N. \<forall>n. norm (X n) \<le> real (Suc N)" ..
-qed (force simp add: real_of_nat_Suc)
-
-text{* alternative definition for Bseq *}
-lemma Bseq_iff: "Bseq X = (\<exists>N. \<forall>n. norm (X n) \<le> real(Suc N))"
-apply (simp add: Bseq_def)
-apply (simp (no_asm) add: lemma_NBseq_def)
-done
-
-lemma lemma_NBseq_def2:
-     "(\<exists>K > 0. \<forall>n. norm (X n) \<le> K) = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
-apply (subst lemma_NBseq_def, auto)
-apply (rule_tac x = "Suc N" in exI)
-apply (rule_tac [2] x = N in exI)
-apply (auto simp add: real_of_nat_Suc)
- prefer 2 apply (blast intro: order_less_imp_le)
-apply (drule_tac x = n in spec, simp)
-done
-
-(* yet another definition for Bseq *)
-lemma Bseq_iff1a: "Bseq X = (\<exists>N. \<forall>n. norm (X n) < real(Suc N))"
-by (simp add: Bseq_def lemma_NBseq_def2)
-
-subsubsection{*A Few More Equivalence Theorems for Boundedness*}
-
-text{*alternative formulation for boundedness*}
-lemma Bseq_iff2: "Bseq X = (\<exists>k > 0. \<exists>x. \<forall>n. norm (X(n) + -x) \<le> k)"
-apply (unfold Bseq_def, safe)
-apply (rule_tac [2] x = "k + norm x" in exI)
-apply (rule_tac x = K in exI, simp)
-apply (rule exI [where x = 0], auto)
-apply (erule order_less_le_trans, simp)
-apply (drule_tac x=n in spec, fold diff_minus)
-apply (drule order_trans [OF norm_triangle_ineq2])
-apply simp
-done
-
-text{*alternative formulation for boundedness*}
-lemma Bseq_iff3: "Bseq X = (\<exists>k > 0. \<exists>N. \<forall>n. norm(X(n) + -X(N)) \<le> k)"
-apply safe
-apply (simp add: Bseq_def, safe)
-apply (rule_tac x = "K + norm (X N)" in exI)
-apply auto
-apply (erule order_less_le_trans, simp)
-apply (rule_tac x = N in exI, safe)
-apply (drule_tac x = n in spec)
-apply (rule order_trans [OF norm_triangle_ineq], simp)
-apply (auto simp add: Bseq_iff2)
-done
-
-lemma BseqI2: "(\<forall>n. k \<le> f n & f n \<le> (K::real)) ==> Bseq f"
-apply (simp add: Bseq_def)
-apply (rule_tac x = " (\<bar>k\<bar> + \<bar>K\<bar>) + 1" in exI, auto)
-apply (drule_tac x = n in spec, arith)
-done
-
-subsubsection{*Upper Bounds and Lubs of Bounded Sequences*}
-
-lemma Bseq_isUb:
-  "!!(X::nat=>real). Bseq X ==> \<exists>U. isUb (UNIV::real set) {x. \<exists>n. X n = x} U"
-by (auto intro: isUbI setleI simp add: Bseq_def abs_le_iff)
-
-text{* Use completeness of reals (supremum property)
-   to show that any bounded sequence has a least upper bound*}
-
-lemma Bseq_isLub:
-  "!!(X::nat=>real). Bseq X ==>
-   \<exists>U. isLub (UNIV::real set) {x. \<exists>n. X n = x} U"
-by (blast intro: reals_complete Bseq_isUb)
-
-subsubsection{*A Bounded and Monotonic Sequence Converges*}
-
-(* TODO: delete *)
-(* FIXME: one use in NSA/HSEQ.thy *)
-lemma Bmonoseq_LIMSEQ: "\<forall>n. m \<le> n --> X n = X m ==> \<exists>L. (X ----> L)"
-  apply (rule_tac x="X m" in exI)
-  apply (rule filterlim_cong[THEN iffD2, OF refl refl _ tendsto_const])
-  unfolding eventually_sequentially
-  apply blast
-  done
 
 text {* A monotone sequence converges to its least upper bound. *}
 
@@ -1301,9 +1377,6 @@ lemma Bseq_mono_convergent:
    "Bseq X \<Longrightarrow> \<forall>m. \<forall>n \<ge> m. X m \<le> X n \<Longrightarrow> convergent (X::nat=>real)"
   by (metis Bseq_isLub isLub_mono_imp_LIMSEQ convergentI)
 
-lemma Bseq_minus_iff: "Bseq (%n. -(X n) :: 'a :: real_normed_vector) = Bseq X"
-  by (simp add: Bseq_def)
-
 text{*Main monotonicity theorem*}
 
 lemma Bseq_monoseq_convergent: "Bseq X \<Longrightarrow> monoseq X \<Longrightarrow> convergent (X::nat\<Rightarrow>real)"
@@ -1324,19 +1397,6 @@ lemma CauchyD:
   fixes X :: "nat \<Rightarrow> 'a::real_normed_vector"
   shows "\<lbrakk>Cauchy X; 0 < e\<rbrakk> \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e"
 by (simp add: Cauchy_iff)
-
-lemma Bseq_eq_bounded: "range f \<subseteq> {a .. b::real} \<Longrightarrow> Bseq f"
-  apply (simp add: subset_eq)
-  apply (rule BseqI'[where K="max (norm a) (norm b)"])
-  apply (erule_tac x=n in allE)
-  apply auto
-  done
-
-lemma incseq_bounded: "incseq X \<Longrightarrow> \<forall>i. X i \<le> (B::real) \<Longrightarrow> Bseq X"
-  by (intro Bseq_eq_bounded[of X "X 0" B]) (auto simp: incseq_def)
-
-lemma decseq_bounded: "decseq X \<Longrightarrow> \<forall>i. (B::real) \<le> X i \<Longrightarrow> Bseq X"
-  by (intro Bseq_eq_bounded[of X B "X 0"]) (auto simp: decseq_def)
 
 lemma incseq_convergent:
   fixes X :: "nat \<Rightarrow> real"
@@ -1374,10 +1434,6 @@ apply (simp only: norm_minus_commute)
 apply (drule order_le_less_trans [OF norm_triangle_ineq2])
 apply simp
 done
-
-class banach = real_normed_vector + complete_space
-
-instance real :: banach by default
 
 subsection {* Power Sequences *}
 
@@ -1615,6 +1671,22 @@ lemmas isCont_intros =
 
 subsection {* Uniform Continuity *}
 
+definition
+  isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
+  "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
+
+lemma isUCont_isCont: "isUCont f ==> isCont f x"
+by (simp add: isUCont_def isCont_def LIM_def, force)
+
+lemma isUCont_Cauchy:
+  "\<lbrakk>isUCont f; Cauchy X\<rbrakk> \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
+unfolding isUCont_def
+apply (rule metric_CauchyI)
+apply (drule_tac x=e in spec, safe)
+apply (drule_tac e=s in metric_CauchyD, safe)
+apply (rule_tac x=M in exI, simp)
+done
+
 lemma (in bounded_linear) isUCont: "isUCont f"
 unfolding isUCont_def dist_norm
 proof (intro allI impI)
@@ -1636,7 +1708,6 @@ qed
 
 lemma (in bounded_linear) Cauchy: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. f (X n))"
 by (rule isUCont [THEN isUCont_Cauchy])
-
 
 lemma LIM_less_bound: 
   fixes f :: "real \<Rightarrow> real"
@@ -1878,5 +1949,6 @@ lemma LIM_fun_not_zero:
   fixes f :: "real \<Rightarrow> real"
   shows "f -- c --> l \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> \<exists>r. 0 < r \<and> (\<forall>x. x \<noteq> c \<and> \<bar>c - x\<bar> < r \<longrightarrow> f x \<noteq> 0)"
   using LIM_fun_gt_zero[of f l c] LIM_fun_less_zero[of f l c] by (auto simp add: neq_iff)
+
 end
 
