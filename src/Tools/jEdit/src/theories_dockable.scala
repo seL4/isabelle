@@ -93,7 +93,7 @@ class Theories_Dockable(view: View, position: String) extends Dockable(view, pos
             (st.failed, PIDE.options.color_value("error_color")))
 
           val size = peer.getSize()
-          val insets = border.getBorderInsets(this.peer)
+          val insets = border.getBorderInsets(peer)
           val w = size.width - insets.left - insets.right
           val h = size.height - insets.top - insets.bottom
           var end = size.width - insets.right
