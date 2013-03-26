@@ -6,7 +6,7 @@
 header{*Nonstandard Complex Numbers*}
 
 theory NSComplex
-imports Complex NSA
+imports NSA
 begin
 
 type_synonym hcomplex = "complex star"

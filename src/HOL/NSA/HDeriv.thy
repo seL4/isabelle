@@ -7,7 +7,7 @@
 header{* Differentiation (Nonstandard) *}
 
 theory HDeriv
-imports Deriv HLim
+imports HLim
 begin
 
 text{*Nonstandard Definitions*}

@@ -7,7 +7,7 @@
 header{*Construction of Hyperreals Using Ultrafilters*}
 
 theory HyperDef
-imports HyperNat Real
+imports Complex_Main HyperNat
 begin
 
 type_synonym hypreal = "real star"
