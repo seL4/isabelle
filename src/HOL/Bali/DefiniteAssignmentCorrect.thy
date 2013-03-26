@@ -3046,7 +3046,7 @@ proof -
             by auto
           with nrm_C_C' nrm_C' A
           have "?NormalAssigned s3 A"
-            by fastforce
+            by auto
           moreover
           from eq_s3_s2 brk_C_C' brk_C' normal_s1 A
           have "?BreakAssigned (Norm s0) s3 A"
