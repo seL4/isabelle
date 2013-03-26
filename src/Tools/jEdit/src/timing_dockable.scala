@@ -14,7 +14,7 @@ import scala.swing.{FlowPanel, Label, ListView, Alignment, ScrollPane, Component
 import scala.swing.event.{EditDone, MouseClicked}
 
 import java.lang.System
-import java.awt.{BorderLayout, Graphics2D, Insets}
+import java.awt.{BorderLayout, Graphics2D, Insets, Color}
 import javax.swing.{JList, BorderFactory}
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
@@ -38,6 +38,31 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
       opaque = false
       xAlignment = Alignment.Leading
       border = BorderFactory.createEmptyBorder(2, 2, 2, 2)
+
+      var entry: Entry = null
+      override def paintComponent(gfx: Graphics2D)
+      {
+        def paint_rectangle(color: Color)
+        {
+          val size = peer.getSize()
+          val insets = border.getBorderInsets(peer)
+          val x = insets.left
+          val y = insets.top
+          val w = size.width - x - insets.right
+          val h = size.height - y - insets.bottom
+          gfx.setColor(color)
+          gfx.fillRect(x, y, w, h)
+        }
+
+        entry match {
+          case theory_entry: Theory_Entry if theory_entry.current =>
+            paint_rectangle(view.getTextArea.getPainter.getSelectionColor)
+          case _: Command_Entry =>
+            paint_rectangle(view.getTextArea.getPainter.getMultipleSelectionColor)
+          case _ =>
+        }
+        super.paintComponent(gfx)
+      }
     }
 
     class Renderer extends ListView.Renderer[Entry]
@@ -46,6 +71,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         entry: Entry, index: Int): Component =
       {
         val component = Renderer_Component
+        component.entry = entry
         component.text = entry.print
         component
       }
@@ -59,7 +85,8 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     def follow(snapshot: Document.Snapshot)
   }
 
-  private case class Theory_Entry(name: Document.Node.Name, timing: Double) extends Entry
+  private case class Theory_Entry(name: Document.Node.Name, timing: Double, current: Boolean)
+    extends Entry
   {
     def print: String = Time.print_seconds(timing) + "s theory " + quote(name.theory)
     def follow(snapshot: Document.Snapshot): Unit = Hyperlink(name.node).follow(view)
@@ -138,15 +165,15 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
     val timing = nodes_timing.get(name) getOrElse Protocol.empty_node_timing
 
     val theories =
-      (for {
-        (node_name, node_timing) <- nodes_timing.toList
-        if node_timing.total > timing_threshold
-      } yield Theory_Entry(node_name, node_timing.total)).sorted(Entry.Ordering)
+      (for ((node_name, node_timing) <- nodes_timing.toList if !node_timing.commands.isEmpty)
+        yield Theory_Entry(node_name, node_timing.total, false)).sorted(Entry.Ordering)
     val commands =
       (for ((command, command_timing) <- timing.commands.toList)
         yield Command_Entry(command, command_timing)).sorted(Entry.Ordering)
 
-    theories.flatMap(entry => entry :: (if (entry.name == name) commands else Nil))
+    theories.flatMap(entry =>
+      if (entry.name == name) entry.copy(current = true) :: commands
+      else List(entry))
   }
 
   private def handle_update(restriction: Option[Set[Document.Node.Name]] = None)
