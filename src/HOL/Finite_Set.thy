@@ -1107,11 +1107,11 @@ definition card :: "'a set \<Rightarrow> nat" where
 
 interpretation card!: folding "\<lambda>_. Suc" 0
 where
-  "card.F = card"
+  "folding.F (\<lambda>_. Suc) 0 = card"
 proof -
   show "folding (\<lambda>_. Suc)" by default rule
   then interpret card!: folding "\<lambda>_. Suc" 0 .
-  show "card.F = card" by (simp only: card_def)
+  from card_def show "folding.F (\<lambda>_. Suc) 0 = card" by rule
 qed
 
 lemma card_infinite:

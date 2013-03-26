@@ -91,8 +91,8 @@ locale comm_monoid = abel_semigroup +
   fixes z :: 'a ("1")
   assumes comm_neutral: "a * 1 = a"
 
-sublocale comm_monoid < monoid proof
-qed (simp_all add: commute comm_neutral)
+sublocale comm_monoid < monoid
+  by default (simp_all add: commute comm_neutral)
 
 
 subsection {* Generic operations *}
@@ -151,14 +151,14 @@ subsection {* Semigroups and Monoids *}
 class semigroup_add = plus +
   assumes add_assoc [algebra_simps, field_simps]: "(a + b) + c = a + (b + c)"
 
-sublocale semigroup_add < add!: semigroup plus proof
-qed (fact add_assoc)
+sublocale semigroup_add < add!: semigroup plus
+  by default (fact add_assoc)
 
 class ab_semigroup_add = semigroup_add +
   assumes add_commute [algebra_simps, field_simps]: "a + b = b + a"
 
-sublocale ab_semigroup_add < add!: abel_semigroup plus proof
-qed (fact add_commute)
+sublocale ab_semigroup_add < add!: abel_semigroup plus
+  by default (fact add_commute)
 
 context ab_semigroup_add
 begin
@@ -174,14 +174,14 @@ theorems add_ac = add_assoc add_commute add_left_commute
 class semigroup_mult = times +
   assumes mult_assoc [algebra_simps, field_simps]: "(a * b) * c = a * (b * c)"
 
-sublocale semigroup_mult < mult!: semigroup times proof
-qed (fact mult_assoc)
+sublocale semigroup_mult < mult!: semigroup times
+  by default (fact mult_assoc)
 
 class ab_semigroup_mult = semigroup_mult +
   assumes mult_commute [algebra_simps, field_simps]: "a * b = b * a"
 
-sublocale ab_semigroup_mult < mult!: abel_semigroup times proof
-qed (fact mult_commute)
+sublocale ab_semigroup_mult < mult!: abel_semigroup times
+  by default (fact mult_commute)
 
 context ab_semigroup_mult
 begin
@@ -198,8 +198,8 @@ class monoid_add = zero + semigroup_add +
   assumes add_0_left: "0 + a = a"
     and add_0_right: "a + 0 = a"
 
-sublocale monoid_add < add!: monoid plus 0 proof
-qed (fact add_0_left add_0_right)+
+sublocale monoid_add < add!: monoid plus 0
+  by default (fact add_0_left add_0_right)+
 
 lemma zero_reorient: "0 = x \<longleftrightarrow> x = 0"
 by (rule eq_commute)
@@ -207,11 +207,11 @@ by (rule eq_commute)
 class comm_monoid_add = zero + ab_semigroup_add +
   assumes add_0: "0 + a = a"
 
-sublocale comm_monoid_add < add!: comm_monoid plus 0 proof
-qed (insert add_0, simp add: ac_simps)
+sublocale comm_monoid_add < add!: comm_monoid plus 0
+  by default (insert add_0, simp add: ac_simps)
 
-subclass (in comm_monoid_add) monoid_add proof
-qed (fact add.left_neutral add.right_neutral)+
+subclass (in comm_monoid_add) monoid_add
+  by default (fact add.left_neutral add.right_neutral)+
 
 class comm_monoid_diff = comm_monoid_add + minus +
   assumes diff_zero [simp]: "a - 0 = a"
@@ -268,8 +268,8 @@ class monoid_mult = one + semigroup_mult +
   assumes mult_1_left: "1 * a  = a"
     and mult_1_right: "a * 1 = a"
 
-sublocale monoid_mult < mult!: monoid times 1 proof
-qed (fact mult_1_left mult_1_right)+
+sublocale monoid_mult < mult!: monoid times 1
+  by default (fact mult_1_left mult_1_right)+
 
 lemma one_reorient: "1 = x \<longleftrightarrow> x = 1"
 by (rule eq_commute)
@@ -277,11 +277,11 @@ by (rule eq_commute)
 class comm_monoid_mult = one + ab_semigroup_mult +
   assumes mult_1: "1 * a = a"
 
-sublocale comm_monoid_mult < mult!: comm_monoid times 1 proof
-qed (insert mult_1, simp add: ac_simps)
+sublocale comm_monoid_mult < mult!: comm_monoid times 1
+  by default (insert mult_1, simp add: ac_simps)
 
-subclass (in comm_monoid_mult) monoid_mult proof
-qed (fact mult.left_neutral mult.right_neutral)+
+subclass (in comm_monoid_mult) monoid_mult
+  by default (fact mult.left_neutral mult.right_neutral)+
 
 class cancel_semigroup_add = semigroup_add +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"

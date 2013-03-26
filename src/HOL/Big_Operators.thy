@@ -325,12 +325,11 @@ where
 
 sublocale comm_monoid_add < setsum!: comm_monoid_set plus 0
 where
-  "setsum.F = setsum"
+  "comm_monoid_set.F plus 0 = setsum"
 proof -
   show "comm_monoid_set plus 0" ..
   then interpret setsum!: comm_monoid_set plus 0 .
-  show "setsum.F = setsum"
-    by (simp only: setsum_def)
+  from setsum_def show "comm_monoid_set.F plus 0 = setsum" by rule
 qed
 
 abbreviation
@@ -1048,12 +1047,11 @@ where
 
 sublocale comm_monoid_mult < setprod!: comm_monoid_set times 1
 where
-  "setprod.F = setprod"
+  "comm_monoid_set.F times 1 = setprod"
 proof -
   show "comm_monoid_set times 1" ..
   then interpret setprod!: comm_monoid_set times 1 .
-  show "setprod.F = setprod"
-    by (simp only: setprod_def)
+  from setprod_def show "comm_monoid_set.F times 1 = setprod" by rule
 qed
 
 abbreviation
@@ -1743,22 +1741,20 @@ text {* Lattice operations proper *}
 
 sublocale semilattice_inf < Inf_fin!: semilattice_order_set inf less_eq less
 where
-  "Inf_fin.F = Inf_fin"
+  "semilattice_set.F inf = Inf_fin"
 proof -
   show "semilattice_order_set inf less_eq less" ..
   then interpret Inf_fin!: semilattice_order_set inf less_eq less.
-  show "Inf_fin.F = Inf_fin"
-    by (fact Inf_fin_def [symmetric])
+  from Inf_fin_def show "semilattice_set.F inf = Inf_fin" by rule
 qed
 
 sublocale semilattice_sup < Sup_fin!: semilattice_order_set sup greater_eq greater
 where
-  "Sup_fin.F = Sup_fin"
+  "semilattice_set.F sup = Sup_fin"
 proof -
   show "semilattice_order_set sup greater_eq greater" ..
   then interpret Sup_fin!: semilattice_order_set sup greater_eq greater .
-  show "Sup_fin.F = Sup_fin"
-    by (fact Sup_fin_def [symmetric])
+  from Sup_fin_def show "semilattice_set.F sup = Sup_fin" by rule
 qed
 
 
@@ -1909,12 +1905,6 @@ end
 
 
 subsection {* Minimum and Maximum over non-empty sets *}
-
-text {*
-  This case is already setup by the @{text min_max} sublocale dependency from above.  But note
-  that this yields irregular prefixes, e.g.~@{text min_max.Inf_fin.insert} instead
-  of @{text Max.insert}.
-*}
 
 context linorder
 begin

@@ -197,10 +197,7 @@ lemma less_le: "x < y \<longleftrightarrow> x \<le> y \<and> x \<noteq> y"
 
 end
 
-sublocale order < order!: ordering less_eq less
-  by default (auto intro: antisym order_trans simp add: less_le)
-
-sublocale order < dual_order!: ordering greater_eq greater
+sublocale order < order!: ordering less_eq less +  dual_order!: ordering greater_eq greater
   by default (auto intro: antisym order_trans simp add: less_le)
 
 context order
@@ -210,7 +207,7 @@ text {* Reflexivity. *}
 
 lemma le_less: "x \<le> y \<longleftrightarrow> x < y \<or> x = y"
     -- {* NOT suitable for iff, since it can cause PROOF FAILED. *}
-by (simp add: less_le) blast
+by (fact order.order_iff_strict)
 
 lemma le_imp_less_or_eq: "x \<le> y \<Longrightarrow> x < y \<or> x = y"
 unfolding less_le by blast
@@ -228,10 +225,10 @@ by auto
 text {* Transitivity rules for calculational reasoning *}
 
 lemma neq_le_trans: "a \<noteq> b \<Longrightarrow> a \<le> b \<Longrightarrow> a < b"
-by (simp add: less_le)
+by (fact order.not_eq_order_implies_strict)
 
 lemma le_neq_trans: "a \<le> b \<Longrightarrow> a \<noteq> b \<Longrightarrow> a < b"
-by (simp add: less_le)
+by (rule order.not_eq_order_implies_strict)
 
 
 text {* Asymmetry. *}
@@ -243,7 +240,7 @@ lemma antisym_conv: "y \<le> x \<Longrightarrow> x \<le> y \<longleftrightarrow>
 by (blast intro: antisym)
 
 lemma less_imp_neq: "x < y \<Longrightarrow> x \<noteq> y"
-by (erule contrapos_pn, erule subst, rule less_irrefl)
+by (fact order.strict_implies_not_eq)
 
 
 text {* Least value operator *}
@@ -1168,7 +1165,6 @@ lemma max_absorb1: "(y\<Colon>'a\<Colon>order) \<le> x \<Longrightarrow> max x y
 by (simp add: max_def)
 
 
-
 subsection {* (Unique) top and bottom elements *}
 
 class bot = order +
@@ -1176,8 +1172,7 @@ class bot = order +
   assumes bot_least: "\<bottom> \<le> a"
 
 sublocale bot < bot!: ordering_top greater_eq greater bot
-proof
-qed (fact bot_least)
+  by default (fact bot_least)
 
 context bot
 begin
@@ -1205,8 +1200,7 @@ class top = order +
   assumes top_greatest: "a \<le> \<top>"
 
 sublocale top < top!: ordering_top less_eq less top
-proof
-qed (fact top_greatest)
+  by default (fact top_greatest)
 
 context top
 begin
@@ -1315,6 +1309,7 @@ class no_bot = order +
   assumes lt_ex: "\<exists>y. y < x"
 
 class dense_linorder = inner_dense_linorder + no_top + no_bot
+
 
 subsection {* Wellorders *}
 

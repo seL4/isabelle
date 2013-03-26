@@ -471,24 +471,22 @@ subsection {* Bounded lattices and boolean algebras *}
 class bounded_semilattice_inf_top = semilattice_inf + top
 
 sublocale bounded_semilattice_inf_top < inf_top!: semilattice_neutr inf top
+  + inf_top!: semilattice_neutr_order inf top less_eq less
 proof
   fix x
   show "x \<sqinter> \<top> = x"
     by (rule inf_absorb1) simp
 qed
 
-sublocale bounded_semilattice_inf_top < inf_top!: semilattice_neutr_order inf top less_eq less ..
-
 class bounded_semilattice_sup_bot = semilattice_sup + bot
 
 sublocale bounded_semilattice_sup_bot < sup_bot!: semilattice_neutr sup bot
+  + sup_bot!: semilattice_neutr_order sup bot greater_eq greater
 proof
   fix x
   show "x \<squnion> \<bottom> = x"
     by (rule sup_absorb1) simp
 qed
-
-sublocale bounded_semilattice_sup_bot < sup_bot!: semilattice_neutr_order sup bot greater_eq greater ..
 
 class bounded_lattice_bot = lattice + bot
 begin
