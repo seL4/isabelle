@@ -890,7 +890,7 @@ qed simp
 lemma Liminf_within:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S \<inter> ball x e - {x}). f y)"
-  unfolding Liminf_def eventually_within
+  unfolding Liminf_def eventually_within_less
 proof (rule SUPR_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
@@ -908,7 +908,7 @@ qed
 lemma Limsup_within:
   fixes f :: "'a::metric_space => 'b::complete_lattice"
   shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S \<inter> ball x e - {x}). f y)"
-  unfolding Limsup_def eventually_within
+  unfolding Limsup_def eventually_within_less
 proof (rule INFI_eq, simp_all add: Ball_def Bex_def, safe)
   fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"

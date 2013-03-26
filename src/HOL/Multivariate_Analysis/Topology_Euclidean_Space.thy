@@ -1256,14 +1256,9 @@ lemma not_trivial_limit_within: "~trivial_limit (at x within S) = (x:closure(S-{
 
 text {* Some property holds "sufficiently close" to the limit point. *}
 
-lemma eventually_at: (* FIXME: this replaces Metric_Spaces.eventually_at *)
+lemma eventually_at2:
   "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
 unfolding eventually_at dist_nz by auto
-
-lemma eventually_within: (* FIXME: this replaces Topological_Spaces.eventually_within *)
-  "eventually P (at a within S) \<longleftrightarrow>
-        (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  by (rule eventually_within_less)
 
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
   unfolding trivial_limit_def
@@ -1301,11 +1296,11 @@ lemma Lim_within_le: "(f ---> l)(at a within S) \<longleftrightarrow>
 
 lemma Lim_within: "(f ---> l) (at a within S) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_within)
+  by (auto simp add: tendsto_iff eventually_within_less)
 
 lemma Lim_at: "(f ---> l) (at a) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_at)
+  by (auto simp add: tendsto_iff eventually_at2)
 
 lemma Lim_at_infinity:
   "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x >= b \<longrightarrow> dist (f x) l < e)"
@@ -1601,7 +1596,7 @@ lemma Lim_transform_within:
   shows "(g ---> l) (at x within S)"
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at x within S)"
-    unfolding eventually_within
+    unfolding eventually_within_less
     using assms(1,2) by auto
   show "(f ---> l) (at x within S)" by fact
 qed
@@ -1612,7 +1607,7 @@ lemma Lim_transform_at:
   shows "(g ---> l) (at x)"
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at x)"
-    unfolding eventually_at
+    unfolding eventually_at2
     using assms(1,2) by auto
   show "(f ---> l) (at x)" by fact
 qed
@@ -3788,7 +3783,7 @@ proof
   { fix x::"nat \<Rightarrow> 'a" assume x:"\<forall>n. x n \<in> s" "\<forall>e>0. eventually (\<lambda>n. dist (x n) a < e) sequentially"
     fix T::"'b set" assume "open T" and "f a \<in> T"
     with `?lhs` obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> f x \<in> T"
-      unfolding continuous_within tendsto_def eventually_within by auto
+      unfolding continuous_within tendsto_def eventually_within_less by auto
     have "eventually (\<lambda>n. dist (x n) a < d) sequentially"
       using x(2) `d>0` by simp
     hence "eventually (\<lambda>n. (f \<circ> x) n \<in> T) sequentially"
@@ -4186,8 +4181,7 @@ proof-
   hence "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
     using `a \<notin> U` by (fast elim: eventually_mono [rotated])
   thus ?thesis
-    unfolding Limits.eventually_within Metric_Spaces.eventually_at
-    by (rule ex_forward, cut_tac `f x \<noteq> a`, auto simp: dist_commute)
+    using `f x \<noteq> a` by (auto simp: dist_commute zero_less_dist_iff eventually_within_less)
 qed
 
 lemma continuous_at_avoid:
