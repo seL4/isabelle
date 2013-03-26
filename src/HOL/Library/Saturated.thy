@@ -7,7 +7,7 @@
 header {* Saturated arithmetic *}
 
 theory Saturated
-imports Main "~~/src/HOL/Library/Numeral_Type" "~~/src/HOL/Word/Type_Length"
+imports Numeral_Type "~~/src/HOL/Word/Type_Length"
 begin
 
 subsection {* The type of saturated naturals *}

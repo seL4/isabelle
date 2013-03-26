@@ -4,7 +4,7 @@
 header {* Comparing growth of functions on natural numbers by a preorder relation *}
 
 theory Function_Growth
-imports Main "~~/src/HOL/Library/Preorder" "~~/src/HOL/Library/Discrete"
+imports Main Preorder Discrete
 begin
 
 subsection {* Motivation *}

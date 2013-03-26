@@ -4,7 +4,9 @@
 
 header {* A generic phantom type *}
 
-theory Phantom_Type imports Main begin
+theory Phantom_Type
+imports Main
+begin
 
 datatype ('a, 'b) phantom = phantom 'b
 

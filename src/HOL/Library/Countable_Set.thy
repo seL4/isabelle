@@ -6,7 +6,7 @@
 header {* Countable sets *}
 
 theory Countable_Set
-  imports "~~/src/HOL/Library/Countable" "~~/src/HOL/Library/Infinite_Set"
+imports Countable Infinite_Set
 begin
 
 subsection {* Predicate for countable sets *}

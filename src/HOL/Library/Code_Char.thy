@@ -5,7 +5,7 @@
 header {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
-imports Main "~~/src/HOL/Library/Char_ord"
+imports Main Char_ord
 begin
 
 code_type char

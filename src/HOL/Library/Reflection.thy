@@ -8,8 +8,8 @@ theory Reflection
 imports Main
 begin
 
-ML_file "~~/src/HOL/Library/reify_data.ML"
-ML_file "~~/src/HOL/Library/reflection.ML"
+ML_file "reify_data.ML"
+ML_file "reflection.ML"
 
 setup {* Reify_Data.setup *}
 

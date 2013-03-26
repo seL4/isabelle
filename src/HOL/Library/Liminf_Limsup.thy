@@ -5,7 +5,7 @@
 header {* Liminf and Limsup on complete lattices *}
 
 theory Liminf_Limsup
-imports "~~/src/HOL/Complex_Main"
+imports Complex_Main
 begin
 
 lemma le_Sup_iff_less:

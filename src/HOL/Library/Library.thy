@@ -16,7 +16,9 @@ imports
   Debug
   Diagonal_Subsequence
   Dlist
-  Extended Extended_Nat Extended_Real
+  Extended
+  Extended_Nat
+  Extended_Real
   FinFun
   Float
   Formal_Power_Series
