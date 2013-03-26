@@ -3,7 +3,7 @@
 header{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
-imports Polynomial Complex
+imports Polynomial Complex_Main
 begin
 
 subsection {* Square root of complex numbers *}
