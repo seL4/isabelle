@@ -116,6 +116,36 @@ object Protocol
   }
 
 
+  /* node timing */
+
+  sealed case class Node_Timing(total: Double, commands: Map[Command, Double])
+
+  val empty_node_timing = Node_Timing(0.0, Map.empty)
+
+  def node_timing(
+    state: Document.State,
+    version: Document.Version,
+    node: Document.Node,
+    threshold: Double): Node_Timing =
+  {
+    var total = 0.0
+    var commands = Map.empty[Command, Double]
+    for {
+      command <- node.commands.iterator
+      st = state.command_state(version, command)
+      command_timing =
+        (0.0 /: st.status)({
+          case (timing, Markup.Timing(t)) => timing + t.elapsed.seconds
+          case (timing, _) => timing
+        })
+    } {
+      total += command_timing
+      if (command_timing >= threshold) commands += (command -> command_timing)
+    }
+    Node_Timing(total, commands)
+  }
+
+
   /* result messages */
 
   private val clean = Set(Markup.REPORT, Markup.NO_REPORT)

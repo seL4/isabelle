@@ -42,6 +42,7 @@ declare -a SOURCES=(
   "src/syslog_dockable.scala"
   "src/text_overview.scala"
   "src/theories_dockable.scala"
+  "src/timing_dockable.scala"
   "src/token_markup.scala"
 )
 

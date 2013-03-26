@@ -43,10 +43,11 @@ class Isabelle_Options1 extends Isabelle_Options("isabelle-general")
   private val relevant_options =
     Set("jedit_logic", "jedit_font_scale", "jedit_symbols_search_limit",
       "jedit_text_overview_limit", "jedit_tooltip_bounds", "jedit_tooltip_delay",
-      "jedit_tooltip_font_scale", "jedit_tooltip_margin", "jedit_mac_adapter", "threads",
-      "threads_trace", "parallel_proofs", "parallel_subproofs_saturation", "editor_load_delay",
-      "editor_input_delay", "editor_output_delay", "editor_reparse_limit",
-      "editor_tracing_messages", "editor_update_delay", "editor_chart_delay")
+      "jedit_tooltip_font_scale", "jedit_tooltip_margin", "jedit_mac_adapter",
+      "jedit_timing_threshold", "threads", "threads_trace", "parallel_proofs",
+      "parallel_subproofs_saturation", "editor_load_delay", "editor_input_delay",
+      "editor_output_delay", "editor_reparse_limit", "editor_tracing_messages",
+      "editor_update_delay", "editor_chart_delay")
 
   relevant_options.foreach(PIDE.options.value.check_name _)
 

@@ -27,6 +27,9 @@ option jedit_symbols_search_limit : int = 50
 option jedit_mac_adapter : bool = true
   -- "some native Mac OS X support (potential conflict with MacOSX plugin)"
 
+option jedit_timing_threshold : real = 0.1
+  -- "default threshold for timing display"
+
 
 section "Rendering of Document Content"
 

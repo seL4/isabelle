@@ -26,6 +26,12 @@ object Isabelle
       case _ => None
     }
 
+  def docked_timing(view: View): Option[Timing_Dockable] =
+    wm(view).getDockableWindow("isabelle-timing") match {
+      case dockable: Timing_Dockable => Some(dockable)
+      case _ => None
+    }
+
   def docked_output(view: View): Option[Output_Dockable] =
     wm(view).getDockableWindow("isabelle-output") match {
       case dockable: Output_Dockable => Some(dockable)

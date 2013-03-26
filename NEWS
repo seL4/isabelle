@@ -21,6 +21,12 @@ dependencies.  Minor INCOMPATIBILITY.
 'ML_file' in Isabelle2013.  Minor INCOMPATIBILITY.
 
 
+*** Prover IDE -- Isabelle/Scala/jEdit ***
+
+* Dockable window "Timing" provides an overview of relevant command
+timing information.
+
+
 *** Pure ***
 
 * Discontinued obsolete 'axioms' command, which has been marked as

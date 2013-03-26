@@ -37,7 +37,8 @@ plugin.isabelle.jedit.Plugin.menu= \
   isabelle.readme-panel \
   isabelle.symbols-panel \
   isabelle.syslog-panel \
-  isabelle.theories-panel
+  isabelle.theories-panel \
+  isabelle.timing-panel
 isabelle.monitor-panel.label=Monitor panel
 isabelle.output-panel.label=Output panel
 isabelle.protocol-panel.label=Protocol panel
@@ -46,6 +47,7 @@ isabelle.readme-panel.label=README panel
 isabelle.symbols-panel.label=Symbols panel
 isabelle.syslog-panel.label=Syslog panel
 isabelle.theories-panel.label=Theories panel
+isabelle.timing-panel.label=Timing panel
 
 #dockables
 isabelle-graphview.title=Graphview
@@ -58,6 +60,7 @@ isabelle-readme.title=README
 isabelle-symbols.title=Symbols
 isabelle-syslog.title=Syslog
 isabelle-theories.title=Theories
+isabelle-timing.title=Timing
 
 #SideKick
 mode.isabelle-options.folding=sidekick

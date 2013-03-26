@@ -7,6 +7,11 @@
 			wm.addDockableWindow("isabelle-theories");
 		</CODE>
 	</ACTION>
+	<ACTION NAME="isabelle.timing-panel">
+		<CODE>
+			wm.addDockableWindow("isabelle-timing");
+		</CODE>
+	</ACTION>
 	<ACTION NAME="isabelle.syslog-panel">
 		<CODE>
 			wm.addDockableWindow("isabelle-syslog");
