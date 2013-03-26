@@ -8,7 +8,7 @@
 header {* Development of the Reals using Cauchy Sequences *}
 
 theory RealDef
-imports Rat
+imports Rat Conditional_Complete_Lattices
 begin
 
 text {*
@@ -922,6 +922,56 @@ proof -
     using 1 2 3 by (rule_tac x="Real B" in exI, simp)
 qed
 
+
+instantiation real :: conditional_complete_linorder
+begin
+
+subsection{*Supremum of a set of reals*}
+
+definition
+  Sup_real_def: "Sup X \<equiv> LEAST z::real. \<forall>x\<in>X. x\<le>z"
+
+definition
+  Inf_real_def: "Inf (X::real set) \<equiv> - Sup (uminus ` X)"
+
+instance
+proof
+  { fix z x :: real and X :: "real set"
+    assume x: "x \<in> X" and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
+    then obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
+      using complete_real[of X] by blast
+    then show "x \<le> Sup X"
+      unfolding Sup_real_def by (rule LeastI2_order) (auto simp: x) }
+  note Sup_upper = this
+
+  { fix z :: real and X :: "real set"
+    assume x: "X \<noteq> {}" and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
+    then obtain s where s: "\<forall>y\<in>X. y \<le> s" "\<And>z. \<forall>y\<in>X. y \<le> z \<Longrightarrow> s \<le> z"
+      using complete_real[of X] by blast
+    then have "Sup X = s"
+      unfolding Sup_real_def by (best intro: Least_equality)  
+    also with s z have "... \<le> z"
+      by blast
+    finally show "Sup X \<le> z" . }
+  note Sup_least = this
+
+  { fix x z :: real and X :: "real set"
+    assume x: "x \<in> X" and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
+    have "-x \<le> Sup (uminus ` X)"
+      by (rule Sup_upper[of _ _ "- z"]) (auto simp add: image_iff x z)
+    then show "Inf X \<le> x" 
+      by (auto simp add: Inf_real_def) }
+
+  { fix z :: real and X :: "real set"
+    assume x: "X \<noteq> {}" and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
+    have "Sup (uminus ` X) \<le> -z"
+      using x z by (force intro: Sup_least)
+    then show "z \<le> Inf X" 
+        by (auto simp add: Inf_real_def) }
+qed
+end
+
+
 subsection {* Hiding implementation details *}
 
 hide_const (open) vanishes cauchy positive Real
@@ -1524,7 +1574,6 @@ by simp
  
 lemma abs_sum_triangle_ineq: "abs ((x::real) + y + (-l + -m)) \<le> abs(x + -l) + abs(y + -m)"
 by simp
-
 
 subsection {* Implementation of rational real numbers *}
 

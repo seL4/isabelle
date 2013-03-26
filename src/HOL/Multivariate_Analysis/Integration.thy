@@ -8,17 +8,56 @@ imports
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
-lemma cSup_finite_ge_iff: 
+lemma cSup_abs_le: (* TODO: is this really needed? *)
   fixes S :: "real set"
-  assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a \<le> Sup S \<longleftrightarrow> (\<exists> x \<in> S. a \<le> x)"
-by (metis Max_ge Se cSup_eq_Max Max_in fS linorder_not_le less_le_trans)
+  shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
+by (auto simp add: abs_le_interval_iff intro: cSup_least) (metis cSup_upper2) 
+
+lemma cInf_abs_ge: (* TODO: is this really needed? *)
+  fixes S :: "real set"
+  shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Inf S\<bar> \<le> a"
+by (simp add: Inf_real_def) (rule cSup_abs_le, auto) 
+
+lemma cSup_asclose: (* TODO: is this really needed? *)
+  fixes S :: "real set"
+  assumes S:"S \<noteq> {}" and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e" shows "\<bar>Sup S - l\<bar> \<le> e"
+proof-
+  have th: "\<And>(x::real) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e" by arith
+  thus ?thesis using S b cSup_bounds[of S "l - e" "l+e"] unfolding th
+    by  (auto simp add: setge_def setle_def)
+qed
+
+lemma cInf_asclose: (* TODO: is this really needed? *)
+  fixes S :: "real set"
+  assumes S:"S \<noteq> {}" and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e" shows "\<bar>Inf S - l\<bar> \<le> e"
+proof -
+  have "\<bar>- Sup (uminus ` S) - l\<bar> =  \<bar>Sup (uminus ` S) - (-l)\<bar>"
+    by auto
+  also have "... \<le> e" 
+    apply (rule cSup_asclose) 
+    apply (auto simp add: S)
+    apply (metis abs_minus_add_cancel b add_commute diff_minus)
+    done
+  finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
+  thus ?thesis
+    by (simp add: Inf_real_def)
+qed
+
+lemma cSup_finite_ge_iff: 
+  fixes S :: "real set" shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<le> Sup S \<longleftrightarrow> (\<exists>x\<in>S. a \<le> x)"
+  by (metis cSup_eq_Max Max_ge_iff)
 
 lemma cSup_finite_le_iff: 
-  fixes S :: "real set"
-  assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "a \<ge> Sup S \<longleftrightarrow> (\<forall> x \<in> S. a \<ge> x)"
-by (metis Max_ge Se cSup_eq_Max Max_in fS order_trans)
+  fixes S :: "real set" shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Sup S \<longleftrightarrow> (\<forall>x\<in>S. a \<ge> x)"
+  by (metis cSup_eq_Max Max_le_iff)
+
+lemma cInf_finite_ge_iff: 
+  fixes S :: "real set" shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<le> Inf S \<longleftrightarrow> (\<forall>x\<in>S. a \<le> x)"
+  by (metis cInf_eq_Min Min_ge_iff)
+
+lemma cInf_finite_le_iff: 
+  fixes S :: "real set" shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists>x\<in>S. a \<ge> x)"
+  by (metis cInf_eq_Min Min_le_iff)
 
 lemma Inf: (* rename *)
   fixes S :: "real set"
@@ -6282,7 +6321,8 @@ proof -
       unfolding real_norm_def abs_le_iff
       apply auto
       done
-    show "((\<lambda>k. Inf {f j x |j. k \<le> j}) ---> g x) sequentially"
+
+    show "(\<lambda>k::nat. Inf {f j x |j. k \<le> j}) ----> g x"
     proof (rule LIMSEQ_I)
       case goal1
       hence "0<r/2" by auto

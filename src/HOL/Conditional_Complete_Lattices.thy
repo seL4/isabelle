@@ -1,9 +1,12 @@
-(*  Author: Amine Chaieb and L C Paulson, University of Cambridge *)
+(*  Title:      HOL/Conditional_Complete_Lattices.thy
+    Author:     Amine Chaieb and L C Paulson, University of Cambridge
+    Author:     Johanens Hölzl, TU München
+*)
 
-header {*Sup and Inf Operators on Sets of Reals.*}
+header {* Conditional Complete Lattices *}
 
-theory SupInf
-imports RComplete
+theory Conditional_Complete_Lattices
+imports Main Lubs
 begin
 
 lemma Sup_fin_eq_Max: "finite X \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup_fin X = Max X"
@@ -73,6 +76,12 @@ lemma cInf_eq_non_empty:
   assumes 3: "\<And>y. (\<And>x. x \<in> X \<Longrightarrow> y \<le> x) \<Longrightarrow> y \<le> a"
   shows "Inf X = a"
   by (intro 3 1 antisym cInf_greatest) (auto intro: 2 1 cInf_lower)
+
+lemma cInf_cSup: "S \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> z \<le> x) \<Longrightarrow> Inf S = Sup {x. \<forall>s\<in>S. x \<le> s}"
+  by (rule cInf_eq_non_empty) (auto intro: cSup_upper cSup_least)
+
+lemma cSup_cInf: "S \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> S \<Longrightarrow> x \<le> z) \<Longrightarrow> Sup S = Inf {x. \<forall>s\<in>S. s \<le> x}"
+  by (rule cSup_eq_non_empty) (auto intro: cInf_lower cInf_greatest)
 
 lemma cSup_insert: 
   assumes x: "X \<noteq> {}"
@@ -196,6 +205,14 @@ lemma less_cSupE:
   assumes "y < Sup X" "X \<noteq> {}" obtains x where "x \<in> X" "y < x"
   by (metis cSup_least assms not_le that)
 
+lemma less_cSupD:
+  "X \<noteq> {} \<Longrightarrow> z < Sup X \<Longrightarrow> \<exists>x\<in>X. z < x"
+  by (metis less_cSup_iff not_leE)
+
+lemma cInf_lessD:
+  "X \<noteq> {} \<Longrightarrow> Inf X < z \<Longrightarrow> \<exists>x\<in>X. x < z"
+  by (metis cInf_less_iff not_leE)
+
 lemma complete_interval:
   assumes "a < b" and "P a" and "\<not> P b"
   shows "\<exists>c. a \<le> c \<and> c \<le> b \<and> (\<forall>x. a \<le> x \<and> x < c \<longrightarrow> P x) \<and>
@@ -229,6 +246,22 @@ qed
 
 end
 
+lemma cSup_bounds:
+  fixes S :: "'a :: conditional_complete_lattice set"
+  assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
+  shows "a \<le> Sup S \<and> Sup S \<le> b"
+proof-
+  from isLub_cSup[OF Se] u have lub: "isLub UNIV S (Sup S)" by blast
+  hence b: "Sup S \<le> b" using u 
+    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def) 
+  from Se obtain y where y: "y \<in> S" by blast
+  from lub l have "a \<le> Sup S"
+    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def)
+       (metis le_iff_sup le_sup_iff y)
+  with b show ?thesis by blast
+qed
+
+
 lemma cSup_unique: "(S::'a :: {conditional_complete_linorder, no_bot} set) *<= b \<Longrightarrow> (\<forall>b'<b. \<exists>x\<in>S. b' < x) \<Longrightarrow> Sup S = b"
   by (rule cSup_eq) (auto simp: not_le[symmetric] setle_def)
 
@@ -258,176 +291,5 @@ lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{co
 
 lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditional_complete_linorder, dense_linorder}} = y"
   by (auto intro!: cInf_eq intro: dense_ge_bounded)
-
-instantiation real :: conditional_complete_linorder
-begin
-
-subsection{*Supremum of a set of reals*}
-
-definition
-  Sup_real_def: "Sup X \<equiv> LEAST z::real. \<forall>x\<in>X. x\<le>z"
-
-definition
-  Inf_real_def: "Inf (X::real set) \<equiv> - Sup (uminus ` X)"
-
-instance
-proof
-  { fix z x :: real and X :: "real set"
-    assume x: "x \<in> X" and z: "!!x. x \<in> X \<Longrightarrow> x \<le> z"
-    show "x \<le> Sup X"
-    proof (auto simp add: Sup_real_def) 
-      from complete_real[of X]
-      obtain s where s: "(\<forall>y\<in>X. y \<le> s) & (\<forall>z. ((\<forall>y\<in>X. y \<le> z) --> s \<le> z))"
-        by (blast intro: x z)
-      hence "x \<le> s"
-        by (blast intro: x z)
-      also with s have "... = (LEAST z. \<forall>x\<in>X. x \<le> z)"
-        by (fast intro: Least_equality [symmetric])  
-      finally show "x \<le> (LEAST z. \<forall>x\<in>X. x \<le> z)" .
-    qed }
-  note Sup_upper = this
-
-  { fix z :: real and X :: "real set"
-    assume x: "X \<noteq> {}"
-        and z: "\<And>x. x \<in> X \<Longrightarrow> x \<le> z"
-    show "Sup X \<le> z"
-    proof (auto simp add: Sup_real_def) 
-      from complete_real x
-      obtain s where s: "(\<forall>y\<in>X. y \<le> s) & (\<forall>z. ((\<forall>y\<in>X. y \<le> z) --> s \<le> z))"
-        by (blast intro: z)
-      hence "(LEAST z. \<forall>x\<in>X. x \<le> z) = s"
-        by (best intro: Least_equality)  
-      also with s z have "... \<le> z"
-        by blast
-      finally show "(LEAST z. \<forall>x\<in>X. x \<le> z) \<le> z" .
-    qed }
-  note Sup_least = this
-
-  { fix x z :: real and X :: "real set"
-    assume x: "x \<in> X" and z: "!!x. x \<in> X \<Longrightarrow> z \<le> x"
-    show "Inf X \<le> x"
-    proof -
-      have "-x \<le> Sup (uminus ` X)"
-        by (rule Sup_upper[of _ _ "- z"]) (auto simp add: image_iff x z)
-      thus ?thesis 
-        by (auto simp add: Inf_real_def)
-    qed }
-
-  { fix z :: real and X :: "real set"
-    assume x: "X \<noteq> {}"
-      and z: "\<And>x. x \<in> X \<Longrightarrow> z \<le> x"
-    show "z \<le> Inf X"
-    proof -
-      have "Sup (uminus ` X) \<le> -z"
-        using x z by (force intro: Sup_least)
-      hence "z \<le> - Sup (uminus ` X)"
-        by simp
-      thus ?thesis 
-        by (auto simp add: Inf_real_def)
-    qed }
-qed
-end
-
-subsection{*Supremum of a set of reals*}
-
-lemma cSup_abs_le:
-  fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Sup S\<bar> \<le> a"
-by (auto simp add: abs_le_interval_iff intro: cSup_least) (metis cSup_upper2) 
-
-lemma cSup_bounds:
-  fixes S :: "real set"
-  assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
-  shows "a \<le> Sup S \<and> Sup S \<le> b"
-proof-
-  from isLub_cSup[OF Se] u have lub: "isLub UNIV S (Sup S)" by blast
-  hence b: "Sup S \<le> b" using u 
-    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def) 
-  from Se obtain y where y: "y \<in> S" by blast
-  from lub l have "a \<le> Sup S"
-    by (auto simp add: isLub_def leastP_def setle_def setge_def isUb_def)
-       (metis le_iff_sup le_sup_iff y)
-  with b show ?thesis by blast
-qed
-
-lemma cSup_asclose: 
-  fixes S :: "real set"
-  assumes S:"S \<noteq> {}" and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e" shows "\<bar>Sup S - l\<bar> \<le> e"
-proof-
-  have th: "\<And>(x::real) l e. \<bar>x - l\<bar> \<le> e \<longleftrightarrow> l - e \<le> x \<and> x \<le> l + e" by arith
-  thus ?thesis using S b cSup_bounds[of S "l - e" "l+e"] unfolding th
-    by  (auto simp add: setge_def setle_def)
-qed
-
-subsection{*Infimum of a set of reals*}
-
-lemma cInf_greater:
-  fixes z :: real
-  shows "X \<noteq> {} \<Longrightarrow> Inf X < z \<Longrightarrow> \<exists>x\<in>X. x < z"
-  by (metis cInf_less_iff not_leE)
-
-lemma cInf_close:
-  fixes e :: real
-  shows "X \<noteq> {} \<Longrightarrow> 0 < e \<Longrightarrow> \<exists>x \<in> X. x < Inf X + e"
-  by (metis add_strict_increasing add_commute cInf_greater linorder_not_le pos_add_strict)
-
-lemma cInf_finite_in: 
-  fixes S :: "real set"
-  assumes fS: "finite S" and Se: "S \<noteq> {}"
-  shows "Inf S \<in> S"
-  using cInf_eq_Min[OF fS Se] Min_in[OF fS Se] by metis
-
-lemma cInf_finite_ge_iff: 
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<le> Inf S \<longleftrightarrow> (\<forall> x \<in> S. a \<le> x)"
-by (metis cInf_eq_Min cInf_finite_in Min_le order_trans)
-
-lemma cInf_finite_le_iff:
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a \<ge> Inf S \<longleftrightarrow> (\<exists> x \<in> S. a \<ge> x)"
-by (metis cInf_eq_Min cInf_finite_ge_iff cInf_finite_in Min_le order_antisym linear)
-
-lemma cInf_finite_gt_iff: 
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a < Inf S \<longleftrightarrow> (\<forall> x \<in> S. a < x)"
-by (metis cInf_finite_le_iff linorder_not_less)
-
-lemma cInf_finite_lt_iff: 
-  fixes S :: "real set"
-  shows "finite S \<Longrightarrow> S \<noteq> {} \<Longrightarrow> a > Inf S \<longleftrightarrow> (\<exists> x \<in> S. a > x)"
-by (metis cInf_finite_ge_iff linorder_not_less)
-
-lemma cInf_abs_ge:
-  fixes S :: "real set"
-  shows "S \<noteq> {} \<Longrightarrow> (\<forall>x\<in>S. \<bar>x\<bar> \<le> a) \<Longrightarrow> \<bar>Inf S\<bar> \<le> a"
-by (simp add: Inf_real_def) (rule cSup_abs_le, auto) 
-
-lemma cInf_asclose:
-  fixes S :: "real set"
-  assumes S:"S \<noteq> {}" and b: "\<forall>x\<in>S. \<bar>x - l\<bar> \<le> e" shows "\<bar>Inf S - l\<bar> \<le> e"
-proof -
-  have "\<bar>- Sup (uminus ` S) - l\<bar> =  \<bar>Sup (uminus ` S) - (-l)\<bar>"
-    by auto
-  also have "... \<le> e" 
-    apply (rule cSup_asclose) 
-    apply (auto simp add: S)
-    apply (metis abs_minus_add_cancel b add_commute diff_minus)
-    done
-  finally have "\<bar>- Sup (uminus ` S) - l\<bar> \<le> e" .
-  thus ?thesis
-    by (simp add: Inf_real_def)
-qed
-
-subsection{*Relate max and min to Sup and Inf.*}
-
-lemma real_max_cSup:
-  fixes x :: real
-  shows "max x y = Sup {x,y}"
-  by (subst cSup_insert[of _ y]) (simp_all add: sup_max)
-
-lemma real_min_cInf: 
-  fixes x :: real
-  shows "min x y = Inf {x,y}"
-  by (subst cInf_insert[of _ y]) (simp_all add: inf_min)
 
 end

@@ -8,7 +8,7 @@
 header {* Completeness of the Reals; Floor and Ceiling Functions *}
 
 theory RComplete
-imports Lubs RealDef
+imports Conditional_Complete_Lattices RealDef
 begin
 
 lemma real_sum_of_halves: "x/2 + x/2 = (x::real)"

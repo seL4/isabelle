@@ -1374,34 +1374,33 @@ lemma Lim_within_LIMSEQ:
   by (simp add: sequentially_imp_eventually_within)
 
 lemma Lim_right_bound:
-  fixes f :: "real \<Rightarrow> real"
+  fixes f :: "'a :: {linorder_topology, conditional_complete_linorder, no_top} \<Rightarrow>
+    'b::{linorder_topology, conditional_complete_linorder}"
   assumes mono: "\<And>a b. a \<in> I \<Longrightarrow> b \<in> I \<Longrightarrow> x < a \<Longrightarrow> a \<le> b \<Longrightarrow> f a \<le> f b"
   assumes bnd: "\<And>a. a \<in> I \<Longrightarrow> x < a \<Longrightarrow> K \<le> f a"
   shows "(f ---> Inf (f ` ({x<..} \<inter> I))) (at x within ({x<..} \<inter> I))"
 proof cases
   assume "{x<..} \<inter> I = {}" then show ?thesis by (simp add: Lim_within_empty)
 next
-  assume [simp]: "{x<..} \<inter> I \<noteq> {}"
+  assume e: "{x<..} \<inter> I \<noteq> {}"
   show ?thesis
-  proof (rule Lim_within_LIMSEQ, safe)
-    fix S assume S: "\<forall>n. S n \<noteq> x \<and> S n \<in> {x <..} \<inter> I" "S ----> x"
-    
-    show "(\<lambda>n. f (S n)) ----> Inf (f ` ({x<..} \<inter> I))"
-    proof (rule LIMSEQ_I, rule ccontr)
-      fix r :: real assume "0 < r"
-      with cInf_close[of "f ` ({x<..} \<inter> I)" r]
-      obtain y where y: "x < y" "y \<in> I" "f y < Inf (f ` ({x <..} \<inter> I)) + r" by auto
-      from `x < y` have "0 < y - x" by auto
-      from S(2)[THEN LIMSEQ_D, OF this]
-      obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> \<bar>S n - x\<bar> < y - x" by auto
-      
-      assume "\<not> (\<exists>N. \<forall>n\<ge>N. norm (f (S n) - Inf (f ` ({x<..} \<inter> I))) < r)"
-      moreover have "\<And>n. Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
-        using S bnd by (intro cInf_lower[where z=K]) auto
-      ultimately obtain n where n: "N \<le> n" "r + Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
-        by (auto simp: not_less field_simps)
-      with N[OF n(1)] mono[OF _ `y \<in> I`, of "S n"] S(1)[THEN spec, of n] y
-      show False by auto
+  proof (rule order_tendstoI)
+    fix a assume a: "a < Inf (f ` ({x<..} \<inter> I))"
+    { fix y assume "y \<in> {x<..} \<inter> I"
+      with e bnd have "Inf (f ` ({x<..} \<inter> I)) \<le> f y"
+        by (auto intro: cInf_lower)
+      with a have "a < f y" by (blast intro: less_le_trans) }
+    then show "eventually (\<lambda>x. a < f x) (at x within ({x<..} \<inter> I))"
+      by (auto simp: Topological_Spaces.eventually_within intro: exI[of _ 1] zero_less_one)
+  next
+    fix a assume "Inf (f ` ({x<..} \<inter> I)) < a"
+    from cInf_lessD[OF _ this] e obtain y where y: "x < y" "y \<in> I" "f y < a" by auto
+    show "eventually (\<lambda>x. f x < a) (at x within ({x<..} \<inter> I))"
+      unfolding within_within_eq[symmetric]
+        Topological_Spaces.eventually_within[of _ _ I] eventually_at_right
+    proof (safe intro!: exI[of _ y] y)
+      fix z assume "x < z" "z \<in> I" "z < y"
+      with mono[OF `z\<in>I` `y\<in>I`] `f y < a` show "f z < a" by (auto simp: less_imp_le)
     qed
   qed
 qed
@@ -1718,12 +1717,11 @@ proof safe
     using cInf_lower_EX[of _ S] assms by metis
 
   fix e :: real assume "0 < e"
-  then obtain x where x: "x \<in> S" "x < Inf S + e"
-    using cInf_close `S \<noteq> {}` by auto
-  moreover then have "x > Inf S - e" using * by auto
-  ultimately have "abs (x - Inf S) < e" by (simp add: abs_diff_less_iff)
-  then show "\<exists>x\<in>S. dist x (Inf S) < e"
-    using x by (auto simp: dist_norm)
+  then have "Inf S < Inf S + e" by simp
+  with assms obtain x where "x \<in> S" "x < Inf S + e"
+    by (subst (asm) cInf_less_iff[of _ B]) auto
+  with * show "\<exists>x\<in>S. dist x (Inf S) < e"
+    by (intro bexI[of _ x]) (auto simp add: dist_real_def)
 qed
 
 lemma closed_contains_Inf:
