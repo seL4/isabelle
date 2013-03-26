@@ -2223,4 +2223,7 @@ lemmas [nitpick_unfold] = inverse_real_inst.inverse_real one_real_inst.one_real
     times_real_inst.times_real uminus_real_inst.uminus_real
     zero_real_inst.zero_real
 
+ML_file "Tools/SMT/smt_real.ML"
+setup SMT_Real.setup
+
 end
