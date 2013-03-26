@@ -13,15 +13,6 @@
 \usepackage{mathpartir}
 \usepackage{amssymb}
 
-% Enables fixmes
-\newif \ifDraft         \Drafttrue
-
-\ifDraft
-  \newcommand{\FIXME}[1]{\textbf{\textsl{FIXME: #1}}}
-\else
-  \newcommand{\FIXME}[1]{\relax}
-\fi
-
 \renewcommand*\descriptionlabel[1]{\hspace\labelsep \textbf{#1}\hfil}
 
 % this should be the last package used
