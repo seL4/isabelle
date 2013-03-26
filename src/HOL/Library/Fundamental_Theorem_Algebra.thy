@@ -191,7 +191,7 @@ proof-
     hence "(abs (2 * x))^2 <= 1^2" "(abs (2 * y)) ^2 <= 1^2"
       by - (rule power_mono, simp, simp)+
     hence th0: "4*x^2 \<le> 1" "4*y^2 \<le> 1"
-      by (simp_all  add: power2_abs power_mult_distrib)
+      by (simp_all add: power_mult_distrib)
     from add_mono[OF th0] xy have False by simp }
   thus ?thesis unfolding linorder_not_le[symmetric] by blast
 qed
@@ -490,7 +490,7 @@ proof(induct p arbitrary: a d)
         unfolding norm_mult by (simp add: algebra_simps)
       from complex_mod_triangle_sub[of "z * poly (pCons c cs) z" a]
       have th2: "cmod(z * poly (pCons c cs) z) - cmod a \<le> cmod (poly (pCons a (pCons c cs)) z)"
-        by (simp add: diff_le_eq algebra_simps)
+        by (simp add: algebra_simps)
       from th1 th2 have "d \<le> cmod (poly (pCons a (pCons c cs)) z)"  by arith}
     hence ?case by blast}
   moreover
@@ -601,7 +601,6 @@ next
     apply (rule_tac x="a" in exI)
     apply simp
     apply (rule_tac x="q" in exI)
-    apply (auto simp add: power_Suc)
     apply (auto simp add: psize_def split: if_splits)
     done
 qed
@@ -718,7 +717,7 @@ proof(induct "psize p" arbitrary: p rule: less_induct)
       have th30: "t^k * (t* (cmod w ^ (k + 1) * m)) < t^k * 1"
         apply - apply (rule mult_strict_left_mono) by simp_all
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k+1) * cmod (poly s ?w)))"  using w0 t(1)
-        by (simp add: algebra_simps power_mult_distrib norm_of_real norm_power norm_mult)
+        by (simp add: algebra_simps power_mult_distrib norm_power norm_mult)
       then have "cmod (?w^k * ?w * poly s ?w) \<le> t^k * (t* (cmod w ^ (k + 1) * m))"
         using t(1,2) m(2)[rule_format, OF tw] w0
         apply (simp only: )
@@ -819,9 +818,8 @@ proof(induct n arbitrary: p q rule: nat_less_induct)
         have sne: "s \<noteq> 0"
           using s pne by auto
         {assume ds0: "degree s = 0"
-          from ds0 have "\<exists>k. s = [:k:]"
-            by (cases s, simp split: if_splits)
-          then obtain k where kpn: "s = [:k:]" by blast
+          from ds0 obtain k where kpn: "s = [:k:]"
+            by (cases s) (auto split: if_splits)
           from sne kpn have k: "k \<noteq> 0" by simp
           let ?w = "([:1/k:] * ([:-a,1:] ^ (n - ?op))) * (r ^ n)"
           from k oop [of a] have "q ^ n = p * ?w"
@@ -878,9 +876,7 @@ proof(induct n arbitrary: p q rule: nat_less_induct)
 
     then have pp: "\<And>x. poly p x =  c" by simp
     let ?w = "[:1/c:] * (q ^ n)"
-    from ccs
-    have "(q ^ n) = (p * ?w) "
-      by (simp add: smult_smult)
+    from ccs have "(q ^ n) = (p * ?w)" by simp
     hence ?ths unfolding dvd_def by blast}
   ultimately show ?ths by blast
 qed
@@ -902,7 +898,7 @@ proof-
   {assume pe: "p \<noteq> 0"
     {assume dp: "degree p = 0"
       then obtain k where k: "p = [:k:]" "k\<noteq>0" using pe
-        by (cases p, simp split: if_splits)
+        by (cases p) (simp split: if_splits)
       hence th1: "\<forall>x. poly p x \<noteq> 0" by simp
       from k dp have "q ^ (degree p) = p * [:1/k:]"
         by (simp add: one_poly_def)
@@ -937,7 +933,7 @@ proof
 next
   assume r: ?rhs
   then obtain k where "p = [:k:]"
-    by (cases p, simp split: if_splits)
+    by (cases p) (simp split: if_splits)
   then show ?lhs unfolding constant_def by auto
 qed
 
@@ -1019,14 +1015,13 @@ proof-
   {assume l: ?lhs
     then obtain u where u: "q = p * u" ..
      have "r = p * (smult a u - t)"
-       using u qrp' [symmetric] t by (simp add: algebra_simps mult_smult_right)
+       using u qrp' [symmetric] t by (simp add: algebra_simps)
      then have ?rhs ..}
   moreover
   {assume r: ?rhs
     then obtain u where u: "r = p * u" ..
     from u [symmetric] t qrp' [symmetric] a0
-    have "q = p * smult (1/a) (u + t)"
-      by (simp add: algebra_simps mult_smult_right smult_smult)
+    have "q = p * smult (1/a) (u + t)" by (simp add: algebra_simps)
     hence ?lhs ..}
   ultimately have "?lhs = ?rhs" by blast }
 thus "?lhs \<equiv> ?rhs"  by - (atomize(full), blast)
@@ -1056,7 +1051,7 @@ lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv>
 proof-
   have "p = 0 \<longleftrightarrow> poly p = poly 0"
     by (simp add: poly_zero)
-  also have "\<dots> \<longleftrightarrow> (\<not> (\<exists>x. poly p x \<noteq> 0))" by (auto intro: ext)
+  also have "\<dots> \<longleftrightarrow> (\<not> (\<exists>x. poly p x \<noteq> 0))" by auto
   finally show "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> p \<noteq> 0"
     by - (atomize (full), blast)
 qed
@@ -1078,7 +1073,7 @@ lemma basic_cqe_conv4:
   assumes h: "\<And>x. poly (q ^ n) x \<equiv> poly r x"
   shows "p dvd (q ^ n) \<equiv> p dvd r"
 proof-
-  from h have "poly (q ^ n) = poly r" by (auto intro: ext)
+  from h have "poly (q ^ n) = poly r" by auto
   then have "(q ^ n) = r" by (simp add: poly_eq_iff)
   thus "p dvd (q ^ n) \<equiv> p dvd r" by simp
 qed
