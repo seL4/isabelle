@@ -422,178 +422,6 @@ lemma differentiable_power [simp]:
   apply (simp add: assms)
   done
 
-
-subsection {* Nested Intervals and Bisection *}
-
-lemma nested_sequence_unique:
-  assumes "\<forall>n. f n \<le> f (Suc n)" "\<forall>n. g (Suc n) \<le> g n" "\<forall>n. f n \<le> g n" "(\<lambda>n. f n - g n) ----> 0"
-  shows "\<exists>l::real. ((\<forall>n. f n \<le> l) \<and> f ----> l) \<and> ((\<forall>n. l \<le> g n) \<and> g ----> l)"
-proof -
-  have "incseq f" unfolding incseq_Suc_iff by fact
-  have "decseq g" unfolding decseq_Suc_iff by fact
-
-  { fix n
-    from `decseq g` have "g n \<le> g 0" by (rule decseqD) simp
-    with `\<forall>n. f n \<le> g n`[THEN spec, of n] have "f n \<le> g 0" by auto }
-  then obtain u where "f ----> u" "\<forall>i. f i \<le> u"
-    using incseq_convergent[OF `incseq f`] by auto
-  moreover
-  { fix n
-    from `incseq f` have "f 0 \<le> f n" by (rule incseqD) simp
-    with `\<forall>n. f n \<le> g n`[THEN spec, of n] have "f 0 \<le> g n" by simp }
-  then obtain l where "g ----> l" "\<forall>i. l \<le> g i"
-    using decseq_convergent[OF `decseq g`] by auto
-  moreover note LIMSEQ_unique[OF assms(4) tendsto_diff[OF `f ----> u` `g ----> l`]]
-  ultimately show ?thesis by auto
-qed
-
-lemma Bolzano[consumes 1, case_names trans local]:
-  fixes P :: "real \<Rightarrow> real \<Rightarrow> bool"
-  assumes [arith]: "a \<le> b"
-  assumes trans: "\<And>a b c. \<lbrakk>P a b; P b c; a \<le> b; b \<le> c\<rbrakk> \<Longrightarrow> P a c"
-  assumes local: "\<And>x. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> \<exists>d>0. \<forall>a b. a \<le> x \<and> x \<le> b \<and> b - a < d \<longrightarrow> P a b"
-  shows "P a b"
-proof -
-  def bisect \<equiv> "nat_rec (a, b) (\<lambda>n (x, y). if P x ((x+y) / 2) then ((x+y)/2, y) else (x, (x+y)/2))"
-  def l \<equiv> "\<lambda>n. fst (bisect n)" and u \<equiv> "\<lambda>n. snd (bisect n)"
-  have l[simp]: "l 0 = a" "\<And>n. l (Suc n) = (if P (l n) ((l n + u n) / 2) then (l n + u n) / 2 else l n)"
-    and u[simp]: "u 0 = b" "\<And>n. u (Suc n) = (if P (l n) ((l n + u n) / 2) then u n else (l n + u n) / 2)"
-    by (simp_all add: l_def u_def bisect_def split: prod.split)
-
-  { fix n have "l n \<le> u n" by (induct n) auto } note this[simp]
-
-  have "\<exists>x. ((\<forall>n. l n \<le> x) \<and> l ----> x) \<and> ((\<forall>n. x \<le> u n) \<and> u ----> x)"
-  proof (safe intro!: nested_sequence_unique)
-    fix n show "l n \<le> l (Suc n)" "u (Suc n) \<le> u n" by (induct n) auto
-  next
-    { fix n have "l n - u n = (a - b) / 2^n" by (induct n) (auto simp: field_simps) }
-    then show "(\<lambda>n. l n - u n) ----> 0" by (simp add: LIMSEQ_divide_realpow_zero)
-  qed fact
-  then obtain x where x: "\<And>n. l n \<le> x" "\<And>n. x \<le> u n" and "l ----> x" "u ----> x" by auto
-  obtain d where "0 < d" and d: "\<And>a b. a \<le> x \<Longrightarrow> x \<le> b \<Longrightarrow> b - a < d \<Longrightarrow> P a b"
-    using `l 0 \<le> x` `x \<le> u 0` local[of x] by auto
-
-  show "P a b"
-  proof (rule ccontr)
-    assume "\<not> P a b" 
-    { fix n have "\<not> P (l n) (u n)"
-      proof (induct n)
-        case (Suc n) with trans[of "l n" "(l n + u n) / 2" "u n"] show ?case by auto
-      qed (simp add: `\<not> P a b`) }
-    moreover
-    { have "eventually (\<lambda>n. x - d / 2 < l n) sequentially"
-        using `0 < d` `l ----> x` by (intro order_tendstoD[of _ x]) auto
-      moreover have "eventually (\<lambda>n. u n < x + d / 2) sequentially"
-        using `0 < d` `u ----> x` by (intro order_tendstoD[of _ x]) auto
-      ultimately have "eventually (\<lambda>n. P (l n) (u n)) sequentially"
-      proof eventually_elim
-        fix n assume "x - d / 2 < l n" "u n < x + d / 2"
-        from add_strict_mono[OF this] have "u n - l n < d" by simp
-        with x show "P (l n) (u n)" by (rule d)
-      qed }
-    ultimately show False by simp
-  qed
-qed
-
-(*HOL style here: object-level formulations*)
-lemma IVT_objl: "(f(a::real) \<le> (y::real) & y \<le> f(b) & a \<le> b &
-      (\<forall>x. a \<le> x & x \<le> b --> isCont f x))
-      --> (\<exists>x. a \<le> x & x \<le> b & f(x) = y)"
-apply (blast intro: IVT)
-done
-
-lemma IVT2_objl: "(f(b::real) \<le> (y::real) & y \<le> f(a) & a \<le> b &
-      (\<forall>x. a \<le> x & x \<le> b --> isCont f x))
-      --> (\<exists>x. a \<le> x & x \<le> b & f(x) = y)"
-apply (blast intro: IVT2)
-done
-
-
-lemma compact_Icc[simp, intro]: "compact {a .. b::real}"
-proof (cases "a \<le> b", rule compactI)
-  fix C assume C: "a \<le> b" "\<forall>t\<in>C. open t" "{a..b} \<subseteq> \<Union>C"
-  def T == "{a .. b}"
-  from C(1,3) show "\<exists>C'\<subseteq>C. finite C' \<and> {a..b} \<subseteq> \<Union>C'"
-  proof (induct rule: Bolzano)
-    case (trans a b c)
-    then have *: "{a .. c} = {a .. b} \<union> {b .. c}" by auto
-    from trans obtain C1 C2 where "C1\<subseteq>C \<and> finite C1 \<and> {a..b} \<subseteq> \<Union>C1" "C2\<subseteq>C \<and> finite C2 \<and> {b..c} \<subseteq> \<Union>C2"
-      by (auto simp: *)
-    with trans show ?case
-      unfolding * by (intro exI[of _ "C1 \<union> C2"]) auto
-  next
-    case (local x)
-    then have "x \<in> \<Union>C" using C by auto
-    with C(2) obtain c where "x \<in> c" "open c" "c \<in> C" by auto
-    then obtain e where "0 < e" "{x - e <..< x + e} \<subseteq> c"
-      by (auto simp: open_real_def dist_real_def subset_eq Ball_def abs_less_iff)
-    with `c \<in> C` show ?case
-      by (safe intro!: exI[of _ "e/2"] exI[of _ "{c}"]) auto
-  qed
-qed simp
-
-subsection {* Boundedness of continuous functions *}
-
-text{*By bisection, function continuous on closed interval is bounded above*}
-
-lemma isCont_eq_Ub:
-  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
-  shows "a \<le> b \<Longrightarrow> \<forall>x::real. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
-    \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M) \<and> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
-  using continuous_attains_sup[of "{a .. b}" f]
-  apply (simp add: continuous_at_imp_continuous_on Ball_def)
-  apply safe
-  apply (rule_tac x="f x" in exI)
-  apply auto
-  done
-
-lemma isCont_eq_Lb:
-  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
-  shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
-    \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> M \<le> f x) \<and> (\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = M)"
-  using continuous_attains_inf[of "{a .. b}" f]
-  apply (simp add: continuous_at_imp_continuous_on Ball_def)
-  apply safe
-  apply (rule_tac x="f x" in exI)
-  apply auto
-  done
-
-lemma isCont_bounded:
-  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
-  shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow> \<exists>M. \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M"
-  using isCont_eq_Ub[of a b f] by auto
-
-lemma isCont_has_Ub:
-  fixes f :: "real \<Rightarrow> 'a::linorder_topology"
-  shows "a \<le> b \<Longrightarrow> \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x \<Longrightarrow>
-    \<exists>M. (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> f x \<le> M) \<and> (\<forall>N. N < M \<longrightarrow> (\<exists>x. a \<le> x \<and> x \<le> b \<and> N < f x))"
-  using isCont_eq_Ub[of a b f] by auto
-
-text{*Refine the above to existence of least upper bound*}
-
-lemma lemma_reals_complete: "((\<exists>x. x \<in> S) & (\<exists>y. isUb UNIV S (y::real))) -->
-      (\<exists>t. isLub UNIV S t)"
-by (blast intro: reals_complete)
-
-
-text{*Another version.*}
-
-lemma isCont_Lb_Ub: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> isCont f x |]
-      ==> \<exists>L M::real. (\<forall>x::real. a \<le> x & x \<le> b --> L \<le> f(x) & f(x) \<le> M) &
-          (\<forall>y. L \<le> y & y \<le> M --> (\<exists>x. a \<le> x & x \<le> b & (f(x) = y)))"
-apply (frule isCont_eq_Lb)
-apply (frule_tac [2] isCont_eq_Ub)
-apply (assumption+, safe)
-apply (rule_tac x = "f x" in exI)
-apply (rule_tac x = "f xa" in exI, simp, safe)
-apply (cut_tac x = x and y = xa in linorder_linear, safe)
-apply (cut_tac f = f and a = x and b = xa and y = y in IVT_objl)
-apply (cut_tac [2] f = f and a = xa and b = x and y = y in IVT2_objl, safe)
-apply (rule_tac [2] x = xb in exI)
-apply (rule_tac [4] x = xb in exI, simp_all)
-done
-
-
 subsection {* Local extrema *}
 
 text{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
@@ -657,7 +485,6 @@ proof -
     qed
   qed
 qed
-
 
 lemma DERIV_pos_inc_left:
   fixes f :: "real => real"
@@ -1081,47 +908,6 @@ proof -
     by simp
 qed
 
-text{*Continuity of inverse function*}
-
-lemma isCont_inverse_function:
-  fixes f g :: "real \<Rightarrow> real"
-  assumes d: "0 < d"
-      and inj: "\<forall>z. \<bar>z-x\<bar> \<le> d \<longrightarrow> g (f z) = z"
-      and cont: "\<forall>z. \<bar>z-x\<bar> \<le> d \<longrightarrow> isCont f z"
-  shows "isCont g (f x)"
-proof -
-  let ?A = "f (x - d)" and ?B = "f (x + d)" and ?D = "{x - d..x + d}"
-
-  have f: "continuous_on ?D f"
-    using cont by (intro continuous_at_imp_continuous_on ballI) auto
-  then have g: "continuous_on (f`?D) g"
-    using inj by (intro continuous_on_inv) auto
-
-  from d f have "{min ?A ?B <..< max ?A ?B} \<subseteq> f ` ?D"
-    by (intro connected_contains_Ioo connected_continuous_image) (auto split: split_min split_max)
-  with g have "continuous_on {min ?A ?B <..< max ?A ?B} g"
-    by (rule continuous_on_subset)
-  moreover
-  have "(?A < f x \<and> f x < ?B) \<or> (?B < f x \<and> f x < ?A)"
-    using d inj by (intro continuous_inj_imp_mono[OF _ _ f] inj_on_imageI2[of g, OF inj_onI]) auto
-  then have "f x \<in> {min ?A ?B <..< max ?A ?B}"
-    by auto
-  ultimately
-  show ?thesis
-    by (simp add: continuous_on_eq_continuous_at)
-qed
-
-lemma isCont_inverse_function2:
-  fixes f g :: "real \<Rightarrow> real" shows
-  "\<lbrakk>a < x; x < b;
-    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> g (f z) = z;
-    \<forall>z. a \<le> z \<and> z \<le> b \<longrightarrow> isCont f z\<rbrakk>
-   \<Longrightarrow> isCont g (f x)"
-apply (rule isCont_inverse_function
-       [where f=f and d="min (x - a) (b - x)"])
-apply (simp_all add: abs_le_iff)
-done
-
 text {* Derivative of inverse function *}
 
 lemma DERIV_inverse_function:
@@ -1228,44 +1014,6 @@ proof -
   with g'cdef f'cdef cint show ?thesis by auto
 qed
 
-
-subsection {* Theorems about Limits *}
-
-(* need to rename second isCont_inverse *)
-
-lemma isCont_inv_fun:
-  fixes f g :: "real \<Rightarrow> real"
-  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
-      ==> isCont g (f x)"
-by (rule isCont_inverse_function)
-
-text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
-lemma LIM_fun_gt_zero:
-     "[| f -- c --> (l::real); 0 < l |]  
-         ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
-apply (drule (1) LIM_D, clarify)
-apply (rule_tac x = s in exI)
-apply (simp add: abs_less_iff)
-done
-
-lemma LIM_fun_less_zero:
-     "[| f -- c --> (l::real); l < 0 |]  
-      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
-apply (drule LIM_D [where r="-l"], simp, clarify)
-apply (rule_tac x = s in exI)
-apply (simp add: abs_less_iff)
-done
-
-lemma LIM_fun_not_zero:
-     "[| f -- c --> (l::real); l \<noteq> 0 |] 
-      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
-apply (rule linorder_cases [of l 0])
-apply (drule (1) LIM_fun_less_zero, force)
-apply simp
-apply (drule (1) LIM_fun_gt_zero, force)
-done
-
 lemma GMVT':
   fixes f g :: "real \<Rightarrow> real"
   assumes "a < b"
@@ -1283,6 +1031,9 @@ proof -
   then show ?thesis
     by auto
 qed
+
+
+subsection {* L'Hopitals rule *}
 
 lemma DERIV_cong_ev: "x = y \<Longrightarrow> eventually (\<lambda>x. f x = g x) (nhds x) \<Longrightarrow> u = v \<Longrightarrow>
     DERIV f x :> u \<longleftrightarrow> DERIV g y :> v"
