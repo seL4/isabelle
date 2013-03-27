@@ -326,10 +326,7 @@ object Build
 
       val timings =
         sessions.par.map((name: String) =>
-          Exn.capture {
-            if (tree(name).options.bool("parallel_proofs_reuse_timing")) (name, load_timings(name))
-            else (name, (Nil, 0.0))
-          }).toList.map(Exn.release(_))
+          Exn.capture { (name, load_timings(name)) }).toList.map(Exn.release(_))
       val command_timings =
         Map(timings.map({ case (name, (ts, _)) => (name, ts) }): _*).withDefaultValue(Nil)
       val session_timing =

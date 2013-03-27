@@ -55,8 +55,6 @@ option parallel_subproofs_saturation : int = 100
   -- "upper bound for forks of nested proofs (multiplied by worker threads)"
 option parallel_subproofs_threshold : real = 0.01
   -- "lower bound of timing estimate for forked nested proofs (seconds)"
-option parallel_proofs_reuse_timing : bool = true
-  -- "reuse timing information from old log file for parallel proof scheduling"
 
 
 section "Detail of Proof Recording"
