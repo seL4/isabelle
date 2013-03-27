@@ -156,6 +156,7 @@ fun do_try0 mode timeout_opt quad st =
 fun try0 timeout_opt = fst oo do_try0 Normal timeout_opt
 
 fun try0_trans quad =
+  Toplevel.unknown_proof o
   Toplevel.keep (K () o do_try0 Normal (SOME default_timeout) quad
                  o Toplevel.proof_of)
 

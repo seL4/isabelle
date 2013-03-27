@@ -368,11 +368,6 @@ fun pick_nits override_params mode i step state =
   in if blocking then go () else Future.fork (tap go) |> K (unknownN, state) end
   |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
-fun nitpick_trans (params, i) =
-  Toplevel.keep (fn state =>
-      pick_nits params Normal i (Toplevel.proof_position_of state)
-                (Toplevel.proof_of state) |> K ())
-
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
 
@@ -391,7 +386,11 @@ fun nitpick_params_trans params =
 val _ =
   Outer_Syntax.improper_command @{command_spec "nitpick"}
     "try to find a counterexample for a given subgoal using Nitpick"
-    ((parse_params -- Scan.optional Parse.nat 1) #>> nitpick_trans)
+    (parse_params -- Scan.optional Parse.nat 1 >> (fn (params, i) =>
+      Toplevel.unknown_proof o
+      Toplevel.keep (fn state =>
+        ignore (pick_nits params Normal i (Toplevel.proof_position_of state)
+          (Toplevel.proof_of state)))))
 
 val _ =
   Outer_Syntax.command @{command_spec "nitpick_params"}
