@@ -209,10 +209,11 @@ fun identity_on thy name morph =
 
 (* Print instance and qualifiers *)
 
-fun pretty_reg ctxt (name, morph) =
+fun pretty_reg ctxt export (name, morph) =
   let
     val thy = Proof_Context.theory_of ctxt;
     val name' = extern thy name;
+    val morph' = morph $> export;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
@@ -224,8 +225,8 @@ fun pretty_reg ctxt (name, morph) =
     fun prt_inst ts =
       Pretty.block (Pretty.breaks (Pretty.str name' :: map prt_term' ts));
 
-    val qs = Binding.name "x" |> Morphism.binding morph |> Binding.prefix_of;
-    val ts = instance_of thy name morph;
+    val qs = Binding.name "x" |> Morphism.binding morph' |> Binding.prefix_of;
+    val ts = instance_of thy name morph';
   in
     (case qs of
       [] => prt_inst ts
@@ -638,7 +639,7 @@ fun print_registrations ctxt raw_name =
   in
     (case registrations_of (Context.Proof ctxt) (* FIXME *) name of
       [] => Pretty.str "no interpretations"
-    | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt) (rev regs)))
+    | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt Morphism.identity) (rev regs)))
   end |> Pretty.writeln;
 
 fun print_dependencies ctxt clean export insts =
@@ -648,7 +649,7 @@ fun print_dependencies ctxt clean export insts =
   in
     (case fold (roundup thy cons export) insts (idents, []) |> snd of
       [] => Pretty.str "no dependencies"
-    | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt) (rev deps)))
+    | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt export) (rev deps)))
   end |> Pretty.writeln;
 
 fun pretty_locale_deps thy =

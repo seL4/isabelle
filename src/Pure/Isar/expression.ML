@@ -938,9 +938,9 @@ end;
 fun print_dependencies ctxt clean expression =
   let
     val ((_, deps, export), expr_ctxt) = read_goal_expression expression ctxt;
+    val export' = if clean then Morphism.identity else export;
   in
-    Locale.print_dependencies expr_ctxt clean export deps
+    Locale.print_dependencies expr_ctxt clean export' deps
   end;
 
 end;
-

@@ -31,6 +31,8 @@ timing information.
 
 *** Pure ***
 
+* Improved locales diagnostic command 'print_dependencies'.
+
 * Discontinued obsolete 'axioms' command, which has been marked as
 legacy since Isabelle2009-2.  INCOMPATIBILITY, use 'axiomatization'
 instead, while observing its uniform scope for polymorphism.

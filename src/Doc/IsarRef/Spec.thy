@@ -701,13 +701,14 @@ text {*
   understanding the effect of an interpretation of @{text "expr"}.  It
   lists all locale instances for which interpretations would be added
   to the current context.  Variant @{command
-  "print_dependencies"}@{text "!"} prints all locale instances that
-  would be considered for interpretation, and would be interpreted in
-  an empty context (that is, without interpretations).
+  "print_dependencies"}@{text "!"} does not generalize parameters and
+  assumes an empty context --- that is, it prints all locale instances
+  that would be considered for interpretation.  The latter is useful
+  for understanding the dependencies of a locale expression.
 
   \item @{command "print_interps"}~@{text "locale"} lists all
   interpretations of @{text "locale"} in the current theory or proof
-  context, including those due to a combination of a @{command
+  context, including those due to a combination of an @{command
   "interpretation"} or @{command "interpret"} and one or several
   @{command "sublocale"} declarations.
 
