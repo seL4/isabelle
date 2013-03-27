@@ -419,6 +419,7 @@ fun hammer_away override_params subcommand opt_i fact_override state =
   end
 
 fun sledgehammer_trans (((subcommand, params), fact_override), opt_i) =
+  Toplevel.unknown_proof o
   Toplevel.keep (hammer_away params subcommand opt_i fact_override
                  o Toplevel.proof_of)
 

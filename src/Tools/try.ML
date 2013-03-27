@@ -90,7 +90,7 @@ fun try_tools state =
 val _ =
   Outer_Syntax.improper_command @{command_spec "try"}
     "try a combination of automatic proving and disproving tools"
-    (Scan.succeed (Toplevel.keep (ignore o try_tools o Toplevel.proof_of)))
+    (Scan.succeed (Toplevel.unknown_proof o Toplevel.keep (ignore o try_tools o Toplevel.proof_of)))
 
 
 (* automatic try *)

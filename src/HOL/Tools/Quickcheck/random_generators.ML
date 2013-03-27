@@ -107,7 +107,7 @@ fun random_aux_primrec eq lthy =
     val tac = ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac rew_ss)
       THEN (ALLGOALS (Proof_Context.fact_tac eqs2))
-    val simp = Skip_Proof.prove lthy' [v] [] eq (K tac);
+    val simp = Goal.prove_sorry lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
 
 end;
@@ -144,7 +144,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
               ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
               THEN ALLGOALS (simp_tac (HOL_ss addsimps [@{thm fst_conv}, @{thm snd_conv}]));
-          in (map (fn prop => Skip_Proof.prove lthy [v] [] prop tac) eqs, lthy) end;
+          in (map (fn prop => Goal.prove_sorry lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy
         |> random_aux_primrec aux_eq'
@@ -165,7 +165,7 @@ fun random_aux_specification prfx name eqs lthy =
       let
         val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
         val tac = ALLGOALS (Proof_Context.fact_tac ext_simps);
-      in (map (fn prop => Skip_Proof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
+      in (map (fn prop => Goal.prove_sorry lthy vs [] prop (K tac)) eqs, lthy) end;
     val b = Binding.conceal (Binding.qualify true prfx
       (Binding.qualify true name (Binding.name "simps")));
   in

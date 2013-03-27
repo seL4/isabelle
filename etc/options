@@ -66,7 +66,7 @@ option proofs : int = 1
 option quick_and_dirty : bool = false
   -- "if true then some tools will OMIT some proofs"
 option skip_proofs : bool = false
-  -- "skip over proofs"
+  -- "skip over proofs (implicit 'sorry')"
 
 
 section "Global Session Parameters"
@@ -82,6 +82,9 @@ option timeout : real = 0
 
 
 section "Editor Reactivity"
+
+option editor_skip_proofs : bool = false
+  -- "skip over proofs (implicit 'sorry')"
 
 option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"

@@ -180,6 +180,7 @@ use "Isar/runtime.ML";
 use "ML/ml_compiler.ML";
 if ML_System.is_polyml then use "ML/ml_compiler_polyml.ML" else ();
 
+use "skip_proof.ML";
 use "goal.ML";
 
 (*proof context*)
@@ -217,7 +218,6 @@ use "Isar/proof_display.ML";
 use "Isar/attrib.ML";
 use "ML/ml_antiquote.ML";
 use "Isar/context_rules.ML";
-use "Isar/skip_proof.ML";
 use "Isar/method.ML";
 use "Isar/proof.ML";
 use "Isar/element.ML";

@@ -130,7 +130,11 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private var timing_threshold = PIDE.options.real("jedit_timing_threshold")
 
-  private val threshold_label = new Label("Threshold: ")
+  private val threshold_tooltip = "Threshold for timing display (seconds)"
+
+  private val threshold_label = new Label("Threshold: ") {
+    tooltip = threshold_tooltip
+  }
 
   private val threshold_value = new TextField(Time.print_seconds(timing_threshold)) {
     reactions += {
@@ -141,7 +145,7 @@ class Timing_Dockable(view: View, position: String) extends Dockable(view, posit
         }
         handle_update()
     }
-    tooltip = "Threshold for timing display (seconds)"
+    tooltip = threshold_tooltip
     verifier = ((s: String) =>
       s match { case Properties.Value.Double(x) => x >= 0.0 case _ => false })
   }

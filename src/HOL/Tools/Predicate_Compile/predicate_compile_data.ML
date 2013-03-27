@@ -134,7 +134,7 @@ fun declare_names s xs ctxt =
   
 fun split_all_pairs thy th =
   let
-    val ctxt = Proof_Context.init_global thy
+    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, [th']), _) = Variable.import true [th] ctxt
     val t = prop_of th'
     val frees = Term.add_frees t [] 
@@ -148,8 +148,9 @@ fun split_all_pairs thy th =
       in ((Free (x, T), HOLogic.mk_ptuple paths T (map Free xTs)), nctxt') end
     val (rewr, _) = fold_map mk_tuple_rewrites frees nctxt 
     val t' = Pattern.rewrite_term thy rewr [] t
-    val tac = Skip_Proof.cheat_tac thy
-    val th'' = Goal.prove ctxt (Term.add_free_names t' []) [] t' (fn _ => tac)
+    val th'' =
+      Goal.prove ctxt (Term.add_free_names t' []) [] t'
+        (fn _ => ALLGOALS Skip_Proof.cheat_tac)
     val th''' = Local_Defs.unfold ctxt [@{thm split_conv}, @{thm fst_conv}, @{thm snd_conv}] th''
   in
     th'''

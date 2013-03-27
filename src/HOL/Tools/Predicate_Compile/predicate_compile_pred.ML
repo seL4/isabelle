@@ -127,13 +127,13 @@ fun flatten constname atom (defs, thy) =
 
 fun flatten_intros constname intros thy =
   let
-    val ctxt = Proof_Context.init_global thy
+    val ctxt = Proof_Context.init_global thy  (* FIXME proper context!? *)
     val ((_, intros), ctxt') = Variable.import true intros ctxt
     val (intros', (local_defs, thy')) = (fold_map o fold_map_atoms)
       (flatten constname) (map prop_of intros) ([], thy)
     val ctxt'' = Proof_Context.transfer thy' ctxt'
-    val tac = fn _ => Skip_Proof.cheat_tac thy'
-    val intros'' = map (fn t => Goal.prove ctxt'' [] [] t tac) intros'
+    val intros'' =
+      map (fn t => Goal.prove ctxt'' [] [] t (fn _ => ALLGOALS Skip_Proof.cheat_tac)) intros'
       |> Variable.export ctxt'' ctxt
   in
     (intros'', (local_defs, thy'))

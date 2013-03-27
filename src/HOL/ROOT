@@ -16,7 +16,7 @@ session "HOL-Proofs" = Pure +
   description {*
     HOL-Main with explicit proof terms.
   *}
-  options [document = false, proofs = 2]
+  options [document = false, proofs = 2, skip_proofs = false]
   theories Main
   files
     "Tools/Quickcheck/Narrowing_Engine.hs"
@@ -354,14 +354,14 @@ session "HOL-Decision_Procs" in Decision_Procs = HOL +
   theories Decision_Procs
 
 session "HOL-Proofs-ex" in "Proofs/ex" = "HOL-Proofs" +
-  options [document = false, proofs = 2, parallel_proofs = 0]
+  options [document = false, proofs = 2, skip_proofs = false, parallel_proofs = 0]
   theories Hilbert_Classical
 
 session "HOL-Proofs-Extraction" in "Proofs/Extraction" = "HOL-Proofs" +
   description {*
     Examples for program extraction in Higher-Order Logic.
   *}
-  options [condition = ISABELLE_POLYML, proofs = 2, parallel_proofs = 0]
+  options [condition = ISABELLE_POLYML, proofs = 2, skip_proofs = false, parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Numeral"
     "~~/src/HOL/Library/Monad_Syntax"
@@ -386,7 +386,8 @@ session "HOL-Proofs-Lambda" in "Proofs/Lambda" = "HOL-Proofs" +
     The paper "More Church-Rosser Proofs (in Isabelle/HOL)" describes the whole
     theory (see http://www.in.tum.de/~nipkow/pubs/jar2001.html).
   *}
-  options [document_graph, print_mode = "no_brackets", proofs = 2, parallel_proofs = 0]
+  options [document_graph, print_mode = "no_brackets", proofs = 2, skip_proofs = false,
+    parallel_proofs = 0]
   theories [document = false]
     "~~/src/HOL/Library/Code_Target_Int"
   theories
@@ -424,7 +425,7 @@ session "HOL-MicroJava" in MicroJava = HOL +
     "document/root.tex"
 
 session "HOL-MicroJava-skip_proofs" in MicroJava = HOL +
-  options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs, quick_and_dirty]
+  options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs]
   theories MicroJava
 
 session "HOL-NanoJava" in NanoJava = HOL +
@@ -535,7 +536,6 @@ session "HOL-ex" in ex = HOL +
     Tarski
     Classical
     Set_Theory
-    Meson_Test
     Termination
     Coherent
     PresburgerEx
@@ -560,7 +560,9 @@ session "HOL-ex" in ex = HOL +
     Set_Comprehension_Pointfree_Tests
     Parallel_Example
     IArray_Examples
-  theories SVC_Oracle
+    SVC_Oracle
+  theories [skip_proofs = false]
+    Meson_Test
   theories [condition = SVC_HOME]
     svc_test
   theories [condition = ZCHAFF_HOME]
@@ -742,7 +744,8 @@ session "HOL-Word-Examples" in "Word/Examples" = "HOL-Word" +
   theories WordExamples
 
 session "HOL-Statespace" in Statespace = HOL +
-  theories StateSpaceEx
+  theories [skip_proofs = false]
+    StateSpaceEx
   files "document/root.tex"
 
 session "HOL-NSA" in NSA = HOL +

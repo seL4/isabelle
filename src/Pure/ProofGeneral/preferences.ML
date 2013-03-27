@@ -169,7 +169,7 @@ val proof_preferences =
     bool_pref quick_and_dirty
       "quick-and-dirty"
       "Take a few short cuts") (),
-  bool_pref Toplevel.skip_proofs
+  bool_pref Goal.skip_proofs
     "skip-proofs"
     "Skip over proofs",
   proof_pref,

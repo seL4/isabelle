@@ -532,8 +532,8 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "quickcheck"}
     "try to find counterexample for subgoal"
-    (parse_args -- Scan.optional Parse.nat 1
-      >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
+    (parse_args -- Scan.optional Parse.nat 1 >> (fn (args, i) =>
+      Toplevel.no_timing o Toplevel.unknown_proof o Toplevel.keep (quickcheck_cmd args i)));
 
 
 (* automatic testing *)

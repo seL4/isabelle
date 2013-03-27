@@ -491,7 +491,7 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
 
 fun prove_pred options thy clauses preds pred (_, mode) (moded_clauses, compiled_term) =
   let
-    val ctxt = Proof_Context.init_global thy
+    val ctxt = Proof_Context.init_global thy   (* FIXME proper context!? *)
     val clauses = case AList.lookup (op =) clauses pred of SOME rs => rs | NONE => []
   in
     Goal.prove ctxt (Term.add_free_names compiled_term []) [] compiled_term
@@ -503,7 +503,7 @@ fun prove_pred options thy clauses preds pred (_, mode) (moded_clauses, compiled
         THEN print_tac options "proved one direction"
         THEN prove_other_direction options ctxt pred mode moded_clauses
         THEN print_tac options "proved other direction")
-      else (fn _ => Skip_Proof.cheat_tac thy))
+      else (fn _ => ALLGOALS Skip_Proof.cheat_tac))
   end;
 
 end;

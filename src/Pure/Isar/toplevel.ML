@@ -12,6 +12,7 @@ sig
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
+  val is_skipped_proof: state -> bool
   val level: state -> int
   val presentation_context_of: state -> Proof.context
   val previous_context_of: state -> Proof.context option
@@ -29,7 +30,6 @@ sig
   val interact: bool Unsynchronized.ref
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
-  val skip_proofs: bool Unsynchronized.ref
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
@@ -129,15 +129,16 @@ datatype node =
     (*theory with presentation context*) |
   Proof of Proof_Node.T * ((Proof.context -> generic_theory) * generic_theory)
     (*proof node, finish, original theory*) |
-  SkipProof of int * (generic_theory * generic_theory);
+  Skipped_Proof of int * (generic_theory * generic_theory);
     (*proof depth, resulting theory, original theory*)
 
 val theory_node = fn Theory (gthy, _) => SOME gthy | _ => NONE;
 val proof_node = fn Proof (prf, _) => SOME prf | _ => NONE;
+val skipped_proof_node = fn Skipped_Proof _ => true | _ => false;
 
 fun cases_node f _ (Theory (gthy, _)) = f gthy
   | cases_node _ g (Proof (prf, _)) = g (Proof_Node.current prf)
-  | cases_node f _ (SkipProof (_, (gthy, _))) = f gthy;
+  | cases_node f _ (Skipped_Proof (_, (gthy, _))) = f gthy;
 
 val context_node = cases_node Context.proof_of Proof.context_of;
 
@@ -154,13 +155,13 @@ fun is_toplevel (State (NONE, _)) = true
 fun level (State (NONE, _)) = 0
   | level (State (SOME (Theory _), _)) = 0
   | level (State (SOME (Proof (prf, _)), _)) = Proof.level (Proof_Node.current prf)
-  | level (State (SOME (SkipProof (d, _)), _)) = d + 1;   (*different notion of proof depth!*)
+  | level (State (SOME (Skipped_Proof (d, _)), _)) = d + 1;   (*different notion of proof depth!*)
 
 fun str_of_state (State (NONE, _)) = "at top level"
   | str_of_state (State (SOME (Theory (Context.Theory _, _)), _)) = "in theory mode"
   | str_of_state (State (SOME (Theory (Context.Proof _, _)), _)) = "in local theory mode"
   | str_of_state (State (SOME (Proof _), _)) = "in proof mode"
-  | str_of_state (State (SOME (SkipProof _), _)) = "in skipped proof mode";
+  | str_of_state (State (SOME (Skipped_Proof _), _)) = "in skipped proof mode";
 
 
 (* current node *)
@@ -170,6 +171,7 @@ fun node_of (State (NONE, _)) = raise UNDEF
 
 fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node_of state));
 fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
+fun is_skipped_proof state = not (is_toplevel state) andalso skipped_proof_node (node_of state);
 
 fun node_case f g state = cases_node f g (node_of state);
 
@@ -206,7 +208,7 @@ fun print_state_context state =
     NONE => []
   | SOME (Theory (gthy, _)) => pretty_context gthy
   | SOME (Proof (_, (_, gthy))) => pretty_context gthy
-  | SOME (SkipProof (_, (gthy, _))) => pretty_context gthy)
+  | SOME (Skipped_Proof (_, (gthy, _))) => pretty_context gthy)
   |> Pretty.chunks |> Pretty.writeln;
 
 fun print_state prf_only state =
@@ -215,7 +217,7 @@ fun print_state prf_only state =
   | SOME (Theory (gthy, _)) => if prf_only then [] else pretty_context gthy
   | SOME (Proof (prf, _)) =>
       Proof.pretty_state (Proof_Node.position prf) (Proof_Node.current prf)
-  | SOME (SkipProof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
+  | SOME (Skipped_Proof (d, _)) => [Pretty.str ("skipped proof: depth " ^ string_of_int d)])
   |> Pretty.markup_chunks Markup.state |> Pretty.writeln;
 
 fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
@@ -229,7 +231,6 @@ val debug = Runtime.debug;
 val interact = Unsynchronized.ref false;
 val timing = Unsynchronized.ref false;
 val profiling = Unsynchronized.ref 0;
-val skip_proofs = Unsynchronized.ref false;
 
 fun program body =
  (body
@@ -513,7 +514,7 @@ fun end_proof f = transaction (fn int =>
             in Theory (gthy', SOME ctxt') end
           else raise UNDEF
         end
-    | SkipProof (0, (gthy, _)) => Theory (gthy, NONE)
+    | Skipped_Proof (0, (gthy, _)) => Theory (gthy, NONE)
     | _ => raise UNDEF));
 
 local
@@ -522,7 +523,7 @@ fun begin_proof init = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
       val (finish, prf) = init int gthy;
-      val skip = ! skip_proofs;
+      val skip = ! Goal.skip_proofs;
       val (is_goal, no_skip) =
         (true, Proof.schematic_goal prf) handle ERROR _ => (false, true);
       val _ =
@@ -531,7 +532,7 @@ fun begin_proof init = transaction (fn int =>
         else ();
     in
       if skip andalso not no_skip then
-        SkipProof (0, (finish (Proof.global_skip_proof int prf), gthy))
+        Skipped_Proof (0, (finish (Proof.global_skip_proof true prf), gthy))
       else Proof (Proof_Node.init prf, (finish, gthy))
     end
   | _ => raise UNDEF));
@@ -547,7 +548,7 @@ fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>
-    (Context.Theory o Sign.reset_group o Proof_Context.theory_of,
+    (Context.Theory o Theory.checkpoint o Sign.reset_group o Proof_Context.theory_of,
       (case gthy of
         Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy))
       | _ => raise UNDEF)));
@@ -556,17 +557,17 @@ end;
 
 val forget_proof = transaction (fn _ =>
   (fn Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
-    | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
+    | Skipped_Proof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
 val present_proof = present_transaction (fn _ =>
   (fn Proof (prf, x) => Proof (Proof_Node.apply I prf, x)
-    | skip as SkipProof _ => skip
+    | skip as Skipped_Proof _ => skip
     | _ => raise UNDEF));
 
 fun proofs' f = transaction (fn int =>
   (fn Proof (prf, x) => Proof (Proof_Node.applys (f int) prf, x)
-    | skip as SkipProof _ => skip
+    | skip as Skipped_Proof _ => skip
     | _ => raise UNDEF));
 
 fun proof' f = proofs' ((Seq.single o Seq.Result) oo f);
@@ -578,11 +579,11 @@ fun actual_proof f = transaction (fn _ =>
     | _ => raise UNDEF));
 
 fun skip_proof f = transaction (fn _ =>
-  (fn SkipProof (h, x) => SkipProof (f h, x)
+  (fn Skipped_Proof (h, x) => Skipped_Proof (f h, x)
     | _ => raise UNDEF));
 
 fun skip_proof_to_theory pred = transaction (fn _ =>
-  (fn SkipProof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
+  (fn Skipped_Proof (d, (gthy, _)) => if pred d then Theory (gthy, NONE) else raise UNDEF
     | _ => raise UNDEF));
 
 

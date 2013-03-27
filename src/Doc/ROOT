@@ -40,7 +40,7 @@ session Codegen (doc) in "Codegen" = "HOL-Library" +
     "document/style.sty"
 
 session Functions (doc) in "Functions" = HOL +
-  options [document_variants = "functions"]
+  options [document_variants = "functions", skip_proofs = false]
   theories Functions
   files
     "../prepare_document"
@@ -145,7 +145,7 @@ session LaTeXsugar (doc) in "LaTeXsugar" = HOL +
     "document/root.tex"
 
 session Locales (doc) in "Locales" = HOL +
-  options [document_variants = "locales", pretty_margin = 65]
+  options [document_variants = "locales", pretty_margin = 65, skip_proofs = false]
   theories
     Examples1
     Examples2
@@ -295,7 +295,7 @@ session System (doc) in "System" = Pure +
     "document/root.tex"
 
 session Tutorial (doc) in "Tutorial" = HOL +
-  options [document_variants = "tutorial", print_mode = "brackets"]
+  options [document_variants = "tutorial", print_mode = "brackets", skip_proofs = false]
   theories [thy_output_indent = 5]
     "ToyList/ToyList"
     "Ifexpr/Ifexpr"

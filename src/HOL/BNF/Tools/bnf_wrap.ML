@@ -381,7 +381,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
               HOLogic.mk_Trueprop (HOLogic.mk_all (fst u', snd u',
                 Library.foldr1 HOLogic.mk_disj exist_xs_u_eq_ctrs));
           in
-            Skip_Proof.prove lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
+            Goal.prove_sorry lthy [] [] goal (fn _ => mk_nchotomy_tac n exhaust_thm)
             |> Thm.close_derivation
           end;
 
@@ -415,7 +415,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   val m = the_single ms;
                   val goal = mk_Trueprop_eq (mk_uu_eq (), the_single exist_xs_u_eq_ctrs);
                 in
-                  Skip_Proof.prove lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
+                  Goal.prove_sorry lthy [] [] goal (fn _ => mk_unique_disc_def_tac m uexhaust_thm)
                   |> Thm.close_derivation
                   |> singleton (Proof_Context.export names_lthy lthy)
                 end;
@@ -426,7 +426,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                     mk_Trueprop_eq (alternate_disc_lhs (K (nth udiscs)) (3 - k),
                       nth exist_xs_u_eq_ctrs (k - 1));
                 in
-                  Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                  Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                     mk_alternate_disc_def_tac ctxt k (nth disc_defs (2 - k))
                       (nth distinct_thms (2 - k)) uexhaust_thm)
                   |> Thm.close_derivation
@@ -470,7 +470,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                          HOLogic.mk_Trueprop (HOLogic.mk_not udisc')))];
 
                   fun prove tac goal =
-                    Skip_Proof.prove lthy [] [] goal (K tac)
+                    Goal.prove_sorry lthy [] [] goal (K tac)
                     |> Thm.close_derivation;
 
                   val half_pairss = mk_half_pairss (`I (ms ~~ discD_thms ~~ udiscs));
@@ -495,7 +495,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   fun mk_prem udisc = mk_imp_p [HOLogic.mk_Trueprop udisc];
                   val goal = fold_rev Logic.all [p, u] (mk_imp_p (map mk_prem udiscs));
                 in
-                  Skip_Proof.prove lthy [] [] goal (fn _ =>
+                  Goal.prove_sorry lthy [] [] goal (fn _ =>
                     mk_disc_exhaust_tac n exhaust_thm discI_thms)
                   |> Thm.close_derivation
                 end;
@@ -514,7 +514,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   val goals = map3 mk_goal ctrs udiscs uselss;
                 in
                   map4 (fn m => fn discD => fn sel_thms => Option.map (fn goal =>
-                    Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                    Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                       mk_collapse_tac ctxt m discD sel_thms)
                     |> Thm.close_derivation
                     |> perhaps (try (fn thm => refl RS thm)))) ms discD_thms sel_thmss goals
@@ -540,7 +540,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   val uncollapse_thms =
                     map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
                 in
-                  [Skip_Proof.prove lthy [] [] goal (fn _ =>
+                  [Goal.prove_sorry lthy [] [] goal (fn _ =>
                      mk_expand_tac n ms (inst_thm u disc_exhaust_thm)
                        (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
                        disc_exclude_thmsss')]
@@ -553,7 +553,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   fun mk_body f usels = Term.list_comb (f, usels);
                   val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs (map2 mk_body fs uselss));
                 in
-                  [Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                  [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                      mk_case_conv_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
                   |> map Thm.close_derivation
                   |> Proof_Context.export names_lthy lthy
@@ -574,8 +574,8 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                  mk_Trueprop_eq (ufcase, vgcase));
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
-            (Skip_Proof.prove lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
-             Skip_Proof.prove lthy [] [] weak_goal (K (etac arg_cong 1)))
+            (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
+             Goal.prove_sorry lthy [] [] weak_goal (K (etac arg_cong 1)))
             |> pairself (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
           end;
 
@@ -596,12 +596,12 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                 (map3 mk_disjunct xctrs xss xfs)));
 
             val split_thm =
-              Skip_Proof.prove lthy [] [] goal
+              Goal.prove_sorry lthy [] [] goal
                 (fn _ => mk_split_tac uexhaust_thm case_thms inject_thmss distinct_thmsss)
               |> Thm.close_derivation
               |> singleton (Proof_Context.export names_lthy lthy);
             val split_asm_thm =
-              Skip_Proof.prove lthy [] [] asm_goal (fn {context = ctxt, ...} =>
+              Goal.prove_sorry lthy [] [] asm_goal (fn {context = ctxt, ...} =>
                 mk_split_asm_tac ctxt split_thm)
               |> Thm.close_derivation
               |> singleton (Proof_Context.export names_lthy lthy);
@@ -646,7 +646,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
   end;
 
 fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
-  map2 (map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])) goalss tacss
+  map2 (map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])) goalss tacss
   |> (fn thms => after_qed thms lthy)) oo prepare_wrap_datatype (K I);
 
 val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>

@@ -86,7 +86,7 @@ fun mk_eq_eqns thy tyco =
         (HOL_basic_ss addsimps
           (map Simpdata.mk_eq (@{thms equal eq_True} @ inject_thms @ distinct_thms)));
     fun prove prop =
-      Skip_Proof.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
+      Goal.prove_sorry_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
       |> Simpdata.mk_eq;
   in (map prove (triv_injects @ injects @ distincts), prove refl) end;
 

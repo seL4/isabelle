@@ -26,6 +26,8 @@ dependencies.  Minor INCOMPATIBILITY.
 * Dockable window "Timing" provides an overview of relevant command
 timing information.
 
+* Option to skip over proofs, using implicit 'sorry' internally.
+
 
 *** Pure ***
 
@@ -104,6 +106,14 @@ INCOMPATIBILITY.
 Existing theories should be based on src/HOL/Library/Polynomial
 instead.  The latter provides integration with HOL's type classes for
 rings.  INCOMPATIBILITY.
+
+
+*** ML ***
+
+* More uniform naming of goal functions for skipped proofs:
+
+    Skip_Proof.prove  ~>  Goal.prove_sorry
+    Skip_Proof.prove_global  ~>  Goal.prove_sorry_global
 
 
 *** System ***

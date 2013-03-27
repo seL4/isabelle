@@ -923,7 +923,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             (*collect {set1 ... setm} o map f1 ... fm = collect {f1` o set1 ... fm` o setm}*)
             val goal = fold_rev Logic.all hs (mk_Trueprop_eq (collect_map, image_collect));
           in
-            Skip_Proof.prove lthy [] [] goal (K (mk_collect_set_natural_tac (#set_natural axioms)))
+            Goal.prove_sorry lthy [] [] goal (K (mk_collect_set_natural_tac (#set_natural axioms)))
             |> Thm.close_derivation
           end;
 
@@ -937,7 +937,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                 (Logic.list_implies (prems_mono, HOLogic.mk_Trueprop
                   (mk_subset (mk_in As bnf_sets_As CA') (mk_in As_copy bnf_sets_As CA'))));
           in
-            Skip_Proof.prove lthy [] [] in_mono_goal (K (mk_in_mono_tac live))
+            Goal.prove_sorry lthy [] [] in_mono_goal (K (mk_in_mono_tac live))
             |> Thm.close_derivation
           end;
 
@@ -951,7 +951,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                 (Logic.list_implies (prems_cong, HOLogic.mk_Trueprop
                   (HOLogic.mk_eq (mk_in As bnf_sets_As CA', mk_in As_copy bnf_sets_As CA'))));
           in
-            Skip_Proof.prove lthy [] [] in_cong_goal (K ((TRY o hyp_subst_tac THEN' rtac refl) 1))
+            Goal.prove_sorry lthy [] [] in_cong_goal (K ((TRY o hyp_subst_tac THEN' rtac refl) 1))
             |> Thm.close_derivation
           end;
 
@@ -993,7 +993,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
               fold_rev Logic.all (Xs @ B1s @ B2s @ f1s @ f2s @ e1s @ e2s @ p1s @ p2s)
                 (Logic.list_implies (prems, HOLogic.mk_Trueprop concl))
           in
-            Skip_Proof.prove lthy [] [] goal
+            Goal.prove_sorry lthy [] [] goal
               (fn _ => mk_map_wppull_tac (#map_id axioms) (#map_cong axioms)
                 (#map_wpull axioms) (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
@@ -1009,7 +1009,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val rhs = mk_Gr (mk_in As bnf_sets_As CA') (Term.list_comb (bnf_map_AsBs, fs));
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
-            Skip_Proof.prove lthy [] [] goal
+            Goal.prove_sorry lthy [] [] goal
               (mk_srel_Gr_tac srel_O_Grs (#map_id axioms) (#map_cong axioms) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
@@ -1026,7 +1026,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val mono_prems = mk_srel_prems mk_subset;
             val mono_concl = mk_srel_concl (uncurry mk_subset);
           in
-            Skip_Proof.prove lthy [] []
+            Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (mono_prems, mono_concl)))
               (mk_srel_mono_tac srel_O_Grs (Lazy.force in_mono))
             |> Thm.close_derivation
@@ -1037,7 +1037,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val cong_prems = mk_srel_prems (curry HOLogic.mk_eq);
             val cong_concl = mk_srel_concl HOLogic.mk_eq;
           in
-            Skip_Proof.prove lthy [] []
+            Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (cong_prems, cong_concl)))
               (fn _ => (TRY o hyp_subst_tac THEN' rtac refl) 1)
             |> Thm.close_derivation
@@ -1048,7 +1048,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
 
         fun mk_srel_Id () =
           let val srelAsAs = mk_bnf_srel self_setRTs CA' CA' in
-            Skip_Proof.prove lthy [] []
+            Goal.prove_sorry lthy [] []
               (HOLogic.mk_Trueprop
                 (HOLogic.mk_eq (Term.list_comb (srelAsAs, map Id_const As'), Id_const CA')))
               (mk_srel_Id_tac live (Lazy.force srel_Gr) (#map_id axioms))
@@ -1063,13 +1063,13 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val lhs = Term.list_comb (srelBsAs, map mk_converse Rs);
             val rhs = mk_converse (Term.list_comb (srel, Rs));
             val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_subset lhs rhs));
-            val le_thm = Skip_Proof.prove lthy [] [] le_goal
+            val le_thm = Goal.prove_sorry lthy [] [] le_goal
               (mk_srel_converse_le_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong axioms)
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
               |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
           in
-            Skip_Proof.prove lthy [] [] goal (fn _ => mk_srel_converse_tac le_thm)
+            Goal.prove_sorry lthy [] [] goal (fn _ => mk_srel_converse_tac le_thm)
             |> Thm.close_derivation
           end;
 
@@ -1083,7 +1083,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val rhs = mk_rel_comp (Term.list_comb (srel, Rs), Term.list_comb (srelBsCs, Ss));
             val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
-            Skip_Proof.prove lthy [] [] goal
+            Goal.prove_sorry lthy [] [] goal
               (mk_srel_O_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong axioms)
                 (Lazy.force map_wppull) (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
@@ -1105,7 +1105,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
             val goal =
               fold_rev Logic.all (x :: y :: Rs) (mk_Trueprop_eq (lhs, rhs));
           in
-            Skip_Proof.prove lthy [] [] goal (mk_in_srel_tac srel_O_Grs (length bnf_sets))
+            Goal.prove_sorry lthy [] [] goal (mk_in_srel_tac srel_O_Grs (length bnf_sets))
             |> Thm.close_derivation
           end;
 
@@ -1238,12 +1238,12 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
       mk_unfold_thms_then_tac lthy one_step_defs wit_tac;
     val wit_goals = map mk_conjunction_balanced' wit_goalss;
     val wit_thms =
-      Skip_Proof.prove lthy [] [] (mk_conjunction_balanced' wit_goals) wits_tac
+      Goal.prove_sorry lthy [] [] (mk_conjunction_balanced' wit_goals) wits_tac
       |> Conjunction.elim_balanced (length wit_goals)
       |> map2 (Conjunction.elim_balanced o length) wit_goalss
       |> map (map (Thm.close_derivation o Thm.forall_elim_vars 0));
   in
-    map2 (Thm.close_derivation oo Skip_Proof.prove lthy [] [])
+    map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
       goals (map (mk_unfold_thms_then_tac lthy one_step_defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify (K I) Ds;
