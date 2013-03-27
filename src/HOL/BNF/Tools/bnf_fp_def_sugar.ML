@@ -474,7 +474,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                       fold_rev Logic.all [w, u]
                         (mk_Trueprop_eq (HOLogic.mk_eq (u, ctor $ w), HOLogic.mk_eq (dtor $ u, w)));
                   in
-                    Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+                    Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                       mk_ctor_iff_dtor_tac ctxt (map (SOME o certifyT lthy) [dtorT, fpT])
                         (certify lthy ctor) (certify lthy dtor) ctor_dtor dtor_ctor)
                     |> Thm.close_derivation
@@ -801,7 +801,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val ctor_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
 
             val thm =
-              Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+              Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                 mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct'
                   nested_set_natural's pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
@@ -852,7 +852,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                 (nested_map_ids'' @ nesting_map_ids'') rec_defs) fp_rec_thms ctr_defss;
 
             fun prove goal tac =
-              Skip_Proof.prove lthy [] [] goal (tac o #context)
+              Goal.prove_sorry lthy [] [] goal (tac o #context)
               |> Thm.close_derivation;
           in
             (map2 (map2 prove) fold_goalss fold_tacss, map2 (map2 prove) rec_goalss rec_tacss)
@@ -955,7 +955,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val strong_goal = mk_goal strong_rs;
 
             fun prove dtor_coinduct' goal =
-              Skip_Proof.prove lthy [] [] goal (fn {context = ctxt, ...} =>
+              Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                 mk_coinduct_tac ctxt nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs dtor_ctors
                   exhaust_thms ctr_defss disc_thmsss sel_thmsss)
               |> singleton (Proof_Context.export names_lthy lthy)
@@ -1032,7 +1032,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                 fp_rec_thms pre_map_defs ctr_defss;
 
             fun prove goal tac =
-              Skip_Proof.prove lthy [] [] goal (tac o #context) |> Thm.close_derivation;
+              Goal.prove_sorry lthy [] [] goal (tac o #context) |> Thm.close_derivation;
 
             val unfold_thmss = map2 (map2 prove) unfold_goalss unfold_tacss;
             val corec_thmss = map2 (map2 prove) corec_goalss corec_tacss;
@@ -1068,7 +1068,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               map3 (map oo mk_disc_corec_like_iff_tac) case_splitss' corec_thmss disc_thmsss;
 
             fun prove goal tac =
-              Skip_Proof.prove lthy [] [] goal (tac o #context)
+              Goal.prove_sorry lthy [] [] goal (tac o #context)
               |> singleton (Proof_Context.export names_lthy0 no_defs_lthy)
               |> Thm.close_derivation;
 

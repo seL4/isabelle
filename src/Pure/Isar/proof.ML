@@ -1026,23 +1026,13 @@ end;
 
 (* skip proofs *)
 
-local
-
-fun skipped_proof state =
-  Context_Position.if_visible (context_of state) Output.report
-    (Markup.markup Markup.bad "Skipped proof");
-
-in
-
 fun local_skip_proof int state =
   local_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
-  skipped_proof state;
+  Skip_Proof.report (context_of state);
 
 fun global_skip_proof int state =
   global_terminal_proof ((Method.sorry_text int, Position.no_range), NONE) state before
-  skipped_proof state;
-
-end;
+  Skip_Proof.report (context_of state);
 
 
 (* common goal statements *)

@@ -1339,7 +1339,7 @@ val ex_sel_eq_simproc =
                  Logic.mk_equals
                   (Const (@{const_name Ex}, Tex) $ Abs (s, T, eq), @{term True}));
             in
-              SOME (Skip_Proof.prove_global thy [] [] prop
+              SOME (Goal.prove_sorry_global thy [] [] prop
                 (fn _ => simp_tac (Simplifier.inherit_context ss (get_simpset thy)
                     addsimps @{thms simp_thms} addsimprocs [split_simproc (K ~1)]) 1))
             end handle TERM _ => NONE)
@@ -1582,7 +1582,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val inject = timeit_msg ctxt "record extension inject proof:" (fn () =>
       simplify HOL_ss
-        (Skip_Proof.prove_global defs_thy [] [] inject_prop
+        (Goal.prove_sorry_global defs_thy [] [] inject_prop
           (fn _ =>
             simp_tac (HOL_basic_ss addsimps [ext_def]) 1 THEN
             REPEAT_DETERM
@@ -1613,7 +1613,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       end);
 
     val split_meta = timeit_msg ctxt "record extension split_meta proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] split_meta_prop
+      Goal.prove_sorry_global defs_thy [] [] split_meta_prop
         (fn _ =>
           EVERY1
            [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac,
@@ -1623,7 +1623,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     val induct = timeit_msg ctxt "record extension induct proof:" (fn () =>
       let val (assm, concl) = induct_prop in
-        Skip_Proof.prove_global defs_thy [] [assm] concl
+        Goal.prove_sorry_global defs_thy [] [assm] concl
           (fn {prems, ...} =>
             cut_tac (split_meta RS Drule.equal_elim_rule2) 1 THEN
             resolve_tac prems 2 THEN
@@ -2081,7 +2081,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val (sel_convs, upd_convs) =
       timeit_msg ctxt "record sel_convs/upd_convs proof:" (fn () =>
         grouped 10 Par_List.map (fn prop =>
-          Skip_Proof.prove_global defs_thy [] [] prop
+          Goal.prove_sorry_global defs_thy [] [] prop
             (K (ALLGOALS (asm_full_simp_tac sel_upd_ss)))) (sel_conv_props @ upd_conv_props))
       |> chop (length sel_conv_props);
 
@@ -2095,7 +2095,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val parent_induct = Option.map #induct_scheme (try List.last parents);
 
     val induct_scheme = timeit_msg ctxt "record induct_scheme proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] induct_scheme_prop
+      Goal.prove_sorry_global defs_thy [] [] induct_scheme_prop
         (fn _ =>
           EVERY
            [case parent_induct of NONE => all_tac | SOME ind => try_param_tac rN ind 1,
@@ -2103,7 +2103,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             asm_simp_tac HOL_basic_ss 1]));
 
     val induct = timeit_msg ctxt "record induct proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [#1 induct_prop] (#2 induct_prop) (fn {prems, ...} =>
+      Goal.prove_sorry_global defs_thy [] [#1 induct_prop] (#2 induct_prop) (fn {prems, ...} =>
         try_param_tac rN induct_scheme 1
         THEN try_param_tac "more" @{thm unit.induct} 1
         THEN resolve_tac prems 1));
@@ -2114,7 +2114,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           get_sel_upd_defs defs_thy addsimps (sel_defs @ @{thms o_assoc id_apply id_o o_id});
         val init_ss = HOL_basic_ss addsimps ext_defs;
       in
-        Skip_Proof.prove_global defs_thy [] [] surjective_prop
+        Goal.prove_sorry_global defs_thy [] [] surjective_prop
           (fn _ =>
             EVERY
              [rtac surject_assist_idE 1,
@@ -2125,19 +2125,19 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       end);
 
     val cases_scheme = timeit_msg ctxt "record cases_scheme proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
+      Goal.prove_sorry_global defs_thy [] [#1 cases_scheme_prop] (#2 cases_scheme_prop)
         (fn {prems, ...} =>
           resolve_tac prems 1 THEN
           rtac surjective 1));
 
     val cases = timeit_msg ctxt "record cases proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] cases_prop
+      Goal.prove_sorry_global defs_thy [] [] cases_prop
         (fn _ =>
           try_param_tac rN cases_scheme 1 THEN
           ALLGOALS (asm_full_simp_tac (HOL_basic_ss addsimps @{thms unit_all_eq1}))));
 
     val split_meta = timeit_msg ctxt "record split_meta proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] split_meta_prop
+      Goal.prove_sorry_global defs_thy [] [] split_meta_prop
         (fn _ =>
           EVERY1
            [rtac @{thm equal_intr_rule}, Goal.norm_hhf_tac,
@@ -2146,14 +2146,14 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
             REPEAT o etac @{thm meta_allE}, atac]));
 
     val split_object = timeit_msg ctxt "record split_object proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] split_object_prop
+      Goal.prove_sorry_global defs_thy [] [] split_object_prop
         (fn _ =>
           rtac @{lemma "Trueprop A == Trueprop B ==> A = B" by (rule iffI) unfold} 1 THEN
           rewrite_goals_tac @{thms atomize_all [symmetric]} THEN
           rtac split_meta 1));
 
     val split_ex = timeit_msg ctxt "record split_ex proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] split_ex_prop
+      Goal.prove_sorry_global defs_thy [] [] split_ex_prop
         (fn _ =>
           simp_tac
             (HOL_basic_ss addsimps
@@ -2162,7 +2162,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
           rtac split_object 1));
 
     val equality = timeit_msg ctxt "record equality proof:" (fn () =>
-      Skip_Proof.prove_global defs_thy [] [] equality_prop
+      Goal.prove_sorry_global defs_thy [] [] equality_prop
         (fn _ => asm_full_simp_tac (record_ss addsimps (split_meta :: sel_convs)) 1));
 
     val ([(_, sel_convs'), (_, upd_convs'), (_, sel_defs'), (_, upd_defs'),

@@ -355,7 +355,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
         val rewrites = def_thms @ map mk_meta_eq rec_rewrites;
         val char_thms' =
-          map (fn eqn => Skip_Proof.prove_global thy' [] [] eqn
+          map (fn eqn => Goal.prove_sorry_global thy' [] [] eqn
             (fn _ => EVERY [rewrite_goals_tac rewrites, rtac refl 1])) eqns;
 
       in (thy', char_thms' @ char_thms) end;
@@ -377,7 +377,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
             val Ts = map (TFree o rpair HOLogic.typeS) (Name.variant_list used (replicate i "'t"));
             val f = Free ("f", Ts ---> U);
           in
-            Skip_Proof.prove_global thy [] []
+            Goal.prove_sorry_global thy [] []
               (Logic.mk_implies
                 (HOLogic.mk_Trueprop (HOLogic.list_all
                    (map (pair "x") Ts, S $ Datatype_Aux.app_bnds f i)),
@@ -416,7 +416,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val inj_thms' = map snd newT_iso_inj_thms @ map (fn r => r RS @{thm injD}) inj_thms;
 
         val inj_thm =
-          Skip_Proof.prove_global thy5 [] []
+          Goal.prove_sorry_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl1))
             (fn _ => EVERY
               [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
@@ -442,7 +442,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val inj_thms'' = map (fn r => r RS datatype_injI) (Datatype_Aux.split_conj_thm inj_thm);
 
         val elem_thm =
-          Skip_Proof.prove_global thy5 [] []
+          Goal.prove_sorry_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl2))
             (fn _ =>
               EVERY [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
@@ -480,7 +480,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       if length descr = 1 then []
       else
         drop (length newTs) (Datatype_Aux.split_conj_thm
-          (Skip_Proof.prove_global thy5 [] [] iso_t (fn _ => EVERY
+          (Goal.prove_sorry_global thy5 [] [] iso_t (fn _ => EVERY
              [(Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
               REPEAT (rtac TrueI 1),
               rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
@@ -511,7 +511,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val inj_thms = map fst newT_iso_inj_thms;
         val rewrites = @{thm o_def} :: constr_defs @ map (mk_meta_eq o #2) newT_iso_axms;
       in
-        Skip_Proof.prove_global thy5 [] [] eqn
+        Goal.prove_sorry_global thy5 [] [] eqn
         (fn _ => EVERY
           [resolve_tac inj_thms 1,
            rewrite_goals_tac rewrites,
@@ -537,7 +537,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         fun prove [] = []
           | prove (t :: ts) =
               let
-                val dist_thm = Skip_Proof.prove_global thy5 [] [] t (fn _ =>
+                val dist_thm = Goal.prove_sorry_global thy5 [] [] t (fn _ =>
                   EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
               in dist_thm :: Drule.zero_var_indexes (dist_thm RS not_sym) :: prove ts end;
       in prove end;
@@ -555,7 +555,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               [In0_inject, In1_inject, Leaf_inject, Inl_inject, Inr_inject,
                Lim_inject, Suml_inject, Sumr_inject])
       in
-        Skip_Proof.prove_global thy5 [] [] t
+        Goal.prove_sorry_global thy5 [] [] t
           (fn _ => EVERY
             [rtac iffI 1,
              REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
@@ -610,7 +610,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
     val cert = cterm_of thy6;
 
     val indrule_lemma =
-      Skip_Proof.prove_global thy6 [] []
+      Goal.prove_sorry_global thy6 [] []
         (Logic.mk_implies
           (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_prems),
            HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_concls)))
@@ -629,7 +629,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
 
     val dt_induct_prop = Datatype_Prop.make_ind descr;
     val dt_induct =
-      Skip_Proof.prove_global thy6 []
+      Goal.prove_sorry_global thy6 []
       (Logic.strip_imp_prems dt_induct_prop)
       (Logic.strip_imp_concl dt_induct_prop)
       (fn {prems, ...} =>

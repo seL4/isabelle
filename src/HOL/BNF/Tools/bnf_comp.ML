@@ -175,7 +175,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         []
       else
         map (fn goal =>
-          Skip_Proof.prove lthy [] [] goal
+          Goal.prove_sorry lthy [] [] goal
             (fn {context = ctxt, prems = _} =>
               mk_comp_set_alt_tac ctxt (collect_set_natural_of_bnf outer))
           |> Thm.close_derivation)
@@ -209,7 +209,7 @@ fun clean_compose_bnf const_policy qualify b outer inners (unfold_set, lthy) =
         val in_alt = mk_in (map2 (mk_in Asets) inner_setss CAs) outer_sets CCA;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
-        Skip_Proof.prove lthy [] [] goal
+        Goal.prove_sorry lthy [] [] goal
           (fn {context = ctxt, prems = _} => mk_comp_in_alt_tac ctxt set_alt_thms)
         |> Thm.close_derivation
       end;
@@ -324,7 +324,7 @@ fun kill_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
         val in_alt = mk_in (map HOLogic.mk_UNIV killedAs @ Asets) bnf_sets T;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
-        Skip_Proof.prove lthy [] [] goal (K kill_in_alt_tac) |> Thm.close_derivation
+        Goal.prove_sorry lthy [] [] goal (K kill_in_alt_tac) |> Thm.close_derivation
       end;
 
     fun in_bd_tac _ =
@@ -426,7 +426,7 @@ fun lift_bnf qualify n bnf (unfold_set, lthy) = if n = 0 then (bnf, (unfold_set,
         val in_alt = mk_in (drop n Asets) bnf_sets T;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
-        Skip_Proof.prove lthy [] [] goal (K lift_in_alt_tac) |> Thm.close_derivation
+        Goal.prove_sorry lthy [] [] goal (K lift_in_alt_tac) |> Thm.close_derivation
       end;
 
     fun in_bd_tac _ = mk_lift_in_bd_tac n in_alt_thm (in_bd_of_bnf bnf) (bd_Card_order_of_bnf bnf);
@@ -501,7 +501,7 @@ fun permute_bnf qualify src dest bnf (unfold_set, lthy) =
         val in_alt = mk_in (permute_rev Asets) bnf_sets T;
         val goal = fold_rev Logic.all Asets (mk_Trueprop_eq (inx, in_alt));
       in
-        Skip_Proof.prove lthy [] [] goal (K (mk_permute_in_alt_tac src dest))
+        Goal.prove_sorry lthy [] [] goal (K (mk_permute_in_alt_tac src dest))
         |> Thm.close_derivation
       end;
 

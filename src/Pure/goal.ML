@@ -46,6 +46,10 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val prove_global: theory -> string list -> term list -> term ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm
+  val prove_sorry: Proof.context -> string list -> term list -> term ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
+  val prove_sorry_global: theory -> string list -> term list -> term ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> thm
   val extract: int -> int -> thm -> thm Seq.seq
   val retrofit: int -> int -> thm -> thm -> thm Seq.seq
   val conjunction_tac: int -> tactic
@@ -317,6 +321,15 @@ fun prove_global_future thy xs asms prop tac =
 
 fun prove_global thy xs asms prop tac =
   Drule.export_without_context (prove (Proof_Context.init_global thy) xs asms prop tac);
+
+fun prove_sorry ctxt xs asms prop tac =
+  if ! quick_and_dirty then
+    prove ctxt xs asms prop (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt))
+  else (if future_enabled () then prove_future else prove) ctxt xs asms prop tac;
+
+fun prove_sorry_global thy xs asms prop tac =
+  Drule.export_without_context
+    (prove_sorry (Proof_Context.init_global thy) xs asms prop tac);
 
 
 
