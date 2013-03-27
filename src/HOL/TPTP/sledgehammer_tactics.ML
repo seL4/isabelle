@@ -64,12 +64,11 @@ fun sledgehammer_with_metis_tac ctxt override_params fact_override i th =
 
 fun sledgehammer_as_oracle_tac ctxt override_params fact_override i th =
   let
-    val thy = Proof_Context.theory_of ctxt
     val override_params =
       override_params @
       [("preplay_timeout", "0"),
        ("minimize", "false")]
     val xs = run_prover override_params fact_override i i ctxt th
-  in if is_some xs then Skip_Proof.cheat_tac thy th else Seq.empty end
+  in if is_some xs then ALLGOALS Skip_Proof.cheat_tac th else Seq.empty end
 
 end;

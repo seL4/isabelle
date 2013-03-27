@@ -20,7 +20,7 @@ sig
   val SIMPLE_METHOD: tactic -> method
   val SIMPLE_METHOD': (int -> tactic) -> method
   val SIMPLE_METHOD'': ((int -> tactic) -> tactic) -> (int -> tactic) -> method
-  val cheating: bool -> Proof.context -> method
+  val cheating: bool -> method
   val intro: thm list -> method
   val elim: thm list -> method
   val unfold: thm list -> Proof.context -> method
@@ -112,7 +112,7 @@ fun cut_rule_tac rule =
 
 in
 
-fun insert_tac [] i = all_tac
+fun insert_tac [] _ = all_tac
   | insert_tac facts i = EVERY (map (fn th => cut_rule_tac th i) facts);
 
 val insert_facts = METHOD (ALLGOALS o insert_tac);
@@ -127,10 +127,10 @@ end;
 
 (* cheating *)
 
-fun cheating int ctxt =
+fun cheating int = METHOD (fn _ => fn st =>
   if int orelse ! quick_and_dirty then
-    METHOD (K (Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt)))
-  else error "Cheating requires quick_and_dirty mode!";
+    ALLGOALS Skip_Proof.cheat_tac st
+  else error "Cheating requires quick_and_dirty mode!");
 
 
 (* unfold intro/elim rules *)
@@ -296,7 +296,7 @@ val succeed_text = Basic (K succeed);
 val default_text = Source (Args.src (("default", []), Position.none));
 val this_text = Basic (K this);
 val done_text = Basic (K (SIMPLE_METHOD all_tac));
-fun sorry_text int = Basic (cheating int);
+fun sorry_text int = Basic (K (cheating int));
 
 fun finish_text (NONE, immed) = Basic (finish immed)
   | finish_text (SOME txt, immed) = Then [txt, Basic (finish immed)];

@@ -9,7 +9,7 @@ sig
   val report: Proof.context -> unit
   val make_thm_cterm: cterm -> thm
   val make_thm: theory -> term -> thm
-  val cheat_tac: theory -> tactic
+  val cheat_tac: int -> tactic
 end;
 
 structure Skip_Proof: SKIP_PROOF =
@@ -32,7 +32,7 @@ fun make_thm thy prop = make_thm_cterm (Thm.cterm_of thy prop);
 
 (* cheat_tac *)
 
-fun cheat_tac thy st =
-  ALLGOALS (rtac (make_thm thy (Var (("A", 0), propT)))) st;
+fun cheat_tac i st =
+  rtac (make_thm (Thm.theory_of_thm st) (Var (("A", 0), propT))) i st;
 
 end;

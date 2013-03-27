@@ -324,7 +324,7 @@ fun prove_global thy xs asms prop tac =
 
 fun prove_sorry ctxt xs asms prop tac =
   if ! quick_and_dirty then
-    prove ctxt xs asms prop (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt))
+    prove ctxt xs asms prop (fn _ => ALLGOALS Skip_Proof.cheat_tac)
   else (if future_enabled () then prove_future else prove) ctxt xs asms prop tac;
 
 fun prove_sorry_global thy xs asms prop tac =

@@ -1180,7 +1180,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 fun define_quickcheck_predicate t thy =
   let
     val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees (Proof_Context.init_global thy) [] vs
+    val vs' = Variable.variant_frees (Proof_Context.init_global thy) [] vs (* FIXME proper context!? *)
     val t'' = subst_bounds (map Free (rev vs'), t')
     val (prems, concl) = strip_horn t''
     val constname = "quickcheck"
@@ -1191,8 +1191,9 @@ fun define_quickcheck_predicate t thy =
     val t = Logic.list_implies
       (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
        HOLogic.mk_Trueprop (list_comb (const, map Free vs')))
-    val tac = fn _ => Skip_Proof.cheat_tac thy1
-    val intro = Goal.prove (Proof_Context.init_global thy1) (map fst vs') [] t tac
+    val intro =
+      Goal.prove (Proof_Context.init_global thy1) (map fst vs') [] t
+        (fn _ => ALLGOALS Skip_Proof.cheat_tac)
   in
     ((((full_constname, constT), vs'), intro), thy1)
   end

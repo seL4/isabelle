@@ -376,7 +376,7 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
       let
         val eqs_t = mk_equations consts
         val eqs = map (fn eq => Goal.prove lthy argnames [] eq
-          (fn _ => Skip_Proof.cheat_tac (Proof_Context.theory_of lthy))) eqs_t
+          (fn _ => ALLGOALS Skip_Proof.cheat_tac)) eqs_t
       in
         fold (fn (name, eq) => Local_Theory.note
           ((Binding.qualify true prfx
