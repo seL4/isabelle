@@ -424,10 +424,6 @@ session "HOL-MicroJava" in MicroJava = HOL +
     "document/root.bib"
     "document/root.tex"
 
-session "HOL-MicroJava-skip_proofs" in MicroJava = HOL +
-  options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs]
-  theories MicroJava
-
 session "HOL-NanoJava" in NanoJava = HOL +
   description {*
     Hoare Logic for a tiny fragment of Java.
