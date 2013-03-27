@@ -324,14 +324,13 @@ fun rawsat_thm ctxt clauses =
         tracing ("Invoking SAT solver on clauses:\n" ^ cat_lines (map string_of_prop_formula fms))
       else ()
     val fm = Prop_Logic.all fms
-    (* unit -> Thm.thm *)
     fun make_quick_and_dirty_thm () =
       let
         val _ =
           if !trace_sat then
             tracing "'quick_and_dirty' is set: proof reconstruction skipped, using oracle instead."
           else ()
-        val False_thm = Skip_Proof.make_thm @{theory} (HOLogic.Trueprop $ @{term False})
+        val False_thm = Skip_Proof.make_thm_cterm @{cprop False}
       in
         (* 'fold Thm.weaken (rev sorted_clauses)' is linear, while 'fold    *)
         (* Thm.weaken sorted_clauses' would be quadratic, since we sorted   *)
