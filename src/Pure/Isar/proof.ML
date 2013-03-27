@@ -1093,19 +1093,15 @@ end;
 
 (* relevant proof states *)
 
-fun is_schematic t =
-  Term.exists_subterm Term.is_Var t orelse
-  Term.exists_type (Term.exists_subtype Term.is_TVar) t;
-
 fun schematic_goal state =
   let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state
-  in is_schematic prop end;
+  in Goal.is_schematic prop end;
 
 fun is_relevant state =
   (case try find_goal state of
     NONE => true
   | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
-      is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
+      Goal.is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
 
 
 (* full proofs *)

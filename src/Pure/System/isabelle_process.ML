@@ -242,6 +242,7 @@ val _ =
         Multithreading.max_threads := Options.int options "threads";
         if Multithreading.max_threads_value () < 2
         then Multithreading.max_threads := 2 else ();
+        Goal.skip_proofs := Options.bool options "skip_proofs";
         Goal.parallel_proofs := (if Options.int options "parallel_proofs" > 0 then 3 else 0);
         Goal.parallel_subproofs_saturation := Options.int options "parallel_subproofs_saturation";
         Goal.parallel_subproofs_threshold := Options.real options "parallel_subproofs_threshold";

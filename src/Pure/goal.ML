@@ -6,6 +6,7 @@ Goals in tactical theorem proving, with support for forked proofs.
 
 signature BASIC_GOAL =
 sig
+  val skip_proofs: bool Unsynchronized.ref
   val parallel_proofs: int Unsynchronized.ref
   val parallel_subproofs_saturation: int Unsynchronized.ref
   val parallel_subproofs_threshold: real Unsynchronized.ref
@@ -36,6 +37,7 @@ sig
   val future_enabled_timing: Time.time -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
+  val is_schematic: term -> bool
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
   val prove_future: Proof.context -> string list -> term list -> term ->
@@ -196,6 +198,8 @@ end;
 
 (* scheduling parameters *)
 
+val skip_proofs = Unsynchronized.ref false;
+
 val parallel_proofs = Unsynchronized.ref 1;
 val parallel_subproofs_saturation = Unsynchronized.ref 100;
 val parallel_subproofs_threshold = Unsynchronized.ref 0.01;
@@ -263,12 +267,20 @@ fun prove_internal casms cprop tac =
   | NONE => error "Tactic failed");
 
 
-(* prove_common etc. *)
+(* prove variations *)
+
+fun is_schematic t =
+  Term.exists_subterm Term.is_Var t orelse
+  Term.exists_type (Term.exists_subtype Term.is_TVar) t;
 
 fun prove_common immediate ctxt xs asms props tac =
   let
     val thy = Proof_Context.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
+
+    val schematic = exists is_schematic props;
+    val future = future_enabled ();
+    val skip = not immediate andalso not schematic andalso future andalso ! skip_proofs;
 
     val pos = Position.thread_data ();
     fun err msg = cat_error msg
@@ -290,8 +302,11 @@ fun prove_common immediate ctxt xs asms props tac =
 
     val stmt = Thm.weaken_sorts sorts (Conjunction.mk_conjunction_balanced cprops);
 
+    fun tac' args st =
+      if skip then ALLGOALS Skip_Proof.cheat_tac st before Skip_Proof.report ctxt
+      else tac args st;
     fun result () =
-      (case SINGLE (tac {prems = prems, context = ctxt'}) (init stmt) of
+      (case SINGLE (tac' {prems = prems, context = ctxt'}) (init stmt) of
         NONE => err "Tactic failed"
       | SOME st =>
           let val res = finish ctxt' st handle THM (msg, _, _) => err msg in
@@ -300,7 +315,7 @@ fun prove_common immediate ctxt xs asms props tac =
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
           end);
     val res =
-      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (future_enabled ())
+      if immediate orelse schematic orelse not future orelse skip
       then result ()
       else future_result ctxt' (fork ~1 result) (Thm.term_of stmt);
   in

@@ -29,7 +29,6 @@ sig
   val interact: bool Unsynchronized.ref
   val timing: bool Unsynchronized.ref
   val profiling: int Unsynchronized.ref
-  val skip_proofs: bool Unsynchronized.ref
   val program: (unit -> 'a) -> 'a
   val thread: bool -> (unit -> unit) -> Thread.thread
   type transition
@@ -229,7 +228,6 @@ val debug = Runtime.debug;
 val interact = Unsynchronized.ref false;
 val timing = Unsynchronized.ref false;
 val profiling = Unsynchronized.ref 0;
-val skip_proofs = Unsynchronized.ref false;
 
 fun program body =
  (body
@@ -522,7 +520,7 @@ fun begin_proof init = transaction (fn int =>
   (fn Theory (gthy, _) =>
     let
       val (finish, prf) = init int gthy;
-      val skip = ! skip_proofs;
+      val skip = ! Goal.skip_proofs;
       val (is_goal, no_skip) =
         (true, Proof.schematic_goal prf) handle ERROR _ => (false, true);
       val _ =
@@ -531,7 +529,7 @@ fun begin_proof init = transaction (fn int =>
         else ();
     in
       if skip andalso not no_skip then
-        SkipProof (0, (finish (Proof.global_skip_proof int prf), gthy))
+        SkipProof (0, (finish (Proof.global_skip_proof true prf), gthy))
       else Proof (Proof_Node.init prf, (finish, gthy))
     end
   | _ => raise UNDEF));

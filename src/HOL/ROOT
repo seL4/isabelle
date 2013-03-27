@@ -424,7 +424,7 @@ session "HOL-MicroJava" in MicroJava = HOL +
     "document/root.tex"
 
 session "HOL-MicroJava-skip_proofs" in MicroJava = HOL +
-  options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs, quick_and_dirty]
+  options [condition = ISABELLE_FULL_TEST, document = false, skip_proofs]
   theories MicroJava
 
 session "HOL-NanoJava" in NanoJava = HOL +
