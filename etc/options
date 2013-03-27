@@ -83,6 +83,9 @@ option timeout : real = 0
 
 section "Editor Reactivity"
 
+option editor_skip_proofs : bool = false
+  -- "skip over proofs (implicit 'sorry')"
+
 option editor_load_delay : real = 0.5
   -- "delay for file load operations (new buffers etc.)"
 
