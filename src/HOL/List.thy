@@ -4338,6 +4338,10 @@ that instead of multisets to state the correctness property. *}
 context linorder
 begin
 
+lemma set_insort_key:
+  "set (insort_key f x xs) = insert x (set xs)"
+  by (induct xs) auto
+
 lemma length_insort [simp]:
   "length (insort_key f x xs) = Suc (length xs)"
   by (induct xs) simp_all

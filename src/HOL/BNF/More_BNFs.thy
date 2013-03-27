@@ -532,34 +532,6 @@ qed (unfold cEmp_def, auto)
 
 (* Multisets *)
 
-(* The cardinal of a mutiset: this, and the following basic lemmas about it,
-should eventually go into Multiset.thy *)
-definition "mcard M \<equiv> setsum (count M) {a. count M a > 0}"
-
-lemma mcard_emp[simp]: "mcard {#} = 0"
-unfolding mcard_def by auto
-
-lemma mcard_emp_iff[simp]: "mcard M = 0 \<longleftrightarrow> M = {#}"
-unfolding mcard_def apply safe
-  apply simp_all
-  by (metis multi_count_eq zero_multiset.rep_eq)
-
-lemma mcard_singl[simp]: "mcard {#a#} = Suc 0"
-unfolding mcard_def by auto
-
-lemma mcard_Plus[simp]: "mcard (M + N) = mcard M + mcard N"
-proof -
-  have "setsum (count M) {a. 0 < count M a + count N a} =
-        setsum (count M) {a. a \<in># M}"
-  apply (rule setsum_mono_zero_cong_right) by auto
-  moreover
-  have "setsum (count N) {a. 0 < count M a + count N a} =
-        setsum (count N) {a. a \<in># N}"
-  apply (rule setsum_mono_zero_cong_right) by auto
-  ultimately show ?thesis
-  unfolding mcard_def count_union [THEN ext] by (simp add: setsum.distrib)
-qed
-
 lemma setsum_gt_0_iff:
 fixes f :: "'a \<Rightarrow> nat" assumes "finite A"
 shows "setsum f A > 0 \<longleftrightarrow> (\<exists> a \<in> A. f a > 0)"
@@ -1246,7 +1218,7 @@ apply(induct rule: multiset_rel'.induct)
 using multiset_rel_Zero multiset_rel_Plus by auto
 
 lemma mcard_multiset_map[simp]: "mcard (multiset_map f M) = mcard M"
-proof-
+proof -
   def A \<equiv> "\<lambda> b. {a. f a = b \<and> a \<in># M}"
   let ?B = "{b. 0 < setsum (count M) (A b)}"
   have "{b. \<exists>a. f a = b \<and> a \<in># M} \<subseteq> f ` {a. a \<in># M}" by auto
@@ -1273,7 +1245,7 @@ proof-
   also have "?J = {a. a \<in># M}" unfolding AB unfolding A_def by auto
   finally have "setsum (\<lambda> x. setsum (count M) (A x)) ?B =
                 setsum (count M) {a. a \<in># M}" .
-  thus ?thesis unfolding A_def mcard_def multiset_map_def by (simp add: mmap_def)
+  then show ?thesis by (simp add: A_def mcard_unfold_setsum multiset_map_def set_of_def mmap_def)
 qed
 
 lemma multiset_rel_mcard:

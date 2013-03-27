@@ -702,7 +702,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma fold_mset_fun_comm:
+lemma fold_mset_fun_left_comm:
   "f x (fold f s M) = fold f (f x s) M"
   by (induct M) (simp_all add: fold_mset_insert fun_left_comm)
 
@@ -714,7 +714,7 @@ next
   case (add M x)
   have "M + {#x#} + N = (M + N) + {#x#}"
     by (simp add: add_ac)
-  with add show ?case by (simp add: fold_mset_insert fold_mset_fun_comm)
+  with add show ?case by (simp add: fold_mset_insert fold_mset_fun_left_comm)
 qed
 
 lemma fold_mset_fusion:
@@ -821,9 +821,7 @@ qed
 declare image_mset.identity [simp]
 
 
-subsection {* Alternative representations *}
-
-subsubsection {* Lists *}
+subsection {* Further conversions *}
 
 primrec multiset_of :: "'a list \<Rightarrow> 'a multiset" where
   "multiset_of [] = {#}" |
@@ -949,6 +947,257 @@ next
   moreover from Cons.prems have "List.fold f xs = List.fold f (remove1 x ys)" by (auto intro: Cons.hyps)
   ultimately show ?case by simp
 qed
+
+lemma multiset_of_insort [simp]:
+  "multiset_of (insort x xs) = multiset_of xs + {#x#}"
+  by (induct xs) (simp_all add: ac_simps)
+
+definition multiset_of_set :: "'a set \<Rightarrow> 'a multiset"
+where
+  "multiset_of_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
+
+interpretation multiset_of_set!: folding "\<lambda>x M. {#x#} + M" "{#}"
+where
+  "folding.F (\<lambda>x M. {#x#} + M) {#} = multiset_of_set"
+proof -
+  interpret comp_fun_commute "\<lambda>x M. {#x#} + M" by default (simp add: fun_eq_iff ac_simps)
+  show "folding (\<lambda>x M. {#x#} + M)" by default (fact comp_fun_commute)
+  from multiset_of_set_def show "folding.F (\<lambda>x M. {#x#} + M) {#} = multiset_of_set" ..
+qed
+
+context linorder
+begin
+
+definition sorted_list_of_multiset :: "'a multiset \<Rightarrow> 'a list"
+where
+  "sorted_list_of_multiset M = fold insort [] M"
+
+lemma sorted_list_of_multiset_empty [simp]:
+  "sorted_list_of_multiset {#} = []"
+  by (simp add: sorted_list_of_multiset_def)
+
+lemma sorted_list_of_multiset_singleton [simp]:
+  "sorted_list_of_multiset {#x#} = [x]"
+proof -
+  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
+  show ?thesis by (simp add: sorted_list_of_multiset_def)
+qed
+
+lemma sorted_list_of_multiset_insert [simp]:
+  "sorted_list_of_multiset (M + {#x#}) = List.insort x (sorted_list_of_multiset M)"
+proof -
+  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
+  show ?thesis by (simp add: sorted_list_of_multiset_def)
+qed
+
+end
+
+lemma multiset_of_sorted_list_of_multiset [simp]:
+  "multiset_of (sorted_list_of_multiset M) = M"
+  by (induct M) simp_all
+
+lemma sorted_list_of_multiset_multiset_of [simp]:
+  "sorted_list_of_multiset (multiset_of xs) = sort xs"
+  by (induct xs) simp_all
+
+lemma finite_set_of_multiset_of_set:
+  assumes "finite A"
+  shows "set_of (multiset_of_set A) = A"
+  using assms by (induct A) simp_all
+
+lemma infinite_set_of_multiset_of_set:
+  assumes "\<not> finite A"
+  shows "set_of (multiset_of_set A) = {}"
+  using assms by simp
+
+lemma set_sorted_list_of_multiset [simp]:
+  "set (sorted_list_of_multiset M) = set_of M"
+  by (induct M) (simp_all add: set_insort)
+
+lemma sorted_list_of_multiset_of_set [simp]:
+  "sorted_list_of_multiset (multiset_of_set A) = sorted_list_of_set A"
+  by (cases "finite A") (induct A rule: finite_induct, simp_all add: ac_simps)
+
+
+subsection {* Big operators *}
+
+no_notation times (infixl "*" 70)
+no_notation Groups.one ("1")
+
+locale comm_monoid_mset = comm_monoid
+begin
+
+definition F :: "'a multiset \<Rightarrow> 'a"
+where
+  eq_fold: "F M = Multiset.fold f 1 M"
+
+lemma empty [simp]:
+  "F {#} = 1"
+  by (simp add: eq_fold)
+
+lemma singleton [simp]:
+  "F {#x#} = x"
+proof -
+  interpret comp_fun_commute
+    by default (simp add: fun_eq_iff left_commute)
+  show ?thesis by (simp add: eq_fold)
+qed
+
+lemma union [simp]:
+  "F (M + N) = F M * F N"
+proof -
+  interpret comp_fun_commute f
+    by default (simp add: fun_eq_iff left_commute)
+  show ?thesis by (induct N) (simp_all add: left_commute eq_fold)
+qed
+
+end
+
+notation times (infixl "*" 70)
+notation Groups.one ("1")
+
+definition (in comm_monoid_add) msetsum :: "'a multiset \<Rightarrow> 'a"
+where
+  "msetsum = comm_monoid_mset.F plus 0"
+
+definition (in comm_monoid_mult) msetprod :: "'a multiset \<Rightarrow> 'a"
+where
+  "msetprod = comm_monoid_mset.F times 1"
+
+sublocale comm_monoid_add < msetsum!: comm_monoid_mset plus 0
+where
+  "comm_monoid_mset.F plus 0 = msetsum"
+proof -
+  show "comm_monoid_mset plus 0" ..
+  from msetsum_def show "comm_monoid_mset.F plus 0 = msetsum" ..
+qed
+
+context comm_monoid_add
+begin
+
+lemma setsum_unfold_msetsum:
+  "setsum f A = msetsum (image_mset f (multiset_of_set A))"
+  by (cases "finite A") (induct A rule: finite_induct, simp_all)
+
+abbreviation msetsum_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
+where
+  "msetsum_image f M \<equiv> msetsum (image_mset f M)"
+
+end
+
+syntax
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
+      ("(3SUM _:#_. _)" [0, 51, 10] 10)
+
+syntax (xsymbols)
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
+      ("(3\<Sum>_:#_. _)" [0, 51, 10] 10)
+
+syntax (HTML output)
+  "_msetsum_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_add" 
+      ("(3\<Sum>_\<in>#_. _)" [0, 51, 10] 10)
+
+translations
+  "SUM i :# A. b" == "CONST msetsum_image (\<lambda>i. b) A"
+
+sublocale comm_monoid_mult < msetprod!: comm_monoid_mset times 1
+where
+  "comm_monoid_mset.F times 1 = msetprod"
+proof -
+  show "comm_monoid_mset times 1" ..
+  from msetprod_def show "comm_monoid_mset.F times 1 = msetprod" ..
+qed
+
+context comm_monoid_mult
+begin
+
+lemma msetprod_empty:
+  "msetprod {#} = 1"
+  by (fact msetprod.empty)
+
+lemma msetprod_singleton:
+  "msetprod {#x#} = x"
+  by (fact msetprod.singleton)
+
+lemma msetprod_Un:
+  "msetprod (A + B) = msetprod A * msetprod B" 
+  by (fact msetprod.union)
+
+lemma setprod_unfold_msetprod:
+  "setprod f A = msetprod (image_mset f (multiset_of_set A))"
+  by (cases "finite A") (induct A rule: finite_induct, simp_all)
+
+lemma msetprod_multiplicity:
+  "msetprod M = setprod (\<lambda>x. x ^ count M x) (set_of M)"
+  by (simp add: Multiset.fold_def setprod.eq_fold msetprod.eq_fold funpow_times_power comp_def)
+
+abbreviation msetprod_image :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b multiset \<Rightarrow> 'a"
+where
+  "msetprod_image f M \<equiv> msetprod (image_mset f M)"
+
+end
+
+syntax
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+      ("(3PROD _:#_. _)" [0, 51, 10] 10)
+
+syntax (xsymbols)
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+      ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
+
+syntax (HTML output)
+  "_msetprod_image" :: "pttrn \<Rightarrow> 'b set \<Rightarrow> 'a \<Rightarrow> 'a::comm_monoid_mult" 
+      ("(3\<Prod>_\<in>#_. _)" [0, 51, 10] 10)
+
+translations
+  "PROD i :# A. b" == "CONST msetprod_image (\<lambda>i. b) A"
+
+lemma (in comm_semiring_1) dvd_msetprod:
+  assumes "x \<in># A"
+  shows "x dvd msetprod A"
+proof -
+  from assms have "A = (A - {#x#}) + {#x#}" by simp
+  then obtain B where "A = B + {#x#}" ..
+  then show ?thesis by simp
+qed
+
+
+subsection {* Cardinality *}
+
+definition mcard :: "'a multiset \<Rightarrow> nat"
+where
+  "mcard = msetsum \<circ> image_mset (\<lambda>_. 1)"
+
+lemma mcard_empty [simp]:
+  "mcard {#} = 0"
+  by (simp add: mcard_def)
+
+lemma mcard_singleton [simp]:
+  "mcard {#a#} = Suc 0"
+  by (simp add: mcard_def)
+
+lemma mcard_plus [simp]:
+  "mcard (M + N) = mcard M + mcard N"
+  by (simp add: mcard_def)
+
+lemma mcard_empty_iff [simp]:
+  "mcard M = 0 \<longleftrightarrow> M = {#}"
+  by (induct M) simp_all
+
+lemma mcard_unfold_setsum:
+  "mcard M = setsum (count M) (set_of M)"
+proof (induct M)
+  case empty then show ?case by simp
+next
+  case (add M x) then show ?case
+    by (cases "x \<in> set_of M")
+      (simp_all del: mem_set_of_iff add: setsum.distrib setsum.delta' insert_absorb, simp)
+qed
+
+
+subsection {* Alternative representations *}
+
+subsubsection {* Lists *}
 
 context linorder
 begin
