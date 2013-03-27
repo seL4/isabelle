@@ -263,10 +263,13 @@ fun load_thy last_timing update_time master_dir header text_pos text parents =
         val res = filter_out (Toplevel.is_ignored o #1) (maps Toplevel.join_results results);
         val ((minor, _), outer_syntax) = Outer_Syntax.get_syntax ();
       in
-        Thy_Output.present_thy minor Keyword.command_tags
-          (Outer_Syntax.is_markup outer_syntax) res toks
-        |> Buffer.content
-        |> Present.theory_output name
+        if exists (Toplevel.is_skipped_proof o #2) res then
+          warning ("Cannot present theory with skipped proofs: " ^ quote name)
+        else
+          Thy_Output.present_thy minor Keyword.command_tags
+            (Outer_Syntax.is_markup outer_syntax) res toks
+          |> Buffer.content
+          |> Present.theory_output name
       end;
 
   in (thy, present, size text) end;
