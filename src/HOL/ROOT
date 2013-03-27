@@ -560,7 +560,7 @@ session "HOL-ex" in ex = HOL +
     Set_Comprehension_Pointfree_Tests
     Parallel_Example
     IArray_Examples
-  theories SVC_Oracle
+    SVC_Oracle
   theories [skip_proofs = false]
     Meson_Test
   theories [condition = SVC_HOME]
