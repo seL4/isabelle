@@ -548,7 +548,7 @@ fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
   (fn _ => fn gthy =>
-    (Context.Theory o Sign.reset_group o Proof_Context.theory_of,
+    (Context.Theory o Theory.checkpoint o Sign.reset_group o Proof_Context.theory_of,
       (case gthy of
         Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy))
       | _ => raise UNDEF)));
