@@ -101,7 +101,7 @@ object Pretty
     }
 
     val breakgain = margin / 20
-    val emergencypos = margin / 2
+    val emergencypos = (margin / 2).round.toInt
 
     def content_length(tree: XML.Tree): Double =
       XML.traverse_text(List(tree))(0.0)(_ + metric(_))
@@ -122,12 +122,12 @@ object Pretty
         case t :: ts => t :: forcenext(ts)
       }
 
-    def format(trees: XML.Body, blockin: Double, after: Double, text: Text): Text =
+    def format(trees: XML.Body, blockin: Int, after: Double, text: Text): Text =
       trees match {
         case Nil => text
 
         case Block(indent, body) :: ts =>
-          val pos1 = text.pos + indent
+          val pos1 = (text.pos + indent).ceil.toInt
           val pos2 = pos1 % emergencypos
           val blockin1 =
             if (pos1 < emergencypos) pos1
@@ -139,8 +139,8 @@ object Pretty
         case Break(wd) :: ts =>
           if (text.pos + wd <= ((margin - breakdist(ts, after)) max (blockin + breakgain)))
             format(ts, blockin, after, text.blanks(wd))
-          else format(ts, blockin, after, text.newline.blanks(blockin.toInt))
-        case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin.toInt))
+          else format(ts, blockin, after, text.newline.blanks(blockin))
+        case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
 
         case XML.Wrapped_Elem(markup, body1, body2) :: ts =>
           val btext = format(body2, blockin, breakdist(ts, after), text.copy(tx = Nil))
@@ -157,7 +157,7 @@ object Pretty
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
       }
 
-    format(standard_format(input), 0.0, 0.0, Text()).content
+    format(standard_format(input), 0, 0.0, Text()).content
   }
 
   def string_of(input: XML.Body, margin: Double = margin_default,
