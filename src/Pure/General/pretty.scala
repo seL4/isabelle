@@ -74,7 +74,7 @@ object Pretty
   val FBreak = XML.Text("\n")
 
   def item(body: XML.Body): XML.Tree =
-    Block(2, XML.Text(Symbol.decode("\\<bullet>") + " ") :: body)
+    Block(2, XML.elem(Markup.BULLET, List(XML.Text(space))) :: XML.Text(space) :: body)
 
   val Separator = List(XML.elem(Markup.SEPARATOR, List(XML.Text(space))), FBreak)
   def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten

@@ -87,6 +87,7 @@ object Markup
   val BREAK = "break"
 
   val ITEM = "item"
+  val BULLET = "bullet"
 
   val SEPARATOR = "separator"
 

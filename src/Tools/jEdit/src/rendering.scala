@@ -121,6 +121,7 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
   val running_color = color_value("running_color")
   val running1_color = color_value("running1_color")
   val light_color = color_value("light_color")
+  val bullet_color = color_value("bullet_color")
   val tooltip_color = color_value("tooltip_color")
   val writeln_color = color_value("writeln_color")
   val warning_color = color_value("warning_color")
@@ -498,6 +499,13 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
     snapshot.select_markup(range, Some(Set(Markup.TOKEN_RANGE)), _ =>
       {
         case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
+      })
+
+
+  def bullet(range: Text.Range): Stream[Text.Info[Color]] =
+    snapshot.select_markup(range, Some(Set(Markup.BULLET)), _ =>
+      {
+        case Text.Info(_, XML.Elem(Markup(Markup.BULLET, _), _)) => bullet_color
       })
 
 

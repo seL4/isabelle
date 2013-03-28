@@ -243,7 +243,15 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
-        val ascent = text_area.getPainter.getFontMetrics.getAscent
+        val fm = text_area.getPainter.getFontMetrics
+
+        val (bullet_x, bullet_y, bullet_w, bullet_h) =
+        {
+          val w = fm.charWidth(' ')
+          val h = fm.getAscent
+          val b = (if (w >= 8) w / 2 else w - 2) max 1
+          ((w - b + 1) / 2, (h - b + 1) / 2, w - b, line_height - b)
+        }
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
@@ -285,6 +293,16 @@ class Rich_Text_Area(
               gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
             }
 
+            // bullet bar
+            for {
+              Text.Info(range, color) <- rendering.bullet(line_range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x + bullet_x, y + i * line_height + bullet_y,
+                r.length - bullet_w, line_height - bullet_h)
+            }
+
             // squiggly underline
             for {
               Text.Info(range, color) <- rendering.squiggly_underline(line_range)
@@ -292,7 +310,7 @@ class Rich_Text_Area(
             } {
               gfx.setColor(color)
               val x0 = (r.x / 2) * 2
-              val y0 = r.y + ascent + 1
+              val y0 = r.y + fm.getAscent + 1
               for (x1 <- Range(x0, x0 + r.length, 2)) {
                 val y1 = if (x1 % 4 < 2) y0 else y0 + 1
                 gfx.drawLine(x1, y1, x1 + 1, y1)
