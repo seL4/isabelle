@@ -73,26 +73,34 @@ object Pretty
 
   val FBreak = XML.Text("\n")
 
+  def item(body: XML.Body): XML.Tree =
+    Block(2, XML.Text(Symbol.decode("\\<bullet>") + " ") :: body)
+
   val Separator = List(XML.elem(Markup.SEPARATOR, List(XML.Text(space))), FBreak)
   def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten
 
 
-  /* formatted output */
+  /* standard form */
 
-  def standard_format(body: XML.Body): XML.Body =
+  def standard_form(body: XML.Body): XML.Body =
     body flatMap {
       case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(XML.Wrapped_Elem(markup, body1, standard_format(body2)))
-      case XML.Elem(markup, body) => List(XML.Elem(markup, standard_format(body)))
+        List(XML.Wrapped_Elem(markup, body1, standard_form(body2)))
+      case XML.Elem(markup, body) =>
+        if (markup.name == Markup.ITEM) List(item(standard_form(body)))
+        else List(XML.Elem(markup, standard_form(body)))
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
+
+
+  /* formatted output */
 
   private val margin_default = 76.0
 
   def formatted(input: XML.Body, margin: Double = margin_default,
     metric: Metric = Metric_Default): XML.Body =
   {
-    sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
+    sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
     {
       def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
       def string(s: String): Text = copy(tx = XML.Text(s) :: tx, pos = pos + metric(s))
@@ -101,7 +109,7 @@ object Pretty
     }
 
     val breakgain = margin / 20
-    val emergencypos = margin / 2
+    val emergencypos = (margin / 2).round.toInt
 
     def content_length(tree: XML.Tree): Double =
       XML.traverse_text(List(tree))(0.0)(_ + metric(_))
@@ -122,12 +130,12 @@ object Pretty
         case t :: ts => t :: forcenext(ts)
       }
 
-    def format(trees: XML.Body, blockin: Double, after: Double, text: Text): Text =
+    def format(trees: XML.Body, blockin: Int, after: Double, text: Text): Text =
       trees match {
         case Nil => text
 
         case Block(indent, body) :: ts =>
-          val pos1 = text.pos + indent
+          val pos1 = (text.pos + indent).ceil.toInt
           val pos2 = pos1 % emergencypos
           val blockin1 =
             if (pos1 < emergencypos) pos1
@@ -137,10 +145,10 @@ object Pretty
           format(ts1, blockin, after, btext)
 
         case Break(wd) :: ts =>
-          if (text.pos + wd <= (margin - breakdist(ts, after)).max(blockin + breakgain))
+          if (text.pos + wd <= ((margin - breakdist(ts, after)) max (blockin + breakgain)))
             format(ts, blockin, after, text.blanks(wd))
-          else format(ts, blockin, after, text.newline.blanks(blockin.toInt))
-        case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin.toInt))
+          else format(ts, blockin, after, text.newline.blanks(blockin))
+        case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin))
 
         case XML.Wrapped_Elem(markup, body1, body2) :: ts =>
           val btext = format(body2, blockin, breakdist(ts, after), text.copy(tx = Nil))
@@ -157,7 +165,7 @@ object Pretty
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
       }
 
-    format(standard_format(input), 0.0, 0.0, Text()).content
+    format(standard_form(input), 0, 0.0, Text()).content
   }
 
   def string_of(input: XML.Body, margin: Double = margin_default,
@@ -179,7 +187,7 @@ object Pretty
         case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
       }
-    standard_format(input).flatMap(fmt)
+    standard_form(input).flatMap(fmt)
   }
 
   def str_of(input: XML.Body): String = XML.content(unformatted(input))
