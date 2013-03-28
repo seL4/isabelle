@@ -73,19 +73,27 @@ object Pretty
 
   val FBreak = XML.Text("\n")
 
+  def item(body: XML.Body): XML.Tree =
+    Block(2, XML.Text(Symbol.decode("\\<bullet>") + " ") :: body)
+
   val Separator = List(XML.elem(Markup.SEPARATOR, List(XML.Text(space))), FBreak)
   def separate(ts: List[XML.Tree]): XML.Body = Library.separate(Separator, ts.map(List(_))).flatten
 
 
-  /* formatted output */
+  /* standard form */
 
-  def standard_format(body: XML.Body): XML.Body =
+  def standard_form(body: XML.Body): XML.Body =
     body flatMap {
       case XML.Wrapped_Elem(markup, body1, body2) =>
-        List(XML.Wrapped_Elem(markup, body1, standard_format(body2)))
-      case XML.Elem(markup, body) => List(XML.Elem(markup, standard_format(body)))
+        List(XML.Wrapped_Elem(markup, body1, standard_form(body2)))
+      case XML.Elem(markup, body) =>
+        if (markup.name == Markup.ITEM) List(item(standard_form(body)))
+        else List(XML.Elem(markup, standard_form(body)))
       case XML.Text(text) => Library.separate(FBreak, split_lines(text).map(XML.Text))
     }
+
+
+  /* formatted output */
 
   private val margin_default = 76.0
 
@@ -157,7 +165,7 @@ object Pretty
         case XML.Text(s) :: ts => format(ts, blockin, after, text.string(s))
       }
 
-    format(standard_format(input), 0, 0.0, Text()).content
+    format(standard_form(input), 0, 0.0, Text()).content
   }
 
   def string_of(input: XML.Body, margin: Double = margin_default,
@@ -179,7 +187,7 @@ object Pretty
         case XML.Elem(markup, body) => List(XML.Elem(markup, body.flatMap(fmt)))
         case XML.Text(_) => List(tree)
       }
-    standard_format(input).flatMap(fmt)
+    standard_form(input).flatMap(fmt)
   }
 
   def str_of(input: XML.Body): String = XML.content(unformatted(input))

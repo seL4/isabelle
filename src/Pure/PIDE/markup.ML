@@ -34,6 +34,7 @@ sig
   val widthN: string
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
+  val itemN: string val item: T
   val hiddenN: string val hidden: T
   val theoryN: string
   val classN: string
@@ -240,6 +241,8 @@ val widthN = "width";
 val (breakN, break) = markup_int "break" widthN;
 
 val (fbreakN, fbreak) = markup_elem "fbreak";
+
+val (itemN, item) = markup_elem "item";
 
 
 (* hidden text *)

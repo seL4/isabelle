@@ -82,8 +82,11 @@ object Markup
 
   val Indent = new Properties.Int("indent")
   val BLOCK = "block"
+
   val Width = new Properties.Int("width")
   val BREAK = "break"
+
+  val ITEM = "item"
 
   val SEPARATOR = "separator"
 
