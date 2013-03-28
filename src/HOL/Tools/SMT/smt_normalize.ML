@@ -571,11 +571,10 @@ fun burrow_ids f ithms =
     val (thms', extra_thms) = f thms
   in (is ~~ thms') @ map (pair ~1) extra_thms end
 
-fun unfold2 ithms ctxt =
+fun unfold2 ctxt ithms =
   ithms
   |> map (apsnd (Conv.fconv_rule (normalize_numerals_conv ctxt)))
   |> burrow_ids add_nat_embedding
-  |> rpair ctxt
 
 
 
@@ -594,11 +593,11 @@ structure Extra_Norms = Generic_Data
 fun add_extra_norm (cs, norm) =
   Extra_Norms.map (SMT_Utils.dict_update (cs, norm))
 
-fun apply_extra_norms ithms ctxt =
+fun apply_extra_norms ctxt ithms =
   let
     val cs = SMT_Config.solver_class_of ctxt
     val es = SMT_Utils.dict_lookup (Extra_Norms.get (Context.Proof ctxt)) cs
-  in (burrow_ids (fold (fn e => e ctxt) es o rpair []) ithms, ctxt) end
+  in burrow_ids (fold (fn e => e ctxt) es o rpair []) ithms end
 
 local
   val ignored = member (op =) [@{const_name All}, @{const_name Ex},
@@ -622,12 +621,12 @@ local
     in (fn t => collect t Symtab.empty) end
 in
 
-fun monomorph xthms ctxt =
+fun monomorph ctxt xthms =
   let val (xs, thms) = split_list xthms
   in
-    (map (pair 1) thms, ctxt)
-    |-> Monomorph.monomorph schematic_consts_of
-    |>> maps (uncurry (map o pair)) o map2 pair xs o map (map snd)
+    map (pair 1) thms
+    |> Monomorph.monomorph schematic_consts_of ctxt
+    |> maps (uncurry (map o pair)) o map2 pair xs o map (map snd)
   end
 
 end
@@ -636,10 +635,10 @@ fun normalize iwthms ctxt =
   iwthms
   |> gen_normalize ctxt
   |> unfold1 ctxt
+  |> monomorph ctxt
+  |> unfold2 ctxt
+  |> apply_extra_norms ctxt
   |> rpair ctxt
-  |-> monomorph
-  |-> unfold2
-  |-> apply_extra_norms
 
 val setup = Context.theory_map (
   setup_atomize #>

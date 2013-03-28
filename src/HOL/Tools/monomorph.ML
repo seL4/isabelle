@@ -1,34 +1,32 @@
 (*  Title:      HOL/Tools/monomorph.ML
     Author:     Sascha Boehme, TU Muenchen
 
-Monomorphization of theorems, i.e., computation of all (necessary)
-instances.  This procedure is incomplete in general, but works well for
-most practical problems.
+Monomorphization of theorems, i.e., computation of ground instances for
+theorems with type variables.  This procedure is incomplete in general,
+but works well for most practical problems.
 
-For a list of universally closed theorems (without schematic term
-variables), monomorphization computes a list of theorems with schematic
-term variables: all polymorphic constants (i.e., constants occurring both
-with ground types and schematic type variables) are instantiated with all
-(necessary) ground types; thereby theorems containing these constants are
-copied.  To prevent nontermination, there is an upper limit for the number
-of iterations involved in the fixpoint construction.
+Monomorphization is essentially an enumeration of substitutions that map
+schematic types to ground types. Applying these substitutions to theorems
+with type variables results in monomorphized ground instances. The
+enumeration is driven by schematic constants (constants occurring with
+type variables) and all ground instances of such constants (occurrences
+without type variables). The enumeration is organized in rounds in which
+all substitutions for the schematic constants are computed that are induced
+by the ground instances. Any new ground instance may induce further
+substitutions in a subsequent round. To prevent nontermination, there is
+an upper limit of rounds involved and of the number of monomorphized ground
+instances computed.
 
-The search for instances is performed on the constants with schematic
-types, which are extracted from the initial set of theorems.  The search
-constructs, for each theorem with those constants, a set of substitutions,
-which, in the end, is applied to all corresponding theorems.  Remaining
-schematic type variables are substituted with fresh types.
-
-Searching for necessary substitutions is an iterative fixpoint
-construction: each iteration computes all required instances required by
-the ground instances computed in the previous step and which haven't been
-found before.  Computed substitutions are always nontrivial: schematic type
-variables are never mapped to schematic type variables.
+Theorems to be monomorphized must be tagged with a number indicating the
+initial round in which they participate first. The initial round is
+ignored for theorems without type variables. For any other theorem, the
+initial round must be greater than zero. Returned monomorphized theorems
+carry a number showing from which monomorphization round they emerged.
 *)
 
 signature MONOMORPH =
 sig
-  (* utility function *)
+  (* utility functions *)
   val typ_has_tvars: typ -> bool
   val all_schematic_consts_of: term -> typ list Symtab.table
   val add_schematic_consts_of: term -> typ list Symtab.table ->
@@ -37,11 +35,10 @@ sig
   (* configuration options *)
   val max_rounds: int Config.T
   val max_new_instances: int Config.T
-  val keep_partial_instances: bool Config.T
 
   (* monomorphization *)
-  val monomorph: (term -> typ list Symtab.table) -> (int * thm) list ->
-    Proof.context -> (int * thm) list list * Proof.context
+  val monomorph: (term -> typ list Symtab.table) -> Proof.context ->
+    (int * thm) list -> (int * thm) list list
 end
 
 structure Monomorph: MONOMORPH =
@@ -59,254 +56,16 @@ fun add_schematic_consts_of t =
 
 fun all_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
+fun clear_grounds grounds = Symtab.map (K (K [])) grounds
+
 
 
 (* configuration options *)
 
 val max_rounds = Attrib.setup_config_int @{binding monomorph_max_rounds} (K 5)
+
 val max_new_instances =
   Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 300)
-val keep_partial_instances =
-  Attrib.setup_config_bool @{binding monomorph_keep_partial_instances} (K true)
-
-
-
-(* monomorphization *)
-
-(** preparing the problem **)
-
-datatype thm_info =
-  Ground of thm |
-  Schematic of {
-    index: int,
-    theorem: thm,
-    tvars: (indexname * sort) list,
-    schematics: typ list Symtab.table,
-    initial_round: int }
-
-fun prepare schematic_consts_of rthms =
-  let
-    val empty_sub = ((0, false, false), Vartab.empty)
-
-    fun prep (r, thm) ((i, idx), (consts, subs)) =
-      if not (Term.exists_type typ_has_tvars (Thm.prop_of thm)) then
-        (Ground thm, ((i+1, idx + Thm.maxidx_of thm + 1), (consts, subs)))
-      else
-        let
-          (* increase indices to avoid clashes of type variables *)
-          val thm' = Thm.incr_indexes idx thm
-          val idx' = Thm.maxidx_of thm' + 1
-          val schematics = schematic_consts_of (Thm.prop_of thm')
-          val consts' =
-            Symtab.fold (fn (n, _) => Symtab.update (n, [])) schematics consts
-          val subs' = Inttab.update (i, [empty_sub]) subs
-          val thm_info = Schematic {
-            index = i,
-            theorem = thm',
-            tvars = Term.add_tvars (Thm.prop_of thm') [],
-            schematics = schematics,
-            initial_round = r }
-      in (thm_info, ((i+1, idx'), (consts', subs'))) end
-  in fold_map prep rthms ((0, 0), (Symtab.empty, Inttab.empty)) ||> snd end
-
-
-
-(** collecting substitutions **)
-
-fun exceeded limit = (limit <= 0)
-fun exceeded_limit (limit, _, _) = exceeded limit
-
-
-fun derived_subst subst' subst = subst' |> Vartab.forall (fn (n, (_, T)) => 
-  Vartab.lookup subst n |> Option.map (equal T o snd) |> the_default false)
-
-fun eq_subst (subst1, subst2) =
-  derived_subst subst1 subst2 andalso derived_subst subst2 subst1
-
-
-fun with_all_grounds cx grounds f =
-  if exceeded_limit cx then I else Symtab.fold f grounds
-
-fun with_all_type_combinations cx schematics f (n, Ts) =
-  if exceeded_limit cx then I
-  else fold_product f (Symtab.lookup_list schematics n) Ts
-
-fun derive_new_substs thy cx new_grounds schematics subst =
-  with_all_grounds cx new_grounds
-    (with_all_type_combinations cx schematics (fn T => fn U =>
-      (case try (Sign.typ_match thy (T, U)) subst of
-        NONE => I
-      | SOME subst' => insert eq_subst subst'))) []
-
-
-fun known_subst sub subs1 subs2 subst' =
-  let fun derived (_, subst) = derived_subst subst' subst
-  in derived sub orelse exists derived subs1 orelse exists derived subs2 end
-
-fun within_limit f cx = if exceeded_limit cx then cx else f cx
-
-fun fold_partial_substs derive add = within_limit (
-  let
-    fun fold_partial [] cx = cx
-      | fold_partial (sub :: subs) (limit, subs', next) =
-          if exceeded limit then (limit, sub :: subs @ subs', next)
-          else sub |> (fn ((generation, full, _), subst) =>
-            if full then fold_partial subs (limit, sub :: subs', next)
-            else
-              (case filter_out (known_subst sub subs subs') (derive subst) of
-                [] => fold_partial subs (limit, sub :: subs', next)
-              | substs =>
-                  (limit, ((generation, full, true), subst) :: subs', next)
-                  |> fold (within_limit o add) substs
-                  |> fold_partial subs))
-  in (fn (limit, subs, next) => fold_partial subs (limit, [], next)) end)
-
-
-fun refine ctxt round known_grounds new_grounds (tvars, schematics) cx =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val count_partial = Config.get ctxt keep_partial_instances
-
-    fun add_new_ground subst n T =
-      let val T' = Envir.subst_type subst T
-      in
-        (* FIXME: maybe keep types in a table or net for known_grounds,
-           that might improve efficiency here
-        *)
-        if typ_has_tvars T' then I
-        else if member (op =) (Symtab.lookup_list known_grounds n) T' then I
-        else Symtab.cons_list (n, T')
-      end
-
-    fun add_new_subst subst (limit, subs, next_grounds) =
-      let
-        val full = forall (Vartab.defined subst o fst) tvars
-        val limit' =
-          if full orelse count_partial then limit - 1 else limit
-        val sub = ((round, full, false), subst)
-        val next_grounds' =
-          (schematics, next_grounds)
-          |-> Symtab.fold (uncurry (fold o add_new_ground subst))
-      in (limit', sub :: subs, next_grounds') end
-  in
-    fold_partial_substs (derive_new_substs thy cx new_grounds schematics)
-      add_new_subst cx
-  end
-
-
-(*
-  'known_grounds' are all constant names known to occur schematically
-  associated with all ground instances considered so far
-*)
-fun add_relevant_instances known_grounds (Const (c as (n, T))) =
-      if typ_has_tvars T orelse not (Symtab.defined known_grounds n) then I
-      else if member (op =) (Symtab.lookup_list known_grounds n) T then I
-      else Symtab.insert_list (op =) c
-  | add_relevant_instances _ _ = I
-
-fun collect_instances known_grounds thm =
-  Term.fold_aterms (add_relevant_instances known_grounds) (Thm.prop_of thm)
-
-
-fun make_subst_ctxt ctxt thm_infos known_grounds substitutions =
-  let
-    (* The total limit of returned (ground) facts is the number of facts
-       given to the monomorphizer increased by max_new_instances.  Since
-       initially ground facts are returned anyway, the limit here is not
-       counting them. *)
-    val limit = Config.get ctxt max_new_instances + 
-      fold (fn Schematic _ => Integer.add 1 | _ => I) thm_infos 0
-
-    fun add_ground_consts (Ground thm) = collect_instances known_grounds thm
-      | add_ground_consts (Schematic _) = I
-    val initial_grounds = fold add_ground_consts thm_infos Symtab.empty
-  in (known_grounds, (limit, substitutions, initial_grounds)) end
-
-fun is_new round initial_round = (round = initial_round)
-fun is_active round initial_round = (round > initial_round)
-
-fun fold_schematic pred f = fold (fn
-    Schematic {index, theorem, tvars, schematics, initial_round} =>
-      if pred initial_round then f theorem (index, tvars, schematics) else I
-  | Ground _ => I)
-
-fun focus f _ (index, tvars, schematics) (limit, subs, next_grounds) =
-  let
-    val (limit', isubs', next_grounds') =
-      (limit, Inttab.lookup_list subs index, next_grounds)
-      |> f (tvars, schematics)
-  in (limit', Inttab.update (index, isubs') subs, next_grounds') end
-
-fun collect_substitutions thm_infos ctxt round subst_ctxt =
-  let val (known_grounds, (limit, subs, next_grounds)) = subst_ctxt
-  in
-    if exceeded limit then subst_ctxt
-    else
-      let
-        fun collect thm _ = collect_instances known_grounds thm
-        val new = fold_schematic (is_new round) collect thm_infos next_grounds
-
-        val known' = Symtab.merge_list (op =) (known_grounds, new)
-        val step = focus o refine ctxt round known'
-      in
-        (limit, subs, Symtab.empty)
-        |> not (Symtab.is_empty new) ?
-            fold_schematic (is_active round) (step new) thm_infos
-        |> fold_schematic (is_new round) (step known') thm_infos
-        |> pair known'
-      end
-  end
-
-
-
-(** instantiating schematic theorems **)
-
-fun super_sort (Ground _) S = S
-  | super_sort (Schematic {tvars, ...}) S = merge (op =) (S, maps snd tvars)
-
-fun new_super_type ctxt thm_infos =
-  let val S = fold super_sort thm_infos @{sort type}
-  in yield_singleton Variable.invent_types S ctxt |>> SOME o TFree end
-
-fun add_missing_tvar T (ix, S) subst =
-  if Vartab.defined subst ix then subst
-  else Vartab.update (ix, (S, T)) subst
-
-fun complete tvars subst T =
-  subst
-  |> Vartab.map (K (apsnd (Term.map_atyps (fn TVar _ => T | U => U))))
-  |> fold (add_missing_tvar T) tvars
-
-fun instantiate_all' (mT, ctxt) subs thm_infos =
-  let
-    val thy = Proof_Context.theory_of ctxt
-
-    fun cert (ix, (S, T)) = pairself (Thm.ctyp_of thy) (TVar (ix, S), T)
-    fun cert' subst = Vartab.fold (cons o cert) subst []
-    fun instantiate thm subst = Thm.instantiate (cert' subst, []) thm
-
-    fun with_subst tvars f ((generation, full, _), subst) =
-      if full then SOME (generation, f subst)
-      else Option.map (pair generation o f o complete tvars subst) mT
-
-    fun inst (Ground thm) = [(0, thm)]
-      | inst (Schematic {theorem, tvars, index, ...}) =
-          Inttab.lookup_list subs index
-          |> map_filter (with_subst tvars (instantiate theorem))
-  in (map inst thm_infos, ctxt) end
-
-fun instantiate_all ctxt thm_infos (_, (_, subs, _)) =
-  if Config.get ctxt keep_partial_instances then
-    let fun is_refined ((_, _, refined), _) = refined
-    in
-      (Inttab.map (K (filter_out is_refined)) subs, thm_infos)
-      |-> instantiate_all' (new_super_type ctxt thm_infos)
-    end
-  else instantiate_all' (NONE, ctxt) subs thm_infos
-
-
-
-(** overall procedure **)
 
 fun limit_rounds ctxt f =
   let
@@ -314,18 +73,220 @@ fun limit_rounds ctxt f =
     fun round i x = if i > max then x else round (i + 1) (f ctxt i x)
   in round 1 end
 
-fun monomorph schematic_consts_of rthms ctxt =
+fun reached_limit ctxt n = (n >= Config.get ctxt max_new_instances)
+
+
+
+(* theorem information and related functions *)
+
+datatype thm_info =
+  Ground of thm |
+  Ignored |
+  Schematic of {
+    id: int,
+    theorem: thm,
+    tvars: (indexname * sort) list,
+    schematics: (string * typ) list,
+    initial_round: int}
+
+
+fun fold_grounds f = fold (fn Ground thm => f thm | _ => I)
+
+
+fun fold_schematic f thm_info =
+  (case thm_info of
+    Schematic {id, theorem, tvars, schematics, initial_round} =>
+      f id theorem tvars schematics initial_round
+  | _ => I)
+
+
+fun fold_schematics pred f =
   let
-    val (thm_infos, (known_grounds, subs)) = prepare schematic_consts_of rthms
+    fun apply id thm tvars schematics initial_round x =
+      if pred initial_round then f id thm tvars schematics x else x
+  in fold (fold_schematic apply) end
+
+
+
+(* collecting data *)
+
+(*
+  Theorems with type variables that cannot be instantiated should be ignored.
+  A type variable has only a chance to be instantiated if it occurs in the
+  type of one of the schematic constants.
+*)
+fun groundable all_tvars schematics =
+  let val tvars' = Symtab.fold (fold Term.add_tvarsT o snd) schematics []
+  in forall (member (op =) tvars') all_tvars end
+
+
+fun prepare schematic_consts_of rthms =
+  let
+    fun prep (initial_round, thm) ((id, idx), consts) =
+      if Term.exists_type typ_has_tvars (Thm.prop_of thm) then
+        let
+          (* increase indices to avoid clashes of type variables *)
+          val thm' = Thm.incr_indexes idx thm
+          val idx' = Thm.maxidx_of thm' + 1
+
+          val tvars = Term.add_tvars (Thm.prop_of thm') []
+          val schematics = schematic_consts_of (Thm.prop_of thm')
+          val schematics' =
+            Symtab.fold (fn (n, Ts) => fold (cons o pair n) Ts) schematics []
+
+          (* collect the names of all constants that need to be instantiated *)
+          val consts' =
+            consts
+            |> Symtab.fold (fn (n, _) => Symtab.update (n, [])) schematics
+
+          val thm_info =
+            if not (groundable tvars schematics) then Ignored
+            else
+              Schematic {
+                id = id,
+                theorem = thm',
+                tvars = tvars,
+                schematics = schematics',
+                initial_round = initial_round}
+        in (thm_info, ((id + 1, idx'), consts')) end
+      else (Ground thm, ((id + 1, idx + Thm.maxidx_of thm + 1), consts))
+
+  in fold_map prep rthms ((0, 0), Symtab.empty) ||> snd end
+
+
+
+(* collecting instances *)
+
+fun instantiate thy subst =
+  let
+    fun cert (ix, (S, T)) = pairself (Thm.ctyp_of thy) (TVar (ix, S), T)
+    fun cert' subst = Vartab.fold (cons o cert) subst []
+  in Thm.instantiate (cert' subst, []) end
+
+
+fun add_new_grounds used_grounds new_grounds thm =
+  let
+    fun mem tab (n, T) = member (op =) (Symtab.lookup_list tab n) T
+    fun add (Const (c as (n, _))) =
+          if mem used_grounds c orelse mem new_grounds c then I
+          else if not (Symtab.defined used_grounds n) then I
+          else Symtab.insert_list (op =) c
+      | add _ = I
+  in Term.fold_aterms add (Thm.prop_of thm) end
+
+
+fun add_insts ctxt round used_grounds new_grounds id thm tvars schematics cx =
+  let
+    exception ENOUGH of
+      typ list Symtab.table * (int * (int * thm) list Inttab.table)
+
+    val thy = Proof_Context.theory_of ctxt
+
+    fun add subst (next_grounds, (n, insts)) =
+      let
+        val thm' = instantiate thy subst thm
+        val rthm = (round, thm')
+        val n_insts' =
+          if member (eq_snd Thm.eq_thm) (Inttab.lookup_list insts id) rthm then
+            (n, insts)
+          else (n + 1, Inttab.cons_list (id, rthm) insts)
+        val next_grounds' =
+          add_new_grounds used_grounds new_grounds thm' next_grounds
+        val cx' = (next_grounds', n_insts')
+      in if reached_limit ctxt n then raise ENOUGH cx' else cx' end
+
+    fun with_grounds (n, T) f subst (n', Us) =
+      let
+        fun matching U = (* one-step refinement of the given substitution *)
+          (case try (Sign.typ_match thy (T, U)) subst of
+            NONE => I
+          | SOME subst' => f subst')
+      in if n = n' then fold matching Us else I end
+
+    fun with_matching_ground c subst f =
+      (* Try new grounds before already used grounds. Otherwise only
+         substitutions already seen in previous rounds get enumerated. *)
+      Symtab.fold (with_grounds c (f true) subst) new_grounds #>
+      Symtab.fold (with_grounds c (f false) subst) used_grounds
+
+    fun is_complete subst =
+      (* Check if a substitution is defined for all TVars of the theorem,
+         which guarantees that the instantiation with this substitution results
+         in a ground theorem since all matchings that led to this substitution
+         are with ground types only. *)
+      subset (op =) (tvars, Vartab.fold (cons o apsnd fst) subst [])
+
+    fun for_schematics _ [] _ = I
+      | for_schematics used_new (c :: cs) subst =
+          with_matching_ground c subst (fn new => fn subst' =>
+            if is_complete subst' then
+              if used_new orelse new then add subst'
+              else I
+            else for_schematics (used_new orelse new) cs subst') #>
+          for_schematics used_new cs subst
   in
-    if Symtab.is_empty known_grounds then
-      (map (fn Ground thm => [(0, thm)] | _ => []) thm_infos, ctxt)
-    else
-      make_subst_ctxt ctxt thm_infos known_grounds subs
-      |> limit_rounds ctxt (collect_substitutions thm_infos)
-      |> instantiate_all ctxt thm_infos
+    (* Enumerate all substitutions that lead to a ground instance of the
+       theorem not seen before. A necessary condition for such a new ground
+       instance is the usage of at least one ground from the new_grounds
+       table. The approach used here is to match all schematics of the theorem
+       with all relevant grounds. *)
+    for_schematics false schematics Vartab.empty cx
+    handle ENOUGH cx' => cx'
   end
 
 
-end
+fun is_new round initial_round = (round = initial_round)
+fun is_active round initial_round = (round > initial_round)
 
+
+fun find_instances thm_infos ctxt round (known_grounds, new_grounds, insts) =
+  let
+    val add_new = add_insts ctxt round
+    fun consider_all pred f (cx as (_, (n, _))) =
+      if reached_limit ctxt n then cx
+      else fold_schematics pred f thm_infos cx
+
+    val known_grounds' = Symtab.merge_list (op =) (known_grounds, new_grounds)
+    val empty_grounds = clear_grounds known_grounds'
+
+    val (new_grounds', insts') =
+      (Symtab.empty, insts)
+      |> consider_all (is_active round) (add_new known_grounds new_grounds)
+      |> consider_all (is_new round) (add_new empty_grounds known_grounds')
+
+  in (known_grounds', new_grounds', insts') end
+
+
+fun add_ground_types thm =
+  let fun add (n, T) = Symtab.map_entry n (insert (op =) T)
+  in Term.fold_aterms (fn Const c => add c | _ => I) (Thm.prop_of thm) end
+
+
+fun collect_instances ctxt thm_infos consts =
+  let
+    val known_grounds = fold_grounds add_ground_types thm_infos consts
+    val empty_grounds = clear_grounds known_grounds
+  in
+    (empty_grounds, known_grounds, (0, Inttab.empty))
+    |> limit_rounds ctxt (find_instances thm_infos)
+    |> (fn (_, _, (_, insts)) => insts)
+  end
+
+
+
+(* monomorphization *)
+
+fun instantiated_thms _ (Ground thm) = [(0, thm)]
+  | instantiated_thms _ Ignored = []
+  | instantiated_thms insts (Schematic {id, ...}) = Inttab.lookup_list insts id
+
+
+fun monomorph schematic_consts_of ctxt rthms =
+  let
+    val (thm_infos, consts) = prepare schematic_consts_of rthms
+    val insts =
+      if Symtab.is_empty consts then Inttab.empty
+      else collect_instances ctxt thm_infos consts
+  in map (instantiated_thms insts) thm_infos end
+
+end

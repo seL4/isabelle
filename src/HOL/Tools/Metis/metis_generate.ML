@@ -216,8 +216,8 @@ fun prepare_metis_problem ctxt type_enc lam_trans conj_clauses fact_clauses =
       else
         conj_clauses @ fact_clauses
         |> map (pair 0)
-        |> rpair (ctxt |> Config.put Monomorph.keep_partial_instances false)
-        |-> Monomorph.monomorph atp_schematic_consts_of
+        |> rpair (ctxt |> Config.put Legacy_Monomorph.keep_partial_instances false)
+        |-> Legacy_Monomorph.monomorph atp_schematic_consts_of
         |> fst |> chop (length conj_clauses)
         |> pairself (maps (map (zero_var_indexes o snd)))
     val num_conjs = length conj_clauses

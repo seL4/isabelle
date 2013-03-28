@@ -640,10 +640,10 @@ fun choose_minimize_command ctxt (params as {isar_proofs, ...}) minimize_command
 
 fun repair_monomorph_context max_iters best_max_iters max_new_instances
                              best_max_new_instances =
-  Config.put Monomorph.max_rounds (max_iters |> the_default best_max_iters)
-  #> Config.put Monomorph.max_new_instances
+  Config.put Legacy_Monomorph.max_rounds (max_iters |> the_default best_max_iters)
+  #> Config.put Legacy_Monomorph.max_new_instances
          (max_new_instances |> the_default best_max_new_instances)
-  #> Config.put Monomorph.keep_partial_instances false
+  #> Config.put Legacy_Monomorph.keep_partial_instances false
 
 fun suffix_for_mode Auto_Try = "_try"
   | suffix_for_mode Try = "_try"
@@ -747,7 +747,7 @@ fun run_atp mode name
                     |> op @
                     |> cons (0, subgoal_th)
           in
-            Monomorph.monomorph atp_schematic_consts_of rths ctxt |> fst |> tl
+            Legacy_Monomorph.monomorph atp_schematic_consts_of rths ctxt |> fst |> tl
             |> curry ListPair.zip (map fst facts)
             |> maps (fn (name, rths) =>
                         map (pair name o zero_var_indexes o snd) rths)
