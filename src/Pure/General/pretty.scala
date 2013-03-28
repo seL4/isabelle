@@ -92,7 +92,7 @@ object Pretty
   def formatted(input: XML.Body, margin: Double = margin_default,
     metric: Metric = Metric_Default): XML.Body =
   {
-    sealed case class Text(tx: XML.Body = Nil, val pos: Double = 0.0, val nl: Int = 0)
+    sealed case class Text(tx: XML.Body = Nil, pos: Double = 0.0, nl: Int = 0)
     {
       def newline: Text = copy(tx = FBreak :: tx, pos = 0.0, nl = nl + 1)
       def string(s: String): Text = copy(tx = XML.Text(s) :: tx, pos = pos + metric(s))
@@ -137,7 +137,7 @@ object Pretty
           format(ts1, blockin, after, btext)
 
         case Break(wd) :: ts =>
-          if (text.pos + wd <= (margin - breakdist(ts, after)).max(blockin + breakgain))
+          if (text.pos + wd <= ((margin - breakdist(ts, after)) max (blockin + breakgain)))
             format(ts, blockin, after, text.blanks(wd))
           else format(ts, blockin, after, text.newline.blanks(blockin.toInt))
         case FBreak :: ts => format(ts, blockin, after, text.newline.blanks(blockin.toInt))
