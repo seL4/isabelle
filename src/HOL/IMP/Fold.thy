@@ -25,9 +25,7 @@ shows "aval (afold a t) s = aval a s"
 theorem aval_afold_N:
 assumes "approx t s"
 shows "afold a t = N n \<Longrightarrow> aval a s = n"
-  using assms
-  by (induct a arbitrary: n)
-     (auto simp: approx_def split: aexp.splits option.splits)
+  by (metis assms aval.simps(1) aval_afold)
 
 definition
   "merge t1 t2 = (\<lambda>m. if t1 m = t2 m then t1 m else None)"
