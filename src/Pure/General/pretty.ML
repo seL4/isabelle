@@ -38,6 +38,7 @@ sig
   val mark: Markup.T -> T -> T
   val mark_str: Markup.T * string -> T
   val marks_str: Markup.T list * string -> T
+  val item: T list -> T
   val command: string -> T
   val keyword: string -> T
   val text: string -> T list
@@ -156,6 +157,8 @@ fun markup m prts = markup_block m (0, prts);
 fun mark m prt = if m = Markup.empty then prt else markup m [prt];
 fun mark_str (m, s) = mark m (str s);
 fun marks_str (ms, s) = fold_rev mark ms (str s);
+
+val item = markup Markup.item;
 
 fun command name = mark_str (Markup.keyword1, name);
 fun keyword name = mark_str (Markup.keyword2, name);
