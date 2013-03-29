@@ -428,7 +428,7 @@ fun print_structures ctxt =
       [Pretty.str s, Pretty.str ":", Pretty.brk 1,
        Pretty.enclose "(" ")" (Pretty.breaks (map pretty_term ts))];
   in
-    Pretty.writeln (Pretty.big_list "Order structures:" (map pretty_struct structs))
+    Pretty.writeln (Pretty.big_list "order structures:" (map pretty_struct structs))
   end;
 
 
