@@ -243,14 +243,16 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
-        val fm = text_area.getPainter.getFontMetrics
+        val painter = text_area.getPainter
+        val fm = painter.getFontMetrics
+        val lm = painter.getFont.getLineMetrics(" ", painter.getFontRenderContext)
 
         val (bullet_x, bullet_y, bullet_w, bullet_h) =
         {
           val w = fm.charWidth(' ')
-          val h = fm.getAscent
-          val b = (if (w >= 8) w / 2 else w - 2) max 1
-          ((w - b + 1) / 2, (h - b + 1) / 2, w - b, line_height - b)
+          val b = (w / 2) max 1
+          val c = (lm.getAscent + lm.getStrikethroughOffset).round.toInt
+          ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
         }
 
         for (i <- 0 until physical_lines.length) {
