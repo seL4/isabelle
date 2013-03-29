@@ -1417,7 +1417,7 @@ proof -
   then show ?thesis by (simp add: * insert_commute)
 qed
 
-lemma subsumption:
+lemma in_idem:
   assumes "finite A" and "x \<in> A"
   shows "x * F A = F A"
 proof -
@@ -1429,7 +1429,7 @@ qed
 lemma insert [simp]:
   assumes "finite A" and "A \<noteq> {}"
   shows "F (insert x A) = x * F A"
-  using assms by (cases "x \<in> A") (simp_all add: insert_absorb subsumption insert_not_elem)
+  using assms by (cases "x \<in> A") (simp_all add: insert_absorb in_idem insert_not_elem)
 
 lemma union:
   assumes "finite A" "A \<noteq> {}" and "finite B" "B \<noteq> {}"
@@ -1564,7 +1564,7 @@ proof -
   from assms show ?thesis by (simp add: eq_fold)
 qed
 
-lemma subsumption:
+lemma in_idem:
   assumes "finite A" and "x \<in> A"
   shows "x * F A = F A"
 proof -
