@@ -41,11 +41,11 @@ val get_rules = #1 o Data.get o Context.Proof;
 
 fun print_rules ctxt =
   let val (trans, sym) = get_rules ctxt in
-    [Pretty.big_list "transitivity rules:"
-        (map (Display.pretty_thm ctxt) (Item_Net.content trans)),
-      Pretty.big_list "symmetry rules:" (map (Display.pretty_thm ctxt) sym)]
-    |> Pretty.chunks |> Pretty.writeln
-  end;
+   [Pretty.big_list "transitivity rules:"
+     (map (Pretty.item o single o Display.pretty_thm ctxt) (Item_Net.content trans)),
+    Pretty.big_list "symmetry rules:"
+     (map (Pretty.item o single o Display.pretty_thm ctxt) sym)]
+  end |> Pretty.chunks |> Pretty.writeln;
 
 
 (* access calculation *)

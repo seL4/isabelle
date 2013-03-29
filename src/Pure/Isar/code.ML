@@ -955,9 +955,11 @@ fun print_codesetup thy =
     val exec = the_exec thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks) (
-        Pretty.str (string_of_const thy const) :: map (Display.pretty_thm ctxt) thms
+        Pretty.str (string_of_const thy const) ::
+          map (Pretty.item o single o Display.pretty_thm ctxt) thms
       );
-    fun pretty_function (const, Default (_, eqns_lazy)) = pretty_equations const (map fst (Lazy.force eqns_lazy))
+    fun pretty_function (const, Default (_, eqns_lazy)) =
+          pretty_equations const (map fst (Lazy.force eqns_lazy))
       | pretty_function (const, Eqns eqns) = pretty_equations const (map fst eqns)
       | pretty_function (const, Proj (proj, _)) = Pretty.block
           [Pretty.str (string_of_const thy const), Pretty.fbrk, Syntax.pretty_term ctxt proj]

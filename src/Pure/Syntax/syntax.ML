@@ -571,7 +571,7 @@ fun pretty_trans (Syntax (tabs, _)) =
       pretty_strs_qs name (sort_strings (Symtab.keys tab));
 
     fun pretty_ruletab name tab =
-      Pretty.big_list name (map Ast.pretty_rule (dest_ruletab tab));
+      Pretty.big_list name (map (Pretty.item o single o Ast.pretty_rule) (dest_ruletab tab));
 
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
       print_ruletab, print_ast_trtab, ...} = tabs;

@@ -224,7 +224,8 @@ fun print_inductives ctxt =
       (Pretty.breaks
         (Pretty.str "(co)inductives:" ::
           map (Pretty.mark_str o #1) (Name_Space.extern_table ctxt (space, infos)))),
-     Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
+     Pretty.big_list "monotonicity rules:"
+      (map (Pretty.item o single o Display.pretty_thm ctxt) monos)]
   end |> Pretty.chunks |> Pretty.writeln;
 
 
