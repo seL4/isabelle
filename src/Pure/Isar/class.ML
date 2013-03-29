@@ -547,6 +547,9 @@ fun instantiation (tycos, vs, sort) thy =
       then NONE else SOME ((c, tyco),
         (param ^ "_" ^ Long_Name.base_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val params = map_product get_param tycos class_params |> map_filter I;
+    val _ = if null params andalso forall (fn tyco => can (Sign.arity_sorts thy tyco) sort) tycos
+      then error "No parameters and no pending instance proof obligations in instantiation."
+      else ();
     val primary_constraints = map (apsnd
       (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;
     val algebra = Sign.classes_of thy
