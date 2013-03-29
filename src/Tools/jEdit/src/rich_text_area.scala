@@ -243,17 +243,7 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
-        val painter = text_area.getPainter
-        val fm = painter.getFontMetrics
-        val lm = painter.getFont.getLineMetrics(" ", painter.getFontRenderContext)
-
-        val (bullet_x, bullet_y, bullet_w, bullet_h) =
-        {
-          val w = fm.charWidth(' ')
-          val b = (w / 2) max 1
-          val c = (lm.getAscent + lm.getStrikethroughOffset).round.toInt
-          ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
-        }
+        val fm = text_area.getPainter.getFontMetrics
 
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
@@ -293,16 +283,6 @@ class Rich_Text_Area(
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
-            }
-
-            // bullet bar
-            for {
-              Text.Info(range, color) <- rendering.bullet(line_range)
-              r <- JEdit_Lib.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x + bullet_x, y + i * line_height + bullet_y,
-                r.length - bullet_w, line_height - bullet_h)
             }
 
             // squiggly underline
@@ -414,14 +394,38 @@ class Rich_Text_Area(
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       robust_rendering { rendering =>
+        val painter = text_area.getPainter
+        val fm = painter.getFontMetrics
+        val lm = painter.getFont.getLineMetrics(" ", painter.getFontRenderContext)
+
         val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
-        val fm = text_area.getPainter.getFontMetrics
         var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
+
+        val (bullet_x, bullet_y, bullet_w, bullet_h) =
+        {
+          val w = fm.charWidth(' ')
+          val b = (w / 2) max 1
+          val c = (lm.getAscent + lm.getStrikethroughOffset).round.toInt
+          ((w - b + 1) / 2, c - b / 2, w - b, line_height - b)
+        }
 
         for (i <- 0 until physical_lines.length) {
           val line = physical_lines(i)
           if (line != -1) {
+            val line_range = Text.Range(start(i), end(i))
+
+            // bullet bar
+            for {
+              Text.Info(range, color) <- rendering.bullet(line_range)
+              r <- JEdit_Lib.gfx_range(text_area, range)
+            } {
+              gfx.setColor(color)
+              gfx.fillRect(r.x + bullet_x, y + i * line_height + bullet_y,
+                r.length - bullet_w, line_height - bullet_h)
+            }
+
+            // text chunks
             val screen_line = first_line + i
             val chunks = text_area.getChunksOfScreenLine(screen_line)
             if (chunks != null) {
