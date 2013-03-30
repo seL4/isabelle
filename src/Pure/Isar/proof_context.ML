@@ -342,11 +342,16 @@ fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 fun pretty_fact_name ctxt a =
   Pretty.block [Pretty.mark_str (markup_fact ctxt a, extern_fact ctxt a), Pretty.str ":"];
 
-fun pretty_fact ctxt ("", ths) = Display.pretty_thms ctxt ths
-  | pretty_fact ctxt (a, [th]) = Pretty.block
-      [pretty_fact_name ctxt a, Pretty.brk 1, Display.pretty_thm ctxt th]
-  | pretty_fact ctxt (a, ths) = Pretty.block
-      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (Display.pretty_thm ctxt) ths));
+fun pretty_fact ctxt =
+  let
+    val pretty_thm = Display.pretty_thm ctxt;
+    val pretty_thms = map (Pretty.item o single o pretty_thm);
+  in
+    fn ("", [th]) => pretty_thm th
+     | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))
+     | (a, [th]) => Pretty.block [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm th]
+     | (a, ths) => Pretty.block (Pretty.fbreaks (pretty_fact_name ctxt a :: pretty_thms ths))
+  end;
 
 
 

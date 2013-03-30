@@ -394,7 +394,7 @@ fun string_of_stmts ctxt args =
   |> Pretty.chunks2 |> Pretty.string_of;
 
 fun string_of_thms ctxt args =
-  Pretty.string_of (Display.pretty_thms ctxt (Attrib.eval_thms ctxt args));
+  Pretty.string_of (Proof_Context.pretty_fact ctxt ("", Attrib.eval_thms ctxt args));
 
 fun string_of_prfs full state arg =
   Pretty.string_of

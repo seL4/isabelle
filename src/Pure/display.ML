@@ -25,7 +25,6 @@ sig
   val string_of_thm: Proof.context -> thm -> string
   val string_of_thm_global: theory -> thm -> string
   val string_of_thm_without_context: thm -> string
-  val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_full_theory: bool -> theory -> Pretty.T list
 end;
 
@@ -89,12 +88,6 @@ fun pretty_thm_without_context th = pretty_thm_global (Thm.theory_of_thm th) th;
 val string_of_thm = Pretty.string_of oo pretty_thm;
 val string_of_thm_global = Pretty.string_of oo pretty_thm_global;
 val string_of_thm_without_context = Pretty.string_of o pretty_thm_without_context;
-
-
-(* multiple theorems *)
-
-fun pretty_thms ctxt [th] = pretty_thm ctxt th
-  | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
 
 
 
