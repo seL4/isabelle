@@ -181,7 +181,7 @@ structure Rules = Generic_Data
 
 fun print_rules ctxt =
   Pretty.writeln (Pretty.big_list "definitional transformations:"
-    (map (Display.pretty_thm ctxt) (Rules.get (Context.Proof ctxt))));
+    (map (Display.pretty_thm_item ctxt) (Rules.get (Context.Proof ctxt))));
 
 val defn_add = Thm.declaration_attribute (Rules.map o Thm.add_thm);
 val defn_del = Thm.declaration_attribute (Rules.map o Thm.del_thm);

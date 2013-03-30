@@ -40,11 +40,12 @@ structure Data = Generic_Data
 val get_rules = #1 o Data.get o Context.Proof;
 
 fun print_rules ctxt =
-  let val (trans, sym) = get_rules ctxt in
-   [Pretty.big_list "transitivity rules:"
-     (map (Pretty.item o single o Display.pretty_thm ctxt) (Item_Net.content trans)),
-    Pretty.big_list "symmetry rules:"
-     (map (Pretty.item o single o Display.pretty_thm ctxt) sym)]
+  let
+    val pretty_thm = Display.pretty_thm_item ctxt;
+    val (trans, sym) = get_rules ctxt;
+  in
+   [Pretty.big_list "transitivity rules:" (map pretty_thm (Item_Net.content trans)),
+    Pretty.big_list "symmetry rules:" (map pretty_thm sym)]
   end |> Pretty.chunks |> Pretty.writeln;
 
 
@@ -130,6 +131,7 @@ fun calculate prep_rules final raw_rules int state =
   let
     val ctxt = Proof.context_of state;
     val pretty_thm = Display.pretty_thm ctxt;
+    val pretty_thm_item = Display.pretty_thm_item ctxt;
 
     val strip_assums_concl = Logic.strip_assums_concl o Thm.prop_of;
     val eq_prop = op aconv o pairself (Envir.beta_eta_contract o strip_assums_concl);
@@ -142,7 +144,7 @@ fun calculate prep_rules final raw_rules int state =
              [Pretty.block [Pretty.str "Vacuous calculation result:", Pretty.brk 1, pretty_thm th],
               (Pretty.block o Pretty.fbreaks)
                 (Pretty.str ("derived as projection (" ^ string_of_int (i + 1) ^ ") from:") ::
-                  map pretty_thm ths)]));
+                  map pretty_thm_item ths)]));
 
     val opt_rules = Option.map (prep_rules ctxt) raw_rules;
     fun combine ths =
@@ -158,7 +160,7 @@ fun calculate prep_rules final raw_rules int state =
         (Seq.single (Seq.Error (fn () =>
           (Pretty.string_of o Pretty.block o Pretty.fbreaks)
             (Pretty.str "No matching trans rules for calculation:" ::
-              map pretty_thm ths))));
+              map pretty_thm_item ths))));
 
     val facts = Proof.the_facts (assert_sane final state);
     val (initial, calculations) =

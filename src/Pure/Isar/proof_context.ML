@@ -345,7 +345,7 @@ fun pretty_fact_name ctxt a =
 fun pretty_fact ctxt =
   let
     val pretty_thm = Display.pretty_thm ctxt;
-    val pretty_thms = map (Pretty.item o single o pretty_thm);
+    val pretty_thms = map (Display.pretty_thm_item ctxt);
   in
     fn ("", [th]) => pretty_thm th
      | ("", ths) => Pretty.blk (0, Pretty.fbreaks (pretty_thms ths))
@@ -1314,10 +1314,10 @@ fun pretty_ctxt ctxt =
           Pretty.commas (map prt_fix fixes))];
 
       (*prems*)
-      val prems = Assumption.all_prems_of ctxt;
       val prt_prems =
-        if null prems then []
-        else [Pretty.big_list "prems:" (map (Display.pretty_thm ctxt) prems)];
+        (case Assumption.all_prems_of ctxt of
+          [] => []
+        | prems => [Pretty.big_list "prems:" (map (Display.pretty_thm_item ctxt) prems)]);
     in prt_structs @ prt_fixes @ prt_prems end;
 
 

@@ -19,6 +19,7 @@ sig
   val string_of_rule: Proof.context -> string -> thm -> string
   val pretty_goal_header: thm -> Pretty.T
   val string_of_goal: Proof.context -> thm -> string
+  val pretty_goal_facts: Proof.context -> string -> thm list -> Pretty.T
   val method_error: string -> Position.T ->
     {context: Proof.context, facts: thm list, goal: thm} -> 'a Seq.result
   val print_results: Markup.T -> bool -> Proof.context ->
@@ -108,6 +109,15 @@ fun string_of_goal ctxt goal =
     [pretty_goal_header goal, Goal_Display.pretty_goal {main = true, limit = false} ctxt goal]);
 
 
+(* goal facts *)
+
+fun pretty_goal_facts ctxt s ths =
+  (Pretty.block o Pretty.fbreaks)
+    ((if s = "" then Pretty.str "this:"
+      else Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"]) ::
+      map (Display.pretty_thm_item ctxt) ths);
+
+
 (* method_error *)
 
 fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
@@ -117,10 +127,7 @@ fun method_error kind pos {context = ctxt, facts, goal} = Seq.Error (fn () =>
       "proof method" ^ Position.here pos ^ ":\n";
     val pr_facts =
       if null facts then ""
-      else
-        (Pretty.string_of o Pretty.block o Pretty.fbreaks)
-          (Pretty.block [Pretty.command "using", Pretty.brk 1, Pretty.str "this:"] ::
-            map (Display.pretty_thm ctxt) facts) ^ "\n";
+      else Pretty.string_of (pretty_goal_facts ctxt "using" facts) ^ "\n";
     val pr_goal = string_of_goal ctxt goal;
   in pr_header ^ pr_facts ^ pr_goal end);
 

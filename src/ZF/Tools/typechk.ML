@@ -62,7 +62,7 @@ val tcset_of = Data.get o Context.Proof;
 fun print_tcset ctxt =
   let val TC {rules, ...} = tcset_of ctxt in
     Pretty.writeln (Pretty.big_list "type-checking rules:"
-      (map (Display.pretty_thm ctxt) rules))
+      (map (Display.pretty_thm_item ctxt) rules))
   end;
 
 

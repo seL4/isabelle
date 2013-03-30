@@ -609,7 +609,7 @@ fun put_claset cs = map_claset (K cs);
 fun print_claset ctxt =
   let
     val {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val pretty_thms = map (Pretty.item o single o Display.pretty_thm ctxt) o Item_Net.content;
+    val pretty_thms = map (Display.pretty_thm_item ctxt) o Item_Net.content;
   in
     [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
       Pretty.big_list "introduction rules (intro):" (pretty_thms hazIs),

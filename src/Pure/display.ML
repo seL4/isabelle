@@ -20,6 +20,7 @@ sig
   include BASIC_DISPLAY
   val pretty_thm_raw: Proof.context -> {quote: bool, show_hyps: bool} -> thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
+  val pretty_thm_item: Proof.context -> thm -> Pretty.T
   val pretty_thm_global: theory -> thm -> Pretty.T
   val pretty_thm_without_context: thm -> Pretty.T
   val string_of_thm: Proof.context -> thm -> string
@@ -79,6 +80,7 @@ fun pretty_thm_raw ctxt {quote, show_hyps = show_hyps'} raw_th =
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 fun pretty_thm ctxt = pretty_thm_raw ctxt {quote = false, show_hyps = true};
+fun pretty_thm_item ctxt th = Pretty.item [pretty_thm ctxt th];
 
 fun pretty_thm_global thy =
   pretty_thm_raw (Syntax.init_pretty_global thy) {quote = false, show_hyps = false};
