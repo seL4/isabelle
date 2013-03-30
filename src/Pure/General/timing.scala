@@ -10,6 +10,8 @@ package isabelle
 
 object Timing
 {
+  val zero = Timing(Time.zero, Time.zero, Time.zero)
+
   def timeit[A](message: String, enabled: Boolean = true)(e: => A) =
     if (enabled) {
       val start = java.lang.System.currentTimeMillis()
@@ -27,9 +29,11 @@ object Timing
     else e
 }
 
-class Timing(val elapsed: Time, val cpu: Time, val gc: Time)
+sealed case class Timing(elapsed: Time, cpu: Time, gc: Time)
 {
   def is_relevant: Boolean = elapsed.is_relevant || cpu.is_relevant || gc.is_relevant
+
+  def + (t: Timing): Timing = Timing(elapsed + t.elapsed, cpu + t.cpu, gc + t.gc)
 
   def message: String =
     elapsed.message + " elapsed time, " + cpu.message + " cpu time, " + gc.message + " GC time"

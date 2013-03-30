@@ -320,27 +320,39 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
       Markup.DOCUMENT_SOURCE -> "document source")
 
   private val tooltip_elements =
-    Set(Markup.ENTITY, Markup.SORTING, Markup.TYPING, Markup.ML_TYPING, Markup.PATH) ++
-      tooltips.keys
+    Set(Markup.TIMING, Markup.ENTITY, Markup.SORTING, Markup.TYPING,
+      Markup.ML_TYPING, Markup.PATH) ++ tooltips.keys
 
   private def pretty_typing(kind: String, body: XML.Body): XML.Tree =
     Pretty.block(XML.Text(kind) :: Pretty.Break(1) :: body)
 
+  private val timing_threshold: Double = options.real("jedit_timing_threshold")
+
   def tooltip(range: Text.Range): Option[Text.Info[XML.Body]] =
   {
-    def add(prev: Text.Info[List[(Boolean, XML.Tree)]], r0: Text.Range, p: (Boolean, XML.Tree)) =
+    def add(prev: Text.Info[(Timing, List[(Boolean, XML.Tree)])],
+      r0: Text.Range, p: (Boolean, XML.Tree)): Text.Info[(Timing, List[(Boolean, XML.Tree)])] =
     {
       val r = snapshot.convert(r0)
-      if (prev.range == r) Text.Info(r, p :: prev.info) else Text.Info(r, List(p))
+      val (t, info) = prev.info
+      if (prev.range == r) Text.Info(r, (t, p :: info)) else Text.Info(r, (t, List(p)))
     }
 
     val results =
-      snapshot.cumulate_markup[Text.Info[(List[(Boolean, XML.Tree)])]](
-        range, Text.Info(range, Nil), Some(tooltip_elements), _ =>
+      snapshot.cumulate_markup[Text.Info[(Timing, List[(Boolean, XML.Tree)])]](
+        range, Text.Info(range, (Timing.zero, Nil)), Some(tooltip_elements), _ =>
         {
+          case (Text.Info(r, (t1, info)), Text.Info(_, XML.Elem(Markup.Timing(t2), _))) =>
+            Text.Info(r, (t1 + t2, info))
           case (prev, Text.Info(r, XML.Elem(Markup.Entity(kind, name), _))) =>
             val kind1 = space_explode('_', kind).mkString(" ")
-            add(prev, r, (true, XML.Text(kind1 + " " + quote(name))))
+            val txt1 = kind1 + " " + quote(name)
+            val t = prev.info._1
+            val txt2 =
+              if (kind == Markup.COMMAND && t.elapsed.seconds >= timing_threshold)
+                "\n" + t.message
+              else ""
+            add(prev, r, (true, XML.Text(txt1 + txt2)))
           case (prev, Text.Info(r, XML.Elem(Markup.Path(name), _)))
           if Path.is_ok(name) =>
             val jedit_file = PIDE.thy_load.append(snapshot.node_name.dir, Path.explode(name))
@@ -351,10 +363,11 @@ class Rendering private(val snapshot: Document.Snapshot, val options: Options)
           case (prev, Text.Info(r, XML.Elem(Markup(Markup.ML_TYPING, _), body))) =>
             add(prev, r, (false, pretty_typing("ML:", body)))
           case (prev, Text.Info(r, XML.Elem(Markup(name, _), _)))
-          if tooltips.isDefinedAt(name) => add(prev, r, (true, XML.Text(tooltips(name))))
+          if tooltips.isDefinedAt(name) =>
+            add(prev, r, (true, XML.Text(tooltips(name))))
         }).toList.map(_.info)
 
-    results.flatMap(_.info) match {
+    results.map(_.info).flatMap(_._2) match {
       case Nil => None
       case tips =>
         val r = Text.Range(results.head.range.start, results.last.range.stop)
