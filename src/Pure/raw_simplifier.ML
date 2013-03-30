@@ -883,7 +883,10 @@ val skel0 = Bound 0;
 
 fun uncond_skel ((_, weak), (lhs, rhs)) =
   if null weak then rhs  (*optimization*)
-  else if exists_Const (fn (c, _) => member (op =) weak (true, c)) lhs then skel0
+  else if exists_subterm
+    (fn Const (a, _) => member (op =) weak (true, a)
+      | Free (a, _) => member (op =) weak (false, a)
+      | _ => false) lhs then skel0
   else rhs;
 
 (*Behaves like unconditional rule if rhs does not contain vars not in the lhs.
