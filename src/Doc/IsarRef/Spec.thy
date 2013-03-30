@@ -264,6 +264,7 @@ text {*
     @{command_def "axiomatization"} & : & @{text "theory \<rightarrow> theory"} & (axiomatic!) \\
     @{command_def "definition"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{attribute_def "defn"} & : & @{text attribute} \\
+    @{command_def "print_defn_rules"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
     @{command_def "abbreviation"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "print_abbrevs"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow> "} \\
   \end{matharray}
@@ -317,7 +318,10 @@ text {*
   well as additional conditions, e.g.\ @{text "f x y = t"} instead of
   @{text "f \<equiv> \<lambda>x y. t"} and @{text "y \<noteq> 0 \<Longrightarrow> g x y = u"} instead of an
   unrestricted @{text "g \<equiv> \<lambda>x y. u"}.
-  
+
+  \item @{command "print_defn_rules"} prints the definitional rewrite rules
+  declared via @{attribute defn} in the current context.
+
   \item @{command "abbreviation"}~@{text "c \<WHERE> eq"} introduces a
   syntactic constant which is associated with a certain term according
   to the meta-level equality @{text eq}.

@@ -781,8 +781,14 @@ val _ =
       Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of)));
 
 val _ =
+  Outer_Syntax.improper_command @{command_spec "print_defn_rules"}
+    "print definitional rewrite rules of context"
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+      Toplevel.keep (Local_Defs.print_rules o Toplevel.context_of)));
+
+val _ =
   Outer_Syntax.improper_command @{command_spec "print_abbrevs"}
-    "print constant abbreviation of context"
+    "print constant abbreviations of context"
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_abbrevs o Toplevel.context_of)));
 
