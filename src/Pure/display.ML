@@ -26,7 +26,6 @@ sig
   val string_of_thm_global: theory -> thm -> string
   val string_of_thm_without_context: thm -> string
   val pretty_thms: Proof.context -> thm list -> Pretty.T
-  val print_syntax: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T list
 end;
 
@@ -100,9 +99,6 @@ fun pretty_thms ctxt [th] = pretty_thm ctxt th
 
 
 (** print theory **)
-
-val print_syntax = Syntax.print_syntax o Sign.syn_of;
-
 
 (* pretty_full_theory *)
 
