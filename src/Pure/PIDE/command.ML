@@ -61,11 +61,19 @@ end;
 
 local
 
+fun timing tr t =
+  if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
+
 fun run int tr st =
   if Goal.future_enabled () andalso Keyword.is_diag (Toplevel.name_of tr) then
     Toplevel.setmp_thread_position tr (fn () =>
       (Goal.fork_name "Toplevel.diag" ~1
-        (fn () => Toplevel.command_exception int tr st); ([], SOME st))) ()
+        (fn () =>
+          let
+            val start = Timing.start ();
+            val res = Exn.interruptible_capture (fn () => Toplevel.command_exception int tr st) ();
+            val _ = timing tr (Timing.result start);
+          in Exn.release res end); ([], SOME st))) ()
   else Toplevel.command_errors int tr st;
 
 fun check_cmts tr cmts st =
@@ -74,9 +82,6 @@ fun check_cmts tr cmts st =
       |> maps (fn cmt =>
         (Thy_Output.check_text (Token.source_position_of cmt) st; [])
           handle exn => ML_Compiler.exn_messages_ids exn)) ();
-
-fun timing tr t =
-  if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
 
 fun proof_status tr st =
   (case try Toplevel.proof_of st of
