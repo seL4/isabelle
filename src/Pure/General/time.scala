@@ -15,6 +15,7 @@ object Time
 {
   def seconds(s: Double): Time = new Time((s * 1000.0).round)
   def ms(m: Long): Time = new Time(m)
+  val zero: Time = ms(0)
 
   def print_seconds(s: Double): String =
     String.format(Locale.ROOT, "%.3f", s.asInstanceOf[AnyRef])
@@ -22,12 +23,21 @@ object Time
 
 final class Time private(val ms: Long)
 {
+  def + (t: Time): Time = new Time(ms + t.ms)
+
   def seconds: Double = ms / 1000.0
 
   def min(t: Time): Time = if (ms < t.ms) this else t
   def max(t: Time): Time = if (ms > t.ms) this else t
 
   def is_relevant: Boolean = ms >= 1
+
+  override def hashCode: Int = ms.hashCode
+  override def equals(that: Any): Boolean =
+    that match {
+      case other: Time => ms == other.ms
+      case _ => false
+    }
 
   override def toString = Time.print_seconds(seconds)
 
