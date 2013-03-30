@@ -119,14 +119,17 @@ val get_simprocs = snd o Data.get o Context.Proof;
 
 fun pretty_ss ctxt ss =
   let
-    val pretty_cterm = Syntax.pretty_term ctxt o Thm.term_of;
+    val pretty_term = Syntax.pretty_term ctxt;
     val pretty_thm = Display.pretty_thm ctxt;
     val pretty_thm_item = Display.pretty_thm_item ctxt;
 
     fun pretty_proc (name, lhss) =
-      Pretty.big_list (name ^ ":") (map (Pretty.item o single o pretty_cterm) lhss);
+      Pretty.big_list (name ^ ":") (map (Pretty.item o single o pretty_term o Thm.term_of) lhss);
+
+    fun pretty_cong_name (const, name) =
+      pretty_term ((if const then Const else Free) (name, dummyT));
     fun pretty_cong (name, thm) =
-      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, pretty_thm thm];
+      Pretty.block [pretty_cong_name name, Pretty.str ":", Pretty.brk 1, pretty_thm thm];
 
     val {simps, procs, congs, loopers, unsafe_solvers, safe_solvers, ...} = dest_ss ss;
   in

@@ -15,6 +15,7 @@ sig
   val simp_trace_depth_limit: int Config.T
   val simp_debug: bool Config.T
   val simp_trace: bool Config.T
+  type cong_name = bool * string
   type rrule
   val eq_rrule: rrule * rrule -> bool
   type simpset
@@ -26,8 +27,8 @@ sig
   val dest_ss: simpset ->
    {simps: (string * thm) list,
     procs: (string * cterm list) list,
-    congs: (string * thm) list,
-    weak_congs: string list,
+    congs: (cong_name * thm) list,
+    weak_congs: cong_name list,
     loopers: string list,
     unsafe_solvers: string list,
     safe_solvers: string list}
@@ -72,7 +73,7 @@ sig
     bounds: int * ((string * typ) * string) list,
     depth: int * bool Unsynchronized.ref,
     context: Proof.context option} *
-   {congs: (string * thm) list * string list,
+   {congs: (cong_name * thm) list * cong_name list,
     procs: proc Net.net,
     mk_rews:
      {mk: simpset -> thm -> thm list,
@@ -135,6 +136,15 @@ struct
 
 (** datatype simpset **)
 
+(* congruence rules *)
+
+type cong_name = bool * string;
+
+fun cong_name (Const (a, _)) = SOME (true, a)
+  | cong_name (Free (a, _)) = SOME (false, a)
+  | cong_name _ = NONE;
+
+
 (* rewrite rules *)
 
 type rrule =
@@ -188,7 +198,7 @@ datatype simpset =
     bounds: int * ((string * typ) * string) list,
     depth: int * bool Unsynchronized.ref,
     context: Proof.context option} *
-   {congs: (string * thm) list * string list,
+   {congs: (cong_name * thm) list * cong_name list,
     procs: proc Net.net,
     mk_rews:
      {mk: simpset -> thm -> thm list,
@@ -268,7 +278,8 @@ fun trace_depth (Simpset ({depth = (depth, exceeded), context, ...}, _)) msg =
 val inc_simp_depth = map_simpset1 (fn (rules, prems, bounds, (depth, exceeded), context) =>
   (rules, prems, bounds,
     (depth + 1,
-      if depth = simp_trace_depth_limit_of context then Unsynchronized.ref false else exceeded), context));
+      if depth = simp_trace_depth_limit_of context
+      then Unsynchronized.ref false else exceeded), context));
 
 fun simp_depth (Simpset ({depth = (depth, _), ...}, _)) = depth;
 
@@ -538,10 +549,6 @@ fun del_simp thm ss = ss delsimps [thm];
 
 (* congs *)
 
-fun cong_name (Const (a, _)) = SOME a
-  | cong_name (Free (a, _)) = SOME ("Free: " ^ a)
-  | cong_name _ = NONE;
-
 local
 
 fun is_full_cong_prems [] [] = true
@@ -582,7 +589,7 @@ fun add_eqcong thm ss = ss |>
       val (xs, weak) = congs;
       val _ =
         if AList.defined (op =) xs a
-        then if_visible ss warning ("Overwriting congruence rule for " ^ quote a)
+        then if_visible ss warning ("Overwriting congruence rule for " ^ quote (#2 a))
         else ();
       val xs' = AList.update (op =) (a, thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
@@ -597,7 +604,7 @@ fun del_eqcong thm ss = ss |>
       val a = the (cong_name (head_of lhs)) handle Option.Option =>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (xs, _) = congs;
-      val xs' = filter_out (fn (x : string, _) => x = a) xs;
+      val xs' = filter_out (fn (x : cong_name, _) => x = a) xs;
       val weak' = xs' |> map_filter (fn (a, thm) =>
         if is_full_cong thm then NONE else SOME a);
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
@@ -876,7 +883,7 @@ val skel0 = Bound 0;
 
 fun uncond_skel ((_, weak), (lhs, rhs)) =
   if null weak then rhs  (*optimization*)
-  else if exists_Const (member (op =) weak o #1) lhs then skel0
+  else if exists_Const (fn (c, _) => member (op =) weak (true, c)) lhs then skel0
   else rhs;
 
 (*Behaves like unconditional rule if rhs does not contain vars not in the lhs.
