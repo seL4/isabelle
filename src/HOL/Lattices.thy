@@ -513,6 +513,10 @@ lemma sup_eq_bot_iff [simp]:
   "x \<squnion> y = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
   by (simp add: eq_iff)
 
+lemma bot_eq_sup_iff [simp]:
+  "\<bottom> = x \<squnion> y \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+  by (simp add: eq_iff)
+
 end
 
 class bounded_lattice_top = lattice + top
