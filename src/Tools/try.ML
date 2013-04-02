@@ -104,19 +104,9 @@ fun auto_try state =
                            | _ => NONE)
   |> the_default state
 
-(* Too large values are understood as milliseconds, ensuring compatibility with
-   old setting files. No users can possibly in their right mind want the user
-   interface to block for more than 100 seconds. *)
-fun smart_seconds r =
-  seconds (if r >= 100.0 then
-             (legacy_feature (quote auto_try_time_limitN ^
-                " expressed in milliseconds -- use seconds instead"); 0.001 * r)
-           else
-             r)
-
 val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
   if interact andalso not (!Toplevel.quiet) andalso !auto_time_limit > 0.0 then
-    TimeLimit.timeLimit (smart_seconds (!auto_time_limit)) auto_try state
+    TimeLimit.timeLimit (seconds (!auto_time_limit)) auto_try state
     handle TimeLimit.TimeOut => state
   else
     state))
