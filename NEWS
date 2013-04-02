@@ -43,6 +43,8 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Notation "{p:A. P}" now allows tuple patterns as well.
+
 * Revised devices for recursive definitions over finite sets:
   - Only one fundamental fold combinator on finite set remains:
     Finite_Set.fold :: ('a => 'b => 'b) => 'b => 'a set => 'b
