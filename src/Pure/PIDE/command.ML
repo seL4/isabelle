@@ -61,19 +61,10 @@ end;
 
 local
 
-fun timing tr t =
-  if Timing.is_relevant t then Toplevel.status tr (Markup.timing t) else ();
-
 fun run int tr st =
   if Goal.future_enabled () andalso Keyword.is_diag (Toplevel.name_of tr) then
-    Toplevel.setmp_thread_position tr (fn () =>
-      (Goal.fork_name "Toplevel.diag" ~1
-        (fn () =>
-          let
-            val start = Timing.start ();
-            val res = Exn.interruptible_capture (fn () => Toplevel.command_exception int tr st) ();
-            val _ = timing tr (Timing.result start);
-          in Exn.release res end); ([], SOME st))) ()
+    (Goal.fork_name "Toplevel.diag" ~1 (fn () => Toplevel.command_exception int tr st);
+      ([], SOME st))
   else Toplevel.command_errors int tr st;
 
 fun check_cmts tr cmts st =
@@ -106,11 +97,9 @@ fun run_command (tr, cmts) (st, malformed) =
 
       val _ = Multithreading.interrupted ();
       val _ = Toplevel.status tr Markup.running;
-      val start = Timing.start ();
       val (errs1, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
       val errs2 = (case result of NONE => [] | SOME st' => check_cmts tr cmts st');
       val errs = errs1 @ errs2;
-      val _ = timing tr (Timing.result start);
       val _ = Toplevel.status tr Markup.finished;
       val _ = List.app (Future.error_msg (Toplevel.pos_of tr)) errs;
     in

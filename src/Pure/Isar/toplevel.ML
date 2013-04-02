@@ -638,32 +638,39 @@ fun put_timing timing = map_transition (fn (name, pos, int_only, print, no_timin
 
 local
 
-fun timing_message tr (t: Timing.timing) =
-  (case approximative_id tr of
-    SOME id =>
-      (Output.protocol_message
-        (Markup.command_timing :: Markup.command_timing_properties id (#elapsed t)) ""
-      handle Fail _ => ())
-  | NONE => ());
-
 fun app int (tr as Transition {trans, print, no_timing, ...}) =
   setmp_thread_position tr (fn state =>
     let
-      fun do_timing f x = (warning (command_msg "" tr); timeap f x);
-      fun do_profiling f x = profile (! profiling) f x;
+      val timing_start = Timing.start ();
 
-      val start = Timing.start ();
-
-      val (result, status) =
+      val (result, opt_err) =
          state |>
           (apply_trans int trans
-            |> (! profiling > 0 andalso not no_timing) ? do_profiling
-            |> (! profiling > 0 orelse ! timing andalso not no_timing) ? do_timing);
-
+            |> (! profiling > 0 andalso not no_timing) ? profile (! profiling));
       val _ = if int andalso not (! quiet) andalso print then print_state false result else ();
 
-      val _ = timing_message tr (Timing.result start);
-    in (result, Option.map (fn UNDEF => type_error tr state | exn => exn) status) end);
+      val timing_result = Timing.result timing_start;
+
+      val _ =
+        if Timing.is_relevant timing_result andalso
+          (! profiling > 0 orelse ! timing andalso not no_timing)
+        then warning (command_msg "" tr ^ ": " ^ Timing.message timing_result)
+        else ();
+      val _ =
+        if Timing.is_relevant timing_result
+        then status tr (Markup.timing timing_result)
+        else ();
+      val _ =
+        (case approximative_id tr of
+          SOME id =>
+            (Output.protocol_message
+              (Markup.command_timing ::
+                Markup.command_timing_properties id (#elapsed timing_result)) ""
+            handle Fail _ => ())
+        | NONE => ());
+    in
+      (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_err)
+    end);
 
 in
 
