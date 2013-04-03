@@ -286,6 +286,22 @@ lemma inj_on_imageI2:
   "inj_on (f' o f) A \<Longrightarrow> inj_on f A"
 by(auto simp add: comp_inj_on inj_on_def)
 
+lemma inj_img_insertE:
+  assumes "inj_on f A"
+  assumes "x \<notin> B" and "insert x B = f ` A"
+  obtains x' A' where "x' \<notin> A'" and "A = insert x' A'"
+    and "x = f x'" and "B = f ` A'" 
+proof -
+  from assms have "x \<in> f ` A" by auto
+  then obtain x' where *: "x' \<in> A" "x = f x'" by auto
+  then have "A = insert x' (A - {x'})" by auto
+  with assms * have "B = f ` (A - {x'})"
+    by (auto dest: inj_on_contraD)
+  have "x' \<notin> A - {x'}" by simp
+  from `x' \<notin> A - {x'}` `A = insert x' (A - {x'})` `x = f x'` `B = image f (A - {x'})`
+  show ?thesis ..
+qed
+
 lemma surj_def: "surj f \<longleftrightarrow> (\<forall>y. \<exists>x. y = f x)"
   by auto
 

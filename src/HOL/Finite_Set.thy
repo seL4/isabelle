@@ -715,19 +715,52 @@ proof -
   then show ?thesis by simp
 qed
 
+end
+
 text{* Other properties of @{const fold}: *}
 
 lemma fold_image:
-  assumes "finite A" and "inj_on g A"
+  assumes "inj_on g A"
   shows "fold f z (g ` A) = fold (f \<circ> g) z A"
-using assms
-proof induction
-  case (insert a F)
-    interpret comp_fun_commute "\<lambda>x. f (g x)" by default (simp add: comp_fun_commute)
-    from insert show ?case by auto
-qed simp
-
-end
+proof (cases "finite A")
+  case False with assms show ?thesis by (auto dest: finite_imageD simp add: fold_def)
+next
+  case True
+  have "fold_graph f z (g ` A) = fold_graph (f \<circ> g) z A"
+  proof
+    fix w
+    show "fold_graph f z (g ` A) w \<longleftrightarrow> fold_graph (f \<circ> g) z A w" (is "?P \<longleftrightarrow> ?Q")
+    proof
+      assume ?P then show ?Q using assms
+      proof (induct "g ` A" w arbitrary: A)
+        case emptyI then show ?case by (auto intro: fold_graph.emptyI)
+      next
+        case (insertI x A r B)
+        from `inj_on g B` `x \<notin> A` `insert x A = image g B` obtain x' A' where
+          "x' \<notin> A'" and [simp]: "B = insert x' A'" "x = g x'" "A = g ` A'"
+          by (rule inj_img_insertE)
+        from insertI.prems have "fold_graph (f o g) z A' r"
+          by (auto intro: insertI.hyps)
+        with `x' \<notin> A'` have "fold_graph (f \<circ> g) z (insert x' A') ((f \<circ> g) x' r)"
+          by (rule fold_graph.insertI)
+        then show ?case by simp
+      qed
+    next
+      assume ?Q then show ?P using assms
+      proof induct
+        case emptyI thus ?case by (auto intro: fold_graph.emptyI)
+      next
+        case (insertI x A r)
+        from `x \<notin> A` insertI.prems have "g x \<notin> g ` A" by auto
+        moreover from insertI have "fold_graph f z (g ` A) r" by simp
+        ultimately have "fold_graph f z (insert (g x) (g ` A)) (f (g x) r)"
+          by (rule fold_graph.insertI)
+        then show ?case by simp
+      qed
+    qed
+  qed
+  with True assms show ?thesis by (auto simp add: fold_def)
+qed
 
 lemma fold_cong:
   assumes "comp_fun_commute f" "comp_fun_commute g"
