@@ -6,7 +6,7 @@ header {* Pervasive test of code generator *}
 theory Generate_Efficient_Datastructures
 imports
   Candidates
-  "~~/src/HOL/Library/DAList"
+  "~~/src/HOL/Library/DAList_Multiset"
   "~~/src/HOL/Library/RBT_Mapping"
   "~~/src/HOL/Library/RBT_Set"
 begin
