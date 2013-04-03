@@ -144,7 +144,7 @@ fun status task markups =
 in
 
 fun fork_params {name, pos, pri} e =
-  uninterruptible (fn _ => fn () =>
+  uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
       val id = the_default 0 (Position.parse_id pos);
       val _ = count_forked 1;
@@ -173,7 +173,7 @@ fun fork_params {name, pos, pri} e =
             in Exn.release result end);
       val _ = status (Future.task_of future) [Markup.forked];
       val _ = register_forked id future;
-    in future end) ();
+    in future end)) ();
 
 fun fork pri e =
   fork_params {name = "Goal.fork", pos = Position.thread_data (), pri = pri} e;
