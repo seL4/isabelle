@@ -23,6 +23,7 @@ sig
   val is_relevant_time: Time.time -> bool
   val is_relevant: timing -> bool
   val message: timing -> string
+  val status: ('a -> 'b) -> 'a -> 'b
 end
 
 structure Timing: TIMING =
@@ -89,10 +90,10 @@ fun message {elapsed, cpu, gc} =
 fun cond_timeit enabled msg e =
   if enabled then
     let
-      val (timing, result) = timing (Exn.interruptible_capture e) ();
+      val (t, result) = timing (Exn.interruptible_capture e) ();
       val _ =
-        if is_relevant timing then
-          let val end_msg = message timing
+        if is_relevant t then
+          let val end_msg = message t
           in warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg) end
         else ();
     in Exn.release result end
@@ -101,6 +102,12 @@ fun cond_timeit enabled msg e =
 fun timeit e = cond_timeit true "" e;
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
+
+fun status f x =
+  let
+    val (t, result) = timing (Exn.interruptible_capture f) x;
+    val _ = if is_relevant t then Output.status (Markup.markup_only (Markup.timing t)) else ();
+  in Exn.release result end;
 
 end;
 

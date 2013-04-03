@@ -1163,7 +1163,7 @@ fun future_terminal_proof proof1 proof2 done int state =
     state |> future_proof (fn state' =>
       Goal.fork_params
         {name = "Proof.future_terminal_proof", pos = Position.thread_data (), pri = ~1}
-        (fn () => ((), proof2 state'))) |> snd |> done
+        (fn () => ((), Timing.status proof2 state'))) |> snd |> done
   else proof1 state;
 
 in

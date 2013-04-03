@@ -94,14 +94,14 @@ sig
   val cpuN: string
   val gcN: string
   val timing_propertiesN: string list
-  val timing_properties: Timing.timing -> Properties.T
-  val parse_timing_properties: Properties.T -> Timing.timing
+  val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
+  val parse_timing_properties: Properties.T -> {elapsed: Time.time, cpu: Time.time, gc: Time.time}
   val command_timingN: string
   val command_timing_properties:
     {file: string, offset: int, name: string} -> Time.time -> Properties.T
   val parse_command_timing_properties:
     Properties.T -> ({file: string, offset: int, name: string} * Time.time) option
-  val timingN: string val timing: Timing.timing -> T
+  val timingN: string val timing: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
