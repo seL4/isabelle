@@ -968,6 +968,15 @@ next
   thus "setsum f (A - insert x F) = setsum f A - setsum f (insert x F)" by simp
 qed
 
+lemma setsum_comp_morphism:
+  assumes "h 0 = 0" and "\<And>x y. h (x + y) = h x + h y"
+  shows "setsum (h \<circ> g) A = h (setsum g A)"
+proof (cases "finite A")
+  case False then show ?thesis by (simp add: assms)
+next
+  case True then show ?thesis by (induct A) (simp_all add: assms)
+qed
+
 
 subsubsection {* Cardinality as special case of @{const setsum} *}
 

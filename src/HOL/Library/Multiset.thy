@@ -257,6 +257,10 @@ lemma add_eq_conv_ex:
     (M = N \<and> a = b \<or> (\<exists>K. M = K + {#b#} \<and> N = K + {#a#}))"
   by (auto simp add: add_eq_conv_diff)
 
+lemma multi_member_split:
+  "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
+  by (rule_tac x = "M - {#x#}" in exI, simp)
+
 
 subsubsection {* Pointwise ordering induced by count *}
 
@@ -408,6 +412,30 @@ proof (rule multiset_eqI)
   then show "count (A + B - C) x = count (A - C + B) x"
     by auto
 qed
+
+lemma empty_inter [simp]:
+  "{#} #\<inter> M = {#}"
+  by (simp add: multiset_eq_iff)
+
+lemma inter_empty [simp]:
+  "M #\<inter> {#} = {#}"
+  by (simp add: multiset_eq_iff)
+
+lemma inter_add_left1:
+  "\<not> x \<in># N \<Longrightarrow> (M + {#x#}) #\<inter> N = M #\<inter> N"
+  by (simp add: multiset_eq_iff)
+
+lemma inter_add_left2:
+  "x \<in># N \<Longrightarrow> (M + {#x#}) #\<inter> N = (M #\<inter> (N - {#x#})) + {#x#}"
+  by (simp add: multiset_eq_iff)
+
+lemma inter_add_right1:
+  "\<not> x \<in># N \<Longrightarrow> N #\<inter> (M + {#x#}) = N #\<inter> M"
+  by (simp add: multiset_eq_iff)
+
+lemma inter_add_right2:
+  "x \<in># N \<Longrightarrow> N #\<inter> (M + {#x#}) = ((N - {#x#}) #\<inter> M) + {#x#}"
+  by (simp add: multiset_eq_iff)
 
 
 subsubsection {* Filter (with comprehension syntax) *}
@@ -562,9 +590,6 @@ assumes em:  "M = {#} \<Longrightarrow> P"
 assumes add: "\<And>N x. M = N + {#x#} \<Longrightarrow> P"
 shows "P"
 using assms by (induct M) simp_all
-
-lemma multi_member_split: "x \<in># M \<Longrightarrow> \<exists>A. M = A + {#x#}"
-by (rule_tac x="M - {#x#}" in exI, simp)
 
 lemma multi_drop_mem_not_eq: "c \<in># B \<Longrightarrow> B - {#c#} \<noteq> B"
 by (cases "B = {#}") (auto dest: multi_member_split)
@@ -952,6 +977,14 @@ lemma multiset_of_insort [simp]:
   "multiset_of (insort x xs) = multiset_of xs + {#x#}"
   by (induct xs) (simp_all add: ac_simps)
 
+lemma in_multiset_of:
+  "x \<in># multiset_of xs \<longleftrightarrow> x \<in> set xs"
+  by (induct xs) simp_all
+
+lemma multiset_of_map:
+  "multiset_of (map f xs) = image_mset f (multiset_of xs)"
+  by (induct xs) simp_all
+
 definition multiset_of_set :: "'a set \<Rightarrow> 'a multiset"
 where
   "multiset_of_set = folding.F (\<lambda>x M. {#x#} + M) {#}"
@@ -964,6 +997,24 @@ proof -
   show "folding (\<lambda>x M. {#x#} + M)" by default (fact comp_fun_commute)
   from multiset_of_set_def show "folding.F (\<lambda>x M. {#x#} + M) {#} = multiset_of_set" ..
 qed
+
+lemma count_multiset_of_set [simp]:
+  "finite A \<Longrightarrow> x \<in> A \<Longrightarrow> count (multiset_of_set A) x = 1" (is "PROP ?P")
+  "\<not> finite A \<Longrightarrow> count (multiset_of_set A) x = 0" (is "PROP ?Q")
+  "x \<notin> A \<Longrightarrow> count (multiset_of_set A) x = 0" (is "PROP ?R")
+proof -
+  { fix A
+    assume "x \<notin> A"
+    have "count (multiset_of_set A) x = 0"
+    proof (cases "finite A")
+      case False then show ?thesis by simp
+    next
+      case True from True `x \<notin> A` show ?thesis by (induct A) auto
+    qed
+  } note * = this
+  then show "PROP ?P" "PROP ?Q" "PROP ?R"
+  by (auto elim!: Set.set_insert)
+qed -- {* TODO: maybe define @{const multiset_of_set} also in terms of @{const Abs_multiset} *}
 
 context linorder
 begin
@@ -1193,6 +1244,14 @@ next
     by (cases "x \<in> set_of M")
       (simp_all del: mem_set_of_iff add: setsum.distrib setsum.delta' insert_absorb, simp)
 qed
+
+lemma size_eq_mcard:
+  "size = mcard"
+  by (simp add: fun_eq_iff size_def mcard_unfold_setsum)
+
+lemma mcard_multiset_of:
+  "mcard (multiset_of xs) = length xs"
+  by (induct xs) simp_all
 
 
 subsection {* Alternative representations *}
@@ -1885,6 +1944,156 @@ Nitpick_Model.register_term_postprocessor @{typ "'a multiset"}
 *}
 
 hide_const (open) fold
+
+
+subsection {* Naive implementation using lists *}
+
+code_datatype multiset_of
+
+lemma [code]:
+  "{#} = multiset_of []"
+  by simp
+
+lemma [code]:
+  "{#x#} = multiset_of [x]"
+  by simp
+
+lemma union_code [code]:
+  "multiset_of xs + multiset_of ys = multiset_of (xs @ ys)"
+  by simp
+
+lemma [code]:
+  "image_mset f (multiset_of xs) = multiset_of (map f xs)"
+  by (simp add: multiset_of_map)
+
+lemma [code]:
+  "Multiset.filter f (multiset_of xs) = multiset_of (filter f xs)"
+  by (simp add: multiset_of_filter)
+
+lemma [code]:
+  "multiset_of xs - multiset_of ys = multiset_of (fold remove1 ys xs)"
+  by (rule sym, induct ys arbitrary: xs) (simp_all add: diff_add diff_right_commute)
+
+lemma [code]:
+  "multiset_of xs #\<inter> multiset_of ys =
+    multiset_of (snd (fold (\<lambda>x (ys, zs).
+      if x \<in> set ys then (remove1 x ys, x # zs) else (ys, zs)) xs (ys, [])))"
+proof -
+  have "\<And>zs. multiset_of (snd (fold (\<lambda>x (ys, zs).
+    if x \<in> set ys then (remove1 x ys, x # zs) else (ys, zs)) xs (ys, zs))) =
+      (multiset_of xs #\<inter> multiset_of ys) + multiset_of zs"
+  by (induct xs arbitrary: ys)
+    (auto simp add: mem_set_multiset_eq inter_add_right1 inter_add_right2 ac_simps)
+  then show ?thesis by simp
+qed
+
+lemma [code_unfold]:
+  "x \<in># multiset_of xs \<longleftrightarrow> x \<in> set xs"
+  by (simp add: in_multiset_of)
+
+lemma [code]:
+  "count (multiset_of xs) x = fold (\<lambda>y. if x = y then Suc else id) xs 0"
+proof -
+  have "\<And>n. fold (\<lambda>y. if x = y then Suc else id) xs n = count (multiset_of xs) x + n"
+    by (induct xs) simp_all
+  then show ?thesis by simp
+qed
+
+lemma [code]:
+  "set_of (multiset_of xs) = set xs"
+  by simp
+
+lemma [code]:
+  "sorted_list_of_multiset (multiset_of xs) = sort xs"
+  by (induct xs) simp_all
+
+lemma [code]: -- {* not very efficient, but representation-ignorant! *}
+  "multiset_of_set A = multiset_of (sorted_list_of_set A)"
+  apply (cases "finite A")
+  apply simp_all
+  apply (induct A rule: finite_induct)
+  apply (simp_all add: union_commute)
+  done
+
+lemma [code]:
+  "mcard (multiset_of xs) = length xs"
+  by (simp add: mcard_multiset_of)
+
+lemma [code]:
+  "A \<le> B \<longleftrightarrow> A #\<inter> B = A" 
+  by (auto simp add: inf.order_iff)
+
+instantiation multiset :: (equal) equal
+begin
+
+definition
+  [code]: "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
+
+instance
+  by default (simp add: equal_multiset_def eq_iff)
+
+end
+
+lemma [code]:
+  "(A::'a multiset) < B \<longleftrightarrow> A \<le> B \<and> A \<noteq> B"
+  by auto
+
+lemma [code]:
+  "msetsum (multiset_of xs) = listsum xs"
+  by (induct xs) (simp_all add: add.commute)
+
+lemma [code]:
+  "msetprod (multiset_of xs) = fold times xs 1"
+proof -
+  have "\<And>x. fold times xs x = msetprod (multiset_of xs) * x"
+    by (induct xs) (simp_all add: mult.assoc)
+  then show ?thesis by simp
+qed
+
+lemma [code]:
+  "size = mcard"
+  by (fact size_eq_mcard)
+
+text {*
+  Exercise for the casual reader: add implementations for @{const le_multiset}
+  and @{const less_multiset} (multiset order).
+*}
+
+text {* Quickcheck generators *}
+
+definition (in term_syntax)
+  msetify :: "'a\<Colon>typerep list \<times> (unit \<Rightarrow> Code_Evaluation.term)
+    \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
+  [code_unfold]: "msetify xs = Code_Evaluation.valtermify multiset_of {\<cdot>} xs"
+
+notation fcomp (infixl "\<circ>>" 60)
+notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+instantiation multiset :: (random) random
+begin
+
+definition
+  "Quickcheck_Random.random i = Quickcheck_Random.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (msetify xs))"
+
+instance ..
+
+end
+
+no_notation fcomp (infixl "\<circ>>" 60)
+no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+
+instantiation multiset :: (full_exhaustive) full_exhaustive
+begin
+
+definition full_exhaustive_multiset :: "('a multiset \<times> (unit \<Rightarrow> term) \<Rightarrow> (bool \<times> term list) option) \<Rightarrow> natural \<Rightarrow> (bool \<times> term list) option"
+where
+  "full_exhaustive_multiset f i = Quickcheck_Exhaustive.full_exhaustive (\<lambda>xs. f (msetify xs)) i"
+
+instance ..
+
+end
+
+hide_const (open) msetify
 
 end
 

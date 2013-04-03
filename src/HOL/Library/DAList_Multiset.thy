@@ -8,6 +8,53 @@ theory DAList_Multiset
 imports Multiset DAList
 begin
 
+text {* Delete prexisting code equations *}
+
+lemma [code, code del]:
+  "plus = (plus :: 'a multiset \<Rightarrow> _)"
+  ..
+
+lemma [code, code del]:
+  "minus = (minus :: 'a multiset \<Rightarrow> _)"
+  ..
+
+lemma [code, code del]:
+  "inf = (inf :: 'a multiset \<Rightarrow> _)"
+  ..
+
+lemma [code, code del]:
+  "image_mset = image_mset"
+  ..
+
+lemma [code, code del]:
+  "Multiset.filter = Multiset.filter"
+  ..
+
+lemma [code, code del]:
+  "count = count"
+  ..
+
+lemma [code, code del]:
+  "mcard = mcard"
+  ..
+
+lemma [code, code del]:
+  "msetsum = msetsum"
+  ..
+
+lemma [code, code del]:
+  "msetprod = msetprod"
+  ..
+
+lemma [code, code del]:
+  "set_of = set_of"
+  ..
+
+lemma [code, code del]:
+  "sorted_list_of_multiset = sorted_list_of_multiset"
+  ..
+
+
 text {* Raw operations on lists *}
 
 definition join_raw :: "('key \<Rightarrow> 'val \<times> 'val \<Rightarrow> 'val) \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list \<Rightarrow> ('key \<times> 'val) list"
@@ -174,62 +221,23 @@ next
   qed
 qed
 
-instantiation multiset :: (equal) equal
-begin
+declare multiset_inter_def [code]
 
-definition
-  [code]: "HOL.equal A B \<longleftrightarrow> (A::'a multiset) \<le> B \<and> B \<le> A"
-
-instance
-  by default (simp add: equal_multiset_def eq_iff)
-
-end
-
-text {* Quickcheck generators *}
-
-definition (in term_syntax)
-  bagify :: "('a\<Colon>typerep, nat) alist \<times> (unit \<Rightarrow> Code_Evaluation.term)
-    \<Rightarrow> 'a multiset \<times> (unit \<Rightarrow> Code_Evaluation.term)" where
-  [code_unfold]: "bagify xs = Code_Evaluation.valtermify Bag {\<cdot>} xs"
-
-notation fcomp (infixl "\<circ>>" 60)
-notation scomp (infixl "\<circ>\<rightarrow>" 60)
-
-instantiation multiset :: (random) random
-begin
-
-definition
-  "Quickcheck_Random.random i = Quickcheck_Random.random i \<circ>\<rightarrow> (\<lambda>xs. Pair (bagify xs))"
-
-instance ..
-
-end
-
-no_notation fcomp (infixl "\<circ>>" 60)
-no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
+lemma [code]:
+  "multiset_of [] = {#}"
+  "multiset_of (x # xs) = multiset_of xs + {#x#}"
+  by simp_all
 
 instantiation multiset :: (exhaustive) exhaustive
 begin
 
-definition exhaustive_multiset :: "('a multiset => (bool * term list) option) => natural => (bool * term list) option"
+definition exhaustive_multiset :: "('a multiset \<Rightarrow> (bool \<times> term list) option) \<Rightarrow> natural \<Rightarrow> (bool * term list) option"
 where
-  "exhaustive_multiset f i = Quickcheck_Exhaustive.exhaustive (%xs. f (Bag xs)) i"
+  "exhaustive_multiset f i = Quickcheck_Exhaustive.exhaustive (\<lambda>xs. f (Bag xs)) i"
 
 instance ..
 
 end
 
-instantiation multiset :: (full_exhaustive) full_exhaustive
-begin
-
-definition full_exhaustive_multiset :: "('a multiset * (unit => term) => (bool * term list) option) => natural => (bool * term list) option"
-where
-  "full_exhaustive_multiset f i = Quickcheck_Exhaustive.full_exhaustive (%xs. f (bagify xs)) i"
-
-instance ..
-
 end
 
-hide_const (open) bagify
-
-end
