@@ -26,7 +26,7 @@ sig
   val check_finished: Proof.context -> thm -> thm
   val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
-  val fork_name: string -> int -> (unit -> 'a) -> 'a future
+  val fork_params: {name: string, pos: Position.T, pri: int} -> (unit -> 'a) -> 'a future
   val fork: int -> (unit -> 'a) -> 'a future
   val peek_futures: serial -> unit future list
   val reset_futures: unit -> Future.group list
@@ -95,10 +95,10 @@ fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
    C
 *)
 fun check_finished ctxt th =
-  (case Thm.nprems_of th of
-    0 => th
-  | n => raise THM ("Proof failed.\n" ^
-      Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt th), 0, [th]));
+  if Thm.no_prems th then th
+  else
+    raise THM ("Proof failed.\n" ^
+      Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt th), 0, [th]);
 
 fun finish ctxt = check_finished ctxt #> conclude;
 
@@ -143,10 +143,9 @@ fun status task markups =
 
 in
 
-fun fork_name name pri e =
-  uninterruptible (fn _ => fn () =>
+fun fork_params {name, pos, pri} e =
+  uninterruptible (fn _ => Position.setmp_thread_data pos (fn () =>
     let
-      val pos = Position.thread_data ();
       val id = the_default 0 (Position.parse_id pos);
       val _ = count_forked 1;
 
@@ -174,9 +173,10 @@ fun fork_name name pri e =
             in Exn.release result end);
       val _ = status (Future.task_of future) [Markup.forked];
       val _ = register_forked id future;
-    in future end) ();
+    in future end)) ();
 
-fun fork pri e = fork_name "Goal.fork" pri e;
+fun fork pri e =
+  fork_params {name = "Goal.fork", pos = Position.thread_data (), pri = pri} e;
 
 fun forked_count () = #1 (Synchronized.value forked_proofs);
 
@@ -184,7 +184,7 @@ fun peek_futures id =
   Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
 
 fun reset_futures () =
-  Synchronized.change_result forked_proofs (fn (m, groups, tab) =>
+  Synchronized.change_result forked_proofs (fn (_, groups, _) =>
     (Future.forked_proofs := 0; (groups, (0, [], Inttab.empty))));
 
 fun shutdown_futures () =

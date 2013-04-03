@@ -157,9 +157,7 @@ val permute_tac = PRIMITIVE oo Thm.permute_prems;
 fun distinct_tac (i, k) =
   permute_tac 0 (i - 1) THEN
   permute_tac 1 (k - 1) THEN
-  DETERM (PRIMSEQ (fn st =>
-    Thm.compose_no_flatten false (st, 0) 1
-      (Drule.incr_indexes st Drule.distinct_prems_rl))) THEN
+  PRIMITIVE (fn st => Drule.comp_no_flatten (st, 0) 1 Drule.distinct_prems_rl) THEN
   permute_tac 1 (1 - k) THEN
   permute_tac 0 (1 - i);
 

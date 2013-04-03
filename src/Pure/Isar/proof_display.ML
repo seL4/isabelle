@@ -113,9 +113,9 @@ fun string_of_goal ctxt goal =
 
 fun pretty_goal_facts ctxt s ths =
   (Pretty.block o Pretty.fbreaks)
-    ((if s = "" then Pretty.str "this:"
-      else Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"]) ::
-      map (Display.pretty_thm_item ctxt) ths);
+    [if s = "" then Pretty.str "this:"
+     else Pretty.block [Pretty.command s, Pretty.brk 1, Pretty.str "this:"],
+     Proof_Context.pretty_fact ctxt ("", ths)];
 
 
 (* method_error *)

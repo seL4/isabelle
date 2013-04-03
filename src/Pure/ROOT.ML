@@ -28,9 +28,9 @@ else use "Concurrent/synchronized_sequential.ML";
 
 use "General/properties.ML";
 use "General/output.ML";
-use "General/timing.ML";
 use "PIDE/markup.ML";
 fun legacy_feature s = warning (Markup.markup Markup.legacy ("Legacy feature! " ^ s));
+use "General/timing.ML";
 use "General/scan.ML";
 use "General/source.ML";
 use "General/symbol.ML";

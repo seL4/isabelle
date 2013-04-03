@@ -1317,7 +1317,7 @@ fun pretty_ctxt ctxt =
       val prt_prems =
         (case Assumption.all_prems_of ctxt of
           [] => []
-        | prems => [Pretty.big_list "prems:" (map (Display.pretty_thm_item ctxt) prems)]);
+        | prems => [Pretty.big_list "prems:" [pretty_fact ctxt ("", prems)]]);
     in prt_structs @ prt_fixes @ prt_prems end;
 
 
