@@ -95,10 +95,10 @@ fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
    C
 *)
 fun check_finished ctxt th =
-  (case Thm.nprems_of th of
-    0 => th
-  | n => raise THM ("Proof failed.\n" ^
-      Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt th), 0, [th]));
+  if Thm.no_prems th then th
+  else
+    raise THM ("Proof failed.\n" ^
+      Pretty.string_of (Goal_Display.pretty_goal {main = true, limit = false} ctxt th), 0, [th]);
 
 fun finish ctxt = check_finished ctxt #> conclude;
 
@@ -184,7 +184,7 @@ fun peek_futures id =
   Inttab.lookup_list (#3 (Synchronized.value forked_proofs)) id;
 
 fun reset_futures () =
-  Synchronized.change_result forked_proofs (fn (m, groups, tab) =>
+  Synchronized.change_result forked_proofs (fn (_, groups, _) =>
     (Future.forked_proofs := 0; (groups, (0, [], Inttab.empty))));
 
 fun shutdown_futures () =
