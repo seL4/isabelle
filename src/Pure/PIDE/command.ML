@@ -63,9 +63,8 @@ local
 
 fun run int tr st =
   if Goal.future_enabled () andalso Keyword.is_diag (Toplevel.name_of tr) then
-    Toplevel.setmp_thread_position tr (fn () =>
-      (Goal.fork_name "Toplevel.diag" ~1 (fn () => Toplevel.command_exception int tr st);
-        ([], SOME st))) ()
+    (Goal.fork_params {name = "Toplevel.diag", pos = Toplevel.pos_of tr, pri = ~1}
+      (fn () => Toplevel.command_exception int tr st); ([], SOME st))
   else Toplevel.command_errors int tr st;
 
 fun check_cmts tr cmts st =

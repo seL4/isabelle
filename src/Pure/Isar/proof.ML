@@ -1158,24 +1158,23 @@ end;
 
 local
 
-fun future_terminal_proof n proof1 proof2 done int state =
-  if (Goal.future_enabled_level 4 orelse Goal.future_enabled_nested n andalso not int)
-    andalso not (is_relevant state)
-  then
+fun future_terminal_proof proof1 proof2 done int state =
+  if Goal.future_enabled_level 3 andalso not (is_relevant state) then
     state |> future_proof (fn state' =>
-      Goal.fork_name "Proof.future_terminal_proof" ~1
+      Goal.fork_params
+        {name = "Proof.future_terminal_proof", pos = Position.thread_data (), pri = ~1}
         (fn () => ((), proof2 state'))) |> snd |> done
   else proof1 state;
 
 in
 
 fun local_future_terminal_proof meths =
-  future_terminal_proof 3
+  future_terminal_proof
     (local_terminal_proof meths)
     (local_terminal_proof meths #> context_of) local_done_proof;
 
 fun global_future_terminal_proof meths =
-  future_terminal_proof 3
+  future_terminal_proof
     (global_terminal_proof meths)
     (global_terminal_proof meths) global_done_proof;
 

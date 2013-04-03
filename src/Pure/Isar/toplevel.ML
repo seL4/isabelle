@@ -763,9 +763,10 @@ fun atom_result tr st =
   let
     val st' =
       if Goal.future_enabled () andalso Keyword.is_diag (name_of tr) then
-        setmp_thread_position tr (fn () =>
-          (Goal.fork_name "Toplevel.diag" (priority (timing_estimate true (Thy_Syntax.atom tr)))
-            (fn () => command tr st); st)) ()
+        (Goal.fork_params
+          {name = "Toplevel.diag", pos = pos_of tr,
+            pri = priority (timing_estimate true (Thy_Syntax.atom tr))}
+          (fn () => command tr st); st)
       else command tr st;
   in (Result (tr, st'), st') end;
 
@@ -788,19 +789,18 @@ fun element_result (Thy_Syntax.Element (tr, NONE)) st = atom_result tr st
           let
             val finish = Context.Theory o Proof_Context.theory_of;
 
-            val future_proof = Proof.future_proof
-              (fn state =>
-                setmp_thread_position head_tr (fn () =>
-                  Goal.fork_name "Toplevel.future_proof"
-                    (priority estimate)
-                    (fn () =>
-                      let
-                        val State (SOME (Proof (prf, (_, orig_gthy))), prev) = st';
-                        val prf' = Proof_Node.apply (K state) prf;
-                        val (result, result_state) =
-                          State (SOME (Proof (prf', (finish, orig_gthy))), prev)
-                          |> fold_map element_result body_elems ||> command end_tr;
-                      in (Result_List result, presentation_context_of result_state) end)) ())
+            val future_proof =
+              Proof.future_proof (fn state =>
+                Goal.fork_params
+                  {name = "Toplevel.future_proof", pos = pos_of head_tr, pri = priority estimate}
+                  (fn () =>
+                    let
+                      val State (SOME (Proof (prf, (_, orig_gthy))), prev) = st';
+                      val prf' = Proof_Node.apply (K state) prf;
+                      val (result, result_state) =
+                        State (SOME (Proof (prf', (finish, orig_gthy))), prev)
+                        |> fold_map element_result body_elems ||> command end_tr;
+                    in (Result_List result, presentation_context_of result_state) end))
               #> (fn (res, state') => state' |> put_result (Result_Future res));
 
             val forked_proof =
