@@ -1377,7 +1377,7 @@ fun assumption i state =
   in addprfs asms 1 end;
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption.
-  Checks if Bi's conclusion is alpha-convertible to one of its assumptions*)
+  Checks if Bi's conclusion is alpha/eta-convertible to one of its assumptions*)
 fun eq_assumption i state =
   let
     val Thm (der, {thy_ref, maxidx, shyps, hyps, ...}) = state;
