@@ -22,7 +22,7 @@ object Graphview extends SwingApplication
     // FIXME avoid I/O etc. on Swing thread
     val graph: Model.Graph =
       try {
-        Platform.init_laf()
+        GUI.init_laf()
         Isabelle_System.init()
         Isabelle_Font.install_fonts()
         ToolTipManager.sharedInstance.setDismissDelay(1000*60*60)

@@ -17,7 +17,7 @@ object JEdit_Main
 {
   def main(args: Array[String])
   {
-    Platform.init_laf()
+    GUI.init_laf()
     Isabelle_System.init()
 
     System.setProperty("jedit.home",

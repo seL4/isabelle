@@ -17,7 +17,7 @@ object GUI_Setup extends SwingApplication
 {
   def startup(args: Array[String]) =
   {
-    Platform.init_laf()
+    GUI.init_laf()
     top.pack()
     top.visible = true
   }
