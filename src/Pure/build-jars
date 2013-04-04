@@ -47,6 +47,7 @@ declare -a SOURCES=(
   System/interrupt.scala
   System/invoke_scala.scala
   System/isabelle_charset.scala
+  System/isabelle_font.scala
   System/isabelle_process.scala
   System/isabelle_system.scala
   System/jfx_thread.scala

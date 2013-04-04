@@ -30,8 +30,8 @@ class Symbols_Dockable(view: View, position: String) extends Dockable(view, posi
 
     font =
       Symbol.fonts.get(symbol) match {
-        case None => Isabelle_System.get_font(size = font_size)
-        case Some(font_family) => Isabelle_System.get_font(family = font_family, size = font_size)
+        case None => Isabelle_Font(size = font_size)
+        case Some(font_family) => Isabelle_Font(family = font_family, size = font_size)
       }
     action =
       Action(decoded) {
