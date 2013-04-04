@@ -190,9 +190,6 @@ datatype config = Error | Warning | Quiet;
 
 exception CASE_ERROR of string * int;
 
-fun match_type ctxt pat ob =
-  Sign.typ_match (Proof_Context.theory_of ctxt) (pat, ob) Vartab.empty;
-
 
 (*Each pattern carries with it a tag i, which denotes the clause it
 came from. i = ~1 indicates that the clause was added by pattern
@@ -207,14 +204,14 @@ fun default_name "" (Free (name', _)) = name'
 
 
 (*Produce an instance of a constructor, plus fresh variables for its arguments.*)
-fun fresh_constr ctxt colty used c =
+fun fresh_constr colty used c =
   let
     val (_, T) = dest_Const c;
     val Ts = binder_types T;
     val (names, _) = fold_map Name.variant
       (Datatype_Prop.make_tnames (map Logic.unvarifyT_global Ts)) used;
     val ty = body_type T;
-    val ty_theta = match_type ctxt ty colty
+    val ty_theta = Type.raw_match (ty, colty) Vartab.empty
       handle Type.TYPE_MATCH => raise CASE_ERROR ("type mismatch", ~1);
     val c' = Envir.subst_term_types ty_theta c;
     val gvars = map (Envir.subst_term_types ty_theta o Free) (names ~~ Ts);
@@ -241,8 +238,8 @@ fun mk_group (name, T) rows =
 
 (* Partitioning *)
 
-fun partition _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
-  | partition ctxt used constructors colty res_ty
+fun partition _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
+  | partition used constructors colty res_ty
         (rows as (((prfx, _ :: ps), _) :: _)) =
       let
         fun part [] [] = []
@@ -251,7 +248,7 @@ fun partition _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
               let
                 val ((in_group, not_in_group), names) = mk_group (dest_Const c) rows;
                 val used' = fold add_row_used in_group used;
-                val (c', gvars) = fresh_constr ctxt colty used' c;
+                val (c', gvars) = fresh_constr colty used' c;
                 val in_group' =
                   if null in_group  (* Constructor not given *)
                   then
@@ -290,7 +287,7 @@ fun mk_case ctxt used range_ty =
             let
               val used' = add_row_used row used;
               fun expnd c =
-                let val capp = list_comb (fresh_constr ctxt ty used' c)
+                let val capp = list_comb (fresh_constr ty used' c)
                 in ((prfx, capp :: ps), (subst_free [(p, capp)] rhs, tag)) end;
             in map expnd constructors end
           else [row];
@@ -318,7 +315,7 @@ fun mk_case ctxt used range_ty =
                       val used' = fold Term.declare_term_frees us used;
                       val nrows = maps (expand constructors used' pty) rows;
                       val subproblems =
-                        partition ctxt used' constructors pty range_ty nrows;
+                        partition used' constructors pty range_ty nrows;
                       val (pat_rect, dtrees) =
                         split_list (map (fn {new_formals, group, ...} =>
                           mk (new_formals @ us) group) subproblems);
