@@ -730,9 +730,7 @@ fun ss setloop tac = ss setloop' (K tac);
 fun ss addloop' (name, tac) = ss |>
   map_simpset2 (fn (congs, procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) =>
     (congs, procs, mk_rews, termless, subgoal_tac,
-     (if AList.defined (op =) loop_tacs name
-      then if_visible ss warning ("Overwriting looper " ^ quote name)
-      else (); AList.update (op =) (name, tac) loop_tacs), solvers));
+     AList.update (op =) (name, tac) loop_tacs, solvers));
 
 fun ss addloop (name, tac) = ss addloop' (name, K tac);
 
