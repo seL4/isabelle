@@ -39,6 +39,17 @@ proof induct
   qed
 qed
 
+lemma infinite_finite_induct [case_names infinite empty insert]:
+  assumes infinite: "\<And>A. \<not> finite A \<Longrightarrow> P A"
+  assumes empty: "P {}"
+  assumes insert: "\<And>x F. finite F \<Longrightarrow> x \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert x F)"
+  shows "P A"
+proof (cases "finite A")
+  case False with infinite show ?thesis .
+next
+  case True then show ?thesis by (induct A) (fact empty insert)+
+qed
+
 
 subsubsection {* Choice principles *}
 
