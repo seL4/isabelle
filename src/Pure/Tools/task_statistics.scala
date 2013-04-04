@@ -53,7 +53,7 @@ final class Task_Statistics private(val name: String, val tasks: List[Properties
   def show_frame(bins: Int = 100): Unit =
     Swing_Thread.later {
       new Frame {
-        iconImage = Isabelle_System.get_icon().getImage
+        iconImage = GUI.isabelle_image()
         title = name
         contents = Component.wrap(new ChartPanel(chart(bins)))
         visible = true

@@ -64,7 +64,7 @@ object Build_Dialog
     more_dirs: List[(Boolean, Path)],
     session: String): MainFrame = new MainFrame
   {
-    iconImage = Isabelle_System.get_icon().getImage
+    iconImage = GUI.isabelle_image()
 
 
     /* GUI state */

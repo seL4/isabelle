@@ -42,6 +42,7 @@ declare -a SOURCES=(
   System/color_value.scala
   System/command_line.scala
   System/event_bus.scala
+  System/gui.scala
   System/gui_setup.scala
   System/html5_panel.scala
   System/interrupt.scala

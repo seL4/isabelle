@@ -11,7 +11,6 @@ import java.lang.System
 import java.util.regex.Pattern
 import java.io.{File => JFile, BufferedReader, InputStreamReader,
   BufferedWriter, OutputStreamWriter}
-import javax.swing.ImageIcon
 
 import scala.util.matching.Regex
 
@@ -421,10 +420,4 @@ object Isabelle_System
       case None => Isabelle_System.getenv_strict("ISABELLE_LOGIC")
     }
   }
-
-
-  /* icon */
-
-  def get_icon(): ImageIcon =
-    new ImageIcon(platform_path(Path.explode("~~/lib/logo/isabelle.gif")))
 }

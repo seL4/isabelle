@@ -134,7 +134,7 @@ final class ML_Statistics private(val name: String, val stats: List[Properties.T
     ML_Statistics.standard_fields.map(chart(_)).foreach(c =>
       Swing_Thread.later {
         new Frame {
-          iconImage = Isabelle_System.get_icon().getImage
+          iconImage = GUI.isabelle_image()
           title = name
           contents = Component.wrap(new ChartPanel(c))
           visible = true
