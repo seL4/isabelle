@@ -11,6 +11,14 @@ begin
 text {* Delete prexisting code equations *}
 
 lemma [code, code del]:
+  "{#} = {#}"
+  ..
+
+lemma [code, code del]:
+  "single = single"
+  ..
+
+lemma [code, code del]:
   "plus = (plus :: 'a multiset \<Rightarrow> _)"
   ..
 
@@ -20,6 +28,10 @@ lemma [code, code del]:
 
 lemma [code, code del]:
   "inf = (inf :: 'a multiset \<Rightarrow> _)"
+  ..
+
+lemma [code, code del]:
+  "sup = (sup :: 'a multiset \<Rightarrow> _)"
   ..
 
 lemma [code, code del]:
@@ -222,11 +234,8 @@ next
 qed
 
 declare multiset_inter_def [code]
-
-lemma [code]:
-  "multiset_of [] = {#}"
-  "multiset_of (x # xs) = multiset_of xs + {#x#}"
-  by simp_all
+declare sup_multiset_def [code]
+declare multiset_of.simps [code]
 
 instantiation multiset :: (exhaustive) exhaustive
 begin

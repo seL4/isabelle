@@ -438,6 +438,55 @@ lemma inter_add_right2:
   by (simp add: multiset_eq_iff)
 
 
+subsubsection {* Bounded union *}
+
+instantiation multiset :: (type) semilattice_sup
+begin
+
+definition sup_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" where
+  "sup_multiset A B = A + (B - A)"
+
+instance
+proof -
+  have aux: "\<And>m n q :: nat. m \<le> n \<Longrightarrow> q \<le> n \<Longrightarrow> m + (q - m) \<le> n" by arith
+  show "OFCLASS('a multiset, semilattice_sup_class)"
+    by default (auto simp add: sup_multiset_def mset_le_def aux)
+qed
+
+end
+
+abbreviation sup_multiset :: "'a multiset \<Rightarrow> 'a multiset \<Rightarrow> 'a multiset" (infixl "#\<union>" 70) where
+  "sup_multiset \<equiv> sup"
+
+lemma sup_multiset_count [simp]:
+  "count (A #\<union> B) x = max (count A x) (count B x)"
+  by (simp add: sup_multiset_def)
+
+lemma empty_sup [simp]:
+  "{#} #\<union> M = M"
+  by (simp add: multiset_eq_iff)
+
+lemma sup_empty [simp]:
+  "M #\<union> {#} = M"
+  by (simp add: multiset_eq_iff)
+
+lemma sup_add_left1:
+  "\<not> x \<in># N \<Longrightarrow> (M + {#x#}) #\<union> N = (M #\<union> N) + {#x#}"
+  by (simp add: multiset_eq_iff)
+
+lemma sup_add_left2:
+  "x \<in># N \<Longrightarrow> (M + {#x#}) #\<union> N = (M #\<union> (N - {#x#})) + {#x#}"
+  by (simp add: multiset_eq_iff)
+
+lemma sup_add_right1:
+  "\<not> x \<in># N \<Longrightarrow> N #\<union> (M + {#x#}) = (N #\<union> M) + {#x#}"
+  by (simp add: multiset_eq_iff)
+
+lemma sup_add_right2:
+  "x \<in># N \<Longrightarrow> N #\<union> (M + {#x#}) = ((N - {#x#}) #\<union> M) + {#x#}"
+  by (simp add: multiset_eq_iff)
+
+
 subsubsection {* Filter (with comprehension syntax) *}
 
 text {* Multiset comprehension *}
@@ -1982,8 +2031,18 @@ proof -
   have "\<And>zs. multiset_of (snd (fold (\<lambda>x (ys, zs).
     if x \<in> set ys then (remove1 x ys, x # zs) else (ys, zs)) xs (ys, zs))) =
       (multiset_of xs #\<inter> multiset_of ys) + multiset_of zs"
-  by (induct xs arbitrary: ys)
-    (auto simp add: mem_set_multiset_eq inter_add_right1 inter_add_right2 ac_simps)
+    by (induct xs arbitrary: ys)
+      (auto simp add: mem_set_multiset_eq inter_add_right1 inter_add_right2 ac_simps)
+  then show ?thesis by simp
+qed
+
+lemma [code]:
+  "multiset_of xs #\<union> multiset_of ys =
+    multiset_of (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, [])))"
+proof -
+  have "\<And>zs. multiset_of (split append (fold (\<lambda>x (ys, zs). (remove1 x ys, x # zs)) xs (ys, zs))) =
+      (multiset_of xs #\<union> multiset_of ys) + multiset_of zs"
+    by (induct xs arbitrary: ys) (simp_all add: multiset_eq_iff)
   then show ?thesis by simp
 qed
 
