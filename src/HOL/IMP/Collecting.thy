@@ -95,42 +95,49 @@ qed
 
 end
 
+text_raw{*\snip{subadef}{2}{1}{% *}
 fun sub\<^isub>1 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>1(C1;C2) = C1" |
-"sub\<^isub>1(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = C1" |
+"sub\<^isub>1(C\<^isub>1;C\<^isub>2) = C\<^isub>1" |
+"sub\<^isub>1(IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) = C\<^isub>1" |
 "sub\<^isub>1({I} WHILE b DO {P} C {Q}) = C"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{subbdef}{1}{1}{% *}
 fun sub\<^isub>2 :: "'a acom \<Rightarrow> 'a acom" where
-"sub\<^isub>2(C1;C2) = C2" |
-"sub\<^isub>2(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = C2"
+"sub\<^isub>2(C\<^isub>1;C\<^isub>2) = C\<^isub>2" |
+"sub\<^isub>2(IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) = C\<^isub>2"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{annoadef}{1}{1}{% *}
 fun anno\<^isub>1 :: "'a acom \<Rightarrow> 'a" where
-"anno\<^isub>1(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = P1" |
+"anno\<^isub>1(IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) = P\<^isub>1" |
 "anno\<^isub>1({I} WHILE b DO {P} C {Q}) = I"
+text_raw{*}%endsnip*}
 
+text_raw{*\snip{annobdef}{1}{2}{% *}
 fun anno\<^isub>2 :: "'a acom \<Rightarrow> 'a" where
-"anno\<^isub>2(IF b THEN {P1} C1 ELSE {P2} C2 {Q}) = P2" |
+"anno\<^isub>2(IF b THEN {P\<^isub>1} C\<^isub>1 ELSE {P\<^isub>2} C\<^isub>2 {Q}) = P\<^isub>2" |
 "anno\<^isub>2({I} WHILE b DO {P} C {Q}) = P"
+text_raw{*}%endsnip*}
 
-
-fun Union_acom :: "com \<Rightarrow> 'a acom set \<Rightarrow> 'a set acom" where
-"Union_acom com.SKIP M = (SKIP {post ` M})" |
-"Union_acom (x ::= a) M = (x ::= a {post ` M})" |
-"Union_acom (c1;c2) M =
-  Union_acom c1 (sub\<^isub>1 ` M); Union_acom c2 (sub\<^isub>2 ` M)" |
-"Union_acom (IF b THEN c1 ELSE c2) M =
-  IF b THEN {anno\<^isub>1 ` M} Union_acom c1 (sub\<^isub>1 ` M) ELSE {anno\<^isub>2 ` M} Union_acom c2 (sub\<^isub>2 ` M)
+fun merge :: "com \<Rightarrow> 'a acom set \<Rightarrow> 'a set acom" where
+"merge com.SKIP M = (SKIP {post ` M})" |
+"merge (x ::= a) M = (x ::= a {post ` M})" |
+"merge (c1;c2) M =
+  merge c1 (sub\<^isub>1 ` M); merge c2 (sub\<^isub>2 ` M)" |
+"merge (IF b THEN c1 ELSE c2) M =
+  IF b THEN {anno\<^isub>1 ` M} merge c1 (sub\<^isub>1 ` M) ELSE {anno\<^isub>2 ` M} merge c2 (sub\<^isub>2 ` M)
   {post ` M}" |
-"Union_acom (WHILE b DO c) M =
+"merge (WHILE b DO c) M =
  {anno\<^isub>1 ` M}
- WHILE b DO {anno\<^isub>2 ` M} Union_acom c (sub\<^isub>1 ` M)
+ WHILE b DO {anno\<^isub>2 ` M} merge c (sub\<^isub>1 ` M)
  {post ` M}"
 
 interpretation
-  Complete_Lattice "{C. strip C = c}" "map_acom Inter o (Union_acom c)" for c
+  Complete_Lattice "{C. strip C = c}" "map_acom Inter o (merge c)" for c
 proof
   case goal1
-  have "a:A \<Longrightarrow> map_acom Inter (Union_acom (strip a) A) \<le> a"
+  have "a:A \<Longrightarrow> map_acom Inter (merge (strip a) A) \<le> a"
   proof(induction a arbitrary: A)
     case Seq from Seq.prems show ?case by(force intro!: Seq.IH)
   next
@@ -155,7 +162,7 @@ next
   qed
 next
   case goal3
-  have "strip(Union_acom c A) = c"
+  have "strip(merge c A) = c"
   proof(induction c arbitrary: A)
     case Seq from Seq.prems show ?case by (fastforce simp: strip_eq_Seq subset_iff intro!: Seq.IH)
   next
@@ -216,7 +223,7 @@ by(simp add: CS_def index_lfp[simplified])
 
 subsubsection "Relation to big-step semantics"
 
-lemma post_Union_acom: "\<forall> c' \<in> M. strip c' = c \<Longrightarrow> post (Union_acom c M) = post ` M"
+lemma post_merge: "\<forall> c' \<in> M. strip c' = c \<Longrightarrow> post (merge c M) = post ` M"
 proof(induction c arbitrary: M)
   case (Seq c1 c2)
   have "post ` M = post ` sub\<^isub>2 ` M" using Seq.prems by (force simp: strip_eq_Seq)
@@ -226,7 +233,7 @@ qed simp_all
 
 
 lemma post_lfp: "post(lfp c f) = (\<Inter>{post C|C. strip C = c \<and> f C \<le> C})"
-by(auto simp add: lfp_def post_Union_acom)
+by(auto simp add: lfp_def post_merge)
 
 lemma big_step_post_step:
   "\<lbrakk> (c, s) \<Rightarrow> t;  strip C = c;  s \<in> S;  step S C \<le> C \<rbrakk> \<Longrightarrow> t \<in> post C"
