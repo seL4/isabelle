@@ -22,8 +22,8 @@ object Main
       catch { case exn: Throwable => (Exn.message(exn), 2) }
 
     if (rc != 0)
-      Library.dialog(null, "Isabelle", "Isabelle output",
-        Library.scrollable_text(out + "\nReturn code: " + rc))
+      GUI.dialog(null, "Isabelle", "Isabelle output",
+        GUI.scrollable_text(out + "\nReturn code: " + rc))
 
     sys.exit(rc)
   }

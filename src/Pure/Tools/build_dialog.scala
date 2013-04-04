@@ -51,8 +51,7 @@ object Build_Dialog
     }
     catch {
       case exn: Throwable =>
-        Library.error_dialog(null, "Isabelle build failure",
-          Library.scrollable_text(Exn.message(exn)))
+        GUI.error_dialog(null, "Isabelle build failure", GUI.scrollable_text(Exn.message(exn)))
         sys.exit(2)
     }
   }
@@ -78,7 +77,7 @@ object Build_Dialog
     /* text */
 
     val text = new TextArea {
-      font = new Font("SansSerif", Font.PLAIN, Library.resolution_scale(10) max 14)
+      font = new Font("SansSerif", Font.PLAIN, GUI.resolution_scale(10) max 14)
       editable = false
       columns = 50
       rows = 20

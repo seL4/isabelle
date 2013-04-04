@@ -62,8 +62,7 @@ class Graph_Panel(
     refresh()
   }
 
-  val zoom_box: Library.Zoom_Box =
-    new Library.Zoom_Box(percent => rescale(0.01 * percent))
+  val zoom_box: GUI.Zoom_Box = new GUI.Zoom_Box(percent => rescale(0.01 * percent))
 
   def rescale(s: Double)
   {

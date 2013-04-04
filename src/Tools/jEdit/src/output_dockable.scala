@@ -135,7 +135,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   /* controls */
 
-  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
+  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
   private val auto_update = new CheckBox("Auto update") {

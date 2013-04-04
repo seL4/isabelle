@@ -94,7 +94,7 @@ class Info_Dockable(view: View, position: String) extends Dockable(view, positio
     override def componentResized(e: ComponentEvent) { delay_resize.invoke() }
   })
 
-  private val zoom = new Library.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
+  private val zoom = new GUI.Zoom_Box(factor => { zoom_factor = factor; handle_resize() })
   zoom.tooltip = "Zoom factor for basic font size"
 
   private val controls = new FlowPanel(FlowPanel.Alignment.Right)(zoom)

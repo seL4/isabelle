@@ -166,7 +166,7 @@ class Plugin extends EBPlugin
             files_list.selection.indices += i
 
           val answer =
-            Library.confirm_dialog(view,
+            GUI.confirm_dialog(view,
               "Auto loading of required files",
               JOptionPane.YES_NO_OPTION,
               "The following files are required to resolve theory imports.",
@@ -191,8 +191,8 @@ class Plugin extends EBPlugin
           phase match {
             case Session.Inactive | Session.Failed =>
               Swing_Thread.later {
-                Library.error_dialog(jEdit.getActiveView, "Prover process terminated",
-                    "Isabelle Syslog", Library.scrollable_text(PIDE.session.current_syslog()))
+                GUI.error_dialog(jEdit.getActiveView, "Prover process terminated",
+                    "Isabelle Syslog", GUI.scrollable_text(PIDE.session.current_syslog()))
               }
 
             case Session.Ready =>
@@ -230,8 +230,8 @@ class Plugin extends EBPlugin
     if (PIDE.startup_failure.isDefined && !PIDE.startup_notified) {
       message match {
         case msg: EditorStarted =>
-          Library.error_dialog(null, "Isabelle plugin startup failure",
-            Library.scrollable_text(Exn.message(PIDE.startup_failure.get)),
+          GUI.error_dialog(null, "Isabelle plugin startup failure",
+            GUI.scrollable_text(Exn.message(PIDE.startup_failure.get)),
             "Prover IDE inactive!")
           PIDE.startup_notified = true
         case _ =>
