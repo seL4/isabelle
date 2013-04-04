@@ -8,8 +8,6 @@ Markup trees over nested / non-overlapping text ranges.
 
 package isabelle
 
-import java.lang.System
-import javax.swing.tree.DefaultMutableTreeNode
 
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
@@ -132,7 +130,7 @@ object Markup_Tree
 }
 
 
-final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
+final class Markup_Tree private(val branches: Markup_Tree.Branches.T)
 {
   import Markup_Tree._
 
@@ -279,16 +277,6 @@ final class Markup_Tree private(private val branches: Markup_Tree.Branches.T)
     }
     stream(root_range.start,
       List((Text.Info(root_range, root_info), overlapping(root_range).toStream)))
-  }
-
-  def swing_tree(parent: DefaultMutableTreeNode,
-    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
-  {
-    for ((_, entry) <- branches) {
-      val node = swing_node(Text.Info(entry.range, entry.markup))
-      entry.subtree.swing_tree(node, swing_node)
-      parent.add(node)
-    }
   }
 }
 

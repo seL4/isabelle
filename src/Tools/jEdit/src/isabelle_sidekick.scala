@@ -44,6 +44,16 @@ object Isabelle_Sidekick
     override def setEnd(end: Position) = _end = end
     override def toString = _name
   }
+
+  def swing_markup_tree(tree: Markup_Tree, parent: DefaultMutableTreeNode,
+    swing_node: Text.Info[List[XML.Elem]] => DefaultMutableTreeNode)
+  {
+    for ((_, entry) <- tree.branches) {
+      val node = swing_node(Text.Info(entry.range, entry.markup))
+      swing_markup_tree(entry.subtree, node, swing_node)
+      parent.add(node)
+    }
+  }
 }
 
 
@@ -195,8 +205,9 @@ class Isabelle_Sidekick_Raw extends Isabelle_Sidekick("isabelle-raw", PIDE.get_r
       case Some(snapshot) =>
         val root = data.root
         for ((command, command_start) <- snapshot.node.command_range() if !stopped) {
-          snapshot.state.command_state(snapshot.version, command).markup
-            .swing_tree(root, (info: Text.Info[List[XML.Elem]]) =>
+          Isabelle_Sidekick.swing_markup_tree(
+            snapshot.state.command_state(snapshot.version, command).markup, root,
+              (info: Text.Info[List[XML.Elem]]) =>
               {
                 val range = info.range + command_start
                 val content = command.source(info.range).replace('\n', ' ')
