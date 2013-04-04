@@ -7,9 +7,6 @@ Generic pretty printing module.
 package isabelle
 
 
-import java.awt.FontMetrics
-
-
 object Pretty
 {
   /* spaces */
