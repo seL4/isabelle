@@ -172,8 +172,7 @@ fun literal_markup s =
   if Symbol.is_ascii_identifier s then Markup.literal else Markup.delimiter;
 
 val token_kind_markup =
- fn VarSy   => Markup.var
-  | TFreeSy => Markup.tfree
+ fn TFreeSy => Markup.tfree
   | TVarSy  => Markup.tvar
   | NumSy   => Markup.numeral
   | FloatSy => Markup.numeral
