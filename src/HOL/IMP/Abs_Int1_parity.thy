@@ -53,7 +53,7 @@ instantiation parity :: semilattice
 begin
 
 definition sup_parity where
-"x \<squnion> y = (if x \<le> y then y else if y \<le> x then x else Either)"
+"x \<squnion> y = (if x = y then x else Either)"
 
 definition top_parity where
 "\<top> = Either"
