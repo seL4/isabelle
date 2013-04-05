@@ -72,7 +72,7 @@ sig
   val ML_structN: string
   val ML_typingN: string val ML_typing: T
   val ML_sourceN: string val ML_source: T
-  val doc_sourceN: string val doc_source: T
+  val document_sourceN: string val document_source: T
   val antiqN: string val antiq: T
   val ML_antiquotationN: string
   val document_antiquotationN: string
@@ -305,7 +305,7 @@ val (ML_typingN, ML_typing) = markup_elem "ML_typing";
 (* embedded source text *)
 
 val (ML_sourceN, ML_source) = markup_elem "ML_source";
-val (doc_sourceN, doc_source) = markup_elem "doc_source";
+val (document_sourceN, document_source) = markup_elem "document_source";
 
 val (antiqN, antiq) = markup_elem "antiq";
 val ML_antiquotationN = "ML_antiquotation";
