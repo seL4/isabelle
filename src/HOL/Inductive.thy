@@ -275,6 +275,7 @@ ML_file "Tools/Datatype/datatype_prop.ML"
 ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 
 consts
+  case_guard :: "'a \<Rightarrow> 'a"
   case_nil :: "'a \<Rightarrow> 'b"
   case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
