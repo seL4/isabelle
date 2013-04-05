@@ -275,7 +275,7 @@ ML_file "Tools/Datatype/datatype_prop.ML"
 ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 
 consts
-  case_guard :: "'a \<Rightarrow> 'a"
+  case_guard :: "bool \<Rightarrow> 'a \<Rightarrow> 'a"
   case_nil :: "'a \<Rightarrow> 'b"
   case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
@@ -299,7 +299,7 @@ let
   fun fun_tr ctxt [cs] =
     let
       val x = Syntax.free (fst (Name.variant "x" (Term.declare_term_frees cs Name.context)));
-      val ft = Case_Translation.case_tr ctxt [x, cs];
+      val ft = Case_Translation.case_tr true ctxt [x, cs];
     in lambda x ft end
 in [(@{syntax_const "_lam_pats_syntax"}, fun_tr)] end
 *}
