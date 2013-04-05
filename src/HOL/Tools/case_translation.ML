@@ -410,12 +410,12 @@ fun decode_cases (Const (@{const_name case_nil}, _)) = []
 fun check_case ctxt =
   let
     fun decode_case (Const (@{const_name case_guard}, _) $ (t $ u)) =
-        make_case ctxt Error Name.context (decode_case u) (decode_cases t)
-    | decode_case (t $ u) = decode_case t $ decode_case u
-    | decode_case (Abs (x, T, u)) =
-        let val (x', u') = Term.dest_abs (x, T, u);
-        in Term.absfree (x', T) (decode_case u') end
-    | decode_case t = t;
+          make_case ctxt Error Name.context (decode_case u) (decode_cases t)
+      | decode_case (t $ u) = decode_case t $ decode_case u
+      | decode_case (Abs (x, T, u)) =
+          let val (x', u') = Term.dest_abs (x, T, u);
+          in Term.absfree (x', T) (decode_case u') end
+      | decode_case t = t;
   in
     map decode_case
   end;
