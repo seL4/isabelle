@@ -1,7 +1,5 @@
 (* Author: Tobias Nipkow *)
 
-header "Abstract Interpretation (ITP)"
-
 theory Abs_Int0_ITP
 imports "~~/src/HOL/ex/Interpretation_with_Defs"
         "~~/src/HOL/Library/While_Combinator"

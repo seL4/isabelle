@@ -6,7 +6,9 @@ begin
 
 subsection "Orderings"
 
-declare order_trans[trans]
+text{* The basic type classes @{class order}, @{class semilattice_sup} and @{class top} are
+defined in @{theory Main}, more precisely in theories @{theory Orderings} and @{theory Lattices}.
+If you view this theory with jedit, just click on the names to get there. *}
 
 class semilattice = semilattice_sup + top
 

@@ -26,7 +26,7 @@ text{* We also need @{text"<"}, which is defined canonically: *}
 definition less_parity where
 "x < y = (x \<le> y \<and> \<not> y \<le> (x::parity))"
 
-text{*\noindent (The type annotation is necessary to fix the type of the polymorphic predicates.)
+text{*\noindent(The type annotation is necessary to fix the type of the polymorphic predicates.)
 
 Now the instance proof, i.e.\ the proof that the definition fulfills
 the axioms (assumptions) of the class. The initial proof-step generates the
@@ -62,7 +62,7 @@ text{* Now the instance proof. This time we take a lazy shortcut: we do not
 write out the proof obligations but use the @{text goali} primitive to refer
 to the assumptions of subgoal i and @{text "case?"} to refer to the
 conclusion of subgoal i. The class axioms are presented in the same order as
-in the class definition. *}
+in the class definition. Warning: this is brittle! *}
 
 instance
 proof

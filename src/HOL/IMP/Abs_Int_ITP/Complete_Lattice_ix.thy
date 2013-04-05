@@ -1,6 +1,6 @@
 (* Author: Tobias Nipkow *)
 
-header "Abstract Interpretation"
+header "Abstract Interpretation (ITP)"
 
 theory Complete_Lattice_ix
 imports Main

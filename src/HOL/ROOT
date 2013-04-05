@@ -113,6 +113,8 @@ session "HOL-IMP" in IMP = HOL +
     "~~/src/HOL/Library/While_Combinator"
     "~~/src/HOL/Library/Char_ord"
     "~~/src/HOL/Library/List_lexord"
+    "~~/src/HOL/Library/Quotient_List"
+    "~~/src/HOL/Library/Extended"
   theories
     BExp
     ASM
