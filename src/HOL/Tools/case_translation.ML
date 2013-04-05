@@ -126,11 +126,11 @@ fun case_tr err ctxt [t, u] =
 
         val errt = if err then @{term True} else @{term False};
       in
-        Syntax.const @{const_syntax case_guard} $ errt $ (fold_rev
+        Syntax.const @{const_syntax case_guard} $ errt $ t $ (fold_rev
           (fn t => fn u =>
              Syntax.const @{const_syntax case_cons} $ dest_case1 t $ u)
           (dest_case2 u)
-          (Syntax.const @{const_syntax case_nil}) $ t)
+          (Syntax.const @{const_syntax case_nil}))
       end
   | case_tr _ _ _ = case_error "case_tr";
 
@@ -142,9 +142,8 @@ val trfun_setup =
 
 (* print translation *)
 
-fun case_tr' [_, tx] =
+fun case_tr' [_, x, t] =
       let
-        val (t, x) = Term.dest_comb tx;
         fun mk_clause (Const (@{const_syntax case_abs}, _) $ Abs (s, T, t)) xs used =
               let val (s', used') = Name.variant s used
               in mk_clause t ((s', T) :: xs) used' end
@@ -412,7 +411,7 @@ fun decode_cases (Const (@{const_name case_nil}, _)) = []
 
 fun check_case ctxt =
   let
-    fun decode_case (Const (@{const_name case_guard}, _) $ b $ (t $ u)) =
+    fun decode_case (Const (@{const_name case_guard}, _) $ b $ u $ t) =
           make_case ctxt (if b = @{term True} then Error else Warning)
             Name.context (decode_case u) (decode_cases t)
       | decode_case (t $ u) = decode_case t $ decode_case u
@@ -518,10 +517,11 @@ fun encode_cases _ S T [] = Const (@{const_name case_nil}, S --> T)
 
 fun encode_case recur (t, ps as (pat, rhs) :: _) =
     let
+      val tT = fastype_of t;
       val T = fastype_of rhs;
     in
-      Const (@{const_name case_guard}, @{typ bool} --> T --> T) $ @{term True} $
-        (encode_cases recur (fastype_of pat) (fastype_of rhs) ps $ t)
+      Const (@{const_name case_guard}, @{typ bool} --> tT --> (tT --> T) --> T) $
+        @{term True} $ t $ (encode_cases recur (fastype_of pat) (fastype_of rhs) ps)
     end
   | encode_case _ _ = case_error "encode_case";
 

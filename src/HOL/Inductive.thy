@@ -275,11 +275,16 @@ ML_file "Tools/Datatype/datatype_prop.ML"
 ML_file "Tools/Datatype/datatype_data.ML" setup Datatype_Data.setup
 
 consts
-  case_guard :: "bool \<Rightarrow> 'a \<Rightarrow> 'a"
+  case_guard :: "bool \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b"
   case_nil :: "'a \<Rightarrow> 'b"
   case_cons :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
   case_elem :: "'a \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b"
   case_abs :: "('c \<Rightarrow> 'b) \<Rightarrow> 'b"
+declare [[coercion_args case_guard - + -]]
+declare [[coercion_args case_cons - -]]
+declare [[coercion_args case_abs -]]
+declare [[coercion_args case_elem - +]]
+
 ML_file "Tools/case_translation.ML"
 setup Case_Translation.setup
 
