@@ -379,7 +379,7 @@ fun present_thy lex default_tags is_markup command_results toks =
       improper |--
         Parse.position (Scan.one (Token.is_command andf is_markup mark o Token.content_of)) --
       Scan.repeat tag --
-      Parse.!!!! ((improper -- locale -- improper) |-- Parse.doc_source --| improper_end)
+      Parse.!!!! ((improper -- locale -- improper) |-- Parse.document_source --| improper_end)
       >> (fn (((tok, pos), tags), txt) =>
         let val name = Token.content_of tok
         in (SOME (name, pos, tags), (mk (name, txt), (flag, d))) end));
@@ -392,7 +392,7 @@ fun present_thy lex default_tags is_markup command_results toks =
         in (SOME (name, pos, tags), (BasicToken tok, (Latex.markup_false, d))) end));
 
     val cmt = Scan.peek (fn d =>
-      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.doc_source)
+      Parse.$$$ "--" |-- Parse.!!!! (improper |-- Parse.document_source)
       >> (fn txt => (NONE, (MarkupToken ("cmt", txt), ("", d)))));
 
     val other = Scan.peek (fn d =>

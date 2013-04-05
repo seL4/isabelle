@@ -118,7 +118,7 @@ end;
 
 val header =
   (Parse.command_name headerN -- Parse.tags) |--
-    (Parse.!!! (Parse.doc_source -- Scan.repeat Parse.semicolon --
+    (Parse.!!! (Parse.document_source -- Scan.repeat Parse.semicolon --
       (Parse.command_name theoryN -- Parse.tags) |-- args)) ||
   (Parse.command_name theoryN -- Parse.tags) |-- Parse.!!! args;
 

@@ -91,7 +91,7 @@ sig
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
   val ML_source: (Symbol_Pos.text * Position.T) parser
-  val doc_source: (Symbol_Pos.text * Position.T) parser
+  val document_source: (Symbol_Pos.text * Position.T) parser
   val term_group: string parser
   val prop_group: string parser
   val term: string parser
@@ -341,7 +341,7 @@ val for_fixes = Scan.optional ($$$ "for" |-- !!! fixes) [];
 (* embedded source text *)
 
 val ML_source = source_position (group (fn () => "ML source") text);
-val doc_source = source_position (group (fn () => "document source") text);
+val document_source = source_position (group (fn () => "document source") text);
 
 
 (* terms *)

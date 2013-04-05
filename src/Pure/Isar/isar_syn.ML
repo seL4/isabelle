@@ -12,62 +12,62 @@ struct
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "header"} "theory header"
-    (Parse.doc_source >> Isar_Cmd.header_markup);
+    (Parse.document_source >> Isar_Cmd.header_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "chapter"} "chapter heading"
-    (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "section"} "section heading"
-    (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "subsection"} "subsection heading"
-    (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "subsubsection"} "subsubsection heading"
-    (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.MarkupEnv
     @{command_spec "text"} "formal comment (theory)"
-    (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Verbatim
     @{command_spec "text_raw"} "raw document preparation text"
-    (Parse.opt_target -- Parse.doc_source >> Isar_Cmd.local_theory_markup);
+    (Parse.opt_target -- Parse.document_source >> Isar_Cmd.local_theory_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "sect"} "formal comment (proof)"
-    (Parse.doc_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Isar_Cmd.proof_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "subsect"} "formal comment (proof)"
-    (Parse.doc_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Isar_Cmd.proof_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Markup
     @{command_spec "subsubsect"} "formal comment (proof)"
-    (Parse.doc_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Isar_Cmd.proof_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.MarkupEnv
     @{command_spec "txt"} "formal comment (proof)"
-    (Parse.doc_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Isar_Cmd.proof_markup);
 
 val _ =
   Outer_Syntax.markup_command Thy_Output.Verbatim
     @{command_spec "txt_raw"} "raw document preparation text (proof)"
-    (Parse.doc_source >> Isar_Cmd.proof_markup);
+    (Parse.document_source >> Isar_Cmd.proof_markup);
 
 
 

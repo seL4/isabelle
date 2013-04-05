@@ -73,7 +73,7 @@ object Thy_Header extends Parse.Parser
       { case x ~ ys ~ zs ~ _ => Thy_Header(x, ys, zs) }
 
     (keyword(HEADER) ~ tags) ~!
-      ((doc_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
+      ((document_source ~ rep(keyword(";")) ~ keyword(THEORY) ~ tags) ~> args) ^^ { case _ ~ x => x } |
     (keyword(THEORY) ~ tags) ~! args ^^ { case _ ~ x => x }
   }
 

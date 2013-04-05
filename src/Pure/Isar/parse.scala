@@ -59,7 +59,7 @@ object Parse
     def xname: Parser[String] = atom("name reference", _.is_xname)
     def text: Parser[String] = atom("text", _.is_text)
     def ML_source: Parser[String] = atom("ML source", _.is_text)
-    def doc_source: Parser[String] = atom("document source", _.is_text)
+    def document_source: Parser[String] = atom("document source", _.is_text)
     def path: Parser[String] =
       atom("file name/path specification", tok => tok.is_name && Path.is_ok(tok.content))
     def theory_name: Parser[String] =

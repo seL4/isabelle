@@ -235,7 +235,7 @@ fun toplevel_source term do_recover cmd src =
     src
     |> Token.source_proper
     |> Source.source Token.stopper
-      (Scan.bulk (Parse.$$$ "--" -- Parse.!!! Parse.doc_source >> K NONE || Parse.not_eof >> SOME))
+      (Scan.bulk (Parse.$$$ "--" -- Parse.!!! Parse.document_source >> K NONE || Parse.not_eof >> SOME))
         (Option.map recover do_recover)
     |> Source.map_filter I
     |> Source.source Token.stopper
