@@ -25,10 +25,10 @@ fun less_eq_option where
 
 definition less_option where "x < (y::'a option) = (x \<le> y \<and> \<not> y \<le> x)"
 
-lemma [simp]: "(x \<le> None) = (x = None)"
+lemma le_None[simp]: "(x \<le> None) = (x = None)"
 by (cases x) simp_all
 
-lemma [simp]: "(Some x \<le> u) = (\<exists>y. u = Some y \<and> x \<le> y)"
+lemma Some_le[simp]: "(Some x \<le> u) = (\<exists>y. u = Some y \<and> x \<le> y)"
 by (cases u) auto
 
 instance proof
