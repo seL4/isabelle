@@ -37,11 +37,6 @@ subsection "Collecting Semantics of Commands"
 
 subsubsection "Annotated commands as a complete lattice"
 
-(* Orderings could also be lifted generically (thus subsuming the
-instantiation for preord and order), but then less_eq_acom would need to
-become a definition, eg less_eq_acom = lift2 less_eq, and then proofs would
-need to unfold this defn first. *)
-
 instantiation acom :: (order) order
 begin
 
