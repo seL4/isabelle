@@ -22,13 +22,6 @@ fun Step :: "(vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup) \
 "Step f g S ({I} WHILE b DO {P} C {Q}) =
   {S \<squnion> post C} WHILE b DO {g b I} Step f g P C {g (Not b) I}"
 
-(* Could hide f and g like this:
-consts fa :: "vname \<Rightarrow> aexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"
-       fb :: "bexp \<Rightarrow> 'a \<Rightarrow> 'a::sup"
-abbreviation "STEP == Step fa fb"
-thm Step.simps[where f = fa and g = fb]
-*)
-
 lemma strip_Step[simp]: "strip(Step f g S C) = strip C"
 by(induct C arbitrary: S) auto
 
