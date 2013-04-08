@@ -12,10 +12,11 @@ sig
   exception TOPLEVEL_ERROR
   val debug: bool Unsynchronized.ref
   val exn_context: Proof.context option -> exn -> exn
+  type exn_info = {exn_position: exn -> Position.T, pretty_exn: exn -> Pretty.T}
   type error = ((serial * string) * string option)
-  val exn_messages_ids: (exn -> Position.T) -> exn -> error list
-  val exn_messages: (exn -> Position.T) -> exn -> (serial * string) list
-  val exn_message: (exn -> Position.T) -> exn -> string
+  val exn_messages_ids: exn_info -> exn -> error list
+  val exn_messages: exn_info -> exn -> (serial * string) list
+  val exn_message: exn_info -> exn -> string
   val debugging: ('a -> 'b) -> 'a -> 'b
   val controlled_execution: ('a -> 'b) -> 'a -> 'b
   val toplevel_error: (exn -> unit) -> ('a -> 'b) -> 'a -> 'b
@@ -44,6 +45,7 @@ fun exn_context NONE exn = exn
 
 (* exn_message *)
 
+type exn_info = {exn_position: exn -> Position.T, pretty_exn: exn -> Pretty.T};
 type error = ((serial * string) * string option);
 
 local
@@ -67,7 +69,7 @@ fun flatten _ (CONTEXT (ctxt, exn)) = flatten (SOME ctxt) exn
 
 in
 
-fun exn_messages_ids exn_position e =
+fun exn_messages_ids {exn_position, pretty_exn} e =
   let
     fun raised exn name msgs =
       let val pos = Position.here (exn_position exn) in
@@ -104,7 +106,7 @@ fun exn_messages_ids exn_position e =
             | THM (msg, i, thms) =>
                 raised exn ("THM " ^ string_of_int i)
                   (msg :: if_context context Display.string_of_thm thms)
-            | _ => raised exn (General.exnMessage exn) []);
+            | _ => raised exn (Pretty.string_of (pretty_exn exn)) []);
         in [((i, msg), id)] end)
       and sorted_msgs context exn =
         sort_distinct (int_ord o pairself (fst o fst)) (maps exn_msgs (flatten context exn));
@@ -113,11 +115,10 @@ fun exn_messages_ids exn_position e =
 
 end;
 
-fun exn_messages exn_position exn =
-  map #1 (exn_messages_ids exn_position exn);
+fun exn_messages exn_info exn = map #1 (exn_messages_ids exn_info exn);
 
-fun exn_message exn_position exn =
-  (case exn_messages exn_position exn of
+fun exn_message exn_info exn =
+  (case exn_messages exn_info exn of
     [] => "Interrupt"
   | msgs => cat_lines (map snd msgs));
 

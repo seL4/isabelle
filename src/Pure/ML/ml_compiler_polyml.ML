@@ -17,14 +17,25 @@ fun position_of (loc: PolyML.location) =
     Position.make {line = line, offset = offset, end_offset = end_offset, props = props}
   end;
 
+
+(* exn_info *)
+
 fun exn_position exn =
   (case PolyML.exceptionLocation exn of
     NONE => Position.none
   | SOME loc => position_of loc);
 
-val exn_messages_ids = Runtime.exn_messages_ids exn_position;
-val exn_messages = Runtime.exn_messages exn_position;
-val exn_message = Runtime.exn_message exn_position;
+fun pretty_exn (exn: exn) =
+  Pretty.from_ML (pretty_ml (PolyML.prettyRepresentation (exn, get_print_depth ())));
+
+val exn_info = {exn_position = exn_position, pretty_exn = pretty_exn};
+
+
+(* exn_message *)
+
+val exn_messages_ids = Runtime.exn_messages_ids exn_info;
+val exn_messages = Runtime.exn_messages exn_info;
+val exn_message = Runtime.exn_message exn_info;
 
 
 (* parse trees *)
@@ -180,7 +191,7 @@ fun eval verbose pos toks =
               (case exn of
                 STATIC_ERRORS () => ""
               | Runtime.TOPLEVEL_ERROR => ""
-              | _ => "Exception- " ^ General.exnMessage exn ^ " raised");
+              | _ => "Exception- " ^ Pretty.string_of (pretty_exn exn) ^ " raised");
             val _ = output_warnings ();
             val _ = output_writeln ();
           in raise_error exn_msg end;
