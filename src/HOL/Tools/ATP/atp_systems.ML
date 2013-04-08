@@ -267,9 +267,7 @@ fun scaled_e_selection_weight ctxt heuristic w =
   |> Real.ceil |> signed_string_of_int
 
 fun e_selection_weight_arguments ctxt heuristic sel_weights =
-  if heuristic = e_autoN then
-    "-xAuto"
-  else
+  if heuristic = e_fun_weightN orelse heuristic = e_sym_offset_weightN then
     (* supplied by Stephan Schulz *)
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
@@ -288,6 +286,8 @@ fun e_selection_weight_arguments ctxt heuristic sel_weights =
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
+  else
+    "-xAuto"
 
 val e_ord_weights =
   map (fn (s, w) => s ^ ":" ^ string_of_int w) #> space_implode ","
