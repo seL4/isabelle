@@ -56,18 +56,6 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
 
   /* theory files */
 
-  private def import_name(dir: String, s: String): Document.Node.Name =
-  {
-    val theory = Thy_Header.base_name(s)
-    if (loaded_theories(theory)) Document.Node.Name(theory, "", theory)
-    else {
-      val path = Path.explode(s)
-      val node = append(dir, Thy_Load.thy_path(path))
-      val dir1 = append(dir, path.dir)
-      Document.Node.Name(node, dir1, theory)
-    }
-  }
-
   private def find_file(tokens: List[Token]): Option[String] =
   {
     def clean(toks: List[Token]): List[Token] =
@@ -103,6 +91,18 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
     }).flatten.toList
   }
 
+  def import_name(master: Document.Node.Name, s: String): Document.Node.Name =
+  {
+    val theory = Thy_Header.base_name(s)
+    if (loaded_theories(theory)) Document.Node.Name(theory, "", theory)
+    else {
+      val path = Path.explode(s)
+      val node = append(master.dir, Thy_Load.thy_path(path))
+      val dir = append(master.dir, path.dir)
+      Document.Node.Name(node, dir, theory)
+    }
+  }
+
   def check_thy_text(name: Document.Node.Name, text: CharSequence): Document.Node.Header =
   {
     try {
@@ -113,7 +113,7 @@ class Thy_Load(val loaded_theories: Set[String] = Set.empty, val base_syntax: Ou
         error("Bad file name " + Thy_Load.thy_path(Path.basic(name.theory)) +
           " for theory " + quote(name1))
 
-      val imports = header.imports.map(import_name(name.dir, _))
+      val imports = header.imports.map(import_name(name, _))
       Document.Node.Header(imports, header.keywords, Nil)
     }
     catch { case exn: Throwable => Document.Node.bad_header(Exn.message(exn)) }
