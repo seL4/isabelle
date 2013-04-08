@@ -118,7 +118,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val type_enc =
-      type_enc |> type_enc_from_string Strict
+      type_enc |> type_enc_from_string Non_Strict
                |> adjust_type_enc format
     val mono = not (is_type_enc_polymorphic type_enc)
     val path = file_name |> Path.explode
