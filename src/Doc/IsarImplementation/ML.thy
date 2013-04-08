@@ -740,6 +740,46 @@ text {* The extra block delimiters do not affect the compiled code
 *}
 
 
+subsection {* Printing ML values *}
+
+text {* The ML compiler knows about the structure of values according
+  to their static type, and can print them in the manner of the
+  toplevel loop, although the details are non-portable.  The
+  antiquotation @{ML_antiquotation_def "make_string"} provides a
+  quasi-portable way to refer to this potential capability of the
+  underlying ML system in generic Isabelle/ML sources.  *}
+
+text %mlantiq {*
+  \begin{matharray}{rcl}
+  @{ML_antiquotation_def "make_string"} & : & @{text ML_antiquotation} \\
+  \end{matharray}
+
+  @{rail "
+  @@{ML_antiquotation make_string}
+  "}
+
+  \begin{description}
+
+  \item @{text "@{make_string}"} inlines a function to print arbitrary
+values similar to the ML toplevel.  The result is compiler dependent
+and may fall back on "?" in certain situations.
+
+  \end{description}
+*}
+
+text %mlex {* The following artificial example shows how to produce
+  ad-hoc output of ML values for debugging purposes.  This should not
+  be done in production code, and not persist in regular Isabelle/ML
+  sources.  *}
+
+ML {*
+  val x = 42;
+  val y = true;
+
+  writeln (@{make_string} {x = x, y = y});
+*}
+
+
 section {* Canonical argument order \label{sec:canonical-argument-order} *}
 
 text {* Standard ML is a language in the tradition of @{text
