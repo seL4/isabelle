@@ -341,7 +341,6 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
 
     val mm =
       if ! do_shutdown then 0
-      else if m = 9999 then 1
       else Int.min (Int.max (count_workers Working + 2 * count_workers Waiting, m), 4 * m);
     val _ =
       if tick andalso mm > ! max_workers then
