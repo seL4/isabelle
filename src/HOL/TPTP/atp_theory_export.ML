@@ -114,6 +114,9 @@ fun monomorphize_term ctxt t =
     handle TYPE _ => @{prop True}
   end
 
+fun heading_sort_key heading =
+  if String.isPrefix "Relevant fact" heading then "_" ^ heading else heading
+
 fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
@@ -126,6 +129,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val facts =
       Sledgehammer_Fact.all_facts (Proof_Context.init_global thy) true false
                                   Symtab.empty [] [] css_table
+      |> sort (Sledgehammer_MaSh.crude_thm_ord o pairself snd)
     val atp_problem =
       facts
       |> map (fn ((_, loc), th) =>
@@ -137,6 +141,7 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
+      |> sort_wrt (heading_sort_key o fst)
     val name_tabs = Sledgehammer_Fact.build_name_tables Thm.get_name_hint facts
     val infers =
       facts
@@ -155,6 +160,9 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
       |> fold (fn (to, froms) =>
                   fold (fn from => String_Graph.add_edge (from, to)) froms)
               infers
+      |> fold (fn (to, from) => String_Graph.add_edge_acyclic (from, to))
+              (tl all_atp_problem_names
+               ~~ fst (split_last all_atp_problem_names))
       |> String_Graph.topological_order
     val order_tab =
       Symtab.empty
