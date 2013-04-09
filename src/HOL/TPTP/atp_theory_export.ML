@@ -66,22 +66,12 @@ fun run_atp ctxt format problem =
       |> extract_tstplike_proof_and_outcome false proof_delims known_failures
       |> snd
       handle TimeLimit.TimeOut => SOME TimedOut
-    val _ = tracing ("Ran ATP: " ^ PolyML.makestring outcome) (*###*)
+    val _ =
+      tracing ("Ran ATP: " ^
+               case outcome of
+                 NONE => "Success"
+               | SOME failure => string_for_failure failure)
   in outcome end
-
-val tautology_prefixes =
-  [@{theory HOL}, @{theory Meson}, @{theory ATP}, @{theory Metis}]
-  |> map (fact_name_of o Context.theory_name)
-
-fun is_problem_line_tautology ctxt format
-                              (Formula ((ident, alt), role, phi, _, _)) =
-    (role = Conjecture andalso
-     phi = AAtom (ATerm ((tptp_false, []), []))) orelse
-    (exists (fn prefix => String.isPrefix prefix ident)
-            tautology_prefixes andalso
-     is_none (run_atp ctxt format
-         [(factsN, [Formula ((ident, alt), Conjecture, phi, NONE, [])])]))
-  | is_problem_line_tautology _ _ _ = false
 
 fun is_problem_line_reprovable ctxt format prelude axioms deps
                                (Formula (ident', _, phi, _, _)) =
@@ -181,11 +171,7 @@ fun problem_for_theory ctxt thy format infer_policy type_enc =
                    th |> prop_of |> mono ? monomorphize_term ctxt))
       |> prepare_atp_problem ctxt format Axiom type_enc Exporter combsN false
                              false true [] @{prop False}
-      |> #1
-    val problem =
-      problem
-      |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
-      |> sort_wrt (heading_sort_key o fst)
+      |> #1 |> sort_wrt (heading_sort_key o fst)
     val prelude = fst (split_last problem)
     val name_tabs = Sledgehammer_Fact.build_name_tables Thm.get_name_hint facts
     val infers =
