@@ -1,6 +1,6 @@
 (*  Title:      HOL/Conditional_Complete_Lattices.thy
     Author:     Amine Chaieb and L C Paulson, University of Cambridge
-    Author:     Johanens Hölzl, TU München
+    Author:     Johannes Hölzl, TU München
 *)
 
 header {* Conditional Complete Lattices *}
