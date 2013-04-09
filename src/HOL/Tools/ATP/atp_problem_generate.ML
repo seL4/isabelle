@@ -477,23 +477,24 @@ fun all_class_pairs _ _ [] = ([], [])
       val (cls', pairs') = all_class_pairs thy tycons new_cls
     in (cls' @ cls, union (op =) pairs' pairs) end
 
-fun tcon_clause _ _ (_, []) = []
-  | tcon_clause seen n (tcons, (ar as (cl, _)) :: ars) =
+fun tcon_clause _ _ [] = []
+  | tcon_clause seen n ((_, []) :: rest) = tcon_clause seen n rest
+  | tcon_clause seen n ((tcons, (ar as (cl, _)) :: ars) :: rest) =
     if cl = class_of_types then
-      tcon_clause seen n (tcons, ars)
+      tcon_clause seen n ((tcons, ars) :: rest)
     else if member (op =) seen cl then
       (* multiple clauses for the same (tycon, cl) pair *)
       make_axiom_tcon_clause (tcons,
           lookup_const tcons ^ "___" ^ ascii_of cl ^ "_" ^ string_of_int n,
           ar) ::
-      tcon_clause seen (n + 1) (tcons, ars)
+      tcon_clause seen (n + 1) ((tcons, ars) :: rest)
     else
       make_axiom_tcon_clause (tcons, lookup_const tcons ^ "___" ^ ascii_of cl,
                               ar) ::
-      tcon_clause (cl :: seen) n (tcons, ars)
+      tcon_clause (cl :: seen) n ((tcons, ars) :: rest)
 
 fun make_tcon_clauses thy tycons =
-  all_class_pairs thy tycons ##> maps (tcon_clause [] 1)
+  all_class_pairs thy tycons ##> tcon_clause [] 1
 
 
 (** Isabelle class relations **)
