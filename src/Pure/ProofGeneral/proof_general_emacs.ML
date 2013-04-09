@@ -193,37 +193,34 @@ end;
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.pr", Keyword.diag), Position.none) "print state (internal)"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
+    (Scan.succeed (Toplevel.keep (fn state =>
       if Toplevel.is_toplevel state orelse Toplevel.is_theory state then tell_clear_goals ()
       else (Toplevel.quiet := false; Toplevel.print_state true state))));
 
 val _ = (*undo without output -- historical*)
   Outer_Syntax.improper_command
     (("ProofGeneral.undo", Keyword.control), Position.none) "(internal)"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)));
+    (Scan.succeed (Toplevel.imperative (fn () => Isar.undo 1)));
 
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.restart", Keyword.control), Position.none) "(internal)"
-    (Parse.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative restart)));
+    (Parse.opt_unit >> (K (Toplevel.imperative restart)));
 
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.kill_proof", Keyword.control), Position.none) "(internal)"
-    (Scan.succeed (Toplevel.no_timing o
-      Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
+    (Scan.succeed (Toplevel.imperative (fn () => (Isar.kill_proof (); tell_clear_goals ()))));
 
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.inform_file_processed", Keyword.control), Position.none) "(internal)"
-    (Parse.name >> (fn file =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => inform_file_processed file)));
+    (Parse.name >> (fn file => Toplevel.imperative (fn () => inform_file_processed file)));
 
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.inform_file_retracted", Keyword.control), Position.none) "(internal)"
-    (Parse.name >> (Toplevel.no_timing oo
-      (fn file => Toplevel.imperative (fn () => inform_file_retracted file))));
+    (Parse.name >> (fn file => Toplevel.imperative (fn () => inform_file_retracted file)));
 
 
 (* init *)

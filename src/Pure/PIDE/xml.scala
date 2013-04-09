@@ -145,53 +145,54 @@ object XML
 
     private def trim_bytes(s: String): String = new String(s.toCharArray)
 
-    private def _cache_string(x: String): String =
+    private def cache_string(x: String): String =
       lookup(x) match {
         case Some(y) => y
         case None =>
           val z = trim_bytes(x)
           if (z.length > max_string) z else store(z)
       }
-    private def _cache_props(x: Properties.T): Properties.T =
+    private def cache_props(x: Properties.T): Properties.T =
       if (x.isEmpty) x
       else
         lookup(x) match {
           case Some(y) => y
-          case None => store(x.map(p => (trim_bytes(p._1).intern, _cache_string(p._2))))
+          case None => store(x.map(p => (trim_bytes(p._1).intern, cache_string(p._2))))
         }
-    private def _cache_markup(x: Markup): Markup =
+    private def cache_markup(x: Markup): Markup =
       lookup(x) match {
         case Some(y) => y
         case None =>
           x match {
             case Markup(name, props) =>
-              store(Markup(_cache_string(name), _cache_props(props)))
+              store(Markup(cache_string(name), cache_props(props)))
           }
       }
-    private def _cache_tree(x: XML.Tree): XML.Tree =
+    private def cache_tree(x: XML.Tree): XML.Tree =
       lookup(x) match {
         case Some(y) => y
         case None =>
           x match {
             case XML.Elem(markup, body) =>
-              store(XML.Elem(_cache_markup(markup), _cache_body(body)))
-            case XML.Text(text) => store(XML.Text(_cache_string(text)))
+              store(XML.Elem(cache_markup(markup), cache_body(body)))
+            case XML.Text(text) => store(XML.Text(cache_string(text)))
           }
       }
-    private def _cache_body(x: XML.Body): XML.Body =
+    private def cache_body(x: XML.Body): XML.Body =
       if (x.isEmpty) x
       else
         lookup(x) match {
           case Some(y) => y
-          case None => x.map(_cache_tree(_))
+          case None => x.map(cache_tree(_))
         }
 
     // main methods
-    def cache_string(x: String): String = synchronized { _cache_string(x) }
-    def cache_props(x: Properties.T): Properties.T = synchronized { _cache_props(x) }
-    def cache_markup(x: Markup): Markup = synchronized { _cache_markup(x) }
-    def cache_tree(x: XML.Tree): XML.Tree = synchronized { _cache_tree(x) }
-    def cache_body(x: XML.Body): XML.Body = synchronized { _cache_body(x) }
+    def string(x: String): String = synchronized { cache_string(x) }
+    def props(x: Properties.T): Properties.T = synchronized { cache_props(x) }
+    def markup(x: Markup): Markup = synchronized { cache_markup(x) }
+    def tree(x: XML.Tree): XML.Tree = synchronized { cache_tree(x) }
+    def body(x: XML.Body): XML.Body = synchronized { cache_body(x) }
+    def elem(x: XML.Elem): XML.Elem = synchronized { cache_tree(x).asInstanceOf[XML.Elem] }
   }
 
 

@@ -505,8 +505,7 @@ val setup =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_codeproc"} "print code preprocessor setup"
-    (Scan.succeed
-      (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
-        (print_codeproc o Toplevel.theory_of)));
+    (Scan.succeed (Toplevel.unknown_theory o
+      Toplevel.keep (print_codeproc o Toplevel.theory_of)));
 
 end; (*struct*)

@@ -122,7 +122,7 @@ val typecheck_setup =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_tcset"} "print context of ZF typecheck"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (print_tcset o Toplevel.context_of)));
 
 

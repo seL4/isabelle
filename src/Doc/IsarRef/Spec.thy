@@ -514,8 +514,8 @@ text {*
   \item @{element "fixes"}~@{text "x :: \<tau> (mx)"} declares a local
   parameter of type @{text \<tau>} and mixfix annotation @{text mx} (both
   are optional).  The special syntax declaration ``@{text
-  "(\<STRUCTURE>)"}'' means that @{text x} may be referenced
-  implicitly in this context.
+  "("}@{keyword_ref "structure"}@{text ")"}'' means that @{text x} may
+  be referenced implicitly in this context.
 
   \item @{element "constrains"}~@{text "x :: \<tau>"} introduces a type
   constraint @{text \<tau>} on the local parameter @{text x}.  This

@@ -595,7 +595,7 @@ object Build
     val lines = split_lines(text)
     val xml_cache = new XML.Cache()
     def parse_lines(prfx: String): List[Properties.T] =
-      Props.parse_lines(prfx, lines).map(xml_cache.cache_props)
+      Props.parse_lines(prfx, lines).map(xml_cache.props(_))
 
     val name =
       lines.find(_.startsWith(SESSION_NAME)).map(_.substring(SESSION_NAME.length)) getOrElse ""

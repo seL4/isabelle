@@ -76,7 +76,9 @@ fun exn_messages_ids {exn_position, pretty_exn} e =
         (case msgs of
           [] => "exception " ^ name ^ " raised" ^ pos
         | [msg] => "exception " ^ name ^ " raised" ^ pos ^ ": " ^ msg
-        | _ => cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") :: msgs))
+        | _ =>
+            cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") ::
+              map (Markup.markup Markup.item) msgs))
       end;
 
     fun exn_msgs (context, ((i, exn), id)) =

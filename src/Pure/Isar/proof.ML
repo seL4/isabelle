@@ -1154,16 +1154,20 @@ fun future_proof fork_proof state =
 end;
 
 
-(* terminal proofs *)
+(* terminal proofs *)  (* FIXME avoid toplevel imitation -- include in PIDE/document *)
 
 local
 
 fun future_terminal_proof proof1 proof2 done int state =
   if Goal.future_enabled_level 3 andalso not (is_relevant state) then
     state |> future_proof (fn state' =>
-      Goal.fork_params
-        {name = "Proof.future_terminal_proof", pos = Position.thread_data (), pri = ~1}
-        (fn () => ((), Timing.status proof2 state'))) |> snd |> done
+      let
+        val pos = Position.thread_data ();
+        val props = Markup.command_timing :: (Markup.nameN, "by") :: Position.properties_of pos;
+      in
+        Goal.fork_params {name = "Proof.future_terminal_proof", pos = pos, pri = ~1}
+          (fn () => ((), Timing.protocol props proof2 state'))
+      end) |> snd |> done
   else proof1 state;
 
 in

@@ -24,6 +24,7 @@ sig
   val physical_stdout: output -> unit
   val physical_stderr: output -> unit
   val physical_writeln: output -> unit
+  exception Protocol_Message of Properties.T
   structure Private_Hooks:
   sig
     val writeln_fn: (output -> unit) Unsynchronized.ref
@@ -45,6 +46,7 @@ sig
   val report: string -> unit
   val result: serial * string -> unit
   val protocol_message: Properties.T -> string -> unit
+  val try_protocol_message: Properties.T -> string -> unit
 end;
 
 structure Output: OUTPUT =
@@ -88,6 +90,8 @@ fun physical_writeln "" = ()
 
 (* Isabelle output channels *)
 
+exception Protocol_Message of Properties.T;
+
 structure Private_Hooks =
 struct
   val writeln_fn = Unsynchronized.ref physical_writeln;
@@ -100,7 +104,7 @@ struct
   val report_fn = Unsynchronized.ref (fn _: output => ());
   val result_fn = Unsynchronized.ref (fn _: serial * output => ());
   val protocol_message_fn: (Properties.T -> output -> unit) Unsynchronized.ref =
-    Unsynchronized.ref (fn _ => fn _ => raise Fail "Output.protocol_message undefined in TTY mode");
+    Unsynchronized.ref (fn props => fn _ => raise Protocol_Message props);
 end;
 
 fun writeln s = ! Private_Hooks.writeln_fn (output s);
@@ -114,6 +118,7 @@ fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
 fun result (i, s) = ! Private_Hooks.result_fn (i, output s);
 fun protocol_message props s = ! Private_Hooks.protocol_message_fn props (output s);
+fun try_protocol_message props s = protocol_message props s handle Protocol_Message _ => ();
 
 end;
 

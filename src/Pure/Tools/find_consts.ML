@@ -139,8 +139,7 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "find_consts"}
     "find constants by name/type patterns"
     (Scan.repeat ((Scan.option Parse.minus >> is_none) -- criterion)
-      >> (fn spec => Toplevel.no_timing o
-        Toplevel.keep (fn state => find_consts (Toplevel.context_of state) spec)));
+      >> (fn spec => Toplevel.keep (fn state => find_consts (Toplevel.context_of state) spec)));
 
 end;
 

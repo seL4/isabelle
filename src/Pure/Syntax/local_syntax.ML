@@ -1,7 +1,8 @@
 (*  Title:      Pure/Syntax/local_syntax.ML
     Author:     Makarius
 
-Local syntax depending on theory syntax.
+Local syntax depending on theory syntax, with special support for
+implicit structure references.
 *)
 
 signature LOCAL_SYNTAX =

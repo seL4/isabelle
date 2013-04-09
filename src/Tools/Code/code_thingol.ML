@@ -1058,16 +1058,16 @@ in
 val _ =
   Outer_Syntax.improper_command @{command_spec "code_thms"}
     "print system of code equations for code"
-    (Scan.repeat1 Parse.term_group
-      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
-        o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
+    (Scan.repeat1 Parse.term_group >> (fn cs =>
+      Toplevel.unknown_theory o
+      Toplevel.keep (fn state => code_thms_cmd (Toplevel.theory_of state) cs)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "code_deps"}
     "visualize dependencies of code equations for code"
-    (Scan.repeat1 Parse.term_group
-      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
-        o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
+    (Scan.repeat1 Parse.term_group >> (fn cs =>
+      Toplevel.unknown_theory o
+      Toplevel.keep (fn state => code_deps_cmd (Toplevel.theory_of state) cs)));
 
 end;
 

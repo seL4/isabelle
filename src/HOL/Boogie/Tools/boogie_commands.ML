@@ -329,8 +329,7 @@ val status_vc =
    Scan.succeed (boogie_status_vc false)) --
   vc_name >> (fn (f, vc_name) => f vc_name)
 
-fun status_cmd f = Toplevel.no_timing o Toplevel.keep (fn state =>
-  f (Toplevel.theory_of state))
+fun status_cmd f = Toplevel.keep (f o Toplevel.theory_of)
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "boogie_status"}

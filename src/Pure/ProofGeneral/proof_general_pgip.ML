@@ -1031,10 +1031,10 @@ end
 val _ =
   Outer_Syntax.improper_command
     (("ProofGeneral.process_pgip", Keyword.control), Position.none) "(internal)"
-    (Parse.text >> (Toplevel.no_timing oo
+    (Parse.text >>
       (fn txt => Toplevel.imperative (fn () =>
         if print_mode_active proof_general_emacsN
         then process_pgip_emacs txt
-        else process_pgip_plain txt))));
+        else process_pgip_plain txt)));
 
 end;

@@ -85,9 +85,10 @@ text %mlref {*
   \item @{ML Toplevel.proof_of}~@{text "state"} selects the Isar proof
   state if available, otherwise raises @{ML Toplevel.UNDEF}.
 
-  \item @{ML "Toplevel.debug := true"} makes the toplevel print further
-  details about internal error conditions, exceptions being raised
-  etc.
+  \item @{ML "Toplevel.debug := true"} enables low-level exception
+  trace of the ML runtime system.  Note that the result might appear
+  on some raw output window only, outside the formal context of the
+  source text.
 
   \item @{ML "Toplevel.timing := true"} makes the toplevel print timing
   information for each Isar command being executed.
@@ -145,7 +146,6 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML Toplevel.print: "Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.no_timing: "Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.keep: "(Toplevel.state -> unit) ->
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.theory: "(theory -> theory) ->
@@ -165,10 +165,6 @@ text %mlref {*
   \item @{ML Toplevel.print}~@{text "tr"} sets the print flag, which
   causes the toplevel loop to echo the result state (in interactive
   mode).
-
-  \item @{ML Toplevel.no_timing}~@{text "tr"} indicates that the
-  transition should never show timing information, e.g.\ because it is
-  a diagnostic command.
 
   \item @{ML Toplevel.keep}~@{text "tr"} adjoins a diagnostic
   function.

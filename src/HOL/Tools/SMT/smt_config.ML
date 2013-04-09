@@ -249,7 +249,6 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "smt_status"}
     "show the available SMT solvers, the currently selected SMT solver, \
     \and the values of SMT configuration options"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.keep (fn state =>
-      print_setup (Toplevel.context_of state))))
+    (Scan.succeed (Toplevel.keep (print_setup o Toplevel.context_of)))
 
 end

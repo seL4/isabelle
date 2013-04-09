@@ -298,6 +298,8 @@ val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" 
 
 (* mixfix annotations *)
 
+local
+
 val mfix = string --
   !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
     Scan.optional nat 1000) >> (Mixfix o triple2);
@@ -305,18 +307,25 @@ val mfix = string --
 val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
 val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);
 val infxr = $$$ "infixr" |-- !!! (string -- nat >> Infixr);
+val strcture = $$$ "structure" >> K Structure;
 
 val binder = $$$ "binder" |--
   !!! (string -- ($$$ "[" |-- nat --| $$$ "]" -- nat || nat >> (fn n => (n, n))))
   >> (Binder o triple2);
 
-fun annotation guard fix = $$$ "(" |-- guard (fix --| $$$ ")");
-fun opt_annotation guard fix = Scan.optional (annotation guard fix) NoSyn;
+val mixfix_body = mfix || strcture || binder || infxl || infxr || infx;
 
-val mixfix = annotation !!! (mfix || binder || infxl || infxr || infx);
-val mixfix' = annotation I (mfix || binder || infxl || infxr || infx);
-val opt_mixfix = opt_annotation !!! (mfix || binder || infxl || infxr || infx);
-val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
+fun annotation guard body = $$$ "(" |-- guard (body --| $$$ ")");
+fun opt_annotation guard body = Scan.optional (annotation guard body) NoSyn;
+
+in
+
+val mixfix = annotation !!! mixfix_body;
+val mixfix' = annotation I mixfix_body;
+val opt_mixfix = opt_annotation !!! mixfix_body;
+val opt_mixfix' = opt_annotation I mixfix_body;
+
+end;
 
 
 (* fixes *)
