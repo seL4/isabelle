@@ -21,7 +21,8 @@ val empty_timings: timings = Symtab.empty;
 fun update_timings props =
   (case Markup.parse_command_timing_properties props of
     SOME ({file, offset, name}, time) =>
-      Symtab.map_default (file, Inttab.empty) (Inttab.update (offset, (name, time)))
+      Symtab.map_default (file, Inttab.empty)
+        (Inttab.map_default (offset, (name, time)) (fn (_, t) => (name, Time.+ (t, time))))
   | NONE => I);
 
 fun approximative_id name pos =
