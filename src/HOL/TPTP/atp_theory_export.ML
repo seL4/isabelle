@@ -68,9 +68,9 @@ fun run_atp ctxt format problem =
       handle TimeLimit.TimeOut => SOME TimedOut
     val _ =
       tracing ("Ran ATP: " ^
-               case outcome of
-                 NONE => "Success"
-               | SOME failure => string_for_failure failure)
+               (case outcome of
+                  NONE => "Success"
+                | SOME failure => string_for_failure failure))
   in outcome end
 
 fun is_problem_line_reprovable ctxt format prelude axioms deps
@@ -269,7 +269,8 @@ fun should_generate_problem thy (Formula ((_, alt), _, _, _, _)) =
 
 (* Convention: theoryname__goalname *)
 fun problem_name_of base_name alt =
-  base_name ^ "_" ^ perhaps (try (unprefix base_name)) alt ^ problem_suffix
+  base_name ^ "__" ^ perhaps (try (unprefix (base_name ^ "_"))) alt ^
+  problem_suffix
 
 fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
                                            dir_name =
