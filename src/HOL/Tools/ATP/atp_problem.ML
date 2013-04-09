@@ -124,6 +124,7 @@ sig
   val formula_map :
     ('c -> 'e) -> ('a, 'b, 'c, 'd) formula -> ('a, 'b, 'e, 'd) formula
   val is_format_higher_order : atp_format -> bool
+  val tptp_string_for_line : atp_format -> string problem_line -> string
   val lines_for_atp_problem :
     atp_format -> term_order -> (unit -> (string * int) list) -> string problem
     -> string list

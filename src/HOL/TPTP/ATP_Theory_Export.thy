@@ -5,7 +5,7 @@
 header {* ATP Theory Exporter *}
 
 theory ATP_Theory_Export
-imports Complex_Main
+imports "~~/src/HOL/Sledgehammer2d"(*###*) Complex_Main
 begin
 
 ML_file "atp_theory_export.ML"
@@ -16,34 +16,25 @@ open ATP_Theory_Export
 *}
 
 ML {*
-val do_it = false (* switch to "true" to generate the files *)
-val thy = @{theory List}
+val do_it = true (* ### *)
+val thy = @{theory Orderings}
 val ctxt = @{context}
 *}
 
 ML {*
-if do_it then
-  "/tmp/axs_tc_native.dfg"
-  |> generate_atp_inference_file_for_theory ctxt thy (DFG Polymorphic)
-         "tc_native"
-else
-  ()
+"/tmp/casc_ltb_isa"
+|> generate_casc_lbt_isa_files_for_theory ctxt thy FOF Unchecked_Inferences
+        "poly_tags??"
 *}
 
-ML {*
-if do_it then
-  "/tmp/infs_poly_guards_query_query.tptp"
-  |> generate_atp_inference_file_for_theory ctxt thy FOF "poly_guards??"
-else
-  ()
-*}
+
+
 
 ML {*
-if do_it then
-  "/tmp/infs_poly_tags_query_query.tptp"
-  |> generate_atp_inference_file_for_theory ctxt thy FOF "poly_tags??"
-else
-  ()
+"/tmp/orderings.tptp"
+|> generate_atp_inference_file_for_theory ctxt thy FOF Unchecked_Inferences
+       "poly_tags??"
 *}
+
 
 end

@@ -9,8 +9,15 @@ signature ATP_THEORY_EXPORT =
 sig
   type atp_format = ATP_Problem.atp_format
 
+  datatype inference_policy =
+    No_Inferences | Unchecked_Inferences | Checked_Inferences
+
   val generate_atp_inference_file_for_theory :
-    Proof.context -> theory -> atp_format -> string -> string -> unit
+    Proof.context -> theory -> atp_format -> inference_policy -> string
+    -> string -> unit
+  val generate_casc_lbt_isa_files_for_theory :
+    Proof.context -> theory -> atp_format -> inference_policy -> string
+    -> string -> unit
 end;
 
 structure ATP_Theory_Export : ATP_THEORY_EXPORT =
@@ -21,30 +28,10 @@ open ATP_Proof
 open ATP_Problem_Generate
 open ATP_Systems
 
+datatype inference_policy =
+  No_Inferences | Unchecked_Inferences | Checked_Inferences
+
 val fact_name_of = prefix fact_prefix o ascii_of
-
-fun inference_term [] = NONE
-  | inference_term ss =
-    ATerm (("inference", []),
-           [ATerm (("isabelle", []), []),
-            ATerm ((tptp_empty_list, []), []),
-            ATerm ((tptp_empty_list, []),
-            map (fn s => ATerm ((s, []), [])) ss)])
-    |> SOME
-fun inference infers ident =
-  these (AList.lookup (op =) infers ident) |> inference_term
-fun add_inferences_to_problem_line infers
-        (Formula ((ident, alt), Axiom, phi, NONE, tms)) =
-    Formula ((ident, alt), Lemma, phi, inference infers ident, tms)
-  | add_inferences_to_problem_line _ line = line
-fun add_inferences_to_problem infers =
-  map (apsnd (map (add_inferences_to_problem_line infers)))
-
-fun ident_of_problem_line (Class_Decl (ident, _, _)) = ident
-  | ident_of_problem_line (Type_Decl (ident, _, _)) = ident
-  | ident_of_problem_line (Sym_Decl (ident, _, _)) = ident
-  | ident_of_problem_line (Class_Memb (ident, _, _, _)) = ident
-  | ident_of_problem_line (Formula ((ident, _), _, _, _, _)) = ident
 
 fun atp_for_format (THF (Polymorphic, _, _, _)) = dummy_thfN
   | atp_for_format (THF (Monomorphic, _, _, _)) = satallaxN
@@ -56,7 +43,9 @@ fun atp_for_format (THF (Polymorphic, _, _, _)) = dummy_thfN
   | atp_for_format CNF_UEQ = waldmeisterN
   | atp_for_format CNF = eN
 
-fun run_some_atp ctxt format problem =
+val atp_timeout = seconds 0.5
+
+fun run_atp ctxt format problem =
   let
     val thy = Proof_Context.theory_of ctxt
     val prob_file = File.tmp_path (Path.explode "prob")
@@ -69,29 +58,86 @@ fun run_some_atp ctxt format problem =
     val path = getenv (List.last (fst exec)) ^ "/" ^ List.last (snd exec)
     val command =
       File.shell_path (Path.explode path) ^ " " ^
-      arguments ctxt false "" (seconds 1.0) (File.shell_path prob_file)
+      arguments ctxt false "" atp_timeout (File.shell_path prob_file)
                 (ord, K [], K [])
-  in
-    TimeLimit.timeLimit (seconds 0.3) Isabelle_System.bash_output command
-    |> fst
-    |> extract_tstplike_proof_and_outcome false proof_delims known_failures
-    |> snd
-  end
-  handle TimeLimit.TimeOut => SOME TimedOut
+    val outcome =
+      TimeLimit.timeLimit atp_timeout Isabelle_System.bash_output command
+      |> fst
+      |> extract_tstplike_proof_and_outcome false proof_delims known_failures
+      |> snd
+      handle TimeLimit.TimeOut => SOME TimedOut
+    val _ = tracing ("Ran ATP: " ^ PolyML.makestring outcome) (*###*)
+  in outcome end
 
 val tautology_prefixes =
   [@{theory HOL}, @{theory Meson}, @{theory ATP}, @{theory Metis}]
   |> map (fact_name_of o Context.theory_name)
 
 fun is_problem_line_tautology ctxt format
-                              (Formula ((ident, alt), _, phi, _, _)) =
-    exists (fn prefix => String.isPrefix prefix ident)
-           tautology_prefixes andalso
-    is_none (run_some_atp ctxt format
-        [(factsN, [Formula ((ident, alt), Conjecture, phi, NONE, [])])])
+                              (Formula ((ident, alt), role, phi, _, _)) =
+    (role = Conjecture andalso
+     phi = AAtom (ATerm ((tptp_false, []), []))) orelse
+    (exists (fn prefix => String.isPrefix prefix ident)
+            tautology_prefixes andalso
+     is_none (run_atp ctxt format
+         [(factsN, [Formula ((ident, alt), Conjecture, phi, NONE, [])])]))
   | is_problem_line_tautology _ _ _ = false
 
+fun is_problem_line_reprovable ctxt format prelude axioms deps
+                               (Formula (ident', _, phi, _, _)) =
+    is_none (run_atp ctxt format
+        ((factsN, Formula (ident', Conjecture, phi, NONE, []) ::
+                  map_filter (Symtab.lookup axioms) deps) ::
+         prelude))
+  | is_problem_line_reprovable _ _ _ _ _ _ = false
+
+fun inference_term _ [] = NONE
+  | inference_term check_infs ss =
+    ATerm (("inference", []),
+        [ATerm (("checked_isabelle" |> not check_infs ? prefix "un", []), []),
+         ATerm ((tptp_empty_list, []), []),
+         ATerm ((tptp_empty_list, []),
+         map (fn s => ATerm ((s, []), [])) ss)])
+    |> SOME
+
+fun add_inferences_to_problem_line ctxt format check_infs prelude axioms infers
+        (line as Formula ((ident, alt), Axiom, phi, NONE, tms)) =
+    let
+      val deps =
+        case these (AList.lookup (op =) infers ident) of
+          [] => []
+        | deps =>
+          if check_infs andalso
+             not (is_problem_line_reprovable ctxt format prelude axioms deps
+                                             line) then
+            []
+          else
+            deps
+    in
+      Formula ((ident, alt), Lemma, phi, inference_term check_infs deps, tms)
+    end
+  | add_inferences_to_problem_line _ _ _ _ _ _ line = line
+
+fun add_inferences_to_problem ctxt format check_infs prelude infers problem =
+  let
+    fun add_if_axiom (axiom as Formula ((ident, _), Axiom, _, _, _)) =
+        Symtab.default (ident, axiom)
+      | add_if_axiom _ = I
+    val add_axioms_of_problem = fold (fold add_if_axiom o snd)
+    val axioms = Symtab.empty |> check_infs ? add_axioms_of_problem problem
+  in
+    map (apsnd (map (add_inferences_to_problem_line ctxt format check_infs
+                         prelude axioms infers))) problem
+  end
+
+fun ident_of_problem_line (Class_Decl (ident, _, _)) = ident
+  | ident_of_problem_line (Type_Decl (ident, _, _)) = ident
+  | ident_of_problem_line (Sym_Decl (ident, _, _)) = ident
+  | ident_of_problem_line (Class_Memb (ident, _, _, _)) = ident
+  | ident_of_problem_line (Formula ((ident, _), _, _, _, _)) = ident
+
 fun order_facts ord = sort (ord o pairself ident_of_problem_line)
+
 fun order_problem_facts _ [] = []
   | order_problem_facts ord ((heading, lines) :: problem) =
     if heading = factsN then (heading, order_facts ord lines) :: problem
@@ -117,20 +163,18 @@ fun monomorphize_term ctxt t =
 fun heading_sort_key heading =
   if String.isPrefix "Relevant fact" heading then "_" ^ heading else heading
 
-fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
+fun problem_for_theory ctxt thy format infer_policy type_enc =
   let
     val css_table = Sledgehammer_Fact.clasimpset_rule_table_of ctxt
     val type_enc =
       type_enc |> type_enc_from_string Non_Strict
                |> adjust_type_enc format
     val mono = not (is_type_enc_polymorphic type_enc)
-    val path = file_name |> Path.explode
-    val _ = File.write path ""
     val facts =
       Sledgehammer_Fact.all_facts (Proof_Context.init_global thy) true false
                                   Symtab.empty [] [] css_table
       |> sort (Sledgehammer_MaSh.crude_thm_ord o pairself snd)
-    val atp_problem =
+    val problem =
       facts
       |> map (fn ((_, loc), th) =>
                  ((Thm.get_name_hint th, loc),
@@ -138,44 +182,169 @@ fun generate_atp_inference_file_for_theory ctxt thy format type_enc file_name =
       |> prepare_atp_problem ctxt format Axiom type_enc Exporter combsN false
                              false true [] @{prop False}
       |> #1
-    val atp_problem =
-      atp_problem
+    val problem =
+      problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt format)))
       |> sort_wrt (heading_sort_key o fst)
+    val prelude = fst (split_last problem)
     val name_tabs = Sledgehammer_Fact.build_name_tables Thm.get_name_hint facts
     val infers =
-      facts
-      |> map (fn (_, th) =>
-                 (fact_name_of (Thm.get_name_hint th),
-                  th |> Sledgehammer_Util.thms_in_proof (SOME name_tabs)
-                     |> map fact_name_of))
-    val all_atp_problem_names =
-      atp_problem |> maps (map ident_of_problem_line o snd)
+      if infer_policy = No_Inferences then
+        []
+      else
+        facts
+        |> map (fn (_, th) =>
+                   (fact_name_of (Thm.get_name_hint th),
+                    th |> Sledgehammer_Util.thms_in_proof (SOME name_tabs)
+                       |> map fact_name_of))
+    val all_problem_names = problem |> maps (map ident_of_problem_line o snd)
     val infers =
-      infers |> filter (member (op =) all_atp_problem_names o fst)
-             |> map (apsnd (filter (member (op =) all_atp_problem_names)))
+      infers |> filter (member (op =) all_problem_names o fst)
+             |> map (apsnd (filter (member (op =) all_problem_names)))
     val ordered_names =
       String_Graph.empty
-      |> fold (String_Graph.new_node o rpair ()) all_atp_problem_names
+      |> fold (String_Graph.new_node o rpair ()) all_problem_names
       |> fold (fn (to, froms) =>
                   fold (fn from => String_Graph.add_edge (from, to)) froms)
               infers
       |> fold (fn (to, from) => String_Graph.add_edge_acyclic (from, to))
-              (tl all_atp_problem_names
-               ~~ fst (split_last all_atp_problem_names))
+              (tl all_problem_names ~~ fst (split_last all_problem_names))
       |> String_Graph.topological_order
     val order_tab =
       Symtab.empty
       |> fold (Symtab.insert (op =))
               (ordered_names ~~ (1 upto length ordered_names))
     val name_ord = int_ord o pairself (the o Symtab.lookup order_tab)
-    val atp_problem =
-      atp_problem
-      |> (case format of DFG _ => I | _ => add_inferences_to_problem infers)
-      |> order_problem_facts name_ord
-    val ord = effective_term_order ctxt eN (* dummy *)
-    val ss = lines_for_atp_problem format ord (K []) atp_problem
+  in
+    problem
+    |> (case format of
+          DFG _ => I
+        | _ => add_inferences_to_problem ctxt format
+                   (infer_policy = Checked_Inferences) prelude infers)
+    |> order_problem_facts name_ord
+  end
+
+fun lines_for_problem ctxt format =
+  lines_for_atp_problem format (effective_term_order ctxt eN (* dummy *)) (K [])
+
+fun write_lines path ss =
+  let
+    val _ = File.write path ""
     val _ = app (File.append path) ss
+  in () end
+
+fun generate_atp_inference_file_for_theory ctxt thy format infer_policy type_enc
+                                           file_name =
+  let
+    val problem = problem_for_theory ctxt thy format infer_policy type_enc
+    val ss = lines_for_problem ctxt format problem
+  in write_lines (Path.explode file_name) ss end
+
+fun ap dir = Path.append dir o Path.explode
+
+fun chop_maximal_groups eq xs =
+  let
+    val rev_xs = rev xs
+    fun chop_group _ [] = []
+      | chop_group n (xs as x :: _) =
+        let
+          val n' = find_index (curry eq x) rev_xs
+          val (ws', xs') = chop (n - n') xs
+        in ws' :: chop_group n' xs' end
+   in chop_group (length xs) xs end
+
+fun theory_name_of_fact (Formula ((_, alt), _, _, _, _)) =
+    (case first_field Long_Name.separator alt of
+       NONE => alt
+     | SOME (thy, _) => thy)
+  | theory_name_of_fact _ = ""
+
+val problem_suffix = ".p"
+val include_suffix = ".ax"
+
+val file_order_name = "FilesInProcessingOrder"
+val problem_order_name = "ProblemsInProcessingOrder"
+val problem_name = "problems"
+val include_name = "incl"
+val prelude_base_name = "prelude"
+val prelude_name = prelude_base_name ^ include_suffix
+
+val include_base_name_of_fact = Name.desymbolize false o theory_name_of_fact
+
+fun include_line base_name =
+  "include('" ^ include_name ^ "/" ^ base_name ^ include_suffix ^ "').\n"
+
+(* crude hack to detect theorems stated and proved by the user (as opposed to
+   those derived by various packages) *)
+fun should_generate_problem thy (Formula ((_, alt), _, _, _, _)) =
+  case try (Global_Theory.get_thm thy) alt of
+    SOME th => Thm.legacy_get_kind th <> ""
+  | NONE => false
+
+(* Convention: theoryname__goalname *)
+fun problem_name_of base_name alt =
+  base_name ^ "_" ^ perhaps (try (unprefix base_name)) alt ^ problem_suffix
+
+fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
+                                           dir_name =
+  let
+    val dir = Path.explode dir_name
+    val _ = Isabelle_System.mkdir dir
+    val file_order_path = ap dir file_order_name
+    val _ = File.write file_order_path ""
+    val problem_order_path = ap dir problem_order_name
+    val _ = File.write problem_order_path ""
+    val problem_dir = ap dir problem_name
+    val _ = Isabelle_System.mkdir problem_dir
+    val include_dir = ap problem_dir include_name
+    val _ = Isabelle_System.mkdir include_dir
+    val (prelude, groups) =
+      problem_for_theory ctxt thy format infer_policy type_enc
+      |> split_last
+      ||> (snd
+           #> chop_maximal_groups (op = o pairself theory_name_of_fact)
+           #> map (`(include_base_name_of_fact o hd)))
+    fun write_prelude () =
+      let val ss = lines_for_problem ctxt format prelude in
+        File.append file_order_path (prelude_base_name ^ "\n");
+        write_lines (ap include_dir prelude_name) ss
+      end
+    fun write_include_file (base_name, facts) =
+      let
+        val name = base_name ^ include_suffix
+        val ss = lines_for_problem ctxt format [(factsN, facts)]
+      in
+        File.append file_order_path (base_name ^ "\n");
+        write_lines (ap include_dir name) ss
+      end
+    fun write_problem_files _ _ [] = ()
+      | write_problem_files includes [] groups =
+        write_problem_files includes includes groups
+      | write_problem_files includes _ ((base_name, []) :: groups) =
+        write_problem_files (includes @ [include_line base_name]) [] groups
+      | write_problem_files includes seen
+                            ((base_name, fact :: facts) :: groups) =
+        let val fact_s = tptp_string_for_line format fact in
+          (if should_generate_problem thy fact then
+             let
+               val (name, conj) =
+                 (case fact of
+                    Formula ((ident, alt), _, phi, _, _) =>
+                    (problem_name_of base_name (Name.desymbolize false alt),
+                     Formula ((ident, alt), Conjecture, phi, NONE, [])))
+               val conj_s = tptp_string_for_line format conj
+             in
+               File.append problem_order_path (name ^ "\n");
+               write_lines (ap problem_dir name) (seen @ [conj_s])
+             end
+           else
+             ();
+           write_problem_files includes (seen @ [fact_s])
+                               ((base_name, facts) :: groups))
+        end
+    val _ = write_prelude ()
+    val _ = app write_include_file groups
+    val _ = write_problem_files [include_line prelude_base_name] [] groups
   in () end
 
 end;
