@@ -183,17 +183,21 @@ fun problem_for_theory ctxt thy format infer_policy type_enc =
                    (fact_name_of (Thm.get_name_hint th),
                     th |> Sledgehammer_Util.thms_in_proof (SOME name_tabs)
                        |> map fact_name_of))
-    val all_problem_names = problem |> maps (map ident_of_problem_line o snd)
+    val all_problem_names =
+      problem |> maps (map ident_of_problem_line o snd)
+              |> distinct (op =)
+    val all_problem_name_set = Symtab.make (map (rpair ()) all_problem_names)
     val infers =
-      infers |> filter (member (op =) all_problem_names o fst)
-             |> map (apsnd (filter (member (op =) all_problem_names)))
+      infers |> filter (Symtab.defined all_problem_name_set o fst)
+             |> map (apsnd (filter (Symtab.defined all_problem_name_set)))
+    val maybe_add_edge = perhaps o try o String_Graph.add_edge_acyclic
     val ordered_names =
       String_Graph.empty
       |> fold (String_Graph.new_node o rpair ()) all_problem_names
       |> fold (fn (to, froms) =>
-                  fold (fn from => String_Graph.add_edge (from, to)) froms)
+                  fold (fn from => maybe_add_edge (from, to)) froms)
               infers
-      |> fold (fn (to, from) => String_Graph.add_edge_acyclic (from, to))
+      |> fold (fn (to, from) => maybe_add_edge (from, to))
               (tl all_problem_names ~~ fst (split_last all_problem_names))
       |> String_Graph.topological_order
     val order_tab =
