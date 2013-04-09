@@ -118,6 +118,23 @@ val crashes = Synchronized.var "Isar.crashes" ([]: exn list);
 
 local
 
+fun protocol_message props output =
+  (case props of
+    function :: args =>
+      if function = Markup.command_timing then
+        let
+          val name = the_default "" (Properties.get args Markup.nameN);
+          val pos = Position.of_properties args;
+          val timing = Markup.parse_timing_properties args;
+        in
+          if Timing.is_relevant timing andalso (! Toplevel.profiling > 0 orelse ! Toplevel.timing)
+            andalso name <> "" andalso not (Keyword.is_control name)
+          then tracing ("command " ^ quote name ^ Position.here pos ^ ": " ^ Timing.message timing)
+          else ()
+        end
+      else raise Output.Protocol_Message props
+  | [] => raise Output.Protocol_Message props);
+
 fun raw_loop secure src =
   let
     fun check_secure () =
@@ -139,6 +156,7 @@ in
 fun toplevel_loop in_stream {init = do_init, welcome, sync, secure} =
  (Context.set_thread_data NONE;
   if do_init then (Options.load_default (); init ()) else ();
+  Output.Private_Hooks.protocol_message_fn := protocol_message;
   if welcome then writeln (Session.welcome ()) else ();
   uninterruptible (fn _ => fn () => raw_loop secure (Outer_Syntax.isar in_stream sync)) ());
 

@@ -12,16 +12,56 @@ end;
 structure Build: BUILD =
 struct
 
+(* command timings *)
+
+type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name * time *)
+
+val empty_timings: timings = Symtab.empty;
+
+fun update_timings props =
+  (case Markup.parse_command_timing_properties props of
+    SOME ({file, offset, name}, time) =>
+      Symtab.map_default (file, Inttab.empty) (Inttab.update (offset, (name, time)))
+  | NONE => I);
+
+fun approximative_id name pos =
+  (case (Position.file_of pos, Position.offset_of pos) of
+    (SOME file, SOME offset) =>
+      if name = "" then NONE else SOME {file = file, offset = offset, name = name}
+  | _ => NONE);
+
+fun lookup_timings timings tr =
+  (case approximative_id (Toplevel.name_of tr) (Toplevel.pos_of tr) of
+    SOME {file, offset, name} =>
+      (case Symtab.lookup timings file of
+        SOME offsets =>
+          (case Inttab.lookup offsets offset of
+            SOME (name', time) => if name = name' then SOME time else NONE
+          | NONE => NONE)
+      | NONE => NONE)
+  | NONE => NONE);
+
+
 (* protocol messages *)
 
-(* FIXME avoid hardwired stuff!? *)
-val protocol_echo = [Markup.ML_statistics, Markup.task_statistics, Markup.command_timing];
+fun inline_message a args =
+  writeln ("\f" ^ a ^ " = " ^ YXML.string_of_body (XML.Encode.properties args));
 
 fun protocol_message props output =
   (case props of
     function :: args =>
-      if member (op =) protocol_echo function then
-        writeln ("\f" ^ #2 function ^ " = " ^ YXML.string_of_body (XML.Encode.properties args))
+      if function = Markup.ML_statistics orelse function = Markup.task_statistics then
+        inline_message (#2 function) args
+      else if function = Markup.command_timing then
+        let
+          val name = the_default "" (Properties.get args Markup.nameN);
+          val pos = Position.of_properties args;
+          val {elapsed, ...} = Markup.parse_timing_properties args;
+        in
+          (case approximative_id name pos of
+            SOME id => inline_message (#2 function) (Markup.command_timing_properties id elapsed)
+          | NONE => ())
+        end
       else
         (case Markup.dest_loading_theory props of
           SOME name => writeln ("\floading_theory = " ^ name)
@@ -73,30 +113,6 @@ fun use_theories_condition last_timing (options, thys) =
         Output.physical_stderr ("Skipping theories " ^ commas_quote thys ^
           " (undefined " ^ commas conds ^ ")\n"))
   end;
-
-
-(* command timings *)
-
-type timings = ((string * Time.time) Inttab.table) Symtab.table;  (*file -> offset -> name * time *)
-
-val empty_timings: timings = Symtab.empty;
-
-fun update_timings props =
-  (case Markup.parse_command_timing_properties props of
-    SOME ({file, offset, name}, time) =>
-      Symtab.map_default (file, Inttab.empty) (Inttab.update (offset, (name, time)))
-  | NONE => I);
-
-fun lookup_timings timings tr =
-  (case Toplevel.approximative_id tr of
-    SOME {file, offset, name} =>
-      (case Symtab.lookup timings file of
-        SOME offsets =>
-          (case Inttab.lookup offsets offset of
-            SOME (name', time) => if name = name' then SOME time else NONE
-          | NONE => NONE)
-      | NONE => NONE)
-  | NONE => NONE);
 
 in
 

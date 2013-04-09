@@ -23,7 +23,8 @@ sig
   val is_relevant_time: Time.time -> bool
   val is_relevant: timing -> bool
   val message: timing -> string
-  val status: ('a -> 'b) -> 'a -> 'b
+  val protocol_message: Properties.T -> timing -> unit
+  val protocol: Properties.T -> ('a -> 'b) -> 'a -> 'b
 end
 
 structure Timing: TIMING =
@@ -103,10 +104,13 @@ fun timeit e = cond_timeit true "" e;
 fun timeap f x = timeit (fn () => f x);
 fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
 
-fun status f x =
+fun protocol_message props t =
+  Output.try_protocol_message (props @ Markup.timing_properties t) "";
+
+fun protocol props f x =
   let
     val (t, result) = timing (Exn.interruptible_capture f) x;
-    val _ = if is_relevant t then Output.status (Markup.markup_only (Markup.timing t)) else ();
+    val _ = protocol_message props t;
   in Exn.release result end;
 
 end;

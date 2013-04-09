@@ -193,6 +193,7 @@ object Markup
   {
     def apply(timing: isabelle.Timing): Properties.T =
       Elapsed(timing.elapsed.seconds) ::: CPU(timing.cpu.seconds) ::: GC(timing.gc.seconds)
+
     def unapply(props: Properties.T): Option[isabelle.Timing] =
       (props, props, props) match {
         case (Elapsed(elapsed), CPU(cpu), GC(gc)) =>
@@ -206,9 +207,26 @@ object Markup
   object Timing
   {
     def apply(timing: isabelle.Timing): Markup = Markup(TIMING, Timing_Properties(timing))
+
     def unapply(markup: Markup): Option[isabelle.Timing] =
       markup match {
         case Markup(TIMING, Timing_Properties(timing)) => Some(timing)
+        case _ => None
+      }
+  }
+
+
+  /* command timing */
+
+  object Command_Timing
+  {
+    def unapply(props: Properties.T): Option[(Document.ID, isabelle.Timing)] =
+      props match {
+        case (FUNCTION, "command_timing") :: args =>
+          (args, args) match {
+            case (Position.Id(id), Timing_Properties(timing)) => Some((id, timing))
+            case _ => None
+          }
         case _ => None
       }
   }

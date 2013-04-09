@@ -89,7 +89,6 @@ sig
   val setmp_thread_position: transition -> ('a -> 'b) -> 'a -> 'b
   val status: transition -> Markup.T -> unit
   val add_hook: (transition -> state -> state -> unit) -> unit
-  val approximative_id: transition -> {file: string, offset: int, name: string} option
   val get_timing: transition -> Time.time option
   val put_timing: Time.time option -> transition -> transition
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
@@ -591,19 +590,6 @@ fun get_id (Transition {pos, ...}) = Position.get_id pos;
 fun put_id id (tr as Transition {pos, ...}) = position (Position.put_id id pos) tr;
 
 
-(* approximative identification within source file *)
-
-fun approximative_id tr =
-  let
-    val name = name_of tr;
-    val pos = pos_of tr;
-  in
-    (case (Position.file_of pos, Position.offset_of pos) of
-      (SOME file, SOME offset) => SOME {file = file, offset = offset, name = name}
-    | _ => NONE)
-  end;
-
-
 (* thread position *)
 
 fun setmp_thread_position (Transition {pos, ...}) f x =
@@ -643,23 +629,9 @@ fun app int (tr as Transition {trans, print, ...}) =
       val _ = if int andalso not (! quiet) andalso print then print_state false result else ();
 
       val timing_result = Timing.result timing_start;
-
-      val _ =
-        if Timing.is_relevant timing_result andalso (! profiling > 0 orelse ! timing)
-          andalso not (Keyword.is_control (name_of tr))
-        then tracing (command_msg "" tr ^ ": " ^ Timing.message timing_result)
-        else ();
-      val _ =
-        if Timing.is_relevant timing_result
-        then status tr (Markup.timing timing_result)
-        else ();
-      val _ =
-        (case approximative_id tr of
-          SOME id =>
-            (Output.try_protocol_message
-              (Markup.command_timing ::
-                Markup.command_timing_properties id (#elapsed timing_result)) "")
-        | NONE => ());
+      val timing_props =
+        Markup.command_timing :: (Markup.nameN, name_of tr) :: Position.properties_of (pos_of tr);
+      val _ = Timing.protocol_message timing_props timing_result;
     in
       (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_err)
     end);

@@ -300,22 +300,31 @@ class Session(val thy_load: Thy_Load)
     def handle_output(output: Isabelle_Process.Output)
     //{{{
     {
-      def bad_output(output: Isabelle_Process.Output)
+      def bad_output()
       {
         if (verbose)
           System.err.println("Ignoring prover output: " + output.message.toString)
       }
 
+      def accumulate(state_id: Document.ID, message: XML.Elem)
+      {
+        try {
+          val st = global_state >>> (_.accumulate(state_id, message))
+          delay_commands_changed.invoke(false, List(st.command))
+        }
+        catch {
+          case _: Document.State.Fail => bad_output()
+        }
+      }
+
       output.properties match {
 
         case Position.Id(state_id) if !output.is_protocol =>
-          try {
-            val st = global_state >>> (_.accumulate(state_id, output.message))
-            delay_commands_changed.invoke(false, List(st.command))
-          }
-          catch {
-            case _: Document.State.Fail => bad_output(output)
-          }
+          accumulate(state_id, output.message)
+
+        case Markup.Command_Timing(state_id, timing) if output.is_protocol =>
+          // FIXME XML.cache (!?)
+          accumulate(state_id, XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil))))
 
         case Markup.Assign_Execs if output.is_protocol =>
           XML.content(output.body) match {
@@ -324,8 +333,8 @@ class Session(val thy_load: Thy_Load)
                 val cmds = global_state >>> (_.assign(id, assign))
                 delay_commands_changed.invoke(true, cmds)
               }
-              catch { case _: Document.State.Fail => bad_output(output) }
-            case _ => bad_output(output)
+              catch { case _: Document.State.Fail => bad_output() }
+            case _ => bad_output()
           }
           // FIXME separate timeout event/message!?
           if (prover.isDefined && System.currentTimeMillis() > prune_next) {
@@ -340,8 +349,8 @@ class Session(val thy_load: Thy_Load)
               try {
                 global_state >> (_.removed_versions(removed))
               }
-              catch { case _: Document.State.Fail => bad_output(output) }
-            case _ => bad_output(output)
+              catch { case _: Document.State.Fail => bad_output() }
+            case _ => bad_output()
           }
 
         case Markup.Invoke_Scala(name, id) if output.is_protocol =>
@@ -374,7 +383,7 @@ class Session(val thy_load: Thy_Load)
           if (rc == 0) phase = Session.Inactive
           else phase = Session.Failed
 
-        case _ => bad_output(output)
+        case _ => bad_output()
       }
     }
     //}}}
