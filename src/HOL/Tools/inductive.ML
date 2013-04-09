@@ -1175,8 +1175,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_inductives"}
     "print (co)inductive definitions and monotonicity rules"
-    (Scan.succeed
-      (Toplevel.no_timing o Toplevel.unknown_context o
-        Toplevel.keep (print_inductives o Toplevel.context_of)));
+    (Scan.succeed (Toplevel.unknown_context o
+      Toplevel.keep (print_inductives o Toplevel.context_of)));
 
 end;

@@ -81,10 +81,8 @@ fun prove_vc vc_name lthy =
 fun string_of_status NONE = "(unproved)"
   | string_of_status (SOME _) = "(proved)";
 
-fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
+fun show_status thy (p, f) =
   let
-    val thy = Toplevel.theory_of state;
-
     val (context, defs, vcs) = SPARK_VCs.get_vcs thy true;
 
     val vcs' = AList.coalesce (op =) (map_filter
@@ -93,8 +91,7 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
            SOME (trace, (name, status, ctxt, stmt))
          else NONE) vcs);
 
-    val ctxt = state |>
-      Toplevel.theory_of |>
+    val ctxt = thy |>
       Proof_Context.init_global |>
       Context.proof_map (fold Element.init context)
   in
@@ -116,7 +113,7 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
            (Element.pretty_ctxt ctxt context' @
             Element.pretty_stmt ctxt stmt)) vcs'') vcs')] |>
     Pretty.chunks2 |> Pretty.writeln
-  end);
+  end;
 
 val _ =
   Outer_Syntax.command @{command_spec "spark_open"}
@@ -165,7 +162,8 @@ val _ =
        (Args.parens
           (   Args.$$$ "proved" >> K (is_some, K "")
            || Args.$$$ "unproved" >> K (is_none, K "")))
-       (K true, string_of_status) >> show_status);
+       (K true, string_of_status) >> (fn args =>
+        Toplevel.keep (fn state => show_status (Toplevel.theory_of state) args)))
 
 val _ =
   Outer_Syntax.command @{command_spec "spark_end"}

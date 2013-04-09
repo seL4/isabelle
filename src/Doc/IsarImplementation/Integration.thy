@@ -145,7 +145,6 @@ text {*
 text %mlref {*
   \begin{mldecls}
   @{index_ML Toplevel.print: "Toplevel.transition -> Toplevel.transition"} \\
-  @{index_ML Toplevel.no_timing: "Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.keep: "(Toplevel.state -> unit) ->
   Toplevel.transition -> Toplevel.transition"} \\
   @{index_ML Toplevel.theory: "(theory -> theory) ->
@@ -165,10 +164,6 @@ text %mlref {*
   \item @{ML Toplevel.print}~@{text "tr"} sets the print flag, which
   causes the toplevel loop to echo the result state (in interactive
   mode).
-
-  \item @{ML Toplevel.no_timing}~@{text "tr"} indicates that the
-  transition should never show timing information, e.g.\ because it is
-  a diagnostic command.
 
   \item @{ML Toplevel.keep}~@{text "tr"} adjoins a diagnostic
   function.

@@ -628,7 +628,6 @@ val _ =
     "find theorems meeting specified criteria"
     (options -- query_parser
       >> (fn ((opt_lim, rem_dups), spec) =>
-        Toplevel.no_timing o
         Toplevel.keep (fn state =>
           let
             val ctxt = Toplevel.context_of state;

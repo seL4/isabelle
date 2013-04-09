@@ -281,7 +281,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "ML_command"} "diagnostic ML text (silent)"
-    (Parse.ML_source >> (Toplevel.no_timing oo Isar_Cmd.ml_diag false));
+    (Parse.ML_source >> Isar_Cmd.ml_diag false);
 
 val _ =
   Outer_Syntax.command @{command_spec "setup"} "ML theory setup"
@@ -381,7 +381,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_bundles"}
     "print bundles of declarations"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Bundle.print_bundles o Toplevel.context_of)));
 
 
@@ -746,197 +746,193 @@ val opt_bang = Scan.optional (@{keyword "!"} >> K true) false;
 val _ =
   Outer_Syntax.improper_command @{command_spec "pretty_setmargin"}
     "change default margin for pretty printing"
-    (Parse.nat >>
-      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Pretty.margin_default := n)));
+    (Parse.nat >> (fn n => Toplevel.imperative (fn () => Pretty.margin_default := n)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "help"}
     "retrieve outer syntax commands according to name patterns"
-    (Scan.repeat Parse.name >> (fn pats =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Outer_Syntax.help_outer_syntax pats)));
+    (Scan.repeat Parse.name >>
+      (fn pats => Toplevel.imperative (fn () => Outer_Syntax.help_outer_syntax pats)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_commands"} "print outer syntax commands"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Outer_Syntax.print_outer_syntax));
+    (Scan.succeed (Toplevel.imperative Outer_Syntax.print_outer_syntax));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_configs"} "print configuration options"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Attrib.print_configs o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_context"} "print main context"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.keep Toplevel.print_state_context));
+    (Scan.succeed (Toplevel.keep Toplevel.print_state_context));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theory"}
     "print logical theory contents (verbose!)"
-    (opt_bang >> (fn b => Toplevel.no_timing o Toplevel.unknown_theory o
+    (opt_bang >> (fn b => Toplevel.unknown_theory o
       Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory b o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_syntax"}
     "print inner syntax of context (verbose!)"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_defn_rules"}
     "print definitional rewrite rules of context"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Local_Defs.print_rules o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_abbrevs"}
     "print constant abbreviations of context"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_abbrevs o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_theorems"}
     "print theorems of local theory or proof context"
-    (opt_bang >> (Toplevel.no_timing oo Isar_Cmd.print_theorems));
+    (opt_bang >> Isar_Cmd.print_theorems);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_locales"}
     "print locales of this theory"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
+    (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Locale.print_locales o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_classes"}
     "print classes of this theory"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
+    (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Class.print_classes o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_locale"}
     "print locale of this theory"
     (opt_bang -- Parse.position Parse.xname >> (fn (b, name) =>
-      Toplevel.no_timing o Toplevel.unknown_theory o
+      Toplevel.unknown_theory o
       Toplevel.keep (fn state => Locale.print_locale (Toplevel.theory_of state) b name)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_interps"}
     "print interpretations of locale for this theory or proof context"
-    (Parse.position Parse.xname >> (fn name => Toplevel.no_timing o Toplevel.unknown_context o
+    (Parse.position Parse.xname >> (fn name =>
+      Toplevel.unknown_context o
       Toplevel.keep (fn state => Locale.print_registrations (Toplevel.context_of state) name)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_dependencies"}
     "print dependencies of locale expression"
-    (opt_bang -- Parse_Spec.locale_expression true >> (fn (clean, expr) =>
-      Toplevel.no_timing o Toplevel.unknown_context o
-        Toplevel.keep (fn state =>
-          Expression.print_dependencies (Toplevel.context_of state) clean expr)));
+    (opt_bang -- Parse_Spec.locale_expression true >> (fn (b, expr) =>
+      Toplevel.unknown_context o
+      Toplevel.keep (fn state => Expression.print_dependencies (Toplevel.context_of state) b expr)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_attributes"}
     "print attributes of this theory"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
+    (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_simpset"}
     "print context of Simplifier"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (fn state =>
         let val ctxt = Toplevel.context_of state
         in Pretty.writeln (Simplifier.pretty_ss ctxt (simpset_of ctxt)) end)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_rules"} "print intro/elim rules"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Context_Rules.print_rules o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_trans_rules"} "print transitivity rules"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Calculation.print_rules o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_methods"} "print methods of this theory"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
+    (Scan.succeed (Toplevel.unknown_theory o
       Toplevel.keep (Method.print_methods o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_antiquotations"} "print antiquotations"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Thy_Output.print_antiquotations o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "thy_deps"} "visualize theory dependencies"
-    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.thy_deps));
+    (Scan.succeed Isar_Cmd.thy_deps);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "locale_deps"} "visualize locale dependencies"
-    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.locale_deps));
+    (Scan.succeed Isar_Cmd.locale_deps);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "class_deps"} "visualize class dependencies"
-    (Scan.succeed (Toplevel.no_timing o Isar_Cmd.class_deps));
+    (Scan.succeed Isar_Cmd.class_deps);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "thm_deps"} "visualize theorem dependencies"
-    (Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.thm_deps));
+    (Parse_Spec.xthms1 >> Isar_Cmd.thm_deps);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_binds"} "print term bindings of proof context"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_binds o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_facts"} "print facts of proof context"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_lthms o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_cases"} "print cases of proof context"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+    (Scan.succeed (Toplevel.unknown_context o
       Toplevel.keep (Proof_Context.print_cases o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_statement"}
     "print theorems as long statements"
-    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.print_stmts));
+    (opt_modes -- Parse_Spec.xthms1 >> Isar_Cmd.print_stmts);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "thm"} "print theorems"
-    (opt_modes -- Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.print_thms));
+    (opt_modes -- Parse_Spec.xthms1 >> Isar_Cmd.print_thms);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "prf"} "print proof terms of theorems"
-    (opt_modes -- Scan.option Parse_Spec.xthms1
-      >> (Toplevel.no_timing oo Isar_Cmd.print_prfs false));
+    (opt_modes -- Scan.option Parse_Spec.xthms1 >> Isar_Cmd.print_prfs false);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "full_prf"} "print full proof terms of theorems"
-    (opt_modes -- Scan.option Parse_Spec.xthms1 >> (Toplevel.no_timing oo Isar_Cmd.print_prfs true));
+    (opt_modes -- Scan.option Parse_Spec.xthms1 >> Isar_Cmd.print_prfs true);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "prop"} "read and print proposition"
-    (opt_modes -- Parse.term >> (Toplevel.no_timing oo Isar_Cmd.print_prop));
+    (opt_modes -- Parse.term >> Isar_Cmd.print_prop);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "term"} "read and print term"
-    (opt_modes -- Parse.term >> (Toplevel.no_timing oo Isar_Cmd.print_term));
+    (opt_modes -- Parse.term >> Isar_Cmd.print_term);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "typ"} "read and print type"
     (opt_modes -- (Parse.typ -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort))
-      >> (Toplevel.no_timing oo Isar_Cmd.print_type));
+      >> Isar_Cmd.print_type);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_codesetup"} "print code generator setup"
-    (Scan.succeed
-      (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
-        (Code.print_codesetup o Toplevel.theory_of)));
+    (Scan.succeed (Toplevel.unknown_theory o
+      Toplevel.keep (Code.print_codesetup o Toplevel.theory_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "unused_thms"} "find unused theorems"
     (Scan.option ((Scan.repeat1 (Scan.unless Parse.minus Parse.name) --| Parse.minus) --
-       Scan.option (Scan.repeat1 (Scan.unless Parse.minus Parse.name))) >>
-         (Toplevel.no_timing oo Isar_Cmd.unused_thms));
+       Scan.option (Scan.repeat1 (Scan.unless Parse.minus Parse.name))) >> Isar_Cmd.unused_thms);
 
 
 
@@ -944,44 +940,40 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "cd"} "change current working directory"
-    (Parse.path >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => File.cd (Path.explode name))));
+    (Parse.path >> (fn name => Toplevel.imperative (fn () => File.cd (Path.explode name))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "pwd"} "print current working directory"
-    (Scan.succeed (Toplevel.no_timing o
-      Toplevel.imperative (fn () => writeln (Path.print (File.pwd ())))));
+    (Scan.succeed (Toplevel.imperative (fn () => writeln (Path.print (File.pwd ())))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "use_thy"} "use theory file"
-    (Parse.position Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.use_thy name)));
+    (Parse.position Parse.name >>
+      (fn name => Toplevel.imperative (fn () => Thy_Info.use_thy name)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "remove_thy"} "remove theory from loader database"
-    (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.remove_thy name)));
+    (Parse.name >> (fn name => Toplevel.imperative (fn () => Thy_Info.remove_thy name)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "kill_thy"}
     "kill theory -- try to remove from loader database"
-    (Parse.name >> (fn name =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
+    (Parse.name >> (fn name => Toplevel.imperative (fn () => Thy_Info.kill_thy name)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "display_drafts"}
     "display raw source files with symbols"
-    (Scan.repeat1 Parse.path >> (Toplevel.no_timing oo Isar_Cmd.display_drafts));
+    (Scan.repeat1 Parse.path >> Isar_Cmd.display_drafts);
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_drafts"}
     "print raw source files with symbols"
-    (Scan.repeat1 Parse.path >> (Toplevel.no_timing oo Isar_Cmd.print_drafts));
+    (Scan.repeat1 Parse.path >> Isar_Cmd.print_drafts);
 
 val _ =  (* FIXME tty only *)
   Outer_Syntax.improper_command @{command_spec "pr"} "print current proof state (if present)"
     (opt_modes -- Scan.option Parse.nat >> (fn (modes, limit) =>
-      Toplevel.no_timing o Toplevel.keep (fn state =>
+      Toplevel.keep (fn state =>
        (case limit of NONE => () | SOME n => Goal_Display.goals_limit_default := n;
         Toplevel.quiet := false;
         Print_Mode.with_modes modes (Toplevel.print_state true) state))));
@@ -989,32 +981,32 @@ val _ =  (* FIXME tty only *)
 val _ =
   Outer_Syntax.improper_command @{command_spec "disable_pr"}
     "disable printing of toplevel state"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Toplevel.quiet := true)));
+    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := true)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "enable_pr"}
     "enable printing of toplevel state"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (fn () => Toplevel.quiet := false)));
+    (Scan.succeed (Toplevel.imperative (fn () => Toplevel.quiet := false)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "commit"}
     "commit current session to ML session image"
-    (Parse.opt_unit >> K (Toplevel.no_timing o Toplevel.imperative Secure.commit));
+    (Parse.opt_unit >> K (Toplevel.imperative Secure.commit));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "quit"} "quit Isabelle"
-    (Parse.opt_unit >> (Toplevel.no_timing oo K (Toplevel.imperative quit)));
+    (Parse.opt_unit >> (K (Toplevel.imperative quit)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "exit"} "exit Isar loop"
     (Scan.succeed
-      (Toplevel.no_timing o Toplevel.keep (fn state =>
+      (Toplevel.keep (fn state =>
         (Context.set_thread_data (try Toplevel.generic_theory_of state);
           raise Runtime.TERMINATE))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "welcome"} "print welcome message"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (writeln o Session.welcome)));
+    (Scan.succeed (Toplevel.imperative (writeln o Session.welcome)));
 
 
 
@@ -1022,22 +1014,22 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "init_toplevel"} "init toplevel point-of-interest"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.init));
+    (Scan.succeed (Toplevel.imperative Isar.init));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "linear_undo"} "undo commands"
     (Scan.optional Parse.nat 1 >>
-      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.linear_undo n)));
+      (fn n => Toplevel.imperative (fn () => Isar.linear_undo n)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "undo"} "undo commands (skipping closed proofs)"
     (Scan.optional Parse.nat 1 >>
-      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo n)));
+      (fn n => Toplevel.imperative (fn () => Isar.undo n)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "undos_proof"}
     "undo commands (skipping closed proofs)"
-    (Scan.optional Parse.nat 1 >> (fn n => Toplevel.no_timing o
+    (Scan.optional Parse.nat 1 >> (fn n =>
       Toplevel.keep (fn state =>
         if Toplevel.is_proof state then (Isar.undo n; Isar.print ()) else raise Toplevel.UNDEF)));
 
@@ -1045,13 +1037,13 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "cannot_undo"}
     "partial undo -- Proof General legacy"
     (Parse.name >>
-      (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => Isar.undo 1)
+      (fn "end" => Toplevel.imperative (fn () => Isar.undo 1)
         | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "kill"}
     "kill partial proof or theory development"
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.kill));
+    (Scan.succeed (Toplevel.imperative Isar.kill));
 
 
 
