@@ -362,14 +362,12 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   than the fixity declarations of ML and Prolog.
 
   @{rail "
-    @{syntax_def mixfix}: '(' mfix ')'
-    ;
-    @{syntax_def struct_mixfix}: '(' ( mfix | @'structure' ) ')'
-    ;
-
-    mfix: @{syntax template} prios? @{syntax nat}? |
+    @{syntax_def mixfix}: '('
+      @{syntax template} prios? @{syntax nat}? |
       (@'infix' | @'infixl' | @'infixr') @{syntax template} @{syntax nat} |
-      @'binder' @{syntax template} prios? @{syntax nat}
+      @'binder' @{syntax template} prios? @{syntax nat} |
+      @'structure'
+    ')'
     ;
     template: string
     ;
@@ -379,9 +377,9 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   The string given as @{text template} may include literal text,
   spacing, blocks, and arguments (denoted by ``@{text _}''); the
   special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
-  represents an index argument that specifies an implicit structure
-  reference (see also \secref{sec:locale}).  Infix and binder
-  declarations provide common abbreviations for particular mixfix
+  represents an index argument that specifies an implicit
+  @{text "\<STRUCTURE>"} reference (see also \secref{sec:locale}).  Infix and
+  binder declarations provide common abbreviations for particular mixfix
   declarations.  So in practice, mixfix templates mostly degenerate to
   literal text for concrete syntax, such as ``@{verbatim "++"}'' for
   an infix symbol.
@@ -568,9 +566,9 @@ text {*
       @{syntax mode}? \\ (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
     (@@{command notation} | @@{command no_notation}) @{syntax target}? @{syntax mode}? \\
-      (@{syntax nameref} @{syntax struct_mixfix} + @'and')
+      (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
-    @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax struct_mixfix} + @'and')
+    @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax mixfix} + @'and')
   "}
 
   \begin{description}

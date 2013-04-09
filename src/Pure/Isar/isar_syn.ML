@@ -208,13 +208,13 @@ val _ =
 val _ =
   Outer_Syntax.local_theory @{command_spec "notation"}
     "add concrete syntax for constants / fixed variables"
-    (opt_mode -- Parse.and_list1 (Parse.const -- Parse_Spec.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
       >> (fn (mode, args) => Specification.notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "no_notation"}
     "delete concrete syntax for constants / fixed variables"
-    (opt_mode -- Parse.and_list1 (Parse.const -- Parse_Spec.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
       >> (fn (mode, args) => Specification.notation_cmd false mode args));
 
 
@@ -604,7 +604,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "write"} "add concrete syntax for constants / fixed variables"
-    (opt_mode -- Parse.and_list1 (Parse.const -- Parse_Spec.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.const -- Parse.mixfix)
     >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
 val case_spec =
