@@ -250,7 +250,8 @@ fun index_tr [t] = t
 fun the_struct [] = error "Illegal reference to implicit structure"
   | the_struct (x :: _) = x;
 
-fun struct_tr structs [Const ("_indexdefault", _)] = Syntax.free (the_struct structs)
+fun struct_tr structs [Const ("_indexdefault", _)] =
+      Syntax.const (Lexicon.mark_fixed (the_struct structs))
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
