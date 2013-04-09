@@ -1578,7 +1578,7 @@ lemma exp_at_top: "LIM x at_top. exp x :: real :> at_top"
 
 lemma ln_at_0: "LIM x at_right 0. ln x :> at_bot"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])
-     (auto simp: eventually_within)
+     (auto simp: eventually_at_filter)
 
 lemma ln_at_top: "LIM x at_top. ln x :> at_top"
   by (rule filterlim_at_top_at_top[where Q="\<lambda>x. 0 < x" and P="\<lambda>x. True" and g="exp"])
@@ -3190,12 +3190,12 @@ declare
 
 lemma filterlim_tan_at_right: "filterlim tan at_bot (at_right (- pi/2))"
   by (rule filterlim_at_bot_at_right[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
-     (auto simp: le_less eventually_within_less dist_real_def simp del: less_divide_eq_numeral1
+     (auto simp: le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
 lemma filterlim_tan_at_left: "filterlim tan at_top (at_left (pi/2))"
   by (rule filterlim_at_top_at_left[where Q="\<lambda>x. - pi/2 < x \<and> x < pi/2" and P="\<lambda>x. True" and g=arctan])
-     (auto simp: le_less eventually_within_less dist_real_def simp del: less_divide_eq_numeral1
+     (auto simp: le_less eventually_at dist_real_def simp del: less_divide_eq_numeral1
            intro!: tan_monotone exI[of _ "pi/2"])
 
 lemma tendsto_arctan_at_top: "(arctan ---> (pi/2)) at_top"

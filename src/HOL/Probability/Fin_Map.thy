@@ -206,8 +206,7 @@ qed
 
 lemma continuous_proj:
   shows "continuous_on s (\<lambda>x. (x)\<^isub>F i)"
-  unfolding continuous_on_def
-  by (safe intro!: tendsto_proj tendsto_ident_at_within)
+  unfolding continuous_on_def by (safe intro!: tendsto_proj tendsto_ident_at)
 
 instance finmap :: (type, first_countable_topology) first_countable_topology
 proof

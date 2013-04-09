@@ -40,7 +40,7 @@ proof (cases "\<exists>x. x \<noteq> a")
     apply (simp add: norm_sgn sgn_zero_iff x)
     done
   thus ?thesis
-    by (rule netlimit_within [of a UNIV, unfolded within_UNIV])
+    by (rule netlimit_within [of a UNIV])
 qed simp
 
 lemma FDERIV_conv_has_derivative:
@@ -80,7 +80,7 @@ lemma has_derivative_at':
   using has_derivative_within' [of f f' x UNIV] by simp
 
 lemma has_derivative_at_within: "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f') (at x within s)"
-  unfolding has_derivative_within' has_derivative_at' by meson
+  unfolding has_derivative_within' has_derivative_at' by blast
 
 lemma has_derivative_within_open:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> ((f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a))"
@@ -252,7 +252,7 @@ lemma differentiable_within_open: (* TODO: delete *)
 lemma differentiable_on_eq_differentiable_at:
   "open s \<Longrightarrow> (f differentiable_on s \<longleftrightarrow> (\<forall>x\<in>s. f differentiable at x))"
   unfolding differentiable_on_def
-  by (auto simp add: at_within_interior interior_open)
+  by (metis at_within_interior interior_open)
 
 lemma differentiable_transform_within:
   assumes "0 < d" and "x \<in> s" and "\<forall>x'\<in>s. dist x' x < d \<longrightarrow> f x' = g x'"
@@ -317,7 +317,7 @@ qed
 
 lemma differentiable_imp_continuous_at:
   "f differentiable at x \<Longrightarrow> continuous (at x) f"
- by(rule differentiable_imp_continuous_within[of _ x UNIV, unfolded within_UNIV])
+ by(rule differentiable_imp_continuous_within[of _ x UNIV])
 
 lemma differentiable_imp_continuous_on:
   "f differentiable_on s \<Longrightarrow> continuous_on s f"
@@ -326,7 +326,7 @@ lemma differentiable_imp_continuous_on:
 
 lemma has_derivative_within_subset:
  "(f has_derivative f') (at x within s) \<Longrightarrow> t \<subseteq> s \<Longrightarrow> (f has_derivative f') (at x within t)"
-  unfolding has_derivative_within using Lim_within_subset by blast
+  unfolding has_derivative_within using tendsto_within_subset by blast
 
 lemma differentiable_within_subset:
   "f differentiable (at x within t) \<Longrightarrow> s \<subseteq> t \<Longrightarrow> f differentiable (at x within s)"
@@ -621,7 +621,7 @@ lemma frechet_derivative_unique_within_open_interval:
   shows "f' = f''"
 proof -
   from assms(1) have *: "at x within {a<..<b} = at x"
-    by (simp add: at_within_interior interior_open open_interval)
+    by (metis at_within_interior interior_open open_interval)
   from assms(2,3) [unfolded *] show "f' = f''"
     by (rule frechet_derivative_unique_at)
 qed
@@ -1805,7 +1805,7 @@ lemma has_vector_derivative_bilinear_at:
   assumes "(g has_vector_derivative g') (at x)"
   assumes "bounded_bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) has_vector_derivative (h (f x) g' + h f' (g x))) (at x)"
-  using has_vector_derivative_bilinear_within[where s=UNIV] assms by simp
+  using has_vector_derivative_bilinear_within[OF assms] .
 
 lemma has_vector_derivative_at_within:
   "(f has_vector_derivative f') (at x) \<Longrightarrow> (f has_vector_derivative f') (at x within s)"

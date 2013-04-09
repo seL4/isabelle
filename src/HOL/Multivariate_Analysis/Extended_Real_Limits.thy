@@ -890,16 +890,16 @@ qed simp
 lemma Liminf_within:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::complete_lattice"
   shows "Liminf (at x within S) f = (SUP e:{0<..}. INF y:(S \<inter> ball x e - {x}). f y)"
-  unfolding Liminf_def eventually_within_less
+  unfolding Liminf_def eventually_at
 proof (rule SUPR_eq, simp_all add: Ball_def Bex_def, safe)
-  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
+  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
   then show "\<exists>r>0. INFI (Collect P) f \<le> INFI (S \<inter> ball x r - {x}) f"
     by (intro exI[of _ d] INF_mono conjI `0 < d`) auto
 next
   fix d :: real assume "0 < d"
-  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
+  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> xa \<noteq> x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
     INFI (S \<inter> ball x d - {x}) f \<le> INFI (Collect P) f"
     by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
        (auto intro!: INF_mono exI[of _ d] simp: dist_commute)
@@ -908,16 +908,16 @@ qed
 lemma Limsup_within:
   fixes f :: "'a::metric_space => 'b::complete_lattice"
   shows "Limsup (at x within S) f = (INF e:{0<..}. SUP y:(S \<inter> ball x e - {x}). f y)"
-  unfolding Limsup_def eventually_within_less
+  unfolding Limsup_def eventually_at
 proof (rule INFI_eq, simp_all add: Ball_def Bex_def, safe)
-  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> 0 < dist y x \<and> dist y x < d \<longrightarrow> P y"
+  fix P d assume "0 < d" "\<forall>y. y \<in> S \<longrightarrow> y \<noteq> x \<and> dist y x < d \<longrightarrow> P y"
   then have "S \<inter> ball x d - {x} \<subseteq> {x. P x}"
     by (auto simp: zero_less_dist_iff dist_commute)
   then show "\<exists>r>0. SUPR (S \<inter> ball x r - {x}) f \<le> SUPR (Collect P) f"
     by (intro exI[of _ d] SUP_mono conjI `0 < d`) auto
 next
   fix d :: real assume "0 < d"
-  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
+  then show "\<exists>P. (\<exists>d>0. \<forall>xa. xa \<in> S \<longrightarrow> xa \<noteq> x \<and> dist xa x < d \<longrightarrow> P xa) \<and>
     SUPR (Collect P) f \<le> SUPR (S \<inter> ball x d - {x}) f"
     by (intro exI[of _ "\<lambda>y. y \<in> S \<inter> ball x d - {x}"])
        (auto intro!: SUP_mono exI[of _ d] simp: dist_commute)

@@ -39,9 +39,6 @@ lemma Lim_within_open:
   shows "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)"
   by (fact tendsto_within_open)
 
-lemma Lim_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
-  by (fact tendsto_within_subset)
-
 lemma continuous_on_union:
   "closed s \<Longrightarrow> closed t \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on t f \<Longrightarrow> continuous_on (s \<union> t) f"
   by (fact continuous_on_closed_Un)
@@ -1205,7 +1202,7 @@ subsection {* Filters and the ``eventually true'' quantifier *}
 definition
   indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a filter"
     (infixr "indirection" 70) where
-  "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
+  "a indirection v = at a within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
 
 text {* Identify Trivial limits, where we can't approach arbitrarily closely. *}
 
@@ -1215,7 +1212,7 @@ proof
   assume "trivial_limit (at a within S)"
   thus "\<not> a islimpt S"
     unfolding trivial_limit_def
-    unfolding eventually_within eventually_at_topological
+    unfolding eventually_at_topological
     unfolding islimpt_def
     apply (clarsimp simp add: set_eq_iff)
     apply (rename_tac T, rule_tac x=T in exI)
@@ -1225,7 +1222,7 @@ next
   assume "\<not> a islimpt S"
   thus "trivial_limit (at a within S)"
     unfolding trivial_limit_def
-    unfolding eventually_within eventually_at_topological
+    unfolding eventually_at_topological
     unfolding islimpt_def
     apply clarsimp
     apply (rule_tac x=T in exI)
@@ -1292,11 +1289,11 @@ text{* Show that they yield usual definitions in the various cases. *}
 
 lemma Lim_within_le: "(f ---> l)(at a within S) \<longleftrightarrow>
            (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. 0 < dist x a  \<and> dist x a  <= d \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_within_le)
+  by (auto simp add: tendsto_iff eventually_at_le dist_nz)
 
 lemma Lim_within: "(f ---> l) (at a within S) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_iff eventually_within_less)
+  by (auto simp add: tendsto_iff eventually_at dist_nz)
 
 lemma Lim_at: "(f ---> l) (at a) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
@@ -1311,12 +1308,12 @@ lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f
 
 text{* The expected monotonicity property. *}
 
-lemma Lim_within_empty: "(f ---> l) (net within {})"
-  unfolding tendsto_def Limits.eventually_within by simp
+lemma Lim_within_empty: "(f ---> l) (at x within {})"
+  unfolding tendsto_def eventually_at_filter by simp
 
-lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
-  shows "(f ---> l) (net within (S \<union> T))"
-  using assms unfolding tendsto_def Limits.eventually_within
+lemma Lim_Un: assumes "(f ---> l) (at x within S)" "(f ---> l) (at x within T)"
+  shows "(f ---> l) (at x within (S \<union> T))"
+  using assms unfolding tendsto_def eventually_at_filter
   apply clarify
   apply (drule spec, drule (1) mp, drule (1) mp)
   apply (drule spec, drule (1) mp, drule (1) mp)
@@ -1324,17 +1321,16 @@ lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
   done
 
 lemma Lim_Un_univ:
- "(f ---> l) (net within S) \<Longrightarrow> (f ---> l) (net within T) \<Longrightarrow>  S \<union> T = UNIV
-        ==> (f ---> l) net"
-  by (metis Lim_Un within_UNIV)
+ "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>  S \<union> T = UNIV
+        ==> (f ---> l) (at x)"
+  by (metis Lim_Un)
 
 text{* Interrelations between restricted and unrestricted limits. *}
 
-lemma Lim_at_within: "(f ---> l) net ==> (f ---> l)(net within S)"
-  (* FIXME: rename *)
-  unfolding tendsto_def Limits.eventually_within
-  apply (clarify, drule spec, drule (1) mp, drule (1) mp)
-  by (auto elim!: eventually_elim1)
+
+lemma Lim_at_within: (* FIXME: rename *)
+  "(f ---> l) (at x) \<Longrightarrow> (f ---> l) (at x within S)"
+  by (metis order_refl filterlim_mono subset_UNIV at_le)
 
 lemma eventually_within_interior:
   assumes "x \<in> interior S"
@@ -1343,7 +1339,7 @@ proof-
   from assms obtain T where T: "open T" "x \<in> T" "T \<subseteq> S" ..
   { assume "?lhs"
     then obtain A where "open A" "x \<in> A" "\<forall>y\<in>A. y \<noteq> x \<longrightarrow> y \<in> S \<longrightarrow> P y"
-      unfolding Limits.eventually_within eventually_at_topological
+      unfolding eventually_at_topological
       by auto
     with T have "open (A \<inter> T)" "x \<in> A \<inter> T" "\<forall>y\<in>(A \<inter> T). y \<noteq> x \<longrightarrow> P y"
       by auto
@@ -1351,15 +1347,14 @@ proof-
       unfolding eventually_at_topological by auto
   } moreover
   { assume "?rhs" hence "?lhs"
-      unfolding Limits.eventually_within
-      by (auto elim: eventually_elim1)
+      by (auto elim: eventually_elim1 simp: eventually_at_filter)
   } ultimately
   show "?thesis" ..
 qed
 
 lemma at_within_interior:
   "x \<in> interior S \<Longrightarrow> at x within S = at x"
-  by (simp add: filter_eq_iff eventually_within_interior)
+  unfolding filter_eq_iff by (intro allI eventually_within_interior)
 
 lemma Lim_within_LIMSEQ:
   fixes a :: "'a::metric_space"
@@ -1386,17 +1381,14 @@ next
         by (auto intro: cInf_lower)
       with a have "a < f y" by (blast intro: less_le_trans) }
     then show "eventually (\<lambda>x. a < f x) (at x within ({x<..} \<inter> I))"
-      by (auto simp: Topological_Spaces.eventually_within intro: exI[of _ 1] zero_less_one)
+      by (auto simp: eventually_at_filter intro: exI[of _ 1] zero_less_one)
   next
     fix a assume "Inf (f ` ({x<..} \<inter> I)) < a"
     from cInf_lessD[OF _ this] e obtain y where y: "x < y" "y \<in> I" "f y < a" by auto
-    show "eventually (\<lambda>x. f x < a) (at x within ({x<..} \<inter> I))"
-      unfolding within_within_eq[symmetric]
-        Topological_Spaces.eventually_within[of _ _ I] eventually_at_right
-    proof (safe intro!: exI[of _ y] y)
-      fix z assume "x < z" "z \<in> I" "z < y"
-      with mono[OF `z\<in>I` `y\<in>I`] `f y < a` show "f z < a" by (auto simp: less_imp_le)
-    qed
+    then have "eventually (\<lambda>x. x \<in> I \<longrightarrow> f x < a) (at_right x)"
+      unfolding eventually_at_right by (metis less_imp_le le_less_trans mono)
+    then show "eventually (\<lambda>x. f x < a) (at x within ({x<..} \<inter> I))"
+      unfolding eventually_at_filter by eventually_elim simp
   qed
 qed
 
@@ -1540,7 +1532,7 @@ by (rule bounded_bilinear.tendsto)
 text{* These are special for limits out of the same vector space. *}
 
 lemma Lim_within_id: "(id ---> a) (at a within s)"
-  unfolding id_def by (rule tendsto_ident_at_within)
+  unfolding id_def by (rule tendsto_ident_at)
 
 lemma Lim_at_id: "(id ---> a) (at a)"
   unfolding id_def by (rule tendsto_ident_at)
@@ -1567,13 +1559,13 @@ lemma netlimit_at:
 
 lemma lim_within_interior:
   "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
-  by (simp add: at_within_interior)
+  by (metis at_within_interior)
 
 lemma netlimit_within_interior:
   fixes x :: "'a::{t2_space,perfect_space}"
   assumes "x \<in> interior S"
   shows "netlimit (at x within S) = x"
-using assms by (simp add: at_within_interior netlimit_at)
+using assms by (metis at_within_interior netlimit_at)
 
 text{* Transformation of limit. *}
 
@@ -1596,8 +1588,7 @@ lemma Lim_transform_within:
   shows "(g ---> l) (at x within S)"
 proof (rule Lim_transform_eventually)
   show "eventually (\<lambda>x. f x = g x) (at x within S)"
-    unfolding eventually_within_less
-    using assms(1,2) by auto
+    using assms(1,2) by (auto simp: dist_nz eventually_at)
   show "(f ---> l) (at x within S)" by fact
 qed
 
@@ -1622,7 +1613,7 @@ lemma Lim_transform_away_within:
 proof (rule Lim_transform_eventually)
   show "(f ---> l) (at a within S)" by fact
   show "eventually (\<lambda>x. f x = g x) (at a within S)"
-    unfolding Limits.eventually_within eventually_at_topological
+    unfolding eventually_at_topological
     by (rule exI [where x="- {b}"], simp add: open_Compl assms)
 qed
 
@@ -1655,7 +1646,7 @@ lemma Lim_cong_within(*[cong add]*):
   assumes "a = b" "x = y" "S = T"
   assumes "\<And>x. x \<noteq> b \<Longrightarrow> x \<in> T \<Longrightarrow> f x = g x"
   shows "(f ---> x) (at a within S) \<longleftrightarrow> (g ---> y) (at b within T)"
-  unfolding tendsto_def Limits.eventually_within eventually_at_topological
+  unfolding tendsto_def eventually_at_topological
   using assms by simp
 
 lemma Lim_cong_at(*[cong add]*):
@@ -3759,7 +3750,7 @@ lemmas continuous_on = continuous_on_def -- "legacy theorem name"
 lemma continuous_within_subset:
  "continuous (at x within s) f \<Longrightarrow> t \<subseteq> s
              ==> continuous (at x within t) f"
-  unfolding continuous_within by(metis Lim_within_subset)
+  unfolding continuous_within by(metis tendsto_within_subset)
 
 lemma continuous_on_interior:
   shows "continuous_on s f \<Longrightarrow> x \<in> interior s \<Longrightarrow> continuous (at x) f"
@@ -3768,7 +3759,7 @@ lemma continuous_on_interior:
 
 lemma continuous_on_eq:
   "(\<forall>x \<in> s. f x = g x) \<Longrightarrow> continuous_on s f \<Longrightarrow> continuous_on s g"
-  unfolding continuous_on_def tendsto_def Limits.eventually_within
+  unfolding continuous_on_def tendsto_def eventually_at_topological
   by simp
 
 text {* Characterization of various kinds of continuity in terms of sequences. *}
@@ -3783,7 +3774,7 @@ proof
   { fix x::"nat \<Rightarrow> 'a" assume x:"\<forall>n. x n \<in> s" "\<forall>e>0. eventually (\<lambda>n. dist (x n) a < e) sequentially"
     fix T::"'b set" assume "open T" and "f a \<in> T"
     with `?lhs` obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> f x \<in> T"
-      unfolding continuous_within tendsto_def eventually_within_less by auto
+      unfolding continuous_within tendsto_def eventually_at by (auto simp: dist_nz)
     have "eventually (\<lambda>n. dist (x n) a < d) sequentially"
       using x(2) `d>0` by simp
     hence "eventually (\<lambda>n. (f \<circ> x) n \<in> T) sequentially"
@@ -4015,7 +4006,7 @@ text{* Continuity in terms of open preimages. *}
 
 lemma continuous_at_open:
   shows "continuous (at x) f \<longleftrightarrow> (\<forall>t. open t \<and> f x \<in> t --> (\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x' \<in> s. (f x') \<in> t)))"
-unfolding continuous_within_topological [of x UNIV f, unfolded within_UNIV]
+unfolding continuous_within_topological [of x UNIV f]
 unfolding imp_conjL by (intro all_cong imp_cong ex_cong conj_cong refl) auto
 
 lemma continuous_imp_tendsto:
@@ -4181,7 +4172,7 @@ proof-
   hence "eventually (\<lambda>y. f y \<noteq> a) (at x within s)"
     using `a \<notin> U` by (fast elim: eventually_mono [rotated])
   thus ?thesis
-    using `f x \<noteq> a` by (auto simp: dist_commute zero_less_dist_iff eventually_within_less)
+    using `f x \<noteq> a` by (auto simp: dist_commute zero_less_dist_iff eventually_at)
 qed
 
 lemma continuous_at_avoid:
@@ -4514,7 +4505,7 @@ lemma distance_attains_sup:
 proof (rule continuous_attains_sup [OF assms])
   { fix x assume "x\<in>s"
     have "(dist a ---> dist a x) (at x within s)"
-      by (intro tendsto_dist tendsto_const Lim_at_within tendsto_ident_at)
+      by (intro tendsto_dist tendsto_const tendsto_ident_at)
   }
   thus "continuous_on s (dist a)"
     unfolding continuous_on ..
@@ -5350,7 +5341,7 @@ lemma isCont_open_vimage:
   assumes "\<And>x. isCont f x" and "open s" shows "open (f -` s)"
 proof -
   from assms(1) have "continuous_on UNIV f"
-    unfolding isCont_def continuous_on_def within_UNIV by simp
+    unfolding isCont_def continuous_on_def by simp
   hence "open {x \<in> UNIV. f x \<in> s}"
     using open_UNIV `open s` by (rule continuous_open_preimage)
   thus "open (f -` s)"
@@ -5508,14 +5499,13 @@ lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> 'b::euclidean_space"
 text{* Limits relative to a union.                                               *}
 
 lemma eventually_within_Un:
-  "eventually P (net within (s \<union> t)) \<longleftrightarrow>
-    eventually P (net within s) \<and> eventually P (net within t)"
-  unfolding Limits.eventually_within
+  "eventually P (at x within (s \<union> t)) \<longleftrightarrow> eventually P (at x within s) \<and> eventually P (at x within t)"
+  unfolding eventually_at_filter
   by (auto elim!: eventually_rev_mp)
 
 lemma Lim_within_union:
- "(f ---> l) (net within (s \<union> t)) \<longleftrightarrow>
-  (f ---> l) (net within s) \<and> (f ---> l) (net within t)"
+ "(f ---> l) (at x within (s \<union> t)) \<longleftrightarrow>
+  (f ---> l) (at x within s) \<and> (f ---> l) (at x within t)"
   unfolding tendsto_def
   by (auto simp add: eventually_within_Un)
 

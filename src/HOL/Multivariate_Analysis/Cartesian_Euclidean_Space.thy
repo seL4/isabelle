@@ -1167,7 +1167,7 @@ subsection "Derivative"
 
 lemma differentiable_at_imp_differentiable_on:
   "(\<forall>x\<in>(s::(real^'n) set). f differentiable at x) \<Longrightarrow> f differentiable_on s"
-  unfolding differentiable_on_def by(auto intro!: differentiable_at_withinI)
+  by (metis differentiable_at_withinI differentiable_on_def)
 
 definition "jacobian f net = matrix(frechet_derivative f net)"
 

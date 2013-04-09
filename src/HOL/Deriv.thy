@@ -1043,7 +1043,7 @@ proof (rule filterlim_cong)
   moreover then have "f x = g x" by (auto simp: eventually_nhds)
   moreover assume "x = y" "u = v"
   ultimately show "eventually (\<lambda>xa. (f xa - f x) / (xa - x) = (g xa - g y) / (xa - y)) (at x)"
-    by (auto simp: eventually_within at_def elim: eventually_elim1)
+    by (auto simp: eventually_at_filter elim: eventually_elim1)
 qed simp_all
 
 lemma DERIV_shift:
@@ -1054,6 +1054,17 @@ lemma DERIV_mirror:
   "(DERIV f (- x) :> y) \<longleftrightarrow> (DERIV (\<lambda>x. f (- x::real) :: real) x :> - y)"
   by (simp add: deriv_def filterlim_at_split filterlim_at_left_to_right
                 tendsto_minus_cancel_left field_simps conj_commute)
+
+lemma isCont_If_ge:
+  fixes a :: "'a :: linorder_topology"
+  shows "continuous (at_left a) g \<Longrightarrow> (f ---> g a) (at_right a) \<Longrightarrow> isCont (\<lambda>x. if x \<le> a then g x else f x) a"
+  unfolding isCont_def continuous_within
+  apply (intro filterlim_split_at)
+  apply (subst filterlim_cong[OF refl refl, where g=g])
+  apply (simp_all add: eventually_at_filter less_le)
+  apply (subst filterlim_cong[OF refl refl, where g=f])
+  apply (simp_all add: eventually_at_filter less_le)
+  done
 
 lemma lhopital_right_0:
   fixes f0 g0 :: "real \<Rightarrow> real"
@@ -1081,7 +1092,7 @@ proof -
     and g'_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g' x \<noteq> 0"
     and f0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV f0 x :> (f' x)"
     and g0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> DERIV g0 x :> (g' x)"
-    unfolding eventually_within eventually_at by (auto simp: dist_real_def)
+    unfolding eventually_at eventually_at by (auto simp: dist_real_def)
 
   have g_neq_0: "\<And>x. 0 < x \<Longrightarrow> x < a \<Longrightarrow> g x \<noteq> 0"
     using g0_neq_0 by (simp add: g_def)
@@ -1097,18 +1108,10 @@ proof -
   note g = this
 
   have "isCont f 0"
-    using tendsto_const[of "0::real" "at 0"] f_0
-    unfolding isCont_def f_def
-    by (intro filterlim_split_at_real)
-       (auto elim: eventually_elim1
-             simp add: filterlim_def le_filter_def eventually_within eventually_filtermap)
-    
+    unfolding f_def by (intro isCont_If_ge f_0 continuous_const)
+
   have "isCont g 0"
-    using tendsto_const[of "0::real" "at 0"] g_0
-    unfolding isCont_def g_def
-    by (intro filterlim_split_at_real)
-       (auto elim: eventually_elim1
-             simp add: filterlim_def le_filter_def eventually_within eventually_filtermap)
+    unfolding g_def by (intro isCont_If_ge g_0 continuous_const)
 
   have "\<exists>\<zeta>. \<forall>x\<in>{0 <..< a}. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)"
   proof (rule bchoice, rule)
@@ -1131,24 +1134,24 @@ proof -
   qed
   then guess \<zeta> ..
   then have \<zeta>: "eventually (\<lambda>x. 0 < \<zeta> x \<and> \<zeta> x < x \<and> f x / g x = f' (\<zeta> x) / g' (\<zeta> x)) (at_right 0)"
-    unfolding eventually_within eventually_at by (intro exI[of _ a]) (auto simp: dist_real_def)
+    unfolding eventually_at by (intro exI[of _ a]) (auto simp: dist_real_def)
   moreover
   from \<zeta> have "eventually (\<lambda>x. norm (\<zeta> x) \<le> x) (at_right 0)"
     by eventually_elim auto
   then have "((\<lambda>x. norm (\<zeta> x)) ---> 0) (at_right 0)"
     by (rule_tac real_tendsto_sandwich[where f="\<lambda>x. 0" and h="\<lambda>x. x"])
-       (auto intro: tendsto_const tendsto_ident_at_within)
+       (auto intro: tendsto_const tendsto_ident_at)
   then have "(\<zeta> ---> 0) (at_right 0)"
     by (rule tendsto_norm_zero_cancel)
   with \<zeta> have "filterlim \<zeta> (at_right 0) (at_right 0)"
-    by (auto elim!: eventually_elim1 simp: filterlim_within filterlim_at)
+    by (auto elim!: eventually_elim1 simp: filterlim_at)
   from this lim have "((\<lambda>t. f' (\<zeta> t) / g' (\<zeta> t)) ---> x) (at_right 0)"
     by (rule_tac filterlim_compose[of _ _ _ \<zeta>])
   ultimately have "((\<lambda>t. f t / g t) ---> x) (at_right 0)" (is ?P)
     by (rule_tac filterlim_cong[THEN iffD1, OF refl refl])
        (auto elim: eventually_elim1)
   also have "?P \<longleftrightarrow> ?thesis"
-    by (rule filterlim_cong) (auto simp: f_def g_def eventually_within)
+    by (rule filterlim_cong) (auto simp: f_def g_def eventually_at_filter)
   finally show ?thesis .
 qed
 
@@ -1206,11 +1209,12 @@ proof safe
     and f0: "\<And>x. 0 < x \<Longrightarrow> x \<le> a \<Longrightarrow> DERIV f x :> (f' x)"
     and g0: "\<And>x. 0 < x \<Longrightarrow> x \<le> a \<Longrightarrow> DERIV g x :> (g' x)"
     and Df: "\<And>t. 0 < t \<Longrightarrow> t < a \<Longrightarrow> dist (f' t / g' t) x < e / 4"
-    unfolding eventually_within_le by (auto simp: dist_real_def)
+    unfolding eventually_at_le by (auto simp: dist_real_def)
+    
 
   from Df have
     "eventually (\<lambda>t. t < a) (at_right 0)" "eventually (\<lambda>t::real. 0 < t) (at_right 0)"
-    unfolding eventually_within eventually_at by (auto intro!: exI[of _ a] simp: dist_real_def)
+    unfolding eventually_at by (auto intro!: exI[of _ a] simp: dist_real_def)
 
   moreover
   have "eventually (\<lambda>t. 0 < g t) (at_right 0)" "eventually (\<lambda>t. g a < g t) (at_right 0)"

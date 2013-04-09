@@ -1117,19 +1117,18 @@ apply (erule le_less_trans [OF dist_triangle])
 done
 
 lemma eventually_at:
+  fixes a :: "'a :: metric_space"
+  shows "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
+  unfolding eventually_at_filter eventually_nhds_metric by (auto simp: dist_nz)
+
+lemma eventually_at_le:
   fixes a :: "'a::metric_space"
-  shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding at_def eventually_within eventually_nhds_metric by auto
-
-lemma eventually_within_less:
-  fixes a :: "'a :: metric_space"
-  shows "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  unfolding eventually_within eventually_at dist_nz by auto
-
-lemma eventually_within_le:
-  fixes a :: "'a :: metric_space"
-  shows "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> d \<longrightarrow> P x)"
-  unfolding eventually_within_less by auto (metis dense order_le_less_trans)
+  shows "eventually P (at a within S) \<longleftrightarrow> (\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<and> dist x a \<le> d \<longrightarrow> P x)"
+  unfolding eventually_at_filter eventually_nhds_metric
+  apply auto
+  apply (rule_tac x="d / 2" in exI)
+  apply auto
+  done
 
 lemma tendstoI:
   fixes l :: "'a :: metric_space"
@@ -1200,7 +1199,7 @@ subsubsection {* Limits of Functions *}
 lemma LIM_def: "f -- (a::'a::metric_space) --> (L::'b::metric_space) =
      (\<forall>r > 0. \<exists>s > 0. \<forall>x. x \<noteq> a & dist x a < s
         --> dist (f x) L < r)"
-unfolding tendsto_iff eventually_at ..
+  unfolding tendsto_iff eventually_at by simp
 
 lemma metric_LIM_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r)
@@ -1235,8 +1234,8 @@ lemma metric_LIM_compose2:
   assumes g: "g -- b --> c"
   assumes inj: "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<noteq> b"
   shows "(\<lambda>x. g (f x)) -- a --> c"
-  using g f inj [folded eventually_at]
-  by (rule tendsto_compose_eventually)
+  using inj
+  by (intro tendsto_compose_eventually[OF g f]) (auto simp: eventually_at)
 
 lemma metric_isCont_LIM_compose2:
   fixes f :: "'a :: metric_space \<Rightarrow> _"

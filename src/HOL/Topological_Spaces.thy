@@ -658,40 +658,58 @@ lemma eventually_sequentially_seg:
 
 subsubsection {* Standard filters *}
 
-definition within :: "'a filter \<Rightarrow> 'a set \<Rightarrow> 'a filter" (infixr "within" 70)
-  where "F within S = Abs_filter (\<lambda>P. eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) F)"
+definition principal :: "'a set \<Rightarrow> 'a filter" where
+  "principal S = Abs_filter (\<lambda>P. \<forall>x\<in>S. P x)"
 
-lemma eventually_within:
-  "eventually P (F within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) F"
-  unfolding within_def
-  by (rule eventually_Abs_filter, rule is_filter.intro)
-     (auto elim!: eventually_rev_mp)
+lemma eventually_principal: "eventually P (principal S) \<longleftrightarrow> (\<forall>x\<in>S. P x)"
+  unfolding principal_def
+  by (rule eventually_Abs_filter, rule is_filter.intro) auto
 
-lemma within_UNIV [simp]: "F within UNIV = F"
-  unfolding filter_eq_iff eventually_within by simp
+lemma eventually_inf_principal: "eventually P (inf F (principal s)) \<longleftrightarrow> eventually (\<lambda>x. x \<in> s \<longrightarrow> P x) F"
+  unfolding eventually_inf eventually_principal by (auto elim: eventually_elim1)
 
-lemma within_empty [simp]: "F within {} = bot"
-  unfolding filter_eq_iff eventually_within by simp
+lemma principal_UNIV[simp]: "principal UNIV = top"
+  by (auto simp: filter_eq_iff eventually_principal)
 
-lemma within_within_eq: "(F within S) within T = F within (S \<inter> T)"
-  by (auto simp: filter_eq_iff eventually_within elim: eventually_elim1)
+lemma principal_empty[simp]: "principal {} = bot"
+  by (auto simp: filter_eq_iff eventually_principal)
 
-lemma within_le: "F within S \<le> F"
-  unfolding le_filter_def eventually_within by (auto elim: eventually_elim1)
+lemma principal_le_iff[iff]: "principal A \<le> principal B \<longleftrightarrow> A \<subseteq> B"
+  by (auto simp: le_filter_def eventually_principal)
 
-lemma le_withinI: "F \<le> F' \<Longrightarrow> eventually (\<lambda>x. x \<in> S) F \<Longrightarrow> F \<le> F' within S"
-  unfolding le_filter_def eventually_within by (auto elim: eventually_elim2)
+lemma le_principal: "F \<le> principal A \<longleftrightarrow> eventually (\<lambda>x. x \<in> A) F"
+  unfolding le_filter_def eventually_principal
+  apply safe
+  apply (erule_tac x="\<lambda>x. x \<in> A" in allE)
+  apply (auto elim: eventually_elim1)
+  done
 
-lemma le_within_iff: "eventually (\<lambda>x. x \<in> S) F \<Longrightarrow> F \<le> F' within S \<longleftrightarrow> F \<le> F'"
-  by (blast intro: within_le le_withinI order_trans)
+lemma principal_inject[iff]: "principal A = principal B \<longleftrightarrow> A = B"
+  unfolding eq_iff by simp
+
+lemma sup_principal[simp]: "sup (principal A) (principal B) = principal (A \<union> B)"
+  unfolding filter_eq_iff eventually_sup eventually_principal by auto
+
+lemma inf_principal[simp]: "inf (principal A) (principal B) = principal (A \<inter> B)"
+  unfolding filter_eq_iff eventually_inf eventually_principal
+  by (auto intro: exI[of _ "\<lambda>x. x \<in> A"] exI[of _ "\<lambda>x. x \<in> B"])
+
+lemma SUP_principal[simp]: "(SUP i : I. principal (A i)) = principal (\<Union>i\<in>I. A i)"
+  unfolding filter_eq_iff eventually_Sup SUP_def by (auto simp: eventually_principal)
+
+lemma filtermap_principal[simp]: "filtermap f (principal A) = principal (f ` A)"
+  unfolding filter_eq_iff eventually_filtermap eventually_principal by simp
 
 subsubsection {* Topological filters *}
 
 definition (in topological_space) nhds :: "'a \<Rightarrow> 'a filter"
   where "nhds a = Abs_filter (\<lambda>P. \<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. P x))"
 
-definition (in topological_space) at :: "'a \<Rightarrow> 'a filter"
-  where "at a = nhds a within - {a}"
+definition (in topological_space) at_within :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a filter" ("at (_) within (_)" [1000, 60] 60)
+  where "at a within s = inf (nhds a) (principal (s - {a}))"
+
+abbreviation (in topological_space) at :: "'a \<Rightarrow> 'a filter" ("at") where
+  "at x \<equiv> at x within (CONST UNIV)"
 
 abbreviation (in order_topology) at_right :: "'a \<Rightarrow> 'a filter" where
   "at_right x \<equiv> at x within {x <..}"
@@ -720,12 +738,19 @@ qed auto
 lemma nhds_neq_bot [simp]: "nhds a \<noteq> bot"
   unfolding trivial_limit_def eventually_nhds by simp
 
+lemma eventually_at_filter:
+  "eventually P (at a within s) \<longleftrightarrow> eventually (\<lambda>x. x \<noteq> a \<longrightarrow> x \<in> s \<longrightarrow> P x) (nhds a)"
+  unfolding at_within_def eventually_inf_principal by (simp add: imp_conjL[symmetric] conj_commute)
+
+lemma at_le: "s \<subseteq> t \<Longrightarrow> at x within s \<le> at x within t"
+  unfolding at_within_def by (intro inf_mono) auto
+
 lemma eventually_at_topological:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
-unfolding at_def eventually_within eventually_nhds by simp
+  "eventually P (at a within s) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> x \<in> s \<longrightarrow> P x))"
+  unfolding eventually_nhds eventually_at_filter by simp
 
 lemma at_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> at a within S = at a"
-  unfolding filter_eq_iff eventually_within eventually_at_topological by (metis open_Int Int_iff)
+  unfolding filter_eq_iff eventually_at_topological by (metis open_Int Int_iff UNIV_I)
 
 lemma at_eq_bot_iff: "at a = bot \<longleftrightarrow> open {a}"
   unfolding trivial_limit_def eventually_at_topological
@@ -737,33 +762,33 @@ lemma at_neq_bot [simp]: "at (a::'a::perfect_space) \<noteq> bot"
 lemma eventually_at_right:
   fixes x :: "'a :: {no_top, linorder_topology}"
   shows "eventually P (at_right x) \<longleftrightarrow> (\<exists>b. x < b \<and> (\<forall>z. x < z \<and> z < b \<longrightarrow> P z))"
-  unfolding eventually_nhds eventually_within at_def
+  unfolding eventually_at_topological
 proof safe
   from gt_ex[of x] guess y ..
   moreover fix S assume "open S" "x \<in> S" note open_right[OF this, of y]
   moreover note gt_ex[of x]
-  moreover assume "\<forall>s\<in>S. s \<in> - {x} \<longrightarrow> s \<in> {x<..} \<longrightarrow> P s"
+  moreover assume "\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {x<..} \<longrightarrow> P s"
   ultimately show "\<exists>b>x. \<forall>z. x < z \<and> z < b \<longrightarrow> P z"
     by (auto simp: subset_eq Ball_def)
 next
   fix b assume "x < b" "\<forall>z. x < z \<and> z < b \<longrightarrow> P z"
-  then show "\<exists>S. open S \<and> x \<in> S \<and> (\<forall>xa\<in>S. xa \<in> - {x} \<longrightarrow> xa \<in> {x<..} \<longrightarrow> P xa)"
+  then show "\<exists>S. open S \<and> x \<in> S \<and> (\<forall>xa\<in>S. xa \<noteq> x \<longrightarrow> xa \<in> {x<..} \<longrightarrow> P xa)"
     by (intro exI[of _ "{..< b}"]) auto
 qed
 
 lemma eventually_at_left:
   fixes x :: "'a :: {no_bot, linorder_topology}"
   shows "eventually P (at_left x) \<longleftrightarrow> (\<exists>b. x > b \<and> (\<forall>z. b < z \<and> z < x \<longrightarrow> P z))"
-  unfolding eventually_nhds eventually_within at_def
+  unfolding eventually_at_topological
 proof safe
   from lt_ex[of x] guess y ..
   moreover fix S assume "open S" "x \<in> S" note open_left[OF this, of y]
-  moreover assume "\<forall>s\<in>S. s \<in> - {x} \<longrightarrow> s \<in> {..<x} \<longrightarrow> P s"
+  moreover assume "\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {..<x} \<longrightarrow> P s"
   ultimately show "\<exists>b<x. \<forall>z. b < z \<and> z < x \<longrightarrow> P z"
     by (auto simp: subset_eq Ball_def)
 next
   fix b assume "b < x" "\<forall>z. b < z \<and> z < x \<longrightarrow> P z"
-  then show "\<exists>S. open S \<and> x \<in> S \<and> (\<forall>xa\<in>S. xa \<in> - {x} \<longrightarrow> xa \<in> {..<x} \<longrightarrow> P xa)"
+  then show "\<exists>S. open S \<and> x \<in> S \<and> (\<forall>s\<in>S. s \<noteq> x \<longrightarrow> s \<in> {..<x} \<longrightarrow> P s)"
     by (intro exI[of _ "{b <..}"]) auto
 qed
 
@@ -775,11 +800,8 @@ lemma trivial_limit_at_right_real [simp]:
   "\<not> trivial_limit (at_right (x::'a::{no_top, dense_linorder, linorder_topology}))"
   unfolding trivial_limit_def eventually_at_right by (auto dest: dense)
 
-lemma at_within_eq: "at x within T = nhds x within (T - {x})"
-  unfolding at_def within_within_eq by (simp add: ac_simps Diff_eq)
-
 lemma at_eq_sup_left_right: "at (x::'a::linorder_topology) = sup (at_left x) (at_right x)"
-  by (auto simp: eventually_within at_def filter_eq_iff eventually_sup 
+  by (auto simp: eventually_at_filter filter_eq_iff eventually_sup 
            elim: eventually_elim2 eventually_elim1)
 
 lemma eventually_at_split:
@@ -816,13 +838,13 @@ lemma filterlim_cong:
   "F1 = F1' \<Longrightarrow> F2 = F2' \<Longrightarrow> eventually (\<lambda>x. f x = g x) F2 \<Longrightarrow> filterlim f F1 F2 = filterlim g F1' F2'"
   by (auto simp: filterlim_def le_filter_def eventually_filtermap elim: eventually_elim2)
 
-lemma filterlim_within:
-  "(LIM x F1. f x :> F2 within S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F1 \<and> (LIM x F1. f x :> F2))"
-  unfolding filterlim_def
-proof safe
-  assume "filtermap f F1 \<le> F2 within S" then show "eventually (\<lambda>x. f x \<in> S) F1"
-    by (auto simp: le_filter_def eventually_filtermap eventually_within elim!: allE[of _ "\<lambda>x. x \<in> S"])
-qed (auto intro: within_le order_trans simp: le_within_iff eventually_filtermap)
+lemma filterlim_principal:
+  "(LIM x F. f x :> principal S) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> S) F)"
+  unfolding filterlim_def eventually_filtermap le_principal ..
+
+lemma filterlim_inf:
+  "(LIM x F1. f x :> inf F2 F3) \<longleftrightarrow> ((LIM x F1. f x :> F2) \<and> (LIM x F1. f x :> F3))"
+  unfolding filterlim_def by simp
 
 lemma filterlim_filtermap: "filterlim f F1 (filtermap g F2) = filterlim (\<lambda>x. f (g x)) F1 F2"
   unfolding filterlim_def filtermap_filtermap ..
@@ -859,7 +881,7 @@ structure Tendsto_Intros = Named_Thms
 setup {*
   Tendsto_Intros.setup #>
   Global_Theory.add_thms_dynamic (@{binding tendsto_eq_intros},
-    map (fn thm => @{thm tendsto_eq_rhs} OF [thm]) o Tendsto_Intros.get o Context.proof_of);
+    map_filter (try (fn thm => @{thm tendsto_eq_rhs} OF [thm])) o Tendsto_Intros.get o Context.proof_of);
 *}
 
 lemma (in topological_space) tendsto_def:
@@ -872,19 +894,18 @@ proof safe
     by (auto elim!: allE[of _ "\<lambda>x. x \<in> S"] eventually_rev_mp)
 qed (auto elim!: eventually_rev_mp simp: eventually_nhds eventually_filtermap le_filter_def)
 
-lemma tendsto_within_subset: "(f ---> l) (net within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (net within T)"
-  by (auto simp: tendsto_def eventually_within elim!: eventually_elim1)
-
-lemma filterlim_at:
-  "(LIM x F. f x :> at b) \<longleftrightarrow> (eventually (\<lambda>x. f x \<noteq> b) F \<and> (f ---> b) F)"
-  by (simp add: at_def filterlim_within)
-
 lemma tendsto_mono: "F \<le> F' \<Longrightarrow> (f ---> l) F' \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def le_filter_def by fast
 
+lemma tendsto_within_subset: "(f ---> l) (at x within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (at x within T)"
+  by (blast intro: tendsto_mono at_le)
+
+lemma filterlim_at:
+  "(LIM x F. f x :> at b within s) \<longleftrightarrow> (eventually (\<lambda>x. f x \<in> s \<and> f x \<noteq> b) F \<and> (f ---> b) F)"
+  by (simp add: at_within_def filterlim_inf filterlim_principal conj_commute)
+
 lemma (in topological_space) topological_tendstoI:
-  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F)
-    \<Longrightarrow> (f ---> l) F"
+  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) F) \<Longrightarrow> (f ---> l) F"
   unfolding tendsto_def by auto
 
 lemma (in topological_space) topological_tendstoD:
@@ -923,12 +944,8 @@ lemma order_tendsto_iff:
 lemma tendsto_bot [simp]: "(f ---> a) bot"
   unfolding tendsto_def by simp
 
-lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a)"
+lemma tendsto_ident_at [tendsto_intros]: "((\<lambda>x. x) ---> a) (at a within s)"
   unfolding tendsto_def eventually_at_topological by auto
-
-lemma tendsto_ident_at_within [tendsto_intros]:
-  "((\<lambda>x. x) ---> a) (at a within S)"
-  unfolding tendsto_def eventually_within eventually_at_topological by auto
 
 lemma (in topological_space) tendsto_const [tendsto_intros]: "((\<lambda>x. k) ---> k) F"
   by (simp add: tendsto_def)
@@ -1018,11 +1035,8 @@ lemma (in t2_space) tendsto_Lim:
   "\<not>(trivial_limit net) \<Longrightarrow> (f ---> l) net \<Longrightarrow> Lim net f = l"
   unfolding Lim_def using tendsto_unique[of net f] by auto
 
-lemma Lim_ident_at: "\<not> trivial_limit (at x) \<Longrightarrow> Lim (at x) (\<lambda>x. x) = x"
+lemma Lim_ident_at: "\<not> trivial_limit (at x within s) \<Longrightarrow> Lim (at x within s) (\<lambda>x. x) = x"
   by (rule tendsto_Lim[OF _ tendsto_ident_at]) auto
-
-lemma Lim_ident_at_within: "\<not> trivial_limit (at x within s) \<Longrightarrow> Lim (at x within s) (\<lambda>x. x) = x"
-  by (rule tendsto_Lim[OF _ tendsto_ident_at_within]) auto
 
 subsection {* Limits to @{const at_top} and @{const at_bot} *}
 
@@ -1508,12 +1522,12 @@ qed
 
 lemma (in first_countable_topology) sequentially_imp_eventually_nhds_within:
   assumes "\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially"
-  shows "eventually P (nhds a within s)"
+  shows "eventually P (inf (nhds a) (principal s))"
 proof (rule ccontr)
   from countable_basis[of a] guess A . note A = this
-  assume "\<not> eventually P (nhds a within s)"
+  assume "\<not> eventually P (inf (nhds a) (principal s))"
   with A have P: "\<exists>F. \<forall>n. F n \<in> s \<and> F n \<in> A n \<and> \<not> P (F n)"
-    unfolding eventually_within eventually_nhds by (intro choice) fastforce
+    unfolding eventually_inf_principal eventually_nhds by (intro choice) fastforce
   then guess F ..
   hence F0: "\<forall>n. F n \<in> s" and F2: "\<forall>n. F n \<in> A n" and F3: "\<forall>n. \<not> P (F n)"
     by fast+
@@ -1524,12 +1538,12 @@ proof (rule ccontr)
 qed
 
 lemma (in first_countable_topology) eventually_nhds_within_iff_sequentially:
-  "eventually P (nhds a within s) \<longleftrightarrow> 
+  "eventually P (inf (nhds a) (principal s)) \<longleftrightarrow> 
     (\<forall>f. (\<forall>n. f n \<in> s) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially)"
 proof (safe intro!: sequentially_imp_eventually_nhds_within)
-  assume "eventually P (nhds a within s)" 
+  assume "eventually P (inf (nhds a) (principal s))" 
   then obtain S where "open S" "a \<in> S" "\<forall>x\<in>S. x \<in> s \<longrightarrow> P x"
-    by (auto simp: eventually_within eventually_nhds)
+    by (auto simp: eventually_inf_principal eventually_nhds)
   moreover fix f assume "\<forall>n. f n \<in> s" "f ----> a"
   ultimately show "eventually (\<lambda>n. P (f n)) sequentially"
     by (auto dest!: topological_tendstoD elim: eventually_elim1)
@@ -1547,7 +1561,7 @@ abbreviation
   "f -- a --> L \<equiv> (f ---> L) (at a)"
 
 lemma tendsto_within_open: "a \<in> S \<Longrightarrow> open S \<Longrightarrow> (f ---> l) (at a within S) \<longleftrightarrow> (f -- a --> l)"
-  unfolding tendsto_def by (simp add: at_within_open)
+  unfolding tendsto_def by (simp add: at_within_open[where S=S])
 
 lemma LIM_const_not_eq[tendsto_intros]:
   fixes a :: "'a::perfect_space"
@@ -1581,7 +1595,7 @@ lemma LIM_cong_limit: "f -- x --> L \<Longrightarrow> K = L \<Longrightarrow> f 
 
 lemma tendsto_at_iff_tendsto_nhds:
   "g -- l --> g l \<longleftrightarrow> (g ---> g l) (nhds l)"
-  unfolding tendsto_def at_def eventually_within
+  unfolding tendsto_def eventually_at_filter
   by (intro ext all_cong imp_cong) (auto elim!: eventually_elim1)
 
 lemma tendsto_compose:
@@ -1607,7 +1621,7 @@ subsubsection {* Relation of LIM and LIMSEQ *}
 lemma (in first_countable_topology) sequentially_imp_eventually_within:
   "(\<forall>f. (\<forall>n. f n \<in> s \<and> f n \<noteq> a) \<and> f ----> a \<longrightarrow> eventually (\<lambda>n. P (f n)) sequentially) \<Longrightarrow>
     eventually P (at a within s)"
-  unfolding at_def within_within_eq
+  unfolding at_within_def
   by (intro sequentially_imp_eventually_nhds_within) auto
 
 lemma (in first_countable_topology) sequentially_imp_eventually_at:
@@ -1640,12 +1654,12 @@ definition continuous_on :: "'a set \<Rightarrow> ('a :: topological_space \<Rig
 
 lemma continuous_on_cong [cong]:
   "s = t \<Longrightarrow> (\<And>x. x \<in> t \<Longrightarrow> f x = g x) \<Longrightarrow> continuous_on s f \<longleftrightarrow> continuous_on t g"
-  unfolding continuous_on_def by (intro ball_cong filterlim_cong) (auto simp: eventually_within)
+  unfolding continuous_on_def by (intro ball_cong filterlim_cong) (auto simp: eventually_at_filter)
 
 lemma continuous_on_topological:
   "continuous_on s f \<longleftrightarrow>
     (\<forall>x\<in>s. \<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow> (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
-  unfolding continuous_on_def tendsto_def eventually_within eventually_at_topological by metis
+  unfolding continuous_on_def tendsto_def eventually_at_topological by metis
 
 lemma continuous_on_open_invariant:
   "continuous_on s f \<longleftrightarrow> (\<forall>B. open B \<longrightarrow> (\<exists>A. open A \<and> A \<inter> s = f -` B \<inter> s))"
@@ -1689,7 +1703,7 @@ lemma continuous_on_closed_vimage:
 
 lemma continuous_on_open_Union:
   "(\<And>s. s \<in> S \<Longrightarrow> open s) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on s f) \<Longrightarrow> continuous_on (\<Union>S) f"
-  unfolding continuous_on_def by (simp add: tendsto_within_open open_Union)
+  unfolding continuous_on_def by safe (metis open_Union at_within_open UnionI)
 
 lemma continuous_on_open_UN:
   "(\<And>s. s \<in> S \<Longrightarrow> open (A s)) \<Longrightarrow> (\<And>s. s \<in> S \<Longrightarrow> continuous_on (A s) f) \<Longrightarrow> continuous_on (\<Union>s\<in>S. A s) f"
@@ -1725,7 +1739,7 @@ structure Continuous_On_Intros = Named_Thms
 setup Continuous_On_Intros.setup
 
 lemma continuous_on_id[continuous_on_intros]: "continuous_on s (\<lambda>x. x)"
-  unfolding continuous_on_def by (fast intro: tendsto_ident_at_within)
+  unfolding continuous_on_def by (fast intro: tendsto_ident_at)
 
 lemma continuous_on_const[continuous_on_intros]: "continuous_on s (\<lambda>x. c)"
   unfolding continuous_on_def by (auto intro: tendsto_const)
@@ -1762,12 +1776,12 @@ lemma continuous_trivial_limit: "trivial_limit net \<Longrightarrow> continuous 
   by simp
 
 lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f x) (at x within s)"
-  by (cases "trivial_limit (at x within s)") (auto simp add: Lim_ident_at_within continuous_def)
+  by (cases "trivial_limit (at x within s)") (auto simp add: Lim_ident_at continuous_def)
 
 lemma continuous_within_topological:
   "continuous (at x within s) f \<longleftrightarrow>
     (\<forall>B. open B \<longrightarrow> f x \<in> B \<longrightarrow> (\<exists>A. open A \<and> x \<in> A \<and> (\<forall>y\<in>s. y \<in> A \<longrightarrow> f y \<in> B)))"
-  unfolding continuous_within tendsto_def eventually_within eventually_at_topological by metis
+  unfolding continuous_within tendsto_def eventually_at_topological by metis
 
 lemma continuous_within_compose[continuous_intros]:
   "continuous (at x within s) f \<Longrightarrow> continuous (at (f x) within f ` s) g \<Longrightarrow>
@@ -1783,7 +1797,7 @@ lemma continuous_at: "continuous (at x) f \<longleftrightarrow> f -- x --> f x"
   using continuous_within[of x UNIV f] by simp
 
 lemma continuous_ident[continuous_intros, simp]: "continuous (at x within S) (\<lambda>x. x)"
-  unfolding continuous_within by (rule tendsto_ident_at_within)
+  unfolding continuous_within by (rule tendsto_ident_at)
 
 lemma continuous_const[continuous_intros, simp]: "continuous F (\<lambda>x. c)"
   unfolding continuous_def by (rule tendsto_const)
@@ -1799,10 +1813,10 @@ lemma isCont_def: "isCont f a \<longleftrightarrow> f -- a --> f a"
   by (rule continuous_at)
 
 lemma continuous_at_within: "isCont f x \<Longrightarrow> continuous (at x within s) f"
-  by (auto intro: within_le filterlim_mono simp: continuous_at continuous_within)
+  by (auto intro: tendsto_mono at_le simp: continuous_at continuous_within)
 
 lemma continuous_on_eq_continuous_at: "open s \<Longrightarrow> continuous_on s f \<longleftrightarrow> (\<forall>x\<in>s. isCont f x)"
-  by (simp add: continuous_on_def continuous_at tendsto_within_open)
+  by (simp add: continuous_on_def continuous_at at_within_open[of _ s])
 
 lemma continuous_on_subset: "continuous_on s f \<Longrightarrow> t \<subseteq> s \<Longrightarrow> continuous_on t f"
   unfolding continuous_on_def by (metis subset_eq tendsto_within_subset)
