@@ -116,9 +116,22 @@ fun case_tr err ctxt [t, u] =
           | abs_pat (t $ u) _ = abs_pat u [] #> abs_pat t []
           | abs_pat _ _ = I;
 
-        fun dest_case1 (Const (@{syntax_const "_case1"}, _) $ l $ r) =
-              abs_pat l []
-                (Syntax.const @{const_syntax case_elem} $ Term_Position.strip_positions l $ r)
+        (* replace occurrences of dummy_pattern by distinct variables *)
+        fun replace_dummies (Const (@{const_syntax dummy_pattern}, T)) used =
+              let val (x, used') = Name.variant "x" used
+              in (Free (x, T), used') end
+          | replace_dummies (t $ u) used =
+              let
+                val (t', used') = replace_dummies t used;
+                val (u', used'') = replace_dummies u used';
+              in (t' $ u', used'') end
+          | replace_dummies t used = (t, used);
+
+        fun dest_case1 (t as Const (@{syntax_const "_case1"}, _) $ l $ r) =
+              let val (l', _) = replace_dummies l (Term.declare_term_frees t Name.context)
+              in abs_pat l' []
+                (Syntax.const @{const_syntax case_elem} $ Term_Position.strip_positions l' $ r)
+              end
           | dest_case1 _ = case_error "dest_case1";
 
         fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
@@ -338,17 +351,6 @@ fun mk_case ctxt used range_ty =
   in mk end;
 
 
-(* replace occurrences of dummy_pattern by distinct variables *)
-fun replace_dummies (Const (@{const_name dummy_pattern}, T)) used =
-      let val (x, used') = Name.variant "x" used
-      in (Free (x, T), used') end
-  | replace_dummies (t $ u) used =
-      let
-        val (t', used') = replace_dummies t used;
-        val (u', used'') = replace_dummies u used';
-      in (t' $ u', used'') end
-  | replace_dummies t used = (t, used);
-
 (*Repeated variable occurrences in a pattern are not allowed.*)
 fun no_repeat_vars ctxt pat = fold_aterms
   (fn x as Free (s, _) =>
@@ -364,13 +366,7 @@ fun make_case ctxt config used x clauses =
     fun string_of_clause (pat, rhs) =
       Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs);
     val _ = map (no_repeat_vars ctxt o fst) clauses;
-    val (rows, used') = used |>
-      fold (fn (pat, rhs) =>
-        Term.declare_term_frees pat #> Term.declare_term_frees rhs) clauses |>
-      fold_map (fn (i, (pat, rhs)) => fn used =>
-        let val (pat', used') = replace_dummies pat used
-        in ((([], [pat']), (rhs, i)), used') end)
-          (map_index I clauses);
+    val rows = map_index (fn (i, (pat, rhs)) => (([], [pat]), (rhs, i))) clauses;
     val rangeT =
       (case distinct (op =) (map (fastype_of o snd) clauses) of
         [] => case_error "no clauses given"
