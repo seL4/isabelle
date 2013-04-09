@@ -259,22 +259,28 @@ val include_name = "incl"
 val prelude_base_name = "prelude"
 val prelude_name = prelude_base_name ^ include_suffix
 
-val include_base_name_of_fact = Name.desymbolize false o theory_name_of_fact
+val encode_meta = Sledgehammer_MaSh.encode_str
+
+val include_base_name_of_fact = encode_meta o theory_name_of_fact
 
 fun include_line base_name =
   "include('" ^ include_name ^ "/" ^ base_name ^ include_suffix ^ "').\n"
 
-(* crude hack to detect theorems stated and proved by the user (as opposed to
-   those derived by various packages) *)
-fun should_generate_problem thy (Formula ((_, alt), _, _, _, _)) =
+val hol_base_name = encode_meta "HOL"
+
+fun should_generate_problem thy base_name (Formula ((_, alt), _, _, _, _)) =
   case try (Global_Theory.get_thm thy) alt of
-    SOME th => Thm.legacy_get_kind th <> ""
+    SOME th =>
+    (* This is a crude hack to detect theorems stated and proved by the user (as
+       opposed to those derived by various packages). In addition, we leave out
+       everything in "HOL" as too basic to be interesting. *)
+    Thm.legacy_get_kind th <> "" andalso base_name <> hol_base_name
   | NONE => false
 
 (* Convention: theoryname__goalname *)
-fun problem_name_of base_name alt =
-  base_name ^ "__" ^ perhaps (try (unprefix (base_name ^ "_"))) alt ^
-  problem_suffix
+fun problem_name_of base_name n alt =
+  base_name ^ "__" ^ string_of_int n ^ "_" ^
+  perhaps (try (unprefix (base_name ^ "_"))) alt ^ problem_suffix
 
 fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
                                            dir_name =
@@ -308,20 +314,20 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
         File.append file_order_path (base_name ^ "\n");
         write_lines (ap include_dir name) ss
       end
-    fun write_problem_files _ _ [] = ()
-      | write_problem_files includes [] groups =
-        write_problem_files includes includes groups
-      | write_problem_files includes _ ((base_name, []) :: groups) =
-        write_problem_files (includes @ [include_line base_name]) [] groups
-      | write_problem_files includes seen
+    fun write_problem_files _ _ _ [] = ()
+      | write_problem_files _ includes [] groups =
+        write_problem_files 1 includes includes groups
+      | write_problem_files n includes _ ((base_name, []) :: groups) =
+        write_problem_files n (includes @ [include_line base_name]) [] groups
+      | write_problem_files n includes seen
                             ((base_name, fact :: facts) :: groups) =
         let val fact_s = tptp_string_for_line format fact in
-          (if should_generate_problem thy fact then
+          (if should_generate_problem thy base_name fact then
              let
                val (name, conj) =
                  (case fact of
                     Formula ((ident, alt), _, phi, _, _) =>
-                    (problem_name_of base_name (Name.desymbolize false alt),
+                    (problem_name_of base_name n (encode_meta alt),
                      Formula ((ident, alt), Conjecture, phi, NONE, [])))
                val conj_s = tptp_string_for_line format conj
              in
@@ -330,12 +336,12 @@ fun generate_casc_lbt_isa_files_for_theory ctxt thy format infer_policy type_enc
              end
            else
              ();
-           write_problem_files includes (seen @ [fact_s])
+           write_problem_files (n + 1) includes (seen @ [fact_s])
                                ((base_name, facts) :: groups))
         end
     val _ = write_prelude ()
     val _ = app write_include_file groups
-    val _ = write_problem_files [include_line prelude_base_name] [] groups
+    val _ = write_problem_files 1 [include_line prelude_base_name] [] groups
   in () end
 
 end;
