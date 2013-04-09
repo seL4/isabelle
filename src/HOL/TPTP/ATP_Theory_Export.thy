@@ -33,8 +33,7 @@ else
 ML {*
 if do_it then
   "/tmp/infs_poly_guards_query_query.tptp"
-  |> generate_atp_inference_file_for_theory ctxt thy FOF
-         "poly_guards_query_query"
+  |> generate_atp_inference_file_for_theory ctxt thy FOF "poly_guards??"
 else
   ()
 *}
@@ -42,8 +41,7 @@ else
 ML {*
 if do_it then
   "/tmp/infs_poly_tags_query_query.tptp"
-  |> generate_atp_inference_file_for_theory ctxt thy FOF
-         "poly_tags_query_query"
+  |> generate_atp_inference_file_for_theory ctxt thy FOF "poly_tags??"
 else
   ()
 *}
