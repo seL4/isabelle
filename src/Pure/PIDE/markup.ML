@@ -93,7 +93,6 @@ sig
   val elapsedN: string
   val cpuN: string
   val gcN: string
-  val timing_propertiesN: string list
   val timing_properties: {elapsed: Time.time, cpu: Time.time, gc: Time.time} -> Properties.T
   val parse_timing_properties: Properties.T -> {elapsed: Time.time, cpu: Time.time, gc: Time.time}
   val command_timingN: string
@@ -343,22 +342,18 @@ val elapsedN = "elapsed";
 val cpuN = "cpu";
 val gcN = "gc";
 
-val timing_propertiesN = [elapsedN, cpuN, gcN];
-
 fun timing_properties {elapsed, cpu, gc} =
  [(elapsedN, Time.toString elapsed),
   (cpuN, Time.toString cpu),
   (gcN, Time.toString gc)];
 
-fun get_time props name =
-  (case AList.lookup (op =) props name of
-    NONE => Time.zeroTime
-  | SOME s => seconds (the_default 0.0 (Real.fromString s)));
-
 fun parse_timing_properties props =
- {elapsed = get_time props elapsedN,
-  cpu = get_time props cpuN,
-  gc = get_time props gcN};
+ {elapsed = Properties.seconds props elapsedN,
+  cpu = Properties.seconds props cpuN,
+  gc = Properties.seconds props gcN};
+
+val timingN = "timing";
+fun timing t = (timingN, timing_properties t);
 
 
 (* command timing *)
@@ -372,14 +367,9 @@ fun command_timing_properties {file, offset, name} elapsed =
 fun parse_command_timing_properties props =
   (case (Properties.get props fileN, Properties.get props offsetN, Properties.get props nameN) of
     (SOME file, SOME offset, SOME name) =>
-      SOME ({file = file, offset = parse_int offset, name = name}, get_time props elapsedN)
+      SOME ({file = file, offset = parse_int offset, name = name},
+        Properties.seconds props elapsedN)
   | _ => NONE);
-
-
-(* session timing *)
-
-val timingN = "timing";
-fun timing t = (timingN, timing_properties t);
 
 
 (* toplevel *)
