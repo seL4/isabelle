@@ -323,8 +323,8 @@ class Session(val thy_load: Thy_Load)
           accumulate(state_id, output.message)
 
         case Markup.Command_Timing(state_id, timing) if output.is_protocol =>
-          // FIXME XML.cache (!?)
-          accumulate(state_id, XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil))))
+          val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
+          accumulate(state_id, prover.get.xml_cache.elem(message))
 
         case Markup.Assign_Execs if output.is_protocol =>
           XML.content(output.body) match {

@@ -82,12 +82,12 @@ class Isabelle_Process(
 
   /* output */
 
+  val xml_cache = new XML.Cache()
+
   private def system_output(text: String)
   {
     receiver(new Output(XML.Elem(Markup(Markup.SYSTEM, Nil), List(XML.Text(text)))))
   }
-
-  private val xml_cache = new XML.Cache()
 
   private def output_message(kind: String, props: Properties.T, body: XML.Body)
   {
