@@ -480,28 +480,31 @@ qed
 
 subsubsection {* Frechet derivatives involving pairs *}
 
-lemma FDERIV_Pair:
-  assumes f: "FDERIV f x :> f'" and g: "FDERIV g x :> g'"
-  shows "FDERIV (\<lambda>x. (f x, g x)) x :> (\<lambda>h. (f' h, g' h))"
-proof (rule FDERIV_I)
+lemma FDERIV_Pair [FDERIV_intros]:
+  assumes f: "FDERIV f x : s :> f'" and g: "FDERIV g x : s :> g'"
+  shows "FDERIV (\<lambda>x. (f x, g x)) x : s :> (\<lambda>h. (f' h, g' h))"
+proof (rule FDERIV_I_sandwich[of 1])
   show "bounded_linear (\<lambda>h. (f' h, g' h))"
     using f g by (intro bounded_linear_Pair FDERIV_bounded_linear)
-  let ?Rf = "\<lambda>h. f (x + h) - f x - f' h"
-  let ?Rg = "\<lambda>h. g (x + h) - g x - g' h"
-  let ?R = "\<lambda>h. ((f (x + h), g (x + h)) - (f x, g x) - (f' h, g' h))"
-  show "(\<lambda>h. norm (?R h) / norm h) -- 0 --> 0"
-  proof (rule real_LIM_sandwich_zero)
-    show "(\<lambda>h. norm (?Rf h) / norm h + norm (?Rg h) / norm h) -- 0 --> 0"
-      using f g by (intro tendsto_add_zero FDERIV_D)
-    fix h :: 'a assume "h \<noteq> 0"
-    thus "0 \<le> norm (?R h) / norm h"
-      by (simp add: divide_nonneg_pos)
-    show "norm (?R h) / norm h \<le> norm (?Rf h) / norm h + norm (?Rg h) / norm h"
-      unfolding add_divide_distrib [symmetric]
-      by (simp add: norm_Pair divide_right_mono
-        order_trans [OF sqrt_add_le_add_sqrt])
-  qed
-qed
+  let ?Rf = "\<lambda>y. f y - f x - f' (y - x)"
+  let ?Rg = "\<lambda>y. g y - g x - g' (y - x)"
+  let ?R = "\<lambda>y. ((f y, g y) - (f x, g x) - (f' (y - x), g' (y - x)))"
+
+  show "((\<lambda>y. norm (?Rf y) / norm (y - x) + norm (?Rg y) / norm (y - x)) ---> 0) (at x within s)"
+    using f g by (intro tendsto_add_zero) (auto simp: FDERIV_iff_norm)
+
+  fix y :: 'a assume "y \<noteq> x"
+  show "norm (?R y) / norm (y - x) \<le> norm (?Rf y) / norm (y - x) + norm (?Rg y) / norm (y - x)"
+    unfolding add_divide_distrib [symmetric]
+    by (simp add: norm_Pair divide_right_mono order_trans [OF sqrt_add_le_add_sqrt])
+qed simp
+
+lemmas FDERIV_fst [FDERIV_intros] = bounded_linear.FDERIV [OF bounded_linear_fst]
+lemmas FDERIV_snd [FDERIV_intros] = bounded_linear.FDERIV [OF bounded_linear_snd]
+
+lemma FDERIV_split [FDERIV_intros]:
+  "((\<lambda>p. f (fst p) (snd p)) has_derivative f') F \<Longrightarrow> ((\<lambda>(a, b). f a b) has_derivative f') F"
+  unfolding split_beta' .
 
 subsection {* Product is an inner product space *}
 

@@ -669,7 +669,7 @@ lemma minus_log_convex:
 proof -
   have "\<And>z. z > 0 \<Longrightarrow> DERIV (log b) z :> 1 / (ln b * z)" using DERIV_log by auto
   then have f': "\<And>z. z > 0 \<Longrightarrow> DERIV (\<lambda> z. - log b z) z :> - 1 / (ln b * z)"
-    using DERIV_minus by auto
+    by (auto simp: DERIV_minus)
   have "\<And>z :: real. z > 0 \<Longrightarrow> DERIV inverse z :> - (inverse z ^ Suc (Suc 0))"
     using less_imp_neq[THEN not_sym, THEN DERIV_inverse] by auto
   from this[THEN DERIV_cmult, of _ "- 1 / ln b"]

@@ -5,7 +5,7 @@
 header {* Inner Product Spaces and the Gradient Derivative *}
 
 theory Inner_Product
-imports FrechetDeriv
+imports "~~/src/HOL/Complex_Main"
 begin
 
 subsection {* Real inner product spaces *}
@@ -177,7 +177,7 @@ lemmas tendsto_inner [tendsto_intros] =
 lemmas isCont_inner [simp] =
   bounded_bilinear.isCont [OF bounded_bilinear_inner]
 
-lemmas FDERIV_inner =
+lemmas FDERIV_inner [FDERIV_intros] =
   bounded_bilinear.FDERIV [OF bounded_bilinear_inner]
 
 lemmas bounded_linear_inner_left =
@@ -186,6 +186,15 @@ lemmas bounded_linear_inner_left =
 lemmas bounded_linear_inner_right =
   bounded_bilinear.bounded_linear_right [OF bounded_bilinear_inner]
 
+lemmas FDERIV_inner_right [FDERIV_intros] =
+  bounded_linear.FDERIV [OF bounded_linear_inner_right]
+
+lemmas FDERIV_inner_left [FDERIV_intros] =
+  bounded_linear.FDERIV [OF bounded_linear_inner_left]
+
+lemma differentiable_inner [simp]:
+  "f differentiable x in s \<Longrightarrow> g differentiable x in s \<Longrightarrow> (\<lambda>x. inner (f x) (g x)) differentiable x in s"
+  unfolding isDiff_def by (blast intro: FDERIV_inner)
 
 subsection {* Class instances *}
 
@@ -259,9 +268,6 @@ definition
           ("(GDERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60)
 where
   "GDERIV f x :> D \<longleftrightarrow> FDERIV f x :> (\<lambda>h. inner h D)"
-
-lemma deriv_fderiv: "DERIV f x :> D \<longleftrightarrow> FDERIV f x :> (\<lambda>h. h * D)"
-  by (simp only: deriv_def field_fderiv_def)
 
 lemma gderiv_deriv [simp]: "GDERIV f x :> D \<longleftrightarrow> DERIV f x :> D"
   by (simp only: gderiv_def deriv_fderiv inner_real_def)

@@ -23,7 +23,6 @@ imports
   Float
   Formal_Power_Series
   Fraction_Field
-  FrechetDeriv
   FuncSet
   Function_Division
   Function_Growth

@@ -1532,6 +1532,11 @@ lemma LIM_offset_zero_cancel:
   shows "(\<lambda>h. f (a + h)) -- 0 --> L \<Longrightarrow> f -- a --> L"
 by (drule_tac k="- a" in LIM_offset, simp)
 
+lemma LIM_offset_zero_iff:
+  fixes f :: "'a :: real_normed_vector \<Rightarrow> _"
+  shows  "f -- a --> L \<longleftrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"
+  using LIM_offset_zero_cancel[of f a L] LIM_offset_zero[of f L a] by auto
+
 lemma LIM_zero:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) F \<Longrightarrow> ((\<lambda>x. f x - l) ---> 0) F"
