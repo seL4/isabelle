@@ -377,13 +377,14 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   The string given as @{text template} may include literal text,
   spacing, blocks, and arguments (denoted by ``@{text _}''); the
   special symbol ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'')
-  represents an index argument that specifies an implicit
-  @{text "\<STRUCTURE>"} reference (see also \secref{sec:locale}).  Infix and
-  binder declarations provide common abbreviations for particular mixfix
-  declarations.  So in practice, mixfix templates mostly degenerate to
-  literal text for concrete syntax, such as ``@{verbatim "++"}'' for
-  an infix symbol.
-*}
+  represents an index argument that specifies an implicit @{keyword
+  "structure"} reference (see also \secref{sec:locale}).  Only locally
+  fixed variables may be declared as @{keyword "structure"}.
+
+  Infix and binder declarations provide common abbreviations for
+  particular mixfix declarations.  So in practice, mixfix templates
+  mostly degenerate to literal text for concrete syntax, such as
+  ``@{verbatim "++"}'' for an infix symbol.  *}
 
 
 subsection {* The general mixfix form *}
@@ -836,7 +837,7 @@ text {* The priority grammar of the @{text "Pure"} theory is defined
   of @{syntax (inner) logic}.
 
   \item @{syntax_ref (inner) index} denotes an optional index term for
-  indexed syntax.  If omitted, it refers to the first @{keyword
+  indexed syntax.  If omitted, it refers to the first @{keyword_ref
   "structure"} variable in the context.  The special dummy ``@{text
   "\<index>"}'' serves as pattern variable in mixfix annotations that
   introduce indexed notation.
