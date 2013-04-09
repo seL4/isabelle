@@ -203,10 +203,7 @@ fun report_status () = (*requires SYNCHRONIZED*)
         ("workers_active", Markup.print_int active),
         ("workers_waiting", Markup.print_int waiting)] @
         ML_Statistics.get ();
-    in
-      Output.protocol_message (Markup.ML_statistics :: stats) ""
-        handle Fail msg => warning msg
-    end
+    in Output.try_protocol_message (Markup.ML_statistics :: stats) "" end
   else ();
 
 
@@ -253,8 +250,7 @@ fun worker_exec (task, jobs) =
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
     val _ =
       if ! Multithreading.trace >= 2 then
-        Output.protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) ""
-          handle Fail msg => warning msg
+        Output.try_protocol_message (Markup.task_statistics :: Task_Queue.task_statistics task) ""
       else ();
     val _ = SYNCHRONIZED "finish" (fn () =>
       let

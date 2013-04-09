@@ -656,10 +656,9 @@ fun app int (tr as Transition {trans, print, ...}) =
       val _ =
         (case approximative_id tr of
           SOME id =>
-            (Output.protocol_message
+            (Output.try_protocol_message
               (Markup.command_timing ::
-                Markup.command_timing_properties id (#elapsed timing_result)) ""
-            handle Fail _ => ())
+                Markup.command_timing_properties id (#elapsed timing_result)) "")
         | NONE => ());
     in
       (result, Option.map (fn UNDEF => type_error tr state | exn => exn) opt_err)

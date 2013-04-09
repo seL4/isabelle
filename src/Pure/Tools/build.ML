@@ -14,14 +14,8 @@ struct
 
 (* protocol messages *)
 
-local
-
 (* FIXME avoid hardwired stuff!? *)
 val protocol_echo = [Markup.ML_statistics, Markup.task_statistics, Markup.command_timing];
-
-fun protocol_undef () = raise Fail "Undefined Output.protocol_message";
-
-in
 
 fun protocol_message props output =
   (case props of
@@ -31,10 +25,8 @@ fun protocol_message props output =
       else
         (case Markup.dest_loading_theory props of
           SOME name => writeln ("\floading_theory = " ^ name)
-        | NONE => protocol_undef ())
-  | [] => protocol_undef ());
-
-end;
+        | NONE => raise Output.Protocol_Message props)
+  | [] => raise Output.Protocol_Message props);
 
 
 (* build *)
