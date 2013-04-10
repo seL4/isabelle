@@ -5,8 +5,6 @@ Provides a tactic to generate fresh names and
 a tactic to analyse instances of the fresh_fun.
 *)
 
-(* First some functions that should be in the library *)  (* FIXME really?? *)
-
 (* FIXME proper ML structure *)
 
 (* FIXME res_inst_tac mostly obsolete, cf. Subgoal.FOCUS *)
@@ -45,8 +43,6 @@ fun cut_inst_tac_term' tinst th =
 fun get_dyn_thm thy name atom_name =
   Global_Theory.get_thm thy name handle ERROR _ =>
     error ("The atom type "^atom_name^" is not defined.");
-
-(* End of function waiting to be in the library :o) *)
 
 (* The theorems needed that are known at compile time. *)
 val at_exists_fresh' = @{thm "at_exists_fresh'"};
@@ -127,14 +123,13 @@ fun subst_inner_asm_tac ctxt th =
   curry (curry (FIRST' (map uncurry (map uncurry (map subst_inner_asm_tac_aux
             (1 upto Thm.nprems_of th)))))) ctxt th;
 
-fun fresh_fun_tac no_asm i thm =
+fun fresh_fun_tac ctxt no_asm i thm =
   (* Find the variable we instantiate *)
   let
     val thy = theory_of_thm thm;
-    val ctxt = Proof_Context.init_global thy;
-    val ss = global_simpset_of thy;
     val abs_fresh = Global_Theory.get_thms thy "abs_fresh";
     val fresh_perm_app = Global_Theory.get_thms thy "fresh_perm_app";
+    val ss = simpset_of ctxt;
     val ss' = ss addsimps fresh_prod::abs_fresh;
     val ss'' = ss' addsimps fresh_perm_app;
     val x = hd (tl (Misc_Legacy.term_vars (prop_of exI)));
@@ -194,5 +189,5 @@ fun setup_generate_fresh x =
     (fn (quant, s) => K (SIMPLE_METHOD'' quant (generate_fresh_tac s)))) x;
 
 fun setup_fresh_fun_simp x =
-  (Scan.lift options_syntax >> (fn b => K (SIMPLE_METHOD' (fresh_fun_tac b)))) x;
+  (Scan.lift options_syntax >> (fn b => fn ctxt => SIMPLE_METHOD' (fresh_fun_tac ctxt b))) x;
 
