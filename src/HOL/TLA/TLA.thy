@@ -102,12 +102,12 @@ axiomatization where
 
 (* Specialize intensional introduction/elimination rules for temporal formulas *)
 
-lemma tempI: "(!!sigma. sigma |= (F::temporal)) ==> |- F"
+lemma tempI [intro!]: "(!!sigma. sigma |= (F::temporal)) ==> |- F"
   apply (rule intI)
   apply (erule meta_spec)
   done
 
-lemma tempD: "|- (F::temporal) ==> sigma |= F"
+lemma tempD [dest]: "|- (F::temporal) ==> sigma |= F"
   by (erule intD)
 
 
@@ -138,15 +138,6 @@ attribute_setup temp_rewrite = {* Scan.succeed (Thm.rule_attribute (K temp_rewri
 attribute_setup temp_use = {* Scan.succeed (Thm.rule_attribute (K temp_use)) *}
 attribute_setup try_rewrite = {* Scan.succeed (Thm.rule_attribute (K try_rewrite)) *}
 
-
-(* Update classical reasoner---will be updated once more below! *)
-
-declare tempI [intro!]
-declare tempD [dest]
-
-(* Modify the functions that add rules to simpsets, classical sets,
-   and clasimpsets in order to accept "lifted" theorems
-*)
 
 (* ------------------------------------------------------------------------- *)
 (***           "Simple temporal logic": only [] and <>                     ***)
