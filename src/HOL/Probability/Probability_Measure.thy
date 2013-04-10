@@ -524,7 +524,7 @@ proof -
       by (subst AE_distr_iff)
          (auto dest!: distributed_AE
                simp: measurable_split_conv split_beta
-               intro!: measurable_Pair borel_measurable_ereal_le)
+               intro!: measurable_Pair)
     show 2: "random_variable (distr (S \<Otimes>\<^isub>M T) (T \<Otimes>\<^isub>M S) (\<lambda>(x, y). (y, x))) (\<lambda>x. (Y x, X x))"
       using Pxy by auto
     { fix A assume A: "A \<in> sets (T \<Otimes>\<^isub>M S)"
@@ -657,7 +657,7 @@ proof safe
   show Pxy: "(\<lambda>(x, y). Px x * Py y) \<in> borel_measurable (S \<Otimes>\<^isub>M T)" by auto
 
   show "AE x in S \<Otimes>\<^isub>M T. 0 \<le> (case x of (x, y) \<Rightarrow> Px x * Py y)"
-    apply (intro ST.AE_pair_measure borel_measurable_ereal_le Pxy borel_measurable_const)
+    apply (intro ST.AE_pair_measure borel_measurable_le Pxy borel_measurable_const)
     using distributed_AE[OF X]
     apply eventually_elim
     using distributed_AE[OF Y]

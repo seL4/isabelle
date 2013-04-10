@@ -136,13 +136,8 @@ proof (intro sigma_eqI sigma_sets_eqI, safe)
   interpret countable_basis using assms by unfold_locales
   fix X::"'a set" assume "open X"
   from open_countable_basisE[OF this] guess B' . note B' = this
-  show "X \<in> sigma_sets UNIV B"
-  proof cases
-    assume "B' \<noteq> {}"
-    thus "X \<in> sigma_sets UNIV B" using assms B'
-      by (metis from_nat_into Union_image_eq countable_subset range_from_nat_into
-        in_mono sigma_sets.Basic sigma_sets.Union)
-  qed (simp add: sigma_sets.Empty B')
+  then show "X \<in> sigma_sets UNIV B"
+    by (blast intro: sigma_sets_UNION `countable B` countable_subset)
 next
   fix b assume "b \<in> B"
   hence "open b" by (rule topological_basis_open[OF assms(2)])
@@ -206,22 +201,6 @@ lemma borel_measurable_continuous_on_open:
   using measurable_comp[OF g borel_measurable_continuous_on_open'[OF cont], of c]
   by (simp add: comp_def)
 
-lemma continuous_on_fst: "continuous_on UNIV fst"
-proof -
-  have [simp]: "range fst = UNIV" by (auto simp: image_iff)
-  show ?thesis
-    using closed_vimage_fst
-    by (auto simp: continuous_on_closed closed_closedin vimage_def)
-qed
-
-lemma continuous_on_snd: "continuous_on UNIV snd"
-proof -
-  have [simp]: "range snd = UNIV" by (auto simp: image_iff)
-  show ?thesis
-    using closed_vimage_snd
-    by (auto simp: continuous_on_closed closed_closedin vimage_def)
-qed
-
 lemma borel_measurable_continuous_Pair:
   fixes f :: "'a \<Rightarrow> 'b::second_countable_topology" and g :: "'a \<Rightarrow> 'c::second_countable_topology"
   assumes [measurable]: "f \<in> borel_measurable M"
@@ -242,11 +221,10 @@ lemma borel_measurable_inner[measurable (raw)]:
   assumes "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x \<bullet> g x) \<in> borel_measurable M"
   using assms
-  by (rule borel_measurable_continuous_Pair)
-     (intro continuous_on_inner continuous_on_snd continuous_on_fst)
+  by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
 
 lemma [measurable]:
-  fixes a b :: "'a\<Colon>ordered_euclidean_space"
+  fixes a b :: "'a\<Colon>linorder_topology"
   shows lessThan_borel: "{..< a} \<in> sets borel"
     and greaterThan_borel: "{a <..} \<in> sets borel"
     and greaterThanLessThan_borel: "{a<..<b} \<in> sets borel"
@@ -256,22 +234,58 @@ lemma [measurable]:
     and greaterThanAtMost_borel: "{a<..b} \<in> sets borel"
     and atLeastLessThan_borel: "{a..<b} \<in> sets borel"
   unfolding greaterThanAtMost_def atLeastLessThan_def
+  by (blast intro: borel_open borel_closed open_lessThan open_greaterThan open_greaterThanLessThan
+                   closed_atMost closed_atLeast closed_atLeastAtMost)+
+
+lemma eucl_ivals[measurable]:
+  fixes a b :: "'a\<Colon>ordered_euclidean_space"
+  shows "{..< a} \<in> sets borel"
+    and "{a <..} \<in> sets borel"
+    and "{a<..<b} \<in> sets borel"
+    and "{..a} \<in> sets borel"
+    and "{a..} \<in> sets borel"
+    and "{a..b} \<in> sets borel"
+    and  "{a<..b} \<in> sets borel"
+    and "{a..<b} \<in> sets borel"
+  unfolding greaterThanAtMost_def atLeastLessThan_def
   by (blast intro: borel_open borel_closed)+
 
+lemma open_Collect_less:
+  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {inner_dense_linorder, linorder_topology}"
+  assumes "continuous_on UNIV f"
+  assumes "continuous_on UNIV g"
+  shows "open {x. f x < g x}"
+proof -
+  have "open (\<Union>y. {x \<in> UNIV. f x \<in> {..< y}} \<inter> {x \<in> UNIV. g x \<in> {y <..}})" (is "open ?X")
+    by (intro open_UN ballI open_Int continuous_open_preimage assms) auto
+  also have "?X = {x. f x < g x}"
+    by (auto intro: dense)
+  finally show ?thesis .
+qed
+
+lemma closed_Collect_le:
+  fixes f g :: "'i::topological_space \<Rightarrow> 'a :: {inner_dense_linorder, linorder_topology}"
+  assumes f: "continuous_on UNIV f"
+  assumes g: "continuous_on UNIV g"
+  shows "closed {x. f x \<le> g x}"
+  using open_Collect_less[OF g f] unfolding not_less[symmetric] Collect_neg_eq open_closed .
+
 lemma borel_measurable_less[measurable]:
-  fixes f :: "'a \<Rightarrow> real"
-  assumes f: "f \<in> borel_measurable M"
-  assumes g: "g \<in> borel_measurable M"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}"
+  assumes "f \<in> borel_measurable M"
+  assumes "g \<in> borel_measurable M"
   shows "{w \<in> space M. f w < g w} \<in> sets M"
 proof -
-  have "{w \<in> space M. f w < g w} = {x \<in> space M. \<exists>r. f x < of_rat r \<and> of_rat r < g x}"
-    using Rats_dense_in_real by (auto simp add: Rats_def)
-  with f g show ?thesis
-    by simp
+  have "{w \<in> space M. f w < g w} = (\<lambda>x. (f x, g x)) -` {x. fst x < snd x} \<inter> space M"
+    by auto
+  also have "\<dots> \<in> sets M"
+    by (intro measurable_sets[OF borel_measurable_Pair borel_open, OF assms open_Collect_less]
+              continuous_on_intros)
+  finally show ?thesis .
 qed
 
 lemma
-  fixes f :: "'a \<Rightarrow> real"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}"
   assumes f[measurable]: "f \<in> borel_measurable M"
   assumes g[measurable]: "g \<in> borel_measurable M"
   shows borel_measurable_le[measurable]: "{w \<in> space M. f w \<le> g w} \<in> sets M"
@@ -281,10 +295,11 @@ lemma
   by measurable
 
 lemma 
-  shows hafspace_less_borel: "{x::'a::euclidean_space. a < x \<bullet> i} \<in> sets borel"
-    and hafspace_greater_borel: "{x::'a::euclidean_space. x \<bullet> i < a} \<in> sets borel"
-    and hafspace_less_eq_borel: "{x::'a::euclidean_space. a \<le> x \<bullet> i} \<in> sets borel"
-    and hafspace_greater_eq_borel: "{x::'a::euclidean_space. x \<bullet> i \<le> a} \<in> sets borel"
+  fixes i :: "'a::{second_countable_topology, real_inner}"
+  shows hafspace_less_borel: "{x. a < x \<bullet> i} \<in> sets borel"
+    and hafspace_greater_borel: "{x. x \<bullet> i < a} \<in> sets borel"
+    and hafspace_less_eq_borel: "{x. a \<le> x \<bullet> i} \<in> sets borel"
+    and hafspace_greater_eq_borel: "{x. x \<bullet> i \<le> a} \<in> sets borel"
   by simp_all
 
 subsection "Borel space equals sigma algebras over intervals"
@@ -636,22 +651,20 @@ qed auto
 subsection "Borel measurable operators"
 
 lemma borel_measurable_uminus[measurable (raw)]:
-  fixes g :: "'a \<Rightarrow> real"
+  fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. - g x) \<in> borel_measurable M"
-  by (rule borel_measurable_continuous_on[OF _ g]) (auto intro: continuous_on_minus continuous_on_id)
+  by (rule borel_measurable_continuous_on[OF _ g]) (intro continuous_on_intros)
 
 lemma borel_measurable_add[measurable (raw)]:
-  fixes f g :: "'a \<Rightarrow> 'c::ordered_euclidean_space"
+  fixes f g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x + g x) \<in> borel_measurable M"
-  using f g
-  by (rule borel_measurable_continuous_Pair)
-     (auto intro: continuous_on_fst continuous_on_snd continuous_on_add)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
 
 lemma borel_measurable_setsum[measurable (raw)]:
-  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
   shows "(\<lambda>x. \<Sum>i\<in>S. f i x) \<in> borel_measurable M"
 proof cases
@@ -660,37 +673,41 @@ proof cases
 qed simp
 
 lemma borel_measurable_diff[measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> real"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x - g x) \<in> borel_measurable M"
   unfolding diff_minus using assms by simp
 
 lemma borel_measurable_times[measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> real"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_algebra}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x * g x) \<in> borel_measurable M"
-  using f g
-  by (rule borel_measurable_continuous_Pair)
-     (auto intro: continuous_on_fst continuous_on_snd continuous_on_mult)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
+
+lemma borel_measurable_setprod[measurable (raw)]:
+  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> 'b::{second_countable_topology, real_normed_field}"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
+  shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
+proof cases
+  assume "finite S"
+  thus ?thesis using assms by induct auto
+qed simp
 
 lemma borel_measurable_dist[measurable (raw)]:
-  fixes g f :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+  fixes g f :: "'a \<Rightarrow> 'b::{second_countable_topology, metric_space}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. dist (f x) (g x)) \<in> borel_measurable M"
-  using f g
-  by (rule borel_measurable_continuous_Pair)
-     (intro continuous_on_dist continuous_on_fst continuous_on_snd)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
   
 lemma borel_measurable_scaleR[measurable (raw)]:
-  fixes g :: "'a \<Rightarrow> 'b::ordered_euclidean_space"
+  fixes g :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_vector}"
   assumes f: "f \<in> borel_measurable M"
   assumes g: "g \<in> borel_measurable M"
   shows "(\<lambda>x. f x *\<^sub>R g x) \<in> borel_measurable M"
-  by (rule borel_measurable_continuous_Pair[OF f g])
-     (auto intro!: continuous_on_scaleR continuous_on_fst continuous_on_snd)
+  using f g by (rule borel_measurable_continuous_Pair) (intro continuous_on_intros)
 
 lemma affine_borel_measurable_vector:
   fixes f :: "'a \<Rightarrow> 'x::real_normed_vector"
@@ -720,36 +737,29 @@ lemma borel_measurable_const_add[measurable (raw)]:
   "f \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. a + f x ::'a::real_normed_vector) \<in> borel_measurable M"
   using affine_borel_measurable_vector[of f M a 1] by simp
 
-lemma borel_measurable_setprod[measurable (raw)]:
-  fixes f :: "'c \<Rightarrow> 'a \<Rightarrow> real"
-  assumes "\<And>i. i \<in> S \<Longrightarrow> f i \<in> borel_measurable M"
-  shows "(\<lambda>x. \<Prod>i\<in>S. f i x) \<in> borel_measurable M"
-proof cases
-  assume "finite S"
-  thus ?thesis using assms by induct auto
-qed simp
-
 lemma borel_measurable_inverse[measurable (raw)]:
-  fixes f :: "'a \<Rightarrow> real"
+  fixes f :: "'a \<Rightarrow> 'b::{second_countable_topology, real_normed_div_algebra}"
   assumes f: "f \<in> borel_measurable M"
   shows "(\<lambda>x. inverse (f x)) \<in> borel_measurable M"
 proof -
-  have "(\<lambda>x::real. if x \<in> UNIV - {0} then inverse x else 0) \<in> borel_measurable borel"
-    by (intro borel_measurable_continuous_on_open' continuous_on_inverse continuous_on_id) auto
-  also have "(\<lambda>x::real. if x \<in> UNIV - {0} then inverse x else 0) = inverse" by (intro ext) auto
+  have "(\<lambda>x::'b. if x \<in> UNIV - {0} then inverse x else inverse 0) \<in> borel_measurable borel"
+    by (intro borel_measurable_continuous_on_open' continuous_on_intros) auto
+  also have "(\<lambda>x::'b. if x \<in> UNIV - {0} then inverse x else inverse 0) = inverse"
+    by (intro ext) auto
   finally show ?thesis using f by simp
 qed
 
 lemma borel_measurable_divide[measurable (raw)]:
-  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. f x / g x::real) \<in> borel_measurable M"
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow>
+    (\<lambda>x. f x / g x::'b::{second_countable_topology, real_normed_field}) \<in> borel_measurable M"
   by (simp add: field_divide_inverse)
 
 lemma borel_measurable_max[measurable (raw)]:
-  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. max (g x) (f x) :: real) \<in> borel_measurable M"
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. max (g x) (f x) :: 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}) \<in> borel_measurable M"
   by (simp add: max_def)
 
 lemma borel_measurable_min[measurable (raw)]:
-  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. min (g x) (f x) :: real) \<in> borel_measurable M"
+  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> (\<lambda>x. min (g x) (f x) :: 'b::{second_countable_topology, inner_dense_linorder, linorder_topology}) \<in> borel_measurable M"
   by (simp add: min_def)
 
 lemma borel_measurable_abs[measurable (raw)]:
@@ -761,15 +771,15 @@ lemma borel_measurable_nth[measurable (raw)]:
   by (simp add: cart_eq_inner_axis)
 
 lemma convex_measurable:
-  fixes a b :: real
-  assumes X: "X \<in> borel_measurable M" "X ` space M \<subseteq> { a <..< b}"
-  assumes q: "convex_on { a <..< b} q"
+  fixes A :: "'a :: ordered_euclidean_space set"
+  assumes X: "X \<in> borel_measurable M" "X ` space M \<subseteq> A" "open A"
+  assumes q: "convex_on A q"
   shows "(\<lambda>x. q (X x)) \<in> borel_measurable M"
 proof -
-  have "(\<lambda>x. if X x \<in> {a <..< b} then q (X x) else 0) \<in> borel_measurable M" (is "?qX")
+  have "(\<lambda>x. if X x \<in> A then q (X x) else 0) \<in> borel_measurable M" (is "?qX")
   proof (rule borel_measurable_continuous_on_open[OF _ _ X(1)])
-    show "open {a<..<b}" by auto
-    from this q show "continuous_on {a<..<b} q"
+    show "open A" by fact
+    from this q show "continuous_on A q"
       by (rule convex_on_continuous)
   qed
   also have "?qX \<longleftrightarrow> (\<lambda>x. q (X x)) \<in> borel_measurable M"
@@ -903,19 +913,6 @@ proof -
   from assms show ?thesis
     by (subst *) (simp del: space_borel split del: split_if)
 qed
-
-lemma [measurable]:
-  fixes f g :: "'a \<Rightarrow> ereal"
-  assumes f: "f \<in> borel_measurable M"
-  assumes g: "g \<in> borel_measurable M"
-  shows borel_measurable_ereal_le: "{x \<in> space M. f x \<le> g x} \<in> sets M"
-    and borel_measurable_ereal_less: "{x \<in> space M. f x < g x} \<in> sets M"
-    and borel_measurable_ereal_eq: "{w \<in> space M. f w = g w} \<in> sets M"
-  using f g by (simp_all add: set_Collect_ereal2)
-
-lemma borel_measurable_ereal_neq:
-  "f \<in> borel_measurable M \<Longrightarrow> g \<in> borel_measurable M \<Longrightarrow> {w \<in> space M. f w \<noteq> (g w :: ereal)} \<in> sets M"
-  by simp
 
 lemma borel_measurable_ereal_iff:
   shows "(\<lambda>x. ereal (f x)) \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable M"
@@ -1197,4 +1194,4 @@ lemma borel_measurable_suminf[measurable (raw)]:
   shows "(\<lambda>x. suminf (\<lambda>i. f i x)) \<in> borel_measurable M"
   unfolding suminf_def sums_def[abs_def] lim_def[symmetric] by simp
 
-end 
+end

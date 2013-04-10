@@ -449,8 +449,7 @@ subsection {* Initial Sigma Algebra *}
 text {*Sigma algebras can naturally be created as the closure of any set of
   M with regard to the properties just postulated.  *}
 
-inductive_set
-  sigma_sets :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set"
+inductive_set sigma_sets :: "'a set \<Rightarrow> 'a set set \<Rightarrow> 'a set set"
   for sp :: "'a set" and A :: "'a set set"
   where
     Basic[intro, simp]: "a \<in> A \<Longrightarrow> a \<in> sigma_sets sp A"
@@ -534,6 +533,13 @@ proof -
     by auto (metis ai non sigma_sets_into_sp subset_empty subset_iff Asb)+
   finally show ?thesis .
 qed
+
+lemma sigma_sets_UNION: "countable B \<Longrightarrow> (\<And>b. b \<in> B \<Longrightarrow> b \<in> sigma_sets X A) \<Longrightarrow> (\<Union>B) \<in> sigma_sets X A"
+  using from_nat_into[of B] range_from_nat_into[of B] sigma_sets.Union[of "from_nat_into B" X A]
+  apply (cases "B = {}")
+  apply (simp add: sigma_sets.Empty)
+  apply (simp del: Union_image_eq add: Union_image_eq[symmetric])
+  done
 
 lemma (in sigma_algebra) sigma_sets_eq:
      "sigma_sets \<Omega> M = M"
