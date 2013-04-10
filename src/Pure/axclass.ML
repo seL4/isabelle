@@ -26,8 +26,8 @@ sig
   val define_overloaded: binding -> string * term -> theory -> thm * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
-  val prove_classrel: class * class -> tactic -> theory -> theory
-  val prove_arity: string * sort list * sort -> tactic -> theory -> theory
+  val prove_classrel: class * class -> (Proof.context -> tactic) -> theory -> theory
+  val prove_arity: string * sort list * sort -> (Proof.context -> tactic) -> theory -> theory
   val define_class: binding * class list -> string list ->
     (Thm.binding * term list) list -> theory -> class * theory
   val axiomatize_class: binding * class list -> theory -> theory
@@ -439,9 +439,11 @@ fun prove_classrel raw_rel tac thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val (c1, c2) = cert_classrel thy raw_rel;
-    val th = Goal.prove ctxt [] [] (Logic.mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
-      cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
-        quote (Syntax.string_of_classrel ctxt [c1, c2]));
+    val th =
+      Goal.prove ctxt [] [] (Logic.mk_classrel (c1, c2)) (fn {context, ...} => tac context)
+        handle ERROR msg =>
+          cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
+            quote (Syntax.string_of_classrel ctxt [c1, c2]));
   in
     thy |> add_classrel th
   end;
@@ -452,10 +454,12 @@ fun prove_arity raw_arity tac thy =
     val arity = Proof_Context.cert_arity ctxt raw_arity;
     val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
-    val ths = Goal.prove_multi ctxt [] [] props
-      (fn _ => Goal.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
-        cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
-          quote (Syntax.string_of_arity ctxt arity));
+    val ths =
+      Goal.prove_multi ctxt [] [] props
+      (fn {context, ...} => Goal.precise_conjunction_tac (length props) 1 THEN tac context)
+        handle ERROR msg =>
+          cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
+            quote (Syntax.string_of_arity ctxt arity));
   in
     thy |> fold add_arity ths
   end;
