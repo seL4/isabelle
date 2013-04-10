@@ -181,24 +181,19 @@ structure Basic_Classical: BASIC_CLASSICAL = Cla;
 open Basic_Classical;
 *}
 
-setup {*
-  ML_Antiquote.value @{binding claset}
-    (Scan.succeed "Cla.claset_of ML_context")
-*}
-
 setup Cla.setup
 
 (*Propositional rules*)
 lemmas [intro!] = refl TrueI conjI disjCI impI notI iffI
   and [elim!] = conjE disjE impCE FalseE iffCE
-ML {* val prop_cs = @{claset} *}
+ML {* val prop_cs = claset_of @{context} *}
 
 (*Quantifier rules*)
 lemmas [intro!] = allI ex_ex1I
   and [intro] = exI
   and [elim!] = exE alt_ex1E
   and [elim] = allE
-ML {* val FOL_cs = @{claset} *}
+ML {* val FOL_cs = claset_of @{context} *}
 
 ML {*
   structure Blast = Blast

@@ -79,13 +79,13 @@ val _ =
   Outer_Syntax.command @{command_spec "classes"} "declare type classes"
     (Scan.repeat1 (Parse.binding -- Scan.optional ((@{keyword "\<subseteq>"} || @{keyword "<"}) |--
         Parse.!!! (Parse.list1 Parse.class)) [])
-      >> (Toplevel.theory o fold AxClass.axiomatize_class_cmd));
+      >> (Toplevel.theory o fold Axclass.axiomatize_class_cmd));
 
 val _ =
   Outer_Syntax.command @{command_spec "classrel"} "state inclusion of type classes (axiomatic!)"
     (Parse.and_list1 (Parse.class -- ((@{keyword "\<subseteq>"} || @{keyword "<"})
         |-- Parse.!!! Parse.class))
-    >> (Toplevel.theory o AxClass.axiomatize_classrel_cmd));
+    >> (Toplevel.theory o Axclass.axiomatize_classrel_cmd));
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "default_sort"}
@@ -113,7 +113,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command @{command_spec "arities"} "state type arities (axiomatic!)"
-    (Scan.repeat1 Parse.arity >> (Toplevel.theory o fold AxClass.axiomatize_arity_cmd));
+    (Scan.repeat1 Parse.arity >> (Toplevel.theory o fold Axclass.axiomatize_arity_cmd));
 
 
 (* consts and syntax *)

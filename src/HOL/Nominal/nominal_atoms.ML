@@ -311,7 +311,7 @@ fun create_nom_typedecls ak_names thy =
                        (HOLogic.mk_Trueprop (cprm_eq $ pi1 $ pi2),
                         HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
       in
-          AxClass.define_class (Binding.name cl_name, ["HOL.type"]) []
+          Axclass.define_class (Binding.name cl_name, ["HOL.type"]) []
                 [((Binding.name (cl_name ^ "1"), [Simplifier.simp_add]), [axiom1]),
                  ((Binding.name (cl_name ^ "2"), []), [axiom2]),                           
                  ((Binding.name (cl_name ^ "3"), []), [axiom3])] thy
@@ -360,7 +360,7 @@ fun create_nom_typedecls ak_names thy =
           val axiom1   = HOLogic.mk_Trueprop (cfinite $ (csupp $ x));
 
        in  
-        AxClass.define_class (Binding.name cl_name, [pt_name]) []
+        Axclass.define_class (Binding.name cl_name, [pt_name]) []
           [((Binding.name (cl_name ^ "1"), []), [axiom1])] thy
        end) ak_names_types thy8; 
          
@@ -410,7 +410,7 @@ fun create_nom_typedecls ak_names thy =
                            (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
                                            cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
                in  
-                 AxClass.define_class (Binding.name cl_name, ["HOL.type"]) []
+                 Axclass.define_class (Binding.name cl_name, ["HOL.type"]) []
                    [((Binding.name (cl_name ^ "1"), []), [ax1])] thy'  
                end) ak_names_types thy) ak_names_types thy12;
 
@@ -517,7 +517,7 @@ fun create_nom_typedecls ak_names thy =
 
          in
            thy'
-           |> AxClass.prove_arity (qu_name,[],[cls_name])
+           |> Axclass.prove_arity (qu_name,[],[cls_name])
               (fn _ => if ak_name = ak_name' then proof1 else proof2)
          end) ak_names thy) ak_names thy12d;
 
@@ -551,15 +551,15 @@ fun create_nom_typedecls ak_names thy =
           val pt_thm_unit  = pt_unit_inst;
        in
         thy
-        |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
-        |> AxClass.prove_arity (@{type_name Set.set},[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
-        |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
-        |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
-        |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
-        |> AxClass.prove_arity (@{type_name Product_Type.prod},[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
-        |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+        |> Axclass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
+        |> Axclass.prove_arity (@{type_name Set.set},[[cls_name]],[cls_name]) (pt_proof pt_thm_set)
+        |> Axclass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
+        |> Axclass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
+        |> Axclass.prove_arity ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
+        |> Axclass.prove_arity (@{type_name Product_Type.prod},[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
+        |> Axclass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                     (pt_proof pt_thm_nprod)
-        |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
+        |> Axclass.prove_arity ("Product_Type.unit",[],[cls_name]) (pt_proof pt_thm_unit)
      end) ak_names thy13; 
 
        (********  fs_<ak> class instances  ********)
@@ -592,7 +592,7 @@ fun create_nom_typedecls ak_names thy =
                       val simp_s = HOL_basic_ss addsimps [dj_inst RS dj_supp, finite_emptyI];
                   in EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1] end)
         in
-         AxClass.prove_arity (qu_name,[],[qu_class]) (fn _ => proof) thy'
+         Axclass.prove_arity (qu_name,[],[qu_class]) (fn _ => proof) thy'
         end) ak_names thy) ak_names thy18;
 
        (* shows that                  *)
@@ -616,12 +616,12 @@ fun create_nom_typedecls ak_names thy =
           val fs_thm_optn  = fs_inst RS fs_option_inst;
         in 
          thy
-         |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
-         |> AxClass.prove_arity (@{type_name Product_Type.prod},[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
-         |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
+         |> Axclass.prove_arity ("Product_Type.unit",[],[cls_name]) (fs_proof fs_thm_unit) 
+         |> Axclass.prove_arity (@{type_name Product_Type.prod},[[cls_name],[cls_name]],[cls_name]) (fs_proof fs_thm_prod) 
+         |> Axclass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                      (fs_proof fs_thm_nprod) 
-         |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
-         |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
+         |> Axclass.prove_arity ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
+         |> Axclass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
         end) ak_names thy20;
 
        (********  cp_<ak>_<ai> class instances  ********)
@@ -669,7 +669,7 @@ fun create_nom_typedecls ak_names thy =
                     EVERY [Class.intro_classes_tac [], simp_tac simp_s 1]
                   end))
               in
-                AxClass.prove_arity (name,[],[cls_name]) (fn _ => proof) thy''
+                Axclass.prove_arity (name,[],[cls_name]) (fn _ => proof) thy''
               end) ak_names thy') ak_names thy) ak_names thy24;
 
        (* shows that                                                    *) 
@@ -700,13 +700,13 @@ fun create_nom_typedecls ak_names thy =
             val cp_thm_set = cp_inst RS cp_set_inst;
         in
          thy'
-         |> AxClass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
-         |> AxClass.prove_arity (@{type_name Product_Type.prod}, [[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
-         |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
-         |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
-         |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
-         |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
-         |> AxClass.prove_arity (@{type_name Set.set},[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
+         |> Axclass.prove_arity ("Product_Type.unit",[],[cls_name]) (cp_proof cp_thm_unit)
+         |> Axclass.prove_arity (@{type_name Product_Type.prod}, [[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
+         |> Axclass.prove_arity ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
+         |> Axclass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
+         |> Axclass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
+         |> Axclass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
+         |> Axclass.prove_arity (@{type_name Set.set},[[cls_name]],[cls_name]) (cp_proof cp_thm_set)
         end) ak_names thy) ak_names thy25;
 
      (* show that discrete nominal types are permutation types, finitely     *)
@@ -722,7 +722,7 @@ fun create_nom_typedecls ak_names thy =
                val simp_s = HOL_basic_ss addsimps [Simpdata.mk_eq defn];
                val proof = EVERY [Class.intro_classes_tac [], REPEAT (asm_simp_tac simp_s 1)];
              in 
-               AxClass.prove_arity (discrete_ty, [], [qu_class]) (fn _ => proof) thy
+               Axclass.prove_arity (discrete_ty, [], [qu_class]) (fn _ => proof) thy
              end) ak_names;
 
           fun discrete_fs_inst discrete_ty defn = 
@@ -733,7 +733,7 @@ fun create_nom_typedecls ak_names thy =
                val simp_s = HOL_ss addsimps [supp_def, Collect_const, finite_emptyI, Simpdata.mk_eq defn];
                val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in 
-               AxClass.prove_arity (discrete_ty, [], [qu_class]) (fn _ => proof) thy
+               Axclass.prove_arity (discrete_ty, [], [qu_class]) (fn _ => proof) thy
              end) ak_names;
 
           fun discrete_cp_inst discrete_ty defn = 
@@ -744,7 +744,7 @@ fun create_nom_typedecls ak_names thy =
                val simp_s = HOL_ss addsimps [Simpdata.mk_eq defn];
                val proof = EVERY [Class.intro_classes_tac [], asm_simp_tac simp_s 1];
              in
-               AxClass.prove_arity (discrete_ty, [], [qu_class]) (fn _ => proof) thy
+               Axclass.prove_arity (discrete_ty, [], [qu_class]) (fn _ => proof) thy
              end) ak_names)) ak_names;
 
         in

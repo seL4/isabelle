@@ -93,7 +93,7 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
     val ty = Type (tyco, map TFree vs);
     val cs = (map o apsnd o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
-    val const = AxClass.param_of_inst thy (@{const_name partial_term_of}, tyco);
+    val const = Axclass.param_of_inst thy (@{const_name partial_term_of}, tyco);
     val var_insts =
       map (SOME o Thm.cterm_of thy o Logic.unvarify_types_global o Logic.varify_global)
         [Free ("ty", Term.itselfT ty), @{term "Quickcheck_Narrowing.Narrowing_variable p tt"},

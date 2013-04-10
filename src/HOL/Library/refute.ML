@@ -695,7 +695,7 @@ fun collect_axioms ctxt t =
         val superclasses = distinct (op =) superclasses
         val class_axioms = maps (fn class => map (fn ax =>
           ("<" ^ class ^ ">", Thm.prop_of ax))
-          (#axioms (AxClass.get_info thy class) handle ERROR _ => []))
+          (#axioms (Axclass.get_info thy class) handle ERROR _ => []))
           superclasses
         (* replace the (at most one) schematic type variable in each axiom *)
         (* by the actual type 'T'                                          *)

@@ -10,6 +10,7 @@ signature PROOF_CONTEXT =
 sig
   val theory_of: Proof.context -> theory
   val init_global: theory -> Proof.context
+  val get_global: theory -> string -> Proof.context
   type mode
   val mode_default: mode
   val mode_stmt: mode
@@ -166,6 +167,7 @@ struct
 
 val theory_of = Proof_Context.theory_of;
 val init_global = Proof_Context.init_global;
+val get_global = Proof_Context.get_global;
 
 
 

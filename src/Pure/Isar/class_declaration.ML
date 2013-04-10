@@ -90,7 +90,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
           ((map_types o map_atyps) (K aT) prop), of_class_prop_concl));
     val sup_of_classes = map (snd o Class.rules thy) sups;
     val loc_axiom_intros = map Drule.export_without_context_open (Locale.axioms_of thy class);
-    val axclass_intro = #intro (AxClass.get_info thy class);
+    val axclass_intro = #intro (Axclass.get_info thy class);
     val base_sort_trivs = Thm.of_sort (Thm.ctyp_of thy aT, base_sort);
     val tac =
       REPEAT (SOMEGOAL
@@ -289,13 +289,13 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
       |> fst
       |> Option.map (Logic.unvarify_global o Logic.strip_imp_concl o Thm.prop_of);
     fun get_axiom thy =
-      (case #axioms (AxClass.get_info thy class) of
+      (case #axioms (Axclass.get_info thy class) of
          [] => NONE
       | [thm] => SOME thm);
   in
     thy
     |> add_consts class base_sort sups supparam_names global_syntax
-    |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
+    |-> (fn (param_map, params) => Axclass.define_class (bname, supsort)
           (map (fst o snd) params)
           [(Thm.empty_binding, Option.map (globalize param_map) raw_pred |> the_list)]
     #> snd
@@ -346,7 +346,7 @@ fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
       (case Named_Target.peek lthy of
          SOME {target, is_class = true, ...} => target
       | _ => error "Not in a class target");
-    val (sub, sup) = AxClass.cert_classrel thy (proto_sub, proto_sup);
+    val (sub, sup) = Axclass.cert_classrel thy (proto_sub, proto_sup);
 
     val expr = ([(sup, (("", false), Expression.Positional []))], []);
     val (([props], deps, export), goal_ctxt) =

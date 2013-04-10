@@ -189,7 +189,7 @@ fun normalize thy th =
 fun get_specification options thy t =
   let
     (*val (c, T) = dest_Const t
-    val t = Const (AxClass.unoverload_const thy (c, T), T)*)
+    val t = Const (Axclass.unoverload_const thy (c, T), T)*)
     val _ = if show_steps options then
         tracing ("getting specification of " ^ Syntax.string_of_term_global thy t ^
           " with type " ^ Syntax.string_of_typ_global thy (fastype_of t))

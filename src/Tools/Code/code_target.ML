@@ -544,7 +544,7 @@ end;
 
 fun cert_class thy class =
   let
-    val _ = AxClass.get_info thy class;
+    val _ = Axclass.get_info thy class;
   in class end;
 
 fun read_class thy = cert_class thy o Sign.intern_class thy;

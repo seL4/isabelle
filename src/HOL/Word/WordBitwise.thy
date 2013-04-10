@@ -501,7 +501,7 @@ ML {*
 
 structure Word_Bitwise_Tac = struct
 
-val word_ss = global_simpset_of @{theory Word};
+val word_ss = simpset_of @{theory_context Word};
 
 fun mk_nat_clist ns = List.foldr
   (uncurry (Thm.mk_binop @{cterm "Cons :: nat => _"}))
