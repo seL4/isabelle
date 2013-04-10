@@ -287,7 +287,7 @@ subsection {* Constructors are distinct *}
 
 ML {*
 bind_thms ("term_dstncts",
-  mkall_dstnct_thms @{theory} @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
+  mkall_dstnct_thms @{context} @{thms data_defs} (@{thms ccl_injs} @ @{thms term_injs})
     [["bot","inl","inr"], ["bot","zero","succ"], ["bot","nil","cons"]]);
 *}
 

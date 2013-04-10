@@ -274,16 +274,17 @@ val ccl_dstncts =
   in map (mk_raw_dstnct_thm caseB_lemmas)
     (mk_dstnct_rls @{theory} ["bot","true","false","pair","lambda"]) end
 
-fun mk_dstnct_thms thy defs inj_rls xs =
+fun mk_dstnct_thms ctxt defs inj_rls xs =
   let
+    val thy = Proof_Context.theory_of ctxt;
     fun mk_dstnct_thm rls s =
-      Goal.prove_global thy [] [] (Syntax.read_prop_global thy s)
+      Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
         (fn _ =>
           rewrite_goals_tac defs THEN
-          simp_tac (global_simpset_of thy addsimps (rls @ inj_rls)) 1)
+          simp_tac (simpset_of ctxt addsimps (rls @ inj_rls)) 1)
   in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
 
-fun mkall_dstnct_thms thy defs i_rls xss = maps (mk_dstnct_thms thy defs i_rls) xss
+fun mkall_dstnct_thms ctxt defs i_rls xss = maps (mk_dstnct_thms ctxt defs i_rls) xss
 
 (*** Rewriting and Proving ***)
 
