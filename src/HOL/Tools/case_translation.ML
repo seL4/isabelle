@@ -53,7 +53,7 @@ fun map_cases f = map_data (fn (constrs, cases) => (constrs, f cases));
 
 val rep_data = (fn Data args => args) o Data.get o Context.Proof;
 
-fun T_of_data (comb, constrs) =
+fun T_of_data (comb, constrs : term list) =
   fastype_of comb
   |> funpow (length constrs) range_type
   |> domain_type;
