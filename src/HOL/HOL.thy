@@ -843,11 +843,6 @@ structure Basic_Classical: BASIC_CLASSICAL = Classical;
 open Basic_Classical;
 *}
 
-setup {*
-  ML_Antiquote.value @{binding claset}
-    (Scan.succeed "Classical.claset_of ML_context")
-*}
-
 setup Classical.setup
 
 setup {*
@@ -888,7 +883,7 @@ declare ex_ex1I [intro!]
 declare exE [elim!]
   allE [elim]
 
-ML {* val HOL_cs = @{claset} *}
+ML {* val HOL_cs = claset_of @{context} *}
 
 lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
   apply (erule swap)
