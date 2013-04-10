@@ -5,7 +5,7 @@ Type classes defined as predicates, associated with a record of
 parameters.  Proven class relations and type arities.
 *)
 
-signature AX_CLASS =
+signature AXCLASS =
 sig
   type info = {def: thm, intro: thm, axioms: thm list, params: (string * typ) list}
   val get_info: theory -> class -> info
@@ -38,7 +38,7 @@ sig
   val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
 end;
 
-structure AxClass: AX_CLASS =
+structure Axclass: AXCLASS =
 struct
 
 (** theory data **)

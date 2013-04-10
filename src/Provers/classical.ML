@@ -56,7 +56,6 @@ sig
   val appSWrappers: Proof.context -> wrapper
   val appWrappers: Proof.context -> wrapper
 
-  val global_claset_of: theory -> claset
   val claset_of: Proof.context -> claset
   val map_claset: (claset -> claset) -> Proof.context -> Proof.context
   val put_claset: claset -> Proof.context -> Proof.context
@@ -596,7 +595,6 @@ structure Claset = Generic_Data
   val merge = merge_cs;
 );
 
-val global_claset_of = Claset.get o Context.Theory;
 val claset_of = Claset.get o Context.Proof;
 val rep_claset_of = rep_cs o claset_of;
 

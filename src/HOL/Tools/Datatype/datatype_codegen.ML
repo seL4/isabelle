@@ -19,7 +19,7 @@ struct
 fun mk_constr_consts thy vs tyco cos =
   let
     val cs = map (fn (c, tys) => (c, tys ---> Type (tyco, map TFree vs))) cos;
-    val cs' = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) cs;
+    val cs' = map (fn c_ty as (_, ty) => (Axclass.unoverload_const thy c_ty, ty)) cs;
   in
     if is_some (try (Code.constrset_of_consts thy) cs')
     then SOME cs
@@ -54,7 +54,7 @@ fun mk_case_cert thy tyco =
     |> Raw_Simplifier.rewrite_rule [Thm.symmetric (Thm.assume asm)]
     |> Thm.implies_intr asm
     |> Thm.generalize ([], params) 0
-    |> AxClass.unoverload thy
+    |> Axclass.unoverload thy
     |> Thm.varifyT_global
   end;
 

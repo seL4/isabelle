@@ -226,10 +226,13 @@ text %mlref {*
 text %mlantiq {*
   \begin{matharray}{rcl}
   @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
+  @{ML_antiquotation_def "theory_context"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
   @{rail "
   @@{ML_antiquotation theory} nameref?
+  ;
+  @@{ML_antiquotation theory_context} nameref
   "}
 
   \begin{description}
@@ -240,6 +243,10 @@ text %mlantiq {*
   \item @{text "@{theory A}"} refers to an explicitly named ancestor
   theory @{text "A"} of the background theory of the current context
   --- as abstract value.
+
+  \item @{text "@{theory_context A}"} is similar to @{text "@{theory
+  A}"}, but presents the result as initial @{ML_type Proof.context}
+  (see also @{ML Proof_Context.init_global}).
 
   \end{description}
 *}

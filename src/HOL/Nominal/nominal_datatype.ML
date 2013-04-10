@@ -425,7 +425,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (fn {context = ctxt, ...} => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
              ALLGOALS (asm_full_simp_tac (simps ctxt))]))
       in
-        fold (fn (s, tvs) => fn thy => AxClass.prove_arity
+        fold (fn (s, tvs) => fn thy => Axclass.prove_arity
             (s, map (inter_sort thy sort o snd) tvs, [cp_class])
             (fn _ => Class.intro_classes_tac [] THEN ALLGOALS (resolve_tac thms)) thy)
           (full_new_type_names' ~~ tyvars) thy
@@ -437,7 +437,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       fold (fn atom => fn thy =>
         let val pt_name = pt_class_of thy atom
         in
-          fold (fn (s, tvs) => fn thy => AxClass.prove_arity
+          fold (fn (s, tvs) => fn thy => Axclass.prove_arity
               (s, map (inter_sort thy [pt_name] o snd) tvs, [pt_name])
               (fn _ => EVERY
                 [Class.intro_classes_tac [],
@@ -618,7 +618,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
             val pt_class = pt_class_of thy atom;
             val sort = Sign.minimize_sort thy (Sign.certify_sort thy
               (pt_class :: map (cp_class_of thy atom) (remove (op =) atom dt_atoms)))
-          in AxClass.prove_arity
+          in Axclass.prove_arity
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [pt_class])
             (fn ctxt => EVERY [Class.intro_classes_tac [],
@@ -648,7 +648,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val cp1' = cp_inst_of thy atom1 atom2 RS cp1
       in fold (fn ((((((Abs_inverse, Rep),
         perm_def), name), tvs), perm_closed1), perm_closed2) => fn thy =>
-          AxClass.prove_arity
+          Axclass.prove_arity
             (Sign.intern_type thy name,
               map (inter_sort thy sort o snd) tvs, [cp_class])
             (fn ctxt => EVERY [Class.intro_classes_tac [],
@@ -1105,7 +1105,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         let
           val class = fs_class_of thy atom;
           val sort = Sign.minimize_sort thy (Sign.certify_sort thy (class :: pt_cp_sort));
-        in fold (fn Type (s, Ts) => AxClass.prove_arity
+        in fold (fn Type (s, Ts) => Axclass.prove_arity
           (s, map (inter_sort thy sort o snd o dest_TFree) Ts, [class])
           (fn _ => Class.intro_classes_tac [] THEN resolve_tac ths 1)) newTs thy
         end) (atoms ~~ finite_supp_thms) ||>

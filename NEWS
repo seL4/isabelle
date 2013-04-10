@@ -126,6 +126,9 @@ rings.  INCOMPATIBILITY.
     Skip_Proof.prove  ~>  Goal.prove_sorry
     Skip_Proof.prove_global  ~>  Goal.prove_sorry_global
 
+* Antiquotation @{theory_context A} is similar to @{theory A}, but
+presents the result as initial Proof.context.
+
 
 *** System ***
 

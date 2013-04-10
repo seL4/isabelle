@@ -56,7 +56,7 @@ fun add_const_alias thm thy =
      of SOME T_class => T_class
       | _ => error ("Bad certificate: " ^ Display.string_of_thm_global thy thm);
     val tvar = case try Term.dest_TVar T
-     of SOME (tvar as (_, sort)) => if null (filter (can (AxClass.get_info thy)) sort)
+     of SOME (tvar as (_, sort)) => if null (filter (can (Axclass.get_info thy)) sort)
           then tvar
           else error ("Bad sort: " ^ Display.string_of_thm_global thy thm)
       | _ => error ("Bad type: " ^ Display.string_of_thm_global thy thm);
@@ -65,11 +65,11 @@ fun add_const_alias thm thy =
     val lhs_rhs = case try Logic.dest_equals eqn
      of SOME lhs_rhs => lhs_rhs
       | _ => error ("Not an equation: " ^ Syntax.string_of_term_global thy eqn);
-    val c_c' = case try (pairself (AxClass.unoverload_const thy o dest_Const)) lhs_rhs
+    val c_c' = case try (pairself (Axclass.unoverload_const thy o dest_Const)) lhs_rhs
      of SOME c_c' => c_c'
       | _ => error ("Not an equation with two constants: "
           ^ Syntax.string_of_term_global thy eqn);
-    val _ = if the_list (AxClass.class_of_param thy (snd c_c')) = [class] then ()
+    val _ = if the_list (Axclass.class_of_param thy (snd c_c')) = [class] then ()
       else error ("Inconsistent class: " ^ Display.string_of_thm_global thy thm);
   in Triv_Class_Data.map (AList.update (op =) (class, thm)) thy end;
 

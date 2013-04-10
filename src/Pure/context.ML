@@ -21,6 +21,7 @@ sig
   sig
     val theory_of: Proof.context -> theory
     val init_global: theory -> Proof.context
+    val get_global: theory -> string -> Proof.context
   end
 end;
 
@@ -504,6 +505,7 @@ structure Proof_Context =
 struct
   val theory_of = theory_of_proof;
   fun init_global thy = Proof.Context (init_data thy, check_thy thy);
+  fun get_global thy name = init_global (get_theory thy name);
 end;
 
 structure Proof_Data =

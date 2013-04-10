@@ -1746,12 +1746,12 @@ fun add_code ext_tyco vs extT ext simps inject thy =
         THEN ALLGOALS (rtac @{thm refl});
       fun mk_eq thy eq_def =
         Simplifier.rewrite_rule
-          [AxClass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
+          [Axclass.unoverload thy (Thm.symmetric (Simpdata.mk_eq eq_def))] inject;
       fun mk_eq_refl thy =
         @{thm equal_refl}
         |> Thm.instantiate
           ([pairself (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
-        |> AxClass.unoverload thy;
+        |> Axclass.unoverload thy;
       val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq);
       val ensure_exhaustive_record =
         ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq);
