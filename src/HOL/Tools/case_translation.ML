@@ -569,7 +569,11 @@ val setup =
   trfun_setup #>
   trfun_setup' #>
   term_check_setup #>
-  term_uncheck_setup;
+  term_uncheck_setup #>
+  Attrib.setup @{binding case_translation}
+    (Args.term -- Scan.repeat1 Args.term >>
+      (fn (t, ts) => Thm.declaration_attribute (K (register t ts))))
+    "declaration of case combinators and constructors";
 
 
 (* outer syntax commands *)
