@@ -10,7 +10,6 @@ sig
   include BASIC_RAW_SIMPLIFIER
   val map_simpset: (simpset -> simpset) -> Proof.context -> Proof.context
   val simpset_of: Proof.context -> simpset
-  val global_simpset_of: theory -> simpset
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
   val simp_tac: simpset -> int -> tactic
@@ -169,8 +168,6 @@ val _ = Context.>> (Context.map_theory
 (* global simpset *)
 
 fun map_simpset_global f = Context.theory_map (map_ss f);
-fun global_simpset_of thy =
-  Raw_Simplifier.context (Proof_Context.init_global thy) (get_ss (Context.Theory thy));
 
 fun Addsimprocs args = Context.>> (map_ss (fn ss => ss addsimprocs args));
 fun Delsimprocs args = Context.>> (map_ss (fn ss => ss delsimprocs args));
