@@ -18,7 +18,7 @@ struct
 local
 
 fun idt_name (Free (x, _)) = SOME x
-  | idt_name (Const ("_constrain", _) $ t $ _) = idt_name t
+  | idt_name (Const (@{syntax_const "_constrain"}, _) $ t $ _) = idt_name t
   | idt_name _ = NONE;
 
 fun eq_idt tu =

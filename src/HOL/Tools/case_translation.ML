@@ -110,7 +110,8 @@ fun case_tr err ctxt [t, u] =
         fun abs p tTs t = Syntax.const @{const_syntax case_abs} $
           fold constrain_Abs tTs (absfree p t);
 
-        fun abs_pat (Const ("_constrain", _) $ t $ tT) tTs = abs_pat t (tT :: tTs)
+        fun abs_pat (Const (@{syntax_const "_constrain"}, _) $ t $ tT) tTs =
+              abs_pat t (tT :: tTs)
           | abs_pat (Free (p as (x, _))) tTs =
               if is_const x then I else abs p tTs
           | abs_pat (t $ u) _ = abs_pat u [] #> abs_pat t []
