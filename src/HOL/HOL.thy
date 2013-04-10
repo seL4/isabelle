@@ -8,8 +8,7 @@ theory HOL
 imports Pure "~~/src/Tools/Code_Generator"
 keywords
   "try" "solve_direct" "quickcheck"
-    "print_coercions" "print_coercion_maps" "print_claset" "print_induct_rules" 
-    "print_case_translations":: diag and
+    "print_coercions" "print_coercion_maps" "print_claset" "print_induct_rules" :: diag and
   "quickcheck_params" :: thy_decl
 begin
 

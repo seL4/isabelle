@@ -9,7 +9,7 @@ imports Complete_Lattices
 keywords
   "inductive" "coinductive" :: thy_decl and
   "inductive_cases" "inductive_simps" :: thy_script and "monos" and
-  "print_inductives" :: diag and
+  "print_inductives" "print_case_translations" :: diag and
   "rep_datatype" :: thy_goal and
   "primrec" :: thy_decl
 begin

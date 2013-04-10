@@ -582,15 +582,15 @@ fun print_case_translations ctxt =
   let
     val cases = Symtab.dest (cases_of ctxt);
     fun show_case (_, data as (comb, ctrs)) =
-      Pretty.big_list
-        (Pretty.string_of (Pretty.block [Pretty.str (Tname_of_data data), Pretty.str ":"]))
-        [Pretty.block [Pretty.brk 3, Pretty.block
+      (Pretty.block o Pretty.fbreaks)
+        [Pretty.block [Pretty.str (Tname_of_data data), Pretty.str ":"],
+         Pretty.block [Pretty.brk 3, Pretty.block
           [Pretty.str "combinator:", Pretty.brk 1, Pretty.quote (Syntax.pretty_term ctxt comb)]],
-        Pretty.block [Pretty.brk 3, Pretty.block
+         Pretty.block [Pretty.brk 3, Pretty.block
           [Pretty.str "constructors:", Pretty.brk 1,
-             Pretty.list "" "" (map (Pretty.quote o Syntax.pretty_term ctxt) ctrs)]]];
+            Pretty.block (Pretty.commas (map (Pretty.quote o Syntax.pretty_term ctxt) ctrs))]]];
   in
-    Pretty.big_list "Case translations:" (map show_case cases)
+    Pretty.big_list "case translations:" (map show_case cases)
     |> Pretty.writeln
   end;
 
