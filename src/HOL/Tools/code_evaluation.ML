@@ -78,7 +78,7 @@ fun add_term_of_code tyco raw_vs raw_cs thy =
     val ty = Type (tyco, map TFree vs);
     val cs = (map o apsnd o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
-    val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
+    val const = Axclass.param_of_inst thy (@{const_name term_of}, tyco);
     val eqs = map (mk_term_of_eq thy ty) cs;
  in
     thy
@@ -115,7 +115,7 @@ fun add_abs_term_of_code tyco raw_vs abs raw_ty_rep proj thy =
     val ty = Type (tyco, map TFree vs);
     val ty_rep = map_atyps
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_ty_rep;
-    val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
+    val const = Axclass.param_of_inst thy (@{const_name term_of}, tyco);
     val eq = mk_abs_term_of_eq thy ty abs ty_rep proj;
  in
     thy
@@ -169,7 +169,7 @@ val cookie = (Evaluation.get, put_term, "Code_Evaluation.put_term");
 
 fun mk_term_of t = HOLogic.mk_term_of (fastype_of t) t;
 
-fun term_of_const_for thy = AxClass.unoverload_const thy o dest_Const o HOLogic.term_of_const;
+fun term_of_const_for thy = Axclass.unoverload_const thy o dest_Const o HOLogic.term_of_const;
 
 fun gen_dynamic_value dynamic_value thy t =
   dynamic_value cookie thy NONE I (mk_term_of t) [];
@@ -204,7 +204,7 @@ fun dynamic_conv thy = certify_eval thy (dynamic_value thy)
 fun static_conv thy consts Ts =
   let
     val eqs = "==" :: @{const_name HOL.eq} ::
-      map (fn T => AxClass.unoverload_const thy (@{const_name HOL.equal}, T)) Ts;
+      map (fn T => Axclass.unoverload_const thy (@{const_name HOL.equal}, T)) Ts;
         (*assumes particular code equations for "==" etc.*)
   in
     certify_eval thy (static_value thy consts Ts)

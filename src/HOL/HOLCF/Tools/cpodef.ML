@@ -74,7 +74,7 @@ fun prove_cpo
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
     val tac = Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1
-    val thy = AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) (K tac) thy
+    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort cpo}) (K tac) thy
     (* transfer thms so that they will know about the new cpo instance *)
     val cpo_thms' = map (Thm.transfer thy) cpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF cpo_thms')
@@ -113,7 +113,7 @@ fun prove_pcpo
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
     val tac = Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1
-    val thy = AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) (K tac) thy
+    val thy = Axclass.prove_arity (full_tname, lhs_sorts, @{sort pcpo}) (K tac) thy
     val pcpo_thms' = map (Thm.transfer thy) pcpo_thms
     fun make thm = Drule.zero_var_indexes (thm OF pcpo_thms')
     val Rep_strict = make @{thm typedef_Rep_strict}

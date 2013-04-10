@@ -107,7 +107,7 @@ fun string_of_typ thy =
 
 fun string_of_const thy c =
   let val ctxt = Proof_Context.init_global thy in
-    case AxClass.inst_of_param thy c of
+    case Axclass.inst_of_param thy c of
       SOME (c, tyco) =>
         Proof_Context.extern_const ctxt c ^ " " ^ enclose "[" "]"
           (Proof_Context.extern_type ctxt tyco)
@@ -140,7 +140,7 @@ fun check_bare_const thy t = case try dest_Const t
 
 fun check_unoverload thy (c, ty) =
   let
-    val c' = AxClass.unoverload_const thy (c, ty);
+    val c' = Axclass.unoverload_const thy (c, ty);
     val ty_decl = Sign.the_const_type thy c';
   in
     if typscheme_equiv (ty_decl, Logic.varifyT_global ty)
@@ -375,7 +375,7 @@ fun analyze_constructor thy (c, ty) =
 
 fun constrset_of_consts thy consts =
   let
-    val _ = map (fn (c, _) => if (is_some o AxClass.class_of_param thy) c
+    val _ = map (fn (c, _) => if (is_some o Axclass.class_of_param thy) c
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) consts;
     val raw_constructors = map (analyze_constructor thy) consts;
     val tyco = case distinct (op =) (map (fst o fst) raw_constructors)
@@ -477,7 +477,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       else bad_thm "Free type variables on right hand side of equation";
     val (head, args) = strip_comb lhs;
     val (c, ty) = case head
-     of Const (c_ty as (_, ty)) => (AxClass.unoverload_const thy c_ty, ty)
+     of Const (c_ty as (_, ty)) => (Axclass.unoverload_const thy c_ty, ty)
       | _ => bad_thm "Equation not headed by constant";
     fun check _ (Abs _) = bad_thm "Abstraction on left hand side of equation"
       | check 0 (Var _) = ()
@@ -485,7 +485,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
       | check n (Const (c_ty as (c, ty))) =
           if allow_pats then let
-            val c' = AxClass.unoverload_const thy c_ty
+            val c' = Axclass.unoverload_const thy c_ty
           in if n = (length o binder_types) ty
             then if allow_consts orelse is_constr thy c'
               then ()
@@ -495,7 +495,7 @@ fun check_eqn thy { allow_nonlinear, allow_consts, allow_pats } thm (lhs, rhs) =
     val _ = map (check 0) args;
     val _ = if allow_nonlinear orelse is_linear thm then ()
       else bad_thm "Duplicate variables on left hand side of equation";
-    val _ = if (is_none o AxClass.class_of_param thy) c then ()
+    val _ = if (is_none o Axclass.class_of_param thy) c then ()
       else bad_thm "Overloaded constant as head in equation";
     val _ = if not (is_constr thy c) then ()
       else bad_thm "Constructor as head in equation";
@@ -557,13 +557,13 @@ val head_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.pla
 fun const_typ_eqn thy thm =
   let
     val (c, ty) = head_eqn thm;
-    val c' = AxClass.unoverload_const thy (c, ty);
+    val c' = Axclass.unoverload_const thy (c, ty);
       (*permissive wrt. to overloaded constants!*)
   in (c', ty) end;
 
 fun const_eqn thy = fst o const_typ_eqn thy;
 
-fun const_abs_eqn thy = AxClass.unoverload_const thy o dest_Const o fst o strip_comb o snd
+fun const_abs_eqn thy = Axclass.unoverload_const thy o dest_Const o fst o strip_comb o snd
   o dest_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
 fun mk_proj tyco vs ty abs rep =
@@ -629,14 +629,14 @@ fun canonize_thms thy = desymbolize_tvars #> same_arity thy #> map desymbolize_v
 
 fun check_abstype_cert thy proto_thm =
   let
-    val thm = (AxClass.unoverload thy o meta_rewrite thy) proto_thm;
+    val thm = (Axclass.unoverload thy o meta_rewrite thy) proto_thm;
     val (lhs, rhs) = Logic.dest_equals (Thm.plain_prop_of thm)
       handle TERM _ => bad_thm "Not an equation"
            | THM _ => bad_thm "Not a proper equation";
     val ((abs, raw_ty), ((rep, rep_ty), param)) = (apsnd (apfst dest_Const o dest_comb)
         o apfst dest_Const o dest_comb) lhs
       handle TERM _ => bad_thm "Not an abstype certificate";
-    val _ = pairself (fn c => if (is_some o AxClass.class_of_param thy) c
+    val _ = pairself (fn c => if (is_some o Axclass.class_of_param thy) c
       then error ("Is a class parameter: " ^ string_of_const thy c) else ()) (abs, rep);
     val _ = check_decl_ty thy (abs, raw_ty);
     val _ = check_decl_ty thy (rep, rep_ty);
@@ -714,7 +714,7 @@ fun empty_cert thy c =
   let
     val raw_ty = Logic.unvarifyT_global (const_typ thy c);
     val (vs, _) = typscheme thy (c, raw_ty);
-    val sortargs = case AxClass.class_of_param thy c
+    val sortargs = case Axclass.class_of_param thy c
      of SOME class => [[class]]
       | NONE => (case get_type_of_constr_or_abstr thy c
          of SOME (tyco, _) => (map snd o fst o the)
@@ -840,12 +840,12 @@ fun equations_of_cert thy (cert as Equations (cert_thm, propers)) =
       end;
 
 fun pretty_cert thy (cert as Equations _) =
-      (map_filter (Option.map (Display.pretty_thm_global thy o AxClass.overload thy) o fst o snd)
+      (map_filter (Option.map (Display.pretty_thm_global thy o Axclass.overload thy) o fst o snd)
          o snd o equations_of_cert thy) cert
   | pretty_cert thy (Projection (t, _)) =
       [Syntax.pretty_term_global thy (Logic.varify_types_global t)]
   | pretty_cert thy (Abstract (abs_thm, _)) =
-      [(Display.pretty_thm_global thy o AxClass.overload thy o Thm.varifyT_global) abs_thm];
+      [(Display.pretty_thm_global thy o Axclass.overload thy o Thm.varifyT_global) abs_thm];
 
 fun bare_thms_of_cert thy (cert as Equations _) =
       (map_filter (fn (_, (some_thm, proper)) => if proper then some_thm else NONE)
@@ -881,7 +881,7 @@ fun cert_of_eqns_preprocess thy functrans ss c =
   (map o apfst) (Thm.transfer thy)
   #> perhaps (perhaps_loop (perhaps_apply functrans))
   #> (map o apfst) (rewrite_eqn thy eqn_conv ss) 
-  #> (map o apfst) (AxClass.unoverload thy)
+  #> (map o apfst) (Axclass.unoverload thy)
   #> cert_of_eqns thy c;
 
 fun get_cert thy { functrans, ss } c =
@@ -895,7 +895,7 @@ fun get_cert thy { functrans, ss } c =
     | Abstr (abs_thm, tyco) => abs_thm
         |> Thm.transfer thy
         |> rewrite_eqn thy Conv.arg_conv ss
-        |> AxClass.unoverload thy
+        |> Axclass.unoverload thy
         |> cert_of_abs thy tyco c;
 
 
@@ -1172,7 +1172,7 @@ fun register_type (tyco, vs_spec) thy =
         #> (map_cases o apfst) drop_outdated_cases)
   end;
 
-fun unoverload_const_typ thy (c, ty) = (AxClass.unoverload_const thy (c, ty), ty);
+fun unoverload_const_typ thy (c, ty) = (Axclass.unoverload_const thy (c, ty), ty);
 
 structure Datatype_Interpretation =
   Interpretation(type T = string * serial val eq = eq_snd (op =) : T * T -> bool);

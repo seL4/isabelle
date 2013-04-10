@@ -143,7 +143,7 @@ fun preprocess_conv thy =
     val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
   in
     Simplifier.rewrite pre
-    #> trans_conv_rule (AxClass.unoverload_conv thy)
+    #> trans_conv_rule (Axclass.unoverload_conv thy)
   end;
 
 fun preprocess_term thy = term_of_conv_resubst thy (preprocess_conv thy);
@@ -152,7 +152,7 @@ fun postprocess_conv thy =
   let
     val post = (Simplifier.global_context thy o #post o the_thmproc) thy;
   in
-    AxClass.overload_conv thy
+    Axclass.overload_conv thy
     #> trans_conv_rule (Simplifier.rewrite post)
   end;
 
@@ -213,14 +213,14 @@ fun pretty thy eqngr =
 
 (* auxiliary *)
 
-fun is_proper_class thy = can (AxClass.get_info thy);
+fun is_proper_class thy = can (Axclass.get_info thy);
 
 fun complete_proper_sort thy =
   Sign.complete_sort thy #> filter (is_proper_class thy);
 
 fun inst_params thy tyco =
-  map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
-    o maps (#params o AxClass.get_info thy);
+  map (fn (c, _) => Axclass.param_of_inst thy (c, tyco))
+    o maps (#params o Axclass.get_info thy);
 
 
 (* data structures *)

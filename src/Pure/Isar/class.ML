@@ -127,7 +127,7 @@ fun these_params thy =
   let
     fun params class =
       let
-        val const_typs = (#params o AxClass.get_info thy) class;
+        val const_typs = (#params o Axclass.get_info thy) class;
         val const_names = (#consts o the_class_data thy) class;
       in
         (map o apsnd)
@@ -190,7 +190,7 @@ fun print_classes ctxt =
         ([Pretty.command "class", Pretty.brk 1,
           Pretty.mark_str (Name_Space.markup_extern ctxt class_space class), Pretty.str ":",
           Pretty.fbrk, Pretty.block [Pretty.str "supersort: ", prt_supersort class]] @
-          (case try (AxClass.get_info thy) class of
+          (case try (Axclass.get_info thy) class of
             NONE => []
           | SOME {params, ...} =>
               [Pretty.fbrk, Pretty.big_list "parameters:" (map prt_param params)]) @
@@ -263,7 +263,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
       | NONE => I);
   in
     thy
-    |> AxClass.add_classrel classrel
+    |> Axclass.add_classrel classrel
     |> Class_Data.map (Graph.add_edge (sub, sup))
     |> activate_defs sub (these_defs thy diff_sort)
     |> add_dependency
@@ -401,7 +401,7 @@ local
 fun gen_classrel mk_prop classrel thy =
   let
     fun after_qed results =
-      Proof_Context.background_theory ((fold o fold) AxClass.add_classrel results);
+      Proof_Context.background_theory ((fold o fold) Axclass.add_classrel results);
   in
     thy
     |> Proof_Context.init_global
@@ -411,9 +411,9 @@ fun gen_classrel mk_prop classrel thy =
 in
 
 val classrel =
-  gen_classrel (Logic.mk_classrel oo AxClass.cert_classrel);
+  gen_classrel (Logic.mk_classrel oo Axclass.cert_classrel);
 val classrel_cmd =
-  gen_classrel (Logic.mk_classrel oo AxClass.read_classrel);
+  gen_classrel (Logic.mk_classrel oo Axclass.read_classrel);
 
 end; (*local*)
 
@@ -472,7 +472,7 @@ fun synchronize_inst_syntax ctxt =
   let
     val Instantiation {params, ...} = Instantiation.get ctxt;
 
-    val lookup_inst_param = AxClass.lookup_inst_param
+    val lookup_inst_param = Axclass.lookup_inst_param
       (Sign.consts_of (Proof_Context.theory_of ctxt)) params;
     fun subst (c, ty) =
       (case lookup_inst_param (c, ty) of
@@ -505,8 +505,8 @@ fun resort_terms ctxt algebra consts constraints ts =
 (* target *)
 
 fun define_overloaded (c, U) v (b_def, rhs) =
-  Local_Theory.background_theory_result (AxClass.declare_overloaded (c, U)
-  ##>> AxClass.define_overloaded b_def (c, rhs))
+  Local_Theory.background_theory_result (Axclass.declare_overloaded (c, U)
+  ##>> Axclass.define_overloaded b_def (c, rhs))
   ##> (map_instantiation o apsnd) (filter_out (fn (_, (v', _)) => v' = v))
   ##> Local_Theory.map_contexts (K synchronize_inst_syntax);
 
@@ -541,9 +541,9 @@ fun instantiation (tycos, vs, sort) thy =
     val naming = Sign.naming_of thy;
 
     val _ = if null tycos then error "At least one arity must be given" else ();
-    val class_params = these_params thy (filter (can (AxClass.get_info thy)) sort);
+    val class_params = these_params thy (filter (can (Axclass.get_info thy)) sort);
     fun get_param tyco (param, (_, (c, ty))) =
-      if can (AxClass.param_of_inst thy) (c, tyco)
+      if can (Axclass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
         (param ^ "_" ^ Long_Name.base_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val params = map_product get_param tycos class_params |> map_filter I;
@@ -559,7 +559,7 @@ fun instantiation (tycos, vs, sort) thy =
     val improve_constraints = AList.lookup (op =)
       (map (fn (_, (class, (c, _))) => (c, [[class]])) class_params);
     fun resort_check ctxt ts = resort_terms ctxt algebra consts improve_constraints ts;
-    val lookup_inst_param = AxClass.lookup_inst_param consts params;
+    val lookup_inst_param = Axclass.lookup_inst_param consts params;
     fun improve (c, ty) =
       (case lookup_inst_param (c, ty) of
         SOME (_, ty') => if Sign.typ_instance thy (ty', ty) then SOME (ty, ty') else NONE
@@ -593,7 +593,7 @@ fun gen_instantiation_instance do_proof after_qed lthy =
     val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
     val arities_proof = maps (fn tyco => Logic.mk_arities (tyco, map snd vs, sort)) tycos;
     fun after_qed' results =
-      Local_Theory.background_theory (fold (AxClass.add_arity o Thm.varifyT_global) results)
+      Local_Theory.background_theory (fold (Axclass.add_arity o Thm.varifyT_global) results)
       #> after_qed;
   in
     lthy
@@ -630,7 +630,7 @@ fun instance_arity_cmd raw_arities thy =
     val sorts = map snd vs;
     val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
     fun after_qed results =
-      Proof_Context.background_theory ((fold o fold) AxClass.add_arity results);
+      Proof_Context.background_theory ((fold o fold) Axclass.add_arity results);
   in
     thy
     |> Proof_Context.init_global
@@ -645,7 +645,7 @@ fun intro_classes_tac facts st =
     val thy = Thm.theory_of_thm st;
     val classes = Sign.all_classes thy;
     val class_trivs = map (Thm.class_triv thy) classes;
-    val class_intros = map_filter (try (#intro o AxClass.get_info thy)) classes;
+    val class_intros = map_filter (try (#intro o Axclass.get_info thy)) classes;
     val assm_intros = all_assm_intros thy;
   in
     Method.intros_tac (class_trivs @ class_intros @ assm_intros) facts st

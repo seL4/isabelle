@@ -36,7 +36,7 @@ fun print_specs options thy specs =
       ^ (space_implode "\n" (map (Display.string_of_thm_global thy) thms)) ^ "\n") specs
     |> space_implode "\n" |> tracing
   else ()
-fun overload_const thy s = the_default s (Option.map fst (AxClass.inst_of_param thy s))
+fun overload_const thy s = the_default s (Option.map fst (Axclass.inst_of_param thy s))
 
 fun map_specs f specs =
   map (fn (s, ths) => (s, f ths)) specs
@@ -109,7 +109,7 @@ fun preprocess_strong_conn_constnames options gr ts thy =
       val intross5 = map_specs (map (remove_equalities thy2)) intross4
       val _ = print_intross options thy2 "After removing equality premises:" intross5
       val intross6 =
-        map (fn (s, ths) => (overload_const thy2 s, map (AxClass.overload thy2) ths)) intross5
+        map (fn (s, ths) => (overload_const thy2 s, map (Axclass.overload thy2) ths)) intross5
       val intross7 = map_specs (map (expand_tuples thy2)) intross6
       val intross8 = map_specs (map (eta_contract_ho_arguments thy2)) intross7
       val _ = case !intro_hook of NONE => () | SOME f => (map_specs (map (f thy2)) intross8; ())

@@ -269,10 +269,10 @@ fun contains_dict_var t =
 local
   fun thyname_of_type thy = #theory_name o Name_Space.the_entry (Sign.type_space thy);
   fun thyname_of_class thy = #theory_name o Name_Space.the_entry (Sign.class_space thy);
-  fun thyname_of_instance thy inst = case AxClass.thynames_of_arity thy inst
+  fun thyname_of_instance thy inst = case Axclass.thynames_of_arity thy inst
    of [] => error ("No such instance: " ^ quote (snd inst ^ " :: " ^ fst inst))
     | thyname :: _ => thyname;
-  fun thyname_of_const thy c = case AxClass.class_of_param thy c
+  fun thyname_of_const thy c = case Axclass.class_of_param thy c
    of SOME class => thyname_of_class thy class
     | NONE => (case Code.get_type_of_constr_or_abstr thy c
        of SOME (tyco, _) => thyname_of_type thy tyco
@@ -662,14 +662,14 @@ and ensure_const thy algbr eqngr permissive c =
       end;
     val stmt_const = case Code.get_type_of_constr_or_abstr thy c
      of SOME (tyco, _) => stmt_datatypecons tyco
-      | NONE => (case AxClass.class_of_param thy c
+      | NONE => (case Axclass.class_of_param thy c
          of SOME class => stmt_classparam class
           | NONE => stmt_fun (Code_Preproc.cert eqngr c))
   in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and ensure_class thy (algbr as (_, algebra)) eqngr permissive class =
   let
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val cs = #params (AxClass.get_info thy class);
+    val cs = #params (Axclass.get_info thy class);
     val stmt_class =
       fold_map (fn super_class => ensure_class thy algbr eqngr permissive super_class
         ##>> ensure_classrel thy algbr eqngr permissive (class, super_class)) super_classes
@@ -687,7 +687,7 @@ and ensure_classrel thy algbr eqngr permissive (sub_class, super_class) =
 and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
   let
     val super_classes = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
-    val these_class_params = these o try (#params o AxClass.get_info thy);
+    val these_class_params = these o try (#params o Axclass.get_info thy);
     val class_params = these_class_params class;
     val superclass_params = maps these_class_params
       ((Sorts.complete_sort algebra o Sorts.super_classes algebra) class);
@@ -706,7 +706,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
     fun translate_classparam_instance (c, ty) =
       let
         val raw_const = Const (c, map_type_tfree (K arity_typ') ty);
-        val thm = AxClass.unoverload_conv thy (Thm.cterm_of thy raw_const);
+        val thm = Axclass.unoverload_conv thy (Thm.cterm_of thy raw_const);
         val const = (apsnd Logic.unvarifyT_global o dest_Const o snd
           o Logic.dest_equals o Thm.prop_of) thm;
       in
