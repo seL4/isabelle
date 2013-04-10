@@ -105,7 +105,7 @@ fun mk_case_cong_tac uexhaust cases =
   (rtac uexhaust THEN'
    EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex])]) cases)) 1;
 
-val naked_ctxt = Proof_Context.init_global @{theory HOL};
+val naked_ctxt = @{theory_context HOL};
 
 (* TODO: More precise "simp_thms"; get rid of "blast_tac" *)
 fun mk_split_tac uexhaust cases injectss distinctsss =
