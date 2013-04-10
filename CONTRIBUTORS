@@ -6,6 +6,12 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* April 2013: Stefan Berghofer, secunet Security Networks AG
+  Dmitriy Traytel, TUM
+  Makarius Wenzel, Université Paris-Sud / LRI
+  Case translations as a separate check phase independent of the
+  datatype package.
+
 * March 2013: Florian Haftmann, TUM
   Reform of "big operators" on sets.
 

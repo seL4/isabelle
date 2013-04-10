@@ -43,6 +43,13 @@ INCOMPATIBILITY.
 
 *** HOL ***
 
+* Nested case expressions are now translated in a separate check
+  phase rather than during parsing. The data for case combinators
+  is separated from the datatype package. The declaration attribute
+  "case_translation" can be used to register new case combinators:
+
+  declare [[case_translation case_combinator constructor1 ... constructorN]]
+
 * Notation "{p:A. P}" now allows tuple patterns as well.
 
 * Revised devices for recursive definitions over finite sets:
