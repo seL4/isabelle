@@ -640,9 +640,10 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
         ((discs, selss, exhaust_thm, inject_thms, distinct_thms, case_thms, disc_thmss, discI_thms,
           sel_thmss),
           lthy
-          |> Local_Theory.declaration {syntax = false, pervasive = true}
-             (fn phi => Case_Translation.register
-               (Morphism.term phi casex) (map (Morphism.term phi) ctrs))
+          |> not rep_compat ?
+             (Local_Theory.declaration {syntax = false, pervasive = true}
+               (fn phi => Case_Translation.register
+                 (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
           |> Local_Theory.notes (notes' @ notes) |> snd)
       end;
   in
