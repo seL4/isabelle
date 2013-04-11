@@ -159,9 +159,9 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-definition "step' = Step
-  (\<lambda>x e S. case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S)))
-  (\<lambda>b S. S)"
+definition "fa x e S = (case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S)))"
+
+definition "step' = Step fa (\<lambda>b S. S)"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
 "AI c = pfp (step' \<top>) (bot c)"
@@ -208,7 +208,8 @@ qed  (auto simp: mono_gamma_o assms)
 
 lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
 unfolding step_def step'_def
-by(rule gamma_Step_subcomm) (auto simp: aval'_sound in_gamma_update split: option.splits)
+by(rule gamma_Step_subcomm)
+  (auto simp: aval'_sound in_gamma_update fa_def split: option.splits)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
@@ -245,7 +246,8 @@ by(simp add: le_fun_def)
 
 lemma mono_step': "S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
 unfolding step'_def
-by(rule mono2_Step) (auto simp: mono_update mono_aval' split: option.split)
+by(rule mono2_Step)
+  (auto simp: mono_update mono_aval' fa_def split: option.split)
 
 end
 
