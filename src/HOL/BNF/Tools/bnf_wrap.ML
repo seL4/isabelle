@@ -655,7 +655,7 @@ fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
 
 val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap_datatype Syntax.parse_term;
+  prepare_wrap_datatype Syntax.read_term;
 
 fun parse_bracket_list parser = @{keyword "["} |-- Parse.list parser --|  @{keyword "]"};
 
