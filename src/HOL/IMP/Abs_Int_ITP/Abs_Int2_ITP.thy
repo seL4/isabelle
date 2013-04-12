@@ -18,29 +18,6 @@ qed
 
 end
 
-instantiation com :: vars
-begin
-
-fun vars_com :: "com \<Rightarrow> vname set" where
-"vars com.SKIP = {}" |
-"vars (x::=e) = {x} \<union> vars e" |
-"vars (c1;c2) = vars c1 \<union> vars c2" |
-"vars (IF b THEN c1 ELSE c2) = vars b \<union> vars c1 \<union> vars c2" |
-"vars (WHILE b DO c) = vars b \<union> vars c"
-
-instance ..
-
-end
-
-lemma finite_avars: "finite(vars(a::aexp))"
-by(induction a) simp_all
-
-lemma finite_bvars: "finite(vars(b::bexp))"
-by(induction b) (simp_all add: finite_avars)
-
-lemma finite_cvars: "finite(vars(c::com))"
-by(induction c) (simp_all add: finite_avars finite_bvars)
-
 
 subsection "Backward Analysis of Expressions"
 

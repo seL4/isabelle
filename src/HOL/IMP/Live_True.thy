@@ -107,20 +107,6 @@ qed
 
 subsection "Executability"
 
-instantiation com :: vars
-begin
-
-fun vars_com :: "com \<Rightarrow> vname set" where
-"vars SKIP = {}" |
-"vars (x::=e) = vars e" |
-"vars (c\<^isub>1; c\<^isub>2) = vars c\<^isub>1 \<union> vars c\<^isub>2" |
-"vars (IF b THEN c\<^isub>1 ELSE c\<^isub>2) = vars b \<union> vars c\<^isub>1 \<union> vars c\<^isub>2" |
-"vars (WHILE b DO c) = vars b \<union> vars c"
-
-instance ..
-
-end
-
 lemma L_subset_vars: "L c X \<subseteq> vars c \<union> X"
 proof(induction c arbitrary: X)
   case (While b c)
@@ -129,16 +115,6 @@ proof(induction c arbitrary: X)
     by (auto intro!: lfp_lowerbound)
   thus ?case by (simp add: L.simps(5))
 qed auto
-
-lemma afinite[simp]: "finite(vars(a::aexp))"
-by (induction a) auto
-
-lemma bfinite[simp]: "finite(vars(b::bexp))"
-by (induction b) auto
-
-lemma cfinite[simp]: "finite(vars(c::com))"
-by (induction c) auto
-
 
 text{* Make @{const L} executable by replacing @{const lfp} with the @{const
 while} combinator from theory @{theory While_Combinator}. The @{const while}

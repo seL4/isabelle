@@ -9,14 +9,6 @@ declare insert_code[code del] union_coset_filter[code del]
 lemma insert_code [code]:  "insert x (set xs) = set (x#xs)"
 by simp
 
-text{* Collect variables in acom: *}
-fun cvars :: "'a acom \<Rightarrow> vname set" where
-"cvars (SKIP {P})= {}" |
-"cvars (x::=e {P}) = {x} \<union> vars e" |
-"cvars (c1;c2) = cvars c1 \<union> cvars c2" |
-"cvars (IF b THEN {P1} c1 ELSE {P2} c2 {Q}) = vars b \<union> cvars c1 \<union> cvars c2" |
-"cvars ({I} WHILE b DO {P} c {Q}) = vars b \<union> cvars c"
-
 text{* Compensate for the fact that sets may now have duplicates: *}
 definition compact :: "'a set \<Rightarrow> 'a set" where
 "compact X = X"
@@ -24,7 +16,7 @@ definition compact :: "'a set \<Rightarrow> 'a set" where
 lemma [code]: "compact(set xs) = set(remdups xs)"
 by(simp add: compact_def)
 
-definition "vars_acom = compact o cvars"
+definition "vars_acom = compact o vars o strip"
 
 text{* In order to display commands annotated with state sets, states must be
 translated into a printable format as sets of variable-state pairs, for the
