@@ -106,8 +106,7 @@ fun genvar name (env, T) : env * term =
   in (env', v) end;
 
 fun var_clash xi T T' =
-  raise TYPE ("Variable " ^ quote (Term.string_of_vname xi) ^ " has two distinct types",
-    [T', T], []);
+  raise TYPE ("Variable has two distinct types", [], [Var (xi, T'), Var (xi, T)]);
 
 fun lookup_check check tenv (xi, T) =
   (case Vartab.lookup tenv xi of

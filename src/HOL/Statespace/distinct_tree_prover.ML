@@ -107,9 +107,8 @@ fun instantiate instTs insts =
     val insts' = map (apfst mapT_and_recertify) insts;
   in Thm.instantiate (instTs, insts') end;
 
-fun tvar_clash ixn S S' = raise TYPE ("Type variable " ^
-  quote (Term.string_of_vname ixn) ^ " has two distinct sorts",
-  [TVar (ixn, S), TVar (ixn, S')], []);
+fun tvar_clash ixn S S' =
+  raise TYPE ("Type variable has two distinct sorts", [TVar (ixn, S), TVar (ixn, S')], []);
 
 fun lookup (tye, (ixn, S)) =
   (case AList.lookup (op =) tye ixn of

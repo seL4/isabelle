@@ -416,9 +416,8 @@ end;
 
 type tyenv = (sort * typ) Vartab.table;
 
-fun tvar_clash ixn S S' = raise TYPE ("Type variable " ^
-  quote (Term.string_of_vname ixn) ^ " has two distinct sorts",
-  [TVar (ixn, S), TVar (ixn, S')], []);
+fun tvar_clash ixn S S' =
+  raise TYPE ("Type variable has two distinct sorts", [TVar (ixn, S), TVar (ixn, S')], []);
 
 fun lookup tye (ixn, S) =
   (case Vartab.lookup tye ixn of

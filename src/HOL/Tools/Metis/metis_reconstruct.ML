@@ -478,7 +478,7 @@ fun replay_one_inference ctxt type_enc concealed sym_tab (fol_th, inf)
 
 (* It is normally sufficient to apply "assume_tac" to unify the conclusion with
    one of the premises. Unfortunately, this sometimes yields "Variable
-   ?SK_a_b_c_x has two distinct types" errors. To avoid this, we instantiate the
+   has two distinct types" errors. To avoid this, we instantiate the
    variables before applying "assume_tac". Typical constraints are of the form
      ?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x,
    where the nonvariables are goal parameters. *)
