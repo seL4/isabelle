@@ -19,11 +19,11 @@ sig
   val insert_sorts: env -> sort list -> sort list
   val genvars: string -> env * typ list -> env * term list
   val genvar: string -> env * typ -> env * term
-  val lookup: env * (indexname * typ) -> term option
-  val lookup': tenv * (indexname * typ) -> term option
-  val update: ((indexname * typ) * term) * env -> env
+  val lookup1: tenv -> indexname * typ -> term option
+  val lookup: env -> indexname * typ -> term option
+  val update: (indexname * typ) * term -> env -> env
   val above: env -> int -> bool
-  val vupdate: ((indexname * typ) * term) * env -> env
+  val vupdate: (indexname * typ) * term -> env -> env
   val norm_type_same: Type.tyenv -> typ Same.operation
   val norm_types_same: Type.tyenv -> typ list Same.operation
   val norm_type: Type.tyenv -> typ -> typ
@@ -114,19 +114,17 @@ fun lookup_check check tenv (xi, T) =
     NONE => NONE
   | SOME (U, t) => if check (T, U) then SOME t else var_clash xi T U);
 
-(* When dealing with environments produced by matching instead *)
-(* of unification, there is no need to chase assigned TVars.   *)
-(* In this case, we can simply ignore the type substitution    *)
-(* and use = instead of eq_type.                               *)
+(*When dealing with environments produced by matching instead
+  of unification, there is no need to chase assigned TVars.
+  In this case, we can simply ignore the type substitution
+  and use = instead of eq_type.*)
+val lookup1 = lookup_check (op =);
 
-fun lookup' (tenv, p) = lookup_check (op =) tenv p;
+fun lookup2 (tyenv, tenv) = lookup_check (Type.eq_type tyenv) tenv;
 
-fun lookup2 (tyenv, tenv) =
-  lookup_check (Type.eq_type tyenv) tenv;
+fun lookup (Envir {tenv, tyenv, ...}) = lookup2 (tyenv, tenv);
 
-fun lookup (Envir {tenv, tyenv, ...}, p) = lookup2 (tyenv, tenv) p;
-
-fun update (((xi, T), t), Envir {maxidx, tenv, tyenv}) =
+fun update ((xi, T), t) (Envir {maxidx, tenv, tyenv}) =
   Envir {maxidx = maxidx, tenv = Vartab.update_new (xi, (T, t)) tenv, tyenv = tyenv};
 
 (*Determine if the least index updated exceeds lim*)
@@ -135,16 +133,16 @@ fun above (Envir {tenv, tyenv, ...}) lim =
   (case Vartab.min_key tyenv of SOME (_, i) => i > lim | NONE => true);
 
 (*Update, checking Var-Var assignments: try to suppress higher indexes*)
-fun vupdate ((aU as (a, U), t), env as Envir {tyenv, ...}) =
+fun vupdate (aU as (a, U), t) (env as Envir {tyenv, ...}) =
   (case t of
     Var (nT as (name', T)) =>
       if a = name' then env     (*cycle!*)
       else if Term_Ord.indexname_ord (a, name') = LESS then
-        (case lookup (env, nT) of  (*if already assigned, chase*)
-          NONE => update ((nT, Var (a, T)), env)
-        | SOME u => vupdate ((aU, u), env))
-      else update ((aU, t), env)
-  | _ => update ((aU, t), env));
+        (case lookup env nT of  (*if already assigned, chase*)
+          NONE => update (nT, Var (a, T)) env
+        | SOME u => vupdate (aU, u) env)
+      else update (aU, t) env
+  | _ => update (aU, t) env);
 
 
 
@@ -168,7 +166,7 @@ fun norm_type0 tyenv : typ Same.operation =
 fun norm_term1 tenv : term Same.operation =
   let
     fun norm (Var v) =
-          (case lookup' (tenv, v) of
+          (case lookup1 tenv v of
             SOME u => Same.commit norm u
           | NONE => raise Same.SAME)
       | norm (Abs (a, T, body)) = Abs (a, T, norm body)
@@ -229,7 +227,7 @@ end;
 fun head_norm env =
   let
     fun norm (Var v) =
-        (case lookup (env, v) of
+        (case lookup env v of
           SOME u => head_norm env u
         | NONE => raise Same.SAME)
       | norm (Abs (a, T, body)) = Abs (a, T, norm body)
@@ -309,7 +307,7 @@ fun subst_type0 tyenv = Term_Subst.map_atypsT_same
 
 fun subst_term1 tenv = Term_Subst.map_aterms_same
   (fn Var v =>
-        (case lookup' (tenv, v) of
+        (case lookup1 tenv v of
           SOME u => u
         | NONE => raise Same.SAME)
     | _ => raise Same.SAME);
@@ -320,7 +318,7 @@ fun subst_term2 tenv tyenv : term Same.operation =
     fun subst (Const (a, T)) = Const (a, substT T)
       | subst (Free (a, T)) = Free (a, substT T)
       | subst (Var (xi, T)) =
-          (case lookup' (tenv, (xi, T)) of
+          (case lookup1 tenv (xi, T) of
             SOME u => u
           | NONE => Var (xi, substT T))
       | subst (Bound _) = raise Same.SAME

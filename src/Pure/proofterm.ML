@@ -468,7 +468,7 @@ fun del_conflicting_vars env t = Term_Subst.instantiate
      (Type.lookup (Envir.type_env env) ixnS; NONE) handle TYPE _ =>
         SOME (ixnS, TFree ("'dummy", S))) (Term.add_tvars t []),
    map_filter (fn (ixnT as (_, T)) =>
-     (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
+     (Envir.lookup env ixnT; NONE) handle TYPE _ =>
         SOME (ixnT, Free ("dummy", T))) (Term.add_vars t [])) t;
 
 fun norm_proof env =

@@ -93,7 +93,7 @@ fun ocheck_fail thy (F,t,binders,env) =
   else ()
 
 fun occurs(F,t,env) =
-    let fun occ(Var (G, T))   = (case Envir.lookup (env, (G, T)) of
+    let fun occ(Var (G, T))   = (case Envir.lookup env (G, T) of
                                  SOME(t) => occ t
                                | NONE    => F=G)
           | occ(t1$t2)      = occ t1 orelse occ t2
@@ -152,7 +152,7 @@ fun mkhnf (binders,is,G,js) = mkabs (binders, is, app(G,js));
 
 fun mknewhnf(env,binders,is,F as (a,_),T,js) =
   let val (env',G) = Envir.genvar a (env,type_of_G env (T,length is,js))
-  in Envir.update (((F, T), mkhnf (binders, is, G, js)), env') end;
+  in Envir.update ((F, T), mkhnf (binders, is, G, js)) env' end;
 
 
 (*predicate: downto0 (is, n) <=> is = [n, n - 1, ..., 0]*)
@@ -189,7 +189,7 @@ fun proj(s,env,binders,is) =
                           val Hty = type_of_G env (Fty,length js,ks)
                           val (env',H) = Envir.genvar a (env,Hty)
                           val env'' =
-                            Envir.update (((F, Fty), mkhnf (binders, js, H, ks)), env')
+                            Envir.update ((F, Fty), mkhnf (binders, js, H, ks)) env'
                       in (app(H,ls),env'') end
                  | _  => raise Pattern))
         and prs(s::ss,env,d,binders) =
@@ -219,12 +219,12 @@ fun flexflex2(env,binders,F,Fty,is,G,Gty,js) =
   let fun ff(F,Fty,is,G as (a,_),Gty,js) =
             if subset (op =) (js, is)
             then let val t= mkabs(binders,is,app(Var(G,Gty),map (idx is) js))
-                 in Envir.update (((F, Fty), t), env) end
+                 in Envir.update ((F, Fty), t) env end
             else let val ks = inter (op =) js is
                      val Hty = type_of_G env (Fty,length is,map (idx is) ks)
                      val (env',H) = Envir.genvar a (env,Hty)
                      fun lam(is) = mkabs(binders,is,app(H,map (idx is) ks));
-                 in Envir.update (((G, Gty), lam js), Envir.update (((F, Fty), lam is), env'))
+                 in Envir.update ((G, Gty), lam js) (Envir.update ((F, Fty), lam is) env')
                  end;
   in if Term_Ord.indexname_ord (G,F) = LESS then ff(F,Fty,is,G,Gty,js) else ff(G,Gty,js,F,Fty,is) end
 
@@ -273,7 +273,7 @@ and rigidrigidB thy (env,binders,i,j,ss,ts) =
 and flexrigid thy (params as (env,binders,F,Fty,is,t)) =
       if occurs(F,t,env) then (ocheck_fail thy (F,t,binders,env); raise Unif)
       else (let val (u,env') = proj(t,env,binders,is)
-            in Envir.update (((F, Fty), mkabs (binders, is, u)), env') end
+            in Envir.update ((F, Fty), mkabs (binders, is, u)) env' end
             handle Unif => (proj_fail thy params; raise Unif));
 
 fun unify thy = unif thy [];
@@ -319,7 +319,7 @@ fun first_order_match thy =
     fun mtch k (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
           if k > 0 andalso Term.is_open t then raise MATCH
-          else (case Envir.lookup' (insts, (ixn, T)) of
+          else (case Envir.lookup1 insts (ixn, T) of
                   NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
                 | SOME u => if t aeconv u then instsp else raise MATCH)
@@ -374,7 +374,7 @@ let
     in case ph of
          Var(ixn,T) =>
            let val is = ints_of pargs
-           in case Envir.lookup' (itms, (ixn, T)) of
+           in case Envir.lookup1 itms (ixn, T) of
                 NONE => (iTs,match_bind(itms,binders,ixn,T,is,obj))
               | SOME u => if obj aeconv (red u is []) then env
                           else raise MATCH
