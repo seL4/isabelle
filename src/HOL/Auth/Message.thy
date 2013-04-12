@@ -851,7 +851,6 @@ ML
 {*
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
   but this application is no longer necessary if analz_insert_eq is used.
-  Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
   DEPENDS UPON "X" REFERRING TO THE FRADULENT MESSAGE *)
 
 fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
