@@ -379,8 +379,8 @@ text {*
   Gives better instantiation for bound:
 *}
 
-declaration {* fn _ =>
-  Classical.map_cs (fn cs => cs addbefore ("bspec", dtac @{thm bspec} THEN' assume_tac))
+setup {*
+  map_theory_claset (fn ctxt => ctxt addbefore ("bspec", dtac @{thm bspec} THEN' assume_tac))
 *}
 
 ML {*

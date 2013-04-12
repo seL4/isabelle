@@ -44,8 +44,7 @@ structure Blast = Data.Blast;
 
 (* simp as classical wrapper *)
 
-fun clasimp f name tac ctxt =
-  Classical.map_claset (fn cs => f (cs, (name, CHANGED o tac (simpset_of ctxt)))) ctxt;
+fun clasimp f name tac ctxt = f (ctxt, (name, CHANGED o tac (simpset_of ctxt)));
 
 (*Add a simpset to the claset!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)

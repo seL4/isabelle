@@ -1814,16 +1814,20 @@ subsection {* Modifying the search step *}
 text {*
   \begin{mldecls}
     @{index_ML_type wrapper: "(int -> tactic) -> (int -> tactic)"} \\[0.5ex]
-    @{index_ML_op addSWrapper: "claset * (string * (Proof.context -> wrapper))
-  -> claset"} \\
-    @{index_ML_op addSbefore: "claset * (string * (int -> tactic)) -> claset"} \\
-    @{index_ML_op addSafter: "claset * (string * (int -> tactic)) -> claset"} \\
-    @{index_ML_op delSWrapper: "claset * string -> claset"} \\[0.5ex]
-    @{index_ML_op addWrapper: "claset * (string * (Proof.context -> wrapper))
-  -> claset"} \\
-    @{index_ML_op addbefore: "claset * (string * (int -> tactic)) -> claset"} \\
-    @{index_ML_op addafter: "claset * (string * (int -> tactic)) -> claset"} \\
-    @{index_ML_op delWrapper: "claset * string -> claset"} \\[0.5ex]
+    @{index_ML_op addSWrapper: "Proof.context *
+  (string * (Proof.context -> wrapper)) -> Proof.context"} \\
+    @{index_ML_op addSbefore: "Proof.context *
+  (string * (int -> tactic)) -> Proof.context"} \\
+    @{index_ML_op addSafter: "Proof.context *
+  (string * (int -> tactic)) -> Proof.context"} \\
+    @{index_ML_op delSWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
+    @{index_ML_op addWrapper: "Proof.context *
+  (string * (Proof.context -> wrapper)) -> Proof.context"} \\
+    @{index_ML_op addbefore: "Proof.context *
+  (string * (int -> tactic)) -> Proof.context"} \\
+    @{index_ML_op addafter: "Proof.context *
+  (string * (int -> tactic)) -> Proof.context"} \\
+    @{index_ML_op delWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
     @{index_ML addSss: "Proof.context -> Proof.context"} \\
     @{index_ML addss: "Proof.context -> Proof.context"} \\
   \end{mldecls}
@@ -1856,33 +1860,33 @@ text {*
 
   \begin{description}
 
-  \item @{text "cs addSWrapper (name, wrapper)"} adds a new wrapper,
+  \item @{text "ctxt addSWrapper (name, wrapper)"} adds a new wrapper,
   which should yield a safe tactic, to modify the existing safe step
   tactic.
 
-  \item @{text "cs addSbefore (name, tac)"} adds the given tactic as a
+  \item @{text "ctxt addSbefore (name, tac)"} adds the given tactic as a
   safe wrapper, such that it is tried \emph{before} each safe step of
   the search.
 
-  \item @{text "cs addSafter (name, tac)"} adds the given tactic as a
+  \item @{text "ctxt addSafter (name, tac)"} adds the given tactic as a
   safe wrapper, such that it is tried when a safe step of the search
   would fail.
 
-  \item @{text "cs delSWrapper name"} deletes the safe wrapper with
+  \item @{text "ctxt delSWrapper name"} deletes the safe wrapper with
   the given name.
 
-  \item @{text "cs addWrapper (name, wrapper)"} adds a new wrapper to
+  \item @{text "ctxt addWrapper (name, wrapper)"} adds a new wrapper to
   modify the existing (unsafe) step tactic.
 
-  \item @{text "cs addbefore (name, tac)"} adds the given tactic as an
+  \item @{text "ctxt addbefore (name, tac)"} adds the given tactic as an
   unsafe wrapper, such that it its result is concatenated
   \emph{before} the result of each unsafe step.
 
-  \item @{text "cs addafter (name, tac)"} adds the given tactic as an
+  \item @{text "ctxt addafter (name, tac)"} adds the given tactic as an
   unsafe wrapper, such that it its result is concatenated \emph{after}
   the result of each unsafe step.
 
-  \item @{text "cs delWrapper name"} deletes the unsafe wrapper with
+  \item @{text "ctxt delWrapper name"} deletes the unsafe wrapper with
   the given name.
 
   \item @{text "addSss"} adds the simpset of the context to its

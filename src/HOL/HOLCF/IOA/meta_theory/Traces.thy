@@ -203,7 +203,7 @@ Traces_def:
 
 lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
 declare Let_def [simp]
-declaration {* fn _ => Classical.map_cs (fn cs => cs delSWrapper "split_all_tac") *}
+setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 lemmas exec_rws = executions_def is_exec_frag_def
 

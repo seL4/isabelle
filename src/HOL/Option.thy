@@ -46,9 +46,7 @@ primrec set :: "'a option => 'a set" where
 lemma ospec [dest]: "(ALL x:set A. P x) ==> A = Some x ==> P x"
   by simp
 
-declaration {* fn _ =>
-  Classical.map_cs (fn cs => cs addSD2 ("ospec", @{thm ospec}))
-*}
+setup {* map_theory_claset (fn ctxt => ctxt addSD2 ("ospec", @{thm ospec})) *}
 
 lemma elem_set [iff]: "(x : set xo) = (xo = Some x)"
   by (cases xo) auto

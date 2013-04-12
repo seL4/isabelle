@@ -428,9 +428,7 @@ ML {*
   end;
 *}
 
-declaration {* fn _ =>
-  Classical.map_cs (fn cs => cs addSbefore ("split_all_tac", split_all_tac))
-*}
+setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
 
 lemma split_paired_All [simp, no_atp]: "(ALL x. P x) = (ALL a b. P (a, b))"
   -- {* @{text "[iff]"} is not a good idea because it makes @{text blast} loop *}
@@ -583,9 +581,7 @@ end;
 
 (* This prevents applications of splitE for already splitted arguments leading
    to quite time-consuming computations (in particular for nested tuples) *)
-declaration {* fn _ =>
-  Classical.map_cs (fn cs => cs addSbefore ("split_conv_tac", split_conv_tac))
-*}
+setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_conv_tac", split_conv_tac)) *}
 
 lemma split_eta_SetCompr [simp,no_atp]: "(%u. EX x y. u = (x, y) & P (x, y)) = P"
   by (rule ext) fast

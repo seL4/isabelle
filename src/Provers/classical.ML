@@ -41,24 +41,26 @@ sig
   val addSEs: Proof.context * thm list -> Proof.context
   val addSIs: Proof.context * thm list -> Proof.context
   val delrules: Proof.context * thm list -> Proof.context
-  val addSWrapper: claset * (string * (Proof.context -> wrapper)) -> claset
-  val delSWrapper: claset *  string -> claset
-  val addWrapper: claset * (string * (Proof.context -> wrapper)) -> claset
-  val delWrapper: claset *  string -> claset
-  val addSbefore: claset * (string * (int -> tactic)) -> claset
-  val addSafter: claset * (string * (int -> tactic)) -> claset
-  val addbefore: claset * (string * (int -> tactic)) -> claset
-  val addafter: claset * (string * (int -> tactic)) -> claset
-  val addD2: claset * (string * thm) -> claset
-  val addE2: claset * (string * thm) -> claset
-  val addSD2: claset * (string * thm) -> claset
-  val addSE2: claset * (string * thm) -> claset
+  val addSWrapper: Proof.context * (string * (Proof.context -> wrapper)) -> Proof.context
+  val delSWrapper: Proof.context * string -> Proof.context
+  val addWrapper: Proof.context * (string * (Proof.context -> wrapper)) -> Proof.context
+  val delWrapper: Proof.context * string -> Proof.context
+  val addSbefore: Proof.context * (string * (int -> tactic)) -> Proof.context
+  val addSafter: Proof.context * (string * (int -> tactic)) -> Proof.context
+  val addbefore: Proof.context * (string * (int -> tactic)) -> Proof.context
+  val addafter: Proof.context * (string * (int -> tactic)) -> Proof.context
+  val addD2: Proof.context * (string * thm) -> Proof.context
+  val addE2: Proof.context * (string * thm) -> Proof.context
+  val addSD2: Proof.context * (string * thm) -> Proof.context
+  val addSE2: Proof.context * (string * thm) -> Proof.context
   val appSWrappers: Proof.context -> wrapper
   val appWrappers: Proof.context -> wrapper
 
   val claset_of: Proof.context -> claset
   val map_claset: (claset -> claset) -> Proof.context -> Proof.context
   val put_claset: claset -> Proof.context -> Proof.context
+
+  val map_theory_claset: (Proof.context -> Proof.context) -> theory -> theory
 
   val fast_tac: Proof.context -> int -> tactic
   val slow_tac: Proof.context -> int -> tactic
@@ -601,6 +603,12 @@ val rep_claset_of = rep_cs o claset_of;
 val get_cs = Claset.get;
 val map_cs = Claset.map;
 
+fun map_theory_claset f thy =
+  let
+    val ctxt' = f (Proof_Context.init_global thy);
+    val thy' = Proof_Context.theory_of ctxt';
+  in Context.theory_map (Claset.map (K (claset_of ctxt'))) thy' end;
+
 fun map_claset f = Context.proof_map (map_cs f);
 fun put_claset cs = map_claset (K cs);
 
@@ -646,33 +654,33 @@ fun delete_warn msg (key : string) xs =
   else (warning msg; xs);
 
 (*Add/replace a safe wrapper*)
-fun cs addSWrapper new_swrapper =
-  map_swrappers (update_warn ("Overwriting safe wrapper " ^ fst new_swrapper) new_swrapper) cs;
+fun ctxt addSWrapper new_swrapper = ctxt |> map_claset
+  (map_swrappers (update_warn ("Overwriting safe wrapper " ^ fst new_swrapper) new_swrapper));
 
 (*Add/replace an unsafe wrapper*)
-fun cs addWrapper new_uwrapper =
-  map_uwrappers (update_warn ("Overwriting unsafe wrapper " ^ fst new_uwrapper) new_uwrapper) cs;
+fun ctxt addWrapper new_uwrapper = ctxt |> map_claset
+  (map_uwrappers (update_warn ("Overwriting unsafe wrapper " ^ fst new_uwrapper) new_uwrapper));
 
 (*Remove a safe wrapper*)
-fun cs delSWrapper name =
-  map_swrappers (delete_warn ("No such safe wrapper in claset: " ^ name) name) cs;
+fun ctxt delSWrapper name = ctxt |> map_claset
+  (map_swrappers (delete_warn ("No such safe wrapper in claset: " ^ name) name));
 
 (*Remove an unsafe wrapper*)
-fun cs delWrapper name =
-  map_uwrappers (delete_warn ("No such unsafe wrapper in claset: " ^ name) name) cs;
+fun ctxt delWrapper name = ctxt |> map_claset
+  (map_uwrappers (delete_warn ("No such unsafe wrapper in claset: " ^ name) name));
 
 (* compose a safe tactic alternatively before/after safe_step_tac *)
-fun cs addSbefore (name, tac1) = cs addSWrapper (name, fn _ => fn tac2 => tac1 ORELSE' tac2);
-fun cs addSafter (name, tac2) = cs addSWrapper (name, fn _ => fn tac1 => tac1 ORELSE' tac2);
+fun ctxt addSbefore (name, tac1) = ctxt addSWrapper (name, fn _ => fn tac2 => tac1 ORELSE' tac2);
+fun ctxt addSafter (name, tac2) = ctxt addSWrapper (name, fn _ => fn tac1 => tac1 ORELSE' tac2);
 
 (*compose a tactic alternatively before/after the step tactic *)
-fun cs addbefore (name, tac1) = cs addWrapper (name, fn _ => fn tac2 => tac1 APPEND' tac2);
-fun cs addafter (name, tac2) = cs addWrapper (name, fn _ => fn tac1 => tac1 APPEND' tac2);
+fun ctxt addbefore (name, tac1) = ctxt addWrapper (name, fn _ => fn tac2 => tac1 APPEND' tac2);
+fun ctxt addafter (name, tac2) = ctxt addWrapper (name, fn _ => fn tac1 => tac1 APPEND' tac2);
 
-fun cs addD2 (name, thm) = cs addafter (name, dtac thm THEN' assume_tac);
-fun cs addE2 (name, thm) = cs addafter (name, etac thm THEN' assume_tac);
-fun cs addSD2 (name, thm) = cs addSafter (name, dmatch_tac [thm] THEN' eq_assume_tac);
-fun cs addSE2 (name, thm) = cs addSafter (name, ematch_tac [thm] THEN' eq_assume_tac);
+fun ctxt addD2 (name, thm) = ctxt addafter (name, dtac thm THEN' assume_tac);
+fun ctxt addE2 (name, thm) = ctxt addafter (name, etac thm THEN' assume_tac);
+fun ctxt addSD2 (name, thm) = ctxt addSafter (name, dmatch_tac [thm] THEN' eq_assume_tac);
+fun ctxt addSE2 (name, thm) = ctxt addSafter (name, ematch_tac [thm] THEN' eq_assume_tac);
 
 
 

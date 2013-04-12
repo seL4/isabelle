@@ -465,7 +465,7 @@ declare split_paired_All [simp del] split_paired_Ex [simp del]
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
 declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
-declaration {* K (Classical.map_cs (fn cs => cs delSWrapper "split_all_tac")) *}
+setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 inductive
   ax_derivs :: "prog \<Rightarrow> 'a triples \<Rightarrow> 'a triples \<Rightarrow> bool" ("_,_|\<turnstile>_" [61,58,58] 57)

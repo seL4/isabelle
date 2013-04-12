@@ -129,6 +129,11 @@ rings.  INCOMPATIBILITY.
 * Antiquotation @{theory_context A} is similar to @{theory A}, but
 presents the result as initial Proof.context.
 
+* Modifiers for classical wrappers (e.g. addWrapper, delWrapper)
+operate on Proof.context instead of claset, for uniformity with addIs,
+addEs, addDs etc. Note that claset_of and put_claset allow to manage
+clasets separately from the context.
+
 
 *** System ***
 

@@ -92,7 +92,7 @@ mkfin_cons:
 
 lemmas [simp del] = HOL.ex_simps HOL.all_simps split_paired_Ex
 
-declaration {* fn _ => Classical.map_cs (fn cs => cs delSWrapper "split_all_tac") *}
+setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 
 subsection {* ex2seqC *}

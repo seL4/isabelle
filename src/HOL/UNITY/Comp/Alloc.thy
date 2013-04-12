@@ -329,8 +329,7 @@ end
 ML {*
 fun record_auto_tac ctxt =
   let val ctxt' =
-    ctxt
-    |> map_claset (fn cs => cs addSWrapper Record.split_wrapper)
+    (ctxt addSWrapper Record.split_wrapper)
     |> map_simpset (fn ss => ss addsimps
        [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
         @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
