@@ -17,12 +17,14 @@ where
   "P \<turnstile> c \<rightarrow>^(Suc n) c'' = (\<exists>c'. (P \<turnstile> c \<rightarrow> c') \<and> P \<turnstile> c' \<rightarrow>^n c'')"
 
 text {* The possible successor PCs of an instruction at position @{term n} *}
+text_raw{*\snip{isuccsdef}{0}{1}{% *}
 definition
   "isuccs i n \<equiv> case i of 
      JMP j \<Rightarrow> {n + 1 + j}
    | JMPLESS j \<Rightarrow> {n + 1 + j, n + 1}
    | JMPGE j \<Rightarrow> {n + 1 + j, n + 1}
    | _ \<Rightarrow> {n +1}"
+text_raw{*}%endsnip*}
 
 text {* The possible successors PCs of an instruction list *}
 definition
