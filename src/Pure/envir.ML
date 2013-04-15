@@ -117,7 +117,7 @@ fun lookup_check check tenv (xi, T) =
   of unification, there is no need to chase assigned TVars.
   In this case, we can simply ignore the type substitution
   and use = instead of eq_type.*)
-val lookup1 = lookup_check (op =);
+fun lookup1 tenv = lookup_check (op =) tenv;
 
 fun lookup2 (tyenv, tenv) = lookup_check (Type.eq_type tyenv) tenv;
 
