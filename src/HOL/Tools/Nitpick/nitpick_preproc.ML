@@ -1086,7 +1086,7 @@ fun simplify_constrs_and_sels ctxt t =
           else if is_sel_like_and_no_discr s then
             case strip_comb (hd args) of
               (Const (x' as (s', T')), ts') =>
-              if is_constr_like ctxt x' andalso
+              if is_constr_like_injective ctxt x' andalso
                  constr_name_for_sel_like s = s' andalso
                  not (exists is_pair_type (binder_types T')) then
                 list_comb (nth ts' (sel_no_from_name s), tl args)

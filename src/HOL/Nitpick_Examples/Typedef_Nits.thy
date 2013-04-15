@@ -183,4 +183,14 @@ lemma "Abs_rat (Rep_rat a) = a"
 nitpick [card = 1, expect = none]
 by (rule Rep_rat_inverse)
 
+typedef check = "{x\<Colon>nat. x < 2}" by (rule exI[of _ 0], auto)
+
+lemma "Rep_check (Abs_check n) = n \<Longrightarrow> n < 2"
+nitpick [card = 1\<emdash>3, expect = none]
+using Rep_check[of "Abs_check n"] by auto
+
+lemma "Rep_check (Abs_check n) = n \<Longrightarrow> n < 1"
+nitpick [card = 1\<emdash>3, expect = genuine]
+oops
+
 end

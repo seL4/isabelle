@@ -130,6 +130,7 @@ sig
   val is_quot_rep_fun : Proof.context -> styp -> bool
   val mate_of_rep_fun : Proof.context -> styp -> styp
   val is_constr_like : Proof.context -> styp -> bool
+  val is_constr_like_injective : Proof.context -> styp -> bool
   val is_constr : Proof.context -> (typ option * bool) list -> styp -> bool
   val is_sel : string -> bool
   val is_sel_like_and_no_discr : string -> bool
@@ -803,6 +804,11 @@ fun is_constr_like ctxt (s, T) =
     (is_abs_fun ctxt x andalso is_pure_typedef ctxt (range_type T)) orelse
     is_coconstr ctxt x
   end
+fun is_constr_like_injective ctxt (s, T) =
+  is_constr_like ctxt (s, T) andalso
+  let val (x as (_, T)) = (s, unarize_unbox_etc_type T) in
+    not (is_abs_fun ctxt x) orelse is_univ_typedef ctxt (range_type T)
+  end
 fun is_stale_constr ctxt (x as (s, T)) =
   is_registered_type ctxt (body_type T) andalso is_constr_like ctxt x andalso
   not (s = @{const_name Nitpick.Abs_Frac} orelse is_coconstr ctxt x)
@@ -1186,9 +1192,12 @@ fun select_nth_constr_arg ctxt stds x t n res_T =
   let val thy = Proof_Context.theory_of ctxt in
     (case strip_comb t of
        (Const x', args) =>
-       if x = x' then nth args n
-       else if is_constr_like ctxt x' then Const (@{const_name unknown}, res_T)
-       else raise SAME ()
+       if x = x' then
+          if is_constr_like_injective ctxt x then nth args n else raise SAME ()
+       else if is_constr_like ctxt x' then
+         Const (@{const_name unknown}, res_T)
+       else
+         raise SAME ()
      | _ => raise SAME())
     handle SAME () =>
            s_betapply [] (nth_arg_sel_term_for_constr thy stds x n, t)
