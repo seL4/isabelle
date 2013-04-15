@@ -12,20 +12,20 @@ text {* The square root of any prime number (including 2) is irrational. *}
 
 theorem sqrt_prime_irrational:
   assumes "prime (p::nat)"
-  shows "sqrt (real p) \<notin> \<rat>"
+  shows "sqrt p \<notin> \<rat>"
 proof
   from `prime p` have p: "1 < p" by (simp add: prime_nat_def)
-  assume "sqrt (real p) \<in> \<rat>"
+  assume "sqrt p \<in> \<rat>"
   then obtain m n :: nat where
-      n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
+      n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
     and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
   have eq: "m\<twosuperior> = p * n\<twosuperior>"
   proof -
-    from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
-    then have "real (m\<twosuperior>) = (sqrt (real p))\<twosuperior> * real (n\<twosuperior>)"
+    from n and sqrt_rat have "m = \<bar>sqrt p\<bar> * n" by simp
+    then have "m\<twosuperior> = (sqrt p)\<twosuperior> * n\<twosuperior>"
       by (auto simp add: power2_eq_square)
-    also have "(sqrt (real p))\<twosuperior> = real p" by simp
-    also have "\<dots> * real (n\<twosuperior>) = real (p * n\<twosuperior>)" by simp
+    also have "(sqrt p)\<twosuperior> = p" by simp
+    also have "\<dots> * n\<twosuperior> = p * n\<twosuperior>" by simp
     finally show ?thesis ..
   qed
   have "p dvd m \<and> p dvd n"
@@ -44,9 +44,8 @@ proof
   with p show False by simp
 qed
 
-corollary sqrt_real_2_not_rat: "sqrt (real (2::nat)) \<notin> \<rat>"
-  by (rule sqrt_prime_irrational) (rule two_is_prime_nat)
-
+corollary sqrt_2_not_rat: "sqrt 2 \<notin> \<rat>"
+  using sqrt_prime_irrational[of 2] by simp
 
 subsection {* Variations *}
 
@@ -58,18 +57,18 @@ text {*
 
 theorem
   assumes "prime (p::nat)"
-  shows "sqrt (real p) \<notin> \<rat>"
+  shows "sqrt p \<notin> \<rat>"
 proof
   from `prime p` have p: "1 < p" by (simp add: prime_nat_def)
-  assume "sqrt (real p) \<in> \<rat>"
+  assume "sqrt p \<in> \<rat>"
   then obtain m n :: nat where
-      n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
+      n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt p\<bar> = m / n"
     and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
-  from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
-  then have "real (m\<twosuperior>) = (sqrt (real p))\<twosuperior> * real (n\<twosuperior>)"
+  from n and sqrt_rat have "m = \<bar>sqrt p\<bar> * n" by simp
+  then have "m\<twosuperior> = (sqrt p)\<twosuperior> * n\<twosuperior>"
     by (auto simp add: power2_eq_square)
-  also have "(sqrt (real p))\<twosuperior> = real p" by simp
-  also have "\<dots> * real (n\<twosuperior>) = real (p * n\<twosuperior>)" by simp
+  also have "(sqrt p)\<twosuperior> = p" by simp
+  also have "\<dots> * n\<twosuperior> = p * n\<twosuperior>" by simp
   finally have eq: "m\<twosuperior> = p * n\<twosuperior>" ..
   then have "p dvd m\<twosuperior>" ..
   with `prime p` pos2 have dvd_m: "p dvd m" by (rule prime_dvd_power_nat)
@@ -91,7 +90,7 @@ lemma "\<exists>a b::real. a \<notin> \<rat> \<and> b \<notin> \<rat> \<and> a p
 proof cases
   assume "sqrt 2 powr sqrt 2 \<in> \<rat>"
   then have "?P (sqrt 2) (sqrt 2)"
-    by (metis sqrt_real_2_not_rat [simplified])
+    by (metis sqrt_2_not_rat)
   then show ?thesis by blast
 next
   assume 1: "sqrt 2 powr sqrt 2 \<notin> \<rat>"
@@ -99,8 +98,9 @@ next
     using powr_realpow [of _ 2]
     by (simp add: powr_powr power2_eq_square [symmetric])
   then have "?P (sqrt 2 powr sqrt 2) (sqrt 2)"
-    by (metis 1 Rats_number_of sqrt_real_2_not_rat [simplified])
+    by (metis 1 Rats_number_of sqrt_2_not_rat)
   then show ?thesis by blast
 qed
 
 end
+
