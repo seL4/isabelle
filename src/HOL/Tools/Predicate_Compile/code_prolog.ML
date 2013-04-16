@@ -750,7 +750,6 @@ fun swi_prolog_query_firstn n (rel, args) vnames =
     "\\n', [" ^ space_implode ", " vnames ^ "]), writelist(SolutionTail).\n"
   
 val swi_prolog_prelude =
-  "#!/usr/bin/swipl -q -t main -f\n\n" ^  (* FIXME hardwired executable!? *)
   ":- use_module(library('dialect/ciao/aggregates')).\n" ^
   ":- style_check(-singleton).\n" ^
   ":- style_check(-discontiguous).\n" ^
@@ -766,7 +765,6 @@ fun yap_query_first (rel, args) vnames =
   "\\n', [" ^ space_implode ", " vnames ^ "]).\n"
 
 val yap_prelude =
-  "#!/usr/bin/yap -L\n\n" ^
   ":- initialization(eval).\n"
 
 (* system-dependent query, prelude and invocation *)
@@ -786,7 +784,7 @@ fun invoke system file =
   let
     val (env_var, cmd) =
       (case system of
-        SWI_PROLOG => ("ISABELLE_SWIPL", "\"$ISABELLE_SWIPL\" -f ")
+        SWI_PROLOG => ("ISABELLE_SWIPL", "\"$ISABELLE_SWIPL\" -q -t main -f ")
       | YAP => ("ISABELLE_YAP", "\"$ISABELLE_YAP\" -L "))
   in
     if getenv env_var = "" then
