@@ -120,6 +120,14 @@ using while_option_rule[OF _  assms(7)[unfolded pfp_def],
                         where P = "%x. x \<in> L \<and> x \<le> q"]
 by (metis assms(1-6) order_trans)
 
+lemma pfp_bot_least:
+assumes "\<forall>x\<in>{C. strip C = c}.\<forall>y\<in>{C. strip C = c}. x \<le> y \<longrightarrow> f x \<le> f y"
+and "\<forall>C. C \<in> {C. strip C = c} \<longrightarrow> f C \<in> {C. strip C = c}"
+and "f C' \<le> C'" "strip C' = c" "pfp f (bot c) = Some C"
+shows "C \<le> C'"
+by(rule while_least[OF assms(1,2) _ _ assms(3) _ assms(5)[unfolded pfp_def]])
+  (simp_all add: assms(4) bot_least)
+
 lemma pfp_inv:
   "pfp f x = Some y \<Longrightarrow> (\<And>x. P x \<Longrightarrow> P(f x)) \<Longrightarrow> P x \<Longrightarrow> P y"
 unfolding pfp_def by (metis (lifting) while_option_rule)
