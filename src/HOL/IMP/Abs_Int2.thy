@@ -26,10 +26,10 @@ end
 
 subsection "Backward Analysis of Expressions"
 
-class lattice = semilattice + semilattice_inf + bot
+subclass (in bounded_lattice) semilattice ..
 
 locale Val_abs1_gamma =
-  Gamma where \<gamma> = \<gamma> for \<gamma> :: "'av::lattice \<Rightarrow> val set" +
+  Gamma where \<gamma> = \<gamma> for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
 assumes inter_gamma_subset_gamma_inf:
   "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
 and gamma_bot[simp]: "\<gamma> \<bottom> = {}"
@@ -47,7 +47,7 @@ end
 
 locale Val_abs1 =
   Val_abs1_gamma where \<gamma> = \<gamma>
-   for \<gamma> :: "'av::lattice \<Rightarrow> val set" +
+   for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and filter_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
@@ -59,19 +59,19 @@ and filter_less': "filter_less' (n1<n2) a1 a2 = (b1,b2) \<Longrightarrow>
 
 
 locale Abs_Int1 =
-  Val_abs1 where \<gamma> = \<gamma> for \<gamma> :: "'av::lattice \<Rightarrow> val set"
+  Val_abs1 where \<gamma> = \<gamma> for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set"
 begin
 
 lemma in_gamma_sup_UpI:
-  "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> s : \<gamma>\<^isub>o S1 \<or> s : \<gamma>\<^isub>o S2 \<Longrightarrow> s : \<gamma>\<^isub>o(S1 \<squnion> S2)"
-by (metis (hide_lams, no_types) semilatticeL_class.sup_ge1 semilatticeL_class.sup_ge2 mono_gamma_o subsetD)
+  "s : \<gamma>\<^isub>o S1 \<or> s : \<gamma>\<^isub>o S2 \<Longrightarrow> s : \<gamma>\<^isub>o(S1 \<squnion> S2)"
+by (metis (hide_lams, no_types) sup_ge1 sup_ge2 mono_gamma_o subsetD)
 
 fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |
 "aval'' e (Some sa) = aval' e sa"
 
-lemma aval''_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> S \<in> L X \<Longrightarrow> vars a \<subseteq> X \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
-by(simp add: L_option_def L_st_def aval'_sound split: option.splits)
+lemma aval''_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
+by(cases S)(auto simp add: aval'_sound split: option.splits)
 
 subsubsection "Backward analysis"
 
@@ -104,12 +104,7 @@ fun bfilter :: "bexp \<Rightarrow> bool \<Rightarrow> 'av st option \<Rightarrow
   (let (a1,a2) = filter_less' res (aval'' e1 S) (aval'' e2 S)
    in afilter e1 a1 (afilter e2 a2 S))"
 
-lemma afilter_in_L: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> afilter e a S \<in> L X"
-by(induction e arbitrary: a S)
-  (auto simp: Let_def L_st_def split: option.splits prod.split)
-
-lemma afilter_sound: "S \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow>
-  s : \<gamma>\<^isub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>o (afilter e a S)"
+lemma afilter_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval e s : \<gamma> a \<Longrightarrow> s : \<gamma>\<^isub>o (afilter e a S)"
 proof(induction e arbitrary: a S)
   case N thus ?case by simp (metis test_num')
 next
@@ -117,33 +112,29 @@ next
   obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>s S'" using `s : \<gamma>\<^isub>o S`
     by(auto simp: in_gamma_option_iff)
   moreover hence "s x : \<gamma> (fun S' x)"
-    using V(1,2) by(simp add: \<gamma>_st_def L_st_def)
+    using V(1,2) by(simp add: \<gamma>_st_def)
   moreover have "s x : \<gamma> a" using V by simp
-  ultimately show ?case using V(3)
+  ultimately show ?case
     by(simp add: Let_def \<gamma>_st_def)
       (metis mono_gamma emptyE in_gamma_inf gamma_bot subset_empty)
 next
   case (Plus e1 e2) thus ?case
-    using filter_plus'[OF _ aval''_sound[OF Plus.prems(3)] aval''_sound[OF Plus.prems(3)]]
-    by (auto simp: afilter_in_L split: prod.split)
+    using filter_plus'[OF _ aval''_sound aval''_sound]
+    by (auto split: prod.split)
 qed
 
-lemma bfilter_in_L: "S \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow> bfilter b bv S \<in> L X"
-by(induction b arbitrary: bv S)(auto simp: afilter_in_L split: prod.split)
-
-lemma bfilter_sound: "S \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow>
-  s : \<gamma>\<^isub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^isub>o(bfilter b bv S)"
+lemma bfilter_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> bv = bval b s \<Longrightarrow> s : \<gamma>\<^isub>o(bfilter b bv S)"
 proof(induction b arbitrary: S bv)
   case Bc thus ?case by simp
 next
   case (Not b) thus ?case by simp
 next
   case (And b1 b2) thus ?case
-    by simp (metis And(1) And(2) bfilter_in_L in_gamma_sup_UpI)
+    by simp (metis And(1) And(2) in_gamma_sup_UpI)
 next
   case (Less e1 e2) thus ?case
     by(auto split: prod.split)
-      (metis (lifting) afilter_in_L afilter_sound aval''_sound filter_less')
+      (metis (lifting) afilter_sound aval''_sound filter_less')
 qed
 
 definition "step' = Step
@@ -151,40 +142,41 @@ definition "step' = Step
   (\<lambda>b S. bfilter b True S)"
 
 definition AI :: "com \<Rightarrow> 'av st option acom option" where
-"AI c = pfp (step' \<top>\<^bsub>vars c\<^esub>) (bot c)"
+"AI c = pfp (step' \<top>) (bot c)"
 
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(simp add: step'_def)
 
+lemma top_on_afilter: "\<lbrakk> top_on X S;  vars e \<subseteq> -X \<rbrakk> \<Longrightarrow> top_on X (afilter e a S)"
+by(induction e arbitrary: a S) (auto simp: Let_def split: option.splits prod.split)
+
+lemma top_on_bfilter: "\<lbrakk>top_on X S; vars b \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on X (bfilter b r S)"
+by(induction b arbitrary: r S) (auto simp: top_on_afilter top_on_sup split: prod.split)
+
+lemma top_on_step': "top_on (- vars C) C \<Longrightarrow> top_on (- vars C) (step' \<top> C)"
+unfolding step'_def
+by(rule top_on_Step)
+  (auto simp add: top_on_top top_on_bfilter split: option.split)
 
 subsubsection "Soundness"
 
-lemma step_step': "C \<in> L X \<Longrightarrow> S \<in> L X \<Longrightarrow> step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
+lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
-  (auto simp: L_st_def intro!: aval'_sound bfilter_sound in_gamma_update split: option.splits)
-
-lemma step'_in_L[simp]: "\<lbrakk> C \<in> L X; S \<in> L X \<rbrakk> \<Longrightarrow> step' S C \<in> L X"
-unfolding step'_def
-by(rule Step_in_L)(auto simp: bfilter_in_L L_st_def step'_def split: option.splits)
+  (auto simp: intro!: aval'_sound bfilter_sound in_gamma_update split: option.splits)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
-  assume 1: "pfp (step' (Top(vars c))) (bot c) = Some C"
-  have "C \<in> L(vars c)"
-    by(rule pfp_inv[where P = "%C. C \<in> L(vars c)", OF 1 _ bot_in_L])
-      (erule step'_in_L[OF _ Top_in_L])
-  have pfp': "step' (Top(vars c)) C \<le> C" by(rule pfp_pfp[OF 1])
-  have 2: "step (\<gamma>\<^isub>o(Top(vars c))) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"
+  assume 1: "pfp (step' \<top>) (bot c) = Some C"
+  have pfp': "step' \<top> C \<le> C" by(rule pfp_pfp[OF 1])
+  have 2: "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c C"  --"transfer the pfp'"
   proof(rule order_trans)
-    show "step (\<gamma>\<^isub>o (Top(vars c))) (\<gamma>\<^isub>c C) \<le>  \<gamma>\<^isub>c (step' (Top(vars c)) C)"
-      by(rule step_step'[OF `C \<in> L(vars c)` Top_in_L])
-    show "\<gamma>\<^isub>c (step' (Top(vars c)) C) \<le> \<gamma>\<^isub>c C"
-      by(rule mono_gamma_c[OF pfp'])
+    show "step (\<gamma>\<^isub>o \<top>) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' \<top> C)" by(rule step_step')
+    show "... \<le> \<gamma>\<^isub>c C" by (metis mono_gamma_c[OF pfp'])
   qed
-  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1])
-  have "lfp c (step (\<gamma>\<^isub>o(Top(vars c)))) \<le> \<gamma>\<^isub>c C"
-    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o(Top(vars c)))", OF 3 2])
+  have 3: "strip (\<gamma>\<^isub>c C) = c" by(simp add: strip_pfp[OF _ 1] step'_def)
+  have "lfp c (step (\<gamma>\<^isub>o \<top>)) \<le> \<gamma>\<^isub>c C"
+    by(rule lfp_lowerbound[simplified,where f="step (\<gamma>\<^isub>o \<top>)", OF 3 2])
   thus "lfp c (step UNIV) \<le> \<gamma>\<^isub>c C" by simp
 qed
 
@@ -202,46 +194,42 @@ and mono_filter_less': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarr
 begin
 
 lemma mono_aval':
-  "S1 \<le> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval' e S1 \<le> aval' e S2"
-by(induction e) (auto simp: less_eq_st_def mono_plus' L_st_def)
+  "S1 \<le> S2 \<Longrightarrow> aval' e S1 \<le> aval' e S2"
+by(induction e) (auto simp: mono_plus' mono_fun)
 
 lemma mono_aval'':
-  "S1 \<le> S2 \<Longrightarrow> S1 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow> aval'' e S1 \<le> aval'' e S2"
+  "S1 \<le> S2 \<Longrightarrow> aval'' e S1 \<le> aval'' e S2"
 apply(cases S1)
  apply simp
 apply(cases S2)
  apply simp
 by (simp add: mono_aval')
 
-lemma mono_afilter: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars e \<subseteq> X \<Longrightarrow>
-  r1 \<le> r2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> afilter e r1 S1 \<le> afilter e r2 S2"
+lemma mono_afilter: "r1 \<le> r2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> afilter e r1 S1 \<le> afilter e r2 S2"
 apply(induction e arbitrary: r1 r2 S1 S2)
    apply(auto simp: test_num' Let_def inf_mono split: option.splits prod.splits)
    apply (metis mono_gamma subsetD)
-  apply (metis inf_mono le_bot mono_fun_L)
- apply (metis inf_mono mono_fun_L mono_update)
-apply(metis mono_aval'' mono_filter_plus'[simplified less_eq_prod_def] fst_conv snd_conv afilter_in_L)
+  apply (metis le_bot inf_mono le_st_iff)
+ apply (metis inf_mono mono_update le_st_iff)
+apply(metis mono_aval'' mono_filter_plus'[simplified less_eq_prod_def] fst_conv snd_conv)
 done
 
-lemma mono_bfilter: "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> vars b \<subseteq> X \<Longrightarrow>
-  S1 \<le> S2 \<Longrightarrow> bfilter b bv S1 \<le> bfilter b bv S2"
+lemma mono_bfilter: "S1 \<le> S2 \<Longrightarrow> bfilter b bv S1 \<le> bfilter b bv S2"
 apply(induction b arbitrary: bv S1 S2)
    apply(simp)
   apply(simp)
  apply simp
- apply(metis sup_least order_trans[OF _ sup_ge1] order_trans[OF _ sup_ge2] bfilter_in_L)
+ apply(metis order_trans[OF _ sup_ge1] order_trans[OF _ sup_ge2])
 apply (simp split: prod.splits)
-apply(metis mono_aval'' mono_afilter mono_filter_less'[simplified less_eq_prod_def] fst_conv snd_conv afilter_in_L)
+apply(metis mono_aval'' mono_afilter mono_filter_less'[simplified less_eq_prod_def] fst_conv snd_conv)
 done
 
-theorem mono_step': "S1 \<in> L X \<Longrightarrow> S2 \<in> L X \<Longrightarrow> C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
-  S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
+theorem mono_step': "S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
 unfolding step'_def
 by(rule mono2_Step) (auto simp: mono_aval' mono_bfilter split: option.split)
 
-lemma mono_step'_top: "C1 \<in> L X \<Longrightarrow> C2 \<in> L X \<Longrightarrow>
-  C1 \<le> C2 \<Longrightarrow> step' (Top X) C1 \<le> step' (Top X) C2"
-by (metis Top_in_L mono_step' order_refl)
+lemma mono_step'_top: "C1 \<le> C2 \<Longrightarrow> step' \<top> C1 \<le> step' \<top> C2"
+by (metis mono_step' order_refl)
 
 end
 

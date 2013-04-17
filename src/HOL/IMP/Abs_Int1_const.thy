@@ -80,7 +80,7 @@ defines AI_const is AI and step_const is step' and aval'_const is aval'
 
 subsubsection "Tests"
 
-definition "steps c i = (step_const(Top(vars c)) ^^ i) (bot c)"
+definition "steps c i = (step_const \<top> ^^ i) (bot c)"
 
 value "show_acom (steps test1_const 0)"
 value "show_acom (steps test1_const 1)"

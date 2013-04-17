@@ -141,7 +141,7 @@ definition "test2_parity =
   ''x'' ::= N 1;
   WHILE Less (V ''x'') (N 100) DO ''x'' ::= Plus (V ''x'') (N 3)"
 
-definition "steps c i = (step_parity(Top(vars c)) ^^ i) (bot c)"
+definition "steps c i = ((step_parity \<top>) ^^ i) (bot c)"
 
 value "show_acom (steps test2_parity 0)"
 value "show_acom (steps test2_parity 1)"

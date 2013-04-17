@@ -139,7 +139,7 @@ by(simp add: not_less)
 lemma [simp]: fixes x :: "'a::linorder extended" shows "(\<not> Minf < x) = (x = Minf)"
 by(simp add: not_less)
 
-instantiation ivl :: lattice
+instantiation ivl :: bounded_lattice
 begin
 
 definition inf_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> eint2" where
@@ -392,7 +392,7 @@ value "show_acom_opt (AI_ivl test3_const)"
 value "show_acom_opt (AI_ivl test4_const)"
 value "show_acom_opt (AI_ivl test6_const)"
 
-definition "steps c i = (step_ivl(Top(vars c)) ^^ i) (bot c)"
+definition "steps c i = (step_ivl \<top> ^^ i) (bot c)"
 
 value "show_acom_opt (AI_ivl test2_ivl)"
 value "show_acom (steps test2_ivl 0)"
