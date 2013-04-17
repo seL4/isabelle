@@ -134,4 +134,7 @@ done
 
 lemmas size_annos_same2 = eqTrueI[OF size_annos_same]
 
+lemma post_in_annos: "post C \<in> set(annos C)"
+by(induction C) auto
+
 end

@@ -4,7 +4,6 @@ theory Abs_Int1
 imports Abs_State
 begin
 
-(* FIXME mv *)
 instantiation acom :: (type) vars
 begin
 
@@ -25,10 +24,6 @@ by(induct C1 C2 rule: less_eq_acom.induct) (auto simp: size_annos_same2)
 lemma le_iff_le_annos: "C1 \<le> C2 \<longleftrightarrow>
   strip C1 = strip C2 \<and> (\<forall> i<size(annos C1). annos C1 ! i \<le> annos C2 ! i)"
 by(auto simp add: le_iff_le_annos_zip set_zip) (metis size_annos_same2)
-
-(* FIXME mv *)
-lemma post_in_annos: "post C \<in> set(annos C)"
-by(induction C) auto
 
 
 subsection "Computable Abstract Interpretation"
