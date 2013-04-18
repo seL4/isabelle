@@ -6,8 +6,13 @@ begin
 
 type_synonym 'a st_rep = "(vname * 'a) list"
 
-definition fun_rep :: "('a::top) st_rep \<Rightarrow> vname \<Rightarrow> 'a" where
-"fun_rep ps = (\<lambda>x. case map_of ps x of Some a \<Rightarrow> a | None \<Rightarrow> \<top>)"
+fun fun_rep :: "('a::top) st_rep \<Rightarrow> vname \<Rightarrow> 'a" where
+"fun_rep [] = (\<lambda>x. \<top>)" |
+"fun_rep ((x,a)#ps) = (fun_rep ps) (x := a)"
+
+lemma fun_rep_map_of[code]: --"original def is too slow"
+  "fun_rep ps = (%x. case map_of ps x of None \<Rightarrow> \<top> | Some a \<Rightarrow> a)"
+by(induction ps rule: fun_rep.induct) auto
 
 definition eq_st :: "('a::top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool" where
 "eq_st S1 S2 = (fun_rep S1 = fun_rep S2)"
@@ -15,10 +20,8 @@ definition eq_st :: "('a::top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool
 quotient_type 'a st = "('a::top) st_rep" / eq_st
 by (metis eq_st_def equivpI reflpI sympI transpI)
 
-lemma st_cons[simp]: "fun_rep ((x,y) # ps) = (fun_rep ps) (x := y)"
-by(auto simp: fun_rep_def fun_eq_iff split: option.splits if_splits)
-
-lift_definition update :: "('a::top) st \<Rightarrow> vname \<Rightarrow> 'a \<Rightarrow> 'a st" is "\<lambda>ps x a. (x,a)#ps"
+lift_definition update :: "('a::top) st \<Rightarrow> vname \<Rightarrow> 'a \<Rightarrow> 'a st"
+  is "\<lambda>ps x a. (x,a)#ps"
 by(auto simp: eq_st_def)
 
 lift_definition "fun" :: "('a::top) st \<Rightarrow> vname \<Rightarrow> 'a" is fun_rep
@@ -43,13 +46,15 @@ definition less_eq_st_rep :: "'a st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bo
 "less_eq_st_rep ps1 ps2 =
   ((\<forall>x \<in> set(map fst ps1) \<union> set(map fst ps2). fun_rep ps1 x \<le> fun_rep ps2 x))"
 
-lemma less_eq_st_rep_iff: "less_eq_st_rep r1 r2 = (\<forall>x. fun_rep r1 x \<le> fun_rep r2 x)"
-apply(auto simp: less_eq_st_rep_def fun_rep_def split: option.split)
+lemma less_eq_st_rep_iff:
+  "less_eq_st_rep r1 r2 = (\<forall>x. fun_rep r1 x \<le> fun_rep r2 x)"
+apply(auto simp: less_eq_st_rep_def fun_rep_map_of split: option.split)
 apply (metis Un_iff map_of_eq_None_iff option.distinct(1))
 apply (metis Un_iff map_of_eq_None_iff option.distinct(1))
 done
 
-corollary less_eq_st_rep_iff_fun: "less_eq_st_rep r1 r2 = (fun_rep r1 \<le> fun_rep r2)"
+corollary less_eq_st_rep_iff_fun:
+  "less_eq_st_rep r1 r2 = (fun_rep r1 \<le> fun_rep r2)"
 by (metis less_eq_st_rep_iff le_fun_def)
 
 lift_definition less_eq_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> bool" is less_eq_st_rep
@@ -78,14 +83,14 @@ by transfer (rule less_eq_st_rep_iff)
 fun map2_st_rep :: "('a::top \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a st_rep \<Rightarrow> 'a st_rep \<Rightarrow> 'a st_rep" where
 "map2_st_rep f [] ps2 = map (%(x,y). (x, f \<top> y)) ps2" |
 "map2_st_rep f ((x,y)#ps1) ps2 =
-  (let y2 = (case map_of ps2 x of Some y2 \<Rightarrow> y2 | None \<Rightarrow> \<top>)
+  (let y2 = fun_rep ps2 x
    in (x,f y y2) # map2_st_rep f ps1 ps2)"
 
-lemma fun_rep_map2_rep[simp]:
-  "f \<top> \<top> = \<top> \<Longrightarrow> fun_rep (map2_st_rep f ps1 ps2) = (\<lambda>x. f (fun_rep ps1 x) (fun_rep ps2 x))"
+lemma fun_rep_map2_rep[simp]: "f \<top> \<top> = \<top> \<Longrightarrow>
+  fun_rep (map2_st_rep f ps1 ps2) = (\<lambda>x. f (fun_rep ps1 x) (fun_rep ps2 x))"
 apply(induction f ps1 ps2 rule: map2_st_rep.induct)
-apply(simp add: fun_rep_def map_of_map fun_eq_iff split: option.split)
-apply(fastforce simp: fun_rep_def fun_eq_iff split:option.splits)
+apply(simp add: fun_rep_map_of map_of_map fun_eq_iff split: option.split)
+apply(fastforce simp: fun_rep_map_of fun_eq_iff split:option.splits)
 done
 
 instantiation st :: (semilattice) semilattice
@@ -105,13 +110,14 @@ next
 next
   case goal3 thus ?case by transfer (simp add:less_eq_st_rep_iff)
 next
-  case goal4 show ?case by transfer (simp add:less_eq_st_rep_iff fun_rep_def)
+  case goal4 show ?case
+    by transfer (simp add:less_eq_st_rep_iff fun_rep_map_of)
 qed
 
 end
 
 lemma fun_top: "fun \<top> = (\<lambda>x. \<top>)"
-by transfer (simp add: fun_rep_def)
+by transfer simp
 
 lemma mono_update[simp]:
   "a1 \<le> a2 \<Longrightarrow> S1 \<le> S2 \<Longrightarrow> update S1 x a1 \<le> update S2 x a2"
