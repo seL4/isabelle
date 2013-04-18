@@ -142,7 +142,7 @@ fun subst_termify_app (Const (@{const_name termify}, _), [t]) =
       if not (Term.has_abs t)
       then if fold_aterms (fn Const _ => I | _ => K false) t true
         then SOME (HOLogic.reflect_term t)
-        else error "Cannot termify expression containing variables"
+        else error "Cannot termify expression containing variable"
       else error "Cannot termify expression containing abstraction"
   | subst_termify_app (t, ts) = case map_default subst_termify ts
      of SOME ts' => SOME (list_comb (t, ts'))
