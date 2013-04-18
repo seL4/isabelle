@@ -7,7 +7,7 @@ Method "pat_completeness" to prove completeness of datatype patterns.
 signature PAT_COMPLETENESS =
 sig
     val pat_completeness_tac: Proof.context -> int -> tactic
-    val prove_completeness : theory -> term list -> term -> term list list ->
+    val prove_completeness : Proof.context -> term list -> term -> term list list ->
       term list list -> thm
 end
 
@@ -61,12 +61,13 @@ fun inst_constrs_of thy (T as Type (name, _)) =
   | inst_constrs_of thy _ = raise Match
 
 
-fun transform_pat thy avars c_assum ([] , thm) = raise Match
-  | transform_pat thy avars c_assum (pat :: pats, thm) =
+fun transform_pat _ avars c_assum ([] , thm) = raise Match
+  | transform_pat ctxt avars c_assum (pat :: pats, thm) =
   let
+    val thy = Proof_Context.theory_of ctxt
     val (_, subps) = strip_comb pat
     val eqs = map (cterm_of thy o HOLogic.mk_Trueprop o HOLogic.mk_eq) (avars ~~ subps)
-    val c_eq_pat = simplify (HOL_basic_ss addsimps (map Thm.assume eqs)) c_assum
+    val c_eq_pat = simplify (put_simpset HOL_basic_ss ctxt addsimps (map Thm.assume eqs)) c_assum
   in
     (subps @ pats,
      fold_rev Thm.implies_intr eqs (Thm.implies_elim thm c_eq_pat))
@@ -75,40 +76,45 @@ fun transform_pat thy avars c_assum ([] , thm) = raise Match
 
 exception COMPLETENESS
 
-fun constr_case thy P idx (v :: vs) pats cons =
+fun constr_case ctxt P idx (v :: vs) pats cons =
   let
+    val thy = Proof_Context.theory_of ctxt
     val (avars, pvars, newidx) = invent_vars cons idx
     val c_hyp = cterm_of thy (HOLogic.mk_Trueprop (HOLogic.mk_eq (v, list_comb (cons, avars))))
     val c_assum = Thm.assume c_hyp
-    val newpats = map (transform_pat thy avars c_assum) (filter_pats thy cons pvars pats)
+    val newpats = map (transform_pat ctxt avars c_assum) (filter_pats thy cons pvars pats)
   in
-    o_alg thy P newidx (avars @ vs) newpats
+    o_alg ctxt P newidx (avars @ vs) newpats
     |> Thm.implies_intr c_hyp
     |> fold_rev (Thm.forall_intr o cterm_of thy) avars
   end
   | constr_case _ _ _ _ _ _ = raise Match
-and o_alg thy P idx [] (([], Pthm) :: _)  = Pthm
-  | o_alg thy P idx (v :: vs) [] = raise COMPLETENESS
-  | o_alg thy P idx (v :: vs) pts =
+and o_alg _ P idx [] (([], Pthm) :: _)  = Pthm
+  | o_alg _ P idx (v :: vs) [] = raise COMPLETENESS
+  | o_alg ctxt P idx (v :: vs) pts =
   if forall (is_Free o hd o fst) pts (* Var case *)
-  then o_alg thy P idx vs
+  then o_alg ctxt P idx vs
          (map (fn (pv :: pats, thm) =>
-           (pats, refl RS (inst_free (cterm_of thy pv) (cterm_of thy v) thm))) pts)
+           (pats, refl RS
+            (inst_free (cterm_of (Proof_Context.theory_of ctxt) pv)
+              (cterm_of (Proof_Context.theory_of ctxt) v) thm))) pts)
   else (* Cons case *)
     let
+      val thy = Proof_Context.theory_of ctxt
       val T = fastype_of v
       val (tname, _) = dest_Type T
       val {exhaust=case_thm, ...} = Datatype.the_info thy tname
       val constrs = inst_constrs_of thy T
-      val c_cases = map (constr_case thy P idx (v :: vs) pts) constrs
+      val c_cases = map (constr_case ctxt P idx (v :: vs) pts) constrs
     in
       inst_case_thm thy v P case_thm
       |> fold (curry op COMP) c_cases
     end
   | o_alg _ _ _ _ _ = raise Match
 
-fun prove_completeness thy xs P qss patss =
+fun prove_completeness ctxt xs P qss patss =
   let
+    val thy = Proof_Context.theory_of ctxt
     fun mk_assum qs pats =
       HOLogic.mk_Trueprop P
       |> fold_rev (curry Logic.mk_implies o HOLogic.mk_Trueprop o HOLogic.mk_eq) (xs ~~ pats)
@@ -119,7 +125,7 @@ fun prove_completeness thy xs P qss patss =
     fun inst_hyps hyp qs = fold (Thm.forall_elim o cterm_of thy) qs (Thm.assume hyp)
     val assums = map2 inst_hyps hyps qss
     in
-      o_alg thy P 2 xs (patss ~~ assums)
+      o_alg ctxt P 2 xs (patss ~~ assums)
       |> fold_rev Thm.implies_intr hyps
     end
 
@@ -143,7 +149,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
       handle List.Empty => raise COMPLETENESS
 
     val patss = map (map snd) x_pats
-    val complete_thm = prove_completeness thy xs thesis qss patss
+    val complete_thm = prove_completeness ctxt xs thesis qss patss
       |> fold_rev (Thm.forall_intr o cterm_of thy) vs
     in
       PRIMITIVE (fn st => Drule.compose_single(complete_thm, i, st))

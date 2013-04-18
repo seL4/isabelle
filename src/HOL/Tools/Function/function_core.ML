@@ -260,8 +260,9 @@ fun get_compat_thm thy cts i j ctxi ctxj =
   end
 
 (* Generates the replacement lemma in fully quantified form. *)
-fun mk_replacement_lemma thy h ih_elim clause =
+fun mk_replacement_lemma ctxt h ih_elim clause =
   let
+    val thy = Proof_Context.theory_of ctxt
     val ClauseInfo {cdata=ClauseContext {qs, lhs, cqs, ags, case_hyp, ...},
       RCs, tree, ...} = clause
     local open Conv in
@@ -276,7 +277,7 @@ fun mk_replacement_lemma thy h ih_elim clause =
       Thm.assume (cterm_of thy (subst_bounds (rev qs, h_assum)))) RCs
 
     val (eql, _) =
-      Function_Ctx_Tree.rewrite_by_tree thy h ih_elim_case (Ris ~~ h_assums) tree
+      Function_Ctx_Tree.rewrite_by_tree ctxt h ih_elim_case (Ris ~~ h_assums) tree
 
     val replace_lemma = (eql RS meta_eq_to_obj_eq)
       |> Thm.implies_intr (cprop_of case_hyp)
@@ -328,13 +329,14 @@ fun mk_uniqueness_clause thy globals compat_store clausei clausej RLj =
 
 
 
-fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
+fun mk_uniqueness_case ctxt globals G f ihyp ih_intro G_cases compat_store clauses rep_lemmas clausei =
   let
+    val thy = Proof_Context.theory_of ctxt
     val Globals {x, y, ranT, fvar, ...} = globals
     val ClauseInfo {cdata = ClauseContext {lhs, rhs, cqs, ags, case_hyp, ...}, lGI, RCs, ...} = clausei
     val rhsC = Pattern.rewrite_term thy [(fvar, f)] [] rhs
 
-    val ih_intro_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ih_intro
+    val ih_intro_case = full_simplify (put_simpset HOL_basic_ss ctxt addsimps [case_hyp]) ih_intro
 
     fun prep_RC (RCInfo {llRI, RIvs, CCas, ...}) = (llRI RS ih_intro_case)
       |> fold_rev (Thm.implies_intr o cprop_of) CCas
@@ -366,7 +368,7 @@ fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clause
       ex1I |> instantiate' [SOME (ctyp_of thy ranT)] [SOME P2, SOME (cterm_of thy rhsC)]
       |> curry (op COMP) existence
       |> curry (op COMP) uniqueness
-      |> simplify (HOL_basic_ss addsimps [case_hyp RS sym])
+      |> simplify (put_simpset HOL_basic_ss ctxt addsimps [case_hyp RS sym])
       |> Thm.implies_intr (cprop_of case_hyp)
       |> fold_rev (Thm.implies_intr o cprop_of) ags
       |> fold_rev Thm.forall_intr cqs
@@ -401,11 +403,14 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
       |> instantiate' [] [NONE, SOME (cterm_of thy h)]
 
     val _ = trace_msg (K "Proving Replacement lemmas...")
-    val repLemmas = map (mk_replacement_lemma thy h ih_elim) clauses
+    val repLemmas = map (mk_replacement_lemma ctxt h ih_elim) clauses
 
     val _ = trace_msg (K "Proving cases for unique existence...")
     val (ex1s, values) =
-      split_list (map (mk_uniqueness_case thy globals G f ihyp ih_intro G_elim compat_store clauses repLemmas) clauses)
+      split_list
+        (map
+          (mk_uniqueness_case ctxt globals G f ihyp ih_intro G_elim compat_store clauses repLemmas)
+          clauses)
 
     val _ = trace_msg (K "Proving: Graph is a function")
     val graph_is_function = complete
@@ -551,8 +556,9 @@ fun inst_RC thy fvar f (rcfix, rcassm, rcarg) =
  *                   PROVING THE RULES
  **********************************************************)
 
-fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
+fun mk_psimps ctxt globals R clauses valthms f_iff graph_is_function =
   let
+    val thy = Proof_Context.theory_of ctxt
     val Globals {domT, z, ...} = globals
 
     fun mk_psimp (ClauseInfo {qglr = (oqs, _, _, _), cdata = ClauseContext {cqs, lhs, ags, ...}, ...}) valthm =
@@ -566,7 +572,7 @@ fun mk_psimps thy globals R clauses valthms f_iff graph_is_function =
         |> Thm.forall_intr (cterm_of thy z)
         |> (fn it => it COMP valthm)
         |> Thm.implies_intr lhs_acc
-        |> asm_simplify (HOL_basic_ss addsimps [f_iff])
+        |> asm_simplify (put_simpset HOL_basic_ss ctxt addsimps [f_iff])
         |> fold_rev (Thm.implies_intr o cprop_of) ags
         |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
       end
@@ -714,13 +720,14 @@ val wf_induct_rule = @{thm Wellfounded.wfP_induct_rule}
 val wf_in_rel = @{thm FunDef.wf_in_rel}
 val in_rel_def = @{thm FunDef.in_rel_def}
 
-fun mk_nest_term_case thy globals R' ihyp clause =
+fun mk_nest_term_case ctxt globals R' ihyp clause =
   let
+    val thy = Proof_Context.theory_of ctxt
     val Globals {z, ...} = globals
     val ClauseInfo {cdata = ClauseContext {qs, cqs, ags, lhs, case_hyp, ...}, tree,
       qglr=(oqs, _, _, _), ...} = clause
 
-    val ih_case = full_simplify (HOL_basic_ss addsimps [case_hyp]) ihyp
+    val ih_case = full_simplify (put_simpset HOL_basic_ss ctxt addsimps [case_hyp]) ihyp
 
     fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) =
       let
@@ -763,8 +770,9 @@ fun mk_nest_term_case thy globals R' ihyp clause =
   end
 
 
-fun mk_nest_term_rule thy globals R R_cases clauses =
+fun mk_nest_term_rule ctxt globals R R_cases clauses =
   let
+    val thy = Proof_Context.theory_of ctxt
     val Globals { domT, x, z, ... } = globals
     val acc_R = mk_acc domT R
 
@@ -788,7 +796,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
 
     val R_z_x = cterm_of thy (HOLogic.mk_Trueprop (R $ z $ x))
 
-    val (hyps, cases) = fold (mk_nest_term_case thy globals R' ihyp_a) clauses ([], [])
+    val (hyps, cases) = fold (mk_nest_term_case ctxt globals R' ihyp_a) clauses ([], [])
   in
     R_cases
     |> Thm.forall_elim (cterm_of thy z)
@@ -810,7 +818,7 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
     |> Thm.forall_intr (cterm_of thy R')
     |> Thm.forall_elim (cterm_of thy (inrel_R))
     |> curry op RS wf_in_rel
-    |> full_simplify (HOL_basic_ss addsimps [in_rel_def])
+    |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps [in_rel_def])
     |> Thm.forall_intr (cterm_of thy Rrel)
   end
 
@@ -882,6 +890,7 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     fun mk_partial_rules provedgoal =
       let
         val newthy = theory_of_thm provedgoal (*FIXME*)
+        val newctxt = Proof_Context.init_global newthy (*FIXME*)
 
         val (graph_is_function, complete_thm) =
           provedgoal
@@ -891,13 +900,13 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
         val f_iff = graph_is_function RS (f_defthm RS ex1_implies_iff)
 
         val psimps = PROFILE "Proving simplification rules"
-          (mk_psimps newthy globals R xclauses values f_iff) graph_is_function
+          (mk_psimps newctxt globals R xclauses values f_iff) graph_is_function
 
         val simple_pinduct = PROFILE "Proving partial induction rule"
           (mk_partial_induct_rule newthy globals R complete_thm) xclauses
 
         val total_intro = PROFILE "Proving nested termination rule"
-          (mk_nest_term_rule newthy globals R R_elim) xclauses
+          (mk_nest_term_rule newctxt globals R R_elim) xclauses
 
         val dom_intros =
           if domintros then SOME (PROFILE "Proving domain introduction rules"

@@ -102,13 +102,15 @@ declare split_paired_All [simp del]
 3) renname_ss unfolds transitions and the abstract channel *)
 
 ML {*
-val ss = @{simpset} addsimps @{thms "transitions"};
-val rename_ss = ss addsimps @{thms unfold_renaming};
+val ss = simpset_of (@{context} addsimps @{thms "transitions"});
+val rename_ss = simpset_of (put_simpset ss @{context} addsimps @{thms unfold_renaming});
 
-val tac =
-  asm_simp_tac (ss |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
-val tac_ren =
-  asm_simp_tac (rename_ss |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
+fun tac ctxt =
+  asm_simp_tac (put_simpset ss ctxt
+    |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
+fun tac_ren ctxt =
+  asm_simp_tac (put_simpset rename_ss ctxt
+    |> Simplifier.add_cong @{thm conj_cong} |> Splitter.add_split @{thm split_if})
 *}
 
 
@@ -129,34 +131,34 @@ apply (rule conjI)
 apply (simp add: Impl.inv1_def split del: split_if)
 apply (induct_tac a)
 
-apply (tactic "EVERY1[tac, tac, tac, tac]")
-apply (tactic "tac 1")
-apply (tactic "tac_ren 1")
+apply (tactic "EVERY1[tac @{context}, tac @{context}, tac @{context}, tac @{context}]")
+apply (tactic "tac @{context} 1")
+apply (tactic "tac_ren @{context} 1")
 
 txt {* 5 + 1 *}
 
-apply (tactic "tac 1")
-apply (tactic "tac_ren 1")
+apply (tactic "tac @{context} 1")
+apply (tactic "tac_ren @{context} 1")
 
 txt {* 4 + 1 *}
-apply (tactic {* EVERY1[tac, tac, tac, tac] *})
+apply (tactic {* EVERY1[tac @{context}, tac @{context}, tac @{context}, tac @{context}] *})
 
 
 txt {* Now the other half *}
 apply (simp add: Impl.inv1_def split del: split_if)
 apply (induct_tac a)
-apply (tactic "EVERY1 [tac, tac]")
+apply (tactic "EVERY1 [tac @{context}, tac @{context}]")
 
 txt {* detour 1 *}
-apply (tactic "tac 1")
-apply (tactic "tac_ren 1")
+apply (tactic "tac @{context} 1")
+apply (tactic "tac_ren @{context} 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp (no_asm_simp) add: hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
   split add: split_if)
 txt {* detour 2 *}
-apply (tactic "tac 1")
-apply (tactic "tac_ren 1")
+apply (tactic "tac @{context} 1")
+apply (tactic "tac_ren @{context} 1")
 apply (rule impI)
 apply (erule conjE)+
 apply (simp add: Impl.hdr_sum_def Multiset.count_def Multiset.countm_nonempty_def
@@ -181,7 +183,8 @@ apply hypsubst
 apply (rule countm_spurious_delm)
 apply (simp (no_asm))
 
-apply (tactic "EVERY1 [tac, tac, tac, tac, tac, tac]")
+apply (tactic "EVERY1 [tac @{context}, tac @{context}, tac @{context},
+  tac @{context}, tac @{context}, tac @{context}]")
 
 done
 
@@ -200,7 +203,7 @@ lemma raw_inv2: "invariant impl_ioa inv2"
 
   txt {* 10 cases. First 4 are simple, since state doesn't change *}
 
-  ML_prf {* val tac2 = asm_full_simp_tac (ss addsimps [@{thm inv2_def}]) *}
+  ML_prf {* val tac2 = asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv2_def}]) *}
 
   txt {* 10 - 7 *}
   apply (tactic "EVERY1 [tac2,tac2,tac2,tac2]")
@@ -256,13 +259,13 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
   apply (induct_tac "a")
 
-  ML_prf {* val tac3 = asm_full_simp_tac (ss addsimps [@{thm inv3_def}]) *}
+  ML_prf {* val tac3 = asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv3_def}]) *}
 
   txt {* 10 - 8 *}
 
   apply (tactic "EVERY1[tac3,tac3,tac3]")
 
-  apply (tactic "tac_ren 1")
+  apply (tactic "tac_ren @{context} 1")
   apply (intro strip, (erule conjE)+)
   apply hypsubst
   apply (erule exE)
@@ -270,7 +273,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
 
   txt {* 7 *}
   apply (tactic "tac3 1")
-  apply (tactic "tac_ren 1")
+  apply (tactic "tac_ren @{context} 1")
   apply force
 
   txt {* 6 - 3 *}
@@ -278,7 +281,7 @@ lemma raw_inv3: "invariant impl_ioa inv3"
   apply (tactic "EVERY1[tac3,tac3,tac3,tac3]")
 
   txt {* 2 *}
-  apply (tactic "asm_full_simp_tac ss 1")
+  apply (tactic "asm_full_simp_tac (put_simpset ss @{context}) 1")
   apply (simp (no_asm) add: inv3_def)
   apply (intro strip, (erule conjE)+)
   apply (rule imp_disjL [THEN iffD1])
@@ -321,7 +324,7 @@ lemma raw_inv4: "invariant impl_ioa inv4"
   apply (simp (no_asm_simp) add: impl_ioas split del: split_if)
   apply (induct_tac "a")
 
-  ML_prf {* val tac4 =  asm_full_simp_tac (ss addsimps [@{thm inv4_def}]) *}
+  ML_prf {* val tac4 =  asm_full_simp_tac (put_simpset ss @{context} addsimps [@{thm inv4_def}]) *}
 
   txt {* 10 - 2 *}
 

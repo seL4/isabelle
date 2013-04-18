@@ -34,7 +34,7 @@ struct
 (**** simplify {(x1, ..., xn). (x1, ..., xn) : S} to S ****)
 
 val collect_mem_simproc =
-  Simplifier.simproc_global @{theory Set} "Collect_mem" ["Collect t"] (fn thy => fn ss =>
+  Simplifier.simproc_global @{theory Set} "Collect_mem" ["Collect t"] (fn ctxt =>
     fn S as Const (@{const_name Collect}, Type ("fun", [_, T])) $ t =>
          let val (u, _, ps) = HOLogic.strip_psplits t
          in case u of
@@ -45,10 +45,11 @@ val collect_mem_simproc =
                   if not (Term.is_open S') andalso
                     ts = map Bound (length ps downto 0)
                   then
-                    let val simp = full_simp_tac (Simplifier.inherit_context ss
-                      (HOL_basic_ss addsimps [@{thm split_paired_all}, @{thm split_conv}])) 1
+                    let val simp =
+                      full_simp_tac (put_simpset HOL_basic_ss ctxt
+                        addsimps [@{thm split_paired_all}, @{thm split_conv}]) 1
                     in
-                      SOME (Goal.prove (Simplifier.the_context ss) [] []
+                      SOME (Goal.prove ctxt [] []
                         (Const ("==", T --> T --> propT) $ S $ S')
                         (K (EVERY
                           [rtac eq_reflection 1, rtac @{thm subset_antisym} 1,
@@ -69,8 +70,9 @@ val collect_mem_simproc =
 val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
-  Simplifier.simproc_global_i @{theory HOL} "strong_ind" [anyt] (fn thy => fn ss => fn t =>
+  Simplifier.simproc_global_i @{theory HOL} "strong_ind" [anyt] (fn ctxt => fn t =>
     let
+      val thy = Proof_Context.theory_of ctxt;
       fun close p t f =
         let val vs = Term.add_vars t []
         in Drule.instantiate' [] (rev (map (SOME o cterm_of thy o Var) vs))
@@ -93,14 +95,15 @@ fun strong_ind_simproc tab =
             Type (_, [_, Type (_, [T, _])]))) $ p $ S)) =
               mkop s T (m, p, mk_collect p T (head_of u), S)
         | decomp _ = NONE;
-      val simp = full_simp_tac (Simplifier.inherit_context ss
-        (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}])) 1;
+      val simp =
+        full_simp_tac
+          (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]) 1;
       fun mk_rew t = (case strip_abs_vars t of
           [] => NONE
         | xs => (case decomp (strip_abs_body t) of
             NONE => NONE
           | SOME (bop, (m, p, S, S')) =>
-              SOME (close (Goal.prove (Simplifier.the_context ss) [] [])
+              SOME (close (Goal.prove ctxt [] [])
                 (Logic.mk_equals (t, fold_rev Term.abs xs (m $ p $ (bop $ S $ S'))))
                 (K (EVERY
                   [rtac eq_reflection 1, REPEAT (rtac ext 1), rtac iffI 1,
@@ -239,12 +242,13 @@ fun mk_to_pred_inst thy fs =
               (list_comb (x', map Bound (length Ts - 1 downto 0))))))
     end) fs;
 
-fun mk_to_pred_eq p fs optfs' T thm =
+fun mk_to_pred_eq ctxt p fs optfs' T thm =
   let
     val thy = theory_of_thm thm;
     val insts = mk_to_pred_inst thy fs;
     val thm' = Thm.instantiate ([], insts) thm;
-    val thm'' = (case optfs' of
+    val thm'' =
+      (case optfs' of
         NONE => thm' RS sym
       | SOME fs' =>
           let
@@ -261,7 +265,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
                   HOLogic.boolT (Bound 0))))] arg_cong' RS sym)
           end)
   in
-    Simplifier.simplify (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}]
+    Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [mem_Collect_eq, @{thm split_conv}]
       addsimprocs [collect_mem_simproc]) thm'' |>
         zero_var_indexes |> eta_contract_thm (equal p)
   end;
@@ -278,6 +282,7 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
          @{typ bool} =>
            let
              val thy = Context.theory_of context;
+             val ctxt = Context.proof_of context;
              fun factors_of t fs = case strip_abs_body t of
                  Const (@{const_name Set.member}, _) $ u $ S =>
                    if is_Free S orelse is_Var S then
@@ -305,7 +310,7 @@ fun add context thm (tab as {to_set_simps, to_pred_simps, set_arities, pred_arit
                  else
                    {to_set_simps = thm :: to_set_simps,
                     to_pred_simps =
-                      mk_to_pred_eq h fs fs' T' thm :: to_pred_simps,
+                      mk_to_pred_eq ctxt h fs fs' T' thm :: to_pred_simps,
                     set_arities = Symtab.insert_list op = (s',
                       (T', (map (AList.lookup op = fs) ts', fs'))) set_arities,
                     pred_arities = Symtab.insert_list op = (s,
@@ -332,7 +337,7 @@ fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
     Simplifier.simproc_global_i @{theory HOL} "to_pred" [anyt]
-      (fn thy => K (lookup_rule thy (prop_of #> Logic.dest_equals) rules'))
+      (fn ctxt => (lookup_rule (Proof_Context.theory_of ctxt) (prop_of #> Logic.dest_equals) rules'))
   end;
 
 fun to_pred_proc thy rules t = case lookup_rule thy I rules t of
@@ -341,11 +346,12 @@ fun to_pred_proc thy rules t = case lookup_rule thy I rules t of
       SOME (Envir.subst_term
         (Pattern.match thy (lhs, t) (Vartab.empty, Vartab.empty)) rhs);
 
-fun to_pred thms ctxt thm =
+fun to_pred thms context thm =
   let
-    val thy = Context.theory_of ctxt;
+    val thy = Context.theory_of context;
+    val ctxt = Context.proof_of context;
     val {to_pred_simps, set_arities, pred_arities, ...} =
-      fold (add ctxt) thms (Data.get ctxt);
+      fold (add context) thms (Data.get context);
     val fs = filter (is_Var o fst)
       (infer_arities thy set_arities (NONE, prop_of thm) []);
     (* instantiate each set parameter with {(x, y). p x y} *)
@@ -353,7 +359,7 @@ fun to_pred thms ctxt thm =
   in
     thm |>
     Thm.instantiate ([], insts) |>
-    Simplifier.full_simplify (HOL_basic_ss addsimprocs
+    Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimprocs
       [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
     eta_contract_thm (is_pred pred_arities) |>
     Rule_Cases.save thm
@@ -364,11 +370,12 @@ val to_pred_att = Thm.rule_attribute o to_pred;
 
 (**** convert theorem in predicate notation to set notation ****)
 
-fun to_set thms ctxt thm =
+fun to_set thms context thm =
   let
-    val thy = Context.theory_of ctxt;
+    val thy = Context.theory_of context;
+    val ctxt = Context.proof_of context;
     val {to_set_simps, pred_arities, ...} =
-      fold (add ctxt) thms (Data.get ctxt);
+      fold (add context) thms (Data.get context);
     val fs = filter (is_Var o fst)
       (infer_arities thy pred_arities (NONE, prop_of thm) []);
     (* instantiate each predicate parameter with %x y. (x, y) : s *)
@@ -389,7 +396,7 @@ fun to_set thms ctxt thm =
   in
     thm |>
     Thm.instantiate ([], insts) |>
-    Simplifier.full_simplify (HOL_basic_ss addsimps to_set_simps
+    Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps to_set_simps
         addsimprocs [strong_ind_simproc pred_arities, collect_mem_simproc]) |>
     Rule_Cases.save thm
   end;
@@ -410,7 +417,7 @@ fun codegen_preproc thy =
             forall is_none xs) arities) (prop_of thm)
       then
         thm |>
-        Simplifier.full_simplify (HOL_basic_ss addsimprocs
+        Simplifier.full_simplify (Simplifier.global_context thy HOL_basic_ss addsimprocs
           [to_pred_simproc (mem_Collect_eq :: @{thm split_conv} :: to_pred_simps)]) |>
         eta_contract_thm (is_pred pred_arities)
       else thm
@@ -518,7 +525,7 @@ fun add_ind_set_def
                fold_rev (Term.abs o pair "x") Ts
                 (HOLogic.mk_mem (HOLogic.mk_ptuple fs U (map Bound (length fs downto 0)),
                   list_comb (c, params))))))
-            (K (REPEAT (rtac ext 1) THEN simp_tac (HOL_basic_ss addsimps
+            (K (REPEAT (rtac ext 1) THEN simp_tac (put_simpset HOL_basic_ss lthy addsimps
               [def, mem_Collect_eq, @{thm split_conv}]) 1))
         in
           lthy |> Local_Theory.note ((Binding.name (s ^ "p_" ^ s ^ "_eq"),
@@ -571,7 +578,7 @@ val setup =
     "convert rule to predicate notation" #>
   Attrib.setup @{binding mono_set} (Attrib.add_del mono_add mono_del)
     "declaration of monotonicity rule for set operators" #>
-  Simplifier.map_simpset_global (fn ss => ss addsimprocs [collect_mem_simproc]);
+  map_theory_simpset (fn ctxt => ctxt addsimprocs [collect_mem_simproc]);
 
 
 (* outer syntax *)

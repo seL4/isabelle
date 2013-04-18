@@ -1447,8 +1447,8 @@ lemma power_False_cong: "False \<Longrightarrow> a ^ b = c ^ d"
 
 (* uint_arith_tac: reduce to arithmetic on int, try to solve by arith *)
 ML {*
-fun uint_arith_ss_of ss = 
-  ss addsimps @{thms uint_arith_simps}
+fun uint_arith_simpset ctxt = 
+  ctxt addsimps @{thms uint_arith_simps}
      delsimps @{thms word_uint.Rep_inject}
      |> fold Splitter.add_split @{thms split_if_asm}
      |> fold Simplifier.add_cong @{thms power_False_cong}
@@ -1460,9 +1460,11 @@ fun uint_arith_tacs ctxt =
         handle Cooper.COOPER _ => Seq.empty;
   in 
     [ clarify_tac ctxt 1,
-      full_simp_tac (uint_arith_ss_of (simpset_of ctxt)) 1,
-      ALLGOALS (full_simp_tac (HOL_ss |> fold Splitter.add_split @{thms uint_splits}
-                                      |> fold Simplifier.add_cong @{thms power_False_cong})),
+      full_simp_tac (uint_arith_simpset ctxt) 1,
+      ALLGOALS (full_simp_tac
+        (put_simpset HOL_ss ctxt
+          |> fold Splitter.add_split @{thms uint_splits}
+          |> fold Simplifier.add_cong @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN
@@ -1946,8 +1948,8 @@ lemmas unat_arith_simps =
 (* unat_arith_tac: tactic to reduce word arithmetic to nat, 
    try to solve via arith *)
 ML {*
-fun unat_arith_ss_of ss = 
-  ss addsimps @{thms unat_arith_simps}
+fun unat_arith_simpset ctxt = 
+  ctxt addsimps @{thms unat_arith_simps}
      delsimps @{thms word_unat.Rep_inject}
      |> fold Splitter.add_split @{thms split_if_asm}
      |> fold Simplifier.add_cong @{thms power_False_cong}
@@ -1959,9 +1961,11 @@ fun unat_arith_tacs ctxt =
         handle Cooper.COOPER _ => Seq.empty;
   in 
     [ clarify_tac ctxt 1,
-      full_simp_tac (unat_arith_ss_of (simpset_of ctxt)) 1,
-      ALLGOALS (full_simp_tac (HOL_ss |> fold Splitter.add_split @{thms unat_splits}
-                                      |> fold Simplifier.add_cong @{thms power_False_cong})),
+      full_simp_tac (unat_arith_simpset ctxt) 1,
+      ALLGOALS (full_simp_tac
+        (put_simpset HOL_ss ctxt
+          |> fold Splitter.add_split @{thms unat_splits}
+          |> fold Simplifier.add_cong @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
       ALLGOALS  (fn n => REPEAT (resolve_tac [allI, impI] n) THEN      
                          REPEAT (etac conjE n) THEN

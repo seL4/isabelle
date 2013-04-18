@@ -489,7 +489,7 @@ ML {*
 
 signature LIST_TO_SET_COMPREHENSION =
 sig
-  val simproc : simpset -> cterm -> thm option
+  val simproc : Proof.context -> cterm -> thm option
 end
 
 structure List_to_Set_Comprehension : LIST_TO_SET_COMPREHENSION =
@@ -529,9 +529,8 @@ fun right_hand_set_comprehension_conv conv ctxt =
 
 datatype termlets = If | Case of (typ * int)
 
-fun simproc ss redex =
+fun simproc ctxt redex =
   let
-    val ctxt = Simplifier.the_context ss
     val thy = Proof_Context.theory_of ctxt
     val set_Nil_I = @{thm trans} OF [@{thm set.simps(1)}, @{thm empty_def}]
     val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
@@ -836,7 +835,9 @@ fun len (Const(@{const_name Nil},_)) acc = acc
   | len (Const(@{const_name map},_) $ _ $ xs) acc = len xs acc
   | len t (ts,n) = (t::ts,n);
 
-fun list_neq _ ss ct =
+val ss = simpset_of @{context};
+
+fun list_neq ctxt ct =
   let
     val (Const(_,eqT) $ lhs $ rhs) = Thm.term_of ct;
     val (ls,m) = len lhs ([],0) and (rs,n) = len rhs ([],0);
@@ -846,15 +847,15 @@ fun list_neq _ ss ct =
         val size = HOLogic.size_const listT;
         val eq_len = HOLogic.mk_eq (size $ lhs, size $ rhs);
         val neq_len = HOLogic.mk_Trueprop (HOLogic.Not $ eq_len);
-        val thm = Goal.prove (Simplifier.the_context ss) [] [] neq_len
-          (K (simp_tac (Simplifier.inherit_context ss @{simpset}) 1));
+        val thm = Goal.prove ctxt [] [] neq_len
+          (K (simp_tac (put_simpset ss ctxt) 1));
       in SOME (thm RS @{thm neq_if_length_neq}) end
   in
     if m < n andalso submultiset (op aconv) (ls,rs) orelse
        n < m andalso submultiset (op aconv) (rs,ls)
     then prove_neq() else NONE
   end;
-in list_neq end;
+in K list_neq end;
 *}
 
 
@@ -972,9 +973,10 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = {*
       | butlast xs = Const(@{const_name Nil}, fastype_of xs);
     
     val rearr_ss =
-      HOL_basic_ss addsimps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}];
+      simpset_of (put_simpset HOL_basic_ss @{context}
+        addsimps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}]);
     
-    fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
+    fun list_eq ctxt (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       let
         val lastl = last lhs and lastr = last rhs;
         fun rearr conv =
@@ -985,15 +987,15 @@ simproc_setup list_eq ("(xs::'a list) = ys")  = {*
             val app = Const(@{const_name append},appT)
             val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
             val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
-            val thm = Goal.prove (Simplifier.the_context ss) [] [] eq
-              (K (simp_tac (Simplifier.inherit_context ss rearr_ss) 1));
+            val thm = Goal.prove ctxt [] [] eq
+              (K (simp_tac (put_simpset rearr_ss ctxt) 1));
           in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
       in
         if list1 lastl andalso list1 lastr then rearr @{thm append1_eq_conv}
         else if lastl aconv lastr then rearr @{thm append_same_eq}
         else NONE
       end;
-  in fn _ => fn ss => fn ct => list_eq ss (term_of ct) end;
+  in fn _ => fn ctxt => fn ct => list_eq ctxt (term_of ct) end;
 *}
 
 

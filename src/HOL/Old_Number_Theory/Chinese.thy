@@ -243,7 +243,7 @@ lemma chinese_remainder:
          prefer 6
          apply (simp add: mult_ac)
         apply (unfold xilin_sol_def)
-        apply (tactic {* asm_simp_tac @{simpset} 6 *})
+        apply (tactic {* asm_simp_tac @{context} 6 *})
         apply (rule_tac [6] ex1_implies_ex [THEN someI_ex])
         apply (rule_tac [6] unique_xi_sol)
            apply (rule_tac [3] funprod_zdvd)

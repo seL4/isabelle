@@ -289,7 +289,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
          THEN (rtac @{thm rp_inv_image_rp} 1)
          THEN (rtac (order_rpair ms_rp label) 1)
          THEN PRIMITIVE (instantiate' [] [SOME level_mapping])
-         THEN unfold_tac @{thms rp_inv_image_def} (simpset_of ctxt)
+         THEN unfold_tac @{thms rp_inv_image_def} ctxt
          THEN Local_Defs.unfold_tac ctxt
            (@{thms split_conv} @ @{thms fst_conv} @ @{thms snd_conv})
          THEN REPEAT (SOMEGOAL (resolve_tac [@{thm Un_least}, @{thm empty_subsetI}]))
@@ -338,7 +338,7 @@ fun sizechange_tac ctxt autom_tac =
 fun decomp_scnp_tac orders ctxt =
   let
     val extra_simps = Function_Common.Termination_Simps.get ctxt
-    val autom_tac = auto_tac (map_simpset (fn ss => ss addsimps extra_simps) ctxt)
+    val autom_tac = auto_tac (ctxt addsimps extra_simps)
   in
      gen_sizechange_tac orders autom_tac ctxt
   end

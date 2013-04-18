@@ -225,22 +225,14 @@ fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
       | NONE => no_tac)
   | _ => no_tac));
 
-val distinctNameSolver =
-  mk_solver "distinctNameSolver" (distinctTree_tac o Simplifier.the_context);
+val distinctNameSolver = mk_solver "distinctNameSolver" distinctTree_tac;
 
 val distinct_simproc =
   Simplifier.simproc_global @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
-    (fn thy => fn ss => (fn (Const (@{const_name HOL.eq},_)$(x as Free _)$(y as Free _)) =>
-        (case try Simplifier.the_context ss of
-          SOME ctxt =>
-            Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
-              (neq_x_y ctxt x y)
-        | NONE => NONE)
+    (fn ctxt => (fn (Const (@{const_name HOL.eq},_)$(x as Free _)$(y as Free _)) =>
+        Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq]) (neq_x_y ctxt x y)
       | _ => NONE));
 
-local
-  val ss = HOL_basic_ss
-in
 fun interprete_parent name dist_thm_name parent_expr thy =
   let
     fun solve_tac ctxt = CSUBGOAL (fn (goal, i) =>
@@ -255,8 +247,6 @@ fun interprete_parent name dist_thm_name parent_expr thy =
   in
     thy |> prove_interpretation_in tac (name, parent_expr)
   end;
-
-end;
 
 fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
   let
@@ -283,14 +273,12 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
                | NONE => Symtab.update (name,thm) tt)
 
           val tt' = tt |> fold upd all_names;
-          val activate_simproc =
-            Simplifier.map_ss
-              (Simplifier.with_context (Context_Position.set_visible false ctxt)
-                (fn ss => ss addsimprocs [distinct_simproc]));
           val context' =
-              context
-              |> NameSpaceData.put {declinfo=declinfo,distinctthm=tt',silent=silent}
-              |> activate_simproc;
+              Context_Position.set_visible false ctxt
+              addsimprocs [distinct_simproc]
+              |> Context_Position.restore_visible ctxt
+              |> Context.Proof
+              |> NameSpaceData.put {declinfo=declinfo,distinctthm=tt',silent=silent};
         in context' end));
 
     val attr = Attrib.internal type_attr;

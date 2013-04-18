@@ -507,33 +507,36 @@ fun mk_nat_clist ns = List.foldr
   (uncurry (Thm.mk_binop @{cterm "Cons :: nat => _"}))
   @{cterm "[] :: nat list"} ns;
 
-fun upt_conv ct = case term_of ct of
-  (@{const upt} $ n $ m) => let
-    val (i, j) = pairself (snd o HOLogic.dest_number) (n, m);
-    val ns = map (Numeral.mk_cnumber @{ctyp nat}) (i upto (j - 1))
-      |> mk_nat_clist;
-    val prop = Thm.mk_binop @{cterm "op = :: nat list => _"} ct ns
-                 |> Thm.apply @{cterm Trueprop};
-  in
-    try (fn () =>
-      Goal.prove_internal [] prop 
-        (K (REPEAT_DETERM (resolve_tac @{thms upt_eq_list_intros} 1
-            ORELSE simp_tac word_ss 1))) |> mk_meta_eq) ()
-  end
+fun upt_conv ctxt ct =
+  case term_of ct of
+    (@{const upt} $ n $ m) =>
+      let
+        val (i, j) = pairself (snd o HOLogic.dest_number) (n, m);
+        val ns = map (Numeral.mk_cnumber @{ctyp nat}) (i upto (j - 1))
+          |> mk_nat_clist;
+        val prop = Thm.mk_binop @{cterm "op = :: nat list => _"} ct ns
+                     |> Thm.apply @{cterm Trueprop};
+      in
+        try (fn () =>
+          Goal.prove_internal [] prop 
+            (K (REPEAT_DETERM (resolve_tac @{thms upt_eq_list_intros} 1
+                ORELSE simp_tac (put_simpset word_ss ctxt) 1))) |> mk_meta_eq) ()
+      end
   | _ => NONE;
 
 val expand_upt_simproc = Simplifier.make_simproc
   {lhss = [@{cpat "upt _ _"}],
    name = "expand_upt", identifier = [],
-   proc = K (K upt_conv)};
+   proc = K upt_conv};
 
-fun word_len_simproc_fn ct = case term_of ct of
+fun word_len_simproc_fn ctxt ct =
+  case term_of ct of
     Const (@{const_name len_of}, _) $ t => (let
         val T = fastype_of t |> dest_Type |> snd |> the_single
         val n = Numeral.mk_cnumber @{ctyp nat} (Word_Lib.dest_binT T);
         val prop = Thm.mk_binop @{cterm "op = :: nat => _"} ct n
                  |> Thm.apply @{cterm Trueprop};
-      in Goal.prove_internal [] prop (K (simp_tac word_ss 1))
+      in Goal.prove_internal [] prop (K (simp_tac (put_simpset word_ss ctxt) 1))
              |> mk_meta_eq |> SOME end
     handle TERM _ => NONE | TYPE _ => NONE)
   | _ => NONE;
@@ -541,12 +544,14 @@ fun word_len_simproc_fn ct = case term_of ct of
 val word_len_simproc = Simplifier.make_simproc
   {lhss = [@{cpat "len_of _"}],
    name = "word_len", identifier = [],
-   proc = K (K word_len_simproc_fn)};
+   proc = K word_len_simproc_fn};
 
 (* convert 5 or nat 5 to Suc 4 when n_sucs = 1, Suc (Suc 4) when n_sucs = 2,
    or just 5 (discarding nat) when n_sucs = 0 *)
 
-fun nat_get_Suc_simproc_fn n_sucs thy ct = let
+fun nat_get_Suc_simproc_fn n_sucs ctxt ct =
+  let
+    val thy = Proof_Context.theory_of ctxt;
     val (f $ arg) = (term_of ct);
     val n = (case arg of @{term nat} $ n => n | n => n)
       |> HOLogic.dest_number |> snd;
@@ -558,32 +563,38 @@ fun nat_get_Suc_simproc_fn n_sucs thy ct = let
     fun propfn g = HOLogic.mk_eq (g arg, g arg')
       |> HOLogic.mk_Trueprop |> cterm_of thy;
     val eq1 = Goal.prove_internal [] (propfn I)
-      (K (simp_tac word_ss 1));
+      (K (simp_tac (put_simpset word_ss ctxt) 1));
   in Goal.prove_internal [] (propfn (curry (op $) f))
-      (K (simp_tac (HOL_ss addsimps [eq1]) 1))
+      (K (simp_tac (put_simpset HOL_ss ctxt addsimps [eq1]) 1))
        |> mk_meta_eq |> SOME end
     handle TERM _ => NONE;
 
 fun nat_get_Suc_simproc n_sucs thy cts = Simplifier.make_simproc
   {lhss = map (fn t => Thm.apply t @{cpat "?n :: nat"}) cts,
    name = "nat_get_Suc", identifier = [],
-   proc = K (K (nat_get_Suc_simproc_fn n_sucs thy))};
+   proc = K (nat_get_Suc_simproc_fn n_sucs)};
 
-val no_split_ss = Splitter.del_split @{thm split_if} HOL_ss;
+val no_split_ss =
+  simpset_of (put_simpset HOL_ss @{context}
+    |> Splitter.del_split @{thm split_if});
 
-val expand_word_eq_sss = (HOL_basic_ss addsimps
-       @{thms word_eq_rbl_eq word_le_rbl word_less_rbl word_sle_rbl word_sless_rbl},
-  [no_split_ss addsimps @{thms rbl_word_plus rbl_word_and rbl_word_or rbl_word_not
+val expand_word_eq_sss =
+  (simpset_of (put_simpset HOL_basic_ss @{context} addsimps
+       @{thms word_eq_rbl_eq word_le_rbl word_less_rbl word_sle_rbl word_sless_rbl}),
+  map simpset_of [
+   put_simpset no_split_ss @{context} addsimps
+    @{thms rbl_word_plus rbl_word_and rbl_word_or rbl_word_not
                                 rbl_word_neg bl_word_sub rbl_word_xor
                                 rbl_word_cat rbl_word_slice rbl_word_scast
                                 rbl_word_ucast rbl_shiftl rbl_shiftr rbl_sshiftr
                                 rbl_word_if},
-   no_split_ss addsimps @{thms to_bl_numeral to_bl_neg_numeral
-                               to_bl_0 rbl_word_1},
-   no_split_ss addsimps @{thms rev_rev_ident
-                                rev_replicate rev_map to_bl_upt word_size}
+   put_simpset no_split_ss @{context} addsimps
+    @{thms to_bl_numeral to_bl_neg_numeral to_bl_0 rbl_word_1},
+   put_simpset no_split_ss @{context} addsimps
+    @{thms rev_rev_ident rev_replicate rev_map to_bl_upt word_size}
           addsimprocs [word_len_simproc],
-   no_split_ss addsimps @{thms list.simps split_conv replicate.simps map.simps
+   put_simpset no_split_ss @{context} addsimps
+    @{thms list.simps split_conv replicate.simps map.simps
                                 zip_Cons_Cons zip_Nil drop_Suc_Cons drop_0 drop_Nil
                                 foldr.simps map2_Cons map2_Nil takefill_Suc_Cons
                                 takefill_Suc_Nil takefill.Z rbl_succ2_simps
@@ -596,20 +607,24 @@ val expand_word_eq_sss = (HOL_basic_ss addsimps
                           @{cpat drop}, @{cpat "bin_to_bl"},
                           @{cpat "takefill_last ?x"},
                           @{cpat "drop_nonempty ?x"}]],
-    no_split_ss addsimps @{thms xor3_simps carry_simps if_bool_simps}
+    put_simpset no_split_ss @{context} addsimps @{thms xor3_simps carry_simps if_bool_simps}
   ])
 
-val tac =
+fun tac ctxt =
   let
     val (ss, sss) = expand_word_eq_sss;
-  in foldr1 (op THEN_ALL_NEW) ((CHANGED o safe_full_simp_tac ss) :: map safe_full_simp_tac sss) end;
+  in
+    foldr1 (op THEN_ALL_NEW)
+      ((CHANGED o safe_full_simp_tac (put_simpset ss ctxt)) ::
+        map (fn ss => safe_full_simp_tac (put_simpset ss ctxt)) sss)
+  end;
 
 end
 
 *}
 
 method_setup word_bitwise =
-  {* Scan.succeed (K (Method.SIMPLE_METHOD (Word_Bitwise_Tac.tac 1)))  *}
+  {* Scan.succeed (fn ctxt => Method.SIMPLE_METHOD (Word_Bitwise_Tac.tac ctxt 1))  *}
   "decomposer for word equalities and inequalities into bit propositions"
 
 end

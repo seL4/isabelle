@@ -36,7 +36,8 @@ structure Domain_Isomorphism : DOMAIN_ISOMORPHISM =
 struct
 
 val beta_ss =
-  HOL_basic_ss addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}]
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}])
 
 fun is_cpo thy T = Sign.of_sort thy (T, @{sort cpo})
 
@@ -156,7 +157,8 @@ fun add_fixdefs
     (* prove applied version of definitions *)
     fun prove_proj (lhs, rhs) =
       let
-        val tac = rewrite_goals_tac fixdef_thms THEN (simp_tac beta_ss) 1
+        val tac = rewrite_goals_tac fixdef_thms THEN
+          (simp_tac (Simplifier.global_context thy beta_ss)) 1
         val goal = Logic.mk_equals (lhs, rhs)
       in Goal.prove_global thy [] [] goal (K tac) end
     val proj_thms = map prove_proj projs
@@ -324,13 +326,13 @@ fun define_map_functions
           @ deflation_abs_rep_thms
           @ Domain_Take_Proofs.get_deflation_thms thy
       in
-        Goal.prove_global thy [] assms goal (fn {prems, ...} =>
+        Goal.prove_global thy [] assms goal (fn {prems, context = ctxt} =>
          EVERY
           [rewrite_goals_tac map_apply_thms,
            rtac (map_cont_thm RS @{thm cont_fix_ind}) 1,
            REPEAT (resolve_tac adm_rules 1),
-           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
-           simp_tac (HOL_basic_ss addsimps tuple_rules) 1,
+           simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
+           simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (deflation_rules @ prems) 1 ORELSE atac 1)])
       end
@@ -638,15 +640,15 @@ fun gen_domain_isomorphism
           @ isodefl_abs_rep_thms
           @ IsodeflData.get (Proof_Context.init_global thy)
       in
-        Goal.prove_global thy [] assms goal (fn {prems, ...} =>
+        Goal.prove_global thy [] assms goal (fn {prems, context = ctxt} =>
          EVERY
           [rewrite_goals_tac (defl_apply_thms @ map_apply_thms),
            rtac (@{thm cont_parallel_fix_ind}
              OF [defl_cont_thm, map_cont_thm]) 1,
            REPEAT (resolve_tac adm_rules 1),
-           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
-           simp_tac (HOL_basic_ss addsimps tuple_rules) 1,
-           simp_tac (HOL_basic_ss addsimps map_ID_simps) 1,
+           simp_tac (put_simpset HOL_basic_ss ctxt addsimps bottom_rules) 1,
+           simp_tac (put_simpset HOL_basic_ss ctxt addsimps tuple_rules) 1,
+           simp_tac (put_simpset HOL_basic_ss ctxt addsimps map_ID_simps) 1,
            REPEAT (etac @{thm conjE} 1),
            REPEAT (resolve_tac (isodefl_rules @ prems) 1 ORELSE atac 1)])
       end
@@ -712,16 +714,16 @@ fun gen_domain_isomorphism
         val rules1 =
             @{thms iterate_Suc prod_eq_iff fst_conv snd_conv}
             @ take_Suc_thms
-        val tac =
+        fun tac ctxt =
             EVERY
-            [simp_tac (HOL_basic_ss addsimps start_rules) 1,
-             simp_tac (HOL_basic_ss addsimps @{thms fix_def2}) 1,
+            [simp_tac (put_simpset HOL_basic_ss ctxt addsimps start_rules) 1,
+             simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms fix_def2}) 1,
              rtac @{thm lub_eq} 1,
              rtac @{thm nat.induct} 1,
-             simp_tac (HOL_basic_ss addsimps rules0) 1,
-             asm_full_simp_tac (beta_ss addsimps rules1) 1]
+             simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules0) 1,
+             asm_full_simp_tac (put_simpset beta_ss ctxt addsimps rules1) 1]
       in
-        Goal.prove_global thy [] [] goal (K tac)
+        Goal.prove_global thy [] [] goal (tac o #context)
       end
 
     (* prove lub of take equals ID *)

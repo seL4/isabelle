@@ -406,7 +406,8 @@ ML_file "~~/src/HOL/Hoare/hoare_tac.ML"
 method_setup hoare = {*
   Scan.succeed (fn ctxt =>
     (SIMPLE_METHOD'
-       (hoare_tac ctxt (simp_tac (HOL_basic_ss addsimps [@{thm "Record.K_record_comp"}] ))))) *}
+       (hoare_tac ctxt
+        (simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm "Record.K_record_comp"}] ))))) *}
   "verification condition generator for Hoare logic"
 
 end

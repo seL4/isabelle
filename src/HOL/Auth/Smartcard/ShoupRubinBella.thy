@@ -828,7 +828,7 @@ method_setup sc_analz_freshK = {*
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
-          ALLGOALS (asm_simp_tac (Simplifier.context ctxt Smartcard.analz_image_freshK_ss
+          ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt
               addsimps [@{thm knows_Spy_Inputs_secureM_srb_Spy},
                   @{thm knows_Spy_Outpts_secureM_srb_Spy},
                   @{thm shouprubin_assumes_securemeans},

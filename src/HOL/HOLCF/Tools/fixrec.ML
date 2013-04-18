@@ -132,7 +132,7 @@ fun add_fixdefs
           Syntax.string_of_term lthy prop)
         val rules = Cont2ContData.get lthy
         val fast_tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules))
-        val slow_tac = SOLVED' (simp_tac (simpset_of lthy))
+        val slow_tac = SOLVED' (simp_tac lthy)
         val tac = fast_tac 1 ORELSE slow_tac 1 ORELSE err
       in
         Goal.prove lthy [] [] prop (K tac)
@@ -293,7 +293,6 @@ fun eta_tac i = CONVERSION Thm.eta_conversion i
 fun fixrec_simp_tac ctxt =
   let
     val tab = FixrecUnfoldData.get (Context.Proof ctxt)
-    val ss = Simplifier.simpset_of ctxt
     val concl = HOLogic.dest_Trueprop o Logic.strip_imp_concl o strip_alls
     fun tac (t, i) =
       let
@@ -302,7 +301,7 @@ fun fixrec_simp_tac ctxt =
         val unfold_thm = the (Symtab.lookup tab c)
         val rule = unfold_thm RS @{thm ssubst_lhs}
       in
-        CHANGED (rtac rule i THEN eta_tac i THEN asm_simp_tac ss i)
+        CHANGED (rtac rule i THEN eta_tac i THEN asm_simp_tac ctxt i)
       end
   in
     SUBGOAL (fn ti => the_default no_tac (try tac ti))
@@ -311,9 +310,8 @@ fun fixrec_simp_tac ctxt =
 (* proves a block of pattern matching equations as theorems, using unfold *)
 fun make_simps ctxt (unfold_thm, eqns : (Attrib.binding * term) list) =
   let
-    val ss = Simplifier.simpset_of ctxt
     val rule = unfold_thm RS @{thm ssubst_lhs}
-    val tac = rtac rule 1 THEN eta_tac 1 THEN asm_simp_tac ss 1
+    val tac = rtac rule 1 THEN eta_tac 1 THEN asm_simp_tac ctxt 1
     fun prove_term t = Goal.prove ctxt [] [] t (K tac)
     fun prove_eqn (bind, eqn_t) = (bind, prove_term eqn_t)
   in

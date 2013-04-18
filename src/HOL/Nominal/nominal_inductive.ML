@@ -20,12 +20,12 @@ val inductive_rulify = @{thms induct_rulify};
 
 fun rulify_term thy = Raw_Simplifier.rewrite_term thy inductive_rulify [];
 
-val atomize_conv =
+fun atomize_conv ctxt =
   Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE))
-    (HOL_basic_ss addsimps inductive_atomize);
-val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
+    (put_simpset HOL_basic_ss ctxt addsimps inductive_atomize);
+fun atomize_intr ctxt = Conv.fconv_rule (Conv.prems_conv ~1 (atomize_conv ctxt));
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
-  (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
+  (Conv.params_conv ~1 (K (Conv.prems_conv ~1 (atomize_conv ctxt))) ctxt));
 
 fun preds_of ps t = inter (op = o apsnd dest_Free) ps (Term.add_frees t []);
 
@@ -40,7 +40,7 @@ fun mk_perm_bool pi th = th RS Drule.cterm_instantiate
   [(perm_boolI_pi, pi)] perm_boolI;
 
 fun mk_perm_bool_simproc names = Simplifier.simproc_global_i
-  (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn thy => fn ss =>
+  (theory_of_thm perm_bool) "perm_bool" [@{term "perm pi x"}] (fn ctxt =>
     fn Const (@{const_name Nominal.perm}, _) $ _ $ t =>
          if member (op =) names (the_default "" (try (head_of #> dest_Const #> fst) t))
          then SOME perm_bool else NONE
@@ -103,10 +103,10 @@ fun inst_conj_all names ps pis (Const (@{const_name HOL.conj}, _) $ p $ q) _ =
       else NONE
   | inst_conj_all _ _ _ _ _ = NONE;
 
-fun inst_conj_all_tac k = EVERY
+fun inst_conj_all_tac ctxt k = EVERY
   [TRY (EVERY [etac conjE 1, rtac conjI 1, atac 1]),
    REPEAT_DETERM_N k (etac allE 1),
-   simp_tac (HOL_basic_ss addsimps [@{thm id_apply}]) 1];
+   simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]) 1];
 
 fun map_term f t u = (case f t u of
       NONE => map_term' f t u | x => x)
@@ -271,10 +271,10 @@ fun prove_strong_ind s avoids ctxt =
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn aT => Global_Theory.get_thm thy
       ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
-    val eqvt_ss = Simplifier.global_context thy HOL_basic_ss
+    val eqvt_ss = simpset_of (Simplifier.global_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc [@{const_name Fun.id}],
-        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
+        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun]);
     val fresh_bij = Global_Theory.get_thms thy "fresh_bij";
     val perm_bij = Global_Theory.get_thms thy "perm_bij";
     val fs_atoms = map (fn aT => Global_Theory.get_thm thy
@@ -299,10 +299,10 @@ fun prove_strong_ind s avoids ctxt =
             [resolve_tac exists_fresh' 1,
              resolve_tac fs_atoms 1]);
         val (([(_, cx)], ths), ctxt') = Obtain.result
-          (fn _ => EVERY
+          (fn ctxt' => EVERY
             [etac exE 1,
-             full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
-             full_simp_tac (HOL_basic_ss addsimps [@{thm id_apply}]) 1,
+             full_simp_tac (put_simpset HOL_ss ctxt' addsimps (fresh_prod :: fresh_atm)) 1,
+             full_simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [@{thm id_apply}]) 1,
              REPEAT (etac conjE 1)])
           [ex] ctxt
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
@@ -312,7 +312,7 @@ fun prove_strong_ind s avoids ctxt =
         let val th = Goal.prove ctxt [] [] concl (fn {context, ...} =>
           rtac raw_induct 1 THEN
           EVERY (maps (fn ((((_, bvars, oprems, _), vc_compat_ths), ihyp), (vs, ihypt)) =>
-            [REPEAT (rtac allI 1), simp_tac eqvt_ss 1,
+            [REPEAT (rtac allI 1), simp_tac (put_simpset eqvt_ss context) 1,
              SUBPROOF (fn {prems = gprems, params, concl, context = ctxt', ...} =>
                let
                  val (params', (pis, z)) =
@@ -343,9 +343,9 @@ fun prove_strong_ind s avoids ctxt =
                     map (fold_rev (NominalDatatype.mk_perm [])
                       (rev pis' @ pis)) params' @ [z])) ihyp;
                  fun mk_pi th =
-                   Simplifier.simplify (HOL_basic_ss addsimps [@{thm id_apply}]
+                   Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm id_apply}]
                        addsimprocs [NominalDatatype.perm_simproc])
-                     (Simplifier.simplify eqvt_ss
+                     (Simplifier.simplify (put_simpset eqvt_ss ctxt)
                        (fold_rev (mk_perm_bool o cterm_of thy)
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
@@ -355,7 +355,7 @@ fun prove_strong_ind s avoids ctxt =
                         (map_thm ctxt (split_conj (K o I) names)
                            (etac conjunct1 1) monos NONE th,
                          mk_pi (the (map_thm ctxt (inst_conj_all names ps (rev pis''))
-                           (inst_conj_all_tac (length pis'')) monos (SOME t) th))))
+                           (inst_conj_all_tac ctxt (length pis'')) monos (SOME t) th))))
                       (gprems ~~ oprems)) |>> map_filter I;
                  val vc_compat_ths' = map (fn th =>
                    let
@@ -368,29 +368,29 @@ fun prove_strong_ind s avoids ctxt =
                      val th'' = Goal.prove ctxt'' [] [] (HOLogic.mk_Trueprop
                          (bop (fold_rev (NominalDatatype.mk_perm []) pis lhs)
                             (fold_rev (NominalDatatype.mk_perm []) pis rhs)))
-                       (fn _ => simp_tac (HOL_basic_ss addsimps
+                       (fn _ => simp_tac (put_simpset HOL_basic_ss ctxt'' addsimps
                           (fresh_bij @ perm_bij)) 1 THEN rtac th' 1)
-                   in Simplifier.simplify (eqvt_ss addsimps fresh_atm) th'' end)
+                   in Simplifier.simplify (put_simpset eqvt_ss ctxt'' addsimps fresh_atm) th'' end)
                      vc_compat_ths;
                  val vc_compat_ths'' = NominalDatatype.mk_not_sym vc_compat_ths';
                  (** Since swap_simps simplifies (pi :: 'a prm) o (x :: 'b) to x **)
                  (** we have to pre-simplify the rewrite rules                   **)
-                 val swap_simps_ss = HOL_ss addsimps swap_simps @
-                    map (Simplifier.simplify (HOL_ss addsimps swap_simps))
+                 val swap_simps_simpset = put_simpset HOL_ss ctxt'' addsimps swap_simps @
+                    map (Simplifier.simplify (put_simpset HOL_ss ctxt'' addsimps swap_simps))
                       (vc_compat_ths'' @ freshs2');
                  val th = Goal.prove ctxt'' [] []
                    (HOLogic.mk_Trueprop (list_comb (P $ hd ts,
                      map (fold (NominalDatatype.mk_perm []) pis') (tl ts))))
-                   (fn _ => EVERY ([simp_tac eqvt_ss 1, rtac ihyp' 1,
+                   (fn _ => EVERY ([simp_tac (put_simpset eqvt_ss ctxt'') 1, rtac ihyp' 1,
                      REPEAT_DETERM_N (nprems_of ihyp - length gprems)
-                       (simp_tac swap_simps_ss 1),
+                       (simp_tac swap_simps_simpset 1),
                      REPEAT_DETERM_N (length gprems)
-                       (simp_tac (HOL_basic_ss
+                       (simp_tac (put_simpset HOL_basic_ss ctxt''
                           addsimps [inductive_forall_def']
                           addsimprocs [NominalDatatype.perm_simproc]) 1 THEN
                         resolve_tac gprems2 1)]));
                  val final = Goal.prove ctxt'' [] [] (term_of concl)
-                   (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (HOL_ss
+                   (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (put_simpset HOL_ss ctxt''
                      addsimps vc_compat_ths'' @ freshs2' @
                        perm_fresh_fresh @ fresh_atm) 1);
                  val final' = Proof_Context.export ctxt'' ctxt' [final];
@@ -400,7 +400,7 @@ fun prove_strong_ind s avoids ctxt =
           cut_facts_tac [th] 1 THEN REPEAT (etac conjE 1) THEN
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
-            asm_full_simp_tac (simpset_of ctxt) 1)
+            asm_full_simp_tac ctxt 1)
         end) |> singleton (Proof_Context.export ctxt' ctxt);
 
     (** strong case analysis rule **)
@@ -452,13 +452,13 @@ fun prove_strong_ind s avoids ctxt =
                    concl))
           in map mk_prem prems end) cases_prems;
 
-    val cases_eqvt_ss = Simplifier.global_context thy HOL_ss
+    val cases_eqvt_simpset = Simplifier.global_context thy HOL_ss
       addsimps eqvt_thms @ swap_simps @ perm_pi_simp
       addsimprocs [NominalPermeq.perm_simproc_app,
         NominalPermeq.perm_simproc_fun];
 
     val simp_fresh_atm = map
-      (Simplifier.simplify (HOL_basic_ss addsimps fresh_atm));
+      (Simplifier.simplify (Simplifier.global_context thy HOL_basic_ss addsimps fresh_atm));
 
     fun mk_cases_proof ((((name, thss), elim), (prem, args, concl, (prems, ctxt'))),
         prems') =
@@ -520,16 +520,16 @@ fun prove_strong_ind s avoids ctxt =
                        SUBPROOF (fn {prems = fresh_hyps, ...} =>
                          let
                            val fresh_hyps' = NominalDatatype.mk_not_sym fresh_hyps;
-                           val case_ss = cases_eqvt_ss addsimps freshs2' @
+                           val case_simpset = cases_eqvt_simpset addsimps freshs2' @
                              simp_fresh_atm (vc_compat_ths' @ fresh_hyps');
-                           val fresh_fresh_ss = case_ss addsimps perm_fresh_fresh;
+                           val fresh_fresh_simpset = case_simpset addsimps perm_fresh_fresh;
                            val hyps1' = map
-                             (mk_pis #> Simplifier.simplify fresh_fresh_ss) hyps1;
+                             (mk_pis #> Simplifier.simplify fresh_fresh_simpset) hyps1;
                            val hyps2' = map
-                             (mk_pis #> Simplifier.simplify case_ss) hyps2;
+                             (mk_pis #> Simplifier.simplify case_simpset) hyps2;
                            val case_hyps' = hyps1' @ hyps2'
                          in
-                           simp_tac case_ss 1 THEN
+                           simp_tac case_simpset 1 THEN
                            REPEAT_DETERM (TRY (rtac conjI 1) THEN
                              resolve_tac case_hyps' 1)
                          end) ctxt4 1)
@@ -547,11 +547,11 @@ fun prove_strong_ind s avoids ctxt =
         val ind_case_names = Rule_Cases.case_names induct_cases;
         val induct_cases' = Inductive.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
-        val thss' = map (map atomize_intr) thss;
+        val thss' = map (map (atomize_intr ctxt)) thss;
         val thsss = Inductive.partition_rules' raw_induct (intrs ~~ thss');
         val strong_raw_induct =
-          mk_ind_proof ctxt thss' |> Inductive.rulify;
-        val strong_cases = map (mk_cases_proof ##> Inductive.rulify)
+          mk_ind_proof ctxt thss' |> Inductive.rulify ctxt;
+        val strong_cases = map (mk_cases_proof ##> Inductive.rulify ctxt)
           (thsss ~~ elims ~~ cases_prems ~~ cases_prems');
         val strong_induct_atts =
           map (Attrib.internal o K)
@@ -586,7 +586,7 @@ fun prove_eqvt s xatoms ctxt =
       Inductive.the_inductive ctxt (Sign.intern_const thy s);
     val raw_induct = atomize_induct ctxt raw_induct;
     val elims = map (atomize_induct ctxt) elims;
-    val intrs = map atomize_intr intrs;
+    val intrs = map (atomize_intr ctxt) intrs;
     val monos = Inductive.get_monos ctxt;
     val intrs' = Inductive.unpartition_rules intrs
       (map (fn (((s, ths), (_, k)), th) =>
@@ -608,7 +608,7 @@ fun prove_eqvt s xatoms ctxt =
          atoms)
       end;
     val perm_pi_simp = Global_Theory.get_thms thy "perm_pi_simp";
-    val eqvt_ss = Simplifier.global_context thy HOL_basic_ss addsimps
+    val eqvt_simpset = Simplifier.global_context thy HOL_basic_ss addsimps
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names,
        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
@@ -628,7 +628,7 @@ fun prove_eqvt s xatoms ctxt =
           let
             val prems' = map (fn th => the_default th (map_thm ctxt'
               (split_conj (K I) names) (etac conjunct2 1) monos NONE th)) prems;
-            val prems'' = map (fn th => Simplifier.simplify eqvt_ss
+            val prems'' = map (fn th => Simplifier.simplify eqvt_simpset
               (mk_perm_bool (cterm_of thy pi) th)) prems';
             val intr' = Drule.cterm_instantiate (map (cterm_of thy) vs ~~
                map (cterm_of thy o NominalDatatype.mk_perm [] pi o term_of o #2) params)
@@ -654,7 +654,7 @@ fun prove_eqvt s xatoms ctxt =
                 map (NominalDatatype.mk_perm [] pi') ts2))
             end) ps)))
           (fn {context, ...} => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
-              full_simp_tac eqvt_ss 1 THEN
+              full_simp_tac eqvt_simpset 1 THEN
               eqvt_tac context pi' intr_vs) intrs')) |>
           singleton (Proof_Context.export ctxt' ctxt)))
       end) atoms

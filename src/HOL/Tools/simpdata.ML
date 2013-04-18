@@ -48,7 +48,7 @@ fun mk_eq th = case concl_of th
    | _ $ (Const (@{const_name Not}, _) $ _) => th RS @{thm Eq_FalseI}
    | _ => th RS @{thm Eq_TrueI}
 
-fun mk_eq_True (_: simpset) r =
+fun mk_eq_True (_: Proof.context) r =
   SOME (r RS @{thm meta_eq_to_obj_eq} RS @{thm Eq_TrueI}) handle Thm.THM _ => NONE;
 
 (* Produce theorems of the form
@@ -79,7 +79,7 @@ fun lift_meta_eq_to_obj_eq i st =
   end;
 
 (*Congruence rules for = (instead of ==)*)
-fun mk_meta_cong (_: simpset) rl = zero_var_indexes
+fun mk_meta_cong (_: Proof.context) rl = zero_var_indexes
   (let val rl' = Seq.hd (TRYALL (fn i => fn st =>
      rtac (lift_meta_eq_to_obj_eq i st) i st) rl)
    in mk_meta_eq rl' handle THM _ =>
@@ -106,21 +106,21 @@ fun mk_atomize pairs =
       end;
   in atoms end;
 
-fun mksimps pairs (_: simpset) =
+fun mksimps pairs (_: Proof.context) =
   map_filter (try mk_eq) o mk_atomize pairs o gen_all;
 
-fun unsafe_solver_tac ss =
+fun unsafe_solver_tac ctxt =
   (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN'
-  FIRST' [resolve_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ss),
+  FIRST' [resolve_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt),
     atac, etac @{thm FalseE}];
 
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 
 
 (*No premature instantiation of variables during simplification*)
-fun safe_solver_tac ss =
+fun safe_solver_tac ctxt =
   (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN'
-  FIRST' [match_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ss),
+  FIRST' [match_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ctxt),
     eq_assume_tac, ematch_tac @{thms FalseE}];
 
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
@@ -166,19 +166,20 @@ val mksimps_pairs =
   (@{const_name If}, [@{thm if_bool_eq_conj} RS @{thm iffD1}])];
 
 val HOL_basic_ss =
-  Simplifier.global_context @{theory} empty_ss
+  empty_simpset @{context}
   setSSolver safe_solver
   setSolver unsafe_solver
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps mksimps_pairs)
   |> Simplifier.set_mkeqTrue mk_eq_True
-  |> Simplifier.set_mkcong mk_meta_cong;
+  |> Simplifier.set_mkcong mk_meta_cong
+  |> simpset_of;
 
-fun hol_simplify rews = Simplifier.full_simplify (HOL_basic_ss addsimps rews);
+fun hol_simplify ctxt rews =
+  Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps rews);
 
-fun unfold_tac ths =
-  let val ss0 = Simplifier.clear_ss HOL_basic_ss addsimps ths
-  in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
+fun unfold_tac ths ctxt =
+  ALLGOALS (full_simp_tac (clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths));
 
 end;
 

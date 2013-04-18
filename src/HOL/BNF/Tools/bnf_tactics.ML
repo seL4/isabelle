@@ -8,7 +8,7 @@ General tactics for bounded natural functors.
 
 signature BNF_TACTICS =
 sig
-  val ss_only: thm list -> simpset
+  val ss_only : thm list -> Proof.context -> Proof.context
 
   val select_prem_tac: int -> (int -> tactic) -> int -> int -> tactic
   val fo_rtac: thm -> Proof.context -> int -> tactic
@@ -36,7 +36,7 @@ struct
 
 open BNF_Util
 
-fun ss_only thms = Simplifier.clear_ss HOL_basic_ss addsimps thms;
+fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths
 
 fun select_prem_tac n tac k = DETERM o (EVERY' [REPEAT_DETERM_N (k - 1) o etac thin_rl,
   tac, REPEAT_DETERM_N (n - k) o etac thin_rl]);

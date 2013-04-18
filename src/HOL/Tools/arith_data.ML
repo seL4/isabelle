@@ -18,9 +18,9 @@ sig
 
   val prove_conv_nohyps: tactic list -> Proof.context -> term * term -> thm option
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
-  val prove_conv2: tactic -> (simpset -> tactic) -> simpset -> term * term -> thm
-  val simp_all_tac: thm list -> simpset -> tactic
-  val simplify_meta_eq: thm list -> simpset -> thm -> thm
+  val prove_conv2: tactic -> (Proof.context -> tactic) -> Proof.context -> term * term -> thm
+  val simp_all_tac: thm list -> Proof.context -> tactic
+  val simplify_meta_eq: thm list -> Proof.context -> thm -> thm
 
   val setup: theory -> theory
 end;
@@ -105,17 +105,16 @@ fun prove_conv_nohyps tacs ctxt (t, u) =
 
 fun prove_conv tacs ctxt (_: thm list) = prove_conv_nohyps tacs ctxt;
 
-fun prove_conv2 expand_tac norm_tac ss tu = (* FIXME avoid Drule.export_without_context *)
-  mk_meta_eq (Drule.export_without_context (Goal.prove (Simplifier.the_context ss) [] []
+fun prove_conv2 expand_tac norm_tac ctxt tu = (* FIXME avoid Drule.export_without_context *)
+  mk_meta_eq (Drule.export_without_context (Goal.prove ctxt [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq tu))
-    (K (EVERY [expand_tac, norm_tac ss]))));
+    (K (EVERY [expand_tac, norm_tac ctxt]))));
 
-fun simp_all_tac rules =
-  let val ss0 = HOL_ss addsimps rules
-  in fn ss => ALLGOALS (safe_simp_tac (Simplifier.inherit_context ss ss0)) end;
+fun simp_all_tac rules ctxt =
+  ALLGOALS (safe_simp_tac (put_simpset HOL_ss ctxt addsimps rules));
 
-fun simplify_meta_eq rules =
-  let val ss0 = HOL_basic_ss addsimps rules |> Simplifier.add_eqcong @{thm eq_cong2}
-  in fn ss => simplify (Simplifier.inherit_context ss ss0) o mk_meta_eq end;
+fun simplify_meta_eq rules ctxt =
+  simplify (put_simpset HOL_basic_ss ctxt addsimps rules |> Simplifier.add_eqcong @{thm eq_cong2})
+    o mk_meta_eq;
 
 end;

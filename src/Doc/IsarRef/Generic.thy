@@ -996,9 +996,9 @@ subsubsection {* The subgoaler *}
 
 text {*
   \begin{mldecls}
-  @{index_ML Simplifier.set_subgoaler: "(simpset -> int -> tactic) ->
-  simpset -> simpset"} \\
-  @{index_ML Simplifier.prems_of: "simpset -> thm list"} \\
+  @{index_ML Simplifier.set_subgoaler: "(Proof.context -> int -> tactic) ->
+  Proof.context -> Proof.context"} \\
+  @{index_ML Simplifier.prems_of: "Proof.context -> thm list"} \\
   \end{mldecls}
 
   The subgoaler is the tactic used to solve subgoals arising out of
@@ -1010,14 +1010,12 @@ text {*
 
   \begin{description}
 
-  \item @{ML Simplifier.set_subgoaler}~@{text "ss tac"} sets the
-  subgoaler of simpset @{text "ss"} to @{text "tac"}.  The tactic will
-  be applied to the context of the running Simplifier instance,
-  expressed as a simpset.
+  \item @{ML Simplifier.set_subgoaler}~@{text "tac ctxt"} sets the
+  subgoaler of the context to @{text "tac"}.  The tactic will
+  be applied to the context of the running Simplifier instance.
 
-  \item @{ML Simplifier.prems_of}~@{text "ss"} retrieves the current
-  set of premises from simpset @{text "ss"} that represents the
-  context of the running Simplifier.  This may be non-empty only if
+  \item @{ML Simplifier.prems_of}~@{text "ctxt"} retrieves the current
+  set of premises from the context.  This may be non-empty only if
   the Simplifier has been told to utilize local assumptions in the
   first place (cf.\ the options in \secref{sec:simp-meth}).
 
@@ -1027,10 +1025,10 @@ text {*
 *}
 
 ML {*
-  fun subgoaler_tac ss =
+  fun subgoaler_tac ctxt =
     assume_tac ORELSE'
-    resolve_tac (Simplifier.prems_of ss) ORELSE'
-    asm_simp_tac ss
+    resolve_tac (Simplifier.prems_of ctxt) ORELSE'
+    asm_simp_tac ctxt
 *}
 
 text {* This tactic first tries to solve the subgoal by assumption or
@@ -1043,12 +1041,12 @@ subsubsection {* The solver *}
 text {*
   \begin{mldecls}
   @{index_ML_type solver} \\
-  @{index_ML Simplifier.mk_solver: "string -> (simpset -> int -> tactic) ->
-  solver"} \\
-  @{index_ML_op setSolver: "simpset * solver -> simpset"} \\
-  @{index_ML_op addSolver: "simpset * solver -> simpset"} \\
-  @{index_ML_op setSSolver: "simpset * solver -> simpset"} \\
-  @{index_ML_op addSSolver: "simpset * solver -> simpset"} \\
+  @{index_ML Simplifier.mk_solver: "string ->
+  (Proof.context -> int -> tactic) -> solver"} \\
+  @{index_ML_op setSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_op addSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_op setSSolver: "Proof.context * solver -> Proof.context"} \\
+  @{index_ML_op addSSolver: "Proof.context * solver -> Proof.context"} \\
   \end{mldecls}
 
   A solver is a tactic that attempts to solve a subgoal after
@@ -1085,24 +1083,24 @@ text {*
   "tac"} into a solver; the @{text "name"} is only attached as a
   comment and has no further significance.
 
-  \item @{text "ss setSSolver solver"} installs @{text "solver"} as
-  the safe solver of @{text "ss"}.
+  \item @{text "ctxt setSSolver solver"} installs @{text "solver"} as
+  the safe solver of @{text "ctxt"}.
 
-  \item @{text "ss addSSolver solver"} adds @{text "solver"} as an
+  \item @{text "ctxt addSSolver solver"} adds @{text "solver"} as an
   additional safe solver; it will be tried after the solvers which had
-  already been present in @{text "ss"}.
+  already been present in @{text "ctxt"}.
 
-  \item @{text "ss setSolver solver"} installs @{text "solver"} as the
-  unsafe solver of @{text "ss"}.
+  \item @{text "ctxt setSolver solver"} installs @{text "solver"} as the
+  unsafe solver of @{text "ctxt"}.
 
-  \item @{text "ss addSolver solver"} adds @{text "solver"} as an
+  \item @{text "ctxt addSolver solver"} adds @{text "solver"} as an
   additional unsafe solver; it will be tried after the solvers which
-  had already been present in @{text "ss"}.
+  had already been present in @{text "ctxt"}.
 
   \end{description}
 
-  \medskip The solver tactic is invoked with a simpset that represents
-  the context of the running Simplifier.  Further simpset operations
+  \medskip The solver tactic is invoked with the context of the
+  running Simplifier.  Further operations
   may be used to retrieve relevant information, such as the list of
   local Simplifier premises via @{ML Simplifier.prems_of} --- this
   list may be non-empty only if the Simplifier runs in a mode that
@@ -1144,14 +1142,18 @@ subsubsection {* The looper *}
 
 text {*
   \begin{mldecls}
-  @{index_ML_op setloop: "simpset * (int -> tactic) -> simpset"} \\
-  @{index_ML_op setloop': "simpset * (simpset -> int -> tactic) -> simpset"} \\
-  @{index_ML_op addloop: "simpset * (string * (int -> tactic)) -> simpset"} \\
-  @{index_ML_op addloop': "simpset * (string * (simpset -> int -> tactic))
-  -> simpset"} \\
-  @{index_ML_op delloop: "simpset * string -> simpset"} \\
-  @{index_ML_op Splitter.add_split: "thm -> simpset -> simpset"} \\
-  @{index_ML_op Splitter.del_split: "thm -> simpset -> simpset"} \\
+  @{index_ML_op setloop: "Proof.context *
+  (int -> tactic) -> Proof.context"} \\
+  @{index_ML_op setloop': "Proof.context *
+  (Proof.context -> int -> tactic) -> Proof.context"} \\
+  @{index_ML_op addloop: "Proof.context *
+  (string * (int -> tactic)) -> Proof.context"} \\
+  @{index_ML_op addloop': "Proof.context *
+  (string * (Proof.context -> int -> tactic))
+  -> Proof.context"} \\
+  @{index_ML_op delloop: "Proof.context * string -> Proof.context"} \\
+  @{index_ML Splitter.add_split: "thm -> Proof.context -> Proof.context"} \\
+  @{index_ML Splitter.del_split: "thm -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
   The looper is a list of tactics that are applied after
@@ -1166,28 +1168,26 @@ text {*
 
   \begin{description}
 
-  \item @{text "ss setloop tac"} installs @{text "tac"} as the only
-  looper tactic of @{text "ss"}.  The variant @{text "setloop'"}
-  allows the tactic to depend on the running Simplifier context, which
-  is represented as simpset.
+  \item @{text "ctxt setloop tac"} installs @{text "tac"} as the only
+  looper tactic of @{text "ctxt"}.  The variant @{text "setloop'"}
+  allows the tactic to depend on the running Simplifier context.
 
-  \item @{text "ss addloop (name, tac)"} adds @{text "tac"} as an
+  \item @{text "ctxt addloop (name, tac)"} adds @{text "tac"} as an
   additional looper tactic with name @{text "name"}, which is
   significant for managing the collection of loopers.  The tactic will
   be tried after the looper tactics that had already been present in
-  @{text "ss"}.  The variant @{text "addloop'"} allows the tactic to
-  depend on the running Simplifier context, which is represented as
-  simpset.
+  @{text "ctxt"}.  The variant @{text "addloop'"} allows the tactic to
+  depend on the running Simplifier context.
 
-  \item @{text "ss delloop name"} deletes the looper tactic that was
-  associated with @{text "name"} from @{text "ss"}.
+  \item @{text "ctxt delloop name"} deletes the looper tactic that was
+  associated with @{text "name"} from @{text "ctxt"}.
 
-  \item @{ML Splitter.add_split}~@{text "thm ss"} adds split tactics
-  for @{text "thm"} as additional looper tactics of @{text "ss"}.
+  \item @{ML Splitter.add_split}~@{text "thm ctxt"} adds split tactics
+  for @{text "thm"} as additional looper tactics of @{text "ctxt"}.
 
-  \item @{ML Splitter.del_split}~@{text "thm ss"} deletes the split
+  \item @{ML Splitter.del_split}~@{text "thm ctxt"} deletes the split
   tactic corresponding to @{text thm} from the looper tactics of
-  @{text "ss"}.
+  @{text "ctxt"}.
 
   \end{description}
 
@@ -1817,16 +1817,16 @@ text {*
     @{index_ML_op addSWrapper: "Proof.context *
   (string * (Proof.context -> wrapper)) -> Proof.context"} \\
     @{index_ML_op addSbefore: "Proof.context *
-  (string * (int -> tactic)) -> Proof.context"} \\
+  (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
     @{index_ML_op addSafter: "Proof.context *
-  (string * (int -> tactic)) -> Proof.context"} \\
+  (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
     @{index_ML_op delSWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
     @{index_ML_op addWrapper: "Proof.context *
   (string * (Proof.context -> wrapper)) -> Proof.context"} \\
     @{index_ML_op addbefore: "Proof.context *
-  (string * (int -> tactic)) -> Proof.context"} \\
+  (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
     @{index_ML_op addafter: "Proof.context *
-  (string * (int -> tactic)) -> Proof.context"} \\
+  (string * (Proof.context -> int -> tactic)) -> Proof.context"} \\
     @{index_ML_op delWrapper: "Proof.context * string -> Proof.context"} \\[0.5ex]
     @{index_ML addSss: "Proof.context -> Proof.context"} \\
     @{index_ML addss: "Proof.context -> Proof.context"} \\

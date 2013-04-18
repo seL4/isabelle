@@ -839,9 +839,7 @@ val _ =
   Outer_Syntax.improper_command @{command_spec "print_simpset"}
     "print context of Simplifier"
     (Scan.succeed (Toplevel.unknown_context o
-      Toplevel.keep (fn state =>
-        let val ctxt = Toplevel.context_of state
-        in Pretty.writeln (Simplifier.pretty_ss ctxt (simpset_of ctxt)) end)));
+      Toplevel.keep (Pretty.writeln o Simplifier.pretty_simpset o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command @{command_spec "print_rules"} "print intro/elim rules"

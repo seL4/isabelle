@@ -96,10 +96,11 @@ fun dest_permT (Type ("fun", [Type ("List.list", [Type (@{type_name Product_Type
 fun permTs_of (Const ("Nominal.perm", T) $ t $ u) = fst (dest_permT T) :: permTs_of u
   | permTs_of _ = [];
 
-fun perm_simproc' thy ss (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.perm", U) $ r $ s)) =
+fun perm_simproc' ctxt (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.perm", U) $ r $ s)) =
       let
+        val thy = Proof_Context.theory_of ctxt;
         val (aT as Type (a, []), S) = dest_permT T;
-        val (bT as Type (b, []), _) = dest_permT U
+        val (bT as Type (b, []), _) = dest_permT U;
       in if member (op =) (permTs_of u) aT andalso aT <> bT then
           let
             val cp = cp_inst_of thy a b;
@@ -112,7 +113,7 @@ fun perm_simproc' thy ss (Const ("Nominal.perm", T) $ t $ (u as Const ("Nominal.
           end
         else NONE
       end
-  | perm_simproc' thy ss _ = NONE;
+  | perm_simproc' _ _ = NONE;
 
 val perm_simproc =
   Simplifier.simproc_global @{theory} "perm_simp" ["pi1 \<bullet> (pi2 \<bullet> x)"] perm_simproc';
@@ -279,8 +280,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                end)
              (perm_names_types ~~ perm_indnames))))
           (fn {context = ctxt, ...} => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
-            ALLGOALS (asm_full_simp_tac
-              (simpset_of ctxt addsimps [perm_fun_def]))])),
+            ALLGOALS (asm_full_simp_tac (ctxt addsimps [perm_fun_def]))])),
         length new_type_names));
 
     (**** prove [] \<bullet> t = t ****)
@@ -300,7 +300,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                (perm_names ~~
                 map body_type perm_types ~~ perm_indnames)))))
           (fn {context = ctxt, ...} => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
-            ALLGOALS (asm_full_simp_tac (simpset_of ctxt))])),
+            ALLGOALS (asm_full_simp_tac ctxt)])),
         length new_type_names))
       end)
       atoms;
@@ -335,7 +335,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames)))))
            (fn {context = ctxt, ...} => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
-              ALLGOALS (asm_full_simp_tac (simpset_of ctxt addsimps [pt2', pt2_ax]))]))),
+              ALLGOALS (asm_full_simp_tac (ctxt addsimps [pt2', pt2_ax]))]))),
          length new_type_names)
       end) atoms;
 
@@ -371,7 +371,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                   (perm_names ~~
                    map body_type perm_types ~~ perm_indnames))))))
            (fn {context = ctxt, ...} => EVERY [Datatype_Aux.ind_tac induct perm_indnames 1,
-              ALLGOALS (asm_full_simp_tac (simpset_of ctxt addsimps [pt3', pt3_rev', pt3_ax]))]))),
+              ALLGOALS (asm_full_simp_tac (ctxt addsimps [pt3', pt3_rev', pt3_ax]))]))),
          length new_type_names)
       end) atoms;
 
@@ -393,7 +393,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
         val permT2 = mk_permT (Type (name2, []));
         val Ts = map body_type perm_types;
         val cp_inst = cp_inst_of thy name1 name2;
-        fun simps ctxt = simpset_of ctxt addsimps (perm_fun_def ::
+        fun simps ctxt = ctxt addsimps (perm_fun_def ::
           (if name1 <> name2 then
              let val dj = dj_thm_of thy name2 name1
              in [dj RS (cp_inst RS dj_cp), dj RS dj_perm_perm_forget] end
@@ -563,7 +563,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                end) (rep_set_names'' ~~ recTs' ~~ perm_indnames')))))
         (fn {context = ctxt, ...} => EVERY
            [Datatype_Aux.ind_tac rep_induct [] 1,
-            ALLGOALS (simp_tac (simpset_of ctxt addsimps
+            ALLGOALS (simp_tac (ctxt addsimps
               (Thm.symmetric perm_fun_def :: abs_perm))),
             ALLGOALS (resolve_tac rep_intrs THEN_ALL_NEW assume_tac)])),
         length new_type_names));
@@ -623,10 +623,10 @@ fun gen_nominal_datatype prep_specs config dts thy =
               map (inter_sort thy sort o snd) tvs, [pt_class])
             (fn ctxt => EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
-              asm_full_simp_tac (simpset_of ctxt addsimps [Rep_inverse]) 1,
-              asm_full_simp_tac (simpset_of ctxt addsimps
+              asm_full_simp_tac (ctxt addsimps [Rep_inverse]) 1,
+              asm_full_simp_tac (ctxt addsimps
                 [Rep RS perm_closed RS Abs_inverse]) 1,
-              asm_full_simp_tac (HOL_basic_ss addsimps [Global_Theory.get_thm thy
+              asm_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Global_Theory.get_thm thy
                 ("pt_" ^ Long_Name.base_name atom ^ "3")]) 1]) thy
             |> Theory.checkpoint
           end)
@@ -653,7 +653,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
               map (inter_sort thy sort o snd) tvs, [cp_class])
             (fn ctxt => EVERY [Class.intro_classes_tac [],
               rewrite_goals_tac [perm_def],
-              asm_full_simp_tac (simpset_of ctxt addsimps
+              asm_full_simp_tac (ctxt addsimps
                 ((Rep RS perm_closed1 RS Abs_inverse) ::
                  (if atom1 = atom2 then []
                   else [Rep RS perm_closed2 RS Abs_inverse]))) 1,
@@ -825,7 +825,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
             (HOLogic.mk_Trueprop (HOLogic.mk_eq
               (Const ("Nominal.perm", permT --> U --> U) $ pi $ (Rep $ x),
                Rep $ (Const ("Nominal.perm", permT --> T --> T) $ pi $ x)))))
-          (fn _ => simp_tac (HOL_basic_ss addsimps (perm_defs @ Abs_inverse_thms @
+          (fn {context = ctxt, ...} =>
+            simp_tac (put_simpset HOL_basic_ss ctxt addsimps (perm_defs @ Abs_inverse_thms @
             perm_closed_thms @ Rep_thms)) 1)
       end) Rep_thms;
 
@@ -842,7 +843,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
       | prove_distinct_thms (p as (rep_thms, dist_lemma)) (t :: ts) =
           let
             val dist_thm = Goal.prove_global_future thy8 [] [] t (fn {context = ctxt, ...} =>
-              simp_tac (simpset_of ctxt addsimps (dist_lemma :: rep_thms)) 1)
+              simp_tac (ctxt addsimps (dist_lemma :: rep_thms)) 1)
           in
             dist_thm :: Drule.export_without_context (dist_thm RS not_sym) ::
               prove_distinct_thms p ts
@@ -890,12 +891,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
               (HOLogic.mk_Trueprop (HOLogic.mk_eq
                 (perm (list_comb (c, l_args)), list_comb (c, r_args)))))
             (fn {context = ctxt, ...} => EVERY
-              [simp_tac (simpset_of ctxt addsimps (constr_rep_thm :: perm_defs)) 1,
-               simp_tac (HOL_basic_ss addsimps (Rep_thms @ Abs_inverse_thms @
+              [simp_tac (ctxt addsimps (constr_rep_thm :: perm_defs)) 1,
+               simp_tac (put_simpset HOL_basic_ss ctxt addsimps (Rep_thms @ Abs_inverse_thms @
                  constr_defs @ perm_closed_thms)) 1,
-               TRY (simp_tac (HOL_basic_ss addsimps
+               TRY (simp_tac (put_simpset HOL_basic_ss ctxt addsimps
                  (Thm.symmetric perm_fun_def :: abs_perm)) 1),
-               TRY (simp_tac (HOL_basic_ss addsimps
+               TRY (simp_tac (put_simpset HOL_basic_ss ctxt addsimps
                  (perm_fun_def :: perm_defs @ Rep_thms @ Abs_inverse_thms @
                     perm_closed_thms)) 1)])
         end) (constrs ~~ constr_rep_thms)) (atoms ~~ perm_closed_thmss)
@@ -946,9 +947,10 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 (HOLogic.mk_eq (list_comb (c, args1), list_comb (c, args2)),
                  foldr1 HOLogic.mk_conj eqs))))
             (fn {context = ctxt, ...} => EVERY
-               [asm_full_simp_tac (simpset_of ctxt addsimps (constr_rep_thm ::
+               [asm_full_simp_tac (ctxt addsimps (constr_rep_thm ::
                   rep_inject_thms')) 1,
-                TRY (asm_full_simp_tac (HOL_basic_ss addsimps (fresh_def :: supp_def ::
+                TRY (asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
+                  addsimps (fresh_def :: supp_def ::
                   alpha @ abs_perm @ abs_fresh @ rep_inject_thms @
                   perm_rep_perm_thms)) 1)])
         end) (constrs ~~ constr_rep_thms)
@@ -989,8 +991,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 (supp c,
                  if null dts then HOLogic.mk_set atomT []
                  else foldr1 (HOLogic.mk_binop @{const_abbrev union}) (map supp args2)))))
-            (fn _ =>
-              simp_tac (HOL_basic_ss addsimps (supp_def ::
+            (fn {context = ctxt, ...} =>
+              simp_tac (put_simpset HOL_basic_ss ctxt addsimps (supp_def ::
                  Un_assoc :: @{thm de_Morgan_conj} :: Collect_disj_eq :: finite_Un ::
                  Collect_False_empty :: finite_emptyI :: @{thms simp_thms} @
                  abs_perm @ abs_fresh @ inject_thms' @ perm_thms')) 1)
@@ -1001,8 +1003,8 @@ fun gen_nominal_datatype prep_specs config dts thy =
                (fresh c,
                 if null dts then @{term True}
                 else foldr1 HOLogic.mk_conj (map fresh args2)))))
-             (fn _ =>
-               simp_tac (HOL_ss addsimps [Un_iff, empty_iff, fresh_def, supp_thm]) 1))
+             (fn {context = ctxt, ...} =>
+               simp_tac (put_simpset HOL_ss ctxt addsimps [Un_iff, empty_iff, fresh_def, supp_thm]) 1))
         end) atoms) constrs
       end) (List.take (pdescr, length new_type_names) ~~ new_type_names ~~ inject_thms ~~ perm_simps')));
 
@@ -1028,10 +1030,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val indrule_lemma = Goal.prove_global_future thy8 [] []
       (Logic.mk_implies
         (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_prems),
-         HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_concls))) (fn _ => EVERY
+         HOLogic.mk_Trueprop (Datatype_Aux.mk_conj indrule_lemma_concls)))
+         (fn {context = ctxt, ...} => EVERY
            [REPEAT (etac conjE 1),
             REPEAT (EVERY
-              [TRY (rtac conjI 1), full_simp_tac (HOL_basic_ss addsimps Rep_inverse_thms) 1,
+              [TRY (rtac conjI 1),
+               full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps Rep_inverse_thms) 1,
                etac mp 1, resolve_tac Rep_thms 1])]);
 
     val Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule_lemma)));
@@ -1045,12 +1049,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val dt_induct_prop = Datatype_Prop.make_ind descr';
     val dt_induct = Goal.prove_global_future thy8 []
       (Logic.strip_imp_prems dt_induct_prop) (Logic.strip_imp_concl dt_induct_prop)
-      (fn {prems, ...} => EVERY
+      (fn {prems, context = ctxt} => EVERY
         [rtac indrule_lemma' 1,
          (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
          EVERY (map (fn (prem, r) => (EVERY
            [REPEAT (eresolve_tac Abs_inverse_thms' 1),
-            simp_tac (HOL_basic_ss addsimps [Thm.symmetric r]) 1,
+            simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Thm.symmetric r]) 1,
             DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                 (prems ~~ constr_defs))]);
 
@@ -1076,7 +1080,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                    (Const ("Nominal.supp", T --> HOLogic.mk_setT atomT) $ Free (s, T)))
                    (indnames ~~ recTs)))))
            (fn {context = ctxt, ...} => Datatype_Aux.ind_tac dt_induct indnames 1 THEN
-            ALLGOALS (asm_full_simp_tac (simpset_of ctxt addsimps
+            ALLGOALS (asm_full_simp_tac (ctxt addsimps
               (abs_supp @ supp_atm @
                Global_Theory.get_thms thy8 ("fs_" ^ Long_Name.base_name atom ^ "1") @
                flat supp_thms))))),
@@ -1236,12 +1240,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
                 Bound 0 $ p)))
           (fn _ => EVERY
             [resolve_tac exists_fresh' 1,
-             simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms @
+             simp_tac (put_simpset HOL_ss ctxt addsimps (supp_prod :: finite_Un :: fs_atoms @
                fin_set_supp @ ths)) 1]);
         val (([(_, cx)], ths), ctxt') = Obtain.result
-          (fn _ => EVERY
+          (fn ctxt' => EVERY
             [etac exE 1,
-             full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
+             full_simp_tac (put_simpset HOL_ss ctxt' addsimps (fresh_prod :: fresh_atm)) 1,
              REPEAT (etac conjE 1)])
           [ex] ctxt
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
@@ -1281,16 +1285,16 @@ fun gen_nominal_datatype prep_specs config dts thy =
         (augment_sort thy9 fs_cp_sort ind_concl') (fn {prems, context} =>
       let
         val (prems1, prems2) = chop (length dt_atomTs) prems;
-        val ind_ss2 = HOL_ss addsimps
+        val ind_ss2 = put_simpset HOL_ss context addsimps
           finite_Diff :: abs_fresh @ abs_supp @ fs_atoms;
         val ind_ss1 = ind_ss2 addsimps fresh_left @ calc_atm @
           fresh_atm @ rev_simps @ app_simps;
-        val ind_ss3 = HOL_ss addsimps abs_fun_eq1 ::
+        val ind_ss3 = put_simpset HOL_ss context addsimps abs_fun_eq1 ::
           abs_perm @ calc_atm @ perm_swap;
-        val ind_ss4 = HOL_basic_ss addsimps fresh_left @ prems1 @
+        val ind_ss4 = put_simpset HOL_basic_ss context addsimps fresh_left @ prems1 @
           fin_set_fresh @ calc_atm;
-        val ind_ss5 = HOL_basic_ss addsimps pt1_atoms;
-        val ind_ss6 = HOL_basic_ss addsimps flat perm_simps';
+        val ind_ss5 = put_simpset HOL_basic_ss context addsimps pt1_atoms;
+        val ind_ss6 = put_simpset HOL_basic_ss context addsimps flat perm_simps';
         val th = Goal.prove context [] []
           (augment_sort thy9 fs_cp_sort aux_ind_concl)
           (fn {context = context1, ...} =>
@@ -1332,7 +1336,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                                 cs @ [fold_rev (mk_perm []) (map perm_of_pair
                                   (bs ~~ cs)) t]) (xs'' ~~ freshs1')))))
                            (fn _ => EVERY
-                              (simp_tac (HOL_ss addsimps flat inject_thms) 1 ::
+                              (simp_tac (put_simpset HOL_ss context3 addsimps flat inject_thms) 1 ::
                                REPEAT (FIRSTGOAL (rtac conjI)) ::
                                maps (fn ((bs, t), cs) =>
                                  if null bs then []
@@ -1352,7 +1356,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                                   simp_tac ind_ss1' i
                               | _ $ (Const (@{const_name Not}, _) $ _) =>
                                   resolve_tac freshs2' i
-                              | _ => asm_simp_tac (HOL_basic_ss addsimps
+                              | _ => asm_simp_tac (put_simpset HOL_basic_ss context3 addsimps
                                   pt2_atoms addsimprocs [perm_simproc]) i)) 1])
                        val final = Proof_Context.export context3 context2 [th]
                      in
@@ -1380,11 +1384,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
     val induct = Goal.prove_global_future thy9 []
       (map (augment_sort thy9 fs_cp_sort) ind_prems)
       (augment_sort thy9 fs_cp_sort ind_concl)
-      (fn {prems, ...} => EVERY
+      (fn {prems, context = ctxt} => EVERY
          [rtac induct_aux' 1,
           REPEAT (resolve_tac fs_atoms 1),
           REPEAT ((resolve_tac prems THEN_ALL_NEW
-            (etac @{thm meta_spec} ORELSE' full_simp_tac (HOL_basic_ss addsimps [fresh_def]))) 1)])
+            (etac @{thm meta_spec} ORELSE'
+              full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [fresh_def]))) 1)])
 
     val (_, thy10) = thy9 |>
       Sign.add_path big_name |>
@@ -1526,20 +1531,20 @@ fun gen_nominal_datatype prep_specs config dts thy =
           (Goal.prove_global_future thy11 [] []
             (augment_sort thy1 pt_cp_sort
               (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map HOLogic.mk_imp ps))))
-            (fn _ => rtac rec_induct 1 THEN REPEAT
+            (fn {context = ctxt, ...} => rtac rec_induct 1 THEN REPEAT
                (simp_tac (Simplifier.global_context thy11 HOL_basic_ss
                   addsimps flat perm_simps'
                   addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
                 (resolve_tac rec_intrs THEN_ALL_NEW
-                 asm_simp_tac (HOL_ss addsimps (fresh_bij @ perm_bij))) 1))))
+                 asm_simp_tac (put_simpset HOL_ss ctxt addsimps (fresh_bij @ perm_bij))) 1))))
         val ths' = map (fn ((P, Q), th) =>
           Goal.prove_global_future thy11 [] []
             (augment_sort thy1 pt_cp_sort
               (Logic.mk_implies (HOLogic.mk_Trueprop Q, HOLogic.mk_Trueprop P)))
-            (fn _ => dtac (Thm.instantiate ([],
+            (fn {context = ctxt, ...} => dtac (Thm.instantiate ([],
                  [(cterm_of thy11 (Var (("pi", 0), permT)),
                    cterm_of thy11 (Const ("List.rev", permT --> permT) $ pi))]) th) 1 THEN
-               NominalPermeq.perm_simp_tac HOL_ss 1)) (ps ~~ ths)
+               NominalPermeq.perm_simp_tac (put_simpset HOL_ss ctxt) 1)) (ps ~~ ths)
       in (ths, ths') end) dt_atomTs);
 
     (** finite support **)
@@ -1568,9 +1573,9 @@ fun gen_nominal_datatype prep_specs config dts thy =
                        finite $ (Const ("Nominal.supp", U --> aset) $ y))
                    end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~
                      (1 upto length recTs))))))
-            (fn {prems = fins, ...} =>
+            (fn {prems = fins, context = ctxt} =>
               (rtac rec_induct THEN_ALL_NEW cut_facts_tac fins) 1 THEN REPEAT
-               (NominalPermeq.finite_guess_tac (HOL_ss addsimps [fs_name]) 1))))
+               (NominalPermeq.finite_guess_tac (put_simpset HOL_ss ctxt addsimps [fs_name]) 1))))
       end) dt_atomTs;
 
     (** freshness **)
@@ -1620,7 +1625,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                         cterm_of thy11 (Const ("Nominal.supp",
                           fastype_of tuple --> HOLogic.mk_setT aT) $ tuple))]
                       supports_fresh) 1,
-                    simp_tac (HOL_basic_ss addsimps
+                    simp_tac (put_simpset HOL_basic_ss context addsimps
                       [supports_def, Thm.symmetric fresh_def, fresh_prod]) 1,
                     REPEAT_DETERM (resolve_tac [allI, impI] 1),
                     REPEAT_DETERM (etac conjE 1),
@@ -1630,12 +1635,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
                        rtac (Thm.instantiate ([],
                          [(cterm_of thy11 (Var (("pi", 0), mk_permT aT)),
                            cterm_of thy11 (perm_of_pair (term_of a, term_of b)))]) eqvt_th) 1,
-                       asm_simp_tac (HOL_ss addsimps
+                       asm_simp_tac (put_simpset HOL_ss context addsimps
                          (prems' @ perm_swap @ perm_fresh_fresh)) 1]) context 1,
                     rtac rec_prem 1,
-                    simp_tac (HOL_ss addsimps (fs_name ::
+                    simp_tac (put_simpset HOL_ss context addsimps (fs_name ::
                       supp_prod :: finite_Un :: finite_prems)) 1,
-                    simp_tac (HOL_ss addsimps (Thm.symmetric fresh_def ::
+                    simp_tac (put_simpset HOL_ss context addsimps (Thm.symmetric fresh_def ::
                       fresh_prod :: fresh_prems)) 1]
                  end))
           end) (recTs ~~ rec_result_Ts ~~ rec_sets ~~ eqvt_ths)
@@ -1677,11 +1682,11 @@ fun gen_nominal_datatype prep_specs config dts thy =
             [cut_facts_tac ths 1,
              REPEAT_DETERM (dresolve_tac (the (AList.lookup op = rec_fin_supp T)) 1),
              resolve_tac exists_fresh' 1,
-             asm_simp_tac (HOL_ss addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
+             asm_simp_tac (put_simpset HOL_ss ctxt addsimps (supp_prod :: finite_Un :: fs_atoms)) 1]);
         val (([(_, cx)], ths), ctxt') = Obtain.result
           (fn _ => EVERY
             [etac exE 1,
-             full_simp_tac (HOL_ss addsimps (fresh_prod :: fresh_atm)) 1,
+             full_simp_tac (put_simpset HOL_ss ctxt addsimps (fresh_prod :: fresh_atm)) 1,
              REPEAT (etac conjE 1)])
           [ex] ctxt
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
@@ -1723,16 +1728,16 @@ fun gen_nominal_datatype prep_specs config dts thy =
            ([rtac induct_aux_rec 1] @
             maps (fn ((_, finite_ths), finite_th) =>
               [cut_facts_tac (finite_th :: finite_ths) 1,
-               asm_simp_tac (HOL_ss addsimps [supp_prod, finite_Un]) 1])
+               asm_simp_tac (put_simpset HOL_ss context addsimps [supp_prod, finite_Un]) 1])
                 (finite_thss ~~ finite_ctxt_ths) @
             maps (fn ((_, idxss), elim) => maps (fn idxs =>
-              [full_simp_tac (HOL_ss addsimps [Thm.symmetric fresh_def, supp_prod, Un_iff]) 1,
+              [full_simp_tac (put_simpset HOL_ss context addsimps [Thm.symmetric fresh_def, supp_prod, Un_iff]) 1,
                REPEAT_DETERM (eresolve_tac [conjE, ex1E] 1),
                rtac ex1I 1,
                (resolve_tac rec_intrs THEN_ALL_NEW atac) 1,
                rotate_tac ~1 1,
                ((DETERM o etac elim) THEN_ALL_NEW full_simp_tac
-                  (HOL_ss addsimps flat distinct_thms)) 1] @
+                  (put_simpset HOL_ss context addsimps flat distinct_thms)) 1] @
                (if null idxs then [] else [hyp_subst_tac 1,
                 SUBPROOF (fn {asms, concl, prems = prems', params, context = context', ...} =>
                   let
@@ -1777,14 +1782,14 @@ fun gen_nominal_datatype prep_specs config dts thy =
 
                     (** as, bs, cs # K as ts, K bs us **)
                     val _ = warning "step 2: as, bs, cs # K as ts, K bs us";
-                    val prove_fresh_ss = HOL_ss addsimps
+                    val prove_fresh_simpset = put_simpset HOL_ss context'' addsimps
                       (finite_Diff :: flat fresh_thms @
                        fs_atoms @ abs_fresh @ abs_supp @ fresh_atm);
                     (* FIXME: avoid asm_full_simp_tac ? *)
                     fun prove_fresh ths y x = Goal.prove context'' [] []
                       (HOLogic.mk_Trueprop (fresh_const
                          (fastype_of x) (fastype_of y) $ x $ y))
-                      (fn _ => cut_facts_tac ths 1 THEN asm_full_simp_tac prove_fresh_ss 1);
+                      (fn _ => cut_facts_tac ths 1 THEN asm_full_simp_tac prove_fresh_simpset 1);
                     val constr_fresh_thms =
                       map (prove_fresh fresh_prems lhs) boundsl @
                       map (prove_fresh fresh_prems rhs) boundsr @
@@ -1798,7 +1803,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                         (fold_rev (mk_perm []) pi1 lhs, fold_rev (mk_perm []) pi2 rhs)))
                       (fn _ => EVERY
                          [cut_facts_tac constr_fresh_thms 1,
-                          asm_simp_tac (HOL_basic_ss addsimps perm_fresh_fresh) 1,
+                          asm_simp_tac (put_simpset HOL_basic_ss context'' addsimps perm_fresh_fresh) 1,
                           rtac prem 1]);
 
                     (** pi1 o ts = pi2 o us **)
@@ -1809,7 +1814,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                           (fold_rev (mk_perm []) pi1 t, fold_rev (mk_perm []) pi2 u)))
                         (fn _ => EVERY
                            [cut_facts_tac [pi1_pi2_eq] 1,
-                            asm_full_simp_tac (HOL_ss addsimps
+                            asm_full_simp_tac (put_simpset HOL_ss context'' addsimps
                               (calc_atm @ flat perm_simps' @
                                fresh_prems' @ freshs2' @ abs_perm @
                                alpha @ flat inject_thms)) 1]))
@@ -1821,7 +1826,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                       Goal.prove context'' [] []
                         (HOLogic.mk_Trueprop (HOLogic.mk_eq
                           (fold_rev (mk_perm []) (rpi1 @ pi2) u, t)))
-                        (fn _ => simp_tac (HOL_ss addsimps
+                        (fn _ => simp_tac (put_simpset HOL_ss context'' addsimps
                            ((eq RS sym) :: perm_swap)) 1))
                         (map snd cargsl' ~~ map snd cargsr' ~~ pi1_pi2_eqs);
 
@@ -1850,12 +1855,12 @@ fun gen_nominal_datatype prep_specs config dts thy =
                           (HOLogic.mk_Trueprop (S $ mk_pi x $ mk_pi y))
                           (fn _ => EVERY
                              (map eqvt_tac pi @
-                              [simp_tac (HOL_ss addsimps (fresh_prems' @ freshs2' @
+                              [simp_tac (put_simpset HOL_ss context'' addsimps (fresh_prems' @ freshs2' @
                                  perm_swap @ perm_fresh_fresh)) 1,
                                rtac th 1]))
                       in
                         Simplifier.simplify
-                          (HOL_basic_ss addsimps rpi1_pi2_eqs) th'
+                          (put_simpset HOL_basic_ss context'' addsimps rpi1_pi2_eqs) th'
                       end) rec_prems2;
 
                     val ihs = filter (fn th => case prop_of th of
@@ -1874,7 +1879,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                            (HOLogic.mk_Trueprop (HOLogic.mk_eq
                               (fold_rev (mk_perm []) pi1 lhs,
                                fold_rev (mk_perm []) pi2 (strip_perm rhs))))
-                           (fn _ => simp_tac (HOL_basic_ss addsimps
+                           (fn _ => simp_tac (put_simpset HOL_basic_ss context'' addsimps
                               (th' :: perm_swap)) 1)
                       end) (rec_prems' ~~ ihs);
 
@@ -1924,17 +1929,17 @@ fun gen_nominal_datatype prep_specs config dts thy =
                         (HOLogic.mk_Trueprop (fresh_const aT rT $
                             fold_rev (mk_perm []) (rpi2 @ pi1) a $
                             fold_rev (mk_perm []) (rpi2 @ pi1) rhs'))
-                        (fn _ => simp_tac (HOL_ss addsimps fresh_bij) 1 THEN
+                        (fn _ => simp_tac (put_simpset HOL_ss context'' addsimps fresh_bij) 1 THEN
                            rtac th 1)
                       in
                         Goal.prove context'' [] []
                           (HOLogic.mk_Trueprop (fresh_const aT rT $ b $ lhs'))
                           (fn _ => EVERY
                              [cut_facts_tac [th'] 1,
-                              full_simp_tac (Simplifier.global_context thy11 HOL_ss
+                              full_simp_tac (Simplifier.global_context thy11 HOL_ss  (* FIXME context'' (!?) *)
                                 addsimps rec_eqns @ pi1_pi2_eqs @ perm_swap
                                 addsimprocs [NominalPermeq.perm_simproc_app]) 1,
-                              full_simp_tac (HOL_ss addsimps (calc_atm @
+                              full_simp_tac (put_simpset HOL_ss context'' addsimps (calc_atm @
                                 fresh_prems' @ freshs2' @ perm_fresh_fresh)) 1])
                       end;
 
@@ -1951,7 +1956,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                            REPEAT_DETERM (dresolve_tac
                              (the (AList.lookup op = rec_fin_supp_thms' aT)) 1),
                            NominalPermeq.fresh_guess_tac
-                             (HOL_ss addsimps (freshs2 @
+                             (put_simpset HOL_ss context'' addsimps (freshs2 @
                                 fs_atoms @ fresh_atm @
                                 maps snd finite_thss)) 1]);
 
@@ -1964,16 +1969,16 @@ fun gen_nominal_datatype prep_specs config dts thy =
                     val pi1_pi2_result = Goal.prove context'' [] []
                       (HOLogic.mk_Trueprop (HOLogic.mk_eq
                         (fold_rev (mk_perm []) pi1 rhs', fold_rev (mk_perm []) pi2 lhs')))
-                      (fn _ => simp_tac (Simplifier.context context'' HOL_ss
+                      (fn _ => simp_tac (put_simpset HOL_ss context''
                            addsimps pi1_pi2_eqs @ rec_eqns
                            addsimprocs [NominalPermeq.perm_simproc_app]) 1 THEN
-                         TRY (simp_tac (HOL_ss addsimps
+                         TRY (simp_tac (put_simpset HOL_ss context'' addsimps
                            (fresh_prems' @ freshs2' @ calc_atm @ perm_fresh_fresh)) 1));
 
                     val _ = warning "final result";
                     val final = Goal.prove context'' [] [] (term_of concl)
                       (fn _ => cut_facts_tac [pi1_pi2_result RS sym] 1 THEN
-                        full_simp_tac (HOL_basic_ss addsimps perm_fresh_fresh @
+                        full_simp_tac (put_simpset HOL_basic_ss context'' addsimps perm_fresh_fresh @
                           fresh_results @ fresh_results') 1);
                     val final' = Proof_Context.export context'' context' [final];
                     val _ = warning "finished!"

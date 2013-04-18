@@ -237,10 +237,11 @@ ML
 structure OtwayReesBella =
 struct
 
-val analz_image_freshK_ss = 
-  @{simpset} delsimps [image_insert, image_Un]
+val analz_image_freshK_ss =
+  simpset_of
+   (@{context} delsimps [image_insert, image_Un]
       delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
-      addsimps @{thms analz_image_freshK_simps}
+      addsimps @{thms analz_image_freshK_simps})
 
 end
 *}
@@ -251,7 +252,7 @@ method_setup analz_freshCryptK = {*
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshCryptK_lemma}),
           ALLGOALS (asm_simp_tac
-            (Simplifier.context ctxt OtwayReesBella.analz_image_freshK_ss))]))) *}
+            (put_simpset OtwayReesBella.analz_image_freshK_ss ctxt))]))) *}
   "for proving useful rewrite rule"
 
 

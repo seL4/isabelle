@@ -32,8 +32,8 @@ struct
 
 (* Since HOL_basic_ss is too "big" for us, we *)
 (* need to set up our own minimal simpset.    *)
-fun mk_minimal_ss ctxt =
-  Simplifier.context ctxt empty_ss
+fun mk_minimal_simpset ctxt =
+  empty_simpset ctxt
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps [])
 
@@ -57,16 +57,14 @@ fun atomize_thm thm =
 fun equiv_tac ctxt =
   REPEAT_ALL_NEW (resolve_tac (Quotient_Info.equiv_rules ctxt))
 
-fun equiv_solver_tac ss = equiv_tac (Simplifier.the_context ss)
-val equiv_solver = mk_solver "Equivalence goal solver" equiv_solver_tac
+val equiv_solver = mk_solver "Equivalence goal solver" equiv_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
     [rtac @{thm identity_quotient3},
      resolve_tac (Quotient_Info.quotient_rules ctxt)]))
 
-fun quotient_solver_tac ss = quotient_tac (Simplifier.the_context ss)
-val quotient_solver = mk_solver "Quotient goal solver" quotient_solver_tac
+val quotient_solver = mk_solver "Quotient goal solver" quotient_tac
 
 fun solve_quotient_assm ctxt thm =
   case Seq.pull (quotient_tac ctxt 1 thm) of
@@ -113,21 +111,17 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
         | SOME inst2 => try (Drule.instantiate_normalize inst2) thm'))
   end
 
-fun ball_bex_range_simproc ss redex =
-  let
-    val ctxt = Simplifier.the_context ss
-  in
-    case redex of
-      (Const (@{const_name "Ball"}, _) $ (Const (@{const_name "Respects"}, _) $
-        (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
-          calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
+fun ball_bex_range_simproc ctxt redex =
+  case redex of
+    (Const (@{const_name "Ball"}, _) $ (Const (@{const_name "Respects"}, _) $
+      (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
+        calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
-    | (Const (@{const_name "Bex"}, _) $ (Const (@{const_name "Respects"}, _) $
-        (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
-          calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
+  | (Const (@{const_name "Bex"}, _) $ (Const (@{const_name "Respects"}, _) $
+      (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
+        calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
-    | _ => NONE
-  end
+  | _ => NONE
 
 (* Regularize works as follows:
 
@@ -162,9 +156,9 @@ fun regularize_tac ctxt =
     val ball_pat = @{term "Ball (Respects (R1 ===> R2)) P"}
     val bex_pat = @{term "Bex (Respects (R1 ===> R2)) P"}
     val simproc =
-      Simplifier.simproc_global_i thy "" [ball_pat, bex_pat] (K (ball_bex_range_simproc))
+      Simplifier.simproc_global_i thy "" [ball_pat, bex_pat] ball_bex_range_simproc
     val simpset =
-      mk_minimal_ss ctxt
+      mk_minimal_simpset ctxt
       addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
       addsimprocs [simproc]
       addSolver equiv_solver addSolver quotient_solver
@@ -531,12 +525,12 @@ fun clean_tac lthy =
     val thms =
       @{thms Quotient3_abs_rep Quotient3_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
-    val ss = (mk_minimal_ss lthy) addsimps thms addSolver quotient_solver
+    val simpset = (mk_minimal_simpset lthy) addsimps thms addSolver quotient_solver
   in
     EVERY' [
       map_fun_tac lthy,
       lambda_prs_tac lthy,
-      simp_tac ss,
+      simp_tac simpset,
       TRY o rtac refl]
   end
 
@@ -638,9 +632,9 @@ val default_unfolds = @{thms Ball_def Bex_def}
 
 fun descend_procedure_tac ctxt simps =
   let
-    val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
+    val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
   in
-    full_simp_tac ss
+    full_simp_tac simpset
     THEN' Object_Logic.full_atomize_tac
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
@@ -688,9 +682,9 @@ fun partiality_procedure_inst ctxt rtrm qtrm =
 
 fun partiality_descend_procedure_tac ctxt simps =
   let
-    val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
+    val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
   in
-    full_simp_tac ss
+    full_simp_tac simpset
     THEN' Object_Logic.full_atomize_tac
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
@@ -723,9 +717,9 @@ fun partiality_descend_tac ctxt simps =
 (* the tactic leaves three subgoals to be proved *)
 fun lift_procedure_tac ctxt simps rthm =
   let
-    val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
+    val simpset = (mk_minimal_simpset ctxt) addsimps (simps @ default_unfolds)
   in
-    full_simp_tac ss
+    full_simp_tac simpset
     THEN' Object_Logic.full_atomize_tac
     THEN' gen_frees_tac ctxt
     THEN' SUBGOAL (fn (goal, i) =>
@@ -733,7 +727,7 @@ fun lift_procedure_tac ctxt simps rthm =
         (* full_atomize_tac contracts eta redexes,
            so we do it also in the original theorem *)
         val rthm' =
-          rthm |> full_simplify ss
+          rthm |> full_simplify simpset
                |> Drule.eta_contraction_rule
                |> Thm.forall_intr_frees
                |> atomize_thm

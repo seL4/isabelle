@@ -46,7 +46,7 @@ val sum_prod_thms_set0 =
 val sum_prod_thms_set = @{thms UN_compreh_eq_eq} @ sum_prod_thms_set0;
 val sum_prod_thms_rel = @{thms prod_rel_simp sum_rel_simps};
 
-val ss_if_True_False = ss_only @{thms if_True if_False};
+val ss_if_True_False = simpset_of (ss_only @{thms if_True if_False} @{context});
 
 fun mk_proj T k =
   let val binders = binder_types T in
@@ -115,7 +115,8 @@ val corec_like_unfold_thms =
 fun mk_corec_like_tac corec_like_defs map_comps'' map_comp's map_ids'' map_if_distribs
     ctor_dtor_corec_like pre_map_def ctr_def ctxt =
   unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
-  (rtac (ctor_dtor_corec_like RS trans) THEN' asm_simp_tac ss_if_True_False) 1 THEN_MAYBE
+  (rtac (ctor_dtor_corec_like RS trans) THEN'
+    asm_simp_tac (put_simpset ss_if_True_False ctxt)) 1 THEN_MAYBE
   (unfold_thms_tac ctxt (pre_map_def :: map_comp's @ map_comps'' @ map_ids'' @ map_if_distribs @
     corec_like_unfold_thms) THEN
    (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)) 1);
@@ -123,7 +124,7 @@ fun mk_corec_like_tac corec_like_defs map_comps'' map_comp's map_ids'' map_if_di
 fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
   EVERY (map3 (fn case_split_tac => fn corec_like_thm => fn disc =>
       case_split_tac 1 THEN unfold_thms_tac ctxt [corec_like_thm] THEN
-      asm_simp_tac (ss_only basic_simp_thms) 1 THEN
+      asm_simp_tac (ss_only basic_simp_thms ctxt) 1 THEN
       (if is_refl disc then all_tac else rtac disc 1))
     (map rtac case_splits' @ [K all_tac]) corec_likes discs);
 
@@ -162,12 +163,12 @@ fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels @ sum_prod_thms_rel)) THEN'
   (atac ORELSE' REPEAT o etac conjE THEN'
      full_simp_tac
-       (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms)) THEN_MAYBE'
+       (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN_MAYBE'
      REPEAT o hyp_subst_tac THEN' REPEAT o rtac conjI THEN' REPEAT o rtac refl);
 
-fun mk_coinduct_distinct_ctrs discs discs' =
+fun mk_coinduct_distinct_ctrs ctxt discs discs' =
   hyp_subst_tac THEN' REPEAT o etac conjE THEN'
-  full_simp_tac (ss_only (refl :: no_refl (discs @ discs') @ basic_simp_thms));
+  full_simp_tac (ss_only (refl :: no_refl (discs @ discs') @ basic_simp_thms) ctxt);
 
 fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor exhaust ctr_defs
     discss selss =
@@ -180,7 +181,7 @@ fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor e
             if k' = k then
               mk_coinduct_same_ctr ctxt rel_eqs' pre_rel_def dtor_ctor ctr_def discs sels
             else
-              mk_coinduct_distinct_ctrs discs discs') ks discss)) ks ctr_defs discss selss)
+              mk_coinduct_distinct_ctrs ctxt discs discs') ks discss)) ks ctr_defs discss selss)
   end;
 
 fun mk_coinduct_tac ctxt rel_eqs' nn ns dtor_coinduct' pre_rel_defs dtor_ctors exhausts ctr_defss

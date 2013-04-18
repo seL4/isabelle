@@ -84,10 +84,9 @@ text {* shows applicability of the induction hypothesis of the following Lemma 1
 lemma last_ind_on_first:
     "l ~= [] ==> hd (reverse (reduce (a # l))) = hd (reverse (reduce l))"
   apply simp
-  apply (tactic {* auto_tac (map_simpset (fn _ =>
-    HOL_ss
+  apply (tactic {* auto_tac (put_simpset HOL_ss @{context}
     addsimps (@{thms reverse.simps} @ [@{thm hd_append}, @{thm rev_red_not_nil}])
-    |> Splitter.add_split @{thm list.split}) @{context}) *})
+    |> Splitter.add_split @{thm list.split}) *})
   done
 
 text {* Main Lemma 1 for @{text "S_pkt"} in showing that reduce is refinement. *}
@@ -166,16 +165,18 @@ declare split_if [split]
 
 lemma sender_abstraction: "is_weak_ref_map reduce srch_ioa srch_fin_ioa"
 apply (tactic {*
-  simp_tac (HOL_ss addsimps [@{thm srch_fin_ioa_def}, @{thm rsch_fin_ioa_def},
-    @{thm srch_ioa_def}, @{thm rsch_ioa_def}, @{thm rename_through_pmap},
-    @{thm channel_abstraction}]) 1 *})
+  simp_tac (put_simpset HOL_ss @{context}
+    addsimps [@{thm srch_fin_ioa_def}, @{thm rsch_fin_ioa_def},
+      @{thm srch_ioa_def}, @{thm rsch_ioa_def}, @{thm rename_through_pmap},
+      @{thm channel_abstraction}]) 1 *})
 done
 
 lemma receiver_abstraction: "is_weak_ref_map reduce rsch_ioa rsch_fin_ioa"
 apply (tactic {*
-  simp_tac (HOL_ss addsimps [@{thm srch_fin_ioa_def}, @{thm rsch_fin_ioa_def},
-    @{thm srch_ioa_def}, @{thm rsch_ioa_def}, @{thm rename_through_pmap},
-    @{thm channel_abstraction}]) 1 *})
+  simp_tac (put_simpset HOL_ss @{context}
+    addsimps [@{thm srch_fin_ioa_def}, @{thm rsch_fin_ioa_def},
+      @{thm srch_ioa_def}, @{thm rsch_ioa_def}, @{thm rename_through_pmap},
+      @{thm channel_abstraction}]) 1 *})
 done
 
 

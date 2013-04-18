@@ -24,7 +24,7 @@ val zeroth = (Thm.symmetric o mk_meta_eq) @{thm of_int_0};
 
 val lhss0 = [@{cpat "0::?'a::ring"}];
 
-fun proc0 phi ss ct =
+fun proc0 phi ctxt ct =
   let val T = ctyp_of_term ct
   in if typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] zeroth)
@@ -38,7 +38,7 @@ val oneth = (Thm.symmetric o mk_meta_eq) @{thm of_int_1};
 
 val lhss1 = [@{cpat "1::?'a::ring_1"}];
 
-fun proc1 phi ss ct =
+fun proc1 phi ctxt ct =
   let val T = ctyp_of_term ct
   in if typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] oneth)
@@ -58,15 +58,17 @@ fun check (Const (@{const_name Groups.one}, @{typ int})) = false
   | check (a $ b) = check a andalso check b
   | check _ = false;
 
-val conv =
-  Simplifier.rewrite
-   (HOL_basic_ss addsimps
+val conv_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps
      ((map (fn th => th RS sym) [@{thm of_int_add}, @{thm of_int_mult},
              @{thm of_int_diff},  @{thm of_int_minus}])@
       [@{thm of_int_less_iff}, @{thm of_int_le_iff}, @{thm of_int_eq_iff}])
      addsimprocs [zero_to_of_int_zero_simproc,one_to_of_int_one_simproc]);
 
-fun sproc phi ss ct = if check (term_of ct) then SOME (conv ct) else NONE
+fun sproc phi ctxt ct =
+  if check (term_of ct) then SOME (Simplifier.rewrite (put_simpset conv_ss ctxt) ct)
+  else NONE;
 
 val lhss' =
   [@{cpat "(?x::?'a::ring_char_0) = (?y::?'a)"},

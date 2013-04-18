@@ -5,21 +5,21 @@ Simprocs for nat numerals.
 
 signature NAT_NUMERAL_SIMPROCS =
 sig
-  val combine_numerals: simpset -> cterm -> thm option
-  val eq_cancel_numerals: simpset -> cterm -> thm option
-  val less_cancel_numerals: simpset -> cterm -> thm option
-  val le_cancel_numerals: simpset -> cterm -> thm option
-  val diff_cancel_numerals: simpset -> cterm -> thm option
-  val eq_cancel_numeral_factor: simpset -> cterm -> thm option
-  val less_cancel_numeral_factor: simpset -> cterm -> thm option
-  val le_cancel_numeral_factor: simpset -> cterm -> thm option
-  val div_cancel_numeral_factor: simpset -> cterm -> thm option
-  val dvd_cancel_numeral_factor: simpset -> cterm -> thm option
-  val eq_cancel_factor: simpset -> cterm -> thm option
-  val less_cancel_factor: simpset -> cterm -> thm option
-  val le_cancel_factor: simpset -> cterm -> thm option
-  val div_cancel_factor: simpset -> cterm -> thm option
-  val dvd_cancel_factor: simpset -> cterm -> thm option
+  val combine_numerals: Proof.context -> cterm -> thm option
+  val eq_cancel_numerals: Proof.context -> cterm -> thm option
+  val less_cancel_numerals: Proof.context -> cterm -> thm option
+  val le_cancel_numerals: Proof.context -> cterm -> thm option
+  val diff_cancel_numerals: Proof.context -> cterm -> thm option
+  val eq_cancel_numeral_factor: Proof.context -> cterm -> thm option
+  val less_cancel_numeral_factor: Proof.context -> cterm -> thm option
+  val le_cancel_numeral_factor: Proof.context -> cterm -> thm option
+  val div_cancel_numeral_factor: Proof.context -> cterm -> thm option
+  val dvd_cancel_numeral_factor: Proof.context -> cterm -> thm option
+  val eq_cancel_factor: Proof.context -> cterm -> thm option
+  val less_cancel_factor: Proof.context -> cterm -> thm option
+  val le_cancel_factor: Proof.context -> cterm -> thm option
+  val div_cancel_factor: Proof.context -> cterm -> thm option
+  val dvd_cancel_factor: Proof.context -> cterm -> thm option
 end;
 
 structure Nat_Numeral_Simprocs : NAT_NUMERAL_SIMPROCS =
@@ -27,9 +27,8 @@ struct
 
 (*Maps n to #n for n = 1, 2*)
 val numeral_syms = [@{thm numeral_1_eq_1} RS sym, @{thm numeral_2_eq_2} RS sym];
-val numeral_sym_ss = HOL_basic_ss addsimps numeral_syms;
-
-val rename_numerals = simplify numeral_sym_ss o Thm.transfer @{theory};
+val numeral_sym_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context} addsimps numeral_syms);
 
 (*Utilities*)
 
@@ -134,6 +133,9 @@ fun dest_Sucs_sum relaxed t =
   end;
 
 
+(* FIXME !? *)
+val rename_numerals = simplify (put_simpset numeral_sym_ss @{context}) o Thm.transfer @{theory};
+
 (*Simplify 1*n and n*1 to n*)
 val add_0s  = map rename_numerals [@{thm Nat.add_0}, @{thm Nat.add_0_right}];
 val mult_1s = map rename_numerals [@{thm nat_mult_1}, @{thm nat_mult_1_right}];
@@ -162,15 +164,22 @@ struct
   val find_first_coeff = find_first_coeff []
   val trans_tac = Numeral_Simprocs.trans_tac
 
-  val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    [@{thm Suc_eq_plus1_left}] @ @{thms add_ac}
-  val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
-  fun norm_tac ss = 
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+  val norm_ss1 =
+    simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
+      addsimps numeral_syms @ add_0s @ mult_1s @
+        [@{thm Suc_eq_plus1_left}] @ @{thms add_ac})
+  val norm_ss2 =
+    simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
+      addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac})
+  fun norm_tac ctxt = 
+    ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
 
-  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ bin_simps;
-  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss));
+  val numeral_simp_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context}
+      addsimps add_0s @ bin_simps);
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt));
   val simplify_meta_eq  = simplify_meta_eq
   val prove_conv = Arith_Data.prove_conv
 end;
@@ -207,10 +216,10 @@ structure DiffCancelNumerals = CancelNumeralsFun
   val bal_add2 = @{thm nat_diff_add_eq2} RS trans
 );
 
-fun eq_cancel_numerals ss ct = EqCancelNumerals.proc ss (term_of ct)
-fun less_cancel_numerals ss ct = LessCancelNumerals.proc ss (term_of ct)
-fun le_cancel_numerals ss ct = LeCancelNumerals.proc ss (term_of ct)
-fun diff_cancel_numerals ss ct = DiffCancelNumerals.proc ss (term_of ct)
+fun eq_cancel_numerals ctxt ct = EqCancelNumerals.proc ctxt (term_of ct)
+fun less_cancel_numerals ctxt ct = LessCancelNumerals.proc ctxt (term_of ct)
+fun le_cancel_numerals ctxt ct = LeCancelNumerals.proc ctxt (term_of ct)
+fun diff_cancel_numerals ctxt ct = DiffCancelNumerals.proc ctxt (term_of ct)
 
 
 (*** Applying CombineNumeralsFun ***)
@@ -228,20 +237,27 @@ struct
   val prove_conv = Arith_Data.prove_conv_nohyps
   val trans_tac = Numeral_Simprocs.trans_tac
 
-  val norm_ss1 = Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms add_ac}
-  val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
-  fun norm_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+  val norm_ss1 =
+    simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
+      addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1}] @ @{thms add_ac})
+  val norm_ss2 =
+    simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
+      addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac})
+  fun norm_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
 
-  val numeral_simp_ss = HOL_basic_ss addsimps add_0s @ bin_simps;
-  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val numeral_simp_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context}
+      addsimps add_0s @ bin_simps);
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = simplify_meta_eq
 end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
-fun combine_numerals ss ct = CombineNumerals.proc ss (term_of ct)
+fun combine_numerals ctxt ct = CombineNumerals.proc ctxt (term_of ct)
 
 
 (*** Applying CancelNumeralFactorFun ***)
@@ -252,15 +268,20 @@ struct
   val dest_coeff = dest_coeff
   val trans_tac = Numeral_Simprocs.trans_tac
 
-  val norm_ss1 = Numeral_Simprocs.num_ss addsimps
-    numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms add_ac}
-  val norm_ss2 = Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
-  fun norm_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
+  val norm_ss1 =
+    simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
+      addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_plus1_left}] @ @{thms add_ac})
+  val norm_ss2 =
+    simpset_of (put_simpset Numeral_Simprocs.num_ss @{context}
+      addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac})
+  fun norm_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (simp_tac (put_simpset norm_ss2 ctxt))
 
-  val numeral_simp_ss = HOL_basic_ss addsimps bin_simps
-  fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val numeral_simp_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps bin_simps)
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq = simplify_meta_eq
   val prove_conv = Arith_Data.prove_conv
 end;
@@ -305,11 +326,11 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
   val neg_exchanges = true
 )
 
-fun eq_cancel_numeral_factor ss ct = EqCancelNumeralFactor.proc ss (term_of ct)
-fun less_cancel_numeral_factor ss ct = LessCancelNumeralFactor.proc ss (term_of ct)
-fun le_cancel_numeral_factor ss ct = LeCancelNumeralFactor.proc ss (term_of ct)
-fun div_cancel_numeral_factor ss ct = DivCancelNumeralFactor.proc ss (term_of ct)
-fun dvd_cancel_numeral_factor ss ct = DvdCancelNumeralFactor.proc ss (term_of ct)
+fun eq_cancel_numeral_factor ctxt ct = EqCancelNumeralFactor.proc ctxt (term_of ct)
+fun less_cancel_numeral_factor ctxt ct = LessCancelNumeralFactor.proc ctxt (term_of ct)
+fun le_cancel_numeral_factor ctxt ct = LeCancelNumeralFactor.proc ctxt (term_of ct)
+fun div_cancel_numeral_factor ctxt ct = DivCancelNumeralFactor.proc ctxt (term_of ct)
+fun dvd_cancel_numeral_factor ctxt ct = DvdCancelNumeralFactor.proc ctxt (term_of ct)
 
 
 (*** Applying ExtractCommonTermFun ***)
@@ -329,8 +350,8 @@ fun find_first_t past u []         = raise TERM("find_first_t", [])
 val simplify_one = Arith_Data.simplify_meta_eq  
   [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_1}, @{thm numeral_1_eq_Suc_0}];
 
-fun cancel_simplify_meta_eq ss cancel_th th =
-    simplify_one ss (([th, cancel_th]) MRS trans);
+fun cancel_simplify_meta_eq ctxt cancel_th th =
+    simplify_one ctxt (([th, cancel_th]) MRS trans);
 
 structure CancelFactorCommon =
 struct
@@ -340,8 +361,11 @@ struct
   val dest_coeff = dest_coeff
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
-  val norm_ss = HOL_basic_ss addsimps mult_1s @ @{thms mult_ac}
-  fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
+  val norm_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context}
+      addsimps mult_1s @ @{thms mult_ac})
+  fun norm_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
   val simplify_meta_eq  = cancel_simplify_meta_eq
   fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
 end;
@@ -381,10 +405,10 @@ structure DvdCancelFactor = ExtractCommonTermFun
   fun simp_conv _ _ = SOME @{thm nat_mult_dvd_cancel_disj}
 );
 
-fun eq_cancel_factor ss ct = EqCancelFactor.proc ss (term_of ct)
-fun less_cancel_factor ss ct = LessCancelFactor.proc ss (term_of ct)
-fun le_cancel_factor ss ct = LeCancelFactor.proc ss (term_of ct)
-fun div_cancel_factor ss ct = DivideCancelFactor.proc ss (term_of ct)
-fun dvd_cancel_factor ss ct = DvdCancelFactor.proc ss (term_of ct)
+fun eq_cancel_factor ctxt ct = EqCancelFactor.proc ctxt (term_of ct)
+fun less_cancel_factor ctxt ct = LessCancelFactor.proc ctxt (term_of ct)
+fun le_cancel_factor ctxt ct = LeCancelFactor.proc ctxt (term_of ct)
+fun div_cancel_factor ctxt ct = DivideCancelFactor.proc ctxt (term_of ct)
+fun dvd_cancel_factor ctxt ct = DvdCancelFactor.proc ctxt (term_of ct)
 
 end;

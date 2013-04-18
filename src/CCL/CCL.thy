@@ -206,7 +206,7 @@ ML {*
     in
       CHANGED (REPEAT (ares_tac [@{thm iffI}, @{thm allI}, @{thm conjI}] i ORELSE
         eresolve_tac inj_lemmas i ORELSE
-        asm_simp_tac (simpset_of ctxt addsimps rews) i))
+        asm_simp_tac (ctxt addsimps rews) i))
     end;
 *}
 
@@ -281,7 +281,7 @@ fun mk_dstnct_thms ctxt defs inj_rls xs =
       Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
         (fn _ =>
           rewrite_goals_tac defs THEN
-          simp_tac (simpset_of ctxt addsimps (rls @ inj_rls)) 1)
+          simp_tac (ctxt addsimps (rls @ inj_rls)) 1)
   in map (mk_dstnct_thm ccl_dstncts) (mk_dstnct_rls thy xs) end
 
 fun mkall_dstnct_thms ctxt defs i_rls xss = maps (mk_dstnct_thms ctxt defs i_rls) xss
@@ -422,7 +422,7 @@ lemma npo_rls1:
     REPEAT (rtac @{thm notI} 1 THEN
       dtac @{thm case_pocong} 1 THEN
       etac @{thm rev_mp} 5 THEN
-      ALLGOALS (simp_tac @{simpset}) THEN
+      ALLGOALS (simp_tac @{context}) THEN
       REPEAT (resolve_tac [@{thm po_refl}, @{thm npo_lam_bot}] 1)) *})
 
 lemmas npo_rls = npo_pair_lam npo_lam_pair npo_rls1

@@ -165,7 +165,9 @@ fun inequality_canon_rule ctxt =
   val real_poly_conv =
     Semiring_Normalizer.semiring_normalize_wrapper ctxt
      (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
- in fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv arg_conv (Numeral_Simprocs.field_comp_conv then_conv real_poly_conv)))
+ in
+  fconv_rule (arg_conv ((rewr_conv @{thm ge_iff_diff_ge_0}) then_conv
+    arg_conv (Numeral_Simprocs.field_comp_conv ctxt then_conv real_poly_conv)))
 end;
 
  val apply_pth1 = rewr_conv @{thm pth_1};
@@ -175,8 +177,13 @@ end;
  val apply_pth5 = rewr_conv @{thm pth_5};
  val apply_pth6 = rewr_conv @{thm pth_6};
  val apply_pth7 = rewrs_conv @{thms pth_7};
- val apply_pth8 = rewr_conv @{thm pth_8} then_conv arg1_conv Numeral_Simprocs.field_comp_conv then_conv (try_conv (rewr_conv (mk_meta_eq @{thm scaleR_zero_left})));
- val apply_pth9 = rewrs_conv @{thms pth_9} then_conv arg1_conv (arg1_conv Numeral_Simprocs.field_comp_conv);
+ fun apply_pth8 ctxt =
+  rewr_conv @{thm pth_8} then_conv
+  arg1_conv (Numeral_Simprocs.field_comp_conv ctxt) then_conv
+  (try_conv (rewr_conv (mk_meta_eq @{thm scaleR_zero_left})));
+ fun apply_pth9 ctxt =
+  rewrs_conv @{thms pth_9} then_conv
+  arg1_conv (arg1_conv (Numeral_Simprocs.field_comp_conv ctxt));
  val apply_ptha = rewr_conv @{thm pth_a};
  val apply_pthb = rewrs_conv @{thms pth_b};
  val apply_pthc = rewrs_conv @{thms pth_c};
@@ -188,13 +195,13 @@ fun headvector t = case t of
  | Const(@{const_name scaleR}, _)$_$v => v
  | _ => error "headvector: non-canonical term"
 
-fun vector_cmul_conv ct =
-   ((apply_pth5 then_conv arg1_conv Numeral_Simprocs.field_comp_conv) else_conv
-    (apply_pth6 then_conv binop_conv vector_cmul_conv)) ct
+fun vector_cmul_conv ctxt ct =
+   ((apply_pth5 then_conv arg1_conv (Numeral_Simprocs.field_comp_conv ctxt)) else_conv
+    (apply_pth6 then_conv binop_conv (vector_cmul_conv ctxt))) ct
 
-fun vector_add_conv ct = apply_pth7 ct
+fun vector_add_conv ctxt ct = apply_pth7 ct
  handle CTERM _ =>
-  (apply_pth8 ct
+  (apply_pth8 ctxt ct
    handle CTERM _ =>
     (case term_of ct of
      Const(@{const_name plus},_)$lt$rt =>
@@ -202,35 +209,35 @@ fun vector_add_conv ct = apply_pth7 ct
        val l = headvector lt
        val r = headvector rt
       in (case Term_Ord.fast_term_ord (l,r) of
-         LESS => (apply_pthb then_conv arg_conv vector_add_conv
+         LESS => (apply_pthb then_conv arg_conv (vector_add_conv ctxt)
                   then_conv apply_pthd) ct
-        | GREATER => (apply_pthc then_conv arg_conv vector_add_conv
+        | GREATER => (apply_pthc then_conv arg_conv (vector_add_conv ctxt)
                      then_conv apply_pthd) ct
-        | EQUAL => (apply_pth9 then_conv
-                ((apply_ptha then_conv vector_add_conv) else_conv
-              arg_conv vector_add_conv then_conv apply_pthd)) ct)
+        | EQUAL => (apply_pth9 ctxt then_conv
+                ((apply_ptha then_conv (vector_add_conv ctxt)) else_conv
+              arg_conv (vector_add_conv ctxt) then_conv apply_pthd)) ct)
       end
      | _ => Thm.reflexive ct))
 
-fun vector_canon_conv ct = case term_of ct of
+fun vector_canon_conv ctxt ct = case term_of ct of
  Const(@{const_name plus},_)$_$_ =>
   let
    val ((p,l),r) = Thm.dest_comb ct |>> Thm.dest_comb
-   val lth = vector_canon_conv l
-   val rth = vector_canon_conv r
+   val lth = vector_canon_conv ctxt l
+   val rth = vector_canon_conv ctxt r
    val th = Drule.binop_cong_rule p lth rth
-  in fconv_rule (arg_conv vector_add_conv) th end
+  in fconv_rule (arg_conv (vector_add_conv ctxt)) th end
 
 | Const(@{const_name scaleR}, _)$_$_ =>
   let
    val (p,r) = Thm.dest_comb ct
-   val rth = Drule.arg_cong_rule p (vector_canon_conv r)
-  in fconv_rule (arg_conv (apply_pth4 else_conv vector_cmul_conv)) rth
+   val rth = Drule.arg_cong_rule p (vector_canon_conv ctxt r)
+  in fconv_rule (arg_conv (apply_pth4 else_conv (vector_cmul_conv ctxt))) rth
   end
 
-| Const(@{const_name minus},_)$_$_ => (apply_pth2 then_conv vector_canon_conv) ct
+| Const(@{const_name minus},_)$_$_ => (apply_pth2 then_conv (vector_canon_conv ctxt)) ct
 
-| Const(@{const_name uminus},_)$_ => (apply_pth3 then_conv vector_canon_conv) ct
+| Const(@{const_name uminus},_)$_ => (apply_pth3 then_conv (vector_canon_conv ctxt)) ct
 
 (* FIXME
 | Const(@{const_name vec},_)$n =>
@@ -241,8 +248,8 @@ fun vector_canon_conv ct = case term_of ct of
 *)
 | _ => apply_pth1 ct
 
-fun norm_canon_conv ct = case term_of ct of
-  Const(@{const_name norm},_)$_ => arg_conv vector_canon_conv ct
+fun norm_canon_conv ctxt ct = case term_of ct of
+  Const(@{const_name norm},_)$_ => arg_conv (vector_canon_conv ctxt) ct
  | _ => raise CTERM ("norm_canon_conv", [ct])
 
 fun int_flip v eq =
@@ -314,9 +321,9 @@ local
   in fst (RealArith.real_linear_prover translator
         (map (fn t => Drule.instantiate_normalize ([(tv_n, ctyp_of_term t)],[]) pth_zero)
             zerodests,
-        map (fconv_rule (try_conv (Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
+        map (fconv_rule (try_conv (Conv.top_sweep_conv (K (norm_canon_conv ctxt)) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
-        map (fconv_rule (try_conv (Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
+        map (fconv_rule (try_conv (Conv.top_sweep_conv (K (norm_canon_conv ctxt)) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) gts))
   end
 in val real_vector_combo_prover = real_vector_combo_prover
@@ -367,7 +374,7 @@ local
        (Semiring_Normalizer.semiring_normalizers_ord_wrapper ctxt
         (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"})) simple_cterm_ord)
    val (th1,th2) = conj_pair(rawrule th)
-  in th1::fconv_rule (arg_conv (arg_conv real_poly_neg_conv)) th2::acc
+  in th1::fconv_rule (arg_conv (arg_conv (real_poly_neg_conv ctxt))) th2::acc
   end
 in fun real_vector_prover ctxt _ translator (eqs,ges,gts) =
      (real_vector_ineq_prover ctxt translator
@@ -375,10 +382,11 @@ in fun real_vector_prover ctxt _ translator (eqs,ges,gts) =
 end;
 
   fun init_conv ctxt =
-   Simplifier.rewrite (Simplifier.context ctxt
-     (HOL_basic_ss addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm right_minus}, @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths})))
-   then_conv Numeral_Simprocs.field_comp_conv
-   then_conv nnf_conv
+   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt
+    addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm dist_norm}, @{thm right_minus},
+      @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths}))
+   then_conv Numeral_Simprocs.field_comp_conv ctxt
+   then_conv nnf_conv ctxt
 
  fun pure ctxt = fst o RealArith.gen_prover_real_arith ctxt (real_vector_prover ctxt);
  fun norm_arith ctxt ct =

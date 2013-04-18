@@ -130,7 +130,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
     val (hyps, ctxt5) = ctxt4
       |> Assumption.add_assumes (map transform c_vars');
     val simpset =
-      Simplifier.context ctxt5 HOL_ss addsimps (inj @ embed @ return)
+      put_simpset HOL_ss ctxt5 addsimps (inj @ embed @ return)
       |> fold Simplifier.add_cong cong;
     val thm' = thm
       |> Drule.cterm_instantiate (c_vars ~~ c_exprs')

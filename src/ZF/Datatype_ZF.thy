@@ -68,20 +68,21 @@ struct
         Balanced_Tree.make FOLogic.mk_conj
                  (map FOLogic.mk_eq (ListPair.zip (largs,rargs)));
 
- val datatype_ss = @{simpset};
+ val datatype_ss = simpset_of @{context};
 
- fun proc sg ss old =
-   let val _ =
-         if !trace then writeln ("data_free: OLD = " ^ Syntax.string_of_term_global sg old)
+ fun proc ctxt old =
+   let val thy = Proof_Context.theory_of ctxt
+       val _ =
+         if !trace then writeln ("data_free: OLD = " ^ Syntax.string_of_term ctxt old)
          else ()
        val (lhs,rhs) = FOLogic.dest_eq old
        val (lhead, largs) = strip_comb lhs
        and (rhead, rargs) = strip_comb rhs
        val lname = #1 (dest_Const lhead) handle TERM _ => raise Match;
        val rname = #1 (dest_Const rhead) handle TERM _ => raise Match;
-       val lcon_info = the (Symtab.lookup (ConstructorsData.get sg) lname)
+       val lcon_info = the (Symtab.lookup (ConstructorsData.get thy) lname)
          handle Option => raise Match;
-       val rcon_info = the (Symtab.lookup (ConstructorsData.get sg) rname)
+       val rcon_info = the (Symtab.lookup (ConstructorsData.get thy) rname)
          handle Option => raise Match;
        val new =
            if #big_rec_name lcon_info = #big_rec_name rcon_info
@@ -90,14 +91,14 @@ struct
                else Const(@{const_name False},FOLogic.oT)
            else raise Match
        val _ =
-         if !trace then writeln ("NEW = " ^ Syntax.string_of_term_global sg new)
+         if !trace then writeln ("NEW = " ^ Syntax.string_of_term ctxt new)
          else ();
        val goal = Logic.mk_equals (old, new)
-       val thm = Goal.prove (Simplifier.the_context ss) [] [] goal
+       val thm = Goal.prove ctxt [] [] goal
          (fn _ => rtac @{thm iff_reflection} 1 THEN
-           simp_tac (Simplifier.inherit_context ss datatype_ss addsimps #free_iffs lcon_info) 1)
+           simp_tac (put_simpset datatype_ss ctxt addsimps #free_iffs lcon_info) 1)
          handle ERROR msg =>
-         (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Syntax.string_of_term_global sg goal);
+         (warning (msg ^ "\ndata_free simproc:\nfailed to prove " ^ Syntax.string_of_term ctxt goal);
           raise Match)
    in SOME thm end
    handle Match => NONE;

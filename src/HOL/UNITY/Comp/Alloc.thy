@@ -329,11 +329,11 @@ end
 ML {*
 fun record_auto_tac ctxt =
   let val ctxt' =
-    (ctxt addSWrapper Record.split_wrapper)
-    |> map_simpset (fn ss => ss addsimps
+    ctxt addSWrapper Record.split_wrapper
+    addsimps
        [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
         @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
-        @{thm o_apply}, @{thm Let_def}])
+        @{thm o_apply}, @{thm Let_def}]
   in auto_tac ctxt' end;
 
 *}
@@ -425,7 +425,7 @@ lemma fst_o_client_map: "fst o client_map = non_dummy"
   apply (rule fst_o_funPair)
   done
 
-ML {* bind_thms ("fst_o_client_map'", make_o_equivs @{thm fst_o_client_map}) *}
+ML {* bind_thms ("fst_o_client_map'", make_o_equivs @{context} @{thm fst_o_client_map}) *}
 declare fst_o_client_map' [simp]
 
 lemma snd_o_client_map: "snd o client_map = clientState_d.dummy"
@@ -433,7 +433,7 @@ lemma snd_o_client_map: "snd o client_map = clientState_d.dummy"
   apply (rule snd_o_funPair)
   done
 
-ML {* bind_thms ("snd_o_client_map'", make_o_equivs @{thm snd_o_client_map}) *}
+ML {* bind_thms ("snd_o_client_map'", make_o_equivs @{context} @{thm snd_o_client_map}) *}
 declare snd_o_client_map' [simp]
 
 
@@ -443,28 +443,28 @@ lemma client_o_sysOfAlloc: "client o sysOfAlloc = fst o allocState_d.dummy "
   apply record_auto
   done
 
-ML {* bind_thms ("client_o_sysOfAlloc'", make_o_equivs @{thm client_o_sysOfAlloc}) *}
+ML {* bind_thms ("client_o_sysOfAlloc'", make_o_equivs @{context} @{thm client_o_sysOfAlloc}) *}
 declare client_o_sysOfAlloc' [simp]
 
 lemma allocGiv_o_sysOfAlloc_eq: "allocGiv o sysOfAlloc = allocGiv"
   apply record_auto
   done
 
-ML {* bind_thms ("allocGiv_o_sysOfAlloc_eq'", make_o_equivs @{thm allocGiv_o_sysOfAlloc_eq}) *}
+ML {* bind_thms ("allocGiv_o_sysOfAlloc_eq'", make_o_equivs @{context} @{thm allocGiv_o_sysOfAlloc_eq}) *}
 declare allocGiv_o_sysOfAlloc_eq' [simp]
 
 lemma allocAsk_o_sysOfAlloc_eq: "allocAsk o sysOfAlloc = allocAsk"
   apply record_auto
   done
 
-ML {* bind_thms ("allocAsk_o_sysOfAlloc_eq'", make_o_equivs @{thm allocAsk_o_sysOfAlloc_eq}) *}
+ML {* bind_thms ("allocAsk_o_sysOfAlloc_eq'", make_o_equivs @{context} @{thm allocAsk_o_sysOfAlloc_eq}) *}
 declare allocAsk_o_sysOfAlloc_eq' [simp]
 
 lemma allocRel_o_sysOfAlloc_eq: "allocRel o sysOfAlloc = allocRel"
   apply record_auto
   done
 
-ML {* bind_thms ("allocRel_o_sysOfAlloc_eq'", make_o_equivs @{thm allocRel_o_sysOfAlloc_eq}) *}
+ML {* bind_thms ("allocRel_o_sysOfAlloc_eq'", make_o_equivs @{context} @{thm allocRel_o_sysOfAlloc_eq}) *}
 declare allocRel_o_sysOfAlloc_eq' [simp]
 
 
@@ -474,49 +474,49 @@ lemma client_o_sysOfClient: "client o sysOfClient = fst"
   apply record_auto
   done
 
-ML {* bind_thms ("client_o_sysOfClient'", make_o_equivs @{thm client_o_sysOfClient}) *}
+ML {* bind_thms ("client_o_sysOfClient'", make_o_equivs @{context} @{thm client_o_sysOfClient}) *}
 declare client_o_sysOfClient' [simp]
 
 lemma allocGiv_o_sysOfClient_eq: "allocGiv o sysOfClient = allocGiv o snd "
   apply record_auto
   done
 
-ML {* bind_thms ("allocGiv_o_sysOfClient_eq'", make_o_equivs @{thm allocGiv_o_sysOfClient_eq}) *}
+ML {* bind_thms ("allocGiv_o_sysOfClient_eq'", make_o_equivs @{context} @{thm allocGiv_o_sysOfClient_eq}) *}
 declare allocGiv_o_sysOfClient_eq' [simp]
 
 lemma allocAsk_o_sysOfClient_eq: "allocAsk o sysOfClient = allocAsk o snd "
   apply record_auto
   done
 
-ML {* bind_thms ("allocAsk_o_sysOfClient_eq'", make_o_equivs @{thm allocAsk_o_sysOfClient_eq}) *}
+ML {* bind_thms ("allocAsk_o_sysOfClient_eq'", make_o_equivs @{context} @{thm allocAsk_o_sysOfClient_eq}) *}
 declare allocAsk_o_sysOfClient_eq' [simp]
 
 lemma allocRel_o_sysOfClient_eq: "allocRel o sysOfClient = allocRel o snd "
   apply record_auto
   done
 
-ML {* bind_thms ("allocRel_o_sysOfClient_eq'", make_o_equivs @{thm allocRel_o_sysOfClient_eq}) *}
+ML {* bind_thms ("allocRel_o_sysOfClient_eq'", make_o_equivs @{context} @{thm allocRel_o_sysOfClient_eq}) *}
 declare allocRel_o_sysOfClient_eq' [simp]
 
 lemma allocGiv_o_inv_sysOfAlloc_eq: "allocGiv o inv sysOfAlloc = allocGiv"
   apply (simp add: o_def)
   done
 
-ML {* bind_thms ("allocGiv_o_inv_sysOfAlloc_eq'", make_o_equivs @{thm allocGiv_o_inv_sysOfAlloc_eq}) *}
+ML {* bind_thms ("allocGiv_o_inv_sysOfAlloc_eq'", make_o_equivs @{context} @{thm allocGiv_o_inv_sysOfAlloc_eq}) *}
 declare allocGiv_o_inv_sysOfAlloc_eq' [simp]
 
 lemma allocAsk_o_inv_sysOfAlloc_eq: "allocAsk o inv sysOfAlloc = allocAsk"
   apply (simp add: o_def)
   done
 
-ML {* bind_thms ("allocAsk_o_inv_sysOfAlloc_eq'", make_o_equivs @{thm allocAsk_o_inv_sysOfAlloc_eq}) *}
+ML {* bind_thms ("allocAsk_o_inv_sysOfAlloc_eq'", make_o_equivs @{context} @{thm allocAsk_o_inv_sysOfAlloc_eq}) *}
 declare allocAsk_o_inv_sysOfAlloc_eq' [simp]
 
 lemma allocRel_o_inv_sysOfAlloc_eq: "allocRel o inv sysOfAlloc = allocRel"
   apply (simp add: o_def)
   done
 
-ML {* bind_thms ("allocRel_o_inv_sysOfAlloc_eq'", make_o_equivs @{thm allocRel_o_inv_sysOfAlloc_eq}) *}
+ML {* bind_thms ("allocRel_o_inv_sysOfAlloc_eq'", make_o_equivs @{context} @{thm allocRel_o_inv_sysOfAlloc_eq}) *}
 declare allocRel_o_inv_sysOfAlloc_eq' [simp]
 
 lemma rel_inv_client_map_drop_map: "(rel o inv client_map o drop_map i o inv sysOfClient) =
@@ -524,7 +524,7 @@ lemma rel_inv_client_map_drop_map: "(rel o inv client_map o drop_map i o inv sys
   apply (simp add: o_def drop_map_def)
   done
 
-ML {* bind_thms ("rel_inv_client_map_drop_map'", make_o_equivs @{thm rel_inv_client_map_drop_map}) *}
+ML {* bind_thms ("rel_inv_client_map_drop_map'", make_o_equivs @{context} @{thm rel_inv_client_map_drop_map}) *}
 declare rel_inv_client_map_drop_map [simp]
 
 lemma ask_inv_client_map_drop_map: "(ask o inv client_map o drop_map i o inv sysOfClient) =
@@ -532,7 +532,7 @@ lemma ask_inv_client_map_drop_map: "(ask o inv client_map o drop_map i o inv sys
   apply (simp add: o_def drop_map_def)
   done
 
-ML {* bind_thms ("ask_inv_client_map_drop_map'", make_o_equivs @{thm ask_inv_client_map_drop_map}) *}
+ML {* bind_thms ("ask_inv_client_map_drop_map'", make_o_equivs @{context} @{thm ask_inv_client_map_drop_map}) *}
 declare ask_inv_client_map_drop_map [simp]
 
 
@@ -546,7 +546,7 @@ ML {*
 val [Client_Increasing_ask, Client_Increasing_rel,
      Client_Bounded, Client_Progress, Client_AllowedActs,
      Client_preserves_giv, Client_preserves_dummy] =
-        @{thm Client} |> simplify (@{simpset} addsimps @{thms client_spec_simps})
+        @{thm Client} |> simplify (@{context} addsimps @{thms client_spec_simps})
                |> list_of_Int;
 
 bind_thm ("Client_Increasing_ask", Client_Increasing_ask);
@@ -576,7 +576,7 @@ ML {*
 val [Network_Ask, Network_Giv, Network_Rel, Network_AllowedActs,
      Network_preserves_allocGiv, Network_preserves_rel,
      Network_preserves_ask]  =
-        @{thm Network} |> simplify (@{simpset} addsimps @{thms network_spec_simps})
+        @{thm Network} |> simplify (@{context} addsimps @{thms network_spec_simps})
                 |> list_of_Int;
 
 bind_thm ("Network_Ask", Network_Ask);
@@ -607,7 +607,7 @@ ML {*
 val [Alloc_Increasing_0, Alloc_Safety, Alloc_Progress, Alloc_AllowedActs,
      Alloc_preserves_allocRel, Alloc_preserves_allocAsk,
      Alloc_preserves_dummy] =
-        @{thm Alloc} |> simplify (@{simpset} addsimps @{thms alloc_spec_simps})
+        @{thm Alloc} |> simplify (@{context} addsimps @{thms alloc_spec_simps})
               |> list_of_Int;
 
 bind_thm ("Alloc_Increasing_0", Alloc_Increasing_0);
@@ -709,26 +709,25 @@ ad-hoc!
 *)
 ML
 {*
-fun rename_client_map_tac ss =
+fun rename_client_map_tac ctxt =
   EVERY [
-    simp_tac (ss addsimps [@{thm rename_guarantees_eq_rename_inv}]) 1,
+    simp_tac (ctxt addsimps [@{thm rename_guarantees_eq_rename_inv}]) 1,
     rtac @{thm guarantees_PLam_I} 1,
     assume_tac 2,
          (*preserves: routine reasoning*)
-    asm_simp_tac (ss addsimps [@{thm lift_preserves_sub}]) 2,
+    asm_simp_tac (ctxt addsimps [@{thm lift_preserves_sub}]) 2,
          (*the guarantee for  "lift i (rename client_map Client)" *)
     asm_simp_tac
-        (ss addsimps [@{thm lift_guarantees_eq_lift_inv},
+        (ctxt addsimps [@{thm lift_guarantees_eq_lift_inv},
                       @{thm rename_guarantees_eq_rename_inv},
                       @{thm bij_imp_bij_inv}, @{thm surj_rename},
                       @{thm inv_inv_eq}]) 1,
-    asm_simp_tac
-        (@{simpset} addsimps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
+    asm_simp_tac  (* FIXME ctxt !!? *)
+        (@{context} addsimps [@{thm o_def}, @{thm non_dummy_def}, @{thm guarantees_Int_right}]) 1]
 *}
 
 method_setup rename_client_map = {*
-  Scan.succeed (fn ctxt =>
-    SIMPLE_METHOD (rename_client_map_tac (simpset_of ctxt)))
+  Scan.succeed (fn ctxt => SIMPLE_METHOD (rename_client_map_tac ctxt))
 *}
 
 text{*Lifting @{text Client_Increasing} to @{term systemState}*}

@@ -8,17 +8,18 @@ Tactics for wrapping datatypes.
 signature BNF_WRAP_TACTICS =
 sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
-  val mk_case_cong_tac: thm -> thm list -> tactic
+  val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
   val mk_case_conv_tac: Proof.context -> int -> thm -> thm list -> thm list list -> thm list list ->
     tactic
   val mk_collapse_tac: Proof.context -> int -> thm -> thm list -> tactic
   val mk_disc_exhaust_tac: int -> thm -> thm list -> tactic
-  val mk_expand_tac: int -> int list -> thm -> thm -> thm list -> thm list list list ->
-    thm list list list -> tactic
+  val mk_expand_tac: Proof.context -> int -> int list -> thm -> thm -> thm list ->
+    thm list list list -> thm list list list -> tactic
   val mk_half_disc_exclude_tac: int -> thm -> thm -> tactic
   val mk_nchotomy_tac: int -> thm -> tactic
   val mk_other_half_disc_exclude_tac: thm -> tactic
-  val mk_split_tac: thm -> thm list -> thm list list -> thm list list list -> tactic
+  val mk_split_tac: Proof.context ->
+    thm -> thm list -> thm list list -> thm list list list -> tactic
   val mk_split_asm_tac: Proof.context -> thm -> tactic
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
@@ -66,7 +67,8 @@ fun mk_collapse_tac ctxt m discD sels =
       REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac THEN'
       SELECT_GOAL (unfold_thms_tac ctxt sels) THEN' rtac refl)) 1;
 
-fun mk_expand_tac n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss disc_excludesss' =
+fun mk_expand_tac ctxt
+    n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss disc_excludesss' =
   if ms = [0] then
     rtac (@{thm trans_sym} OF (replicate 2 (the_single uncollapses RS sym))) 1
   else
@@ -86,7 +88,8 @@ fun mk_expand_tac n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss d
                   else
                     [rtac (vuncollapse RS trans), maybe_atac,
                      if n = 1 then K all_tac else EVERY' [dtac meta_mp, atac, dtac meta_mp, atac],
-                     REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE, asm_simp_tac (ss_only [])]
+                     REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE,
+                     asm_simp_tac (ss_only [] ctxt)]
                 else
                   [dtac (the_single (if k = n then disc_excludes else disc_excludes')),
                    etac (if k = n then @{thm iff_contradict(1)} else @{thm iff_contradict(2)}),
@@ -101,18 +104,18 @@ fun mk_case_conv_tac ctxt n uexhaust cases discss' selss =
        EVERY' [hyp_subst_tac, SELECT_GOAL (unfold_thms_tac ctxt (if_discs @ sels)), rtac casex])
      cases (map2 (seq_conds if_P_or_not_P_OF n) (1 upto n) discss') selss)) 1;
 
-fun mk_case_cong_tac uexhaust cases =
+fun mk_case_cong_tac ctxt uexhaust cases =
   (rtac uexhaust THEN'
-   EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex])]) cases)) 1;
+   EVERY' (maps (fn casex => [dtac sym, asm_simp_tac (ss_only [casex] ctxt)]) cases)) 1;
 
 val naked_ctxt = @{theory_context HOL};
 
 (* TODO: More precise "simp_thms"; get rid of "blast_tac" *)
-fun mk_split_tac uexhaust cases injectss distinctsss =
+fun mk_split_tac ctxt uexhaust cases injectss distinctsss =
   rtac uexhaust 1 THEN
   ALLGOALS (fn k => (hyp_subst_tac THEN'
      simp_tac (ss_only (@{thms simp_thms} @ cases @ nth injectss (k - 1) @
-       flat (nth distinctsss (k - 1))))) k) THEN
+       flat (nth distinctsss (k - 1))) ctxt)) k) THEN
   ALLGOALS (blast_tac naked_ctxt);
 
 val split_asm_thms = @{thms imp_conv_disj de_Morgan_conj de_Morgan_disj not_not not_ex};

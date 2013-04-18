@@ -107,11 +107,11 @@ fun ns_constrains_tac ctxt i =
      [REPEAT (etac @{thm Always_ConstrainsI} 1),
       REPEAT (resolve_tac [@{thm StableI}, @{thm stableI}, @{thm constrains_imp_Constrains}] 1),
       rtac @{thm ns_constrainsI} 1,
-      full_simp_tac (simpset_of ctxt) 1,
+      full_simp_tac ctxt 1,
       REPEAT (FIRSTGOAL (etac disjE)),
       ALLGOALS (clarify_tac (ctxt delrules [impI, @{thm impCE}])),
       REPEAT (FIRSTGOAL analz_mono_contra_tac),
-      ALLGOALS (asm_simp_tac (simpset_of ctxt))]) i;
+      ALLGOALS (asm_simp_tac ctxt)]) i;
 
 (*Tactic for proving secrecy theorems*)
 fun ns_induct_tac ctxt =

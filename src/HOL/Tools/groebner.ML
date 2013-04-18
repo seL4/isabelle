@@ -9,10 +9,10 @@ sig
      vars: cterm list, semiring: cterm list * thm list, ideal : thm list} ->
     (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
     conv ->  conv ->
-     {ring_conv : conv,
+     {ring_conv: Proof.context -> conv,
      simple_ideal: (cterm list -> cterm -> (cterm * cterm -> order) -> cterm list),
      multi_ideal: cterm list -> cterm list -> cterm list -> (cterm * cterm) list,
-     poly_eq_ss: simpset, unwind_conv : conv}
+     poly_eq_ss: simpset, unwind_conv: Proof.context -> conv}
   val ring_tac: thm list -> thm list -> Proof.context -> int -> tactic
   val ideal_tac: thm list -> thm list -> Proof.context -> int -> tactic
   val algebra_tac: thm list -> thm list -> Proof.context -> int -> tactic
@@ -437,13 +437,19 @@ fun is_forall t =
 val mk_object_eq = fn th => th COMP meta_eq_to_obj_eq;
 val bool_simps = @{thms bool_simps};
 val nnf_simps = @{thms nnf_simps};
-val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps bool_simps addsimps nnf_simps)
-val weak_dnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms weak_dnf_simps});
-val initial_conv =
-    Simplifier.rewrite
-     (HOL_basic_ss addsimps nnf_simps
-       addsimps [not_all, not_ex]
-       addsimps map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps}));
+fun nnf_conv ctxt =
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps bool_simps addsimps nnf_simps)
+
+fun weak_dnf_conv ctxt =
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms weak_dnf_simps});
+
+val initial_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps nnf_simps
+    addsimps [not_all, not_ex]
+    addsimps map (fn th => th RS sym) (@{thms ex_simps} @ @{thms all_simps}));
+fun initial_conv ctxt =
+  Simplifier.rewrite (put_simpset initial_ss ctxt);
 
 val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 
@@ -564,8 +570,8 @@ fun simple_choose v th =
  fun mkeq s t = Thm.apply @{cterm Trueprop} (Thm.apply (Thm.apply @{cterm "op = :: bool => _"} s) t)
  fun mk_exists v th = Drule.arg_cong_rule (ext (ctyp_of_term v))
    (Thm.abstract_rule (getname v) v th)
- val simp_ex_conv =
-     Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms(39)})
+ fun simp_ex_conv ctxt =
+   Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms(39)})
 
 fun frees t = Thm.add_cterm_frees t [];
 fun free_in v t = member op aconvc (frees t) v;
@@ -704,14 +710,15 @@ val holify_polynomial =
      else end_itlist ring_mk_add (map (holify_monomial vars) p)
  in holify_polynomial
  end ;
-val idom_rule = simplify (HOL_basic_ss addsimps [idom_thm]);
+
+fun idom_rule ctxt = simplify (put_simpset HOL_basic_ss ctxt addsimps [idom_thm]);
 fun prove_nz n = eqF_elim
                  (ring_eq_conv(mk_binop eq_tm (mk_const n) (mk_const(rat_0))));
 val neq_01 = prove_nz (rat_1);
 fun neq_rule n th = [prove_nz n, th] MRS neq_thm;
 fun mk_add th1 = Thm.combination (Drule.arg_cong_rule ring_add_tm th1);
 
-fun refute tm =
+fun refute ctxt tm =
  if tm aconvc false_tm then assume_Trueprop tm else
  ((let
    val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims (assume_Trueprop tm))
@@ -720,7 +727,7 @@ fun refute tm =
   in
    if null eths then
     let
-      val th1 = end_itlist (fn th1 => fn th2 => idom_rule(HOLogic.conj_intr th1 th2)) nths
+      val th1 = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr th1 th2)) nths
       val th2 =
         Conv.fconv_rule
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
@@ -740,13 +747,13 @@ fun refute tm =
       end
      else
       let
-       val nth = end_itlist (fn th1 => fn th2 => idom_rule(HOLogic.conj_intr th1 th2)) nths
+       val nth = end_itlist (fn th1 => fn th2 => idom_rule ctxt (HOLogic.conj_intr th1 th2)) nths
        val (vars,pol::pols) =
           grobify_equations(list_mk_conj(Thm.dest_arg(concl nth)::map concl eths))
        val (deg,l,cert) = grobner_strong vars pols pol
        val th1 =
         Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) nth
-       val th2 = funpow deg (idom_rule o HOLogic.conj_intr th1) neq_01
+       val th2 = funpow deg (idom_rule ctxt o HOLogic.conj_intr th1) neq_01
       in (vars,l,cert,th2)
       end)
     val cert_pos = map (fn (i,p) => (i,filter (fn (c,m) => c >/ rat_0) p)) cert
@@ -772,7 +779,7 @@ fun refute tm =
    end
   end) handle ERROR _ => raise CTERM ("Groebner-refute: unable to refute",[tm]))
 
-fun ring tm =
+fun ring ctxt tm =
  let
   fun mk_forall x p =
     Thm.apply
@@ -780,19 +787,20 @@ fun ring tm =
         @{cpat "All:: (?'a => bool) => _"}) (Thm.lambda x p)
   val avs = Thm.add_cterm_frees tm []
   val P' = fold mk_forall avs tm
-  val th1 = initial_conv(mk_neg P')
+  val th1 = initial_conv ctxt (mk_neg P')
   val (evs,bod) = strip_exists(concl th1) in
    if is_forall bod then raise CTERM("ring: non-universal formula",[tm])
    else
    let
-    val th1a = weak_dnf_conv bod
+    val th1a = weak_dnf_conv ctxt bod
     val boda = concl th1a
-    val th2a = refute_disj refute boda
+    val th2a = refute_disj (refute ctxt) boda
     val th2b = [mk_object_eq th1a, (th2a COMP notI) COMP PFalse'] MRS trans
     val th2 = fold (fn v => fn th => (Thm.forall_intr v th) COMP allI) evs (th2b RS PFalse)
     val th3 =
       Thm.equal_elim
-        (Simplifier.rewrite (HOL_basic_ss addsimps [not_ex RS sym]) (th2 |> cprop_of)) th2
+        (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps [not_ex RS sym])
+          (th2 |> cprop_of)) th2
     in specl avs
              ([[[mk_object_eq th1, th3 RS PFalse'] MRS trans] MRS PFalse] MRS notnotD)
    end
@@ -815,15 +823,17 @@ fun poly_eq_conv t =
  end
  val poly_eq_simproc =
   let
-   fun proc phi  ss t =
+   fun proc phi ctxt t =
     let val th = poly_eq_conv t
     in if Thm.is_reflexive th then NONE else SOME th
     end
    in make_simproc {lhss = [Thm.lhs_of idl_sub],
                 name = "poly_eq_simproc", proc = proc, identifier = []}
    end;
-  val poly_eq_ss = HOL_basic_ss addsimps @{thms simp_thms}
-                        addsimprocs [poly_eq_simproc]
+ val poly_eq_ss =
+   simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps @{thms simp_thms}
+    addsimprocs [poly_eq_simproc])
 
  local
   fun is_defined v t =
@@ -849,7 +859,7 @@ fun poly_eq_conv t =
    in Conv.fconv_rule(funpow 2 Conv.arg_conv ring_normalize_conv) th2
    end
  in
- fun unwind_polys_conv tm =
+ fun unwind_polys_conv ctxt tm =
  let
   val (vars,bod) = strip_exists tm
   val cjs = striplist (dest_binary @{cterm HOL.conj}) bod
@@ -864,7 +874,7 @@ fun poly_eq_conv t =
         (Thm.reflexive (Thm.dest_arg (Thm.rhs_of th2))))
   val v = Thm.dest_arg1(Thm.dest_arg1(Thm.rhs_of th3))
   val vars' = (remove op aconvc v vars) @ [v]
-  val th4 = Conv.fconv_rule (Conv.arg_conv simp_ex_conv) (mk_exists v th3)
+  val th4 = Conv.fconv_rule (Conv.arg_conv (simp_ex_conv ctxt)) (mk_exists v th3)
   val th5 = ex_eq_conv (mk_eq tm (fold mk_ex (remove op aconvc v vars) (Thm.lhs_of th4)))
  in Thm.transitive th5 (fold mk_exists (remove op aconvc v vars) th4)
  end;
@@ -966,10 +976,12 @@ fun ring_solve ctxt form =
       | SOME (res as (theory, {is_const, dest_const, mk_const, conv = ring_eq_conv})) =>
         #ring_conv (ring_and_ideal_conv theory
           dest_const (mk_const (ctyp_of_term tm)) (ring_eq_conv ctxt)
-          (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)) form));
+          (Semiring_Normalizer.semiring_normalize_wrapper ctxt res)) ctxt form));
 
-fun presimplify ctxt add_thms del_thms = asm_full_simp_tac (Simplifier.context ctxt
-  (HOL_basic_ss addsimps (Algebra_Simplification.get ctxt) delsimps del_thms addsimps add_thms));
+fun presimplify ctxt add_thms del_thms =
+  asm_full_simp_tac (put_simpset HOL_basic_ss ctxt
+    addsimps (Algebra_Simplification.get ctxt)
+    delsimps del_thms addsimps add_thms);
 
 fun ring_tac add_ths del_ths ctxt =
   Object_Logic.full_atomize_tac
@@ -978,7 +990,7 @@ fun ring_tac add_ths del_ths ctxt =
     rtac (let val form = Object_Logic.dest_judgment p
           in case get_ring_ideal_convs ctxt form of
            NONE => Thm.reflexive form
-          | SOME thy => #ring_conv thy form
+          | SOME thy => #ring_conv thy ctxt form
           end) i
       handle TERM _ => no_tac
         | CTERM _ => no_tac
@@ -1013,9 +1025,9 @@ fun ideal_tac add_ths del_ths ctxt =
   in
      clarify_tac @{context} i
      THEN Object_Logic.full_atomize_tac i
-     THEN asm_full_simp_tac (Simplifier.context ctxt (#poly_eq_ss thy)) i
+     THEN asm_full_simp_tac (put_simpset (#poly_eq_ss thy) ctxt) i
      THEN clarify_tac @{context} i
-     THEN (REPEAT (CONVERSION (#unwind_conv thy) i))
+     THEN (REPEAT (CONVERSION (#unwind_conv thy ctxt) i))
      THEN SUBPROOF poly_exists_tac ctxt i
   end
  handle TERM _ => no_tac

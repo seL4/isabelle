@@ -45,7 +45,7 @@ sig
   val coinduct_type: string -> attribute
   val coinduct_pred: string -> attribute
   val coinduct_del: attribute
-  val map_simpset: (simpset -> simpset) -> Context.generic -> Context.generic
+  val map_simpset: (Proof.context -> Proof.context) -> Context.generic -> Context.generic
   val induct_simp_add: attribute
   val induct_simp_del: attribute
   val no_simpN: string
@@ -164,8 +164,7 @@ fun mk_swap_rrule ctxt ct =
 val rearrange_eqs_simproc =
   Simplifier.simproc_global
     (Thm.theory_of_thm Drule.swap_prems_eq) "rearrange_eqs" ["all t"]
-    (fn thy => fn ss => fn t =>
-      mk_swap_rrule (Simplifier.the_context ss) (cterm_of thy t));
+    (fn ctxt => fn t => mk_swap_rrule ctxt (cterm_of (Proof_Context.theory_of ctxt) t));
 
 
 (* rotate k premises to the left by j, skipping over first j premises *)
@@ -225,7 +224,8 @@ structure Data = Generic_Data
     ((init_rules (left_var_prem o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (right_var_concl o #2), init_rules (Thm.major_prem_of o #2)),
      (init_rules (left_var_concl o #2), init_rules (Thm.concl_of o #2)),
-     empty_ss addsimprocs [rearrange_eqs_simproc] addsimps [Drule.norm_hhf_eq]);
+     simpset_of (empty_simpset @{context}
+      addsimprocs [rearrange_eqs_simproc] addsimps [Drule.norm_hhf_eq]));
   val extend = I;
   fun merge (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1), simpset1),
       ((casesT2, casesP2), (inductT2, inductP2), (coinductT2, coinductP2), simpset2)) =
@@ -331,12 +331,11 @@ val coinduct_type = mk_att add_coinductT consumes0;
 val coinduct_pred = mk_att add_coinductP consumes1;
 val coinduct_del = del_att map3;
 
-fun map_simpset f = Data.map (map4 f);
+fun map_simpset f context =
+  context |> (Data.map o map4 o Simplifier.simpset_map (Context.proof_of context)) f;
 
 fun induct_simp f =
-  Thm.declaration_attribute (fn thm => fn context =>
-      map_simpset
-        (Simplifier.with_context (Context.proof_of context) (fn ss => f (ss, [thm]))) context);
+  Thm.declaration_attribute (fn thm => map_simpset (fn ctxt => f (ctxt, [thm])));
 
 val induct_simp_add = induct_simp (op addsimps);
 val induct_simp_del = induct_simp (op delsimps);
@@ -444,7 +443,7 @@ val unmark_constraints = Conv.fconv_rule
 (* simplify *)
 
 fun simplify_conv' ctxt =
-  Simplifier.full_rewrite (Simplifier.context ctxt (#4 (get_local ctxt)));
+  Simplifier.full_rewrite (put_simpset (#4 (get_local ctxt)) ctxt);
 
 fun simplify_conv ctxt ct =
   if exists_subterm (is_some o Induct_Args.dest_def) (term_of ct) then

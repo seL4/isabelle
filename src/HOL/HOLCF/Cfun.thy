@@ -140,14 +140,14 @@ text {*
 *}
 
 simproc_setup beta_cfun_proc ("Rep_cfun (Abs_cfun f)") = {*
-  fn phi => fn ss => fn ct =>
+  fn phi => fn ctxt => fn ct =>
     let
       val dest = Thm.dest_comb;
       val f = (snd o dest o snd o dest) ct;
       val [T, U] = Thm.dest_ctyp (ctyp_of_term f);
       val tr = instantiate' [SOME T, SOME U] [SOME f]
           (mk_meta_eq @{thm Abs_cfun_inverse2});
-      val rules = Cont2ContData.get (Simplifier.the_context ss);
+      val rules = Cont2ContData.get ctxt;
       val tac = SOLVED' (REPEAT_ALL_NEW (match_tac rules));
     in SOME (perhaps (SINGLE (tac 1)) tr) end
 *}

@@ -358,15 +358,15 @@ fun gen_gen_real_arith ctxt (mk_numeric,
        poly_conv,poly_neg_conv,poly_add_conv,poly_mul_conv,
        absconv1,absconv2,prover) =
   let
-    val pre_ss = HOL_basic_ss addsimps
+    val pre_ss = put_simpset HOL_basic_ss ctxt addsimps
       @{thms simp_thms ex_simps all_simps not_all not_ex ex_disj_distrib all_conj_distrib if_bool_eq_disj}
-    val prenex_ss = HOL_basic_ss addsimps prenex_simps
-    val skolemize_ss = HOL_basic_ss addsimps [choice_iff]
-    val presimp_conv = Simplifier.rewrite (Simplifier.context ctxt pre_ss)
-    val prenex_conv = Simplifier.rewrite (Simplifier.context ctxt prenex_ss)
-    val skolemize_conv = Simplifier.rewrite (Simplifier.context ctxt skolemize_ss)
-    val weak_dnf_ss = HOL_basic_ss addsimps weak_dnf_simps
-    val weak_dnf_conv = Simplifier.rewrite (Simplifier.context ctxt weak_dnf_ss)
+    val prenex_ss = put_simpset HOL_basic_ss ctxt addsimps prenex_simps
+    val skolemize_ss = put_simpset HOL_basic_ss ctxt addsimps [choice_iff]
+    val presimp_conv = Simplifier.rewrite pre_ss
+    val prenex_conv = Simplifier.rewrite prenex_ss
+    val skolemize_conv = Simplifier.rewrite skolemize_ss
+    val weak_dnf_ss = put_simpset HOL_basic_ss ctxt addsimps weak_dnf_simps
+    val weak_dnf_conv = Simplifier.rewrite weak_dnf_ss
     fun eqT_elim th = Thm.equal_elim (Thm.symmetric th) @{thm TrueI}
     fun oprconv cv ct =
       let val g = Thm.dest_fun2 ct
@@ -423,7 +423,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
       end
 
     val init_conv = presimp_conv then_conv
-        nnf_conv then_conv skolemize_conv then_conv prenex_conv then_conv
+        nnf_conv ctxt then_conv skolemize_conv then_conv prenex_conv then_conv
         weak_dnf_conv
 
     val concl = Thm.dest_arg o cprop_of
@@ -540,7 +540,7 @@ fun gen_gen_real_arith ctxt (mk_numeric,
     fun f ct =
       let
         val nnf_norm_conv' =
-          nnf_conv then_conv
+          nnf_conv ctxt then_conv
           literals_conv [@{term HOL.conj}, @{term HOL.disj}] []
           (Conv.cache_conv
             (first_conv [real_lt_conv, real_le_conv,
@@ -701,9 +701,10 @@ end;
 (* A less general generic arithmetic prover dealing with abs,max and min*)
 
 local
-  val absmaxmin_elim_ss1 = HOL_basic_ss addsimps real_abs_thms1
+  val absmaxmin_elim_ss1 =
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps real_abs_thms1)
   fun absmaxmin_elim_conv1 ctxt =
-    Simplifier.rewrite (Simplifier.context ctxt absmaxmin_elim_ss1)
+    Simplifier.rewrite (put_simpset absmaxmin_elim_ss1 ctxt)
 
   val absmaxmin_elim_conv2 =
     let
@@ -758,8 +759,11 @@ fun gen_prover_real_arith ctxt prover =
         (the (Semiring_Normalizer.match ctxt @{cterm "(0::real) + 1"}))
         simple_cterm_ord
   in gen_real_arith ctxt
-     (cterm_of_rat, Numeral_Simprocs.field_comp_conv, Numeral_Simprocs.field_comp_conv, Numeral_Simprocs.field_comp_conv,
-      main,neg,add,mul, prover)
+     (cterm_of_rat,
+      Numeral_Simprocs.field_comp_conv ctxt,
+      Numeral_Simprocs.field_comp_conv ctxt,
+      Numeral_Simprocs.field_comp_conv ctxt,
+      main ctxt, neg ctxt, add ctxt, mul ctxt, prover)
   end;
 
 end

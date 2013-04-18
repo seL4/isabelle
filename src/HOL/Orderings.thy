@@ -597,8 +597,8 @@ let
 
 fun prp t thm = Thm.prop_of thm = t;  (* FIXME aconv!? *)
 
-fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
-  let val prems = Simplifier.prems_of ss;
+fun prove_antisym_le ctxt ((le as Const(_,T)) $ r $ s) =
+  let val prems = Simplifier.prems_of ctxt;
       val less = Const (@{const_name less}, T);
       val t = HOLogic.mk_Trueprop(le $ s $ r);
   in case find_first (prp t) prems of
@@ -612,8 +612,8 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
   end
   handle THM _ => NONE;
 
-fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
-  let val prems = Simplifier.prems_of ss;
+fun prove_antisym_less ctxt (NotC $ ((less as Const(_,T)) $ r $ s)) =
+  let val prems = Simplifier.prems_of ctxt;
       val le = Const (@{const_name less_eq}, T);
       val t = HOLogic.mk_Trueprop(le $ r $ s);
   in case find_first (prp t) prems of
@@ -628,13 +628,13 @@ fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
   handle THM _ => NONE;
 
 fun add_simprocs procs thy =
-  Simplifier.map_simpset_global (fn ss => ss
+  map_theory_simpset (fn ctxt => ctxt
     addsimprocs (map (fn (name, raw_ts, proc) =>
       Simplifier.simproc_global thy name raw_ts proc) procs)) thy;
 
 fun add_solver name tac =
-  Simplifier.map_simpset_global (fn ss => ss addSolver
-    mk_solver name (fn ss => tac (Simplifier.the_context ss) (Simplifier.prems_of ss)));
+  map_theory_simpset (fn ctxt0 => ctxt0 addSolver
+    mk_solver name (fn ctxt => tac ctxt (Simplifier.prems_of ctxt)));
 
 in
   add_simprocs [

@@ -351,29 +351,27 @@ done
 ML {*
 (*proves "ensures/leadsTo" properties when the program is specified*)
 fun ensures_tac ctxt sact =
-  let val ss = simpset_of ctxt in
-    SELECT_GOAL
-      (EVERY [REPEAT (Always_Int_tac 1),
-              etac @{thm Always_LeadsTo_Basis} 1
-                  ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
-                  REPEAT (ares_tac [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
-                                    @{thm EnsuresI}, @{thm ensuresI}] 1),
-              (*now there are two subgoals: co & transient*)
-              simp_tac (ss addsimps (Program_Defs.get ctxt)) 2,
-              res_inst_tac ctxt [(("act", 0), sact)] @{thm transientI} 2,
-                 (*simplify the command's domain*)
-              simp_tac (ss addsimps [@{thm domain_def}]) 3,
-              (* proving the domain part *)
-             clarify_tac ctxt 3, dtac @{thm swap} 3, force_tac ctxt 4,
-             rtac @{thm ReplaceI} 3, force_tac ctxt 3, force_tac ctxt 4,
-             asm_full_simp_tac ss 3, rtac @{thm conjI} 3, simp_tac ss 4,
-             REPEAT (rtac @{thm state_update_type} 3),
-             constrains_tac ctxt 1,
-             ALLGOALS (clarify_tac ctxt),
-             ALLGOALS (asm_full_simp_tac (ss addsimps [@{thm st_set_def}])),
-                        ALLGOALS (clarify_tac ctxt),
-            ALLGOALS (asm_lr_simp_tac ss)])
-  end;
+  SELECT_GOAL
+    (EVERY [REPEAT (Always_Int_tac 1),
+            etac @{thm Always_LeadsTo_Basis} 1
+                ORELSE   (*subgoal may involve LeadsTo, leadsTo or ensures*)
+                REPEAT (ares_tac [@{thm LeadsTo_Basis}, @{thm leadsTo_Basis},
+                                  @{thm EnsuresI}, @{thm ensuresI}] 1),
+            (*now there are two subgoals: co & transient*)
+            simp_tac (ctxt addsimps (Program_Defs.get ctxt)) 2,
+            res_inst_tac ctxt [(("act", 0), sact)] @{thm transientI} 2,
+               (*simplify the command's domain*)
+            simp_tac (ctxt addsimps [@{thm domain_def}]) 3,
+            (* proving the domain part *)
+           clarify_tac ctxt 3, dtac @{thm swap} 3, force_tac ctxt 4,
+           rtac @{thm ReplaceI} 3, force_tac ctxt 3, force_tac ctxt 4,
+           asm_full_simp_tac ctxt 3, rtac @{thm conjI} 3, simp_tac ctxt 4,
+           REPEAT (rtac @{thm state_update_type} 3),
+           constrains_tac ctxt 1,
+           ALLGOALS (clarify_tac ctxt),
+           ALLGOALS (asm_full_simp_tac (ctxt addsimps [@{thm st_set_def}])),
+                      ALLGOALS (clarify_tac ctxt),
+          ALLGOALS (asm_lr_simp_tac ctxt)]);
 *}
 
 method_setup ensures = {*

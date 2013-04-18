@@ -130,7 +130,7 @@ fun mk_ncanT_tac top_crls crls =
   SUBPROOF (fn {context = ctxt, prems = major :: prems, ...} =>
     resolve_tac ([major] RL top_crls) 1 THEN
     REPEAT_SOME (eresolve_tac (crls @ [@{thm exE}, @{thm bexE}, @{thm conjE}, @{thm disjE}])) THEN
-    ALLGOALS (asm_simp_tac (simpset_of ctxt)) THEN
+    ALLGOALS (asm_simp_tac ctxt) THEN
     ALLGOALS (ares_tac (prems RL [@{thm lem}]) ORELSE' etac @{thm bspec}) THEN
     safe_tac (ctxt addSIs prems))
 *}
@@ -415,7 +415,7 @@ lemma ci3_AI: "[| mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R Un A)"
 ML {*
 fun genIs_tac ctxt genXH gen_mono =
   rtac (genXH RS @{thm iffD2}) THEN'
-  simp_tac (simpset_of ctxt) THEN'
+  simp_tac ctxt THEN'
   TRY o fast_tac
     (ctxt addIs [genXH RS @{thm iffD2}, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
 *}
@@ -498,7 +498,7 @@ fun EQgen_tac ctxt rews i =
  SELECT_GOAL
    (TRY (safe_tac ctxt) THEN
     resolve_tac ((rews @ [@{thm refl}]) RL ((rews @ [@{thm refl}]) RL [@{thm ssubst_pair}])) i THEN
-    ALLGOALS (simp_tac (simpset_of ctxt)) THEN
+    ALLGOALS (simp_tac ctxt) THEN
     ALLGOALS EQgen_raw_tac) i
 *}
 

@@ -6,9 +6,9 @@ Some tools for managing tupled arguments and abstractions in rules.
 
 signature SPLIT_RULE =
 sig
-  val split_rule_var: term -> thm -> thm
-  val split_rule: thm -> thm
-  val complete_split_rule: thm -> thm
+  val split_rule_var: Proof.context -> term -> thm -> thm
+  val split_rule: Proof.context -> thm -> thm
+  val complete_split_rule: Proof.context -> thm -> thm
   val setup: theory -> theory
 end;
 
@@ -21,10 +21,11 @@ fun internal_split_const (Ta, Tb, Tc) =
   Const (@{const_name Product_Type.internal_split},
     [[Ta, Tb] ---> Tc, HOLogic.mk_prodT (Ta, Tb)] ---> Tc);
 
-val eval_internal_split =
-  hol_simplify [@{thm internal_split_def}] o hol_simplify [@{thm internal_split_conv}];
+fun eval_internal_split ctxt =
+  hol_simplify ctxt @{thms internal_split_def} o
+  hol_simplify ctxt @{thms internal_split_conv};
 
-val remove_internal_split = eval_internal_split o split_all;
+fun remove_internal_split ctxt = eval_internal_split ctxt o split_all ctxt;
 
 
 (*In ap_split S T u, term u expects separate arguments for the factors of S,
@@ -84,23 +85,24 @@ fun collect_vars (Abs (_, _, t)) = collect_vars t
       | (t, ts) => fold collect_vars ts);
 
 
-val split_rule_var = (Drule.export_without_context o remove_internal_split) oo split_rule_var';
+fun split_rule_var ctxt =
+  (Drule.export_without_context o remove_internal_split ctxt) oo split_rule_var';
 
 (*curries ALL function variables occurring in a rule's conclusion*)
-fun split_rule rl =
+fun split_rule ctxt rl =
   fold_rev split_rule_var' (Misc_Legacy.term_vars (concl_of rl)) rl
-  |> remove_internal_split
+  |> remove_internal_split ctxt
   |> Drule.export_without_context;
 
 (*curries ALL function variables*)
-fun complete_split_rule rl =
+fun complete_split_rule ctxt rl =
   let
     val prop = Thm.prop_of rl;
     val xs = Term.fold_aterms (fn Var ((x, _), _) => insert (op =) x | _ => I) prop [];
     val vars = collect_vars prop [];
   in
     fst (fold_rev complete_split_rule_var vars (rl, xs))
-    |> remove_internal_split
+    |> remove_internal_split ctxt
     |> Drule.export_without_context
     |> Rule_Cases.save rl
   end;
@@ -110,10 +112,11 @@ fun complete_split_rule rl =
 
 val setup =
   Attrib.setup @{binding split_format}
-    (Scan.lift
-     (Args.parens (Args.$$$ "complete") >> K (Thm.rule_attribute (K complete_split_rule))))
+    (Scan.lift (Args.parens (Args.$$$ "complete")
+      >> K (Thm.rule_attribute (complete_split_rule o Context.proof_of))))
     "split pair-typed subterms in premises, or function arguments" #>
-  Attrib.setup @{binding split_rule} (Scan.succeed (Thm.rule_attribute (K split_rule)))
+  Attrib.setup @{binding split_rule}
+    (Scan.succeed (Thm.rule_attribute (split_rule o Context.proof_of)))
     "curries ALL function variables occurring in a rule's conclusion";
 
 end;

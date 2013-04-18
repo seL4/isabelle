@@ -88,12 +88,12 @@ text {* The main Simplifier tactics @{ML simp_tac} and variants are
 
   \medskip
   \begin{tabular}{lll}
-    @{ML asm_full_simp_tac}~@{text "@{simpset} 1"} & & @{method simp} \\
-    @{ML ALLGOALS}~(@{ML asm_full_simp_tac}~@{text "@{simpset}"}) & & @{method simp_all} \\[0.5ex]
-    @{ML simp_tac}~@{text "@{simpset} 1"} & & @{method simp}~@{text "(no_asm)"} \\
-    @{ML asm_simp_tac}~@{text "@{simpset} 1"} & & @{method simp}~@{text "(no_asm_simp)"} \\
-    @{ML full_simp_tac}~@{text "@{simpset} 1"} & & @{method simp}~@{text "(no_asm_use)"} \\
-    @{ML asm_lr_simp_tac}~@{text "@{simpset} 1"} & & @{method simp}~@{text "(asm_lr)"} \\
+    @{ML asm_full_simp_tac}~@{text "@{context} 1"} & & @{method simp} \\
+    @{ML ALLGOALS}~(@{ML asm_full_simp_tac}~@{text "@{context}"}) & & @{method simp_all} \\[0.5ex]
+    @{ML simp_tac}~@{text "@{context} 1"} & & @{method simp}~@{text "(no_asm)"} \\
+    @{ML asm_simp_tac}~@{text "@{context} 1"} & & @{method simp}~@{text "(no_asm_simp)"} \\
+    @{ML full_simp_tac}~@{text "@{context} 1"} & & @{method simp}~@{text "(no_asm_use)"} \\
+    @{ML asm_lr_simp_tac}~@{text "@{context} 1"} & & @{method simp}~@{text "(asm_lr)"} \\
   \end{tabular}
   \medskip
 *}

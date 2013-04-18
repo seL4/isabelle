@@ -356,16 +356,15 @@ fun distinctTree_tac names ctxt = SUBGOAL (fn (goal, i) =>
     | _ => no_tac))
 
 fun distinctFieldSolver names =
-  mk_solver "distinctFieldSolver" (distinctTree_tac names o Simplifier.the_context);
+  mk_solver "distinctFieldSolver" (distinctTree_tac names);
 
 fun distinct_simproc names =
   Simplifier.simproc_global @{theory HOL} "DistinctTreeProver.distinct_simproc" ["x = y"]
-    (fn thy => fn ss => fn (Const (@{const_name HOL.eq}, _) $ x $ y) =>
-      (case try Simplifier.the_context ss of
-        SOME ctxt =>
+    (fn ctxt =>
+      (fn Const (@{const_name HOL.eq}, _) $ x $ y =>
           Option.map (fn neq => @{thm neq_to_eq_False} OF [neq])
             (get_fst_success (neq_x_y ctxt x y) names)
-      | NONE => NONE));
+        | _ => NONE));
 
 end;
 

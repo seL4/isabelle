@@ -6,10 +6,10 @@ HOL setup for linear arithmetic (see Provers/Arith/fast_lin_arith.ML).
 
 signature LIN_ARITH =
 sig
-  val pre_tac: simpset -> int -> tactic
+  val pre_tac: Proof.context -> int -> tactic
   val simple_tac: Proof.context -> int -> tactic
   val tac: Proof.context -> int -> tactic
-  val simproc: simpset -> term -> thm option
+  val simproc: Proof.context -> term -> thm option
   val add_inj_thms: thm list -> Context.generic -> Context.generic
   val add_lessD: thm -> Context.generic -> Context.generic
   val add_simps: thm list -> Context.generic -> Context.generic
@@ -709,18 +709,17 @@ fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) 
 (* !split_limit splits are possible.                              *)
 
 local
-  val nnf_simpset =
-    (empty_ss
+  fun nnf_simpset ctxt =
+    (empty_simpset ctxt
       |> Simplifier.set_mkeqTrue mk_eq_True
       |> Simplifier.set_mksimps (mksimps mksimps_pairs))
     addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
       @{thm de_Morgan_conj}, not_all, not_ex, not_not]
-  fun prem_nnf_tac ss = full_simp_tac (Simplifier.inherit_context ss nnf_simpset)
+  fun prem_nnf_tac ctxt = full_simp_tac (nnf_simpset ctxt)
 in
 
-fun split_once_tac ss split_thms =
+fun split_once_tac ctxt split_thms =
   let
-    val ctxt = Simplifier.the_context ss
     val thy = Proof_Context.theory_of ctxt
     val cond_split_tac = SUBGOAL (fn (subgoal, i) =>
       let
@@ -743,7 +742,7 @@ fun split_once_tac ss split_thms =
       REPEAT_DETERM o etac rev_mp,
       cond_split_tac,
       rtac ccontr,
-      prem_nnf_tac ss,
+      prem_nnf_tac ctxt,
       TRY o REPEAT_ALL_NEW (DETERM o (eresolve_tac [conjE, exE] ORELSE' etac disjE))
     ]
   end;
@@ -755,16 +754,15 @@ end;  (* local *)
 (* subgoals and finally attempt to solve them by finding an immediate        *)
 (* contradiction (i.e., a term and its negation) in their premises.          *)
 
-fun pre_tac ss i =
+fun pre_tac ctxt i =
   let
-    val ctxt = Simplifier.the_context ss;
     val split_thms = filter (is_split_thm ctxt) (#splits (get_arith_data ctxt))
     fun is_relevant t = is_some (decomp ctxt t)
   in
     DETERM (
       TRY (filter_prems_tac is_relevant i)
         THEN (
-          (TRY o REPEAT_ALL_NEW (split_once_tac ss split_thms))
+          (TRY o REPEAT_ALL_NEW (split_once_tac ctxt split_thms))
             THEN_ALL_NEW
               (CONVERSION Drule.beta_eta_conversion
                 THEN'
@@ -801,7 +799,8 @@ val init_arith_data =
     inj_thms = inj_thms,
     lessD = lessD @ [@{thm "Suc_leI"}],
     neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_linordered_idom}],
-    simpset = HOL_basic_ss
+    simpset =
+      put_simpset HOL_basic_ss @{context}
       addsimps @{thms ring_distribs}
       addsimps [@{thm if_True}, @{thm if_False}]
       addsimps
@@ -819,12 +818,14 @@ val init_arith_data =
       addsimprocs [@{simproc nateq_cancel_sums},
                    @{simproc natless_cancel_sums},
                    @{simproc natle_cancel_sums}]
-      |> Simplifier.add_cong @{thm if_weak_cong},
+      |> Simplifier.add_cong @{thm if_weak_cong}
+      |> simpset_of,
     number_of = number_of}) #>
   add_discrete_type @{type_name nat};
 
-fun add_arith_facts ss =
-  Simplifier.add_prems (Arith_Data.get_arith_facts (Simplifier.the_context ss)) ss;
+(* FIXME !?? *)
+fun add_arith_facts ctxt =
+  Simplifier.add_prems (Arith_Data.get_arith_facts ctxt) ctxt;
 
 val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
@@ -849,17 +850,16 @@ val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 *)
 
 local
-  val nnf_simpset =
-    (empty_ss
+  fun nnf_simpset ctxt =
+    (empty_simpset ctxt
       |> Simplifier.set_mkeqTrue mk_eq_True
       |> Simplifier.set_mksimps (mksimps mksimps_pairs))
     addsimps [@{thm imp_conv_disj}, @{thm iff_conv_conj_imp}, @{thm de_Morgan_disj},
       @{thm de_Morgan_conj}, @{thm not_all}, @{thm not_ex}, @{thm not_not}];
-  fun prem_nnf_tac i st =
-    full_simp_tac (Simplifier.global_context (Thm.theory_of_thm st) nnf_simpset) i st;
+  fun prem_nnf_tac ctxt = full_simp_tac (nnf_simpset ctxt);
 in
 
-fun refute_tac test prep_tac ref_tac =
+fun refute_tac ctxt test prep_tac ref_tac =
   let val refute_prems_tac =
         REPEAT_DETERM
               (eresolve_tac [@{thm conjE}, @{thm exE}] 1 ORELSE
@@ -868,7 +868,7 @@ fun refute_tac test prep_tac ref_tac =
         (DETERM (etac @{thm notE} 1 THEN eq_assume_tac 1) ORELSE
          ref_tac 1);
   in EVERY'[TRY o filter_prems_tac test,
-            REPEAT_DETERM o etac @{thm rev_mp}, prep_tac, rtac @{thm ccontr}, prem_nnf_tac,
+            REPEAT_DETERM o etac @{thm rev_mp}, prep_tac, rtac @{thm ccontr}, prem_nnf_tac ctxt,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
 
@@ -887,7 +887,7 @@ fun raw_tac ctxt ex =
      (max m n + k <= r) = (m+k <= r & n+k <= r)
      (l <= min m n + k) = (l <= m+k & l <= n+k)
   *)
-  refute_tac (K true)
+  refute_tac ctxt (K true)
     (* Splitting is also done inside simple_tac, but not completely --    *)
     (* split_tac may use split theorems that have not been implemented in *)
     (* simple_tac (cf. pre_decomp and split_once_items above), and        *)
@@ -910,11 +910,11 @@ end;
 (* context setup *)
 
 val setup =
-  init_arith_data #>
-  Simplifier.map_ss (fn ss => ss
-    addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac)));
+  init_arith_data;
 
 val global_setup =
+  map_theory_simpset (fn ctxt => ctxt
+    addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.prems_lin_arith_tac))) #>
   Attrib.setup @{binding arith_split} (Scan.succeed (Thm.declaration_attribute add_split))
     "declaration of split rules for arithmetic procedure" #>
   Method.setup @{binding linarith}

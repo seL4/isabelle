@@ -7,9 +7,9 @@ Simproc for rewriting set comprehensions to pointfree expressions.
 
 signature SET_COMPREHENSION_POINTFREE =
 sig
-  val base_simproc : simpset -> cterm -> thm option
-  val code_simproc : simpset -> cterm -> thm option
-  val simproc : simpset -> cterm -> thm option
+  val base_simproc : Proof.context -> cterm -> thm option
+  val code_simproc : Proof.context -> cterm -> thm option
+  val simproc : Proof.context -> cterm -> thm option
 end
 
 structure Set_Comprehension_Pointfree : SET_COMPREHENSION_POINTFREE =
@@ -314,10 +314,10 @@ val vimageE' =
 val collectI' = @{lemma "\<not> P a ==> a \<notin> {x. P x}" by auto}
 val collectE' = @{lemma "a \<notin> {x. P x} ==> (\<not> P a ==> Q) ==> Q" by auto}
 
-fun elim_Collect_tac ss = dtac @{thm iffD1[OF mem_Collect_eq]}
+fun elim_Collect_tac ctxt = dtac @{thm iffD1[OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
   THEN' REPEAT_DETERM o etac @{thm conjE}
-  THEN' TRY o hyp_subst_tac' ss;
+  THEN' TRY o hyp_subst_tac' ctxt;
 
 fun intro_image_tac ctxt = rtac @{thm image_eqI}
     THEN' (REPEAT_DETERM1 o
@@ -328,29 +328,29 @@ fun intro_image_tac ctxt = rtac @{thm image_eqI}
         (HOLogic.Trueprop_conv
           (HOLogic.eq_conv Conv.all_conv (Conv.rewr_conv (mk_meta_eq prod_case_distrib)))))) ctxt)))
 
-fun elim_image_tac ss = etac @{thm imageE}
+fun elim_image_tac ctxt = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
-    (TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps @{thms split_paired_all prod.cases}))
+    (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.cases})
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-    THEN' TRY o hyp_subst_tac' ss)
+    THEN' TRY o hyp_subst_tac' ctxt)
 
-fun tac1_of_formula ss (Int (fm1, fm2)) =
+fun tac1_of_formula ctxt (Int (fm1, fm2)) =
     TRY o etac @{thm conjE}
     THEN' rtac @{thm IntI}
-    THEN' (fn i => tac1_of_formula ss fm2 (i + 1))
-    THEN' tac1_of_formula ss fm1
-  | tac1_of_formula ss (Un (fm1, fm2)) =
+    THEN' (fn i => tac1_of_formula ctxt fm2 (i + 1))
+    THEN' tac1_of_formula ctxt fm1
+  | tac1_of_formula ctxt (Un (fm1, fm2)) =
     etac @{thm disjE} THEN' rtac @{thm UnI1}
-    THEN' tac1_of_formula ss fm1
+    THEN' tac1_of_formula ctxt fm1
     THEN' rtac @{thm UnI2}
-    THEN' tac1_of_formula ss fm2
-  | tac1_of_formula ss (Atom _) =
+    THEN' tac1_of_formula ctxt fm2
+  | tac1_of_formula ctxt (Atom _) =
     REPEAT_DETERM1 o (atac
       ORELSE' rtac @{thm SigmaI}
       ORELSE' ((rtac @{thm CollectI} ORELSE' rtac collectI') THEN'
-        TRY o Simplifier.simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}])))
+        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]))
       ORELSE' ((rtac @{thm vimageI2} ORELSE' rtac vimageI2') THEN'
-        TRY o Simplifier.simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}]))) 
+        TRY o simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]))
       ORELSE' (rtac @{thm image_eqI} THEN'
     (REPEAT_DETERM o
       (rtac @{thm refl}
@@ -359,48 +359,48 @@ fun tac1_of_formula ss (Int (fm1, fm2)) =
       ORELSE' rtac @{thm iffD2[OF Compl_iff]}
       ORELSE' atac)
 
-fun tac2_of_formula ss (Int (fm1, fm2)) =
+fun tac2_of_formula ctxt (Int (fm1, fm2)) =
     TRY o etac @{thm IntE}
     THEN' TRY o rtac @{thm conjI}
-    THEN' (fn i => tac2_of_formula ss fm2 (i + 1))
-    THEN' tac2_of_formula ss fm1
-  | tac2_of_formula ss (Un (fm1, fm2)) =
+    THEN' (fn i => tac2_of_formula ctxt fm2 (i + 1))
+    THEN' tac2_of_formula ctxt fm1
+  | tac2_of_formula ctxt (Un (fm1, fm2)) =
     etac @{thm UnE} THEN' rtac @{thm disjI1}
-    THEN' tac2_of_formula ss fm1
+    THEN' tac2_of_formula ctxt fm1
     THEN' rtac @{thm disjI2}
-    THEN' tac2_of_formula ss fm2
-  | tac2_of_formula ss (Atom _) =
+    THEN' tac2_of_formula ctxt fm2
+  | tac2_of_formula ctxt (Atom _) =
     REPEAT_DETERM o
       (atac
        ORELSE' dtac @{thm iffD1[OF mem_Sigma_iff]}
        ORELSE' etac @{thm conjE}
        ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
-         TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}])) THEN'
-         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac' ss THEN' TRY o rtac @{thm refl})
+         TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]) THEN'
+         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac' ctxt THEN' TRY o rtac @{thm refl})
        ORELSE' (etac @{thm imageE}
          THEN' (REPEAT_DETERM o CHANGED o
-         (TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps @{thms split_paired_all prod.cases}))
+         (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.cases})
          THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-         THEN' TRY o hyp_subst_tac' ss THEN' TRY o rtac @{thm refl})))
+         THEN' TRY o hyp_subst_tac' ctxt THEN' TRY o rtac @{thm refl})))
        ORELSE' etac @{thm ComplE}
        ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
-        THEN' TRY o Simplifier.full_simp_tac (Simplifier.inherit_context ss (HOL_basic_ss addsimps [@{thm prod.cases}]))
-        THEN' TRY o hyp_subst_tac' ss THEN' TRY o rtac @{thm refl}))
+        THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}])
+        THEN' TRY o hyp_subst_tac' ctxt THEN' TRY o rtac @{thm refl}))
 
-fun tac ss ctxt fm =
+fun tac ctxt fm =
   let
     val subset_tac1 = rtac @{thm subsetI}
-      THEN' elim_Collect_tac ss
+      THEN' elim_Collect_tac ctxt
       THEN' intro_image_tac ctxt
-      THEN' tac1_of_formula ss fm
+      THEN' tac1_of_formula ctxt fm
     val subset_tac2 = rtac @{thm subsetI}
-      THEN' elim_image_tac ss
+      THEN' elim_image_tac ctxt
       THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
       THEN' REPEAT_DETERM o resolve_tac @{thms exI}
       THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
-      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac' ss) THEN' rtac @{thm refl}))))
+      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac' ctxt) THEN' rtac @{thm refl}))))
       THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
-        REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula ss f (i + j)) (strip_Int fm))))
+        REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula ctxt f (i + j)) (strip_Int fm))))
   in
     rtac @{thm subset_antisym} THEN' subset_tac1 THEN' subset_tac2
   end;
@@ -409,48 +409,46 @@ fun tac ss ctxt fm =
 (* preprocessing conversion:
   rewrites {(x1, ..., xn). P x1 ... xn} to {(x1, ..., xn) | x1 ... xn. P x1 ... xn} *)
 
-fun comprehension_conv ss ct =
-let
-  val ctxt = Simplifier.the_context ss
-  fun dest_Collect (Const (@{const_name Collect}, T) $ t) = (HOLogic.dest_setT (body_type T), t)
-    | dest_Collect t = raise TERM ("dest_Collect", [t])
-  fun list_ex vs t = fold_rev (fn (x, T) => fn t => HOLogic.exists_const T $ Abs (x, T, t)) vs t
-  fun mk_term t =
-    let
-      val (T, t') = dest_Collect t
-      val (t'', vs, fp) = case strip_psplits t' of
-          (_, [_], _) => raise TERM("mk_term", [t'])
-        | (t'', vs, fp) => (t'', vs, fp)
-      val Ts = map snd vs
-      val eq = HOLogic.eq_const T $ Bound (length Ts) $
-        (HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (fn (i, _) => Bound i) Ts)))
-    in
-      HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
-    end;
-  fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
-  val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
-  fun tac ctxt = 
-    rtac @{thm set_eqI}
-    THEN' Simplifier.simp_tac
-      (Simplifier.inherit_context ss (HOL_basic_ss addsimps unfold_thms))
-    THEN' rtac @{thm iffI}
-    THEN' REPEAT_DETERM o rtac @{thm exI}
-    THEN' rtac @{thm conjI} THEN' rtac @{thm refl} THEN' atac
-    THEN' REPEAT_DETERM o etac @{thm exE}
-    THEN' etac @{thm conjE}
-    THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-    THEN' Subgoal.FOCUS (fn {prems, ...} =>
-      Simplifier.simp_tac
-        (Simplifier.inherit_context ss (HOL_basic_ss addsimps (filter is_eq prems))) 1) ctxt
-    THEN' TRY o atac
-in
-  case try mk_term (term_of ct) of
-    NONE => Thm.reflexive ct
-  | SOME t' =>
-    Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (term_of ct, t')))
-        (fn {context, ...} => tac context 1)
-      RS @{thm eq_reflection}
-end
+fun comprehension_conv ctxt ct =
+  let
+    fun dest_Collect (Const (@{const_name Collect}, T) $ t) = (HOLogic.dest_setT (body_type T), t)
+      | dest_Collect t = raise TERM ("dest_Collect", [t])
+    fun list_ex vs t = fold_rev (fn (x, T) => fn t => HOLogic.exists_const T $ Abs (x, T, t)) vs t
+    fun mk_term t =
+      let
+        val (T, t') = dest_Collect t
+        val (t'', vs, fp) = case strip_psplits t' of
+            (_, [_], _) => raise TERM("mk_term", [t'])
+          | (t'', vs, fp) => (t'', vs, fp)
+        val Ts = map snd vs
+        val eq = HOLogic.eq_const T $ Bound (length Ts) $
+          (HOLogic.mk_ptuple fp (HOLogic.mk_ptupleT fp Ts) (rev (map_index (fn (i, _) => Bound i) Ts)))
+      in
+        HOLogic.Collect_const T $ absdummy T (list_ex vs (HOLogic.mk_conj (eq, t'')))
+      end;
+    fun is_eq th = is_some (try (HOLogic.dest_eq o HOLogic.dest_Trueprop) (prop_of th))
+    val unfold_thms = @{thms split_paired_all mem_Collect_eq prod.cases}
+    fun tac ctxt = 
+      rtac @{thm set_eqI}
+      THEN' simp_tac (put_simpset HOL_basic_ss ctxt addsimps unfold_thms)
+      THEN' rtac @{thm iffI}
+      THEN' REPEAT_DETERM o rtac @{thm exI}
+      THEN' rtac @{thm conjI} THEN' rtac @{thm refl} THEN' atac
+      THEN' REPEAT_DETERM o etac @{thm exE}
+      THEN' etac @{thm conjE}
+      THEN' REPEAT_DETERM o etac @{thm Pair_inject}
+      THEN' Subgoal.FOCUS (fn {prems, ...} =>
+        (* FIXME inner context!? *)
+        simp_tac (put_simpset HOL_basic_ss ctxt addsimps (filter is_eq prems)) 1) ctxt
+      THEN' TRY o atac
+  in
+    case try mk_term (term_of ct) of
+      NONE => Thm.reflexive ct
+    | SOME t' =>
+      Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (term_of ct, t')))
+          (fn {context, ...} => tac context 1)
+        RS @{thm eq_reflection}
+  end
 
 
 (* main simprocs *)
@@ -463,19 +461,17 @@ val post_thms =
   @{lemma "A \<times> B \<union> A \<times> C = A \<times> (B \<union> C)" by auto},
   @{lemma "(A \<times> B \<inter> C \<times> D) = (A \<inter> C) \<times> (B \<inter> D)" by auto}]
 
-fun conv ss t =
+fun conv ctxt t =
   let
-    val ctxt = Simplifier.the_context ss
     val ([t'], ctxt') = Variable.import_terms true [t] (Variable.declare_term t ctxt)
-    val ss' = Simplifier.context ctxt' ss
     val ct = cterm_of (Proof_Context.theory_of ctxt') t'
     fun unfold_conv thms =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
-        (Raw_Simplifier.inherit_context ss' empty_ss addsimps thms)
-    val prep_eq = (comprehension_conv ss' then_conv unfold_conv prep_thms) ct
+        (empty_simpset ctxt' addsimps thms)
+    val prep_eq = (comprehension_conv ctxt' then_conv unfold_conv prep_thms) ct
     val t'' = term_of (Thm.rhs_of prep_eq)
     fun mk_thm (fm, t''') = Goal.prove ctxt' [] []
-      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac ss' context fm 1)
+      (HOLogic.mk_Trueprop (HOLogic.mk_eq (t'', t'''))) (fn {context, ...} => tac context fm 1)
     fun unfold th = th RS ((prep_eq RS meta_eq_to_obj_eq) RS @{thm trans})
     val post =
       Conv.fconv_rule
@@ -485,11 +481,11 @@ fun conv ss t =
     Option.map (export o post o unfold o mk_thm) (rewrite_term t'')
   end;
 
-fun base_simproc ss redex =
+fun base_simproc ctxt redex =
   let
     val set_compr = term_of redex
   in
-    conv ss set_compr
+    conv ctxt set_compr
     |> Option.map (fn thm => thm RS @{thm eq_reflection})
   end;
 
@@ -502,24 +498,23 @@ fun instantiate_arg_cong ctxt pred =
     cterm_instantiate [(certify f, certify pred)] arg_cong
   end;
 
-fun simproc ss redex =
+fun simproc ctxt redex =
   let
-    val ctxt = Simplifier.the_context ss
     val pred $ set_compr = term_of redex
     val arg_cong' = instantiate_arg_cong ctxt pred
   in
-    conv ss set_compr
+    conv ctxt set_compr
     |> Option.map (fn thm => thm RS arg_cong' RS @{thm eq_reflection})
   end;
 
-fun code_simproc ss redex =
+fun code_simproc ctxt redex =
   let
     fun unfold_conv thms =
       Raw_Simplifier.rewrite_cterm (false, false, false) (K (K NONE))
-        (Raw_Simplifier.inherit_context ss empty_ss addsimps thms)
+        (empty_simpset ctxt addsimps thms)
     val prep_thm = unfold_conv @{thms eq_equal[symmetric]} redex
   in
-    case base_simproc ss (Thm.rhs_of prep_thm) of
+    case base_simproc ctxt (Thm.rhs_of prep_thm) of
       SOME rewr_thm => SOME (transitive_thm OF [transitive_thm OF [prep_thm, rewr_thm],
         unfold_conv @{thms eq_equal} (Thm.rhs_of rewr_thm)])
     | NONE => NONE

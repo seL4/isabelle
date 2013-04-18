@@ -193,7 +193,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
       (fn _ =>
         Local_Defs.unfold_tac ctxt all_orig_fdefs
           THEN EqSubst.eqsubst_tac ctxt [0] [simp] 1
-          THEN (simp_tac (simpset_of ctxt)) 1)
+          THEN (simp_tac ctxt) 1)
     |> restore_cond
     |> export
   end
@@ -209,9 +209,9 @@ fun mk_applied_form ctxt caTs thm =
     |> Thm.forall_elim_vars 0
   end
 
-fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
+fun mutual_induct_rules ctxt induct all_f_defs (Mutual {n, ST, parts, ...}) =
   let
-    val cert = cterm_of (Proof_Context.theory_of lthy)
+    val cert = cterm_of (Proof_Context.theory_of ctxt)
     val newPs =
       map2 (fn Pname => fn MutualPart {cargTs, ...} =>
           Free (Pname, cargTs ---> HOLogic.boolT))
@@ -230,8 +230,8 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
 
     val induct_inst =
       Thm.forall_elim (cert case_exp) induct
-      |> full_simplify SumTree.sumcase_split_ss
-      |> full_simplify (HOL_basic_ss addsimps all_f_defs)
+      |> full_simplify (put_simpset SumTree.sumcase_split_ss ctxt)
+      |> full_simplify (put_simpset HOL_basic_ss ctxt addsimps all_f_defs)
 
     fun project rule (MutualPart {cargTs, i, ...}) k =
       let
@@ -240,7 +240,7 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
       in
         (rule
          |> Thm.forall_elim (cert inj)
-         |> full_simplify SumTree.sumcase_split_ss
+         |> full_simplify (put_simpset SumTree.sumcase_split_ss ctxt)
          |> fold_rev (Thm.forall_intr o cert) (afs @ newPs),
          k + length cargTs)
       end
@@ -266,11 +266,11 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
     fun mk_mpsimp fqgar sum_psimp =
       in_context lthy fqgar (recover_mutual_psimp all_orig_fdefs parts) sum_psimp
 
-    val rew_ss = HOL_basic_ss addsimps all_f_defs
+    val rew_simpset = put_simpset HOL_basic_ss lthy addsimps all_f_defs
     val mpsimps = map2 mk_mpsimp fqgars psimps
     val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
-    val mtermination = full_simplify rew_ss termination
-    val mdomintros = Option.map (map (full_simplify rew_ss)) domintros
+    val mtermination = full_simplify rew_simpset termination
+    val mdomintros = Option.map (map (full_simplify rew_simpset)) domintros
   in
     FunctionResult { fs=fs, G=G, R=R,
       psimps=mpsimps, simple_pinducts=minducts,

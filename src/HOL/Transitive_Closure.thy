@@ -1262,11 +1262,11 @@ structure Tranclp_Tac = Trancl_Tac
 *}
 
 setup {*
-  Simplifier.map_simpset_global (fn ss => ss
-    addSolver (mk_solver "Trancl" (Trancl_Tac.trancl_tac o Simplifier.the_context))
-    addSolver (mk_solver "Rtrancl" (Trancl_Tac.rtrancl_tac o Simplifier.the_context))
-    addSolver (mk_solver "Tranclp" (Tranclp_Tac.trancl_tac o Simplifier.the_context))
-    addSolver (mk_solver "Rtranclp" (Tranclp_Tac.rtrancl_tac o Simplifier.the_context)))
+  map_theory_simpset (fn ctxt => ctxt
+    addSolver (mk_solver "Trancl" Trancl_Tac.trancl_tac)
+    addSolver (mk_solver "Rtrancl" Trancl_Tac.rtrancl_tac)
+    addSolver (mk_solver "Tranclp" Tranclp_Tac.trancl_tac)
+    addSolver (mk_solver "Rtranclp" Tranclp_Tac.rtrancl_tac))
 *}
 
 

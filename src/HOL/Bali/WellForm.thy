@@ -2127,7 +2127,7 @@ next
 qed
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 lemma dynamic_mheadsD:   
@@ -2258,7 +2258,7 @@ proof -
 qed
 declare split_paired_All [simp] split_paired_Ex [simp]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
 
 (* Tactical version *)
 (*
@@ -2401,7 +2401,7 @@ qed
   
 
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 lemma wt_is_type: "E,dt\<Turnstile>v\<Colon>T \<Longrightarrow>  wf_prog (prg E) \<longrightarrow> 
@@ -2427,7 +2427,7 @@ apply  (auto dest: accmethd_rT_is_type
 done
 declare split_paired_All [simp] split_paired_Ex [simp]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
 
 lemma ty_expr_is_type: 
 "\<lbrakk>E\<turnstile>e\<Colon>-T; wf_prog (prg E)\<rbrakk> \<Longrightarrow> is_type (prg E) T"

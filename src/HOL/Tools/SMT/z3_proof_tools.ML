@@ -304,11 +304,11 @@ local
   fun dest_binop ((c as Const _) $ t $ u) = (c, t, u)
     | dest_binop t = raise TERM ("dest_binop", [t])
 
-  fun prove_antisym_le ss t =
+  fun prove_antisym_le ctxt t =
     let
       val (le, r, s) = dest_binop t
       val less = Const (@{const_name less}, Term.fastype_of le)
-      val prems = Simplifier.prems_of ss
+      val prems = Simplifier.prems_of ctxt
     in
       (case find_first (eq_prop (le $ s $ r)) prems of
         NONE =>
@@ -318,11 +318,11 @@ local
     end
     handle THM _ => NONE
 
-  fun prove_antisym_less ss t =
+  fun prove_antisym_less ctxt t =
     let
       val (less, r, s) = dest_binop (HOLogic.dest_not t)
       val le = Const (@{const_name less_eq}, Term.fastype_of less)
-      val prems = Simplifier.prems_of ss
+      val prems = Simplifier.prems_of ctxt
     in
       (case find_first (eq_prop (le $ r $ s)) prems of
         NONE =>
@@ -332,21 +332,23 @@ local
   end
   handle THM _ => NONE
 
-  val basic_simpset = HOL_ss addsimps @{thms field_simps}
-    addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
-    addsimps @{thms arith_special} addsimps @{thms arith_simps}
-    addsimps @{thms rel_simps}
-    addsimps @{thms array_rules}
-    addsimps @{thms term_true_def} addsimps @{thms term_false_def}
-    addsimps @{thms z3div_def} addsimps @{thms z3mod_def}
-    addsimprocs [@{simproc binary_int_div}, @{simproc binary_int_mod}]
-    addsimprocs [
-      Simplifier.simproc_global @{theory} "fast_int_arith" [
-        "(m::int) < n", "(m::int) <= n", "(m::int) = n"] (K Lin_Arith.simproc),
-      Simplifier.simproc_global @{theory} "antisym_le" ["(x::'a::order) <= y"]
-        (K prove_antisym_le),
-      Simplifier.simproc_global @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
-        (K prove_antisym_less)]
+  val basic_simpset =
+    simpset_of (put_simpset HOL_ss @{context}
+      addsimps @{thms field_simps}
+      addsimps [@{thm times_divide_eq_right}, @{thm times_divide_eq_left}]
+      addsimps @{thms arith_special} addsimps @{thms arith_simps}
+      addsimps @{thms rel_simps}
+      addsimps @{thms array_rules}
+      addsimps @{thms term_true_def} addsimps @{thms term_false_def}
+      addsimps @{thms z3div_def} addsimps @{thms z3mod_def}
+      addsimprocs [@{simproc binary_int_div}, @{simproc binary_int_mod}]
+      addsimprocs [
+        Simplifier.simproc_global @{theory} "fast_int_arith" [
+          "(m::int) < n", "(m::int) <= n", "(m::int) = n"] Lin_Arith.simproc,
+        Simplifier.simproc_global @{theory} "antisym_le" ["(x::'a::order) <= y"]
+          prove_antisym_le,
+        Simplifier.simproc_global @{theory} "antisym_less" ["~ (x::'a::linorder) < y"]
+          prove_antisym_less])
 
   structure Simpset = Generic_Data
   (
@@ -357,10 +359,12 @@ local
   )
 in
 
-fun add_simproc simproc = Simpset.map (fn ss => ss addsimprocs [simproc])
+fun add_simproc simproc context =
+  Simpset.map (simpset_map (Context.proof_of context)
+    (fn ctxt => ctxt addsimprocs [simproc])) context
 
 fun make_simpset ctxt rules =
-  Simplifier.context ctxt (Simpset.get (Context.Proof ctxt)) addsimps rules
+  simpset_of (put_simpset (Simpset.get (Context.Proof ctxt)) ctxt addsimps rules)
 
 end
 

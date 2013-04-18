@@ -273,11 +273,16 @@ Collect_mem_eq ball_simps option.simps primrecdef_list
 lemmas ParallelConseq_list = INTER_eq Collect_conj_eq length_map length_upt length_append list_length
 
 ML {*
-val before_interfree_simp_tac = simp_tac (HOL_basic_ss addsimps [@{thm com.simps}, @{thm post.simps}])
+fun before_interfree_simp_tac ctxt =
+  simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm com.simps}, @{thm post.simps}])
 
-val  interfree_simp_tac = asm_simp_tac (HOL_ss addsimps [@{thm split}, @{thm ball_Un}, @{thm ball_empty}] @ @{thms my_simp_list})
+fun interfree_simp_tac ctxt =
+  asm_simp_tac (put_simpset HOL_ss ctxt
+    addsimps [@{thm split}, @{thm ball_Un}, @{thm ball_empty}] @ @{thms my_simp_list})
 
-val ParallelConseq = simp_tac (HOL_basic_ss addsimps @{thms ParallelConseq_list} @ @{thms my_simp_list})
+fun ParallelConseq ctxt =
+  simp_tac (put_simpset HOL_basic_ss ctxt
+    addsimps @{thms ParallelConseq_list} @ @{thms my_simp_list})
 *}
 
 text {* The following tactic applies @{text tac} to each conjunct in a
@@ -320,120 +325,120 @@ text {* The tactic basically uses two subtactics:
 
 ML {*
 
- fun WlpTac i = (rtac (@{thm SeqRule}) i) THEN (HoareRuleTac false (i+1))
-and HoareRuleTac precond i st = st |>  
-    ( (WlpTac i THEN HoareRuleTac precond i)
+fun WlpTac ctxt i = (rtac (@{thm SeqRule}) i) THEN (HoareRuleTac ctxt false (i+1))
+and HoareRuleTac ctxt precond i st = st |>  
+    ( (WlpTac ctxt i THEN HoareRuleTac ctxt precond i)
       ORELSE
       (FIRST[rtac (@{thm SkipRule}) i,
              rtac (@{thm BasicRule}) i,
              EVERY[rtac (@{thm ParallelConseqRule}) i,
-                   ParallelConseq (i+2),
-                   ParallelTac (i+1),
-                   ParallelConseq i], 
+                   ParallelConseq ctxt (i+2),
+                   ParallelTac ctxt (i+1),
+                   ParallelConseq ctxt i], 
              EVERY[rtac (@{thm CondRule}) i,
-                   HoareRuleTac false (i+2),
-                   HoareRuleTac false (i+1)],
+                   HoareRuleTac ctxt false (i+2),
+                   HoareRuleTac ctxt false (i+1)],
              EVERY[rtac (@{thm WhileRule}) i,
-                   HoareRuleTac true (i+1)],
+                   HoareRuleTac ctxt true (i+1)],
              K all_tac i ]
        THEN (if precond then (K all_tac i) else (rtac (@{thm subset_refl}) i))))
 
-and  AnnWlpTac i = (rtac (@{thm AnnSeq}) i) THEN (AnnHoareRuleTac (i+1))
-and AnnHoareRuleTac i st = st |>  
-    ( (AnnWlpTac i THEN AnnHoareRuleTac i )
+and AnnWlpTac ctxt i = (rtac (@{thm AnnSeq}) i) THEN (AnnHoareRuleTac ctxt (i+1))
+and AnnHoareRuleTac ctxt i st = st |>  
+    ( (AnnWlpTac ctxt i THEN AnnHoareRuleTac ctxt i )
      ORELSE
       (FIRST[(rtac (@{thm AnnskipRule}) i),
              EVERY[rtac (@{thm AnnatomRule}) i,
-                   HoareRuleTac true (i+1)],
+                   HoareRuleTac ctxt true (i+1)],
              (rtac (@{thm AnnwaitRule}) i),
              rtac (@{thm AnnBasic}) i,
              EVERY[rtac (@{thm AnnCond1}) i,
-                   AnnHoareRuleTac (i+3),
-                   AnnHoareRuleTac (i+1)],
+                   AnnHoareRuleTac ctxt (i+3),
+                   AnnHoareRuleTac ctxt (i+1)],
              EVERY[rtac (@{thm AnnCond2}) i,
-                   AnnHoareRuleTac (i+1)],
+                   AnnHoareRuleTac ctxt (i+1)],
              EVERY[rtac (@{thm AnnWhile}) i,
-                   AnnHoareRuleTac (i+2)],
+                   AnnHoareRuleTac ctxt (i+2)],
              EVERY[rtac (@{thm AnnAwait}) i,
-                   HoareRuleTac true (i+1)],
+                   HoareRuleTac ctxt true (i+1)],
              K all_tac i]))
 
-and ParallelTac i = EVERY[rtac (@{thm ParallelRule}) i,
-                          interfree_Tac (i+1),
-                           MapAnn_Tac i]
+and ParallelTac ctxt i = EVERY[rtac (@{thm ParallelRule}) i,
+                          interfree_Tac ctxt (i+1),
+                           MapAnn_Tac ctxt i]
 
-and MapAnn_Tac i st = st |>
+and MapAnn_Tac ctxt i st = st |>
     (FIRST[rtac (@{thm MapAnnEmpty}) i,
            EVERY[rtac (@{thm MapAnnList}) i,
-                 MapAnn_Tac (i+1),
-                 AnnHoareRuleTac i],
+                 MapAnn_Tac ctxt (i+1),
+                 AnnHoareRuleTac ctxt i],
            EVERY[rtac (@{thm MapAnnMap}) i,
-                 rtac (@{thm allI}) i,rtac (@{thm impI}) i,
-                 AnnHoareRuleTac i]])
+                 rtac (@{thm allI}) i, rtac (@{thm impI}) i,
+                 AnnHoareRuleTac ctxt i]])
 
-and interfree_swap_Tac i st = st |>
+and interfree_swap_Tac ctxt i st = st |>
     (FIRST[rtac (@{thm interfree_swap_Empty}) i,
            EVERY[rtac (@{thm interfree_swap_List}) i,
-                 interfree_swap_Tac (i+2),
-                 interfree_aux_Tac (i+1),
-                 interfree_aux_Tac i ],
+                 interfree_swap_Tac ctxt (i+2),
+                 interfree_aux_Tac ctxt (i+1),
+                 interfree_aux_Tac ctxt i ],
            EVERY[rtac (@{thm interfree_swap_Map}) i,
                  rtac (@{thm allI}) i,rtac (@{thm impI}) i,
-                 conjI_Tac (interfree_aux_Tac) i]])
+                 conjI_Tac (interfree_aux_Tac ctxt) i]])
 
-and interfree_Tac i st = st |> 
+and interfree_Tac ctxt i st = st |> 
    (FIRST[rtac (@{thm interfree_Empty}) i,
           EVERY[rtac (@{thm interfree_List}) i,
-                interfree_Tac (i+1),
-                interfree_swap_Tac i],
+                interfree_Tac ctxt (i+1),
+                interfree_swap_Tac ctxt i],
           EVERY[rtac (@{thm interfree_Map}) i,
                 rtac (@{thm allI}) i,rtac (@{thm allI}) i,rtac (@{thm impI}) i,
-                interfree_aux_Tac i ]])
+                interfree_aux_Tac ctxt i ]])
 
-and interfree_aux_Tac i = (before_interfree_simp_tac i ) THEN 
+and interfree_aux_Tac ctxt i = (before_interfree_simp_tac ctxt i ) THEN 
         (FIRST[rtac (@{thm interfree_aux_rule1}) i,
-               dest_assertions_Tac i])
+               dest_assertions_Tac ctxt i])
 
-and dest_assertions_Tac i st = st |>
+and dest_assertions_Tac ctxt i st = st |>
     (FIRST[EVERY[rtac (@{thm AnnBasic_assertions}) i,
-                 dest_atomics_Tac (i+1),
-                 dest_atomics_Tac i],
+                 dest_atomics_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnSeq_assertions}) i,
-                 dest_assertions_Tac (i+1),
-                 dest_assertions_Tac i],
+                 dest_assertions_Tac ctxt (i+1),
+                 dest_assertions_Tac ctxt i],
            EVERY[rtac (@{thm AnnCond1_assertions}) i,
-                 dest_assertions_Tac (i+2),
-                 dest_assertions_Tac (i+1),
-                 dest_atomics_Tac i],
+                 dest_assertions_Tac ctxt (i+2),
+                 dest_assertions_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnCond2_assertions}) i,
-                 dest_assertions_Tac (i+1),
-                 dest_atomics_Tac i],
+                 dest_assertions_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnWhile_assertions}) i,
-                 dest_assertions_Tac (i+2),
-                 dest_atomics_Tac (i+1),
-                 dest_atomics_Tac i],
+                 dest_assertions_Tac ctxt (i+2),
+                 dest_atomics_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnAwait_assertions}) i,
-                 dest_atomics_Tac (i+1),
-                 dest_atomics_Tac i],
-           dest_atomics_Tac i])
+                 dest_atomics_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
+           dest_atomics_Tac ctxt i])
 
-and dest_atomics_Tac i st = st |>
+and dest_atomics_Tac ctxt i st = st |>
     (FIRST[EVERY[rtac (@{thm AnnBasic_atomics}) i,
-                 HoareRuleTac true i],
+                 HoareRuleTac ctxt true i],
            EVERY[rtac (@{thm AnnSeq_atomics}) i,
-                 dest_atomics_Tac (i+1),
-                 dest_atomics_Tac i],
+                 dest_atomics_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnCond1_atomics}) i,
-                 dest_atomics_Tac (i+1),
-                 dest_atomics_Tac i],
+                 dest_atomics_Tac ctxt (i+1),
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnCond2_atomics}) i,
-                 dest_atomics_Tac i],
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm AnnWhile_atomics}) i,
-                 dest_atomics_Tac i],
+                 dest_atomics_Tac ctxt i],
            EVERY[rtac (@{thm Annatom_atomics}) i,
-                 HoareRuleTac true i],
+                 HoareRuleTac ctxt true i],
            EVERY[rtac (@{thm AnnAwait_atomics}) i,
-                 HoareRuleTac true i],
+                 HoareRuleTac ctxt true i],
                  K all_tac i])
 *}
 
@@ -441,8 +446,7 @@ and dest_atomics_Tac i st = st |>
 text {* The final tactic is given the name @{text oghoare}: *}
 
 ML {* 
-val oghoare_tac = SUBGOAL (fn (_, i) =>
-   (HoareRuleTac true i))
+fun oghoare_tac ctxt = SUBGOAL (fn (_, i) => HoareRuleTac ctxt true i)
 *}
 
 text {* Notice that the tactic for parallel programs @{text
@@ -453,26 +457,25 @@ Parts of the tactic can be also individually used to generate the
 verification conditions for annotated sequential programs and to
 generate verification conditions out of interference freedom tests: *}
 
-ML {* val annhoare_tac = SUBGOAL (fn (_, i) =>
-  (AnnHoareRuleTac i))
+ML {*
+fun annhoare_tac ctxt = SUBGOAL (fn (_, i) => AnnHoareRuleTac ctxt i)
 
-val interfree_aux_tac = SUBGOAL (fn (_, i) =>
-   (interfree_aux_Tac i))
+fun interfree_aux_tac ctxt = SUBGOAL (fn (_, i) => interfree_aux_Tac ctxt i)
 *}
 
 text {* The so defined ML tactics are then ``exported'' to be used in
 Isabelle proofs. *}
 
 method_setup oghoare = {*
-  Scan.succeed (K (SIMPLE_METHOD' oghoare_tac)) *}
+  Scan.succeed (SIMPLE_METHOD' o oghoare_tac) *}
   "verification condition generator for the oghoare logic"
 
 method_setup annhoare = {*
-  Scan.succeed (K (SIMPLE_METHOD' annhoare_tac)) *}
+  Scan.succeed (SIMPLE_METHOD' o annhoare_tac) *}
   "verification condition generator for the ann_hoare logic"
 
 method_setup interfree_aux = {*
-  Scan.succeed (K (SIMPLE_METHOD' interfree_aux_tac)) *}
+  Scan.succeed (SIMPLE_METHOD' o interfree_aux_tac) *}
   "verification condition generator for interference freedom tests"
 
 text {* Tactics useful for dealing with the generated verification conditions: *}

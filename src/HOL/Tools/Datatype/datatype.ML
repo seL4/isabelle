@@ -537,8 +537,8 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         fun prove [] = []
           | prove (t :: ts) =
               let
-                val dist_thm = Goal.prove_sorry_global thy5 [] [] t (fn _ =>
-                  EVERY [simp_tac (HOL_ss addsimps dist_rewrites') 1])
+                val dist_thm = Goal.prove_sorry_global thy5 [] [] t (fn {context = ctxt, ...} =>
+                  EVERY [simp_tac (put_simpset HOL_ss ctxt addsimps dist_rewrites') 1])
               in dist_thm :: Drule.zero_var_indexes (dist_thm RS not_sym) :: prove ts end;
       in prove end;
 
@@ -632,13 +632,14 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       Goal.prove_sorry_global thy6 []
       (Logic.strip_imp_prems dt_induct_prop)
       (Logic.strip_imp_concl dt_induct_prop)
-      (fn {prems, ...} =>
+      (fn {context = ctxt, prems, ...} =>
         EVERY
           [rtac indrule_lemma' 1,
            (Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
            EVERY (map (fn (prem, r) => (EVERY
              [REPEAT (eresolve_tac Abs_inverse_thms 1),
-              simp_tac (HOL_basic_ss addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
+              simp_tac (put_simpset HOL_basic_ss ctxt
+                addsimps (Thm.symmetric r :: Rep_inverse_thms')) 1,
               DEPTH_SOLVE_1 (ares_tac [prem] 1 ORELSE etac allE 1)]))
                   (prems ~~ (constr_defs @ map mk_meta_eq iso_char_thms)))]);
 

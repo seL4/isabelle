@@ -295,20 +295,18 @@ local
 in
 
 fun mkex_induct_tac ctxt sch exA exB =
-  let val ss = simpset_of ctxt in
-    EVERY'[Seq_induct_tac ctxt sch defs,
-           asm_full_simp_tac ss,
-           SELECT_GOAL (safe_tac @{theory_context Fun}),
-           Seq_case_simp_tac ctxt exA,
-           Seq_case_simp_tac ctxt exB,
-           asm_full_simp_tac ss,
-           Seq_case_simp_tac ctxt exA,
-           asm_full_simp_tac ss,
-           Seq_case_simp_tac ctxt exB,
-           asm_full_simp_tac ss,
-           asm_full_simp_tac (ss addsimps asigs)
-          ]
-  end
+  EVERY'[Seq_induct_tac ctxt sch defs,
+         asm_full_simp_tac ctxt,
+         SELECT_GOAL (safe_tac @{theory_context Fun}),
+         Seq_case_simp_tac ctxt exA,
+         Seq_case_simp_tac ctxt exB,
+         asm_full_simp_tac ctxt,
+         Seq_case_simp_tac ctxt exA,
+         asm_full_simp_tac ctxt,
+         Seq_case_simp_tac ctxt exB,
+         asm_full_simp_tac ctxt,
+         asm_full_simp_tac (ctxt addsimps asigs)
+        ]
 
 end
 *}

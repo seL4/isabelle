@@ -817,7 +817,7 @@ end
 ML {*
 structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
-  val assoc_ss = HOL_ss addsimps @{thms mult_ac_numeral}
+  val assoc_ss = simpset_of (put_simpset HOL_ss @{context} addsimps @{thms mult_ac_numeral})
   val eq_reflection = eq_reflection
   fun is_numeral (Const(@{const_name of_num}, _) $ _) = true
     | is_numeral _ = false;

@@ -38,9 +38,11 @@ fun assert_tac (Max_number_of_subgoals i) st =
 
 
 (** special setup for simpset **)
-val HOL_basic_ss' = HOL_basic_ss addsimps @{thms simp_thms Pair_eq}
-  setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
-  setSolver (mk_solver "True_solver" (fn _ => rtac @{thm TrueI}))
+val HOL_basic_ss' =
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps @{thms simp_thms Pair_eq}
+    setSolver (mk_solver "all_tac_solver" (fn _ => fn _ => all_tac))
+    setSolver (mk_solver "True_solver" (fn _ => rtac @{thm TrueI})))
 
 (* auxillary functions *)
 
@@ -72,7 +74,7 @@ fun prove_param options ctxt nargs t deriv =
     val param_derivations = param_derivations_of deriv
     val ho_args = ho_args_of mode args
     val f_tac = case f of
-      Const (name, _) => simp_tac (HOL_basic_ss addsimps 
+      Const (name, _) => simp_tac (put_simpset HOL_basic_ss ctxt addsimps
          [@{thm eval_pred}, predfun_definition_of ctxt name mode,
          @{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
          @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
@@ -154,15 +156,15 @@ fun prove_match options ctxt nargs out_ts =
   (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
   in
      (* make this simpset better! *)
-    asm_full_simp_tac (HOL_basic_ss' addsimps simprules) 1
+    asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps simprules) 1
     THEN print_tac options "after prove_match:"
     THEN (DETERM (TRY 
            (rtac eval_if_P 1
            THEN (SUBPROOF (fn {context, params, prems, asms, concl, schematics} =>
              (REPEAT_DETERM (rtac @{thm conjI} 1
-             THEN (SOLVED (asm_simp_tac HOL_basic_ss' 1))))
+             THEN (SOLVED (asm_simp_tac (put_simpset HOL_basic_ss' ctxt) 1))))
              THEN print_tac options "if condition to be solved:"
-             THEN asm_simp_tac HOL_basic_ss' 1
+             THEN asm_simp_tac (put_simpset HOL_basic_ss' ctxt) 1
              THEN TRY (
                 let
                   val prems' = maps dest_conjunct_prem (take nargs prems)
@@ -190,8 +192,8 @@ fun prove_sidecond ctxt t =
         (all_input_of T))
         preds
   in 
-    simp_tac (HOL_basic_ss addsimps
-      (@{thms HOL.simp_thms eval_pred} @ defs)) 1 
+    simp_tac (put_simpset HOL_basic_ss ctxt
+      addsimps (@{thms HOL.simp_thms eval_pred} @ defs)) 1
     (* need better control here! *)
   end
 
@@ -201,7 +203,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
     fun prove_prems out_ts [] =
       (prove_match options ctxt nargs out_ts)
       THEN print_tac options "before simplifying assumptions"
-      THEN asm_full_simp_tac HOL_basic_ss' 1
+      THEN asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt) 1
       THEN print_tac options "before single intro rule"
       THEN Subgoal.FOCUS_PREMS
              (fn {context, params, prems, asms, concl, schematics} =>
@@ -225,7 +227,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
               val rec_tac = prove_prems out_ts''' ps
             in
               print_tac options "before clause:"
-              (*THEN asm_simp_tac HOL_basic_ss 1*)
+              (*THEN asm_simp_tac (put_simpset HOL_basic_ss ctxt) 1*)
               THEN print_tac options "before prove_expr:"
               THEN prove_expr options ctxt nargs premposition (t, deriv)
               THEN print_tac options "after prove_expr:"
@@ -244,7 +246,7 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
               val params = ho_args_of mode args
             in
               print_tac options "before prove_neg_expr:"
-              THEN full_simp_tac (HOL_basic_ss addsimps
+              THEN full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
                 [@{thm split_eta}, @{thm split_beta}, @{thm fst_conv},
                  @{thm snd_conv}, @{thm pair_collapse}, @{thm Product_Type.split_conv}]) 1
               THEN (if (is_some name) then
@@ -260,8 +262,10 @@ fun prove_clause options ctxt nargs mode (_, clauses) (ts, moded_ps) =
                   rtac @{thm not_predI'} 1
                   (* test: *)
                   THEN dtac @{thm sym} 1
-                  THEN asm_full_simp_tac (HOL_basic_ss addsimps [@{thm not_False_eq_True}]) 1)
-                  THEN simp_tac (HOL_basic_ss addsimps [@{thm not_False_eq_True}]) 1
+                  THEN asm_full_simp_tac
+                    (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1)
+                  THEN simp_tac
+                    (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1
               THEN rec_tac
             end
           | Sidecond t =>
@@ -321,7 +325,7 @@ fun prove_match2 options ctxt out_ts =
               "splitting with rules \n" ^ Display.string_of_thm ctxt split_asm)
             THEN TRY (Splitter.split_asm_tac [split_asm] 1
               THEN (print_tac options "after splitting with split_asm rules")
-            (* THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
+            (* THEN (Simplifier.asm_full_simp_tac (put_simpset HOL_basic_ss ctxt) 1)
               THEN (DETERM (TRY (etac @{thm Pair_inject} 1)))*)
               THEN (REPEAT_DETERM_N (num_of_constrs - 1)
                 (etac @{thm botE} 1 ORELSE etac @{thm botE} 2)))
@@ -347,7 +351,7 @@ fun prove_param2 options ctxt t deriv =
     val param_derivations = param_derivations_of deriv
     val ho_args = ho_args_of mode args
     val f_tac = case f of
-        Const (name, _) => full_simp_tac (HOL_basic_ss addsimps 
+        Const (name, _) => full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps 
            (@{thm eval_pred}::(predfun_definition_of ctxt name mode)
            :: @{thm "Product_Type.split_conv"}::[])) 1
       | Free _ => all_tac
@@ -390,7 +394,7 @@ fun prove_sidecond2 options ctxt t = let
       preds
   in
    (* only simplify the one assumption *)
-   full_simp_tac (HOL_basic_ss' addsimps @{thm eval_pred} :: defs) 1 
+   full_simp_tac (put_simpset HOL_basic_ss' ctxt addsimps @{thm eval_pred} :: defs) 1 
    (* need better control here! *)
    THEN print_tac options "after sidecond2 simplification"
    end
@@ -399,24 +403,26 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
   let
     val pred_intro_rule = nth (intros_of ctxt pred) (i - 1)
     val (in_ts, _) = split_mode mode ts;
-    val split_ss = HOL_basic_ss' addsimps [@{thm split_eta}, @{thm split_beta},
-      @{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
+    val split_simpset =
+      put_simpset HOL_basic_ss' ctxt
+      addsimps [@{thm split_eta}, @{thm split_beta},
+        @{thm fst_conv}, @{thm snd_conv}, @{thm pair_collapse}]
     fun prove_prems2 out_ts [] =
       print_tac options "before prove_match2 - last call:"
       THEN prove_match2 options ctxt out_ts
       THEN print_tac options "after prove_match2 - last call:"
       THEN (etac @{thm singleE} 1)
       THEN (REPEAT_DETERM (etac @{thm Pair_inject} 1))
-      THEN (asm_full_simp_tac HOL_basic_ss' 1)
+      THEN (asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt) 1)
       THEN TRY (
         (REPEAT_DETERM (etac @{thm Pair_inject} 1))
-        THEN (asm_full_simp_tac HOL_basic_ss' 1)
+        THEN (asm_full_simp_tac (put_simpset HOL_basic_ss' ctxt) 1)
         
         THEN SOLVED (print_tac options "state before applying intro rule:"
         THEN (rtac pred_intro_rule
         (* How to handle equality correctly? *)
         THEN_ALL_NEW (K (print_tac options "state before assumption matching")
-        THEN' (atac ORELSE' ((CHANGED o asm_full_simp_tac split_ss) THEN' (TRY o atac)))
+        THEN' (atac ORELSE' ((CHANGED o asm_full_simp_tac split_simpset) THEN' (TRY o atac)))
           THEN' (K (print_tac options "state after pre-simplification:"))
         THEN' (K (print_tac options "state after assumption matching:")))) 1))
     | prove_prems2 out_ts ((p, deriv) :: ps) =
@@ -443,10 +449,10 @@ fun prove_clause2 options ctxt pred mode (ts, ps) i =
             print_tac options "before neg prem 2"
             THEN etac @{thm bindE} 1
             THEN (if is_some name then
-                full_simp_tac (HOL_basic_ss addsimps
+                full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps
                   [predfun_definition_of ctxt (the name) mode]) 1
                 THEN etac @{thm not_predE} 1
-                THEN simp_tac (HOL_basic_ss addsimps [@{thm not_False_eq_True}]) 1
+                THEN simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm not_False_eq_True}]) 1
                 THEN (EVERY (map2 (prove_param2 options ctxt) ho_args param_derivations))
               else
                 etac @{thm not_predE'} 1)

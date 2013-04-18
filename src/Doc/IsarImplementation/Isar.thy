@@ -385,7 +385,7 @@ method_setup my_simp = {*
   Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
-        (HOL_basic_ss addsimps thms) i)))
+        (put_simpset HOL_basic_ss ctxt addsimps thms) i)))
 *} "rewrite subgoal by given rules"
 
 text {* The concrete syntax wrapping of @{command method_setup} always
@@ -424,7 +424,7 @@ method_setup my_simp_all = {*
     SIMPLE_METHOD
       (CHANGED
         (ALLGOALS (asm_full_simp_tac
-          (HOL_basic_ss addsimps thms)))))
+          (put_simpset HOL_basic_ss ctxt addsimps thms)))))
 *} "rewrite all subgoals by given rules"
 
 notepad
@@ -458,7 +458,8 @@ method_setup my_simp' = {*
   Attrib.thms >> (fn thms => fn ctxt =>
     SIMPLE_METHOD' (fn i =>
       CHANGED (asm_full_simp_tac
-        (HOL_basic_ss addsimps (thms @ My_Simps.get ctxt)) i)))
+        (put_simpset HOL_basic_ss ctxt
+          addsimps (thms @ My_Simps.get ctxt)) i)))
 *} "rewrite subgoal by given rules and my_simp rules from the context"
 
 text {*

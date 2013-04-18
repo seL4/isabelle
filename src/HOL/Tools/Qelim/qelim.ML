@@ -8,7 +8,8 @@ signature QELIM =
 sig
  val gen_qelim_conv: conv -> conv -> conv -> (cterm -> 'a -> 'a) -> 'a ->
   ('a -> conv) -> ('a -> conv) -> ('a -> conv) -> conv
- val standard_qelim_conv: (cterm list -> conv) -> (cterm list -> conv) ->
+ val standard_qelim_conv: Proof.context ->
+  (cterm list -> conv) -> (cterm list -> conv) ->
   (cterm list -> conv) -> conv
 end;
 
@@ -53,12 +54,19 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
 (* Instantiation of some parameter for most common cases *)
 
 local
-val pcv =
-  Simplifier.rewrite
-    (HOL_basic_ss addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
 
-in fun standard_qelim_conv atcv ncv qcv p =
-      gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p
+val ss =
+  simpset_of
+   (put_simpset HOL_basic_ss @{context}
+    addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib});
+fun pcv ctxt = Simplifier.rewrite (put_simpset ss ctxt)
+
+in
+
+fun standard_qelim_conv ctxt atcv ncv qcv p =
+  let val pcv = pcv ctxt
+  in gen_qelim_conv pcv pcv pcv cons (Thm.add_cterm_frees p []) atcv ncv qcv p end
+
 end;
 
 end;

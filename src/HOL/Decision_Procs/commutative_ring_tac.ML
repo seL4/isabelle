@@ -86,15 +86,14 @@ val cring_simps =
 fun tac ctxt = SUBGOAL (fn (g, i) =>
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cring_ss = Simplifier.simpset_of ctxt  (*FIXME really the full simpset!?*)
-      addsimps cring_simps;
+    val cring_ctxt = ctxt addsimps cring_simps;  (*FIXME really the full simpset!?*)
     val (ca, cvs, clhs, crhs) = reif_eq thy (HOLogic.dest_Trueprop g)
     val norm_eq_th =
-      simplify cring_ss (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq})
+      simplify cring_ctxt (instantiate' [SOME ca] [SOME clhs, SOME crhs, SOME cvs] @{thm norm_eq})
   in
     cut_tac norm_eq_th i
-    THEN (simp_tac cring_ss i)
-    THEN (simp_tac cring_ss i)
+    THEN (simp_tac cring_ctxt i)
+    THEN (simp_tac cring_ctxt i)
   end);
 
 end;

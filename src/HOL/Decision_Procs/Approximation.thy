@@ -3487,7 +3487,7 @@ ML {*
                                      (@{cpat "?prec::nat"}, p),
                                      (@{cpat "?ss::nat list"}, s)])
               @{thm "approx_form"}) i
-          THEN simp_tac @{simpset} i) st
+          THEN simp_tac @{context} i) st
        end
 
      | SOME t => if length vs <> 1 then raise (TERM ("More than one variable used for taylor series expansion", [prop_of st]))

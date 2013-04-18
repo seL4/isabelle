@@ -47,8 +47,8 @@ fun mk_meta_prems ctxt =
       (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
-fun mk_meta_cong ss rl =
-  Drule.zero_var_indexes (mk_meta_eq (mk_meta_prems (Simplifier.the_context ss) rl))
+fun mk_meta_cong ctxt rl =
+  Drule.zero_var_indexes (mk_meta_eq (mk_meta_prems ctxt rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 
@@ -58,21 +58,22 @@ fun mk_meta_cong ss rl =
 val triv_rls = [@{thm FalseL}, @{thm TrueR}, @{thm basic}, @{thm refl},
   @{thm iff_refl}, reflexive_thm];
 
-fun unsafe_solver ss =
-  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ss), assume_tac];
+fun unsafe_solver ctxt =
+  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ctxt), assume_tac];
 
 (*No premature instantiation of variables during simplification*)
-fun safe_solver ss =
- FIRST' [fn i => DETERM (match_tac (triv_rls @ Simplifier.prems_of ss) i), eq_assume_tac];
+fun safe_solver ctxt =
+  FIRST' [fn i => DETERM (match_tac (triv_rls @ Simplifier.prems_of ctxt) i), eq_assume_tac];
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =
-  Simplifier.global_context @{theory} empty_ss
+  empty_simpset @{context}
   setSSolver (mk_solver "safe" safe_solver)
   setSolver (mk_solver "unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (K (map mk_meta_eq o atomize o gen_all))
-  |> Simplifier.set_mkcong mk_meta_cong;
+  |> Simplifier.set_mkcong mk_meta_cong
+  |> simpset_of;
 
 val LK_simps =
    [@{thm triv_forall_equality}, (* prunes params *)
@@ -84,7 +85,8 @@ val LK_simps =
     @{thms LK_extra_simps};
 
 val LK_ss =
-  LK_basic_ss addsimps LK_simps
+  put_simpset LK_basic_ss @{context} addsimps LK_simps
   |> Simplifier.add_eqcong @{thm left_cong}
-  |> Simplifier.add_cong @{thm imp_cong};
+  |> Simplifier.add_cong @{thm imp_cong}
+  |> simpset_of;
 

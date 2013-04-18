@@ -16,7 +16,7 @@ fun trace_msg s = if !trace then tracing s else ();
 
 val mir_ss = 
 let val ths = [@{thm "real_of_int_inject"}, @{thm "real_of_int_less_iff"}, @{thm "real_of_int_le_iff"}]
-in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
+in simpset_of (@{context} delsimps ths addsimps (map (fn th => th RS sym) ths))
 end;
 
 val nT = HOLogic.natT;
@@ -83,7 +83,8 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun mir_tac ctxt q = 
     Object_Logic.atomize_prems_tac
-        THEN' simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps @{thms simp_thms})
+        THEN' simp_tac (put_simpset HOL_basic_ss ctxt
+          addsimps [@{thm "abs_ge_zero"}] addsimps @{thms simp_thms})
         THEN' (REPEAT_DETERM o split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
         THEN' SUBGOAL (fn (g, i) =>
   let
@@ -91,7 +92,7 @@ fun mir_tac ctxt q =
     (* Transform the term*)
     val (t,np,nh) = prepare_for_mir q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val mod_div_simpset = HOL_basic_ss 
+    val mod_div_simpset = put_simpset HOL_basic_ss ctxt
                         addsimps [refl, mod_add_eq, 
                                   @{thm mod_self},
                                   @{thm div_0}, @{thm mod_0},
@@ -99,21 +100,21 @@ fun mir_tac ctxt q =
                                   @{thm "Suc_eq_plus1"}]
                         addsimps @{thms add_ac}
                         addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
-    val simpset0 = HOL_basic_ss
+    val simpset0 = put_simpset HOL_basic_ss ctxt
       addsimps [mod_div_equality', @{thm Suc_eq_plus1}]
       addsimps comp_ths
       |> fold Splitter.add_split
           [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"},
             @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
-    val simpset1 = HOL_basic_ss
+    val simpset1 = put_simpset HOL_basic_ss ctxt
       addsimps [@{thm "zdvd_int"}] @ map (fn r => r RS sym)
         [@{thm "int_int_eq"}, @{thm "zle_int"}, @{thm "zless_int"}, @{thm "zadd_int"}, 
          @{thm nat_numeral}, @{thm "zmult_int"}]
       |> Splitter.add_split @{thm "zdiff_int_split"}
     (*simp rules for elimination of int n*)
 
-    val simpset2 = HOL_basic_ss
+    val simpset2 = put_simpset HOL_basic_ss ctxt
       addsimps [@{thm "nat_0_le"}, @{thm "all_nat"}, @{thm "ex_nat"}, @{thm zero_le_numeral}, 
                 @{thm "int_0"}, @{thm "int_1"}]
       |> fold Simplifier.add_cong [@{thm "conj_le_cong"}, @{thm "imp_le_cong"}]
@@ -122,7 +123,8 @@ fun mir_tac ctxt q =
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
       [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
-       TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1), TRY (simp_tac mir_ss 1)]
+       TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
+       TRY (simp_tac (put_simpset mir_ss ctxt) 1)]
       (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)

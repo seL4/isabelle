@@ -149,8 +149,9 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
 
     val ctxt = Proof_Context.init_global thy';
 
-    val simpset1 = HOL_basic_ss addsimps @{thm Nat.add_0} :: @{thm Nat.add_0_right} ::
-      size_def_thms @ size_def_thms' @ rec_rewrites @ extra_rewrites;
+    val simpset1 =
+      put_simpset HOL_basic_ss ctxt addsimps @{thm Nat.add_0} :: @{thm Nat.add_0_right} ::
+        size_def_thms @ size_def_thms' @ rec_rewrites @ extra_rewrites;
     val xs = map (fn i => "x" ^ string_of_int i) (1 upto length recTs2);
 
     fun mk_unfolded_size_eq tab size_ofp fs (p as (x, T), r) =
@@ -186,10 +187,12 @@ fun prove_size_thms (info : Datatype.info) new_type_names thy =
            else foldl1 plus (ts @ [HOLogic.Suc_zero])))
       end;
 
-    val simpset2 = HOL_basic_ss addsimps
-      rec_rewrites @ size_def_thms @ unfolded_size_eqs1;
-    val simpset3 = HOL_basic_ss addsimps
-      rec_rewrites @ size_def_thms' @ unfolded_size_eqs2;
+    val simpset2 =
+      put_simpset HOL_basic_ss ctxt
+        addsimps (rec_rewrites @ size_def_thms @ unfolded_size_eqs1);
+    val simpset3 =
+      put_simpset HOL_basic_ss ctxt
+        addsimps (rec_rewrites @ size_def_thms' @ unfolded_size_eqs2);
 
     fun prove_size_eqs p size_fns size_ofp simpset =
       maps (fn (((_, (_, _, constrs)), size_const), T) =>

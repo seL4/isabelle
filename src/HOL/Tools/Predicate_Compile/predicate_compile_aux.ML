@@ -873,8 +873,10 @@ fun expand_tuples thy intro =
     val t_insts' = map rewrite_pat t_insts
     val intro'' = Thm.instantiate (T_insts, t_insts') intro
     val [intro'''] = Variable.export ctxt3 ctxt [intro'']
-    val intro'''' = Simplifier.full_simplify
-      (HOL_basic_ss addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
+    val intro'''' =
+      Simplifier.full_simplify
+        (put_simpset HOL_basic_ss ctxt
+          addsimps [@{thm fst_conv}, @{thm snd_conv}, @{thm Pair_eq}])
       intro'''
     (* splitting conjunctions introduced by Pair_eq*)
     val intro''''' = split_conjuncts_in_assms ctxt intro''''

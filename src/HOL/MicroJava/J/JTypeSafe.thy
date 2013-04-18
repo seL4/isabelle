@@ -200,7 +200,7 @@ apply( unfold c_hupd_def)
 apply( simp_all)
 apply( tactic "ALLGOALS (REPEAT o resolve_tac [impI, allI])")
 apply( tactic {* ALLGOALS (eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
-                 THEN_ALL_NEW (full_simp_tac (simpset_of @{theory_context Conform}))) *})
+  THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context}))) *})
 apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
 
 -- "Level 7"
@@ -240,11 +240,11 @@ apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
 apply( tactic {* EVERY'[eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
-       THEN_ALL_NEW (full_simp_tac @{simpset}), REPEAT o (etac conjE), hyp_subst_tac] 3*})
+       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (etac conjE), hyp_subst_tac] 3*})
 
 -- "for if"
 apply( tactic {* (Induct_Tacs.case_tac @{context} "the_Bool v" THEN_ALL_NEW
-  (asm_full_simp_tac @{simpset})) 7*})
+  (asm_full_simp_tac @{context})) 7*})
 
 apply (tactic "forward_hyp_tac")
 
@@ -276,7 +276,7 @@ apply (rule conjI)
 -- "7 LAss"
 apply (fold fun_upd_def)
 apply( tactic {* (eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
-                 THEN_ALL_NEW (full_simp_tac @{simpset})) 1 *})
+                 THEN_ALL_NEW (full_simp_tac @{context})) 1 *})
 apply (intro strip)
 apply (case_tac E)
 apply (simp)

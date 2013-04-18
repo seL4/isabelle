@@ -45,10 +45,10 @@ sig
   val delSWrapper: Proof.context * string -> Proof.context
   val addWrapper: Proof.context * (string * (Proof.context -> wrapper)) -> Proof.context
   val delWrapper: Proof.context * string -> Proof.context
-  val addSbefore: Proof.context * (string * (int -> tactic)) -> Proof.context
-  val addSafter: Proof.context * (string * (int -> tactic)) -> Proof.context
-  val addbefore: Proof.context * (string * (int -> tactic)) -> Proof.context
-  val addafter: Proof.context * (string * (int -> tactic)) -> Proof.context
+  val addSbefore: Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
+  val addSafter: Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
+  val addbefore: Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
+  val addafter: Proof.context * (string * (Proof.context -> int -> tactic)) -> Proof.context
   val addD2: Proof.context * (string * thm) -> Proof.context
   val addE2: Proof.context * (string * thm) -> Proof.context
   val addSD2: Proof.context * (string * thm) -> Proof.context
@@ -670,17 +670,21 @@ fun ctxt delWrapper name = ctxt |> map_claset
   (map_uwrappers (delete_warn ("No such unsafe wrapper in claset: " ^ name) name));
 
 (* compose a safe tactic alternatively before/after safe_step_tac *)
-fun ctxt addSbefore (name, tac1) = ctxt addSWrapper (name, fn _ => fn tac2 => tac1 ORELSE' tac2);
-fun ctxt addSafter (name, tac2) = ctxt addSWrapper (name, fn _ => fn tac1 => tac1 ORELSE' tac2);
+fun ctxt addSbefore (name, tac1) =
+  ctxt addSWrapper (name, fn ctxt => fn tac2 => tac1 ctxt ORELSE' tac2);
+fun ctxt addSafter (name, tac2) =
+  ctxt addSWrapper (name, fn ctxt => fn tac1 => tac1 ORELSE' tac2 ctxt);
 
 (*compose a tactic alternatively before/after the step tactic *)
-fun ctxt addbefore (name, tac1) = ctxt addWrapper (name, fn _ => fn tac2 => tac1 APPEND' tac2);
-fun ctxt addafter (name, tac2) = ctxt addWrapper (name, fn _ => fn tac1 => tac1 APPEND' tac2);
+fun ctxt addbefore (name, tac1) =
+  ctxt addWrapper (name, fn ctxt => fn tac2 => tac1 ctxt APPEND' tac2);
+fun ctxt addafter (name, tac2) =
+  ctxt addWrapper (name, fn ctxt => fn tac1 => tac1 APPEND' tac2 ctxt);
 
-fun ctxt addD2 (name, thm) = ctxt addafter (name, dtac thm THEN' assume_tac);
-fun ctxt addE2 (name, thm) = ctxt addafter (name, etac thm THEN' assume_tac);
-fun ctxt addSD2 (name, thm) = ctxt addSafter (name, dmatch_tac [thm] THEN' eq_assume_tac);
-fun ctxt addSE2 (name, thm) = ctxt addSafter (name, ematch_tac [thm] THEN' eq_assume_tac);
+fun ctxt addD2 (name, thm) = ctxt addafter (name, fn _ => dtac thm THEN' assume_tac);
+fun ctxt addE2 (name, thm) = ctxt addafter (name, fn _ => etac thm THEN' assume_tac);
+fun ctxt addSD2 (name, thm) = ctxt addSafter (name, fn _ => dmatch_tac [thm] THEN' eq_assume_tac);
+fun ctxt addSE2 (name, thm) = ctxt addSafter (name, fn _ => ematch_tac [thm] THEN' eq_assume_tac);
 
 
 

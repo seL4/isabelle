@@ -32,7 +32,7 @@ sig
   val mono_del: attribute
   val mk_cases: Proof.context -> term -> thm
   val inductive_forall_def: thm
-  val rulify: thm -> thm
+  val rulify: Proof.context -> thm -> thm
   val inductive_cases: (Attrib.binding * string list) list -> local_theory ->
     thm list list * local_theory
   val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
@@ -346,10 +346,10 @@ fun check_rule ctxt cs params ((binding, att), rule) =
     ((binding, att), arule)
   end;
 
-val rulify =
-  hol_simplify inductive_conj
-  #> hol_simplify inductive_rulify
-  #> hol_simplify inductive_rulify_fallback
+fun rulify ctxt =
+  hol_simplify ctxt inductive_conj
+  #> hol_simplify ctxt inductive_rulify
+  #> hol_simplify ctxt inductive_rulify_fallback
   #> Simplifier.norm_hhf;
 
 end;
@@ -515,7 +515,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs
               EVERY (map (fn ci => etac @{thm disjE} 1 THEN prove_intr2 ci) c_intrs') THEN
               prove_intr2 last_c_intr
             end))
-        |> rulify
+        |> rulify ctxt'
         |> singleton (Proof_Context.export ctxt' ctxt'')
       end;
   in
@@ -533,15 +533,14 @@ val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P =
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
-fun simp_case_tac ss i =
-  EVERY' [elim_tac, asm_full_simp_tac ss, elim_tac, REPEAT o bound_hyp_subst_tac] i;
+fun simp_case_tac ctxt i =
+  EVERY' [elim_tac, asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac] i;
 
 in
 
 fun mk_cases ctxt prop =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val ss = simpset_of ctxt;
 
     fun err msg =
       error (Pretty.string_of (Pretty.block
@@ -550,7 +549,7 @@ fun mk_cases ctxt prop =
     val elims = Induct.find_casesP ctxt prop;
 
     val cprop = Thm.cterm_of thy prop;
-    val tac = ALLGOALS (simp_case_tac ss) THEN prune_params_tac;
+    val tac = ALLGOALS (simp_case_tac ctxt) THEN prune_params_tac;
     fun mk_elim rl =
       Thm.implies_intr cprop (Tactic.rule_by_tactic ctxt tac (Thm.assume cprop RS rl))
       |> singleton (Variable.export (Variable.auto_fixes prop ctxt) ctxt);
@@ -617,7 +616,7 @@ fun mk_simp_eq ctxt prop =
         (Term.add_vars (lhs_of eq) []);
   in
     Drule.cterm_instantiate inst eq
-    |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (Simplifier.full_rewrite (simpset_of ctxt))))
+    |> Conv.fconv_rule (Conv.arg_conv (Conv.arg_conv (Simplifier.full_rewrite ctxt)))
     |> singleton (Variable.export ctxt' ctxt)
   end
 
@@ -822,7 +821,7 @@ fun mk_ind_def quiet_mode skip_mono alt_name coind cs intr_ts monos params cname
              (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Local_Theory.restore_naming lthy;
     val fp_def' =
-      Simplifier.rewrite (HOL_basic_ss addsimps [fp_def])
+      Simplifier.rewrite (put_simpset HOL_basic_ss lthy' addsimps [fp_def])
         (cterm_of (Proof_Context.theory_of lthy') (list_comb (rec_const, params)));
     val specs =
       if length cs < 2 then []
@@ -895,7 +894,7 @@ fun declare_rules rec_binding coind no_ind cnames
         apfst (hd o snd)) (if null elims then [] else cnames ~~ elims) ||>>
       Local_Theory.note
         ((rec_qualified true (Binding.name (coind_prefix coind ^ "induct")),
-          map (Attrib.internal o K) (#2 induct)), [rulify (#1 induct)]);
+          map (Attrib.internal o K) (#2 induct)), [rulify lthy1 (#1 induct)]);
 
     val (eqs', lthy3) = lthy2 |>
       fold_map (fn (name, eq) => Local_Theory.note
@@ -963,8 +962,8 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val eqs =
       if no_elim then [] else prove_eqs quiet_mode cs params intr_ts intrs elims lthy2 lthy1;
 
-    val elims' = map (fn (th, ns, i) => (rulify th, ns, i)) elims;
-    val intrs' = map rulify intrs;
+    val elims' = map (fn (th, ns, i) => (rulify lthy1 th, ns, i)) elims;
+    val intrs' = map (rulify lthy1) intrs;
 
     val (intrs'', elims'', eqs', induct, inducts, lthy3) =
       declare_rules rec_name coind no_ind
@@ -974,7 +973,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
       {preds = preds,
        intrs = intrs'',
        elims = elims'',
-       raw_induct = rulify raw_induct,
+       raw_induct = rulify lthy3 raw_induct,
        induct = induct,
        inducts = inducts,
        eqs = eqs'};

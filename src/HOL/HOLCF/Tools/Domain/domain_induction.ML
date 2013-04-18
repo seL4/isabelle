@@ -71,7 +71,7 @@ let
           val rules =
               [abs_inverse] @ con_betas @ @{thms take_con_rules}
               @ take_Suc_thms @ deflation_thms @ deflation_take_thms
-          val tac = simp_tac (HOL_basic_ss addsimps rules) 1
+          val tac = simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1
         in
           Goal.prove_global thy [] [] goal (K tac)
         end
@@ -132,7 +132,8 @@ let
       mk_trp (p $ HOLCF_Library.mk_bottom T) :: map (con_assm true p) cons
   val assms = maps eq_assms (Ps ~~ newTs ~~ map #con_specs constr_infos)
 
-  val take_ss = HOL_ss addsimps (@{thm Rep_cfun_strict1} :: take_rews)
+  val take_ss =
+    simpset_of (put_simpset HOL_ss @{context} addsimps (@{thm Rep_cfun_strict1} :: take_rews))
   fun quant_tac ctxt i = EVERY
     (map (fn name => res_inst_tac ctxt [(("x", 0), name)] spec i) x_names)
 
@@ -157,7 +158,7 @@ let
             let
               val subgoal = con_assm false p (con, args)
               val rules = prems @ con_rews @ @{thms simp_thms}
-              val simplify = asm_simp_tac (HOL_basic_ss addsimps rules)
+              val simplify = asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps rules)
               fun arg_tac (lazy, _) =
                   rtac (if lazy then allI else case_UU_allI) 1
               val tacs =
@@ -173,16 +174,16 @@ let
 
           val tacs1 = [
             quant_tac ctxt 1,
-            simp_tac HOL_ss 1,
+            simp_tac (put_simpset HOL_ss ctxt) 1,
             Induct_Tacs.induct_tac ctxt [[SOME "n"]] 1,
-            simp_tac (take_ss addsimps prems) 1,
+            simp_tac (put_simpset take_ss ctxt addsimps prems) 1,
             TRY (safe_tac (put_claset HOL_cs ctxt))]
           fun con_tac _ = 
-            asm_simp_tac take_ss 1 THEN
+            asm_simp_tac (put_simpset take_ss ctxt) 1 THEN
             (resolve_tac prems' THEN_ALL_NEW etac spec) 1
           fun cases_tacs (cons, exhaust) =
             res_inst_tac ctxt [(("y", 0), "x")] exhaust 1 ::
-            asm_simp_tac (take_ss addsimps prems) 1 ::
+            asm_simp_tac (put_simpset take_ss ctxt addsimps prems) 1 ::
             map con_tac cons
           val tacs = tacs1 @ maps cases_tacs (conss ~~ exhausts)
         in
@@ -325,10 +326,10 @@ let
           val dests = map (fn th => th RS spec RS spec RS mp) prems'
           fun one_tac (dest, rews) =
               dtac dest 1 THEN safe_tac (put_claset HOL_cs ctxt) THEN
-              ALLGOALS (asm_simp_tac (HOL_basic_ss addsimps rews))
+              ALLGOALS (asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps rews))
         in
           rtac @{thm nat.induct} 1 THEN
-          simp_tac (HOL_ss addsimps rules) 1 THEN
+          simp_tac (put_simpset HOL_ss ctxt addsimps rules) 1 THEN
           safe_tac (put_claset HOL_cs ctxt) THEN
           EVERY (map one_tac (dests ~~ take_rews))
         end
@@ -344,12 +345,12 @@ let
       val assm1 = mk_trp (list_comb (bisim_const, Rs))
       val assm2 = mk_trp (R $ x $ y)
       val goal = mk_trp (mk_eq (x, y))
-      fun tacf {prems, context = _} =
+      fun tacf {prems, context = ctxt} =
         let
           val rule = hd prems RS coind_lemma
         in
           rtac take_lemma 1 THEN
-          asm_simp_tac (HOL_basic_ss addsimps (rule :: prems)) 1
+          asm_simp_tac (put_simpset HOL_basic_ss ctxt addsimps (rule :: prems)) 1
         end
     in
       Goal.prove_global thy [] [assm1, assm2] goal tacf

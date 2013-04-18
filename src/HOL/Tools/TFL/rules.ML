@@ -43,7 +43,7 @@ sig
 
   val list_beta_conv: cterm -> cterm list -> thm
   val SUBS: thm list -> thm -> thm
-  val simpl_conv: simpset -> thm list -> cterm -> thm
+  val simpl_conv: Proof.context -> thm list -> cterm -> thm
 
   val rbeta: thm -> thm
   val tracing: bool Unsynchronized.ref
@@ -422,8 +422,8 @@ fun SUBS thl =
 
 val rew_conv = Raw_Simplifier.rewrite_cterm (true, false, false) (K (K NONE));
 
-fun simpl_conv ss thl ctm =
- rew_conv (ss addsimps thl) ctm RS meta_eq_to_obj_eq;
+fun simpl_conv ctxt thl ctm =
+ rew_conv (ctxt addsimps thl) ctm RS meta_eq_to_obj_eq;
 
 
 val RIGHT_ASSOC = rewrite_rule [Thms.disj_assoc];
@@ -648,14 +648,14 @@ fun restricted t = is_some (USyntax.find_term
 
 fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
  let val globals = func::G
-     val ss0 = Simplifier.global_context (Thm.theory_of_thm th) empty_ss
-     val pbeta_reduce = simpl_conv ss0 [@{thm split_conv} RS eq_reflection];
+     val ctxt0 = Simplifier.global_context (Thm.theory_of_thm th) empty_ss
+     val pbeta_reduce = simpl_conv ctxt0 [@{thm split_conv} RS eq_reflection];
      val tc_list = Unsynchronized.ref []: term list Unsynchronized.ref
      val cut_lemma' = cut_lemma RS eq_reflection
-     fun prover used ss thm =
-     let fun cong_prover ss thm =
+     fun prover used ctxt thm =
+     let fun cong_prover ctxt thm =
          let val dummy = say "cong_prover:"
-             val cntxt = Simplifier.prems_of ss
+             val cntxt = Simplifier.prems_of ctxt
              val dummy = print_thms "cntxt:" cntxt
              val dummy = say "cong rule:"
              val dummy = say (Display.string_of_thm_without_context thm)
@@ -666,8 +666,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
-                     val ss' = Simplifier.add_prems (map ASSUME ants) ss
-                     val lhs_eq_lhs1 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used) ss' lhs
+                     val ctxt' = Simplifier.add_prems (map ASSUME ants) ctxt
+                     val lhs_eq_lhs1 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used) ctxt' lhs
                        handle Utils.ERR _ => Thm.reflexive lhs
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
                      val lhs_eq_lhs2 = implies_intr_list ants lhs_eq_lhs1
@@ -687,8 +687,8 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val Q = get_lhs eq1
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(Dcterm.dest_eq(cconcl QeqQ1))
-                  val ss' = Simplifier.add_prems (map ASSUME ants1) ss
-                  val Q1eeqQ2 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used') ss' Q1
+                  val ctxt' = Simplifier.add_prems (map ASSUME ants1) ctxt
+                  val Q1eeqQ2 = Raw_Simplifier.rewrite_cterm (false,true,false) (prover used') ctxt' Q1
                                 handle Utils.ERR _ => Thm.reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (Thm.prop_of Q1eeqQ2))
                   val Q3 = tych(list_comb(list_mk_aabs(vstrl,Q2),vstrl))
@@ -712,9 +712,9 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                  else
                  let val tych = cterm_of thy
                      val ants1 = map tych ants
-                     val ss' = Simplifier.add_prems (map ASSUME ants1) ss
+                     val ctxt' = Simplifier.add_prems (map ASSUME ants1) ctxt
                      val Q_eeq_Q1 = Raw_Simplifier.rewrite_cterm
-                        (false,true,false) (prover used') ss' (tych Q)
+                        (false,true,false) (prover used') ctxt' (tych Q)
                       handle Utils.ERR _ => Thm.reflexive (tych Q)
                      val lhs_eeq_lhs2 = implies_intr_list ants1 Q_eeq_Q1
                      val lhs_eq_lhs2 = lhs_eeq_lhs2 RS meta_eq_to_obj_eq
@@ -735,9 +735,9 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
          in SOME(eliminate (rename thm)) end
          handle Utils.ERR _ => NONE    (* FIXME handle THM as well?? *)
 
-        fun restrict_prover ss thm =
+        fun restrict_prover ctxt thm =
           let val dummy = say "restrict_prover:"
-              val cntxt = rev (Simplifier.prems_of ss)
+              val cntxt = rev (Simplifier.prems_of ctxt)
               val dummy = print_thms "cntxt:" cntxt
               val thy = Thm.theory_of_thm thm
               val Const("==>",_) $ (Const(@{const_name Trueprop},_) $ A) $ _ = Thm.prop_of thm
@@ -777,13 +777,13 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
           in SOME (th'')
           end handle Utils.ERR _ => NONE    (* FIXME handle THM as well?? *)
     in
-    (if (is_cong thm) then cong_prover else restrict_prover) ss thm
+    (if (is_cong thm) then cong_prover else restrict_prover) ctxt thm
     end
     val ctm = cprop_of th
     val names = Misc_Legacy.add_term_names (term_of ctm, [])
     val th1 =
       Raw_Simplifier.rewrite_cterm (false, true, false)
-        (prover names) (ss0 addsimps [cut_lemma'] |> fold Simplifier.add_eqcong congs) ctm
+        (prover names) (ctxt0 addsimps [cut_lemma'] |> fold Simplifier.add_eqcong congs) ctm
     val th2 = Thm.equal_elim th1 th
  in
  (th2, filter_out restricted (!tc_list))

@@ -150,9 +150,10 @@ apply (cases Q)
 apply (simp_all)
 done
 
+(* FIXME unused!? *)
 ML {*
-val split_If_tac =
-  simp_tac (HOL_basic_ss addsimps [@{thm If2_def} RS sym])
+fun split_If_tac ctxt =
+  simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm If2_def} RS sym])
     THEN' (split_tac [@{thm split_If2}])
 *}
 

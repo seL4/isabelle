@@ -380,7 +380,8 @@ text {*
 *}
 
 setup {*
-  map_theory_claset (fn ctxt => ctxt addbefore ("bspec", dtac @{thm bspec} THEN' assume_tac))
+  map_theory_claset (fn ctxt =>
+    ctxt addbefore ("bspec", fn _ => dtac @{thm bspec} THEN' assume_tac))
 *}
 
 ML {*

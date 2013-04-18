@@ -769,7 +769,7 @@ apply(unfold Collector_def Mutator_def)
 apply interfree_aux
 apply(simp_all add:collector_mutator_interfree)
 apply(unfold modules collector_defs mutator_defs)
-apply(tactic  {* TRYALL (interfree_aux_tac) *})
+apply(tactic  {* TRYALL (interfree_aux_tac @{context}) *})
 --{* 32 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 20 subgoals left *}
@@ -790,7 +790,7 @@ apply(unfold Collector_def Mutator_def)
 apply interfree_aux
 apply(simp_all add:collector_mutator_interfree)
 apply(unfold modules collector_defs mutator_defs)
-apply(tactic  {* TRYALL (interfree_aux_tac) *})
+apply(tactic  {* TRYALL (interfree_aux_tac @{context}) *})
 --{* 64 subgoals left *}
 apply(simp_all add:nth_list_update Invariants Append_to_free0)+
 apply(tactic{* TRYALL (clarify_tac @{context}) *})

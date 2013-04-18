@@ -156,12 +156,12 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
 
     val _ = Datatype_Aux.message config "Proving termination and uniqueness of primrec functions ...";
 
-    fun mk_unique_tac ((((i, (tname, _, constrs)), elim), T), T') (tac, intrs) =
+    fun mk_unique_tac ctxt ((((i, (tname, _, constrs)), elim), T), T') (tac, intrs) =
       let
         val distinct_tac =
           if i < length newTs then
-            full_simp_tac (HOL_ss addsimps (nth dist_rewrites i)) 1
-          else full_simp_tac (HOL_ss addsimps (flat other_dist_rewrites)) 1;
+            full_simp_tac (put_simpset HOL_ss ctxt addsimps (nth dist_rewrites i)) 1
+          else full_simp_tac (put_simpset HOL_ss ctxt addsimps (flat other_dist_rewrites)) 1;
 
         val inject =
           map (fn r => r RS iffD1)
@@ -203,13 +203,13 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
           map (fn ((i, T), t) => absfree ("x" ^ string_of_int i, T) t)
             ((1 upto length recTs) ~~ recTs ~~ rec_unique_ts);
         val induct' = cterm_instantiate (map cert induct_Ps ~~ map cert insts) induct;
-        val (tac, _) =
-          fold mk_unique_tac (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
-            (((rtac induct' THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1 THEN
-                rewrite_goals_tac [mk_meta_eq @{thm choice_eq}], rec_intrs));
       in
         Datatype_Aux.split_conj_thm (Goal.prove_sorry_global thy1 [] []
-          (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj rec_unique_ts)) (K tac))
+          (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj rec_unique_ts))
+          (fn {context = ctxt, ...} =>
+            #1 (fold (mk_unique_tac ctxt) (descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts)
+              (((rtac induct' THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1 THEN
+                  rewrite_goals_tac [mk_meta_eq @{thm choice_eq}], rec_intrs)))))
       end;
 
     val rec_total_thms = map (fn r => r RS @{thm theI'}) rec_unique_thms;
@@ -359,12 +359,13 @@ fun prove_split_thms (config : Datatype_Aux.config)
         val cert = cterm_of thy;
         val _ $ (_ $ lhs $ _) = hd (Logic.strip_assums_hyp (hd (prems_of exhaustion)));
         val exhaustion' = cterm_instantiate [(cert lhs, cert (Free ("x", T)))] exhaustion;
-        val tac =
+        fun tac ctxt =
           EVERY [rtac exhaustion' 1,
-            ALLGOALS (asm_simp_tac (HOL_ss addsimps (dist_rewrites' @ inject @ case_thms')))];
+            ALLGOALS (asm_simp_tac
+              (put_simpset HOL_ss ctxt addsimps (dist_rewrites' @ inject @ case_thms')))];
       in
-        (Goal.prove_sorry_global thy [] [] t1 (K tac),
-         Goal.prove_sorry_global thy [] [] t2 (K tac))
+        (Goal.prove_sorry_global thy [] [] t1 (tac o #context),
+         Goal.prove_sorry_global thy [] [] t2 (tac o #context))
       end;
 
     val split_thm_pairs =
@@ -429,10 +430,12 @@ fun prove_case_congs new_type_names case_names descr nchotomys case_thms thy =
         val nchotomy'' = cterm_instantiate [(cert (Var v), cert Ma)] nchotomy';
       in
         Goal.prove_sorry_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
-          (fn {prems, ...} =>
-            let val simplify = asm_simp_tac (HOL_ss addsimps (prems @ case_rewrites)) in
+          (fn {context = ctxt, prems, ...} =>
+            let
+              val simplify = asm_simp_tac (put_simpset HOL_ss ctxt addsimps (prems @ case_rewrites))
+            in
               EVERY [
-                simp_tac (HOL_ss addsimps [hd prems]) 1,
+                simp_tac (put_simpset HOL_ss ctxt addsimps [hd prems]) 1,
                 cut_tac nchotomy'' 1,
                 REPEAT (etac disjE 1 THEN REPEAT (etac exE 1) THEN simplify 1),
                 REPEAT (etac exE 1) THEN simplify 1 (* Get last disjunct *)]

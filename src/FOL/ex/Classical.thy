@@ -300,7 +300,7 @@ by blast
 
 (*Other proofs: Can use auto, which cheats by using rewriting!  
   Deepen_tac alone requires 253 secs.  Or
-  by (mini_tac 1 THEN Deepen_tac 5 1) *)
+  by (mini_tac @{context} 1 THEN Deepen_tac 5 1) *)
 
 text{*44*}
 lemma "(\<forall>x. f(x) --> (\<exists>y. g(y) & h(x,y) & (\<exists>y. g(y) & ~ h(x,y)))) &  

@@ -579,7 +579,8 @@ let
                  else Ferrante_Rackoff_Data.Nox
        | _ => Ferrante_Rackoff_Data.Nox
   in h end
-  fun ss phi = HOL_ss addsimps (simps phi)
+  fun ss phi =
+    simpset_of (put_simpset HOL_ss @{context} addsimps (simps phi))
 in
   Ferrante_Rackoff_Data.funs  @{thm "ferrack_axiom"}
     {isolate_conv = K (K (K Thm.reflexive)), whatis = generic_whatis, simpset = ss}
@@ -749,7 +750,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val clt = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (simpset_of ctxt)
+        val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
@@ -772,7 +773,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val clt = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (simpset_of ctxt)
+        val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
@@ -793,7 +794,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val clt = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "op <"}
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (simpset_of ctxt)
+        val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
@@ -817,7 +818,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val clt = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "op <"}
         val cz = Thm.dest_arg ct
         val neg = cr </ Rat.zero
-        val cthp = Simplifier.rewrite (simpset_of ctxt)
+        val cthp = Simplifier.rewrite ctxt
                (Thm.apply @{cterm "Trueprop"}
                   (if neg then Thm.apply (Thm.apply clt c) cz
                     else Thm.apply (Thm.apply clt cz) c))
@@ -836,7 +837,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cr = dest_frac c
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
-        val cthp = Simplifier.rewrite (simpset_of ctxt)
+        val cthp = Simplifier.rewrite ctxt
             (Thm.apply @{cterm "Trueprop"}
              (Thm.apply @{cterm "Not"} (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -858,7 +859,7 @@ fun xnormalize_conv ctxt [] ct = Thm.reflexive ct
         val cr = dest_frac c
         val ceq = Thm.dest_fun2 ct
         val cz = Thm.dest_arg ct
-        val cthp = Simplifier.rewrite (simpset_of ctxt)
+        val cthp = Simplifier.rewrite ctxt
             (Thm.apply @{cterm "Trueprop"}
              (Thm.apply @{cterm "Not"} (Thm.apply (Thm.apply ceq c) cz)))
         val cth = Thm.equal_elim (Thm.symmetric cthp) TrueI
@@ -924,8 +925,9 @@ fun classfield_whatis phi =
    | _ => Ferrante_Rackoff_Data.Nox
  in h end;
 fun class_field_ss phi =
-   HOL_basic_ss addsimps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
-   |> fold Splitter.add_split [@{thm "abs_split"}, @{thm "split_max"}, @{thm "split_min"}]
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps ([@{thm "linorder_not_less"}, @{thm "linorder_not_le"}])
+    |> fold Splitter.add_split [@{thm "abs_split"}, @{thm "split_max"}, @{thm "split_min"}])
 
 in
 Ferrante_Rackoff_Data.funs @{thm "class_dense_linordered_field.ferrack_axiom"}

@@ -129,9 +129,9 @@ fun fresh_fun_tac ctxt no_asm i thm =
     val thy = theory_of_thm thm;
     val abs_fresh = Global_Theory.get_thms thy "abs_fresh";
     val fresh_perm_app = Global_Theory.get_thms thy "fresh_perm_app";
-    val ss = simpset_of ctxt;
-    val ss' = ss addsimps fresh_prod::abs_fresh;
-    val ss'' = ss' addsimps fresh_perm_app;
+    val simp_ctxt =
+      ctxt addsimps (fresh_prod :: abs_fresh)
+      addsimps fresh_perm_app;
     val x = hd (tl (Misc_Legacy.term_vars (prop_of exI)));
     val goal = nth (prems_of thm) (i-1);
     val atom_name_opt = get_inner_fresh_fun goal;
@@ -164,10 +164,10 @@ fun fresh_fun_tac ctxt no_asm i thm =
     val post_rewrite_tacs =
           [rtac pt_name_inst,
            rtac at_name_inst,
-           TRY o SOLVED' (NominalPermeq.finite_guess_tac ss''),
+           TRY o SOLVED' (NominalPermeq.finite_guess_tac simp_ctxt),
            inst_fresh vars params THEN'
-           (TRY o SOLVED' (NominalPermeq.fresh_guess_tac ss'')) THEN'
-           (TRY o SOLVED' (asm_full_simp_tac ss''))]
+           (TRY o SOLVED' (NominalPermeq.fresh_guess_tac simp_ctxt)) THEN'
+           (TRY o SOLVED' (asm_full_simp_tac simp_ctxt))]
   in
    ((if no_asm then no_tac else
     (subst_inner_asm_tac ctxt fresh_fun_app' i THEN (RANGE post_rewrite_tacs i)))

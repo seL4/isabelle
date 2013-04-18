@@ -269,7 +269,7 @@ let
     Proposition A should have the form t:Si where Si is an inductive set*)
   fun make_cases ctxt A =
     rule_by_tactic ctxt
-      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac (simpset_of ctxt)) THEN basic_elim_tac)
+      (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ctxt) THEN basic_elim_tac)
       (Thm.assume A RS elim)
       |> Drule.export_without_context_open;
 
@@ -330,7 +330,7 @@ let
            (Simplifier.global_context thy empty_ss
              |> Simplifier.set_mksimps (K (map mk_eq o ZF_atomize o gen_all)))
            setSolver (mk_solver "minimal"
-                      (fn ss => resolve_tac (triv_rls @ Simplifier.prems_of ss)
+                      (fn ctxt => resolve_tac (triv_rls @ Simplifier.prems_of ctxt)
                                    ORELSE' assume_tac
                                    ORELSE' etac @{thm FalseE}));
 

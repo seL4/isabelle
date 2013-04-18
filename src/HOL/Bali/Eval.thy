@@ -780,7 +780,7 @@ done
 
 declare not_None_eq [simp del] (* IntDef.Zero_def [simp del] *)
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 
 inductive_cases eval_cases: "G\<turnstile>s \<midarrow>t\<succ>\<rightarrow> (v, s')"
 
@@ -818,7 +818,7 @@ inductive_cases eval_elim_cases [cases set]:
         "G\<turnstile>Norm s \<midarrow>In1r (Init C)                       \<succ>\<rightarrow> (x, s')"
 declare not_None_eq [simp]  (* IntDef.Zero_def [simp] *)
 declare split_paired_All [simp] split_paired_Ex [simp]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+declaration {* K (Simplifier.map_ss (fn ss => ss addloop' ("split_all_tac", split_all_tac))) *}
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 

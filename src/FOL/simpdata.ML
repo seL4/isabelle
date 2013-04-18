@@ -26,8 +26,8 @@ fun mk_meta_prems ctxt =
       (REPEAT_FIRST (resolve_tac [@{thm meta_eq_to_obj_eq}, @{thm def_imp_iff}]));
 
 (*Congruence rules for = or <-> (instead of ==)*)
-fun mk_meta_cong ss rl =
-  Drule.zero_var_indexes (mk_meta_eq (mk_meta_prems (Simplifier.the_context ss) rl))
+fun mk_meta_cong ctxt rl =
+  Drule.zero_var_indexes (mk_meta_eq (mk_meta_prems ctxt rl))
     handle THM _ =>
       error("Premises and conclusion of congruence rules must use =-equality or <->");
 
@@ -48,7 +48,7 @@ fun mk_atomize pairs =
          | _ => [th])
   in atoms end;
 
-fun mksimps pairs (_: simpset) = map mk_eq o mk_atomize pairs o gen_all;
+fun mksimps pairs (_: Proof.context) = map mk_eq o mk_atomize pairs o gen_all;
 
 
 (** make simplification procedures for quantifier elimination **)
@@ -106,25 +106,25 @@ val split_asm_tac = Splitter.split_asm_tac;
 
 val triv_rls = [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl}, @{thm notFalseI}];
 
-fun unsafe_solver ss =
-  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ss), atac, etac @{thm FalseE}];
+fun unsafe_solver ctxt =
+  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ctxt), atac, etac @{thm FalseE}];
 
 (*No premature instantiation of variables during simplification*)
-fun safe_solver ss =
-  FIRST' [match_tac (triv_rls @ Simplifier.prems_of ss), eq_assume_tac, ematch_tac @{thms FalseE}];
+fun safe_solver ctxt =
+  FIRST' [match_tac (triv_rls @ Simplifier.prems_of ctxt), eq_assume_tac, ematch_tac @{thms FalseE}];
 
 (*No simprules, but basic infastructure for simplification*)
 val FOL_basic_ss =
-  Simplifier.global_context @{theory} empty_ss
+  empty_simpset @{context}
   setSSolver (mk_solver "FOL safe" safe_solver)
   setSolver (mk_solver "FOL unsafe" unsafe_solver)
   |> Simplifier.set_subgoaler asm_simp_tac
   |> Simplifier.set_mksimps (mksimps mksimps_pairs)
-  |> Simplifier.set_mkcong mk_meta_cong;
+  |> Simplifier.set_mkcong mk_meta_cong
+  |> simpset_of;
 
-fun unfold_tac ths =
-  let val ss0 = Simplifier.clear_ss FOL_basic_ss addsimps ths
-  in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
+fun unfold_tac ths ctxt =
+  ALLGOALS (full_simp_tac (clear_simpset (put_simpset FOL_basic_ss ctxt) addsimps ths));
 
 
 (*** integration of simplifier with classical reasoner ***)

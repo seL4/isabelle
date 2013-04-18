@@ -8,7 +8,7 @@ signature MEASURABLE =
 sig
   datatype level = Concrete | Generic
 
-  val simproc : simpset -> cterm -> thm option
+  val simproc : Proof.context -> cterm -> thm option
   val method : (Proof.context -> Method.method) context_parser
   val measurable_tac : Proof.context -> thm list -> tactic
 
@@ -151,7 +151,8 @@ val split_countable_tac =
     in if null cps then no_tac else debug_tac ctxt (K "split countable fun") (resolve_tac cps i) end
     handle TERM _ => no_tac) 1)
 
-fun measurable_tac' ctxt ss facts = let
+fun measurable_tac' ctxt facts =
+  let
 
     val imported_thms =
       (maps (import_theorem (Context.Proof ctxt) o Simplifier.norm_hhf) facts) @ get_all ctxt
@@ -202,7 +203,7 @@ fun measurable_tac' ctxt ss facts = let
 
     val depth_measurable_tac = REPEAT_cnt (fn n =>
        (COND (is_cond_formula 1)
-        (debug_tac ctxt (K ("simp " ^ string_of_int n)) (SOLVED' (asm_full_simp_tac ss) 1))
+        (debug_tac ctxt (K ("simp " ^ string_of_int n)) (SOLVED' (asm_full_simp_tac ctxt) 1))
         ((debug_tac ctxt (K ("single " ^ string_of_int n)) (resolve_tac imported_thms 1)) APPEND
           (split_app_tac ctxt 1) APPEND
           (splitter 1)))) 0
@@ -210,7 +211,7 @@ fun measurable_tac' ctxt ss facts = let
   in debug_tac ctxt (debug_facts "start") depth_measurable_tac end;
 
 fun measurable_tac ctxt facts =
-  TAKE (Config.get ctxt backtrack) (measurable_tac' ctxt (simpset_of ctxt) facts);
+  TAKE (Config.get ctxt backtrack) (measurable_tac' ctxt facts);
 
 val attr_add = Thm.declaration_attribute o add_thm;
 
@@ -227,11 +228,11 @@ val app_attr : attribute context_parser =
 val method : (Proof.context -> Method.method) context_parser =
   Scan.lift (Scan.succeed (fn ctxt => METHOD (fn facts => measurable_tac ctxt facts)));
 
-fun simproc ss redex = let
-    val ctxt = Simplifier.the_context ss;
+fun simproc ctxt redex =
+  let
     val t = HOLogic.mk_Trueprop (term_of redex);
     fun tac {context = ctxt, prems = _ } =
-      SOLVE (measurable_tac' ctxt ss (Simplifier.prems_of ss));
+      SOLVE (measurable_tac' ctxt (Simplifier.prems_of ctxt));
   in try (fn () => Goal.prove ctxt [] [] t tac RS @{thm Eq_TrueI}) () end;
 
 end

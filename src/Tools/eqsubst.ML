@@ -68,7 +68,7 @@ struct
 
 (* changes object "=" to meta "==" which prepares a given rewrite rule *)
 fun prep_meta_eq ctxt =
-  Simplifier.mksimps (simpset_of ctxt) #> map Drule.zero_var_indexes;
+  Simplifier.mksimps ctxt #> map Drule.zero_var_indexes;
 
 
   (* a type abriviation for match information *)

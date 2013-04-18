@@ -21,13 +21,13 @@ sig
   val div_mod_eqs: thm list
   (* (n*(m div n) + m mod n) + k == m + k and
      ((m div n)*n + m mod n) + k == m + k *)
-  val prove_eq_sums: simpset -> term * term -> thm
+  val prove_eq_sums: Proof.context -> term * term -> thm
   (* must prove ac0-equivalence of sums *)
 end;
 
 signature CANCEL_DIV_MOD =
 sig
-  val proc: simpset -> cterm -> thm option
+  val proc: Proof.context -> cterm -> thm option
 end;
 
 
@@ -66,11 +66,11 @@ fun rearrange t pq =
       val m = Data.mk_binop Data.mod_name pq
   in mk_plus(mk_plus(d,m),Data.mk_sum(ts |> remove (op =) d |> remove (op =) m)) end
 
-fun cancel ss t pq =
-  let val teqt' = Data.prove_eq_sums ss (t, rearrange t pq)
+fun cancel ctxt t pq =
+  let val teqt' = Data.prove_eq_sums ctxt (t, rearrange t pq)
   in hd (Data.div_mod_eqs RL [teqt' RS transitive_thm]) end;
 
-fun proc ss ct =
+fun proc ctxt ct =
   let
     val t = term_of ct;
     val (divs, mods) = coll_div_mod t ([], []);
@@ -78,7 +78,7 @@ fun proc ss ct =
     if null divs orelse null mods then NONE
     else
       (case inter (op =) mods divs of
-        pq :: _ => SOME (cancel ss t pq)
+        pq :: _ => SOME (cancel ctxt t pq)
       | [] => NONE)
   end;
 
