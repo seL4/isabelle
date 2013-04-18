@@ -156,7 +156,7 @@ text {*
   @{text "SOME t'"} in the first case, @{text "NONE"} in the
   second, and propagating the exception in the third case.  A strict
   variant of plain evaluation either yields @{text "t'"} or propagates
-  any exception, a liberal variant caputures any exception in a result
+  any exception, a liberal variant captures any exception in a result
   of type @{text "Exn.result"}.
   
   For property conversion (which coincides with conversion except for
