@@ -101,7 +101,7 @@ lemma cnvalid1_eq:
 by(simp add: cnvalids_def nvalids_def nvalid_def2)
 
 lemma hoare_sound_main:"\<And>t. (A |\<turnstile> C \<longrightarrow> A |\<Turnstile> C) \<and> (A |\<turnstile>\<^sub>e t \<longrightarrow> A |\<Turnstile>\<^sub>e t)"
-apply (tactic "split_all_tac 1", rename_tac P e Q)
+apply (tactic "split_all_tac @{context} 1", rename_tac P e Q)
 apply (rule hoare_ehoare.induct)
 (*18*)
 apply (tactic {* ALLGOALS (REPEAT o dresolve_tac [@{thm all_conjunct2}, @{thm all3_conjunct2}]) *})

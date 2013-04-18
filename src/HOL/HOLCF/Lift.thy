@@ -46,7 +46,7 @@ text {*
 
 method_setup defined = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD'
-    (etac @{thm lift_definedE} THEN' asm_simp_tac (simpset_of ctxt)))
+    (etac @{thm lift_definedE} THEN' asm_simp_tac ctxt))
 *}
 
 lemma DefE: "Def x = \<bottom> \<Longrightarrow> R"

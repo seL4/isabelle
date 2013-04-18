@@ -14,7 +14,7 @@ sig
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
-  val ss_only : thm list -> simpset
+  val ss_only : thm list -> Proof.context -> Proof.context
   val cnf_axiom :
     Proof.context -> bool -> bool -> int -> thm
     -> (thm * term) option * thm list
@@ -292,7 +292,7 @@ fun zap pos ct =
         else Conv.all_conv
       | _ => Conv.all_conv)
 
-fun ss_only ths = Simplifier.clear_ss HOL_basic_ss addsimps ths
+fun ss_only ths ctxt = clear_simpset (put_simpset HOL_basic_ss ctxt) addsimps ths
 
 val cheat_choice =
   @{prop "ALL x. EX y. Q x y ==> EX f. ALL x. Q x (f x)"}
@@ -317,11 +317,11 @@ fun nnf_axiom choice_ths new_skolem ax_no th ctxt =
       let
         fun skolemize choice_ths =
           skolemize_with_choice_theorems ctxt choice_ths
-          #> simplify (ss_only @{thms all_simps[symmetric]})
+          #> simplify (ss_only @{thms all_simps[symmetric]} ctxt)
         val no_choice = null choice_ths
         val pull_out =
           if no_choice then
-            simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]})
+            simplify (ss_only @{thms all_simps[symmetric] ex_simps[symmetric]} ctxt)
           else
             skolemize choice_ths
         val discharger_th = th |> pull_out

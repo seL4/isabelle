@@ -33,7 +33,7 @@ sig
    (ctxt * thm) list * 'b)
    -> ctx_tree -> 'b -> 'b
 
-  val rewrite_by_tree : theory -> term -> thm -> (thm * thm) list ->
+  val rewrite_by_tree : Proof.context -> term -> thm -> (thm * thm) list ->
     ctx_tree -> thm * (thm * thm) list
 end
 
@@ -240,8 +240,9 @@ fun traverse_tree rcOp tr =
     snd o traverse_help ([], []) tr []
   end
 
-fun rewrite_by_tree thy h ih x tr =
+fun rewrite_by_tree ctxt h ih x tr =
   let
+    val thy = Proof_Context.theory_of ctxt
     fun rewrite_help _ _ x (Leaf t) = (Thm.reflexive (cterm_of thy t), x)
       | rewrite_help fix h_as x (RCall (_ $ arg, st)) =
         let
@@ -268,7 +269,7 @@ fun rewrite_by_tree thy h ih x tr =
                 |> map (fn u_eq => (u_eq RS sym) RS eq_reflection)
                 |> filter_out Thm.is_reflexive
 
-              val assumes' = map (simplify (HOL_basic_ss addsimps used)) assumes
+              val assumes' = map (simplify (put_simpset HOL_basic_ss  ctxt addsimps used)) assumes
 
               val (subeq, x') =
                 rewrite_help (fix @ fixes) (h_as @ assumes') x st

@@ -109,7 +109,7 @@ fun HOL_fast_tac ctxt =
   Classical.fast_tac (put_claset HOL_cs ctxt)
 
 fun simp_fast_tac ctxt =
-  Simplifier.simp_tac (HOL_ss addsimps [rewr_if])
+  Simplifier.simp_tac (put_simpset HOL_ss ctxt addsimps [rewr_if])
   THEN_ALL_NEW HOL_fast_tac ctxt
 
 end
@@ -148,8 +148,7 @@ local
   val remove_fun_app = mk_meta_eq @{thm SMT.fun_app_def}
 
   fun rewrite_conv _ [] = Conv.all_conv
-    | rewrite_conv ctxt eqs = Simplifier.full_rewrite
-        (Simplifier.context ctxt Simplifier.empty_ss addsimps eqs)
+    | rewrite_conv ctxt eqs = Simplifier.full_rewrite (empty_simpset ctxt addsimps eqs)
 
   val prep_rules = [@{thm Let_def}, remove_trigger, remove_weight,
     remove_fun_app, Z3_Proof_Literals.rewrite_true]
@@ -658,7 +657,7 @@ fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
     Z3_Proof_Tools.by_tac (
       NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
       ORELSE' NAMED ctxt' "simp+arith" (
-        Simplifier.asm_full_simp_tac simpset
+        Simplifier.asm_full_simp_tac (put_simpset simpset ctxt')
         THEN_ALL_NEW Arith_Data.arith_tac ctxt')))]
 
 
@@ -718,19 +717,19 @@ fun rewrite simpset ths ct ctxt =
     named ctxt "pull-ite" Z3_Proof_Methods.prove_ite,
     Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
-        NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
+        NAMED ctxt' "simp (logic)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
-        THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
+        THEN' NAMED ctxt' "simp (theory)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
-        THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
+        THEN' NAMED ctxt' "simp (full)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
         THEN_ALL_NEW (
           NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
@@ -739,7 +738,7 @@ fun rewrite simpset ths ct ctxt =
       (fn ctxt' =>
         Z3_Proof_Tools.by_tac (
           (Tactic.rtac @{thm iff_allI} ORELSE' K all_tac)
-          THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac simpset)
+          THEN' NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac (put_simpset simpset ctxt'))
           THEN_ALL_NEW (
             NAMED ctxt' "fast (deepen)" (HOL_fast_tac ctxt')
             ORELSE' NAMED ctxt' "arith (deepen)" (Arith_Data.arith_tac

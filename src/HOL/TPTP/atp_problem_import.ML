@@ -234,7 +234,7 @@ fun auto_etc_tac ctxt timeout i =
   SOLVE_TIMEOUT (timeout div 20) "nitpick"
       (nitpick_finite_oracle_tac ctxt (timeout div 20) i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "simp"
-      (asm_full_simp_tac (simpset_of ctxt) i)
+      (asm_full_simp_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 10) "blast" (blast_tac ctxt i)
   ORELSE SOLVE_TIMEOUT (timeout div 5) "auto+spass"
       (auto_tac ctxt

@@ -79,7 +79,7 @@ val aT = pt_random_aux |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
 val rew_thms = map mk_meta_eq [@{thm natural_zero_minus_one},
   @{thm Suc_natural_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
 val rew_ts = map (Logic.dest_equals o Thm.prop_of) rew_thms;
-val rew_ss = HOL_ss addsimps rew_thms;
+val rew_ss = simpset_of (put_simpset HOL_ss @{context} addsimps rew_thms);
 
 in
 
@@ -104,10 +104,11 @@ fun random_aux_primrec eq lthy =
     val rule = @{thm random_aux_rec}
       |> Drule.instantiate_normalize ([(aT, icT)],
            [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)]);
-    val tac = ALLGOALS (rtac rule)
-      THEN ALLGOALS (simp_tac rew_ss)
+    fun tac ctxt =
+      ALLGOALS (rtac rule)
+      THEN ALLGOALS (simp_tac (put_simpset rew_ss ctxt))
       THEN (ALLGOALS (Proof_Context.fact_tac eqs2))
-    val simp = Goal.prove_sorry lthy' [v] [] eq (K tac);
+    val simp = Goal.prove_sorry lthy' [v] [] eq (tac o #context);
   in (simp, lthy') end;
 
 end;
@@ -141,9 +142,10 @@ fun random_aux_primrec_multi auxname [eq] lthy =
           let
             val proj_simps = map (snd o snd) proj_defs;
             fun tac { context = ctxt, prems = _ } =
-              ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
+              ALLGOALS (simp_tac (put_simpset HOL_ss ctxt addsimps proj_simps))
               THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
-              THEN ALLGOALS (simp_tac (HOL_ss addsimps [@{thm fst_conv}, @{thm snd_conv}]));
+              THEN ALLGOALS (simp_tac
+                (put_simpset HOL_ss ctxt addsimps [@{thm fst_conv}, @{thm snd_conv}]));
           in (map (fn prop => Goal.prove_sorry lthy [v] [] prop tac) eqs, lthy) end;
       in
         lthy

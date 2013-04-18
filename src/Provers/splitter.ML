@@ -32,8 +32,8 @@ sig
   val split_tac       : thm list -> int -> tactic
   val split_inside_tac: thm list -> int -> tactic
   val split_asm_tac   : thm list -> int -> tactic
-  val add_split: thm -> simpset -> simpset
-  val del_split: thm -> simpset -> simpset
+  val add_split: thm -> Proof.context -> Proof.context
+  val del_split: thm -> Proof.context -> Proof.context
   val split_add: attribute
   val split_del: attribute
   val split_modifiers : Method.modifier parser list
@@ -426,15 +426,15 @@ fun string_of_typ (Type (s, Ts)) =
 fun split_name (name, T) asm = "split " ^
   (if asm then "asm " else "") ^ name ^ " :: " ^ string_of_typ T;
 
-fun add_split split ss =
+fun add_split split ctxt =
   let
     val (name, asm) = split_thm_info split
     val tac = (if asm then split_asm_tac else split_tac) [split]
-  in Simplifier.addloop (ss, (split_name name asm, tac)) end;
+  in Simplifier.addloop (ctxt, (split_name name asm, tac)) end;
 
-fun del_split split ss =
+fun del_split split ctxt =
   let val (name, asm) = split_thm_info split
-  in Simplifier.delloop (ss, split_name name asm) end;
+  in Simplifier.delloop (ctxt, split_name name asm) end;
 
 
 (* attributes *)

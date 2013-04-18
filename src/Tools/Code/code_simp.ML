@@ -6,7 +6,7 @@ Connecting the simplifier and the code generator.
 
 signature CODE_SIMP =
 sig
-  val map_ss: (simpset -> simpset) -> theory -> theory
+  val map_ss: (Proof.context -> Proof.context) -> theory -> theory
   val dynamic_conv: theory -> conv
   val dynamic_tac: theory -> int -> tactic
   val dynamic_value: theory -> term -> term
@@ -24,11 +24,11 @@ structure Simpset = Theory_Data
 (
   type T = simpset;
   val empty = empty_ss;
-  fun extend ss = Simplifier.inherit_context empty_ss ss;
+  val extend = I;
   val merge = merge_ss;
 );
 
-val map_ss = Simpset.map;
+fun map_ss f thy = Simpset.map (simpset_map (Proof_Context.init_global thy) f) thy;
 
 fun simpset_default thy = Simplifier.global_context thy o the_default (Simpset.get thy);
 

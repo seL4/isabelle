@@ -66,11 +66,11 @@ signature QUANTIFIER1 =
 sig
   val prove_one_point_all_tac: tactic
   val prove_one_point_ex_tac: tactic
-  val rearrange_all: simpset -> cterm -> thm option
-  val rearrange_ex: simpset -> cterm -> thm option
-  val rearrange_ball: tactic -> simpset -> cterm -> thm option
-  val rearrange_bex: tactic -> simpset -> cterm -> thm option
-  val rearrange_Collect: tactic -> simpset -> cterm -> thm option
+  val rearrange_all: Proof.context -> cterm -> thm option
+  val rearrange_ex: Proof.context -> cterm -> thm option
+  val rearrange_ball: tactic -> Proof.context -> cterm -> thm option
+  val rearrange_bex: tactic -> Proof.context -> cterm -> thm option
+  val rearrange_Collect: tactic -> Proof.context -> cterm -> thm option
 end;
 
 functor Quantifier1(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
@@ -120,9 +120,8 @@ fun extract_quant extract q =
       | exqu xs P = extract (null xs) xs P
   in exqu [] end;
 
-fun prove_conv tac ss tu =
+fun prove_conv tac ctxt tu =
   let
-    val ctxt = Simplifier.the_context ss;
     val (goal, ctxt') =
       yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
     val thm =
@@ -172,17 +171,17 @@ fun quantify qC x T xs P =
     val Q = if n = 0 then P else renumber 0 n P;
   in quant xs (qC $ Abs (x, T, Q)) end;
 
-fun rearrange_all ss ct =
+fun rearrange_all ctxt ct =
   (case term_of ct of
     F as (all as Const (q, _)) $ Abs (x, T, P) =>
       (case extract_quant extract_imp q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify all x T xs (Data.imp $ eq $ Q)
-          in SOME (prove_conv prove_one_point_all_tac ss (F, R)) end)
+          in SOME (prove_conv prove_one_point_all_tac ctxt (F, R)) end)
   | _ => NONE);
 
-fun rearrange_ball tac ss ct =
+fun rearrange_ball tac ctxt ct =
   (case term_of ct of
     F as Ball $ A $ Abs (x, T, P) =>
       (case extract_imp true [] P of
@@ -191,37 +190,37 @@ fun rearrange_ball tac ss ct =
           if not (null xs) then NONE
           else
             let val R = Data.imp $ eq $ Q
-            in SOME (prove_conv tac ss (F, Ball $ A $ Abs (x, T, R))) end)
+            in SOME (prove_conv tac ctxt (F, Ball $ A $ Abs (x, T, R))) end)
   | _ => NONE);
 
-fun rearrange_ex ss ct =
+fun rearrange_ex ctxt ct =
   (case term_of ct of
     F as (ex as Const (q, _)) $ Abs (x, T, P) =>
       (case extract_quant extract_conj q P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           let val R = quantify ex x T xs (Data.conj $ eq $ Q)
-          in SOME (prove_conv prove_one_point_ex_tac ss (F, R)) end)
+          in SOME (prove_conv prove_one_point_ex_tac ctxt (F, R)) end)
   | _ => NONE);
 
-fun rearrange_bex tac ss ct =
+fun rearrange_bex tac ctxt ct =
   (case term_of ct of
     F as Bex $ A $ Abs (x, T, P) =>
       (case extract_conj true [] P of
         NONE => NONE
       | SOME (xs, eq, Q) =>
           if not (null xs) then NONE
-          else SOME (prove_conv tac ss (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q))))
+          else SOME (prove_conv tac ctxt (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q))))
   | _ => NONE);
 
-fun rearrange_Collect tac ss ct =
+fun rearrange_Collect tac ctxt ct =
   (case term_of ct of
     F as Collect $ Abs (x, T, P) =>
       (case extract_conj true [] P of
         NONE => NONE
       | SOME (_, eq, Q) =>
           let val R = Collect $ Abs (x, T, Data.conj $ eq $ Q)
-          in SOME (prove_conv tac ss (F, R)) end)
+          in SOME (prove_conv tac ctxt (F, R)) end)
   | _ => NONE);
 
 end;

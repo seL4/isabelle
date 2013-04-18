@@ -131,7 +131,7 @@ apply(unfold Mul_Mutator_def)
 apply(interfree_aux)
 apply(simp_all add:mul_mutator_interfree)
 apply(simp_all add: mul_mutator_defs)
-apply(tactic {* TRYALL (interfree_aux_tac) *})
+apply(tactic {* TRYALL (interfree_aux_tac @{context}) *})
 apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply (simp_all add:nth_list_update)
 done
@@ -1171,7 +1171,7 @@ apply(unfold Mul_Collector_def Mul_Mutator_def)
 apply interfree_aux
 apply(simp_all add:mul_collector_mutator_interfree)
 apply(unfold mul_modules mul_collector_defs mul_mutator_defs)
-apply(tactic  {* TRYALL (interfree_aux_tac) *})
+apply(tactic  {* TRYALL (interfree_aux_tac @{context}) *})
 --{* 42 subgoals left *}
 apply (clarify,simp add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)+
 --{* 24 subgoals left *}
@@ -1201,8 +1201,8 @@ apply(simp_all add:Graph10)
 apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans}, etac @{thm Graph11},force_tac @{context}]) *})
 --{* 41 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI1, etac @{thm le_trans},
-    force_tac (map_simpset (fn ss => ss addsimps
-      [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}]) @{context})]) *})
+    force_tac (@{context} addsimps
+      [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}])]) *})
 --{* 35 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm psubset_subset_trans},rtac @{thm Graph9},force_tac @{context}]) *})
 --{* 31 subgoals left *}
@@ -1211,8 +1211,8 @@ apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm subset_psubset_
 apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans},etac @{thm subset_psubset_trans},etac @{thm Graph11},force_tac @{context}]) *})
 --{* 25 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI2, rtac disjI1, etac @{thm le_trans},
-    force_tac (map_simpset (fn ss => ss addsimps
-      [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}]) @{context})]) *})
+    force_tac (@{context} addsimps
+      [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}])]) *})
 --{* 10 subgoals left *}
 apply(rule disjI2,rule disjI2,rule conjI,erule less_le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update, rule disjI1, rule less_imp_le, erule less_le_trans, force simp add:Queue_def less_Suc_eq_le le_length_filter_update)+
 done
@@ -1225,7 +1225,7 @@ apply(unfold Mul_Collector_def Mul_Mutator_def)
 apply interfree_aux
 apply(simp_all add:mul_collector_mutator_interfree)
 apply(unfold mul_modules mul_collector_defs mul_mutator_defs)
-apply(tactic  {* TRYALL (interfree_aux_tac) *})
+apply(tactic  {* TRYALL (interfree_aux_tac @{context}) *})
 --{* 76 subgoals left *}
 apply (clarsimp simp add: nth_list_update)+
 --{* 56 subgoals left *}

@@ -723,7 +723,9 @@ fun real_nonlinear_prover proof_method ctxt =
    in
   (let val th = tryfind trivial_axiom (keq @ klep @ kltp)
    in
-    (fconv_rule (arg_conv (arg1_conv real_poly_conv) then_conv Numeral_Simprocs.field_comp_conv) th, RealArith.Trivial)
+    (fconv_rule (arg_conv (arg1_conv (real_poly_conv ctxt))
+      then_conv Numeral_Simprocs.field_comp_conv ctxt) th,
+      RealArith.Trivial)
    end)
    handle Failure _ =>
      (let val proof =
@@ -820,8 +822,8 @@ fun real_nonlinear_subst_prover prover ctxt =
    let
     val (c,v) = substitutable_monomial [] (Thm.dest_arg1(concl th))
     val th1 = Drule.arg_cong_rule (Thm.apply @{cterm "op * :: real => _"} (RealArith.cterm_of_rat (Rat.inv c))) (mk_meta_eq th)
-    val th2 = fconv_rule (binop_conv real_poly_mul_conv) th1
-   in fconv_rule (arg_conv real_poly_conv) (isolate_variable v th2)
+    val th2 = fconv_rule (binop_conv (real_poly_mul_conv ctxt)) th1
+   in fconv_rule (arg_conv (real_poly_conv ctxt)) (isolate_variable v th2)
    end
    fun oprconv cv ct =
     let val g = Thm.dest_fun2 ct
@@ -834,7 +836,8 @@ fun real_nonlinear_subst_prover prover ctxt =
     fun substfirst(eqs,les,lts) =
       ((let
            val eth = tryfind make_substitution eqs
-           val modify = fconv_rule (arg_conv (oprconv(subst_conv [eth] then_conv real_poly_conv)))
+           val modify =
+            fconv_rule (arg_conv (oprconv(subst_conv [eth] then_conv (real_poly_conv ctxt))))
        in  substfirst
              (filter_out (fn t => (Thm.dest_arg1 o Thm.dest_arg o cprop_of) t
                                    aconvc @{cterm "0::real"}) (map modify eqs),
@@ -922,12 +925,13 @@ CSUBGOAL (fn (P,i) =>
    NONE => no_tac
  | SOME (d,ord) =>
      let
-      val ss = simpset_of ctxt addsimps @{thms field_simps}
-               addsimps [@{thm nonzero_power_divide}, @{thm power_divide}]
+      val simp_ctxt =
+        ctxt addsimps @{thms field_simps}
+        addsimps [@{thm nonzero_power_divide}, @{thm power_divide}]
       val th = instantiate' [] [SOME d, SOME (Thm.dest_arg P)]
          (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
           else @{lemma "(d=0 --> P) & (d ~= (0::real) --> P) ==> P" by blast})
-     in rtac th i THEN Simplifier.asm_full_simp_tac ss i end);
+     in rtac th i THEN Simplifier.asm_full_simp_tac simp_ctxt i end);
 
 fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
 

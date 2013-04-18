@@ -27,7 +27,7 @@ fun get_p1 th =
   funpow 2 (Thm.dest_arg o snd o Thm.dest_abs NONE)
     (funpow 2 Thm.dest_arg (cprop_of th)) |> Thm.dest_arg
 
-fun ferrack_conv
+fun ferrack_conv ctxt
    (entr as ({minf = minf, pinf = pinf, nmi = nmi, npi = npi,
               ld = ld, qe = qe, atoms = atoms},
              {isolate_conv = icv, whatis = wi, simpset = simpset}):entry) =
@@ -163,7 +163,7 @@ let
                         qe))
                   [fU, ld_th, nmi_th, npi_th, minf_th, pinf_th]
     val bex_conv =
-      Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms bex_simps(1-5)})
+      Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms bex_simps(1-5)})
     val result_th = fconv_rule (arg_conv bex_conv) (Thm.transitive enth qe_th)
    in result_th
    end
@@ -196,22 +196,21 @@ val grab_atom_bop =
    in h (bounds + 1) b' end;
 in h end;
 
-fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset}) tm =
+fun raw_ferrack_qe_conv ctxt (thy, {isolate_conv, whatis, simpset = ss}) tm =
  let
-   val ss = simpset
    val ss' =
-     merge_ss (HOL_basic_ss addsimps @{thms simp_thms ex_simps all_simps
-                not_all all_not_ex ex_disj_distrib}, ss)
-     |> Simplifier.inherit_context ss
-   val pcv = Simplifier.rewrite ss'     
-   val postcv = Simplifier.rewrite ss
-   val nnf = K (nnf_conv then_conv postcv)
+     merge_ss (simpset_of
+      (put_simpset HOL_basic_ss ctxt addsimps
+        @{thms simp_thms ex_simps all_simps not_all all_not_ex ex_disj_distrib}), ss);
+   val pcv = Simplifier.rewrite (put_simpset ss' ctxt);
+   val postcv = Simplifier.rewrite (put_simpset ss ctxt);
+   val nnf = K (nnf_conv ctxt then_conv postcv)
    val qe_conv = Qelim.gen_qelim_conv pcv postcv pcv cons (Thm.add_cterm_frees tm [])
                   (isolate_conv ctxt) nnf
-                  (fn vs => ferrack_conv (thy,{isolate_conv = isolate_conv ctxt,
-                                               whatis = whatis, simpset = simpset}) vs
+                  (fn vs => ferrack_conv ctxt (thy,{isolate_conv = isolate_conv ctxt,
+                                               whatis = whatis, simpset = ss}) vs
                    then_conv postcv)
- in (Simplifier.rewrite ss then_conv qe_conv) tm end;
+ in (Simplifier.rewrite (put_simpset ss ctxt) then_conv qe_conv) tm end;
 
 fun dlo_instance ctxt tm =
   Ferrante_Rackoff_Data.match ctxt (grab_atom_bop 0 tm);
@@ -226,8 +225,8 @@ fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
     NONE => no_tac
   | SOME instance =>
       Object_Logic.full_atomize_tac i THEN
-      simp_tac (#simpset (snd instance)) i THEN  (* FIXME already part of raw_ferrack_qe_conv? *)
+      simp_tac (put_simpset (#simpset (snd instance)) ctxt) i THEN  (* FIXME already part of raw_ferrack_qe_conv? *)
       CONVERSION (Object_Logic.judgment_conv (raw_ferrack_qe_conv ctxt instance)) i THEN
-      simp_tac (simpset_of ctxt) i));  (* FIXME really? *)
+      simp_tac ctxt i));  (* FIXME really? *)
 
 end;

@@ -464,7 +464,7 @@ done
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 inductive

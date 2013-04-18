@@ -29,27 +29,27 @@ sig
                              as with < and <= but not = and div*)
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
-  val trans_tac: thm option -> tactic           (*applies the initial lemma*)
-  val norm_tac: simpset -> tactic                (*proves the initial lemma*)
-  val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
-  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
+  val trans_tac: thm option -> tactic                (*applies the initial lemma*)
+  val norm_tac: Proof.context -> tactic              (*proves the initial lemma*)
+  val numeral_simp_tac: Proof.context -> tactic      (*proves the final theorem*)
+  val simplify_meta_eq: Proof.context -> thm -> thm  (*simplifies the final theorem*)
 end;
 
 
 functor CancelNumeralFactorFun(Data: CANCEL_NUMERAL_FACTOR_DATA):
   sig
-  val proc: simpset -> term -> thm option
+  val proc: Proof.context -> term -> thm option
   end
 =
 struct
 
 (*the simplification procedure*)
-fun proc ss t =
+fun proc ctxt t =
   let
-    val ctxt = Simplifier.the_context ss;
-    val prems = Simplifier.prems_of ss;
+    val prems = Simplifier.prems_of ctxt;
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
+    (* FIXME ctxt vs. ctxt' *)
 
     val (t1,t2) = Data.dest_bal t'
     val (m1, t1') = Data.dest_coeff t1
@@ -67,13 +67,13 @@ fun proc ss t =
               else Data.mk_bal (Data.mk_coeff(n1,t1'), Data.mk_coeff(n2,t2'))
     val reshape =  (*Move d to the front and put the rest into standard form
                        i * #m * j == #d * (#n * (j * k)) *)
-      Data.prove_conv [Data.norm_tac ss] ctxt prems
+      Data.prove_conv [Data.norm_tac ctxt] ctxt prems
         (t', Data.mk_bal (newshape(n1,t1'), newshape(n2,t2')))
   in
-    Option.map (export o Data.simplify_meta_eq ss)
+    Option.map (export o Data.simplify_meta_eq ctxt)
       (Data.prove_conv
          [Data.trans_tac reshape, rtac Data.cancel 1,
-          Data.numeral_simp_tac ss] ctxt prems (t', rhs))
+          Data.numeral_simp_tac ctxt] ctxt prems (t', rhs))
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE

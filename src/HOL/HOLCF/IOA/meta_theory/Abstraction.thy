@@ -606,8 +606,7 @@ ML {*
 fun abstraction_tac ctxt =
   SELECT_GOAL (auto_tac
     (ctxt addSIs @{thms weak_strength_lemmas}
-      |> map_simpset (fn ss =>
-        ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}])))
+      addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))
 *}
 
 method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *}

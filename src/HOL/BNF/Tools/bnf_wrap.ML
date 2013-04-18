@@ -540,7 +540,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                     map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
                 in
                   [Goal.prove_sorry lthy [] [] goal (fn _ =>
-                     mk_expand_tac n ms (inst_thm u disc_exhaust_thm)
+                     mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)
                        (inst_thm v disc_exhaust_thm) uncollapse_thms disc_exclude_thmsss
                        disc_exclude_thmsss')]
                   |> map Thm.close_derivation
@@ -573,7 +573,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                  mk_Trueprop_eq (ufcase, vgcase));
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
-            (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac uexhaust_thm case_thms),
+            (Goal.prove_sorry lthy [] [] goal (fn _ => mk_case_cong_tac lthy uexhaust_thm case_thms),
              Goal.prove_sorry lthy [] [] weak_goal (K (etac arg_cong 1)))
             |> pairself (Thm.close_derivation #> singleton (Proof_Context.export names_lthy lthy))
           end;
@@ -596,7 +596,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
 
             val split_thm =
               Goal.prove_sorry lthy [] [] goal
-                (fn _ => mk_split_tac uexhaust_thm case_thms inject_thmss distinct_thmsss)
+                (fn _ => mk_split_tac lthy uexhaust_thm case_thms inject_thmss distinct_thmsss)
               |> Thm.close_derivation
               |> singleton (Proof_Context.export names_lthy lthy);
             val split_asm_thm =

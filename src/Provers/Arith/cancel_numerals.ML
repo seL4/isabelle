@@ -37,14 +37,14 @@ sig
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
   val trans_tac: thm option -> tactic            (*applies the initial lemma*)
-  val norm_tac: simpset -> tactic                (*proves the initial lemma*)
-  val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
-  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
+  val norm_tac: Proof.context -> tactic          (*proves the initial lemma*)
+  val numeral_simp_tac: Proof.context -> tactic  (*proves the final theorem*)
+  val simplify_meta_eq: Proof.context -> thm -> thm (*simplifies the final theorem*)
 end;
 
 signature CANCEL_NUMERALS =
 sig
-  val proc: simpset -> term -> thm option
+  val proc: Proof.context -> term -> thm option
 end;
 
 functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA): CANCEL_NUMERALS =
@@ -65,12 +65,12 @@ fun find_common (terms1,terms2) =
   in  seek terms1 end;
 
 (*the simplification procedure*)
-fun proc ss t =
+fun proc ctxt t =
   let
-    val ctxt = Simplifier.the_context ss
-    val prems = Simplifier.prems_of ss
+    val prems = Simplifier.prems_of ctxt
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
+    (* FIXME ctxt cs. ctxt' (!?) *)
 
     val (t1,t2) = Data.dest_bal t'
     val terms1 = Data.dest_sum t1
@@ -86,19 +86,19 @@ fun proc ss t =
                        i + #m + j + k == #m + i + (j + k) *)
         if n1=0 orelse n2=0 then   (*trivial, so do nothing*)
           raise TERM("cancel_numerals", [])
-        else Data.prove_conv [Data.norm_tac ss] ctxt prems
+        else Data.prove_conv [Data.norm_tac ctxt] ctxt prems
           (t', Data.mk_bal (newshape(n1,terms1'), newshape(n2,terms2')))
   in
-    Option.map (export o Data.simplify_meta_eq ss)
+    Option.map (export o Data.simplify_meta_eq ctxt)
       (if n2 <= n1 then
          Data.prove_conv
            [Data.trans_tac reshape, rtac Data.bal_add1 1,
-            Data.numeral_simp_tac ss] ctxt prems
+            Data.numeral_simp_tac ctxt] ctxt prems
            (t', Data.mk_bal (newshape(n1-n2,terms1'), Data.mk_sum T terms2'))
        else
          Data.prove_conv
            [Data.trans_tac reshape, rtac Data.bal_add2 1,
-            Data.numeral_simp_tac ss] ctxt prems
+            Data.numeral_simp_tac ctxt] ctxt prems
            (t', Data.mk_bal (Data.mk_sum T terms1', newshape(n2-n1,terms2'))))
   end
   (* FIXME avoid handling of generic exceptions *)

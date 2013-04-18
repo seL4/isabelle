@@ -874,7 +874,7 @@ fun eqn_conv conv ct =
 fun rewrite_eqn thy conv ss =
   let
     val ctxt = Proof_Context.init_global thy;
-    val rewrite = Conv.fconv_rule (conv (Simplifier.rewrite ss));
+    val rewrite = Conv.fconv_rule (conv (Simplifier.rewrite (put_simpset ss ctxt)));
   in singleton (Variable.trade (K (map rewrite)) ctxt) end;
 
 fun cert_of_eqns_preprocess thy functrans ss c =

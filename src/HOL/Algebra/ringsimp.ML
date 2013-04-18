@@ -42,16 +42,16 @@ fun print_structures ctxt =
 
 (** Method **)
 
-fun struct_tac ((s, ts), simps) =
+fun struct_tac ctxt ((s, ts), simps) =
   let
     val ops = map (fst o Term.strip_comb) ts;
     fun ord (Const (a, _)) = find_index (fn (Const (b, _)) => a=b | _ => false) ops
       | ord (Free (a, _)) = find_index (fn (Free (b, _)) => a=b | _ => false) ops;
     fun less (a, b) = (Term_Ord.term_lpo ord (a, b) = LESS);
-  in asm_full_simp_tac (HOL_ss addsimps simps |> Simplifier.set_termless less) end;
+  in asm_full_simp_tac (put_simpset HOL_ss ctxt addsimps simps |> Simplifier.set_termless less) end;
 
 fun algebra_tac ctxt =
-  EVERY' (map (fn s => TRY o struct_tac s) (Data.get (Context.Proof ctxt)));
+  EVERY' (map (fn s => TRY o struct_tac ctxt s) (Data.get (Context.Proof ctxt)));
 
 
 (** Attribute **)

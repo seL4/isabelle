@@ -193,7 +193,7 @@ fun declaration {syntax, pervasive} (txt, pos) =
 fun simproc_setup name lhss (txt, pos) identifier =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    "val proc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
+    "val proc: Morphism.morphism -> Proof.context -> cterm -> thm option"
     ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \
       \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
       \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})")

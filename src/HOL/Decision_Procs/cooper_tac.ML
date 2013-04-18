@@ -14,7 +14,7 @@ struct
 val trace = Unsynchronized.ref false;
 fun trace_msg s = if !trace then tracing s else ();
 
-val cooper_ss = @{simpset};
+val cooper_ss = simpset_of @{context};
 
 val nT = HOLogic.natT;
 val comp_arith = @{thms simp_thms}
@@ -68,7 +68,8 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac THEN' SUBGOAL (fn (g, i) =>
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linz q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val mod_div_simpset = HOL_basic_ss
+    val mod_div_simpset =
+      put_simpset HOL_basic_ss ctxt
       addsimps [refl,mod_add_eq, mod_add_left_eq,
           mod_add_right_eq,
           nat_div_add_eq, int_div_add_eq,
@@ -78,29 +79,32 @@ fun linz_tac ctxt q = Object_Logic.atomize_prems_tac THEN' SUBGOAL (fn (g, i) =>
           Suc_eq_plus1]
       addsimps @{thms add_ac}
       addsimprocs [@{simproc cancel_div_mod_nat}, @{simproc cancel_div_mod_int}]
-    val simpset0 = HOL_basic_ss
+    val simpset0 =
+      put_simpset HOL_basic_ss ctxt
       addsimps [mod_div_equality', Suc_eq_plus1]
       addsimps comp_arith
       |> fold Splitter.add_split
           [split_zdiv, split_zmod, split_div', @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
-    val simpset1 = HOL_basic_ss
+    val simpset1 =
+      put_simpset HOL_basic_ss ctxt
       addsimps [zdvd_int] @ map (fn r => r RS sym)
         [@{thm int_numeral}, @{thm int_int_eq}, @{thm zle_int}, @{thm zless_int}, @{thm zadd_int}, @{thm zmult_int}]
       |> Splitter.add_split zdiff_int_split
     (*simp rules for elimination of int n*)
 
-    val simpset2 = HOL_basic_ss
+    val simpset2 =
+      put_simpset HOL_basic_ss ctxt
       addsimps [@{thm nat_0_le}, @{thm all_nat}, @{thm ex_nat}, @{thm zero_le_numeral}, @{thm order_refl}(* FIXME: necessary? *), @{thm int_0}, @{thm int_1}]
       |> fold Simplifier.add_cong [@{thm conj_le_cong}, @{thm imp_le_cong}]
     (* simp rules for elimination of abs *)
-    val simpset3 = HOL_basic_ss |> Splitter.add_split @{thm abs_split}
+    val simpset3 = put_simpset HOL_basic_ss ctxt |> Splitter.add_split @{thm abs_split}
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
     val pre_thm = Seq.hd (EVERY
       [simp_tac mod_div_simpset 1, simp_tac simpset0 1,
        TRY (simp_tac simpset1 1), TRY (simp_tac simpset2 1),
-       TRY (simp_tac simpset3 1), TRY (simp_tac cooper_ss 1)]
+       TRY (simp_tac simpset3 1), TRY (simp_tac (put_simpset cooper_ss ctxt) 1)]
       (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)

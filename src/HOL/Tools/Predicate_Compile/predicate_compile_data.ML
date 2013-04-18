@@ -159,8 +159,9 @@ fun split_all_pairs thy th =
 
 fun inline_equations thy th =
   let
-    val inline_defs = Predicate_Compile_Inline_Defs.get (Proof_Context.init_global thy)
-    val th' = (Simplifier.full_simplify (HOL_basic_ss addsimps inline_defs)) th
+    val ctxt = Proof_Context.init_global thy
+    val inline_defs = Predicate_Compile_Inline_Defs.get ctxt
+    val th' = (Simplifier.full_simplify (put_simpset HOL_basic_ss ctxt addsimps inline_defs)) th
     (*val _ = print_step options 
       ("Inlining " ^ (Syntax.string_of_term_global thy (prop_of th))
        ^ "with " ^ (commas (map ((Syntax.string_of_term_global thy) o prop_of) inline_defs))

@@ -97,10 +97,11 @@ end;
 
 (**Simp_tacs**)
 
-val before_set2pred_simp_tac =
-  (simp_tac (HOL_basic_ss addsimps [Collect_conj_eq RS sym, @{thm Compl_Collect}]));
+fun before_set2pred_simp_tac ctxt =
+  simp_tac (put_simpset HOL_basic_ss ctxt addsimps [Collect_conj_eq RS sym, @{thm Compl_Collect}]);
 
-val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]));
+fun split_simp_tac ctxt =
+  simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm split_conv}]);
 
 (*****************************************************************************)
 (** set2pred_tac transforms sets inclusion into predicates implication,     **)
@@ -114,14 +115,15 @@ val split_simp_tac = (simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]));
 (** simplification done by (split_all_tac)                                  **)
 (*****************************************************************************)
 
-fun set2pred_tac var_names = SUBGOAL (fn (goal, i) =>
-  before_set2pred_simp_tac i THEN_MAYBE
+fun set2pred_tac ctxt var_names = SUBGOAL (fn (goal, i) =>
+  before_set2pred_simp_tac ctxt i THEN_MAYBE
   EVERY [
     rtac subsetI i,
     rtac CollectI i,
     dtac CollectD i,
-    TRY (split_all_tac i) THEN_MAYBE
-     (rename_tac var_names i THEN full_simp_tac (HOL_basic_ss addsimps [@{thm split_conv}]) i)]);
+    TRY (split_all_tac ctxt i) THEN_MAYBE
+     (rename_tac var_names i THEN
+      full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm split_conv}]) i)]);
 
 (*****************************************************************************)
 (** BasicSimpTac is called to simplify all verification conditions. It does **)
@@ -131,17 +133,19 @@ fun set2pred_tac var_names = SUBGOAL (fn (goal, i) =>
 (** the tactic chosen by the user, which may solve the subgoal completely.  **)
 (*****************************************************************************)
 
-fun MaxSimpTac var_names tac = FIRST'[rtac subset_refl, set2pred_tac var_names THEN_MAYBE' tac];
+fun MaxSimpTac ctxt var_names tac =
+  FIRST'[rtac subset_refl, set2pred_tac ctxt var_names THEN_MAYBE' tac];
 
-fun BasicSimpTac var_names tac =
+fun BasicSimpTac ctxt var_names tac =
   simp_tac
-    (HOL_basic_ss addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [Record.simproc])
-  THEN_MAYBE' MaxSimpTac var_names tac;
+    (put_simpset HOL_basic_ss ctxt
+      addsimps [mem_Collect_eq, @{thm split_conv}] addsimprocs [Record.simproc])
+  THEN_MAYBE' MaxSimpTac ctxt var_names tac;
 
 
 (** hoare_rule_tac **)
 
-fun hoare_rule_tac (vars, Mlem) tac =
+fun hoare_rule_tac ctxt (vars, Mlem) tac =
   let
     val var_names = map (fst o dest_Free) vars;
     fun wlp_tac i =
@@ -155,16 +159,16 @@ fun hoare_rule_tac (vars, Mlem) tac =
           EVERY [
             rtac @{thm BasicRule} i,
             rtac Mlem i,
-            split_simp_tac i],
+            split_simp_tac ctxt i],
           EVERY [
             rtac @{thm CondRule} i,
             rule_tac false (i + 2),
             rule_tac false (i + 1)],
           EVERY [
             rtac @{thm WhileRule} i,
-            BasicSimpTac var_names tac (i + 2),
+            BasicSimpTac ctxt var_names tac (i + 2),
             rule_tac true (i + 1)]]
-         THEN (if pre_cond then BasicSimpTac var_names tac i else rtac subset_refl i)));
+         THEN (if pre_cond then BasicSimpTac ctxt var_names tac i else rtac subset_refl i)));
   in rule_tac end;
 
 
@@ -172,5 +176,5 @@ fun hoare_rule_tac (vars, Mlem) tac =
 (** the final verification conditions                       **)
 
 fun hoare_tac ctxt (tac: int -> tactic) = SUBGOAL (fn (goal, i) =>
-  SELECT_GOAL (hoare_rule_tac (Mset ctxt goal) tac true 1) i);
+  SELECT_GOAL (hoare_rule_tac ctxt (Mset ctxt goal) tac true 1) i);
 

@@ -212,7 +212,7 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
 fun lexicographic_order_tac quiet ctxt =
   TRY (Function_Common.apply_termination_rule ctxt 1) THEN
   lex_order_tac quiet ctxt
-    (auto_tac (map_simpset (fn ss => ss addsimps Function_Common.Termination_Simps.get ctxt) ctxt))
+    (auto_tac (ctxt addsimps Function_Common.Termination_Simps.get ctxt))
 
 val setup =
   Context.theory_map (Function_Common.set_termination_prover (lexicographic_order_tac false))

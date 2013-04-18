@@ -16,8 +16,8 @@ fun trace_msg s = if !trace then tracing s else ();
 
 val ferrack_ss = let val ths = [@{thm real_of_int_inject}, @{thm real_of_int_less_iff}, 
                                 @{thm real_of_int_le_iff}]
-             in @{simpset} delsimps ths addsimps (map (fn th => th RS sym) ths)
-             end;
+             in @{context} delsimps ths addsimps (map (fn th => th RS sym) ths)
+             end |> simpset_of;
 
 val binarith = @{thms arith_simps}
 val comp_arith = binarith @ @{thms simp_thms}
@@ -74,12 +74,12 @@ fun linr_tac ctxt q =
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr thy q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val simpset0 = Simplifier.context ctxt HOL_basic_ss addsimps comp_arith
+    val simpset0 = put_simpset HOL_basic_ss ctxt addsimps comp_arith
     val ct = cterm_of thy (HOLogic.mk_Trueprop t)
     (* Theorem for the nat --> int transformation *)
    val pre_thm = Seq.hd (EVERY
       [simp_tac simpset0 1,
-       TRY (simp_tac (Simplifier.context ctxt ferrack_ss) 1)]
+       TRY (simp_tac (put_simpset ferrack_ss ctxt) 1)]
       (Thm.trivial ct))
     fun assm_tac i = REPEAT_DETERM_N nh (assume_tac i)
     (* The result of the quantifier elimination *)

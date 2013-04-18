@@ -11,7 +11,7 @@ sig
   (*tools for use in similar applications*)
   val gen_trans_tac: thm -> thm option -> tactic
   val prove_conv: string -> tactic list -> Proof.context -> thm list -> term * term -> thm option
-  val simplify_meta_eq: thm list -> simpset -> thm -> thm
+  val simplify_meta_eq: thm list -> Proof.context -> thm -> thm
   (*debugging*)
   structure EqCancelNumeralsData   : CANCEL_NUMERALS_DATA
   structure LessCancelNumeralsData : CANCEL_NUMERALS_DATA
@@ -125,13 +125,13 @@ val natifys = [@{thm natify_0}, @{thm natify_ident}, @{thm add_natify1}, @{thm a
                @{thm diff_natify1}, @{thm diff_natify2}];
 
 (*Final simplification: cancel + and **)
-fun simplify_meta_eq rules =
-  let val ss0 =
-    FOL_ss
+fun simplify_meta_eq rules ctxt =
+  let val ctxt' =
+    put_simpset FOL_ss ctxt
       delsimps @{thms iff_simps} (*these could erase the whole rule!*)
       addsimps rules
       |> fold Simplifier.add_eqcong [@{thm eq_cong2}, @{thm iff_cong2}]
-  in fn ss => mk_meta_eq o simplify (Simplifier.inherit_context ss ss0) end;
+  in mk_meta_eq o simplify ctxt' end;
 
 val final_rules = add_0s @ mult_1s @ [@{thm mult_0}, @{thm mult_0_right}];
 
@@ -143,15 +143,18 @@ structure CancelNumeralsCommon =
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
 
-  val norm_ss1 = ZF_ss addsimps add_0s @ add_succs @ mult_1s @ @{thms add_ac}
-  val norm_ss2 = ZF_ss addsimps add_0s @ mult_1s @ @{thms add_ac} @
-    @{thms mult_ac} @ tc_rules @ natifys
-  fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
-  val numeral_simp_ss = ZF_ss addsimps add_0s @ tc_rules @ natifys
-  fun numeral_simp_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val norm_ss1 =
+    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ add_succs @ mult_1s @ @{thms add_ac})
+  val norm_ss2 =
+    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ mult_1s @ @{thms add_ac} @
+      @{thms mult_ac} @ tc_rules @ natifys)
+  fun norm_tac ctxt =
+    ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
+  val numeral_simp_ss =
+    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ tc_rules @ natifys)
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (asm_simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = simplify_meta_eq final_rules
   end;
 
@@ -204,17 +207,17 @@ val nat_cancel =
      ["l #+ m = n", "l = m #+ n",
       "l #* m = n", "l = m #* n",
       "succ(m) = n", "m = succ(n)"],
-     (K EqCancelNumerals.proc)),
+     EqCancelNumerals.proc),
     ("natless_cancel_numerals",
      ["l #+ m < n", "l < m #+ n",
       "l #* m < n", "l < m #* n",
       "succ(m) < n", "m < succ(n)"],
-     (K LessCancelNumerals.proc)),
+     LessCancelNumerals.proc),
     ("natdiff_cancel_numerals",
      ["(l #+ m) #- n", "l #- (m #+ n)",
       "(l #* m) #- n", "l #- (m #* n)",
       "succ(m) #- n", "m #- succ(n)"],
-     (K DiffCancelNumerals.proc))];
+     DiffCancelNumerals.proc)];
 
 end;
 

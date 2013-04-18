@@ -12,7 +12,7 @@ section "misc"
 ML {* fun strip_tac i = REPEAT (resolve_tac [impI, allI] i) *}
 
 declare split_if_asm  [split] option.split [split] option.split_asm [split]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
 declare if_weak_cong [cong del] option.weak_case_cong [cong del]
 declare length_Suc_conv [iff]
 
@@ -180,7 +180,7 @@ abbreviation the_In1r :: "('al + 'ar, 'b, 'c) sum3 \<Rightarrow> 'ar"
 
 ML {*
 fun sum3_instantiate ctxt thm = map (fn s =>
-  simplify (simpset_of ctxt delsimps [@{thm not_None_eq}])
+  simplify (ctxt delsimps [@{thm not_None_eq}])
     (read_instantiate ctxt [(("t", 0), "In" ^ s ^ " ?x")] thm)) ["1l","2","3","1r"]
 *}
 (* e.g. lemmas is_stmt_rews = is_stmt_def [of "In1l x", simplified] *)

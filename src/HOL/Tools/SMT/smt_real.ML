@@ -121,7 +121,7 @@ val real_rules = @{lemma
   by auto}
 
 val real_linarith_proc = Simplifier.simproc_global @{theory} "fast_real_arith" [
-  "(m::real) < n", "(m::real) <= n", "(m::real) = n"] (K Lin_Arith.simproc)
+  "(m::real) < n", "(m::real) <= n", "(m::real) = n"] Lin_Arith.simproc
 
 
 (* setup *)

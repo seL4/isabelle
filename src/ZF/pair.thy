@@ -11,25 +11,25 @@ begin
 ML_file "simpdata.ML"
 
 setup {*
-  Simplifier.map_simpset_global
+  map_theory_simpset
     (Simplifier.set_mksimps (K (map mk_eq o ZF_atomize o gen_all))
       #> Simplifier.add_cong @{thm if_weak_cong})
 *}
 
-ML {* val ZF_ss = @{simpset} *}
+ML {* val ZF_ss = simpset_of @{context} *}
 
 simproc_setup defined_Bex ("\<exists>x\<in>A. P(x) & Q(x)") = {*
   let
     val unfold_bex_tac = unfold_tac @{thms Bex_def};
-    fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
-  in fn _ => fn ss => Quantifier1.rearrange_bex (prove_bex_tac ss) ss end
+    fun prove_bex_tac ctxt = unfold_bex_tac ctxt THEN Quantifier1.prove_one_point_ex_tac;
+  in fn _ => fn ctxt => Quantifier1.rearrange_bex (prove_bex_tac ctxt) ctxt end
 *}
 
 simproc_setup defined_Ball ("\<forall>x\<in>A. P(x) \<longrightarrow> Q(x)") = {*
   let
     val unfold_ball_tac = unfold_tac @{thms Ball_def};
-    fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
-  in fn _ => fn ss => Quantifier1.rearrange_ball (prove_ball_tac ss) ss end
+    fun prove_ball_tac ctxt = unfold_ball_tac ctxt THEN Quantifier1.prove_one_point_all_tac;
+  in fn _ => fn ctxt => Quantifier1.rearrange_ball (prove_ball_tac ctxt) ctxt end
 *}
 
 

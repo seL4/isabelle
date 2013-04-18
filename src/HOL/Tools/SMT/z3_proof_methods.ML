@@ -99,7 +99,7 @@ fun prove_lhs ctxt rhs =
   in
     Z3_Proof_Tools.by_tac (
       CONVERSION (SMT_Utils.prop_conv conv)
-      THEN' Simplifier.simp_tac HOL_ss)
+      THEN' Simplifier.simp_tac (put_simpset HOL_ss ctxt))
   end
 
 

@@ -158,18 +158,26 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
   val trans_tac         = ArithData.gen_trans_tac @{thm iff_trans}
 
-  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac}
-  val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
-  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys
-  fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss3))
+  val norm_ss1 =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac})
+  val norm_ss2 =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps bin_simps @ int_mult_minus_simps @ intifys)
+  val norm_ss3 =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys)
+  fun norm_tac ctxt =
+    ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
+    THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss3 ctxt))
 
-  val numeral_simp_ss = ZF_ss addsimps add_0s @ bin_simps @ tc_rules @ intifys
-  fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-    THEN ALLGOALS (asm_simp_tac (simpset_of (Simplifier.the_context ss)))
+  val numeral_simp_ss =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps add_0s @ bin_simps @ tc_rules @ intifys)
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
+    THEN ALLGOALS (asm_simp_tac ctxt)
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
@@ -207,17 +215,17 @@ val cancel_numerals =
      ["l $+ m = n", "l = m $+ n",
       "l $- m = n", "l = m $- n",
       "l $* m = n", "l = m $* n"],
-     K EqCancelNumerals.proc),
+     EqCancelNumerals.proc),
     ("intless_cancel_numerals",
      ["l $+ m $< n", "l $< m $+ n",
       "l $- m $< n", "l $< m $- n",
       "l $* m $< n", "l $< m $* n"],
-     K LessCancelNumerals.proc),
+     LessCancelNumerals.proc),
     ("intle_cancel_numerals",
      ["l $+ m $<= n", "l $<= m $+ n",
       "l $- m $<= n", "l $<= m $- n",
       "l $* m $<= n", "l $<= m $* n"],
-     K LeCancelNumerals.proc)];
+     LeCancelNumerals.proc)];
 
 
 (*version without the hyps argument*)
@@ -236,17 +244,24 @@ structure CombineNumeralsData =
   val prove_conv        = prove_conv_nohyps "int_combine_numerals"
   val trans_tac         = ArithData.gen_trans_tac @{thm trans}
 
-  val norm_ss1 = ZF_ss addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac} @ intifys
-  val norm_ss2 = ZF_ss addsimps bin_simps @ int_mult_minus_simps @ intifys
-  val norm_ss3 = ZF_ss addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys
-  fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss3))
+  val norm_ss1 =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps add_0s @ mult_1s @ diff_simps @ zminus_simps @ @{thms zadd_ac} @ intifys)
+  val norm_ss2 =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps bin_simps @ int_mult_minus_simps @ intifys)
+  val norm_ss3 =
+    simpset_of (put_simpset ZF_ss @{context}
+      addsimps int_minus_from_mult_simps @ @{thms zadd_ac} @ @{thms zmult_ac} @ tc_rules @ intifys)
+  fun norm_tac ctxt =
+    ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
+    THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
+    THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss3 ctxt))
 
-  val numeral_simp_ss = ZF_ss addsimps add_0s @ bin_simps @ tc_rules @ intifys
-  fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
+  val numeral_simp_ss =
+    simpset_of (put_simpset ZF_ss @{context} addsimps add_0s @ bin_simps @ tc_rules @ intifys)
+  fun numeral_simp_tac ctxt =
+    ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
@@ -254,7 +269,7 @@ structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
 
 val combine_numerals =
   prep_simproc @{theory}
-    ("int_combine_numerals", ["i $+ j", "i $- j"], K CombineNumerals.proc);
+    ("int_combine_numerals", ["i $+ j", "i $- j"], CombineNumerals.proc);
 
 
 
@@ -265,7 +280,7 @@ val combine_numerals =
 
 
 structure CombineNumeralsProdData =
-  struct
+struct
   type coeff            = int
   val iszero            = (fn x => x = 0)
   val add               = op *
@@ -280,25 +295,28 @@ structure CombineNumeralsProdData =
 
 
 
-val norm_ss1 = ZF_ss addsimps mult_1s @ diff_simps @ zminus_simps
-  val norm_ss2 = ZF_ss addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
-    bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys
-  fun norm_tac ss =
-    ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss1))
-    THEN ALLGOALS (asm_simp_tac (Simplifier.inherit_context ss norm_ss2))
+val norm_ss1 =
+  simpset_of (put_simpset ZF_ss @{context} addsimps mult_1s @ diff_simps @ zminus_simps)
+val norm_ss2 =
+  simpset_of (put_simpset ZF_ss @{context} addsimps [@{thm zmult_zminus_right} RS @{thm sym}] @
+  bin_simps @ @{thms zmult_ac} @ tc_rules @ intifys)
+fun norm_tac ctxt =
+  ALLGOALS (asm_simp_tac (put_simpset norm_ss1 ctxt))
+  THEN ALLGOALS (asm_simp_tac (put_simpset norm_ss2 ctxt))
 
-  val numeral_simp_ss = ZF_ss addsimps bin_simps @ tc_rules @ intifys
-  fun numeral_simp_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s);
-  end;
+val numeral_simp_ss =
+  simpset_of (put_simpset ZF_ss @{context} addsimps bin_simps @ tc_rules @ intifys)
+fun numeral_simp_tac ctxt =
+  ALLGOALS (simp_tac (put_simpset numeral_simp_ss ctxt))
+val simplify_meta_eq  = ArithData.simplify_meta_eq (mult_1s);
+end;
 
 
 structure CombineNumeralsProd = CombineNumeralsFun(CombineNumeralsProdData);
 
 val combine_numerals_prod =
   prep_simproc @{theory}
-    ("int_combine_numerals_prod", ["i $* j"], K CombineNumeralsProd.proc);
+    ("int_combine_numerals_prod", ["i $* j"], CombineNumeralsProd.proc);
 
 end;
 

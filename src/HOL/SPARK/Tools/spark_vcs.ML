@@ -211,17 +211,17 @@ fun add_enum_type tyname tyname' thy =
          rtac @{thm subsetI} 1 THEN
          Datatype_Aux.exh_tac (K (#exhaust (Datatype.the_info
            (Proof_Context.theory_of lthy) tyname'))) 1 THEN
-         ALLGOALS (asm_full_simp_tac (simpset_of lthy)));
+         ALLGOALS (asm_full_simp_tac lthy));
 
     val finite_UNIV = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (Const (@{const_name finite},
          HOLogic.mk_setT T --> HOLogic.boolT) $ HOLogic.mk_UNIV T))
-      (fn _ => simp_tac (simpset_of lthy addsimps [UNIV_eq]) 1);
+      (fn _ => simp_tac (lthy addsimps [UNIV_eq]) 1);
 
     val card_UNIV = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
          (card, HOLogic.mk_number HOLogic.natT k)))
-      (fn _ => simp_tac (simpset_of lthy addsimps [UNIV_eq]) 1);
+      (fn _ => simp_tac (lthy addsimps [UNIV_eq]) 1);
 
     val range_pos = Goal.prove lthy [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
@@ -233,12 +233,12 @@ fun add_enum_type tyname tyname' thy =
               HOLogic.mk_number HOLogic.intT 0 $
               (@{term int} $ card))))
       (fn _ =>
-         simp_tac (simpset_of lthy addsimps [card_UNIV]) 1 THEN
-         simp_tac (simpset_of lthy addsimps [UNIV_eq, def1]) 1 THEN
+         simp_tac (lthy addsimps [card_UNIV]) 1 THEN
+         simp_tac (lthy addsimps [UNIV_eq, def1]) 1 THEN
          rtac @{thm subset_antisym} 1 THEN
-         simp_tac (simpset_of lthy) 1 THEN
+         simp_tac lthy 1 THEN
          rtac @{thm subsetI} 1 THEN
-         asm_full_simp_tac (simpset_of lthy addsimps @{thms interval_expand}
+         asm_full_simp_tac (lthy addsimps @{thms interval_expand}
            delsimps @{thms atLeastLessThan_iff}) 1);
 
     val lthy' =
@@ -246,34 +246,31 @@ fun add_enum_type tyname tyname' thy =
         Class.intro_classes_tac [] THEN
         rtac finite_UNIV 1 THEN
         rtac range_pos 1 THEN
-        simp_tac (HOL_basic_ss addsimps [def3]) 1 THEN
-        simp_tac (HOL_basic_ss addsimps [def2]) 1) lthy;
+        simp_tac (put_simpset HOL_basic_ss lthy addsimps [def3]) 1 THEN
+        simp_tac (put_simpset HOL_basic_ss lthy addsimps [def2]) 1) lthy;
 
     val (pos_eqs, val_eqs) = split_list (map_index (fn (i, c) =>
       let
         val n = HOLogic.mk_number HOLogic.intT i;
         val th = Goal.prove lthy' [] []
           (HOLogic.mk_Trueprop (HOLogic.mk_eq (p $ c, n)))
-          (fn _ => simp_tac (simpset_of lthy' addsimps [def1]) 1);
+          (fn _ => simp_tac (lthy' addsimps [def1]) 1);
         val th' = Goal.prove lthy' [] []
           (HOLogic.mk_Trueprop (HOLogic.mk_eq (v $ n, c)))
           (fn _ =>
              rtac (@{thm inj_pos} RS @{thm injD}) 1 THEN
-             simp_tac (simpset_of lthy' addsimps
-               [@{thm pos_val}, range_pos, card_UNIV, th]) 1)
+             simp_tac (lthy' addsimps [@{thm pos_val}, range_pos, card_UNIV, th]) 1)
       in (th, th') end) cs);
 
     val first_el = Goal.prove lthy' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
          (Const (@{const_name first_el}, T), hd cs)))
-      (fn _ => simp_tac (simpset_of lthy' addsimps
-         [@{thm first_el_def}, hd val_eqs]) 1);
+      (fn _ => simp_tac (lthy' addsimps [@{thm first_el_def}, hd val_eqs]) 1);
 
     val last_el = Goal.prove lthy' [] []
       (HOLogic.mk_Trueprop (HOLogic.mk_eq
          (Const (@{const_name last_el}, T), List.last cs)))
-      (fn _ => simp_tac (simpset_of lthy' addsimps
-         [@{thm last_el_def}, List.last val_eqs, card_UNIV]) 1);
+      (fn _ => simp_tac (lthy' addsimps [@{thm last_el_def}, List.last val_eqs, card_UNIV]) 1);
   in
     lthy' |>
     Local_Theory.note

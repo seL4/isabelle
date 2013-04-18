@@ -64,7 +64,7 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
                        dtac (Drule.cterm_instantiate [(mypi,mypifree)] orig_thm)),
             tactic ctxt ("getting rid of the pi on the right", rtac @{thm perm_boolI}),
             tactic ctxt ("getting rid of all remaining perms",
-                       full_simp_tac (HOL_basic_ss addsimps perm_pi_simp))]
+                       full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps perm_pi_simp))]
   end;
 
 fun get_derived_thm ctxt hyp concl orig_thm pi typi =

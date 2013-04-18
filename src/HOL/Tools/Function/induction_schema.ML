@@ -231,7 +231,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
     val xss = map (fn (SchemeBranch { xs, ... }) => map Free xs) branches
     val pats = map_index (uncurry inject) xss
     val sum_split_rule =
-      Pat_Completeness.prove_completeness thy [x] (P_comp $ x) xss (map single pats)
+      Pat_Completeness.prove_completeness ctxt [x] (P_comp $ x) xss (map single pats)
 
     fun prove_branch (bidx, (SchemeBranch { P, xs, ws, Cs, ... }, (complete_thm, pat))) =
       let
@@ -253,8 +253,9 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
             val cqs = map (cert o Free) qs
             val ags = map (Thm.assume o cert) gs
 
-            val replace_x_ss = HOL_basic_ss addsimps (branch_hyp :: case_hyps)
-            val sih = full_simplify replace_x_ss aihyp
+            val replace_x_simpset =
+              put_simpset HOL_basic_ss ctxt addsimps (branch_hyp :: case_hyps)
+            val sih = full_simplify replace_x_simpset aihyp
 
             fun mk_Prec (idx, Gvs, Gas, rcargs) (ineq, pres) =
               let
@@ -373,7 +374,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
       in
         indthm
         |> Drule.instantiate' [] [SOME inst]
-        |> simplify SumTree.sumcase_split_ss
+        |> simplify (put_simpset SumTree.sumcase_split_ss ctxt'')
         |> Conv.fconv_rule ind_rulify
       end
 

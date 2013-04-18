@@ -252,8 +252,9 @@ lemma nat_of_char_Char:
 setup {*
 let
   val nibbles = map_range (Thm.cterm_of @{theory} o HOLogic.mk_nibble) 16;
-  val simpset = HOL_ss addsimps
-    @{thms nat_of_nibble.simps mult_0 mult_1 add_0 add_0_right arith_simps numeral_plus_one};
+  val simpset =
+    put_simpset HOL_ss @{context}
+      addsimps @{thms nat_of_nibble.simps mult_0 mult_1 add_0 add_0_right arith_simps numeral_plus_one};
   fun mk_code_eqn x y =
     Drule.instantiate' [] [SOME x, SOME y] @{thm nat_of_char_Char}
     |> simplify simpset;

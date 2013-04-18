@@ -38,10 +38,10 @@ fun std_postprocessor strict ctxt wfs =
   Prim.postprocess strict
    {wf_tac = REPEAT (ares_tac wfs 1),
     terminator =
-      asm_simp_tac (simpset_of ctxt) 1
+      asm_simp_tac ctxt 1
       THEN TRY (Arith_Data.arith_tac ctxt 1 ORELSE
         fast_force_tac (ctxt addSDs [@{thm not0_implies_Suc}]) 1),
-    simplifier = Rules.simpl_conv (simpset_of ctxt) []};
+    simplifier = Rules.simpl_conv ctxt []};
 
 
 
@@ -103,7 +103,7 @@ fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
               val simplified' = map join_assums simplified
               val dummy = (Prim.trace_thms "solved =" solved;
                            Prim.trace_thms "simplified' =" simplified')
-              val rewr = full_simplify (simpset_of ctxt addsimps (solved @ simplified'));
+              val rewr = full_simplify (ctxt addsimps (solved @ simplified'));
               val dummy = Prim.trace_thms "Simplifying the induction rule..."
                                           [induction]
               val induction' = rewr induction
@@ -121,12 +121,12 @@ fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
 
 
 (*lcp: curry the predicate of the induction rule*)
-fun curry_rule rl =
-  Split_Rule.split_rule_var (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
+fun curry_rule ctxt rl =
+  Split_Rule.split_rule_var ctxt (Term.head_of (HOLogic.dest_Trueprop (concl_of rl))) rl;
 
 (*lcp: put a theorem into Isabelle form, using meta-level connectives*)
 fun meta_outer ctxt =
-  curry_rule o Drule.export_without_context o
+  curry_rule ctxt o Drule.export_without_context o
   rule_by_tactic ctxt (REPEAT (FIRSTGOAL (resolve_tac [allI, impI, conjI] ORELSE' etac conjE)));
 
 (*Strip off the outer !P*)

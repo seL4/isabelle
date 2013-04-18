@@ -119,8 +119,9 @@ val cont_tac =
   end
 
 local
-  fun solve_cont thy _ t =
+  fun solve_cont ctxt t =
     let
+      val thy = Proof_Context.theory_of ctxt
       val tr = instantiate' [] [SOME (cterm_of thy t)] @{thm Eq_TrueI}
     in Option.map fst (Seq.pull (cont_tac 1 tr)) end
 in
@@ -128,6 +129,6 @@ in
     Simplifier.simproc_global thy "cont_proc" ["cont f"] solve_cont
 end
 
-fun setup thy = Simplifier.map_simpset_global (fn ss => ss addsimprocs [cont_proc thy]) thy
+fun setup thy = map_theory_simpset (fn ctxt => ctxt addsimprocs [cont_proc thy]) thy
 
 end

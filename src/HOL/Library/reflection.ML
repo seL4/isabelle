@@ -275,7 +275,7 @@ fun genreif ctxt raw_eqs t =
     val th' = Drule.instantiate_normalize ([], cvs) th
     val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'
     val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
-               (fn _ => simp_tac (simpset_of ctxt) 1)
+               (fn _ => simp_tac ctxt 1)
   in FWD trans [th'',th']
   end
 
@@ -290,8 +290,9 @@ fun genreflect ctxt conv corr_thms raw_eqs t =
     val ft = (Thm.dest_arg1 o Thm.dest_arg o Thm.dest_arg o cprop_of) th
     val rth = conv ft
   in
-    simplify (HOL_basic_ss addsimps raw_eqs addsimps @{thms nth_Cons_0 nth_Cons_Suc})
-             (simplify (HOL_basic_ss addsimps [rth]) th)
+    simplify
+      (put_simpset HOL_basic_ss ctxt addsimps raw_eqs addsimps @{thms nth_Cons_0 nth_Cons_Suc})
+      (simplify (put_simpset HOL_basic_ss ctxt addsimps [rth]) th)
   end
 
 fun genreify_tac ctxt eqs to = SUBGOAL (fn (goal, i) =>

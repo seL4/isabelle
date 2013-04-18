@@ -455,13 +455,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
         val rlz' = attach_typeS (strip_all (Logic.unvarify_global rlz));
         val rews = map mk_meta_eq case_thms;
         val thm = Goal.prove_global thy []
-          (Logic.strip_imp_prems rlz') (Logic.strip_imp_concl rlz') (fn {prems, ...} => EVERY
-          [cut_tac (hd prems) 1,
-           etac elimR 1,
-           ALLGOALS (asm_simp_tac HOL_basic_ss),
-           rewrite_goals_tac rews,
-           REPEAT ((resolve_tac prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac THEN'
-             DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
+          (Logic.strip_imp_prems rlz') (Logic.strip_imp_concl rlz')
+          (fn {context = ctxt, prems, ...} => EVERY
+            [cut_tac (hd prems) 1,
+             etac elimR 1,
+             ALLGOALS (asm_simp_tac (put_simpset HOL_basic_ss ctxt)),
+             rewrite_goals_tac rews,
+             REPEAT ((resolve_tac prems THEN_ALL_NEW (Object_Logic.atomize_prems_tac THEN'
+               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
         val (thm', thy') = Global_Theory.store_thm (Binding.qualified_name (space_implode "_"
           (name_of_thm elim :: vs @ Ps @ ["correctness"])), thm) thy
       in

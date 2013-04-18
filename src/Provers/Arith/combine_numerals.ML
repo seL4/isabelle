@@ -30,15 +30,15 @@ sig
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> term * term -> thm option
   val trans_tac: thm option -> tactic            (*applies the initial lemma*)
-  val norm_tac: simpset -> tactic                (*proves the initial lemma*)
-  val numeral_simp_tac: simpset -> tactic        (*proves the final theorem*)
-  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
+  val norm_tac: Proof.context -> tactic          (*proves the initial lemma*)
+  val numeral_simp_tac: Proof.context -> tactic  (*proves the final theorem*)
+  val simplify_meta_eq: Proof.context -> thm -> thm  (*simplifies the final theorem*)
 end;
 
 
 functor CombineNumeralsFun(Data: COMBINE_NUMERALS_DATA):
   sig
-  val proc: simpset -> term -> thm option
+  val proc: Proof.context -> term -> thm option
   end
 =
 struct
@@ -65,11 +65,11 @@ fun find_repeated (tab, _, []) = raise TERM("find_repeated", [])
         | NONE => find_repeated (tab, t::past, terms);
 
 (*the simplification procedure*)
-fun proc ss t =
+fun proc ctxt t =
   let
-    val ctxt = Simplifier.the_context ss;
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
+    (* FIXME ctxt vs. ctxt' (!?) *)
 
     val (u,m,n,terms) = find_repeated (Termtab.empty, [], Data.dest_sum t')
     val T = Term.fastype_of u
@@ -78,13 +78,13 @@ fun proc ss t =
                        i + #m + j + k == #m + i + (j + k) *)
       if Data.iszero m orelse Data.iszero n then   (*trivial, so do nothing*)
         raise TERM("combine_numerals", [])
-      else Data.prove_conv [Data.norm_tac ss] ctxt
+      else Data.prove_conv [Data.norm_tac ctxt] ctxt
         (t', Data.mk_sum T ([Data.mk_coeff (m, u), Data.mk_coeff (n, u)] @ terms))
   in
-    Option.map (export o Data.simplify_meta_eq ss)
+    Option.map (export o Data.simplify_meta_eq ctxt)
       (Data.prove_conv
          [Data.trans_tac reshape, rtac Data.left_distrib 1,
-          Data.numeral_simp_tac ss] ctxt
+          Data.numeral_simp_tac ctxt] ctxt
          (t', Data.mk_sum T (Data.mk_coeff(Data.add(m,n), u) :: terms)))
   end
   (* FIXME avoid handling of generic exceptions *)

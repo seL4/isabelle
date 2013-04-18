@@ -108,7 +108,8 @@ type take_induct_info =
   }
 
 val beta_ss =
-  HOL_basic_ss addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}]
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps @{thms simp_thms} addsimprocs [@{simproc beta_cfun_proc}])
 
 (******************************************************************************)
 (******************************** theory data *********************************)
@@ -272,7 +273,7 @@ fun define_take_functions
       let
         val goal = mk_trp (mk_chain take_const)
         val rules = take_defs @ @{thms chain_iterate ch2ch_fst ch2ch_snd}
-        val tac = simp_tac (HOL_basic_ss addsimps rules) 1
+        val tac = simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1
         val thm = Goal.prove_global thy [] [] goal (K tac)
       in
         add_qualified_simp_thm "chain_take" (dbind, thm) thy
@@ -286,7 +287,7 @@ fun define_take_functions
         val lhs = take_const $ @{term "0::nat"}
         val goal = mk_eqs (lhs, mk_bottom (lhsT ->> lhsT))
         val rules = take_defs @ @{thms iterate_0 fst_strict snd_strict}
-        val tac = simp_tac (HOL_basic_ss addsimps rules) 1
+        val tac = simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1
         val take_0_thm = Goal.prove_global thy [] [] goal (K tac)
       in
         add_qualified_simp_thm "take_0" (dbind, take_0_thm) thy
@@ -306,7 +307,7 @@ fun define_take_functions
         val goal = mk_eqs (lhs, rhs)
         val simps = @{thms iterate_Suc fst_conv snd_conv}
         val rules = take_defs @ simps
-        val tac = simp_tac (beta_ss addsimps rules) 1
+        val tac = simp_tac (Simplifier.global_context thy beta_ss addsimps rules) 1
         val take_Suc_thm = Goal.prove_global thy [] [] goal (K tac)
       in
         add_qualified_thm "take_Suc" (dbind, take_Suc_thm) thy
@@ -332,8 +333,8 @@ fun define_take_functions
         Goal.prove_global thy [] [] goal (fn _ =>
          EVERY
           [rtac @{thm nat.induct} 1,
-           simp_tac (HOL_basic_ss addsimps bottom_rules) 1,
-           asm_simp_tac (HOL_basic_ss addsimps take_Suc_thms) 1,
+           simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps bottom_rules) 1,
+           asm_simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps take_Suc_thms) 1,
            REPEAT (etac @{thm conjE} 1
                    ORELSE resolve_tac deflation_rules 1
                    ORELSE atac 1)])
@@ -456,8 +457,8 @@ fun prove_finite_take_induct
             @ @{thms decisive_ID decisive_ssum_map decisive_sprod_map}
         val tac = EVERY [
             rtac @{thm nat.induct} 1,
-            simp_tac (HOL_ss addsimps rules0) 1,
-            asm_simp_tac (HOL_ss addsimps rules1) 1]
+            simp_tac (Simplifier.global_context thy HOL_ss addsimps rules0) 1,
+            asm_simp_tac (Simplifier.global_context thy HOL_ss addsimps rules1) 1]
       in Goal.prove_global thy [] [] goal (K tac) end
     fun conjuncts 1 thm = [thm]
       | conjuncts n thm = let

@@ -7,8 +7,8 @@ in a graph with explicit dependencies.
 
 signature CODE_PREPROC =
 sig
-  val map_pre: (simpset -> simpset) -> theory -> theory
-  val map_post: (simpset -> simpset) -> theory -> theory
+  val map_pre: (Proof.context -> Proof.context) -> theory -> theory
+  val map_post: (Proof.context -> Proof.context) -> theory -> theory
   val add_unfold: thm -> theory -> theory
   val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
@@ -79,8 +79,11 @@ fun delete_force msg key xs =
 val map_data = Code_Preproc_Data.map o map_thmproc;
 
 val map_pre_post = map_data o apfst;
-val map_pre = map_pre_post o apfst;
-val map_post = map_pre_post o apsnd;
+
+fun map_simpset which f thy =
+  map_pre_post (which (simpset_map (Proof_Context.init_global thy) f)) thy;
+val map_pre = map_simpset apfst;
+val map_post = map_simpset apsnd;
 
 val add_unfold = map_pre o Simplifier.add_simp;
 val del_unfold = map_pre o Simplifier.del_simp;
@@ -89,11 +92,13 @@ val del_post = map_post o Simplifier.del_simp;
 
 fun add_code_abbrev raw_thm thy =
   let
-    val thm = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy) raw_thm;
+    val ctxt = Proof_Context.init_global thy;
+    val thm = Local_Defs.meta_rewrite_rule ctxt raw_thm;
     val thm_sym = Thm.symmetric thm;
   in
     thy |> map_pre_post (fn (pre, post) =>
-      (pre |> Simplifier.add_simp thm_sym, post |> Simplifier.add_simp thm))
+      (pre |> simpset_map ctxt (Simplifier.add_simp thm_sym),
+       post |> simpset_map ctxt (Simplifier.add_simp thm)))
   end;
 
 fun add_functrans (name, f) = (map_data o apsnd)
@@ -169,12 +174,12 @@ fun print_codeproc thy =
       Pretty.block [
         Pretty.str "preprocessing simpset:",
         Pretty.fbrk,
-        Simplifier.pretty_ss ctxt pre
+        Simplifier.pretty_simpset (put_simpset pre ctxt)
       ],
       Pretty.block [
         Pretty.str "postprocessing simpset:",
         Pretty.fbrk,
-        Simplifier.pretty_ss ctxt post
+        Simplifier.pretty_simpset (put_simpset post ctxt)
       ],
       Pretty.block (
         Pretty.str "function transformers:"
@@ -261,7 +266,7 @@ fun obtain_eqns thy eqngr c =
     | NONE => let
         val functrans = (map (fn (_, (_, f)) => f thy)
           o #functrans o the_thmproc) thy;
-        val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
+        val {pre, ...} = the_thmproc thy;
         val cert = Code.get_cert thy { functrans = functrans, ss = pre } c;
         val (lhs, rhss) = Code.typargs_deps_of_cert thy cert;
       in ((lhs, rhss), cert) end;

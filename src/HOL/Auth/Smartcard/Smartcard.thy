@@ -369,9 +369,9 @@ struct
     such as  Nonce ?N \<notin> used evs that match Nonce_supply*)
 fun possibility_tac ctxt =
    (REPEAT 
-    (ALLGOALS (simp_tac (simpset_of ctxt
+    (ALLGOALS (simp_tac (ctxt
       delsimps [@{thm used_Says}, @{thm used_Notes}, @{thm used_Gets},
-        @{thm used_Inputs}, @{thm used_C_Gets}, @{thm used_Outpts}, @{thm used_A_Gets}] 
+        @{thm used_Inputs}, @{thm used_C_Gets}, @{thm used_Outpts}, @{thm used_A_Gets}]
       setSolver safe_solver))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
@@ -381,14 +381,15 @@ fun possibility_tac ctxt =
   nonces and keys initially*)
 fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (simpset_of ctxt setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 
 val analz_image_freshK_ss = 
-     @{simpset} delsimps [image_insert, image_Un]
+  simpset_of
+   (@{context} delsimps [image_insert, image_Un]
                delsimps [@{thm imp_disjL}]    (*reduces blow-up*)
-               addsimps @{thms analz_image_freshK_simps}
+               addsimps @{thms analz_image_freshK_simps})
 end
 *}
 
@@ -405,7 +406,7 @@ method_setup analz_freshK = {*
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
-          ALLGOALS (asm_simp_tac (Simplifier.context ctxt Smartcard.analz_image_freshK_ss))]))) *}
+          ALLGOALS (asm_simp_tac (put_simpset Smartcard.analz_image_freshK_ss ctxt))]))) *}
     "for proving the Session Key Compromise theorem"
 
 method_setup possibility = {*

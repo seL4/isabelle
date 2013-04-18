@@ -115,15 +115,17 @@ local
   fun plus m n = @{term "plus :: nat \<Rightarrow> nat \<Rightarrow> nat"} $ m $ n;
   fun mult m n = @{term "times :: nat \<Rightarrow> nat \<Rightarrow> nat"} $ m $ n;
 
-  val binary_ss = HOL_basic_ss addsimps @{thms binary_simps};
+  val binary_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms binary_simps});
   fun prove ctxt prop =
-    Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
+    Goal.prove ctxt [] [] prop
+      (fn _ => ALLGOALS (full_simp_tac (put_simpset binary_ss ctxt)));
 
-  fun binary_proc proc ss ct =
+  fun binary_proc proc ctxt ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
       (case try (pairself (`dest_binary)) (t, u) of
-        SOME args => proc (Simplifier.the_context ss) args
+        SOME args => proc ctxt args
       | NONE => NONE)
     | _ => NONE);
 in
@@ -170,16 +172,16 @@ simproc_setup binary_nat_div ("m div (n::nat)") = {* K (divmod_proc @{thm binary
 simproc_setup binary_nat_mod ("m mod (n::nat)") = {* K (divmod_proc @{thm binary_divmod(2)}) *}
 
 method_setup binary_simp = {*
-  Scan.succeed (K (SIMPLE_METHOD'
+  Scan.succeed (fn ctxt => SIMPLE_METHOD'
     (full_simp_tac
-      (HOL_basic_ss
+      (put_simpset HOL_basic_ss ctxt
         addsimps @{thms binary_simps}
         addsimprocs
          [@{simproc binary_nat_less_eq},
           @{simproc binary_nat_less},
           @{simproc binary_nat_diff},
           @{simproc binary_nat_div},
-          @{simproc binary_nat_mod}]))))
+          @{simproc binary_nat_mod}])))
 *}
 
 

@@ -507,11 +507,12 @@ struct
   fun dest_sum t = dest_summing (t, [])
   val find_first = find_first_t []
   val trans_tac = Numeral_Simprocs.trans_tac
-  val norm_ss = HOL_basic_ss addsimps
-    @{thms add_ac add_0_left add_0_right}
-  fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
-  fun simplify_meta_eq ss cancel_th th =
-    Arith_Data.simplify_meta_eq [] ss
+  val norm_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context}
+      addsimps @{thms add_ac add_0_left add_0_right})
+  fun norm_tac ctxt = ALLGOALS (simp_tac (put_simpset norm_ss ctxt))
+  fun simplify_meta_eq ctxt cancel_th th =
+    Arith_Data.simplify_meta_eq [] ctxt
       ([th, cancel_th] MRS trans)
   fun mk_eq (a, b) = HOLogic.mk_Trueprop (HOLogic.mk_eq (a, b))
 end
@@ -540,15 +541,15 @@ structure Less_Enat_Cancel = ExtractCommonTermFun
 
 simproc_setup enat_eq_cancel
   ("(l::enat) + m = n" | "(l::enat) = m + n") =
-  {* fn phi => fn ss => fn ct => Eq_Enat_Cancel.proc ss (term_of ct) *}
+  {* fn phi => fn ctxt => fn ct => Eq_Enat_Cancel.proc ctxt (term_of ct) *}
 
 simproc_setup enat_le_cancel
   ("(l::enat) + m \<le> n" | "(l::enat) \<le> m + n") =
-  {* fn phi => fn ss => fn ct => Le_Enat_Cancel.proc ss (term_of ct) *}
+  {* fn phi => fn ctxt => fn ct => Le_Enat_Cancel.proc ctxt (term_of ct) *}
 
 simproc_setup enat_less_cancel
   ("(l::enat) + m < n" | "(l::enat) < m + n") =
-  {* fn phi => fn ss => fn ct => Less_Enat_Cancel.proc ss (term_of ct) *}
+  {* fn phi => fn ctxt => fn ct => Less_Enat_Cancel.proc ctxt (term_of ct) *}
 
 text {* TODO: add regression tests for these simprocs *}
 

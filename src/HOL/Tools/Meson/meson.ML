@@ -19,7 +19,7 @@ sig
     -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val presimplified_consts : string list
-  val presimplify: thm -> thm
+  val presimplify: Proof.context -> thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
@@ -541,22 +541,23 @@ val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 (* FIXME: "let_simp" is probably redundant now that we also rewrite with
   "Let_def [abs_def]". *)
 val nnf_ss =
-  HOL_basic_ss addsimps nnf_extra_simps
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps nnf_extra_simps
     addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq},
-                 @{simproc let_simp}]
+                 @{simproc let_simp}])
 
 val presimplified_consts =
   [@{const_name simp_implies}, @{const_name False}, @{const_name True},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}, @{const_name If},
    @{const_name Let}]
 
-val presimplify =
+fun presimplify ctxt =
   rewrite_rule (map safe_mk_meta_eq nnf_simps)
-  #> simplify nnf_ss
+  #> simplify (put_simpset nnf_ss ctxt)
   #> Raw_Simplifier.rewrite_rule @{thms Let_def [abs_def]}
 
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> presimplify |> make_nnf1 ctxt
+    [] => th |> presimplify ctxt |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 fun choice_theorems thy =

@@ -106,8 +106,8 @@ fun type_solver_tac ctxt hyps = SELECT_GOAL
                           APPEND typecheck_step_tac (tcset_of ctxt))));
 
 val type_solver =
-  Simplifier.mk_solver "ZF typecheck" (fn ss =>
-    type_solver_tac (Simplifier.the_context ss) (Simplifier.prems_of ss));
+  Simplifier.mk_solver "ZF typecheck" (fn ctxt =>
+    type_solver_tac ctxt (Simplifier.prems_of ctxt));
 
 
 (* concrete syntax *)
@@ -131,6 +131,6 @@ val _ =
 val setup =
   Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del) "declaration of type-checking rule" #>
   typecheck_setup #>
-  Simplifier.map_simpset_global (fn ss => ss setSolver type_solver);
+  map_theory_simpset (fn ctxt => ctxt setSolver type_solver);
 
 end;

@@ -44,7 +44,8 @@ structure Blast = Data.Blast;
 
 (* simp as classical wrapper *)
 
-fun clasimp f name tac ctxt = f (ctxt, (name, CHANGED o tac (simpset_of ctxt)));
+(* FIXME !? *)
+fun clasimp f name tac ctxt = f (ctxt, (name, fn _ => CHANGED o tac ctxt));
 
 (*Add a simpset to the claset!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
@@ -111,7 +112,7 @@ end;
 (* tactics *)
 
 fun clarsimp_tac ctxt =
-  Simplifier.safe_asm_full_simp_tac (simpset_of ctxt) THEN_ALL_NEW
+  Simplifier.safe_asm_full_simp_tac ctxt THEN_ALL_NEW
   Classical.clarify_tac (addSss ctxt);
 
 
@@ -145,7 +146,7 @@ fun mk_auto_tac ctxt m n =
       ORELSE'
       (CHANGED o nodup_depth_tac (addss ctxt) n);  (* slower but more general *)
   in
-    PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac (simpset_of ctxt))) THEN
+    PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ctxt)) THEN
     TRY (Classical.safe_tac ctxt) THEN
     REPEAT_DETERM (FIRSTGOAL main_tac) THEN
     TRY (Classical.safe_tac (addSss ctxt)) THEN
@@ -162,7 +163,7 @@ fun force_tac ctxt =
   let val ctxt' = addss ctxt in
     SELECT_GOAL
      (Classical.clarify_tac ctxt' 1 THEN
-      IF_UNSOLVED (Simplifier.asm_full_simp_tac (simpset_of ctxt) 1) THEN
+      IF_UNSOLVED (Simplifier.asm_full_simp_tac ctxt 1) THEN
       ALLGOALS (Classical.first_best_tac ctxt'))
   end;
 

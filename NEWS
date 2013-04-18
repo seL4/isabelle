@@ -134,6 +134,17 @@ operate on Proof.context instead of claset, for uniformity with addIs,
 addEs, addDs etc. Note that claset_of and put_claset allow to manage
 clasets separately from the context.
 
+* Simplifier tactics and tools use proper Proof.context instead of
+historic type simpset.  Old-style declarations like addsimps,
+addsimprocs etc. operate directly on Proof.context.  Raw type simpset
+retains its use as snapshot of the main Simplifier context, using
+simpset_of and put_simpset on Proof.context.  INCOMPATIBILITY -- port
+old tools by making them depend on (ctxt : Proof.context) instead of
+(ss : simpset), then turn (simpset_of ctxt) into ctxt.
+
+* Discontinued obsolete ML antiquotations @{claset} and @{simpset}.
+INCOMPATIBILITY, use @{context} instead.
+
 
 *** System ***
 

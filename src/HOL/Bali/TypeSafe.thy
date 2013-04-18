@@ -726,7 +726,7 @@ qed
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 lemma FVar_lemma: 
@@ -756,7 +756,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
 
 
 lemma AVar_lemma1: "\<lbrakk>globs s (Inl a) = Some obj;tag obj=Arr ty i; 
@@ -871,7 +871,7 @@ by (auto simp add: abrupt_if_def)
 declare split_paired_All [simp del] split_paired_Ex [simp del] 
 declare split_if     [split del] split_if_asm     [split del] 
         option.split [split del] option.split_asm [split del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
 
 lemma conforms_init_lvars: 
@@ -925,7 +925,7 @@ declare split_paired_All [simp] split_paired_Ex [simp]
 declare split_if     [split] split_if_asm     [split] 
         option.split [split] option.split_asm [split]
 setup {* map_theory_claset (fn ctxt => ctxt addSbefore ("split_all_tac", split_all_tac)) *}
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
 
 
 subsection "accessibility"

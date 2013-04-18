@@ -795,9 +795,10 @@ let
         | find t = NONE
     in (dest_fun_T1 T, gen_fun_upd (find f) T x y) end
 
-  fun proc ss ct =
+  val ss = simpset_of @{context}
+
+  fun proc ctxt ct =
     let
-      val ctxt = Simplifier.the_context ss
       val t = Thm.term_of ct
     in
       case find_double t of
@@ -807,7 +808,7 @@ let
             (fn _ =>
               rtac eq_reflection 1 THEN
               rtac ext 1 THEN
-              simp_tac (Simplifier.inherit_context ss @{simpset}) 1))
+              simp_tac (put_simpset ss ctxt) 1))
     end
 in proc end
 *}

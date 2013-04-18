@@ -1189,7 +1189,7 @@ lemma ex_comm:
 ML_file "Tools/simpdata.ML"
 ML {* open Simpdata *}
 
-setup {* Simplifier.map_simpset_global (K HOL_basic_ss) *}
+setup {* map_theory_simpset (put_simpset HOL_basic_ss) *}
 
 simproc_setup defined_Ex ("EX x. P x") = {* fn _ => Quantifier1.rearrange_ex *}
 simproc_setup defined_All ("ALL x. P x") = {* fn _ => Quantifier1.rearrange_all *}
@@ -1241,10 +1241,9 @@ let
    case t
     of Abs (_, _, t') => count_loose t' 0 <= 1
      | _ => true;
-in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
+in fn _ => fn ctxt => fn ct => if is_trivial_let (Thm.term_of ct)
   then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
   else let (*Norbert Schirmer's case*)
-    val ctxt = Simplifier.the_context ss;
     val thy = Proof_Context.theory_of ctxt;
     val t = Thm.term_of ct;
     val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
@@ -1258,7 +1257,7 @@ in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
           val cx = cterm_of thy x;
           val {T = xT, ...} = rep_cterm cx;
           val cf = cterm_of thy f;
-          val fx_g = Simplifier.rewrite ss (Thm.apply cf cx);
+          val fx_g = Simplifier.rewrite ctxt (Thm.apply cf cx);
           val (_ $ _ $ g) = prop_of fx_g;
           val g' = abstract_over (x,g);
           val abs_g'= Abs (n,xT,g');
@@ -1345,7 +1344,7 @@ lemmas [simp] =
 lemmas [cong] = imp_cong simp_implies_cong
 lemmas [split] = split_if
 
-ML {* val HOL_ss = @{simpset} *}
+ML {* val HOL_ss = simpset_of @{context} *}
 
 text {* Simplifies x assuming c and y assuming ~c *}
 lemma if_cong:
@@ -1482,13 +1481,13 @@ setup {*
     addsimprocs
       [Simplifier.simproc_global @{theory} "swap_induct_false"
          ["induct_false ==> PROP P ==> PROP Q"]
-         (fn _ => fn _ =>
+         (fn _ =>
             (fn _ $ (P as _ $ @{const induct_false}) $ (_ $ Q $ _) =>
                   if P <> Q then SOME Drule.swap_prems_eq else NONE
               | _ => NONE)),
        Simplifier.simproc_global @{theory} "induct_equal_conj_curry"
          ["induct_conj P Q ==> PROP R"]
-         (fn _ => fn _ =>
+         (fn _ =>
             (fn _ $ (_ $ P) $ _ =>
                 let
                   fun is_conj (@{const induct_conj} $ P $ Q) =
@@ -1583,7 +1582,7 @@ ML {*
 signature REORIENT_PROC =
 sig
   val add : (term -> bool) -> theory -> theory
-  val proc : morphism -> simpset -> cterm -> thm option
+  val proc : morphism -> Proof.context -> cterm -> thm option
 end;
 
 structure Reorient_Proc : REORIENT_PROC =
@@ -1599,9 +1598,8 @@ struct
   fun matches thy t = exists (fn (m, _) => m t) (Data.get thy);
 
   val meta_reorient = @{thm eq_commute [THEN eq_reflection]};
-  fun proc phi ss ct =
+  fun proc phi ctxt ct =
     let
-      val ctxt = Simplifier.the_context ss;
       val thy = Proof_Context.theory_of ctxt;
     in
       case Thm.term_of ct of
@@ -1701,9 +1699,9 @@ subsection {* Code generator setup *}
 subsubsection {* Generic code generator preprocessor setup *}
 
 setup {*
-  Code_Preproc.map_pre (K HOL_basic_ss)
-  #> Code_Preproc.map_post (K HOL_basic_ss)
-  #> Code_Simp.map_ss (K HOL_basic_ss)
+  Code_Preproc.map_pre (put_simpset HOL_basic_ss)
+  #> Code_Preproc.map_post (put_simpset HOL_basic_ss)
+  #> Code_Simp.map_ss (put_simpset HOL_basic_ss)
 *}
 
 subsubsection {* Equality *}
@@ -1728,10 +1726,9 @@ declare eq_equal [symmetric, code_post]
 declare eq_equal [code]
 
 setup {*
-  Code_Preproc.map_pre (fn simpset =>
-    simpset addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term HOL.eq}]
-      (fn thy => fn _ =>
-        fn Const (_, Type ("fun", [Type _, _])) => SOME @{thm eq_equal} | _ => NONE)])
+  Code_Preproc.map_pre (fn ctxt =>
+    ctxt addsimprocs [Simplifier.simproc_global_i @{theory} "equal" [@{term HOL.eq}]
+      (fn _ => fn Const (_, Type ("fun", [Type _, _])) => SOME @{thm eq_equal} | _ => NONE)])
 *}
 
 
@@ -1994,7 +1991,8 @@ in
   fun smp_tac j = EVERY'[dresolve_tac (smp j), atac];
 end;
 
-val nnf_conv = Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms nnf_simps});
+fun nnf_conv ctxt =
+  Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms nnf_simps});
 *}
 
 hide_const (open) eq equal

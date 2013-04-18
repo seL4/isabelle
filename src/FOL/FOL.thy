@@ -331,16 +331,20 @@ simproc_setup defined_All ("ALL x. P(x)") = {* fn _ => Quantifier1.rearrange_all
 ML {*
 (*intuitionistic simprules only*)
 val IFOL_ss =
-  FOL_basic_ss
+  put_simpset FOL_basic_ss @{context}
   addsimps @{thms meta_simps IFOL_simps int_ex_simps int_all_simps}
   addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}]
-  |> Simplifier.add_cong @{thm imp_cong};
+  |> Simplifier.add_cong @{thm imp_cong}
+  |> simpset_of;
 
 (*classical simprules too*)
-val FOL_ss = IFOL_ss addsimps @{thms cla_simps cla_ex_simps cla_all_simps};
+val FOL_ss =
+  put_simpset IFOL_ss @{context}
+  addsimps @{thms cla_simps cla_ex_simps cla_all_simps}
+  |> simpset_of;
 *}
 
-setup {* Simplifier.map_simpset_global (K FOL_ss) *}
+setup {* map_theory_simpset (put_simpset FOL_ss) *}
 
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup

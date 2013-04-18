@@ -415,16 +415,21 @@ ML {*
       | exists_paired_all (t $ u) = exists_paired_all t orelse exists_paired_all u
       | exists_paired_all (Abs (_, _, t)) = exists_paired_all t
       | exists_paired_all _ = false;
-    val ss = HOL_basic_ss
-      addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
-      addsimprocs [@{simproc unit_eq}];
+    val ss =
+      simpset_of
+       (put_simpset HOL_basic_ss @{context}
+        addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
+        addsimprocs [@{simproc unit_eq}]);
   in
-    val split_all_tac = SUBGOAL (fn (t, i) =>
-      if exists_paired_all t then safe_full_simp_tac ss i else no_tac);
-    val unsafe_split_all_tac = SUBGOAL (fn (t, i) =>
-      if exists_paired_all t then full_simp_tac ss i else no_tac);
-    fun split_all th =
-      if exists_paired_all (Thm.prop_of th) then full_simplify ss th else th;
+    fun split_all_tac ctxt = SUBGOAL (fn (t, i) =>
+      if exists_paired_all t then safe_full_simp_tac (put_simpset ss ctxt) i else no_tac);
+
+    fun unsafe_split_all_tac ctxt = SUBGOAL (fn (t, i) =>
+      if exists_paired_all t then full_simp_tac (put_simpset ss ctxt) i else no_tac);
+
+    fun split_all ctxt th =
+      if exists_paired_all (Thm.prop_of th)
+      then full_simplify (put_simpset ss ctxt) th else th;
   end;
 *}
 
@@ -451,7 +456,8 @@ text {*
 
 ML {*
 local
-  val cond_split_eta_ss = HOL_basic_ss addsimps @{thms cond_split_eta};
+  val cond_split_eta_ss =
+    simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms cond_split_eta});
   fun Pair_pat k 0 (Bound m) = (m = k)
     | Pair_pat k i (Const (@{const_name Pair},  _) $ Bound m $ t) =
         i > 0 andalso m = k + i andalso Pair_pat k (i - 1) t
@@ -463,9 +469,9 @@ local
   fun split_pat tp i (Abs  (_, _, t)) = if tp 0 i t then SOME (i, t) else NONE
     | split_pat tp i (Const (@{const_name prod_case}, _) $ Abs (_, _, t)) = split_pat tp (i + 1) t
     | split_pat tp i _ = NONE;
-  fun metaeq ss lhs rhs = mk_meta_eq (Goal.prove (Simplifier.the_context ss) [] []
+  fun metaeq ctxt lhs rhs = mk_meta_eq (Goal.prove ctxt [] []
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs)))
-        (K (simp_tac (Simplifier.inherit_context ss cond_split_eta_ss) 1)));
+        (K (simp_tac (put_simpset cond_split_eta_ss ctxt) 1)));
 
   fun beta_term_pat k i (Abs (_, _, t)) = beta_term_pat (k + 1) i t
     | beta_term_pat k i (t $ u) =
@@ -479,20 +485,20 @@ local
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
 in
-  fun beta_proc ss (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t) $ arg) =
+  fun beta_proc ctxt (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
-          SOME (i, f) => SOME (metaeq ss s (subst arg 0 i f))
+          SOME (i, f) => SOME (metaeq ctxt s (subst arg 0 i f))
         | NONE => NONE)
     | beta_proc _ _ = NONE;
-  fun eta_proc ss (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t)) =
+  fun eta_proc ctxt (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t)) =
         (case split_pat eta_term_pat 1 t of
-          SOME (_, ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
+          SOME (_, ft) => SOME (metaeq ctxt s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
     | eta_proc _ _ = NONE;
 end;
 *}
-simproc_setup split_beta ("split f z") = {* fn _ => fn ss => fn ct => beta_proc ss (term_of ct) *}
-simproc_setup split_eta ("split f") = {* fn _ => fn ss => fn ct => eta_proc ss (term_of ct) *}
+simproc_setup split_beta ("split f z") = {* fn _ => fn ctxt => fn ct => beta_proc ctxt (term_of ct) *}
+simproc_setup split_eta ("split f") = {* fn _ => fn ctxt => fn ct => eta_proc ctxt (term_of ct) *}
 
 lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)
@@ -572,10 +578,11 @@ local (* filtering with exists_p_split is an essential optimization *)
     | exists_p_split (t $ u) = exists_p_split t orelse exists_p_split u
     | exists_p_split (Abs (_, _, t)) = exists_p_split t
     | exists_p_split _ = false;
-  val ss = HOL_basic_ss addsimps @{thms split_conv};
 in
-val split_conv_tac = SUBGOAL (fn (t, i) =>
-    if exists_p_split t then safe_full_simp_tac ss i else no_tac);
+fun split_conv_tac ctxt = SUBGOAL (fn (t, i) =>
+  if exists_p_split t
+  then safe_full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_conv}) i
+  else no_tac);
 end;
 *}
 
@@ -1154,7 +1161,7 @@ subsection {* Simproc for rewriting a set comprehension into a pointfree express
 ML_file "Tools/set_comprehension_pointfree.ML"
 
 setup {*
-  Code_Preproc.map_pre (fn ss => ss addsimprocs
+  Code_Preproc.map_pre (fn ctxt => ctxt addsimprocs
     [Raw_Simplifier.make_simproc {name = "set comprehension", lhss = [@{cpat "Collect ?P"}],
     proc = K Set_Comprehension_Pointfree.code_simproc, identifier = []}])
 *}

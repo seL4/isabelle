@@ -789,8 +789,9 @@ by (blast dest!: Pair_in_Vfrom_D)
 
 ML
 {*
-val rank_ss = @{simpset} addsimps [@{thm VsetI}]
-              addsimps @{thms rank_rls} @ (@{thms rank_rls} RLN (2, [@{thm lt_trans}]));
+val rank_ss =
+  simpset_of (@{context} addsimps [@{thm VsetI}]
+    addsimps @{thms rank_rls} @ (@{thms rank_rls} RLN (2, [@{thm lt_trans}])));
 *}
 
 end

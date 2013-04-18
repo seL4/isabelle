@@ -1643,12 +1643,12 @@ local
   val simps = @{thms arith_simps} @ @{thms rel_simps} @
     map (fn th => th RS sym) [@{thm numeral_1_eq_1}]
   fun prove ctxt goal = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop goal)
-    (K (ALLGOALS (full_simp_tac (HOL_basic_ss addsimps simps))));
-  fun binary_proc proc ss ct =
+    (K (ALLGOALS (full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps simps))));
+  fun binary_proc proc ctxt ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
       (case try (pairself (`(snd o HOLogic.dest_number))) (t, u) of
-        SOME args => proc (Simplifier.the_context ss) args
+        SOME args => proc ctxt args
       | NONE => NONE)
     | _ => NONE);
 in

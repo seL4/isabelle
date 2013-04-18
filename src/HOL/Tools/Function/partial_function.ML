@@ -157,11 +157,13 @@ from "split o split o split"*)
 fun curry_n arity = funpow (arity - 1) mk_curry;
 fun uncurry_n arity = funpow (arity - 1) HOLogic.mk_split;
 
-val curry_uncurry_ss = HOL_basic_ss addsimps
-  [@{thm Product_Type.curry_split}, @{thm Product_Type.split_curry}]
+val curry_uncurry_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps [@{thm Product_Type.curry_split}, @{thm Product_Type.split_curry}])
 
-val split_conv_ss = HOL_basic_ss addsimps
-  [@{thm Product_Type.split_conv}];
+val split_conv_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context}
+    addsimps [@{thm Product_Type.split_conv}]);
 
 fun mk_curried_induct args ctxt ccurry cuncurry rule =
   let
@@ -187,12 +189,12 @@ fun mk_curried_induct args ctxt ccurry cuncurry rule =
 
     val inst_rule' = inst_rule
       |> Tactic.rule_by_tactic ctxt
-        (Simplifier.simp_tac curry_uncurry_ss 4
-         THEN Simplifier.simp_tac curry_uncurry_ss 3
+        (Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 4
+         THEN Simplifier.simp_tac (put_simpset curry_uncurry_ss ctxt) 3
          THEN CONVERSION (split_params_conv ctxt
            then_conv (Conv.forall_conv (K split_paired_all_conv) ctxt)) 3)
       |> Drule.instantiate' [] [NONE, NONE, SOME P_inst, SOME x_inst]
-      |> Simplifier.full_simplify split_conv_ss
+      |> Simplifier.full_simplify (put_simpset split_conv_ss ctxt)
       |> singleton (Variable.export ctxt' ctxt)
   in
     inst_rule'
@@ -253,7 +255,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val unfold =
       (cterm_instantiate' (map (SOME o cert) [uncurry, F, curry]) fixp_eq
         OF [mono_thm, f_def])
-      |> Tactic.rule_by_tactic lthy (Simplifier.simp_tac curry_uncurry_ss 1);
+      |> Tactic.rule_by_tactic lthy (Simplifier.simp_tac (put_simpset curry_uncurry_ss lthy) 1);
 
     val mk_raw_induct =
       mk_curried_induct args args_ctxt (cert curry) (cert uncurry)

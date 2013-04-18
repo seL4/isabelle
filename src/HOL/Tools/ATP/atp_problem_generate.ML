@@ -1230,10 +1230,10 @@ fun iformula_from_prop ctxt type_enc iff_for_eq =
       | _ => do_term bs t
   in do_formula [] end
 
-fun presimplify_term thy t =
+fun presimplify_term ctxt t =
   if exists_Const (member (op =) Meson.presimplified_consts o fst) t then
-    t |> Skip_Proof.make_thm thy
-      |> Meson.presimplify
+    t |> Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+      |> Meson.presimplify ctxt
       |> prop_of
   else
     t
@@ -1273,7 +1273,7 @@ fun presimp_prop ctxt type_enc t =
     t |> need_trueprop ? HOLogic.mk_Trueprop
       |> (if is_ho then unextensionalize_def
           else cong_extensionalize_term thy #> abs_extensionalize_term ctxt)
-      |> presimplify_term thy
+      |> presimplify_term ctxt
       |> HOLogic.dest_Trueprop
   end
   handle TERM _ => @{const True}

@@ -165,7 +165,7 @@ fun introrulify thy ths =
           Logic.dest_implies o prop_of) @{thm exI}
         fun prove_introrule (index, (ps, introrule)) =
           let
-            val tac = Simplifier.simp_tac (HOL_basic_ss addsimps [th]) 1
+            val tac = Simplifier.simp_tac (put_simpset HOL_basic_ss ctxt' addsimps [th]) 1
               THEN EVERY1 (select_disj (length disjuncts) (index + 1)) 
               THEN (EVERY (map (fn y =>
                 rtac (Drule.cterm_instantiate [(x, cterm_of thy (Free y))] @{thm exI}) 1) ps))
@@ -179,16 +179,17 @@ fun introrulify thy ths =
       end
   in maps introrulify' ths' |> Variable.export ctxt' ctxt end
 
-val rewrite =
-  Simplifier.simplify (HOL_basic_ss addsimps [@{thm Ball_def}, @{thm Bex_def}])
-  #> Simplifier.simplify (HOL_basic_ss addsimps [@{thm all_not_ex}])
-  #> Conv.fconv_rule nnf_conv 
-  #> Simplifier.simplify (HOL_basic_ss addsimps [@{thm ex_disj_distrib}])
+fun rewrite ctxt =
+  Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm Ball_def}, @{thm Bex_def}])
+  #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm all_not_ex}])
+  #> Conv.fconv_rule (nnf_conv ctxt)
+  #> Simplifier.simplify (put_simpset HOL_basic_ss ctxt addsimps [@{thm ex_disj_distrib}])
 
 fun rewrite_intros thy =
-  Simplifier.full_simplify (HOL_basic_ss addsimps [@{thm all_not_ex}])
+  Simplifier.full_simplify (Simplifier.global_context thy HOL_basic_ss addsimps [@{thm all_not_ex}])
   #> Simplifier.full_simplify
-    (HOL_basic_ss addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
+    (Simplifier.global_context thy HOL_basic_ss
+      addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
   #> split_conjuncts_in_assms (Proof_Context.init_global thy)
 
 fun print_specs options thy msg ths =
@@ -205,7 +206,7 @@ fun preprocess options (constname, specs) thy =
       val ctxt = Proof_Context.init_global thy
       val intros =
         if forall is_pred_equation specs then 
-          map (split_conjuncts_in_assms ctxt) (introrulify thy (map rewrite specs))
+          map (split_conjuncts_in_assms ctxt) (introrulify thy (map (rewrite ctxt) specs))
         else if forall (is_intro constname) specs then
           map (rewrite_intros thy) specs
         else

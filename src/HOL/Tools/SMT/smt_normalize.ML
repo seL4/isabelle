@@ -479,10 +479,9 @@ local
   fun mk_number_eq ctxt i lhs =
     let
       val eq = SMT_Utils.mk_cequals lhs (Numeral.mk_cnumber @{ctyp int} i)
-      val ss = HOL_ss
-        addsimps [@{thm Int.int_numeral}]
-      fun tac _ = Simplifier.simp_tac (Simplifier.context ctxt ss) 1       
-    in Goal.norm_result (Goal.prove_internal [] eq tac) end
+      val tac =
+        Simplifier.simp_tac (put_simpset HOL_ss ctxt addsimps [@{thm Int.int_numeral}]) 1
+    in Goal.norm_result (Goal.prove_internal [] eq (K tac)) end
 
   fun ite_conv cv1 cv2 =
     Conv.combination_conv (Conv.combination_conv (Conv.arg_conv cv1) cv2) cv2
@@ -539,13 +538,14 @@ local
         | NONE => false)
     | is_strange_number _ _ = false
 
-  val pos_num_ss = HOL_ss
-    addsimps [@{thm Num.numeral_One}]
-    addsimps [@{thm Num.neg_numeral_def}]
+  val pos_num_ss =
+    simpset_of (put_simpset HOL_ss @{context}
+      addsimps [@{thm Num.numeral_One}]
+      addsimps [@{thm Num.neg_numeral_def}])
 
   fun norm_num_conv ctxt =
     SMT_Utils.if_conv (is_strange_number ctxt)
-      (Simplifier.rewrite (Simplifier.context ctxt pos_num_ss)) Conv.no_conv
+      (Simplifier.rewrite (put_simpset pos_num_ss ctxt)) Conv.no_conv
 in
 
 fun normalize_numerals_conv ctxt =

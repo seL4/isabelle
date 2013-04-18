@@ -16,7 +16,7 @@ end;
 
 signature ASSOC_FOLD =
 sig
-  val proc: simpset -> term -> thm option
+  val proc: Proof.context -> term -> thm option
 end;
 
 functor Assoc_Fold(Data: ASSOC_FOLD_DATA): ASSOC_FOLD =
@@ -38,15 +38,14 @@ fun sift_terms plus (t, (lits,others)) =
   | _ => (lits, t::others));
 
 (*A simproc to combine all literals in a associative nest*)
-fun proc ss lhs =
+fun proc ctxt lhs =
   let
     val plus = (case lhs of f $ _ $ _ => f | _ => error "Assoc_fold: bad pattern")
     val (lits, others) = sift_terms plus (lhs, ([],[]))
     val _ = length lits < 2 andalso raise Assoc_fail (*we can't reduce the number of terms*)
     val rhs = plus $ mk_sum plus lits $ mk_sum plus others
-    val th = Goal.prove (Simplifier.the_context ss) [] [] (Logic.mk_equals (lhs, rhs))
-      (fn _ => rtac Data.eq_reflection 1 THEN
-          simp_tac (Simplifier.inherit_context ss Data.assoc_ss) 1)
+    val th = Goal.prove ctxt [] [] (Logic.mk_equals (lhs, rhs))
+      (fn _ => rtac Data.eq_reflection 1 THEN simp_tac (put_simpset Data.assoc_ss ctxt) 1)
   in SOME th end handle Assoc_fail => NONE;
 
 end;

@@ -64,13 +64,15 @@ type constr_info =
 
 (************************** miscellaneous functions ***************************)
 
-val simple_ss = HOL_basic_ss addsimps @{thms simp_thms}
+val simple_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context} addsimps @{thms simp_thms})
 
 val beta_rules =
   @{thms beta_cfun cont_id cont_const cont2cont_APP cont2cont_LAM'} @
   @{thms cont2cont_fst cont2cont_snd cont2cont_Pair}
 
-val beta_ss = HOL_basic_ss addsimps (@{thms simp_thms} @ beta_rules)
+val beta_ss =
+  simpset_of (put_simpset HOL_basic_ss @{context} addsimps (@{thms simp_thms} @ beta_rules))
 
 fun define_consts
     (specs : (binding * term * mixfix) list)
@@ -268,7 +270,7 @@ fun add_constructors
               val bottom = mk_bottom (fastype_of v')
               val vs' = map (fn v => if v = v' then bottom else v) vs
               val goal = mk_trp (mk_undef (list_ccomb (con, vs')))
-              val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1]
+              val tacs = [simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1]
             in prove thy con_betas goal (K tacs) end
         in map one_strict nonlazy end
 
@@ -282,7 +284,7 @@ fun add_constructors
           val goal = mk_trp (iff_disj (lhs, rhss))
           val rule1 = iso_locale RS @{thm iso.abs_bottom_iff}
           val rules = rule1 :: @{thms con_bottom_iff_rules}
-          val tacs = [simp_tac (HOL_ss addsimps rules) 1]
+          val tacs = [simp_tac (Simplifier.global_context thy HOL_ss addsimps rules) 1]
         in prove thy con_betas goal (K tacs) end
     in
       val con_stricts = maps con_strict spec'
@@ -313,7 +315,7 @@ fun add_constructors
           val rules1 = abs_below :: @{thms sinl_below sinr_below spair_below up_below}
           val rules2 = @{thms up_defined spair_defined ONE_defined}
           val rules = rules1 @ rules2
-          val tacs = [asm_simp_tac (simple_ss addsimps rules) 1]
+          val tacs = [asm_simp_tac (Simplifier.global_context thy simple_ss addsimps rules) 1]
         in map (fn c => pgterm mk_below c (K tacs)) cons' end
       val injects =
         let
@@ -321,7 +323,7 @@ fun add_constructors
           val rules1 = abs_eq :: @{thms sinl_eq sinr_eq spair_eq up_eq}
           val rules2 = @{thms up_defined spair_defined ONE_defined}
           val rules = rules1 @ rules2
-          val tacs = [asm_simp_tac (simple_ss addsimps rules) 1]
+          val tacs = [asm_simp_tac (Simplifier.global_context thy simple_ss addsimps rules) 1]
         in map (fn c => pgterm mk_eq c (K tacs)) cons' end
     end
 
@@ -346,7 +348,7 @@ fun add_constructors
           val goal = mk_trp (iff_disj (lhs, rhss))
           val rule1 = iso_locale RS @{thm iso.abs_below}
           val rules = rule1 :: @{thms con_below_iff_rules}
-          val tacs = [simp_tac (HOL_ss addsimps rules) 1]
+          val tacs = [simp_tac (Simplifier.global_context thy HOL_ss addsimps rules) 1]
         in prove thy con_betas goal (K tacs) end
       fun dist_eq (con1, args1) (con2, args2) =
         let
@@ -358,7 +360,7 @@ fun add_constructors
           val goal = mk_trp (iff_disj2 (lhs, rhss1, rhss2))
           val rule1 = iso_locale RS @{thm iso.abs_eq}
           val rules = rule1 :: @{thms con_eq_iff_rules}
-          val tacs = [simp_tac (HOL_ss addsimps rules) 1]
+          val tacs = [simp_tac (Simplifier.global_context thy HOL_ss addsimps rules) 1]
         in prove thy con_betas goal (K tacs) end
     in
       val dist_les = map_dist dist_le spec'
@@ -514,7 +516,7 @@ fun add_case_combinator
           val rules2 = @{thms con_bottom_iff_rules}
           val rules3 = @{thms cfcomp2 one_case2}
           val rules = abs_inverse :: rules1 @ rules2 @ rules3
-          val tacs = [asm_simp_tac (beta_ss addsimps rules) 1]
+          val tacs = [asm_simp_tac (Simplifier.global_context thy beta_ss addsimps rules) 1]
         in prove thy defs goal (K tacs) end
     in
       val case_apps = map2 one_case spec fs
@@ -582,7 +584,7 @@ fun add_selectors
     val sel_stricts : thm list =
       let
         val rules = rep_strict :: @{thms sel_strict_rules}
-        val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1]
+        val tacs = [simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1]
         fun sel_strict sel =
           let
             val goal = mk_trp (mk_strict sel)
@@ -598,7 +600,7 @@ fun add_selectors
       let
         val defs = con_betas @ sel_defs
         val rules = abs_inv :: @{thms sel_app_rules}
-        val tacs = [asm_simp_tac (simple_ss addsimps rules) 1]
+        val tacs = [asm_simp_tac (Simplifier.global_context thy simple_ss addsimps rules) 1]
         fun sel_apps_of (i, (con, args: (bool * term option * typ) list)) =
           let
             val Ts : typ list = map #3 args
@@ -643,7 +645,7 @@ fun add_selectors
     val sel_defins : thm list =
       let
         val rules = rep_bottom_iff :: @{thms sel_bottom_iff_rules}
-        val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1]
+        val tacs = [simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps rules) 1]
         fun sel_defin sel =
           let
             val (T, U) = dest_cfunT (fastype_of sel)
@@ -720,7 +722,7 @@ fun add_discriminators
           val assms = map (mk_trp o mk_defined) nonlazy
           val concl = mk_trp (mk_eq (lhs, rhs))
           val goal = Logic.list_implies (assms, concl)
-          val tacs = [asm_simp_tac (beta_ss addsimps case_rews) 1]
+          val tacs = [asm_simp_tac (Simplifier.global_context thy beta_ss addsimps case_rews) 1]
         in prove thy dis_defs goal (K tacs) end
       fun one_dis (i, dis) =
           map_index (dis_app (i, dis)) spec
@@ -736,9 +738,9 @@ fun add_discriminators
           val simps = dis_apps @ @{thms dist_eq_tr}
           val tacs =
             [rtac @{thm iffI} 1,
-             asm_simp_tac (HOL_basic_ss addsimps dis_stricts) 2,
+             asm_simp_tac (Simplifier.global_context thy HOL_basic_ss addsimps dis_stricts) 2,
              rtac exhaust 1, atac 1,
-             ALLGOALS (asm_full_simp_tac (simple_ss addsimps simps))]
+             ALLGOALS (asm_full_simp_tac (Simplifier.global_context thy simple_ss addsimps simps))]
           val goal = mk_trp (mk_eq (mk_undef (dis ` x), mk_undef x))
         in prove thy [] goal (K tacs) end
     in
@@ -809,7 +811,7 @@ fun add_match_combinators
           val (T, (U, V)) = apsnd dest_cfunT (dest_cfunT (fastype_of mat))
           val k = Free ("k", U)
           val goal = mk_trp (mk_eq (mat ` mk_bottom T ` k, mk_bottom V))
-          val tacs = [asm_simp_tac (beta_ss addsimps case_rews) 1]
+          val tacs = [asm_simp_tac (Simplifier.global_context thy beta_ss addsimps case_rews) 1]
         in prove thy match_defs goal (K tacs) end
     in
       val match_stricts = map match_strict match_consts
@@ -828,7 +830,7 @@ fun add_match_combinators
           val assms = map (mk_trp o mk_defined) nonlazy
           val concl = mk_trp (mk_eq (lhs, rhs))
           val goal = Logic.list_implies (assms, concl)
-          val tacs = [asm_simp_tac (beta_ss addsimps case_rews) 1]
+          val tacs = [asm_simp_tac (Simplifier.global_context thy beta_ss addsimps case_rews) 1]
         in prove thy match_defs goal (K tacs) end
       fun one_match (i, mat) =
           map_index (match_app (i, mat)) spec

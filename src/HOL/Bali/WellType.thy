@@ -458,7 +458,7 @@ notation (xsymbols)
 declare not_None_eq [simp del] 
 declare split_if [split del] split_if_asm [split del]
 declare split_paired_All [simp del] split_paired_Ex [simp del]
-declaration {* K (Simplifier.map_ss (fn ss => ss delloop "split_all_tac")) *}
+setup {* map_theory_simpset (fn ctxt => ctxt delloop "split_all_tac") *}
 
 inductive_cases wt_elim_cases [cases set]:
         "E,dt\<Turnstile>In2  (LVar vn)               \<Colon>T"
@@ -494,7 +494,7 @@ inductive_cases wt_elim_cases [cases set]:
 declare not_None_eq [simp] 
 declare split_if [split] split_if_asm [split]
 declare split_paired_All [simp] split_paired_Ex [simp]
-declaration {* K (Simplifier.map_ss (fn ss => ss addloop ("split_all_tac", split_all_tac))) *}
+setup {* map_theory_simpset (fn ctxt => ctxt addloop' ("split_all_tac", split_all_tac)) *}
 
 lemma is_acc_class_is_accessible: 
   "is_acc_class G P C \<Longrightarrow> G\<turnstile>(Class C) accessible_in P"

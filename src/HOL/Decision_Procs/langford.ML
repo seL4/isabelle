@@ -26,16 +26,18 @@ let val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
                                      (Thm.cprop_of th), SOME x] th1) th
 in fold ins u th0 end;
 
-val simp_rule =
+fun simp_rule ctxt =
   Conv.fconv_rule
-    (Conv.arg_conv (Simplifier.rewrite (HOL_basic_ss addsimps @{thms ball_simps simp_thms})));
+    (Conv.arg_conv
+      (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms ball_simps simp_thms})));
 
 fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep = 
  case term_of ep of 
   Const(@{const_name Ex},_)$_ => 
    let 
      val p = Thm.dest_arg ep
-     val ths = simplify (HOL_basic_ss addsimps gather) (instantiate' [] [SOME p] stupid)
+     val ths =
+      simplify (put_simpset HOL_basic_ss ctxt addsimps gather) (instantiate' [] [SOME p] stupid)
      val (L,U) = 
        let 
          val (x,q) = Thm.dest_abs NONE (Thm.dest_arg (Thm.rhs_of ths))
@@ -53,17 +55,17 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
       (Const (@{const_name Orderings.bot}, _),_) =>  
         let
           val (neU,fU) = proveneF U 
-        in simp_rule (Thm.transitive ths (dlo_qeth_nolb OF [neU, fU])) end
+        in simp_rule ctxt (Thm.transitive ths (dlo_qeth_nolb OF [neU, fU])) end
     | (_,Const (@{const_name Orderings.bot}, _)) =>  
         let
           val (neL,fL) = proveneF L
-        in simp_rule (Thm.transitive ths (dlo_qeth_noub OF [neL, fL])) end
+        in simp_rule ctxt (Thm.transitive ths (dlo_qeth_noub OF [neL, fL])) end
 
     | (_,_) =>  
       let 
        val (neL,fL) = proveneF L
        val (neU,fU) = proveneF U
-      in simp_rule (Thm.transitive ths (dlo_qeth OF [neL, neU, fL, fU])) 
+      in simp_rule ctxt (Thm.transitive ths (dlo_qeth OF [neL, neU, fL, fU])) 
       end
    in qe end 
  | _ => error "dlo_qe : Not an existential formula";
@@ -122,7 +124,7 @@ fun is_eqx x eq = case term_of eq of
  | _ => false ;
 
 local 
-fun proc ct = 
+fun proc ctxt ct = 
  case term_of ct of
   Const(@{const_name Ex},_)$Abs (xn,_,_) => 
    let 
@@ -140,35 +142,36 @@ fun proc ct =
                  (Thm.apply @{cterm Trueprop} (list_conj (ndx @dx))))
            |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
-                   (Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms ex_simps})))
+               (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms ex_simps})))
            |> SOME
           end
     | _ => conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 
                  (Thm.apply @{cterm Trueprop} (list_conj (eqs@neqs))))
            |> Thm.abstract_rule xn x |> Drule.arg_cong_rule e 
            |> Conv.fconv_rule (Conv.arg_conv 
-                   (Simplifier.rewrite (HOL_basic_ss addsimps @{thms simp_thms ex_simps})))
+               (Simplifier.rewrite (put_simpset HOL_basic_ss ctxt addsimps @{thms simp_thms ex_simps})))
            |> SOME
    end
  | _ => NONE;
 in val reduce_ex_simproc = 
   Simplifier.make_simproc 
   {lhss = [@{cpat "EX x. ?P x"}] , name = "reduce_ex_simproc",
-   proc = K (K proc) , identifier = []}
+   proc = K proc, identifier = []}
 end;
 
-fun raw_dlo_conv dlo_ss 
+fun raw_dlo_conv ctxt dlo_ss 
           ({qe_bnds, qe_nolb, qe_noub, gst, gs, atoms}:Langford_Data.entry) = 
  let 
-  val ss = dlo_ss addsimps @{thms "dnf_simps"} addsimprocs [reduce_ex_simproc]
-  val dnfex_conv = Simplifier.rewrite ss
+  val ctxt' = put_simpset dlo_ss ctxt addsimps @{thms "dnf_simps"} addsimprocs [reduce_ex_simproc]
+  val dnfex_conv = Simplifier.rewrite ctxt'
   val pcv =
     Simplifier.rewrite
-      (dlo_ss addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
+      (put_simpset dlo_ss ctxt
+        addsimps @{thms simp_thms ex_simps all_simps all_not_ex not_all ex_disj_distrib})
  in fn p => 
    Qelim.gen_qelim_conv pcv pcv dnfex_conv cons 
                   (Thm.add_cterm_frees p [])  (K Thm.reflexive) (K Thm.reflexive)
-                  (K (basic_dloqe () gst qe_bnds qe_nolb qe_noub gs)) p
+                  (K (basic_dloqe ctxt gst qe_bnds qe_nolb qe_noub gs)) p
  end;
 
 
@@ -204,7 +207,7 @@ fun dlo_instance ctxt tm =
 fun dlo_conv ctxt tm =
   (case dlo_instance ctxt tm of
     (_, NONE) => raise CTERM ("dlo_conv (langford): no corresponding instance in context!", [tm])
-  | (ss, SOME instance) => raw_dlo_conv ss instance tm);
+  | (ss, SOME instance) => raw_dlo_conv ctxt ss instance tm);
 
 fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
  let 
@@ -232,13 +235,13 @@ fun cfrees ats ct =
 
 fun dlo_tac ctxt = CSUBGOAL (fn (p, i) =>
   (case dlo_instance ctxt p of
-    (ss, NONE) => simp_tac ss i
-  | (ss,  SOME instance) =>
+    (ss, NONE) => simp_tac (put_simpset ss ctxt) i
+  | (ss, SOME instance) =>
       Object_Logic.full_atomize_tac i THEN
-      simp_tac ss i
+      simp_tac (put_simpset ss ctxt) i
       THEN (CONVERSION Thm.eta_long_conversion) i
       THEN (TRY o generalize_tac (cfrees (#atoms instance))) i
       THEN Object_Logic.full_atomize_tac i
-      THEN CONVERSION (Object_Logic.judgment_conv (raw_dlo_conv ss instance)) i
-      THEN (simp_tac ss i)));  
+      THEN CONVERSION (Object_Logic.judgment_conv (raw_dlo_conv ctxt ss instance)) i
+      THEN (simp_tac (put_simpset ss ctxt) i)));
 end;

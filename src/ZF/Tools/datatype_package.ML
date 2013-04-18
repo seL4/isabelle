@@ -330,10 +330,10 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           Goal.prove_global thy1 [] []
             (Ind_Syntax.traceIt "next recursor equation = " thy1 (mk_recursor_eqn arg))
             (*Proves a single recursor equation.*)
-            (fn _ => EVERY
+            (fn {context = ctxt, ...} => EVERY
               [rtac recursor_trans 1,
-               simp_tac (rank_ss addsimps case_eqns) 1,
-               IF_UNSOLVED (simp_tac (rank_ss addsimps tl con_defs) 1)]);
+               simp_tac (put_simpset rank_ss ctxt addsimps case_eqns) 1,
+               IF_UNSOLVED (simp_tac (put_simpset rank_ss ctxt addsimps tl con_defs) 1)]);
       in
          map prove_recursor_eqn (flat con_ty_lists ~~ recursor_cases)
       end
