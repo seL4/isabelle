@@ -57,7 +57,6 @@ sig
   val appWrappers: Proof.context -> wrapper
 
   val claset_of: Proof.context -> claset
-  val map_claset: (claset -> claset) -> Proof.context -> Proof.context
   val put_claset: claset -> Proof.context -> Proof.context
 
   val map_theory_claset: (Proof.context -> Proof.context) -> theory -> theory
