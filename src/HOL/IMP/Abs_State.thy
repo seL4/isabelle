@@ -17,6 +17,8 @@ by(induction ps rule: fun_rep.induct) auto
 definition eq_st :: "('a::top) st_rep \<Rightarrow> 'a st_rep \<Rightarrow> bool" where
 "eq_st S1 S2 = (fun_rep S1 = fun_rep S2)"
 
+hide_type st  --"hide previous def to avoid long names"
+
 quotient_type 'a st = "('a::top) st_rep" / eq_st
 by (metis eq_st_def equivpI reflpI sympI transpI)
 
