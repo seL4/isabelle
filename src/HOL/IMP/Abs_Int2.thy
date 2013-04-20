@@ -147,13 +147,13 @@ definition AI :: "com \<Rightarrow> 'av st option acom option" where
 lemma strip_step'[simp]: "strip(step' S c) = strip c"
 by(simp add: step'_def)
 
-lemma top_on_afilter: "\<lbrakk> top_on X S;  vars e \<subseteq> -X \<rbrakk> \<Longrightarrow> top_on X (afilter e a S)"
+lemma top_on_afilter: "\<lbrakk> top_on_opt X S;  vars e \<subseteq> -X \<rbrakk> \<Longrightarrow> top_on_opt X (afilter e a S)"
 by(induction e arbitrary: a S) (auto simp: Let_def split: option.splits prod.split)
 
-lemma top_on_bfilter: "\<lbrakk>top_on X S; vars b \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on X (bfilter b r S)"
+lemma top_on_bfilter: "\<lbrakk>top_on_opt X S; vars b \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt X (bfilter b r S)"
 by(induction b arbitrary: r S) (auto simp: top_on_afilter top_on_sup split: prod.split)
 
-lemma top_on_step': "top_on (- vars C) C \<Longrightarrow> top_on (- vars C) (step' \<top> C)"
+lemma top_on_step': "top_on_acom (- vars C) C \<Longrightarrow> top_on_acom (- vars C) (step' \<top> C)"
 unfolding step'_def
 by(rule top_on_Step)
   (auto simp add: top_on_top top_on_bfilter split: option.split)
