@@ -159,7 +159,7 @@ and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
 
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
-locale Abs_Int_Fun = Val_abs \<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
+locale Abs_Int_fun = Val_abs \<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
@@ -242,7 +242,7 @@ subsubsection "Monotonicity"
 lemma mono_post: "C1 \<le> C2 \<Longrightarrow> post C1 \<le> post C2"
 by(induction C1 C2 rule: less_eq_acom.induct) (auto)
 
-locale Abs_Int_Fun_mono = Abs_Int_Fun +
+locale Abs_Int_fun_mono = Abs_Int_fun +
 assumes mono_plus': "a1 \<le> b1 \<Longrightarrow> a2 \<le> b2 \<Longrightarrow> plus' a1 a2 \<le> plus' b1 b2"
 begin
 
