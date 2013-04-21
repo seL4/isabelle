@@ -8,15 +8,12 @@ theory Reflection
 imports Main
 begin
 
-ML_file "reify_data.ML"
 ML_file "reflection.ML"
-
-setup {* Reify_Data.setup *}
 
 method_setup reify = {*
   Attrib.thms --
     Scan.option (Scan.lift (Args.$$$ "(") |-- Args.term --| Scan.lift (Args.$$$ ")")) >>
-  (fn (eqs, to) => fn ctxt => SIMPLE_METHOD' (Reflection.genreify_tac ctxt (eqs @ fst (Reify_Data.get ctxt)) to))
+      (fn (user_eqs, to) => fn ctxt => SIMPLE_METHOD' (Reflection.default_reify_tac ctxt user_eqs to))
 *} "partial automatic reification"
 
 method_setup reflection = {*
@@ -28,17 +25,12 @@ let
   val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
   val terms = thms >> map (term_of o Drule.dest_term);
 in
-  thms --
-  Scan.optional (keyword rulesN |-- thms) [] --
-  Scan.option (keyword onlyN |-- Args.term) >>
-  (fn ((eqs, ths), to) => fn ctxt =>
-    let
-      val (ceqs, cths) = Reify_Data.get ctxt
-      val corr_thms = ths @ cths
-      val raw_eqs = eqs @ ceqs
-    in SIMPLE_METHOD' (Reflection.reflection_tac ctxt corr_thms raw_eqs to) end)
+  thms -- Scan.optional (keyword rulesN |-- thms) [] --
+    Scan.option (keyword onlyN |-- Args.term) >>
+  (fn ((user_eqs, user_thms), to) => fn ctxt =>
+        SIMPLE_METHOD' (Reflection.default_reflection_tac ctxt user_thms user_eqs to))
 end
-*}
+*} "partial automatic reflection"
 
 end
 
