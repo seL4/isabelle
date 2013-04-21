@@ -819,26 +819,26 @@ fun meta_rewrite ctxt = map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def)
 
 local
 
-fun note_eqns_register deps witss attrss eqns export export' context =
+fun note_eqns_register note add_registration deps witss attrss eqns export export' ctxt =
   let
     val facts = 
       (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
-    val (eqns', context') = context 
-      |> Attrib.generic_notes Thm.lemmaK facts
-      |-> (fn facts' => `(fn context'' => meta_rewrite (Context.proof_of context'') (maps snd facts')));
+    val (eqns', ctxt') = ctxt
+      |> note Thm.lemmaK facts
+      |-> (fn facts' => `(fn ctxt'' => meta_rewrite ctxt'' (maps snd facts')));
   in
-    context'
-    |> fold2 (fn (dep, morph) => fn wits => fn context'' =>
-      Locale.add_registration
+    ctxt'
+    |> fold2 (fn (dep, morph) => fn wits => fn ctxt'' =>
+      add_registration
         (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
-        (Element.eq_morphism (Context.theory_of context'') eqns' |> Option.map (rpair true))
-        export context'') deps witss
+        (Element.eq_morphism (Proof_Context.theory_of ctxt'') eqns' |> Option.map (rpair true))
+        export ctxt'') deps witss
   end;
 
 fun gen_interpretation prep_expr parse_prop prep_attr
     expression equations thy =
   let
-    val initial_ctxt = Proof_Context.init_global thy;
+    val initial_ctxt = Named_Target.theory_init thy;
 
     val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
     val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
@@ -847,9 +847,10 @@ fun gen_interpretation prep_expr parse_prop prep_attr
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
+    val note = Local_Theory.notes_kind;
+    val add_registration = Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration;
     fun after_qed witss eqns =
-      (Proof_Context.background_theory o Context.theory_map)
-        (note_eqns_register deps witss attrss eqns export export');
+      note_eqns_register note add_registration deps witss attrss eqns export export';
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
 
@@ -867,10 +868,12 @@ fun gen_interpret prep_expr parse_prop prep_attr
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
+    val note = Attrib.local_notes;
+    val add_registration = Context.proof_map ooo Locale.add_registration;
     fun after_qed witss eqns =
-      (Proof.map_context o Context.proof_map)
-        (note_eqns_register deps witss attrss eqns export export')
+      Proof.map_context (note_eqns_register note add_registration deps witss attrss eqns export export')
       #> Proof.reset_facts;
+
   in
     state
     |> Element.witness_local_proof_eqs after_qed "interpret" propss eqns goal_ctxt int
@@ -902,12 +905,11 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
       |-> (fn facts' => `(fn ctxt'' => meta_rewrite ctxt'' (maps snd facts')));
   in
     ctxt'
-    |> Proof_Context.background_theory (fold2 (fn (dep, morph) => fn wits =>
-      fn thy =>
-        Locale.add_dependency target
-          (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
-          (Element.eq_morphism thy eqns' |> Option.map (rpair true))
-          export thy) deps witss)
+    |> fold2 (fn (dep, morph) => fn wits => fn ctxt'' =>
+      (Proof_Context.background_theory ooo Locale.add_dependency target)
+        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
+        (Element.eq_morphism (Proof_Context.theory_of ctxt'') eqns' |> Option.map (rpair true))
+        export ctxt'') deps witss
   end;
 
 fun gen_sublocale prep_expr prep_loc parse_prop prep_attr
