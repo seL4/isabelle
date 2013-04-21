@@ -804,6 +804,8 @@ end;
 
 (*** Interpretation ***)
 
+local
+
 fun read_with_extended_syntax parse_prop deps ctxt props =
   let
     val deps_ctxt = fold Locale.activate_declarations deps ctxt;
@@ -812,14 +814,18 @@ fun read_with_extended_syntax parse_prop deps ctxt props =
       |> Variable.export_terms deps_ctxt ctxt
   end;
 
+fun read_interpretation prep_expr parse_prop prep_attr expression equations initial_ctxt =
+  let
+    val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
+    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
+    val attrss = map (apsnd (map (prep_attr (Proof_Context.theory_of initial_ctxt))) o fst) equations;
+    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
+    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
+  in (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) end;
+
 fun meta_rewrite ctxt = map (Local_Defs.meta_rewrite_rule ctxt #> Drule.abs_def);
 
-
-(** Interpretation in theories and proof contexts **)
-
-local
-
-fun note_eqns_register note add_registration deps witss attrss eqns export export' ctxt =
+fun note_eqns_register note add_registration deps witss eqns attrss export export' ctxt =
   let
     val facts = 
       (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
@@ -835,48 +841,50 @@ fun note_eqns_register note add_registration deps witss attrss eqns export expor
         export ctxt'') deps witss
   end;
 
-fun gen_interpretation prep_expr parse_prop prep_attr
-    expression equations thy =
+fun generic_interpretation prep_expr parse_prop prep_attr setup_proof note add_registration
+    expression equations initial_ctxt = 
   let
-    val initial_ctxt = Named_Target.theory_init thy;
-
-    val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
-    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
-
-    val attrss = map (apsnd (map (prep_attr thy)) o fst) equations;
-    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
-    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
-
-    val note = Local_Theory.notes_kind;
-    val add_registration = Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration;
+    val (((propss, deps, export, export'), (eqns, attrss)), goal_ctxt) = 
+      read_interpretation prep_expr parse_prop prep_attr expression equations initial_ctxt;
     fun after_qed witss eqns =
-      note_eqns_register note add_registration deps witss attrss eqns export export';
+      note_eqns_register note add_registration deps witss eqns attrss export export';
+  in setup_proof after_qed propss eqns goal_ctxt end;
 
-  in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
+fun gen_interpretation prep_expr parse_prop prep_attr expression equations thy =
+  thy
+  |> Named_Target.theory_init
+  |> generic_interpretation prep_expr parse_prop prep_attr
+      Element.witness_proof_eqs
+      Local_Theory.notes_kind
+      (Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration)
+      expression equations;
 
-fun gen_interpret prep_expr parse_prop prep_attr
-    expression equations int state =
+fun gen_interpret prep_expr parse_prop prep_attr expression equations int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    val thy = Proof_Context.theory_of ctxt;
-
-    val ((propss, deps, export), expr_ctxt) = prep_expr expression ctxt;
-    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
-
-    val attrss = map (apsnd (map (prep_attr thy)) o fst) equations;
-    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
-    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
-
-    val note = Attrib.local_notes;
-    val add_registration = Context.proof_map ooo Locale.add_registration;
-    fun after_qed witss eqns =
-      Proof.map_context (note_eqns_register note add_registration deps witss attrss eqns export export')
-      #> Proof.reset_facts;
-
+    fun lift_after_qed after_qed witss eqns = Proof.map_context (after_qed witss eqns) #> Proof.reset_facts;
+    fun setup_proof after_qed propss eqns goal_ctxt = 
+      Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret" propss eqns goal_ctxt int state;
   in
-    state
-    |> Element.witness_local_proof_eqs after_qed "interpret" propss eqns goal_ctxt int
+    generic_interpretation prep_expr parse_prop prep_attr
+      setup_proof
+      Attrib.local_notes
+      (Context.proof_map ooo Locale.add_registration)
+      expression equations ctxt
+  end;
+ 
+fun gen_sublocale prep_expr prep_loc parse_prop prep_attr before_exit raw_locale expression equations thy =
+  let
+    val locale = prep_loc thy raw_locale;
+  in
+    thy
+    |> Named_Target.init before_exit locale
+    |> generic_interpretation prep_expr parse_prop prep_attr
+        Element.witness_proof_eqs
+        Local_Theory.notes_kind
+        (Proof_Context.background_theory ooo Locale.add_dependency locale)
+        expression equations
   end;
 
 in
@@ -888,48 +896,6 @@ fun interpretation_cmd x = gen_interpretation read_goal_expression
 fun interpret x = gen_interpret cert_goal_expression (K I) (K I) x;
 fun interpret_cmd x = gen_interpret read_goal_expression
   Syntax.parse_prop Attrib.intern_src x;
-
-end;
-
-
-(** Interpretation between locales: declaring sublocale relationships **)
-
-local
-
-fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
-  let
-    val facts =
-      (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
-    val (eqns', ctxt') = ctxt
-      |> Local_Theory.notes_kind Thm.lemmaK facts
-      |-> (fn facts' => `(fn ctxt'' => meta_rewrite ctxt'' (maps snd facts')));
-  in
-    ctxt'
-    |> fold2 (fn (dep, morph) => fn wits => fn ctxt'' =>
-      (Proof_Context.background_theory ooo Locale.add_dependency target)
-        (dep, morph $> Element.satisfy_morphism (map (Element.transform_witness export') wits))
-        (Element.eq_morphism (Proof_Context.theory_of ctxt'') eqns' |> Option.map (rpair true))
-        export ctxt'') deps witss
-  end;
-
-fun gen_sublocale prep_expr prep_loc parse_prop prep_attr
-    before_exit raw_target expression equations thy =
-  let
-    val target = prep_loc thy raw_target;
-    val initial_ctxt = Named_Target.init before_exit target thy;
-
-    val ((propss, deps, export), expr_ctxt) = prep_expr expression initial_ctxt;
-    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
-
-    val attrss = map (apsnd (map (prep_attr thy)) o fst) equations;
-    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
-    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
-
-    fun after_qed witss eqns =
-      note_eqns_dependency target deps witss attrss eqns export export';
-
-  in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
-in
 
 fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) (K I) x;
 fun sublocale_cmd x =
