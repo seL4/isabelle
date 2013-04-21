@@ -49,8 +49,7 @@ fun mk_congeq ctxt fs th =
    val (xs, ctxt'') = Variable.variant_fixes (replicate (length fterms) "x") ctxt'
    val tys = map fastype_of fterms
    val vs = map Free (xs ~~ tys)
-   val env = fterms ~~ vs
-                    (* FIXME!!!!*)
+   val env = fterms ~~ vs (*FIXME*)
    fun replace_fterms (t as t1 $ t2) =
        (case AList.lookup (op aconv) env t of
             SOME v => v
@@ -125,8 +124,8 @@ fun gen_reify ctxt eqs t =
           (case s of
              Abs(_, xT, ta) => (
                let
-                 val ([xn],ctxt') = Variable.variant_fixes ["x"] ctxt
-                 val (xn,ta) = Syntax_Trans.variant_abs (xn,xT,ta)  (* FIXME !? *)
+                 val ([raw_xn],ctxt') = Variable.variant_fixes ["x"] ctxt
+                 val (xn,ta) = Syntax_Trans.variant_abs (raw_xn,xT,ta)  (* FIXME !? *)
                  val x = Free(xn,xT)
                  val bds = (case AList.lookup Type.could_unify bds (HOLogic.listT xT)
                           of NONE => error "tryabsdecomp: Type not found in the Environement"
@@ -290,19 +289,17 @@ fun gen_reflect ctxt conv corr_thms eqs t =
     |> simplify (put_simpset HOL_basic_ss ctxt addsimps eqs addsimps @{thms nth_Cons_0 nth_Cons_Suc})
   end
 
-fun gen_reify_tac ctxt eqs to = SUBGOAL (fn (goal, i) =>
+fun tac_of_thm mk_thm to = SUBGOAL (fn (goal, i) =>
   let
-    val t = (case to of NONE => HOLogic.dest_Trueprop goal | SOME x => x)
-    val th = gen_reify ctxt eqs t RS ssubst
-  in rtac th i end);
+    val t = (case to of NONE => HOLogic.dest_Trueprop goal | SOME t => t)
+    val thm = mk_thm t RS ssubst;
+  in rtac thm i end);
+ 
+fun gen_reify_tac ctxt eqs = tac_of_thm (gen_reify ctxt eqs);
 
-    (* Reflection calls reification and uses the correctness *)
-        (* theorem assumed to be the head of the list *)
-fun gen_reflection_tac ctxt conv corr_thms raw_eqs to = SUBGOAL (fn (goal, i) =>
-  let
-    val t = (case to of NONE => HOLogic.dest_Trueprop goal | SOME x => x)
-    val th = gen_reflect ctxt conv corr_thms raw_eqs t RS ssubst
-  in rtac th i THEN TRY (rtac TrueI i) end);  (* FIXME THEN_ALL_NEW !? *)
+(*Reflection calls reification and uses the correctness theorem assumed to be the head of the list*)
+fun gen_reflection_tac ctxt conv corr_thms eqs =
+  tac_of_thm (gen_reflect ctxt conv corr_thms eqs);
 
 structure Data = Generic_Data
 (
@@ -333,15 +330,15 @@ fun default_reify_tac ctxt user_eqs =
   let
     val { reification_eqs = default_eqs, correctness_thms = _ } =
       get_default ctxt;
-    val eqs = user_eqs @ default_eqs; (*FIXME fold update?*)
+    val eqs = fold Thm.add_thm user_eqs default_eqs;
   in gen_reify_tac ctxt eqs end;
 
 fun default_reflection_tac ctxt user_thms user_eqs =
   let
     val { reification_eqs = default_eqs, correctness_thms = default_thms } =
       get_default ctxt;
-    val corr_thms = user_thms @ default_thms; (*FIXME fold update?*)
-    val eqs = user_eqs @ default_eqs; (*FIXME fold update?*)
+    val corr_thms = fold Thm.add_thm user_thms default_thms;
+    val eqs = fold Thm.add_thm user_eqs default_eqs; 
     val conv = Code_Evaluation.dynamic_conv (Proof_Context.theory_of ctxt);
       (*FIXME why Code_Evaluation.dynamic_conv? very specific*)
   in gen_reflection_tac ctxt conv corr_thms eqs end;
