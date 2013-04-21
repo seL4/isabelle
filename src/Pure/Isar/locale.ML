@@ -458,14 +458,15 @@ fun amend_registration (name, morph) mixin export context =
     val thy = Context.theory_of context;
     val regs = Registrations.get context |> fst;
     val base = instance_of thy name (morph $> export);
+    val serial' = case Idtab.lookup regs (name, base) of
+        NONE =>
+          error ("No interpretation of locale " ^
+            quote (extern thy name) ^ " with\nparameter instantiation " ^
+            space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
+            " available")
+      | SOME (_, serial') => serial';
   in
-    (case Idtab.lookup regs (name, base) of
-      NONE =>
-        error ("No interpretation of locale " ^
-          quote (extern thy name) ^ " with\nparameter instantiation " ^
-          space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^
-          " available")
-    | SOME (_, serial') => add_mixin serial' mixin context)
+    add_mixin serial' mixin context
   end;
 
 (* Note that a registration that would be subsumed by an existing one will not be
@@ -477,13 +478,15 @@ fun add_registration (name, base_morph) mixin export context =
     val mix = (case mixin of NONE => Morphism.identity | SOME (mix, _) => mix);
     val morph = base_morph $> mix;
     val inst = instance_of thy name morph;
+    val idents = Idents.get context;
   in
-    if redundant_ident thy (Idents.get context) (name, inst)
+    if redundant_ident thy idents (name, inst)
     then context  (* FIXME amend mixins? *)
     else
-      (Idents.get context, context)
+      (idents, context)
       (* add new registrations with inherited mixins *)
-      |> (snd o roundup thy (add_reg thy export) export (name, morph))
+      |> roundup thy (add_reg thy export) export (name, morph)
+      |> snd
       (* add mixin *)
       |> (case mixin of NONE => I | SOME mixin => amend_registration (name, morph) mixin export)
       (* activate import hierarchy as far as not already active *)
