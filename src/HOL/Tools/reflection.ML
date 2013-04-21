@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/reflection.ML
+(*  Title:      HOL/Tools/reflection.ML
     Author:     Amine Chaieb, TU Muenchen
 
 A trial for automatical reification.
