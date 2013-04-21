@@ -897,12 +897,11 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
   let
     val facts =
       (attrss ~~ map (fn eqn => [([Morphism.thm (export' $> export) eqn], [])]) eqns);
-    val (eqns', _) = ctxt (* FIXME duplication to add_thmss *)
-      |> Attrib.local_notes Thm.lemmaK facts
+    val (eqns', ctxt') = ctxt
+      |> Local_Theory.notes_kind Thm.lemmaK facts
       |-> (fn facts' => `(fn ctxt'' => meta_rewrite ctxt'' (maps snd facts')));
   in
-    ctxt
-    |> Locale.add_thmss target Thm.lemmaK (Attrib.partial_evaluation ctxt facts)
+    ctxt'
     |> Proof_Context.background_theory (fold2 (fn (dep, morph) => fn wits =>
       fn thy =>
         Locale.add_dependency target
