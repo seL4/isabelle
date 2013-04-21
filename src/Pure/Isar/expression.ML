@@ -364,7 +364,7 @@ fun prep_full_context_statement
         val ctxt'' = Locale.activate_declarations (loc, morph) ctxt;
       in (i + 1, insts', ctxt'') end;
 
-    fun prep_elem insts raw_elem ctxt =
+    fun prep_elem raw_elem ctxt =
       let
         val ctxt' = ctxt
           |> Context_Position.set_visible false
@@ -391,7 +391,7 @@ fun prep_full_context_statement
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
 
     val ctxt4 = init_body ctxt3;
-    val (elems, ctxt5) = fold_map (prep_elem insts') raw_elems ctxt4;
+    val (elems, ctxt5) = fold_map prep_elem raw_elems ctxt4;
     val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
