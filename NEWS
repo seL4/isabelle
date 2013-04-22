@@ -94,9 +94,84 @@ fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
 Code_Target_Nat and Code_Target_Numeral.  See the tutorial on
 code generation for details.  INCOMPATIBILITY.
 
-* Theory "RealVector" and "Limits": Introduce type class
-(lin)order_topology. Allows to generalize theorems about limits and
-order. Instances are reals and extended reals.
+* Introduce type class "conditional_complete_lattice": Like a complete
+  lattice but does not assume the existence of the top and bottom elements.
+  Allows to generalize some lemmas about reals and extended reals.
+  Removed SupInf and replaced it by the instantiation of
+  conditional_complete_lattice for real. Renamed lemmas about conditional
+  complete lattice from Sup_... to cSup_... and from Inf_... to
+  cInf_... to avoid hidding of similar complete lattice lemmas.
+INCOMPATIBILITY.
+
+* Introduce type classes "no_top" and "no_bot" for orderings without top
+  and bottom elements.
+
+* Split dense_linorder into inner_dense_order and no_top, no_bot.
+
+* Complex_Main: Unify and move various concepts from
+  HOL-Multivariate_Analysis to HOL-Complex_Main.
+
+ - Introduce type class (lin)order_topology. Allows to generalize theorems
+   about limits and order. Instances are reals and extended reals.
+
+ - continuous and continuos_on from Multivariate_Analysis:
+   "continuous" is the continuity of a function at a filter.
+   "isCont" is now an abbrevitation: "isCont x f == continuous (at _) f".
+
+   Generalized continuity lemmas from isCont to continuous on an arbitrary
+   filter.
+
+ - compact from Multivariate_Analysis. Use Bolzano's lemma
+   to prove compactness of closed intervals on reals. Continuous functions
+   attain infimum and supremum on compact sets. The inverse of a continuous
+   function is continuous, when the function is continuous on a compact set.
+
+ - connected from Multivariate_Analysis. Use it to prove the
+   intermediate value theorem. Show connectedness of intervals on order
+   topologies which are a inner dense, conditional complete linorder.
+
+ - first_countable_topology from Multivariate_Analysis. Is used to
+   show equivalence of properties on the neighbourhood filter of x and on
+   all sequences converging to x.
+
+ - FDERIV: Definition of has_derivative moved to Deriv.thy. Moved theorems
+   from Library/FDERIV.thy to Deriv.thy and base the definition of DERIV on
+   FDERIV. Add variants of DERIV and FDERIV which are restricted to sets,
+   i.e. to represent derivatives from left or right.
+
+ - Removed the within-filter. It is replaced by the principal filter:
+
+     F within X = inf F (principal X)
+
+ - Introduce "at x within U" as a single constant, "at x" is now an
+   abbreviation for "at x within UNIV"
+
+ - Introduce named theorem collections tendsto_intros, continuous_intros,
+   continuous_on_intros and FDERIV_intros. Theorems in tendsto_intros (or
+   FDERIV_intros) are also available as tendsto_eq_intros (or
+   FDERIV_eq_intros) where the right-hand side is replaced by a congruence
+   rule. This allows to apply them as intro rules and then proving
+   equivalence by the simplifier.
+
+ - Restructured theories in HOL-Complex_Main:
+
+   + Moved RealDef and RComplete into Real
+
+   + Introduced Topological_Spaces and moved theorems about
+     topological spaces, filters, limits and continuity to it
+
+   + Renamed RealVector to Real_Vector_Spaces
+
+   + Split Lim, SEQ, Series into Topological_Spaces, Real_Vector_Spaces, and
+     Limits
+
+   + Moved Ln and Log to Transcendental
+
+   + Moved theorems about continuity from Deriv to Topological_Spaces
+
+ - Remove various auxiliary lemmas.
+
+INCOMPATIBILITY.
 
 * Consolidation of library theories on product orders:
 
