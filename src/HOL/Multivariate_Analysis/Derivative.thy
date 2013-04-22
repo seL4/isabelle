@@ -1433,7 +1433,6 @@ proof-
 qed
 
 lemma vector_derivative_unique_within_closed_interval:
-  fixes f::"real \<Rightarrow> 'n::ordered_euclidean_space"
   assumes "a < b" and "x \<in> {a..b}"
   assumes "(f has_vector_derivative f') (at x within {a..b})"
   assumes "(f has_vector_derivative f'') (at x within {a..b})"
@@ -1460,7 +1459,6 @@ lemma vector_derivative_at:
   unfolding has_vector_derivative_def by auto
 
 lemma vector_derivative_within_closed_interval:
-  fixes f::"real \<Rightarrow> 'a::ordered_euclidean_space"
   assumes "a < b" and "x \<in> {a..b}"
   assumes "(f has_vector_derivative f') (at x within {a..b})"
   shows "vector_derivative f (at x within {a..b}) = f'"
