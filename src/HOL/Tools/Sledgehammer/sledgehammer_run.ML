@@ -276,7 +276,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers, max_facts,
         if null smts then accum else launch_provers state "SMT solver" NONE smts
       val launch_full_atps = launch_atps "ATP" NONE full_atps
       val launch_ueq_atps =
-        launch_atps "Unit equational provers" (SOME is_unit_equality) ueq_atps
+        launch_atps "Unit-equational provers" (SOME is_unit_equality) ueq_atps
       fun launch_atps_and_smt_solvers () =
         [launch_full_atps, launch_smts, launch_ueq_atps]
         |> Par_List.map (fn f => ignore (f (unknownN, state)))

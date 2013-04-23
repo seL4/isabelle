@@ -445,7 +445,7 @@ fun string_for_proof ctxt type_enc lam_trans i n proof =
       else if nr=1 orelse member (op=) qs Then
         then of_thus_hence qs
         else of_show_have qs
-    fun add_term term (s, ctxt)=
+    fun add_term term (s, ctxt) =
       (s ^ (annotate_types ctxt term
             |> with_vanilla_print_mode (Syntax.string_of_term ctxt)
             |> simplify_spaces
@@ -780,7 +780,7 @@ fun isar_proof_text ctxt isar_proofs
             do_proof true params assms infs
           end
 
-        val cleanup_labels_in_proof =
+        val clean_up_labels_in_proof =
           chain_direct_proof
           #> kill_useless_labels_in_proof
           #> relabel_proof
@@ -791,10 +791,10 @@ fun isar_proof_text ctxt isar_proofs
           |> (if not preplay andalso isar_compress <= 1.0 then
                 rpair (false, (true, seconds 0.0))
               else
-                compress_proof debug ctxt type_enc lam_trans preplay
+                compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
                   preplay_timeout
                   (if isar_proofs = SOME true then isar_compress else 1000.0))
-          |>> cleanup_labels_in_proof
+          |>> clean_up_labels_in_proof
         val isar_text =
           string_for_proof ctxt type_enc lam_trans subgoal subgoal_count
                            isar_proof
@@ -820,8 +820,8 @@ fun isar_proof_text ctxt isar_proofs
                else
                  [])
           in
-            "\n\nStructured proof "
-              ^ (commas msg |> not (null msg) ? enclose "(" ")")
+            "\n\nStructured proof"
+              ^ (commas msg |> not (null msg) ? enclose " (" ")")
               ^ ":\n" ^ Active.sendback_markup isar_text
           end
       end

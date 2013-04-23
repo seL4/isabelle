@@ -9,7 +9,7 @@ signature SLEDGEHAMMER_COMPRESS =
 sig
   type isar_proof = Sledgehammer_Proof.isar_proof
   type preplay_time = Sledgehammer_Preplay.preplay_time
-  val compress_proof :
+  val compress_and_preplay_proof :
     bool -> Proof.context -> string -> string -> bool -> Time.time option
     -> real -> isar_proof -> isar_proof * (bool * preplay_time)
 end
@@ -46,8 +46,8 @@ fun pop_max tab = pop tab (the (Inttab.max_key tab))
 fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
 (* Main function for compresing proofs *)
-fun compress_proof debug ctxt type_enc lam_trans preplay preplay_timeout
-                   isar_compress proof =
+fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
+                               preplay_timeout isar_compress proof =
   let
     (* 60 seconds seems like a good interpreation of "no timeout" *)
     val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
