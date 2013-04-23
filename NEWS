@@ -31,6 +31,11 @@ timing information.
 
 *** Pure ***
 
+* Target-sensitive commands 'interpretation' and 'sublocale'.
+Particulary, 'interpretation' now allows for non-persistent
+interpretation within "context ... begin ... end" blocks.
+See "isar-ref" manual for details.
+
 * Improved locales diagnostic command 'print_dependencies'.
 
 * Discontinued obsolete 'axioms' command, which has been marked as
