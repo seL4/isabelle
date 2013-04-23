@@ -44,11 +44,13 @@ sig
   val interpret: expression_i -> (Attrib.binding * term) list -> bool -> Proof.state -> Proof.state
   val interpret_cmd: expression -> (Attrib.binding * string) list ->
     bool -> Proof.state -> Proof.state
-  val interpretation: expression_i -> (Attrib.binding * term) list -> theory -> Proof.state
-  val interpretation_cmd: expression -> (Attrib.binding * string) list -> theory -> Proof.state
-  val sublocale: (local_theory -> local_theory) -> string -> expression_i ->
+  val interpretation: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
+  val interpretation_cmd: expression -> (Attrib.binding * string) list -> local_theory -> Proof.state
+  val sublocale: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
+  val sublocale_cmd: expression -> (Attrib.binding * string) list -> local_theory -> Proof.state
+  val sublocale_global: (local_theory -> local_theory) -> string -> expression_i ->
     (Attrib.binding * term) list -> theory -> Proof.state
-  val sublocale_cmd: (local_theory -> local_theory) -> xstring * Position.T -> expression ->
+  val sublocale_global_cmd: (local_theory -> local_theory) -> xstring * Position.T -> expression ->
     (Attrib.binding * string) list -> theory -> Proof.state
 
   (* Diagnostic *)
@@ -855,8 +857,10 @@ fun generic_interpretation prep_expr parse_prop prep_attr setup_proof note add_r
 
 val activate_proof = Context.proof_map ooo Locale.add_registration;
 val activate_local_theory = Local_Theory.target ooo activate_proof;
-val add_registration = Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration;
-fun add_dependency locale = Proof_Context.background_theory ooo Locale.add_dependency locale;
+val add_registration = Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
+val add_registration_global = Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration;
+fun add_dependency locale = Local_Theory.raw_theory ooo Locale.add_dependency locale;
+fun add_dependency_global locale = Proof_Context.background_theory ooo Locale.add_dependency locale;
 
 fun gen_interpret prep_expr parse_prop prep_attr expression raw_eqns int state =
   let
@@ -870,20 +874,37 @@ fun gen_interpret prep_expr parse_prop prep_attr expression raw_eqns int state =
       Attrib.local_notes activate_proof I expression raw_eqns ctxt
   end;
 
-fun gen_interpretation prep_expr parse_prop prep_attr expression raw_eqns thy =
-  thy
-  |> Named_Target.theory_init
-  |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
-      Local_Theory.notes_kind add_registration I expression raw_eqns;
+fun gen_interpretation prep_expr parse_prop prep_attr expression raw_eqns lthy =
+  let
+    val is_theory = Option.map #target (Named_Target.peek lthy) = SOME ""
+      andalso Local_Theory.level lthy = 1;
+    val activate = if is_theory then add_registration else activate_local_theory;
+  in
+    lthy
+    |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
+        Local_Theory.notes_kind activate I expression raw_eqns
+  end;
 
-fun gen_sublocale prep_expr prep_loc parse_prop prep_attr before_exit raw_locale expression raw_eqns thy =
+fun gen_sublocale prep_expr parse_prop prep_attr expression raw_eqns lthy =
+  let
+    val locale =
+      case Option.map #target (Named_Target.peek lthy) of
+          SOME locale => locale
+        | _ => error "Not in a locale target";
+  in
+    lthy
+    |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
+        Local_Theory.notes_kind (add_dependency locale) (Named_Target.reinit lthy) expression raw_eqns
+  end;
+  
+fun gen_sublocale_global prep_expr prep_loc parse_prop prep_attr before_exit raw_locale expression raw_eqns thy =
   let
     val locale = prep_loc thy raw_locale;
   in
     thy
     |> Named_Target.init before_exit locale
     |> generic_interpretation prep_expr parse_prop prep_attr Element.witness_proof_eqs
-        Local_Theory.notes_kind (add_dependency locale) I expression raw_eqns
+        Local_Theory.notes_kind (add_dependency_global locale) I expression raw_eqns
   end;
 
 in
@@ -916,16 +937,20 @@ fun ephemeral_interpretation expression raw_eqns lthy =
   end;
 
 fun interpret x = gen_interpret cert_goal_expression (K I) (K I) x;
-fun interpret_cmd x = gen_interpret read_goal_expression
-  Syntax.parse_prop Attrib.intern_src x;
+fun interpret_cmd x =
+  gen_interpret read_goal_expression Syntax.parse_prop Attrib.intern_src x;
 
 fun interpretation x = gen_interpretation cert_goal_expression (K I) (K I) x;
-fun interpretation_cmd x = gen_interpretation read_goal_expression
-  Syntax.parse_prop Attrib.intern_src x;
+fun interpretation_cmd x =
+  gen_interpretation read_goal_expression Syntax.parse_prop Attrib.intern_src x;
 
-fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) (K I) x;
+fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) x;
 fun sublocale_cmd x =
-  gen_sublocale read_goal_expression Locale.check Syntax.parse_prop Attrib.intern_src x;
+  gen_sublocale read_goal_expression Syntax.parse_prop Attrib.intern_src x;
+
+fun sublocale_global x = gen_sublocale_global cert_goal_expression (K I) (K I) (K I) x;
+fun sublocale_global_cmd x =
+  gen_sublocale_global read_goal_expression Locale.check Syntax.parse_prop Attrib.intern_src x;
 
 end;
 
