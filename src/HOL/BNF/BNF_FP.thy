@@ -116,6 +116,9 @@ lemma UN_compreh_eq_eq:
 "\<Union>{y. \<exists>x\<in>A. y = {x}} = A"
 by blast+
 
+lemma Inl_Inr_False: "(Inl x = Inr y) = False"
+by simp
+
 lemma prod_set_simps:
 "fsts (x, y) = {x}"
 "snds (x, y) = {y}"

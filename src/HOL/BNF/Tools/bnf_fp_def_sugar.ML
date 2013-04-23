@@ -550,8 +550,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
               fold_thms lthy ctr_defs'
-                 (unfold_thms lthy (pre_rel_def :: (if lfp then [] else [dtor_ctor]) @
-                      sum_prod_thms_rel)
+                 (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
+                      (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_rel)
                     (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
               |> postproc
               |> singleton (Proof_Context.export names_lthy no_defs_lthy);
