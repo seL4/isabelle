@@ -858,7 +858,6 @@ fun generic_interpretation prep_expr parse_prop prep_attr setup_proof note add_r
 val activate_proof = Context.proof_map ooo Locale.add_registration;
 val activate_local_theory = Local_Theory.target ooo activate_proof;
 val add_registration = Local_Theory.raw_theory o Context.theory_map ooo Locale.add_registration;
-val add_registration_global = Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration;
 fun add_dependency locale = Local_Theory.raw_theory ooo Locale.add_dependency locale;
 fun add_dependency_global locale = Proof_Context.background_theory ooo Locale.add_dependency locale;
 
