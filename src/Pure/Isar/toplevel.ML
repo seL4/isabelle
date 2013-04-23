@@ -110,7 +110,7 @@ exception UNDEF = Runtime.UNDEF;
 (* local theory wrappers *)
 
 val loc_init = Named_Target.context_cmd;
-val loc_exit = Local_Theory.assert_bottom true #> Local_Theory.exit_global;
+val loc_exit = Local_Theory.assert_bottom true #> Local_Theory.assert_nonbrittle #> Local_Theory.exit_global;
 
 fun loc_begin loc (Context.Theory thy) =
       (Context.Theory o loc_exit, loc_init (the_default ("-", Position.none) loc) thy)

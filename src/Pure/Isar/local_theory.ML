@@ -14,6 +14,8 @@ sig
   val restore: local_theory -> local_theory
   val level: Proof.context -> int
   val assert_bottom: bool -> local_theory -> local_theory
+  val mark_brittle: local_theory -> local_theory
+  val assert_nonbrittle: local_theory -> local_theory
   val open_target: Name_Space.naming -> operations -> (local_theory -> local_theory) ->
     local_theory -> local_theory
   val close_target: local_theory -> local_theory
@@ -95,27 +97,27 @@ fun make_lthy (naming, operations, after_close, target) : lthy =
 
 structure Data = Proof_Data
 (
-  type T = lthy list;
-  fun init _ = [];
+  type T = lthy list * bool;
+  fun init _ = ([], false);
 );
 
 fun assert lthy =
-  if null (Data.get lthy) then error "Missing local theory context" else lthy;
+  if null (fst (Data.get lthy)) then error "Missing local theory context" else lthy;
 
-val get_last_lthy = List.last o Data.get o assert;
-val get_first_lthy = hd o Data.get o assert;
+val get_last_lthy = List.last o fst o Data.get o assert;
+val get_first_lthy = hd o fst o Data.get o assert;
 
 fun map_first_lthy f =
   assert #>
-  Data.map (fn {naming, operations, after_close, target} :: parents =>
+  (Data.map o apfst) (fn {naming, operations, after_close, target} :: parents =>
     make_lthy (f (naming, operations, after_close, target)) :: parents);
 
-fun restore lthy = #target (get_first_lthy lthy) |> Data.put (Data.get lthy);
+fun restore lthy = #target (get_first_lthy lthy) |> Data.put (fst (Data.get lthy), false);
 
 
 (* nested structure *)
 
-val level = length o Data.get;  (*1: main target at bottom, >= 2: nested context*)
+val level = length o fst o Data.get;  (*1: main target at bottom, >= 2: nested context*)
 
 fun assert_bottom b lthy =
   let
@@ -129,17 +131,17 @@ fun assert_bottom b lthy =
 
 fun open_target naming operations after_close target =
   assert target
-  |> Data.map (cons (make_lthy (naming, operations, after_close, target)));
+  |> (Data.map o apfst) (cons (make_lthy (naming, operations, after_close, target)));
 
 fun close_target lthy =
   let
     val _ = assert_bottom false lthy;
-    val {after_close, ...} :: rest = Data.get lthy;
-  in lthy |> Data.put rest |> restore |> after_close end;
+    val ({after_close, ...} :: rest, tainted) = Data.get lthy;
+  in lthy |> Data.put (rest, tainted) |> restore |> after_close end;
 
 fun map_contexts f lthy =
   let val n = level lthy in
-    lthy |> (Data.map o map_index) (fn (i, {naming, operations, after_close, target}) =>
+    lthy |> (Data.map o apfst o map_index) (fn (i, {naming, operations, after_close, target}) =>
       make_lthy (naming, operations, after_close,
         target
         |> Context_Position.set_visible false
@@ -147,6 +149,16 @@ fun map_contexts f lthy =
         |> Context_Position.restore_visible target))
     |> f n
   end;
+
+
+(* brittle context -- implicit for nested structures *)
+
+val mark_brittle = Data.map (fn ([data], _) => ([data], true) | x => x);
+
+fun assert_nonbrittle lthy =
+  if snd (Data.get lthy) orelse level lthy > 1
+  then error "Brittle local theory context"
+  else lthy;
 
 
 (* naming *)
@@ -290,7 +302,7 @@ val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 (* init *)
 
 fun init naming operations target =
-  target |> Data.map
+  target |> (Data.map o apfst)
     (fn [] => [make_lthy (naming, operations, I, target)]
       | _ => error "Local theory already initialized")
   |> checkpoint;
