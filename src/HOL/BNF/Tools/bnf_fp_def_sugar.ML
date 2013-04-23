@@ -516,8 +516,12 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             val nones = replicate live NONE;
 
             val ctor_cong =
-              if lfp then Drule.dummy_thm
-              else cterm_instantiate_pos [NONE, NONE, SOME (certify lthy ctor)] arg_cong;
+              if lfp then
+                Drule.dummy_thm
+              else
+                let val ctor' = mk_ctor Bs ctor in
+                  cterm_instantiate_pos [NONE, NONE, SOME (certify lthy ctor')] arg_cong
+                end;
 
             fun mk_cIn ify =
               certify lthy o (not lfp ? curry (op $) (map_types ify ctor)) oo
