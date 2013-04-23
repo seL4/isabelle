@@ -1,7 +1,8 @@
 (*  Title:      HOL/BNF/Examples/Misc_Data.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
-    Copyright   2012
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2012, 2013
 
 Miscellaneous datatype declarations.
 *)
@@ -152,5 +153,26 @@ data ('a, 'b, 'c, 'd) foo = Foo "'d + 'b \<Rightarrow> 'c + 'a"
 
 data 'a dead_foo = A
 data ('a, 'b) use_dead_foo = Y "'a" "'b dead_foo"
+
+data d1 = D
+data d1' = is_D: D
+
+data d2 = D nat
+data d2' = is_D: D nat
+
+data d3 = D | E
+data d3' = D | is_E: E
+data d3'' = is_D: D | E
+data d3''' = is_D: D | is_E: E
+
+data d4 = D nat | E
+data d4' = D nat | is_E: E
+data d4'' = is_D: D nat | E
+data d4''' = is_D: D nat | is_E: E
+
+data d5 = D nat | E int
+data d5' = D nat | is_E: E int
+data d5'' = is_D: D nat | E int
+data d5''' = is_D: D nat | is_E: E int
 
 end
