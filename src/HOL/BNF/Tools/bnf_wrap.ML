@@ -65,6 +65,9 @@ val iff_attrs = @{attributes [iff]};
 val safe_elim_attrs = @{attributes [elim!]};
 val simp_attrs = @{attributes [simp]};
 
+val unique_disc_no_def = TrueI; (*arbitrary marker*)
+val alternate_disc_no_def = FalseE; (*arbitrary marker*)
+
 fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
 fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
@@ -215,9 +218,6 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
 
     val exist_xs_u_eq_ctrs =
       map2 (fn xctr => fn xs => list_exists_free xs (HOLogic.mk_eq (u, xctr))) xctrs xss;
-
-    val unique_disc_no_def = TrueI; (*arbitrary marker*)
-    val alternate_disc_no_def = FalseE; (*arbitrary marker*)
 
     fun alternate_disc_lhs get_udisc k =
       HOLogic.mk_not
@@ -535,9 +535,9 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
                   val goal =
                     Library.foldr Logic.list_implies
                       (map5 mk_prems ks udiscs uselss vdiscs vselss, uv_eq);
-
                   val uncollapse_thms =
-                    map (fn NONE => Drule.dummy_thm | SOME thm => thm RS sym) collapse_thm_opts;
+                    map2 (fn NONE => K asm_rl | SOME thm => fn [] => thm | _ => thm RS sym)
+                      collapse_thm_opts uselss;
                 in
                   [Goal.prove_sorry lthy [] [] goal (fn _ =>
                      mk_expand_tac lthy n ms (inst_thm u disc_exhaust_thm)

@@ -67,29 +67,28 @@ fun mk_collapse_tac ctxt m discD sels =
       REPEAT_DETERM_N m o etac exE THEN' hyp_subst_tac THEN'
       SELECT_GOAL (unfold_thms_tac ctxt sels) THEN' rtac refl)) 1;
 
-fun mk_expand_tac ctxt
-    n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss disc_excludesss' =
+fun mk_expand_tac ctxt n ms udisc_exhaust vdisc_exhaust uncollapses disc_excludesss
+    disc_excludesss' =
   if ms = [0] then
-    rtac (@{thm trans_sym} OF (replicate 2 (the_single uncollapses RS sym))) 1
+    (rtac (@{thm trans_sym} OF (replicate 2 (the_single uncollapses))) THEN'
+     TRY o EVERY' [rtac udisc_exhaust, atac, rtac vdisc_exhaust, atac]) 1
   else
-    let
-      val ks = 1 upto n;
-      val maybe_atac = if n = 1 then K all_tac else atac;
-    in
+    let val ks = 1 upto n in
       (rtac udisc_exhaust THEN'
-       EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' => fn uuncollapse =>
-         EVERY' [if m = 0 then K all_tac else rtac (uuncollapse RS trans) THEN' maybe_atac,
+       EVERY' (map5 (fn k => fn m => fn disc_excludess => fn disc_excludess' =>
+           fn uuncollapse =>
+         EVERY' [rtac (uuncollapse RS trans) THEN' TRY o atac,
            rtac sym, rtac vdisc_exhaust,
            EVERY' (map4 (fn k' => fn disc_excludes => fn disc_excludes' => fn vuncollapse =>
              EVERY'
                (if k' = k then
-                  if m = 0 then
-                    [hyp_subst_tac, rtac refl]
-                  else
-                    [rtac (vuncollapse RS trans), maybe_atac,
-                     if n = 1 then K all_tac else EVERY' [dtac meta_mp, atac, dtac meta_mp, atac],
-                     REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE,
-                     asm_simp_tac (ss_only [] ctxt)]
+                  [rtac (vuncollapse RS trans), TRY o atac] @
+                  (if m = 0 then
+                     [rtac refl]
+                   else
+                     [if n = 1 then K all_tac else EVERY' [dtac meta_mp, atac, dtac meta_mp, atac],
+                      REPEAT_DETERM_N (Int.max (0, m - 1)) o etac conjE,
+                      asm_simp_tac (ss_only [] ctxt)])
                 else
                   [dtac (the_single (if k = n then disc_excludes else disc_excludes')),
                    etac (if k = n then @{thm iff_contradict(1)} else @{thm iff_contradict(2)}),
