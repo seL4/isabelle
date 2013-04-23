@@ -39,6 +39,8 @@ sig
     (term list list * (string * morphism) list * morphism) * Proof.context
   val read_goal_expression: expression -> Proof.context ->
     (term list list * (string * morphism) list * morphism) * Proof.context
+  val permanent_interpretation: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
+  val ephemeral_interpretation: expression_i -> (Attrib.binding * term) list -> local_theory -> Proof.state
   val interpret: expression_i -> (Attrib.binding * term) list -> bool -> Proof.state -> Proof.state
   val interpret_cmd: expression -> (Attrib.binding * string) list ->
     bool -> Proof.state -> Proof.state
@@ -851,7 +853,8 @@ fun generic_interpretation prep_expr parse_prop prep_attr setup_proof note add_r
       note_eqns_register note add_registration reinit deps witss eqns attrss export export';
   in setup_proof after_qed propss eqns goal_ctxt end;
 
-val activate_only = Context.proof_map ooo Locale.add_registration;
+val activate_proof = Context.proof_map ooo Locale.add_registration;
+val activate_local_theory = Local_Theory.target ooo activate_proof;
 val add_registration = Proof_Context.background_theory o Context.theory_map ooo Locale.add_registration;
 fun add_dependency locale = Proof_Context.background_theory ooo Locale.add_dependency locale;
 
@@ -864,7 +867,7 @@ fun gen_interpret prep_expr parse_prop prep_attr expression raw_eqns int state =
       Element.witness_local_proof_eqs (lift_after_qed after_qed) "interpret" propss eqns goal_ctxt int state;
   in
     generic_interpretation prep_expr parse_prop prep_attr setup_proof
-      Attrib.local_notes activate_only I expression raw_eqns ctxt
+      Attrib.local_notes activate_proof I expression raw_eqns ctxt
   end;
 
 fun gen_interpretation prep_expr parse_prop prep_attr expression raw_eqns thy =
@@ -884,6 +887,33 @@ fun gen_sublocale prep_expr prep_loc parse_prop prep_attr before_exit raw_locale
   end;
 
 in
+
+fun permanent_interpretation expression raw_eqns lthy =
+  let
+    val _ = Local_Theory.assert_bottom true lthy;
+    val target = case Named_Target.peek lthy of
+          SOME { target, ... } => target
+        | NONE => error "Not in a named target";
+    val is_theory = (target = "");
+    val activate = if is_theory then add_registration else add_dependency target;
+    val reinit = if is_theory then I else Named_Target.reinit lthy;
+  in
+    lthy
+    |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
+        Local_Theory.notes_kind activate reinit expression raw_eqns
+  end;
+
+fun ephemeral_interpretation expression raw_eqns lthy =
+  let
+    val _ = if Option.map #target (Named_Target.peek lthy) = SOME ""
+      andalso Local_Theory.level lthy = 1
+      then error "Not possible on level of global theory" else ();
+  in
+    lthy
+    |> Local_Theory.mark_brittle
+    |> generic_interpretation cert_goal_expression (K I) (K I) Element.witness_proof_eqs
+        Local_Theory.notes_kind activate_local_theory I expression raw_eqns
+  end;
 
 fun interpret x = gen_interpret cert_goal_expression (K I) (K I) x;
 fun interpret_cmd x = gen_interpret read_goal_expression
