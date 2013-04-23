@@ -17,6 +17,12 @@ no_notation Groups.one ("1")
 locale comm_monoid_set = comm_monoid
 begin
 
+interpretation comp_fun_commute f
+  by default (simp add: fun_eq_iff left_commute)
+
+interpretation comp_fun_commute "f \<circ> g"
+  by (rule comp_comp_fun_commute)
+
 definition F :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
 where
   eq_fold: "F g A = Finite_Set.fold (f \<circ> g) 1 A"
@@ -32,13 +38,7 @@ lemma empty [simp]:
 lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F g (insert x A) = g x * F g A"
-proof -
-  interpret comp_fun_commute f
-    by default (simp add: fun_eq_iff left_commute)
-  interpret comp_fun_commute "f \<circ> g"
-    by (rule comp_comp_fun_commute)
-  from assms show ?thesis by (simp add: eq_fold)
-qed
+  using assms by (simp add: eq_fold)
 
 lemma remove:
   assumes "finite A" and "x \<in> A"
@@ -58,11 +58,7 @@ lemma insert_remove:
 lemma neutral:
   assumes "\<forall>x\<in>A. g x = 1"
   shows "F g A = 1"
-proof (cases "finite A")
-  case True from `finite A` assms show ?thesis by (induct A) simp_all
-next
-  case False then show ?thesis by simp
-qed
+  using assms by (induct A rule: infinite_finite_induct) simp_all
 
 lemma neutral_const [simp]:
   "F (\<lambda>_. 1) A = 1"
@@ -100,11 +96,7 @@ lemma reindex:
   shows "F g (h ` A) = F (g \<circ> h) A"
 proof (cases "finite A")
   case True
-  interpret comp_fun_commute f
-    by default (simp add: fun_eq_iff left_commute)
-  interpret comp_fun_commute "f \<circ> g"
-    by (rule comp_comp_fun_commute)
-  from assms `finite A` show ?thesis by (simp add: eq_fold fold_image comp_assoc)
+  with assms show ?thesis by (simp add: eq_fold fold_image comp_assoc)
 next
   case False with assms have "\<not> finite (h ` A)" by (blast dest: finite_imageD)
   with False show ?thesis by simp
@@ -168,11 +160,7 @@ qed (auto dest: finite_UnionD intro: infinite)
 
 lemma distrib:
   "F (\<lambda>x. g x * h x) A = F g A * F h A"
-proof (cases "finite A")
-  case False then show ?thesis by simp
-next
-  case True then show ?thesis by (rule finite_induct) (simp_all add: assoc commute left_commute)
-qed
+  using assms by (induct A rule: infinite_finite_induct) (simp_all add: assoc commute left_commute)
 
 lemma Sigma:
   "finite A \<Longrightarrow> \<forall>x\<in>A. finite (B x) \<Longrightarrow> F (\<lambda>x. F (g x) (B x)) A = F (split g) (SIGMA x:A. B x)"
@@ -319,11 +307,14 @@ notation Groups.one ("1")
 
 subsection {* Generalized summation over a set *}
 
-definition (in comm_monoid_add) setsum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
+context comm_monoid_add
+begin
+
+definition setsum :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
 where
   "setsum = comm_monoid_set.F plus 0"
 
-sublocale comm_monoid_add < setsum!: comm_monoid_set plus 0
+sublocale setsum!: comm_monoid_set plus 0
 where
   "comm_monoid_set.F plus 0 = setsum"
 proof -
@@ -335,6 +326,8 @@ qed
 abbreviation
   Setsum ("\<Sum>_" [1000] 999) where
   "\<Sum>A \<equiv> setsum (%x. x) A"
+
+end
 
 text{* Now: lot's of fancy syntax. First, @{term "setsum (%x. e) A"} is
 written @{text"\<Sum>x\<in>A. e"}. *}
@@ -1050,11 +1043,14 @@ by (simp add: card_cartesian_product)
 
 subsection {* Generalized product over a set *}
 
-definition (in comm_monoid_mult) setprod :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
+context comm_monoid_mult
+begin
+
+definition setprod :: "('b \<Rightarrow> 'a) \<Rightarrow> 'b set \<Rightarrow> 'a"
 where
   "setprod = comm_monoid_set.F times 1"
 
-sublocale comm_monoid_mult < setprod!: comm_monoid_set times 1
+sublocale setprod!: comm_monoid_set times 1
 where
   "comm_monoid_set.F times 1 = setprod"
 proof -
@@ -1066,6 +1062,8 @@ qed
 abbreviation
   Setprod ("\<Prod>_" [1000] 999) where
   "\<Prod>A \<equiv> setprod (\<lambda>x. x) A"
+
+end
 
 syntax
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(3PROD _:_. _)" [0, 51, 10] 10)
@@ -1386,6 +1384,9 @@ subsubsection {* Without neutral element *}
 locale semilattice_set = semilattice
 begin
 
+interpretation comp_fun_idem f
+  by default (simp_all add: fun_eq_iff left_commute)
+
 definition F :: "'a set \<Rightarrow> 'a"
 where
   eq_fold': "F A = the (Finite_Set.fold (\<lambda>x y. Some (case y of None \<Rightarrow> x | Some z \<Rightarrow> f x z)) None A)"
@@ -1395,8 +1396,6 @@ lemma eq_fold:
   shows "F (insert x A) = Finite_Set.fold f x A"
 proof (rule sym)
   let ?f = "\<lambda>x y. Some (case y of None \<Rightarrow> x | Some z \<Rightarrow> f x z)"
-  interpret comp_fun_idem f
-    by default (simp_all add: fun_eq_iff left_commute)
   interpret comp_fun_idem "?f"
     by default (simp_all add: fun_eq_iff commute left_commute split: option.split)
   from assms show "Finite_Set.fold f x A = F (insert x A)"
@@ -1415,8 +1414,6 @@ lemma insert_not_elem:
   assumes "finite A" and "x \<notin> A" and "A \<noteq> {}"
   shows "F (insert x A) = x * F A"
 proof -
-  interpret comp_fun_idem f
-    by default (simp_all add: fun_eq_iff left_commute)
   from `A \<noteq> {}` obtain b where "b \<in> A" by blast
   then obtain B where *: "A = insert b B" "b \<notin> B" by (blast dest: mk_disjoint_insert)
   with `finite A` and `x \<notin> A`
@@ -1552,6 +1549,9 @@ subsubsection {* With neutral element *}
 locale semilattice_neutr_set = semilattice_neutr
 begin
 
+interpretation comp_fun_idem f
+  by default (simp_all add: fun_eq_iff left_commute)
+
 definition F :: "'a set \<Rightarrow> 'a"
 where
   eq_fold: "F A = Finite_Set.fold f 1 A"
@@ -1567,11 +1567,7 @@ lemma empty [simp]:
 lemma insert [simp]:
   assumes "finite A"
   shows "F (insert x A) = x * F A"
-proof -
-  interpret comp_fun_idem f
-    by default (simp_all add: fun_eq_iff left_commute)
-  from assms show ?thesis by (simp add: eq_fold)
-qed
+  using assms by (simp add: eq_fold)
 
 lemma in_idem:
   assumes "finite A" and "x \<in> A"
@@ -1693,15 +1689,18 @@ definition (in semilattice_sup) Sup_fin :: "'a set \<Rightarrow> 'a" ("\<Squnion
 where
   "Sup_fin = semilattice_set.F sup"
 
-definition (in linorder) Min :: "'a set \<Rightarrow> 'a"
+context linorder
+begin
+
+definition Min :: "'a set \<Rightarrow> 'a"
 where
   "Min = semilattice_set.F min"
 
-definition (in linorder) Max :: "'a set \<Rightarrow> 'a"
+definition Max :: "'a set \<Rightarrow> 'a"
 where
   "Max = semilattice_set.F max"
 
-sublocale linorder < Min!: semilattice_order_set min less_eq less
+sublocale Min!: semilattice_order_set min less_eq less
   + Max!: semilattice_order_set max greater_eq greater
 where
   "semilattice_set.F min = Min"
@@ -1718,7 +1717,7 @@ qed
 
 text {* An aside: @{const min}/@{const max} on linear orders as special case of @{const inf}/@{const sup} *}
 
-sublocale linorder < min_max!: distrib_lattice min less_eq less max
+sublocale min_max!: distrib_lattice min less_eq less max
 where
   "semilattice_inf.Inf_fin min = Min"
   and "semilattice_sup.Sup_fin max = Max"
@@ -1744,6 +1743,8 @@ lemmas min_ac = min_max.inf_assoc min_max.inf_commute
 
 lemmas max_ac = min_max.sup_assoc min_max.sup_commute
   max.left_commute
+
+end
 
 
 text {* Lattice operations proper *}
@@ -1993,45 +1994,44 @@ next
   from assms show "x \<le> Max A" by simp
 qed
 
+context
+  fixes A :: "'a set"
+  assumes fin_nonempty: "finite A" "A \<noteq> {}"
+begin
+
 lemma Min_ge_iff [simp, no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
-  using assms by (fact Min.bounded_iff)
+  "x \<le> Min A \<longleftrightarrow> (\<forall>a\<in>A. x \<le> a)"
+  using fin_nonempty by (fact Min.bounded_iff)
 
 lemma Max_le_iff [simp, no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
-  using assms by (fact Max.bounded_iff)
+  "Max A \<le> x \<longleftrightarrow> (\<forall>a\<in>A. a \<le> x)"
+  using fin_nonempty by (fact Max.bounded_iff)
 
 lemma Min_gr_iff [simp, no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
-  using assms by (induct rule: finite_ne_induct) simp_all
+  "x < Min A \<longleftrightarrow> (\<forall>a\<in>A. x < a)"
+  using fin_nonempty  by (induct rule: finite_ne_induct) simp_all
 
 lemma Max_less_iff [simp, no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
-  using assms by (induct rule: finite_ne_induct) simp_all
+  "Max A < x \<longleftrightarrow> (\<forall>a\<in>A. a < x)"
+  using fin_nonempty by (induct rule: finite_ne_induct) simp_all
 
 lemma Min_le_iff [no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
-  using assms by (induct rule: finite_ne_induct) (simp_all add: min_le_iff_disj)
+  "Min A \<le> x \<longleftrightarrow> (\<exists>a\<in>A. a \<le> x)"
+  using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: min_le_iff_disj)
 
 lemma Max_ge_iff [no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
-  using assms by (induct rule: finite_ne_induct) (simp_all add: le_max_iff_disj)
+  "x \<le> Max A \<longleftrightarrow> (\<exists>a\<in>A. x \<le> a)"
+  using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: le_max_iff_disj)
 
 lemma Min_less_iff [no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
-  using assms by (induct rule: finite_ne_induct) (simp_all add: min_less_iff_disj)
+  "Min A < x \<longleftrightarrow> (\<exists>a\<in>A. a < x)"
+  using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: min_less_iff_disj)
 
 lemma Max_gr_iff [no_atp]:
-  assumes "finite A" and "A \<noteq> {}"
-  shows "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
-  using assms by (induct rule: finite_ne_induct) (simp_all add: less_max_iff_disj)
+  "x < Max A \<longleftrightarrow> (\<exists>a\<in>A. x < a)"
+  using fin_nonempty by (induct rule: finite_ne_induct) (simp_all add: less_max_iff_disj)
+
+end
 
 lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"

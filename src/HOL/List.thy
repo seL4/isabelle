@@ -3376,7 +3376,7 @@ lemma (in monoid_add) listsum_map_filter:
   shows "listsum (map f (filter P xs)) = listsum (map f xs)"
   using assms by (induct xs) auto
 
-lemma (in monoid_add) distinct_listsum_conv_Setsum:
+lemma (in comm_monoid_add) distinct_listsum_conv_Setsum:
   "distinct xs \<Longrightarrow> listsum xs = Setsum (set xs)"
   by (induct xs) simp_all
 
