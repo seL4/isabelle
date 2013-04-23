@@ -3,10 +3,10 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Composition of bounded natural functors.
+Basic fixed point operations on bounded natural functors.
 *)
 
-header {* Composition of Bounded Natural Functors *}
+header {* Basic Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP
 imports BNF_Comp BNF_Wrap
