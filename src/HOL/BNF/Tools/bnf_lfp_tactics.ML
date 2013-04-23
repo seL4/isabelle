@@ -65,6 +65,8 @@ sig
     thm list -> tactic
   val mk_mor_str_tac: 'a list -> thm -> tactic
   val mk_rec_tac: thm list -> thm -> thm list -> {prems: 'a, context: Proof.context} -> tactic
+  val mk_rec_unique_mor_tac: thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
+    tactic
   val mk_set_bd_tac: int -> (int -> tactic) -> thm -> thm list list -> thm list -> int ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_set_nat_tac: int -> (int -> tactic) -> thm list list -> thm list -> cterm list ->
@@ -524,6 +526,11 @@ fun mk_rec_tac rec_defs foldx fst_recs {context = ctxt, prems = _}=
     (rec_defs @ map (fn thm => thm RS @{thm convol_expand_snd}) fst_recs) THEN
   EVERY' [rtac trans, rtac o_apply, rtac trans, rtac (foldx RS @{thm arg_cong[of _ _ snd]}),
     rtac @{thm snd_convol'}] 1;
+
+fun mk_rec_unique_mor_tac rec_defs fst_recs fold_unique_mor {context = ctxt, prems = _} =
+  unfold_thms_tac ctxt
+    (rec_defs @ map (fn thm => thm RS @{thm convol_expand_snd'}) fst_recs) THEN
+  etac fold_unique_mor 1;
 
 fun mk_ctor_induct_tac m set_natural'ss init_induct morEs mor_Abs Rep_invs Abs_invs Reps =
   let

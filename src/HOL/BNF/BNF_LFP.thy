@@ -44,8 +44,14 @@ using fst_convol unfolding convol_def by simp
 lemma snd_convol': "snd (<f, g> x) = g x"
 using snd_convol unfolding convol_def by simp
 
+lemma convol_o: "<f, g> o h = <f o h, g o h>"
+  unfolding convol_def by auto
+
 lemma convol_expand_snd: "fst o f = g \<Longrightarrow>  <g, snd o f> = f"
 unfolding convol_def by auto
+
+lemma convol_expand_snd': "(fst o f = g) \<Longrightarrow> (h = snd o f) \<longleftrightarrow> (<g, h> = f)"
+  by (metis convol_expand_snd snd_convol)
 
 definition inver where
   "inver g f A = (ALL a : A. g (f a) = a)"

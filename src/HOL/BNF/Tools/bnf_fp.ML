@@ -36,6 +36,7 @@ sig
   val ctor_mapN: string
   val ctor_map_uniqueN: string
   val ctor_recN: string
+  val ctor_rec_uniqueN: string
   val ctor_relN: string
   val ctor_set_inclN: string
   val ctor_set_set_inclN: string
@@ -47,6 +48,7 @@ sig
   val dtorN: string
   val dtor_coinductN: string
   val dtor_corecN: string
+  val dtor_corec_uniqueN: string
   val dtor_ctorN: string
   val dtor_exhaustN: string
   val dtor_injectN: string
@@ -207,7 +209,9 @@ val str_initN = "str_init"
 val recN = "rec"
 val corecN = coN ^ recN
 val ctor_recN = ctorN ^ "_" ^ recN
+val ctor_rec_uniqueN = ctor_recN ^ uniqueN
 val dtor_corecN = dtorN ^ "_" ^ corecN
+val dtor_corec_uniqueN = dtor_corecN ^ uniqueN
 val ctor_dtor_corecN = ctorN ^ "_" ^ dtor_corecN
 
 val ctor_dtorN = ctorN ^ "_" ^ dtorN

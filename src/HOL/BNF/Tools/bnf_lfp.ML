@@ -141,6 +141,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val bd_Cnotzeros = map bd_Cnotzero_of_bnf bnfs;
     val bd_Cnotzero = hd bd_Cnotzeros;
     val in_bds = map in_bd_of_bnf bnfs;
+    val sym_map_comps = map (fn bnf => map_comp_of_bnf bnf RS sym) bnfs;
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_congs = map map_cong_of_bnf bnfs;
     val map_ids = map map_id_of_bnf bnfs;
@@ -980,6 +981,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val rec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_fsts;
     val rec_maps_rev = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_fsts_rev;
     val rec_fsts = map (Term.subst_atomic_types (activeBs ~~ Ts)) fsts;
+    val rec_UNIVs = map2 (HOLogic.mk_UNIV oo curry HOLogic.mk_prodT) Ts activeAs;
 
     val (((((((((Izs1, Izs1'), (Izs2, Izs2')), (xFs, xFs')), yFs), (AFss, AFss')),
       (fold_f, fold_f')), fs), rec_ss), names_lthy) = names_lthy
@@ -1217,15 +1219,17 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val rec_name = Binding.name_of o rec_bind;
     val rec_def_bind = rpair [] o Thm.def_binding o rec_bind;
 
+    val rec_strs =
+      map3 (fn ctor => fn prod_s => fn mapx =>
+        mk_convol (HOLogic.mk_comp (ctor, Term.list_comb (mapx, passive_ids @ rec_fsts)), prod_s))
+      ctors rec_ss rec_maps;
+
     fun rec_spec i T AT =
       let
         val recT = Library.foldr (op -->) (rec_sTs, T --> AT);
-        val maps = map3 (fn ctor => fn prod_s => fn mapx =>
-          mk_convol (HOLogic.mk_comp (ctor, Term.list_comb (mapx, passive_ids @ rec_fsts)), prod_s))
-          ctors rec_ss rec_maps;
 
         val lhs = Term.list_comb (Free (rec_name i, recT), rec_ss);
-        val rhs = HOLogic.mk_comp (snd_const (HOLogic.mk_prodT (T, AT)), mk_fold Ts maps i);
+        val rhs = HOLogic.mk_comp (snd_const (HOLogic.mk_prodT (T, AT)), mk_fold Ts rec_strs i);
       in
         mk_Trueprop_eq (lhs, rhs)
       end;
@@ -1263,6 +1267,25 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           |> Thm.close_derivation)
         goals ctor_fold_thms
       end;
+
+    val rec_unique_mor_thm =
+      let
+        val id_fs = map2 (fn T => fn f => mk_convol (HOLogic.id_const T, f)) Ts fs;
+        val prem = HOLogic.mk_Trueprop (mk_mor UNIVs ctors rec_UNIVs rec_strs id_fs);
+        fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_rec rec_ss i);
+        val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj (map2 mk_fun_eq fs ks));
+      in
+        Goal.prove_sorry lthy [] []
+          (fold_rev Logic.all (rec_ss @ fs) (Logic.mk_implies (prem, unique)))
+          (mk_rec_unique_mor_tac rec_defs fst_rec_pair_thms fold_unique_mor_thm)
+          |> Thm.close_derivation
+      end;
+
+    val ctor_rec_unique_thms =
+      split_conj_thm (split_conj_prems n
+        (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS rec_unique_mor_thm)
+        |> Local_Defs.unfold lthy (@{thms convol_o o_id id_o o_assoc[symmetric] fst_convol} @
+           map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ convol, OF refl]});
 
     val timer = time (timer "rec definitions & thms");
 
@@ -1817,6 +1840,7 @@ fun construct_lfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         (ctor_exhaustN, ctor_exhaust_thms),
         (ctor_foldN, ctor_fold_thms),
         (ctor_fold_uniqueN, ctor_fold_unique_thms),
+        (ctor_rec_uniqueN, ctor_rec_unique_thms),
         (ctor_injectN, ctor_inject_thms),
         (ctor_recN, ctor_rec_thms),
         (dtor_ctorN, dtor_ctor_thms),

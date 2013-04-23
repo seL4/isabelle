@@ -219,8 +219,10 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val in_bds = map in_bd_of_bnf bnfs;
     val in_monos = map in_mono_of_bnf bnfs;
     val map_comps = map map_comp_of_bnf bnfs;
+    val sym_map_comps = map (fn thm => thm RS sym) map_comps;
     val map_comp's = map map_comp'_of_bnf bnfs;
     val map_congs = map map_cong_of_bnf bnfs;
+    val map_ids = map map_id_of_bnf bnfs;
     val map_id's = map map_id'_of_bnf bnfs;
     val map_wpulls = map map_wpull_of_bnf bnfs;
     val set_bdss = map set_bd_of_bnf bnfs;
@@ -1861,6 +1863,7 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val corec_maps = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls;
     val corec_maps_rev = map (Term.subst_atomic_types (activeBs ~~ Ts)) map_Inls_rev;
     val corec_Inls = map (Term.subst_atomic_types (activeBs ~~ Ts)) Inls;
+    val corec_UNIVs = map2 (HOLogic.mk_UNIV oo curry mk_sumT) Ts activeAs;
 
     val (((((((((((((Jzs, Jzs'), (Jz's, Jz's')), Jzs_copy), Jzs1), Jzs2), Jpairs),
       FJzs), TRs), unfold_fs), unfold_fs_copy), corec_ss), phis), names_lthy) = names_lthy
@@ -2126,15 +2129,18 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
     val corec_name = Binding.name_of o corec_bind;
     val corec_def_bind = rpair [] o Thm.def_binding o corec_bind;
 
+    val corec_strs =
+      map3 (fn dtor => fn sum_s => fn mapx =>
+        mk_sum_case
+          (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ corec_Inls), dtor), sum_s))
+      dtors corec_ss corec_maps;
+
     fun corec_spec i T AT =
       let
         val corecT = Library.foldr (op -->) (corec_sTs, AT --> T);
-        val maps = map3 (fn dtor => fn sum_s => fn mapx => mk_sum_case
-            (HOLogic.mk_comp (Term.list_comb (mapx, passive_ids @ corec_Inls), dtor), sum_s))
-          dtors corec_ss corec_maps;
 
         val lhs = Term.list_comb (Free (corec_name i, corecT), corec_ss);
-        val rhs = HOLogic.mk_comp (mk_unfold Ts maps i, Inr_const T AT);
+        val rhs = HOLogic.mk_comp (mk_unfold Ts corec_strs i, Inr_const T AT);
       in
         mk_Trueprop_eq (lhs, rhs)
       end;
@@ -2174,6 +2180,26 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
           |> Thm.close_derivation)
         goals dtor_unfold_thms map_congs
       end;
+
+    val corec_unique_mor_thm =
+      let
+        val id_fs = map2 (fn T => fn f => mk_sum_case (HOLogic.id_const T, f)) Ts unfold_fs;
+        val prem = HOLogic.mk_Trueprop (mk_mor corec_UNIVs corec_strs UNIVs dtors id_fs);
+        fun mk_fun_eq f i = HOLogic.mk_eq (f, mk_corec corec_ss i);
+        val unique = HOLogic.mk_Trueprop (Library.foldr1 HOLogic.mk_conj
+          (map2 mk_fun_eq unfold_fs ks));
+      in
+        Goal.prove_sorry lthy [] []
+          (fold_rev Logic.all (corec_ss @ unfold_fs) (Logic.mk_implies (prem, unique)))
+          (mk_corec_unique_mor_tac corec_defs corec_Inl_sum_thms unfold_unique_mor_thm)
+          |> Thm.close_derivation
+      end;
+
+    val dtor_corec_unique_thms =
+      split_conj_thm (split_conj_prems n
+        (mor_UNIV_thm RS @{thm ssubst[of _ _ "%x. x"]} RS corec_unique_mor_thm)
+        |> Local_Defs.unfold lthy (@{thms o_sum_case o_id id_o o_assoc sum_case_comp_Inl} @
+           map_ids @ sym_map_comps) OF replicate n @{thm arg_cong2[of _ _ _ _ sum_case, OF refl]});
 
     val ctor_dtor_corec_thms =
       map3 mk_ctor_dtor_unfold_like_thm dtor_inject_thms dtor_ctor_thms dtor_corec_thms;
@@ -2990,7 +3016,8 @@ fun construct_gfp mixfixes resBs bs (resDs, Dss) bnfs lthy =
         (dtor_exhaustN, dtor_exhaust_thms),
         (dtor_injectN, dtor_inject_thms),
         (dtor_unfoldN, dtor_unfold_thms),
-        (dtor_unfold_uniqueN, dtor_unfold_unique_thms)]
+        (dtor_unfold_uniqueN, dtor_unfold_unique_thms),
+        (dtor_corec_uniqueN, dtor_corec_unique_thms)]
         |> map (apsnd (map single))
         |> maps (fn (thmN, thmss) =>
           map2 (fn b => fn thms =>

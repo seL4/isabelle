@@ -37,6 +37,8 @@ sig
   val mk_congruent_str_final_tac: int -> thm -> thm -> thm -> thm list -> tactic
   val mk_corec_tac: int -> thm list -> thm -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
+  val mk_corec_unique_mor_tac: thm list -> thm list -> thm -> {prems: 'a, context: Proof.context} ->
+    tactic
   val mk_dtor_map_coinduct_tac: int -> int list -> thm -> thm -> tactic
   val mk_dtor_map_strong_coinduct_tac: int list -> ctyp option list -> cterm option list -> thm ->
     thm -> thm -> tactic
@@ -1120,6 +1122,11 @@ fun mk_corec_tac m corec_defs unfold map_cong corec_Inls {context = ctxt, prems 
     rtac trans, rtac unfold, fo_rtac (@{thm sum.cases(2)} RS arg_cong RS trans) ctxt, rtac map_cong,
     REPEAT_DETERM_N m o rtac refl,
     EVERY' (map (fn thm => rtac @{thm sum_case_expand_Inr} THEN' rtac thm) corec_Inls)] 1;
+
+fun mk_corec_unique_mor_tac corec_defs corec_Inls unfold_unique_mor {context = ctxt, prems = _} =
+  unfold_thms_tac ctxt
+    (corec_defs @ map (fn thm => thm RS @{thm sum_case_expand_Inr'}) corec_Inls) THEN
+  etac unfold_unique_mor 1;
 
 fun mk_dtor_srel_coinduct_tac ks raw_coind bis_srel =
   EVERY' [rtac rev_mp, rtac raw_coind, rtac ssubst, rtac bis_srel, rtac conjI,
