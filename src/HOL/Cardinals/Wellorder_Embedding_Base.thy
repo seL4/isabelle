@@ -683,7 +683,7 @@ proof-
     have "wo_rel.ofilter r (rel.underS r ?a)"
     using Well by (auto simp add: wo_rel.underS_ofilter)
     ultimately
-    have "False \<notin> g`(rel.under r b)" using 3 Well by (auto simp add: wo_rel.ofilter_def)
+    have "False \<notin> g`(rel.under r b)" using 3 Well by (subst (asm) wo_rel.ofilter_def) fast+
     moreover have "b \<in> Field r"
     unfolding Field_def using as by (auto simp add: rel.underS_def)
     ultimately

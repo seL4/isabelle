@@ -32,7 +32,7 @@ assumes LEFT: "\<forall>a \<in> A. f'(f a) = a" and
         IM1: "f ` A \<le> A'" and IM2: "f' ` A' \<le> A"
 shows "bij_betw f A A'"
 using assms
-proof(unfold bij_betw_def inj_on_def, auto)
+proof(unfold bij_betw_def inj_on_def, safe)
   fix a b assume *: "a \<in> A" "b \<in> A" and **: "f a = f b"
   have "a = f'(f a) \<and> b = f'(f b)" using * LEFT by simp
   with ** show "a = b" by simp

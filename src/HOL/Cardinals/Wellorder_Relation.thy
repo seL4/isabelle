@@ -11,16 +11,18 @@ theory Wellorder_Relation
 imports Wellorder_Relation_Base Wellfounded_More
 begin
 
+context wo_rel
+begin
 
 subsection {* Auxiliaries *}
 
-lemma (in wo_rel) PREORD: "Preorder r"
+lemma PREORD: "Preorder r"
 using WELL order_on_defs[of _ r] by auto
 
-lemma (in wo_rel) PARORD: "Partial_order r"
+lemma PARORD: "Partial_order r"
 using WELL order_on_defs[of _ r] by auto
 
-lemma (in wo_rel) cases_Total2:
+lemma cases_Total2:
 "\<And> phi a b. \<lbrakk>{a,b} \<le> Field r; ((a,b) \<in> r - Id \<Longrightarrow> phi a b);
               ((b,a) \<in> r - Id \<Longrightarrow> phi a b); (a = b \<Longrightarrow> phi a b)\<rbrakk>
              \<Longrightarrow> phi a b"
@@ -29,7 +31,7 @@ using TOTALS by auto
 
 subsection {* Well-founded induction and recursion adapted to non-strict well-order relations  *}
 
-lemma (in wo_rel) worec_unique_fixpoint:
+lemma worec_unique_fixpoint:
 assumes ADM: "adm_wo H" and fp: "f = H f"
 shows "f = worec H"
 proof-
@@ -44,7 +46,7 @@ qed
 
 subsubsection {* Properties of max2 *}
 
-lemma (in wo_rel) max2_iff:
+lemma max2_iff:
 assumes "a \<in> Field r" and "b \<in> Field r"
 shows "((max2 a b, c) \<in> r) = ((a,c) \<in> r \<and> (b,c) \<in> r)"
 proof
@@ -60,7 +62,7 @@ qed
 
 subsubsection{* Properties of minim *}
 
-lemma (in wo_rel) minim_Under:
+lemma minim_Under:
 "\<lbrakk>B \<le> Field r; B \<noteq> {}\<rbrakk> \<Longrightarrow> minim B \<in> Under B"
 by(auto simp add: Under_def
 minim_in
@@ -74,12 +76,12 @@ ofilter_UnderS
 ofilter_Un
 )
 
-lemma (in wo_rel) equals_minim_Under:
+lemma equals_minim_Under:
 "\<lbrakk>B \<le> Field r; a \<in> B; a \<in> Under B\<rbrakk>
  \<Longrightarrow> a = minim B"
 by(auto simp add: Under_def equals_minim)
 
-lemma (in wo_rel) minim_iff_In_Under:
+lemma minim_iff_In_Under:
 assumes SUB: "B \<le> Field r" and NE: "B \<noteq> {}"
 shows "(a = minim B) = (a \<in> B \<and> a \<in> Under B)"
 proof
@@ -92,7 +94,7 @@ next
   using assms equals_minim_Under by simp
 qed
 
-lemma (in wo_rel) minim_Under_under:
+lemma minim_Under_under:
 assumes NE: "A \<noteq> {}" and SUB: "A \<le> Field r"
 shows "Under A = under (minim A)"
 proof-
@@ -128,7 +130,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma (in wo_rel) minim_UnderS_underS:
+lemma minim_UnderS_underS:
 assumes NE: "A \<noteq> {}" and SUB: "A \<le> Field r"
 shows "UnderS A = underS (minim A)"
 proof-
@@ -176,7 +178,7 @@ qed
 
 subsubsection{* Properties of supr *}
 
-lemma (in wo_rel) supr_Above:
+lemma supr_Above:
 assumes SUB: "B \<le> Field r" and ABOVE: "Above B \<noteq> {}"
 shows "supr B \<in> Above B"
 proof(unfold supr_def)
@@ -186,7 +188,7 @@ proof(unfold supr_def)
   using assms by (simp add: minim_in)
 qed
 
-lemma (in wo_rel) supr_greater:
+lemma supr_greater:
 assumes SUB: "B \<le> Field r" and ABOVE: "Above B \<noteq> {}" and
         IN: "b \<in> B"
 shows "(b, supr B) \<in> r"
@@ -196,7 +198,7 @@ proof-
   with IN Above_def show ?thesis by simp
 qed
 
-lemma (in wo_rel) supr_least_Above:
+lemma supr_least_Above:
 assumes SUB: "B \<le> Field r" and
         ABOVE: "a \<in> Above B"
 shows "(supr B, a) \<in> r"
@@ -208,12 +210,12 @@ proof(unfold supr_def)
   by simp
 qed
 
-lemma (in wo_rel) supr_least:
+lemma supr_least:
 "\<lbrakk>B \<le> Field r; a \<in> Field r; (\<And> b. b \<in> B \<Longrightarrow> (b,a) \<in> r)\<rbrakk>
  \<Longrightarrow> (supr B, a) \<in> r"
 by(auto simp add: supr_least_Above Above_def)
 
-lemma (in wo_rel) equals_supr_Above:
+lemma equals_supr_Above:
 assumes SUB: "B \<le> Field r" and ABV: "a \<in> Above B" and
         MINIM: "\<And> a'. a' \<in> Above B \<Longrightarrow> (a,a') \<in> r"
 shows "a = supr B"
@@ -224,7 +226,7 @@ proof(unfold supr_def)
   using assms equals_minim by simp
 qed
 
-lemma (in wo_rel) equals_supr:
+lemma equals_supr:
 assumes SUB: "B \<le> Field r" and IN: "a \<in> Field r" and
         ABV: "\<And> b. b \<in> B \<Longrightarrow> (b,a) \<in> r" and
         MINIM: "\<And> a'. \<lbrakk> a' \<in> Field r; \<And> b. b \<in> B \<Longrightarrow> (b,a') \<in> r\<rbrakk> \<Longrightarrow> (a,a') \<in> r"
@@ -239,7 +241,7 @@ proof-
   using equals_supr_Above SUB by auto
 qed
 
-lemma (in wo_rel) supr_inField:
+lemma supr_inField:
 assumes "B \<le> Field r" and  "Above B \<noteq> {}"
 shows "supr B \<in> Field r"
 proof-
@@ -247,7 +249,7 @@ proof-
   thus ?thesis using assms Above_Field by auto
 qed
 
-lemma (in wo_rel) supr_above_Above:
+lemma supr_above_Above:
 assumes SUB: "B \<le> Field r" and  ABOVE: "Above B \<noteq> {}"
 shows "Above B = above (supr B)"
 proof(unfold Above_def above_def, auto)
@@ -267,7 +269,7 @@ next
   using 1 TRANS trans_def[of r] by blast
 qed
 
-lemma (in wo_rel) supr_under:
+lemma supr_under:
 assumes IN: "a \<in> Field r"
 shows "a = supr (under a)"
 proof-
@@ -297,12 +299,12 @@ qed
 
 subsubsection{* Properties of successor *}
 
-lemma (in wo_rel) suc_least:
+lemma suc_least:
 "\<lbrakk>B \<le> Field r; a \<in> Field r; (\<And> b. b \<in> B \<Longrightarrow> a \<noteq> b \<and> (b,a) \<in> r)\<rbrakk>
  \<Longrightarrow> (suc B, a) \<in> r"
 by(auto simp add: suc_least_AboveS AboveS_def)
 
-lemma (in wo_rel) equals_suc:
+lemma equals_suc:
 assumes SUB: "B \<le> Field r" and IN: "a \<in> Field r" and
  ABVS: "\<And> b. b \<in> B \<Longrightarrow> a \<noteq> b \<and> (b,a) \<in> r" and
  MINIM: "\<And> a'. \<lbrakk>a' \<in> Field r; \<And> b. b \<in> B \<Longrightarrow> a' \<noteq> b \<and> (b,a') \<in> r\<rbrakk> \<Longrightarrow> (a,a') \<in> r"
@@ -317,7 +319,7 @@ proof-
   using equals_suc_AboveS SUB by auto
 qed
 
-lemma (in wo_rel) suc_above_AboveS:
+lemma suc_above_AboveS:
 assumes SUB: "B \<le> Field r" and
         ABOVE: "AboveS B \<noteq> {}"
 shows "AboveS B = above (suc B)"
@@ -349,7 +351,7 @@ next
   using assms suc_greater[of B a] 2 by auto
 qed
 
-lemma (in wo_rel) suc_singl_pred:
+lemma suc_singl_pred:
 assumes IN: "a \<in> Field r" and ABOVE_NE: "aboveS a \<noteq> {}" and
         REL: "(a',suc {a}) \<in> r" and DIFF: "a' \<noteq> suc {a}"
 shows "a' = a \<or> (a',a) \<in> r"
@@ -372,7 +374,7 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma (in wo_rel) under_underS_suc:
+lemma under_underS_suc:
 assumes IN: "a \<in> Field r" and ABV: "aboveS a \<noteq> {}"
 shows "underS (suc {a}) = under a"
 proof-
@@ -410,19 +412,19 @@ qed
 
 subsubsection {* Properties of order filters  *}
 
-lemma (in wo_rel) ofilter_INTER:
+lemma ofilter_INTER:
 "\<lbrakk>I \<noteq> {}; \<And> i. i \<in> I \<Longrightarrow> ofilter(A i)\<rbrakk> \<Longrightarrow> ofilter (\<Inter> i \<in> I. A i)"
 unfolding ofilter_def by blast
 
-lemma (in wo_rel) ofilter_Inter:
+lemma ofilter_Inter:
 "\<lbrakk>S \<noteq> {}; \<And> A. A \<in> S \<Longrightarrow> ofilter A\<rbrakk> \<Longrightarrow> ofilter (Inter S)"
 unfolding ofilter_def by blast
 
-lemma (in wo_rel) ofilter_Union:
+lemma ofilter_Union:
 "(\<And> A. A \<in> S \<Longrightarrow> ofilter A) \<Longrightarrow> ofilter (Union S)"
 unfolding ofilter_def by blast
 
-lemma (in wo_rel) ofilter_under_Union:
+lemma ofilter_under_Union:
 "ofilter A \<Longrightarrow> A = Union {under a| a. a \<in> A}"
 using ofilter_under_UNION[of A]
 by(unfold Union_eq, auto)
@@ -430,7 +432,7 @@ by(unfold Union_eq, auto)
 
 subsubsection{* Other properties *}
 
-lemma (in wo_rel) Trans_Under_regressive:
+lemma Trans_Under_regressive:
 assumes NE: "A \<noteq> {}" and SUB: "A \<le> Field r"
 shows "Under(Under A) \<le> Under A"
 proof
@@ -455,7 +457,7 @@ proof
   show "x \<in> Under A" unfolding Under_def by auto
 qed
 
-lemma (in wo_rel) ofilter_suc_Field:
+lemma ofilter_suc_Field:
 assumes OF: "ofilter A" and NE: "A \<noteq> Field r"
 shows "ofilter (A \<union> {suc A})"
 proof-
@@ -487,7 +489,7 @@ proof-
 qed
 
 (* FIXME: needed? *)
-declare (in wo_rel)
+declare
   minim_in[simp]
   minim_inField[simp]
   minim_least[simp]
@@ -498,6 +500,8 @@ declare (in wo_rel)
   ofilter_UnderS[simp]
   ofilter_Int[simp]
   ofilter_Un[simp]
+
+end
 
 abbreviation "worec \<equiv> wo_rel.worec"
 abbreviation "adm_wo \<equiv> wo_rel.adm_wo"

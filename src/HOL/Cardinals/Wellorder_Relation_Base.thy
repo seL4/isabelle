@@ -234,8 +234,8 @@ lemma Well_order_isMinim_exists:
 assumes SUB: "B \<le> Field r" and NE: "B \<noteq> {}"
 shows "\<exists>b. isMinim B b"
 proof-
-  from WF wf_eq_minimal[of "r - Id"] NE Id_def obtain b where
-  *: "b \<in> B \<and> (\<forall>b'. b' \<noteq> b \<and> (b',b) \<in> r \<longrightarrow> b' \<notin> B)" by force
+  from spec[OF WF[unfolded wf_eq_minimal[of "r - Id"]], of B] NE obtain b where
+  *: "b \<in> B \<and> (\<forall>b'. b' \<noteq> b \<and> (b',b) \<in> r \<longrightarrow> b' \<notin> B)" by auto
   show ?thesis
   proof(simp add: isMinim_def, rule exI[of _ b], auto)
     show "b \<in> B" using * by simp

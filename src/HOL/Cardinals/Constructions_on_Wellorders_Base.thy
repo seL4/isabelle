@@ -879,7 +879,7 @@ proof-
   {assume "r' \<le>o r"
    then obtain h where "inj_on h (Field r') \<and> h ` (Field r') \<le> Field r"
    unfolding ordLeq_def using assms embed_inj_on embed_Field by blast
-   hence False using finite_imageD finite_subset FIN INF by blast
+   hence False using finite_imageD finite_subset FIN INF by metis
   }
   thus ?thesis using WELL WELL' ordLess_or_ordLeq by blast
 qed
@@ -1092,7 +1092,7 @@ proof(unfold wf_eq_minimal2, intro allI impI, elim conjE)
   have "A \<noteq> {} \<and> A \<le> Field r"
   using A_def dir_image_Field[of r f] SUB NE by blast
   then obtain a where 1: "a \<in> A \<and> (\<forall>b \<in> A. (b,a) \<notin> r)"
-  using WF unfolding wf_eq_minimal2 by blast
+  using WF unfolding wf_eq_minimal2 by metis
   have "\<forall>b' \<in> A'. (b',f a) \<notin> dir_image r f"
   proof(clarify)
     fix b' assume *: "b' \<in> A'" and **: "(b',f a) \<in> dir_image r f"
@@ -1290,7 +1290,7 @@ proof(unfold trans_def, auto)
      }
      moreover
      {assume Case42: "(wo_rel.max2 r b1 b2, wo_rel.max2 r c1 c2) \<in> r - Id"
-      hence ?thesis using Case4 0 unfolding bsqr_def by auto
+      hence ?thesis using Case4 0 unfolding bsqr_def by force
      }
      moreover
      {assume Case43: "wo_rel.max2 r b1 b2 = wo_rel.max2 r c1 c2 \<and> (b1,c1) \<in> r - Id"

@@ -63,7 +63,7 @@ proof(auto)
   (*  *)
   fix a assume *: "a \<in> Field r"
   obtain d where 2: "d \<in> Field r" and 3: "d \<noteq> a"
-  using * 1 by blast
+  using * 1 by auto
   hence "(a,d) \<in> r \<or> (d,a) \<in> r" using * TOT
   by (simp add: total_on_def)
   thus "a \<in> Field(r - Id)" using 3 unfolding Field_def by blast

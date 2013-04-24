@@ -44,7 +44,7 @@ by auto
 
 lemma wf_Restr:
 "wf r \<Longrightarrow> wf(Restr r A)"
-using wf_subset Restr_subset by blast
+using Restr_subset by (elim wf_subset) simp
 
 lemma Restr_incr1:
 "A \<le> B \<Longrightarrow> Restr r A \<le> Restr r B"
@@ -384,7 +384,7 @@ proof(intro allI impI, elim conjE)
     assume Case1: "B \<noteq> {}"
     hence "B \<noteq> {} \<and> B \<le> Field r" using B_def by auto
     then obtain a where 1: "a \<in> B" and 2: "\<forall>a1 \<in> B. (a1,a) \<notin> r"
-    using WF  unfolding wf_eq_minimal2 by blast
+    using WF  unfolding wf_eq_minimal2 by metis
     hence 3: "a \<in> Field r \<and> a \<notin> Field r'" using B_def FLD by auto
     (*  *)
     have "\<forall>a1 \<in> A. (a1,a) \<notin> r Osum r'"
@@ -412,7 +412,7 @@ proof(intro allI impI, elim conjE)
     assume Case2: "B = {}"
     hence 1: "A \<noteq> {} \<and> A \<le> Field r'" using * ** B_def by auto
     then obtain a' where 2: "a' \<in> A" and 3: "\<forall>a1' \<in> A. (a1',a') \<notin> r'"
-    using WF' unfolding wf_eq_minimal2 by blast
+    using WF' unfolding wf_eq_minimal2 by metis
     hence 4: "a' \<in> Field r' \<and> a' \<notin> Field r" using 1 FLD by blast
     (*  *)
     have "\<forall>a1' \<in> A. (a1',a') \<notin> r Osum r'"
@@ -450,15 +450,14 @@ proof-
   thus ?thesis by(auto simp add: Osum_def)
 qed
 
-
 lemma wf_Int_Times:
 assumes "A Int B = {}"
 shows "wf(A \<times> B)"
-proof(unfold wf_def, auto)
+proof(unfold wf_def mem_Sigma_iff, intro impI allI)
   fix P x
   assume *: "\<forall>x. (\<forall>y. y \<in> A \<and> x \<in> B \<longrightarrow> P y) \<longrightarrow> P x"
   moreover have "\<forall>y \<in> A. P y" using assms * by blast
-  ultimately show "P x" using * by (case_tac "x \<in> B", auto)
+  ultimately show "P x" using * by (case_tac "x \<in> B") blast+
 qed
 
 lemma Osum_minus_Id1:

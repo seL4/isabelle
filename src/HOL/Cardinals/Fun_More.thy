@@ -73,7 +73,7 @@ unfolding Pow_def inj_on_def proof(clarsimp)
     unfolding inj_on_def by auto
   next
     fix y assume ****: "y \<in> Y"
-    with *** obtain x where "x \<in> X \<and> f x = f y" by force
+    with *** obtain x where "x \<in> X \<and> f x = f y" by atomize_elim force
     with **** * ** assms show "y \<in> X"
     unfolding inj_on_def by auto
   qed

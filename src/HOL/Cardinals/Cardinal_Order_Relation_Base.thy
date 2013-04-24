@@ -580,7 +580,7 @@ proof -
     qed
   qed
   hence "bij_betw f ((A <+> B) <+> C) (A <+> B <+> C)"
-  unfolding bij_betw_def inj_on_def f_def by auto
+  unfolding bij_betw_def inj_on_def f_def by force
   thus ?thesis using card_of_ordIso by blast
 qed
 
@@ -836,7 +836,7 @@ proof-
   have "\<forall>i. i \<in> I \<longrightarrow> (\<exists>f. inj_on f (A i) \<and> f ` (A i) \<le> B i)"
   using assms by (auto simp add: card_of_ordLeq)
   with choice[of "\<lambda> i f. i \<in> I \<longrightarrow> inj_on f (A i) \<and> f ` (A i) \<le> B i"]
-  obtain F where 1: "\<forall>i \<in> I. inj_on (F i) (A i) \<and> (F i) ` (A i) \<le> B i" by fastforce
+  obtain F where 1: "\<forall>i \<in> I. inj_on (F i) (A i) \<and> (F i) ` (A i) \<le> B i" by metis
   obtain g where g_def: "g = (\<lambda>(i,a::'b). (i,F i a))" by blast
   have "inj_on g (Sigma I A) \<and> g ` (Sigma I A) \<le> (Sigma I B)"
   using 1 unfolding inj_on_def using g_def by force
@@ -1766,9 +1766,9 @@ lemma natLeq_on_ordLeq_less_eq:
 proof
   assume "natLeq_on m \<le>o natLeq_on n"
   then obtain f where "inj_on f {0..<m} \<and> f ` {0..<m} \<le> {0..<n}"
-  using Field_natLeq_on[of m] Field_natLeq_on[of n]
-  unfolding ordLeq_def using embed_inj_on[of "natLeq_on m"  "natLeq_on n"]
-  embed_Field[of "natLeq_on m" "natLeq_on n"] using natLeq_on_Well_order[of m] by fastforce
+  unfolding ordLeq_def using
+    embed_inj_on[OF natLeq_on_Well_order[of m], of "natLeq_on n", unfolded Field_natLeq_on]
+     embed_Field[OF natLeq_on_Well_order[of m], of "natLeq_on n", unfolded Field_natLeq_on] by blast
   thus "m \<le> n" using atLeastLessThan_less_eq2 by blast
 next
   assume "m \<le> n"
@@ -2238,7 +2238,7 @@ proof safe
     proof (cases "(a,b) \<in> A <*> B")
       case False
       thus ?thesis using assms unfolding Func_def
-      apply(cases "f1 (a,b)") apply(cases "f2 (a,b)", fastforce, fastforce)
+      apply(cases "f1 (a,b)") apply(cases "f2 (a,b)", simp, blast)
       apply(cases "f2 (a,b)") by auto
     next
       case True hence a: "a \<in> A" and b: "b \<in> B" by auto
@@ -2406,7 +2406,7 @@ proof safe
   qed
   moreover have "g \<in> Func A2 A1" unfolding g_def apply(rule Func_map[OF h])
   using inv_into_into j2A2 B1 A2 inv_into_into
-  unfolding j1_def image_def by(force, force)
+  unfolding j1_def image_def by fast+
   ultimately show "h \<in> Func_map B2 f1 f2 ` Func A2 A1"
   unfolding Func_map_def[abs_def] unfolding image_def by auto
 qed(insert B1 Func_map[OF _ _ A2(2)], auto)

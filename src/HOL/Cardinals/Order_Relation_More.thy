@@ -94,7 +94,7 @@ shows "Field r = underS a \<union> above a"
 proof(unfold underS_def above_def, auto)
   assume "a \<in> Field r" "(a, a) \<notin> r"
   with LIN IN order_on_defs[of _ r] refl_on_def[of _ r]
-  show False by auto
+  show False by metis
 next
   fix b assume "b \<in> Field r" "(a, b) \<notin> r"
   with LIN IN order_on_defs[of "Field r" r] total_on_def[of "Field r" r]

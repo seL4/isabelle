@@ -86,7 +86,7 @@ shows "|{y. EX x. (x,y) : R}| <=o |{x. EX y. (x,y) : R}|"
 proof-
   let ?Y = "{y. EX x. (x,y) : R}"  let ?X = "{x. EX y. (x,y) : R}"
   let ?f = "% y. SOME x. (x,y) : R"
-  have "?f ` ?Y <= ?X" using someI by force (* FIXME: takes a bit long *)
+  have "?f ` ?Y <= ?X" by (auto dest: someI)
   moreover have "inj_on ?f ?Y"
   unfolding inj_on_def proof(auto)
     fix y1 x1 y2 x2
@@ -603,7 +603,7 @@ assumes "infinite B" and "|A| <o |B|"
 shows "|{a} Un A| <o |B|"
 proof-
   have "|{a}| <o |B|" using assms by auto
-  thus ?thesis using assms card_of_Un_ordLess_infinite[of B] by fastforce
+  thus ?thesis using assms card_of_Un_ordLess_infinite[of B] by blast
 qed
 
 lemma card_of_Un_singl_ordLess_infinite:
@@ -612,7 +612,7 @@ shows "( |A| <o |B| ) = ( |{a} Un A| <o |B| )"
 using assms card_of_Un_singl_ordLess_infinite1[of B A]
 proof(auto)
   assume "|insert a A| <o |B|"
-  moreover have "|A| <=o |insert a A|" using card_of_mono1[of A] by blast
+  moreover have "|A| <=o |insert a A|" using card_of_mono1[of A "insert a A"] by blast
   ultimately show "|A| <o |B|" using ordLeq_ordLess_trans by blast
 qed
 
