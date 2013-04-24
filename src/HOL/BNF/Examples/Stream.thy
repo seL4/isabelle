@@ -64,8 +64,7 @@ lemma stream_map_simps[simp]:
   unfolding shd_def stl_def stream_case_def stream_map_def stream.dtor_unfold
   by (case_tac [!] s) (auto simp: Stream_def stream.dtor_ctor)
 
-lemma stream_map_Stream[simp, code]: "stream_map f (x ## s) = f x ## stream_map f s"
-  by (metis stream.exhaust stream.sels stream_map_simps)
+declare stream.map[code]
 
 theorem shd_stream_set: "shd s \<in> stream_set s"
   by (auto simp add: shd_def stl_def stream_case_def fsts_def snds_def split_beta)
