@@ -142,9 +142,9 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val fp_bnf: (mixfix list -> (string * sort) list option -> binding list -> binding list list ->
-    typ list * typ list list -> BNF_Def.BNF list -> local_theory -> 'a) ->
-    binding list -> mixfix list -> binding list list -> (string * sort) list ->
+  val fp_bnf: (mixfix list -> (string * sort) list option -> binding list -> binding list ->
+      binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory -> 'a) ->
+    binding list -> mixfix list -> binding list -> binding list list -> (string * sort) list ->
     ((string * sort) * typ) list -> local_theory -> BNF_Def.BNF list * 'a
 end;
 
@@ -390,7 +390,8 @@ fun fp_sort lhss NONE Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
   | fp_sort lhss (SOME resBs) Ass =
     (subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs)) @ lhss;
 
-fun mk_fp_bnf timer construct_fp resBs bs set_bss sort lhss bnfs deadss livess unfold_set lthy =
+fun mk_fp_bnf timer construct_fp resBs bs map_bs set_bss sort lhss bnfs deadss livess unfold_set
+    lthy =
   let
     val name = mk_common_name (map Binding.name_of bs);
     fun qualify i =
@@ -418,14 +419,14 @@ fun mk_fp_bnf timer construct_fp resBs bs set_bss sort lhss bnfs deadss livess u
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct_fp resBs bs set_bss (map TFree resDs, deadss) bnfs'' lthy'';
+    val res = construct_fp resBs bs map_bs set_bss (map TFree resDs, deadss) bnfs'' lthy'';
 
     val timer = time (timer "FP construction in total");
   in
     timer; (bnfs'', res)
   end;
 
-fun fp_bnf construct_fp bs mixfixes set_bss resBs eqs lthy =
+fun fp_bnf construct_fp bs mixfixes map_bs set_bss resBs eqs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
@@ -435,7 +436,7 @@ fun fp_bnf construct_fp bs mixfixes set_bss resBs eqs lthy =
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (qualify b) sort) bs rhss
         (empty_unfolds, lthy));
   in
-    mk_fp_bnf timer (construct_fp mixfixes) (SOME resBs) bs set_bss sort lhss bnfs Dss Ass
+    mk_fp_bnf timer (construct_fp mixfixes) (SOME resBs) bs map_bs set_bss sort lhss bnfs Dss Ass
       unfold_set lthy'
   end;
 

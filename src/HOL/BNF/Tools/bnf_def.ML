@@ -92,9 +92,9 @@ sig
   val print_bnfs: Proof.context -> unit
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     ({prems: thm list, context: Proof.context} -> tactic) list ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding list ->
-    ((((binding * term) * term list) * term) * term list) * term option -> local_theory ->
-    BNF * local_theory
+    ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding ->
+    binding list -> ((((binding * term) * term list) * term) * term list) * term option ->
+    local_theory -> BNF * local_theory
 end;
 
 structure BNF_Def : BNF_DEF =
@@ -535,7 +535,7 @@ val smart_max_inline_size = 25; (*FUDGE*)
 
 (* Define new BNFs *)
 
-fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt set_bs
+fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_bs
   (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
@@ -584,7 +584,9 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt set_bs
     fun maybe_restore lthy_old lthy =
       lthy |> not (pointer_eq (lthy_old, lthy)) ? Local_Theory.restore;
 
-    val map_bind_def = (fn () => Binding.suffix_name ("_" ^ mapN) b, map_rhs);
+    val map_bind_def =
+      (fn () => if Binding.is_empty map_b then Binding.suffix_name ("_" ^ mapN) b else map_b,
+       map_rhs);
     val set_binds_defs =
       let
         fun set_name i get_b =
@@ -1254,13 +1256,13 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
     map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
       goals (map (mk_unfold_thms_then_tac lthy one_step_defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
-  end) ooo prepare_def const_policy fact_policy qualify (K I) Ds;
+  end) oooo prepare_def const_policy fact_policy qualify (K I) Ds;
 
 val bnf_def_cmd = (fn (key, goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd o register_bnf key oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
-  prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_term NONE [];
+  prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_term NONE Binding.empty [];
 
 fun print_bnfs ctxt =
   let

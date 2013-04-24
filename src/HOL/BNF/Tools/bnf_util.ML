@@ -40,6 +40,9 @@ sig
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g -> 'h list * 'g
   val fold_map7: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i * 'h) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h -> 'i list * 'h
+  val fold_map8: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j * 'i) ->
+    'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list -> 'i ->
+    'j list * 'i
   val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
@@ -272,6 +275,23 @@ fun fold_map7 _ [] [] [] [] [] [] [] acc = ([], acc)
       val (xs, acc'') = fold_map7 f x1s x2s x3s x4s x5s x6s x7s acc';
     in (x :: xs, acc'') end
   | fold_map7 _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun fold_map7 _ [] [] [] [] [] [] [] acc = ([], acc)
+  | fold_map7 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) acc =
+    let
+      val (x, acc') = f x1 x2 x3 x4 x5 x6 x7 acc;
+      val (xs, acc'') = fold_map7 f x1s x2s x3s x4s x5s x6s x7s acc';
+    in (x :: xs, acc'') end
+  | fold_map7 _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun fold_map8 _ [] [] [] [] [] [] [] [] acc = ([], acc)
+  | fold_map8 f (x1::x1s) (x2::x2s) (x3::x3s) (x4::x4s) (x5::x5s) (x6::x6s) (x7::x7s) (x8::x8s)
+      acc =
+    let
+      val (x, acc') = f x1 x2 x3 x4 x5 x6 x7 x8 acc;
+      val (xs, acc'') = fold_map8 f x1s x2s x3s x4s x5s x6s x7s x8s acc';
+    in (x :: xs, acc'') end
+  | fold_map8 _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
 
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);

@@ -8,15 +8,16 @@ Sugared datatype and codatatype constructions.
 signature BNF_FP_DEF_SUGAR =
 sig
   val datatypes: bool ->
-    (mixfix list -> (string * sort) list option -> binding list -> binding list list ->
-      typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
+    (mixfix list -> (string * sort) list option -> binding list -> binding list ->
+      binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
       BNF_FP.fp_result * local_theory) ->
-    (bool * bool) * (((((binding * typ) * sort) list * binding) * mixfix) * ((((binding * binding) *
-      (binding * typ) list) * (binding * term) list) * mixfix) list) list ->
+    (bool * bool) * ((((binding * (binding * (typ * sort)) list) * binding) * mixfix) *
+      ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
+        mixfix) list) list ->
     local_theory -> local_theory
   val parse_datatype_cmd: bool ->
-    (mixfix list -> (string * sort) list option -> binding list -> binding list list ->
-      typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
+    (mixfix list -> (string * sort) list option -> binding list -> binding list ->
+      binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
       BNF_FP.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
@@ -129,7 +130,8 @@ fun reassoc_conjs thm =
   reassoc_conjs (thm RS @{thm conj_assoc[THEN iffD1]})
   handle THM _ => thm;
 
-fun type_args_constrained_of (((cAs, _), _), _) = cAs;
+fun map_binding_of ((((b, _), _), _), _) = b;
+fun type_args_named_constrained_of ((((_, ncAs), _), _), _) = ncAs;
 fun type_binding_of (((_, b), _), _) = b;
 fun mixfix_of ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
@@ -156,16 +158,17 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fp_bs = map type_binding_of specs;
     val fp_b_names = map Binding.name_of fp_bs;
     val fp_common_name = mk_common_name fp_b_names;
+    val map_bs = map map_binding_of specs;
 
-    fun prepare_type_arg ((_, ty), c) =
+    fun prepare_type_arg (_, (ty, c)) =
       let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in
         TFree (s, prepare_constraint no_defs_lthy0 c)
       end;
 
-    val Ass0 = map (map prepare_type_arg o type_args_constrained_of) specs;
+    val Ass0 = map (map prepare_type_arg o type_args_named_constrained_of) specs;
     val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
-    val set_bss = map (map (fst o fst) o type_args_constrained_of) specs;
+    val set_bss = map (map fst o type_args_named_constrained_of) specs;
 
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
@@ -180,7 +183,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       locale and shadows an existing global type*)
     val fake_thy =
       Theory.copy #> fold (fn spec => perhaps (try (Sign.add_type no_defs_lthy
-        (type_binding_of spec, length (type_args_constrained_of spec), mixfix_of spec)))) specs;
+          (type_binding_of spec, length (type_args_named_constrained_of spec), mixfix_of spec))))
+        specs;
     val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
 
     fun mk_fake_T b =
@@ -240,7 +244,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val (pre_bnfs, ((fp_bnfs as any_fp_bnf :: _, dtors0, ctors0, fp_folds0, fp_recs0, fp_induct,
            fp_strong_induct, dtor_ctors, ctor_dtors, ctor_injects, fp_map_thms, fp_set_thmss,
            fp_rel_thms, fp_fold_thms, fp_rec_thms), lthy)) =
-      fp_bnf construct_fp fp_bs mixfixes set_bss (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
+      fp_bnf construct_fp fp_bs mixfixes map_bs set_bss (map dest_TFree unsorted_As) fp_eqs
+        no_defs_lthy0;
 
     val timer = time (Timer.startRealTimer ());
 
@@ -1181,21 +1186,21 @@ val parse_ctr_arg =
 val parse_defaults =
   @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};
 
-(* Identical to unexported function of the same name in "Pure/Isar/parse.ML" *)
-fun parse_type_arguments arg =
-  arg >> single || @{keyword "("} |-- Parse.!!! (Parse.list1 arg --| @{keyword ")"}) ||
+val parse_type_arg_constrained =
+  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort)
+
+val parse_type_arg_named_constrained = parse_opt_binding_colon -- parse_type_arg_constrained
+
+val parse_type_args_named_constrained =
+  parse_type_arg_constrained >> (single o pair Binding.empty) ||
+  @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
 
-val parse_type_arg_constrained =
-  parse_opt_binding_colon -- Parse.type_ident --
-  Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort)
-
-val parse_type_args_constrained = parse_type_arguments parse_type_arg_constrained;
-
 val parse_single_spec =
-  parse_type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
-  (@{keyword "="} |-- Parse.enum1 "|" (parse_opt_binding_colon -- Parse.binding --
-    Scan.repeat parse_ctr_arg -- Scan.optional parse_defaults [] -- Parse.opt_mixfix));
+  parse_opt_binding_colon -- parse_type_args_named_constrained -- Parse.binding --
+  Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" (parse_opt_binding_colon --
+      Parse.binding -- Scan.repeat parse_ctr_arg -- Scan.optional parse_defaults [] --
+    Parse.opt_mixfix));
 
 val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_single_spec;
 
