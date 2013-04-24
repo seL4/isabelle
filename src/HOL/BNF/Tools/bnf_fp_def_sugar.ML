@@ -10,7 +10,7 @@ sig
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
       BNF_Def.BNF list -> local_theory -> BNF_FP.fp_result * local_theory) ->
-    (bool * bool) * ((((typ * sort) list * binding) * mixfix) * ((((binding * binding) *
+    (bool * bool) * (((((binding * typ) * sort) list * binding) * mixfix) * ((((binding * binding) *
       (binding * typ) list) * (binding * term) list) * mixfix) list) list ->
     local_theory -> local_theory
   val parse_datatype_cmd: bool ->
@@ -155,7 +155,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fp_b_names = map Binding.name_of fp_bs;
     val fp_common_name = mk_common_name fp_b_names;
 
-    fun prepare_type_arg (ty, c) =
+    fun prepare_type_arg ((_, ty), c) =
       let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in
         TFree (s, prepare_constraint no_defs_lthy0 c)
       end;
@@ -1178,8 +1178,19 @@ val parse_ctr_arg =
 val parse_defaults =
   @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};
 
+(* Identical to unexported function of the same name in "Pure/Isar/parse.ML" *)
+fun parse_type_arguments arg =
+  arg >> single || @{keyword "("} |-- Parse.!!! (Parse.list1 arg --| @{keyword ")"}) ||
+  Scan.succeed [];
+
+val parse_type_arg_constrained =
+  parse_opt_binding_colon -- Parse.type_ident --
+  Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort)
+
+val parse_type_args_constrained = parse_type_arguments parse_type_arg_constrained;
+
 val parse_single_spec =
-  Parse.type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
+  parse_type_args_constrained -- Parse.binding -- Parse.opt_mixfix --
   (@{keyword "="} |-- Parse.enum1 "|" (parse_opt_binding_colon -- Parse.binding --
     Scan.repeat parse_ctr_arg -- Scan.optional parse_defaults [] -- Parse.opt_mixfix));
 
