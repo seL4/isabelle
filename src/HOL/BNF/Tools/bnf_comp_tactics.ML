@@ -13,7 +13,7 @@ sig
   val mk_comp_in_alt_tac: Proof.context -> thm list -> tactic
   val mk_comp_in_bd_tac: thm -> thm list -> thm -> thm list -> thm -> tactic
   val mk_comp_map_comp_tac: thm -> thm -> thm list -> tactic
-  val mk_comp_map_cong_tac: thm list -> thm -> thm list -> tactic
+  val mk_comp_map_cong0_tac: thm list -> thm -> thm list -> tactic
   val mk_comp_map_id_tac: thm -> thm -> thm list -> tactic
   val mk_comp_set_alt_tac: Proof.context -> thm -> tactic
   val mk_comp_set_bd_tac: Proof.context -> thm -> thm list -> tactic
@@ -24,7 +24,7 @@ sig
   val mk_kill_bd_cinfinite_tac: thm -> tactic
   val kill_in_alt_tac: tactic
   val mk_kill_in_bd_tac: int -> bool -> thm -> thm -> thm -> thm -> thm -> tactic
-  val mk_kill_map_cong_tac: Proof.context -> int -> int -> thm -> tactic
+  val mk_kill_map_cong0_tac: Proof.context -> int -> int -> thm -> tactic
   val mk_kill_set_bd_tac: thm -> thm -> tactic
 
   val empty_natural_tac: tactic
@@ -69,22 +69,22 @@ fun mk_comp_set_alt_tac ctxt collect_set_natural =
   unfold_thms_tac ctxt [collect_set_natural RS sym] THEN
   rtac refl 1;
 
-fun mk_comp_map_id_tac Gmap_id Gmap_cong map_ids =
-  EVERY' ([rtac ext, rtac (Gmap_cong RS trans)] @
+fun mk_comp_map_id_tac Gmap_id Gmap_cong0 map_ids =
+  EVERY' ([rtac ext, rtac (Gmap_cong0 RS trans)] @
     map (fn thm => rtac (thm RS fun_cong)) map_ids @ [rtac (Gmap_id RS fun_cong)]) 1;
 
-fun mk_comp_map_comp_tac Gmap_comp Gmap_cong map_comps =
+fun mk_comp_map_comp_tac Gmap_comp Gmap_cong0 map_comps =
   EVERY' ([rtac ext, rtac sym, rtac trans_o_apply,
-    rtac (Gmap_comp RS sym RS o_eq_dest_lhs RS trans), rtac Gmap_cong] @
+    rtac (Gmap_comp RS sym RS o_eq_dest_lhs RS trans), rtac Gmap_cong0] @
     map (fn thm => rtac (thm RS sym RS fun_cong)) map_comps) 1;
 
-fun mk_comp_set_natural_tac Gmap_comp Gmap_cong Gset_natural set_naturals =
+fun mk_comp_set_natural_tac Gmap_comp Gmap_cong0 Gset_natural set_naturals =
   EVERY' ([rtac ext] @
     replicate 3 (rtac trans_o_apply) @
     [rtac (arg_cong_Union RS trans),
      rtac (@{thm arg_cong2[of _ _ _ _ collect, OF refl]} RS trans),
      rtac (Gmap_comp RS sym RS o_eq_dest_lhs RS trans),
-     rtac Gmap_cong] @
+     rtac Gmap_cong0] @
      map (fn thm => rtac (thm RS fun_cong)) set_naturals @
      [rtac (Gset_natural RS o_eq_dest_lhs), rtac sym, rtac trans_o_apply,
      rtac trans_image_cong_o_apply, rtac trans_image_cong_o_apply,
@@ -98,14 +98,14 @@ fun mk_comp_set_natural_tac Gmap_comp Gmap_cong Gset_natural set_naturals =
         rtac @{thm sym[OF trans[OF o_apply]]}, rtac @{thm image_cong[OF refl o_apply]}],
      rtac @{thm image_empty}]) 1;
 
-fun mk_comp_map_cong_tac comp_set_alts map_cong map_congs =
+fun mk_comp_map_cong0_tac comp_set_alts map_cong0 map_cong0s =
   let
      val n = length comp_set_alts;
   in
     (if n = 0 then rtac refl 1
-    else rtac map_cong 1 THEN
-      EVERY' (map_index (fn (i, map_cong) =>
-        rtac map_cong THEN' EVERY' (map_index (fn (k, set_alt) =>
+    else rtac map_cong0 1 THEN
+      EVERY' (map_index (fn (i, map_cong0) =>
+        rtac map_cong0 THEN' EVERY' (map_index (fn (k, set_alt) =>
           EVERY' [select_prem_tac n (dtac @{thm meta_spec}) (k + 1), etac meta_mp,
             rtac (equalityD2 RS set_mp), rtac (set_alt RS fun_cong RS trans),
             rtac trans_o_apply, rtac (@{thm collect_def} RS arg_cong_Union),
@@ -113,7 +113,7 @@ fun mk_comp_map_cong_tac comp_set_alts map_cong map_congs =
             rtac @{thm insertI1}, rtac (o_apply RS equalityD2 RS set_mp),
             etac @{thm imageI}, atac])
           comp_set_alts))
-      map_congs) 1)
+      map_cong0s) 1)
   end;
 
 fun mk_comp_bd_card_order_tac Fbd_card_orders Gbd_card_order =
@@ -233,8 +233,8 @@ fun mk_comp_wit_tac ctxt Gwit_thms collect_set_natural Fwit_thms =
 
 (* Kill operation *)
 
-fun mk_kill_map_cong_tac ctxt n m map_cong =
-  (rtac map_cong THEN' EVERY' (replicate n (rtac refl)) THEN'
+fun mk_kill_map_cong0_tac ctxt n m map_cong0 =
+  (rtac map_cong0 THEN' EVERY' (replicate n (rtac refl)) THEN'
     EVERY' (replicate m (Goal.assume_rule_tac ctxt))) 1;
 
 fun mk_kill_bd_card_order_tac n bd_card_order =

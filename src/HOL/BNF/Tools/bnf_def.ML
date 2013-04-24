@@ -52,7 +52,7 @@ sig
   val in_srel_of_bnf: BNF -> thm
   val map_comp'_of_bnf: BNF -> thm
   val map_comp_of_bnf: BNF -> thm
-  val map_cong_of_bnf: BNF -> thm
+  val map_cong0_of_bnf: BNF -> thm
   val map_def_of_bnf: BNF -> thm
   val map_id'_of_bnf: BNF -> thm
   val map_id_of_bnf: BNF -> thm
@@ -107,7 +107,7 @@ open BNF_Def_Tactics
 type axioms = {
   map_id: thm,
   map_comp: thm,
-  map_cong: thm,
+  map_cong0: thm,
   set_natural: thm list,
   bd_card_order: thm,
   bd_cinfinite: thm,
@@ -118,7 +118,7 @@ type axioms = {
 };
 
 fun mk_axioms' (((((((((id, comp), cong), nat), c_o), cinf), set_bd), in_bd), wpull), srel) =
-  {map_id = id, map_comp = comp, map_cong = cong, set_natural = nat, bd_card_order = c_o,
+  {map_id = id, map_comp = comp, map_cong0 = cong, set_natural = nat, bd_card_order = c_o,
    bd_cinfinite = cinf, set_bd = set_bd, in_bd = in_bd, map_wpull = wpull, srel_O_Gr = srel};
 
 fun dest_cons [] = raise Empty
@@ -141,16 +141,16 @@ fun mk_axioms n thms = thms
 fun zip_axioms mid mcomp mcong snat bdco bdinf sbd inbd wpull srel =
   [mid, mcomp, mcong] @ snat @ [bdco, bdinf] @ sbd @ [inbd, wpull, srel];
 
-fun dest_axioms {map_id, map_comp, map_cong, set_natural, bd_card_order, bd_cinfinite, set_bd,
+fun dest_axioms {map_id, map_comp, map_cong0, set_natural, bd_card_order, bd_cinfinite, set_bd,
   in_bd, map_wpull, srel_O_Gr} =
-  zip_axioms map_id map_comp map_cong set_natural bd_card_order bd_cinfinite set_bd in_bd map_wpull
+  zip_axioms map_id map_comp map_cong0 set_natural bd_card_order bd_cinfinite set_bd in_bd map_wpull
     srel_O_Gr;
 
-fun map_axioms f {map_id, map_comp, map_cong, set_natural, bd_card_order, bd_cinfinite, set_bd,
+fun map_axioms f {map_id, map_comp, map_cong0, set_natural, bd_card_order, bd_cinfinite, set_bd,
   in_bd, map_wpull, srel_O_Gr} =
   {map_id = f map_id,
     map_comp = f map_comp,
-    map_cong = f map_cong,
+    map_cong0 = f map_cong0,
     set_natural = map f set_natural,
     bd_card_order = f bd_card_order,
     bd_cinfinite = f bd_cinfinite,
@@ -371,7 +371,7 @@ val map_id_of_bnf = #map_id o #axioms o rep_bnf;
 val map_id'_of_bnf = Lazy.force o #map_id' o #facts o rep_bnf;
 val map_comp_of_bnf = #map_comp o #axioms o rep_bnf;
 val map_comp'_of_bnf = Lazy.force o #map_comp' o #facts o rep_bnf;
-val map_cong_of_bnf = #map_cong o #axioms o rep_bnf;
+val map_cong0_of_bnf = #map_cong0 o #axioms o rep_bnf;
 val map_wppull_of_bnf = Lazy.force o #map_wppull o #facts o rep_bnf;
 val map_wpull_of_bnf = #map_wpull o #axioms o rep_bnf;
 val rel_def_of_bnf = #rel_def o #defs o rep_bnf;
@@ -507,7 +507,7 @@ val map_idN = "map_id";
 val map_id'N = "map_id'";
 val map_compN = "map_comp";
 val map_comp'N = "map_comp'";
-val map_congN = "map_cong";
+val map_cong0N = "map_cong0";
 val map_wpullN = "map_wpull";
 val rel_eqN = "rel_eq";
 val rel_flipN = "rel_flip";
@@ -814,7 +814,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
         fold_rev Logic.all (fs @ gs) (mk_Trueprop_eq (bnf_map_app_comp, comp_bnf_map_app))
       end;
 
-    val map_cong_goal =
+    val map_cong0_goal =
       let
         fun mk_prem z set f f_copy =
           Logic.all z (Logic.mk_implies
@@ -890,7 +890,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
 
     val srel_O_Gr_goal = fold_rev Logic.all Rs (mk_Trueprop_eq (Term.list_comb (srel, Rs), O_Gr));
 
-    val goals = zip_axioms map_id_goal map_comp_goal map_cong_goal set_naturals_goal
+    val goals = zip_axioms map_id_goal map_comp_goal map_cong0_goal set_naturals_goal
       card_order_bd_goal cinfinite_bd_goal set_bds_goal in_bd_goal map_wpull_goal srel_O_Gr_goal;
 
     fun mk_wit_goals (I, wit) =
@@ -1004,7 +1004,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
                 (Logic.list_implies (prems, HOLogic.mk_Trueprop concl))
           in
             Goal.prove_sorry lthy [] [] goal
-              (fn _ => mk_map_wppull_tac (#map_id axioms) (#map_cong axioms)
+              (fn _ => mk_map_wppull_tac (#map_id axioms) (#map_cong0 axioms)
                 (#map_wpull axioms) (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
           end;
@@ -1020,7 +1020,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
             val goal = fold_rev Logic.all (As @ fs) (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
-              (mk_srel_Gr_tac srel_O_Grs (#map_id axioms) (#map_cong axioms) (Lazy.force map_id')
+              (mk_srel_Gr_tac srel_O_Grs (#map_id axioms) (#map_cong0 axioms) (Lazy.force map_id')
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
           end;
@@ -1074,7 +1074,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
             val rhs = mk_converse (Term.list_comb (srel, Rs));
             val le_goal = fold_rev Logic.all Rs (HOLogic.mk_Trueprop (mk_subset lhs rhs));
             val le_thm = Goal.prove_sorry lthy [] [] le_goal
-              (mk_srel_converse_le_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong axioms)
+              (mk_srel_converse_le_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong0 axioms)
                 (Lazy.force map_comp') (map Lazy.force set_natural'))
               |> Thm.close_derivation
             val goal = fold_rev Logic.all Rs (mk_Trueprop_eq (lhs, rhs));
@@ -1094,7 +1094,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
             val goal = fold_rev Logic.all (Rs @ Ss) (mk_Trueprop_eq (lhs, rhs));
           in
             Goal.prove_sorry lthy [] [] goal
-              (mk_srel_O_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong axioms)
+              (mk_srel_O_tac srel_O_Grs (Lazy.force srel_Id) (#map_cong0 axioms)
                 (Lazy.force map_wppull) (Lazy.force map_comp') (map Lazy.force set_natural'))
             |> Thm.close_derivation
           end;
@@ -1201,7 +1201,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
                 let
                   val notes =
                     [(map_comp'N, [Lazy.force (#map_comp' facts)]),
-                    (map_congN, [#map_cong axioms]),
+                    (map_cong0N, [#map_cong0 axioms]),
                     (map_id'N, [Lazy.force (#map_id' facts)]),
                     (rel_eqN, [Lazy.force (#rel_eq facts)]),
                     (rel_flipN, [Lazy.force (#rel_flip facts)]),
