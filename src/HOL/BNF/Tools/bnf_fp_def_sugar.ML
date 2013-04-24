@@ -287,8 +287,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
     val nested_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nested_bnfs;
     val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
-    val nested_set_natural's = maps set_natural'_of_bnf nested_bnfs;
-    val nesting_set_natural's = maps set_natural'_of_bnf nesting_bnfs;
+    val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
+    val nesting_set_map's = maps set_map'_of_bnf nesting_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
 
@@ -548,7 +548,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             fun mk_set_thm fp_set_thm ctr_def' cxIn =
               fold_thms lthy [ctr_def']
-                (unfold_thms lthy (pre_set_defs @ nested_set_natural's @ nesting_set_natural's @
+                (unfold_thms lthy (pre_set_defs @ nested_set_map's @ nesting_set_map's @
                      (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_set)
                    (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
               |> singleton (Proof_Context.export names_lthy no_defs_lthy);
@@ -814,8 +814,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val thm =
               Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
-                mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct'
-                  nested_set_natural's pre_set_defss)
+                mk_induct_tac ctxt nn ns mss kksss (flat ctr_defss) ctor_induct' nested_set_map's
+                  pre_set_defss)
               |> singleton (Proof_Context.export names_lthy lthy)
               |> Thm.close_derivation;
           in

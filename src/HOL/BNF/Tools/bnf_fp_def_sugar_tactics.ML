@@ -133,26 +133,26 @@ val solve_prem_prem_tac =
     hyp_subst_tac ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
-fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs =
+fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs =
   EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
-     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_natural's @ sum_prod_thms_set0)),
+     SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_map's @ sum_prod_thms_set0)),
      solve_prem_prem_tac]) (rev kks)) 1;
 
-fun mk_induct_discharge_prem_tac ctxt nn n set_natural's pre_set_defs m k kks =
+fun mk_induct_discharge_prem_tac ctxt nn n set_map's pre_set_defs m k kks =
   let val r = length kks in
     EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
       REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1 THEN
     EVERY [REPEAT_DETERM_N r
         (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2),
       if r > 0 then PRIMITIVE Raw_Simplifier.norm_hhf else all_tac, atac 1,
-      mk_induct_leverage_prem_prems_tac ctxt nn kks set_natural's pre_set_defs]
+      mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs]
   end;
 
-fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_natural's pre_set_defss =
+fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_map's pre_set_defss =
   let val n = Integer.sum ns in
     unfold_thms_tac ctxt ctr_defs THEN rtac ctor_induct' 1 THEN inst_as_projs_tac ctxt 1 THEN
-    EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_natural's)
-      pre_set_defss mss (unflat mss (1 upto n)) kkss)
+    EVERY (map4 (EVERY oooo map3 o mk_induct_discharge_prem_tac ctxt nn n set_map's) pre_set_defss
+      mss (unflat mss (1 upto n)) kkss)
   end;
 
 fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =

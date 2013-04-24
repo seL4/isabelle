@@ -8,13 +8,13 @@ Tactics for definition of bounded natural functors.
 
 signature BNF_DEF_TACTICS =
 sig
-  val mk_collect_set_natural_tac: thm list -> tactic
+  val mk_collect_set_map_tac: thm list -> tactic
   val mk_map_id': thm -> thm
   val mk_map_comp': thm -> thm
   val mk_map_cong_tac: thm -> tactic
   val mk_in_mono_tac: int -> tactic
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
-  val mk_set_natural': thm -> thm
+  val mk_set_map': thm -> thm
 
   val mk_srel_Gr_tac: thm list -> thm -> thm -> thm -> thm -> thm list ->
     {prems: thm list, context: Proof.context} -> tactic
@@ -39,7 +39,7 @@ fun mk_map_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
 fun mk_map_cong_tac cong0 =
   (hyp_subst_tac THEN' rtac cong0 THEN'
    REPEAT_DETERM o (dtac meta_spec THEN' etac meta_mp THEN' atac)) 1;
-fun mk_set_natural' set_natural = set_natural RS @{thm pointfreeE};
+fun mk_set_map' set_map = set_map RS @{thm pointfreeE};
 fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   else (rtac subsetI THEN'
   rtac CollectI) 1 THEN
@@ -48,15 +48,15 @@ fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
     ((rtac conjI THEN' etac subset_trans THEN' atac) 1) THEN
   (etac subset_trans THEN' atac) 1;
 
-fun mk_collect_set_natural_tac set_naturals =
+fun mk_collect_set_map_tac set_maps =
   (rtac (@{thm collect_o} RS trans) THEN' rtac @{thm arg_cong[of _ _ collect]} THEN'
-  EVERY' (map (fn set_natural =>
+  EVERY' (map (fn set_map =>
     rtac (mk_trans @{thm image_insert} @{thm arg_cong2[of _ _ _ _ insert]}) THEN'
-    rtac set_natural) set_naturals) THEN'
+    rtac set_map) set_maps) THEN'
   rtac @{thm image_empty}) 1;
 
-fun mk_map_wppull_tac map_id map_cong0 map_wpull map_comp set_naturals =
-  if null set_naturals then
+fun mk_map_wppull_tac map_id map_cong0 map_wpull map_comp set_maps =
+  if null set_maps then
     EVERY' [rtac @{thm wppull_id}, rtac map_wpull, rtac map_id, rtac map_id] 1
   else EVERY' [REPEAT_DETERM o etac conjE, REPEAT_DETERM o dtac @{thm wppull_thePull},
     REPEAT_DETERM o etac exE, rtac @{thm wpull_wppull}, rtac map_wpull,
@@ -64,19 +64,19 @@ fun mk_map_wppull_tac map_id map_cong0 map_wpull map_comp set_naturals =
     REPEAT_DETERM o eresolve_tac [CollectE, conjE], rtac conjI, rtac CollectI,
     CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
       rtac @{thm image_subsetI}, rtac conjunct1, etac bspec, etac set_mp, atac])
-      set_naturals,
+      set_maps,
     CONJ_WRAP' (fn thm => EVERY' [rtac (map_comp RS trans), rtac (map_comp RS trans),
       rtac (map_comp RS trans RS sym), rtac map_cong0,
-      REPEAT_DETERM_N (length set_naturals) o EVERY' [rtac (o_apply RS trans),
+      REPEAT_DETERM_N (length set_maps) o EVERY' [rtac (o_apply RS trans),
         rtac (o_apply RS trans RS sym), rtac (o_apply RS trans), rtac thm,
         rtac conjunct2, etac bspec, etac set_mp, atac]]) [conjunct1, conjunct2]] 1;
 
-fun mk_srel_Gr_tac srel_O_Grs map_id map_cong0 map_id' map_comp set_naturals
+fun mk_srel_Gr_tac srel_O_Grs map_id map_cong0 map_id' map_comp set_maps
   {context = ctxt, prems = _} =
   let
-    val n = length set_naturals;
+    val n = length set_maps;
   in
-    if null set_naturals then
+    if null set_maps then
       unfold_thms_tac ctxt srel_O_Grs THEN EVERY' [rtac @{thm Gr_UNIV_id}, rtac map_id] 1
     else unfold_thms_tac ctxt (@{thm Gr_def} :: srel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac subsetI,
@@ -93,7 +93,7 @@ fun mk_srel_Gr_tac srel_O_Grs map_id map_cong0 map_id' map_comp set_naturals
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
           rtac @{thm image_subsetI}, dtac @{thm set_rev_mp}, atac,
           REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac,
-          stac @{thm fst_conv}, atac]) set_naturals,
+          stac @{thm fst_conv}, atac]) set_maps,
         rtac @{thm subrelI}, etac CollectE, REPEAT_DETERM o eresolve_tac [exE, conjE],
         REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
@@ -108,7 +108,7 @@ fun mk_srel_Gr_tac srel_O_Grs map_id map_cong0 map_id' map_comp set_naturals
             CONJ_WRAP' (fn thm =>
               EVERY' [rtac @{thm ord_eq_le_trans}, rtac thm, rtac @{thm image_subsetI},
                 rtac @{thm convol_memI[of id _ "%x. x", OF id_apply refl]}, etac set_mp, atac])
-            set_naturals])
+            set_maps])
           @{thms fst_convol snd_convol} [map_id', refl])] 1
   end;
 
@@ -125,12 +125,12 @@ fun mk_srel_mono_tac srel_O_Grs in_mono {context = ctxt, prems = _} =
       rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac,
       rtac @{thm Gr_mono}, rtac in_mono, REPEAT_DETERM o atac] 1;
 
-fun mk_srel_converse_le_tac srel_O_Grs srel_Id map_cong0 map_comp set_naturals
+fun mk_srel_converse_le_tac srel_O_Grs srel_Id map_cong0 map_comp set_maps
   {context = ctxt, prems = _} =
   let
-    val n = length set_naturals;
+    val n = length set_maps;
   in
-    if null set_naturals then
+    if null set_maps then
       unfold_thms_tac ctxt [srel_Id] THEN rtac equalityD2 1 THEN rtac @{thm converse_Id} 1
     else unfold_thms_tac ctxt (@{thm Gr_def} :: srel_O_Grs) THEN
       EVERY' [rtac @{thm subrelI},
@@ -143,22 +143,22 @@ fun mk_srel_converse_le_tac srel_O_Grs srel_Id map_cong0 map_comp set_naturals
           rtac map_cong0, REPEAT_DETERM_N n o rtac thm,
           rtac (map_comp RS sym), rtac CollectI,
           CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
-            etac @{thm flip_rel}]) set_naturals]) [@{thm snd_fst_flip}, @{thm fst_snd_flip}])] 1
+            etac @{thm flip_rel}]) set_maps]) [@{thm snd_fst_flip}, @{thm fst_snd_flip}])] 1
   end;
 
 fun mk_srel_converse_tac le_converse =
   EVERY' [rtac equalityI, rtac le_converse, rtac @{thm xt1(6)}, rtac @{thm converse_shift},
     rtac le_converse, REPEAT_DETERM o stac @{thm converse_converse}, rtac subset_refl] 1;
 
-fun mk_srel_O_tac srel_O_Grs srel_Id map_cong0 map_wppull map_comp set_naturals
+fun mk_srel_O_tac srel_O_Grs srel_Id map_cong0 map_wppull map_comp set_maps
   {context = ctxt, prems = _} =
   let
-    val n = length set_naturals;
+    val n = length set_maps;
     fun in_tac nthO_in = rtac CollectI THEN'
         CONJ_WRAP' (fn thm => EVERY' [rtac (thm RS @{thm ord_eq_le_trans}),
-          rtac @{thm image_subsetI}, rtac nthO_in, etac set_mp, atac]) set_naturals;
+          rtac @{thm image_subsetI}, rtac nthO_in, etac set_mp, atac]) set_maps;
   in
-    if null set_naturals then unfold_thms_tac ctxt [srel_Id] THEN rtac (@{thm Id_O_R} RS sym) 1
+    if null set_maps then unfold_thms_tac ctxt [srel_Id] THEN rtac (@{thm Id_O_R} RS sym) 1
     else unfold_thms_tac ctxt (@{thm Gr_def} :: srel_O_Grs) THEN
       EVERY' [rtac equalityI, rtac @{thm subrelI},
         REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE, @{thm relcompE}, @{thm converseE}],
@@ -190,7 +190,7 @@ fun mk_srel_O_tac srel_O_Grs srel_Id map_cong0 map_wppull map_comp set_naturals
         REPEAT_DETERM o dtac Pair_eqD,
         REPEAT_DETERM o etac conjE, hyp_subst_tac,
         rtac allE, rtac subst, rtac @{thm wppull_def}, rtac map_wppull,
-        CONJ_WRAP' (K (rtac @{thm wppull_fstO_sndO})) set_naturals,
+        CONJ_WRAP' (K (rtac @{thm wppull_fstO_sndO})) set_maps,
         etac allE, etac impE, etac conjI, etac conjI, atac,
         REPEAT_DETERM o eresolve_tac [bexE, conjE],
         rtac @{thm relcompI}, rtac @{thm converseI},
