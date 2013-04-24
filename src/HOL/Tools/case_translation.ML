@@ -156,7 +156,7 @@ val trfun_setup =
 
 (* print translation *)
 
-fun case_tr' [_, x, t] =
+fun case_tr' (_ :: x :: t :: ts) =
       let
         fun mk_clause (Const (@{const_syntax case_abs}, _) $ Abs (s, T, t)) xs used =
               let val (s', used') = Name.variant s used
@@ -171,9 +171,9 @@ fun case_tr' [_, x, t] =
               mk_clause t [] (Term.declare_term_frees t Name.context) ::
               mk_clauses u
       in
-        Syntax.const @{syntax_const "_case_syntax"} $ x $
+        list_comb (Syntax.const @{syntax_const "_case_syntax"} $ x $
           foldr1 (fn (t, u) => Syntax.const @{syntax_const "_case2"} $ t $ u)
-            (mk_clauses t)
+            (mk_clauses t), ts)
       end;
 
 val trfun_setup' = Sign.add_trfuns
