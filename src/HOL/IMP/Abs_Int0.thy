@@ -304,7 +304,7 @@ qed
 
 
 locale Measure1_fun =
-fixes m :: "'av::{order,top} \<Rightarrow> nat"
+fixes m :: "'av::top \<Rightarrow> nat"
 fixes h :: "nat"
 assumes h: "m x \<le> h"
 begin
@@ -315,11 +315,12 @@ definition m_s :: "vname set \<Rightarrow> 'av st \<Rightarrow> nat" ("m\<^isub>
 lemma m_s_h: "finite X \<Longrightarrow> m_s X S \<le> h * card X"
 by(simp add: m_s_def) (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
 
-definition m_o :: "vname set \<Rightarrow> 'av st option \<Rightarrow> nat" ("m\<^isub>o") where
-"m_o X opt = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s X S)"
+fun m_o :: "vname set \<Rightarrow> 'av st option \<Rightarrow> nat" ("m\<^isub>o") where
+"m_o X (Some S) = m_s X S" |
+"m_o X None = h * card X + 1"
 
 lemma m_o_h: "finite X \<Longrightarrow> m_o X opt \<le> (h*card X + 1)"
-by(auto simp add: m_o_def m_s_h le_SucI split: option.split dest:m_s_h)
+by(cases opt)(auto simp add: m_s_h le_SucI dest: m_s_h)
 
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^isub>c") where
 "m_c C = (\<Sum>i<size(annos C). m_o (vars C) (annos C ! i))"
@@ -347,23 +348,27 @@ lemma le_iff_le_annos: "C1 \<le> C2 \<longleftrightarrow>
 by(auto simp add: le_iff_le_annos_zip set_zip) (metis size_annos_same2)
 
 
-text{* The predicates @{text "top_on_ty X a"} that follow describe that @{text a} is some object
-that maps all variables in @{text X} to @{term \<top>}.
+locale Measure_fun = Measure1_fun where m=m for m :: "'av::semilattice \<Rightarrow> nat" +
+assumes m2: "x < y \<Longrightarrow> m x > m y"
+begin
+
+text{* The predicates @{text "top_on_ty X a"} that follow describe that any abstract
+state in @{text a} maps all variables in @{text X} to @{term \<top>}.
 This is an important invariant for the termination proof where we argue that only
 the finitely many variables in the program change. That the others do not change
 follows because they remain @{term \<top>}. *}
 
-fun top_on_st :: "vname set \<Rightarrow> 'a::top st \<Rightarrow> bool" where
-"top_on_st X f = (\<forall>x\<in>X. f x = \<top>)"
+fun top_on_st :: "vname set \<Rightarrow> 'av st \<Rightarrow> bool" ("top'_on\<^isub>s") where
+"top_on_st X S = (\<forall>x\<in>X. S x = \<top>)"
 
-fun top_on_opt :: "vname set \<Rightarrow> 'a::top st option \<Rightarrow> bool" where
-"top_on_opt X (Some F) = top_on_st X F" |
+fun top_on_opt :: "vname set \<Rightarrow> 'av st option \<Rightarrow> bool" ("top'_on\<^isub>o") where
+"top_on_opt X (Some S) = top_on_st X S" |
 "top_on_opt X None = True"
 
-definition top_on_acom :: "vname set \<Rightarrow> 'a::top st option acom \<Rightarrow> bool" where
+definition top_on_acom :: "vname set \<Rightarrow> 'av st option acom \<Rightarrow> bool" ("top'_on\<^isub>c") where
 "top_on_acom X C = (\<forall>a \<in> set(annos C). top_on_opt X a)"
 
-lemma top_on_top: "top_on_opt X (\<top>::_ st option)"
+lemma top_on_top: "top_on_opt X \<top>"
 by(auto simp: top_option_def)
 
 lemma top_on_bot: "top_on_acom X (bot c)"
@@ -383,22 +388,17 @@ lemma top_on_acom_simps:
 by(auto simp add: top_on_acom_def)
 
 lemma top_on_sup:
-  "top_on_opt X o1 \<Longrightarrow> top_on_opt X o2 \<Longrightarrow> top_on_opt X (o1 \<squnion> o2 :: _ st option)"
+  "top_on_opt X o1 \<Longrightarrow> top_on_opt X o2 \<Longrightarrow> top_on_opt X (o1 \<squnion> o2)"
 apply(induction o1 o2 rule: sup_option.induct)
 apply(auto)
 done
 
-lemma top_on_Step: fixes C :: "('a::semilattice)st option acom"
+lemma top_on_Step: fixes C :: "'av st option acom"
 assumes "!!x e S. \<lbrakk>top_on_opt X S; x \<notin> X; vars e \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt X (f x e S)"
         "!!b S. top_on_opt X S \<Longrightarrow> vars b \<subseteq> -X \<Longrightarrow> top_on_opt X (g b S)"
 shows "\<lbrakk> vars C \<subseteq> -X; top_on_opt X S; top_on_acom X C \<rbrakk> \<Longrightarrow> top_on_acom X (Step f g S C)"
 proof(induction C arbitrary: S)
 qed (auto simp: top_on_acom_simps vars_acom_def top_on_post top_on_sup assms)
-
-
-locale Measure_fun = Measure1_fun +
-assumes m2: "x < y \<Longrightarrow> m x > m y"
-begin
 
 lemma m1: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 by(auto simp: le_less m2)
@@ -422,9 +422,9 @@ done
 lemma m_o2: "finite X \<Longrightarrow> top_on_opt (-X) o1 \<Longrightarrow> top_on_opt (-X) o2 \<Longrightarrow>
   o1 < o2 \<Longrightarrow> m_o X o1 > m_o X o2"
 proof(induction o1 o2 rule: less_eq_option.induct)
-  case 1 thus ?case by (auto simp: m_o_def m_s2 less_option_def)
+  case 1 thus ?case by (auto simp: m_s2 less_option_def)
 next
-  case 2 thus ?case by(auto simp: m_o_def less_option_def le_imp_less_Suc m_s_h)
+  case 2 thus ?case by(auto simp: less_option_def le_imp_less_Suc m_s_h)
 next
   case 3 thus ?case by (auto simp: less_option_def)
 qed
@@ -465,7 +465,7 @@ locale Abs_Int_fun_measure =
   for \<gamma> :: "'av::semilattice \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 begin
 
-lemma top_on_step': "\<lbrakk> vars C \<subseteq> -X; top_on_acom X C \<rbrakk> \<Longrightarrow> top_on_acom X (step' \<top> C)"
+lemma top_on_step': "\<lbrakk> vars C \<subseteq> X; top_on_acom (-X) C \<rbrakk> \<Longrightarrow> top_on_acom (-X) (step' \<top> C)"
 unfolding step'_def
 by(rule top_on_Step)
   (auto simp add: top_option_def fa_def split: option.splits)
