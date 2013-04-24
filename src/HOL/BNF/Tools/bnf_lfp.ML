@@ -9,8 +9,8 @@ Datatype construction.
 signature BNF_LFP =
 sig
   val construct_lfp: mixfix list -> (string * sort) list option -> binding list -> binding list ->
-    binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    BNF_FP.fp_result * local_theory
+    binding list -> binding list list -> typ list * typ list list -> BNF_Def.BNF list ->
+    local_theory -> BNF_FP.fp_result * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -26,7 +26,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes resBs bs map_bs set_bss (resDs, Dss) bnfs lthy =
+fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
@@ -1734,12 +1734,13 @@ fun construct_lfp mixfixes resBs bs map_bs set_bss (resDs, Dss) bnfs lthy =
         fun wit_tac _ = mk_wit_tac n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Ibnfs, lthy) =
-          fold_map8 (fn tacs => fn b => fn map_b => fn set_bs => fn mapx => fn sets => fn T =>
-              fn wits => fn lthy =>
-            bnf_def Dont_Inline (user_policy Note_Some) I tacs wit_tac (SOME deads) map_b set_bs
-              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE) lthy
+          fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
+              fn T => fn wits => fn lthy =>
+            bnf_def Dont_Inline (user_policy Note_Some) I tacs wit_tac (SOME deads) map_b rel_b
+              set_bs (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE)
+              lthy
             |> register_bnf (Local_Theory.full_name lthy b))
-          tacss bs map_bs set_bss fs_maps setss_by_bnf Ts ctor_witss lthy;
+          tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts ctor_witss lthy;
 
         val fold_maps = fold_thms lthy (map (fn bnf =>
           mk_unabs_def m (map_def_of_bnf bnf RS meta_eq_to_obj_eq)) Ibnfs);

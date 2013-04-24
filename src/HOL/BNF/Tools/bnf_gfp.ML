@@ -10,8 +10,8 @@ Codatatype construction.
 signature BNF_GFP =
 sig
   val construct_gfp: mixfix list -> (string * sort) list option -> binding list -> binding list ->
-    binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
-    BNF_FP.fp_result * local_theory
+    binding list -> binding list list -> typ list * typ list list -> BNF_Def.BNF list ->
+    local_theory -> BNF_FP.fp_result * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -55,7 +55,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes resBs bs map_bs set_bss (resDs, Dss) bnfs lthy =
+fun construct_gfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 
@@ -2894,13 +2894,13 @@ fun construct_gfp mixfixes resBs bs map_bs set_bss (resDs, Dss) bnfs lthy =
         val wit_tac = mk_wit_tac n dtor_ctor_thms (flat dtor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Jbnfs, lthy) =
-          fold_map8 (fn tacs => fn b => fn map_b => fn set_bs => fn mapx => fn sets => fn T =>
-              fn (thms, wits) => fn lthy =>
+          fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
+              fn T => fn (thms, wits) => fn lthy =>
             bnf_def Dont_Inline (user_policy Note_Some) I tacs (wit_tac thms) (SOME deads) map_b
-              set_bs (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE)
-              lthy
+              rel_b set_bs
+              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE) lthy
             |> register_bnf (Local_Theory.full_name lthy b))
-          tacss bs map_bs set_bss fs_maps setss_by_bnf Ts all_witss lthy;
+          tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts all_witss lthy;
 
         val fold_maps = fold_thms lthy (map (fn bnf =>
           mk_unabs_def m (map_def_of_bnf bnf RS meta_eq_to_obj_eq)) Jbnfs);

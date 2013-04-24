@@ -8,15 +8,15 @@ Sugared datatype and codatatype constructions.
 signature BNF_FP_DEF_SUGAR =
 sig
   val datatypes: bool ->
-    (mixfix list -> (string * sort) list option -> binding list -> binding list ->
+    (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
       BNF_FP.fp_result * local_theory) ->
-    (bool * bool) * ((((binding * (binding * (typ * sort)) list) * binding) * mixfix) *
+    (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
   val parse_datatype_cmd: bool ->
-    (mixfix list -> (string * sort) list option -> binding list -> binding list ->
+    (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
       BNF_FP.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
@@ -130,9 +130,10 @@ fun reassoc_conjs thm =
   reassoc_conjs (thm RS @{thm conj_assoc[THEN iffD1]})
   handle THM _ => thm;
 
-fun map_binding_of ((((b, _), _), _), _) = b;
-fun type_args_named_constrained_of ((((_, ncAs), _), _), _) = ncAs;
-fun type_binding_of (((_, b), _), _) = b;
+fun type_args_named_constrained_of ((((ncAs, _), _), _), _) = ncAs;
+fun type_binding_of ((((_, b), _), _), _) = b;
+fun map_binding_of (((_, (b, _)), _), _) = b;
+fun rel_binding_of (((_, (_, b)), _), _) = b;
 fun mixfix_of ((_, mx), _) = mx;
 fun ctr_specs_of (_, ctr_specs) = ctr_specs;
 
@@ -159,6 +160,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fp_b_names = map Binding.name_of fp_bs;
     val fp_common_name = mk_common_name fp_b_names;
     val map_bs = map map_binding_of specs;
+    val rel_bs = map rel_binding_of specs;
 
     fun prepare_type_arg (_, (ty, c)) =
       let val TFree (s, _) = prepare_typ no_defs_lthy0 ty in
@@ -244,7 +246,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val (pre_bnfs, ((fp_bnfs as any_fp_bnf :: _, dtors0, ctors0, fp_folds0, fp_recs0, fp_induct,
            fp_strong_induct, dtor_ctors, ctor_dtors, ctor_injects, fp_map_thms, fp_set_thmss,
            fp_rel_thms, fp_fold_thms, fp_rec_thms), lthy)) =
-      fp_bnf construct_fp fp_bs mixfixes map_bs set_bss (map dest_TFree unsorted_As) fp_eqs
+      fp_bnf construct_fp fp_bs mixfixes map_bs rel_bs set_bss (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
     val timer = time (Timer.startRealTimer ());
@@ -1196,13 +1198,31 @@ val parse_type_args_named_constrained =
   @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
 
-val parse_single_spec =
-  parse_opt_binding_colon -- parse_type_args_named_constrained -- Parse.binding --
-  Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" (parse_opt_binding_colon --
-      Parse.binding -- Scan.repeat parse_ctr_arg -- Scan.optional parse_defaults [] --
-    Parse.opt_mixfix));
+val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- Parse.binding;
 
-val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_single_spec;
+val no_map_rel = (Binding.empty, Binding.empty);
+
+(* "map" and "rel" are purposedly not registered as keywords, because they are short and nice names
+   that we don't want them to be highlighted everywhere because of some obscure feature of the BNF
+   package. *)
+fun extract_map_rel ("map", b) = apfst (K b)
+  | extract_map_rel ("rel", b) = apsnd (K b)
+  | extract_map_rel (s, _) = error ("Expected \"map\" or \"rel\" instead of " ^ quote s);
+
+val parse_map_rel_bindings =
+  @{keyword "("} |-- Scan.repeat parse_map_rel_binding --| @{keyword ")"}
+    >> (fn ps => fold extract_map_rel ps no_map_rel) ||
+  Scan.succeed no_map_rel;
+
+val parse_ctr_spec =
+  parse_opt_binding_colon -- Parse.binding -- Scan.repeat parse_ctr_arg --
+  Scan.optional parse_defaults [] -- Parse.opt_mixfix;
+
+val parse_spec =
+  parse_type_args_named_constrained -- Parse.binding -- parse_map_rel_bindings --
+  Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
+
+val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
 
 fun parse_datatype_cmd lfp construct_fp = parse_datatype >> datatype_cmd lfp construct_fp;
 
