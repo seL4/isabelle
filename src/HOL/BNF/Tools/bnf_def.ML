@@ -105,6 +105,8 @@ open BNF_Util
 open BNF_Tactics
 open BNF_Def_Tactics
 
+val fundef_cong_attrs = @{attributes [fundef_cong]};
+
 type axioms = {
   map_id: thm,
   map_comp: thm,
@@ -1219,24 +1221,24 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b set_b
           |> (if fact_policy <> Dont_Note then
                 let
                   val notes =
-                    [(map_comp'N, [Lazy.force (#map_comp' facts)]),
-                    (map_cong0N, [#map_cong0 axioms]),
-                    (map_congN, [Lazy.force (#map_cong facts)]),
-                    (map_id'N, [Lazy.force (#map_id' facts)]),
-                    (rel_eqN, [Lazy.force (#rel_eq facts)]),
-                    (rel_flipN, [Lazy.force (#rel_flip facts)]),
-                    (rel_srelN, [Lazy.force (#rel_srel facts)]),
-                    (set_natural'N, map Lazy.force (#set_natural' facts)),
-                    (srel_O_GrN, srel_O_Grs),
-                    (srel_IdN, [Lazy.force (#srel_Id facts)]),
-                    (srel_GrN, [Lazy.force (#srel_Gr facts)]),
-                    (srel_converseN, [Lazy.force (#srel_converse facts)]),
-                    (srel_monoN, [Lazy.force (#srel_mono facts)]),
-                    (srel_ON, [Lazy.force (#srel_O facts)])]
+                    [(map_comp'N, [Lazy.force (#map_comp' facts)], []),
+                    (map_cong0N, [#map_cong0 axioms], []),
+                    (map_congN, [Lazy.force (#map_cong facts)], fundef_cong_attrs),
+                    (map_id'N, [Lazy.force (#map_id' facts)], []),
+                    (rel_eqN, [Lazy.force (#rel_eq facts)], []),
+                    (rel_flipN, [Lazy.force (#rel_flip facts)], []),
+                    (rel_srelN, [Lazy.force (#rel_srel facts)], []),
+                    (set_natural'N, map Lazy.force (#set_natural' facts), []),
+                    (srel_O_GrN, srel_O_Grs, []),
+                    (srel_IdN, [Lazy.force (#srel_Id facts)], []),
+                    (srel_GrN, [Lazy.force (#srel_Gr facts)], []),
+                    (srel_converseN, [Lazy.force (#srel_converse facts)], []),
+                    (srel_monoN, [Lazy.force (#srel_mono facts)], []),
+                    (srel_ON, [Lazy.force (#srel_O facts)], [])]
                     |> filter_out (null o #2)
-                    |> map (fn (thmN, thms) =>
-                      ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
-                      [(thms, [])]));
+                    |> map (fn (thmN, thms, attrs) =>
+                      ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)),
+                        attrs), [(thms, [])]));
                 in
                   Local_Theory.notes notes #> snd
                 end
