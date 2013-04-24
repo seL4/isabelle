@@ -465,16 +465,16 @@ locale Abs_Int_fun_measure =
   for \<gamma> :: "'av::semilattice \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 begin
 
-lemma top_on_step': "\<lbrakk> vars C \<subseteq> X; top_on_acom (-X) C \<rbrakk> \<Longrightarrow> top_on_acom (-X) (step' \<top> C)"
+lemma top_on_step': "top_on_acom (-vars C) C \<Longrightarrow> top_on_acom (-vars C) (step' \<top> C)"
 unfolding step'_def
 by(rule top_on_Step)
   (auto simp add: top_option_def fa_def split: option.splits)
 
 lemma AI_Some_measure: "\<exists>C. AI c = Some C"
 unfolding AI_def
-apply(rule pfp_termination[where I = "\<lambda>C. strip C = c \<and> top_on_acom (- vars C) C" and m="m_c"])
+apply(rule pfp_termination[where I = "\<lambda>C. top_on_acom (- vars C) C" and m="m_c"])
 apply(simp_all add: m_c2 mono_step'_top bot_least top_on_bot)
-apply(auto simp add: top_on_step' vars_acom_def)
+using top_on_step' apply(auto simp add: vars_acom_def)
 done
 
 end
