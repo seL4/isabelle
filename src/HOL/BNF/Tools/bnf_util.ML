@@ -62,6 +62,7 @@ sig
     (term list * (string * typ) list) * Proof.context
   val mk_Freess': string -> typ list list -> Proof.context ->
     (term list list * (string * typ) list list) * Proof.context
+  val retype_free: typ -> term -> term
   val nonzero_string_of_int: int -> string
 
   val strip_typeN: int -> typ -> typ list * typ
@@ -346,6 +347,8 @@ fun mk_Freesss x Tsss = fold_map2 mk_Freess (mk_names (length Tsss) x) Tsss;
 fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss;
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
 fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
+
+fun retype_free T (Free (s, _)) = Free (s, T);
 
 
 (** Types **)

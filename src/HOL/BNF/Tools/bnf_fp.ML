@@ -107,8 +107,6 @@ sig
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
 
-  val retype_free: typ -> term -> term
-
   val mk_sumTN: typ list -> typ
   val mk_sumTN_balanced: typ list -> typ
 
@@ -263,8 +261,6 @@ val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN
 
 val mk_common_name = space_implode "_";
-
-fun retype_free T (Free (s, _)) = Free (s, T);
 
 fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
 

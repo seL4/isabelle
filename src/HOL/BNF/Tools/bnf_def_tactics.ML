@@ -9,8 +9,9 @@ Tactics for definition of bounded natural functors.
 signature BNF_DEF_TACTICS =
 sig
   val mk_collect_set_natural_tac: thm list -> tactic
-  val mk_id': thm -> thm
-  val mk_comp': thm -> thm
+  val mk_map_id': thm -> thm
+  val mk_map_comp': thm -> thm
+  val mk_map_cong_tac: thm -> tactic
   val mk_in_mono_tac: int -> tactic
   val mk_map_wppull_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_set_natural': thm -> thm
@@ -33,8 +34,11 @@ struct
 open BNF_Util
 open BNF_Tactics
 
-fun mk_id' id = mk_trans (fun_cong OF [id]) @{thm id_apply};
-fun mk_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
+fun mk_map_id' id = mk_trans (fun_cong OF [id]) @{thm id_apply};
+fun mk_map_comp' comp = @{thm o_eq_dest_lhs} OF [mk_sym comp];
+fun mk_map_cong_tac cong0 =
+  (hyp_subst_tac THEN' rtac cong0 THEN'
+   REPEAT_DETERM o (dtac meta_spec THEN' etac meta_mp THEN' atac)) 1;
 fun mk_set_natural' set_natural = set_natural RS @{thm pointfreeE};
 fun mk_in_mono_tac n = if n = 0 then rtac subset_UNIV 1
   else (rtac subsetI THEN'
