@@ -8,14 +8,16 @@ Sugared datatype and codatatype constructions.
 signature BNF_FP_DEF_SUGAR =
 sig
   val datatypes: bool ->
-    (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
-      BNF_Def.BNF list -> local_theory -> BNF_FP.fp_result * local_theory) ->
+    (mixfix list -> (string * sort) list option -> binding list -> binding list list ->
+      typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
+      BNF_FP.fp_result * local_theory) ->
     (bool * bool) * (((((binding * typ) * sort) list * binding) * mixfix) * ((((binding * binding) *
       (binding * typ) list) * (binding * term) list) * mixfix) list) list ->
     local_theory -> local_theory
   val parse_datatype_cmd: bool ->
-    (mixfix list -> (string * sort) list option -> binding list -> typ list * typ list list ->
-      BNF_Def.BNF list -> local_theory -> BNF_FP.fp_result * local_theory) ->
+    (mixfix list -> (string * sort) list option -> binding list -> binding list list ->
+      typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
+      BNF_FP.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
 
@@ -163,6 +165,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val Ass0 = map (map prepare_type_arg o type_args_constrained_of) specs;
     val unsorted_Ass0 = map (map (resort_tfree HOLogic.typeS)) Ass0;
     val unsorted_As = Library.foldr1 merge_type_args unsorted_Ass0;
+    val set_bss = map (map (fst o fst) o type_args_constrained_of) specs;
 
     val (((Bs0, Cs), Xs), no_defs_lthy) =
       no_defs_lthy0
@@ -237,7 +240,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val (pre_bnfs, ((fp_bnfs as any_fp_bnf :: _, dtors0, ctors0, fp_folds0, fp_recs0, fp_induct,
            fp_strong_induct, dtor_ctors, ctor_dtors, ctor_injects, fp_map_thms, fp_set_thmss,
            fp_rel_thms, fp_fold_thms, fp_rec_thms), lthy)) =
-      fp_bnf construct_fp fp_bs mixfixes (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
+      fp_bnf construct_fp fp_bs mixfixes set_bss (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
 
     val timer = time (Timer.startRealTimer ());
 

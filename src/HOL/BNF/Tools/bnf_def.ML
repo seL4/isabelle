@@ -92,7 +92,7 @@ sig
   val print_bnfs: Proof.context -> unit
   val bnf_def: const_policy -> (Proof.context -> fact_policy) -> (binding -> binding) ->
     ({prems: thm list, context: Proof.context} -> tactic) list ->
-    ({prems: thm list, context: Proof.context} -> tactic) -> typ list option ->
+    ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding list ->
     ((((binding * term) * term list) * term) * term list) * term option -> local_theory ->
     BNF * local_theory
 end;
@@ -535,7 +535,7 @@ val smart_max_inline_size = 25; (*FUDGE*)
 
 (* Define new BNFs *)
 
-fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
+fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt set_bs
   (((((raw_b, raw_map), raw_sets), raw_bd_Abs), raw_wits), raw_rel_opt) no_defs_lthy =
   let
     val fact_policy = mk_fact_policy no_defs_lthy;
@@ -587,15 +587,23 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
     val map_bind_def = (fn () => Binding.suffix_name ("_" ^ mapN) b, map_rhs);
     val set_binds_defs =
       let
-        val bs = if live = 1 then [fn () => Binding.suffix_name ("_" ^ setN) b]
-          else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_setN i) b) (1 upto live)
-      in map2 pair bs set_rhss end;
+        fun set_name i get_b =
+          (case try (nth set_bs) (i - 1) of
+            SOME b => if Binding.is_empty b then get_b else K b
+          | NONE => get_b);
+        val bs =
+          if live = 1 then
+            [set_name 1 (fn () => Binding.suffix_name ("_" ^ setN) b)]
+          else
+            map (fn i => set_name i (fn () => Binding.suffix_name ("_" ^ mk_setN i) b))
+              (1 upto live);
+      in bs ~~ set_rhss end;
     val bd_bind_def = (fn () => Binding.suffix_name ("_" ^ bdN) b, bd_rhs);
     val wit_binds_defs =
       let
         val bs = if nwits = 1 then [fn () => Binding.suffix_name ("_" ^ witN) b]
           else map (fn i => fn () => Binding.suffix_name ("_" ^ mk_witN i) b) (1 upto nwits);
-      in map2 pair bs wit_rhss end;
+      in bs ~~ wit_rhss end;
 
     val (((((bnf_map_term, raw_map_def),
       (bnf_set_terms, raw_set_defs)),
@@ -1178,7 +1186,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt
                     (map_wpullN, [#map_wpull axioms]),
                     (set_naturalN, #set_natural axioms),
                     (set_bdN, #set_bd axioms)] @
-                    map2 pair witNs wit_thms
+                    (witNs ~~ wit_thms)
                     |> map (fn (thmN, thms) =>
                       ((qualify (Binding.qualify true (Binding.name_of b) (Binding.name thmN)), []),
                       [(thms, [])]));
@@ -1246,13 +1254,13 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds =
     map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])
       goals (map (mk_unfold_thms_then_tac lthy one_step_defs) tacs)
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
-  end) oo prepare_def const_policy fact_policy qualify (K I) Ds;
+  end) ooo prepare_def const_policy fact_policy qualify (K I) Ds;
 
 val bnf_def_cmd = (fn (key, goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd o register_bnf key oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
-  prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_term NONE;
+  prepare_def Do_Inline (user_policy Note_Some) I Syntax.read_term NONE [];
 
 fun print_bnfs ctxt =
   let

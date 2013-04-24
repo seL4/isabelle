@@ -43,6 +43,7 @@ sig
   val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
+  val pad_list: 'a -> int -> 'a list -> 'a list
 
   val mk_fresh_names: Proof.context -> int -> string -> string list * Proof.context
   val mk_TFrees: int -> Proof.context -> typ list * Proof.context
@@ -615,6 +616,8 @@ fun seq_conds f n k xs =
     let val (negs, pos) = split_last (take k xs) in
       map (f false) negs @ [f true pos]
     end;
+
+fun pad_list x n xs = xs @ replicate (n - length xs) x;
 
 fun mk_unabs_def n = funpow n (fn thm => thm RS fun_cong);
 

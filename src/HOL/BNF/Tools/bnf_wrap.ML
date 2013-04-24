@@ -65,8 +65,6 @@ val iff_attrs = @{attributes [iff]};
 val safe_elim_attrs = @{attributes [elim!]};
 val simp_attrs = @{attributes [simp]};
 
-fun pad_list x n xs = xs @ replicate (n - length xs) x;
-
 fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
 
 fun mk_half_pairss' _ ([], []) = []
