@@ -570,12 +570,12 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
 
         val (case_cong_thm, weak_case_cong_thm) =
           let
-            fun mk_prem xctr xs f g =
+            fun mk_prem xctr xs xf xg =
               fold_rev Logic.all xs (Logic.mk_implies (mk_Trueprop_eq (v, xctr),
-                mk_Trueprop_eq (f, g)));
+                mk_Trueprop_eq (xf, xg)));
 
             val goal =
-              Logic.list_implies (uv_eq :: map4 mk_prem xctrs xss fs gs,
+              Logic.list_implies (uv_eq :: map4 mk_prem xctrs xss xfs xgs,
                  mk_Trueprop_eq (eta_ufcase, eta_vgcase));
             val weak_goal = Logic.mk_implies (uv_eq, mk_Trueprop_eq (ufcase, vfcase));
           in
