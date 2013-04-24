@@ -3,9 +3,9 @@
     Author:     Johannes Hölzl, TU München
 *)
 
-header {* Conditional Complete Lattices *}
+header {* Conditionally-complete Lattices *}
 
-theory Conditional_Complete_Lattices
+theory Conditionally_Complete_Lattices
 imports Main Lubs
 begin
 
@@ -22,7 +22,7 @@ To avoid name classes with the @{class complete_lattice}-class we prefix @{const
 
 *}
 
-class conditional_complete_lattice = lattice + Sup + Inf +
+class conditionally_complete_lattice = lattice + Sup + Inf +
   assumes cInf_lower: "x \<in> X \<Longrightarrow> (\<And>a. a \<in> X \<Longrightarrow> z \<le> a) \<Longrightarrow> Inf X \<le> x"
     and cInf_greatest: "X \<noteq> {} \<Longrightarrow> (\<And>x. x \<in> X \<Longrightarrow> z \<le> x) \<Longrightarrow> z \<le> Inf X"
   assumes cSup_upper: "x \<in> X \<Longrightarrow> (\<And>a. a \<in> X \<Longrightarrow> a \<le> z) \<Longrightarrow> x \<le> Sup X"
@@ -159,16 +159,16 @@ lemma cInf_atLeastAtMost[simp]: "y \<le> x \<Longrightarrow> Inf {y..x} = y"
 
 end
 
-instance complete_lattice \<subseteq> conditional_complete_lattice
+instance complete_lattice \<subseteq> conditionally_complete_lattice
   by default (auto intro: Sup_upper Sup_least Inf_lower Inf_greatest)
 
 lemma isLub_cSup: 
-  "(S::'a :: conditional_complete_lattice set) \<noteq> {} \<Longrightarrow> (\<exists>b. S *<= b) \<Longrightarrow> isLub UNIV S (Sup S)"
+  "(S::'a :: conditionally_complete_lattice set) \<noteq> {} \<Longrightarrow> (\<exists>b. S *<= b) \<Longrightarrow> isLub UNIV S (Sup S)"
   by  (auto simp add: isLub_def setle_def leastP_def isUb_def
             intro!: setgeI intro: cSup_upper cSup_least)
 
 lemma cSup_eq:
-  fixes a :: "'a :: {conditional_complete_lattice, no_bot}"
+  fixes a :: "'a :: {conditionally_complete_lattice, no_bot}"
   assumes upper: "\<And>x. x \<in> X \<Longrightarrow> x \<le> a"
   assumes least: "\<And>y. (\<And>x. x \<in> X \<Longrightarrow> x \<le> y) \<Longrightarrow> a \<le> y"
   shows "Sup X = a"
@@ -177,7 +177,7 @@ proof cases
 qed (intro cSup_eq_non_empty assms)
 
 lemma cInf_eq:
-  fixes a :: "'a :: {conditional_complete_lattice, no_top}"
+  fixes a :: "'a :: {conditionally_complete_lattice, no_top}"
   assumes upper: "\<And>x. x \<in> X \<Longrightarrow> a \<le> x"
   assumes least: "\<And>y. (\<And>x. x \<in> X \<Longrightarrow> y \<le> x) \<Longrightarrow> y \<le> a"
   shows "Inf X = a"
@@ -185,13 +185,13 @@ proof cases
   assume "X = {}" with gt_ex[of a] least show ?thesis by (auto simp: less_le_not_le)
 qed (intro cInf_eq_non_empty assms)
 
-lemma cSup_le: "(S::'a::conditional_complete_lattice set) \<noteq> {} \<Longrightarrow> S *<= b \<Longrightarrow> Sup S \<le> b"
+lemma cSup_le: "(S::'a::conditionally_complete_lattice set) \<noteq> {} \<Longrightarrow> S *<= b \<Longrightarrow> Sup S \<le> b"
   by (metis cSup_least setle_def)
 
-lemma cInf_ge: "(S::'a :: conditional_complete_lattice set) \<noteq> {} \<Longrightarrow> b <=* S \<Longrightarrow> Inf S \<ge> b"
+lemma cInf_ge: "(S::'a :: conditionally_complete_lattice set) \<noteq> {} \<Longrightarrow> b <=* S \<Longrightarrow> Inf S \<ge> b"
   by (metis cInf_greatest setge_def)
 
-class conditional_complete_linorder = conditional_complete_lattice + linorder
+class conditionally_complete_linorder = conditionally_complete_lattice + linorder
 begin
 
 lemma less_cSup_iff : (*REAL_SUP_LE in HOL4*)
@@ -247,7 +247,7 @@ qed
 end
 
 lemma cSup_bounds:
-  fixes S :: "'a :: conditional_complete_lattice set"
+  fixes S :: "'a :: conditionally_complete_lattice set"
   assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
   shows "a \<le> Sup S \<and> Sup S \<le> b"
 proof-
@@ -262,34 +262,34 @@ proof-
 qed
 
 
-lemma cSup_unique: "(S::'a :: {conditional_complete_linorder, no_bot} set) *<= b \<Longrightarrow> (\<forall>b'<b. \<exists>x\<in>S. b' < x) \<Longrightarrow> Sup S = b"
+lemma cSup_unique: "(S::'a :: {conditionally_complete_linorder, no_bot} set) *<= b \<Longrightarrow> (\<forall>b'<b. \<exists>x\<in>S. b' < x) \<Longrightarrow> Sup S = b"
   by (rule cSup_eq) (auto simp: not_le[symmetric] setle_def)
 
-lemma cInf_unique: "b <=* (S::'a :: {conditional_complete_linorder, no_top} set) \<Longrightarrow> (\<forall>b'>b. \<exists>x\<in>S. b' > x) \<Longrightarrow> Inf S = b"
+lemma cInf_unique: "b <=* (S::'a :: {conditionally_complete_linorder, no_top} set) \<Longrightarrow> (\<forall>b'>b. \<exists>x\<in>S. b' > x) \<Longrightarrow> Inf S = b"
   by (rule cInf_eq) (auto simp: not_le[symmetric] setge_def)
 
-lemma cSup_eq_Max: "finite (X::'a::conditional_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup X = Max X"
+lemma cSup_eq_Max: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Sup X = Max X"
   using cSup_eq_Sup_fin[of X] Sup_fin_eq_Max[of X] by simp
 
-lemma cInf_eq_Min: "finite (X::'a::conditional_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf X = Min X"
+lemma cInf_eq_Min: "finite (X::'a::conditionally_complete_linorder set) \<Longrightarrow> X \<noteq> {} \<Longrightarrow> Inf X = Min X"
   using cInf_eq_Inf_fin[of X] Inf_fin_eq_Min[of X] by simp
 
-lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditional_complete_linorder, dense_linorder}} = x"
+lemma cSup_lessThan[simp]: "Sup {..<x::'a::{conditionally_complete_linorder, dense_linorder}} = x"
   by (auto intro!: cSup_eq_non_empty intro: dense_le)
 
-lemma cSup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x::'a::{conditional_complete_linorder, dense_linorder}} = x"
+lemma cSup_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Sup {y<..<x::'a::{conditionally_complete_linorder, dense_linorder}} = x"
   by (auto intro!: cSup_eq intro: dense_le_bounded)
 
-lemma cSup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x::'a::{conditional_complete_linorder, dense_linorder}} = x"
+lemma cSup_atLeastLessThan[simp]: "y < x \<Longrightarrow> Sup {y..<x::'a::{conditionally_complete_linorder, dense_linorder}} = x"
   by (auto intro!: cSup_eq intro: dense_le_bounded)
 
-lemma cInf_greaterThan[simp]: "Inf {x::'a::{conditional_complete_linorder, dense_linorder} <..} = x"
+lemma cInf_greaterThan[simp]: "Inf {x::'a::{conditionally_complete_linorder, dense_linorder} <..} = x"
   by (auto intro!: cInf_eq intro: dense_ge)
 
-lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{conditional_complete_linorder, dense_linorder}} = y"
+lemma cInf_greaterThanAtMost[simp]: "y < x \<Longrightarrow> Inf {y<..x::'a::{conditionally_complete_linorder, dense_linorder}} = y"
   by (auto intro!: cInf_eq intro: dense_ge_bounded)
 
-lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditional_complete_linorder, dense_linorder}} = y"
+lemma cInf_greaterThanLessThan[simp]: "y < x \<Longrightarrow> Inf {y<..<x::'a::{conditionally_complete_linorder, dense_linorder}} = y"
   by (auto intro!: cInf_eq intro: dense_ge_bounded)
 
 end

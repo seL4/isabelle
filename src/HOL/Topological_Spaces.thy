@@ -6,7 +6,7 @@
 header {* Topological Spaces *}
 
 theory Topological_Spaces
-imports Main Conditional_Complete_Lattices
+imports Main Conditionally_Complete_Lattices
 begin
 
 subsection {* Topological space *}
@@ -2079,7 +2079,7 @@ qed
 
 section {* Connectedness *}
 
-class linear_continuum_topology = linorder_topology + conditional_complete_linorder + inner_dense_linorder
+class linear_continuum_topology = linorder_topology + conditionally_complete_linorder + inner_dense_linorder
 begin
 
 lemma Inf_notin_open:

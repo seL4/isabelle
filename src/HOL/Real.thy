@@ -10,7 +10,7 @@
 header {* Development of the Reals using Cauchy Sequences *}
 
 theory Real
-imports Rat Conditional_Complete_Lattices
+imports Rat Conditionally_Complete_Lattices
 begin
 
 text {*
@@ -925,7 +925,7 @@ proof -
 qed
 
 
-instantiation real :: conditional_complete_linorder
+instantiation real :: conditionally_complete_linorder
 begin
 
 subsection{*Supremum of a set of reals*}

@@ -1364,8 +1364,8 @@ lemma Lim_within_LIMSEQ:
   by (simp add: sequentially_imp_eventually_within)
 
 lemma Lim_right_bound:
-  fixes f :: "'a :: {linorder_topology, conditional_complete_linorder, no_top} \<Rightarrow>
-    'b::{linorder_topology, conditional_complete_linorder}"
+  fixes f :: "'a :: {linorder_topology, conditionally_complete_linorder, no_top} \<Rightarrow>
+    'b::{linorder_topology, conditionally_complete_linorder}"
   assumes mono: "\<And>a b. a \<in> I \<Longrightarrow> b \<in> I \<Longrightarrow> x < a \<Longrightarrow> a \<le> b \<Longrightarrow> f a \<le> f b"
   assumes bnd: "\<And>a. a \<in> I \<Longrightarrow> x < a \<Longrightarrow> K \<le> f a"
   shows "(f ---> Inf (f ` ({x<..} \<inter> I))) (at x within ({x<..} \<inter> I))"

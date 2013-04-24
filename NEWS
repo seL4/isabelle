@@ -99,13 +99,13 @@ fine-grain stack of theories Code_Target_Int, Code_Binary_Nat,
 Code_Target_Nat and Code_Target_Numeral.  See the tutorial on
 code generation for details.  INCOMPATIBILITY.
 
-* Introduce type class "conditional_complete_lattice": Like a complete
+* Introduce type class "conditionally_complete_lattice": Like a complete
   lattice but does not assume the existence of the top and bottom elements.
   Allows to generalize some lemmas about reals and extended reals.
   Removed SupInf and replaced it by the instantiation of
-  conditional_complete_lattice for real. Renamed lemmas about conditional
-  complete lattice from Sup_... to cSup_... and from Inf_... to
-  cInf_... to avoid hidding of similar complete lattice lemmas.
+  conditionally_complete_lattice for real. Renamed lemmas about
+  conditionally-complete lattice from Sup_... to cSup_... and from Inf_...
+  to cInf_... to avoid hidding of similar complete lattice lemmas.
 INCOMPATIBILITY.
 
 * Introduce type classes "no_top" and "no_bot" for orderings without top
@@ -133,7 +133,7 @@ INCOMPATIBILITY.
 
  - connected from Multivariate_Analysis. Use it to prove the
    intermediate value theorem. Show connectedness of intervals on order
-   topologies which are a inner dense, conditional complete linorder.
+   topologies which are a inner dense, conditionally-complete linorder.
 
  - first_countable_topology from Multivariate_Analysis. Is used to
    show equivalence of properties on the neighbourhood filter of x and on
