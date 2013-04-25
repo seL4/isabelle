@@ -309,6 +309,20 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
     val fpTs = map (domain_type o fastype_of) dtors;
 
+    fun massage_simple_notes base =
+      filter_out (null o #2)
+      #> map (fn (thmN, thms, attrs) =>
+        ((qualify true base (Binding.name thmN), attrs), [(thms, [])]));
+
+    val massage_multi_notes =
+      maps (fn (thmN, thmss, attrs) =>
+        if forall null thmss then
+          []
+        else
+          map3 (fn fp_b_name => fn Type (T_name, _) => fn thms =>
+            ((qualify true fp_b_name (Binding.name thmN), attrs T_name),
+             [(thms, [])])) fp_b_names fpTs thmss);
+
     val exists_fp_subtype = exists_subtype (member (op =) fpTs);
     val exists_Cs_subtype = exists_subtype (member (op =) Cs);
 
@@ -598,9 +612,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                (rel_distinctN, rel_distinct_thms, code_simp_attrs),
                (rel_injectN, rel_inject_thms, code_simp_attrs),
                (setsN, flat set_thmss, code_simp_attrs)]
-              |> filter_out (null o #2)
-              |> map (fn (thmN, thms, attrs) =>
-                ((qualify true fp_b_name (Binding.name thmN), attrs), [(thms, [])]));
+              |> massage_simple_notes fp_b_name;
           in
             (wrap_res, lthy |> Local_Theory.notes notes |> snd)
           end;
@@ -883,8 +895,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], [induct_case_names_attr])] else [])
-          |> map (fn (thmN, thms, attrs) =>
-            ((qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
+          |> massage_simple_notes fp_common_name;
 
         val notes =
           [(foldN, fold_thmss, K code_simp_attrs),
@@ -892,10 +903,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             fn T_name => [induct_case_names_attr, induct_type_attr T_name]),
            (recN, rec_thmss, K code_simp_attrs),
            (simpsN, simp_thmss, K [])]
-          |> maps (fn (thmN, thmss, attrs) =>
-            map3 (fn fp_b_name => fn Type (T_name, _) => fn thms =>
-              ((qualify true fp_b_name (Binding.name thmN), attrs T_name),
-               [(thms, [])])) fp_b_names fpTs thmss);
+          |> massage_multi_notes;
       in
         lthy |> Local_Theory.notes (common_notes @ notes) |> snd
       end;
@@ -1158,6 +1166,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             coinduct_cases coinduct_conclss;
         val coinduct_case_attrs =
           coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
+        fun coinduct_type_attr T_name = Attrib.internal (K (Induct.coinduct_type T_name));
 
         val common_notes =
           (if nn > 1 then
@@ -1165,25 +1174,22 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               (strong_coinductN, [strong_coinduct_thm], coinduct_case_attrs)]
            else
              [])
-          |> map (fn (thmN, thms, attrs) =>
-            ((qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
+          |> massage_simple_notes fp_common_name;
 
         val notes =
-          [(coinductN, map single coinduct_thms, coinduct_case_attrs),
-           (corecN, corec_thmss, []),
-           (disc_corecN, disc_corec_thmss, simp_attrs),
-           (disc_corec_iffN, disc_corec_iff_thmss, simp_attrs),
-           (disc_unfoldN, disc_unfold_thmss, simp_attrs),
-           (disc_unfold_iffN, disc_unfold_iff_thmss, simp_attrs),
-           (sel_corecN, sel_corec_thmss, simp_attrs),
-           (sel_unfoldN, sel_unfold_thmss, simp_attrs),
-           (simpsN, simp_thmss, []),
-           (strong_coinductN, map single strong_coinduct_thms, coinduct_case_attrs),
-           (unfoldN, unfold_thmss, [])]
-          |> maps (fn (thmN, thmss, attrs) =>
-            map_filter (fn (_, []) => NONE | (fp_b_name, thms) =>
-              SOME ((qualify true fp_b_name (Binding.name thmN), attrs),
-                [(thms, [])])) (fp_b_names ~~ thmss));
+          [(coinductN, map single coinduct_thms,
+            fn T_name => coinduct_case_attrs @ [coinduct_type_attr T_name]),
+           (corecN, corec_thmss, K []),
+           (disc_corecN, disc_corec_thmss, K simp_attrs),
+           (disc_corec_iffN, disc_corec_iff_thmss, K simp_attrs),
+           (disc_unfoldN, disc_unfold_thmss, K simp_attrs),
+           (disc_unfold_iffN, disc_unfold_iff_thmss, K simp_attrs),
+           (sel_corecN, sel_corec_thmss, K simp_attrs),
+           (sel_unfoldN, sel_unfold_thmss, K simp_attrs),
+           (simpsN, simp_thmss, K []),
+           (strong_coinductN, map single strong_coinduct_thms, K coinduct_case_attrs),
+           (unfoldN, unfold_thmss, K [])]
+          |> massage_multi_notes;
       in
         lthy |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
       end;
