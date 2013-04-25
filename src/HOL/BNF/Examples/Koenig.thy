@@ -110,8 +110,8 @@ qed
 
 (* some more stream theorems *)
 
-lemma stream_map[simp]: "stream_map f = stream_dtor_unfold (f o shd \<odot> stl)"
-unfolding stream_map_def pair_fun_def shd_def'[abs_def] stl_def'[abs_def]
+lemma stream_map[simp]: "smap f = stream_dtor_unfold (f o shd \<odot> stl)"
+unfolding smap_def pair_fun_def shd_def'[abs_def] stl_def'[abs_def]
   map_pair_def o_def prod_case_beta by simp
 
 definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<oplus>" 66) where
@@ -119,7 +119,7 @@ definition plus :: "nat stream \<Rightarrow> nat stream \<Rightarrow> nat stream
     stream_dtor_unfold ((%(xs, ys). shd xs + shd ys) \<odot> (%(xs, ys). (stl xs, stl ys))) (xs, ys)"
 
 definition scalar :: "nat \<Rightarrow> nat stream \<Rightarrow> nat stream" (infixr "\<cdot>" 68) where
-  [simp]: "scalar n = stream_map (\<lambda>x. n * x)"
+  [simp]: "scalar n = smap (\<lambda>x. n * x)"
 
 definition ones :: "nat stream" where [simp]: "ones = stream_dtor_unfold ((%x. 1) \<odot> id) ()"
 definition twos :: "nat stream" where [simp]: "twos = stream_dtor_unfold ((%x. 2) \<odot> id) ()"

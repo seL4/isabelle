@@ -12,7 +12,8 @@ theory Stream
 imports "../BNF"
 begin
 
-codata 'a stream = Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
+codata (sset: 'a) stream (map: smap rel: stream_all2) =
+   Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
 
 declaration {*
   Nitpick_HOL.register_codatatype
@@ -23,7 +24,7 @@ declaration {*
         fixes x :: 'stream_element_type
         begin
 
-        lemma "stream_set s = {}"
+        lemma "sset s = {}"
         nitpick
         oops
 
@@ -45,7 +46,7 @@ setup {*
 
 (*for code generation only*)
 definition smember :: "'a \<Rightarrow> 'a stream \<Rightarrow> bool" where
-  [code_abbrev]: "smember x s \<longleftrightarrow> x \<in> stream_set s"
+  [code_abbrev]: "smember x s \<longleftrightarrow> x \<in> sset s"
 
 lemma smember_code[code, simp]: "smember x (Stream y s) = (if x = y then True else smember x s)"
   unfolding smember_def by auto
@@ -53,33 +54,33 @@ lemma smember_code[code, simp]: "smember x (Stream y s) = (if x = y then True el
 hide_const (open) smember
 
 (* TODO: Provide by the package*)
-theorem stream_set_induct:
-  "\<lbrakk>\<And>s. P (shd s) s; \<And>s y. \<lbrakk>y \<in> stream_set (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s\<rbrakk> \<Longrightarrow>
-    \<forall>y \<in> stream_set s. P y s"
+theorem sset_induct:
+  "\<lbrakk>\<And>s. P (shd s) s; \<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s\<rbrakk> \<Longrightarrow>
+    \<forall>y \<in> sset s. P y s"
   by (rule stream.dtor_set_induct)
     (auto simp add:  shd_def stl_def stream_case_def fsts_def snds_def split_beta)
 
-lemma stream_map_simps[simp]:
-  "shd (stream_map f s) = f (shd s)" "stl (stream_map f s) = stream_map f (stl s)"
-  unfolding shd_def stl_def stream_case_def stream_map_def stream.dtor_unfold
+lemma smap_simps[simp]:
+  "shd (smap f s) = f (shd s)" "stl (smap f s) = smap f (stl s)"
+  unfolding shd_def stl_def stream_case_def smap_def stream.dtor_unfold
   by (case_tac [!] s) (auto simp: Stream_def stream.dtor_ctor)
 
 declare stream.map[code]
 
-theorem shd_stream_set: "shd s \<in> stream_set s"
+theorem shd_sset: "shd s \<in> sset s"
   by (auto simp add: shd_def stl_def stream_case_def fsts_def snds_def split_beta)
     (metis UnCI fsts_def insertI1 stream.dtor_set)
 
-theorem stl_stream_set: "y \<in> stream_set (stl s) \<Longrightarrow> y \<in> stream_set s"
+theorem stl_sset: "y \<in> sset (stl s) \<Longrightarrow> y \<in> sset s"
   by (auto simp add: shd_def stl_def stream_case_def fsts_def snds_def split_beta)
     (metis insertI1 set_mp snds_def stream.dtor_set_set_incl)
 
 (* only for the non-mutual case: *)
-theorem stream_set_induct1[consumes 1, case_names shd stl, induct set: "stream_set"]:
-  assumes "y \<in> stream_set s" and "\<And>s. P (shd s) s"
-  and "\<And>s y. \<lbrakk>y \<in> stream_set (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s"
+theorem sset_induct1[consumes 1, case_names shd stl, induct set: "sset"]:
+  assumes "y \<in> sset s" and "\<And>s. P (shd s) s"
+  and "\<And>s y. \<lbrakk>y \<in> sset (stl s); P y (stl s)\<rbrakk> \<Longrightarrow> P y s"
   shows "P y s"
-  using assms stream_set_induct by blast
+  using assms sset_induct by blast
 (* end TODO *)
 
 
@@ -89,7 +90,7 @@ primrec shift :: "'a list \<Rightarrow> 'a stream \<Rightarrow> 'a stream" (infi
   "shift [] s = s"
 | "shift (x # xs) s = x ## shift xs s"
 
-lemma stream_map_shift[simp]: "stream_map f (xs @- s) = map f xs @- stream_map f s"
+lemma smap_shift[simp]: "smap f (xs @- s) = map f xs @- smap f s"
   by (induct xs) auto
 
 lemma shift_append[simp]: "(xs @ ys) @- s = xs @- ys @- s"
@@ -100,7 +101,7 @@ lemma shift_simps[simp]:
    "stl (xs @- s) = (if xs = [] then stl s else tl xs @- s)"
   by (induct xs) auto
 
-lemma stream_set_shift[simp]: "stream_set (xs @- s) = set xs \<union> stream_set s"
+lemma sset_shift[simp]: "sset (xs @- s) = set xs \<union> sset s"
   by (induct xs) auto
 
 lemma shift_left_inj[simp]: "xs @- s1 = xs @- s2 \<longleftrightarrow> s1 = s2"
@@ -118,16 +119,16 @@ where
 lemma shift_streams: "\<lbrakk>w \<in> lists A; s \<in> streams A\<rbrakk> \<Longrightarrow> w @- s \<in> streams A"
   by (induct w) auto
 
-lemma stream_set_streams:
-  assumes "stream_set s \<subseteq> A"
+lemma sset_streams:
+  assumes "sset s \<subseteq> A"
   shows "s \<in> streams A"
-proof (coinduct rule: streams.coinduct[of "\<lambda>s'. \<exists>a s. s' = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A"])
+proof (coinduct rule: streams.coinduct[of "\<lambda>s'. \<exists>a s. s' = a ## s \<and> a \<in> A \<and> sset s \<subseteq> A"])
   case streams from assms show ?case by (cases s) auto
 next
-  fix s' assume "\<exists>a s. s' = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A"
+  fix s' assume "\<exists>a s. s' = a ## s \<and> a \<in> A \<and> sset s \<subseteq> A"
   then guess a s by (elim exE)
   with assms show "\<exists>a l. s' = a ## l \<and>
-    a \<in> A \<and> ((\<exists>a s. l = a ## s \<and> a \<in> A \<and> stream_set s \<subseteq> A) \<or> l \<in> streams A)"
+    a \<in> A \<and> ((\<exists>a s. l = a ## s \<and> a \<in> A \<and> sset s \<subseteq> A) \<or> l \<in> streams A)"
     by (cases s) auto
 qed
 
@@ -138,7 +139,7 @@ primrec snth :: "'a stream \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!!" 100)
   "s !! 0 = shd s"
 | "s !! Suc n = stl s !! n"
 
-lemma snth_stream_map[simp]: "stream_map f s !! n = f (s !! n)"
+lemma snth_smap[simp]: "smap f s !! n = f (s !! n)"
   by (induct n arbitrary: s) auto
 
 lemma shift_snth_less[simp]: "p < length xs \<Longrightarrow> (xs @- s) !! p = xs ! p"
@@ -147,12 +148,12 @@ lemma shift_snth_less[simp]: "p < length xs \<Longrightarrow> (xs @- s) !! p = x
 lemma shift_snth_ge[simp]: "p \<ge> length xs \<Longrightarrow> (xs @- s) !! p = s !! (p - length xs)"
   by (induct p arbitrary: xs) (auto simp: Suc_diff_eq_diff_pred)
 
-lemma snth_stream_set[simp]: "s !! n \<in> stream_set s"
-  by (induct n arbitrary: s) (auto intro: shd_stream_set stl_stream_set)
+lemma snth_sset[simp]: "s !! n \<in> sset s"
+  by (induct n arbitrary: s) (auto intro: shd_sset stl_sset)
 
-lemma stream_set_range: "stream_set s = range (snth s)"
+lemma sset_range: "sset s = range (snth s)"
 proof (intro equalityI subsetI)
-  fix x assume "x \<in> stream_set s"
+  fix x assume "x \<in> sset s"
   thus "x \<in> range (snth s)"
   proof (induct s)
     case (stl s x)
@@ -168,7 +169,7 @@ primrec stake :: "nat \<Rightarrow> 'a stream \<Rightarrow> 'a list" where
 lemma length_stake[simp]: "length (stake n s) = n"
   by (induct n arbitrary: s) auto
 
-lemma stake_stream_map[simp]: "stake n (stream_map f s) = map f (stake n s)"
+lemma stake_smap[simp]: "stake n (smap f s) = map f (stake n s)"
   by (induct n arbitrary: s) auto
 
 primrec sdrop :: "nat \<Rightarrow> 'a stream \<Rightarrow> 'a stream" where
@@ -179,7 +180,7 @@ lemma sdrop_simps[simp]:
   "shd (sdrop n s) = s !! n" "stl (sdrop n s) = sdrop (Suc n) s"
   by (induct n arbitrary: s)  auto
 
-lemma sdrop_stream_map[simp]: "sdrop n (stream_map f s) = stream_map f (sdrop n s)"
+lemma sdrop_smap[simp]: "sdrop n (smap f s) = smap f (sdrop n s)"
   by (induct n arbitrary: s) auto
 
 lemma sdrop_stl: "sdrop n (stl s) = stl (sdrop n s)"
@@ -192,11 +193,11 @@ lemma id_stake_snth_sdrop:
   "s = stake i s @- s !! i ## sdrop (Suc i) s"
   by (subst stake_sdrop[symmetric, of _ i]) (metis sdrop_simps stream.collapse)
 
-lemma stream_map_alt: "stream_map f s = s' \<longleftrightarrow> (\<forall>n. f (s !! n) = s' !! n)" (is "?L = ?R")
+lemma smap_alt: "smap f s = s' \<longleftrightarrow> (\<forall>n. f (s !! n) = s' !! n)" (is "?L = ?R")
 proof
   assume ?R
   thus ?L 
-    by (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>n. s1 = stream_map f (sdrop n s) \<and> s2 = sdrop n s'"])
+    by (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>n. s1 = smap f (sdrop n s) \<and> s2 = sdrop n s'"])
       (auto intro: exI[of _ 0] simp del: sdrop.simps(2))
 qed auto
 
@@ -243,8 +244,8 @@ subsection {* unary predicates lifted to streams *}
 
 definition "stream_all P s = (\<forall>p. P (s !! p))"
 
-lemma stream_all_iff[iff]: "stream_all P s \<longleftrightarrow> Ball (stream_set s) P"
-  unfolding stream_all_def stream_set_range by auto
+lemma stream_all_iff[iff]: "stream_all P s \<longleftrightarrow> Ball (sset s) P"
+  unfolding stream_all_def sset_range by auto
 
 lemma stream_all_shift[simp]: "stream_all P (xs @- s) = (list_all P xs \<and> stream_all P s)"
   unfolding stream_all_iff list_all_iff by auto
@@ -359,16 +360,16 @@ lemma stake_fromN[simp]: "stake m (fromN n) = [n ..< m + n]"
 lemma sdrop_fromN[simp]: "sdrop m (fromN n) = fromN (n + m)"
   unfolding fromN_def by (induct m arbitrary: n) auto
 
-lemma stream_set_fromN[simp]: "stream_set (fromN n) = {n ..}" (is "?L = ?R")
+lemma sset_fromN[simp]: "sset (fromN n) = {n ..}" (is "?L = ?R")
 proof safe
   fix m assume "m : ?L"
   moreover
-  { fix s assume "m \<in> stream_set s" "\<exists>n'\<ge>n. s = fromN n'"
-    hence "n \<le> m" by (induct arbitrary: n rule: stream_set_induct1) fastforce+
+  { fix s assume "m \<in> sset s" "\<exists>n'\<ge>n. s = fromN n'"
+    hence "n \<le> m" by (induct arbitrary: n rule: sset_induct1) fastforce+
   }
   ultimately show "n \<le> m" by blast
 next
-  fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_stream_set)
+  fix m assume "n \<le> m" thus "m \<in> ?L" by (metis le_iff_add snth_fromN snth_sset)
 qed
 
 abbreviation "nats \<equiv> fromN 0"
@@ -393,15 +394,15 @@ lemma flat_Stream[simp]: "xs \<noteq> [] \<Longrightarrow> flat (xs ## ws) = xs 
 lemma flat_unfold: "shd ws \<noteq> [] \<Longrightarrow> flat ws = shd ws @- flat (stl ws)"
   by (cases ws) auto
 
-lemma flat_snth: "\<forall>xs \<in> stream_set s. xs \<noteq> [] \<Longrightarrow> flat s !! n = (if n < length (shd s) then 
+lemma flat_snth: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow> flat s !! n = (if n < length (shd s) then 
   shd s ! n else flat (stl s) !! (n - length (shd s)))"
-  by (metis flat_unfold not_less shd_stream_set shift_snth_ge shift_snth_less)
+  by (metis flat_unfold not_less shd_sset shift_snth_ge shift_snth_less)
 
-lemma stream_set_flat[simp]: "\<forall>xs \<in> stream_set s. xs \<noteq> [] \<Longrightarrow> 
-  stream_set (flat s) = (\<Union>xs \<in> stream_set s. set xs)" (is "?P \<Longrightarrow> ?L = ?R")
+lemma sset_flat[simp]: "\<forall>xs \<in> sset s. xs \<noteq> [] \<Longrightarrow> 
+  sset (flat s) = (\<Union>xs \<in> sset s. set xs)" (is "?P \<Longrightarrow> ?L = ?R")
 proof safe
   fix x assume ?P "x : ?L"
-  then obtain m where "x = flat s !! m" by (metis image_iff stream_set_range)
+  then obtain m where "x = flat s !! m" by (metis image_iff sset_range)
   with `?P` obtain n m' where "x = s !! n ! m'" "m' < length (s !! n)"
   proof (atomize_elim, induct m arbitrary: s rule: less_induct)
     case (less y)
@@ -416,60 +417,60 @@ proof safe
         moreover with False have "y > 0" by (cases y) simp_all
         ultimately have "y - length (shd s) < y" by simp
       }
-      moreover have "\<forall>xs \<in> stream_set (stl s). xs \<noteq> []" using less(2) by (cases s) auto
+      moreover have "\<forall>xs \<in> sset (stl s). xs \<noteq> []" using less(2) by (cases s) auto
       ultimately have "\<exists>n m'. x = stl s !! n ! m' \<and> m' < length (stl s !! n)" by (intro less(1)) auto
       thus ?thesis by (metis snth.simps(2))
     qed
   qed
-  thus "x \<in> ?R" by (auto simp: stream_set_range dest!: nth_mem)
+  thus "x \<in> ?R" by (auto simp: sset_range dest!: nth_mem)
 next
-  fix x xs assume "xs \<in> stream_set s" ?P "x \<in> set xs" thus "x \<in> ?L"
-    by (induct rule: stream_set_induct1)
-      (metis UnI1 flat_unfold shift.simps(1) stream_set_shift,
-       metis UnI2 flat_unfold shd_stream_set stl_stream_set stream_set_shift)
+  fix x xs assume "xs \<in> sset s" ?P "x \<in> set xs" thus "x \<in> ?L"
+    by (induct rule: sset_induct1)
+      (metis UnI1 flat_unfold shift.simps(1) sset_shift,
+       metis UnI2 flat_unfold shd_sset stl_sset sset_shift)
 qed
 
 
 subsection {* merge a stream of streams *}
 
 definition smerge :: "'a stream stream \<Rightarrow> 'a stream" where
-  "smerge ss = flat (stream_map (\<lambda>n. map (\<lambda>s. s !! n) (stake (Suc n) ss) @ stake n (ss !! n)) nats)"
+  "smerge ss = flat (smap (\<lambda>n. map (\<lambda>s. s !! n) (stake (Suc n) ss) @ stake n (ss !! n)) nats)"
 
 lemma stake_nth[simp]: "m < n \<Longrightarrow> stake n s ! m = s !! m"
   by (induct n arbitrary: s m) (auto simp: nth_Cons', metis Suc_pred snth.simps(2))
 
-lemma snth_stream_set_smerge: "ss !! n !! m \<in> stream_set (smerge ss)"
+lemma snth_sset_smerge: "ss !! n !! m \<in> sset (smerge ss)"
 proof (cases "n \<le> m")
   case False thus ?thesis unfolding smerge_def
-    by (subst stream_set_flat)
+    by (subst sset_flat)
       (auto simp: stream.set_map' in_set_conv_nth simp del: stake.simps
         intro!: exI[of _ n, OF disjI2] exI[of _ m, OF mp])
 next
   case True thus ?thesis unfolding smerge_def
-    by (subst stream_set_flat)
+    by (subst sset_flat)
       (auto simp: stream.set_map' in_set_conv_nth image_iff simp del: stake.simps snth.simps
         intro!: exI[of _ m, OF disjI1] bexI[of _ "ss !! n"] exI[of _ n, OF mp])
 qed
 
-lemma stream_set_smerge: "stream_set (smerge ss) = UNION (stream_set ss) stream_set"
+lemma sset_smerge: "sset (smerge ss) = UNION (sset ss) sset"
 proof safe
-  fix x assume "x \<in> stream_set (smerge ss)"
-  thus "x \<in> UNION (stream_set ss) stream_set"
-    unfolding smerge_def by (subst (asm) stream_set_flat)
-      (auto simp: stream.set_map' in_set_conv_nth stream_set_range simp del: stake.simps, fast+)
+  fix x assume "x \<in> sset (smerge ss)"
+  thus "x \<in> UNION (sset ss) sset"
+    unfolding smerge_def by (subst (asm) sset_flat)
+      (auto simp: stream.set_map' in_set_conv_nth sset_range simp del: stake.simps, fast+)
 next
-  fix s x assume "s \<in> stream_set ss" "x \<in> stream_set s"
-  thus "x \<in> stream_set (smerge ss)" using snth_stream_set_smerge by (auto simp: stream_set_range)
+  fix s x assume "s \<in> sset ss" "x \<in> sset s"
+  thus "x \<in> sset (smerge ss)" using snth_sset_smerge by (auto simp: sset_range)
 qed
 
 
 subsection {* product of two streams *}
 
 definition sproduct :: "'a stream \<Rightarrow> 'b stream \<Rightarrow> ('a \<times> 'b) stream" where
-  "sproduct s1 s2 = smerge (stream_map (\<lambda>x. stream_map (Pair x) s2) s1)"
+  "sproduct s1 s2 = smerge (smap (\<lambda>x. smap (Pair x) s2) s1)"
 
-lemma stream_set_sproduct: "stream_set (sproduct s1 s2) = stream_set s1 \<times> stream_set s2"
-  unfolding sproduct_def stream_set_smerge by (auto simp: stream.set_map')
+lemma sset_sproduct: "sset (sproduct s1 s2) = sset s1 \<times> sset s2"
+  unfolding sproduct_def sset_smerge by (auto simp: stream.set_map')
 
 
 subsection {* interleave two streams *}
@@ -492,24 +493,24 @@ lemma sinterleave_snth[simp]:
   by (induct n arbitrary: s1 s2)
     (auto dest: even_nat_Suc_div_2 odd_nat_plus_one_div_two[folded nat_2])
 
-lemma stream_set_sinterleave: "stream_set (sinterleave s1 s2) = stream_set s1 \<union> stream_set s2"
+lemma sset_sinterleave: "sset (sinterleave s1 s2) = sset s1 \<union> sset s2"
 proof (intro equalityI subsetI)
-  fix x assume "x \<in> stream_set (sinterleave s1 s2)"
-  then obtain n where "x = sinterleave s1 s2 !! n" unfolding stream_set_range by blast
-  thus "x \<in> stream_set s1 \<union> stream_set s2" by (cases "even n") auto
+  fix x assume "x \<in> sset (sinterleave s1 s2)"
+  then obtain n where "x = sinterleave s1 s2 !! n" unfolding sset_range by blast
+  thus "x \<in> sset s1 \<union> sset s2" by (cases "even n") auto
 next
-  fix x assume "x \<in> stream_set s1 \<union> stream_set s2"
-  thus "x \<in> stream_set (sinterleave s1 s2)"
+  fix x assume "x \<in> sset s1 \<union> sset s2"
+  thus "x \<in> sset (sinterleave s1 s2)"
   proof
-    assume "x \<in> stream_set s1"
-    then obtain n where "x = s1 !! n" unfolding stream_set_range by blast
+    assume "x \<in> sset s1"
+    then obtain n where "x = s1 !! n" unfolding sset_range by blast
     hence "sinterleave s1 s2 !! (2 * n) = x" by simp
-    thus ?thesis unfolding stream_set_range by blast
+    thus ?thesis unfolding sset_range by blast
   next
-    assume "x \<in> stream_set s2"
-    then obtain n where "x = s2 !! n" unfolding stream_set_range by blast
+    assume "x \<in> sset s2"
+    then obtain n where "x = s2 !! n" unfolding sset_range by blast
     hence "sinterleave s1 s2 !! (2 * n + 1) = x" by simp
-    thus ?thesis unfolding stream_set_range by blast
+    thus ?thesis unfolding sset_range by blast
   qed
 qed
 
@@ -532,22 +533,22 @@ lemma snth_szip[simp]: "szip s1 s2 !! n = (s1 !! n, s2 !! n)"
 
 subsection {* zip via function *}
 
-definition "stream_map2 f s1 s2 =
+definition "smap2 f s1 s2 =
   stream_unfold (\<lambda>(s1,s2). f (shd s1) (shd s2)) (map_pair stl stl) (s1, s2)"
 
-lemma stream_map2_simps[simp]:
-  "shd (stream_map2 f s1 s2) = f (shd s1) (shd s2)"
-  "stl (stream_map2 f s1 s2) = stream_map2 f (stl s1) (stl s2)"
-  unfolding stream_map2_def by auto
+lemma smap2_simps[simp]:
+  "shd (smap2 f s1 s2) = f (shd s1) (shd s2)"
+  "stl (smap2 f s1 s2) = smap2 f (stl s1) (stl s2)"
+  unfolding smap2_def by auto
 
-lemma stream_map2_unfold[code]:
-  "stream_map2 f (Stream a s1) (Stream b s2) = Stream (f a b) (stream_map2 f s1 s2)"
-  unfolding stream_map2_def by (subst stream.unfold) simp
+lemma smap2_unfold[code]:
+  "smap2 f (Stream a s1) (Stream b s2) = Stream (f a b) (smap2 f s1 s2)"
+  unfolding smap2_def by (subst stream.unfold) simp
 
-lemma stream_map2_szip:
-  "stream_map2 f s1 s2 = stream_map (split f) (szip s1 s2)"
+lemma smap2_szip:
+  "smap2 f s1 s2 = smap (split f) (szip s1 s2)"
   by (coinduct rule: stream.coinduct[of
-    "\<lambda>s1 s2. \<exists>s1' s2'. s1 = stream_map2 f s1' s2' \<and> s2 = stream_map (split f) (szip s1' s2')"])
+    "\<lambda>s1 s2. \<exists>s1' s2'. s1 = smap2 f s1' s2' \<and> s2 = smap (split f) (szip s1' s2')"])
     fastforce+
 
 
@@ -574,7 +575,7 @@ lemma sdrop_siterate[simp]: "sdrop n (siterate f x) = siterate f ((f^^n) x)"
 lemma stake_siterate[simp]: "stake n (siterate f x) = map (\<lambda>n. (f^^n) x) [0 ..< n]"
   by (induct n arbitrary: x) (auto simp del: stake.simps(2) simp: stake_Suc)
 
-lemma stream_set_siterate: "stream_set (siterate f x) = {(f^^n) x | n. True}"
-  by (auto simp: stream_set_range)
+lemma sset_siterate: "sset (siterate f x) = {(f^^n) x | n. True}"
+  by (auto simp: sset_range)
 
 end
