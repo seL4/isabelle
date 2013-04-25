@@ -212,7 +212,6 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
     val eta_gcase = Term.list_comb (casex, eta_gs);
 
     val eta_ufcase = eta_fcase $ u;
-    val eta_vfcase = eta_fcase $ v;
     val eta_vgcase = eta_gcase $ v;
 
     fun mk_uu_eq () = HOLogic.mk_eq (u, u);
@@ -354,7 +353,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
 
     val cases_goal =
       map3 (fn xs => fn xctr => fn xf =>
-        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (eta_fcase $ xctr, xf))) xss xctrs xfs;
+        fold_rev Logic.all (fs @ xs) (mk_Trueprop_eq (fcase $ xctr, xf))) xss xctrs xfs;
 
     val goalss = [exhaust_goal] :: inject_goalss @ half_distinct_goalss @ [cases_goal];
 
@@ -556,7 +555,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
               val case_conv_thms =
                 let
                   fun mk_body f usels = Term.list_comb (f, usels);
-                  val goal = mk_Trueprop_eq (eta_ufcase, mk_IfN B udiscs (map2 mk_body fs uselss));
+                  val goal = mk_Trueprop_eq (ufcase, mk_IfN B udiscs (map2 mk_body fs uselss));
                 in
                   [Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
                      mk_case_conv_tac ctxt n uexhaust_thm case_thms disc_thmss' sel_thmss)]
@@ -592,7 +591,7 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
               list_exists_free xs (HOLogic.mk_conj (HOLogic.mk_eq (u, xctr),
                 HOLogic.mk_not (q $ f_xs)));
 
-            val lhs = q $ eta_ufcase;
+            val lhs = q $ ufcase;
 
             val goal =
               mk_Trueprop_eq (lhs, Library.foldr1 HOLogic.mk_conj (map3 mk_conjunct xctrs xss xfs));
