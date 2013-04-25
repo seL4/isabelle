@@ -184,16 +184,11 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     (*the "perhaps o try" below helps gracefully handles the case where the new type is defined in a
       locale and shadows an existing global type*)
 
-    fun add_fake_type spec mixfix =
+    fun add_fake_type spec =
       Sign.add_type no_defs_lthy (type_binding_of spec,
-        length (type_args_named_constrained_of spec), mixfix);
+        length (type_args_named_constrained_of spec), mixfix_of spec);
 
-    val fake_thy =
-      Theory.copy #> fold (fn spec => fn thy =>
-          case try (add_fake_type spec (mixfix_of spec)) thy of
-            SOME thy' => thy'
-          | NONE => add_fake_type spec Mixfix.NoSyn thy)
-        specs;
+    val fake_thy = Theory.copy #> fold add_fake_type specs;
     val fake_lthy = Proof_Context.background_theory fake_thy no_defs_lthy;
 
     fun mk_fake_T b =
