@@ -1082,7 +1082,7 @@ fun construct_gfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
             Cnz RS ((@{thm ordLeq_ordIso_trans} OF
               [(Co RS mk_ordLeq_csum n i (Co RS @{thm ordLeq_refl})), sbd_ordIso]) RS
               (bd RS @{thm ordLeq_transitive[OF _
-                cexp_mono2_Cnotzero[OF _ csum_Cnotzero2[OF ctwo_Cnotzero]]]}));
+                cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
           val in_sbds = map4 mk_in_sbd ks bd_Card_orders bd_Cnotzeros in_bds;
        in
          (lthy, sbd, sbdT,

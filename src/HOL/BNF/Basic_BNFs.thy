@@ -42,12 +42,6 @@ apply (rule card_of_Card_order)
 apply (rule cexp_mono1)
 apply (rule ordLeq_csum1)
 apply (rule card_of_Card_order)
-apply (rule disjI2)
-apply (rule cone_ordLeq_cexp)
-apply (rule ordLeq_transitive)
-apply (rule cone_ordLeq_ctwo)
-apply (rule ordLeq_csum2)
-apply (rule Card_order_ctwo)
 apply (rule natLeq_Card_order)
 done
 
@@ -277,12 +271,6 @@ next
     apply (rule Cinfinite_Cnotzero)
     apply (rule conjI[OF _ natLeq_Card_order])
     apply (rule natLeq_cinfinite)
-    apply (rule disjI2)
-    apply (rule cone_ordLeq_cexp)
-    apply (rule ordLeq_transitive)
-    apply (rule cone_ordLeq_ctwo)
-    apply (rule ordLeq_csum2)
-    apply (rule Card_order_ctwo)
     apply (rule notE)
     apply (rule ctwo_not_czero)
     apply assumption
@@ -378,9 +366,6 @@ next
     apply (rule cexp_mono)
      apply (rule ordLeq_csum1) apply (rule card_of_Card_order)
      apply (rule ordLeq_csum2) apply (rule card_of_Card_order)
-     apply (rule disjI2) apply (rule cone_ordLeq_cexp)
-      apply (rule ordLeq_transitive) apply (rule cone_ordLeq_ctwo) apply (rule ordLeq_csum2)
-      apply (rule Card_order_ctwo)
      apply (rule notE) apply (rule conjunct1) apply (rule Cnotzero_UNIV) apply blast
      apply (rule card_of_Card_order)
   done

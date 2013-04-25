@@ -552,8 +552,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
     fun mk_in_bd_sum i Co Cnz bd =
       if n = 1 then bd
       else Cnz RS ((Co RS mk_ordLeq_csum n i (Co RS @{thm ordLeq_refl})) RS
-        (bd RS @{thm ordLeq_transitive[OF _
-          cexp_mono2_Cnotzero[OF _ csum_Cnotzero2[OF ctwo_Cnotzero]]]}));
+        (bd RS @{thm ordLeq_transitive[OF _ cexp_mono2_Cnotzero[OF _ Card_order_csum]]}));
     val in_bd_sums = map4 mk_in_bd_sum ks bd_Card_orders bd_Cnotzeros in_bds;
 
     val sum_bd = Library.foldr1 (uncurry mk_csum) bds;
@@ -575,9 +574,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
     val Asuc_bd_Cinfinite = suc_bd_Cinfinite RS (basis_Asuc RS @{thm Cinfinite_cexp});
     val Asuc_bd_Cnotzero = Asuc_bd_Cinfinite RS @{thm Cinfinite_Cnotzero};
 
-    val suc_bd_Asuc_bd = @{thm ordLess_ordLeq_trans[OF
-      ordLess_ctwo_cexp
-      cexp_mono1_Cnotzero[OF _ ctwo_Cnotzero]]} OF
+    val suc_bd_Asuc_bd = @{thm ordLess_ordLeq_trans[OF ordLess_ctwo_cexp cexp_mono1]} OF
       [suc_bd_Card_order, basis_Asuc, suc_bd_Card_order];
 
     val Asuc_bdT = fst (dest_relT (fastype_of (mk_Asuc_bd As)));

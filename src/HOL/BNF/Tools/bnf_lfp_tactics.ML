@@ -312,18 +312,17 @@ fun mk_min_algs_card_of_tac cT ct m worel min_algs in_bds bd_Card_order bd_Cnotz
     fun mk_minH_tac (min_alg, in_bd) = EVERY' [rtac @{thm ordIso_ordLeq_trans},
       rtac @{thm card_of_ordIso_subst}, etac min_alg, rtac @{thm Un_Cinfinite_bound},
       minG_tac, rtac ctrans, rtac @{thm card_of_image}, rtac ctrans, rtac in_bd, rtac ctrans,
-      rtac @{thm cexp_mono1_Cnotzero}, rtac @{thm csum_mono1},
+      rtac @{thm cexp_mono1}, rtac @{thm csum_mono1},
       REPEAT_DETERM_N m o rtac @{thm csum_mono2},
       CONJ_WRAP_GEN' (rtac @{thm csum_cinfinite_bound}) (K minG_tac) min_algs,
       REPEAT_DETERM o FIRST'
-        [rtac @{thm card_of_Card_order}, rtac @{thm Card_order_csum}, rtac Asuc_Cinfinite],
-      rtac @{thm csum_Cnotzero2}, rtac @{thm ctwo_Cnotzero}, rtac bd_Card_order,
-      rtac @{thm ordIso_ordLeq_trans}, rtac @{thm cexp_cong1_Cnotzero}, absorbAs_tac,
+        [rtac @{thm card_of_Card_order}, rtac @{thm Card_order_csum},
+        rtac Asuc_Cinfinite, rtac bd_Card_order],
+      rtac @{thm ordIso_ordLeq_trans}, rtac @{thm cexp_cong1}, absorbAs_tac,
       rtac @{thm csum_absorb1}, rtac Asuc_Cinfinite, rtac @{thm ctwo_ordLeq_Cinfinite},
       rtac Asuc_Cinfinite, rtac bd_Card_order,
-      rtac @{thm csum_Cnotzero2}, rtac @{thm ctwo_Cnotzero}, rtac Asuc_Cnotzero,
       rtac @{thm ordIso_imp_ordLeq}, rtac @{thm cexp_cprod_ordLeq},
-      TRY o rtac @{thm csum_Cnotzero2}, rtac @{thm ctwo_Cnotzero}, rtac suc_Cinfinite,
+      resolve_tac @{thms Card_order_csum Card_order_ctwo}, rtac suc_Cinfinite,
       rtac bd_Cnotzero, rtac @{thm cardSuc_ordLeq}, rtac bd_Card_order, rtac Asuc_Cinfinite];
   in
     (rtac induct THEN'
@@ -753,8 +752,8 @@ fun mk_set_map_tac set_nat =
 fun mk_in_bd_tac sum_Card_order sucbd_Cnotzero incl card_of_min_alg =
   EVERY' [rtac ctrans, rtac @{thm card_of_mono1}, rtac subsetI, etac rev_mp,
     rtac incl, rtac ctrans, rtac card_of_min_alg, rtac @{thm cexp_mono2_Cnotzero},
-    rtac @{thm cardSuc_ordLeq_cpow}, rtac sum_Card_order, rtac @{thm csum_Cnotzero2},
-    rtac @{thm ctwo_Cnotzero}, rtac sucbd_Cnotzero] 1;
+    rtac @{thm cardSuc_ordLeq_cpow}, rtac sum_Card_order, rtac @{thm Card_order_csum},
+    rtac sucbd_Cnotzero] 1;
 
 fun mk_bd_card_order_tac bd_card_orders =
   (rtac @{thm card_order_cpow} THEN'

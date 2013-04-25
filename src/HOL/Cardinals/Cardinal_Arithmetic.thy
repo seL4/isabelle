@@ -72,8 +72,8 @@ lemma czero_ordIso:
 using card_of_empty_ordIso by (simp add: czero_def)
 
 lemma card_of_ordIso_czero_iff_empty:
-  "|A| =o (czero :: 'a rel) \<longleftrightarrow> A = ({} :: 'a set)"
-unfolding czero_def by (rule iffI[OF card_of_empty2]) (auto simp: card_of_refl)
+  "|A| =o (czero :: 'b rel) \<longleftrightarrow> A = ({} :: 'a set)"
+unfolding czero_def by (rule iffI[OF card_of_empty2]) (auto simp: card_of_refl card_of_empty_ordIso)
 
 (* A "not czero" Cardinal predicate *)
 abbreviation Cnotzero where
@@ -389,8 +389,7 @@ unfolding cexp_def by (rule card_of_Card_order)
 
 lemma cexp_mono':
   assumes 1: "p1 \<le>o r1" and 2: "p2 \<le>o r2"
-  and n1: "Field p1 \<noteq> {} \<or> cone \<le>o r1 ^c r2"
-  and n2: "Field p2 = {} \<Longrightarrow> Field r2 = {}"
+  and n: "Field p2 = {} \<Longrightarrow> Field r2 = {}"
   shows "p1 ^c p2 \<le>o r1 ^c r2"
 proof(cases "Field p1 = {}")
   case True
@@ -399,7 +398,18 @@ proof(cases "Field p1 = {}")
     by (cases "Field p2 = {}", auto intro: card_of_ordLeqI2 simp: Func_empty)
        (metis Func_is_emp card_of_empty ex_in_conv)
   hence "p1 ^c p2 \<le>o cone" by (simp add: Field_card_of cexp_def)
-  thus ?thesis using True n1 ordLeq_transitive by auto
+  thus ?thesis
+  proof (cases "Field p2 = {}")
+    case True
+    with n have "Field r2 = {}" .
+    hence "cone \<le>o r1 ^c r2" unfolding cone_def cexp_def Func_def by (auto intro: card_of_ordLeqI)
+    thus ?thesis using `p1 ^c p2 \<le>o cone` ordLeq_transitive by auto
+  next
+    case False with True have "|Field (p1 ^c p2)| =o czero"
+      unfolding card_of_ordIso_czero_iff_empty cexp_def Func_is_emp Field_card_of by blast
+    thus ?thesis unfolding cexp_def card_of_ordIso_czero_iff_empty Field_card_of
+      by (simp add: card_of_empty)
+  qed
 next
   case False
   have 1: "|Field p1| \<le>o |Field r1|" and 2: "|Field p2| \<le>o |Field r2|"
@@ -409,7 +419,7 @@ next
   obtain f2 where f2: "inj_on f2 (Field p2)" "f2 ` Field p2 \<subseteq> Field r2"
     using 2 unfolding card_of_ordLeq[symmetric] by blast
   have 0: "Func_map (Field p2) f1 f2 ` (Field (r1 ^c r2)) = Field (p1 ^c p2)"
-    unfolding cexp_def Field_card_of using Func_map_surj[OF f1 f2 n2, symmetric] .
+    unfolding cexp_def Field_card_of using Func_map_surj[OF f1 f2 n, symmetric] .
   have 00: "Field (p1 ^c p2) \<noteq> {}" unfolding cexp_def Field_card_of Func_is_emp
     using False by simp
   show ?thesis
@@ -418,57 +428,36 @@ qed
 
 lemma cexp_mono:
   assumes 1: "p1 \<le>o r1" and 2: "p2 \<le>o r2"
-  and n1: "Cnotzero p1 \<or> cone \<le>o r1 ^c r2"
-  and n2: "p2 =o czero \<Longrightarrow> r2 =o czero" and card: "Card_order p2"
+  and n: "p2 =o czero \<Longrightarrow> r2 =o czero" and card: "Card_order p2"
   shows "p1 ^c p2 \<le>o r1 ^c r2"
-proof (rule cexp_mono'[OF 1 2])
-  show "Field p1 \<noteq> {} \<or> cone \<le>o r1 ^c r2"
-  proof (cases "Cnotzero p1")
-    case True show ?thesis using Cnotzero_imp_not_empty[OF True] by (rule disjI1)
-  next
-    case False with n1 show ?thesis by blast
-  qed
-qed (rule czeroI[OF card, THEN n2, THEN czeroE])
+  by (metis (full_types) "1" "2" card cexp_mono' czeroE czeroI n)
 
 lemma cexp_mono1:
-  assumes 1: "p1 \<le>o r1"
-  and n1: "Cnotzero p1 \<or> cone \<le>o r1 ^c q" and q: "Card_order q"
+  assumes 1: "p1 \<le>o r1" and q: "Card_order q"
   shows "p1 ^c q \<le>o r1 ^c q"
-using ordLeq_refl[OF q] by (rule cexp_mono[OF 1 _ n1]) (auto simp: q)
-
-lemma cexp_mono1_Cnotzero: "\<lbrakk>p1 \<le>o r1; Cnotzero p1; Card_order q\<rbrakk> \<Longrightarrow> p1 ^c q \<le>o r1 ^c q"
-by (simp add: cexp_mono1)
-
-lemma cexp_mono1_cone_ordLeq: "\<lbrakk>p1 \<le>o r1; cone \<le>o r1 ^c q; Card_order q\<rbrakk> \<Longrightarrow> p1 ^c q \<le>o r1 ^c q"
-using assms by (simp add: cexp_mono1)
+using ordLeq_refl[OF q] by (rule cexp_mono[OF 1]) (auto simp: q)
 
 lemma cexp_mono2':
   assumes 2: "p2 \<le>o r2" and q: "Card_order q"
-  and n1: "Field q \<noteq> {} \<or> cone \<le>o q ^c r2"
-  and n2: "Field p2 = {} \<Longrightarrow> Field r2 = {}"
+  and n: "Field p2 = {} \<Longrightarrow> Field r2 = {}"
   shows "q ^c p2 \<le>o q ^c r2"
-using ordLeq_refl[OF q] by (rule cexp_mono'[OF _ 2 n1 n2]) auto
+using ordLeq_refl[OF q] by (rule cexp_mono'[OF _ 2 n]) auto
 
 lemma cexp_mono2:
   assumes 2: "p2 \<le>o r2" and q: "Card_order q"
-  and n1: "Cnotzero q \<or> cone \<le>o q ^c r2"
-  and n2: "p2 =o czero \<Longrightarrow> r2 =o czero" and card: "Card_order p2"
+  and n: "p2 =o czero \<Longrightarrow> r2 =o czero" and card: "Card_order p2"
   shows "q ^c p2 \<le>o q ^c r2"
-using ordLeq_refl[OF q] by (rule cexp_mono[OF _ 2 n1 n2 card]) auto
+using ordLeq_refl[OF q] by (rule cexp_mono[OF _ 2 n card]) auto
 
 lemma cexp_mono2_Cnotzero:
-  assumes "p2 \<le>o r2" "Cnotzero q" and n2: "Cnotzero p2"
+  assumes "p2 \<le>o r2" "Card_order q" "Cnotzero p2"
   shows "q ^c p2 \<le>o q ^c r2"
-proof (rule cexp_mono)
-  assume *: "p2 =o czero"
-  have False using n2 czeroI czeroE[OF *] by blast
-  thus "r2 =o czero" by blast
-qed (auto simp add: assms ordLeq_refl)
+by (metis assms cexp_mono2' czeroI)
 
 lemma cexp_cong:
   assumes 1: "p1 =o r1" and 2: "p2 =o r2"
-  and p1: "Cnotzero p1 \<or> cone \<le>o r1 ^c r2" and Cr: "Card_order r2"
-  and r1: "Cnotzero r1 \<or> cone \<le>o p1 ^c p2" and Cp: "Card_order p2"
+  and Cr: "Card_order r2"
+  and Cp: "Card_order p2"
   shows "p1 ^c p2 =o r1 ^c r2"
 proof -
   obtain f where "bij_betw f (Field p2) (Field r2)"
@@ -478,32 +467,16 @@ proof -
     and p: "r2 =o czero \<Longrightarrow> p2 =o czero"
      using 0 Cr Cp czeroE czeroI by auto
   show ?thesis using 0 1 2 unfolding ordIso_iff_ordLeq
-    using r p cexp_mono[OF _ _ p1 _ Cp] cexp_mono[OF _ _ r1 _ Cr]
-    by blast
+    using r p cexp_mono[OF _ _ _ Cp] cexp_mono[OF _ _ _ Cr] by blast
 qed
 
 lemma cexp_cong1:
   assumes 1: "p1 =o r1" and q: "Card_order q"
-  and p1: "Cnotzero p1 \<or> cone \<le>o r1 ^c q"
-  and r1: "Cnotzero r1 \<or> cone \<le>o p1 ^c q"
   shows "p1 ^c q =o r1 ^c q"
-by (rule cexp_cong[OF 1 _ p1 q r1 q]) (rule ordIso_refl[OF q])
-
-lemma cexp_cong1_Cnotzero:
-  assumes "p1 =o r1" "Card_order q" "Cnotzero p1" "Cnotzero r1"
-  shows "p1 ^c q =o r1 ^c q"
-by (rule cexp_cong1, auto simp add: assms)
+by (rule cexp_cong[OF 1 _ q q]) (rule ordIso_refl[OF q])
 
 lemma cexp_cong2:
-  assumes 2: "p2 =o r2" and q: "Card_order q"
-  and p: "Card_order p2" and r: "Card_order r2"
-  shows "Cnotzero q \<or> (cone \<le>o q ^c p2 \<and> cone \<le>o q ^c r2) \<Longrightarrow>
-    q ^c p2 =o q ^c r2"
-by (rule cexp_cong[OF _ 2]) (auto simp only: ordIso_refl q p r)
-
-lemma cexp_cong2_Cnotzero:
-  assumes 2: "p2 =o r2" and q: "Cnotzero q"
-  and p: "Card_order p2"
+  assumes 2: "p2 =o r2" and q: "Card_order q" and p: "Card_order p2"
   shows "q ^c p2 =o q ^c r2"
 by (rule cexp_cong[OF _ 2]) (auto simp only: ordIso_refl Card_order_ordIso2[OF p 2] q p)
 
@@ -523,7 +496,7 @@ proof -
 qed
 
 lemma cexp_cprod:
-  assumes r1: "Cnotzero r1"
+  assumes r1: "Card_order r1"
   shows "(r1 ^c r2) ^c r3 =o r1 ^c (r2 *c r3)" (is "?L =o ?R")
 proof -
   have "?L =o r1 ^c (r3 *c r2)"
@@ -535,7 +508,7 @@ proof -
 qed
 
 lemma cexp_cprod_ordLeq:
-  assumes r1: "Cnotzero r1" and r2: "Cinfinite r2"
+  assumes r1: "Card_order r1" and r2: "Cinfinite r2"
   and r3: "Cnotzero r3" "r3 \<le>o r2"
   shows "(r1 ^c r2) ^c r3 =o r1 ^c r2" (is "?L =o ?R")
 proof-
@@ -580,14 +553,6 @@ next
     apply (rule cone_ordLeq_Cnotzero)
     apply (rule assms(1))
     apply (rule assms(2))
-    apply (rule disjI1)
-    apply (rule conjI)
-    apply (rule notI)
-    apply (erule notE)
-    apply (rule ordIso_transitive)
-    apply assumption
-    apply (rule czero_ordIso)
-    apply (rule assms(2))
     apply (rule notE)
     apply (rule cone_not_czero)
     apply assumption
@@ -609,8 +574,6 @@ next
     apply (rule assms(2))
     apply (rule cexp_mono1)
     apply (rule assms(1))
-    apply (rule disjI1)
-    apply (rule ctwo_Cnotzero)
     apply (rule assms(2))
   done
 qed
@@ -649,9 +612,6 @@ next
     apply (rule conjunct2)
     apply (rule assms(1))
     apply (rule assms(2))
-    apply (simp only: card_of_Card_order czero_def)
-    apply (rule disjI1)
-    apply (rule assms(1))
     apply (rule cexp_czero)
   done
 qed
@@ -752,17 +712,6 @@ apply (rule cexp_mono2)
 apply (rule ordLeq_csum1)
 apply (erule conjunct2)
 apply assumption
-apply (rule disjI2)
-apply (rule ordLeq_transitive)
-apply (rule cone_ordLeq_ctwo)
-apply (rule ordLeq_transitive)
-apply assumption
-apply (rule ordLeq_cexp1)
-apply (rule Cinfinite_Cnotzero)
-apply (rule Cinfinite_csum)
-apply (rule disjI1)
-apply assumption
-apply assumption
 apply (rule notE)
 apply (rule cinfinite_not_czero[of r1])
 apply (erule conjunct1)
@@ -771,17 +720,6 @@ apply (erule conjunct2)
 apply (rule cexp_mono2)
 apply (rule ordLeq_csum2)
 apply (erule conjunct2)
-apply assumption
-apply (rule disjI2)
-apply (rule ordLeq_transitive)
-apply (rule cone_ordLeq_ctwo)
-apply (rule ordLeq_transitive)
-apply assumption
-apply (rule ordLeq_cexp1)
-apply (rule Cinfinite_Cnotzero)
-apply (rule Cinfinite_csum)
-apply (rule disjI1)
-apply assumption
 apply assumption
 apply (rule notE)
 apply (rule cinfinite_not_czero[of r2])

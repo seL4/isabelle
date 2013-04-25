@@ -139,14 +139,9 @@ proof -
       apply (rule card_of_nat)
       apply (rule Card_order_ctwo)
       apply (rule card_of_Card_order)
-      apply (rule natLeq_Card_order)
-      apply (rule disjI1)
-      apply (rule ctwo_Cnotzero)
       apply (rule cexp_mono1)
       apply (rule ordLeq_csum2)
       apply (rule Card_order_ctwo)
-      apply (rule disjI1)
-      apply (rule ctwo_Cnotzero)
       apply (rule natLeq_Card_order)
       apply (rule ordIso_ordLeq_trans)
       apply (rule card_of_Func)
@@ -155,14 +150,9 @@ proof -
       apply (rule card_of_nat)
       apply (rule card_of_Card_order)
       apply (rule card_of_Card_order)
-      apply (rule natLeq_Card_order)
-      apply (rule disjI1)
-      apply (erule not_emp_czero_notIn_ordIso_Card_order)
       apply (rule cexp_mono1)
       apply (rule ordLeq_csum1)
       apply (rule card_of_Card_order)
-      apply (rule disjI1)
-      apply (erule not_emp_czero_notIn_ordIso_Card_order)
       apply (rule natLeq_Card_order)
       apply (rule card_of_Card_order)
       apply (rule card_of_Card_order)
@@ -405,11 +395,8 @@ next
   also have "|{X. X \<subseteq> A \<and> countable X} - {{}}| \<le>o |A| ^c natLeq"
   using card_of_countable_sets_Func[of A] unfolding set_diff_eq by auto
   also have "|A| ^c natLeq \<le>o ( |A| +c ctwo) ^c natLeq"
-  apply(rule cexp_mono1_cone_ordLeq)
+  apply(rule cexp_mono1)
     apply(rule ordLeq_csum1, rule card_of_Card_order)
-    apply (rule cone_ordLeq_cexp)
-    apply (rule cone_ordLeq_Cnotzero)
-    using csum_Cnotzero2 ctwo_Cnotzero apply blast
     by (rule natLeq_Card_order)
   finally show ?thesis .
 qed

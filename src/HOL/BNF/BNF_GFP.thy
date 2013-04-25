@@ -224,9 +224,7 @@ lemma clists_bound: "A \<in> Field (cpow (clists r)) - {{}} \<Longrightarrow> |A
 unfolding cpow_def clists_def Field_card_of by (auto simp: card_of_mono1)
 
 lemma cpow_clists_czero: "\<lbrakk>A \<in> Field (cpow (clists r)) - {{}}; |A| =o czero\<rbrakk> \<Longrightarrow> False"
-unfolding cpow_def clists_def
-by (auto simp add: card_of_ordIso_czero_iff_empty[symmetric])
-   (erule notE, erule ordIso_transitive, rule czero_ordIso)
+unfolding cpow_def clists_def card_of_ordIso_czero_iff_empty by auto
 
 lemma incl_UNION_I:
 assumes "i \<in> I" and "A \<subseteq> F i"

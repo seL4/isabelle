@@ -644,8 +644,8 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
       map (fn thm => @{thm ordLeq_ordIso_trans} OF [thm, bd_ordIso]) (set_bd_of_bnf bnf);
     val in_bd =
       @{thm ordLeq_ordIso_trans} OF [in_bd_of_bnf bnf,
-        @{thm cexp_cong2_Cnotzero} OF [bd_ordIso, if live = 0 then
-          @{thm ctwo_Cnotzero} else @{thm ctwo_Cnotzero} RS @{thm csum_Cnotzero2},
+        @{thm cexp_cong2} OF [bd_ordIso, if live = 0 then
+          @{thm Card_order_ctwo} else @{thm Card_order_csum},
             bd_Card_order_of_bnf bnf]];
 
     fun mk_tac thm {context = ctxt, prems = _} =
