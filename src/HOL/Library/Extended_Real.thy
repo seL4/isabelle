@@ -1572,7 +1572,7 @@ subsection "Limits on @{typ ereal}"
 
 subsubsection "Topological space"
 
-instantiation ereal :: linorder_topology
+instantiation ereal :: connected_linorder_topology
 begin
 
 definition "open_ereal" :: "ereal set \<Rightarrow> bool" where

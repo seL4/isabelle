@@ -133,7 +133,8 @@ INCOMPATIBILITY.
 
  - connected from Multivariate_Analysis. Use it to prove the
    intermediate value theorem. Show connectedness of intervals on order
-   topologies which are a inner dense, conditionally-complete linorder.
+   topologies which are a inner dense, conditionally-complete linorder
+   (named connected_linorder_topology).
 
  - first_countable_topology from Multivariate_Analysis. Is used to
    show equivalence of properties on the neighbourhood filter of x and on

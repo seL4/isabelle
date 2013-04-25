@@ -2079,7 +2079,7 @@ qed
 
 section {* Connectedness *}
 
-class linear_continuum_topology = linorder_topology + conditionally_complete_linorder + inner_dense_linorder
+class connected_linorder_topology = linorder_topology + conditionally_complete_linorder + inner_dense_linorder
 begin
 
 lemma Inf_notin_open:
@@ -2111,7 +2111,7 @@ qed
 end
 
 lemma connectedI_interval:
-  fixes U :: "'a :: linear_continuum_topology set"
+  fixes U :: "'a :: connected_linorder_topology set"
   assumes *: "\<And>x y z. x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x \<le> z \<Longrightarrow> z \<le> y \<Longrightarrow> z \<in> U"
   shows "connected U"
 proof (rule connectedI)
@@ -2154,35 +2154,35 @@ proof (rule connectedI)
 qed
 
 lemma connected_iff_interval:
-  fixes U :: "'a :: linear_continuum_topology set"
+  fixes U :: "'a :: connected_linorder_topology set"
   shows "connected U \<longleftrightarrow> (\<forall>x\<in>U. \<forall>y\<in>U. \<forall>z. x \<le> z \<longrightarrow> z \<le> y \<longrightarrow> z \<in> U)"
   by (auto intro: connectedI_interval dest: connectedD_interval)
 
-lemma connected_UNIV[simp]: "connected (UNIV::'a::linear_continuum_topology set)"
+lemma connected_UNIV[simp]: "connected (UNIV::'a::connected_linorder_topology set)"
   unfolding connected_iff_interval by auto
 
-lemma connected_Ioi[simp]: "connected {a::'a::linear_continuum_topology <..}"
+lemma connected_Ioi[simp]: "connected {a::'a::connected_linorder_topology <..}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Ici[simp]: "connected {a::'a::linear_continuum_topology ..}"
+lemma connected_Ici[simp]: "connected {a::'a::connected_linorder_topology ..}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Iio[simp]: "connected {..< a::'a::linear_continuum_topology}"
+lemma connected_Iio[simp]: "connected {..< a::'a::connected_linorder_topology}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Iic[simp]: "connected {.. a::'a::linear_continuum_topology}"
+lemma connected_Iic[simp]: "connected {.. a::'a::connected_linorder_topology}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Ioo[simp]: "connected {a <..< b::'a::linear_continuum_topology}"
+lemma connected_Ioo[simp]: "connected {a <..< b::'a::connected_linorder_topology}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Ioc[simp]: "connected {a <.. b::'a::linear_continuum_topology}"
+lemma connected_Ioc[simp]: "connected {a <.. b::'a::connected_linorder_topology}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Ico[simp]: "connected {a ..< b::'a::linear_continuum_topology}"
+lemma connected_Ico[simp]: "connected {a ..< b::'a::connected_linorder_topology}"
   unfolding connected_iff_interval by auto
 
-lemma connected_Icc[simp]: "connected {a .. b::'a::linear_continuum_topology}"
+lemma connected_Icc[simp]: "connected {a .. b::'a::connected_linorder_topology}"
   unfolding connected_iff_interval by auto
 
 lemma connected_contains_Ioo: 
@@ -2193,7 +2193,7 @@ lemma connected_contains_Ioo:
 subsection {* Intermediate Value Theorem *}
 
 lemma IVT':
-  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  fixes f :: "'a :: connected_linorder_topology \<Rightarrow> 'b :: linorder_topology"
   assumes y: "f a \<le> y" "y \<le> f b" "a \<le> b"
   assumes *: "continuous_on {a .. b} f"
   shows "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
@@ -2206,7 +2206,7 @@ proof -
 qed
 
 lemma IVT2':
-  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  fixes f :: "'a :: connected_linorder_topology \<Rightarrow> 'b :: linorder_topology"
   assumes y: "f b \<le> y" "y \<le> f a" "a \<le> b"
   assumes *: "continuous_on {a .. b} f"
   shows "\<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
@@ -2219,17 +2219,17 @@ proof -
 qed
 
 lemma IVT:
-  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  fixes f :: "'a :: connected_linorder_topology \<Rightarrow> 'b :: linorder_topology"
   shows "f a \<le> y \<Longrightarrow> y \<le> f b \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
   by (rule IVT') (auto intro: continuous_at_imp_continuous_on)
 
 lemma IVT2:
-  fixes f :: "'a :: linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  fixes f :: "'a :: connected_linorder_topology \<Rightarrow> 'b :: linorder_topology"
   shows "f b \<le> y \<Longrightarrow> y \<le> f a \<Longrightarrow> a \<le> b \<Longrightarrow> (\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x) \<Longrightarrow> \<exists>x. a \<le> x \<and> x \<le> b \<and> f x = y"
   by (rule IVT2') (auto intro: continuous_at_imp_continuous_on)
 
 lemma continuous_inj_imp_mono:
-  fixes f :: "'a::linear_continuum_topology \<Rightarrow> 'b :: linorder_topology"
+  fixes f :: "'a::connected_linorder_topology \<Rightarrow> 'b :: linorder_topology"
   assumes x: "a < x" "x < b"
   assumes cont: "continuous_on {a..b} f"
   assumes inj: "inj_on f {a..b}"
