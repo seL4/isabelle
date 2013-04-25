@@ -18,7 +18,7 @@ sig
   val name_of_ctr: term -> string
   val name_of_disc: term -> string
 
-  val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
+  val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
     (term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
@@ -123,7 +123,7 @@ val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
 fun eta_expand_arg xs f_xs = fold_rev Term.lambda xs f_xs;
 
-fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_case),
+fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs), raw_case),
     (raw_disc_bindings, (raw_sel_bindingss, raw_sel_defaultss))) no_defs_lthy =
   let
     (* TODO: sanity checks on arguments *)
@@ -673,13 +673,13 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
     (goalss, after_qed, lthy')
   end;
 
-fun wrap_datatype tacss = (fn (goalss, after_qed, lthy) =>
+fun wrap_free_constructors tacss = (fn (goalss, after_qed, lthy) =>
   map2 (map2 (Thm.close_derivation oo Goal.prove_sorry lthy [] [])) goalss tacss
-  |> (fn thms => after_qed thms lthy)) oo prepare_wrap_datatype (K I);
+  |> (fn thms => after_qed thms lthy)) oo prepare_wrap_free_constructors (K I);
 
-val wrap_datatype_cmd = (fn (goalss, after_qed, lthy) =>
+val wrap_free_constructors_cmd = (fn (goalss, after_qed, lthy) =>
   Proof.theorem NONE (snd oo after_qed) (map (map (rpair [])) goalss) lthy) oo
-  prepare_wrap_datatype Syntax.read_term;
+  prepare_wrap_free_constructors Syntax.read_term;
 
 fun parse_bracket_list parser = @{keyword "["} |-- Parse.list parser --|  @{keyword "]"};
 
@@ -696,10 +696,11 @@ val parse_wrap_options =
     >> (pairself (exists I) o split_list)) (false, false);
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "wrap_data"} "wrap an existing datatype"
+  Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}
+    "wrap an existing (co)datatype's constructors"
     ((parse_wrap_options -- (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) --
       Parse.term -- Scan.optional (parse_bindings -- Scan.optional (parse_bindingss --
         Scan.optional parse_bound_termss []) ([], [])) ([], ([], [])))
-     >> wrap_datatype_cmd);
+     >> wrap_free_constructors_cmd);
 
 end;

@@ -534,8 +534,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val sel_defaultss = map (map (apsnd (prepare_term lthy))) raw_sel_defaultss
           in
-            wrap_datatype tacss (((wrap_opts, ctrs0), casex0), (disc_bindings, (sel_bindingss,
-              sel_defaultss))) lthy
+            wrap_free_constructors tacss (((wrap_opts, ctrs0), casex0), (disc_bindings,
+              (sel_bindingss, sel_defaultss))) lthy
           end;
 
         fun derive_maps_sets_rels (wrap_res, lthy) =

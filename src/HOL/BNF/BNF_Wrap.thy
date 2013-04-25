@@ -10,7 +10,7 @@ header {* Wrapping Datatypes *}
 theory BNF_Wrap
 imports BNF_Util
 keywords
-  "wrap_data" :: thy_goal and
+  "wrap_free_constructors" :: thy_goal and
   "no_dests" and
   "rep_compat"
 begin
