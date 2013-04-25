@@ -16,6 +16,7 @@ sig
   val mk_disc_or_sel: typ list -> term -> term
 
   val name_of_ctr: term -> string
+  val name_of_disc: term -> string
 
   val wrap_datatype: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * term list) * term) *
@@ -96,11 +97,27 @@ fun mk_case Ts T t =
     Term.subst_atomic_types ((body, T) :: (Ts0 ~~ Ts)) t
   end;
 
-fun name_of_ctr c =
-  (case head_of c of
+fun name_of_const what t =
+  (case head_of t of
     Const (s, _) => s
   | Free (s, _) => s
-  | _ => error "Cannot extract name of constructor");
+  | _ => error ("Cannot extract name of " ^ what));
+
+val name_of_ctr = name_of_const "constructor";
+
+val notN = "not_";
+val eqN = "eq_";
+val neqN = "neq_";
+
+fun name_of_disc t =
+  (case head_of t of
+    Abs (_, _, @{const Not} $ (t' $ Bound 0)) =>
+    Long_Name.map_base_name (prefix notN) (name_of_disc t')
+  | Abs (_, _, Const (@{const_name HOL.eq}, _) $ Bound 0 $ t') =>
+    Long_Name.map_base_name (prefix eqN) (name_of_disc t')
+  | Abs (_, _, @{const Not} $ (Const (@{const_name HOL.eq}, _) $ Bound 0 $ t')) =>
+    Long_Name.map_base_name (prefix neqN) (name_of_disc t')
+  | t' => name_of_const "destructor" t');
 
 val base_name_of_ctr = Long_Name.base_name o name_of_ctr;
 
@@ -200,7 +217,6 @@ fun prepare_wrap_datatype prep_term ((((no_dests, rep_compat), raw_ctrs), raw_ca
     val xgs = map2 (curry Term.list_comb) gs xss;
 
     val fcase = Term.list_comb (casex, fs);
-    val gcase = Term.list_comb (casex, gs);
 
     val ufcase = fcase $ u;
     val vfcase = fcase $ v;

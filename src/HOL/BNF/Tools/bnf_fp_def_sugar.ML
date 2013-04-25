@@ -31,7 +31,9 @@ open BNF_Def
 open BNF_FP
 open BNF_FP_Def_Sugar_Tactics
 
-(* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A") *)
+val EqN = "Eq";
+
+(* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
 fun quasi_unambiguous_case_names names =
   let
     val ps = map (`Long_Name.base_name) names;
@@ -987,6 +989,21 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             (postproc nn (prove fp_induct goal), postproc nn (prove fp_strong_induct strong_goal))
           end;
 
+        fun mk_coinduct_concls ms discs ctrs =
+          let
+            fun mk_disc_concl disc = [name_of_disc disc];
+            fun mk_ctr_concl 0 _ = []
+              | mk_ctr_concl _ ctor = [name_of_ctr ctor];
+            val disc_concls = map mk_disc_concl (fst (split_last discs)) @ [[]];
+            val ctr_concls = map2 mk_ctr_concl ms ctrs;
+          in
+            flat (map2 append disc_concls ctr_concls)
+          end;
+
+        val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
+        val coinduct_conclss =
+          map3 (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
+
         fun mk_maybe_not pos = not pos ? HOLogic.mk_not;
 
         val gunfolds = map (lists_bmoc pgss) unfolds;
@@ -1133,18 +1150,26 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           [(flat safe_unfold_thmss @ flat safe_corec_thmss, simp_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
 
+        val coinduct_consumes_attr = Attrib.internal (K (Rule_Cases.consumes nn));
+        val coinduct_case_names_attr = Attrib.internal (K (Rule_Cases.case_names coinduct_cases));
+        val coinduct_case_concl_attrs =
+          map2 (fn casex => fn concls =>
+              Attrib.internal (K (Rule_Cases.case_conclusion (casex, concls))))
+            coinduct_cases coinduct_conclss;
+        val coinduct_case_attrs =
+          coinduct_consumes_attr :: coinduct_case_names_attr :: coinduct_case_concl_attrs;
+
         val common_notes =
           (if nn > 1 then
-             (* FIXME: attribs *)
-             [(coinductN, [coinduct_thm], []),
-              (strong_coinductN, [strong_coinduct_thm], [])]
+             [(coinductN, [coinduct_thm], coinduct_case_attrs),
+              (strong_coinductN, [strong_coinduct_thm], coinduct_case_attrs)]
            else
              [])
           |> map (fn (thmN, thms, attrs) =>
             ((qualify true fp_common_name (Binding.name thmN), attrs), [(thms, [])]));
 
         val notes =
-          [(coinductN, map single coinduct_thms, []), (* FIXME: attribs *)
+          [(coinductN, map single coinduct_thms, coinduct_case_attrs),
            (corecN, corec_thmss, []),
            (disc_corecN, disc_corec_thmss, simp_attrs),
            (disc_corec_iffN, disc_corec_iff_thmss, simp_attrs),
@@ -1153,7 +1178,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
            (sel_corecN, sel_corec_thmss, simp_attrs),
            (sel_unfoldN, sel_unfold_thmss, simp_attrs),
            (simpsN, simp_thmss, []),
-           (strong_coinductN, map single strong_coinduct_thms, []), (* FIXME: attribs *)
+           (strong_coinductN, map single strong_coinduct_thms, coinduct_case_attrs),
            (unfoldN, unfold_thmss, [])]
           |> maps (fn (thmN, thmss, attrs) =>
             map_filter (fn (_, []) => NONE | (fp_b_name, thms) =>
