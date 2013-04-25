@@ -925,7 +925,7 @@ proof -
 qed
 
 
-instantiation real :: conditionally_complete_linorder
+instantiation real :: linear_continuum
 begin
 
 subsection{*Supremum of a set of reals*}
@@ -970,6 +970,9 @@ proof
       using x z by (force intro: Sup_least)
     then show "z \<le> Inf X" 
         by (auto simp add: Inf_real_def) }
+
+  show "\<exists>a b::real. a \<noteq> b"
+    using zero_neq_one by blast
 qed
 end
 

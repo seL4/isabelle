@@ -860,7 +860,7 @@ proof
   qed
 qed
 
-instance real :: connected_linorder_topology ..
+instance real :: linear_continuum_topology ..
 
 lemmas open_real_greaterThan = open_greaterThan[where 'a=real]
 lemmas open_real_lessThan = open_lessThan[where 'a=real]

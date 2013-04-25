@@ -1151,6 +1151,12 @@ end
 
 instance ereal :: complete_linorder ..
 
+instance ereal :: linear_continuum
+proof
+  show "\<exists>a b::ereal. a \<noteq> b"
+    using ereal_zero_one by blast
+qed
+
 lemma ereal_Sup_uminus_image_eq: "Sup (uminus ` S::ereal set) = - Inf S"
   by (auto intro!: Sup_eqI
            simp: Ball_def[symmetric] ereal_uminus_le_reorder le_Inf_iff
@@ -1572,7 +1578,7 @@ subsection "Limits on @{typ ereal}"
 
 subsubsection "Topological space"
 
-instantiation ereal :: connected_linorder_topology
+instantiation ereal :: linear_continuum_topology
 begin
 
 definition "open_ereal" :: "ereal set \<Rightarrow> bool" where
@@ -1695,31 +1701,6 @@ proof-
   guess e using ereal_open_cont_interval[OF assms] .
   with that[of "x-e" "x+e"] ereal_between[OF x, of e]
   show thesis by auto
-qed
-
-instance ereal :: perfect_space
-proof (default, rule)
-  fix a :: ereal assume a: "open {a}"
-  show False
-  proof (cases a)
-    case MInf
-    then obtain y where "{..<ereal y} \<le> {a}" using a open_MInfty2[of "{a}"] by auto
-    then have "ereal (y - 1) \<in> {a}" apply (subst subsetD[of "{..<ereal y}"]) by auto
-    then show False using `a = -\<infinity>` by auto
-  next
-    case PInf
-    then obtain y where "{ereal y<..} \<le> {a}" using a open_PInfty2[of "{a}"] by auto
-    then have "ereal (y + 1) \<in> {a}" apply (subst subsetD[of "{ereal y<..}"]) by auto
-    then show False using `a = \<infinity>` by auto
-  next
-    case (real r)
-    then have fin: "\<bar>a\<bar> \<noteq> \<infinity>" by simp
-    from ereal_open_cont_interval[OF a singletonI this] guess e . note e = this
-    then obtain b where b_def: "a<b \<and> b<a+e"
-      using fin ereal_between dense[of a "a+e"] by auto
-    then have "b: {a-e <..< a+e}" using fin ereal_between[of a e] e by auto
-    then show False using b_def e by auto
-  qed
 qed
 
 subsubsection {* Convergent sequences *}

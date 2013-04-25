@@ -106,6 +106,9 @@ code generation for details.  INCOMPATIBILITY.
   conditionally_complete_lattice for real. Renamed lemmas about
   conditionally-complete lattice from Sup_... to cSup_... and from Inf_...
   to cInf_... to avoid hidding of similar complete lattice lemmas.
+
+  Introduce type class linear_continuum as combination of conditionally-complete
+  lattices and inner dense linorders which have more than one element.
 INCOMPATIBILITY.
 
 * Introduce type classes "no_top" and "no_bot" for orderings without top
@@ -116,8 +119,9 @@ INCOMPATIBILITY.
 * Complex_Main: Unify and move various concepts from
   HOL-Multivariate_Analysis to HOL-Complex_Main.
 
- - Introduce type class (lin)order_topology. Allows to generalize theorems
-   about limits and order. Instances are reals and extended reals.
+ - Introduce type class (lin)order_topology and linear_continuum_topology.
+   Allows to generalize theorems about limits and order.
+   Instances are reals and extended reals.
 
  - continuous and continuos_on from Multivariate_Analysis:
    "continuous" is the continuity of a function at a filter.
@@ -132,9 +136,8 @@ INCOMPATIBILITY.
    function is continuous, when the function is continuous on a compact set.
 
  - connected from Multivariate_Analysis. Use it to prove the
-   intermediate value theorem. Show connectedness of intervals on order
-   topologies which are a inner dense, conditionally-complete linorder
-   (named connected_linorder_topology).
+   intermediate value theorem. Show connectedness of intervals on
+   linear_continuum_topology).
 
  - first_countable_topology from Multivariate_Analysis. Is used to
    show equivalence of properties on the neighbourhood filter of x and on

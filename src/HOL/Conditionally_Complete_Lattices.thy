@@ -246,6 +246,15 @@ qed
 
 end
 
+class linear_continuum = conditionally_complete_linorder + inner_dense_linorder +
+  assumes UNIV_not_singleton: "\<exists>a b::'a. a \<noteq> b"
+begin
+
+lemma ex_gt_or_lt: "\<exists>b. a < b \<or> b < a"
+  by (metis UNIV_not_singleton neq_iff)
+
+end
+
 lemma cSup_bounds:
   fixes S :: "'a :: conditionally_complete_lattice set"
   assumes Se: "S \<noteq> {}" and l: "a <=* S" and u: "S *<= b"
