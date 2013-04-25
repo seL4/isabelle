@@ -197,7 +197,7 @@ lemma smap_alt: "smap f s = s' \<longleftrightarrow> (\<forall>n. f (s !! n) = s
 proof
   assume ?R
   thus ?L 
-    by (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>n. s1 = smap f (sdrop n s) \<and> s2 = sdrop n s'"])
+    by (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>n. s1 = smap f (sdrop n s) \<and> s2 = sdrop n s'", consumes 0])
       (auto intro: exI[of _ 0] simp del: sdrop.simps(2))
 qed auto
 
