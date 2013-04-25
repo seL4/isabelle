@@ -1,7 +1,7 @@
 (*  Title:      HOL/BNF/Examples/Stream.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Andrei Popescu, TU Muenchen
-    Copyright   2012
+    Copyright   2012, 2013
 
 Infinite streams.
 *)
@@ -262,15 +262,15 @@ lemma cycle_simps[simp]:
   by (auto simp: cycle_def)
 
 lemma cycle_decomp: "u \<noteq> [] \<Longrightarrow> cycle u = u @- cycle u"
-proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>u. s1 = cycle u \<and> s2 = u @- cycle u \<and> u \<noteq> []"])
-  case (2 s1 s2)
+proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>u. s1 = cycle u \<and> s2 = u @- cycle u \<and> u \<noteq> []", consumes 0, case_names _ Eqstream])
+  case (Eqstream s1 s2)
   then obtain u where "s1 = cycle u \<and> s2 = u @- cycle u \<and> u \<noteq> []" by blast
   thus ?case using stream.unfold[of hd "\<lambda>xs. tl xs @ [hd xs]" u] by (auto simp: cycle_def)
 qed auto
 
 lemma cycle_Cons[code]: "cycle (x # xs) = x ## cycle (xs @ [x])"
-proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>x xs. s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])"])
-  case (2 s1 s2)
+proof (coinduct rule: stream.coinduct[of "\<lambda>s1 s2. \<exists>x xs. s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])", consumes 0, case_names _ Eqstream])
+  case (Eqstream s1 s2)
   then obtain x xs where "s1 = cycle (x # xs) \<and> s2 = x ## cycle (xs @ [x])" by blast
   thus ?case
     by (auto simp: cycle_def intro!: exI[of _ "hd (xs @ [x])"] exI[of _ "tl (xs @ [x])"] stream.unfold)
