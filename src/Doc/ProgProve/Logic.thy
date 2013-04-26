@@ -105,6 +105,20 @@ Here are the ASCII representations of the mathematical symbols:
 Sets also allow bounded quantifications @{prop"ALL x : A. P"} and
 @{prop"EX x : A. P"}.
 
+Some more frequently useful functions on sets:
+\begin{center}
+\begin{tabular}{ll}
+@{const_typ set} & converts a list to the set of its elements\\
+@{const_typ finite} & is true iff its argument is finite\\
+@{const_typ card} & is the cardinality of a finite set\\
+ & and is @{text 0} for all infinite sets\\
+@{thm image_def} & is the image of a function over a set
+\end{tabular}
+\end{center}
+
+See \cite{Nipkow-Main} for the wealth of further predefined functions in theory
+@{theory Main}.
+
 \section{Proof automation}
 
 So far we have only seen @{text simp} and @{text auto}: Both perform
