@@ -108,26 +108,26 @@ fixes h :: "nat"
 assumes h: "m x \<le> h"
 begin
 
-definition m_s :: "vname set \<Rightarrow> 'av st \<Rightarrow> nat" ("m\<^isub>s") where
-"m_s X S = (\<Sum> x \<in> X. m(fun S x))"
+definition m_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^isub>s") where
+"m_s S X = (\<Sum> x \<in> X. m(fun S x))"
 
-lemma m_s_h: "finite X \<Longrightarrow> m_s X S \<le> h * card X"
+lemma m_s_h: "finite X \<Longrightarrow> m_s S X \<le> h * card X"
 by(simp add: m_s_def) (metis nat_mult_commute of_nat_id setsum_bounded[OF h])
 
-definition m_o :: "vname set \<Rightarrow> 'av st option \<Rightarrow> nat" ("m\<^isub>o") where
-"m_o X opt = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s X S)"
+definition m_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("m\<^isub>o") where
+"m_o opt X = (case opt of None \<Rightarrow> h * card X + 1 | Some S \<Rightarrow> m_s S X)"
 
-lemma m_o_h: "finite X \<Longrightarrow> m_o X opt \<le> (h*card X + 1)"
+lemma m_o_h: "finite X \<Longrightarrow> m_o opt X \<le> (h*card X + 1)"
 by(auto simp add: m_o_def m_s_h le_SucI split: option.split dest:m_s_h)
 
 definition m_c :: "'av st option acom \<Rightarrow> nat" ("m\<^isub>c") where
-"m_c C = listsum (map (m_o (vars C)) (annos C))"
+"m_c C = listsum (map (\<lambda>a. m_o a (vars C)) (annos C))"
 
 text{* Upper complexity bound: *}
 lemma m_c_h: "m_c C \<le> size(annos C) * (h * card(vars C) + 1)"
 proof-
   let ?X = "vars C" let ?n = "card ?X" let ?a = "size(annos C)"
-  have "m_c C = (\<Sum>i<?a. m_o ?X (annos C ! i))"
+  have "m_c C = (\<Sum>i<?a. m_o (annos C ! i) ?X)"
     by(simp add: m_c_def listsum_setsum_nth atLeast0LessThan)
   also have "\<dots> \<le> (\<Sum>i<?a. h * ?n + 1)"
     apply(rule setsum_mono) using m_o_h[OF finite_Cvars] by simp
@@ -198,14 +198,15 @@ proof-
   show "(\<Sum>x\<in>X. m (S2 x)) < (\<Sum>x\<in>X. m (S1 x))" .
 qed
 
-lemma m_s2: "finite(X) \<Longrightarrow> fun S1 = fun S2 on -X \<Longrightarrow> S1 < S2 \<Longrightarrow> m_s X S1 > m_s X S2"
+lemma m_s2: "finite(X) \<Longrightarrow> fun S1 = fun S2 on -X
+  \<Longrightarrow> S1 < S2 \<Longrightarrow> m_s S1 X > m_s S2 X"
 apply(auto simp add: less_st_def m_s_def)
 apply (transfer fixing: m)
 apply(simp add: less_eq_st_rep_iff eq_st_def m_s2_rep)
 done
 
 lemma m_o2: "finite X \<Longrightarrow> top_on_opt o1 (-X) \<Longrightarrow> top_on_opt o2 (-X) \<Longrightarrow>
-  o1 < o2 \<Longrightarrow> m_o X o1 > m_o X o2"
+  o1 < o2 \<Longrightarrow> m_o o1 X > m_o o2 X"
 proof(induction o1 o2 rule: less_eq_option.induct)
   case 1 thus ?case by (auto simp: m_o_def m_s2 less_option_def)
 next
@@ -215,7 +216,7 @@ next
 qed
 
 lemma m_o1: "finite X \<Longrightarrow> top_on_opt o1 (-X) \<Longrightarrow> top_on_opt o2 (-X) \<Longrightarrow>
-  o1 \<le> o2 \<Longrightarrow> m_o X o1 \<ge> m_o X o2"
+  o1 \<le> o2 \<Longrightarrow> m_o o1 X \<ge> m_o o2 X"
 by(auto simp: le_less m_o2)
 
 
@@ -226,7 +227,7 @@ proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def les
   assume top: "top_on_acom C1 (- vars(strip C2))"  "top_on_acom C2 (- vars(strip C2))"
   and strip_eq: "strip C1 = strip C2"
   and 0: "\<forall>i<size(annos C2). annos C1 ! i \<le> annos C2 ! i"
-  hence 1: "\<forall>i<size(annos C2). m_o ?X (annos C1 ! i) \<ge> m_o ?X (annos C2 ! i)"
+  hence 1: "\<forall>i<size(annos C2). m_o (annos C1 ! i) ?X \<ge> m_o (annos C2 ! i) ?X"
     apply (auto simp: all_set_conv_all_nth vars_acom_def top_on_acom_def)
     by (metis finite_cvars m_o1 size_annos_same2)
   fix i assume i: "i < size(annos C2)" "\<not> annos C2 ! i \<le> annos C1 ! i"
@@ -234,11 +235,11 @@ proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def les
     using i(1) top(1) by(simp add: top_on_acom_def size_annos_same[OF strip_eq])
   have topo2: "top_on_opt (annos C2 ! i) (- ?X)"
     using i(1) top(2) by(simp add: top_on_acom_def size_annos_same[OF strip_eq])
-  from i have "m_o ?X (annos C1 ! i) > m_o ?X (annos C2 ! i)" (is "?P i")
+  from i have "m_o (annos C1 ! i) ?X > m_o (annos C2 ! i) ?X" (is "?P i")
     by (metis 0 less_option_def m_o2[OF finite_cvars topo1] topo2)
   hence 2: "\<exists>i < size(annos C2). ?P i" using `i < size(annos C2)` by blast
-  have "(\<Sum>i<size(annos C2). m_o ?X (annos C2 ! i))
-         < (\<Sum>i<size(annos C2). m_o ?X (annos C1 ! i))"
+  have "(\<Sum>i<size(annos C2). m_o (annos C2 ! i) ?X)
+         < (\<Sum>i<size(annos C2). m_o (annos C1 ! i) ?X)"
     apply(rule setsum_strict_mono_ex1) using 1 2 by (auto)
   thus ?thesis
     by(simp add: m_c_def vars_acom_def strip_eq listsum_setsum_nth atLeast0LessThan size_annos_same[OF strip_eq])

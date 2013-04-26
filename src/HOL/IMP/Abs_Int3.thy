@@ -278,10 +278,8 @@ defines AI_ivl' is AI_wn
 
 subsubsection "Tests"
 
-definition "step_up_ivl n =
-  ((\<lambda>C. C \<nabla> step_ivl \<top> C)^^n)"
-definition "step_down_ivl n =
-  ((\<lambda>C. C \<triangle> step_ivl \<top> C)^^n)"
+definition "step_up_ivl n = ((\<lambda>C. C \<nabla> step_ivl \<top> C)^^n)"
+definition "step_down_ivl n = ((\<lambda>C. C \<triangle> step_ivl \<top> C)^^n)"
 
 text{* For @{const test3_ivl}, @{const AI_ivl} needed as many iterations as
 the loop took to execute. In contrast, @{const AI_ivl'} converges in a
@@ -354,7 +352,7 @@ proof-
   thus "(\<Sum>x\<in>X. m (S2 x)) \<le> (\<Sum>x\<in>X. m (S1 x))" by (metis setsum_mono)
 qed
 
-lemma m_s_anti_mono: "S1 \<le> S2 \<Longrightarrow> m_s X S1 \<ge> m_s X S2"
+lemma m_s_anti_mono: "S1 \<le> S2 \<Longrightarrow> m_s S1 X \<ge> m_s S2 X"
 unfolding m_s_def
 apply (transfer fixing: m)
 apply(simp add: less_eq_st_rep_iff eq_st_def m_s_anti_mono_rep)
@@ -374,14 +372,14 @@ proof-
 qed
 
 lemma m_s_widen: "finite X \<Longrightarrow> fun S1 = fun S2 on -X ==>
-  ~ S2 \<le> S1 \<Longrightarrow> m_s X (S1 \<nabla> S2) < m_s X S1"
+  ~ S2 \<le> S1 \<Longrightarrow> m_s (S1 \<nabla> S2) X < m_s S1 X"
 apply(auto simp add: less_st_def m_s_def)
 apply (transfer fixing: m)
 apply(auto simp add: less_eq_st_rep_iff m_s_widen_rep)
 done
 
 lemma m_o_anti_mono: "finite X \<Longrightarrow> top_on_opt o1 (-X) \<Longrightarrow> top_on_opt o2 (-X) \<Longrightarrow>
-  o1 \<le> o2 \<Longrightarrow> m_o X o1 \<ge> m_o X o2"
+  o1 \<le> o2 \<Longrightarrow> m_o o1 X \<ge> m_o o2 X"
 proof(induction o1 o2 rule: less_eq_option.induct)
   case 1 thus ?case by (simp add: m_o_def)(metis m_s_anti_mono)
 next
@@ -392,7 +390,7 @@ next
 qed
 
 lemma m_o_widen: "\<lbrakk> finite X; top_on_opt S1 (-X); top_on_opt S2 (-X); \<not> S2 \<le> S1 \<rbrakk> \<Longrightarrow>
-  m_o X (S1 \<nabla> S2) < m_o X S1"
+  m_o (S1 \<nabla> S2) X < m_o S1 X"
 by(auto simp: m_o_def m_s_h less_Suc_eq_le m_s_widen split: option.split)
 
 lemma m_c_widen:
@@ -409,8 +407,8 @@ apply(rule_tac x=i in bexI)
 done
 
 
-definition n_s :: "vname set \<Rightarrow> 'av st \<Rightarrow> nat" ("n\<^isub>s") where
-"n\<^isub>s X S = (\<Sum>x\<in>X. n(fun S x))"
+definition n_s :: "'av st \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^isub>s") where
+"n\<^isub>s S X = (\<Sum>x\<in>X. n(fun S x))"
 
 lemma n_s_narrow_rep:
 assumes "finite X"  "S1 = S2 on -X"  "\<forall>x. S2 x \<le> S1 x"  "\<forall>x. S1 x \<triangle> S2 x \<le> S1 x"
@@ -427,25 +425,25 @@ proof-
 qed
 
 lemma n_s_narrow: "finite X \<Longrightarrow> fun S1 = fun S2 on -X \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1
-  \<Longrightarrow> n\<^isub>s X (S1 \<triangle> S2) < n\<^isub>s X S1"
+  \<Longrightarrow> n\<^isub>s (S1 \<triangle> S2) X < n\<^isub>s S1 X"
 apply(auto simp add: less_st_def n_s_def)
 apply (transfer fixing: n)
 apply(auto simp add: less_eq_st_rep_iff eq_st_def fun_eq_iff n_s_narrow_rep)
 done
 
-definition n_o :: "vname set \<Rightarrow> 'av st option \<Rightarrow> nat" ("n\<^isub>o") where
-"n\<^isub>o X opt = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s X S + 1)"
+definition n_o :: "'av st option \<Rightarrow> vname set \<Rightarrow> nat" ("n\<^isub>o") where
+"n\<^isub>o opt X = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s S X + 1)"
 
 lemma n_o_narrow:
   "top_on_opt S1 (-X) \<Longrightarrow> top_on_opt S2 (-X) \<Longrightarrow> finite X
-  \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1 \<Longrightarrow> n\<^isub>o X (S1 \<triangle> S2) < n\<^isub>o X S1"
+  \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1 \<Longrightarrow> n\<^isub>o (S1 \<triangle> S2) X < n\<^isub>o S1 X"
 apply(induction S1 S2 rule: narrow_option.induct)
 apply(auto simp: n_o_def n_s_narrow)
 done
 
 
 definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^isub>c") where
-"n\<^isub>c C = (let as = annos C in \<Sum>i<size as. n\<^isub>o (vars C) (as!i))"
+"n\<^isub>c C = (let as = annos C in \<Sum>i<size as. n\<^isub>o (as!i) (vars C))"
 
 lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>
   (\<exists>i<length (annos C1). annos C1 ! i < annos C2 ! i))"
