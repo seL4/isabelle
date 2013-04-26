@@ -353,51 +353,51 @@ locale Measure_fun = Measure1_fun where m=m for m :: "'av::semilattice \<Rightar
 assumes m2: "x < y \<Longrightarrow> m x > m y"
 begin
 
-text{* The predicates @{text "top_on_ty X a"} that follow describe that any abstract
+text{* The predicates @{text "top_on_ty a X"} that follow describe that any abstract
 state in @{text a} maps all variables in @{text X} to @{term \<top>}.
 This is an important invariant for the termination proof where we argue that only
 the finitely many variables in the program change. That the others do not change
 follows because they remain @{term \<top>}. *}
 
-fun top_on_st :: "vname set \<Rightarrow> 'av st \<Rightarrow> bool" ("top'_on\<^isub>s") where
-"top_on_st X S = (\<forall>x\<in>X. S x = \<top>)"
+fun top_on_st :: "'av st \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>s") where
+"top_on_st S X = (\<forall>x\<in>X. S x = \<top>)"
 
-fun top_on_opt :: "vname set \<Rightarrow> 'av st option \<Rightarrow> bool" ("top'_on\<^isub>o") where
-"top_on_opt X (Some S) = top_on_st X S" |
-"top_on_opt X None = True"
+fun top_on_opt :: "'av st option \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>o") where
+"top_on_opt (Some S) X = top_on_st S X" |
+"top_on_opt None X = True"
 
-definition top_on_acom :: "vname set \<Rightarrow> 'av st option acom \<Rightarrow> bool" ("top'_on\<^isub>c") where
-"top_on_acom X C = (\<forall>a \<in> set(annos C). top_on_opt X a)"
+definition top_on_acom :: "'av st option acom \<Rightarrow> vname set \<Rightarrow> bool" ("top'_on\<^isub>c") where
+"top_on_acom C X = (\<forall>a \<in> set(annos C). top_on_opt a X)"
 
-lemma top_on_top: "top_on_opt X \<top>"
+lemma top_on_top: "top_on_opt \<top> X"
 by(auto simp: top_option_def)
 
-lemma top_on_bot: "top_on_acom X (bot c)"
+lemma top_on_bot: "top_on_acom (bot c) X"
 by(auto simp add: top_on_acom_def bot_def)
 
-lemma top_on_post: "top_on_acom X C \<Longrightarrow> top_on_opt X (post C)"
+lemma top_on_post: "top_on_acom C X \<Longrightarrow> top_on_opt (post C) X"
 by(simp add: top_on_acom_def post_in_annos)
 
 lemma top_on_acom_simps:
-  "top_on_acom X (SKIP {Q}) = top_on_opt X Q"
-  "top_on_acom X (x ::= e {Q}) = top_on_opt X Q"
-  "top_on_acom X (C1;C2) = (top_on_acom X C1 \<and> top_on_acom X C2)"
-  "top_on_acom X (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) =
-   (top_on_opt X P1 \<and> top_on_acom X C1 \<and> top_on_opt X P2 \<and> top_on_acom X C2 \<and> top_on_opt X Q)"
-  "top_on_acom X ({I} WHILE b DO {P} C {Q}) =
-   (top_on_opt X I \<and> top_on_acom X C \<and> top_on_opt X P \<and> top_on_opt X Q)"
+  "top_on_acom (SKIP {Q}) X = top_on_opt Q X"
+  "top_on_acom (x ::= e {Q}) X = top_on_opt Q X"
+  "top_on_acom (C1;C2) X = (top_on_acom C1 X \<and> top_on_acom C2 X)"
+  "top_on_acom (IF b THEN {P1} C1 ELSE {P2} C2 {Q}) X =
+   (top_on_opt P1 X \<and> top_on_acom C1 X \<and> top_on_opt P2 X \<and> top_on_acom C2 X \<and> top_on_opt Q X)"
+  "top_on_acom ({I} WHILE b DO {P} C {Q}) X =
+   (top_on_opt I X \<and> top_on_acom C X \<and> top_on_opt P X \<and> top_on_opt Q X)"
 by(auto simp add: top_on_acom_def)
 
 lemma top_on_sup:
-  "top_on_opt X o1 \<Longrightarrow> top_on_opt X o2 \<Longrightarrow> top_on_opt X (o1 \<squnion> o2)"
+  "top_on_opt o1 X \<Longrightarrow> top_on_opt o2 X \<Longrightarrow> top_on_opt (o1 \<squnion> o2) X"
 apply(induction o1 o2 rule: sup_option.induct)
 apply(auto)
 done
 
 lemma top_on_Step: fixes C :: "'av st option acom"
-assumes "!!x e S. \<lbrakk>top_on_opt X S; x \<notin> X; vars e \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt X (f x e S)"
-        "!!b S. top_on_opt X S \<Longrightarrow> vars b \<subseteq> -X \<Longrightarrow> top_on_opt X (g b S)"
-shows "\<lbrakk> vars C \<subseteq> -X; top_on_opt X S; top_on_acom X C \<rbrakk> \<Longrightarrow> top_on_acom X (Step f g S C)"
+assumes "!!x e S. \<lbrakk>top_on_opt S X; x \<notin> X; vars e \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt (f x e S) X"
+        "!!b S. top_on_opt S X \<Longrightarrow> vars b \<subseteq> -X \<Longrightarrow> top_on_opt (g b S) X"
+shows "\<lbrakk> vars C \<subseteq> -X; top_on_opt S X; top_on_acom C X \<rbrakk> \<Longrightarrow> top_on_acom (Step f g S C) X"
 proof(induction C arbitrary: S)
 qed (auto simp: top_on_acom_simps vars_acom_def top_on_post top_on_sup assms)
 
@@ -420,7 +420,7 @@ apply(auto simp add: less_fun_def m_s_def)
 apply(simp add: m_s2_rep le_fun_def)
 done
 
-lemma m_o2: "finite X \<Longrightarrow> top_on_opt (-X) o1 \<Longrightarrow> top_on_opt (-X) o2 \<Longrightarrow>
+lemma m_o2: "finite X \<Longrightarrow> top_on_opt o1 (-X) \<Longrightarrow> top_on_opt o2 (-X) \<Longrightarrow>
   o1 < o2 \<Longrightarrow> m_o X o1 > m_o X o2"
 proof(induction o1 o2 rule: less_eq_option.induct)
   case 1 thus ?case by (auto simp: m_s2 less_option_def)
@@ -430,25 +430,25 @@ next
   case 3 thus ?case by (auto simp: less_option_def)
 qed
 
-lemma m_o1: "finite X \<Longrightarrow> top_on_opt (-X) o1 \<Longrightarrow> top_on_opt (-X) o2 \<Longrightarrow>
+lemma m_o1: "finite X \<Longrightarrow> top_on_opt o1 (-X) \<Longrightarrow> top_on_opt o2 (-X) \<Longrightarrow>
   o1 \<le> o2 \<Longrightarrow> m_o X o1 \<ge> m_o X o2"
 by(auto simp: le_less m_o2)
 
 
-lemma m_c2: "top_on_acom (-vars C1) C1 \<Longrightarrow> top_on_acom (-vars C2) C2 \<Longrightarrow>
+lemma m_c2: "top_on_acom C1 (-vars C1) \<Longrightarrow> top_on_acom C2 (-vars C2) \<Longrightarrow>
   C1 < C2 \<Longrightarrow> m_c C1 > m_c C2"
 proof(auto simp add: le_iff_le_annos size_annos_same[of C1 C2] vars_acom_def less_acom_def)
   let ?X = "vars(strip C2)"
-  assume top: "top_on_acom (- vars(strip C2)) C1"  "top_on_acom (- vars(strip C2)) C2"
+  assume top: "top_on_acom C1 (- vars(strip C2))"  "top_on_acom C2 (- vars(strip C2))"
   and strip_eq: "strip C1 = strip C2"
   and 0: "\<forall>i<size(annos C2). annos C1 ! i \<le> annos C2 ! i"
   hence 1: "\<forall>i<size(annos C2). m_o ?X (annos C1 ! i) \<ge> m_o ?X (annos C2 ! i)"
     apply (auto simp: all_set_conv_all_nth vars_acom_def top_on_acom_def)
     by (metis (lifting, no_types) finite_cvars m_o1 size_annos_same2)
   fix i assume i: "i < size(annos C2)" "\<not> annos C2 ! i \<le> annos C1 ! i"
-  have topo1: "top_on_opt (- ?X) (annos C1 ! i)"
+  have topo1: "top_on_opt (annos C1 ! i) (- ?X)"
     using i(1) top(1) by(simp add: top_on_acom_def size_annos_same[OF strip_eq])
-  have topo2: "top_on_opt (- ?X) (annos C2 ! i)"
+  have topo2: "top_on_opt (annos C2 ! i) (- ?X)"
     using i(1) top(2) by(simp add: top_on_acom_def size_annos_same[OF strip_eq])
   from i have "m_o ?X (annos C1 ! i) > m_o ?X (annos C2 ! i)" (is "?P i")
     by (metis 0 less_option_def m_o2[OF finite_cvars topo1] topo2)
@@ -468,14 +468,14 @@ locale Abs_Int_fun_measure =
   for \<gamma> :: "'av::semilattice \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 begin
 
-lemma top_on_step': "top_on_acom (-vars C) C \<Longrightarrow> top_on_acom (-vars C) (step' \<top> C)"
+lemma top_on_step': "top_on_acom C (-vars C) \<Longrightarrow> top_on_acom (step' \<top> C) (-vars C)"
 unfolding step'_def
 by(rule top_on_Step)
   (auto simp add: top_option_def fa_def split: option.splits)
 
 lemma AI_Some_measure: "\<exists>C. AI c = Some C"
 unfolding AI_def
-apply(rule pfp_termination[where I = "\<lambda>C. top_on_acom (- vars C) C" and m="m_c"])
+apply(rule pfp_termination[where I = "\<lambda>C. top_on_acom C (- vars C)" and m="m_c"])
 apply(simp_all add: m_c2 mono_step'_top bot_least top_on_bot)
 using top_on_step' apply(auto simp add: vars_acom_def)
 done

@@ -312,25 +312,25 @@ value "show_acom_opt (AI_ivl' test6_ivl)"
 subsubsection "Generic Termination Proof"
 
 lemma top_on_opt_widen:
-  "top_on_opt X o1 \<Longrightarrow> top_on_opt X o2  \<Longrightarrow> top_on_opt X (o1 \<nabla> o2 :: _ st option)"
+  "top_on_opt o1 X \<Longrightarrow> top_on_opt o2 X \<Longrightarrow> top_on_opt (o1 \<nabla> o2 :: _ st option) X"
 apply(induct o1 o2 rule: widen_option.induct)
 apply (auto)
 by transfer simp
 
 lemma top_on_opt_narrow:
-  "top_on_opt X o1 \<Longrightarrow> top_on_opt X o2  \<Longrightarrow> top_on_opt X (o1 \<triangle> o2 :: _ st option)"
+  "top_on_opt o1 X \<Longrightarrow> top_on_opt o2 X \<Longrightarrow> top_on_opt (o1 \<triangle> o2 :: _ st option) X"
 apply(induct o1 o2 rule: narrow_option.induct)
 apply (auto)
 by transfer simp
 
 lemma top_on_acom_widen:
-  "\<lbrakk>top_on_acom X C1; strip C1 = strip C2; top_on_acom X C2\<rbrakk>
-  \<Longrightarrow> top_on_acom X (C1 \<nabla> C2 :: _ st option acom)"
+  "\<lbrakk>top_on_acom C1 X; strip C1 = strip C2; top_on_acom C2 X\<rbrakk>
+  \<Longrightarrow> top_on_acom (C1 \<nabla> C2 :: _ st option acom) X"
 by(auto simp add: widen_acom_def top_on_acom_def)(metis top_on_opt_widen in_set_zipE)
 
 lemma top_on_acom_narrow:
-  "\<lbrakk>top_on_acom X C1; strip C1 = strip C2; top_on_acom X C2\<rbrakk>
-  \<Longrightarrow> top_on_acom X (C1 \<triangle> C2 :: _ st option acom)"
+  "\<lbrakk>top_on_acom C1 X; strip C1 = strip C2; top_on_acom C2 X\<rbrakk>
+  \<Longrightarrow> top_on_acom (C1 \<triangle> C2 :: _ st option acom) X"
 by(auto simp add: narrow_acom_def top_on_acom_def)(metis top_on_opt_narrow in_set_zipE)
 
 text{* The assumptions for widening and narrowing differ because during
@@ -380,7 +380,7 @@ apply (transfer fixing: m)
 apply(auto simp add: less_eq_st_rep_iff m_s_widen_rep)
 done
 
-lemma m_o_anti_mono: "finite X \<Longrightarrow> top_on_opt (-X) o1 \<Longrightarrow> top_on_opt (-X) o2 \<Longrightarrow>
+lemma m_o_anti_mono: "finite X \<Longrightarrow> top_on_opt o1 (-X) \<Longrightarrow> top_on_opt o2 (-X) \<Longrightarrow>
   o1 \<le> o2 \<Longrightarrow> m_o X o1 \<ge> m_o X o2"
 proof(induction o1 o2 rule: less_eq_option.induct)
   case 1 thus ?case by (simp add: m_o_def)(metis m_s_anti_mono)
@@ -391,12 +391,12 @@ next
   case 3 thus ?case by simp
 qed
 
-lemma m_o_widen: "\<lbrakk> finite X; top_on_opt (-X) S1; top_on_opt (-X) S2; \<not> S2 \<le> S1 \<rbrakk> \<Longrightarrow>
+lemma m_o_widen: "\<lbrakk> finite X; top_on_opt S1 (-X); top_on_opt S2 (-X); \<not> S2 \<le> S1 \<rbrakk> \<Longrightarrow>
   m_o X (S1 \<nabla> S2) < m_o X S1"
 by(auto simp: m_o_def m_s_h less_Suc_eq_le m_s_widen split: option.split)
 
 lemma m_c_widen:
-  "strip C1 = strip C2  \<Longrightarrow> top_on_acom (-vars C1) C1 \<Longrightarrow> top_on_acom (-vars C2) C2
+  "strip C1 = strip C2  \<Longrightarrow> top_on_acom C1 (-vars C1) \<Longrightarrow> top_on_acom C2 (-vars C2)
    \<Longrightarrow> \<not> C2 \<le> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
 apply(auto simp: m_c_def widen_acom_def)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
@@ -437,7 +437,7 @@ definition n_o :: "vname set \<Rightarrow> 'av st option \<Rightarrow> nat" ("n\
 "n\<^isub>o X opt = (case opt of None \<Rightarrow> 0 | Some S \<Rightarrow> n\<^isub>s X S + 1)"
 
 lemma n_o_narrow:
-  "top_on_opt (-X) S1 \<Longrightarrow> top_on_opt (-X) S2 \<Longrightarrow> finite X
+  "top_on_opt S1 (-X) \<Longrightarrow> top_on_opt S2 (-X) \<Longrightarrow> finite X
   \<Longrightarrow> S2 \<le> S1 \<Longrightarrow> S1 \<triangle> S2 < S1 \<Longrightarrow> n\<^isub>o X (S1 \<triangle> S2) < n\<^isub>o X S1"
 apply(induction S1 S2 rule: narrow_option.induct)
 apply(auto simp: n_o_def n_s_narrow)
@@ -452,7 +452,7 @@ lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>
 by(metis (hide_lams, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
 
 lemma n_c_narrow: "strip C1 = strip C2
-  \<Longrightarrow> top_on_acom (- vars C1) C1 \<Longrightarrow> top_on_acom (- vars C2) C2
+  \<Longrightarrow> top_on_acom C1 (- vars C1) \<Longrightarrow> top_on_acom C2 (- vars C2)
   \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n\<^isub>c (C1 \<triangle> C2) < n\<^isub>c C1"
 apply(auto simp: n_c_def Let_def narrow_acom_def)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
@@ -568,15 +568,15 @@ qed
 
 lemma iter_winden_step_ivl_termination:
   "\<exists>C. iter_widen (step_ivl \<top>) (bot c) = Some C"
-apply(rule iter_widen_termination[where m = "m_c" and P = "%C. strip C = c \<and> top_on_acom (- vars C) C"])
+apply(rule iter_widen_termination[where m = "m_c" and P = "%C. strip C = c \<and> top_on_acom C (- vars C)"])
 apply (auto simp add: m_c_widen top_on_bot top_on_step'[simplified comp_def vars_acom_def]
   vars_acom_def top_on_acom_widen)
 done
 
 lemma iter_narrow_step_ivl_termination:
-  "top_on_acom (- vars C0) C0 \<Longrightarrow> step_ivl \<top> C0 \<le> C0 \<Longrightarrow>
+  "top_on_acom C0 (- vars C0) \<Longrightarrow> step_ivl \<top> C0 \<le> C0 \<Longrightarrow>
   \<exists>C. iter_narrow (step_ivl \<top>) C0 = Some C"
-apply(rule iter_narrow_termination[where n = "n_c" and P = "%C. strip C0 = strip C \<and> top_on_acom (-vars C) C"])
+apply(rule iter_narrow_termination[where n = "n_c" and P = "%C. strip C0 = strip C \<and> top_on_acom C (-vars C)"])
 apply(auto simp: top_on_step'[simplified comp_def vars_acom_def]
         mono_step'_top n_c_narrow vars_acom_def top_on_acom_narrow)
 done
@@ -587,7 +587,7 @@ apply(auto simp: AI_wn_def pfp_wn_def iter_winden_step_ivl_termination
            split: option.split)
 apply(rule iter_narrow_step_ivl_termination)
 apply(rule conjunct2)
-apply(rule iter_widen_inv[where f = "step' \<top>" and P = "%C. c = strip C & top_on_acom (- vars C) C"])
+apply(rule iter_widen_inv[where f = "step' \<top>" and P = "%C. c = strip C & top_on_acom C (- vars C)"])
 apply(auto simp: top_on_acom_widen top_on_step'[simplified comp_def vars_acom_def]
   iter_widen_pfp top_on_bot vars_acom_def)
 done
