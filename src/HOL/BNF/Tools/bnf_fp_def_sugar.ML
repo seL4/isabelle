@@ -31,7 +31,7 @@ open BNF_Def
 open BNF_FP
 open BNF_FP_Def_Sugar_Tactics
 
-val EqN = "Eq";
+val EqN = "Eq_";
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
 fun quasi_unambiguous_case_names names =
