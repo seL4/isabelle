@@ -160,10 +160,10 @@ sig
   val certify: Proof.context -> term -> cterm
 
   val standard_binding: binding
-  val smart_binding: binding
-  val binding_eq: binding * binding -> bool
+  val equal_binding: binding
+  val parse_binding: Token.T list -> binding * Token.T list
   val parse_binding_colon: Token.T list -> binding * Token.T list
-  val parse_opt_binding_colon: binding -> Token.T list -> binding * Token.T list
+  val parse_opt_binding_colon: Token.T list -> binding * Token.T list
 
   val typedef: binding * (string * sort) list * mixfix -> term ->
     (binding * binding) option -> tactic -> local_theory -> (string * Typedef.info) * local_theory
@@ -305,16 +305,15 @@ fun fold_map9 _ [] [] [] [] [] [] [] [] [] acc = ([], acc)
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);
 fun certifyT ctxt = Thm.ctyp_of (Proof_Context.theory_of ctxt);
 
-val binding_eq = (op =) o pairself Binding.dest
-
 (* The standard binding stands for a name generated following the canonical convention (e.g.
    "is_Nil" from "Nil"). The smart binding is either the standard binding or no binding at all,
    depending on the context. *)
 val standard_binding = @{binding _};
-val smart_binding = Binding.conceal standard_binding;
+val equal_binding = @{binding "="};
 
-val parse_binding_colon = Parse.binding --| @{keyword ":"};
-val parse_opt_binding_colon = Scan.optional parse_binding_colon;
+val parse_binding = Parse.binding || @{keyword "="} >> K equal_binding;
+val parse_binding_colon = parse_binding --| @{keyword ":"};
+val parse_opt_binding_colon = Scan.optional parse_binding_colon Binding.empty;
 
 (*TODO: is this really different from Typedef.add_typedef_global?*)
 fun typedef typ set opt_morphs tac lthy =

@@ -1222,17 +1222,16 @@ val parse_defaults =
   @{keyword "("} |-- @{keyword "defaults"} |-- Scan.repeat parse_bound_term --| @{keyword ")"};
 
 val parse_type_arg_constrained =
-  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort)
+  Parse.type_ident -- Scan.option (@{keyword "::"} |-- Parse.!!! Parse.sort);
 
-val parse_type_arg_named_constrained =
-  parse_opt_binding_colon Binding.empty -- parse_type_arg_constrained
+val parse_type_arg_named_constrained = parse_opt_binding_colon -- parse_type_arg_constrained;
 
 val parse_type_args_named_constrained =
   parse_type_arg_constrained >> (single o pair Binding.empty) ||
   @{keyword "("} |-- Parse.!!! (Parse.list1 parse_type_arg_named_constrained --| @{keyword ")"}) ||
   Scan.succeed [];
 
-val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- Parse.binding;
+val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_binding;
 
 val no_map_rel = (Binding.empty, Binding.empty);
 
@@ -1249,11 +1248,11 @@ val parse_map_rel_bindings =
   Scan.succeed no_map_rel;
 
 val parse_ctr_spec =
-  parse_opt_binding_colon smart_binding -- Parse.binding -- Scan.repeat parse_ctr_arg --
+  parse_opt_binding_colon -- parse_binding -- Scan.repeat parse_ctr_arg --
   Scan.optional parse_defaults [] -- Parse.opt_mixfix;
 
 val parse_spec =
-  parse_type_args_named_constrained -- Parse.binding -- parse_map_rel_bindings --
+  parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
   Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
 
 val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
