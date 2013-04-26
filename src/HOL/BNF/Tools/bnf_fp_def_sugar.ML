@@ -76,6 +76,12 @@ val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 
+(* This order is for compatibility with the old datatype package. *)
+fun unzip_rec curryf xs =
+  let val ps = map curryf xs in
+    map fst ps @ map_filter snd ps
+  end;
+
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
   Abs ("x", T1, Abs ("y", T2, Var (x, T2 --> T1 --> T3) $ Bound 0 $ Bound 1));
 
@@ -358,13 +364,13 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             | proj_recT proj (Type (s, Ts)) = Type (s, map (proj_recT proj) Ts)
             | proj_recT _ T = T;
 
-          fun unzip_recT T =
-            if exists_fp_subtype T then [proj_recT fst T, proj_recT snd T] else [T];
+          fun curry_recT T =
+            if exists_fp_subtype T then (proj_recT fst T, SOME (proj_recT snd T)) else (T, NONE);
 
           val z_Tsss =
             map3 (fn n => fn ms => map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type)
               ns mss fp_rec_fun_Ts;
-          val z_Tssss = map (map (map unzip_recT)) z_Tsss;
+          val z_Tssss = map (map (unzip_rec curry_recT)) z_Tsss;
           val h_Tss = map2 (map2 (fold_rev (curry (op --->)))) z_Tssss Css;
 
           val hss = map2 (map2 retype_free) h_Tss gss;
@@ -636,14 +642,15 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
               | mk_U _ T = T;
 
-            fun unzip_rec (x as Free (_, T)) =
+            fun curry_rec (x as Free (_, T)) =
               if exists_fp_subtype T then
-                [build_prod_proj fst_const (T, mk_U fst T) $ x,
-                 build_prod_proj snd_const (T, mk_U snd T) $ x]
+                (build_prod_proj fst_const (T, mk_U fst T) $ x,
+                 SOME (build_prod_proj snd_const (T, mk_U snd T) $ x))
               else
-                [x];
+                (x, NONE);
 
-            fun mk_rec_like_arg f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f (maps unzip_rec xs);
+            fun mk_rec_like_arg f xs =
+              mk_tupled_fun (HOLogic.mk_tuple xs) f (flat (unzip_rec curry_rec xs));
 
             fun generate_rec_like (suf, fp_rec_like, (fss, f_Tss, xsss)) =
               let
