@@ -398,7 +398,7 @@ by(auto simp: m_o_def m_s_h less_Suc_eq_le m_s_widen split: option.split)
 lemma m_c_widen:
   "strip C1 = strip C2  \<Longrightarrow> top_on_acom C1 (-vars C1) \<Longrightarrow> top_on_acom C2 (-vars C2)
    \<Longrightarrow> \<not> C2 \<le> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
-apply(auto simp: m_c_def widen_acom_def)
+apply(auto simp: m_c_def widen_acom_def listsum_setsum_nth atLeast0LessThan)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
  prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
