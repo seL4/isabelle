@@ -1320,7 +1320,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "bnf_def"} "define a BNF for an existing type"
-    ((parse_opt_binding_colon -- Parse.term --
+    ((parse_opt_binding_colon Binding.empty -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Scan.option Parse.term)
        >> bnf_def_cmd);
