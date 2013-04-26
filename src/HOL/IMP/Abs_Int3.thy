@@ -396,7 +396,7 @@ by(auto simp: m_o_def m_s_h less_Suc_eq_le m_s_widen split: option.split)
 lemma m_c_widen:
   "strip C1 = strip C2  \<Longrightarrow> top_on_acom C1 (-vars C1) \<Longrightarrow> top_on_acom C2 (-vars C2)
    \<Longrightarrow> \<not> C2 \<le> C1 \<Longrightarrow> m_c (C1 \<nabla> C2) < m_c C1"
-apply(auto simp: m_c_def widen_acom_def listsum_setsum_nth atLeast0LessThan)
+apply(auto simp: m_c_def widen_acom_def listsum_setsum_nth)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
  prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
@@ -443,7 +443,7 @@ done
 
 
 definition n_c :: "'av st option acom \<Rightarrow> nat" ("n\<^isub>c") where
-"n\<^isub>c C = (let as = annos C in \<Sum>i<size as. n\<^isub>o (as!i) (vars C))"
+"n\<^isub>c C = listsum (map (\<lambda>a. n\<^isub>o a (vars C)) (annos C))"
 
 lemma less_annos_iff: "(C1 < C2) = (C1 \<le> C2 \<and>
   (\<exists>i<length (annos C1). annos C1 ! i < annos C2 ! i))"
@@ -452,7 +452,7 @@ by(metis (hide_lams, no_types) less_le_not_le le_iff_le_annos size_annos_same2)
 lemma n_c_narrow: "strip C1 = strip C2
   \<Longrightarrow> top_on_acom C1 (- vars C1) \<Longrightarrow> top_on_acom C2 (- vars C2)
   \<Longrightarrow> C2 \<le> C1 \<Longrightarrow> C1 \<triangle> C2 < C1 \<Longrightarrow> n\<^isub>c (C1 \<triangle> C2) < n\<^isub>c C1"
-apply(auto simp: n_c_def Let_def narrow_acom_def)
+apply(auto simp: n_c_def narrow_acom_def listsum_setsum_nth)
 apply(subgoal_tac "length(annos C2) = length(annos C1)")
 prefer 2 apply (simp add: size_annos_same2)
 apply (auto)
