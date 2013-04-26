@@ -76,10 +76,14 @@ val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 fun mk_tupled_fun x f xs = HOLogic.tupled_lambda x (Term.list_comb (f, xs));
 fun mk_uncurried_fun f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f xs;
 
-(* This order is for compatibility with the old datatype package. *)
-fun unzip_rec curryf xs =
-  let val ps = map curryf xs in
-    map fst ps @ map_filter snd ps
+fun flat_rec unzipf xs =
+  let val ps = map unzipf xs in
+    (* The first line below gives the preferred order. The second line is for compatibility with the
+       old datatype package: *)
+    maps (op @) ps
+(*
+    maps fst ps @ maps snd ps
+*)
   end;
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
@@ -364,14 +368,14 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             | proj_recT proj (Type (s, Ts)) = Type (s, map (proj_recT proj) Ts)
             | proj_recT _ T = T;
 
-          fun curry_recT T =
-            if exists_fp_subtype T then (proj_recT fst T, SOME (proj_recT snd T)) else (T, NONE);
+          fun unzip_recT T =
+            if exists_fp_subtype T then ([proj_recT fst T], [proj_recT snd T]) else ([T], []);
 
           val z_Tsss =
             map3 (fn n => fn ms => map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type)
               ns mss fp_rec_fun_Ts;
-          val z_Tssss = map (map (unzip_rec curry_recT)) z_Tsss;
-          val h_Tss = map2 (map2 (fold_rev (curry (op --->)))) z_Tssss Css;
+          val z_Tsss' = map (map (flat_rec unzip_recT)) z_Tsss;
+          val h_Tss = map2 (map2 (curry (op --->))) z_Tsss' Css;
 
           val hss = map2 (map2 retype_free) h_Tss gss;
           val zsss = map2 (map2 (map2 retype_free)) z_Tsss ysss;
@@ -642,15 +646,15 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
               | mk_U _ T = T;
 
-            fun curry_rec (x as Free (_, T)) =
+            fun unzip_rec (x as Free (_, T)) =
               if exists_fp_subtype T then
-                (build_prod_proj fst_const (T, mk_U fst T) $ x,
-                 SOME (build_prod_proj snd_const (T, mk_U snd T) $ x))
+                ([build_prod_proj fst_const (T, mk_U fst T) $ x],
+                 [build_prod_proj snd_const (T, mk_U snd T) $ x])
               else
-                (x, NONE);
+                ([x], []);
 
             fun mk_rec_like_arg f xs =
-              mk_tupled_fun (HOLogic.mk_tuple xs) f (flat (unzip_rec curry_rec xs));
+              mk_tupled_fun (HOLogic.mk_tuple xs) f (flat_rec unzip_rec xs);
 
             fun generate_rec_like (suf, fp_rec_like, (fss, f_Tss, xsss)) =
               let
@@ -869,14 +873,14 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
             val mk_U = typ_subst (map2 pair fpTs Cs);
 
-            fun intr_rec_likes frec_likes maybe_cons (x as Free (_, T)) =
+            fun unzip_rec_likes frec_likes combine (x as Free (_, T)) =
               if exists_fp_subtype T then
-                maybe_cons x [build_rec_like frec_likes (T, mk_U T) $ x]
+                combine (x, build_rec_like frec_likes (T, mk_U T) $ x)
               else
-                [x];
+                ([x], []);
 
-            val gxsss = map (map (maps (intr_rec_likes gfolds (K I)))) xsss;
-            val hxsss = map (map (maps (intr_rec_likes hrecs cons))) xsss;
+            val gxsss = map (map (flat_rec (unzip_rec_likes gfolds (fn (_, t) => ([t], []))))) xsss;
+            val hxsss = map (map (flat_rec (unzip_rec_likes hrecs (pairself single)))) xsss;
 
             val fold_goalss = map5 (map4 o mk_goal gss) gfolds xctrss gss xsss gxsss;
             val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
