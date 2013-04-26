@@ -80,10 +80,10 @@ fun flat_rec unzipf xs =
   let val ps = map unzipf xs in
     (* The first line below gives the preferred order. The second line is for compatibility with the
        old datatype package: *)
-    maps (op @) ps
 (*
-    maps fst ps @ maps snd ps
+    maps (op @) ps
 *)
+    maps fst ps @ maps snd ps
   end;
 
 fun mk_flip (x, Type (_, [T1, Type (_, [T2, T3])])) =
