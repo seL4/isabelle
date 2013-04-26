@@ -295,7 +295,7 @@
     "values"
     "welcome"
     "with"
-    "wrap_data"
+    "wrap_free_constructors"
     "write"
     "{"
     "}"))
@@ -612,7 +612,7 @@
     "termination"
     "theorem"
     "typedef"
-    "wrap_data"))
+    "wrap_free_constructors"))
 
 (defconst isar-keywords-qed
   '("\\."
