@@ -1,11 +1,11 @@
-(*  Title:      HOL/BNF/Tools/bnf_wrap_tactics.ML
+(*  Title:      HOL/BNF/Tools/bnf_ctr_sugar_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Tactics for wrapping datatypes.
+Tactics for wrapping existing freely generated type's constructors.
 *)
 
-signature BNF_WRAP_TACTICS =
+signature BNF_CTR_SUGAR_TACTICS =
 sig
   val mk_alternate_disc_def_tac: Proof.context -> int -> thm -> thm -> thm -> tactic
   val mk_case_cong_tac: Proof.context -> thm -> thm list -> tactic
@@ -24,7 +24,7 @@ sig
   val mk_unique_disc_def_tac: int -> thm -> tactic
 end;
 
-structure BNF_Wrap_Tactics : BNF_WRAP_TACTICS =
+structure BNF_Ctr_Sugar_Tactics : BNF_CTR_SUGAR_TACTICS =
 struct
 
 open BNF_Util

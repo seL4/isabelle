@@ -1,13 +1,13 @@
-(*  Title:      HOL/BNF/BNF_Wrap.thy
+(*  Title:      HOL/BNF/BNF_Ctr_Sugar.thy
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Wrapping datatypes.
+Wrapping existing freely generated type's constructors.
 *)
 
-header {* Wrapping Datatypes *}
+header {* Wrapping Existing Freely Generated Type's Constructors *}
 
-theory BNF_Wrap
+theory BNF_Ctr_Sugar
 imports BNF_Util
 keywords
   "wrap_free_constructors" :: thy_goal and
@@ -23,7 +23,7 @@ lemma iff_contradict:
 "\<not> Q \<Longrightarrow> P \<longleftrightarrow> Q \<Longrightarrow> P \<Longrightarrow> R"
 by blast+
 
-ML_file "Tools/bnf_wrap_tactics.ML"
-ML_file "Tools/bnf_wrap.ML"
+ML_file "Tools/bnf_ctr_sugar_tactics.ML"
+ML_file "Tools/bnf_ctr_sugar.ML"
 
 end

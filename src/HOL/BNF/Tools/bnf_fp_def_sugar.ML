@@ -26,7 +26,7 @@ structure BNF_FP_Def_Sugar : BNF_FP_DEF_SUGAR =
 struct
 
 open BNF_Util
-open BNF_Wrap
+open BNF_Ctr_Sugar
 open BNF_Def
 open BNF_FP
 open BNF_FP_Def_Sugar_Tactics

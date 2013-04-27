@@ -9,7 +9,7 @@ Basic fixed point operations on bounded natural functors.
 header {* Basic Fixed Point Operations on Bounded Natural Functors *}
 
 theory BNF_FP
-imports BNF_Comp BNF_Wrap
+imports BNF_Comp BNF_Ctr_Sugar
 keywords
   "defaults"
 begin

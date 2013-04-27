@@ -1,11 +1,11 @@
-(*  Title:      HOL/BNF/Tools/bnf_wrap.ML
+(*  Title:      HOL/BNF/Tools/bnf_ctr_sugar.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
 
-Wrapping existing datatypes.
+Wrapping existing freely generated type's constructors.
 *)
 
-signature BNF_WRAP =
+signature BNF_CTR_SUGAR =
 sig
   val rep_compat_prefix: string
 
@@ -27,11 +27,11 @@ sig
   val parse_bound_term: (binding * string) parser
 end;
 
-structure BNF_Wrap : BNF_WRAP =
+structure BNF_Ctr_Sugar : BNF_CTR_SUGAR =
 struct
 
 open BNF_Util
-open BNF_Wrap_Tactics
+open BNF_Ctr_Sugar_Tactics
 
 val rep_compat_prefix = "new";
 
@@ -701,7 +701,7 @@ val parse_wrap_options =
 
 val _ =
   Outer_Syntax.local_theory_to_proof @{command_spec "wrap_free_constructors"}
-    "wrap an existing (co)datatype's constructors"
+    "wrap an existing freely generated type's constructors"
     ((parse_wrap_options -- (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) --
       Parse.term -- Scan.optional (parse_bindings -- Scan.optional (parse_bindingss --
         Scan.optional parse_bound_termss []) ([], [])) ([], ([], [])))
