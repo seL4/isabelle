@@ -86,10 +86,11 @@ text (in partial_order) {* The parameter of this locale is~@{text le},
     trans [trans] = `\(\isasymlbrakk\)?x \(\sqsubseteq\) ?y; ?y \(\sqsubseteq\) ?z\(\isasymrbrakk\) \(\Longrightarrow\) ?x \(\sqsubseteq\) ?z`
 \end{alltt}
 \end{small}
-  The keyword \isakeyword{notes} denotes a conclusion element.  There
-  is one conclusion, which was added automatically.  Instead, there is
-  only one assumption, namely @{term "partial_order le"}.  The locale
-  declaration has introduced the predicate @{term
+
+  This differs from the declaration.  The assumptions have turned into
+  conclusions, denoted by the keyword \isakeyword{notes}.  Also,
+  there is only one assumption, namely @{term "partial_order le"}.
+  The locale declaration has introduced the predicate @{term
   partial_order} to the theory.  This predicate is the
   \emph{locale predicate}.  Its definition may be inspected by
   issuing \isakeyword{thm} @{thm [source] partial_order_def}.
