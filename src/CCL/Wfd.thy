@@ -473,14 +473,11 @@ fun tac ctxt = typechk_tac ctxt [] 1
 
 (*** Clean up Correctness Condictions ***)
 
-val clean_ccs_tac = REPEAT_FIRST (eresolve_tac ([@{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
-                                 hyp_subst_tac)
-
 fun clean_ccs_tac ctxt =
   let fun tac ps rl i = eres_inst_tac ctxt ps rl i THEN atac i in
     TRY (REPEAT_FIRST (IHinst tac @{thms hyprcallTs} ORELSE'
-    eresolve_tac ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
-    hyp_subst_tac))
+      eresolve_tac ([asm_rl, @{thm SubtypeE}] @ @{thms rmIHs}) ORELSE'
+      hyp_subst_tac ctxt))
   end
 
 fun gen_ccs_tac ctxt rls i =

@@ -128,19 +128,19 @@ fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
       (if is_refl disc then all_tac else rtac disc 1))
     (map rtac case_splits' @ [K all_tac]) corec_likes discs);
 
-val solve_prem_prem_tac =
+fun solve_prem_prem_tac ctxt =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'
-    hyp_subst_tac ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
+    hyp_subst_tac ctxt ORELSE' resolve_tac @{thms disjI1 disjI2}) THEN'
   (rtac refl ORELSE' atac ORELSE' rtac @{thm singletonI});
 
 fun mk_induct_leverage_prem_prems_tac ctxt nn kks set_map's pre_set_defs =
   EVERY' (maps (fn kk => [select_prem_tac nn (dtac meta_spec) kk, etac meta_mp,
      SELECT_GOAL (unfold_thms_tac ctxt (pre_set_defs @ set_map's @ sum_prod_thms_set0)),
-     solve_prem_prem_tac]) (rev kks)) 1;
+     solve_prem_prem_tac ctxt]) (rev kks)) 1;
 
 fun mk_induct_discharge_prem_tac ctxt nn n set_map's pre_set_defs m k kks =
   let val r = length kks in
-    EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac,
+    EVERY' [select_prem_tac n (rotate_tac 1) k, rotate_tac ~1, hyp_subst_tac ctxt,
       REPEAT_DETERM_N m o (dtac meta_spec THEN' rotate_tac ~1)] 1 THEN
     EVERY [REPEAT_DETERM_N r
         (rotate_tac ~1 1 THEN dtac meta_mp 1 THEN rotate_tac 1 1 THEN prefer_tac 2),
@@ -156,7 +156,7 @@ fun mk_induct_tac ctxt nn ns mss kkss ctr_defs ctor_induct' set_map's pre_set_de
   end;
 
 fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
-  hyp_subst_tac THEN'
+  hyp_subst_tac ctxt THEN'
   CONVERSION (hhf_concl_conv
     (Conv.top_conv (K (Conv.try_conv (Conv.rewr_conv ctr_def))) ctxt) ctxt) THEN'
   SELECT_GOAL (unfold_thms_tac ctxt (pre_rel_def :: dtor_ctor :: sels)) THEN'
@@ -164,17 +164,18 @@ fun mk_coinduct_same_ctr ctxt rel_eqs pre_rel_def dtor_ctor ctr_def discs sels =
   (atac ORELSE' REPEAT o etac conjE THEN'
      full_simp_tac
        (ss_only (@{thm prod.inject} :: no_refl discs @ rel_eqs @ more_simp_thms) ctxt) THEN_MAYBE'
-     REPEAT o hyp_subst_tac THEN' REPEAT o rtac conjI THEN' REPEAT o rtac refl);
+     REPEAT o hyp_subst_tac ctxt THEN' REPEAT o rtac conjI THEN' REPEAT o rtac refl);
 
 fun mk_coinduct_distinct_ctrs ctxt discs discs' =
-  hyp_subst_tac THEN' REPEAT o etac conjE THEN'
+  hyp_subst_tac ctxt THEN' REPEAT o etac conjE THEN'
   full_simp_tac (ss_only (refl :: no_refl (discs @ discs') @ basic_simp_thms) ctxt);
 
 fun mk_coinduct_discharge_prem_tac ctxt rel_eqs' nn kk n pre_rel_def dtor_ctor exhaust ctr_defs
     discss selss =
   let val ks = 1 upto n in
     EVERY' ([rtac allI, rtac allI, rtac impI, select_prem_tac nn (dtac meta_spec) kk, dtac
-        meta_spec, dtac meta_mp, atac, rtac exhaust, K (inst_as_projs_tac ctxt 1), hyp_subst_tac] @
+        meta_spec, dtac meta_mp, atac, rtac exhaust, K (inst_as_projs_tac ctxt 1),
+        hyp_subst_tac ctxt] @
       map4 (fn k => fn ctr_def => fn discs => fn sels =>
         EVERY' ([rtac exhaust, K (inst_as_projs_tac ctxt 2)] @
           map2 (fn k' => fn discs' =>

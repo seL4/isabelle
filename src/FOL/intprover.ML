@@ -16,19 +16,19 @@ The approach was developed independently by Roy Dyckhoff and L C Paulson.
 *)
 
 signature INT_PROVER = 
-  sig
-  val best_tac: int -> tactic
-  val best_dup_tac: int -> tactic
-  val fast_tac: int -> tactic
+sig
+  val best_tac: Proof.context -> int -> tactic
+  val best_dup_tac: Proof.context -> int -> tactic
+  val fast_tac: Proof.context -> int -> tactic
   val inst_step_tac: int -> tactic
-  val safe_step_tac: int -> tactic
+  val safe_step_tac: Proof.context -> int -> tactic
   val safe_brls: (bool * thm) list
-  val safe_tac: tactic
-  val step_tac: int -> tactic
-  val step_dup_tac: int -> tactic
+  val safe_tac: Proof.context -> tactic
+  val step_tac: Proof.context -> int -> tactic
+  val step_dup_tac: Proof.context -> int -> tactic
   val haz_brls: (bool * thm) list
   val haz_dup_brls: (bool * thm) list
-  end;
+end;
 
 
 structure IntPr : INT_PROVER   = 
@@ -62,14 +62,16 @@ val (safe0_brls, safep_brls) =
     List.partition (curry (op =) 0 o subgoals_of_brl) safe_brls;
 
 (*Attack subgoals using safe inferences -- matching, not resolution*)
-val safe_step_tac = FIRST' [eq_assume_tac,
-                            eq_mp_tac,
-                            bimatch_tac safe0_brls,
-                            hyp_subst_tac,
-                            bimatch_tac safep_brls] ;
+fun safe_step_tac ctxt =
+  FIRST' [
+    eq_assume_tac,
+    eq_mp_tac,
+    bimatch_tac safe0_brls,
+    hyp_subst_tac ctxt,
+    bimatch_tac safep_brls];
 
 (*Repeatedly attack subgoals using safe inferences -- it's deterministic!*)
-val safe_tac = REPEAT_DETERM_FIRST safe_step_tac;
+fun safe_tac ctxt = REPEAT_DETERM_FIRST (safe_step_tac ctxt);
 
 (*These steps could instantiate variables and are therefore unsafe.*)
 val inst_step_tac =
@@ -77,20 +79,20 @@ val inst_step_tac =
   biresolve_tac (safe0_brls @ safep_brls);
 
 (*One safe or unsafe step. *)
-fun step_tac i = FIRST [safe_tac, inst_step_tac i, biresolve_tac haz_brls i];
+fun step_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac i, biresolve_tac haz_brls i];
 
-fun step_dup_tac i = FIRST [safe_tac, inst_step_tac i, biresolve_tac haz_dup_brls i];
+fun step_dup_tac ctxt i = FIRST [safe_tac ctxt, inst_step_tac i, biresolve_tac haz_dup_brls i];
 
 (*Dumb but fast*)
-val fast_tac = SELECT_GOAL (DEPTH_SOLVE (step_tac 1));
+fun fast_tac ctxt = SELECT_GOAL (DEPTH_SOLVE (step_tac ctxt 1));
 
 (*Slower but smarter than fast_tac*)
-val best_tac = 
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac 1));
+fun best_tac ctxt =
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_tac ctxt 1));
 
 (*Uses all_dupE: allows multiple use of universal assumptions.  VERY slow.*)
-val best_dup_tac = 
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_dup_tac 1));
+fun best_dup_tac ctxt =
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, size_of_thm) (step_dup_tac ctxt 1));
 
 
 end;

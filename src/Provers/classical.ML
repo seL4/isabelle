@@ -25,8 +25,8 @@ sig
   val swap: thm  (* ~ P ==> (~ R ==> P) ==> R *)
   val classical: thm  (* (~ P ==> P) ==> P *)
   val sizef: thm -> int  (* size function for BEST_FIRST, typically size_of_thm *)
-  val hyp_subst_tacs: (int -> tactic) list (* optional tactics for substitution in
-    the hypotheses; assumed to be safe! *)
+  val hyp_subst_tacs: (Proof.context -> int -> tactic) list (* optional tactics for
+    substitution in the hypotheses; assumed to be safe! *)
 end;
 
 signature BASIC_CLASSICAL =
@@ -697,7 +697,7 @@ fun safe_step_tac ctxt =
        [eq_assume_tac,
         eq_mp_tac,
         bimatch_from_nets_tac safe0_netpair,
-        FIRST' Data.hyp_subst_tacs,
+        FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
         bimatch_from_nets_tac safep_netpair])
   end;
 
@@ -733,7 +733,7 @@ fun clarify_step_tac ctxt =
      (FIRST'
        [eq_assume_contr_tac,
         bimatch_from_nets_tac safe0_netpair,
-        FIRST' Data.hyp_subst_tacs,
+        FIRST' (map (fn tac => tac ctxt) Data.hyp_subst_tacs),
         n_bimatch_from_nets_tac 1 safep_netpair,
         bimatch2_tac safep_netpair])
   end;

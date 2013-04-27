@@ -10,7 +10,7 @@ signature BNF_LFP_TACTICS =
 sig
   val mk_alg_min_alg_tac: int -> thm -> thm list -> thm -> thm -> thm list list -> thm list ->
     thm list -> tactic
-  val mk_alg_not_empty_tac: thm -> thm list -> thm list -> tactic
+  val mk_alg_not_empty_tac: Proof.context -> thm -> thm list -> thm list -> tactic
   val mk_alg_select_tac: thm -> {prems: 'a, context: Proof.context} -> tactic
   val mk_alg_set_tac: thm -> tactic
   val mk_bd_card_order_tac: thm list -> tactic
@@ -18,13 +18,13 @@ sig
   val mk_card_of_min_alg_tac: thm -> thm -> thm -> thm -> thm -> tactic
   val mk_copy_alg_tac: thm list list -> thm list -> thm -> thm -> thm -> tactic
   val mk_copy_str_tac: thm list list -> thm -> thm list -> tactic
-  val mk_ctor_induct_tac: int -> thm list list -> thm -> thm list -> thm -> thm list -> thm list ->
-    thm list -> tactic
+  val mk_ctor_induct_tac: Proof.context -> int -> thm list list -> thm -> thm list -> thm ->
+    thm list -> thm list -> thm list -> tactic
   val mk_ctor_induct2_tac: ctyp option list -> cterm option list -> thm -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_ctor_set_tac: thm -> thm -> thm list -> tactic
-  val mk_ctor_srel_tac: thm list -> int -> thm -> thm -> thm -> thm -> thm list -> thm -> thm ->
-    thm list -> thm list -> thm list list -> tactic
+  val mk_ctor_srel_tac: Proof.context -> thm list -> int -> thm -> thm -> thm -> thm -> thm list ->
+    thm -> thm -> thm list -> thm list -> thm list list -> tactic
   val mk_dtor_o_ctor_tac: thm -> thm -> thm -> thm -> thm list -> tactic
   val mk_ex_copy_alg_tac: int -> thm -> thm -> tactic
   val mk_in_bd_tac: thm -> thm -> thm -> thm -> tactic
@@ -38,8 +38,8 @@ sig
   val mk_iso_alt_tac: thm list -> thm -> tactic
   val mk_fold_unique_mor_tac: thm list -> thm list -> thm list -> thm -> thm -> thm -> tactic
   val mk_least_min_alg_tac: thm -> thm -> tactic
-  val mk_lfp_map_wpull_tac: int -> (int -> tactic) -> thm list -> thm list -> thm list list ->
-    thm list list list -> thm list -> tactic
+  val mk_lfp_map_wpull_tac: Proof.context -> int -> (int -> tactic) -> thm list -> thm list ->
+    thm list list -> thm list list list -> thm list -> tactic
   val mk_map_comp_tac: thm list -> thm list -> thm -> int -> tactic
   val mk_map_id_tac: thm list -> thm -> tactic
   val mk_map_tac: int -> int -> thm -> thm -> thm -> tactic
@@ -49,7 +49,7 @@ sig
   val mk_min_algs_card_of_tac: ctyp -> cterm -> int -> thm -> thm list -> thm list -> thm -> thm ->
     thm -> thm -> thm -> thm -> thm -> thm -> tactic
   val mk_min_algs_least_tac: ctyp -> cterm -> thm -> thm list -> thm list -> tactic
-  val mk_min_algs_mono_tac: thm -> tactic
+  val mk_min_algs_mono_tac: Proof.context -> thm -> tactic
   val mk_min_algs_tac: thm -> thm list -> tactic
   val mk_mor_Abs_tac: thm -> thm list -> thm list -> tactic
   val mk_mor_Rep_tac: thm list -> thm -> thm list -> thm list -> thm list ->
@@ -73,7 +73,7 @@ sig
     thm list -> int -> {prems: 'a, context: Proof.context} -> tactic
   val mk_set_map_tac: thm -> tactic
   val mk_set_tac: thm -> tactic
-  val mk_wit_tac: int -> thm list -> thm list -> tactic
+  val mk_wit_tac: Proof.context -> int -> thm list -> thm list -> tactic
   val mk_wpull_tac: thm -> tactic
 end;
 
@@ -95,13 +95,13 @@ fun mk_alg_set_tac alg_def =
   EVERY' [etac bspec, rtac CollectI] 1 THEN
   REPEAT_DETERM (etac conjI 1) THEN atac 1;
 
-fun mk_alg_not_empty_tac alg_set alg_sets wits =
-  (EVERY' [rtac notI, hyp_subst_tac, ftac alg_set] THEN'
+fun mk_alg_not_empty_tac ctxt alg_set alg_sets wits =
+  (EVERY' [rtac notI, hyp_subst_tac ctxt, ftac alg_set] THEN'
   REPEAT_DETERM o FIRST'
     [rtac subset_UNIV,
     EVERY' [rtac @{thm subset_emptyI}, eresolve_tac wits],
     EVERY' [rtac subsetI, rtac FalseE, eresolve_tac wits],
-    EVERY' [rtac subsetI, dresolve_tac wits, hyp_subst_tac,
+    EVERY' [rtac subsetI, dresolve_tac wits, hyp_subst_tac ctxt,
       FIRST' (map (fn thm => rtac thm THEN' atac) alg_sets)]] THEN'
   etac @{thm emptyE}) 1;
 
@@ -280,10 +280,10 @@ fun mk_min_algs_tac worel in_congs =
     CONJ_WRAP_GEN' (EVERY' [rtac Pair_eqI, rtac conjI]) minH_tac in_congs) 1
   end;
 
-fun mk_min_algs_mono_tac min_algs = EVERY' [stac @{thm relChain_def}, rtac allI, rtac allI,
+fun mk_min_algs_mono_tac ctxt min_algs = EVERY' [stac @{thm relChain_def}, rtac allI, rtac allI,
   rtac impI, rtac @{thm case_split}, rtac @{thm xt1(3)}, rtac min_algs, etac @{thm FieldI2},
   rtac subsetI, rtac UnI1, rtac @{thm UN_I}, etac @{thm underS_I}, atac, atac,
-  rtac equalityD1, dtac @{thm notnotD}, hyp_subst_tac, rtac refl] 1;
+  rtac equalityD1, dtac @{thm notnotD}, hyp_subst_tac ctxt, rtac refl] 1;
 
 fun mk_min_algs_card_of_tac cT ct m worel min_algs in_bds bd_Card_order bd_Cnotzero
   suc_Card_order suc_Cinfinite suc_Cnotzero suc_Asuc Asuc_Cinfinite Asuc_Cnotzero =
@@ -384,7 +384,7 @@ fun mk_least_min_alg_tac min_alg_def least =
     REPEAT_DETERM o etac conjE, atac] 1;
 
 fun mk_alg_select_tac Abs_inverse {context = ctxt, prems = _} =
-  EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac] 1 THEN
+  EVERY' [rtac ballI, REPEAT_DETERM o eresolve_tac [CollectE, exE, conjE], hyp_subst_tac ctxt] 1 THEN
   unfold_thms_tac ctxt (Abs_inverse :: fst_snd_convs) THEN atac 1;
 
 fun mk_mor_select_tac mor_def mor_cong mor_comp mor_incl_min_alg alg_def alg_select
@@ -531,7 +531,7 @@ fun mk_rec_unique_mor_tac rec_defs fst_recs fold_unique_mor {context = ctxt, pre
     (rec_defs @ map (fn thm => thm RS @{thm convol_expand_snd'}) fst_recs) THEN
   etac fold_unique_mor 1;
 
-fun mk_ctor_induct_tac m set_map'ss init_induct morEs mor_Abs Rep_invs Abs_invs Reps =
+fun mk_ctor_induct_tac ctxt m set_map'ss init_induct morEs mor_Abs Rep_invs Abs_invs Reps =
   let
     val n = length set_map'ss;
     val ks = 1 upto n;
@@ -539,7 +539,7 @@ fun mk_ctor_induct_tac m set_map'ss init_induct morEs mor_Abs Rep_invs Abs_invs 
     fun mk_IH_tac Rep_inv Abs_inv set_map' =
       DETERM o EVERY' [dtac meta_mp, rtac (Rep_inv RS arg_cong RS subst), etac bspec,
         dtac set_rev_mp, rtac equalityD1, rtac set_map', etac imageE,
-        hyp_subst_tac, rtac (Abs_inv RS ssubst), etac set_mp, atac, atac];
+        hyp_subst_tac ctxt, rtac (Abs_inv RS ssubst), etac set_mp, atac, atac];
 
     fun mk_closed_tac (k, (morE, set_map's)) =
       EVERY' [select_prem_tac n (dtac asm_rl) k, rtac ballI, rtac impI,
@@ -680,7 +680,7 @@ fun mk_incl_min_alg_tac induct_tac set_setsss alg_sets alg_min_alg {context = ct
     (induct_tac THEN' EVERY' (map2 mk_incl alg_sets set_setsss)) 1
   end;
 
-fun mk_lfp_map_wpull_tac m induct_tac wpulls ctor_maps ctor_setss set_setsss ctor_injects =
+fun mk_lfp_map_wpull_tac ctxt m induct_tac wpulls ctor_maps ctor_setss set_setsss ctor_injects =
   let
     val n = length wpulls;
     val ks = 1 upto n;
@@ -718,7 +718,7 @@ fun mk_lfp_map_wpull_tac m induct_tac wpulls ctor_maps ctor_setss set_setsss cto
           CONJ_WRAP' (K (rtac subset_refl)) ks,
         rtac subst, rtac ctor_inject, rtac trans, rtac sym, rtac ctor_map,
         rtac trans, atac, rtac ctor_map, REPEAT_DETERM o eresolve_tac [CollectE, conjE, bexE],
-        hyp_subst_tac, rtac bexI, rtac conjI, rtac ctor_map, rtac ctor_map, rtac CollectI,
+        hyp_subst_tac ctxt, rtac bexI, rtac conjI, rtac ctor_map, rtac ctor_map, rtac CollectI,
         CONJ_WRAP' mk_subset ctor_sets];
   in
     (induct_tac THEN' EVERY' (map5 mk_wpull wpulls ctor_maps ctor_setss set_setsss ctor_injects)) 1
@@ -763,7 +763,7 @@ fun mk_wpull_tac wpull =
   EVERY' [rtac ssubst, rtac @{thm wpull_def}, rtac allI, rtac allI,
     rtac wpull, REPEAT_DETERM o atac] 1;
 
-fun mk_wit_tac n ctor_set wit =
+fun mk_wit_tac ctxt n ctor_set wit =
   REPEAT_DETERM (atac 1 ORELSE
     EVERY' [dtac set_rev_mp, rtac equalityD1, resolve_tac ctor_set,
     REPEAT_DETERM o
@@ -771,10 +771,10 @@ fun mk_wit_tac n ctor_set wit =
         (eresolve_tac wit ORELSE'
         (dresolve_tac wit THEN'
           (etac FalseE ORELSE'
-          EVERY' [hyp_subst_tac, dtac set_rev_mp, rtac equalityD1, resolve_tac ctor_set,
+          EVERY' [hyp_subst_tac ctxt, dtac set_rev_mp, rtac equalityD1, resolve_tac ctor_set,
             REPEAT_DETERM_N n o etac UnE]))))] 1);
 
-fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_sets ctor_inject
+fun mk_ctor_srel_tac ctxt in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_sets ctor_inject
   ctor_dtor set_maps ctor_set_incls ctor_set_set_inclss =
   let
     val m = length ctor_set_incls;
@@ -821,7 +821,7 @@ fun mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_sets c
                 dtac @{thm ssubst_mem[OF pair_collapse]}, dtac (in_Isrel RS iffD1),
                 dtac @{thm someI_ex}, REPEAT_DETERM o etac conjE,
                 dtac (Thm.permute_prems 0 1 @{thm ssubst_mem}), atac,
-                hyp_subst_tac, REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
+                hyp_subst_tac ctxt, REPEAT_DETERM o eresolve_tac [CollectE, conjE], atac])
             (rev (active_set_maps ~~ in_Isrels))])
         (ctor_sets ~~ passive_set_maps),
         rtac conjI,

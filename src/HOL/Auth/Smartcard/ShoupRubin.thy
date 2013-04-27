@@ -751,11 +751,11 @@ fun parts_prepare_tac ctxt =
  (*Oops2*) dresolve_tac [@{thm Outpts_A_Card_form_10}] 27 THEN                
  (*Base*)  (force_tac ctxt) 1
 
-val analz_prepare_tac = 
+fun analz_prepare_tac ctxt =
          prepare_tac THEN
          dtac @{thm Gets_imp_knows_Spy_analz_Snd} 18 THEN 
  (*SR9*) dtac @{thm Gets_imp_knows_Spy_analz_Snd} 19 THEN 
-         REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac)
+         REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
 
 end
 *}
@@ -769,7 +769,7 @@ method_setup parts_prepare = {*
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Scan.succeed (K (SIMPLE_METHOD ShoupRubin.analz_prepare_tac)) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.analz_prepare_tac ctxt)) *}
   "additional facts to reason about analz"
 
 

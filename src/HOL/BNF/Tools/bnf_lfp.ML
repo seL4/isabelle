@@ -294,7 +294,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
       in
         map2 (fn goal => fn alg_set =>
           Goal.prove_sorry lthy [] []
-            goal (K (mk_alg_not_empty_tac alg_set alg_set_thms wit_thms))
+            goal (K (mk_alg_not_empty_tac lthy alg_set alg_set_thms wit_thms))
           |> Thm.close_derivation)
         goals alg_set_thms
       end;
@@ -420,7 +420,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
         Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (Bs @ ss @ B's @ s's @ fs @ fs_copy)
              (Logic.list_implies (prems, concl)))
-          (K ((hyp_subst_tac THEN' atac) 1))
+          (K ((hyp_subst_tac lthy THEN' atac) 1))
         |> Thm.close_derivation
       end;
 
@@ -654,7 +654,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
 
         val monos =
           map2 (fn goal => fn min_algs =>
-            Goal.prove_sorry lthy [] [] goal (K (mk_min_algs_mono_tac min_algs))
+            Goal.prove_sorry lthy [] [] goal (K (mk_min_algs_mono_tac lthy min_algs))
             |> Thm.close_derivation)
           (map mk_mono_goal min_algss) min_algs_thms;
 
@@ -1315,7 +1315,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
       in
         (Goal.prove_sorry lthy [] []
           (fold_rev Logic.all (phis @ Izs) goal)
-          (K (mk_ctor_induct_tac m set_map'ss init_induct_thm morE_thms mor_Abs_thm
+          (K (mk_ctor_induct_tac lthy m set_map'ss init_induct_thm morE_thms mor_Abs_thm
             Rep_inverses Abs_inverses Reps))
         |> Thm.close_derivation,
         rev (Term.add_tfrees goal []))
@@ -1677,7 +1677,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
 
             val thm = singleton (Proof_Context.export names_lthy lthy)
               (Goal.prove_sorry lthy [] [] goal
-              (K (mk_lfp_map_wpull_tac m (rtac induct) map_wpulls ctor_map_thms
+              (K (mk_lfp_map_wpull_tac lthy m (rtac induct) map_wpulls ctor_map_thms
                 (transpose ctor_set_thmss) Fset_set_thmsss ctor_inject_thms)))
               |> Thm.close_derivation;
           in
@@ -1728,13 +1728,14 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
               ctors (0 upto n - 1) witss
           end;
 
-        fun wit_tac _ = mk_wit_tac n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
+        fun wit_tac ctxt _ = mk_wit_tac ctxt n (flat ctor_set_thmss) (maps wit_thms_of_bnf bnfs);
 
         val (Ibnfs, lthy) =
           fold_map9 (fn tacs => fn b => fn map_b => fn rel_b => fn set_bs => fn mapx => fn sets =>
               fn T => fn wits => fn lthy =>
-            bnf_def Dont_Inline (user_policy Note_Some) I tacs wit_tac (SOME deads) map_b rel_b
-              set_bs (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE)
+            bnf_def Dont_Inline (user_policy Note_Some) I tacs (wit_tac lthy) (SOME deads)
+              map_b rel_b set_bs
+              (((((b, fold_rev Term.absfree fs' mapx), sets), absdummy T bd), wits), NONE)
               lthy
             |> register_bnf (Local_Theory.full_name lthy b))
           tacss bs map_bs rel_bs set_bss fs_maps setss_by_bnf Ts ctor_witss lthy;
@@ -1780,7 +1781,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
               fn ctor_map => fn ctor_sets => fn ctor_inject => fn ctor_dtor =>
               fn set_maps => fn ctor_set_incls => fn ctor_set_set_inclss =>
               Goal.prove_sorry lthy [] [] goal
-               (K (mk_ctor_srel_tac in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_sets
+               (K (mk_ctor_srel_tac lthy in_Isrels i in_srel map_comp map_cong0 ctor_map ctor_sets
                  ctor_inject ctor_dtor set_maps ctor_set_incls ctor_set_set_inclss))
               |> Thm.close_derivation)
             ks goals in_srels map_comp's map_cong0s folded_ctor_map_thms folded_ctor_set_thmss'

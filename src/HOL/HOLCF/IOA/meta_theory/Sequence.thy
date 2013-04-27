@@ -1082,7 +1082,7 @@ ML {*
 
 fun Seq_case_tac ctxt s i =
   res_inst_tac ctxt [(("x", 0), s)] @{thm Seq_cases} i
-  THEN hyp_subst_tac i THEN hyp_subst_tac (i+1) THEN hyp_subst_tac (i+2);
+  THEN hyp_subst_tac ctxt i THEN hyp_subst_tac ctxt (i+1) THEN hyp_subst_tac ctxt (i+2);
 
 (* on a>>s only simp_tac, as full_simp_tac is uncomplete and often causes errors *)
 fun Seq_case_simp_tac ctxt s i =
@@ -1103,7 +1103,7 @@ fun Seq_Finite_induct_tac ctxt i =
 
 fun pair_tac ctxt s =
   res_inst_tac ctxt [(("p", 0), s)] @{thm PairE}
-  THEN' hyp_subst_tac THEN' asm_full_simp_tac ctxt;
+  THEN' hyp_subst_tac ctxt THEN' asm_full_simp_tac ctxt;
 
 (* induction on a sequence of pairs with pairsplitting and simplification *)
 fun pair_induct_tac ctxt s rws i =

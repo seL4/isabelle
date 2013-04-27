@@ -221,7 +221,7 @@ fun mk_comp_wit_tac ctxt Gwit_thms collect_set_map Fwit_thms =
     REPEAT_DETERM (eresolve_tac @{thms UnionE UnE imageE} 1) THEN
     (TRY o dresolve_tac Gwit_thms THEN'
     (etac FalseE ORELSE'
-    hyp_subst_tac THEN'
+    hyp_subst_tac ctxt THEN'
     dresolve_tac Fwit_thms THEN'
     (etac FalseE ORELSE' atac))) 1);
 

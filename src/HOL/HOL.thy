@@ -849,15 +849,15 @@ setup {*
 let
   fun non_bool_eq (@{const_name HOL.eq}, Type (_, [T, _])) = T <> @{typ bool}
     | non_bool_eq _ = false;
-  val hyp_subst_tac' =
+  fun hyp_subst_tac' ctxt =
     SUBGOAL (fn (goal, i) =>
       if Term.exists_Const non_bool_eq goal
-      then Hypsubst.hyp_subst_tac i
+      then Hypsubst.hyp_subst_tac ctxt i
       else no_tac);
 in
   Hypsubst.hypsubst_setup
   (*prevent substitution on bool*)
-  #> Context_Rules.addSWrapper (fn tac => hyp_subst_tac' ORELSE' tac)
+  #> Context_Rules.addSWrapper (fn ctxt => fn tac => hyp_subst_tac' ctxt ORELSE' tac)
 end
 *}
 

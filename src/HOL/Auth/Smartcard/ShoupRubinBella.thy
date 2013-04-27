@@ -764,7 +764,7 @@ fun analz_prepare_tac ctxt =
          prepare_tac ctxt THEN
          dtac (@{thm Gets_imp_knows_Spy_analz_Snd}) 18 THEN 
  (*SR_U9*) dtac (@{thm Gets_imp_knows_Spy_analz_Snd}) 19 THEN 
-         REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac)
+         REPEAT_FIRST (eresolve_tac [asm_rl, conjE] ORELSE' hyp_subst_tac ctxt)
 
 end
 *}

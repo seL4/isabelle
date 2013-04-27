@@ -150,7 +150,7 @@ proof (rule ex1E)
   proof (rule r)
     { fix y y'
       assume "P(y)" and "P(y')"
-      with * have "x = y" and "x = y'" by - (tactic "IntPr.fast_tac 1")+
+      with * have "x = y" and "x = y'" by - (tactic "IntPr.fast_tac @{context} 1")+
       then have "y = y'" by (rule subst)
     } note r' = this
     show "\<forall>y y'. P(y) \<and> P(y') \<longrightarrow> y = y'" by (intro strip, elim conjE) (rule r')

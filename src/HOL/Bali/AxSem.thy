@@ -693,7 +693,7 @@ apply (erule ax_derivs.induct)
 apply       (tactic "ALLGOALS strip_tac")
 apply       (tactic {* ALLGOALS(REPEAT o (EVERY'[dtac @{thm subset_singletonD},
          etac disjE, fast_tac (@{context} addSIs @{thms ax_derivs.empty})]))*})
-apply       (tactic "TRYALL hyp_subst_tac")
+apply       (tactic "TRYALL (hyp_subst_tac @{context})")
 apply       (simp, rule ax_derivs.empty)
 apply      (drule subset_insertD)
 apply      (blast intro: ax_derivs.insert)

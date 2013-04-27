@@ -36,7 +36,7 @@ apply assumption
 done
 
 lemma "(EX y. ALL x. Q(x,y)) -->  (ALL x. EX y. Q(x,y))"
-by (tactic {*IntPr.fast_tac 1*})
+by (tactic {*IntPr.fast_tac @{context} 1*})
 
 text{*Example of Dyckhoff's method*}
 lemma "~ ~ ((P-->Q) | (Q-->P))"

@@ -201,7 +201,7 @@ apply( simp_all)
 apply( tactic "ALLGOALS (REPEAT o resolve_tac [impI, allI])")
 apply( tactic {* ALLGOALS (eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}]
   THEN_ALL_NEW (full_simp_tac (put_simpset (simpset_of @{theory_context Conform}) @{context}))) *})
-apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac])")
+apply(tactic "ALLGOALS (EVERY' [REPEAT o (etac conjE), REPEAT o hyp_subst_tac @{context}])")
 
 -- "Level 7"
 -- "15 NewC"
@@ -240,7 +240,7 @@ apply( fast elim: conforms_localD [THEN lconfD])
 
 -- "for FAss"
 apply( tactic {* EVERY'[eresolve_tac [@{thm ty_expr.cases}, @{thm ty_exprs.cases}, @{thm wt_stmt.cases}] 
-       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (etac conjE), hyp_subst_tac] 3*})
+       THEN_ALL_NEW (full_simp_tac @{context}), REPEAT o (etac conjE), hyp_subst_tac @{context}] 3*})
 
 -- "for if"
 apply( tactic {* (Induct_Tacs.case_tac @{context} "the_Bool v" THEN_ALL_NEW

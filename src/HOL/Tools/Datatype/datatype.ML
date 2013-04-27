@@ -418,13 +418,13 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
         val inj_thm =
           Goal.prove_sorry_global thy5 [] []
             (HOLogic.mk_Trueprop (Datatype_Aux.mk_conj ind_concl1))
-            (fn _ => EVERY
+            (fn {context = ctxt, ...} => EVERY
               [(Datatype_Aux.ind_tac induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
                REPEAT (EVERY
                  [rtac allI 1, rtac impI 1,
                   Datatype_Aux.exh_tac (exh_thm_of dt_info) 1,
                   REPEAT (EVERY
-                    [hyp_subst_tac 1,
+                    [hyp_subst_tac ctxt 1,
                      rewrite_goals_tac rewrites,
                      REPEAT (dresolve_tac [In0_inject, In1_inject] 1),
                      (eresolve_tac [In0_not_In1 RS notE, In1_not_In0 RS notE] 1)
@@ -480,7 +480,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
       if length descr = 1 then []
       else
         drop (length newTs) (Datatype_Aux.split_conj_thm
-          (Goal.prove_sorry_global thy5 [] [] iso_t (fn _ => EVERY
+          (Goal.prove_sorry_global thy5 [] [] iso_t (fn {context = ctxt, ...} => EVERY
              [(Datatype_Aux.ind_tac rep_induct [] THEN_ALL_NEW Object_Logic.atomize_prems_tac) 1,
               REPEAT (rtac TrueI 1),
               rewrite_goals_tac (mk_meta_eq @{thm choice_eq} ::
@@ -489,7 +489,7 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
               REPEAT (EVERY
                 [REPEAT (eresolve_tac ([rangeE, ex1_implies_ex RS exE] @
                    maps (mk_funs_inv thy5 o #1) newT_iso_axms) 1),
-                 TRY (hyp_subst_tac 1),
+                 TRY (hyp_subst_tac ctxt 1),
                  rtac (sym RS range_eqI) 1,
                  resolve_tac iso_char_thms 1])])));
 
@@ -556,9 +556,9 @@ fun representation_proofs (config : Datatype_Aux.config) (dt_info : Datatype_Aux
                Lim_inject, Suml_inject, Sumr_inject])
       in
         Goal.prove_sorry_global thy5 [] [] t
-          (fn _ => EVERY
+          (fn {context = ctxt, ...} => EVERY
             [rtac iffI 1,
-             REPEAT (etac conjE 2), hyp_subst_tac 2, rtac refl 2,
+             REPEAT (etac conjE 2), hyp_subst_tac ctxt 2, rtac refl 2,
              dresolve_tac rep_congs 1, dtac box_equals 1,
              REPEAT (resolve_tac rep_thms 1),
              REPEAT (eresolve_tac inj_thms 1),

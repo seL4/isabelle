@@ -504,7 +504,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
                   val half_goalss = map mk_goal half_pairss;
                   val half_thmss =
                     map3 (fn [] => K (K []) | [goal] => fn [(((m, discD), _), _)] =>
-                        fn disc_thm => [prove (mk_half_disc_exclude_tac m discD disc_thm) goal])
+                        fn disc_thm => [prove (mk_half_disc_exclude_tac lthy m discD disc_thm) goal])
                       half_goalss half_pairss (flat disc_thmss');
 
                   val other_half_goalss = map (mk_goal o map swap) half_pairss;

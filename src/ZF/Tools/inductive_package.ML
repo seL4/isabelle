@@ -231,7 +231,7 @@ let
      REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
                         ORELSE' eresolve_tac (asm_rl :: @{thm PartE} :: @{thm SigmaE2} ::
                                               type_elims)
-                        ORELSE' hyp_subst_tac)),
+                        ORELSE' hyp_subst_tac ctxt1)),
      if !Ind_Syntax.trace then print_tac "The subgoal after monos, type_elims:"
      else all_tac,
      DEPTH_SOLVE (swap_res_tac (@{thm SigmaI} :: @{thm subsetI} :: type_intrs) 1)];
@@ -254,7 +254,7 @@ let
   (*Breaks down logical connectives in the monotonic function*)
   val basic_elim_tac =
       REPEAT (SOMEGOAL (eresolve_tac (Ind_Syntax.elim_rls @ Su.free_SEs)
-                ORELSE' bound_hyp_subst_tac))
+                ORELSE' bound_hyp_subst_tac ctxt1))
       THEN prune_params_tac
           (*Mutual recursion: collapse references to Part(D,h)*)
       THEN (PRIMITIVE (fold_rule part_rec_defs));
@@ -348,7 +348,7 @@ let
             (*Now break down the individual cases.  No disjE here in case
               some premise involves disjunction.*)
             REPEAT (FIRSTGOAL (eresolve_tac [@{thm CollectE}, @{thm exE}, @{thm conjE}]
-                               ORELSE' bound_hyp_subst_tac)),
+                               ORELSE' (bound_hyp_subst_tac ctxt1))),
             ind_tac (rev (map (rewrite_rule part_rec_defs) prems)) (length prems)]);
 
      val dummy =

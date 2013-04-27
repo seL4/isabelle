@@ -14,8 +14,8 @@ sig
   val find_rules_netpair: bool -> thm list -> term -> netpair -> thm list
   val find_rules: bool -> thm list -> term -> Proof.context -> thm list list
   val print_rules: Proof.context -> unit
-  val addSWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
-  val addWrapper: ((int -> tactic) -> int -> tactic) -> theory -> theory
+  val addSWrapper: (Proof.context -> (int -> tactic) -> int -> tactic) -> theory -> theory
+  val addWrapper: (Proof.context -> (int -> tactic) -> int -> tactic) -> theory -> theory
   val Swrap: Proof.context -> (int -> tactic) -> int -> tactic
   val wrap: Proof.context -> (int -> tactic) -> int -> tactic
   val intro_bang: int option -> attribute
@@ -68,8 +68,9 @@ datatype rules = Rules of
  {next: int,
   rules: (int * ((int * bool) * thm)) list,
   netpairs: netpair list,
-  wrappers: (((int -> tactic) -> int -> tactic) * stamp) list *
-    (((int -> tactic) -> int -> tactic) * stamp) list};
+  wrappers:
+    ((Proof.context -> (int -> tactic) -> int -> tactic) * stamp) list *
+    ((Proof.context -> (int -> tactic) -> int -> tactic) * stamp) list};
 
 fun make_rules next rules netpairs wrappers =
   Rules {next = next, rules = rules, netpairs = netpairs, wrappers = wrappers};
@@ -170,7 +171,7 @@ val addWrapper = gen_add_wrapper Library.apsnd;
 
 fun gen_wrap which ctxt =
   let val Rules {wrappers, ...} = Rules.get (Context.Proof ctxt)
-  in fold_rev fst (which wrappers) end;
+  in fold_rev (fn (w, _) => w ctxt) (which wrappers) end;
 
 val Swrap = gen_wrap #1;
 val wrap = gen_wrap #2;

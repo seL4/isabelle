@@ -971,7 +971,8 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
                 (Logic.list_implies (prems_cong,
                   mk_Trueprop_eq (mk_in As bnf_sets_As CA', mk_in As_copy bnf_sets_As CA')));
           in
-            Goal.prove_sorry lthy [] [] in_cong_goal (K ((TRY o hyp_subst_tac THEN' rtac refl) 1))
+            Goal.prove_sorry lthy [] [] in_cong_goal
+              (K ((TRY o hyp_subst_tac lthy THEN' rtac refl) 1))
             |> Thm.close_derivation
           end;
 
@@ -989,7 +990,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
             val goal = fold_rev Logic.all (x :: x_copy :: fs @ fs_copy)
               (Logic.list_implies (prem0 :: prems, eq));
           in
-            Goal.prove_sorry lthy [] [] goal (fn _ => mk_map_cong_tac (#map_cong0 axioms))
+            Goal.prove_sorry lthy [] [] goal (fn _ => mk_map_cong_tac lthy (#map_cong0 axioms))
             |> Thm.close_derivation
           end;
 
@@ -1073,7 +1074,7 @@ fun prepare_def const_policy mk_fact_policy qualify prep_term Ds_opt map_b rel_b
           in
             Goal.prove_sorry lthy [] []
               (fold_rev Logic.all (Rs @ Rs_copy) (Logic.list_implies (cong_prems, cong_concl)))
-              (fn _ => (TRY o hyp_subst_tac THEN' rtac refl) 1)
+              (fn _ => (TRY o hyp_subst_tac lthy THEN' rtac refl) 1)
             |> Thm.close_derivation
           end;
 

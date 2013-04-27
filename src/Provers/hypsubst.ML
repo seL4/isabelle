@@ -46,9 +46,8 @@ end;
 
 signature HYPSUBST =
 sig
-  val bound_hyp_subst_tac    : int -> tactic
-  val hyp_subst_tac          : int -> tactic
-  val hyp_subst_tac'         : Proof.context -> int -> tactic
+  val bound_hyp_subst_tac    : Proof.context -> int -> tactic
+  val hyp_subst_tac          : Proof.context -> int -> tactic
   val blast_hyp_subst_tac    : bool -> int -> tactic
   val stac                   : thm -> int -> tactic
   val hypsubst_setup         : theory -> theory
@@ -127,14 +126,10 @@ in
 
   (*Select a suitable equality assumption; substitute throughout the subgoal
     If bnd is true, then it replaces Bound variables only. *)
-  fun gen_hyp_subst_tac opt_ctxt bnd =
+  fun gen_hyp_subst_tac ctxt bnd =
     let fun tac i st = SUBGOAL (fn (Bi, _) =>
       let
         val (k, _) = eq_var bnd true Bi
-        val ctxt =
-          (case opt_ctxt of
-            NONE => Proof_Context.init_global (Thm.theory_of_thm st)
-          | SOME ctxt => ctxt)
         val hyp_subst_ctxt = empty_simpset ctxt |> Simplifier.set_mksimps (K (mk_eqs bnd))
       in EVERY [rotate_tac k i, asm_lr_simp_tac hyp_subst_ctxt i,
         etac thin_rl i, rotate_tac (~k) i]
@@ -198,15 +193,13 @@ fun vars_gen_hyp_subst_tac bnd = SUBGOAL(fn (Bi,i) =>
       handle THM _ => no_tac | EQ_VAR => no_tac);
 
 (*Substitutes for Free or Bound variables*)
-val hyp_subst_tac = FIRST' [ematch_tac [Data.thin_refl],
-        gen_hyp_subst_tac NONE false, vars_gen_hyp_subst_tac false];
-
-fun hyp_subst_tac' ctxt = FIRST' [ematch_tac [Data.thin_refl],
-        gen_hyp_subst_tac (SOME ctxt) false, vars_gen_hyp_subst_tac false];
+fun hyp_subst_tac ctxt =
+  FIRST' [ematch_tac [Data.thin_refl],
+    gen_hyp_subst_tac ctxt false, vars_gen_hyp_subst_tac false];
 
 (*Substitutes for Bound variables only -- this is always safe*)
-val bound_hyp_subst_tac =
-    gen_hyp_subst_tac NONE true ORELSE' vars_gen_hyp_subst_tac true;
+fun bound_hyp_subst_tac ctxt =
+  gen_hyp_subst_tac ctxt true ORELSE' vars_gen_hyp_subst_tac true;
 
 
 (** Version for Blast_tac.  Hyps that are affected by the substitution are
@@ -271,7 +264,7 @@ fun stac th =
 
 val hypsubst_setup =
   Method.setup @{binding hypsubst}
-    (Scan.succeed (K (SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac))))
+    (Scan.succeed (fn ctxt => SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac ctxt)))
     "substitution using an assumption (improper)" #>
   Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
     "simple substitution";

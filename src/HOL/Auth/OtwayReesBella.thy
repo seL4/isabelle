@@ -258,9 +258,9 @@ method_setup analz_freshCryptK = {*
 
 method_setup disentangle = {*
     Scan.succeed
-     (K (SIMPLE_METHOD
+     (fn ctxt => SIMPLE_METHOD
       (REPEAT_FIRST (eresolve_tac [asm_rl, conjE, disjE] 
-                   ORELSE' hyp_subst_tac)))) *}
+                   ORELSE' hyp_subst_tac ctxt))) *}
   "for eliminating conjunctions, disjunctions and the like"
 
 

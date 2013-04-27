@@ -317,7 +317,7 @@ val collectE' = @{lemma "a \<notin> {x. P x} ==> (\<not> P a ==> Q) ==> Q" by au
 fun elim_Collect_tac ctxt = dtac @{thm iffD1[OF mem_Collect_eq]}
   THEN' (REPEAT_DETERM o (eresolve_tac @{thms exE}))
   THEN' REPEAT_DETERM o etac @{thm conjE}
-  THEN' TRY o hyp_subst_tac' ctxt;
+  THEN' TRY o hyp_subst_tac ctxt;
 
 fun intro_image_tac ctxt = rtac @{thm image_eqI}
     THEN' (REPEAT_DETERM1 o
@@ -332,7 +332,7 @@ fun elim_image_tac ctxt = etac @{thm imageE}
   THEN' REPEAT_DETERM o CHANGED o
     (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.cases})
     THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-    THEN' TRY o hyp_subst_tac' ctxt)
+    THEN' TRY o hyp_subst_tac ctxt)
 
 fun tac1_of_formula ctxt (Int (fm1, fm2)) =
     TRY o etac @{thm conjE}
@@ -376,16 +376,16 @@ fun tac2_of_formula ctxt (Int (fm1, fm2)) =
        ORELSE' etac @{thm conjE}
        ORELSE' ((etac @{thm CollectE} ORELSE' etac collectE') THEN'
          TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}]) THEN'
-         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac' ctxt THEN' TRY o rtac @{thm refl})
+         REPEAT_DETERM o etac @{thm Pair_inject} THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl})
        ORELSE' (etac @{thm imageE}
          THEN' (REPEAT_DETERM o CHANGED o
          (TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps @{thms split_paired_all prod.cases})
          THEN' REPEAT_DETERM o etac @{thm Pair_inject}
-         THEN' TRY o hyp_subst_tac' ctxt THEN' TRY o rtac @{thm refl})))
+         THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl})))
        ORELSE' etac @{thm ComplE}
        ORELSE' ((etac @{thm vimageE} ORELSE' etac vimageE')
         THEN' TRY o full_simp_tac (put_simpset HOL_basic_ss ctxt addsimps [@{thm prod.cases}])
-        THEN' TRY o hyp_subst_tac' ctxt THEN' TRY o rtac @{thm refl}))
+        THEN' TRY o hyp_subst_tac ctxt THEN' TRY o rtac @{thm refl}))
 
 fun tac ctxt fm =
   let
@@ -398,7 +398,7 @@ fun tac ctxt fm =
       THEN' rtac @{thm iffD2[OF mem_Collect_eq]}
       THEN' REPEAT_DETERM o resolve_tac @{thms exI}
       THEN' (TRY o REPEAT_ALL_NEW (rtac @{thm conjI}))
-      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac' ctxt) THEN' rtac @{thm refl}))))
+      THEN' (K (TRY (FIRSTGOAL ((TRY o hyp_subst_tac ctxt) THEN' rtac @{thm refl}))))
       THEN' (fn i => EVERY (rev (map_index (fn (j, f) =>
         REPEAT_DETERM (etac @{thm IntE} (i + j)) THEN tac2_of_formula ctxt f (i + j)) (strip_Int fm))))
   in

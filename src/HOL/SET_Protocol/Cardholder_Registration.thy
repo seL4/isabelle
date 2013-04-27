@@ -536,11 +536,11 @@ lemma Key_analz_image_Key_lemma:
 by (blast intro: analz_mono [THEN [2] rev_subsetD])
 
 method_setup valid_certificate_tac = {*
-  Args.goal_spec >> (fn quant => K (SIMPLE_METHOD'' quant
+  Args.goal_spec >> (fn quant => fn ctxt => SIMPLE_METHOD'' quant
     (fn i =>
       EVERY [ftac @{thm Gets_certificate_valid} i,
              assume_tac i,
-             etac conjE i, REPEAT (hyp_subst_tac i)])))
+             etac conjE i, REPEAT (hyp_subst_tac ctxt i)]))
 *}
 
 text{*The @{text "(no_asm)"} attribute is essential, since it retains

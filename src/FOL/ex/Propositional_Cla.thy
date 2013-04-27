@@ -12,7 +12,7 @@ begin
 text {* commutative laws of @{text "&"} and @{text "|"} *}
 
 lemma "P & Q  -->  Q & P"
-  by (tactic "IntPr.fast_tac 1")
+  by (tactic "IntPr.fast_tac @{context} 1")
 
 lemma "P | Q  -->  Q | P"
   by fast

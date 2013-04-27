@@ -179,9 +179,9 @@ fun prove_primrec_thms (config : Datatype_Aux.config) new_type_names descr
                 etac elim 1,
                 REPEAT_DETERM_N j distinct_tac,
                 TRY (dresolve_tac inject 1),
-                REPEAT (etac conjE 1), hyp_subst_tac 1,
+                REPEAT (etac conjE 1), hyp_subst_tac ctxt 1,
                 REPEAT (EVERY [etac allE 1, dtac mp 1, atac 1]),
-                TRY (hyp_subst_tac 1),
+                TRY (hyp_subst_tac ctxt 1),
                 rtac refl 1,
                 REPEAT_DETERM_N (n - j - 1) distinct_tac],
               intrs, j + 1)
@@ -403,14 +403,15 @@ fun prove_nchotomys (config : Datatype_Aux.config) new_type_names descr casedist
     fun prove_nchotomy (t, exhaustion) =
       let
         (* For goal i, select the correct disjunct to attack, then prove it *)
-        fun tac i 0 = EVERY [TRY (rtac disjI1 i), hyp_subst_tac i, REPEAT (rtac exI i), rtac refl i]
-          | tac i n = rtac disjI2 i THEN tac i (n - 1);
+        fun tac ctxt i 0 =
+              EVERY [TRY (rtac disjI1 i), hyp_subst_tac ctxt i, REPEAT (rtac exI i), rtac refl i]
+          | tac ctxt i n = rtac disjI2 i THEN tac ctxt i (n - 1);
       in
         Goal.prove_sorry_global thy [] [] t
-          (fn _ =>
+          (fn {context = ctxt, ...} =>
             EVERY [rtac allI 1,
              Datatype_Aux.exh_tac (K exhaustion) 1,
-             ALLGOALS (fn i => tac i (i - 1))])
+             ALLGOALS (fn i => tac ctxt i (i - 1))])
       end;
 
     val nchotomys =

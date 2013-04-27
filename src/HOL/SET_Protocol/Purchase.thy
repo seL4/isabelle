@@ -481,9 +481,9 @@ by (frule Gets_imp_Says, auto)
 
 method_setup valid_certificate_tac = {*
   Args.goal_spec >> (fn quant =>
-    K (SIMPLE_METHOD'' quant (fn i =>
+    fn ctxt => SIMPLE_METHOD'' quant (fn i =>
       EVERY [ftac @{thm Gets_certificate_valid} i,
-             assume_tac i, REPEAT (hyp_subst_tac i)])))
+             assume_tac i, REPEAT (hyp_subst_tac ctxt i)]))
 *}
 
 

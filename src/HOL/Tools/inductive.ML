@@ -534,7 +534,7 @@ val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
 
 fun simp_case_tac ctxt i =
-  EVERY' [elim_tac, asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac] i;
+  EVERY' [elim_tac, asm_full_simp_tac ctxt, elim_tac, REPEAT o bound_hyp_subst_tac ctxt] i;
 
 in
 
@@ -724,7 +724,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
          REPEAT (FIRSTGOAL (eresolve_tac [disjE, exE, FalseE])),
          (*Now break down the individual cases.  No disjE here in case
            some premise involves disjunction.*)
-         REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac)),
+         REPEAT (FIRSTGOAL (etac conjE ORELSE' bound_hyp_subst_tac ctxt'')),
          REPEAT (FIRSTGOAL
            (resolve_tac [conjI, impI] ORELSE' (etac notE THEN' atac))),
          EVERY (map (fn prem => DEPTH_SOLVE_1 (ares_tac [rewrite_rule

@@ -1738,7 +1738,7 @@ fun gen_nominal_datatype prep_specs config dts thy =
                rotate_tac ~1 1,
                ((DETERM o etac elim) THEN_ALL_NEW full_simp_tac
                   (put_simpset HOL_ss context addsimps flat distinct_thms)) 1] @
-               (if null idxs then [] else [hyp_subst_tac 1,
+               (if null idxs then [] else [hyp_subst_tac context 1,
                 SUBPROOF (fn {asms, concl, prems = prems', params, context = context', ...} =>
                   let
                     val SOME prem = find_first (can (HOLogic.dest_eq o
