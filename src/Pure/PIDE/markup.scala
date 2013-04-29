@@ -218,18 +218,7 @@ object Markup
 
   /* command timing */
 
-  object Command_Timing
-  {
-    def unapply(props: Properties.T): Option[(Document.ID, isabelle.Timing)] =
-      props match {
-        case (FUNCTION, "command_timing") :: args =>
-          (args, args) match {
-            case (Position.Id(id), Timing_Properties(timing)) => Some((id, timing))
-            case _ => None
-          }
-        case _ => None
-      }
-  }
+  val COMMAND_TIMING = "command_timing"
 
 
   /* toplevel */

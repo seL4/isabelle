@@ -84,6 +84,22 @@ object Protocol
     (Status.init /: markups)(command_status(_, _))
 
 
+  /* command timing */
+
+  object Command_Timing
+  {
+    def unapply(props: Properties.T): Option[(Document.ID, isabelle.Timing)] =
+      props match {
+        case (Markup.FUNCTION, Markup.COMMAND_TIMING) :: args =>
+          (args, args) match {
+            case (Position.Id(id), Markup.Timing_Properties(timing)) => Some((id, timing))
+            case _ => None
+          }
+        case _ => None
+      }
+  }
+
+
   /* node status */
 
   sealed case class Node_Status(

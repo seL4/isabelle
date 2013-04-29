@@ -322,7 +322,7 @@ class Session(val thy_load: Thy_Load)
         case Position.Id(state_id) if !output.is_protocol =>
           accumulate(state_id, output.message)
 
-        case Markup.Command_Timing(state_id, timing) if output.is_protocol =>
+        case Protocol.Command_Timing(state_id, timing) if output.is_protocol =>
           val message = XML.elem(Markup.STATUS, List(XML.Elem(Markup.Timing(timing), Nil)))
           accumulate(state_id, prover.get.xml_cache.elem(message))
 
