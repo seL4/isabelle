@@ -9,29 +9,26 @@ subsection "Constant Propagation"
 datatype const = Const val | Any
 
 fun \<gamma>_const where
-"\<gamma>_const (Const n) = {n}" |
+"\<gamma>_const (Const i) = {i}" |
 "\<gamma>_const (Any) = UNIV"
 
 fun plus_const where
-"plus_const (Const m) (Const n) = Const(m+n)" |
+"plus_const (Const i) (Const j) = Const(i+j)" |
 "plus_const _ _ = Any"
 
 lemma plus_const_cases: "plus_const a1 a2 =
-  (case (a1,a2) of (Const m, Const n) \<Rightarrow> Const(m+n) | _ \<Rightarrow> Any)"
+  (case (a1,a2) of (Const i, Const j) \<Rightarrow> Const(i+j) | _ \<Rightarrow> Any)"
 by(auto split: prod.split const.split)
 
 instantiation const :: semilattice
 begin
 
-fun less_eq_const where
-"_ \<le> Any = True" |
-"Const n \<le> Const m = (n=m)" |
-"Any \<le> Const _ = False"
+fun less_eq_const where "x \<le> y = (y = Any | x=y)"
 
-definition "a < (b::const) = (a \<le> b & ~ b \<le> a)"
+definition "x < (y::const) = (x \<le> y & \<not> y \<le> x)"
 
 fun sup_const where
-"Const m \<squnion> Const n = (if n=m then Const m else Any)" |
+"Const i \<squnion> Const j = (if i=j then Const i else Any)" |
 "_ \<squnion> _ = Any"
 
 definition "\<top> = Any"
