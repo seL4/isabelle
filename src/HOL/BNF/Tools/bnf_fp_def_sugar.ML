@@ -75,11 +75,10 @@ fun split_list4 [] = ([], [], [], [])
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
 fun add_components_of_typ (Type (s, Ts)) =
-    fold add_components_of_typ Ts
-    #> cons s
+    fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
   | add_components_of_typ _ = I;
 
-fun name_of_typ T = space_implode "_" (add_components_of_typ T []);
+fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
 
 fun exists_subtype_in Ts = exists_subtype (member (op =) Ts);
 
@@ -211,12 +210,12 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_induct ctor_fold_thms ct
     val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
     val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
 
-    val fp_T_names = map name_of_typ fpTs;
+    val fp_b_names = map base_name_of_typ fpTs;
 
     val (((ps, ps'), us'), names_lthy) =
       lthy
       |> mk_Frees' "P" (map mk_pred1T fpTs)
-      ||>> Variable.variant_fixes fp_T_names;
+      ||>> Variable.variant_fixes fp_b_names;
 
     val us = map2 (curry Free) us' fpTs;
 
@@ -368,7 +367,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
     val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
     val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
 
-    val fp_T_names = map name_of_typ fpTs;
+    val fp_b_names = map base_name_of_typ fpTs;
 
     val discss = map (map (mk_disc_or_sel As) o #1) ctr_wrap_ress;
     val selsss = map (map (map (mk_disc_or_sel As)) o #2) ctr_wrap_ress;
@@ -380,8 +379,8 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
     val (((rs, us'), vs'), names_lthy) =
       lthy
       |> mk_Frees "R" (map (fn T => mk_pred2T T T) fpTs)
-      ||>> Variable.variant_fixes fp_T_names
-      ||>> Variable.variant_fixes (map (suffix "'") fp_T_names);
+      ||>> Variable.variant_fixes fp_b_names
+      ||>> Variable.variant_fixes (map (suffix "'") fp_b_names);
 
     val us = map2 (curry Free) us' fpTs;
     val udiscss = map2 (map o rapp) us discss;
@@ -466,7 +465,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
         flat (map2 append disc_concls ctr_concls)
       end;
 
-    val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_T_names);
+    val coinduct_cases = quasi_unambiguous_case_names (map (prefix EqN) fp_b_names);
     val coinduct_conclss =
       map3 (quasi_unambiguous_case_names ooo mk_coinduct_concls) mss discss ctrss;
 
