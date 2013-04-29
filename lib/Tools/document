@@ -110,6 +110,7 @@ function prep_tags ()
           ;;
       esac
     done
+    echo
   ) > isabelletags.sty
 }
 

@@ -42,13 +42,13 @@ object GUI_Setup extends SwingApplication
     contents = panel
 
     // values
-    if (Platform.is_windows)
-      text.append("Cygwin root: " + Isabelle_System.cygwin_root() + "\n")
     text.append("JVM name: " + Platform.jvm_name + "\n")
     text.append("JVM platform: " + Platform.jvm_platform + "\n")
     text.append("JVM home: " + java.lang.System.getProperty("java.home") + "\n")
     try {
       Isabelle_System.init()
+      if (Platform.is_windows)
+        text.append("Cygwin root: " + Isabelle_System.get_cygwin_root() + "\n")
       text.append("ML platform: " + Isabelle_System.getenv("ML_PLATFORM") + "\n")
       text.append("Isabelle platform: " + Isabelle_System.getenv("ISABELLE_PLATFORM") + "\n")
       val platform64 = Isabelle_System.getenv("ISABELLE_PLATFORM64")
