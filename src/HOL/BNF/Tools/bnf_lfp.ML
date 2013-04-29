@@ -572,7 +572,6 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
     val basis_Asuc = if m = 0 then @{thm ordLeq_refl[OF Card_order_ctwo]}
         else @{thm ordLeq_csum2[OF Card_order_ctwo]};
     val Asuc_bd_Cinfinite = suc_bd_Cinfinite RS (basis_Asuc RS @{thm Cinfinite_cexp});
-    val Asuc_bd_Cnotzero = Asuc_bd_Cinfinite RS @{thm Cinfinite_Cnotzero};
 
     val suc_bd_Asuc_bd = @{thm ordLess_ordLeq_trans[OF ordLess_ctwo_cexp cexp_mono1]} OF
       [suc_bd_Card_order, basis_Asuc, suc_bd_Card_order];
@@ -671,7 +670,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
             (K (mk_min_algs_card_of_tac card_cT card_ct
               m suc_bd_worel min_algs_thms in_bd_sums
               sum_Card_order sum_Cnotzero suc_bd_Card_order suc_bd_Cinfinite suc_bd_Cnotzero
-              suc_bd_Asuc_bd Asuc_bd_Cinfinite Asuc_bd_Cnotzero)))
+              suc_bd_Asuc_bd Asuc_bd_Cinfinite)))
           |> Thm.close_derivation;
 
         val least_prem = HOLogic.mk_Trueprop (mk_alg As Bs ss);

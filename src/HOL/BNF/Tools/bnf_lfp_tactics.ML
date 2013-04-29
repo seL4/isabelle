@@ -47,7 +47,7 @@ sig
   val mk_mcong_tac: (int -> tactic) -> thm list list list -> thm list -> thm list ->
     {prems: 'a, context: Proof.context} -> tactic
   val mk_min_algs_card_of_tac: ctyp -> cterm -> int -> thm -> thm list -> thm list -> thm -> thm ->
-    thm -> thm -> thm -> thm -> thm -> thm -> tactic
+    thm -> thm -> thm -> thm -> thm -> tactic
   val mk_min_algs_least_tac: ctyp -> cterm -> thm -> thm list -> thm list -> tactic
   val mk_min_algs_mono_tac: Proof.context -> thm -> tactic
   val mk_min_algs_tac: thm -> thm list -> tactic
@@ -286,7 +286,7 @@ fun mk_min_algs_mono_tac ctxt min_algs = EVERY' [stac @{thm relChain_def}, rtac 
   rtac equalityD1, dtac @{thm notnotD}, hyp_subst_tac ctxt, rtac refl] 1;
 
 fun mk_min_algs_card_of_tac cT ct m worel min_algs in_bds bd_Card_order bd_Cnotzero
-  suc_Card_order suc_Cinfinite suc_Cnotzero suc_Asuc Asuc_Cinfinite Asuc_Cnotzero =
+  suc_Card_order suc_Cinfinite suc_Cnotzero suc_Asuc Asuc_Cinfinite =
   let
     val induct = worel RS
       Drule.instantiate' [SOME cT] [NONE, SOME ct] @{thm well_order_induct_imp};
