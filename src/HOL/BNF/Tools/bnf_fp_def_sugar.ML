@@ -20,9 +20,8 @@ sig
     int list -> term list -> term list list -> term list list -> term list list list list ->
     term list list list list -> term list list -> term list list list list ->
     term list list list list -> term list list -> thm list list ->
-    (term list * term list list * thm * 'a * 'b * 'c * thm list list * thm list
-       * thm list list) list ->
-    term list -> term list -> thm list -> thm list -> Proof.context ->
+    BNF_Ctr_Sugar.ctr_wrap_result list -> term list -> term list -> thm list -> thm list ->
+    Proof.context ->
     (thm * thm list * thm * thm list * Args.src list) * (thm list list * thm list list * 'e list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list) *
