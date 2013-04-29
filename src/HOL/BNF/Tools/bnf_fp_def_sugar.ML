@@ -7,14 +7,13 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
-  val derive_induct_fold_rec_thms_for_types: int -> BNF_Def.BNF list -> thm -> thm list ->
-    thm list -> BNF_Def.BNF list -> BNF_Def.BNF list -> typ list -> typ list ->
-    typ list list list -> int list list -> int list -> term list list -> term list list ->
-    term list list -> term list list list -> thm list list -> term list -> term list -> thm list ->
-    thm list -> Proof.context ->
+  val derive_induct_fold_rec_thms_for_types: BNF_Def.BNF list -> thm -> thm list -> thm list ->
+    BNF_Def.BNF list -> BNF_Def.BNF list -> typ list -> typ list -> typ list list list ->
+    int list list -> int list -> term list list -> term list list -> term list list -> term list
+    list list -> thm list list -> term list -> term list -> thm list -> thm list -> Proof.context ->
     (thm * thm list * Args.src list) * (thm list list * Args.src list)
       * (thm list list * Args.src list)
-  val derive_coinduct_unfold_corec_thms_for_types: Proof.context -> Proof.context -> int ->
+  val derive_coinduct_unfold_corec_thms_for_types: Proof.context -> Proof.context ->
     BNF_Def.BNF list -> thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.BNF list ->
     BNF_Def.BNF list -> typ list -> typ list -> typ list -> int list list -> int list list ->
     int list -> term list -> term list list -> term list list -> term list list list list ->
@@ -199,10 +198,12 @@ fun build_rel_step lthy build_arg (Type (s, Ts)) =
     val Ts' = map domain_type (fst (strip_typeN live (fastype_of rel)));
   in Term.list_comb (rel, map build_arg Ts') end;
 
-fun derive_induct_fold_rec_thms_for_types nn pre_bnfs ctor_induct ctor_fold_thms ctor_rec_thms
+fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_induct ctor_fold_thms ctor_rec_thms
     nesting_bnfs nested_bnfs fpTs Cs ctr_Tsss mss ns gss hss ctrss xsss ctr_defss folds recs
     fold_defs rec_defs lthy =
   let
+    val nn = length pre_bnfs;
+
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
@@ -352,11 +353,13 @@ fun derive_induct_fold_rec_thms_for_types nn pre_bnfs ctor_induct ctor_fold_thms
      (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
   end;
 
-fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_bnfs dtor_coinduct
+fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnfs dtor_coinduct
     dtor_strong_induct dtor_ctors dtor_unfold_thms dtor_corec_thms nesting_bnfs nested_bnfs fpTs Cs
     As kss mss ns cs cpss pgss crssss cgssss phss csssss chssss ctrss ctr_defss ctr_wrap_ress
     unfolds corecs unfold_defs corec_defs lthy =
   let
+    val nn = length pre_bnfs;
+
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
     val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
@@ -529,7 +532,8 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_
             dtor_corec_thms pre_map_defs ctr_defss;
 
         fun prove goal tac =
-          Goal.prove_sorry lthy [] [] goal (tac o #context) |> Thm.close_derivation;
+          Goal.prove_sorry lthy [] [] goal (tac o #context)
+          |> Thm.close_derivation;
 
         val unfold_thmss = map2 (map2 prove) unfold_goalss unfold_tacss;
         val corec_thmss = map2 (map2 prove) corec_goalss corec_tacss;
@@ -1208,7 +1212,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val ((induct_thm, induct_thms, induct_attrs),
              (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
-          derive_induct_fold_rec_thms_for_types nn pre_bnfs fp_induct fp_fold_thms fp_rec_thms
+          derive_induct_fold_rec_thms_for_types pre_bnfs fp_induct fp_fold_thms fp_rec_thms
             nesting_bnfs nested_bnfs fpTs Cs ctr_Tsss mss ns gss hss ctrss xsss ctr_defss folds recs
             fold_defs rec_defs lthy;
 
@@ -1240,7 +1244,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
              (disc_unfold_thmss, disc_corec_thmss, disc_corec_like_attrs),
              (disc_unfold_iff_thmss, disc_corec_iff_thmss, disc_corec_like_iff_attrs),
              (sel_unfold_thmss, sel_corec_thmss, sel_corec_like_attrs)) =
-          derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_bnfs fp_induct
+          derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnfs fp_induct
             fp_strong_induct dtor_ctors fp_fold_thms fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As
             kss mss ns cs cpss pgss crssss cgssss phss csssss chssss ctrss ctr_defss ctr_wrap_ress
             unfolds corecs unfold_defs corec_defs lthy;
