@@ -18,6 +18,8 @@ sig
      discIs: thm list,
      sel_thmss: thm list list};
 
+  val morph_ctr_wrap_result: morphism -> ctr_wrap_result -> ctr_wrap_result
+
   val rep_compat_prefix: string
 
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
@@ -53,6 +55,18 @@ type ctr_wrap_result =
    disc_thmss: thm list list,
    discIs: thm list,
    sel_thmss: thm list list};
+
+fun morph_ctr_wrap_result phi {discs, selss, exhaust, injects, distincts, case_thms, disc_thmss,
+    discIs, sel_thmss} =
+  {discs = map (Morphism.term phi) discs,
+   selss = map (map (Morphism.term phi)) selss,
+   exhaust = Morphism.thm phi exhaust,
+   injects = map (Morphism.thm phi) injects,
+   distincts = map (Morphism.thm phi) distincts,
+   case_thms = map (Morphism.thm phi) case_thms,
+   disc_thmss = map (map (Morphism.thm phi)) disc_thmss,
+   discIs = map (Morphism.thm phi) discIs,
+   sel_thmss = map (map (Morphism.thm phi)) sel_thmss};
 
 val rep_compat_prefix = "new";
 

@@ -11,6 +11,8 @@ sig
   type BNF
   type nonemptiness_witness = {I: int list, wit: term, prop: thm list}
 
+  val morph_bnf: morphism -> BNF -> BNF
+  val eq_bnf: BNF * BNF -> bool
   val bnf_of: Proof.context -> string -> BNF option
   val register_bnf: string -> (BNF * local_theory) -> (BNF * local_theory)
 

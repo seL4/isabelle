@@ -7,6 +7,13 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
+  type fp =
+    {fp_index: int,
+     fp_res: BNF_FP.fp_result,
+     ctr_wrap_res: BNF_Ctr_Sugar.ctr_wrap_result};
+
+  val fp_of: Proof.context -> string -> fp option
+
   val derive_induct_fold_rec_thms_for_types: BNF_Def.BNF list -> thm -> thm list -> thm list ->
     BNF_Def.BNF list -> BNF_Def.BNF list -> typ list -> typ list -> typ list list list ->
     int list list -> int list -> term list list -> term list list -> term list list -> term list
@@ -25,6 +32,7 @@ sig
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list) *
     (thm list list * thm list list * Args.src list)
+
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
@@ -50,6 +58,33 @@ open BNF_FP
 open BNF_FP_Def_Sugar_Tactics
 
 val EqN = "Eq_";
+
+type fp =
+  {fp_index: int,
+   fp_res: fp_result,
+   ctr_wrap_res: ctr_wrap_result};
+
+fun eq_fp ({fp_index = fp_index1, fp_res = fp_res1, ...} : fp,
+    {fp_index = fp_index2, fp_res = fp_res2, ...} : fp) =
+  fp_index1 = fp_index2 andalso eq_fp_result (fp_res1, fp_res2);
+
+fun morph_fp phi {fp_index, fp_res, ctr_wrap_res} =
+  {fp_index = fp_index, fp_res = morph_fp_result phi fp_res,
+   ctr_wrap_res = morph_ctr_wrap_result phi ctr_wrap_res};
+
+structure Data = Generic_Data
+(
+  type T = fp Symtab.table;
+  val empty = Symtab.empty;
+  val extend = I;
+  val merge = Symtab.merge eq_fp;
+);
+
+val fp_of = Symtab.lookup o Data.get o Context.Proof;
+
+fun register_fp key fp =
+  Local_Theory.declaration {syntax = false, pervasive = true}
+    (fn phi => Data.map (Symtab.update_new (key, morph_fp phi fp)));
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
 fun quasi_unambiguous_case_names names =

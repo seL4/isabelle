@@ -1,6 +1,7 @@
 (*  Title:      HOL/BNF/Tools/bnf_fp.ML
     Author:     Dmitriy Traytel, TU Muenchen
-    Copyright   2012
+    Author:     Jasmin Blanchette, TU Muenchen
+    Copyright   2012, 2013
 
 Shared library for the datatype and codatatype constructions.
 *)
@@ -23,6 +24,9 @@ sig
      rel_thms: thm list,
      fold_thms: thm list,
      rec_thms: thm list}
+
+  val morph_fp_result: morphism -> fp_result -> fp_result
+  val eq_fp_result: fp_result * fp_result -> bool
 
   val time: Timer.real_timer -> string -> Timer.real_timer
 
@@ -183,6 +187,27 @@ type fp_result =
    rel_thms: thm list,
    fold_thms: thm list,
    rec_thms: thm list};
+
+fun morph_fp_result phi {bnfs, dtors, ctors, folds, recs, induct, strong_induct, dtor_ctors,
+    ctor_dtors, ctor_injects, map_thms, set_thmss, rel_thms, fold_thms, rec_thms} =
+  {bnfs = map (morph_bnf phi) bnfs,
+   dtors = map (Morphism.term phi) dtors,
+   ctors = map (Morphism.term phi) ctors,
+   folds = map (Morphism.term phi) folds,
+   recs = map (Morphism.term phi) recs,
+   induct = Morphism.thm phi induct,
+   strong_induct = Morphism.thm phi strong_induct,
+   dtor_ctors = map (Morphism.thm phi) dtor_ctors,
+   ctor_dtors = map (Morphism.thm phi) ctor_dtors,
+   ctor_injects = map (Morphism.thm phi) ctor_injects,
+   map_thms = map (Morphism.thm phi) map_thms,
+   set_thmss = map (map (Morphism.thm phi)) set_thmss,
+   rel_thms = map (Morphism.thm phi) rel_thms,
+   fold_thms = map (Morphism.thm phi) fold_thms,
+   rec_thms = map (Morphism.thm phi) rec_thms};
+
+fun eq_fp_result ({bnfs = bnfs1, ...} : fp_result, {bnfs = bnfs2, ...} : fp_result) =
+  eq_list eq_bnf (bnfs1, bnfs2);
 
 val timing = true;
 fun time timer msg = (if timing
