@@ -12,7 +12,7 @@ theory ListF
 imports "../BNF"
 begin
 
-data (rep_compat) 'a listF = NilF | Conss 'a "'a listF"
+datatype_new (rep_compat) 'a listF = NilF | Conss 'a "'a listF"
 
 lemma fold_sum_case_NilF: "listF_ctor_fold (sum_case f g) NilF = f ()"
 unfolding NilF_def listF.ctor_fold pre_listF_map_def by simp

@@ -10,7 +10,7 @@ header {* Least Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_LFP
 imports BNF_FP
 keywords
-  "data" :: thy_decl
+  "datatype_new" :: thy_decl
 begin
 
 lemma subset_emptyI: "(\<And>x. x \<in> A \<Longrightarrow> False) \<Longrightarrow> A \<subseteq> {}"

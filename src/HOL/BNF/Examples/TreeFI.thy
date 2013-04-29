@@ -12,7 +12,7 @@ theory TreeFI
 imports ListF
 begin
 
-codata 'a treeFI = Tree (lab: 'a) (sub: "'a treeFI listF")
+codatatype 'a treeFI = Tree (lab: 'a) (sub: "'a treeFI listF")
 
 lemma pre_treeFI_listF_set[simp]: "pre_treeFI_set2 (i, xs) = listF_set xs"
 unfolding pre_treeFI_set2_def collect_def[abs_def] prod_set_defs

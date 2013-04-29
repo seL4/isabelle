@@ -159,7 +159,6 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     (wrap_opts as (no_dests, rep_compat), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
-    (* TODO: integration with function package ("size") *)
 
     val _ = if not lfp andalso no_dests then error "Cannot define destructor-less codatatypes"
       else ();

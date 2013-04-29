@@ -13,7 +13,7 @@ begin
 
 hide_fact (open) Quotient_Product.prod_rel_def
 
-codata 'a process =
+codatatype 'a process =
   isAction: Action (prefOf: 'a) (contOf: "'a process") |
   isChoice: Choice (ch1Of: "'a process") (ch2Of: "'a process")
 

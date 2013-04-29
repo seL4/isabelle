@@ -16,7 +16,7 @@ hide_fact (open) Quotient_Product.prod_rel_def
 typedecl N
 typedecl T
 
-codata dtree = NNode (root: N) (ccont: "(T + dtree) fset")
+codatatype dtree = NNode (root: N) (ccont: "(T + dtree) fset")
 
 subsection{* Transporting the Characteristic Lemmas from @{text "fset"} to @{text "set"} *}
 

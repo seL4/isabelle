@@ -14,7 +14,7 @@ begin
 
 hide_fact (open) Quotient_Product.prod_rel_def
 
-codata 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")
+codatatype 'a treeFsetI = Tree (lab: 'a) (sub: "'a treeFsetI fset")
 
 definition pair_fun (infixr "\<odot>" 50) where
   "f \<odot> g \<equiv> \<lambda>x. (f x, g x)"

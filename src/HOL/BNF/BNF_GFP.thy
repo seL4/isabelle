@@ -10,7 +10,7 @@ header {* Greatest Fixed Point Operation on Bounded Natural Functors *}
 theory BNF_GFP
 imports BNF_FP Equiv_Relations_More "~~/src/HOL/Library/Sublist"
 keywords
-  "codata" :: thy_decl
+  "codatatype" :: thy_decl
 begin
 
 lemma o_sum_case: "h o sum_case f g = sum_case (h o f) (h o g)"

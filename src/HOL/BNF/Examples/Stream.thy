@@ -12,8 +12,8 @@ theory Stream
 imports "../BNF"
 begin
 
-codata (sset: 'a) stream (map: smap rel: stream_all2) =
-   Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
+codatatype (sset: 'a) stream (map: smap rel: stream_all2) =
+  Stream (shd: 'a) (stl: "'a stream") (infixr "##" 65)
 
 declaration {*
   Nitpick_HOL.register_codatatype
