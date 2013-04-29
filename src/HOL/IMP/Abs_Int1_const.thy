@@ -130,7 +130,8 @@ qed
 
 text{* Termination: *}
 
-definition "m_const x = (case x of Const _ \<Rightarrow> 1 | Any \<Rightarrow> 0)"
+definition m_const :: "const \<Rightarrow> nat" where
+"m_const x = (if x = Any then 0 else 1)"
 
 interpretation Abs_Int_measure
 where \<gamma> = \<gamma>_const and num' = Const and plus' = plus_const
