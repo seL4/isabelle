@@ -199,7 +199,7 @@ fun build_rel_step lthy build_arg (Type (s, Ts)) =
     val Ts' = map domain_type (fst (strip_typeN live (fastype_of rel)));
   in Term.list_comb (rel, map build_arg Ts') end;
 
-fun derive_induct_fold_rec_thms_for_types nn pre_bnfs fp_induct fp_fold_thms fp_rec_thms
+fun derive_induct_fold_rec_thms_for_types nn pre_bnfs ctor_induct ctor_fold_thms ctor_rec_thms
     nesting_bnfs nested_bnfs fpTs Cs ctr_Tsss mss ns gss hss ctrss xsss ctr_defss folds recs
     fold_defs rec_defs lthy =
   let
@@ -286,7 +286,7 @@ fun derive_induct_fold_rec_thms_for_types nn pre_bnfs fp_induct fp_fold_thms fp_
 
         val kksss = map (map (map (fst o snd) o #2)) raw_premss;
 
-        val ctor_induct' = fp_induct OF (map mk_sumEN_tupled_balanced mss);
+        val ctor_induct' = ctor_induct OF (map mk_sumEN_tupled_balanced mss);
 
         val thm =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
@@ -333,11 +333,11 @@ fun derive_induct_fold_rec_thms_for_types nn pre_bnfs fp_induct fp_fold_thms fp_
         val rec_goalss = map5 (map4 o mk_goal hss) hrecs xctrss hss xsss hxsss;
 
         val fold_tacss =
-          map2 (map o mk_rec_like_tac pre_map_defs [] nesting_map_ids'' fold_defs) fp_fold_thms
+          map2 (map o mk_rec_like_tac pre_map_defs [] nesting_map_ids'' fold_defs) ctor_fold_thms
             ctr_defss;
         val rec_tacss =
           map2 (map o mk_rec_like_tac pre_map_defs nested_map_comp's
-            (nested_map_ids'' @ nesting_map_ids'') rec_defs) fp_rec_thms ctr_defss;
+            (nested_map_ids'' @ nesting_map_ids'') rec_defs) ctor_rec_thms ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context)
@@ -352,10 +352,10 @@ fun derive_induct_fold_rec_thms_for_types nn pre_bnfs fp_induct fp_fold_thms fp_
      (fold_thmss, code_simp_attrs), (rec_thmss, code_simp_attrs))
   end;
 
-fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_bnfs fp_induct
-    fp_strong_induct dtor_ctors fp_fold_thms fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As kss mss
-    ns cs cpss pgss crssss cgssss phss csssss chssss ctrss ctr_defss ctr_wrap_ress unfolds corecs
-    unfold_defs corec_defs lthy =
+fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_bnfs dtor_coinduct
+    dtor_strong_induct dtor_ctors dtor_unfold_thms dtor_corec_thms nesting_bnfs nested_bnfs fpTs Cs
+    As kss mss ns cs cpss pgss crssss cgssss phss csssss chssss ctrss ctr_defss ctr_wrap_ress
+    unfolds corecs unfold_defs corec_defs lthy =
   let
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
@@ -449,7 +449,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_
           |> Drule.zero_var_indexes
           |> `(conj_dests nn);
       in
-        (postproc nn (prove fp_induct goal), postproc nn (prove fp_strong_induct strong_goal))
+        (postproc nn (prove dtor_coinduct goal), postproc nn (prove dtor_strong_induct strong_goal))
       end;
 
     fun mk_coinduct_concls ms discs ctrs =
@@ -522,11 +522,11 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy nn pre_
 
         val unfold_tacss =
           map3 (map oo mk_corec_like_tac unfold_defs [] [] nesting_map_ids'' [])
-            fp_fold_thms pre_map_defs ctr_defss;
+            dtor_unfold_thms pre_map_defs ctr_defss;
         val corec_tacss =
           map3 (map oo mk_corec_like_tac corec_defs nested_map_comps'' nested_map_comp's
               (nested_map_ids'' @ nesting_map_ids'') nested_map_if_distribs)
-            fp_rec_thms pre_map_defs ctr_defss;
+            dtor_corec_thms pre_map_defs ctr_defss;
 
         fun prove goal tac =
           Goal.prove_sorry lthy [] [] goal (tac o #context) |> Thm.close_derivation;
