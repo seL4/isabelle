@@ -255,10 +255,10 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fp_eqs =
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctr_sum_prod_TsXs;
 
-    (* TODO: clean up list *)
-    val (pre_bnfs, ((fp_bnfs as any_fp_bnf :: _, dtors0, ctors0, fp_folds0, fp_recs0, fp_induct,
-           fp_strong_induct, dtor_ctors, ctor_dtors, ctor_injects, fp_map_thms, fp_set_thmss,
-           fp_rel_thms, fp_fold_thms, fp_rec_thms), lthy)) =
+    val (pre_bnfs, ({bnfs = fp_bnfs as any_fp_bnf :: _, dtors = dtors0, ctors = ctors0,
+           folds = fp_folds0, recs = fp_recs0, induct = fp_induct, strong_induct = fp_strong_induct,
+           dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms, set_thmss = fp_set_thmss,
+           rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms}, lthy)) =
       fp_bnf construct_fp fp_bs mixfixes map_bs rel_bs set_bss (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
