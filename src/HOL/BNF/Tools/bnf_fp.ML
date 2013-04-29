@@ -8,21 +8,21 @@ Shared library for the datatype and codatatype constructions.
 signature BNF_FP =
 sig
   type fp_result =
-    {bnfs : BNF_Def.BNF list,
-     dtors : term list,
-     ctors : term list,
-     folds : term list,
-     recs : term list,
-     induct : thm,
-     strong_induct : thm,
-     dtor_ctors : thm list,
-     ctor_dtors : thm list,
-     ctor_injects : thm list,
-     map_thms : thm list,
-     set_thmss : thm list list,
-     rel_thms : thm list,
-     fold_thms : thm list,
-     rec_thms : thm list}
+    {bnfs: BNF_Def.BNF list,
+     dtors: term list,
+     ctors: term list,
+     folds: term list,
+     recs: term list,
+     induct: thm,
+     strong_induct: thm,
+     dtor_ctors: thm list,
+     ctor_dtors: thm list,
+     ctor_injects: thm list,
+     map_thms: thm list,
+     set_thmss: thm list list,
+     rel_thms: thm list,
+     fold_thms: thm list,
+     rec_thms: thm list}
 
   val time: Timer.real_timer -> string -> Timer.real_timer
 
@@ -168,21 +168,21 @@ open BNF_Def
 open BNF_Util
 
 type fp_result =
-  {bnfs : BNF_Def.BNF list,
-   dtors : term list,
-   ctors : term list,
-   folds : term list,
-   recs : term list,
-   induct : thm,
-   strong_induct : thm,
-   dtor_ctors : thm list,
-   ctor_dtors : thm list,
-   ctor_injects : thm list,
-   map_thms : thm list,
-   set_thmss : thm list list,
-   rel_thms : thm list,
-   fold_thms : thm list,
-   rec_thms : thm list};
+  {bnfs: BNF_Def.BNF list,
+   dtors: term list,
+   ctors: term list,
+   folds: term list,
+   recs: term list,
+   induct: thm,
+   strong_induct: thm,
+   dtor_ctors: thm list,
+   ctor_dtors: thm list,
+   ctor_injects: thm list,
+   map_thms: thm list,
+   set_thmss: thm list list,
+   rel_thms: thm list,
+   fold_thms: thm list,
+   rec_thms: thm list};
 
 val timing = true;
 fun time timer msg = (if timing

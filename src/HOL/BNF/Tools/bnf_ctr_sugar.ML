@@ -8,8 +8,15 @@ Wrapping existing freely generated type's constructors.
 signature BNF_CTR_SUGAR =
 sig
   type ctr_wrap_result =
-    term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
-    thm list list
+    {discs: term list,
+     selss: term list list,
+     exhaust: thm,
+     injects: thm list,
+     distincts: thm list,
+     case_thms: thm list,
+     disc_thmss: thm list list,
+     discIs: thm list,
+     sel_thmss: thm list list};
 
   val rep_compat_prefix: string
 
@@ -37,8 +44,15 @@ open BNF_Util
 open BNF_Ctr_Sugar_Tactics
 
 type ctr_wrap_result =
-  term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
-  thm list list;
+  {discs: term list,
+   selss: term list list,
+   exhaust: thm,
+   injects: thm list,
+   distincts: thm list,
+   case_thms: thm list,
+   disc_thmss: thm list list,
+   discIs: thm list,
+   sel_thmss: thm list list};
 
 val rep_compat_prefix = "new";
 
@@ -671,14 +685,15 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ((discs, selss, exhaust_thm, inject_thms, distinct_thms, case_thms, disc_thmss, discI_thms,
-          sel_thmss),
-          lthy
-          |> not rep_compat ?
-             (Local_Theory.declaration {syntax = false, pervasive = true}
+        ({discs = discs, selss = selss, exhaust = exhaust_thm, injects = inject_thms,
+          distincts = distinct_thms, case_thms = case_thms, disc_thmss = disc_thmss,
+          discIs = discI_thms, sel_thmss = sel_thmss},
+         lthy
+         |> not rep_compat ?
+            (Local_Theory.declaration {syntax = false, pervasive = true}
                (fn phi => Case_Translation.register
-                 (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
-          |> Local_Theory.notes (notes' @ notes) |> snd)
+                  (Morphism.term phi casex) (map (Morphism.term phi) ctrs)))
+         |> Local_Theory.notes (notes' @ notes) |> snd)
       end;
   in
     (goalss, after_qed, lthy')

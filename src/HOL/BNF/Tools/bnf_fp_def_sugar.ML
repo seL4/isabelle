@@ -369,12 +369,12 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val discss = map (map (mk_disc_or_sel As) o #1) ctr_wrap_ress;
-    val selsss = map (map (map (mk_disc_or_sel As)) o #2) ctr_wrap_ress;
-    val exhaust_thms = map #3 ctr_wrap_ress;
-    val disc_thmsss = map #7 ctr_wrap_ress;
-    val discIss = map #8 ctr_wrap_ress;
-    val sel_thmsss = map #9 ctr_wrap_ress;
+    val discss = map (map (mk_disc_or_sel As) o #discs) ctr_wrap_ress;
+    val selsss = map (map (map (mk_disc_or_sel As)) o #selss) ctr_wrap_ress;
+    val exhausts = map #exhaust ctr_wrap_ress;
+    val disc_thmsss = map #disc_thmss ctr_wrap_ress;
+    val discIss = map #discIs ctr_wrap_ress;
+    val sel_thmsss = map #sel_thmss ctr_wrap_ress;
 
     val (((rs, us'), vs'), names_lthy) =
       lthy
@@ -440,7 +440,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
         fun prove dtor_coinduct' goal =
           Goal.prove_sorry lthy [] [] goal (fn {context = ctxt, ...} =>
             mk_coinduct_tac ctxt nesting_rel_eqs nn ns dtor_coinduct' pre_rel_defs dtor_ctors
-              exhaust_thms ctr_defss disc_thmsss sel_thmsss)
+              exhausts ctr_defss disc_thmsss sel_thmsss)
           |> singleton (Proof_Context.export names_lthy lthy)
           |> Thm.close_derivation;
 
@@ -1202,8 +1202,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
     (* TODO: Add map, sets, rel simps *)
     val mk_simp_thmss =
-      map3 (fn (_, _, _, injects, distincts, cases, _, _, _) => fn rec_likes => fn fold_likes =>
-        injects @ distincts @ cases @ rec_likes @ fold_likes);
+      map3 (fn {injects, distincts, case_thms, ...} => fn rec_likes => fn fold_likes =>
+        injects @ distincts @ case_thms @ rec_likes @ fold_likes);
 
     fun derive_and_note_induct_fold_rec_thms_for_types
         (((ctrss, xsss, ctr_defss, ctr_wrap_ress), (folds, recs, fold_defs, rec_defs)), lthy) =
