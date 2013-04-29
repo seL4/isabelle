@@ -27,9 +27,7 @@ fun less_eq_const where "x \<le> y = (y = Any | x=y)"
 
 definition "x < (y::const) = (x \<le> y & \<not> y \<le> x)"
 
-fun sup_const where
-"Const i \<squnion> Const j = (if i=j then Const i else Any)" |
-"_ \<squnion> _ = Any"
+fun sup_const where "x \<squnion> y = (if x=y then x else Any)"
 
 definition "\<top> = Any"
 
