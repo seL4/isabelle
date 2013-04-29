@@ -167,9 +167,9 @@ fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
 "aval' (V x) S = S x" |
 "aval' (Plus a1 a2) S = plus' (aval' a1 S) (aval' a2 S)"
 
-definition "fa x e S = (case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S)))"
+definition "asem x e S = (case S of None \<Rightarrow> None | Some S \<Rightarrow> Some(S(x := aval' e S)))"
 
-definition "step' = Step fa (\<lambda>b S. S)"
+definition "step' = Step asem (\<lambda>b S. S)"
 
 lemma strip_step'[simp]: "strip(step' S C) = strip C"
 by(simp add: step'_def)
@@ -220,7 +220,7 @@ qed  (auto simp: mono_gamma_o assms)
 lemma step_step': "step (\<gamma>\<^isub>o S) (\<gamma>\<^isub>c C) \<le> \<gamma>\<^isub>c (step' S C)"
 unfolding step_def step'_def
 by(rule gamma_Step_subcomm)
-  (auto simp: aval'_sound in_gamma_update fa_def split: option.splits)
+  (auto simp: aval'_sound in_gamma_update asem_def split: option.splits)
 
 lemma AI_sound: "AI c = Some C \<Longrightarrow> CS c \<le> \<gamma>\<^isub>c C"
 proof(simp add: CS_def AI_def)
@@ -258,7 +258,7 @@ by(simp add: le_fun_def)
 lemma mono_step': "S1 \<le> S2 \<Longrightarrow> C1 \<le> C2 \<Longrightarrow> step' S1 C1 \<le> step' S2 C2"
 unfolding step'_def
 by(rule mono2_Step)
-  (auto simp: mono_update mono_aval' fa_def split: option.split)
+  (auto simp: mono_update mono_aval' asem_def split: option.split)
 
 lemma mono_step'_top: "C \<le> C' \<Longrightarrow> step' \<top> C \<le> step' \<top> C'"
 by (metis mono_step' order_refl)
@@ -471,7 +471,7 @@ begin
 lemma top_on_step': "top_on_acom C (-vars C) \<Longrightarrow> top_on_acom (step' \<top> C) (-vars C)"
 unfolding step'_def
 by(rule top_on_Step)
-  (auto simp add: top_option_def fa_def split: option.splits)
+  (auto simp add: top_option_def asem_def split: option.splits)
 
 lemma AI_Some_measure: "\<exists>C. AI c = Some C"
 unfolding AI_def

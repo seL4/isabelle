@@ -366,10 +366,10 @@ using cprod_infinite1' Cinfinite_Cnotzero ordLeq_refl by blast
 
 subsection {* Exponentiation *}
 
-definition cexp (infixr "^c" 80) where
+definition cexp (infixr "^c" 90) where
   "r1 ^c r2 \<equiv> |Func (Field r2) (Field r1)|"
 
-definition ccexp (infixr "^^c" 80) where
+definition ccexp (infixr "^^c" 90) where
   "r1 ^^c r2 \<equiv> |Pfunc (Field r2) (Field r1)|"
 
 lemma cexp_ordLeq_ccexp: "r1 ^c r2 \<le>o r1 ^^c r2"
