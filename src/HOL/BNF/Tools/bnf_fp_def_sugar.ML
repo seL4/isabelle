@@ -8,7 +8,8 @@ Sugared datatype and codatatype constructions.
 signature BNF_FP_DEF_SUGAR =
 sig
   type fp =
-    {fp_index: int,
+    {lfp: bool,
+     fp_index: int,
      fp_res: BNF_FP.fp_result,
      ctr_wrap_res: BNF_Ctr_Sugar.ctr_wrap_result};
 
@@ -30,8 +31,8 @@ sig
     Proof.context ->
     (thm * thm list * thm * thm list * Args.src list) * (thm list list * thm list list * 'e list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
-    * (thm list list * thm list list * Args.src list) *
-    (thm list list * thm list list * Args.src list)
+    * (thm list list * thm list list * Args.src list)
+    * (thm list list * thm list list * Args.src list)
 
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
@@ -60,16 +61,17 @@ open BNF_FP_Def_Sugar_Tactics
 val EqN = "Eq_";
 
 type fp =
-  {fp_index: int,
+  {lfp: bool,
+   fp_index: int,
    fp_res: fp_result,
    ctr_wrap_res: ctr_wrap_result};
 
-fun eq_fp ({fp_index = fp_index1, fp_res = fp_res1, ...} : fp,
-    {fp_index = fp_index2, fp_res = fp_res2, ...} : fp) =
-  fp_index1 = fp_index2 andalso eq_fp_result (fp_res1, fp_res2);
+fun eq_fp ({lfp = lfp1, fp_index = fp_index1, fp_res = fp_res1, ...} : fp,
+    {lfp = lfp2, fp_index = fp_index2, fp_res = fp_res2, ...} : fp) =
+  lfp1 = lfp2 andalso fp_index1 = fp_index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp phi {fp_index, fp_res, ctr_wrap_res} =
-  {fp_index = fp_index, fp_res = morph_fp_result phi fp_res,
+fun morph_fp phi {lfp, fp_index, fp_res, ctr_wrap_res} =
+  {lfp = lfp, fp_index = fp_index, fp_res = morph_fp_result phi fp_res,
    ctr_wrap_res = morph_ctr_wrap_result phi ctr_wrap_res};
 
 structure Data = Generic_Data
@@ -85,6 +87,15 @@ val fp_of = Symtab.lookup o Data.get o Context.Proof;
 fun register_fp key fp =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp phi fp)));
+
+val fp_name_of_ctor = fst o dest_Type o range_type o fastype_of;
+
+fun register_fps lfp (fp_res as {ctors, ...}) ctr_wrap_ress lthy =
+  ((1, ctors), lthy)
+  |> fold (fn ctr_wrap_res => fn ((kk, ctor :: ctors), lthy) =>
+    ((kk + 1, ctors), register_fp (fp_name_of_ctor ctor) {lfp = lfp, fp_index = kk,
+       fp_res = fp_res, ctr_wrap_res = ctr_wrap_res} lthy)) ctr_wrap_ress
+  |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
 fun quasi_unambiguous_case_names names =
@@ -757,7 +768,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fp_eqs =
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctr_sum_prod_TsXs;
 
-    val (pre_bnfs, ({bnfs = fp_bnfs as any_fp_bnf :: _, dtors = dtors0, ctors = ctors0,
+    val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, dtors = dtors0, ctors = ctors0,
            folds = fp_folds0, recs = fp_recs0, induct = fp_induct, strong_induct = fp_strong_induct,
            dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms, set_thmss = fp_set_thmss,
            rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms}, lthy)) =
@@ -1265,7 +1276,9 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
            (simpsN, simp_thmss, K [])]
           |> massage_multi_notes;
       in
-        lthy |> Local_Theory.notes (common_notes @ notes) |> snd
+        lthy
+        |> Local_Theory.notes (common_notes @ notes) |> snd
+        |> register_fps true fp_res ctr_wrap_ress
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
@@ -1320,7 +1333,9 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
            (unfoldN, unfold_thmss, K corec_like_attrs)]
           |> massage_multi_notes;
       in
-        lthy |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
+        lthy
+        |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
+        |> register_fps false fp_res ctr_wrap_ress
       end;
 
     val lthy' = lthy
