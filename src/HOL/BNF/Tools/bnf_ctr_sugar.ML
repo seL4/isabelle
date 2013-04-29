@@ -7,6 +7,10 @@ Wrapping existing freely generated type's constructors.
 
 signature BNF_CTR_SUGAR =
 sig
+  type ctr_wrap_result =
+    term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
+    thm list list
+
   val rep_compat_prefix: string
 
   val mk_half_pairss: 'a list * 'a list -> ('a * 'a) list list
@@ -21,8 +25,7 @@ sig
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
-    (term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
-     thm list list) * local_theory
+    ctr_wrap_result * local_theory
   val parse_wrap_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
@@ -32,6 +35,10 @@ struct
 
 open BNF_Util
 open BNF_Ctr_Sugar_Tactics
+
+type ctr_wrap_result =
+  term list * term list list * thm * thm list * thm list * thm list * thm list list * thm list *
+  thm list list;
 
 val rep_compat_prefix = "new";
 
@@ -309,7 +316,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
 
           val (((raw_discs, raw_disc_defs), (raw_sels, raw_sel_defs)), (lthy', lthy)) =
             no_defs_lthy
-            |> apfst split_list o fold_map4 (fn k => fn m => fn exist_xs_u_eq_ctr => fn b =>
+            |> apfst split_list o fold_map3 (fn k => fn exist_xs_u_eq_ctr => fn b =>
                 if Binding.is_empty b then
                   if n = 1 then pair (Term.lambda u (mk_uu_eq ()), unique_disc_no_def)
                   else pair (alternate_disc k, alternate_disc_no_def)
@@ -318,7 +325,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
                 else
                   Specification.definition (SOME (b, NONE, NoSyn),
                     ((Thm.def_binding b, []), disc_spec b exist_xs_u_eq_ctr)) #>> apsnd snd)
-              ks ms exist_xs_u_eq_ctrs disc_bindings
+              ks exist_xs_u_eq_ctrs disc_bindings
             ||>> apfst split_list o fold_map (fn (b, proto_sels) =>
               Specification.definition (SOME (b, NONE, NoSyn),
                 ((Thm.def_binding b, []), sel_spec b proto_sels)) #>> apsnd snd) sel_infos
