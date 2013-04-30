@@ -67,7 +67,7 @@ by (metis (hide_lams, no_types) sup_ge1 sup_ge2 mono_gamma_o subsetD)
 
 fun aval'' :: "aexp \<Rightarrow> 'av st option \<Rightarrow> 'av" where
 "aval'' e None = \<bottom>" |
-"aval'' e (Some sa) = aval' e sa"
+"aval'' e (Some S) = aval' e S"
 
 lemma aval''_sound: "s : \<gamma>\<^isub>o S \<Longrightarrow> aval a s : \<gamma>(aval'' a S)"
 by(cases S)(auto simp add: aval'_sound split: option.splits)
