@@ -20,6 +20,12 @@ sig
 
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
+  val mk_fp_iter_fun_types: term -> typ list
+  val mk_fun_arg_typess: int -> int list -> typ -> typ list list
+  val unzip_recT: typ list -> typ -> typ list * typ list
+  val mk_fold_fun_typess: typ list list list -> typ list list -> typ list list
+  val mk_rec_fun_typess: typ list -> typ list list list -> typ list list -> typ list list
+
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
@@ -206,11 +212,13 @@ fun mk_xxiter lfp Ts Us t =
     Term.subst_atomic_types (Ts0 @ Us0 ~~ Ts @ Us) t
   end;
 
+val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
+
 fun mk_fp_iter lfp As Cs fp_iters0 =
   map (mk_xxiter lfp As Cs) fp_iters0
-  |> (fn ts => (ts, fst (split_last (binder_types (fastype_of (hd ts))))));
+  |> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)));
 
-fun massage_rec_fun_arg_typesss fpTs =
+fun unzip_recT fpTs T =
   let
     fun project_recT proj =
       let
@@ -219,19 +227,19 @@ fun massage_rec_fun_arg_typesss fpTs =
           | project (Type (s, Ts)) = Type (s, map project Ts)
           | project T = T;
       in project end;
-    fun unzip_recT T =
-      if exists_subtype_in fpTs T then ([project_recT fst T], [project_recT snd T]) else ([T], []);
   in
-    map (map (flat_rec unzip_recT))
+    if exists_subtype_in fpTs T then ([project_recT fst T], [project_recT snd T]) else ([T], [])
   end;
+
+val massage_rec_fun_arg_typesss = map o map o flat_rec o unzip_recT;
 
 val mk_fold_fun_typess = map2 (map2 (curry (op --->)));
 val mk_rec_fun_typess = mk_fold_fun_typess oo massage_rec_fun_arg_typesss;
 
+fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
+
 fun mk_fold_rec_terms_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
-    fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
-
     val y_Tsss = map3 mk_fun_arg_typess ns mss ctor_fold_fun_Ts;
     val g_Tss = mk_fold_fun_typess y_Tsss Css;
 
