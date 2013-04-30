@@ -14,7 +14,9 @@ sig
      fp_res: BNF_FP.fp_result,
      ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list,
      xxfolds: term list,
-     xxrecs: term list};
+     xxrecs: term list,
+     xxfold_thmss: thm list list,
+     xxrec_thmss: thm list list};
 
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
@@ -68,16 +70,21 @@ type fp_sugar =
    fp_res: fp_result,
    ctr_sugars: ctr_sugar list,
    xxfolds: term list,
-   xxrecs: term list};
+   xxrecs: term list,
+   xxfold_thmss: thm list list,
+   xxrec_thmss: thm list list};
 
 fun eq_fp_sugar ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
     {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars, xxfolds, xxrecs} =
+fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars, xxfolds, xxrecs, xxfold_thmss,
+    xxrec_thmss} =
   {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
    fp_res = morph_fp_result phi fp_res, ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
-   xxfolds = map (Morphism.term phi) xxfolds, xxrecs = map (Morphism.term phi) xxrecs};
+   xxfolds = map (Morphism.term phi) xxfolds, xxrecs = map (Morphism.term phi) xxrecs,
+   xxfold_thmss = map (map (Morphism.thm phi)) xxfold_thmss,
+   xxrec_thmss = map (map (Morphism.thm phi)) xxrec_thmss};
 
 structure Data = Generic_Data
 (
@@ -93,12 +100,13 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars xxfolds xxrecs lthy =
+fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars xxfolds xxrecs xxfold_thmss
+    xxrec_thmss lthy =
   (0, lthy)
   |> fold (fn ctor => fn (kk, lthy) => (kk + 1,
     register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
       pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars, xxfolds = xxfolds,
-      xxrecs = xxrecs} lthy)) ctors
+      xxrecs = xxrecs, xxfold_thmss = xxfold_thmss, xxrec_thmss = xxrec_thmss} lthy)) ctors
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -134,11 +142,11 @@ fun exists_subtype_in Ts = exists_subtype (member (op =) Ts);
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
-fun typ_subst inst (T as Type (s, Ts)) =
+fun typ_subst_nonatomic inst (T as Type (s, Ts)) =
     (case AList.lookup (op =) inst T of
-      NONE => Type (s, map (typ_subst inst) Ts)
+      NONE => Type (s, map (typ_subst_nonatomic inst) Ts)
     | SOME T' => T')
-  | typ_subst inst T = the_default T (AList.lookup (op =) inst T);
+  | typ_subst_nonatomic inst T = the_default T (AList.lookup (op =) inst T);
 
 fun variant_types ss Ss ctxt =
   let
@@ -493,7 +501,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
               ~1 => build_map lthy (build_iter fiters) T U
             | kk => nth fiters kk);
 
-        val mk_U = typ_subst (map2 pair fpTs Cs);
+        val mk_U = typ_subst_nonatomic (map2 pair fpTs Cs);
 
         fun unzip_iters fiters combine (x as Free (_, T)) =
           if exists_subtype_in fpTs T then
@@ -669,7 +677,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
               ~1 => build_map lthy (build_coiter fcoiters) T U
             | kk => nth fcoiters kk);
 
-        val mk_U = typ_subst (map2 pair Cs fpTs);
+        val mk_U = typ_subst_nonatomic (map2 pair Cs fpTs);
 
         fun intr_coiters fcoiters [] [cf] =
             let val T = fastype_of cf in
@@ -1321,7 +1329,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars true pre_bnfs fp_res ctr_sugars folds recs
+        |> register_fp_sugars true pre_bnfs fp_res ctr_sugars folds recs fold_thmss rec_thmss
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
@@ -1379,7 +1387,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fp_sugars false pre_bnfs fp_res ctr_sugars unfolds corecs
+        |> register_fp_sugars false pre_bnfs fp_res ctr_sugars unfolds corecs unfold_thmss
+          corec_thmss
       end;
 
     val lthy' = lthy
