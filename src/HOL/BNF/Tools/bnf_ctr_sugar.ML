@@ -7,7 +7,7 @@ Wrapping existing freely generated type's constructors.
 
 signature BNF_CTR_SUGAR =
 sig
-  type ctr_wrap_result =
+  type ctr_sugar =
     {ctrs: term list,
      discs: term list,
      selss: term list list,
@@ -19,7 +19,7 @@ sig
      discIs: thm list,
      sel_thmss: thm list list};
 
-  val morph_ctr_wrap_result: morphism -> ctr_wrap_result -> ctr_wrap_result
+  val morph_ctr_sugar: morphism -> ctr_sugar -> ctr_sugar
 
   val rep_compat_prefix: string
 
@@ -35,7 +35,7 @@ sig
   val wrap_free_constructors: ({prems: thm list, context: Proof.context} -> tactic) list list ->
     (((bool * bool) * term list) * term) *
       (binding list * (binding list list * (binding * term) list list)) -> local_theory ->
-    ctr_wrap_result * local_theory
+    ctr_sugar * local_theory
   val parse_wrap_options: (bool * bool) parser
   val parse_bound_term: (binding * string) parser
 end;
@@ -46,7 +46,7 @@ struct
 open BNF_Util
 open BNF_Ctr_Sugar_Tactics
 
-type ctr_wrap_result =
+type ctr_sugar =
   {ctrs: term list,
    discs: term list,
    selss: term list list,
@@ -58,8 +58,8 @@ type ctr_wrap_result =
    discIs: thm list,
    sel_thmss: thm list list};
 
-fun morph_ctr_wrap_result phi {ctrs, discs, selss, exhaust, injects, distincts, case_thms,
-    disc_thmss, discIs, sel_thmss} =
+fun morph_ctr_sugar phi {ctrs, discs, selss, exhaust, injects, distincts, case_thms, disc_thmss,
+    discIs, sel_thmss} =
   {ctrs = map (Morphism.term phi) ctrs,
    discs = map (Morphism.term phi) discs,
    selss = map (map (Morphism.term phi)) selss,

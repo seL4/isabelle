@@ -7,14 +7,14 @@ Sugared datatype and codatatype constructions.
 
 signature BNF_FP_DEF_SUGAR =
 sig
-  type fp =
+  type fp_sugar =
     {lfp: bool,
      index: int,
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP.fp_result,
-     ctr_wrap_res: BNF_Ctr_Sugar.ctr_wrap_result};
+     ctr_sugar: BNF_Ctr_Sugar.ctr_sugar};
 
-  val fp_of: Proof.context -> string -> fp option
+  val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
@@ -25,7 +25,7 @@ sig
   val derive_coinduct_unfold_corec_thms_for_types: BNF_Def.bnf list -> term list -> term list ->
     thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list ->
     typ list -> typ list -> typ list -> int list list -> int list list -> int list ->
-    thm list list -> BNF_Ctr_Sugar.ctr_wrap_result list -> term list -> term list -> thm list ->
+    thm list list -> BNF_Ctr_Sugar.ctr_sugar list -> term list -> term list -> thm list ->
     thm list -> Proof.context ->
     (thm * thm list * thm * thm list * Args.src list)
     * (thm list list * thm list list * Args.src list)
@@ -59,40 +59,40 @@ open BNF_FP_Def_Sugar_Tactics
 
 val EqN = "Eq_";
 
-type fp =
+type fp_sugar =
   {lfp: bool,
    index: int,
    pre_bnfs: bnf list,
    fp_res: fp_result,
-   ctr_wrap_res: ctr_wrap_result};
+   ctr_sugar: ctr_sugar};
 
-fun eq_fp ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp,
-    {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp) =
+fun eq_fp_sugar ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
+    {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp phi {lfp, index, pre_bnfs, fp_res, ctr_wrap_res} =
+fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugar} =
   {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
-   fp_res = morph_fp_result phi fp_res, ctr_wrap_res = morph_ctr_wrap_result phi ctr_wrap_res};
+   fp_res = morph_fp_result phi fp_res, ctr_sugar = morph_ctr_sugar phi ctr_sugar};
 
 structure Data = Generic_Data
 (
-  type T = fp Symtab.table;
+  type T = fp_sugar Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  val merge = Symtab.merge eq_fp;
+  val merge = Symtab.merge eq_fp_sugar;
 );
 
-val fp_of = Symtab.lookup o Data.get o Context.Proof;
+val fp_sugar_of = Symtab.lookup o Data.get o Context.Proof;
 
-fun register_fp key fp =
+fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
-    (fn phi => Data.map (Symtab.update_new (key, morph_fp phi fp)));
+    (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fps lfp pre_bnfs (fp_res as {ctors, ...}) ctr_wrap_ress lthy =
+fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars lthy =
   ((1, ctors), lthy)
-  |> fold (fn ctr_wrap_res => fn ((kk, ctor :: ctors), lthy) =>
-    ((kk + 1, ctors), register_fp (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
-       pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_wrap_res = ctr_wrap_res} lthy)) ctr_wrap_ress
+  |> fold (fn ctr_sugar => fn ((kk, ctor :: ctors), lthy) =>
+    ((kk + 1, ctors), register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
+       pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugar = ctr_sugar} lthy)) ctr_sugars
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -525,7 +525,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
 fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_corecs0 dtor_coinduct
     dtor_strong_induct dtor_ctors dtor_unfold_thms dtor_corec_thms nesting_bnfs nested_bnfs fpTs Cs
-    As kss mss ns ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy =
+    As kss mss ns ctr_defss ctr_sugars unfolds corecs unfold_defs corec_defs lthy =
   let
     val nn = length pre_bnfs;
 
@@ -542,13 +542,13 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
     val (_, dtor_unfold_fun_Ts) = mk_fp_rec_like false As Cs dtor_unfolds0;
     val (_, dtor_corec_fun_Ts) = mk_fp_rec_like false As Cs dtor_corecs0;
 
-    val ctrss = map (map (mk_ctr As) o #ctrs) ctr_wrap_ress;
-    val discss = map (map (mk_disc_or_sel As) o #discs) ctr_wrap_ress;
-    val selsss = map (map (map (mk_disc_or_sel As)) o #selss) ctr_wrap_ress;
-    val exhausts = map #exhaust ctr_wrap_ress;
-    val disc_thmsss = map #disc_thmss ctr_wrap_ress;
-    val discIss = map #discIs ctr_wrap_ress;
-    val sel_thmsss = map #sel_thmss ctr_wrap_ress;
+    val ctrss = map (map (mk_ctr As) o #ctrs) ctr_sugars;
+    val discss = map (map (mk_disc_or_sel As) o #discs) ctr_sugars;
+    val selsss = map (map (map (mk_disc_or_sel As)) o #selss) ctr_sugars;
+    val exhausts = map #exhaust ctr_sugars;
+    val disc_thmsss = map #disc_thmss ctr_sugars;
+    val discIss = map #discIs ctr_sugars;
+    val sel_thmsss = map #sel_thmss ctr_sugars;
 
     val ((cs, cpss, ((pgss, crssss, cgssss), _), ((phss, csssss, chssss), _)), names_lthy0) =
       mk_unfold_corec_terms_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
@@ -1068,9 +1068,9 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               (sel_bindingss, sel_defaultss))) lthy
           end;
 
-        fun derive_maps_sets_rels (ctr_wrap_res, lthy) =
+        fun derive_maps_sets_rels (ctr_sugar, lthy) =
           if live = 0 then
-            ((([], [], [], []), ctr_wrap_res), lthy)
+            ((([], [], [], []), ctr_sugar), lthy)
           else
             let
               val rel_flip = rel_flip_of_bnf fp_bnf;
@@ -1148,7 +1148,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
                  (setsN, flat set_thmss, code_simp_attrs)]
                 |> massage_simple_notes fp_b_name;
             in
-              (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_wrap_res),
+              (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_sugar),
                lthy |> Local_Theory.notes notes |> snd)
             end;
 
@@ -1270,8 +1270,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             ((unfold, corec, unfold_def, corec_def), lthy')
           end;
 
-        fun massage_res (((maps_sets_rels, ctr_wrap_res), rec_like_res), lthy) =
-          (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_wrap_res)), rec_like_res), lthy);
+        fun massage_res (((maps_sets_rels, ctr_sugar), rec_like_res), lthy) =
+          (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), rec_like_res), lthy);
       in
         (wrap
          #> derive_maps_sets_rels
@@ -1291,7 +1291,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           @ rel_distincts @ flat setss);
 
     fun derive_and_note_induct_fold_rec_thms_for_types
-        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_wrap_ress)),
+        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (folds, recs, fold_defs, rec_defs)), lthy) =
       let
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
@@ -1303,7 +1303,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
         val simp_thmss =
-          mk_simp_thmss ctr_wrap_ress rec_thmss fold_thmss mapsx rel_injects rel_distincts setss;
+          mk_simp_thmss ctr_sugars rec_thmss fold_thmss mapsx rel_injects rel_distincts setss;
 
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], induct_attrs)] else [])
@@ -1318,11 +1318,11 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fps true pre_bnfs fp_res ctr_wrap_ress
+        |> register_fp_sugars true pre_bnfs fp_res ctr_sugars
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
-        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_wrap_ress)),
+        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
           (unfolds, corecs, unfold_defs, corec_defs)), lthy) =
       let
         val ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms,
@@ -1334,7 +1334,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
              (sel_unfold_thmss, sel_corec_thmss, sel_corec_like_attrs)) =
           derive_coinduct_unfold_corec_thms_for_types pre_bnfs fp_folds0 fp_recs0 fp_induct
             fp_strong_induct dtor_ctors fp_fold_thms fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As
-            kss mss ns ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy;
+            kss mss ns ctr_defss ctr_sugars unfolds corecs unfold_defs corec_defs lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
@@ -1342,7 +1342,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           corec_likes @ disc_corec_likes @ sel_corec_likes;
 
         val simp_thmss =
-          mk_simp_thmss ctr_wrap_ress
+          mk_simp_thmss ctr_sugars
             (map3 flat_corec_like_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
             (map3 flat_corec_like_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss)
             mapsx rel_injects rel_distincts setss;
@@ -1376,7 +1376,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fps false pre_bnfs fp_res ctr_wrap_ress
+        |> register_fp_sugars false pre_bnfs fp_res ctr_sugars
       end;
 
     val lthy' = lthy
