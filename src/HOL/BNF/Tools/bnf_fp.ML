@@ -9,7 +9,7 @@ Shared library for the datatype and codatatype constructions.
 signature BNF_FP =
 sig
   type fp_result =
-    {bnfs: BNF_Def.BNF list,
+    {bnfs: BNF_Def.bnf list,
      dtors: term list,
      ctors: term list,
      folds: term list,
@@ -158,10 +158,10 @@ sig
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
   val fp_bnf: (mixfix list -> (string * sort) list option -> binding list -> binding list ->
-      binding list -> binding list list -> typ list * typ list list -> BNF_Def.BNF list ->
+      binding list -> binding list list -> typ list * typ list list -> BNF_Def.bnf list ->
       local_theory -> 'a) ->
     binding list -> mixfix list -> binding list -> binding list -> binding list list ->
-    (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.BNF list * 'a
+    (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.bnf list * 'a
 end;
 
 structure BNF_FP : BNF_FP =
@@ -172,7 +172,7 @@ open BNF_Def
 open BNF_Util
 
 type fp_result =
-  {bnfs: BNF_Def.BNF list,
+  {bnfs: BNF_Def.bnf list,
    dtors: term list,
    ctors: term list,
    folds: term list,

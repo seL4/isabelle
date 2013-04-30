@@ -8,21 +8,21 @@ Composition of bounded natural functors.
 
 signature BNF_COMP =
 sig
-  val ID_bnf: BNF_Def.BNF
-  val DEADID_bnf: BNF_Def.BNF
+  val ID_bnf: BNF_Def.bnf
+  val DEADID_bnf: BNF_Def.bnf
 
   type unfold_set
   val empty_unfolds: unfold_set
 
   val bnf_of_typ: BNF_Def.const_policy -> (binding -> binding) ->
     ((string * sort) list list -> (string * sort) list) -> typ -> unfold_set * Proof.context ->
-    (BNF_Def.BNF * (typ list * typ list)) * (unfold_set * Proof.context)
+    (BNF_Def.bnf * (typ list * typ list)) * (unfold_set * Proof.context)
   val default_comp_sort: (string * sort) list list -> (string * sort) list
   val normalize_bnfs: (int -> binding -> binding) -> ''a list list -> ''a list ->
-    (''a list list -> ''a list) -> BNF_Def.BNF list -> unfold_set -> Proof.context ->
-    (int list list * ''a list) * (BNF_Def.BNF list * (unfold_set * Proof.context))
-  val seal_bnf: unfold_set -> binding -> typ list -> BNF_Def.BNF -> Proof.context ->
-    (BNF_Def.BNF * typ list) * local_theory
+    (''a list list -> ''a list) -> BNF_Def.bnf list -> unfold_set -> Proof.context ->
+    (int list list * ''a list) * (BNF_Def.bnf list * (unfold_set * Proof.context))
+  val seal_bnf: unfold_set -> binding -> typ list -> BNF_Def.bnf -> Proof.context ->
+    (BNF_Def.bnf * typ list) * local_theory
 end;
 
 structure BNF_Comp : BNF_COMP =

@@ -15,14 +15,14 @@ sig
 
   val fp_of: Proof.context -> string -> fp option
 
-  val derive_induct_fold_rec_thms_for_types: BNF_Def.BNF list -> term list -> term list -> thm ->
-    thm list -> thm list -> BNF_Def.BNF list -> BNF_Def.BNF list -> typ list -> typ list ->
+  val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
+    thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
     Proof.context ->
     (thm * thm list * Args.src list) * (thm list list * Args.src list)
     * (thm list list * Args.src list)
-  val derive_coinduct_unfold_corec_thms_for_types: BNF_Def.BNF list -> term list -> term list ->
-    thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.BNF list -> BNF_Def.BNF list ->
+  val derive_coinduct_unfold_corec_thms_for_types: BNF_Def.bnf list -> term list -> term list ->
+    thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list ->
     typ list -> typ list -> typ list -> int list list -> int list list -> int list ->
     term list list -> thm list list -> BNF_Ctr_Sugar.ctr_wrap_result list -> term list ->
     term list -> thm list -> thm list -> Proof.context ->
@@ -33,7 +33,7 @@ sig
 
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
-      binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
+      binding list list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
       BNF_FP.fp_result * local_theory) ->
     (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
@@ -41,7 +41,7 @@ sig
     local_theory -> local_theory
   val parse_datatype_cmd: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
-      binding list list -> typ list * typ list list -> BNF_Def.BNF list -> local_theory ->
+      binding list list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
       BNF_FP.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;

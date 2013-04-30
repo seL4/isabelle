@@ -8,21 +8,21 @@ Definition of bounded natural functors.
 
 signature BNF_DEF =
 sig
-  type BNF
+  type bnf
   type nonemptiness_witness = {I: int list, wit: term, prop: thm list}
 
-  val morph_bnf: morphism -> BNF -> BNF
-  val eq_bnf: BNF * BNF -> bool
-  val bnf_of: Proof.context -> string -> BNF option
-  val register_bnf: string -> (BNF * local_theory) -> (BNF * local_theory)
+  val morph_bnf: morphism -> bnf -> bnf
+  val eq_bnf: bnf * bnf -> bool
+  val bnf_of: Proof.context -> string -> bnf option
+  val register_bnf: string -> (bnf * local_theory) -> (bnf * local_theory)
 
-  val name_of_bnf: BNF -> binding
-  val T_of_bnf: BNF -> typ
-  val live_of_bnf: BNF -> int
-  val lives_of_bnf: BNF -> typ list
-  val dead_of_bnf: BNF -> int
-  val deads_of_bnf: BNF -> typ list
-  val nwits_of_bnf: BNF -> int
+  val name_of_bnf: bnf -> binding
+  val T_of_bnf: bnf -> typ
+  val live_of_bnf: bnf -> int
+  val lives_of_bnf: bnf -> typ list
+  val dead_of_bnf: bnf -> int
+  val deads_of_bnf: bnf -> typ list
+  val nwits_of_bnf: bnf -> int
 
   val mapN: string
   val relN: string
@@ -30,59 +30,59 @@ sig
   val mk_setN: int -> string
   val srelN: string
 
-  val map_of_bnf: BNF -> term
-  val sets_of_bnf: BNF -> term list
-  val rel_of_bnf: BNF -> term
+  val map_of_bnf: bnf -> term
+  val sets_of_bnf: bnf -> term list
+  val rel_of_bnf: bnf -> term
 
-  val mk_T_of_bnf: typ list -> typ list -> BNF -> typ
-  val mk_bd_of_bnf: typ list -> typ list -> BNF -> term
-  val mk_map_of_bnf: typ list -> typ list -> typ list -> BNF -> term
-  val mk_rel_of_bnf: typ list -> typ list -> typ list -> BNF -> term
-  val mk_sets_of_bnf: typ list list -> typ list list -> BNF -> term list
-  val mk_srel_of_bnf: typ list -> typ list -> typ list -> BNF -> term
-  val mk_wits_of_bnf: typ list list -> typ list list -> BNF -> (int list * term) list
+  val mk_T_of_bnf: typ list -> typ list -> bnf -> typ
+  val mk_bd_of_bnf: typ list -> typ list -> bnf -> term
+  val mk_map_of_bnf: typ list -> typ list -> typ list -> bnf -> term
+  val mk_rel_of_bnf: typ list -> typ list -> typ list -> bnf -> term
+  val mk_sets_of_bnf: typ list list -> typ list list -> bnf -> term list
+  val mk_srel_of_bnf: typ list -> typ list -> typ list -> bnf -> term
+  val mk_wits_of_bnf: typ list list -> typ list list -> bnf -> (int list * term) list
 
-  val bd_Card_order_of_bnf: BNF -> thm
-  val bd_Cinfinite_of_bnf: BNF -> thm
-  val bd_Cnotzero_of_bnf: BNF -> thm
-  val bd_card_order_of_bnf: BNF -> thm
-  val bd_cinfinite_of_bnf: BNF -> thm
-  val collect_set_map_of_bnf: BNF -> thm
-  val in_bd_of_bnf: BNF -> thm
-  val in_cong_of_bnf: BNF -> thm
-  val in_mono_of_bnf: BNF -> thm
-  val in_srel_of_bnf: BNF -> thm
-  val map_comp'_of_bnf: BNF -> thm
-  val map_comp_of_bnf: BNF -> thm
-  val map_cong0_of_bnf: BNF -> thm
-  val map_cong_of_bnf: BNF -> thm
-  val map_def_of_bnf: BNF -> thm
-  val map_id'_of_bnf: BNF -> thm
-  val map_id_of_bnf: BNF -> thm
-  val map_wppull_of_bnf: BNF -> thm
-  val map_wpull_of_bnf: BNF -> thm
-  val rel_def_of_bnf: BNF -> thm
-  val rel_eq_of_bnf: BNF -> thm
-  val rel_flip_of_bnf: BNF -> thm
-  val rel_srel_of_bnf: BNF -> thm
-  val set_bd_of_bnf: BNF -> thm list
-  val set_defs_of_bnf: BNF -> thm list
-  val set_map'_of_bnf: BNF -> thm list
-  val set_map_of_bnf: BNF -> thm list
-  val srel_def_of_bnf: BNF -> thm
-  val srel_Gr_of_bnf: BNF -> thm
-  val srel_Id_of_bnf: BNF -> thm
-  val srel_O_of_bnf: BNF -> thm
-  val srel_O_Gr_of_bnf: BNF -> thm
-  val srel_cong_of_bnf: BNF -> thm
-  val srel_converse_of_bnf: BNF -> thm
-  val srel_mono_of_bnf: BNF -> thm
-  val wit_thms_of_bnf: BNF -> thm list
-  val wit_thmss_of_bnf: BNF -> thm list list
+  val bd_Card_order_of_bnf: bnf -> thm
+  val bd_Cinfinite_of_bnf: bnf -> thm
+  val bd_Cnotzero_of_bnf: bnf -> thm
+  val bd_card_order_of_bnf: bnf -> thm
+  val bd_cinfinite_of_bnf: bnf -> thm
+  val collect_set_map_of_bnf: bnf -> thm
+  val in_bd_of_bnf: bnf -> thm
+  val in_cong_of_bnf: bnf -> thm
+  val in_mono_of_bnf: bnf -> thm
+  val in_srel_of_bnf: bnf -> thm
+  val map_comp'_of_bnf: bnf -> thm
+  val map_comp_of_bnf: bnf -> thm
+  val map_cong0_of_bnf: bnf -> thm
+  val map_cong_of_bnf: bnf -> thm
+  val map_def_of_bnf: bnf -> thm
+  val map_id'_of_bnf: bnf -> thm
+  val map_id_of_bnf: bnf -> thm
+  val map_wppull_of_bnf: bnf -> thm
+  val map_wpull_of_bnf: bnf -> thm
+  val rel_def_of_bnf: bnf -> thm
+  val rel_eq_of_bnf: bnf -> thm
+  val rel_flip_of_bnf: bnf -> thm
+  val rel_srel_of_bnf: bnf -> thm
+  val set_bd_of_bnf: bnf -> thm list
+  val set_defs_of_bnf: bnf -> thm list
+  val set_map'_of_bnf: bnf -> thm list
+  val set_map_of_bnf: bnf -> thm list
+  val srel_def_of_bnf: bnf -> thm
+  val srel_Gr_of_bnf: bnf -> thm
+  val srel_Id_of_bnf: bnf -> thm
+  val srel_O_of_bnf: bnf -> thm
+  val srel_O_Gr_of_bnf: bnf -> thm
+  val srel_cong_of_bnf: bnf -> thm
+  val srel_converse_of_bnf: bnf -> thm
+  val srel_mono_of_bnf: bnf -> thm
+  val wit_thms_of_bnf: bnf -> thm list
+  val wit_thmss_of_bnf: bnf -> thm list list
 
   val mk_witness: int list * term -> thm list -> nonemptiness_witness
   val minimize_wits: (''a list * 'b) list -> (''a list * 'b) list
-  val wits_of_bnf: BNF -> nonemptiness_witness list
+  val wits_of_bnf: bnf -> nonemptiness_witness list
 
   val zip_axioms: 'a -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a list -> 'a -> 'a -> 'a -> 'a list
 
@@ -98,7 +98,7 @@ sig
     ({prems: thm list, context: Proof.context} -> tactic) -> typ list option -> binding ->
     binding -> binding list ->
     ((((binding * term) * term list) * term) * term list) * term option ->
-    local_theory -> BNF * local_theory
+    local_theory -> bnf * local_theory
 end;
 
 structure BNF_Def : BNF_DEF =
@@ -286,7 +286,7 @@ fun mk_witness (I, wit) prop = {I = I, wit = wit, prop = prop};
 fun map_witness f g {I, wit, prop} = {I = I, wit = f wit, prop = map g prop};
 fun morph_witness phi = map_witness (Morphism.term phi) (Morphism.thm phi);
 
-datatype BNF = BNF of {
+datatype bnf = BNF of {
   name: binding,
   T: typ,
   live: int,
@@ -434,7 +434,7 @@ fun eq_bnf (BNF {T = T1, live = live1, dead = dead1, ...},
 
 structure Data = Generic_Data
 (
-  type T = BNF Symtab.table;
+  type T = bnf Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   val merge = Symtab.merge eq_bnf;

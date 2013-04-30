@@ -10,7 +10,7 @@ Codatatype construction.
 signature BNF_GFP =
 sig
   val construct_gfp: mixfix list -> (string * sort) list option -> binding list -> binding list ->
-    binding list -> binding list list -> typ list * typ list list -> BNF_Def.BNF list ->
+    binding list -> binding list list -> typ list * typ list list -> BNF_Def.bnf list ->
     local_theory -> BNF_FP.fp_result * local_theory
 end;
 
