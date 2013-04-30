@@ -217,7 +217,7 @@ fun massage_rec_fun_arg_typesss fpTs =
 val mk_fold_fun_typess = map2 (map2 (curry (op --->)));
 val mk_rec_fun_typess = mk_fold_fun_typess oo massage_rec_fun_arg_typesss;
 
-fun mk_fold_rec_terms_and_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
+fun mk_fold_rec_terms_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
     val y_Tsss = map3 mk_rec_like_fun_arg_typess ns mss ctor_fold_fun_Ts;
     val g_Tss = mk_fold_fun_typess y_Tsss Css;
@@ -236,7 +236,7 @@ fun mk_fold_rec_terms_and_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts
     (((gss, g_Tss, ysss), (hss, h_Tss, zsss)), lthy)
   end;
 
-fun mk_unfold_corec_terms_and_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
+fun mk_unfold_corec_terms_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
     fun repair_arity [0] = [1]
@@ -378,8 +378,8 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
     val (_, ctor_fold_fun_Ts) = mk_fp_rec_like true As Cs ctor_folds0;
     val (_, ctor_rec_fun_Ts) = mk_fp_rec_like true As Cs ctor_recs0;
 
-    val (((gss, g_Tss, ysss), (hss, h_Tss, zsss)), names_lthy0) =
-      mk_fold_rec_terms_and_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
+    val (((gss, _, _), (hss, _, _)), names_lthy0) =
+      mk_fold_rec_terms_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
     val ((((ps, ps'), xsss), us'), names_lthy) =
       names_lthy0
@@ -549,7 +549,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
     val sel_thmsss = map #sel_thmss ctr_wrap_ress;
 
     val ((cs, cpss, ((pgss, crssss, cgssss), _), ((phss, csssss, chssss), _)), names_lthy0) =
-      mk_unfold_corec_terms_and_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
+      mk_unfold_corec_terms_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
 
     val (((rs, us'), vs'), names_lthy) =
       names_lthy0
@@ -961,10 +961,10 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           (cs, cpss, unfold_only as ((_, crssss, cgssss), (_, g_Tsss, _)),
            corec_only as ((_, csssss, chssss), (_, h_Tsss, _)))), _) =
       if lfp then
-        mk_fold_rec_terms_and_types fpTs Css ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_fold_rec_terms_types fpTs Css ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> rpair ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))
       else
-        mk_unfold_corec_terms_and_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_unfold_corec_terms_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> pair (([], [], []), ([], [], []));
 
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
@@ -1067,83 +1067,88 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           end;
 
         fun derive_maps_sets_rels (ctr_wrap_res, lthy) =
-          let
-            val rel_flip = rel_flip_of_bnf fp_bnf;
-            val nones = replicate live NONE;
+          if live = 0 then
+            ((([], [], [], []), ctr_wrap_res), lthy)
+          else
+            let
+              val rel_flip = rel_flip_of_bnf fp_bnf;
+              val nones = replicate live NONE;
 
-            val ctor_cong =
-              if lfp then
-                Drule.dummy_thm
-              else
-                let val ctor' = mk_ctor Bs ctor in
-                  cterm_instantiate_pos [NONE, NONE, SOME (certify lthy ctor')] arg_cong
-                end;
+              val ctor_cong =
+                if lfp then
+                  Drule.dummy_thm
+                else
+                  let val ctor' = mk_ctor Bs ctor in
+                    cterm_instantiate_pos [NONE, NONE, SOME (certify lthy ctor')] arg_cong
+                  end;
 
-            fun mk_cIn ify =
-              certify lthy o (not lfp ? curry (op $) (map_types ify ctor)) oo
-              mk_InN_balanced (ify ctr_sum_prod_T) n;
+              fun mk_cIn ify =
+                certify lthy o (not lfp ? curry (op $) (map_types ify ctor)) oo
+                mk_InN_balanced (ify ctr_sum_prod_T) n;
 
-            val cxIns = map2 (mk_cIn I) tuple_xs ks;
-            val cyIns = map2 (mk_cIn B_ify) tuple_ys ks;
+              val cxIns = map2 (mk_cIn I) tuple_xs ks;
+              val cyIns = map2 (mk_cIn B_ify) tuple_ys ks;
 
-            fun mk_map_thm ctr_def' cxIn =
-              fold_thms lthy [ctr_def']
-                (unfold_thms lthy (pre_map_def ::
-                     (if lfp then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
-                   (cterm_instantiate_pos (nones @ [SOME cxIn])
-                      (if lfp then fp_map_thm else fp_map_thm RS ctor_cong)))
-              |> singleton (Proof_Context.export names_lthy no_defs_lthy);
+              fun mk_map_thm ctr_def' cxIn =
+                fold_thms lthy [ctr_def']
+                  (unfold_thms lthy (pre_map_def ::
+                       (if lfp then [] else [ctor_dtor, dtor_ctor]) @ sum_prod_thms_map)
+                     (cterm_instantiate_pos (nones @ [SOME cxIn])
+                        (if lfp then fp_map_thm else fp_map_thm RS ctor_cong)))
+                |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-            fun mk_set_thm fp_set_thm ctr_def' cxIn =
-              fold_thms lthy [ctr_def']
-                (unfold_thms lthy (pre_set_defs @ nested_set_map's @ nesting_set_map's @
-                     (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_set)
-                   (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
-              |> singleton (Proof_Context.export names_lthy no_defs_lthy);
+              fun mk_set_thm fp_set_thm ctr_def' cxIn =
+                fold_thms lthy [ctr_def']
+                  (unfold_thms lthy (pre_set_defs @ nested_set_map's @ nesting_set_map's @
+                       (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_set)
+                     (cterm_instantiate_pos [SOME cxIn] fp_set_thm))
+                |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-            fun mk_set_thms fp_set_thm = map2 (mk_set_thm fp_set_thm) ctr_defs' cxIns;
+              fun mk_set_thms fp_set_thm = map2 (mk_set_thm fp_set_thm) ctr_defs' cxIns;
 
-            val map_thms = map2 mk_map_thm ctr_defs' cxIns;
-            val set_thmss = map mk_set_thms fp_set_thms;
+              val map_thms = map2 mk_map_thm ctr_defs' cxIns;
+              val set_thmss = map mk_set_thms fp_set_thms;
 
-            val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
+              val rel_infos = (ctr_defs' ~~ cxIns, ctr_defs' ~~ cyIns);
 
-            fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
-              fold_thms lthy ctr_defs'
-                 (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
-                      (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_rel)
-                    (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
-              |> postproc
-              |> singleton (Proof_Context.export names_lthy no_defs_lthy);
+              fun mk_rel_thm postproc ctr_defs' cxIn cyIn =
+                fold_thms lthy ctr_defs'
+                   (unfold_thms lthy (@{thm Inl_Inr_False} :: pre_rel_def ::
+                        (if lfp then [] else [dtor_ctor]) @ sum_prod_thms_rel)
+                      (cterm_instantiate_pos (nones @ [SOME cxIn, SOME cyIn]) fp_rel_thm))
+                |> postproc
+                |> singleton (Proof_Context.export names_lthy no_defs_lthy);
 
-            fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
-              mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
+              fun mk_rel_inject_thm ((ctr_def', cxIn), (_, cyIn)) =
+                mk_rel_thm (unfold_thms lthy @{thms eq_sym_Unity_conv}) [ctr_def'] cxIn cyIn;
 
-            val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
+              val rel_inject_thms = map mk_rel_inject_thm (op ~~ rel_infos);
 
-            fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
-              mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
-                cxIn cyIn;
+              fun mk_half_rel_distinct_thm ((xctr_def', cxIn), (yctr_def', cyIn)) =
+                mk_rel_thm (fn thm => thm RS @{thm eq_False[THEN iffD1]}) [xctr_def', yctr_def']
+                  cxIn cyIn;
 
-            fun mk_other_half_rel_distinct_thm thm =
-              flip_rels lthy live thm RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
+              fun mk_other_half_rel_distinct_thm thm =
+                flip_rels lthy live thm
+                RS (rel_flip RS sym RS @{thm arg_cong[of _ _ Not]} RS iffD2);
 
-            val half_rel_distinct_thmss =
-              map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
-            val other_half_rel_distinct_thmss =
-              map (map mk_other_half_rel_distinct_thm) half_rel_distinct_thmss;
-            val (rel_distinct_thms, _) =
-              join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
+              val half_rel_distinct_thmss =
+                map (map mk_half_rel_distinct_thm) (mk_half_pairss rel_infos);
+              val other_half_rel_distinct_thmss =
+                map (map mk_other_half_rel_distinct_thm) half_rel_distinct_thmss;
+              val (rel_distinct_thms, _) =
+                join_halves n half_rel_distinct_thmss other_half_rel_distinct_thmss;
 
-            val notes =
-              [(mapN, map_thms, code_simp_attrs),
-               (rel_distinctN, rel_distinct_thms, code_simp_attrs),
-               (rel_injectN, rel_inject_thms, code_simp_attrs),
-               (setsN, flat set_thmss, code_simp_attrs)]
-              |> massage_simple_notes fp_b_name;
-          in
-            (ctr_wrap_res, lthy |> Local_Theory.notes notes |> snd)
-          end;
+              val notes =
+                [(mapN, map_thms, code_simp_attrs),
+                 (rel_distinctN, rel_distinct_thms, code_simp_attrs),
+                 (rel_injectN, rel_inject_thms, code_simp_attrs),
+                 (setsN, flat set_thmss, code_simp_attrs)]
+                |> massage_simple_notes fp_b_name;
+            in
+              (((map_thms, rel_inject_thms, rel_distinct_thms, set_thmss), ctr_wrap_res),
+               lthy |> Local_Theory.notes notes |> snd)
+            end;
 
         fun define_fold_rec no_defs_lthy =
           let
@@ -1263,25 +1268,29 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             ((unfold, corec, unfold_def, corec_def), lthy')
           end;
 
-        val define_rec_likes = if lfp then define_fold_rec else define_unfold_corec;
-
-        fun massage_res ((ctr_wrap_res, rec_like_res), lthy) =
-          (((ctrs, xss, ctr_defs, ctr_wrap_res), rec_like_res), lthy);
+        fun massage_res (((maps_sets_rels, ctr_wrap_res), rec_like_res), lthy) =
+          (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_wrap_res)), rec_like_res), lthy);
       in
-        (wrap #> (live > 0 ? derive_maps_sets_rels) ##>> define_rec_likes #> massage_res, lthy')
+        (wrap
+         #> derive_maps_sets_rels
+         ##>> (if lfp then define_fold_rec else define_unfold_corec)
+         #> massage_res, lthy')
       end;
 
-    fun wrap_types_and_more (wrap_types_and_mores, lthy) =
-      fold_map I wrap_types_and_mores lthy
-      |>> apsnd split_list4 o apfst split_list4 o split_list;
+    fun wrap_types_etc (wrap_types_etcs, lthy) =
+      fold_map I wrap_types_etcs lthy
+      |>> apsnd split_list4 o apfst (apsnd split_list4 o apfst split_list4 o split_list)
+        o split_list;
 
-    (* TODO: Add map, sets, rel simps *)
     val mk_simp_thmss =
-      map3 (fn {injects, distincts, case_thms, ...} => fn rec_likes => fn fold_likes =>
-        injects @ distincts @ case_thms @ rec_likes @ fold_likes);
+      map7 (fn {injects, distincts, case_thms, ...} => fn rec_likes => fn fold_likes =>
+        fn mapsx => fn rel_injects => fn rel_distincts => fn setss =>
+          injects @ distincts @ case_thms @ rec_likes @ fold_likes @ mapsx @ rel_injects
+          @ rel_distincts @ flat setss);
 
     fun derive_and_note_induct_fold_rec_thms_for_types
-        (((ctrss, _, ctr_defss, ctr_wrap_ress), (folds, recs, fold_defs, rec_defs)), lthy) =
+        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_wrap_ress)),
+          (folds, recs, fold_defs, rec_defs)), lthy) =
       let
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
@@ -1291,7 +1300,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
-        val simp_thmss = mk_simp_thmss ctr_wrap_ress rec_thmss fold_thmss;
+        val simp_thmss =
+          mk_simp_thmss ctr_wrap_ress rec_thmss fold_thmss mapsx rel_injects rel_distincts setss;
 
         val common_notes =
           (if nn > 1 then [(inductN, [induct_thm], induct_attrs)] else [])
@@ -1310,7 +1320,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
-        (((ctrss, _, ctr_defss, ctr_wrap_ress), (unfolds, corecs, unfold_defs, corec_defs)), lthy) =
+        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_wrap_ress)),
+          (unfolds, corecs, unfold_defs, corec_defs)), lthy) =
       let
         val ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms,
               coinduct_attrs),
@@ -1331,7 +1342,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         val simp_thmss =
           mk_simp_thmss ctr_wrap_ress
             (map3 flat_corec_like_thms safe_corec_thmss disc_corec_thmss sel_corec_thmss)
-            (map3 flat_corec_like_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss);
+            (map3 flat_corec_like_thms safe_unfold_thmss disc_unfold_thmss sel_unfold_thmss)
+            mapsx rel_injects rel_distincts setss;
 
         val anonymous_notes =
           [(flat safe_unfold_thmss @ flat safe_corec_thmss, simp_attrs)]
@@ -1371,7 +1383,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         pre_set_defss ~~ pre_rel_defs ~~ fp_map_thms ~~ fp_set_thmss ~~ fp_rel_thms ~~ ns ~~ kss ~~
         mss ~~ ctr_bindingss ~~ ctr_mixfixess ~~ ctr_Tsss ~~ disc_bindingss ~~ sel_bindingsss ~~
         raw_sel_defaultsss)
-      |> wrap_types_and_more
+      |> wrap_types_etc
       |> (if lfp then derive_and_note_induct_fold_rec_thms_for_types
           else derive_and_note_coinduct_unfold_corec_thms_for_types);
 
