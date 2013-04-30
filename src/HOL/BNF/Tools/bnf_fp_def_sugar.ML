@@ -94,7 +94,7 @@ fun register_fp_sugar key fp_sugar =
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars xxfolds xxrecs lthy =
-  (1, lthy)
+  (0, lthy)
   |> fold (fn ctor => fn (kk, lthy) => (kk + 1,
     register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
       pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars, xxfolds = xxfolds,
