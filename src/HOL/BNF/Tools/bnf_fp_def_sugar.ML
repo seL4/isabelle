@@ -9,7 +9,8 @@ signature BNF_FP_DEF_SUGAR =
 sig
   type fp =
     {lfp: bool,
-     fp_index: int,
+     index: int,
+     pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP.fp_result,
      ctr_wrap_res: BNF_Ctr_Sugar.ctr_wrap_result};
 
@@ -59,17 +60,18 @@ val EqN = "Eq_";
 
 type fp =
   {lfp: bool,
-   fp_index: int,
+   index: int,
+   pre_bnfs: bnf list,
    fp_res: fp_result,
    ctr_wrap_res: ctr_wrap_result};
 
-fun eq_fp ({lfp = lfp1, fp_index = fp_index1, fp_res = fp_res1, ...} : fp,
-    {lfp = lfp2, fp_index = fp_index2, fp_res = fp_res2, ...} : fp) =
-  lfp1 = lfp2 andalso fp_index1 = fp_index2 andalso eq_fp_result (fp_res1, fp_res2);
+fun eq_fp ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp,
+    {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp) =
+  lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp phi {lfp, fp_index, fp_res, ctr_wrap_res} =
-  {lfp = lfp, fp_index = fp_index, fp_res = morph_fp_result phi fp_res,
-   ctr_wrap_res = morph_ctr_wrap_result phi ctr_wrap_res};
+fun morph_fp phi {lfp, index, pre_bnfs, fp_res, ctr_wrap_res} =
+  {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
+   fp_res = morph_fp_result phi fp_res, ctr_wrap_res = morph_ctr_wrap_result phi ctr_wrap_res};
 
 structure Data = Generic_Data
 (
@@ -87,11 +89,11 @@ fun register_fp key fp =
 
 val fp_name_of_ctor = fst o dest_Type o range_type o fastype_of;
 
-fun register_fps lfp (fp_res as {ctors, ...}) ctr_wrap_ress lthy =
+fun register_fps lfp pre_bnfs (fp_res as {ctors, ...}) ctr_wrap_ress lthy =
   ((1, ctors), lthy)
   |> fold (fn ctr_wrap_res => fn ((kk, ctor :: ctors), lthy) =>
-    ((kk + 1, ctors), register_fp (fp_name_of_ctor ctor) {lfp = lfp, fp_index = kk,
-       fp_res = fp_res, ctr_wrap_res = ctr_wrap_res} lthy)) ctr_wrap_ress
+    ((kk + 1, ctors), register_fp (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
+       pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_wrap_res = ctr_wrap_res} lthy)) ctr_wrap_ress
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -1316,7 +1318,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fps true fp_res ctr_wrap_ress
+        |> register_fps true pre_bnfs fp_res ctr_wrap_ress
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
@@ -1374,7 +1376,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fps false fp_res ctr_wrap_ress
+        |> register_fps false pre_bnfs fp_res ctr_wrap_ress
       end;
 
     val lthy' = lthy
