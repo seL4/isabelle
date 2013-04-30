@@ -347,10 +347,10 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
+    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
     val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
     val nested_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nested_bnfs;
     val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
-    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
 
@@ -514,11 +514,11 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
+    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
+    val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
     val nested_map_comp's = map map_comp'_of_bnf nested_bnfs;
     val nested_map_comps'' = map ((fn thm => thm RS sym) o map_comp_of_bnf) nested_bnfs;
     val nested_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nested_bnfs;
-    val nesting_map_ids'' = map (unfold_thms lthy @{thms id_def} o map_id_of_bnf) nesting_bnfs;
-    val nesting_rel_eqs = map rel_eq_of_bnf nesting_bnfs;
 
     val fp_b_names = map base_name_of_typ fpTs;
 
@@ -538,8 +538,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
       ||>> Variable.variant_fixes fp_b_names
       ||>> Variable.variant_fixes (map (suffix "'") fp_b_names);
 
-    val (p_Tss, (r_Tssss, g_sum_prod_Ts, g_Tsss, g_Tssss, pg_Tss),
-         (s_Tssss, h_sum_prod_Ts, h_Tsss, h_Tssss, ph_Tss)) =
+    val (p_Tss, (r_Tssss, _, _, g_Tssss, _), (s_Tssss, _, _, h_Tssss, _)) =
       mk_unfold_corec_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts;
 
     val ((cs, pss, (gssss, rssss), (hssss, sssss)), names_lthy) =
@@ -911,8 +910,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
     val pre_rel_defs = map rel_def_of_bnf pre_bnfs;
-    val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
     val nesting_set_map's = maps set_map'_of_bnf nesting_bnfs;
+    val nested_set_map's = maps set_map'_of_bnf nested_bnfs;
 
     val live = live_of_bnf any_fp_bnf;
 
@@ -951,8 +950,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val (fp_recs, fp_rec_fun_Ts) = mk_fp_rec_like lfp As Cs fp_recs0;
 
     val (((fold_only, rec_only),
-          (cs, cpss, unfold_only as ((pgss, crssss, cgssss), (_, g_Tsss, _)),
-           corec_only as ((phss, csssss, chssss), (_, h_Tsss, _)))), names_lthy0) =
+          (cs, cpss, unfold_only as ((_, crssss, cgssss), (_, g_Tsss, _)),
+           corec_only as ((_, csssss, chssss), (_, h_Tsss, _)))), _) =
       if lfp then
         let
           val y_Tsss = map3 mk_rec_like_fun_arg_typess ns mss fp_fold_fun_Ts;
@@ -1311,7 +1310,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs
             rec_defs lthy;
 
-        fun induct_type_attr T_name = Attrib.internal (K (Induct.induct_type T_name));
+        val induct_type_attr = Attrib.internal o K o Induct.induct_type;
 
         val simp_thmss = mk_simp_thmss ctr_wrap_ress rec_thmss fold_thmss;
 
@@ -1345,7 +1344,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
             fp_strong_induct dtor_ctors fp_fold_thms fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As
             kss mss ns ctrss ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy;
 
-        fun coinduct_type_attr T_name = Attrib.internal (K (Induct.coinduct_type T_name));
+        val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
         fun flat_corec_like_thms corec_likes disc_corec_likes sel_corec_likes =
           corec_likes @ disc_corec_likes @ sel_corec_likes;
