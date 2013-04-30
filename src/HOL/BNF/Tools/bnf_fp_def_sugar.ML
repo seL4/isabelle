@@ -12,7 +12,7 @@ sig
      index: int,
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP.fp_result,
-     ctr_sugar: BNF_Ctr_Sugar.ctr_sugar};
+     ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list};
 
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
@@ -64,15 +64,15 @@ type fp_sugar =
    index: int,
    pre_bnfs: bnf list,
    fp_res: fp_result,
-   ctr_sugar: ctr_sugar};
+   ctr_sugars: ctr_sugar list};
 
 fun eq_fp_sugar ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
     {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugar} =
+fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars} =
   {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
-   fp_res = morph_fp_result phi fp_res, ctr_sugar = morph_ctr_sugar phi ctr_sugar};
+   fp_res = morph_fp_result phi fp_res, ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars};
 
 structure Data = Generic_Data
 (
@@ -89,10 +89,10 @@ fun register_fp_sugar key fp_sugar =
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
 fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars lthy =
-  ((1, ctors), lthy)
-  |> fold (fn ctr_sugar => fn ((kk, ctor :: ctors), lthy) =>
-    ((kk + 1, ctors), register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
-       pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugar = ctr_sugar} lthy)) ctr_sugars
+  (1, lthy)
+  |> fold (fn ctor => fn (kk, lthy) => (kk + 1,
+    register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
+      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars} lthy)) ctors
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
