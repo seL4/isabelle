@@ -96,7 +96,7 @@ apply(simp add: fun_rep_map_of map_of_map fun_eq_iff split: option.split)
 apply(fastforce simp: fun_rep_map_of fun_eq_iff split:option.splits)
 done
 
-instantiation st :: (semilattice) semilattice
+instantiation st :: (semilattice_sup_top) semilattice_sup_top
 begin
 
 lift_definition sup_st :: "'a st \<Rightarrow> 'a st \<Rightarrow> 'a st" is "map2_st_rep (op \<squnion>)"
@@ -129,7 +129,8 @@ by transfer (auto simp add: less_eq_st_rep_def)
 lemma mono_fun: "S1 \<le> S2 \<Longrightarrow> fun S1 x \<le> fun S2 x"
 by transfer (simp add: less_eq_st_rep_iff)
 
-locale Gamma = Val_abs where \<gamma>=\<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
+locale Gamma = Val_abs where \<gamma>=\<gamma>
+  for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 
 abbreviation \<gamma>\<^isub>s :: "'av st \<Rightarrow> state set"

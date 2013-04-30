@@ -65,7 +65,7 @@ by(auto simp add: \<gamma>_rep_cases is_empty_rep_def split: prod.splits extende
 declare is_empty_rep_iff[THEN iffD1, simp]
 
 
-instantiation ivl :: semilattice
+instantiation ivl :: semilattice_sup_top
 begin
 
 definition le_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> bool" where

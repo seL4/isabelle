@@ -47,9 +47,9 @@ qed
 
 end
 
-text{* Instantiation of class @{class semilattice} with type @{typ parity}: *}
+text{* Instantiation of class @{class semilattice_sup_top} with type @{typ parity}: *}
 
-instantiation parity :: semilattice
+instantiation parity :: semilattice_sup_top
 begin
 
 definition sup_parity where

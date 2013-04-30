@@ -10,10 +10,10 @@ text{* The basic type classes @{class order}, @{class semilattice_sup} and @{cla
 defined in @{theory Main}, more precisely in theories @{theory Orderings} and @{theory Lattices}.
 If you view this theory with jedit, just click on the names to get there. *}
 
-class semilattice = semilattice_sup + top
+class semilattice_sup_top = semilattice_sup + top
 
 
-instance "fun" :: (type, semilattice) semilattice ..
+instance "fun" :: (type, semilattice_sup_top) semilattice_sup_top ..
 
 instantiation option :: (order)order
 begin
@@ -58,7 +58,7 @@ instance ..
 
 end
 
-instantiation option :: (semilattice)semilattice
+instantiation option :: (semilattice_sup_top)semilattice_sup_top
 begin
 
 definition top_option where "\<top> = Some \<top>"
@@ -149,7 +149,7 @@ fun \<gamma>_option :: "('a \<Rightarrow> 'b set) \<Rightarrow> 'a option \<Righ
 text{* The interface for abstract values: *}
 
 locale Val_abs =
-fixes \<gamma> :: "'av::semilattice \<Rightarrow> val set"
+fixes \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
   assumes mono_gamma: "a \<le> b \<Longrightarrow> \<gamma> a \<le> \<gamma> b"
   and gamma_Top[simp]: "\<gamma> \<top> = UNIV"
 fixes num' :: "val \<Rightarrow> 'av"
@@ -159,7 +159,12 @@ and plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av"
 
 type_synonym 'av st = "(vname \<Rightarrow> 'av)"
 
-locale Abs_Int_fun = Val_abs \<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
+text{* The for-clause (here and elsewhere) only serves the purpose of fixing
+the name of the type parameter @{typ 'av} which would otherwise be renamed to
+@{typ 'a}. *}
+
+locale Abs_Int_fun = Val_abs where \<gamma>=\<gamma>
+  for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 
 fun aval' :: "aexp \<Rightarrow> 'av st \<Rightarrow> 'av" where
@@ -349,7 +354,8 @@ lemma le_iff_le_annos: "C1 \<le> C2 \<longleftrightarrow>
 by(auto simp add: le_iff_le_annos_zip set_zip) (metis size_annos_same2)
 
 
-locale Measure_fun = Measure1_fun where m=m for m :: "'av::semilattice \<Rightarrow> nat" +
+locale Measure_fun = Measure1_fun where m=m
+  for m :: "'av::semilattice_sup_top \<Rightarrow> nat" +
 assumes m2: "x < y \<Longrightarrow> m x > m y"
 begin
 
@@ -465,7 +471,7 @@ end
 
 locale Abs_Int_fun_measure =
   Abs_Int_fun_mono where \<gamma>=\<gamma> + Measure_fun where m=m
-  for \<gamma> :: "'av::semilattice \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
+  for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 begin
 
 lemma top_on_step': "top_on_acom C (-vars C) \<Longrightarrow> top_on_acom (step' \<top> C) (-vars C)"

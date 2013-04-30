@@ -241,8 +241,8 @@ by(auto simp add: pfp_wn_def iter_narrow_def split: option.splits)
   (metis (mono_tags) strip_iter_widen strip_narrow_acom strip_while)
 
 
-locale Abs_Int2 = Abs_Int1_mono
-where \<gamma>=\<gamma> for \<gamma> :: "'av::{WN,bounded_lattice} \<Rightarrow> val set"
+locale Abs_Int2 = Abs_Int1_mono where \<gamma>=\<gamma>
+  for \<gamma> :: "'av::{WN,bounded_lattice} \<Rightarrow> val set"
 begin
 
 definition AI_wn :: "com \<Rightarrow> 'av st option acom option" where
@@ -337,7 +337,8 @@ iterate), but during widening there is no such invariant, there we only have
 that not yet @{prop"y \<le> x"}. This complicates the termination proof for
 widening. *}
 
-locale Measure_WN = Measure1 where m=m for m :: "'av::{top,WN} \<Rightarrow> nat" +
+locale Measure_WN = Measure1 where m=m
+  for m :: "'av::{top,WN} \<Rightarrow> nat" +
 fixes n :: "'av \<Rightarrow> nat"
 assumes m_anti_mono: "x \<le> y \<Longrightarrow> m x \<ge> m y"
 assumes m_widen: "~ y \<le> x \<Longrightarrow> m(x \<nabla> y) < m x"
@@ -503,8 +504,7 @@ next
     by blast
 qed
 
-locale Abs_Int2_measure =
-  Abs_Int2 where \<gamma>=\<gamma> + Measure_WN where m=m
+locale Abs_Int2_measure = Abs_Int2 where \<gamma>=\<gamma> + Measure_WN where m=m
   for \<gamma> :: "'av::{WN,bounded_lattice} \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 
 

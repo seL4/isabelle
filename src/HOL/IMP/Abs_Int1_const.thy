@@ -20,7 +20,7 @@ lemma plus_const_cases: "plus_const a1 a2 =
   (case (a1,a2) of (Const i, Const j) \<Rightarrow> Const(i+j) | _ \<Rightarrow> Any)"
 by(auto split: prod.split const.split)
 
-instantiation const :: semilattice
+instantiation const :: semilattice_sup_top
 begin
 
 fun less_eq_const where "x \<le> y = (y = Any | x=y)"

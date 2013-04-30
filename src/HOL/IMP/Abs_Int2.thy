@@ -26,10 +26,10 @@ end
 
 subsection "Backward Analysis of Expressions"
 
-subclass (in bounded_lattice) semilattice ..
+subclass (in bounded_lattice) semilattice_sup_top ..
 
-locale Val_abs1_gamma =
-  Gamma where \<gamma> = \<gamma> for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
+locale Val_abs1_gamma = Gamma where \<gamma> = \<gamma>
+  for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
 assumes inter_gamma_subset_gamma_inf:
   "\<gamma> a1 \<inter> \<gamma> a2 \<subseteq> \<gamma>(a1 \<sqinter> a2)"
 and gamma_bot[simp]: "\<gamma> \<bottom> = {}"
@@ -45,8 +45,7 @@ by(rule equalityI[OF _ inter_gamma_subset_gamma_inf])
 end
 
 
-locale Val_abs1 =
-  Val_abs1_gamma where \<gamma> = \<gamma>
+locale Val_abs1 = Val_abs1_gamma where \<gamma> = \<gamma>
    for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set" +
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
@@ -58,8 +57,8 @@ and filter_less': "filter_less' (n1<n2) a1 a2 = (b1,b2) \<Longrightarrow>
   n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
 
 
-locale Abs_Int1 =
-  Val_abs1 where \<gamma> = \<gamma> for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set"
+locale Abs_Int1 = Val_abs1 where \<gamma> = \<gamma>
+  for \<gamma> :: "'av::bounded_lattice \<Rightarrow> val set"
 begin
 
 lemma in_gamma_sup_UpI:

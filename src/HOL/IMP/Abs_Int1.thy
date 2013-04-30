@@ -32,11 +32,8 @@ by(simp add: \<gamma>_st_def)
 end
 
 
-text{* The for-clause (here and elsewhere) only serves the purpose of fixing
-the name of the type parameter @{typ 'av} which would otherwise be renamed to
-@{typ 'a}. *}
-
-locale Abs_Int = Gamma where \<gamma>=\<gamma> for \<gamma> :: "'av::semilattice \<Rightarrow> val set"
+locale Abs_Int = Gamma where \<gamma>=\<gamma>
+  for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set"
 begin
 
 definition "step' = Step
@@ -172,7 +169,7 @@ apply(induction o1 o2 rule: sup_option.induct)
 apply(auto)
 by transfer simp
 
-lemma top_on_Step: fixes C :: "('a::semilattice)st option acom"
+lemma top_on_Step: fixes C :: "('a::semilattice_sup_top)st option acom"
 assumes "!!x e S. \<lbrakk>top_on_opt S X; x \<notin> X; vars e \<subseteq> -X\<rbrakk> \<Longrightarrow> top_on_opt (f x e S) X"
         "!!b S. top_on_opt S X \<Longrightarrow> vars b \<subseteq> -X \<Longrightarrow> top_on_opt (g b S) X"
 shows "\<lbrakk> vars C \<subseteq> -X; top_on_opt S X; top_on_acom C X \<rbrakk> \<Longrightarrow> top_on_acom (Step f g S C) X"
@@ -250,7 +247,7 @@ end
 
 locale Abs_Int_measure =
   Abs_Int_mono where \<gamma>=\<gamma> + Measure where m=m
-  for \<gamma> :: "'av::semilattice \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
+  for \<gamma> :: "'av::semilattice_sup_top \<Rightarrow> val set" and m :: "'av \<Rightarrow> nat"
 begin
 
 lemma top_on_step': "\<lbrakk> top_on_acom C (-vars C) \<rbrakk> \<Longrightarrow> top_on_acom (step' \<top> C) (-vars C)"
