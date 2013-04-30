@@ -11,7 +11,7 @@ theory BNF_Def
 imports BNF_Util
 keywords
   "print_bnfs" :: diag and
-  "bnf_def" :: thy_goal
+  "bnf" :: thy_goal
 begin
 
 lemma collect_o: "collect F o g = collect ((\<lambda>f. f o g) ` F)"

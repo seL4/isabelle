@@ -22,7 +22,7 @@ begin
 lemma option_rec_conv_option_case: "option_rec = option_case"
 by (simp add: fun_eq_iff split: option.split)
 
-bnf_def Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"] option_rel
+bnf Option.map [Option.set] "\<lambda>_::'a option. natLeq" ["None"] option_rel
 proof -
   show "Option.map id = id" by (simp add: fun_eq_iff Option.map_def split: option.split)
 next
@@ -200,7 +200,7 @@ proof (unfold wpull_def)
     (\<exists>zs \<in> ?A. map p1 zs = as \<and> map p2 zs = bs)" by blast
 qed
 
-bnf_def map [set] "\<lambda>_::'a list. natLeq" ["[]"]
+bnf map [set] "\<lambda>_::'a list. natLeq" ["[]"]
 proof -
   show "map id = id" by (rule List.map.id)
 next
@@ -327,7 +327,7 @@ unfolding wpull_def Pow_def Bex_def mem_Collect_eq proof clarify
      using X' Y1 Y2 by (auto simp: X'eq intro!: exI[of _ "x"]) (transfer, simp)+
 qed
 
-bnf_def fmap [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
+bnf fmap [fset] "\<lambda>_::'a fset. natLeq" ["{||}"] fset_rel
 apply -
           apply transfer' apply simp
          apply transfer' apply simp
@@ -447,7 +447,7 @@ next
   by (metis Domain.intros Range.simps rcset_map' fst_eq_Domain snd_eq_Range)
 qed
 
-bnf_def cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"] cset_rel
+bnf cIm [rcset] "\<lambda>_::'a cset. natLeq" ["cEmp"] cset_rel
 proof -
   show "cIm id = id" unfolding cIm_def[abs_def] id_def by auto
 next
@@ -1075,7 +1075,7 @@ qed
 definition multiset_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
 "multiset_map h = Abs_multiset \<circ> mmap h \<circ> count"
 
-bnf_def multiset_map [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
+bnf multiset_map [set_of] "\<lambda>_::'a multiset. natLeq" ["{#}"]
 unfolding multiset_map_def
 proof -
   show "Abs_multiset \<circ> mmap id \<circ> count = id" unfolding mmap_id by (auto simp: count_inverse)

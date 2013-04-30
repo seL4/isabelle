@@ -27,7 +27,7 @@ unfolding cinfinite_def Field_natLeq by (rule nat_infinite)
 lemma wpull_Gr_def: "wpull A B1 B2 f1 f2 p1 p2 \<longleftrightarrow> Gr B1 f1 O (Gr B2 f2)\<inverse> \<subseteq> (Gr A p1)\<inverse> O Gr A p2"
   unfolding wpull_def Gr_def relcomp_unfold converse_unfold by auto
 
-bnf_def ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
+bnf ID: "id :: ('a \<Rightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ["\<lambda>x. {x}"] "\<lambda>_:: 'a. natLeq" ["id :: 'a \<Rightarrow> 'a"]
   "\<lambda>x :: 'a \<Rightarrow> 'b \<Rightarrow> bool. x"
 apply (auto simp: Gr_def fun_eq_iff natLeq_card_order natLeq_cinfinite)
 apply (rule ordLess_imp_ordLeq[OF finite_ordLess_infinite[OF _ natLeq_Well_order]])
@@ -45,7 +45,7 @@ apply (rule card_of_Card_order)
 apply (rule natLeq_Card_order)
 done
 
-bnf_def DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
+bnf DEADID: "id :: 'a \<Rightarrow> 'a" [] "\<lambda>_:: 'a. natLeq +c |UNIV :: 'a set|" ["SOME x :: 'a. True"]
   "op =::'a \<Rightarrow> 'a \<Rightarrow> bool"
 apply (auto simp add: wpull_Gr_def Gr_def
   card_order_csum natLeq_card_order card_of_card_order_on
@@ -74,7 +74,7 @@ definition sum_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('
  (case x of Inl a1 \<Rightarrow> (case y of Inl a2 \<Rightarrow> \<phi> a1 a2 | Inr _ \<Rightarrow> False)
           | Inr b1 \<Rightarrow> (case y of Inl _ \<Rightarrow> False | Inr b2 \<Rightarrow> \<psi> b1 b2))"
 
-bnf_def sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel
+bnf sum_map [setl, setr] "\<lambda>_::'a + 'b. natLeq" [Inl, Inr] sum_rel
 proof -
   show "sum_map id id = id" by (rule sum_map.id)
 next
@@ -213,7 +213,7 @@ lemmas prod_set_defs = fsts_def[abs_def] snds_def[abs_def]
 definition prod_rel :: "('a \<Rightarrow> 'b \<Rightarrow> bool) \<Rightarrow> ('c \<Rightarrow> 'd \<Rightarrow> bool) \<Rightarrow> 'a \<times> 'c \<Rightarrow> 'b \<times> 'd \<Rightarrow> bool" where
 "prod_rel \<phi> \<psi> p1 p2 = (case p1 of (a1, b1) \<Rightarrow> case p2 of (a2, b2) \<Rightarrow> \<phi> a1 a2 \<and> \<psi> b1 b2)"
 
-bnf_def map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_rel
+bnf map_pair [fsts, snds] "\<lambda>_::'a \<times> 'b. ctwo *c natLeq" [Pair] prod_rel
 proof (unfold prod_set_defs)
   show "map_pair id id = id" by (rule map_pair.id)
 next
@@ -327,7 +327,7 @@ proof -
   ultimately show ?thesis using card_of_ordLeq by fast
 qed
 
-bnf_def "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|" ["%c x::'b::type. c::'a::type"]
+bnf "op \<circ>" [range] "\<lambda>_:: 'a \<Rightarrow> 'b. natLeq +c |UNIV :: 'a set|" ["%c x::'b::type. c::'a::type"]
   "fun_rel op ="
 proof
   fix f show "id \<circ> f = id f" by simp

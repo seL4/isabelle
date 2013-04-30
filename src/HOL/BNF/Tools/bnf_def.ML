@@ -1285,7 +1285,7 @@ fun bnf_def const_policy fact_policy qualify tacs wit_tac Ds map_b rel_b set_bs 
     |> (fn thms => after_qed (map single thms @ wit_thms) lthy)
   end) oo prepare_def const_policy fact_policy qualify (K I) Ds map_b rel_b set_bs;
 
-val bnf_def_cmd = (fn (key, goals, wit_goals, after_qed, lthy, defs) =>
+val bnf_cmd = (fn (key, goals, wit_goals, after_qed, lthy, defs) =>
   Proof.unfolding ([[(defs, [])]])
     (Proof.theorem NONE (snd o register_bnf key oo after_qed)
       (map (single o rpair []) goals @ map (map (rpair [])) wit_goals) lthy)) oo
@@ -1318,14 +1318,16 @@ fun print_bnfs ctxt =
   end;
 
 val _ =
-  Outer_Syntax.improper_command @{command_spec "print_bnfs"} "print all BNFs"
+  Outer_Syntax.improper_command @{command_spec "print_bnfs"}
+    "print all BNFs (bounded natural functors)"
     (Scan.succeed (Toplevel.keep (print_bnfs o Toplevel.context_of)));
 
 val _ =
-  Outer_Syntax.local_theory_to_proof @{command_spec "bnf_def"} "define a BNF for an existing type"
+  Outer_Syntax.local_theory_to_proof @{command_spec "bnf"}
+    "register a type as a BNF (bounded natural functor)"
     ((parse_opt_binding_colon -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Parse.term --
        (@{keyword "["} |-- Parse.list Parse.term --| @{keyword "]"}) -- Scan.option Parse.term)
-       >> bnf_def_cmd);
+       >> bnf_cmd);
 
 end;

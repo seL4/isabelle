@@ -31,7 +31,7 @@
     "ax_specification"
     "axiomatization"
     "back"
-    "bnf_def"
+    "bnf"
     "boogie_end"
     "boogie_open"
     "boogie_status"
@@ -583,7 +583,7 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
-    "bnf_def"
+    "bnf"
     "boogie_vc"
     "code_pred"
     "corollary"
