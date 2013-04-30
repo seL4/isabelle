@@ -12,7 +12,9 @@ sig
      index: int,
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP.fp_result,
-     ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list};
+     ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list,
+     fold_likes: term list,
+     rec_likes: term list};
 
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
@@ -64,15 +66,19 @@ type fp_sugar =
    index: int,
    pre_bnfs: bnf list,
    fp_res: fp_result,
-   ctr_sugars: ctr_sugar list};
+   ctr_sugars: ctr_sugar list,
+   fold_likes: term list,
+   rec_likes: term list};
 
 fun eq_fp_sugar ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
     {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars} =
+fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars, fold_likes, rec_likes} =
   {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
-   fp_res = morph_fp_result phi fp_res, ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars};
+   fp_res = morph_fp_result phi fp_res, ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
+   fold_likes = map (Morphism.term phi) fold_likes,
+   rec_likes = map (Morphism.term phi) rec_likes};
 
 structure Data = Generic_Data
 (
@@ -88,11 +94,12 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars lthy =
+fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars fold_likes rec_likes lthy =
   (1, lthy)
   |> fold (fn ctor => fn (kk, lthy) => (kk + 1,
     register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
-      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars} lthy)) ctors
+      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars, fold_likes = fold_likes,
+      rec_likes = rec_likes} lthy)) ctors
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -1318,7 +1325,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (common_notes @ notes) |> snd
-        |> register_fp_sugars true pre_bnfs fp_res ctr_sugars
+        |> register_fp_sugars true pre_bnfs fp_res ctr_sugars folds recs
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
@@ -1376,7 +1383,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       in
         lthy
         |> Local_Theory.notes (anonymous_notes @ common_notes @ notes) |> snd
-        |> register_fp_sugars false pre_bnfs fp_res ctr_sugars
+        |> register_fp_sugars false pre_bnfs fp_res ctr_sugars unfolds corecs
       end;
 
     val lthy' = lthy
