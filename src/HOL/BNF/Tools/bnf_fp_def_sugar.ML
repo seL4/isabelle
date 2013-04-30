@@ -217,6 +217,25 @@ fun massage_rec_fun_arg_typesss fpTs =
 val mk_fold_fun_typess = map2 (map2 (curry (op --->)));
 val mk_rec_fun_typess = mk_fold_fun_typess oo massage_rec_fun_arg_typesss;
 
+fun mk_fold_rec_terms_and_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
+  let
+    val y_Tsss = map3 mk_rec_like_fun_arg_typess ns mss ctor_fold_fun_Ts;
+    val g_Tss = mk_fold_fun_typess y_Tsss Css;
+
+    val ((gss, ysss), lthy) =
+      lthy
+      |> mk_Freess "f" g_Tss
+      ||>> mk_Freesss "x" y_Tsss;
+
+    val z_Tsss = map3 mk_rec_like_fun_arg_typess ns mss ctor_rec_fun_Ts;
+    val h_Tss = mk_rec_fun_typess fpTs z_Tsss Css;
+
+    val hss = map2 (map2 retype_free) h_Tss gss;
+    val zsss = map2 (map2 (map2 retype_free)) z_Tsss ysss;
+  in
+    (((gss, g_Tss, ysss), (hss, h_Tss, zsss)), lthy)
+  end;
+
 fun mk_unfold_corec_terms_and_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
@@ -359,20 +378,15 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
     val (_, ctor_fold_fun_Ts) = mk_fp_rec_like true As Cs ctor_folds0;
     val (_, ctor_rec_fun_Ts) = mk_fp_rec_like true As Cs ctor_recs0;
 
-    val y_Tsss = map3 mk_rec_like_fun_arg_typess ns mss ctor_fold_fun_Ts;
-    val g_Tss = mk_fold_fun_typess y_Tsss Css;
+    val (((gss, g_Tss, ysss), (hss, h_Tss, zsss)), names_lthy0) =
+      mk_fold_rec_terms_and_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
-    val z_Tsss = map3 mk_rec_like_fun_arg_typess ns mss ctor_rec_fun_Ts;
-    val h_Tss = mk_rec_fun_typess fpTs z_Tsss Css;
-
-    val (((((ps, ps'), xsss), gss), us'), names_lthy) =
-      lthy
+    val ((((ps, ps'), xsss), us'), names_lthy) =
+      names_lthy0
       |> mk_Frees' "P" (map mk_pred1T fpTs)
       ||>> mk_Freesss "x" ctr_Tsss
-      ||>> mk_Freess "f" g_Tss
       ||>> Variable.variant_fixes fp_b_names;
 
-    val hss = map2 (map2 retype_free) h_Tss gss;
     val us = map2 (curry Free) us' fpTs;
 
     fun mk_sets_nested bnf =
@@ -947,24 +961,8 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           (cs, cpss, unfold_only as ((_, crssss, cgssss), (_, g_Tsss, _)),
            corec_only as ((_, csssss, chssss), (_, h_Tsss, _)))), _) =
       if lfp then
-        let
-          val y_Tsss = map3 mk_rec_like_fun_arg_typess ns mss fp_fold_fun_Ts;
-          val g_Tss = mk_fold_fun_typess y_Tsss Css;
-
-          val ((gss, ysss), lthy) =
-            lthy
-            |> mk_Freess "f" g_Tss
-            ||>> mk_Freesss "x" y_Tsss;
-
-          val z_Tsss = map3 mk_rec_like_fun_arg_typess ns mss fp_rec_fun_Ts;
-          val h_Tss = mk_rec_fun_typess fpTs z_Tsss Css;
-
-          val hss = map2 (map2 retype_free) h_Tss gss;
-          val zsss = map2 (map2 (map2 retype_free)) z_Tsss ysss;
-        in
-          ((((gss, g_Tss, ysss), (hss, h_Tss, zsss)),
-            ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))), lthy)
-        end
+        mk_fold_rec_terms_and_types fpTs Css ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        |>> rpair ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))
       else
         mk_unfold_corec_terms_and_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> pair (([], [], []), ([], [], []));
