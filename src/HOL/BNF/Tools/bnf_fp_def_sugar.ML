@@ -1283,8 +1283,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     fun derive_and_note_induct_fold_rec_thms_for_types
         (((ctrss, _, ctr_defss, ctr_wrap_ress), (folds, recs, fold_defs, rec_defs)), lthy) =
       let
-        val ((induct_thm, induct_thms, induct_attrs),
-             (fold_thmss, fold_attrs),
+        val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_fold_rec_thms_for_types pre_bnfs fp_folds0 fp_recs0 fp_induct fp_fold_thms
             fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs
@@ -1408,8 +1407,7 @@ val parse_map_rel_binding = Parse.short_ident --| @{keyword ":"} -- parse_bindin
 val no_map_rel = (Binding.empty, Binding.empty);
 
 (* "map" and "rel" are purposedly not registered as keywords, because they are short and nice names
-   that we don't want them to be highlighted everywhere because of some obscure feature of the BNF
-   package. *)
+   that we don't want them to be highlighted everywhere. *)
 fun extract_map_rel ("map", b) = apfst (K b)
   | extract_map_rel ("rel", b) = apsnd (K b)
   | extract_map_rel (s, _) = error ("Expected \"map\" or \"rel\" instead of " ^ quote s);
