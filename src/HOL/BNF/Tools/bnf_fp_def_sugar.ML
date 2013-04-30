@@ -360,7 +360,7 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun build_map lthy build_arg (Type (s, Ts)) (Type (_, Us)) =
+fun build_map_step lthy build_arg (Type (s, Ts)) (Type (_, Us)) =
   let
     val bnf = the (bnf_of lthy s);
     val live = live_of_bnf bnf;
@@ -506,7 +506,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
             id_const T
           else
             (case find_index (curry (op =) T) fpTs of
-              ~1 => build_map lthy (build_iter fiters) T U
+              ~1 => build_map_step lthy (build_iter fiters) T U
             | kk => nth fiters kk);
 
         val mk_U = typ_subst_nonatomic (map2 pair fpTs Cs);
@@ -682,7 +682,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
             id_const T
           else
             (case find_index (curry (op =) U) fpTs of
-              ~1 => build_map lthy (build_coiter fcoiters) T U
+              ~1 => build_map_step lthy (build_coiter fcoiters) T U
             | kk => nth fcoiters kk);
 
         val mk_U = typ_subst_nonatomic (map2 pair Cs fpTs);
@@ -1181,7 +1181,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               else
                 (case (T, U) of
                   (Type (s, _), Type (s', _)) =>
-                  if s = s' then build_map lthy (build_prod_proj mk_proj) T U else mk_proj T
+                  if s = s' then build_map_step lthy (build_prod_proj mk_proj) T U else mk_proj T
                 | _ => mk_proj T);
 
             (* TODO: Avoid these complications; cf. corec case *)
@@ -1241,7 +1241,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
               else
                 (case (T, U) of
                   (Type (s, _), Type (s', _)) =>
-                  if s = s' then build_map lthy (build_sum_inj mk_inj) T U
+                  if s = s' then build_map_step lthy (build_sum_inj mk_inj) T U
                   else uncurry mk_inj (dest_sumT U)
                 | _ => uncurry mk_inj (dest_sumT U));
 
