@@ -14,17 +14,17 @@ sig
   val mk_case_tac: Proof.context -> int -> int -> int -> thm -> thm -> thm -> tactic
   val mk_coinduct_tac: Proof.context -> thm list -> int -> int list -> thm -> thm list ->
     thm list -> thm list -> thm list list -> thm list list list -> thm list list list -> tactic
-  val mk_corec_like_tac: thm list -> thm list -> thm list -> thm list -> thm list -> thm -> thm ->
+  val mk_coiter_tac: thm list -> thm list -> thm list -> thm list -> thm list -> thm -> thm ->
     thm -> Proof.context -> tactic
   val mk_ctor_iff_dtor_tac: Proof.context -> ctyp option list -> cterm -> cterm -> thm -> thm ->
     tactic
-  val mk_disc_corec_like_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
+  val mk_disc_coiter_iff_tac: thm list -> thm list -> thm list -> Proof.context -> tactic
   val mk_exhaust_tac: Proof.context -> int -> thm list -> thm -> thm -> tactic
   val mk_half_distinct_tac: Proof.context -> thm -> thm list -> tactic
   val mk_induct_tac: Proof.context -> int -> int list -> int list list -> int list list list ->
     thm list -> thm -> thm list -> thm list list -> tactic
   val mk_inject_tac: Proof.context -> thm -> thm -> tactic
-  val mk_rec_like_tac: thm list -> thm list -> thm list -> thm list -> thm -> thm -> Proof.context
+  val mk_iter_tac: thm list -> thm list -> thm list -> thm list -> thm -> thm -> Proof.context
     -> tactic
 end;
 
@@ -100,33 +100,33 @@ fun mk_inject_tac ctxt ctr_def ctor_inject =
   unfold_thms_tac ctxt @{thms sum.inject Pair_eq conj_assoc} THEN rtac refl 1;
 
 (*TODO: Try "sum_prod_thms_map" here, enriched with a few theorems*)
-val rec_like_unfold_thms =
+val iter_unfold_thms =
   @{thms comp_def convol_def fst_conv id_def map_pair_simp prod_case_Pair_iden snd_conv split_conv
       sum.simps(5,6) sum_map.simps unit_case_Unity};
 
-fun mk_rec_like_tac pre_map_defs map_comp's map_ids'' rec_like_defs ctor_rec_like ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: ctor_rec_like :: rec_like_defs @ pre_map_defs @ map_comp's @
-    map_ids'' @ rec_like_unfold_thms) THEN rtac refl 1;
+fun mk_iter_tac pre_map_defs map_comp's map_ids'' iter_defs ctor_iter ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: ctor_iter :: iter_defs @ pre_map_defs @ map_comp's @
+    map_ids'' @ iter_unfold_thms) THEN rtac refl 1;
 
 (*TODO: sum_case_if needed?*)
-val corec_like_unfold_thms =
+val coiter_unfold_thms =
   @{thms id_def ident_o_ident sum_case_if sum_case_o_inj} @ sum_prod_thms_map;
 
-fun mk_corec_like_tac corec_like_defs map_comps'' map_comp's map_ids'' map_if_distribs
-    ctor_dtor_corec_like pre_map_def ctr_def ctxt =
-  unfold_thms_tac ctxt (ctr_def :: corec_like_defs) THEN
-  (rtac (ctor_dtor_corec_like RS trans) THEN'
+fun mk_coiter_tac coiter_defs map_comps'' map_comp's map_ids'' map_if_distribs
+    ctor_dtor_coiter pre_map_def ctr_def ctxt =
+  unfold_thms_tac ctxt (ctr_def :: coiter_defs) THEN
+  (rtac (ctor_dtor_coiter RS trans) THEN'
     asm_simp_tac (put_simpset ss_if_True_False ctxt)) 1 THEN_MAYBE
   (unfold_thms_tac ctxt (pre_map_def :: map_comp's @ map_comps'' @ map_ids'' @ map_if_distribs @
-    corec_like_unfold_thms) THEN
+    coiter_unfold_thms) THEN
    (rtac refl ORELSE' rtac (@{thm unit_eq} RS arg_cong)) 1);
 
-fun mk_disc_corec_like_iff_tac case_splits' corec_likes discs ctxt =
-  EVERY (map3 (fn case_split_tac => fn corec_like_thm => fn disc =>
-      case_split_tac 1 THEN unfold_thms_tac ctxt [corec_like_thm] THEN
+fun mk_disc_coiter_iff_tac case_splits' coiters discs ctxt =
+  EVERY (map3 (fn case_split_tac => fn coiter_thm => fn disc =>
+      case_split_tac 1 THEN unfold_thms_tac ctxt [coiter_thm] THEN
       asm_simp_tac (ss_only basic_simp_thms ctxt) 1 THEN
       (if is_refl disc then all_tac else rtac disc 1))
-    (map rtac case_splits' @ [K all_tac]) corec_likes discs);
+    (map rtac case_splits' @ [K all_tac]) coiters discs);
 
 fun solve_prem_prem_tac ctxt =
   REPEAT o (eresolve_tac @{thms bexE rev_bexI} ORELSE' rtac @{thm rev_bexI[OF UNIV_I]} ORELSE'
