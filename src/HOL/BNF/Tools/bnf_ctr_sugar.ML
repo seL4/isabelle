@@ -8,7 +8,8 @@ Wrapping existing freely generated type's constructors.
 signature BNF_CTR_SUGAR =
 sig
   type ctr_wrap_result =
-    {discs: term list,
+    {ctrs: term list,
+     discs: term list,
      selss: term list list,
      exhaust: thm,
      injects: thm list,
@@ -46,7 +47,8 @@ open BNF_Util
 open BNF_Ctr_Sugar_Tactics
 
 type ctr_wrap_result =
-  {discs: term list,
+  {ctrs: term list,
+   discs: term list,
    selss: term list list,
    exhaust: thm,
    injects: thm list,
@@ -56,9 +58,10 @@ type ctr_wrap_result =
    discIs: thm list,
    sel_thmss: thm list list};
 
-fun morph_ctr_wrap_result phi {discs, selss, exhaust, injects, distincts, case_thms, disc_thmss,
-    discIs, sel_thmss} =
-  {discs = map (Morphism.term phi) discs,
+fun morph_ctr_wrap_result phi {ctrs, discs, selss, exhaust, injects, distincts, case_thms,
+    disc_thmss, discIs, sel_thmss} =
+  {ctrs = map (Morphism.term phi) ctrs,
+   discs = map (Morphism.term phi) discs,
    selss = map (map (Morphism.term phi)) selss,
    exhaust = Morphism.thm phi exhaust,
    injects = map (Morphism.thm phi) injects,
@@ -699,7 +702,7 @@ fun prepare_wrap_free_constructors prep_term ((((no_dests, rep_compat), raw_ctrs
           [(map (fn th => th RS notE) distinct_thms, safe_elim_attrs)]
           |> map (fn (thms, attrs) => ((Binding.empty, attrs), [(thms, [])]));
       in
-        ({discs = discs, selss = selss, exhaust = exhaust_thm, injects = inject_thms,
+        ({ctrs = ctrs, discs = discs, selss = selss, exhaust = exhaust_thm, injects = inject_thms,
           distincts = distinct_thms, case_thms = case_thms, disc_thmss = disc_thmss,
           discIs = discI_thms, sel_thmss = sel_thmss},
          lthy

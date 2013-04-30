@@ -10,8 +10,8 @@ signature BNF_FP =
 sig
   type fp_result =
     {bnfs: BNF_Def.bnf list,
-     dtors: term list,
      ctors: term list,
+     dtors: term list,
      folds: term list,
      recs: term list,
      induct: thm,
@@ -25,6 +25,7 @@ sig
      fold_thms: thm list,
      rec_thms: thm list}
 
+  val fp_name_of_ctor: term -> string
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
 
@@ -173,8 +174,8 @@ open BNF_Util
 
 type fp_result =
   {bnfs: BNF_Def.bnf list,
-   dtors: term list,
    ctors: term list,
+   dtors: term list,
    folds: term list,
    recs: term list,
    induct: thm,
@@ -188,11 +189,13 @@ type fp_result =
    fold_thms: thm list,
    rec_thms: thm list};
 
-fun morph_fp_result phi {bnfs, dtors, ctors, folds, recs, induct, strong_induct, dtor_ctors,
+val fp_name_of_ctor = fst o dest_Type o range_type o fastype_of;
+
+fun morph_fp_result phi {bnfs, ctors, dtors, folds, recs, induct, strong_induct, dtor_ctors,
     ctor_dtors, ctor_injects, map_thms, set_thmss, rel_thms, fold_thms, rec_thms} =
   {bnfs = map (morph_bnf phi) bnfs,
-   dtors = map (Morphism.term phi) dtors,
    ctors = map (Morphism.term phi) ctors,
+   dtors = map (Morphism.term phi) dtors,
    folds = map (Morphism.term phi) folds,
    recs = map (Morphism.term phi) recs,
    induct = Morphism.thm phi induct,

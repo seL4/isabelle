@@ -25,9 +25,10 @@ sig
   val derive_coinduct_unfold_corec_thms_for_types: BNF_Def.bnf list -> term list -> term list ->
     thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list ->
     typ list -> typ list -> typ list -> int list list -> int list list -> int list ->
-    term list list -> thm list list -> BNF_Ctr_Sugar.ctr_wrap_result list -> term list ->
-    term list -> thm list -> thm list -> Proof.context ->
-    (thm * thm list * thm * thm list * Args.src list) * (thm list list * thm list list * 'e list)
+    thm list list -> BNF_Ctr_Sugar.ctr_wrap_result list -> term list -> term list -> thm list ->
+    thm list -> Proof.context ->
+    (thm * thm list * thm * thm list * Args.src list)
+    * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
@@ -86,8 +87,6 @@ val fp_of = Symtab.lookup o Data.get o Context.Proof;
 fun register_fp key fp =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp phi fp)));
-
-val fp_name_of_ctor = fst o dest_Type o range_type o fastype_of;
 
 fun register_fps lfp pre_bnfs (fp_res as {ctors, ...}) ctr_wrap_ress lthy =
   ((1, ctors), lthy)
@@ -526,7 +525,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
 fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_corecs0 dtor_coinduct
     dtor_strong_induct dtor_ctors dtor_unfold_thms dtor_corec_thms nesting_bnfs nested_bnfs fpTs Cs
-    As kss mss ns ctrss ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy =
+    As kss mss ns ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy =
   let
     val nn = length pre_bnfs;
 
@@ -543,6 +542,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
     val (_, dtor_unfold_fun_Ts) = mk_fp_rec_like false As Cs dtor_unfolds0;
     val (_, dtor_corec_fun_Ts) = mk_fp_rec_like false As Cs dtor_corecs0;
 
+    val ctrss = map (map (mk_ctr As) o #ctrs) ctr_wrap_ress;
     val discss = map (map (mk_disc_or_sel As) o #discs) ctr_wrap_ress;
     val selsss = map (map (map (mk_disc_or_sel As)) o #selss) ctr_wrap_ress;
     val exhausts = map #exhaust ctr_wrap_ress;
@@ -893,7 +893,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val fp_eqs =
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctr_sum_prod_TsXs;
 
-    val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, dtors = dtors0, ctors = ctors0,
+    val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
            folds = fp_folds0, recs = fp_recs0, induct = fp_induct, strong_induct = fp_strong_induct,
            dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms, set_thmss = fp_set_thmss,
            rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms}, lthy)) =
@@ -1334,7 +1334,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
              (sel_unfold_thmss, sel_corec_thmss, sel_corec_like_attrs)) =
           derive_coinduct_unfold_corec_thms_for_types pre_bnfs fp_folds0 fp_recs0 fp_induct
             fp_strong_induct dtor_ctors fp_fold_thms fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As
-            kss mss ns ctrss ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy;
+            kss mss ns ctr_defss ctr_wrap_ress unfolds corecs unfold_defs corec_defs lthy;
 
         val coinduct_type_attr = Attrib.internal o K o Induct.coinduct_type;
 
