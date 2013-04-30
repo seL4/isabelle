@@ -534,8 +534,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
 
         fun postproc nn thm =
           Thm.permute_prems 0 nn
-            (if nn = 1 then thm RS mp
-             else funpow nn (fn thm => reassoc_conjs (thm RS mp_conj)) thm)
+            (if nn = 1 then thm RS mp else funpow nn (fn thm => reassoc_conjs (thm RS mp_conj)) thm)
           |> Drule.zero_var_indexes
           |> `(conj_dests nn);
       in
@@ -581,8 +580,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
 
         fun intr_corec_likes fcorec_likes [] [cf] =
             let val T = fastype_of cf in
-              if exists_subtype_in Cs T then build_corec_like fcorec_likes (T, mk_U T) $ cf
-              else cf
+              if exists_subtype_in Cs T then build_corec_like fcorec_likes (T, mk_U T) $ cf else cf
             end
           | intr_corec_likes fcorec_likes [cq] [cf, cf'] =
             mk_If cq (intr_corec_likes fcorec_likes [] [cf])
@@ -591,10 +589,8 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
         val crgsss = map2 (map2 (map2 (intr_corec_likes gunfolds))) crssss cgssss;
         val cshsss = map2 (map2 (map2 (intr_corec_likes hcorecs))) csssss chssss;
 
-        val unfold_goalss =
-          map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss;
-        val corec_goalss =
-          map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss;
+        val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss;
+        val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss;
 
         fun mk_map_if_distrib bnf =
           let
@@ -645,8 +641,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
         val unfold_goalss = map6 (map2 oooo mk_goal) cs cpss gunfolds ns kss discss;
         val corec_goalss = map6 (map2 oooo mk_goal) cs cpss hcorecs ns kss discss;
 
-        fun mk_case_split' cp =
-          Drule.instantiate' [] [SOME (certify lthy cp)] @{thm case_split};
+        fun mk_case_split' cp = Drule.instantiate' [] [SOME (certify lthy cp)] @{thm case_split};
 
         val case_splitss' = map (map mk_case_split') cpss;
 
@@ -663,8 +658,7 @@ fun derive_coinduct_unfold_corec_thms_for_types names_lthy0 no_defs_lthy pre_bnf
         fun proves [_] [_] = []
           | proves goals tacs = map2 prove goals tacs;
       in
-        (map2 proves unfold_goalss unfold_tacss,
-         map2 proves corec_goalss corec_tacss)
+        (map2 proves unfold_goalss unfold_tacss, map2 proves corec_goalss corec_tacss)
       end;
 
     val is_triv_discI = is_triv_implies orf is_concl_refl;
