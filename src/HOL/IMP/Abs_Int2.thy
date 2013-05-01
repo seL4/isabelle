@@ -38,7 +38,7 @@ begin
 lemma in_gamma_inf: "x : \<gamma> a1 \<Longrightarrow> x : \<gamma> a2 \<Longrightarrow> x : \<gamma>(a1 \<sqinter> a2)"
 by (metis IntI inter_gamma_subset_gamma_inf set_mp)
 
-lemma gamma_inf[simp]: "\<gamma>(a1 \<sqinter> a2) = \<gamma> a1 \<inter> \<gamma> a2"
+lemma gamma_inf: "\<gamma>(a1 \<sqinter> a2) = \<gamma> a1 \<inter> \<gamma> a2"
 by(rule equalityI[OF _ inter_gamma_subset_gamma_inf])
   (metis inf_le1 inf_le2 le_inf_iff mono_gamma)
 
