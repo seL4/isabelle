@@ -111,8 +111,8 @@ next
   obtain S' where "S = Some S'" and "s : \<gamma>\<^isub>s S'" using `s : \<gamma>\<^isub>o S`
     by(auto simp: in_gamma_option_iff)
   moreover hence "s x : \<gamma> (fun S' x)"
-    using V(1,2) by(simp add: \<gamma>_st_def)
-  moreover have "s x : \<gamma> a" using V by simp
+    by(simp add: \<gamma>_st_def)
+  moreover have "s x : \<gamma> a" using V(2) by simp
   ultimately show ?case
     by(simp add: Let_def \<gamma>_st_def)
       (metis mono_gamma emptyE in_gamma_inf gamma_bot subset_empty)
