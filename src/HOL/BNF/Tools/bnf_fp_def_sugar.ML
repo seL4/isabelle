@@ -11,7 +11,7 @@ sig
     {lfp: bool,
      index: int,
      pre_bnfs: BNF_Def.bnf list,
-     fp_res: BNF_FP.fp_result,
+     fp_res: BNF_FP_Util.fp_result,
      ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list,
      xxfolds: term list,
      xxrecs: term list,
@@ -46,7 +46,7 @@ sig
   val datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
-      BNF_FP.fp_result * local_theory) ->
+      BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
@@ -54,7 +54,7 @@ sig
   val parse_datatype_cmd: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
-      BNF_FP.fp_result * local_theory) ->
+      BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
 
@@ -64,7 +64,7 @@ struct
 open BNF_Util
 open BNF_Ctr_Sugar
 open BNF_Def
-open BNF_FP
+open BNF_FP_Util
 open BNF_FP_Def_Sugar_Tactics
 
 val EqN = "Eq_";

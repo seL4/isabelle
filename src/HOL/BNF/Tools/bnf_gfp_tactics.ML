@@ -131,7 +131,7 @@ struct
 
 open BNF_Tactics
 open BNF_Util
-open BNF_FP
+open BNF_FP_Util
 open BNF_GFP_Util
 
 val fst_convol_fun_cong_sym = @{thm fst_convol} RS fun_cong RS sym;

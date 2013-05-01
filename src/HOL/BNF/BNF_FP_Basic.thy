@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/BNF_FP.thy
+(*  Title:      HOL/BNF/BNF_FP_Basic.thy
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012
@@ -8,7 +8,7 @@ Basic fixed point operations on bounded natural functors.
 
 header {* Basic Fixed Point Operations on Bounded Natural Functors *}
 
-theory BNF_FP
+theory BNF_FP_Basic
 imports BNF_Comp BNF_Ctr_Sugar
 keywords
   "defaults"
@@ -142,7 +142,7 @@ lemma sum_rel_simps:
 "sum_rel P Q (Inr y) (Inl x') \<longleftrightarrow> False"
 unfolding sum_rel_def by simp+
 
-ML_file "Tools/bnf_fp.ML"
+ML_file "Tools/bnf_fp_util.ML"
 ML_file "Tools/bnf_fp_def_sugar_tactics.ML"
 ML_file "Tools/bnf_fp_def_sugar.ML"
 

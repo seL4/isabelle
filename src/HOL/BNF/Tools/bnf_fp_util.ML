@@ -1,4 +1,4 @@
-(*  Title:      HOL/BNF/Tools/bnf_fp.ML
+(*  Title:      HOL/BNF/Tools/bnf_fp_util.ML
     Author:     Dmitriy Traytel, TU Muenchen
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2012, 2013
@@ -6,7 +6,7 @@
 Shared library for the datatype and codatatype constructions.
 *)
 
-signature BNF_FP =
+signature BNF_FP_UTIL =
 sig
   type fp_result =
     {bnfs: BNF_Def.bnf list,
@@ -165,7 +165,7 @@ sig
     (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.bnf list * 'a
 end;
 
-structure BNF_FP : BNF_FP =
+structure BNF_FP_Util : BNF_FP_UTIL =
 struct
 
 open BNF_Comp

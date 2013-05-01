@@ -33,7 +33,7 @@ struct
 
 open BNF_Tactics
 open BNF_Util
-open BNF_FP
+open BNF_FP_Util
 
 val basic_simp_thms = @{thms simp_thms(7,8,12,14,22,24)};
 val more_simp_thms = basic_simp_thms @ @{thms simp_thms(11,15,16,21)};

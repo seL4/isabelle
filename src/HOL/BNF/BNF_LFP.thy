@@ -8,7 +8,7 @@ Least fixed point operation on bounded natural functors.
 header {* Least Fixed Point Operation on Bounded Natural Functors *}
 
 theory BNF_LFP
-imports BNF_FP
+imports BNF_FP_Basic
 keywords
   "datatype_new" :: thy_decl
 begin

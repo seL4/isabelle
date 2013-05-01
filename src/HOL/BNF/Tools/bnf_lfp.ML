@@ -10,7 +10,7 @@ signature BNF_LFP =
 sig
   val construct_lfp: mixfix list -> (string * sort) list option -> binding list -> binding list ->
     binding list -> binding list list -> typ list * typ list list -> BNF_Def.bnf list ->
-    local_theory -> BNF_FP.fp_result * local_theory
+    local_theory -> BNF_FP_Util.fp_result * local_theory
 end;
 
 structure BNF_LFP : BNF_LFP =
@@ -20,7 +20,7 @@ open BNF_Def
 open BNF_Util
 open BNF_Tactics
 open BNF_Comp
-open BNF_FP
+open BNF_FP_Util
 open BNF_FP_Def_Sugar
 open BNF_LFP_Util
 open BNF_LFP_Tactics
