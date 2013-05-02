@@ -165,8 +165,8 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val fp_bnf: (mixfix list -> binding list -> binding list -> binding list -> binding list list ->
-      (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory -> 'a) ->
+  val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
+    BNF_Def.bnf list -> local_theory -> 'a) ->
     binding list -> mixfix list -> binding list -> binding list -> binding list list ->
     (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.bnf list * 'a
 end;
@@ -491,7 +491,7 @@ fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_se
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct_fp resBs (map TFree resDs, deadss) pre_bnfs lthy'';
+    val res = construct_fp bs resBs (map TFree resDs, deadss) pre_bnfs lthy'';
 
     val timer = time (timer "FP construction in total");
   in
@@ -508,8 +508,7 @@ fun fp_bnf construct_fp bs mixfixes map_bs rel_bs set_bss resBs eqs lthy =
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (qualify b) sort) bs rhss
         (empty_unfolds, lthy));
   in
-    mk_fp_bnf timer (construct_fp mixfixes bs map_bs rel_bs set_bss) resBs bs sort lhss bnfs Dss Ass
-      unfold_set lthy'
+    mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs Dss Ass unfold_set lthy'
   end;
 
 end;

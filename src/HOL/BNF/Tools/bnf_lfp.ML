@@ -8,8 +8,8 @@ Datatype construction.
 
 signature BNF_LFP =
 sig
-  val construct_lfp: mixfix list -> binding list -> binding list -> binding list ->
-    binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+  val construct_lfp: mixfix list -> binding list -> binding list -> binding list list ->
+    binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
     local_theory -> BNF_FP_Util.fp_result * local_theory
 end;
 
@@ -26,7 +26,7 @@ open BNF_LFP_Util
 open BNF_LFP_Tactics
 
 (*all BNFs have the same lives*)
-fun construct_lfp mixfixes bs map_bs rel_bs set_bss resBs (resDs, Dss) bnfs lthy =
+fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 

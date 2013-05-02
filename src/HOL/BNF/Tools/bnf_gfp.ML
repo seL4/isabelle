@@ -9,8 +9,8 @@ Codatatype construction.
 
 signature BNF_GFP =
 sig
-  val construct_gfp: mixfix list -> binding list -> binding list -> binding list ->
-    binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+  val construct_gfp: mixfix list -> binding list -> binding list -> binding list list ->
+    binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
     local_theory -> BNF_FP_Util.fp_result * local_theory
 end;
 
@@ -55,7 +55,7 @@ fun tree_to_coind_wits _ (Wit_Leaf _) = []
      ((i, I), nth (nth lwitss i) nwit) :: maps (tree_to_coind_wits lwitss) subtrees;
 
 (*all BNFs have the same lives*)
-fun construct_gfp mixfixes bs map_bs rel_bs set_bss resBs (resDs, Dss) bnfs lthy =
+fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy =
   let
     val timer = time (Timer.startRealTimer ());
 

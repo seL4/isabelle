@@ -50,16 +50,16 @@ sig
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
 
-  val co_datatypes: bool -> (mixfix list -> binding list -> binding list -> binding list ->
-      binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+  val co_datatypes: bool -> (mixfix list -> binding list -> binding list -> binding list list ->
+      binding list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
       local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
-  val parse_co_datatype_cmd: bool -> (mixfix list -> binding list -> binding list -> binding list ->
-      binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
-      local_theory -> BNF_FP_Util.fp_result * local_theory) ->
+  val parse_co_datatype_cmd: bool -> (mixfix list -> binding list -> binding list ->
+      binding list list -> binding list -> (string * sort) list -> typ list * typ list list ->
+      BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
 
@@ -912,8 +912,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
            folds = fp_folds0, recs = fp_recs0, induct = fp_induct, strong_induct = fp_strong_induct,
            dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms, set_thmss = fp_set_thmss,
            rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms, ...}, lthy)) =
-      fp_bnf construct_fp fp_bs mixfixes map_bs rel_bs set_bss (map dest_TFree unsorted_As) fp_eqs
-        no_defs_lthy0;
+      fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs mixfixes map_bs rel_bs set_bss
+        (map dest_TFree unsorted_As) fp_eqs no_defs_lthy0;
 
     val timer = time (Timer.startRealTimer ());
 
