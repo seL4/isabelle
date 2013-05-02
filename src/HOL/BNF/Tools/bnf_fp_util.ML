@@ -161,7 +161,6 @@ sig
   val mk_sum_casesN: int -> int -> thm
   val mk_sum_casesN_balanced: int -> int -> thm
 
-  val find_minimum: ('b * 'b -> order) -> ('a -> 'b) -> 'a list -> 'a
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
   val fp_bnf: (mixfix list -> (string * sort) list option -> binding list -> binding list ->
@@ -392,20 +391,6 @@ fun mk_Field r =
   in Const (@{const_name Field}, mk_relT (T, T) --> HOLogic.mk_setT T) $ r end;
 
 val mk_union = HOLogic.mk_binop @{const_name sup};
-
-fun find_minimum _ _ [] = raise Empty
-  | find_minimum _ _ [x] = x
-  | find_minimum ord f xs =
-    let
-      fun find [x] = (f x, x)
-        | find (x :: xs) =
-          let
-            val y = f x;
-            val p' as (y', _) = find xs;
-          in
-            if ord (y', y) = LESS then p' else (y, x)
-          end;
-    in snd (find xs) end;
 
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
