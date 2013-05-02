@@ -1850,11 +1850,11 @@ fun construct_lfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, folds = folds, recs = recs,
-      induct = ctor_induct_thm, strong_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
+    ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, un_folds = folds, co_recs = recs,
+      co_induct = ctor_induct_thm, strong_co_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms, map_thms = folded_ctor_map_thms,
-      set_thmss = folded_ctor_set_thmss', rel_thms = ctor_Irel_thms, fold_thms = ctor_fold_thms,
-      rec_thms = ctor_rec_thms},
+      set_thmss = folded_ctor_set_thmss', rel_thms = ctor_Irel_thms, un_fold_thms = ctor_fold_thms,
+      co_rec_thms = ctor_rec_thms},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

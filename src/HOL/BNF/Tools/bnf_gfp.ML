@@ -3027,12 +3027,12 @@ fun construct_gfp mixfixes map_bs rel_bs set_bss bs resBs (resDs, Dss) bnfs lthy
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, folds = unfolds, recs = corecs,
-      induct = dtor_coinduct_thm, strong_induct = dtor_strong_coinduct_thm,
+    ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, un_folds = unfolds, co_recs = corecs,
+      co_induct = dtor_coinduct_thm, strong_co_induct = dtor_strong_coinduct_thm,
       dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
       map_thms = folded_dtor_map_thms, set_thmss = folded_dtor_set_thmss',
-      rel_thms = dtor_Jrel_thms, fold_thms = ctor_dtor_unfold_thms,
-      rec_thms = ctor_dtor_corec_thms},
+      rel_thms = dtor_Jrel_thms, un_fold_thms = ctor_dtor_unfold_thms,
+      co_rec_thms = ctor_dtor_corec_thms},
      lthy |> Local_Theory.notes (common_notes @ notes) |> snd)
   end;
 

@@ -909,9 +909,10 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       map dest_TFree Xs ~~ map (Term.typ_subst_atomic (As ~~ unsorted_As)) ctr_sum_prod_TsXs;
 
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
-           folds = fp_folds0, recs = fp_recs0, induct = fp_induct, strong_induct = fp_strong_induct,
-           dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms, set_thmss = fp_set_thmss,
-           rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms, ...}, lthy)) =
+           un_folds = fp_folds0, co_recs = fp_recs0, co_induct = fp_induct,
+           strong_co_induct = fp_strong_induct, dtor_ctors, ctor_dtors, ctor_injects,
+           map_thms = fp_map_thms, set_thmss = fp_set_thmss, rel_thms = fp_rel_thms,
+           un_fold_thms = fp_fold_thms, co_rec_thms = fp_rec_thms, ...}, lthy)) =
       fp_bnf (construct_fp mixfixes map_bs rel_bs set_bss) fp_bs (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
