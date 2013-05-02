@@ -385,14 +385,6 @@ fun build_map lthy build_simple =
         | _ => build_simple TU);
   in build end;
 
-fun build_rel_step lthy build_arg (Type (s, Ts)) =
-  let
-    val bnf = the (bnf_of lthy s);
-    val live = live_of_bnf bnf;
-    val rel = mk_rel live Ts Ts (rel_of_bnf bnf);
-    val Ts' = map domain_type (fst (strip_typeN live (fastype_of rel)));
-  in Term.list_comb (rel, map build_arg Ts') end;
-
 fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_induct ctor_fold_thms
     ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs rec_defs
     lthy =
@@ -607,12 +599,19 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
         fun build_rel rs' T =
           (case find_index (curry (op =) T) fpTs of
             ~1 =>
-            if exists_subtype_in fpTs T then build_rel_step lthy (build_rel rs') T
-            else HOLogic.eq_const T
+            if exists_subtype_in fpTs T then
+              let
+                val Type (s, Ts) = T
+                val bnf = the (bnf_of lthy s);
+                val live = live_of_bnf bnf;
+                val rel = mk_rel live Ts Ts (rel_of_bnf bnf);
+                val Ts' = map domain_type (fst (strip_typeN live (fastype_of rel)));
+              in Term.list_comb (rel, map (build_rel rs') Ts') end
+            else
+              HOLogic.eq_const T
           | kk => nth rs' kk);
 
-        fun build_rel_app rs' usel vsel =
-          fold rapp [usel, vsel] (build_rel rs' (fastype_of usel));
+        fun build_rel_app rs' usel vsel = fold rapp [usel, vsel] (build_rel rs' (fastype_of usel));
 
         fun mk_prem_ctr_concls rs' n k udisc usels vdisc vsels =
           (if k = n then [] else [HOLogic.mk_eq (udisc, vdisc)]) @
