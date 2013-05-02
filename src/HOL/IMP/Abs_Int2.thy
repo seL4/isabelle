@@ -50,11 +50,11 @@ locale Val_abs1 = Val_abs1_gamma where \<gamma> = \<gamma>
 fixes test_num' :: "val \<Rightarrow> 'av \<Rightarrow> bool"
 and filter_plus' :: "'av \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
 and filter_less' :: "bool \<Rightarrow> 'av \<Rightarrow> 'av \<Rightarrow> 'av * 'av"
-assumes test_num': "test_num' n a = (n : \<gamma> a)"
-and filter_plus': "filter_plus' a a1 a2 = (b1,b2) \<Longrightarrow>
-  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1+n2 : \<gamma> a \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
-and filter_less': "filter_less' (n1<n2) a1 a2 = (b1,b2) \<Longrightarrow>
-  n1 : \<gamma> a1 \<Longrightarrow> n2 : \<gamma> a2 \<Longrightarrow> n1 : \<gamma> b1 \<and> n2 : \<gamma> b2"
+assumes test_num': "test_num' i a = (i : \<gamma> a)"
+and filter_plus': "filter_plus' a a1 a2 = (a\<^isub>1',a\<^isub>2') \<Longrightarrow>
+  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1+i2 : \<gamma> a \<Longrightarrow> i1 : \<gamma> a\<^isub>1' \<and> i2 : \<gamma> a\<^isub>2'"
+and filter_less': "filter_less' (i1<i2) a1 a2 = (a\<^isub>1',a\<^isub>2') \<Longrightarrow>
+  i1 : \<gamma> a1 \<Longrightarrow> i2 : \<gamma> a2 \<Longrightarrow> i1 : \<gamma> a\<^isub>1' \<and> i2 : \<gamma> a\<^isub>2'"
 
 
 locale Abs_Int1 = Val_abs1 where \<gamma> = \<gamma>
