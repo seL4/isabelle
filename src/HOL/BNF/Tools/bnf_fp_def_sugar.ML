@@ -20,7 +20,8 @@ sig
 
   val fp_sugar_of: local_theory -> string -> fp_sugar option
 
-  val build_map': local_theory -> typ list -> (int -> typ * typ -> term) -> typ * typ -> term
+  val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
+  val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
   val mk_fp_iter_fun_types: term -> typ list
   val mk_fun_arg_typess: int -> int list -> typ -> typ list list
@@ -362,6 +363,8 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
+fun indexify_fst xs f (x, y) = f (find_index (curry (op =) x) xs) (x, y);
+
 fun build_map lthy build_simple =
   let
     fun build (TU as (T, U)) =
@@ -381,9 +384,6 @@ fun build_map lthy build_simple =
             build_simple TU
         | _ => build_simple TU);
   in build end;
-
-fun build_map' lthy Ts build_simple =
-  build_map lthy (fn (T, U) => build_simple (find_index (curry (op =) T) Ts) (T, U));
 
 fun build_rel_step lthy build_arg (Type (s, Ts)) =
   let
@@ -522,7 +522,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
         fun unzip_iters fiters combine (x as Free (_, T)) =
           if exists_subtype_in fpTs T then
-            combine (x, build_map' lthy fpTs (K o nth fiters) (T, mk_U T) $ x)
+            combine (x, build_map lthy (indexify_fst fpTs (K o nth fiters)) (T, mk_U T) $ x)
           else
             ([x], []);
 
@@ -690,8 +690,10 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
         fun intr_coiters fcoiters [] [cf] =
             let val T = fastype_of cf in
-              if exists_subtype_in Cs T then build_map' lthy Cs (K o nth fcoiters) (T, mk_U T) $ cf
-              else cf
+              if exists_subtype_in Cs T then
+                build_map lthy (indexify_fst Cs (K o nth fcoiters)) (T, mk_U T) $ cf
+              else
+                cf
             end
           | intr_coiters fcoiters [cq] [cf, cf'] =
             mk_If cq (intr_coiters fcoiters [] [cf]) (intr_coiters fcoiters [] [cf']);
