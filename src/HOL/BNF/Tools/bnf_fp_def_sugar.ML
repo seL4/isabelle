@@ -20,7 +20,7 @@ sig
 
   val fp_sugar_of: local_theory -> string -> fp_sugar option
 
-  val build_map: local_theory -> typ list -> (int -> typ * typ -> term) -> typ * typ -> term
+  val build_map': local_theory -> typ list -> (int -> typ * typ -> term) -> typ * typ -> term
 
   val mk_fp_iter_fun_types: term -> typ list
   val mk_fun_arg_typess: int -> int list -> typ -> typ list list
@@ -362,36 +362,28 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun build_map_step lthy build_arg (Type (s, Ts), Type (_, Us)) =
-  let
-    val bnf = the (bnf_of lthy s);
-    val live = live_of_bnf bnf;
-    val mapx = mk_map live Ts Us (map_of_bnf bnf);
-    val TUs' = map dest_funT (fst (strip_typeN live (fastype_of mapx)));
-  in Term.list_comb (mapx, map build_arg TUs') end;
-
-fun build_map lthy Ts build_simple =
-  let
-    fun build (TU as (T, U)) =
-      if T = U then
-        id_const T
-      else
-        (case find_index (curry (op =) T) Ts of
-          ~1 => build_map_step lthy build TU
-        | kk => build_simple kk TU);
-  in build end;
-
-fun build_map' lthy build_simple =
+fun build_map lthy build_simple =
   let
     fun build (TU as (T, U)) =
       if T = U then
         id_const T
       else
         (case TU of
-          (Type (s, _), Type (s', _)) =>
-          if s = s' then build_map_step lthy build TU else build_simple TU
+          (Type (s, Ts), Type (s', Us)) =>
+          if s = s' then
+            let
+              val bnf = the (bnf_of lthy s);
+              val live = live_of_bnf bnf;
+              val mapx = mk_map live Ts Us (map_of_bnf bnf);
+              val TUs' = map dest_funT (fst (strip_typeN live (fastype_of mapx)));
+            in Term.list_comb (mapx, map build TUs') end
+          else
+            build_simple TU
         | _ => build_simple TU);
   in build end;
+
+fun build_map' lthy Ts build_simple =
+  build_map lthy (fn (T, U) => build_simple (find_index (curry (op =) T) Ts) (T, U));
 
 fun build_rel_step lthy build_arg (Type (s, Ts)) =
   let
@@ -530,7 +522,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
         fun unzip_iters fiters combine (x as Free (_, T)) =
           if exists_subtype_in fpTs T then
-            combine (x, build_map lthy fpTs (K o nth fiters) (T, mk_U T) $ x)
+            combine (x, build_map' lthy fpTs (K o nth fiters) (T, mk_U T) $ x)
           else
             ([x], []);
 
@@ -698,7 +690,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
         fun intr_coiters fcoiters [] [cf] =
             let val T = fastype_of cf in
-              if exists_subtype_in Cs T then build_map lthy Cs (K o nth fcoiters) (T, mk_U T) $ cf
+              if exists_subtype_in Cs T then build_map' lthy Cs (K o nth fcoiters) (T, mk_U T) $ cf
               else cf
             end
           | intr_coiters fcoiters [cq] [cf, cf'] =
@@ -1185,7 +1177,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           let
             val fpT_to_C = fpT --> C;
 
-            fun build_prod_proj mk_proj = build_map' lthy (mk_proj o fst);
+            fun build_prod_proj mk_proj = build_map lthy (mk_proj o fst);
 
             (* TODO: Avoid these complications; cf. corec case *)
             fun mk_U proj (Type (s as @{type_name prod}, Ts as [T', U])) =
@@ -1238,7 +1230,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           let
             val B_to_fpT = C --> fpT;
 
-            fun build_sum_inj mk_inj = build_map' lthy (uncurry mk_inj o dest_sumT o snd);
+            fun build_sum_inj mk_inj = build_map lthy (uncurry mk_inj o dest_sumT o snd);
 
             fun build_dtor_coiter_arg _ [] [cf] = cf
               | build_dtor_coiter_arg T [cq] [cf, cf'] =
