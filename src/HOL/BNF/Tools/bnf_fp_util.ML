@@ -166,9 +166,9 @@ sig
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
   val fp_bnf: (binding list -> (string * sort) list -> typ list * typ list list ->
-    BNF_Def.bnf list -> local_theory -> 'a) ->
-    binding list -> mixfix list -> binding list -> binding list -> binding list list ->
-    (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.bnf list * 'a
+      BNF_Def.bnf list -> local_theory -> 'a) ->
+    binding list -> (string * sort) list -> ((string * sort) * typ) list -> local_theory ->
+    BNF_Def.bnf list * 'a
 end;
 
 structure BNF_FP_Util : BNF_FP_UTIL =
@@ -458,13 +458,22 @@ fun mk_sum_casesN_balanced 1 1 = refl
     Balanced_Tree.access {left = mk_sum_step @{thm sum.cases(1)} @{thm sum_case_step(1)},
       right = mk_sum_step @{thm sum.cases(2)} @{thm sum_case_step(2)}, init = refl} n k;
 
-(* FIXME: because of "@ lhss", the output could contain type variables that are not in the input;
-   also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
-fun fp_sort lhss resBs Ass =
-    (subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs)) @ lhss;
-
-fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_set lthy =
+fun fp_bnf construct_fp bs resBs eqs lthy =
   let
+    val timer = time (Timer.startRealTimer ());
+    val (lhss, rhss) = split_list eqs;
+
+    (* FIXME: because of "@ lhss", the output could contain type variables that are not in the
+       input; also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
+    fun fp_sort Ass =
+      subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs) @ lhss;
+
+    fun raw_qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
+
+    val ((bnfs, (deadss, livess)), (unfold_set, lthy)) = apfst (apsnd split_list o split_list)
+      (fold_map2 (fn b => bnf_of_typ Smart_Inline (raw_qualify b) fp_sort) bs rhss
+        (empty_unfolds, lthy));
+
     val name = mk_common_name (map Binding.name_of bs);
     fun qualify i =
       let val namei = name ^ nonzero_string_of_int i;
@@ -481,7 +490,7 @@ fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_se
     val timer = time (timer "Construction of BNFs");
 
     val ((kill_poss, _), (bnfs', (unfold_set', lthy'))) =
-      normalize_bnfs qualify Ass Ds sort bnfs unfold_set lthy;
+      normalize_bnfs qualify Ass Ds fp_sort bnfs unfold_set lthy;
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
@@ -496,19 +505,6 @@ fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_se
     val timer = time (timer "FP construction in total");
   in
     timer; (pre_bnfs, res)
-  end;
-
-fun fp_bnf construct_fp bs mixfixes map_bs rel_bs set_bss resBs eqs lthy =
-  let
-    val timer = time (Timer.startRealTimer ());
-    val (lhss, rhss) = split_list eqs;
-    val sort = fp_sort lhss resBs;
-    fun qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
-    val ((bnfs, (Dss, Ass)), (unfold_set, lthy')) = apfst (apsnd split_list o split_list)
-      (fold_map2 (fn b => bnf_of_typ Smart_Inline (qualify b) sort) bs rhss
-        (empty_unfolds, lthy));
-  in
-    mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs Dss Ass unfold_set lthy'
   end;
 
 end;
