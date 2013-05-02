@@ -13,10 +13,10 @@ sig
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP_Util.fp_result,
      ctr_sugars: BNF_Ctr_Sugar.ctr_sugar list,
-     xxfolds: term list,
-     xxrecs: term list,
-     xxfold_thmss: thm list list,
-     xxrec_thmss: thm list list};
+     un_folds: term list,
+     co_recs: term list,
+     un_fold_thmss: thm list list,
+     co_rec_thmss: thm list list};
 
   val fp_sugar_of: local_theory -> string -> fp_sugar option
 
@@ -78,22 +78,22 @@ type fp_sugar =
    pre_bnfs: bnf list,
    fp_res: fp_result,
    ctr_sugars: ctr_sugar list,
-   xxfolds: term list,
-   xxrecs: term list,
-   xxfold_thmss: thm list list,
-   xxrec_thmss: thm list list};
+   un_folds: term list,
+   co_recs: term list,
+   un_fold_thmss: thm list list,
+   co_rec_thmss: thm list list};
 
 fun eq_fp_sugar ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
     {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
   lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars, xxfolds, xxrecs, xxfold_thmss,
-    xxrec_thmss} =
+fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars, un_folds, co_recs, un_fold_thmss,
+    co_rec_thmss} =
   {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
    fp_res = morph_fp_result phi fp_res, ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
-   xxfolds = map (Morphism.term phi) xxfolds, xxrecs = map (Morphism.term phi) xxrecs,
-   xxfold_thmss = map (map (Morphism.thm phi)) xxfold_thmss,
-   xxrec_thmss = map (map (Morphism.thm phi)) xxrec_thmss};
+   un_folds = map (Morphism.term phi) un_folds, co_recs = map (Morphism.term phi) co_recs,
+   un_fold_thmss = map (map (Morphism.thm phi)) un_fold_thmss,
+   co_rec_thmss = map (map (Morphism.thm phi)) co_rec_thmss};
 
 structure Data = Generic_Data
 (
@@ -109,13 +109,13 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars xxfolds xxrecs xxfold_thmss
-    xxrec_thmss lthy =
+fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars un_folds co_recs
+    un_fold_thmss co_rec_thmss lthy =
   (0, lthy)
   |> fold (fn ctor => fn (kk, lthy) => (kk + 1,
     register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
-      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars, xxfolds = xxfolds,
-      xxrecs = xxrecs, xxfold_thmss = xxfold_thmss, xxrec_thmss = xxrec_thmss} lthy)) ctors
+      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars, un_folds = un_folds,
+      co_recs = co_recs, un_fold_thmss = un_fold_thmss, co_rec_thmss = co_rec_thmss} lthy)) ctors
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -1292,9 +1292,9 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
         o split_list;
 
     val mk_simp_thmss =
-      map7 (fn {injects, distincts, case_thms, ...} => fn xxfolds => fn xxrecs =>
+      map7 (fn {injects, distincts, case_thms, ...} => fn un_folds => fn co_recs =>
         fn mapsx => fn rel_injects => fn rel_distincts => fn setss =>
-          injects @ distincts @ case_thms @ xxrecs @ xxfolds @ mapsx @ rel_injects
+          injects @ distincts @ case_thms @ co_recs @ un_folds @ mapsx @ rel_injects
           @ rel_distincts @ flat setss);
 
     fun derive_and_note_induct_fold_rec_thms_for_types
