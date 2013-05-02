@@ -1862,6 +1862,6 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "datatype_new"} "define BNF-based inductive datatypes"
-    (parse_datatype_cmd true construct_lfp);
+    (parse_co_datatype_cmd true construct_lfp);
 
 end;

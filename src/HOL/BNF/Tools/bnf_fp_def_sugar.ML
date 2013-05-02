@@ -48,7 +48,7 @@ sig
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list * Args.src list)
 
-  val datatypes: bool ->
+  val co_datatypes: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
@@ -56,7 +56,7 @@ sig
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
-  val parse_datatype_cmd: bool ->
+  val parse_co_datatype_cmd: bool ->
     (mixfix list -> (string * sort) list option -> binding list -> binding list -> binding list ->
       binding list list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
       BNF_FP_Util.fp_result * local_theory) ->
@@ -805,7 +805,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
      (sel_unfold_thmss, sel_corec_thmss, simp_attrs))
   end;
 
-fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_fp
+fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construct_fp
     (wrap_opts as (no_dests, rep_compat), specs) no_defs_lthy0 =
   let
     (* TODO: sanity checks on arguments *)
@@ -1387,14 +1387,15 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           else derive_and_note_coinduct_unfold_corec_thms_for_types);
 
     val timer = time (timer ("Constructors, discriminators, selectors, etc., for the new " ^
-      (if lfp then "" else "co") ^ "datatype"));
+      datatype_word lfp));
   in
     timer; lthy'
   end;
 
-val datatypes = define_datatypes (K I) (K I) (K I);
+val co_datatypes = define_co_datatypes (K I) (K I) (K I);
 
-val datatype_cmd = define_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term;
+val co_datatype_cmd =
+  define_co_datatypes Typedecl.read_constraint Syntax.parse_typ Syntax.parse_term;
 
 val parse_ctr_arg =
   @{keyword "("} |-- parse_binding_colon -- Parse.typ --| @{keyword ")"} ||
@@ -1436,8 +1437,8 @@ val parse_spec =
   parse_type_args_named_constrained -- parse_binding -- parse_map_rel_bindings --
   Parse.opt_mixfix -- (@{keyword "="} |-- Parse.enum1 "|" parse_ctr_spec);
 
-val parse_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
+val parse_co_datatype = parse_wrap_options -- Parse.and_list1 parse_spec;
 
-fun parse_datatype_cmd lfp construct_fp = parse_datatype >> datatype_cmd lfp construct_fp;
+fun parse_co_datatype_cmd lfp construct_fp = parse_co_datatype >> co_datatype_cmd lfp construct_fp;
 
 end;

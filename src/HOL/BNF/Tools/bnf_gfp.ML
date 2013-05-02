@@ -3040,6 +3040,6 @@ fun construct_gfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
 
 val _ =
   Outer_Syntax.local_theory @{command_spec "codatatype"} "define BNF-based coinductive datatypes"
-    (parse_datatype_cmd false construct_gfp);
+    (parse_co_datatype_cmd false construct_gfp);
 
 end;
