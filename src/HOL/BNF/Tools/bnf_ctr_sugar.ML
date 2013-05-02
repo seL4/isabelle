@@ -102,7 +102,7 @@ val iff_attrs = @{attributes [iff]};
 val safe_elim_attrs = @{attributes [elim!]};
 val simp_attrs = @{attributes [simp]};
 
-fun unflat_lookup eq ys zs = map (map (fn x => nth zs (find_index (curry eq x) ys)));
+fun unflat_lookup eq = map oo unsort eq;
 
 fun mk_half_pairss' _ ([], []) = []
   | mk_half_pairss' indent (x :: xs, _ :: ys) =

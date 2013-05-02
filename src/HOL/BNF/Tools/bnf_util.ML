@@ -48,6 +48,7 @@ sig
     'i list -> 'j -> 'k list * 'j
   val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
+  val unsort: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
   val seq_conds: (bool -> 'a -> 'b) -> int -> int -> 'a list -> 'b list
   val pad_list: 'a -> int -> 'a list -> 'a list
 
@@ -645,6 +646,8 @@ fun splice xs ys = flat (map2 (fn x => fn y => [x, y]) xs ys);
 fun transpose [] = []
   | transpose ([] :: xss) = transpose xss
   | transpose xss = map hd xss :: transpose (map tl xss);
+
+fun unsort eq ys zs = map (fn x => nth zs (find_index (curry eq x) ys));
 
 fun seq_conds f n k xs =
   if k = n then
