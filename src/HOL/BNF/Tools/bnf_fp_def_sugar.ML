@@ -51,15 +51,15 @@ sig
     * (thm list list * thm list list * Args.src list)
 
   val co_datatypes: bool -> (mixfix list -> binding list -> binding list -> binding list ->
-      binding list list -> (string * sort) list option -> typ list * typ list list ->
-      BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
+      binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+      local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (bool * bool) * (((((binding * (typ * sort)) list * binding) * (binding * binding)) * mixfix) *
       ((((binding * binding) * (binding * typ) list) * (binding * term) list) *
         mixfix) list) list ->
     local_theory -> local_theory
   val parse_co_datatype_cmd: bool -> (mixfix list -> binding list -> binding list -> binding list ->
-      binding list list -> (string * sort) list option -> typ list * typ list list ->
-      BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory) ->
+      binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+      local_theory -> BNF_FP_Util.fp_result * local_theory) ->
     (local_theory -> local_theory) parser
 end;
 

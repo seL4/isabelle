@@ -166,8 +166,7 @@ sig
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
   val fp_bnf: (mixfix list -> binding list -> binding list -> binding list -> binding list list ->
-      (string * sort) list option -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
-      'a) ->
+      (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list -> local_theory -> 'a) ->
     binding list -> mixfix list -> binding list -> binding list -> binding list list ->
     (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.bnf list * 'a
 end;
@@ -461,13 +460,10 @@ fun mk_sum_casesN_balanced 1 1 = refl
 
 (* FIXME: because of "@ lhss", the output could contain type variables that are not in the input;
    also, "fp_sort" should put the "resBs" first and in the order in which they appear *)
-fun fp_sort lhss NONE Ass = Library.sort (Term_Ord.typ_ord o pairself TFree)
-    (subtract (op =) lhss (fold (fold (insert (op =))) Ass [])) @ lhss
-  | fp_sort lhss (SOME resBs) Ass =
+fun fp_sort lhss resBs Ass =
     (subtract (op =) lhss (filter (fn T => exists (fn Ts => member (op =) Ts T) Ass) resBs)) @ lhss;
 
-fun mk_fp_bnf timer construct_fp resBs bs map_bs rel_bs set_bss sort lhss bnfs deadss livess
-    unfold_set lthy =
+fun mk_fp_bnf timer construct_fp resBs bs sort lhss bnfs deadss livess unfold_set lthy =
   let
     val name = mk_common_name (map Binding.name_of bs);
     fun qualify i =
@@ -475,7 +471,7 @@ fun mk_fp_bnf timer construct_fp resBs bs map_bs rel_bs set_bss sort lhss bnfs d
       in Binding.qualify true namei end;
 
     val Ass = map (map dest_TFree) livess;
-    val resDs = (case resBs of NONE => [] | SOME Ts => fold (subtract (op =)) Ass Ts);
+    val resDs = fold (subtract (op =)) Ass resBs;
     val Ds = fold (fold Term.add_tfreesT) deadss [];
 
     val _ = (case Library.inter (op =) Ds lhss of [] => ()
@@ -495,7 +491,7 @@ fun mk_fp_bnf timer construct_fp resBs bs map_bs rel_bs set_bss sort lhss bnfs d
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct_fp bs map_bs rel_bs set_bss resBs (map TFree resDs, deadss) pre_bnfs lthy'';
+    val res = construct_fp resBs (map TFree resDs, deadss) pre_bnfs lthy'';
 
     val timer = time (timer "FP construction in total");
   in
@@ -506,14 +502,14 @@ fun fp_bnf construct_fp bs mixfixes map_bs rel_bs set_bss resBs eqs lthy =
   let
     val timer = time (Timer.startRealTimer ());
     val (lhss, rhss) = split_list eqs;
-    val sort = fp_sort lhss (SOME resBs);
+    val sort = fp_sort lhss resBs;
     fun qualify b = Binding.qualify true (Binding.name_of (Binding.prefix_name rawN b));
     val ((bnfs, (Dss, Ass)), (unfold_set, lthy')) = apfst (apsnd split_list o split_list)
       (fold_map2 (fn b => bnf_of_typ Smart_Inline (qualify b) sort) bs rhss
         (empty_unfolds, lthy));
   in
-    mk_fp_bnf timer (construct_fp mixfixes) (SOME resBs) bs map_bs rel_bs set_bss sort lhss bnfs Dss
-      Ass unfold_set lthy'
+    mk_fp_bnf timer (construct_fp mixfixes bs map_bs rel_bs set_bss) resBs bs sort lhss bnfs Dss Ass
+      unfold_set lthy'
   end;
 
 end;

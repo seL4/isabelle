@@ -10,8 +10,8 @@ Codatatype construction.
 signature BNF_GFP =
 sig
   val construct_gfp: mixfix list -> binding list -> binding list -> binding list ->
-    binding list list -> (string * sort) list option -> typ list * typ list list ->
-    BNF_Def.bnf list -> local_theory -> BNF_FP_Util.fp_result * local_theory
+    binding list list -> (string * sort) list -> typ list * typ list list -> BNF_Def.bnf list ->
+    local_theory -> BNF_FP_Util.fp_result * local_theory
 end;
 
 structure BNF_GFP : BNF_GFP =
@@ -94,11 +94,9 @@ fun construct_gfp mixfixes bs map_bs rel_bs set_bss resBs (resDs, Dss) bnfs lthy
     val allCs' = passiveBs @ activeCs;
     val Css' = replicate n allCs';
 
-    (* typs *)
+    (* types *)
     val dead_poss =
-      (case resBs of
-        NONE => map SOME deads @ replicate m NONE
-      | SOME Ts => map (fn T => if member (op =) deads (TFree T) then SOME (TFree T) else NONE) Ts);
+      map (fn T => if member (op =) deads (TFree T) then SOME (TFree T) else NONE) resBs;
     fun mk_param NONE passive = (hd passive, tl passive)
       | mk_param (SOME a) passive = (a, passive);
     val mk_params = fold_map mk_param dead_poss #> fst;
