@@ -18,7 +18,9 @@ sig
      xxfold_thmss: thm list list,
      xxrec_thmss: thm list list};
 
-  val fp_sugar_of: Proof.context -> string -> fp_sugar option
+  val fp_sugar_of: local_theory -> string -> fp_sugar option
+
+  val build_maps: local_theory -> typ list -> (int -> typ * typ -> term) -> typ * typ -> term
 
   val mk_fp_iter_fun_types: term -> typ list
   val mk_fun_arg_typess: int -> int list -> typ -> typ list list
@@ -29,14 +31,14 @@ sig
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
-    Proof.context ->
+    local_theory ->
     (thm * thm list * Args.src list) * (thm list list * Args.src list)
     * (thm list list * Args.src list)
   val derive_coinduct_unfold_corec_thms_for_types: BNF_Def.bnf list -> term list -> term list ->
     thm -> thm -> thm list -> thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list ->
     typ list -> typ list -> typ list -> int list list -> int list list -> int list ->
     thm list list -> BNF_Ctr_Sugar.ctr_sugar list -> term list -> term list -> thm list ->
-    thm list -> Proof.context ->
+    thm list -> local_theory ->
     (thm * thm list * thm * thm list * Args.src list)
     * (thm list list * thm list list * Args.src list)
     * (thm list list * thm list list) * (thm list list * thm list list * Args.src list)
@@ -360,13 +362,24 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
-fun build_map_step lthy build_arg (Type (s, Ts)) (Type (_, Us)) =
+fun build_map_step lthy build_arg (Type (s, Ts), Type (_, Us)) =
   let
     val bnf = the (bnf_of lthy s);
     val live = live_of_bnf bnf;
     val mapx = mk_map live Ts Us (map_of_bnf bnf);
     val TUs' = map dest_funT (fst (strip_typeN live (fastype_of mapx)));
   in Term.list_comb (mapx, map build_arg TUs') end;
+
+fun build_maps lthy Ts build_simple =
+  let
+    fun build (TU as (T, U)) =
+      if T = U then
+        id_const T
+      else
+        (case find_index (curry (op =) T) Ts of
+          ~1 => build_map_step lthy build TU
+        | kk => build_simple kk TU);
+  in build end;
 
 fun build_rel_step lthy build_arg (Type (s, Ts)) =
   let
@@ -501,19 +514,11 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
           fold_rev (fold_rev Logic.all) (xs :: fss)
             (mk_Trueprop_eq (fiter $ xctr, Term.list_comb (f, fxs)));
 
-        fun build_iter fiters (T, U) =
-          if T = U then
-            id_const T
-          else
-            (case find_index (curry (op =) T) fpTs of
-              ~1 => build_map_step lthy (build_iter fiters) T U
-            | kk => nth fiters kk);
-
         val mk_U = typ_subst_nonatomic (map2 pair fpTs Cs);
 
         fun unzip_iters fiters combine (x as Free (_, T)) =
           if exists_subtype_in fpTs T then
-            combine (x, build_iter fiters (T, mk_U T) $ x)
+            combine (x, build_maps lthy fpTs (K o nth fiters) (T, mk_U T) $ x)
           else
             ([x], []);
 
@@ -677,19 +682,12 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
             (Logic.list_implies (seq_conds (HOLogic.mk_Trueprop oo mk_maybe_not) n k cps,
                mk_Trueprop_eq (fcoiter $ c, Term.list_comb (ctr, take m cfs'))));
 
-        fun build_coiter fcoiters (T, U) =
-          if T = U then
-            id_const T
-          else
-            (case find_index (curry (op =) U) fpTs of
-              ~1 => build_map_step lthy (build_coiter fcoiters) T U
-            | kk => nth fcoiters kk);
-
         val mk_U = typ_subst_nonatomic (map2 pair Cs fpTs);
 
         fun intr_coiters fcoiters [] [cf] =
             let val T = fastype_of cf in
-              if exists_subtype_in Cs T then build_coiter fcoiters (T, mk_U T) $ cf else cf
+              if exists_subtype_in Cs T then build_maps lthy Cs (K o nth fcoiters) (T, mk_U T) $ cf
+              else cf
             end
           | intr_coiters fcoiters [cq] [cf, cf'] =
             mk_If cq (intr_coiters fcoiters [] [cf]) (intr_coiters fcoiters [] [cf']);
@@ -1175,13 +1173,13 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           let
             val fpT_to_C = fpT --> C;
 
-            fun build_prod_proj mk_proj (T, U) =
+            fun build_prod_proj mk_proj (TU as (T, U)) =
               if T = U then
                 id_const T
               else
-                (case (T, U) of
+                (case TU of
                   (Type (s, _), Type (s', _)) =>
-                  if s = s' then build_map_step lthy (build_prod_proj mk_proj) T U else mk_proj T
+                  if s = s' then build_map_step lthy (build_prod_proj mk_proj) TU else mk_proj T
                 | _ => mk_proj T);
 
             (* TODO: Avoid these complications; cf. corec case *)
@@ -1235,13 +1233,13 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
           let
             val B_to_fpT = C --> fpT;
 
-            fun build_sum_inj mk_inj (T, U) =
+            fun build_sum_inj mk_inj (TU as (T, U)) =
               if T = U then
                 id_const T
               else
-                (case (T, U) of
+                (case TU of
                   (Type (s, _), Type (s', _)) =>
-                  if s = s' then build_map_step lthy (build_sum_inj mk_inj) T U
+                  if s = s' then build_map_step lthy (build_sum_inj mk_inj) TU
                   else uncurry mk_inj (dest_sumT U)
                 | _ => uncurry mk_inj (dest_sumT U));
 
