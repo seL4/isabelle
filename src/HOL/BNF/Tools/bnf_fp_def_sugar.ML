@@ -8,7 +8,8 @@ Sugared datatype and codatatype constructions.
 signature BNF_FP_DEF_SUGAR =
 sig
   type fp_sugar =
-    {lfp: bool,
+    {T: typ,
+     lfp: bool,
      index: int,
      pre_bnfs: BNF_Def.bnf list,
      fp_res: BNF_FP_Util.fp_result,
@@ -73,7 +74,8 @@ open BNF_FP_Def_Sugar_Tactics
 val EqN = "Eq_";
 
 type fp_sugar =
-  {lfp: bool,
+  {T: typ,
+   lfp: bool,
    index: int,
    pre_bnfs: bnf list,
    fp_res: fp_result,
@@ -83,13 +85,13 @@ type fp_sugar =
    un_fold_thmss: thm list list,
    co_rec_thmss: thm list list};
 
-fun eq_fp_sugar ({lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
-    {lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
-  lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
+fun eq_fp_sugar ({T = T1, lfp = lfp1, index = index1, fp_res = fp_res1, ...} : fp_sugar,
+    {T = T2, lfp = lfp2, index = index2, fp_res = fp_res2, ...} : fp_sugar) =
+  T1 = T2 andalso lfp1 = lfp2 andalso index1 = index2 andalso eq_fp_result (fp_res1, fp_res2);
 
-fun morph_fp_sugar phi {lfp, index, pre_bnfs, fp_res, ctr_sugars, un_folds, co_recs, un_fold_thmss,
-    co_rec_thmss} =
-  {lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
+fun morph_fp_sugar phi {T, lfp, index, pre_bnfs, fp_res, ctr_sugars, un_folds, co_recs,
+    un_fold_thmss, co_rec_thmss} =
+  {T = Morphism.typ phi T, lfp = lfp, index = index, pre_bnfs = map (morph_bnf phi) pre_bnfs,
    fp_res = morph_fp_result phi fp_res, ctr_sugars = map (morph_ctr_sugar phi) ctr_sugars,
    un_folds = map (Morphism.term phi) un_folds, co_recs = map (Morphism.term phi) co_recs,
    un_fold_thmss = map (map (Morphism.thm phi)) un_fold_thmss,
@@ -109,13 +111,13 @@ fun register_fp_sugar key fp_sugar =
   Local_Theory.declaration {syntax = false, pervasive = true}
     (fn phi => Data.map (Symtab.update_new (key, morph_fp_sugar phi fp_sugar)));
 
-fun register_fp_sugars lfp pre_bnfs (fp_res as {ctors, ...}) ctr_sugars un_folds co_recs
+fun register_fp_sugars lfp pre_bnfs (fp_res as {Ts, ...}) ctr_sugars un_folds co_recs
     un_fold_thmss co_rec_thmss lthy =
   (0, lthy)
-  |> fold (fn ctor => fn (kk, lthy) => (kk + 1,
-    register_fp_sugar (fp_name_of_ctor ctor) {lfp = lfp, index = kk,
-      pre_bnfs = pre_bnfs, fp_res = fp_res, ctr_sugars = ctr_sugars, un_folds = un_folds,
-      co_recs = co_recs, un_fold_thmss = un_fold_thmss, co_rec_thmss = co_rec_thmss} lthy)) ctors
+  |> fold (fn T as Type (s, _) => fn (kk, lthy) => (kk + 1,
+    register_fp_sugar s {T = T, lfp = lfp, index = kk, pre_bnfs = pre_bnfs, fp_res = fp_res,
+      ctr_sugars = ctr_sugars, un_folds = un_folds, co_recs = co_recs,
+      un_fold_thmss = un_fold_thmss, co_rec_thmss = co_rec_thmss} lthy)) Ts
   |> snd;
 
 (* This function could produce clashes in contrived examples (e.g., "x.A", "x.x_A", "y.A"). *)
@@ -904,7 +906,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
     val (pre_bnfs, (fp_res as {bnfs = fp_bnfs as any_fp_bnf :: _, ctors = ctors0, dtors = dtors0,
            folds = fp_folds0, recs = fp_recs0, induct = fp_induct, strong_induct = fp_strong_induct,
            dtor_ctors, ctor_dtors, ctor_injects, map_thms = fp_map_thms, set_thmss = fp_set_thmss,
-           rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms}, lthy)) =
+           rel_thms = fp_rel_thms, fold_thms = fp_fold_thms, rec_thms = fp_rec_thms, ...}, lthy)) =
       fp_bnf construct_fp fp_bs mixfixes map_bs rel_bs set_bss (map dest_TFree unsorted_As) fp_eqs
         no_defs_lthy0;
 
@@ -1315,7 +1317,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       end;
 
     fun derive_and_note_coinduct_unfold_corec_thms_for_types
-        ((((mapsx, rel_injects, rel_distincts, setss), (ctrss, _, ctr_defss, ctr_sugars)),
+        ((((mapsx, rel_injects, rel_distincts, setss), (_, _, ctr_defss, ctr_sugars)),
           (unfolds, corecs, unfold_defs, corec_defs)), lthy) =
       let
         val ((coinduct_thm, coinduct_thms, strong_coinduct_thm, strong_coinduct_thms,

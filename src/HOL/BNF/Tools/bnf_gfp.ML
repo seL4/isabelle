@@ -3029,7 +3029,7 @@ fun construct_gfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ({bnfs = Jbnfs, ctors = ctors, dtors = dtors, folds = unfolds, recs = corecs,
+    ({Ts = Ts, bnfs = Jbnfs, ctors = ctors, dtors = dtors, folds = unfolds, recs = corecs,
       induct = dtor_coinduct_thm, strong_induct = dtor_strong_coinduct_thm,
       dtor_ctors = dtor_ctor_thms, ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms,
       map_thms = folded_dtor_map_thms, set_thmss = folded_dtor_set_thmss',

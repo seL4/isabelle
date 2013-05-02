@@ -9,7 +9,8 @@ Shared library for the datatype and codatatype constructions.
 signature BNF_FP_UTIL =
 sig
   type fp_result =
-    {bnfs: BNF_Def.bnf list,
+    {Ts: typ list,
+     bnfs: BNF_Def.bnf list,
      ctors: term list,
      dtors: term list,
      folds: term list,
@@ -25,7 +26,6 @@ sig
      fold_thms: thm list,
      rec_thms: thm list}
 
-  val fp_name_of_ctor: term -> string
   val morph_fp_result: morphism -> fp_result -> fp_result
   val eq_fp_result: fp_result * fp_result -> bool
 
@@ -179,7 +179,8 @@ open BNF_Def
 open BNF_Util
 
 type fp_result =
-  {bnfs: BNF_Def.bnf list,
+  {Ts: typ list,
+   bnfs: BNF_Def.bnf list,
    ctors: term list,
    dtors: term list,
    folds: term list,
@@ -195,11 +196,10 @@ type fp_result =
    fold_thms: thm list,
    rec_thms: thm list};
 
-val fp_name_of_ctor = fst o dest_Type o range_type o fastype_of;
-
-fun morph_fp_result phi {bnfs, ctors, dtors, folds, recs, induct, strong_induct, dtor_ctors,
+fun morph_fp_result phi {Ts, bnfs, ctors, dtors, folds, recs, induct, strong_induct, dtor_ctors,
     ctor_dtors, ctor_injects, map_thms, set_thmss, rel_thms, fold_thms, rec_thms} =
-  {bnfs = map (morph_bnf phi) bnfs,
+  {Ts = map (Morphism.typ phi) Ts,
+   bnfs = map (morph_bnf phi) bnfs,
    ctors = map (Morphism.term phi) ctors,
    dtors = map (Morphism.term phi) dtors,
    folds = map (Morphism.term phi) folds,

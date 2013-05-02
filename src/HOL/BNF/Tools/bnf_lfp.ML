@@ -1852,7 +1852,7 @@ fun construct_lfp mixfixes resBs bs map_bs rel_bs set_bss (resDs, Dss) bnfs lthy
             ((Binding.qualify true (Binding.name_of b) (Binding.name thmN), []), [(thms, [])]))
           bs thmss)
   in
-    ({bnfs = Ibnfs, ctors = ctors, dtors = dtors, folds = folds, recs = recs,
+    ({Ts = Ts, bnfs = Ibnfs, ctors = ctors, dtors = dtors, folds = folds, recs = recs,
       induct = ctor_induct_thm, strong_induct = ctor_induct_thm, dtor_ctors = dtor_ctor_thms,
       ctor_dtors = ctor_dtor_thms, ctor_injects = ctor_inject_thms, map_thms = folded_ctor_map_thms,
       set_thmss = folded_ctor_set_thmss', rel_thms = ctor_Irel_thms, fold_thms = ctor_fold_thms,
