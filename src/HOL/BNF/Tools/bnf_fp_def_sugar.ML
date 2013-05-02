@@ -21,6 +21,7 @@ sig
 
   val fp_sugar_of: local_theory -> string -> fp_sugar option
 
+  val exists_subtype_in: typ list -> typ -> bool
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
@@ -143,7 +144,7 @@ fun split_list4 [] = ([], [], [], [])
     let val (xs1, xs2, xs3, xs4) = split_list4 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
-fun exists_subtype_in Ts = exists_subtype (member (op =) Ts);
+val exists_subtype_in = Term.exists_subtype o member (op =);
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
 
