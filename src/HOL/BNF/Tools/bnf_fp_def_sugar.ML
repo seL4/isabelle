@@ -141,12 +141,6 @@ fun split_list4 [] = ([], [], [], [])
     let val (xs1, xs2, xs3, xs4) = split_list4 xs;
     in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
-fun add_components_of_typ (Type (s, Ts)) =
-    fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
-  | add_components_of_typ _ = I;
-
-fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
-
 fun exists_subtype_in Ts = exists_subtype (member (op =) Ts);
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
@@ -156,13 +150,6 @@ fun typ_subst_nonatomic inst (T as Type (s, Ts)) =
       NONE => Type (s, map (typ_subst_nonatomic inst) Ts)
     | SOME T' => T')
   | typ_subst_nonatomic inst T = the_default T (AList.lookup (op =) inst T);
-
-fun variant_types ss Ss ctxt =
-  let
-    val (tfrees, _) =
-      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
-    val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
-  in (tfrees, ctxt') end;
 
 val lists_bmoc = fold (fn xs => fn t => Term.list_comb (t, xs));
 
@@ -848,8 +835,7 @@ fun define_datatypes prepare_constraint prepare_typ prepare_term lfp construct_f
       |> fold (Variable.declare_typ o resort_tfree dummyS) unsorted_As
       |> mk_TFrees (length unsorted_As)
       ||>> mk_TFrees nn
-      ||>> apfst (map TFree) o
-        variant_types (map (prefix "'") fp_b_names) (replicate nn HOLogic.typeS);
+      ||>> variant_tfrees fp_b_names;
 
     (* TODO: cleaner handling of fake contexts, without "background_theory" *)
     (*the "perhaps o try" below helps gracefully handles the case where the new type is defined in a

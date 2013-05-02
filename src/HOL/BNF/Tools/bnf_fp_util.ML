@@ -120,7 +120,12 @@ sig
   val mk_dtor_set_inductN: int -> string
   val mk_set_inductN: int -> string
 
+  val base_name_of_typ: typ -> string
   val mk_common_name: string list -> string
+
+  val variant_types: string list -> sort list -> Proof.context ->
+    (string * sort) list * Proof.context
+  val variant_tfrees: string list -> Proof.context -> typ list * Proof.context
 
   val split_conj_thm: thm -> thm list
   val split_conj_prems: int -> thm -> thm
@@ -156,6 +161,7 @@ sig
   val mk_sum_casesN: int -> int -> thm
   val mk_sum_casesN_balanced: int -> int -> thm
 
+  val find_minimum: ('b * 'b -> order) -> ('a -> 'b) -> 'a list -> 'a
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
   val fp_bnf: (mixfix list -> (string * sort) list option -> binding list -> binding list ->
@@ -315,6 +321,12 @@ val selN = "sel"
 val sel_unfoldN = selN ^ "_" ^ unfoldN
 val sel_corecN = selN ^ "_" ^ corecN
 
+fun add_components_of_typ (Type (s, Ts)) =
+    fold add_components_of_typ Ts #> cons (Long_Name.base_name s)
+  | add_components_of_typ _ = I;
+
+fun base_name_of_typ T = space_implode "_" (add_components_of_typ T []);
+
 val mk_common_name = space_implode "_";
 
 fun dest_sumT (Type (@{type_name sum}, [T, T'])) = (T, T');
@@ -381,8 +393,32 @@ fun mk_Field r =
 
 val mk_union = HOLogic.mk_binop @{const_name sup};
 
+fun find_minimum _ _ [] = raise Empty
+  | find_minimum _ _ [x] = x
+  | find_minimum ord f xs =
+    let
+      fun find [x] = (f x, x)
+        | find (x :: xs) =
+          let
+            val y = f x;
+            val p' as (y', _) = find xs;
+          in
+            if ord (y', y) = LESS then p' else (y, x)
+          end;
+    in snd (find xs) end;
+
 (*dangerous; use with monotonic, converging functions only!*)
 fun fixpoint eq f X = if subset eq (f X, X) then X else fixpoint eq f (f X);
+
+fun variant_types ss Ss ctxt =
+  let
+    val (tfrees, _) =
+      fold_map2 (fn s => fn S => Name.variant s #> apfst (rpair S)) ss Ss (Variable.names_of ctxt);
+    val ctxt' = fold (Variable.declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
+  in (tfrees, ctxt') end;
+
+fun variant_tfrees ss =
+  apfst (map TFree) o variant_types (map (prefix "'") ss) (replicate (length ss) HOLogic.typeS);
 
 (* stolen from "~~/src/HOL/Tools/Datatype/datatype_aux.ML" *)
 fun split_conj_thm th =
