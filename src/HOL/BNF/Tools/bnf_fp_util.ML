@@ -165,9 +165,9 @@ sig
 
   val fixpoint: ('a * 'a -> bool) -> ('a list -> 'a list) -> 'a list -> 'a list
 
-  val fp_bnf: (mixfix list -> (string * sort) list option -> binding list -> binding list ->
-      binding list -> binding list list -> typ list * typ list list -> BNF_Def.bnf list ->
-      local_theory -> 'a) ->
+  val fp_bnf: (mixfix list -> binding list -> binding list -> binding list -> binding list list ->
+      (string * sort) list option -> typ list * typ list list -> BNF_Def.bnf list -> local_theory ->
+      'a) ->
     binding list -> mixfix list -> binding list -> binding list -> binding list list ->
     (string * sort) list -> ((string * sort) * typ) list -> local_theory -> BNF_Def.bnf list * 'a
 end;
@@ -489,17 +489,17 @@ fun mk_fp_bnf timer construct_fp resBs bs map_bs rel_bs set_bss sort lhss bnfs d
 
     val Dss = map3 (append oo map o nth) livess kill_poss deadss;
 
-    val ((bnfs'', deadss), lthy'') =
+    val ((pre_bnfs, deadss), lthy'') =
       fold_map3 (seal_bnf unfold_set') (map (Binding.prefix_name preN) bs) Dss bnfs' lthy'
       |>> split_list;
 
     val timer = time (timer "Normalization & sealing of BNFs");
 
-    val res = construct_fp resBs bs map_bs rel_bs set_bss (map TFree resDs, deadss) bnfs'' lthy'';
+    val res = construct_fp bs map_bs rel_bs set_bss resBs (map TFree resDs, deadss) pre_bnfs lthy'';
 
     val timer = time (timer "FP construction in total");
   in
-    timer; (bnfs'', res)
+    timer; (pre_bnfs, res)
   end;
 
 fun fp_bnf construct_fp bs mixfixes map_bs rel_bs set_bss resBs eqs lthy =
