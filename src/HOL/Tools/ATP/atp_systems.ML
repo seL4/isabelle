@@ -226,8 +226,8 @@ val alt_ergo = (alt_ergoN, fn () => alt_ergo_config)
 
 (* E *)
 
-fun is_e_at_least_1_3 () = (string_ord (getenv "E_VERSION", "1.3") <> LESS)
-fun is_e_at_least_1_6 () = (string_ord (getenv "E_VERSION", "1.6") <> LESS)
+fun is_e_at_least_1_3 () = string_ord (getenv "E_VERSION", "1.3") <> LESS
+fun is_e_at_least_1_6 () = string_ord (getenv "E_VERSION", "1.6") <> LESS
 
 val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
@@ -530,10 +530,8 @@ val spass = (spassN, fn () => spass_config)
 
 (* Vampire 1.8 has TFF support, but the support was buggy until revision
    1435 (or shortly before). *)
-fun is_vampire_at_least_1_8 () =
-  string_ord (getenv "VAMPIRE_VERSION", "1.8") <> LESS
-fun is_vampire_beyond_1_8 () =
-  string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
+fun is_vampire_at_least_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") <> LESS
+fun is_vampire_beyond_1_8 () = string_ord (getenv "VAMPIRE_VERSION", "1.8") = GREATER
 
 val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
