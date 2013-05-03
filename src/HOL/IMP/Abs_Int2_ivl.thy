@@ -186,6 +186,9 @@ unfolding bot_ivl_def by transfer (simp add: sup_rep_def eq_ivl_empty)
 lemma inf_ivl_nice: "[l1\<dots>h1] \<sqinter> [l2\<dots>h2] = [max l1 l2\<dots>min h1 h2]"
 by transfer (simp add: inf_rep_def)
 
+lemma top_ivl_nice: "\<top> = [-\<infinity>\<dots>\<infinity>]"
+by (simp add: top_ivl_def)
+
 
 instantiation ivl :: plus
 begin
