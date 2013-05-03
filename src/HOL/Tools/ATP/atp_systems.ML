@@ -539,14 +539,18 @@ val vampire_tff0 = TFF (Monomorphic, TPTP_Implicit)
 
 val vampire_config : atp_config =
   {exec = (["VAMPIRE_HOME"], ["vampire"]),
-   arguments = fn _ => fn _ => fn sos => fn timeout => fn file_name => fn _ =>
+   arguments = fn _ => fn full_proof => fn sos => fn timeout => fn file_name =>
+       fn _ =>
        "--mode casc -t " ^ string_of_int (to_secs 1 timeout) ^
        " --proof tptp --output_axiom_names on" ^
        (if is_vampire_at_least_1_8 () then
           (* Cf. p. 20 of http://www.complang.tuwien.ac.at/lkovacs/Cade23_Tutorial_Slides/Session2_Slides.pdf *)
-          " --forced_options propositional_to_bdd=off:splitting=off:\
-          \equality_proxy=off:general_splitting=off:inequality_splitting=0:\
-          \naming=0"
+          " --forced_options propositional_to_bdd=off" ^
+          (if full_proof then
+             ":splitting=off:equality_proxy=off:general_splitting=off\
+             \:inequality_splitting=0:naming=0"
+           else
+             "")
         else
           "") ^
        " --thanks \"Andrei and Krystof\" --input_file " ^ file_name
