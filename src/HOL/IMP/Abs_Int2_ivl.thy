@@ -88,6 +88,9 @@ by(auto simp: eq_ivl_def le_iff_subset)
 
 definition less_ivl where "i1 < i2 = (i1 \<le> i2 \<and> \<not> i2 \<le> (i1::ivl))"
 
+lemma le_ivl_iff_subset: "iv1 \<le> iv2 \<longleftrightarrow> \<gamma>_ivl iv1 \<subseteq> \<gamma>_ivl iv2"
+by transfer (rule le_iff_subset)
+
 definition sup_rep :: "eint2 \<Rightarrow> eint2 \<Rightarrow> eint2" where
 "sup_rep p1 p2 = (if is_empty_rep p1 then p2 else if is_empty_rep p2 then p1
   else let (l1,h1) = p1; (l2,h2) = p2 in  (min l1 l2, max h1 h2))"
@@ -154,20 +157,21 @@ by(auto simp:inf_rep_def \<gamma>_rep_cases split: prod.splits extended.splits)
 lift_definition inf_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" is inf_rep
 by(auto simp: \<gamma>_inf_rep eq_ivl_def)
 
+lemma \<gamma>_inf: "\<gamma>_ivl (iv1 \<sqinter> iv2) = \<gamma>_ivl iv1 \<inter> \<gamma>_ivl iv2"
+by transfer (rule \<gamma>_inf_rep)
+
 definition "\<bottom> = empty_ivl"
 
 instance
 proof
-  case goal1 thus ?case
-    unfolding inf_rep_def by transfer (auto simp: le_iff_subset \<gamma>_inf_rep)
+  case goal1 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
 next
-  case goal2 thus ?case
-    unfolding inf_rep_def by transfer (auto simp: le_iff_subset \<gamma>_inf_rep)
+  case goal2 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
 next
-  case goal3 thus ?case
-    unfolding inf_rep_def by transfer (auto simp: le_iff_subset \<gamma>_inf_rep)
+  case goal3 thus ?case by (simp add: \<gamma>_inf le_ivl_iff_subset)
 next
-  case goal4 show ?case unfolding bot_ivl_def by transfer (auto simp: le_iff_subset)
+  case goal4 show ?case
+    unfolding bot_ivl_def by transfer (auto simp: le_iff_subset)
 qed
 
 end
@@ -238,6 +242,9 @@ by (auto simp: uminus_rep_def eq_ivl_def \<gamma>_rep_cases)
 instance ..
 end
 
+lemma \<gamma>_uminus: "i : \<gamma>_ivl iv \<Longrightarrow> -i \<in> \<gamma>_ivl(- iv)"
+by transfer (rule \<gamma>_uminus_rep)
+
 lemma uminus_nice: "-[l\<dots>h] = [-h\<dots>-l]"
 by transfer (simp add: uminus_rep_def)
 
@@ -303,26 +310,10 @@ interpretation Val_abs1_gamma
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 defines aval_ivl is aval'
 proof
-  case goal1 show ?case
-    by transfer (auto simp add:inf_rep_def \<gamma>_rep_cases split: prod.split extended.split)
+  case goal1 show ?case by(simp add: \<gamma>_inf)
 next
   case goal2 show ?case unfolding bot_ivl_def by transfer simp
 qed
-
-lemma \<gamma>_plus_rep: "i1 : \<gamma>_rep p1 \<Longrightarrow> i2 : \<gamma>_rep p2 \<Longrightarrow> i1+i2 \<in> \<gamma>_rep(plus_rep p1 p2)"
-by(auto simp: plus_rep_def plus_rep_plus split: prod.splits)
-
-lemma non_empty_inf: "\<lbrakk>n1 \<in> \<gamma>_rep a1; n2 \<in> \<gamma>_rep a2; n1 + n2 \<in> \<gamma>_rep a \<rbrakk> \<Longrightarrow>
-     \<not> is_empty_rep (inf_rep a1 (plus_rep a (uminus_rep a2)))"
-by (auto simp add: \<gamma>_inf_rep set_eq_iff is_empty_rep_iff simp del: all_not_in_conv)
-   (metis \<gamma>_plus_rep \<gamma>_uminus_rep add_diff_cancel diff_minus)
-
-lemma filter_plus: "\<lbrakk>eq_ivl (inf_rep a1 (plus_rep a (uminus_rep a2))) b1 \<and>
-       eq_ivl (inf_rep a2 (plus_rep a (uminus_rep a1))) b2;
-        n1 \<in> \<gamma>_rep a1; n2 \<in> \<gamma>_rep a2; n1 + n2 \<in> \<gamma>_rep a\<rbrakk>
-       \<Longrightarrow> n1 \<in> \<gamma>_rep b1 \<and> n2 \<in> \<gamma>_rep b2"
-by (auto simp: eq_ivl_iff \<gamma>_inf_rep non_empty_inf add_ac)
-   (metis \<gamma>_plus_rep \<gamma>_uminus_rep add_diff_cancel diff_def add_commute)+
 
 interpretation Val_abs1
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
@@ -331,8 +322,11 @@ and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
   case goal1 thus ?case by transfer (auto simp: \<gamma>_rep_def)
 next
-  case goal2 thus ?case unfolding filter_plus_ivl_def minus_ivl_def prod_rel_eq[symmetric]
-    by transfer (simp add: filter_plus)
+  case goal2 thus ?case
+    unfolding filter_plus_ivl_def minus_ivl_def prod_rel_eq[symmetric]
+    apply(clarsimp simp add: \<gamma>_inf)
+    using gamma_plus'[of "i1+i2" _ "-i1"] gamma_plus'[of "i1+i2" _ "-i2"]
+    by(simp add:  \<gamma>_uminus)
 next
   case goal3 thus ?case
     unfolding prod_rel_eq[symmetric]
