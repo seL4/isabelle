@@ -5604,6 +5604,26 @@ lemma transfer_nat_int_fold1: "fold f l x =
 
 subsection {* Code generation *}
 
+
+text{* Optional tail recursive version of @{const map}. Can avoid
+stack overflow in some target languages. *}
+
+fun map_tailrec_rev ::  "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list \<Rightarrow> 'b list" where
+"map_tailrec_rev f [] bs = bs" |
+"map_tailrec_rev f (a#as) bs = map_tailrec_rev f as (f a # bs)"
+
+lemma map_tailrec_rev:
+  "map_tailrec_rev f as bs = rev(map f as) @ bs"
+by(induction as arbitrary: bs) simp_all
+
+definition map_tailrec :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list \<Rightarrow> 'b list" where
+"map_tailrec f as = rev (map_tailrec_rev f as [])"
+
+text{* Code equation: *}
+lemma map_eq_map_tailrec: "map = map_tailrec"
+by(simp add: fun_eq_iff map_tailrec_def map_tailrec_rev)
+
+
 subsubsection {* Counterparts for set-related operations *}
 
 definition member :: "'a list \<Rightarrow> 'a \<Rightarrow> bool" where
