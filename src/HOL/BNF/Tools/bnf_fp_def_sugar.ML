@@ -199,7 +199,7 @@ fun mk_ctor_or_dtor get_T Ts t =
 val mk_ctor = mk_ctor_or_dtor range_type;
 val mk_dtor = mk_ctor_or_dtor domain_type;
 
-fun mk_xxiter lfp Ts Us t =
+fun mk_co_iter lfp Ts Us t =
   let
     val (bindings, body) = strip_type (fastype_of t);
     val (f_Us, prebody) = split_last bindings;
@@ -212,7 +212,7 @@ fun mk_xxiter lfp Ts Us t =
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
 fun mk_fp_iter lfp As Cs fp_iters0 =
-  map (mk_xxiter lfp As Cs) fp_iters0
+  map (mk_co_iter lfp As Cs) fp_iters0
   |> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)));
 
 fun unzip_recT fpTs T =
@@ -1216,7 +1216,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
 
             val [fold_def, rec_def] = map (Morphism.thm phi) defs;
 
-            val [foldx, recx] = map (mk_xxiter lfp As Cs o Morphism.term phi) csts;
+            val [foldx, recx] = map (mk_co_iter lfp As Cs o Morphism.term phi) csts;
           in
             ((foldx, recx, fold_def, rec_def), lthy')
           end;
@@ -1266,13 +1266,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
 
             val [unfold_def, corec_def] = map (Morphism.thm phi) defs;
 
-            val [unfold, corec] = map (mk_xxiter lfp As Cs o Morphism.term phi) csts;
+            val [unfold, corec] = map (mk_co_iter lfp As Cs o Morphism.term phi) csts;
           in
             ((unfold, corec, unfold_def, corec_def), lthy')
           end;
 
-        fun massage_res (((maps_sets_rels, ctr_sugar), xxiter_res), lthy) =
-          (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), xxiter_res), lthy);
+        fun massage_res (((maps_sets_rels, ctr_sugar), co_iter_res), lthy) =
+          (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), co_iter_res), lthy);
       in
         (wrap
          #> derive_maps_sets_rels
