@@ -27,11 +27,8 @@ sig
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
-  val mk_fp_iter_fun_types: term -> typ list
-  val mk_fun_arg_typess: int -> int list -> typ -> typ list list
-  val unzip_recT: typ list -> typ -> typ list * typ list
-  val mk_fold_fun_typess: typ list list list -> typ list list -> typ list list
-  val mk_rec_fun_typess: typ list -> typ list list list -> typ list list -> typ list list
+  val mk_iter_fun_arg_types_pairsss: typ list -> int list -> int list list -> term ->
+    (typ list * typ list) list list list
   val mk_fold_recs: Proof.context -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> term list * term list
 
@@ -236,6 +233,11 @@ val mk_fold_fun_typess = map2 (map2 (curry (op --->)));
 val mk_rec_fun_typess = mk_fold_fun_typess oo massage_rec_fun_arg_typesss;
 
 fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
+
+fun mk_iter_fun_arg_types_pairsss fpTs ns mss =
+  mk_fp_iter_fun_types
+  #> map3 mk_fun_arg_typess ns mss
+  #> map (map (map (unzip_recT fpTs)));
 
 fun mk_fold_rec_args_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
