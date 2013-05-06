@@ -39,10 +39,11 @@ fun v_fold_index f v s =
 
 (* Queue interface to table *)
 fun pop tab key =
-  let val v = hd (Inttab.lookup_list tab key) in
+  (let val v = hd (Inttab.lookup_list tab key) in
     (v, Inttab.remove_list (op =) (key, v) tab)
-  end
+  end) handle Empty => raise Fail "sledgehammer_compress: pop"
 fun pop_max tab = pop tab (the (Inttab.max_key tab))
+  handle Option => raise Fail "sledgehammer_compress: pop_max"
 fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
 (* Main function for compresing proofs *)
@@ -97,12 +98,13 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
       (* candidates for elimination, use table as priority queue (greedy
          algorithm) *)
       fun add_if_cand step_vect (i, [j]) =
-          (case (the (get i step_vect), the (get j step_vect)) of
+          ((case (the (get i step_vect), the (get j step_vect)) of
             (Prove (_, _, t, By_Metis _), Prove (_, _, _, By_Metis _)) =>
               cons (Term.size_of_term t, i)
           | (Prove (_, _, t, By_Metis _), Obtain (_, _, _, _, By_Metis _)) =>
               cons (Term.size_of_term t, i)
-          | _ => I)
+          | _ => I) 
+            handle Option => raise Fail "sledgehammer_compress: add_if_cand")
         | add_if_cand _ _ = I
       val cand_tab =
         v_fold_index (add_if_cand step_vect) refed_by_vect []
@@ -118,6 +120,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
              #> handle_metis_fail
              #> Lazy.lazy)
           step_vect
+        handle Option => raise Fail "sledgehammer_compress: metis_time"
 
       fun sum_up_time lazy_time_vector =
         Vector.foldl
@@ -133,12 +136,12 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
                   (fn by => Prove (qs2, lbl2, t, by), x)
               | Obtain (qs2, xs, lbl2, t, By_Metis x) =>
                   (fn by => Obtain (qs2, xs, lbl2, t, by), x)
-              | _ => error "sledgehammer_compress: unmergeable Isar steps" )
+              | _ => raise Fail "sledgehammer_compress: unmergeable Isar steps" )
             val lfs = remove (op =) lbl1 lfs2 |> union (op =) lfs1
             val gfs = union (op =) gfs1 gfs2
             val subproofs = subproofs1 @ subproofs2
           in step_constructor (By_Metis (subproofs, (lfs, gfs))) end
-        | merge _ _ = error "sledgehammer_compress: unmergeable Isar steps"
+        | merge _ _ = raise Fail "sledgehammer_compress: unmergeable Isar steps"
 
       fun try_merge metis_time (s1, i) (s2, j) =
         if not preplay then (merge s1 s2 |> SOME, metis_time)
@@ -197,6 +200,8 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
                           (n_metis' - 1)
             end
           end
+        handle Option => raise Fail "sledgehammer_compress: merge_steps"
+             | List.Empty => raise Fail "sledgehammer_compress: merge_steps"
     in
       merge_steps metis_time step_vect refed_by_vect cand_tab n n_metis
     end

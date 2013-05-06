@@ -62,7 +62,7 @@ fun fact_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   let
     val concl = (case try List.last steps of
                   SOME (Prove (_, _, t, _)) => t
-                | _ => error "preplay error: malformed subproof")
+                | _ => raise Fail "preplay error: malformed subproof")
     val var_idx = maxidx_of_term concl + 1
     fun var_of_free (x, T) = Var((x, var_idx), T)
     val substitutions =
