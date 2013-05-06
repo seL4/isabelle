@@ -177,7 +177,9 @@ fun term_from_atp ctxt textual sym_tab =
     fun do_term extra_ts opt_T u =
       case u of
         ATerm ((s, _), us) =>
-        if String.isPrefix native_type_prefix s then
+        if s = ""
+          then error "Isar proof reconstruction failed because the ATP proof contained unparsable material."
+        else if String.isPrefix native_type_prefix s then
           @{const True} (* ignore TPTP type information *)
         else if s = tptp_equal then
           let val ts = map (do_term [] NONE) us in

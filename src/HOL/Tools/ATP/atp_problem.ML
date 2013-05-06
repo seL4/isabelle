@@ -265,7 +265,7 @@ fun extract_isabelle_rank (tms as _ :: _) =
 fun is_tptp_equal s = (s = tptp_equal orelse s = tptp_old_equal)
 fun is_built_in_tptp_symbol s =
   s = tptp_old_equal orelse not (Char.isAlpha (String.sub (s, 0)))
-fun is_tptp_variable s = Char.isUpper (String.sub (s, 0))
+fun is_tptp_variable s = s <> "" andalso Char.isUpper (String.sub (s, 0))
 val is_tptp_user_symbol = not o (is_tptp_variable orf is_built_in_tptp_symbol)
 
 val bool_atype = AType (`I tptp_bool_type, [])
