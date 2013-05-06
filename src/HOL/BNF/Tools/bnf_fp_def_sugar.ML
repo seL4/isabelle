@@ -32,6 +32,8 @@ sig
   val unzip_recT: typ list -> typ -> typ list * typ list
   val mk_fold_fun_typess: typ list list list -> typ list list -> typ list list
   val mk_rec_fun_typess: typ list -> typ list list list -> typ list list -> typ list list
+  val mk_fold_recs: Proof.context -> typ list -> typ list -> typ list -> int list ->
+    int list list -> term list -> term list -> term list * term list
 
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
@@ -235,7 +237,7 @@ val mk_rec_fun_typess = mk_fold_fun_typess oo massage_rec_fun_arg_typesss;
 
 fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
-fun mk_fold_rec_terms_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
+fun mk_fold_rec_args_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy =
   let
     val y_Tsss = map3 mk_fun_arg_typess ns mss ctor_fold_fun_Ts;
     val g_Tss = mk_fold_fun_typess y_Tsss Css;
@@ -379,6 +381,54 @@ fun build_map lthy build_simple =
         | _ => build_simple TU);
   in build end;
 
+fun mk_iter_body lthy fpTs ctor_iter fss xsss =
+  let
+    fun build_prod_proj mk_proj = build_map lthy (mk_proj o fst);
+
+    (* TODO: Avoid these complications; cf. corec case *)
+    fun mk_U proj (Type (s as @{type_name prod}, Ts as [T', U])) =
+        if member (op =) fpTs T' then proj (T', U) else Type (s, map (mk_U proj) Ts)
+      | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
+      | mk_U _ T = T;
+
+    fun unzip_rec (x as Free (_, T)) =
+      if exists_subtype_in fpTs T then
+        ([build_prod_proj fst_const (T, mk_U fst T) $ x],
+         [build_prod_proj snd_const (T, mk_U snd T) $ x])
+      else
+        ([x], []);
+
+    fun mk_iter_arg f xs = mk_tupled_fun (HOLogic.mk_tuple xs) f (flat_rec unzip_rec xs);
+  in
+    Term.list_comb (ctor_iter, map2 (mk_sum_caseN_balanced oo map2 mk_iter_arg) fss xsss)
+  end;
+
+fun mk_fold_recs lthy fpTs As Cs ns mss ctor_folds ctor_recs =
+  let
+    val Css = map2 replicate ns Cs;
+
+    val (_, ctor_fold_fun_Ts) = mk_fp_iter true As Cs ctor_folds;
+    val (_, ctor_rec_fun_Ts) = mk_fp_iter true As Cs ctor_recs;
+
+    val (((gss, _, ysss), (hss, _, zsss)), _) =
+      mk_fold_rec_args_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
+
+    fun mk_term ctor_iter fss xsss =
+      fold_rev (fold_rev Term.lambda) fss (mk_iter_body lthy fpTs ctor_iter fss xsss);
+
+    fun mk_terms ctor_fold ctor_rec =
+      (mk_term ctor_fold gss ysss, mk_term ctor_rec hss zsss)
+  in
+    map2 mk_terms ctor_folds ctor_recs |> split_list
+  end;
+
+(*###
+    fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
+            fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
+          pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
+        ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
+*)
+
 fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_induct ctor_fold_thms
     ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs rec_defs
     lthy =
@@ -403,7 +453,7 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
     val (_, ctor_rec_fun_Ts) = mk_fp_iter true As Cs ctor_recs0;
 
     val (((gss, _, _), (hss, _, _)), names_lthy0) =
-      mk_fold_rec_terms_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
+      mk_fold_rec_args_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
 
     val ((((ps, ps'), xsss), us'), names_lthy) =
       names_lthy0
@@ -979,7 +1029,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
           (cs, cpss, unfold_only as ((_, crssss, cgssss), (_, g_Tsss, _)),
            corec_only as ((_, csssss, chssss), (_, h_Tsss, _)))), _) =
       if lfp then
-        mk_fold_rec_terms_types fpTs Css ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_fold_rec_args_types fpTs Css ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> rpair ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))
       else
         mk_unfold_corec_terms_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
@@ -1172,32 +1222,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
           let
             val fpT_to_C = fpT --> C;
 
-            fun build_prod_proj mk_proj = build_map lthy (mk_proj o fst);
-
-            (* TODO: Avoid these complications; cf. corec case *)
-            fun mk_U proj (Type (s as @{type_name prod}, Ts as [T', U])) =
-                if member (op =) fpTs T' then proj (T', U) else Type (s, map (mk_U proj) Ts)
-              | mk_U proj (Type (s, Ts)) = Type (s, map (mk_U proj) Ts)
-              | mk_U _ T = T;
-
-            fun unzip_rec (x as Free (_, T)) =
-              if exists_subtype_in fpTs T then
-                ([build_prod_proj fst_const (T, mk_U fst T) $ x],
-                 [build_prod_proj snd_const (T, mk_U snd T) $ x])
-              else
-                ([x], []);
-
-            fun mk_iter_arg f xs =
-              mk_tupled_fun (HOLogic.mk_tuple xs) f (flat_rec unzip_rec xs);
-
             fun generate_iter (suf, ctor_iter, (fss, f_Tss, xsss)) =
               let
                 val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
                 val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
-                    Term.list_comb (ctor_iter,
-                      map2 (mk_sum_caseN_balanced oo map2 mk_iter_arg) fss xsss));
+                    mk_iter_body no_defs_lthy fpTs ctor_iter fss xsss);
               in (binding, spec) end;
 
             val iter_infos =
