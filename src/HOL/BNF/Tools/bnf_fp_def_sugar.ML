@@ -424,6 +424,13 @@ fun mk_fold_recs lthy fpTs As Cs ns mss ctor_folds ctor_recs =
     map2 mk_terms ctor_folds ctor_recs |> split_list
   end;
 
+fun mk_preds_getterss_join c n cps sum_prod_T cqfss =
+  Term.lambda c (mk_IfN sum_prod_T cps
+    (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)));
+
+fun mk_coiter_body cs ns cpss f_sum_prod_Ts cqfsss dtor_coiter =
+  Term.list_comb (dtor_coiter, map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss);
+
 (*###
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
             fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
@@ -1268,10 +1275,6 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
             val crgsss = map3 (map3 (map3 build_dtor_coiter_arg)) g_Tsss crssss cgssss;
             val cshsss = map3 (map3 (map3 build_dtor_coiter_arg)) h_Tsss csssss chssss;
 
-            fun mk_preds_getterss_join c n cps sum_prod_T cqfss =
-              Term.lambda c (mk_IfN sum_prod_T cps
-                (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)));
-
             fun generate_coiter (suf, dtor_coiter, (cqfsss, ((pfss, _, _),
                 (f_sum_prod_Ts, _, pf_Tss)))) =
               let
@@ -1279,8 +1282,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
                 val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
-                    Term.list_comb (dtor_coiter,
-                      map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss));
+                    mk_coiter_body cs ns cpss f_sum_prod_Ts cqfsss dtor_coiter);
               in (binding, spec) end;
 
             val coiter_infos =
