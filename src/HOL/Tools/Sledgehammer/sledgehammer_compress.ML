@@ -11,7 +11,7 @@ sig
   type preplay_time = Sledgehammer_Preplay.preplay_time
   val compress_and_preplay_proof :
     bool -> Proof.context -> string -> string -> bool -> Time.time option
-    -> real -> isar_proof -> isar_proof * (bool * preplay_time)
+    -> bool -> real -> isar_proof -> isar_proof * (bool * preplay_time)
 end
 
 structure Sledgehammer_Compress : SLEDGEHAMMER_COMPRESS =
@@ -48,7 +48,7 @@ fun add_list tab xs = fold (Inttab.insert_list (op =)) xs tab
 
 (* Main function for compresing proofs *)
 fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
-                               preplay_timeout isar_compress proof =
+      preplay_timeout preplay_trace isar_compress proof =
   let
     (* 60 seconds seems like a good interpreation of "no timeout" *)
     val preplay_timeout = preplay_timeout |> the_default (seconds 60.0)
@@ -103,7 +103,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
               cons (Term.size_of_term t, i)
           | (Prove (_, _, t, By_Metis _), Obtain (_, _, _, _, By_Metis _)) =>
               cons (Term.size_of_term t, i)
-          | _ => I) 
+          | _ => I)
             handle Option => raise Fail "sledgehammer_compress: add_if_cand")
         | add_if_cand _ _ = I
       val cand_tab =
@@ -116,7 +116,8 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
           (if not preplay then K (zero_preplay_time) #> Lazy.value
            else
              the
-             #> try_metis debug type_enc lam_trans ctxt preplay_timeout
+             #> try_metis debug preplay_trace type_enc lam_trans ctxt
+              preplay_timeout
              #> handle_metis_fail
              #> Lazy.lazy)
           step_vect
@@ -156,8 +157,8 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
                 val s12 = merge s1 s2
                 val timeout = time_mult merge_timeout_slack (Time.+(t1, t2))
               in
-                case try_metis_quietly debug type_enc lam_trans
-                                                        ctxt timeout s12 () of
+                case try_metis_quietly debug preplay_trace type_enc
+                                                lam_trans ctxt timeout s12 () of
                   (true, _) => (NONE, metis_time)
                 | exact_time =>
                   (SOME s12, metis_time

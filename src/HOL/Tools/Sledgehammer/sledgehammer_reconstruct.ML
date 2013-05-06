@@ -23,7 +23,7 @@ sig
   type one_line_params =
     play * string * (string * stature) list * minimize_command * int * int
   type isar_params =
-    bool * bool * Time.time option * real * string Symtab.table
+    bool * bool * Time.time option * bool * real * string Symtab.table
     * (string * stature) list vector * int Symtab.table * string proof * thm
 
   val smtN : string
@@ -631,12 +631,12 @@ val chain_direct_proof =
   in chain_proof end
 
 type isar_params =
-  bool * bool * Time.time option * real * string Symtab.table
+  bool * bool * Time.time option * bool * real * string Symtab.table
   * (string * stature) list vector * int Symtab.table * string proof * thm
 
 fun isar_proof_text ctxt isar_proofs
-    (debug, verbose, preplay_timeout, isar_compress, pool, fact_names, sym_tab,
-     atp_proof, goal)
+    (debug, verbose, preplay_timeout, preplay_trace, isar_compress, pool,
+     fact_names, sym_tab, atp_proof, goal)
     (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
@@ -792,7 +792,7 @@ fun isar_proof_text ctxt isar_proofs
                 rpair (false, (true, seconds 0.0))
               else
                 compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
-                  preplay_timeout
+                  preplay_timeout preplay_trace
                   (if isar_proofs = SOME true then isar_compress else 1000.0))
           |>> clean_up_labels_in_proof
         val isar_text =

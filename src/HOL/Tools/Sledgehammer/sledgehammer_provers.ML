@@ -40,6 +40,7 @@ sig
      minimize : bool option,
      timeout : Time.time option,
      preplay_timeout : Time.time option,
+     preplay_trace : bool,
      expect : string}
 
   type relevance_fudge =
@@ -348,6 +349,7 @@ type params =
    minimize : bool option,
    timeout : Time.time option,
    preplay_timeout : Time.time option,
+   preplay_trace : bool,
    expect : string}
 
 type relevance_fudge =
@@ -668,7 +670,7 @@ fun run_atp mode name
         (params as {debug, verbose, overlord, type_enc, strict, lam_trans,
                     uncurried_aliases, fact_filter, max_facts, max_mono_iters,
                     max_new_mono_instances, isar_proofs, isar_compress,
-                    slice, timeout, preplay_timeout, ...})
+                    slice, timeout, preplay_timeout, preplay_trace, ...})
         minimize_command
         ({state, goal, subgoal, subgoal_count, factss, ...} : prover_problem) =
   let
@@ -940,7 +942,7 @@ fun run_atp mode name
                   else
                     ()
                 val isar_params =
-                  (debug, verbose, preplay_timeout, isar_compress,
+                  (debug, verbose, preplay_timeout, preplay_trace, isar_compress,
                    pool, fact_names, sym_tab, atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,

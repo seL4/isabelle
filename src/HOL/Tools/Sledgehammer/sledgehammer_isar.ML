@@ -98,7 +98,8 @@ val default_default_params =
    ("isar_compress", "10"),
    ("slice", "true"),
    ("minimize", "smart"),
-   ("preplay_timeout", "3")]
+   ("preplay_timeout", "3"),
+   ("preplay_trace", "false")] (* TODO: document *)
 
 val alias_params =
   [("prover", ("provers", [])), (* undocumented *)
@@ -114,12 +115,14 @@ val negated_alias_params =
    ("dont_learn", "learn"),
    ("no_isar_proofs", "isar_proofs"),
    ("dont_slice", "slice"),
-   ("dont_minimize", "minimize")]
+   ("dont_minimize", "minimize"),
+   ("no_preplay_trace", "preplay_trace")] (* TODO: document *)
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_enc", "strict", "lam_trans",
    "uncurried_aliases", "max_mono_iters", "max_new_mono_instances",
    "learn", "isar_proofs", "isar_compress", "timeout", "preplay_timeout"]
+(* TODO: add preplay_trace? *)
 
 val property_dependent_params = ["provers", "timeout"]
 
@@ -308,6 +311,7 @@ fun extract_params mode default_params override_params =
     val preplay_timeout =
       if mode = Auto_Try then SOME Time.zeroTime
       else lookup_time "preplay_timeout"
+    val preplay_trace = lookup_bool "preplay_trace"
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
@@ -317,7 +321,8 @@ fun extract_params mode default_params override_params =
      fact_thresholds = fact_thresholds, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, isar_proofs = isar_proofs,
      isar_compress = isar_compress, slice = slice, minimize = minimize,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+     timeout = timeout, preplay_timeout = preplay_timeout,
+     preplay_trace = preplay_trace, expect = expect}
   end
 
 fun get_params mode = extract_params mode o default_raw_params

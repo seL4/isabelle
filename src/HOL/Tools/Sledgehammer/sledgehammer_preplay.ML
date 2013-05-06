@@ -13,9 +13,9 @@ sig
   val some_preplay_time : preplay_time
   val add_preplay_time : preplay_time -> preplay_time -> preplay_time
   val string_of_preplay_time : preplay_time -> string
-  val try_metis : bool -> string -> string -> Proof.context ->
+  val try_metis : bool -> bool -> string -> string -> Proof.context ->
     Time.time -> isar_step -> unit -> preplay_time
-  val try_metis_quietly : bool -> string -> string -> Proof.context ->
+  val try_metis_quietly : bool -> bool -> string -> string -> Proof.context ->
     Time.time -> isar_step -> unit -> preplay_time
 end
 
@@ -38,6 +38,24 @@ fun add_preplay_time (b1, t1) (b2, t2) = (b1 orelse b2, Time.+(t1,t2))
 
 val string_of_preplay_time = ATP_Util.string_from_ext_time
 
+(* preplay tracing *)
+fun preplay_trace ctxt assms concl time =
+  let
+    val ctxt = ctxt |> Config.put show_markup true
+    val time = "[" ^ (string_of_preplay_time time) ^ "]" |> Pretty.str
+    val nr_of_assms = length assms
+    val assms = assms |> map (Display.pretty_thm ctxt)
+                      |> (fn [] => Pretty.str ""
+                           | [a] => a
+                           | assms => Pretty.enum ";" "⟦" "⟧" assms)
+    val concl = concl |> Syntax.pretty_term ctxt
+    val trace_list = [] |> cons concl
+                        |> nr_of_assms>0 ? cons (Pretty.str "⟹")
+                        |> cons assms
+                        |> cons time
+    val pretty_trace = Pretty.blk(2, Pretty.breaks trace_list)
+  in tracing (Pretty.string_of pretty_trace) end
+
 (* timing *)
 fun take_time timeout tac arg =
   let
@@ -56,9 +74,9 @@ fun resolve_fact_names ctxt names =
     |> maps (thms_of_name ctxt))
   handle ERROR msg => error ("preplay error: " ^ msg)
 
-(* *)
+(* turn terms/proofs into theorems *)
 fun thm_of_term ctxt = Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-fun fact_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
+fun thm_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   let
     val concl = (case try List.last steps of
                   SOME (Prove (_, _, t, _)) => t
@@ -74,9 +92,9 @@ fun fact_of_proof ctxt (Proof (Fix fixed_frees, Assume assms, steps)) =
   end
 
 exception ZEROTIME
-fun try_metis debug type_enc lam_trans ctxt timeout step =
+fun try_metis debug trace type_enc lam_trans ctxt timeout step =
   let
-    val (t, subproofs, fact_names, obtain) =
+    val (prop, subproofs, fact_names, obtain) =
       (case step of
         Prove (_, _, t, By_Metis (subproofs, fact_names)) =>
             (t, subproofs, fact_names, false)
@@ -100,22 +118,30 @@ fun try_metis debug type_enc lam_trans ctxt timeout step =
         end
       | _ => raise ZEROTIME)
     val facts =
-      map (fact_of_proof ctxt) subproofs @
-      resolve_fact_names ctxt fact_names
+      map (thm_of_proof ctxt) subproofs @ resolve_fact_names ctxt fact_names
     val ctxt = ctxt |> Config.put Metis_Tactic.verbose debug
                     |> obtain ? Config.put Metis_Tactic.new_skolem true
     val goal =
-      Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] t
+      Goal.prove (Config.put Metis_Tactic.verbose debug ctxt) [] [] prop
     fun tac {context = ctxt, prems = _} =
       Metis_Tactic.metis_tac [type_enc] lam_trans ctxt facts 1
+    fun run_tac () = goal tac
+      handle ERROR msg => error ("preplay error: " ^ msg)
   in
-    take_time timeout
-      (fn () => goal tac handle ERROR msg => error ("preplay error: " ^ msg))
+    fn () =>
+      let
+        val preplay_time = take_time timeout run_tac ()
+        (* tracing *)
+        val _ = if trace then preplay_trace ctxt facts prop preplay_time else ()
+      in
+        preplay_time
+      end
   end
   handle ZEROTIME => K zero_preplay_time
 
 (* this version treats exceptions like timeouts *)
-fun try_metis_quietly debug type_enc lam_trans ctxt timeout =
-   the_default (true, timeout) oo try o try_metis debug type_enc lam_trans ctxt timeout
+fun try_metis_quietly debug trace type_enc lam_trans ctxt timeout =
+  the_default (true, timeout) oo try
+  o try_metis debug trace type_enc lam_trans ctxt timeout
 
 end
