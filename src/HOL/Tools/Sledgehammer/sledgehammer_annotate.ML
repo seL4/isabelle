@@ -134,8 +134,8 @@ fun introduce_annotations ctxt spots t t' =
         if p <> cp then
           (env, cp + 1, ps, annots)
         else
-          let val (_, (env', T')) = get_annot env T in
-            (env', cp + 1, ps', (p, T') :: annots)
+          let val (annot_necessary, (env', T')) = get_annot env T in
+            (env', cp + 1, ps', annots |> annot_necessary ? cons (p, T'))
           end
       | post1 _ _ accum = accum
     val (_, _, _, annots) = post_fold_term_type post1 (env, 0, spots, []) t'

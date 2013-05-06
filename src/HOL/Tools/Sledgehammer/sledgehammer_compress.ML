@@ -170,6 +170,7 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
         if Inttab.is_empty cand_tab
           orelse n_metis' <= target_n_metis
           orelse (on_top_level andalso n'<3)
+          orelse metis_fail()
         then
           (Vector.foldr
              (fn (NONE, steps) => steps | (SOME s, steps) => s :: steps)
@@ -187,12 +188,14 @@ fun compress_and_preplay_proof debug ctxt type_enc lam_trans preplay
               merge_steps metis_time step_vect refed_by cand_tab n' n_metis'
             | (s, metis_time) =>
             let
-              val refs = refs s1
+              val refs_s1 = refs s1
               val refed_by = refed_by |> fold
-                (update (Ord_List.remove int_ord i #> Ord_List.insert int_ord j)) refs
+                (update (Ord_List.remove int_ord i #> Ord_List.insert int_ord j))
+                refs_s1
+              val shared_refs = Ord_List.inter int_ord refs_s1 (refs s2)
               val new_candidates =
                 fold (add_if_cand step_vect)
-                  (map (fn i => (i, get i refed_by)) refs) []
+                  (map (fn i => (i, get i refed_by)) shared_refs) []
               val cand_tab = add_list cand_tab new_candidates
               val step_vect = step_vect |> replace NONE i |> replace s j
             in
