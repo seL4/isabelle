@@ -250,7 +250,10 @@ by transfer (simp add: uminus_rep_def)
 
 instantiation ivl :: minus
 begin
-definition minus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" where "(iv1::ivl) - iv2 = iv1 + -iv2"
+
+definition minus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl" where
+"(iv1::ivl) - iv2 = iv1 + -iv2"
+
 instance ..
 end
 
@@ -258,25 +261,40 @@ end
 definition filter_plus_ivl :: "ivl \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl*ivl" where
 "filter_plus_ivl iv iv1 iv2 = (iv1 \<sqinter> (iv - iv2), iv2 \<sqinter> (iv - iv1))"
 
-definition filter_less_rep :: "bool \<Rightarrow> eint2 \<Rightarrow> eint2 \<Rightarrow> eint2 * eint2" where
-"filter_less_rep res p1 p2 =
-  (if is_empty_rep p1 \<or> is_empty_rep p2 then (empty_rep,empty_rep) else
-   let (l1,h1) = p1; (l2,h2) = p2 in
-   if res
-   then ((l1, min h1 (h2 + Fin -1)), (max (l1 + Fin 1) l2, h2))
-   else ((max l1 l2, h1), (l2, min h1 h2)))"
+definition above_rep :: "eint2 \<Rightarrow> eint2" where
+"above_rep p = (if is_empty_rep p then empty_rep else let (l,h) = p in (l,\<infinity>))"
 
-lift_definition filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" is filter_less_rep
-by(auto simp: prod_pred_def filter_less_rep_def eq_ivl_iff)
-declare filter_less_ivl.abs_eq[code] (* bug in lifting *)
+definition below_rep :: "eint2 \<Rightarrow> eint2" where
+"below_rep p = (if is_empty_rep p then empty_rep else let (l,h) = p in (-\<infinity>,h))"
 
-lemma filter_less_ivl_nice: "filter_less_ivl b [l1\<dots>h1] [l2\<dots>h2] =
-  (if [l1\<dots>h1] = \<bottom> \<or> [l2\<dots>h2] = \<bottom> then (\<bottom>,\<bottom>) else
-   if b
-   then ([l1 \<dots> min h1 (h2 + Fin -1)], [max (l1 + Fin 1) l2 \<dots> h2])
-   else ([max l1 l2 \<dots> h1], [l2 \<dots> min h1 h2]))"
-unfolding prod_rel_eq[symmetric] bot_ivl_def
-by transfer (auto simp: filter_less_rep_def eq_ivl_empty)
+lift_definition above :: "ivl \<Rightarrow> ivl" is above_rep
+by(auto simp: above_rep_def eq_ivl_iff)
+
+lift_definition below :: "ivl \<Rightarrow> ivl" is below_rep
+by(auto simp: below_rep_def eq_ivl_iff)
+
+lemma \<gamma>_aboveI: "i \<in> \<gamma>_ivl iv \<Longrightarrow> i \<le> j \<Longrightarrow> j \<in> \<gamma>_ivl(above iv)"
+by transfer 
+   (auto simp add: above_rep_def \<gamma>_rep_cases is_empty_rep_def
+         split: extended.splits)
+
+lemma \<gamma>_belowI: "i : \<gamma>_ivl iv \<Longrightarrow> j \<le> i \<Longrightarrow> j : \<gamma>_ivl(below iv)"
+by transfer 
+   (auto simp add: below_rep_def \<gamma>_rep_cases is_empty_rep_def
+         split: extended.splits)
+
+definition filter_less_ivl :: "bool \<Rightarrow> ivl \<Rightarrow> ivl \<Rightarrow> ivl * ivl" where
+"filter_less_ivl res iv1 iv2 =
+  (if res
+   then (iv1 \<sqinter> (below iv2 - [Fin 1\<dots>Fin 1]),
+         iv2 \<sqinter> (above iv1 + [Fin 1\<dots>Fin 1]))
+   else (iv1 \<sqinter> above iv2, iv2 \<sqinter> below iv1))"
+
+lemma above_nice: "above[l\<dots>h] = (if [l\<dots>h] = \<bottom> then \<bottom> else [l\<dots>\<infinity>])"
+unfolding bot_ivl_def by transfer (simp add: above_rep_def eq_ivl_empty)
+
+lemma below_nice: "below[l\<dots>h] = (if [l\<dots>h] = \<bottom> then \<bottom> else [-\<infinity>\<dots>h])"
+unfolding bot_ivl_def by transfer (simp add: below_rep_def eq_ivl_empty)
 
 lemma add_mono_le_Fin:
   "\<lbrakk>x1 \<le> Fin y1; x2 \<le> Fin y2\<rbrakk> \<Longrightarrow> x1 + x2 \<le> Fin (y1 + (y2::'a::ordered_ab_group_add))"
@@ -285,10 +303,6 @@ by(drule (1) add_mono) simp
 lemma add_mono_Fin_le:
   "\<lbrakk>Fin y1 \<le> x1; Fin y2 \<le> x2\<rbrakk> \<Longrightarrow> Fin(y1 + y2::'a::ordered_ab_group_add) \<le> x1 + x2"
 by(drule (1) add_mono) simp
-
-lemma plus_rep_plus:
-  "\<lbrakk> i1 \<in> \<gamma>_rep (l1,h1); i2 \<in> \<gamma>_rep (l2, h2)\<rbrakk> \<Longrightarrow> i1 + i2 \<in> \<gamma>_rep (l1 + l2, h1 + h2)"
-by(simp add: \<gamma>_rep_def add_mono_Fin_le add_mono_le_Fin)
 
 interpretation Val_abs
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
@@ -323,16 +337,18 @@ proof
   case goal1 thus ?case by transfer (auto simp: \<gamma>_rep_def)
 next
   case goal2 thus ?case
-    unfolding filter_plus_ivl_def minus_ivl_def prod_rel_eq[symmetric]
+    unfolding filter_plus_ivl_def minus_ivl_def
     apply(clarsimp simp add: \<gamma>_inf)
     using gamma_plus'[of "i1+i2" _ "-i1"] gamma_plus'[of "i1+i2" _ "-i2"]
     by(simp add:  \<gamma>_uminus)
 next
   case goal3 thus ?case
-    unfolding prod_rel_eq[symmetric]
-    apply transfer
-    apply (auto simp add: filter_less_rep_def eq_ivl_iff max_def min_def split: if_splits)
-    apply(auto simp: \<gamma>_rep_cases is_empty_rep_def split: extended.splits)
+    unfolding filter_less_ivl_def minus_ivl_def
+    apply(clarsimp simp add: \<gamma>_inf split: if_splits)
+    using gamma_plus'[of "i1+1" _ "-1"] gamma_plus'[of "i2 - 1" _ "1"]
+    apply(simp add: \<gamma>_belowI[of i2] \<gamma>_aboveI[of i1]
+      uminus_ivl.abs_eq uminus_rep_def \<gamma>_ivl_nice)
+    apply(simp add: \<gamma>_aboveI[of i2] \<gamma>_belowI[of i1])
     done
 qed
 
@@ -350,31 +366,40 @@ and aval_ivl' is aval''
 
 text{* Monotonicity: *}
 
-lemma mono_inf_rep: "le_rep p1 p2 \<Longrightarrow> le_rep q1 q2 \<Longrightarrow> le_rep (inf_rep p1 q1) (inf_rep p2 q2)"
-by(auto simp add: le_iff_subset \<gamma>_inf_rep)
-
-lemma mono_plus_rep: "le_rep p1 p2 \<Longrightarrow> le_rep q1 q2 \<Longrightarrow> le_rep (plus_rep p1 q1) (plus_rep p2 q2)"
+lemma mono_plus_ivl: "iv1 \<le> iv2 \<Longrightarrow> iv3 \<le> iv4 \<Longrightarrow> iv1+iv3 \<le> iv2+(iv4::ivl)"
+apply transfer
 apply(auto simp: plus_rep_def le_iff_subset split: if_splits)
 by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
 
-lemma mono_minus_rep: "le_rep p1 p2 \<Longrightarrow> le_rep (uminus_rep p1) (uminus_rep p2)"
+lemma mono_minus_ivl: "iv1 \<le> iv2 \<Longrightarrow> -iv1 \<le> -(iv2::ivl)"
+apply transfer
 apply(auto simp: uminus_rep_def le_iff_subset split: if_splits prod.split)
 by(auto simp: \<gamma>_rep_cases split: extended.splits)
+
+lemma mono_above: "iv1 \<le> iv2 \<Longrightarrow> above iv1 \<le> above iv2"
+apply transfer
+apply(auto simp: above_rep_def le_iff_subset split: if_splits prod.split)
+by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
+
+lemma mono_below: "iv1 \<le> iv2 \<Longrightarrow> below iv1 \<le> below iv2"
+apply transfer
+apply(auto simp: below_rep_def le_iff_subset split: if_splits prod.split)
+by(auto simp: is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
 
 interpretation Abs_Int1_mono
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
 and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
 proof
-  case goal1 thus ?case by transfer (rule mono_plus_rep)
+  case goal1 thus ?case by (rule mono_plus_ivl)
 next
-  case goal2 thus ?case unfolding filter_plus_ivl_def minus_ivl_def less_eq_prod_def
-    by transfer (auto simp: mono_inf_rep mono_plus_rep mono_minus_rep)
+  case goal2 thus ?case
+    unfolding filter_plus_ivl_def minus_ivl_def less_eq_prod_def
+    by (auto simp: le_infI1 le_infI2 mono_plus_ivl mono_minus_ivl)
 next
-  case goal3 thus ?case unfolding less_eq_prod_def
-    apply transfer
-    apply(auto simp:filter_less_rep_def le_iff_subset min_def max_def split: if_splits)
-    by(auto simp:is_empty_rep_iff \<gamma>_rep_cases split: extended.splits)
+  case goal3 thus ?case
+    unfolding less_eq_prod_def filter_less_ivl_def minus_ivl_def
+    by (auto simp: le_infI1 le_infI2 mono_plus_ivl mono_above mono_below)
 qed
 
 
