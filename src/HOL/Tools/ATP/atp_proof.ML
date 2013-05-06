@@ -215,7 +215,7 @@ type 'a proof = ('a, 'a, ('a, 'a) ho_term, 'a) formula step list
 (* Strings enclosed in single quotes (e.g., file names) *)
 val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
-  || Scan.repeat ($$ "$") -- Scan.many1 (fn s => Symbol.is_letdig s orelse s="-")
+  || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
 
 val scan_nat = Scan.repeat1 (Scan.one Symbol.is_ascii_digit) >> implode
