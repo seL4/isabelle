@@ -33,11 +33,12 @@ by transfer (simp add: \<gamma>_rep_def)
 lift_definition num_ivl :: "int \<Rightarrow> ivl" is "\<lambda>i. (Fin i, Fin i)"
 by(auto simp: eq_ivl_def)
 
-fun in_ivl_rep :: "int \<Rightarrow> eint2 \<Rightarrow> bool" where
-"in_ivl_rep k (l,h) \<longleftrightarrow> l \<le> Fin k \<and> Fin k \<le> h"
-
-lift_definition in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool" is in_ivl_rep
+lift_definition in_ivl :: "int \<Rightarrow> ivl \<Rightarrow> bool"
+  is "\<lambda>i (l,h). l \<le> Fin i \<and> Fin i \<le> h"
 by(auto simp: eq_ivl_def \<gamma>_rep_def)
+
+lemma in_ivl_nice: "in_ivl i [l\<dots>h] = (l \<le> Fin i \<and> Fin i \<le> h)"
+by transfer simp
 
 definition is_empty_rep :: "eint2 \<Rightarrow> bool" where
 "is_empty_rep p = (let (l,h) = p in l>h | l=Pinf & h=Pinf | l=Minf & h=Minf)"
