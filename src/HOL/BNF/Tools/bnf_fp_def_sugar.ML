@@ -26,6 +26,7 @@ sig
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
   val exists_subtype_in: typ list -> typ -> bool
+  val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
   val mk_un_fold_co_rec_prelims: bool -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> Proof.context ->
@@ -390,6 +391,18 @@ fun args_of (((_, args), _), _) = args;
 fun defaults_of ((_, ds), _) = ds;
 fun ctr_mixfix_of (_, mx) = mx;
 
+fun add_nesty_bnf_names Us =
+  let
+    fun add (Type (s, Ts)) ss =
+        let val (needs, ss') = fold_map add Ts ss in
+          if exists I needs then (true, insert (op =) s ss') else (false, ss')
+        end
+      | add T ss = (member (op =) Us T, ss);
+  in snd oo add end;
+
+fun nesty_bnfs ctxt ctr_Tsss Us =
+  map_filter (bnf_of ctxt) (fold (fold (fold (add_nesty_bnf_names Us))) ctr_Tsss []);
+
 fun indexify_fst xs f (x, y) = f (find_index (curry (op =) x) xs) (x, y);
 
 fun build_map lthy build_simple =
@@ -454,7 +467,7 @@ fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
     Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)
   end;
 
-fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_rec no_defs_lthy =
+fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_rec lthy0 =
   let
     val nn = length fpTs;
 
@@ -466,13 +479,14 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_r
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
-            mk_iter_body no_defs_lthy fpTs ctor_iter fss xsss);
+            mk_iter_body lthy0 fpTs ctor_iter fss xsss);
+val _ = tracing ("*** spec: " ^ Syntax.string_of_term lthy0 spec) (*###*)
       in (binding, spec) end;
 
     val binding_specs =
       map generate_iter [(foldN, ctor_fold, fold_only), (recN, ctor_rec, rec_only)];
 
-    val ((csts, defs), (lthy', lthy)) = no_defs_lthy
+    val ((csts, defs), (lthy', lthy)) = lthy0
       |> apfst split_list o fold_map (fn (b, spec) =>
         Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
         #>> apsnd snd) binding_specs
@@ -488,7 +502,7 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_r
   end;
 
 fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs As Cs dtor_unfold
-    dtor_corec no_defs_lthy =
+    dtor_corec lthy0 =
   let
     val nn = length fpTs;
 
@@ -501,13 +515,13 @@ fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs As C
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
-            mk_coiter_body no_defs_lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
+            mk_coiter_body lthy0 cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
       in (binding, spec) end;
 
     val binding_specs =
       map generate_coiter [(unfoldN, dtor_unfold, unfold_only), (corecN, dtor_corec, corec_only)];
 
-    val ((csts, defs), (lthy', lthy)) = no_defs_lthy
+    val ((csts, defs), (lthy', lthy)) = lthy0
       |> apfst split_list o fold_map (fn (b, spec) =>
         Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
         #>> apsnd snd) binding_specs
@@ -1060,20 +1074,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
 
     val timer = time (Timer.startRealTimer ());
 
-    fun add_nesty_bnf_names Us =
-      let
-        fun add (Type (s, Ts)) ss =
-            let val (needs, ss') = fold_map add Ts ss in
-              if exists I needs then (true, insert (op =) s ss') else (false, ss')
-            end
-          | add T ss = (member (op =) Us T, ss);
-      in snd oo add end;
-
-    fun nesty_bnfs Us =
-      map_filter (bnf_of lthy) (fold (fold (fold (add_nesty_bnf_names Us))) ctr_TsssXs []);
-
-    val nesting_bnfs = nesty_bnfs As;
-    val nested_bnfs = nesty_bnfs Xs;
+    val nesting_bnfs = nesty_bnfs lthy ctr_TsssXs As;
+    val nested_bnfs = nesty_bnfs lthy ctr_TsssXs Xs;
 
     val pre_map_defs = map map_def_of_bnf pre_bnfs;
     val pre_set_defss = map set_defs_of_bnf pre_bnfs;
