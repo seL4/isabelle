@@ -14,7 +14,7 @@ imports More_BNFs
 begin
 
 hide_const (open) Gr Grp collect fsts snds setl setr 
-  convol thePull pick_middle pick_middlep fstO sndO fstOp sndOp csquare inver
+  convol thePull pick_middlep fstOp sndOp csquare inver
   image2 relImage relInvImage prefCl PrefCl Succ Shift shift
 
 end

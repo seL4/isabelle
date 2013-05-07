@@ -76,9 +76,6 @@ unfolding Id_on_def by auto
 lemma image2_eqI: "\<lbrakk>b = f x; c = g x; x \<in> A\<rbrakk> \<Longrightarrow> (b, c) \<in> image2 A f g"
 unfolding image2_def by auto
 
-lemma Id_subset: "Id \<subseteq> {(a, b). P a b \<or> a = b}"
-by auto
-
 lemma eq_subset: "op = \<le> (\<lambda>a b. P a b \<or> a = b)"
 by auto
 
@@ -87,12 +84,6 @@ by auto
 
 lemma image2_Gr: "image2 A f g = (Gr A f)^-1 O (Gr A g)"
 unfolding image2_def Gr_def by auto
-
-lemma GrI: "\<lbrakk>x \<in> A; f x = fx\<rbrakk> \<Longrightarrow> (x, fx) \<in> Gr A f"
-unfolding Gr_def by simp
-
-lemma GrE: "(x, fx) \<in> Gr A f \<Longrightarrow> (x \<in> A \<Longrightarrow> f x = fx \<Longrightarrow> P) \<Longrightarrow> P"
-unfolding Gr_def by simp
 
 lemma GrD1: "(x, fx) \<in> Gr A f \<Longrightarrow> x \<in> A"
 unfolding Gr_def by simp
