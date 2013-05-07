@@ -39,7 +39,7 @@ sig
     term list list * typ list list * term list list list -> (string -> binding) -> typ list ->
     typ list -> typ list -> term -> term -> Proof.context ->
     (term * term * thm * thm) * local_theory
-  val define_unfold_corec: term list -> int list -> term list list ->
+  val define_unfold_corec: term list -> term list list ->
     (term list list * term list list list list * term list list list list)
       * (typ list * typ list list list * typ list list) ->
     (term list list * term list list list list * term list list list list)
@@ -433,11 +433,13 @@ fun mk_folds_recs lthy fpTs As Cs ns mss ctor_folds ctor_recs =
     map2 mk_terms ctor_folds ctor_recs |> split_list
   end;
 
-fun mk_preds_getterss_join c n cps sum_prod_T cqfss =
-  Term.lambda c (mk_IfN sum_prod_T cps
-    (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)));
+fun mk_preds_getterss_join c cps sum_prod_T cqfss =
+  let val n = length cqfss in
+    Term.lambda c (mk_IfN sum_prod_T cps
+      (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)))
+  end;
 
-fun mk_coiter_body lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
+fun mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
   let
     fun build_sum_inj mk_inj = build_map lthy (uncurry mk_inj o dest_sumT o snd);
 
@@ -448,7 +450,7 @@ fun mk_coiter_body lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coite
 
     val cqfsss = map3 (map3 (map3 build_dtor_coiter_arg)) f_Tsss cqssss cfssss;
   in
-    Term.list_comb (dtor_coiter, map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss)
+    Term.list_comb (dtor_coiter, map4 mk_preds_getterss_join cs cpss f_sum_prod_Ts cqfsss)
   end;
 
 fun mk_unfolds_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
@@ -461,7 +463,7 @@ fun mk_unfolds_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
 
     fun mk_term dtor_coiter ((pfss, cqssss, cfssss), (f_sum_prod_Ts, f_Tsss, _)) =
       fold_rev (fold_rev Term.lambda) pfss
-        (mk_coiter_body lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
+        (mk_coiter_body lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
 
     fun mk_terms dtor_unfold dtor_corec =
       (mk_term dtor_unfold unfold_only, mk_term dtor_corec corec_only);
@@ -502,8 +504,8 @@ fun define_fold_rec fold_only rec_only mk_binding fpTs As Cs ctor_fold ctor_rec 
     ((foldx, recx, fold_def, rec_def), lthy')
   end;
 
-fun define_unfold_corec cs ns cpss unfold_only corec_only mk_binding fpTs As Cs dtor_unfold
-    dtor_corec no_defs_lthy =
+fun define_unfold_corec cs cpss unfold_only corec_only mk_binding fpTs As Cs dtor_unfold dtor_corec
+    no_defs_lthy =
   let
     val nn = length fpTs;
 
@@ -516,8 +518,7 @@ fun define_unfold_corec cs ns cpss unfold_only corec_only mk_binding fpTs As Cs 
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
-            mk_coiter_body no_defs_lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss
-              dtor_coiter);
+            mk_coiter_body no_defs_lthy cs cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
       in (binding, spec) end;
 
     val binding_specs =
@@ -1331,7 +1332,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
         (wrap_ctrs
          #> derive_maps_sets_rels
          ##>> (if lfp then define_fold_rec fold_only rec_only
-           else define_unfold_corec cs ns cpss unfold_only corec_only)
+           else define_unfold_corec cs cpss unfold_only corec_only)
              mk_binding fpTs As Cs fp_fold fp_rec
          #> massage_res, lthy')
       end;
