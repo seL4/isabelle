@@ -35,7 +35,17 @@ sig
     int list list -> term list -> term list -> term list * term list
   val mk_unfolds_corecs: Proof.context -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> term list * term list
-
+  val define_fold_rec: term list list * typ list list * term list list list ->
+    term list list * typ list list * term list list list -> (string -> binding) -> typ list ->
+    typ list -> typ list -> term -> term -> Proof.context ->
+    (term * term * thm * thm) * local_theory
+  val define_unfold_corec: term list -> int list -> term list list ->
+    (term list list * term list list list list * term list list list list)
+      * (typ list * typ list list list * typ list list) ->
+    (term list list * term list list list list * term list list list list)
+      * (typ list * typ list list list * typ list list) ->
+    (string -> binding) -> typ list -> typ list -> typ list -> term -> term -> Proof.context ->
+    (term * term * thm * thm) * local_theory
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
@@ -459,6 +469,75 @@ fun mk_unfolds_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
     map2 mk_terms dtor_unfolds dtor_corecs |> split_list
   end;
 
+fun define_fold_rec fold_only rec_only mk_binding fpTs As Cs ctor_fold ctor_rec no_defs_lthy =
+  let
+    val kk = find_index (curry (op =) (body_type (fastype_of ctor_fold))) Cs;
+    val fpT = nth fpTs kk; (* ### can use dummyT? or steal it from ctor_fold etc? *)
+    val C = nth Cs kk;
+
+    fun generate_iter (suf, ctor_iter, (fss, f_Tss, xsss)) =
+      let
+        val res_T = fold_rev (curry (op --->)) f_Tss (fpT --> C);
+        val binding = mk_binding suf;
+        val spec =
+          mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
+            mk_iter_body no_defs_lthy fpTs ctor_iter fss xsss);
+      in (binding, spec) end;
+
+    val binding_specs =
+      map generate_iter [(foldN, ctor_fold, fold_only), (recN, ctor_rec, rec_only)];
+
+    val ((csts, defs), (lthy', lthy)) = no_defs_lthy
+      |> apfst split_list o fold_map (fn (b, spec) =>
+        Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
+        #>> apsnd snd) binding_specs
+      ||> `Local_Theory.restore;
+
+    val phi = Proof_Context.export_morphism lthy lthy';
+
+    val [fold_def, rec_def] = map (Morphism.thm phi) defs;
+
+    val [foldx, recx] = map (mk_co_iter true As Cs o Morphism.term phi) csts;
+  in
+    ((foldx, recx, fold_def, rec_def), lthy')
+  end;
+
+fun define_unfold_corec cs ns cpss unfold_only corec_only mk_binding fpTs As Cs dtor_unfold
+    dtor_corec no_defs_lthy =
+  let
+    val kk = find_index (curry (op =) (body_type (fastype_of dtor_unfold))) fpTs;
+    val fpT = nth fpTs kk; (* ### can use dummyT? or steal it from ctor_fold etc? *)
+    val C = nth Cs kk;
+
+    fun generate_coiter (suf, dtor_coiter, ((pfss, cqssss, cfssss),
+        (f_sum_prod_Ts, f_Tsss, pf_Tss))) =
+      let
+        val res_T = fold_rev (curry (op --->)) pf_Tss (C --> fpT);
+        val binding = mk_binding suf;
+        val spec =
+          mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
+            mk_coiter_body no_defs_lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss
+              dtor_coiter);
+      in (binding, spec) end;
+
+    val binding_specs =
+      map generate_coiter [(unfoldN, dtor_unfold, unfold_only), (corecN, dtor_corec, corec_only)];
+
+    val ((csts, defs), (lthy', lthy)) = no_defs_lthy
+      |> apfst split_list o fold_map (fn (b, spec) =>
+        Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
+        #>> apsnd snd) binding_specs
+      ||> `Local_Theory.restore;
+
+    val phi = Proof_Context.export_morphism lthy lthy';
+
+    val [unfold_def, corec_def] = map (Morphism.thm phi) defs;
+
+    val [unfold, corec] = map (mk_co_iter false As Cs o Morphism.term phi) csts;
+  in
+    ((unfold, corec, unfold_def, corec_def), lthy')
+  end;
+
 fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_induct ctor_fold_thms
     ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs rec_defs
     lthy =
@@ -772,7 +851,6 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
         val crgsss = map2 (map2 (map2 (intr_coiters gunfolds))) crssss cgssss;
         val cshsss = map2 (map2 (map2 (intr_coiters hcorecs))) csssss chssss;
-val _ = tracing ("*** cshsss1: " ^ PolyML.makestring cshsss) (*###*)
 
         val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss;
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss;
@@ -1115,7 +1193,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
 
         val ctrs = map (mk_ctr As) ctrs0;
 
-        fun wrap lthy =
+        fun wrap_ctrs lthy =
           let
             fun exhaust_tac {context = ctxt, prems = _} =
               let
@@ -1245,72 +1323,16 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
                lthy |> Local_Theory.notes notes |> snd)
             end;
 
-        fun define_fold_rec no_defs_lthy =
-          let
-            fun generate_iter (suf, ctor_iter, (fss, f_Tss, xsss)) =
-              let
-                val res_T = fold_rev (curry (op --->)) f_Tss (fpT --> C);
-                val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
-                val spec =
-                  mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
-                    mk_iter_body no_defs_lthy fpTs ctor_iter fss xsss);
-              in (binding, spec) end;
-
-            val binding_specs =
-              map generate_iter [(foldN, fp_fold, fold_only), (recN, fp_rec, rec_only)];
-
-            val ((csts, defs), (lthy', lthy)) = no_defs_lthy
-              |> apfst split_list o fold_map (fn (b, spec) =>
-                Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) binding_specs
-              ||> `Local_Theory.restore;
-
-            val phi = Proof_Context.export_morphism lthy lthy';
-
-            val [fold_def, rec_def] = map (Morphism.thm phi) defs;
-
-            val [foldx, recx] = map (mk_co_iter lfp As Cs o Morphism.term phi) csts;
-          in
-            ((foldx, recx, fold_def, rec_def), lthy')
-          end;
-
-        fun define_unfold_corec no_defs_lthy =
-          let
-            fun generate_coiter (suf, dtor_coiter, ((pfss, cqssss, cfssss),
-                (f_sum_prod_Ts, f_Tsss, pf_Tss))) =
-              let
-                val res_T = fold_rev (curry (op --->)) pf_Tss (C --> fpT);
-                val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
-                val spec =
-                  mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
-                    mk_coiter_body no_defs_lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss
-                      dtor_coiter);
-              in (binding, spec) end;
-
-            val binding_specs =
-              map generate_coiter [(unfoldN, fp_fold, unfold_only), (corecN, fp_rec, corec_only)];
-
-            val ((csts, defs), (lthy', lthy)) = no_defs_lthy
-              |> apfst split_list o fold_map (fn (b, spec) =>
-                Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) binding_specs
-              ||> `Local_Theory.restore;
-
-            val phi = Proof_Context.export_morphism lthy lthy';
-
-            val [unfold_def, corec_def] = map (Morphism.thm phi) defs;
-
-            val [unfold, corec] = map (mk_co_iter lfp As Cs o Morphism.term phi) csts;
-          in
-            ((unfold, corec, unfold_def, corec_def), lthy')
-          end;
+        fun mk_binding suf = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
 
         fun massage_res (((maps_sets_rels, ctr_sugar), co_iter_res), lthy) =
           (((maps_sets_rels, (ctrs, xss, ctr_defs, ctr_sugar)), co_iter_res), lthy);
       in
-        (wrap
+        (wrap_ctrs
          #> derive_maps_sets_rels
-         ##>> (if lfp then define_fold_rec else define_unfold_corec)
+         ##>> (if lfp then define_fold_rec fold_only rec_only
+           else define_unfold_corec cs ns cpss unfold_only corec_only)
+             mk_binding fpTs As Cs fp_fold fp_rec
          #> massage_res, lthy')
       end;
 
