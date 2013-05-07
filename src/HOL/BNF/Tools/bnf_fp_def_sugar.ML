@@ -35,17 +35,17 @@ sig
     int list list -> term list -> term list -> term list * term list
   val mk_unfolds_corecs: Proof.context -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> term list * term list
-  val define_fold_rec: term list list * typ list list * term list list list ->
-    term list list * typ list list * term list list list -> (string -> binding) -> typ list ->
+  val define_fold_rec: (term list list * typ list list * term list list list)
+      * (term list list * typ list list * term list list list) -> (string -> binding) -> typ list ->
     typ list -> typ list -> term -> term -> Proof.context ->
-    (term * term * thm * thm) * local_theory
-  val define_unfold_corec: term list -> term list list ->
-    (term list list * term list list list list * term list list list list)
-      * (typ list * typ list list list * typ list list) ->
-    (term list list * term list list list list * term list list list list)
-      * (typ list * typ list list list * typ list list) ->
-    (string -> binding) -> typ list -> typ list -> typ list -> term -> term -> Proof.context ->
-    (term * term * thm * thm) * local_theory
+    (term * term * thm * thm) * Proof.context
+  val define_unfold_corec: term list * term list list
+      * ((term list list * term list list list list * term list list list list)
+         * (typ list * typ list list list * typ list list))
+      * ((term list list * term list list list list * term list list list list)
+         * (typ list * typ list list list * typ list list)) ->
+    (string -> binding) -> 'a list -> typ list -> typ list -> term -> term -> Proof.context ->
+    (term * term * thm * thm) * Proof.context
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
     typ list -> term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
@@ -471,7 +471,7 @@ fun mk_unfolds_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
     map2 mk_terms dtor_unfolds dtor_corecs |> split_list
   end;
 
-fun define_fold_rec fold_only rec_only mk_binding fpTs As Cs ctor_fold ctor_rec no_defs_lthy =
+fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_rec no_defs_lthy =
   let
     val nn = length fpTs;
 
@@ -504,8 +504,8 @@ fun define_fold_rec fold_only rec_only mk_binding fpTs As Cs ctor_fold ctor_rec 
     ((foldx, recx, fold_def, rec_def), lthy')
   end;
 
-fun define_unfold_corec cs cpss unfold_only corec_only mk_binding fpTs As Cs dtor_unfold dtor_corec
-    no_defs_lthy =
+fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs As Cs dtor_unfold
+    dtor_corec no_defs_lthy =
   let
     val nn = length fpTs;
 
@@ -1133,7 +1133,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
     val (fp_folds, fp_fold_fun_Ts) = mk_fp_iter lfp As Cs fp_folds0;
     val (fp_recs, fp_rec_fun_Ts) = mk_fp_iter lfp As Cs fp_recs0;
 
-    val (((fold_only, rec_only), (cs, cpss, unfold_only, corec_only)), _) =
+    val ((fold_rec_arg_types, unfold_corec_args_types), _) =
       if lfp then
         mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> rpair ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))
@@ -1331,8 +1331,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       in
         (wrap_ctrs
          #> derive_maps_sets_rels
-         ##>> (if lfp then define_fold_rec fold_only rec_only
-           else define_unfold_corec cs cpss unfold_only corec_only)
+         ##>> (if lfp then define_fold_rec fold_rec_arg_types
+           else define_unfold_corec unfold_corec_args_types)
              mk_binding fpTs As Cs fp_fold fp_rec
          #> massage_res, lthy')
       end;
