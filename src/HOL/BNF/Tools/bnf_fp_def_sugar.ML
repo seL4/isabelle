@@ -25,6 +25,7 @@ sig
   val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
   val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
+  val tvar_subst: theory -> typ list -> typ list -> ((string * int) * typ) list
   val exists_subtype_in: typ list -> typ -> bool
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
@@ -165,6 +166,9 @@ val mp_conj = @{thm mp_conj};
 val simp_attrs = @{attributes [simp]};
 val code_simp_attrs = Code.add_default_eqn_attrib :: simp_attrs;
 
+fun tvar_subst thy Ts Us =
+  Vartab.fold (cons o apsnd snd) (fold (Sign.typ_match thy) (Ts ~~ Us) Vartab.empty) [];
+
 val exists_subtype_in = Term.exists_subtype o member (op =);
 
 fun resort_tfree S (TFree (s, _)) = TFree (s, S);
@@ -228,8 +232,18 @@ fun mk_co_iter lfp Ts Us t =
 
 val mk_fp_iter_fun_types = fst o split_last o binder_types o fastype_of;
 
-fun mk_fp_iter lfp As Cs =
-  map (mk_co_iter lfp As Cs) #> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)));
+fun mk_fp_iters ctxt lfp fpTs Cs fp_iters0 =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val nn = length fpTs;
+    val (fpTs0, Cs0) =
+      map ((not lfp ? swap) o dest_funT o snd o strip_typeN nn o fastype_of) fp_iters0
+      |> split_list;
+    val rho = tvar_subst thy (fpTs0 @ Cs0) (fpTs @ Cs);
+    val subst = Term.subst_TVars rho;
+  in
+    map subst fp_iters0 |> (fn ts => (ts, mk_fp_iter_fun_types (hd ts)))
+  end;
 
 fun unzip_recT fpTs T =
   let
@@ -337,8 +351,8 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
 
 fun mk_un_fold_co_rec_prelims lfp fpTs As Cs ns mss fp_folds0 fp_recs0 lthy =
   let
-    val (fp_folds, fp_fold_fun_Ts) = mk_fp_iter lfp As Cs fp_folds0;
-    val (fp_recs, fp_rec_fun_Ts) = mk_fp_iter lfp As Cs fp_recs0;
+    val (fp_folds, fp_fold_fun_Ts) = mk_fp_iters lthy lfp fpTs Cs fp_folds0;
+    val (fp_recs, fp_rec_fun_Ts) = mk_fp_iters lthy lfp fpTs Cs fp_recs0;
 
     val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
       if lfp then
@@ -553,8 +567,8 @@ fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_i
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val (_, ctor_fold_fun_Ts) = mk_fp_iter true As Cs ctor_folds0;
-    val (_, ctor_rec_fun_Ts) = mk_fp_iter true As Cs ctor_recs0;
+    val (_, ctor_fold_fun_Ts) = mk_fp_iters lthy true fpTs Cs ctor_folds0;
+    val (_, ctor_rec_fun_Ts) = mk_fp_iters lthy true fpTs Cs ctor_recs0;
 
     val (((gss, _, _), (hss, _, _)), names_lthy0) =
       mk_fold_rec_args_types fpTs Cs ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy;
@@ -708,8 +722,8 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
     val fp_b_names = map base_name_of_typ fpTs;
 
-    val (_, dtor_unfold_fun_Ts) = mk_fp_iter false As Cs dtor_unfolds0;
-    val (_, dtor_corec_fun_Ts) = mk_fp_iter false As Cs dtor_corecs0;
+    val (_, dtor_unfold_fun_Ts) = mk_fp_iters lthy false fpTs Cs dtor_unfolds0;
+    val (_, dtor_corec_fun_Ts) = mk_fp_iters lthy false fpTs Cs dtor_corecs0;
 
     val ctrss = map (map (mk_ctr As) o #ctrs) ctr_sugars;
     val discss = map (map (mk_disc_or_sel As) o #discs) ctr_sugars;
