@@ -480,7 +480,6 @@ fun define_fold_rec (fold_only, rec_only) mk_binding fpTs As Cs ctor_fold ctor_r
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
             mk_iter_body lthy0 fpTs ctor_iter fss xsss);
-val _ = tracing ("*** spec: " ^ Syntax.string_of_term lthy0 spec) (*###*)
       in (binding, spec) end;
 
     val binding_specs =
