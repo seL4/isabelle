@@ -241,10 +241,8 @@ fun unzip_recT fpTs T =
     if exists_subtype_in fpTs T then ([project_recT fst T], [project_recT snd T]) else ([T], [])
   end;
 
-val massage_rec_fun_arg_typesss = map o map o flat_rec o unzip_recT;
-
 fun mk_fold_fun_typess y_Tsss Cs = map2 (fn C => map (fn y_Ts => y_Ts ---> C)) Cs y_Tsss;
-val mk_rec_fun_typess = mk_fold_fun_typess oo massage_rec_fun_arg_typesss;
+val mk_rec_fun_typess = mk_fold_fun_typess oo map o map o flat_rec o unzip_recT;
 
 fun mk_fun_arg_typess n ms = map2 dest_tupleT ms o dest_sumTN_balanced n o domain_type;
 
