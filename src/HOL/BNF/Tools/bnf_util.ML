@@ -46,6 +46,7 @@ sig
   val fold_map9: ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> 'j -> 'k * 'j) ->
     'a list -> 'b list -> 'c list -> 'd list -> 'e list -> 'f list -> 'g list -> 'h list ->
     'i list -> 'j -> 'k list * 'j
+  val split_list4: ('a * 'b * 'c * 'd) list -> 'a list * 'b list * 'c list * 'd list
   val splice: 'a list -> 'a list -> 'a list
   val transpose: 'a list list -> 'a list list
   val unsort: ('a * 'b -> bool) -> 'b list -> 'c list -> 'a list -> 'c list
@@ -305,6 +306,11 @@ fun fold_map9 _ [] [] [] [] [] [] [] [] [] acc = ([], acc)
       val (xs, acc'') = fold_map9 f x1s x2s x3s x4s x5s x6s x7s x8s x9s acc';
     in (x :: xs, acc'') end
   | fold_map9 _ _ _ _ _ _ _ _ _ _ _ = raise ListPair.UnequalLengths;
+
+fun split_list4 [] = ([], [], [], [])
+  | split_list4 ((x1, x2, x3, x4) :: xs) =
+    let val (xs1, xs2, xs3, xs4) = split_list4 xs;
+    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
 (*stolen from ~~/src/HOL/Tools/SMT/smt_utils.ML*)
 fun certify ctxt = Thm.cterm_of (Proof_Context.theory_of ctxt);

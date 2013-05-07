@@ -27,6 +27,16 @@ sig
   val exists_subtype_in: typ list -> typ -> bool
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
   val mk_fp_iter: bool -> typ list -> typ list -> term list -> term list * typ list
+  val mk_un_fold_co_rec_prelims: bool -> typ list -> typ list -> typ list -> int list ->
+    int list list -> term list -> term list -> Proof.context ->
+    (term list * term list * ((term list list * typ list list * term list list list)
+       * (term list list * typ list list * term list list list)) option
+     * (term list * term list list
+        * ((term list list * term list list list list * term list list list list)
+           * (typ list * typ list list list * typ list list))
+        * ((term list list * term list list list list * term list list list list)
+           * (typ list * typ list list list * typ list list))) option)
+    * Proof.context
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
   val mk_iter_fun_arg_types_pairsss: typ list -> int list -> int list list -> term ->
@@ -155,11 +165,6 @@ val mp_conj = @{thm mp_conj};
 
 val simp_attrs = @{attributes [simp]};
 val code_simp_attrs = Code.add_default_eqn_attrib :: simp_attrs;
-
-fun split_list4 [] = ([], [], [], [])
-  | split_list4 ((x1, x2, x3, x4) :: xs) =
-    let val (xs1, xs2, xs3, xs4) = split_list4 xs;
-    in (x1 :: xs1, x2 :: xs2, x3 :: xs3, x4 :: xs4) end;
 
 val exists_subtype_in = Term.exists_subtype o member (op =);
 
@@ -332,6 +337,22 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
     val corec_args = mk_args sssss hssss;
   in
     ((cs, cpss, (unfold_args, unfold_types), (corec_args, corec_types)), lthy)
+  end;
+
+fun mk_un_fold_co_rec_prelims lfp fpTs As Cs ns mss fp_folds0 fp_recs0 lthy =
+  let
+    val (fp_folds, fp_fold_fun_Ts) = mk_fp_iter lfp As Cs fp_folds0;
+    val (fp_recs, fp_rec_fun_Ts) = mk_fp_iter lfp As Cs fp_recs0;
+
+    val ((fold_rec_args_types, unfold_corec_args_types), lthy') =
+      if lfp then
+        mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        |>> (rpair NONE o SOME)
+      else
+        mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        |>> (pair NONE o SOME)
+  in
+    ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy')
   end;
 
 fun mk_map live Ts Us t =
@@ -1130,16 +1151,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
     val kss = map (fn n => 1 upto n) ns;
     val mss = map (map length) ctr_Tsss;
 
-    val (fp_folds, fp_fold_fun_Ts) = mk_fp_iter lfp As Cs fp_folds0;
-    val (fp_recs, fp_rec_fun_Ts) = mk_fp_iter lfp As Cs fp_recs0;
-
-    val ((fold_rec_arg_types, unfold_corec_args_types), _) =
-      if lfp then
-        mk_fold_rec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
-        |>> rpair ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))
-      else
-        mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
-        |>> pair (([], [], []), ([], [], []));
+    val ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy) =
+      mk_un_fold_co_rec_prelims lfp fpTs As Cs ns mss fp_folds0 fp_recs0 lthy;
 
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
             fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
@@ -1331,8 +1344,8 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
       in
         (wrap_ctrs
          #> derive_maps_sets_rels
-         ##>> (if lfp then define_fold_rec fold_rec_arg_types
-           else define_unfold_corec unfold_corec_args_types)
+         ##>> (if lfp then define_fold_rec (the fold_rec_args_types)
+           else define_unfold_corec (the unfold_corec_args_types))
              mk_binding fpTs As Cs fp_fold fp_rec
          #> massage_res, lthy')
       end;
