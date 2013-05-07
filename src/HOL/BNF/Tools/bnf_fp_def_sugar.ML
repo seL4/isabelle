@@ -21,7 +21,8 @@ sig
      un_fold_thmss: thm list list,
      co_rec_thmss: thm list list};
 
-  val fp_sugar_of: local_theory -> string -> fp_sugar option
+  val morph_fp_sugar: morphism -> fp_sugar -> fp_sugar
+  val fp_sugar_of: Proof.context -> string -> fp_sugar option
 
   val exists_subtype_in: typ list -> typ -> bool
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
@@ -1255,13 +1256,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
                     mk_iter_body no_defs_lthy fpTs ctor_iter fss xsss);
               in (binding, spec) end;
 
-            val iter_infos = [(foldN, fp_fold, fold_only), (recN, fp_rec, rec_only)];
-            val (bindings, specs) = map generate_iter iter_infos |> split_list;
+            val binding_specs =
+              map generate_iter [(foldN, fp_fold, fold_only), (recN, fp_rec, rec_only)];
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
-              |> apfst split_list o fold_map2 (fn b => fn spec =>
+              |> apfst split_list o fold_map (fn (b, spec) =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) bindings specs
+                #>> apsnd snd) binding_specs
               ||> `Local_Theory.restore;
 
             val phi = Proof_Context.export_morphism lthy lthy';
@@ -1286,13 +1287,13 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
                       dtor_coiter);
               in (binding, spec) end;
 
-            val coiter_infos = [(unfoldN, fp_fold, unfold_only), (corecN, fp_rec, corec_only)];
-            val (bindings, specs) = map generate_coiter coiter_infos |> split_list;
+            val binding_specs =
+              map generate_coiter [(unfoldN, fp_fold, unfold_only), (corecN, fp_rec, corec_only)];
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
-              |> apfst split_list o fold_map2 (fn b => fn spec =>
+              |> apfst split_list o fold_map (fn (b, spec) =>
                 Specification.definition (SOME (b, NONE, NoSyn), ((Thm.def_binding b, []), spec))
-                #>> apsnd snd) bindings specs
+                #>> apsnd snd) binding_specs
               ||> `Local_Theory.restore;
 
             val phi = Proof_Context.export_morphism lthy lthy';
