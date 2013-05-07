@@ -375,7 +375,8 @@ fun mk_Freessss x Tssss = fold_map2 mk_Freesss (mk_names (length Tssss) x) Tssss
 fun mk_Frees' x Ts ctxt = mk_fresh_names ctxt (length Ts) x |>> (fn xs => `(map Free) (xs ~~ Ts));
 fun mk_Freess' x Tss = fold_map2 mk_Frees' (mk_names (length Tss) x) Tss #>> split_list;
 
-fun retype_free T (Free (s, _)) = Free (s, T);
+fun retype_free T (Free (s, _)) = Free (s, T)
+  | retype_free _ t = raise TERM ("retype_free", [t]);
 
 
 (** Types **)
