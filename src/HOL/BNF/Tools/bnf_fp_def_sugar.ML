@@ -31,6 +31,8 @@ sig
     (typ list * typ list) list list list
   val mk_fold_recs: Proof.context -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> term list * term list
+  val mk_unfold_corecs: Proof.context -> typ list -> typ list -> typ list -> int list ->
+    int list list -> term list -> term list -> term list * term list
 
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
@@ -258,7 +260,7 @@ fun mk_fold_rec_args_types fpTs Css ns mss ctor_fold_fun_Ts ctor_rec_fun_Ts lthy
     (((gss, g_Tss, ysss), (hss, h_Tss, zsss)), lthy)
   end;
 
-fun mk_unfold_corec_terms_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
+fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy =
   let
     (*avoid "'a itself" arguments in coiterators and corecursors*)
     fun repair_arity [0] = [1]
@@ -428,15 +430,37 @@ fun mk_preds_getterss_join c n cps sum_prod_T cqfss =
   Term.lambda c (mk_IfN sum_prod_T cps
     (map2 (mk_InN_balanced sum_prod_T n) (map HOLogic.mk_tuple cqfss) (1 upto n)));
 
-fun mk_coiter_body cs ns cpss f_sum_prod_Ts cqfsss dtor_coiter =
-  Term.list_comb (dtor_coiter, map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss);
+fun mk_coiter_body lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter =
+  let
+    fun build_sum_inj mk_inj = build_map lthy (uncurry mk_inj o dest_sumT o snd);
 
-(*###
-    fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
-            fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
-          pre_rel_def), fp_map_thm), fp_set_thms), fp_rel_thm), n), ks), ms), ctr_bindings),
-        ctr_mixfixes), ctr_Tss), disc_bindings), sel_bindingss), raw_sel_defaultss) no_defs_lthy =
-*)
+    fun build_dtor_coiter_arg _ [] [cf] = cf
+      | build_dtor_coiter_arg T [cq] [cf, cf'] =
+        mk_If cq (build_sum_inj Inl_const (fastype_of cf, T) $ cf)
+          (build_sum_inj Inr_const (fastype_of cf', T) $ cf')
+
+    val cqfsss = map3 (map3 (map3 build_dtor_coiter_arg)) f_Tsss cqssss cfssss;
+  in
+    Term.list_comb (dtor_coiter, map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss)
+  end;
+
+fun mk_unfold_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
+  let
+    val (_, dtor_unfold_fun_Ts) = mk_fp_iter true As Cs dtor_unfolds;
+    val (_, dtor_corec_fun_Ts) = mk_fp_iter true As Cs dtor_corecs;
+
+    val ((cs, cpss, unfold_only, corec_only), _) =
+      mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
+
+    fun mk_term dtor_coiter ((pfss, cqssss, cfssss), (f_sum_prod_Ts, f_Tsss, _)) =
+      fold_rev (fold_rev Term.lambda) pfss
+        (mk_coiter_body lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coiter);
+
+    fun mk_terms dtor_unfold dtor_corec =
+      (mk_term dtor_unfold unfold_only, mk_term dtor_corec corec_only);
+  in
+    map2 mk_terms dtor_unfolds dtor_corecs |> split_list
+  end;
 
 fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_induct ctor_fold_thms
     ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs rec_defs
@@ -625,7 +649,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
     val sel_thmsss = map #sel_thmss ctr_sugars;
 
     val ((cs, cpss, ((pgss, crssss, cgssss), _), ((phss, csssss, chssss), _)), names_lthy0) =
-      mk_unfold_corec_terms_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
+      mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_Ts lthy;
 
     val (((rs, us'), vs'), names_lthy) =
       names_lthy0
@@ -752,6 +776,7 @@ fun derive_coinduct_unfold_corec_thms_for_types pre_bnfs dtor_unfolds0 dtor_core
 
         val crgsss = map2 (map2 (map2 (intr_coiters gunfolds))) crssss cgssss;
         val cshsss = map2 (map2 (map2 (intr_coiters hcorecs))) csssss chssss;
+val _ = tracing ("*** cshsss1: " ^ PolyML.makestring cshsss) (*###*)
 
         val unfold_goalss = map8 (map4 oooo mk_goal pgss) cs cpss gunfolds ns kss ctrss mss crgsss;
         val corec_goalss = map8 (map4 oooo mk_goal phss) cs cpss hcorecs ns kss ctrss mss cshsss;
@@ -1034,14 +1059,12 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
     val (fp_folds, fp_fold_fun_Ts) = mk_fp_iter lfp As Cs fp_folds0;
     val (fp_recs, fp_rec_fun_Ts) = mk_fp_iter lfp As Cs fp_recs0;
 
-    val (((fold_only, rec_only),
-          (cs, cpss, unfold_only as ((_, crssss, cgssss), (_, g_Tsss, _)),
-           corec_only as ((_, csssss, chssss), (_, h_Tsss, _)))), _) =
+    val (((fold_only, rec_only), (cs, cpss, unfold_only, corec_only)), _) =
       if lfp then
         mk_fold_rec_args_types fpTs Css ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> rpair ([], [], (([], [], []), ([], [], [])), (([], [], []), ([], [], [])))
       else
-        mk_unfold_corec_terms_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
+        mk_unfold_corec_args_types fpTs Cs ns mss fp_fold_fun_Ts fp_rec_fun_Ts lthy
         |>> pair (([], [], []), ([], [], []));
 
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
@@ -1229,21 +1252,16 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
 
         fun define_fold_rec no_defs_lthy =
           let
-            val fpT_to_C = fpT --> C;
-
             fun generate_iter (suf, ctor_iter, (fss, f_Tss, xsss)) =
               let
-                val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
+                val res_T = fold_rev (curry (op --->)) f_Tss (fpT --> C);
                 val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
                     mk_iter_body no_defs_lthy fpTs ctor_iter fss xsss);
               in (binding, spec) end;
 
-            val iter_infos =
-              [(foldN, fp_fold, fold_only),
-               (recN, fp_rec, rec_only)];
-
+            val iter_infos = [(foldN, fp_fold, fold_only), (recN, fp_rec, rec_only)];
             val (bindings, specs) = map generate_iter iter_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
@@ -1263,32 +1281,18 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
 
         fun define_unfold_corec no_defs_lthy =
           let
-            val B_to_fpT = C --> fpT;
-
-            fun build_sum_inj mk_inj = build_map lthy (uncurry mk_inj o dest_sumT o snd);
-
-            fun build_dtor_coiter_arg _ [] [cf] = cf
-              | build_dtor_coiter_arg T [cq] [cf, cf'] =
-                mk_If cq (build_sum_inj Inl_const (fastype_of cf, T) $ cf)
-                  (build_sum_inj Inr_const (fastype_of cf', T) $ cf')
-
-            val crgsss = map3 (map3 (map3 build_dtor_coiter_arg)) g_Tsss crssss cgssss;
-            val cshsss = map3 (map3 (map3 build_dtor_coiter_arg)) h_Tsss csssss chssss;
-
-            fun generate_coiter (suf, dtor_coiter, (cqfsss, ((pfss, _, _),
-                (f_sum_prod_Ts, _, pf_Tss)))) =
+            fun generate_coiter (suf, dtor_coiter, ((pfss, cqssss, cfssss),
+                (f_sum_prod_Ts, f_Tsss, pf_Tss))) =
               let
-                val res_T = fold_rev (curry (op --->)) pf_Tss B_to_fpT;
+                val res_T = fold_rev (curry (op --->)) pf_Tss (C --> fpT);
                 val binding = qualify false fp_b_name (Binding.suffix_name ("_" ^ suf) fp_b);
                 val spec =
                   mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
-                    mk_coiter_body cs ns cpss f_sum_prod_Ts cqfsss dtor_coiter);
+                    mk_coiter_body no_defs_lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss
+                      dtor_coiter);
               in (binding, spec) end;
 
-            val coiter_infos =
-              [(unfoldN, fp_fold, (crgsss, unfold_only)),
-               (corecN, fp_rec, (cshsss, corec_only))];
-
+            val coiter_infos = [(unfoldN, fp_fold, unfold_only), (corecN, fp_rec, corec_only)];
             val (bindings, specs) = map generate_coiter coiter_infos |> split_list;
 
             val ((csts, defs), (lthy', lthy)) = no_defs_lthy
