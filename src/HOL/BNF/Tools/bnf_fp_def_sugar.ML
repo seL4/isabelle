@@ -25,13 +25,14 @@ sig
 
   val exists_subtype_in: typ list -> typ -> bool
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
+  val mk_fp_iter: bool -> typ list -> typ list -> term list -> term list * typ list
   val build_map: local_theory -> (typ * typ -> term) -> typ * typ -> term
 
   val mk_iter_fun_arg_types_pairsss: typ list -> int list -> int list list -> term ->
     (typ list * typ list) list list list
-  val mk_fold_recs: Proof.context -> typ list -> typ list -> typ list -> int list ->
+  val mk_folds_recs: Proof.context -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> term list * term list
-  val mk_unfold_corecs: Proof.context -> typ list -> typ list -> typ list -> int list ->
+  val mk_unfolds_corecs: Proof.context -> typ list -> typ list -> typ list -> int list ->
     int list list -> term list -> term list -> term list * term list
 
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
@@ -405,7 +406,7 @@ fun mk_iter_body lthy fpTs ctor_iter fss xsss =
     Term.list_comb (ctor_iter, map2 (mk_sum_caseN_balanced oo map2 mk_iter_arg) fss xsss)
   end;
 
-fun mk_fold_recs lthy fpTs As Cs ns mss ctor_folds ctor_recs =
+fun mk_folds_recs lthy fpTs As Cs ns mss ctor_folds ctor_recs =
   let
     val (_, ctor_fold_fun_Ts) = mk_fp_iter true As Cs ctor_folds;
     val (_, ctor_rec_fun_Ts) = mk_fp_iter true As Cs ctor_recs;
@@ -439,7 +440,7 @@ fun mk_coiter_body lthy cs ns cpss f_sum_prod_Ts f_Tsss cqssss cfssss dtor_coite
     Term.list_comb (dtor_coiter, map5 mk_preds_getterss_join cs ns cpss f_sum_prod_Ts cqfsss)
   end;
 
-fun mk_unfold_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
+fun mk_unfolds_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
   let
     val (_, dtor_unfold_fun_Ts) = mk_fp_iter true As Cs dtor_unfolds;
     val (_, dtor_corec_fun_Ts) = mk_fp_iter true As Cs dtor_corecs;
