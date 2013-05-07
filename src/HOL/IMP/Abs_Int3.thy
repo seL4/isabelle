@@ -271,7 +271,7 @@ end
 interpretation Abs_Int2
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
+and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
 defines AI_ivl' is AI_wn
 ..
 
@@ -551,7 +551,7 @@ by(auto simp add: m_rep_def narrow_rep_def is_empty_rep_def empty_rep_def \<gamm
 interpretation Abs_Int2_measure
 where \<gamma> = \<gamma>_ivl and num' = num_ivl and plus' = "op +"
 and test_num' = in_ivl
-and filter_plus' = filter_plus_ivl and filter_less' = filter_less_ivl
+and constrain_plus' = constrain_plus_ivl and constrain_less' = constrain_less_ivl
 and m = m_ivl and n = n_ivl and h = 3
 proof
   case goal2 thus ?case by(rule m_ivl_anti_mono)
