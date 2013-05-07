@@ -471,13 +471,13 @@ fun mk_unfolds_corecs lthy fpTs As Cs ns mss dtor_unfolds dtor_corecs =
 
 fun define_fold_rec fold_only rec_only mk_binding fpTs As Cs ctor_fold ctor_rec no_defs_lthy =
   let
-    val kk = find_index (curry (op =) (body_type (fastype_of ctor_fold))) Cs;
-    val fpT = nth fpTs kk; (* ### can use dummyT? or steal it from ctor_fold etc? *)
-    val C = nth Cs kk;
+    val nn = length fpTs;
+
+    val fpT_to_C = snd (strip_typeN nn (fastype_of ctor_fold));
 
     fun generate_iter (suf, ctor_iter, (fss, f_Tss, xsss)) =
       let
-        val res_T = fold_rev (curry (op --->)) f_Tss (fpT --> C);
+        val res_T = fold_rev (curry (op --->)) f_Tss fpT_to_C;
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc fss (Free (Binding.name_of binding, res_T)),
@@ -505,14 +505,14 @@ fun define_fold_rec fold_only rec_only mk_binding fpTs As Cs ctor_fold ctor_rec 
 fun define_unfold_corec cs ns cpss unfold_only corec_only mk_binding fpTs As Cs dtor_unfold
     dtor_corec no_defs_lthy =
   let
-    val kk = find_index (curry (op =) (body_type (fastype_of dtor_unfold))) fpTs;
-    val fpT = nth fpTs kk; (* ### can use dummyT? or steal it from ctor_fold etc? *)
-    val C = nth Cs kk;
+    val nn = length fpTs;
+
+    val C_to_fpT = snd (strip_typeN nn (fastype_of dtor_unfold));
 
     fun generate_coiter (suf, dtor_coiter, ((pfss, cqssss, cfssss),
         (f_sum_prod_Ts, f_Tsss, pf_Tss))) =
       let
-        val res_T = fold_rev (curry (op --->)) pf_Tss (C --> fpT);
+        val res_T = fold_rev (curry (op --->)) pf_Tss C_to_fpT;
         val binding = mk_binding suf;
         val spec =
           mk_Trueprop_eq (lists_bmoc pfss (Free (Binding.name_of binding, res_T)),
