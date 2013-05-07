@@ -29,8 +29,8 @@ sig
   val exists_subtype_in: typ list -> typ -> bool
   val nesty_bnfs: Proof.context -> typ list list list -> typ list -> BNF_Def.bnf list
   val indexify_fst: ''a list -> (int -> ''a * 'b -> 'c) -> ''a * 'b -> 'c
-  val mk_un_fold_co_rec_prelims: bool -> typ list -> typ list -> typ list -> int list ->
-    int list list -> term list -> term list -> Proof.context ->
+  val mk_un_fold_co_rec_prelims: bool -> typ list -> typ list -> int list -> int list list ->
+    term list -> term list -> Proof.context ->
     (term list * term list * ((term list list * typ list list * term list list list)
        * (term list list * typ list list * term list list list)) option
      * (term list * term list list
@@ -56,7 +56,7 @@ sig
     (term * term * thm * thm) * Proof.context
   val derive_induct_fold_rec_thms_for_types: BNF_Def.bnf list -> term list -> term list -> thm ->
     thm list -> thm list -> BNF_Def.bnf list -> BNF_Def.bnf list -> typ list -> typ list ->
-    typ list -> term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
+    term list list -> thm list list -> term list -> term list -> thm list -> thm list ->
     local_theory ->
     (thm * thm list * Args.src list) * (thm list list * Args.src list)
     * (thm list list * Args.src list)
@@ -349,7 +349,7 @@ fun mk_unfold_corec_args_types fpTs Cs ns mss dtor_unfold_fun_Ts dtor_corec_fun_
     ((cs, cpss, (unfold_args, unfold_types), (corec_args, corec_types)), lthy)
   end;
 
-fun mk_un_fold_co_rec_prelims lfp fpTs As Cs ns mss fp_folds0 fp_recs0 lthy =
+fun mk_un_fold_co_rec_prelims lfp fpTs Cs ns mss fp_folds0 fp_recs0 lthy =
   let
     val (fp_folds, fp_fold_fun_Ts) = mk_fp_iters lthy lfp fpTs Cs fp_folds0;
     val (fp_recs, fp_rec_fun_Ts) = mk_fp_iters lthy lfp fpTs Cs fp_recs0;
@@ -549,7 +549,7 @@ fun define_unfold_corec (cs, cpss, unfold_only, corec_only) mk_binding fpTs As C
   end;
 
 fun derive_induct_fold_rec_thms_for_types pre_bnfs ctor_folds0 ctor_recs0 ctor_induct ctor_fold_thms
-    ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs rec_defs
+    ctor_rec_thms nesting_bnfs nested_bnfs fpTs Cs ctrss ctr_defss folds recs fold_defs rec_defs
     lthy =
   let
     val ctr_Tsss = map (map (binder_types o fastype_of)) ctrss;
@@ -1128,7 +1128,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
     val mss = map (map length) ctr_Tsss;
 
     val ((fp_folds, fp_recs, fold_rec_args_types, unfold_corec_args_types), lthy) =
-      mk_un_fold_co_rec_prelims lfp fpTs As Cs ns mss fp_folds0 fp_recs0 lthy;
+      mk_un_fold_co_rec_prelims lfp fpTs Cs ns mss fp_folds0 fp_recs0 lthy;
 
     fun define_ctrs_case_for_type (((((((((((((((((((((((((fp_bnf, fp_b), fpT), C), ctor), dtor),
             fp_fold), fp_rec), ctor_dtor), dtor_ctor), ctor_inject), pre_map_def), pre_set_defs),
@@ -1344,7 +1344,7 @@ fun define_co_datatypes prepare_constraint prepare_typ prepare_term lfp construc
         val ((induct_thm, induct_thms, induct_attrs), (fold_thmss, fold_attrs),
              (rec_thmss, rec_attrs)) =
           derive_induct_fold_rec_thms_for_types pre_bnfs fp_folds0 fp_recs0 fp_induct fp_fold_thms
-            fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs As ctrss ctr_defss folds recs fold_defs
+            fp_rec_thms nesting_bnfs nested_bnfs fpTs Cs ctrss ctr_defss folds recs fold_defs
             rec_defs lthy;
 
         val induct_type_attr = Attrib.internal o K o Induct.induct_type;
