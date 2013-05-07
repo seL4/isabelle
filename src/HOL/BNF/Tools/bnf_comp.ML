@@ -648,7 +648,7 @@ fun seal_bnf (unfold_set : unfold_set) b Ds bnf lthy =
       (mk_tac (map_cong0_of_bnf bnf)) (map mk_tac (set_map_of_bnf bnf))
       (K (rtac bd_card_order 1)) (K (rtac bd_cinfinite 1)) (map mk_tac set_bds) (mk_tac in_bd)
       (mk_tac (map_wpull_of_bnf bnf))
-      (mk_tac (unfold_thms lthy [rel_def_of_bnf bnf] (rel_OO_Grp_of_bnf bnf)));
+      (mk_tac (rel_OO_Grp_of_bnf bnf));
 
     val bnf_wits = map snd (mk_wits_of_bnf (replicate nwits Ds) (replicate nwits As) bnf);
 
